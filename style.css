@@ -1,0 +1,13 @@
+/* Minimal Custom CSS - Only for things Tailwind can't handle */
+
+/* Radial gradient for photo glow effect */
+.bg-gradient-radial {
+    background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.3) 0%, transparent 60%);
+}
+
+/* Responsive adjustments for very small screens */
+@media (max-width: 480px) {
+    body {
+        padding: 0;
+    }
+}

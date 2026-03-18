@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>Thiệp Cưới Online - Văn Hùng & Thùy Hằng</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Great+Vibes&family=Inter:wght@300;400;500&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Cinzel:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              playfair: ["Playfair Display", "serif"],
+              vibes: ["Great Vibes", "cursive"],
+              cormorant: ["Cormorant Garamond", "serif"],
+              inter: ["Inter", "sans-serif"],
+              cinzel: ["Cinzel", "serif"],
+            },
+            colors: {
+              cream: {
+                50: "#fffbf7",
+                100: "#fff5f0",
+                200: "#ffe8e0",
+              },
+              "rose-pastel": {
+                100: "#f5d5d8",
+                200: "#e8b4b8",
+                300: "#d4a5a5",
+              },
+              "stone-custom": {
+                400: "#c7c2bd",
+                500: "#a8a29e",
+                600: "#78716c",
+              },
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body
+    class="bg-gradient-to-br from-cream-50 via-[#f5ebe0] to-cream-50 min-h-screen flex justify-center items-center p-0 md:py-5"
+  >
+    <!-- Mobile Wedding Invitation Card -->
+    <div
+      class="relative w-full max-w-[430px] min-h-screen md:min-h-[932px] bg-gradient-to-b from-cream-50 via-cream-200 to-cream-50 md:rounded-[40px] shadow-2xl overflow-hidden"
+    >
+      <!-- Glass Overlay Effect -->
+      <div
+        class="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/40 to-transparent pointer-events-none z-10"
+      ></div>
+
+      <!-- Main Content -->
+      <div
+        class="relative z-20 px-8 py-16 text-center flex flex-col items-center justify-center gap-8 min-h-screen md:min-h-[932px]"
+      >
+        <!-- Save The Date Title -->
+        <h1
+          class="font-playfair text-[28px] font-normal text-stone-custom-600 leading-tight"
+        >
+          Save The Date
+        </h1>
+
+        <!-- Couple Names -->
+        <div
+          class="font-vibes text-[32px] text-rose-pastel-300 leading-relaxed"
+        >
+          Văn Hùng
+          <span class="text-[38px] mx-4 text-rose-pastel-200">&</span> Thùy Hằng
+        </div>
+
+        <!-- Main Photo -->
+        <div class="relative w-[300px] h-[380px]">
+          <div
+            class="relative w-full h-full rounded-3xl overflow-hidden shadow-[0_20px_40px_rgba(212,165,165,0.15)] ring-1 ring-white/80"
+          >
+            <img
+              src="assets/images/img1.jpg"
+              alt="Wedding Photo"
+              class="w-full h-full object-cover"
+            />
+            <div
+              class="absolute inset-0 bg-gradient-radial from-white/30 via-transparent to-transparent pointer-events-none"
+            ></div>
+          </div>
+        </div>
+
+        <!-- Wedding Date Section -->
+        <div class="w-full flex flex-col gap-8">
+          <!-- Lễ Thành Hôn -->
+          <div class="flex flex-col gap-4">
+            <div
+              class="text-[10px] tracking-[3px] uppercase text-stone-custom-400 font-inter"
+            >
+              Lễ Thành Hôn
+            </div>
+            <div class="grid grid-cols-[1fr_1.5fr_1fr] gap-4 items-center">
+              <div class="flex flex-col items-center gap-2">
+                <div
+                  class="text-[11px] uppercase tracking-wider text-stone-custom-500 font-inter"
+                >
+                  Giờ
+                </div>
+                <div class="text-xl text-stone-custom-600 font-medium">
+                  11:30
+                </div>
+              </div>
+              <div
+                class="flex flex-col items-center gap-2 bg-white/50 py-4 px-4 rounded-2xl shadow-[0_4px_16px_rgba(212,165,165,0.12)]"
+              >
+                <div
+                  class="font-playfair text-[72px] font-bold text-rose-pastel-300 leading-none"
+                >
+                  20
+                </div>
+                <div class="text-lg text-stone-custom-500 font-medium">
+                  10.2024
+                </div>
+              </div>
+              <div class="flex flex-col items-center gap-2">
+                <div
+                  class="text-[11px] uppercase tracking-wider text-stone-custom-500 font-inter"
+                >
+                  Thứ
+                </div>
+                <div class="text-xl text-stone-custom-600 font-medium">
+                  Chủ nhật
+                </div>
+              </div>
+            </div>
+            <div class="font-cormorant italic text-lg text-stone-custom-500">
+              (Tức ngày 18 tháng 9 năm Giáp Thìn)
+            </div>
+          </div>
+          <!-- Quote -->
+          <div
+            class="font-cormorant text-xl italic text-stone-custom-500 leading-relaxed px-8"
+          >
+            "Một hành trình mới bắt đầu từ hôm nay"
+          </div>
+
+          <!-- Divider -->
+          <div class="flex items-center gap-4">
+            <div class="flex-1 h-px bg-rose-pastel-100"></div>
+            <i class="fas fa-heart text-rose-pastel-200 text-xs"></i>
+            <div class="flex-1 h-px bg-rose-pastel-100"></div>
+          </div>
+
+          <!-- Tiệc Mừng Lễ Thành Hôn -->
+          <div
+            class="flex flex-col gap-4 border border-rose-pastel-100 rounded-2xl px-8 py-8"
+          >
+            <div
+              class="text-[10px] tracking-[3px] uppercase text-stone-custom-400 font-inter"
+            >
+              Tiệc Mừng Lễ Thành Hôn
+            </div>
+            <div class="flex flex-col gap-2">
+              <div
+                class="font-playfair text-[28px] font-medium text-rose-pastel-300"
+              >
+                18:00 - 21.10.2024
+              </div>
+              <div
+                class="font-cormorant italic text-base text-stone-custom-500 opacity-80"
+              >
+                (Tức ngày 19 tháng 9 năm Giáp Thìn)
+              </div>
+            </div>
+            <div class="flex items-center gap-2 justify-center">
+              <i class="fas fa-map-marker-alt text-rose-pastel-200 text-sm"></i>
+              <div class="text-sm text-stone-custom-500 font-inter">
+                Tại tư gia nhà trai
+              </div>
+            </div>
+          </div>
+
+          <!-- Divider -->
+          <div class="flex items-center gap-4">
+            <div class="flex-1 h-px bg-rose-pastel-100"></div>
+            <i class="fas fa-heart text-rose-pastel-200 text-xs"></i>
+            <div class="flex-1 h-px bg-rose-pastel-100"></div>
+          </div>
+
+          <!-- Thông tin Chú Rể -->
+          <div class="flex gap-4 items-start">
+            <!-- Ảnh chú rể - bên trái 50% -->
+            <div
+              class="w-1/2 aspect-[3/4] rounded-2xl overflow-hidden shrink-0 shadow-[0_4px_12px_rgba(212,165,165,0.15)] ring-1 ring-white/80"
+            >
+              <img
+                src="assets/images/img3.jpg"
+                alt="Chú Rể"
+                class="w-full h-full object-cover"
+              />
+            </div>
+            <!-- Thông tin - bên phải -->
+            <div class="w-1/2 text-center flex flex-col gap-2">
+              <div
+                class="text-[10px] tracking-[3px] uppercase text-stone-custom-400 font-inter"
+              >
+                Nhà Trai
+              </div>
+              <div class="flex flex-col gap-1">
+                <div
+                  class="text-xs uppercase tracking-wider text-stone-custom-600 font-inter"
+                >
+                  Ông Nguyễn Văn A
+                </div>
+                <div
+                  class="text-xs uppercase tracking-wider text-stone-custom-600 font-inter"
+                >
+                  Bà Nguyễn Thị B
+                </div>
+                <div class="text-xs text-stone-custom-400 font-inter">
+                  123 Đường ABC, Quận XYZ, TP.HCM
+                </div>
+              </div>
+              <div class="my-4 flex flex-col gap-1">
+                <div
+                  class="text-[10px] tracking-[3px] uppercase text-stone-custom-400 font-inter"
+                >
+                  Chú Rể
+                </div>
+                <div
+                  class="font-cinzel text-base font-semibold text-rose-pastel-300 tracking-widest"
+                >
+                  Văn Hùng
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Thông tin Cô Dâu -->
+          <div class="flex gap-4 items-start">
+            <!-- Thông tin - bên trái -->
+            <div class="w-1/2 text-center flex flex-col gap-2">
+              <div
+                class="text-[10px] tracking-[3px] uppercase text-stone-custom-400 font-inter"
+              >
+                Nhà Gái
+              </div>
+              <div class="flex flex-col gap-1">
+                <div
+                  class="text-xs uppercase tracking-wider text-stone-custom-600 font-inter"
+                >
+                  Ông Trần Văn C
+                </div>
+                <div
+                  class="text-xs uppercase tracking-wider text-stone-custom-600 font-inter"
+                >
+                  Bà Trần Thị D
+                </div>
+                <div class="text-xs text-stone-custom-400 font-inter">
+                  456 Đường DEF, Quận UVW, TP.HCM
+                </div>
+              </div>
+              <div class="my-4 flex flex-col gap-1">
+                <div
+                  class="text-[10px] tracking-[3px] uppercase text-stone-custom-400 font-inter"
+                >
+                  Cô Dâu
+                </div>
+                <div
+                  class="font-cinzel text-base font-semibold text-rose-pastel-300 tracking-widest"
+                >
+                  Thùy Hằng
+                </div>
+              </div>
+            </div>
+            <!-- Ảnh cô dâu - bên phải 50% -->
+            <div
+              class="w-1/2 aspect-[3/4] rounded-2xl overflow-hidden shrink-0 shadow-[0_4px_12px_rgba(212,165,165,0.15)] ring-1 ring-white/80"
+            >
+              <img
+                src="assets/images/img4.jpg"
+                alt="Cô Dâu"
+                class="w-full h-full object-cover"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
