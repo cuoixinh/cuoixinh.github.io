@@ -1,13 +1,174 @@
 /* Minimal Custom CSS - Only for things Tailwind can't handle */
 
+/* The Nautigal font */
+@font-face {
+  font-family: "TheNautigal";
+  src: url("assets/fonts/TheNautigal-Regular.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+/* Katty Diona font */
+@font-face {
+  font-family: "KattyDiona";
+  src: url("assets/fonts/katty-diona.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+}
+
 /* Radial gradient for photo glow effect */
 .bg-gradient-radial {
-    background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.3) 0%, transparent 60%);
+  background: radial-gradient(
+    circle at 30% 30%,
+    rgba(255, 255, 255, 0.3) 0%,
+    transparent 60%
+  );
 }
 
 /* Responsive adjustments for very small screens */
 @media (max-width: 480px) {
-    body {
-        padding: 0;
-    }
+  body {
+    padding: 0;
+  }
+}
+
+/* Scroll Animations */
+.reveal {
+  opacity: 0;
+  transition:
+    opacity 0.6s ease,
+    transform 0.6s ease;
+}
+
+.reveal.from-bottom {
+  transform: translateY(40px);
+}
+
+.reveal.from-left {
+  transform: translateX(-40px);
+}
+
+.reveal.from-right {
+  transform: translateX(40px);
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translate(0, 0);
+}
+
+/* Attend button selected animation */
+@keyframes btnPop {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(1.06); }
+    70%  { transform: scale(0.97); }
+    100% { transform: scale(1); }
+}
+
+.btn-selected {
+    animation: btnPop 0.4s ease-out;
+}
+
+/* Idle pulse for attend buttons */
+@keyframes idlePulse {
+    0%, 100% { transform: scale(1); }
+    50%       { transform: scale(1.03); }
+}
+
+.btn-idle {
+    animation: idlePulse 2s ease-in-out infinite;
+}
+
+#btn-decline.btn-idle {
+    animation-delay: 0.5s;
+}
+
+/* Shimmer text effect */
+@keyframes shimmer {
+    0%   { background-position: -200% center; }
+    100% { background-position: 200% center; }
+}
+
+.shimmer-text {
+    background: linear-gradient(
+        90deg,
+        #a8a29e 0%,
+        #a8a29e 35%,
+        #d4a5a5 45%,
+        #f5d5d8 50%,
+        #d4a5a5 55%,
+        #a8a29e 65%,
+        #a8a29e 100%
+    );
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: shimmer 2.5s linear infinite;
+}
+
+/* Cover Screen */
+#cover-screen {
+    animation: coverFadeIn 0.8s ease-out;
+    background: linear-gradient(135deg, #fffbf7 0%, #f5ebe0 50%, #fffbf7 100%);
+}
+
+@keyframes coverFadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+#cover-screen.closing {
+    animation: coverFadeOut 0.6s ease-in forwards;
+}
+
+@keyframes coverFadeOut {
+    from { opacity: 1; transform: scale(1); }
+    to   { opacity: 0; transform: scale(1.04); }
+}
+
+/* Open button shimmer */
+.open-btn {
+    box-shadow: 0 4px 20px rgba(212,165,165,0.2);
+}
+
+.btn-shimmer {
+    position: absolute;
+    top: 0; left: -100%;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
+    animation: btnShimmer 2.5s ease-in-out infinite;
+}
+
+@keyframes btnShimmer {
+    0%   { left: -100%; }
+    50%, 100% { left: 150%; }
+}
+
+/* iOS Safe Area */
+#cover-screen > div,
+#main-card {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Dynamic viewport height - tránh bị che bởi browser navbar iOS */
+#cover-screen > div {
+    min-height: 100dvh;
+}
+
+#main-card .relative.z-20 {
+    min-height: 100dvh;
+}
+
+/* Fallback cho iOS cũ không support dvh */
+#cover-screen > div {
+    min-height: calc(var(--vh, 1vh) * 100);
+    min-height: 100dvh; /* override nếu browser support */
+}
+
+#main-card .relative.z-20 {
+    min-height: calc(var(--vh, 1vh) * 100);
+    min-height: 100dvh;
 }
