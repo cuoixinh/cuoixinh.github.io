@@ -5,83 +5,112 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Quản lý Thiệp Cưới</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ["Inter", "sans-serif"],
+            },
+            animation: {
+              "fade-in": "fadeIn 0.3s ease-out",
+            },
+            keyframes: {
+              fadeIn: {
+                "0%": { opacity: "0", transform: "translateY(10px)" },
+                "100%": { opacity: "1", transform: "translateY(0)" },
+              },
+            },
+          },
+        },
+      };
+    </script>
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <style>
-      body {
-        font-family: "Inter", sans-serif;
-      }
-      .section-title {
-        @apply text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3 mt-6;
-      }
-      input,
-      textarea,
-      select {
-        @apply w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-rose-300;
-      }
-      label {
-        @apply block text-sm font-medium text-gray-600 mb-1;
-      }
-    </style>
   </head>
-  <body class="bg-gray-50 min-h-screen">
+  <body
+    class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100"
+  >
     <!-- Header -->
-    <div class="bg-white border-b border-gray-100 px-4 py-4 sticky top-0 z-10">
-      <div class="max-w-2xl mx-auto flex items-center justify-between">
+    <div
+      class="bg-white/80 backdrop-blur-md border-b border-gray-100 px-4 py-5 sticky top-0 z-50 shadow-sm"
+    >
+      <div class="max-w-4xl mx-auto flex items-center justify-between">
         <div>
-          <h1 class="text-lg font-semibold text-gray-800">Thiệp Cưới</h1>
-          <p class="text-xs text-gray-400" id="wedding-id-label"></p>
+          <h1
+            class="text-xl font-bold bg-gradient-to-r from-rose-500 to-pink-500 bg-clip-text text-transparent"
+          >
+            💒 Thiệp Cưới Online
+          </h1>
+          <p class="text-xs text-gray-500 mt-0.5" id="wedding-id-label"></p>
         </div>
         <button
           onclick="saveAll()"
           id="save-btn"
-          class="bg-rose-400 hover:bg-rose-500 text-white px-5 py-2 rounded-xl text-sm font-medium transition-colors"
+          class="bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white px-6 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-md hover:shadow-lg"
         >
-          Lưu
+          💾 Lưu
         </button>
       </div>
     </div>
 
-    <div class="max-w-2xl mx-auto px-4 py-6 pb-24">
+    <div class="max-w-4xl mx-auto px-4 py-8 pb-24">
       <!-- Link thiệp -->
-      <div class="bg-rose-50 border border-rose-100 rounded-2xl p-4 mb-6">
-        <p
-          class="text-xs font-semibold text-rose-400 uppercase tracking-wider mb-3"
-        >
-          Link thiệp cưới
-        </p>
-        <div class="flex flex-col gap-2">
-          <div>
-            <p class="text-xs text-gray-500 mb-1">🤵 Link nhà trai (Chú Rể)</p>
+      <div
+        class="bg-white rounded-3xl shadow-md border border-gray-100 p-6 mb-6 animate-fade-in"
+      >
+        <div class="flex items-center gap-2 mb-4">
+          <span class="text-2xl">🔗</span>
+          <p class="text-sm font-bold text-gray-800 uppercase tracking-wide">
+            Link thiệp cưới của bạn
+          </p>
+        </div>
+        <div class="flex flex-col gap-4">
+          <div
+            class="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl p-4 border border-blue-100"
+          >
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-lg">🤵</span>
+              <p class="text-sm font-semibold text-gray-700">
+                Link nhà trai (Chú Rể)
+              </p>
+            </div>
             <div class="flex gap-2">
               <input
                 id="link-groom"
                 readonly
-                class="flex-1 text-xs font-mono bg-white"
+                class="flex-1 h-12 px-4 text-xs font-mono bg-white border border-gray-200 rounded-xl shadow-sm outline-none"
               />
               <button
                 onclick="copyText('link-groom')"
-                class="px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs hover:bg-gray-50"
+                class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-xl text-xs font-medium transition-colors shadow-sm"
               >
-                Copy
+                📋 Copy
               </button>
             </div>
           </div>
-          <div>
-            <p class="text-xs text-gray-500 mb-1">👰 Link nhà gái (Cô Dâu)</p>
+          <div
+            class="bg-gradient-to-br from-pink-50 to-rose-50 rounded-2xl p-4 border border-pink-100"
+          >
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-lg">👰</span>
+              <p class="text-sm font-semibold text-gray-700">
+                Link nhà gái (Cô Dâu)
+              </p>
+            </div>
             <div class="flex gap-2">
               <input
                 id="link-bride"
                 readonly
-                class="flex-1 text-xs font-mono bg-white"
+                class="flex-1 h-12 px-4 text-xs font-mono bg-white border border-gray-200 rounded-xl shadow-sm outline-none"
               />
               <button
                 onclick="copyText('link-bride')"
-                class="px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs hover:bg-gray-50"
+                class="px-4 py-2 bg-pink-500 hover:bg-pink-600 text-white rounded-xl text-xs font-medium transition-colors shadow-sm"
               >
-                Copy
+                📋 Copy
               </button>
             </div>
           </div>
@@ -89,363 +118,617 @@
       </div>
 
       <!-- Form -->
-      <form id="wedding-form" class="flex flex-col gap-4">
+      <form id="wedding-form" class="flex flex-col gap-6">
+        <!-- Hidden inputs to store uploaded image URLs -->
+        <input type="hidden" name="cover_image_url" />
+        <input type="hidden" name="groom_image_url" />
+        <input type="hidden" name="bride_image_url" />
+        <input type="hidden" name="groom_qr_url" />
+        <input type="hidden" name="bride_qr_url" />
+        <textarea name="gallery_images_raw" class="hidden"></textarea>
+
         <!-- THÔNG TIN CHUNG -->
-        <div class="bg-white rounded-2xl p-4 shadow-sm">
-          <p
-            class="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-4"
+        <div
+          class="bg-white rounded-3xl shadow-md border border-gray-100 overflow-hidden animate-fade-in"
+        >
+          <div
+            class="bg-gradient-to-r from-purple-50 to-pink-50 px-6 py-4 border-b border-gray-100"
           >
-            Thông tin chung
-          </p>
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label>Tên Chú Rể</label
-              ><input name="groom_name" placeholder="Văn Hùng" />
-            </div>
-            <div>
-              <label>Tên Cô Dâu</label
-              ><input name="bride_name" placeholder="Thùy Hằng" />
+            <div class="flex items-center gap-2">
+              <span class="text-2xl">💑</span>
+              <p
+                class="text-sm font-bold text-gray-800 uppercase tracking-wide"
+              >
+                Thông tin chung
+              </p>
             </div>
           </div>
-          <div class="mt-3">
-            <label>Câu quote (phía trên gallery)</label
-            ><textarea
-              name="story_quote"
-              rows="2"
-              placeholder="Hạnh phúc lớn nhất..."
-            ></textarea>
-          </div>
-          <div class="mt-3">
-            <label>URL ảnh chính (cover + Save The Date)</label
-            ><input name="cover_image_url" placeholder="https://..." />
-          </div>
-          <div class="mt-3">
-            <label>URL ảnh gallery (mỗi URL 1 dòng)</label
-            ><textarea
-              name="gallery_images_raw"
-              rows="4"
-              placeholder="https://url1.jpg&#10;https://url2.jpg&#10;https://url3.jpg"
-            ></textarea>
-          </div>
-          <div class="mt-3">
-            <label>URL Google Apps Script (load tên khách)</label
-            ><input
-              name="google_sheet_url"
-              placeholder="https://script.google.com/..."
-            />
+          <div class="p-6 space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2"
+                  >🤵 Tên Chú Rể</label
+                >
+                <input
+                  name="groom_name"
+                  placeholder="Nhập tên chú rể"
+                  class="w-full h-14 px-4 border border-gray-200 rounded-2xl text-[15px] text-gray-800 bg-white shadow-sm outline-none transition-all duration-300 placeholder:text-gray-400 placeholder:text-sm focus:border-rose-500 focus:ring-4 focus:ring-rose-500/15"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2"
+                  >👰 Tên Cô Dâu</label
+                >
+                <input
+                  name="bride_name"
+                  placeholder="Nhập tên cô dâu"
+                  class="w-full h-14 px-4 border border-gray-200 rounded-2xl text-[15px] text-gray-800 bg-white shadow-sm outline-none transition-all duration-300 placeholder:text-gray-400 placeholder:text-sm focus:border-rose-500 focus:ring-4 focus:ring-rose-500/15"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2"
+                >💬 Câu quote (phía trên gallery)</label
+              >
+              <textarea
+                name="story_quote"
+                rows="3"
+                placeholder="Nhập câu quote..."
+                class="w-full px-4 py-3.5 border border-gray-200 rounded-2xl text-[15px] text-gray-800 bg-white shadow-sm outline-none transition-all duration-300 placeholder:text-gray-400 placeholder:text-sm focus:border-rose-500 focus:ring-4 focus:ring-rose-500/15 resize-none"
+              ></textarea>
+            </div>
+
+            <!-- Upload ảnh cover -->
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2"
+                >📸 Ảnh chính (cover + Save The Date)</label
+              >
+              <div id="cover-container" class="w-full max-w-xs">
+                <!-- Upload button will be rendered by JS -->
+              </div>
+              <input
+                type="file"
+                id="cover-file-input"
+                accept="image/*"
+                class="hidden"
+                onchange="handleImageUpload(event, 'cover_image_url')"
+              />
+            </div>
+
+            <!-- Upload gallery -->
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2"
+                >🖼️ Ảnh gallery (tối đa 7 ảnh)</label
+              >
+              <div id="gallery-container" class="grid grid-cols-4 gap-3">
+                <!-- Upload button will be inserted here by JS -->
+              </div>
+              <input
+                type="file"
+                id="gallery-file-input"
+                accept="image/*"
+                multiple
+                class="hidden"
+                onchange="handleGalleryUpload(event)"
+              />
+            </div>
           </div>
         </div>
 
-        <!-- NHÀ TRAI -->
-        <div class="bg-white rounded-2xl p-4 shadow-sm">
-          <p
-            class="text-xs font-semibold uppercase tracking-wider text-rose-400 mb-4"
+        <!-- LỄ THÀNH HÔN (CHUNG) -->
+        <div
+          class="bg-white rounded-3xl shadow-md border border-gray-100 overflow-hidden animate-fade-in"
+        >
+          <div
+            class="bg-gradient-to-r from-amber-50 to-yellow-50 px-6 py-4 border-b border-gray-100"
           >
-            🤵 Nhà Trai
-          </p>
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label>Tên Bố</label
-              ><input name="groom_father" placeholder="Nguyễn Văn A" />
-            </div>
-            <div>
-              <label>Tên Mẹ</label
-              ><input name="groom_mother" placeholder="Nguyễn Thị B" />
+            <div class="flex items-center gap-2">
+              <span class="text-2xl">💒</span>
+              <p
+                class="text-sm font-bold text-gray-800 uppercase tracking-wide"
+              >
+                Lễ Thành Hôn
+              </p>
             </div>
           </div>
-          <div class="mt-3">
-            <label>Địa chỉ</label
-            ><input
-              name="groom_address"
-              placeholder="123 Đường ABC, Q.1, TP.HCM"
-            />
-          </div>
-          <div class="mt-3">
-            <label>URL ảnh Chú Rể</label
-            ><input name="groom_image_url" placeholder="https://..." />
-          </div>
-          <div class="grid grid-cols-2 gap-3 mt-3">
-            <div>
-              <label>Ngày lễ thành hôn</label
-              ><input name="groom_ceremony_date" type="date" />
+          <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2"
+                  >📅 Ngày</label
+                >
+                <input
+                  name="ceremony_date"
+                  type="date"
+                  class="w-full h-14 px-4 border border-gray-200 rounded-2xl text-[15px] text-gray-800 bg-white shadow-sm outline-none transition-all duration-300 focus:border-rose-500 focus:ring-4 focus:ring-rose-500/15"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2"
+                  >🕐 Giờ</label
+                >
+                <input
+                  name="ceremony_time"
+                  type="text"
+                  placeholder="HH:MM (VD: 14:30)"
+                  maxlength="5"
+                  class="w-full h-14 px-4 border border-gray-200 rounded-2xl text-[15px] text-gray-800 bg-white shadow-sm outline-none transition-all duration-300 placeholder:text-gray-400 placeholder:text-sm focus:border-rose-500 focus:ring-4 focus:ring-rose-500/15"
+                  onkeypress="return handleTimeInput(event);"
+                  onblur="validateTimeFormat(this)"
+                />
+              </div>
             </div>
-            <div>
-              <label>Giờ</label
-              ><input name="groom_ceremony_time" placeholder="11:30" />
+            <div class="mt-4">
+              <label class="block text-sm font-semibold text-gray-700 mb-2"
+                >🌙 Ngày âm lịch (để trống = tự tính)</label
+              >
+              <input
+                name="ceremony_lunar"
+                placeholder="Để trống để tự động tính"
+                class="w-full h-14 px-4 border border-gray-200 rounded-2xl text-xs text-gray-800 bg-white shadow-sm outline-none transition-all duration-300 placeholder:text-gray-400 focus:border-rose-500 focus:ring-4 focus:ring-rose-500/15"
+              />
             </div>
-          </div>
-          <div class="mt-3">
-            <label>Ngày âm lịch lễ (để trống = tự tính)</label
-            ><input
-              name="groom_ceremony_lunar"
-              placeholder="Ngày 18 tháng 9 năm Giáp Thìn"
-            />
-          </div>
-          <div class="grid grid-cols-2 gap-3 mt-3">
-            <div>
-              <label>Ngày tiệc cưới</label
-              ><input name="groom_party_date" type="date" />
-            </div>
-            <div>
-              <label>Giờ</label
-              ><input name="groom_party_time" placeholder="18:00" />
-            </div>
-          </div>
-          <div class="mt-3">
-            <label>Ngày âm lịch tiệc (để trống = tự tính)</label
-            ><input
-              name="groom_party_lunar"
-              placeholder="Ngày 19 tháng 9 năm Giáp Thìn"
-            />
-          </div>
-          <div class="mt-3">
-            <label>Địa điểm tiệc</label
-            ><input
-              name="groom_party_location"
-              placeholder="Tại tư gia nhà trai"
-            />
-          </div>
-          <div class="mt-3">
-            <label>URL Google Maps embed (iframe)</label
-            ><textarea
-              name="groom_map_embed_url"
-              rows="2"
-              placeholder="https://www.google.com/maps/embed?..."
-            ></textarea>
-          </div>
-          <div class="mt-3">
-            <label>URL Google Maps điều hướng</label
-            ><input
-              name="groom_map_link"
-              placeholder="https://maps.google.com/?q=..."
-            />
-          </div>
-          <div class="mt-3">
-            <label>Tên ngân hàng</label
-            ><input name="groom_bank_name" placeholder="VietinBank" />
-          </div>
-          <div class="grid grid-cols-2 gap-3 mt-3">
-            <div>
-              <label>Số tài khoản</label
-              ><input name="groom_bank_number" placeholder="6888469268" />
-            </div>
-            <div>
-              <label>Tên chủ TK</label
-              ><input name="groom_bank_owner" placeholder="Nguyễn Văn Hùng" />
-            </div>
-          </div>
-          <div class="mt-3">
-            <label>URL ảnh QR</label
-            ><input name="groom_qr_url" placeholder="https://..." />
           </div>
         </div>
 
-        <!-- NHÀ GÁI -->
-        <div class="bg-white rounded-2xl p-4 shadow-sm">
-          <p
-            class="text-xs font-semibold uppercase tracking-wider text-pink-400 mb-4"
+        <!-- THÔNG TIN NHÀ TRAI & NHÀ GÁI -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- NHÀ TRAI -->
+          <div
+            class="bg-white rounded-3xl shadow-md border border-gray-100 animate-fade-in"
           >
-            👰 Nhà Gái
-          </p>
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label>Tên Bố</label
-              ><input name="bride_father" placeholder="Trần Văn C" />
+            <div
+              class="bg-gradient-to-r from-blue-50 to-cyan-50 px-6 py-4 border-b border-gray-100 sticky top-[77px] z-40 rounded-t-3xl"
+            >
+              <div class="flex items-center gap-2">
+                <span class="text-2xl">🤵</span>
+                <p
+                  class="text-sm font-bold text-gray-800 uppercase tracking-wide"
+                >
+                  Nhà Trai
+                </p>
+              </div>
             </div>
-            <div>
-              <label>Tên Mẹ</label
-              ><input name="bride_mother" placeholder="Trần Thị D" />
+            <div class="p-6 space-y-6">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 mb-2"
+                    >👨 Tên Bố</label
+                  >
+                  <input
+                    name="groom_father"
+                    placeholder="Nhập tên bố chú rể"
+                    class="w-full h-14 px-4 border border-gray-200 rounded-2xl text-[15px] text-gray-800 bg-white shadow-sm outline-none transition-all duration-300 placeholder:text-gray-400 placeholder:text-sm focus:border-rose-500 focus:ring-4 focus:ring-rose-500/15"
+                  />
+                </div>
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 mb-2"
+                    >👩 Tên Mẹ</label
+                  >
+                  <input
+                    name="groom_mother"
+                    placeholder="Nhập tên mẹ chú rể"
+                    class="w-full h-14 px-4 border border-gray-200 rounded-2xl text-[15px] text-gray-800 bg-white shadow-sm outline-none transition-all duration-300 placeholder:text-gray-400 placeholder:text-sm focus:border-rose-500 focus:ring-4 focus:ring-rose-500/15"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2"
+                  >🏠 Địa chỉ</label
+                >
+                <input
+                  name="groom_address"
+                  placeholder="Nhập địa chỉ nhà trai"
+                  class="w-full h-14 px-4 border border-gray-200 rounded-2xl text-[15px] text-gray-800 bg-white shadow-sm outline-none transition-all duration-300 placeholder:text-gray-400 placeholder:text-sm focus:border-rose-500 focus:ring-4 focus:ring-rose-500/15"
+                />
+              </div>
+
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2"
+                  >📸 Ảnh Chú Rể (Mục thông tin gia đình)</label
+                >
+                <div id="groom-container" class="w-full max-w-xs">
+                  <!-- Upload button will be rendered by JS -->
+                </div>
+                <input
+                  type="file"
+                  id="groom-file-input"
+                  accept="image/*"
+                  class="hidden"
+                  onchange="handleImageUpload(event, 'groom_image_url')"
+                />
+              </div>
+
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2"
+                  >📊 URL Google Apps Script (DS khách mời nhà trai)</label
+                >
+                <input
+                  name="groom_google_sheet_url"
+                  placeholder="Nhập URL Google Apps Script..."
+                  class="w-full h-14 px-4 border border-gray-200 rounded-2xl text-xs text-gray-800 bg-white shadow-sm outline-none transition-all duration-300 placeholder:text-gray-400 focus:border-rose-500 focus:ring-4 focus:ring-rose-500/15 font-mono"
+                />
+              </div>
+
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2"
+                  >🗺️ Google Maps Embed</label
+                >
+                <textarea
+                  name="groom_map_embed_url"
+                  rows="2"
+                  placeholder="https://www.google.com/maps/embed?..."
+                  class="w-full px-4 py-3.5 border border-gray-200 rounded-2xl text-xs text-gray-800 bg-white shadow-sm outline-none transition-all duration-300 placeholder:text-gray-400 focus:border-rose-500 focus:ring-4 focus:ring-rose-500/15 resize-none font-mono"
+                ></textarea>
+              </div>
+
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2"
+                  >🧭 Google Maps Link</label
+                >
+                <input
+                  name="groom_map_link"
+                  placeholder="Nhập URL Google Maps điều hướng..."
+                  class="w-full h-14 px-4 border border-gray-200 rounded-2xl text-xs text-gray-800 bg-white shadow-sm outline-none transition-all duration-300 placeholder:text-gray-400 focus:border-rose-500 focus:ring-4 focus:ring-rose-500/15 font-mono"
+                />
+              </div>
+
+              <div class="bg-green-50 rounded-2xl p-5 border border-green-100">
+                <p class="text-sm font-semibold text-rose-800 mb-4">
+                  🎉 Tiệc Cưới
+                </p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >📅 Ngày</label
+                    >
+                    <input
+                      name="groom_party_date"
+                      type="date"
+                      class="w-full h-14 px-4 border border-gray-200 rounded-2xl text-[15px] text-gray-800 bg-white shadow-sm outline-none transition-all duration-300 focus:border-rose-500 focus:ring-4 focus:ring-rose-500/15"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >🕐 Giờ</label
+                    >
+                    <input
+                      name="groom_party_time"
+                      type="text"
+                      placeholder="HH:MM (VD: 14:30)"
+                      maxlength="5"
+                      class="w-full h-14 px-4 border border-gray-200 rounded-2xl text-[15px] text-gray-800 bg-white shadow-sm outline-none transition-all duration-300 placeholder:text-gray-400 placeholder:text-sm focus:border-rose-500 focus:ring-4 focus:ring-rose-500/15"
+                      onkeypress="return handleTimeInput(event);"
+                      onblur="validateTimeFormat(this)"
+                    />
+                  </div>
+                </div>
+                <div class="mt-4">
+                  <label class="block text-sm font-semibold text-gray-700 mb-2"
+                    >🌙 Ngày âm lịch (để trống = tự tính)</label
+                  >
+                  <input
+                    name="groom_party_lunar"
+                    placeholder="Để trống để tự động tính"
+                    class="w-full h-14 px-4 border border-gray-200 rounded-2xl text-xs text-gray-800 bg-white shadow-sm outline-none transition-all duration-300 placeholder:text-gray-400 focus:border-rose-500 focus:ring-4 focus:ring-rose-500/15"
+                  />
+                </div>
+                <div class="mt-4">
+                  <label class="block text-sm font-semibold text-gray-700 mb-2"
+                    >📍 Địa điểm tiệc</label
+                  >
+                  <input
+                    name="groom_party_location"
+                    placeholder="Nhập địa điểm tiệc"
+                    class="w-full h-14 px-4 border border-gray-200 rounded-2xl text-[15px] text-gray-800 bg-white shadow-sm outline-none transition-all duration-300 placeholder:text-gray-400 placeholder:text-sm focus:border-rose-500 focus:ring-4 focus:ring-rose-500/15"
+                  />
+                </div>
+              </div>
+
+              <div class="bg-rose-50 rounded-2xl p-5 border border-rose-100">
+                <p class="text-sm font-semibold text-green-800 mb-4">
+                  💰 Thông Tin Ngân Hàng
+                </p>
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 mb-2"
+                    >🏦 Tên ngân hàng</label
+                  >
+                  <input
+                    name="groom_bank_name"
+                    placeholder="Nhập tên ngân hàng"
+                    class="w-full h-14 px-4 border border-gray-200 rounded-2xl text-[15px] text-gray-800 bg-white shadow-sm outline-none transition-all duration-300 placeholder:text-gray-400 placeholder:text-sm focus:border-rose-500 focus:ring-4 focus:ring-rose-500/15"
+                  />
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >💳 Số tài khoản</label
+                    >
+                    <input
+                      name="groom_bank_number"
+                      placeholder="Nhập số tài khoản"
+                      class="w-full h-14 px-4 border border-gray-200 rounded-2xl text-[15px] text-gray-800 bg-white shadow-sm outline-none transition-all duration-300 placeholder:text-gray-400 placeholder:text-sm focus:border-rose-500 focus:ring-4 focus:ring-rose-500/15 font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >👤 Tên chủ TK</label
+                    >
+                    <input
+                      name="groom_bank_owner"
+                      placeholder="Nhập tên chủ tài khoản"
+                      class="w-full h-14 px-4 border border-gray-200 rounded-2xl text-[15px] text-gray-800 bg-white shadow-sm outline-none transition-all duration-300 placeholder:text-gray-400 placeholder:text-sm focus:border-rose-500 focus:ring-4 focus:ring-rose-500/15"
+                    />
+                  </div>
+                </div>
+
+                <div class="mt-4">
+                  <label class="block text-sm font-semibold text-gray-700 mb-2"
+                    >📱 Ảnh QR chuyển khoản</label
+                  >
+                  <div id="groom-qr-container" class="w-32">
+                    <!-- Upload button will be rendered by JS -->
+                  </div>
+                  <input
+                    type="file"
+                    id="groom-qr-file-input"
+                    accept="image/*"
+                    class="hidden"
+                    onchange="handleImageUpload(event, 'groom_qr_url')"
+                  />
+                </div>
+              </div>
             </div>
           </div>
-          <div class="mt-3">
-            <label>Địa chỉ</label
-            ><input
-              name="bride_address"
-              placeholder="456 Đường DEF, Q.1, TP.HCM"
-            />
-          </div>
-          <div class="mt-3">
-            <label>URL ảnh Cô Dâu</label
-            ><input name="bride_image_url" placeholder="https://..." />
-          </div>
-          <div class="grid grid-cols-2 gap-3 mt-3">
-            <div>
-              <label>Ngày lễ thành hôn</label
-              ><input name="bride_ceremony_date" type="date" />
+
+          <!-- NHÀ GÁI -->
+          <div
+            class="bg-white rounded-3xl shadow-md border border-gray-100 animate-fade-in"
+          >
+            <div
+              class="bg-gradient-to-r from-pink-50 to-rose-50 px-6 py-4 border-b border-gray-100 sticky top-[77px] z-40 rounded-t-3xl"
+            >
+              <div class="flex items-center gap-2">
+                <span class="text-2xl">👰</span>
+                <p
+                  class="text-sm font-bold text-gray-800 uppercase tracking-wide"
+                >
+                  Nhà Gái
+                </p>
+              </div>
             </div>
-            <div>
-              <label>Giờ</label
-              ><input name="bride_ceremony_time" placeholder="11:30" />
+            <div class="p-6 space-y-6">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 mb-2"
+                    >👨 Tên Bố</label
+                  >
+                  <input
+                    name="bride_father"
+                    placeholder="Nhập tên bố cô dâu"
+                    class="w-full h-14 px-4 border border-gray-200 rounded-2xl text-[15px] text-gray-800 bg-white shadow-sm outline-none transition-all duration-300 placeholder:text-gray-400 placeholder:text-sm focus:border-rose-500 focus:ring-4 focus:ring-rose-500/15"
+                  />
+                </div>
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 mb-2"
+                    >👩 Tên Mẹ</label
+                  >
+                  <input
+                    name="bride_mother"
+                    placeholder="Nhập tên mẹ cô dâu"
+                    class="w-full h-14 px-4 border border-gray-200 rounded-2xl text-[15px] text-gray-800 bg-white shadow-sm outline-none transition-all duration-300 placeholder:text-gray-400 placeholder:text-sm focus:border-rose-500 focus:ring-4 focus:ring-rose-500/15"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2"
+                  >🏠 Địa chỉ</label
+                >
+                <input
+                  name="bride_address"
+                  placeholder="Nhập địa chỉ nhà gái"
+                  class="w-full h-14 px-4 border border-gray-200 rounded-2xl text-[15px] text-gray-800 bg-white shadow-sm outline-none transition-all duration-300 placeholder:text-gray-400 placeholder:text-sm focus:border-rose-500 focus:ring-4 focus:ring-rose-500/15"
+                />
+              </div>
+
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2"
+                  >📸 Ảnh Cô Dâu (Mục thông tin gia đình)</label
+                >
+                <div id="bride-container" class="w-full max-w-xs">
+                  <!-- Upload button will be rendered by JS -->
+                </div>
+                <input
+                  type="file"
+                  id="bride-file-input"
+                  accept="image/*"
+                  class="hidden"
+                  onchange="handleImageUpload(event, 'bride_image_url')"
+                />
+              </div>
+
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2"
+                  >📊 URL Google Apps Script (DS khách mời nhà gái)</label
+                >
+                <input
+                  name="bride_google_sheet_url"
+                  placeholder="Nhập URL Google Apps Script..."
+                  class="w-full h-14 px-4 border border-gray-200 rounded-2xl text-xs text-gray-800 bg-white shadow-sm outline-none transition-all duration-300 placeholder:text-gray-400 focus:border-rose-500 focus:ring-4 focus:ring-rose-500/15 font-mono"
+                />
+              </div>
+
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2"
+                  >🗺️ Google Maps Embed</label
+                >
+                <textarea
+                  name="bride_map_embed_url"
+                  rows="2"
+                  placeholder="https://www.google.com/maps/embed?..."
+                  class="w-full px-4 py-3.5 border border-gray-200 rounded-2xl text-xs text-gray-800 bg-white shadow-sm outline-none transition-all duration-300 placeholder:text-gray-400 focus:border-rose-500 focus:ring-4 focus:ring-rose-500/15 resize-none font-mono"
+                ></textarea>
+              </div>
+
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2"
+                  >🧭 Google Maps Link</label
+                >
+                <input
+                  name="bride_map_link"
+                  placeholder="https://maps.google.com/?q=..."
+                  class="w-full h-14 px-4 border border-gray-200 rounded-2xl text-xs text-gray-800 bg-white shadow-sm outline-none transition-all duration-300 placeholder:text-gray-400 focus:border-rose-500 focus:ring-4 focus:ring-rose-500/15 font-mono"
+                />
+              </div>
+
+              <div class="bg-green-50 rounded-2xl p-5 border border-green-100">
+                <p class="text-sm font-semibold text-rose-800 mb-4">
+                  🎉 Tiệc Cưới
+                </p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >📅 Ngày</label
+                    >
+                    <input
+                      name="bride_party_date"
+                      type="date"
+                      class="w-full h-14 px-4 border border-gray-200 rounded-2xl text-[15px] text-gray-800 bg-white shadow-sm outline-none transition-all duration-300 focus:border-rose-500 focus:ring-4 focus:ring-rose-500/15"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >🕐 Giờ</label
+                    >
+                    <input
+                      name="bride_party_time"
+                      type="text"
+                      placeholder="HH:MM (VD: 14:30)"
+                      maxlength="5"
+                      class="w-full h-14 px-4 border border-gray-200 rounded-2xl text-[15px] text-gray-800 bg-white shadow-sm outline-none transition-all duration-300 placeholder:text-gray-400 placeholder:text-sm focus:border-rose-500 focus:ring-4 focus:ring-rose-500/15"
+                      onkeypress="return handleTimeInput(event);"
+                      onblur="validateTimeFormat(this)"
+                    />
+                  </div>
+                </div>
+                <div class="mt-4">
+                  <label class="block text-sm font-semibold text-gray-700 mb-2"
+                    >🌙 Ngày âm lịch (để trống = tự tính)</label
+                  >
+                  <input
+                    name="bride_party_lunar"
+                    placeholder="Để trống để tự động tính"
+                    class="w-full h-14 px-4 border border-gray-200 rounded-2xl text-xs text-gray-800 bg-white shadow-sm outline-none transition-all duration-300 placeholder:text-gray-400 focus:border-rose-500 focus:ring-4 focus:ring-rose-500/15"
+                  />
+                </div>
+                <div class="mt-4">
+                  <label class="block text-sm font-semibold text-gray-700 mb-2"
+                    >📍 Địa điểm tiệc</label
+                  >
+                  <input
+                    name="bride_party_location"
+                    placeholder="Nhập địa điểm tiệc"
+                    class="w-full h-14 px-4 border border-gray-200 rounded-2xl text-[15px] text-gray-800 bg-white shadow-sm outline-none transition-all duration-300 placeholder:text-gray-400 placeholder:text-sm focus:border-rose-500 focus:ring-4 focus:ring-rose-500/15"
+                  />
+                </div>
+              </div>
+
+              <div class="bg-green-50 rounded-2xl p-5 border border-green-100">
+                <p class="text-sm font-semibold text-green-800 mb-4">
+                  💰 Thông Tin Ngân Hàng
+                </p>
+                <div>
+                  <label class="block text-sm font-semibold text-gray-700 mb-2"
+                    >🏦 Tên ngân hàng</label
+                  >
+                  <input
+                    name="bride_bank_name"
+                    placeholder="BIDV"
+                    class="w-full h-14 px-4 border border-gray-200 rounded-2xl text-[15px] text-gray-800 bg-white shadow-sm outline-none transition-all duration-300 placeholder:text-gray-400 placeholder:text-sm focus:border-rose-500 focus:ring-4 focus:ring-rose-500/15"
+                  />
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >💳 Số tài khoản</label
+                    >
+                    <input
+                      name="bride_bank_number"
+                      placeholder="8787867778"
+                      class="w-full h-14 px-4 border border-gray-200 rounded-2xl text-[15px] text-gray-800 bg-white shadow-sm outline-none transition-all duration-300 placeholder:text-gray-400 placeholder:text-sm focus:border-rose-500 focus:ring-4 focus:ring-rose-500/15 font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      class="block text-sm font-semibold text-gray-700 mb-2"
+                      >👤 Tên chủ TK</label
+                    >
+                    <input
+                      name="bride_bank_owner"
+                      placeholder="Trần Thùy Hằng"
+                      class="w-full h-14 px-4 border border-gray-200 rounded-2xl text-[15px] text-gray-800 bg-white shadow-sm outline-none transition-all duration-300 placeholder:text-gray-400 placeholder:text-sm focus:border-rose-500 focus:ring-4 focus:ring-rose-500/15"
+                    />
+                  </div>
+                </div>
+
+                <div class="mt-4">
+                  <label class="block text-sm font-semibold text-gray-700 mb-2"
+                    >📱 Ảnh QR chuyển khoản</label
+                  >
+                  <div id="bride-qr-container" class="w-32">
+                    <!-- Upload button will be rendered by JS -->
+                  </div>
+                  <input
+                    type="file"
+                    id="bride-qr-file-input"
+                    accept="image/*"
+                    class="hidden"
+                    onchange="handleImageUpload(event, 'bride_qr_url')"
+                  />
+                </div>
+              </div>
             </div>
-          </div>
-          <div class="mt-3">
-            <label>Ngày âm lịch lễ (để trống = tự tính)</label
-            ><input
-              name="bride_ceremony_lunar"
-              placeholder="Ngày 18 tháng 9 năm Giáp Thìn"
-            />
-          </div>
-          <div class="grid grid-cols-2 gap-3 mt-3">
-            <div>
-              <label>Ngày tiệc cưới</label
-              ><input name="bride_party_date" type="date" />
-            </div>
-            <div>
-              <label>Giờ</label
-              ><input name="bride_party_time" placeholder="18:00" />
-            </div>
-          </div>
-          <div class="mt-3">
-            <label>Ngày âm lịch tiệc (để trống = tự tính)</label
-            ><input name="bride_party_lunar" />
-          </div>
-          <div class="mt-3">
-            <label>Địa điểm tiệc</label
-            ><input
-              name="bride_party_location"
-              placeholder="Tại tư gia nhà gái"
-            />
-          </div>
-          <div class="mt-3">
-            <label>URL Google Maps embed (iframe)</label
-            ><textarea
-              name="bride_map_embed_url"
-              rows="2"
-              placeholder="https://www.google.com/maps/embed?..."
-            ></textarea>
-          </div>
-          <div class="mt-3">
-            <label>URL Google Maps điều hướng</label
-            ><input
-              name="bride_map_link"
-              placeholder="https://maps.google.com/?q=..."
-            />
-          </div>
-          <div class="mt-3">
-            <label>Tên ngân hàng</label
-            ><input name="bride_bank_name" placeholder="BIDV" />
-          </div>
-          <div class="grid grid-cols-2 gap-3 mt-3">
-            <div>
-              <label>Số tài khoản</label
-              ><input name="bride_bank_number" placeholder="8787867778" />
-            </div>
-            <div>
-              <label>Tên chủ TK</label
-              ><input name="bride_bank_owner" placeholder="Trần Thùy Hằng" />
-            </div>
-          </div>
-          <div class="mt-3">
-            <label>URL ảnh QR</label
-            ><input name="bride_qr_url" placeholder="https://..." />
           </div>
         </div>
+        <!-- END THÔNG TIN NHÀ TRAI & NHÀ GÁI -->
       </form>
 
       <!-- Toast -->
       <div
         id="toast"
-        class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-800 text-white px-5 py-3 rounded-xl text-sm opacity-0 transition-opacity duration-300 pointer-events-none"
+        class="fixed bottom-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-2xl text-sm font-medium opacity-0 transition-all duration-300 pointer-events-none shadow-2xl z-50"
       >
-        Đã lưu thành công!
+        <span id="toast-text">Đã lưu thành công!</span>
+      </div>
+
+      <!-- Loading Overlay -->
+      <div
+        id="loading-overlay"
+        class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden items-center justify-center"
+      >
+        <div class="bg-white rounded-2xl p-8 text-center shadow-2xl">
+          <div
+            class="inline-block w-12 h-12 border-4 border-rose-500 border-t-transparent rounded-full animate-spin mb-4"
+          ></div>
+          <p class="text-gray-700 font-medium" id="loading-message">
+            Đang xử lý...
+          </p>
+          <p class="text-xs text-gray-500 mt-1" id="upload-progress">0%</p>
+        </div>
       </div>
     </div>
 
-    <script>
-      const EDGE_URL =
-        "https://lcobawmkywtxhpezndsh.supabase.co/functions/v1/wedding-admin";
-      const ANON_KEY =
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxjb2Jhd21reXd0eGhwZXpuZHNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4OTA5ODMsImV4cCI6MjA5MTQ2Njk4M30.4BNmxnfixXdHOq0ovtaF_4wQZ9sap3IWbJNJK9H4Mg4";
-      const params = new URLSearchParams(window.location.search);
-      const WEDDING_ID = params.get("id");
-      const DOMAIN = window.location.origin;
-
-      // Hiển thị links
-      document.getElementById("wedding-id-label").textContent =
-        `ID: ${WEDDING_ID}`;
-      document.getElementById("link-groom").value =
-        `${DOMAIN}/index.html?id=${WEDDING_ID}&isGroom=true`;
-      document.getElementById("link-bride").value =
-        `${DOMAIN}/index.html?id=${WEDDING_ID}&isGroom=false`;
-
-      // Load data hiện tại
-      async function loadData() {
-        const res = await fetch(`${EDGE_URL}?id=${WEDDING_ID}`, {
-          headers: { Authorization: `Bearer ${ANON_KEY}` },
-        });
-        if (!res.ok) return;
-        const data = await res.json();
-        fillForm(data);
-      }
-
-      function fillForm(data) {
-        const form = document.getElementById("wedding-form");
-        Object.keys(data).forEach((key) => {
-          const el = form.querySelector(`[name="${key}"]`);
-          if (!el || data[key] == null) return;
-          if (key === "gallery_images") {
-            form.querySelector('[name="gallery_images_raw"]').value =
-              data[key].join("\n");
-          } else {
-            el.value = data[key];
-          }
-        });
-      }
-
-      async function saveAll() {
-        const btn = document.getElementById("save-btn");
-        btn.textContent = "Đang lưu...";
-        btn.disabled = true;
-
-        const form = document.getElementById("wedding-form");
-        const formData = new FormData(form);
-        const payload = { id: WEDDING_ID };
-
-        formData.forEach((value, key) => {
-          if (key === "gallery_images_raw") {
-            payload["gallery_images"] = value
-              .split("\n")
-              .map((s) => s.trim())
-              .filter(Boolean);
-          } else if (value.trim()) {
-            payload[key] = value.trim();
-          }
-        });
-
-        try {
-          const res = await fetch(`${EDGE_URL}`, {
-            method: "PATCH",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${ANON_KEY}`,
-            },
-            body: JSON.stringify(payload),
-          });
-          if (!res.ok) throw new Error("Lỗi lưu");
-          showToast("Đã lưu thành công! ✅");
-        } catch (e) {
-          showToast("Lỗi: " + e.message);
-        } finally {
-          btn.textContent = "Lưu";
-          btn.disabled = false;
-        }
-      }
-
-      function copyText(inputId) {
-        const input = document.getElementById(inputId);
-        navigator.clipboard.writeText(input.value);
-        showToast("Đã copy link!");
-      }
-
-      function showToast(msg) {
-        const toast = document.getElementById("toast");
-        toast.textContent = msg;
-        toast.style.opacity = "1";
-        setTimeout(() => (toast.style.opacity = "0"), 2500);
-      }
-
-      // Load data khi mở trang
-      if (WEDDING_ID) loadData();
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="manage-customer.js"></script>
   </body>
 </html>

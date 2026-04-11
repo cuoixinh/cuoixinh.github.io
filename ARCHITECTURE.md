@@ -27,9 +27,13 @@
 │                    Bảng: weddings                            │
 │                                                              │
 │  id, slug, is_active, contact                               │
-│  groom_* (tên, ngày, ảnh, QR, bản đồ, ngân hàng)           │
-│  bride_* (tên, ngày, ảnh, QR, bản đồ, ngân hàng)           │
-│  gallery_images[], google_sheet_url                          │
+│  groom_name, bride_name, story_quote, cover_image_url        │
+│  gallery_images[]                                            │
+│  ceremony_* (lễ thành hôn CHUNG: date, time, lunar)         │
+│  groom_* (father, mother, address, image, google_sheet,     │
+│           party, map, bank, qr)                              │
+│  bride_* (father, mother, address, image, google_sheet,     │
+│           party, map, bank, qr)                              │
 └─────────────────────────────────────────────────────────────┘
 ```
 

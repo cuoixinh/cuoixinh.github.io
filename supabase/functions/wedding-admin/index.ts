@@ -38,7 +38,7 @@ Deno.serve(async (req) => {
 
     const { data, error } = await supabase
       .from('weddings')
-      .insert({ contact, is_active: true, slug: crypto.randomUUID() })
+      .insert({ contact, is_active: true })
       .select('id')
       .single()
 
