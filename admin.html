@@ -22,7 +22,7 @@
         Nhập thông tin liên hệ để tạo thiệp mới
       </p>
 
-      <!-- Form tạo mới -->
+      <!-- Form tạo mới. -->
       <div id="create-form">
         <label class="block text-sm font-medium text-gray-700 mb-2"
           >Email hoặc Số điện thoại</label
@@ -106,6 +106,7 @@
 
       async function createWedding() {
         const contact = document.getElementById("contact-input").value.trim();
+
         if (!contact) {
           showError("Vui lòng nhập email hoặc số điện thoại");
           return;

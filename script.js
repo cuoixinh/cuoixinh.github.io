@@ -1,3 +1,75 @@
+// ============= PERSONALIZED GREETING =============
+const ENCRYPTION_KEY = "dqvinh";
+const EDGE_URL = "https://lcobawmkywtxhpezndsh.supabase.co/functions/v1/wedding-admin";
+const ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxjb2Jhd21reXd0eGhwZXpuZHNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4OTA5ODMsImV4cCI6MjA5MTQ2Njk4M30.4BNmxnfixXdHOq0ovtaF_4wQZ9sap3IWbJNJK9H4Mg4";
+
+function decryptData(encryptedText) {
+  if (!encryptedText) return '';
+  try {
+    const decoded = decodeURIComponent(encryptedText);
+    const decrypted = CryptoJS.AES.decrypt(decoded, ENCRYPTION_KEY);
+    return decrypted.toString(CryptoJS.enc.Utf8);
+  } catch (error) {
+    console.error('Decryption error:', error);
+    return '';
+  }
+}
+
+// Biến lưu thông tin markViewed để gọi khi click Mở Thiệp
+let _markViewedCallback = null;
+
+function setupPersonalizedGreeting() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const encryptedName = urlParams.get('name');
+  const encryptedRelationship = urlParams.get('relationship');
+  const weddingId = urlParams.get('id');
+  const isGroom = urlParams.get('isGroom') !== 'false';
+
+  // Hiển thị lời chào cá nhân hóa
+  if (encryptedName && encryptedRelationship) {
+    try {
+      const name = decryptData(encryptedName);
+      const relationship = decryptData(encryptedRelationship);
+
+      if (name && relationship) {
+        const coverGuestName = document.getElementById('cover-guest-name');
+        if (coverGuestName) coverGuestName.textContent = name;
+        console.log('Personalized greeting set:', relationship, name);
+      }
+    } catch (error) {
+      console.error('Error setting personalized greeting:', error);
+    }
+
+    // Chuẩn bị markViewed - chỉ gọi khi click Mở Thiệp
+    if (weddingId) {
+      fetch(`${EDGE_URL}?id=${weddingId}`, {
+        headers: { Authorization: `Bearer ${ANON_KEY}` }
+      }).then(res => res.json()).then(data => {
+        const sheetUrl = isGroom ? data.groom_google_sheet_url : data.bride_google_sheet_url;
+        if (sheetUrl) {
+          _markViewedCallback = () => {
+            fetch(sheetUrl, {
+              method: 'POST',
+              mode: 'no-cors',
+              headers: { 'Content-Type': 'text/plain' },
+              body: JSON.stringify({ action: 'markViewed', link: window.location.href })
+            });
+          };
+        }
+      }).catch(() => {});
+    }
+  }
+}
+
+// Call on page load
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', setupPersonalizedGreeting);
+} else {
+  setupPersonalizedGreeting();
+}
+
+// ============= CAROUSEL GALLERY =============
+
 const images = ['img1', 'img2', 'img3', 'img4', 'img5', 'img6', 'img7'];
 const track = document.getElementById('carousel-track');
 const dotsContainer = document.getElementById('carousel-dots');
@@ -240,6 +312,12 @@ document.getElementById('btn-decline').classList.add('btn-idle');
 
 // Cover screen
 function openInvitation() {
+    // Đánh dấu đã xem khi khách click Mở Thiệp
+    if (_markViewedCallback) {
+        _markViewedCallback();
+        _markViewedCallback = null; // Chỉ gọi 1 lần
+    }
+
     const cover = document.getElementById('cover-screen');
     const main = document.getElementById('main-card');
 

@@ -3,6 +3,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-admin-token',
+  'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE, OPTIONS',
 }
 
 Deno.serve(async (req) => {
@@ -38,7 +39,7 @@ Deno.serve(async (req) => {
 
     const { data, error } = await supabase
       .from('weddings')
-      .insert({ contact, is_active: true, slug: crypto.randomUUID() })
+      .insert({ contact, is_active: true })
       .select('id')
       .single()
 
@@ -52,7 +53,7 @@ Deno.serve(async (req) => {
   // PATCH → Cập nhật thiệp (khách dùng id, admin dùng id + token)
   if (method === 'PATCH') {
     const body = await req.json()
-    const { id, ...fields } = body
+    const { id, deleted_images, ...fields } = body
 
     if (!id) {
       return new Response(JSON.stringify({ error: 'Missing id' }), {
@@ -60,14 +61,49 @@ Deno.serve(async (req) => {
       })
     }
 
-    // Kiểm tra id tồn tại
-    const { data: existing } = await supabase
-      .from('weddings').select('id').eq('id', id).single()
+    // Kiểm tra id tồn tại và lấy data hiện tại
+    const { data: existing, error: fetchError } = await supabase
+      .from('weddings')
+      .select('cover_image_url, groom_image_url, bride_image_url, groom_qr_url, bride_qr_url, gallery_images')
+      .eq('id', id)
+      .single()
 
-    if (!existing) {
+    if (fetchError || !existing) {
       return new Response(JSON.stringify({ error: 'Wedding not found' }), {
         status: 404, headers: corsHeaders
       })
+    }
+
+    // Validate deleted_images: chỉ cho phép xóa ảnh thuộc về wedding này
+    if (deleted_images && deleted_images.length > 0) {
+      // Collect all valid filenames from this wedding
+      const validFilenames = [
+        existing.cover_image_url,
+        existing.groom_image_url,
+        existing.bride_image_url,
+        existing.groom_qr_url,
+        existing.bride_qr_url,
+        ...(existing.gallery_images || [])
+      ].filter(Boolean) // Remove null/undefined
+
+      // Filter deleted_images to only include valid filenames
+      const validDeletedImages = deleted_images.filter(filename => 
+        validFilenames.includes(filename)
+      )
+
+      if (validDeletedImages.length > 0) {
+        console.log('Deleting images from storage:', validDeletedImages)
+        const { error: deleteError } = await supabase.storage
+          .from('wedding-images')
+          .remove(validDeletedImages)
+        
+        if (deleteError) {
+          console.error('Error deleting images:', deleteError)
+          // Continue anyway, don't fail the whole request
+        }
+      } else {
+        console.log('No valid images to delete')
+      }
     }
 
     // Khách không được đổi is_active và contact
