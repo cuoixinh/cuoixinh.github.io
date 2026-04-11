@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quản lý Thiệp Cưới</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+      }
+      .section-title {
+        @apply text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3 mt-6;
+      }
+      input,
+      textarea,
+      select {
+        @apply w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-rose-300;
+      }
+      label {
+        @apply block text-sm font-medium text-gray-600 mb-1;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <div class="bg-white border-b border-gray-100 px-4 py-4 sticky top-0 z-10">
+      <div class="max-w-2xl mx-auto flex items-center justify-between">
+        <div>
+          <h1 class="text-lg font-semibold text-gray-800">Thiệp Cưới</h1>
+          <p class="text-xs text-gray-400" id="wedding-id-label"></p>
+        </div>
+        <button
+          onclick="saveAll()"
+          id="save-btn"
+          class="bg-rose-400 hover:bg-rose-500 text-white px-5 py-2 rounded-xl text-sm font-medium transition-colors"
+        >
+          Lưu
+        </button>
+      </div>
+    </div>
+
+    <div class="max-w-2xl mx-auto px-4 py-6 pb-24">
+      <!-- Link thiệp -->
+      <div class="bg-rose-50 border border-rose-100 rounded-2xl p-4 mb-6">
+        <p
+          class="text-xs font-semibold text-rose-400 uppercase tracking-wider mb-3"
+        >
+          Link thiệp cưới
+        </p>
+        <div class="flex flex-col gap-2">
+          <div>
+            <p class="text-xs text-gray-500 mb-1">🤵 Link nhà trai (Chú Rể)</p>
+            <div class="flex gap-2">
+              <input
+                id="link-groom"
+                readonly
+                class="flex-1 text-xs font-mono bg-white"
+              />
+              <button
+                onclick="copyText('link-groom')"
+                class="px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs hover:bg-gray-50"
+              >
+                Copy
+              </button>
+            </div>
+          </div>
+          <div>
+            <p class="text-xs text-gray-500 mb-1">👰 Link nhà gái (Cô Dâu)</p>
+            <div class="flex gap-2">
+              <input
+                id="link-bride"
+                readonly
+                class="flex-1 text-xs font-mono bg-white"
+              />
+              <button
+                onclick="copyText('link-bride')"
+                class="px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs hover:bg-gray-50"
+              >
+                Copy
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form -->
+      <form id="wedding-form" class="flex flex-col gap-4">
+        <!-- THÔNG TIN CHUNG -->
+        <div class="bg-white rounded-2xl p-4 shadow-sm">
+          <p
+            class="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-4"
+          >
+            Thông tin chung
+          </p>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label>Tên Chú Rể</label
+              ><input name="groom_name" placeholder="Văn Hùng" />
+            </div>
+            <div>
+              <label>Tên Cô Dâu</label
+              ><input name="bride_name" placeholder="Thùy Hằng" />
+            </div>
+          </div>
+          <div class="mt-3">
+            <label>Câu quote (phía trên gallery)</label
+            ><textarea
+              name="story_quote"
+              rows="2"
+              placeholder="Hạnh phúc lớn nhất..."
+            ></textarea>
+          </div>
+          <div class="mt-3">
+            <label>URL ảnh chính (cover + Save The Date)</label
+            ><input name="cover_image_url" placeholder="https://..." />
+          </div>
+          <div class="mt-3">
+            <label>URL ảnh gallery (mỗi URL 1 dòng)</label
+            ><textarea
+              name="gallery_images_raw"
+              rows="4"
+              placeholder="https://url1.jpg&#10;https://url2.jpg&#10;https://url3.jpg"
+            ></textarea>
+          </div>
+          <div class="mt-3">
+            <label>URL Google Apps Script (load tên khách)</label
+            ><input
+              name="google_sheet_url"
+              placeholder="https://script.google.com/..."
+            />
+          </div>
+        </div>
+
+        <!-- NHÀ TRAI -->
+        <div class="bg-white rounded-2xl p-4 shadow-sm">
+          <p
+            class="text-xs font-semibold uppercase tracking-wider text-rose-400 mb-4"
+          >
+            🤵 Nhà Trai
+          </p>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label>Tên Bố</label
+              ><input name="groom_father" placeholder="Nguyễn Văn A" />
+            </div>
+            <div>
+              <label>Tên Mẹ</label
+              ><input name="groom_mother" placeholder="Nguyễn Thị B" />
+            </div>
+          </div>
+          <div class="mt-3">
+            <label>Địa chỉ</label
+            ><input
+              name="groom_address"
+              placeholder="123 Đường ABC, Q.1, TP.HCM"
+            />
+          </div>
+          <div class="mt-3">
+            <label>URL ảnh Chú Rể</label
+            ><input name="groom_image_url" placeholder="https://..." />
+          </div>
+          <div class="grid grid-cols-2 gap-3 mt-3">
+            <div>
+              <label>Ngày lễ thành hôn</label
+              ><input name="groom_ceremony_date" type="date" />
+            </div>
+            <div>
+              <label>Giờ</label
+              ><input name="groom_ceremony_time" placeholder="11:30" />
+            </div>
+          </div>
+          <div class="mt-3">
+            <label>Ngày âm lịch lễ (để trống = tự tính)</label
+            ><input
+              name="groom_ceremony_lunar"
+              placeholder="Ngày 18 tháng 9 năm Giáp Thìn"
+            />
+          </div>
+          <div class="grid grid-cols-2 gap-3 mt-3">
+            <div>
+              <label>Ngày tiệc cưới</label
+              ><input name="groom_party_date" type="date" />
+            </div>
+            <div>
+              <label>Giờ</label
+              ><input name="groom_party_time" placeholder="18:00" />
+            </div>
+          </div>
+          <div class="mt-3">
+            <label>Ngày âm lịch tiệc (để trống = tự tính)</label
+            ><input
+              name="groom_party_lunar"
+              placeholder="Ngày 19 tháng 9 năm Giáp Thìn"
+            />
+          </div>
+          <div class="mt-3">
+            <label>Địa điểm tiệc</label
+            ><input
+              name="groom_party_location"
+              placeholder="Tại tư gia nhà trai"
+            />
+          </div>
+          <div class="mt-3">
+            <label>URL Google Maps embed (iframe)</label
+            ><textarea
+              name="groom_map_embed_url"
+              rows="2"
+              placeholder="https://www.google.com/maps/embed?..."
+            ></textarea>
+          </div>
+          <div class="mt-3">
+            <label>URL Google Maps điều hướng</label
+            ><input
+              name="groom_map_link"
+              placeholder="https://maps.google.com/?q=..."
+            />
+          </div>
+          <div class="mt-3">
+            <label>Tên ngân hàng</label
+            ><input name="groom_bank_name" placeholder="VietinBank" />
+          </div>
+          <div class="grid grid-cols-2 gap-3 mt-3">
+            <div>
+              <label>Số tài khoản</label
+              ><input name="groom_bank_number" placeholder="6888469268" />
+            </div>
+            <div>
+              <label>Tên chủ TK</label
+              ><input name="groom_bank_owner" placeholder="Nguyễn Văn Hùng" />
+            </div>
+          </div>
+          <div class="mt-3">
+            <label>URL ảnh QR</label
+            ><input name="groom_qr_url" placeholder="https://..." />
+          </div>
+        </div>
+
+        <!-- NHÀ GÁI -->
+        <div class="bg-white rounded-2xl p-4 shadow-sm">
+          <p
+            class="text-xs font-semibold uppercase tracking-wider text-pink-400 mb-4"
+          >
+            👰 Nhà Gái
+          </p>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label>Tên Bố</label
+              ><input name="bride_father" placeholder="Trần Văn C" />
+            </div>
+            <div>
+              <label>Tên Mẹ</label
+              ><input name="bride_mother" placeholder="Trần Thị D" />
+            </div>
+          </div>
+          <div class="mt-3">
+            <label>Địa chỉ</label
+            ><input
+              name="bride_address"
+              placeholder="456 Đường DEF, Q.1, TP.HCM"
+            />
+          </div>
+          <div class="mt-3">
+            <label>URL ảnh Cô Dâu</label
+            ><input name="bride_image_url" placeholder="https://..." />
+          </div>
+          <div class="grid grid-cols-2 gap-3 mt-3">
+            <div>
+              <label>Ngày lễ thành hôn</label
+              ><input name="bride_ceremony_date" type="date" />
+            </div>
+            <div>
+              <label>Giờ</label
+              ><input name="bride_ceremony_time" placeholder="11:30" />
+            </div>
+          </div>
+          <div class="mt-3">
+            <label>Ngày âm lịch lễ (để trống = tự tính)</label
+            ><input
+              name="bride_ceremony_lunar"
+              placeholder="Ngày 18 tháng 9 năm Giáp Thìn"
+            />
+          </div>
+          <div class="grid grid-cols-2 gap-3 mt-3">
+            <div>
+              <label>Ngày tiệc cưới</label
+              ><input name="bride_party_date" type="date" />
+            </div>
+            <div>
+              <label>Giờ</label
+              ><input name="bride_party_time" placeholder="18:00" />
+            </div>
+          </div>
+          <div class="mt-3">
+            <label>Ngày âm lịch tiệc (để trống = tự tính)</label
+            ><input name="bride_party_lunar" />
+          </div>
+          <div class="mt-3">
+            <label>Địa điểm tiệc</label
+            ><input
+              name="bride_party_location"
+              placeholder="Tại tư gia nhà gái"
+            />
+          </div>
+          <div class="mt-3">
+            <label>URL Google Maps embed (iframe)</label
+            ><textarea
+              name="bride_map_embed_url"
+              rows="2"
+              placeholder="https://www.google.com/maps/embed?..."
+            ></textarea>
+          </div>
+          <div class="mt-3">
+            <label>URL Google Maps điều hướng</label
+            ><input
+              name="bride_map_link"
+              placeholder="https://maps.google.com/?q=..."
+            />
+          </div>
+          <div class="mt-3">
+            <label>Tên ngân hàng</label
+            ><input name="bride_bank_name" placeholder="BIDV" />
+          </div>
+          <div class="grid grid-cols-2 gap-3 mt-3">
+            <div>
+              <label>Số tài khoản</label
+              ><input name="bride_bank_number" placeholder="8787867778" />
+            </div>
+            <div>
+              <label>Tên chủ TK</label
+              ><input name="bride_bank_owner" placeholder="Trần Thùy Hằng" />
+            </div>
+          </div>
+          <div class="mt-3">
+            <label>URL ảnh QR</label
+            ><input name="bride_qr_url" placeholder="https://..." />
+          </div>
+        </div>
+      </form>
+
+      <!-- Toast -->
+      <div
+        id="toast"
+        class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-800 text-white px-5 py-3 rounded-xl text-sm opacity-0 transition-opacity duration-300 pointer-events-none"
+      >
+        Đã lưu thành công!
+      </div>
+    </div>
+
+    <script>
+      const EDGE_URL =
+        "https://lcobawmkywtxhpezndsh.supabase.co/functions/v1/wedding-admin";
+      const ANON_KEY =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxjb2Jhd21reXd0eGhwZXpuZHNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4OTA5ODMsImV4cCI6MjA5MTQ2Njk4M30.4BNmxnfixXdHOq0ovtaF_4wQZ9sap3IWbJNJK9H4Mg4";
+      const params = new URLSearchParams(window.location.search);
+      const WEDDING_ID = params.get("id");
+      const DOMAIN = window.location.origin;
+
+      // Hiển thị links
+      document.getElementById("wedding-id-label").textContent =
+        `ID: ${WEDDING_ID}`;
+      document.getElementById("link-groom").value =
+        `${DOMAIN}/index.html?id=${WEDDING_ID}&isGroom=true`;
+      document.getElementById("link-bride").value =
+        `${DOMAIN}/index.html?id=${WEDDING_ID}&isGroom=false`;
+
+      // Load data hiện tại
+      async function loadData() {
+        const res = await fetch(`${EDGE_URL}?id=${WEDDING_ID}`, {
+          headers: { Authorization: `Bearer ${ANON_KEY}` },
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        fillForm(data);
+      }
+
+      function fillForm(data) {
+        const form = document.getElementById("wedding-form");
+        Object.keys(data).forEach((key) => {
+          const el = form.querySelector(`[name="${key}"]`);
+          if (!el || data[key] == null) return;
+          if (key === "gallery_images") {
+            form.querySelector('[name="gallery_images_raw"]').value =
+              data[key].join("\n");
+          } else {
+            el.value = data[key];
+          }
+        });
+      }
+
+      async function saveAll() {
+        const btn = document.getElementById("save-btn");
+        btn.textContent = "Đang lưu...";
+        btn.disabled = true;
+
+        const form = document.getElementById("wedding-form");
+        const formData = new FormData(form);
+        const payload = { id: WEDDING_ID };
+
+        formData.forEach((value, key) => {
+          if (key === "gallery_images_raw") {
+            payload["gallery_images"] = value
+              .split("\n")
+              .map((s) => s.trim())
+              .filter(Boolean);
+          } else if (value.trim()) {
+            payload[key] = value.trim();
+          }
+        });
+
+        try {
+          const res = await fetch(`${EDGE_URL}`, {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${ANON_KEY}`,
+            },
+            body: JSON.stringify(payload),
+          });
+          if (!res.ok) throw new Error("Lỗi lưu");
+          showToast("Đã lưu thành công! ✅");
+        } catch (e) {
+          showToast("Lỗi: " + e.message);
+        } finally {
+          btn.textContent = "Lưu";
+          btn.disabled = false;
+        }
+      }
+
+      function copyText(inputId) {
+        const input = document.getElementById(inputId);
+        navigator.clipboard.writeText(input.value);
+        showToast("Đã copy link!");
+      }
+
+      function showToast(msg) {
+        const toast = document.getElementById("toast");
+        toast.textContent = msg;
+        toast.style.opacity = "1";
+        setTimeout(() => (toast.style.opacity = "0"), 2500);
+      }
+
+      // Load data khi mở trang
+      if (WEDDING_ID) loadData();
+    </script>
+  </body>
+</html>

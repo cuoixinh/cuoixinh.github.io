@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin - Tạo Thiệp Cưới</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50 min-h-screen flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-lg p-8 w-full max-w-md">
+      <h1 class="text-2xl font-semibold text-gray-800 mb-2">Tạo Thiệp Cưới</h1>
+      <p class="text-gray-500 text-sm mb-8">
+        Nhập thông tin liên hệ để tạo thiệp mới
+      </p>
+
+      <!-- Form tạo mới -->
+      <div id="create-form">
+        <label class="block text-sm font-medium text-gray-700 mb-2"
+          >Email hoặc Số điện thoại</label
+        >
+        <input
+          id="contact-input"
+          type="text"
+          placeholder="vd: 0912345678 hoặc email@gmail.com"
+          class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-rose-300 mb-4"
+        />
+        <button
+          onclick="createWedding()"
+          class="w-full bg-rose-400 hover:bg-rose-500 text-white font-medium py-3 rounded-xl transition-colors"
+        >
+          Thêm mới
+        </button>
+        <div id="error-msg" class="text-red-500 text-sm mt-3 hidden"></div>
+      </div>
+
+      <!-- Kết quả sau khi tạo -->
+      <div id="result" class="hidden">
+        <div class="bg-green-50 border border-green-200 rounded-xl p-4 mb-6">
+          <p class="text-green-700 text-sm font-medium mb-1">
+            ✅ Tạo thiệp thành công!
+          </p>
+          <p class="text-green-600 text-xs">
+            ID: <span id="result-id" class="font-mono font-semibold"></span>
+          </p>
+        </div>
+
+        <div class="flex flex-col gap-3">
+          <div>
+            <label
+              class="block text-xs font-medium text-gray-500 mb-1 uppercase tracking-wider"
+              >Link quản lý (gửi cho khách)</label
+            >
+            <div class="flex gap-2">
+              <input
+                id="manage-link"
+                readonly
+                class="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs font-mono text-gray-700"
+              />
+              <button
+                onclick="copyLink('manage-link')"
+                class="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-xs font-medium transition-colors"
+              >
+                Copy
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <button
+          onclick="resetForm()"
+          class="w-full mt-6 border border-gray-200 text-gray-600 py-2 rounded-xl text-sm hover:bg-gray-50 transition-colors"
+        >
+          Tạo thiệp khác
+        </button>
+      </div>
+    </div>
+
+    <script>
+      // Config
+      const EDGE_URL =
+        "https://lcobawmkywtxhpezndsh.supabase.co/functions/v1/wedding-admin";
+      const ANON_KEY =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxjb2Jhd21reXd0eGhwZXpuZHNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4OTA5ODMsImV4cCI6MjA5MTQ2Njk4M30.4BNmxnfixXdHOq0ovtaF_4wQZ9sap3IWbJNJK9H4Mg4";
+
+      // Token nhập qua popup, lưu sessionStorage trong phiên làm việc
+      let ADMIN_TOKEN = sessionStorage.getItem("admin_token");
+      if (!ADMIN_TOKEN) {
+        ADMIN_TOKEN = prompt("Nhập mã quản trị:");
+        if (ADMIN_TOKEN) {
+          sessionStorage.setItem("admin_token", ADMIN_TOKEN);
+        } else {
+          document.body.innerHTML =
+            '<p style="text-align:center;margin-top:40px;color:#999">Không có quyền truy cập</p>';
+        }
+      }
+      const DOMAIN = window.location.origin;
+
+      async function createWedding() {
+        const contact = document.getElementById("contact-input").value.trim();
+        if (!contact) {
+          showError("Vui lòng nhập email hoặc số điện thoại");
+          return;
+        }
+
+        const btn = document.querySelector("#create-form button");
+        btn.textContent = "Đang tạo...";
+        btn.disabled = true;
+
+        try {
+          const res = await fetch(`${EDGE_URL}?token=${ADMIN_TOKEN}`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${ANON_KEY}`,
+            },
+            body: JSON.stringify({ contact }),
+          });
+
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || "Lỗi tạo thiệp");
+
+          showResult(data.id);
+        } catch (e) {
+          showError(e.message);
+          btn.textContent = "Thêm mới";
+          btn.disabled = false;
+        }
+      }
+
+      function showResult(id) {
+        document.getElementById("result-id").textContent = id;
+        document.getElementById("manage-link").value =
+          `${DOMAIN}/manage-by-customer.html?id=${id}`;
+        document.getElementById("create-form").classList.add("hidden");
+        document.getElementById("result").classList.remove("hidden");
+      }
+
+      function showError(msg) {
+        const el = document.getElementById("error-msg");
+        el.textContent = msg;
+        el.classList.remove("hidden");
+      }
+
+      function copyLink(inputId) {
+        const input = document.getElementById(inputId);
+        navigator.clipboard.writeText(input.value);
+        const btn = input.nextElementSibling;
+        btn.textContent = "Đã copy!";
+        setTimeout(() => (btn.textContent = "Copy"), 2000);
+      }
+
+      function resetForm() {
+        document.getElementById("contact-input").value = "";
+        document.getElementById("error-msg").classList.add("hidden");
+        document.getElementById("create-form").classList.remove("hidden");
+        document.getElementById("result").classList.add("hidden");
+      }
+
+      // Enter key
+      document
+        .getElementById("contact-input")
+        .addEventListener("keydown", (e) => {
+          if (e.key === "Enter") createWedding();
+        });
+    </script>
+  </body>
+</html>
