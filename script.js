@@ -2,6 +2,159 @@
 const ENCRYPTION_KEY = "dqvinh";
 const EDGE_URL = "https://lcobawmkywtxhpezndsh.supabase.co/functions/v1/wedding-admin";
 const ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxjb2Jhd21reXd0eGhwZXpuZHNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4OTA5ODMsImV4cCI6MjA5MTQ2Njk4M30.4BNmxnfixXdHOq0ovtaF_4wQZ9sap3IWbJNJK9H4Mg4";
+const STORAGE_BASE_URL = "https://lcobawmkywtxhpezndsh.supabase.co/storage/v1/object/public/wedding-images";
+
+const _urlParams = new URLSearchParams(window.location.search);
+const _weddingId = _urlParams.get('id');
+const _isGroom = _urlParams.get('isGroom') !== 'false';
+
+// Helper
+function setText(id, value) {
+  const el = document.getElementById(id);
+  if (el && value) el.textContent = value;
+}
+function setAttr(id, attr, value) {
+  const el = document.getElementById(id);
+  if (el && value) el.setAttribute(attr, value);
+}
+function getImageUrl(filename) {
+  if (!filename) return '';
+  if (filename.startsWith('http')) return filename;
+  return `${STORAGE_BASE_URL}/${filename}`;
+}
+
+// ============= RENDER WEDDING DATA =============
+
+function renderWedding(w) {
+  if (!w || !w.is_active) return;
+
+  const side = _isGroom ? 'groom' : 'bride';
+
+  // --- COVER ---
+  setAttr('cover-bg-img', 'src', getImageUrl(w.cover_image_url));
+  setText('cover-groom-name', w.groom_name);
+  setText('cover-bride-name', w.bride_name);
+
+  // --- SAVE THE DATE ---
+  setAttr('main-photo', 'src', getImageUrl(w.cover_image_url));
+  setText('couple-names-groom', w.groom_name);
+  setText('couple-names-bride', w.bride_name);
+
+  // --- THÔNG TIN GIA ĐÌNH ---
+  setText('groom-father', w.groom_father);
+  setText('groom-mother', w.groom_mother);
+  setText('groom-address', w.groom_address);
+  setText('groom-name-label', w.groom_name);
+  setAttr('groom-photo', 'src', getImageUrl(w.groom_image_url));
+
+  setText('bride-father', w.bride_father);
+  setText('bride-mother', w.bride_mother);
+  setText('bride-address', w.bride_address);
+  setText('bride-name-label', w.bride_name);
+  setAttr('bride-photo', 'src', getImageUrl(w.bride_image_url));
+
+  // --- LỄ THÀNH HÔN ---
+  setText('invite-groom', w.groom_name);
+  setText('invite-bride', w.bride_name);
+  if (w.ceremony_date) {
+    const d = new Date(w.ceremony_date);
+    const weekdays = ['Chủ Nhật','Thứ Hai','Thứ Ba','Thứ Tư','Thứ Năm','Thứ Sáu','Thứ Bảy'];
+    setText('invite-day', d.getDate());
+    setText('invite-month-year', `Tháng ${d.getMonth() + 1} · ${d.getFullYear()}`);
+    setText('invite-weekday', weekdays[d.getDay()]);
+  }
+  setText('invite-time', w.ceremony_time);
+  setText('invite-lunar', w.ceremony_lunar);
+
+  // --- TIỆC CƯỚI (theo phía nhà trai/gái) ---
+  const partyDate = w[`${side}_party_date`];
+  const partyTime = w[`${side}_party_time`];
+  const partyLunar = w[`${side}_party_lunar`];
+  const partyLocation = w[`${side}_party_location`];
+
+  if (partyDate && partyTime) {
+    const d = new Date(partyDate);
+    setText('party-datetime', `${partyTime} - ${d.getDate()}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`);
+  }
+  if (partyLunar) setText('party-lunar', `(${partyLunar})`);
+  setText('party-location', partyLocation);
+
+  // --- MINI CALENDAR ---
+  const ceremonyDate = w.ceremony_date;
+  if (ceremonyDate && partyDate) {
+    const d1 = new Date(ceremonyDate);
+    const d2 = new Date(partyDate);
+    weddingDates[0] = { year: d1.getFullYear(), month: d1.getMonth() + 1, day: d1.getDate() };
+    weddingDates[1] = { year: d2.getFullYear(), month: d2.getMonth() + 1, day: d2.getDate() };
+    renderMiniCalendar();
+  }
+
+  // --- STORY QUOTE ---
+  if (w.story_quote) setText('story-quote', `"${w.story_quote}"`);
+
+  // --- GALLERY ---
+  if (w.gallery_images && w.gallery_images.length > 0) {
+    const urls = w.gallery_images.map(f => getImageUrl(f));
+    images.length = 0;
+    urls.forEach(url => images.push(url));
+    track.innerHTML = '';
+    dotsContainer.innerHTML = '';
+    for (let i = 0; i < images.length; i++) {
+      const item = document.createElement('div');
+      item.className = 'carousel-item shrink-0 rounded-2xl overflow-hidden cursor-pointer';
+      item.style.cssText = 'transition: width 0.4s cubic-bezier(0.4,0,0.2,1), height 0.4s cubic-bezier(0.4,0,0.2,1), opacity 0.4s cubic-bezier(0.4,0,0.2,1), box-shadow 0.4s ease;';
+      item.innerHTML = `<img src="${images[i]}" class="w-full h-full object-cover pointer-events-none" alt="">`;
+      item.addEventListener('click', () => { if (i !== current) { current = i; update(); } });
+      track.appendChild(item);
+      const dot = document.createElement('div');
+      dot.style.cssText = 'height:6px; border-radius:9999px; transition: all 0.3s;';
+      dotsContainer.appendChild(dot);
+    }
+    current = Math.floor(images.length / 2);
+    fixHeight();
+    update();
+    setTimeout(attachClickHandler, 100);
+  }
+
+  // --- HỘP MỪNG CƯỚI ---
+  setText('groom-bank-label', w.groom_name);
+  setText('groom-bank-name', w.groom_bank_name);
+  setText('groom-bank-number', w.groom_bank_number);
+  setText('groom-bank-owner', w.groom_bank_owner);
+  if (w.groom_qr_url) setAttr('groom-qr-img', 'src', getImageUrl(w.groom_qr_url));
+
+  setText('bride-bank-label', w.bride_name);
+  setText('bride-bank-name', w.bride_bank_name);
+  setText('bride-bank-number', w.bride_bank_number);
+  setText('bride-bank-owner', w.bride_bank_owner);
+  if (w.bride_qr_url) setAttr('bride-qr-img', 'src', getImageUrl(w.bride_qr_url));
+
+  // --- BẢN ĐỒ (theo phía nhà trai/gái) ---
+  const mapEmbed = w[`${side}_map_embed_url`];
+  const mapLink = w[`${side}_map_link`];
+  if (mapEmbed) {
+    const iframe = document.getElementById('map-thumbnail-iframe');
+    if (iframe) iframe.src = mapEmbed;
+  }
+  if (mapLink) {
+    const link = document.getElementById('map-link');
+    if (link) link.href = mapLink;
+  }
+  // Địa điểm tổ chức = party_location
+  if (partyLocation) {
+    setText('map-location-name', partyLocation);
+  }
+}
+
+// Fetch và render wedding data
+if (_weddingId) {
+  fetch(`${EDGE_URL}?id=${_weddingId}`, {
+    headers: { Authorization: `Bearer ${ANON_KEY}` }
+  })
+  .then(r => r.json())
+  .then(renderWedding)
+  .catch(e => console.error('Lỗi load wedding data:', e));
+}
 
 function decryptData(encryptedText) {
   if (!encryptedText) return '';
@@ -25,39 +178,50 @@ function setupPersonalizedGreeting() {
   const weddingId = urlParams.get('id');
   const isGroom = urlParams.get('isGroom') !== 'false';
 
-  // Hiển thị lời chào cá nhân hóa
-  if (encryptedName && encryptedRelationship) {
-    try {
-      const name = decryptData(encryptedName);
-      const relationship = decryptData(encryptedRelationship);
+  // Nếu không có tham số cá nhân hóa → vào thẳng màn chính
+  if (!encryptedName || !encryptedRelationship) {
+    openInvitation();
+    return;
+  }
 
-      if (name && relationship) {
-        const coverGuestName = document.getElementById('cover-guest-name');
-        if (coverGuestName) coverGuestName.textContent = name;
-        console.log('Personalized greeting set:', relationship, name);
+  // Có tham số → thử giải mã
+  try {
+    const name = decryptData(encryptedName);
+    const relationship = decryptData(encryptedRelationship);
+
+    // Giải mã không hợp lệ → vào thẳng màn chính
+    if (!name || !relationship) {
+      openInvitation();
+      return;
+    }
+
+    // Hợp lệ → hiển thị lời chào trên cover
+    const coverGuestName = document.getElementById('cover-guest-name');
+    if (coverGuestName) coverGuestName.textContent = name;
+
+  } catch (error) {
+    // Lỗi giải mã → vào thẳng màn chính
+    openInvitation();
+    return;
+  }
+
+  // Chuẩn bị markViewed - chỉ gọi khi click Mở Thiệp
+  if (weddingId) {
+    fetch(`${EDGE_URL}?id=${weddingId}`, {
+      headers: { Authorization: `Bearer ${ANON_KEY}` }
+    }).then(res => res.json()).then(data => {
+      const sheetUrl = isGroom ? data.groom_google_sheet_url : data.bride_google_sheet_url;
+      if (sheetUrl) {
+        _markViewedCallback = () => {
+          fetch(sheetUrl, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'text/plain' },
+            body: JSON.stringify({ action: 'markViewed', link: window.location.href })
+          });
+        };
       }
-    } catch (error) {
-      console.error('Error setting personalized greeting:', error);
-    }
-
-    // Chuẩn bị markViewed - chỉ gọi khi click Mở Thiệp
-    if (weddingId) {
-      fetch(`${EDGE_URL}?id=${weddingId}`, {
-        headers: { Authorization: `Bearer ${ANON_KEY}` }
-      }).then(res => res.json()).then(data => {
-        const sheetUrl = isGroom ? data.groom_google_sheet_url : data.bride_google_sheet_url;
-        if (sheetUrl) {
-          _markViewedCallback = () => {
-            fetch(sheetUrl, {
-              method: 'POST',
-              mode: 'no-cors',
-              headers: { 'Content-Type': 'text/plain' },
-              body: JSON.stringify({ action: 'markViewed', link: window.location.href })
-            });
-          };
-        }
-      }).catch(() => {});
-    }
+    }).catch(() => {});
   }
 }
 
