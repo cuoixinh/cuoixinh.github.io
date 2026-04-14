@@ -141,6 +141,22 @@ function renderWedding(w) {
     if (w.google_sheet_url) {
         loadGuestName(w.google_sheet_url);
     }
+
+    // --- ĐÁNH DẤU ĐÃ XEM THIỆP ---
+    const urlParams = new URLSearchParams(window.location.search);
+    const isGroom = urlParams.get('isGroom') !== 'false';
+    const sheetUrl = isGroom ? w.groom_google_sheet_url : w.bride_google_sheet_url;
+    const hasPersonalLink = urlParams.get('name') && urlParams.get('relationship');
+
+    if (sheetUrl && hasPersonalLink) {
+        // Gửi full URL hiện tại lên, server tự tìm dòng khớp để update
+        fetch(sheetUrl, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'text/plain' },
+            body: JSON.stringify({ action: 'markViewed', link: window.location.href })
+        }).catch(e => console.log('Không thể đánh dấu đã xem:', e));
+    }
 }
 
 // Load tên khách từ Google Apps Script

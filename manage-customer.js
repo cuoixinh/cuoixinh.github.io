@@ -2,6 +2,8 @@
 const MANAGE_EDGE_URL = "https://lcobawmkywtxhpezndsh.supabase.co/functions/v1/wedding-admin";
 const MANAGE_SUPABASE_URL = "https://lcobawmkywtxhpezndsh.supabase.co";
 const MANAGE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxjb2Jhd21reXd0eGhwZXpuZHNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4OTA5ODMsImV4cCI6MjA5MTQ2Njk4M30.4BNmxnfixXdHOq0ovtaF_4wQZ9sap3IWbJNJK9H4Mg4";
+const STORAGE_BASE_URL = "https://lcobawmkywtxhpezndsh.supabase.co/storage/v1/object/public/wedding-images";
+const ENCRYPTION_KEY = "dqvinh";
 
 const params = new URLSearchParams(window.location.search);
 const WEDDING_ID = params.get("id");
@@ -11,6 +13,363 @@ const DOMAIN = window.location.origin;
 let manageSupabase;
 if (window.supabase) {
   manageSupabase = window.supabase.createClient(MANAGE_SUPABASE_URL, MANAGE_ANON_KEY);
+}
+
+// ============= ENCRYPTION/DECRYPTION FUNCTIONS =============
+
+function encryptData(text) {
+  if (!text) return '';
+  try {
+    const encrypted = CryptoJS.AES.encrypt(text, ENCRYPTION_KEY).toString();
+    // Make URL-safe by encoding to Base64
+    return encodeURIComponent(encrypted);
+  } catch (error) {
+    console.error('Encryption error:', error);
+    throw new Error('Lỗi mã hóa dữ liệu');
+  }
+}
+
+function decryptData(encryptedText) {
+  if (!encryptedText) return '';
+  try {
+    const decoded = decodeURIComponent(encryptedText);
+    const decrypted = CryptoJS.AES.decrypt(decoded, ENCRYPTION_KEY);
+    return decrypted.toString(CryptoJS.enc.Utf8);
+  } catch (error) {
+    console.error('Decryption error:', error);
+    return '';
+  }
+}
+
+// ============= AUTO-GENERATE LINKS FUNCTIONS =============
+
+async function generateLinks(side) {
+  const sideText = side === 'groom' ? 'nhà trai' : 'nhà gái';
+  const isGroom = side === 'groom';
+  
+  try {
+    showLoading(true, `Đang kiểm tra cấu hình ${sideText}...`);
+    
+    // Fetch wedding data from database to get Google Sheet URL
+    const response = await fetch(`${MANAGE_EDGE_URL}?id=${WEDDING_ID}`, {
+      headers: { Authorization: `Bearer ${MANAGE_ANON_KEY}` },
+    });
+    
+    if (!response.ok) {
+      throw new Error('Không thể tải dữ liệu đám cưới');
+    }
+    
+    const weddingData = await response.json();
+    const sheetUrl = side === 'groom' 
+      ? weddingData.groom_google_sheet_url 
+      : weddingData.bride_google_sheet_url;
+    
+    // Validate URL
+    if (!sheetUrl || !sheetUrl.trim()) {
+      showLoading(false);
+      showToast(`⚠️ Vui lòng cấu hình URL Google Sheet ${sideText} trước`);
+      return;
+    }
+    
+    // Validate URL format
+    if (!sheetUrl.includes('script.google.com')) {
+      showLoading(false);
+      showToast(`⚠️ URL Google Sheet ${sideText} không hợp lệ`);
+      return;
+    }
+    
+    showLoading(true, `Đang lấy danh sách khách mời ${sideText}...`);
+    
+    // Fetch all guests from Google Sheet
+    const guests = await fetchAllGuests(sheetUrl);
+    
+    if (!guests || guests.length === 0) {
+      showLoading(false);
+      showToast(`⚠️ Không tìm thấy khách mời nào trong Google Sheet ${sideText}`);
+      return;
+    }
+    
+    showLoading(true, `Đang tạo link cho ${guests.length} khách mời...`);
+    
+    // Generate links: chỉ tạo cho khách có relationship + chưa có link
+    const updates = [];
+    let skipped = 0;
+    for (const guest of guests) {
+      // Bỏ qua nếu chưa có relationship hoặc đã có link rồi
+      if (!guest.relationship || guest.link) {
+        skipped++;
+        continue;
+      }
+
+      try {
+        const encryptedName = encryptData(guest.displayName || '');
+        const encryptedRelationship = encryptData(guest.relationship);
+        
+        const link = `${DOMAIN}/index.html?id=${WEDDING_ID}&isGroom=${isGroom}&name=${encryptedName}&relationship=${encryptedRelationship}`;
+        
+        updates.push({ row: guest.row, link });
+      } catch (error) {
+        console.error(`Error generating link for row ${guest.row}:`, error);
+      }
+    }
+    
+    if (updates.length === 0) {
+      showLoading(false);
+      showToast(skipped > 0
+        ? `⚠️ Tất cả khách đã có link hoặc chưa có quan hệ`
+        : '⚠️ Không có khách mời nào để tạo link');
+      return;
+    }
+    
+    showLoading(true, `Đang cập nhật ${updates.length} link vào Google Sheet...`);
+    
+    // Batch update links to Google Sheet
+    const result = await batchUpdateLinks(sheetUrl, updates);
+    
+    showLoading(false);
+    
+    if (result.success) {
+      const skipMsg = skipped > 0 ? `, bỏ qua ${skipped} đã có link` : '';
+      showToast(`✅ Đã tạo link thành công cho ${result.count} khách mời ${sideText}${skipMsg}`);
+    } else {
+      showToast(`❌ Lỗi cập nhật link: ${result.message}`);
+    }
+    
+  } catch (error) {
+    showLoading(false);
+    console.error('Generate links error:', error);
+    showToast(`❌ ${error.message}`);
+  }
+}
+
+async function fetchAllGuests(sheetUrl) {
+  try {
+    // GET request không trigger CORS preflight nên không cần no-cors
+    const response = await fetch(`${sheetUrl}?action=getAllGuests`);
+    
+    if (!response.ok) {
+      throw new Error('Không thể kết nối đến Google Sheets');
+    }
+    
+    const data = await response.json();
+    
+    if (!data.success) {
+      throw new Error(data.message || 'Lỗi lấy dữ liệu từ Google Sheets');
+    }
+    
+    return data.guests || [];
+  } catch (error) {
+    console.error('Fetch guests error:', error);
+    throw new Error('Không thể kết nối đến Google Sheets');
+  }
+}
+
+async function batchUpdateLinks(sheetUrl, updates) {
+  try {
+    // Google Apps Script không hỗ trợ CORS preflight cho POST với Content-Type: application/json
+    // Dùng no-cors mode với text/plain để tránh preflight request
+    const response = await fetch(sheetUrl, {
+      method: 'POST',
+      mode: 'no-cors', // Bypass CORS preflight
+      headers: {
+        'Content-Type': 'text/plain' // text/plain không trigger preflight
+      },
+      body: JSON.stringify({
+        action: 'batchUpdateLinks',
+        updates: updates
+      })
+    });
+    
+    // no-cors mode không đọc được response body
+    // Nên ta coi như thành công nếu không có network error
+    return { success: true, count: updates.length };
+    
+  } catch (error) {
+    console.error('Batch update error:', error);
+    throw new Error('Lỗi cập nhật link vào Google Sheets');
+  }
+}
+
+// ============= BANK SEARCHABLE SELECT =============
+
+const BANK_LIST = [
+  "Vietcombank - Ngân hàng TMCP Ngoại thương Việt Nam",
+  "VietinBank - Ngân hàng TMCP Công Thương Việt Nam",
+  "BIDV - Ngân hàng TMCP Đầu tư và Phát triển Việt Nam",
+  "Agribank - Ngân hàng Nông nghiệp và Phát triển Nông thôn Việt Nam",
+  "MB Bank - Ngân hàng TMCP Quân đội",
+  "Techcombank - Ngân hàng TMCP Kỹ Thương Việt Nam",
+  "ACB - Ngân hàng TMCP Á Châu",
+  "VPBank - Ngân hàng TMCP Việt Nam Thịnh Vượng",
+  "TPBank - Ngân hàng TMCP Tiên Phong",
+  "Sacombank - Ngân hàng TMCP Sài Gòn Thương Tín",
+  "HDBank - Ngân hàng TMCP Phát triển TP.HCM",
+  "VIB - Ngân hàng TMCP Quốc tế Việt Nam",
+  "SHB - Ngân hàng TMCP Sài Gòn - Hà Nội",
+  "Eximbank - Ngân hàng TMCP Xuất Nhập khẩu Việt Nam",
+  "MSB - Ngân hàng TMCP Hàng Hải Việt Nam",
+  "OCB - Ngân hàng TMCP Phương Đông",
+  "SeABank - Ngân hàng TMCP Đông Nam Á",
+  "VietCapital Bank - Ngân hàng TMCP Bản Việt",
+  "SCB - Ngân hàng TMCP Sài Gòn",
+  "VietBank - Ngân hàng TMCP Việt Nam Thương Tín",
+  "LienVietPostBank - Ngân hàng TMCP Bưu Điện Liên Việt",
+  "PVcomBank - Ngân hàng TMCP Đại Chúng Việt Nam",
+  "BacABank - Ngân hàng TMCP Bắc Á",
+  "VietABank - Ngân hàng TMCP Việt Á",
+  "NCB - Ngân hàng TMCP Quốc Dân",
+  "SaigonBank - Ngân hàng TMCP Sài Gòn Công Thương",
+  "ABBank - Ngân hàng TMCP An Bình",
+  "Nam A Bank - Ngân hàng TMCP Nam Á",
+  "PGBank - Ngân hàng TMCP Xăng dầu Petrolimex",
+  "BaoViet Bank - Ngân hàng TMCP Bảo Việt",
+  "GPBank - Ngân hàng TMCP Dầu khí Toàn Cầu",
+  "OceanBank - Ngân hàng TMCP Đại Dương",
+  "CBBank - Ngân hàng TMCP Xây dựng Việt Nam",
+  "KienLongBank - Ngân hàng TMCP Kiên Long",
+  "DongA Bank - Ngân hàng TMCP Đông Á",
+  "UOB - Ngân hàng United Overseas Bank",
+  "Standard Chartered - Ngân hàng Standard Chartered Việt Nam",
+  "HSBC - Ngân hàng HSBC Việt Nam",
+  "Shinhan Bank - Ngân hàng TNHH MTV Shinhan Việt Nam",
+  "Woori Bank - Ngân hàng TNHH MTV Woori Việt Nam",
+  "Hong Leong Bank - Ngân hàng TNHH MTV Hong Leong Việt Nam",
+  "CIMB - Ngân hàng TNHH MTV CIMB Việt Nam",
+  "Public Bank - Ngân hàng TNHH MTV Public Việt Nam"
+];
+
+function setupBankSearchableSelect(inputId, dropdownId, hiddenInputId) {
+  const input = document.getElementById(inputId);
+  const dropdown = document.getElementById(dropdownId);
+  const hiddenInput = document.getElementById(hiddenInputId);
+  
+  if (!input || !dropdown || !hiddenInput) return;
+  
+  let selectedIndex = -1;
+  
+  // Render dropdown options
+  function renderOptions(banks) {
+    if (banks.length === 0) {
+      dropdown.innerHTML = '<div class="px-4 py-3 text-sm text-gray-500">Không tìm thấy ngân hàng</div>';
+      dropdown.classList.remove('hidden');
+      return;
+    }
+    
+    dropdown.innerHTML = banks.map((bank, index) => `
+      <div class="bank-option px-4 py-3 hover:bg-rose-50 cursor-pointer transition-colors text-sm border-b border-gray-100 last:border-b-0 ${index === selectedIndex ? 'bg-rose-50' : ''}" data-value="${bank}">
+        ${bank}
+      </div>
+    `).join('');
+    
+    dropdown.classList.remove('hidden');
+    
+    // Add click handlers
+    dropdown.querySelectorAll('.bank-option').forEach(option => {
+      option.addEventListener('click', () => {
+        const value = option.dataset.value;
+        input.value = value;
+        hiddenInput.value = value;
+        dropdown.classList.add('hidden');
+        selectedIndex = -1;
+      });
+    });
+  }
+  
+  // Filter banks
+  function filterBanks(query) {
+    if (!query.trim()) {
+      renderOptions(BANK_LIST);
+      return;
+    }
+    
+    const normalizedQuery = query.toLowerCase().trim();
+    const filtered = BANK_LIST.filter(bank => 
+      bank.toLowerCase().includes(normalizedQuery)
+    );
+    
+    renderOptions(filtered);
+  }
+  
+  // Input event
+  input.addEventListener('input', (e) => {
+    selectedIndex = -1;
+    hiddenInput.value = e.target.value; // Update hidden input as user types
+    filterBanks(e.target.value);
+  });
+  
+  // Focus event
+  input.addEventListener('focus', () => {
+    filterBanks(input.value);
+  });
+  
+  // Keyboard navigation
+  input.addEventListener('keydown', (e) => {
+    const options = dropdown.querySelectorAll('.bank-option');
+    
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      selectedIndex = Math.min(selectedIndex + 1, options.length - 1);
+      updateSelection(options);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      selectedIndex = Math.max(selectedIndex - 1, -1);
+      updateSelection(options);
+    } else if (e.key === 'Enter' && selectedIndex >= 0 && options[selectedIndex]) {
+      e.preventDefault();
+      options[selectedIndex].click();
+    } else if (e.key === 'Escape') {
+      dropdown.classList.add('hidden');
+      selectedIndex = -1;
+    }
+  });
+  
+  function updateSelection(options) {
+    options.forEach((opt, idx) => {
+      if (idx === selectedIndex) {
+        opt.classList.add('bg-rose-50');
+        opt.scrollIntoView({ block: 'nearest' });
+      } else {
+        opt.classList.remove('bg-rose-50');
+      }
+    });
+  }
+  
+  // Click outside to close
+  document.addEventListener('click', (e) => {
+    if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+      dropdown.classList.add('hidden');
+      selectedIndex = -1;
+    }
+  });
+}
+
+// ============= QUOTE RANDOM =============
+
+const QUOTE_LIST = [
+  "Cảm ơn em đã đến bên đời nhau, cùng nhau viết nên câu chuyện của riêng chúng ta.",
+  "Tình yêu không phải là nhìn nhau, mà là cùng nhau nhìn về một hướng.",
+  "Hạnh phúc là khi có một người để yêu, một nơi để về và một lý do để tin.",
+  "Từ hôm nay, anh/em không còn là một, mà là hai người cùng chung một trái tim.",
+  "Yêu nhau không chỉ là nói lời yêu, mà là ở bên nhau mỗi ngày.",
+  "Tình yêu đích thực là khi hai người cùng nhau trưởng thành.",
+  "Hôn nhân không phải là điểm kết thúc, mà là khởi đầu của một hành trình mới.",
+  "Tình yêu là khi hai trái tim cùng đập chung một nhịp.",
+  "Hạnh phúc nhất là được sống bên người mình yêu mỗi ngày.",
+  "Yêu là cho đi không cần đòi hỏi, là chia sẻ không cần tính toán."
+];
+
+function randomQuote() {
+  const textarea = document.getElementById('story-quote-textarea');
+  if (!textarea) return;
+  
+  const randomIndex = Math.floor(Math.random() * QUOTE_LIST.length);
+  textarea.value = QUOTE_LIST[randomIndex];
+  
+  // Add a little animation
+  textarea.classList.add('ring-4', 'ring-purple-500/20');
+  setTimeout(() => {
+    textarea.classList.remove('ring-4', 'ring-purple-500/20');
+  }, 500);
 }
 
 // ============= TIME INPUT VALIDATION =============
@@ -206,6 +565,17 @@ function generateUUID() {
   });
 }
 
+// Build full image URL from filename
+function getImageUrl(filename) {
+  if (!filename) return '';
+  // If already a full URL, return as is (backward compatibility)
+  if (filename.startsWith('http://') || filename.startsWith('https://')) {
+    return filename;
+  }
+  // Build full URL from filename
+  return `${STORAGE_BASE_URL}/${filename}`;
+}
+
 // Resize image if too large
 async function resizeImage(file, maxSizeMB = 1, maxWidth = 1920, maxHeight = 1920, quality = 0.85) {
   return new Promise((resolve, reject) => {
@@ -343,13 +713,31 @@ function renderGalleryGrid() {
 
   container.innerHTML = "";
 
-  // Render existing images
+  // Get existing filenames from textarea
+  const textarea = document.querySelector('textarea[name="gallery_images_raw"]');
+  const existingFilenames = textarea ? textarea.value.trim().split("\n").filter(Boolean) : [];
+  
+  // Render existing images from DB
+  existingFilenames.forEach((filename, index) => {
+    const fullUrl = getImageUrl(filename);
+    const div = document.createElement("div");
+    div.className = "relative aspect-square rounded-lg overflow-hidden border border-gray-200 shadow-sm group bg-gray-100";
+    div.innerHTML = `
+      <img src="${fullUrl}" alt="Gallery ${index + 1}" class="w-full h-full object-contain" />
+      <button onclick="removeExistingGalleryImage(${index})" class="absolute top-1 right-1 bg-red-500 rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors shadow-md p-1">
+        <img src="assets/icons/bin.png" alt="Delete" class="w-full h-full" />
+      </button>
+    `;
+    container.appendChild(div);
+  });
+
+  // Render pending new uploads
   pendingUploads.galleryImages.forEach((file, index) => {
     const url = URL.createObjectURL(file);
     const div = document.createElement("div");
     div.className = "relative aspect-square rounded-lg overflow-hidden border border-gray-200 shadow-sm group bg-gray-100";
     div.innerHTML = `
-      <img src="${url}" alt="Gallery ${index + 1}" class="w-full h-full object-contain" />
+      <img src="${url}" alt="New ${index + 1}" class="w-full h-full object-contain" />
       <button onclick="removeGalleryImage(${index})" class="absolute top-1 right-1 bg-red-500 rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors shadow-md p-1">
         <img src="assets/icons/bin.png" alt="Delete" class="w-full h-full" />
       </button>
@@ -357,8 +745,10 @@ function renderGalleryGrid() {
     container.appendChild(div);
   });
 
+  const totalImages = existingFilenames.length + pendingUploads.galleryImages.length;
+
   // Render upload button if not at max
-  if (pendingUploads.galleryImages.length < MAX_GALLERY_IMAGES) {
+  if (totalImages < MAX_GALLERY_IMAGES) {
     const uploadBtn = document.createElement("div");
     uploadBtn.className = "aspect-square rounded-lg border border-dashed border-gray-300 bg-gray-50 hover:border-rose-400 hover:bg-rose-50 transition-all cursor-pointer flex items-center justify-center";
     uploadBtn.style.borderWidth = "1px";
@@ -367,7 +757,7 @@ function renderGalleryGrid() {
     uploadBtn.innerHTML = `
       <div class="text-center">
         <div class="text-3xl text-gray-400 mb-1">+</div>
-        <p class="text-xs text-gray-500">${pendingUploads.galleryImages.length}/${MAX_GALLERY_IMAGES}</p>
+        <p class="text-xs text-gray-500">${totalImages}/${MAX_GALLERY_IMAGES}</p>
       </div>
     `;
     container.appendChild(uploadBtn);
@@ -415,8 +805,9 @@ function renderSingleImageUpload(fieldName) {
     objectFit = "object-contain";
   }
 
+  // Check if there's a pending upload (new file selected)
   if (pendingUploads.singleImages[fieldName]) {
-    // Has image, show preview
+    // Has new image, show preview from File object
     const url = URL.createObjectURL(pendingUploads.singleImages[fieldName]);
     const div = document.createElement("div");
     div.className = `relative ${sizeClass} rounded-lg overflow-hidden border border-gray-200 shadow-sm group bg-gray-100`;
@@ -431,22 +822,43 @@ function renderSingleImageUpload(fieldName) {
     `;
     container.appendChild(div);
   } else {
-    // No image, show upload button
-    const uploadBtn = document.createElement("div");
-    uploadBtn.className = `${sizeClass} rounded-lg border border-dashed border-gray-300 bg-gray-50 hover:border-rose-400 hover:bg-rose-50 transition-all cursor-pointer flex items-center justify-center`;
-    uploadBtn.style.borderWidth = "1px";
-    uploadBtn.style.borderStyle = "dashed";
-    if (fieldName === "groom_image_url" || fieldName === "bride_image_url") {
-      uploadBtn.style.width = "183px";
+    // Check if there's an existing filename in hidden input
+    const hiddenInput = document.querySelector(`input[name="${fieldName}"]`);
+    const existingFilename = hiddenInput ? hiddenInput.value : null;
+    
+    if (existingFilename) {
+      // Has existing image from DB, build full URL and show preview
+      const fullUrl = getImageUrl(existingFilename);
+      const div = document.createElement("div");
+      div.className = `relative ${sizeClass} rounded-lg overflow-hidden border border-gray-200 shadow-sm group bg-gray-100`;
+      if (fieldName === "groom_image_url" || fieldName === "bride_image_url") {
+        div.style.width = "183px";
+      }
+      div.innerHTML = `
+        <img src="${fullUrl}" alt="Preview" class="w-full h-full ${objectFit}" />
+        <button onclick="removeImage('${fieldName}')" class="absolute top-1 right-1 bg-red-500 rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors shadow-md p-1">
+          <img src="assets/icons/bin.png" alt="Delete" class="w-full h-full" />
+        </button>
+      `;
+      container.appendChild(div);
+    } else {
+      // No image at all, show upload button
+      const uploadBtn = document.createElement("div");
+      uploadBtn.className = `${sizeClass} rounded-lg border border-dashed border-gray-300 bg-gray-50 hover:border-rose-400 hover:bg-rose-50 transition-all cursor-pointer flex items-center justify-center`;
+      uploadBtn.style.borderWidth = "1px";
+      uploadBtn.style.borderStyle = "dashed";
+      if (fieldName === "groom_image_url" || fieldName === "bride_image_url") {
+        uploadBtn.style.width = "183px";
+      }
+      uploadBtn.onclick = () => document.getElementById(`${prefix}-file-input`).click();
+      uploadBtn.innerHTML = `
+        <div class="text-center">
+          <div class="text-3xl text-gray-400 mb-1">+</div>
+          <p class="text-xs text-gray-500">Chọn ảnh</p>
+        </div>
+      `;
+      container.appendChild(uploadBtn);
     }
-    uploadBtn.onclick = () => document.getElementById(`${prefix}-file-input`).click();
-    uploadBtn.innerHTML = `
-      <div class="text-center">
-        <div class="text-3xl text-gray-400 mb-1">+</div>
-        <p class="text-xs text-gray-500">Chọn ảnh</p>
-      </div>
-    `;
-    container.appendChild(uploadBtn);
   }
 }
 
@@ -457,6 +869,12 @@ const MAX_GALLERY_IMAGES = 7;
 const pendingUploads = {
   singleImages: {}, // { fieldName: File }
   galleryImages: []  // [File, File, ...]
+};
+
+// Track deleted images (filenames that were in DB but user deleted)
+const deletedImages = {
+  singleImages: [], // [filename1, filename2, ...]
+  galleryImages: []  // [filename1, filename2, ...]
 };
 
 // ============= PREVIEW FUNCTIONS (LOCAL) =============
@@ -564,36 +982,33 @@ async function handleGalleryUpload(event) {
 async function uploadSingleImage(fieldName, file) {
   const extension = file.name.split(".").pop();
   const imageId = generateUUID();
-  const filePath = `${imageId}.${extension}`;
+  const filename = `${imageId}.${extension}`;
 
-  console.log(`Uploading ${fieldName} to: ${filePath}`);
+  console.log(`Uploading ${fieldName} to: ${filename}`);
 
   const { data, error } = await manageSupabase.storage
     .from("wedding-images")
-    .upload(filePath, file, {
+    .upload(filename, file, {
       cacheControl: "3600",
       upsert: false,
     });
 
   if (error) throw error;
 
-  const { data: urlData } = manageSupabase.storage
-    .from("wedding-images")
-    .getPublicUrl(filePath);
-
-  return urlData.publicUrl;
+  // Return only filename, not full URL
+  return filename;
 }
 
 async function uploadAllPendingImages() {
-  const uploadedUrls = {};
+  const uploadedFilenames = {};
   const errors = [];
 
   // Upload single images
   for (const [fieldName, file] of Object.entries(pendingUploads.singleImages)) {
     try {
-      const url = await uploadSingleImage(fieldName, file);
-      uploadedUrls[fieldName] = url;
-      console.log(`Uploaded ${fieldName}: ${url}`);
+      const filename = await uploadSingleImage(fieldName, file);
+      uploadedFilenames[fieldName] = filename;
+      console.log(`Uploaded ${fieldName}: ${filename}`);
     } catch (error) {
       console.error(`Error uploading ${fieldName}:`, error);
       errors.push(`${fieldName}: ${error.message}`);
@@ -601,34 +1016,44 @@ async function uploadAllPendingImages() {
   }
 
   // Upload gallery images
-  const galleryUrls = [];
+  const galleryFilenames = [];
   for (let i = 0; i < pendingUploads.galleryImages.length; i++) {
     const file = pendingUploads.galleryImages[i];
     try {
-      const url = await uploadSingleImage(`gallery-${i}`, file);
-      galleryUrls.push(url);
-      console.log(`Uploaded gallery image ${i + 1}: ${url}`);
+      const filename = await uploadSingleImage(`gallery-${i}`, file);
+      galleryFilenames.push(filename);
+      console.log(`Uploaded gallery image ${i + 1}: ${filename}`);
     } catch (error) {
       console.error(`Error uploading gallery image ${i + 1}:`, error);
       errors.push(`Gallery ${i + 1}: ${error.message}`);
     }
   }
 
-  if (galleryUrls.length > 0) {
-    uploadedUrls.gallery_images = galleryUrls;
+  if (galleryFilenames.length > 0) {
+    uploadedFilenames.gallery_images = galleryFilenames;
   }
 
-  return { uploadedUrls, errors };
+  return { uploadedFilenames, errors };
 }
 
 // ============= REMOVE FUNCTIONS =============
 
 function removeImage(fieldName) {
-  // Remove from pending uploads
-  delete pendingUploads.singleImages[fieldName];
-  
-  const input = document.querySelector(`input[name="${fieldName}"]`);
-  if (input) input.value = "";
+  // Check if this is a pending upload (temp image) or existing image from DB
+  if (pendingUploads.singleImages[fieldName]) {
+    // This is a temp image, just remove from pendingUploads
+    delete pendingUploads.singleImages[fieldName];
+  } else {
+    // This is an existing image from DB, mark for deletion
+    const hiddenInput = document.querySelector(`input[name="${fieldName}"]`);
+    const existingFilename = hiddenInput ? hiddenInput.value : null;
+    
+    if (existingFilename && !existingFilename.startsWith('http')) {
+      deletedImages.singleImages.push(existingFilename);
+    }
+    
+    if (hiddenInput) hiddenInput.value = "";
+  }
 
   // Render UI
   renderSingleImageUpload(fieldName);
@@ -637,8 +1062,31 @@ function removeImage(fieldName) {
 }
 
 function removeGalleryImage(index) {
-  // Remove from pending uploads
+  // Remove from pending uploads (temp images not yet saved)
+  // These are NEW images user just selected, not in DB yet
   pendingUploads.galleryImages.splice(index, 1);
+  
+  // Render grid
+  renderGalleryGrid();
+
+  showToast("🗑️ Đã xóa ảnh");
+}
+
+function removeExistingGalleryImage(index) {
+  // Remove from existing images (already in DB)
+  const textarea = document.querySelector('textarea[name="gallery_images_raw"]');
+  if (!textarea) return;
+  
+  const filenames = textarea.value.trim().split("\n").filter(Boolean);
+  const deletedFilename = filenames[index];
+  
+  // Mark for deletion in Storage
+  if (deletedFilename && !deletedFilename.startsWith('http')) {
+    deletedImages.galleryImages.push(deletedFilename);
+  }
+  
+  filenames.splice(index, 1);
+  textarea.value = filenames.join("\n");
   
   // Render grid
   renderGalleryGrid();
@@ -656,8 +1104,19 @@ async function loadData() {
     if (!res.ok) throw new Error("Không tải được dữ liệu");
     const data = await res.json();
     fillForm(data);
+    
+    // Hide skeleton and show actual content
+    const skeleton = document.getElementById('skeleton-loader');
+    const content = document.getElementById('actual-content');
+    if (skeleton) skeleton.classList.add('hidden');
+    if (content) content.classList.remove('hidden');
   } catch (error) {
     showToast("❌ " + error.message);
+    // Still hide skeleton on error
+    const skeleton = document.getElementById('skeleton-loader');
+    const content = document.getElementById('actual-content');
+    if (skeleton) skeleton.classList.add('hidden');
+    if (content) content.classList.remove('hidden');
   }
 }
 
@@ -665,29 +1124,78 @@ function fillForm(data) {
   const form = document.getElementById("wedding-form");
   if (!form) return;
 
+  console.log("Filling form with data:", data);
+  console.log("Available Flatpickr instances:", window.flatpickrInstances ? Object.keys(window.flatpickrInstances) : 'none');
+
+  // Save slug for generating links
+  if (data.slug) {
+    WEDDING_SLUG = data.slug;
+    // Update links with slug
+    const groomLink = document.getElementById("link-groom");
+    const brideLink = document.getElementById("link-bride");
+    if (groomLink) groomLink.value = `${DOMAIN}/${data.slug}?isGroom=true`;
+    if (brideLink) brideLink.value = `${DOMAIN}/${data.slug}`;
+  }
+
   Object.keys(data).forEach((key) => {
     const el = form.querySelector(`[name="${key}"]`);
-    if (!el || data[key] == null) return;
-
+    
     if (key === "gallery_images") {
       const textarea = form.querySelector('[name="gallery_images_raw"]');
       if (textarea) {
-        textarea.value = data[key].join("\n");
+        console.log("Gallery images from DB:", data[key]);
+        // Store filenames in textarea
+        const images = Array.isArray(data[key]) ? data[key] : [];
+        textarea.value = images.join("\n");
+        console.log("Textarea value:", textarea.value);
         renderGalleryGrid();
       }
-    } else {
-      el.value = data[key];
-
-      // For single image fields, render the UI
-      if (key === "cover_image_url" || key === "groom_image_url" || key === "bride_image_url" || key === "groom_qr_url" || key === "bride_qr_url") {
-        if (data[key]) {
-          // Create a fake file object for existing URL (we'll just store the URL in hidden input)
-          // For now, just render empty upload button - user can upload new image
-          renderSingleImageUpload(key);
-        }
-      } else if (key.includes("_url") && data[key]) {
-        showImagePreview(key, data[key]);
+      return; // Skip the rest for gallery_images
+    }
+    
+    // Skip if data is null
+    if (data[key] == null) return;
+    
+    // Special handling for bank fields
+    if (key === 'groom_bank_name') {
+      const input = document.getElementById('groom-bank-input');
+      const hidden = document.getElementById('groom-bank-value');
+      if (input) input.value = data[key];
+      if (hidden) hidden.value = data[key];
+      return;
+    }
+    
+    if (key === 'bride_bank_name') {
+      const input = document.getElementById('bride-bank-input');
+      const hidden = document.getElementById('bride-bank-value');
+      if (input) input.value = data[key];
+      if (hidden) hidden.value = data[key];
+      return;
+    }
+    
+    // Check if this is a date field with Flatpickr
+    if (window.flatpickrInstances && window.flatpickrInstances[key]) {
+      console.log(`Setting date for ${key} using Flatpickr:`, data[key]);
+      // Set value using Flatpickr instance
+      window.flatpickrInstances[key].setDate(data[key], true);
+      
+      // Manually trigger lunar date update for date fields
+      if (key === 'ceremony_date' || key === 'groom_party_date' || key === 'bride_party_date') {
+        const event = new Event('change', { bubbles: true });
+        el.dispatchEvent(event);
       }
+    } else if (el) {
+      // Store value in input for non-date fields
+      el.value = data[key];
+    }
+
+    // For image URL fields, render the UI
+    if (key === "cover_image_url" || key === "groom_image_url" || key === "bride_image_url" || key === "groom_qr_url" || key === "bride_qr_url") {
+      if (data[key]) {
+        renderSingleImageUpload(key);
+      }
+    } else if (key.includes("_url") && data[key]) {
+      showImagePreview(key, data[key]);
     }
   });
 }
@@ -703,7 +1211,7 @@ async function saveAll() {
   try {
     // Step 1: Upload pending images
     showLoading(true, "Đang tải ảnh lên server...");
-    const { uploadedUrls, errors } = await uploadAllPendingImages();
+    const { uploadedFilenames, errors } = await uploadAllPendingImages();
     showLoading(false);
 
     if (errors.length > 0) {
@@ -716,30 +1224,40 @@ async function saveAll() {
     const formData = new FormData(form);
     const payload = { id: WEDDING_ID };
 
+    // Add deleted images list
+    const allDeletedImages = [...deletedImages.singleImages, ...deletedImages.galleryImages];
+    if (allDeletedImages.length > 0) {
+      payload.deleted_images = allDeletedImages;
+    }
+
     formData.forEach((value, key) => {
       if (key === "gallery_images_raw") {
         // Skip, will handle separately
       } else if (value.trim()) {
+        // Only add non-empty values
         payload[key] = value.trim();
+      } else if (key.includes("_url") || key.includes("_lunar")) {
+        // For image URLs and lunar dates, explicitly set null if empty
+        payload[key] = null;
       }
     });
 
-    // Step 3: Add uploaded URLs to payload
-    for (const [fieldName, url] of Object.entries(uploadedUrls)) {
+    // Step 3: Add uploaded filenames to payload
+    for (const [fieldName, filename] of Object.entries(uploadedFilenames)) {
       if (fieldName === "gallery_images") {
-        // Get existing gallery images from form
+        // Get existing gallery filenames from form
         const textarea = document.querySelector('textarea[name="gallery_images_raw"]');
-        const existingUrls = textarea ? textarea.value.trim().split("\n").filter(Boolean) : [];
+        const existingFilenames = textarea ? textarea.value.trim().split("\n").filter(Boolean) : [];
         
-        // Merge with newly uploaded
-        payload.gallery_images = [...existingUrls, ...url];
+        // Merge existing filenames with newly uploaded filenames
+        payload.gallery_images = [...existingFilenames, ...filename];
       } else {
-        payload[fieldName] = url;
+        payload[fieldName] = filename;
       }
     }
 
     // Handle gallery images if no new uploads
-    if (!uploadedUrls.gallery_images) {
+    if (!uploadedFilenames.gallery_images) {
       const textarea = document.querySelector('textarea[name="gallery_images_raw"]');
       if (textarea) {
         payload.gallery_images = textarea.value.trim().split("\n").filter(Boolean);
@@ -758,14 +1276,41 @@ async function saveAll() {
     
     if (!res.ok) throw new Error("Lỗi lưu dữ liệu");
 
-    // Step 5: Clear pending uploads
+    // Step 5: Update hidden inputs with uploaded filenames
+    for (const [fieldName, filename] of Object.entries(uploadedFilenames)) {
+      if (fieldName !== "gallery_images") {
+        const hiddenInput = document.querySelector(`input[name="${fieldName}"]`);
+        if (hiddenInput) {
+          hiddenInput.value = filename;
+        }
+      }
+    }
+
+    // Update gallery textarea with all filenames (existing + new)
+    if (uploadedFilenames.gallery_images) {
+      const textarea = document.querySelector('textarea[name="gallery_images_raw"]');
+      if (textarea) {
+        const existingFilenames = textarea.value.trim().split("\n").filter(Boolean);
+        const allFilenames = [...existingFilenames, ...uploadedFilenames.gallery_images];
+        textarea.value = allFilenames.join("\n");
+      }
+    }
+
+    // Step 6: Clear pending uploads and deleted images
     pendingUploads.singleImages = {};
     pendingUploads.galleryImages = [];
+    deletedImages.singleImages = [];
+    deletedImages.galleryImages = [];
+
+    // Step 7: Re-render UI to reflect saved state
+    renderSingleImageUpload("cover_image_url");
+    renderSingleImageUpload("groom_image_url");
+    renderSingleImageUpload("bride_image_url");
+    renderSingleImageUpload("groom_qr_url");
+    renderSingleImageUpload("bride_qr_url");
+    renderGalleryGrid();
 
     showToast("✅ Đã lưu thành công!");
-    
-    // Reload to show saved data
-    setTimeout(() => loadData(), 500);
   } catch (e) {
     console.error("Save error:", e);
     showToast("❌ Lỗi: " + e.message);
@@ -826,42 +1371,168 @@ function setupDragDrop(areaId, inputId, fieldName) {
 // ============= INITIALIZATION =============
 
 function setupLunarDateListeners() {
+  // Helper function to update lunar display
+  const updateLunarDisplay = (dateValue, displayEl, valueEl) => {
+    if (dateValue) {
+      const lunarDate = formatLunarDate(dateValue);
+      const fullText = `Tức ngày ${lunarDate}`;
+      displayEl.textContent = fullText;
+      valueEl.value = fullText;
+      displayEl.classList.remove('italic', 'text-gray-500');
+      displayEl.classList.add('text-gray-700');
+    } else {
+      displayEl.textContent = 'Chọn ngày để tự động tính ngày âm lịch';
+      valueEl.value = '';
+      displayEl.classList.add('italic', 'text-gray-500');
+      displayEl.classList.remove('text-gray-700');
+    }
+  };
+  
+  // Helper function to subtract one day from a date string
+  const subtractOneDay = (dateString) => {
+    const date = new Date(dateString);
+    date.setDate(date.getDate() - 1);
+    return date.toISOString().split('T')[0];
+  };
+  
   // Lễ thành hôn (chung)
   const ceremonyDate = document.querySelector('input[name="ceremony_date"]');
-  const ceremonyLunar = document.querySelector('input[name="ceremony_lunar"]');
+  const ceremonyTime = document.querySelector('input[name="ceremony_time"]');
+  const ceremonyLunarDisplay = document.getElementById('ceremony-lunar-display');
+  const ceremonyLunarValue = document.getElementById('ceremony-lunar-value');
   
-  if (ceremonyDate && ceremonyLunar) {
+  if (ceremonyDate && ceremonyLunarDisplay && ceremonyLunarValue) {
     ceremonyDate.addEventListener('change', (e) => {
+      updateLunarDisplay(e.target.value, ceremonyLunarDisplay, ceremonyLunarValue);
+      
+      // Auto-fill party dates if empty
+      const groomPartyDate = document.querySelector('input[name="groom_party_date"]');
+      const bridePartyDate = document.querySelector('input[name="bride_party_date"]');
+      
       if (e.target.value) {
-        ceremonyLunar.value = formatLunarDate(e.target.value);
+        const oneDayBefore = subtractOneDay(e.target.value);
+        
+        // Fill groom party date if empty
+        if (groomPartyDate && !groomPartyDate.value) {
+          if (window.flatpickrInstances && window.flatpickrInstances['groom_party_date']) {
+            window.flatpickrInstances['groom_party_date'].setDate(oneDayBefore, true);
+          } else {
+            groomPartyDate.value = oneDayBefore;
+          }
+          // Trigger change event to update lunar date
+          const event = new Event('change', { bubbles: true });
+          groomPartyDate.dispatchEvent(event);
+        }
+        
+        // Fill bride party date if empty
+        if (bridePartyDate && !bridePartyDate.value) {
+          if (window.flatpickrInstances && window.flatpickrInstances['bride_party_date']) {
+            window.flatpickrInstances['bride_party_date'].setDate(oneDayBefore, true);
+          } else {
+            bridePartyDate.value = oneDayBefore;
+          }
+          // Trigger change event to update lunar date
+          const event = new Event('change', { bubbles: true });
+          bridePartyDate.dispatchEvent(event);
+        }
+      }
+    });
+    ceremonyDate.addEventListener('blur', (e) => {
+      updateLunarDisplay(e.target.value, ceremonyLunarDisplay, ceremonyLunarValue);
+    });
+  }
+  
+  // Auto-fill party time when ceremony time is entered
+  if (ceremonyTime) {
+    ceremonyTime.addEventListener('change', (e) => {
+      const groomPartyTime = document.querySelector('input[name="groom_party_time"]');
+      const bridePartyTime = document.querySelector('input[name="bride_party_time"]');
+      
+      // Fill party times with 17:00 if empty
+      if (groomPartyTime && !groomPartyTime.value) {
+        groomPartyTime.value = '17:00';
+      }
+      if (bridePartyTime && !bridePartyTime.value) {
+        bridePartyTime.value = '17:00';
+      }
+    });
+    ceremonyTime.addEventListener('blur', (e) => {
+      const groomPartyTime = document.querySelector('input[name="groom_party_time"]');
+      const bridePartyTime = document.querySelector('input[name="bride_party_time"]');
+      
+      // Fill party times with 17:00 if empty
+      if (groomPartyTime && !groomPartyTime.value) {
+        groomPartyTime.value = '17:00';
+      }
+      if (bridePartyTime && !bridePartyTime.value) {
+        bridePartyTime.value = '17:00';
       }
     });
   }
   
   // Tiệc cưới nhà trai
   const groomPartyDate = document.querySelector('input[name="groom_party_date"]');
-  const groomPartyLunar = document.querySelector('input[name="groom_party_lunar"]');
+  const groomPartyLunarDisplay = document.getElementById('groom-party-lunar-display');
+  const groomPartyLunarValue = document.getElementById('groom-party-lunar-value');
   
-  if (groomPartyDate && groomPartyLunar) {
+  if (groomPartyDate && groomPartyLunarDisplay && groomPartyLunarValue) {
     groomPartyDate.addEventListener('change', (e) => {
-      if (e.target.value) {
-        groomPartyLunar.value = formatLunarDate(e.target.value);
-      }
+      updateLunarDisplay(e.target.value, groomPartyLunarDisplay, groomPartyLunarValue);
+    });
+    groomPartyDate.addEventListener('blur', (e) => {
+      updateLunarDisplay(e.target.value, groomPartyLunarDisplay, groomPartyLunarValue);
     });
   }
   
   // Tiệc cưới nhà gái
   const bridePartyDate = document.querySelector('input[name="bride_party_date"]');
-  const bridePartyLunar = document.querySelector('input[name="bride_party_lunar"]');
+  const bridePartyLunarDisplay = document.getElementById('bride-party-lunar-display');
+  const bridePartyLunarValue = document.getElementById('bride-party-lunar-value');
   
-  if (bridePartyDate && bridePartyLunar) {
+  if (bridePartyDate && bridePartyLunarDisplay && bridePartyLunarValue) {
     bridePartyDate.addEventListener('change', (e) => {
-      if (e.target.value) {
-        bridePartyLunar.value = formatLunarDate(e.target.value);
+      updateLunarDisplay(e.target.value, bridePartyLunarDisplay, bridePartyLunarValue);
+    });
+    bridePartyDate.addEventListener('blur', (e) => {
+      updateLunarDisplay(e.target.value, bridePartyLunarDisplay, bridePartyLunarValue);
+    });
+  }
+  
+  // Auto-fill party location from address
+  const groomAddress = document.querySelector('input[name="groom_address"]');
+  const groomPartyLocation = document.querySelector('input[name="groom_party_location"]');
+  
+  if (groomAddress && groomPartyLocation) {
+    groomAddress.addEventListener('change', (e) => {
+      if (e.target.value && !groomPartyLocation.value) {
+        groomPartyLocation.value = e.target.value;
+      }
+    });
+    groomAddress.addEventListener('blur', (e) => {
+      if (e.target.value && !groomPartyLocation.value) {
+        groomPartyLocation.value = e.target.value;
+      }
+    });
+  }
+  
+  const brideAddress = document.querySelector('input[name="bride_address"]');
+  const bridePartyLocation = document.querySelector('input[name="bride_party_location"]');
+  
+  if (brideAddress && bridePartyLocation) {
+    brideAddress.addEventListener('change', (e) => {
+      if (e.target.value && !bridePartyLocation.value) {
+        bridePartyLocation.value = e.target.value;
+      }
+    });
+    brideAddress.addEventListener('blur', (e) => {
+      if (e.target.value && !bridePartyLocation.value) {
+        bridePartyLocation.value = e.target.value;
       }
     });
   }
 }
+
+let WEDDING_SLUG = null; // Store slug for generating links
 
 function initializePage() {
   const idLabel = document.getElementById("wedding-id-label");
@@ -869,8 +1540,14 @@ function initializePage() {
   const brideLink = document.getElementById("link-bride");
 
   if (idLabel) idLabel.textContent = `ID: ${WEDDING_ID}`;
-  if (groomLink) groomLink.value = `${DOMAIN}/index.html?id=${WEDDING_ID}&isGroom=true`;
-  if (brideLink) brideLink.value = `${DOMAIN}/index.html?id=${WEDDING_ID}&isGroom=false`;
+  
+  // Links will be updated after loading data with slug
+  if (groomLink) groomLink.value = "Đang tải...";
+  if (brideLink) brideLink.value = "Đang tải...";
+
+  // Setup bank searchable select
+  setupBankSearchableSelect('groom-bank-input', 'groom-bank-dropdown', 'groom-bank-value');
+  setupBankSearchableSelect('bride-bank-input', 'bride-bank-dropdown', 'bride-bank-value');
 
   // Initialize single image uploads
   renderSingleImageUpload("cover_image_url");
@@ -884,9 +1561,25 @@ function initializePage() {
   
   // Setup lunar date auto-fill
   setupLunarDateListeners();
+  
+  // Setup form submit handler
+  const form = document.getElementById('wedding-form');
+  if (form) {
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      saveAll();
+    });
+  }
 
+  // Load data after Flatpickr is ready
   if (WEDDING_ID) {
-    loadData();
+    // Wait for Flatpickr to initialize
+    const checkFlatpickr = setInterval(() => {
+      if (window.flatpickrInstances) {
+        clearInterval(checkFlatpickr);
+        loadData();
+      }
+    }, 50);
   } else {
     showToast("❌ Không tìm thấy ID thiệp cưới!");
   }
@@ -896,12 +1589,15 @@ function initializePage() {
 
 window.handleTimeInput = handleTimeInput;
 window.validateTimeFormat = validateTimeFormat;
+window.randomQuote = randomQuote;
 window.handleImageUpload = handleImageUpload;
 window.handleGalleryUpload = handleGalleryUpload;
 window.removeImage = removeImage;
 window.removeGalleryImage = removeGalleryImage;
+window.removeExistingGalleryImage = removeExistingGalleryImage;
 window.saveAll = saveAll;
 window.copyText = copyText;
+window.generateLinks = generateLinks;
 
 // ============= START =============
 

@@ -5,7 +5,7 @@ drop table if exists weddings cascade;
 create table weddings (
   id uuid default gen_random_uuid() primary key,
   is_active boolean default true,
-  contact text unique not null,
+  slug text unique not null,
   
   -- Thông tin chung
   groom_name text,
@@ -56,9 +56,12 @@ create table weddings (
   created_at timestamptz default now()
 );
 
+-- Index cho slug để tăng tốc độ query
+create index idx_weddings_slug on weddings(slug);
+
 -- Comments cho từng cột
 comment on column weddings.is_active is 'Bật/tắt thiệp: true=hoạt động, false=thu hồi';
-comment on column weddings.contact is 'Email hoặc SĐT khách hàng (unique, định danh)';
+comment on column weddings.slug is 'URL slug cho thiệp cưới (unique): van-hung-thuy-hang';
 
 -- Thông tin chung
 comment on column weddings.groom_name is 'Tên chú rể: Văn Hùng';

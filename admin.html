@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Admin - Tạo Thiệp Cưới</title>
+    <title>Admin - Quản lý Thiệp Cưới</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap"
@@ -13,77 +13,263 @@
       body {
         font-family: "Inter", sans-serif;
       }
+      .status-badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 9999px;
+        font-size: 11px;
+        font-weight: 500;
+      }
+      .status-active {
+        background: #dcfce7;
+        color: #166534;
+      }
+      .status-inactive {
+        background: #fee2e2;
+        color: #991b1b;
+      }
     </style>
   </head>
-  <body class="bg-gray-50 min-h-screen flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-lg p-8 w-full max-w-md">
-      <h1 class="text-2xl font-semibold text-gray-800 mb-2">Tạo Thiệp Cưới</h1>
-      <p class="text-gray-500 text-sm mb-8">
-        Nhập thông tin liên hệ để tạo thiệp mới
-      </p>
+  <body class="bg-gray-50 min-h-screen p-4">
+    <div class="max-w-7xl mx-auto">
+      <h1 class="text-3xl font-semibold text-gray-800 mb-8">
+        Quản lý Thiệp Cưới
+      </h1>
 
-      <!-- Form tạo mới -->
-      <div id="create-form">
-        <label class="block text-sm font-medium text-gray-700 mb-2"
-          >Email hoặc Số điện thoại</label
-        >
-        <input
-          id="contact-input"
-          type="text"
-          placeholder="vd: 0912345678 hoặc email@gmail.com"
-          class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-rose-300 mb-4"
-        />
-        <button
-          onclick="createWedding()"
-          class="w-full bg-rose-400 hover:bg-rose-500 text-white font-medium py-3 rounded-xl transition-colors"
-        >
-          Thêm mới
-        </button>
-        <div id="error-msg" class="text-red-500 text-sm mt-3 hidden"></div>
-      </div>
-
-      <!-- Kết quả sau khi tạo -->
-      <div id="result" class="hidden">
-        <div class="bg-green-50 border border-green-200 rounded-xl p-4 mb-6">
-          <p class="text-green-700 text-sm font-medium mb-1">
-            ✅ Tạo thiệp thành công!
-          </p>
-          <p class="text-green-600 text-xs">
-            ID: <span id="result-id" class="font-mono font-semibold"></span>
-          </p>
+      <!-- Tabs -->
+      <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+        <div class="flex border-b border-gray-200">
+          <button
+            onclick="switchTab('create')"
+            id="tab-create"
+            class="flex-1 px-6 py-4 text-sm font-medium text-gray-700 hover:bg-gray-50 border-b-2 border-rose-400"
+          >
+            Tạo mới
+          </button>
+          <button
+            onclick="switchTab('list')"
+            id="tab-list"
+            class="flex-1 px-6 py-4 text-sm font-medium text-gray-500 hover:bg-gray-50 border-b-2 border-transparent"
+          >
+            Danh sách
+          </button>
         </div>
 
-        <div class="flex flex-col gap-3">
-          <div>
-            <label
-              class="block text-xs font-medium text-gray-500 mb-1 uppercase tracking-wider"
-              >Link quản lý (gửi cho khách)</label
-            >
-            <div class="flex gap-2">
+        <!-- Tab: Tạo mới -->
+        <div id="content-create" class="p-8">
+          <div class="max-w-md mx-auto">
+            <p class="text-gray-500 text-sm mb-6">
+              Nhập slug để tạo thiệp mới (ví dụ: van-hung-thuy-hang)
+            </p>
+
+            <div id="create-form">
+              <label class="block text-sm font-medium text-gray-700 mb-2"
+                >Slug (URL)</label
+              >
               <input
-                id="manage-link"
-                readonly
-                class="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs font-mono text-gray-700"
+                id="slug-input"
+                type="text"
+                placeholder="van-hung-thuy-hang"
+                class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-rose-300 mb-4"
               />
               <button
-                onclick="copyLink('manage-link')"
-                class="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-xs font-medium transition-colors"
+                onclick="createWedding()"
+                class="w-full bg-rose-400 hover:bg-rose-500 text-white font-medium py-3 rounded-xl transition-colors"
               >
-                Copy
+                Thêm mới
+              </button>
+              <div
+                id="error-msg"
+                class="text-red-500 text-sm mt-3 hidden"
+              ></div>
+            </div>
+
+            <!-- Kết quả sau khi tạo -->
+            <div id="result" class="hidden">
+              <div
+                class="bg-green-50 border border-green-200 rounded-xl p-4 mb-6"
+              >
+                <p class="text-green-700 text-sm font-medium mb-1">
+                  ✅ Tạo thiệp thành công!
+                </p>
+                <p class="text-green-600 text-xs">
+                  ID:
+                  <span id="result-id" class="font-mono font-semibold"></span>
+                </p>
+              </div>
+
+              <div class="flex flex-col gap-3">
+                <div>
+                  <label
+                    class="block text-xs font-medium text-gray-500 mb-1 uppercase tracking-wider"
+                    >Link quản lý (gửi cho khách)</label
+                  >
+                  <div class="flex gap-2">
+                    <input
+                      id="manage-link"
+                      readonly
+                      class="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs font-mono text-gray-700"
+                    />
+                    <button
+                      onclick="copyLink('manage-link')"
+                      class="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-xs font-medium transition-colors"
+                    >
+                      Copy
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                onclick="resetForm()"
+                class="w-full mt-6 border border-gray-200 text-gray-600 py-2 rounded-xl text-sm hover:bg-gray-50 transition-colors"
+              >
+                Tạo thiệp khác
               </button>
             </div>
           </div>
         </div>
 
-        <button
-          onclick="resetForm()"
-          class="w-full mt-6 border border-gray-200 text-gray-600 py-2 rounded-xl text-sm hover:bg-gray-50 transition-colors"
-        >
-          Tạo thiệp khác
-        </button>
+        <!-- Tab: Danh sách -->
+        <div id="content-list" class="p-8 hidden">
+          <!-- Search bar -->
+          <div class="mb-6 flex gap-4">
+            <div class="flex-1">
+              <input
+                id="search-input"
+                type="text"
+                placeholder="Tìm kiếm theo slug, tên chú rể, cô dâu..."
+                class="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-rose-300"
+              />
+            </div>
+            <button
+              onclick="searchWeddings()"
+              class="px-6 py-2 bg-rose-400 hover:bg-rose-500 text-white rounded-lg text-sm font-medium transition-colors"
+            >
+              Tìm kiếm
+            </button>
+            <button
+              onclick="clearSearch()"
+              class="px-6 py-2 border border-gray-200 hover:bg-gray-50 text-gray-600 rounded-lg text-sm font-medium transition-colors"
+            >
+              Xóa
+            </button>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full">
+              <thead>
+                <tr class="border-b border-gray-200">
+                  <th
+                    class="text-left py-3 px-4 text-sm font-medium text-gray-700"
+                  >
+                    Slug
+                  </th>
+                  <th
+                    class="text-left py-3 px-4 text-sm font-medium text-gray-700"
+                  >
+                    URL Thiệp
+                  </th>
+                  <th
+                    class="text-left py-3 px-4 text-sm font-medium text-gray-700"
+                  >
+                    Link Quản lý
+                  </th>
+                  <th
+                    class="text-left py-3 px-4 text-sm font-medium text-gray-700"
+                  >
+                    Chú rể
+                  </th>
+                  <th
+                    class="text-left py-3 px-4 text-sm font-medium text-gray-700"
+                  >
+                    Cô dâu
+                  </th>
+                  <th
+                    class="text-left py-3 px-4 text-sm font-medium text-gray-700"
+                  >
+                    Trạng thái
+                  </th>
+                  <th
+                    class="text-left py-3 px-4 text-sm font-medium text-gray-700"
+                  >
+                    Ngày tạo
+                  </th>
+                  <th
+                    class="text-left py-3 px-4 text-sm font-medium text-gray-700"
+                  >
+                    Thao tác
+                  </th>
+                </tr>
+              </thead>
+              <tbody id="wedding-list">
+                <tr>
+                  <td colspan="8" class="text-center py-8 text-gray-400">
+                    Đang tải...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination -->
+          <div id="pagination" class="flex items-center justify-between mt-6">
+            <div class="text-sm text-gray-600">
+              Trang <span id="current-page">1</span> /
+              <span id="total-pages">1</span> (<span id="total-records">0</span>
+              bản ghi)
+            </div>
+            <div class="flex gap-2">
+              <button
+                onclick="loadPage(currentPage - 1)"
+                id="btn-prev"
+                class="px-4 py-2 border border-gray-200 rounded-lg text-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Trước
+              </button>
+              <button
+                onclick="loadPage(currentPage + 1)"
+                id="btn-next"
+                class="px-4 py-2 border border-gray-200 rounded-lg text-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Sau
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
+    <!-- Modal: Edit Slug -->
+    <div
+      id="modal-edit"
+      class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50"
+    >
+      <div class="bg-white rounded-2xl p-6 w-full max-w-md mx-4">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Sửa Slug</h3>
+        <input
+          id="edit-slug-input"
+          type="text"
+          class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-rose-300 mb-4"
+        />
+        <div class="flex gap-3">
+          <button
+            onclick="closeModal()"
+            class="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-sm hover:bg-gray-50"
+          >
+            Hủy
+          </button>
+          <button
+            onclick="saveSlug()"
+            class="flex-1 px-4 py-2 bg-rose-400 hover:bg-rose-500 text-white rounded-lg text-sm"
+          >
+            Lưu
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script src="supabase.js"></script>
     <script>
       // Config
       const EDGE_URL =
@@ -104,11 +290,53 @@
       }
       const DOMAIN = window.location.origin;
 
-      async function createWedding() {
-        const contact = document.getElementById("contact-input").value.trim();
+      let currentPage = 1;
+      let totalPages = 1;
+      let currentSearch = "";
+      let editingId = null;
 
-        if (!contact) {
-          showError("Vui lòng nhập email hoặc số điện thoại");
+      // Tab switching
+      function switchTab(tab) {
+        if (tab === "create") {
+          document
+            .getElementById("tab-create")
+            .classList.add("border-rose-400", "text-gray-700");
+          document
+            .getElementById("tab-create")
+            .classList.remove("border-transparent", "text-gray-500");
+          document
+            .getElementById("tab-list")
+            .classList.remove("border-rose-400", "text-gray-700");
+          document
+            .getElementById("tab-list")
+            .classList.add("border-transparent", "text-gray-500");
+          document.getElementById("content-create").classList.remove("hidden");
+          document.getElementById("content-list").classList.add("hidden");
+        } else {
+          document
+            .getElementById("tab-list")
+            .classList.add("border-rose-400", "text-gray-700");
+          document
+            .getElementById("tab-list")
+            .classList.remove("border-transparent", "text-gray-500");
+          document
+            .getElementById("tab-create")
+            .classList.remove("border-rose-400", "text-gray-700");
+          document
+            .getElementById("tab-create")
+            .classList.add("border-transparent", "text-gray-500");
+          document.getElementById("content-list").classList.remove("hidden");
+          document.getElementById("content-create").classList.add("hidden");
+          loadPage(1);
+        }
+      }
+
+      // Create wedding
+      async function createWedding() {
+        const slug = document.getElementById("slug-input").value.trim();
+
+        if (!slug) {
+          showError("Vui lòng nhập slug");
           return;
         }
 
@@ -123,13 +351,13 @@
               "Content-Type": "application/json",
               Authorization: `Bearer ${ANON_KEY}`,
             },
-            body: JSON.stringify({ contact }),
+            body: JSON.stringify({ slug }),
           });
 
           const data = await res.json();
           if (!res.ok) throw new Error(data.error || "Lỗi tạo thiệp");
 
-          showResult(data.id);
+          showResult(data.id, slug);
         } catch (e) {
           showError(e.message);
           btn.textContent = "Thêm mới";
@@ -137,7 +365,7 @@
         }
       }
 
-      function showResult(id) {
+      function showResult(id, slug) {
         document.getElementById("result-id").textContent = id;
         document.getElementById("manage-link").value =
           `${DOMAIN}/manage-by-customer.html?id=${id}`;
@@ -160,17 +388,252 @@
       }
 
       function resetForm() {
-        document.getElementById("contact-input").value = "";
+        document.getElementById("slug-input").value = "";
         document.getElementById("error-msg").classList.add("hidden");
         document.getElementById("create-form").classList.remove("hidden");
         document.getElementById("result").classList.add("hidden");
       }
 
+      // Search
+      function searchWeddings() {
+        currentSearch = document.getElementById("search-input").value.trim();
+        loadPage(1);
+      }
+
+      function clearSearch() {
+        document.getElementById("search-input").value = "";
+        currentSearch = "";
+        loadPage(1);
+      }
+
+      // Load wedding list with pagination
+      async function loadPage(page) {
+        if (page < 1 || page > totalPages) return;
+        currentPage = page;
+
+        try {
+          let url = `${EDGE_URL}?list=true&page=${page}&limit=10&token=${ADMIN_TOKEN}`;
+          if (currentSearch) {
+            url += `&search=${encodeURIComponent(currentSearch)}`;
+          }
+
+          const res = await fetch(url, {
+            headers: { Authorization: `Bearer ${ANON_KEY}` },
+          });
+
+          const result = await res.json();
+          if (!res.ok) throw new Error(result.error || "Lỗi tải danh sách");
+
+          renderList(result.data);
+          updatePagination(result.pagination);
+        } catch (e) {
+          document.getElementById("wedding-list").innerHTML = `
+            <tr>
+              <td colspan="7" class="text-center py-8 text-red-500">${e.message}</td>
+            </tr>
+          `;
+        }
+      }
+
+      function renderList(weddings) {
+        const tbody = document.getElementById("wedding-list");
+        if (!weddings || weddings.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="8" class="text-center py-8 text-gray-400">Chưa có thiệp nào</td>
+            </tr>
+          `;
+          return;
+        }
+
+        tbody.innerHTML = weddings
+          .map(
+            (w) => `
+          <tr class="border-b border-gray-100 hover:bg-gray-50">
+            <td class="py-3 px-4 text-sm text-gray-700 font-mono">${w.slug || "-"}</td>
+            <td class="py-3 px-4 text-sm">
+              <a href="${DOMAIN}/${w.slug}" target="_blank" class="text-rose-500 hover:underline text-xs">
+                ${DOMAIN}/${w.slug}
+              </a>
+            </td>
+            <td class="py-3 px-4 text-sm">
+              <button
+                onclick="copyManageLink('${w.id}')"
+                class="text-blue-600 hover:underline text-xs flex items-center gap-1"
+              >
+                📋 Copy link
+              </button>
+            </td>
+            <td class="py-3 px-4 text-sm text-gray-700">${w.groom_name || "-"}</td>
+            <td class="py-3 px-4 text-sm text-gray-700">${w.bride_name || "-"}</td>
+            <td class="py-3 px-4 text-sm">
+              <span class="status-badge ${w.is_active ? "status-active" : "status-inactive"}">
+                ${w.is_active ? "Hoạt động" : "Tắt"}
+              </span>
+            </td>
+            <td class="py-3 px-4 text-sm text-gray-500">${formatDate(w.created_at)}</td>
+            <td class="py-3 px-4 text-sm">
+              <div class="flex gap-2">
+                <button
+                  onclick="toggleStatus('${w.id}', ${!w.is_active})"
+                  class="text-yellow-600 hover:text-yellow-700 text-xs"
+                  title="${w.is_active ? "Tắt" : "Bật"}"
+                >
+                  ${w.is_active ? "🔒" : "🔓"}
+                </button>
+                <button
+                  onclick="openEditModal('${w.id}', '${w.slug}')"
+                  class="text-green-600 hover:text-green-700 text-xs"
+                  title="Sửa slug"
+                >
+                  ✏️
+                </button>
+                <button
+                  onclick="deleteWedding('${w.id}', '${w.slug}')"
+                  class="text-red-600 hover:text-red-700 text-xs"
+                  title="Xóa"
+                >
+                  🗑️
+                </button>
+              </div>
+            </td>
+          </tr>
+        `,
+          )
+          .join("");
+      }
+
+      function formatDate(dateStr) {
+        const date = new Date(dateStr);
+        return date.toLocaleDateString("vi-VN", {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+      }
+
+      function updatePagination(pagination) {
+        currentPage = pagination.page;
+        totalPages = pagination.totalPages;
+
+        document.getElementById("current-page").textContent = pagination.page;
+        document.getElementById("total-pages").textContent =
+          pagination.totalPages;
+        document.getElementById("total-records").textContent = pagination.total;
+
+        document.getElementById("btn-prev").disabled = pagination.page === 1;
+        document.getElementById("btn-next").disabled =
+          pagination.page === pagination.totalPages;
+      }
+
+      // Copy manage link
+      function copyManageLink(id) {
+        const link = `${DOMAIN}/manage-by-customer.html?id=${id}`;
+        navigator.clipboard.writeText(link);
+        alert("Đã copy link quản lý!");
+      }
+
+      // Toggle status
+      async function toggleStatus(id, newStatus) {
+        if (
+          !confirm(`Bạn có chắc muốn ${newStatus ? "bật" : "tắt"} thiệp này?`)
+        )
+          return;
+
+        try {
+          const res = await fetch(`${EDGE_URL}?token=${ADMIN_TOKEN}`, {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${ANON_KEY}`,
+            },
+            body: JSON.stringify({ id, is_active: newStatus }),
+          });
+
+          if (!res.ok) throw new Error("Lỗi cập nhật trạng thái");
+
+          loadPage(currentPage);
+        } catch (e) {
+          alert(e.message);
+        }
+      }
+
+      // Edit slug
+      function openEditModal(id, slug) {
+        editingId = id;
+        document.getElementById("edit-slug-input").value = slug;
+        document.getElementById("modal-edit").classList.remove("hidden");
+        document.getElementById("modal-edit").classList.add("flex");
+      }
+
+      function closeModal() {
+        editingId = null;
+        document.getElementById("modal-edit").classList.add("hidden");
+        document.getElementById("modal-edit").classList.remove("flex");
+      }
+
+      async function saveSlug() {
+        const newSlug = document.getElementById("edit-slug-input").value.trim();
+        if (!newSlug) {
+          alert("Vui lòng nhập slug");
+          return;
+        }
+
+        try {
+          const res = await fetch(`${EDGE_URL}?token=${ADMIN_TOKEN}`, {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${ANON_KEY}`,
+            },
+            body: JSON.stringify({ id: editingId, slug: newSlug }),
+          });
+
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || "Lỗi cập nhật slug");
+
+          closeModal();
+          loadPage(currentPage);
+        } catch (e) {
+          alert(e.message);
+        }
+      }
+
+      // Delete wedding
+      async function deleteWedding(id, slug) {
+        if (
+          !confirm(
+            `Bạn có chắc muốn xóa thiệp "${slug}"?\n\nThao tác này không thể hoàn tác!`,
+          )
+        )
+          return;
+
+        try {
+          const res = await fetch(`${EDGE_URL}?id=${id}&token=${ADMIN_TOKEN}`, {
+            method: "DELETE",
+            headers: { Authorization: `Bearer ${ANON_KEY}` },
+          });
+
+          if (!res.ok) throw new Error("Lỗi xóa thiệp");
+
+          alert("Đã xóa thiệp thành công!");
+          loadPage(currentPage);
+        } catch (e) {
+          alert(e.message);
+        }
+      }
+
       // Enter key
+      document.getElementById("slug-input").addEventListener("keydown", (e) => {
+        if (e.key === "Enter") createWedding();
+      });
+
       document
-        .getElementById("contact-input")
+        .getElementById("search-input")
         .addEventListener("keydown", (e) => {
-          if (e.key === "Enter") createWedding();
+          if (e.key === "Enter") searchWeddings();
         });
     </script>
   </body>
