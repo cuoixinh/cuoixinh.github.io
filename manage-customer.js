@@ -105,7 +105,7 @@ async function generateLinks(side) {
         const encryptedName = encryptData(guest.displayName || '');
         const encryptedRelationship = encryptData(guest.relationship);
         
-        const link = `${DOMAIN}/index.html?id=${WEDDING_ID}&isGroom=${isGroom}&name=${encryptedName}&relationship=${encryptedRelationship}`;
+        const link = `${DOMAIN}/wedding.html?slug=${WEDDING_SLUG}&isGroom=${isGroom}&name=${encryptedName}&relationship=${encryptedRelationship}`;
         
         updates.push({ row: guest.row, link });
       } catch (error) {
@@ -1133,8 +1133,8 @@ function fillForm(data) {
     // Update links with slug
     const groomLink = document.getElementById("link-groom");
     const brideLink = document.getElementById("link-bride");
-    if (groomLink) groomLink.value = `${DOMAIN}/${data.slug}?isGroom=true`;
-    if (brideLink) brideLink.value = `${DOMAIN}/${data.slug}`;
+    if (groomLink) groomLink.value = `${DOMAIN}/wedding.html?slug=${data.slug}&isGroom=true`;
+    if (brideLink) brideLink.value = `${DOMAIN}/wedding.html?slug=${data.slug}`;
   }
 
   Object.keys(data).forEach((key) => {
