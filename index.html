@@ -2,11 +2,8 @@
 <html lang="vi">
   <head>
     <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
-    />
-    <title>Thiệp Cưới Online - Văn Hùng & Thùy Hằng</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Thiệp Cưới Online - Tạo Thiệp Cưới Đẹp & Miễn Phí</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link
       rel="stylesheet"
@@ -15,12 +12,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Great+Vibes&family=Inter:wght@300;400;500&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Cinzel:wght@400;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Great+Vibes&family=Inter:wght@300;400;500;600&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="style.css" />
-    <!-- CryptoJS for decryption -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <script>
       tailwind.config = {
         theme: {
@@ -30,9 +24,6 @@
               vibes: ["Great Vibes", "cursive"],
               cormorant: ["Cormorant Garamond", "serif"],
               inter: ["Inter", "sans-serif"],
-              cinzel: ["Cinzel", "serif"],
-              nautigal: ["TheNautigal", "cursive"],
-              katty: ["KattyDiona", "cursive"],
             },
             colors: {
               cream: {
@@ -45,752 +36,256 @@
                 200: "#e8b4b8",
                 300: "#d4a5a5",
               },
-              "stone-custom": {
-                400: "#c7c2bd",
-                500: "#a8a29e",
-                600: "#78716c",
-              },
             },
           },
         },
       };
     </script>
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+      }
+      .gradient-text {
+        background: linear-gradient(135deg, #d4a5a5 0%, #e8b4b8 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+    </style>
   </head>
   <body
-    class="bg-gradient-to-br from-cream-50 via-[#f5ebe0] to-cream-50 min-h-screen flex justify-center items-center p-0 md:py-5"
+    class="bg-gradient-to-br from-cream-50 via-cream-100 to-cream-50 min-h-screen"
   >
-    <!-- Cover Screen -->
-    <div
-      id="cover-screen"
-      class="fixed inset-0 z-50 flex justify-center items-center md:py-5"
-    >
-      <div
-        class="relative w-full max-w-[430px] min-h-screen md:min-h-[932px] overflow-hidden md:rounded-[40px] flex flex-col items-center justify-center gap-8 px-10 text-center"
-      >
-        <!-- Background ảnh mờ -->
-        <div class="absolute inset-0">
-          <img
-            src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%23f5f5f5'/%3E%3Cg transform='translate(200, 170)'%3E%3Crect x='-35' y='-20' width='70' height='48' rx='5' fill='%23d0d0d0'/%3E%3Cpath d='M -16,-20 L -10,-28 L 10,-28 L 16,-20 Z' fill='%23d0d0d0'/%3E%3Ccircle cx='0' cy='4' r='18' fill='%23e0e0e0'/%3E%3Ccircle cx='0' cy='4' r='12' fill='%23f0f0f0'/%3E%3Ccircle cx='22' cy='-10' r='3' fill='%23e0e0e0'/%3E%3C/g%3E%3Ctext x='200' y='250' text-anchor='middle' font-family='Arial, sans-serif' font-size='18' fill='%23c0c0c0' font-weight='300' letter-spacing='0.5'%3ENo Photo Available%3C/text%3E%3C/svg%3E"
-            id="cover-bg-img"
-            class="w-full h-full object-cover opacity-30"
-            alt=""
-          />
+    <!-- Hero Section -->
+    <div class="container mx-auto px-4 py-16">
+      <div class="text-center mb-16">
+        <h1
+          class="font-playfair text-5xl md:text-6xl font-bold text-gray-800 mb-4"
+        >
+          Thiệp Cưới Online
+        </h1>
+        <p class="font-cormorant text-2xl text-rose-pastel-300 italic mb-6">
+          Tạo thiệp cưới đẹp, miễn phí & dễ dàng
+        </p>
+        <p class="text-gray-600 text-lg max-w-2xl mx-auto">
+          Nền tảng tạo thiệp cưới trực tuyến hiện đại, giúp bạn gửi lời mời đến
+          khách mời một cách nhanh chóng và tiện lợi
+        </p>
+      </div>
+
+      <!-- Features Grid -->
+      <div class="grid md:grid-cols-3 gap-8 mb-16 max-w-5xl mx-auto">
+        <div
+          class="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow"
+        >
           <div
-            class="absolute inset-0"
-            style="
-              background: linear-gradient(
-                180deg,
-                rgba(255, 251, 247, 0.88) 0%,
-                rgba(255, 232, 224, 0.85) 50%,
-                rgba(255, 251, 247, 0.88) 100%
-              );
-            "
-          ></div>
+            class="w-16 h-16 bg-rose-pastel-100 rounded-full flex items-center justify-center mb-4 mx-auto"
+          >
+            <i class="fas fa-mobile-alt text-rose-pastel-300 text-2xl"></i>
+          </div>
+          <h3
+            class="font-playfair text-xl font-semibold text-gray-800 mb-2 text-center"
+          >
+            Responsive Design
+          </h3>
+          <p class="text-gray-600 text-center">
+            Hiển thị hoàn hảo trên mọi thiết bị: điện thoại, máy tính bảng và
+            desktop
+          </p>
         </div>
 
-        <!-- Content -->
-        <div class="relative z-10 flex flex-col items-center gap-8 w-full">
-          <!-- Ornament -->
-          <div class="text-rose-pastel-200 text-2xl tracking-[8px]">✦ ✦ ✦</div>
-
-          <!-- Wedding Invitation -->
+        <div
+          class="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow"
+        >
           <div
-            class="font-katty text-[52px] text-stone-custom-600 leading-tight"
+            class="w-16 h-16 bg-rose-pastel-100 rounded-full flex items-center justify-center mb-4 mx-auto"
           >
-            Wedding Invitation
+            <i class="fas fa-palette text-rose-pastel-300 text-2xl"></i>
           </div>
-
-          <!-- Divider -->
-          <div class="flex items-center gap-4 w-full">
-            <div class="flex-1 h-px bg-rose-pastel-200"></div>
-            <i class="fas fa-heart text-rose-pastel-300 text-xs"></i>
-            <div class="flex-1 h-px bg-rose-pastel-200"></div>
-          </div>
-
-          <!-- Kính mời -->
-          <div class="flex flex-col gap-4">
-            <div
-              class="font-cormorant italic text-[18px] text-stone-custom-500"
-            >
-              Trân trọng kính mời bạn
-            </div>
-            <div
-              class="font-nautigal text-[44px] text-rose-pastel-300 leading-none"
-              id="cover-guest-name"
-            >
-              ----------
-            </div>
-            <div
-              class="font-cormorant italic text-[16px] text-stone-custom-400 leading-relaxed"
-            >
-              đến tham dự lễ thành hôn của
-            </div>
-            <div
-              class="font-nautigal text-[36px] text-stone-custom-600 leading-tight"
-            >
-              <span id="cover-groom-name">----------</span>
-              <span class="text-rose-pastel-200 mx-2">&</span>
-              <span id="cover-bride-name">----------</span>
-            </div>
-          </div>
-
-          <!-- Ngày giờ -->
-          <!-- Divider -->
-          <div class="flex items-center gap-4 w-full">
-            <div class="flex-1 h-px bg-rose-pastel-100"></div>
-            <div class="flex-1 h-px bg-rose-pastel-100"></div>
-          </div>
-
-          <!-- Nút mở thiệp -->
-          <button
-            onclick="openInvitation()"
-            class="open-btn relative overflow-hidden px-10 py-4 rounded-full border border-rose-pastel-200 bg-white/60 font-cormorant italic text-[18px] text-stone-custom-600 active:scale-95 transition-transform duration-200"
-            style="
-              touch-action: manipulation;
-              -webkit-tap-highlight-color: transparent;
-            "
+          <h3
+            class="font-playfair text-xl font-semibold text-gray-800 mb-2 text-center"
           >
-            <span
-              class="relative z-10 pointer-events-none flex items-center gap-2"
-            >
-              <i
-                class="fas fa-envelope-open-text text-rose-pastel-300 text-base"
-              ></i>
-              Mở Thiệp
-            </span>
-            <div class="btn-shimmer pointer-events-none"></div>
-          </button>
+            Thiết kế đẹp mắt
+          </h3>
+          <p class="text-gray-600 text-center">
+            Giao diện sang trọng, hiện đại với màu sắc pastel nhẹ nhàng
+          </p>
+        </div>
+
+        <div
+          class="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow"
+        >
+          <div
+            class="w-16 h-16 bg-rose-pastel-100 rounded-full flex items-center justify-center mb-4 mx-auto"
+          >
+            <i class="fas fa-bolt text-rose-pastel-300 text-2xl"></i>
+          </div>
+          <h3
+            class="font-playfair text-xl font-semibold text-gray-800 mb-2 text-center"
+          >
+            Nhanh chóng
+          </h3>
+          <p class="text-gray-600 text-center">
+            Tạo và chia sẻ thiệp cưới chỉ trong vài phút
+          </p>
         </div>
       </div>
-    </div>
 
-    <!-- Mobile Wedding Invitation Card -->
-    <div
-      id="main-card"
-      class="relative w-full max-w-[430px] min-h-screen md:min-h-[932px] bg-gradient-to-b from-cream-50 via-cream-200 to-cream-50 md:rounded-[40px] shadow-2xl overflow-hidden"
-      style="display: none"
-    >
-      <!-- Glass Overlay Effect -->
-      <div
-        class="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/40 to-transparent pointer-events-none z-10"
-      ></div>
-
-      <!-- Main Content -->
-      <div
-        class="relative z-20 px-8 py-8 text-center flex flex-col items-center justify-center gap-8 min-h-screen md:min-h-[932px]"
-      >
-        <!-- Save The Date Title -->
-        <h1
-          class="font-playfair text-[28px] font-normal text-stone-custom-600 leading-tight"
+      <!-- Template Preview -->
+      <div class="max-w-4xl mx-auto mb-16">
+        <h2
+          class="font-playfair text-3xl font-semibold text-gray-800 mb-8 text-center"
         >
-          Save The Date
-        </h1>
-
-        <!-- Couple Names -->
-        <div
-          class="font-nautigal text-[36px] text-rose-pastel-300 leading-relaxed"
-        >
-          <span id="couple-names-groom">----------</span>
-          <span class="text-[38px] mx-4 text-rose-pastel-200">&</span>
-          <span id="couple-names-bride">----------</span>
-        </div>
-
-        <!-- Main Photo -->
-        <div class="relative w-[250px] h-[300px]">
-          <div
-            class="relative w-full h-full rounded-3xl overflow-hidden shadow-[0_20px_40px_rgba(212,165,165,0.15)] ring-1 ring-white/80"
-          >
+          Mẫu Thiệp Cưới
+        </h2>
+        <div class="bg-white rounded-3xl shadow-2xl overflow-hidden">
+          <div class="aspect-[9/16] md:aspect-[16/9] relative">
             <img
-              src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%23f5f5f5'/%3E%3Cg transform='translate(200, 170)'%3E%3Crect x='-35' y='-20' width='70' height='48' rx='5' fill='%23d0d0d0'/%3E%3Cpath d='M -16,-20 L -10,-28 L 10,-28 L 16,-20 Z' fill='%23d0d0d0'/%3E%3Ccircle cx='0' cy='4' r='18' fill='%23e0e0e0'/%3E%3Ccircle cx='0' cy='4' r='12' fill='%23f0f0f0'/%3E%3Ccircle cx='22' cy='-10' r='3' fill='%23e0e0e0'/%3E%3C/g%3E%3Ctext x='200' y='250' text-anchor='middle' font-family='Arial, sans-serif' font-size='18' fill='%23c0c0c0' font-weight='300' letter-spacing='0.5'%3ENo Photo Available%3C/text%3E%3C/svg%3E"
-              id="main-photo"
-              alt="Wedding Photo"
+              src="assets/images/ZIN_3506.jpg"
+              alt="Mẫu thiệp cưới"
               class="w-full h-full object-cover"
             />
             <div
-              class="absolute inset-0 bg-gradient-radial from-white/30 via-transparent to-transparent pointer-events-none"
-            ></div>
+              class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end justify-center p-8"
+            >
+              <div class="text-center text-white">
+                <p class="font-cormorant text-2xl italic mb-4">
+                  Thiệp cưới sang trọng, hiện đại
+                </p>
+                <div class="flex gap-4 justify-center">
+                  <span
+                    class="px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-sm"
+                  >
+                    <i class="fas fa-images mr-2"></i>Gallery ảnh
+                  </span>
+                  <span
+                    class="px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-sm"
+                  >
+                    <i class="fas fa-map-marker-alt mr-2"></i>Bản đồ
+                  </span>
+                  <span
+                    class="px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-sm"
+                  >
+                    <i class="fas fa-qrcode mr-2"></i>QR mừng cưới
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
+      </div>
 
-        <!-- Wedding Date Section -->
-        <div class="w-full flex flex-col gap-8">
-          <!-- Quote -->
-          <div
-            class="font-cormorant text-[14px] italic text-stone-custom-500 leading-relaxed px-8"
+      <!-- CTA Section -->
+      <div class="text-center max-w-2xl mx-auto">
+        <h2 class="font-playfair text-3xl font-semibold text-gray-800 mb-4">
+          Sẵn sàng tạo thiệp cưới của bạn?
+        </h2>
+        <p class="text-gray-600 mb-8">
+          Liên hệ với chúng tôi để được tư vấn và tạo thiệp cưới miễn phí
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <a
+            href="mailto:contact@example.com"
+            class="px-8 py-4 bg-rose-pastel-300 hover:bg-rose-pastel-200 text-white rounded-full font-medium transition-colors shadow-lg hover:shadow-xl"
           >
-            "Một hành trình mới bắt đầu từ hôm nay"
-          </div>
+            <i class="fas fa-envelope mr-2"></i>Liên hệ qua Email
+          </a>
+          <a
+            href="tel:+84123456789"
+            class="px-8 py-4 bg-white hover:bg-gray-50 text-gray-800 rounded-full font-medium transition-colors shadow-lg hover:shadow-xl border border-gray-200"
+          >
+            <i class="fas fa-phone mr-2"></i>Gọi điện thoại
+          </a>
+        </div>
+      </div>
 
-          <!-- Divider -->
-          <div class="flex items-center gap-4">
-            <div class="flex-1 h-px bg-rose-pastel-100"></div>
-            <i class="fas fa-heart text-rose-pastel-200 text-xs"></i>
-            <div class="flex-1 h-px bg-rose-pastel-100"></div>
-          </div>
-
-          <!-- Thông tin Chú Rể -->
-          <div class="flex gap-4 items-start">
-            <!-- Ảnh chú rể - bên trái 50% -->
-            <div
-              class="w-1/2 h-52 rounded-2xl overflow-hidden shrink-0 shadow-[0_4px_12px_rgba(212,165,165,0.15)] ring-1 ring-white/80"
-            >
-              <img
-                src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%23f5f5f5'/%3E%3Cg transform='translate(200, 170)'%3E%3Crect x='-35' y='-20' width='70' height='48' rx='5' fill='%23d0d0d0'/%3E%3Cpath d='M -16,-20 L -10,-28 L 10,-28 L 16,-20 Z' fill='%23d0d0d0'/%3E%3Ccircle cx='0' cy='4' r='18' fill='%23e0e0e0'/%3E%3Ccircle cx='0' cy='4' r='12' fill='%23f0f0f0'/%3E%3Ccircle cx='22' cy='-10' r='3' fill='%23e0e0e0'/%3E%3C/g%3E%3Ctext x='200' y='250' text-anchor='middle' font-family='Arial, sans-serif' font-size='18' fill='%23c0c0c0' font-weight='300' letter-spacing='0.5'%3ENo Photo Available%3C/text%3E%3C/svg%3E"
-                id="groom-photo"
-                alt="Chú Rể"
-                class="w-full h-full object-cover"
-              />
-            </div>
-            <!-- Thông tin - bên phải -->
-            <div
-              class="w-1/2 h-52 text-center flex flex-col justify-between items-center"
-            >
-              <div
-                class="text-[10px] tracking-[3px] uppercase text-stone-custom-400 font-inter"
-              >
-                Nhà Trai
-              </div>
-              <div class="flex flex-col gap-1">
-                <div class="text-[12px] text-stone-custom-500 font-inter">
-                  Ông bà
-                </div>
-                <div
-                  class="font-playfair text-[12px] font-semibold text-rose-pastel-300"
-                  id="groom-father"
-                >
-                  Nguyễn Minh Tuấn
-                </div>
-                <div
-                  class="font-playfair text-[12px] font-semibold text-rose-pastel-300"
-                  id="groom-mother"
-                >
-                  Nguyễn Thị Lan
-                </div>
-              </div>
-              <div
-                class="text-[11px] text-stone-custom-400 font-inter leading-relaxed"
-              >
-                <i
-                  class="fas fa-map-marker-alt text-rose-pastel-200 mr-1 text-[10px]"
-                ></i>
-                <span id="groom-address"
-                  >123 Đường Lê Lợi, P.Bến Nghé, Q.1, TP.HCM</span
-                >
-              </div>
-              <div
-                class="flex flex-col items-center gap-1 pt-3 border-t border-rose-pastel-100 w-full"
-              >
-                <div
-                  class="text-[10px] tracking-[3px] uppercase text-stone-custom-400 font-inter"
-                >
-                  Chú Rể
-                </div>
-                <div
-                  class="font-cinzel text-[12px] font-semibold text-rose-pastel-300 tracking-wider"
-                  id="groom-name-label"
-                >
-                  Văn Hùng
-                </div>
-              </div>
+      <!-- Features List -->
+      <div class="mt-16 max-w-3xl mx-auto">
+        <h3
+          class="font-playfair text-2xl font-semibold text-gray-800 mb-6 text-center"
+        >
+          Tính năng nổi bật
+        </h3>
+        <div class="grid md:grid-cols-2 gap-4">
+          <div class="flex items-start gap-3 bg-white p-4 rounded-xl shadow-sm">
+            <i
+              class="fas fa-check-circle text-rose-pastel-300 text-xl mt-1"
+            ></i>
+            <div>
+              <h4 class="font-semibold text-gray-800 mb-1">
+                Quản lý khách mời
+              </h4>
+              <p class="text-sm text-gray-600">
+                Tích hợp Google Sheets để quản lý danh sách khách mời dễ dàng
+              </p>
             </div>
           </div>
-
-          <!-- Thông tin Cô Dâu -->
-          <div class="flex gap-4 items-start">
-            <!-- Thông tin - bên trái -->
-            <div
-              class="w-1/2 h-52 text-center flex flex-col justify-between items-center"
-            >
-              <div
-                class="text-[10px] tracking-[3px] uppercase text-stone-custom-400 font-inter"
-              >
-                Nhà Gái
-              </div>
-              <div class="flex flex-col gap-1">
-                <div class="text-[12px] text-stone-custom-500 font-inter">
-                  Ông bà
-                </div>
-                <div
-                  class="font-playfair text-[12px] font-semibold text-rose-pastel-300"
-                  id="bride-father"
-                >
-                  Trần Quốc Bảo
-                </div>
-                <div
-                  class="font-playfair text-[12px] font-semibold text-rose-pastel-300"
-                  id="bride-mother"
-                >
-                  Lê Thị Hương
-                </div>
-              </div>
-              <div
-                class="text-[11px] text-stone-custom-400 font-inter leading-relaxed"
-              >
-                <i
-                  class="fas fa-map-marker-alt text-rose-pastel-200 mr-1 text-[10px]"
-                ></i>
-                <span id="bride-address"
-                  >45 Đường Nguyễn Huệ, P.Bến Thành, Q.1, TP.HCM</span
-                >
-              </div>
-              <div
-                class="flex flex-col items-center gap-1 pt-3 border-t border-rose-pastel-100 w-full"
-              >
-                <div
-                  class="text-[10px] tracking-[3px] uppercase text-stone-custom-400 font-inter"
-                >
-                  Cô Dâu
-                </div>
-                <div
-                  class="font-cinzel text-[12px] font-semibold text-rose-pastel-300 tracking-wider"
-                  id="bride-name-label"
-                >
-                  Thùy Hằng
-                </div>
-              </div>
-            </div>
-            <!-- Ảnh cô dâu - bên phải 50% -->
-            <div
-              class="w-1/2 h-52 rounded-2xl overflow-hidden shrink-0 shadow-[0_4px_12px_rgba(212,165,165,0.15)] ring-1 ring-white/80"
-            >
-              <img
-                src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%23f5f5f5'/%3E%3Cg transform='translate(200, 170)'%3E%3Crect x='-35' y='-20' width='70' height='48' rx='5' fill='%23d0d0d0'/%3E%3Cpath d='M -16,-20 L -10,-28 L 10,-28 L 16,-20 Z' fill='%23d0d0d0'/%3E%3Ccircle cx='0' cy='4' r='18' fill='%23e0e0e0'/%3E%3Ccircle cx='0' cy='4' r='12' fill='%23f0f0f0'/%3E%3Ccircle cx='22' cy='-10' r='3' fill='%23e0e0e0'/%3E%3C/g%3E%3Ctext x='200' y='250' text-anchor='middle' font-family='Arial, sans-serif' font-size='18' fill='%23c0c0c0' font-weight='300' letter-spacing='0.5'%3ENo Photo Available%3C/text%3E%3C/svg%3E"
-                id="bride-photo"
-                alt="Cô Dâu"
-                class="w-full h-full object-cover"
-              />
+          <div class="flex items-start gap-3 bg-white p-4 rounded-xl shadow-sm">
+            <i
+              class="fas fa-check-circle text-rose-pastel-300 text-xl mt-1"
+            ></i>
+            <div>
+              <h4 class="font-semibold text-gray-800 mb-1">Link cá nhân hóa</h4>
+              <p class="text-sm text-gray-600">
+                Mỗi khách mời có link riêng với tên và lời chào cá nhân
+              </p>
             </div>
           </div>
-
-          <!-- Divider -->
-          <div class="flex items-center gap-4">
-            <div class="flex-1 h-px bg-rose-pastel-100"></div>
-            <i class="fas fa-heart text-rose-pastel-200 text-xs"></i>
-            <div class="flex-1 h-px bg-rose-pastel-100"></div>
-          </div>
-
-          <div class="flex flex-col gap-8 w-full">
-            <!-- Thư mời -->
-            <div class="flex flex-col gap-6">
-              <div
-                class="text-[16px] tracking-[3px] uppercase text-stone-custom-400 font-inter"
-              >
-                Thư Mời
-              </div>
-
-              <div class="flex flex-col gap-2">
-                <div
-                  class="text-[11px] uppercase tracking-widest text-stone-custom-400 font-inter"
-                >
-                  Tham dự lễ cưới
-                </div>
-                <div class="flex items-center justify-center gap-3">
-                  <span
-                    class="font-cinzel text-[20px] text-rose-pastel-300 tracking-widest"
-                    id="invite-groom"
-                    >Văn Hùng</span
-                  >
-                  <span
-                    class="font-cormorant italic text-stone-custom-400 text-[24px]"
-                    >&</span
-                  >
-                  <span
-                    class="font-cinzel text-[20px] text-rose-pastel-300 tracking-widest"
-                    id="invite-bride"
-                    >Thùy Hằng</span
-                  >
-                </div>
-              </div>
-
-              <div class="flex items-center justify-center gap-8">
-                <div class="flex flex-col items-center gap-1">
-                  <div
-                    class="font-playfair text-[52px] font-bold text-rose-pastel-300 leading-none"
-                    id="invite-day"
-                  >
-                    --
-                  </div>
-                  <div
-                    class="text-[10px] uppercase tracking-[2px] text-stone-custom-400 font-inter"
-                    id="invite-month-year"
-                  >
-                    Tháng -- · ----
-                  </div>
-                </div>
-                <div class="w-px h-12 bg-rose-pastel-100"></div>
-                <div class="flex flex-col items-center gap-1">
-                  <div
-                    class="text-[10px] uppercase tracking-[2px] text-stone-custom-400 font-inter"
-                    id="invite-weekday"
-                  >
-                    Chủ Nhật
-                  </div>
-                  <div
-                    class="font-playfair text-[28px] text-stone-custom-600"
-                    id="invite-time"
-                  >
-                    11:30
-                  </div>
-                </div>
-              </div>
-
-              <div
-                class="font-cormorant italic text-[13px] text-stone-custom-400"
-                id="invite-lunar"
-              >
-                Ngày 18 tháng 9 năm Giáp Thìn
-              </div>
-            </div>
-
-            <!-- Tiệc Mừng Lễ Thành Hôn -->
-            <div
-              class="flex flex-col gap-4 border border-rose-pastel-100 rounded-2xl px-8 py-8"
-            >
-              <div
-                class="text-[10px] tracking-[3px] uppercase text-stone-custom-400 font-inter"
-              >
-                Tiệc Mừng Lễ Thành Hôn
-              </div>
-              <div class="flex flex-col gap-2">
-                <div
-                  class="font-playfair text-[28px] font-medium text-rose-pastel-300"
-                  id="party-datetime"
-                >
-                  --:-- - --.--.----
-                </div>
-                <div
-                  class="font-cormorant italic text-base text-stone-custom-500 opacity-80"
-                  id="party-lunar"
-                >
-                  (Ngày âm lịch)
-                </div>
-              </div>
-              <div class="flex items-center gap-2 justify-center">
-                <i
-                  class="fas fa-map-marker-alt text-rose-pastel-200 text-sm"
-                ></i>
-                <div
-                  class="text-sm text-stone-custom-500 font-inter"
-                  id="party-location"
-                >
-                  Tại tư gia nhà trai
-                </div>
-              </div>
-
-              <!-- Mini Calendar -->
-              <div id="mini-calendar" class="w-full"></div>
-
-              <!-- Xác nhận tham dự -->
-              <div class="flex flex-col gap-4">
-                <div
-                  class="text-[14px] tracking-[3px] uppercase font-inter shimmer-text"
-                >
-                  Xác nhận tham dự
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                  <button
-                    onclick="confirmAttend(true)"
-                    id="btn-attend"
-                    class="flex flex-col items-center gap-2 py-4 rounded-2xl border border-rose-pastel-100 bg-white/50 active:scale-95 transition-all duration-200"
-                  >
-                    <i
-                      class="fas fa-check-circle text-rose-pastel-300 text-2xl"
-                    ></i>
-                    <span
-                      class="font-cormorant italic text-[16px] text-stone-custom-600"
-                      >Tham dự</span
-                    >
-                  </button>
-                  <button
-                    onclick="confirmAttend(false)"
-                    id="btn-decline"
-                    class="flex flex-col items-center gap-2 py-4 rounded-2xl border border-rose-pastel-100 bg-white/50 active:scale-95 transition-all duration-200"
-                  >
-                    <i
-                      class="fas fa-times-circle text-stone-custom-400 text-2xl"
-                    ></i>
-                    <span
-                      class="font-cormorant italic text-[16px] text-stone-custom-500"
-                      >Không tham dự</span
-                    >
-                  </button>
-                </div>
-                <div
-                  id="attend-msg"
-                  class="font-cormorant italic text-[15px] text-rose-pastel-300 hidden"
-                ></div>
-              </div>
-            </div>
-
-            <!-- Block StoryLove -->
-            <div class="flex flex-col gap-2 px-4">
-              <div
-                id="story-quote"
-                class="font-cormorant italic text-[18px] text-stone-custom-500 leading-relaxed"
-              >
-                "Hạnh phúc lớn nhất chính là được nắm tay em,<br />Cùng nhau đi
-                hết cuộc đời lãng mạn này"
-              </div>
-            </div>
-
-            <!-- Carousel Gallery -->
-            <div class="relative w-full overflow-hidden" id="gallery-carousel">
-              <div
-                class="flex items-center justify-center gap-3"
-                id="carousel-track"
-              >
-                <!-- rendered by JS -->
-              </div>
-            </div>
-
-            <!-- Dots -->
-            <div class="flex justify-center gap-2" id="carousel-dots"></div>
-          </div>
-
-          <!-- Divider -->
-          <div class="flex items-center gap-4">
-            <div class="flex-1 h-px bg-rose-pastel-100"></div>
-            <i class="fas fa-heart text-rose-pastel-200 text-xs"></i>
-            <div class="flex-1 h-px bg-rose-pastel-100"></div>
-          </div>
-
-          <!-- Block 4: Hộp Mừng Cưới -->
-          <div class="flex flex-col gap-8 w-full">
-            <div class="font-playfair text-[28px] text-stone-custom-600">
-              Hộp Mừng Cưới
-            </div>
-
-            <!-- 2 cột QR -->
-            <div class="grid grid-cols-2 gap-4">
-              <!-- Chú Rể -->
-              <div class="flex flex-col gap-2 items-center">
-                <div class="text-[11px] text-stone-custom-500 font-inter">
-                  Chú Rể · <span id="groom-bank-label">----------</span>
-                </div>
-                <div class="bg-white rounded-2xl p-3 shadow-md">
-                  <img
-                    src="assets/images/qr-chu-re.png"
-                    id="groom-qr-img"
-                    alt="QR Chú Rể"
-                    class="w-full aspect-square object-contain"
-                  />
-                </div>
-                <div class="flex flex-col gap-1 items-center">
-                  <div
-                    class="text-[11px] text-stone-custom-400 font-inter"
-                    id="groom-bank-name"
-                  >
-                    VietinBank
-                  </div>
-                  <div
-                    class="text-[13px] text-stone-custom-600 font-inter font-medium"
-                    id="groom-bank-number"
-                  >
-                    6888469268
-                  </div>
-                  <div
-                    class="text-[12px] text-stone-custom-600 font-inter font-semibold"
-                    id="groom-bank-owner"
-                  >
-                    Nguyễn Văn Hùng
-                  </div>
-                </div>
-                <button
-                  onclick="saveQR('groom-qr-img')"
-                  class="flex items-center gap-2 px-4 py-2 rounded-full border border-rose-pastel-100 text-[12px] text-stone-custom-500 font-inter active:bg-rose-pastel-100 transition-colors"
-                >
-                  <i class="fas fa-download text-rose-pastel-300 text-xs"></i>
-                  Lưu QR
-                </button>
-              </div>
-
-              <!-- Cô Dâu -->
-              <div class="flex flex-col gap-2 items-center">
-                <div class="text-[11px] text-stone-custom-500 font-inter">
-                  Cô Dâu · <span id="bride-bank-label">----------</span>
-                </div>
-                <div class="bg-white rounded-2xl p-3 shadow-md">
-                  <img
-                    src="assets/images/qr-co-dau.png"
-                    id="bride-qr-img"
-                    alt="QR Cô Dâu"
-                    class="w-full aspect-square object-contain"
-                  />
-                </div>
-                <div class="flex flex-col gap-1 items-center">
-                  <div
-                    class="text-[11px] text-stone-custom-400 font-inter"
-                    id="bride-bank-name"
-                  >
-                    BIDV
-                  </div>
-                  <div
-                    class="text-[13px] text-stone-custom-600 font-inter font-medium"
-                    id="bride-bank-number"
-                  >
-                    8787867778
-                  </div>
-                  <div
-                    class="text-[12px] text-stone-custom-600 font-inter font-semibold"
-                    id="bride-bank-owner"
-                  >
-                    Trần Thùy Hằng
-                  </div>
-                </div>
-                <button
-                  onclick="saveQR('bride-qr-img')"
-                  class="flex items-center gap-2 px-4 py-2 rounded-full border border-rose-pastel-100 text-[12px] text-stone-custom-500 font-inter active:bg-rose-pastel-100 transition-colors"
-                >
-                  <i class="fas fa-download text-rose-pastel-300 text-xs"></i>
-                  Lưu QR
-                </button>
-              </div>
-            </div>
-
-            <!-- Quote cuối -->
-            <div
-              class="font-cormorant italic text-[17px] text-stone-custom-500 leading-relaxed px-4"
-            >
-              Sự hiện diện của quý khách là niềm vinh hạnh của gia đình chúng
-              tôi!
+          <div class="flex items-start gap-3 bg-white p-4 rounded-xl shadow-sm">
+            <i
+              class="fas fa-check-circle text-rose-pastel-300 text-xl mt-1"
+            ></i>
+            <div>
+              <h4 class="font-semibold text-gray-800 mb-1">Xác nhận tham dự</h4>
+              <p class="text-sm text-gray-600">
+                Khách mời có thể xác nhận tham dự trực tiếp trên thiệp
+              </p>
             </div>
           </div>
-
-          <!-- Divider -->
-          <div class="flex items-center gap-4">
-            <div class="flex-1 h-px bg-rose-pastel-100"></div>
-            <i class="fas fa-heart text-rose-pastel-200 text-xs"></i>
-            <div class="flex-1 h-px bg-rose-pastel-100"></div>
-          </div>
-
-          <!-- Block 5: Bản Đồ -->
-          <div class="flex flex-col gap-4 w-full">
-            <!-- Text phía trên -->
-            <div class="flex flex-col gap-2">
-              <div
-                class="text-[10px] uppercase tracking-[3px] text-stone-custom-400 font-inter"
-              >
-                Địa điểm
-              </div>
-              <div
-                class="font-cormorant italic text-[18px] text-stone-custom-500"
-              >
-                Tiệc cưới sẽ tổ chức tại
-              </div>
-              <div
-                class="font-playfair text-[16px] text-stone-custom-600"
-                id="map-location-name"
-              ></div>
+          <div class="flex items-start gap-3 bg-white p-4 rounded-xl shadow-sm">
+            <i
+              class="fas fa-check-circle text-rose-pastel-300 text-xl mt-1"
+            ></i>
+            <div>
+              <h4 class="font-semibold text-gray-800 mb-1">QR mừng cưới</h4>
+              <p class="text-sm text-gray-600">
+                Tích hợp QR code để khách mời gửi mừng cưới dễ dàng
+              </p>
             </div>
-
-            <!-- Preview map thumbnail button -->
-            <a
-              id="map-link"
-              href="#"
-              target="_blank"
-              class="w-full relative overflow-hidden rounded-2xl active:scale-[0.98] transition-transform shadow-[0_4px_16px_rgba(212,165,165,0.12)] block"
-            >
-              <div class="w-full h-40 relative overflow-hidden">
-                <iframe
-                  id="map-thumbnail-iframe"
-                  src=""
-                  width="100%"
-                  height="100%"
-                  style="border: 0; pointer-events: none"
-                  loading="lazy"
-                  referrerpolicy="no-referrer-when-downgrade"
-                >
-                </iframe>
-                <div class="absolute inset-0"></div>
-              </div>
-              <!-- Footer -->
-              <div
-                class="flex items-center justify-between px-4 py-3 bg-white/70"
-              >
-                <div class="flex flex-col gap-0.5 text-left">
-                  <div
-                    class="text-[10px] uppercase tracking-[2px] text-stone-custom-400 font-inter"
-                  >
-                    Địa điểm tổ chức
-                  </div>
-                  <div class="font-playfair text-[15px] text-stone-custom-600">
-                    Chỉ đường
-                  </div>
-                </div>
-                <div class="flex items-center gap-1 text-rose-pastel-300">
-                  <span class="text-[11px] font-inter">Mở Maps</span>
-                  <i class="fas fa-chevron-right text-xs"></i>
-                </div>
-              </div>
-            </a>
           </div>
-
-          <!-- Divider -->
-          <div class="flex items-center gap-4">
-            <div class="flex-1 h-px bg-rose-pastel-100"></div>
-            <i class="fas fa-heart text-rose-pastel-200 text-xs"></i>
-            <div class="flex-1 h-px bg-rose-pastel-100"></div>
+          <div class="flex items-start gap-3 bg-white p-4 rounded-xl shadow-sm">
+            <i
+              class="fas fa-check-circle text-rose-pastel-300 text-xl mt-1"
+            ></i>
+            <div>
+              <h4 class="font-semibold text-gray-800 mb-1">Bản đồ chỉ đường</h4>
+              <p class="text-sm text-gray-600">
+                Tích hợp Google Maps để khách mời dễ dàng tìm đường
+              </p>
+            </div>
           </div>
-
-          <!-- Block 6: Cảm ơn -->
-          <div class="flex flex-col items-center gap-8 py-8">
-            <img
-              src="assets/images/crcd_chipi.png"
-              alt="Cô Dâu Chú Rể"
-              class="w-32 object-contain"
-            />
-            <div
-              class="font-cormorant italic text-[16px] text-stone-custom-400 leading-relaxed px-8"
-            >
-              Cảm ơn bạn đã dành thời gian đến chung vui cùng chúng tôi
+          <div class="flex items-start gap-3 bg-white p-4 rounded-xl shadow-sm">
+            <i
+              class="fas fa-check-circle text-rose-pastel-300 text-xl mt-1"
+            ></i>
+            <div>
+              <h4 class="font-semibold text-gray-800 mb-1">Gallery ảnh cưới</h4>
+              <p class="text-sm text-gray-600">
+                Hiển thị album ảnh cưới đẹp mắt với hiệu ứng carousel
+              </p>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Lightbox -->
-    <div
-      id="lightbox"
-      class="fixed inset-0 z-[100] bg-black/95 hidden flex-col items-center justify-center"
-    >
-      <!-- Nút X -->
-      <button
-        onclick="closeLightbox()"
-        class="absolute top-6 right-6 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center z-10"
-      >
-        <i class="fas fa-times text-white text-lg"></i>
-      </button>
-      <!-- Counter -->
-      <div
-        id="lb-counter"
-        class="absolute top-6 left-6 text-white/60 text-sm font-inter"
-      ></div>
-      <!-- Ảnh -->
-      <div class="w-full h-full flex items-center justify-center px-12">
-        <img
-          id="lb-img"
-          src=""
-          alt=""
-          class="max-w-full max-h-full object-contain rounded-xl"
-          style="transition: opacity 0.2s ease"
-        />
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-200 py-8 mt-16">
+      <div class="container mx-auto px-4 text-center text-gray-600">
+        <p class="font-cormorant text-lg italic">
+          © 2024 Thiệp Cưới Online. Tạo kỷ niệm đẹp cho ngày trọng đại.
+        </p>
       </div>
-      <!-- Prev / Next -->
-      <button
-        onclick="lbPrev()"
-        class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center"
-      >
-        <i class="fas fa-chevron-left text-white"></i>
-      </button>
-      <button
-        onclick="lbNext()"
-        class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center"
-      >
-        <i class="fas fa-chevron-right text-white"></i>
-      </button>
-    </div>
-
-    <script src="script.js"></script>
+    </footer>
   </body>
 </html>

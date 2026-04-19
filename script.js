@@ -14,6 +14,18 @@ const redirectSearch = sessionStorage.getItem('search');
 if (redirectPath && !_weddingSlug) {
   // Lấy slug từ path
   _weddingSlug = redirectPath.split('/').filter(p => p).pop();
+  
+  // Nếu có search params từ redirect, parse để lấy isGroom
+  if (redirectSearch) {
+    const redirectParams = new URLSearchParams(redirectSearch);
+    // Merge redirect params với current params
+    redirectParams.forEach((value, key) => {
+      if (!_urlParams.has(key)) {
+        _urlParams.set(key, value);
+      }
+    });
+  }
+  
   // Restore URL gốc bằng History API
   const newUrl = window.location.origin + redirectPath + (redirectSearch || '');
   window.history.replaceState(null, '', newUrl);
@@ -242,9 +254,25 @@ if (_weddingSlug) {
   fetch(`${EDGE_URL}?slug=${_weddingSlug}`, {
     headers: { Authorization: `Bearer ${ANON_KEY}` }
   })
-  .then(r => r.json())
-  .then(renderWedding)
-  .catch(e => console.error('Lỗi load wedding data:', e));
+  .then(r => {
+    if (!r.ok) {
+      // Slug không tồn tại, redirect về landing page
+      window.location.href = '/';
+      return null;
+    }
+    return r.json();
+  })
+  .then(data => {
+    if (data) renderWedding(data);
+  })
+  .catch(e => {
+    console.error('Lỗi load wedding data:', e);
+    // Redirect về landing page nếu có lỗi
+    window.location.href = '/';
+  });
+} else {
+  // Không có slug, redirect về landing page
+  window.location.href = '/';
 }
 
 function decryptData(encryptedText) {

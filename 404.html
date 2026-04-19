@@ -5,17 +5,18 @@
     <title>Redirecting...</title>
     <script>
       // GitHub Pages SPA redirect
-      // Lưu path vào sessionStorage và redirect về index.html
+      // Lưu path vào sessionStorage và redirect về wedding.html
       const path = window.location.pathname;
 
       if (path && path !== "/" && !path.includes(".")) {
         // Lưu path gốc để restore sau
         sessionStorage.setItem("redirect", path);
         sessionStorage.setItem("search", window.location.search);
-        // Redirect về index.html
-        window.location.replace(window.location.origin + "/index.html");
+        // Redirect về wedding.html
+        window.location.replace(window.location.origin + "/wedding.html");
       } else {
-        window.location.replace(window.location.origin + "/index.html");
+        // Root path, redirect to landing page
+        window.location.replace(window.location.origin + "/");
       }
     </script>
   </head>
