@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Thiệp Cưới Online - Tạo Thiệp Cưới Đẹp & Miễn Phí</title>
+    <title>Cưới Xinh - Thiệp Cưới Online Đẹp & Miễn Phí</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link
       rel="stylesheet"
@@ -32,142 +32,604 @@
                 200: "#ffe8e0",
               },
               "rose-pastel": {
-                100: "#f5d5d8",
-                200: "#e8b4b8",
-                300: "#d4a5a5",
+                100: "#fce7f3",
+                200: "#fbcfe8",
+                300: "#f9a8d4",
               },
             },
           },
         },
       };
     </script>
-    <style>
-      body {
-        font-family: "Inter", sans-serif;
-      }
-      .gradient-text {
-        background: linear-gradient(135deg, #d4a5a5 0%, #e8b4b8 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-      }
-    </style>
+    <link rel="stylesheet" href="landing-styles.css" />
   </head>
-  <body
-    class="bg-gradient-to-br from-cream-50 via-cream-100 to-cream-50 min-h-screen"
-  >
-    <!-- Hero Section -->
-    <div class="container mx-auto px-4 py-16">
-      <div class="text-center mb-16">
-        <h1
-          class="font-playfair text-5xl md:text-6xl font-bold text-gray-800 mb-4"
-        >
-          Thiệp Cưới Online
-        </h1>
-        <p class="font-cormorant text-2xl text-rose-pastel-300 italic mb-6">
-          Tạo thiệp cưới đẹp, miễn phí & dễ dàng
-        </p>
-        <p class="text-gray-600 text-lg max-w-2xl mx-auto">
-          Nền tảng tạo thiệp cưới trực tuyến hiện đại, giúp bạn gửi lời mời đến
-          khách mời một cách nhanh chóng và tiện lợi
-        </p>
-      </div>
-
-      <!-- Features Grid -->
-      <div class="grid md:grid-cols-3 gap-8 mb-16 max-w-5xl mx-auto">
-        <div
-          class="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow"
-        >
-          <div
-            class="w-16 h-16 bg-rose-pastel-100 rounded-full flex items-center justify-center mb-4 mx-auto"
-          >
-            <i class="fas fa-mobile-alt text-rose-pastel-300 text-2xl"></i>
-          </div>
-          <h3
-            class="font-playfair text-xl font-semibold text-gray-800 mb-2 text-center"
-          >
-            Responsive Design
-          </h3>
-          <p class="text-gray-600 text-center">
-            Hiển thị hoàn hảo trên mọi thiết bị: điện thoại, máy tính bảng và
-            desktop
-          </p>
-        </div>
-
-        <div
-          class="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow"
-        >
-          <div
-            class="w-16 h-16 bg-rose-pastel-100 rounded-full flex items-center justify-center mb-4 mx-auto"
-          >
-            <i class="fas fa-palette text-rose-pastel-300 text-2xl"></i>
-          </div>
-          <h3
-            class="font-playfair text-xl font-semibold text-gray-800 mb-2 text-center"
-          >
-            Thiết kế đẹp mắt
-          </h3>
-          <p class="text-gray-600 text-center">
-            Giao diện sang trọng, hiện đại với màu sắc pastel nhẹ nhàng
-          </p>
-        </div>
-
-        <div
-          class="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow"
-        >
-          <div
-            class="w-16 h-16 bg-rose-pastel-100 rounded-full flex items-center justify-center mb-4 mx-auto"
-          >
-            <i class="fas fa-bolt text-rose-pastel-300 text-2xl"></i>
-          </div>
-          <h3
-            class="font-playfair text-xl font-semibold text-gray-800 mb-2 text-center"
-          >
-            Nhanh chóng
-          </h3>
-          <p class="text-gray-600 text-center">
-            Tạo và chia sẻ thiệp cưới chỉ trong vài phút
-          </p>
-        </div>
-      </div>
-
-      <!-- Template Preview -->
-      <div class="max-w-4xl mx-auto mb-16">
-        <h2
-          class="font-playfair text-3xl font-semibold text-gray-800 mb-8 text-center"
-        >
-          Mẫu Thiệp Cưới
-        </h2>
-        <div class="bg-white rounded-3xl shadow-2xl overflow-hidden">
-          <div class="aspect-[9/16] md:aspect-[16/9] relative">
-            <img
-              src="assets/images/ZIN_3506.jpg"
-              alt="Mẫu thiệp cưới"
-              class="w-full h-full object-cover"
-            />
-            <div
-              class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end justify-center p-8"
+  <body class="bg-rose-pastel-100">
+    <!-- Navigation -->
+    <nav
+      class="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-rose-pastel-200"
+    >
+      <div class="container mx-auto px-4">
+        <div class="flex items-center justify-between h-16">
+          <div class="flex items-center gap-2">
+            <i class="fas fa-heart text-rose-pastel-300 text-2xl"></i>
+            <span class="font-playfair text-xl font-bold text-gray-800"
+              >Cưới Xinh</span
             >
-              <div class="text-center text-white">
-                <p class="font-cormorant text-2xl italic mb-4">
-                  Thiệp cưới sang trọng, hiện đại
-                </p>
-                <div class="flex gap-4 justify-center">
-                  <span
-                    class="px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-sm"
+          </div>
+          <div class="hidden md:flex items-center gap-8 text-sm">
+            <a
+              href="#hero"
+              class="text-gray-600 hover:text-rose-pastel-300 transition-colors"
+              >Trang chủ</a
+            >
+            <a
+              href="#templates"
+              class="text-gray-600 hover:text-rose-pastel-300 transition-colors"
+              >Mẫu thiệp</a
+            >
+            <a
+              href="#features"
+              class="text-gray-600 hover:text-rose-pastel-300 transition-colors"
+              >Tính năng</a
+            >
+            <a
+              href="#how-it-works"
+              class="text-gray-600 hover:text-rose-pastel-300 transition-colors"
+              >Cách sử dụng</a
+            >
+            <a
+              href="#contact"
+              class="text-gray-600 hover:text-rose-pastel-300 transition-colors"
+              >Liên hệ</a
+            >
+          </div>
+          <div class="flex items-center gap-4">
+            <a
+              href="admin.html"
+              class="text-gray-600 hover:text-rose-pastel-300 transition-colors text-sm"
+              >Đăng nhập</a
+            >
+            <a
+              href="#contact"
+              class="px-4 py-2 bg-rose-pastel-300 hover:bg-rose-pastel-200 text-white rounded-full text-sm font-medium transition-colors"
+            >
+              Bắt đầu
+            </a>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Hero Section with Background Grid -->
+    <section
+      id="hero"
+      class="relative flex items-center justify-center overflow-hidden pt-16"
+      style="height: 70vh; min-height: 500px"
+    >
+      <!-- Background Grid of Templates -->
+      <div
+        class="absolute inset-0 grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4 p-4 opacity-20"
+      >
+        <div
+          class="aspect-[3/4] bg-cover bg-center rounded-lg"
+          style="background-image: url(&quot;assets/images/10-1.jpg&quot;)"
+        ></div>
+        <div
+          class="aspect-[3/4] bg-cover bg-center rounded-lg"
+          style="
+            background-image: url(&quot;assets/images/chup-anh-cuoi-da-lat-phong-cach-han-quoc-005.jpg&quot;);
+          "
+        ></div>
+        <div
+          class="aspect-[3/4] bg-cover bg-center rounded-lg"
+          style="
+            background-image: url(&quot;assets/images/chup-anh-cuoi-phim-truong-12.jpg&quot;);
+          "
+        ></div>
+        <div
+          class="aspect-[3/4] bg-cover bg-center rounded-lg"
+          style="
+            background-image: url(&quot;assets/images/chup-anh-cuoi-phong-cach-han-quoc-2.jpg&quot;);
+          "
+        ></div>
+        <div
+          class="aspect-[3/4] bg-cover bg-center rounded-lg"
+          style="
+            background-image: url(&quot;assets/images/chup-anh-cuoi-trong-studio-o-da-nang-6.jpg&quot;);
+          "
+        ></div>
+        <div
+          class="aspect-[3/4] bg-cover bg-center rounded-lg"
+          style="background-image: url(&quot;assets/images/10-1.jpg&quot;)"
+        ></div>
+        <div
+          class="aspect-[3/4] bg-cover bg-center rounded-lg"
+          style="
+            background-image: url(&quot;assets/images/chup-anh-cuoi-da-lat-phong-cach-han-quoc-005.jpg&quot;);
+          "
+        ></div>
+        <div
+          class="aspect-[3/4] bg-cover bg-center rounded-lg"
+          style="
+            background-image: url(&quot;assets/images/chup-anh-cuoi-phim-truong-12.jpg&quot;);
+          "
+        ></div>
+        <div
+          class="aspect-[3/4] bg-cover bg-center rounded-lg"
+          style="
+            background-image: url(&quot;assets/images/chup-anh-cuoi-phong-cach-han-quoc-2.jpg&quot;);
+          "
+        ></div>
+        <div
+          class="aspect-[3/4] bg-cover bg-center rounded-lg"
+          style="
+            background-image: url(&quot;assets/images/chup-anh-cuoi-trong-studio-o-da-nang-6.jpg&quot;);
+          "
+        ></div>
+        <div
+          class="aspect-[3/4] bg-cover bg-center rounded-lg"
+          style="background-image: url(&quot;assets/images/10-1.jpg&quot;)"
+        ></div>
+        <div
+          class="aspect-[3/4] bg-cover bg-center rounded-lg"
+          style="
+            background-image: url(&quot;assets/images/chup-anh-cuoi-da-lat-phong-cach-han-quoc-005.jpg&quot;);
+          "
+        ></div>
+        <div
+          class="aspect-[3/4] bg-cover bg-center rounded-lg"
+          style="
+            background-image: url(&quot;assets/images/chup-anh-cuoi-phim-truong-12.jpg&quot;);
+          "
+        ></div>
+        <div
+          class="aspect-[3/4] bg-cover bg-center rounded-lg"
+          style="
+            background-image: url(&quot;assets/images/chup-anh-cuoi-phong-cach-han-quoc-2.jpg&quot;);
+          "
+        ></div>
+        <div
+          class="aspect-[3/4] bg-cover bg-center rounded-lg"
+          style="
+            background-image: url(&quot;assets/images/chup-anh-cuoi-trong-studio-o-da-nang-6.jpg&quot;);
+          "
+        ></div>
+        <div
+          class="aspect-[3/4] bg-cover bg-center rounded-lg"
+          style="background-image: url(&quot;assets/images/10-1.jpg&quot;)"
+        ></div>
+      </div>
+
+      <!-- Overlay -->
+      <div
+        class="absolute inset-0 bg-gradient-to-b from-rose-pastel-100/80 via-rose-pastel-100/90 to-rose-pastel-100"
+      ></div>
+
+      <!-- Hero Content -->
+      <div class="relative z-10 container mx-auto px-4 text-center">
+        <h1
+          class="font-playfair text-5xl md:text-7xl lg:text-8xl font-bold mb-6 text-gray-800 uppercase tracking-wider"
+        >
+          Cưới Xinh
+        </h1>
+        <p
+          class="font-cormorant text-3xl md:text-4xl text-rose-pastel-300 italic mb-12"
+        >
+          Make your love story
+        </p>
+        <p class="text-gray-600 text-lg md:text-xl max-w-3xl mx-auto mb-12">
+          Hãy để Cưới Xinh giúp bạn kể câu chuyện tình yêu qua từng tấm thiệp
+          –<br />
+          mang đầy cảm xúc như một thước phim lãng mạn
+        </p>
+        <button
+          onclick="scrollToTemplates()"
+          class="px-8 py-4 bg-rose-pastel-300 hover:bg-rose-pastel-200 text-white rounded-full text-lg font-semibold transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+        >
+          Bắt đầu <i class="fas fa-arrow-right ml-2"></i>
+        </button>
+      </div>
+    </section>
+
+    <!-- Template Gallery Section -->
+    <section id="templates" class="py-20 bg-white">
+      <div class="container mx-auto px-4 mb-12">
+        <h2
+          class="font-playfair text-4xl md:text-5xl font-bold text-gray-800 mb-4 text-center"
+        >
+          Mẫu thiết kế phổ biến
+        </h2>
+        <p class="text-gray-600 text-lg text-center">
+          Chọn mẫu thiệp phù hợp với phong cách của bạn
+        </p>
+      </div>
+
+      <!-- Horizontal Scrollable Gallery - Full Width -->
+      <div class="relative">
+        <!-- Previous Button -->
+        <button
+          id="carouselPrevBtn"
+          onclick="scrollCarousel('prev')"
+          class="carousel-nav-btn carousel-prev-btn"
+          aria-label="Previous"
+        >
+          <i class="fas fa-chevron-left"></i>
+        </button>
+
+        <!-- Next Button -->
+        <button
+          id="carouselNextBtn"
+          onclick="scrollCarousel('next')"
+          class="carousel-nav-btn carousel-next-btn"
+          aria-label="Next"
+        >
+          <i class="fas fa-chevron-right"></i>
+        </button>
+
+        <div
+          id="templateCarousel"
+          class="overflow-x-auto scrollbar-hide pb-8"
+        >
+          <div class="flex gap-6 px-8" style="width: max-content">
+              <!-- Template Card 1 - Active -->
+              <div class="template-card-carousel active group">
+                <div class="template-thumbnail-carousel">
+                  <img
+                    src="assets/images/10-1.jpg"
+                    alt="Classic Elegance"
+                    loading="lazy"
+                  />
+                  <div class="absolute top-2 right-2">
+                    <span
+                      class="px-3 py-1 bg-rose-pastel-300 text-white text-xs font-semibold rounded-full"
+                      >PHỔ BIẾN</span
+                    >
+                  </div>
+                  <div class="template-overlay-carousel">
+                    <button
+                      onclick="openPreview('classic')"
+                      class="btn-preview-carousel"
+                    >
+                      <i class="fas fa-eye mr-2"></i>Xem Demo
+                    </button>
+                  </div>
+                </div>
+                <div class="template-info-carousel">
+                  <h3
+                    class="font-playfair text-lg font-semibold text-white mb-1 group-hover:text-rose-pastel-300 transition-colors"
                   >
-                    <i class="fas fa-images mr-2"></i>Gallery ảnh
-                  </span>
-                  <span
-                    class="px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-sm"
+                    Classic Elegance
+                  </h3>
+                  <p class="text-gray-400 text-sm mb-3">Sang trọng, cổ điển</p>
+                  <button
+                    onclick="scrollToContact('classic')"
+                    class="btn-choose-carousel"
                   >
-                    <i class="fas fa-map-marker-alt mr-2"></i>Bản đồ
-                  </span>
-                  <span
-                    class="px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-sm"
+                    Chọn mẫu này
+                  </button>
+                </div>
+              </div>
+
+              <!-- Template Card 2 -->
+              <div class="template-card-carousel group">
+                <div class="template-thumbnail-carousel">
+                  <img
+                    src="assets/images/chup-anh-cuoi-da-lat-phong-cach-han-quoc-005.jpg"
+                    alt="Modern Minimalist"
+                    loading="lazy"
+                  />
+                  <div class="absolute top-2 right-2">
+                    <span
+                      class="px-3 py-1 bg-blue-500 text-white text-xs font-semibold rounded-full"
+                      >MỚI</span
+                    >
+                  </div>
+                  <div class="template-overlay-carousel">
+                    <button
+                      onclick="openPreview('modern')"
+                      class="btn-preview-carousel"
+                    >
+                      <i class="fas fa-eye mr-2"></i>Xem Demo
+                    </button>
+                  </div>
+                </div>
+                <div class="template-info-carousel">
+                  <h3
+                    class="font-playfair text-lg font-semibold text-white mb-1 group-hover:text-rose-pastel-300 transition-colors"
                   >
-                    <i class="fas fa-qrcode mr-2"></i>QR mừng cưới
-                  </span>
+                    Modern Minimalist
+                  </h3>
+                  <p class="text-gray-400 text-sm mb-3">Tối giản, hiện đại</p>
+                  <button
+                    onclick="scrollToContact('modern')"
+                    class="btn-choose-carousel"
+                  >
+                    Chọn mẫu này
+                  </button>
+                </div>
+              </div>
+
+              <!-- Template Card 3 -->
+              <div class="template-card-carousel group">
+                <div class="template-thumbnail-carousel">
+                  <img
+                    src="assets/images/chup-anh-cuoi-phim-truong-12.jpg"
+                    alt="Royal Elegance"
+                    loading="lazy"
+                  />
+                  <div class="template-overlay-carousel">
+                    <button
+                      onclick="openPreview('elegant')"
+                      class="btn-preview-carousel"
+                    >
+                      <i class="fas fa-eye mr-2"></i>Xem Demo
+                    </button>
+                  </div>
+                </div>
+                <div class="template-info-carousel">
+                  <h3
+                    class="font-playfair text-lg font-semibold text-white mb-1 group-hover:text-rose-pastel-300 transition-colors"
+                  >
+                    Royal Elegance
+                  </h3>
+                  <p class="text-gray-400 text-sm mb-3">Hoàng gia, lộng lẫy</p>
+                  <button
+                    onclick="scrollToContact('elegant')"
+                    class="btn-choose-carousel"
+                  >
+                    Chọn mẫu này
+                  </button>
+                </div>
+              </div>
+
+              <!-- Template Card 4 -->
+              <div class="template-card-carousel group">
+                <div class="template-thumbnail-carousel">
+                  <img
+                    src="assets/images/chup-anh-cuoi-phong-cach-han-quoc-2.jpg"
+                    alt="Romantic Garden"
+                    loading="lazy"
+                  />
+                  <div class="absolute top-2 right-2">
+                    <span
+                      class="px-3 py-1 bg-rose-pastel-300 text-white text-xs font-semibold rounded-full"
+                      >ĐẶC SẮC</span
+                    >
+                  </div>
+                  <div class="template-overlay-carousel">
+                    <button
+                      onclick="openPreview('romantic')"
+                      class="btn-preview-carousel"
+                    >
+                      <i class="fas fa-eye mr-2"></i>Xem Demo
+                    </button>
+                  </div>
+                </div>
+                <div class="template-info-carousel">
+                  <h3
+                    class="font-playfair text-lg font-semibold text-white mb-1 group-hover:text-rose-pastel-300 transition-colors"
+                  >
+                    Romantic Garden
+                  </h3>
+                  <p class="text-gray-400 text-sm mb-3">
+                    Lãng mạn, thiên nhiên
+                  </p>
+                  <button
+                    onclick="scrollToContact('romantic')"
+                    class="btn-choose-carousel"
+                  >
+                    Chọn mẫu này
+                  </button>
+                </div>
+              </div>
+
+              <!-- Template Card 5 -->
+              <div class="template-card-carousel group">
+                <div class="template-thumbnail-carousel">
+                  <img
+                    src="assets/images/chup-anh-cuoi-trong-studio-o-da-nang-6.jpg"
+                    alt="Vintage Love"
+                    loading="lazy"
+                  />
+                  <div class="template-overlay-carousel">
+                    <button
+                      onclick="openPreview('vintage')"
+                      class="btn-preview-carousel"
+                    >
+                      <i class="fas fa-eye mr-2"></i>Xem Demo
+                    </button>
+                  </div>
+                </div>
+                <div class="template-info-carousel">
+                  <h3
+                    class="font-playfair text-lg font-semibold text-white mb-1 group-hover:text-rose-pastel-300 transition-colors"
+                  >
+                    Vintage Love
+                  </h3>
+                  <p class="text-gray-400 text-sm mb-3">Cổ điển, hoài niệm</p>
+                  <button
+                    onclick="scrollToContact('vintage')"
+                    class="btn-choose-carousel"
+                  >
+                    Chọn mẫu này
+                  </button>
+                </div>
+              </div>
+
+              <!-- Template Card 6 -->
+              <div class="template-card-carousel group">
+                <div class="template-thumbnail-carousel">
+                  <img
+                    src="assets/images/10-1.jpg"
+                    alt="Elegant White"
+                    loading="lazy"
+                  />
+                  <div class="template-overlay-carousel">
+                    <button
+                      onclick="openPreview('white')"
+                      class="btn-preview-carousel"
+                    >
+                      <i class="fas fa-eye mr-2"></i>Xem Demo
+                    </button>
+                  </div>
+                </div>
+                <div class="template-info-carousel">
+                  <h3
+                    class="font-playfair text-lg font-semibold text-white mb-1 group-hover:text-rose-pastel-300 transition-colors"
+                  >
+                    Elegant White
+                  </h3>
+                  <p class="text-gray-400 text-sm mb-3">Trắng tinh khôi</p>
+                  <button
+                    onclick="scrollToContact('white')"
+                    class="btn-choose-carousel"
+                  >
+                    Chọn mẫu này
+                  </button>
+                </div>
+              </div>
+
+              <!-- Template Card 7 -->
+              <div class="template-card-carousel group">
+                <div class="template-thumbnail-carousel">
+                  <img
+                    src="assets/images/chup-anh-cuoi-da-lat-phong-cach-han-quoc-005.jpg"
+                    alt="Dreamy Pink"
+                    loading="lazy"
+                  />
+                  <div class="absolute top-2 right-2">
+                    <span
+                      class="px-3 py-1 bg-purple-500 text-white text-xs font-semibold rounded-full"
+                      >HOT</span
+                    >
+                  </div>
+                  <div class="template-overlay-carousel">
+                    <button
+                      onclick="openPreview('pink')"
+                      class="btn-preview-carousel"
+                    >
+                      <i class="fas fa-eye mr-2"></i>Xem Demo
+                    </button>
+                  </div>
+                </div>
+                <div class="template-info-carousel">
+                  <h3
+                    class="font-playfair text-lg font-semibold text-white mb-1 group-hover:text-rose-pastel-300 transition-colors"
+                  >
+                    Dreamy Pink
+                  </h3>
+                  <p class="text-gray-400 text-sm mb-3">Hồng mơ mộng</p>
+                  <button
+                    onclick="scrollToContact('pink')"
+                    class="btn-choose-carousel"
+                  >
+                    Chọn mẫu này
+                  </button>
+                </div>
+              </div>
+
+              <!-- Template Card 8 -->
+              <div class="template-card-carousel group">
+                <div class="template-thumbnail-carousel">
+                  <img
+                    src="assets/images/chup-anh-cuoi-phim-truong-12.jpg"
+                    alt="Nature Love"
+                    loading="lazy"
+                  />
+                  <div class="template-overlay-carousel">
+                    <button
+                      onclick="openPreview('nature')"
+                      class="btn-preview-carousel"
+                    >
+                      <i class="fas fa-eye mr-2"></i>Xem Demo
+                    </button>
+                  </div>
+                </div>
+                <div class="template-info-carousel">
+                  <h3
+                    class="font-playfair text-lg font-semibold text-white mb-1 group-hover:text-rose-pastel-300 transition-colors"
+                  >
+                    Nature Love
+                  </h3>
+                  <p class="text-gray-400 text-sm mb-3">Gần gũi thiên nhiên</p>
+                  <button
+                    onclick="scrollToContact('nature')"
+                    class="btn-choose-carousel"
+                  >
+                    Chọn mẫu này
+                  </button>
+                </div>
+              </div>
+
+              <!-- Template Card 9 -->
+              <div class="template-card-carousel group">
+                <div class="template-thumbnail-carousel">
+                  <img
+                    src="assets/images/chup-anh-cuoi-phong-cach-han-quoc-2.jpg"
+                    alt="Korean Style"
+                    loading="lazy"
+                  />
+                  <div class="template-overlay-carousel">
+                    <button
+                      onclick="openPreview('korean')"
+                      class="btn-preview-carousel"
+                    >
+                      <i class="fas fa-eye mr-2"></i>Xem Demo
+                    </button>
+                  </div>
+                </div>
+                <div class="template-info-carousel">
+                  <h3
+                    class="font-playfair text-lg font-semibold text-white mb-1 group-hover:text-rose-pastel-300 transition-colors"
+                  >
+                    Korean Style
+                  </h3>
+                  <p class="text-gray-400 text-sm mb-3">Phong cách Hàn Quốc</p>
+                  <button
+                    onclick="scrollToContact('korean')"
+                    class="btn-choose-carousel"
+                  >
+                    Chọn mẫu này
+                  </button>
+                </div>
+              </div>
+
+              <!-- Template Card 10 -->
+              <div class="template-card-carousel group">
+                <div class="template-thumbnail-carousel">
+                  <img
+                    src="assets/images/chup-anh-cuoi-trong-studio-o-da-nang-6.jpg"
+                    alt="Studio Classic"
+                    loading="lazy"
+                  />
+                  <div class="absolute top-2 right-2">
+                    <span
+                      class="px-3 py-1 bg-rose-pastel-300 text-white text-xs font-semibold rounded-full"
+                      >SALE</span
+                    >
+                  </div>
+                  <div class="template-overlay-carousel">
+                    <button
+                      onclick="openPreview('studio')"
+                      class="btn-preview-carousel"
+                    >
+                      <i class="fas fa-eye mr-2"></i>Xem Demo
+                    </button>
+                  </div>
+                </div>
+                <div class="template-info-carousel">
+                  <h3
+                    class="font-playfair text-lg font-semibold text-white mb-1 group-hover:text-rose-pastel-300 transition-colors"
+                  >
+                    Studio Classic
+                  </h3>
+                  <p class="text-gray-400 text-sm mb-3">Studio chuyên nghiệp</p>
+                  <button
+                    onclick="scrollToContact('studio')"
+                    class="btn-choose-carousel"
+                  >
+                    Chọn mẫu này
+                  </button>
                 </div>
               </div>
             </div>
@@ -175,117 +637,326 @@
         </div>
       </div>
 
-      <!-- CTA Section -->
-      <div class="text-center max-w-2xl mx-auto">
-        <h2 class="font-playfair text-3xl font-semibold text-gray-800 mb-4">
+      <!-- View More Button -->
+      <div class="container mx-auto px-4">
+        <div class="text-center mt-8">
+          <button
+            onclick="scrollToContact()"
+            class="px-8 py-3 bg-rose-pastel-300 hover:bg-rose-pastel-200 text-white rounded-full font-semibold transition-all"
+          >
+            Xem thêm mẫu thiết kế <i class="fas fa-arrow-right ml-2"></i>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-20 bg-rose-pastel-100">
+      <div class="container mx-auto px-4">
+        <h2
+          class="font-playfair text-4xl md:text-5xl font-bold text-gray-800 mb-4 text-center"
+        >
+          Tính Năng Nổi Bật
+        </h2>
+        <p class="text-gray-600 text-lg text-center mb-12">
+          Mọi thứ bạn cần cho một thiệp cưới hoàn hảo
+        </p>
+
+        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mt-12">
+          <div class="feature-card-dark">
+            <div class="icon-wrapper-dark">
+              <i class="fas fa-mobile-alt"></i>
+            </div>
+            <h3
+              class="font-playfair text-xl font-semibold text-white mb-2 text-center"
+            >
+              Responsive Design
+            </h3>
+            <p class="text-gray-400 text-center">
+              Hiển thị hoàn hảo trên mọi thiết bị
+            </p>
+          </div>
+
+          <div class="feature-card-dark">
+            <div class="icon-wrapper-dark">
+              <i class="fas fa-palette"></i>
+            </div>
+            <h3
+              class="font-playfair text-xl font-semibold text-white mb-2 text-center"
+            >
+              Thiết kế đẹp mắt
+            </h3>
+            <p class="text-gray-400 text-center">
+              Giao diện sang trọng, hiện đại
+            </p>
+          </div>
+
+          <div class="feature-card-dark">
+            <div class="icon-wrapper-dark">
+              <i class="fas fa-bolt"></i>
+            </div>
+            <h3
+              class="font-playfair text-xl font-semibold text-white mb-2 text-center"
+            >
+              Nhanh chóng
+            </h3>
+            <p class="text-gray-400 text-center">
+              Tải trang nhanh, trải nghiệm mượt mà
+            </p>
+          </div>
+
+          <div class="feature-card-dark">
+            <div class="icon-wrapper-dark">
+              <i class="fas fa-users"></i>
+            </div>
+            <h3
+              class="font-playfair text-xl font-semibold text-white mb-2 text-center"
+            >
+              Quản lý khách mời
+            </h3>
+            <p class="text-gray-400 text-center">
+              Tích hợp Google Sheets dễ dàng
+            </p>
+          </div>
+
+          <div class="feature-card-dark">
+            <div class="icon-wrapper-dark">
+              <i class="fas fa-link"></i>
+            </div>
+            <h3
+              class="font-playfair text-xl font-semibold text-white mb-2 text-center"
+            >
+              Link cá nhân hóa
+            </h3>
+            <p class="text-gray-400 text-center">Mỗi khách mời có link riêng</p>
+          </div>
+
+          <div class="feature-card-dark">
+            <div class="icon-wrapper-dark">
+              <i class="fas fa-check-circle"></i>
+            </div>
+            <h3
+              class="font-playfair text-xl font-semibold text-white mb-2 text-center"
+            >
+              Xác nhận tham dự
+            </h3>
+            <p class="text-gray-400 text-center">
+              Khách mời xác nhận trực tiếp
+            </p>
+          </div>
+
+          <div class="feature-card-dark">
+            <div class="icon-wrapper-dark">
+              <i class="fas fa-qrcode"></i>
+            </div>
+            <h3
+              class="font-playfair text-xl font-semibold text-white mb-2 text-center"
+            >
+              QR mừng cưới
+            </h3>
+            <p class="text-gray-400 text-center">Nhận mừng cưới dễ dàng</p>
+          </div>
+
+          <div class="feature-card-dark">
+            <div class="icon-wrapper-dark">
+              <i class="fas fa-map-marked-alt"></i>
+            </div>
+            <h3
+              class="font-playfair text-xl font-semibold text-white mb-2 text-center"
+            >
+              Bản đồ chỉ đường
+            </h3>
+            <p class="text-gray-400 text-center">Tích hợp Google Maps</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section id="how-it-works" class="py-20 bg-white">
+      <div class="container mx-auto px-4">
+        <h2
+          class="font-playfair text-4xl md:text-5xl font-bold text-gray-800 mb-4 text-center"
+        >
+          Quy Trình Đơn Giản
+        </h2>
+        <p class="text-gray-600 text-lg text-center mb-12">
+          Chỉ 3 bước để có thiệp cưới online hoàn hảo
+        </p>
+
+        <div class="steps-container-dark">
+          <!-- Step 1 -->
+          <div class="step-card-dark">
+            <div class="step-number-dark">1</div>
+            <div class="step-icon-dark">
+              <i class="fas fa-palette"></i>
+            </div>
+            <h3 class="font-playfair text-xl font-semibold text-white mb-2">
+              Chọn mẫu thiệp
+            </h3>
+            <p class="text-gray-400">
+              Xem demo và chọn mẫu thiệp phù hợp với phong cách của bạn
+            </p>
+          </div>
+
+          <!-- Step 2 -->
+          <div class="step-card-dark">
+            <div class="step-number-dark">2</div>
+            <div class="step-icon-dark">
+              <i class="fas fa-comments"></i>
+            </div>
+            <h3 class="font-playfair text-xl font-semibold text-white mb-2">
+              Liên hệ tư vấn
+            </h3>
+            <p class="text-gray-400">
+              Gửi thông tin và yêu cầu của bạn qua email hoặc điện thoại
+            </p>
+          </div>
+
+          <!-- Step 3 -->
+          <div class="step-card-dark">
+            <div class="step-number-dark">3</div>
+            <div class="step-icon-dark">
+              <i class="fas fa-rocket"></i>
+            </div>
+            <h3 class="font-playfair text-xl font-semibold text-white mb-2">
+              Nhận thiệp & Chia sẻ
+            </h3>
+            <p class="text-gray-400">
+              Nhận link thiệp cưới và bắt đầu gửi đến khách mời
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section id="contact" class="py-20 bg-rose-pastel-100">
+      <div class="container mx-auto px-4 text-center">
+        <h2
+          class="font-playfair text-4xl md:text-5xl font-bold text-gray-800 mb-4"
+        >
           Sẵn sàng tạo thiệp cưới của bạn?
         </h2>
-        <p class="text-gray-600 mb-8">
-          Liên hệ với chúng tôi để được tư vấn và tạo thiệp cưới miễn phí
+        <p class="text-gray-600 text-lg mb-12">
+          Liên hệ với chúng tôi để được tư vấn và báo giá miễn phí
         </p>
-        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+
+        <div class="flex flex-col sm:flex-row gap-6 justify-center mb-12">
           <a
             href="mailto:contact@example.com"
-            class="px-8 py-4 bg-rose-pastel-300 hover:bg-rose-pastel-200 text-white rounded-full font-medium transition-colors shadow-lg hover:shadow-xl"
+            class="px-8 py-4 bg-rose-pastel-300 hover:bg-rose-pastel-200 text-white rounded-full text-lg font-semibold transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1"
           >
-            <i class="fas fa-envelope mr-2"></i>Liên hệ qua Email
+            <i class="fas fa-envelope mr-2"></i>
+            Liên hệ qua Email
           </a>
           <a
             href="tel:+84123456789"
-            class="px-8 py-4 bg-white hover:bg-gray-50 text-gray-800 rounded-full font-medium transition-colors shadow-lg hover:shadow-xl border border-gray-200"
+            class="px-8 py-4 bg-white hover:bg-gray-50 text-gray-800 rounded-full text-lg font-semibold transition-all border-2 border-rose-pastel-200"
           >
-            <i class="fas fa-phone mr-2"></i>Gọi điện thoại
+            <i class="fas fa-phone mr-2"></i>
+            Gọi điện thoại
           </a>
         </div>
-      </div>
 
-      <!-- Features List -->
-      <div class="mt-16 max-w-3xl mx-auto">
-        <h3
-          class="font-playfair text-2xl font-semibold text-gray-800 mb-6 text-center"
-        >
-          Tính năng nổi bật
-        </h3>
-        <div class="grid md:grid-cols-2 gap-4">
-          <div class="flex items-start gap-3 bg-white p-4 rounded-xl shadow-sm">
-            <i
-              class="fas fa-check-circle text-rose-pastel-300 text-xl mt-1"
-            ></i>
-            <div>
-              <h4 class="font-semibold text-gray-800 mb-1">
-                Quản lý khách mời
-              </h4>
-              <p class="text-sm text-gray-600">
-                Tích hợp Google Sheets để quản lý danh sách khách mời dễ dàng
-              </p>
-            </div>
+        <div class="text-gray-600">
+          <p class="mb-2">
+            <i class="fas fa-envelope mr-2"></i>
+            Email: contact@example.com
+          </p>
+          <p>
+            <i class="fas fa-phone mr-2"></i>
+            Hotline: 0123 456 789
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Modal Preview -->
+    <div id="previewModal" class="modal hidden">
+      <div class="modal-backdrop" onclick="closePreview()"></div>
+      <div class="modal-content">
+        <button class="modal-close" onclick="closePreview()">
+          <i class="fas fa-times"></i>
+        </button>
+        <div class="modal-header">
+          <h3
+            id="modalTitle"
+            class="font-playfair text-2xl font-bold text-gray-800 mb-2"
+          >
+            Classic Elegance
+          </h3>
+          <div id="modalFeatures" class="template-features">
+            <!-- Features will be inserted by JavaScript -->
           </div>
-          <div class="flex items-start gap-3 bg-white p-4 rounded-xl shadow-sm">
-            <i
-              class="fas fa-check-circle text-rose-pastel-300 text-xl mt-1"
-            ></i>
-            <div>
-              <h4 class="font-semibold text-gray-800 mb-1">Link cá nhân hóa</h4>
-              <p class="text-sm text-gray-600">
-                Mỗi khách mời có link riêng với tên và lời chào cá nhân
-              </p>
-            </div>
-          </div>
-          <div class="flex items-start gap-3 bg-white p-4 rounded-xl shadow-sm">
-            <i
-              class="fas fa-check-circle text-rose-pastel-300 text-xl mt-1"
-            ></i>
-            <div>
-              <h4 class="font-semibold text-gray-800 mb-1">Xác nhận tham dự</h4>
-              <p class="text-sm text-gray-600">
-                Khách mời có thể xác nhận tham dự trực tiếp trên thiệp
-              </p>
-            </div>
-          </div>
-          <div class="flex items-start gap-3 bg-white p-4 rounded-xl shadow-sm">
-            <i
-              class="fas fa-check-circle text-rose-pastel-300 text-xl mt-1"
-            ></i>
-            <div>
-              <h4 class="font-semibold text-gray-800 mb-1">QR mừng cưới</h4>
-              <p class="text-sm text-gray-600">
-                Tích hợp QR code để khách mời gửi mừng cưới dễ dàng
-              </p>
-            </div>
-          </div>
-          <div class="flex items-start gap-3 bg-white p-4 rounded-xl shadow-sm">
-            <i
-              class="fas fa-check-circle text-rose-pastel-300 text-xl mt-1"
-            ></i>
-            <div>
-              <h4 class="font-semibold text-gray-800 mb-1">Bản đồ chỉ đường</h4>
-              <p class="text-sm text-gray-600">
-                Tích hợp Google Maps để khách mời dễ dàng tìm đường
-              </p>
-            </div>
-          </div>
-          <div class="flex items-start gap-3 bg-white p-4 rounded-xl shadow-sm">
-            <i
-              class="fas fa-check-circle text-rose-pastel-300 text-xl mt-1"
-            ></i>
-            <div>
-              <h4 class="font-semibold text-gray-800 mb-1">Gallery ảnh cưới</h4>
-              <p class="text-sm text-gray-600">
-                Hiển thị album ảnh cưới đẹp mắt với hiệu ứng carousel
-              </p>
-            </div>
-          </div>
+        </div>
+        <div class="modal-body">
+          <!-- Iframe will be inserted by JavaScript -->
+        </div>
+        <div class="modal-footer">
+          <button onclick="closePreview()" class="btn-secondary">Đóng</button>
+          <button onclick="chooseFromModal()" class="btn-primary">
+            Chọn mẫu này
+          </button>
         </div>
       </div>
     </div>
 
     <!-- Footer -->
-    <footer class="bg-white border-t border-gray-200 py-8 mt-16">
-      <div class="container mx-auto px-4 text-center text-gray-600">
-        <p class="font-cormorant text-lg italic">
-          © 2024 Thiệp Cưới Online. Tạo kỷ niệm đẹp cho ngày trọng đại.
-        </p>
+    <footer class="bg-gray-800 text-white py-12 border-t border-gray-700">
+      <div class="container mx-auto px-4">
+        <div class="grid md:grid-cols-3 gap-8 mb-8">
+          <div>
+            <div class="flex items-center gap-2 mb-4">
+              <i class="fas fa-heart text-rose-pastel-300 text-2xl"></i>
+              <h3 class="font-playfair text-2xl font-bold">Cưới Xinh</h3>
+            </div>
+            <p class="text-gray-400">
+              Tạo kỷ niệm đẹp cho ngày trọng đại của bạn
+            </p>
+          </div>
+          <div>
+            <h4 class="font-semibold mb-4">Liên kết</h4>
+            <ul class="space-y-2 text-gray-400">
+              <li>
+                <a href="#hero" class="hover:text-white transition-colors"
+                  >Trang chủ</a
+                >
+              </li>
+              <li>
+                <a href="#templates" class="hover:text-white transition-colors"
+                  >Mẫu thiệp</a
+                >
+              </li>
+              <li>
+                <a href="#features" class="hover:text-white transition-colors"
+                  >Tính năng</a
+                >
+              </li>
+              <li>
+                <a href="#contact" class="hover:text-white transition-colors"
+                  >Liên hệ</a
+                >
+              </li>
+            </ul>
+          </div>
+          <div>
+            <h4 class="font-semibold mb-4">Liên hệ</h4>
+            <ul class="space-y-2 text-gray-400">
+              <li><i class="fas fa-envelope mr-2"></i>contact@example.com</li>
+              <li><i class="fas fa-phone mr-2"></i>+84 123 456 789</li>
+              <li><i class="fas fa-map-marker-alt mr-2"></i>Việt Nam</li>
+            </ul>
+          </div>
+        </div>
+        <div class="border-t border-gray-800 pt-8 text-center text-gray-400">
+          <p class="font-cormorant text-lg italic">
+            © 2024 Cưới Xinh. Tạo kỷ niệm đẹp cho ngày trọng đại.
+          </p>
+        </div>
       </div>
     </footer>
+
+    <script src="landing-script.js"></script>
   </body>
 </html>
