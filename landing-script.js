@@ -7,7 +7,7 @@ const templates = [
     name: 'Classic Elegance',
     description: 'Thiết kế sang trọng, cổ điển với màu pastel nhẹ nhàng',
     thumbnail: 'assets/images/ZIN_3506.jpg',
-    previewUrl: '/wedding.html?slug=demo',
+    previewUrl: 'themes/wedding.html?preview=true',
     features: ['gallery', 'map', 'qrcode', 'rsvp'],
     status: 'active',
     category: 'traditional'
@@ -76,6 +76,8 @@ function openPreview(templateId) {
 
   currentTemplateId = templateId;
 
+  console.log('Opening preview for:', template.name, 'URL:', template.previewUrl);
+
   // Update modal content
   title.textContent = template.name;
   
@@ -99,6 +101,8 @@ function openPreview(templateId) {
     modalBody.innerHTML = '<iframe id="previewFrame" src="" class="preview-iframe"></iframe>';
     const newIframe = document.getElementById('previewFrame');
     newIframe.src = template.previewUrl;
+    
+    console.log('Iframe src set to:', newIframe.src);
 
     // Set timeout for iframe loading
     iframeLoadTimeout = setTimeout(() => {
@@ -107,10 +111,16 @@ function openPreview(templateId) {
 
     // Clear timeout when iframe loads
     newIframe.onload = () => {
+      console.log('Iframe loaded successfully');
       if (iframeLoadTimeout) {
         clearTimeout(iframeLoadTimeout);
         iframeLoadTimeout = null;
       }
+    };
+    
+    newIframe.onerror = () => {
+      console.error('Iframe failed to load');
+      showIframeError();
     };
   }, 100);
 }

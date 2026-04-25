@@ -73,7 +73,10 @@ function getImageUrl(filename) {
     // Return a placeholder image with "Chưa có ảnh" text
     return createPlaceholderSVG('Chưa có ảnh');
   }
-  if (filename.startsWith('http')) return filename;
+  // Check if it's already a full URL or relative path
+  if (filename.startsWith('http') || filename.startsWith('../') || filename.startsWith('./') || filename.startsWith('/')) {
+    return filename;
+  }
   return `${STORAGE_BASE_URL}/${filename}`;
 }
 
@@ -250,14 +253,49 @@ function renderWedding(w) {
 }
 
 // Fetch và render wedding data
+const isPreviewMode = window.location.search.includes('preview=true');
+
+// Helper function to show preview mode alert
+function showPreviewAlert() {
+  if (!isPreviewMode) return false;
+  
+  // Create toast notification
+  const toast = document.createElement('div');
+  toast.style.cssText = `
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(212, 165, 165, 0.95);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    z-index: 10000;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    animation: slideDown 0.3s ease;
+  `;
+  toast.textContent = 'Chức năng này không khả dụng ở chế độ xem thử';
+  document.body.appendChild(toast);
+  
+  setTimeout(() => {
+    toast.style.animation = 'slideUp 0.3s ease';
+    setTimeout(() => toast.remove(), 300);
+  }, 2000);
+  
+  return true;
+}
+
 if (_weddingSlug) {
   fetch(`${EDGE_URL}?slug=${_weddingSlug}`, {
     headers: { Authorization: `Bearer ${ANON_KEY}` }
   })
   .then(r => {
     if (!r.ok) {
-      // Slug không tồn tại, redirect về landing page
-      window.location.href = '/';
+      // Slug không tồn tại, redirect về landing page (trừ khi preview mode)
+      if (!isPreviewMode) {
+        window.location.href = '/';
+      }
       return null;
     }
     return r.json();
@@ -267,12 +305,16 @@ if (_weddingSlug) {
   })
   .catch(e => {
     console.error('Lỗi load wedding data:', e);
-    // Redirect về landing page nếu có lỗi
-    window.location.href = '/';
+    // Redirect về landing page nếu có lỗi (trừ khi preview mode)
+    if (!isPreviewMode) {
+      window.location.href = '/';
+    }
   });
 } else {
-  // Không có slug, redirect về landing page
-  window.location.href = '/';
+  // Không có slug, redirect về landing page (trừ khi preview mode)
+  if (!isPreviewMode) {
+    window.location.href = '/';
+  }
 }
 
 function decryptData(encryptedText) {
@@ -291,6 +333,12 @@ function decryptData(encryptedText) {
 let _markViewedCallback = null;
 
 function setupPersonalizedGreeting() {
+  // Preview mode: vào thẳng màn chính, bỏ qua cover
+  if (isPreviewMode) {
+    openInvitation();
+    return;
+  }
+
   const urlParams = new URLSearchParams(window.location.search);
   const encryptedName = urlParams.get('name');
   const encryptedRelationship = urlParams.get('relationship');
@@ -326,8 +374,8 @@ function setupPersonalizedGreeting() {
     return;
   }
 
-  // Chuẩn bị markViewed - chỉ gọi khi click Mở Thiệp
-  if (weddingSlug) {
+  // Chuẩn bị markViewed - chỉ gọi khi click Mở Thiệp (CHẶN trong preview mode)
+  if (weddingSlug && !isPreviewMode) {
     fetch(`${EDGE_URL}?slug=${weddingSlug}`, {
       headers: { Authorization: `Bearer ${ANON_KEY}` }
     }).then(res => res.json()).then(data => {
@@ -440,8 +488,10 @@ const carouselObserver = new IntersectionObserver((entries) => {
 }, { threshold: 0.5 });
 carouselObserver.observe(container);
 
-// Save QR
+// Save QR (CHẶN trong preview mode)
 async function saveQR(id) {
+    if (showPreviewAlert()) return;
+    
     const img = document.querySelector(`img[src*="${id}"]`);
     const filename = `${id}.png`;
 
@@ -551,8 +601,10 @@ document.querySelectorAll([
     revealObserver.observe(el);
 });
 
-// Xác nhận tham dự
+// Xác nhận tham dự (CHẶN trong preview mode)
 function confirmAttend(attending) {
+    if (showPreviewAlert()) return;
+    
     const btnAttend = document.getElementById('btn-attend');
     const btnDecline = document.getElementById('btn-decline');
     const msg = document.getElementById('attend-msg');
@@ -584,8 +636,8 @@ document.getElementById('btn-decline').classList.add('btn-idle');
 
 // Cover screen
 function openInvitation() {
-    // Đánh dấu đã xem khi khách click Mở Thiệp
-    if (_markViewedCallback) {
+    // Đánh dấu đã xem khi khách click Mở Thiệp (CHẶN trong preview mode)
+    if (_markViewedCallback && !isPreviewMode) {
         _markViewedCallback();
         _markViewedCallback = null; // Chỉ gọi 1 lần
     }
@@ -593,6 +645,20 @@ function openInvitation() {
     const cover = document.getElementById('cover-screen');
     const main = document.getElementById('main-card');
 
+    // Preview mode: ẩn cover ngay lập tức, không có animation
+    if (isPreviewMode) {
+        cover.style.display = 'none';
+        main.style.display = '';
+        main.style.opacity = '1';
+        // Re-init carousel
+        fixHeight();
+        update();
+        setTimeout(attachClickHandler, 100);
+        window.scrollTo({ top: 0 });
+        return;
+    }
+
+    // Normal mode: có animation
     cover.classList.add('closing');
     setTimeout(() => {
         cover.style.display = 'none';

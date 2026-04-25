@@ -18,7 +18,7 @@
       href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Great+Vibes&family=Inter:wght@300;400;500&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Cinzel:wght@400;600&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="../style.css" />
     <!-- CryptoJS for decryption -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <script>
@@ -188,10 +188,13 @@
 
         <!-- Couple Names -->
         <div
-          class="font-nautigal text-[36px] text-rose-pastel-300 leading-relaxed"
+          class="font-nautigal text-rose-pastel-300 leading-relaxed whitespace-nowrap overflow-x-auto max-w-full"
+          style="font-size: clamp(24px, 5vw, 36px)"
         >
           <span id="couple-names-groom">----------</span>
-          <span class="text-[38px] mx-4 text-rose-pastel-200">&</span>
+          <span class="mx-2 sm:mx-4" style="font-size: clamp(26px, 5.5vw, 38px)"
+            >&</span
+          >
           <span id="couple-names-bride">----------</span>
         </div>
 
@@ -569,7 +572,7 @@
                 </div>
                 <div class="bg-white rounded-2xl p-3 shadow-md">
                   <img
-                    src="assets/images/qr-chu-re.png"
+                    src=""
                     id="groom-qr-img"
                     alt="QR Chú Rể"
                     class="w-full aspect-square object-contain"
@@ -611,7 +614,7 @@
                 </div>
                 <div class="bg-white rounded-2xl p-3 shadow-md">
                   <img
-                    src="assets/images/qr-co-dau.png"
+                    src=""
                     id="bride-qr-img"
                     alt="QR Cô Dâu"
                     class="w-full aspect-square object-contain"
@@ -734,10 +737,6 @@
 
           <!-- Block 6: Cảm ơn -->
           <div class="flex flex-col items-center gap-8 py-8">
-            <img
-              src="assets/images/crcd_chipi.png"
-              alt="Cô Dâu Chú Rể"
-              class="w-32 object-contain"
             />
             <div
               class="font-cormorant italic text-[16px] text-stone-custom-400 leading-relaxed px-8"
@@ -791,6 +790,7 @@
       </button>
     </div>
 
-    <script src="script.js"></script>
+    <script src="preview-data.js"></script>
+    <script src="../script.js"></script>
   </body>
 </html>

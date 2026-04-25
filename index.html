@@ -55,13 +55,12 @@
       <div class="container mx-auto px-4">
         <div class="flex items-center justify-between h-16">
           <div class="flex items-center">
-            <img src="assets/icons/logo.PNG" alt="Cưới Xinh Logo" class="h-16 w-auto">
+            <img src="assets/icons/logo.png" alt="Cưới Xinh Logo" class="h-16 w-auto">
           </div>
           <div class="hidden md:flex items-center gap-8 text-sm">
             <a
               href="#hero"
               class="text-gray-600 transition-colors"
-              style="hover: {color: rgb(255 183 202);}"
               onmouseover="this.style.color='rgb(255 183 202)'"
               onmouseout="this.style.color='#4b5563'"
               >Trang chủ</a
@@ -120,7 +119,7 @@
     <section
       id="hero"
       class="relative flex items-center justify-center overflow-hidden pt-24"
-      style="height: 70vh; min-height: 500px"
+      style="height: 60vh; min-height: 400px"
     >
       <!-- Background Grid of Templates -->
       <div
@@ -223,26 +222,24 @@
 
       <!-- Hero Content -->
       <div class="relative z-10 container mx-auto px-4 text-center">
-        <div class="flex flex-col items-center justify-center mb-6">
+        <div class="flex flex-col items-center justify-center mb-4">
           <!-- Main text only -->
-          <h1 class="font-allura text-8xl md:text-9xl lg:text-[11rem]" style="color: rgb(255 183 202); text-shadow: 2px 2px 4px rgba(255, 183, 202, 0.3);">
+          <h1 class="font-allura text-6xl md:text-7xl lg:text-8xl" style="color: rgb(255 183 202); text-shadow: 2px 2px 4px rgba(255, 183, 202, 0.3);">
             Cưới Xinh
           </h1>
         </div>
         <p
-          class="font-cormorant text-3xl md:text-4xl italic mb-12"
+          class="font-cormorant text-2xl md:text-3xl lg:text-4xl italic mb-4"
           style="color: rgb(173 122 135);"
         >
           Make your love story
         </p>
-        <p class="text-lg md:text-xl max-w-3xl mx-auto mb-12" style="color: rgb(173 122 135);">
+        <p class="text-base md:text-lg lg:text-xl max-w-3xl mx-auto mb-4" style="color: rgb(173 122 135);">
           Hãy để Cưới Xinh giúp bạn kể câu chuyện tình yêu qua từng tấm thiệp
-          –<br />
-          mang đầy cảm xúc như một thước phim lãng mạn
         </p>
         <button
           onclick="scrollToTemplates()"
-          class="px-8 py-4 text-white rounded-full text-lg font-semibold transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+          class="px-8 py-4 text-white rounded-full text-lg font-semibold transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1 mb-4"
           style="background-color: rgb(255 183 202);"
           onmouseover="this.style.backgroundColor='rgb(255 200 215)'"
           onmouseout="this.style.backgroundColor='rgb(255 183 202)'"
@@ -256,7 +253,7 @@
     <section id="templates" class="py-20 bg-white">
       <div class="container mx-auto px-4 mb-12">
         <h2
-          class="font-playfair text-4xl md:text-5xl font-bold text-gray-800 mb-4 text-center"
+          class="font-playfair text-3xl md:text-4xl lg:text-5xl font-bold text-gray-800 mb-4 text-center"
         >
           Mẫu thiết kế phổ biến
         </h2>
@@ -678,7 +675,7 @@
     <section id="features" class="py-20 bg-rose-pastel-100">
       <div class="container mx-auto px-4">
         <h2
-          class="font-playfair text-4xl md:text-5xl font-bold mb-4 text-center"
+          class="font-playfair text-3xl md:text-4xl lg:text-5xl font-bold mb-4 text-center"
           style="color: rgb(173 122 135);"
         >
           Tính Năng Nổi Bật
@@ -801,7 +798,7 @@
     <section id="how-it-works" class="py-20 bg-white">
       <div class="container mx-auto px-4">
         <h2
-          class="font-playfair text-4xl md:text-5xl font-bold text-gray-800 mb-4 text-center"
+          class="font-playfair text-3xl md:text-4xl lg:text-5xl font-bold text-gray-800 mb-4 text-center"
         >
           Quy Trình Đơn Giản
         </h2>
@@ -812,9 +809,8 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
           <!-- Step 1 -->
           <div class="relative bg-white rounded-2xl p-8 shadow-md transition-all duration-300 text-center border border-pink-100 hover:shadow-xl hover:border-pink-200">
-            <div class="absolute -top-4 left-1/2 -translate-x-1/2 w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl shadow-lg bg-gradient-to-br from-pink-100 to-pink-200" style="color: rgb(173 122 135);">1</div>
-            <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto my-4 bg-pink-50">
-              <i class="fas fa-palette text-pink-500 text-2xl"></i>
+            <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto my-4 bg-gradient-to-br from-pink-100 to-pink-200">
+              <span class="text-3xl font-bold" style="color: rgb(173 122 135);">1</span>
             </div>
             <h3 class="font-playfair text-xl font-semibold text-gray-800 mb-2">
               Chọn mẫu thiệp
@@ -826,9 +822,8 @@
 
           <!-- Step 2 -->
           <div class="relative bg-white rounded-2xl p-8 shadow-md transition-all duration-300 text-center border border-pink-100 hover:shadow-xl hover:border-pink-200">
-            <div class="absolute -top-4 left-1/2 -translate-x-1/2 w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl shadow-lg bg-gradient-to-br from-pink-100 to-pink-200" style="color: rgb(173 122 135);">2</div>
-            <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto my-4 bg-pink-50">
-              <i class="fas fa-comments text-pink-500 text-2xl"></i>
+            <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto my-4 bg-gradient-to-br from-pink-100 to-pink-200">
+              <span class="text-3xl font-bold" style="color: rgb(173 122 135);">2</span>
             </div>
             <h3 class="font-playfair text-xl font-semibold text-gray-800 mb-2">
               Liên hệ tư vấn
@@ -840,9 +835,8 @@
 
           <!-- Step 3 -->
           <div class="relative bg-white rounded-2xl p-8 shadow-md transition-all duration-300 text-center border border-pink-100 hover:shadow-xl hover:border-pink-200">
-            <div class="absolute -top-4 left-1/2 -translate-x-1/2 w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl shadow-lg bg-gradient-to-br from-pink-100 to-pink-200" style="color: rgb(173 122 135);">3</div>
-            <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto my-4 bg-pink-50">
-              <i class="fas fa-rocket text-pink-500 text-2xl"></i>
+            <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto my-4 bg-gradient-to-br from-pink-100 to-pink-200">
+              <span class="text-3xl font-bold" style="color: rgb(173 122 135);">3</span>
             </div>
             <h3 class="font-playfair text-xl font-semibold text-gray-800 mb-2">
               Nhận thiệp & Chia sẻ
@@ -859,7 +853,7 @@
     <section id="contact" class="py-20 bg-rose-pastel-100">
       <div class="container mx-auto px-4 text-center">
         <h2
-          class="font-playfair text-4xl md:text-5xl font-bold mb-4"
+          class="font-playfair text-3xl md:text-4xl lg:text-5xl font-bold mb-4"
           style="color: rgb(173 122 135);"
         >
           Sẵn sàng tạo thiệp cưới của bạn?
@@ -939,7 +933,7 @@
         <div class="grid md:grid-cols-3 gap-8 mb-8">
           <div>
           <div class="flex items-center mb-4">
-            <img src="assets/icons/logo.PNG" alt="Cưới Xinh Logo" class="h-16 w-auto">
+            <img src="assets/icons/logo.png" alt="Cưới Xinh Logo" class="h-16 w-auto">
           </div>
             <p class="text-gray-400">
               Tạo kỷ niệm đẹp cho ngày trọng đại của bạn
