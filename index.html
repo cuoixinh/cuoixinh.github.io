@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Great+Vibes&family=Inter:wght@300;400;500;600&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Great+Vibes&family=Inter:wght@300;400;500;600&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Pacifico&family=Satisfy&family=Dancing+Script:wght@400;500;600;700&family=Allura&display=swap"
       rel="stylesheet"
     />
     <script>
@@ -24,6 +24,10 @@
               vibes: ["Great Vibes", "cursive"],
               cormorant: ["Cormorant Garamond", "serif"],
               inter: ["Inter", "sans-serif"],
+              pacifico: ["Pacifico", "cursive"],
+              satisfy: ["Satisfy", "cursive"],
+              dancing: ["Dancing Script", "cursive"],
+              allura: ["Allura", "cursive"],
             },
             colors: {
               cream: {
@@ -32,9 +36,9 @@
                 200: "#ffe8e0",
               },
               "rose-pastel": {
-                100: "#fce7f3",
-                200: "#fbcfe8",
-                300: "#f9a8d4",
+                100: "#fef1f7",
+                200: "#fce7f3",
+                300: "#fbcfe8",
               },
             },
           },
@@ -43,55 +47,67 @@
     </script>
     <link rel="stylesheet" href="landing-styles.css" />
   </head>
-  <body class="bg-rose-pastel-100">
+  <body class="bg-rose-pastel-100" style="color: rgb(173 122 135);">
     <!-- Navigation -->
     <nav
       class="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-rose-pastel-200"
     >
       <div class="container mx-auto px-4">
         <div class="flex items-center justify-between h-16">
-          <div class="flex items-center gap-2">
-            <i class="fas fa-heart text-rose-pastel-300 text-2xl"></i>
-            <span class="font-playfair text-xl font-bold text-gray-800"
-              >Cưới Xinh</span
-            >
+          <div class="flex items-center">
+            <img src="assets/icons/logo.PNG" alt="Cưới Xinh Logo" class="h-16 w-auto">
           </div>
           <div class="hidden md:flex items-center gap-8 text-sm">
             <a
               href="#hero"
-              class="text-gray-600 hover:text-rose-pastel-300 transition-colors"
+              class="text-gray-600 transition-colors"
+              style="hover: {color: rgb(255 183 202);}"
+              onmouseover="this.style.color='rgb(255 183 202)'"
+              onmouseout="this.style.color='#4b5563'"
               >Trang chủ</a
             >
             <a
               href="#templates"
-              class="text-gray-600 hover:text-rose-pastel-300 transition-colors"
+              class="text-gray-600 transition-colors"
+              onmouseover="this.style.color='rgb(255 183 202)'"
+              onmouseout="this.style.color='#4b5563'"
               >Mẫu thiệp</a
             >
             <a
               href="#features"
-              class="text-gray-600 hover:text-rose-pastel-300 transition-colors"
+              class="text-gray-600 transition-colors"
+              onmouseover="this.style.color='rgb(255 183 202)'"
+              onmouseout="this.style.color='#4b5563'"
               >Tính năng</a
             >
             <a
               href="#how-it-works"
-              class="text-gray-600 hover:text-rose-pastel-300 transition-colors"
+              class="text-gray-600 transition-colors"
+              onmouseover="this.style.color='rgb(255 183 202)'"
+              onmouseout="this.style.color='#4b5563'"
               >Cách sử dụng</a
             >
             <a
               href="#contact"
-              class="text-gray-600 hover:text-rose-pastel-300 transition-colors"
+              class="text-gray-600 transition-colors"
+              onmouseover="this.style.color='rgb(255 183 202)'"
+              onmouseout="this.style.color='#4b5563'"
               >Liên hệ</a
             >
           </div>
           <div class="flex items-center gap-4">
             <a
               href="admin.html"
-              class="text-gray-600 hover:text-rose-pastel-300 transition-colors text-sm"
-              >Đăng nhập</a
+              class="hover:opacity-80 transition-colors text-sm"
+              style="color: rgb(255 183 202);"
+            >Đăng nhập</a
             >
             <a
               href="#contact"
-              class="px-4 py-2 bg-rose-pastel-300 hover:bg-rose-pastel-200 text-white rounded-full text-sm font-medium transition-colors"
+              class="px-4 py-2 text-white rounded-full text-sm font-medium transition-all"
+              style="background-color: rgb(255 183 202);"
+              onmouseover="this.style.backgroundColor='rgb(255 200 215)'"
+              onmouseout="this.style.backgroundColor='rgb(255 183 202)'"
             >
               Bắt đầu
             </a>
@@ -103,7 +119,7 @@
     <!-- Hero Section with Background Grid -->
     <section
       id="hero"
-      class="relative flex items-center justify-center overflow-hidden pt-16"
+      class="relative flex items-center justify-center overflow-hidden pt-24"
       style="height: 70vh; min-height: 500px"
     >
       <!-- Background Grid of Templates -->
@@ -207,24 +223,29 @@
 
       <!-- Hero Content -->
       <div class="relative z-10 container mx-auto px-4 text-center">
-        <h1
-          class="font-playfair text-5xl md:text-7xl lg:text-8xl font-bold mb-6 text-gray-800 uppercase tracking-wider"
-        >
-          Cưới Xinh
-        </h1>
+        <div class="flex flex-col items-center justify-center mb-6">
+          <!-- Main text only -->
+          <h1 class="font-allura text-8xl md:text-9xl lg:text-[11rem]" style="color: rgb(255 183 202); text-shadow: 2px 2px 4px rgba(255, 183, 202, 0.3);">
+            Cưới Xinh
+          </h1>
+        </div>
         <p
-          class="font-cormorant text-3xl md:text-4xl text-rose-pastel-300 italic mb-12"
+          class="font-cormorant text-3xl md:text-4xl italic mb-12"
+          style="color: rgb(173 122 135);"
         >
           Make your love story
         </p>
-        <p class="text-gray-600 text-lg md:text-xl max-w-3xl mx-auto mb-12">
+        <p class="text-lg md:text-xl max-w-3xl mx-auto mb-12" style="color: rgb(173 122 135);">
           Hãy để Cưới Xinh giúp bạn kể câu chuyện tình yêu qua từng tấm thiệp
           –<br />
           mang đầy cảm xúc như một thước phim lãng mạn
         </p>
         <button
           onclick="scrollToTemplates()"
-          class="px-8 py-4 bg-rose-pastel-300 hover:bg-rose-pastel-200 text-white rounded-full text-lg font-semibold transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+          class="px-8 py-4 text-white rounded-full text-lg font-semibold transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+          style="background-color: rgb(255 183 202);"
+          onmouseover="this.style.backgroundColor='rgb(255 200 215)'"
+          onmouseout="this.style.backgroundColor='rgb(255 183 202)'"
         >
           Bắt đầu <i class="fas fa-arrow-right ml-2"></i>
         </button>
@@ -296,11 +317,11 @@
                 </div>
                 <div class="template-info-carousel">
                   <h3
-                    class="font-playfair text-lg font-semibold text-white mb-1 group-hover:text-rose-pastel-300 transition-colors"
+                    class="font-playfair text-lg font-semibold text-gray-800 mb-1 group-hover:text-pink-500 transition-colors"
                   >
                     Classic Elegance
                   </h3>
-                  <p class="text-gray-400 text-sm mb-3">Sang trọng, cổ điển</p>
+                  <p class="text-gray-600 text-sm mb-3">Sang trọng, cổ điển</p>
                   <button
                     onclick="scrollToContact('classic')"
                     class="btn-choose-carousel"
@@ -335,11 +356,11 @@
                 </div>
                 <div class="template-info-carousel">
                   <h3
-                    class="font-playfair text-lg font-semibold text-white mb-1 group-hover:text-rose-pastel-300 transition-colors"
+                    class="font-playfair text-lg font-semibold text-gray-800 mb-1 group-hover:text-pink-500 transition-colors"
                   >
                     Modern Minimalist
                   </h3>
-                  <p class="text-gray-400 text-sm mb-3">Tối giản, hiện đại</p>
+                  <p class="text-gray-600 text-sm mb-3">Tối giản, hiện đại</p>
                   <button
                     onclick="scrollToContact('modern')"
                     class="btn-choose-carousel"
@@ -368,11 +389,11 @@
                 </div>
                 <div class="template-info-carousel">
                   <h3
-                    class="font-playfair text-lg font-semibold text-white mb-1 group-hover:text-rose-pastel-300 transition-colors"
+                    class="font-playfair text-lg font-semibold text-gray-800 mb-1 group-hover:text-pink-500 transition-colors"
                   >
                     Royal Elegance
                   </h3>
-                  <p class="text-gray-400 text-sm mb-3">Hoàng gia, lộng lẫy</p>
+                  <p class="text-gray-600 text-sm mb-3">Hoàng gia, lộng lẫy</p>
                   <button
                     onclick="scrollToContact('elegant')"
                     class="btn-choose-carousel"
@@ -407,11 +428,11 @@
                 </div>
                 <div class="template-info-carousel">
                   <h3
-                    class="font-playfair text-lg font-semibold text-white mb-1 group-hover:text-rose-pastel-300 transition-colors"
+                    class="font-playfair text-lg font-semibold text-gray-800 mb-1 group-hover:text-pink-500 transition-colors"
                   >
                     Romantic Garden
                   </h3>
-                  <p class="text-gray-400 text-sm mb-3">
+                  <p class="text-gray-600 text-sm mb-3">
                     Lãng mạn, thiên nhiên
                   </p>
                   <button
@@ -442,11 +463,11 @@
                 </div>
                 <div class="template-info-carousel">
                   <h3
-                    class="font-playfair text-lg font-semibold text-white mb-1 group-hover:text-rose-pastel-300 transition-colors"
+                    class="font-playfair text-lg font-semibold text-gray-800 mb-1 group-hover:text-pink-500 transition-colors"
                   >
                     Vintage Love
                   </h3>
-                  <p class="text-gray-400 text-sm mb-3">Cổ điển, hoài niệm</p>
+                  <p class="text-gray-600 text-sm mb-3">Cổ điển, hoài niệm</p>
                   <button
                     onclick="scrollToContact('vintage')"
                     class="btn-choose-carousel"
@@ -475,11 +496,11 @@
                 </div>
                 <div class="template-info-carousel">
                   <h3
-                    class="font-playfair text-lg font-semibold text-white mb-1 group-hover:text-rose-pastel-300 transition-colors"
+                    class="font-playfair text-lg font-semibold text-gray-800 mb-1 group-hover:text-pink-500 transition-colors"
                   >
                     Elegant White
                   </h3>
-                  <p class="text-gray-400 text-sm mb-3">Trắng tinh khôi</p>
+                  <p class="text-gray-600 text-sm mb-3">Trắng tinh khôi</p>
                   <button
                     onclick="scrollToContact('white')"
                     class="btn-choose-carousel"
@@ -514,11 +535,11 @@
                 </div>
                 <div class="template-info-carousel">
                   <h3
-                    class="font-playfair text-lg font-semibold text-white mb-1 group-hover:text-rose-pastel-300 transition-colors"
+                    class="font-playfair text-lg font-semibold text-gray-800 mb-1 group-hover:text-pink-500 transition-colors"
                   >
                     Dreamy Pink
                   </h3>
-                  <p class="text-gray-400 text-sm mb-3">Hồng mơ mộng</p>
+                  <p class="text-gray-600 text-sm mb-3">Hồng mơ mộng</p>
                   <button
                     onclick="scrollToContact('pink')"
                     class="btn-choose-carousel"
@@ -547,11 +568,11 @@
                 </div>
                 <div class="template-info-carousel">
                   <h3
-                    class="font-playfair text-lg font-semibold text-white mb-1 group-hover:text-rose-pastel-300 transition-colors"
+                    class="font-playfair text-lg font-semibold text-gray-800 mb-1 group-hover:text-pink-500 transition-colors"
                   >
                     Nature Love
                   </h3>
-                  <p class="text-gray-400 text-sm mb-3">Gần gũi thiên nhiên</p>
+                  <p class="text-gray-600 text-sm mb-3">Gần gũi thiên nhiên</p>
                   <button
                     onclick="scrollToContact('nature')"
                     class="btn-choose-carousel"
@@ -580,11 +601,11 @@
                 </div>
                 <div class="template-info-carousel">
                   <h3
-                    class="font-playfair text-lg font-semibold text-white mb-1 group-hover:text-rose-pastel-300 transition-colors"
+                    class="font-playfair text-lg font-semibold text-gray-800 mb-1 group-hover:text-pink-500 transition-colors"
                   >
                     Korean Style
                   </h3>
-                  <p class="text-gray-400 text-sm mb-3">Phong cách Hàn Quốc</p>
+                  <p class="text-gray-600 text-sm mb-3">Phong cách Hàn Quốc</p>
                   <button
                     onclick="scrollToContact('korean')"
                     class="btn-choose-carousel"
@@ -619,11 +640,11 @@
                 </div>
                 <div class="template-info-carousel">
                   <h3
-                    class="font-playfair text-lg font-semibold text-white mb-1 group-hover:text-rose-pastel-300 transition-colors"
+                    class="font-playfair text-lg font-semibold text-gray-800 mb-1 group-hover:text-pink-500 transition-colors"
                   >
                     Studio Classic
                   </h3>
-                  <p class="text-gray-400 text-sm mb-3">Studio chuyên nghiệp</p>
+                  <p class="text-gray-600 text-sm mb-3">Studio chuyên nghiệp</p>
                   <button
                     onclick="scrollToContact('studio')"
                     class="btn-choose-carousel"
@@ -642,7 +663,10 @@
         <div class="text-center mt-8">
           <button
             onclick="scrollToContact()"
-            class="px-8 py-3 bg-rose-pastel-300 hover:bg-rose-pastel-200 text-white rounded-full font-semibold transition-all"
+            class="px-8 py-3 text-white rounded-full font-semibold transition-all"
+            style="background-color: rgb(255 183 202);"
+            onmouseover="this.style.backgroundColor='rgb(255 200 215)'"
+            onmouseout="this.style.backgroundColor='rgb(255 183 202)'"
           >
             Xem thêm mẫu thiết kế <i class="fas fa-arrow-right ml-2"></i>
           </button>
@@ -654,119 +678,120 @@
     <section id="features" class="py-20 bg-rose-pastel-100">
       <div class="container mx-auto px-4">
         <h2
-          class="font-playfair text-4xl md:text-5xl font-bold text-gray-800 mb-4 text-center"
+          class="font-playfair text-4xl md:text-5xl font-bold mb-4 text-center"
+          style="color: rgb(173 122 135);"
         >
           Tính Năng Nổi Bật
         </h2>
-        <p class="text-gray-600 text-lg text-center mb-12">
+        <p class="text-lg text-center mb-12" style="color: rgb(173 122 135);">
           Mọi thứ bạn cần cho một thiệp cưới hoàn hảo
         </p>
 
         <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mt-12">
-          <div class="feature-card-dark">
-            <div class="icon-wrapper-dark">
-              <i class="fas fa-mobile-alt"></i>
+          <div class="bg-white rounded-2xl p-8 shadow-md transition-all duration-300 border border-pink-100 hover:shadow-xl hover:border-pink-200">
+            <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-gradient-to-br from-pink-100 to-pink-200">
+              <i class="fas fa-mobile-alt text-pink-500 text-2xl"></i>
             </div>
             <h3
-              class="font-playfair text-xl font-semibold text-white mb-2 text-center"
+              class="font-playfair text-xl font-semibold text-gray-800 mb-2 text-center"
             >
               Responsive Design
             </h3>
-            <p class="text-gray-400 text-center">
+            <p class="text-gray-600 text-center">
               Hiển thị hoàn hảo trên mọi thiết bị
             </p>
           </div>
 
-          <div class="feature-card-dark">
-            <div class="icon-wrapper-dark">
-              <i class="fas fa-palette"></i>
+          <div class="bg-white rounded-2xl p-8 shadow-md transition-all duration-300 border border-pink-100 hover:shadow-xl hover:border-pink-200">
+            <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-gradient-to-br from-pink-100 to-pink-200">
+              <i class="fas fa-palette text-pink-500 text-2xl"></i>
             </div>
             <h3
-              class="font-playfair text-xl font-semibold text-white mb-2 text-center"
+              class="font-playfair text-xl font-semibold text-gray-800 mb-2 text-center"
             >
               Thiết kế đẹp mắt
             </h3>
-            <p class="text-gray-400 text-center">
+            <p class="text-gray-600 text-center">
               Giao diện sang trọng, hiện đại
             </p>
           </div>
 
-          <div class="feature-card-dark">
-            <div class="icon-wrapper-dark">
-              <i class="fas fa-bolt"></i>
+          <div class="bg-white rounded-2xl p-8 shadow-md transition-all duration-300 border border-pink-100 hover:shadow-xl hover:border-pink-200">
+            <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-gradient-to-br from-pink-100 to-pink-200">
+              <i class="fas fa-bolt text-pink-500 text-2xl"></i>
             </div>
             <h3
-              class="font-playfair text-xl font-semibold text-white mb-2 text-center"
+              class="font-playfair text-xl font-semibold text-gray-800 mb-2 text-center"
             >
               Nhanh chóng
             </h3>
-            <p class="text-gray-400 text-center">
+            <p class="text-gray-600 text-center">
               Tải trang nhanh, trải nghiệm mượt mà
             </p>
           </div>
 
-          <div class="feature-card-dark">
-            <div class="icon-wrapper-dark">
-              <i class="fas fa-users"></i>
+          <div class="bg-white rounded-2xl p-8 shadow-md transition-all duration-300 border border-pink-100 hover:shadow-xl hover:border-pink-200">
+            <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-gradient-to-br from-pink-100 to-pink-200">
+              <i class="fas fa-users text-pink-500 text-2xl"></i>
             </div>
             <h3
-              class="font-playfair text-xl font-semibold text-white mb-2 text-center"
+              class="font-playfair text-xl font-semibold text-gray-800 mb-2 text-center"
             >
               Quản lý khách mời
             </h3>
-            <p class="text-gray-400 text-center">
+            <p class="text-gray-600 text-center">
               Tích hợp Google Sheets dễ dàng
             </p>
           </div>
 
-          <div class="feature-card-dark">
-            <div class="icon-wrapper-dark">
-              <i class="fas fa-link"></i>
+          <div class="bg-white rounded-2xl p-8 shadow-md transition-all duration-300 border border-pink-100 hover:shadow-xl hover:border-pink-200">
+            <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-gradient-to-br from-pink-100 to-pink-200">
+              <i class="fas fa-link text-pink-500 text-2xl"></i>
             </div>
             <h3
-              class="font-playfair text-xl font-semibold text-white mb-2 text-center"
+              class="font-playfair text-xl font-semibold text-gray-800 mb-2 text-center"
             >
               Link cá nhân hóa
             </h3>
-            <p class="text-gray-400 text-center">Mỗi khách mời có link riêng</p>
+            <p class="text-gray-600 text-center">Mỗi khách mời có link riêng</p>
           </div>
 
-          <div class="feature-card-dark">
-            <div class="icon-wrapper-dark">
-              <i class="fas fa-check-circle"></i>
+          <div class="bg-white rounded-2xl p-8 shadow-md transition-all duration-300 border border-pink-100 hover:shadow-xl hover:border-pink-200">
+            <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-gradient-to-br from-pink-100 to-pink-200">
+              <i class="fas fa-check-circle text-pink-500 text-2xl"></i>
             </div>
             <h3
-              class="font-playfair text-xl font-semibold text-white mb-2 text-center"
+              class="font-playfair text-xl font-semibold text-gray-800 mb-2 text-center"
             >
               Xác nhận tham dự
             </h3>
-            <p class="text-gray-400 text-center">
+            <p class="text-gray-600 text-center">
               Khách mời xác nhận trực tiếp
             </p>
           </div>
 
-          <div class="feature-card-dark">
-            <div class="icon-wrapper-dark">
-              <i class="fas fa-qrcode"></i>
+          <div class="bg-white rounded-2xl p-8 shadow-md transition-all duration-300 border border-pink-100 hover:shadow-xl hover:border-pink-200">
+            <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-gradient-to-br from-pink-100 to-pink-200">
+              <i class="fas fa-qrcode text-pink-500 text-2xl"></i>
             </div>
             <h3
-              class="font-playfair text-xl font-semibold text-white mb-2 text-center"
+              class="font-playfair text-xl font-semibold text-gray-800 mb-2 text-center"
             >
               QR mừng cưới
             </h3>
-            <p class="text-gray-400 text-center">Nhận mừng cưới dễ dàng</p>
+            <p class="text-gray-600 text-center">Nhận mừng cưới dễ dàng</p>
           </div>
 
-          <div class="feature-card-dark">
-            <div class="icon-wrapper-dark">
-              <i class="fas fa-map-marked-alt"></i>
+          <div class="bg-white rounded-2xl p-8 shadow-md transition-all duration-300 border border-pink-100 hover:shadow-xl hover:border-pink-200">
+            <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-gradient-to-br from-pink-100 to-pink-200">
+              <i class="fas fa-map-marked-alt text-pink-500 text-2xl"></i>
             </div>
             <h3
-              class="font-playfair text-xl font-semibold text-white mb-2 text-center"
+              class="font-playfair text-xl font-semibold text-gray-800 mb-2 text-center"
             >
               Bản đồ chỉ đường
             </h3>
-            <p class="text-gray-400 text-center">Tích hợp Google Maps</p>
+            <p class="text-gray-600 text-center">Tích hợp Google Maps</p>
           </div>
         </div>
       </div>
@@ -784,45 +809,45 @@
           Chỉ 3 bước để có thiệp cưới online hoàn hảo
         </p>
 
-        <div class="steps-container-dark">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
           <!-- Step 1 -->
-          <div class="step-card-dark">
-            <div class="step-number-dark">1</div>
-            <div class="step-icon-dark">
-              <i class="fas fa-palette"></i>
+          <div class="relative bg-white rounded-2xl p-8 shadow-md transition-all duration-300 text-center border border-pink-100 hover:shadow-xl hover:border-pink-200">
+            <div class="absolute -top-4 left-1/2 -translate-x-1/2 w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl shadow-lg bg-gradient-to-br from-pink-100 to-pink-200" style="color: rgb(173 122 135);">1</div>
+            <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto my-4 bg-pink-50">
+              <i class="fas fa-palette text-pink-500 text-2xl"></i>
             </div>
-            <h3 class="font-playfair text-xl font-semibold text-white mb-2">
+            <h3 class="font-playfair text-xl font-semibold text-gray-800 mb-2">
               Chọn mẫu thiệp
             </h3>
-            <p class="text-gray-400">
+            <p class="text-gray-600">
               Xem demo và chọn mẫu thiệp phù hợp với phong cách của bạn
             </p>
           </div>
 
           <!-- Step 2 -->
-          <div class="step-card-dark">
-            <div class="step-number-dark">2</div>
-            <div class="step-icon-dark">
-              <i class="fas fa-comments"></i>
+          <div class="relative bg-white rounded-2xl p-8 shadow-md transition-all duration-300 text-center border border-pink-100 hover:shadow-xl hover:border-pink-200">
+            <div class="absolute -top-4 left-1/2 -translate-x-1/2 w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl shadow-lg bg-gradient-to-br from-pink-100 to-pink-200" style="color: rgb(173 122 135);">2</div>
+            <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto my-4 bg-pink-50">
+              <i class="fas fa-comments text-pink-500 text-2xl"></i>
             </div>
-            <h3 class="font-playfair text-xl font-semibold text-white mb-2">
+            <h3 class="font-playfair text-xl font-semibold text-gray-800 mb-2">
               Liên hệ tư vấn
             </h3>
-            <p class="text-gray-400">
+            <p class="text-gray-600">
               Gửi thông tin và yêu cầu của bạn qua email hoặc điện thoại
             </p>
           </div>
 
           <!-- Step 3 -->
-          <div class="step-card-dark">
-            <div class="step-number-dark">3</div>
-            <div class="step-icon-dark">
-              <i class="fas fa-rocket"></i>
+          <div class="relative bg-white rounded-2xl p-8 shadow-md transition-all duration-300 text-center border border-pink-100 hover:shadow-xl hover:border-pink-200">
+            <div class="absolute -top-4 left-1/2 -translate-x-1/2 w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl shadow-lg bg-gradient-to-br from-pink-100 to-pink-200" style="color: rgb(173 122 135);">3</div>
+            <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto my-4 bg-pink-50">
+              <i class="fas fa-rocket text-pink-500 text-2xl"></i>
             </div>
-            <h3 class="font-playfair text-xl font-semibold text-white mb-2">
+            <h3 class="font-playfair text-xl font-semibold text-gray-800 mb-2">
               Nhận thiệp & Chia sẻ
             </h3>
-            <p class="text-gray-400">
+            <p class="text-gray-600">
               Nhận link thiệp cưới và bắt đầu gửi đến khách mời
             </p>
           </div>
@@ -834,25 +859,30 @@
     <section id="contact" class="py-20 bg-rose-pastel-100">
       <div class="container mx-auto px-4 text-center">
         <h2
-          class="font-playfair text-4xl md:text-5xl font-bold text-gray-800 mb-4"
+          class="font-playfair text-4xl md:text-5xl font-bold mb-4"
+          style="color: rgb(173 122 135);"
         >
           Sẵn sàng tạo thiệp cưới của bạn?
         </h2>
-        <p class="text-gray-600 text-lg mb-12">
+        <p class="text-lg mb-12" style="color: rgb(173 122 135);">
           Liên hệ với chúng tôi để được tư vấn và báo giá miễn phí
         </p>
 
         <div class="flex flex-col sm:flex-row gap-6 justify-center mb-12">
           <a
             href="mailto:contact@example.com"
-            class="px-8 py-4 bg-rose-pastel-300 hover:bg-rose-pastel-200 text-white rounded-full text-lg font-semibold transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+            class="px-8 py-4 text-white rounded-full text-lg font-semibold transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+            style="background-color: rgb(255 183 202);"
+            onmouseover="this.style.backgroundColor='rgb(255 200 215)'"
+            onmouseout="this.style.backgroundColor='rgb(255 183 202)'"
           >
             <i class="fas fa-envelope mr-2"></i>
             Liên hệ qua Email
           </a>
           <a
             href="tel:+84123456789"
-            class="px-8 py-4 bg-white hover:bg-gray-50 text-gray-800 rounded-full text-lg font-semibold transition-all border-2 border-rose-pastel-200"
+            class="px-8 py-4 bg-white hover:bg-gray-50 rounded-full text-lg font-semibold transition-all border-2 border-rose-pastel-200"
+            style="color: rgb(173 122 135);"
           >
             <i class="fas fa-phone mr-2"></i>
             Gọi điện thoại
@@ -860,11 +890,11 @@
         </div>
 
         <div class="text-gray-600">
-          <p class="mb-2">
+          <p class="mb-2" style="color: rgb(173 122 135);">
             <i class="fas fa-envelope mr-2"></i>
             Email: contact@example.com
           </p>
-          <p>
+          <p style="color: rgb(173 122 135);">
             <i class="fas fa-phone mr-2"></i>
             Hotline: 0123 456 789
           </p>
@@ -882,7 +912,8 @@
         <div class="modal-header">
           <h3
             id="modalTitle"
-            class="font-playfair text-2xl font-bold text-gray-800 mb-2"
+            class="font-playfair text-2xl font-bold mb-2"
+            style="color: rgb(173 122 135);"
           >
             Classic Elegance
           </h3>
@@ -907,10 +938,9 @@
       <div class="container mx-auto px-4">
         <div class="grid md:grid-cols-3 gap-8 mb-8">
           <div>
-            <div class="flex items-center gap-2 mb-4">
-              <i class="fas fa-heart text-rose-pastel-300 text-2xl"></i>
-              <h3 class="font-playfair text-2xl font-bold">Cưới Xinh</h3>
-            </div>
+          <div class="flex items-center mb-4">
+            <img src="assets/icons/logo.PNG" alt="Cưới Xinh Logo" class="h-16 w-auto">
+          </div>
             <p class="text-gray-400">
               Tạo kỷ niệm đẹp cho ngày trọng đại của bạn
             </p>
