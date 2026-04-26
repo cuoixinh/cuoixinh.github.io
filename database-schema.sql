@@ -114,3 +114,103 @@ alter table weddings enable row level security;
 
 -- Policy: Cho phép đọc công khai
 create policy "Public read" on weddings for select using (true);
+
+-- ============================================================
+-- THÊM CỘT THEME VÀO BẢNG WEDDINGS
+-- ============================================================
+alter table weddings add column if not exists theme text default 'wedding1';
+comment on column weddings.theme is 'Tên file template trong thư mục themes: wedding1, wedding2,...';
+
+
+-- ============================================================
+-- BẢNG ORDERS - Đơn hàng của khách hàng
+-- ============================================================
+drop table if exists order_details cascade;
+drop table if exists orders cascade;
+
+create table orders (
+  id uuid default gen_random_uuid() primary key,
+  user_id uuid references auth.users(id) on delete set null, -- null nếu chưa đăng nhập
+  guest_email text,                -- email khách nếu chưa đăng nhập
+  status text default 'pending',   -- pending | processing | completed | cancelled
+  theme text not null,             -- tên template: wedding1, wedding2,...
+  slug text,                       -- slug thiệp sau khi tạo xong (references weddings.slug)
+  note text,                       -- ghi chú của khách
+  total_price integer default 0,   -- giá tiền (VND)
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+comment on column orders.user_id is 'ID user Supabase Auth (null nếu đặt hàng chưa đăng nhập)';
+comment on column orders.guest_email is 'Email khách khi chưa đăng nhập';
+comment on column orders.status is 'pending=chờ xử lý, processing=đang làm, completed=hoàn thành, cancelled=đã hủy';
+comment on column orders.theme is 'Template KH chọn: wedding1, wedding2,...';
+comment on column orders.slug is 'Slug thiệp sau khi admin tạo xong';
+comment on column orders.total_price is 'Giá tiền đơn hàng (VND)';
+
+-- Index
+create index idx_orders_user_id on orders(user_id);
+create index idx_orders_guest_email on orders(guest_email);
+create index idx_orders_status on orders(status);
+
+-- RLS
+alter table orders enable row level security;
+
+-- User chỉ xem được đơn của mình
+create policy "User read own orders" on orders
+  for select using (
+    auth.uid() = user_id
+  );
+
+-- User tạo đơn hàng
+create policy "User insert orders" on orders
+  for insert with check (true);
+
+
+-- ============================================================
+-- BẢNG ORDER_DETAILS - Chi tiết nội dung thiệp KH cung cấp
+-- ============================================================
+create table order_details (
+  id uuid default gen_random_uuid() primary key,
+  order_id uuid references orders(id) on delete cascade not null,
+
+  -- Thông tin cô dâu chú rể
+  groom_name text,
+  bride_name text,
+
+  -- Ngày cưới
+  ceremony_date date,
+  ceremony_time text,
+
+  -- Liên hệ
+  contact_name text,
+  contact_phone text,
+  contact_email text,
+
+  -- Yêu cầu thêm
+  extra_note text,
+
+  created_at timestamptz default now()
+);
+
+comment on column order_details.order_id is 'FK đến bảng orders';
+comment on column order_details.groom_name is 'Tên chú rể KH cung cấp';
+comment on column order_details.bride_name is 'Tên cô dâu KH cung cấp';
+comment on column order_details.ceremony_date is 'Ngày cưới KH cung cấp';
+comment on column order_details.contact_name is 'Tên người liên hệ';
+comment on column order_details.contact_phone is 'SĐT liên hệ';
+comment on column order_details.contact_email is 'Email liên hệ';
+comment on column order_details.extra_note is 'Yêu cầu thêm của KH';
+
+-- RLS
+alter table order_details enable row level security;
+
+create policy "User read own order details" on order_details
+  for select using (
+    order_id in (
+      select id from orders where auth.uid() = user_id
+    )
+  );
+
+create policy "User insert order details" on order_details
+  for insert with check (true);

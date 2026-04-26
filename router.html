@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Đang tải...</title>
+    <script>
+      const EDGE_URL =
+        "https://lcobawmkywtxhpezndsh.supabase.co/functions/v1/wedding-admin";
+      const ANON_KEY =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxjb2Jhd21reXd0eGhwZXpuZHNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4OTA5ODMsImV4cCI6MjA5MTQ2Njk4M30.4BNmxnfixXdHOq0ovtaF_4wQZ9sap3IWbJNJK9H4Mg4";
+
+      const params = new URLSearchParams(window.location.search);
+      const slug = params.get("slug");
+      const extra = params.get("search") || "";
+
+      if (!slug) {
+        window.location.replace("/");
+      } else {
+        fetch(`${EDGE_URL}?slug=${slug}`, {
+          headers: { Authorization: `Bearer ${ANON_KEY}` },
+        })
+          .then((r) => (r.ok ? r.json() : null))
+          .then((data) => {
+            if (!data || !data.theme) {
+              window.location.replace("/");
+              return;
+            }
+            // sessionStorage đã được set bởi 404.html, giữ nguyên để script.js restore URL
+            const extraSearch = extra || "";
+            const themeSearch = extraSearch
+              ? `${extraSearch}&slug=${slug}`
+              : `?slug=${slug}`;
+            window.location.replace(`/themes/${data.theme}.html${themeSearch}`);
+          })
+          .catch(() => window.location.replace("/"));
+      }
+    </script>
+  </head>
+  <body></body>
+</html>

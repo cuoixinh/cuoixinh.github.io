@@ -33,7 +33,7 @@
 
 - **FR-1.4.1:** Khi user click "Xem Demo", hệ thống PHẢI mở modal fullscreen với backdrop
 - **FR-1.4.2:** Modal PHẢI hiển thị template preview trong iframe
-- **FR-1.4.3:** Iframe PHẢI load URL: `/wedding.html?slug=demo` cho template Classic
+- **FR-1.4.3:** Iframe PHẢI load URL: `/template1.html?slug=demo` cho template Classic
 - **FR-1.4.4:** Modal PHẢI có close button ở góc trên bên phải
 - **FR-1.4.5:** User PHẢI có thể đóng modal bằng: click backdrop, click close button, hoặc nhấn ESC key
 - **FR-1.4.6:** Khi modal mở, body scroll PHẢI bị disable
@@ -205,7 +205,7 @@
 ### 4.2 Initial Template Data
 
 - **DR-4.2.1:** Hệ thống PHẢI có template "Classic Elegance" với status 'active'
-- **DR-4.2.2:** Classic template PHẢI có previewUrl: '/wedding.html?slug=demo'
+- **DR-4.2.2:** Classic template PHẢI có previewUrl: '/template1.html?slug=demo'
 - **DR-4.2.3:** Classic template PHẢI có features: gallery, map, qrcode, rsvp
 - **DR-4.2.4:** Classic template PHẢI có thumbnail: 'assets/images/ZIN_3506.jpg'
 - **DR-4.2.5:** Hệ thống PHẢI có 2 coming soon templates: "Modern Minimalist" và "Royal Elegance"
@@ -222,14 +222,14 @@
 
 - **IR-5.1.1:** Landing page PHẢI accessible tại root URL: domain.com/
 - **IR-5.1.2:** Wedding template PHẢI accessible tại: domain.com/slug
-- **IR-5.1.3:** Modal iframe PHẢI load wedding.html với query param ?slug=demo
+- **IR-5.1.3:** Modal iframe PHẢI load template1.html với query param ?slug=demo
 - **IR-5.1.4:** Routing system hiện tại KHÔNG được thay đổi
 
 ### 5.2 Asset Integration
 
 - **IR-5.2.1:** Landing page PHẢI sử dụng existing images từ assets/images/
 - **IR-5.2.2:** Landing page PHẢI sử dụng existing fonts từ assets/fonts/
-- **IR-5.2.3:** Landing page PHẢI sử dụng same color scheme như wedding.html
+- **IR-5.2.3:** Landing page PHẢI sử dụng same color scheme như template1.html
 
 ### 5.3 External Dependencies
 
@@ -311,7 +311,7 @@
 
 ### 8.3 Backward Compatibility
 
-- **DR-8.3.1:** Existing wedding.html KHÔNG được modify
+- **DR-8.3.1:** Existing template1.html KHÔNG được modify
 - **DR-8.3.2:** Routing system KHÔNG được thay đổi
 - **DR-8.3.3:** Existing assets KHÔNG được xóa hoặc rename
 - **DR-8.3.4:** Migration PHẢI không break existing wedding page links

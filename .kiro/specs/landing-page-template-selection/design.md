@@ -55,7 +55,7 @@ sequenceDiagram
     alt User clicks "Xem Demo"
         U->>TG: Click "Xem Demo" button
         TG->>M: Mở modal với iframe
-        M->>U: Load wedding.html?slug=demo trong iframe
+        M->>U: Load template1.html?slug=demo trong iframe
         U->>M: Xem preview tương tác
         U->>M: Click "Chọn mẫu này" hoặc Close
         M->>C: Scroll smooth đến Contact Section
@@ -276,7 +276,7 @@ function openPreview(templateId) {
   const templates = {
     classic: {
       title: "Classic Elegance",
-      url: "/wedding.html?slug=demo",
+      url: "/template1.html?slug=demo",
     },
   };
 
@@ -437,7 +437,7 @@ const templates = [
     name: 'Classic Elegance',
     description: 'Thiết kế sang trọng, cổ điển với màu pastel nhẹ nhàng',
     thumbnail: 'assets/images/ZIN_3506.jpg',
-    previewUrl: '/wedding.html?slug=demo',
+    previewUrl: '/template1.html?slug=demo',
     features: ['gallery', 'map', 'qrcode', 'rsvp'],
     status: 'active',
     category: 'traditional'
@@ -1144,7 +1144,7 @@ const templates = [
     name: "Classic Elegance",
     description: "Thiết kế sang trọng, cổ điển với màu pastel nhẹ nhàng",
     thumbnail: "assets/images/ZIN_3506.jpg",
-    previewUrl: "/wedding.html?slug=demo",
+    previewUrl: "/template1.html?slug=demo",
     features: ["gallery", "map", "qrcode", "rsvp"],
     status: "active",
   },
@@ -1511,7 +1511,7 @@ document.addEventListener("DOMContentLoaded", function () {
    - Scroll to templates section
    - Click "Xem Demo" on active template
    - Verify modal opens with iframe
-   - Verify iframe loads wedding.html
+   - Verify iframe loads template1.html
    - Close modal
    - Verify modal closes and scroll restored
 
@@ -1686,10 +1686,10 @@ function openPreview(templateId) {
 
 ### Internal Dependencies
 
-1. **wedding.html**
+1. **template1.html**
    - Purpose: Template preview content for iframe
    - Relationship: Loaded in modal iframe when user clicks "Xem Demo"
-   - Required: Must be accessible at `/wedding.html?slug=demo`
+   - Required: Must be accessible at `/template1.html?slug=demo`
 
 2. **assets/images/**
    - Purpose: Template thumbnails and placeholder images
@@ -1731,7 +1731,7 @@ function openPreview(templateId) {
 ├── index.html (updated landing page)
 ├── landing-styles.css (new - custom styles)
 ├── landing-script.js (new - landing page logic)
-├── wedding.html (existing - template preview)
+├── template1.html (existing - template preview)
 ├── assets/
 │   ├── images/
 │   │   ├── ZIN_3506.jpg (existing)
@@ -1790,7 +1790,7 @@ The current index.html will be completely replaced with the new design. Key chan
 
 ### Backward Compatibility
 
-- Existing wedding.html templates remain unchanged
+- Existing template1.html templates remain unchanged
 - Routing system (domain.com/ → landing, domain.com/slug → wedding) unchanged
 - No breaking changes to existing functionality
 - New landing page is standalone enhancement

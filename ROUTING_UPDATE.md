@@ -15,7 +15,7 @@
 
 ### 2. Đổi tên trang thiệp
 
-- `index.html` (cũ) → `wedding.html` (mới)
+- `index.html` (cũ) → `template1.html` (mới)
 - Trang này giờ chỉ hiển thị thiệp cưới, không còn là trang chủ
 
 ### 3. Cập nhật `404.html`
@@ -29,9 +29,9 @@ window.location.replace(window.location.origin + "/index.html");
 **Sau:**
 
 ```javascript
-// Nếu có slug trong path → redirect về wedding.html
+// Nếu có slug trong path → redirect về template1.html
 if (path && path !== "/" && !path.includes(".")) {
-  window.location.replace(window.location.origin + "/wedding.html");
+  window.location.replace(window.location.origin + "/template1.html");
 } else {
   // Root path → redirect về landing page
   window.location.replace(window.location.origin + "/");
@@ -80,7 +80,7 @@ if (!_weddingSlug) {
 **Sau:**
 
 ```html
-<a href="${DOMAIN}/wedding.html?slug=${w.slug}"></a>
+<a href="${DOMAIN}/template1.html?slug=${w.slug}"></a>
 ```
 
 ### 6. Cập nhật `manage-customer.js` - Link generation
@@ -93,8 +93,8 @@ groomLink.value = `${DOMAIN}/${data.slug}?isGroom=true`;
 brideLink.value = `${DOMAIN}/${data.slug}`;
 
 // Sau
-groomLink.value = `${DOMAIN}/wedding.html?slug=${data.slug}&isGroom=true`;
-brideLink.value = `${DOMAIN}/wedding.html?slug=${data.slug}`;
+groomLink.value = `${DOMAIN}/template1.html?slug=${data.slug}&isGroom=true`;
+brideLink.value = `${DOMAIN}/template1.html?slug=${data.slug}`;
 ```
 
 **Link cá nhân hóa (tự động tạo):**
@@ -104,7 +104,7 @@ brideLink.value = `${DOMAIN}/wedding.html?slug=${data.slug}`;
 const link = `${DOMAIN}/index.html?id=${WEDDING_ID}&isGroom=${isGroom}&name=${encryptedName}&relationship=${encryptedRelationship}`;
 
 // Sau
-const link = `${DOMAIN}/wedding.html?slug=${WEDDING_SLUG}&isGroom=${isGroom}&name=${encryptedName}&relationship=${encryptedRelationship}`;
+const link = `${DOMAIN}/template1.html?slug=${WEDDING_SLUG}&isGroom=${isGroom}&name=${encryptedName}&relationship=${encryptedRelationship}`;
 ```
 
 ## Flow hoạt động
@@ -124,9 +124,9 @@ domain.com/hai-yen-quang-vinh
   ↓
 Lưu path vào sessionStorage
   ↓
-Redirect về wedding.html
+Redirect về template1.html
   ↓
-wedding.html đọc slug từ sessionStorage
+template1.html đọc slug từ sessionStorage
   ↓
 Gọi API kiểm tra slug
   ↓
@@ -140,9 +140,9 @@ domain.com/slug-khong-ton-tai
   ↓
 404.html
   ↓
-Redirect về wedding.html
+Redirect về template1.html
   ↓
-wedding.html gọi API
+template1.html gọi API
   ↓
 API trả về 404
   ↓
@@ -152,7 +152,7 @@ Redirect về / (landing page)
 ### Kịch bản 4: Local development
 
 ```
-localhost:5500/wedding.html?slug=hai-yen-quang-vinh
+localhost:5500/template1.html?slug=hai-yen-quang-vinh
   ↓
 Đọc slug từ query param
   ↓
@@ -176,7 +176,7 @@ Hiển thị thiệp hoặc redirect về /
 ### 3. Link cá nhân hóa
 
 - Giờ sử dụng `slug` thay vì `id`
-- Format: `domain.com/wedding.html?slug=xxx&isGroom=true&name=ENC&relationship=ENC`
+- Format: `domain.com/template1.html?slug=xxx&isGroom=true&name=ENC&relationship=ENC`
 - Khi deploy lên GitHub Pages, có thể dùng clean URL: `domain.com/slug?isGroom=true&name=ENC&relationship=ENC`
 
 ### 4. Trang quản lý vẫn dùng ID
@@ -193,7 +193,7 @@ Hiển thị thiệp hoặc redirect về /
 http://localhost:5500/
 
 # Thiệp cưới (phải dùng query param)
-http://localhost:5500/wedding.html?slug=hai-yen-quang-vinh
+http://localhost:5500/template1.html?slug=hai-yen-quang-vinh
 
 # Trang quản lý
 http://localhost:5500/manage-by-customer.html?id=xxx
@@ -212,7 +212,7 @@ https://yourusername.github.io/
 https://yourusername.github.io/hai-yen-quang-vinh
 
 # Thiệp cưới (query param - vẫn hoạt động)
-https://yourusername.github.io/wedding.html?slug=hai-yen-quang-vinh
+https://yourusername.github.io/template1.html?slug=hai-yen-quang-vinh
 
 # Slug không tồn tại → redirect về /
 https://yourusername.github.io/slug-khong-ton-tai
@@ -227,7 +227,7 @@ https://yourusername.github.io/admin.html
 ## Checklist triển khai
 
 - [x] Tạo `index.html` (landing page)
-- [x] Đổi tên `index.html` → `wedding.html`
+- [x] Đổi tên `index.html` → `template1.html`
 - [x] Cập nhật `404.html` routing logic
 - [x] Cập nhật `script.js` kiểm tra slug
 - [x] Cập nhật `admin.html` link generation

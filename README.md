@@ -19,7 +19,7 @@ domain.com/
 ```
 domain.com/slug
 domain.com/slug?isGroom=true
-domain.com/wedding.html?slug=slug&isGroom=true
+domain.com/template1.html?slug=slug&isGroom=true
 ```
 
 - Hiển thị thiệp cưới cho khách mời
@@ -52,15 +52,15 @@ domain.com/admin.html
 
 1. User truy cập `domain.com/slug`
 2. GitHub Pages không tìm thấy file → trả về `404.html`
-3. `404.html` lưu path vào sessionStorage và redirect về `wedding.html`
-4. `wedding.html` đọc slug từ sessionStorage
+3. `404.html` lưu path vào sessionStorage và redirect về `template1.html`
+4. `template1.html` đọc slug từ sessionStorage
 5. Gọi API kiểm tra slug có tồn tại không
 6. Nếu tồn tại → hiển thị thiệp
 7. Nếu không tồn tại → redirect về `/` (landing page)
 
 ### Local Development (Live Server)
 
-- Sử dụng query param: `http://localhost:5500/wedding.html?slug=slug`
+- Sử dụng query param: `http://localhost:5500/template1.html?slug=slug`
 - Clean URL không hoạt động trên local
 
 ## Tính năng chính

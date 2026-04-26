@@ -7,7 +7,7 @@ const templates = [
     name: 'Classic Elegance',
     description: 'Thiết kế sang trọng, cổ điển với màu pastel nhẹ nhàng',
     thumbnail: 'assets/images/ZIN_3506.jpg',
-    previewUrl: 'themes/wedding.html?preview=true',
+    previewUrl: 'themes/template1.html?preview=true',
     features: ['gallery', 'map', 'qrcode', 'rsvp'],
     status: 'active',
     category: 'traditional'
@@ -219,6 +219,12 @@ function scrollToContact(templateId) {
   if (templateId) {
     try {
       sessionStorage.setItem('selectedTemplate', templateId);
+      
+      // Create a draft order in localStorage
+      const template = templates.find(t => t.id === templateId);
+      if (template) {
+        createDraftOrder(template);
+      }
     } catch (e) {
       console.warn('SessionStorage not available:', e);
     }
@@ -235,6 +241,53 @@ function scrollToContact(templateId) {
       contactSection.classList.remove('highlight-pulse');
     }, 2000);
   }
+}
+
+// Create draft order when template is selected
+function createDraftOrder(template) {
+  const order = {
+    id: 'DRAFT_' + Date.now(),
+    templateId: template.id,
+    templateName: template.name,
+    status: 'pending',
+    date: new Date().toISOString(),
+    brideName: '',
+    groomName: '',
+    contactEmail: '',
+    contactPhone: '',
+    notes: ''
+  };
+
+  // Check if user is logged in
+  const currentUserStr = localStorage.getItem('currentUser');
+  let storageKey = 'guestOrders';
+  
+  if (currentUserStr) {
+    try {
+      const currentUser = JSON.parse(currentUserStr);
+      storageKey = `orders_${currentUser.email}`;
+    } catch (e) {
+      console.warn('Error parsing current user:', e);
+    }
+  }
+
+  // Get existing orders
+  let orders = [];
+  const ordersStr = localStorage.getItem(storageKey);
+  if (ordersStr) {
+    try {
+      orders = JSON.parse(ordersStr);
+    } catch (e) {
+      console.warn('Error parsing orders:', e);
+      orders = [];
+    }
+  }
+
+  // Add new draft order
+  orders.push(order);
+  localStorage.setItem(storageKey, JSON.stringify(orders));
+
+  console.log('Draft order created:', order);
 }
 
 function setupSmoothScroll() {

@@ -5,17 +5,27 @@
     <title>Redirecting...</title>
     <script>
       // GitHub Pages SPA redirect
-      // Lưu path vào sessionStorage và redirect về wedding.html
+      // Lưu path vào sessionStorage và redirect về template1.html
       const path = window.location.pathname;
 
       if (path && path !== "/" && !path.includes(".")) {
-        // Lưu path gốc để restore sau
+        const slug = path
+          .split("/")
+          .filter((p) => p)
+          .pop();
+        // Lưu path gốc để script.js restore URL sau
         sessionStorage.setItem("redirect", path);
         sessionStorage.setItem("search", window.location.search);
-        // Redirect về wedding.html
-        window.location.replace(window.location.origin + "/wedding.html");
+        // Redirect sang router để xác định đúng theme
+        window.location.replace(
+          window.location.origin +
+            "/router.html?slug=" +
+            slug +
+            (window.location.search
+              ? "&search=" + encodeURIComponent(window.location.search)
+              : ""),
+        );
       } else {
-        // Root path, redirect to landing page
         window.location.replace(window.location.origin + "/");
       }
     </script>

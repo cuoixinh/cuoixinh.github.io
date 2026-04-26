@@ -261,8 +261,8 @@ This implementation plan transforms the current basic landing page into a profes
     - _Requirements: TR-7.2.1, TR-7.2.2, TR-7.2.3_
 
 - [ ] 7. Final integration and polish
-  - [ ] 7.1 Verify integration with existing wedding.html
-    - Test modal iframe loads /wedding.html?slug=demo correctly
+  - [ ] 7.1 Verify integration with existing template1.html
+    - Test modal iframe loads /template1.html?slug=demo correctly
     - Verify wedding template displays properly in iframe
     - Ensure no conflicts with existing routing system
     - _Requirements: IR-5.1.1, IR-5.1.2, IR-5.1.3, IR-5.1.4_
@@ -282,7 +282,7 @@ This implementation plan transforms the current basic landing page into a profes
     - _Requirements: DR-8.2.1, DR-8.2.2, DR-8.2.3_
 
   - [ ] 7.4 Verify backward compatibility
-    - Ensure existing wedding.html is not modified
+    - Ensure existing template1.html is not modified
     - Verify routing system still works correctly
     - Check that existing assets are not affected
     - Test existing wedding page links still work
