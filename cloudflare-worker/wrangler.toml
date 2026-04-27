@@ -1,0 +1,14 @@
+name = "wedding-cache-proxy"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+
+# KV Namespace để lưu cache
+[[kv_namespaces]]
+binding = "WEDDING_CACHE"
+id = "2d8af55d2f4142fa8e06adc79512fa3c"
+preview_id = "ac46141ef95249bb8eac63f1e282d4cf"
+
+# Route: trỏ domain của bạn vào worker này
+# Ví dụ nếu dùng custom domain: cuoixinh.com/api/*
+# [env.production]
+# routes = [{ pattern = "cuoixinh.com/api/*", zone_name = "cuoixinh.com" }]

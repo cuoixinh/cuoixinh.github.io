@@ -4,8 +4,8 @@ const MANAGE_EDGE_URL =
 const MANAGE_SUPABASE_URL = "https://lcobawmkywtxhpezndsh.supabase.co";
 const MANAGE_ANON_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxjb2Jhd21reXd0eGhwZXpuZHNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4OTA5ODMsImV4cCI6MjA5MTQ2Njk4M30.4BNmxnfixXdHOq0ovtaF_4wQZ9sap3IWbJNJK9H4Mg4";
-const STORAGE_BASE_URL =
-  "https://lcobawmkywtxhpezndsh.supabase.co/storage/v1/object/public/wedding-images";
+// Dùng Cloudflare Worker để cache ảnh, giảm bandwidth Supabase Storage
+const STORAGE_BASE_URL = "https://wedding-image-proxy.cuoixinh-api.workers.dev";
 const ENCRYPTION_KEY = "dqvinh";
 
 const params = new URLSearchParams(window.location.search);

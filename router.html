@@ -4,10 +4,13 @@
     <meta charset="utf-8" />
     <title>Đang tải...</title>
     <script>
-      const EDGE_URL =
+      // Dùng Worker URL nếu có, fallback về Supabase trực tiếp
+      const WORKER_URL = "https://wedding-cache-proxy.cuoixinh-api.workers.dev";
+      const SUPABASE_EDGE_URL =
         "https://lcobawmkywtxhpezndsh.supabase.co/functions/v1/wedding-admin";
       const ANON_KEY =
         "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxjb2Jhd21reXd0eGhwZXpuZHNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4OTA5ODMsImV4cCI6MjA5MTQ2Njk4M30.4BNmxnfixXdHOq0ovtaF_4wQZ9sap3IWbJNJK9H4Mg4";
+      const API_BASE = WORKER_URL || SUPABASE_EDGE_URL;
 
       const params = new URLSearchParams(window.location.search);
       const slug = params.get("slug");
@@ -16,7 +19,7 @@
       if (!slug) {
         window.location.replace("/");
       } else {
-        fetch(`${EDGE_URL}?slug=${slug}`, {
+        fetch(`${API_BASE}?slug=${slug}`, {
           headers: { Authorization: `Bearer ${ANON_KEY}` },
         })
           .then((r) => (r.ok ? r.json() : null))

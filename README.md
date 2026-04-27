@@ -17,14 +17,16 @@ domain.com/
 ### 2. Trang thiệp cưới
 
 ```
-domain.com/slug
-domain.com/slug?isGroom=true
-domain.com/template1.html?slug=slug&isGroom=true
+domain.com/{slug}
+domain.com/{slug}?isGroom=true
+domain.com/themes/template1.html?slug={slug}&isGroom=true
+domain.com/themes/template2.html?slug={slug}&isGroom=true
 ```
 
 - Hiển thị thiệp cưới cho khách mời
 - Nếu slug không tồn tại → redirect về trang chủ
-- Hỗ trợ cả clean URL (`/slug`) và query param (`?slug=`)
+- Hỗ trợ cả clean URL (`/{slug}`) và query param (`?slug=`)
+- Theme được xác định tự động qua `router.html` dựa trên field `theme` trong DB
 
 ### 3. Trang quản lý (cho khách hàng)
 
@@ -50,13 +52,13 @@ domain.com/admin.html
 
 ### GitHub Pages (Production)
 
-1. User truy cập `domain.com/slug`
+1. User truy cập `domain.com/{slug}`
 2. GitHub Pages không tìm thấy file → trả về `404.html`
-3. `404.html` lưu path vào sessionStorage và redirect về `template1.html`
-4. `template1.html` đọc slug từ sessionStorage
-5. Gọi API kiểm tra slug có tồn tại không
-6. Nếu tồn tại → hiển thị thiệp
-7. Nếu không tồn tại → redirect về `/` (landing page)
+3. `404.html` lưu path vào sessionStorage và redirect về `router.html?slug={slug}`
+4. `router.html` gọi GET `/wedding-admin?slug={slug}` để lấy field `theme`
+5. Nếu không tìm thấy → redirect về `/`
+6. Nếu tìm thấy → redirect về `/themes/{theme}.html?slug={slug}`
+7. Template HTML render thiệp dựa trên slug
 
 ### Local Development (Live Server)
 

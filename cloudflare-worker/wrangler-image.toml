@@ -1,0 +1,5 @@
+name = "wedding-image-proxy"
+main = "image-proxy.js"
+compatibility_date = "2024-01-01"
+
+# Không cần KV namespace, dùng Cloudflare Cache API (free, unlimited)
