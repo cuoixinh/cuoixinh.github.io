@@ -12,6 +12,10 @@
             fontFamily: {
               sans: ["Inter", "sans-serif"],
             },
+            colors: {
+              "pink-light": "rgb(255 163 181)",
+              "pink-light-hover": "rgb(255 143 161)",
+            },
             animation: {
               "fade-in": "fadeIn 0.3s ease-out",
             },
@@ -28,6 +32,14 @@
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
       rel="stylesheet"
+    />
+    <!-- Font Awesome Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+      integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
     />
     <!-- Flatpickr CSS -->
     <link
@@ -376,9 +388,9 @@
         <div class="max-w-4xl mx-auto flex items-center justify-between">
           <div>
             <h1
-              class="text-xl font-bold bg-gradient-to-r from-rose-500 to-pink-500 bg-clip-text text-transparent"
+              class="text-xl font-bold bg-gradient-to-r from-rose-500 to-pink-500 bg-clip-text text-transparent flex items-center gap-2"
             >
-              💒 Thiệp Cưới Online
+              <i class="fas fa-church"></i> Thiệp Cưới Online
             </h1>
             <p class="text-xs text-gray-500 mt-0.5" id="wedding-id-label"></p>
           </div>
@@ -386,9 +398,9 @@
             type="submit"
             form="wedding-form"
             id="save-btn"
-            class="bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white px-6 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-md hover:shadow-lg"
+            class="bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white px-6 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-md hover:shadow-lg flex items-center gap-2"
           >
-            💾 Lưu
+            <i class="fas fa-save"></i> Lưu
           </button>
         </div>
       </div>
@@ -399,17 +411,44 @@
           class="bg-white rounded-3xl shadow-md border border-gray-100 p-6 mb-6 animate-fade-in"
         >
           <div class="flex items-center gap-2 mb-4">
-            <span class="text-2xl">🔗</span>
+            <i class="fas fa-link text-2xl text-rose-500"></i>
             <p class="text-sm font-bold text-gray-800 uppercase tracking-wide">
               Link thiệp cưới của bạn
             </p>
           </div>
+
+          <!-- Slug input -->
+          <div class="mb-4 p-4 bg-gray-50 rounded-2xl border border-gray-200">
+            <p
+              class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2"
+            >
+              Slug (đường dẫn thiệp)
+            </p>
+            <div class="flex gap-2">
+              <input
+                id="slug-input"
+                type="text"
+                placeholder="vd: nguyen-van-a-tran-thi-b"
+                class="flex-1 h-10 px-4 text-sm bg-white border border-gray-200 rounded-xl shadow-sm outline-none focus:border-rose-300"
+              />
+              <button
+                onclick="applySlug()"
+                class="px-4 py-2 bg-rose-400 hover:bg-rose-500 text-white rounded-xl text-sm font-medium transition-colors shadow-sm whitespace-nowrap"
+              >
+                Áp dụng
+              </button>
+            </div>
+            <p class="text-xs text-gray-400 mt-1.5">
+              Chỉ dùng chữ thường, số và dấu gạch ngang
+            </p>
+          </div>
+
           <div class="flex flex-col gap-4">
             <div
-              class="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl p-4 border border-blue-100"
+              class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-4 border border-blue-100"
             >
               <div class="flex items-center gap-2 mb-2">
-                <span class="text-lg">🤵</span>
+                <i class="fas fa-user text-lg text-blue-500"></i>
                 <p class="text-sm font-semibold text-gray-700">
                   Link nhà trai (Chú Rể)
                 </p>
@@ -418,21 +457,32 @@
                 <input
                   id="link-groom"
                   readonly
-                  class="flex-1 h-12 px-4 text-xs font-mono bg-white border border-gray-200 rounded-xl shadow-sm outline-none"
+                  class="flex-1 h-12 px-4 text-xs font-mono bg-gray-50 border border-gray-200 rounded-xl shadow-sm outline-none text-gray-400 cursor-default select-all"
                 />
                 <button
-                  onclick="copyText('link-groom')"
-                  class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-xl text-xs font-medium transition-colors shadow-sm"
+                  onclick="
+                    window.open(
+                      document.getElementById('link-groom').value,
+                      '_blank',
+                    )
+                  "
+                  class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-xl text-xs font-medium transition-colors shadow-sm flex items-center gap-1"
                 >
-                  📋 Copy
+                  <i class="fas fa-external-link-alt"></i> Mở
+                </button>
+                <button
+                  onclick="copyText('link-groom')"
+                  class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-xl text-xs font-medium transition-colors shadow-sm flex items-center gap-1"
+                >
+                  <i class="fas fa-copy"></i> Copy
                 </button>
               </div>
             </div>
             <div
-              class="bg-gradient-to-br from-pink-50 to-rose-50 rounded-2xl p-4 border border-pink-100"
+              class="bg-gradient-to-br from-pink-50 to-pink-100 rounded-2xl p-4 border border-pink-100"
             >
               <div class="flex items-center gap-2 mb-2">
-                <span class="text-lg">👰</span>
+                <i class="fas fa-user text-lg text-pink-400"></i>
                 <p class="text-sm font-semibold text-gray-700">
                   Link nhà gái (Cô Dâu)
                 </p>
@@ -441,13 +491,24 @@
                 <input
                   id="link-bride"
                   readonly
-                  class="flex-1 h-12 px-4 text-xs font-mono bg-white border border-gray-200 rounded-xl shadow-sm outline-none"
+                  class="flex-1 h-12 px-4 text-xs font-mono bg-gray-50 border border-gray-200 rounded-xl shadow-sm outline-none text-gray-400 cursor-default select-all"
                 />
                 <button
-                  onclick="copyText('link-bride')"
-                  class="px-4 py-2 bg-pink-500 hover:bg-pink-600 text-white rounded-xl text-xs font-medium transition-colors shadow-sm"
+                  onclick="
+                    window.open(
+                      document.getElementById('link-bride').value,
+                      '_blank',
+                    )
+                  "
+                  class="px-4 py-2 bg-pink-light hover:bg-pink-light-hover text-white rounded-xl text-xs font-medium transition-colors shadow-sm flex items-center gap-1"
                 >
-                  📋 Copy
+                  <i class="fas fa-external-link-alt"></i> Mở
+                </button>
+                <button
+                  onclick="copyText('link-bride')"
+                  class="px-4 py-2 bg-pink-light hover:bg-pink-light-hover text-white rounded-xl text-xs font-medium transition-colors shadow-sm flex items-center gap-1"
+                >
+                  <i class="fas fa-copy"></i> Copy
                 </button>
               </div>
             </div>
@@ -489,7 +550,7 @@
               class="bg-gradient-to-r from-purple-50 to-pink-50 px-6 py-4 border-b border-gray-100"
             >
               <div class="flex items-center gap-2">
-                <span class="text-2xl">💑</span>
+                <i class="fas fa-heart text-2xl text-rose-500"></i>
                 <p
                   class="text-sm font-bold text-gray-800 uppercase tracking-wide"
                 >
@@ -500,8 +561,9 @@
             <div class="p-6 space-y-6">
               <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
-                  <label class="block text-sm font-semibold text-gray-700 mb-2"
-                    >🤵 Tên Chú Rể</label
+                  <label
+                    class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
+                    ><i class="fas fa-user text-blue-500"></i> Tên Chú Rể</label
                   >
                   <input
                     name="groom_name"
@@ -510,8 +572,9 @@
                   />
                 </div>
                 <div>
-                  <label class="block text-sm font-semibold text-gray-700 mb-2"
-                    >👰 Tên Cô Dâu</label
+                  <label
+                    class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
+                    ><i class="fas fa-user text-pink-400"></i> Tên Cô Dâu</label
                   >
                   <input
                     name="bride_name"
@@ -522,8 +585,10 @@
               </div>
 
               <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-2"
-                  >💬 Câu quote (phía trên album ảnh)</label
+                <label
+                  class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
+                  ><i class="fas fa-quote-left text-purple-600"></i> Câu quote
+                  (phía trên album ảnh)</label
                 >
                 <textarea
                   name="story_quote"
@@ -535,16 +600,18 @@
                 <button
                   type="button"
                   onclick="randomQuote()"
-                  class="mt-2 px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-sm font-medium rounded-xl transition-all shadow-sm hover:shadow-md"
+                  class="mt-2 px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-sm font-medium rounded-xl transition-all shadow-sm hover:shadow-md flex items-center gap-2"
                 >
-                  🎲 Random câu quote
+                  <i class="fas fa-dice"></i> Random câu quote
                 </button>
               </div>
 
               <!-- Upload ảnh cover -->
               <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-2"
-                  >📸 Ảnh chính (cover + Save The Date)</label
+                <label
+                  class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
+                  ><i class="fas fa-camera text-indigo-600"></i> Ảnh chính
+                  (cover + Save The Date)</label
                 >
                 <div id="cover-container" class="w-full max-w-xs">
                   <!-- Upload button will be rendered by JS -->
@@ -560,8 +627,10 @@
 
               <!-- Upload gallery -->
               <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-2"
-                  >🖼️ Ảnh gallery (tối đa 7 ảnh)</label
+                <label
+                  class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
+                  ><i class="fas fa-images text-teal-600"></i> Ảnh gallery (tối
+                  đa 7 ảnh)</label
                 >
                 <div id="gallery-container" class="grid grid-cols-4 gap-3">
                   <!-- Upload button will be inserted here by JS -->
@@ -586,7 +655,7 @@
               class="bg-gradient-to-r from-amber-50 to-yellow-50 px-6 py-4 border-b border-gray-100"
             >
               <div class="flex items-center gap-2">
-                <span class="text-2xl">💒</span>
+                <i class="fas fa-church text-2xl text-amber-600"></i>
                 <p
                   class="text-sm font-bold text-gray-800 uppercase tracking-wide"
                 >
@@ -597,8 +666,10 @@
             <div class="p-6">
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label class="block text-sm font-semibold text-gray-700 mb-2"
-                    >📅 Ngày</label
+                  <label
+                    class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
+                    ><i class="fas fa-calendar-alt text-rose-600"></i>
+                    Ngày</label
                   >
                   <input
                     name="ceremony_date"
@@ -607,8 +678,9 @@
                   />
                 </div>
                 <div>
-                  <label class="block text-sm font-semibold text-gray-700 mb-2"
-                    >🕐 Giờ</label
+                  <label
+                    class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
+                    ><i class="fas fa-clock text-blue-600"></i> Giờ</label
                   >
                   <input
                     name="ceremony_time"
@@ -639,10 +711,10 @@
               class="bg-white rounded-3xl shadow-md border border-gray-100 animate-fade-in"
             >
               <div
-                class="bg-gradient-to-r from-blue-50 to-cyan-50 px-6 py-4 border-b border-gray-100 sticky top-[77px] z-40 rounded-t-3xl"
+                class="bg-gradient-to-r from-blue-50 to-blue-100 px-6 py-4 border-b border-blue-100 sticky top-[77px] z-40 rounded-t-3xl"
               >
                 <div class="flex items-center gap-2">
-                  <span class="text-2xl">🤵</span>
+                  <i class="fas fa-user text-2xl text-blue-500"></i>
                   <p
                     class="text-sm font-bold text-gray-800 uppercase tracking-wide"
                   >
@@ -654,8 +726,8 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div>
                     <label
-                      class="block text-sm font-semibold text-gray-700 mb-2"
-                      >👨 Tên Bố</label
+                      class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
+                      ><i class="fas fa-user text-blue-500"></i> Tên Bố</label
                     >
                     <input
                       name="groom_father"
@@ -665,8 +737,8 @@
                   </div>
                   <div>
                     <label
-                      class="block text-sm font-semibold text-gray-700 mb-2"
-                      >👩 Tên Mẹ</label
+                      class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
+                      ><i class="fas fa-user text-blue-500"></i> Tên Mẹ</label
                     >
                     <input
                       name="groom_mother"
@@ -677,8 +749,9 @@
                 </div>
 
                 <div>
-                  <label class="block text-sm font-semibold text-gray-700 mb-2"
-                    >🏠 Địa chỉ</label
+                  <label
+                    class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
+                    ><i class="fas fa-home text-blue-500"></i> Địa chỉ</label
                   >
                   <input
                     name="groom_address"
@@ -688,8 +761,10 @@
                 </div>
 
                 <div>
-                  <label class="block text-sm font-semibold text-gray-700 mb-2"
-                    >📸 Ảnh Chú Rể (Mục thông tin gia đình)</label
+                  <label
+                    class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
+                    ><i class="fas fa-camera text-blue-500"></i> Ảnh Chú Rể (Mục
+                    thông tin gia đình)</label
                   >
                   <div id="groom-container" class="w-full max-w-xs">
                     <!-- Upload button will be rendered by JS -->
@@ -704,8 +779,10 @@
                 </div>
 
                 <div>
-                  <label class="block text-sm font-semibold text-gray-700 mb-2"
-                    >📊 URL Google Apps Script (DS khách mời nhà trai)</label
+                  <label
+                    class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
+                    ><i class="fas fa-file-code text-blue-500"></i> URL Google
+                    Apps Script (DS khách mời nhà trai)</label
                   >
                   <input
                     name="groom_google_sheet_url"
@@ -717,14 +794,16 @@
                     onclick="generateLinks('groom')"
                     class="mt-3 px-5 py-2.5 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white text-sm font-semibold rounded-xl transition-all shadow-md hover:shadow-lg flex items-center gap-2"
                   >
-                    <span>🔗</span>
+                    <i class="fas fa-link"></i>
                     <span>Tự động tạo link</span>
                   </button>
                 </div>
 
                 <div>
-                  <label class="block text-sm font-semibold text-gray-700 mb-2"
-                    >🗺️ Google Maps Embed</label
+                  <label
+                    class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
+                    ><i class="fas fa-map-marked-alt text-blue-500"></i> Google
+                    Maps Embed</label
                   >
                   <textarea
                     name="groom_map_embed_url"
@@ -735,8 +814,10 @@
                 </div>
 
                 <div>
-                  <label class="block text-sm font-semibold text-gray-700 mb-2"
-                    >🧭 Google Maps Link</label
+                  <label
+                    class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
+                    ><i class="fas fa-compass text-blue-500"></i> Google Maps
+                    Link</label
                   >
                   <input
                     name="groom_map_link"
@@ -748,14 +829,17 @@
                 <div
                   class="bg-green-50 rounded-2xl p-5 border border-green-100"
                 >
-                  <p class="text-sm font-semibold text-rose-800 mb-4">
-                    🎉 Tiệc Cưới
+                  <p
+                    class="text-sm font-semibold text-rose-800 mb-4 flex items-center gap-2"
+                  >
+                    <i class="fas fa-glass-cheers text-blue-500"></i> Tiệc Cưới
                   </p>
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label
-                        class="block text-sm font-semibold text-gray-700 mb-2"
-                        >📅 Ngày</label
+                        class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
+                        ><i class="fas fa-calendar-alt text-blue-500"></i>
+                        Ngày</label
                       >
                       <input
                         name="groom_party_date"
@@ -765,8 +849,8 @@
                     </div>
                     <div>
                       <label
-                        class="block text-sm font-semibold text-gray-700 mb-2"
-                        >🕐 Giờ</label
+                        class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
+                        ><i class="fas fa-clock text-blue-500"></i> Giờ</label
                       >
                       <input
                         name="groom_party_time"
@@ -789,8 +873,9 @@
                   </div>
                   <div class="mt-4">
                     <label
-                      class="block text-sm font-semibold text-gray-700 mb-2"
-                      >📍 Địa điểm tiệc</label
+                      class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
+                      ><i class="fas fa-map-marker-alt text-blue-500"></i> Địa
+                      điểm tiệc</label
                     >
                     <input
                       name="groom_party_location"
@@ -801,15 +886,19 @@
                 </div>
 
                 <div
-                  class="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl p-5 border border-blue-100"
+                  class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-5 border border-blue-100"
                 >
-                  <p class="text-sm font-semibold text-rose-800 mb-4">
-                    💰 Thông Tin Ngân Hàng
+                  <p
+                    class="text-sm font-semibold text-rose-800 mb-4 flex items-center gap-2"
+                  >
+                    <i class="fas fa-university text-blue-500"></i> Thông Tin
+                    Ngân Hàng
                   </p>
                   <div class="relative">
                     <label
-                      class="block text-sm font-semibold text-gray-700 mb-2"
-                      >🏦 Tên ngân hàng</label
+                      class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
+                      ><i class="fas fa-building-columns text-blue-500"></i> Tên
+                      ngân hàng</label
                     >
                     <input
                       type="text"
@@ -831,8 +920,9 @@
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                     <div>
                       <label
-                        class="block text-sm font-semibold text-gray-700 mb-2"
-                        >💳 Số tài khoản</label
+                        class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
+                        ><i class="fas fa-credit-card text-blue-500"></i> Số tài
+                        khoản</label
                       >
                       <input
                         name="groom_bank_number"
@@ -842,8 +932,9 @@
                     </div>
                     <div>
                       <label
-                        class="block text-sm font-semibold text-gray-700 mb-2"
-                        >👤 Tên chủ TK</label
+                        class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
+                        ><i class="fas fa-user text-blue-500"></i> Tên chủ
+                        TK</label
                       >
                       <input
                         name="groom_bank_owner"
@@ -855,8 +946,9 @@
 
                   <div class="mt-4">
                     <label
-                      class="block text-sm font-semibold text-gray-700 mb-2"
-                      >📱 Ảnh QR chuyển khoản</label
+                      class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
+                      ><i class="fas fa-qrcode text-blue-500"></i> Ảnh QR chuyển
+                      khoản</label
                     >
                     <div id="groom-qr-container" class="w-32">
                       <!-- Upload button will be rendered by JS -->
@@ -878,10 +970,10 @@
               class="bg-white rounded-3xl shadow-md border border-gray-100 animate-fade-in"
             >
               <div
-                class="bg-gradient-to-r from-pink-50 to-rose-50 px-6 py-4 border-b border-gray-100 sticky top-[77px] z-40 rounded-t-3xl"
+                class="bg-gradient-to-r from-pink-50 to-pink-100 px-6 py-4 border-b border-pink-100 sticky top-[77px] z-40 rounded-t-3xl"
               >
                 <div class="flex items-center gap-2">
-                  <span class="text-2xl">👰</span>
+                  <i class="fas fa-user text-2xl text-pink-400"></i>
                   <p
                     class="text-sm font-bold text-gray-800 uppercase tracking-wide"
                   >
@@ -893,8 +985,8 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div>
                     <label
-                      class="block text-sm font-semibold text-gray-700 mb-2"
-                      >👨 Tên Bố</label
+                      class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
+                      ><i class="fas fa-user text-pink-400"></i> Tên Bố</label
                     >
                     <input
                       name="bride_father"
@@ -904,8 +996,8 @@
                   </div>
                   <div>
                     <label
-                      class="block text-sm font-semibold text-gray-700 mb-2"
-                      >👩 Tên Mẹ</label
+                      class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
+                      ><i class="fas fa-user text-pink-400"></i> Tên Mẹ</label
                     >
                     <input
                       name="bride_mother"
@@ -916,8 +1008,9 @@
                 </div>
 
                 <div>
-                  <label class="block text-sm font-semibold text-gray-700 mb-2"
-                    >🏠 Địa chỉ</label
+                  <label
+                    class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
+                    ><i class="fas fa-home text-green-600"></i> Địa chỉ</label
                   >
                   <input
                     name="bride_address"
@@ -927,8 +1020,10 @@
                 </div>
 
                 <div>
-                  <label class="block text-sm font-semibold text-gray-700 mb-2"
-                    >📸 Ảnh Cô Dâu (Mục thông tin gia đình)</label
+                  <label
+                    class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
+                    ><i class="fas fa-camera text-indigo-600"></i> Ảnh Cô Dâu
+                    (Mục thông tin gia đình)</label
                   >
                   <div id="bride-container" class="w-full max-w-xs">
                     <!-- Upload button will be rendered by JS -->
@@ -943,8 +1038,10 @@
                 </div>
 
                 <div>
-                  <label class="block text-sm font-semibold text-gray-700 mb-2"
-                    >📊 URL Google Apps Script (DS khách mời nhà gái)</label
+                  <label
+                    class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
+                    ><i class="fas fa-file-code text-pink-400"></i> URL Google
+                    Apps Script (DS khách mời nhà gái)</label
                   >
                   <input
                     name="bride_google_sheet_url"
@@ -956,14 +1053,16 @@
                     onclick="generateLinks('bride')"
                     class="mt-3 px-5 py-2.5 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white text-sm font-semibold rounded-xl transition-all shadow-md hover:shadow-lg flex items-center gap-2"
                   >
-                    <span>🔗</span>
+                    <i class="fas fa-link"></i>
                     <span>Tự động tạo link</span>
                   </button>
                 </div>
 
                 <div>
-                  <label class="block text-sm font-semibold text-gray-700 mb-2"
-                    >🗺️ Google Maps Embed</label
+                  <label
+                    class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
+                    ><i class="fas fa-map-marked-alt text-pink-400"></i> Google
+                    Maps Embed</label
                   >
                   <textarea
                     name="bride_map_embed_url"
@@ -974,8 +1073,10 @@
                 </div>
 
                 <div>
-                  <label class="block text-sm font-semibold text-gray-700 mb-2"
-                    >🧭 Google Maps Link</label
+                  <label
+                    class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
+                    ><i class="fas fa-compass text-pink-400"></i> Google Maps
+                    Link</label
                   >
                   <input
                     name="bride_map_link"
@@ -987,14 +1088,17 @@
                 <div
                   class="bg-green-50 rounded-2xl p-5 border border-green-100"
                 >
-                  <p class="text-sm font-semibold text-rose-800 mb-4">
-                    🎉 Tiệc Cưới
+                  <p
+                    class="text-sm font-semibold text-rose-800 mb-4 flex items-center gap-2"
+                  >
+                    <i class="fas fa-glass-cheers text-pink-400"></i> Tiệc Cưới
                   </p>
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label
-                        class="block text-sm font-semibold text-gray-700 mb-2"
-                        >📅 Ngày</label
+                        class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
+                        ><i class="fas fa-calendar-alt text-pink-400"></i>
+                        Ngày</label
                       >
                       <input
                         name="bride_party_date"
@@ -1004,8 +1108,8 @@
                     </div>
                     <div>
                       <label
-                        class="block text-sm font-semibold text-gray-700 mb-2"
-                        >🕐 Giờ</label
+                        class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
+                        ><i class="fas fa-clock text-pink-400"></i> Giờ</label
                       >
                       <input
                         name="bride_party_time"
@@ -1028,8 +1132,9 @@
                   </div>
                   <div class="mt-4">
                     <label
-                      class="block text-sm font-semibold text-gray-700 mb-2"
-                      >📍 Địa điểm tiệc</label
+                      class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
+                      ><i class="fas fa-map-marker-alt text-pink-400"></i> Địa
+                      điểm tiệc</label
                     >
                     <input
                       name="bride_party_location"
@@ -1040,15 +1145,19 @@
                 </div>
 
                 <div
-                  class="bg-gradient-to-br from-pink-50 to-rose-50 rounded-2xl p-5 border border-pink-100"
+                  class="bg-gradient-to-br from-pink-50 to-pink-100 rounded-2xl p-5 border border-pink-100"
                 >
-                  <p class="text-sm font-semibold text-green-800 mb-4">
-                    💰 Thông Tin Ngân Hàng
+                  <p
+                    class="text-sm font-semibold text-green-800 mb-4 flex items-center gap-2"
+                  >
+                    <i class="fas fa-university text-pink-400"></i> Thông Tin
+                    Ngân Hàng
                   </p>
                   <div class="relative">
                     <label
-                      class="block text-sm font-semibold text-gray-700 mb-2"
-                      >🏦 Tên ngân hàng</label
+                      class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
+                      ><i class="fas fa-building-columns text-pink-400"></i> Tên
+                      ngân hàng</label
                     >
                     <input
                       type="text"
@@ -1070,8 +1179,9 @@
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                     <div>
                       <label
-                        class="block text-sm font-semibold text-gray-700 mb-2"
-                        >💳 Số tài khoản</label
+                        class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
+                        ><i class="fas fa-credit-card text-pink-400"></i> Số tài
+                        khoản</label
                       >
                       <input
                         name="bride_bank_number"
@@ -1081,8 +1191,9 @@
                     </div>
                     <div>
                       <label
-                        class="block text-sm font-semibold text-gray-700 mb-2"
-                        >👤 Tên chủ TK</label
+                        class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
+                        ><i class="fas fa-user text-pink-400"></i> Tên chủ
+                        TK</label
                       >
                       <input
                         name="bride_bank_owner"
@@ -1094,8 +1205,9 @@
 
                   <div class="mt-4">
                     <label
-                      class="block text-sm font-semibold text-gray-700 mb-2"
-                      >📱 Ảnh QR chuyển khoản</label
+                      class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
+                      ><i class="fas fa-qrcode text-pink-400"></i> Ảnh QR chuyển
+                      khoản</label
                     >
                     <div id="bride-qr-container" class="w-32">
                       <!-- Upload button will be rendered by JS -->

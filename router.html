@@ -21,16 +21,16 @@
         })
           .then((r) => (r.ok ? r.json() : null))
           .then((data) => {
-            if (!data || !data.theme) {
+            if (!data) {
               window.location.replace("/");
               return;
             }
-            // sessionStorage đã được set bởi 404.html, giữ nguyên để script.js restore URL
+            const theme = data.theme || "template1"; // fallback nếu theme null
             const extraSearch = extra || "";
             const themeSearch = extraSearch
               ? `${extraSearch}&slug=${slug}`
               : `?slug=${slug}`;
-            window.location.replace(`/themes/${data.theme}.html${themeSearch}`);
+            window.location.replace(`/themes/${theme}.html${themeSearch}`);
           })
           .catch(() => window.location.replace("/"));
       }

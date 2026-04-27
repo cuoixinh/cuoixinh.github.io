@@ -21,44 +21,43 @@ Deno.serve(async (req) => {
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
   )
 
-  // POST → Tạo bản ghi mới (chỉ admin)
+  // POST → Tạo bản ghi mới (public - KH tự tạo sau khi thanh toán)
   if (method === 'POST') {
-    if (!isAdmin) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401, headers: corsHeaders
-      })
-    }
-
     const body = await req.json()
-    const { slug } = body
+    const { slug, id: clientId, contact } = body
     if (!slug) {
       return new Response(JSON.stringify({ error: 'Missing slug' }), {
         status: 400, headers: corsHeaders
       })
     }
 
-    // Check if slug already exists
-    const { data: existing } = await supabase
-      .from('weddings')
-      .select('id')
-      .eq('slug', slug)
-      .single()
-
-    if (existing) {
-      return new Response(JSON.stringify({ error: 'Slug already exists' }), {
-        status: 409, headers: corsHeaders
-      })
+    // Check if slug already exists, auto-append suffix if duplicate
+    let finalSlug = slug;
+    let suffix = 1;
+    while (true) {
+      const { data: existing } = await supabase
+        .from('weddings')
+        .select('id')
+        .eq('slug', finalSlug)
+        .single()
+      if (!existing) break;
+      suffix++;
+      finalSlug = `${slug}-${suffix}`;
     }
+
+    const insertPayload = clientId
+      ? { id: clientId, slug: finalSlug, is_active: true }
+      : { slug: finalSlug, is_active: true }
 
     const { data, error } = await supabase
       .from('weddings')
-      .insert({ slug, is_active: true })
-      .select('id')
+      .insert(insertPayload)
+      .select('id, slug')
       .single()
 
     if (error) return new Response(JSON.stringify({ error }), { status: 500, headers: corsHeaders })
 
-    return new Response(JSON.stringify({ id: data.id }), {
+    return new Response(JSON.stringify({ id: data.id, slug: data.slug }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })
   }
@@ -119,10 +118,25 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Khách không được đổi is_active và slug
+    // Khách không được đổi is_active, chỉ admin mới đổi được
     if (!isAdmin) {
       delete fields.is_active
-      delete fields.slug
+    }
+
+    // Check slug trùng nếu có đổi slug (loại trừ chính nó)
+    if (fields.slug) {
+      const { data: slugExisting } = await supabase
+        .from('weddings')
+        .select('id')
+        .eq('slug', fields.slug)
+        .neq('id', id)
+        .single()
+
+      if (slugExisting) {
+        return new Response(JSON.stringify({ error: 'Tên slug đã được người khác sử dụng. Vui lòng chọn tên khác' }), {
+          status: 409, headers: corsHeaders
+        })
+      }
     }
 
     const { error } = await supabase

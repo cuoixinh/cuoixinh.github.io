@@ -217,5 +217,34 @@
     </div>
 
     <script src="account.js?v=2"></script>
+    <script src="payment.js"></script>
+
+    <!-- Modal Chi Tiết Đơn Hàng -->
+    <div
+      id="order-modal"
+      class="fixed inset-0 z-50 hidden items-center justify-center p-4"
+      style="background: rgba(0, 0, 0, 0.5)"
+    >
+      <div
+        class="bg-white rounded-2xl w-full max-w-md shadow-xl overflow-hidden"
+      >
+        <!-- Header -->
+        <div
+          class="flex items-center justify-between px-6 py-4 border-b border-gray-100"
+        >
+          <h3 class="font-semibold text-base" style="color: rgb(173 122 135)">
+            Chi tiết đơn hàng
+          </h3>
+          <button
+            onclick="closeOrderModal()"
+            class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors"
+          >
+            <i class="fas fa-times text-gray-400 text-sm"></i>
+          </button>
+        </div>
+        <!-- Body -->
+        <div id="order-modal-body" class="p-6"></div>
+      </div>
+    </div>
   </body>
 </html>

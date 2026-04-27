@@ -194,7 +194,7 @@ html {
   padding: 0.5rem 1rem;
   background-color: rgb(255 183 202);
   color: white;
-  border-radius: 0.5rem;
+  border-radius: 9999px;
   font-weight: 600;
   font-size: 0.875rem;
   transition: all 0.3s ease;
@@ -321,11 +321,88 @@ html {
   background-color: rgb(255 200 215);
 }
 
+.template-features-wrapper {
+  position: relative;
+  margin: 1rem 0;
+}
+
+/* Gradient overlays fixed on wrapper, not inside scroll */
+.template-features-wrapper::before,
+.template-features-wrapper::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0.5rem;
+  width: 40px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.template-features-wrapper::before {
+  left: -1px;
+  background: linear-gradient(to right, rgba(255, 255, 255, 0.9), transparent);
+  transition: opacity 0.2s ease;
+}
+
+.template-features-wrapper::after {
+  right: 0;
+  background: linear-gradient(to left, rgba(255, 255, 255, 0.9), transparent);
+  transition: opacity 0.2s ease;
+}
+
+.template-features-wrapper.hide-fade-left::before {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.template-features-wrapper.hide-fade-right::after {
+  opacity: 0;
+  pointer-events: none;
+}
+
 .template-features {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 0.5rem;
-  margin: 1rem 0;
+  margin: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 0.5rem;
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  transition: scrollbar-color 0.3s ease;
+}
+
+/* Show scrollbar only when scrolling */
+.template-features:hover,
+.template-features:active {
+  scrollbar-color: rgba(209, 213, 219, 0.5) transparent;
+}
+
+/* Custom scrollbar for Webkit browsers (Chrome, Safari, Edge) */
+.template-features::-webkit-scrollbar {
+  height: 6px;
+}
+
+.template-features::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 16px;
+}
+
+.template-features::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 16px;
+  transition: background 0.3s ease;
+}
+
+/* Show scrollbar thumb on hover/scroll */
+.template-features:hover::-webkit-scrollbar-thumb,
+.template-features:active::-webkit-scrollbar-thumb {
+  background: rgba(209, 213, 219, 0.5);
+}
+
+.template-features::-webkit-scrollbar-thumb:hover {
+  background: rgba(209, 213, 219, 0.7);
 }
 
 .feature-tag {
@@ -335,6 +412,10 @@ html {
   border-radius: 9999px;
   font-size: 0.875rem;
   font-weight: 500;
+  white-space: nowrap;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 0;
 }
 
 /* Animations */

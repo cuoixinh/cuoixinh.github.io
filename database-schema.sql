@@ -118,8 +118,8 @@ create policy "Public read" on weddings for select using (true);
 -- ============================================================
 -- THÊM CỘT THEME VÀO BẢNG WEDDINGS
 -- ============================================================
-alter table weddings add column if not exists theme text default 'wedding1';
-comment on column weddings.theme is 'Tên file template trong thư mục themes: wedding1, wedding2,...';
+alter table weddings add column if not exists theme text default 'template1';
+comment on column weddings.theme is 'Tên file template trong thư mục themes: template1, template2,...';
 
 
 -- ============================================================
