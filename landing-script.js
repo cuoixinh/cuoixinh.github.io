@@ -505,7 +505,7 @@ function renderTemplateCards() {
           </h3>
           <p class="text-gray-600 text-sm mb-3">${t.description}</p>
           <div class="flex flex-col gap-2">
-            <button onclick="openPreview('${t.id}')" class="w-full px-4 py-2 rounded-full border-2 transition-all text-sm font-medium" style="border-color: rgb(255 183 202); color: rgb(173 122 135);" onmouseover="this.style.backgroundColor='rgb(255 183 202)'; this.style.color='white';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='rgb(173 122 135)';">
+            <button onclick="openPreview('${t.id}')" class="w-full px-4 py-2 rounded-full border transition-all text-sm font-medium" style="border-color: rgb(255 183 202); color: rgb(173 122 135);">
               <i class="fas fa-eye mr-2"></i>Xem Demo
             </button>
             <button onclick="event.stopPropagation(); openPayment('${t.id}')" class="btn-choose-carousel">

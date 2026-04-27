@@ -21,6 +21,33 @@ Deno.serve(async (req) => {
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
   )
 
+  // Helper function to get unique slug
+  async function getUniqueSlug(baseSlug: string, excludeId?: string): Promise<string> {
+    let finalSlug = baseSlug;
+    let suffix = 1;
+    
+    while (true) {
+      let query = supabase
+        .from('weddings')
+        .select('id')
+        .eq('slug', finalSlug);
+      
+      // Exclude current record if updating
+      if (excludeId) {
+        query = query.neq('id', excludeId);
+      }
+      
+      const { data: existing } = await query.maybeSingle();
+      
+      if (!existing) break;
+      
+      suffix++;
+      finalSlug = `${baseSlug}-${suffix}`;
+    }
+    
+    return finalSlug;
+  }
+
   // POST → Tạo bản ghi mới (public - KH tự tạo sau khi thanh toán)
   if (method === 'POST') {
     const body = await req.json()
@@ -32,18 +59,7 @@ Deno.serve(async (req) => {
     }
 
     // Check if slug already exists, auto-append suffix if duplicate
-    let finalSlug = slug;
-    let suffix = 1;
-    while (true) {
-      const { data: existing } = await supabase
-        .from('weddings')
-        .select('id')
-        .eq('slug', finalSlug)
-        .single()
-      if (!existing) break;
-      suffix++;
-      finalSlug = `${slug}-${suffix}`;
-    }
+    const finalSlug = await getUniqueSlug(slug);
 
     const insertPayload = clientId
       ? { id: clientId, slug: finalSlug, is_active: true }
@@ -130,7 +146,7 @@ Deno.serve(async (req) => {
         .select('id')
         .eq('slug', fields.slug)
         .neq('id', id)
-        .single()
+        .maybeSingle()
 
       if (slugExisting) {
         return new Response(JSON.stringify({ error: 'Tên slug đã được người khác sử dụng. Vui lòng chọn tên khác' }), {
@@ -182,7 +198,7 @@ Deno.serve(async (req) => {
       // Get paginated data
       let dataQuery = supabase
         .from('weddings')
-        .select('id, slug, groom_name, bride_name, is_active, created_at')
+        .select('id, slug, groom_name, bride_name, is_active, created_at, payment_order_id')
         .order('created_at', { ascending: false })
         .range(offset, offset + limit - 1)
       

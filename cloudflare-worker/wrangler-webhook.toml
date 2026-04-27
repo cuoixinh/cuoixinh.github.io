@@ -1,0 +1,9 @@
+name = "payos-webhook-proxy"
+main = "payos-webhook-proxy.js"
+compatibility_date = "2024-01-01"
+
+# Deploy command:
+# wrangler deploy --config wrangler-webhook.toml
+
+# After deploy, use the Cloudflare Worker URL as webhook:
+# https://payos-webhook-proxy.YOUR_SUBDOMAIN.workers.dev

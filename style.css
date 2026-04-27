@@ -195,3 +195,24 @@
     min-height: calc(var(--vh, 1vh) * 100);
     min-height: 100dvh;
 }
+
+/* Custom scrollbar for payment modal */
+#paymentModal *::-webkit-scrollbar,
+#paymentModal::-webkit-scrollbar {
+  width: 8px;
+}
+#paymentModal *::-webkit-scrollbar-track,
+#paymentModal::-webkit-scrollbar-track {
+  background: transparent;
+  margin-bottom: 24px;
+  margin-top: 24px;
+}
+#paymentModal *::-webkit-scrollbar-thumb,
+#paymentModal::-webkit-scrollbar-thumb {
+  background: rgb(202, 202, 202);
+  border-radius: 8px;
+}
+#paymentModal *::-webkit-scrollbar-thumb:hover,
+#paymentModal::-webkit-scrollbar-thumb:hover {
+  background: rgb(202, 202, 202);
+}
