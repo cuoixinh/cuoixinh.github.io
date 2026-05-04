@@ -173,7 +173,7 @@ async function handleCreatePayment(req: Request, supabaseClient: any) {
     const theme_name = theme || "template1";
     const { data: pricingData, error: pricingError } = await supabaseClient
       .from("template_pricing")
-      .select("price")
+      .select("price, original_price, template_name")
       .eq("template_name", theme_name)
       .eq("is_active", true)
       .single();
@@ -255,6 +255,11 @@ async function handleCreatePayment(req: Request, supabaseClient: any) {
         account_name: paymentResponse.data.accountName,
         amount: paymentResponse.data.amount,
         content: paymentResponse.data.description,
+      },
+      pricing: {
+        price: pricingData.price,
+        original_price: pricingData.original_price,
+        template_name: pricingData.template_name,
       },
       checkout_url: paymentResponse.data.checkoutUrl,
     }), {

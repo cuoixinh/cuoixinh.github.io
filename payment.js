@@ -564,8 +564,8 @@
                   <p class="text-xs text-gray-400 m-0">Thiệp cưới online</p>
                 </div>
                 <div class="ml-auto text-right">
-                  <p class="font-bold text-lg m-0" style="color:rgb(173 122 135);">299.000đ</p>
-                  <p class="text-xs text-gray-300 line-through m-0">499.000đ</p>
+                  <p id="payment-price" class="font-bold text-lg m-0" style="color:rgb(173 122 135);">299.000đ</p>
+                  <p id="payment-original-price" class="text-xs text-gray-300 line-through m-0">499.000đ</p>
                 </div>
               </div>
 
@@ -603,7 +603,7 @@
               <!-- Tổng tiền -->
               <div class="flex items-center justify-between py-3 border-t border-gray-100">
                 <span class="text-sm text-gray-400">Tổng thanh toán</span>
-                <span class="font-bold text-xl" style="color:rgb(173 122 135);">299.000đ</span>
+                <span id="payment-total-price" class="font-bold text-xl" style="color:rgb(173 122 135);">299.000đ</span>
               </div>
 
               <button onclick="PaymentModal.process()"
@@ -703,10 +703,13 @@
 
   // Public API
   window.PaymentModal = {
-    open(templateName, theme) {
+    open(templateName, theme, pricing = {}) {
       injectPaymentModal();
       // Lưu theme để dùng khi tạo wedding record
       window._paymentTheme = theme || "template1";
+
+      // Lưu pricing để dùng trong modal
+      window._paymentPricing = pricing;
 
       // Lưu order pending ngay khi mở modal (nếu chưa có)
       const sessionUser = getCurrentUser();
@@ -736,6 +739,25 @@
       document.getElementById("payment-step-3").style.display = "none";
       document.getElementById("payment-template-name").textContent =
         templateName || "-";
+
+      // Update pricing display
+      const price = pricing.price || 299000;
+      const originalPrice = pricing.originalPrice || 499000;
+      const priceEl = document.getElementById("payment-price");
+      const originalPriceEl = document.getElementById("payment-original-price");
+      const totalPriceEl = document.getElementById("payment-total-price");
+
+      if (priceEl) priceEl.textContent = `${price.toLocaleString("vi-VN")}đ`;
+      if (originalPriceEl) {
+        if (originalPrice && originalPrice > price) {
+          originalPriceEl.textContent = `${originalPrice.toLocaleString("vi-VN")}đ`;
+          originalPriceEl.style.display = "block";
+        } else {
+          originalPriceEl.style.display = "none";
+        }
+      }
+      if (totalPriceEl)
+        totalPriceEl.textContent = `${price.toLocaleString("vi-VN")}đ`;
 
       // Reset inputs
       ["payment-name", "payment-phone", "payment-email"].forEach((id) => {

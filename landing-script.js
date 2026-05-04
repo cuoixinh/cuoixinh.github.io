@@ -1,30 +1,43 @@
 // Landing Page JavaScript
 
-// Template Data Model
-const templates = [
-  {
-    id: "classic",
-    name: "Classic Elegance",
-    description: "Thiết kế sang trọng, cổ điển với màu pastel nhẹ nhàng",
-    thumbnail: "assets/images/ZIN_3506.jpg",
-    previewUrl: "themes/template1.html?preview=true",
-    theme: "template1",
-    features: ["gallery", "map", "qrcode", "rsvp"],
-    status: "active",
-    category: "traditional",
-  },
-  {
-    id: "modern",
-    name: "Modern Minimalist",
-    description: "Phong cách tối giản, hiện đại cho cặp đôi trẻ trung",
-    thumbnail: "assets/images/ZIN_3719.jpg",
-    previewUrl: "themes/template2.html?preview=true",
-    theme: "template2",
-    features: ["gallery", "map", "qrcode"],
-    status: "active",
-    category: "modern",
-  },
-];
+// Templates API URL (Cloudflare cached - includes pricing)
+const TEMPLATES_API_URL = "https://templates-cache.cuoixinh-api.workers.dev/";
+
+// Template Data Model (will be loaded from API)
+let templates = [];
+
+// Load templates from API
+async function loadTemplates() {
+  try {
+    const response = await fetch(TEMPLATES_API_URL);
+    if (!response.ok) throw new Error("Failed to fetch templates");
+
+    templates = await response.json();
+    console.log("Templates loaded:", templates);
+
+    // Render templates after loading
+    renderTemplateCards();
+
+    // Initialize page after templates are rendered
+    initializePage();
+  } catch (error) {
+    console.error("Failed to load templates:", error);
+    // Show error message to user
+    const inner = document.getElementById("templateCarouselInner");
+    if (inner) {
+      inner.innerHTML = `
+        <div class="text-center text-red-500 p-8">
+          <i class="fas fa-exclamation-triangle text-4xl mb-4"></i>
+          <p class="text-lg font-semibold mb-2">Không thể tải danh sách mẫu thiệp</p>
+          <p class="text-sm text-gray-600">Vui lòng thử lại sau hoặc liên hệ hỗ trợ</p>
+        </div>
+      `;
+    }
+  }
+}
+
+// Initialize templates on page load
+loadTemplates();
 
 // Feature icon and label mapping
 const featureMap = {
@@ -202,7 +215,10 @@ function getCurrentUser() {
 function openPayment(templateId) {
   const template = templates.find((t) => t.id === templateId);
   if (!template) return;
-  PaymentModal.open(template.name, template.theme);
+  PaymentModal.open(template.name, template.theme, {
+    price: template.price,
+    originalPrice: template.originalPrice,
+  });
 }
 
 // Carousel Scrolling
@@ -363,8 +379,8 @@ function checkSelectedTemplate() {
 
 // Page Initialization
 function initializePage() {
-  // Render template cards từ config
-  renderTemplateCards();
+  // Templates will be rendered after loadTemplates() completes
+  // Don't call renderTemplateCards() here to avoid race condition
 
   // Setup auto scroll sau khi cards đã render
   const templateSection = document.getElementById("templates");
@@ -457,12 +473,12 @@ function initializePage() {
   console.log("Landing page initialized");
 }
 
-// Initialize on DOM ready
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", initializePage);
-} else {
-  initializePage();
-}
+// Initialize on DOM ready - removed because initializePage is now called after loadTemplates()
+// if (document.readyState === "loading") {
+//   document.addEventListener("DOMContentLoaded", initializePage);
+// } else {
+//   initializePage();
+// }
 
 // ============= RENDER TEMPLATE CARDS =============
 function renderTemplateCards() {
@@ -480,13 +496,18 @@ function renderTemplateCards() {
             : "";
 
       const thumbnail = isActive
-        ? `<div id="iframe-wrap-${t.theme}" style="position:absolute; top:0; left:0; width:100%; height:100%; overflow:hidden; pointer-events:none;">
+        ? `<div id="iframe-wrap-${t.theme}" style="position:absolute; top:0; left:0; width:100%; height:100%; overflow:hidden; pointer-events:none; background:#f3f4f6;">
+           <!-- Skeleton placeholder while iframe loads -->
+           <div class="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-200 animate-pulse flex items-center justify-center">
+             <i class="fas fa-spinner fa-spin text-gray-400 text-2xl"></i>
+           </div>
            <iframe
              id="iframe-${t.theme}"
              data-src="${t.previewUrl}"
              scrolling="no"
              loading="lazy"
-             style="border:none; transform-origin:top left; pointer-events:none; position:absolute; top:0; left:0;"
+             style="border:none; transform-origin:top left; pointer-events:none; position:absolute; top:0; left:0; opacity:0; transition:opacity 0.3s;"
+             onload="this.style.opacity='1'; this.previousElementSibling.style.display='none';"
            ></iframe>
          </div>`
         : `<div class="w-full h-full flex items-center justify-center bg-gray-100">

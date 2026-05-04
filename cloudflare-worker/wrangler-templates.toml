@@ -1,0 +1,11 @@
+name = "templates-cache"
+main = "templates-cache.js"
+compatibility_date = "2024-01-01"
+
+[env.production]
+name = "templates-cache"
+route = { pattern = "templates.cuoixinh-api.workers.dev", zone_name = "cuoixinh-api.workers.dev" }
+
+# Environment variables (set via wrangler secret put)
+# SUPABASE_URL
+# SUPABASE_ANON_KEY
