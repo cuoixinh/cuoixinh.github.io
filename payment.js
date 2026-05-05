@@ -160,7 +160,6 @@
               <li>Quét mã QR bên trên</li>
               <li>Kiểm tra thông tin và xác nhận thanh toán</li>
             </ol>
-            ${paymentInfo.checkout_url ? `<div class="mt-2 pt-2 border-t" style="border-color:rgb(255 240 245);"><p class="text-[11px] text-gray-400 mb-2 text-center">Hoặc thanh toán trực tiếp qua trình duyệt</p><a href="${paymentInfo.checkout_url}" target="_blank" class="flex items-center justify-center gap-2 px-2.5 py-2.5 rounded-lg bg-gradient-to-r from-pink-300 to-pink-200 text-white no-underline text-xs font-semibold shadow-lg shadow-pink-200/50 transition-transform hover:-translate-y-0.5"><i class="fas fa-external-link-alt"></i><span>Mở trang thanh toán PayOS</span></a></div>` : ""}
           </div>
 
           <!-- Status -->
