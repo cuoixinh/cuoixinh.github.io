@@ -214,8 +214,21 @@ async function handleCreatePayment(req: Request, supabaseClient: any) {
     const payosOrderCode = paymentResponse.orderCode;
     const fullOrderId = `ORDER-${payosOrderCode}`;
 
-    // Generate slug from customer info and ensure it's unique
-    const baseSlug = `${customer_name.toLowerCase().replace(/\s+/g, '-')}-${customer_phone}`;
+    // Generate slug from customer name (remove Vietnamese accents) and ensure it's unique
+    const removeVietnameseAccents = (str: string): string => {
+      return str
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/đ/g, 'd')
+        .replace(/Đ/g, 'D')
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .trim();
+    };
+    
+    const baseSlug = removeVietnameseAccents(customer_name);
     const finalSlug = await getUniqueSlug(supabaseClient, baseSlug, manage_id);
 
     // Upsert wedding record with payment info (insert if not exists, update if exists)
