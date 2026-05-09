@@ -37,26 +37,13 @@ Response:
     "name": "Classic Elegance",
     "description": "Thiết kế sang trọng, cổ điển với màu pastel nhẹ nhàng",
     "thumbnail": "assets/images/ZIN_3506.jpg",
-    "previewUrl": "themes/template1.html?preview=true",
+    "previewUrl": "public/themes/template1.html?preview=true",
     "theme": "template1",
     "features": ["gallery", "map", "qrcode", "rsvp"],
     "status": "active",
     "category": "traditional",
     "price": 299000,
     "originalPrice": 499000
-  },
-  {
-    "id": "modern",
-    "name": "Modern Minimalist",
-    "description": "Phong cách tối giản, hiện đại cho cặp đôi trẻ trung",
-    "thumbnail": "assets/images/ZIN_3719.jpg",
-    "previewUrl": "themes/template2.html?preview=true",
-    "theme": "template2",
-    "features": ["gallery", "map", "qrcode"],
-    "status": "active",
-    "category": "modern",
-    "price": 199000,
-    "originalPrice": 399000
   }
 ]
 ```

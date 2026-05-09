@@ -3,7 +3,7 @@
 /* The Nautigal font */
 @font-face {
   font-family: "TheNautigal";
-  src: url("assets/fonts/TheNautigal-Regular.ttf") format("truetype");
+  src: url("../assets/fonts/TheNautigal-Regular.ttf") format("truetype");
   font-weight: normal;
   font-style: normal;
 }
@@ -11,7 +11,7 @@
 /* Katty Diona font */
 @font-face {
   font-family: "KattyDiona";
-  src: url("assets/fonts/katty-diona.woff2") format("woff2");
+  src: url("../assets/fonts/katty-diona.woff2") format("woff2");
   font-weight: normal;
   font-style: normal;
 }

@@ -35,4 +35,10 @@ const CONFIG = {
     interval: 30000, // 30 seconds
     timeout: 300000, // 5 minutes
   },
+
+  // Default Music
+  defaultMusic: {
+    youtubeUrl:
+      "https://www.youtube.com/watch?v=06-XXOTP3Gc&list=RD06-XXOTP3Gc&start_radio=1",
+  },
 };

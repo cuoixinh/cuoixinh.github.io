@@ -482,7 +482,7 @@
     document.getElementById("success-template").textContent = templateName;
 
     const manageLink = manage_id
-      ? window.location.origin + "/manage-by-customer.html?id=" + manage_id
+      ? window.location.origin + "/customer/manage.html?id=" + manage_id
       : null;
 
     if (manageLink) {

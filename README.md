@@ -1,102 +1,130 @@
-# Thiệp Cưới Online
+# 💒 CuoiXinh - Wedding Invitation Platform
 
-Nền tảng tạo thiệp cưới trực tuyến hiện đại, miễn phí và dễ sử dụng.
+Website tạo thiệp cưới online với kiến trúc 3-layer (DAL/BL/UI).
 
-## Cấu trúc URL
+## 🚀 Quick Start
 
-### 1. Trang chủ (Landing Page)
+### **Local Development:**
 
-```
-domain.com/
-```
+Dùng bất kỳ static server nào:
 
-- Trang giới thiệu dịch vụ
-- Hiển thị mẫu thiệp và tính năng
-- Thông tin liên hệ
+```bash
+# Live Server (VS Code extension)
+# Right-click index.html → Open with Live Server
 
-### 2. Trang thiệp cưới
+# Python
+python -m http.server 8000
 
-```
-domain.com/{slug}
-domain.com/{slug}?isGroom=true
-domain.com/themes/template1.html?slug={slug}&isGroom=true
-domain.com/themes/template2.html?slug={slug}&isGroom=true
-```
+# Node http-server
+npx http-server -p 8000
 
-- Hiển thị thiệp cưới cho khách mời
-- Nếu slug không tồn tại → redirect về trang chủ
-- Hỗ trợ cả clean URL (`/{slug}`) và query param (`?slug=`)
-- Theme được xác định tự động qua `router.html` dựa trên field `theme` trong DB
-
-### 3. Trang quản lý (cho khách hàng)
-
-```
-domain.com/manage-by-customer.html?id=uuid
+# PHP
+php -S localhost:8000
 ```
 
-- Trang quản lý thông tin thiệp cưới
-- Sử dụng UUID để bảo mật (không dùng slug)
-- Chỉ người có link mới truy cập được
+Truy cập: `http://localhost:8000`
 
-### 4. Trang admin
+### **URLs:**
+
+**Local (dùng full URLs):**
+
+- `http://localhost:8000/` - Landing page
+- `http://localhost:8000/admin/admin.html` - Admin dashboard
+- `http://localhost:8000/customer/manage.html?id=xxx` - Customer management
+- `http://localhost:8000/public/account/account.html` - Account page
+- `http://localhost:8000/public/themes/template1.html?slug=xxx` - Wedding template
+
+**Production (clean URLs):**
+
+- `https://cuoixinh.com/` - Landing page
+- `https://cuoixinh.com/admin` - Admin dashboard
+- `https://cuoixinh.com/manage?id=xxx` - Customer management
+- `https://cuoixinh.com/account` - Account page
+- `https://cuoixinh.com/your-wedding-slug` - Wedding template
+
+## 📂 Cấu Trúc Project
 
 ```
-domain.com/admin.html
+root/
+├── index.html                    # Landing page
+├── index.js                      # Landing page logic
+├── router.html                   # Clean URL router (production only)
+├── 404.html                      # GitHub Pages 404 handler
+│
+├── admin/                        # 🔐 Admin pages (cần ADMIN_SECRET_TOKEN)
+│   └── admin.html
+│
+├── customer/                     # 👤 Customer management (cần UUID)
+│   ├── manage.html
+│   └── manage.js
+│
+├── public/                       # 🌐 Public pages
+│   ├── themes/                   # Wedding templates
+│   │   ├── template1.html
+│   │   ├── template1.js
+│   │   └── preview-data.js
+│   └── account/                  # Customer account
+│       ├── account.html
+│       └── account.js
+│
+├── core/                         # ⚙️ Core logic (3-layer architecture)
+│   ├── config.js
+│   ├── supabase.js
+│   ├── utils.js
+│   ├── payment.js
+│   ├── dal/                      # Data Access Layer
+│   │   ├── wedding-dal.js
+│   │   └── storage-dal.js
+│   └── bl/                       # Business Logic Layer
+│       ├── wedding-bl.js
+│       └── image-bl.js
+│
+├── styles/                       # CSS files
+│   ├── landing.css
+│   └── common.css
+│
+└── assets/                       # Static assets
+    ├── fonts/
+    ├── icons/
+    ├── images/
+    └── musics/
 ```
 
-- Quản lý tất cả thiệp cưới
-- Tạo mới, sửa, xóa thiệp
-- Yêu cầu mã admin token
+## 🏗️ Kiến Trúc
 
-## Routing Logic
+### **3-Layer Architecture:**
 
-### GitHub Pages (Production)
+```
+┌─────────────────────────────────────────┐
+│  UI LAYER                                │
+│  - Render UI, handle events              │
+├─────────────────────────────────────────┤
+│  BUSINESS LOGIC LAYER (BL)              │
+│  - Validation, transform, business rules │
+├─────────────────────────────────────────┤
+│  DATA ACCESS LAYER (DAL)                │
+│  - Database queries, API calls           │
+└─────────────────────────────────────────┘
+```
 
-1. User truy cập `domain.com/{slug}`
-2. GitHub Pages không tìm thấy file → trả về `404.html`
-3. `404.html` lưu path vào sessionStorage và redirect về `router.html?slug={slug}`
-4. `router.html` gọi GET `/wedding-admin?slug={slug}` để lấy field `theme`
-5. Nếu không tìm thấy → redirect về `/`
-6. Nếu tìm thấy → redirect về `/themes/{theme}.html?slug={slug}`
-7. Template HTML render thiệp dựa trên slug
+### **Phân Quyền:**
 
-### Local Development (Live Server)
+- 🔐 **Admin:** `/admin/admin.html` - Cần ADMIN_SECRET_TOKEN
+- 👤 **Customer:** `/customer/manage.html?id=uuid` - Cần UUID
+- 🌐 **Public:** `/`, `/account`, `/your-slug` - Ai cũng truy cập được
 
-- Sử dụng query param: `http://localhost:5500/template1.html?slug=slug`
-- Clean URL không hoạt động trên local
+## 📚 Documentation
 
-## Tính năng chính
+Chi tiết kiến trúc và hướng dẫn: [`documents/REFACTORED_ARCHITECTURE.md`](documents/REFACTORED_ARCHITECTURE.md)
 
-- ✅ Responsive design (mobile-first)
-- ✅ Quản lý khách mời qua Google Sheets
-- ✅ Link cá nhân hóa với mã hóa AES
-- ✅ Xác nhận tham dự trực tuyến
-- ✅ QR code mừng cưới
-- ✅ Bản đồ Google Maps
-- ✅ Gallery ảnh với carousel
-- ✅ Tự động tính ngày âm lịch
-- ✅ Hỗ trợ 2 bên (nhà trai & nhà gái)
+## 🛠️ Tech Stack
 
-## Tech Stack
+- **Frontend:** Vanilla JavaScript, HTML5, CSS3
+- **Backend:** Supabase (Database + Storage + Edge Functions)
+- **Payment:** PayOS
+- **Hosting:** GitHub Pages
+- **CDN:** Cloudflare Workers
 
-- Frontend: HTML, TailwindCSS, Vanilla JavaScript
-- Backend: Supabase (Database + Storage + Edge Functions)
-- Hosting: GitHub Pages (100% miễn phí)
-- Integration: Google Sheets API
+## 📝 License
 
-## Cài đặt
-
-1. Clone repository
-2. Cấu hình Supabase credentials trong các file JS
-3. Deploy lên GitHub Pages
-4. Cấu hình Google Apps Script (xem `documents/GOOGLE_APPS_SCRIPT_SETUP.md`)
-
-## Tài liệu
-
-- [Kiến trúc hệ thống](documents/ARCHITECTURE.md)
-- [Hướng dẫn Google Apps Script](documents/GOOGLE_APPS_SCRIPT_SETUP.md)
-- [Tự động tạo link khách mời](documents/TAI_LIEU_TU_DONG_TAO_LINK.md)
-
-## License
-
-MIT License
+ISC

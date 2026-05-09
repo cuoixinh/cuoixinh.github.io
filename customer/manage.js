@@ -1,23 +1,10 @@
 // Configuration
-const MANAGE_EDGE_URL = CONFIG.supabase.edgeUrl;
-const MANAGE_SUPABASE_URL = CONFIG.supabase.url;
-const MANAGE_ANON_KEY = CONFIG.supabase.anonKey;
-// Dùng Cloudflare Worker để cache ảnh, giảm bandwidth Supabase Storage
-const STORAGE_BASE_URL = CONFIG.cloudflare.imageProxy;
-const ENCRYPTION_KEY = CONFIG.security.encryptionKey;
-
-const params = new URLSearchParams(window.location.search);
-const WEDDING_ID = params.get("id");
+const WEDDING_ID = new URLSearchParams(window.location.search).get("id");
 const DOMAIN = window.location.origin;
 
-// Initialize Supabase client
-let manageSupabase;
-if (window.supabase) {
-  manageSupabase = window.supabase.createClient(
-    MANAGE_SUPABASE_URL,
-    MANAGE_ANON_KEY,
-  );
-}
+// Wedding data cache
+let WEDDING_SLUG = "";
+let WEDDING_THEME = "template1";
 
 // ============= ENCRYPTION/DECRYPTION FUNCTIONS =============
 
@@ -49,156 +36,32 @@ function decryptData(encryptedText) {
 
 async function generateLinks(side) {
   const sideText = side === "groom" ? "nhà trai" : "nhà gái";
-  const isGroom = side === "groom";
 
   try {
     showLoading(true, `Đang kiểm tra cấu hình ${sideText}...`);
 
-    // Fetch wedding data from database to get Google Sheet URL
-    const response = await fetch(`${MANAGE_EDGE_URL}?id=${WEDDING_ID}`, {
-      headers: { Authorization: `Bearer ${MANAGE_ANON_KEY}` },
-    });
-
-    if (!response.ok) {
-      throw new Error("Không thể tải dữ liệu đám cưới");
-    }
-
-    const weddingData = await response.json();
-    const sheetUrl =
-      side === "groom"
-        ? weddingData.groom_google_sheet_url
-        : weddingData.bride_google_sheet_url;
-
-    // Validate URL
-    if (!sheetUrl || !sheetUrl.trim()) {
-      showLoading(false);
-      showToast(`⚠️ Vui lòng cấu hình URL Google Sheet ${sideText} trước`);
-      return;
-    }
-
-    // Validate URL format
-    if (!sheetUrl.includes("script.google.com")) {
-      showLoading(false);
-      showToast(`⚠️ URL Google Sheet ${sideText} không hợp lệ`);
-      return;
-    }
-
-    showLoading(true, `Đang lấy danh sách khách mời ${sideText}...`);
-
-    // Fetch all guests from Google Sheet
-    const guests = await fetchAllGuests(sheetUrl);
-
-    if (!guests || guests.length === 0) {
-      showLoading(false);
-      showToast(
-        `⚠️ Không tìm thấy khách mời nào trong Google Sheet ${sideText}`,
-      );
-      return;
-    }
-
-    showLoading(true, `Đang tạo link cho ${guests.length} khách mời...`);
-
-    // Generate links: chỉ tạo cho khách có relationship + chưa có link
-    const updates = [];
-    let skipped = 0;
-    for (const guest of guests) {
-      // Bỏ qua nếu chưa có relationship hoặc đã có link rồi
-      if (!guest.relationship || guest.link) {
-        skipped++;
-        continue;
-      }
-
-      try {
-        const encryptedName = encryptData(guest.displayName || "");
-        const encryptedRelationship = encryptData(guest.relationship);
-
-        const link = `${DOMAIN}/${WEDDING_SLUG}?isGroom=${isGroom}&name=${encryptedName}&relationship=${encryptedRelationship}`;
-
-        updates.push({ row: guest.row, link });
-      } catch (error) {
-        console.error(`Error generating link for row ${guest.row}:`, error);
-      }
-    }
-
-    if (updates.length === 0) {
-      showLoading(false);
-      showToast(
-        skipped > 0
-          ? `⚠️ Tất cả khách đã có link hoặc chưa có quan hệ`
-          : "⚠️ Không có khách mời nào để tạo link",
-      );
-      return;
-    }
-
-    showLoading(
-      true,
-      `Đang cập nhật ${updates.length} link vào Google Sheet...`,
+    // Use BL layer to generate personalized links
+    const result = await weddingBL.generatePersonalizedLinks(
+      WEDDING_ID,
+      side,
+      encryptData, // encryption function
     );
-
-    // Batch update links to Google Sheet
-    const result = await batchUpdateLinks(sheetUrl, updates);
 
     showLoading(false);
 
     if (result.success) {
-      const skipMsg = skipped > 0 ? `, bỏ qua ${skipped} đã có link` : "";
+      const skipMsg =
+        result.skipped > 0 ? `, bỏ qua ${result.skipped} đã có link` : "";
       showToast(
         `✅ Đã tạo link thành công cho ${result.count} khách mời ${sideText}${skipMsg}`,
       );
     } else {
-      showToast(`❌ Lỗi cập nhật link: ${result.message}`);
+      showToast(`⚠️ ${result.message}`);
     }
   } catch (error) {
     showLoading(false);
     console.error("Generate links error:", error);
     showToast(`❌ ${error.message}`);
-  }
-}
-
-async function fetchAllGuests(sheetUrl) {
-  try {
-    // GET request không trigger CORS preflight nên không cần no-cors
-    const response = await fetch(`${sheetUrl}?action=getAllGuests`);
-
-    if (!response.ok) {
-      throw new Error("Không thể kết nối đến Google Sheets");
-    }
-
-    const data = await response.json();
-
-    if (!data.success) {
-      throw new Error(data.message || "Lỗi lấy dữ liệu từ Google Sheets");
-    }
-
-    return data.guests || [];
-  } catch (error) {
-    console.error("Fetch guests error:", error);
-    throw new Error("Không thể kết nối đến Google Sheets");
-  }
-}
-
-async function batchUpdateLinks(sheetUrl, updates) {
-  try {
-    // Google Apps Script không hỗ trợ CORS preflight cho POST với Content-Type: application/json
-    // Dùng no-cors mode với text/plain để tránh preflight request
-    const response = await fetch(sheetUrl, {
-      method: "POST",
-      mode: "no-cors", // Bypass CORS preflight
-      headers: {
-        "Content-Type": "text/plain", // text/plain không trigger preflight
-      },
-      body: JSON.stringify({
-        action: "batchUpdateLinks",
-        updates: updates,
-      }),
-    });
-
-    // no-cors mode không đọc được response body
-    // Nên ta coi như thành công nếu không có network error
-    return { success: true, count: updates.length };
-  } catch (error) {
-    console.error("Batch update error:", error);
-    throw new Error("Lỗi cập nhật link vào Google Sheets");
   }
 }
 
@@ -640,16 +503,10 @@ function generateUUID() {
 
 // Build full image URL from filename
 function getImageUrl(filename) {
-  if (!filename) return "";
-  // If already a full URL, return as is (backward compatibility)
-  if (filename.startsWith("http://") || filename.startsWith("https://")) {
-    return filename;
-  }
-  // Build full URL from filename
-  return `${STORAGE_BASE_URL}/${filename}`;
+  return storageDAL.getPublicUrl(filename);
 }
 
-// Resize image if too large
+// Resize image if too large (use BL layer)
 async function resizeImage(
   file,
   maxSizeMB = 1,
@@ -657,81 +514,7 @@ async function resizeImage(
   maxHeight = 1920,
   quality = 0.85,
 ) {
-  return new Promise((resolve, reject) => {
-    console.log(
-      `Processing ${file.name}: ${(file.size / 1024 / 1024).toFixed(2)}MB`,
-    );
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const img = new Image();
-      img.onload = () => {
-        // Calculate new dimensions
-        let width = img.width;
-        let height = img.height;
-
-        if (width > maxWidth || height > maxHeight) {
-          if (width > height) {
-            if (width > maxWidth) {
-              height = Math.round((height * maxWidth) / width);
-              width = maxWidth;
-            }
-          } else {
-            if (height > maxHeight) {
-              width = Math.round((width * maxHeight) / height);
-              height = maxHeight;
-            }
-          }
-        }
-
-        // Create canvas and resize
-        const canvas = document.createElement("canvas");
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0, width, height);
-
-        // Try to compress to target size
-        let currentQuality = quality;
-        const tryCompress = (q) => {
-          canvas.toBlob(
-            (blob) => {
-              if (blob) {
-                const sizeMB = blob.size / 1024 / 1024;
-                console.log(
-                  `Compressed with quality ${q.toFixed(2)}: ${sizeMB.toFixed(2)}MB`,
-                );
-
-                // If still too large and quality can be reduced, try again
-                if (sizeMB > maxSizeMB && q > 0.3) {
-                  tryCompress(q - 0.1);
-                } else {
-                  const resizedFile = new File([blob], file.name, {
-                    type: file.type,
-                    lastModified: Date.now(),
-                  });
-                  console.log(
-                    `Final size: ${(resizedFile.size / 1024 / 1024).toFixed(2)}MB`,
-                  );
-                  resolve(resizedFile);
-                }
-              } else {
-                reject(new Error("Failed to resize image"));
-              }
-            },
-            file.type,
-            q,
-          );
-        };
-
-        tryCompress(currentQuality);
-      };
-      img.onerror = () => reject(new Error("Failed to load image"));
-      img.src = e.target.result;
-    };
-    reader.onerror = () => reject(new Error("Failed to read file"));
-    reader.readAsDataURL(file);
-  });
+  return await imageBL.resizeImage(file);
 }
 
 function showToast(msg) {
@@ -815,7 +598,7 @@ function renderGalleryGrid() {
     div.innerHTML = `
       <img src="${fullUrl}" alt="Gallery ${index + 1}" class="w-full h-full object-contain" />
       <button onclick="removeExistingGalleryImage(${index})" class="absolute top-1 right-1 bg-red-500 rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors shadow-md p-1">
-        <img src="assets/icons/bin.png" alt="Delete" class="w-full h-full" />
+        <img src="../assets/icons/bin.png" alt="Delete" class="w-full h-full" />
       </button>
     `;
     container.appendChild(div);
@@ -830,7 +613,7 @@ function renderGalleryGrid() {
     div.innerHTML = `
       <img src="${url}" alt="New ${index + 1}" class="w-full h-full object-contain" />
       <button onclick="removeGalleryImage(${index})" class="absolute top-1 right-1 bg-red-500 rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors shadow-md p-1">
-        <img src="assets/icons/bin.png" alt="Delete" class="w-full h-full" />
+        <img src="../assets/icons/bin.png" alt="Delete" class="w-full h-full" />
       </button>
     `;
     container.appendChild(div);
@@ -914,7 +697,7 @@ function renderSingleImageUpload(fieldName) {
     div.innerHTML = `
       <img src="${url}" alt="Preview" class="w-full h-full ${objectFit}" />
       <button onclick="removeImage('${fieldName}')" class="absolute top-1 right-1 bg-red-500 rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors shadow-md p-1">
-        <img src="assets/icons/bin.png" alt="Delete" class="w-full h-full" />
+        <img src="../assets/icons/bin.png" alt="Delete" class="w-full h-full" />
       </button>
     `;
     container.appendChild(div);
@@ -934,7 +717,7 @@ function renderSingleImageUpload(fieldName) {
       div.innerHTML = `
         <img src="${fullUrl}" alt="Preview" class="w-full h-full ${objectFit}" />
         <button onclick="removeImage('${fieldName}')" class="absolute top-1 right-1 bg-red-500 rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors shadow-md p-1">
-          <img src="assets/icons/bin.png" alt="Delete" class="w-full h-full" />
+          <img src="../assets/icons/bin.png" alt="Delete" class="w-full h-full" />
         </button>
       `;
       container.appendChild(div);
@@ -967,7 +750,6 @@ const MAX_GALLERY_IMAGES = 7;
 const pendingUploads = {
   singleImages: {}, // { fieldName: File }
   galleryImages: [], // [File, File, ...]
-  musicFile: null, // Audio file
 };
 
 // Track deleted images (filenames that were in DB but user deleted)
@@ -1012,104 +794,103 @@ async function handleImageUpload(event, fieldName) {
   }
 }
 
-// ============= MUSIC UPLOAD FUNCTIONS =============
-async function handleMusicUpload(event) {
-  const file = event.target.files[0];
-  if (!file) return;
+// ============= YOUTUBE MUSIC FUNCTIONS =============
+function extractYouTubeVideoId(url) {
+  // Support various YouTube URL formats
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/,
+    /youtube\.com\/embed\/([^&\n?#]+)/,
+    /youtube\.com\/v\/([^&\n?#]+)/,
+  ];
 
-  // Validate file type
-  const validTypes = ["audio/mpeg", "audio/mp3", "audio/wav", "audio/ogg"];
-  if (!validTypes.includes(file.type)) {
-    showToast("❌ Chỉ hỗ trợ file MP3, WAV, OGG");
-    return;
+  for (const pattern of patterns) {
+    const match = url.match(pattern);
+    if (match && match[1]) {
+      return match[1];
+    }
   }
-
-  // Validate file size (10MB max)
-  const maxSize = 10 * 1024 * 1024; // 10MB
-  if (file.size > maxSize) {
-    showToast("❌ File nhạc quá lớn (tối đa 10MB)");
-    return;
-  }
-
-  try {
-    showLoading(true, "Đang xử lý file nhạc...");
-
-    // Store file for later upload
-    pendingUploads.musicFile = file;
-
-    // Render preview
-    renderMusicPreview(file);
-
-    showToast("✅ Đã chọn nhạc (chưa lưu)");
-  } catch (error) {
-    console.error("Error processing music:", error);
-    showToast("❌ Lỗi xử lý nhạc: " + error.message);
-  } finally {
-    showLoading(false);
-  }
+  return null;
 }
 
-function renderMusicPreview(file) {
-  const preview = document.getElementById("music-preview");
-  const audio = document.getElementById("music-audio");
-  const filename = document.getElementById("music-filename");
-  const uploadBtn = document.getElementById("music-upload-btn");
-  const removeBtn = document.getElementById("remove-music-btn");
+function autoPreviewYouTubeMusic() {
+  const input = document.getElementById("youtube-link-input");
+  const url = input.value.trim();
+  const preview = document.getElementById("youtube-preview");
+
+  // If empty, hide preview
+  if (!url) {
+    preview.classList.add("hidden");
+    return;
+  }
+
+  const videoId = extractYouTubeVideoId(url);
+  if (!videoId) {
+    // Invalid URL, hide preview
+    preview.classList.add("hidden");
+    return;
+  }
+
+  // Valid URL, show preview
+  showYouTubePreview(videoId, url);
+}
+
+function showYouTubePreview(videoId, url) {
+  const preview = document.getElementById("youtube-preview");
+  const container = document.getElementById("youtube-player-container");
+
+  // Simple YouTube embed
+  container.innerHTML = `
+    <div style="position: relative; width: 100%; height: 100%; background: #000;">
+      <iframe
+        src="https://www.youtube.com/embed/${videoId}"
+        title="YouTube video player"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        allowfullscreen
+        style="width: 100%; height: 100%; border: 0; display: block;"
+      ></iframe>
+    </div>
+  `;
 
   // Show preview
   preview.classList.remove("hidden");
-  uploadBtn.classList.add("hidden");
-  removeBtn.classList.remove("hidden");
-
-  // Set audio source
-  const url = URL.createObjectURL(file);
-  audio.src = url;
-  filename.textContent = file.name;
 }
 
-function removeMusicUpload() {
-  // Clear pending upload
-  pendingUploads.musicFile = null;
+function renderExistingYouTubeMusic(musicUrl) {
+  if (
+    !musicUrl ||
+    (!musicUrl.includes("youtube.com") && !musicUrl.includes("youtu.be"))
+  ) {
+    return; // Not a YouTube URL
+  }
 
-  // Clear hidden input
-  const hiddenInput = document.querySelector('input[name="music_url"]');
-  if (hiddenInput) hiddenInput.value = "";
+  const input = document.getElementById("youtube-link-input");
+  input.value = musicUrl;
 
-  // Reset UI
-  const preview = document.getElementById("music-preview");
-  const audio = document.getElementById("music-audio");
-  const filename = document.getElementById("music-filename");
-  const uploadBtn = document.getElementById("music-upload-btn");
-  const removeBtn = document.getElementById("remove-music-btn");
-  const fileInput = document.getElementById("music-file-input");
-
-  preview.classList.add("hidden");
-  uploadBtn.classList.remove("hidden");
-  removeBtn.classList.add("hidden");
-  audio.src = "";
-  filename.textContent = "";
-  fileInput.value = "";
-
-  showToast("✅ Đã xóa nhạc");
+  // Auto preview
+  autoPreviewYouTubeMusic();
 }
 
-async function uploadMusicFile() {
-  if (!pendingUploads.musicFile) return null;
-
-  const file = pendingUploads.musicFile;
-  const fileExt = file.name.split(".").pop();
-  const filename = `${WEDDING_ID}-music-${Date.now()}.${fileExt}`;
-
-  const { data, error } = await supabase.storage
-    .from("wedding-images")
-    .upload(filename, file, {
-      cacheControl: "3600",
-      upsert: false,
+// Setup auto-preview on input change
+document.addEventListener("DOMContentLoaded", function () {
+  const input = document.getElementById("youtube-link-input");
+  if (input) {
+    // Debounce to avoid too many previews while typing
+    let debounceTimer;
+    input.addEventListener("input", function () {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        autoPreviewYouTubeMusic();
+      }, 500); // Wait 500ms after user stops typing
     });
 
-  if (error) throw error;
-  return filename;
-}
+    // Also preview on paste
+    input.addEventListener("paste", function () {
+      setTimeout(() => {
+        autoPreviewYouTubeMusic();
+      }, 100);
+    });
+  }
+});
 
 async function handleGalleryUpload(event) {
   const files = Array.from(event.target.files);
@@ -1181,23 +962,8 @@ async function handleGalleryUpload(event) {
 // ============= ACTUAL UPLOAD FUNCTIONS =============
 
 async function uploadSingleImage(fieldName, file) {
-  const extension = file.name.split(".").pop();
-  const imageId = generateUUID();
-  const filename = `${imageId}.${extension}`;
-
-  console.log(`Uploading ${fieldName} to: ${filename}`);
-
-  const { data, error } = await manageSupabase.storage
-    .from("wedding-images")
-    .upload(filename, file, {
-      cacheControl: "3600",
-      upsert: false,
-    });
-
-  if (error) throw error;
-
-  // Return only filename, not full URL
-  return filename;
+  // Use BL layer to upload
+  return await imageBL.uploadSingleImage(WEDDING_ID, fieldName, file);
 }
 
 async function uploadAllPendingImages() {
@@ -1216,22 +982,27 @@ async function uploadAllPendingImages() {
     }
   }
 
-  // Upload gallery images
-  const galleryFilenames = [];
-  for (let i = 0; i < pendingUploads.galleryImages.length; i++) {
-    const file = pendingUploads.galleryImages[i];
+  // Upload gallery images using BL layer
+  if (pendingUploads.galleryImages.length > 0) {
     try {
-      const filename = await uploadSingleImage(`gallery-${i}`, file);
-      galleryFilenames.push(filename);
-      console.log(`Uploaded gallery image ${i + 1}: ${filename}`);
-    } catch (error) {
-      console.error(`Error uploading gallery image ${i + 1}:`, error);
-      errors.push(`Gallery ${i + 1}: ${error.message}`);
-    }
-  }
+      const result = await imageBL.uploadMultipleImages(
+        WEDDING_ID,
+        pendingUploads.galleryImages,
+      );
 
-  if (galleryFilenames.length > 0) {
-    uploadedFilenames.gallery_images = galleryFilenames;
+      if (result.filenames.length > 0) {
+        uploadedFilenames.gallery_images = result.filenames;
+      }
+
+      if (result.errors.length > 0) {
+        result.errors.forEach((err) => {
+          errors.push(`Gallery ${err.index + 1}: ${err.error}`);
+        });
+      }
+    } catch (error) {
+      console.error("Error uploading gallery:", error);
+      errors.push(`Gallery: ${error.message}`);
+    }
   }
 
   return { uploadedFilenames, errors };
@@ -1301,11 +1072,8 @@ function removeExistingGalleryImage(index) {
 
 async function loadData() {
   try {
-    const res = await fetch(`${MANAGE_EDGE_URL}?id=${WEDDING_ID}`, {
-      headers: { Authorization: `Bearer ${MANAGE_ANON_KEY}` },
-    });
-    if (!res.ok) throw new Error("Không tải được dữ liệu");
-    const data = await res.json();
+    // Use BL layer to fetch wedding data
+    const data = await weddingBL.getWeddingById(WEDDING_ID);
     fillForm(data);
 
     // Hide skeleton and show actual content
@@ -1383,6 +1151,12 @@ function fillForm(data) {
       return;
     }
 
+    // Special handling for YouTube music URL
+    if (key === "music_url" && data[key]) {
+      renderExistingYouTubeMusic(data[key]);
+      return;
+    }
+
     // Check if this is a date field with Flatpickr
     if (window.flatpickrInstances && window.flatpickrInstances[key]) {
       console.log(`Setting date for ${key} using Flatpickr:`, data[key]);
@@ -1440,23 +1214,31 @@ async function saveAll() {
       showToast(`⚠️ ${errors.length} ảnh lỗi khi upload`);
     }
 
-    // Step 1.5: Upload music file if exists
-    if (pendingUploads.musicFile) {
-      showLoading(true, "Đang tải nhạc lên server...");
-      try {
-        const musicFilename = await uploadMusicFile();
-        uploadedFilenames.music_url = musicFilename;
-      } catch (error) {
-        console.error("Music upload error:", error);
-        showToast("⚠️ Lỗi upload nhạc: " + error.message);
-      }
-      showLoading(false);
-    }
-
     // Step 2: Prepare form data
     const form = document.getElementById("wedding-form");
     const formData = new FormData(form);
     const payload = { id: WEDDING_ID };
+
+    // Step 2.5: Get YouTube music URL (prioritize textbox input over hidden input)
+    const youtubeTextbox = document.getElementById("youtube-link-input");
+    const musicUrlInput = document.getElementById("music-url-input");
+
+    // Use textbox value if available, otherwise use hidden input
+    const musicUrl =
+      youtubeTextbox?.value?.trim() || musicUrlInput?.value?.trim();
+
+    if (musicUrl) {
+      // Validate YouTube URL
+      const videoId = extractYouTubeVideoId(musicUrl);
+      if (videoId) {
+        payload.music_url = musicUrl;
+      } else {
+        console.warn("Invalid YouTube URL:", musicUrl);
+      }
+    } else {
+      // If empty, explicitly set to null to clear music
+      payload.music_url = null;
+    }
 
     // Add deleted images list
     const allDeletedImages = [
@@ -1512,17 +1294,8 @@ async function saveAll() {
       }
     }
 
-    // Step 4: Save to database
-    const res = await fetch(`${MANAGE_EDGE_URL}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${MANAGE_ANON_KEY}`,
-      },
-      body: JSON.stringify(payload),
-    });
-
-    if (!res.ok) throw new Error("Lỗi lưu dữ liệu");
+    // Step 4: Save to database using BL layer
+    await weddingBL.updateWedding(payload);
 
     // Step 5: Update hidden inputs with uploaded filenames
     for (const [fieldName, filename] of Object.entries(uploadedFilenames)) {
@@ -1557,7 +1330,6 @@ async function saveAll() {
     // Step 6: Clear pending uploads and deleted images
     pendingUploads.singleImages = {};
     pendingUploads.galleryImages = [];
-    pendingUploads.musicFile = null;
     deletedImages.singleImages = [];
     deletedImages.galleryImages = [];
 
@@ -1606,22 +1378,10 @@ async function applySlug() {
 
   try {
     showLoading(true, "Đang cập nhật slug...");
-    const res = await fetch(MANAGE_EDGE_URL, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${MANAGE_ANON_KEY}`,
-      },
-      body: JSON.stringify({ id: WEDDING_ID, slug: newSlug }),
-    });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(
-        res.status === 409
-          ? `Tên <b>${newSlug}</b> đã được người khác sử dụng. Vui lòng chọn tên khác`
-          : err.error || "Lỗi cập nhật slug",
-      );
-    }
+
+    // Use BL layer to update slug
+    await weddingBL.updateWedding({ id: WEDDING_ID, slug: newSlug });
+
     WEDDING_SLUG = newSlug;
     const groomLink = document.getElementById("link-groom");
     const brideLink = document.getElementById("link-bride");
@@ -1917,9 +1677,6 @@ function setupLunarDateListeners() {
   }
 }
 
-let WEDDING_SLUG = null;
-let WEDDING_THEME = "template1"; // fallback default
-
 function initializePage() {
   const idLabel = document.getElementById("wedding-id-label");
   const groomLink = document.getElementById("link-groom");
@@ -1993,6 +1750,7 @@ window.saveAll = saveAll;
 window.copyText = copyText;
 window.applySlug = applySlug;
 window.generateLinks = generateLinks;
+// YouTube functions removed - now auto-preview on input
 
 // ============= START =============
 

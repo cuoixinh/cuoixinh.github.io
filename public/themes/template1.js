@@ -1,12 +1,139 @@
 // ============= TEMPLATE1 SPECIFIC CODE =============
 // Utils functions are loaded from ../utils.js
-
-const EDGE_URL = CONFIG.supabase.edgeUrl;
-const ANON_KEY = CONFIG.supabase.anonKey;
+// BL/DAL instances are loaded from ../supabase.js
 
 // Get slug and isGroom from URL (using utils functions)
 const _weddingSlug = getSlugFromUrl();
 const _isGroom = isGroomSide();
+
+// ============= YOUTUBE MUSIC PLAYER =============
+
+let youtubePlayer = null;
+let isYouTubeMusicReady = false;
+let isYouTubePlaying = false;
+
+function loadYouTubeAPI() {
+  // Load YouTube IFrame API
+  if (!window.YT) {
+    const tag = document.createElement("script");
+    tag.src = "https://www.youtube.com/iframe_api";
+    const firstScriptTag = document.getElementsByTagName("script")[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+  }
+}
+
+// YouTube API ready callback
+window.onYouTubeIframeAPIReady = function () {
+  isYouTubeMusicReady = true;
+};
+
+function extractYouTubeVideoId(url) {
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/,
+    /youtube\.com\/embed\/([^&\n?#]+)/,
+    /youtube\.com\/v\/([^&\n?#]+)/,
+  ];
+
+  for (const pattern of patterns) {
+    const match = url.match(pattern);
+    if (match && match[1]) {
+      return match[1];
+    }
+  }
+  return null;
+}
+
+function initYouTubeMusic(musicUrl) {
+  if (
+    !musicUrl ||
+    (!musicUrl.includes("youtube.com") && !musicUrl.includes("youtu.be"))
+  ) {
+    return; // Not a YouTube URL
+  }
+
+  const videoId = extractYouTubeVideoId(musicUrl);
+  if (!videoId) return;
+
+  // Load YouTube API
+  loadYouTubeAPI();
+
+  // Wait for API to be ready
+  const checkReady = setInterval(() => {
+    if (window.YT && window.YT.Player) {
+      clearInterval(checkReady);
+
+      // Create hidden player container
+      let playerContainer = document.getElementById("youtube-music-player");
+      if (!playerContainer) {
+        playerContainer = document.createElement("div");
+        playerContainer.id = "youtube-music-player";
+        playerContainer.style.display = "none";
+        document.body.appendChild(playerContainer);
+      }
+
+      // Initialize YouTube player
+      youtubePlayer = new YT.Player("youtube-music-player", {
+        height: "0",
+        width: "0",
+        videoId: videoId,
+        playerVars: {
+          autoplay: 1,
+          loop: 1,
+          playlist: videoId, // Required for loop to work
+          controls: 0,
+          showinfo: 0,
+          modestbranding: 1,
+        },
+        events: {
+          onReady: (event) => {
+            event.target.setVolume(30); // Set volume to 30%
+            event.target.playVideo();
+            isYouTubePlaying = true;
+            // Update icon immediately
+            const musicIcon = document.getElementById("music-icon");
+            if (musicIcon) {
+              musicIcon.className = "fas fa-pause text-base md:text-lg";
+            }
+          },
+          onStateChange: (event) => {
+            // Loop video when it ends
+            if (event.data === YT.PlayerState.ENDED) {
+              event.target.playVideo();
+            }
+            // Update playing state
+            isYouTubePlaying = event.data === YT.PlayerState.PLAYING;
+            updateMusicIcon();
+          },
+        },
+      });
+    }
+  }, 100);
+}
+
+function toggleYouTubeMusic() {
+  if (!youtubePlayer) return;
+
+  if (isYouTubePlaying) {
+    youtubePlayer.pauseVideo();
+    isYouTubePlaying = false;
+  } else {
+    youtubePlayer.playVideo();
+    isYouTubePlaying = true;
+  }
+  updateMusicIcon();
+}
+
+function updateMusicIcon() {
+  const musicIcon = document.getElementById("music-icon");
+  if (musicIcon) {
+    musicIcon.className = isYouTubePlaying
+      ? "fas fa-pause text-base md:text-lg"
+      : "fas fa-music text-base md:text-lg";
+  }
+}
+
+// Make toggleYouTubeMusic global
+window.toggleYouTubeMusic = toggleYouTubeMusic;
 
 // ============= RENDER WEDDING DATA =============
 
@@ -14,6 +141,22 @@ function renderWedding(w) {
   if (!w || !w.is_active) return;
 
   const side = _isGroom ? "groom" : "bride";
+
+  // --- NHẠC NỀN YOUTUBE ---
+  const musicToggleBtn = document.getElementById("music-toggle");
+
+  if (w.music_url) {
+    initYouTubeMusic(w.music_url);
+    // Show music button
+    if (musicToggleBtn) {
+      musicToggleBtn.style.display = "flex";
+    }
+  } else {
+    // Hide music button when no music
+    if (musicToggleBtn) {
+      musicToggleBtn.style.display = "none";
+    }
+  }
 
   // --- COVER ---
   setAttr("cover-bg-img", "src", getImageUrl(w.cover_image_url));
@@ -194,38 +337,42 @@ function renderWedding(w) {
   setText("map-location-name", partyLocation, "------------------------");
 }
 
-// Fetch và render wedding data
+// ============= LOAD WEDDING DATA =============
 
-if (_weddingSlug) {
-  fetch(`${EDGE_URL}?slug=${_weddingSlug}`, {
-    headers: { Authorization: `Bearer ${ANON_KEY}` },
-  })
-    .then((r) => {
-      if (!r.ok) {
-        // Slug không tồn tại, redirect về landing page (trừ khi preview mode)
-        if (!isPreviewMode()) {
-          window.location.href = "/";
-        }
-        return null;
-      }
-      return r.json();
-    })
-    .then((data) => {
-      if (data) renderWedding(data);
-    })
-    .catch((e) => {
-      console.error("Lỗi load wedding data:", e);
-      // Redirect về landing page nếu có lỗi (trừ khi preview mode)
+async function loadWeddingData() {
+  if (!_weddingSlug) {
+    // Không có slug, redirect về landing page (trừ khi preview mode)
+    if (!isPreviewMode()) {
+      window.location.href = "/";
+    }
+    return;
+  }
+
+  try {
+    // Use BL layer to fetch and process wedding data
+    const wedding = await weddingBL.getWeddingBySlug(_weddingSlug);
+
+    // Check if active
+    if (!weddingBL.isActive(wedding)) {
       if (!isPreviewMode()) {
         window.location.href = "/";
       }
-    });
-} else {
-  // Không có slug, redirect về landing page (trừ khi preview mode)
-  if (!isPreviewMode()) {
-    window.location.href = "/";
+      return;
+    }
+
+    // Render wedding
+    renderWedding(wedding);
+  } catch (error) {
+    console.error("Lỗi load wedding data:", error);
+    // Redirect về landing page nếu có lỗi (trừ khi preview mode)
+    if (!isPreviewMode()) {
+      window.location.href = "/";
+    }
   }
 }
+
+// Load data on page load
+loadWeddingData();
 
 // Biến lưu thông tin markViewed để gọi khi click Mở Thiệp
 let _markViewedCallback = null;
@@ -282,27 +429,13 @@ function setupPersonalizedGreeting() {
 
   // Chuẩn bị markViewed - chỉ gọi khi click Mở Thiệp (CHẶN trong preview mode)
   if (weddingSlug && !isPreviewMode()) {
-    fetch(`${EDGE_URL}?slug=${weddingSlug}`, {
-      headers: { Authorization: `Bearer ${ANON_KEY}` },
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        const sheetUrl = isGroom
-          ? data.groom_google_sheet_url
-          : data.bride_google_sheet_url;
-        if (sheetUrl) {
-          _markViewedCallback = () => {
-            fetch(sheetUrl, {
-              method: "POST",
-              mode: "no-cors",
-              headers: { "Content-Type": "text/plain" },
-              body: JSON.stringify({
-                action: "markViewed",
-                link: window.location.href,
-              }),
-            });
-          };
-        }
+    weddingBL
+      .getWeddingBySlug(weddingSlug)
+      .then((wedding) => {
+        const urlParams = new URLSearchParams(window.location.search);
+        _markViewedCallback = () => {
+          weddingBL.trackView(wedding, isGroom, urlParams);
+        };
       })
       .catch(() => {});
   }

@@ -199,14 +199,14 @@ function renderOrderDetail(order) {
         <div style="padding:0.75rem;border-radius:0.75rem;border:1px dashed rgb(255 183 202);background:rgb(255 245 248);margin-top:0.5rem;">
           <p style="font-size:0.7rem;color:#9ca3af;margin:0 0 0.5rem;">Link thiết lập thiệp cưới</p>
           <div style="display:flex;gap:0.5rem;align-items:center;">
-            <input readonly value="${window.location.origin}/manage-by-customer.html?id=${order.manage_id}"
+            <input readonly value="${window.location.origin}/customer/manage.html?id=${order.manage_id}"
               style="flex:1;padding:0.4rem 0.6rem;border-radius:0.5rem;border:1px solid #e5e7eb;font-size:0.65rem;color:#6b7280;background:white;outline:none;min-width:0;" />
-            <button onclick="navigator.clipboard.writeText('${window.location.origin}/manage-by-customer.html?id=${order.manage_id}').then(()=>{this.innerHTML='<i class=\\'fas fa-check\\'></i>';setTimeout(()=>{this.innerHTML='<i class=\\'fas fa-copy\\'></i>';},2000)})"
+            <button onclick="navigator.clipboard.writeText('${window.location.origin}/customer/manage.html?id=${order.manage_id}').then(()=>{this.innerHTML='<i class=\\'fas fa-check\\'></i>';setTimeout(()=>{this.innerHTML='<i class=\\'fas fa-copy\\'></i>';},2000)})"
               style="padding:0.4rem 0.6rem;border-radius:0.5rem;background:rgb(255 183 202);color:white;border:none;cursor:pointer;font-size:0.7rem;flex-shrink:0;">
               <i class="fas fa-copy"></i>
             </button>
           </div>
-          <a href="${window.location.origin}/manage-by-customer.html?id=${order.manage_id}" target="_blank"
+          <a href="${window.location.origin}/customer/manage.html?id=${order.manage_id}" target="_blank"
             style="display:flex;align-items:center;justify-content:center;gap:0.5rem;margin-top:0.5rem;padding:0.6rem;border-radius:9999px;background:rgb(255 183 202);color:white;font-size:0.8rem;font-weight:600;text-decoration:none;">
             <i class="fas fa-edit"></i> Thiết lập thiệp ngay
           </a>

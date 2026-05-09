@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Admin - Quản lý Thiệp Cưới</title>
-    <link rel="icon" type="image/png" href="assets/icons/logo.png" />
+    <link rel="icon" type="image/png" href="../assets/icons/logo.png" />
     <script src="https://cdn.tailwindcss.com"></script>
     <link
       rel="stylesheet"
@@ -194,7 +194,7 @@
       </div>
     </div>
 
-    <script src="config.js"></script>
+    <script src="../core/config.js"></script>
     <script>
       const EDGE_URL = CONFIG.supabase.edgeUrl;
       const ANON_KEY = CONFIG.supabase.anonKey;
@@ -259,7 +259,7 @@
           <tr class="border-b border-gray-100 hover:bg-gray-50">
             <td class="py-3 px-4 text-sm text-gray-700 font-mono">${w.slug || "-"}</td>
             <td class="py-3 px-4 text-sm">
-              <a href="${DOMAIN}/themes/template1.html?slug=${w.slug}" target="_blank" class="text-rose-500 hover:underline text-xs">${DOMAIN}/${w.slug}</a>
+              <a href="${DOMAIN}/public/themes/template1.html?slug=${w.slug}" target="_blank" class="text-rose-500 hover:underline text-xs">${DOMAIN}/${w.slug}</a>
             </td>
             <td class="py-3 px-4 text-sm">
               <button onclick="copyManageLink('${w.id}')" class="text-blue-600 hover:underline text-xs">📋 Copy link</button>
@@ -309,7 +309,7 @@
 
       function copyManageLink(id) {
         navigator.clipboard.writeText(
-          `${DOMAIN}/manage-by-customer.html?id=${id}`,
+          `${DOMAIN}/customer/manage.html?id=${id}`,
         );
         alert("Đã copy link quản lý!");
       }
@@ -433,8 +433,6 @@
           btn.innerHTML = originalHTML;
         }
       }
-      localStorage.removeItem("PURGE_SECRET");
-      alert("✅ Đã xóa secret đã lưu");
 
       // Load danh sách ngay khi vào trang
       loadPage(1);

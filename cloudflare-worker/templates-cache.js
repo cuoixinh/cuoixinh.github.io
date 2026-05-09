@@ -32,7 +32,8 @@ export default {
     try {
       // Check cache first
       const cache = caches.default;
-      const cacheKey = new Request(request.url, request);
+      // Use simple URL-based cache key (no request headers/method)
+      const cacheKey = new Request(request.url);
       let response = await cache.match(cacheKey);
 
       if (response) {
@@ -142,15 +143,23 @@ async function handlePurge(request, env, corsHeaders) {
     const baseUrl = url.origin;
 
     // Delete cache for base URL and with trailing slash
+    // IMPORTANT: Don't pass 'request' as second parameter - it copies POST method/headers
+    // We need GET requests to match the original cached requests
     const keysToDelete = [
-      new Request(baseUrl, request),
-      new Request(baseUrl + "/", request),
+      new Request(baseUrl), // GET request without trailing slash
+      new Request(baseUrl + "/"), // GET request with trailing slash
     ];
 
     let deletedCount = 0;
+    const keysAttempted = [];
+
     for (const key of keysToDelete) {
+      keysAttempted.push(key.url);
       const deleted = await cache.delete(key);
-      if (deleted) deletedCount++;
+      if (deleted) {
+        deletedCount++;
+        console.log("Successfully deleted cache for:", key.url);
+      }
     }
 
     return new Response(
@@ -158,6 +167,7 @@ async function handlePurge(request, env, corsHeaders) {
         success: true,
         message: "Cache purged successfully",
         deletedCount,
+        keysAttempted,
       }),
       {
         status: 200,

@@ -46,6 +46,8 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"
     />
+    <!-- Common CSS -->
+    <link rel="stylesheet" href="../styles/common.css" />
     <style>
       /* Skeleton animation */
       @keyframes shimmer {
@@ -1216,61 +1218,48 @@
               class="text-2xl font-semibold text-gray-800 mb-6 flex items-center gap-3"
             >
               <i class="fas fa-music text-rose-500"></i>
-              Nhạc Nền
+              Nhạc nền
             </h2>
 
             <div class="space-y-4">
+              <!-- YouTube Link Input -->
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                  Upload nhạc nền (MP3, tối đa 10MB)
+                <label
+                  class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
+                >
+                  <i class="fab fa-youtube text-red-600"></i>
+                  Link YouTube
                 </label>
-                <div
-                  id="music-upload-container"
-                  class="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-rose-400 transition-colors cursor-pointer"
-                >
-                  <!-- Preview audio player (hidden initially) -->
-                  <div id="music-preview" class="hidden mb-4">
-                    <audio
-                      id="music-audio"
-                      controls
-                      class="w-full mb-2"
-                    ></audio>
-                    <p class="text-sm text-gray-600" id="music-filename"></p>
+                <input
+                  type="text"
+                  id="youtube-link-input"
+                  name="music_url"
+                  placeholder="Nhập đường dẫn nhạc trên Youtube để làm nhạc nền"
+                  class="w-full h-14 px-4 border border-gray-200 rounded-2xl text-[15px] text-gray-800 bg-white shadow-sm outline-none transition-all duration-300 placeholder:text-gray-400 placeholder:text-sm focus:border-rose-500 focus:ring-4 focus:ring-rose-500/15"
+                />
+                <p class="text-xs text-gray-500 mt-2">
+                  <i class="fas fa-info-circle"></i>
+                  Paste link YouTube của bài hát bạn muốn. Để trống nếu không
+                  muốn có nhạc nền.
+                </p>
+              </div>
+
+              <!-- YouTube Preview (Auto-show when URL is valid) -->
+              <div id="youtube-preview" class="hidden">
+                <div class="bg-gray-50 rounded-2xl p-4 border border-gray-200">
+                  <p
+                    class="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2"
+                  >
+                    <i class="fab fa-youtube text-red-600"></i>
+                    Preview
+                  </p>
+                  <div
+                    id="youtube-player-container"
+                    class="aspect-video bg-black rounded-xl overflow-hidden shadow-md"
+                  >
+                    <!-- YouTube iframe will be inserted here -->
                   </div>
-
-                  <!-- Upload button -->
-                  <div id="music-upload-btn">
-                    <i
-                      class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-2"
-                    ></i>
-                    <p class="text-gray-600 mb-1">Click để chọn file nhạc</p>
-                    <p class="text-xs text-gray-400">
-                      Hỗ trợ: MP3, WAV, OGG (tối đa 10MB)
-                    </p>
-                  </div>
-
-                  <input
-                    type="file"
-                    id="music-file-input"
-                    accept="audio/mpeg,audio/mp3,audio/wav,audio/ogg"
-                    class="hidden"
-                    onchange="handleMusicUpload(event)"
-                  />
-
-                  <!-- Hidden input to store music URL -->
-                  <input type="hidden" name="music_url" />
                 </div>
-
-                <!-- Remove button -->
-                <button
-                  type="button"
-                  id="remove-music-btn"
-                  onclick="removeMusicUpload()"
-                  class="hidden mt-2 text-sm text-red-500 hover:text-red-700 flex items-center gap-1"
-                >
-                  <i class="fas fa-trash"></i>
-                  Xóa nhạc
-                </button>
               </div>
             </div>
           </div>
@@ -1307,8 +1296,23 @@
       <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
       <!-- CryptoJS for encryption -->
       <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-      <script src="config.js"></script>
-      <script src="manage-customer.js"></script>
+
+      <!-- Config -->
+      <script src="../core/config.js"></script>
+
+      <!-- DAL Layer -->
+      <script src="../core/dal/wedding-dal.js"></script>
+      <script src="../core/dal/storage-dal.js"></script>
+
+      <!-- BL Layer -->
+      <script src="../core/bl/wedding-bl.js"></script>
+      <script src="../core/bl/image-bl.js"></script>
+
+      <!-- Initialize DAL/BL instances -->
+      <script src="../core/supabase.js"></script>
+
+      <!-- UI Layer -->
+      <script src="manage.js"></script>
       <script>
         // Initialize Flatpickr for all date inputs after DOM loads
         document.addEventListener("DOMContentLoaded", function () {

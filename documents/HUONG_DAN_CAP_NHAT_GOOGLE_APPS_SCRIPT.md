@@ -3,6 +3,7 @@
 ## ⚠️ QUAN TRỌNG
 
 Bạn cần cập nhật code Google Apps Script để thêm 2 endpoints mới:
+
 1. `getAllGuests` - Lấy tất cả khách mời
 2. `batchUpdateLinks` - Cập nhật hàng loạt link
 
@@ -36,12 +37,15 @@ Bạn cần cập nhật code Google Apps Script để thêm 2 endpoints mới:
 ### Bước 5: Test Endpoints Mới
 
 #### Test getAllGuests:
+
 Mở trình duyệt và truy cập:
+
 ```
 https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec?action=getAllGuests
 ```
 
 **Kết quả mong đợi:**
+
 ```json
 {
   "success": true,
@@ -63,7 +67,9 @@ https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec?action=getAllGuests
 ```
 
 #### Test batchUpdateLinks:
+
 Dùng Postman hoặc curl:
+
 ```bash
 curl -X POST https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec \
   -H "Content-Type: application/json" \
@@ -77,6 +83,7 @@ curl -X POST https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec \
 ```
 
 **Kết quả mong đợi:**
+
 ```json
 {
   "success": true,
@@ -93,7 +100,7 @@ Nếu bạn có 2 Google Sheets (nhà trai và nhà gái), hãy lặp lại các
 
 Sau khi cập nhật xong, bạn có thể:
 
-1. Mở trang `manage-by-customer.html?id=YOUR_WEDDING_ID`
+1. Mở trang `customer/manage.html?id=YOUR_WEDDING_ID`
 2. Nhập URL Google Apps Script vào ô tương ứng
 3. Click nút "🔗 Tự động tạo link"
 4. Hệ thống sẽ:
@@ -105,15 +112,19 @@ Sau khi cập nhật xong, bạn có thể:
 ## 🐛 Troubleshooting
 
 ### Lỗi "Invalid request"
+
 → Kiểm tra lại code đã paste đúng chưa
 
 ### Lỗi "Row X is out of range"
+
 → Kiểm tra dữ liệu trong sheet, đảm bảo có dữ liệu từ dòng 2 trở đi
 
 ### Không thấy endpoint mới
+
 → Đảm bảo đã deploy lại với "New version"
 
 ### Link không được cập nhật
+
 → Kiểm tra quyền truy cập Google Sheet và xem log trong Apps Script (View → Executions)
 
 ## 📞 Lưu Ý

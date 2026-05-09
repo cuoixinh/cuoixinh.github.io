@@ -4,38 +4,63 @@
     <meta charset="utf-8" />
     <title>Đang tải...</title>
     <script>
-      // Dùng Worker URL nếu có, fallback về Supabase trực tiếp
-      const WORKER_URL = "https://wedding-cache-proxy.cuoixinh-api.workers.dev";
-      const SUPABASE_EDGE_URL =
-        "https://lcobawmkywtxhpezndsh.supabase.co/functions/v1/wedding-admin";
-      const ANON_KEY =
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxjb2Jhd21reXd0eGhwZXpuZHNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4OTA5ODMsImV4cCI6MjA5MTQ2Njk4M30.4BNmxnfixXdHOq0ovtaF_4wQZ9sap3IWbJNJK9H4Mg4";
-      const API_BASE = WORKER_URL || SUPABASE_EDGE_URL;
-
+      // Router hỗ trợ clean URLs cho tất cả pages
+      const path = window.location.pathname
+        .replace(/^\//, "")
+        .replace(/\/$/, "");
       const params = new URLSearchParams(window.location.search);
-      const slug = params.get("slug");
-      const extra = params.get("search") || "";
 
-      if (!slug) {
-        window.location.replace("/");
-      } else {
-        fetch(`${API_BASE}?slug=${slug}`, {
-          headers: { Authorization: `Bearer ${ANON_KEY}` },
-        })
-          .then((r) => (r.ok ? r.json() : null))
-          .then((data) => {
-            if (!data) {
-              window.location.replace("/");
-              return;
-            }
-            const theme = data.theme || "template1"; // fallback nếu theme null
-            const extraSearch = extra || "";
-            const themeSearch = extraSearch
-              ? `${extraSearch}&slug=${slug}`
-              : `?slug=${slug}`;
-            window.location.replace(`/themes/${theme}.html${themeSearch}`);
+      // Routing rules
+      const routes = {
+        admin: "/admin/admin.html",
+        manage: "/customer/manage.html",
+        account: "/public/account/account.html",
+        customer: "/customer/manage.html",
+      };
+
+      // Check if it's a predefined route
+      if (routes[path]) {
+        // Preserve query params (e.g., ?id=xxx for manage)
+        const queryString = window.location.search;
+        window.location.replace(routes[path] + queryString);
+      }
+      // Otherwise, treat as wedding slug
+      else {
+        const slug = params.get("slug") || path;
+
+        if (!slug) {
+          window.location.replace("/");
+        } else {
+          // Fetch wedding data to get theme
+          const WORKER_URL =
+            "https://wedding-cache-proxy.cuoixinh-api.workers.dev";
+          const SUPABASE_EDGE_URL =
+            "https://lcobawmkywtxhpezndsh.supabase.co/functions/v1/wedding-admin";
+          const ANON_KEY =
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxjb2Jhd21reXd0eGhwZXpuZHNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4OTA5ODMsImV4cCI6MjA5MTQ2Njk4M30.4BNmxnfixXdHOq0ovtaF_4wQZ9sap3IWbJNJK9H4Mg4";
+          const API_BASE = WORKER_URL || SUPABASE_EDGE_URL;
+          const extra = params.get("search") || "";
+
+          fetch(`${API_BASE}?slug=${slug}`, {
+            headers: { Authorization: `Bearer ${ANON_KEY}` },
           })
-          .catch(() => window.location.replace("/"));
+            .then((r) => (r.ok ? r.json() : null))
+            .then((data) => {
+              if (!data) {
+                window.location.replace("/");
+                return;
+              }
+              const theme = data.theme || "template1";
+              const extraSearch = extra || "";
+              const themeSearch = extraSearch
+                ? `${extraSearch}&slug=${slug}`
+                : `?slug=${slug}`;
+              window.location.replace(
+                `/public/themes/${theme}.html${themeSearch}`,
+              );
+            })
+            .catch(() => window.location.replace("/"));
+        }
       }
     </script>
   </head>

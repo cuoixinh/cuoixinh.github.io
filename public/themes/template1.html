@@ -7,7 +7,7 @@
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
     />
     <title>Thiệp Cưới Online</title>
-    <link rel="icon" type="image/png" href="../assets/icons/logo.png" />
+    <link rel="icon" type="image/png" href="../../assets/icons/logo.png" />
     <script src="https://cdn.tailwindcss.com"></script>
     <link
       rel="stylesheet"
@@ -19,7 +19,7 @@
       href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Great+Vibes&family=Inter:wght@300;400;500&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Cinzel:wght@400;600&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="../style.css" />
+    <link rel="stylesheet" href="../../styles/common.css" />
     <!-- CryptoJS for decryption -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <script>
@@ -60,19 +60,14 @@
   <body
     class="bg-gradient-to-br from-cream-50 via-[#f5ebe0] to-cream-50 min-h-screen flex justify-center items-center p-0 md:py-5"
   >
-    <!-- Background Music -->
-    <audio id="bg-music" loop>
-      <!-- Source will be set dynamically from database or default -->
-    </audio>
-
     <!-- Music Control Button -->
     <button
       id="music-toggle"
-      class="fixed top-4 right-4 z-[60] w-12 h-12 rounded-full bg-white/90 backdrop-blur-sm shadow-lg flex items-center justify-center text-rose-pastel-300 hover:bg-white transition-all duration-300"
-      onclick="toggleMusic()"
+      class="fixed bottom-[48px] right-4 z-[60] w-10 h-10 md:w-12 md:h-12 rounded-full bg-white/90 backdrop-blur-sm shadow-lg flex items-center justify-center text-rose-pastel-300 hover:bg-white transition-all duration-300"
+      onclick="toggleYouTubeMusic()"
       aria-label="Toggle music"
     >
-      <i id="music-icon" class="fas fa-music text-lg"></i>
+      <i id="music-icon" class="fas fa-music text-base md:text-lg"></i>
     </button>
 
     <!-- Cover Screen -->
@@ -809,10 +804,29 @@
       </button>
     </div>
 
+    <!-- Load scripts in correct order -->
     <script src="preview-data.js"></script>
-    <script src="../config.js"></script>
-    <script src="../utils.js"></script>
-    <script src="../js-themes/template1.js"></script>
+    <script src="../../core/config.js"></script>
+
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- DAL Layer -->
+    <script src="../../core/dal/wedding-dal.js"></script>
+    <script src="../../core/dal/storage-dal.js"></script>
+
+    <!-- BL Layer -->
+    <script src="../../core/bl/wedding-bl.js"></script>
+    <script src="../../core/bl/image-bl.js"></script>
+
+    <!-- Initialize DAL/BL instances -->
+    <script src="../../core/supabase.js"></script>
+
+    <!-- Utils -->
+    <script src="../../core/utils.js"></script>
+
+    <!-- UI Layer -->
+    <script src="template1.js"></script>
 
     <script>
       // Background Music Control
@@ -827,50 +841,9 @@
           bgMusic.src = window.weddingData.music_url;
         } else {
           // Default music for preview
-          bgMusic.src = "../assets/musics/Beautiful In White.mp3";
+          bgMusic.src = "../../assets/musics/Beautiful In White.mp3";
         }
       }
-
-      function toggleMusic() {
-        if (isPlaying) {
-          bgMusic.pause();
-          musicIcon.className = "fas fa-music text-lg";
-          isPlaying = false;
-        } else {
-          bgMusic.play().catch((err) => console.log("Audio play failed:", err));
-          musicIcon.className = "fas fa-pause text-lg";
-          isPlaying = true;
-        }
-      }
-
-      // Auto play when user clicks "Mở thiệp"
-      const originalOpenInvitation = window.openInvitation;
-      window.openInvitation = function () {
-        if (originalOpenInvitation) originalOpenInvitation();
-
-        // Initialize music source first
-        initMusic();
-
-        // Try to play music
-        if (!isPlaying) {
-          bgMusic
-            .play()
-            .then(() => {
-              isPlaying = true;
-              musicIcon.className = "fas fa-pause text-lg";
-            })
-            .catch((err) => {
-              console.log(
-                "Auto-play blocked, user needs to click music button",
-              );
-            });
-        }
-      };
-
-      // Initialize music on page load (for preview mode)
-      document.addEventListener("DOMContentLoaded", function () {
-        initMusic();
-      });
     </script>
   </body>
 </html>
