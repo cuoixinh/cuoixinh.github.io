@@ -1,9 +1,7 @@
 // Landing Page JavaScript
 
 // Templates API URL (Cloudflare cached - includes pricing)
-// Tăng version khi cần refresh cache: v=1, v=2, v=3...
-const TEMPLATES_API_URL =
-  "https://templates-cache.cuoixinh-api.workers.dev/?v=1";
+const TEMPLATES_API_URL = CONFIG.cloudflare.templatesCache + "/";
 
 // Template Data Model (will be loaded from API)
 let templates = [];

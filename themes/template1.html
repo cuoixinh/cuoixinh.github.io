@@ -60,6 +60,21 @@
   <body
     class="bg-gradient-to-br from-cream-50 via-[#f5ebe0] to-cream-50 min-h-screen flex justify-center items-center p-0 md:py-5"
   >
+    <!-- Background Music -->
+    <audio id="bg-music" loop>
+      <!-- Source will be set dynamically from database or default -->
+    </audio>
+
+    <!-- Music Control Button -->
+    <button
+      id="music-toggle"
+      class="fixed top-4 right-4 z-[60] w-12 h-12 rounded-full bg-white/90 backdrop-blur-sm shadow-lg flex items-center justify-center text-rose-pastel-300 hover:bg-white transition-all duration-300"
+      onclick="toggleMusic()"
+      aria-label="Toggle music"
+    >
+      <i id="music-icon" class="fas fa-music text-lg"></i>
+    </button>
+
     <!-- Cover Screen -->
     <div
       id="cover-screen"
@@ -485,7 +500,11 @@
               <div id="mini-calendar" class="w-full"></div>
 
               <!-- Xác nhận tham dự -->
-              <div class="flex flex-col gap-4">
+              <div
+                id="rsvp-section"
+                class="flex flex-col gap-4"
+                style="display: none"
+              >
                 <div
                   class="text-[14px] tracking-[3px] uppercase font-inter shimmer-text"
                 >
@@ -791,6 +810,67 @@
     </div>
 
     <script src="preview-data.js"></script>
-    <script src="../script.js"></script>
+    <script src="../config.js"></script>
+    <script src="../utils.js"></script>
+    <script src="../js-themes/template1.js"></script>
+
+    <script>
+      // Background Music Control
+      let isPlaying = false;
+      const bgMusic = document.getElementById("bg-music");
+      const musicIcon = document.getElementById("music-icon");
+
+      // Initialize music source
+      function initMusic() {
+        // Check if we have wedding data with music_url
+        if (window.weddingData && window.weddingData.music_url) {
+          bgMusic.src = window.weddingData.music_url;
+        } else {
+          // Default music for preview
+          bgMusic.src = "../assets/musics/Beautiful In White.mp3";
+        }
+      }
+
+      function toggleMusic() {
+        if (isPlaying) {
+          bgMusic.pause();
+          musicIcon.className = "fas fa-music text-lg";
+          isPlaying = false;
+        } else {
+          bgMusic.play().catch((err) => console.log("Audio play failed:", err));
+          musicIcon.className = "fas fa-pause text-lg";
+          isPlaying = true;
+        }
+      }
+
+      // Auto play when user clicks "Mở thiệp"
+      const originalOpenInvitation = window.openInvitation;
+      window.openInvitation = function () {
+        if (originalOpenInvitation) originalOpenInvitation();
+
+        // Initialize music source first
+        initMusic();
+
+        // Try to play music
+        if (!isPlaying) {
+          bgMusic
+            .play()
+            .then(() => {
+              isPlaying = true;
+              musicIcon.className = "fas fa-pause text-lg";
+            })
+            .catch((err) => {
+              console.log(
+                "Auto-play blocked, user needs to click music button",
+              );
+            });
+        }
+      };
+
+      // Initialize music on page load (for preview mode)
+      document.addEventListener("DOMContentLoaded", function () {
+        initMusic();
+      });
+    </script>
   </body>
 </html>

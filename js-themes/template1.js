@@ -1,123 +1,12 @@
-// ============= PERSONALIZED GREETING =============
-const ENCRYPTION_KEY = "dqvinh";
-const EDGE_URL =
-  "https://lcobawmkywtxhpezndsh.supabase.co/functions/v1/wedding-admin";
-const ANON_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxjb2Jhd21reXd0eGhwZXpuZHNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4OTA5ODMsImV4cCI6MjA5MTQ2Njk4M30.4BNmxnfixXdHOq0ovtaF_4wQZ9sap3IWbJNJK9H4Mg4";
-// Dùng Cloudflare Worker để cache ảnh, giảm bandwidth Supabase Storage
-const STORAGE_BASE_URL = "https://wedding-image-proxy.cuoixinh-api.workers.dev";
+// ============= TEMPLATE1 SPECIFIC CODE =============
+// Utils functions are loaded from ../utils.js
 
-const _urlParams = new URLSearchParams(window.location.search);
-// Đọc slug từ query param hoặc từ sessionStorage (sau khi redirect từ 404.html)
-let _weddingSlug = _urlParams.get("slug");
+const EDGE_URL = CONFIG.supabase.edgeUrl;
+const ANON_KEY = CONFIG.supabase.anonKey;
 
-// Nếu có redirect từ 404.html, restore URL gốc
-const redirectPath = sessionStorage.getItem("redirect");
-const redirectSearch = sessionStorage.getItem("search");
-if (redirectPath && !_weddingSlug) {
-  // Lấy slug từ path
-  _weddingSlug = redirectPath
-    .split("/")
-    .filter((p) => p)
-    .pop();
-
-  // Nếu có search params từ redirect, parse để lấy isGroom
-  if (redirectSearch) {
-    const redirectParams = new URLSearchParams(redirectSearch);
-    // Merge redirect params với current params
-    redirectParams.forEach((value, key) => {
-      if (!_urlParams.has(key)) {
-        _urlParams.set(key, value);
-      }
-    });
-  }
-
-  // Restore URL gốc bằng History API
-  const newUrl = window.location.origin + redirectPath + (redirectSearch || "");
-  window.history.replaceState(null, "", newUrl);
-  // Clear sessionStorage
-  sessionStorage.removeItem("redirect");
-  sessionStorage.removeItem("search");
-}
-
-const _isGroom = _urlParams.get("isGroom") !== "false";
-
-// Helper
-function setText(id, value, placeholder = "") {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.textContent = value || placeholder;
-}
-function setAttr(id, attr, value, placeholder = "") {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.setAttribute(attr, value || placeholder);
-}
-function setImageWithRing(id, filename) {
-  const el = document.getElementById(id);
-  if (!el) return;
-
-  const url = getImageUrl(filename);
-  el.setAttribute("src", url);
-
-  // Get parent container
-  const container = el.parentElement;
-  if (!container) return;
-
-  // If no image (placeholder), remove ring classes
-  if (!filename) {
-    container.classList.remove("ring-1", "ring-white/80");
-  } else {
-    // Has image, add ring classes if not present
-    if (!container.classList.contains("ring-1")) {
-      container.classList.add("ring-1", "ring-white/80");
-    }
-  }
-}
-function getImageUrl(filename) {
-  if (!filename) {
-    // Return a placeholder image with "Chưa có ảnh" text
-    return createPlaceholderSVG("Chưa có ảnh");
-  }
-  // Check if it's already a full URL or relative path
-  if (
-    filename.startsWith("http") ||
-    filename.startsWith("../") ||
-    filename.startsWith("./") ||
-    filename.startsWith("/")
-  ) {
-    return filename;
-  }
-  return `${STORAGE_BASE_URL}/${filename}`;
-}
-
-// Create simple placeholder SVG - camera icon style
-function createPlaceholderSVG(text = "Chưa có ảnh") {
-  const svg = `
-    <svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400">
-      <!-- Background -->
-      <rect width="400" height="400" fill="#f5f5f5"/>
-      
-      <!-- Camera icon (smaller) -->
-      <g transform="translate(200, 170)">
-        <!-- Camera body -->
-        <rect x="-35" y="-20" width="70" height="48" rx="5" fill="#d0d0d0"/>
-        <!-- Camera top -->
-        <path d="M -16,-20 L -10,-28 L 10,-28 L 16,-20 Z" fill="#d0d0d0"/>
-        <!-- Lens outer circle -->
-        <circle cx="0" cy="4" r="18" fill="#e0e0e0"/>
-        <!-- Lens inner circle -->
-        <circle cx="0" cy="4" r="12" fill="#f0f0f0"/>
-        <!-- Flash dot -->
-        <circle cx="22" cy="-10" r="3" fill="#e0e0e0"/>
-      </g>
-      
-      <!-- Text below icon -->
-      <text x="200" y="250" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" fill="#c0c0c0" font-weight="300" letter-spacing="0.5">No Photo Available</text>
-    </svg>
-  `;
-  return "data:image/svg+xml," + encodeURIComponent(svg);
-}
+// Get slug and isGroom from URL (using utils functions)
+const _weddingSlug = getSlugFromUrl();
+const _isGroom = isGroomSide();
 
 // ============= RENDER WEDDING DATA =============
 
@@ -290,53 +179,22 @@ function renderWedding(w) {
   setAttr("bride-qr-img", "src", getImageUrl(w.bride_qr_url));
 
   // --- BẢN ĐỒ (theo phía nhà trai/gái) ---
-  const mapEmbed = w[`${side}_map_embed_url`];
-  const mapLink = w[`${side}_map_link`];
+  const mapEmbedRaw = w[`${side}_map_embed_url`];
+  const mapEmbed = extractMapEmbedUrl(mapEmbedRaw);
+
   if (mapEmbed) {
     const iframe = document.getElementById("map-thumbnail-iframe");
     if (iframe) iframe.src = mapEmbed;
-  }
-  if (mapLink) {
+
+    // Use embed URL for navigation link as well
     const link = document.getElementById("map-link");
-    if (link) link.href = mapLink;
+    if (link) link.href = mapEmbed;
   }
   // Địa điểm tổ chức = party_location
   setText("map-location-name", partyLocation, "------------------------");
 }
 
 // Fetch và render wedding data
-const isPreviewMode = window.location.search.includes("preview=true");
-
-// Helper function to show preview mode alert
-function showPreviewAlert() {
-  if (!isPreviewMode) return false;
-
-  // Create toast notification
-  const toast = document.createElement("div");
-  toast.style.cssText = `
-    position: fixed;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(212, 165, 165, 0.95);
-    color: white;
-    padding: 12px 24px;
-    border-radius: 8px;
-    font-size: 14px;
-    z-index: 10000;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    animation: slideDown 0.3s ease;
-  `;
-  toast.textContent = "Chức năng này không khả dụng ở chế độ xem thử";
-  document.body.appendChild(toast);
-
-  setTimeout(() => {
-    toast.style.animation = "slideUp 0.3s ease";
-    setTimeout(() => toast.remove(), 300);
-  }, 2000);
-
-  return true;
-}
 
 if (_weddingSlug) {
   fetch(`${EDGE_URL}?slug=${_weddingSlug}`, {
@@ -345,7 +203,7 @@ if (_weddingSlug) {
     .then((r) => {
       if (!r.ok) {
         // Slug không tồn tại, redirect về landing page (trừ khi preview mode)
-        if (!isPreviewMode) {
+        if (!isPreviewMode()) {
           window.location.href = "/";
         }
         return null;
@@ -358,26 +216,14 @@ if (_weddingSlug) {
     .catch((e) => {
       console.error("Lỗi load wedding data:", e);
       // Redirect về landing page nếu có lỗi (trừ khi preview mode)
-      if (!isPreviewMode) {
+      if (!isPreviewMode()) {
         window.location.href = "/";
       }
     });
 } else {
   // Không có slug, redirect về landing page (trừ khi preview mode)
-  if (!isPreviewMode) {
+  if (!isPreviewMode()) {
     window.location.href = "/";
-  }
-}
-
-function decryptData(encryptedText) {
-  if (!encryptedText) return "";
-  try {
-    const decoded = decodeURIComponent(encryptedText);
-    const decrypted = CryptoJS.AES.decrypt(decoded, ENCRYPTION_KEY);
-    return decrypted.toString(CryptoJS.enc.Utf8);
-  } catch (error) {
-    console.error("Decryption error:", error);
-    return "";
   }
 }
 
@@ -386,7 +232,7 @@ let _markViewedCallback = null;
 
 function setupPersonalizedGreeting() {
   // Preview mode: vào thẳng màn chính, bỏ qua cover
-  if (isPreviewMode) {
+  if (isPreviewMode()) {
     openInvitation();
     return;
   }
@@ -424,6 +270,10 @@ function setupPersonalizedGreeting() {
     // Hợp lệ → hiển thị lời chào trên cover
     const coverGuestName = document.getElementById("cover-guest-name");
     if (coverGuestName) coverGuestName.textContent = name;
+
+    // Hiển thị RSVP section khi có tên khách mời
+    const rsvpSection = document.getElementById("rsvp-section");
+    if (rsvpSection) rsvpSection.style.display = "flex";
   } catch (error) {
     // Lỗi giải mã → vào thẳng màn chính
     openInvitation();
@@ -431,7 +281,7 @@ function setupPersonalizedGreeting() {
   }
 
   // Chuẩn bị markViewed - chỉ gọi khi click Mở Thiệp (CHẶN trong preview mode)
-  if (weddingSlug && !isPreviewMode) {
+  if (weddingSlug && !isPreviewMode()) {
     fetch(`${EDGE_URL}?slug=${weddingSlug}`, {
       headers: { Authorization: `Bearer ${ANON_KEY}` },
     })
@@ -720,7 +570,7 @@ document.getElementById("btn-decline").classList.add("btn-idle");
 // Cover screen
 function openInvitation() {
   // Đánh dấu đã xem khi khách click Mở Thiệp (CHẶN trong preview mode)
-  if (_markViewedCallback && !isPreviewMode) {
+  if (_markViewedCallback && !isPreviewMode()) {
     _markViewedCallback();
     _markViewedCallback = null; // Chỉ gọi 1 lần
   }
@@ -729,7 +579,7 @@ function openInvitation() {
   const main = document.getElementById("main-card");
 
   // Preview mode: ẩn cover ngay lập tức, không có animation
-  if (isPreviewMode) {
+  if (isPreviewMode()) {
     cover.style.display = "none";
     main.style.display = "";
     main.style.opacity = "1";
@@ -762,12 +612,7 @@ function openInvitation() {
 }
 
 // Fix viewport height cho iOS (tránh bị che bởi browser navbar)
-function setVH() {
-  const vh = window.innerHeight * 0.01;
-  document.documentElement.style.setProperty("--vh", `${vh}px`);
-}
-setVH();
-window.addEventListener("resize", setVH);
+initViewportFix();
 
 // Lightbox
 const lightbox = document.getElementById("lightbox");

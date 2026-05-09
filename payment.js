@@ -6,12 +6,10 @@
   const USE_REAL_PAYMENT = true; // Set to false to use fake payment delay (1.5s)
 
   // ============= CONSTANTS & STATE (Task 5.1) =============
-  const PAYMENT_API_URL =
-    "https://lcobawmkywtxhpezndsh.supabase.co/functions/v1/payment-handler";
-  const ANON_KEY =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxjb2Jhd21reXd0eGhwZXpuZHNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4OTA5ODMsImV4cCI6MjA5MTQ2Njk4M30.4BNmxnfixXdHOq0ovtaF_4wQZ9sap3IWbJNJK9H4Mg4";
-  const POLLING_INTERVAL = 30000; // 20 seconds
-  const POLLING_TIMEOUT = 300000; // 5 minutes (reduced from 10 minutes)
+  const PAYMENT_API_URL = CONFIG.supabase.paymentUrl;
+  const ANON_KEY = CONFIG.supabase.anonKey;
+  const POLLING_INTERVAL = CONFIG.polling.interval;
+  const POLLING_TIMEOUT = CONFIG.polling.timeout;
 
   // State management
   let pollingTimer = null;

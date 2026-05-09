@@ -5,8 +5,8 @@ export default {
   async fetch(request, env) {
     const corsHeaders = {
       "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type",
+      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, X-Purge-Secret",
     };
 
     // Handle CORS preflight
@@ -14,7 +14,14 @@ export default {
       return new Response(null, { headers: corsHeaders });
     }
 
-    // Only allow GET requests
+    const url = new URL(request.url);
+
+    // Purge cache endpoint
+    if (request.method === "POST" && url.pathname === "/purge") {
+      return handlePurge(request, env, corsHeaders);
+    }
+
+    // Only allow GET requests for templates
     if (request.method !== "GET") {
       return new Response("Method not allowed", {
         status: 405,
@@ -116,3 +123,51 @@ export default {
     }
   },
 };
+
+// Handle cache purge
+async function handlePurge(request, env, corsHeaders) {
+  try {
+    // Verify secret
+    const purgeSecret = request.headers.get("X-Purge-Secret");
+    if (!purgeSecret || purgeSecret !== env.PURGE_SECRET) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Purge cache - delete all possible cache keys
+    const cache = caches.default;
+    const url = new URL(request.url);
+    const baseUrl = url.origin;
+
+    // Delete cache for base URL and with trailing slash
+    const keysToDelete = [
+      new Request(baseUrl, request),
+      new Request(baseUrl + "/", request),
+    ];
+
+    let deletedCount = 0;
+    for (const key of keysToDelete) {
+      const deleted = await cache.delete(key);
+      if (deleted) deletedCount++;
+    }
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        message: "Cache purged successfully",
+        deletedCount,
+      }),
+      {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
+    );
+  } catch (error) {
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+}

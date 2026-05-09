@@ -27,17 +27,19 @@ const previewData = {
   brideQR: "../assets/images/qr-co-dau.png",
   coverImageUrl: "../assets/images/10-1.jpg",
   groomImageUrl: "../assets/images/chup-anh-cuoi-phong-cach-han-quoc-2.jpg",
-  brideImageUrl: "../assets/images/chup-anh-cuoi-da-lat-phong-cach-han-quoc-005.jpg",
-  storyQuote: "Tình yêu không làm cho thế giới quay tròn. Tình yêu là thứ làm cho chuyến đi đáng giá.",
+  brideImageUrl:
+    "../assets/images/chup-anh-cuoi-da-lat-phong-cach-han-quoc-005.jpg",
+  storyQuote:
+    "Tình yêu không làm cho thế giới quay tròn. Tình yêu là thứ làm cho chuyến đi đáng giá.",
   galleryImages: [
     "../assets/images/10-1.jpg",
     "../assets/images/chup-anh-cuoi-da-lat-phong-cach-han-quoc-005.jpg",
     "../assets/images/chup-anh-cuoi-phim-truong-12.jpg",
     "../assets/images/chup-anh-cuoi-phong-cach-han-quoc-2.jpg",
-    "../assets/images/chup-anh-cuoi-trong-studio-o-da-nang-6.jpg"
+    "../assets/images/chup-anh-cuoi-trong-studio-o-da-nang-6.jpg",
   ],
-  mapEmbedUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3919.3193500642!2d106.69746931533417!3d10.782432192318482!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31752f4b3330bcc9%3A0x5a8b2b3e5e5e5e5e!2zVHLGsOG7nW5nIMSQ4bqhaSBo4buNYyBLaG9hIGjhu41jIFThu7Egbmhpw6puIC0gxJDhuqFpIGjhu41jIFF14buRYyBnaWEgVFAuSENN!5e0!3m2!1svi!2s!4v1234567890123!5m2!1svi!2s",
-  mapLink: "https://maps.google.com"
+  mapEmbedUrl:
+    "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3919.3193500642!2d106.69746931533417!3d10.782432192318482!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31752f4b3330bcc9%3A0x5a8b2b3e5e5e5e5e!2zVHLGsOG7nW5nIMSQ4bqhaSBo4buNYyBLaG9hIGjhu41jIFThu7Egbmhpw6puIC0gxJDhuqFpIGjhu41jIFF14buRYyBnaWEgVFAuSENN!5e0!3m2!1svi!2s!4v1234567890123!5m2!1svi!2s",
 };
 
 // Function to populate preview data - mimic renderWedding from script.js
@@ -79,20 +81,18 @@ function loadPreviewData() {
     gallery_images: previewData.galleryImages,
     groom_map_embed_url: previewData.mapEmbedUrl,
     bride_map_embed_url: previewData.mapEmbedUrl,
-    groom_map_link: previewData.mapLink,
-    bride_map_link: previewData.mapLink
   };
-  
+
   // Call renderWedding if it exists
-  if (typeof renderWedding === 'function') {
+  if (typeof renderWedding === "function") {
     renderWedding(w);
-    console.log('Preview data loaded via renderWedding');
+    console.log("Preview data loaded via renderWedding");
   } else {
-    console.error('renderWedding function not found');
+    console.error("renderWedding function not found");
   }
 }
 
 // Auto-load preview data when in preview mode
-if (window.location.search.includes('preview=true')) {
-  document.addEventListener('DOMContentLoaded', loadPreviewData);
+if (window.location.search.includes("preview=true")) {
+  document.addEventListener("DOMContentLoaded", loadPreviewData);
 }

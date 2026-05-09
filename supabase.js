@@ -158,8 +158,9 @@ function renderWedding(w) {
   setAttr("bride-qr-img", "src", w.bride_qr_url);
 
   // --- BẢN ĐỒ ---
-  setAttr("map-thumbnail-iframe", "src", w.groom_map_embed_url);
-  setAttr("map-link", "href", w.groom_map_link);
+  const mapEmbedUrl = extractMapEmbedUrl(w.groom_map_embed_url);
+  setAttr("map-thumbnail-iframe", "src", mapEmbedUrl);
+  setAttr("map-link", "href", mapEmbedUrl);
 
   // --- STORY QUOTE ---
   setText("story-quote", w.story_quote);
@@ -201,13 +202,17 @@ async function loadGuestName(scriptUrl) {
     if (data && data.guest_name) {
       setText("cover-guest-name", data.guest_name);
       setText("invite-guest-name", data.guest_name);
+
+      // Hiển thị RSVP section khi có tên khách mời
+      const rsvpSection = document.getElementById("rsvp-section");
+      if (rsvpSection) rsvpSection.style.display = "flex";
     }
   } catch (e) {
     console.log("Không load được tên khách:", e);
   }
 }
 
-// Helper functions
+// Helper functions (duplicated from utils.js for backward compatibility)
 function setText(id, value) {
   const el = document.getElementById(id);
   if (el && value) el.textContent = value;
@@ -216,6 +221,28 @@ function setText(id, value) {
 function setAttr(id, attr, value) {
   const el = document.getElementById(id);
   if (el && value) el.setAttribute(attr, value);
+}
+
+// Extract clean Google Maps embed URL from iframe HTML or return URL as-is
+function extractMapEmbedUrl(value) {
+  if (!value) return "";
+
+  // Decode HTML entities using DOM
+  const textarea = document.createElement("textarea");
+  textarea.innerHTML = value;
+  const decoded = textarea.value;
+
+  // Check if it's an iframe HTML
+  if (decoded.includes("<iframe") && decoded.includes("src=")) {
+    // Extract src URL from iframe
+    const srcMatch = decoded.match(/src=["']([^"']+)["']/);
+    if (srcMatch && srcMatch[1]) {
+      return srcMatch[1];
+    }
+  }
+
+  // If it's already a URL, return as-is
+  return value;
 }
 
 function showExpired(msg) {

@@ -1,12 +1,10 @@
 // Configuration
-const MANAGE_EDGE_URL =
-  "https://lcobawmkywtxhpezndsh.supabase.co/functions/v1/wedding-admin";
-const MANAGE_SUPABASE_URL = "https://lcobawmkywtxhpezndsh.supabase.co";
-const MANAGE_ANON_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxjb2Jhd21reXd0eGhwZXpuZHNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4OTA5ODMsImV4cCI6MjA5MTQ2Njk4M30.4BNmxnfixXdHOq0ovtaF_4wQZ9sap3IWbJNJK9H4Mg4";
+const MANAGE_EDGE_URL = CONFIG.supabase.edgeUrl;
+const MANAGE_SUPABASE_URL = CONFIG.supabase.url;
+const MANAGE_ANON_KEY = CONFIG.supabase.anonKey;
 // Dùng Cloudflare Worker để cache ảnh, giảm bandwidth Supabase Storage
-const STORAGE_BASE_URL = "https://wedding-image-proxy.cuoixinh-api.workers.dev";
-const ENCRYPTION_KEY = "dqvinh";
+const STORAGE_BASE_URL = CONFIG.cloudflare.imageProxy;
+const ENCRYPTION_KEY = CONFIG.security.encryptionKey;
 
 const params = new URLSearchParams(window.location.search);
 const WEDDING_ID = params.get("id");
@@ -969,6 +967,7 @@ const MAX_GALLERY_IMAGES = 7;
 const pendingUploads = {
   singleImages: {}, // { fieldName: File }
   galleryImages: [], // [File, File, ...]
+  musicFile: null, // Audio file
 };
 
 // Track deleted images (filenames that were in DB but user deleted)
@@ -1011,6 +1010,105 @@ async function handleImageUpload(event, fieldName) {
   } finally {
     showLoading(false);
   }
+}
+
+// ============= MUSIC UPLOAD FUNCTIONS =============
+async function handleMusicUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  // Validate file type
+  const validTypes = ["audio/mpeg", "audio/mp3", "audio/wav", "audio/ogg"];
+  if (!validTypes.includes(file.type)) {
+    showToast("❌ Chỉ hỗ trợ file MP3, WAV, OGG");
+    return;
+  }
+
+  // Validate file size (10MB max)
+  const maxSize = 10 * 1024 * 1024; // 10MB
+  if (file.size > maxSize) {
+    showToast("❌ File nhạc quá lớn (tối đa 10MB)");
+    return;
+  }
+
+  try {
+    showLoading(true, "Đang xử lý file nhạc...");
+
+    // Store file for later upload
+    pendingUploads.musicFile = file;
+
+    // Render preview
+    renderMusicPreview(file);
+
+    showToast("✅ Đã chọn nhạc (chưa lưu)");
+  } catch (error) {
+    console.error("Error processing music:", error);
+    showToast("❌ Lỗi xử lý nhạc: " + error.message);
+  } finally {
+    showLoading(false);
+  }
+}
+
+function renderMusicPreview(file) {
+  const preview = document.getElementById("music-preview");
+  const audio = document.getElementById("music-audio");
+  const filename = document.getElementById("music-filename");
+  const uploadBtn = document.getElementById("music-upload-btn");
+  const removeBtn = document.getElementById("remove-music-btn");
+
+  // Show preview
+  preview.classList.remove("hidden");
+  uploadBtn.classList.add("hidden");
+  removeBtn.classList.remove("hidden");
+
+  // Set audio source
+  const url = URL.createObjectURL(file);
+  audio.src = url;
+  filename.textContent = file.name;
+}
+
+function removeMusicUpload() {
+  // Clear pending upload
+  pendingUploads.musicFile = null;
+
+  // Clear hidden input
+  const hiddenInput = document.querySelector('input[name="music_url"]');
+  if (hiddenInput) hiddenInput.value = "";
+
+  // Reset UI
+  const preview = document.getElementById("music-preview");
+  const audio = document.getElementById("music-audio");
+  const filename = document.getElementById("music-filename");
+  const uploadBtn = document.getElementById("music-upload-btn");
+  const removeBtn = document.getElementById("remove-music-btn");
+  const fileInput = document.getElementById("music-file-input");
+
+  preview.classList.add("hidden");
+  uploadBtn.classList.remove("hidden");
+  removeBtn.classList.add("hidden");
+  audio.src = "";
+  filename.textContent = "";
+  fileInput.value = "";
+
+  showToast("✅ Đã xóa nhạc");
+}
+
+async function uploadMusicFile() {
+  if (!pendingUploads.musicFile) return null;
+
+  const file = pendingUploads.musicFile;
+  const fileExt = file.name.split(".").pop();
+  const filename = `${WEDDING_ID}-music-${Date.now()}.${fileExt}`;
+
+  const { data, error } = await supabase.storage
+    .from("wedding-images")
+    .upload(filename, file, {
+      cacheControl: "3600",
+      upsert: false,
+    });
+
+  if (error) throw error;
+  return filename;
 }
 
 async function handleGalleryUpload(event) {
@@ -1342,6 +1440,19 @@ async function saveAll() {
       showToast(`⚠️ ${errors.length} ảnh lỗi khi upload`);
     }
 
+    // Step 1.5: Upload music file if exists
+    if (pendingUploads.musicFile) {
+      showLoading(true, "Đang tải nhạc lên server...");
+      try {
+        const musicFilename = await uploadMusicFile();
+        uploadedFilenames.music_url = musicFilename;
+      } catch (error) {
+        console.error("Music upload error:", error);
+        showToast("⚠️ Lỗi upload nhạc: " + error.message);
+      }
+      showLoading(false);
+    }
+
     // Step 2: Prepare form data
     const form = document.getElementById("wedding-form");
     const formData = new FormData(form);
@@ -1446,6 +1557,7 @@ async function saveAll() {
     // Step 6: Clear pending uploads and deleted images
     pendingUploads.singleImages = {};
     pendingUploads.galleryImages = [];
+    pendingUploads.musicFile = null;
     deletedImages.singleImages = [];
     deletedImages.galleryImages = [];
 
