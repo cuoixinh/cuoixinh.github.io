@@ -1,4 +1,23 @@
 // Preview data for wedding template
+// Calculate dates: current date + 30 days for ceremony, +31 days for party
+const today = new Date();
+const ceremonyDate = new Date(today);
+ceremonyDate.setDate(today.getDate() + 30);
+
+const partyDate = new Date(today);
+partyDate.setDate(today.getDate() + 31);
+
+// Format dates as YYYY-MM-DD
+const ceremonyDateStr = ceremonyDate.toISOString().split("T")[0];
+const partyDateStr = partyDate.toISOString().split("T")[0];
+
+// Calculate lunar dates (simplified - just for display)
+const ceremonyLunarDay = ceremonyDate.getDate();
+const ceremonyLunarMonth = ceremonyDate.getMonth() + 1;
+const partyLunarDay = partyDate.getDate();
+const partyLunarMonth = partyDate.getMonth() + 1;
+const lunarYear = "Giáp Thìn";
+
 const previewData = {
   groomName: "Minh Tuấn",
   brideName: "Hương Giang",
@@ -8,12 +27,12 @@ const previewData = {
   groomMother: "Trần Thị Lan",
   brideFather: "Lê Quang Minh",
   brideMother: "Phạm Thu Hà",
-  ceremonyDate: "2024-12-15",
+  ceremonyDate: ceremonyDateStr,
   ceremonyTime: "10:00",
-  ceremonyLunar: "Ngày 15 tháng 11 năm Giáp Thìn",
-  partyDate: "2024-12-15",
+  ceremonyLunar: `Ngày ${ceremonyLunarDay} tháng ${ceremonyLunarMonth} năm ${lunarYear}`,
+  partyDate: partyDateStr,
   partyTime: "18:00",
-  partyLunar: "Ngày 15 tháng 11 năm Giáp Thìn",
+  partyLunar: `Ngày ${partyLunarDay} tháng ${partyLunarMonth} năm ${lunarYear}`,
   partyLocation: "Trung tâm Hội nghị Tiệc cưới Diamond",
   groomAddress: "123 Đường Lê Lợi, Quận 1, TP.HCM",
   brideAddress: "456 Đường Nguyễn Huệ, Quận 3, TP.HCM",
@@ -25,18 +44,18 @@ const previewData = {
   brideBankOwner: "LE HUONG GIANG",
   groomQR: "../../assets/images/qr-chu-re.png",
   brideQR: "../../assets/images/qr-co-dau.png",
-  coverImageUrl: "../../assets/images/10-1.jpg",
-  groomImageUrl: "../../assets/images/chup-anh-cuoi-phong-cach-han-quoc-2.jpg",
-  brideImageUrl:
-    "../../assets/images/chup-anh-cuoi-da-lat-phong-cach-han-quoc-005.jpg",
+  coverImageUrl: "../../assets/images/example0.jpg",
+  groomImageUrl: "../../assets/images/chure.jpg",
+  brideImageUrl: "../../assets/images/codau.jpg",
   storyQuote:
     "Tình yêu không làm cho thế giới quay tròn. Tình yêu là thứ làm cho chuyến đi đáng giá.",
   galleryImages: [
-    "../../assets/images/10-1.jpg",
-    "../../assets/images/chup-anh-cuoi-da-lat-phong-cach-han-quoc-005.jpg",
-    "../../assets/images/chup-anh-cuoi-phim-truong-12.jpg",
-    "../../assets/images/chup-anh-cuoi-phong-cach-han-quoc-2.jpg",
-    "../../assets/images/chup-anh-cuoi-trong-studio-o-da-nang-6.jpg",
+    "../../assets/images/example3.jpg",
+    "../../assets/images/example4.jpg",
+    "../../assets/images/example5.jpg",
+    "../../assets/images/example6.jpg",
+    "../../assets/images/example7.jpg",
+    "../../assets/images/example8.jpg",
   ],
   mapEmbedUrl:
     "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3919.3193500642!2d106.69746931533417!3d10.782432192318482!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31752f4b3330bcc9%3A0x5a8b2b3e5e5e5e5e!2zVHLGsOG7nW5nIMSQ4bqhaSBo4buNYyBLaG9hIGjhu41jIFThu7Egbmhpw6puIC0gxJDhuqFpIGjhu41jIFF14buRYyBnaWEgVFAuSENN!5e0!3m2!1svi!2s!4v1234567890123!5m2!1svi!2s",

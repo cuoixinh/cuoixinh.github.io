@@ -293,6 +293,9 @@ function renderTemplates(templates) {
       <td class="py-3 px-4 text-sm">
         <span class="px-2 py-1 ${getStatusColor(t.status)} rounded text-xs">${t.status}</span>
       </td>
+      <td class="py-3 px-4 text-sm">
+        <div class="w-2 h-2 rounded-full ${t.is_active ? "bg-green-500" : "bg-gray-400"}"></div>
+      </td>
       <td class="py-3 px-4 text-sm text-gray-600">${t.sort_order}</td>
       <td class="py-3 px-4 text-sm">
         <div class="flex gap-2">

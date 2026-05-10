@@ -1,0 +1,861 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <title>Thiệp Cưới Online</title>
+    <link rel="icon" type="image/png" href="../../assets/icons/logo.png" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Inter:wght@300;400;500;600&family=Allura&family=Cinzel+Decorative:wght@400&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../../styles/common.css" />
+    <!-- CryptoJS for decryption -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              cormorant: ["Cormorant Garamond", "serif"],
+              inter: ["Inter", "sans-serif"],
+              allura: ["Allura", "cursive"],
+              cinzel: ["Cinzel Decorative", "cursive"],
+            },
+            colors: {
+              sage: {
+                50: "#f6f7f6",
+                100: "#e8ebe8",
+                200: "#d1d8d1",
+                300: "#b4bfb4",
+                400: "#8a9a8a",
+              },
+              gold: {
+                100: "#f5f0e8",
+                200: "#e8dcc8",
+                300: "#c9b896",
+                400: "#a89968",
+              },
+              charcoal: "#2d3436",
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      /* Custom styles for template2 */
+      .monogram-circle {
+        width: 120px;
+        height: 120px;
+      }
+
+      .timeline-line {
+        position: absolute;
+        left: 19px;
+        top: 40px;
+        bottom: -20px;
+        width: 2px;
+        background: linear-gradient(to bottom, #c9b896, transparent);
+      }
+
+      .gallery-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+      }
+
+      .gallery-item {
+        position: relative;
+        overflow: hidden;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: transform 0.3s ease;
+      }
+
+      .gallery-item:hover {
+        transform: scale(1.02);
+      }
+
+      .gallery-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .gallery-item.tall {
+        grid-row: span 2;
+      }
+
+      /* Gentle bounce animation */
+      @keyframes gentle-bounce {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-8px);
+        }
+      }
+
+      @media (min-width: 640px) {
+        .gallery-grid {
+          grid-template-columns: repeat(3, 1fr);
+          gap: 16px;
+        }
+      }
+    </style>
+  </head>
+  <body class="bg-sage-50 min-h-screen">
+    <!-- Music Control Button -->
+    <button
+      id="music-toggle"
+      class="fixed bottom-[48px] right-4 z-[60] w-12 h-12 rounded-full bg-white shadow-lg flex items-center justify-center text-gold-400 hover:bg-gold-50 transition-all duration-300"
+      onclick="toggleYouTubeMusic()"
+      aria-label="Toggle music"
+    >
+      <i id="music-icon" class="fas fa-music text-lg"></i>
+    </button>
+
+    <!-- Cover Screen -->
+    <div
+      id="cover-screen"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-white"
+    >
+      <div class="text-center px-8 max-w-lg">
+        <!-- Monogram -->
+        <div class="flex justify-center mb-8">
+          <div class="monogram-circle relative">
+            <svg viewBox="0 0 120 120" class="w-full h-full">
+              <circle
+                cx="60"
+                cy="60"
+                r="58"
+                fill="none"
+                stroke="#c9b896"
+                stroke-width="1.5"
+              />
+              <text
+                x="40"
+                y="70"
+                font-family="Cinzel Decorative"
+                font-size="32"
+                fill="#a89968"
+                text-anchor="middle"
+                id="cover-monogram-left"
+              >
+                M
+              </text>
+              <text
+                x="60"
+                y="65"
+                font-family="Allura"
+                font-size="24"
+                fill="#c9b896"
+                text-anchor="middle"
+              >
+                &
+              </text>
+              <text
+                x="80"
+                y="70"
+                font-family="Cinzel Decorative"
+                font-size="32"
+                fill="#a89968"
+                text-anchor="middle"
+                id="cover-monogram-right"
+              >
+                H
+              </text>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Title -->
+        <h1 class="font-cormorant text-3xl text-charcoal mb-6 tracking-wide">
+          Wedding Invitation
+        </h1>
+
+        <!-- Guest Name -->
+        <p class="font-inter text-sm text-sage-400 mb-2">Trân trọng kính mời</p>
+        <p
+          class="font-allura text-4xl text-gold-400 mb-6"
+          id="cover-guest-name"
+        >
+          ----------
+        </p>
+
+        <!-- Couple Names -->
+        <div class="mb-8">
+          <p class="font-inter text-sm text-sage-400 mb-3">
+            đến tham dự lễ thành hôn của
+          </p>
+          <h2
+            class="font-cormorant text-2xl md:text-3xl text-charcoal leading-tight"
+          >
+            <span id="cover-groom-name">----------</span>
+            <span class="text-gold-300 mx-2">&</span>
+            <span id="cover-bride-name">----------</span>
+          </h2>
+        </div>
+
+        <!-- Open Button -->
+        <button
+          onclick="openInvitation()"
+          class="open-btn px-8 py-3 rounded-full border-2 border-gold-300 text-charcoal font-inter text-sm tracking-wider hover:bg-gold-300 hover:text-white transition-all duration-300"
+        >
+          MỞ THIỆP
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div
+      id="main-card"
+      class="relative w-full max-w-[430px] md:max-w-[768px] mx-auto bg-sage-50 md:shadow-2xl"
+      style="display: none"
+    >
+      <!-- Section 1: Hero -->
+      <section
+        class="relative h-screen flex items-center justify-center overflow-hidden"
+      >
+        <div class="absolute inset-0 h-full">
+          <img
+            id="main-photo"
+            src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%23f5f5f5'/%3E%3C/svg%3E"
+            alt="Wedding Photo"
+            class="w-full h-full object-cover"
+          />
+          <!-- Light overlay for subtle contrast -->
+          <div
+            class="absolute inset-0 bg-gradient-to-b from-white/20 via-white/10 to-sage-50/90"
+          ></div>
+        </div>
+        <div class="relative z-10 text-center px-8">
+          <!-- Elegant card for text -->
+          <div
+            class="inline-block bg-white/95 backdrop-blur-sm rounded-3xl px-8 py-8 shadow-2xl"
+          >
+            <p
+              class="font-inter text-xs tracking-[4px] uppercase text-sage-400 mb-6"
+            >
+              Save The Date
+            </p>
+            <h1 class="font-allura text-2xl md:text-5xl text-charcoal mb-6">
+              <span id="couple-names-groom">----------</span>
+              <span class="text-gold-400 mx-2 md:mx-3">&</span>
+              <span id="couple-names-bride">----------</span>
+            </h1>
+            <p class="font-cormorant text-2xl text-sage-400" id="hero-date">
+              15 · 12 · 2024
+            </p>
+          </div>
+
+          <!-- Scroll hint -->
+          <div
+            class="mt-8 flex flex-col items-center gap-2 cursor-pointer active:scale-95 transition-transform"
+            style="
+              animation: gentle-bounce 2s ease-in-out infinite;
+              text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+            "
+            onclick="
+              document
+                .querySelector('#main-card > section:nth-child(2)')
+                .scrollIntoView({ behavior: 'smooth' })
+            "
+          >
+            <p class="font-inter text-sm text-white tracking-wider">
+              Kéo xuống để xem thiệp
+            </p>
+            <i class="fas fa-chevron-down text-white text-base"></i>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 2: Quote -->
+      <section class="py-20 px-8 bg-white">
+        <div class="max-w-3xl mx-auto text-center">
+          <p
+            class="font-cormorant italic text-2xl md:text-3xl text-charcoal leading-relaxed"
+            id="story-quote"
+          >
+            "Tình yêu không làm cho thế giới quay tròn.<br />Tình yêu là thứ làm
+            cho chuyến đi đáng giá."
+          </p>
+        </div>
+      </section>
+
+      <!-- Section 3: Couple Info -->
+      <section class="py-20 px-8 bg-sage-50">
+        <div class="max-w-5xl mx-auto">
+          <div class="grid md:grid-cols-2 gap-12">
+            <!-- Groom -->
+            <div class="text-center">
+              <div class="mb-6">
+                <div
+                  class="w-48 h-48 mx-auto rounded-full overflow-hidden shadow-xl ring-4 ring-white"
+                >
+                  <img
+                    id="groom-photo"
+                    src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%23f5f5f5'/%3E%3C/svg%3E"
+                    alt="Chú Rể"
+                    class="w-full h-full object-cover"
+                  />
+                </div>
+              </div>
+              <p
+                class="font-inter text-xs tracking-[3px] uppercase text-sage-400 mb-2"
+              >
+                Chú Rể
+              </p>
+              <h3
+                class="font-cormorant text-3xl text-charcoal mb-4"
+                id="groom-name-label"
+              >
+                ----------
+              </h3>
+              <div class="space-y-2 text-sm text-sage-400 font-inter">
+                <p class="text-xs uppercase tracking-wider mb-1">Con ông bà</p>
+                <p id="groom-father">--------------------</p>
+                <p id="groom-mother">--------------------</p>
+                <p class="mt-3 text-xs" id="groom-address">
+                  <i class="fas fa-map-marker-alt text-gold-300 mr-1"></i>
+                  ----------------------------------------
+                </p>
+              </div>
+            </div>
+
+            <!-- Bride -->
+            <div class="text-center">
+              <div class="mb-6">
+                <div
+                  class="w-48 h-48 mx-auto rounded-full overflow-hidden shadow-xl ring-4 ring-white"
+                >
+                  <img
+                    id="bride-photo"
+                    src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%23f5f5f5'/%3E%3C/svg%3E"
+                    alt="Cô Dâu"
+                    class="w-full h-full object-cover"
+                  />
+                </div>
+              </div>
+              <p
+                class="font-inter text-xs tracking-[3px] uppercase text-sage-400 mb-2"
+              >
+                Cô Dâu
+              </p>
+              <h3
+                class="font-cormorant text-3xl text-charcoal mb-4"
+                id="bride-name-label"
+              >
+                ----------
+              </h3>
+              <div class="space-y-2 text-sm text-sage-400 font-inter">
+                <p class="text-xs uppercase tracking-wider mb-1">Con ông bà</p>
+                <p id="bride-father">--------------------</p>
+                <p id="bride-mother">--------------------</p>
+                <p class="mt-3 text-xs" id="bride-address">
+                  <i class="fas fa-map-marker-alt text-gold-300 mr-1"></i>
+                  ----------------------------------------
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 4: Event Timeline -->
+      <section class="py-20 px-8 bg-white">
+        <div class="max-w-3xl mx-auto">
+          <h2 class="font-cormorant text-4xl text-center text-charcoal mb-12">
+            Our Wedding
+          </h2>
+
+          <!-- Countdown -->
+          <div class="flex justify-center gap-8 mb-16" id="countdown-container">
+            <div class="text-center">
+              <div
+                class="font-cormorant text-5xl text-gold-400 mb-2"
+                id="countdown-days"
+              >
+                00
+              </div>
+              <div
+                class="font-inter text-xs tracking-wider uppercase text-sage-400"
+              >
+                Ngày
+              </div>
+            </div>
+            <div class="text-sage-300 text-4xl">:</div>
+            <div class="text-center">
+              <div
+                class="font-cormorant text-5xl text-gold-400 mb-2"
+                id="countdown-hours"
+              >
+                00
+              </div>
+              <div
+                class="font-inter text-xs tracking-wider uppercase text-sage-400"
+              >
+                Giờ
+              </div>
+            </div>
+            <div class="text-sage-300 text-4xl">:</div>
+            <div class="text-center">
+              <div
+                class="font-cormorant text-5xl text-gold-400 mb-2"
+                id="countdown-minutes"
+              >
+                00
+              </div>
+              <div
+                class="font-inter text-xs tracking-wider uppercase text-sage-400"
+              >
+                Phút
+              </div>
+            </div>
+          </div>
+
+          <!-- Timeline -->
+          <div class="space-y-12 mb-12">
+            <!-- Ceremony -->
+            <div class="flex gap-6 relative">
+              <div class="relative z-10">
+                <div
+                  class="w-10 h-10 rounded-full bg-gold-300 flex items-center justify-center"
+                >
+                  <i class="fas fa-ring text-white text-sm"></i>
+                </div>
+                <div class="timeline-line"></div>
+              </div>
+              <div class="flex-1 pt-1">
+                <h4 class="font-cormorant text-2xl text-charcoal mb-2">
+                  Lễ Thành Hôn
+                </h4>
+                <p
+                  class="font-inter text-lg text-gold-400 mb-1"
+                  id="invite-time"
+                >
+                  10:00
+                </p>
+                <p class="font-inter text-sm text-sage-400" id="invite-date">
+                  <span id="invite-weekday">Chủ Nhật</span>,
+                  <span id="invite-day">15</span>
+                  <span id="invite-month-year">Tháng 12 · 2024</span>
+                </p>
+                <p
+                  class="font-inter text-xs text-sage-300 italic mt-1"
+                  id="invite-lunar"
+                >
+                  Ngày 15 tháng 11 năm Giáp Thìn
+                </p>
+              </div>
+            </div>
+
+            <!-- Reception -->
+            <div class="flex gap-6 relative">
+              <div class="relative z-10">
+                <div
+                  class="w-10 h-10 rounded-full bg-gold-300 flex items-center justify-center"
+                >
+                  <i class="fas fa-glass-cheers text-white text-sm"></i>
+                </div>
+              </div>
+              <div class="flex-1 pt-1">
+                <h4 class="font-cormorant text-2xl text-charcoal mb-2">
+                  Tiệc Cưới
+                </h4>
+                <p
+                  class="font-inter text-lg text-gold-400 mb-1"
+                  id="party-time"
+                >
+                  18:00
+                </p>
+                <p
+                  class="font-inter text-sm text-sage-400"
+                  id="party-date-display"
+                >
+                  <span id="party-weekday">Chủ Nhật</span>,
+                  <span id="party-day">15</span>
+                  <span id="party-month-year">Tháng 12 · 2024</span>
+                </p>
+                <p
+                  class="font-inter text-xs text-sage-300 italic mt-1"
+                  id="party-lunar"
+                >
+                  Ngày 15 tháng 11 năm Giáp Thìn
+                </p>
+                <p
+                  class="font-inter text-sm text-charcoal mt-2"
+                  id="party-location"
+                >
+                  <i class="fas fa-map-marker-alt text-gold-300 mr-2"></i>
+                  Tại tư gia nhà trai
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Mini Calendar -->
+          <div class="bg-sage-50 rounded-2xl p-6 mb-8" id="mini-calendar"></div>
+
+          <!-- RSVP Section -->
+          <div id="rsvp-section" class="text-center" style="display: none">
+            <h3 class="font-cormorant text-2xl text-charcoal mb-6">
+              Xác Nhận Tham Dự
+            </h3>
+            <div class="flex gap-4 justify-center">
+              <button
+                onclick="confirmAttend(true)"
+                id="btn-attend"
+                class="flex-1 max-w-[200px] py-3 rounded-full border-2 border-gold-300 text-charcoal font-inter text-sm hover:bg-gold-300 hover:text-white transition-all duration-300"
+              >
+                <i class="fas fa-check-circle mr-2"></i>Tham dự
+              </button>
+              <button
+                onclick="confirmAttend(false)"
+                id="btn-decline"
+                class="flex-1 max-w-[200px] py-3 rounded-full border-2 border-sage-300 text-sage-400 font-inter text-sm hover:bg-sage-300 hover:text-white transition-all duration-300"
+              >
+                <i class="fas fa-times-circle mr-2"></i>Không tham dự
+              </button>
+            </div>
+            <p
+              id="attend-msg"
+              class="font-inter text-sm text-gold-400 mt-4 hidden"
+            ></p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 5: About Wedding -->
+      <section class="py-20 px-8 bg-white">
+        <div class="max-w-5xl mx-auto">
+          <h2 class="font-cormorant text-4xl text-center text-charcoal mb-16">
+            Về Đám Cưới Này
+          </h2>
+
+          <!-- Content Items with alternating layout -->
+          <div class="space-y-16">
+            <!-- First Item - Image Left -->
+            <div class="grid md:grid-cols-2 gap-8 items-center">
+              <div class="order-2 md:order-1">
+                <div class="rounded-2xl overflow-hidden shadow-xl">
+                  <img
+                    src="../../assets/images/example1.jpg"
+                    alt="Đám cưới"
+                    class="w-full h-64 md:h-80 object-cover"
+                  />
+                </div>
+              </div>
+              <div class="order-1 md:order-2">
+                <p class="font-inter text-sage-400 leading-relaxed text-lg">
+                  Trong vô vàn con đường đời có thể đi,<br />
+                  May mắn thay, chúng tôi đã chọn được nhau.<br />
+                  Từ đó, mỗi ngày trôi qua đều thêm ý nghĩa,<br />
+                  Và tương lai bỗng trở nên đáng mong chờ hơn bao giờ hết.
+                </p>
+              </div>
+            </div>
+
+            <!-- Second Item - Image Right -->
+            <div class="grid md:grid-cols-2 gap-8 items-center">
+              <div class="order-1">
+                <p class="font-inter text-sage-400 leading-relaxed text-lg">
+                  Trong cuộc sống bận rộn, chúng ta thường quên mất rằng những
+                  điều quý giá nhất không phải là vật chất hay thành công, mà
+                  chính là những người luôn ở bên, sẵn sàng đi cùng ta qua mọi
+                  chặng đường, dù xa hay gần, dù thuận lợi hay khó khăn.
+                </p>
+              </div>
+              <div class="order-2">
+                <div class="rounded-2xl overflow-hidden shadow-xl">
+                  <img
+                    src="../../assets/images/example2.jpg"
+                    alt="Gia đình và bạn bè"
+                    class="w-full h-64 md:h-80 object-cover"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- Third Item - Image Left -->
+            <div class="grid md:grid-cols-2 gap-8 items-center">
+              <div class="order-2 md:order-1">
+                <div class="rounded-2xl overflow-hidden shadow-xl">
+                  <img
+                    src="../../assets/images/example0.jpg"
+                    alt="Cảm ơn"
+                    class="w-full h-64 md:h-80 object-cover"
+                  />
+                </div>
+              </div>
+              <div class="order-1 md:order-2">
+                <p class="font-inter text-sage-400 leading-relaxed text-lg">
+                  Cảm ơn gia đình đã nuôi dưỡng và dạy dỗ, cảm ơn bạn bè đã đồng
+                  hành và chia sẻ, cảm ơn tất cả mọi người đã dành thời gian quý
+                  báu để có mặt trong ngày đặc biệt này - sự hiện diện của các
+                  bạn chính là món quà ý nghĩa nhất mà chúng tôi có thể nhận
+                  được.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 6: Gallery -->
+      <section class="py-20 px-8 bg-sage-50">
+        <div class="max-w-5xl mx-auto">
+          <h2 class="font-cormorant text-4xl text-center text-charcoal mb-12">
+            Our Memories
+          </h2>
+          <div class="gallery-grid" id="gallery-grid">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 7: Gift Registry -->
+      <section class="py-20 px-8 bg-white">
+        <div class="max-w-4xl mx-auto">
+          <h2 class="font-cormorant text-4xl text-center text-charcoal mb-4">
+            Hộp Mừng Cưới
+          </h2>
+          <p class="font-inter text-sm text-center text-sage-400 mb-12">
+            Sự hiện diện của quý khách là niềm vinh hạnh của gia đình chúng tôi
+          </p>
+
+          <div class="grid md:grid-cols-2 gap-12">
+            <!-- Groom QR -->
+            <div class="text-center">
+              <p
+                class="font-inter text-xs tracking-[3px] uppercase text-sage-400 mb-4"
+              >
+                Chú Rể · <span id="groom-bank-label">----------</span>
+              </p>
+              <div class="bg-white rounded-2xl p-6 shadow-lg mb-4 inline-block">
+                <img
+                  id="groom-qr-img"
+                  src=""
+                  alt="QR Chú Rể"
+                  class="w-48 h-48 object-contain"
+                />
+              </div>
+              <div class="space-y-1 text-sm font-inter mb-4">
+                <p class="text-sage-400" id="groom-bank-name">
+                  ----------------
+                </p>
+                <p class="text-charcoal font-semibold" id="groom-bank-number">
+                  ------------
+                </p>
+                <p class="text-charcoal font-semibold" id="groom-bank-owner">
+                  --------------------
+                </p>
+              </div>
+              <button
+                onclick="saveQR('groom-qr-img')"
+                class="px-6 py-2 rounded-full border border-gold-300 text-gold-400 font-inter text-sm hover:bg-gold-300 hover:text-white transition-all duration-300"
+              >
+                <i class="fas fa-download mr-2"></i>Lưu QR
+              </button>
+            </div>
+
+            <!-- Bride QR -->
+            <div class="text-center">
+              <p
+                class="font-inter text-xs tracking-[3px] uppercase text-sage-400 mb-4"
+              >
+                Cô Dâu · <span id="bride-bank-label">----------</span>
+              </p>
+              <div class="bg-white rounded-2xl p-6 shadow-lg mb-4 inline-block">
+                <img
+                  id="bride-qr-img"
+                  src=""
+                  alt="QR Cô Dâu"
+                  class="w-48 h-48 object-contain"
+                />
+              </div>
+              <div class="space-y-1 text-sm font-inter mb-4">
+                <p class="text-sage-400" id="bride-bank-name">
+                  ----------------
+                </p>
+                <p class="text-charcoal font-semibold" id="bride-bank-number">
+                  ------------
+                </p>
+                <p class="text-charcoal font-semibold" id="bride-bank-owner">
+                  --------------------
+                </p>
+              </div>
+              <button
+                onclick="saveQR('bride-qr-img')"
+                class="px-6 py-2 rounded-full border border-gold-300 text-gold-400 font-inter text-sm hover:bg-gold-300 hover:text-white transition-all duration-300"
+              >
+                <i class="fas fa-download mr-2"></i>Lưu QR
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 7: Location -->
+      <section class="py-20 px-8 bg-sage-50">
+        <div class="max-w-3xl mx-auto">
+          <h2 class="font-cormorant text-4xl text-center text-charcoal mb-4">
+            Địa Điểm
+          </h2>
+          <p
+            class="font-inter text-sm text-center text-sage-400 mb-8"
+            id="map-location-name"
+          >
+            Địa điểm tổ chức
+          </p>
+
+          <a
+            id="map-link"
+            href="#"
+            target="_blank"
+            class="block rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-shadow duration-300"
+          >
+            <div class="relative h-64">
+              <iframe
+                id="map-thumbnail-iframe"
+                src=""
+                width="100%"
+                height="100%"
+                style="border: 0"
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade"
+              ></iframe>
+            </div>
+            <div class="bg-white p-6 text-center">
+              <p class="font-inter text-gold-400 text-sm">
+                Chỉ đường <i class="fas fa-chevron-right ml-2"></i>
+              </p>
+            </div>
+          </a>
+        </div>
+      </section>
+
+      <!-- Section 8: Footer -->
+      <section class="py-16 px-8 bg-white text-center">
+        <div class="max-w-2xl mx-auto">
+          <p class="font-cormorant italic text-xl text-charcoal mb-8">
+            Thank You
+          </p>
+
+          <!-- Monogram -->
+          <div class="flex justify-center mb-6">
+            <div class="w-20 h-20">
+              <svg viewBox="0 0 120 120" class="w-full h-full">
+                <circle
+                  cx="60"
+                  cy="60"
+                  r="58"
+                  fill="none"
+                  stroke="#c9b896"
+                  stroke-width="1.5"
+                />
+                <text
+                  x="40"
+                  y="70"
+                  font-family="Cinzel Decorative"
+                  font-size="32"
+                  fill="#a89968"
+                  text-anchor="middle"
+                  id="footer-monogram-left"
+                >
+                  M
+                </text>
+                <text
+                  x="60"
+                  y="65"
+                  font-family="Allura"
+                  font-size="24"
+                  fill="#c9b896"
+                  text-anchor="middle"
+                >
+                  &
+                </text>
+                <text
+                  x="80"
+                  y="70"
+                  font-family="Cinzel Decorative"
+                  font-size="32"
+                  fill="#a89968"
+                  text-anchor="middle"
+                  id="footer-monogram-right"
+                >
+                  H
+                </text>
+              </svg>
+            </div>
+          </div>
+
+          <p class="font-inter text-xs text-sage-400">
+            Cảm ơn bạn đã dành thời gian đến chung vui cùng chúng tôi
+          </p>
+        </div>
+      </section>
+    </div>
+
+    <!-- Lightbox -->
+    <div
+      id="lightbox"
+      class="fixed inset-0 z-[100] bg-black/95 hidden flex-col items-center justify-center"
+    >
+      <button
+        onclick="closeLightbox()"
+        class="absolute top-6 right-6 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center z-10"
+      >
+        <i class="fas fa-times text-white text-lg"></i>
+      </button>
+      <div
+        id="lb-counter"
+        class="absolute top-6 left-6 text-white/60 text-sm font-inter"
+      ></div>
+      <div class="w-full h-full flex items-center justify-center px-12">
+        <img
+          id="lb-img"
+          src=""
+          alt=""
+          class="max-w-full max-h-full object-contain rounded-xl"
+          style="transition: opacity 0.2s ease"
+        />
+      </div>
+      <button
+        onclick="lbPrev()"
+        class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center"
+      >
+        <i class="fas fa-chevron-left text-white"></i>
+      </button>
+      <button
+        onclick="lbNext()"
+        class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center"
+      >
+        <i class="fas fa-chevron-right text-white"></i>
+      </button>
+    </div>
+
+    <!-- Load scripts in correct order -->
+    <script src="preview-data.js"></script>
+    <script src="../../core/config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../core/dal/wedding-dal.js"></script>
+    <script src="../../core/dal/storage-dal.js"></script>
+    <script src="../../core/bl/wedding-bl.js"></script>
+    <script src="../../core/bl/image-bl.js"></script>
+    <script src="../../core/supabase.js"></script>
+    <script src="../../core/utils.js"></script>
+    <script src="template2.js"></script>
+  </body>
+</html>

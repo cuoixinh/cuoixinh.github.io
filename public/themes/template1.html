@@ -178,7 +178,7 @@
     <!-- Mobile Wedding Invitation Card -->
     <div
       id="main-card"
-      class="relative w-full max-w-[430px] min-h-screen md:min-h-[932px] bg-gradient-to-b from-cream-50 via-cream-200 to-cream-50 md:rounded-[40px] shadow-2xl overflow-hidden"
+      class="relative w-full max-w-[430px] md:max-w-[768px] min-h-screen md:min-h-[932px] bg-gradient-to-b from-cream-50 via-cream-200 to-cream-50 md:rounded-[40px] md:shadow-2xl overflow-hidden"
       style="display: none"
     >
       <!-- Glass Overlay Effect -->
@@ -579,13 +579,15 @@
             </div>
 
             <!-- 2 cột QR -->
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-2 gap-4 max-w-md mx-auto">
               <!-- Chú Rể -->
               <div class="flex flex-col gap-2 items-center">
                 <div class="text-[11px] text-stone-custom-500 font-inter">
                   Chú Rể · <span id="groom-bank-label">----------</span>
                 </div>
-                <div class="bg-white rounded-2xl p-3 shadow-md">
+                <div
+                  class="bg-white rounded-2xl p-3 shadow-md w-full max-w-[180px]"
+                >
                   <img
                     src=""
                     id="groom-qr-img"
@@ -627,7 +629,9 @@
                 <div class="text-[11px] text-stone-custom-500 font-inter">
                   Cô Dâu · <span id="bride-bank-label">----------</span>
                 </div>
-                <div class="bg-white rounded-2xl p-3 shadow-md">
+                <div
+                  class="bg-white rounded-2xl p-3 shadow-md w-full max-w-[180px]"
+                >
                   <img
                     src=""
                     id="bride-qr-img"

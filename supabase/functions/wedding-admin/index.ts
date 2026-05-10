@@ -70,7 +70,7 @@ Deno.serve(async (req) => {
           .single()
 
         if (error) return new Response(JSON.stringify({ error }), { status: 404, headers: corsHeaders })
-
+ 
         return new Response(JSON.stringify(data), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         })
