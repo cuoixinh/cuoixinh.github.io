@@ -33,149 +33,297 @@
         background: #fee2e2;
         color: #991b1b;
       }
+      .tab-button {
+        flex: 1;
+        padding: 1rem 1.5rem;
+        border-bottom: 3px solid transparent;
+        transition: all 0.2s;
+        font-size: 0.95rem;
+        color: #6b7280;
+        background: transparent;
+        cursor: pointer;
+        border: none;
+        outline: none;
+      }
+      .tab-button:hover {
+        background: #f9fafb;
+        color: #374151;
+      }
+      .tab-button.active {
+        border-bottom-color: rgb(251 113 133);
+        color: rgb(251 113 133);
+        font-weight: 600;
+        background: #fff;
+      }
+      .tab-content {
+        display: none;
+      }
+      .tab-content.active {
+        display: block;
+      }
+
+      /* Responsive tables */
+      @media (max-width: 1024px) {
+        .table-container {
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+        }
+        table {
+          min-width: 800px;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .tab-button {
+          padding: 0.875rem 1rem;
+          font-size: 0.875rem;
+        }
+        .tab-button i {
+          display: block;
+          margin: 0 auto 0.25rem;
+        }
+        h1 {
+          font-size: 1.5rem !important;
+        }
+      }
     </style>
   </head>
-  <body class="bg-gray-50 min-h-screen p-4">
+  <body class="bg-gray-50 min-h-screen p-2 sm:p-4 md:p-6">
     <div class="max-w-7xl mx-auto">
-      <h1 class="text-3xl font-semibold text-gray-800 mb-8">
-        Quản lý Thiệp Cưới
+      <h1
+        class="text-2xl sm:text-3xl font-semibold text-gray-800 mb-4 sm:mb-6 md:mb-8 px-2"
+      >
+        Quản lý Hệ thống
       </h1>
 
-      <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
-        <!-- Search bar -->
-        <div class="p-6 border-b border-gray-100">
-          <div class="flex gap-4 items-center">
-            <input
-              id="search-input"
-              type="text"
-              placeholder="Tìm kiếm theo slug, tên chú rể, cô dâu..."
-              class="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-rose-300"
-            />
-            <button
-              onclick="searchWeddings()"
-              class="px-6 py-2 bg-rose-400 hover:bg-rose-500 text-white rounded-lg text-sm font-medium transition-colors"
-            >
-              Tìm kiếm
-            </button>
-            <button
-              onclick="clearSearch()"
-              class="px-6 py-2 border border-gray-200 hover:bg-gray-50 text-gray-600 rounded-lg text-sm font-medium transition-colors"
-            >
-              Xóa
-            </button>
-            <div class="border-l border-gray-300 h-8 mx-2"></div>
-            <button
-              id="purge-cache-btn"
-              onclick="purgeTemplatesCache()"
-              class="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
-              title="Xóa cache Cloudflare để cập nhật templates mới"
-            >
-              <i class="fas fa-sync"></i>
-              Xóa Cache
-            </button>
+      <!-- Tabs -->
+      <div class="bg-white rounded-t-2xl shadow-lg">
+        <div class="flex border-b border-gray-200">
+          <button
+            onclick="switchTab('weddings')"
+            id="tab-weddings"
+            class="tab-button active"
+          >
+            <i class="fas fa-heart sm:mr-2"></i
+            ><span class="hidden sm:inline">Thiệp Cưới</span
+            ><span class="sm:hidden">Thiệp</span>
+          </button>
+          <button
+            onclick="switchTab('templates')"
+            id="tab-templates"
+            class="tab-button"
+          >
+            <i class="fas fa-palette sm:mr-2"></i><span>Templates</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Tab Content: Weddings -->
+      <div id="content-weddings" class="tab-content active">
+        <div class="bg-white rounded-b-2xl shadow-lg overflow-hidden">
+          <!-- Search bar -->
+          <div class="p-3 sm:p-4 md:p-6 border-b border-gray-100">
+            <div class="flex gap-2 sm:gap-4 items-center">
+              <input
+                id="search-input"
+                type="text"
+                placeholder="Tìm kiếm theo slug, tên..."
+                class="flex-1 px-3 sm:px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-rose-300"
+              />
+              <button
+                onclick="searchWeddings()"
+                class="px-4 sm:px-6 py-2 bg-rose-400 hover:bg-rose-500 text-white rounded-lg text-sm font-medium transition-colors whitespace-nowrap"
+              >
+                Tìm kiếm
+              </button>
+            </div>
+          </div>
+
+          <!-- Table -->
+          <div class="table-container p-3 sm:p-4 md:p-6">
+            <table class="w-full">
+              <thead>
+                <tr class="border-b border-gray-200">
+                  <th
+                    class="text-left py-3 px-4 text-sm font-medium text-gray-700"
+                  >
+                    Slug
+                  </th>
+                  <th
+                    class="text-left py-3 px-4 text-sm font-medium text-gray-700"
+                  >
+                    URL Thiệp
+                  </th>
+                  <th
+                    class="text-left py-3 px-4 text-sm font-medium text-gray-700"
+                  >
+                    Link Quản lý
+                  </th>
+                  <th
+                    class="text-left py-3 px-4 text-sm font-medium text-gray-700"
+                  >
+                    Chú rể
+                  </th>
+                  <th
+                    class="text-left py-3 px-4 text-sm font-medium text-gray-700"
+                  >
+                    Cô dâu
+                  </th>
+                  <th
+                    class="text-left py-3 px-4 text-sm font-medium text-gray-700"
+                  >
+                    Mã đơn hàng
+                  </th>
+                  <th
+                    class="text-left py-3 px-4 text-sm font-medium text-gray-700"
+                  >
+                    Trạng thái
+                  </th>
+                  <th
+                    class="text-left py-3 px-4 text-sm font-medium text-gray-700"
+                  >
+                    Ngày tạo
+                  </th>
+                  <th
+                    class="text-left py-3 px-4 text-sm font-medium text-gray-700"
+                  >
+                    Thao tác
+                  </th>
+                </tr>
+              </thead>
+              <tbody id="wedding-list">
+                <tr>
+                  <td colspan="9" class="text-center py-8 text-gray-400">
+                    Đang tải...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination -->
+          <div
+            class="flex flex-col sm:flex-row items-center justify-between gap-3 px-3 sm:px-4 md:px-6 pb-3 sm:pb-4 md:pb-6"
+          >
+            <div class="text-xs sm:text-sm text-gray-600">
+              Trang <span id="current-page">1</span> /
+              <span id="total-pages">1</span> (<span id="total-records">0</span>
+              bản ghi)
+            </div>
+            <div class="flex gap-2">
+              <button
+                onclick="loadPage(currentPage - 1)"
+                id="btn-prev"
+                class="px-3 sm:px-4 py-2 border border-gray-200 rounded-lg text-xs sm:text-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Trước
+              </button>
+              <button
+                onclick="loadPage(currentPage + 1)"
+                id="btn-next"
+                class="px-3 sm:px-4 py-2 border border-gray-200 rounded-lg text-xs sm:text-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Sau
+              </button>
+            </div>
           </div>
         </div>
+      </div>
 
-        <!-- Table -->
-        <div class="overflow-x-auto p-6">
-          <table class="w-full">
-            <thead>
-              <tr class="border-b border-gray-200">
-                <th
-                  class="text-left py-3 px-4 text-sm font-medium text-gray-700"
-                >
-                  Slug
-                </th>
-                <th
-                  class="text-left py-3 px-4 text-sm font-medium text-gray-700"
-                >
-                  URL Thiệp
-                </th>
-                <th
-                  class="text-left py-3 px-4 text-sm font-medium text-gray-700"
-                >
-                  Link Quản lý
-                </th>
-                <th
-                  class="text-left py-3 px-4 text-sm font-medium text-gray-700"
-                >
-                  Chú rể
-                </th>
-                <th
-                  class="text-left py-3 px-4 text-sm font-medium text-gray-700"
-                >
-                  Cô dâu
-                </th>
-                <th
-                  class="text-left py-3 px-4 text-sm font-medium text-gray-700"
-                >
-                  Mã đơn hàng
-                </th>
-                <th
-                  class="text-left py-3 px-4 text-sm font-medium text-gray-700"
-                >
-                  Trạng thái
-                </th>
-                <th
-                  class="text-left py-3 px-4 text-sm font-medium text-gray-700"
-                >
-                  Ngày tạo
-                </th>
-                <th
-                  class="text-left py-3 px-4 text-sm font-medium text-gray-700"
-                >
-                  Thao tác
-                </th>
-              </tr>
-            </thead>
-            <tbody id="wedding-list">
-              <tr>
-                <td colspan="9" class="text-center py-8 text-gray-400">
-                  Đang tải...
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Pagination -->
-        <div class="flex items-center justify-between px-6 pb-6">
-          <div class="text-sm text-gray-600">
-            Trang <span id="current-page">1</span> /
-            <span id="total-pages">1</span> (<span id="total-records">0</span>
-            bản ghi)
+      <!-- Tab Content: Templates -->
+      <div id="content-templates" class="tab-content">
+        <div class="bg-white rounded-b-2xl shadow-lg overflow-hidden">
+          <!-- Toolbar -->
+          <div
+            class="p-3 sm:p-4 md:p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3"
+          >
+            <h2 class="text-base sm:text-lg font-semibold text-gray-800">
+              Quản lý Templates
+            </h2>
+            <div class="flex gap-2">
+              <button
+                id="purge-cache-btn"
+                onclick="purgeTemplatesCache()"
+                class="flex-1 sm:flex-none px-4 sm:px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                title="Xóa cache Cloudflare"
+              >
+                <i class="fas fa-sync"></i>
+                <span class="hidden sm:inline">Xóa Cache</span>
+              </button>
+              <button
+                onclick="openTemplateModal()"
+                class="flex-1 sm:flex-none px-4 sm:px-6 py-2 bg-rose-400 hover:bg-rose-500 text-white rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+              >
+                <i class="fas fa-plus"></i>
+                <span class="hidden sm:inline">Thêm Template</span
+                ><span class="sm:hidden">Thêm</span>
+              </button>
+            </div>
           </div>
-          <div class="flex gap-2">
-            <button
-              onclick="loadPage(currentPage - 1)"
-              id="btn-prev"
-              class="px-4 py-2 border border-gray-200 rounded-lg text-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Trước
-            </button>
-            <button
-              onclick="loadPage(currentPage + 1)"
-              id="btn-next"
-              class="px-4 py-2 border border-gray-200 rounded-lg text-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Sau
-            </button>
+
+          <!-- Templates Table -->
+          <div class="table-container p-3 sm:p-4 md:p-6">
+            <table class="w-full">
+              <thead>
+                <tr class="border-b border-gray-200">
+                  <th
+                    class="text-left py-3 px-4 text-sm font-medium text-gray-700"
+                  >
+                    Tên hiển thị
+                  </th>
+                  <th
+                    class="text-left py-3 px-4 text-sm font-medium text-gray-700"
+                  >
+                    Template Name
+                  </th>
+                  <th
+                    class="text-left py-3 px-4 text-sm font-medium text-gray-700"
+                  >
+                    Danh mục
+                  </th>
+                  <th
+                    class="text-left py-3 px-4 text-sm font-medium text-gray-700"
+                  >
+                    Trạng thái
+                  </th>
+                  <th
+                    class="text-left py-3 px-4 text-sm font-medium text-gray-700"
+                  >
+                    Thứ tự
+                  </th>
+                  <th
+                    class="text-left py-3 px-4 text-sm font-medium text-gray-700"
+                  >
+                    Thao tác
+                  </th>
+                </tr>
+              </thead>
+              <tbody id="template-list">
+                <tr>
+                  <td colspan="6" class="text-center py-8 text-gray-400">
+                    Đang tải...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Modal: Edit Slug -->
+    <!-- Modal: Edit Wedding Slug -->
     <div
       id="modal-edit"
-      class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50"
+      class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4"
     >
-      <div class="bg-white rounded-2xl p-6 w-full max-w-md mx-4">
-        <h3 class="text-lg font-semibold text-gray-800 mb-4">Sửa Slug</h3>
+      <div class="bg-white rounded-2xl p-4 sm:p-6 w-full max-w-md">
+        <h3 class="text-base sm:text-lg font-semibold text-gray-800 mb-4">
+          Sửa Slug
+        </h3>
         <input
           id="edit-slug-input"
           type="text"
-          class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-rose-300 mb-4"
+          class="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-rose-300 mb-4"
         />
         <div class="flex gap-3">
           <button
@@ -194,248 +342,229 @@
       </div>
     </div>
 
+    <!-- Modal: Add/Edit Template -->
+    <div
+      id="modal-template"
+      class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 overflow-y-auto p-4"
+    >
+      <div class="bg-white rounded-2xl p-4 sm:p-6 w-full max-w-2xl my-8">
+        <h3
+          class="text-base sm:text-lg font-semibold text-gray-800 mb-4"
+          id="template-modal-title"
+        >
+          Thêm Template
+        </h3>
+
+        <div
+          class="space-y-3 sm:space-y-4 max-h-[60vh] sm:max-h-[70vh] overflow-y-auto pr-2"
+        >
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Template Name (file) *</label
+            >
+            <input
+              id="template-name"
+              type="text"
+              placeholder="template1, template2..."
+              class="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-rose-300"
+            />
+            <p class="text-xs text-gray-500 mt-1">
+              <i class="fas fa-info-circle"></i> Tên file template trong thư mục
+              public/themes/ (dùng làm ID duy nhất)
+            </p>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Tên hiển thị *</label
+            >
+            <input
+              id="template-display-name"
+              type="text"
+              placeholder="Classic Elegance"
+              class="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-rose-300"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Mô tả</label
+            >
+            <textarea
+              id="template-description"
+              rows="2"
+              placeholder="Thiết kế sang trọng, cổ điển..."
+              class="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-rose-300"
+            ></textarea>
+          </div>
+
+          <div></div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Preview URL</label
+            >
+            <input
+              id="template-preview-url"
+              type="text"
+              placeholder="Tự động tạo từ Template Name"
+              class="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-rose-300 bg-gray-50"
+              readonly
+            />
+            <p class="text-xs text-gray-500 mt-1">
+              <i class="fas fa-info-circle"></i> Tự động:
+              public/themes/{template_name}.html?preview=true
+            </p>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2"
+              >Features</label
+            >
+            <div class="grid grid-cols-2 gap-2">
+              <label
+                class="flex items-center gap-2 p-2 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
+              >
+                <input
+                  type="checkbox"
+                  value="gallery"
+                  class="feature-checkbox w-4 h-4 text-rose-500 border-gray-300 rounded focus:ring-rose-500"
+                />
+                <span class="text-sm text-gray-700">Gallery</span>
+              </label>
+              <label
+                class="flex items-center gap-2 p-2 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
+              >
+                <input
+                  type="checkbox"
+                  value="map"
+                  class="feature-checkbox w-4 h-4 text-rose-500 border-gray-300 rounded focus:ring-rose-500"
+                />
+                <span class="text-sm text-gray-700">Map</span>
+              </label>
+              <label
+                class="flex items-center gap-2 p-2 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
+              >
+                <input
+                  type="checkbox"
+                  value="qrcode"
+                  class="feature-checkbox w-4 h-4 text-rose-500 border-gray-300 rounded focus:ring-rose-500"
+                />
+                <span class="text-sm text-gray-700">QR Code</span>
+              </label>
+              <label
+                class="flex items-center gap-2 p-2 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
+              >
+                <input
+                  type="checkbox"
+                  value="rsvp"
+                  class="feature-checkbox w-4 h-4 text-rose-500 border-gray-300 rounded focus:ring-rose-500"
+                />
+                <span class="text-sm text-gray-700">RSVP</span>
+              </label>
+              <label
+                class="flex items-center gap-2 p-2 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
+              >
+                <input
+                  type="checkbox"
+                  value="countdown"
+                  class="feature-checkbox w-4 h-4 text-rose-500 border-gray-300 rounded focus:ring-rose-500"
+                />
+                <span class="text-sm text-gray-700">Countdown</span>
+              </label>
+              <label
+                class="flex items-center gap-2 p-2 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
+              >
+                <input
+                  type="checkbox"
+                  value="music"
+                  class="feature-checkbox w-4 h-4 text-rose-500 border-gray-300 rounded focus:ring-rose-500"
+                />
+                <span class="text-sm text-gray-700">Music</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1"
+                >Danh mục</label
+              >
+              <select
+                id="template-category"
+                class="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-rose-300"
+              >
+                <option value="traditional">Traditional</option>
+                <option value="modern">Modern</option>
+                <option value="luxury">Luxury</option>
+                <option value="minimal">Minimal</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1"
+                >Trạng thái</label
+              >
+              <select
+                id="template-status"
+                class="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-rose-300"
+              >
+                <option value="active">Active</option>
+                <option value="coming_soon">Coming Soon</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1"
+              >Thứ tự hiển thị</label
+            >
+            <input
+              id="template-sort-order"
+              type="number"
+              value="0"
+              class="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-rose-300"
+            />
+            <p class="text-xs text-gray-500 mt-1">
+              <i class="fas fa-info-circle"></i> Số nhỏ hiển thị trước
+            </p>
+          </div>
+
+          <div class="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+            <input
+              id="template-is-active"
+              type="checkbox"
+              checked
+              class="w-4 h-4 text-rose-500 border-gray-300 rounded focus:ring-rose-500"
+            />
+            <label
+              for="template-is-active"
+              class="text-sm text-gray-700 font-medium"
+              >Kích hoạt template</label
+            >
+          </div>
+        </div>
+
+        <div class="flex gap-3 mt-6">
+          <button
+            onclick="closeTemplateModal()"
+            class="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-sm hover:bg-gray-50"
+          >
+            Hủy
+          </button>
+          <button
+            onclick="saveTemplate()"
+            class="flex-1 px-4 py-2 bg-rose-400 hover:bg-rose-500 text-white rounded-lg text-sm"
+          >
+            Lưu
+          </button>
+        </div>
+      </div>
+    </div>
+
     <script src="../core/config.js"></script>
-    <script>
-      const EDGE_URL = CONFIG.supabase.edgeUrl;
-      const ANON_KEY = CONFIG.supabase.anonKey;
-      const DOMAIN = window.location.origin;
-
-      let ADMIN_TOKEN = sessionStorage.getItem("admin_token");
-      if (!ADMIN_TOKEN) {
-        ADMIN_TOKEN = prompt("Nhập mã quản trị:");
-        if (ADMIN_TOKEN) {
-          sessionStorage.setItem("admin_token", ADMIN_TOKEN);
-        } else {
-          document.body.innerHTML =
-            '<p style="text-align:center;margin-top:40px;color:#999">Không có quyền truy cập</p>';
-        }
-      }
-
-      let currentPage = 1;
-      let totalPages = 1;
-      let currentSearch = "";
-      let editingId = null;
-
-      function searchWeddings() {
-        currentSearch = document.getElementById("search-input").value.trim();
-        loadPage(1);
-      }
-
-      function clearSearch() {
-        document.getElementById("search-input").value = "";
-        currentSearch = "";
-        loadPage(1);
-      }
-
-      async function loadPage(page) {
-        if (page < 1 || page > totalPages) return;
-        currentPage = page;
-        try {
-          let url = `${EDGE_URL}?list=true&page=${page}&limit=10&token=${ADMIN_TOKEN}`;
-          if (currentSearch)
-            url += `&search=${encodeURIComponent(currentSearch)}`;
-          const res = await fetch(url, {
-            headers: { Authorization: `Bearer ${ANON_KEY}` },
-          });
-          const result = await res.json();
-          if (!res.ok) throw new Error(result.error || "Lỗi tải danh sách");
-          renderList(result.data);
-          updatePagination(result.pagination);
-        } catch (e) {
-          document.getElementById("wedding-list").innerHTML =
-            `<tr><td colspan="8" class="text-center py-8 text-red-500">${e.message}</td></tr>`;
-        }
-      }
-
-      function renderList(weddings) {
-        const tbody = document.getElementById("wedding-list");
-        if (!weddings || weddings.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="9" class="text-center py-8 text-gray-400">Chưa có thiệp nào</td></tr>`;
-          return;
-        }
-        tbody.innerHTML = weddings
-          .map(
-            (w) => `
-          <tr class="border-b border-gray-100 hover:bg-gray-50">
-            <td class="py-3 px-4 text-sm text-gray-700 font-mono">${w.slug || "-"}</td>
-            <td class="py-3 px-4 text-sm">
-              <a href="${DOMAIN}/public/themes/template1.html?slug=${w.slug}" target="_blank" class="text-rose-500 hover:underline text-xs">${DOMAIN}/${w.slug}</a>
-            </td>
-            <td class="py-3 px-4 text-sm">
-              <button onclick="copyManageLink('${w.id}')" class="text-blue-600 hover:underline text-xs">📋 Copy link</button>
-            </td>
-            <td class="py-3 px-4 text-sm text-gray-700">${w.groom_name || "-"}</td>
-            <td class="py-3 px-4 text-sm text-gray-700">${w.bride_name || "-"}</td>
-            <td class="py-3 px-4 text-sm">
-              <span class="text-xs font-mono ${w.payment_order_id ? "text-blue-600" : "text-gray-400"}">${w.payment_order_id || "-"}</span>
-            </td>
-            <td class="py-3 px-4 text-sm">
-              <span class="status-badge ${w.is_active ? "status-active" : "status-inactive"}">${w.is_active ? "Hoạt động" : "Tắt"}</span>
-            </td>
-            <td class="py-3 px-4 text-sm text-gray-500">${formatDate(w.created_at)}</td>
-            <td class="py-3 px-4 text-sm">
-              <div class="flex gap-2">
-                <button onclick="toggleStatus('${w.id}', ${!w.is_active})" title="${w.is_active ? "Tắt" : "Bật"}">${w.is_active ? "🔒" : "🔓"}</button>
-                <button onclick="openEditModal('${w.id}', '${w.slug}')" title="Sửa slug">✏️</button>
-                <button onclick="deleteWedding('${w.id}', '${w.slug}')" title="Xóa">🗑️</button>
-              </div>
-            </td>
-          </tr>`,
-          )
-          .join("");
-      }
-
-      function formatDate(dateStr) {
-        return new Date(dateStr).toLocaleDateString("vi-VN", {
-          year: "numeric",
-          month: "2-digit",
-          day: "2-digit",
-          hour: "2-digit",
-          minute: "2-digit",
-        });
-      }
-
-      function updatePagination(pagination) {
-        currentPage = pagination.page;
-        totalPages = pagination.totalPages;
-        document.getElementById("current-page").textContent = pagination.page;
-        document.getElementById("total-pages").textContent =
-          pagination.totalPages;
-        document.getElementById("total-records").textContent = pagination.total;
-        document.getElementById("btn-prev").disabled = pagination.page === 1;
-        document.getElementById("btn-next").disabled =
-          pagination.page === pagination.totalPages;
-      }
-
-      function copyManageLink(id) {
-        navigator.clipboard.writeText(
-          `${DOMAIN}/customer/manage.html?id=${id}`,
-        );
-        alert("Đã copy link quản lý!");
-      }
-
-      async function toggleStatus(id, newStatus) {
-        if (
-          !confirm(`Bạn có chắc muốn ${newStatus ? "bật" : "tắt"} thiệp này?`)
-        )
-          return;
-        try {
-          const res = await fetch(`${EDGE_URL}?token=${ADMIN_TOKEN}`, {
-            method: "PATCH",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${ANON_KEY}`,
-            },
-            body: JSON.stringify({ id, is_active: newStatus }),
-          });
-          if (!res.ok) throw new Error("Lỗi cập nhật trạng thái");
-          loadPage(currentPage);
-        } catch (e) {
-          alert(e.message);
-        }
-      }
-
-      function openEditModal(id, slug) {
-        editingId = id;
-        document.getElementById("edit-slug-input").value = slug;
-        document.getElementById("modal-edit").classList.remove("hidden");
-        document.getElementById("modal-edit").classList.add("flex");
-      }
-
-      function closeModal() {
-        editingId = null;
-        document.getElementById("modal-edit").classList.add("hidden");
-        document.getElementById("modal-edit").classList.remove("flex");
-      }
-
-      async function saveSlug() {
-        const newSlug = document.getElementById("edit-slug-input").value.trim();
-        if (!newSlug) {
-          alert("Vui lòng nhập slug");
-          return;
-        }
-        try {
-          const res = await fetch(`${EDGE_URL}?token=${ADMIN_TOKEN}`, {
-            method: "PATCH",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${ANON_KEY}`,
-            },
-            body: JSON.stringify({ id: editingId, slug: newSlug }),
-          });
-          const data = await res.json();
-          if (!res.ok) throw new Error(data.error || "Lỗi cập nhật slug");
-          closeModal();
-          loadPage(currentPage);
-        } catch (e) {
-          alert(e.message);
-        }
-      }
-
-      async function deleteWedding(id, slug) {
-        if (
-          !confirm(
-            `Bạn có chắc muốn xóa thiệp "${slug}"?\n\nThao tác này không thể hoàn tác!`,
-          )
-        )
-          return;
-        try {
-          const res = await fetch(`${EDGE_URL}?id=${id}&token=${ADMIN_TOKEN}`, {
-            method: "DELETE",
-            headers: { Authorization: `Bearer ${ANON_KEY}` },
-          });
-          if (!res.ok) throw new Error("Lỗi xóa thiệp");
-          loadPage(currentPage);
-        } catch (e) {
-          alert(e.message);
-        }
-      }
-
-      document
-        .getElementById("search-input")
-        .addEventListener("keydown", (e) => {
-          if (e.key === "Enter") searchWeddings();
-        });
-
-      // Purge templates cache
-      async function purgeTemplatesCache() {
-        const btn = document.getElementById("purge-cache-btn");
-        const originalHTML = btn.innerHTML;
-
-        try {
-          btn.disabled = true;
-          btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang xóa...';
-
-          const response = await fetch(
-            CONFIG.cloudflare.templatesCache + "/purge",
-            {
-              method: "POST",
-              headers: {
-                "X-Purge-Secret": CONFIG.cloudflare.purgeSecret,
-                "Content-Type": "application/json",
-              },
-            },
-          );
-
-          const result = await response.json();
-
-          if (response.ok && result.success) {
-            alert(
-              "✅ Đã xóa cache thành công!\n\nTemplates mới sẽ được load trong lần truy cập tiếp theo.",
-            );
-          } else {
-            alert("❌ Lỗi: " + (result.error || "Không thể xóa cache"));
-          }
-        } catch (error) {
-          alert("❌ Lỗi kết nối: " + error.message);
-        } finally {
-          btn.disabled = false;
-          btn.innerHTML = originalHTML;
-        }
-      }
-
-      // Load danh sách ngay khi vào trang
-      loadPage(1);
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="admin.js"></script>
   </body>
 </html>

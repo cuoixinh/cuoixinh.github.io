@@ -26,10 +26,10 @@ class ImageBL {
       throw new Error("Chỉ chấp nhận file ảnh");
     }
 
-    // Max 10MB before resize
-    const maxBeforeResize = 10 * 1024 * 1024;
+    // Max 50MB before resize (increased to handle large photos from cameras)
+    const maxBeforeResize = 50 * 1024 * 1024;
     if (file.size > maxBeforeResize) {
-      throw new Error("File quá lớn (tối đa 10MB)");
+      throw new Error("File quá lớn (tối đa 50MB)");
     }
   }
 

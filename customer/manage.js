@@ -773,24 +773,59 @@ async function handleImageUpload(event, fieldName) {
     return;
   }
 
-  showLoading(true, "Ảnh vượt quá dung lượng cho phép, đang nén ảnh lại...");
+  // Check if this is a QR code field
+  const isQRField =
+    fieldName === "groom_qr_url" || fieldName === "bride_qr_url";
 
-  try {
-    // Resize image locally
-    const processedFile = await resizeImage(file, 1, 1920, 1920);
+  if (isQRField) {
+    // Open crop modal for QR codes
+    openImageCropModal(file, async (croppedBlob) => {
+      showLoading(true, "Đang xử lý ảnh...");
+      try {
+        // Convert blob to File
+        const croppedFile = new File([croppedBlob], file.name, {
+          type: "image/png",
+          lastModified: Date.now(),
+        });
 
-    // Store file for later upload
-    pendingUploads.singleImages[fieldName] = processedFile;
+        // Resize cropped image
+        const processedFile = await resizeImage(croppedFile, 1, 800, 800);
 
-    // Render UI
-    renderSingleImageUpload(fieldName);
+        // Store file for later upload
+        pendingUploads.singleImages[fieldName] = processedFile;
 
-    showToast("✅ Đã chọn ảnh (chưa lưu)");
-  } catch (error) {
-    console.error("Error processing image:", error);
-    showToast("❌ Lỗi xử lý ảnh: " + error.message);
-  } finally {
-    showLoading(false);
+        // Render UI
+        renderSingleImageUpload(fieldName);
+
+        showToast("✅ Đã chọn ảnh (chưa lưu)");
+      } catch (error) {
+        console.error("Error processing image:", error);
+        showToast("❌ Lỗi xử lý ảnh: " + error.message);
+      } finally {
+        showLoading(false);
+      }
+    });
+  } else {
+    // Normal image upload (no crop)
+    showLoading(true, "Ảnh vượt quá dung lượng cho phép, đang nén ảnh lại...");
+
+    try {
+      // Resize image locally
+      const processedFile = await resizeImage(file, 1, 1920, 1920);
+
+      // Store file for later upload
+      pendingUploads.singleImages[fieldName] = processedFile;
+
+      // Render UI
+      renderSingleImageUpload(fieldName);
+
+      showToast("✅ Đã chọn ảnh (chưa lưu)");
+    } catch (error) {
+      console.error("Error processing image:", error);
+      showToast("❌ Lỗi xử lý ảnh: " + error.message);
+    } finally {
+      showLoading(false);
+    }
   }
 }
 
@@ -1020,8 +1055,15 @@ function removeImage(fieldName) {
     const hiddenInput = document.querySelector(`input[name="${fieldName}"]`);
     const existingFilename = hiddenInput ? hiddenInput.value : null;
 
-    if (existingFilename && !existingFilename.startsWith("http")) {
-      deletedImages.singleImages.push(existingFilename);
+    if (existingFilename) {
+      // Extract filename from URL if it's a full URL
+      let filename = existingFilename;
+      if (existingFilename.startsWith("http")) {
+        // Extract filename from URL: https://...workers.dev/abc123.jpg -> abc123.jpg
+        filename = existingFilename.split("/").pop();
+      }
+      deletedImages.singleImages.push(filename);
+      console.log("Marked for deletion:", filename);
     }
 
     if (hiddenInput) hiddenInput.value = "";
@@ -1055,8 +1097,15 @@ function removeExistingGalleryImage(index) {
   const deletedFilename = filenames[index];
 
   // Mark for deletion in Storage
-  if (deletedFilename && !deletedFilename.startsWith("http")) {
-    deletedImages.galleryImages.push(deletedFilename);
+  if (deletedFilename) {
+    // Extract filename from URL if it's a full URL
+    let filename = deletedFilename;
+    if (deletedFilename.startsWith("http")) {
+      // Extract filename from URL: https://...workers.dev/abc123.jpg -> abc123.jpg
+      filename = deletedFilename.split("/").pop();
+    }
+    deletedImages.galleryImages.push(filename);
+    console.log("Marked gallery image for deletion:", filename);
   }
 
   filenames.splice(index, 1);
@@ -1217,7 +1266,7 @@ async function saveAll() {
     // Step 2: Prepare form data
     const form = document.getElementById("wedding-form");
     const formData = new FormData(form);
-    const payload = { id: WEDDING_ID };
+    const payload = { id: WEDDING_ID, slug: WEDDING_SLUG };
 
     // Step 2.5: Get YouTube music URL (prioritize textbox input over hidden input)
     const youtubeTextbox = document.getElementById("youtube-link-input");
@@ -1245,8 +1294,10 @@ async function saveAll() {
       ...deletedImages.singleImages,
       ...deletedImages.galleryImages,
     ];
+    console.log("Deleted images to send:", allDeletedImages);
     if (allDeletedImages.length > 0) {
       payload.deleted_images = allDeletedImages;
+      console.log("Added deleted_images to payload:", payload.deleted_images);
     }
 
     formData.forEach((value, key) => {

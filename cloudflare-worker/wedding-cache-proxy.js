@@ -69,7 +69,10 @@ var worker_default = {
       );
     }
     if ((method === "PATCH" || method === "DELETE") && supabaseResponse.ok) {
-      ctx.waitUntil(invalidateCache(id, requestBody, responseData, env));
+      // For PATCH, id is in request body, not query params
+      const weddingId =
+        method === "PATCH" && requestBody?.id ? requestBody.id : id;
+      ctx.waitUntil(invalidateCache(weddingId, requestBody, responseData, env));
     }
     return new Response(JSON.stringify(responseData), {
       status: supabaseResponse.status,
@@ -89,24 +92,41 @@ function buildCacheKey(slug, id) {
 __name(buildCacheKey, "buildCacheKey");
 async function invalidateCache(id, requestBody, responseData, env) {
   try {
-    // Delete cache by ID
-    if (id) {
-      await env.WEDDING_CACHE.delete(`wedding:id:${id}`);
-      console.log("Deleted cache for ID:", id);
-    }
-
-    // Try to get slug from request body or response data
+    // Try to get slug from request body, response data, or existing cache
     let slug = null;
+
+    // Priority 1: Request body (if user is updating slug)
     if (requestBody && requestBody.slug) {
       slug = requestBody.slug;
-    } else if (responseData && responseData.slug) {
+    }
+
+    // Priority 2: Response data
+    if (!slug && responseData && responseData.slug) {
       slug = responseData.slug;
     }
 
-    // Delete cache by slug
+    // Priority 3: Get from existing cache by ID (BEFORE deleting)
+    if (!slug && id) {
+      const cachedData = await env.WEDDING_CACHE.get(`wedding:id:${id}`, {
+        type: "json",
+      });
+      if (cachedData && cachedData.slug) {
+        slug = cachedData.slug;
+      }
+    }
+
+    // Delete cache by slug (primary cache key used by clients)
     if (slug) {
       await env.WEDDING_CACHE.delete(`wedding:slug:${slug}`);
       console.log("Deleted cache for slug:", slug);
+    } else {
+      console.log("Could not determine slug for cache invalidation");
+    }
+
+    // Also delete cache by ID if exists (for robustness)
+    if (id) {
+      await env.WEDDING_CACHE.delete(`wedding:id:${id}`);
+      console.log("Deleted cache for ID:", id);
     }
   } catch (e) {
     console.error("Cache invalidation error:", e);

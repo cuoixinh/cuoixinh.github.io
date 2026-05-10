@@ -70,7 +70,8 @@ class WeddingDAL {
    * @returns {Promise<Object>} Updated wedding data
    */
   async updateWedding(payload) {
-    const response = await fetch(this.edgeUrl, {
+    const apiUrl = this.workerUrl || this.edgeUrl;
+    const response = await fetch(apiUrl, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",

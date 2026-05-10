@@ -15,6 +15,7 @@ Deno.serve(async (req) => {
   const token = url.searchParams.get('token') || req.headers.get('x-admin-token')
   const isAdmin = token === Deno.env.get('ADMIN_SECRET_TOKEN')
   const method = req.method
+  const resource = url.searchParams.get('resource') || 'weddings' // 'weddings' or 'templates'
 
   const supabase = createClient(
     Deno.env.get('SUPABASE_URL')!,
@@ -47,6 +48,113 @@ Deno.serve(async (req) => {
     
     return finalSlug;
   }
+
+  // ============= TEMPLATES MANAGEMENT =============
+  if (resource === 'templates') {
+    if (!isAdmin) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401, headers: corsHeaders
+      })
+    }
+
+    // GET - List all templates or get single template by id
+    if (method === 'GET') {
+      const id = url.searchParams.get('id')
+      
+      // Get single template by id
+      if (id) {
+        const { data, error } = await supabase
+          .from('templates')
+          .select('*')
+          .eq('id', id)
+          .single()
+
+        if (error) return new Response(JSON.stringify({ error }), { status: 404, headers: corsHeaders })
+
+        return new Response(JSON.stringify(data), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        })
+      }
+      
+      // List all templates
+      const { data, error } = await supabase
+        .from('templates')
+        .select('*')
+        .order('sort_order', { ascending: true })
+
+      if (error) return new Response(JSON.stringify({ error }), { status: 500, headers: corsHeaders })
+
+      return new Response(JSON.stringify(data), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    // POST - Create new template
+    if (method === 'POST') {
+      const body = await req.json()
+      
+      const { data, error } = await supabase
+        .from('templates')
+        .insert([body])
+        .select()
+        .single()
+
+      if (error) return new Response(JSON.stringify({ error }), { status: 500, headers: corsHeaders })
+
+      return new Response(JSON.stringify(data), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    // PATCH - Update template
+    if (method === 'PATCH') {
+      const body = await req.json()
+      const { id, ...fields } = body
+
+      if (!id) {
+        return new Response(JSON.stringify({ error: 'Missing id' }), {
+          status: 400, headers: corsHeaders
+        })
+      }
+
+      const { data, error } = await supabase
+        .from('templates')
+        .update(fields)
+        .eq('id', id)
+        .select()
+        .single()
+
+      if (error) return new Response(JSON.stringify({ error }), { status: 500, headers: corsHeaders })
+
+      return new Response(JSON.stringify(data), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    // DELETE - Delete template
+    if (method === 'DELETE') {
+      const id = url.searchParams.get('id')
+      
+      if (!id) {
+        return new Response(JSON.stringify({ error: 'Missing id' }), {
+          status: 400, headers: corsHeaders
+        })
+      }
+
+      const { error } = await supabase
+        .from('templates')
+        .delete()
+        .eq('id', id)
+
+      if (error) return new Response(JSON.stringify({ error }), { status: 500, headers: corsHeaders })
+
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+  }
+
+  // ============= WEDDINGS MANAGEMENT =============
 
   // POST → Tạo bản ghi mới (public - KH tự tạo sau khi thanh toán)
   if (method === 'POST') {
@@ -114,9 +222,17 @@ Deno.serve(async (req) => {
         ...(existing.gallery_images || [])
       ].filter(Boolean) // Remove null/undefined
 
+      // Extract filenames from URLs (in case they are full URLs)
+      const extractedFilenames = validFilenames.map(f => {
+        if (f.startsWith('http')) {
+          return f.split('/').pop(); // Extract filename from URL
+        }
+        return f; // Already a filename
+      });
+
       // Filter deleted_images to only include valid filenames
       const validDeletedImages = deleted_images.filter(filename => 
-        validFilenames.includes(filename)
+        extractedFilenames.includes(filename)
       )
 
       if (validDeletedImages.length > 0) {
@@ -182,31 +298,24 @@ Deno.serve(async (req) => {
 
       const page = parseInt(url.searchParams.get('page') || '1')
       const limit = parseInt(url.searchParams.get('limit') || '10')
-      const search = url.searchParams.get('search') || ''
+      const search = url.searchParams.get('search')?.trim() || ''
       const offset = (page - 1) * limit
 
-      // Build query with search
-      let query = supabase.from('weddings').select('*', { count: 'exact' })
+      // Build base query with search filter
+      let baseQuery = supabase
+        .from('weddings')
+        .select('id, slug, groom_name, bride_name, is_active, created_at, payment_order_id', { count: 'exact' })
       
       if (search) {
-        query = query.or(`slug.ilike.%${search}%,groom_name.ilike.%${search}%,bride_name.ilike.%${search}%`)
+        baseQuery = baseQuery.or(`slug.ilike.%${search}%,groom_name.ilike.%${search}%,bride_name.ilike.%${search}%`)
       }
 
-      // Get total count
-      const { count } = await query
-
-      // Get paginated data
-      let dataQuery = supabase
-        .from('weddings')
-        .select('id, slug, groom_name, bride_name, is_active, created_at, payment_order_id')
+      // Apply ordering and pagination
+      baseQuery = baseQuery
         .order('created_at', { ascending: false })
         .range(offset, offset + limit - 1)
-      
-      if (search) {
-        dataQuery = dataQuery.or(`slug.ilike.%${search}%,groom_name.ilike.%${search}%,bride_name.ilike.%${search}%`)
-      }
 
-      const { data, error } = await dataQuery
+      const { data, error, count } = await baseQuery
 
       if (error) return new Response(JSON.stringify({ error }), { status: 500, headers: corsHeaders })
 
