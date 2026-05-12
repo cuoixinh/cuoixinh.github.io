@@ -12,148 +12,44 @@ function renderWedding(w) {
 
   const side = _isGroom ? "groom" : "bride";
 
-  // --- NHẠC NỀN YOUTUBE ---
-  const musicToggleBtn = document.getElementById("music-toggle");
-
-  if (w.music_url) {
-    initYouTubeMusic(w.music_url);
-    // Show music button
-    if (musicToggleBtn) {
-      musicToggleBtn.style.display = "flex";
-    }
-  } else {
-    // Hide music button when no music
-    if (musicToggleBtn) {
-      musicToggleBtn.style.display = "none";
-    }
-  }
+  // --- MUSIC ---
+  setupMusic(w.music_url);
 
   // --- COVER ---
-  setAttr("cover-bg-img", "src", getImageUrl(w.cover_image_url));
-  setText("cover-groom-name", w.groom_name, "----------");
-  setText("cover-bride-name", w.bride_name, "----------");
+  renderCover(w);
 
-  // --- SAVE THE DATE ---
-  setImageWithRing("main-photo", w.cover_image_url);
-  setText("couple-names-groom", w.groom_name, "----------");
-  setText("couple-names-bride", w.bride_name, "----------");
+  // --- HERO ---
+  renderHero(w, true); // true = use setImageWithRing
 
-  // --- THÔNG TIN GIA ĐÌNH ---
-  setText("groom-father", w.groom_father, "--------------------");
-  setText("groom-mother", w.groom_mother, "--------------------");
-  setText(
-    "groom-address",
-    w.groom_address,
-    "----------------------------------------",
-  );
-  setText("groom-name-label", w.groom_name, "----------");
-  setImageWithRing("groom-photo", w.groom_image_url);
-
-  setText("bride-father", w.bride_father, "--------------------");
-  setText("bride-mother", w.bride_mother, "--------------------");
-  setText(
-    "bride-address",
-    w.bride_address,
-    "----------------------------------------",
-  );
-  setText("bride-name-label", w.bride_name, "----------");
-  setImageWithRing("bride-photo", w.bride_image_url);
-
-  // --- LỄ THÀNH HÔN ---
+  // --- COUPLE INFO ---
   setText("invite-groom", w.groom_name, "----------");
   setText("invite-bride", w.bride_name, "----------");
-  if (w.ceremony_date) {
-    const d = new Date(w.ceremony_date);
-    const weekdays = [
-      "Chủ Nhật",
-      "Thứ Hai",
-      "Thứ Ba",
-      "Thứ Tư",
-      "Thứ Năm",
-      "Thứ Sáu",
-      "Thứ Bảy",
-    ];
-    setText("invite-day", d.getDate());
-    setText(
-      "invite-month-year",
-      `Tháng ${d.getMonth() + 1} · ${d.getFullYear()}`,
-    );
-    setText("invite-weekday", weekdays[d.getDay()]);
-  }
-  setText("invite-time", w.ceremony_time, "--:--");
-  setText("invite-lunar", w.ceremony_lunar, "--------------------");
+  renderCoupleInfo(w);
 
-  // --- TIỆC CƯỚI (theo phía nhà trai/gái) ---
+  // --- CEREMONY DATE ---
+  renderCeremonyDate(w.ceremony_date, w.ceremony_time, w.ceremony_lunar);
+
+  // --- PARTY DATE ---
   const partyDate = w[`${side}_party_date`];
   const partyTime = w[`${side}_party_time`];
   const partyLunar = w[`${side}_party_lunar`];
   const partyLocation = w[`${side}_party_location`];
-
-  if (partyDate && partyTime) {
-    const d = new Date(partyDate);
-    setText(
-      "party-datetime",
-      `${partyTime} - ${d.getDate()}.${String(d.getMonth() + 1).padStart(2, "0")}.${d.getFullYear()}`,
-    );
-  } else {
-    setText("party-datetime", "--:-- - --.--.----");
-  }
-  setText("party-lunar", partyLunar ? `(${partyLunar})` : "(----)");
-  setText("party-location", partyLocation, "------------------------");
+  renderPartyDate(partyDate, partyTime, partyLunar, partyLocation, "full");
 
   // --- MINI CALENDAR ---
-  const ceremonyDate = w.ceremony_date;
-  if (ceremonyDate && partyDate) {
-    const d1 = new Date(ceremonyDate);
-    const d2 = new Date(partyDate);
-    updateWeddingDates([
-      {
-        year: d1.getFullYear(),
-        month: d1.getMonth() + 1,
-        day: d1.getDate(),
-      },
-      {
-        year: d2.getFullYear(),
-        month: d2.getMonth() + 1,
-        day: d2.getDate(),
-      },
-    ]);
-    renderMiniCalendar();
-  }
+  setupMiniCalendar(w.ceremony_date, partyDate);
 
   // --- STORY QUOTE ---
-  if (w.story_quote) setText("story-quote", `"${w.story_quote}"`);
+  renderStoryQuote(w.story_quote);
 
   // --- GALLERY ---
   renderCarouselGallery(w.gallery_images);
 
-  // --- HỘP MỪNG CƯỚI ---
-  setText("groom-bank-label", w.groom_name, "----------");
-  setText("groom-bank-name", w.groom_bank_name, "----------------");
-  setText("groom-bank-number", w.groom_bank_number, "------------");
-  setText("groom-bank-owner", w.groom_bank_owner, "--------------------");
-  setAttr("groom-qr-img", "src", getImageUrl(w.groom_qr_url));
+  // --- QR CODES ---
+  renderQRCodes(w);
 
-  setText("bride-bank-label", w.bride_name, "----------");
-  setText("bride-bank-name", w.bride_bank_name, "----------------");
-  setText("bride-bank-number", w.bride_bank_number, "------------");
-  setText("bride-bank-owner", w.bride_bank_owner, "--------------------");
-  setAttr("bride-qr-img", "src", getImageUrl(w.bride_qr_url));
-
-  // --- BẢN ĐỒ (theo phía nhà trai/gái) ---
-  const mapEmbedRaw = w[`${side}_map_embed_url`];
-  const mapEmbed = extractMapEmbedUrl(mapEmbedRaw);
-
-  if (mapEmbed) {
-    const iframe = document.getElementById("map-thumbnail-iframe");
-    if (iframe) iframe.src = mapEmbed;
-
-    // Use embed URL for navigation link as well
-    const link = document.getElementById("map-link");
-    if (link) link.href = mapEmbed;
-  }
-  // Địa điểm tổ chức = party_location
-  setText("map-location-name", partyLocation, "------------------------");
+  // --- MAP ---
+  renderMap(w[`${side}_map_embed_url`], partyLocation);
 }
 
 // ============= CAROUSEL GALLERY (TEMPLATE1 SPECIFIC) =============
@@ -175,80 +71,104 @@ function fixHeight() {
   track.style.alignItems = "center";
 }
 
+// Carousel item style configs
+const CAROUSEL_STYLES = {
+  center: {
+    width: "36%",
+    height: "100%",
+    opacity: "1",
+    transform: "none",
+    zIndex: "10",
+    boxShadow: "0 20px 40px rgba(212,165,165,0.3)",
+    visibility: "visible",
+  },
+  side: {
+    width: "28%",
+    heightRatio: 0.85, // (0.28 * 4/3) / (0.36 * 4/3)
+    opacity: "0.55",
+    transform: "none",
+    zIndex: "5",
+    boxShadow: "0 4px 12px rgba(212,165,165,0.1)",
+    visibility: "visible",
+  },
+  hidden: {
+    width: "0",
+    opacity: "0",
+    visibility: "hidden",
+  },
+};
+
+function applyCarouselStyle(item, styleConfig) {
+  Object.entries(styleConfig).forEach(([key, value]) => {
+    if (key === "heightRatio") {
+      item.style.height = value * 100 + "%";
+    } else {
+      item.style[key] = value;
+    }
+  });
+}
+
 function updateCarousel() {
   const items = track.querySelectorAll(".carousel-item");
   const dots = dotsContainer.querySelectorAll("div");
 
-  for (let i = 0; i < items.length; i++) {
+  items.forEach((item, i) => {
     const diff = Math.abs(i - current);
-    if (diff === 0) {
-      items[i].style.width = "36%";
-      items[i].style.height = "100%";
-      items[i].style.opacity = "1";
-      items[i].style.transform = "none";
-      items[i].style.zIndex = "10";
-      items[i].style.boxShadow = "0 20px 40px rgba(212,165,165,0.3)";
-      items[i].style.visibility = "visible";
-    } else if (diff === 1) {
-      const sideH = track.offsetWidth * 0.28 * (4 / 3);
-      const mainH = track.offsetWidth * 0.36 * (4 / 3);
-      const ratio = sideH / mainH; // ~0.85
-      items[i].style.width = "28%";
-      items[i].style.height = ratio * 100 + "%";
-      items[i].style.opacity = "0.55";
-      items[i].style.transform = "none";
-      items[i].style.zIndex = "5";
-      items[i].style.boxShadow = "0 4px 12px rgba(212,165,165,0.1)";
-      items[i].style.visibility = "visible";
-    } else {
-      items[i].style.width = "0";
-      items[i].style.opacity = "0";
-      items[i].style.visibility = "hidden";
-    }
+    const style =
+      diff === 0
+        ? CAROUSEL_STYLES.center
+        : diff === 1
+          ? CAROUSEL_STYLES.side
+          : CAROUSEL_STYLES.hidden;
+    applyCarouselStyle(item, style);
+  });
 
-    dots[i].style.background = i === current ? "#d4a5a5" : "#f5d5d8";
-    dots[i].style.width = i === current ? "16px" : "6px";
-  }
+  dots.forEach((dot, i) => {
+    dot.style.background = i === current ? "#d4a5a5" : "#f5d5d8";
+    dot.style.width = i === current ? "16px" : "6px";
+  });
 }
 
 // Swipe handlers
-function onStart(x) {
-  startX = x;
-  isDragging = true;
-}
+const handleSwipe = {
+  start: (x) => {
+    startX = x;
+    isDragging = true;
+  },
+  end: (x) => {
+    if (!isDragging) return;
+    isDragging = false;
+    const diff = startX - x;
+    if (Math.abs(diff) > 30) {
+      current = Math.max(
+        0,
+        Math.min(carouselImages.length - 1, current + (diff > 0 ? 1 : -1)),
+      );
+      updateCarousel();
+    }
+  },
+};
 
-function onEnd(x) {
-  if (!isDragging) return;
-  isDragging = false;
-  const diff = startX - x;
-  if (Math.abs(diff) > 30) {
-    current =
-      diff > 0
-        ? Math.min(current + 1, carouselImages.length - 1)
-        : Math.max(current - 1, 0);
-    updateCarousel();
-  }
-}
-
-track.addEventListener("touchstart", (e) => onStart(e.touches[0].clientX), {
-  passive: true,
-});
-track.addEventListener("touchend", (e) => onEnd(e.changedTouches[0].clientX));
-track.addEventListener("mousedown", (e) => onStart(e.clientX));
-track.addEventListener("mouseup", (e) => onEnd(e.clientX));
-track.addEventListener("mouseleave", () => {
-  isDragging = false;
-});
+// Add swipe event listeners
+track.addEventListener(
+  "touchstart",
+  (e) => handleSwipe.start(e.touches[0].clientX),
+  { passive: true },
+);
+track.addEventListener("touchend", (e) =>
+  handleSwipe.end(e.changedTouches[0].clientX),
+);
+track.addEventListener("mousedown", (e) => handleSwipe.start(e.clientX));
+track.addEventListener("mouseup", (e) => handleSwipe.end(e.clientX));
+track.addEventListener("mouseleave", () => (isDragging = false));
 
 // Carousel observer
 const carouselObserver = new IntersectionObserver(
-  (entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        carouselObserver.unobserve(entry.target);
-      }
-    });
-  },
+  (entries) =>
+    entries.forEach(
+      (entry) =>
+        entry.isIntersecting && carouselObserver.unobserve(entry.target),
+    ),
   { threshold: 0.5 },
 );
 carouselObserver.observe(container);
@@ -256,58 +176,55 @@ carouselObserver.observe(container);
 // Click carousel item to open lightbox
 function attachCarouselClickHandler() {
   track.querySelectorAll(".carousel-item").forEach((item, i) => {
-    // Clone để xóa hết listener cũ
     const clone = item.cloneNode(true);
     item.parentNode.replaceChild(clone, item);
     clone.dataset.index = i;
     clone.addEventListener("click", () => {
       const idx = parseInt(clone.dataset.index);
-      if (idx === current) {
-        openLightbox(idx);
-      } else {
-        current = idx;
-        updateCarousel();
-      }
+      idx === current ? openLightbox(idx) : ((current = idx), updateCarousel());
     });
   });
 }
 
 // Render carousel gallery
 function renderCarouselGallery(galleryImages) {
-  if (!galleryImages || galleryImages.length === 0) {
-    // Show 3 placeholders
-    carouselImages.length = 0;
-    for (let i = 0; i < 3; i++) {
-      carouselImages.push(createPlaceholderSVG("Chưa có ảnh"));
-    }
+  // Prepare images
+  carouselImages.length = 0;
+  if (!galleryImages?.length) {
+    carouselImages.push(
+      ...Array(3)
+        .fill(null)
+        .map(() => createPlaceholderSVG("Chưa có ảnh")),
+    );
   } else {
-    const urls = galleryImages.map((f) => getImageUrl(f));
-    carouselImages.length = 0;
-    urls.forEach((url) => carouselImages.push(url));
+    carouselImages.push(...galleryImages.map(getImageUrl));
   }
 
-  // Store images for lightbox
+  // Store for lightbox
   lightboxImages.length = 0;
-  carouselImages.forEach((url) => lightboxImages.push(url));
+  lightboxImages.push(...carouselImages);
 
-  // Render carousel items
+  // Clear containers
   track.innerHTML = "";
   dotsContainer.innerHTML = "";
 
-  for (let i = 0; i < carouselImages.length; i++) {
+  // Create carousel items and dots
+  const itemTransition =
+    "transition: width 0.4s cubic-bezier(0.4,0,0.2,1), height 0.4s cubic-bezier(0.4,0,0.2,1), opacity 0.4s cubic-bezier(0.4,0,0.2,1), box-shadow 0.4s ease;";
+  const dotStyle = "height:6px; border-radius:9999px; transition: all 0.3s;";
+
+  carouselImages.forEach((imgSrc) => {
     const item = document.createElement("div");
     item.className =
       "carousel-item shrink-0 rounded-2xl overflow-hidden cursor-pointer";
-    item.style.cssText =
-      "transition: width 0.4s cubic-bezier(0.4,0,0.2,1), height 0.4s cubic-bezier(0.4,0,0.2,1), opacity 0.4s cubic-bezier(0.4,0,0.2,1), box-shadow 0.4s ease;";
-    item.innerHTML = `<img src="${carouselImages[i]}" class="w-full h-full object-cover pointer-events-none" alt="">`;
+    item.style.cssText = itemTransition;
+    item.innerHTML = `<img src="${imgSrc}" class="w-full h-full object-cover pointer-events-none" alt="">`;
     track.appendChild(item);
 
     const dot = document.createElement("div");
-    dot.style.cssText =
-      "height:6px; border-radius:9999px; transition: all 0.3s;";
+    dot.style.cssText = dotStyle;
     dotsContainer.appendChild(dot);
-  }
+  });
 
   current = Math.floor(carouselImages.length / 2);
   fixHeight();

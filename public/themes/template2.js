@@ -55,20 +55,9 @@ function renderWedding(w) {
   const side = _isGroom ? "groom" : "bride";
 
   // --- MUSIC ---
-  const musicToggleBtn = document.getElementById("music-toggle");
-  if (w.music_url) {
-    initYouTubeMusic(w.music_url);
-    if (musicToggleBtn) {
-      musicToggleBtn.style.display = "flex";
-    }
-  } else {
-    if (musicToggleBtn) {
-      musicToggleBtn.style.display = "none";
-    }
-  }
+  setupMusic(w.music_url);
 
   // --- MONOGRAM ---
-  // Get first letter of first name (last word in full name)
   const groomInitial = w.groom_name
     ? w.groom_name.trim().split(" ").pop().charAt(0).toUpperCase()
     : "M";
@@ -82,13 +71,10 @@ function renderWedding(w) {
   setText("footer-monogram-right", brideInitial);
 
   // --- COVER ---
-  setText("cover-groom-name", w.groom_name, "----------");
-  setText("cover-bride-name", w.bride_name, "----------");
+  renderCover(w);
 
   // --- HERO ---
-  setAttr("main-photo", "src", getImageUrl(w.cover_image_url));
-  setText("couple-names-groom", w.groom_name, "----------");
-  setText("couple-names-bride", w.bride_name, "----------");
+  renderHero(w, false); // false = use setAttr (no ring)
 
   if (w.ceremony_date) {
     const d = new Date(w.ceremony_date);
@@ -99,130 +85,37 @@ function renderWedding(w) {
   }
 
   // --- QUOTE ---
-  if (w.story_quote) setText("story-quote", `"${w.story_quote}"`);
+  renderStoryQuote(w.story_quote);
 
   // --- COUPLE INFO ---
-  setAttr("groom-photo", "src", getImageUrl(w.groom_image_url));
-  setText("groom-name-label", w.groom_name, "----------");
-  setText("groom-father", w.groom_father, "--------------------");
-  setText("groom-mother", w.groom_mother, "--------------------");
-  setText(
-    "groom-address",
-    w.groom_address,
-    "----------------------------------------",
-  );
+  renderCoupleInfo(w);
 
-  setAttr("bride-photo", "src", getImageUrl(w.bride_image_url));
-  setText("bride-name-label", w.bride_name, "----------");
-  setText("bride-father", w.bride_father, "--------------------");
-  setText("bride-mother", w.bride_mother, "--------------------");
-  setText(
-    "bride-address",
-    w.bride_address,
-    "----------------------------------------",
-  );
+  // --- CEREMONY DATE ---
+  renderCeremonyDate(w.ceremony_date, w.ceremony_time, w.ceremony_lunar);
 
-  // --- CEREMONY INFO ---
+  // Start countdown
   if (w.ceremony_date) {
-    const d = new Date(w.ceremony_date);
-    const weekdays = [
-      "Chủ Nhật",
-      "Thứ Hai",
-      "Thứ Ba",
-      "Thứ Tư",
-      "Thứ Năm",
-      "Thứ Sáu",
-      "Thứ Bảy",
-    ];
-    setText("invite-day", d.getDate());
-    setText(
-      "invite-month-year",
-      `Tháng ${d.getMonth() + 1} · ${d.getFullYear()}`,
-    );
-    setText("invite-weekday", weekdays[d.getDay()]);
-
-    // Start countdown
     startCountdown(w.ceremony_date);
   }
-  setText("invite-time", w.ceremony_time, "10:00");
-  setText("invite-lunar", w.ceremony_lunar, "--------------------");
 
-  // --- PARTY INFO ---
+  // --- PARTY DATE ---
   const partyDate = w[`${side}_party_date`];
   const partyTime = w[`${side}_party_time`];
   const partyLunar = w[`${side}_party_lunar`];
   const partyLocation = w[`${side}_party_location`];
-
-  if (partyDate) {
-    const d = new Date(partyDate);
-    const weekdays = [
-      "Chủ Nhật",
-      "Thứ Hai",
-      "Thứ Ba",
-      "Thứ Tư",
-      "Thứ Năm",
-      "Thứ Sáu",
-      "Thứ Bảy",
-    ];
-    setText("party-day", d.getDate());
-    setText(
-      "party-month-year",
-      `Tháng ${d.getMonth() + 1} · ${d.getFullYear()}`,
-    );
-    setText("party-weekday", weekdays[d.getDay()]);
-  }
-  setText("party-time", partyTime, "18:00");
-  setText("party-lunar", partyLunar ? `${partyLunar}` : "--------------------");
-  setText("party-location", partyLocation, "------------------------");
+  renderPartyDate(partyDate, partyTime, partyLunar, partyLocation, "split");
 
   // --- MINI CALENDAR ---
-  const ceremonyDate = w.ceremony_date;
-  if (ceremonyDate && partyDate) {
-    const d1 = new Date(ceremonyDate);
-    const d2 = new Date(partyDate);
-    updateWeddingDates([
-      {
-        year: d1.getFullYear(),
-        month: d1.getMonth() + 1,
-        day: d1.getDate(),
-      },
-      {
-        year: d2.getFullYear(),
-        month: d2.getMonth() + 1,
-        day: d2.getDate(),
-      },
-    ]);
-    renderMiniCalendar();
-  }
+  setupMiniCalendar(w.ceremony_date, partyDate);
 
   // --- GALLERY ---
   renderGallery(w.gallery_images);
 
-  // --- QR CODE ---
-  setText("groom-bank-label", w.groom_name, "----------");
-  setText("groom-bank-name", w.groom_bank_name, "----------------");
-  setText("groom-bank-number", w.groom_bank_number, "------------");
-  setText("groom-bank-owner", w.groom_bank_owner, "--------------------");
-  setAttr("groom-qr-img", "src", getImageUrl(w.groom_qr_url));
-
-  setText("bride-bank-label", w.bride_name, "----------");
-  setText("bride-bank-name", w.bride_bank_name, "----------------");
-  setText("bride-bank-number", w.bride_bank_number, "------------");
-  setText("bride-bank-owner", w.bride_bank_owner, "--------------------");
-  setAttr("bride-qr-img", "src", getImageUrl(w.bride_qr_url));
+  // --- QR CODES ---
+  renderQRCodes(w);
 
   // --- MAP ---
-  const mapEmbedRaw = w[`${side}_map_embed_url`];
-  const mapEmbed = extractMapEmbedUrl(mapEmbedRaw);
-
-  if (mapEmbed) {
-    const iframe = document.getElementById("map-thumbnail-iframe");
-    if (iframe) iframe.src = mapEmbed;
-
-    const link = document.getElementById("map-link");
-    if (link) link.href = mapEmbed;
-  }
-  setText("map-location-name", partyLocation, "------------------------");
+  renderMap(w[`${side}_map_embed_url`], partyLocation);
 }
 
 // ============= GALLERY GRID =============
