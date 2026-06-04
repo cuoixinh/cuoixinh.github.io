@@ -1,4 +1,4 @@
-# Hướng dẫn Setup Google Apps Script cho Thiệp Cưới
+﻿# Hướng dẫn Setup Google Apps Script cho Thiệp Cưới
 
 ## Mục đích
 Tạo API endpoint để tracking và quản lý danh sách khách mời qua Google Sheets, bao gồm tự động tạo link cá nhân hóa.

@@ -482,7 +482,7 @@
     document.getElementById("success-template").textContent = templateName;
 
     const manageLink = manage_id
-      ? window.location.origin + "/customer/manage.html?id=" + manage_id
+      ? window.location.origin + "/invitation-setup/?id=" + manage_id
       : null;
 
     if (manageLink) {
@@ -703,7 +703,7 @@
     open(templateName, theme, pricing = {}) {
       injectPaymentModal();
       // Lưu theme để dùng khi tạo wedding record
-      window._paymentTheme = theme || "template1";
+      window._paymentTheme = theme || "basic-gold";
 
       // Lưu pricing để dùng trong modal
       window._paymentPricing = pricing;
@@ -938,7 +938,7 @@
           customer_phone: phone,
           customer_email: email,
           template_name: templateName,
-          theme: window._paymentTheme || "template1",
+          theme: window._paymentTheme || "basic-gold",
           // SECURITY: Amount is determined by backend from database
         };
 

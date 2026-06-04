@@ -1,4 +1,4 @@
-# Kiến Trúc 3 Layer - Refactored (Updated 2024)
+﻿# Kiến Trúc 3 Layer - Refactored (Updated 2024)
 
 ## Tổng Quan
 
@@ -7,10 +7,10 @@ Project đã được refactor theo kiến trúc 3 layer chuẩn và restructure
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │  UI LAYER                                                    │
-│  - public/themes/template1.js                               │
-│  - public/account/account.js                                │
-│  - customer/manage.js                                       │
-│  - admin/admin.html (inline scripts)                        │
+│  - public/themes/basic-gold/index.js                               │
+│  - public/account/index.js                                │
+│  - invitation-setup/index.js                                       │
+│  - admin/index.html (inline scripts)                        │
 │  - index.js                                                 │
 │  → Render UI, handle user events, call BL                   │
 ├─────────────────────────────────────────────────────────────┤
@@ -36,21 +36,29 @@ root/
 ├── router.html                   # Clean URL router
 │
 ├── admin/                        # 🔐 Admin pages (cần ADMIN_SECRET_TOKEN)
-│   └── admin.html                # Admin dashboard với inline scripts
+│   ├── index.html                # Admin dashboard
+│   └── index.js                  # Admin logic (UI Layer)
 │
-├── customer/                     # 👤 Customer management (cần UUID)
-│   ├── manage.html               # Wedding management UI
-│   └── manage.js                 # Wedding management logic (UI Layer)
+├── invitation-setup/             # 👤 Customer management (cần UUID)
+│   ├── index.html                # Wedding management UI
+│   └── index.js                  # Wedding management logic (UI Layer)
 │
 ├── public/                       # 🌐 Public pages (ai cũng vào được)
 │   ├── themes/                   # 💒 Wedding templates
-│   │   ├── template1.html        # Template HTML
-│   │   ├── template1.js          # Template logic (UI Layer)
-│   │   └── preview-data.js       # Preview data
+│   │   ├── basic-gold/           # Template 1 - Classic Gold
+│   │   │   ├── index.html        # Template HTML
+│   │   │   └── index.js          # Template logic (UI Layer)
+│   │   ├── romantic-gold/        # Template 2 - Romantic Gold
+│   │   │   ├── index.html
+│   │   │   └── index.js
+│   │   ├── vintage-forest/       # Template 3 - Vintage Forest
+│   │   │   ├── index.html
+│   │   │   └── index.js
+│   │   └── preview-data.js       # Preview data (dùng chung)
 │   │
 │   └── account/                  # 💼 Customer account
-│       ├── account.html          # Account page
-│       └── account.js            # Account logic (UI Layer)
+│       ├── index.html            # Account page
+│       └── index.js              # Account logic (UI Layer)
 │
 ├── core/                         # ⚙️ Core logic (shared)
 │   ├── config.js                 # Configuration centralized
@@ -81,15 +89,15 @@ root/
 
 ### 1. Admin (Chỉ admin) 🔐
 
-- **Path:** `/admin/admin.html`
-- **URL:** https://cuoixinh.com/admin/admin.html
+- **Path:** `/admin/index.html`
+- **URL:** https://cuoixinh.com/admin/index.html
 - **Yêu cầu:** `ADMIN_SECRET_TOKEN`
 - **Chức năng:** Tạo/xóa/sửa TẤT CẢ thiệp, xem tất cả đơn hàng
 
 ### 2. Customer (Khách hàng đã mua) 👤
 
-- **Path:** `/customer/manage.html?id=uuid`
-- **URL:** https://cuoixinh.com/customer/manage.html?id=YOUR_UUID
+- **Path:** `/invitation-setup/index.html?id=uuid`
+- **URL:** https://cuoixinh.com/invitation-setup/index.html?id=YOUR_UUID
 - **Yêu cầu:** UUID (122-bit entropy)
 - **Chức năng:** Chỉ quản lý thiệp của họ, không thấy thiệp người khác
 
@@ -98,10 +106,10 @@ root/
 - **Paths:**
   - `/` - Landing page
     - **URL:** https://cuoixinh.com
-  - `/public/account/account.html` - Đăng nhập, xem đơn hàng
-    - **URL:** https://cuoixinh.com/public/account/account.html
-  - `/public/themes/template1.html?slug=xxx` - Xem thiệp cưới
-    - **URL:** https://cuoixinh.com/public/themes/template1.html?slug=YOUR_SLUG
+  - `/public/account/index.html` - Đăng nhập, xem đơn hàng
+    - **URL:** https://cuoixinh.com/public/account/index.html
+  - `/public/themes/basic-gold/index.html?slug=xxx` - Xem thiệp cưới
+    - **URL:** https://cuoixinh.com/public/themes/basic-gold/index.html?slug=YOUR_SLUG
   - `/slug` - Clean URL (tự động redirect)
     - **URL:** https://cuoixinh.com/YOUR_SLUG
 
@@ -114,20 +122,20 @@ root/
 | Trang　　　　　　　　　 | Clean URL ⭐                          | Full URL                                                           | Yêu cầu               |
 | ----------------------- | ------------------------------------- | ------------------------------------------------------------------ | --------------------- |
 | 🏠 Landing Page　　　　 | `https://cuoixinh.com/`               | `https://cuoixinh.com/index.html`                                  | Không                 |
-| 🔐 Admin Dashboard　　  | `https://cuoixinh.com/admin`          | `https://cuoixinh.com/admin/admin.html`                            | ADMIN_SECRET_TOKEN    |
-| 👤 Customer Management  | `https://cuoixinh.com/manage?id=UUID` | `https://cuoixinh.com/customer/manage.html?id=UUID`                | UUID từ đơn hàng      |
-| 💼 Customer Account　　 | `https://cuoixinh.com/account`        | `https://cuoixinh.com/public/account/account.html`                 | Login Facebook/Google |
-| 💒 Wedding Template　　 | `https://cuoixinh.com/YOUR_SLUG`      | `https://cuoixinh.com/public/themes/template1.html?slug=YOUR_SLUG` | Không                 |
+| 🔐 Admin Dashboard　　  | `https://cuoixinh.com/admin`          | `https://cuoixinh.com/admin/index.html`                            | ADMIN_SECRET_TOKEN    |
+| 👤 Customer Management  | `https://cuoixinh.com/manage?id=UUID` | `https://cuoixinh.com/invitation-setup/index.html?id=UUID`                | UUID từ đơn hàng      |
+| 💼 Customer Account　　 | `https://cuoixinh.com/account`        | `https://cuoixinh.com/public/account/index.html`                 | Login Facebook/Google |
+| 💒 Wedding Template　　 | `https://cuoixinh.com/YOUR_SLUG`      | `https://cuoixinh.com/public/themes/basic-gold/index.html?slug=YOUR_SLUG` | Không                 |
 
 ### **Local Development:**
 
 | Trang                  | Full URL                                                            |
 | ---------------------- | ------------------------------------------------------------------- |
 | 🏠 Landing Page        | `http://localhost:8000/index.html`                                  |
-| 🔐 Admin Dashboard     | `http://localhost:8000/admin/admin.html`                            |
-| 👤 Customer Management | `http://localhost:8000/customer/manage.html?id=UUID`                |
-| 💼 Customer Account    | `http://localhost:8000/public/account/account.html`                 |
-| 💒 Wedding Template    | `http://localhost:8000/public/themes/template1.html?slug=YOUR_SLUG` |
+| 🔐 Admin Dashboard     | `http://localhost:8000/admin/index.html`                            |
+| 👤 Customer Management | `http://localhost:8000/invitation-setup/index.html?id=UUID`                |
+| 💼 Customer Account    | `http://localhost:8000/public/account/index.html`                 |
+| 💒 Wedding Template    | `http://localhost:8000/public/themes/basic-gold/index.html?slug=YOUR_SLUG` |
 
 ### **Ví Dụ Cụ Thể:**
 
@@ -153,15 +161,16 @@ https://cuoixinh.com/tuan-anh-va-minh-thu
 Router (`router.html`) xử lý các clean URLs trên **production only** (GitHub Pages qua 404.html):
 
 1. **Predefined routes** (ưu tiên cao):
-   - `/admin` → `/admin/admin.html`
-   - `/manage` hoặc `/customer` → `/customer/manage.html`
-   - `/account` → `/public/account/account.html`
+   - `/admin` → `/admin/index.html`
+   - `/manage` hoặc `/customer` → `/invitation-setup/`
+   - `/account` → `/public/account/index.html`
 
 2. **Wedding slugs** (fallback):
-   - `/anything-else` → Fetch theme từ database → `/public/themes/{theme}.html?slug=anything-else`
+   - `/anything-else` → Fetch theme từ database → `/public/themes/{theme}/?slug=anything-else`
+   - `{theme}` là tên folder: `basic-gold`, `romantic-gold`, `vintage-forest`
 
 3. **Query params được preserve**:
-   - `/manage?id=xxx` → `/customer/manage.html?id=xxx`
+   - `/manage?id=xxx` → `/invitation-setup/index.html?id=xxx`
 
 **Local Development:**
 
@@ -313,25 +322,25 @@ window.supabaseClient = supabaseClient;
 
 ### 4. UI Layer
 
-#### `public/themes/template1.js`
+#### `public/themes/basic-gold/index.js` / `romantic-gold/` / `vintage-forest/`
 
 - Render thiệp cưới
 - Handle music, gallery, RSVP
 - Gọi `weddingBL.getWeddingBySlug()`
 
-#### `customer/manage.js`
+#### `invitation-setup/index.js`
 
 - Form quản lý thiệp
 - Upload ảnh qua `imageBL`
 - Cập nhật qua `weddingBL.updateWedding()`
 
-#### `public/account/account.js`
+#### `public/account/index.js`
 
 - OAuth login (Facebook/Google)
 - Hiển thị danh sách đơn hàng
 - Sửa thông tin cá nhân
 
-#### `admin/admin.html` (inline scripts)
+#### `admin/index.js`
 
 - CRUD tất cả thiệp
 - Pagination, search
@@ -349,14 +358,14 @@ window.supabaseClient = supabaseClient;
 <script src="core/payment.js"></script>
 ```
 
-#### Trong `admin/admin.html`:
+#### Trong `admin/index.html`:
 
 ```html
 <script src="../core/config.js"></script>
 <!-- Inline scripts -->
 ```
 
-#### Trong `customer/manage.html`:
+#### Trong `invitation-setup/index.html`:
 
 ```html
 <!-- Config -->
@@ -377,29 +386,29 @@ window.supabaseClient = supabaseClient;
 <script src="../core/supabase.js"></script>
 
 <!-- UI Layer -->
-<script src="manage.js"></script>
+<script src="index.js"></script>
 ```
 
-#### Trong `public/themes/template1.html`:
+#### Trong `public/themes/basic-gold/index.html`:
 
 ```html
-<script src="preview-data.js"></script>
-<script src="../../core/config.js"></script>
+<script src="../preview-data.js"></script>
+<script src="../../../core/config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="../../core/dal/wedding-dal.js"></script>
-<script src="../../core/dal/storage-dal.js"></script>
-<script src="../../core/bl/wedding-bl.js"></script>
-<script src="../../core/bl/image-bl.js"></script>
-<script src="../../core/supabase.js"></script>
-<script src="../../core/utils.js"></script>
-<script src="template1.js"></script>
+<script src="../../../core/dal/wedding-dal.js"></script>
+<script src="../../../core/dal/storage-dal.js"></script>
+<script src="../../../core/bl/wedding-bl.js"></script>
+<script src="../../../core/bl/image-bl.js"></script>
+<script src="../../../core/supabase.js"></script>
+<script src="../../../core/utils.js"></script>
+<script src="index.js"></script>
 ```
 
-#### Trong `public/account/account.html`:
+#### Trong `public/account/index.html`:
 
 ```html
 <script src="../../core/config.js"></script>
-<script src="account.js"></script>
+<script src="index.js"></script>
 <script src="../../core/payment.js"></script>
 ```
 
@@ -542,22 +551,15 @@ async function generateLinks(side) {
 
 ## URL Mapping
 
-### Trước Migration:
+### Full URLs (direct):
 
 ```
-https://cuoixinh.com/admin.html
-https://cuoixinh.com/manage.html?id=xxx
-https://cuoixinh.com/account.html
-https://cuoixinh.com/themes/template1.html?slug=xxx
-```
-
-### Sau Migration:
-
-```
-https://cuoixinh.com/admin/admin.html
-https://cuoixinh.com/customer/manage.html?id=xxx
-https://cuoixinh.com/public/account/account.html
-https://cuoixinh.com/public/themes/template1.html?slug=xxx
+https://cuoixinh.com/admin/
+https://cuoixinh.com/invitation-setup/?id=xxx
+https://cuoixinh.com/public/account/
+https://cuoixinh.com/public/themes/basic-gold/?slug=xxx
+https://cuoixinh.com/public/themes/romantic-gold/?slug=xxx
+https://cuoixinh.com/public/themes/vintage-forest/?slug=xxx
 ```
 
 ### Clean URLs (qua router.html):
@@ -565,9 +567,10 @@ https://cuoixinh.com/public/themes/template1.html?slug=xxx
 ```
 https://cuoixinh.com/slug-name
   ↓ (404.html catches)
-  ↓ (router.html processes)
+  ↓ (router.html processes: fetch theme từ DB)
   ↓
-https://cuoixinh.com/public/themes/template1.html?slug=slug-name
+https://cuoixinh.com/public/themes/{theme}/?slug=slug-name
+  (theme = basic-gold | romantic-gold | vintage-forest)
 ```
 
 ## 🔗 Danh Sách URL Truy Cập
@@ -579,19 +582,19 @@ https://cuoixinh.com/public/themes/template1.html?slug=slug-name
    - `https://cuoixinh.com/index.html`
 
 2. **Admin Dashboard:**
-   - `https://cuoixinh.com/admin/admin.html`
+   - `https://cuoixinh.com/admin/index.html`
    - Cần nhập `ADMIN_SECRET_TOKEN` để truy cập
 
 3. **Customer Management:**
-   - `https://cuoixinh.com/customer/manage.html?id=YOUR_UUID`
+   - `https://cuoixinh.com/invitation-setup/index.html?id=YOUR_UUID`
    - Thay `YOUR_UUID` bằng UUID thực tế từ đơn hàng
 
 4. **Customer Account:**
-   - `https://cuoixinh.com/public/account/account.html`
+   - `https://cuoixinh.com/public/account/index.html`
    - Đăng nhập bằng Facebook/Google để xem đơn hàng
 
 5. **Wedding Template (Full URL):**
-   - `https://cuoixinh.com/public/themes/template1.html?slug=YOUR_SLUG`
+   - `https://cuoixinh.com/public/themes/basic-gold/index.html?slug=YOUR_SLUG`
    - Thay `YOUR_SLUG` bằng slug thiệp cưới
 
 6. **Wedding Template (Clean URL):**
@@ -605,32 +608,32 @@ https://cuoixinh.com/public/themes/template1.html?slug=slug-name
    - `http://127.0.0.1:8000/index.html`
 
 2. **Admin Dashboard:**
-   - `http://localhost:8000/admin/admin.html`
+   - `http://localhost:8000/admin/index.html`
 
 3. **Customer Management:**
-   - `http://localhost:8000/customer/manage.html?id=YOUR_UUID`
+   - `http://localhost:8000/invitation-setup/index.html?id=YOUR_UUID`
 
 4. **Customer Account:**
-   - `http://localhost:8000/public/account/account.html`
+   - `http://localhost:8000/public/account/index.html`
 
 5. **Wedding Template:**
-   - `http://localhost:8000/public/themes/template1.html?slug=YOUR_SLUG`
+   - `http://localhost:8000/public/themes/basic-gold/index.html?slug=YOUR_SLUG`
 
 ### **Ví Dụ Cụ Thể:**
 
 ```
 # Admin
-https://cuoixinh.com/admin/admin.html
+https://cuoixinh.com/admin/index.html
 
 # Customer quản lý thiệp (UUID giả định)
-https://cuoixinh.com/customer/manage.html?id=a1b2c3d4-e5f6-7890-abcd-ef1234567890
+https://cuoixinh.com/invitation-setup/index.html?id=a1b2c3d4-e5f6-7890-abcd-ef1234567890
 
 # Xem thiệp cưới (slug giả định)
-https://cuoixinh.com/public/themes/template1.html?slug=tuan-anh-va-minh-thu
+https://cuoixinh.com/public/themes/basic-gold/index.html?slug=tuan-anh-va-minh-thu
 https://cuoixinh.com/tuan-anh-va-minh-thu (clean URL)
 
 # Account
-https://cuoixinh.com/public/account/account.html
+https://cuoixinh.com/public/account/index.html
 ```
 
 ## Lợi Ích
@@ -693,7 +696,7 @@ const bl = new WeddingBL(mockDAL, mockStorage);
 
 - ✅ Core files → `core/`
 - ✅ Admin → `admin/`
-- ✅ Customer → `customer/`
+- ✅ Customer → `invitation-setup/`
 - ✅ Public → `public/`
 - ✅ Styles → `styles/`
 - ✅ Update all paths
@@ -704,18 +707,20 @@ const bl = new WeddingBL(mockDAL, mockStorage);
 - Config được centralize trong `core/config.js`
 - Utils functions (setText, setAttr, etc.) trong `core/utils.js`
 - Payment logic trong `core/payment.js`
-- Lunar calendar functions trong `customer/manage.js`
+- Lunar calendar functions trong `invitation-setup/index.js`
 - Asset paths sử dụng relative paths (`../`, `../../`)
-- GitHub Pages compatible (giữ `.html` extensions)
+- Templates nằm trong subfolder có tên mô tả: `basic-gold/`, `romantic-gold/`, `vintage-forest/`
+- Mỗi trang dùng `index.html` + `index.js` để URL không hiển thị `.html`
+- GitHub Pages serve `index.html` tự động khi truy cập folder
 
 ## Testing Checklist
 
 - [x] Landing page works (index.html)
-- [x] Admin dashboard works (admin/admin.html)
-- [x] Customer management works (customer/manage.html)
-- [x] Account page works (public/account/account.html)
-- [x] Wedding templates work (public/themes/template1.html)
-- [x] YouTube music feature works (customer/manage.html + template1.html)
+- [x] Admin dashboard works (admin/index.html)
+- [x] Customer management works (invitation-setup/index.html)
+- [x] Account page works (public/account/index.html)
+- [x] Wedding templates work (basic-gold, romantic-gold, vintage-forest)
+- [x] YouTube music feature works (invitation-setup/index.js + template index.js)
 - [ ] Payment flow works (cần test thủ công)
 - [x] Router redirects correctly
 - [x] 404 handler works
@@ -728,14 +733,14 @@ const bl = new WeddingBL(mockDAL, mockStorage);
 
 **Changes:**
 
-1. **customer/manage.html:**
+1. **invitation-setup/index.html:**
    - Added YouTube link input field with default music placeholder
    - Added YouTube preview player (iframe embed)
    - Removed music file upload functionality
    - Hidden input stores YouTube URL in `music_url` field
    - Placeholder shows default music URL
 
-2. **customer/manage.js:**
+2. **invitation-setup/index.js:**
    - Added `extractYouTubeVideoId()` - Extract video ID from various YouTube URL formats
    - Added `previewYouTubeMusic()` - Show YouTube embed preview (uses default music if input is empty)
    - Added `removeYouTubeMusic()` - Clear YouTube selection
@@ -744,7 +749,7 @@ const bl = new WeddingBL(mockDAL, mockStorage);
    - Updated `saveAll()` to save YouTube URL directly (no upload needed)
    - Removed `pendingUploads.musicFile` and music upload logic
 
-3. **public/themes/template1.js:**
+3. **public/themes/basic-gold/index.js:**
    - Added `loadYouTubeAPI()` - Load YouTube IFrame API
    - Added `extractYouTubeVideoId()` - Extract video ID from URL
    - Added `initYouTubeMusic()` - Initialize hidden YouTube player for background music

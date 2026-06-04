@@ -1,4 +1,4 @@
-# Hướng Dẫn Cập Nhật Google Apps Script
+﻿# Hướng Dẫn Cập Nhật Google Apps Script
 
 ## ⚠️ QUAN TRỌNG
 
@@ -100,7 +100,7 @@ Nếu bạn có 2 Google Sheets (nhà trai và nhà gái), hãy lặp lại các
 
 Sau khi cập nhật xong, bạn có thể:
 
-1. Mở trang `customer/manage.html?id=YOUR_WEDDING_ID`
+1. Mở trang `invitation-setup/index.html?id=YOUR_WEDDING_ID`
 2. Nhập URL Google Apps Script vào ô tương ứng
 3. Click nút "🔗 Tự động tạo link"
 4. Hệ thống sẽ:

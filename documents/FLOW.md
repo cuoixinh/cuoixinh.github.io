@@ -1,4 +1,4 @@
-# Luồng Hệ Thống - Web Thiệp Cưới Online
+﻿# Luồng Hệ Thống - Web Thiệp Cưới Online
 
 ## Tổng Quan
 
@@ -7,7 +7,7 @@ Landing Page (index.html)
     ↓ Chọn mẫu → Thanh toán
 Payment Modal (payment.js)
     ↓ Tạo đơn hàng → POST Edge Function
-manage-by-customer.html?id={uuid}
+invitation-setup/index.html?id={uuid}
     ↓ Khách nhập thông tin → PATCH Edge Function
 index.html?id={uuid}&isGroom=true/false
     ↓ Khách mời xem thiệp
@@ -40,7 +40,7 @@ PaymentModal (payment.js)
   └─ Step 3: Thành công
       ├─ Update order pending → completed trong localStorage
       │   (key: orders_{email} nếu đăng nhập, hoặc orders_{email_nhập} hoặc guestOrders)
-      └─ Hiển thị link: /manage-by-customer.html?id={manage_id}
+      └─ Hiển thị link: /invitation-setup/index.html?id={manage_id}
 ```
 
 ---
@@ -48,7 +48,7 @@ PaymentModal (payment.js)
 ## 2. Luồng Đăng Nhập / Tài Khoản
 
 ```
-account.html
+public/account/
   ├─ Chưa đăng nhập → Hiển thị nút Facebook / Google
   │   └─ supabaseClient.auth.signInWithOAuth()
   │       └─ Redirect OAuth → callback → onAuthStateChange()
@@ -64,12 +64,12 @@ account.html
 ## 3. Luồng Admin Tạo Thiệp Thủ Công
 
 ```
-admin.html
+admin/
   ├─ Popup nhập ADMIN_SECRET_TOKEN → lưu sessionStorage
   ├─ GET /wedding-admin?list=true&token=xxx → Danh sách thiệp
   ├─ Tìm kiếm theo slug / tên cô dâu / chú rể
   ├─ Tạo mới: POST /wedding-admin?token=xxx → {slug, contact}
-  │   └─ Nhận id → Hiển thị link manage-by-customer.html?id=xxx
+  │   └─ Nhận id → Hiển thị link invitation-setup/index.html?id=xxx
   ├─ Sửa slug: PATCH {id, slug, token}
   ├─ Toggle is_active: PATCH {id, is_active, token}
   └─ Xóa: DELETE /wedding-admin?id=xxx&token=xxx
@@ -81,7 +81,7 @@ admin.html
 ## 4. Luồng Khách Hàng Nhập Thông Tin
 
 ```
-manage-by-customer.html?id={uuid}
+invitation-setup/index.html?id={uuid}
   ├─ Skeleton loader hiển thị trong khi fetch
   ├─ GET /wedding-admin?id={uuid} → Load data vào form
   │
@@ -112,13 +112,13 @@ manage-by-customer.html?id={uuid}
 ## 5. Luồng Khách Mời Xem Thiệp
 
 ```
-domain.com/{slug}  (hoặc /themes/template1.html?slug={slug})
+domain.com/{slug}
   │
   ├─ Clean URL → 404.html → router.html?slug={slug}
   │   └─ GET /wedding-admin?slug={slug} → đọc field `theme`
-  │       └─ redirect /themes/{theme}.html?slug={slug}
+  │       └─ redirect /public/themes/{theme}/?slug={slug}
   │
-  ├─ themes/template1.html (hoặc template2.html) load
+  ├─ public/themes/{theme}/ (basic-gold, romantic-gold, vintage-forest) load
   │   ├─ Đọc slug từ URL params
   │   ├─ Có tham số name & relationship?
   │   │   ├─ Có → Giải mã AES (key: "dqvinh") → Hiển thị lời chào cá nhân
@@ -146,7 +146,7 @@ domain.com/{slug}  (hoặc /themes/template1.html?slug={slug})
 ## 6. Luồng Tạo Link Cá Nhân Hóa (Auto-Generate)
 
 ```
-manage-by-customer.html → Nút "Tự động tạo link nhà trai/gái"
+invitation-setup/index.html → Nút "Tự động tạo link nhà trai/gái"
   │
   ├─ GET /wedding-admin?id={uuid} → Lấy groom/bride_google_sheet_url
   ├─ Validate URL (phải chứa script.google.com)
@@ -183,14 +183,15 @@ domain.com/{slug}                    → Thiệp cưới (clean URL)
       └─ Lưu path vào sessionStorage → redirect về router.html?slug={slug}
           └─ router.html gọi GET /wedding-admin?slug={slug}
               ├─ Không tìm thấy → redirect về /
-              └─ Tìm thấy → đọc field `theme` (vd: "template1", "template2")
-                  └─ redirect về /themes/{theme}.html?slug={slug}
+              └─ Tìm thấy → đọc field `theme` (vd: "basic-gold", "romantic-gold")
+                  └─ redirect về /public/themes/{theme}/?slug={slug}
 
-domain.com/themes/template1.html?slug={slug}  → Thiệp mẫu Classic
-domain.com/themes/template2.html?slug={slug}  → Thiệp mẫu Modern
-domain.com/manage-by-customer.html?id={uuid}  → Trang quản lý khách hàng
-domain.com/admin.html                          → Trang admin
-domain.com/account.html                        → Tài khoản / đơn hàng
+domain.com/public/themes/basic-gold/?slug={slug}       → Thiệp Classic Gold
+domain.com/public/themes/romantic-gold/?slug={slug}    → Thiệp Romantic Gold
+domain.com/public/themes/vintage-forest/?slug={slug}   → Thiệp Vintage Forest
+domain.com/invitation-setup/?id={uuid}                 → Trang quản lý khách hàng
+domain.com/admin/                                      → Trang admin
+domain.com/public/account/                             → Tài khoản / đơn hàng
 ```
 
 ---

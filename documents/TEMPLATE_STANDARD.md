@@ -1,4 +1,4 @@
-# CHUẨN TẠO TEMPLATE THIỆP CƯỚI
+﻿# CHUẨN TẠO TEMPLATE THIỆP CƯỚI
 
 > Tài liệu này mô tả cấu trúc và quy chuẩn để tạo template thiệp cưới mới cho hệ thống.
 
@@ -10,10 +10,16 @@ Mỗi template cần 3 file chính:
 
 ```
 public/themes/
-├── template{N}.html      # Giao diện HTML
-├── template{N}.js        # Logic xử lý
+├── {template-name}/      # Tên mô tả template (vd: basic-gold, romantic-gold)
+│   ├── index.html        # Giao diện HTML
+│   └── index.js          # Logic xử lý
 └── preview-data.js       # Dữ liệu mẫu (dùng chung)
 ```
+
+**Templates hiện có:**
+- `basic-gold/` — Classic Gold
+- `romantic-gold/` — Romantic Gold  
+- `vintage-forest/` — Vintage Forest
 
 ---
 
@@ -1095,7 +1101,7 @@ await storageDAL.deleteFiles(filenames);
 
 ## 📚 TÀI LIỆU THAM KHẢO
 
-- Template1: `public/themes/template1.html`, `public/themes/template1.js`
+- Template1: `public/themes/basic-gold/index.html`, `public/themes/basic-gold/index.js`
 - Utils: `core/utils.js`
 - BL Layer: `core/bl/wedding-bl.js`, `core/bl/image-bl.js`
 - DAL Layer: `core/dal/wedding-dal.js`, `core/dal/storage-dal.js`

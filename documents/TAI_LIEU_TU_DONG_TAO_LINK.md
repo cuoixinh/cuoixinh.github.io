@@ -1,4 +1,4 @@
-# Tài Liệu Tính Năng: Tự Động Tạo Link Thiệp Cá Nhân Hóa
+﻿# Tài Liệu Tính Năng: Tự Động Tạo Link Thiệp Cá Nhân Hóa
 
 ## 📋 Tổng Quan
 
@@ -13,8 +13,8 @@ Tính năng này cho phép tự động tạo link thiệp mời cá nhân hóa 
 
 ## 🔑 Thuật Ngữ
 
-- **Trang Quản Trị**: Trang customer/manage.html nơi quản lý thông tin chi tiết của đám cưới
-- **Trang Thiệp**: Trang public/themes/template1.html hiển thị thiệp cưới cá nhân hóa cho khách mời
+- **Trang Quản Trị**: Trang invitation-setup/index.html nơi quản lý thông tin chi tiết của đám cưới
+- **Trang Thiệp**: Trang public/themes/basic-gold/index.html hiển thị thiệp cưới cá nhân hóa cho khách mời
 - **Google Sheet**: Bảng tính chứa thông tin khách mời với các cột: họ tên, tên hiển thị, quan hệ, link thiệp, đã xem thiệp, xác nhận tham dự, lời chúc, và thời gian xác nhận
 - **Khóa Mã Hóa**: "dqvinh" - khóa được sử dụng để mã hóa/giải mã thông tin khách
 
@@ -390,8 +390,8 @@ Expected: Hiển thị lời chào mặc định (không cá nhân hóa)
 
 ### Bước 2: Thêm CryptoJS
 
-1. Thêm script tag vào `customer/manage.html`
-2. Thêm script tag vào `public/themes/template1.html`
+1. Thêm script tag vào `invitation-setup/index.html`
+2. Thêm script tag vào `public/themes/basic-gold/index.html`
 
 ### Bước 3: Tạo UI
 

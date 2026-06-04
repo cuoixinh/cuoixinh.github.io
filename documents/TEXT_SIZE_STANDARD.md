@@ -1,4 +1,4 @@
-# Quy Tắc Size Text Cho Templates
+﻿# Quy Tắc Size Text Cho Templates
 
 ## Mục đích
 

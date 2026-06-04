@@ -1,4 +1,4 @@
-# TEMPLATE 2 - MODERN MINIMALIST CONCEPT
+﻿# TEMPLATE 2 - MODERN MINIMALIST CONCEPT
 
 > Phong cách hiện đại, tối giản, thanh lịch với animation mượt mà
 

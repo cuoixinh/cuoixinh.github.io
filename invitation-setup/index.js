@@ -4,7 +4,7 @@ const DOMAIN = window.location.origin;
 
 // Wedding data cache
 let WEDDING_SLUG = "";
-let WEDDING_THEME = "template1";
+let WEDDING_THEME = "basic-gold";
 
 // ============= ENCRYPTION/DECRYPTION FUNCTIONS =============
 

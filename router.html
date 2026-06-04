@@ -12,10 +12,10 @@
 
       // Routing rules
       const routes = {
-        admin: "/admin/admin.html",
-        manage: "/customer/manage.html",
-        account: "/public/account/account.html",
-        customer: "/customer/manage.html",
+        admin: "/admin/",
+        manage: "/invitation-setup/",
+        account: "/public/account/",
+        customer: "/invitation-setup/",
       };
 
       // Check if it's a predefined route
@@ -56,7 +56,7 @@
                 ? `${extraSearch}&slug=${slug}`
                 : `?slug=${slug}`;
               window.location.replace(
-                `/public/themes/${theme}.html${themeSearch}`,
+                `/public/themes/${theme}/${themeSearch}`,
               );
             })
             .catch(() => window.location.replace("/"));

@@ -89,7 +89,7 @@ function renderList(weddings) {
     <tr class="border-b border-gray-100 hover:bg-gray-50">
       <td class="py-3 px-4 text-sm text-gray-700 font-mono">${w.slug || "-"}</td>
       <td class="py-3 px-4 text-sm">
-        <a href="${DOMAIN}/public/themes/template1.html?slug=${w.slug}" target="_blank" class="text-rose-500 hover:underline text-xs">${DOMAIN}/${w.slug}</a>
+        <a href="${DOMAIN}/public/themes/${w.theme || 'basic-gold'}/?slug=${w.slug}" target="_blank" class="text-rose-500 hover:underline text-xs">${DOMAIN}/${w.slug}</a>
       </td>
       <td class="py-3 px-4 text-sm">
         <button onclick="copyManageLink('${w.id}')" class="text-blue-600 hover:underline text-xs">📋 Copy link</button>
@@ -137,7 +137,7 @@ function updatePagination(pagination) {
 }
 
 function copyManageLink(id) {
-  navigator.clipboard.writeText(`${DOMAIN}/customer/manage.html?id=${id}`);
+  navigator.clipboard.writeText(`${DOMAIN}/invitation-setup/?id=${id}`);
   alert("Đã copy link quản lý!");
 }
 

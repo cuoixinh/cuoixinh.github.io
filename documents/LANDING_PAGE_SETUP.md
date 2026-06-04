@@ -1,4 +1,4 @@
-# Hướng dẫn Setup Landing Page
+﻿# Hướng dẫn Setup Landing Page
 
 ## Tổng quan
 
@@ -44,7 +44,7 @@ Mở file `index.html` trong browser hoặc dùng Live Server:
 
 #### Option 1: Dùng Admin Panel
 
-1. Mở `admin.html`
+1. Mở `/admin/`
 2. Tab "Tạo mới"
 3. Nhập slug: `demo`
 4. Điền thông tin cơ bản (tên chú rể, cô dâu, ảnh)
@@ -85,7 +85,7 @@ Sau khi tạo demo data:
 
 1. Mở `index.html`
 2. Click "Xem Demo" trên Classic Elegance card
-3. Modal sẽ mở và load `/template1.html?slug=demo` trong iframe
+3. Modal sẽ mở và load `/public/themes/basic-gold/?slug=demo` trong iframe
 4. Bạn sẽ thấy thiệp cưới demo đầy đủ
 5. Click "Chọn mẫu này" → Scroll đến Contact section
 6. Click "Đóng" hoặc ESC hoặc click backdrop → Modal đóng
@@ -122,7 +122,7 @@ const templates = [
     id: "classic",
     name: "Classic Elegance",
     status: "active",
-    previewUrl: "/template1.html?slug=demo",
+    previewUrl: "/public/themes/basic-gold/?slug=demo",
     features: ["gallery", "map", "qrcode", "rsvp"],
   },
   // ... more templates
@@ -168,7 +168,7 @@ const templates = [
     name: "New Template Name",
     description: "Mô tả template",
     thumbnail: "assets/images/new-template.jpg",
-    previewUrl: "/template1.html?slug=new-demo",
+    previewUrl: "/public/themes/basic-gold/?slug=new-demo",
     features: ["gallery", "map", "qrcode"],
     status: "active", // hoặc 'coming-soon'
     category: "modern",
@@ -228,7 +228,7 @@ Edit `index.html` trong Contact section:
 ### Iframe không load
 
 - Check slug "demo" có tồn tại trong database
-- Check URL: `/template1.html?slug=demo`
+- Check URL: `/public/themes/basic-gold/?slug=demo`
 - Check console log: Timeout sau 10 giây
 - Xem error message trong modal
 
@@ -255,7 +255,7 @@ Edit `index.html` trong Contact section:
 
 ## Notes
 
-- Landing page hoàn toàn độc lập với template1.html
+- Landing page hoàn toàn độc lập với basic-gold/index.html
 - Routing system không thay đổi
 - Backward compatible với existing links
 - Không cần build process (vanilla JS + TailwindCSS CDN)

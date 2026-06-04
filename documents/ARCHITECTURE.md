@@ -6,7 +6,7 @@
 ┌─────────────────────────────────────────────────────────────┐
 │                      GITHUB PAGES (Free)                     │
 │                                                              │
-│   admin.html          manage-by-customer.html   index.html  │
+│   admin/index.html          invitation-setup/index.html   index.html  │
 │   (Tạo thiệp)         (Khách nhập thông tin)    (Xem thiệp) │
 └──────────┬───────────────────┬──────────────────────┬───────┘
            │                   │                      │
@@ -45,7 +45,7 @@
 
 ```mermaid
 flowchart TD
-    A[Bạn mở admin.html] --> B[Popup nhập ADMIN_SECRET_TOKEN]
+    A[Bạn mở admin/index.html] --> B[Popup nhập ADMIN_SECRET_TOKEN]
     B --> C{Token đúng?}
     C -->|Sai| D[Từ chối]
     C -->|Đúng| E[Nhập email/SĐT khách hàng]
@@ -54,7 +54,7 @@ flowchart TD
     G --> H[Edge Function kiểm tra token]
     H --> I[INSERT vào DB với contact + is_active=true + slug=uuid]
     I --> J[Trả về id]
-    J --> K[Hiển thị link manage-by-customer.html?id=xxx]
+    J --> K[Hiển thị link invitation-setup/index.html?id=xxx]
     K --> L[Copy link gửi cho khách hàng]
 ```
 
@@ -62,7 +62,7 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    A[Khách nhận link manage-by-customer.html?id=xxx] --> B[Mở trang]
+    A[Khách nhận link invitation-setup/index.html?id=xxx] --> B[Mở trang]
     B --> C[GET /wedding-admin?id=xxx]
     C --> D[Load data hiện tại vào form]
     D --> E[Khách nhập thông tin: tên, ngày, ảnh URL, QR, bản đồ...]
@@ -87,7 +87,7 @@ flowchart TD
     D --> E{Tìm thấy?}
     E -->|Không| F[Redirect về /]
     E -->|Có| G[Đọc field theme]
-    G --> H[Redirect /themes/template1.html?slug=xxx hoặc template2.html]
+    G --> H[Redirect /public/themes/{theme}/?slug=xxx]
     H --> I{Có tham số name & relationship?}
     I -->|Có| J[Giải mã bằng AES key dqvinh]
     I -->|Không| K[Dùng tên mặc định]
@@ -109,7 +109,7 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    A[Admin mở manage-by-customer.html?id=xxx] --> B[Nhấn nút Tự động tạo link nhà trai/gái]
+    A[Admin mở invitation-setup/index.html?id=xxx] --> B[Nhấn nút Tự động tạo link nhà trai/gái]
     B --> C[Lấy groom/bride_google_sheet_url]
     C --> D{URL hợp lệ?}
     D -->|Không| E[Hiển thị lỗi: Vui lòng cấu hình URL]
@@ -135,10 +135,10 @@ WebCuoi/
 ├── script.js                           # Logic JS thiệp: carousel, lightbox, calendar, RSVP...
 ├── style.css                           # Custom CSS (font, animation, shimmer...)
 ├── supabase.js                         # Fetch data từ Supabase & render vào thiệp (dùng slug)
-├── admin.html                          # Trang tạo thiệp mới (chỉ bạn dùng)
-├── manage-by-customer.html             # Trang khách hàng nhập thông tin thiệp
+├── admin/index.html                          # Trang tạo thiệp mới (chỉ bạn dùng)
+├── invitation-setup/index.html             # Trang khách hàng nhập thông tin thiệp
 ├── manage-customer.js                  # Logic form quản lý: upload ảnh, bank select, auto-fill, lunar date
-├── account.html                        # Trang tài khoản: đăng nhập OAuth, quản lý đơn hàng
+├── public/account/index.html                        # Trang tài khoản: đăng nhập OAuth, quản lý đơn hàng
 ├── account.js                          # Logic tài khoản: Supabase Auth, orders localStorage, profile
 ├── payment.js                          # Payment modal: inject HTML, xử lý thanh toán, lưu order
 ├── database-schema.sql                 # Schema database Supabase
@@ -149,8 +149,8 @@ WebCuoi/
 │   ├── GOOGLE_APPS_SCRIPT_SETUP.md     # Hướng dẫn setup Google Apps Script
 │   └── TAI_LIEU_TU_DONG_TAO_LINK.md    # Tài liệu tính năng tạo link cá nhân hóa
 ├── themes/
-│   ├── template1.html                  # Mẫu thiệp Classic Elegance
-│   └── template2.html                  # Mẫu thiệp Modern Minimalist
+│   ├── basic-gold/index.html                  # Mẫu thiệp Classic Elegance
+│   └── romantic-gold/index.html                  # Mẫu thiệp Modern Minimalist
 ├── assets/
 │   ├── fonts/
 │   │   ├── TheNautigal-Regular.ttf     # Font chữ viết tay tên cặp đôi
@@ -198,14 +198,14 @@ Thiệp cưới chính. Gồm 6 block:
 - Tracking markViewed chỉ khi có link cá nhân hóa (name + relationship params)
 - Hiện trang expired nếu `is_active = false`
 
-### `admin.html`
+### `admin/index.html`
 
 - Nhập mã quản trị qua popup (lưu sessionStorage)
 - POST tạo bản ghi mới → nhận id → hiển thị link manage
 - Danh sách thiệp với search, pagination
 - Toggle is_active, sửa slug, xóa thiệp + ảnh Storage
 
-### `account.html` + `account.js`
+### `public/account/index.html` + `account.js`
 
 - Đăng nhập OAuth (Facebook, Google) qua Supabase Auth
 - Quản lý đơn hàng từ localStorage (tab "Đơn hàng")
@@ -215,7 +215,7 @@ Thiệp cưới chính. Gồm 6 block:
 
 ### `payment.js`
 
-- Inject modal HTML vào body (dùng chung cho index.html và account.html)
+- Inject modal HTML vào body (dùng chung cho index.html và public/account/index.html)
 - Lưu order "pending" vào localStorage ngay khi mở modal
 - Tạo UUID ở client làm manage_id, tạo slug từ tên + SĐT
 - POST tạo wedding record → nhận slug thật từ response
@@ -256,7 +256,7 @@ deletedImages = { singleImages: [], galleryImages: [] }
 saveAll() → upload images → update DB → update UI → clear pending
 ```
 
-### `manage-by-customer.html`
+### `invitation-setup/index.html`
 
 **Giao diện form quản lý**:
 
@@ -389,7 +389,7 @@ saveAll() → upload images → update DB → update UI → clear pending
 
 ### 🔄 Auto-Generate Personalized Guest Links (Spec đã hoàn thành)
 
-**Trạng thái**: Đã hoàn thành và tích hợp vào manage-by-customer.html
+**Trạng thái**: Đã hoàn thành và tích hợp vào invitation-setup/index.html
 
 **Mô tả**: Tự động tạo link thiệp cá nhân hóa cho từng khách mời với mã hóa thông tin
 
