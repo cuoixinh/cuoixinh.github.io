@@ -87,6 +87,11 @@ function renderWedding(w) {
   // --- QUOTE ---
   renderStoryQuote(w.story_quote);
 
+  // --- LOVE STORY ---
+  if (w.enable_love_story === true || w.enable_love_story === "true") {
+    renderLoveStory(w.love_story);
+  }
+
   // --- COUPLE INFO ---
   renderCoupleInfo(w);
 
@@ -109,7 +114,7 @@ function renderWedding(w) {
   setupMiniCalendar(w.ceremony_date, partyDate);
 
   // --- GALLERY ---
-  renderGallery(w.gallery_images);
+  renderGallery(w.gallery_images, w.image_focal_points?.gallery_images);
 
   // --- QR CODES ---
   renderQRCodes(w);
@@ -120,7 +125,11 @@ function renderWedding(w) {
 
 // ============= GALLERY GRID =============
 
-function renderGallery(galleryImages) {
+function renderGallery(galleryImages, focalPoints) {
+  const objectPositionAt = (idx) => {
+    const fp = focalPoints?.[galleryImages?.[idx]];
+    return `${fp?.x ?? 50}% ${fp?.y ?? 50}%`;
+  };
   const container = document.getElementById("gallery-grid");
   if (!container) return;
 
@@ -147,9 +156,9 @@ function renderGallery(galleryImages) {
     // Make first and last items tall
     if (i === 0 || i === urls.length - 1) {
       item.classList.add("tall");
-      item.innerHTML = `<img src="${url}" alt="" class="w-full h-full object-cover" />`;
+      item.innerHTML = `<img src="${url}" alt="" class="w-full h-full object-cover" style="object-position: ${objectPositionAt(i)}" />`;
     } else {
-      item.innerHTML = `<img src="${url}" alt="" class="w-full h-48 object-cover" />`;
+      item.innerHTML = `<img src="${url}" alt="" class="w-full h-48 object-cover" style="object-position: ${objectPositionAt(i)}" />`;
     }
 
     item.addEventListener("click", () => openLightbox(i));

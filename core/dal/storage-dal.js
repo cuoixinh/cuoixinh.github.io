@@ -7,7 +7,7 @@ class StorageDAL {
   constructor(supabaseClient, config) {
     this.supabase = supabaseClient;
     this.bucket = "wedding-images";
-    this.storageBaseUrl = config.cloudflare.imageProxy;
+    this.storageBaseUrl = config.cloudflare.imageProxy || config.supabase.storageUrl;
   }
 
   /**

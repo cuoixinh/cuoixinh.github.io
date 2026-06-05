@@ -4,7 +4,7 @@
 
 // ============= CONFIGURATION =============
 const ENCRYPTION_KEY = CONFIG.security.encryptionKey;
-const STORAGE_BASE_URL = CONFIG.cloudflare.imageProxy;
+const STORAGE_BASE_URL = CONFIG.cloudflare.imageProxy || CONFIG.supabase.storageUrl;
 
 // ============= DOM HELPERS =============
 
@@ -71,9 +71,11 @@ function getImageUrl(filename) {
   if (!filename) {
     return createPlaceholderSVG("Chưa có ảnh");
   }
-  // Check if it's already a full URL or relative path
+  // Check if it's already a full URL, blob URL, data URL, or relative path
   if (
     filename.startsWith("http") ||
+    filename.startsWith("blob:") ||
+    filename.startsWith("data:") ||
     filename.startsWith("../") ||
     filename.startsWith("./") ||
     filename.startsWith("/")
@@ -168,25 +170,14 @@ function isPreviewMode() {
  */
 function showPreviewAlert() {
   const toast = document.createElement("div");
-  toast.style.cssText = `
-    position: fixed;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(212, 165, 165, 0.95);
-    color: white;
-    padding: 12px 24px;
-    border-radius: 8px;
-    font-size: 14px;
-    z-index: 10000;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    animation: slideDown 0.3s ease;
-  `;
+  toast.className = "fixed top-5 left-1/2 -translate-x-1/2 z-[10000] px-6 py-3 rounded-lg text-sm text-white shadow-md animate-fade-in";
+  toast.style.background = "rgba(212,165,165,0.95)";
   toast.textContent = "Chức năng này không khả dụng ở chế độ xem thử";
   document.body.appendChild(toast);
 
   setTimeout(() => {
-    toast.style.animation = "slideUp 0.3s ease";
+    toast.style.opacity = "0";
+    toast.style.transition = "opacity 0.3s";
     setTimeout(() => toast.remove(), 300);
   }, 2000);
 
@@ -275,58 +266,44 @@ function isGroomSide() {
  * @param {Function} callback - Callback function with cropped blob
  */
 function openImageCropModal(file, callback) {
-  // Create modal HTML
-  const modalHTML = `
-    <div id="crop-modal" class="fixed inset-0 bg-black/80 flex items-center justify-center z-[9999] p-4">
-      <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden shadow-2xl">
-        <!-- Header -->
-        <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-          <h3 class="text-lg font-semibold text-gray-800">Cắt ảnh QR Code</h3>
-          <button onclick="closeCropModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
-            <i class="fas fa-times text-xl"></i>
-          </button>
-        </div>
+  const sheet = openBottomSheet({
+    id: 'crop-modal',
+    title: 'Căn chỉnh ảnh QR Code',
+    height: '92vh',
+    onClose: () => {
+      if (window._currentCropper) {
+        window._currentCropper.destroy();
+        window._currentCropper = null;
+      }
+      window._cropCallback = null;
+      window._closeCropSheet = null;
+    },
+  });
+  if (!sheet) return;
+  window._closeCropSheet = sheet.close;
 
-        <!-- Crop Area -->
-        <div class="p-6">
-          <div class="bg-gray-100 rounded-lg overflow-hidden relative" style="max-height: 400px; min-height: 300px;">
-            <!-- Loading spinner -->
-            <div id="crop-loading" class="absolute inset-0 flex items-center justify-center bg-gray-100">
-              <div class="text-center">
-                <div class="inline-block w-12 h-12 border-4 border-pink-500 border-t-transparent rounded-full animate-spin"></div>
-                <p class="text-sm text-gray-500 mt-3">Đang tải ảnh...</p>
-              </div>
-            </div>
-            <!-- Image (hidden initially) -->
-            <img id="crop-image" src="" alt="Crop" class="max-w-full opacity-0" />
+  sheet.body.innerHTML = `
+    <div class="p-5 flex-1 flex flex-col">
+      <div class="bg-gray-100 rounded-xl overflow-hidden relative flex-1" style="min-height:260px">
+        <div id="crop-loading" class="absolute inset-0 flex items-center justify-center bg-gray-100">
+          <div class="text-center">
+            <div class="inline-block w-10 h-10 border-4 border-pink-500 border-t-transparent rounded-full animate-spin"></div>
+            <p class="text-sm text-gray-500 mt-3">Đang tải ảnh...</p>
           </div>
-          <p class="text-sm text-gray-500 mt-3 text-center">
-            <i class="fas fa-info-circle mr-1"></i>
-            Sử dụng chuột hoặc 2 ngón tay để zoom và di chuyển ảnh
-          </p>
         </div>
-
-        <!-- Actions -->
-        <div class="px-6 py-4 border-t border-gray-200 flex gap-3 justify-end">
-          <button 
-            onclick="closeCropModal()" 
-            class="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
-          >
-            Hủy
-          </button>
-          <button 
-            onclick="applyCrop()" 
-            class="px-6 py-2.5 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-lg hover:from-pink-600 hover:to-rose-600 transition-all font-medium shadow-md"
-          >
-            <i class="fas fa-check mr-2"></i>Áp dụng
-          </button>
-        </div>
+        <img id="crop-image" src="" alt="Crop" class="max-w-full opacity-0" />
       </div>
+      <p class="text-xs text-gray-400 mt-2.5 text-center">Dùng 2 ngón tay hoặc cuộn chuột để zoom, kéo để di chuyển</p>
     </div>
   `;
-
-  // Insert modal into body
-  document.body.insertAdjacentHTML("beforeend", modalHTML);
+  sheet.footer.innerHTML = `
+    <div class="px-4 pb-4 flex gap-2">
+      <button onclick="closeCropModal()" class="flex-1 h-10 border border-gray-200 rounded-xl text-sm text-gray-600 hover:bg-gray-50 transition-colors">Hủy</button>
+      <button onclick="applyCrop()" class="flex-1 h-10 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-xl text-sm font-semibold hover:from-pink-600 hover:to-rose-600 transition-all shadow-sm flex items-center justify-center gap-1.5">
+        <i class="fas fa-check mr-1"></i>Áp dụng
+      </button>
+    </div>
+  `;
 
   // Load image
   const reader = new FileReader();
@@ -377,18 +354,118 @@ function openImageCropModal(file, callback) {
 }
 
 /**
- * Close crop modal
+ * Reusable swipe-down-to-close for bottom sheet modals.
+ * Returns a cleanup function to remove all listeners.
  */
-function closeCropModal() {
-  const modal = document.getElementById("crop-modal");
-  if (modal) {
-    if (window._currentCropper) {
-      window._currentCropper.destroy();
-      window._currentCropper = null;
-    }
-    window._cropCallback = null;
-    modal.remove();
+function _setupBottomSheetSwipe(cardEl, closeFn) {
+  if (!cardEl) return () => {};
+  let startY = 0, deltaY = 0, active = false;
+
+  function onStart(e) {
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    if (clientY - cardEl.getBoundingClientRect().top > 80) return;
+    startY = clientY; deltaY = 0; active = true;
+    cardEl.style.transition = "none";
+    cardEl.style.userSelect = "none";
   }
+  function onMove(e) {
+    if (!active) return;
+    if (e.cancelable) e.preventDefault();
+    e.stopPropagation();
+    const y = e.touches ? e.touches[0].clientY : e.clientY;
+    deltaY = Math.max(0, y - startY);
+    cardEl.style.transform = `translateY(${deltaY}px)`;
+  }
+  function onEnd() {
+    if (!active) return;
+    active = false;
+    cardEl.style.userSelect = "";
+    if (deltaY > 100) {
+      cardEl.style.transition = "transform 0.25s cubic-bezier(0.32,0.72,0,1)";
+      cardEl.style.transform = "translateY(100%)";
+      setTimeout(closeFn, 240);
+    } else {
+      cardEl.style.transition = "transform 0.2s ease";
+      cardEl.style.transform = "translateY(0)";
+    }
+  }
+
+  cardEl.addEventListener("touchstart", onStart, { passive: true });
+  cardEl.addEventListener("mousedown", onStart);
+  // non-passive so preventDefault() can block page scroll during drag
+  cardEl.addEventListener("touchmove", onMove, { passive: false });
+  document.addEventListener("touchend", onEnd);
+  document.addEventListener("mousemove", onMove);
+  document.addEventListener("mouseup", onEnd);
+
+  return function cleanup() {
+    cardEl.removeEventListener("touchmove", onMove);
+    document.removeEventListener("touchend", onEnd);
+    document.removeEventListener("mousemove", onMove);
+    document.removeEventListener("mouseup", onEnd);
+  };
+}
+
+/**
+ * Creates a standard bottom-sheet modal shell (overlay → handle → header → body → footer).
+ * Handles: body-scroll lock, swipe-to-close, X button, z-index.
+ *
+ * @param {object} opts
+ * @param {string}   opts.id       - Unique outer modal element ID
+ * @param {string}   opts.title    - Header title HTML string
+ * @param {string}   [opts.height='92vh'] - CSS height for the card
+ * @param {Function} [opts.onClose]       - Extra cleanup run just before removal
+ * @returns {{ body: HTMLElement, footer: HTMLElement, close: Function } | null}
+ *   Returns null if a modal with that id already exists.
+ */
+function openBottomSheet({ id, title, height = '92vh', onClose } = {}) {
+  if (document.getElementById(id)) return null;
+
+  const modal = document.createElement('div');
+  modal.id = id;
+  modal.className = 'fixed inset-0 bg-black/40 flex items-end justify-center z-[9999]';
+  modal.innerHTML = `
+    <div id="${id}-card" class="bg-white rounded-t-2xl max-w-3xl w-full flex flex-col overflow-hidden shadow-2xl" style="height:${height}">
+      <div class="flex justify-center items-center pt-2.5 pb-1 flex-shrink-0">
+        <span class="w-10 h-1.5 rounded-full bg-gray-300"></span>
+      </div>
+      <div class="px-5 py-3 border-b border-gray-200 flex items-center justify-between flex-shrink-0">
+        <h3 class="text-base font-semibold text-gray-800 flex items-center gap-2">${title}</h3>
+        <button type="button" id="${id}-x-btn" class="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 transition-colors">
+          <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+      </div>
+      <div id="${id}-body" class="flex-1 min-h-0 flex flex-col overflow-hidden"></div>
+      <div id="${id}-footer" class="flex-shrink-0"></div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+  const prevOverflow = document.body.style.overflow;
+  document.body.style.overflow = 'hidden';
+
+  const card  = document.getElementById(`${id}-card`);
+  const body  = document.getElementById(`${id}-body`);
+  const footer = document.getElementById(`${id}-footer`);
+
+  let closed = false;
+  function close() {
+    if (closed) return;
+    closed = true;
+    cleanupSwipe();
+    if (typeof onClose === 'function') onClose();
+    modal.remove();
+    document.body.style.overflow = prevOverflow;
+  }
+
+  document.getElementById(`${id}-x-btn`).addEventListener('click', close);
+  const cleanupSwipe = _setupBottomSheetSwipe(card, close);
+
+  return { body, footer, close };
+}
+
+function closeCropModal() {
+  if (typeof window._closeCropSheet === 'function') window._closeCropSheet();
 }
 
 /**
@@ -420,3 +497,423 @@ function applyCrop() {
     0.95,
   );
 }
+
+// ============= FOCAL POINT PICKER =============
+
+/**
+ * Open focal-point picker — let user drag a "focus point" on the image and
+ * preview how it will look when cropped at 3 common ratios (1:1, 16:9, 9:16).
+ * @param {File|string} imageSource - Image file or existing image URL
+ * @param {{x:number,y:number}} [currentFocal] - Current focal point in % (default center)
+ * @param {Function} callback - Called with {x, y} in % when user confirms
+ */
+function openFocalPointPicker(imageSource, currentFocal, callback) {
+  const focal = {
+    x: currentFocal?.x ?? 50,
+    y: currentFocal?.y ?? 50,
+  };
+
+  const sheet = openBottomSheet({
+    id: 'focal-modal',
+    title: 'Căn chỉnh khung hình',
+    height: '92vh',
+    onClose: () => {
+      window._focalPickerCallback = null;
+      window._focalPickerReset = null;
+      window._closeFocalSheet = null;
+      window._focalPickerValue = null;
+    },
+  });
+  if (!sheet) return;
+  window._closeFocalSheet = sheet.close;
+
+  sheet.body.innerHTML = `
+    <div class="p-5 space-y-5 overflow-y-auto overscroll-contain flex-1">
+      <div>
+        <div id="focal-image-wrap" class="relative rounded-xl overflow-hidden bg-gray-100 cursor-crosshair select-none touch-none h-[260px] sm:h-[320px]">
+          <img id="focal-image" src="" alt="" class="w-full h-full object-contain block pointer-events-none select-none" draggable="false" />
+          <div id="focal-marker" class="absolute w-6 h-6 -ml-3 -mt-3 rounded-full border-2 border-white shadow-lg pointer-events-none" style="left:50%;top:50%;background-color:var(--primary);"></div>
+        </div>
+        <p class="text-xs text-gray-500 mt-2">Chạm hoặc kéo điểm đến phần quan trọng nhất (VD: khuôn mặt) để ảnh đẹp ở mọi tỉ lệ.</p>
+      </div>
+      <div>
+        <p class="text-xs font-semibold text-gray-500 mb-2">Xem trước các tỉ lệ</p>
+        <div class="grid grid-cols-3 gap-3">
+          <div>
+            <div class="aspect-square rounded-lg overflow-hidden bg-gray-100 border border-gray-200">
+              <img id="focal-preview-1-1" src="" alt="" class="w-full h-full object-cover" />
+            </div>
+            <p class="text-xs text-gray-500 text-center mt-1">Vuông (1:1)</p>
+          </div>
+          <div>
+            <div class="aspect-video rounded-lg overflow-hidden bg-gray-100 border border-gray-200">
+              <img id="focal-preview-16-9" src="" alt="" class="w-full h-full object-cover" />
+            </div>
+            <p class="text-xs text-gray-500 text-center mt-1">Ngang (16:9)</p>
+          </div>
+          <div>
+            <div class="aspect-[9/16] rounded-lg overflow-hidden bg-gray-100 border border-gray-200">
+              <img id="focal-preview-9-16" src="" alt="" class="w-full h-full object-cover" />
+            </div>
+            <p class="text-xs text-gray-500 text-center mt-1">Dọc (9:16)</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  sheet.footer.innerHTML = `
+    <div class="px-4 py-3 border-t border-gray-200 flex items-center justify-between gap-2">
+      <button onclick="resetFocalPoint()" class="h-10 px-4 bg-sky-50 text-sky-700 rounded-xl text-sm font-medium hover:bg-sky-100 transition-colors flex items-center gap-1.5">
+        <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+        Đặt lại
+      </button>
+      <div class="flex gap-2">
+        <button onclick="closeFocalPointPicker()" class="h-10 px-4 border border-gray-200 rounded-xl text-sm text-gray-600 hover:bg-gray-50 transition-colors">Hủy</button>
+        <button onclick="confirmFocalPoint()" class="h-10 px-5 rounded-xl text-sm font-semibold text-white hover:opacity-90 transition-opacity flex items-center gap-1.5" style="background-color:var(--primary);">
+          <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+          Áp dụng
+        </button>
+      </div>
+    </div>
+  `;
+
+  const wrap = document.getElementById("focal-image-wrap");
+  const img = document.getElementById("focal-image");
+  const marker = document.getElementById("focal-marker");
+  const previews = [
+    document.getElementById("focal-preview-1-1"),
+    document.getElementById("focal-preview-16-9"),
+    document.getElementById("focal-preview-9-16"),
+  ];
+
+  // Returns the rendered image bounds within the wrap (accounting for object-contain letterboxing)
+  function getImageBounds() {
+    const rect = wrap.getBoundingClientRect();
+    const nw = img.naturalWidth;
+    const nh = img.naturalHeight;
+    if (!nw || !nh || !rect.width || !rect.height) {
+      return { left: 0, top: 0, width: rect.width || 1, height: rect.height || 1, wrapW: rect.width, wrapH: rect.height };
+    }
+    const wrapAspect = rect.width / rect.height;
+    const imgAspect = nw / nh;
+    let imgW, imgH, imgLeft, imgTop;
+    if (imgAspect > wrapAspect) {
+      imgW = rect.width; imgH = rect.width / imgAspect;
+      imgLeft = 0; imgTop = (rect.height - imgH) / 2;
+    } else {
+      imgH = rect.height; imgW = rect.height * imgAspect;
+      imgTop = 0; imgLeft = (rect.width - imgW) / 2;
+    }
+    return { left: imgLeft, top: imgTop, width: imgW, height: imgH, wrapW: rect.width, wrapH: rect.height };
+  }
+
+  function applyToUI() {
+    const b = getImageBounds();
+    // Convert image-space focal point to wrap-space marker position
+    const markerLeft = b.wrapW ? ((b.left + (focal.x / 100) * b.width) / b.wrapW) * 100 : focal.x;
+    const markerTop  = b.wrapH ? ((b.top  + (focal.y / 100) * b.height) / b.wrapH) * 100 : focal.y;
+    marker.style.left = `${markerLeft}%`;
+    marker.style.top  = `${markerTop}%`;
+    // Expose image-space values for confirmFocalPoint (marker style is wrap-space, not image-space)
+    window._focalPickerValue = { x: focal.x, y: focal.y };
+    previews.forEach((p) => {
+      if (p) p.style.objectPosition = `${focal.x}% ${focal.y}%`;
+    });
+  }
+
+  function setFromPointer(e) {
+    const rect = wrap.getBoundingClientRect();
+    const b = getImageBounds();
+    const clickX = e.clientX - rect.left;
+    const clickY = e.clientY - rect.top;
+    // Convert wrap-space click to image-space percentage
+    focal.x = Math.round(Math.max(0, Math.min(100, ((clickX - b.left) / b.width) * 100)));
+    focal.y = Math.round(Math.max(0, Math.min(100, ((clickY - b.top) / b.height) * 100)));
+    applyToUI();
+  }
+
+  let dragging = false;
+  wrap.addEventListener("pointerdown", (e) => {
+    dragging = true;
+    wrap.setPointerCapture(e.pointerId);
+    setFromPointer(e);
+  });
+  wrap.addEventListener("pointermove", (e) => {
+    if (dragging) setFromPointer(e);
+  });
+  wrap.addEventListener("pointerup", () => {
+    dragging = false;
+  });
+  wrap.addEventListener("pointercancel", () => {
+    dragging = false;
+  });
+
+
+  function setImageSrc(src) {
+    img.src = src;
+    previews.forEach((p) => { if (p) p.src = src; });
+    // Wait for natural dimensions before positioning marker
+    if (img.complete && img.naturalWidth) {
+      applyToUI();
+    } else {
+      img.onload = () => applyToUI();
+    }
+  }
+
+  if (typeof imageSource === "string") {
+    setImageSrc(imageSource);
+  } else {
+    const reader = new FileReader();
+    reader.onload = (e) => setImageSrc(e.target.result);
+    reader.readAsDataURL(imageSource);
+  }
+
+  window._focalPickerCallback = callback;
+  window._focalPickerReset = () => {
+    focal.x = 50;
+    focal.y = 50;
+    applyToUI();
+  };
+}
+
+/**
+ * Close focal-point picker modal
+ */
+function closeFocalPointPicker() {
+  if (typeof window._closeFocalSheet === 'function') window._closeFocalSheet();
+}
+
+/**
+ * Reset điểm lấy nét về giữa ảnh (mặc định)
+ */
+function resetFocalPoint() {
+  if (typeof window._focalPickerReset === "function") {
+    window._focalPickerReset();
+  }
+}
+
+/**
+ * Confirm focal point selection and invoke the picker callback
+ */
+function confirmFocalPoint() {
+  if (!window._focalPickerCallback) return;
+  // Use image-space values stored by applyToUI (marker.style is wrap-space after letterbox correction)
+  const v = window._focalPickerValue || { x: 50, y: 50 };
+  const callback = window._focalPickerCallback;
+  closeFocalPointPicker();
+  callback({ x: v.x, y: v.y });
+}
+
+// ============= TIME PICKER =============
+
+function openTimePicker(anchorEl, currentValue, callback) {
+  closeTimePicker();
+
+  let initH = 10, initM = 0;
+  if (currentValue && /^\d{1,2}:\d{2}$/.test(currentValue)) {
+    const [h, m] = currentValue.split(':').map(Number);
+    initH = h; initM = m;
+  }
+
+  const ITEM_H = 32;
+  const VISIBLE = 5;
+  const COL_H = ITEM_H * VISIBLE;
+  const PAD = ITEM_H * Math.floor(VISIBLE / 2);
+  const CYCLES = 7; // enough to scroll freely without hitting edge
+  const H_COUNT = 24, M_COUNT = 60;
+
+  // Render CYCLES repetitions for infinite wrap illusion
+  const makeItems = (count) => Array.from({ length: count * CYCLES }, (_, i) =>
+    `<div style="height:${ITEM_H}px;scroll-snap-align:center;font-size:0.875rem;display:flex;align-items:center;justify-content:center;font-weight:500;color:#1f2937;user-select:none">${String(i % count).padStart(2, '0')}</div>`
+  ).join('');
+
+  const colHtml = (id, count) => `
+    <div style="position:relative;flex:1;height:${COL_H}px">
+      <div style="position:absolute;left:0;right:0;top:0;height:${PAD}px;background:linear-gradient(to bottom,white,rgba(255,255,255,0));z-index:2;pointer-events:none"></div>
+      <div style="position:absolute;left:0;right:0;bottom:0;height:${PAD}px;background:linear-gradient(to top,white,rgba(255,255,255,0));z-index:2;pointer-events:none"></div>
+      <div style="position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);height:${ITEM_H}px;border-top:1.5px solid #fda4af;border-bottom:1.5px solid #fda4af;border-radius:6px;background:rgba(255,241,242,0.7);z-index:1;pointer-events:none"></div>
+      <div id="${id}" style="height:100%;overflow-y:scroll;scroll-snap-type:y mandatory;scrollbar-width:none;-ms-overflow-style:none">
+        <div style="padding:${PAD}px 0">${makeItems(count)}</div>
+      </div>
+    </div>`;
+
+  const popup = document.createElement('div');
+  popup.id = 'tp-popup';
+  popup.style.cssText = 'position:fixed;z-index:99999;background:white;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.15),0 2px 6px rgba(0,0,0,0.08);overflow:hidden;width:160px';
+  popup.innerHTML = `
+    <div style="display:flex;align-items:center;padding:8px 10px 0;gap:0">
+      ${colHtml('tp-hours', H_COUNT)}
+      <div style="flex-shrink:0;font-size:1rem;font-weight:300;color:#d1d5db;padding:0 3px">:</div>
+      ${colHtml('tp-minutes', M_COUNT)}
+    </div>
+    <div class="flex gap-1.5 px-2.5 pb-2.5 pt-1.5">
+      <button id="tp-cancel" type="button" class="flex-1 h-8 border border-gray-200 rounded-lg text-xs text-gray-500 bg-white cursor-pointer hover:bg-gray-50 transition-colors">Hủy</button>
+      <button id="tp-confirm" type="button" class="flex-1 h-8 bg-rose-500 rounded-lg text-xs font-semibold text-white cursor-pointer hover:bg-rose-600 transition-colors">Xác nhận</button>
+    </div>`;
+
+  if (!document.getElementById('tp-scrollbar-css')) {
+    const s = document.createElement('style');
+    s.id = 'tp-scrollbar-css';
+    s.textContent = '#tp-hours::-webkit-scrollbar,#tp-minutes::-webkit-scrollbar{display:none}';
+    document.head.appendChild(s);
+  }
+
+  document.body.appendChild(popup);
+
+  // Position below/above anchor
+  const rect = anchorEl.getBoundingClientRect();
+  const popH = COL_H + 8 + 30 + 16;
+  const spaceBelow = window.innerHeight - rect.bottom;
+  popup.style.top = (spaceBelow >= popH + 8 ? rect.bottom + 6 : rect.top - popH - 6) + 'px';
+  popup.style.left = Math.max(8, Math.min(rect.left, window.innerWidth - 168)) + 'px';
+
+  const hEl = document.getElementById('tp-hours');
+  const mEl = document.getElementById('tp-minutes');
+  const midCycle = Math.floor(CYCLES / 2);
+
+  // Start at middle cycle so user can freely wrap both directions
+  hEl.scrollTop = (midCycle * H_COUNT + initH) * ITEM_H;
+  mEl.scrollTop = (midCycle * M_COUNT + initM) * ITEM_H;
+
+  // After scroll settles, silently snap back to middle cycle (creates infinite wrap)
+  function setupWrap(el, count) {
+    let t;
+    el.addEventListener('scroll', () => {
+      clearTimeout(t);
+      t = setTimeout(() => {
+        const raw = Math.round(el.scrollTop / ITEM_H);
+        const real = ((raw % count) + count) % count;
+        const target = (midCycle * count + real) * ITEM_H;
+        if (Math.abs(el.scrollTop - target) > 1) el.scrollTop = target;
+      }, 120);
+    }, { passive: true });
+  }
+  setupWrap(hEl, H_COUNT);
+  setupWrap(mEl, M_COUNT);
+
+  window._timePickerCallback = callback;
+
+  function apply() {
+    const rawH = Math.round(hEl.scrollTop / ITEM_H);
+    const rawM = Math.round(mEl.scrollTop / ITEM_H);
+    const h = ((rawH % H_COUNT) + H_COUNT) % H_COUNT;
+    const m = ((rawM % M_COUNT) + M_COUNT) % M_COUNT;
+    const val = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    if (typeof window._timePickerCallback === 'function') {
+      window._timePickerCallback(val);
+      window._timePickerCallback = null;
+    }
+    closeTimePicker();
+  }
+
+  document.getElementById('tp-confirm').addEventListener('click', apply);
+  document.getElementById('tp-cancel').addEventListener('click', closeTimePicker);
+
+  setTimeout(() => {
+    document.addEventListener('mousedown', _onTpOutside);
+    document.addEventListener('touchstart', _onTpOutside, { passive: true });
+  }, 0);
+}
+
+function _onTpOutside(e) {
+  const popup = document.getElementById('tp-popup');
+  if (popup && !popup.contains(e.target)) closeTimePicker();
+}
+
+function closeTimePicker() {
+  const popup = document.getElementById('tp-popup');
+  if (popup) popup.remove();
+  document.removeEventListener('mousedown', _onTpOutside);
+  document.removeEventListener('touchstart', _onTpOutside);
+  window._timePickerCallback = null;
+}
+
+// ============= DISABLE MOBILE ZOOM =============
+(function () {
+  const opts = { passive: false };
+  ["gesturestart", "gesturechange", "gestureend"].forEach(function (t) {
+    document.addEventListener(t, function (e) { e.preventDefault(); }, opts);
+  });
+  document.addEventListener("touchmove", function (e) {
+    if (e.touches.length > 1) e.preventDefault();
+  }, opts);
+  document.addEventListener("dblclick", function (e) { e.preventDefault(); });
+  document.documentElement.style.touchAction = "manipulation";
+
+  // iOS Safari: reset viewport after keyboard dismissal to prevent stuck-zoom state
+  document.addEventListener("focusout", function () {
+    window.setTimeout(function () {
+      window.scrollTo(window.pageXOffset, window.pageYOffset);
+    }, 100);
+  });
+})();
+
+// ============= PREVIEW NAVBAR =============
+// Khi navigate thẳng qua URL ?preview=true (từ trang chủ), hiển thị bottom navbar
+(function initPreviewNavbar() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("preview") !== "true") return;
+  if (params.get("source") === "live") return;
+  if (params.get("embedded") === "true") return;
+
+  // Lấy tên theme từ URL path: /public/themes/basic-gold/ → basic-gold
+  const pathParts = window.location.pathname.replace(/\/$/, "").split("/").filter(Boolean);
+  const themeName = pathParts[pathParts.length - 1] || "basic-gold";
+  const themeDisplay = themeName.split("-").map(function (w) {
+    return w.charAt(0).toUpperCase() + w.slice(1);
+  }).join(" ");
+
+  function _generateUUID() {
+    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+      var r = (Math.random() * 16) | 0;
+      return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
+    });
+  }
+
+  function _chooseTheme() {
+    var uuid = _generateUUID();
+    try {
+      localStorage.setItem(
+        "cuoixinh_draft_" + uuid,
+        JSON.stringify({ theme: themeName, is_published: false, _localOnly: true })
+      );
+    } catch (e) {}
+    sessionStorage.setItem("draft_theme", themeName);
+    sessionStorage.setItem("draft_template_name", themeDisplay);
+    window.location.href = "/invitation-setup/?id=" + uuid;
+  }
+
+  var NAVBAR_H = 56;
+
+  var navbar = document.createElement("div");
+  navbar.id = "preview-nav";
+  navbar.className = "fixed bottom-0 left-1/2 -translate-x-1/2 z-[9999] w-full max-w-[430px] md:max-w-[768px] flex items-center justify-end gap-2.5 px-4 py-2.5 bg-white/95 backdrop-blur border-t border-rose-100";
+  navbar.style.cssText = "padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));box-shadow:0 -4px 24px rgba(180,80,110,0.10);";
+
+  navbar.innerHTML =
+    '<button id="pnav-close" class="flex items-center gap-1 px-3 h-8 rounded-full border border-rose-100 bg-transparent text-xs font-medium text-[#a07080] whitespace-nowrap shrink-0 cursor-pointer hover:bg-rose-50 transition-colors">' +
+    '  <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>' +
+    '  Quay lại' +
+    '</button>' +
+    '<button id="pnav-choose" class="flex items-center gap-1.5 px-4 h-8 rounded-full text-xs font-bold text-white whitespace-nowrap cursor-pointer hover:opacity-90 transition-opacity" style="background:linear-gradient(135deg,#f472a0,#e05585);box-shadow:0 3px 10px rgba(224,85,133,0.3);">' +
+    '  Dùng mẫu này' +
+    '  <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>' +
+    '</button>';
+
+  function _mount() {
+    document.body.appendChild(navbar);
+    document.body.style.paddingBottom = (navbar.offsetHeight || NAVBAR_H) + "px";
+
+    var musicBtn = document.getElementById("music-toggle");
+    if (musicBtn) musicBtn.style.bottom = ((navbar.offsetHeight || NAVBAR_H) + 8) + "px";
+
+    document.getElementById("pnav-close").addEventListener("click", function () { history.back(); });
+    document.getElementById("pnav-choose").addEventListener("click", _chooseTheme);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", _mount);
+  } else {
+    _mount();
+  }
+})();

@@ -3,6 +3,9 @@
  * All API keys, URLs, and secrets in one place
  */
 
+// Set false khi test localhost để bypass Cloudflare cache → hit Supabase trực tiếp
+const USE_CACHE = false;
+
 const CONFIG = {
   // Supabase
   supabase: {
@@ -17,11 +20,11 @@ const CONFIG = {
       "https://lcobawmkywtxhpezndsh.supabase.co/storage/v1/object/public/wedding-images",
   },
 
-  // Cloudflare Workers
+  // Cloudflare Workers (null khi USE_CACHE = false)
   cloudflare: {
-    imageProxy: "https://wedding-image-proxy.cuoixinh-api.workers.dev",
-    templatesCache: "https://templates-cache.cuoixinh-api.workers.dev",
-    cacheProxy: "https://wedding-cache-proxy.cuoixinh-api.workers.dev",
+    imageProxy:     USE_CACHE ? "https://wedding-image-proxy.cuoixinh-api.workers.dev" : null,
+    templatesCache: USE_CACHE ? "https://templates-cache.cuoixinh-api.workers.dev" : null,
+    cacheProxy:     USE_CACHE ? "https://wedding-cache-proxy.cuoixinh-api.workers.dev" : null,
     purgeSecret: "9JMoLdvCWhD2W0CGJpsiq+7n/xESNgq6m91bm70cDkg=",
   },
 
@@ -35,6 +38,9 @@ const CONFIG = {
     interval: 30000, // 30 seconds
     timeout: 300000, // 5 minutes
   },
+
+  // Love Story
+  maxLoveStoryItems: 10,
 
   // Default Music
   defaultMusic: {

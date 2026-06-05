@@ -7,27 +7,134 @@ const _isGroom = isGroomSide();
 
 // ============= RENDER WEDDING DATA =============
 
+function _isEnabled(flag) {
+  return flag !== false && flag !== "false";
+}
+
+function _toggleEl(id, show) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (show) {
+    el.classList.remove("hidden");
+    if (el.style.display === "none") el.style.display = "";
+  } else {
+    el.classList.add("hidden");
+  }
+}
+
+function renderTimeline(items, side, partyDate, ceremonyDate, ceremonyName) {
+  const list = document.getElementById("timeline-list-render");
+  if (!list) return;
+  if (!Array.isArray(items) || items.length === 0) {
+    list.innerHTML = "";
+    return;
+  }
+
+  const relevant = items.filter((item) => {
+    const t = item.type || "ceremony";
+    if (t === "ceremony") return true;
+    if (side === "groom" && t === "party") return true;
+    if (side === "bride" && t === "bride-party") return true;
+    return false;
+  });
+  if (relevant.length === 0) {
+    list.innerHTML = "";
+    return;
+  }
+
+  const _sort = (arr) =>
+    [...arr].sort((a, b) =>
+      !a.time ? 1 : !b.time ? -1 : a.time.localeCompare(b.time),
+    );
+  const partyItems = _sort(
+    relevant.filter((i) => (i.type || "ceremony") !== "ceremony"),
+  );
+  const ceremonyItems = _sort(
+    relevant.filter((i) => (i.type || "ceremony") === "ceremony"),
+  );
+
+  function _fmtDate(dateStr) {
+    if (!dateStr) return "";
+    try {
+      const d = new Date(dateStr + "T00:00:00");
+      return d.toLocaleDateString("vi-VN", {
+        weekday: "short",
+        day: "numeric",
+        month: "numeric",
+        year: "numeric",
+      });
+    } catch (e) {
+      return dateStr;
+    }
+  }
+
+  function _renderGroup(label, dateStr, groupItems) {
+    if (!groupItems.length) return "";
+    const dateLabel = _fmtDate(dateStr);
+    const items = groupItems.map((item, i) => {
+      const pbClass = i === groupItems.length - 1 ? "pb-1" : "pb-4";
+      return `
+        <div class="relative pl-[14px] ${pbClass} text-left">
+          <div class="absolute left-[-6px] top-[3px] w-[10px] h-[10px] rounded-full bg-[#fda4af] border-2 border-white shadow-[0_0_0_2px_#fda4af]"></div>
+          <div class="text-[0.7rem] font-bold text-red-400 tracking-[0.06em] mb-0.5">${escapeHtml(item.time || "")}</div>
+          <div class="text-[0.95rem] font-cormorant text-stone-custom-500 leading-snug">${escapeHtml(item.title || "")}</div>
+        </div>`;
+    }).join("");
+    return `
+      <div class="mb-6 last:mb-0">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="text-[11px] uppercase tracking-widest text-stone-custom-400 font-inter">${escapeHtml(label)}</span>
+          ${dateLabel ? `<span class="text-[10px] text-stone-custom-400 font-inter">· ${escapeHtml(dateLabel)}</span>` : ""}
+        </div>
+        <div class="flex flex-col border-l-2 border-[#fce7f3] ml-[5px]">
+          ${items}
+        </div>
+      </div>`;
+  }
+
+  list.innerHTML =
+    _renderGroup("Tiệc Cưới", partyDate, partyItems) +
+    _renderGroup(ceremonyName || "Lễ Thành Hôn", ceremonyDate, ceremonyItems);
+}
+
 function renderWedding(w) {
   if (!w || !w.is_active) return;
 
   const side = _isGroom ? "groom" : "bride";
 
   // --- MUSIC ---
-  setupMusic(w.music_url);
+  setupMusic(_isEnabled(w.enable_music) ? w.music_url : null);
 
   // --- COVER ---
   renderCover(w);
 
   // --- HERO ---
-  renderHero(w, true); // true = use setImageWithRing
+  renderHero(w, true);
 
   // --- COUPLE INFO ---
   setText("invite-groom", w.groom_name, "----------");
   setText("invite-bride", w.bride_name, "----------");
   renderCoupleInfo(w);
 
-  // --- CEREMONY DATE ---
-  renderCeremonyDate(w.ceremony_date, w.ceremony_time, w.ceremony_lunar);
+  // --- SECTION: family ---
+  _toggleEl("section-family", _isEnabled(w.enable_family));
+
+  // --- CEREMONY / VU QUY ---
+  // Bride + vu_quy_enabled → thay toàn bộ ceremony bằng vu quy
+  const isVuQuy = !_isGroom && _isEnabled(w.vu_quy_enabled);
+  const ceremonyName = isVuQuy
+    ? "Lễ Vu Quy"
+    : w.ceremony_name || "Lễ Thành Hôn";
+  const displayTime = isVuQuy ? w.vu_quy_time : w.ceremony_time;
+  const displayLoc = isVuQuy ? w.vu_quy_location : w.ceremony_location || "";
+
+  setText("ceremony-event-name", ceremonyName);
+  setText("party-section-label", "Tiệc Mừng " + ceremonyName);
+  renderCeremonyDate(w.ceremony_date, displayTime, w.ceremony_lunar);
+  if (displayLoc) {
+    setText("ceremony-location-text", displayLoc);
+    _toggleEl("ceremony-location-wrap", true);
+  }
 
   // --- PARTY DATE ---
   const partyDate = w[`${side}_party_date`];
@@ -35,21 +142,62 @@ function renderWedding(w) {
   const partyLunar = w[`${side}_party_lunar`];
   const partyLocation = w[`${side}_party_location`];
   renderPartyDate(partyDate, partyTime, partyLunar, partyLocation, "full");
+  _toggleEl("section-party", _isEnabled(w.enable_party));
 
   // --- MINI CALENDAR ---
   setupMiniCalendar(w.ceremony_date, partyDate);
 
+  // --- RSVP ---
+  const rsvpSection = document.getElementById("rsvp-section");
+  if (rsvpSection)
+    rsvpSection.style.display = _isEnabled(w.rsvp_enabled) ? "flex" : "none";
+  if (w.rsvp_message) {
+    const msgEl = document.getElementById("rsvp-custom-message");
+    if (msgEl) {
+      msgEl.textContent = w.rsvp_message;
+      msgEl.classList.remove("hidden");
+    }
+  }
+
+  // --- TIMELINE ---
+  if (_isEnabled(w.enable_timeline)) {
+    renderTimeline(w.timeline, side, partyDate, w.ceremony_date, ceremonyName);
+    _toggleEl("section-timeline", true);
+  }
+
   // --- STORY QUOTE ---
   renderStoryQuote(w.story_quote);
 
+  // --- LOVE STORY ---
+  if (_isEnabled(w.enable_love_story)) {
+    renderLoveStory(w.love_story);
+  } else {
+    _toggleEl("love-story", false);
+  }
+
   // --- GALLERY ---
-  renderCarouselGallery(w.gallery_images);
+  if (_isEnabled(w.enable_photos)) {
+    renderCarouselGallery(
+      w.gallery_images,
+      w.image_focal_points?.gallery_images,
+    );
+  } else {
+    _toggleEl("section-photos", false);
+  }
 
   // --- QR CODES ---
   renderQRCodes(w);
+  _toggleEl("section-gift", _isEnabled(w.enable_gift));
 
-  // --- MAP ---
-  renderMap(w[`${side}_map_embed_url`], partyLocation);
+  // --- MAP (party location) ---
+  const partyMapUrl = w[`${side}_party_map_embed_url`];
+  const showMap = _isEnabled(w[`${side}_party_show_location`]) && !!partyMapUrl;
+  if (showMap) renderMap(partyMapUrl, partyLocation);
+  _toggleEl("section-map", showMap);
+
+  // --- FOOTER ---
+  _toggleEl("section-footer", _isEnabled(w.enable_footer));
+  if (w.footer_text) setText("footer-text", w.footer_text);
 }
 
 // ============= CAROUSEL GALLERY (TEMPLATE1 SPECIFIC) =============
@@ -187,7 +335,7 @@ function attachCarouselClickHandler() {
 }
 
 // Render carousel gallery
-function renderCarouselGallery(galleryImages) {
+function renderCarouselGallery(galleryImages, focalPoints) {
   // Prepare images
   carouselImages.length = 0;
   if (!galleryImages?.length) {
@@ -213,12 +361,14 @@ function renderCarouselGallery(galleryImages) {
     "transition: width 0.4s cubic-bezier(0.4,0,0.2,1), height 0.4s cubic-bezier(0.4,0,0.2,1), opacity 0.4s cubic-bezier(0.4,0,0.2,1), box-shadow 0.4s ease;";
   const dotStyle = "height:6px; border-radius:9999px; transition: all 0.3s;";
 
-  carouselImages.forEach((imgSrc) => {
+  carouselImages.forEach((imgSrc, idx) => {
+    const fp = focalPoints?.[galleryImages?.[idx]];
+    const objectPosition = `${fp?.x ?? 50}% ${fp?.y ?? 50}%`;
     const item = document.createElement("div");
     item.className =
       "carousel-item shrink-0 rounded-2xl overflow-hidden cursor-pointer";
     item.style.cssText = itemTransition;
-    item.innerHTML = `<img src="${imgSrc}" class="w-full h-full object-cover pointer-events-none" alt="">`;
+    item.innerHTML = `<img src="${imgSrc}" class="w-full h-full object-cover pointer-events-none" style="object-position: ${objectPosition}" alt="">`;
     track.appendChild(item);
 
     const dot = document.createElement("div");

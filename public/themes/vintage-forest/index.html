@@ -29,31 +29,7 @@
         font-style: normal;
       }
     </style>
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            fontFamily: {
-              playfair: ["Playfair Display", "serif"],
-              vibes: ["Great Vibes", "cursive"],
-              cormorant: ["Cormorant Garamond", "serif"],
-              inter: ["Inter", "sans-serif"],
-              cinzel: ["Cinzel", "serif"],
-              octet: ["OctetStream", "sans-serif"],
-            },
-            colors: {
-              vintage: {
-                cream: "#faf8f3",
-                beige: "#f5f1e8",
-                brown: "#8b7355",
-                dark: "#4a3f35",
-                green: "#3d4f3d",
-              },
-            },
-          },
-        },
-      };
-    </script>
+    <script src="../tailwind.config.js"></script>
   </head>
   <body
     class="bg-vintage-cream min-h-screen flex justify-center items-center p-0 md:py-5"
@@ -382,6 +358,16 @@
         <div id="gallery-grid" class="space-y-4">
           <!-- Rendered by JS -->
         </div>
+      </section>
+
+      <!-- Love Story Section -->
+      <section id="love-story" style="display:none" class="bg-white px-8 py-12">
+        <div class="text-center mb-8">
+          <div class="text-[24px] tracking-[3px] uppercase text-vintage-dark font-playfair mb-4">
+            Chuyện Tình Yêu
+          </div>
+        </div>
+        <div id="love-story-list" class="relative space-y-6 pl-6 border-l-2 border-vintage-gold max-w-lg mx-auto"></div>
       </section>
 
       <!-- QR Code Section -->

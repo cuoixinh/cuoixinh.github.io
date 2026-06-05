@@ -1,8 +1,8 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="vi">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
     <title>Quản lý Thiệp Cưới</title>
 
     <!-- Favicon -->
@@ -44,14 +44,14 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <!-- Font Awesome Icons -->
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <!-- Leaflet -->
     <link
       rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-      integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
-      crossorigin="anonymous"
-      referrerpolicy="no-referrer"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <!-- Flatpickr CSS -->
     <link
       rel="stylesheet"
@@ -90,7 +90,7 @@
           0 8px 10px -6px rgb(0 0 0 / 0.1);
         border: 1px solid #e5e7eb;
         font-family: "Inter", sans-serif;
-        width: 340px !important;
+        width: min(340px, calc(100vw - 32px)) !important;
       }
       .flatpickr-innerContainer {
         padding: 0 0.75rem 0.75rem 0.75rem;
@@ -225,23 +225,53 @@
         color: white !important;
         font-weight: 600;
       }
+      /* Override readonly styling on altInput — keep same look as a normal input */
+      input.flatpickr-input.flatpickr-alt-input[readonly],
+      input.flatpickr-input[readonly] {
+        background-color: white !important;
+        opacity: 1 !important;
+        cursor: pointer !important;
+        -webkit-text-fill-color: #1f2937 !important;
+      }
+      /* Shared action button style — defined in common.css, no override needed */
+
+      /* Lucide icon sizing — inherits font-size of parent context */
+      svg.lucide {
+        display: inline-block;
+        width: 1em;
+        height: 1em;
+        vertical-align: -0.125em;
+        flex-shrink: 0;
+        transition: transform 0.2s ease;
+      }
     </style>
   </head>
   <body
-    class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100"
+    class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 overflow-x-hidden"
   >
     <!-- Skeleton Loading -->
     <div id="skeleton-loader" class="min-h-screen">
-      <!-- Header Skeleton -->
+      <!-- Bottom Bar Skeleton -->
       <div
-        class="bg-white/80 backdrop-blur-md border-b border-gray-100 px-4 py-5 sticky top-0 z-50 shadow-sm"
+        class="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-rose-100 shadow-[0_-2px_12px_rgba(0,0,0,0.06)]"
       >
-        <div class="max-w-4xl mx-auto flex items-center justify-between">
-          <div class="flex-1">
-            <div class="h-7 w-48 skeleton rounded-lg mb-2"></div>
-            <div class="h-3 w-32 skeleton rounded"></div>
+        <div class="max-w-4xl mx-auto flex">
+          <div class="flex-1 flex flex-col items-center py-3 gap-1.5">
+            <div class="h-4 w-4 skeleton rounded"></div>
+            <div class="h-2.5 w-10 skeleton rounded"></div>
           </div>
-          <div class="h-10 w-24 skeleton rounded-xl"></div>
+          <div class="flex-1 flex flex-col items-center py-3 gap-1.5">
+            <div class="h-4 w-4 skeleton rounded"></div>
+            <div class="h-2.5 w-10 skeleton rounded"></div>
+          </div>
+          <div class="flex-1 flex flex-col items-center py-3 gap-1.5">
+            <div class="h-4 w-4 skeleton rounded"></div>
+            <div class="h-2.5 w-10 skeleton rounded"></div>
+          </div>
+          <div class="flex-1 flex flex-col items-center py-3 gap-1.5">
+            <div class="h-4 w-4 skeleton rounded"></div>
+            <div class="h-2.5 w-10 skeleton rounded"></div>
+          </div>
         </div>
       </div>
 
@@ -252,15 +282,11 @@
         >
           <div class="h-6 w-48 skeleton rounded-lg mb-4"></div>
           <div class="space-y-4">
-            <div
-              class="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl p-4 border border-blue-100"
-            >
+            <div class="bg-white rounded-2xl p-4 border border-gray-100">
               <div class="h-5 w-40 skeleton rounded mb-2"></div>
               <div class="h-12 skeleton rounded-xl"></div>
             </div>
-            <div
-              class="bg-gradient-to-br from-pink-50 to-rose-50 rounded-2xl p-4 border border-pink-100"
-            >
+            <div class="bg-white rounded-2xl p-4 border border-gray-100">
               <div class="h-5 w-40 skeleton rounded mb-2"></div>
               <div class="h-12 skeleton rounded-xl"></div>
             </div>
@@ -271,9 +297,7 @@
         <div
           class="bg-white rounded-3xl shadow-md border border-gray-100 overflow-hidden mb-6"
         >
-          <div
-            class="bg-gradient-to-r from-purple-50 to-pink-50 px-6 py-4 border-b border-gray-100"
-          >
+          <div class="bg-white px-6 py-4 border-b border-gray-100">
             <div class="h-5 w-40 skeleton rounded"></div>
           </div>
           <div class="p-6 space-y-6">
@@ -296,9 +320,7 @@
         <div
           class="bg-white rounded-3xl shadow-md border border-gray-100 overflow-hidden mb-6"
         >
-          <div
-            class="bg-gradient-to-r from-amber-50 to-yellow-50 px-6 py-4 border-b border-gray-100"
-          >
+          <div class="bg-white px-6 py-4 border-b border-gray-100">
             <div class="h-5 w-32 skeleton rounded"></div>
           </div>
           <div class="p-6">
@@ -313,9 +335,7 @@
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <!-- Groom Skeleton -->
           <div class="bg-white rounded-3xl shadow-md border border-gray-100">
-            <div
-              class="bg-gradient-to-r from-blue-50 to-cyan-50 px-6 py-4 border-b border-gray-100"
-            >
+            <div class="bg-white px-6 py-4 border-b border-gray-100">
               <div class="h-5 w-32 skeleton rounded"></div>
             </div>
             <div class="p-6 space-y-6">
@@ -328,7 +348,7 @@
               <div class="h-14 skeleton rounded-2xl"></div>
               <div class="h-20 skeleton rounded-2xl"></div>
               <div class="h-14 skeleton rounded-2xl"></div>
-              <div class="bg-green-50 rounded-2xl p-5 border border-green-100">
+              <div class="bg-white rounded-2xl p-5 border border-gray-100">
                 <div class="h-5 w-24 skeleton rounded mb-4"></div>
                 <div class="grid grid-cols-2 gap-4 mb-4">
                   <div class="h-14 skeleton rounded-2xl"></div>
@@ -336,9 +356,7 @@
                 </div>
                 <div class="h-14 skeleton rounded-2xl"></div>
               </div>
-              <div
-                class="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl p-5 border border-blue-100"
-              >
+              <div class="bg-white rounded-2xl p-5 border border-gray-100">
                 <div class="h-5 w-32 skeleton rounded mb-4"></div>
                 <div class="h-14 skeleton rounded-2xl mb-4"></div>
                 <div class="grid grid-cols-2 gap-4 mb-4">
@@ -352,9 +370,7 @@
 
           <!-- Bride Skeleton -->
           <div class="bg-white rounded-3xl shadow-md border border-gray-100">
-            <div
-              class="bg-gradient-to-r from-pink-50 to-rose-50 px-6 py-4 border-b border-gray-100"
-            >
+            <div class="bg-white px-6 py-4 border-b border-gray-100">
               <div class="h-5 w-32 skeleton rounded"></div>
             </div>
             <div class="p-6 space-y-6">
@@ -367,7 +383,7 @@
               <div class="h-14 skeleton rounded-2xl"></div>
               <div class="h-20 skeleton rounded-2xl"></div>
               <div class="h-14 skeleton rounded-2xl"></div>
-              <div class="bg-green-50 rounded-2xl p-5 border border-green-100">
+              <div class="bg-white rounded-2xl p-5 border border-gray-100">
                 <div class="h-5 w-24 skeleton rounded mb-4"></div>
                 <div class="grid grid-cols-2 gap-4 mb-4">
                   <div class="h-14 skeleton rounded-2xl"></div>
@@ -375,9 +391,7 @@
                 </div>
                 <div class="h-14 skeleton rounded-2xl"></div>
               </div>
-              <div
-                class="bg-gradient-to-br from-pink-50 to-rose-50 rounded-2xl p-5 border border-pink-100"
-              >
+              <div class="bg-white rounded-2xl p-5 border border-gray-100">
                 <div class="h-5 w-32 skeleton rounded mb-4"></div>
                 <div class="h-14 skeleton rounded-2xl mb-4"></div>
                 <div class="grid grid-cols-2 gap-4 mb-4">
@@ -394,913 +408,1610 @@
 
     <!-- Actual Content (hidden initially) -->
     <div id="actual-content" class="hidden">
-      <!-- Header -->
-      <div
-        class="bg-white/80 backdrop-blur-md border-b border-gray-100 px-4 py-5 sticky top-0 z-50 shadow-sm"
-      >
-        <div class="max-w-4xl mx-auto flex items-center justify-between">
-          <div>
-            <h1
-              class="text-xl font-bold bg-gradient-to-r from-rose-500 to-pink-500 bg-clip-text text-transparent flex items-center gap-2"
-            >
-              <i class="fas fa-church"></i> Thiệp Cưới Online
-            </h1>
-            <p class="text-xs text-gray-500 mt-0.5" id="wedding-id-label"></p>
-          </div>
-          <button
-            type="submit"
-            form="wedding-form"
-            id="save-btn"
-            class="bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white px-6 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-md hover:shadow-lg flex items-center gap-2"
-          >
-            <i class="fas fa-save"></i> Lưu
+      <!-- Logo Header -->
+      <div class="sticky top-0 z-50 bg-white border-b border-gray-100">
+        <div class="max-w-4xl mx-auto px-4 h-12 flex items-center justify-between">
+          <a href="../" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
+            <img src="../assets/icons/logo.png" alt="CướiXinh" class="h-8 w-auto" />
+          </a>
+          <button type="button" onclick="openThemePicker()"
+            class="flex items-center gap-0 h-8 rounded-full border border-gray-200 hover:border-rose-300 transition-colors overflow-hidden">
+            <span class="flex items-center gap-1.5 pl-2.5 pr-2 text-sm text-gray-600">
+              <i data-lucide="layout-template" class="w-3.5 h-3.5 text-rose-400 flex-shrink-0"></i>
+              <span id="header-theme-name" class="max-w-[100px] truncate">Đổi mẫu</span>
+            </span>
+            <span class="self-stretch w-px bg-gray-200"></span>
+            <span class="flex items-center gap-1 pl-2 pr-2.5 text-sm text-rose-500 font-medium">
+              Đổi
+              <i data-lucide="chevron-right" class="w-3 h-3 flex-shrink-0"></i>
+            </span>
           </button>
         </div>
       </div>
-
-      <div class="max-w-4xl mx-auto px-4 py-8 pb-24">
-        <!-- Link thiệp -->
-        <div
-          class="bg-white rounded-3xl shadow-md border border-gray-100 p-6 mb-6 animate-fade-in"
-        >
-          <div class="flex items-center gap-2 mb-4">
-            <i class="fas fa-link text-2xl text-rose-500"></i>
-            <p class="text-sm font-bold text-gray-800 uppercase tracking-wide">
-              Link thiệp cưới của bạn
-            </p>
-          </div>
-
-          <!-- Slug input -->
-          <div class="mb-4 p-4 bg-gray-50 rounded-2xl border border-gray-200">
-            <p
-              class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2"
-            >
-              Slug (đường dẫn thiệp)
-            </p>
-            <div class="flex gap-2">
-              <input
-                id="slug-input"
-                type="text"
-                placeholder="vd: nguyen-van-a-tran-thi-b"
-                class="flex-1 h-10 px-4 text-sm bg-white border border-gray-200 rounded-xl shadow-sm outline-none focus:border-rose-300"
-              />
-              <button
-                onclick="applySlug()"
-                class="px-4 py-2 bg-rose-400 hover:bg-rose-500 text-white rounded-xl text-sm font-medium transition-colors shadow-sm whitespace-nowrap"
-              >
-                Áp dụng
-              </button>
-            </div>
-            <p class="text-xs text-gray-400 mt-1.5">
-              Chỉ dùng chữ thường, số và dấu gạch ngang
-            </p>
-          </div>
-
-          <div class="flex flex-col gap-4">
+      <!-- Step Indicator -->
+      <div
+        class="bg-white border-b border-rose-100 px-4 py-3 sticky top-12 z-40"
+      >
+        <div class="max-w-4xl mx-auto flex items-center">
+          <div class="flex items-center gap-1.5 flex-shrink-0">
             <div
-              class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-4 border border-blue-100"
+              class="w-6 h-6 rounded-full bg-rose-400 flex items-center justify-center"
             >
-              <div class="flex items-center gap-2 mb-2">
-                <i class="fas fa-user text-lg text-blue-500"></i>
-                <p class="text-sm font-semibold text-gray-700">
-                  Link nhà trai (Chú Rể)
-                </p>
-              </div>
-              <div class="flex gap-2">
-                <input
-                  id="link-groom"
-                  readonly
-                  class="flex-1 h-12 px-4 text-xs font-mono bg-gray-50 border border-gray-200 rounded-xl shadow-sm outline-none text-gray-400 cursor-default select-all"
-                />
-                <button
-                  onclick="
-                    window.open(
-                      document.getElementById('link-groom').value,
-                      '_blank',
-                    )
-                  "
-                  class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-xl text-xs font-medium transition-colors shadow-sm flex items-center gap-1"
-                >
-                  <i class="fas fa-external-link-alt"></i> Mở
-                </button>
-                <button
-                  onclick="copyText('link-groom')"
-                  class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-xl text-xs font-medium transition-colors shadow-sm flex items-center gap-1"
-                >
-                  <i class="fas fa-copy"></i> Copy
-                </button>
-              </div>
+              <i data-lucide="check" class="text-white text-[10px]"></i>
             </div>
-            <div
-              class="bg-gradient-to-br from-pink-50 to-pink-100 rounded-2xl p-4 border border-pink-100"
+            <span class="text-xs text-rose-400 font-medium hidden sm:inline"
+              >Chọn mẫu</span
             >
-              <div class="flex items-center gap-2 mb-2">
-                <i class="fas fa-user text-lg text-pink-400"></i>
-                <p class="text-sm font-semibold text-gray-700">
-                  Link nhà gái (Cô Dâu)
-                </p>
-              </div>
-              <div class="flex gap-2">
-                <input
-                  id="link-bride"
-                  readonly
-                  class="flex-1 h-12 px-4 text-xs font-mono bg-gray-50 border border-gray-200 rounded-xl shadow-sm outline-none text-gray-400 cursor-default select-all"
-                />
-                <button
-                  onclick="
-                    window.open(
-                      document.getElementById('link-bride').value,
-                      '_blank',
-                    )
-                  "
-                  class="px-4 py-2 bg-pink-light hover:bg-pink-light-hover text-white rounded-xl text-xs font-medium transition-colors shadow-sm flex items-center gap-1"
-                >
-                  <i class="fas fa-external-link-alt"></i> Mở
-                </button>
-                <button
-                  onclick="copyText('link-bride')"
-                  class="px-4 py-2 bg-pink-light hover:bg-pink-light-hover text-white rounded-xl text-xs font-medium transition-colors shadow-sm flex items-center gap-1"
-                >
-                  <i class="fas fa-copy"></i> Copy
-                </button>
-              </div>
-            </div>
           </div>
-        </div>
-
-        <!-- Form -->
-        <form id="wedding-form" class="flex flex-col gap-6" autocomplete="on">
-          <!-- Hidden inputs to store uploaded image URLs -->
-          <input type="hidden" name="cover_image_url" />
-          <input type="hidden" name="groom_image_url" />
-          <input type="hidden" name="bride_image_url" />
-          <input type="hidden" name="groom_qr_url" />
-          <input type="hidden" name="bride_qr_url" />
-          <textarea name="gallery_images_raw" class="hidden"></textarea>
-
-          <!-- Hidden inputs for lunar dates -->
-          <input
-            type="hidden"
-            name="ceremony_lunar"
-            id="ceremony-lunar-value"
-          />
-          <input
-            type="hidden"
-            name="groom_party_lunar"
-            id="groom-party-lunar-value"
-          />
-          <input
-            type="hidden"
-            name="bride_party_lunar"
-            id="bride-party-lunar-value"
-          />
-
-          <!-- THÔNG TIN CHUNG -->
-          <div
-            class="bg-white rounded-3xl shadow-md border border-gray-100 overflow-hidden animate-fade-in"
-          >
+          <div class="flex-1 h-0.5 bg-rose-300 mx-2"></div>
+          <div class="flex items-center gap-1.5 flex-shrink-0">
             <div
-              class="bg-gradient-to-r from-purple-50 to-pink-50 px-6 py-4 border-b border-gray-100"
+              class="w-6 h-6 rounded-full bg-rose-500 flex items-center justify-center"
             >
-              <div class="flex items-center gap-2">
-                <i class="fas fa-heart text-2xl text-rose-500"></i>
-                <p
-                  class="text-sm font-bold text-gray-800 uppercase tracking-wide"
-                >
-                  Thông tin chung
-                </p>
-              </div>
+              <span class="text-white text-[11px] font-bold">2</span>
             </div>
-            <div class="p-6 space-y-6">
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div>
-                  <label
-                    class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
-                    ><i class="fas fa-user text-blue-500"></i> Tên Chú Rể</label
-                  >
-                  <input
-                    name="groom_name"
-                    placeholder="Nhập tên chú rể"
-                    class="w-full h-14 px-4 border border-gray-200 rounded-2xl text-[15px] text-gray-800 bg-white shadow-sm outline-none transition-all duration-300 placeholder:text-gray-400 placeholder:text-sm focus:border-rose-500 focus:ring-4 focus:ring-rose-500/15"
-                  />
-                </div>
-                <div>
-                  <label
-                    class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
-                    ><i class="fas fa-user text-pink-400"></i> Tên Cô Dâu</label
-                  >
-                  <input
-                    name="bride_name"
-                    placeholder="Nhập tên cô dâu"
-                    class="w-full h-14 px-4 border border-gray-200 rounded-2xl text-[15px] text-gray-800 bg-white shadow-sm outline-none transition-all duration-300 placeholder:text-gray-400 placeholder:text-sm focus:border-rose-500 focus:ring-4 focus:ring-rose-500/15"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label
-                  class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
-                  ><i class="fas fa-quote-left text-purple-600"></i> Câu quote
-                  (phía trên album ảnh)</label
-                >
-                <textarea
-                  name="story_quote"
-                  id="story-quote-textarea"
-                  rows="3"
-                  placeholder="Ví dụ: Cảm ơn em đã đến bên đời nhau, cùng nhau viết nên câu chuyện của riêng chúng ta."
-                  class="w-full px-4 py-3.5 border border-gray-200 rounded-2xl text-[15px] text-gray-800 bg-white shadow-sm outline-none transition-all duration-300 placeholder:text-gray-400 placeholder:text-sm focus:border-rose-500 focus:ring-4 focus:ring-rose-500/15 resize-none"
-                ></textarea>
-                <button
-                  type="button"
-                  onclick="randomQuote()"
-                  class="mt-2 px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-sm font-medium rounded-xl transition-all shadow-sm hover:shadow-md flex items-center gap-2"
-                >
-                  <i class="fas fa-dice"></i> Random câu quote
-                </button>
-              </div>
-
-              <!-- Upload ảnh cover -->
-              <div>
-                <label
-                  class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
-                  ><i class="fas fa-camera text-indigo-600"></i> Ảnh chính
-                  (cover + Save The Date)</label
-                >
-                <div id="cover-container" class="w-full max-w-xs">
-                  <!-- Upload button will be rendered by JS -->
-                </div>
-                <input
-                  type="file"
-                  id="cover-file-input"
-                  accept="image/*"
-                  class="hidden"
-                  onchange="handleImageUpload(event, 'cover_image_url')"
-                />
-              </div>
-
-              <!-- Upload gallery -->
-              <div>
-                <label
-                  class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
-                  ><i class="fas fa-images text-teal-600"></i> Ảnh gallery (tối
-                  đa 7 ảnh)</label
-                >
-                <div id="gallery-container" class="grid grid-cols-4 gap-3">
-                  <!-- Upload button will be inserted here by JS -->
-                </div>
-                <input
-                  type="file"
-                  id="gallery-file-input"
-                  accept="image/*"
-                  multiple
-                  class="hidden"
-                  onchange="handleGalleryUpload(event)"
-                />
-              </div>
-            </div>
+            <span
+              class="text-xs text-color-secondary font-semibold hidden sm:inline"
+              >Thông tin</span
+            >
           </div>
-
-          <!-- LỄ THÀNH HÔN (CHUNG) -->
-          <div
-            class="bg-white rounded-3xl shadow-md border border-gray-100 overflow-hidden animate-fade-in"
-          >
+          <div class="flex-1 h-0.5 bg-gray-200 mx-2" id="step-line-3"></div>
+          <div class="flex items-center gap-1.5 flex-shrink-0">
             <div
-              class="bg-gradient-to-r from-amber-50 to-yellow-50 px-6 py-4 border-b border-gray-100"
+              class="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center"
+              id="step-3-dot"
             >
-              <div class="flex items-center gap-2">
-                <i class="fas fa-church text-2xl text-amber-600"></i>
-                <p
-                  class="text-sm font-bold text-gray-800 uppercase tracking-wide"
-                >
-                  Lễ Thành Hôn
-                </p>
-              </div>
+              <span class="text-gray-400 text-[11px] font-bold">3</span>
             </div>
-            <div class="p-6">
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label
-                    class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
-                    ><i class="fas fa-calendar-alt text-rose-600"></i>
-                    Ngày</label
-                  >
-                  <input
-                    name="ceremony_date"
-                    type="date"
-                    class="w-full h-14 px-4 border border-gray-200 rounded-2xl text-[15px] text-gray-800 bg-white shadow-sm outline-none transition-all duration-300 focus:border-rose-500 focus:ring-4 focus:ring-rose-500/15"
-                  />
-                </div>
-                <div>
-                  <label
-                    class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
-                    ><i class="fas fa-clock text-blue-600"></i> Giờ</label
-                  >
-                  <input
-                    name="ceremony_time"
-                    type="text"
-                    placeholder="HH:MM (VD: 14:30)"
-                    maxlength="5"
-                    class="w-full h-14 px-4 border border-gray-200 rounded-2xl text-[15px] text-gray-800 bg-white shadow-sm outline-none transition-all duration-300 placeholder:text-gray-400 placeholder:text-sm focus:border-rose-500 focus:ring-4 focus:ring-rose-500/15"
-                    onkeypress="return handleTimeInput(event);"
-                    onblur="validateTimeFormat(this)"
-                  />
-                </div>
-              </div>
-              <div class="mt-2">
-                <p
-                  id="ceremony-lunar-display"
-                  class="text-sm text-gray-500 italic"
-                >
-                  Chọn ngày để tự động tính ngày âm lịch
-                </p>
-              </div>
-            </div>
+            <span
+              class="text-xs text-gray-400 hidden sm:inline"
+              id="step-3-label"
+              >Xem trước</span
+            >
           </div>
-
-          <!-- THÔNG TIN NHÀ TRAI & NHÀ GÁI -->
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <!-- NHÀ TRAI -->
+          <div class="flex-1 h-0.5 bg-gray-200 mx-2" id="step-line-4"></div>
+          <div class="flex items-center gap-1.5 flex-shrink-0">
             <div
-              class="bg-white rounded-3xl shadow-md border border-gray-100 animate-fade-in"
+              class="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center"
+              id="step-4-dot"
             >
-              <div
-                class="bg-gradient-to-r from-blue-50 to-blue-100 px-6 py-4 border-b border-blue-100 sticky top-[77px] z-40 rounded-t-3xl"
-              >
-                <div class="flex items-center gap-2">
-                  <i class="fas fa-user text-2xl text-blue-500"></i>
-                  <p
-                    class="text-sm font-bold text-gray-800 uppercase tracking-wide"
-                  >
-                    Nhà Trai
-                  </p>
-                </div>
-              </div>
-              <div class="p-6 space-y-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  <div>
-                    <label
-                      class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
-                      ><i class="fas fa-user text-blue-500"></i> Tên Bố</label
-                    >
-                    <input
-                      name="groom_father"
-                      placeholder="Nhập tên bố chú rể"
-                      class="w-full h-14 px-4 border border-gray-200 rounded-2xl text-[15px] text-gray-800 bg-white shadow-sm outline-none transition-all duration-300 placeholder:text-gray-400 placeholder:text-sm focus:border-rose-500 focus:ring-4 focus:ring-rose-500/15"
-                    />
-                  </div>
-                  <div>
-                    <label
-                      class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
-                      ><i class="fas fa-user text-blue-500"></i> Tên Mẹ</label
-                    >
-                    <input
-                      name="groom_mother"
-                      placeholder="Nhập tên mẹ chú rể"
-                      class="w-full h-14 px-4 border border-gray-200 rounded-2xl text-[15px] text-gray-800 bg-white shadow-sm outline-none transition-all duration-300 placeholder:text-gray-400 placeholder:text-sm focus:border-rose-500 focus:ring-4 focus:ring-rose-500/15"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label
-                    class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
-                    ><i class="fas fa-home text-blue-500"></i> Địa chỉ</label
-                  >
-                  <input
-                    name="groom_address"
-                    placeholder="Nhập địa chỉ nhà trai"
-                    class="w-full h-14 px-4 border border-gray-200 rounded-2xl text-[15px] text-gray-800 bg-white shadow-sm outline-none transition-all duration-300 placeholder:text-gray-400 placeholder:text-sm focus:border-rose-500 focus:ring-4 focus:ring-rose-500/15"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
-                    ><i class="fas fa-camera text-blue-500"></i> Ảnh Chú Rể (Mục
-                    thông tin gia đình)</label
-                  >
-                  <div id="groom-container" class="w-full max-w-xs">
-                    <!-- Upload button will be rendered by JS -->
-                  </div>
-                  <input
-                    type="file"
-                    id="groom-file-input"
-                    accept="image/*"
-                    class="hidden"
-                    onchange="handleImageUpload(event, 'groom_image_url')"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
-                    ><i class="fas fa-file-code text-blue-500"></i> URL Google
-                    Apps Script (DS khách mời nhà trai)</label
-                  >
-                  <input
-                    name="groom_google_sheet_url"
-                    placeholder="Nhập URL Google Apps Script..."
-                    class="w-full h-14 px-4 border border-gray-200 rounded-2xl text-xs text-gray-800 bg-white shadow-sm outline-none transition-all duration-300 placeholder:text-gray-400 focus:border-rose-500 focus:ring-4 focus:ring-rose-500/15 font-mono"
-                  />
-                  <button
-                    type="button"
-                    onclick="generateLinks('groom')"
-                    class="mt-3 px-5 py-2.5 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white text-sm font-semibold rounded-xl transition-all shadow-md hover:shadow-lg flex items-center gap-2"
-                  >
-                    <i class="fas fa-link"></i>
-                    <span>Tự động tạo link</span>
-                  </button>
-                </div>
-
-                <div>
-                  <label
-                    class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
-                    ><i class="fas fa-map-marked-alt text-blue-500"></i> Google
-                    Maps Embed</label
-                  >
-                  <textarea
-                    name="groom_map_embed_url"
-                    rows="3"
-                    placeholder="Paste URL hoặc toàn bộ HTML iframe từ Google Maps..."
-                    class="w-full px-4 py-3.5 border border-gray-200 rounded-2xl text-xs text-gray-800 bg-white shadow-sm outline-none transition-all duration-300 placeholder:text-gray-400 focus:border-rose-500 focus:ring-4 focus:ring-rose-500/15 resize-none font-mono"
-                    oninput="extractMapUrl(this, 'groom')"
-                  ></textarea>
-                  <p class="text-xs text-gray-500 mt-1">
-                    <i class="fas fa-info-circle"></i> Hỗ trợ: URL embed hoặc
-                    paste toàn bộ code iframe
-                  </p>
-                </div>
-
-                <div
-                  class="bg-green-50 rounded-2xl p-5 border border-green-100"
-                >
-                  <p
-                    class="text-sm font-semibold text-rose-800 mb-4 flex items-center gap-2"
-                  >
-                    <i class="fas fa-glass-cheers text-blue-500"></i> Tiệc Cưới
-                  </p>
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label
-                        class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
-                        ><i class="fas fa-calendar-alt text-blue-500"></i>
-                        Ngày</label
-                      >
-                      <input
-                        name="groom_party_date"
-                        type="date"
-                        class="w-full h-14 px-4 border border-gray-200 rounded-2xl text-[15px] text-gray-800 bg-white shadow-sm outline-none transition-all duration-300 focus:border-rose-500 focus:ring-4 focus:ring-rose-500/15"
-                      />
-                    </div>
-                    <div>
-                      <label
-                        class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
-                        ><i class="fas fa-clock text-blue-500"></i> Giờ</label
-                      >
-                      <input
-                        name="groom_party_time"
-                        type="text"
-                        placeholder="HH:MM (VD: 14:30)"
-                        maxlength="5"
-                        class="w-full h-14 px-4 border border-gray-200 rounded-2xl text-[15px] text-gray-800 bg-white shadow-sm outline-none transition-all duration-300 placeholder:text-gray-400 placeholder:text-sm focus:border-rose-500 focus:ring-4 focus:ring-rose-500/15"
-                        onkeypress="return handleTimeInput(event);"
-                        onblur="validateTimeFormat(this)"
-                      />
-                    </div>
-                  </div>
-                  <div class="mt-2">
-                    <p
-                      id="groom-party-lunar-display"
-                      class="text-sm text-gray-500 italic"
-                    >
-                      Chọn ngày để tự động tính ngày âm lịch
-                    </p>
-                  </div>
-                  <div class="mt-4">
-                    <label
-                      class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
-                      ><i class="fas fa-map-marker-alt text-blue-500"></i> Địa
-                      điểm tiệc</label
-                    >
-                    <input
-                      name="groom_party_location"
-                      placeholder="Nhập địa điểm tiệc"
-                      class="w-full h-14 px-4 border border-gray-200 rounded-2xl text-[15px] text-gray-800 bg-white shadow-sm outline-none transition-all duration-300 placeholder:text-gray-400 placeholder:text-sm focus:border-rose-500 focus:ring-4 focus:ring-rose-500/15"
-                    />
-                  </div>
-                </div>
-
-                <div
-                  class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-5 border border-blue-100"
-                >
-                  <p
-                    class="text-sm font-semibold text-rose-800 mb-4 flex items-center gap-2"
-                  >
-                    <i class="fas fa-university text-blue-500"></i> Thông Tin
-                    Ngân Hàng
-                  </p>
-                  <div class="relative">
-                    <label
-                      class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
-                      ><i class="fas fa-building-columns text-blue-500"></i> Tên
-                      ngân hàng</label
-                    >
-                    <input
-                      type="text"
-                      id="groom-bank-input"
-                      placeholder="Nhập để tìm kiếm ngân hàng..."
-                      class="w-full h-14 px-4 border border-gray-200 rounded-2xl text-[15px] text-gray-800 bg-white shadow-sm outline-none transition-all duration-300 placeholder:text-gray-400 placeholder:text-sm focus:border-rose-500 focus:ring-4 focus:ring-rose-500/15"
-                      autocomplete="off"
-                    />
-                    <input
-                      type="hidden"
-                      name="groom_bank_name"
-                      id="groom-bank-value"
-                    />
-                    <div
-                      id="groom-bank-dropdown"
-                      class="hidden absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-2xl shadow-lg max-h-60 overflow-y-auto"
-                    ></div>
-                  </div>
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                    <div>
-                      <label
-                        class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
-                        ><i class="fas fa-credit-card text-blue-500"></i> Số tài
-                        khoản</label
-                      >
-                      <input
-                        name="groom_bank_number"
-                        placeholder="Nhập số tài khoản"
-                        class="w-full h-14 px-4 border border-gray-200 rounded-2xl text-[15px] text-gray-800 bg-white shadow-sm outline-none transition-all duration-300 placeholder:text-gray-400 placeholder:text-sm focus:border-rose-500 focus:ring-4 focus:ring-rose-500/15 font-mono"
-                      />
-                    </div>
-                    <div>
-                      <label
-                        class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
-                        ><i class="fas fa-user text-blue-500"></i> Tên chủ
-                        TK</label
-                      >
-                      <input
-                        name="groom_bank_owner"
-                        placeholder="Nhập tên chủ tài khoản"
-                        class="w-full h-14 px-4 border border-gray-200 rounded-2xl text-[15px] text-gray-800 bg-white shadow-sm outline-none transition-all duration-300 placeholder:text-gray-400 placeholder:text-sm focus:border-rose-500 focus:ring-4 focus:ring-rose-500/15"
-                      />
-                    </div>
-                  </div>
-
-                  <div class="mt-4">
-                    <label
-                      class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
-                      ><i class="fas fa-qrcode text-blue-500"></i> Ảnh QR chuyển
-                      khoản</label
-                    >
-                    <div id="groom-qr-container" class="w-32">
-                      <!-- Upload button will be rendered by JS -->
-                    </div>
-                    <input
-                      type="file"
-                      id="groom-qr-file-input"
-                      accept="image/*"
-                      class="hidden"
-                      onchange="handleImageUpload(event, 'groom_qr_url')"
-                    />
-                  </div>
-                </div>
-              </div>
+              <span class="text-gray-400 text-[11px] font-bold">4</span>
             </div>
-
-            <!-- NHÀ GÁI -->
-            <div
-              class="bg-white rounded-3xl shadow-md border border-gray-100 animate-fade-in"
+            <span
+              class="text-xs text-gray-400 hidden sm:inline"
+              id="step-4-label"
+              >Thanh toán</span
             >
-              <div
-                class="bg-gradient-to-r from-pink-50 to-pink-100 px-6 py-4 border-b border-pink-100 sticky top-[77px] z-40 rounded-t-3xl"
-              >
-                <div class="flex items-center gap-2">
-                  <i class="fas fa-user text-2xl text-pink-400"></i>
-                  <p
-                    class="text-sm font-bold text-gray-800 uppercase tracking-wide"
-                  >
-                    Nhà Gái
-                  </p>
-                </div>
-              </div>
-              <div class="p-6 space-y-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  <div>
-                    <label
-                      class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
-                      ><i class="fas fa-user text-pink-400"></i> Tên Bố</label
-                    >
-                    <input
-                      name="bride_father"
-                      placeholder="Nhập tên bố cô dâu"
-                      class="w-full h-14 px-4 border border-gray-200 rounded-2xl text-[15px] text-gray-800 bg-white shadow-sm outline-none transition-all duration-300 placeholder:text-gray-400 placeholder:text-sm focus:border-rose-500 focus:ring-4 focus:ring-rose-500/15"
-                    />
-                  </div>
-                  <div>
-                    <label
-                      class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
-                      ><i class="fas fa-user text-pink-400"></i> Tên Mẹ</label
-                    >
-                    <input
-                      name="bride_mother"
-                      placeholder="Nhập tên mẹ cô dâu"
-                      class="w-full h-14 px-4 border border-gray-200 rounded-2xl text-[15px] text-gray-800 bg-white shadow-sm outline-none transition-all duration-300 placeholder:text-gray-400 placeholder:text-sm focus:border-rose-500 focus:ring-4 focus:ring-rose-500/15"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label
-                    class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
-                    ><i class="fas fa-home text-green-600"></i> Địa chỉ</label
-                  >
-                  <input
-                    name="bride_address"
-                    placeholder="Nhập địa chỉ nhà gái"
-                    class="w-full h-14 px-4 border border-gray-200 rounded-2xl text-[15px] text-gray-800 bg-white shadow-sm outline-none transition-all duration-300 placeholder:text-gray-400 placeholder:text-sm focus:border-rose-500 focus:ring-4 focus:ring-rose-500/15"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
-                    ><i class="fas fa-camera text-indigo-600"></i> Ảnh Cô Dâu
-                    (Mục thông tin gia đình)</label
-                  >
-                  <div id="bride-container" class="w-full max-w-xs">
-                    <!-- Upload button will be rendered by JS -->
-                  </div>
-                  <input
-                    type="file"
-                    id="bride-file-input"
-                    accept="image/*"
-                    class="hidden"
-                    onchange="handleImageUpload(event, 'bride_image_url')"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
-                    ><i class="fas fa-file-code text-pink-400"></i> URL Google
-                    Apps Script (DS khách mời nhà gái)</label
-                  >
-                  <input
-                    name="bride_google_sheet_url"
-                    placeholder="Nhập URL Google Apps Script..."
-                    class="w-full h-14 px-4 border border-gray-200 rounded-2xl text-xs text-gray-800 bg-white shadow-sm outline-none transition-all duration-300 placeholder:text-gray-400 focus:border-rose-500 focus:ring-4 focus:ring-rose-500/15 font-mono"
-                  />
-                  <button
-                    type="button"
-                    onclick="generateLinks('bride')"
-                    class="mt-3 px-5 py-2.5 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white text-sm font-semibold rounded-xl transition-all shadow-md hover:shadow-lg flex items-center gap-2"
-                  >
-                    <i class="fas fa-link"></i>
-                    <span>Tự động tạo link</span>
-                  </button>
-                </div>
-
-                <div>
-                  <label
-                    class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
-                    ><i class="fas fa-map-marked-alt text-pink-400"></i> Google
-                    Maps Embed</label
-                  >
-                  <textarea
-                    name="bride_map_embed_url"
-                    rows="3"
-                    placeholder="Paste URL hoặc toàn bộ HTML iframe từ Google Maps..."
-                    class="w-full px-4 py-3.5 border border-gray-200 rounded-2xl text-xs text-gray-800 bg-white shadow-sm outline-none transition-all duration-300 placeholder:text-gray-400 focus:border-rose-500 focus:ring-4 focus:ring-rose-500/15 resize-none font-mono"
-                    oninput="extractMapUrl(this, 'bride')"
-                  ></textarea>
-                  <p class="text-xs text-gray-500 mt-1">
-                    <i class="fas fa-info-circle"></i> Hỗ trợ: URL embed hoặc
-                    paste toàn bộ code iframe
-                  </p>
-                </div>
-
-                <div
-                  class="bg-green-50 rounded-2xl p-5 border border-green-100"
-                >
-                  <p
-                    class="text-sm font-semibold text-rose-800 mb-4 flex items-center gap-2"
-                  >
-                    <i class="fas fa-glass-cheers text-pink-400"></i> Tiệc Cưới
-                  </p>
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label
-                        class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
-                        ><i class="fas fa-calendar-alt text-pink-400"></i>
-                        Ngày</label
-                      >
-                      <input
-                        name="bride_party_date"
-                        type="date"
-                        class="w-full h-14 px-4 border border-gray-200 rounded-2xl text-[15px] text-gray-800 bg-white shadow-sm outline-none transition-all duration-300 focus:border-rose-500 focus:ring-4 focus:ring-rose-500/15"
-                      />
-                    </div>
-                    <div>
-                      <label
-                        class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
-                        ><i class="fas fa-clock text-pink-400"></i> Giờ</label
-                      >
-                      <input
-                        name="bride_party_time"
-                        type="text"
-                        placeholder="HH:MM (VD: 14:30)"
-                        maxlength="5"
-                        class="w-full h-14 px-4 border border-gray-200 rounded-2xl text-[15px] text-gray-800 bg-white shadow-sm outline-none transition-all duration-300 placeholder:text-gray-400 placeholder:text-sm focus:border-rose-500 focus:ring-4 focus:ring-rose-500/15"
-                        onkeypress="return handleTimeInput(event);"
-                        onblur="validateTimeFormat(this)"
-                      />
-                    </div>
-                  </div>
-                  <div class="mt-2">
-                    <p
-                      id="bride-party-lunar-display"
-                      class="text-sm text-gray-500 italic"
-                    >
-                      Chọn ngày để tự động tính ngày âm lịch
-                    </p>
-                  </div>
-                  <div class="mt-4">
-                    <label
-                      class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
-                      ><i class="fas fa-map-marker-alt text-pink-400"></i> Địa
-                      điểm tiệc</label
-                    >
-                    <input
-                      name="bride_party_location"
-                      placeholder="Nhập địa điểm tiệc"
-                      class="w-full h-14 px-4 border border-gray-200 rounded-2xl text-[15px] text-gray-800 bg-white shadow-sm outline-none transition-all duration-300 placeholder:text-gray-400 placeholder:text-sm focus:border-rose-500 focus:ring-4 focus:ring-rose-500/15"
-                    />
-                  </div>
-                </div>
-
-                <div
-                  class="bg-gradient-to-br from-pink-50 to-pink-100 rounded-2xl p-5 border border-pink-100"
-                >
-                  <p
-                    class="text-sm font-semibold text-green-800 mb-4 flex items-center gap-2"
-                  >
-                    <i class="fas fa-university text-pink-400"></i> Thông Tin
-                    Ngân Hàng
-                  </p>
-                  <div class="relative">
-                    <label
-                      class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
-                      ><i class="fas fa-building-columns text-pink-400"></i> Tên
-                      ngân hàng</label
-                    >
-                    <input
-                      type="text"
-                      id="bride-bank-input"
-                      placeholder="Nhập để tìm kiếm ngân hàng..."
-                      class="w-full h-14 px-4 border border-gray-200 rounded-2xl text-[15px] text-gray-800 bg-white shadow-sm outline-none transition-all duration-300 placeholder:text-gray-400 placeholder:text-sm focus:border-rose-500 focus:ring-4 focus:ring-rose-500/15"
-                      autocomplete="off"
-                    />
-                    <input
-                      type="hidden"
-                      name="bride_bank_name"
-                      id="bride-bank-value"
-                    />
-                    <div
-                      id="bride-bank-dropdown"
-                      class="hidden absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-2xl shadow-lg max-h-60 overflow-y-auto"
-                    ></div>
-                  </div>
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                    <div>
-                      <label
-                        class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
-                        ><i class="fas fa-credit-card text-pink-400"></i> Số tài
-                        khoản</label
-                      >
-                      <input
-                        name="bride_bank_number"
-                        placeholder="8787867778"
-                        class="w-full h-14 px-4 border border-gray-200 rounded-2xl text-[15px] text-gray-800 bg-white shadow-sm outline-none transition-all duration-300 placeholder:text-gray-400 placeholder:text-sm focus:border-rose-500 focus:ring-4 focus:ring-rose-500/15 font-mono"
-                      />
-                    </div>
-                    <div>
-                      <label
-                        class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
-                        ><i class="fas fa-user text-pink-400"></i> Tên chủ
-                        TK</label
-                      >
-                      <input
-                        name="bride_bank_owner"
-                        placeholder="Trần Thùy Hằng"
-                        class="w-full h-14 px-4 border border-gray-200 rounded-2xl text-[15px] text-gray-800 bg-white shadow-sm outline-none transition-all duration-300 placeholder:text-gray-400 placeholder:text-sm focus:border-rose-500 focus:ring-4 focus:ring-rose-500/15"
-                      />
-                    </div>
-                  </div>
-
-                  <div class="mt-4">
-                    <label
-                      class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
-                      ><i class="fas fa-qrcode text-pink-400"></i> Ảnh QR chuyển
-                      khoản</label
-                    >
-                    <div id="bride-qr-container" class="w-32">
-                      <!-- Upload button will be rendered by JS -->
-                    </div>
-                    <input
-                      type="file"
-                      id="bride-qr-file-input"
-                      accept="image/*"
-                      class="hidden"
-                      onchange="handleImageUpload(event, 'bride_qr_url')"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <!-- END THÔNG TIN NHÀ TRAI & NHÀ GÁI -->
-
-          <!-- NHẠC NỀN -->
-          <div class="bg-white rounded-3xl shadow-lg p-8 mb-8">
-            <h2
-              class="text-2xl font-semibold text-gray-800 mb-6 flex items-center gap-3"
-            >
-              <i class="fas fa-music text-rose-500"></i>
-              Nhạc nền
-            </h2>
-
-            <div class="space-y-4">
-              <!-- YouTube Link Input -->
-              <div>
-                <label
-                  class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"
-                >
-                  <i class="fab fa-youtube text-red-600"></i>
-                  Link YouTube
-                </label>
-                <input
-                  type="text"
-                  id="youtube-link-input"
-                  name="music_url"
-                  placeholder="Nhập đường dẫn nhạc trên Youtube để làm nhạc nền"
-                  class="w-full h-14 px-4 border border-gray-200 rounded-2xl text-[15px] text-gray-800 bg-white shadow-sm outline-none transition-all duration-300 placeholder:text-gray-400 placeholder:text-sm focus:border-rose-500 focus:ring-4 focus:ring-rose-500/15"
-                />
-                <p class="text-xs text-gray-500 mt-2">
-                  <i class="fas fa-info-circle"></i>
-                  Paste link YouTube của bài hát bạn muốn. Để trống nếu không
-                  muốn có nhạc nền.
-                </p>
-              </div>
-
-              <!-- YouTube Preview (Auto-show when URL is valid) -->
-              <div id="youtube-preview" class="hidden">
-                <div class="bg-gray-50 rounded-2xl p-4 border border-gray-200">
-                  <p
-                    class="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2"
-                  >
-                    <i class="fab fa-youtube text-red-600"></i>
-                    Preview
-                  </p>
-                  <div
-                    id="youtube-player-container"
-                    class="aspect-video bg-black rounded-xl overflow-hidden shadow-md"
-                  >
-                    <!-- YouTube iframe will be inserted here -->
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <!-- END NHẠC NỀN -->
-        </form>
-
-        <!-- Toast -->
-        <div
-          id="toast"
-          class="fixed top-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-2xl text-sm font-medium opacity-0 transition-all duration-300 pointer-events-none shadow-2xl z-50"
-        >
-          <span id="toast-text">Đã lưu thành công!</span>
-        </div>
-
-        <!-- Loading Overlay -->
-        <div
-          id="loading-overlay"
-          class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden items-center justify-center"
-        >
-          <div class="bg-white rounded-2xl p-8 text-center shadow-2xl">
-            <div
-              class="inline-block w-12 h-12 border-4 border-rose-500 border-t-transparent rounded-full animate-spin mb-4"
-            ></div>
-            <p class="text-gray-700 font-medium" id="loading-message">
-              Đang xử lý...
-            </p>
-            <p class="text-xs text-gray-500 mt-1" id="upload-progress">0%</p>
           </div>
         </div>
       </div>
+
+      <!-- Form Panel (toggle with preview) -->
+      <div id="form-panel">
+
+        <div class="max-w-4xl mx-auto px-4 py-8 pb-24">
+          <!-- Form -->
+          <form id="wedding-form" class="flex flex-col gap-6" autocomplete="on">
+            <input type="hidden" name="cover_image_url" />
+            <input type="hidden" name="groom_image_url" />
+            <input type="hidden" name="bride_image_url" />
+            <input type="hidden" name="groom_qr_url" />
+            <input type="hidden" name="bride_qr_url" />
+            <textarea name="gallery_images_raw" class="hidden"></textarea>
+            <input
+              type="hidden"
+              name="rsvp_enabled"
+              id="rsvp_enabled"
+              value="true"
+            />
+            <input
+              type="hidden"
+              name="timeline"
+              id="timeline-value"
+              value="[]"
+            />
+            <input
+              type="hidden"
+              name="love_story"
+              id="love-story-value"
+              value="[]"
+            />
+
+            <input
+              type="hidden"
+              name="ceremony_lunar"
+              id="ceremony-lunar-value"
+            />
+            <input
+              type="hidden"
+              name="groom_party_lunar"
+              id="groom-party-lunar-value"
+            />
+            <input
+              type="hidden"
+              name="bride_party_lunar"
+              id="bride-party-lunar-value"
+            />
+            <!-- Section visibility toggles -->
+            <input
+              type="hidden"
+              name="enable_family"
+              id="enable_family"
+              value="true"
+            />
+            <input
+              type="hidden"
+              name="enable_party"
+              id="enable_party"
+              value="true"
+            />
+            <input
+              type="hidden"
+              name="enable_photos"
+              id="enable_photos"
+              value="true"
+            />
+            <input
+              type="hidden"
+              name="enable_timeline"
+              id="enable_timeline"
+              value="true"
+            />
+            <input
+              type="hidden"
+              name="enable_love_story"
+              id="enable_love_story"
+              value="true"
+            />
+            <input
+              type="hidden"
+              name="enable_music"
+              id="enable_music"
+              value="true"
+            />
+            <input
+              type="hidden"
+              name="enable_gift"
+              id="enable_gift"
+              value="true"
+            />
+            <input
+              type="hidden"
+              name="enable_footer"
+              id="enable_footer"
+              value="true"
+            />
+
+            <!-- 1. THÔNG TIN CẶP ĐÔI -->
+            <div
+              class="bg-white rounded-xl overflow-hidden animate-fade-in border border-gray-200"
+            >
+              <div
+                class="bg-white px-6 py-4 border-b border-gray-100 cursor-pointer select-none"
+                onclick="toggleSection('couple')"
+              >
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <i
+                      data-lucide="heart"
+                      class="text-[18px] text-color-secondary"
+                    ></i>
+                    <p class="text-sm text-gray-700">Thông tin cặp đôi</p>
+                  </div>
+                  <i
+                    id="section-couple-chevron"
+                    data-lucide="chevron-down"
+                    class="text-gray-400 text-sm"
+                  ></i>
+                </div>
+              </div>
+              <div id="section-couple-body" class="hidden p-6 space-y-6">
+                <!-- Tên cặp đôi -->
+                <div class="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label
+                      class="block text-sm text-gray-700 mb-1.5 flex items-center gap-1"
+                      ><i
+                        data-lucide="mars"
+                        class="text-color-secondary text-xs"
+                      ></i>
+                      Tên chú rể</label
+                    >
+                    <input
+                      name="groom_name"
+                      placeholder="Ví dụ: Quang Vinh"
+                      class="w-full h-10 px-3 py-2 border border-gray-200 rounded-md text-sm text-gray-800 bg-white outline-none transition-all placeholder:text-gray-400/50 focus:ring-2 focus:ring-rose-500/30 focus:ring-offset-2"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      class="block text-sm text-gray-700 mb-1.5 flex items-center gap-1"
+                      ><i
+                        data-lucide="venus"
+                        class="text-color-secondary text-xs"
+                      ></i>
+                      Tên cô dâu</label
+                    >
+                    <input
+                      name="bride_name"
+                      placeholder="Ví dụ: Hải Yến"
+                      class="w-full h-10 px-3 py-2 border border-gray-200 rounded-md text-sm text-gray-800 bg-white outline-none transition-all placeholder:text-gray-400/50 focus:ring-2 focus:ring-rose-500/30 focus:ring-offset-2"
+                    />
+                  </div>
+                </div>
+                <p class="text-xs text-gray-500 -mt-2">
+                  <i data-lucide="info" class="text-color-secondary"></i>
+                  Lưu ý: Nhập tên gọi dùng trong lễ cưới (thường gồm 2 chữ, ví
+                  dụ: Quang Vinh, Hải Yến), không cần nhập họ tên đầy đủ.
+                </p>
+                <!-- Ảnh chú rể & cô dâu -->
+                <div class="grid grid-cols-2 gap-4">
+                  <div class="space-y-3">
+                    <p class="text-sm text-gray-700 flex items-center gap-1">
+                      <i
+                        data-lucide="mars"
+                        class="text-color-secondary text-xs"
+                      ></i>
+                      Ảnh chú rể
+                    </p>
+                    <div id="groom-container" class="w-full"></div>
+                    <input
+                      type="file"
+                      id="groom-file-input"
+                      accept="image/*"
+                      class="hidden"
+                      onchange="handleImageUpload(event, 'groom_image_url')"
+                    />
+                  </div>
+                  <div class="space-y-3">
+                    <p class="text-sm text-gray-700 flex items-center gap-1">
+                      <i
+                        data-lucide="venus"
+                        class="text-color-secondary text-xs"
+                      ></i>
+                      Ảnh cô dâu
+                    </p>
+                    <div id="bride-container" class="w-full"></div>
+                    <input
+                      type="file"
+                      id="bride-file-input"
+                      accept="image/*"
+                      class="hidden"
+                      onchange="handleImageUpload(event, 'bride_image_url')"
+                    />
+                  </div>
+                </div>
+                <!-- Ảnh cặp đôi -->
+                <div>
+                  <label
+                    class="block text-sm text-gray-700 mb-2 flex items-center gap-2"
+                    ><i data-lucide="image" class="text-color-secondary"></i>
+                    Ảnh cặp đôi</label
+                  >
+                  <div id="cover-container" class="w-full max-w-xs"></div>
+                  <input
+                    type="file"
+                    id="cover-file-input"
+                    accept="image/*"
+                    class="hidden"
+                    onchange="handleImageUpload(event, 'cover_image_url')"
+                  />
+                </div>
+                <!-- Quote -->
+                <div>
+                  <label
+                    class="block text-sm text-gray-700 mb-2 flex items-center gap-2"
+                    ><i data-lucide="quote" class="text-color-secondary"></i>
+                    Slogan</label
+                  >
+                  <textarea
+                    name="story_quote"
+                    id="story-quote-textarea"
+                    rows="3"
+                    placeholder="Ví dụ: Cảm ơn em đã đến bên đời nhau, cùng nhau viết nên câu chuyện của riêng chúng ta."
+                    class="w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-gray-800 bg-white outline-none transition-all placeholder:text-gray-400/50 focus:ring-2 focus:ring-rose-500/30 focus:ring-offset-2 resize-none"
+                  ></textarea>
+                  <button
+                    type="button"
+                    onclick="randomQuote()"
+                    class="btn-pink mt-2"
+                  >
+                    <i data-lucide="dices"></i> Generate
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 2. GIA ĐÌNH HAI BÊN -->
+            <div
+              class="bg-white rounded-xl overflow-hidden animate-fade-in border border-gray-200"
+            >
+              <div
+                class="bg-white px-6 py-4 border-b border-gray-100 cursor-pointer select-none"
+                onclick="toggleSection('family')"
+              >
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <i
+                      data-lucide="users"
+                      class="text-[18px] text-color-secondary"
+                    ></i>
+                    <p class="text-sm text-gray-700">Gia đình hai bên</p>
+                  </div>
+                  <div class="flex items-center gap-3">
+                    <button
+                      type="button"
+                      id="vis-btn-family"
+                      onclick="toggleSectionVis('family', event)"
+                      class="relative flex-shrink-0 inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 bg-rose-400"
+                    >
+                      <span
+                        id="vis-knob-family"
+                        class="inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200 translate-x-6"
+                      ></span>
+                    </button>
+                    <i
+                      id="section-family-chevron"
+                      data-lucide="chevron-down"
+                      class="text-gray-400 text-sm"
+                    ></i>
+                  </div>
+                </div>
+              </div>
+              <div id="section-family-body" class="hidden">
+                <!-- Tab bar -->
+                <div class="flex border-b border-gray-100">
+                  <button type="button" onclick="switchFamilyTab('groom')" id="family-tab-groom"
+                    class="flex-1 py-3 text-sm font-medium flex items-center justify-center gap-1.5 bg-rose-50 text-rose-600 border-b-2 border-rose-400 transition-colors">
+                    <i data-lucide="mars" class="w-3.5 h-3.5"></i> Nhà trai
+                  </button>
+                  <button type="button" onclick="switchFamilyTab('bride')" id="family-tab-bride"
+                    class="flex-1 py-3 text-sm font-medium flex items-center justify-center gap-1.5 text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors">
+                    <i data-lucide="venus" class="w-3.5 h-3.5"></i> Nhà gái
+                  </button>
+                </div>
+
+                <!-- Nhà trai panel -->
+                <div id="family-panel-groom" class="p-6 space-y-4">
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label class="block text-sm text-gray-700 mb-1.5">Bố chú rể</label>
+                      <input
+                        name="groom_father"
+                        placeholder="Ví dụ: Đoàn Văn Lối"
+                        class="w-full h-10 px-3 py-2 border border-gray-200 rounded-md text-sm text-gray-800 bg-white outline-none transition-all placeholder:text-gray-400/50 focus:ring-2 focus:ring-rose-500/30 focus:ring-offset-2"
+                      />
+                    </div>
+                    <div>
+                      <label class="block text-sm text-gray-700 mb-1.5">Mẹ chú rể</label>
+                      <input
+                        name="groom_mother"
+                        placeholder="Ví dụ: Trần Thị Kích"
+                        class="w-full h-10 px-3 py-2 border border-gray-200 rounded-md text-sm text-gray-800 bg-white outline-none transition-all placeholder:text-gray-400/50 focus:ring-2 focus:ring-rose-500/30 focus:ring-offset-2"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label class="block text-sm text-gray-700 mb-1.5 flex items-center gap-1">
+                      <i data-lucide="home" class="text-color-secondary text-xs"></i>
+                      Địa chỉ nhà trai
+                    </label>
+                    <input
+                      id="groom_address"
+                      name="groom_address"
+                      placeholder="Ví dụ: Chu Trần, Yên Lãng, Hà Nội"
+                      autocomplete="off"
+                      class="w-full h-10 px-3 py-2 border border-gray-200 rounded-md text-sm text-gray-800 bg-white outline-none transition-all placeholder:text-gray-400/50 focus:ring-2 focus:ring-rose-500/30 focus:ring-offset-2"
+                    />
+                  </div>
+                </div>
+
+                <!-- Nhà gái panel -->
+                <div id="family-panel-bride" class="hidden p-6 space-y-4">
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label class="block text-sm text-gray-700 mb-1.5">Bố cô dâu</label>
+                      <input
+                        name="bride_father"
+                        placeholder="Ví dụ: Vương Đức Bắc"
+                        class="w-full h-10 px-3 py-2 border border-gray-200 rounded-md text-sm text-gray-800 bg-white outline-none transition-all placeholder:text-gray-400/50 focus:ring-2 focus:ring-rose-500/30 focus:ring-offset-2"
+                      />
+                    </div>
+                    <div>
+                      <label class="block text-sm text-gray-700 mb-1.5">Mẹ cô dâu</label>
+                      <input
+                        name="bride_mother"
+                        placeholder="Ví dụ: Nguyễn Thị Khuyên"
+                        class="w-full h-10 px-3 py-2 border border-gray-200 rounded-md text-sm text-gray-800 bg-white outline-none transition-all placeholder:text-gray-400/50 focus:ring-2 focus:ring-rose-500/30 focus:ring-offset-2"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label class="block text-sm text-gray-700 mb-1.5 flex items-center gap-1">
+                      <i data-lucide="home" class="text-color-secondary text-xs"></i>
+                      Địa chỉ nhà gái
+                    </label>
+                    <input
+                      id="bride_address"
+                      name="bride_address"
+                      placeholder="Ví dụ: Tân Trường, Mao Điền, Hải Phòng"
+                      autocomplete="off"
+                      class="w-full h-10 px-3 py-2 border border-gray-200 rounded-md text-sm text-gray-800 bg-white outline-none transition-all placeholder:text-gray-400/50 focus:ring-2 focus:ring-rose-500/30 focus:ring-offset-2"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 3. SỰ KIỆN CƯỚI -->
+            <div
+              class="bg-white rounded-xl overflow-hidden animate-fade-in border border-gray-200"
+            >
+              <div
+                class="bg-white px-6 py-4 border-b border-gray-100 cursor-pointer select-none"
+                onclick="toggleSection('ceremony')"
+              >
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <i
+                      data-lucide="church"
+                      class="text-[18px] text-color-secondary"
+                    ></i>
+                    <p class="text-sm text-gray-700">Sự kiện cưới</p>
+                  </div>
+                  <i
+                    id="section-ceremony-chevron"
+                    data-lucide="chevron-down"
+                    class="text-gray-400 text-sm"
+                  ></i>
+                </div>
+              </div>
+              <div id="section-ceremony-body" class="hidden p-6 space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-sm text-gray-700 mb-2 flex items-center gap-2">
+                      <i data-lucide="calendar" class="text-color-secondary"></i>Ngày cưới
+                    </label>
+                    <input name="ceremony_date" type="date"
+                      class="w-full h-10 px-3 py-2 border border-gray-200 rounded-md text-sm text-gray-800 bg-white outline-none transition-all focus:ring-2 focus:ring-rose-500/30 focus:ring-offset-2"/>
+                  </div>
+                  <div>
+                    <label class="block text-sm text-gray-700 mb-2 flex items-center gap-2">
+                      <i data-lucide="tag" class="text-color-secondary"></i>Tên nghi lễ
+                      <span class="text-xs text-gray-400 font-normal">(bỏ trống = Lễ thành hôn)</span>
+                    </label>
+                    <input name="ceremony_name" placeholder="Lễ thành hôn"
+                      class="w-full h-10 px-3 py-2 border border-gray-200 rounded-md text-sm text-gray-800 bg-white outline-none transition-all placeholder:text-gray-400/50 focus:ring-2 focus:ring-rose-500/30 focus:ring-offset-2"/>
+                  </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-sm text-gray-700 mb-2 flex items-center gap-2">
+                      <i data-lucide="clock" class="text-color-secondary"></i>Giờ tổ chức lễ
+                    </label>
+                    <input name="ceremony_time" type="text" data-timepicker readonly placeholder="Chọn giờ..."
+                      class="w-full h-10 px-3 py-2 border border-gray-200 rounded-md text-sm text-gray-800 bg-white outline-none transition-all placeholder:text-gray-400/50 cursor-pointer focus:ring-2 focus:ring-rose-500/30 focus:ring-offset-2"/>
+                  </div>
+                  <div>
+                    <label class="text-sm text-gray-700 flex items-center gap-2 mb-2">
+                      <i data-lucide="map-pin" class="text-color-secondary"></i>Địa điểm lễ cưới
+                    </label>
+                    <div id="ceremony-location-row" class="flex gap-2">
+                      <input name="ceremony_location" placeholder="Nhập địa điểm lễ cưới..."
+                        class="flex-1 min-w-0 h-10 px-3 py-2 border border-gray-200 rounded-md text-sm text-gray-800 bg-white outline-none transition-all placeholder:text-gray-400/50 focus:ring-2 focus:ring-rose-500/30 focus:ring-offset-2"/>
+                      <button type="button" onclick="openMapPicker('ceremony')"
+                        class="h-10 px-3 border border-gray-200 rounded-md text-sm text-gray-600 hover:bg-rose-50 hover:border-rose-200 hover:text-color-secondary transition-colors flex items-center justify-center gap-1.5 flex-shrink-0">
+                        <i data-lucide="map-pin" class="w-4 h-4"></i><span>Bản đồ</span>
+                      </button>
+                    </div>
+                    <input type="hidden" name="ceremony_map_embed_url" id="ceremony_map_embed_url"/>
+                    <div id="ceremony-picker-wrap">
+                      <div id="ceremony-map-display" class="hidden items-center gap-2 mt-2 bg-gray-50 border border-gray-100 rounded-lg px-3 py-2">
+                        <svg class="w-3.5 h-3.5 flex-shrink-0 text-rose-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>
+                        </svg>
+                        <span id="ceremony-map-address" class="flex-1 text-sm text-gray-700 truncate"></span>
+                        <button type="button" onclick="clearMapAddress('ceremony')" class="text-gray-300 hover:text-red-400 transition-colors flex-shrink-0">
+                          <svg class="w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <p id="ceremony-lunar-display" class="text-sm text-gray-500 italic">Chọn ngày để tự động tính ngày âm lịch</p>
+                <div class="pt-2 border-t border-gray-100">
+                  <div class="flex items-center justify-between gap-3">
+                    <div>
+                      <p class="text-sm font-medium text-gray-700">Lễ vu quy</p>
+                      <p class="text-xs text-gray-400 mt-0.5">Hiển thị thay cho lễ thành hôn trong thiệp nhà gái</p>
+                    </div>
+                    <input type="hidden" name="vu_quy_enabled" id="vu_quy_enabled" value="true"/>
+                    <button type="button" id="vis-btn-vu-quy" onclick="toggleVuQuy(event)"
+                      class="relative flex-shrink-0 inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 bg-rose-400">
+                      <span id="vis-knob-vu-quy" class="inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200 translate-x-6"></span>
+                    </button>
+                  </div>
+                  <div id="vu-quy-fields" class="space-y-4 mt-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label class="block text-sm text-gray-700 mb-2 flex items-center gap-2">
+                          <i data-lucide="clock" class="text-color-secondary"></i>Giờ vu quy
+                        </label>
+                        <input name="vu_quy_time" type="text" data-timepicker readonly placeholder="Chọn giờ..."
+                          class="w-full h-10 px-3 py-2 border border-gray-200 rounded-md text-sm text-gray-800 bg-white outline-none transition-all placeholder:text-gray-400/50 cursor-pointer focus:ring-2 focus:ring-rose-500/30 focus:ring-offset-2"/>
+                      </div>
+                      <div>
+                        <label class="text-sm text-gray-700 flex items-center gap-2 mb-2">
+                          <i data-lucide="map-pin" class="text-color-secondary"></i>Địa điểm vu quy
+                        </label>
+                        <div id="vu-quy-location-row" class="flex gap-2">
+                          <input name="vu_quy_location" placeholder="Nhập địa điểm vu quy..."
+                            class="flex-1 min-w-0 h-10 px-3 py-2 border border-gray-200 rounded-md text-sm text-gray-800 bg-white outline-none transition-all placeholder:text-gray-400/50 focus:ring-2 focus:ring-rose-500/30 focus:ring-offset-2"/>
+                          <button type="button" onclick="openMapPicker('vu_quy')"
+                            class="h-10 px-3 border border-gray-200 rounded-md text-sm text-gray-600 hover:bg-rose-50 hover:border-rose-200 hover:text-color-secondary transition-colors flex items-center justify-center gap-1.5 flex-shrink-0">
+                            <i data-lucide="map-pin" class="w-4 h-4"></i><span>Bản đồ</span>
+                          </button>
+                        </div>
+                        <input type="hidden" name="vu_quy_map_embed_url" id="vu_quy_map_embed_url"/>
+                        <div id="vu_quy-picker-wrap">
+                          <div id="vu_quy-map-display" class="hidden items-center gap-2 mt-2 bg-gray-50 border border-gray-100 rounded-lg px-3 py-2">
+                            <svg class="w-3.5 h-3.5 flex-shrink-0 text-rose-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>
+                            </svg>
+                            <span id="vu_quy-map-address" class="flex-1 text-sm text-gray-700 truncate"></span>
+                            <button type="button" onclick="clearMapAddress('vu_quy')" class="text-gray-300 hover:text-red-400 transition-colors flex-shrink-0">
+                              <svg class="w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 4. TIỆC CƯỚI -->
+            <div
+              class="bg-white rounded-xl overflow-hidden animate-fade-in border border-gray-200"
+            >
+              <div
+                class="bg-white px-6 py-4 border-b border-gray-100 cursor-pointer select-none"
+                onclick="toggleSection('party')"
+              >
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <i
+                      data-lucide="utensils"
+                      class="text-[18px] text-color-secondary"
+                    ></i>
+                    <p class="text-sm text-gray-700">Tiệc cưới</p>
+                  </div>
+                  <div class="flex items-center gap-3">
+                    <button
+                      type="button"
+                      id="vis-btn-party"
+                      onclick="toggleSectionVis('party', event)"
+                      class="relative flex-shrink-0 inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 bg-rose-400"
+                    >
+                      <span
+                        id="vis-knob-party"
+                        class="inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200 translate-x-6"
+                      ></span>
+                    </button>
+                    <i
+                      id="section-party-chevron"
+                      data-lucide="chevron-down"
+                      class="text-gray-400 text-sm"
+                    ></i>
+                  </div>
+                </div>
+              </div>
+              <div id="section-party-body" class="hidden">
+                <!-- Tab bar -->
+                <div class="flex border-b border-gray-100">
+                  <button type="button" onclick="switchPartyTab('groom')" id="party-tab-groom"
+                    class="flex-1 py-3 text-sm font-medium flex items-center justify-center gap-1.5 bg-rose-50 text-rose-600 border-b-2 border-rose-400 transition-colors">
+                    <i data-lucide="mars" class="w-3.5 h-3.5"></i> Nhà trai
+                  </button>
+                  <button type="button" onclick="switchPartyTab('bride')" id="party-tab-bride"
+                    class="flex-1 py-3 text-sm font-medium flex items-center justify-center gap-1.5 text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors">
+                    <i data-lucide="venus" class="w-3.5 h-3.5"></i> Nhà gái
+                  </button>
+                </div>
+
+                <!-- Nhà trai panel -->
+                <div id="party-panel-groom" class="p-6 space-y-4">
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label class="block text-sm text-gray-700 mb-2 flex items-center gap-2">
+                        <i data-lucide="calendar" class="text-color-secondary"></i>
+                        Ngày đãi tiệc
+                      </label>
+                      <input
+                        name="groom_party_date"
+                        type="date"
+                        class="w-full h-10 px-3 py-2 border border-gray-200 rounded-md text-sm text-gray-800 bg-white outline-none transition-all focus:ring-2 focus:ring-rose-500/30 focus:ring-offset-2"
+                      />
+                    </div>
+                    <div>
+                      <label class="block text-sm text-gray-700 mb-2 flex items-center gap-2">
+                        <i data-lucide="clock" class="text-color-secondary"></i>
+                        Giờ đãi tiệc
+                      </label>
+                      <input
+                        name="groom_party_time"
+                        type="text"
+                        data-timepicker
+                        readonly
+                        placeholder="Chọn giờ..."
+                        class="w-full h-10 px-3 py-2 border border-gray-200 rounded-md text-sm text-gray-800 bg-white outline-none transition-all placeholder:text-gray-400/50 cursor-pointer focus:ring-2 focus:ring-rose-500/30 focus:ring-offset-2"
+                      />
+                    </div>
+                  </div>
+                  <p id="groom-party-lunar-display" class="text-sm text-gray-500 italic">
+                    Chọn ngày để tự động tính ngày âm lịch
+                  </p>
+                  <div class="space-y-2">
+                    <label class="text-sm text-gray-700 flex items-center gap-2">
+                      <i data-lucide="map-pin" class="text-color-secondary"></i>Địa điểm tiệc
+                    </label>
+                    <button type="button" id="groom-party-same-btn" data-active="false"
+                      onclick="togglePartySameLoc('groom', event)"
+                      class="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl border border-gray-100 bg-gray-50/60 cursor-pointer transition-all text-left hover:border-rose-200 hover:bg-rose-50/40">
+                      <span id="groom-party-same-box" class="flex-shrink-0 w-5 h-5 rounded-md border-2 border-gray-300 bg-white flex items-center justify-center transition-all">
+                        <svg id="groom-party-same-icon" class="w-3 h-3 text-white hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                          <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                      </span>
+                      <span class="text-sm text-gray-500">Trùng địa điểm lễ thành hôn</span>
+                    </button>
+                    <div id="groom-party-location-row" class="flex gap-2">
+                      <input
+                        name="groom_party_location"
+                        placeholder="Ví dụ: Trung tâm tiệc cưới Hoàng Gia, Q.1, TP.HCM"
+                        class="flex-1 min-w-0 h-10 px-3 py-2 border border-gray-200 rounded-md text-sm text-gray-800 bg-white outline-none transition-all placeholder:text-gray-400/50 focus:ring-2 focus:ring-rose-500/30 focus:ring-offset-2"
+                      />
+                      <button
+                        type="button"
+                        id="groom-party-map-btn"
+                        onclick="openMapPicker('groom_party')"
+                        class="h-10 px-3 border border-gray-200 rounded-md text-sm text-gray-600 hover:bg-rose-50 hover:border-rose-200 hover:text-color-secondary transition-colors flex items-center justify-center gap-1.5 flex-shrink-0"
+                      >
+                        <i data-lucide="map-pin" class="w-4 h-4"></i>
+                        <span>Bản đồ</span>
+                      </button>
+                    </div>
+                    <input type="hidden" name="groom_party_map_embed_url" id="groom_party_map_embed_url" />
+                    <div id="groom_party-picker-wrap">
+                      <div id="groom_party-map-display" class="hidden items-center gap-2 bg-gray-50 border border-gray-100 rounded-lg px-3 py-2">
+                        <svg class="w-3.5 h-3.5 flex-shrink-0 text-rose-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+                          <circle cx="12" cy="10" r="3" />
+                        </svg>
+                        <span id="groom_party-map-address" class="flex-1 text-sm text-gray-700 truncate"></span>
+                        <button type="button" onclick="clearMapAddress('groom_party')" class="text-gray-300 hover:text-red-400 transition-colors flex-shrink-0">
+                          <svg class="w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18 6 6 18" /><path d="m6 6 12 12" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Nhà gái panel -->
+                <div id="party-panel-bride" class="hidden p-6 space-y-4">
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label class="block text-sm text-gray-700 mb-2 flex items-center gap-2">
+                        <i data-lucide="calendar" class="text-color-secondary"></i>
+                        Ngày đãi tiệc
+                      </label>
+                      <input
+                        name="bride_party_date"
+                        type="date"
+                        class="w-full h-10 px-3 py-2 border border-gray-200 rounded-md text-sm text-gray-800 bg-white outline-none transition-all focus:ring-2 focus:ring-rose-500/30 focus:ring-offset-2"
+                      />
+                    </div>
+                    <div>
+                      <label class="block text-sm text-gray-700 mb-2 flex items-center gap-2">
+                        <i data-lucide="clock" class="text-color-secondary"></i>
+                        Giờ đãi tiệc
+                      </label>
+                      <input
+                        name="bride_party_time"
+                        type="text"
+                        data-timepicker
+                        readonly
+                        placeholder="Chọn giờ..."
+                        class="w-full h-10 px-3 py-2 border border-gray-200 rounded-md text-sm text-gray-800 bg-white outline-none transition-all placeholder:text-gray-400/50 cursor-pointer focus:ring-2 focus:ring-rose-500/30 focus:ring-offset-2"
+                      />
+                    </div>
+                  </div>
+                  <p id="bride-party-lunar-display" class="text-sm text-gray-500 italic">
+                    Chọn ngày để tự động tính ngày âm lịch
+                  </p>
+                  <div class="space-y-2">
+                    <label class="text-sm text-gray-700 flex items-center gap-2">
+                      <i data-lucide="map-pin" class="text-color-secondary"></i>Địa điểm tiệc
+                    </label>
+                    <button type="button" id="bride-party-same-btn" data-active="false"
+                      onclick="togglePartySameLoc('bride', event)"
+                      class="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl border border-gray-100 bg-gray-50/60 cursor-pointer transition-all text-left hover:border-rose-200 hover:bg-rose-50/40">
+                      <span id="bride-party-same-box" class="flex-shrink-0 w-5 h-5 rounded-md border-2 border-gray-300 bg-white flex items-center justify-center transition-all">
+                        <svg id="bride-party-same-icon" class="w-3 h-3 text-white hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                          <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                      </span>
+                      <span class="text-sm text-gray-500">Trùng địa điểm lễ vu quy</span>
+                    </button>
+                    <div id="bride-party-location-row" class="flex gap-2">
+                      <input
+                        name="bride_party_location"
+                        placeholder="Ví dụ: Nhà hàng Riverside, Q.3, TP.HCM"
+                        class="flex-1 min-w-0 h-10 px-3 py-2 border border-gray-200 rounded-md text-sm text-gray-800 bg-white outline-none transition-all placeholder:text-gray-400/50 focus:ring-2 focus:ring-rose-500/30 focus:ring-offset-2"
+                      />
+                      <button
+                        type="button"
+                        id="bride-party-map-btn"
+                        onclick="openMapPicker('bride_party')"
+                        class="h-10 px-3 border border-gray-200 rounded-md text-sm text-gray-600 hover:bg-rose-50 hover:border-rose-200 hover:text-color-secondary transition-colors flex items-center justify-center gap-1.5 flex-shrink-0"
+                      >
+                        <i data-lucide="map-pin" class="w-4 h-4"></i>
+                        <span>Bản đồ</span>
+                      </button>
+                    </div>
+                    <input type="hidden" name="bride_party_map_embed_url" id="bride_party_map_embed_url" />
+                    <div id="bride_party-picker-wrap">
+                      <div id="bride_party-map-display" class="hidden items-center gap-2 bg-gray-50 border border-gray-100 rounded-lg px-3 py-2">
+                        <svg class="w-3.5 h-3.5 flex-shrink-0 text-rose-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+                          <circle cx="12" cy="10" r="3" />
+                        </svg>
+                        <span id="bride_party-map-address" class="flex-1 text-sm text-gray-700 truncate"></span>
+                        <button type="button" onclick="clearMapAddress('bride_party')" class="text-gray-300 hover:text-red-400 transition-colors flex-shrink-0">
+                          <svg class="w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18 6 6 18" /><path d="m6 6 12 12" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 6. ẢNH CƯỚI -->
+            <div
+              class="bg-white rounded-xl overflow-hidden animate-fade-in border border-gray-200"
+            >
+              <div
+                class="bg-white px-6 py-4 border-b border-gray-100 cursor-pointer select-none"
+                onclick="toggleSection('photos')"
+              >
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <i
+                      data-lucide="camera"
+                      class="text-[18px] text-color-secondary"
+                    ></i>
+                    <p class="text-sm text-gray-700">Ảnh cưới</p>
+                  </div>
+                  <div class="flex items-center gap-3">
+                    <button
+                      type="button"
+                      id="vis-btn-photos"
+                      onclick="toggleSectionVis('photos', event)"
+                      class="relative flex-shrink-0 inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 bg-rose-400"
+                    >
+                      <span
+                        id="vis-knob-photos"
+                        class="inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200 translate-x-6"
+                      ></span>
+                    </button>
+                    <i
+                      id="section-photos-chevron"
+                      data-lucide="chevron-down"
+                      class="text-gray-400 text-sm"
+                    ></i>
+                  </div>
+                </div>
+              </div>
+              <div id="section-photos-body" class="hidden p-6 space-y-6">
+                <div>
+                  <label
+                    class="block text-sm text-gray-700 mb-2 flex items-center gap-2"
+                    ><i data-lucide="images" class="text-color-secondary"></i>
+                    Album ảnh (tối đa 10 ảnh)</label
+                  >
+                  <div
+                    id="gallery-container"
+                    class="grid grid-cols-3 sm:grid-cols-5 gap-3"
+                  ></div>
+                  <input
+                    type="file"
+                    id="gallery-file-input"
+                    accept="image/*"
+                    multiple
+                    class="hidden"
+                    onchange="handleGalleryUpload(event)"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- 6. LỊCH TRÌNH NGÀY CƯỚI -->
+            <div
+              class="bg-white rounded-xl overflow-hidden animate-fade-in border border-gray-200"
+            >
+              <div
+                class="bg-white px-6 py-4 border-b border-gray-100 cursor-pointer select-none"
+                onclick="toggleSection('timeline')"
+              >
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <i
+                      data-lucide="calendar"
+                      class="text-[18px] text-color-secondary"
+                    ></i>
+                    <p class="text-sm text-gray-700">Lịch trình ngày cưới</p>
+                  </div>
+                  <div class="flex items-center gap-3">
+                    <button
+                      type="button"
+                      id="vis-btn-timeline"
+                      onclick="toggleSectionVis('timeline', event)"
+                      class="relative flex-shrink-0 inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 bg-rose-400"
+                    >
+                      <span
+                        id="vis-knob-timeline"
+                        class="inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200 translate-x-6"
+                      ></span>
+                    </button>
+                    <i
+                      id="section-timeline-chevron"
+                      data-lucide="chevron-down"
+                      class="text-gray-400 text-sm"
+                    ></i>
+                  </div>
+                </div>
+              </div>
+              <div id="section-timeline-body" class="hidden">
+                <!-- Tab bar — chỉ toggle phần Tiệc cưới -->
+                <div class="flex border-b border-gray-100">
+                  <button type="button" onclick="switchTimelineTab('groom')" id="timeline-tab-groom"
+                    class="flex-1 py-3 text-sm font-medium flex items-center justify-center gap-1.5 bg-rose-50 text-rose-600 border-b-2 border-rose-400 transition-colors">
+                    <i data-lucide="mars" class="w-3.5 h-3.5"></i> Nhà trai
+                  </button>
+                  <button type="button" onclick="switchTimelineTab('bride')" id="timeline-tab-bride"
+                    class="flex-1 py-3 text-sm font-medium flex items-center justify-center gap-1.5 text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors">
+                    <i data-lucide="venus" class="w-3.5 h-3.5"></i> Nhà gái
+                  </button>
+                </div>
+
+                <!-- Tiệc nhà trai -->
+                <div id="timeline-panel-groom" class="px-6 pt-4 pb-2 space-y-3">
+                  <div id="timeline-party-sub" class="space-y-3">
+                    <p class="text-xs font-semibold text-amber-600 uppercase tracking-wide">Tiệc cưới</p>
+                    <div id="timeline-party-date-badge" class="hidden flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-xl">
+                      <i data-lucide="calendar-days" class="w-4 h-4 text-amber-500 flex-shrink-0"></i>
+                      <span id="timeline-party-date-text" class="text-sm font-medium text-amber-700"></span>
+                    </div>
+                    <div id="timeline-party-list" class="space-y-3"></div>
+                    <p id="timeline-party-no-date" class="hidden text-sm text-gray-400 italic py-1">Hãy <a onclick="_openSectionAndScroll('party')" class="text-amber-500 not-italic font-medium underline cursor-pointer">thiết lập</a> ngày tổ chức tiệc nhà trai để thêm sự kiện</p>
+                    <button id="btn-add-party" type="button" onclick="addTimelineItem('party')" class="btn-pink mt-1">
+                      <i data-lucide="plus"></i> Thêm sự kiện
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Tiệc nhà gái -->
+                <div id="timeline-panel-bride" class="hidden px-6 pt-4 pb-2 space-y-3">
+                  <div id="timeline-bride-party-sub" class="space-y-3">
+                    <p class="text-xs font-semibold text-amber-600 uppercase tracking-wide">Tiệc cưới</p>
+                    <div id="timeline-bride-party-date-badge" class="hidden flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-xl">
+                      <i data-lucide="calendar-days" class="w-4 h-4 text-amber-500 flex-shrink-0"></i>
+                      <span id="timeline-bride-party-date-text" class="text-sm font-medium text-amber-700"></span>
+                    </div>
+                    <div id="timeline-bride-party-list" class="space-y-3"></div>
+                    <p id="timeline-bride-party-no-date" class="hidden text-sm text-gray-400 italic py-1">Hãy <a onclick="_openSectionAndScroll('party'); switchPartyTab('bride')" class="text-amber-500 not-italic font-medium underline cursor-pointer">thiết lập</a> ngày tổ chức tiệc nhà gái để thêm sự kiện</p>
+                    <button id="btn-add-bride-party" type="button" onclick="addTimelineItem('bride-party')" class="btn-pink mt-1">
+                      <i data-lucide="plus"></i> Thêm sự kiện
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Lễ cưới — dùng chung, luôn hiển thị -->
+                <div class="px-6 pt-2 pb-6 space-y-4 border-t border-gray-100">
+                  <p class="text-xs font-semibold text-cyan-600 uppercase tracking-wide pt-2">Lễ cưới</p>
+                  <div id="timeline-date-badge" class="hidden flex items-center gap-2 px-3 py-2 bg-cyan-50 border border-cyan-200 rounded-xl">
+                    <i data-lucide="calendar-days" class="w-4 h-4 text-cyan-500 flex-shrink-0"></i>
+                    <span id="timeline-date-text" class="text-sm font-medium text-cyan-700"></span>
+                  </div>
+                  <div id="timeline-list" class="space-y-3"></div>
+                  <p id="timeline-ceremony-no-date" class="hidden text-sm text-gray-400 italic py-1">Hãy <a onclick="_openSectionAndScroll('ceremony')" class="text-cyan-500 not-italic font-medium underline cursor-pointer">thiết lập</a> ngày lễ cưới để thêm sự kiện</p>
+                  <button id="btn-add-ceremony" type="button" onclick="addTimelineItem('ceremony')" class="btn-pink mt-1">
+                    <i data-lucide="plus"></i> Thêm sự kiện
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 7. CÂU CHUYỆN TÌNH YÊU -->
+            <div
+              class="bg-white rounded-xl overflow-hidden animate-fade-in border border-gray-200"
+            >
+              <div
+                class="bg-white px-6 py-4 border-b border-gray-100 cursor-pointer select-none"
+                onclick="toggleSection('love_story')"
+              >
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <i
+                      data-lucide="heart"
+                      class="text-[18px] text-color-secondary"
+                    ></i>
+                    <p class="text-sm text-gray-700">Câu chuyện tình yêu</p>
+                  </div>
+                  <div class="flex items-center gap-3">
+                    <button
+                      type="button"
+                      id="vis-btn-love_story"
+                      onclick="toggleSectionVis('love_story', event)"
+                      class="relative flex-shrink-0 inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 bg-rose-400"
+                    >
+                      <span
+                        id="vis-knob-love_story"
+                        class="inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200 translate-x-6"
+                      ></span>
+                    </button>
+                    <i
+                      id="section-love_story-chevron"
+                      data-lucide="chevron-down"
+                      class="text-gray-400 text-sm"
+                    ></i>
+                  </div>
+                </div>
+              </div>
+              <div id="section-love_story-body" class="hidden p-6 space-y-4">
+                <p class="text-xs text-gray-500">
+                  Kể lại hành trình tình yêu của hai bạn. Ví dụ: lần đầu gặp, ngày hẹn hò, ngày cầu hôn...
+                </p>
+                <div id="love-story-list" class="space-y-3"></div>
+                <button
+                  type="button"
+                  onclick="addLoveStoryItem()"
+                  class="btn-pink mt-2"
+                >
+                  <i data-lucide="plus"></i> Thêm mốc
+                </button>
+              </div>
+            </div>
+
+            <!-- 8. NHẠC NỀN -->
+            <div
+              class="bg-white rounded-xl overflow-hidden animate-fade-in border border-gray-200"
+            >
+              <div
+                class="bg-white px-6 py-4 border-b border-gray-100 cursor-pointer select-none"
+                onclick="toggleSection('music')"
+              >
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <i
+                      data-lucide="music"
+                      class="text-[18px] text-color-secondary"
+                    ></i>
+                    <p class="text-sm text-gray-700">Nhạc nền</p>
+                  </div>
+                  <div class="flex items-center gap-3">
+                    <button
+                      type="button"
+                      id="vis-btn-music"
+                      onclick="toggleSectionVis('music', event)"
+                      class="relative flex-shrink-0 inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 bg-rose-400"
+                    >
+                      <span
+                        id="vis-knob-music"
+                        class="inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200 translate-x-6"
+                      ></span>
+                    </button>
+                    <i
+                      id="section-music-chevron"
+                      data-lucide="chevron-down"
+                      class="text-gray-400 text-sm"
+                    ></i>
+                  </div>
+                </div>
+              </div>
+              <div id="section-music-body" class="hidden p-6 space-y-4">
+                <div>
+                  <label
+                    class="block text-sm text-gray-700 mb-2 flex items-center gap-2"
+                    ><i
+                      data-lucide="play-circle"
+                      class="text-color-secondary"
+                    ></i>
+                    Liên kết nhạc YouTube</label
+                  >
+                  <input
+                    type="text"
+                    id="youtube-link-input"
+                    name="music_url"
+                    placeholder="Ví dụ: https://www.youtube.com/watch?v=xxxxxxxxxxx"
+                    class="w-full h-10 px-3 py-2 border border-gray-200 rounded-md text-sm text-gray-800 bg-white outline-none transition-all placeholder:text-gray-400/50 focus:ring-2 focus:ring-rose-500/30 focus:ring-offset-2"
+                  />
+                  <p class="text-xs text-gray-500 mt-2">
+                    <i data-lucide="info" class="text-color-secondary"></i>
+                    Paste link YouTube. Để trống nếu không muốn có nhạc nền.
+                  </p>
+                </div>
+                <div id="youtube-preview" class="hidden">
+                  <div class="bg-white rounded-2xl p-4 border border-gray-100">
+                    <p
+                      class="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2"
+                    >
+                      <i
+                        data-lucide="play-circle"
+                        class="text-color-secondary"
+                      ></i>
+                      Preview
+                    </p>
+                    <div
+                      id="youtube-player-container"
+                      class="aspect-video bg-black rounded-xl overflow-hidden shadow-md"
+                    ></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 8. XÁC NHẬN THAM DỰ (RSVP) -->
+            <div
+              class="bg-white rounded-xl overflow-hidden animate-fade-in border border-gray-200"
+            >
+              <div
+                class="bg-white px-6 py-4 border-b border-gray-100 cursor-pointer select-none"
+                onclick="toggleSection('rsvp')"
+              >
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <i
+                      data-lucide="circle-check"
+                      class="text-[18px] text-color-secondary"
+                    ></i>
+                    <p class="text-sm text-gray-700">Xác nhận tham dự</p>
+                  </div>
+                  <div class="flex items-center gap-3">
+                    <button
+                      type="button"
+                      id="vis-btn-rsvp"
+                      onclick="toggleSectionVis('rsvp', event)"
+                      class="relative flex-shrink-0 inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 bg-rose-400"
+                    >
+                      <span
+                        id="vis-knob-rsvp"
+                        class="inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200 translate-x-6"
+                      ></span>
+                    </button>
+                    <i
+                      id="section-rsvp-chevron"
+                      data-lucide="chevron-down"
+                      class="text-gray-400 text-sm"
+                    ></i>
+                  </div>
+                </div>
+              </div>
+              <div id="section-rsvp-body" class="hidden p-6 space-y-6">
+                <div>
+                  <label
+                    class="block text-sm text-gray-700 mb-2 flex items-center gap-2"
+                    ><i
+                      data-lucide="message-circle"
+                      class="text-color-secondary"
+                    ></i>
+                    Lời nhắn xác nhận tham dự</label
+                  >
+                  <textarea
+                    name="rsvp_message"
+                    rows="3"
+                    placeholder="Ví dụ: Sự có mặt của bạn là món quà ý nghĩa nhất với chúng mình."
+                    class="w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-gray-800 bg-white outline-none transition-all placeholder:text-gray-400/50 focus:ring-2 focus:ring-rose-500/30 focus:ring-offset-2 resize-none"
+                  ></textarea>
+                </div>
+              </div>
+            </div>
+
+            <!-- 9. HỘP MỪNG CƯỚI -->
+            <div
+              class="bg-white rounded-xl overflow-hidden animate-fade-in border border-gray-200"
+            >
+              <div
+                class="bg-white px-6 py-4 border-b border-gray-100 cursor-pointer select-none"
+                onclick="toggleSection('gift')"
+              >
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <i
+                      data-lucide="gift"
+                      class="text-[18px] text-color-secondary"
+                    ></i>
+                    <p class="text-sm text-gray-700">Hộp mừng cưới</p>
+                  </div>
+                  <div class="flex items-center gap-3">
+                    <button
+                      type="button"
+                      id="vis-btn-gift"
+                      onclick="toggleSectionVis('gift', event)"
+                      class="relative flex-shrink-0 inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 bg-rose-400"
+                    >
+                      <span
+                        id="vis-knob-gift"
+                        class="inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200 translate-x-6"
+                      ></span>
+                    </button>
+                    <i
+                      id="section-gift-chevron"
+                      data-lucide="chevron-down"
+                      class="text-gray-400 text-sm"
+                    ></i>
+                  </div>
+                </div>
+              </div>
+              <div id="section-gift-body" class="hidden p-6 space-y-6">
+                <div class="rounded-2xl border border-gray-100 overflow-hidden">
+                  <div
+                    class="px-5 py-3 bg-rose-50 border-b border-rose-100 flex items-center gap-2"
+                  >
+                    <i
+                      data-lucide="mars"
+                      class="w-4 h-4 text-color-secondary"
+                    ></i>
+                    <span class="text-sm font-semibold text-gray-700"
+                      >Nhà trai</span
+                    >
+                  </div>
+                  <div class="p-5 space-y-4">
+                    <div class="relative">
+                      <label
+                        class="block text-sm text-gray-700 mb-2 flex items-center gap-2"
+                        ><i
+                          data-lucide="landmark"
+                          class="text-color-secondary"
+                        ></i
+                        >Tên ngân hàng</label
+                      >
+                      <input
+                        type="text"
+                        id="groom-bank-input"
+                        placeholder="Tìm theo tên hoặc mã ngân hàng..."
+                        class="w-full h-10 px-3 py-2 border border-gray-200 rounded-md text-sm text-gray-800 bg-white outline-none transition-all placeholder:text-gray-400/50 focus:ring-2 focus:ring-rose-500/30 focus:ring-offset-2"
+                        autocomplete="off"
+                      />
+                      <input
+                        type="hidden"
+                        name="groom_bank_name"
+                        id="groom-bank-value"
+                      />
+                      <div
+                        id="groom-bank-dropdown"
+                        class="hidden absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-2xl shadow-lg max-h-60 overflow-y-auto"
+                      ></div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label
+                          class="block text-sm text-gray-700 mb-2 flex items-center gap-2"
+                          ><i
+                            data-lucide="credit-card"
+                            class="text-color-secondary"
+                          ></i
+                          >Số tài khoản</label
+                        >
+                        <input
+                          name="groom_bank_number"
+                          placeholder="Ví dụ: 0123456789"
+                          class="w-full h-10 px-3 py-2 border border-gray-200 rounded-md text-sm text-gray-800 bg-white outline-none transition-all placeholder:text-gray-400/50 focus:ring-2 focus:ring-rose-500/30 focus:ring-offset-2 font-mono"
+                        />
+                      </div>
+                      <div>
+                        <label
+                          class="block text-sm text-gray-700 mb-2 flex items-center gap-2"
+                          ><i
+                            data-lucide="user"
+                            class="text-color-secondary"
+                          ></i
+                          >Tên chủ tài khoản</label
+                        >
+                        <input
+                          name="groom_bank_owner"
+                          placeholder="Ví dụ: DOAN QUANG VINH"
+                          class="w-full h-10 px-3 py-2 border border-gray-200 rounded-md text-sm text-gray-800 bg-white outline-none transition-all placeholder:text-gray-400/50 focus:ring-2 focus:ring-rose-500/30 focus:ring-offset-2"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label
+                        class="block text-sm text-gray-700 mb-2 flex items-center gap-2"
+                        ><i
+                          data-lucide="qr-code"
+                          class="text-color-secondary"
+                        ></i
+                        >Ảnh QR chuyển khoản</label
+                      >
+                      <div id="groom-qr-container" class="w-32"></div>
+                      <input
+                        type="file"
+                        id="groom-qr-file-input"
+                        accept="image/*"
+                        class="hidden"
+                        onchange="handleImageUpload(event, 'groom_qr_url')"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div class="rounded-2xl border border-gray-100 overflow-hidden">
+                  <div
+                    class="px-5 py-3 bg-rose-50 border-b border-rose-100 flex items-center gap-2"
+                  >
+                    <i
+                      data-lucide="venus"
+                      class="w-4 h-4 text-color-secondary"
+                    ></i>
+                    <span class="text-sm font-semibold text-gray-700"
+                      >Nhà gái</span
+                    >
+                  </div>
+                  <div class="p-5 space-y-4">
+                    <div class="relative">
+                      <label
+                        class="block text-sm text-gray-700 mb-2 flex items-center gap-2"
+                        ><i
+                          data-lucide="landmark"
+                          class="text-color-secondary"
+                        ></i
+                        >Tên ngân hàng</label
+                      >
+                      <input
+                        type="text"
+                        id="bride-bank-input"
+                        placeholder="Tìm theo tên hoặc mã ngân hàng..."
+                        class="w-full h-10 px-3 py-2 border border-gray-200 rounded-md text-sm text-gray-800 bg-white outline-none transition-all placeholder:text-gray-400/50 focus:ring-2 focus:ring-rose-500/30 focus:ring-offset-2"
+                        autocomplete="off"
+                      />
+                      <input
+                        type="hidden"
+                        name="bride_bank_name"
+                        id="bride-bank-value"
+                      />
+                      <div
+                        id="bride-bank-dropdown"
+                        class="hidden absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-2xl shadow-lg max-h-60 overflow-y-auto"
+                      ></div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label
+                          class="block text-sm text-gray-700 mb-2 flex items-center gap-2"
+                          ><i
+                            data-lucide="credit-card"
+                            class="text-color-secondary"
+                          ></i
+                          >Số tài khoản</label
+                        >
+                        <input
+                          name="bride_bank_number"
+                          placeholder="Ví dụ: 0987654321"
+                          class="w-full h-10 px-3 py-2 border border-gray-200 rounded-md text-sm text-gray-800 bg-white outline-none transition-all placeholder:text-gray-400/50 focus:ring-2 focus:ring-rose-500/30 focus:ring-offset-2 font-mono"
+                        />
+                      </div>
+                      <div>
+                        <label
+                          class="block text-sm text-gray-700 mb-2 flex items-center gap-2"
+                          ><i
+                            data-lucide="user"
+                            class="text-color-secondary"
+                          ></i
+                          >Tên chủ tài khoản</label
+                        >
+                        <input
+                          name="bride_bank_owner"
+                          placeholder="Ví dụ: VUONG THI HAI YEN"
+                          class="w-full h-10 px-3 py-2 border border-gray-200 rounded-md text-sm text-gray-800 bg-white outline-none transition-all placeholder:text-gray-400/50 focus:ring-2 focus:ring-rose-500/30 focus:ring-offset-2"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label
+                        class="block text-sm text-gray-700 mb-2 flex items-center gap-2"
+                        ><i
+                          data-lucide="qr-code"
+                          class="text-color-secondary"
+                        ></i
+                        >Ảnh QR chuyển khoản</label
+                      >
+                      <div id="bride-qr-container" class="w-32"></div>
+                      <input
+                        type="file"
+                        id="bride-qr-file-input"
+                        accept="image/*"
+                        class="hidden"
+                        onchange="handleImageUpload(event, 'bride_qr_url')"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 10. KHÁCH MỜI -->
+            <div
+              class="bg-white rounded-xl overflow-hidden animate-fade-in border border-gray-200"
+            >
+              <div
+                class="bg-white px-6 py-4 border-b border-gray-100 cursor-pointer select-none"
+                onclick="toggleSection('guests')"
+              >
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <i
+                      data-lucide="sparkles"
+                      class="text-[18px] text-color-secondary"
+                    ></i>
+                    <p class="text-sm text-gray-700">
+                      Nâng cao
+                      <span class="text-gray-400 font-normal"
+                        >(Cá nhân hóa khách mời)</span
+                      >
+                    </p>
+                  </div>
+                  <i
+                    id="section-guests-chevron"
+                    data-lucide="chevron-down"
+                    class="text-gray-400 text-sm"
+                  ></i>
+                </div>
+              </div>
+              <div id="section-guests-body" class="hidden p-6 space-y-5">
+                <div
+                  class="text-xs text-gray-500 bg-gray-50 rounded-lg px-3 py-2.5 border border-gray-100 space-y-1.5"
+                >
+                  <p>
+                    Nhập URL Google Apps Script để hệ thống tự tạo link thiệp
+                    riêng cho từng khách mời, có tên và lời chào cá nhân hóa.
+                  </p>
+                  <a
+                    href="../google-apps-script/"
+                    target="_blank"
+                    class="inline-flex items-center gap-1 text-color-secondary font-medium hover:underline"
+                  >
+                    <i
+                      data-lucide="book-open"
+                      style="width: 12px; height: 12px"
+                    ></i>
+                    Hướng dẫn tạo thiệp riêng cho khách mời
+                  </a>
+                </div>
+                <div class="space-y-2">
+                  <label class="text-sm text-gray-700 flex items-center gap-2">
+                    <i data-lucide="mars" class="text-color-secondary"></i>
+                    Khách mời nhà trai
+                  </label>
+                  <input
+                    name="groom_google_sheet_url"
+                    id="groom_google_sheet_url"
+                    placeholder="Dán liên kết Google Apps Script vào đây..."
+                    class="w-full h-10 px-3 py-2 border border-gray-200 rounded-md text-sm text-gray-800 bg-white outline-none transition-all placeholder:text-gray-400/50 focus:ring-2 focus:ring-rose-500/30 focus:ring-offset-2 font-mono"
+                  />
+                </div>
+                <div class="space-y-2">
+                  <label class="text-sm text-gray-700 flex items-center gap-2">
+                    <i data-lucide="venus" class="text-color-secondary"></i>
+                    Khách mời nhà gái
+                  </label>
+                  <input
+                    name="bride_google_sheet_url"
+                    id="bride_google_sheet_url"
+                    placeholder="Dán liên kết Google Apps Script vào đây..."
+                    class="w-full h-10 px-3 py-2 border border-gray-200 rounded-md text-sm text-gray-800 bg-white outline-none transition-all placeholder:text-gray-400/50 focus:ring-2 focus:ring-rose-500/30 focus:ring-offset-2 font-mono"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- 11. FOOTER -->
+            <div
+              class="bg-white rounded-xl overflow-hidden animate-fade-in border border-gray-200"
+            >
+              <div
+                class="bg-white px-6 py-4 border-b border-gray-100 cursor-pointer select-none"
+                onclick="toggleSection('footer')"
+              >
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <i
+                      data-lucide="flag"
+                      class="text-[18px] text-color-secondary"
+                    ></i>
+                    <p class="text-sm text-gray-700">Footer</p>
+                  </div>
+                  <div class="flex items-center gap-3">
+                    <button
+                      type="button"
+                      id="vis-btn-footer"
+                      onclick="toggleSectionVis('footer', event)"
+                      class="relative flex-shrink-0 inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 bg-rose-400"
+                    >
+                      <span
+                        id="vis-knob-footer"
+                        class="inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200 translate-x-6"
+                      ></span>
+                    </button>
+                    <i
+                      id="section-footer-chevron"
+                      data-lucide="chevron-down"
+                      class="text-gray-400 text-sm"
+                    ></i>
+                  </div>
+                </div>
+              </div>
+              <div id="section-footer-body" class="hidden p-6 space-y-4">
+                <label
+                  class="block text-sm text-gray-700 mb-2 flex items-center gap-2"
+                  ><i data-lucide="heart" class="text-color-secondary"></i> Lời
+                  cảm ơn / Footer</label
+                >
+                <textarea
+                  name="footer_text"
+                  rows="4"
+                  placeholder="Ví dụ: Trân trọng cảm ơn sự hiện diện của quý khách. Sự có mặt của bạn là niềm vinh hạnh lớn nhất của chúng tôi."
+                  class="w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-gray-800 bg-white outline-none transition-all placeholder:text-gray-400/50 focus:ring-2 focus:ring-rose-500/30 focus:ring-offset-2 resize-none"
+                ></textarea>
+              </div>
+            </div>
+          </form>
+
+          <!-- Toast -->
+          <div
+            id="toast"
+            class="fixed top-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-2xl text-sm font-medium opacity-0 transition-all duration-300 pointer-events-none shadow-2xl z-50"
+          >
+            <span id="toast-text">Đã lưu thành công!</span>
+          </div>
+
+          <!-- Loading Overlay -->
+          <div
+            id="loading-overlay"
+            class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden items-center justify-center"
+          >
+            <div class="bg-white rounded-2xl p-8 text-center shadow-2xl">
+              <div
+                class="inline-block w-12 h-12 border-4 border-t-transparent rounded-full animate-spin mb-4"
+                style="
+                  border-color: var(--text-color-secondary) transparent
+                    transparent transparent;
+                "
+              ></div>
+              <p class="text-gray-700 font-medium" id="loading-message">
+                Đang xử lý...
+              </p>
+              <p class="text-xs text-gray-500 mt-1" id="upload-progress">0%</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- /form-panel -->
+
+      <!-- Preview Fullscreen Overlay -->
+        <div
+          id="preview-panel"
+          class="hidden fixed inset-0 bottom-[60px] z-[200] bg-white flex flex-col"
+        >
+          <iframe
+            id="preview-iframe"
+            src=""
+            class="flex-1 border-0 w-full min-h-0"
+            allowfullscreen
+          ></iframe>
+        </div>
+        <!-- /preview-panel -->
+
+        <!-- Local Draft Notice — nằm ngay phía trên thanh điều hướng (cách đáy đúng bằng chiều cao thanh tab ~64px) -->
+        <div
+          id="local-draft-notice"
+          class="hidden fixed bottom-16 left-0 right-0 z-40 bg-rose-50 border-t border-rose-100 px-4 py-2"
+        >
+          <div class="max-w-4xl mx-auto flex items-center justify-center gap-2">
+            <span class="text-center text-xs text-gray-600">
+              Mọi thay đổi đang được lưu tạm ngay trên trình duyệt này.
+              <button
+                type="button"
+                onclick="
+                  window.location.href =
+                    '../public/account/?urlRedirect=' +
+                    encodeURIComponent(window.location.href)
+                "
+                class="text-color-secondary font-semibold underline-offset-2 hover:underline"
+              >
+                Đăng nhập
+              </button>
+              để xuất bản và quản lý thiệp.
+            </span>
+            <button
+              type="button"
+              onclick="
+                document
+                  .getElementById('local-draft-notice')
+                  .classList.add('hidden')
+              "
+              class="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <svg
+                class="w-3.5 h-3.5"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M18 6 6 18" />
+                <path d="m6 6 12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Bottom Navigation Bar -->
+        <div
+          class="fixed bottom-0 left-0 right-0 z-[300] bg-white border-t border-rose-100 shadow-[0_-2px_12px_rgba(0,0,0,0.06)]"
+        >
+<div class="max-w-4xl mx-auto flex items-stretch">
+            <button
+              type="button"
+              onclick="switchTab('edit')"
+              id="tab-edit"
+              class="flex-1 flex flex-col items-center justify-center gap-1 py-3 text-color-secondary border-t-2 border-color-secondary transition-colors"
+            >
+              <i data-lucide="pen" class="text-base"></i>
+              <span class="text-[11px] font-semibold">Chỉnh sửa</span>
+            </button>
+            <button
+              type="button"
+              onclick="switchTab('preview')"
+              id="tab-preview"
+              class="flex-1 flex flex-col items-center justify-center gap-1 py-3 text-gray-400 border-t-2 border-transparent transition-colors"
+            >
+              <i data-lucide="eye" class="text-base"></i>
+              <span class="text-[11px] font-medium">Xem trước</span>
+            </button>
+            <button
+              type="button"
+              onclick="saveDraft()"
+              id="tab-draft"
+              class="flex-1 flex flex-col items-center justify-center gap-1 py-3 text-gray-400 border-t-2 border-transparent transition-colors"
+            >
+              <i data-lucide="file-text" class="text-base"></i>
+              <span class="text-[11px] font-medium">Lưu nháp</span>
+            </button>
+            <button
+              type="button"
+              onclick="publishWedding()"
+              id="tab-publish"
+              class="flex-1 flex flex-col items-center justify-center gap-1 py-3 text-gray-400 border-t-2 border-transparent transition-colors"
+            >
+              <i data-lucide="send" class="text-base"></i>
+              <span class="text-[11px] font-medium">Xuất bản</span>
+            </button>
+          </div>
+        </div>
+      <!-- /actual-content -->
 
       <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
       <!-- Flatpickr JS -->
@@ -1324,125 +2035,14 @@
 
       <!-- Initialize DAL/BL instances -->
       <script src="../core/supabase.js"></script>
+      <script src="../core/payment.js"></script>
+
+      <!-- Helpers -->
+      <script src="../core/helpers/maps-helper.js"></script>
 
       <!-- UI Layer -->
       <script src="index.js"></script>
-      <script>
-        // Initialize Flatpickr for all date inputs after DOM loads
-        document.addEventListener("DOMContentLoaded", function () {
-          const dateInputs = document.querySelectorAll('input[type="date"]');
-          window.flatpickrInstances = {};
-
-          dateInputs.forEach((input) => {
-            const instance = flatpickr(input, {
-              locale: {
-                months: {
-                  shorthand: [
-                    "T1",
-                    "T2",
-                    "T3",
-                    "T4",
-                    "T5",
-                    "T6",
-                    "T7",
-                    "T8",
-                    "T9",
-                    "T10",
-                    "T11",
-                    "T12",
-                  ],
-                  longhand: [
-                    "Tháng 1",
-                    "Tháng 2",
-                    "Tháng 3",
-                    "Tháng 4",
-                    "Tháng 5",
-                    "Tháng 6",
-                    "Tháng 7",
-                    "Tháng 8",
-                    "Tháng 9",
-                    "Tháng 10",
-                    "Tháng 11",
-                    "Tháng 12",
-                  ],
-                },
-                weekdays: {
-                  shorthand: ["CN", "T2", "T3", "T4", "T5", "T6", "T7"],
-                  longhand: [
-                    "Chủ Nhật",
-                    "Thứ Hai",
-                    "Thứ Ba",
-                    "Thứ Tư",
-                    "Thứ Năm",
-                    "Thứ Sáu",
-                    "Thứ Bảy",
-                  ],
-                },
-                firstDayOfWeek: 1,
-                rangeSeparator: " đến ",
-                weekAbbreviation: "Tuần",
-                scrollTitle: "Cuộn để tăng",
-                toggleTitle: "Nhấp để chuyển đổi",
-              },
-              dateFormat: "Y-m-d",
-              altInput: true,
-              altFormat: "d/m/Y",
-              allowInput: true,
-              disableMobile: true,
-              minDate: "today",
-              onReady: function (selectedDates, dateStr, instance) {
-                instance.altInput.placeholder = "Chọn ngày...";
-              },
-              onChange: function (selectedDates, dateStr, instance) {
-                // Trigger lunar date update
-                const event = new Event("change", { bubbles: true });
-                input.dispatchEvent(event);
-              },
-              onClose: function (selectedDates, dateStr, instance) {
-                // Trigger lunar date update when calendar closes
-                const event = new Event("change", { bubbles: true });
-                input.dispatchEvent(event);
-              },
-            });
-
-            // Store instance by input name
-            if (input.name) {
-              window.flatpickrInstances[input.name] = instance;
-            }
-          });
-        });
-
-        // Music upload container click handler
-        const musicContainer = document.getElementById(
-          "music-upload-container",
-        );
-        const musicFileInput = document.getElementById("music-file-input");
-        if (musicContainer && musicFileInput) {
-          musicContainer.addEventListener("click", function () {
-            musicFileInput.click();
-          });
-        }
-      </script>
     </div>
     <!-- End Actual Content -->
-
-    <script>
-      // Extract Google Maps URL from iframe HTML
-      function extractMapUrl(textarea, type) {
-        const value = textarea.value.trim();
-
-        // Check if it's an iframe HTML
-        if (value.includes("<iframe") && value.includes("src=")) {
-          // Extract src URL from iframe
-          const srcMatch = value.match(/src=["']([^"']+)["']/);
-          if (srcMatch && srcMatch[1]) {
-            // Update textarea with just the URL
-            textarea.value = srcMatch[1];
-            showToast("✅ Đã trích xuất URL từ iframe");
-          }
-        }
-        // If it's already a URL, do nothing
-      }
-    </script>
   </body>
 </html>

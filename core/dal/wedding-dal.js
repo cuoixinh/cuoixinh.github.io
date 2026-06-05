@@ -112,6 +112,32 @@ class WeddingDAL {
   }
 
   /**
+   * Create draft wedding (is_published = false, no payment required)
+   */
+  async createDraftWedding(manage_id, theme) {
+    const response = await fetch(this.edgeUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${this.anonKey}`,
+      },
+      body: JSON.stringify({ manage_id, theme, is_published: false }),
+    });
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.error || `HTTP ${response.status}`);
+    }
+    return await response.json();
+  }
+
+  /**
+   * Publish wedding after payment (is_published = true)
+   */
+  async publishWedding(id) {
+    return await this.updateWedding({ id, is_published: true });
+  }
+
+  /**
    * Delete wedding
    * @param {string} id - Wedding UUID
    * @param {string} token - Admin token

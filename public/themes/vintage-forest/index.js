@@ -46,8 +46,13 @@ function renderWedding(w) {
   // --- MINI CALENDAR ---
   setupMiniCalendar(w.ceremony_date, partyDate);
 
+  // --- LOVE STORY ---
+  if (w.enable_love_story === true || w.enable_love_story === "true") {
+    renderLoveStory(w.love_story);
+  }
+
   // --- GALLERY ---
-  renderTemplate3Gallery(w.gallery_images);
+  renderTemplate3Gallery(w.gallery_images, w.image_focal_points?.gallery_images);
 
   // --- QR CODES ---
   renderQRCodes(w);
@@ -58,7 +63,11 @@ function renderWedding(w) {
 
 // ============= TEMPLATE3 GALLERY (1 large + 2 small pattern) =============
 
-function renderTemplate3Gallery(galleryImages) {
+function renderTemplate3Gallery(galleryImages, focalPoints) {
+  const objectPositionAt = (idx) => {
+    const fp = focalPoints?.[galleryImages?.[idx]];
+    return `${fp?.x ?? 50}% ${fp?.y ?? 50}%`;
+  };
   const firstImageContainer = document.getElementById("gallery-first-image");
   const gridContainer = document.getElementById("gallery-grid");
 
@@ -88,7 +97,7 @@ function renderTemplate3Gallery(galleryImages) {
   if (urls[0]) {
     firstImageContainer.innerHTML = `
       <div class="w-full h-96 rounded-lg overflow-hidden shadow-md">
-        <img src="${urls[0]}" alt="" class="w-full h-full object-cover cursor-pointer" onclick="openLightbox(0)" />
+        <img src="${urls[0]}" alt="" class="w-full h-full object-cover cursor-pointer" style="object-position: ${objectPositionAt(0)}" onclick="openLightbox(0)" />
       </div>
     `;
   }
@@ -100,7 +109,7 @@ function renderTemplate3Gallery(galleryImages) {
     if (urls[i]) {
       html += `
         <div class="w-full h-96 rounded-lg overflow-hidden shadow-md">
-          <img src="${urls[i]}" alt="" class="w-full h-full object-cover cursor-pointer" onclick="openLightbox(${i})" />
+          <img src="${urls[i]}" alt="" class="w-full h-full object-cover cursor-pointer" style="object-position: ${objectPositionAt(i)}" onclick="openLightbox(${i})" />
         </div>
       `;
     }
@@ -111,14 +120,14 @@ function renderTemplate3Gallery(galleryImages) {
       if (urls[i + 1]) {
         html += `
           <div class="h-48 rounded-lg overflow-hidden shadow-md">
-            <img src="${urls[i + 1]}" alt="" class="w-full h-full object-cover cursor-pointer" onclick="openLightbox(${i + 1})" />
+            <img src="${urls[i + 1]}" alt="" class="w-full h-full object-cover cursor-pointer" style="object-position: ${objectPositionAt(i + 1)}" onclick="openLightbox(${i + 1})" />
           </div>
         `;
       }
       if (urls[i + 2]) {
         html += `
           <div class="h-48 rounded-lg overflow-hidden shadow-md">
-            <img src="${urls[i + 2]}" alt="" class="w-full h-full object-cover cursor-pointer" onclick="openLightbox(${i + 2})" />
+            <img src="${urls[i + 2]}" alt="" class="w-full h-full object-cover cursor-pointer" style="object-position: ${objectPositionAt(i + 2)}" onclick="openLightbox(${i + 2})" />
           </div>
         `;
       }

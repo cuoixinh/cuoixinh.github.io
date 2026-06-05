@@ -3,35 +3,27 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Cưới Xinh - Thiệp Cưới Đẹp Cho Ngày Hạnh Phúc</title>
-    <meta name="description" content="Tạo thiệp cưới online đẹp lung linh cho ngày hạnh phúc của bạn. Nhiều mẫu thiệp cưới hiện đại, dễ dàng tùy chỉnh và gửi đến khách mời." />
-    
-    <!-- Favicon and Image -->
+    <title>Cưới Xinh - Thiệp Cưới Online Đẹp Cho Ngày Hạnh Phúc</title>
+    <meta
+      name="description"
+      content="Tạo thiệp cưới online đẹp trong vài phút. Cá nhân hóa từng khách mời, album ảnh, lịch trình, nhạc nền. Dùng thử miễn phí — chỉ thanh toán khi ưng ý."
+    />
+
     <link rel="icon" type="image/png" href="assets/icons/logo.png" />
-    <link rel="image_src" href="https://cuoixinh.com/assets/icons/logo.png" />
-    
-    <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://cuoixinh.com/" />
-    <meta property="og:title" content="Cưới Xinh - Thiệp Cưới Đẹp Cho Ngày Hạnh Phúc" />
-    <meta property="og:description" content="Tạo thiệp cưới online đẹp lung linh cho ngày hạnh phúc của bạn. Nhiều mẫu thiệp cưới hiện đại, dễ dàng tùy chỉnh và gửi đến khách mời." />
-    <meta property="og:image" content="https://cuoixinh.com/assets/icons/logo.png" />
-    <meta property="og:image:secure_url" content="https://cuoixinh.com/assets/icons/logo.png" />
-    <meta property="og:image:type" content="image/png" />
-    <meta property="og:image:width" content="512" />
-    <meta property="og:image:height" content="512" />
-    <meta property="og:image:alt" content="Cưới Xinh Logo" />
-    
-    <!-- Twitter -->
+    <meta property="og:title" content="Cưới Xinh - Thiệp Cưới Online Đẹp" />
+    <meta
+      property="og:description"
+      content="Tạo thiệp cưới online đẹp trong vài phút. Dùng thử miễn phí."
+    />
+    <meta
+      property="og:image"
+      content="https://cuoixinh.com/assets/icons/logo.png"
+    />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:url" content="https://cuoixinh.com/" />
-    <meta name="twitter:title" content="Cưới Xinh - Thiệp Cưới Đẹp Cho Ngày Hạnh Phúc" />
-    <meta name="twitter:description" content="Tạo thiệp cưới online đẹp lung linh cho ngày hạnh phúc của bạn. Nhiều mẫu thiệp cưới hiện đại, dễ dàng tùy chỉnh và gửi đến khách mời." />
-    <meta name="twitter:image" content="https://cuoixinh.com/assets/icons/logo.png" />
-    <meta name="twitter:image:alt" content="Cưới Xinh Logo" />
-    
+
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
@@ -39,9 +31,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Great+Vibes&family=Inter:wght@300;400;500;600&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Pacifico&family=Satisfy&family=Dancing+Script:wght@400;500;600;700&family=Allura&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Great+Vibes&family=Inter:wght@300;400;500;600&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Allura&display=swap"
       rel="stylesheet"
     />
+
     <script>
       tailwind.config = {
         theme: {
@@ -51,22 +44,16 @@
               vibes: ["Great Vibes", "cursive"],
               cormorant: ["Cormorant Garamond", "serif"],
               inter: ["Inter", "sans-serif"],
-              pacifico: ["Pacifico", "cursive"],
-              satisfy: ["Satisfy", "cursive"],
-              dancing: ["Dancing Script", "cursive"],
               allura: ["Allura", "cursive"],
             },
             colors: {
-              cream: {
-                50: "#fffbf7",
-                100: "#fff5f0",
-                200: "#ffe8e0",
-              },
               "rose-pastel": {
+                50: "#fffbf7",
                 100: "#fef1f7",
                 200: "#fce7f3",
                 300: "#fbcfe8",
               },
+              cream: { 50: "#fffbf7", 100: "#fff5f0", 200: "#ffe8e0" },
             },
           },
         },
@@ -74,599 +61,1093 @@
     </script>
     <link rel="stylesheet" href="styles/landing.css" />
     <link rel="stylesheet" href="styles/common.css" />
+
+    <style>
+      :root {
+        --pink: rgb(255 183 202);
+        --mauve: rgb(173 122 135);
+        --pink-light: rgb(255 220 230);
+        --pink-deep: rgb(236 130 158);
+      }
+
+      /* ── Hero floating petals ── */
+      @keyframes floatPetal {
+        0% {
+          transform: translateY(0) rotate(0deg) scale(1);
+          opacity: 0.55;
+        }
+        50% {
+          transform: translateY(-22px) rotate(18deg) scale(1.08);
+          opacity: 0.75;
+        }
+        100% {
+          transform: translateY(0) rotate(0deg) scale(1);
+          opacity: 0.55;
+        }
+      }
+      .hero-petal {
+        position: absolute;
+        pointer-events: none;
+        border-radius: 50% 10% 50% 10%;
+        background: linear-gradient(
+          135deg,
+          rgba(255, 183, 202, 0.55),
+          rgba(252, 207, 232, 0.35)
+        );
+        animation: floatPetal ease-in-out infinite;
+      }
+
+      /* ── Hero entrance animations ── */
+      @keyframes heroFadeUp {
+        from {
+          opacity: 0;
+          transform: translateY(28px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .hero-anim {
+        opacity: 0;
+        animation: heroFadeUp 0.7s ease-out forwards;
+      }
+      .hero-anim-1 {
+        animation-delay: 0.1s;
+      }
+      .hero-anim-2 {
+        animation-delay: 0.25s;
+      }
+      .hero-anim-3 {
+        animation-delay: 0.4s;
+      }
+      .hero-anim-4 {
+        animation-delay: 0.55s;
+      }
+      .hero-anim-5 {
+        animation-delay: 0.7s;
+      }
+
+      /* ── Card stack decoration ── */
+      @keyframes cardFloat {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-10px);
+        }
+      }
+      .card-stack {
+        position: relative;
+        width: 260px;
+        height: 420px;
+      }
+      .card-stack .card {
+        position: absolute;
+        border-radius: 20px;
+        overflow: hidden;
+      }
+      .card-stack .card-3 {
+        width: 185px;
+        height: 310px;
+        top: 55px;
+        right: -35px;
+        transform: rotate(10deg);
+        background: linear-gradient(135deg, #fce7f3, #fbcfe8);
+        opacity: 0.35;
+      }
+      .card-stack .card-2 {
+        width: 210px;
+        height: 340px;
+        top: 28px;
+        right: -14px;
+        transform: rotate(5deg);
+        background: #fff;
+        box-shadow: 0 12px 32px rgba(200, 100, 130, 0.14);
+        border: 1px solid #fce7f3;
+      }
+      .card-stack .card-1 {
+        width: 224px;
+        height: 355px;
+        top: 0;
+        right: 0;
+        background: #fff;
+        box-shadow: 0 24px 56px rgba(200, 100, 130, 0.28);
+        border: 1px solid #fce7f3;
+        animation: cardFloat 4s ease-in-out infinite;
+      }
+      .card-stack .card-1 img {
+        width: 100%;
+        height: 54%;
+        object-fit: cover;
+        display: block;
+      }
+      .card-stack .card-1 .card-text {
+        padding: 14px 18px;
+      }
+      /* shine strip on card-1 */
+      .card-stack .card-1::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -60%;
+        width: 40%;
+        height: 100%;
+        background: linear-gradient(
+          105deg,
+          transparent 40%,
+          rgba(255, 255, 255, 0.22) 50%,
+          transparent 60%
+        );
+        animation: cardShine 5s ease-in-out 1.5s infinite;
+      }
+      @keyframes cardShine {
+        0%,
+        80%,
+        100% {
+          left: -60%;
+        }
+        40% {
+          left: 120%;
+        }
+      }
+
+      /* Section divider wave */
+      .wave-divider {
+        display: block;
+        width: 100%;
+        overflow: hidden;
+        line-height: 0;
+      }
+      .wave-divider svg {
+        display: block;
+        width: 100%;
+      }
+
+      /* Feature row */
+      .feature-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+        padding: 16px 0;
+        border-bottom: 1px solid #fce7f3;
+      }
+      .feature-row:last-child {
+        border-bottom: none;
+      }
+      .feature-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        background: linear-gradient(135deg, #fce7f3, #fbcfe8);
+      }
+
+      /* Step connector */
+      .step-connector {
+        position: absolute;
+        top: 32px;
+        left: calc(50% + 40px);
+        right: calc(-50% + 40px);
+        height: 0;
+        border-top: 2px dashed rgba(255, 183, 202, 0.55);
+      }
+
+      /* Scrollbar hide */
+      .scrollbar-hide {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+      .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+      }
+
+      /* ── 3D Carousel ── */
+      .carousel-3d-stage {
+        position: relative;
+        height: 490px;
+        overflow: visible;
+        perspective: 1200px;
+      }
+      @media (max-width: 639px) {
+        .carousel-3d-stage {
+          height: 440px;
+        }
+      }
+      .carousel-3d-track {
+        position: absolute;
+        inset: 0;
+        transform-style: preserve-3d;
+      }
+      .carousel-3d-card {
+        position: absolute;
+        width: 220px;
+        height: 420px;
+        left: 50%;
+        top: 50%;
+        margin-left: -110px;
+        margin-top: -220px;
+        transition:
+          transform 0.65s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+          opacity 0.45s;
+        will-change: transform;
+        cursor: pointer;
+      }
+      @media (max-width: 639px) {
+        .carousel-3d-card {
+          width: 200px;
+          height: 380px;
+          margin-left: -100px;
+          margin-top: -200px;
+        }
+      }
+      .carousel-3d-card.is-active {
+        cursor: default;
+      }
+      .art-template-card {
+        position: relative;
+        height: 100%;
+        width: 100%;
+        overflow: hidden;
+        border-radius: 8px;
+        border: none;
+        background: rgba(255, 255, 255, 0.85);
+        padding: 6px;
+        transition: box-shadow 0.5s;
+        box-shadow: 0 2px 12px rgba(212, 165, 165, 0.1);
+      }
+      .carousel-3d-card.is-active .art-template-card {
+        box-shadow: 0 6px 28px -4px rgba(88, 45, 54, 0.22);
+      }
+      .art-template-overlay {
+        display: none;
+      }
+      .carousel-dot {
+        height: 8px;
+        border-radius: 9999px;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+      }
+      #carouselPrevBtn,
+      #carouselNextBtn {
+        z-index: 30;
+      }
+
+      /* Card skeleton – white base + sweeping light ray */
+      @keyframes light-ray {
+        0% {
+          transform: translateX(-220%) skewX(-18deg);
+        }
+        100% {
+          transform: translateX(520%) skewX(-18deg);
+        }
+      }
+      .card-skeleton {
+        background: linear-gradient(160deg, #fdf4f7 0%, #fce8f1 100%);
+        overflow: hidden;
+      }
+      .card-skeleton::after {
+        content: "";
+        position: absolute;
+        top: -10%;
+        left: 0;
+        width: 28%;
+        height: 120%;
+        background: linear-gradient(
+          90deg,
+          transparent 0%,
+          rgba(255, 255, 255, 0.55) 45%,
+          rgba(255, 255, 255, 0.85) 50%,
+          rgba(255, 255, 255, 0.55) 55%,
+          transparent 100%
+        );
+        animation: light-ray 1.6s infinite ease-in-out;
+        pointer-events: none;
+      }
+
+      /* Nav scroll effect */
+      .nav-scrolled {
+        box-shadow: 0 2px 20px rgba(200, 100, 130, 0.08);
+      }
+
+      /* ── Scroll Reveal ── */
+      .reveal {
+        opacity: 0;
+        transform: translateY(22px);
+        transition: opacity 0.65s ease, transform 0.65s ease;
+      }
+      .reveal.revealed {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .reveal-delay-1 { transition-delay: 0.08s; }
+      .reveal-delay-2 { transition-delay: 0.18s; }
+      .reveal-delay-3 { transition-delay: 0.28s; }
+
+      /* ── Testimonial card ── */
+      .testimonial-card {
+        background: white;
+        border-radius: 14px;
+        padding: 24px 24px 22px;
+        border: 1px solid rgba(255, 183, 202, 0.25);
+        border-left: 3px solid rgba(236, 130, 158, 0.5);
+        transition: box-shadow 0.3s ease, transform 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+      .testimonial-card::before {
+        content: '\201C';
+        position: absolute;
+        top: -2px;
+        left: 16px;
+        font-family: 'Playfair Display', serif;
+        font-size: 84px;
+        line-height: 1;
+        color: rgba(255, 183, 202, 0.14);
+        pointer-events: none;
+        user-select: none;
+      }
+      .testimonial-card:hover {
+        box-shadow: 0 14px 36px rgba(200, 100, 130, 0.12);
+        transform: translateY(-3px);
+      }
+      .testimonial-avatar {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 13px;
+        color: white;
+        background: linear-gradient(135deg, var(--pink-deep), var(--pink));
+        flex-shrink: 0;
+      }
+
+      /* ── Mobile menu open state ── */
+      #mobileMenu.open {
+        display: flex;
+      }
+    </style>
   </head>
-  <body class="bg-rose-pastel-100" style="color: rgb(173 122 135);">
-    <!-- Navigation -->
+
+  <body class="bg-white" style="color: var(--mauve)">
+    <!-- ===== NAV ===== -->
     <nav
-      class="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-rose-pastel-200"
+      id="main-nav"
+      class="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-rose-pastel-200 transition-shadow"
     >
-      <div class="container mx-auto px-4">
+      <div class="max-w-6xl mx-auto px-5">
         <div class="flex items-center justify-between h-16">
-          <div class="flex items-center">
-            <img src="assets/icons/logo.png" alt="Cưới Xinh Logo" class="h-16 w-auto">
-          </div>
-          <div class="hidden md:flex items-center gap-8 text-sm">
+          <a href="/" class="shrink-0">
+            <img
+              src="assets/icons/logo.png"
+              alt="Cưới Xinh"
+              class="h-11 w-auto"
+            />
+          </a>
+          <div class="hidden md:flex items-center gap-7 text-sm font-medium">
             <a
-              href="#hero"
-              class="text-gray-600 transition-colors"
-              onmouseover="this.style.color='rgb(255 183 202)'"
-              onmouseout="this.style.color='#4b5563'"
-              >Trang chủ</a
-            >
-            <a
-              href="#templates"
-              class="text-gray-600 transition-colors"
-              onmouseover="this.style.color='rgb(255 183 202)'"
-              onmouseout="this.style.color='#4b5563'"
+              href="/theme-template/"
+              class="hover:opacity-70 transition-opacity"
+              style="color: var(--mauve)"
               >Mẫu thiệp</a
             >
             <a
-              href="#features"
-              class="text-gray-600 transition-colors"
-              onmouseover="this.style.color='rgb(255 183 202)'"
-              onmouseout="this.style.color='#4b5563'"
+              href="#inside"
+              class="hover:opacity-70 transition-opacity"
+              style="color: var(--mauve)"
               >Tính năng</a
             >
             <a
-              href="#how-it-works"
-              class="text-gray-600 transition-colors"
-              onmouseover="this.style.color='rgb(255 183 202)'"
-              onmouseout="this.style.color='#4b5563'"
-              >Cách sử dụng</a
-            >
-            <a
-              href="#contact"
-              class="text-gray-600 transition-colors"
-              onmouseover="this.style.color='rgb(255 183 202)'"
-              onmouseout="this.style.color='#4b5563'"
-              >Liên hệ</a
+              href="#steps"
+              class="hover:opacity-70 transition-opacity"
+              style="color: var(--mauve)"
+              >Cách dùng</a
             >
           </div>
-          <div class="flex items-center gap-4">
+          <div class="flex items-center gap-3">
             <a
-              href="public/account/"
-              class="hover:opacity-80 transition-colors text-sm"
-              style="color: rgb(173 122 135);"
-            >Đơn hàng</a
+              id="navAuthBtn"
+              href="/public/account/"
+              class="px-4 py-2 rounded-full text-sm font-semibold text-white transition-all hover:opacity-90 shadow-sm"
+              style="background: var(--pink)"
             >
-            <a
-              href="#contact"
-              class="px-4 py-2 text-white rounded-full text-sm font-medium transition-all"
-              style="background-color: rgb(255 183 202);"
-              onmouseover="this.style.backgroundColor='rgb(255 200 215)'"
-              onmouseout="this.style.backgroundColor='rgb(255 183 202)'"
-            >
-              Bắt đầu
+              Đăng nhập
             </a>
+            <button
+              class="md:hidden flex items-center justify-center w-9 h-9 rounded-full border border-rose-pastel-200 transition-colors hover:bg-rose-pastel-100"
+              onclick="toggleMobileMenu()"
+              aria-label="Menu"
+            >
+              <i id="navHamburgerIcon" class="fas fa-bars text-sm" style="color: var(--mauve)"></i>
+            </button>
           </div>
         </div>
       </div>
     </nav>
 
-    <!-- Hero Section with Background Grid -->
+    <!-- Mobile Menu -->
+    <div
+      id="mobileMenu"
+      class="hidden fixed top-16 left-0 right-0 z-40 bg-white/98 backdrop-blur-sm border-b border-rose-pastel-200 shadow-lg px-5 py-4 flex-col gap-1 md:hidden"
+    >
+      <a href="/theme-template/" onclick="closeMobileMenu()" class="flex items-center gap-2 py-3 border-b border-rose-pastel-100 hover:opacity-70 transition-opacity text-sm font-medium" style="color: var(--mauve)">
+        <i class="fas fa-layer-group text-xs w-4 opacity-60"></i> Mẫu thiệp
+      </a>
+      <a href="#inside" onclick="closeMobileMenu()" class="flex items-center gap-2 py-3 border-b border-rose-pastel-100 hover:opacity-70 transition-opacity text-sm font-medium" style="color: var(--mauve)">
+        <i class="fas fa-star text-xs w-4 opacity-60"></i> Tính năng
+      </a>
+      <a href="#steps" onclick="closeMobileMenu()" class="flex items-center gap-2 py-3 hover:opacity-70 transition-opacity text-sm font-medium" style="color: var(--mauve)">
+        <i class="fas fa-list-ol text-xs w-4 opacity-60"></i> Cách dùng
+      </a>
+    </div>
+
+    <!-- ===== HERO ===== -->
     <section
       id="hero"
-      class="relative flex items-center justify-center overflow-hidden pt-24"
-      style="height: 60vh; min-height: 400px"
+      class="pt-16 overflow-hidden relative"
+      style="
+        background: linear-gradient(
+          160deg,
+          #fffbf8 0%,
+          #fff5f7 50%,
+          #fffbf8 100%
+        );
+      "
     >
-      <!-- Background Grid of Templates -->
-      <div
-        class="absolute inset-0 grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4 p-4 opacity-20"
-      >
+      <!-- Floating petals background -->
+      <div aria-hidden="true">
         <div
-          class="aspect-[3/4] bg-cover bg-center rounded-lg"
-          style="background-image: url(&quot;assets/images/10-1.jpg&quot;)"
-        ></div>
-        <div
-          class="aspect-[3/4] bg-cover bg-center rounded-lg"
+          class="hero-petal"
           style="
-            background-image: url(&quot;assets/images/chup-anh-cuoi-da-lat-phong-cach-han-quoc-005.jpg&quot;);
+            width: 60px;
+            height: 60px;
+            top: 12%;
+            left: 6%;
+            animation-duration: 6s;
+            animation-delay: 0s;
           "
         ></div>
         <div
-          class="aspect-[3/4] bg-cover bg-center rounded-lg"
+          class="hero-petal"
           style="
-            background-image: url(&quot;assets/images/chup-anh-cuoi-phim-truong-12.jpg&quot;);
+            width: 36px;
+            height: 36px;
+            top: 28%;
+            left: 14%;
+            animation-duration: 7.5s;
+            animation-delay: 1.2s;
+            opacity: 0.35;
           "
         ></div>
         <div
-          class="aspect-[3/4] bg-cover bg-center rounded-lg"
+          class="hero-petal"
           style="
-            background-image: url(&quot;assets/images/chup-anh-cuoi-phong-cach-han-quoc-2.jpg&quot;);
+            width: 50px;
+            height: 50px;
+            top: 60%;
+            left: 4%;
+            animation-duration: 8s;
+            animation-delay: 2.5s;
           "
         ></div>
         <div
-          class="aspect-[3/4] bg-cover bg-center rounded-lg"
+          class="hero-petal"
           style="
-            background-image: url(&quot;assets/images/chup-anh-cuoi-trong-studio-o-da-nang-6.jpg&quot;);
+            width: 28px;
+            height: 28px;
+            top: 78%;
+            left: 18%;
+            animation-duration: 6.5s;
+            animation-delay: 0.8s;
+            opacity: 0.3;
           "
         ></div>
         <div
-          class="aspect-[3/4] bg-cover bg-center rounded-lg"
-          style="background-image: url(&quot;assets/images/10-1.jpg&quot;)"
-        ></div>
-        <div
-          class="aspect-[3/4] bg-cover bg-center rounded-lg"
+          class="hero-petal"
           style="
-            background-image: url(&quot;assets/images/chup-anh-cuoi-da-lat-phong-cach-han-quoc-005.jpg&quot;);
+            width: 44px;
+            height: 44px;
+            top: 10%;
+            right: 8%;
+            animation-duration: 7s;
+            animation-delay: 1.8s;
           "
         ></div>
         <div
-          class="aspect-[3/4] bg-cover bg-center rounded-lg"
+          class="hero-petal"
           style="
-            background-image: url(&quot;assets/images/chup-anh-cuoi-phim-truong-12.jpg&quot;);
+            width: 32px;
+            height: 32px;
+            top: 45%;
+            right: 5%;
+            animation-duration: 9s;
+            animation-delay: 3s;
+            opacity: 0.3;
           "
         ></div>
         <div
-          class="aspect-[3/4] bg-cover bg-center rounded-lg"
+          class="hero-petal"
           style="
-            background-image: url(&quot;assets/images/chup-anh-cuoi-phong-cach-han-quoc-2.jpg&quot;);
+            width: 22px;
+            height: 22px;
+            top: 70%;
+            right: 15%;
+            animation-duration: 6s;
+            animation-delay: 0.4s;
+            opacity: 0.4;
           "
-        ></div>
-        <div
-          class="aspect-[3/4] bg-cover bg-center rounded-lg"
-          style="
-            background-image: url(&quot;assets/images/chup-anh-cuoi-trong-studio-o-da-nang-6.jpg&quot;);
-          "
-        ></div>
-        <div
-          class="aspect-[3/4] bg-cover bg-center rounded-lg"
-          style="background-image: url(&quot;assets/images/10-1.jpg&quot;)"
-        ></div>
-        <div
-          class="aspect-[3/4] bg-cover bg-center rounded-lg"
-          style="
-            background-image: url(&quot;assets/images/chup-anh-cuoi-da-lat-phong-cach-han-quoc-005.jpg&quot;);
-          "
-        ></div>
-        <div
-          class="aspect-[3/4] bg-cover bg-center rounded-lg"
-          style="
-            background-image: url(&quot;assets/images/chup-anh-cuoi-phim-truong-12.jpg&quot;);
-          "
-        ></div>
-        <div
-          class="aspect-[3/4] bg-cover bg-center rounded-lg"
-          style="
-            background-image: url(&quot;assets/images/chup-anh-cuoi-phong-cach-han-quoc-2.jpg&quot;);
-          "
-        ></div>
-        <div
-          class="aspect-[3/4] bg-cover bg-center rounded-lg"
-          style="
-            background-image: url(&quot;assets/images/chup-anh-cuoi-trong-studio-o-da-nang-6.jpg&quot;);
-          "
-        ></div>
-        <div
-          class="aspect-[3/4] bg-cover bg-center rounded-lg"
-          style="background-image: url(&quot;assets/images/10-1.jpg&quot;)"
         ></div>
       </div>
 
-      <!-- Overlay -->
-      <div
-        class="absolute inset-0 bg-gradient-to-b from-rose-pastel-100/80 via-rose-pastel-100/90 to-rose-pastel-100"
-      ></div>
-
-      <!-- Hero Content -->
-      <div class="relative z-10 container mx-auto px-4 text-center">
-        <div class="flex flex-col items-center justify-center mb-4">
-          <!-- Main text only -->
-          <h1 class="font-allura text-6xl md:text-7xl lg:text-8xl" style="color: rgb(255 183 202); text-shadow: 2px 2px 4px rgba(255, 183, 202, 0.3);">
-            Cưới Xinh
-          </h1>
-        </div>
-        <p
-          class="font-cormorant text-2xl md:text-3xl lg:text-4xl italic mb-4"
-          style="color: rgb(173 122 135);"
-        >
-          Make your love story
-        </p>
-        <p class="text-base md:text-lg lg:text-xl max-w-3xl mx-auto mb-4" style="color: rgb(173 122 135);">
-          Hãy để Cưới Xinh giúp bạn kể câu chuyện tình yêu qua từng tấm thiệp
-        </p>
-        <button
-          onclick="scrollToTemplates()"
-          class="px-8 py-4 text-white rounded-full text-lg font-semibold transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1 mb-4"
-          style="background-color: rgb(255 183 202);"
-          onmouseover="this.style.backgroundColor='rgb(255 200 215)'"
-          onmouseout="this.style.backgroundColor='rgb(255 183 202)'"
-        >
-          Bắt đầu <i class="fas fa-arrow-right ml-2"></i>
-        </button>
-      </div>
-    </section>
-
-    <!-- Template Gallery Section -->
-    <section id="templates" class="py-20 bg-white">
-      <div class="container mx-auto px-4 mb-12">
-        <h2
-          class="font-playfair text-3xl md:text-4xl lg:text-5xl font-bold text-gray-800 mb-4 text-center"
-        >
-          Mẫu thiết kế phổ biến
-        </h2>
-        <p class="text-gray-600 text-lg text-center">
-          Chọn mẫu thiệp phù hợp với phong cách của bạn
-        </p>
-      </div>
-
-      <!-- Horizontal Scrollable Gallery - Full Width -->
-      <div class="relative">
-        <!-- Previous Button -->
-        <button
-          id="carouselPrevBtn"
-          onclick="scrollCarousel('prev')"
-          class="carousel-nav-btn carousel-prev-btn"
-          aria-label="Previous"
-        >
-          <i class="fas fa-chevron-left"></i>
-        </button>
-
-        <!-- Next Button -->
-        <button
-          id="carouselNextBtn"
-          onclick="scrollCarousel('next')"
-          class="carousel-nav-btn carousel-next-btn"
-          aria-label="Next"
-        >
-          <i class="fas fa-chevron-right"></i>
-        </button>
-
+      <div class="max-w-6xl mx-auto px-5">
         <div
-          id="templateCarousel"
-          class="overflow-x-auto scrollbar-hide pb-8"
+          class="flex flex-col lg:flex-row items-center gap-12 py-4 lg:py-16"
         >
-          <div id="templateCarouselInner" class="flex gap-6 px-8" style="width: max-content">
+          <!-- Left: copy -->
+          <div class="flex-1 text-center lg:text-left">
+            <p
+              class="hero-anim hero-anim-1 font-cormorant italic text-lg mb-3"
+              style="color: var(--pink)"
+            >
+              ✦ Thiệp cưới điện tử ✦
+            </p>
+            <h1
+              class="hero-anim hero-anim-2 font-allura leading-tight mb-4"
+              style="
+                font-size: clamp(3.8rem, 9vw, 6.5rem);
+                color: var(--pink);
+                text-shadow: 0 4px 24px rgba(255, 183, 202, 0.45);
+              "
+            >
+              Cưới Xinh
+            </h1>
+            <h2
+              class="hero-anim hero-anim-3 font-playfair font-semibold leading-snug mb-5 text-[#5a3a45]"
+              style="font-size: clamp(1.45rem, 3.5vw, 2.1rem)"
+            >
+              Thiệp cưới online đẹp —<br />kể câu chuyện tình yêu của bạn
+            </h2>
+            <p
+              class="hero-anim hero-anim-3 text-base leading-relaxed max-w-md mx-auto lg:mx-0 mb-8 opacity-75"
+            >
+              Dùng thử hoàn toàn miễn phí.</br> Chỉ thanh toán khi bạn thật sự ưng ý.
+            </p>
+
+            <!-- CTAs -->
+            <div
+              class="hero-anim hero-anim-4 flex flex-col sm:flex-row gap-3 justify-center lg:justify-start mb-7"
+            >
+              <a
+                href="/invitation-setup/"
+                onclick="goCreateDraft(event)"
+                class="px-7 py-3.5 rounded-full text-base font-semibold text-white transition-all hover:-translate-y-0.5 active:scale-95"
+                style="
+                  background: linear-gradient(
+                    135deg,
+                    var(--pink-deep),
+                    var(--pink)
+                  );
+                  box-shadow: 0 6px 24px rgba(236, 130, 158, 0.38);
+                "
+              >
+                Tạo thiệp của tôi
+                <i class="fas fa-arrow-right ml-2 text-sm"></i>
+              </a>
+              <a
+                href="/theme-template/"
+                class="px-7 py-3.5 rounded-full text-base font-medium border border-[1px] bg-white/80 backdrop-blur-sm transition-all hover:bg-rose-pastel-100 hover:-translate-y-0.5"
+                style="border-color: var(--pink); color: var(--mauve)"
+              >
+                Xem mẫu thiệp
+              </a>
+            </div>
+
+            <!-- Trust -->
+            <div
+              class="hero-anim hero-anim-5 flex flex-wrap gap-2.5 justify-center lg:justify-start"
+            >
+              <div
+                class="flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-rose-pastel-200 bg-white/70 backdrop-blur-sm"
+              >
+                <span
+                  class="w-4 h-4 rounded-full flex items-center justify-center shrink-0"
+                  style="background: var(--pink)"
+                  ><i class="fas fa-gift text-[8px] text-white"></i
+                ></span>
+                <span class="text-xs font-medium" style="color: var(--mauve)"
+                  >Dùng thử miễn phí</span
+                >
+              </div>
+              <div
+                class="flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-rose-pastel-200 bg-white/70 backdrop-blur-sm"
+              >
+                <span
+                  class="w-4 h-4 rounded-full flex items-center justify-center shrink-0"
+                  style="background: var(--pink)"
+                  ><i class="fas fa-sync-alt text-[8px] text-white"></i
+                ></span>
+                <span class="text-xs font-medium" style="color: var(--mauve)"
+                  >Đổi mẫu mọi lúc</span
+                >
+              </div>
+              <div
+                class="flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-rose-pastel-200 bg-white/70 backdrop-blur-sm"
+              >
+                <span
+                  class="w-4 h-4 rounded-full flex items-center justify-center shrink-0"
+                  style="background: var(--pink)"
+                  ><i class="fas fa-shield-alt text-[8px] text-white"></i
+                ></span>
+                <span class="text-xs font-medium" style="color: var(--mauve)"
+                  >Thanh toán một lần</span
+                >
+              </div>
+            </div>
+
+            <!-- Stats counters -->
+            <div class="hero-anim hero-anim-5 hidden sm:flex flex-wrap justify-center lg:justify-start gap-6 mt-7 pt-5" style="border-top: 1px solid rgba(255,183,202,0.3)">
+              <div class="text-center">
+                <p class="font-playfair font-bold text-2xl text-[#5a3a45]">500<span style="color:var(--pink)">+</span></p>
+                <p class="text-xs opacity-55 mt-0.5">cặp đôi tin tưởng</p>
+              </div>
+              <div class="w-px self-stretch" style="background: rgba(255,183,202,0.4)"></div>
+              <div class="text-center">
+                <p class="font-playfair font-bold text-2xl text-[#5a3a45]">10<span style="color:var(--pink)">+</span></p>
+                <p class="text-xs opacity-55 mt-0.5">mẫu thiệp đẹp</p>
+              </div>
+              <div class="w-px self-stretch" style="background: rgba(255,183,202,0.4)"></div>
+              <div class="text-center">
+                <p class="font-playfair font-bold text-2xl text-[#5a3a45]">5<span style="color:var(--pink)">★</span></p>
+                <p class="text-xs opacity-55 mt-0.5">đánh giá khách hàng</p>
+              </div>
+            </div>
           </div>
-          </div>
-        </div>
-      </div>
 
-      <!-- View More Button -->
-      <div class="container mx-auto px-4">
-        <div class="text-center mt-8">
-          <button
-            onclick="scrollToContact()"
-            class="px-8 py-3 text-white rounded-full font-semibold transition-all"
-            style="background-color: rgb(255 183 202);"
-            onmouseover="this.style.backgroundColor='rgb(255 200 215)'"
-            onmouseout="this.style.backgroundColor='rgb(255 183 202)'"
+          <!-- Right: decorative card stack -->
+          <div
+            class="hero-anim hero-anim-3 shrink-0 flex justify-center lg:justify-end pr-10"
           >
-            Xem thêm mẫu thiết kế <i class="fas fa-arrow-right ml-2"></i>
-          </button>
+            <div class="card-stack">
+              <div class="card card-3"></div>
+              <div class="card card-2">
+                <!-- Decorative lines mimic an invitation -->
+                <div class="px-[18px] py-[22px] opacity-[.45]">
+                  <div
+                    class="h-[90px] rounded-[10px] mb-[14px]"
+                    style="
+                      background: linear-gradient(135deg, #fce7f3, #fbcfe8);
+                    "
+                  ></div>
+                  <div
+                    class="h-[10px] bg-[#fbcfe8] rounded-[4px] mb-2 w-[65%]"
+                  ></div>
+                  <div class="h-2 bg-[#fce7f3] rounded-[4px] mb-[6px]"></div>
+                  <div class="h-2 bg-[#fce7f3] rounded-[4px] w-4/5"></div>
+                  <div class="h-2 bg-[#fce7f3] rounded-[4px] mt-4 w-1/2"></div>
+                </div>
+              </div>
+              <div class="card card-1" id="hero-card-preview">
+                <div style="position:absolute;top:10px;right:10px;z-index:10;background:linear-gradient(135deg,#f59e0b,#fbbf24);color:white;font-size:9px;font-weight:800;padding:4px 9px;border-radius:20px;box-shadow:0 2px 10px rgba(245,158,11,0.45);letter-spacing:0.04em;display:flex;align-items:center;gap:3px;">
+                  <i class="fas fa-star" style="font-size:7px;"></i> BEST SELLER
+                </div>
+                <div id="hero-iframe-wrap" style="position:absolute;inset:0;overflow:hidden;background:#f9f0f3;">
+                  <div id="hero-skeleton" class="card-skeleton absolute inset-0"></div>
+                  <iframe id="hero-iframe" style="border:none;pointer-events:none;opacity:0;transition:opacity 0.5s;position:absolute;top:0;left:0;"></iframe>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Wave bottom -->
+      <div class="wave-divider bg-white">
+        <svg
+          viewBox="0 0 1440 40"
+          xmlns="http://www.w3.org/2000/svg"
+          preserveAspectRatio="none"
+          class="h-[40px] bg-[#fef1f7]"
+        >
+          <path d="M0,0 C360,40 1080,40 1440,0 L1440,40 L0,40 Z" fill="white" />
+        </svg>
+      </div>
+    </section>
+
+    <!-- ===== TEMPLATE GALLERY ===== -->
+    <section id="templates" class="py-16 bg-[#fef1f7]">
+      <div class="max-w-6xl mx-auto px-5 mb-10">
+        <h2
+          class="font-playfair text-3xl md:text-4xl font-semibold text-center mb-2 text-[#5a3a45]"
+        >
+          Mẫu thiệp đẹp, tinh tế
+        </h2>
+        <p class="text-center text-sm opacity-60">
+          Chọn thoải mái — đổi mẫu miễn phí bất cứ lúc nào
+        </p>
+      </div>
+
+      <div class="overflow-hidden">
+        <div class="relative">
+          <div id="templateCarousel" class="carousel-3d-stage">
+            <div id="templateCarouselInner" class="carousel-3d-track"></div>
+            <button
+              id="carouselPrevBtn"
+              onclick="scrollCarousel('prev')"
+              class="absolute left-1 sm:left-6 top-1/2 z-30 -translate-y-6 rounded-full border border-white/70 bg-white/80 p-2 shadow-md backdrop-blur-sm transition-all hover:bg-white active:scale-95"
+              aria-label="Thiệp trước"
+            >
+              <i
+                class="fas fa-chevron-left h-5 w-5 text-[#5a3a45]"
+                style="font-size: 1.1rem"
+              ></i>
+            </button>
+            <button
+              id="carouselNextBtn"
+              onclick="scrollCarousel('next')"
+              class="absolute right-1 sm:right-6 top-1/2 z-30 -translate-y-6 rounded-full border border-white/70 bg-white/80 p-2 shadow-md backdrop-blur-sm transition-all hover:bg-white active:scale-95"
+              aria-label="Thiệp tiếp theo"
+            >
+              <i
+                class="fas fa-chevron-right h-5 w-5 text-[#5a3a45]"
+                style="font-size: 1.1rem"
+              ></i>
+            </button>
+          </div>
+
+          <!-- Template info card -->
+          <div
+            id="carouselMobileInfo"
+            class="mx-auto mt-4 max-w-[360px] rounded-[8px] p-3 text-left"
+            style="
+              border: 1px solid rgba(255, 255, 255, 0.75);
+              background: rgba(255, 255, 255, 0.85);
+              box-shadow: 0 2px 12px rgba(212, 165, 165, 0.15);
+            "
+          ></div>
+
+          <div
+            id="carouselDots"
+            class="flex justify-center gap-1.5 mt-4"
+          ></div>
+        </div>
+      </div>
+
+      <!-- Wave bottom -->
+      <div class="wave-divider mt-8">
+        <svg
+          viewBox="0 0 1440 40"
+          xmlns="http://www.w3.org/2000/svg"
+          preserveAspectRatio="none"
+          class="h-[40px] bg-white"
+        >
+          <path
+            d="M0,40 C360,0 1080,0 1440,40 L1440,40 L0,40 Z"
+            fill="#fef1f7"
+          />
+        </svg>
+      </div>
+    </section>
+
+    <!-- ===== INSIDE THE INVITATION ===== -->
+    <section id="inside" class="py-16 bg-white">
+      <div class="max-w-6xl mx-auto px-5">
+        <div class="flex flex-col lg:flex-row items-center gap-14">
+
+          <!-- Left: phone mockup (real iPhone frame, transparent screen) -->
+          <div class="reveal shrink-0 hidden lg:flex justify-center px-[50px]">
+            <div class="relative w-[220px] h-[430px]">
+
+              <!-- Wedding card content — visible through the transparent screen -->
+              <div class="absolute top-[1.5%] left-[5.1%] w-[89.8%] h-[96%] rounded-[22px] overflow-hidden flex flex-col" style="background:linear-gradient(160deg,#fff5f7,#fce7f3);">
+                <div class="flex-1 flex flex-col justify-center text-center px-3.5 pt-[22px] pb-3.5">
+                  <p class="font-vibes text-[23px] text-[rgb(255,183,202)] mb-[5px] leading-[1.2]">Cưới Xinh</p>
+                  <div class="w-11 h-px mx-auto mb-[9px] bg-[rgba(255,183,202,0.5)]"></div>
+                  <p class="text-[7.5px] text-[rgb(173,122,135)] opacity-65 tracking-[0.1em] uppercase">Trân trọng kính mời</p>
+                  <p class="font-playfair text-[13px] font-semibold text-[#5a3a45] mt-[7px] mb-[3px]">Nguyễn Văn An</p>
+                  <p class="text-[11px] text-[rgba(255,183,202,0.85)] my-[2px]">❤</p>
+                  <p class="font-playfair text-[13px] font-semibold text-[#5a3a45] mt-[3px] mb-[11px]">Trần Thị Bình</p>
+                  <div class="w-full h-[60px] rounded-[9px] flex items-center justify-center mb-[11px]" style="background:linear-gradient(135deg,rgba(255,183,202,0.22),rgba(252,207,232,0.18));">
+                    <i class="fas fa-heart text-[19px] text-[rgba(255,183,202,0.7)]"></i>
+                  </div>
+                  <p class="text-[7.5px] text-[rgb(173,122,135)] opacity-65 tracking-[0.04em]">Ngày 15 tháng 6 năm 2026</p>
+                  <p class="text-[7px] text-[rgb(173,122,135)] opacity-50 mt-[3px]">Nhà hàng Hương Quê, Hà Nội</p>
+                  <div class="flex gap-[5px] mt-[13px]">
+                    <div class="h-1 rounded-[3px] bg-[rgba(255,183,202,0.4)]" style="flex:1"></div>
+                    <div class="h-1 rounded-[3px] bg-[rgba(255,183,202,0.25)]" style="flex:1.5"></div>
+                    <div class="h-1 rounded-[3px] bg-[rgba(255,183,202,0.15)]" style="flex:0.8"></div>
+                  </div>
+                  <div class="flex gap-[5px] mt-[5px]">
+                    <div class="h-1 rounded-[3px] bg-[rgba(255,183,202,0.2)]" style="flex:0.7"></div>
+                    <div class="h-1 rounded-[3px] bg-[rgba(255,183,202,0.3)]" style="flex:1.2"></div>
+                    <div class="h-1 rounded-[3px] bg-[rgba(255,183,202,0.2)]" style="flex:1"></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- iPhone frame overlay (transparent screen lets content show through) -->
+              <img
+                src="assets/images/screen_ip.png"
+                alt=""
+                aria-hidden="true"
+                class="absolute inset-0 w-full h-full z-10 pointer-events-none select-none"
+              />
+
+              <!-- Floating badge: music -->
+              <div class="absolute top-[68px] right-[-46px] z-20 bg-white rounded-xl px-[11px] py-2 whitespace-nowrap border border-[rgba(255,183,202,0.3)] shadow-[0_8px_20px_rgba(200,100,130,0.18)]">
+                <div class="flex items-center gap-[6px]">
+                  <span class="text-[14px]">🎵</span>
+                  <div>
+                    <p class="text-[9px] font-bold text-[#5a3a45] leading-[1.3]">Nhạc nền</p>
+                    <p class="text-[7.5px] text-[rgb(173,122,135)] opacity-70">Perfect — Ed Sheeran</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Floating badge: RSVP -->
+              <div class="absolute bottom-[90px] left-[-46px] z-20 bg-white rounded-xl px-[11px] py-2 whitespace-nowrap border border-[rgba(255,183,202,0.3)] shadow-[0_8px_20px_rgba(200,100,130,0.18)]">
+                <div class="flex items-center gap-[6px]">
+                  <span class="text-[14px]">👥</span>
+                  <div>
+                    <p class="text-[9px] font-bold text-[#5a3a45] leading-[1.3]">128 xác nhận</p>
+                    <p class="text-[7.5px] text-[rgb(173,122,135)] opacity-70">tham dự</p>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Right: feature list -->
+          <div class="flex-1">
+            <h2
+              class="font-playfair text-2xl md:text-3xl font-semibold mb-2 text-[#5a3a45]"
+            >
+              Thiệp của bạn bao gồm tất cả
+            </h2>
+            <p class="text-sm opacity-60 mb-8">
+              Mọi thứ cần thiết cho ngày trọng đại, gói gọn trong một tấm thiệp.
+            </p>
+
+            <div id="featuresList"></div>
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- Features Section -->
-    <section id="features" class="py-20 bg-rose-pastel-100">
-      <div class="container mx-auto px-4">
+    <!-- ===== HOW IT WORKS ===== -->
+    <section
+      id="steps"
+      class="py-16"
+      style="
+        background: linear-gradient(
+          160deg,
+          #fffbf8 0%,
+          #fff5f7 50%,
+          #fffbf8 100%
+        );
+      "
+    >
+      <div class="max-w-5xl mx-auto px-5">
         <h2
-          class="font-playfair text-3xl md:text-4xl lg:text-5xl font-bold mb-4 text-center"
-          style="color: rgb(173 122 135);"
+          class="font-playfair text-3xl md:text-4xl font-semibold text-center mb-12 text-[#5a3a45]"
         >
-          Tính Năng Nổi Bật
+          4 bước đơn giản
         </h2>
-        <p class="text-lg text-center mb-12" style="color: rgb(173 122 135);">
-          Mọi thứ bạn cần cho một thiệp cưới hoàn hảo
-        </p>
 
-        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mt-12">
-          <div class="bg-white rounded-2xl p-8 shadow-md transition-all duration-300 border border-pink-100 hover:shadow-xl hover:border-pink-200">
-            <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-gradient-to-br from-pink-100 to-pink-200">
-              <i class="fas fa-mobile-alt text-pink-500 text-2xl"></i>
-            </div>
-            <h3
-              class="font-playfair text-xl font-semibold text-gray-800 mb-2 text-center"
-            >
-              Responsive Design
-            </h3>
-            <p class="text-gray-600 text-center">
-              Hiển thị hoàn hảo trên mọi thiết bị
-            </p>
-          </div>
-
-          <div class="bg-white rounded-2xl p-8 shadow-md transition-all duration-300 border border-pink-100 hover:shadow-xl hover:border-pink-200">
-            <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-gradient-to-br from-pink-100 to-pink-200">
-              <i class="fas fa-palette text-pink-500 text-2xl"></i>
-            </div>
-            <h3
-              class="font-playfair text-xl font-semibold text-gray-800 mb-2 text-center"
-            >
-              Thiết kế đẹp mắt
-            </h3>
-            <p class="text-gray-600 text-center">
-              Giao diện sang trọng, hiện đại
-            </p>
-          </div>
-
-          <div class="bg-white rounded-2xl p-8 shadow-md transition-all duration-300 border border-pink-100 hover:shadow-xl hover:border-pink-200">
-            <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-gradient-to-br from-pink-100 to-pink-200">
-              <i class="fas fa-bolt text-pink-500 text-2xl"></i>
-            </div>
-            <h3
-              class="font-playfair text-xl font-semibold text-gray-800 mb-2 text-center"
-            >
-              Nhanh chóng
-            </h3>
-            <p class="text-gray-600 text-center">
-              Tải trang nhanh, trải nghiệm mượt mà
-            </p>
-          </div>
-
-          <div class="bg-white rounded-2xl p-8 shadow-md transition-all duration-300 border border-pink-100 hover:shadow-xl hover:border-pink-200">
-            <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-gradient-to-br from-pink-100 to-pink-200">
-              <i class="fas fa-users text-pink-500 text-2xl"></i>
-            </div>
-            <h3
-              class="font-playfair text-xl font-semibold text-gray-800 mb-2 text-center"
-            >
-              Quản lý khách mời
-            </h3>
-            <p class="text-gray-600 text-center">
-              Tích hợp Google Sheets dễ dàng
-            </p>
-          </div>
-
-          <div class="bg-white rounded-2xl p-8 shadow-md transition-all duration-300 border border-pink-100 hover:shadow-xl hover:border-pink-200">
-            <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-gradient-to-br from-pink-100 to-pink-200">
-              <i class="fas fa-link text-pink-500 text-2xl"></i>
-            </div>
-            <h3
-              class="font-playfair text-xl font-semibold text-gray-800 mb-2 text-center"
-            >
-              Link cá nhân hóa
-            </h3>
-            <p class="text-gray-600 text-center">Mỗi khách mời có link riêng</p>
-          </div>
-
-          <div class="bg-white rounded-2xl p-8 shadow-md transition-all duration-300 border border-pink-100 hover:shadow-xl hover:border-pink-200">
-            <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-gradient-to-br from-pink-100 to-pink-200">
-              <i class="fas fa-check-circle text-pink-500 text-2xl"></i>
-            </div>
-            <h3
-              class="font-playfair text-xl font-semibold text-gray-800 mb-2 text-center"
-            >
-              Xác nhận tham dự
-            </h3>
-            <p class="text-gray-600 text-center">
-              Khách mời xác nhận trực tiếp
-            </p>
-          </div>
-
-          <div class="bg-white rounded-2xl p-8 shadow-md transition-all duration-300 border border-pink-100 hover:shadow-xl hover:border-pink-200">
-            <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-gradient-to-br from-pink-100 to-pink-200">
-              <i class="fas fa-qrcode text-pink-500 text-2xl"></i>
-            </div>
-            <h3
-              class="font-playfair text-xl font-semibold text-gray-800 mb-2 text-center"
-            >
-              QR mừng cưới
-            </h3>
-            <p class="text-gray-600 text-center">Nhận mừng cưới dễ dàng</p>
-          </div>
-
-          <div class="bg-white rounded-2xl p-8 shadow-md transition-all duration-300 border border-pink-100 hover:shadow-xl hover:border-pink-200">
-            <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-gradient-to-br from-pink-100 to-pink-200">
-              <i class="fas fa-map-marked-alt text-pink-500 text-2xl"></i>
-            </div>
-            <h3
-              class="font-playfair text-xl font-semibold text-gray-800 mb-2 text-center"
-            >
-              Bản đồ chỉ đường
-            </h3>
-            <p class="text-gray-600 text-center">Tích hợp Google Maps</p>
-          </div>
-        </div>
+        <div
+          id="stepsList"
+          class="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8"
+        ></div>
       </div>
     </section>
 
-    <!-- How It Works Section -->
-    <section id="how-it-works" class="py-20 bg-white">
-      <div class="container mx-auto px-4">
-        <h2
-          class="font-playfair text-3xl md:text-4xl lg:text-5xl font-bold text-gray-800 mb-4 text-center"
-        >
-          Quy Trình Đơn Giản
-        </h2>
-        <p class="text-gray-600 text-lg text-center mb-12">
-          Chỉ 4 bước để có thiệp cưới online hoàn hảo
-        </p>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mt-12">
-          <!-- Step 1 -->
-          <div class="relative bg-white rounded-2xl p-8 shadow-md transition-all duration-300 text-center border border-pink-100 hover:shadow-xl hover:border-pink-200">
-            <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto my-4 bg-gradient-to-br from-pink-100 to-pink-200">
-              <span class="text-3xl font-bold" style="color: rgb(173 122 135);">1</span>
-            </div>
-            <h3 class="font-playfair text-xl font-semibold text-gray-800 mb-2">
-              Chọn mẫu thiệp
-            </h3>
-            <p class="text-gray-600">
-              Xem demo và chọn mẫu thiệp phù hợp với phong cách của bạn
-            </p>
-          </div>
-
-          <!-- Step 2 -->
-          <div class="relative bg-white rounded-2xl p-8 shadow-md transition-all duration-300 text-center border border-pink-100 hover:shadow-xl hover:border-pink-200">
-            <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto my-4 bg-gradient-to-br from-pink-100 to-pink-200">
-              <span class="text-3xl font-bold" style="color: rgb(173 122 135);">2</span>
-            </div>
-            <h3 class="font-playfair text-xl font-semibold text-gray-800 mb-2">
-              Thanh toán online
-            </h3>
-            <p class="text-gray-600">
-              Thanh toán nhanh chóng qua QR code hoặc chuyển khoản ngân hàng
-            </p>
-          </div>
-
-          <!-- Step 3 -->
-          <div class="relative bg-white rounded-2xl p-8 shadow-md transition-all duration-300 text-center border border-pink-100 hover:shadow-xl hover:border-pink-200">
-            <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto my-4 bg-gradient-to-br from-pink-100 to-pink-200">
-              <span class="text-3xl font-bold" style="color: rgb(173 122 135);">3</span>
-            </div>
-            <h3 class="font-playfair text-xl font-semibold text-gray-800 mb-2">
-              Nhập thông tin
-            </h3>
-            <p class="text-gray-600">
-              Điền thông tin cô dâu, chú rể và chi tiết đám cưới vào thiệp
-            </p>
-          </div>
-
-          <!-- Step 4 -->
-          <div class="relative bg-white rounded-2xl p-8 shadow-md transition-all duration-300 text-center border border-pink-100 hover:shadow-xl hover:border-pink-200">
-            <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto my-4 bg-gradient-to-br from-pink-100 to-pink-200">
-              <span class="text-3xl font-bold" style="color: rgb(173 122 135);">4</span>
-            </div>
-            <h3 class="font-playfair text-xl font-semibold text-gray-800 mb-2">
-              Nhận link & Chia sẻ
-            </h3>
-            <p class="text-gray-600">
-              Nhận link thiệp cưới ngay lập tức và gửi đến khách mời
-            </p>
-          </div>
+    <!-- ===== BENEFITS ===== -->
+    <section id="benefits" class="py-16 bg-white">
+      <div class="max-w-6xl mx-auto px-5">
+        <div class="mb-10 text-center">
+          <h2
+            class="font-playfair text-3xl md:text-4xl font-semibold text-[#5a3a45]"
+          >
+            Tại sao chọn Cưới Xinh?
+          </h2>
+          <p class="mt-3 max-w-lg mx-auto text-sm leading-relaxed opacity-60">
+            Thiệp cưới điện tử thông minh — cá nhân hóa từng khách mời, quản lý
+            dễ dàng, thanh toán một lần dùng trọn đời
+          </p>
         </div>
+
+        <!-- scrollable on mobile, grid on desktop — rendered by JS -->
+        <div
+          id="benefitsGrid"
+          class="scrollbar-hide -mx-5 flex snap-x gap-3 overflow-x-auto px-5 pb-3 sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-4 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-3"
+        ></div>
       </div>
     </section>
 
-    <!-- CTA Section -->
-    <section id="contact" class="py-20 bg-rose-pastel-100">
-      <div class="container mx-auto px-4 text-center">
-        <h2
-          class="font-playfair text-3xl md:text-4xl lg:text-5xl font-bold mb-4"
-          style="color: rgb(173 122 135);"
-        >
-          Sẵn sàng tạo thiệp cưới của bạn?
-        </h2>
-        <p class="text-lg mb-12" style="color: rgb(173 122 135);">
-          Chọn mẫu thiệp yêu thích và bắt đầu tạo thiệp cưới của bạn ngay hôm nay
-        </p>
+    <!-- ===== TESTIMONIALS ===== -->
+    <section id="testimonials" class="py-16 bg-[#fef1f7]">
+      <div class="max-w-6xl mx-auto px-5">
+        <div class="mb-10 text-center reveal">
+          <h2 class="font-playfair text-3xl md:text-4xl font-semibold text-[#5a3a45]">Khách hàng nói gì?</h2>
+          <p class="mt-3 text-sm opacity-60 max-w-sm mx-auto">Hơn 500 cặp đôi đã tin tưởng tạo thiệp cưới với Cưới Xinh</p>
+        </div>
+        <div id="testimonialsList" class="grid grid-cols-1 md:grid-cols-3 gap-5"></div>
+      </div>
+    </section>
 
-        <div class="flex flex-col sm:flex-row gap-6 justify-center mb-12">
+    <!-- ===== CTA ===== -->
+    <section
+      id="contact"
+      class="py-24 relative overflow-hidden"
+      style="background: linear-gradient(150deg, #2D0F1A 0%, #3E1A28 55%, #2D0F1A 100%);"
+    >
+      <!-- Radial glow -->
+      <div class="absolute inset-0 pointer-events-none" style="background: radial-gradient(ellipse 65% 55% at 50% 50%, rgba(201,160,64,0.08) 0%, transparent 70%);"></div>
+
+      <!-- Watermark chữ mờ -->
+      <div class="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden" aria-hidden="true">
+        <p style="font-family:'Great Vibes',cursive;font-size:clamp(5rem,18vw,11rem);color:rgba(255,183,202,0.055);white-space:nowrap;line-height:1;">Cưới Xinh</p>
+      </div>
+
+      <div class="max-w-2xl mx-auto px-5 text-center relative z-10">
+        <p class="font-allura text-4xl mb-3" style="color:rgba(255,183,202,0.65);">Sẵn sàng chưa?</p>
+        <h2
+          class="font-playfair text-2xl md:text-3xl font-semibold leading-snug mb-4"
+          style="color:rgba(255,245,235,0.95);"
+        >
+          Bắt đầu tạo thiệp cưới<br />hoàn toàn miễn phí
+        </h2>
+        <p class="text-sm mb-10" style="color:rgba(255,210,210,0.5);">
+          Chỉ thanh toán khi bạn thật sự ưng ý.
+        </p>
+        <a
+          href="/invitation-setup/"
+          onclick="goCreateDraft(event)"
+          class="inline-block px-9 py-4 rounded-full text-base font-semibold transition-all hover:-translate-y-0.5 active:scale-95"
+          style="background: linear-gradient(135deg, #C9A040, #E0BB55); color: #2D0F1A; box-shadow: 0 8px 28px rgba(201,160,64,0.32);"
+        >
+          Tạo thiệp của tôi <i class="fas fa-arrow-right ml-2 text-sm"></i>
+        </a>
+        <div
+          class="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs mt-7"
+          style="color:rgba(255,210,210,0.38);"
+        >
+          <span>Dùng thử miễn phí</span>
+          <span>·</span>
+          <span>Đổi mẫu mọi lúc</span>
+          <span>·</span>
+          <span>Thanh toán một lần dùng trọn đời</span>
+        </div>
+
+        <!-- Contact -->
+        <div
+          class="flex flex-wrap items-center justify-center gap-5 mt-10 text-sm"
+          style="color:rgba(255,200,200,0.4);"
+        >
           <a
             href="mailto:admin@cuoixinh.com"
-            class="px-8 py-4 text-white rounded-full text-lg font-semibold transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1"
-            style="background-color: rgb(255 183 202);"
-            onmouseover="this.style.backgroundColor='rgb(255 200 215)'"
-            onmouseout="this.style.backgroundColor='rgb(255 183 202)'"
+            class="transition-opacity hover:opacity-75 flex items-center gap-1.5"
           >
-            <i class="fas fa-envelope mr-2"></i>
-            Liên hệ qua Email
+            <i class="fas fa-envelope text-xs"></i> admin@cuoixinh.com
           </a>
           <a
             href="tel:0348840032"
-            class="px-8 py-4 bg-white hover:bg-gray-50 rounded-full text-lg font-semibold transition-all border-2 border-rose-pastel-200"
-            style="color: rgb(173 122 135);"
+            class="transition-opacity hover:opacity-75 flex items-center gap-1.5"
           >
-            <i class="fas fa-phone mr-2"></i>
-            Gọi điện thoại
+            <i class="fas fa-phone text-xs"></i> 034.884.0032
           </a>
-        </div>
-
-        <div class="text-gray-600">
-          <p class="mb-2" style="color: rgb(173 122 135);">
-            <i class="fas fa-envelope mr-2"></i>
-            Email: admin@cuoixinh.com
-          </p>
-          <p style="color: rgb(173 122 135);">
-            <i class="fas fa-phone mr-2"></i>
-            Hotline: 034.884.0032
-          </p>
         </div>
       </div>
     </section>
 
-    <!-- Modal Preview -->
-    <div id="previewModal" class="modal hidden">
-      <div class="modal-backdrop" onclick="closePreview()"></div>
-      <div class="modal-content">
-        <button class="modal-close" onclick="closePreview()">
-          <i class="fas fa-times"></i>
-        </button>
-        <div class="modal-header">
-          <h3
-            id="modalTitle"
-            class="font-playfair text-2xl font-bold mb-2"
-            style="color: rgb(173 122 135);"
-          >
-            Classic Elegance
-          </h3>
-          <div class="template-features-wrapper">
-            <div id="modalFeatures" class="template-features">
-              <!-- Features will be inserted by JavaScript -->
-            </div>
-          </div>
-        </div>
-        <div class="modal-body">
-          <!-- Iframe will be inserted by JavaScript -->
-        </div>
-        <div class="modal-footer">
-          <button onclick="closePreview()" class="btn-secondary">Đóng</button>
-          <button onclick="chooseFromModal()" class="btn-primary">
-            Chọn mẫu này
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Modal Thanh Toán - được inject bởi payment.js -->
-
-    <!-- Footer -->
-    <footer class="bg-gray-800 text-white py-12 border-t border-gray-700">
-      <div class="container mx-auto px-4">
-        <div class="grid md:grid-cols-3 gap-8 mb-8">
-          <div>
-          <div class="flex items-center mb-4">
-            <img src="assets/icons/logo.png" alt="Cưới Xinh Logo" class="h-16 w-auto">
-          </div>
-            <p class="text-gray-400">
-              Tạo kỷ niệm đẹp cho ngày trọng đại của bạn
+    <!-- ===== FOOTER ===== -->
+    <footer class="bg-white border-t border-rose-pastel-200 py-10">
+      <div class="max-w-6xl mx-auto px-5">
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-6 mb-8">
+          <div class="col-span-2 md:col-span-1">
+            <img
+              src="assets/icons/logo.png"
+              alt="Cưới Xinh"
+              class="h-10 w-auto mb-3"
+            />
+            <p class="text-sm opacity-50 leading-relaxed">
+              Thiệp cưới online đẹp<br />cho các cặp đôi Việt Nam.
             </p>
           </div>
           <div>
-            <h4 class="font-semibold mb-4">Liên kết</h4>
-            <ul class="space-y-2 text-gray-400">
+            <h4 class="font-semibold text-sm mb-4 text-[#5a3a45]">
+              Điều hướng
+            </h4>
+            <ul class="space-y-2 text-sm opacity-60">
               <li>
-                <a href="#hero" class="hover:text-white transition-colors"
-                  >Trang chủ</a
-                >
-              </li>
-              <li>
-                <a href="#templates" class="hover:text-white transition-colors"
+                <a
+                  href="/theme-template/"
+                  class="hover:opacity-100 transition-opacity"
                   >Mẫu thiệp</a
                 >
               </li>
               <li>
-                <a href="#features" class="hover:text-white transition-colors"
-                  >Tính năng</a
+                <a
+                  href="/invitation-setup/"
+                  onclick="goCreateDraft(event)"
+                  class="hover:opacity-100 transition-opacity"
+                  >Tạo thiệp</a
                 >
               </li>
               <li>
-                <a href="#contact" class="hover:text-white transition-colors"
-                  >Liên hệ</a
+                <a
+                  href="/public/account/"
+                  class="hover:opacity-100 transition-opacity"
+                  >Quản lý thiệp</a
                 >
               </li>
             </ul>
           </div>
           <div>
-            <h4 class="font-semibold mb-4">Liên hệ</h4>
-            <ul class="space-y-2 text-gray-400">
-              <li><i class="fas fa-envelope mr-2"></i>admin@cuoixinh.com</li>
-              <li><i class="fas fa-phone mr-2"></i>034.884.0032</li>
-              <li><i class="fas fa-map-marker-alt mr-2"></i>Việt Nam</li>
+            <h4 class="font-semibold text-sm mb-4 text-[#5a3a45]">Liên hệ</h4>
+            <ul class="space-y-2 text-sm opacity-60">
+              <li>
+                <i class="fas fa-envelope mr-2 text-xs"></i>admin@cuoixinh.com
+              </li>
+              <li><i class="fas fa-phone mr-2 text-xs"></i>034.884.0032</li>
             </ul>
           </div>
         </div>
-        <div class="border-t border-gray-800 pt-8 text-center text-gray-400">
-          <p class="font-cormorant text-lg italic">
-            © 2024 Cưới Xinh. Tạo kỷ niệm đẹp cho ngày trọng đại.
+        <div
+          class="border-t border-rose-pastel-200 pt-6 text-center text-xs opacity-40"
+        >
+          <p class="font-cormorant italic text-sm">
+            © 2026 Cưới Xinh — Tạo kỷ niệm đẹp cho ngày trọng đại.
           </p>
         </div>
       </div>
     </footer>
 
+    <!-- Modal Thanh Toán - được inject bởi payment.js -->
+
     <script src="core/config.js"></script>
     <script src="index.js"></script>
     <script src="core/payment.js"></script>
+
+    <script>
+      // Nav scroll effect
+      window.addEventListener(
+        "scroll",
+        () => {
+          document
+            .getElementById("main-nav")
+            .classList.toggle("nav-scrolled", window.scrollY > 20);
+        },
+        { passive: true },
+      );
+    </script>
   </body>
 </html>

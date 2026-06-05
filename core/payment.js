@@ -462,12 +462,30 @@
     }
   }
 
-  // Task 5.11: Show success screen
+  // Show success screen
   function showSuccessScreen(paymentResult) {
     const { manage_id, slug, transaction_id, payment_time } = paymentResult;
 
     // Update localStorage order
     updateOrderStatus(manage_id, transaction_id, payment_time);
+
+    // Sau thanh toán: đẩy localStorage draft data lên DB (nếu có)
+    if (manage_id && window.weddingDAL) {
+      const draftKey = `cuoixinh_draft_${manage_id}`;
+      let draftData = null;
+      try { draftData = JSON.parse(localStorage.getItem(draftKey) || "null"); } catch (e) {}
+
+      if (draftData) {
+        // Có draft local → PATCH toàn bộ data lên DB + set is_published=true
+        const { _localOnly, ...fields } = draftData;
+        window.weddingDAL.updateWedding({ id: manage_id, ...fields, is_published: true })
+          .then(() => { try { localStorage.removeItem(draftKey); } catch(e){} })
+          .catch(() => {});
+      } else {
+        // Không có draft local → chỉ publish
+        window.weddingDAL.publishWedding(manage_id).catch(() => {});
+      }
+    }
 
     // Get order data from form
     const name = document.getElementById("payment-name").value.trim();
@@ -597,10 +615,30 @@
                 </div>
               </div>
 
+              <!-- Promo Code -->
+              <div class="flex flex-col gap-1">
+                <div class="flex gap-2">
+                  <input id="promo-input" type="text" placeholder="Mã giảm giá"
+                    class="flex-1 px-3 py-2 rounded-xl border border-gray-200 text-sm outline-none uppercase tracking-wider focus:border-pink-300 transition-colors box-border" />
+                  <button onclick="applyPromo()"
+                    class="px-4 py-2 rounded-xl text-sm font-medium border-0 cursor-pointer transition-colors"
+                    style="background:rgb(255 240 245); color:rgb(173 122 135);">
+                    Áp dụng
+                  </button>
+                </div>
+                <p id="promo-msg" class="hidden text-xs px-1"></p>
+              </div>
+
               <!-- Tổng tiền -->
-              <div class="flex items-center justify-between py-3 border-t border-gray-100">
-                <span class="text-sm text-gray-400">Tổng thanh toán</span>
-                <span id="payment-total-price" class="font-bold text-xl" style="color:rgb(173 122 135);">299.000đ</span>
+              <div class="flex flex-col gap-1 py-3 border-t border-gray-100">
+                <div id="promo-discount-row" class="hidden flex items-center justify-between">
+                  <span class="text-sm text-green-500">Giảm giá</span>
+                  <span id="promo-discount-amount" class="text-sm font-medium text-green-500">-0đ</span>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-sm text-gray-400">Tổng thanh toán</span>
+                  <span id="payment-total-price" class="font-bold text-xl" style="color:rgb(173 122 135);">299.000đ</span>
+                </div>
               </div>
 
               <button onclick="PaymentModal.process()"
@@ -698,12 +736,89 @@
     });
   };
 
+  // ============= PROMO CODE =============
+
+  window.applyPromo = async function () {
+    const code = (document.getElementById("promo-input").value || "").trim().toUpperCase();
+    const msg = document.getElementById("promo-msg");
+    if (!code) return;
+
+    msg.className = "text-xs px-1 text-gray-400";
+    msg.textContent = "Đang kiểm tra...";
+    msg.classList.remove("hidden");
+
+    try {
+      if (!window.supabaseClient) throw new Error("no_client");
+      const { data, error } = await window.supabaseClient
+        .from("promo_codes")
+        .select("*")
+        .eq("code", code)
+        .eq("is_active", true)
+        .single();
+
+      if (error || !data) {
+        msg.className = "text-xs px-1 text-red-500";
+        msg.textContent = "Mã không hợp lệ hoặc đã hết hạn";
+        window._appliedPromo = null;
+        document.getElementById("promo-discount-row").classList.add("hidden");
+        // Reset total
+        _updateTotalWithPromo(null);
+        return;
+      }
+
+      const expires = data.expires_at ? new Date(data.expires_at) : null;
+      if (expires && expires < new Date()) {
+        msg.className = "text-xs px-1 text-red-500";
+        msg.textContent = "Mã đã hết hạn";
+        window._appliedPromo = null;
+        _updateTotalWithPromo(null);
+        return;
+      }
+
+      window._appliedPromo = data;
+      msg.className = "text-xs px-1 text-green-500";
+      msg.textContent = "Áp dụng thành công!";
+      document.getElementById("promo-discount-row").classList.remove("hidden");
+      _updateTotalWithPromo(data);
+    } catch (e) {
+      msg.className = "text-xs px-1 text-red-500";
+      msg.textContent = "Không thể kiểm tra mã, thử lại sau";
+    }
+  };
+
+  function _updateTotalWithPromo(promo) {
+    const basePrice = window._paymentPricing?.price || 299000;
+    let discount = 0;
+    if (promo) {
+      discount = promo.discount_type === "percent"
+        ? Math.round(basePrice * promo.discount_value / 100)
+        : promo.discount_value;
+      discount = Math.min(discount, basePrice);
+    }
+    const total = basePrice - discount;
+    const totalEl = document.getElementById("payment-total-price");
+    if (totalEl) totalEl.textContent = `${total.toLocaleString("vi-VN")}đ`;
+    const discountEl = document.getElementById("promo-discount-amount");
+    if (discountEl) discountEl.textContent = `-${discount.toLocaleString("vi-VN")}đ`;
+    window._discountedTotal = total;
+  }
+
   // Public API
   window.PaymentModal = {
-    open(templateName, theme, pricing = {}) {
+    open(templateName, theme, pricing = {}, existingManageId = null) {
       injectPaymentModal();
-      // Lưu theme để dùng khi tạo wedding record
+      // Lưu theme và existingManageId
       window._paymentTheme = theme || "basic-gold";
+      window._existingManageId = existingManageId || null;
+      window._appliedPromo = null;
+      window._discountedTotal = null;
+      // Reset promo UI
+      const promoInput = document.getElementById("promo-input");
+      const promoMsg = document.getElementById("promo-msg");
+      const discountRow = document.getElementById("promo-discount-row");
+      if (promoInput) promoInput.value = "";
+      if (promoMsg) { promoMsg.textContent = ""; promoMsg.classList.add("hidden"); }
+      if (discountRow) discountRow.classList.add("hidden");
 
       // Lưu pricing để dùng trong modal
       window._paymentPricing = pricing;
@@ -885,10 +1000,10 @@
         return;
       }
 
-      // Task 5.10: Real payment flow with PayOS
+      // Real payment flow with PayOS
       try {
-        // Generate manage_id on client
-        const manage_id = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(
+        // Use existing manage_id from draft flow, or generate new one
+        const manage_id = window._existingManageId || "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(
           /[xy]/g,
           (c) => {
             const r = (Math.random() * 16) | 0;
@@ -939,8 +1054,12 @@
           customer_email: email,
           template_name: templateName,
           theme: window._paymentTheme || "basic-gold",
+          is_existing_draft: !!window._existingManageId,
           // SECURITY: Amount is determined by backend from database
         };
+        if (window._appliedPromo) {
+          paymentData.promo_code = window._appliedPromo.code;
+        }
 
         const paymentResult = await createPayment(paymentData);
 

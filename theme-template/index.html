@@ -1,0 +1,481 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mẫu Thiệp Cưới Đẹp — Cưới Xinh</title>
+    <meta name="description" content="Khám phá bộ sưu tập mẫu thiệp cưới online đẹp, tinh tế. Xem demo trực tiếp, đổi mẫu miễn phí." />
+
+    <link rel="icon" type="image/png" href="../assets/icons/logo.png" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Great+Vibes&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              playfair: ["Playfair Display", "serif"],
+              vibes: ["Great Vibes", "cursive"],
+              inter: ["Inter", "sans-serif"],
+            },
+            colors: {
+              "rose-pastel": {
+                50: "#fffbf7",
+                100: "#fef1f7",
+                200: "#fce7f3",
+                300: "#fbcfe8",
+              },
+            },
+          },
+        },
+      };
+    </script>
+
+    <style>
+      :root {
+        --pink: rgb(255 183 202);
+        --mauve: rgb(173 122 135);
+        --pink-deep: rgb(236 130 158);
+      }
+      body { color: var(--mauve); }
+
+      .nav-scrolled { box-shadow: 0 2px 20px rgba(200,100,130,0.08); }
+
+      /* Template card */
+      .template-card {
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        border: 1px solid rgba(255,183,202,0.25);
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+        cursor: pointer;
+      }
+      .template-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 20px 48px rgba(200,100,130,0.16);
+      }
+      .template-thumb {
+        position: relative;
+        padding-top: 133.33%; /* 4:3 ratio — ensures height even with all-absolute children */
+        overflow: hidden;
+        background: linear-gradient(160deg, #fff5f7, #fce7f3);
+      }
+      .template-thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        transition: transform 0.4s ease;
+      }
+      .template-card:hover .template-thumb img { transform: scale(1.04); }
+      .template-thumb-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to top, rgba(45,15,26,0.7) 0%, transparent 55%);
+        opacity: 0;
+        transition: opacity 0.3s;
+        display: flex;
+        align-items: flex-end;
+        padding: 10px;
+        gap: 6px;
+      }
+      .template-card:hover .template-thumb-overlay { opacity: 1; }
+      .btn-overlay {
+        flex: 1;
+        height: 28px;
+        border-radius: 6px;
+        font-size: 9px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        white-space: nowrap;
+        cursor: pointer;
+        transition: opacity 0.2s;
+        border: none;
+        text-decoration: none;
+      }
+      .btn-overlay:hover { opacity: 0.88; }
+      .btn-demo {
+        background: rgba(255,255,255,0.18);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.35);
+        backdrop-filter: blur(4px);
+      }
+      .btn-use {
+        background: var(--pink-deep);
+        color: white;
+      }
+
+      /* Badge */
+      .badge {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        font-size: 9px;
+        font-weight: 800;
+        padding: 3px 8px;
+        border-radius: 20px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+      .badge-popular { background: linear-gradient(135deg,#f59e0b,#fbbf24); color: white; }
+      .badge-new     { background: linear-gradient(135deg,#10b981,#34d399); color: white; }
+      .badge-premium { background: linear-gradient(135deg,#8b5cf6,#a78bfa); color: white; }
+
+      /* Skeleton */
+      @keyframes shimmer {
+        0%   { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+      }
+      .skeleton {
+        background: linear-gradient(160deg,#fdf4f7,#fce8f1);
+        position: relative;
+        overflow: hidden;
+      }
+      .skeleton::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(90deg, transparent 30%, rgba(255,255,255,0.6) 50%, transparent 70%);
+        animation: shimmer 1.4s infinite;
+      }
+
+      /* Feature tag on card */
+      .feat-tag {
+        font-size: 9px;
+        padding: 2px 7px;
+        border-radius: 999px;
+        background: #fef1f7;
+        color: var(--mauve);
+        border: 1px solid rgba(255,183,202,0.4);
+        white-space: nowrap;
+      }
+
+      /* Price strike */
+      .price-original { text-decoration: line-through; opacity: 0.45; font-size: 11px; }
+
+      html { scroll-behavior: smooth; }
+    </style>
+  </head>
+
+  <body class="bg-[#fafafa]">
+
+    <!-- NAV -->
+    <nav id="main-nav" class="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-rose-pastel-200 transition-shadow">
+      <div class="max-w-7xl mx-auto px-5">
+        <div class="flex items-center justify-between h-14">
+          <a href="/" class="shrink-0">
+            <img src="../assets/icons/logo.png" alt="Cưới Xinh" class="h-10 w-auto" />
+          </a>
+          <div class="hidden md:flex items-center gap-6 text-sm font-medium">
+            <a href="/" class="hover:opacity-70 transition-opacity" style="color:var(--mauve)">Trang chủ</a>
+            <a href="#" class="hover:opacity-70 transition-opacity font-semibold" style="color:var(--pink-deep)">Mẫu thiệp</a>
+          </div>
+          <a
+            href="/invitation-setup/"
+            class="px-4 py-2 rounded-full text-sm font-semibold text-white transition-all hover:opacity-90 shadow-sm"
+            style="background:var(--pink-deep)"
+          >
+            Tạo thiệp ngay
+          </a>
+        </div>
+      </div>
+    </nav>
+
+    <!-- HEADER -->
+    <div class="pt-14 pb-8 text-center" style="background:linear-gradient(160deg,#fffbf8 0%,#fff5f7 50%,#fffbf8 100%);">
+      <div class="max-w-2xl mx-auto px-5 pt-10">
+        <h1 class="font-playfair text-3xl md:text-4xl font-semibold text-[#5a3a45] mb-3">
+          Mẫu thiệp cưới
+        </h1>
+        <p class="text-sm opacity-60">
+          Xem demo trực tiếp · Đổi mẫu miễn phí bất cứ lúc nào
+        </p>
+      </div>
+    </div>
+
+    <!-- Feature strip -->
+    <div class="border-b border-rose-pastel-200 bg-white/80 backdrop-blur-sm">
+      <div class="max-w-5xl mx-auto px-5 py-3.5 flex flex-wrap justify-center gap-x-8 gap-y-2 text-xs font-medium" style="color:var(--mauve)">
+        <span><i class="fas fa-play-circle mr-1.5" style="color:var(--pink-deep)"></i>Xem demo trực tiếp</span>
+        <span><i class="fas fa-sync-alt mr-1.5" style="color:var(--pink-deep)"></i>Đổi mẫu miễn phí bất kỳ lúc nào</span>
+        <span><i class="fas fa-magic mr-1.5" style="color:var(--pink-deep)"></i>Tự chỉnh không cần thiết kế</span>
+        <span><i class="fas fa-mobile-alt mr-1.5" style="color:var(--pink-deep)"></i>Đẹp trên mọi điện thoại</span>
+        <span><i class="fas fa-share-alt mr-1.5" style="color:var(--pink-deep)"></i>Chia sẻ link cho khách ngay lập tức</span>
+      </div>
+    </div>
+
+    <!-- GRID -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8 pb-16">
+      <!-- Count -->
+      <p id="templateCount" class="text-xs opacity-40 mb-5 text-center"></p>
+
+      <!-- Cards grid -->
+      <div id="templateGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-5">
+        <!-- Skeleton placeholders -->
+        <div class="template-card">
+          <div class="skeleton" style="aspect-ratio:3/4;"></div>
+          <div class="p-3">
+            <div class="skeleton h-3 rounded w-3/4 mb-2"></div>
+            <div class="skeleton h-2 rounded w-full mb-1"></div>
+            <div class="skeleton h-2 rounded w-2/3"></div>
+          </div>
+        </div>
+        <div class="template-card hidden sm:block">
+          <div class="skeleton" style="aspect-ratio:3/4;"></div>
+          <div class="p-3">
+            <div class="skeleton h-3 rounded w-3/4 mb-2"></div>
+            <div class="skeleton h-2 rounded w-full mb-1"></div>
+            <div class="skeleton h-2 rounded w-2/3"></div>
+          </div>
+        </div>
+        <div class="template-card hidden lg:block">
+          <div class="skeleton" style="aspect-ratio:3/4;"></div>
+          <div class="p-3">
+            <div class="skeleton h-3 rounded w-3/4 mb-2"></div>
+            <div class="skeleton h-2 rounded w-full mb-1"></div>
+            <div class="skeleton h-2 rounded w-2/3"></div>
+          </div>
+        </div>
+        <div class="template-card hidden xl:block">
+          <div class="skeleton" style="aspect-ratio:3/4;"></div>
+          <div class="p-3">
+            <div class="skeleton h-3 rounded w-3/4 mb-2"></div>
+            <div class="skeleton h-2 rounded w-full mb-1"></div>
+            <div class="skeleton h-2 rounded w-2/3"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty state -->
+      <div id="emptyState" class="hidden text-center py-20">
+        <i class="fas fa-layer-group text-4xl mb-4" style="color:rgba(255,183,202,0.5)"></i>
+        <p class="font-playfair text-lg text-[#5a3a45] mb-1">Không có mẫu nào</p>
+        <p class="text-sm opacity-50">Thử chọn danh mục khác</p>
+      </div>
+    </main>
+
+    <!-- CTA bottom -->
+    <div class="border-t border-rose-pastel-200 bg-white">
+      <!-- Mini stats -->
+      <div class="max-w-lg mx-auto px-5 pt-12 pb-8 flex justify-center gap-10 text-center">
+        <div>
+          <p class="font-playfair text-2xl font-semibold text-[#5a3a45]">500+</p>
+          <p class="text-[11px] opacity-50 mt-0.5">cặp đôi đã tạo thiệp</p>
+        </div>
+        <div>
+          <p class="font-playfair text-2xl font-semibold text-[#5a3a45]">0 ₫</p>
+          <p class="text-[11px] opacity-50 mt-0.5">phí đổi mẫu</p>
+        </div>
+        <div>
+          <p class="font-playfair text-2xl font-semibold text-[#5a3a45]">5 ★</p>
+          <p class="text-[11px] opacity-50 mt-0.5">đánh giá trung bình</p>
+        </div>
+      </div>
+
+      <div class="text-center pb-14 px-5">
+        <p class="font-playfair text-xl font-semibold text-[#5a3a45] mb-2">Chưa tìm được mẫu ưng ý?</p>
+        <p class="text-sm opacity-55 mb-1">Cứ chọn tạm một mẫu — bạn có thể đổi bất kỳ lúc nào, miễn phí.</p>
+        <p class="text-sm opacity-55 mb-7">Toàn bộ nội dung, ảnh và âm nhạc đều được giữ lại khi đổi mẫu.</p>
+        <a
+          href="/invitation-setup/"
+          class="inline-block px-8 py-3.5 rounded-full text-sm font-semibold text-white hover:-translate-y-0.5 transition-all"
+          style="background:var(--pink-deep);box-shadow:0 6px 20px rgba(236,130,158,0.35)"
+        >
+          Tạo thiệp ngay <i class="fas fa-arrow-right ml-2 text-xs"></i>
+        </a>
+      </div>
+    </div>
+
+    <script src="../core/config.js"></script>
+    <script>
+      let allTemplates = [];
+
+      const CATEGORY_BADGE = {
+        popular: { label: "Phổ biến", cls: "badge-popular" },
+        new:     { label: "Mới",      cls: "badge-new"     },
+        premium: { label: "Cao cấp",  cls: "badge-premium" },
+      };
+
+      function fmtPrice(n) {
+        return n.toLocaleString("vi-VN") + " ₫";
+      }
+
+      async function fetchTemplates() {
+        const base = CONFIG.supabase.url;
+        const key  = CONFIG.supabase.anonKey;
+        const headers = { apikey: key, Authorization: `Bearer ${key}` };
+        const [tRes, pRes] = await Promise.all([
+          fetch(`${base}/rest/v1/templates?select=*&is_active=eq.true&order=sort_order.asc`, { headers }),
+          fetch(`${base}/rest/v1/template_pricing?select=*&is_active=eq.true`, { headers }),
+        ]);
+        const tData = await tRes.json();
+        const pData = await pRes.json();
+        const pricingMap = Object.fromEntries((pData || []).map(p => [p.template_name, p]));
+        return (tData || []).map(t => {
+          const pricing = pricingMap[t.template_name] || {};
+          return {
+            id:            t.template_id,
+            name:          t.display_name,
+            theme:         t.template_name,
+            description:   t.description,
+            thumbnailUrl:  t.thumbnail_url,
+            previewUrl:    t.preview_url,
+            features:      t.features || [],
+            status:        t.status,
+            category:      t.category,
+            price:         pricing.price         || 159000,
+            originalPrice: pricing.original_price || 199000,
+          };
+        });
+      }
+
+      function cardHTML(t) {
+        const badge  = CATEGORY_BADGE[t.category];
+        const isFree = t.price === 0;
+
+        const badgeHTML = badge
+          ? `<span class="badge ${badge.cls}"><i class="fas fa-star mr-0.5" style="font-size:7px"></i>${badge.label}</span>`
+          : "";
+
+        const iframeSrc = t.previewUrl + (t.previewUrl.includes("?") ? "&" : "?") + "embedded=true";
+
+        const overlayHTML = `
+          <div class="template-thumb-overlay">
+            <a href="${t.previewUrl}" target="_blank" class="btn-overlay btn-demo">
+              <i class="fas fa-eye" style="font-size:10px"></i> Xem demo
+            </a>
+            <button onclick="createDraft('${t.id}', event)" class="btn-overlay btn-use">
+              Dùng ngay <i class="fas fa-arrow-right" style="font-size:9px"></i>
+            </button>
+          </div>`;
+
+        const priceHTML = isFree
+          ? `<span class="text-[11px] font-semibold" style="color:var(--pink-deep)">Miễn phí</span>`
+          : `<span class="text-[11px] font-semibold" style="color:var(--pink-deep)">${fmtPrice(t.price)}</span>
+             <span class="price-original ml-1">${fmtPrice(t.originalPrice)}</span>`;
+
+        const featuresHTML = t.features && t.features.length
+          ? `<div class="flex flex-wrap gap-1 mb-2">${t.features.slice(0,4).map(f => `<span class="feat-tag">${f}</span>`).join("")}</div>`
+          : t.description
+            ? `<p class="text-[11px] opacity-55 leading-relaxed line-clamp-2 mb-2">${t.description}</p>`
+            : "";
+
+        return `
+          <div class="template-card" data-category="${t.category || ""}" data-id="${t.id}">
+            <div class="template-thumb">
+              <iframe
+                class="thumb-iframe"
+                data-src="${iframeSrc}"
+                scrolling="no"
+                style="position:absolute;top:0;left:0;width:390px;border:none;pointer-events:none;transform-origin:top left;opacity:0;transition:opacity 0.4s;"
+                onload="this.style.opacity='1'"
+              ></iframe>
+              ${badgeHTML}
+              ${overlayHTML}
+            </div>
+            <div class="p-3">
+              <p class="font-playfair text-[13px] font-semibold text-[#5a3a45] truncate mb-1">${t.name}</p>
+              ${featuresHTML}
+              <div class="flex items-center">${priceHTML}</div>
+            </div>
+          </div>`;
+      }
+
+      function scaleIframes() {
+        document.querySelectorAll(".thumb-iframe").forEach(iframe => {
+          const w = iframe.closest(".template-thumb").offsetWidth;
+          const scale = w / 390;
+          iframe.style.transform = `scale(${scale})`;
+          iframe.style.height = "520px"; /* 390 × 4/3 — always fills 133.33% container */
+        });
+      }
+
+      function setupIframes() {
+        scaleIframes();
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (!entry.isIntersecting) return;
+            const iframe = entry.target;
+            if (!iframe.src && iframe.dataset.src) iframe.src = iframe.dataset.src;
+            observer.unobserve(iframe);
+          });
+        }, { rootMargin: "300px" });
+        document.querySelectorAll(".thumb-iframe").forEach(f => observer.observe(f));
+      }
+
+      let _resizeTimer;
+      window.addEventListener("resize", () => {
+        clearTimeout(_resizeTimer);
+        _resizeTimer = setTimeout(scaleIframes, 150);
+      }, { passive: true });
+
+      function renderGrid(templates) {
+        const grid  = document.getElementById("templateGrid");
+        const empty = document.getElementById("emptyState");
+        const count = document.getElementById("templateCount");
+
+        if (!templates.length) {
+          grid.innerHTML = "";
+          empty.classList.remove("hidden");
+          count.textContent = "";
+          return;
+        }
+
+        empty.classList.add("hidden");
+        grid.innerHTML = templates.map(cardHTML).join("");
+        count.textContent = `${templates.length} mẫu thiệp`;
+        requestAnimationFrame(setupIframes);
+      }
+
+      // Draft helpers (same pattern as index.js)
+      function _generateUUID() {
+        return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, c => {
+          const r = (Math.random() * 16) | 0;
+          return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
+        });
+      }
+
+      function createDraft(templateId, e) {
+        if (e) e.stopPropagation();
+        const t = allTemplates.find(x => x.id === templateId);
+        if (!t || t.status !== "active") return;
+        const manage_id = _generateUUID();
+        try {
+          localStorage.setItem(`cuoixinh_draft_${manage_id}`, JSON.stringify({
+            theme: t.theme, is_published: false, _localOnly: true
+          }));
+        } catch (_) {}
+        sessionStorage.setItem("draft_template_name", t.name);
+        sessionStorage.setItem("draft_theme", t.theme);
+        window.location.href = `/invitation-setup/?id=${manage_id}`;
+      }
+
+      // Init
+      (async () => {
+        try {
+          allTemplates = await fetchTemplates();
+          renderGrid(allTemplates);
+        } catch (err) {
+          console.error(err);
+          document.getElementById("templateGrid").innerHTML = `
+            <div class="col-span-full text-center py-16">
+              <i class="fas fa-exclamation-triangle text-3xl mb-3" style="color:rgba(255,183,202,0.6)"></i>
+              <p class="text-sm opacity-60">Không thể tải danh sách mẫu. Vui lòng thử lại.</p>
+            </div>`;
+        }
+      })();
+
+      // Nav scroll shadow
+      window.addEventListener("scroll", () => {
+        document.getElementById("main-nav").classList.toggle("nav-scrolled", window.scrollY > 10);
+      }, { passive: true });
+    </script>
+  </body>
+</html>

@@ -22,36 +22,7 @@
     <link rel="stylesheet" href="../../../styles/common.css" />
     <!-- CryptoJS for decryption -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            fontFamily: {
-              cormorant: ["Cormorant Garamond", "serif"],
-              inter: ["Inter", "sans-serif"],
-              allura: ["Allura", "cursive"],
-              cinzel: ["Cinzel Decorative", "cursive"],
-            },
-            colors: {
-              sage: {
-                50: "#f6f7f6",
-                100: "#e8ebe8",
-                200: "#d1d8d1",
-                300: "#b4bfb4",
-                400: "#8a9a8a",
-              },
-              gold: {
-                100: "#f5f0e8",
-                200: "#e8dcc8",
-                300: "#c9b896",
-                400: "#a89968",
-              },
-              charcoal: "#2d3436",
-            },
-          },
-        },
-      };
-    </script>
+    <script src="../tailwind.config.js"></script>
     <style>
       /* Custom styles for template2 */
       .monogram-circle {
@@ -119,7 +90,7 @@
     <!-- Music Control Button -->
     <button
       id="music-toggle"
-      class="fixed bottom-[48px] right-4 z-[60] w-12 h-12 rounded-full bg-white shadow-lg flex items-center justify-center text-gold-400 hover:bg-gold-50 transition-all duration-300"
+      class="fixed bottom-4 right-4 z-[60] w-12 h-12 rounded-full bg-white shadow-lg flex items-center justify-center text-gold-400 hover:bg-gold-50 transition-all duration-300"
       onclick="toggleYouTubeMusic()"
       aria-label="Toggle music"
     >
@@ -291,6 +262,14 @@
             "Tình yêu không làm cho thế giới quay tròn.<br />Tình yêu là thứ làm
             cho chuyến đi đáng giá."
           </p>
+        </div>
+      </section>
+
+      <!-- Love Story Section -->
+      <section id="love-story" style="display:none" class="py-16 px-8 bg-white">
+        <div class="max-w-3xl mx-auto">
+          <h2 class="font-cormorant text-3xl text-charcoal text-center mb-12">Chuyện Tình Yêu</h2>
+          <div id="love-story-list" class="relative space-y-8 pl-8 border-l-2 border-rose-200"></div>
         </div>
       </section>
 

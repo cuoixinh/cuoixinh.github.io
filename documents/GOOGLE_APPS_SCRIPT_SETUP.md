@@ -11,8 +11,8 @@ Tạo API endpoint để tracking và quản lý danh sách khách mời qua Goo
 ```
 A: Họ và tên
 B: Tên hiển thị (Trên thiệp)
-C: Quan hệ (Bạn gọi là gì)
-D: Link thiệp
+C: Quan hệ (Bạn gọi người này là gì)
+D: Link thiệp (gửi cho bạn bè link này)
 E: Đã xem thiệp
 F: Xác nhận tham dự
 G: Lời chúc

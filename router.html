@@ -50,7 +50,11 @@
                 window.location.replace("/");
                 return;
               }
-              const theme = data.theme || "template1";
+              if (data.is_published === false) {
+                window.location.replace("/");
+                return;
+              }
+              const theme = data.theme || "basic-gold";
               const extraSearch = extra || "";
               const themeSearch = extraSearch
                 ? `${extraSearch}&slug=${slug}`

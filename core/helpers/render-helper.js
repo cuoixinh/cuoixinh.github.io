@@ -81,6 +81,22 @@ function renderPartyDate(
 }
 
 /**
+ * Áp dụng điểm lấy nét (focal point) cho ảnh để hiển thị đẹp ở mọi tỉ lệ khung hình
+ * @param {string} elementId - ID của thẻ <img>
+ * @param {{x:number,y:number}} [focalPoint] - Toạ độ % điểm lấy nét; bỏ qua nếu không có
+ */
+function applyFocalPoint(elementId, focalPoint) {
+  if (
+    !focalPoint ||
+    typeof focalPoint.x !== "number" ||
+    typeof focalPoint.y !== "number"
+  )
+    return;
+  const el = document.getElementById(elementId);
+  if (el) el.style.objectPosition = `${focalPoint.x}% ${focalPoint.y}%`;
+}
+
+/**
  * Render couple information (names, parents, addresses, photos)
  * @param {Object} wedding - Wedding data object
  */
@@ -115,6 +131,7 @@ function renderCoupleInfo(wedding) {
     } else {
       setAttr("groom-photo", "src", getImageUrl(wedding.groom_image_url));
     }
+    applyFocalPoint("groom-photo", wedding.image_focal_points?.groom_image_url);
   }
 
   if (bridePhoto) {
@@ -123,6 +140,7 @@ function renderCoupleInfo(wedding) {
     } else {
       setAttr("bride-photo", "src", getImageUrl(wedding.bride_image_url));
     }
+    applyFocalPoint("bride-photo", wedding.image_focal_points?.bride_image_url);
   }
 }
 
@@ -173,6 +191,10 @@ function renderCover(wedding) {
   const coverBgImg = document.getElementById("cover-bg-img");
   if (coverBgImg) {
     setAttr("cover-bg-img", "src", getImageUrl(wedding.cover_image_url));
+    applyFocalPoint(
+      "cover-bg-img",
+      wedding.image_focal_points?.cover_image_url,
+    );
   }
 
   setText("cover-groom-name", wedding.groom_name, "----------");
@@ -190,6 +212,7 @@ function renderHero(wedding, useRing = true) {
   } else {
     setAttr("main-photo", "src", getImageUrl(wedding.cover_image_url));
   }
+  applyFocalPoint("main-photo", wedding.image_focal_points?.cover_image_url);
 
   setText("couple-names-groom", wedding.groom_name, "----------");
   setText("couple-names-bride", wedding.bride_name, "----------");
@@ -201,6 +224,48 @@ function renderHero(wedding, useRing = true) {
  */
 function renderStoryQuote(quote) {
   if (quote) setText("story-quote", `"${quote}"`);
+}
+
+/**
+ * Render love story timeline section
+ * @param {Array} events - Array of {date, title, content} items
+ */
+function renderLoveStory(events) {
+  const section = document.getElementById("love-story");
+  if (!section) return;
+  if (!Array.isArray(events) || events.length === 0) {
+    section.style.display = "none";
+    return;
+  }
+  section.style.display = "";
+  const list = document.getElementById("love-story-list");
+  if (!list) return;
+  list.innerHTML = events
+    .map((ev, i) => {
+      const imgSrc = ev.image_url ? getImageUrl(ev.image_url) : null;
+      const pbClass = i === events.length - 1 ? "pb-1" : "pb-5";
+      const focalStyle = ev.focal_point
+        ? ` style="object-position:${ev.focal_point.x}% ${ev.focal_point.y}%"`
+        : "";
+      return `
+    <div class="relative pl-[14px] ${pbClass} text-left">
+      <div class="absolute left-[-6px] top-[3px] w-[10px] h-[10px] rounded-full bg-[#fda4af] border-2 border-white shadow-[0_0_0_2px_#fda4af]"></div>
+      ${ev.date ? `<div class="text-[0.7rem] font-bold text-red-400 tracking-[0.06em] mb-0.5">${escapeHtml(ev.date)}</div>` : ""}
+      ${ev.title ? `<div class="text-[0.95rem] font-semibold text-stone-custom-500 font-cormorant mb-1">${escapeHtml(ev.title)}</div>` : ""}
+      ${ev.content ? `<div class="text-[0.82rem] text-stone-custom-500 leading-[1.65]${imgSrc ? " mb-2" : ""}">${escapeHtml(ev.content)}</div>` : ""}
+      ${imgSrc ? `<img src="${imgSrc}" alt=""${focalStyle} class="w-full max-w-[280px] rounded-[10px] object-cover aspect-video" loading="lazy" />` : ""}
+    </div>`;
+    })
+    .join("");
+}
+
+function escapeHtml(str) {
+  if (!str) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }
 
 /**
@@ -257,5 +322,6 @@ window.renderMap = renderMap;
 window.renderCover = renderCover;
 window.renderHero = renderHero;
 window.renderStoryQuote = renderStoryQuote;
+window.renderLoveStory = renderLoveStory;
 window.setupMiniCalendar = setupMiniCalendar;
 window.setupMusic = setupMusic;

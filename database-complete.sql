@@ -1,7 +1,7 @@
 -- ============================================================
 -- COMPLETE DATABASE SCHEMA - CUOI XINH
 -- Consolidated from all migration files
--- Last updated: 2026-05-09
+-- Last updated: 2026-06-09
 -- ============================================================
 
 -- ============================================================
@@ -22,19 +22,31 @@ CREATE TABLE weddings (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   is_active BOOLEAN DEFAULT true,
   slug TEXT UNIQUE NOT NULL,
-  
+
   -- Thông tin chung
   groom_name TEXT,
   bride_name TEXT,
   story_quote TEXT,
   cover_image_url TEXT,
   gallery_images TEXT[],
-  
+
   -- Lễ thành hôn (CHUNG)
   ceremony_date DATE,
   ceremony_time TEXT,
   ceremony_lunar TEXT,
-  
+  ceremony_name TEXT,
+  ceremony_location TEXT,
+  ceremony_map_embed_url TEXT,
+  ceremony_use_embed BOOLEAN DEFAULT false,
+  ceremony_display_order TEXT DEFAULT 'bride_first',
+
+  -- Lễ vu quy (tuỳ chọn)
+  vu_quy_enabled BOOLEAN DEFAULT false,
+  vu_quy_time TEXT,
+  vu_quy_location TEXT,
+  vu_quy_map_embed_url TEXT,
+  vu_quy_use_embed BOOLEAN DEFAULT false,
+
   -- Nhà trai
   groom_father TEXT,
   groom_mother TEXT,
@@ -45,12 +57,15 @@ CREATE TABLE weddings (
   groom_party_time TEXT,
   groom_party_lunar TEXT,
   groom_party_location TEXT,
+  -- groom_party_show_location removed: location always shown
+  groom_party_map_embed_url TEXT,
+  groom_party_use_embed BOOLEAN DEFAULT false,
   groom_map_embed_url TEXT,
   groom_bank_name TEXT,
   groom_bank_number TEXT,
   groom_bank_owner TEXT,
   groom_qr_url TEXT,
-  
+
   -- Nhà gái
   bride_father TEXT,
   bride_mother TEXT,
@@ -61,25 +76,51 @@ CREATE TABLE weddings (
   bride_party_time TEXT,
   bride_party_lunar TEXT,
   bride_party_location TEXT,
+  -- bride_party_show_location removed: location always shown
+  bride_party_map_embed_url TEXT,
+  bride_party_use_embed BOOLEAN DEFAULT false,
   bride_map_embed_url TEXT,
   bride_bank_name TEXT,
   bride_bank_number TEXT,
   bride_bank_owner TEXT,
   bride_qr_url TEXT,
-  
+
   -- Theme
-  theme TEXT DEFAULT 'template1',
-  
+  theme TEXT DEFAULT 'basic-gold',
+
   -- Music
   music_url TEXT,
-  
+
   -- Payment fields
   payment_status TEXT DEFAULT 'pending',
   payment_order_id TEXT UNIQUE,
   transaction_id TEXT,
   payment_time TIMESTAMPTZ,
   payment_amount INTEGER,
-  
+
+  -- Published state (true = đã thanh toán, thiệp công khai)
+  is_published BOOLEAN DEFAULT false,
+
+  -- JSONB fields
+  timeline           JSONB DEFAULT '[]'::jsonb,
+  love_story         JSONB DEFAULT '[]'::jsonb,
+  image_focal_points JSONB DEFAULT '{}'::jsonb,
+
+  -- RSVP & extras
+  rsvp_enabled BOOLEAN DEFAULT true,
+  rsvp_message TEXT,
+  footer_text  TEXT,
+
+  -- Section visibility toggles (hiển thị/ẩn mục trên thiệp)
+  enable_family     BOOLEAN DEFAULT true,
+  enable_party      BOOLEAN DEFAULT true,
+  enable_photos     BOOLEAN DEFAULT true,
+  enable_timeline   BOOLEAN DEFAULT true,
+  enable_love_story BOOLEAN DEFAULT true,
+  enable_music      BOOLEAN DEFAULT true,
+  enable_gift       BOOLEAN DEFAULT true,
+  enable_footer     BOOLEAN DEFAULT true,
+
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -88,18 +129,30 @@ CREATE INDEX idx_weddings_slug ON weddings(slug);
 CREATE INDEX idx_weddings_payment_order_id ON weddings(payment_order_id);
 CREATE INDEX idx_weddings_transaction_id ON weddings(transaction_id);
 CREATE INDEX idx_weddings_payment_status ON weddings(payment_status);
+CREATE INDEX idx_weddings_is_published ON weddings(is_published);
 
 -- Comments
 COMMENT ON COLUMN weddings.is_active IS 'Bật/tắt thiệp: true=hoạt động, false=thu hồi';
 COMMENT ON COLUMN weddings.slug IS 'URL slug cho thiệp cưới (unique): van-hung-thuy-hang';
 COMMENT ON COLUMN weddings.groom_name IS 'Tên chú rể: Văn Hùng';
 COMMENT ON COLUMN weddings.bride_name IS 'Tên cô dâu: Thùy Hằng';
-COMMENT ON COLUMN weddings.story_quote IS 'Câu quote lãng mạn phía trên carousel ảnh';
+COMMENT ON COLUMN weddings.story_quote IS 'Câu slogan lãng mạn phía trên carousel ảnh';
 COMMENT ON COLUMN weddings.cover_image_url IS 'Ảnh dùng chung cho cover và Save The Date';
 COMMENT ON COLUMN weddings.gallery_images IS 'Mảng URL ảnh carousel: [url1, url2, ...]';
+COMMENT ON COLUMN weddings.image_focal_points IS 'Điểm lấy nét (%) cho từng ảnh, dùng làm object-position: {"cover_image_url":{"x":50,"y":50},...,"gallery_images":{"<filename>":{"x":50,"y":50},...}}';
 COMMENT ON COLUMN weddings.ceremony_date IS 'Ngày lễ thành hôn chung (dương lịch): 2024-10-20';
 COMMENT ON COLUMN weddings.ceremony_time IS 'Giờ lễ thành hôn chung: 11:30';
 COMMENT ON COLUMN weddings.ceremony_lunar IS 'Âm lịch lễ thành hôn chung (trống = JS tự tính)';
+COMMENT ON COLUMN weddings.ceremony_name IS 'Tên lễ thành hôn tuỳ chỉnh';
+COMMENT ON COLUMN weddings.ceremony_location IS 'Địa điểm lễ thành hôn';
+COMMENT ON COLUMN weddings.ceremony_map_embed_url IS 'Google Maps embed URL lễ thành hôn';
+COMMENT ON COLUMN weddings.ceremony_use_embed IS 'true = dùng mã nhúng iframe thay vì map picker lễ thành hôn';
+COMMENT ON COLUMN weddings.ceremony_display_order IS 'Thứ tự hiển thị: bride_first hoặc groom_first';
+COMMENT ON COLUMN weddings.vu_quy_enabled IS 'true = có lễ vu quy riêng';
+COMMENT ON COLUMN weddings.vu_quy_time IS 'Giờ lễ vu quy';
+COMMENT ON COLUMN weddings.vu_quy_location IS 'Địa điểm lễ vu quy';
+COMMENT ON COLUMN weddings.vu_quy_map_embed_url IS 'Google Maps embed URL lễ vu quy';
+COMMENT ON COLUMN weddings.vu_quy_use_embed IS 'true = dùng mã nhúng iframe thay vì map picker lễ vu quy';
 COMMENT ON COLUMN weddings.groom_father IS 'Tên bố chú rể: Nguyễn Minh Tuấn';
 COMMENT ON COLUMN weddings.groom_mother IS 'Tên mẹ chú rể: Nguyễn Thị Lan';
 COMMENT ON COLUMN weddings.groom_address IS 'Địa chỉ nhà trai';
@@ -109,6 +162,8 @@ COMMENT ON COLUMN weddings.groom_party_date IS 'Ngày tiệc cưới nhà trai (
 COMMENT ON COLUMN weddings.groom_party_time IS 'Giờ tiệc cưới nhà trai: 18:00';
 COMMENT ON COLUMN weddings.groom_party_lunar IS 'Âm lịch tiệc cưới nhà trai (trống = JS tự tính)';
 COMMENT ON COLUMN weddings.groom_party_location IS 'Địa điểm tiệc cưới nhà trai: Tại tư gia nhà trai';
+COMMENT ON COLUMN weddings.groom_party_map_embed_url IS 'URL Google Maps embed địa điểm tiệc nhà trai';
+COMMENT ON COLUMN weddings.groom_party_use_embed IS 'true = dùng mã nhúng iframe thay vì map picker tiệc nhà trai';
 COMMENT ON COLUMN weddings.groom_map_embed_url IS 'URL Google Maps embed (src của iframe) hoặc toàn bộ HTML iframe';
 COMMENT ON COLUMN weddings.groom_bank_name IS 'Tên ngân hàng chú rể: VietinBank';
 COMMENT ON COLUMN weddings.groom_bank_number IS 'Số tài khoản chú rể: 6888469268';
@@ -123,23 +178,39 @@ COMMENT ON COLUMN weddings.bride_party_date IS 'Ngày tiệc cưới nhà gái (
 COMMENT ON COLUMN weddings.bride_party_time IS 'Giờ tiệc cưới nhà gái: 18:00';
 COMMENT ON COLUMN weddings.bride_party_lunar IS 'Âm lịch tiệc cưới nhà gái (trống = JS tự tính)';
 COMMENT ON COLUMN weddings.bride_party_location IS 'Địa điểm tiệc cưới nhà gái';
+COMMENT ON COLUMN weddings.bride_party_map_embed_url IS 'URL Google Maps embed địa điểm tiệc nhà gái';
+COMMENT ON COLUMN weddings.bride_party_use_embed IS 'true = dùng mã nhúng iframe thay vì map picker tiệc nhà gái';
 COMMENT ON COLUMN weddings.bride_map_embed_url IS 'URL Google Maps embed (src của iframe) hoặc toàn bộ HTML iframe';
 COMMENT ON COLUMN weddings.bride_bank_name IS 'Tên ngân hàng cô dâu: BIDV';
 COMMENT ON COLUMN weddings.bride_bank_number IS 'Số tài khoản cô dâu: 8787867778';
 COMMENT ON COLUMN weddings.bride_bank_owner IS 'Tên chủ tài khoản cô dâu: Trần Thùy Hằng';
 COMMENT ON COLUMN weddings.bride_qr_url IS 'URL ảnh QR chuyển khoản cô dâu';
-COMMENT ON COLUMN weddings.theme IS 'Tên file template trong thư mục themes: template1, template2,...';
-COMMENT ON COLUMN weddings.music_url IS 'URL file nhạc nền cho thiệp cưới (MP3, uploaded by user)';
+COMMENT ON COLUMN weddings.theme IS 'Tên folder template: basic-gold, romantic-gold, vintage-forest';
+COMMENT ON COLUMN weddings.music_url IS 'URL YouTube nhạc nền cho thiệp cưới';
+COMMENT ON COLUMN weddings.is_published IS 'true = đã thanh toán, thiệp công khai; false = draft chưa trả tiền';
+COMMENT ON COLUMN weddings.timeline IS 'JSON array lịch trình ngày cưới: [{"time":"08:00","title":"Đón dâu"}, ...]';
+COMMENT ON COLUMN weddings.love_story IS 'JSON array câu chuyện tình yêu: [{"date":"12/2019","title":"Lần đầu gặp nhau","content":"...","image_url":"..."}]';
+COMMENT ON COLUMN weddings.image_focal_points IS 'Điểm lấy nét (%) cho từng ảnh, dùng làm object-position khi hiển thị ở các tỉ lệ khác nhau';
+COMMENT ON COLUMN weddings.rsvp_enabled IS 'Bật/tắt tính năng xác nhận tham dự';
+COMMENT ON COLUMN weddings.rsvp_message IS 'Lời nhắn RSVP tùy chỉnh';
+COMMENT ON COLUMN weddings.footer_text IS 'Lời cảm ơn cuối thiệp';
 COMMENT ON COLUMN weddings.payment_status IS 'Trạng thái thanh toán: pending, completed, failed';
 COMMENT ON COLUMN weddings.payment_order_id IS 'PayOS order ID (unique per transaction)';
 COMMENT ON COLUMN weddings.transaction_id IS 'PayOS transaction reference from bank';
 COMMENT ON COLUMN weddings.payment_time IS 'Thời gian thanh toán thành công';
 COMMENT ON COLUMN weddings.payment_amount IS 'Số tiền đã thanh toán (VND)';
+COMMENT ON COLUMN weddings.enable_family IS 'Hiển thị mục Gia đình hai bên trên thiệp';
+COMMENT ON COLUMN weddings.enable_party IS 'Hiển thị mục Tiệc cưới trên thiệp';
+COMMENT ON COLUMN weddings.enable_photos IS 'Hiển thị mục Ảnh cưới trên thiệp';
+COMMENT ON COLUMN weddings.enable_timeline IS 'Hiển thị mục Lịch trình ngày cưới trên thiệp';
+COMMENT ON COLUMN weddings.enable_love_story IS 'Hiển thị mục Câu chuyện tình yêu trên thiệp';
+COMMENT ON COLUMN weddings.enable_music IS 'Hiển thị nhạc nền trên thiệp';
+COMMENT ON COLUMN weddings.enable_gift IS 'Hiển thị mục Hộp mừng cưới trên thiệp';
+COMMENT ON COLUMN weddings.enable_footer IS 'Hiển thị footer trên thiệp';
 
 -- Row Level Security
 ALTER TABLE weddings ENABLE ROW LEVEL SECURITY;
 
--- Policy: Cho phép đọc công khai
 CREATE POLICY "Public read" ON weddings FOR SELECT USING (true);
 
 
@@ -259,6 +330,7 @@ CREATE TABLE public.templates (
   thumbnail_url TEXT,
   preview_url TEXT,
   features TEXT[],
+  tags TEXT[],
   status TEXT DEFAULT 'active',
   category TEXT,
   sort_order INTEGER DEFAULT 0,
@@ -276,6 +348,7 @@ COMMENT ON COLUMN public.templates.description IS 'Mô tả ngắn về template
 COMMENT ON COLUMN public.templates.thumbnail_url IS 'URL ảnh thumbnail';
 COMMENT ON COLUMN public.templates.preview_url IS 'URL preview template';
 COMMENT ON COLUMN public.templates.features IS 'Mảng tính năng: gallery, map, qrcode, rsvp, countdown, music';
+COMMENT ON COLUMN public.templates.tags IS 'Tags tìm kiếm: cổ điển, lãng mạn, vintage...';
 COMMENT ON COLUMN public.templates.status IS 'Trạng thái: active, coming_soon, inactive';
 COMMENT ON COLUMN public.templates.category IS 'Danh mục: traditional, modern, luxury, minimal';
 COMMENT ON COLUMN public.templates.sort_order IS 'Thứ tự hiển thị (số nhỏ lên trước)';
@@ -300,41 +373,50 @@ CREATE POLICY "Service role can manage templates"
   FOR ALL
   USING (auth.role() = 'service_role');
 
--- Insert default template
-INSERT INTO public.templates (
-  template_id, 
-  template_name, 
-  display_name, 
-  description, 
-  thumbnail_url, 
-  preview_url, 
-  features, 
-  status, 
-  category, 
-  sort_order
-) VALUES
+-- Insert / update all templates
+INSERT INTO public.templates (template_id, template_name, display_name, description, preview_url, features, status, category, sort_order, tags)
+VALUES
   (
-    'classic',
-    'template1',
-    'Classic Elegance',
-    'Thiết kế sang trọng, cổ điển với màu pastel nhẹ nhàng',
-    'assets/images/chup-anh-cuoi-phong-cach-han-quoc-2.jpg',
-    'themes/template1.html?preview=true',
+    'basic-gold',
+    'basic-gold',
+    'Classic Gold',
+    'Trắng tinh tế, vàng gold sang trọng — phong cách cổ điển bất hủ',
+    '/public/themes/basic-gold/?preview=true',
     ARRAY['gallery', 'map', 'qrcode', 'rsvp', 'countdown', 'music'],
-    'active',
-    'traditional',
-    1
+    'active', 'traditional', 1,
+    ARRAY['cổ điển', 'sang trọng']
+  ),
+  (
+    'romantic-gold',
+    'romantic-gold',
+    'Romantic Gold',
+    'Xanh sage & vàng gold, lãng mạn và tinh tế',
+    '/public/themes/romantic-gold/?preview=true',
+    ARRAY['gallery', 'map', 'qrcode', 'rsvp', 'music'],
+    'active', 'modern', 2,
+    ARRAY['lãng mạn', 'hiện đại']
+  ),
+  (
+    'vintage-forest',
+    'vintage-forest',
+    'Vintage Forest',
+    'Kem vintage, nâu gỗ, xanh rừng — ấm áp và gần gũi',
+    '/public/themes/vintage-forest/?preview=true',
+    ARRAY['gallery', 'map', 'qrcode', 'rsvp', 'music'],
+    'active', 'vintage', 3,
+    ARRAY['vintage', 'thiên nhiên']
   )
 ON CONFLICT (template_id) DO UPDATE SET
-  display_name = EXCLUDED.display_name,
-  description = EXCLUDED.description,
-  thumbnail_url = EXCLUDED.thumbnail_url,
-  preview_url = EXCLUDED.preview_url,
-  features = EXCLUDED.features,
-  status = EXCLUDED.status,
-  category = EXCLUDED.category,
-  sort_order = EXCLUDED.sort_order,
-  updated_at = NOW();
+  template_name = EXCLUDED.template_name,
+  display_name  = EXCLUDED.display_name,
+  description   = EXCLUDED.description,
+  preview_url   = EXCLUDED.preview_url,
+  features      = EXCLUDED.features,
+  status        = EXCLUDED.status,
+  category      = EXCLUDED.category,
+  sort_order    = EXCLUDED.sort_order,
+  tags          = EXCLUDED.tags,
+  updated_at    = NOW();
 
 -- Trigger function for updated_at
 CREATE OR REPLACE FUNCTION update_templates_updated_at()
@@ -345,7 +427,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Trigger
 DROP TRIGGER IF EXISTS update_templates_updated_at ON public.templates;
 CREATE TRIGGER update_templates_updated_at
   BEFORE UPDATE ON public.templates
@@ -389,14 +470,16 @@ CREATE POLICY "Service role can manage pricing"
   FOR ALL
   USING (auth.role() = 'service_role');
 
--- Insert default pricing
+-- Insert / update pricing for all templates
 INSERT INTO public.template_pricing (template_name, price, original_price, description) VALUES
-  ('template1', 159000, 199000, 'Classic Elegance - 159.000đ (Giảm từ 199.000đ)')
-ON CONFLICT (template_name) DO UPDATE SET 
-  price = EXCLUDED.price,
+  ('basic-gold',      159000, 199000, 'Classic Gold — 159.000đ'),
+  ('romantic-gold',   159000, 199000, 'Romantic Gold — 159.000đ'),
+  ('vintage-forest',  159000, 199000, 'Vintage Forest — 159.000đ')
+ON CONFLICT (template_name) DO UPDATE SET
+  price          = EXCLUDED.price,
   original_price = EXCLUDED.original_price,
-  description = EXCLUDED.description,
-  updated_at = NOW();
+  description    = EXCLUDED.description,
+  updated_at     = NOW();
 
 -- Trigger function for updated_at
 CREATE OR REPLACE FUNCTION update_template_pricing_updated_at()
@@ -407,12 +490,50 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Trigger
 DROP TRIGGER IF EXISTS update_template_pricing_updated_at ON public.template_pricing;
 CREATE TRIGGER update_template_pricing_updated_at
   BEFORE UPDATE ON public.template_pricing
   FOR EACH ROW
   EXECUTE FUNCTION update_template_pricing_updated_at();
+
+
+-- ============================================================
+-- BẢNG PROMO_CODES - Mã giảm giá
+-- ============================================================
+
+DROP TABLE IF EXISTS promo_codes CASCADE;
+
+CREATE TABLE promo_codes (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  code TEXT UNIQUE NOT NULL,
+  discount_type TEXT NOT NULL CHECK (discount_type IN ('percent', 'fixed')),
+  discount_value INTEGER NOT NULL,
+  min_order_amount INTEGER DEFAULT 0,
+  max_uses INTEGER,
+  used_count INTEGER DEFAULT 0,
+  expires_at TIMESTAMPTZ,
+  show_on_banner BOOLEAN DEFAULT false,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+COMMENT ON COLUMN promo_codes.code IS 'Mã giảm giá, viết hoa: CUOIXINH2026';
+COMMENT ON COLUMN promo_codes.discount_type IS 'percent = giảm %, fixed = giảm số tiền cố định (VND)';
+COMMENT ON COLUMN promo_codes.discount_value IS '20 = giảm 20% hoặc 20000 = giảm 20.000đ';
+COMMENT ON COLUMN promo_codes.max_uses IS 'Số lần dùng tối đa, null = không giới hạn';
+COMMENT ON COLUMN promo_codes.show_on_banner IS 'Hiển thị mã này trên banner landing page';
+
+CREATE INDEX idx_promo_codes_code ON promo_codes(code);
+CREATE INDEX idx_promo_codes_active ON promo_codes(is_active);
+
+-- RLS
+ALTER TABLE promo_codes ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Public read active promo" ON promo_codes
+  FOR SELECT USING (is_active = true);
+
+-- Mã mặc định
+INSERT INTO promo_codes (code, discount_type, discount_value, show_on_banner, is_active)
+VALUES ('CUOIXINH', 'fixed', 20000, true, true);
 
 
 -- ============================================================

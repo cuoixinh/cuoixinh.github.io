@@ -7,11 +7,41 @@ const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let currentUser = null;
 
+const POST_LOGIN_REDIRECT_KEY = "post_login_redirect";
+
+// Nếu trang này được mở kèm ?urlRedirect=... (VD: từ invitation-setup), lưu lại
+// đích cần quay về vào sessionStorage rồi dọn sạch query khỏi URL — để redirectTo
+// gửi cho Supabase luôn là URL gốc (đã được whitelist), tránh bị OAuth chặn.
+(function captureLoginRedirect() {
+  const params = new URLSearchParams(window.location.search);
+  const urlRedirect = params.get("urlRedirect");
+  if (!urlRedirect) return;
+
+  sessionStorage.setItem(POST_LOGIN_REDIRECT_KEY, urlRedirect);
+  params.delete("urlRedirect");
+  const cleanQuery = params.toString();
+  const cleanUrl =
+    window.location.pathname +
+    (cleanQuery ? `?${cleanQuery}` : "") +
+    window.location.hash;
+  window.history.replaceState({}, "", cleanUrl);
+})();
+
+// Sau khi đăng nhập xong, nếu có đích lưu sẵn (từ urlRedirect) thì điều hướng tiếp về đó.
+function _redirectAfterLogin() {
+  if (!currentUser) return;
+  const target = sessionStorage.getItem(POST_LOGIN_REDIRECT_KEY);
+  if (!target) return;
+  sessionStorage.removeItem(POST_LOGIN_REDIRECT_KEY);
+  window.location.replace(target);
+}
+
 async function initAccount() {
   supabaseClient.auth.onAuthStateChange((_event, session) => {
     currentUser = session?.user ?? null;
     updateAuthBlock();
     loadOrders();
+    _redirectAfterLogin();
   });
 
   const {
@@ -21,6 +51,7 @@ async function initAccount() {
   updateAuthBlock();
   loadOrders();
   loadProfile();
+  _redirectAfterLogin();
 }
 
 async function loginWithFacebook() {
