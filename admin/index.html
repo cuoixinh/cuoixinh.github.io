@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Admin - Quản lý Thiệp Cưới</title>
+    <title>Cưới Xinh — Quản trị</title>
     <link rel="icon" type="image/png" href="../assets/icons/logo.png" />
     <script src="https://cdn.tailwindcss.com"></script>
     <link
@@ -240,7 +240,7 @@
             <h2 class="text-base sm:text-lg font-semibold text-gray-800">
               Quản lý Templates
             </h2>
-            <div class="flex gap-2">
+            <div class="flex gap-2 flex-wrap">
               <button
                 id="purge-cache-btn"
                 onclick="purgeTemplatesCache()"
@@ -249,6 +249,17 @@
               >
                 <i class="fas fa-sync"></i>
                 <span class="hidden sm:inline">Xóa Cache</span>
+              </button>
+              <button
+                id="scan-images-btn"
+                onclick="startScanImages()"
+                disabled
+                class="flex-1 sm:flex-none px-4 sm:px-6 py-2 bg-violet-500 hover:bg-violet-600 text-white rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
+                title="Tick chọn template trong danh sách rồi bấm scan"
+              >
+                <i class="fas fa-camera"></i>
+                <span class="hidden sm:inline">Scan Image IFrame</span
+                ><span class="sm:hidden">Scan</span>
               </button>
               <button
                 onclick="openTemplateModal()"
@@ -266,6 +277,11 @@
             <table class="w-full">
               <thead>
                 <tr class="border-b border-gray-200">
+                  <th class="py-3 px-4 w-10 text-left">
+                    <input type="checkbox" id="tpl-scan-all"
+                      class="w-3.5 h-3.5 accent-violet-500 cursor-pointer"
+                      onchange="document.querySelectorAll('input[name=tpl-scan]').forEach(cb=>cb.checked=this.checked);updateScanBtn()" />
+                  </th>
                   <th
                     class="text-left py-3 px-4 text-sm font-medium text-gray-700"
                   >
@@ -305,7 +321,7 @@
               </thead>
               <tbody id="template-list">
                 <tr>
-                  <td colspan="7" class="text-center py-8 text-gray-400">
+                  <td colspan="8" class="text-center py-8 text-gray-400">
                     Đang tải...
                   </td>
                 </tr>
@@ -567,6 +583,97 @@
         </div>
       </div>
     </div>
+
+    <!-- Modal: Scan Log -->
+    <div id="modal-scan" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4">
+      <div class="bg-white rounded-2xl p-6 w-full max-w-lg shadow-2xl">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-base font-semibold text-gray-800 flex items-center gap-2">
+            <i class="fas fa-camera text-violet-500"></i> Scan Image IFrame
+          </h3>
+          <button id="scan-close-btn" onclick="closeScanModal()"
+            class="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
+        </div>
+        <div id="scan-log"
+          class="bg-gray-950 text-green-400 font-mono text-xs rounded-xl p-3 h-56 overflow-y-auto space-y-0.5 mb-4"></div>
+        <div id="scan-done-bar" class="hidden mb-4 flex items-center gap-3">
+          <div class="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+            <div id="scan-progress-fill" class="h-full bg-violet-500 transition-all duration-500" style="width:0%"></div>
+          </div>
+          <span id="scan-done-label" class="text-xs text-gray-500 whitespace-nowrap"></span>
+        </div>
+        <div class="flex justify-end">
+          <button onclick="closeScanModal()" class="px-4 py-2 border border-gray-200 rounded-lg text-sm hover:bg-gray-50">Đóng</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const SCAN_SERVER = "http://127.0.0.1:3001";
+
+      function closeScanModal() {
+        const m = document.getElementById("modal-scan");
+        m.classList.add("hidden"); m.classList.remove("flex");
+      }
+
+      function startScanImages() {
+        const selected = [...document.querySelectorAll("input[name='tpl-scan']:checked")].map(cb => cb.value);
+        if (!selected.length) {
+          alert("Hãy tick chọn ít nhất một template trong danh sách.");
+          return;
+        }
+
+        const m = document.getElementById("modal-scan");
+        m.classList.remove("hidden"); m.classList.add("flex");
+        document.getElementById("scan-log").innerHTML = "";
+        document.getElementById("scan-done-bar").classList.add("hidden");
+        document.getElementById("scan-close-btn").style.cssText = "pointer-events:none;opacity:0.4";
+
+        appendScanLog("⏳ Đang kết nối scan server...", "text-yellow-300");
+
+        const es = new EventSource(`${SCAN_SERVER}/scan?templates=${encodeURIComponent(selected.join(","))}`);
+
+        es.onmessage = (e) => {
+          const d = JSON.parse(e.data);
+          if (d.type === "start") {
+            appendScanLog(d.message, "text-yellow-300");
+          } else if (d.type === "progress") {
+            const cls = d.message.startsWith("✅") ? "text-green-400"
+                      : d.message.startsWith("❌") ? "text-red-400"
+                      : d.message.startsWith("⚠️") ? "text-yellow-300"
+                      : "text-gray-300";
+            appendScanLog(d.message, cls);
+          } else if (d.type === "done") {
+            appendScanLog(d.message, "text-green-300 font-bold");
+            const ok = (d.results || []).filter(r => r.ok).length;
+            const total = (d.results || []).length;
+            document.getElementById("scan-progress-fill").style.width = total ? `${(ok/total)*100}%` : "100%";
+            document.getElementById("scan-done-label").textContent = `${ok}/${total}`;
+            document.getElementById("scan-done-bar").classList.remove("hidden");
+            document.getElementById("scan-close-btn").style.cssText = "";
+            es.close();
+          } else if (d.type === "error") {
+            appendScanLog("❌ " + d.message, "text-red-400");
+            document.getElementById("scan-close-btn").style.cssText = "";
+            es.close();
+          }
+        };
+
+        es.onerror = () => {
+          appendScanLog("❌ Không kết nối được scan server. Chạy: node scripts/server.js", "text-red-400");
+          document.getElementById("scan-close-btn").style.cssText = "";
+          es.close();
+        };
+      }
+
+      function appendScanLog(msg, cls = "text-green-400") {
+        const log = document.getElementById("scan-log");
+        const line = document.createElement("div");
+        line.className = cls; line.textContent = msg;
+        log.appendChild(line);
+        log.scrollTop = log.scrollHeight;
+      }
+    </script>
 
     <script src="../core/config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

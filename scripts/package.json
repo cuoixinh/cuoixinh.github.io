@@ -1,0 +1,13 @@
+{
+  "name": "cuoixinh-scripts",
+  "version": "1.0.0",
+  "description": "Dev scripts for Cưới Xinh",
+  "type": "commonjs",
+  "scripts": {
+    "capture": "node capture.js",
+    "server": "node server.js"
+  },
+  "dependencies": {
+    "puppeteer": "^22.0.0"
+  }
+}

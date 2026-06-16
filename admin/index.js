@@ -19,26 +19,29 @@ if (!ADMIN_TOKEN) {
 }
 
 // ============= TAB SWITCHING =============
-function switchTab(tabName) {
-  // Update tab buttons
-  document.querySelectorAll(".tab-button").forEach((btn) => {
-    btn.classList.remove("active");
-  });
+function switchTab(tabName, pushState = true) {
+  document.querySelectorAll(".tab-button").forEach((btn) => btn.classList.remove("active"));
   document.getElementById(`tab-${tabName}`).classList.add("active");
 
-  // Update tab content
-  document.querySelectorAll(".tab-content").forEach((content) => {
-    content.classList.remove("active");
-  });
+  document.querySelectorAll(".tab-content").forEach((c) => c.classList.remove("active"));
   document.getElementById(`content-${tabName}`).classList.add("active");
 
-  // Load data for the active tab
+  if (pushState) history.replaceState(null, "", `#${tabName}`);
+
   if (tabName === "weddings") {
     loadPage(1);
   } else if (tabName === "templates") {
     loadTemplates();
   }
 }
+
+// Restore tab from URL hash on load
+(function () {
+  const tab = location.hash.replace("#", "");
+  if (tab === "weddings" || tab === "templates") {
+    switchTab(tab, false);
+  }
+})();
 
 // ============= WEDDINGS TAB =============
 let currentPage = 1;
@@ -274,10 +277,13 @@ async function loadTemplates() {
   }
 }
 
+window.adminTemplates = [];
+
 function renderTemplates(templates) {
+  window.adminTemplates = templates || [];
   const tbody = document.getElementById("template-list");
   if (!templates || templates.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-gray-400">Chưa có template nào</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-gray-400">Chưa có template nào</td></tr>`;
     return;
   }
 
@@ -285,6 +291,11 @@ function renderTemplates(templates) {
     .map(
       (t) => `
     <tr class="border-b border-gray-100 hover:bg-gray-50">
+      <td class="py-3 px-4 w-10">
+        <input type="checkbox" name="tpl-scan" value="${t.template_name}"
+          onchange="updateScanBtn()"
+          class="w-3.5 h-3.5 accent-violet-500 cursor-pointer" />
+      </td>
       <td class="py-3 px-4 text-sm text-gray-800 font-medium">${t.display_name}</td>
       <td class="py-3 px-4 text-sm text-gray-600 font-mono">${t.template_name}</td>
       <td class="py-3 px-4 text-sm">
@@ -306,6 +317,22 @@ function renderTemplates(templates) {
     </tr>`,
     )
     .join("");
+
+  updateScanBtn();
+}
+
+function updateScanBtn() {
+  const checked = document.querySelectorAll("input[name='tpl-scan']:checked").length;
+  const btn = document.getElementById("scan-images-btn");
+  if (btn) btn.disabled = checked === 0;
+
+  // Sync "select all" header checkbox state
+  const all = document.querySelectorAll("input[name='tpl-scan']").length;
+  const allCb = document.getElementById("tpl-scan-all");
+  if (allCb) {
+    allCb.checked = all > 0 && checked === all;
+    allCb.indeterminate = checked > 0 && checked < all;
+  }
 }
 
 function getStatusColor(status) {

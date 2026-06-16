@@ -1,0 +1,261 @@
+# CuoiXinh — Tổng quan hệ thống
+
+## Mô tả
+
+Nền tảng tạo thiệp cưới online cá nhân hóa. Người dùng chọn template, điền thông tin, thanh toán rồi nhận 2 link chia sẻ riêng (nhà trai / nhà gái) với tên khách mời được mã hóa.
+
+---
+
+## Sơ đồ luồng chính
+
+> Node viền liền = tính năng hiện có · Node viền nét đứt = tính năng tương lai
+
+```mermaid
+flowchart TD
+    classDef future fill:#f5f5f5,stroke:#999,stroke-dasharray:5 5,color:#555
+    classDef cdcr fill:#fef9ec,stroke:#d4a017,color:#333
+    classDef guest fill:#eef6fb,stroke:#3a85c0,color:#333
+    classDef admin fill:#f3f0fa,stroke:#7c5cbf,color:#333
+
+    subgraph landing ["🏠 Landing Page"]
+        A([Trang chủ])
+        A --> HERO[Hero · CTA\nTạo thiệp của tôi]:::cdcr
+        A --> COUNTER[500+ cặp đôi\nthoả mãn · stats]
+        A --> BROWSE[Carousel mẫu thiệp\n3D · giá trên card]
+        A --> FEAT[Tính năng\nbên trong thiệp]
+        A --> STEPS[Cách dùng\n4 bước đơn giản]
+        A --> BENEFITS[Lý do chọn\nCưới Xinh]
+        A --> TESTI[Testimonial\nkhách hàng nói gì]
+        A --> CTA[CTA tối · liên hệ\nemail · SĐT]
+        A --> LOGIN[Đăng nhập\n/ Đăng ký]:::cdcr
+        BROWSE --> DEMO[Xem demo\nthiệp thật]
+        BROWSE -. F-30 .-> FILTER[Lọc mẫu theo\nphong cách · màu]:::future
+        DEMO --> B[Chọn mẫu\nvà tạo thiệp]:::cdcr
+        HERO --> B
+        LOGIN --> B
+        LOGIN -. F-02 .-> ACC[Trang account\nxem thiệp đã tạo]:::future
+        LOGIN -. F-18 .-> AUTH[Đăng nhập email\n/ đặt lại mật khẩu]:::future
+    end
+    B --> C[Tạo draft]
+
+    subgraph edit ["✏️ Chỉnh sửa — CDCR · miễn phí"]
+        C --> D[Điền thông tin]:::cdcr
+        D <--> PV[Preview real-time]:::cdcr
+        D -. F-03 .-> D1[Đổi template\nsau khi tạo]:::future
+        D -. F-04 .-> D2[Tùy chỉnh\nmàu · font]:::future
+        D -. F-06 .-> D3[Slideshow /\nvideo cover]:::future
+        D -. F-07 .-> D4[AI gợi ý\ncâu chuyện tình yêu]:::future
+    end
+
+    subgraph publish ["🚀 Publish & Thanh toán — CDCR"]
+        D --> FREE[Publish dùng thử\nmiễn phí · 3 ngày]:::cdcr
+        FREE --> EXP{Hết hạn?}:::cdcr
+        EXP -- Chưa TT --> DEAD([Thiệp hết hạn]):::cdcr
+        EXP -- Đã TT --> PERM([Thiệp vĩnh viễn]):::cdcr
+        D --> PAY[Thanh toán\nPayOS QR]:::cdcr
+        PAY --> R{Thành công?}:::cdcr
+        R -- Thất bại --> PAY
+        R -- Có --> PERM
+        PAY -. F-16 .-> TIER[Chọn gói\nStandard · Premium]:::future
+    end
+
+    subgraph dist ["📤 Phân phối — CDCR"]
+        FREE --> LINK[2 link chia sẻ\nnhà trai · nhà gái]:::cdcr
+        PERM --> LINK
+        LINK --> MANUAL[Nhập tên trực tiếp\ntạo link cá nhân]:::cdcr
+        LINK --> MSG[Nút gửi\nqua Messenger]:::cdcr
+        LINK -. F-17 .-> PDF[Xuất PDF\nđể in]:::future
+        LINK -. F-22 .-> QRC[QR code thiệp\ncho thiệp giấy]:::future
+        LINK -. F-23 .-> CPY[Copy tin nhắn mẫu\nkèm link]:::future
+    end
+
+    subgraph view ["👥 Trải nghiệm — Khách mời"]
+        LINK --> V[Khách xem thiệp]:::guest
+        V -. F-05 .-> CD[Đếm ngược\nngày cưới]:::future
+        V -. F-12 .-> GB[Guestbook\nlời chúc]:::future
+        V -. F-13 .-> RSVP[Xác nhận tham dự\n→ Google Sheet]:::future
+        V -. F-24 .-> CAL[Thêm vào\nGoogle/Apple Calendar]:::future
+        V -. F-31 .-> QRMOBILE[Quét QR\nxem trên mobile]:::future
+    end
+
+    subgraph mgmt ["📊 Quản lý — Admin / CDCR"]
+        RSVP -. F-14 .-> ANL[Analytics\nlượt xem · tỉ lệ RSVP]:::future
+        LINK -. F-10 .-> GM[Quản lý khách\nnội bộ trong app]:::future
+        ADM[Dashboard Admin\nquản lý toàn bộ thiệp]:::admin
+        ADM -. F-01 .-> TMPL[Quản lý &\nthêm mẫu thiệp]:::future
+        ADM -. F-25 .-> STAT[Dashboard thống kê\ncho CDCR]:::future
+        ADM -. F-26 .-> EXT[Gia hạn dùng thử\nbởi Admin]:::future
+        ADM -. F-27 .-> TXLOG[Lịch sử\nthanh toán]:::future
+    end
+```
+
+> **Chú giải màu:** 🟡 Vàng = CDCR (cô dâu chú rể) · 🔵 Xanh dương = Khách mời · 🟣 Tím = Quản trị hệ thống · ⬜ Nét đứt = Tính năng tương lai
+
+---
+
+## Sơ đồ kiến trúc
+
+```mermaid
+flowchart LR
+    subgraph Browser
+        UI[UI Layer\nHTML + JS]
+        BL[BL Layer\nwedding-bl / image-bl]
+        DAL[DAL Layer\nwedding-dal / storage-dal]
+        IDB[(IndexedDB\nảnh pending + focal)]
+        LS[(localStorage\ndraft text)]
+        UI --> BL --> DAL
+        UI <--> IDB
+        UI <--> LS
+    end
+
+    subgraph Supabase
+        DB[(PostgreSQL\nbảng weddings)]
+        ST[(Storage\nwedding-images)]
+        EF[Edge Function\npayment-handler]
+    end
+
+    subgraph Bên ngoài
+        PO[PayOS\nQR thanh toán]
+        GS[Google Sheets\nquản lý khách mời]
+        YT[YouTube\nnhạc nền]
+    end
+
+    DAL --> DB
+    DAL --> ST
+    DAL --> EF
+    EF --> PO
+    UI --> GS
+    UI --> YT
+```
+
+---
+
+## Luồng chính
+
+```
+Chọn template → Tạo draft → Điền thông tin → Preview
+→ Publish dùng thử (miễn phí, public 3 ngày) → Chia sẻ link → Khách RSVP
+                                ↓ hết hạn
+                   Thanh toán (PayOS QR) → Thiệp vĩnh viễn
+```
+
+---
+
+## Tính năng hiện có
+
+### Landing Page
+
+| Mục          | Nội dung                                                  |
+| ------------ | --------------------------------------------------------- |
+| Hero & CTA        | Headline, nút "Tạo thiệp của tôi", trust badges                   |
+| Stats             | 500+ cặp đôi, 10+ mẫu, 5★ đánh giá — hardcoded trong hero        |
+| Carousel mẫu thiệp | 3D carousel, giá hiển thị trên từng card, xem demo thiệp thật   |
+| Tính năng         | Section giới thiệu nội dung bên trong thiệp + phone mockup        |
+| Cách dùng         | 4 bước đơn giản                                                   |
+| Lý do chọn        | Benefits grid "Tại sao chọn Cưới Xinh?"                           |
+| Testimonial       | Section "Khách hàng nói gì?" với testimonial cards                |
+| CTA cuối          | Section tối, nút tạo thiệp, email + SĐT liên hệ                  |
+| Đăng nhập         | Xác thực qua Supabase (magic link)                                |
+
+### Chỉnh sửa thiệp (`invitation-setup`)
+
+| Section             | Nội dung                                        |
+| ------------------- | ----------------------------------------------- |
+| Thông tin cặp đôi   | Tên, ảnh cặp đôi, ảnh cover, slogan             |
+| Gia đình            | Tên bố mẹ, địa chỉ, ảnh riêng nhà trai/gái      |
+| Lễ thành hôn        | Ngày giờ dương/âm, địa điểm, bản đồ             |
+| Lễ vu quy           | Tùy chọn bật/tắt, giờ, địa điểm                 |
+| Tiệc cưới           | Ngày giờ dương/âm, địa điểm, bản đồ (cả 2 nhà)  |
+| Gallery ảnh         | Tối đa 7 ảnh, focal point per ảnh               |
+| Timeline            | Lịch trình sự kiện theo loại (ceremony / party) |
+| Câu chuyện tình yêu | Tối đa 10 mốc, mỗi mốc có ảnh + focal point     |
+| Ngân hàng           | Số tài khoản, tên chủ, ảnh QR (cả 2 bên)        |
+| Nhạc nền            | Link YouTube, bật/tắt                           |
+| RSVP                | Bật/tắt, tin nhắn tùy chỉnh                     |
+| Hiển thị section    | Toggle từng section độc lập                     |
+| Footer              | Text chân trang                                 |
+
+### Focal Point
+
+Tất cả ảnh (cover, groom, bride, gallery, love story) đều hỗ trợ chọn điểm lấy nét. Được lưu vào IDB để tồn tại qua F5 trước khi save.
+
+### Template & Theme
+
+- 3 template: `basic-gold`, `romantic-gold`, `vintage-forest`
+- Mỗi template là một trang độc lập render từ dữ liệu JSON chung
+
+### Lưu trữ
+
+- **Supabase PostgreSQL** — dữ liệu chính
+- **Supabase Storage** — ảnh đã upload
+- **IndexedDB** — ảnh pending (chưa upload) + focal points
+- **localStorage** — draft text (auto-save mỗi 1.5s)
+
+### Thanh toán
+
+- Tích hợp PayOS, tạo QR động
+- Poll trạng thái mỗi 30s, timeout 5 phút
+- Sau thanh toán: set `is_published = true`, hiển thị 2 link chia sẻ
+
+### Chia sẻ & Khách mời
+
+- 2 link cá nhân hóa: nhà trai / nhà gái
+- Tên & quan hệ khách mã hóa AES trong URL
+- Tích hợp Google Sheet: tracking lượt xem thiệp khi khách mở
+- Google Apps Script ghi lại view (action: markViewed)
+- Tạo link nhanh trực tiếp: nhập tên + quan hệ → link cá nhân hóa ngay, không cần Sheet
+- Nút chia sẻ qua Messenger (mobile: mở app, desktop: copy + hướng dẫn dán)
+
+### Admin
+
+- Dashboard quản lý toàn bộ thiệp
+- Tìm kiếm, pagination, edit slug, toggle active, xóa
+
+---
+
+## Tính năng tương lai (Roadmap)
+
+### P0 — Nền tảng (cần thiết để scale)
+
+| #    | Tính năng                      | Mô tả                                                                          |
+| ---- | ------------------------------ | ------------------------------------------------------------------------------ |
+| F-01 | **Thêm template**              | Mở rộng lên 5–10 template, đa dạng phong cách (hiện đại, tối giản, màu pastel) |
+| F-02 | **Quản lý đơn hàng cho khách** | Trang account cho user xem lại các thiệp đã tạo, trạng thái thanh toán         |
+| F-03 | **Đổi template sau khi tạo**   | Cho phép chuyển theme mà không mất dữ liệu                                     |
+
+### P1 — Trải nghiệm người dùng
+
+| #    | Tính năng                            | Mô tả                                                           |
+| ---- | ------------------------------------ | --------------------------------------------------------------- |
+| F-04 | **Tùy chỉnh màu sắc / font**         | Cho phép đổi bảng màu chủ đạo và font chữ trong cùng 1 template |
+| F-05 | **Đếm ngược ngày cưới**              | Widget countdown hiển thị trên thiệp, tự ẩn sau ngày cưới       |
+| F-06 | **Slideshow / video cover**          | Thay ảnh bìa bằng slideshow nhiều ảnh hoặc video ngắn           |
+| F-07 | **AI gợi ý câu chuyện tình yêu**     | Nhập vài từ khóa, AI tự động gợi ý nội dung từng mốc tình yêu   |
+| F-08 | **Ảnh bìa + overlay text tùy chỉnh** | Thêm text / sticker lên ảnh bìa trong editor                    |
+| F-30 | **Lọc mẫu thiệp**                    | Lọc / tìm kiếm mẫu theo phong cách, màu sắc (khi có nhiều mẫu)  |
+| F-31 | **Quét QR xem trên mobile**           | Khi xem thiệp trên desktop, hiển thị QR để quét và mở nhanh trên điện thoại |
+
+### P2 — Khách mời & Tương tác
+
+| #    | Tính năng                     | Mô tả                                                                |
+| ---- | ----------------------------- | -------------------------------------------------------------------- |
+| F-10 | **Quản lý khách mời nội bộ**   | Tích hợp bảng khách mời ngay trong app, không cần Google Sheet ngoài  |
+| F-12 | **Guestbook (Sổ lưu bút)**     | Khách gửi lời chúc, cặp đôi duyệt và hiển thị trên thiệp              |
+| F-13 | **Xác nhận tham dự → Sheet**   | Gửi trạng thái tham dự / từ chối của khách về Google Sheet            |
+| F-14 | **Analytics cơ bản**           | Số lượt xem, số khách RSVP, tỉ lệ tham dự per event                   |
+| F-22 | **QR code thiệp**              | Tạo QR code để in lên thiệp giấy, khách quét để mở thiệp online       |
+| F-23 | **Copy tin nhắn mẫu**          | Nút copy sẵn đoạn text mời kèm link để dán vào Zalo/FB                |
+| F-24 | **Thêm vào Calendar**          | Nút thêm ngày cưới vào Google Calendar / Apple Calendar cho khách      |
+| F-25 | **Dashboard thống kê cho CDCR**| Trang xem ai đã xem thiệp, ai chưa, tỉ lệ RSVP — không cần vào Sheet |
+
+### P3 — Mở rộng nghiệp vụ
+
+| #    | Tính năng                              | Mô tả                                                                           |
+| ---- | -------------------------------------- | ------------------------------------------------------------------------------- |
+| F-16 | **Gói dịch vụ (pricing tiers)**        | Free (draft xem trước) / Standard / Premium (thêm template, tính năng nâng cao) |
+| F-17 | **Thiệp có thể in**                    | Xuất thiệp ra PDF chuẩn in A5/A6                                                |
+| F-18 | **Đặt lại mật khẩu / đăng nhập email** | Bổ sung Auth đầy đủ thay vì chỉ dùng Supabase magic link                        |
+| F-19 | **White-label / agency mode**          | Cho phép công ty tổ chức tiệc cưới tạo thiệp cho nhiều khách hàng               |
+| F-26 | **Gia hạn dùng thử**                   | Admin gia hạn thêm ngày cho thiệp sắp hết hạn chưa thanh toán                   |
+| F-27 | **Lịch sử thanh toán**                 | Log giao dịch PayOS để tra cứu khi có tranh chấp                                |
+| F-20 | **API public**                         | API để tích hợp với phần mềm quản lý tiệc cưới bên thứ ba                       |

@@ -6,7 +6,6 @@ const TEMPLATES_API_URL = CONFIG.cloudflare.templatesCache
 
 let templates = [];
 let carouselActiveIndex = 0;
-let isSectionVisible = false;
 
 async function fetchTemplatesDirect() {
   const base = CONFIG.supabase.url;
@@ -55,7 +54,7 @@ async function loadTemplates() {
       templates = await fetchTemplatesDirect();
     }
     renderTemplateCards();
-    initHeroIframe();
+    initHeroImage();
     initializePage();
   } catch (error) {
     console.error("Failed to load templates:", error);
@@ -77,7 +76,6 @@ loadTemplates();
 // ============= MODAL =============
 
 let currentTemplateId = null;
-let iframeLoadTimeout = null;
 
 function openPreview(templateId) {
   const template = templates.find((t) => t.id === templateId);
@@ -90,10 +88,6 @@ function closePreview() {
   if (!modal) return;
   modal.classList.add("hidden");
   document.getElementById("preview-modal-body").innerHTML = "";
-  if (iframeLoadTimeout) {
-    clearTimeout(iframeLoadTimeout);
-    iframeLoadTimeout = null;
-  }
   document.body.style.overflow = "auto";
   currentTemplateId = null;
 }
@@ -248,49 +242,19 @@ function goCreateDraft(e) {
   }
 }
 
-function fitHeroIframe() {
-  const wrap = document.getElementById("hero-iframe-wrap");
-  const iframe = document.getElementById("hero-iframe");
-  if (!wrap || !iframe) return;
-  const cardW = wrap.offsetWidth;
-  const cardH = wrap.offsetHeight;
-  if (!cardW || !cardH) { setTimeout(fitHeroIframe, 150); return; }
-  try {
-    const doc = iframe.contentDocument || iframe.contentWindow.document;
-    const contentW = doc.documentElement.scrollWidth || doc.body.scrollWidth || 390;
-    const scale = cardW / contentW;
-    iframe.style.width = contentW + "px";
-    iframe.style.height = cardH / scale + "px";
-    iframe.style.transformOrigin = "top left";
-    iframe.style.transform = `scale(${scale})`;
-  } catch (e) {
-    const scale = cardW / 390;
-    iframe.style.width = "390px";
-    iframe.style.height = cardH / scale + "px";
-    iframe.style.transformOrigin = "top left";
-    iframe.style.transform = `scale(${scale})`;
-  }
-}
-
-function initHeroIframe() {
+function initHeroImage() {
   const first = templates.find((t) => t.status === "active");
-  if (!first?.previewUrl) return;
-  const iframe = document.getElementById("hero-iframe");
+  if (!first) return;
+  const img = document.getElementById("hero-preview-img");
   const skeleton = document.getElementById("hero-skeleton");
   const card = document.getElementById("hero-card-preview");
-  if (!iframe) return;
-  iframe.style.width = "390px";
-  iframe.src = first.previewUrl + (first.previewUrl.includes("?") ? "&" : "?") + "embedded=true";
-  iframe.addEventListener("load", () => {
-    fitHeroIframe();
-    iframe.style.opacity = "1";
-    if (skeleton) skeleton.style.display = "none";
-  }, { once: true });
+  if (img) {
+    img.src = `/assets/images/templates/${first.theme}.jpg`;
+    img.onload = () => { if (skeleton) skeleton.style.display = "none"; };
+  }
   if (card) {
     card.style.cursor = "pointer";
-    card.addEventListener("click", () => {
-      window.location.href = first.previewUrl;
-    });
+    card.addEventListener("click", () => { window.location.href = first.previewUrl; });
   }
 }
 
@@ -372,7 +336,7 @@ function setActiveCard(index) {
 
   updateDots();
   updateMobileInfoCard();
-  if (isSectionVisible) loadIframesAround(carouselActiveIndex);
+  resetImageScroll();
 }
 
 function applyCardTransform(card, offset) {
@@ -583,47 +547,11 @@ function setupScrollAnimations() {
 }
 
 function initializePage() {
-  const templateSection = document.getElementById("templates");
-  if (templateSection) {
-    const sectionObserver = new IntersectionObserver(
-      (entries) =>
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            isSectionVisible = true;
-            templates
-              .filter((t) => t.status === "active")
-              .forEach((t) => startIframeScroll("iframe-" + t.theme));
-            loadIframesAround(carouselActiveIndex);
-            setTimeout(setupIframeVisibilityObserver, 1000);
-            sectionObserver.unobserve(entry.target);
-          }
-        }),
-      { threshold: 0.1 },
-    );
-    sectionObserver.observe(templateSection);
-  }
-
   setupModalListeners();
   setupSmoothScroll();
   setupScrollAnimations();
-
   initCarousel3D();
-
-  let scrollThrottle = null;
-  window.addEventListener(
-    "scroll",
-    () => {
-      if (!scrollThrottle) {
-        scrollThrottle = setTimeout(() => {
-          scrollThrottle = null;
-        }, 50);
-        pauseAllIframes();
-        if (scrollTimeout) clearTimeout(scrollTimeout);
-        scrollTimeout = setTimeout(resumeAllIframes, 200);
-      }
-    },
-    { passive: true },
-  );
+  startImageScroll();
 }
 
 // ============= RENDER TEMPLATE CARDS =============
@@ -643,23 +571,12 @@ function renderTemplateCards() {
       const isActive = t.status === "active";
 
       const imageContent = isActive
-        ? `<div id="iframe-wrap-${t.theme}" style="position:absolute;top:0;left:0;width:100%;height:100%;overflow:hidden;pointer-events:none;background:#f9f0f3;">
-           <div id="skeleton-${t.theme}" class="card-skeleton absolute inset-0">
-             <div style="position:absolute;bottom:0;left:0;right:0;padding:12px;display:flex;flex-direction:column;gap:6px;">
-               <div style="height:9px;width:58%;border-radius:6px;background:rgba(0,0,0,0.07);"></div>
-               <div style="height:7px;width:78%;border-radius:6px;background:rgba(0,0,0,0.04);"></div>
-               <div style="height:7px;width:42%;border-radius:6px;background:rgba(0,0,0,0.04);"></div>
-             </div>
-           </div>
-           <iframe
-             id="iframe-${t.theme}"
-             data-src="${t.previewUrl}${t.previewUrl.includes('?') ? '&' : '?'}embedded=true"
-             scrolling="no"
+        ? `<img
+             src="/assets/images/templates/${t.theme}.jpg"
+             alt="${t.name}"
              loading="lazy"
-             style="border:none;transform-origin:top left;pointer-events:none;position:absolute;top:0;left:0;opacity:0;transition:opacity 0.3s;"
-             onload="onIframeLoad(this)"
-           ></iframe>
-         </div>`
+             style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;object-position:top center;pointer-events:none;"
+           />`
         : "";
 
       return `
@@ -691,149 +608,52 @@ function renderTemplateCards() {
     .join("");
 }
 
-// ============= IFRAME AUTO SCROLL =============
 
-const iframeScrollStates = new Map();
-let globalAnimationId = null;
-let isUserScrolling = false;
-let scrollTimeout = null;
+// ============= IMAGE SCROLL ANIMATION =============
 
-const requestIdleCallback =
-  window.requestIdleCallback || ((cb) => setTimeout(cb, 1));
+let _imgScrollPos = 0;
+let _imgScrollDir = 1;
+let _imgScrollPaused = false;
+let _imgScrollRafId = null;
 
-function onIframeLoad(iframe) {
-  setTimeout(() => {
-    iframe.style.opacity = "1";
-    const sk = document.getElementById("skeleton-" + iframe.id.replace("iframe-", ""));
-    if (sk) sk.style.display = "none";
-  }, 1000);
-}
+function startImageScroll() {
+  if (_imgScrollRafId) return;
 
-function startIframeScroll(iframeId) {
-  const iframe = document.getElementById(iframeId);
-  if (!iframe) return;
+  function tick() {
+    _imgScrollRafId = requestAnimationFrame(tick);
+    if (_imgScrollPaused) return;
 
-  const state = {
-    iframe,
-    scrollY: 0,
-    direction: 1,
-    isVisible: false,
-    isPaused: false,
-    lastUpdate: 0,
-    isLoaded: false,
-  };
-  iframeScrollStates.set(iframeId, state);
+    const activeCard = document.querySelector(".carousel-3d-card.is-active");
+    if (!activeCard) return;
+    const img = activeCard.querySelector("img[src]");
+    if (!img) return;
 
-  function fitIframe() {
-    try {
-      const wrap = iframe.parentElement;
-      const cardW = wrap.offsetWidth;
-      const cardH = wrap.offsetHeight;
-      if (!cardW || !cardH) { setTimeout(fitIframe, 150); return; }
-      const doc = iframe.contentDocument || iframe.contentWindow.document;
-      const contentW =
-        doc.documentElement.scrollWidth || doc.body.scrollWidth || 390;
-      const scale = cardW / contentW;
-      iframe.style.width = contentW + "px";
-      iframe.style.height = cardH / scale + "px";
-      iframe.style.transform = `scale(${scale})`;
-      iframe.style.willChange = "transform";
-    } catch (e) {
-      const wrap = iframe.parentElement;
-      const scale = wrap.offsetWidth / 390;
-      if (!scale) { setTimeout(fitIframe, 150); return; }
-      iframe.style.width = "390px";
-      iframe.style.height = wrap.offsetHeight / scale + "px";
-      iframe.style.transform = `scale(${scale})`;
-      iframe.style.willChange = "transform";
-    }
+    _imgScrollPos += 0.07 * _imgScrollDir;
+    if (_imgScrollPos >= 100) { _imgScrollPos = 100; _imgScrollDir = -1; }
+    if (_imgScrollPos <= 0)   { _imgScrollPos = 0;   _imgScrollDir = 1;  }
+
+    img.style.objectPosition = `center ${_imgScrollPos}%`;
   }
 
-  iframe.addEventListener("load", () => {
-    fitIframe();
-    state.isLoaded = true;
-    state.isVisible = true;
-    startGlobalAnimation();
-  });
+  _imgScrollRafId = requestAnimationFrame(tick);
 
-  const card = iframe.closest(".carousel-3d-card");
-  if (card) {
-    card.addEventListener("mouseenter", () => {
-      state.isPaused = true;
-    });
-    card.addEventListener("mouseleave", () => {
-      state.isPaused = false;
-    });
-  }
+  // Pause on hover
+  document.getElementById("templateCarouselInner")?.addEventListener("mouseenter", () => {
+    _imgScrollPaused = true;
+  }, { passive: true });
+  document.getElementById("templateCarouselInner")?.addEventListener("mouseleave", () => {
+    _imgScrollPaused = false;
+  }, { passive: true });
 }
 
-function pauseAllIframes() {
-  isUserScrolling = true;
-}
-function resumeAllIframes() {
-  isUserScrolling = false;
-}
-
-function startGlobalAnimation() {
-  if (globalAnimationId) return;
-  let lastFrameTime = performance.now();
-
-  function animate(currentTime) {
-    const deltaTime = currentTime - lastFrameTime;
-    if (deltaTime >= 33.33 && !isUserScrolling) {
-      lastFrameTime = currentTime;
-      iframeScrollStates.forEach((state) => {
-        if (!state.isLoaded || !state.isVisible || state.isPaused) return;
-        const ownerCard = state.iframe.closest(".carousel-3d-card");
-        if (!ownerCard || !ownerCard.classList.contains("is-active")) return;
-        try {
-          const doc =
-            state.iframe.contentDocument || state.iframe.contentWindow.document;
-          const scale =
-            parseFloat(state.iframe.style.transform.replace("scale(", "")) || 1;
-          const maxScroll =
-            doc.body.scrollHeight - state.iframe.offsetHeight / scale;
-          state.scrollY += 2.5 * state.direction;
-          if (state.scrollY >= maxScroll) state.direction = -1;
-          if (state.scrollY <= 0) state.direction = 1;
-          state.iframe.contentWindow.scrollTo(0, state.scrollY);
-        } catch (e) {}
-      });
-    }
-    globalAnimationId = requestAnimationFrame(animate);
-  }
-  globalAnimationId = requestAnimationFrame(animate);
-}
-
-function setupIframeVisibilityObserver() {
-  const observer = new IntersectionObserver(
-    (entries) =>
-      entries.forEach((entry) => {
-        const state = iframeScrollStates.get(entry.target.id);
-        if (state) state.isVisible = entry.isIntersecting;
-      }),
-    { threshold: 0.1, rootMargin: "100px" },
-  );
-  iframeScrollStates.forEach((state) => observer.observe(state.iframe));
-}
-
-const PRELOAD_RADIUS = 2;
-
-function loadIframesAround(activeIndex) {
-  const count = templates.length;
-  if (!count) return;
-  for (let d = -PRELOAD_RADIUS; d <= PRELOAD_RADIUS; d++) {
-    const idx = ((activeIndex + d) % count + count) % count;
-    const t = templates[idx];
-    if (!t || t.status !== "active") continue;
-    const iframe = document.getElementById("iframe-" + t.theme);
-    if (!iframe || iframe.src) continue;
-    const src = iframe.dataset.src;
-    if (src) {
-      // Pre-size to 390px so template renders at the correct mobile viewport
-      iframe.style.width = "390px";
-      iframe.src = src;
-    }
+// Reset scroll position when carousel slide changes
+function resetImageScroll() {
+  _imgScrollPos = 0;
+  _imgScrollDir = 1;
+  const activeCard = document.querySelector(".carousel-3d-card.is-active");
+  if (activeCard) {
+    const img = activeCard.querySelector("img[src]");
+    if (img) img.style.objectPosition = "center 0%";
   }
 }
 
@@ -922,6 +742,44 @@ const BENEFITS_DATA = [
   { icon: "fa-headset",       iconCls: "border-rose-100 bg-rose-50 text-rose-500",       title: "Hỗ trợ tư vấn tận tình qua Messenger",    desc: "Đội ngũ phản hồi nhanh, hỗ trợ từ A đến Z — từ chọn mẫu đến chia sẻ thiệp cho khách.",     featured: false },
 ];
 
+function startBenefitsAutoScroll(el) {
+  if (window.innerWidth >= 640) return;
+  const cards = el.children;
+  if (!cards.length) return;
+
+  let idx = 0;
+  let visible = false;
+  let touched = false;
+  let timer = null;
+
+  function scrollTo(i) {
+    idx = (i + cards.length) % cards.length;
+    cards[idx].scrollIntoView({ behavior: "smooth", block: "nearest", inline: "start" });
+  }
+
+  function start() {
+    if (timer) return;
+    timer = setInterval(() => { if (visible && !touched) scrollTo(idx + 1); }, 2000);
+  }
+
+  function stop() {
+    clearInterval(timer);
+    timer = null;
+  }
+
+  // Chỉ chạy khi section đang hiển thị trong viewport
+  new IntersectionObserver((entries) => {
+    visible = entries[0].isIntersecting;
+    visible ? start() : stop();
+  }, { threshold: 0.3 }).observe(el);
+
+  // Pause on touch, resume after 3s
+  el.addEventListener("touchstart", () => { touched = true; }, { passive: true });
+  el.addEventListener("touchend", () => {
+    setTimeout(() => { touched = false; }, 3000);
+  }, { passive: true });
+}
+
 function renderBenefits() {
   const el = document.getElementById("benefitsGrid");
   if (!el) return;
@@ -944,6 +802,7 @@ function renderBenefits() {
 </div>`;
   }).join("");
   setupRevealObserver();
+  startBenefitsAutoScroll(el);
 }
 
 // ============= TESTIMONIALS =============

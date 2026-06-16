@@ -661,6 +661,73 @@ async function generateLinks(side) {
   }
 }
 
+function switchGuestsTab(side) {
+  const isGroom = side === "groom";
+  document.getElementById("guests-panel-groom").classList.toggle("hidden", !isGroom);
+  document.getElementById("guests-panel-bride").classList.toggle("hidden", isGroom);
+
+  const ACTIVE   = ["bg-rose-50", "text-rose-600", "border-b-2", "border-rose-400"];
+  const INACTIVE = ["text-gray-500", "hover:bg-gray-50", "hover:text-gray-700"];
+  const tabGroom = document.getElementById("tab-guests-groom");
+  const tabBride = document.getElementById("tab-guests-bride");
+
+  if (isGroom) {
+    tabGroom.classList.add(...ACTIVE);    tabGroom.classList.remove(...INACTIVE);
+    tabBride.classList.add(...INACTIVE);  tabBride.classList.remove(...ACTIVE);
+  } else {
+    tabBride.classList.add(...ACTIVE);    tabBride.classList.remove(...INACTIVE);
+    tabGroom.classList.add(...INACTIVE);  tabGroom.classList.remove(...ACTIVE);
+  }
+}
+
+function generateQuickLink(side) {
+  const name = document.getElementById(`quick-link-name-${side}`).value.trim();
+  const rel  = document.getElementById(`quick-link-rel-${side}`).value.trim();
+  if (!name || !rel) { showToast("❌ Vui lòng nhập tên và quan hệ khách"); return; }
+
+  const slug = WEDDING_SLUG || (WEDDING_ID ? `wedding-${WEDDING_ID.slice(0, 8)}` : "");
+  if (!slug) { showToast("❌ Không xác định được thiệp, vui lòng tải lại trang"); return; }
+
+  const encName = encryptData(name);
+  const encRel  = encryptData(rel);
+  const base    = side === "groom"
+    ? `${DOMAIN}/${slug}?isGroom=true`
+    : `${DOMAIN}/${slug}`;
+  const link = `${base}&name=${encName}&relationship=${encRel}`;
+
+  document.getElementById(`quick-link-output-${side}`).value = link;
+  document.getElementById(`quick-link-result-${side}`).classList.remove("hidden");
+}
+
+function shareViaMessenger(url, side) {
+  if (!url) return;
+
+  const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+
+  if (isMobile) {
+    window.location.href = `fb-messenger://share?link=${encodeURIComponent(url)}`;
+    setTimeout(() => {
+      if (!document.hidden && navigator.share) {
+        navigator.share({ title: "Thiệp cưới", url }).catch(() => {});
+      }
+    }, 1500);
+    return;
+  }
+
+  // Desktop: toggle share panel
+  const panel = document.getElementById(`messenger-share-panel-${side}`);
+  if (!panel) return;
+  panel.classList.toggle("hidden");
+  if (!panel.classList.contains("hidden")) lucide.createIcons();
+}
+
+function copyMessengerLink(side) {
+  const link = document.getElementById(`quick-link-output-${side}`)?.value;
+  if (!link) return;
+  navigator.clipboard.writeText(link);
+  showToast("📋 Đã copy! Mở Messenger rồi dán link vào hộp chat");
+}
+
 // ============= BANK SEARCHABLE SELECT =============
 
 const BANK_LIST = [
@@ -2236,6 +2303,7 @@ async function saveAll(overrides = {}) {
       await weddingBL.updateWedding(payload);
     } else if (getCurrentUser()) {
       // Local draft + đã đăng nhập → tạo record trong DB lần đầu
+      const generatedSlug = payload.slug || `wedding-${WEDDING_ID.slice(0, 8)}`;
       await fetch(CONFIG.supabase.edgeUrl, {
         method: "POST",
         headers: {
@@ -2246,9 +2314,11 @@ async function saveAll(overrides = {}) {
           manage_id: WEDDING_ID,
           theme: WEDDING_THEME,
           is_published: false,
-          slug: payload.slug || `wedding-${WEDDING_ID.slice(0, 8)}`,
+          slug: generatedSlug,
         }),
       });
+      WEDDING_SLUG = generatedSlug;
+      payload.slug = generatedSlug;
       await weddingBL.updateWedding(payload);
       _isLocalDraft = false;
       clearLocalDraft();
@@ -3223,6 +3293,10 @@ function initCeremonySection(data) {
 
 window.applySlug = applySlug;
 window.generateLinks = generateLinks;
+window.switchGuestsTab = switchGuestsTab;
+window.generateQuickLink = generateQuickLink;
+window.shareViaMessenger = shareViaMessenger;
+window.copyMessengerLink = copyMessengerLink;
 window.addTimelineItem = addTimelineItem;
 window.removeTimelineItem = removeTimelineItem;
 window.addLoveStoryItem = addLoveStoryItem;
@@ -3374,39 +3448,64 @@ async function openThemePicker() {
   const sheet = openBottomSheet({
     id: "theme-picker-modal",
     title: "Chọn mẫu thiệp",
-    height: "92vh",
+    height: "80vh",
   });
   if (!sheet) return;
 
+  // Cho phép grid scroll trong body
+  sheet.body.className = "flex-1 min-h-0 overflow-y-auto";
   sheet.body.innerHTML = `<div class="flex items-center justify-center py-10 text-gray-400 text-sm">Đang tải...</div>`;
 
   try {
     const base = CONFIG.supabase.url;
     const key = CONFIG.supabase.anonKey;
-    const res = await fetch(
-      `${base}/rest/v1/templates?select=*&is_active=eq.true&order=sort_order.asc`,
-      {
-        headers: { apikey: key, Authorization: `Bearer ${key}` },
-      },
-    );
-    const rows = await res.json();
+    const headers = { apikey: key, Authorization: `Bearer ${key}` };
+    const [tRes, pRes] = await Promise.all([
+      fetch(`${base}/rest/v1/templates?select=*&is_active=eq.true&order=sort_order.asc`, { headers }),
+      fetch(`${base}/rest/v1/template_pricing?select=*&is_active=eq.true`, { headers }),
+    ]);
+    const tData = await tRes.json();
+    const pData = await pRes.json();
+    const pricingMap = Object.fromEntries((pData || []).map((p) => [p.template_name, p]));
+    const rows = (tData || []).map((t) => {
+      const p = pricingMap[t.template_name] || {};
+      return { ...t, price: p.price || 159000, originalPrice: p.original_price || 199000 };
+    });
 
     sheet.body.innerHTML = `
-      <div class="grid grid-cols-2 gap-3 p-1">
+      <div class="flex flex-col divide-y divide-gray-100">
         ${rows
           .map((t) => {
             const isCurrent = t.template_name === WEDDING_THEME;
             return `
             <button type="button"
+              ${isCurrent ? 'id="theme-picker-current"' : ""}
               onclick="_applyThemeChange('${t.template_name}','${t.display_name}')"
-              class="relative rounded-xl overflow-hidden border-2 transition-all text-left ${isCurrent ? "border-rose-400" : "border-gray-200 hover:border-rose-300"}">
-              <img src="${t.thumbnail_url || ""}" alt="${t.display_name}" class="w-full aspect-[9/16] object-cover" />
-              <div class="px-2 py-1.5 text-xs font-medium text-gray-700 bg-white">${t.display_name}</div>
-              ${isCurrent ? `<div class="absolute top-2 right-2 bg-rose-500 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full">Đang dùng</div>` : ""}
+              class="flex items-center gap-4 px-4 py-3 text-left transition-colors w-full ${isCurrent ? "bg-rose-50" : "hover:bg-gray-50"}">
+              <img src="/assets/images/templates/${t.template_name}.jpg" alt="${t.display_name}"
+                class="w-16 h-24 rounded-xl object-cover object-top flex-shrink-0 border-2 ${isCurrent ? "border-rose-400" : "border-gray-200"}"
+                loading="lazy" onerror="this.style.background='#f3f4f6'" />
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium ${isCurrent ? "text-rose-600" : "text-gray-800"}">${t.display_name}</p>
+                ${t.description ? `<p class="text-xs text-gray-400 mt-0.5 line-clamp-2">${t.description}</p>` : ""}
+                <div class="flex items-center gap-1.5 mt-1">
+                  <span class="text-xs font-semibold text-rose-500">${t.price.toLocaleString("vi-VN")}đ</span>
+                  ${t.originalPrice > t.price ? `<span class="text-[11px] text-gray-400 line-through">${t.originalPrice.toLocaleString("vi-VN")}đ</span>` : ""}
+                </div>
+              </div>
+              ${isCurrent
+                ? `<span class="flex-shrink-0 bg-rose-500 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full">Đang dùng</span>`
+                : `<svg class="flex-shrink-0 w-4 h-4 text-gray-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>`}
             </button>`;
           })
           .join("")}
       </div>`;
+
+    // Auto scroll đến mẫu đang dùng
+    requestAnimationFrame(() => {
+      const current = document.getElementById("theme-picker-current");
+      if (current) current.scrollIntoView({ block: "center", behavior: "smooth" });
+    });
   } catch {
     sheet.body.innerHTML = `<div class="text-center text-red-500 py-10 text-sm">Không thể tải danh sách mẫu. Vui lòng thử lại.</div>`;
   }
