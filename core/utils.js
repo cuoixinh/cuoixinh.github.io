@@ -269,7 +269,7 @@ function openImageCropModal(file, callback) {
   const sheet = openBottomSheet({
     id: 'crop-modal',
     title: 'Căn chỉnh ảnh QR Code',
-    height: '92vh',
+    height: '80vh',
     onClose: () => {
       if (window._currentCropper) {
         window._currentCropper.destroy();
@@ -283,8 +283,8 @@ function openImageCropModal(file, callback) {
   window._closeCropSheet = sheet.close;
 
   sheet.body.innerHTML = `
-    <div class="p-5 flex-1 flex flex-col">
-      <div class="bg-gray-100 rounded-xl overflow-hidden relative flex-1" style="min-height:260px">
+    <div class="p-5 flex-1 flex flex-col gap-3">
+      <div class="bg-gray-100 rounded-xl overflow-hidden relative flex-1" style="min-height:240px">
         <div id="crop-loading" class="absolute inset-0 flex items-center justify-center bg-gray-100">
           <div class="text-center">
             <div class="inline-block w-10 h-10 border-4 border-pink-500 border-t-transparent rounded-full animate-spin"></div>
@@ -293,13 +293,17 @@ function openImageCropModal(file, callback) {
         </div>
         <img id="crop-image" src="" alt="Crop" class="max-w-full opacity-0" />
       </div>
-      <p class="text-xs text-gray-400 mt-2.5 text-center">Dùng 2 ngón tay hoặc cuộn chuột để zoom, kéo để di chuyển</p>
+      <p class="text-xs text-gray-400 text-center">Dùng 2 ngón tay hoặc cuộn chuột để zoom, kéo để di chuyển</p>
+      <div class="flex items-center gap-3">
+        <p class="text-xs font-semibold text-gray-500 shrink-0">Xem trước</p>
+        <div id="crop-preview" class="w-16 h-16 rounded-xl overflow-hidden bg-gray-100 border border-rose-200 shrink-0"></div>
+      </div>
     </div>
   `;
   sheet.footer.innerHTML = `
     <div class="px-4 pb-4 flex gap-2">
       <button onclick="closeCropModal()" class="flex-1 h-10 border border-gray-200 rounded-xl text-sm text-gray-600 hover:bg-gray-50 transition-colors">Hủy</button>
-      <button onclick="applyCrop()" class="flex-1 h-10 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-xl text-sm font-semibold hover:from-pink-600 hover:to-rose-600 transition-all shadow-sm flex items-center justify-center gap-1.5">
+      <button onclick="applyCrop()" class="flex-1 h-10 bg-rose-500 hover:bg-rose-600 text-white rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-1.5">
         <i class="fas fa-check mr-1"></i>Áp dụng
       </button>
     </div>
@@ -318,7 +322,7 @@ function openImageCropModal(file, callback) {
 
       // Initialize Cropper.js after image is fully loaded
       const cropper = new Cropper(img, {
-        aspectRatio: 1, // 1:1 for QR codes
+        aspectRatio: 1,
         viewMode: 1,
         dragMode: "move",
         autoCropArea: 1,
@@ -331,6 +335,7 @@ function openImageCropModal(file, callback) {
         toggleDragModeOnDblclick: false,
         zoomOnWheel: true,
         zoomOnTouch: true,
+        preview: "#crop-preview",
       });
 
       // Store cropper instance globally
@@ -418,14 +423,14 @@ function _setupBottomSheetSwipe(cardEl, closeFn) {
  * @returns {{ body: HTMLElement, footer: HTMLElement, close: Function } | null}
  *   Returns null if a modal with that id already exists.
  */
-function openBottomSheet({ id, title, height = '92vh', onClose } = {}) {
+function openBottomSheet({ id, title, height = '80vh', onClose } = {}) {
   if (document.getElementById(id)) return null;
 
   const modal = document.createElement('div');
   modal.id = id;
   modal.className = 'fixed inset-0 bg-black/40 flex items-end justify-center z-[9999]';
   modal.innerHTML = `
-    <div id="${id}-card" class="bg-white rounded-t-2xl max-w-3xl w-full flex flex-col overflow-hidden shadow-2xl" style="height:${height}">
+    <div id="${id}-card" class="bg-white rounded-t-2xl max-w-3xl w-full flex flex-col overflow-hidden shadow-2xl" style="height:${height}"><!-- dvh override below -->
       <div class="flex justify-center items-center pt-2.5 pb-1 flex-shrink-0">
         <span class="w-10 h-1.5 rounded-full bg-gray-300"></span>
       </div>
@@ -445,6 +450,7 @@ function openBottomSheet({ id, title, height = '92vh', onClose } = {}) {
   document.body.style.overflow = 'hidden';
 
   const card  = document.getElementById(`${id}-card`);
+  card.style.height = height.replace('vh', 'dvh'); // dvh recalculates when browser UI shows/hides
   const body  = document.getElementById(`${id}-body`);
   const footer = document.getElementById(`${id}-footer`);
 
@@ -516,7 +522,7 @@ function openFocalPointPicker(imageSource, currentFocal, callback) {
   const sheet = openBottomSheet({
     id: 'focal-modal',
     title: 'Căn chỉnh khung hình',
-    height: '92vh',
+    height: '80vh',
     onClose: () => {
       window._focalPickerCallback = null;
       window._focalPickerReset = null;
@@ -528,15 +534,15 @@ function openFocalPointPicker(imageSource, currentFocal, callback) {
   window._closeFocalSheet = sheet.close;
 
   sheet.body.innerHTML = `
-    <div class="p-5 space-y-5 overflow-y-auto overscroll-contain flex-1">
-      <div>
-        <div id="focal-image-wrap" class="relative rounded-xl overflow-hidden bg-gray-100 cursor-crosshair select-none touch-none h-[260px] sm:h-[320px]">
+    <div class="flex flex-col flex-1 min-h-0 p-5 gap-4">
+      <div class="flex flex-col flex-1 min-h-0 gap-2">
+        <div id="focal-image-wrap" class="relative rounded-xl overflow-hidden bg-gray-100 cursor-crosshair select-none touch-none flex-1 min-h-0">
           <img id="focal-image" src="" alt="" class="w-full h-full object-contain block pointer-events-none select-none" draggable="false" />
           <div id="focal-marker" class="absolute w-6 h-6 -ml-3 -mt-3 rounded-full border-2 border-white shadow-lg pointer-events-none" style="left:50%;top:50%;background-color:var(--primary);"></div>
         </div>
-        <p class="text-xs text-gray-500 mt-2">Chạm hoặc kéo điểm đến phần quan trọng nhất (VD: khuôn mặt) để ảnh đẹp ở mọi tỉ lệ.</p>
+        <p class="text-xs text-gray-500 flex-shrink-0">Chạm hoặc kéo điểm đến phần quan trọng nhất (VD: khuôn mặt) để ảnh đẹp ở mọi tỉ lệ.</p>
       </div>
-      <div>
+      <div class="flex-shrink-0">
         <p class="text-xs font-semibold text-gray-500 mb-2">Xem trước các tỉ lệ</p>
         <div class="grid grid-cols-3 gap-3">
           <div>
@@ -569,7 +575,7 @@ function openFocalPointPicker(imageSource, currentFocal, callback) {
       </button>
       <div class="flex gap-2">
         <button onclick="closeFocalPointPicker()" class="h-10 px-4 border border-gray-200 rounded-xl text-sm text-gray-600 hover:bg-gray-50 transition-colors">Hủy</button>
-        <button onclick="confirmFocalPoint()" class="h-10 px-5 rounded-xl text-sm font-semibold text-white hover:opacity-90 transition-opacity flex items-center gap-1.5" style="background-color:var(--primary);">
+        <button onclick="confirmFocalPoint()" class="h-10 px-5 rounded-xl text-sm font-semibold text-white bg-rose-500 hover:bg-rose-600 transition-colors flex items-center gap-1.5">
           <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
           Áp dụng
         </button>
@@ -880,6 +886,7 @@ function closeTimePicker() {
     } catch (e) {}
     sessionStorage.setItem("draft_theme", themeName);
     sessionStorage.setItem("draft_template_name", themeDisplay);
+    sessionStorage.setItem("show_tour", "1");
     window.location.href = "/invitation-setup/?id=" + uuid;
   }
 

@@ -84,7 +84,7 @@ function openMapPicker(side) {
   const sheet = openBottomSheet({
     id: 'map-picker-modal',
     title: `<svg class="w-4 h-4 text-color-secondary flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>Chọn địa điểm — ${sideLabel}`,
-    height: '92vh',
+    height: '80vh',
     onClose: () => {
       document.removeEventListener("click", _onClickOutsideSuggestions);
       if (_leafletMap) { _leafletMap.remove(); _leafletMap = null; _leafletMarker = null; }
@@ -134,7 +134,7 @@ function openMapPicker(side) {
     </div>
     <div class="px-4 pb-3 flex gap-2">
       <button onclick="closeMapPicker()" class="flex-1 h-10 border border-gray-200 rounded-xl text-sm text-gray-600 hover:bg-gray-50 transition-colors">Hủy</button>
-      <button onclick="applyMapPicker('${side}')" class="flex-1 h-10 rounded-xl text-sm font-semibold text-white transition-colors flex items-center justify-center gap-1.5" style="background-color:var(--primary)">
+      <button onclick="applyMapPicker('${side}')" class="flex-1 h-10 rounded-xl text-sm font-semibold text-white bg-rose-500 hover:bg-rose-600 transition-colors flex items-center justify-center gap-1.5">
         <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Dùng vị trí này
       </button>
     </div>

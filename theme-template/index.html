@@ -4,14 +4,22 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Cưới Xinh — Mẫu Thiệp Cưới Đẹp</title>
-    <script>document.title = `Cưới Xinh — Mẫu Thiệp Cưới Đẹp ${new Date().getFullYear()}`;</script>
-    <meta name="description" content="Bộ sưu tập mẫu thiệp cưới online đẹp, tinh tế. Xem thử trực tiếp trước khi tạo. Dùng thử miễn phí, ưng ý mới thanh toán và dùng trọn đời." />
+    <script>
+      document.title = `Cưới Xinh — Mẫu Thiệp Cưới Đẹp ${new Date().getFullYear()}`;
+    </script>
+    <meta
+      name="description"
+      content="Bộ sưu tập mẫu thiệp cưới online đẹp, tinh tế. Xem thử trực tiếp trước khi tạo. Dùng thử miễn phí, ưng ý mới thanh toán và dùng trọn đời."
+    />
 
     <link rel="icon" type="image/png" href="../assets/icons/logo.png" />
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Inter:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
 
     <script>
       tailwind.config = {
@@ -28,17 +36,19 @@
 
     <style>
       :root {
-        --primary: #ec829e;  /* pink-deep — same as homepage */
-        --mauve:   #ad7a87;
-        --dark:    #5a3a45;  /* mauve-dark */
+        --primary: #ec829e; /* pink-deep — same as homepage */
+        --mauve: #ad7a87;
+        --dark: #5a3a45; /* mauve-dark */
         --pink-lt: rgb(255, 183, 202);
-        --bg:      #fffaf7;
-        --fg:      #2d1929;
-        --muted:   rgba(90, 58, 69, 0.55);
-        --border:  rgba(236, 130, 158, 0.25);
+        --bg: #fffaf7;
+        --fg: #2d1929;
+        --muted: rgba(90, 58, 69, 0.55);
+        --border: rgba(236, 130, 158, 0.25);
       }
 
-      * { box-sizing: border-box; }
+      * {
+        box-sizing: border-box;
+      }
       body {
         font-family: "Inter", sans-serif;
         color: var(--fg);
@@ -47,39 +57,62 @@
 
       /* ─── Shimmer ─── */
       @keyframes shimmer {
-        0%   { transform: translateX(-100%); }
-        100% { transform: translateX(100%); }
+        0% {
+          transform: translateX(-100%);
+        }
+        100% {
+          transform: translateX(100%);
+        }
       }
       .skeleton {
         background: linear-gradient(160deg, #fdf4f7, #fce8f1);
-        position: relative; overflow: hidden;
+        position: relative;
+        overflow: hidden;
       }
       .skeleton::after {
         content: "";
-        position: absolute; inset: 0;
-        background: linear-gradient(90deg, transparent 30%, rgba(255,255,255,0.55) 50%, transparent 70%);
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          90deg,
+          transparent 30%,
+          rgba(255, 255, 255, 0.55) 50%,
+          transparent 70%
+        );
         animation: shimmer 1.4s infinite;
       }
 
       /* ─── Nav ─── */
-      .nav-scrolled { box-shadow: 0 1px 24px rgba(200,100,130,0.1); }
-      .nav-link { position: relative; }
+      .nav-scrolled {
+        box-shadow: 0 1px 24px rgba(200, 100, 130, 0.1);
+      }
+      .nav-link {
+        position: relative;
+      }
       .nav-link::after {
         content: "";
-        position: absolute; left: 0; bottom: -2px;
-        width: 0; height: 1.5px;
+        position: absolute;
+        left: 0;
+        bottom: -2px;
+        width: 0;
+        height: 1.5px;
         background: var(--primary);
         transition: width 0.22s ease;
       }
-      .nav-link:hover::after, .nav-link.active::after { width: 100%; }
+      .nav-link:hover::after,
+      .nav-link.active::after {
+        width: 100%;
+      }
 
       /* ─── Dot grid overlay ─── */
       .dot-bg::before {
         content: "";
-        position: absolute; inset: 0; pointer-events: none;
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
         background-image:
-          linear-gradient(rgba(236,130,158,0.07) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(236,130,158,0.06) 1px, transparent 1px);
+          linear-gradient(rgba(236, 130, 158, 0.07) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(236, 130, 158, 0.06) 1px, transparent 1px);
         background-size: 32px 32px;
         z-index: 0;
       }
@@ -91,17 +124,26 @@
         overflow: hidden;
         border-radius: 10px;
         background: white;
-        border: 1px solid rgba(255,183,202,0.4);
-        box-shadow: 0 2px 8px rgba(200,100,130,0.05), 0 12px 32px -18px rgba(114,41,54,0.18);
-        transition: transform 0.26s ease, box-shadow 0.26s ease, border-color 0.26s ease;
+        border: 1px solid rgba(255, 183, 202, 0.4);
+        box-shadow:
+          0 2px 8px rgba(200, 100, 130, 0.05),
+          0 12px 32px -18px rgba(114, 41, 54, 0.18);
+        transition:
+          transform 0.26s ease,
+          box-shadow 0.26s ease,
+          border-color 0.26s ease;
       }
 
       .template-card:hover {
         transform: translateY(-5px);
-        border-color: rgba(236,130,158,0.45);
-        box-shadow: 0 4px 16px rgba(200,100,130,0.1), 0 24px 56px -24px rgba(114,41,54,0.28);
+        border-color: rgba(236, 130, 158, 0.45);
+        box-shadow:
+          0 4px 16px rgba(200, 100, 130, 0.1),
+          0 24px 56px -24px rgba(114, 41, 54, 0.28);
       }
-      .template-card:active { transform: scale(0.985); }
+      .template-card:active {
+        transform: scale(0.985);
+      }
 
       /* ─── Phone frame ─── */
       .phone-frame {
@@ -109,13 +151,18 @@
         margin: 0 auto;
         max-width: 185px;
         border-radius: 1rem;
-        border: 1.5px solid rgba(255,183,202,0.5);
+        border: 1.5px solid rgba(255, 183, 202, 0.5);
         background: white;
         padding: 5px;
-        box-shadow: 0 20px 52px -28px rgba(90,58,69,0.6), 0 4px 12px rgba(236,130,158,0.1);
+        box-shadow:
+          0 20px 52px -28px rgba(90, 58, 69, 0.6),
+          0 4px 12px rgba(236, 130, 158, 0.1);
       }
       @media (min-width: 640px) {
-        .phone-frame { max-width: 205px; border-radius: 1.1rem; }
+        .phone-frame {
+          max-width: 205px;
+          border-radius: 1.1rem;
+        }
       }
 
       /* ─── Phone screen 14:29 ─── */
@@ -127,85 +174,180 @@
         background: #fdf4f7;
         aspect-ratio: 14 / 29;
       }
-      @media (min-width: 640px) { .phone-screen { border-radius: 0.8rem; } }
+      @media (min-width: 640px) {
+        .phone-screen {
+          border-radius: 0.8rem;
+        }
+      }
 
       /* ─── Hover overlay (desktop) ─── */
       .card-hover-overlay {
-        position: absolute; inset: 0;
-        display: none; align-items: center; justify-content: center;
-        background: rgba(45,25,41,0.3);
+        position: absolute;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        background: rgba(45, 25, 41, 0.3);
         backdrop-filter: blur(2px);
         opacity: 0;
         transition: opacity 0.2s;
       }
-      @media (min-width: 640px) { .card-hover-overlay { display: flex; } }
-      .template-card:hover .card-hover-overlay { opacity: 1; }
-
+      @media (min-width: 640px) {
+        .card-hover-overlay {
+          display: flex;
+        }
+      }
+      .template-card:hover .card-hover-overlay {
+        opacity: 1;
+      }
 
       /* ─── FAQ ─── */
       .faq-body {
-        max-height: 0; overflow: hidden;
+        max-height: 0;
+        overflow: hidden;
         transition: max-height 0.32s ease;
       }
-      .faq-item.open .faq-body { max-height: 500px; }
-      .faq-chevron { transition: transform 0.22s ease; }
-      .faq-item.open .faq-chevron { transform: rotate(180deg); }
-      .faq-item.open { border-color: rgba(236,130,158,0.4) !important; }
+      .faq-item.open .faq-body {
+        max-height: 500px;
+      }
+      .faq-chevron {
+        transition: transform 0.22s ease;
+      }
+      .faq-item.open .faq-chevron {
+        transform: rotate(180deg);
+      }
+      .faq-item.open {
+        border-color: rgba(236, 130, 158, 0.4) !important;
+      }
 
-      html { scroll-behavior: smooth; }
+      html {
+        scroll-behavior: smooth;
+      }
     </style>
   </head>
 
   <body class="min-h-screen flex flex-col">
-
     <!-- ═══ HEADER NAV ═══ -->
-    <header id="main-header"
-            class="fixed top-0 left-0 right-0 z-50 transition-shadow"
-            style="background:rgba(255,250,247,0.97);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,183,202,0.25)">
+    <header
+      id="main-header"
+      class="fixed top-0 left-0 right-0 z-50 transition-shadow"
+      style="
+        background: rgba(255, 250, 247, 0.97);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(255, 183, 202, 0.25);
+      "
+    >
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-14">
-
           <a href="/" class="shrink-0">
-            <img src="../assets/icons/logo.png" alt="Cưới Xinh" class="h-9 w-auto" />
+            <img
+              src="../assets/icons/logo.png"
+              alt="Cưới Xinh"
+              class="h-9 w-auto"
+            />
           </a>
 
           <nav class="hidden md:flex items-center gap-7">
-            <a href="/" class="nav-link text-sm font-medium pb-0.5" style="color:var(--muted)">Trang chủ</a>
-            <a href="/theme-template/" class="nav-link active text-sm font-semibold pb-0.5" style="color:var(--primary)">Mẫu thiệp</a>
+            <a
+              href="/"
+              class="nav-link text-sm font-medium pb-0.5"
+              style="color: var(--muted)"
+              >Trang chủ</a
+            >
+            <a
+              href="/theme-template/"
+              class="nav-link active text-sm font-semibold pb-0.5"
+              style="color: var(--primary)"
+              >Mẫu thiệp</a
+            >
           </nav>
 
           <div class="hidden md:flex items-center gap-3">
-            <a href="/" class="text-sm font-medium px-3 h-9 rounded-md hover:bg-black/5 transition-colors flex items-center" style="color:var(--primary)">Đăng nhập</a>
-            <button onclick="startDraft()"
-               class="inline-flex items-center justify-center text-sm font-semibold px-4 h-9 rounded-md transition-opacity hover:opacity-85"
-               style="background:var(--primary);color:#fff;letter-spacing:0.01em">Bắt đầu miễn phí</button>
+            <a
+              href="/"
+              class="text-sm font-medium px-3 h-9 rounded-md hover:bg-black/5 transition-colors flex items-center"
+              style="color: var(--primary)"
+              >Đăng nhập</a
+            >
+            <button
+              onclick="startDraft()"
+              class="inline-flex items-center justify-center text-sm font-semibold px-4 h-9 rounded-md transition-opacity hover:opacity-85"
+              style="
+                background: var(--primary);
+                color: #fff;
+                letter-spacing: 0.01em;
+              "
+            >
+              Bắt đầu miễn phí
+            </button>
           </div>
 
           <div class="md:hidden">
-            <button onclick="startDraft()"
-               class="inline-flex items-center justify-center text-white h-9 rounded-full px-4 text-xs font-semibold hover:opacity-85"
-               style="background:var(--primary)">Tạo thiệp</button>
+            <button
+              onclick="startDraft()"
+              class="inline-flex items-center justify-center text-white h-9 rounded-full px-4 text-xs font-semibold hover:opacity-85"
+              style="background: var(--primary)"
+            >
+              Tạo thiệp
+            </button>
           </div>
         </div>
       </div>
     </header>
 
     <!-- ═══ MOBILE BOTTOM NAV ═══ -->
-    <nav class="fixed bottom-0 left-0 right-0 z-40 border-t md:hidden"
-         style="background:#fff;border-color:rgba(255,183,202,0.35)">
-      <div class="flex items-center justify-around px-2 pt-1.5"
-           style="padding-bottom:calc(0.5rem + env(safe-area-inset-bottom))">
-        <a href="/" class="flex flex-col items-center gap-0.5 px-4 py-1 text-[11px] font-medium" style="color:var(--muted)">
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+    <nav
+      class="fixed bottom-0 left-0 right-0 z-40 border-t md:hidden"
+      style="background: #fff; border-color: rgba(255, 183, 202, 0.35)"
+    >
+      <div
+        class="flex items-center justify-around px-2 pt-1.5"
+        style="padding-bottom: calc(0.5rem + env(safe-area-inset-bottom))"
+      >
+        <a
+          href="/"
+          class="flex flex-col items-center gap-0.5 px-4 py-1 text-[11px] font-medium"
+          style="color: var(--muted)"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+            <polyline points="9 22 9 12 15 12 15 22" />
           </svg>
           Trang chủ
         </a>
-        <a href="/theme-template/" class="flex flex-col items-center gap-0.5 px-4 py-1 text-[11px] font-semibold" style="color:var(--primary)">
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z"/>
-            <circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/>
-            <circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/>
+        <a
+          href="/theme-template/"
+          class="flex flex-col items-center gap-0.5 px-4 py-1 text-[11px] font-semibold"
+          style="color: var(--primary)"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path
+              d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z"
+            />
+            <circle cx="13.5" cy="6.5" r=".5" fill="currentColor" />
+            <circle cx="17.5" cy="10.5" r=".5" fill="currentColor" />
+            <circle cx="6.5" cy="12.5" r=".5" fill="currentColor" />
+            <circle cx="8.5" cy="7.5" r=".5" fill="currentColor" />
           </svg>
           Mẫu thiệp
         </a>
@@ -213,150 +355,462 @@
     </nav>
 
     <!-- ═══ PAGE BODY ═══ -->
-    <div class="flex-1" style="padding-top:56px;padding-bottom:68px">
-
+    <div class="flex-1" style="padding-top: 56px; padding-bottom: 68px">
       <!-- ─── HERO SECTION (centered) ─── -->
-      <section class="dot-bg relative overflow-hidden pt-10 pb-8 sm:pt-16 sm:pb-12"
-               style="background:var(--bg)">
+      <section
+        class="dot-bg relative overflow-hidden pt-10 sm:pt-16 sm:pb-8"
+        style="background: var(--bg)"
+      >
         <div class="relative z-10 max-w-3xl mx-auto px-4 sm:px-6 text-center">
-
           <!-- Eyebrow — small caps, gold line -->
           <div class="inline-flex items-center gap-3 mb-5">
-            <span class="h-px w-8 sm:w-12" style="background:var(--primary)"></span>
-            <span class="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.22em]" style="color:var(--primary)">Bộ sưu tập · Ra mắt <span id="hero-year"></span></span>
-            <span class="h-px w-8 sm:w-12" style="background:var(--primary)"></span>
+            <span
+              class="h-px w-8 sm:w-12"
+              style="background: var(--primary)"
+            ></span>
+            <span
+              class="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.22em]"
+              style="color: var(--primary)"
+              >Bộ sưu tập · Ra mắt <span id="hero-year"></span
+            ></span>
+            <span
+              class="h-px w-8 sm:w-12"
+              style="background: var(--primary)"
+            ></span>
           </div>
 
           <!-- H1 — Playfair italic -->
-          <h1 class="font-playfair text-[2rem] sm:text-4xl lg:text-5xl font-semibold leading-[1.12] mb-4" style="color:var(--primary)">
+          <h1
+            class="font-playfair text-[2rem] sm:text-4xl lg:text-5xl font-semibold leading-[1.12] mb-4"
+            style="color: var(--primary)"
+          >
             Mẫu thiệp cưới online<br class="hidden sm:block" />
-            <em class="not-italic" style="color:var(--fg)">xem trước khi tạo, ưng mới trả tiền</em>
+            <em class="not-italic" style="color: var(--fg)"
+              >xem trước khi tạo, ưng mới trả tiền</em
+            >
           </h1>
 
           <!-- Description -->
-          <p class="text-[14px] sm:text-[15px] leading-7 max-w-xl mx-auto mb-6" style="color:var(--muted)">
-            Mỗi mẫu thiệp được căn chỉnh kỹ từng chi tiết. Nhấn vào để <strong style="color:var(--fg);font-weight:600">xem trước</strong> — không cần đăng ký, không mất phí cho đến khi bạn thật sự <strong style="color:var(--fg);font-weight:600">ưng ý</strong>.
+          <p
+            class="text-[14px] sm:text-[15px] leading-7 max-w-xl mx-auto mb-6"
+            style="color: var(--muted)"
+          >
+            Mỗi mẫu thiệp được căn chỉnh kỹ từng chi tiết. Nhấn vào để
+            <strong style="color: var(--fg); font-weight: 600"
+              >xem trước</strong
+            >
+            — không cần đăng ký, không mất phí cho đến khi bạn thật sự
+            <strong style="color: var(--fg); font-weight: 600">ưng ý</strong>.
           </p>
 
           <!-- CTA -->
           <div class="mb-8">
-            <button onclick="startDraft()" class="inline-flex items-center gap-2 px-6 py-2.5 rounded-md text-sm font-semibold text-white hover:opacity-85 transition-opacity" style="background:var(--primary);box-shadow:0 8px 28px -12px rgba(90,58,69,0.6)">Chọn mẫu và bắt đầu
-              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+            <button
+              onclick="startDraft()"
+              class="inline-flex items-center gap-2 px-6 py-2.5 rounded-md text-sm font-semibold text-white hover:opacity-85 transition-opacity"
+              style="
+                background: var(--primary);
+                box-shadow: 0 8px 28px -12px rgba(90, 58, 69, 0.6);
+              "
+            >
+              Chọn mẫu và bắt đầu
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M5 12h14" />
+                <path d="m12 5 7 7-7 7" />
+              </svg>
             </button>
           </div>
 
           <!-- Inline stats strip -->
-          <div class="flex justify-center mb-2">
-          <div class="inline-flex items-center rounded-2xl" style="background:rgba(255,255,255,0.75);border:1px solid rgba(255,183,202,0.35);backdrop-filter:blur(8px);box-shadow:0 4px 20px -8px rgba(236,130,158,0.15)">
-            <div class="px-5 sm:px-8 py-3">
-              <p id="stat-tpl-num" class="font-playfair text-2xl sm:text-3xl font-semibold" style="color:var(--primary)">—</p>
-              <p class="text-[10px] sm:text-xs font-medium mt-0.5 uppercase tracking-wider" style="color:var(--muted)">mẫu thiệp</p>
-            </div>
-            <div class="h-8 w-px" style="background:rgba(236,130,158,0.3)"></div>
-            <div class="px-5 sm:px-8 py-3">
-              <p id="stat-usage-num" class="font-playfair text-2xl sm:text-3xl font-semibold" style="color:var(--primary)">—</p>
-              <p class="text-[10px] sm:text-xs font-medium mt-0.5 uppercase tracking-wider" style="color:var(--muted)">thiệp đã gửi đi</p>
-            </div>
-            <div class="h-8 w-px" style="background:rgba(236,130,158,0.3)"></div>
-            <div class="px-5 sm:px-8 py-3">
-              <p class="font-playfair text-2xl sm:text-3xl font-semibold" style="color:var(--primary)">∞</p>
-              <p class="text-[10px] sm:text-xs font-medium mt-0.5 uppercase tracking-wider" style="color:var(--muted)">đổi mẫu thoải mái</p>
+          <div class="hidden sm:flex justify-center mb-2">
+            <div
+              class="inline-flex items-center rounded-2xl"
+              style="
+                background: rgba(255, 255, 255, 0.75);
+                border: 1px solid rgba(255, 183, 202, 0.35);
+                backdrop-filter: blur(8px);
+                box-shadow: 0 4px 20px -8px rgba(236, 130, 158, 0.15);
+              "
+            >
+              <div class="px-5 sm:px-8 py-3">
+                <p
+                  id="stat-tpl-num"
+                  class="font-playfair text-2xl sm:text-3xl font-semibold"
+                  style="color: var(--primary)"
+                >
+                  —
+                </p>
+                <p
+                  class="text-[10px] sm:text-xs font-medium mt-0.5 uppercase tracking-wider"
+                  style="color: var(--muted)"
+                >
+                  mẫu thiệp
+                </p>
+              </div>
+              <div
+                class="h-8 w-px"
+                style="background: rgba(236, 130, 158, 0.3)"
+              ></div>
+              <div class="px-5 sm:px-8 py-3">
+                <p
+                  id="stat-usage-num"
+                  class="font-playfair text-2xl sm:text-3xl font-semibold"
+                  style="color: var(--primary)"
+                >
+                  —
+                </p>
+                <p
+                  class="text-[10px] sm:text-xs font-medium mt-0.5 uppercase tracking-wider"
+                  style="color: var(--muted)"
+                >
+                  lượt tạo thiệp
+                </p>
+              </div>
+              <div
+                class="h-8 w-px"
+                style="background: rgba(236, 130, 158, 0.3)"
+              ></div>
+              <div class="px-5 sm:px-8 py-3">
+                <p
+                  class="font-playfair text-2xl sm:text-3xl font-semibold"
+                  style="color: var(--primary)"
+                >
+                  ∞
+                </p>
+                <p
+                  class="text-[10px] sm:text-xs font-medium mt-0.5 uppercase tracking-wider"
+                  style="color: var(--muted)"
+                >
+                  đổi mẫu thoải mái
+                </p>
+              </div>
             </div>
           </div>
-          </div>
-
         </div>
 
         <!-- Decorative floral corners (line-art, no color) -->
-        <svg class="pointer-events-none absolute top-0 left-0 w-40 sm:w-56 opacity-[0.07]" viewBox="0 0 220 220" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M20 200 Q60 120 120 80 Q160 50 200 20" stroke="#ec829e" stroke-width="1"/>
-          <path d="M10 180 Q50 130 100 100 Q140 76 180 30" stroke="#ec829e" stroke-width="0.8"/>
-          <circle cx="80" cy="140" r="18" stroke="#ec829e" stroke-width="0.8"/>
-          <circle cx="80" cy="140" r="10" stroke="#ec829e" stroke-width="0.6"/>
-          <path d="M80 122 Q95 110 110 122" stroke="#ec829e" stroke-width="0.7"/>
-          <path d="M60 148 Q48 158 52 172" stroke="#ec829e" stroke-width="0.7"/>
-          <path d="M100 148 Q112 158 108 172" stroke="#ec829e" stroke-width="0.7"/>
-          <path d="M140 60 Q155 50 150 35 Q145 50 130 55 Q145 52 140 60Z" stroke="#ec829e" stroke-width="0.7"/>
-          <path d="M155 45 Q165 32 162 20 Q158 32 148 38" stroke="#ec829e" stroke-width="0.6"/>
+        <svg
+          class="pointer-events-none absolute top-0 left-0 w-40 sm:w-56 opacity-[0.07]"
+          viewBox="0 0 220 220"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M20 200 Q60 120 120 80 Q160 50 200 20"
+            stroke="#ec829e"
+            stroke-width="1"
+          />
+          <path
+            d="M10 180 Q50 130 100 100 Q140 76 180 30"
+            stroke="#ec829e"
+            stroke-width="0.8"
+          />
+          <circle cx="80" cy="140" r="18" stroke="#ec829e" stroke-width="0.8" />
+          <circle cx="80" cy="140" r="10" stroke="#ec829e" stroke-width="0.6" />
+          <path
+            d="M80 122 Q95 110 110 122"
+            stroke="#ec829e"
+            stroke-width="0.7"
+          />
+          <path
+            d="M60 148 Q48 158 52 172"
+            stroke="#ec829e"
+            stroke-width="0.7"
+          />
+          <path
+            d="M100 148 Q112 158 108 172"
+            stroke="#ec829e"
+            stroke-width="0.7"
+          />
+          <path
+            d="M140 60 Q155 50 150 35 Q145 50 130 55 Q145 52 140 60Z"
+            stroke="#ec829e"
+            stroke-width="0.7"
+          />
+          <path
+            d="M155 45 Q165 32 162 20 Q158 32 148 38"
+            stroke="#ec829e"
+            stroke-width="0.6"
+          />
         </svg>
-        <svg class="pointer-events-none absolute bottom-0 right-0 w-40 sm:w-56 opacity-[0.07]" viewBox="0 0 220 220" fill="none" xmlns="http://www.w3.org/2000/svg" style="transform:rotate(180deg)">
-          <path d="M20 200 Q60 120 120 80 Q160 50 200 20" stroke="#ec829e" stroke-width="1"/>
-          <path d="M10 180 Q50 130 100 100 Q140 76 180 30" stroke="#ec829e" stroke-width="0.8"/>
-          <circle cx="80" cy="140" r="18" stroke="#ec829e" stroke-width="0.8"/>
-          <circle cx="80" cy="140" r="10" stroke="#ec829e" stroke-width="0.6"/>
-          <path d="M80 122 Q95 110 110 122" stroke="#ec829e" stroke-width="0.7"/>
-          <path d="M140 60 Q155 50 150 35 Q145 50 130 55 Q145 52 140 60Z" stroke="#ec829e" stroke-width="0.7"/>
+        <svg
+          class="pointer-events-none absolute bottom-0 right-0 w-40 sm:w-56 opacity-[0.07]"
+          viewBox="0 0 220 220"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          style="transform: rotate(180deg)"
+        >
+          <path
+            d="M20 200 Q60 120 120 80 Q160 50 200 20"
+            stroke="#ec829e"
+            stroke-width="1"
+          />
+          <path
+            d="M10 180 Q50 130 100 100 Q140 76 180 30"
+            stroke="#ec829e"
+            stroke-width="0.8"
+          />
+          <circle cx="80" cy="140" r="18" stroke="#ec829e" stroke-width="0.8" />
+          <circle cx="80" cy="140" r="10" stroke="#ec829e" stroke-width="0.6" />
+          <path
+            d="M80 122 Q95 110 110 122"
+            stroke="#ec829e"
+            stroke-width="0.7"
+          />
+          <path
+            d="M140 60 Q155 50 150 35 Q145 50 130 55 Q145 52 140 60Z"
+            stroke="#ec829e"
+            stroke-width="0.7"
+          />
         </svg>
       </section>
 
       <!-- ─── FEATURE ROW (desktop only) ─── -->
-      <div class="hidden sm:block border-y" style="border-color:rgba(255,183,202,0.3);background:rgba(255,255,255,0.6)">
+      <div
+        class="hidden sm:block border-y"
+        style="
+          border-color: rgba(255, 183, 202, 0.3);
+          background: rgba(255, 255, 255, 0.6);
+        "
+      >
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
-          <div style="display:grid;grid-template-columns:1fr auto 1fr auto 1fr auto 1fr;grid-template-rows:auto auto auto;align-items:start">
-
+          <div
+            style="
+              display: grid;
+              grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr;
+              grid-template-rows: auto auto auto;
+              align-items: start;
+            "
+          >
             <!-- item 1 -->
-            <div style="display:grid;grid-template-rows:subgrid;grid-row:span 3;padding:0 1.25rem;gap:0">
+            <div
+              style="
+                display: grid;
+                grid-template-rows: subgrid;
+                grid-row: span 3;
+                padding: 0 1.25rem;
+                gap: 0;
+              "
+            >
               <div class="flex items-center gap-2.5 mb-2">
-                <div class="shrink-0 w-7 h-7 flex items-center justify-center rounded-full" style="background:rgba(236,130,158,0.1)">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--primary)">
-                    <path d="m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72"/>
-                    <path d="m14 7 3 3"/><path d="M5 6v4"/><path d="M19 14v4"/><path d="M10 2v2"/><path d="M7 8H3"/><path d="M21 16h-4"/><path d="M11 3H9"/>
+                <div
+                  class="shrink-0 w-7 h-7 flex items-center justify-center rounded-full"
+                  style="background: rgba(236, 130, 158, 0.1)"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    style="color: var(--primary)"
+                  >
+                    <path
+                      d="m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72"
+                    />
+                    <path d="m14 7 3 3" />
+                    <path d="M5 6v4" />
+                    <path d="M19 14v4" />
+                    <path d="M10 2v2" />
+                    <path d="M7 8H3" />
+                    <path d="M21 16h-4" />
+                    <path d="M11 3H9" />
                   </svg>
                 </div>
-                <p class="text-sm font-semibold leading-snug" style="color:var(--fg)">Làm quen trong 5 phút</p>
+                <p
+                  class="text-sm font-semibold leading-snug"
+                  style="color: var(--fg)"
+                >
+                  Làm quen trong 5 phút
+                </p>
               </div>
-              <p class="text-xs leading-relaxed" style="color:var(--muted)">Điền thông tin đám cưới, xem kết quả ngay — không cần hướng dẫn.</p>
+              <p class="text-xs leading-relaxed" style="color: var(--muted)">
+                Điền thông tin đám cưới, xem kết quả ngay — không cần hướng dẫn.
+              </p>
             </div>
 
             <!-- divider -->
-            <div style="grid-row:span 3;width:1px;background:rgba(255,183,202,0.45);align-self:stretch"></div>
+            <div
+              style="
+                grid-row: span 3;
+                width: 1px;
+                background: rgba(255, 183, 202, 0.45);
+                align-self: stretch;
+              "
+            ></div>
 
             <!-- item 2 -->
-            <div style="display:grid;grid-template-rows:subgrid;grid-row:span 3;padding:0 1.25rem;gap:0">
+            <div
+              style="
+                display: grid;
+                grid-template-rows: subgrid;
+                grid-row: span 3;
+                padding: 0 1.25rem;
+                gap: 0;
+              "
+            >
               <div class="flex items-center gap-2.5 mb-2">
-                <div class="shrink-0 w-7 h-7 flex items-center justify-center rounded-full" style="background:rgba(236,130,158,0.1)">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--primary)">
-                    <path d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z"/>
-                    <circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/>
+                <div
+                  class="shrink-0 w-7 h-7 flex items-center justify-center rounded-full"
+                  style="background: rgba(236, 130, 158, 0.1)"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    style="color: var(--primary)"
+                  >
+                    <path
+                      d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z"
+                    />
+                    <circle cx="13.5" cy="6.5" r=".5" fill="currentColor" />
+                    <circle cx="17.5" cy="10.5" r=".5" fill="currentColor" />
+                    <circle cx="6.5" cy="12.5" r=".5" fill="currentColor" />
+                    <circle cx="8.5" cy="7.5" r=".5" fill="currentColor" />
                   </svg>
                 </div>
-                <p class="text-sm font-semibold leading-snug" style="color:var(--fg)">Thiết kế hoàn thiện từ đầu</p>
+                <p
+                  class="text-sm font-semibold leading-snug"
+                  style="color: var(--fg)"
+                >
+                  Thiết kế hoàn thiện từ đầu
+                </p>
               </div>
-              <p class="text-xs leading-relaxed" style="color:var(--muted)">Font chữ, layout và hiệu ứng đã được tinh chỉnh — bạn chỉ cần điền nội dung.</p>
+              <p class="text-xs leading-relaxed" style="color: var(--muted)">
+                Font chữ, layout và hiệu ứng đã được tinh chỉnh — bạn chỉ cần
+                điền nội dung.
+              </p>
             </div>
 
             <!-- divider -->
-            <div style="grid-row:span 3;width:1px;background:rgba(255,183,202,0.45);align-self:stretch"></div>
+            <div
+              style="
+                grid-row: span 3;
+                width: 1px;
+                background: rgba(255, 183, 202, 0.45);
+                align-self: stretch;
+              "
+            ></div>
 
             <!-- item 3 -->
-            <div style="display:grid;grid-template-rows:subgrid;grid-row:span 3;padding:0 1.25rem;gap:0">
+            <div
+              style="
+                display: grid;
+                grid-template-rows: subgrid;
+                grid-row: span 3;
+                padding: 0 1.25rem;
+                gap: 0;
+              "
+            >
               <div class="flex items-center gap-2.5 mb-2">
-                <div class="shrink-0 w-7 h-7 flex items-center justify-center rounded-full" style="background:rgba(236,130,158,0.1)">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--primary)">
-                    <path d="M19.414 14.414C21 12.828 22 11.5 22 9.5a5.5 5.5 0 0 0-9.591-3.676.6.6 0 0 1-.818.001A5.5 5.5 0 0 0 2 9.5c0 2.3 1.5 4 3 5.5l5.535 5.362a2 2 0 0 0 2.879.052 2.12 2.12 0 0 0-.004-3 2.124 2.124 0 1 0 3-3 2.124 2.124 0 0 0 3.004 0 2 2 0 0 0 0-2.828l-1.881-1.882a2.41 2.41 0 0 0-3.409 0l-1.71 1.71a2 2 0 0 1-2.828 0 2 2 0 0 1 0-2.828l2.823-2.762"/>
+                <div
+                  class="shrink-0 w-7 h-7 flex items-center justify-center rounded-full"
+                  style="background: rgba(236, 130, 158, 0.1)"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    style="color: var(--primary)"
+                  >
+                    <path
+                      d="M19.414 14.414C21 12.828 22 11.5 22 9.5a5.5 5.5 0 0 0-9.591-3.676.6.6 0 0 1-.818.001A5.5 5.5 0 0 0 2 9.5c0 2.3 1.5 4 3 5.5l5.535 5.362a2 2 0 0 0 2.879.052 2.12 2.12 0 0 0-.004-3 2.124 2.124 0 1 0 3-3 2.124 2.124 0 0 0 3.004 0 2 2 0 0 0 0-2.828l-1.881-1.882a2.41 2.41 0 0 0-3.409 0l-1.71 1.71a2 2 0 0 1-2.828 0 2 2 0 0 1 0-2.828l2.823-2.762"
+                    />
                   </svg>
                 </div>
-                <p class="text-sm font-semibold leading-snug" style="color:var(--fg)">Mỗi khách một link riêng</p>
+                <p
+                  class="text-sm font-semibold leading-snug"
+                  style="color: var(--fg)"
+                >
+                  Mỗi khách một link riêng
+                </p>
               </div>
-              <p class="text-xs leading-relaxed" style="color:var(--muted)">Gửi link có tên khách, lời nhắn và form xác nhận — tất cả trong một.</p>
+              <p class="text-xs leading-relaxed" style="color: var(--muted)">
+                Gửi link có tên khách, lời nhắn và form xác nhận — tất cả trong
+                một.
+              </p>
             </div>
 
             <!-- divider -->
-            <div style="grid-row:span 3;width:1px;background:rgba(255,183,202,0.45);align-self:stretch"></div>
+            <div
+              style="
+                grid-row: span 3;
+                width: 1px;
+                background: rgba(255, 183, 202, 0.45);
+                align-self: stretch;
+              "
+            ></div>
 
             <!-- item 4 -->
-            <div style="display:grid;grid-template-rows:subgrid;grid-row:span 3;padding:0 1.25rem;gap:0">
+            <div
+              style="
+                display: grid;
+                grid-template-rows: subgrid;
+                grid-row: span 3;
+                padding: 0 1.25rem;
+                gap: 0;
+              "
+            >
               <div class="flex items-center gap-2.5 mb-2">
-                <div class="shrink-0 w-7 h-7 flex items-center justify-center rounded-full" style="background:rgba(236,130,158,0.1)">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--primary)">
-                    <path d="M6 16c5 0 7-8 12-8a4 4 0 0 1 0 8c-5 0-7-8-12-8a4 4 0 1 0 0 8"/>
+                <div
+                  class="shrink-0 w-7 h-7 flex items-center justify-center rounded-full"
+                  style="background: rgba(236, 130, 158, 0.1)"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    style="color: var(--primary)"
+                  >
+                    <path
+                      d="M6 16c5 0 7-8 12-8a4 4 0 0 1 0 8c-5 0-7-8-12-8a4 4 0 1 0 0 8"
+                    />
                   </svg>
                 </div>
-                <p class="text-sm font-semibold leading-snug" style="color:var(--fg)">Thanh toán một lần, dùng mãi</p>
+                <p
+                  class="text-sm font-semibold leading-snug"
+                  style="color: var(--fg)"
+                >
+                  Thanh toán một lần, dùng mãi
+                </p>
               </div>
-              <p class="text-xs leading-relaxed" style="color:var(--muted)">Không phí theo tháng, không giới hạn lượt truy cập, đổi mẫu bất kỳ lúc nào.</p>
+              <p class="text-xs leading-relaxed" style="color: var(--muted)">
+                Không phí theo tháng, không giới hạn lượt truy cập, đổi mẫu bất
+                kỳ lúc nào.
+              </p>
             </div>
-
           </div>
         </div>
       </div>
@@ -364,19 +818,32 @@
       <!-- ─── GALLERY SECTION ─── -->
       <section class="py-8 sm:py-12">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-
           <!-- Section label -->
           <div class="flex items-center gap-4 mb-6 sm:mb-8">
-            <span class="h-px flex-1" style="background:rgba(255,183,202,0.35)"></span>
-            <p class="text-xs font-semibold uppercase tracking-[0.2em]" style="color:var(--muted)">Bộ sưu tập</p>
-            <span class="h-px flex-1" style="background:rgba(255,183,202,0.35)"></span>
+            <span
+              class="h-px flex-1"
+              style="background: rgba(255, 183, 202, 0.35)"
+            ></span>
+            <p
+              class="text-xs font-semibold uppercase tracking-[0.2em]"
+              style="color: var(--muted)"
+            >
+              Bộ sưu tập
+            </p>
+            <span
+              class="h-px flex-1"
+              style="background: rgba(255, 183, 202, 0.35)"
+            ></span>
           </div>
 
           <!-- Grid -->
-          <div id="template-gallery" class="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4">
+          <div
+            id="template-gallery"
+            class="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4"
+          >
             <!-- Skeletons -->
             <div class="template-card">
-              <div class="skeleton" style="aspect-ratio:3/4"></div>
+              <div class="skeleton" style="aspect-ratio: 9/16"></div>
               <div class="p-3 sm:p-4 space-y-2">
                 <div class="skeleton h-3.5 rounded w-3/4"></div>
                 <div class="skeleton h-2.5 rounded w-full"></div>
@@ -384,7 +851,7 @@
               </div>
             </div>
             <div class="template-card">
-              <div class="skeleton" style="aspect-ratio:3/4"></div>
+              <div class="skeleton" style="aspect-ratio: 9/16"></div>
               <div class="p-3 sm:p-4 space-y-2">
                 <div class="skeleton h-3.5 rounded w-3/4"></div>
                 <div class="skeleton h-2.5 rounded w-full"></div>
@@ -392,7 +859,7 @@
               </div>
             </div>
             <div class="template-card hidden sm:block">
-              <div class="skeleton" style="aspect-ratio:3/4"></div>
+              <div class="skeleton" style="aspect-ratio: 9/16"></div>
               <div class="p-3 sm:p-4 space-y-2">
                 <div class="skeleton h-3.5 rounded w-3/4"></div>
                 <div class="skeleton h-2.5 rounded w-full"></div>
@@ -400,7 +867,7 @@
               </div>
             </div>
             <div class="template-card hidden lg:block">
-              <div class="skeleton" style="aspect-ratio:3/4"></div>
+              <div class="skeleton" style="aspect-ratio: 9/16"></div>
               <div class="p-3 sm:p-4 space-y-2">
                 <div class="skeleton h-3.5 rounded w-3/4"></div>
                 <div class="skeleton h-2.5 rounded w-full"></div>
@@ -411,204 +878,415 @@
 
           <!-- Empty state -->
           <div id="empty-state" class="hidden text-center py-20">
-            <p class="font-playfair text-lg mb-2" style="color:var(--primary)">Chưa có mẫu nào</p>
-            <p class="text-sm" style="color:var(--muted)">Bộ sưu tập sẽ sớm được cập nhật.</p>
+            <p class="font-playfair text-lg mb-2" style="color: var(--primary)">
+              Chưa có mẫu nào
+            </p>
+            <p class="text-sm" style="color: var(--muted)">
+              Bộ sưu tập sẽ sớm được cập nhật.
+            </p>
           </div>
-
         </div>
       </section>
 
       <!-- ─── CTA — full-bleed wine section ─── -->
-      <section style="background:linear-gradient(135deg,#ec829e,#d4668a)">
+      <section style="background: linear-gradient(135deg, #ec829e, #d4668a)">
         <div class="max-w-3xl mx-auto px-4 sm:px-6 py-12 sm:py-16 text-center">
-          <p class="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.22em] mb-3" style="color:rgba(255,255,255,0.55)">Miễn phí cho đến khi bạn sẵn sàng</p>
-          <h2 class="font-playfair text-[1.5rem] sm:text-2xl lg:text-3xl font-semibold leading-snug mb-3" style="color:#fff">
+          <p
+            class="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.22em] mb-3"
+            style="color: rgba(255, 255, 255, 0.55)"
+          >
+            Miễn phí cho đến khi bạn sẵn sàng
+          </p>
+          <h2
+            class="font-playfair text-[1.5rem] sm:text-2xl lg:text-3xl font-semibold leading-snug mb-3"
+            style="color: #fff"
+          >
             Chọn mẫu, tạo thử, đổi thoải mái — chỉ trả khi thật sự ưng
           </h2>
-          <p class="text-sm sm:text-[15px] leading-relaxed mb-7" style="color:rgba(255,255,255,0.65)">
-            Tạo bản nháp không giới hạn thời gian. Khi đổi sang mẫu khác, ảnh và thông tin đám cưới vẫn giữ nguyên — không cần nhập lại.
+          <p
+            class="text-sm sm:text-[15px] leading-relaxed mb-7"
+            style="color: rgba(255, 255, 255, 0.65)"
+          >
+            Tạo bản nháp không giới hạn thời gian. Khi đổi sang mẫu khác, ảnh và
+            thông tin đám cưới vẫn giữ nguyên — không cần nhập lại.
           </p>
-          <button onclick="startDraft()"
-             class="inline-flex items-center gap-2 px-6 py-3 rounded-md text-sm font-semibold hover:opacity-90 transition-opacity"
-             style="background:#fff;color:#ec829e;box-shadow:0 4px 20px rgba(114,41,54,0.22)">
+          <button
+            onclick="startDraft()"
+            class="inline-flex items-center gap-2 px-6 py-3 rounded-md text-sm font-semibold hover:opacity-90 transition-opacity"
+            style="
+              background: #fff;
+              color: #ec829e;
+              box-shadow: 0 4px 20px rgba(114, 41, 54, 0.22);
+            "
+          >
             Xem mẫu và tạo thử
-            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="15"
+              height="15"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M5 12h14" />
+              <path d="m12 5 7 7-7 7" />
+            </svg>
           </button>
         </div>
       </section>
 
       <!-- ─── FAQ ─── -->
-      <section class="py-10 sm:py-16" style="background:var(--bg);border-top:1px solid rgba(255,183,202,0.3)" aria-labelledby="faq-heading">
+      <section
+        class="py-10 sm:py-16"
+        style="
+          background: var(--bg);
+          border-top: 1px solid rgba(255, 183, 202, 0.3);
+        "
+        aria-labelledby="faq-heading"
+      >
         <div class="max-w-2xl mx-auto px-4 sm:px-6">
-
           <!-- Heading centered -->
           <div class="text-center mb-8 sm:mb-10">
-
-            <h2 id="faq-heading" class="font-playfair text-[1.4rem] sm:text-2xl font-semibold" style="color:var(--primary)">
+            <h2
+              id="faq-heading"
+              class="font-playfair text-[1.4rem] sm:text-2xl font-semibold"
+              style="color: var(--primary)"
+            >
               Câu hỏi thường gặp
             </h2>
-            <p class="mt-2 text-sm" style="color:var(--muted)">Giải đáp nhanh các thắc mắc phổ biến trước khi bắt đầu.</p>
+            <p class="mt-2 text-sm" style="color: var(--muted)">
+              Giải đáp nhanh các thắc mắc phổ biến trước khi bắt đầu.
+            </p>
           </div>
 
           <!-- Accordion full-width -->
           <div class="space-y-2">
-
-            <div class="faq-item border rounded-lg bg-white overflow-hidden" style="border-color:rgba(255,183,202,0.35)">
-              <button type="button" onclick="toggleFaq(this)"
-                      class="w-full flex items-center justify-between px-5 py-4 text-left text-[13px] sm:text-sm font-semibold"
-                      style="color:var(--fg)">
+            <div
+              class="faq-item border rounded-lg bg-white overflow-hidden"
+              style="border-color: rgba(255, 183, 202, 0.35)"
+            >
+              <button
+                type="button"
+                onclick="toggleFaq(this)"
+                class="w-full flex items-center justify-between px-5 py-4 text-left text-[13px] sm:text-sm font-semibold"
+                style="color: var(--fg)"
+              >
                 Thiệp điện tử thay thiệp giấy như thế nào?
-                <svg class="faq-chevron shrink-0 ml-3 h-4 w-4" style="color:var(--muted)" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                <svg
+                  class="faq-chevron shrink-0 ml-3 h-4 w-4"
+                  style="color: var(--muted)"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
               </button>
               <div class="faq-body">
-                <p class="px-5 pb-4 text-[13px] sm:text-sm leading-relaxed" style="color:var(--muted)">Thay vì in và phát thiệp giấy, bạn gửi một đường link đến từng khách. Khách mở link trên điện thoại là thấy thiệp ngay — có đủ thông tin đám cưới, bản đồ và nút xác nhận tham dự, không cần tải app hay đăng nhập.</p>
+                <p
+                  class="px-5 pb-4 text-[13px] sm:text-sm leading-relaxed"
+                  style="color: var(--muted)"
+                >
+                  Thay vì in và phát thiệp giấy, bạn gửi một đường link đến từng
+                  khách. Khách mở link trên điện thoại là thấy thiệp ngay — có
+                  đủ thông tin đám cưới, bản đồ và nút xác nhận tham dự, không
+                  cần tải app hay đăng nhập.
+                </p>
               </div>
             </div>
 
-            <div class="faq-item border rounded-lg bg-white overflow-hidden" style="border-color:rgba(255,183,202,0.35)">
-              <button type="button" onclick="toggleFaq(this)"
-                      class="w-full flex items-center justify-between px-5 py-4 text-left text-[13px] sm:text-sm font-semibold"
-                      style="color:var(--fg)">
+            <div
+              class="faq-item border rounded-lg bg-white overflow-hidden"
+              style="border-color: rgba(255, 183, 202, 0.35)"
+            >
+              <button
+                type="button"
+                onclick="toggleFaq(this)"
+                class="w-full flex items-center justify-between px-5 py-4 text-left text-[13px] sm:text-sm font-semibold"
+                style="color: var(--fg)"
+              >
                 Tôi không giỏi công nghệ — có làm được không?
-                <svg class="faq-chevron shrink-0 ml-3 h-4 w-4" style="color:var(--muted)" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                <svg
+                  class="faq-chevron shrink-0 ml-3 h-4 w-4"
+                  style="color: var(--muted)"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
               </button>
               <div class="faq-body">
-                <p class="px-5 pb-4 text-[13px] sm:text-sm leading-relaxed" style="color:var(--muted)">Hoàn toàn được. Giao diện tạo thiệp hoạt động giống form điền thông tin — bạn nhập tên, ngày cưới, địa điểm, tải ảnh lên và xem kết quả ngay bên cạnh. Thường mất khoảng 10–15 phút để hoàn chỉnh, không cần biết thiết kế hay lập trình.</p>
+                <p
+                  class="px-5 pb-4 text-[13px] sm:text-sm leading-relaxed"
+                  style="color: var(--muted)"
+                >
+                  Hoàn toàn được. Giao diện tạo thiệp hoạt động giống form điền
+                  thông tin — bạn nhập tên, ngày cưới, địa điểm, tải ảnh lên và
+                  xem kết quả ngay bên cạnh. Thường mất khoảng 10–15 phút để
+                  hoàn chỉnh, không cần biết thiết kế hay lập trình.
+                </p>
               </div>
             </div>
 
-            <div class="faq-item border rounded-lg bg-white overflow-hidden" style="border-color:rgba(255,183,202,0.35)">
-              <button type="button" onclick="toggleFaq(this)"
-                      class="w-full flex items-center justify-between px-5 py-4 text-left text-[13px] sm:text-sm font-semibold"
-                      style="color:var(--fg)">
+            <div
+              class="faq-item border rounded-lg bg-white overflow-hidden"
+              style="border-color: rgba(255, 183, 202, 0.35)"
+            >
+              <button
+                type="button"
+                onclick="toggleFaq(this)"
+                class="w-full flex items-center justify-between px-5 py-4 text-left text-[13px] sm:text-sm font-semibold"
+                style="color: var(--fg)"
+              >
                 Mất phí từ lúc nào?
-                <svg class="faq-chevron shrink-0 ml-3 h-4 w-4" style="color:var(--muted)" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                <svg
+                  class="faq-chevron shrink-0 ml-3 h-4 w-4"
+                  style="color: var(--muted)"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
               </button>
               <div class="faq-body">
-                <p class="px-5 pb-4 text-[13px] sm:text-sm leading-relaxed" style="color:var(--muted)">Xem thử và chỉnh sửa miễn phí, không giới hạn thời gian. Chỉ thanh toán một lần khi bạn muốn kích hoạt để gửi link cho khách — phí từ 149.000 đến 199.000 ₫ tùy mẫu, không có phí gia hạn.</p>
+                <p
+                  class="px-5 pb-4 text-[13px] sm:text-sm leading-relaxed"
+                  style="color: var(--muted)"
+                >
+                  Xem thử và chỉnh sửa miễn phí, không giới hạn thời gian. Chỉ
+                  thanh toán một lần khi bạn muốn kích hoạt để gửi link cho
+                  khách — phí tùy mẫu, không có phí gia hạn.
+                </p>
               </div>
             </div>
 
-            <div class="faq-item border rounded-lg bg-white overflow-hidden" style="border-color:rgba(255,183,202,0.35)">
-              <button type="button" onclick="toggleFaq(this)"
-                      class="w-full flex items-center justify-between px-5 py-4 text-left text-[13px] sm:text-sm font-semibold"
-                      style="color:var(--fg)">
+            <div
+              class="faq-item border rounded-lg bg-white overflow-hidden"
+              style="border-color: rgba(255, 183, 202, 0.35)"
+            >
+              <button
+                type="button"
+                onclick="toggleFaq(this)"
+                class="w-full flex items-center justify-between px-5 py-4 text-left text-[13px] sm:text-sm font-semibold"
+                style="color: var(--fg)"
+              >
                 Mỗi khách có nhận được link khác nhau không?
-                <svg class="faq-chevron shrink-0 ml-3 h-4 w-4" style="color:var(--muted)" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                <svg
+                  class="faq-chevron shrink-0 ml-3 h-4 w-4"
+                  style="color: var(--muted)"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
               </button>
               <div class="faq-body">
-                <p class="px-5 pb-4 text-[13px] sm:text-sm leading-relaxed" style="color:var(--muted)">Có. Bạn nhập danh sách khách, hệ thống tạo link riêng cho từng người — mở ra là thấy tên mình trên thiệp. Kèm theo đó là lời nhắn cá nhân và nút xác nhận dự. Bạn theo dõi ai đã xác nhận ngay trong trang quản lý.</p>
+                <p
+                  class="px-5 pb-4 text-[13px] sm:text-sm leading-relaxed"
+                  style="color: var(--muted)"
+                >
+                  Có. Bạn nhập danh sách khách, hệ thống tạo link riêng cho từng
+                  người — mở ra là thấy tên mình trên thiệp. Kèm theo đó là lời
+                  nhắn cá nhân và nút xác nhận dự. Bạn theo dõi ai đã xác nhận
+                  ngay trong trang quản lý.
+                </p>
               </div>
             </div>
 
-            <div class="faq-item border rounded-lg bg-white overflow-hidden" style="border-color:rgba(255,183,202,0.35)">
-              <button type="button" onclick="toggleFaq(this)"
-                      class="w-full flex items-center justify-between px-5 py-4 text-left text-[13px] sm:text-sm font-semibold"
-                      style="color:var(--fg)">
+            <div
+              class="faq-item border rounded-lg bg-white overflow-hidden"
+              style="border-color: rgba(255, 183, 202, 0.35)"
+            >
+              <button
+                type="button"
+                onclick="toggleFaq(this)"
+                class="w-full flex items-center justify-between px-5 py-4 text-left text-[13px] sm:text-sm font-semibold"
+                style="color: var(--fg)"
+              >
                 Lỡ ưng mẫu khác sau khi trả tiền thì sao?
-                <svg class="faq-chevron shrink-0 ml-3 h-4 w-4" style="color:var(--muted)" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                <svg
+                  class="faq-chevron shrink-0 ml-3 h-4 w-4"
+                  style="color: var(--muted)"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
               </button>
               <div class="faq-body">
-                <p class="px-5 pb-4 text-[13px] sm:text-sm leading-relaxed" style="color:var(--muted)">Đổi mẫu miễn phí, bao nhiêu lần cũng được. Thông tin đám cưới, ảnh, nhạc nền và danh sách khách đều tự động chuyển sang mẫu mới — bạn không cần nhập lại bất cứ thứ gì.</p>
+                <p
+                  class="px-5 pb-4 text-[13px] sm:text-sm leading-relaxed"
+                  style="color: var(--muted)"
+                >
+                  Đổi mẫu miễn phí, bao nhiêu lần cũng được. Thông tin đám cưới,
+                  ảnh, nhạc nền và danh sách khách đều tự động chuyển sang mẫu
+                  mới — bạn không cần nhập lại bất cứ thứ gì.
+                </p>
               </div>
             </div>
-
           </div>
         </div>
       </section>
-
     </div>
 
     <script src="../core/config.js"></script>
     <script>
       /* ── Draft helpers ── */
       function _generateUUID() {
-        return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, c => {
+        return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
           const r = (Math.random() * 16) | 0;
           return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
         });
       }
 
-      function startDraft(theme, name) {
+      function _doStartDraft(theme, name) {
         const manage_id = _generateUUID();
         const t = theme
-          ? allTemplates.find(x => x.theme === theme)
+          ? allTemplates.find((x) => x.theme === theme)
           : allTemplates[0];
         try {
-          localStorage.setItem(`cuoixinh_draft_${manage_id}`, JSON.stringify({
-            theme: t ? t.theme : (theme || ""),
-            is_published: false,
-            _localOnly: true,
-          }));
+          localStorage.setItem(
+            `cuoixinh_draft_${manage_id}`,
+            JSON.stringify({
+              theme: t ? t.theme : theme || "",
+              is_published: false,
+              _localOnly: true,
+            }),
+          );
         } catch (_) {}
         if (t) {
           sessionStorage.setItem("draft_template_name", name || t.name);
           sessionStorage.setItem("draft_theme", t.theme);
         }
+        sessionStorage.setItem("show_tour", "1");
         window.location.href = `/invitation-setup/?id=${manage_id}`;
       }
 
+      function startDraft(theme, name) {
+        _doStartDraft(theme, name);
+      }
+
       /* ── SVG helpers ── */
-      const SVG_EYE   = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>`;
+      const SVG_EYE = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>`;
       const SVG_USERS = `<svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/></svg>`;
       const SVG_FLAME = `<svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>`;
 
-      const CAT_LABEL = { popular: "PHỔ BIẾN", new: "MỚI NHẤT", premium: "CAO CẤP" };
+      const CAT_LABEL = {
+        popular: "PHỔ BIẾN",
+        new: "MỚI NHẤT",
+        premium: "CAO CẤP",
+      };
 
       let allTemplates = [];
 
       async function fetchTemplates() {
         const base = CONFIG.supabase.url;
-        const key  = CONFIG.supabase.anonKey;
-        const h    = { apikey: key, Authorization: `Bearer ${key}` };
+        const key = CONFIG.supabase.anonKey;
+        const h = { apikey: key, Authorization: `Bearer ${key}` };
         const [tRes, pRes] = await Promise.all([
-          fetch(`${base}/rest/v1/templates?select=*&is_active=eq.true&order=sort_order.asc`, { headers: h }),
-          fetch(`${base}/rest/v1/template_pricing?select=*&is_active=eq.true`, { headers: h }),
+          fetch(
+            `${base}/rest/v1/templates?select=*&is_active=eq.true&order=sort_order.asc`,
+            { headers: h },
+          ),
+          fetch(`${base}/rest/v1/template_pricing?select=*&is_active=eq.true`, {
+            headers: h,
+          }),
         ]);
         const tData = await tRes.json();
         const pData = await pRes.json();
-        const pricingMap = Object.fromEntries((pData || []).map(p => [p.template_name, p]));
-        return (tData || []).map(t => {
+        const pricingMap = Object.fromEntries(
+          (pData || []).map((p) => [p.template_name, p]),
+        );
+        return (tData || []).map((t) => {
           const pr = pricingMap[t.template_name] || {};
           return {
-            id: t.template_id, name: t.display_name, theme: t.template_name,
-            description: t.description, previewUrl: t.preview_url,
-            category: t.category, isHot: t.is_hot || false,
+            id: t.template_id,
+            name: t.display_name,
+            theme: t.template_name,
+            description: t.description,
+            previewUrl: t.preview_url,
+            category: t.category,
+            isHot: t.is_hot || false,
             usageCount: t.usage_count || 0,
-            price: pr.price ?? 159000, originalPrice: pr.original_price ?? 199000,
+            price: pr.price ?? 159000,
+            originalPrice: pr.original_price ?? 199000,
           };
         });
       }
 
       function cardHTML(t) {
-        const imgSrc   = `/assets/images/templates/${t.theme}.jpg`;
+        const imgSrc = `/assets/images/templates/${t.theme}.jpg`;
         const catLabel = CAT_LABEL[t.category] || "";
 
-        const catBadge = catLabel ? `
+        const catBadge = catLabel
+          ? `
           <div class="absolute left-2 top-3 sm:left-2.5 sm:top-3.5 z-10">
             <span class="text-[9px] font-bold tracking-[0.18em] uppercase px-2 py-0.5 rounded-sm"
                   style="background:rgba(236,130,158,0.1);color:var(--primary);letter-spacing:0.18em">${catLabel}</span>
-          </div>` : "";
+          </div>`
+          : "";
 
-        const hotBadge = t.isHot ? `
+        const hotBadge = t.isHot
+          ? `
           <div class="absolute right-2 top-2.5 sm:right-2.5 sm:top-3 z-10">
             <span class="inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-[9px] font-bold text-white"
                   style="background:var(--primary)">
               <span style="display:flex;align-items:center;margin-right:1px">${SVG_FLAME}</span>HOT
             </span>
-          </div>` : "";
+          </div>`
+          : "";
 
-        const usageHTML = t.usageCount > 0 ? `
+        const usageHTML =
+          t.usageCount > 0
+            ? `
           <div class="border-t pt-2 sm:pt-2.5 mt-0.5" style="border-color:rgba(236,130,158,0.1)">
             <span class="inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-medium"
                   style="color:var(--muted)">
               <span style="display:flex;align-items:center">${SVG_USERS}</span>${t.usageCount} đôi đã dùng
             </span>
-          </div>` : "";
+          </div>`
+            : "";
 
         return `
           <div class="template-card" data-id="${t.id}" onclick="openPreview('${t.previewUrl}')">
-            <div class="relative" style="aspect-ratio:3/4;overflow:hidden;background:#fdf4f7">
+            <div class="relative" style="aspect-ratio:9/16;overflow:hidden;background:#fdf4f7">
               <img src="${imgSrc}" alt="${t.name}" loading="lazy" class="absolute inset-0 w-full h-full object-cover object-top" />
               <div class="absolute inset-x-0 bottom-0 h-20"
                    style="background:linear-gradient(to top,rgba(45,25,41,0.45) 0%,transparent)"></div>
@@ -637,11 +1315,13 @@
           </div>`;
       }
 
-      function openPreview(url) { window.open(url, "_blank"); }
+      function openPreview(url) {
+        window.open(url, "_blank");
+      }
 
       function renderGrid(templates) {
         const gallery = document.getElementById("template-gallery");
-        const empty   = document.getElementById("empty-state");
+        const empty = document.getElementById("empty-state");
         if (!templates.length) {
           gallery.innerHTML = "";
           empty.classList.remove("hidden");
@@ -650,8 +1330,9 @@
         empty.classList.add("hidden");
         gallery.innerHTML = templates.map(cardHTML).join("");
         const totalUsage = templates.reduce((s, t) => s + t.usageCount, 0);
-        document.getElementById("stat-tpl-num").textContent   = templates.length;
-        document.getElementById("stat-usage-num").textContent = totalUsage || "0";
+        document.getElementById("stat-tpl-num").textContent = templates.length;
+        document.getElementById("stat-usage-num").textContent =
+          totalUsage || "0";
       }
 
       (async () => {
@@ -667,22 +1348,29 @@
         }
       })();
 
-      document.getElementById("hero-year").textContent = new Date().getFullYear();
+      document.getElementById("hero-year").textContent =
+        new Date().getFullYear();
 
       /* ── Nav scroll ── */
-      window.addEventListener("scroll", () => {
-        document.getElementById("main-header").classList.toggle("nav-scrolled", window.scrollY > 10);
-      }, { passive: true });
+      window.addEventListener(
+        "scroll",
+        () => {
+          document
+            .getElementById("main-header")
+            .classList.toggle("nav-scrolled", window.scrollY > 10);
+        },
+        { passive: true },
+      );
 
       /* ── FAQ ── */
       function toggleFaq(btn) {
-        const item   = btn.closest(".faq-item");
+        const item = btn.closest(".faq-item");
         const isOpen = item.classList.contains("open");
-        document.querySelectorAll(".faq-item.open").forEach(el => el.classList.remove("open"));
+        document
+          .querySelectorAll(".faq-item.open")
+          .forEach((el) => el.classList.remove("open"));
         if (!isOpen) item.classList.add("open");
       }
     </script>
   </body>
 </html>
-
-

@@ -8,6 +8,9 @@ let WEDDING_THEME = "basic-gold";
 
 // Draft state: true = chỉ có trong localStorage, chưa lên DB
 let _isLocalDraft = false;
+
+// Publish state — controls whether Advanced section is enabled
+let IS_PUBLISHED = false;
 const DRAFT_LOCAL_KEY = `cuoixinh_draft_${WEDDING_ID}`;
 
 function getLocalDraft() {
@@ -537,13 +540,15 @@ function switchTab(tab) {
 
 async function saveDraft() {
   _setActiveTab("draft");
-  await saveAll();
+  await saveAll({}, "Đang lưu...");
   _setActiveTab("edit");
 }
 
 async function publishWedding() {
   _setActiveTab("publish");
-  await saveAll({ is_published: true });
+  await saveAll({ is_published: true }, "Đang xuất bản...");
+  IS_PUBLISHED = true;
+  _syncAdvancedSection();
   _setActiveTab("edit");
 }
 
@@ -1223,6 +1228,7 @@ function renderGalleryGrid() {
   if (!container) return;
 
   container.innerHTML = "";
+  document.getElementById("gallery-add-btn")?.remove();
 
   // Get existing filenames from textarea
   const textarea = document.querySelector(
@@ -1237,7 +1243,7 @@ function renderGalleryGrid() {
     const fullUrl = getImageUrl(filename);
     const div = document.createElement("div");
     div.className =
-      "relative rounded-lg overflow-hidden border border-gray-200 shadow-sm group bg-gray-100";
+      "relative rounded-xl overflow-hidden border border-rose-200 shadow-sm group bg-gray-100";
     div.style.width = "100%";
     div.style.aspectRatio = "1";
     div.innerHTML = `
@@ -1258,7 +1264,7 @@ function renderGalleryGrid() {
     const globalIndex = existingFilenames.length + index;
     const div = document.createElement("div");
     div.className =
-      "relative rounded-lg overflow-hidden border border-gray-200 shadow-sm group bg-gray-100";
+      "relative rounded-xl overflow-hidden border border-rose-200 shadow-sm group bg-gray-100";
     div.style.width = "100%";
     div.style.aspectRatio = "1";
     div.innerHTML = `
@@ -1278,22 +1284,20 @@ function renderGalleryGrid() {
   const totalImages =
     existingFilenames.length + pendingUploads.galleryImages.length;
 
-  // Render upload button if not at max
+  // Render upload button outside grid if not at max
   if (totalImages < MAX_GALLERY_IMAGES) {
-    const uploadBtn = document.createElement("div");
+    const uploadBtn = document.createElement("button");
+    uploadBtn.id = "gallery-add-btn";
+    uploadBtn.type = "button";
     uploadBtn.className =
-      "group rounded-lg border-2 border-dashed border-gray-200 hover:border-rose-300 transition-colors cursor-pointer flex items-center justify-center";
-    uploadBtn.style.width = "100%";
-    uploadBtn.style.aspectRatio = "1";
+      "mt-2 flex items-center gap-1.5 h-8 px-3 rounded-xl border border-dashed border-rose-300 text-xs text-rose-400 hover:border-rose-400 hover:text-rose-500 transition-colors cursor-pointer";
     uploadBtn.onclick = () =>
       document.getElementById("gallery-file-input").click();
     uploadBtn.innerHTML = `
-      <div class="flex flex-col items-center gap-1 text-gray-400 group-hover:text-gray-700 transition-colors">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m17 8-5-5-5 5"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/></svg>
-        <p class="text-xs font-medium">${totalImages}/${MAX_GALLERY_IMAGES}</p>
-      </div>
+      <i data-lucide="image-plus" class="w-3.5 h-3.5"></i> Thêm ảnh
     `;
-    container.appendChild(uploadBtn);
+    container.insertAdjacentElement("afterend", uploadBtn);
+    if (typeof lucide !== "undefined") lucide.createIcons();
   }
 }
 
@@ -1349,7 +1353,7 @@ function renderSingleImageUpload(fieldName) {
     // Has new image, show preview from File object
     const url = URL.createObjectURL(pendingUploads.singleImages[fieldName]);
     const div = document.createElement("div");
-    div.className = `relative ${sizeClass} rounded-lg overflow-hidden border border-gray-200 shadow-sm group bg-gray-100`;
+    div.className = `relative ${sizeClass} rounded-xl overflow-hidden border border-rose-200 shadow-sm group bg-gray-100`;
     if (fieldName === "groom_image_url" || fieldName === "bride_image_url") {
       div.style.width = "100%";
       div.style.maxWidth = "175px";
@@ -1380,7 +1384,7 @@ function renderSingleImageUpload(fieldName) {
       // Has existing image from DB, build full URL and show preview
       const fullUrl = getImageUrl(existingFilename);
       const div = document.createElement("div");
-      div.className = `relative ${sizeClass} rounded-lg overflow-hidden border border-gray-200 shadow-sm group bg-gray-100`;
+      div.className = `relative ${sizeClass} rounded-xl overflow-hidden border border-rose-200 shadow-sm group bg-gray-100`;
       if (fieldName === "groom_image_url" || fieldName === "bride_image_url") {
         div.style.width = "100%";
         div.style.maxWidth = "175px";
@@ -1413,21 +1417,16 @@ function renderSingleImageUpload(fieldName) {
       };
       const uploadLabel = uploadLabels[fieldName] || "Chọn ảnh";
 
-      const uploadBtn = document.createElement("div");
-      uploadBtn.className = `group rounded-lg border-2 border-dashed border-gray-200 hover:border-rose-300 transition-colors cursor-pointer flex items-center justify-center px-4 py-6`;
-      // Đồng nhất kích thước nút chọn ảnh (trạng thái chưa có ảnh) cho mọi field, giống "Chọn ảnh chú rể/cô dâu"
-      uploadBtn.style.width = "100%";
-      uploadBtn.style.maxWidth = "175px";
-      uploadBtn.style.aspectRatio = "1.75";
+      const uploadBtn = document.createElement("button");
+      uploadBtn.type = "button";
+      uploadBtn.className = `flex items-center gap-1.5 h-8 px-3 rounded-xl border border-dashed border-rose-300 text-xs text-rose-400 hover:border-rose-400 hover:text-rose-500 transition-colors cursor-pointer`;
       uploadBtn.onclick = () =>
         document.getElementById(`${prefix}-file-input`).click();
       uploadBtn.innerHTML = `
-        <div class="flex items-center gap-2 text-color-primary transition-colors">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m17 8-5-5-5 5"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/></svg>
-          <p class="text-sm">${uploadLabel}</p>
-        </div>
+        <i data-lucide="image-plus" class="w-3.5 h-3.5"></i> Thêm ảnh
       `;
       container.appendChild(uploadBtn);
+      if (typeof lucide !== "undefined") lucide.createIcons();
     }
   }
 }
@@ -2169,23 +2168,18 @@ function fillForm(data) {
   if (typeof initMapDisplays === "function") initMapDisplays(data);
   initCeremonySection(data);
 
+  IS_PUBLISHED = !!data.is_published;
+  _syncAdvancedSection();
+
   if (typeof lucide !== "undefined") lucide.createIcons();
 }
 
-async function saveAll(overrides = {}) {
-  const btn = document.getElementById("save-btn") ?? document.getElementById("tab-draft");
-  const originalContent = btn?.innerHTML ?? null;
-  if (btn) {
-    btn.disabled = true;
-    btn.innerHTML =
-      '<span class="flex flex-col items-center gap-1"><span class="inline-block w-4 h-4 border-2 border-rose-400 border-t-transparent rounded-full animate-spin"></span><span class="text-[11px] font-medium">Đang lưu</span></span>';
-  }
-
+async function saveAll(overrides = {}, label = "Đang lưu...") {
   try {
     // Step 1: Upload pending images
     showLoading(true, "Đang tải ảnh lên server...");
     const { uploadedFilenames, errors } = await uploadAllPendingImages();
-    showLoading(false);
+    showLoading(true, label);
 
     if (errors.length > 0) {
       console.error("Upload errors:", errors);
@@ -2384,10 +2378,7 @@ async function saveAll(overrides = {}) {
     console.error("Save error:", e);
     showToast("❌ Lỗi: " + e.message);
   } finally {
-    if (btn && originalContent !== null) {
-      btn.innerHTML = originalContent;
-      btn.disabled = false;
-    }
+    showLoading(false);
   }
 }
 
@@ -3545,6 +3536,17 @@ function _applyThemeChange(newTheme, displayName) {
   showToast("✅ Đã đổi mẫu thiệp");
 }
 window._applyThemeChange = _applyThemeChange;
+
+// ============= ADVANCED SECTION LOCK =============
+
+function _syncAdvancedSection() {
+  const content = document.getElementById("guests-content-area");
+  const banner  = document.getElementById("guests-lock-banner");
+
+  const locked = !IS_PUBLISHED;
+  if (content) { content.inert = locked; content.style.opacity = locked ? "0.45" : ""; }
+  if (banner)  banner.classList.toggle("hidden", !locked);
+}
 
 // ============= START =============
 

@@ -128,6 +128,7 @@ function _doCreateDraft(template) {
   } catch (e) {}
   sessionStorage.setItem("draft_template_name", template.name);
   sessionStorage.setItem("draft_theme", template.theme);
+  sessionStorage.setItem("show_tour", "1");
   window.location.href = `/invitation-setup/?id=${manage_id}`;
 }
 
@@ -235,11 +236,7 @@ function closeMobileMenu() {
 function goCreateDraft(e) {
   e.preventDefault();
   const first = templates.find((t) => t.status === "active");
-  if (first) {
-    createDraft(first.id);
-  } else {
-    window.location.href = "/invitation-setup/";
-  }
+  if (first) createDraft(first.id);
 }
 
 function initHeroImage() {
