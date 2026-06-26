@@ -408,23 +408,6 @@ function switchTab(tabName) {
   document.getElementById("content-" + tabName).classList.remove("hidden");
 }
 
-function showToast(message, type) {
-  var colors = {
-    success: "rgb(212,165,165)",
-    error: "#ef4444",
-    info: "#9ca3af",
-  };
-  var toast = document.createElement("div");
-  toast.style.cssText =
-    "position:fixed;top:20px;right:20px;background:" +
-    (colors[type] || colors.info) +
-    ";color:white;padding:12px 20px;border-radius:8px;font-size:14px;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,0.15);";
-  toast.textContent = message;
-  document.body.appendChild(toast);
-  setTimeout(function () {
-    toast.remove();
-  }, 3000);
-}
 
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", () => {

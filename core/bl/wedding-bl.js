@@ -234,8 +234,27 @@ class WeddingBL {
       throw new Error("Google Sheet URL không hợp lệ");
     }
 
-    // Fetch all guests
-    const guests = await this.dal.getAllGuests(sheetUrl);
+    // Fetch guests + headers in one request
+    const { guests, headers } = await this.dal.getAllGuests(sheetUrl);
+
+    // Validate headers client-side
+    const EXPECTED = ["Họ và tên", "Tên hiển thị", "Quan hệ", "Link thiệp", "Đã xem thiệp", "Xác nhận tham dự", "Lời chúc", "Thời gian xác nhận"];
+    if (headers.length > 0) {
+      const errors = EXPECTED.map((expected, i) => {
+        const actual = (headers[i] || "").toString().trim().split("\n")[0].trim();
+        if (actual !== expected) {
+          return `Cột ${String.fromCharCode(65 + i)}: cần "${expected}", đang là "${actual || "(trống)"}"`;
+        }
+        return null;
+      }).filter(Boolean);
+
+      if (errors.length > 0) {
+        if (typeof showAlert === "function") {
+          showAlert("Cấu trúc Google Sheet không đúng", errors.join("\n"), "error");
+        }
+        throw new Error("Cấu trúc Google Sheet không đúng");
+      }
+    }
 
     if (!guests || guests.length === 0) {
       throw new Error("Không tìm thấy khách mời nào");

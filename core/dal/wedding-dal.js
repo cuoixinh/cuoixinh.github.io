@@ -3,6 +3,25 @@
  * Chỉ chứa các hàm truy vấn database, không có logic nghiệp vụ
  */
 
+function _fetchJSONP(url, timeout = 10000) {
+  return new Promise((resolve, reject) => {
+    const cbName = "_gasCb_" + Date.now() + "_" + Math.random().toString(36).slice(2);
+    const script = document.createElement("script");
+    const timer = setTimeout(() => { cleanup(); reject(new Error("Request timeout")); }, timeout);
+
+    function cleanup() {
+      delete window[cbName];
+      if (script.parentNode) script.parentNode.removeChild(script);
+      clearTimeout(timer);
+    }
+
+    window[cbName] = (data) => { cleanup(); resolve(data); };
+    script.onerror = () => { cleanup(); reject(new Error("Không thể kết nối đến Google Apps Script")); };
+    script.src = url + (url.includes("?") ? "&" : "?") + "callback=" + cbName;
+    document.head.appendChild(script);
+  });
+}
+
 class WeddingDAL {
   constructor(config) {
     this.edgeUrl = config.supabase.edgeUrl;
@@ -215,19 +234,13 @@ class WeddingDAL {
    * @returns {Promise<Array>} List of guests
    */
   async getAllGuests(sheetUrl) {
-    const response = await fetch(`${sheetUrl}?action=getAllGuests`);
-
-    if (!response.ok) {
-      throw new Error("Không thể kết nối đến Google Sheets");
-    }
-
-    const data = await response.json();
+    const data = await _fetchJSONP(`${sheetUrl}?action=getAllGuests`);
 
     if (!data.success) {
       throw new Error(data.message || "Lỗi lấy dữ liệu từ Google Sheets");
     }
 
-    return data.guests || [];
+    return { guests: data.guests || [], headers: data.headers || [] };
   }
 
   /**

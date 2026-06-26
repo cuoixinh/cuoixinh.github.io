@@ -26,12 +26,12 @@ function saveLocalDraft(data) {
       DRAFT_LOCAL_KEY,
       JSON.stringify({ ...data, _localOnly: _isLocalDraft }),
     );
-  } catch (e) {}
+  } catch (e) { console.error("saveLocalDraft:", e); }
 }
 function clearLocalDraft() {
   try {
     localStorage.removeItem(DRAFT_LOCAL_KEY);
-  } catch (e) {}
+  } catch (e) { console.error("clearLocalDraft:", e); }
 }
 
 // ============= INDEXED DB — PENDING IMAGES =============
@@ -65,7 +65,7 @@ async function _idbPut(record) {
       tx.oncomplete = res;
       tx.onerror = (e) => rej(e.target.error);
     });
-  } catch (e) {}
+  } catch (e) { console.error("_idbPut:", e); }
 }
 
 async function _idbDelete(key) {
@@ -78,7 +78,7 @@ async function _idbDelete(key) {
       tx.oncomplete = res;
       tx.onerror = (e) => rej(e.target.error);
     });
-  } catch (e) {}
+  } catch (e) { console.error("_idbDelete:", e); }
 }
 
 async function _idbGetAll() {
@@ -90,7 +90,7 @@ async function _idbGetAll() {
       req.onsuccess = (e) => res(e.target.result || []);
       req.onerror = (e) => rej(e.target.error);
     });
-  } catch (e) { return []; }
+  } catch (e) { console.error("_idbGetAll:", e); return []; }
 }
 
 async function _idbClearWedding() {
@@ -106,7 +106,7 @@ async function _idbClearWedding() {
       tx.oncomplete = res;
       tx.onerror = (e) => rej(e.target.error);
     });
-  } catch (e) {}
+  } catch (e) { console.error("_idbClearWedding:", e); }
 }
 
 // File → IDB key — cần để biết key nào cần xoá khi user bỏ ảnh gallery pending
@@ -196,7 +196,7 @@ async function _idbUpdateGalleryFocal(file) {
       };
       req.onerror = (e) => reject(e.target.error);
     });
-  } catch (e) {}
+  } catch (e) { console.error("_idbUpdateFocal:", e); }
 }
 
 async function _idbRestoreAll() {
@@ -244,7 +244,7 @@ async function _idbRestoreAll() {
       .forEach((f) => renderSingleImageUpload(f));
     renderGalleryGrid();
     if (Object.keys(_loveStoryPendingImages).length) renderLoveStoryList();
-  } catch (e) {}
+  } catch (e) { console.error("_idbRestoreAll:", e); }
 }
 
 function getCurrentUser() {
@@ -540,15 +540,25 @@ function switchTab(tab) {
 
 async function saveDraft() {
   _setActiveTab("draft");
-  await saveAll({}, "Đang lưu...");
-  _setActiveTab("edit");
+  const ok = await saveAll({}, "Đang lưu...");
+  if (ok) _setActiveTab("edit");
 }
 
 async function publishWedding() {
   _setActiveTab("publish");
-  await saveAll({ is_published: true }, "Đang xuất bản...");
+  const ok = await saveAll({ is_published: true }, "Đang xuất bản...");
+  if (!ok) return;
+
   IS_PUBLISHED = true;
   _syncAdvancedSection();
+
+  for (const side of ["groom", "bride"]) {
+    const url = document.getElementById(`${side}_google_sheet_url`)?.value?.trim();
+    if (url && url.includes("script.google.com")) {
+      generateLinks(side).catch((err) => showToast("❌ Tạo link thất bại: " + err.message));
+    }
+  }
+
   _setActiveTab("edit");
 }
 
@@ -635,6 +645,74 @@ function decryptData(encryptedText) {
 
 // ============= AUTO-GENERATE LINKS FUNCTIONS =============
 
+async function testGASConnection(side) {
+  const inputId = side === "groom" ? "groom_google_sheet_url" : "bride_google_sheet_url";
+  const url = document.getElementById(inputId)?.value?.trim();
+  const statusEl = document.getElementById(`gas-status-${side}`);
+  const btn = document.getElementById(`test-gas-btn-${side}`);
+
+  if (!url || !url.includes("script.google.com")) {
+    _showGASStatus(statusEl, "error", "URL không hợp lệ — phải là link Google Apps Script");
+    return;
+  }
+
+  btn.disabled = true;
+  btn.classList.add("opacity-50");
+  _showGASStatus(statusEl, "loading", "Đang kiểm tra...");
+
+  try {
+    const { guests } = await weddingDAL.getAllGuests(url);
+    const count = guests.length;
+    _showGASStatus(statusEl, "success",
+      count > 0 ? `Kết nối thành công — ${count} khách` : "Kết nối thành công — chưa có khách");
+  } catch (err) {
+    const isTimeout = err.message && err.message.includes("timeout");
+    if (isTimeout) {
+      _showGASStatus(statusEl, "error", "Script phản hồi quá chậm — thử lại sau");
+    } else {
+      _showGASStatus(statusEl, "auth", url);
+    }
+  } finally {
+    btn.disabled = false;
+    btn.classList.remove("opacity-50");
+  }
+}
+
+function _showGASStatus(el, type, value) {
+  el.classList.remove("hidden");
+  const base = "rounded-lg p-2.5 text-xs flex items-start gap-2";
+
+  if (type === "loading") {
+    el.className = base + " bg-gray-50 text-gray-400";
+    el.innerHTML = `<span class="mt-0.5">⏳</span><span>${value}</span>`;
+    return;
+  }
+  if (type === "success") {
+    el.className = base + " bg-green-50 text-green-700";
+    el.innerHTML = `<span class="mt-0.5 font-bold">✓</span><span>${value}</span>`;
+    return;
+  }
+  if (type === "error") {
+    el.className = base + " bg-red-50 text-red-600";
+    el.innerHTML = `<span class="mt-0.5 font-bold">✕</span><span>${value}</span>`;
+    return;
+  }
+  if (type === "auth") {
+    const authUrl = value + (value.includes("?") ? "&" : "?") + "action=getAllGuests&callback=test";
+    el.className = base + " bg-amber-50 text-amber-700 flex-col";
+    el.innerHTML = `
+      <div class="flex items-center gap-2">
+        <span class="font-bold">⚠</span>
+        <span>Script chưa được ủy quyền — cần mở link để cấp quyền lần đầu</span>
+      </div>
+      <a href="${authUrl}" target="_blank" rel="noopener"
+        class="mt-1 inline-flex items-center gap-1 font-medium underline underline-offset-2">
+        Mở để ủy quyền ↗
+      </a>
+      <span class="text-amber-500 mt-0.5">Sau khi ủy quyền xong, nhấn Kiểm tra lại</span>`;
+  }
+}
+
 async function generateLinks(side) {
   const sideText = side === "groom" ? "nhà trai" : "nhà gái";
 
@@ -662,7 +740,11 @@ async function generateLinks(side) {
   } catch (error) {
     showLoading(false);
     console.error("Generate links error:", error);
-    showToast(`❌ ${error.message}`);
+    if (typeof showAlert === "function") {
+      showAlert(`Lỗi tạo link ${sideText}`, error.message, "error");
+    } else {
+      showToast(`❌ ${error.message}`);
+    }
   }
 }
 
@@ -1165,48 +1247,6 @@ async function resizeImage(
   return await imageBL.resizeImage(file);
 }
 
-function showToast(msg) {
-  const toast = document.getElementById("toast");
-  const toastText = document.getElementById("toast-text");
-  if (toast && toastText) {
-    toastText.innerHTML = msg;
-    toast.style.opacity = "1";
-    toast.style.transform = "translate(-50%, 0)";
-    setTimeout(() => {
-      toast.style.opacity = "0";
-      toast.style.transform = "translate(-50%, 10px)";
-    }, 3000);
-  }
-}
-
-function showLoading(show, message = null) {
-  const overlay = document.getElementById("loading-overlay");
-  if (!overlay) return;
-
-  if (show) {
-    overlay.classList.remove("hidden");
-    overlay.classList.add("flex");
-
-    // Update message if provided
-    if (message) {
-      const messageEl = document.getElementById("loading-message");
-      if (messageEl) {
-        messageEl.textContent = message;
-      }
-    }
-  } else {
-    overlay.classList.add("hidden");
-    overlay.classList.remove("flex");
-    const progress = document.getElementById("upload-progress");
-    if (progress) progress.textContent = "0%";
-
-    // Reset message to default
-    const messageEl = document.getElementById("loading-message");
-    if (messageEl) {
-      messageEl.textContent = "Đang xử lý...";
-    }
-  }
-}
 
 // ============= IMAGE PREVIEW FUNCTIONS =============
 
@@ -1694,21 +1734,6 @@ function renderExistingYouTubeMusic(musicUrl) {
   autoPreviewYouTubeMusic();
 }
 
-// Auto generateLinks on paste for guest sheet URLs
-document.addEventListener("DOMContentLoaded", function () {
-  ["groom", "bride"].forEach((side) => {
-    const input = document.getElementById(`${side}_google_sheet_url`);
-    if (!input) return;
-    input.addEventListener("paste", function () {
-      setTimeout(() => {
-        if (input.value.trim()) generateLinks(side);
-      }, 100);
-    });
-    input.addEventListener("change", function () {
-      if (input.value.trim()) generateLinks(side);
-    });
-  });
-});
 
 // Setup auto-preview on input change
 document.addEventListener("DOMContentLoaded", function () {
@@ -2175,6 +2200,9 @@ function fillForm(data) {
 }
 
 async function saveAll(overrides = {}, label = "Đang lưu...") {
+  const form = document.getElementById("wedding-form");
+  if (!validateForm(form)) return false;
+
   try {
     // Step 1: Upload pending images
     showLoading(true, "Đang tải ảnh lên server...");
@@ -2374,9 +2402,11 @@ async function saveAll(overrides = {}, label = "Đang lưu...") {
     } else {
       showToast("✅ Đã lưu thành công!");
     }
+    return true;
   } catch (e) {
     console.error("Save error:", e);
     showToast("❌ Lỗi: " + e.message);
+    return false;
   } finally {
     showLoading(false);
   }
