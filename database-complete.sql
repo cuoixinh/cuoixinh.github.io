@@ -1,7 +1,7 @@
 -- ============================================================
 -- COMPLETE DATABASE SCHEMA - CUOI XINH
 -- Consolidated from all migration files
--- Last updated: 2026-06-09
+-- Last updated: 2026-06-28
 -- ============================================================
 
 -- ============================================================
@@ -12,6 +12,7 @@ DROP TABLE IF EXISTS order_details CASCADE;
 DROP TABLE IF EXISTS orders CASCADE;
 DROP TABLE IF EXISTS public.template_pricing CASCADE;
 DROP TABLE IF EXISTS public.templates CASCADE;
+DROP TABLE IF EXISTS guests CASCADE;
 DROP TABLE IF EXISTS weddings CASCADE;
 
 -- ============================================================
@@ -212,6 +213,71 @@ COMMENT ON COLUMN weddings.enable_footer IS 'Hiển thị footer trên thiệp';
 ALTER TABLE weddings ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Public read" ON weddings FOR SELECT USING (true);
+
+
+-- ============================================================
+-- BẢNG GUESTS - Danh sách khách mời (nhập từ Excel)
+-- ============================================================
+
+CREATE TABLE guests (
+  id              UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+  wedding_id      UUID        NOT NULL REFERENCES weddings(id) ON DELETE CASCADE,
+  side            TEXT        NOT NULL CHECK (side IN ('groom', 'bride')),
+  full_name       TEXT        NOT NULL CHECK (char_length(full_name) BETWEEN 1 AND 200),
+  display_name    TEXT        CHECK (display_name IS NULL OR char_length(display_name) <= 200),
+  relationship    TEXT        CHECK (relationship IS NULL OR char_length(relationship) <= 100),
+  link            TEXT        CHECK (link IS NULL OR char_length(link) <= 2048),
+  viewed          BOOLEAN     DEFAULT false,
+  viewed_at       TIMESTAMPTZ,
+  confirmed       TEXT        CHECK (confirmed IS NULL OR confirmed IN ('Có tham dự', 'Không tham dự')),
+  message         TEXT        CHECK (message IS NULL OR char_length(message) <= 1000),
+  confirmed_at    TIMESTAMPTZ,
+  created_at      TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Indexes
+CREATE INDEX idx_guests_wedding_id ON guests(wedding_id, side);
+
+-- Comments
+COMMENT ON TABLE  guests                IS 'Danh sách khách mời, nhập từ file Excel';
+COMMENT ON COLUMN guests.wedding_id     IS 'FK đến weddings.id';
+COMMENT ON COLUMN guests.side           IS 'Bên mời: groom (nhà trai) | bride (nhà gái)';
+COMMENT ON COLUMN guests.full_name      IS 'Họ và tên đầy đủ';
+COMMENT ON COLUMN guests.display_name   IS 'Tên hiển thị trên thiệp (VD: Anh Minh)';
+COMMENT ON COLUMN guests.relationship   IS 'Quan hệ với cặp đôi (VD: Bạn thân, Đồng nghiệp)';
+COMMENT ON COLUMN guests.link           IS 'Link thiệp cá nhân hóa đã tạo cho khách này';
+COMMENT ON COLUMN guests.viewed         IS 'Khách đã mở xem thiệp chưa';
+COMMENT ON COLUMN guests.viewed_at      IS 'Thời gian khách xem thiệp lần đầu';
+COMMENT ON COLUMN guests.confirmed      IS 'Kết quả xác nhận: Có tham dự | Không tham dự';
+COMMENT ON COLUMN guests.message        IS 'Lời chúc khách gửi khi xác nhận';
+COMMENT ON COLUMN guests.confirmed_at   IS 'Thời gian khách xác nhận tham dự';
+
+-- RLS
+-- Note: Without Supabase Auth, write ops are scoped by wedding_id (UUID v4 = 2^122 keyspace).
+-- Full restriction requires routing writes through Edge Functions with session validation.
+ALTER TABLE guests ENABLE ROW LEVEL SECURITY;
+
+-- Đọc: public (khách cần đọc link của họ)
+CREATE POLICY "Public read guests" ON guests
+  FOR SELECT USING (true);
+
+-- Thêm: wedding_id phải tồn tại và đang hoạt động (is_published hoặc chưa publish nhưng hợp lệ)
+CREATE POLICY "Insert guests for existing wedding" ON guests
+  FOR INSERT WITH CHECK (
+    EXISTS (SELECT 1 FROM weddings WHERE id = wedding_id)
+  );
+
+-- Cập nhật: tách 2 case
+-- a) Khách RSVP: chỉ cho phép cập nhật viewed/confirmed/message/confirmed_at (không đổi link, side, wedding_id)
+CREATE POLICY "Guest self-update RSVP fields" ON guests
+  FOR UPDATE USING (true)
+  WITH CHECK (wedding_id = (SELECT wedding_id FROM guests g2 WHERE g2.id = id));
+
+-- Xóa: chỉ xóa được guest thuộc wedding đang tồn tại
+CREATE POLICY "Delete guests for existing wedding" ON guests
+  FOR DELETE USING (
+    EXISTS (SELECT 1 FROM weddings WHERE id = wedding_id)
+  );
 
 
 -- ============================================================
@@ -539,3 +605,194 @@ VALUES ('CUOIXINH', 'fixed', 20000, true, true);
 -- ============================================================
 -- END OF SCHEMA
 -- ============================================================
+
+
+-- ============================================================
+-- DỮ LIỆU MẪU - Bản ghi wedding công khai (published)
+-- ============================================================
+
+-- Bản ghi mẫu cho bảng weddings (công khai/published)
+INSERT INTO weddings (
+  id,
+  is_active,
+  slug,
+  
+  -- Thông tin chung
+  groom_name,
+  bride_name,
+  story_quote,
+  
+  -- Lễ thành hôn
+  ceremony_date,
+  ceremony_time,
+  ceremony_lunar,
+  ceremony_name,
+  ceremony_location,
+  ceremony_display_order,
+  
+  -- Lễ vu quy (bật)
+  vu_quy_enabled,
+  vu_quy_time,
+  vu_quy_location,
+  
+  -- Nhà trai
+  groom_father,
+  groom_mother,
+  groom_address,
+  groom_party_date,
+  groom_party_time,
+  groom_party_lunar,
+  groom_party_location,
+  groom_bank_name,
+  groom_bank_number,
+  groom_bank_owner,
+  
+  -- Nhà gái
+  bride_father,
+  bride_mother,
+  bride_address,
+  bride_party_date,
+  bride_party_time,
+  bride_party_lunar,
+  bride_party_location,
+  bride_bank_name,
+  bride_bank_number,
+  bride_bank_owner,
+  
+  -- Theme & Music
+  theme,
+  music_url,
+  
+  -- Payment (đã thanh toán)
+  payment_status,
+  payment_order_id,
+  transaction_id,
+  payment_time,
+  payment_amount,
+  is_published,
+  
+  -- Timeline & Love Story (JSONB)
+  timeline,
+  love_story,
+  
+  -- RSVP
+  rsvp_enabled,
+  rsvp_message,
+  footer_text,
+  
+  -- Section visibility
+  enable_family,
+  enable_party,
+  enable_photos,
+  enable_timeline,
+  enable_love_story,
+  enable_music,
+  enable_gift,
+  enable_footer
+)
+VALUES (
+  'cc38bfc1-f8a1-41fb-a8ae-afc4ff201d31'::uuid, -- id
+  true, -- is_active
+  'minh-tuan-thuy-linh', -- slug
+  
+  -- Thông tin chung
+  'Nguyễn Minh Tuấn', -- groom_name
+  'Lê Thùy Linh', -- bride_name
+  'Tình yêu không làm cho thế giới quay tròn. Tình yêu là thứ làm cho cuộc hành trình đáng giá', -- story_quote
+  
+  -- Lễ thành hôn
+  '2026-12-20', -- ceremony_date
+  '09:00', -- ceremony_time
+  'Ngày 01 tháng 11 năm Bính Ngọ', -- ceremony_lunar
+  'Lễ Thành Hôn', -- ceremony_name
+  'Nhà hàng Tiệc Cưới Hương Sen, 123 Đường Lê Lợi, Quận 1, TP.HCM', -- ceremony_location
+  'groom_first', -- ceremony_display_order
+  
+  -- Lễ vu quy
+  true, -- vu_quy_enabled
+  '07:30', -- vu_quy_time
+  'Tư gia nhà gái - 456 Đường Nguyễn Trãi, Quận 5, TP.HCM', -- vu_quy_location
+  
+  -- Nhà trai
+  'Nguyễn Văn Hùng', -- groom_father
+  'Trần Thị Mai', -- groom_mother
+  '789 Đường Trần Hưng Đạo, Quận 1, TP.HCM', -- groom_address
+  '2026-12-20', -- groom_party_date
+  '18:00', -- groom_party_time
+  'Ngày 01 tháng 11 năm Bính Ngọ', -- groom_party_lunar
+  'Nhà hàng Tiệc Cưới Hương Sen, 123 Đường Lê Lợi, Quận 1, TP.HCM', -- groom_party_location
+  'Vietcombank', -- groom_bank_name
+  '1234567890', -- groom_bank_number
+  'Nguyễn Minh Tuấn', -- groom_bank_owner
+  
+  -- Nhà gái
+  'Lê Quốc Anh', -- bride_father
+  'Phạm Thị Hoa', -- bride_mother
+  '456 Đường Nguyễn Trãi, Quận 5, TP.HCM', -- bride_address
+  '2026-12-19', -- bride_party_date
+  '18:00', -- bride_party_time
+  'Ngày 30 tháng 10 năm Bính Ngọ', -- bride_party_lunar
+  'Tư gia nhà gái - 456 Đường Nguyễn Trãi, Quận 5, TP.HCM', -- bride_party_location
+  'Techcombank', -- bride_bank_name
+  '0987654321', -- bride_bank_number
+  'Lê Thùy Linh', -- bride_bank_owner
+  
+  -- Theme & Music
+  'romantic-gold', -- theme
+  'https://www.youtube.com/watch?v=tCnBrrnOefs', -- music_url (Beautiful in White)
+  
+  -- Payment
+  'completed', -- payment_status
+  'ORDER_20261201_123456', -- payment_order_id
+  'TXN_98765432', -- transaction_id
+  '2026-12-01 14:30:00+07', -- payment_time
+  159000, -- payment_amount
+  true, -- is_published (công khai)
+  
+  -- Timeline (JSONB)
+  '[
+    {"time":"07:30","title":"Lễ Vu Quy","description":"Tại tư gia nhà gái"},
+    {"time":"09:00","title":"Lễ Thành Hôn","description":"Nhà hàng Hương Sen"},
+    {"time":"11:30","title":"Chụp Ảnh Cùng Khách Mời","description":"Khu vườn nhà hàng"},
+    {"time":"18:00","title":"Tiệc Chiêu Đãi","description":"Không gian tiệc tầng 2"}
+  ]'::jsonb, -- timeline
+  
+  -- Love Story (JSONB)
+  '[
+    {
+      "date":"Tháng 3/2020",
+      "title":"Lần đầu gặp mặt",
+      "content":"Chúng mình gặp nhau lần đầu trong một buổi họp công ty. Anh ấy là người đầu tiên chủ động nói chuyện với mình."
+    },
+    {
+      "date":"Tháng 8/2020",
+      "title":"Chuyến du lịch đầu tiên",
+      "content":"Chuyến đi Đà Lạt đáng nhớ đã khiến chúng mình hiểu nhau hơn và quyết định bên nhau."
+    },
+    {
+      "date":"Tháng 2/2025",
+      "title":"Ngày cầu hôn",
+      "content":"Một buổi tối lãng mạn bên bờ biển, anh ấy đã quỳ gối cầu hôn mình. Đó là khoảnh khắc hạnh phúc nhất đời mình."
+    },
+    {
+      "date":"Tháng 12/2026",
+      "title":"Ngày trọng đại",
+      "content":"Chúng mình chính thức về chung một nhà, bắt đầu hành trình mới với tư cách là vợ chồng."
+    }
+  ]'::jsonb, -- love_story
+  
+  -- RSVP
+  true, -- rsvp_enabled
+  'Rất mong được đón tiếp Quý khách tại tiệc cưới của chúng tôi. Xin vui lòng xác nhận sự tham dự để chúng tôi chuẩn bị chu đáo hơn.', -- rsvp_message
+  'Trân trọng cảm ơn Quý khách đã dành thời gian tham dự đám cưới của chúng tôi. Sự hiện diện của Quý khách là niềm vinh hạnh và hạnh phúc lớn nhất của chúng tôi!', -- footer_text
+  
+  -- Section visibility (tất cả đều hiển thị)
+  true, -- enable_family
+  true, -- enable_party
+  true, -- enable_photos
+  true, -- enable_timeline
+  true, -- enable_love_story
+  true, -- enable_music
+  true, -- enable_gift
+  true  -- enable_footer
+);

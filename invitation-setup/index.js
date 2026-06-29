@@ -5,6 +5,7 @@ const DOMAIN = window.location.origin;
 // Wedding data cache
 let WEDDING_SLUG = "";
 let WEDDING_THEME = "basic-gold";
+let _currentMusicUrl = "";
 
 // Draft state: true = chỉ có trong localStorage, chưa lên DB
 let _isLocalDraft = false;
@@ -505,7 +506,7 @@ function _savePreviewData() {
 // ============= BOTTOM NAV TABS =============
 
 function _setActiveTab(tabId) {
-  ["edit", "preview", "draft", "publish"].forEach((id) => {
+  ["draft", "config", "publish"].forEach((id) => {
     const btn = document.getElementById(`tab-${id}`);
     if (!btn) return;
     if (id === tabId) {
@@ -516,11 +517,32 @@ function _setActiveTab(tabId) {
       btn.classList.add("text-gray-400", "border-transparent");
     }
   });
+
+  // Segmented switch
+  const editBtn    = document.getElementById("switch-edit");
+  const previewBtn = document.getElementById("switch-preview");
+  if (!editBtn || !previewBtn) return;
+  if (tabId === "preview") {
+    previewBtn.classList.add("bg-white", "shadow-sm", "text-rose-500", "font-semibold");
+    previewBtn.classList.remove("text-gray-400", "font-medium");
+    editBtn.classList.remove("bg-white", "shadow-sm", "text-gray-700", "font-semibold");
+    editBtn.classList.add("text-gray-400", "font-medium");
+  } else {
+    editBtn.classList.add("bg-white", "shadow-sm", "text-gray-700", "font-semibold");
+    editBtn.classList.remove("text-gray-400", "font-medium");
+    previewBtn.classList.remove("bg-white", "shadow-sm", "text-rose-500", "font-semibold");
+    previewBtn.classList.add("text-gray-400", "font-medium");
+  }
+}
+
+function togglePreview() {
+  switchTab(_isPreviewActive ? "edit" : "preview");
 }
 
 function switchTab(tab) {
-  const formPanel = document.getElementById("form-panel");
+  const formPanel    = document.getElementById("form-panel");
   const previewPanel = document.getElementById("preview-panel");
+  const configPanel  = document.getElementById("config-panel");
 
   if (tab === "preview") {
     _isPreviewActive = true;
@@ -529,13 +551,105 @@ function switchTab(tab) {
     iframe.src = `/public/themes/${WEDDING_THEME}/?preview=true&source=live&isGroom=true&t=${Date.now()}`;
     formPanel.classList.add("hidden");
     previewPanel.classList.remove("hidden");
+    configPanel.classList.add("hidden");
     setStep(3);
+  } else if (tab === "config") {
+    _isPreviewActive = false;
+    formPanel.classList.add("hidden");
+    previewPanel.classList.add("hidden");
+    configPanel.classList.remove("hidden");
+    _initConfigPanel();
   } else {
     _isPreviewActive = false;
     formPanel.classList.remove("hidden");
     previewPanel.classList.add("hidden");
+    configPanel.classList.add("hidden");
   }
   _setActiveTab(tab);
+}
+
+function _initConfigPanel() {
+  const slugInput = document.getElementById("slug-input");
+  if (slugInput && WEDDING_SLUG) slugInput.value = WEDDING_SLUG;
+  _updateSlugPreview();
+
+  const ytInput = document.getElementById("youtube-link-input");
+  if (ytInput && !ytInput.value && _currentMusicUrl) {
+    renderExistingYouTubeMusic(_currentMusicUrl);
+  } else if (ytInput?.value) {
+    autoPreviewYouTubeMusic();
+  }
+}
+
+function _toSlug(str) {
+  return (str || "")
+    .normalize("NFD").replace(/[̀-ͯ]/g, "")
+    .replace(/đ/gi, "d")
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .trim()
+    .replace(/\s+/g, "-");
+}
+
+async function _isSlugAvailable(slug) {
+  try {
+    const res = await fetch(
+      `${CONFIG.supabase.edgeUrl}?slug=${encodeURIComponent(slug)}`,
+      { headers: { Authorization: `Bearer ${CONFIG.supabase.anonKey}` } }
+    );
+    if (!res.ok) return true; // 404 = chưa có ai dùng
+    const data = await res.json();
+    // Nếu kết quả trả về là wedding này → coi như available
+    return !data || data.id === WEDDING_ID;
+  } catch { return true; }
+}
+
+async function _resolvePublishSlug() {
+  // Nếu user đã nhập slug thủ công trong Cấu hình → giữ nguyên
+  if (WEDDING_SLUG && !WEDDING_SLUG.startsWith("wedding-")) return WEDDING_SLUG;
+
+  const groomName = (document.querySelector('[name="groom_name"]')?.value || "").trim();
+  const brideName = (document.querySelector('[name="bride_name"]')?.value || "").trim();
+  if (!groomName || !brideName) return WEDDING_SLUG;
+
+  const groomSlug = _toSlug(groomName);
+  const brideSlug = _toSlug(brideName);
+
+  // Lần 1: họ và tên đầy đủ
+  const fullSlug = `${groomSlug}-${brideSlug}`;
+  if (await _isSlugAvailable(fullSlug)) return fullSlug;
+
+  // Lần 2: thêm "&" ở giữa
+  const andSlug = `${groomSlug}-&-${brideSlug}`;
+  if (await _isSlugAvailable(andSlug)) return andSlug;
+
+  // Lần 3: random số 2 chữ số
+  const rand = Math.floor(Math.random() * 90) + 10; // 10–99
+  return `${fullSlug}-${rand}`;
+}
+
+function _updateSlugPreview() {
+  const input   = document.getElementById("slug-input");
+  const preview = document.getElementById("slug-preview");
+  const row     = document.getElementById("slug-preview-row");
+  if (!input || !preview) return;
+  const val = input.value.trim();
+  if (val) {
+    preview.textContent = `${window.location.origin}/${val}`;
+    if (row) row.style.display = "flex";
+  } else {
+    if (row) row.style.display = "none";
+  }
+}
+
+function copyInviteLink() {
+  const preview = document.getElementById("slug-preview");
+  if (!preview?.textContent) return;
+  navigator.clipboard.writeText(preview.textContent).then(() => {
+    showToast("✅ Đã sao chép link thiệp!");
+  }).catch(() => {
+    showToast("❌ Không thể sao chép, hãy copy thủ công");
+  });
 }
 
 async function saveDraft() {
@@ -546,6 +660,11 @@ async function saveDraft() {
 
 async function publishWedding() {
   _setActiveTab("publish");
+  showLoading(true, "Đang chuẩn bị...");
+  WEDDING_SLUG = await _resolvePublishSlug();
+  // Cập nhật input slug trong panel cấu hình nếu đang mở
+  const slugInput = document.getElementById("slug-input");
+  if (slugInput) { slugInput.value = WEDDING_SLUG; _updateSlugPreview(); }
   const ok = await saveAll({ is_published: true }, "Đang xuất bản...");
   if (!ok) return;
 
@@ -641,6 +760,186 @@ function decryptData(encryptedText) {
     console.error("Decryption error:", error);
     return "";
   }
+}
+
+// ============= GUESTS PAGE ===============
+
+function openGuestsPage(e) {
+  if (e) e.preventDefault();
+  if (!WEDDING_ID) { showToast("⚠️ Cần lưu thiệp trước khi quản lý khách mời"); return; }
+  window.location.href = `guests/?id=${WEDDING_ID}`;
+}
+
+// ============= EXCEL IMPORT =============
+
+let _importState = { headers: [], data: [], side: "" };
+
+function downloadGuestTemplate() {
+  if (typeof XLSX === "undefined") { showToast("⚠️ Đang tải thư viện, thử lại sau"); return; }
+  guestBL.downloadTemplate();
+}
+
+async function handleExcelUpload(event, side) {
+  const file = event.target.files[0];
+  event.target.value = "";
+  if (!file) return;
+
+  try {
+    const { headers, data } = await guestBL.parseExcel(file);
+    _importState = { headers, data, side };
+    _openMappingModal(headers, data);
+  } catch (err) {
+    showToast("❌ " + err.message);
+  }
+}
+
+function _openMappingModal(headers, data) {
+  const mapping = guestBL.autoDetectMapping(headers);
+  const noOpt = `<option value="-1">— Không chọn —</option>`;
+  const opts = headers.map((h, i) => `<option value="${i}">${h || "(Cột " + (i+1) + ")"}</option>`).join("");
+
+  document.getElementById("map-full-name").innerHTML = opts;
+  document.getElementById("map-display-name").innerHTML = noOpt + opts;
+  document.getElementById("map-relationship").innerHTML = noOpt + opts;
+
+  document.getElementById("map-full-name").value = mapping.full_name;
+  document.getElementById("map-display-name").value = mapping.display_name;
+  document.getElementById("map-relationship").value = mapping.relationship;
+
+  _renderMappingPreview(headers, data.slice(0, 4));
+
+  document.querySelector("input[name='import-mode'][value='overwrite']").checked = true;
+
+  const modal = document.getElementById("import-mapping-modal");
+  modal.classList.remove("hidden");
+  modal.classList.add("flex");
+  if (window.lucide) lucide.createIcons();
+}
+
+function closeMappingModal() {
+  const modal = document.getElementById("import-mapping-modal");
+  modal.classList.add("hidden");
+  modal.classList.remove("flex");
+}
+
+function _renderMappingPreview(headers, rows) {
+  const th = headers.map(h => `<th class="px-2 py-1.5 text-left text-xs font-medium text-gray-500 whitespace-nowrap">${h}</th>`).join("");
+  const trs = rows.map(row =>
+    `<tr class="border-t border-gray-100">${
+      headers.map((_, i) => `<td class="px-2 py-1.5 text-xs text-gray-700 max-w-[100px] truncate">${row[i] ?? ""}</td>`).join("")
+    }</tr>`
+  ).join("");
+  document.getElementById("mapping-preview").innerHTML = `
+    <div class="overflow-x-auto rounded-lg border border-gray-200">
+      <table class="w-full text-left"><thead class="bg-gray-50"><tr>${th}</tr></thead><tbody>${trs}</tbody></table>
+    </div>
+    <p class="text-xs text-gray-400 mt-1">Hiển thị ${rows.length} dòng đầu</p>`;
+}
+
+async function confirmImport() {
+  const colMapping = {
+    full_name: parseInt(document.getElementById("map-full-name").value),
+    display_name: parseInt(document.getElementById("map-display-name").value),
+    relationship: parseInt(document.getElementById("map-relationship").value),
+  };
+
+  if (isNaN(colMapping.full_name) || colMapping.full_name < 0) {
+    showToast("⚠️ Vui lòng chọn cột Họ và tên");
+    return;
+  }
+
+  const overwrite = document.querySelector("input[name='import-mode']:checked").value === "overwrite";
+  const { data, side } = _importState;
+
+  closeMappingModal();
+  showLoading(true, "Đang nhập khẩu...");
+
+  try {
+    const result = await guestBL.importGuests(WEDDING_ID, side, data, colMapping, overwrite);
+    const skipMsg = result.skipped > 0 ? `, bỏ qua ${result.skipped} trùng` : "";
+    showToast(`✅ Đã nhập ${result.inserted} khách${skipMsg}`);
+    await loadGuestList(side);
+  } catch (err) {
+    showToast("❌ Nhập khẩu thất bại: " + err.message);
+  } finally {
+    showLoading(false);
+  }
+}
+
+async function loadGuestList(side) {
+  if (!WEDDING_ID) return;
+  try {
+    const guests = await guestDAL.getGuests(WEDDING_ID, side);
+    _renderGuestList(guests, side);
+  } catch (err) {
+    console.error("loadGuestList error:", err);
+  }
+}
+
+function _renderGuestList(guests, side) {
+  const container = document.getElementById(`guest-list-${side}`);
+  if (!container) return;
+
+  if (guests.length === 0) {
+    container.innerHTML = `<p class="text-xs text-gray-400 text-center py-3">Chưa có khách mời nào</p>`;
+    return;
+  }
+
+  const rows = guests.map(g => `
+    <tr class="border-t border-gray-100 hover:bg-gray-50/50">
+      <td class="px-3 py-2.5">
+        <p class="text-xs font-medium text-gray-800 truncate max-w-[100px]">${g.full_name}</p>
+        ${g.display_name ? `<p class="text-xs text-gray-400 truncate max-w-[100px]">${g.display_name}</p>` : ""}
+      </td>
+      <td class="px-3 py-2.5 text-xs text-gray-500 truncate max-w-[80px]">${g.relationship || "—"}</td>
+      <td class="px-3 py-2.5 text-center">
+        ${g.link
+          ? `<button type="button" onclick="copyGuestLink('${g.link}')" class="text-rose-400 hover:text-rose-600 transition-colors">
+               <i data-lucide="copy" style="width:14px;height:14px"></i>
+             </button>`
+          : `<span class="text-gray-300 text-xs">—</span>`}
+      </td>
+      <td class="px-3 py-2.5">
+        ${g.viewed
+          ? `<span class="inline-flex items-center gap-1 text-xs text-green-600 bg-green-50 px-1.5 py-0.5 rounded-full whitespace-nowrap">✓ Đã xem</span>
+             ${g.viewed_at ? `<p class="text-xs text-gray-400 mt-0.5 whitespace-nowrap">${_formatGuestDate(g.viewed_at)}</p>` : ""}`
+          : `<span class="text-xs text-gray-400">Chưa xem</span>`}
+      </td>
+      <td class="px-3 py-2.5 text-xs whitespace-nowrap">
+        ${g.confirmed
+          ? `<span class="${g.confirmed.includes("Có") ? "text-green-600" : "text-red-500"}">${g.confirmed}</span>`
+          : `<span class="text-gray-400">—</span>`}
+      </td>
+    </tr>`).join("");
+
+  container.innerHTML = `
+    <div class="overflow-x-auto rounded-lg border border-gray-200 -mx-0">
+      <table class="w-full min-w-[440px]">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500">Tên</th>
+            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500">Quan hệ</th>
+            <th class="px-3 py-2 text-center text-xs font-medium text-gray-500">Link</th>
+            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500">Trạng thái</th>
+            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500">Xác nhận</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+    <p class="text-xs text-gray-400 text-right mt-1.5">${guests.length} khách</p>`;
+
+  if (window.lucide) lucide.createIcons();
+}
+
+function copyGuestLink(link) {
+  navigator.clipboard.writeText(link).then(() => showToast("✅ Đã copy link"));
+}
+
+function _formatGuestDate(dateStr) {
+  if (!dateStr) return "";
+  const d = new Date(dateStr);
+  return d.toLocaleString("vi-VN", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
 }
 
 // ============= AUTO-GENERATE LINKS FUNCTIONS =============
@@ -1677,24 +1976,28 @@ function extractYouTubeVideoId(url) {
 }
 
 function autoPreviewYouTubeMusic() {
-  const input = document.getElementById("youtube-link-input");
-  const url = input.value.trim();
+  const input   = document.getElementById("youtube-link-input");
   const preview = document.getElementById("youtube-preview");
+  const error   = document.getElementById("youtube-error");
+  const url     = input.value.trim();
 
-  // If empty, hide preview
   if (!url) {
     preview.classList.add("hidden");
+    error?.classList.add("hidden");
+    input.classList.remove("border-red-400");
     return;
   }
 
   const videoId = extractYouTubeVideoId(url);
   if (!videoId) {
-    // Invalid URL, hide preview
     preview.classList.add("hidden");
+    error?.classList.remove("hidden");
+    input.classList.add("border-red-400");
     return;
   }
 
-  // Valid URL, show preview
+  error?.classList.add("hidden");
+  input.classList.remove("border-red-400");
   showYouTubePreview(videoId, url);
 }
 
@@ -2008,6 +2311,8 @@ async function loadData() {
     _updateLocalDraftNotice();
     _showContent();
     await _idbRestoreAll();
+    loadGuestList("groom").catch(console.error);
+    loadGuestList("bride").catch(console.error);
   } catch (_dbError) {
     // Không có trong DB và không có localStorage → draft hoàn toàn mới
     _isLocalDraft = true;
@@ -2148,8 +2453,9 @@ function fillForm(data) {
     if (key === "image_focal_points") return;
 
     // Special handling for YouTube music URL
-    if (key === "music_url" && data[key]) {
-      renderExistingYouTubeMusic(data[key]);
+    if (key === "music_url") {
+      _currentMusicUrl = data[key] || "";
+      if (data[key]) renderExistingYouTubeMusic(data[key]);
       return;
     }
 
@@ -3313,6 +3619,7 @@ function initCeremonySection(data) {
 }
 
 window.applySlug = applySlug;
+window.copyInviteLink = copyInviteLink;
 window.generateLinks = generateLinks;
 window.switchGuestsTab = switchGuestsTab;
 window.generateQuickLink = generateQuickLink;
@@ -3478,20 +3785,11 @@ async function openThemePicker() {
   sheet.body.innerHTML = `<div class="flex items-center justify-center py-10 text-gray-400 text-sm">Đang tải...</div>`;
 
   try {
-    const base = CONFIG.supabase.url;
-    const key = CONFIG.supabase.anonKey;
-    const headers = { apikey: key, Authorization: `Bearer ${key}` };
-    const [tRes, pRes] = await Promise.all([
-      fetch(`${base}/rest/v1/templates?select=*&is_active=eq.true&order=sort_order.asc`, { headers }),
-      fetch(`${base}/rest/v1/template_pricing?select=*&is_active=eq.true`, { headers }),
-    ]);
-    const tData = await tRes.json();
-    const pData = await pRes.json();
-    const pricingMap = Object.fromEntries((pData || []).map((p) => [p.template_name, p]));
-    const rows = (tData || []).map((t) => {
-      const p = pricingMap[t.template_name] || {};
-      return { ...t, price: p.price || 159000, originalPrice: p.original_price || 199000 };
+    const res = await fetch(`${CONFIG.supabase.edgeUrl}?resource=public-templates`, {
+      headers: { Authorization: `Bearer ${CONFIG.supabase.anonKey}` },
     });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const rows = await res.json();
 
     sheet.body.innerHTML = `
       <div class="flex flex-col divide-y divide-gray-100">

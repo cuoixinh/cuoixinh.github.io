@@ -142,6 +142,17 @@ function extractMapEmbedUrl(value) {
  * @param {string} encryptedText - Encrypted text
  * @returns {string} Decrypted text
  */
+function encryptData(text) {
+  if (!text) return "";
+  try {
+    const encrypted = CryptoJS.AES.encrypt(text, ENCRYPTION_KEY).toString();
+    return encodeURIComponent(encrypted);
+  } catch (error) {
+    console.error("Encryption error:", error);
+    throw new Error("Lỗi mã hóa dữ liệu");
+  }
+}
+
 function decryptData(encryptedText) {
   if (!encryptedText) return "";
   try {

@@ -338,6 +338,67 @@ Deno.serve(async (req) => {
     const slug = url.searchParams.get('slug')
     const id = url.searchParams.get('id')
     const list = url.searchParams.get('list')
+
+    // ── Public: danh sách templates + pricing (không cần admin token) ──
+    if (resource === 'public-templates') {
+      const [tRes, pRes] = await Promise.all([
+        supabase.from('templates').select('*').eq('is_active', true).order('sort_order', { ascending: true }),
+        supabase.from('template_pricing').select('*').eq('is_active', true),
+      ])
+      if (tRes.error) return new Response(JSON.stringify({ error: tRes.error }), { status: 500, headers: corsHeaders })
+      const pricingMap = Object.fromEntries((pRes.data ?? []).map(p => [p.template_name, p]))
+      const combined = (tRes.data ?? []).map(t => ({
+        id: t.template_id,
+        name: t.display_name,
+        theme: t.template_name,
+        description: t.description,
+        thumbnailUrl: t.thumbnail_url,
+        previewUrl: t.preview_url,
+        features: t.features || [],
+        status: t.status,
+        category: t.category,
+        price: pricingMap[t.template_name]?.price ?? 159000,
+        originalPrice: pricingMap[t.template_name]?.original_price ?? 199000,
+      }))
+      return new Response(JSON.stringify(combined), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    // ── Public: kiểm tra mã khuyến mãi ──
+    if (resource === 'promo') {
+      const code = url.searchParams.get('code')?.trim()
+      if (!code) return new Response(JSON.stringify({ error: 'Thiếu code' }), { status: 400, headers: corsHeaders })
+
+      const { data, error } = await supabase
+        .from('promo_codes')
+        .select('code, discount_type, discount_value, expires_at')
+        .eq('code', code)
+        .eq('is_active', true)
+        .single()
+
+      if (error || !data) {
+        return new Response(JSON.stringify({ valid: false, error: 'Mã không hợp lệ hoặc đã hết hạn' }), {
+          status: 200, headers: corsHeaders,
+        })
+      }
+
+      const expired = data.expires_at ? new Date(data.expires_at) < new Date() : false
+      if (expired) {
+        return new Response(JSON.stringify({ valid: false, error: 'Mã đã hết hạn' }), {
+          status: 200, headers: corsHeaders,
+        })
+      }
+
+      return new Response(JSON.stringify({
+        valid: true,
+        code: data.code,
+        discount_type: data.discount_type,
+        discount_value: data.discount_value,
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
     
     // List all weddings with pagination (admin only)
     if (list === 'true') {

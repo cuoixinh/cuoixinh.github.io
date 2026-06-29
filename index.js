@@ -7,41 +7,12 @@ const TEMPLATES_API_URL = CONFIG.cloudflare.templatesCache
 let templates = [];
 let carouselActiveIndex = 0;
 
-async function fetchTemplatesDirect() {
-  const base = CONFIG.supabase.url;
-  const key = CONFIG.supabase.anonKey;
-  const [tRes, pRes] = await Promise.all([
-    fetch(
-      `${base}/rest/v1/templates?select=*&is_active=eq.true&order=sort_order.asc`,
-      {
-        headers: { apikey: key, Authorization: `Bearer ${key}` },
-      },
-    ),
-    fetch(`${base}/rest/v1/template_pricing?select=*&is_active=eq.true`, {
-      headers: { apikey: key, Authorization: `Bearer ${key}` },
-    }),
-  ]);
-  const tData = await tRes.json();
-  const pData = await pRes.json();
-  const pricingMap = Object.fromEntries(
-    (pData || []).map((p) => [p.template_name, p]),
-  );
-  return (tData || []).map((t) => {
-    const pricing = pricingMap[t.template_name] || {};
-    return {
-      id: t.template_id,
-      name: t.display_name,
-      theme: t.template_name,
-      description: t.description,
-      thumbnailUrl: t.thumbnail_url,
-      previewUrl: t.preview_url,
-      features: t.features || [],
-      status: t.status,
-      category: t.category,
-      price: pricing.price || 159000,
-      originalPrice: pricing.original_price || 199000,
-    };
+async function fetchTemplatesViaEdge() {
+  const res = await fetch(`${CONFIG.supabase.edgeUrl}?resource=public-templates`, {
+    headers: { Authorization: `Bearer ${CONFIG.supabase.anonKey}` },
   });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
 }
 
 async function loadTemplates() {
@@ -51,7 +22,7 @@ async function loadTemplates() {
       if (!response.ok) throw new Error("Failed to fetch templates");
       templates = await response.json();
     } else {
-      templates = await fetchTemplatesDirect();
+      templates = await fetchTemplatesViaEdge();
     }
     renderTemplateCards();
     initHeroImage();

@@ -1395,83 +1395,7 @@
               </div>
             </div>
 
-            <!-- 8. NHẠC NỀN -->
-            <div id="tour-music"
-              class="bg-white rounded-xl overflow-hidden animate-fade-in border border-gray-200"
-            >
-              <div
-                class="bg-white px-6 py-4 border-b border-gray-100 cursor-pointer select-none"
-                onclick="toggleSection('music')"
-              >
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center gap-2">
-                    <i
-                      data-lucide="music"
-                      class="text-[18px] text-color-secondary"
-                    ></i>
-                    <p class="text-sm text-gray-700">Nhạc nền</p>
-                  </div>
-                  <div class="flex items-center gap-3">
-                    <button
-                      type="button"
-                      id="vis-btn-music"
-                      onclick="toggleSectionVis('music', event)"
-                      class="relative flex-shrink-0 inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 bg-rose-500"
-                    >
-                      <span
-                        id="vis-knob-music"
-                        class="inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200 translate-x-6"
-                      ></span>
-                    </button>
-                    <i
-                      id="section-music-chevron"
-                      data-lucide="chevron-down"
-                      class="text-gray-400 text-sm"
-                    ></i>
-                  </div>
-                </div>
-              </div>
-              <div id="section-music-body" class="hidden p-6 space-y-4">
-                <div>
-                  <label
-                    class="block text-sm text-gray-700 mb-2 flex items-center gap-2"
-                    ><i
-                      data-lucide="play-circle"
-                      class="text-color-secondary"
-                    ></i>
-                    Liên kết nhạc YouTube</label
-                  >
-                  <input
-                    type="text"
-                    id="youtube-link-input"
-                    name="music_url"
-                    placeholder="Ví dụ: https://www.youtube.com/watch?v=xxxxxxxxxxx"
-                    class="w-full h-10 px-3 py-2 border border-gray-200 rounded-md text-sm text-gray-800 bg-white outline-none transition-all placeholder:text-gray-400/50 focus:ring-2 focus:ring-rose-500/30 focus:ring-offset-2"
-                  />
-                  <p class="text-xs text-gray-500 mt-2">
-                    <i data-lucide="info" class="text-color-secondary"></i>
-                    Paste link YouTube. Để trống nếu không muốn có nhạc nền.
-                  </p>
-                </div>
-                <div id="youtube-preview" class="hidden">
-                  <div class="bg-white rounded-2xl p-4 border border-gray-100">
-                    <p
-                      class="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2"
-                    >
-                      <i
-                        data-lucide="play-circle"
-                        class="text-color-secondary"
-                      ></i>
-                      Preview
-                    </p>
-                    <div
-                      id="youtube-player-container"
-                      class="aspect-video bg-black rounded-xl overflow-hidden shadow-md"
-                    ></div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <!-- 8. XÁC NHẬN THAM DỰ (RSVP) - music đã chuyển sang tab Cấu hình -->
 
             <!-- 8. XÁC NHẬN THAM DỰ (RSVP) -->
             <div
@@ -1753,190 +1677,12 @@
 
             <!-- 10. KHÁCH MỜI -->
             <div id="tour-guests"
-              class="bg-white rounded-xl overflow-hidden animate-fade-in border border-gray-200"
+              class="bg-white rounded-xl overflow-hidden animate-fade-in border border-gray-200 cursor-pointer group"
+              onclick="openGuestsPage(event)"
             >
-              <div
-                class="bg-white px-6 py-4 border-b border-gray-100 cursor-pointer select-none"
-                onclick="toggleSection('guests')"
-              >
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center gap-2">
-                    <i
-                      data-lucide="sparkles"
-                      class="text-[18px] text-color-secondary"
-                    ></i>
-                    <p class="text-sm text-gray-700">
-                      Nâng cao
-                      <span class="text-gray-400 font-normal"
-                        >(Cá nhân hóa khách mời)</span
-                      >
-                    </p>
-                  </div>
-                  <i
-                    id="section-guests-chevron"
-                    data-lucide="chevron-down"
-                    class="text-gray-400 text-sm"
-                  ></i>
-                </div>
-              </div>
-              <div id="section-guests-body" class="hidden">
-                <!-- Banner khoá khi chưa xuất bản -->
-                <div id="guests-lock-banner" class="hidden mx-6 mt-4 flex items-start gap-2.5 rounded-lg border border-amber-200 bg-amber-50 px-3.5 py-2.5">
-                  <i data-lucide="lock" class="text-amber-500 mt-0.5 shrink-0" style="width:14px;height:14px"></i>
-                  <p class="text-xs text-amber-700 leading-relaxed">Tính năng này chỉ khả dụng sau khi <strong>xuất bản thiệp</strong>. Nhấn nút <strong>Xuất bản</strong> ở thanh dưới để kích hoạt.</p>
-                </div>
-                <!-- Nội dung (inert khi chưa xuất bản) -->
-                <div id="guests-content-area">
-                <!-- Mô tả chung -->
-                <div class="px-6 pt-5 pb-0">
-                  <div class="text-xs text-gray-500 bg-gray-50 rounded-lg px-3 py-2.5 border border-gray-100 space-y-1.5">
-                    <p>Nhập URL Google Apps Script để hệ thống tự tạo link thiệp riêng cho từng khách mời, có tên và lời chào cá nhân hóa.</p>
-                    <a href="../google-apps-script/" target="_blank"
-                      class="inline-flex items-center gap-1 text-color-secondary font-medium hover:underline">
-                      <i data-lucide="book-open" style="width:12px;height:12px"></i>
-                      Hướng dẫn tạo thiệp riêng cho khách mời
-                    </a>
-                  </div>
-                </div>
-
-                <!-- Tab bar -->
-                <div class="flex border-b border-gray-100 mt-4">
-                  <button type="button" id="tab-guests-groom"
-                    onclick="switchGuestsTab('groom')"
-                    class="flex-1 py-3 text-sm font-medium flex items-center justify-center gap-1.5 bg-rose-50 text-rose-600 border-b-2 border-rose-500 transition-colors">
-                    <i data-lucide="mars" class="w-3.5 h-3.5"></i> Nhà trai
-                  </button>
-                  <button type="button" id="tab-guests-bride"
-                    onclick="switchGuestsTab('bride')"
-                    class="flex-1 py-3 text-sm font-medium flex items-center justify-center gap-1.5 text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors">
-                    <i data-lucide="venus" class="w-3.5 h-3.5"></i> Nhà gái
-                  </button>
-                </div>
-
-                <!-- Tab content: Nhà trai -->
-                <div id="guests-panel-groom" class="p-6 space-y-3">
-                  <div class="space-y-2">
-                    <label class="text-xs text-gray-500">Google Apps Script URL (nhà trai)</label>
-                    <input name="groom_google_sheet_url" id="groom_google_sheet_url"
-                      placeholder="Dán liên kết Google Apps Script vào đây..."
-                      class="w-full h-10 px-3 py-2 border border-gray-200 rounded-md text-sm text-gray-800 bg-white outline-none transition-all placeholder:text-gray-400/50 focus:ring-2 focus:ring-rose-500/30 focus:ring-offset-2 font-mono" />
-                    <button type="button" onclick="testGASConnection('groom')" id="test-gas-btn-groom"
-                      class="h-8 px-3 rounded-md text-xs font-medium border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors flex items-center gap-1.5">
-                      <i data-lucide="plug" class="w-3 h-3"></i> Kiểm tra kết nối
-                    </button>
-                    <div id="gas-status-groom" class="hidden"></div>
-                  </div>
-                  <div class="border-t border-gray-100 pt-3 space-y-3">
-                    <p class="text-xs text-gray-400 flex items-center gap-1.5">
-                      <i data-lucide="link" class="w-3.5 h-3.5 text-color-secondary"></i>
-                      Tạo link nhanh cho 1 khách nhà trai
-                    </p>
-                    <div class="grid grid-cols-2 gap-3">
-                      <input id="quick-link-name-groom" placeholder="Tên khách (VD: Anh Minh)"
-                        class="h-10 px-3 border border-gray-200 rounded-md text-sm text-gray-800 bg-white outline-none transition-all placeholder:text-gray-400/50 focus:ring-2 focus:ring-rose-500/30" />
-                      <input id="quick-link-rel-groom" placeholder="Quan hệ (VD: Bạn bè)"
-                        class="h-10 px-3 border border-gray-200 rounded-md text-sm text-gray-800 bg-white outline-none transition-all placeholder:text-gray-400/50 focus:ring-2 focus:ring-rose-500/30" />
-                    </div>
-                    <button type="button" onclick="generateQuickLink('groom')"
-                      class="w-full h-9 rounded-md text-sm font-medium text-white bg-rose-500 hover:bg-rose-600 transition-colors flex items-center justify-center gap-1.5">
-                      <i data-lucide="link" class="w-3.5 h-3.5"></i> Tạo link
-                    </button>
-                    <div id="quick-link-result-groom" class="hidden space-y-2">
-                      <input id="quick-link-output-groom" readonly
-                        class="w-full h-10 px-3 border border-gray-200 rounded-md text-sm text-gray-600 bg-gray-50 font-mono outline-none" />
-                      <div class="flex gap-2">
-                        <button type="button" onclick="copyText('quick-link-output-groom')"
-                          class="flex-1 h-9 rounded-md text-sm border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors flex items-center justify-center gap-1.5">
-                          <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copy link
-                        </button>
-                        <button type="button" onclick="shareViaMessenger(document.getElementById('quick-link-output-groom').value, 'groom')"
-                          class="flex-1 h-9 rounded-md text-sm font-medium text-white transition-colors flex items-center justify-center gap-1.5"
-                          style="background:#0099FF">
-                          <i data-lucide="message-circle" class="w-3.5 h-3.5"></i> Messenger
-                        </button>
-                      </div>
-                      <div id="messenger-share-panel-groom" class="hidden rounded-xl border border-blue-100 p-3 space-y-2" style="background:#EFF6FF">
-                        <p class="text-xs font-medium" style="color:#1D4ED8">Chia sẻ qua Messenger</p>
-                        <p class="text-xs" style="color:#3B82F6">Copy link rồi dán vào hộp chat Messenger, hoặc nhấn mở Messenger để gửi trực tiếp.</p>
-                        <div class="flex gap-2">
-                          <button type="button" onclick="copyMessengerLink('groom')"
-                            class="flex-1 h-8 rounded-md text-xs border border-blue-200 bg-white hover:bg-blue-50 transition-colors flex items-center justify-center gap-1"
-                            style="color:#1D4ED8">
-                            <i data-lucide="copy" class="w-3 h-3"></i> Copy link
-                          </button>
-                          <a href="https://www.messenger.com/" target="_blank"
-                            class="flex-1 h-8 rounded-md text-xs font-medium text-white flex items-center justify-center gap-1"
-                            style="background:#0099FF">
-                            <i data-lucide="external-link" class="w-3 h-3"></i> Mở Messenger
-                          </a>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Tab content: Nhà gái -->
-                <div id="guests-panel-bride" class="hidden p-6 space-y-3">
-                  <div class="space-y-2">
-                    <label class="text-xs text-gray-500">Google Apps Script URL (nhà gái)</label>
-                    <input name="bride_google_sheet_url" id="bride_google_sheet_url"
-                      placeholder="Dán liên kết Google Apps Script vào đây..."
-                      class="w-full h-10 px-3 py-2 border border-gray-200 rounded-md text-sm text-gray-800 bg-white outline-none transition-all placeholder:text-gray-400/50 focus:ring-2 focus:ring-rose-500/30 focus:ring-offset-2 font-mono" />
-                    <button type="button" onclick="testGASConnection('bride')" id="test-gas-btn-bride"
-                      class="h-8 px-3 rounded-md text-xs font-medium border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors flex items-center gap-1.5">
-                      <i data-lucide="plug" class="w-3 h-3"></i> Kiểm tra kết nối
-                    </button>
-                    <div id="gas-status-bride" class="hidden"></div>
-                  </div>
-                  <div class="border-t border-gray-100 pt-3 space-y-3">
-                    <p class="text-xs text-gray-400 flex items-center gap-1.5">
-                      <i data-lucide="link" class="w-3.5 h-3.5 text-color-secondary"></i>
-                      Tạo link nhanh cho 1 khách nhà gái
-                    </p>
-                    <div class="grid grid-cols-2 gap-3">
-                      <input id="quick-link-name-bride" placeholder="Tên khách (VD: Chị Lan)"
-                        class="h-10 px-3 border border-gray-200 rounded-md text-sm text-gray-800 bg-white outline-none transition-all placeholder:text-gray-400/50 focus:ring-2 focus:ring-rose-500/30" />
-                      <input id="quick-link-rel-bride" placeholder="Quan hệ (VD: Chị họ)"
-                        class="h-10 px-3 border border-gray-200 rounded-md text-sm text-gray-800 bg-white outline-none transition-all placeholder:text-gray-400/50 focus:ring-2 focus:ring-rose-500/30" />
-                    </div>
-                    <button type="button" onclick="generateQuickLink('bride')"
-                      class="w-full h-9 rounded-md text-sm font-medium text-white bg-rose-500 hover:bg-rose-600 transition-colors flex items-center justify-center gap-1.5">
-                      <i data-lucide="link" class="w-3.5 h-3.5"></i> Tạo link
-                    </button>
-                    <div id="quick-link-result-bride" class="hidden space-y-2">
-                      <input id="quick-link-output-bride" readonly
-                        class="w-full h-10 px-3 border border-gray-200 rounded-md text-sm text-gray-600 bg-gray-50 font-mono outline-none" />
-                      <div class="flex gap-2">
-                        <button type="button" onclick="copyText('quick-link-output-bride')"
-                          class="flex-1 h-9 rounded-md text-sm border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors flex items-center justify-center gap-1.5">
-                          <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copy link
-                        </button>
-                        <button type="button" onclick="shareViaMessenger(document.getElementById('quick-link-output-bride').value, 'bride')"
-                          class="flex-1 h-9 rounded-md text-sm font-medium text-white transition-colors flex items-center justify-center gap-1.5"
-                          style="background:#0099FF">
-                          <i data-lucide="message-circle" class="w-3.5 h-3.5"></i> Messenger
-                        </button>
-                      </div>
-                      <div id="messenger-share-panel-bride" class="hidden rounded-xl border border-blue-100 p-3 space-y-2" style="background:#EFF6FF">
-                        <p class="text-xs font-medium" style="color:#1D4ED8">Chia sẻ qua Messenger</p>
-                        <p class="text-xs" style="color:#3B82F6">Copy link rồi dán vào hộp chat Messenger, hoặc nhấn mở Messenger để gửi trực tiếp.</p>
-                        <div class="flex gap-2">
-                          <button type="button" onclick="copyMessengerLink('bride')"
-                            class="flex-1 h-8 rounded-md text-xs border border-blue-200 bg-white hover:bg-blue-50 transition-colors flex items-center justify-center gap-1"
-                            style="color:#1D4ED8">
-                            <i data-lucide="copy" class="w-3 h-3"></i> Copy link
-                          </button>
-                          <a href="https://www.messenger.com/" target="_blank"
-                            class="flex-1 h-8 rounded-md text-xs font-medium text-white flex items-center justify-center gap-1"
-                            style="background:#0099FF">
-                            <i data-lucide="external-link" class="w-3 h-3"></i> Mở Messenger
-                          </a>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                </div><!-- /guests-content-area -->
+              <div class="px-6 py-4 flex items-center gap-2">
+                <i data-lucide="users" class="text-color-secondary" style="width:18px;height:18px"></i>
+                <p class="text-sm font-medium text-gray-700">Quản lý khách mời</p>
               </div>
             </div>
 
@@ -2010,6 +1756,83 @@
         </div>
         <!-- /preview-panel -->
 
+        <!-- Config Panel -->
+        <div id="config-panel" class="hidden fixed inset-0 bottom-[60px] z-[200] bg-[#fdf8f9] overflow-y-auto">
+          <div class="max-w-4xl mx-auto px-4 py-8 pb-10 space-y-4">
+            <h2 class="text-base font-semibold text-gray-800">Cấu hình thiệp</h2>
+
+            <!-- Slug -->
+            <div class="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
+              <div class="flex items-center gap-2">
+                <i data-lucide="link" class="w-4 h-4 text-color-secondary"></i>
+                <p class="text-sm font-medium text-gray-700">Đường dẫn thiệp (Slug)</p>
+              </div>
+              <p class="text-xs text-gray-400">Xác định URL của thiệp cưới. Ví dụ: <span class="font-mono text-gray-600">quang-vinh-hai-yen</span></p>
+              <div class="flex gap-2">
+                <input id="slug-input" type="text" placeholder="quang-vinh-hai-yen"
+                  oninput="_updateSlugPreview()"
+                  class="flex-1 h-10 px-3 border border-gray-200 rounded-lg text-sm text-gray-800 font-mono outline-none focus:ring-2 focus:ring-rose-500/30 placeholder:text-gray-400/50" />
+                <button type="button" onclick="applySlug()"
+                  class="h-10 px-4 rounded-lg text-sm font-medium text-white bg-rose-500 hover:bg-rose-600 transition-colors shrink-0">
+                  Lưu
+                </button>
+              </div>
+              <div id="slug-status" class="hidden text-xs"></div>
+              <div id="slug-preview-row" style="display:none" class="items-center gap-2 bg-gray-50 rounded-lg px-3 py-2">
+                <p id="slug-preview" class="flex-1 text-xs text-gray-500 font-mono truncate min-w-0"></p>
+                <button type="button" onclick="copyInviteLink()"
+                  class="shrink-0 flex items-center gap-1 text-xs text-rose-500 hover:text-rose-600 font-medium whitespace-nowrap">
+                  <i data-lucide="copy" class="w-3 h-3"></i>Sao chép
+                </button>
+              </div>
+            </div>
+
+            <!-- Nhạc nền -->
+            <div class="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <i data-lucide="music" class="w-4 h-4 text-color-secondary"></i>
+                  <p class="text-sm font-medium text-gray-700">Nhạc nền</p>
+                </div>
+                <button type="button" id="vis-btn-music" onclick="toggleSectionVis('music', event)"
+                  class="relative flex-shrink-0 inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 bg-rose-500">
+                  <span id="vis-knob-music"
+                    class="inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200 translate-x-6"></span>
+                </button>
+              </div>
+              <input type="text" id="youtube-link-input" name="music_url"
+                placeholder="Ví dụ: https://www.youtube.com/watch?v=xxxxxxxxxxx"
+                class="w-full h-10 px-3 border border-gray-200 rounded-lg text-sm text-gray-800 bg-white outline-none focus:ring-2 focus:ring-rose-500/30 placeholder:text-gray-400/50" />
+              <p id="youtube-error" class="hidden text-xs text-red-500">Đường dẫn không hợp lệ.</p>
+              <p class="text-xs text-gray-400">URL video YouTube dùng làm nhạc nền. Bỏ trống để tắt nhạc.</p>
+              <div id="youtube-preview" class="hidden">
+                <div class="bg-gray-50 rounded-lg p-3">
+                  <div id="youtube-player-container" class="aspect-video bg-black rounded-lg overflow-hidden"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Quản lý khách mời -->
+            <div class="bg-white rounded-xl border border-gray-200 p-5">
+              <div class="flex items-center justify-between gap-3">
+                <div class="flex items-center gap-2 min-w-0">
+                  <i data-lucide="users" class="w-4 h-4 text-color-secondary shrink-0"></i>
+                  <div class="min-w-0">
+                    <p class="text-sm font-medium text-gray-700">Quản lý khách mời</p>
+                    <p class="text-xs text-gray-400 mt-0.5">Thêm, sửa, xuất Excel, tạo link mời</p>
+                  </div>
+                </div>
+                <button type="button" onclick="window.location.href='guests/?id=' + WEDDING_ID"
+                  class="shrink-0 h-9 px-4 rounded-lg text-sm font-medium text-white bg-rose-500 hover:bg-rose-600 transition-colors">
+                  Mở →
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+        <!-- /config-panel -->
+
         <!-- Local Draft Notice — nằm ngay phía trên thanh điều hướng (cách đáy đúng bằng chiều cao thanh tab ~64px) -->
         <div
           id="local-draft-notice"
@@ -2062,24 +1885,21 @@
           class="fixed bottom-0 left-0 right-0 z-[300] bg-white border-t border-rose-100 shadow-[0_-2px_12px_rgba(0,0,0,0.06)]"
         >
 <div class="max-w-4xl mx-auto flex items-stretch">
-            <button
-              type="button"
-              onclick="switchTab('edit')"
-              id="tab-edit"
-              class="flex-1 flex flex-col items-center justify-center gap-1 py-3 text-color-secondary border-t-2 border-color-secondary transition-colors"
-            >
-              <i data-lucide="pen" class="text-base"></i>
-              <span class="text-[11px] font-semibold">Chỉnh sửa</span>
-            </button>
-            <button
-              type="button"
-              onclick="switchTab('preview')"
-              id="tab-preview"
-              class="flex-1 flex flex-col items-center justify-center gap-1 py-3 text-gray-400 border-t-2 border-transparent transition-colors"
-            >
-              <i data-lucide="eye" class="text-base"></i>
-              <span class="text-[11px] font-medium">Xem trước</span>
-            </button>
+            <!-- Edit/Preview Switch -->
+            <div class="flex-1 sm:flex-[2] flex items-center justify-center px-2 sm:px-3 border-t-2 border-transparent">
+              <div class="flex w-full bg-gray-100 rounded-full p-0.5 gap-0.5">
+                <button type="button" id="switch-edit" onclick="switchTab('edit')"
+                  class="flex-1 flex items-center justify-center gap-1 h-8 rounded-full text-[11px] font-semibold bg-white shadow-sm text-gray-700 transition-all">
+                  <i data-lucide="pen" style="width:12px;height:12px"></i>
+                  <span class="hidden sm:inline">Chỉnh sửa</span>
+                </button>
+                <button type="button" id="switch-preview" onclick="switchTab('preview')"
+                  class="flex-1 flex items-center justify-center gap-1 h-8 rounded-full text-[11px] font-medium text-gray-400 transition-all">
+                  <i data-lucide="eye" style="width:12px;height:12px"></i>
+                  <span class="hidden sm:inline">Xem trước</span>
+                </button>
+              </div>
+            </div>
             <button
               type="button"
               onclick="saveDraft()"
@@ -2088,6 +1908,15 @@
             >
               <i data-lucide="file-text" class="text-base"></i>
               <span class="text-[11px] font-medium">Lưu nháp</span>
+            </button>
+            <button
+              type="button"
+              onclick="switchTab('config')"
+              id="tab-config"
+              class="flex-1 flex flex-col items-center justify-center gap-1 py-3 text-gray-400 border-t-2 border-transparent transition-colors"
+            >
+              <i data-lucide="settings" class="text-base"></i>
+              <span class="text-[11px] font-medium">Cấu hình</span>
             </button>
             <button
               type="button"
@@ -2108,6 +1937,9 @@
       <!-- CryptoJS for encryption -->
       <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 
+      <!-- SheetJS for Excel import/export -->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
       <!-- Config -->
       <script src="../core/config.js"></script>
 
@@ -2117,10 +1949,12 @@
       <!-- DAL Layer -->
       <script src="../core/dal/wedding-dal.js"></script>
       <script src="../core/dal/storage-dal.js"></script>
+      <script src="../core/dal/guest-dal.js"></script>
 
       <!-- BL Layer -->
       <script src="../core/bl/wedding-bl.js"></script>
       <script src="../core/bl/image-bl.js"></script>
+      <script src="../core/bl/guest-bl.js"></script>
 
       <!-- Initialize DAL/BL instances -->
       <script src="../core/supabase.js"></script>
@@ -2168,5 +2002,79 @@
       </script>
     </div>
     <!-- End Actual Content -->
+
+    <!-- ====== IMPORT MAPPING MODAL ====== -->
+    <div id="import-mapping-modal"
+      class="fixed inset-0 z-[99999] bg-black/50 hidden items-center justify-center p-4">
+      <div class="bg-white rounded-2xl w-full max-w-md shadow-xl overflow-hidden max-h-[90vh] flex flex-col">
+        <!-- Header -->
+        <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+          <div>
+            <h3 class="text-sm font-semibold text-gray-800">Mapping cột dữ liệu</h3>
+            <p class="text-xs text-gray-400 mt-0.5">Chọn cột tương ứng từ file Excel</p>
+          </div>
+          <button type="button" onclick="closeMappingModal()"
+            class="w-7 h-7 rounded-full flex items-center justify-center hover:bg-gray-100 text-gray-400">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+        <!-- Body -->
+        <div class="flex-1 overflow-y-auto px-5 py-4 space-y-4">
+          <!-- Mapping selects -->
+          <div class="space-y-3">
+            <div class="flex items-center gap-3">
+              <span class="text-xs text-gray-600 w-28 shrink-0">Họ và tên <span class="text-rose-500">*</span></span>
+              <select id="map-full-name"
+                class="flex-1 h-9 px-2 border border-gray-200 rounded-lg text-xs text-gray-700 outline-none focus:ring-2 focus:ring-rose-500/30"></select>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="text-xs text-gray-600 w-28 shrink-0">Tên hiển thị</span>
+              <select id="map-display-name"
+                class="flex-1 h-9 px-2 border border-gray-200 rounded-lg text-xs text-gray-700 outline-none focus:ring-2 focus:ring-rose-500/30"></select>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="text-xs text-gray-600 w-28 shrink-0">Quan hệ</span>
+              <select id="map-relationship"
+                class="flex-1 h-9 px-2 border border-gray-200 rounded-lg text-xs text-gray-700 outline-none focus:ring-2 focus:ring-rose-500/30"></select>
+            </div>
+          </div>
+
+          <!-- Preview -->
+          <div>
+            <p class="text-xs font-medium text-gray-500 mb-2">Xem trước dữ liệu</p>
+            <div id="mapping-preview"></div>
+          </div>
+
+          <!-- Import mode -->
+          <div class="bg-gray-50 rounded-xl p-3 space-y-2">
+            <p class="text-xs font-medium text-gray-600">Khi nhập khẩu:</p>
+            <label class="flex items-center gap-2.5 cursor-pointer">
+              <input type="radio" name="import-mode" value="overwrite" checked
+                class="accent-rose-500 w-3.5 h-3.5">
+              <span class="text-xs text-gray-700">Ghi đè toàn bộ</span>
+            </label>
+            <label class="flex items-center gap-2.5 cursor-pointer">
+              <input type="radio" name="import-mode" value="merge"
+                class="accent-rose-500 w-3.5 h-3.5">
+              <span class="text-xs text-gray-700">Không ghi đè <span class="text-gray-400">(bỏ qua trùng Họ tên + Tên thiệp)</span></span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="flex gap-2 px-5 py-4 border-t border-gray-100">
+          <button type="button" onclick="closeMappingModal()"
+            class="flex-1 h-9 rounded-lg text-xs border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">
+            Huỷ
+          </button>
+          <button type="button" onclick="confirmImport()"
+            class="flex-1 h-9 rounded-lg text-xs font-medium text-white bg-rose-500 hover:bg-rose-600 transition-colors">
+            Nhập khẩu
+          </button>
+        </div>
+      </div>
+    </div>
   </body>
 </html>
+

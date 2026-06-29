@@ -748,29 +748,17 @@
     msg.classList.remove("hidden");
 
     try {
-      if (!window.supabaseClient) throw new Error("no_client");
-      const { data, error } = await window.supabaseClient
-        .from("promo_codes")
-        .select("*")
-        .eq("code", code)
-        .eq("is_active", true)
-        .single();
+      const res = await fetch(
+        `${CONFIG.supabase.edgeUrl}?resource=promo&code=${encodeURIComponent(code)}`,
+        { headers: { Authorization: `Bearer ${CONFIG.supabase.anonKey}` } }
+      );
+      const data = await res.json();
 
-      if (error || !data) {
+      if (!data.valid) {
         msg.className = "text-xs px-1 text-red-500";
-        msg.textContent = "Mã không hợp lệ hoặc đã hết hạn";
+        msg.textContent = data.error || "Mã không hợp lệ hoặc đã hết hạn";
         window._appliedPromo = null;
         document.getElementById("promo-discount-row").classList.add("hidden");
-        // Reset total
-        _updateTotalWithPromo(null);
-        return;
-      }
-
-      const expires = data.expires_at ? new Date(data.expires_at) : null;
-      if (expires && expires < new Date()) {
-        msg.className = "text-xs px-1 text-red-500";
-        msg.textContent = "Mã đã hết hạn";
-        window._appliedPromo = null;
         _updateTotalWithPromo(null);
         return;
       }
