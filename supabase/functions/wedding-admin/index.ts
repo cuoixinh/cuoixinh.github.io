@@ -365,6 +365,52 @@ Deno.serve(async (req) => {
       })
     }
 
+    // ── Public: tìm kiếm nhạc YouTube qua InnerTube ──
+    if (resource === 'youtube-search') {
+      const q = url.searchParams.get('q')?.trim()
+      if (!q || q.length < 2) return new Response(JSON.stringify({ error: 'Thiếu từ khóa' }), { status: 400, headers: corsHeaders })
+
+      const ytRes = await fetch('https://www.youtube.com/youtubei/v1/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          context: { client: { clientName: 'WEB', clientVersion: '2.20231121.08.00', hl: 'vi', gl: 'VN' } },
+          query: q,
+        }),
+      })
+
+      if (!ytRes.ok) return new Response(JSON.stringify({ error: 'Lỗi kết nối YouTube' }), { status: 502, headers: corsHeaders })
+
+      const raw = await ytRes.json()
+      const contents = raw?.contents
+        ?.twoColumnSearchResultsRenderer
+        ?.primaryContents
+        ?.sectionListRenderer
+        ?.contents
+        ?.flatMap((c: Record<string, unknown>) => (c?.itemSectionRenderer as Record<string, unknown>)?.contents as Record<string, unknown>[] ?? [])
+        ?? []
+
+      const results = contents
+        .filter((c: Record<string, unknown>) => c?.videoRenderer)
+        .slice(0, 8)
+        .map((c: Record<string, unknown>) => {
+          const v = c.videoRenderer as Record<string, unknown>
+          const thumbs = (v?.thumbnail as Record<string, unknown[]>)?.thumbnails ?? []
+          return {
+            id: v.videoId,
+            title: ((v?.title as Record<string, unknown[]>)?.runs as Record<string, unknown>[])?.[0]?.text ?? '',
+            channel: ((v?.ownerText as Record<string, unknown[]>)?.runs as Record<string, unknown>[])?.[0]?.text ?? '',
+            duration: (v?.lengthText as Record<string, unknown>)?.simpleText ?? '',
+            thumbnail: (thumbs[thumbs.length - 1] as Record<string, unknown>)?.url ?? '',
+            url: `https://www.youtube.com/watch?v=${v.videoId}`,
+          }
+        })
+
+      return new Response(JSON.stringify(results), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
     // ── Public: kiểm tra mã khuyến mãi ──
     if (resource === 'promo') {
       const code = url.searchParams.get('code')?.trim()

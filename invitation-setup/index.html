@@ -1801,10 +1801,12 @@
                 </button>
               </div>
               <input type="text" id="youtube-link-input" name="music_url"
-                placeholder="Ví dụ: https://www.youtube.com/watch?v=xxxxxxxxxxx"
+                placeholder="Dán đường dẫn hoặc nhập tên bài hát..."
                 class="w-full h-10 px-3 border border-gray-200 rounded-lg text-sm text-gray-800 bg-white outline-none focus:ring-2 focus:ring-rose-500/30 placeholder:text-gray-400/50" />
               <p id="youtube-error" class="hidden text-xs text-red-500">Đường dẫn không hợp lệ.</p>
               <p class="text-xs text-gray-400">URL video YouTube dùng làm nhạc nền. Bỏ trống để tắt nhạc.</p>
+              <div id="youtube-search-results" class="space-y-1 max-h-64 overflow-y-auto rounded-lg"></div>
+
               <div id="youtube-preview" class="hidden">
                 <div class="bg-gray-50 rounded-lg p-3">
                   <div id="youtube-player-container" class="aspect-video bg-black rounded-lg overflow-hidden"></div>

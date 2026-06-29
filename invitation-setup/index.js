@@ -544,6 +544,12 @@ function switchTab(tab) {
   const previewPanel = document.getElementById("preview-panel");
   const configPanel  = document.getElementById("config-panel");
 
+  // Persist tab in URL without reloading
+  const _url = new URL(window.location.href);
+  if (tab === "edit") { _url.searchParams.delete("tab"); }
+  else { _url.searchParams.set("tab", tab); }
+  history.replaceState(null, "", _url);
+
   if (tab === "preview") {
     _isPreviewActive = true;
     _savePreviewData();
@@ -1957,6 +1963,54 @@ function adjustGalleryFocalPoint(globalIndex, source) {
   });
 }
 
+// ============= YOUTUBE SEARCH =============
+function _escHtml(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+async function _doYouTubeSearch(q) {
+  const results = document.getElementById('youtube-search-results');
+  if (!results) return;
+
+  results.innerHTML = '<p class="text-xs text-gray-400 py-3 text-center">Đang tìm...</p>';
+
+  try {
+    const res = await fetch(
+      `${CONFIG.supabase.edgeUrl}?resource=youtube-search&q=${encodeURIComponent(q)}`,
+      { headers: { Authorization: `Bearer ${CONFIG.supabase.anonKey}` } }
+    );
+    const items = await res.json();
+
+    if (!Array.isArray(items) || items.length === 0) {
+      results.innerHTML = '<p class="text-xs text-gray-400 py-3 text-center">Không tìm thấy kết quả.</p>';
+      return;
+    }
+
+    results.innerHTML = items.map(item => `
+      <button type="button" data-yt-url="${_escHtml(item.url)}"
+        class="yt-result-btn w-full flex gap-3 p-2 rounded-lg hover:bg-rose-50 text-left transition-colors">
+        <img src="${_escHtml(item.thumbnail)}" class="w-20 h-12 rounded object-cover shrink-0 bg-gray-100" loading="lazy" />
+        <div class="min-w-0 flex-1">
+          <p class="text-xs font-medium text-gray-800 line-clamp-2 leading-snug">${_escHtml(item.title)}</p>
+          <p class="text-[10px] text-gray-400 mt-1">${_escHtml(item.channel)}${item.duration ? ' · ' + _escHtml(item.duration) : ''}</p>
+        </div>
+      </button>
+    `).join('');
+
+    results.querySelectorAll('.yt-result-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const url = btn.dataset.ytUrl;
+        if (!url) return;
+        document.getElementById('youtube-link-input').value = url;
+        results.innerHTML = '';
+        autoPreviewYouTubeMusic();
+      });
+    });
+  } catch {
+    results.innerHTML = '<p class="text-xs text-red-400 py-3 text-center">Lỗi tìm kiếm. Vui lòng thử lại.</p>';
+  }
+}
+
 // ============= YOUTUBE MUSIC FUNCTIONS =============
 function extractYouTubeVideoId(url) {
   // Support various YouTube URL formats
@@ -1979,26 +2033,37 @@ function autoPreviewYouTubeMusic() {
   const input   = document.getElementById("youtube-link-input");
   const preview = document.getElementById("youtube-preview");
   const error   = document.getElementById("youtube-error");
-  const url     = input.value.trim();
+  const results = document.getElementById("youtube-search-results");
+  const val     = input.value.trim();
 
-  if (!url) {
+  if (!val) {
     preview.classList.add("hidden");
     error?.classList.add("hidden");
     input.classList.remove("border-red-400");
+    if (results) results.innerHTML = '';
     return;
   }
 
-  const videoId = extractYouTubeVideoId(url);
-  if (!videoId) {
+  const isUrl = val.includes('youtube.com') || val.includes('youtu.be');
+
+  if (isUrl) {
+    if (results) results.innerHTML = '';
+    const videoId = extractYouTubeVideoId(val);
+    if (!videoId) {
+      preview.classList.add("hidden");
+      error?.classList.remove("hidden");
+      input.classList.add("border-red-400");
+      return;
+    }
+    error?.classList.add("hidden");
+    input.classList.remove("border-red-400");
+    showYouTubePreview(videoId, val);
+  } else {
     preview.classList.add("hidden");
-    error?.classList.remove("hidden");
-    input.classList.add("border-red-400");
-    return;
+    error?.classList.add("hidden");
+    input.classList.remove("border-red-400");
+    _doYouTubeSearch(val);
   }
-
-  error?.classList.add("hidden");
-  input.classList.remove("border-red-400");
-  showYouTubePreview(videoId, url);
 }
 
 function showYouTubePreview(videoId, url) {
@@ -2281,6 +2346,8 @@ function _showContent() {
   document.getElementById("skeleton-loader")?.classList.add("hidden");
   document.getElementById("actual-content")?.classList.remove("hidden");
   _updateHeaderThemeBadge();
+  const savedTab = new URLSearchParams(window.location.search).get("tab");
+  if (savedTab && savedTab !== "edit") switchTab(savedTab);
 }
 
 function _updateLocalDraftNotice() {
