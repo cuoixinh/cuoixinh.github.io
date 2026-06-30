@@ -506,23 +506,28 @@ function _savePreviewData() {
 // ============= BOTTOM NAV TABS =============
 
 function _setActiveTab(tabId) {
-  ["draft", "config", "publish"].forEach((id) => {
-    const btn = document.getElementById(`tab-${id}`);
-    if (!btn) return;
-    if (id === tabId) {
-      btn.classList.add("text-color-secondary", "border-color-secondary");
-      btn.classList.remove("text-gray-400", "border-transparent");
+  // Chỉ config có active state kiểu tab; draft/publish dùng dirty indicator riêng
+  const configBtn = document.getElementById("tab-config");
+  if (configBtn) {
+    if (tabId === "config") {
+      configBtn.classList.add("text-color-secondary", "border-color-secondary");
+      configBtn.classList.remove("text-gray-400", "border-transparent");
     } else {
-      btn.classList.remove("text-color-secondary", "border-color-secondary");
-      btn.classList.add("text-gray-400", "border-transparent");
+      configBtn.classList.remove("text-color-secondary", "border-color-secondary");
+      configBtn.classList.add("text-gray-400", "border-transparent");
     }
-  });
+  }
 
-  // Segmented switch
+  // Segmented switch: ẩn focus khi ở tab config
   const editBtn    = document.getElementById("switch-edit");
   const previewBtn = document.getElementById("switch-preview");
   if (!editBtn || !previewBtn) return;
-  if (tabId === "preview") {
+  if (tabId === "config") {
+    editBtn.classList.remove("bg-white", "shadow-sm", "text-gray-700", "font-semibold");
+    editBtn.classList.add("text-gray-400", "font-medium");
+    previewBtn.classList.remove("bg-white", "shadow-sm", "text-rose-500", "font-semibold");
+    previewBtn.classList.add("text-gray-400", "font-medium");
+  } else if (tabId === "preview") {
     previewBtn.classList.add("bg-white", "shadow-sm", "text-rose-500", "font-semibold");
     previewBtn.classList.remove("text-gray-400", "font-medium");
     editBtn.classList.remove("bg-white", "shadow-sm", "text-gray-700", "font-semibold");
@@ -532,6 +537,28 @@ function _setActiveTab(tabId) {
     editBtn.classList.remove("text-gray-400", "font-medium");
     previewBtn.classList.remove("bg-white", "shadow-sm", "text-rose-500", "font-semibold");
     previewBtn.classList.add("text-gray-400", "font-medium");
+  }
+}
+
+let _isDirty = false;
+
+function _setDirty(dirty) {
+  _isDirty = dirty;
+
+  const draft   = document.getElementById("tab-draft");
+  const publish = document.getElementById("tab-publish");
+
+  if (draft) {
+    draft.classList.toggle("border-rose-400",  dirty);
+    draft.classList.toggle("text-rose-500",    dirty);
+    draft.classList.toggle("bg-rose-50",       dirty);
+    draft.classList.toggle("border-gray-300",  !dirty);
+    draft.classList.toggle("text-gray-500",    !dirty);
+    draft.classList.toggle("bg-white",         !dirty);
+  }
+  if (publish) {
+    publish.classList.toggle("bg-rose-600", dirty);
+    publish.classList.toggle("bg-rose-500", !dirty);
   }
 }
 
@@ -584,7 +611,12 @@ function _initConfigPanel() {
     renderExistingYouTubeMusic(_currentMusicUrl);
   } else if (ytInput?.value) {
     autoPreviewYouTubeMusic();
+  } else {
+    _showYouTubeSuggestions();
   }
+
+  // Sync clear-button state for all x-inputs in config panel
+  document.querySelectorAll('x-input').forEach(el => el.syncClearBtn?.());
 }
 
 function _toSlug(str) {
@@ -665,6 +697,12 @@ async function saveDraft() {
 }
 
 async function publishWedding() {
+  if (!getCurrentUser()) {
+    const returnUrl = new URL(window.location.href);
+    returnUrl.searchParams.set('pendingPublish', '1');
+    window.location.href = `/public/account/?urlRedirect=${encodeURIComponent(returnUrl.toString())}`;
+    return;
+  }
   _setActiveTab("publish");
   showLoading(true, "Đang chuẩn bị...");
   WEDDING_SLUG = await _resolvePublishSlug();
@@ -722,6 +760,7 @@ function _doAutoSave() {
 }
 
 function _scheduleAutoSave() {
+  _setDirty(true);
   clearTimeout(_autoSaveTimer);
   _autoSaveTimer = setTimeout(_doAutoSave, 1500);
 }
@@ -1968,6 +2007,70 @@ function _escHtml(s) {
   return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
+function _renderYtItems(items) {
+  return items.map(item => `
+    <button type="button" data-yt-url="${_escHtml(item.url)}"
+      class="yt-result-btn w-full flex gap-3 p-2 rounded-lg hover:bg-rose-50 text-left transition-colors">
+      <img src="${_escHtml(item.thumbnail)}" class="w-20 h-12 rounded object-cover shrink-0 bg-gray-100" loading="lazy" />
+      <div class="min-w-0 flex-1">
+        <p class="text-xs font-medium text-gray-800 line-clamp-2 leading-snug">${_escHtml(item.title)}</p>
+        <p class="text-[10px] text-gray-400 mt-1">${_escHtml(item.channel)}${item.duration ? ' · ' + _escHtml(item.duration) : ''}</p>
+      </div>
+    </button>
+  `).join('');
+}
+
+function _rewireYtResultBtns(container) {
+  container.querySelectorAll('.yt-result-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const url = btn.dataset.ytUrl;
+      if (!url) return;
+      const ytInput = document.getElementById('youtube-link-input');
+      ytInput.value = url;
+      ytInput.dispatchEvent(new Event('input', { bubbles: true }));
+      container.innerHTML = '';
+      autoPreviewYouTubeMusic();
+    });
+  });
+}
+
+let _ytSuggestionsCache = null;
+
+async function _showYouTubeSuggestions() {
+  const results = document.getElementById('youtube-search-results');
+  if (!results) return;
+
+  if (_ytSuggestionsCache) {
+    results.innerHTML = _ytSuggestionsCache;
+    _rewireYtResultBtns(results);
+    return;
+  }
+
+  results.innerHTML = '<p class="text-xs text-gray-400 py-3 text-center">Đang tải gợi ý...</p>';
+
+  try {
+    const res = await fetch(
+      `${CONFIG.supabase.edgeUrl}?resource=youtube-search&q=${encodeURIComponent('Một đời')}`,
+      { headers: { Authorization: `Bearer ${CONFIG.supabase.anonKey}` } }
+    );
+    const items = await res.json();
+
+    if (!Array.isArray(items) || items.length === 0) {
+      results.innerHTML = '';
+      return;
+    }
+
+    results.innerHTML =
+      '<p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider px-1 pb-1 pt-0.5">Gợi ý</p>' +
+      _renderYtItems(items);
+
+    _ytSuggestionsCache = results.innerHTML;
+    _rewireYtResultBtns(results);
+  } catch {
+    results.innerHTML = '';
+  }
+}
+
 async function _doYouTubeSearch(q) {
   const results = document.getElementById('youtube-search-results');
   if (!results) return;
@@ -1986,26 +2089,8 @@ async function _doYouTubeSearch(q) {
       return;
     }
 
-    results.innerHTML = items.map(item => `
-      <button type="button" data-yt-url="${_escHtml(item.url)}"
-        class="yt-result-btn w-full flex gap-3 p-2 rounded-lg hover:bg-rose-50 text-left transition-colors">
-        <img src="${_escHtml(item.thumbnail)}" class="w-20 h-12 rounded object-cover shrink-0 bg-gray-100" loading="lazy" />
-        <div class="min-w-0 flex-1">
-          <p class="text-xs font-medium text-gray-800 line-clamp-2 leading-snug">${_escHtml(item.title)}</p>
-          <p class="text-[10px] text-gray-400 mt-1">${_escHtml(item.channel)}${item.duration ? ' · ' + _escHtml(item.duration) : ''}</p>
-        </div>
-      </button>
-    `).join('');
-
-    results.querySelectorAll('.yt-result-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const url = btn.dataset.ytUrl;
-        if (!url) return;
-        document.getElementById('youtube-link-input').value = url;
-        results.innerHTML = '';
-        autoPreviewYouTubeMusic();
-      });
-    });
+    results.innerHTML = _renderYtItems(items);
+    _rewireYtResultBtns(results);
   } catch {
     results.innerHTML = '<p class="text-xs text-red-400 py-3 text-center">Lỗi tìm kiếm. Vui lòng thử lại.</p>';
   }
@@ -2040,7 +2125,7 @@ function autoPreviewYouTubeMusic() {
     preview.classList.add("hidden");
     error?.classList.add("hidden");
     input.classList.remove("border-red-400");
-    if (results) results.innerHTML = '';
+    _showYouTubeSuggestions();
     return;
   }
 
@@ -2066,25 +2151,68 @@ function autoPreviewYouTubeMusic() {
   }
 }
 
+let _ytPreviewPlayer = null;
+let _ytApiInjected = false;
+const _ytApiQueue = [];
+
+window.onYouTubeIframeAPIReady = function () {
+  _ytApiQueue.forEach(cb => cb());
+  _ytApiQueue.length = 0;
+};
+
+function _ensureYTApi(cb) {
+  if (window.YT?.Player) return cb();
+  _ytApiQueue.push(cb);
+  if (!_ytApiInjected) {
+    _ytApiInjected = true;
+    const s = document.createElement('script');
+    s.src = 'https://www.youtube.com/iframe_api';
+    document.head.appendChild(s);
+  }
+}
+
 function showYouTubePreview(videoId, url) {
   const preview = document.getElementById("youtube-preview");
-  const container = document.getElementById("youtube-player-container");
 
-  // Simple YouTube embed
-  container.innerHTML = `
-    <div style="position: relative; width: 100%; height: 100%; background: #000;">
-      <iframe
-        src="https://www.youtube.com/embed/${videoId}"
-        title="YouTube video player"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-        allowfullscreen
-        style="width: 100%; height: 100%; border: 0; display: block;"
-      ></iframe>
-    </div>
-  `;
+  if (_ytPreviewPlayer) {
+    try { _ytPreviewPlayer.destroy(); } catch {}
+    _ytPreviewPlayer = null;
+  }
 
-  // Show preview
+  // Tạo lại player container nếu đã bị remove() lần trước
+  let playerWrap = document.getElementById('youtube-player-container');
+  if (!playerWrap) {
+    playerWrap = document.createElement('div');
+    playerWrap.id = 'youtube-player-container';
+    playerWrap.className = 'aspect-video bg-black rounded-lg overflow-hidden';
+    preview.querySelector('.bg-gray-50').prepend(playerWrap);
+  }
+  playerWrap.innerHTML = '<div id="_yt_target" style="width:100%;height:100%"></div>';
+
+  const thumb = document.getElementById('youtube-fallback-thumb');
+  if (thumb) thumb.style.display = 'none';
   preview.classList.remove("hidden");
+
+  _ensureYTApi(() => {
+    _ytPreviewPlayer = new YT.Player('_yt_target', {
+      videoId,
+      playerVars: { autoplay: 0, modestbranding: 1, rel: 0 },
+      events: {
+        onError: (e) => {
+          if (e.data === 101 || e.data === 150) {
+            document.getElementById('youtube-player-container')?.remove();
+            const thumb = document.getElementById('youtube-fallback-thumb');
+            if (thumb) {
+              thumb.src = `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
+              thumb.style.display = '';
+              thumb.onclick = () =>
+                window.open(`https://youtu.be/${videoId}`, '_blank');
+            }
+          }
+        }
+      }
+    });
+  });
 }
 
 function renderExistingYouTubeMusic(musicUrl) {
@@ -2346,8 +2474,19 @@ function _showContent() {
   document.getElementById("skeleton-loader")?.classList.add("hidden");
   document.getElementById("actual-content")?.classList.remove("hidden");
   _updateHeaderThemeBadge();
-  const savedTab = new URLSearchParams(window.location.search).get("tab");
+  const params = new URLSearchParams(window.location.search);
+  const savedTab = params.get("tab");
   if (savedTab && savedTab !== "edit") switchTab(savedTab);
+  // Reset dirty sau khi fill form xong — tránh false positive từ fillForm()
+  setTimeout(() => _setDirty(false), 0);
+
+  // Nếu được redirect về sau khi đăng nhập để xuất bản → auto trigger
+  if (params.get('pendingPublish') === '1') {
+    const cleanUrl = new URL(window.location.href);
+    cleanUrl.searchParams.delete('pendingPublish');
+    history.replaceState(null, '', cleanUrl.toString());
+    setTimeout(() => publishWedding(), 300);
+  }
 }
 
 function _updateLocalDraftNotice() {
@@ -2570,11 +2709,14 @@ function fillForm(data) {
   _syncAdvancedSection();
 
   if (typeof lucide !== "undefined") lucide.createIcons();
+
+  // Sync clear-button state on all x-input components after programmatic fill
+  document.querySelectorAll('x-input').forEach(el => el.syncClearBtn?.());
 }
 
 async function saveAll(overrides = {}, label = "Đang lưu...") {
   const form = document.getElementById("wedding-form");
-  if (!validateForm(form)) return false;
+  if (!validateForm(form)) { showLoading(false); return false; }
 
   try {
     // Step 1: Upload pending images
@@ -2775,6 +2917,7 @@ async function saveAll(overrides = {}, label = "Đang lưu...") {
     } else {
       showToast("✅ Đã lưu thành công!");
     }
+    _setDirty(false);
     return true;
   } catch (e) {
     console.error("Save error:", e);
@@ -3862,17 +4005,18 @@ async function openThemePicker() {
       <div class="flex flex-col divide-y divide-gray-100">
         ${rows
           .map((t) => {
-            const isCurrent = t.template_name === WEDDING_THEME;
+            const isCurrent = t.theme === WEDDING_THEME;
+            const thumb = t.thumbnailUrl || `/assets/images/templates/${t.theme}.jpg`;
             return `
             <button type="button"
               ${isCurrent ? 'id="theme-picker-current"' : ""}
-              onclick="_applyThemeChange('${t.template_name}','${t.display_name}')"
+              onclick="_applyThemeChange('${t.theme}','${t.name}')"
               class="flex items-center gap-4 px-4 py-3 text-left transition-colors w-full ${isCurrent ? "bg-rose-50" : "hover:bg-gray-50"}">
-              <img src="/assets/images/templates/${t.template_name}.jpg" alt="${t.display_name}"
+              <img src="${thumb}" alt="${t.name}"
                 class="w-16 h-24 rounded-xl object-cover object-top flex-shrink-0 border-2 ${isCurrent ? "border-rose-400" : "border-gray-200"}"
                 loading="lazy" onerror="this.style.background='#f3f4f6'" />
               <div class="flex-1 min-w-0">
-                <p class="text-sm font-medium ${isCurrent ? "text-rose-600" : "text-gray-800"}">${t.display_name}</p>
+                <p class="text-sm font-medium ${isCurrent ? "text-rose-600" : "text-gray-800"}">${t.name}</p>
                 ${t.description ? `<p class="text-xs text-gray-400 mt-0.5 line-clamp-2">${t.description}</p>` : ""}
                 <div class="flex items-center gap-1.5 mt-1">
                   <span class="text-xs font-semibold text-rose-500">${t.price.toLocaleString("vi-VN")}đ</span>
@@ -3935,12 +4079,14 @@ window._applyThemeChange = _applyThemeChange;
 // ============= ADVANCED SECTION LOCK =============
 
 function _syncAdvancedSection() {
-  const content = document.getElementById("guests-content-area");
-  const banner  = document.getElementById("guests-lock-banner");
+  const content   = document.getElementById("guests-content-area");
+  const banner    = document.getElementById("guests-lock-banner");
+  const draftTab  = document.getElementById("tab-draft");
 
   const locked = !IS_PUBLISHED;
-  if (content) { content.inert = locked; content.style.opacity = locked ? "0.45" : ""; }
-  if (banner)  banner.classList.toggle("hidden", !locked);
+  if (content)   { content.inert = locked; content.style.opacity = locked ? "0.45" : ""; }
+  if (banner)    banner.classList.toggle("hidden", !locked);
+  if (draftTab)  draftTab.classList.toggle("hidden", IS_PUBLISHED);
 }
 
 // ============= START =============

@@ -294,8 +294,8 @@ function openImageCropModal(file, callback) {
   window._closeCropSheet = sheet.close;
 
   sheet.body.innerHTML = `
-    <div class="p-5 flex-1 flex flex-col gap-3">
-      <div class="bg-gray-100 rounded-xl overflow-hidden relative flex-1" style="min-height:240px">
+    <div class="p-5 flex-1 flex flex-col min-h-0 gap-3">
+      <div class="bg-gray-100 rounded-xl overflow-hidden relative flex-1 min-h-0">
         <div id="crop-loading" class="absolute inset-0 flex items-center justify-center bg-gray-100">
           <div class="text-center">
             <div class="inline-block w-10 h-10 border-4 border-pink-500 border-t-transparent rounded-full animate-spin"></div>
@@ -304,10 +304,12 @@ function openImageCropModal(file, callback) {
         </div>
         <img id="crop-image" src="" alt="Crop" class="max-w-full opacity-0" />
       </div>
-      <p class="text-xs text-gray-400 text-center">Dùng 2 ngón tay hoặc cuộn chuột để zoom, kéo để di chuyển</p>
-      <div class="flex items-center gap-3">
-        <p class="text-xs font-semibold text-gray-500 shrink-0">Xem trước</p>
-        <div id="crop-preview" class="w-16 h-16 rounded-xl overflow-hidden bg-gray-100 border border-rose-200 shrink-0"></div>
+      <div class="flex-shrink-0 flex flex-col gap-2">
+        <p class="text-xs text-gray-400 text-center">Dùng 2 ngón tay hoặc cuộn chuột để zoom, kéo để di chuyển</p>
+        <div class="flex items-center gap-3">
+          <p class="text-xs font-semibold text-gray-500 shrink-0">Xem trước</p>
+          <div id="crop-preview" class="w-16 h-16 rounded-xl overflow-hidden bg-gray-100 border border-rose-200 shrink-0"></div>
+        </div>
       </div>
     </div>
   `;

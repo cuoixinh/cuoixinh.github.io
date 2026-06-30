@@ -69,8 +69,12 @@ function _clearError(input) {
   if (wrap) wrap.classList.remove("cx-field-invalid");
 }
 
-/** Mở accordion section chứa input nếu đang đóng */
 function _expandSection(input) {
+  const formPanel = document.getElementById("form-panel");
+  if (formPanel && formPanel.classList.contains("hidden")) {
+    window.switchTab?.("edit");
+  }
+
   let el = input.parentElement;
   while (el && el !== document.body) {
     if (el.classList.contains("hidden") && el.id && el.id.includes("-body")) {
@@ -98,7 +102,7 @@ function _isEmpty(input) {
  */
 function validateForm(formEl) {
   const fields = [...(formEl || document).querySelectorAll("[required]")]
-    .filter(input => input.name); // bỏ qua flatpickr altInput (không có name)
+    .filter(input => input.name && !input.tagName.includes('-')); // bỏ qua custom elements và flatpickr altInput
 
   let firstInvalid = null;
 
@@ -114,9 +118,34 @@ function validateForm(formEl) {
   if (firstInvalid) {
     _expandSection(firstInvalid);
     setTimeout(() => {
-      firstInvalid.scrollIntoView({ behavior: "smooth", block: "center" });
-      firstInvalid.focus();
-    }, 150); // chờ section mở animation xong
+      let absTop = 0;
+      // Flatpickr ẩn input gốc (display:none) — traverse lên parent visible
+      let scrollEl = firstInvalid;
+      while (scrollEl && getComputedStyle(scrollEl).display === 'none') {
+        scrollEl = scrollEl.parentElement;
+      }
+      let node = scrollEl || firstInvalid;
+      while (node) { absTop += node.offsetTop; node = node.offsetParent; }
+      const targetY = Math.max(0, absTop - 120);
+      const startY  = Math.max(
+        document.documentElement.scrollTop,
+        document.body.scrollTop,
+        window.pageYOffset || 0
+      );
+      const diff     = targetY - startY;
+      const duration = 450;
+      const t0       = performance.now();
+      function step(now) {
+        const p    = Math.min((now - t0) / duration, 1);
+        const ease = p < 0.5 ? 2 * p * p : -1 + (4 - 2 * p) * p;
+        const y    = startY + diff * ease;
+        document.documentElement.scrollTop = y;
+        document.body.scrollTop            = y;
+        if (p < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+      firstInvalid.focus({ preventScroll: true });
+    }, 100);
     return false;
   }
   return true;

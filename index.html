@@ -434,6 +434,80 @@
       #mobileMenu.open {
         display: flex;
       }
+
+      /* ── Floating chat widget (Messenger) ── */
+      #chatWidget {
+        right: 18px;
+        bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+      }
+      .chat-bubble-btn {
+        position: relative;
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 19px;
+        box-shadow: 0 6px 20px rgba(45, 15, 26, 0.22);
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+        opacity: 0;
+        transform: translateY(16px) scale(0.9);
+        animation: chatBubbleIn 0.5s ease-out forwards;
+      }
+      .chat-bubble-btn:hover {
+        transform: scale(1.08);
+        box-shadow: 0 10px 26px rgba(45, 15, 26, 0.3);
+      }
+      .chat-bubble-btn svg {
+        width: 21px;
+        height: 21px;
+      }
+      @keyframes chatBubbleIn {
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+      .chat-bubble-btn .chat-bubble-tooltip {
+        position: absolute;
+        right: 52px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: #2d0f1a;
+        color: #fff;
+        padding: 6px 10px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 500;
+        white-space: nowrap;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s ease;
+      }
+      .chat-bubble-btn:hover .chat-bubble-tooltip {
+        opacity: 1;
+      }
+      .chat-bubble-btn.pulse::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        background: inherit;
+        animation: chatBubblePulse 2.4s ease-out infinite;
+        z-index: -1;
+      }
+      @keyframes chatBubblePulse {
+        0% {
+          transform: scale(1);
+          opacity: 0.55;
+        }
+        100% {
+          transform: scale(1.9);
+          opacity: 0;
+        }
+      }
     </style>
   </head>
 
@@ -1126,6 +1200,26 @@
     </footer>
 
     <!-- Modal Thanh Toán - được inject bởi payment.js -->
+
+    <!-- ===== FLOATING CHAT WIDGET (Messenger) ===== -->
+    <div
+      id="chatWidget"
+      class="fixed z-50 flex flex-col items-end gap-3"
+      aria-label="Liên hệ nhanh"
+    >
+      <a
+        id="messengerChatBtn"
+        href="https://m.me/61591515875537"
+        target="_blank"
+        rel="noopener"
+        class="chat-bubble-btn pulse"
+        style="background: linear-gradient(135deg, #00b2ff, #006aff)"
+        aria-label="Chat qua Messenger"
+      >
+        <i class="fa-brands fa-facebook-messenger"></i>
+        <span class="chat-bubble-tooltip">Chat Messenger</span>
+      </a>
+    </div>
 
     <script src="core/config.js"></script>
     <script src="index.js"></script>

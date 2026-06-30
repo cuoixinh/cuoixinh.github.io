@@ -322,6 +322,12 @@ Deno.serve(async (req) => {
     }
     // ---- End validate ----
 
+    if (fields.is_published === true) {
+      const expiresAt = new Date()
+      expiresAt.setDate(expiresAt.getDate() + 3)
+      fields.expires_at = expiresAt.toISOString()
+    }
+
     const { error } = await supabase
       .from('weddings').update(fields).eq('id', id)
 

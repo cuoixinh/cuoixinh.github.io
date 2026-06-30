@@ -392,6 +392,27 @@ function _esc(str) {
     .replace(/'/g, "&#39;");
 }
 
+function _buildPageBtns(side, cur, total) {
+  const pages = [];
+  if (total <= 7) {
+    for (let i = 1; i <= total; i++) pages.push(i);
+  } else {
+    pages.push(1);
+    if (cur > 3) pages.push("...");
+    for (let i = Math.max(2, cur - 1); i <= Math.min(total - 1, cur + 1); i++) pages.push(i);
+    if (cur < total - 2) pages.push("...");
+    pages.push(total);
+  }
+  const dot = `<span class="w-7 h-7 flex items-center justify-center text-xs text-gray-400">…</span>`;
+  return pages.map(p => p === "..." ? dot : `
+    <button type="button" onclick="goToPage('${side}', ${p})"
+      class="w-7 h-7 rounded-lg text-xs font-medium transition-colors ${p === cur
+        ? "bg-rose-500 text-white"
+        : "border border-gray-200 text-gray-500 hover:bg-gray-50"}">
+      ${p}
+    </button>`).join("");
+}
+
 function _renderGuestList(side) {
   const container = document.getElementById(`guest-list-${side}`);
   if (!container) return;
@@ -448,29 +469,26 @@ function _renderGuestList(side) {
       </td>
     </tr>`).join("");
 
-  const pagination = totalPages > 1 ? `
-    <div class="flex items-center justify-between mt-3">
-      <p class="text-xs text-gray-400">${guests.length} khách — trang ${cur}/${totalPages}</p>
-      <div class="flex gap-1">
+  const from = (cur - 1) * PAGE_SIZE + 1;
+  const to   = Math.min(cur * PAGE_SIZE, guests.length);
+
+  const pagination = `
+    <div class="flex items-center justify-between mt-3 pt-2.5 border-t border-gray-100">
+      <p class="text-xs text-gray-400">${from}–${to} / <span class="font-medium text-gray-600">${guests.length}</span> khách</p>
+      <div class="flex items-center gap-1">
         <button type="button" onclick="goToPage('${side}', ${cur - 1})"
           ${cur === 1 ? "disabled" : ""}
-          class="w-7 h-7 rounded-lg border border-gray-200 text-xs text-gray-500 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center">
+          class="w-7 h-7 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center transition-colors">
           <i data-lucide="chevron-left" style="width:13px;height:13px"></i>
         </button>
-        ${Array.from({ length: totalPages }, (_, i) => i + 1).map(p => `
-          <button type="button" onclick="goToPage('${side}', ${p})"
-            class="w-7 h-7 rounded-lg text-xs font-medium transition-colors ${p === cur
-              ? "bg-rose-500 text-white"
-              : "border border-gray-200 text-gray-500 hover:bg-gray-50"}">
-            ${p}
-          </button>`).join("")}
+        ${_buildPageBtns(side, cur, totalPages)}
         <button type="button" onclick="goToPage('${side}', ${cur + 1})"
           ${cur === totalPages ? "disabled" : ""}
-          class="w-7 h-7 rounded-lg border border-gray-200 text-xs text-gray-500 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center">
+          class="w-7 h-7 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center transition-colors">
           <i data-lucide="chevron-right" style="width:13px;height:13px"></i>
         </button>
       </div>
-    </div>` : `<p class="text-xs text-gray-400 text-right mt-1.5">${guests.length} khách</p>`;
+    </div>`;
 
   container.innerHTML = `
     <div class="overflow-x-auto rounded-lg border border-gray-200">

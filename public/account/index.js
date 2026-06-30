@@ -9,6 +9,29 @@ let currentUser = null;
 
 const POST_LOGIN_REDIRECT_KEY = "post_login_redirect";
 
+// Xác định URL nút "Trở lại" — phải làm trước khi captureLoginRedirect xóa param
+let _backUrl = (function () {
+  const params = new URLSearchParams(window.location.search);
+  const urlRedirect = params.get("urlRedirect");
+  if (urlRedirect) {
+    try {
+      const u = new URL(urlRedirect, window.location.origin);
+      u.searchParams.delete("pendingPublish");
+      return u.toString();
+    } catch { return "/"; }
+  }
+  if (document.referrer) {
+    try {
+      if (new URL(document.referrer).origin === window.location.origin) return document.referrer;
+    } catch { /* ignore */ }
+  }
+  return "/";
+})();
+
+function goBack() {
+  window.location.href = _backUrl;
+}
+
 // Nếu trang này được mở kèm ?urlRedirect=... (VD: từ invitation-setup), lưu lại
 // đích cần quay về vào sessionStorage rồi dọn sạch query khỏi URL — để redirectTo
 // gửi cho Supabase luôn là URL gốc (đã được whitelist), tránh bị OAuth chặn.
