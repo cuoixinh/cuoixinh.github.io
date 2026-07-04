@@ -302,10 +302,17 @@ function applyMapPicker(side) {
     _updateMapDisplay(side, embedUrl, displayName);
   }
 
-  // Also populate the visible location textbox
+  // Also populate the visible location textbox.
+  // Lưu ý: [name="..._location"] khớp <x-input> (phần tử bọc) trước, nên phải nhắm vào <input> con.
   if (displayName) {
-    const locationInput = document.querySelector(`[name="${side}_location"]`);
-    if (locationInput) locationInput.value = displayName;
+    let locationInput = document.querySelector(`[name="${side}_location"]`);
+    if (locationInput && locationInput.tagName === "X-INPUT")
+      locationInput = locationInput.querySelector("input, textarea") || locationInput;
+    if (locationInput) {
+      locationInput.value = displayName;
+      // Phát "input" để x-input đồng bộ nút xoá và autosave (form nghe input) lưu địa chỉ → F5 khôi phục đúng
+      locationInput.dispatchEvent(new Event("input", { bubbles: true }));
+    }
   }
 
   closeMapPicker();
@@ -347,7 +354,9 @@ function clearMapAddress(side) {
 function initMapDisplays(data) {
   ["ceremony", "vu_quy", "groom_party", "bride_party"].forEach((side) => {
     const val = data && data[`${side}_map_embed_url`];
-    if (val) _updateMapDisplay(side, val);
+    // Dùng địa chỉ đã lưu (..._location) làm tên hiển thị, tránh tag hiện tọa độ (q=lat,lon) sau F5
+    const displayName = data && data[`${side}_location`];
+    if (val) _updateMapDisplay(side, val, displayName);
   });
 }
 

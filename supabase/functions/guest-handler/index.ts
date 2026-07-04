@@ -65,7 +65,7 @@ Deno.serve(async (req) => {
     if (action === 'wedding') {
       const { data, error } = await supabase
         .from('weddings')
-        .select('slug, groom_google_sheet_url, bride_google_sheet_url')
+        .select('slug')
         .eq('id', wedding_id)
         .single()
       if (error) return fail('Thiệp không tồn tại', 404)

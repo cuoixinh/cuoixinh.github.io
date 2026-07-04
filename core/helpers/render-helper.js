@@ -155,6 +155,7 @@ function renderQRCodes(wedding) {
   setText("groom-bank-number", wedding.groom_bank_number, "------------");
   setText("groom-bank-owner", wedding.groom_bank_owner, "--------------------");
   setAttr("groom-qr-img", "src", getImageUrl(wedding.groom_qr_url));
+  applyFocalPoint("groom-qr-img", wedding.image_focal_points?.groom_qr_url);
 
   // Bride QR
   setText("bride-bank-label", wedding.bride_name, "----------");
@@ -162,6 +163,7 @@ function renderQRCodes(wedding) {
   setText("bride-bank-number", wedding.bride_bank_number, "------------");
   setText("bride-bank-owner", wedding.bride_bank_owner, "--------------------");
   setAttr("bride-qr-img", "src", getImageUrl(wedding.bride_qr_url));
+  applyFocalPoint("bride-qr-img", wedding.image_focal_points?.bride_qr_url);
 }
 
 /**

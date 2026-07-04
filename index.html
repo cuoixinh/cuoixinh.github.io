@@ -442,12 +442,12 @@
       }
       .chat-bubble-btn {
         position: relative;
-        width: 42px;
-        height: 42px;
-        border-radius: 50%;
+        height: 44px;
+        padding: 0 16px;
+        border-radius: 9999px;
         display: flex;
         align-items: center;
-        justify-content: center;
+        gap: 8px;
         color: #fff;
         font-size: 19px;
         box-shadow: 0 6px 20px rgba(45, 15, 26, 0.22);
@@ -457,12 +457,18 @@
         animation: chatBubbleIn 0.5s ease-out forwards;
       }
       .chat-bubble-btn:hover {
-        transform: scale(1.08);
+        transform: scale(1.06);
         box-shadow: 0 10px 26px rgba(45, 15, 26, 0.3);
       }
       .chat-bubble-btn svg {
         width: 21px;
         height: 21px;
+      }
+      .chat-bubble-btn .chat-label {
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 1;
+        white-space: nowrap;
       }
       @keyframes chatBubbleIn {
         to {
@@ -470,30 +476,11 @@
           transform: translateY(0) scale(1);
         }
       }
-      .chat-bubble-btn .chat-bubble-tooltip {
-        position: absolute;
-        right: 52px;
-        top: 50%;
-        transform: translateY(-50%);
-        background: #2d0f1a;
-        color: #fff;
-        padding: 6px 10px;
-        border-radius: 6px;
-        font-size: 12px;
-        font-weight: 500;
-        white-space: nowrap;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.2s ease;
-      }
-      .chat-bubble-btn:hover .chat-bubble-tooltip {
-        opacity: 1;
-      }
       .chat-bubble-btn.pulse::before {
         content: "";
         position: absolute;
         inset: 0;
-        border-radius: 50%;
+        border-radius: inherit;
         background: inherit;
         animation: chatBubblePulse 2.4s ease-out infinite;
         z-index: -1;
@@ -1214,13 +1201,14 @@
         rel="noopener"
         class="chat-bubble-btn pulse"
         style="background: linear-gradient(135deg, #00b2ff, #006aff)"
-        aria-label="Chat qua Messenger"
+        aria-label="Chat hỗ trợ qua Messenger"
       >
         <i class="fa-brands fa-facebook-messenger"></i>
-        <span class="chat-bubble-tooltip">Chat Messenger</span>
+        <span class="chat-label">Hỗ trợ</span>
       </a>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="core/config.js"></script>
     <script src="index.js"></script>
     <script src="core/payment.js"></script>

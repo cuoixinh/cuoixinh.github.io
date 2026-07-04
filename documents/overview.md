@@ -73,7 +73,7 @@ flowchart TD
         LINK --> V[Khách xem thiệp]:::guest
         V -. F-05 .-> CD[Đếm ngược\nngày cưới]:::future
         V -. F-12 .-> GB[Guestbook\nlời chúc]:::future
-        V -. F-13 .-> RSVP[Xác nhận tham dự\n→ Google Sheet]:::future
+        V -. F-13 .-> RSVP[Xác nhận tham dự\n→ Supabase]:::future
         V -. F-24 .-> CAL[Thêm vào\nGoogle/Apple Calendar]:::future
         V -. F-31 .-> QRMOBILE[Quét QR\nxem trên mobile]:::future
     end
@@ -116,7 +116,6 @@ flowchart LR
 
     subgraph Bên ngoài
         PO[PayOS\nQR thanh toán]
-        GS[Google Sheets\nquản lý khách mời]
         YT[YouTube\nnhạc nền]
     end
 
@@ -124,7 +123,6 @@ flowchart LR
     DAL --> ST
     DAL --> EF
     EF --> PO
-    UI --> GS
     UI --> YT
 ```
 
@@ -201,9 +199,8 @@ Tất cả ảnh (cover, groom, bride, gallery, love story) đều hỗ trợ ch
 
 - 2 link cá nhân hóa: nhà trai / nhà gái
 - Tên & quan hệ khách mã hóa AES trong URL
-- Tích hợp Google Sheet: tracking lượt xem thiệp khi khách mở
-- Google Apps Script ghi lại view (action: markViewed)
-- Tạo link nhanh trực tiếp: nhập tên + quan hệ → link cá nhân hóa ngay, không cần Sheet
+- Quản lý khách mời nội bộ trong app (lưu tại Supabase, không dùng Google Sheet)
+- Tạo link nhanh trực tiếp: nhập tên + quan hệ → link cá nhân hóa ngay
 - Nút chia sẻ qua Messenger (mobile: mở app, desktop: copy + hướng dẫn dán)
 
 ### Admin
@@ -241,7 +238,7 @@ Tất cả ảnh (cover, groom, bride, gallery, love story) đều hỗ trợ ch
 | ---- | ----------------------------- | -------------------------------------------------------------------- |
 | F-10 | **Quản lý khách mời nội bộ**   | Tích hợp bảng khách mời ngay trong app, không cần Google Sheet ngoài  |
 | F-12 | **Guestbook (Sổ lưu bút)**     | Khách gửi lời chúc, cặp đôi duyệt và hiển thị trên thiệp              |
-| F-13 | **Xác nhận tham dự → Sheet**   | Gửi trạng thái tham dự / từ chối của khách về Google Sheet            |
+| F-13 | **Xác nhận tham dự (RSVP)**    | Lưu trạng thái tham dự / từ chối của khách vào danh sách khách (Supabase) |
 | F-14 | **Analytics cơ bản**           | Số lượt xem, số khách RSVP, tỉ lệ tham dự per event                   |
 | F-22 | **QR code thiệp**              | Tạo QR code để in lên thiệp giấy, khách quét để mở thiệp online       |
 | F-23 | **Copy tin nhắn mẫu**          | Nút copy sẵn đoạn text mời kèm link để dán vào Zalo/FB                |

@@ -3,25 +3,6 @@
  * Chỉ chứa các hàm truy vấn database, không có logic nghiệp vụ
  */
 
-function _fetchJSONP(url, timeout = 10000) {
-  return new Promise((resolve, reject) => {
-    const cbName = "_gasCb_" + Date.now() + "_" + Math.random().toString(36).slice(2);
-    const script = document.createElement("script");
-    const timer = setTimeout(() => { cleanup(); reject(new Error("Request timeout")); }, timeout);
-
-    function cleanup() {
-      delete window[cbName];
-      if (script.parentNode) script.parentNode.removeChild(script);
-      clearTimeout(timer);
-    }
-
-    window[cbName] = (data) => { cleanup(); resolve(data); };
-    script.onerror = () => { cleanup(); reject(new Error("Không thể kết nối đến Google Apps Script")); };
-    script.src = url + (url.includes("?") ? "&" : "?") + "callback=" + cbName;
-    document.head.appendChild(script);
-  });
-}
-
 class WeddingDAL {
   constructor(config) {
     this.edgeUrl = config.supabase.edgeUrl;
@@ -192,78 +173,6 @@ class WeddingDAL {
     }
 
     return await response.json();
-  }
-
-  /**
-   * Mark wedding as viewed (tracking)
-   * @param {string} sheetUrl - Google Sheet URL
-   * @param {string} link - Full wedding link
-   * @returns {Promise<void>}
-   */
-  async markViewed(sheetUrl, link) {
-    await fetch(sheetUrl, {
-      method: "POST",
-      mode: "no-cors",
-      headers: { "Content-Type": "text/plain" },
-      body: JSON.stringify({
-        action: "markViewed",
-        link: link,
-      }),
-    });
-  }
-
-  /**
-   * Get guest name from Google Sheet
-   * @param {string} scriptUrl - Google Apps Script URL
-   * @param {string} slug - Wedding slug
-   * @returns {Promise<Object>} Guest data
-   */
-  async getGuestName(scriptUrl, slug) {
-    const response = await fetch(`${scriptUrl}?slug=${slug}`);
-
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    }
-
-    return await response.json();
-  }
-
-  /**
-   * Fetch all guests from Google Sheet
-   * @param {string} sheetUrl - Google Sheet URL
-   * @returns {Promise<Array>} List of guests
-   */
-  async getAllGuests(sheetUrl) {
-    const data = await _fetchJSONP(`${sheetUrl}?action=getAllGuests`);
-
-    if (!data.success) {
-      throw new Error(data.message || "Lỗi lấy dữ liệu từ Google Sheets");
-    }
-
-    return { guests: data.guests || [], headers: data.headers || [] };
-  }
-
-  /**
-   * Batch update links to Google Sheet
-   * @param {string} sheetUrl - Google Sheet URL
-   * @param {Array} updates - Array of {row, link}
-   * @returns {Promise<Object>} Result
-   */
-  async batchUpdateLinks(sheetUrl, updates) {
-    await fetch(sheetUrl, {
-      method: "POST",
-      mode: "no-cors",
-      headers: {
-        "Content-Type": "text/plain",
-      },
-      body: JSON.stringify({
-        action: "batchUpdateLinks",
-        updates: updates,
-      }),
-    });
-
-    // no-cors mode doesn't allow reading response
-    return { success: true, count: updates.length };
   }
 }
 

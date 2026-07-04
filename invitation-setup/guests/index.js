@@ -8,7 +8,6 @@ let _currentTab = "groom";
 document.addEventListener("DOMContentLoaded", async () => {
   lucide.createIcons();
   if (!WEDDING_ID) { showToast("⚠️ Không tìm thấy ID thiệp"); return; }
-  await _loadWeddingGASUrls();
   await Promise.all([loadGuestList("groom"), loadGuestList("bride")]);
 });
 
@@ -27,6 +26,11 @@ document.addEventListener("click", (e) => {
 });
 
 function goBack() {
+  // Khi nhúng trong iframe của trang thiết lập → quay lại panel cha, không load lại trang
+  if (window.parent !== window && typeof window.parent.exitGuestsPanel === "function") {
+    window.parent.exitGuestsPanel();
+    return;
+  }
   window.location.href = `../index.html?id=${WEDDING_ID}`;
 }
 
@@ -48,86 +52,6 @@ function switchTab(side) {
   inactiveClass.forEach(c => btn.classList.remove(c));
   activeClass.forEach(c => otherBtn.classList.remove(c));
   inactiveClass.forEach(c => otherBtn.classList.add(c));
-}
-
-// ─── GAS URL ──────────────────────────────────────────────────────────────────
-
-async function _loadWeddingGASUrls() {
-  try {
-    const wedding = await guestDAL.getWedding(WEDDING_ID);
-    if (wedding.groom_google_sheet_url)
-      document.getElementById("gas-url-groom").value = wedding.groom_google_sheet_url;
-    if (wedding.bride_google_sheet_url)
-      document.getElementById("gas-url-bride").value = wedding.bride_google_sheet_url;
-  } catch (err) {
-    console.error("Load GAS URLs error:", err);
-  }
-}
-
-async function saveGASUrl(side) {
-  const url = document.getElementById(`gas-url-${side}`)?.value?.trim();
-  const field = side === "groom" ? "groom_google_sheet_url" : "bride_google_sheet_url";
-  try {
-    await weddingBL.updateWedding({ id: WEDDING_ID, [field]: url || null });
-    showToast("✅ Đã lưu URL");
-  } catch (err) {
-    showToast("❌ Lưu thất bại: " + err.message);
-  }
-}
-
-// ─── Test GAS connection ───────────────────────────────────────────────────────
-
-async function testGASConnection(side) {
-  const url = document.getElementById(`gas-url-${side}`)?.value?.trim();
-  const statusEl = document.getElementById(`gas-status-${side}`);
-  const btn = document.getElementById(`test-gas-btn-${side}`);
-
-  if (!url || !url.includes("script.google.com")) {
-    _showGASStatus(statusEl, "error", "URL không hợp lệ — phải là link Google Apps Script");
-    return;
-  }
-
-  btn.disabled = true;
-  btn.classList.add("opacity-50");
-  _showGASStatus(statusEl, "loading", "Đang kiểm tra...");
-
-  try {
-    const { guests } = await weddingDAL.getAllGuests(url);
-    _showGASStatus(statusEl, "success",
-      guests.length > 0 ? `Kết nối thành công — ${guests.length} khách` : "Kết nối thành công — chưa có khách");
-  } catch (err) {
-    const isTimeout = err.message?.includes("timeout");
-    if (isTimeout) {
-      _showGASStatus(statusEl, "error", "Script phản hồi quá chậm — thử lại sau");
-    } else {
-      const authUrl = url + (url.includes("?") ? "&" : "?") + "action=getAllGuests&callback=test";
-      _showGASStatus(statusEl, "auth", authUrl);
-    }
-  } finally {
-    btn.disabled = false;
-    btn.classList.remove("opacity-50");
-  }
-}
-
-function _showGASStatus(el, type, value) {
-  el.classList.remove("hidden");
-  const base = "rounded-lg p-2.5 text-xs flex items-start gap-2";
-  if (type === "loading") {
-    el.className = base + " bg-gray-50 text-gray-400";
-    el.innerHTML = `<span>⏳</span><span>${value}</span>`;
-  } else if (type === "success") {
-    el.className = base + " bg-green-50 text-green-700";
-    el.innerHTML = `<span class="font-bold">✓</span><span>${value}</span>`;
-  } else if (type === "error") {
-    el.className = base + " bg-red-50 text-red-600";
-    el.innerHTML = `<span class="font-bold">✕</span><span>${value}</span>`;
-  } else if (type === "auth") {
-    el.className = base + " bg-amber-50 text-amber-700 flex-col";
-    el.innerHTML = `
-      <div class="flex items-center gap-2"><span class="font-bold">⚠</span><span>Script chưa được ủy quyền — cần mở link để cấp quyền lần đầu</span></div>
-      <a href="${value}" target="_blank" rel="noopener" class="mt-1 inline-flex items-center gap-1 font-medium underline underline-offset-2">Mở để ủy quyền ↗</a>
-      <span class="text-amber-500 mt-0.5">Sau khi ủy quyền xong, nhấn Kiểm tra lại</span>`;
-  }
 }
 
 // ─── Add Single Guest ─────────────────────────────────────────────────────────
@@ -365,8 +289,49 @@ const PAGE_SIZE = 20;
 const _page = { groom: 1, bride: 1 };
 const _allGuests = { groom: [], bride: [] };
 
+const _GUEST_THEAD = `
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 w-36 min-w-[144px]">Tên</th>
+            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 w-20 min-w-[80px]">Xưng hô</th>
+            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 w-56 min-w-[224px]">Link cá nhân</th>
+            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 w-24 min-w-[96px]">Trạng thái</th>
+            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 w-24 min-w-[96px]">Xác nhận</th>
+            <th class="sticky right-0 bg-gray-50 py-2 px-3 border-l border-gray-100 text-center text-xs font-medium text-gray-500 w-24 min-w-[96px]">Action</th>
+          </tr>
+        </thead>`;
+
+// Chiều cao vùng thân dùng chung cho skeleton & trạng thái trống (4 hàng × 42px) để không nhảy layout
+const _GUEST_BODY_H = 168;
+
+// Skeleton khi đang tải — trông như có dữ liệu thật, chiều cao == trạng thái trống
+function _renderGuestSkeleton(side) {
+  const container = document.getElementById(`guest-list-${side}`);
+  if (!container) return;
+  const bar = (w) => `<div class="h-3 ${w} bg-gray-200 rounded animate-pulse"></div>`;
+  const row = `
+    <tr class="h-[42px] border-t border-gray-100">
+      <td class="px-3">${bar("w-24")}</td>
+      <td class="px-3">${bar("w-14")}</td>
+      <td class="px-3">${bar("w-40")}</td>
+      <td class="px-3">${bar("w-16")}</td>
+      <td class="px-3">${bar("w-16")}</td>
+      <td class="sticky right-0 bg-white px-3 border-l border-gray-100"><div class="h-4 w-14 bg-gray-200 rounded animate-pulse mx-auto"></div></td>
+    </tr>`;
+  container.innerHTML = `
+    <div class="rounded-lg border border-gray-200 overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full min-w-[660px]">
+          ${_GUEST_THEAD}
+          <tbody>${row.repeat(4)}</tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
 async function loadGuestList(side) {
   if (!WEDDING_ID) return;
+  _renderGuestSkeleton(side);
   try {
     const guests = await guestDAL.getGuests(WEDDING_ID, side);
     _allGuests[side] = guests;
@@ -418,9 +383,22 @@ function _renderGuestList(side) {
   if (!container) return;
 
   const guests = _allGuests[side];
+  const thead = _GUEST_THEAD;
 
   if (guests.length === 0) {
-    container.innerHTML = `<p class="text-xs text-gray-400 text-center py-4">Chưa có khách mời nào</p>`;
+    container.innerHTML = `
+    <div class="rounded-lg border border-gray-200 overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full min-w-[660px]">
+          ${thead}
+        </table>
+      </div>
+      <div class="border-t border-gray-100 flex flex-col items-center justify-center gap-2 text-gray-400" style="height:${_GUEST_BODY_H}px">
+        <i data-lucide="users" style="width:28px;height:28px"></i>
+        <p class="text-xs">Chưa có khách mời nào</p>
+      </div>
+    </div>`;
+    lucide.createIcons();
     return;
   }
 
@@ -493,16 +471,7 @@ function _renderGuestList(side) {
   container.innerHTML = `
     <div class="overflow-x-auto rounded-lg border border-gray-200">
       <table class="w-full min-w-[660px]">
-        <thead class="bg-gray-50">
-          <tr>
-            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 w-36 min-w-[144px]">Tên</th>
-            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 w-20 min-w-[80px]">Xưng hô</th>
-            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 w-56 min-w-[224px]">Link cá nhân</th>
-            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 w-24 min-w-[96px]">Trạng thái</th>
-            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 w-24 min-w-[96px]">Xác nhận</th>
-            <th class="sticky right-0 bg-gray-50 py-2 px-3 border-l border-gray-100 text-center text-xs font-medium text-gray-500 w-24 min-w-[96px]">Action</th>
-          </tr>
-        </thead>
+        ${thead}
         <tbody>${rows}</tbody>
       </table>
     </div>

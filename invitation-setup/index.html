@@ -258,22 +258,32 @@
       <div
         class="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-rose-100 shadow-[0_-2px_12px_rgba(0,0,0,0.06)]"
       >
-        <div class="max-w-4xl mx-auto flex">
-          <div class="flex-1 flex flex-col items-center py-3 gap-1.5">
-            <div class="h-4 w-4 skeleton rounded"></div>
-            <div class="h-2.5 w-10 skeleton rounded"></div>
+        <div class="max-w-4xl mx-auto flex items-stretch">
+          <!-- Chuyển Chỉnh sửa/Xem trước -->
+          <div class="flex-1 sm:flex-[2] flex items-center justify-center px-2 sm:px-3">
+            <div class="h-8 w-full skeleton rounded-full"></div>
           </div>
-          <div class="flex-1 flex flex-col items-center py-3 gap-1.5">
+          <!-- Cấu hình -->
+          <div
+            class="flex-none px-3 sm:flex-1 sm:px-0 flex flex-col items-center justify-center py-3 gap-1.5"
+          >
             <div class="h-4 w-4 skeleton rounded"></div>
-            <div class="h-2.5 w-10 skeleton rounded"></div>
+            <div class="h-2.5 w-10 skeleton rounded hidden sm:block"></div>
           </div>
-          <div class="flex-1 flex flex-col items-center py-3 gap-1.5">
+          <!-- Khách mời -->
+          <div
+            class="flex-none px-3 sm:flex-1 sm:px-0 flex flex-col items-center justify-center py-3 gap-1.5"
+          >
             <div class="h-4 w-4 skeleton rounded"></div>
-            <div class="h-2.5 w-10 skeleton rounded"></div>
+            <div class="h-2.5 w-10 skeleton rounded hidden sm:block"></div>
           </div>
-          <div class="flex-1 flex flex-col items-center py-3 gap-1.5">
-            <div class="h-4 w-4 skeleton rounded"></div>
-            <div class="h-2.5 w-10 skeleton rounded"></div>
+          <!-- Lưu nháp -->
+          <div class="flex-1 flex items-center justify-center px-1.5 py-2">
+            <div class="h-9 w-full skeleton rounded-full"></div>
+          </div>
+          <!-- Xuất bản -->
+          <div class="flex-1 flex items-center justify-center px-1.5 py-2">
+            <div class="h-9 w-full skeleton rounded-full"></div>
           </div>
         </div>
       </div>
@@ -430,25 +440,53 @@
             type="button"
             id="tour-theme-btn"
             onclick="openThemePicker()"
-            class="flex items-center gap-0 h-8 rounded-full border border-gray-200 hover:border-rose-300 transition-colors overflow-hidden"
+            aria-label="Đổi mẫu thiệp"
+            class="group flex items-center gap-2 h-9 pl-1.5 pr-1.5 rounded-full transition-all hover:-translate-y-px"
+            style="
+              background: linear-gradient(135deg, #ffffff 0%, #fff5f7 100%);
+              border: 1px solid rgba(255, 183, 202, 0.55);
+              box-shadow: 0 1px 4px rgba(200, 100, 130, 0.1);
+            "
           >
+            <!-- Thumbnail mẫu đang dùng (live preview) -->
             <span
-              class="flex items-center gap-1.5 pl-2.5 pr-2 text-sm text-gray-600"
+              class="relative h-[26px] w-[26px] rounded-full overflow-hidden shrink-0 ring-2 ring-white shadow-sm"
+              style="background: linear-gradient(135deg, #fce7f3, #fbcfe8)"
             >
-              <i
-                data-lucide="layout-template"
-                class="w-3.5 h-3.5 text-rose-400 flex-shrink-0"
-              ></i>
-              <span id="header-theme-name" class="max-w-[100px] truncate"
+              <img
+                id="header-theme-thumb"
+                src=""
+                alt=""
+                class="h-full w-full object-cover object-top"
+                onerror="this.style.display='none'"
+              />
+            </span>
+            <!-- Nhãn -->
+            <span
+              class="flex flex-col items-start justify-center leading-none min-w-0"
+            >
+              <span
+                class="text-[7.5px] uppercase font-bold"
+                style="letter-spacing: 0.14em; color: rgba(173, 122, 135, 0.6)"
+                >Mẫu thiệp</span
+              >
+              <span
+                id="header-theme-name"
+                class="text-[12.5px] font-semibold max-w-[104px] truncate leading-tight mt-[2px]"
+                style="color: #5a3a45"
                 >Đổi mẫu</span
               >
             </span>
-            <span class="self-stretch w-px bg-gray-200"></span>
+            <!-- Nút đổi -->
             <span
-              class="flex items-center gap-1 pl-2 pr-2.5 text-sm text-rose-500 font-medium"
+              class="flex items-center gap-1 h-7 pl-2 pr-2.5 rounded-full text-[11px] font-semibold text-white shrink-0 transition-all group-hover:brightness-105"
+              style="
+                background: linear-gradient(135deg, #ec829e, #ffb7ca);
+                box-shadow: 0 2px 8px rgba(236, 130, 158, 0.35);
+              "
             >
-              Đổi
-              <i data-lucide="chevron-right" class="w-3 h-3 flex-shrink-0"></i>
+              <i data-lucide="arrow-left-right" class="w-3 h-3"></i>
+              <span class="hidden sm:inline">Đổi</span>
             </span>
           </button>
         </div>
@@ -918,25 +956,6 @@
                           id="ceremony-map-address"
                           class="flex-1 text-sm text-gray-700 truncate"
                         ></span>
-                        <button
-                          type="button"
-                          onclick="clearMapAddress('ceremony')"
-                          class="text-gray-300 hover:text-red-400 transition-colors flex-shrink-0"
-                        >
-                          <svg
-                            class="w-3.5 h-3.5"
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                          >
-                            <path d="M18 6 6 18" />
-                            <path d="m6 6 12 12" />
-                          </svg>
-                        </button>
                       </div>
                     </div>
                   </div>
@@ -1043,25 +1062,6 @@
                               id="vu_quy-map-address"
                               class="flex-1 text-sm text-gray-700 truncate"
                             ></span>
-                            <button
-                              type="button"
-                              onclick="clearMapAddress('vu_quy')"
-                              class="text-gray-300 hover:text-red-400 transition-colors flex-shrink-0"
-                            >
-                              <svg
-                                class="w-3.5 h-3.5"
-                                xmlns="http://www.w3.org/2000/svg"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                              >
-                                <path d="M18 6 6 18" />
-                                <path d="m6 6 12 12" />
-                              </svg>
-                            </button>
                           </div>
                         </div>
                       </div>
@@ -1186,7 +1186,7 @@
                     >
                       <span
                         id="groom-party-same-box"
-                        class="flex-shrink-0 w-5 h-5 rounded-md border-2 border-gray-300 bg-white flex items-center justify-center transition-all"
+                        class="flex-shrink-0 w-5 h-5 rounded-md border-2 border-gray-400 bg-white flex items-center justify-center transition-all"
                       >
                         <svg
                           id="groom-party-same-icon"
@@ -1202,7 +1202,7 @@
                           <polyline points="20 6 9 17 4 12" />
                         </svg>
                       </span>
-                      <span class="text-sm text-gray-500"
+                      <span class="text-sm font-medium text-gray-700"
                         >Trùng địa điểm lễ thành hôn</span
                       >
                     </button>
@@ -1245,25 +1245,6 @@
                           id="groom_party-map-address"
                           class="flex-1 text-sm text-gray-700 truncate"
                         ></span>
-                        <button
-                          type="button"
-                          onclick="clearMapAddress('groom_party')"
-                          class="text-gray-300 hover:text-red-400 transition-colors flex-shrink-0"
-                        >
-                          <svg
-                            class="w-3.5 h-3.5"
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                          >
-                            <path d="M18 6 6 18" />
-                            <path d="m6 6 12 12" />
-                          </svg>
-                        </button>
                       </div>
                     </div>
                   </div>
@@ -1327,7 +1308,7 @@
                     >
                       <span
                         id="bride-party-same-box"
-                        class="flex-shrink-0 w-5 h-5 rounded-md border-2 border-gray-300 bg-white flex items-center justify-center transition-all"
+                        class="flex-shrink-0 w-5 h-5 rounded-md border-2 border-gray-400 bg-white flex items-center justify-center transition-all"
                       >
                         <svg
                           id="bride-party-same-icon"
@@ -1343,7 +1324,7 @@
                           <polyline points="20 6 9 17 4 12" />
                         </svg>
                       </span>
-                      <span class="text-sm text-gray-500"
+                      <span class="text-sm font-medium text-gray-700"
                         >Trùng địa điểm lễ vu quy</span
                       >
                     </button>
@@ -1386,25 +1367,6 @@
                           id="bride_party-map-address"
                           class="flex-1 text-sm text-gray-700 truncate"
                         ></span>
-                        <button
-                          type="button"
-                          onclick="clearMapAddress('bride_party')"
-                          class="text-gray-300 hover:text-red-400 transition-colors flex-shrink-0"
-                        >
-                          <svg
-                            class="w-3.5 h-3.5"
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                          >
-                            <path d="M18 6 6 18" />
-                            <path d="m6 6 12 12" />
-                          </svg>
-                        </button>
                       </div>
                     </div>
                   </div>
@@ -1962,24 +1924,6 @@
               </div>
             </div>
 
-            <!-- 10. KHÁCH MỜI -->
-            <div
-              id="tour-guests"
-              class="bg-white rounded-xl overflow-hidden animate-fade-in border border-gray-200 cursor-pointer group"
-              onclick="openGuestsPage(event)"
-            >
-              <div class="px-6 py-4 flex items-center gap-2">
-                <i
-                  data-lucide="users"
-                  class="text-color-secondary"
-                  style="width: 18px; height: 18px"
-                ></i>
-                <p class="text-sm font-medium text-gray-700">
-                  Quản lý khách mời
-                </p>
-              </div>
-            </div>
-
             <!-- 11. FOOTER -->
             <div
               class="bg-white rounded-xl overflow-hidden animate-fade-in border border-gray-200"
@@ -2051,9 +1995,14 @@
         id="config-panel"
         class="hidden fixed inset-0 bottom-[60px] z-[200] bg-[#fdf8f9] overflow-y-auto"
       >
-        <div class="max-w-4xl mx-auto px-4 py-8 pb-10 space-y-4">
-          <h2 class="text-base font-semibold text-gray-800">Cấu hình thiệp</h2>
-
+        <!-- Header đồng nhất style với Quản lý khách mời (không có nút back) -->
+        <div class="bg-white border-b border-gray-100 sticky top-0 z-10">
+          <div class="max-w-4xl mx-auto px-4 h-14 flex items-center gap-2">
+            <i data-lucide="settings" class="w-4 h-4 text-color-secondary"></i>
+            <h1 class="text-sm font-semibold text-gray-800">Cấu hình thiệp</h1>
+          </div>
+        </div>
+        <div class="max-w-4xl mx-auto px-4 py-6 pb-10 space-y-4">
           <!-- Slug -->
           <div class="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
             <div class="flex items-center gap-2">
@@ -2174,7 +2123,7 @@
               </div>
               <button
                 type="button"
-                onclick="window.location.href = 'guests/?id=' + WEDDING_ID"
+                onclick="openGuestsPage(event)"
                 class="shrink-0 h-9 px-4 rounded-lg text-sm font-medium text-white bg-rose-500 hover:bg-rose-600 transition-colors"
               >
                 Mở →
@@ -2184,6 +2133,45 @@
         </div>
       </div>
       <!-- /config-panel -->
+
+      <!-- Guests Panel (iframe giữ nguyên navbar, tái sử dụng guests/index.html) -->
+      <div
+        id="guests-panel"
+        class="hidden fixed inset-0 bottom-[60px] z-[200] bg-[#fdf8f9] flex flex-col"
+      >
+        <!-- Khoá khi chưa xuất bản thiệp -->
+        <div
+          id="guests-lock"
+          class="hidden flex-1 flex-col items-center justify-center gap-4 px-6 text-center"
+        >
+          <div class="w-16 h-16 rounded-full bg-rose-50 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-rose-400"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </div>
+          <div>
+            <p class="text-sm font-semibold text-gray-700">
+              Tính năng khách mời chưa khả dụng
+            </p>
+            <p class="text-xs text-gray-500 mt-1 max-w-xs mx-auto">
+              Bạn cần xuất bản thiệp cưới trước khi thêm và quản lý danh sách
+              khách mời.
+            </p>
+          </div>
+          <button
+            type="button"
+            onclick="publishWedding()"
+            class="h-9 px-5 rounded-lg text-sm font-medium text-white bg-rose-500 hover:bg-rose-600 transition-colors flex items-center gap-1.5"
+          >
+            <i data-lucide="send" style="width: 14px; height: 14px"></i>
+            Xuất bản thiệp
+          </button>
+        </div>
+        <iframe
+          id="guests-iframe"
+          src=""
+          class="flex-1 border-0 w-full min-h-0"
+        ></iframe>
+      </div>
+      <!-- /guests-panel -->
 
       <!-- Local Draft Notice — nằm ngay phía trên thanh điều hướng (cách đáy đúng bằng chiều cao thanh tab ~64px) -->
       <div
@@ -2266,10 +2254,19 @@
             type="button"
             onclick="switchTab('config')"
             id="tab-config"
-            class="flex-1 flex flex-col items-center justify-center gap-1 py-3 text-gray-400 border-t-2 border-transparent transition-colors"
+            class="flex-none px-3 sm:flex-1 sm:px-0 flex flex-col items-center justify-center gap-1 py-3 text-gray-400 border-t-2 border-transparent transition-colors"
           >
             <i data-lucide="settings" class="text-base"></i>
-            <span class="text-[11px] font-medium">Cấu hình</span>
+            <span class="hidden sm:inline text-[11px] font-medium">Cấu hình</span>
+          </button>
+          <button
+            type="button"
+            onclick="openGuestsPage(event)"
+            id="tab-guests"
+            class="flex-none px-3 sm:flex-1 sm:px-0 flex flex-col items-center justify-center gap-1 py-3 text-gray-400 border-t-2 border-transparent transition-colors"
+          >
+            <i data-lucide="users" class="text-base"></i>
+            <span class="hidden sm:inline text-[11px] font-medium">Khách mời</span>
           </button>
           <div class="flex-1 flex items-center justify-center px-1.5 py-2">
             <button

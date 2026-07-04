@@ -53,7 +53,6 @@ CREATE TABLE weddings (
   groom_mother TEXT,
   groom_address TEXT,
   groom_image_url TEXT,
-  groom_google_sheet_url TEXT,
   groom_party_date DATE,
   groom_party_time TEXT,
   groom_party_lunar TEXT,
@@ -72,7 +71,6 @@ CREATE TABLE weddings (
   bride_mother TEXT,
   bride_address TEXT,
   bride_image_url TEXT,
-  bride_google_sheet_url TEXT,
   bride_party_date DATE,
   bride_party_time TEXT,
   bride_party_lunar TEXT,
@@ -158,7 +156,6 @@ COMMENT ON COLUMN weddings.groom_father IS 'Tên bố chú rể: Nguyễn Minh T
 COMMENT ON COLUMN weddings.groom_mother IS 'Tên mẹ chú rể: Nguyễn Thị Lan';
 COMMENT ON COLUMN weddings.groom_address IS 'Địa chỉ nhà trai';
 COMMENT ON COLUMN weddings.groom_image_url IS 'URL ảnh chú rể trong block thông tin gia đình';
-COMMENT ON COLUMN weddings.groom_google_sheet_url IS 'URL Google Apps Script load tên khách mời nhà trai';
 COMMENT ON COLUMN weddings.groom_party_date IS 'Ngày tiệc cưới nhà trai (dương lịch): 2024-10-21';
 COMMENT ON COLUMN weddings.groom_party_time IS 'Giờ tiệc cưới nhà trai: 18:00';
 COMMENT ON COLUMN weddings.groom_party_lunar IS 'Âm lịch tiệc cưới nhà trai (trống = JS tự tính)';
@@ -174,7 +171,6 @@ COMMENT ON COLUMN weddings.bride_father IS 'Tên bố cô dâu: Trần Quốc B�
 COMMENT ON COLUMN weddings.bride_mother IS 'Tên mẹ cô dâu: Lê Thị Hương';
 COMMENT ON COLUMN weddings.bride_address IS 'Địa chỉ nhà gái';
 COMMENT ON COLUMN weddings.bride_image_url IS 'URL ảnh cô dâu trong block thông tin gia đình';
-COMMENT ON COLUMN weddings.bride_google_sheet_url IS 'URL Google Apps Script load tên khách mời nhà gái';
 COMMENT ON COLUMN weddings.bride_party_date IS 'Ngày tiệc cưới nhà gái (dương lịch)';
 COMMENT ON COLUMN weddings.bride_party_time IS 'Giờ tiệc cưới nhà gái: 18:00';
 COMMENT ON COLUMN weddings.bride_party_lunar IS 'Âm lịch tiệc cưới nhà gái (trống = JS tự tính)';

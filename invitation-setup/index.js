@@ -423,9 +423,7 @@ function setStep(n) {
       dot.innerHTML = '<span class="text-white text-[11px] font-bold">3</span>';
     }
     const label = document.getElementById("step-3-label");
-    if (label)
-      label.className =
-        "text-xs text-color-secondary font-semibold hidden sm:inline";
+    if (label) label.className = "text-[10px] text-rose-600 font-semibold";
     const line = document.getElementById("step-line-3");
     if (line) line.className = "flex-1 h-0.5 bg-rose-300 mx-2";
   }
@@ -437,9 +435,7 @@ function setStep(n) {
       dot.innerHTML = '<span class="text-white text-[11px] font-bold">4</span>';
     }
     const label = document.getElementById("step-4-label");
-    if (label)
-      label.className =
-        "text-xs text-color-secondary font-semibold hidden sm:inline";
+    if (label) label.className = "text-[10px] text-rose-600 font-semibold";
     const line = document.getElementById("step-line-4");
     if (line) line.className = "flex-1 h-0.5 bg-rose-300 mx-2";
   }
@@ -488,6 +484,8 @@ function _savePreviewData() {
     cover_image_url: pendingFocalPoints.cover_image_url,
     groom_image_url: pendingFocalPoints.groom_image_url,
     bride_image_url: pendingFocalPoints.bride_image_url,
+    groom_qr_url: pendingFocalPoints.groom_qr_url,
+    bride_qr_url: pendingFocalPoints.bride_qr_url,
     gallery_images: {},
   };
   existingFilenames.forEach((filename, i) => {
@@ -518,11 +516,22 @@ function _setActiveTab(tabId) {
     }
   }
 
-  // Segmented switch: ẩn focus khi ở tab config
+  const guestsBtn = document.getElementById("tab-guests");
+  if (guestsBtn) {
+    if (tabId === "guests") {
+      guestsBtn.classList.add("text-color-secondary", "border-color-secondary");
+      guestsBtn.classList.remove("text-gray-400", "border-transparent");
+    } else {
+      guestsBtn.classList.remove("text-color-secondary", "border-color-secondary");
+      guestsBtn.classList.add("text-gray-400", "border-transparent");
+    }
+  }
+
+  // Segmented switch: ẩn focus khi ở tab config/khách mời
   const editBtn    = document.getElementById("switch-edit");
   const previewBtn = document.getElementById("switch-preview");
   if (!editBtn || !previewBtn) return;
-  if (tabId === "config") {
+  if (tabId === "config" || tabId === "guests") {
     editBtn.classList.remove("bg-white", "shadow-sm", "text-gray-700", "font-semibold");
     editBtn.classList.add("text-gray-400", "font-medium");
     previewBtn.classList.remove("bg-white", "shadow-sm", "text-rose-500", "font-semibold");
@@ -567,9 +576,16 @@ function togglePreview() {
 }
 
 function switchTab(tab) {
+  // Danh sách khách mời có luồng mở riêng (panel iframe + URL ?tab=guests)
+  if (tab === "guests") { openGuestsPage(); return; }
+
   const formPanel    = document.getElementById("form-panel");
   const previewPanel = document.getElementById("preview-panel");
   const configPanel  = document.getElementById("config-panel");
+  const guestsPanel  = document.getElementById("guests-panel");
+
+  // Rời khỏi danh sách khách mời khi chuyển sang tab khác
+  if (guestsPanel) guestsPanel.classList.add("hidden");
 
   // Persist tab in URL without reloading
   const _url = new URL(window.location.href);
@@ -697,6 +713,13 @@ async function saveDraft() {
 }
 
 async function publishWedding() {
+  // Validate form TRƯỚC khi yêu cầu đăng nhập — tránh bắt user đăng nhập rồi mới báo thiếu thông tin
+  const form = document.getElementById("wedding-form");
+  if (!validateForm(form)) {
+    showToast("⚠️ Vui lòng điền đủ thông tin bắt buộc trước khi xuất bản");
+    return;
+  }
+
   if (!getCurrentUser()) {
     const returnUrl = new URL(window.location.href);
     returnUrl.searchParams.set('pendingPublish', '1');
@@ -714,13 +737,6 @@ async function publishWedding() {
 
   IS_PUBLISHED = true;
   _syncAdvancedSection();
-
-  for (const side of ["groom", "bride"]) {
-    const url = document.getElementById(`${side}_google_sheet_url`)?.value?.trim();
-    if (url && url.includes("script.google.com")) {
-      generateLinks(side).catch((err) => showToast("❌ Tạo link thất bại: " + err.message));
-    }
-  }
 
   _setActiveTab("edit");
 }
@@ -761,6 +777,8 @@ function _doAutoSave() {
 
 function _scheduleAutoSave() {
   _setDirty(true);
+  // Đã mua thiệp (đã thanh toán, is_published = true) → không auto-save nữa
+  if (IS_PUBLISHED) return;
   clearTimeout(_autoSaveTimer);
   _autoSaveTimer = setTimeout(_doAutoSave, 1500);
 }
@@ -809,10 +827,57 @@ function decryptData(encryptedText) {
 
 // ============= GUESTS PAGE ===============
 
+let _guestsIframeLoadedId = null;
+
 function openGuestsPage(e) {
   if (e) e.preventDefault();
   if (!WEDDING_ID) { showToast("⚠️ Cần lưu thiệp trước khi quản lý khách mời"); return; }
-  window.location.href = `guests/?id=${WEDDING_ID}`;
+
+  // Lưu tab vào URL mà không reload
+  const _url = new URL(window.location.href);
+  _url.searchParams.set("tab", "guests");
+  history.replaceState(null, "", _url);
+
+  const formPanel    = document.getElementById("form-panel");
+  const previewPanel = document.getElementById("preview-panel");
+  const configPanel  = document.getElementById("config-panel");
+  const guestsPanel  = document.getElementById("guests-panel");
+
+  // Chưa xuất bản → hiện lớp khoá; đã xuất bản → nạp iframe quản lý khách mời
+  _updateGuestsPanelLock();
+
+  _isPreviewActive = false;
+  formPanel.classList.add("hidden");
+  previewPanel.classList.add("hidden");
+  configPanel.classList.add("hidden");
+  if (guestsPanel) guestsPanel.classList.remove("hidden");
+  _setActiveTab("guests");
+}
+
+// Đồng bộ lớp khoá / iframe của panel khách mời theo trạng thái xuất bản
+function _updateGuestsPanelLock() {
+  const guestsLock = document.getElementById("guests-lock");
+  const iframe     = document.getElementById("guests-iframe");
+  if (!IS_PUBLISHED) {
+    // Chưa xuất bản: khoá tính năng, không nạp iframe
+    if (guestsLock) { guestsLock.classList.remove("hidden"); guestsLock.classList.add("flex"); }
+    if (iframe) iframe.classList.add("hidden");
+  } else {
+    if (guestsLock) { guestsLock.classList.add("hidden"); guestsLock.classList.remove("flex"); }
+    if (iframe) {
+      iframe.classList.remove("hidden");
+      if (_guestsIframeLoadedId !== WEDDING_ID) {
+        iframe.src = `guests/?id=${WEDDING_ID}&embed=1`;
+        _guestsIframeLoadedId = WEDDING_ID;
+      }
+    }
+  }
+  if (window.lucide) lucide.createIcons();
+}
+
+// Gọi từ trong iframe guests (nút quay lại) để về màn chỉnh sửa mà không load trang
+function exitGuestsPanel() {
+  switchTab("edit");
 }
 
 // ============= EXCEL IMPORT =============
@@ -987,111 +1052,6 @@ function _formatGuestDate(dateStr) {
   return d.toLocaleString("vi-VN", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
 }
 
-// ============= AUTO-GENERATE LINKS FUNCTIONS =============
-
-async function testGASConnection(side) {
-  const inputId = side === "groom" ? "groom_google_sheet_url" : "bride_google_sheet_url";
-  const url = document.getElementById(inputId)?.value?.trim();
-  const statusEl = document.getElementById(`gas-status-${side}`);
-  const btn = document.getElementById(`test-gas-btn-${side}`);
-
-  if (!url || !url.includes("script.google.com")) {
-    _showGASStatus(statusEl, "error", "URL không hợp lệ — phải là link Google Apps Script");
-    return;
-  }
-
-  btn.disabled = true;
-  btn.classList.add("opacity-50");
-  _showGASStatus(statusEl, "loading", "Đang kiểm tra...");
-
-  try {
-    const { guests } = await weddingDAL.getAllGuests(url);
-    const count = guests.length;
-    _showGASStatus(statusEl, "success",
-      count > 0 ? `Kết nối thành công — ${count} khách` : "Kết nối thành công — chưa có khách");
-  } catch (err) {
-    const isTimeout = err.message && err.message.includes("timeout");
-    if (isTimeout) {
-      _showGASStatus(statusEl, "error", "Script phản hồi quá chậm — thử lại sau");
-    } else {
-      _showGASStatus(statusEl, "auth", url);
-    }
-  } finally {
-    btn.disabled = false;
-    btn.classList.remove("opacity-50");
-  }
-}
-
-function _showGASStatus(el, type, value) {
-  el.classList.remove("hidden");
-  const base = "rounded-lg p-2.5 text-xs flex items-start gap-2";
-
-  if (type === "loading") {
-    el.className = base + " bg-gray-50 text-gray-400";
-    el.innerHTML = `<span class="mt-0.5">⏳</span><span>${value}</span>`;
-    return;
-  }
-  if (type === "success") {
-    el.className = base + " bg-green-50 text-green-700";
-    el.innerHTML = `<span class="mt-0.5 font-bold">✓</span><span>${value}</span>`;
-    return;
-  }
-  if (type === "error") {
-    el.className = base + " bg-red-50 text-red-600";
-    el.innerHTML = `<span class="mt-0.5 font-bold">✕</span><span>${value}</span>`;
-    return;
-  }
-  if (type === "auth") {
-    const authUrl = value + (value.includes("?") ? "&" : "?") + "action=getAllGuests&callback=test";
-    el.className = base + " bg-amber-50 text-amber-700 flex-col";
-    el.innerHTML = `
-      <div class="flex items-center gap-2">
-        <span class="font-bold">⚠</span>
-        <span>Script chưa được ủy quyền — cần mở link để cấp quyền lần đầu</span>
-      </div>
-      <a href="${authUrl}" target="_blank" rel="noopener"
-        class="mt-1 inline-flex items-center gap-1 font-medium underline underline-offset-2">
-        Mở để ủy quyền ↗
-      </a>
-      <span class="text-amber-500 mt-0.5">Sau khi ủy quyền xong, nhấn Kiểm tra lại</span>`;
-  }
-}
-
-async function generateLinks(side) {
-  const sideText = side === "groom" ? "nhà trai" : "nhà gái";
-
-  try {
-    showLoading(true, `Đang kiểm tra cấu hình ${sideText}...`);
-
-    // Use BL layer to generate personalized links
-    const result = await weddingBL.generatePersonalizedLinks(
-      WEDDING_ID,
-      side,
-      encryptData, // encryption function
-    );
-
-    showLoading(false);
-
-    if (result.success) {
-      const skipMsg =
-        result.skipped > 0 ? `, bỏ qua ${result.skipped} đã có link` : "";
-      showToast(
-        `✅ Đã tạo link thành công cho ${result.count} khách mời ${sideText}${skipMsg}`,
-      );
-    } else {
-      showToast(`⚠️ ${result.message}`);
-    }
-  } catch (error) {
-    showLoading(false);
-    console.error("Generate links error:", error);
-    if (typeof showAlert === "function") {
-      showAlert(`Lỗi tạo link ${sideText}`, error.message, "error");
-    } else {
-      showToast(`❌ ${error.message}`);
-    }
-  }
-}
-
 function switchGuestsTab(side) {
   const isGroom = side === "groom";
   document.getElementById("guests-panel-groom").classList.toggle("hidden", !isGroom);
@@ -1243,6 +1203,9 @@ function setupBankSearchableSelect(inputId, dropdownId, hiddenInputId) {
         const value = option.dataset.value;
         input.value = value;
         hiddenInput.value = value;
+        // Gán .value bằng code KHÔNG tự phát sự kiện → phát thủ công để autosave (form nghe "input") chạy,
+        // nếu không, chọn ngân hàng xong F5 sẽ mất (khác với gõ text vốn tự phát input).
+        hiddenInput.dispatchEvent(new Event("input", { bubbles: true }));
         dropdown.classList.add("hidden");
         selectedIndex = -1;
       });
@@ -1722,8 +1685,8 @@ function renderSingleImageUpload(fieldName) {
     sizeClass = ""; // kích thước cố định 175x100, set inline
     objectFit = "object-cover";
   } else if (fieldName === "groom_qr_url" || fieldName === "bride_qr_url") {
-    sizeClass = "aspect-square"; // QR code hình vuông
-    objectFit = "object-contain";
+    sizeClass = "aspect-square"; // QR code hình vuông — cover + focal point để cắt theo ý người dùng
+    objectFit = "object-cover";
   } else {
     sizeClass = "aspect-square";
     objectFit = "object-contain";
@@ -1731,6 +1694,17 @@ function renderSingleImageUpload(fieldName) {
 
   const _fp = FOCAL_POINT_FIELDS.includes(fieldName) ? pendingFocalPoints[fieldName] : null;
   const _fpStyle = _fp ? ` style="object-position: ${_fp.x}% ${_fp.y}%"` : "";
+
+  // Nút chỉnh khung: QR → cắt lại (crop); ảnh khác → điểm lấy nét (focal)
+  const _adjustBtn = CROP_FIELDS.includes(fieldName)
+    ? `<button onclick="recropSingleImage('${fieldName}')" title="Cắt lại ảnh" class="absolute bottom-1 right-1 bg-black/50 hover:bg-black/70 text-white rounded-full w-6 h-6 flex items-center justify-center transition-colors shadow-md">
+        <i data-lucide="crop" class="w-3.5 h-3.5"></i>
+      </button>`
+    : FOCAL_POINT_FIELDS.includes(fieldName)
+    ? `<button onclick="adjustSingleImageFocalPoint('${fieldName}')" title="Chỉnh điểm lấy nét" class="absolute bottom-1 right-1 bg-black/50 hover:bg-black/70 text-white rounded-full w-6 h-6 flex items-center justify-center transition-colors shadow-md">
+        <i data-lucide="focus" class="w-3.5 h-3.5"></i>
+      </button>`
+    : "";
 
   // Check if there's a pending upload (new file selected)
   if (pendingUploads.singleImages[fieldName]) {
@@ -1745,14 +1719,7 @@ function renderSingleImageUpload(fieldName) {
     }
     div.innerHTML = `
       <img src="${url}" alt="Preview" class="w-full h-full ${objectFit}"${_fpStyle} />
-      ${
-        FOCAL_POINT_FIELDS.includes(fieldName)
-          ? `
-      <button onclick="adjustSingleImageFocalPoint('${fieldName}')" title="Chỉnh điểm lấy nét" class="absolute bottom-1 right-1 bg-black/50 hover:bg-black/70 text-white rounded-full w-6 h-6 flex items-center justify-center transition-colors shadow-md">
-        <i data-lucide="focus" class="w-3.5 h-3.5"></i>
-      </button>`
-          : ""
-      }
+      ${_adjustBtn}
       <button onclick="removeImage('${fieldName}')" class="absolute top-1 right-1 bg-red-500 rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors shadow-md p-1">
         <img src="../assets/icons/bin.png" alt="Delete" class="w-full h-full" />
       </button>
@@ -1776,14 +1743,7 @@ function renderSingleImageUpload(fieldName) {
       }
       div.innerHTML = `
         <img src="${fullUrl}" alt="Preview" class="w-full h-full ${objectFit}"${_fpStyle} />
-        ${
-          FOCAL_POINT_FIELDS.includes(fieldName)
-            ? `
-        <button onclick="adjustSingleImageFocalPoint('${fieldName}')" title="Chỉnh điểm lấy nét" class="absolute bottom-1 right-1 bg-black/50 hover:bg-black/70 text-white rounded-full w-6 h-6 flex items-center justify-center transition-colors shadow-md">
-          <i data-lucide="focus" class="w-3.5 h-3.5"></i>
-        </button>`
-            : ""
-        }
+        ${_adjustBtn}
         <button onclick="removeImage('${fieldName}')" class="absolute top-1 right-1 bg-red-500 rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors shadow-md p-1">
           <img src="../assets/icons/bin.png" alt="Delete" class="w-full h-full" />
         </button>
@@ -1830,10 +1790,14 @@ const FOCAL_POINT_FIELDS = [
   "groom_image_url",
   "bride_image_url",
 ];
+// Ảnh Hộp mừng cưới (QR) dùng logic CẮT ẢNH (crop 1:1) thay vì focal point
+const CROP_FIELDS = ["groom_qr_url", "bride_qr_url"];
 const pendingFocalPoints = {
   cover_image_url: { x: 50, y: 50 },
   groom_image_url: { x: 50, y: 50 },
   bride_image_url: { x: 50, y: 50 },
+  groom_qr_url: { x: 50, y: 50 },
+  bride_qr_url: { x: 50, y: 50 },
   // Map<key, {x,y}> — key là filename (ảnh đã có sẵn) hoặc chính File object (ảnh mới chọn, chưa upload).
   // Dùng key ổn định thay vì index để không bị lệch khi thêm/xoá/sắp xếp lại ảnh.
   gallery_images: new Map(),
@@ -1884,40 +1848,17 @@ async function handleImageUpload(event, fieldName) {
     return;
   }
 
-  // Check if this is a QR code field
-  const isQRField =
-    fieldName === "groom_qr_url" || fieldName === "bride_qr_url";
+  if (CROP_FIELDS.includes(fieldName)) {
+    // Hộp mừng cưới: mở modal cắt ảnh (crop 1:1, có zoom + kéo) rồi lưu ảnh đã cắt
+    openImageCropModal(
+      file,
+      (blob) => _storeCroppedImage(fieldName, blob, file.name),
+      _qrGiftInfo(fieldName),
+    );
+    return;
+  }
 
-  if (isQRField) {
-    // Open crop modal for QR codes
-    openImageCropModal(file, async (croppedBlob) => {
-      showLoading(true, "Đang xử lý ảnh...");
-      try {
-        // Convert blob to File
-        const croppedFile = new File([croppedBlob], file.name, {
-          type: "image/png",
-          lastModified: Date.now(),
-        });
-
-        // Resize cropped image
-        const processedFile = await resizeImage(croppedFile, 1, 800, 800);
-
-        // Store file for later upload
-        pendingUploads.singleImages[fieldName] = processedFile;
-        _idbSaveSingle(fieldName, processedFile);
-
-        // Render UI
-        renderSingleImageUpload(fieldName);
-
-        showToast("✅ Đã chọn ảnh (chưa lưu)");
-      } catch (error) {
-        console.error("Error processing image:", error);
-        showToast("❌ Lỗi xử lý ảnh: " + error.message);
-      } finally {
-        showLoading(false);
-      }
-    });
-  } else if (FOCAL_POINT_FIELDS.includes(fieldName)) {
+  if (FOCAL_POINT_FIELDS.includes(fieldName)) {
     // Mở picker chọn điểm lấy nét trước khi xử lý & lưu ảnh
     openFocalPointPicker(file, pendingFocalPoints[fieldName], async (focal) => {
       pendingFocalPoints[fieldName] = focal;
@@ -1938,7 +1879,7 @@ async function handleImageUpload(event, fieldName) {
       } finally {
         showLoading(false);
       }
-    });
+    }, _qrGiftInfo(fieldName));
   } else {
     // Normal image upload (no crop)
     showLoading(true, "Ảnh vượt quá dung lượng cho phép, đang nén ảnh lại...");
@@ -1965,7 +1906,26 @@ async function handleImageUpload(event, fieldName) {
 }
 
 /**
- * Mở picker chỉnh lại điểm lấy nét cho ảnh field đơn (cover/groom/bride) đã có sẵn hoặc đang chờ upload
+ * Với field QR (groom_qr_url/bride_qr_url): đọc thông tin ngân hàng của đúng bên
+ * để focal picker hiển thị preview giống block Hộp Mừng Cưới. Field khác → null.
+ */
+function _qrGiftInfo(fieldName) {
+  if (fieldName !== "groom_qr_url" && fieldName !== "bride_qr_url") return null;
+  const side = fieldName === "groom_qr_url" ? "groom" : "bride";
+  const form = document.getElementById("wedding-form");
+  const fd = form ? new FormData(form) : null;
+  const v = (n) => (fd ? (fd.get(n) || "").toString().trim() : "");
+  const name = v(`${side}_name`);
+  return {
+    label: (side === "groom" ? "Chú Rể" : "Cô Dâu") + (name ? ` · ${name}` : ""),
+    bankName: v(`${side}_bank_name`),
+    bankNumber: v(`${side}_bank_number`),
+    bankOwner: v(`${side}_bank_owner`),
+  };
+}
+
+/**
+ * Mở picker chỉnh lại điểm lấy nét cho ảnh field đơn (cover/groom/bride/QR) đã có sẵn hoặc đang chờ upload
  */
 function adjustSingleImageFocalPoint(fieldName) {
   const pendingFile = pendingUploads.singleImages[fieldName];
@@ -1984,7 +1944,48 @@ function adjustSingleImageFocalPoint(fieldName) {
       _idbSaveFocal(fieldName);
     }
     showToast("✅ Đã cập nhật điểm lấy nét");
-  });
+  }, _qrGiftInfo(fieldName));
+}
+
+/**
+ * Lưu ảnh đã cắt (blob từ crop modal) cho field QR — thay ảnh, xoá focal cũ
+ */
+function _storeCroppedImage(fieldName, blob, origName) {
+  if (!blob) return;
+  const base = (origName || "qr").replace(/\.[^.]+$/, "");
+  const file = new File([blob], `${base}.png`, { type: "image/png" });
+  pendingUploads.singleImages[fieldName] = file;
+  _idbSaveSingle(fieldName, file);
+  _idbDelete(`${WEDDING_ID}_sf_${fieldName}`); // xoá bản ghi focal-only (nếu có)
+  // Crop đã "nướng" khung hình vào ảnh → không cần focal point nữa
+  pendingFocalPoints[fieldName] = { x: 50, y: 50 };
+  renderSingleImageUpload(fieldName);
+  showToast("✅ Đã cắt ảnh (chưa lưu)");
+}
+
+/**
+ * Mở lại modal cắt ảnh cho field QR (ảnh đang chờ upload hoặc ảnh đã lưu)
+ */
+async function recropSingleImage(fieldName) {
+  let source = pendingUploads.singleImages[fieldName];
+  if (!source) {
+    const hiddenInput = document.querySelector(`input[name="${fieldName}"]`);
+    const existingFilename = hiddenInput ? hiddenInput.value : null;
+    if (!existingFilename) return;
+    try {
+      const resp = await fetch(getImageUrl(existingFilename));
+      source = await resp.blob();
+    } catch (e) {
+      console.error("recrop fetch error:", e);
+      showToast("❌ Không tải được ảnh để cắt lại");
+      return;
+    }
+  }
+  openImageCropModal(
+    source,
+    (blob) => _storeCroppedImage(fieldName, blob, source.name),
+    _qrGiftInfo(fieldName),
+  );
 }
 
 /**
@@ -2573,7 +2574,9 @@ function fillForm(data) {
   }
 
   Object.keys(data).forEach((key) => {
-    const el = form.querySelector(`[name="${key}"]`);
+    let el = form.querySelector(`[name="${key}"]`);
+    // <x-input> giữ attribute name và đứng trước <input> con → phải nhắm vào control thật
+    if (el && el.tagName === "X-INPUT") el = el.querySelector("input, textarea") || el;
 
     if (key === "gallery_images") {
       const textarea = form.querySelector('[name="gallery_images_raw"]');
@@ -2825,6 +2828,8 @@ async function saveAll(overrides = {}, label = "Đang lưu...") {
       cover_image_url: pendingFocalPoints.cover_image_url,
       groom_image_url: pendingFocalPoints.groom_image_url,
       bride_image_url: pendingFocalPoints.bride_image_url,
+      groom_qr_url: pendingFocalPoints.groom_qr_url,
+      bride_qr_url: pendingFocalPoints.bride_qr_url,
       gallery_images: galleryFocalMap,
     };
 
@@ -3652,6 +3657,19 @@ function initializePage() {
       ?.addEventListener("input", _syncPartyIfSame);
   });
 
+  // Xoá rỗng ô địa điểm → ẩn luôn tag bản đồ bên dưới (tag đồng bộ với input)
+  [
+    ["ceremony", "ceremony_location"],
+    ["vu_quy", "vu_quy_location"],
+    ["groom_party", "groom_party_location"],
+    ["bride_party", "bride_party_location"],
+  ].forEach(([mapSide, name]) => {
+    const inp = document.querySelector(`input[name="${name}"]`);
+    inp?.addEventListener("input", () => {
+      if (!inp.value.trim() && typeof clearMapAddress === "function") clearMapAddress(mapSide);
+    });
+  });
+
   // Auto-open couple section on load
   toggleSection("couple");
 
@@ -3735,7 +3753,13 @@ function togglePartySameLoc(side, event, force) {
   const mapEmbedInput = document.getElementById(`${side}_party_map_embed_url`);
   const mapDisplay = document.getElementById(`${side}_party-map-display`);
   const mapAddress = document.getElementById(`${side}_party-map-address`);
-  const mapBtn = document.getElementById(`${side}-party-map-btn`);
+  // Nút "Bản đồ" là suffix-button bên trong <x-input> (không có id riêng) → lấy qua x-input
+  const partyXInput = document.querySelector(`x-input[name="${side}_party_location"]`);
+  const mapBtn = (partyXInput && partyXInput.querySelector("button:not(.x-clear)"))
+    || document.getElementById(`${side}-party-map-btn`);
+  // Nút X xoá của x-input và nút X trên tag bản đồ — phải khoá luôn khi "trùng địa điểm"
+  const xClearBtn = partyXInput && partyXInput.querySelector(".x-clear");
+  const tagClearBtn = mapDisplay && mapDisplay.querySelector("button");
   const icon = document.getElementById(`${side}-party-same-icon`);
   const box = document.getElementById(`${side}-party-same-box`);
 
@@ -3759,7 +3783,10 @@ function togglePartySameLoc(side, event, force) {
     if (locationInput) {
       locationInput.value = srcLoc?.value || "";
       locationInput.readOnly = true;
-      locationInput.classList.add("bg-gray-50", "cursor-not-allowed");
+      // Dùng ! (important) để đè bg-white/text mặc định của x-input → nhìn rõ trạng thái khoá
+      locationInput.classList.add("!bg-gray-100", "!text-gray-400", "cursor-not-allowed");
+      // Phát input để autosave lưu giá trị vừa bind (form nghe "input")
+      locationInput.dispatchEvent(new Event("input", { bubbles: true }));
     }
     if (mapEmbedInput && srcMap) mapEmbedInput.value = srcMap.value || "";
     if (mapDisplay && mapAddress && srcAddr?.textContent?.trim()) {
@@ -3771,31 +3798,37 @@ function togglePartySameLoc(side, event, force) {
       mapBtn.disabled = true;
       mapBtn.classList.add("opacity-40", "cursor-not-allowed");
     }
+    // Ẩn nút xoá (inline style đè class 'hidden' mà x-input tự bật/tắt theo giá trị)
+    if (xClearBtn) xClearBtn.style.display = "none";
+    if (tagClearBtn) tagClearBtn.style.display = "none";
     // Button active style
     btn.classList.add("border-rose-200", "bg-rose-50/70");
     btn.classList.remove("border-gray-100", "bg-gray-50/60");
-    // Checkbox box: filled rose
+    // Checkbox box: filled rose (đậm)
     if (box) {
-      box.classList.add("border-rose-400", "bg-rose-400");
-      box.classList.remove("border-gray-300", "bg-white");
+      box.classList.add("border-rose-500", "bg-rose-500");
+      box.classList.remove("border-gray-400", "bg-white");
     }
     if (icon) icon.classList.remove("hidden");
   } else {
     if (locationInput) {
       locationInput.readOnly = false;
-      locationInput.classList.remove("bg-gray-50", "cursor-not-allowed");
+      locationInput.classList.remove("!bg-gray-100", "!text-gray-400", "cursor-not-allowed");
     }
     if (mapBtn) {
       mapBtn.disabled = false;
       mapBtn.classList.remove("opacity-40", "cursor-not-allowed");
     }
+    // Trả lại nút xoá (bỏ inline style để x-input tự quản lý hiển thị theo giá trị)
+    if (xClearBtn) xClearBtn.style.display = "";
+    if (tagClearBtn) tagClearBtn.style.display = "";
     // Button inactive style
     btn.classList.remove("border-rose-200", "bg-rose-50/70");
     btn.classList.add("border-gray-100", "bg-gray-50/60");
     // Checkbox box: empty
     if (box) {
-      box.classList.remove("border-rose-400", "bg-rose-400");
-      box.classList.add("border-gray-300", "bg-white");
+      box.classList.remove("border-rose-500", "bg-rose-500");
+      box.classList.add("border-gray-400", "bg-white");
     }
     if (icon) icon.classList.add("hidden");
   }
@@ -3830,7 +3863,6 @@ function initCeremonySection(data) {
 
 window.applySlug = applySlug;
 window.copyInviteLink = copyInviteLink;
-window.generateLinks = generateLinks;
 window.switchGuestsTab = switchGuestsTab;
 window.generateQuickLink = generateQuickLink;
 window.shareViaMessenger = shareViaMessenger;
@@ -4047,6 +4079,12 @@ function closeThemePicker() {
 }
 
 function _updateHeaderThemeBadge(displayName) {
+  // Thumbnail của mẫu đang dùng
+  const thumb = document.getElementById("header-theme-thumb");
+  if (thumb && WEDDING_THEME) {
+    thumb.src = `../assets/images/templates/${WEDDING_THEME}.jpg`;
+    thumb.style.display = "";
+  }
   const el = document.getElementById("header-theme-name");
   if (!el) return;
   if (displayName) { el.textContent = displayName; return; }
@@ -4079,14 +4117,23 @@ window._applyThemeChange = _applyThemeChange;
 // ============= ADVANCED SECTION LOCK =============
 
 function _syncAdvancedSection() {
-  const content   = document.getElementById("guests-content-area");
-  const banner    = document.getElementById("guests-lock-banner");
   const draftTab  = document.getElementById("tab-draft");
+  if (draftTab) draftTab.classList.toggle("hidden", IS_PUBLISHED);
 
-  const locked = !IS_PUBLISHED;
-  if (content)   { content.inert = locked; content.style.opacity = locked ? "0.45" : ""; }
-  if (banner)    banner.classList.toggle("hidden", !locked);
-  if (draftTab)  draftTab.classList.toggle("hidden", IS_PUBLISHED);
+  // Tab Khách mời: vẫn bấm được, tooltip báo khi chưa xuất bản (không gắn badge trên navbar)
+  const guestsTab = document.getElementById("tab-guests");
+  if (guestsTab) {
+    guestsTab.title = IS_PUBLISHED
+      ? ""
+      : "Cần xuất bản thiệp trước khi quản lý khách mời";
+  }
+
+  // Nếu panel khách mời đang mở → cập nhật lại lớp khoá/iframe ngay
+  const guestsPanel = document.getElementById("guests-panel");
+  if (guestsPanel && !guestsPanel.classList.contains("hidden")) {
+    _updateGuestsPanelLock();
+  }
+  if (window.lucide) lucide.createIcons();
 }
 
 // ============= START =============

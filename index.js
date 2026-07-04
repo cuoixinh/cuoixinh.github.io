@@ -180,15 +180,43 @@ function updateNavAuthBtn() {
     btn.className = "text-sm hover:opacity-70 transition-opacity";
     btn.style.background = "";
     btn.style.color = "var(--mauve)";
+    btn.href = "/public/account/";
   } else {
     btn.textContent = "Đăng nhập";
     btn.className = "px-4 py-2 rounded-full text-sm font-semibold text-white transition-all hover:opacity-90 shadow-sm";
     btn.style.background = "var(--pink)";
     btn.style.color = "";
+    // Sau khi đăng nhập, quay lại đúng trang chủ để cập nhật trạng thái
+    btn.href = `/public/account/?urlRedirect=${encodeURIComponent(window.location.href)}`;
   }
 }
 
-document.addEventListener("DOMContentLoaded", updateNavAuthBtn);
+// ===== Supabase auth (nguồn tin cậy cho trạng thái đăng nhập trên trang chủ) =====
+let _sbClient = null;
+let _authUser = null;
+
+function _initHomeAuth() {
+  updateNavAuthBtn(); // render ngay từ localStorage (fallback) để tránh nhấp nháy
+  if (!window.supabase || !window.CONFIG?.supabase) return;
+  try {
+    _sbClient = window.supabase.createClient(
+      CONFIG.supabase.url,
+      CONFIG.supabase.anonKey,
+    );
+  } catch (e) {
+    return;
+  }
+  _sbClient.auth.getSession().then(({ data }) => {
+    _authUser = data?.session?.user ?? null;
+    updateNavAuthBtn();
+  });
+  _sbClient.auth.onAuthStateChange((_event, session) => {
+    _authUser = session?.user ?? null;
+    updateNavAuthBtn();
+  });
+}
+
+document.addEventListener("DOMContentLoaded", _initHomeAuth);
 
 function toggleMobileMenu() {
   const menu = document.getElementById("mobileMenu");
@@ -229,13 +257,21 @@ function initHeroImage() {
 // ============= PAYMENT =============
 
 function getCurrentUser() {
+  // Ưu tiên user lấy từ Supabase SDK (đã giải mã đúng session)
+  if (_authUser) return _authUser;
   try {
     const keys = Object.keys(localStorage);
     const sessionKey = keys.find(
       (k) => k.startsWith("sb-") && k.endsWith("-auth-token"),
     );
     if (!sessionKey) return null;
-    const session = JSON.parse(localStorage.getItem(sessionKey));
+    let raw = localStorage.getItem(sessionKey);
+    if (!raw) return null;
+    // supabase-js v2 mới lưu giá trị có tiền tố "base64-" → cần decode trước khi parse
+    if (raw.startsWith("base64-")) {
+      raw = atob(raw.slice(7));
+    }
+    const session = JSON.parse(raw);
     return session?.user ?? null;
   } catch (e) {
     return null;

@@ -275,8 +275,10 @@ function isGroomSide() {
  * Open image crop modal for QR codes (1:1 aspect ratio)
  * @param {File} file - Image file to crop
  * @param {Function} callback - Callback function with cropped blob
+ * @param {{label?:string,bankName?:string,bankNumber?:string,bankOwner?:string}} [giftInfo]
+ *        Khi có → hiển thị preview kiểu block Hộp Mừng Cưới (tên NH / STK / chủ TK)
  */
-function openImageCropModal(file, callback) {
+function openImageCropModal(file, callback, giftInfo) {
   const sheet = openBottomSheet({
     id: 'crop-modal',
     title: 'Căn chỉnh ảnh QR Code',
@@ -293,26 +295,64 @@ function openImageCropModal(file, callback) {
   if (!sheet) return;
   window._closeCropSheet = sheet.close;
 
-  sheet.body.innerHTML = `
-    <div class="p-5 flex-1 flex flex-col min-h-0 gap-3">
-      <div class="bg-gray-100 rounded-xl overflow-hidden relative flex-1 min-h-0">
-        <div id="crop-loading" class="absolute inset-0 flex items-center justify-center bg-gray-100">
-          <div class="text-center">
-            <div class="inline-block w-10 h-10 border-4 border-pink-500 border-t-transparent rounded-full animate-spin"></div>
-            <p class="text-sm text-gray-500 mt-3">Đang tải ảnh...</p>
+  // QR: xem trước như block Hộp Mừng Cưới (tên NH / STK / chủ TK); ảnh khác: ô vuông đơn giản.
+  const previewBlock = giftInfo
+    ? `
+        <div class="flex-shrink-0 flex flex-col gap-2">
+          <p class="text-xs font-semibold text-gray-500">Xem trước trên thiệp</p>
+          <div class="rounded-2xl p-4" style="background:linear-gradient(160deg,#fffbf8,#fff5f7);">
+            <div class="flex flex-col gap-1.5 items-center">
+              <div id="crop-gift-label" class="text-[11px] text-[#8a6b73]">Chú Rể</div>
+              <div class="bg-white rounded-2xl p-2 shadow-md">
+                <div id="crop-preview" class="w-[92px] h-[92px] overflow-hidden"></div>
+              </div>
+              <div class="flex flex-col gap-0.5 items-center text-center max-w-full">
+                <div id="crop-gift-bankname" class="text-[11px] text-[#a98a92] truncate max-w-[240px]">----------------</div>
+                <div id="crop-gift-number" class="text-[13px] text-[#5a3a45] font-medium truncate max-w-[240px]">------------</div>
+                <div id="crop-gift-owner" class="text-[12px] text-[#5a3a45] font-semibold truncate max-w-[240px]">--------------------</div>
+              </div>
+            </div>
           </div>
-        </div>
-        <img id="crop-image" src="" alt="Crop" class="max-w-full opacity-0" />
-      </div>
-      <div class="flex-shrink-0 flex flex-col gap-2">
-        <p class="text-xs text-gray-400 text-center">Dùng 2 ngón tay hoặc cuộn chuột để zoom, kéo để di chuyển</p>
+        </div>`
+    : `
         <div class="flex items-center gap-3">
           <p class="text-xs font-semibold text-gray-500 shrink-0">Xem trước</p>
           <div id="crop-preview" class="w-16 h-16 rounded-xl overflow-hidden bg-gray-100 border border-rose-200 shrink-0"></div>
+        </div>`;
+
+  sheet.body.innerHTML = `
+    <div class="p-4 sm:p-5 flex-1 flex flex-row min-h-0 gap-3 sm:gap-4">
+      <!-- TRÁI: ảnh upload để cắt -->
+      <div class="flex-1 min-w-0 flex flex-col gap-2">
+        <div class="bg-gray-100 rounded-xl overflow-hidden relative flex-1 min-h-0">
+          <div id="crop-loading" class="absolute inset-0 flex items-center justify-center bg-gray-100">
+            <div class="text-center">
+              <div class="inline-block w-10 h-10 border-4 border-pink-500 border-t-transparent rounded-full animate-spin"></div>
+              <p class="text-sm text-gray-500 mt-3">Đang tải ảnh...</p>
+            </div>
+          </div>
+          <img id="crop-image" src="" alt="Crop" class="max-w-full opacity-0" />
         </div>
+        <p class="text-[11px] sm:text-xs text-gray-400 text-center flex-shrink-0">Dùng 2 ngón tay hoặc cuộn chuột để zoom, kéo để di chuyển</p>
+      </div>
+      <!-- PHẢI: xem trước -->
+      <div class="flex-shrink-0 w-40 sm:w-56 flex flex-col justify-center overflow-y-auto">
+        ${previewBlock}
       </div>
     </div>
   `;
+
+  // Đổ thông tin ngân hàng (textContent để an toàn với input người dùng)
+  if (giftInfo) {
+    const setTxt = (id, val, fallback) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = (val && String(val).trim()) || fallback;
+    };
+    setTxt('crop-gift-label', giftInfo.label, 'Chú Rể');
+    setTxt('crop-gift-bankname', giftInfo.bankName, '----------------');
+    setTxt('crop-gift-number', giftInfo.bankNumber, '------------');
+    setTxt('crop-gift-owner', giftInfo.bankOwner, '--------------------');
+  }
   sheet.footer.innerHTML = `
     <div class="px-4 pb-4 flex gap-2">
       <button onclick="closeCropModal()" class="flex-1 h-10 border border-gray-200 rounded-xl text-sm text-gray-600 hover:bg-gray-50 transition-colors">Hủy</button>
@@ -526,7 +566,7 @@ function applyCrop() {
  * @param {{x:number,y:number}} [currentFocal] - Current focal point in % (default center)
  * @param {Function} callback - Called with {x, y} in % when user confirms
  */
-function openFocalPointPicker(imageSource, currentFocal, callback) {
+function openFocalPointPicker(imageSource, currentFocal, callback, giftInfo) {
   const focal = {
     x: currentFocal?.x ?? 50,
     y: currentFocal?.y ?? 50,
@@ -546,15 +586,27 @@ function openFocalPointPicker(imageSource, currentFocal, callback) {
   if (!sheet) return;
   window._closeFocalSheet = sheet.close;
 
-  sheet.body.innerHTML = `
-    <div class="flex flex-col flex-1 min-h-0 p-5 gap-4">
-      <div class="flex flex-col flex-1 min-h-0 gap-2">
-        <div id="focal-image-wrap" class="relative rounded-xl overflow-hidden bg-gray-100 cursor-crosshair select-none touch-none flex-1 min-h-0">
-          <img id="focal-image" src="" alt="" class="w-full h-full object-contain block pointer-events-none select-none" draggable="false" />
-          <div id="focal-marker" class="absolute w-6 h-6 -ml-3 -mt-3 rounded-full border-2 border-white shadow-lg pointer-events-none" style="left:50%;top:50%;background-color:var(--primary);"></div>
+  // QR: xem trước như block Hộp Mừng Cưới (Basic Gold) — tên NH / STK / tên chủ TK.
+  // Ảnh khác: xem trước 3 tỉ lệ như cũ.
+  const previewSection = giftInfo
+    ? `
+      <div class="flex-shrink-0">
+        <p class="text-xs font-semibold text-gray-500 mb-2">Xem trước trên thiệp</p>
+        <div class="rounded-2xl p-4" style="background:linear-gradient(160deg,#fffbf8,#fff5f7);">
+          <div class="flex flex-col gap-1.5 items-center">
+            <div id="focal-gift-label" class="text-[11px] text-[#8a6b73]">Chú Rể</div>
+            <div class="bg-white rounded-2xl p-2 shadow-md">
+              <img id="focal-preview-qr" src="" alt="" class="w-[92px] h-[92px] object-cover" />
+            </div>
+            <div class="flex flex-col gap-0.5 items-center text-center max-w-full">
+              <div id="focal-gift-bankname" class="text-[11px] text-[#a98a92] truncate max-w-[240px]">----------------</div>
+              <div id="focal-gift-number" class="text-[13px] text-[#5a3a45] font-medium truncate max-w-[240px]">------------</div>
+              <div id="focal-gift-owner" class="text-[12px] text-[#5a3a45] font-semibold truncate max-w-[240px]">--------------------</div>
+            </div>
+          </div>
         </div>
-        <p class="text-xs text-gray-500 flex-shrink-0">Chạm hoặc kéo điểm đến phần quan trọng nhất (VD: khuôn mặt) để ảnh đẹp ở mọi tỉ lệ.</p>
-      </div>
+      </div>`
+    : `
       <div class="flex-shrink-0">
         <p class="text-xs font-semibold text-gray-500 mb-2">Xem trước các tỉ lệ</p>
         <div class="grid grid-cols-3 gap-3">
@@ -577,9 +629,36 @@ function openFocalPointPicker(imageSource, currentFocal, callback) {
             <p class="text-xs text-gray-500 text-center mt-1">Dọc (9:16)</p>
           </div>
         </div>
+      </div>`;
+
+  const hintText = giftInfo
+    ? 'Chạm hoặc kéo điểm để chọn phần hiển thị của mã QR.'
+    : 'Chạm hoặc kéo điểm đến phần quan trọng nhất (VD: khuôn mặt) để ảnh đẹp ở mọi tỉ lệ.';
+
+  sheet.body.innerHTML = `
+    <div class="flex flex-col flex-1 min-h-0 p-5 gap-4">
+      <div class="flex flex-col flex-1 min-h-0 gap-2">
+        <div id="focal-image-wrap" class="relative rounded-xl overflow-hidden bg-gray-100 cursor-crosshair select-none touch-none flex-1 min-h-0">
+          <img id="focal-image" src="" alt="" class="w-full h-full object-contain block pointer-events-none select-none" draggable="false" />
+          <div id="focal-marker" class="absolute w-6 h-6 -ml-3 -mt-3 rounded-full border-2 border-white shadow-lg pointer-events-none" style="left:50%;top:50%;background-color:var(--primary);"></div>
+        </div>
+        <p class="text-xs text-gray-500 flex-shrink-0">${hintText}</p>
       </div>
+      ${previewSection}
     </div>
   `;
+
+  // Đổ thông tin ngân hàng vào phần xem trước QR (textContent để an toàn với input người dùng)
+  if (giftInfo) {
+    const setTxt = (id, val, fallback) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = (val && String(val).trim()) || fallback;
+    };
+    setTxt('focal-gift-label', giftInfo.label, 'Chú Rể');
+    setTxt('focal-gift-bankname', giftInfo.bankName, '----------------');
+    setTxt('focal-gift-number', giftInfo.bankNumber, '------------');
+    setTxt('focal-gift-owner', giftInfo.bankOwner, '--------------------');
+  }
   sheet.footer.innerHTML = `
     <div class="px-4 py-3 border-t border-gray-200 flex items-center justify-between gap-2">
       <button onclick="resetFocalPoint()" class="h-10 px-4 bg-sky-50 text-sky-700 rounded-xl text-sm font-medium hover:bg-sky-100 transition-colors flex items-center gap-1.5">
@@ -604,6 +683,7 @@ function openFocalPointPicker(imageSource, currentFocal, callback) {
     document.getElementById("focal-preview-16-9"),
     document.getElementById("focal-preview-9-16"),
   ];
+  const qrPreview = document.getElementById("focal-preview-qr");
 
   // Returns the rendered image bounds within the wrap (accounting for object-contain letterboxing)
   function getImageBounds() {
@@ -638,6 +718,7 @@ function openFocalPointPicker(imageSource, currentFocal, callback) {
     previews.forEach((p) => {
       if (p) p.style.objectPosition = `${focal.x}% ${focal.y}%`;
     });
+    if (qrPreview) qrPreview.style.objectPosition = `${focal.x}% ${focal.y}%`;
   }
 
   function setFromPointer(e) {
@@ -671,6 +752,7 @@ function openFocalPointPicker(imageSource, currentFocal, callback) {
   function setImageSrc(src) {
     img.src = src;
     previews.forEach((p) => { if (p) p.src = src; });
+    if (qrPreview) qrPreview.src = src;
     // Wait for natural dimensions before positioning marker
     if (img.complete && img.naturalWidth) {
       applyToUI();

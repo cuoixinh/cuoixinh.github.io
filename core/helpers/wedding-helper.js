@@ -2,8 +2,6 @@
 // WEDDING-HELPER.JS - Wedding data loading and personalization
 // ============================================================
 
-let markViewedCallback = null;
-
 /**
  * Load wedding data by slug
  * @param {string} weddingSlug - Wedding slug
@@ -81,18 +79,6 @@ function setupPersonalizedGreeting(
     openInvitationCallback();
     return;
   }
-
-  if (weddingSlug && !isPreviewMode()) {
-    weddingBL
-      .getWeddingBySlug(weddingSlug)
-      .then((wedding) => {
-        const urlParams = new URLSearchParams(window.location.search);
-        markViewedCallback = () => {
-          weddingBL.trackView(wedding, isGroom, urlParams);
-        };
-      })
-      .catch(() => {});
-  }
 }
 
 /**
@@ -100,11 +86,6 @@ function setupPersonalizedGreeting(
  * @param {Function} callback - Optional callback after opening (for template-specific logic)
  */
 function openInvitation(callback) {
-  if (markViewedCallback && !isPreviewMode()) {
-    markViewedCallback();
-    markViewedCallback = null;
-  }
-
   const cover = document.getElementById("cover-screen");
   const main = document.getElementById("main-card");
 
