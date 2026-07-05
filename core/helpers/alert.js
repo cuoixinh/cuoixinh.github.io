@@ -14,7 +14,7 @@
       top: var(--toast-top, 20px);
       left: 50%;
       transform: translateX(-50%) translateY(-16px);
-      z-index: 99999;
+      z-index: 2147483647; /* luôn trên mọi popup/overlay (auth modal, loading…) */
       pointer-events: none;
       opacity: 0;
       transition: opacity .2s ease, transform .2s ease;

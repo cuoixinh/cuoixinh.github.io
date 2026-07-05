@@ -293,8 +293,8 @@ const _GUEST_THEAD = `
         <thead class="bg-gray-50">
           <tr>
             <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 w-36 min-w-[144px]">Tên</th>
-            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 w-20 min-w-[80px]">Xưng hô</th>
             <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 w-56 min-w-[224px]">Link cá nhân</th>
+            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 w-20 min-w-[80px]">Xưng hô</th>
             <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 w-24 min-w-[96px]">Trạng thái</th>
             <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 w-24 min-w-[96px]">Xác nhận</th>
             <th class="sticky right-0 bg-gray-50 py-2 px-3 border-l border-gray-100 text-center text-xs font-medium text-gray-500 w-24 min-w-[96px]">Action</th>
@@ -312,8 +312,8 @@ function _renderGuestSkeleton(side) {
   const row = `
     <tr class="h-[42px] border-t border-gray-100">
       <td class="px-3">${bar("w-24")}</td>
-      <td class="px-3">${bar("w-14")}</td>
       <td class="px-3">${bar("w-40")}</td>
+      <td class="px-3">${bar("w-14")}</td>
       <td class="px-3">${bar("w-16")}</td>
       <td class="px-3">${bar("w-16")}</td>
       <td class="sticky right-0 bg-white px-3 border-l border-gray-100"><div class="h-4 w-14 bg-gray-200 rounded animate-pulse mx-auto"></div></td>
@@ -412,12 +412,12 @@ function _renderGuestList(side) {
         <p class="text-xs font-medium text-gray-800">${_esc(g.full_name)}</p>
         ${g.display_name ? `<p class="text-xs text-gray-400">${_esc(g.display_name)}</p>` : ""}
       </td>
-      <td class="px-3 py-2.5 text-xs text-gray-500">${_esc(g.relationship) || "—"}</td>
       <td class="px-3 py-2.5 max-w-[160px]">
         ${g.link
           ? `<a href="${_esc(g.link)}" target="_blank" rel="noopener noreferrer" class="text-xs text-blue-500 hover:underline block truncate font-mono">${_esc(g.link)}</a>`
           : `<span class="text-gray-300 text-xs">—</span>`}
       </td>
+      <td class="px-3 py-2.5 text-xs text-gray-500">${_esc(g.relationship) || "—"}</td>
       <td class="px-3 py-2.5">
         ${g.viewed
           ? `<span class="inline-flex items-center gap-1 text-xs text-green-600 bg-green-50 px-1.5 py-0.5 rounded-full whitespace-nowrap">✓ Đã xem</span>`

@@ -1,9 +1,6 @@
 ﻿// ===== SUPABASE AUTH =====
-const SUPABASE_URL = CONFIG.supabase.url;
-const SUPABASE_ANON_KEY = CONFIG.supabase.anonKey;
-
-const { createClient } = window.supabase;
-const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Dùng chung client từ AuthUI để form đăng nhập (nhúng) và trang này cùng 1 phiên/listener.
+const supabaseClient = AuthUI.supabase;
 
 let currentUser = null;
 
@@ -75,22 +72,6 @@ async function initAccount() {
   loadOrders();
   loadProfile();
   _redirectAfterLogin();
-}
-
-async function loginWithFacebook() {
-  const { error } = await supabaseClient.auth.signInWithOAuth({
-    provider: "facebook",
-    options: { redirectTo: window.location.href },
-  });
-  if (error) showToast("Lỗi đăng nhập Facebook: " + error.message, "error");
-}
-
-async function loginWithGoogle() {
-  const { error } = await supabaseClient.auth.signInWithOAuth({
-    provider: "google",
-    options: { redirectTo: window.location.href },
-  });
-  if (error) showToast("Lỗi đăng nhập Google: " + error.message, "error");
 }
 
 async function logout() {
@@ -432,12 +413,20 @@ function switchTab(tabName) {
 }
 
 
+function _renderAuthForm() {
+  const container = document.getElementById("auth-form-container");
+  // onAuth bỏ trống: onAuthStateChange (cùng client) sẽ tự cập nhật UI + redirect nếu cần
+  if (container && window.AuthUI) AuthUI.renderForm(container, {});
+}
+
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", () => {
+    _renderAuthForm();
     initAccount();
     setupOrderModal();
   });
 } else {
+  _renderAuthForm();
   initAccount();
   setupOrderModal();
 }

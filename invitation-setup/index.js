@@ -254,7 +254,13 @@ function getCurrentUser() {
       (k) => k.startsWith("sb-") && k.endsWith("-auth-token"),
     );
     if (!key) return null;
-    return JSON.parse(localStorage.getItem(key))?.user ?? null;
+    let raw = localStorage.getItem(key);
+    if (!raw) return null;
+    // supabase-js v2 có thể lưu dạng "base64-<b64(json)>" → giải mã (UTF-8) trước khi parse
+    if (raw.startsWith("base64-")) {
+      raw = decodeURIComponent(escape(atob(raw.slice(7))));
+    }
+    return JSON.parse(raw)?.user ?? null;
   } catch (e) {
     return null;
   }
@@ -299,6 +305,8 @@ function toggleSectionVis(section, event) {
   if (!hidden) return;
   const newVal = hidden.value !== "true";
   hidden.value = newVal ? "true" : "false";
+  // Phát "input" để autosave lưu trạng thái switch (gán .value không tự phát sự kiện)
+  hidden.dispatchEvent(new Event("input", { bubbles: true }));
   _updateVisUI(section, newVal);
   if (
     section === "party" &&
@@ -721,9 +729,22 @@ async function publishWedding() {
   }
 
   if (!getCurrentUser()) {
-    const returnUrl = new URL(window.location.href);
-    returnUrl.searchParams.set('pendingPublish', '1');
-    window.location.href = `/public/account/?urlRedirect=${encodeURIComponent(returnUrl.toString())}`;
+    // Chưa đăng nhập → hiện popup đăng nhập/tạo tài khoản ngay tại chỗ (không rời trang).
+    // OAuth vẫn redirect: đính pendingPublish=1 để tự xuất bản khi quay lại.
+    if (window.AuthUI) {
+      const oauthRedirect = new URL(window.location.href);
+      oauthRedirect.searchParams.set("pendingPublish", "1");
+      AuthUI.openModal({
+        title: "Đăng nhập để xuất bản thiệp",
+        subtitle: "Đăng nhập hoặc tạo tài khoản để kích hoạt và quản lý thiệp cưới.",
+        oauthRedirect: oauthRedirect.toString(),
+        onAuth: () => publishWedding(),
+      });
+    } else {
+      const returnUrl = new URL(window.location.href);
+      returnUrl.searchParams.set("pendingPublish", "1");
+      window.location.href = `/public/account/?urlRedirect=${encodeURIComponent(returnUrl.toString())}`;
+    }
     return;
   }
   _setActiveTab("publish");
@@ -1305,6 +1326,8 @@ function randomQuote() {
 
   const randomIndex = Math.floor(Math.random() * QUOTE_LIST.length);
   textarea.value = QUOTE_LIST[randomIndex];
+  // Gán .value bằng code không tự phát sự kiện → phát "input" để autosave lưu + x-input đồng bộ
+  textarea.dispatchEvent(new Event("input", { bubbles: true }));
 
   // Add a little animation
   textarea.classList.add("ring-4", "ring-purple-500/20");
@@ -2575,8 +2598,10 @@ function fillForm(data) {
 
   Object.keys(data).forEach((key) => {
     let el = form.querySelector(`[name="${key}"]`);
-    // <x-input> giữ attribute name và đứng trước <input> con → phải nhắm vào control thật
-    if (el && el.tagName === "X-INPUT") el = el.querySelector("input, textarea") || el;
+    // Các control tuỳ biến (<x-input>/<x-date>/<x-time>) giữ attribute name và đứng trước
+    // <input> con → phải nhắm vào control thật bên trong.
+    if (el && el.tagName.startsWith("X-"))
+      el = el.querySelector("input, textarea, select") || el;
 
     if (key === "gallery_images") {
       const textarea = form.querySelector('[name="gallery_images_raw"]');
@@ -3709,6 +3734,8 @@ function toggleVuQuy(event) {
   if (!hidden) return;
   const newVal = hidden.value !== "true";
   hidden.value = newVal ? "true" : "false";
+  // Phát "input" để autosave lưu trạng thái (gán .value không tự phát sự kiện)
+  hidden.dispatchEvent(new Event("input", { bubbles: true }));
   const btn = document.getElementById("vis-btn-vu-quy");
   const knob = document.getElementById("vis-knob-vu-quy");
   if (btn && knob) {
@@ -3744,10 +3771,11 @@ window._onLocationSourceChanged = (src) => {
 
 function togglePartySameLoc(side, event, force) {
   if (event) event.stopPropagation();
-  const btn = document.getElementById(`${side}-party-same-btn`);
-  if (!btn) return;
-  const newActive = force !== undefined ? force : btn.dataset.active !== "true";
-  btn.dataset.active = String(newActive);
+  // <x-check> sở hữu trạng thái + hiển thị (box/icon/viền); ở đây chỉ đọc/ghi .checked
+  const check = document.querySelector(`x-check[key="${side}-party-same"]`);
+  if (!check) return;
+  const newActive = force !== undefined ? force : check.checked;
+  check.checked = newActive;
 
   const locationInput = document.querySelector(`input[name="${side}_party_location"]`);
   const mapEmbedInput = document.getElementById(`${side}_party_map_embed_url`);
@@ -3760,8 +3788,6 @@ function togglePartySameLoc(side, event, force) {
   // Nút X xoá của x-input và nút X trên tag bản đồ — phải khoá luôn khi "trùng địa điểm"
   const xClearBtn = partyXInput && partyXInput.querySelector(".x-clear");
   const tagClearBtn = mapDisplay && mapDisplay.querySelector("button");
-  const icon = document.getElementById(`${side}-party-same-icon`);
-  const box = document.getElementById(`${side}-party-same-box`);
 
   if (newActive) {
     // Resolve source: groom → ceremony; bride → vu_quy if enabled, else ceremony
@@ -3801,15 +3827,6 @@ function togglePartySameLoc(side, event, force) {
     // Ẩn nút xoá (inline style đè class 'hidden' mà x-input tự bật/tắt theo giá trị)
     if (xClearBtn) xClearBtn.style.display = "none";
     if (tagClearBtn) tagClearBtn.style.display = "none";
-    // Button active style
-    btn.classList.add("border-rose-200", "bg-rose-50/70");
-    btn.classList.remove("border-gray-100", "bg-gray-50/60");
-    // Checkbox box: filled rose (đậm)
-    if (box) {
-      box.classList.add("border-rose-500", "bg-rose-500");
-      box.classList.remove("border-gray-400", "bg-white");
-    }
-    if (icon) icon.classList.remove("hidden");
   } else {
     if (locationInput) {
       locationInput.readOnly = false;
@@ -3822,15 +3839,6 @@ function togglePartySameLoc(side, event, force) {
     // Trả lại nút xoá (bỏ inline style để x-input tự quản lý hiển thị theo giá trị)
     if (xClearBtn) xClearBtn.style.display = "";
     if (tagClearBtn) tagClearBtn.style.display = "";
-    // Button inactive style
-    btn.classList.remove("border-rose-200", "bg-rose-50/70");
-    btn.classList.add("border-gray-100", "bg-gray-50/60");
-    // Checkbox box: empty
-    if (box) {
-      box.classList.remove("border-rose-500", "bg-rose-500");
-      box.classList.add("border-gray-400", "bg-white");
-    }
-    if (icon) icon.classList.add("hidden");
   }
 }
 
