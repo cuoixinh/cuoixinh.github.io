@@ -1,0 +1,292 @@
+<!--
+  email-template.html — Mẫu email OTP đăng nhập của Cưới Xinh
+  ─────────────────────────────────────────────────────────────
+  Dùng ở: Supabase → Authentication → Email Templates → Magic Link
+  Dán TOÀN BỘ phần <body>…</body> bên dưới vào ô "Message body".
+  Giữ nguyên biến {{ .Token }} — đây là mã 6 số gửi tới người dùng.
+  (File này chỉ là bản mẫu để xem/copy, không được import bởi code app.)
+
+  Lưu ý email:
+  - Chỉ dùng bảng (<table>) + CSS inline → hiển thị chuẩn Gmail/Outlook.
+  - Không dùng <style> ngoài, không JS, không ảnh external (nếu cần logo
+    thì thay bằng <img src="https://…/logo.png">).
+-->
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light only" />
+    <title>Mã đăng nhập Cưới Xinh</title>
+  </head>
+  <body
+    style="
+      margin: 0;
+      padding: 0;
+      background: #fbeef2;
+      -webkit-font-smoothing: antialiased;
+      font-family: &quot;Segoe UI&quot;, Roboto, Helvetica, Arial, sans-serif;
+    "
+  >
+    <!-- Preheader (ẩn) -->
+    <div
+      style="
+        display: none;
+        max-height: 0;
+        overflow: hidden;
+        opacity: 0;
+        color: transparent;
+      "
+    >
+      Mã đăng nhập Cưới Xinh của bạn là {{ .Token }} — có hiệu lực trong ít
+      phút.
+    </div>
+
+    <table
+      role="presentation"
+      width="100%"
+      cellpadding="0"
+      cellspacing="0"
+      style="background: #fbeef2; padding: 40px 12px"
+    >
+      <tr>
+        <td align="center">
+          <!-- Card -->
+          <table
+            role="presentation"
+            width="100%"
+            cellpadding="0"
+            cellspacing="0"
+            style="
+              max-width: 480px;
+              background: #ffffff;
+              border-radius: 24px;
+              overflow: hidden;
+              box-shadow: 0 12px 40px rgba(214, 96, 127, 0.15);
+            "
+          >
+            <!-- Header -->
+            <tr>
+              <td
+                align="center"
+                style="
+                  background: linear-gradient(135deg, #fff6f9 0%, #ffeef4 100%);
+                  border-bottom: 1px solid #f7e0e8;
+                "
+              >
+                <!-- Logo Cưới Xinh (giống trang chủ) -->
+                <img
+                  src="https://cuoixinh.com/assets/icons/logo.png"
+                  alt="Cưới Xinh — Thiệp cưới online"
+                  width="210"
+                  style="
+                    display: block;
+                    margin: 0 auto;
+                    width: 100px;
+                    max-width: 72%;
+                    height: auto;
+                    border: 0;
+                    outline: none;
+                    text-decoration: none;
+                  "
+                />
+              </td>
+            </tr>
+
+            <!-- Body -->
+            <tr>
+              <td style="padding: 38px 40px 10px">
+                <h1
+                  style="
+                    margin: 0 0 10px;
+                    font-size: 21px;
+                    line-height: 1.35;
+                    color: #5a3a45;
+                    font-weight: 700;
+                    text-align: center;
+                  "
+                >
+                  Chào mừng bạn đến với Cưới Xinh
+                </h1>
+                <p
+                  style="
+                    margin: 0 0 28px;
+                    font-size: 14px;
+                    line-height: 1.65;
+                    color: #8a6b73;
+                    text-align: center;
+                  "
+                >
+                  Dùng mã xác thực bên dưới để đăng nhập vào tài khoản của bạn.
+                </p>
+
+                <!-- Code box -->
+                <table
+                  role="presentation"
+                  width="100%"
+                  cellpadding="0"
+                  cellspacing="0"
+                >
+                  <tr>
+                    <td align="center">
+                      <table
+                        role="presentation"
+                        cellpadding="0"
+                        cellspacing="0"
+                        style="
+                          background: #fff5f8;
+                          border: 1.5px dashed #f4a6bd;
+                          border-radius: 16px;
+                        "
+                      >
+                        <tr>
+                          <td align="center" style="padding: 22px 34px">
+                            <div
+                              style="
+                                font-size: 12px;
+                                font-weight: 600;
+                                color: #c98aa0;
+                                letter-spacing: 2px;
+                                text-transform: uppercase;
+                                margin-bottom: 8px;
+                              "
+                            >
+                              Mã đăng nhập
+                            </div>
+                            <div
+                              style="
+                                font-size: 40px;
+                                font-weight: 800;
+                                letter-spacing: 14px;
+                                color: #d6607f;
+                                font-family:
+                                  &quot;Courier New&quot;, Consolas, monospace;
+                                padding-left: 14px;
+                              "
+                            >
+                              {{ .Token }}
+                            </div>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+
+                <!-- Expiry pill -->
+                <table
+                  role="presentation"
+                  width="100%"
+                  cellpadding="0"
+                  cellspacing="0"
+                  style="margin-top: 22px"
+                >
+                  <tr>
+                    <td align="center">
+                      <span
+                        style="
+                          display: inline-block;
+                          background: #fdeef2;
+                          color: #c56582;
+                          font-size: 12px;
+                          font-weight: 600;
+                          padding: 7px 16px;
+                          border-radius: 999px;
+                        "
+                      >
+                        ⏱️ Mã có hiệu lực trong ít phút
+                      </span>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- Security note -->
+            <tr>
+              <td style="padding: 26px 40px 8px">
+                <table
+                  role="presentation"
+                  width="100%"
+                  cellpadding="0"
+                  cellspacing="0"
+                  style="background: #faf7f8; border-radius: 14px"
+                >
+                  <tr>
+                    <td
+                      style="
+                        padding: 16px 18px;
+                        font-size: 12.5px;
+                        line-height: 1.7;
+                        color: #9a8088;
+                      "
+                    >
+                      🔒 Vì lý do bảo mật,
+                      <b style="color: #7a5560">đừng chia sẻ mã này</b> với bất
+                      kỳ ai — kể cả người tự xưng là nhân viên Cưới Xinh.<br />
+                      Nếu bạn không yêu cầu đăng nhập, hãy bỏ qua email này.
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- Footer -->
+            <tr>
+              <td style="padding: 24px 40px 32px">
+                <div
+                  style="
+                    border-top: 1px solid #f2e3e8;
+                    padding-top: 20px;
+                    text-align: center;
+                  "
+                >
+                  <p
+                    style="
+                      margin: 0 0 4px;
+                      font-size: 13px;
+                      font-weight: 700;
+                      color: #d6607f;
+                    "
+                  >
+                    Cưới Xinh
+                  </p>
+                  <p style="margin: 0 0 10px; font-size: 12px; color: #c3a5ad">
+                    Thiệp cưới online — Lưu giữ khoảnh khắc yêu thương
+                  </p>
+                  <p style="margin: 0; font-size: 12px; color: #c3a5ad">
+                    Cần hỗ trợ?
+                    <a
+                      href="mailto:admin@cuoixinh.com"
+                      style="
+                        color: #d6607f;
+                        text-decoration: none;
+                        font-weight: 600;
+                      "
+                      >admin@cuoixinh.com</a
+                    >
+                  </p>
+                </div>
+              </td>
+            </tr>
+          </table>
+
+          <!-- Sub-footer -->
+          <p
+            style="
+              max-width: 480px;
+              margin: 18px auto 0;
+              font-size: 11px;
+              line-height: 1.6;
+              color: #cbb4bb;
+              text-align: center;
+            "
+          >
+            © Cưới Xinh. Email này được gửi tự động, vui lòng không trả lời trực
+            tiếp.
+          </p>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

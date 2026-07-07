@@ -642,7 +642,7 @@
               </div>
 
               <button onclick="PaymentModal.process()"
-                class="w-full py-3.5 rounded-full text-white font-semibold text-sm border-0 cursor-pointer transition-colors hover:opacity-90" style="background:rgb(255 183 202);">
+                class="w-full py-3.5 rounded-full text-white font-semibold text-sm border-0 cursor-pointer transition-colors hover:opacity-90" style="background:#f43f5e;">
                 <i class="fas fa-lock mr-2 text-xs"></i>Thanh toán ngay
               </button>
               <p class="text-center text-xs text-gray-400 m-0">
@@ -686,7 +686,7 @@
                 <input id="success-manage-link" readonly
                   class="flex-1 px-3 py-2 rounded-lg border border-gray-200 text-[11px] text-gray-600 bg-white outline-none min-w-0" />
                 <button onclick="copyManageLink()"
-                  class="px-3 py-2 rounded-lg text-white border-0 cursor-pointer text-xs whitespace-nowrap flex-shrink-0" style="background:rgb(255 183 202);">
+                  class="px-3 py-2 rounded-lg text-white border-0 cursor-pointer text-xs whitespace-nowrap flex-shrink-0" style="background:#f43f5e;">
                   <i class="fas fa-copy"></i>
                 </button>
               </div>
@@ -697,7 +697,7 @@
                 Đóng
               </button>
               <a id="success-manage-btn" href="#"
-                class="flex-1 py-3 rounded-full text-white font-semibold text-sm no-underline flex items-center justify-center gap-2" style="background:rgb(255 183 202);">
+                class="flex-1 py-3 rounded-full text-white font-semibold text-sm no-underline flex items-center justify-center gap-2" style="background:#f43f5e;">
                 <i class="fas fa-edit text-xs"></i>Thiết lập ngay
               </a>
             </div>

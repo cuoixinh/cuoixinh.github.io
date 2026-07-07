@@ -6,27 +6,9 @@ let currentUser = null;
 
 const POST_LOGIN_REDIRECT_KEY = "post_login_redirect";
 
-// Xác định URL nút "Trở lại" — phải làm trước khi captureLoginRedirect xóa param
-let _backUrl = (function () {
-  const params = new URLSearchParams(window.location.search);
-  const urlRedirect = params.get("urlRedirect");
-  if (urlRedirect) {
-    try {
-      const u = new URL(urlRedirect, window.location.origin);
-      u.searchParams.delete("pendingPublish");
-      return u.toString();
-    } catch { return "/"; }
-  }
-  if (document.referrer) {
-    try {
-      if (new URL(document.referrer).origin === window.location.origin) return document.referrer;
-    } catch { /* ignore */ }
-  }
-  return "/";
-})();
-
+// Nút "Trở lại" và logo luôn đưa về trang chủ
 function goBack() {
-  window.location.href = _backUrl;
+  window.location.href = "/";
 }
 
 // Nếu trang này được mở kèm ?urlRedirect=... (VD: từ invitation-setup), lưu lại
@@ -61,6 +43,7 @@ async function initAccount() {
     currentUser = session?.user ?? null;
     updateAuthBlock();
     loadOrders();
+    loadProfile();
     _redirectAfterLogin();
   });
 
@@ -213,7 +196,7 @@ function renderOrderDetail(order) {
       iconColor: "text-yellow-400",
       title: "Chưa thanh toán",
       desc: "Đơn hàng này chưa được thanh toán. Vui lòng hoàn tất thanh toán để nhận thiệp.",
-      action: `<button onclick="closeOrderModal(); PaymentModal.open('${order.templateName || ""}', '${order.theme || "basic-gold"}')" class="flex items-center justify-center gap-2 w-full py-3 rounded-full text-white text-sm font-medium mt-2" style="background-color:rgb(255 183 202);border:none;cursor:pointer;"><i class="fas fa-credit-card"></i>Thanh toán ngay</button>`,
+      action: `<button onclick="closeOrderModal(); PaymentModal.open('${order.templateName || ""}', '${order.theme || "basic-gold"}')" class="flex items-center justify-center gap-2 w-full py-3 rounded-full text-white text-sm font-medium mt-2" style="background-color:#f43f5e;border:none;cursor:pointer;"><i class="fas fa-credit-card"></i>Thanh toán ngay</button>`,
     },
     processing: {
       icon: "fa-paint-brush",
@@ -237,12 +220,12 @@ function renderOrderDetail(order) {
             <input readonly value="${window.location.origin}/invitation-setup/?id=${order.manage_id}"
               style="flex:1;padding:0.4rem 0.6rem;border-radius:0.5rem;border:1px solid #e5e7eb;font-size:0.65rem;color:#6b7280;background:white;outline:none;min-width:0;" />
             <button onclick="navigator.clipboard.writeText('${window.location.origin}/invitation-setup/?id=${order.manage_id}').then(()=>{this.innerHTML='<i class=\\'fas fa-check\\'></i>';setTimeout(()=>{this.innerHTML='<i class=\\'fas fa-copy\\'></i>';},2000)})"
-              style="padding:0.4rem 0.6rem;border-radius:0.5rem;background:rgb(255 183 202);color:white;border:none;cursor:pointer;font-size:0.7rem;flex-shrink:0;">
+              style="padding:0.4rem 0.6rem;border-radius:0.5rem;background:#f43f5e;color:white;border:none;cursor:pointer;font-size:0.7rem;flex-shrink:0;">
               <i class="fas fa-copy"></i>
             </button>
           </div>
           <a href="${window.location.origin}/invitation-setup/?id=${order.manage_id}" target="_blank"
-            style="display:flex;align-items:center;justify-content:center;gap:0.5rem;margin-top:0.5rem;padding:0.6rem;border-radius:9999px;background:rgb(255 183 202);color:white;font-size:0.8rem;font-weight:600;text-decoration:none;">
+            style="display:flex;align-items:center;justify-content:center;gap:0.5rem;margin-top:0.5rem;padding:0.6rem;border-radius:9999px;background:#f43f5e;color:white;font-size:0.8rem;font-weight:600;text-decoration:none;">
             <i class="fas fa-edit"></i> Thiết lập thiệp ngay
           </a>
         </div>`
@@ -348,11 +331,18 @@ function mergeGuestOrders() {
 function loadProfile() {
   if (!currentUser) return;
   const meta = currentUser.user_metadata || {};
-  document.getElementById("profile-name").value =
-    meta.full_name || meta.name || "";
-  document.getElementById("profile-email-input").value =
-    currentUser.email || "";
-  document.getElementById("profile-phone").value = meta.phone || "";
+  _setInputValue("profile-name", meta.full_name || meta.name || "");
+  _setInputValue("profile-email-input", currentUser.email || "");
+  _setInputValue("profile-phone", meta.phone || "");
+}
+
+// Gán value cho input bên trong <x-input> rồi báo cho x-input tự bật/tắt nút xoá nhanh.
+function _setInputValue(id, value) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.value = value;
+  const host = el.closest("x-input");
+  if (host && typeof host.syncClearBtn === "function") host.syncClearBtn();
 }
 
 document
@@ -413,20 +403,23 @@ function switchTab(tabName) {
 }
 
 
-function _renderAuthForm() {
-  const container = document.getElementById("auth-form-container");
-  // onAuth bỏ trống: onAuthStateChange (cùng client) sẽ tự cập nhật UI + redirect nếu cần
-  if (container && window.AuthUI) AuthUI.renderForm(container, {});
+// Đăng nhập tách riêng khỏi màn đơn hàng: mở popup dùng chung (giống lúc Xuất bản thiệp).
+// onAuth bỏ trống: onAuthStateChange (cùng client) sẽ tự cập nhật UI + gộp đơn khách.
+function openLoginPopup() {
+  if (!window.AuthUI) return;
+  AuthUI.openModal({
+    title: "Đăng nhập",
+    subtitle: "Đồng bộ đơn hàng và quản lý thiệp cưới của bạn",
+    oauthRedirect: window.location.origin + window.location.pathname,
+  });
 }
 
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", () => {
-    _renderAuthForm();
     initAccount();
     setupOrderModal();
   });
 } else {
-  _renderAuthForm();
   initAccount();
   setupOrderModal();
 }

@@ -735,8 +735,8 @@ async function publishWedding() {
       const oauthRedirect = new URL(window.location.href);
       oauthRedirect.searchParams.set("pendingPublish", "1");
       AuthUI.openModal({
-        title: "Đăng nhập để xuất bản thiệp",
-        subtitle: "Đăng nhập hoặc tạo tài khoản để kích hoạt và quản lý thiệp cưới.",
+        title: "Sẵn sàng gửi thiệp đi chưa?",
+        subtitle: "Đăng nhập để kích hoạt và chia sẻ thiệp cưới của bạn",
         oauthRedirect: oauthRedirect.toString(),
         onAuth: () => publishWedding(),
       });

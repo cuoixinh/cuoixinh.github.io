@@ -172,23 +172,26 @@ function createDraft(templateId) {
   _doCreateDraft(template);
 }
 
+// "Quản lý thiệp" luôn hiển thị (kể cả chưa đăng nhập — vì có thể có nháp/đơn trong
+// localStorage). Chỉ nút "Đăng nhập" mới ẩn/hiện theo phiên; đăng nhập mở popup tại chỗ.
 function updateNavAuthBtn() {
-  const btn = document.getElementById("navAuthBtn");
-  if (!btn) return;
-  if (getCurrentUser()) {
-    btn.textContent = "Quản lý thiệp";
-    btn.className = "text-sm hover:opacity-70 transition-opacity";
-    btn.style.background = "";
-    btn.style.color = "var(--mauve)";
-    btn.href = "/public/account/";
-  } else {
-    btn.textContent = "Đăng nhập";
-    btn.className = "px-4 py-2 rounded-full text-sm font-semibold text-white transition-all hover:opacity-90 shadow-sm";
-    btn.style.background = "var(--pink)";
-    btn.style.color = "";
-    // Sau khi đăng nhập, quay lại đúng trang chủ để cập nhật trạng thái
-    btn.href = `/public/account/?urlRedirect=${encodeURIComponent(window.location.href)}`;
+  const loggedIn = !!getCurrentUser();
+  const el = document.getElementById("navLoginBtn");
+  if (el) el.style.display = loggedIn ? "none" : "";
+}
+
+// Mở popup đăng nhập/tạo tài khoản ngay tại trang hiện tại (giống lúc Xuất bản thiệp).
+function openLoginPopup() {
+  if (!window.AuthUI) {
+    window.location.href = `/public/account/?urlRedirect=${encodeURIComponent(window.location.href)}`;
+    return;
   }
+  AuthUI.openModal({
+    title: "Đăng nhập",
+    subtitle: "Đồng bộ thiệp và đơn hàng trên mọi thiết bị của bạn",
+    oauthRedirect: window.location.origin + window.location.pathname,
+    onAuth: () => updateNavAuthBtn(),
+  });
 }
 
 // ===== Supabase auth (nguồn tin cậy cho trạng thái đăng nhập trên trang chủ) =====
@@ -197,13 +200,19 @@ let _authUser = null;
 
 function _initHomeAuth() {
   updateNavAuthBtn(); // render ngay từ localStorage (fallback) để tránh nhấp nháy
-  if (!window.supabase || !window.CONFIG?.supabase) return;
-  try {
-    _sbClient = window.supabase.createClient(
-      CONFIG.supabase.url,
-      CONFIG.supabase.anonKey,
-    );
-  } catch (e) {
+  // Tái sử dụng client của AuthUI để chỉ có 1 phiên/listener (tránh cảnh báo nhiều GoTrueClient)
+  if (window.AuthUI && AuthUI.supabase) {
+    _sbClient = AuthUI.supabase;
+  } else if (window.supabase && window.CONFIG?.supabase) {
+    try {
+      _sbClient = window.supabase.createClient(
+        CONFIG.supabase.url,
+        CONFIG.supabase.anonKey,
+      );
+    } catch (e) {
+      return;
+    }
+  } else {
     return;
   }
   _sbClient.auth.getSession().then(({ data }) => {

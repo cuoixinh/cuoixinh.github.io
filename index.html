@@ -55,6 +55,57 @@
               },
               cream: { 50: "#fffbf7", 100: "#fff5f0", 200: "#ffe8e0" },
             },
+            keyframes: {
+              bubbleIn: {
+                to: { opacity: "1", transform: "translateY(0) scale(1)" },
+              },
+              bubblePulse: {
+                "0%": { transform: "scale(1)", opacity: ".55" },
+                "100%": { transform: "scale(1.9)", opacity: "0" },
+              },
+              dotPulse: {
+                "0%": { boxShadow: "0 0 0 0 rgba(34,197,94,.55)" },
+                "70%": { boxShadow: "0 0 0 7px rgba(34,197,94,0)" },
+                "100%": { boxShadow: "0 0 0 0 rgba(34,197,94,0)" },
+              },
+              typing: {
+                "0%,60%,100%": { transform: "translateY(0)", opacity: ".5" },
+                "30%": { transform: "translateY(-4px)", opacity: "1" },
+              },
+              msgIn: {
+                from: { opacity: "0", transform: "translateY(6px)" },
+                to: { opacity: "1", transform: "translateY(0)" },
+              },
+              ctaFlow: {
+                "0%": {
+                  backgroundPosition: "100% 0",
+                  boxShadow: "0 8px 26px rgba(219,39,119,.42)",
+                },
+                "50%": {
+                  boxShadow:
+                    "0 12px 34px rgba(219,39,119,.62), 0 0 22px 2px rgba(244,63,94,.32)",
+                },
+                "100%": {
+                  backgroundPosition: "-200% 0",
+                  boxShadow: "0 8px 26px rgba(219,39,119,.42)",
+                },
+              },
+              ctaShine: {
+                "0%": { transform: "translateX(-120%) skewX(-18deg)" },
+                "55%,100%": { transform: "translateX(320%) skewX(-18deg)" },
+              },
+            },
+            animation: {
+              bubbleIn: "bubbleIn .5s ease-out forwards",
+              "bubbleIn-1": "bubbleIn .5s ease-out .15s forwards",
+              "bubbleIn-2": "bubbleIn .5s ease-out .3s forwards",
+              bubblePulse: "bubblePulse 2.4s ease-out infinite",
+              dotPulse: "dotPulse 2s ease-out infinite",
+              typing: "typing 1s ease-in-out infinite",
+              msgIn: "msgIn .35s ease-out",
+              ctaFlow: "ctaFlow 4s ease-in-out infinite",
+              ctaShine: "ctaShine 3.4s ease-in-out infinite",
+            },
           },
         },
       };
@@ -435,66 +486,6 @@
         display: flex;
       }
 
-      /* ── Floating chat widget (Messenger) ── */
-      #chatWidget {
-        right: 18px;
-        bottom: calc(18px + env(safe-area-inset-bottom, 0px));
-      }
-      .chat-bubble-btn {
-        position: relative;
-        height: 44px;
-        padding: 0 16px;
-        border-radius: 9999px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        color: #fff;
-        font-size: 19px;
-        box-shadow: 0 6px 20px rgba(45, 15, 26, 0.22);
-        transition: transform 0.25s ease, box-shadow 0.25s ease;
-        opacity: 0;
-        transform: translateY(16px) scale(0.9);
-        animation: chatBubbleIn 0.5s ease-out forwards;
-      }
-      .chat-bubble-btn:hover {
-        transform: scale(1.06);
-        box-shadow: 0 10px 26px rgba(45, 15, 26, 0.3);
-      }
-      .chat-bubble-btn svg {
-        width: 21px;
-        height: 21px;
-      }
-      .chat-bubble-btn .chat-label {
-        font-size: 14px;
-        font-weight: 600;
-        line-height: 1;
-        white-space: nowrap;
-      }
-      @keyframes chatBubbleIn {
-        to {
-          opacity: 1;
-          transform: translateY(0) scale(1);
-        }
-      }
-      .chat-bubble-btn.pulse::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        border-radius: inherit;
-        background: inherit;
-        animation: chatBubblePulse 2.4s ease-out infinite;
-        z-index: -1;
-      }
-      @keyframes chatBubblePulse {
-        0% {
-          transform: scale(1);
-          opacity: 0.55;
-        }
-        100% {
-          transform: scale(1.9);
-          opacity: 0;
-        }
-      }
     </style>
   </head>
 
@@ -533,15 +524,25 @@
               >Cách dùng</a
             >
           </div>
-          <div class="flex items-center gap-3">
+          <div class="flex items-center gap-2 sm:gap-3">
             <a
-              id="navAuthBtn"
+              id="navManageBtn"
               href="/public/account/"
-              class="px-4 py-2 rounded-full text-sm font-semibold text-white transition-all hover:opacity-90 shadow-sm"
+              class="inline-flex items-center gap-1.5 rounded-full text-xs sm:text-sm font-medium px-3 sm:px-3.5 py-1.5 sm:py-2 transition-colors hover:bg-rose-pastel-100 whitespace-nowrap"
+              style="color: var(--mauve)"
+            >
+              <svg class="w-3.5 h-3.5 opacity-80" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="7" x="3" y="3" rx="1.5"/><rect width="7" height="7" x="14" y="3" rx="1.5"/><rect width="7" height="7" x="14" y="14" rx="1.5"/><rect width="7" height="7" x="3" y="14" rx="1.5"/></svg>
+              Quản lý thiệp
+            </a>
+            <button
+              id="navLoginBtn"
+              type="button"
+              onclick="openLoginPopup()"
+              class="inline-flex items-center rounded-full text-xs sm:text-sm font-semibold px-4 sm:px-5 py-1.5 sm:py-2 text-white shadow-sm transition-all hover:opacity-90 whitespace-nowrap"
               style="background: var(--pink)"
             >
               Đăng nhập
-            </a>
+            </button>
             <button
               class="md:hidden flex items-center justify-center w-9 h-9 rounded-full border border-rose-pastel-200 transition-colors hover:bg-rose-pastel-100"
               onclick="toggleMobileMenu()"
@@ -557,7 +558,7 @@
     <!-- Mobile Menu -->
     <div
       id="mobileMenu"
-      class="hidden fixed top-16 left-0 right-0 z-40 bg-white/98 backdrop-blur-sm border-b border-rose-pastel-200 shadow-lg px-5 py-4 flex-col gap-1 md:hidden"
+      class="hidden fixed top-16 left-0 right-0 z-40 bg-white border-b border-rose-pastel-200 shadow-lg px-5 py-4 flex-col gap-1 md:hidden"
     >
       <a href="/theme-template/" onclick="closeMobileMenu()" class="flex items-center gap-2 py-3 border-b border-rose-pastel-100 hover:opacity-70 transition-opacity text-sm font-medium" style="color: var(--mauve)">
         <i class="fas fa-layer-group text-xs w-4 opacity-60"></i> Mẫu thiệp
@@ -709,18 +710,12 @@
               <a
                 href="/invitation-setup/"
                 onclick="goCreateDraft(event)"
-                class="px-7 py-3.5 rounded-full text-base font-semibold text-white transition-all hover:-translate-y-0.5 active:scale-95"
-                style="
-                  background: linear-gradient(
-                    135deg,
-                    var(--pink-deep),
-                    var(--pink)
-                  );
-                  box-shadow: 0 6px 24px rgba(236, 130, 158, 0.38);
-                "
+                class="relative overflow-hidden px-7 py-3.5 rounded-full text-base font-semibold text-white transition-all hover:-translate-y-0.5 active:scale-95 bg-[linear-gradient(90deg,#e11d48,#ec4899,#f472b6,#ec4899,#e11d48)] bg-[length:300%_100%] shadow-[0_8px_26px_rgba(219,39,119,0.42)] animate-ctaFlow motion-reduce:animate-none before:content-[''] before:absolute before:top-0 before:bottom-0 before:left-0 before:w-1/3 before:-skew-x-12 before:bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.7),transparent)] before:animate-ctaShine before:pointer-events-none motion-reduce:before:hidden"
               >
-                Tạo thiệp của tôi
-                <i class="fas fa-arrow-right ml-2 text-sm"></i>
+                <span class="relative z-10">
+                  Tạo thiệp của tôi
+                  <i class="fas fa-arrow-right ml-2 text-sm"></i>
+                </span>
               </a>
               <a
                 href="/theme-template/"
@@ -856,7 +851,7 @@
             <button
               id="carouselPrevBtn"
               onclick="scrollCarousel('prev')"
-              class="absolute left-1 sm:left-6 top-1/2 z-30 -translate-y-6 rounded-full border border-white/70 bg-white/80 p-2 shadow-md backdrop-blur-sm transition-all hover:bg-white active:scale-95"
+              class="absolute left-1 sm:left-[calc(50%-290px)] top-1/2 z-30 -translate-y-6 rounded-full border border-white/70 bg-white/80 p-2 shadow-md backdrop-blur-sm transition-all hover:bg-white active:scale-95"
               aria-label="Thiệp trước"
             >
               <i
@@ -867,7 +862,7 @@
             <button
               id="carouselNextBtn"
               onclick="scrollCarousel('next')"
-              class="absolute right-1 sm:right-6 top-1/2 z-30 -translate-y-6 rounded-full border border-white/70 bg-white/80 p-2 shadow-md backdrop-blur-sm transition-all hover:bg-white active:scale-95"
+              class="absolute right-1 sm:right-[calc(50%-290px)] top-1/2 z-30 -translate-y-6 rounded-full border border-white/70 bg-white/80 p-2 shadow-md backdrop-blur-sm transition-all hover:bg-white active:scale-95"
               aria-label="Thiệp tiếp theo"
             >
               <i
@@ -1188,28 +1183,128 @@
 
     <!-- Modal Thanh Toán - được inject bởi payment.js -->
 
-    <!-- ===== FLOATING CHAT WIDGET (Messenger) ===== -->
+    <!-- ===== FLOATING SUPPORT WIDGET (Messenger) ===== -->
     <div
       id="chatWidget"
-      class="fixed z-50 flex flex-col items-end gap-3"
+      class="fixed z-50 flex items-end gap-2.5 right-[18px] bottom-[calc(18px_+_env(safe-area-inset-bottom,0px))]"
       aria-label="Liên hệ nhanh"
     >
+      <!-- Thẻ hỗ trợ (đổi câu mỗi 3s) -->
+      <div id="supportCardWrap" class="relative">
+        <a
+          id="supportCard"
+          href="https://m.me/61591515875537"
+          target="_blank"
+          rel="noopener"
+          class="relative block w-[214px] max-[420px]:w-[182px] bg-white rounded-2xl px-[13px] py-2.5 no-underline text-inherit opacity-0 translate-y-2.5 animate-bubbleIn-1 transition border border-[rgba(255,183,202,0.5)] shadow-[0_8px_26px_rgba(45,15,26,0.16)] hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(45,15,26,0.22)] after:content-[''] after:absolute after:-right-1.5 after:bottom-4 after:w-3 after:h-3 after:bg-white after:border-r after:border-t after:border-[rgba(255,183,202,0.5)] after:rotate-45"
+          aria-label="Chat hỗ trợ qua Messenger"
+        >
+          <div
+            class="flex items-center gap-1.5 text-[11px] font-bold text-[#5a3a45] mb-[5px]"
+          >
+            <span class="w-[7px] h-[7px] rounded-full bg-green-500 shrink-0"></span>
+            Cưới Xinh · <span class="text-green-600 font-semibold">Online</span>
+          </div>
+          <div class="relative min-h-[34px] flex items-center">
+            <div
+              class="support-typing absolute inset-0 hidden items-center gap-1"
+              aria-hidden="true"
+            >
+              <span
+                class="w-1.5 h-1.5 rounded-full bg-[#f9a8c4] animate-typing motion-reduce:animate-none"
+              ></span>
+              <span
+                class="w-1.5 h-1.5 rounded-full bg-[#f9a8c4] animate-typing motion-reduce:animate-none [animation-delay:0.15s]"
+              ></span>
+              <span
+                class="w-1.5 h-1.5 rounded-full bg-[#f9a8c4] animate-typing motion-reduce:animate-none [animation-delay:0.3s]"
+              ></span>
+            </div>
+            <div
+              id="supportMsg"
+              class="text-[12.5px] leading-[1.35] text-[#6b4a55] font-medium [&_b]:text-pink-500"
+            ></div>
+          </div>
+        </a>
+        <button
+          id="supportClose"
+          type="button"
+          class="absolute -top-2 -right-2 w-[22px] h-[22px] rounded-full bg-white border border-[rgba(255,183,202,0.6)] text-[#b08a95] flex items-center justify-center text-[11px] leading-none cursor-pointer z-[3] opacity-0 animate-bubbleIn-2 transition shadow-[0_2px_8px_rgba(45,15,26,0.14)] hover:scale-110 hover:text-pink-500 hover:bg-[#fff5f7]"
+          aria-label="Đóng thẻ hỗ trợ"
+        >
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <!-- Icon Messenger tròn -->
       <a
         id="messengerChatBtn"
         href="https://m.me/61591515875537"
         target="_blank"
         rel="noopener"
-        class="chat-bubble-btn pulse"
-        style="background: linear-gradient(135deg, #00b2ff, #006aff)"
+        class="relative w-[52px] h-[52px] rounded-full flex items-center justify-center text-white text-2xl shrink-0 transition opacity-0 translate-y-4 scale-90 animate-bubbleIn shadow-[0_6px_20px_rgba(45,15,26,0.22)] hover:scale-[1.06] hover:shadow-[0_10px_26px_rgba(45,15,26,0.3)] bg-[linear-gradient(135deg,#00b2ff,#006aff)] before:content-[''] before:absolute before:inset-0 before:rounded-full before:bg-[linear-gradient(135deg,#00b2ff,#006aff)] before:-z-10 before:animate-bubblePulse motion-reduce:before:animate-none"
         aria-label="Chat hỗ trợ qua Messenger"
       >
         <i class="fa-brands fa-facebook-messenger"></i>
-        <span class="chat-label">Hỗ trợ</span>
+        <span
+          class="absolute top-[3px] right-[3px] w-3 h-3 rounded-full bg-green-500 border-2 border-white animate-dotPulse motion-reduce:animate-none"
+        ></span>
       </a>
     </div>
 
+    <script>
+      // Widget hỗ trợ: xoay vòng câu chữ mỗi 3s, kèm hiệu ứng "đang gõ"
+      (function initSupportRotator() {
+        var msgEl = document.getElementById("supportMsg");
+        var typingEl = document.querySelector("#supportCard .support-typing");
+        if (!msgEl) return;
+        var messages = [
+          "Bạn cần tư vấn tạo thiệp?<br /><b>Nhắn cho mình nhé →</b>",
+          "Có khó khăn gì không?<br /><b>Liên hệ chúng tôi →</b>",
+          "Tư vấn miễn phí 24/7 💬",
+          "Đội ngũ Cưới Xinh luôn<br /><b>sẵn sàng hỗ trợ bạn 💕</b>",
+        ];
+        var i = 0;
+        function render(idx) {
+          msgEl.innerHTML = messages[idx];
+          msgEl.classList.remove("animate-msgIn");
+          void msgEl.offsetWidth; // reflow để chạy lại animation
+          msgEl.classList.add("animate-msgIn");
+        }
+        function showTyping(on) {
+          if (!typingEl) return;
+          typingEl.classList.toggle("hidden", !on);
+          typingEl.classList.toggle("flex", on);
+        }
+        render(0);
+        var rotTimer = setInterval(function () {
+          msgEl.style.visibility = "hidden";
+          showTyping(true);
+          setTimeout(function () {
+            showTyping(false);
+            msgEl.style.visibility = "visible";
+            i = (i + 1) % messages.length;
+            render(i);
+          }, 650);
+        }, 3000);
+
+        // Nút X: tắt tạm thời cả widget (thẻ + icon). Không lưu → F5 lại hiện.
+        var closeBtn = document.getElementById("supportClose");
+        var widget = document.getElementById("chatWidget");
+        if (closeBtn) {
+          closeBtn.addEventListener("click", function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (widget) widget.style.display = "none";
+            clearInterval(rotTimer);
+          });
+        }
+      })();
+    </script>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="core/config.js"></script>
+    <script src="core/helpers/alert.js"></script>
+    <script src="core/auth-ui.js"></script>
     <script src="index.js"></script>
     <script src="core/payment.js"></script>
 
