@@ -47,7 +47,7 @@
     "w-full h-11 px-3.5 border border-gray-200 rounded-xl text-sm text-gray-800 bg-white outline-none focus:ring-2 focus:ring-rose-400/30 focus:border-rose-300 transition-all placeholder:text-gray-400";
 
   const _BTN_CLS =
-    "w-full h-11 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-[#ec829e] to-[#f4a0b8] hover:opacity-90 transition-opacity flex items-center justify-center gap-2 disabled:opacity-60";
+    "w-full h-11 rounded-xl text-sm font-semibold text-white bg-rose-500 hover:bg-rose-600 transition-colors flex items-center justify-center gap-2 disabled:opacity-60";
 
   // Nút OAuth kiểu "Tiếp tục với …" — viền nhạt, xếp dọc, full width
   const _OAUTH_CLS =

@@ -6,11 +6,6 @@ let currentUser = null;
 
 const POST_LOGIN_REDIRECT_KEY = "post_login_redirect";
 
-// Nút "Trở lại" và logo luôn đưa về trang chủ
-function goBack() {
-  window.location.href = "/";
-}
-
 // Nếu trang này được mở kèm ?urlRedirect=... (VD: từ invitation-setup), lưu lại
 // đích cần quay về vào sessionStorage rồi dọn sạch query khỏi URL — để redirectTo
 // gửi cho Supabase luôn là URL gốc (đã được whitelist), tránh bị OAuth chặn.

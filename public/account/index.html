@@ -47,11 +47,12 @@
   <body class="bg-rose-pastel-100 min-h-screen">
     <nav class="bg-white/95 backdrop-blur-sm border-b border-rose-pastel-200">
       <div class="container mx-auto px-4 max-w-2xl">
-        <div class="flex items-center h-16 gap-3">
-          <button onclick="goBack()" class="flex items-center gap-1.5 text-sm hover:opacity-80 transition-opacity" style="color: rgb(255 183 202)">
-            <i class="fas fa-arrow-left"></i>Trở lại
-          </button>
-          <div class="flex-1"></div>
+        <div class="flex items-center justify-between h-16 gap-3">
+          <div class="flex items-center gap-1.5 text-xs min-w-0">
+            <a href="/" class="text-color-secondary font-semibold hover:opacity-80 transition-opacity shrink-0">Trang chủ</a>
+            <span class="text-gray-300 shrink-0">/</span>
+            <span class="text-gray-400 truncate">Đơn hàng</span>
+          </div>
           <a href="/" class="shrink-0">
             <img src="../../assets/icons/logo.png" alt="Cuoi Xinh Logo" class="h-11 w-auto" />
           </a>

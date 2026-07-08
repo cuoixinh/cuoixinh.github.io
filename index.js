@@ -331,12 +331,12 @@ function setActiveCard(index) {
   cards.forEach((card, i) => {
     const prevOffset = normalizeOffset(i - prevActive, count);
     const newOffset = normalizeOffset(i - carouselActiveIndex, count);
+    const prevHidden = Math.abs(prevOffset) > 1;
+    const newHidden = Math.abs(newOffset) > 1;
 
-    // Card ẩn cần nhảy từ trái sang phải (hoặc ngược lại) → snap, không animate
-    const jumping =
-      Math.abs(prevOffset) > 1 &&
-      Math.abs(newOffset) > 1 &&
-      Math.sign(prevOffset) !== Math.sign(newOffset);
+    // Card đi vào/ra khỏi vùng nhìn thấy (±1) → snap tại chỗ, không bay ngang qua
+    // màn hình (tránh cảm giác xoáy vòng khi nhiều thẻ di chuyển cùng lúc)
+    const jumping = prevHidden !== newHidden || (prevHidden && newHidden);
     if (jumping) {
       card.style.transition = "none";
       applyCardTransform(card, newOffset);
@@ -358,7 +358,7 @@ function applyCardTransform(card, offset) {
 
   if (abs > 1) {
     const dir = offset > 0 ? 1 : -1;
-    card.style.transform = `translateX(${dir * (mobile ? 400 : 600)}px) translateZ(-200px) scale(0.5)`;
+    card.style.transform = `translateX(${dir * (mobile ? 400 : 600)}px) scale(0.5)`;
     card.style.opacity = "0";
     card.style.zIndex = "1";
     card.style.pointerEvents = "none";
@@ -367,8 +367,7 @@ function applyCardTransform(card, offset) {
   }
 
   if (offset === 0) {
-    card.style.transform =
-      "translateX(0px) translateZ(0px) rotateY(0deg) scale(1)";
+    card.style.transform = "translateX(0px) scale(1)";
     card.style.opacity = "1";
     card.style.zIndex = "20";
     card.style.pointerEvents = "auto";
@@ -376,9 +375,8 @@ function applyCardTransform(card, offset) {
   } else {
     const tx = mobile ? 145 : 175;
     const dir = offset > 0 ? 1 : -1;
-    const ry = offset > 0 ? -24 : 24;
-    card.style.transform = `translateX(${dir * tx}px) translateZ(-48px) rotateY(${ry}deg) scale(0.82)`;
-    card.style.opacity = "0.38";
+    card.style.transform = `translateX(${dir * tx}px) scale(0.85)`;
+    card.style.opacity = "0.4";
     card.style.zIndex = "19";
     card.style.pointerEvents = "auto";
     card.classList.remove("is-active");
@@ -426,7 +424,7 @@ function updateMobileInfoCard() {
       </button>
       <button onclick="createDraft('${t.id}')"
         class="flex-1 h-9 rounded-md text-xs font-semibold flex items-center justify-center gap-1.5 text-white"
-        style="background:var(--pink-deep);">
+        style="background:#f43f5e;">
         Tạo nhanh <i class="fas fa-arrow-right text-[11px]"></i>
       </button>
     </div>

@@ -29,6 +29,14 @@
               playfair: ["Playfair Display", "serif"],
               inter: ["Inter", "sans-serif"],
             },
+            colors: {
+              "rose-pastel": {
+                50: "#fffbf7",
+                100: "#fef1f7",
+                200: "#fce7f3",
+                300: "#fbcfe8",
+              },
+            },
           },
         },
       };
@@ -85,23 +93,6 @@
       /* ─── Nav ─── */
       .nav-scrolled {
         box-shadow: 0 1px 24px rgba(200, 100, 130, 0.1);
-      }
-      .nav-link {
-        position: relative;
-      }
-      .nav-link::after {
-        content: "";
-        position: absolute;
-        left: 0;
-        bottom: -2px;
-        width: 0;
-        height: 1.5px;
-        background: var(--primary);
-        transition: width 0.22s ease;
-      }
-      .nav-link:hover::after,
-      .nav-link.active::after {
-        width: 100%;
       }
 
       /* ─── Dot grid overlay ─── */
@@ -230,12 +221,7 @@
     <!-- ═══ HEADER NAV ═══ -->
     <header
       id="main-header"
-      class="fixed top-0 left-0 right-0 z-50 transition-shadow"
-      style="
-        background: rgba(255, 250, 247, 0.97);
-        backdrop-filter: blur(10px);
-        border-bottom: 1px solid rgba(255, 183, 202, 0.25);
-      "
+      class="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-rose-pastel-200 transition-shadow"
     >
       <div class="max-w-6xl mx-auto px-5">
         <div class="flex items-center justify-between h-16">
@@ -247,17 +233,17 @@
             />
           </a>
 
-          <nav class="hidden md:flex items-center gap-7">
+          <nav class="hidden md:flex items-center gap-7 text-sm font-medium flex-1 ml-9">
             <a
               href="/"
-              class="nav-link text-sm font-medium pb-0.5"
-              style="color: var(--muted)"
+              class="hover:opacity-70 transition-opacity"
+              style="color: var(--mauve)"
               >Trang chủ</a
             >
             <a
               href="/theme-template/"
-              class="nav-link active text-sm font-semibold pb-0.5"
-              style="color: var(--primary)"
+              class="hover:opacity-70 transition-opacity"
+              style="color: var(--mauve)"
               >Mẫu thiệp</a
             >
           </nav>
@@ -266,8 +252,8 @@
             <a
               id="ttManageBtn"
               href="/public/account/"
-              class="inline-flex items-center gap-1.5 rounded-full text-xs sm:text-sm font-medium px-3 sm:px-3.5 py-1.5 sm:py-2 transition-colors hover:bg-rose-50 whitespace-nowrap"
-              style="color: #ad7a87"
+              class="inline-flex items-center gap-1.5 rounded-full text-xs sm:text-sm font-medium px-3 sm:px-3.5 py-1.5 sm:py-2 transition-colors hover:bg-rose-pastel-100 whitespace-nowrap"
+              style="color: var(--mauve)"
               ><svg class="w-3.5 h-3.5 opacity-80" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="7" x="3" y="3" rx="1.5"/><rect width="7" height="7" x="14" y="3" rx="1.5"/><rect width="7" height="7" x="14" y="14" rx="1.5"/><rect width="7" height="7" x="3" y="14" rx="1.5"/></svg>
               Quản lý thiệp</a
             >
@@ -276,19 +262,20 @@
               type="button"
               onclick="openLoginPopup()"
               class="inline-flex items-center rounded-full text-xs sm:text-sm font-semibold px-4 sm:px-5 py-1.5 sm:py-2 text-white shadow-sm transition-all hover:opacity-90 whitespace-nowrap"
-              style="background: var(--pink-lt)"
+              style="background: #f43f5e"
             >
               Đăng nhập
             </button>
             <button
               onclick="startDraft()"
-              class="hidden md:inline-flex items-center justify-center text-sm font-semibold px-4 py-2 rounded-full transition-opacity hover:opacity-85 whitespace-nowrap"
+              class="hidden md:inline-flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-full text-white shadow-sm transition-opacity hover:opacity-90 whitespace-nowrap"
               style="
-                background: var(--primary);
-                color: #fff;
+                background: linear-gradient(135deg, #db2777, #f43f5e);
+                box-shadow: 0 4px 14px rgba(219, 39, 119, 0.35);
                 letter-spacing: 0.01em;
               "
             >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>
               Bắt đầu miễn phí
             </button>
           </div>
@@ -393,7 +380,7 @@
 
           <!-- Description -->
           <p
-            class="text-[14px] sm:text-[15px] leading-7 max-w-xl mx-auto mb-6"
+            class="text-[14px] sm:text-[15px] leading-7 max-w-xl mx-auto mb-8"
             style="color: var(--muted)"
           >
             Mỗi mẫu thiệp được căn chỉnh kỹ từng chi tiết. Nhấn vào để
@@ -403,34 +390,6 @@
             — không cần đăng ký, không mất phí cho đến khi bạn thật sự
             <strong style="color: var(--fg); font-weight: 600">ưng ý</strong>.
           </p>
-
-          <!-- CTA -->
-          <div class="mb-8">
-            <button
-              onclick="startDraft()"
-              class="inline-flex items-center gap-2 px-6 py-2.5 rounded-md text-sm font-semibold text-white hover:opacity-85 transition-opacity"
-              style="
-                background: var(--primary);
-                box-shadow: 0 8px 28px -12px rgba(90, 58, 69, 0.6);
-              "
-            >
-              Chọn mẫu và bắt đầu
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="15"
-                height="15"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path d="M5 12h14" />
-                <path d="m12 5 7 7-7 7" />
-              </svg>
-            </button>
-          </div>
 
           <!-- Inline stats strip -->
           <div class="hidden sm:flex justify-center mb-2">
