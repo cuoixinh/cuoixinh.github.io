@@ -62,7 +62,11 @@
     />
     <!-- Common CSS -->
     <link rel="stylesheet" href="../styles/common.css" />
+    <!-- AI modal CSS -->
+    <link rel="stylesheet" href="ai-modal.css" />
     <style>
+      /* Style modal AI: xem ai-modal.css */
+
       /* Skeleton animation */
       @keyframes shimmer {
         0% {
@@ -624,6 +628,34 @@
               value="true"
             />
 
+            <!-- AI: Gợi ý nội dung thiệp (PC: banner; mobile: bong bóng nổi phía dưới) -->
+            <div
+              class="hidden md:block rounded-xl overflow-hidden animate-fade-in border border-rose-200 bg-gradient-to-br from-rose-50 to-pink-50"
+            >
+              <div class="px-5 py-4 flex items-center gap-4">
+                <div
+                  class="w-11 h-11 rounded-full bg-white/70 flex items-center justify-center flex-shrink-0 text-rose-500"
+                >
+                  <i data-lucide="sparkles"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-semibold text-gray-800">
+                    Để AI giúp bạn viết nội dung
+                  </p>
+                  <p class="text-xs text-gray-500 mt-0.5">
+                    Nhập vài thông tin, AI gợi ý slogan, chuyện tình yêu và lịch trình.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onclick="openAiModal()"
+                  class="btn-pink flex-shrink-0"
+                >
+                  <i data-lucide="sparkles"></i> Tạo bằng AI
+                </button>
+              </div>
+            </div>
+
             <!-- 1. THÔNG TIN CẶP ĐÔI -->
             <div
               id="tour-couple"
@@ -652,25 +684,20 @@
                 <!-- Tên cặp đôi -->
                 <div class="grid gap-4 sm:grid-cols-2">
                   <x-input
-                    label="Tên chú rể"
+                    label="Tên chú rể (tên dùng trong lễ cưới)"
                     name="groom_name"
                     icon="mars"
                     required
                     placeholder="Ví dụ: Quang Vinh"
                   ></x-input>
                   <x-input
-                    label="Tên cô dâu"
+                    label="Tên cô dâu (tên dùng trong lễ cưới)"
                     name="bride_name"
                     icon="venus"
                     required
                     placeholder="Ví dụ: Hải Yến"
                   ></x-input>
                 </div>
-                <p class="text-xs text-gray-500 -mt-2">
-                  <i data-lucide="info" class="text-color-secondary"></i>
-                  Lưu ý: Nhập tên gọi dùng trong lễ cưới (thường gồm 2 chữ, ví
-                  dụ: Quang Vinh, Hải Yến), không cần nhập họ tên đầy đủ.
-                </p>
                 <!-- Ảnh chú rể & cô dâu -->
                 <div class="grid grid-cols-2 gap-4">
                   <div class="space-y-3">
@@ -726,15 +753,14 @@
                 </div>
                 <!-- Quote -->
                 <div>
-                  <x-input
-                    type="textarea"
+                  <x-textarea
                     label="Slogan"
                     icon="quote"
                     name="story_quote"
                     id="story-quote-textarea"
                     rows="3"
                     placeholder="Ví dụ: Cảm ơn em đã đến bên đời nhau, cùng nhau viết nên câu chuyện của riêng chúng ta."
-                  ></x-input>
+                  ></x-textarea>
                   <button
                     type="button"
                     onclick="randomQuote()"
@@ -1505,14 +1531,13 @@
               </div>
               <div id="section-rsvp-body" class="hidden p-6 space-y-6">
                 <div>
-                  <x-input
-                    type="textarea"
+                  <x-textarea
                     label="Lời nhắn xác nhận tham dự"
                     icon="message-circle"
                     name="rsvp_message"
                     rows="3"
                     placeholder="Ví dụ: Sự có mặt của bạn là món quà ý nghĩa nhất với chúng mình."
-                  ></x-input>
+                  ></x-textarea>
                 </div>
               </div>
             </div>
@@ -1722,14 +1747,13 @@
                 </div>
               </div>
               <div id="section-footer-body" class="hidden p-6 space-y-4">
-                <x-input
-                  type="textarea"
+                <x-textarea
                   label="Lời cảm ơn / Footer"
                   icon="heart"
                   name="footer_text"
                   rows="4"
                   placeholder="Ví dụ: Trân trọng cảm ơn sự hiện diện của quý khách. Sự có mặt của bạn là niềm vinh hạnh lớn nhất của chúng tôi."
-                ></x-input>
+                ></x-textarea>
               </div>
             </div>
           </form>
@@ -1926,6 +1950,7 @@
 
       <!-- Bottom Navigation Bar -->
       <div
+        id="bottom-nav-bar"
         class="fixed bottom-0 left-0 right-0 z-[300] bg-white border-t border-rose-100 shadow-[0_-2px_12px_rgba(0,0,0,0.06)]"
       >
         <!-- Local Draft Notice — con đầu tiên của navbar → luôn nằm sát ngay trên các tab -->
@@ -2067,6 +2092,7 @@
       <script src="../core/dal/wedding-dal.js"></script>
       <script src="../core/dal/storage-dal.js"></script>
       <script src="../core/dal/guest-dal.js"></script>
+      <script src="../core/dal/ai-dal.js"></script>
 
       <!-- BL Layer -->
       <script src="../core/bl/wedding-bl.js"></script>
@@ -2087,6 +2113,8 @@
       <script src="../core/x-input.js"></script>
       <script src="../core/x-controls.js"></script>
       <script src="index.js"></script>
+      <!-- AI: tạo nội dung thiệp (tách riêng) -->
+      <script src="ai-modal.js"></script>
       <script>
         (function () {
           if (!sessionStorage.getItem("show_tour")) return;
@@ -2242,5 +2270,16 @@
         </div>
       </div>
     </div>
+
+    <!-- FAB "Tạo với AI" — chỉ hiển thị ở mobile (PC dùng banner ở trên) -->
+    <button
+      type="button"
+      onclick="openAiModal()"
+      class="ai-fab md:hidden"
+      aria-label="Tạo nội dung bằng AI"
+    >
+      <span class="ai-fab-label">Tạo với AI</span>
+      <span class="ai-fab-bubble"><i data-lucide="sparkles"></i></span>
+    </button>
   </body>
 </html>

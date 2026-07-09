@@ -6,9 +6,18 @@
 // ============================================================================
 (function () {
   const s = document.createElement("style");
-  // x-date/x-time là field khối (thay <div> trong grid) → block.
+  // x-date/x-time/x-textarea là field khối (thay <div> trong grid) → block.
   // x-switch/x-check nằm inline trong flex row → contents để không thêm hộp bao.
-  s.textContent = "x-date,x-time{display:block}x-switch,x-check{display:contents}";
+  s.textContent =
+    "x-date,x-time,x-textarea{display:block}" +
+    "x-switch,x-check{display:contents}" +
+    // Nút "x" xoá nhanh trong x-textarea (chỉ hiện khi có nội dung, giống <x-input>).
+    "x-textarea .x-ta-wrap{position:relative}" +
+    "x-textarea .x-ta-clear{position:absolute;top:.5rem;right:.5rem;display:none;" +
+    "align-items:center;justify-content:center;width:1.5rem;height:1.5rem;border-radius:.375rem;" +
+    "color:#9ca3af;background:transparent;transition:color .15s ease,background .15s ease}" +
+    "x-textarea .x-ta-clear:hover{color:#4b5563;background:#f3f4f6}" +
+    "x-textarea .x-ta-clear.show{display:inline-flex}";
   document.head.appendChild(s);
 })();
 
@@ -19,27 +28,48 @@ const _TIME_CLS =
   "w-full h-10 px-3 py-2 border border-gray-200 rounded-md text-sm text-gray-800 " +
   "bg-white outline-none transition-all placeholder:text-gray-400/50 cursor-pointer " +
   "focus:ring-2 focus:ring-rose-500/30 focus:ring-offset-2";
+// Khớp style textarea của <x-input> để thay thế 1:1 (rounded-lg, chừa lề phải pr-9).
+const _TA_CLS =
+  "w-full pl-3 pr-9 py-2 border border-gray-200 rounded-lg text-sm text-gray-800 " +
+  "bg-white outline-none focus:ring-2 focus:ring-rose-500/30 " +
+  "placeholder:text-gray-400/50 transition-all resize-none";
+// SVG dấu "x" cho nút xoá của x-textarea (đặt tên riêng, tránh đụng _X_SVG ở x-input.js).
+const _X_TA_CLEAR_SVG =
+  `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" ` +
+  `fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" ` +
+  `stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>`;
 
-function _labelHtml(inputId, icon, label) {
+function _labelHtml(inputId, icon, label, required) {
   return `<label for="${inputId}" class="block text-sm text-gray-700 mb-2 flex items-center gap-2">
-      ${icon ? `<i data-lucide="${icon}" class="text-color-secondary"></i>` : ""}${label}
+      ${icon ? `<i data-lucide="${icon}" class="text-color-secondary"></i>` : ""}<span>${label}${required ? ` <span class="text-rose-500">*</span>` : ""}</span>
     </label>`;
 }
 
 // ── <x-date> → <input type="date"> (flatpickr được init bởi index.js như cũ) ──
+// Thuộc tính tuỳ chọn:
+//   bare         — không tự vẽ <label> (khi nơi dùng đã có nhãn riêng, VD modal AI)
+//   input-class  — thay class mặc định của ô input (để khớp style nơi khác, VD .ai-inp)
 class XDate extends HTMLElement {
   connectedCallback() {
     const name = this.getAttribute("name") || "";
     const label = this.getAttribute("label") || "";
     const icon = this.getAttribute("icon") || "calendar";
     const required = this.hasAttribute("required") ? "required" : "";
+    const bare = this.hasAttribute("bare");
+    const inputClass = this.getAttribute("input-class") || _DATE_CLS;
     const ownId = this.getAttribute("id");
     if (ownId) this.removeAttribute("id");
     const inputId = ownId || name;
     this.innerHTML =
-      _labelHtml(inputId, icon, label) +
-      `<input type="date" name="${name}" id="${inputId}" ${required} class="${_DATE_CLS}" />`;
-    if (icon && window.lucide) lucide.createIcons({ nodes: [this] });
+      (bare ? "" : _labelHtml(inputId, icon, label, !!required)) +
+      `<input type="date" name="${name}" id="${inputId}" ${required} class="${inputClass}" />`;
+    if (!bare && icon && window.lucide) lucide.createIcons({ nodes: [this] });
+    // Nếu được gắn SAU khi trang đã init xong (VD dựng động trong modal), tự khởi
+    // tạo flatpickr bằng cấu hình CHUNG để mọi control ngày đồng nhất.
+    if (window._weddingDateReady && typeof window.createWeddingDatepicker === "function") {
+      const inp = this.querySelector("input");
+      if (inp && !inp._flatpickr) window.createWeddingDatepicker(inp);
+    }
   }
 }
 
@@ -54,7 +84,7 @@ class XTime extends HTMLElement {
     if (ownId) this.removeAttribute("id");
     const inputId = ownId || name;
     this.innerHTML =
-      _labelHtml(inputId, icon, label) +
+      _labelHtml(inputId, icon, label, this.hasAttribute("required")) +
       `<input type="text" name="${name}" id="${inputId}" data-timepicker readonly
          placeholder="${placeholder}" class="${_TIME_CLS}" />`;
     if (icon && window.lucide) lucide.createIcons({ nodes: [this] });
@@ -132,7 +162,76 @@ class XCheck extends HTMLElement {
   }
 }
 
+// ── <x-textarea> → <textarea> + nút "x" xoá nhanh (giống clear của <x-input>) ──
+// Thuộc tính:
+//   label / icon / required — nhãn (kèm dấu * đỏ khi required); bỏ qua nếu có `bare`.
+//   bare        — không tự vẽ <label> (nơi dùng đã có nhãn/header riêng, VD modal AI).
+//   input-class — thay class mặc định của <textarea> (để khớp style nơi khác, VD .ai-inp).
+//   rows / maxlength / placeholder / name / id — chuyển thẳng xuống <textarea>.
+//   no-clear    — không hiển thị nút xoá (một số ô không cần).
+// Mọi data-* được truyền xuống <textarea> để logic ngoài (autosave…) chạy như cũ.
+class XTextarea extends HTMLElement {
+  connectedCallback() {
+    const name = this.getAttribute("name") || "";
+    const label = this.getAttribute("label") || "";
+    const icon = this.getAttribute("icon") || "";
+    const placeholder = this.getAttribute("placeholder") || "";
+    const rows = this.getAttribute("rows") || "3";
+    const maxlength = this.getAttribute("maxlength");
+    const required = this.hasAttribute("required");
+    const bare = this.hasAttribute("bare");
+    const noClear = this.hasAttribute("no-clear");
+    const inputClass = this.getAttribute("input-class") || _TA_CLS;
+    const ownId = this.getAttribute("id");
+    if (ownId) this.removeAttribute("id");
+    const inputId = ownId || name;
+    const dataAttrs = Array.from(this.attributes)
+      .filter((a) => a.name.startsWith("data-"))
+      .map((a) => `${a.name}="${a.value}"`)
+      .join(" ");
+
+    // Nhãn theo đúng style của <x-input> (mb-1.5, gap-1.5, icon w-3.5) để đồng nhất
+    // với các ô nhập text khác trong form.
+    const labelHtml = label
+      ? `<label for="${inputId}" class="block text-sm text-gray-700 mb-1.5 flex items-center gap-1.5">
+           ${icon ? `<i data-lucide="${icon}" class="w-3.5 h-3.5 text-color-secondary flex-shrink-0"></i>` : ""}
+           <span>${label}${required ? ` <span class="text-rose-500">*</span>` : ""}</span>
+         </label>`
+      : "";
+
+    this.innerHTML =
+      (bare ? "" : labelHtml) +
+      `<div class="x-ta-wrap">
+         <textarea name="${name}" id="${inputId}" rows="${rows}"
+           ${maxlength ? `maxlength="${maxlength}"` : ""} ${required ? "required" : ""} ${dataAttrs}
+           placeholder="${placeholder}" class="${inputClass}"></textarea>
+         ${noClear ? "" : `<button type="button" class="x-ta-clear" aria-label="Xoá nội dung">${_X_TA_CLEAR_SVG}</button>`}
+       </div>`;
+
+    if (!bare && icon && window.lucide) lucide.createIcons({ nodes: [this] });
+
+    const ta = this.querySelector("textarea");
+    const clearBtn = this.querySelector(".x-ta-clear");
+    if (clearBtn) {
+      // Chừa lề phải cho nút "x" (đặt inline để thắng mọi input-class, VD .ai-inp).
+      ta.style.paddingRight = "2.25rem";
+      const sync = () => clearBtn.classList.toggle("show", !!ta.value);
+      ta.addEventListener("input", sync);
+      ta.addEventListener("change", sync);
+      clearBtn.addEventListener("click", () => {
+        ta.value = "";
+        ta.focus();
+        ta.dispatchEvent(new Event("input", { bubbles: true }));
+      });
+      sync();
+      // Cho phép nơi dùng đồng bộ nút xoá sau khi gán value bằng code.
+      this.syncClearBtn = sync;
+    }
+  }
+}
+
 customElements.define("x-date", XDate);
 customElements.define("x-time", XTime);
+customElements.define("x-textarea", XTextarea);
 customElements.define("x-switch", XSwitch);
 customElements.define("x-check", XCheck);

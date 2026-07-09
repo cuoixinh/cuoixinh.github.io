@@ -1336,6 +1336,9 @@ function randomQuote() {
   }, 500);
 }
 
+// ============= AI: TẠO NỘI DUNG THIỆP =============
+// (Đã tách sang ai-modal.js + ai-modal.css để index.js gọn hơn.)
+
 // ============= TIME INPUT VALIDATION =============
 
 function handleTimeInput(event) {
@@ -2711,6 +2714,9 @@ function fillForm(data) {
     } else if (el) {
       // Store value in input for non-date fields
       el.value = data[key];
+      // Gán .value bằng code không phát "input" → tự đồng bộ nút "x" xoá của
+      // <x-input>/<x-textarea> để nó hiện đúng khi ô có nội dung sau khi nạp DB.
+      el.closest("x-input, x-textarea")?.syncClearBtn?.();
     }
 
     // For image URL fields, render the UI
@@ -3894,13 +3900,11 @@ window.publishWedding = publishWedding;
 
 // ============= FLATPICKR INIT =============
 
-document.addEventListener("DOMContentLoaded", function () {
-  const dateInputs = document.querySelectorAll('input[type="date"]');
-  window.flatpickrInstances = {};
-
-  dateInputs.forEach((input) => {
-    const instance = flatpickr(input, {
-      locale: {
+// Cấu hình flatpickr DÙNG CHUNG cho mọi ô ngày (form thiết lập + modal AI qua
+// <x-date>). Tách ra factory để control ngày ở mọi nơi đồng nhất.
+window._weddingFpOptions = function (input) {
+  return {
+    locale: {
         months: {
           shorthand: [
             "T1",
@@ -3966,9 +3970,25 @@ document.addEventListener("DOMContentLoaded", function () {
         const event = new Event("change", { bubbles: true });
         input.dispatchEvent(event);
       },
-    });
-    if (input.name) window.flatpickrInstances[input.name] = instance;
-  });
+  };
+};
+
+// Khởi tạo flatpickr cho 1 ô ngày bằng cấu hình chung + đăng ký instance theo name.
+window.createWeddingDatepicker = function (input) {
+  if (!window.flatpickr || !input || input._flatpickr) return input?._flatpickr || null;
+  const instance = flatpickr(input, window._weddingFpOptions(input));
+  if (!window.flatpickrInstances) window.flatpickrInstances = {};
+  if (input.name) window.flatpickrInstances[input.name] = instance;
+  return instance;
+};
+
+document.addEventListener("DOMContentLoaded", function () {
+  const dateInputs = document.querySelectorAll('input[type="date"]');
+  window.flatpickrInstances = {};
+
+  dateInputs.forEach((input) => window.createWeddingDatepicker(input));
+  // Đánh dấu đã init xong → <x-date> thêm SAU (VD modal AI) sẽ tự init flatpickr.
+  window._weddingDateReady = true;
 
   // Wire time pickers
   document.querySelectorAll("input[data-timepicker]").forEach((input) => {

@@ -63,7 +63,7 @@ class XInput extends HTMLElement {
     const labelHtml = label
       ? `<label for="${inputId}" class="block text-sm text-gray-700 mb-1.5 flex items-center gap-1.5">
            ${labelIcon ? `<i data-lucide="${labelIcon}" class="w-3.5 h-3.5 text-color-secondary flex-shrink-0"></i>` : ''}
-           ${label}
+           <span>${label}${isRequired ? ' <span class="text-rose-500">*</span>' : ''}</span>
          </label>`
       : '';
 

@@ -17,6 +17,8 @@ const CONFIG = {
       "https://lcobawmkywtxhpezndsh.supabase.co/functions/v1/payment-handler",
     guestHandlerUrl:
       "https://lcobawmkywtxhpezndsh.supabase.co/functions/v1/guest-handler",
+    aiInvitationUrl:
+      "https://lcobawmkywtxhpezndsh.supabase.co/functions/v1/ai-invitation",
     storageUrl:
       "https://lcobawmkywtxhpezndsh.supabase.co/storage/v1/object/public/wedding-images",
   },

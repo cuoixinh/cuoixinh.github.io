@@ -101,102 +101,148 @@ function showToast(msg, type = "default") {
   _toastTimer = setTimeout(() => el.classList.remove("visible"), 3200);
 }
 
-// ─── Alert dialog ────────────────────────────────────────────────────────────
+// ─── Dialog (alert 1 nút / confirm 2 nút) ────────────────────────────────────
+// Một base dialog dùng chung: showDialog(opts) → Promise<boolean> (true = nút chính,
+// false = huỷ/đóng). showAlert & showConfirm chỉ là wrapper mỏng cho 2 kiểu phổ biến.
 
-(function _initAlert() {
+(function _initDialog() {
   const style = document.createElement("style");
   style.textContent = `
     #cx-alert-backdrop {
-      position: fixed; inset: 0; z-index: 999999;
+      position: fixed; inset: 0; z-index: 1000000;
       background: rgba(0,0,0,0.45);
       display: none; align-items: center; justify-content: center;
       padding: 20px;
     }
     #cx-alert-backdrop.visible { display: flex; }
     #cx-alert-box {
-      background: #fff;
-      border-radius: 20px;
+      background: #fff; border-radius: 20px;
       width: 100%; max-width: 400px;
       box-shadow: 0 20px 60px rgba(0,0,0,.18);
-      overflow: hidden;
-      font-family: inherit;
+      overflow: hidden; font-family: inherit;
     }
     #cx-alert-header {
       display: flex; align-items: center; gap: 10px;
       padding: 18px 20px 14px;
-      border-bottom: 1px solid #f3f4f6;
     }
     #cx-alert-icon {
       width: 36px; height: 36px; border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
       flex-shrink: 0; font-size: 17px; font-weight: 700;
     }
-    #cx-alert-title {
-      font-size: 15px; font-weight: 700; color: #1f2937; flex: 1;
-    }
+    #cx-alert-title { font-size: 15px; font-weight: 700; color: #1f2937; flex: 1; }
     #cx-alert-body {
-      padding: 14px 20px 18px;
-      font-size: 13px; color: #4b5563; line-height: 1.7;
-      white-space: pre-line;
-      max-height: 50vh; overflow-y: auto;
-    }
-    #cx-alert-footer {
       padding: 0 20px 18px;
-      display: flex; justify-content: flex-end;
+      font-size: 13px; color: #4b5563; line-height: 1.7;
+      white-space: pre-line; max-height: 50vh; overflow-y: auto;
     }
-    #cx-alert-close {
-      background: #f43f5e; color: #fff;
-      border: none; cursor: pointer;
-      padding: 9px 24px; border-radius: 999px;
-      font-size: 13px; font-weight: 600; font-family: inherit;
+    #cx-alert-footer { padding: 0 20px 18px; display: flex; gap: 10px; }
+    .cx-dlg-btn {
+      flex: 1; cursor: pointer; padding: 10px 16px; border-radius: 999px;
+      font-size: 13px; font-weight: 600; font-family: inherit; border: none;
+      transition: background .15s ease, border-color .15s ease;
     }
-    #cx-alert-close:hover { background: #e11d48; }
+    .cx-dlg-cancel { background: #fff; color: #4b5563; border: 1px solid #e5e7eb; }
+    .cx-dlg-cancel:hover { background: #f9fafb; }
+    .cx-dlg-ok { background: #f43f5e; color: #fff; }
+    .cx-dlg-ok:hover { background: #e11d48; }
+    .cx-dlg-hidden { display: none !important; }
   `;
   document.head.appendChild(style);
 
   const backdrop = document.createElement("div");
   backdrop.id = "cx-alert-backdrop";
   backdrop.innerHTML = `
-    <div id="cx-alert-box">
+    <div id="cx-alert-box" role="dialog" aria-modal="true">
       <div id="cx-alert-header">
         <div id="cx-alert-icon"></div>
         <div id="cx-alert-title"></div>
       </div>
       <div id="cx-alert-body"></div>
       <div id="cx-alert-footer">
-        <button id="cx-alert-close">Đã hiểu</button>
+        <button type="button" id="cx-alert-cancel" class="cx-dlg-btn cx-dlg-cancel"></button>
+        <button type="button" id="cx-alert-ok" class="cx-dlg-btn cx-dlg-ok"></button>
       </div>
     </div>`;
   document.body.appendChild(backdrop);
 
-  document.getElementById("cx-alert-close").addEventListener("click", _closeAlert);
-  backdrop.addEventListener("click", (e) => { if (e.target === backdrop) _closeAlert(); });
-  document.addEventListener("keydown", (e) => { if (e.key === "Escape") _closeAlert(); });
+  document.getElementById("cx-alert-ok").addEventListener("click", () => _settleDialog(true));
+  document.getElementById("cx-alert-cancel").addEventListener("click", () => _settleDialog(false));
+  backdrop.addEventListener("click", (e) => { if (e.target === backdrop) _settleDialog(false); });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && backdrop.classList.contains("visible")) _settleDialog(false);
+  });
 })();
 
-function _closeAlert() {
-  document.getElementById("cx-alert-backdrop").classList.remove("visible");
+let _dialogResolve = null;
+
+function _settleDialog(val) {
+  document.getElementById("cx-alert-backdrop")?.classList.remove("visible");
+  const r = _dialogResolve;
+  _dialogResolve = null;
+  if (r) r(val);
+}
+
+const _DLG_ICONS = {
+  error:   { symbol: "✕", bg: "#fee2e2", color: "#dc2626" },
+  warning: { symbol: "!", bg: "#fef3c7", color: "#d97706" },
+  info:    { symbol: "i", bg: "#eff6ff", color: "#2563eb" },
+  success: { symbol: "✓", bg: "#dcfce7", color: "#15803d" },
+};
+
+/**
+ * Base dialog dùng chung → Promise<boolean>.
+ * @param {{title?:string, message?:string, type?:"error"|"warning"|"info"|"success",
+ *          confirm?:boolean, okText?:string, cancelText?:string}} opts
+ *   confirm=true → hiện thêm nút Huỷ (2 nút); mặc định chỉ 1 nút (alert).
+ */
+function showDialog(opts = {}) {
+  // Nếu còn hộp thoại cũ chưa đóng → coi như huỷ trước khi mở cái mới.
+  if (_dialogResolve) { const r = _dialogResolve; _dialogResolve = null; r(false); }
+
+  const c = _DLG_ICONS[opts.type] || _DLG_ICONS.error;
+  const icon = document.getElementById("cx-alert-icon");
+  icon.style.background = c.bg;
+  icon.style.color = c.color;
+  icon.textContent = c.symbol;
+  document.getElementById("cx-alert-title").textContent = opts.title || "";
+  document.getElementById("cx-alert-body").textContent = opts.message || "";
+
+  const okBtn = document.getElementById("cx-alert-ok");
+  const cancelBtn = document.getElementById("cx-alert-cancel");
+  okBtn.textContent = opts.okText || (opts.confirm ? "Xác nhận" : "Đã hiểu");
+  cancelBtn.textContent = opts.cancelText || "Huỷ";
+  cancelBtn.classList.toggle("cx-dlg-hidden", !opts.confirm); // alert → ẩn nút Huỷ
+
+  document.getElementById("cx-alert-backdrop").classList.add("visible");
+  return new Promise((resolve) => { _dialogResolve = resolve; });
 }
 
 /**
+ * Alert 1 nút (giữ nguyên chữ ký cũ).
  * @param {string} title
- * @param {string} message  — supports \n for line breaks
+ * @param {string} message — hỗ trợ \n
  * @param {"error"|"warning"|"info"} type
  */
 function showAlert(title, message, type = "error") {
-  const cfg = {
-    error:   { symbol: "✕", bg: "#fee2e2", color: "#dc2626" },
-    warning: { symbol: "!",  bg: "#fef3c7", color: "#d97706" },
-    info:    { symbol: "i",  bg: "#eff6ff", color: "#2563eb" },
-  };
-  const c = cfg[type] || cfg.error;
+  return showDialog({ title, message, type });
+}
 
-  document.getElementById("cx-alert-icon").style.background = c.bg;
-  document.getElementById("cx-alert-icon").style.color      = c.color;
-  document.getElementById("cx-alert-icon").textContent      = c.symbol;
-  document.getElementById("cx-alert-title").textContent     = title;
-  document.getElementById("cx-alert-body").textContent      = message;
-  document.getElementById("cx-alert-backdrop").classList.add("visible");
+/**
+ * Confirm 2 nút (Huỷ / Xác nhận) → Promise<boolean>.
+ * @param {string} title
+ * @param {string} message — hỗ trợ \n
+ * @param {{type?:"warning"|"error"|"info", confirmText?:string, cancelText?:string}} [opts]
+ */
+function showConfirm(title, message, opts = {}) {
+  return showDialog({
+    title,
+    message,
+    type: opts.type || "warning",
+    confirm: true,
+    okText: opts.confirmText,
+    cancelText: opts.cancelText,
+  });
 }
 
 // ─── Loading overlay ─────────────────────────────────────────────────────────
