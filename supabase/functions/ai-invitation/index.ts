@@ -190,36 +190,73 @@ QUY TẮC BẮT BUỘC:
 8. Tên hiển thị trên thiệp — LUÔN tạo ĐỦ 2 block field "groom_name" và "bride_name", rút gọn họ tên đầy đủ (chú rể "${inp.groom_name}", cô dâu "${inp.bride_name}") còn 2 CHỮ để in trên thiệp, KHÔNG dùng nguyên họ tên. Mặc định lấy 2 CHỮ CUỐI (ví dụ "Đoàn Quang Vinh" → "Quang Vinh"; "Trần Thị Bích Ngọc" → "Bích Ngọc"). TUYỆT ĐỐI KHÔNG để chữ đệm "Thị" xuất hiện (thiệp cưới Việt Nam không bao giờ in chữ "Thị"): nếu 2 chữ cuối chứa "Thị" (ví dụ "Nguyễn Thị Anh" → 2 chữ cuối là "Thị Anh"), hãy BỎ "Thị" rồi lấy thêm chữ liền trước cho đủ 2 chữ (→ "Nguyễn Anh"). Nếu họ tên gốc chỉ có 1 chữ thì giữ nguyên. Dùng CHÍNH tên rút gọn này mỗi khi nhắc tới cô dâu/chú rể trong các đoạn SÁNG TẠO ở mục 6.
 9. Địa điểm tổ chức lễ khi người dùng KHÔNG ghi rõ — NGOẠI LỆ được suy ra thay vì bỏ trống: ceremony_location (nơi lễ chính / tiệc cưới) mặc định lấy TRÙNG groom_address (địa chỉ nhà trai); vu_quy_location (CHỈ khi vu_quy_enabled=true) mặc định lấy TRÙNG bride_address (địa chỉ nhà gái). Chỉ suy ra khi ĐÃ có địa chỉ nhà tương ứng; không có thì bỏ trống, KHÔNG bịa nơi khác. Riêng địa điểm tiệc nhà trai/nhà gái (groom_party_location, bride_party_location): KHÔNG tự suy — chỉ điền khi người dùng có nói rõ.
 10. Lễ Vu Quy (chỉ khi vu_quy_enabled = true): nếu người dùng KHÔNG ghi rõ giờ Vu Quy, hãy tự suy ra — mặc định ngày Vu Quy TRÙNG ngày lễ chính (Thành Hôn/Tân Hôn). Với vu_quy_time: nếu người dùng có cung cấp CẢ địa chỉ nhà trai (groom_address) lẫn nhà gái (bride_address), hãy ƯỚC LƯỢNG thời gian di chuyển bằng Ô TÔ giữa hai địa chỉ, rồi đặt vu_quy_time SỚM hơn giờ lễ chính một khoảng đủ để đoàn nhà trai sang nhà gái làm lễ Vu Quy rồi ĐƯA DÂU quay về kịp giờ lễ chính (khoảng ≈ 2× thời gian di chuyển một chiều [tính cả lượt đi và lượt về] + ~30–45 phút làm lễ, làm tròn về mốc 5/10 phút hợp lý). Nếu KHÔNG đủ dữ liệu địa chỉ để ước lượng, đặt vu_quy_time TRÙNG giờ lễ chính.
+11. Slogan (story_quote) — LỜI NGỎ của chú rể dành cho cô dâu (hoặc lời chung của cặp đôi). Viết theo ĐÚNG "công thức" các câu mẫu sẵn của app:
+   • CHỈ 1 câu, ngắn gọn súc tích (khoảng 12–24 chữ), tối đa 2 vế; giàu chất thơ, chân thành, ấm áp.
+   • TUYỆT ĐỐI KHÔNG chứa TÊN RIÊNG (không nhắc tên cô dâu/chú rể), KHÔNG ngày tháng, KHÔNG địa điểm hay bất kỳ thông tin cá nhân nào — slogan mang tính PHỔ QUÁT về tình yêu/hôn nhân, KHÔNG liên quan tới danh tính cụ thể.
+   • Chủ đề xoay quanh: sự đồng hành ("cùng nhau nhìn về một hướng"), lòng biết ơn ("cảm ơn em đã đến bên đời"), khởi đầu một hành trình mới, hai trái tim chung một nhịp, hạnh phúc bình dị mỗi ngày.
+   • Xưng hô nhẹ nhàng "anh/em" hoặc không xưng; bám đúng văn phong đã chọn. KHÔNG đặt dấu ngoặc kép trong nội dung slogan.
+   Ví dụ đúng phong cách (KHÔNG sao chép nguyên văn, hãy sáng tạo câu mới): "Cảm ơn em đã đến bên đời nhau, cùng nhau viết nên câu chuyện của riêng mình."; "Tình yêu không phải là nhìn nhau, mà là cùng nhau nhìn về một hướng."; "Hạnh phúc là có một người để yêu, một nơi để về và một lý do để tin."
+12. CHUẨN HOÁ VIẾT HOA cho TÊN RIÊNG và ĐỊA CHỈ — LUÔN format lại dù người dùng nhập kiểu gì (viết thường, viết hoa hết, thiếu dấu phẩy...), GIỮ NGUYÊN dấu tiếng Việt người dùng nhập, KHÔNG bịa thêm/bớt thông tin:
+   • TÊN RIÊNG người (groom_name, bride_name, groom_father, groom_mother, bride_father, bride_mother) và TÊN buổi lễ (ceremony_name): viết HOA CHỮ CÁI ĐẦU mỗi từ (kiểu "Title Case"). Ví dụ: "nguyễn văn an" → "Nguyễn Văn An"; "TRẦN THỊ bình" → "Trần Thị Bình".
+   • ĐỊA CHỈ (ceremony_location, vu_quy_location, groom_address, bride_address, groom_party_location, bride_party_location): viết HOA CHỮ CÁI ĐẦU mỗi từ, và NGĂN CÁCH các thành phần (số nhà/đường, phường/xã, quận/huyện, tỉnh/thành) bằng DẤU PHẨY nếu người dùng chưa ngăn cách. Ví dụ: "12 lê lợi p bến nghé q1 tphcm" → "12 Lê Lợi, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh". Giữ nguyên viết tắt phổ biến đúng chuẩn (TP., Q., P., KP., TT.) — chỉ chuẩn hoá viết hoa, KHÔNG đổi nghĩa/không bịa thêm địa danh không có.
+   • NGOẠI LỆ: KHÔNG áp dụng Title Case cho chủ tài khoản ngân hàng (*_bank_owner) — mục này theo mục 3 (IN HOA KHÔNG DẤU). Tên rút gọn hiển thị (mục 8) vẫn theo mục 8 rồi mới Title Case.
 
 ĐẦU RA BẮT BUỘC: MỘT MẢNG JSON PHẲNG các "block", KHÔNG lồng nhau, KHÔNG markdown. Mỗi phần tử là một object độc lập theo đúng 1 trong 4 dạng:
-- {"type":"text","key":"story_quote","value":"<slogan mở đầu, tối đa 2 câu, ấm áp>"}
+- {"type":"text","key":"story_quote","value":"<slogan — lời chú rể dành cho cô dâu, 1 câu ngắn, KHÔNG chứa tên riêng; theo mục 11>"}
 - {"type":"love","date":"<MM/YYYY hoặc mô tả ngắn>","title":"<tiêu đề mốc>","content":"<BẮT BUỘC: kể ngắn 1-2 câu về khoảnh khắc/kỷ niệm đó, giàu cảm xúc>"}   // chỉ tạo khi có căn cứ (xem mục 7); tối đa ${MAX_LOVE_ITEMS} block; MỖI block PHẢI có cả title lẫn content
 - {"type":"timeline","time":"<HH:MM>","title":"<việc>","kind":"<ceremony|party>"}                    // tối đa ${MAX_TIMELINE} block; kind="ceremony" cho nghi lễ, "party" cho tiệc
 - {"type":"field","key":"<tên trường>","value":"<giá trị>"}   // chỉ tạo block khi CÓ dữ liệu thật (trừ ngoại lệ mục 8, 9); không có thì BỎ QUA, đừng tạo block rỗng
 
 Danh sách "key" hợp lệ cho block "field": groom_name, bride_name, ceremony_name, ceremony_date, ceremony_time, ceremony_location, vu_quy_enabled (value "true"/"false"), vu_quy_time, vu_quy_location, groom_father, groom_mother, groom_address, bride_father, bride_mother, bride_address, groom_party_date, groom_party_time, groom_party_location, bride_party_date, bride_party_time, bride_party_location, rsvp_message, footer_text, groom_bank_name, groom_bank_number, groom_bank_owner, bride_bank_name, bride_bank_number, bride_bank_owner.
 
-Thứ tự khuyến nghị: story_quote trước, rồi CÁC BLOCK LOVE (bắt buộc có nếu người dùng kể chuyện tình — xem mục 7), rồi timeline, rồi các field. Trả về DUY NHẤT mảng JSON đó.`
+THỨ TỰ XUẤT BLOCK (QUAN TRỌNG — phải theo ĐÚNG thứ tự này để khớp giao diện hiển thị, xuất dần từng block một): (1) TẤT CẢ các block "field" trước; (2) rồi CÁC BLOCK LOVE (bắt buộc có nếu người dùng kể chuyện tình — xem mục 7); (3) rồi các block "timeline"; (4) CUỐI CÙNG là block "text" story_quote. Trả về DUY NHẤT một mảng JSON theo đúng thứ tự trên.`
 }
 
-// Schema ép cấu trúc cho Gemini: MẢNG các block đồng nhất (mọi prop optional trừ type).
-// Nhờ đồng nhất 1 kiểu item nên vừa hợp lệ với responseSchema vừa parse được từng block khi stream.
+// Schema ép cấu trúc cho Gemini: MẢNG các phần tử theo anyOf (mỗi block 1 dạng riêng).
+// Nhờ anyOf, block "love" BẮT BUỘC có title + content (structured output không thể bỏ
+// qua content nữa). Wire format vẫn là [{...},{...}] nên scanner streaming đọc từng
+// object hoạt động như cũ.
+const BLOCK_TEXT = {
+  type: 'object',
+  properties: {
+    type: { type: 'string', enum: ['text'] },
+    key: { type: 'string' },
+    value: { type: 'string' },
+  },
+  required: ['type', 'key', 'value'],
+}
+const BLOCK_LOVE = {
+  type: 'object',
+  properties: {
+    type: { type: 'string', enum: ['love'] },
+    date: { type: 'string', description: 'MM/YYYY hoặc mô tả ngắn' },
+    title: { type: 'string', description: 'Tiêu đề mốc' },
+    content: { type: 'string', description: 'BẮT BUỘC: 1-2 câu kể/làm giàu về mốc, không được rỗng' },
+  },
+  required: ['type', 'title', 'content'],
+}
+const BLOCK_TIMELINE = {
+  type: 'object',
+  properties: {
+    type: { type: 'string', enum: ['timeline'] },
+    time: { type: 'string' },
+    title: { type: 'string' },
+    kind: { type: 'string' },
+  },
+  required: ['type', 'title'],
+}
+const BLOCK_FIELD = {
+  type: 'object',
+  properties: {
+    type: { type: 'string', enum: ['field'] },
+    key: { type: 'string' },
+    value: { type: 'string' },
+  },
+  required: ['type', 'key', 'value'],
+}
 const RESPONSE_SCHEMA = {
   type: 'array',
-  items: {
-    type: 'object',
-    properties: {
-      type: { type: 'string' },     // "text" | "love" | "timeline" | "field"
-      key: { type: 'string' },      // cho text/field
-      value: { type: 'string' },    // cho text/field
-      date: { type: 'string' },     // cho love
-      title: { type: 'string' },    // cho love/timeline
-      content: { type: 'string' },  // cho love
-      time: { type: 'string' },     // cho timeline
-      kind: { type: 'string' },     // cho timeline: ceremony|party
-    },
-    required: ['type'],
-  },
+  items: { anyOf: [BLOCK_TEXT, BLOCK_LOVE, BLOCK_TIMELINE, BLOCK_FIELD] },
 }
 
 // ── Gọi provider ─────────────────────────────────────────────────────────────
@@ -274,6 +311,8 @@ async function callGemini(prompt: string, apiKey: string): Promise<string> {
             temperature: 0.9,
             responseMimeType: 'application/json',
             responseSchema: RESPONSE_SCHEMA,
+            // Tắt "thinking" (2.5-flash bật mặc định) + nới trần token: tránh JSON
+            maxOutputTokens: 65536
           },
         }),
       },
@@ -556,6 +595,9 @@ async function callGeminiStreamRaw(prompt: string, apiKey: string, signal: Abort
           temperature: 0.9,
           responseMimeType: 'application/json',
           responseSchema: RESPONSE_SCHEMA,
+          // Tắt "thinking" (2.5-flash bật mặc định) + nới trần token: tránh JSON
+          // bị cắt ngang khiến block CUỐI (slogan story_quote) bị mất.
+          maxOutputTokens: 65536,
         },
       }),
     },
@@ -616,6 +658,12 @@ function buildStreamResponse(
             }
           }
           t.clear()
+          // [ai-debug] TẠM: xem NGUYÊN VĂN model trả về để soi block love/content.
+          // Gỡ sau khi chẩn đoán xong.
+          console.error('[ai-debug] gemini stream done. emitted=', emitted,
+            'loveInRaw=', (acc.match(/"type"\s*:\s*"love"/g) || []).length,
+            'contentInRaw=', (acc.match(/"content"\s*:/g) || []).length)
+          console.error('[ai-debug] RAW acc (đầu 3500):', acc.slice(0, 3500))
           break // đã stream xong với key này
         } catch (e) {
           t.clear()

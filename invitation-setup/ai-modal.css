@@ -168,6 +168,35 @@ textarea.ai-inp {
   color: #b6bcc6;
 }
 
+/* Ô input thường có nút "x" xoá nhanh (tên cô dâu/chú rể) */
+.ai-inp-wrap {
+  position: relative;
+}
+.ai-inp.has-clear {
+  padding-right: 2.25rem;
+}
+.ai-inp-clear {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 0.375rem;
+  color: #9ca3af;
+  transition: color 0.12s ease, background 0.12s ease;
+}
+.ai-inp-clear.show {
+  display: inline-flex;
+}
+.ai-inp-clear:hover {
+  color: #4b5563;
+  background: #f3f4f6;
+}
+
 /* Combobox: bỏ mũi tên mặc định (xấu), thay chevron tuỳ biến cho gọn đẹp */
 .ai-select {
   appearance: none;
@@ -258,6 +287,84 @@ textarea.ai-inp {
 }
 /* Nút "x" xoá nhanh của textarea nay do <x-textarea> tự dựng & tự style
    (xem core/x-controls.js). Ô "Thông tin cô dâu/chú rể" dùng <x-textarea>. */
+
+/* Skeleton loading khi AI đang tạo (khớp thứ tự hiển thị của preview) */
+.ai-sk {
+  background: linear-gradient(90deg, #f1f2f4 25%, #e7e9ec 37%, #f1f2f4 63%);
+  background-size: 200% 100%;
+  animation: ai-shimmer 1.4s ease-in-out infinite;
+  border-radius: 0.5rem;
+}
+@keyframes ai-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.ai-sk-group { margin-bottom: 1rem; }
+.ai-sk-label { height: 0.7rem; margin-bottom: 0.5rem; border-radius: 0.25rem; }
+.ai-sk-box { height: 3.25rem; } /* nằm trong .ai-fld-grid (2 cột) */
+.ai-sk-card { height: 2.75rem; margin-bottom: 0.375rem; }
+.ai-sk-card.sm { height: 2.25rem; }
+.ai-sk-card.lg { height: 3.75rem; }
+@media (prefers-reduced-motion: reduce) {
+  .ai-sk { animation: none; }
+}
+
+/* Khoá cuộn khung sheet khi đang hiển thị skeleton (placeholder gọn trong 1 màn) */
+.ai-lock-scroll {
+  overflow: hidden !important;
+}
+
+/* Sửa trực tiếp kết quả AI: ô contenteditable + icon bút chì gợi ý */
+.ai-editable {
+  outline: none;
+  border-radius: 0.375rem;
+  cursor: text;
+  transition: box-shadow 0.12s ease, background 0.12s ease;
+}
+.ai-editable:hover {
+  box-shadow: inset 0 0 0 1px #e5e7eb;
+}
+.ai-editable:focus {
+  background: #fff;
+  box-shadow: inset 0 0 0 2px rgba(244, 63, 94, 0.45);
+}
+.ai-edit-ico {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.125rem;
+  height: 1.125rem;
+  border-radius: 0.375rem;
+  color: #cbd0d6;
+  transition: color 0.12s ease, background 0.12s ease;
+}
+.ai-edit-ico:hover {
+  color: #f43f5e;
+  background: #fff1f2;
+}
+/* Header nhóm có nút bút chì bên phải (VD Slogan) */
+.ai-ed-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+/* Mốc chuyện tình: hàng tiêu đề (title · date) + bút chì bên phải */
+.ai-item-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+/* Field trích xuất: hàng nhãn + bút chì */
+.ai-fld-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.25rem;
+}
 
 /* Block/card gom nhóm: "Thông tin cô dâu/chú rể" và "Chuyện tình yêu" tách bạch */
 .ai-block {
