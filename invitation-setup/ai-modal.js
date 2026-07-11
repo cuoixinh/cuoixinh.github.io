@@ -7,7 +7,7 @@
 
 // ── Markup modal (bơm vào body/footer của base bottom-sheet) ────────────────
 const _AI_BODY_HTML = `
-  <div class="px-5 py-4">
+  <div class="px-5 py-4 min-h-full flex flex-col">
     <!-- FORM NHẬP -->
     <div id="ai-form" class="space-y-5">
       <p class="text-xs text-gray-500 -mt-0.5">
@@ -111,6 +111,7 @@ const _AI_BODY_HTML = `
               <button type="button" class="ai-cselect-opt" data-value="3">3 mốc</button>
               <button type="button" class="ai-cselect-opt" data-value="5">5 mốc</button>
               <button type="button" class="ai-cselect-opt" data-value="7">7 mốc</button>
+              <button type="button" class="ai-cselect-opt" data-value="10">10 mốc</button>
             </div>
           </div>
         </div>
@@ -561,7 +562,7 @@ function _renderAiHistory() {
   if (!box) return;
   const list = _loadAiHistory();
   if (!list.length) {
-    box.innerHTML = `<div class="text-center text-sm text-gray-400 py-10">
+    box.innerHTML = `<div class="ai-history-empty text-center text-sm text-gray-400 py-10">
         <i data-lucide="list" style="width:28px;height:28px" class="mx-auto mb-2 opacity-60"></i>
         <p>Chưa có nội dung nào được tạo trên thiết bị này.</p>
       </div>`;
@@ -1075,10 +1076,11 @@ function _aiEnableSection(section) {
 }
 
 // Chèn khung mẫu vào ô thông tin để người dùng chỉ điền chỗ trống (để trống, không "...").
-// Ngày/giờ LỄ CƯỚI đã chọn ở trên; mẫu bổ sung địa điểm lễ, lễ Vu Quy nhà gái, cha mẹ, STK.
+// Ngày/giờ LỄ CƯỚI đã chọn ở trên; mẫu bổ sung địa điểm lễ, cha mẹ, STK.
+// Không có dòng riêng cho địa điểm Vu Quy: nếu người dùng không ghi cụ thể, AI tự lấy
+// trùng địa chỉ nhà trai/nhà gái (xem rule ở backend buildPrompt).
 const _AI_INFO_TEMPLATE = [
   "Địa điểm tổ chức lễ cưới: ",
-  "Địa điểm lễ Vu Quy (nhà gái): ",
   "Địa chỉ nhà trai: ",
   "Địa chỉ nhà gái: ",
   "Bố mẹ chú rể (bố / mẹ): ",
@@ -1096,6 +1098,7 @@ function insertAiInfoTemplate() {
   // Còn trống → chèn mẫu; đã có nội dung → nối thêm vào cuối (không ghi đè)
   ta.value = cur ? `${cur}\n\n${_AI_INFO_TEMPLATE}` : _AI_INFO_TEMPLATE;
   _saveAiDraft();
+  _syncAiClearButtons(); // gán .value bằng code không tự phát "input" → tự đồng bộ nút "x"
   ta.focus();
   ta.setSelectionRange(ta.value.length, ta.value.length);
 }

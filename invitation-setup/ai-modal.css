@@ -300,3 +300,26 @@ textarea#ai-info {
   word-break: break-word;
   line-height: 1.35;
 }
+
+/* Lịch sử tạo: khi đang là view đang hiện, kéo dài hết chiều cao còn lại của
+   sheet để danh sách/trạng thái rỗng không bị dồn lên đầu, chừa khoảng trống bên dưới. */
+#ai-history:not(.hidden) {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+#ai-history-list {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+/* Trạng thái rỗng ("Chưa có nội dung...") canh giữa trong toàn bộ khoảng trống đó. */
+#ai-history-list > .ai-history-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
