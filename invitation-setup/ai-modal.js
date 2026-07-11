@@ -38,29 +38,7 @@ const _AI_BODY_HTML = `
         </div>
       </div>
 
-      <!-- Thông tin cô dâu/chú rể (ngay sau ngày cưới) -->
-      <div>
-        <div class="flex items-center justify-between mb-1.5">
-          <label class="block text-xs font-medium text-gray-500">Thông tin cô dâu/chú rể</label>
-          <button type="button" onclick="insertAiInfoTemplate()" class="ai-chip">
-            <i data-lucide="clipboard-list" style="width: 12px; height: 12px"></i>
-            Chèn mẫu
-          </button>
-        </div>
-        <p class="text-xs text-gray-500 flex items-start gap-1.5 mb-1.5">
-          <i data-lucide="info" style="width: 13px; height: 13px" class="mt-0.5 flex-shrink-0 text-rose-400"></i>
-          <span>Càng nhiều thông tin, AI điền càng chính xác: bố mẹ hai bên, địa chỉ, tài khoản ngân hàng, lễ Vu Quy…</span>
-        </p>
-        <x-textarea
-          bare
-          id="ai-info"
-          rows="6"
-          maxlength="2500"
-          input-class="ai-inp resize-none"
-          placeholder="Ví dụ:&#10;Bố mẹ chú rể: Ông Nguyễn Văn An - Bà Trần Thị Bình&#10;Địa chỉ nhà trai: 12 Lê Lợi, Q.1, TP.HCM&#10;STK chú rể: Vietcombank - 0123456789&#10;Bấm 'Chèn mẫu' để có sẵn khung điền."
-        ></x-textarea>
-      </div>
-
+      <!-- Cài đặt phong cách -->
       <div>
         <label class="block text-xs font-medium text-gray-500 mb-1.5">Văn phong</label>
         <div class="ai-tone-wrap">
@@ -83,50 +61,89 @@ const _AI_BODY_HTML = `
         </div>
       </div>
 
-      <div class="grid grid-cols-2 gap-3">
-        <div>
-          <label class="block text-xs font-medium text-gray-500 mb-1.5">Vùng miền</label>
-          <div class="ai-cselect">
-            <input type="hidden" id="ai-region" value="" />
-            <button type="button" class="ai-inp ai-select ai-cselect-btn">
-              <span class="ai-cselect-label">Tự động</span>
-            </button>
-            <div class="ai-cselect-panel hidden">
-              <button type="button" class="ai-cselect-opt sel" data-value="">Tự động</button>
-              <button type="button" class="ai-cselect-opt" data-value="bac">Miền Bắc</button>
-              <button type="button" class="ai-cselect-opt" data-value="trung">Miền Trung</button>
-              <button type="button" class="ai-cselect-opt" data-value="nam">Miền Nam</button>
-            </div>
-          </div>
-        </div>
-        <div>
-          <label class="block text-xs font-medium text-gray-500 mb-1.5">Số mốc chuyện tình</label>
-          <div class="ai-cselect">
-            <input type="hidden" id="ai-love-count" value="" />
-            <button type="button" class="ai-inp ai-select ai-cselect-btn">
-              <span class="ai-cselect-label">Tự động</span>
-            </button>
-            <div class="ai-cselect-panel hidden">
-              <button type="button" class="ai-cselect-opt sel" data-value="">Tự động</button>
-              <button type="button" class="ai-cselect-opt" data-value="3">3 mốc</button>
-              <button type="button" class="ai-cselect-opt" data-value="5">5 mốc</button>
-              <button type="button" class="ai-cselect-opt" data-value="7">7 mốc</button>
-              <button type="button" class="ai-cselect-opt" data-value="10">10 mốc</button>
-            </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-500 mb-1.5">Vùng miền</label>
+        <div class="ai-cselect">
+          <input type="hidden" id="ai-region" value="" />
+          <button type="button" class="ai-inp ai-select ai-cselect-btn">
+            <span class="ai-cselect-label">Tự động</span>
+          </button>
+          <div class="ai-cselect-panel hidden">
+            <button type="button" class="ai-cselect-opt sel" data-value="">Tự động</button>
+            <button type="button" class="ai-cselect-opt" data-value="bac">Miền Bắc</button>
+            <button type="button" class="ai-cselect-opt" data-value="trung">Miền Trung</button>
+            <button type="button" class="ai-cselect-opt" data-value="nam">Miền Nam</button>
           </div>
         </div>
       </div>
 
-      <div>
-        <label class="block text-xs font-medium text-gray-500 mb-1.5">Kể đôi nét về chuyện tình</label>
+      <!-- BLOCK 1: Thông tin cô dâu/chú rể (AI trích xuất) -->
+      <div class="ai-block">
+        <div class="ai-block-head">
+          <span class="ai-block-title">
+            <i data-lucide="contact-round" style="width: 15px; height: 15px"></i>
+            Thông tin cô dâu/chú rể
+          </span>
+          <button type="button" onclick="insertAiInfoTemplate()" class="ai-chip">
+            <i data-lucide="clipboard-list" style="width: 12px; height: 12px"></i>
+            Chèn mẫu
+          </button>
+        </div>
+        <p class="ai-block-sub">
+          <i data-lucide="info" style="width: 13px; height: 13px; margin-top: 1px" class="flex-shrink-0 text-rose-400"></i>
+          <span>Càng nhiều thông tin, AI điền càng chính xác: bố mẹ hai bên, địa chỉ, tài khoản ngân hàng, lễ Vu Quy…</span>
+        </p>
         <x-textarea
           bare
-          id="ai-bullets"
-          rows="4"
-          maxlength="1500"
+          id="ai-info"
+          rows="6"
+          maxlength="2500"
           input-class="ai-inp resize-none"
-          placeholder="Ví dụ: gặp nhau 2021 ở Đà Lạt; lần đầu nắm tay ở Quy Nhơn; cầu hôn đúng dịp sinh nhật…"
+          placeholder="Ví dụ:&#10;Bố mẹ chú rể: Ông Nguyễn Văn An - Bà Trần Thị Bình&#10;Địa chỉ nhà trai: 12 Lê Lợi, Q.1, TP.HCM&#10;STK chú rể: Vietcombank - 0123456789&#10;Bấm 'Chèn mẫu' để có sẵn khung điền."
         ></x-textarea>
+      </div>
+
+      <!-- BLOCK 2: Chuyện tình yêu -->
+      <div class="ai-block">
+        <div class="ai-block-head">
+          <span class="ai-block-title">
+            <i data-lucide="heart" style="width: 15px; height: 15px"></i>
+            Chuyện tình yêu
+          </span>
+        </div>
+        <p class="ai-block-sub">
+          <i data-lucide="info" style="width: 13px; height: 13px; margin-top: 1px" class="flex-shrink-0 text-rose-400"></i>
+          <span>Bạn có thể kể tự do (không cần gạch đầu dòng). Để trống và chọn “Tự động” thì AI sẽ không tự bịa chuyện tình.</span>
+        </p>
+        <div class="space-y-3">
+          <div>
+            <label class="block text-xs font-medium text-gray-500 mb-1.5">Số mốc chuyện tình</label>
+            <div class="ai-cselect">
+              <input type="hidden" id="ai-love-count" value="" />
+              <button type="button" class="ai-inp ai-select ai-cselect-btn">
+                <span class="ai-cselect-label">Tự động</span>
+              </button>
+              <div class="ai-cselect-panel hidden">
+                <button type="button" class="ai-cselect-opt sel" data-value="">Tự động</button>
+                <button type="button" class="ai-cselect-opt" data-value="3">3 mốc</button>
+                <button type="button" class="ai-cselect-opt" data-value="5">5 mốc</button>
+                <button type="button" class="ai-cselect-opt" data-value="7">7 mốc</button>
+                <button type="button" class="ai-cselect-opt" data-value="10">10 mốc</button>
+              </div>
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-500 mb-1.5">Kể đôi nét về chuyện tình</label>
+            <x-textarea
+              bare
+              id="ai-bullets"
+              rows="4"
+              maxlength="1500"
+              input-class="ai-inp resize-none"
+              placeholder="Ví dụ: gặp nhau 2021 ở Đà Lạt; lần đầu nắm tay ở Quy Nhơn; cầu hôn đúng dịp sinh nhật…"
+            ></x-textarea>
+          </div>
+        </div>
       </div>
 
     </div>
@@ -643,9 +660,14 @@ function _restoreAiInputs(p) {
   set("ai-bride", p.bride_name);
   set("ai-time", p.wedding_time);
   set("ai-info", p.info);
+  // story_love là text nguyên văn; payload cũ (lịch sử) có thể còn mảng "bullets".
   set(
     "ai-bullets",
-    Array.isArray(p.bullets) ? p.bullets.map((b) => "- " + b).join("\n") : p.bullets || "",
+    p.story_love != null
+      ? p.story_love
+      : Array.isArray(p.bullets)
+        ? p.bullets.map((b) => "- " + b).join("\n")
+        : p.bullets || "",
   );
   const iso = _aiDateToISO(p.wedding_date || "");
   if (_aiDateFp) {
@@ -674,7 +696,7 @@ async function submitAiGenerate() {
   const bride = (document.getElementById("ai-bride")?.value || "").trim();
   const date = (document.getElementById("ai-date")?.value || "").trim();
   const time = (document.getElementById("ai-time")?.value || "").trim();
-  const bulletsRaw = (document.getElementById("ai-bullets")?.value || "").trim();
+  const storyLove = (document.getElementById("ai-bullets")?.value || "").trim();
   const info = (document.getElementById("ai-info")?.value || "").trim();
   const region = document.getElementById("ai-region")?.value || "";
   const loveCount = parseInt(document.getElementById("ai-love-count")?.value || "0", 10) || 0;
@@ -684,18 +706,15 @@ async function submitAiGenerate() {
     return;
   }
 
-  const bullets = bulletsRaw
-    .split("\n")
-    .map((s) => s.replace(/^[-•*]\s*/, "").trim())
-    .filter(Boolean);
-
+  // Chuyện tình gửi lên NGUYÊN VĂN (textarea liền mạch) — backend tự tách mốc theo
+  // ngữ nghĩa, không cần client cắt dòng thành mảng.
   const payload = {
     groom_name: groom,
     bride_name: bride,
     wedding_date: date,
     wedding_time: time,
     tone: _aiTone,
-    bullets,
+    story_love: storyLove,
     info,
     region,
     love_count: loveCount,

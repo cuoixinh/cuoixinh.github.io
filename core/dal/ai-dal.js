@@ -23,8 +23,9 @@ class AiDAL {
   /**
    * Sinh nội dung thiệp.
    * @param {{groom_name:string, bride_name:string, wedding_date?:string,
-   *          tone?:"romantic"|"traditional"|"humorous", bullets?:string[],
-   *          info?:string}} input  — `info`: dump thông tin cá nhân tự do để AI trích xuất.
+   *          tone?:"romantic"|"traditional"|"humorous", story_love?:string,
+   *          info?:string}} input  — `story_love`: chuyện tình nguyên văn (text liền mạch,
+   *          backend tự tách mốc); `info`: dump thông tin cá nhân tự do để AI trích xuất.
    * @returns {Promise<{story_quote:string, love_story:Array, timeline:Array, fields:Object}>}
    */
   async generateInvitation(input) {
