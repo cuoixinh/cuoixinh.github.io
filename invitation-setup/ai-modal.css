@@ -3,7 +3,9 @@
    Tách khỏi index.html cho gọn. Xem thêm ai-modal.js.
    ============================================================ */
 
-/* FAB "Tạo với AI" — bong bóng nổi + nhãn sticky bên cạnh (chỉ mobile) */
+/* FAB "Tạo với AI" — style giống widget Chat Messenger ở trang chủ: nút tròn
+   gradient có quầng "pulse" toả ra + thẻ trắng bo tròn có đuôi trỏ sang nút.
+   (Chỉ mobile.) */
 .ai-fab {
   position: fixed;
   right: 1rem;
@@ -20,65 +22,148 @@
   border: none;
   cursor: pointer;
 }
-/* Nhãn dạng "bong bóng thoại" (không giống nút bấm): nền mờ hồng, đuôi nhỏ trỏ
-   sang bong bóng, chữ nhẹ nhàng. */
+/* Thẻ trắng bo tròn (giống supportCard): viền hồng, đổ bóng, đuôi nhọn trỏ sang
+   nút. Câu mời 2 dòng + link "Tạo ngay". Ẩn lúc đầu, SAU 3s FADE dần hiện ra.
+   (Chỉ animate opacity → hover transform vẫn hoạt động bình thường.) */
 .ai-fab-label {
   position: relative;
-  background: linear-gradient(135deg, #ffffff 0%, #fff1f4 100%);
-  color: #e11d48;
-  font-size: 0.8125rem;
-  font-weight: 600;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.125rem;
+  width: 11.5rem;
+  background: #fff;
+  color: #5a3a45;
   letter-spacing: 0.01em;
-  padding: 0.4375rem 0.8125rem;
-  /* bo góc kiểu bong bóng chat (góc dưới-phải nhọn về phía bong bóng) */
-  border-radius: 0.9rem 0.9rem 0.25rem 0.9rem;
-  box-shadow: 0 8px 20px -8px rgba(244, 63, 94, 0.5);
-  border: 1px solid #fecdd3;
-  white-space: nowrap;
-  animation: ai-fab-label-float 3s ease-in-out infinite;
+  padding: 0.5625rem 0.8125rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 183, 202, 0.5);
+  box-shadow: 0 8px 26px rgba(45, 15, 26, 0.16);
+  line-height: 1.3;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  opacity: 0;
+  animation: ai-fab-fade 0.6s ease-out 3s both;
+}
+@keyframes ai-fab-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.ai-fab-label-msg {
+  font-size: 14px;
+  letter-spacing: normal;
+  text-align: start;
+}
+.ai-fab-label-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  color: #e11d48;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-decoration: none;
+  text-underline-offset: 2px;
+}
+.ai-fab-label-cta svg {
+  width: 12px;
+  height: 12px;
 }
 .ai-fab-label::after {
   content: "";
   position: absolute;
-  right: -4px;
-  bottom: 8px;
-  width: 9px;
-  height: 9px;
-  background: #fff1f4;
-  border-right: 1px solid #fecdd3;
-  border-bottom: 1px solid #fecdd3;
-  transform: rotate(-45deg);
-  border-bottom-right-radius: 2px;
+  right: -0.375rem;
+  top: 50%;
+  width: 0.75rem;
+  height: 0.75rem;
+  background: #fff;
+  border-right: 1px solid rgba(255, 183, 202, 0.5);
+  border-top: 1px solid rgba(255, 183, 202, 0.5);
+  transform: translateY(-50%) rotate(45deg);
 }
-@keyframes ai-fab-label-float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-2px); }
+.ai-fab:hover .ai-fab-label {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(45, 15, 26, 0.22);
 }
-@media (prefers-reduced-motion: reduce) {
-  .ai-fab-label { animation: none; }
-}
+
+/* Nút tròn gradient (rose) + icon trắng + quầng pulse toả ra sau nút. */
 .ai-fab-bubble {
+  position: relative;
   width: 3.25rem;
   height: 3.25rem;
   border-radius: 9999px;
-  background: linear-gradient(135deg, #fb7185, #f43f5e);
+  background: linear-gradient(135deg, #fb7185, #e11d48);
   color: #fff;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8px 22px -4px rgba(244, 63, 94, 0.55);
-  animation: ai-fab-pulse 2.4s ease-in-out infinite;
+  box-shadow: 0 6px 20px rgba(45, 15, 26, 0.22);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
-.ai-fab-bubble svg {
-  width: 24px;
-  height: 24px;
+.ai-fab:hover .ai-fab-bubble {
+  transform: scale(1.06);
+  box-shadow: 0 10px 26px rgba(45, 15, 26, 0.3);
+}
+/* Quầng "pulse" toả ra (giống before:animate-bubblePulse của Messenger). */
+.ai-fab-bubble::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #fb7185, #e11d48);
+  z-index: -1;
+  animation: ai-fab-pulse 2.4s ease-out infinite;
 }
 @keyframes ai-fab-pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.06); }
+  0% { transform: scale(1); opacity: 0.55; }
+  100% { transform: scale(1.9); opacity: 0; }
+}
+.ai-fab-bubble svg {
+  width: 26px;
+  height: 26px;
 }
 @media (prefers-reduced-motion: reduce) {
-  .ai-fab-bubble { animation: none; }
+  .ai-fab-label { animation: none; opacity: 1; }
+  .ai-fab-bubble::before { animation: none; opacity: 0; }
+  .ai-fab-label, .ai-fab-bubble { transition: none; }
+}
+
+/* Nút "Quay lại" ở màn Lịch sử tạo — nổi bật với tông rose, không chìm như
+   nút viền xám thường; mũi tên trượt nhẹ sang trái khi hover. */
+.ai-back-btn {
+  width: 100%;
+  height: 2.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #e11d48;
+  background: linear-gradient(135deg, #fff5f7 0%, #ffe4e9 100%);
+  border: 1.5px solid #fecdd3;
+  box-shadow: 0 4px 12px -4px rgba(244, 63, 94, 0.28);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease,
+              background 0.15s ease, border-color 0.15s ease;
+}
+.ai-back-btn:hover {
+  background: linear-gradient(135deg, #ffe4e9 0%, #fecdd3 100%);
+  border-color: #fda4af;
+  box-shadow: 0 7px 18px -4px rgba(244, 63, 94, 0.42);
+  transform: translateY(-1px);
+}
+.ai-back-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 3px 9px -4px rgba(244, 63, 94, 0.35);
+}
+.ai-back-btn svg {
+  transition: transform 0.18s ease;
+}
+.ai-back-btn:hover svg { transform: translateX(-3px); }
+@media (prefers-reduced-motion: reduce) {
+  .ai-back-btn, .ai-back-btn svg { transition: none; }
+  .ai-back-btn:hover { transform: none; }
+  .ai-back-btn:hover svg { transform: none; }
 }
 
 /* Dải chọn văn phong: cuộn ngang + nút mũi tên hai bên */
@@ -314,19 +399,51 @@ textarea.ai-inp {
   overflow: hidden !important;
 }
 
-/* Sửa trực tiếp kết quả AI: ô contenteditable + icon bút chì gợi ý */
-.ai-editable {
-  outline: none;
+/* Sửa kết quả AI: ô hiển thị + bút chì → bấm để bind sang control tương ứng */
+.ai-disp-empty {
+  color: #b6bcc6;
+  font-style: italic;
+}
+.ai-edit-live {
+  width: 100%;
+  margin-top: 0.125rem;
+}
+.ai-edit-ctrl {
+  position: relative;
+  width: 100%;
+}
+/* Chừa lề phải cho nút ✓ (và nút × của control nếu có), để 2 nút nằm TRONG ô nhập.
+   Chỉ nhắm ô nhập chính (con trực tiếp) — KHÔNG đụng input bên trong lịch flatpickr. */
+.ai-edit-ctrl > input {
+  padding-right: 2.4rem !important; /* chỉ có ✓ (ô ngày/giờ không có ×) */
+}
+.ai-edit-ctrl x-input input,
+.ai-edit-ctrl x-textarea textarea {
+  padding-right: 3.9rem !important; /* có cả × lẫn ✓ */
+}
+/* Dời nút × của control sang trái để nhường chỗ ✓ ở ngoài cùng bên phải. */
+.ai-edit-ctrl .x-clear,
+.ai-edit-ctrl .x-ta-clear {
+  right: 2.1rem !important;
+}
+/* Nút ✓ lưu — nằm trong ô nhập, cùng cấp & bên phải nút ×, CÙNG MÀU với nút ×. */
+.ai-edit-ok {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
   border-radius: 0.375rem;
-  cursor: text;
-  transition: box-shadow 0.12s ease, background 0.12s ease;
+  color: #9ca3af; /* gray-400 — khớp nút × */
+  background: transparent;
+  transition: color 0.12s ease, background 0.12s ease;
 }
-.ai-editable:hover {
-  box-shadow: inset 0 0 0 1px #e5e7eb;
-}
-.ai-editable:focus {
-  background: #fff;
-  box-shadow: inset 0 0 0 2px rgba(244, 63, 94, 0.45);
+.ai-edit-ok:hover {
+  color: #4b5563; /* gray-600 — khớp hover nút × */
+  background: #f3f4f6;
 }
 .ai-edit-ico {
   flex-shrink: 0;

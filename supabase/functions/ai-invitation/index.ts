@@ -30,7 +30,6 @@ const ALLOWED_ORIGINS = [
 const DAILY_LIMIT      = 15      // số lần gọi AI tối đa / user đã đăng nhập / ngày
 const ANON_DAILY_LIMIT = 5       // số lần gọi AI tối đa / IP (khách chưa đăng nhập) / ngày
 const REQ_TIMEOUT_MS   = 25000   // timeout mỗi lần gọi provider
-const MAX_NAME_LEN     = 60
 const MAX_STORY_LOVE_LEN = 1500  // textarea "chuyện tình" (nguyên văn, khớp maxlength client)
 const MAX_INFO_LEN     = 2500    // textarea "thông tin cá nhân" (dump tự do)
 const MAX_LOVE_ITEMS   = 10     // khớp core/config.js → maxLoveStoryItems (cap cứng khi áp vào thiệp)
@@ -98,25 +97,17 @@ function clampText(v: unknown, max: number): string {
 const VALID_REGIONS = ['bac', 'trung', 'nam']
 
 interface CardInput {
-  groom_name: string
-  bride_name: string
-  wedding_date: string
-  wedding_time: string // giờ cưới người dùng chọn (HH:MM), '' nếu chưa chọn
   tone: string
   story_love: string  // chuyện tình nguyên văn người dùng nhập (text liền mạch)
-  info: string
+  info: string        // dump thông tin tự do — GỒM tên cô dâu/chú rể, ngày & giờ cưới (AI tự trích)
   region: string      // '' | 'bac' | 'trung' | 'nam'
-  love_count: number  // 0 = tuỳ AI
 }
 
 function sanitizeInput(raw: Record<string, unknown>): CardInput | null {
-  const groom_name = clampStr(raw.groom_name, MAX_NAME_LEN)
-  const bride_name = clampStr(raw.bride_name, MAX_NAME_LEN)
-  if (!groom_name || !bride_name) return null
+  // Tên/ngày/giờ cưới nay nằm trong `info` để AI tự trích xuất → `info` là bắt buộc.
+  const info = clampText(raw.info, MAX_INFO_LEN)
+  if (!info) return null
 
-  const wedding_date = clampStr(raw.wedding_date, 40)
-  const wm = clampStr(raw.wedding_time, 10).match(/^(\d{1,2}):(\d{2})$/)
-  const wedding_time = wm ? `${wm[1].padStart(2, '0')}:${wm[2]}` : ''
   const tone = VALID_TONES.includes(String(raw.tone)) ? String(raw.tone) : 'romantic'
 
   // Chuyện tình: text nguyên văn (giữ xuống dòng để AI đọc mạch kể). Backward-compat:
@@ -126,13 +117,9 @@ function sanitizeInput(raw: Record<string, unknown>): CardInput | null {
     : (Array.isArray(raw.bullets) ? (raw.bullets as unknown[]).join('\n') : '')
   const story_love = clampText(rawStory, MAX_STORY_LOVE_LEN)
 
-  const info = clampText(raw.info, MAX_INFO_LEN)
-
   const region = VALID_REGIONS.includes(String(raw.region)) ? String(raw.region) : ''
-  const lc = Number(raw.love_count)
-  const love_count = Number.isFinite(lc) ? Math.min(Math.max(Math.trunc(lc), 0), MAX_LOVE_ITEMS) : 0
 
-  return { groom_name, bride_name, wedding_date, wedding_time, tone, story_love, info, region, love_count }
+  return { tone, story_love, info, region }
 }
 
 // ── Prompt ───────────────────────────────────────────────────────────────────
@@ -160,9 +147,8 @@ function buildPrompt(inp: CardInput): string {
 (A) TRÍCH XUẤT thông tin có thật từ dữ liệu người dùng nhập vào các trường tương ứng.
 (B) SÁNG TẠO một số đoạn văn (slogan, chuyện tình, lịch trình, lời mời, lời cảm ơn).
 
-Cặp đôi: chú rể "${inp.groom_name}", cô dâu "${inp.bride_name}".
-Ngày cưới (nếu có): ${inp.wedding_date || 'chưa xác định'}.${inp.wedding_time ? `\nGiờ cưới: ${inp.wedding_time}.` : ''}
-Văn phong: ${TONE_LABEL[inp.tone]}.${inp.region ? `\nPhong cách vùng miền: ${REGION_LABEL[inp.region]}.` : ''}${inp.love_count ? `\nSố mốc chuyện tình mong muốn: khoảng ${inp.love_count} mục.` : ''}
+TỰ XÁC ĐỊNH từ khối THÔNG TIN CÁ NHÂN bên dưới: ai là chú rể, ai là cô dâu (họ tên đầy đủ), ngày cưới và giờ cưới. Nếu người dùng không ghi rõ mục nào thì bỏ qua mục đó, KHÔNG bịa.
+Văn phong: ${TONE_LABEL[inp.tone]}.${inp.region ? `\nPhong cách vùng miền: ${REGION_LABEL[inp.region]}.` : ''}
 
 Chuyện tình người dùng kể (NGUYÊN VĂN người dùng nhập, có thể viết TỰ DO/liền mạch, không theo gạch đầu dòng — bạn tự đọc hiểu & tách mốc theo mục 7):
 """
@@ -176,18 +162,18 @@ ${inp.info || '(không có)'}
 
 QUY TẮC BẮT BUỘC:
 1. Chỉ điền vào "fields" những gì NGƯỜI DÙNG THỰC SỰ cung cấp ở trên (ngoại lệ: tên hiển thị ở mục 8 và địa điểm lễ ở mục 9). TUYỆT ĐỐI KHÔNG bịa: số tài khoản, tên ngân hàng, địa chỉ nhà, tên cha mẹ, giờ giấc. Không có thì BỎ QUA field đó.
-2. Ngày (các field *_date) định dạng "YYYY-MM-DD". Giờ (các field *_time) định dạng 24h "HH:MM". KHÔNG cần tạo block cho ceremony_date/ceremony_time (ngày & giờ cưới đã được người dùng chọn sẵn ở trên).
+2. Ngày (các field *_date) định dạng "YYYY-MM-DD". Giờ (các field *_time) định dạng 24h "HH:MM". PHẢI trích ngày & giờ cưới từ THÔNG TIN thành field ceremony_date (YYYY-MM-DD) và ceremony_time (HH:MM) — người dùng có thể ghi kiểu "20/12/2025", "ngày 20 tháng 12 năm 2025", "11h", "11 giờ"… hãy chuẩn hoá đúng định dạng. Không ghi rõ thì bỏ qua, KHÔNG bịa.
 3. Tên chủ tài khoản (*_bank_owner): nếu người dùng không ghi rõ, suy từ tên người sở hữu tài khoản, viết IN HOA KHÔNG DẤU (ví dụ "Nguyễn Văn A" → "NGUYEN VAN A").
 4. Tên ngân hàng (groom_bank_name, bride_bank_name): TRẢ VỀ MÃ VIẾT TẮT tiếng Anh không dấu, KHÔNG trả tên đầy đủ tiếng Việt. Ví dụ: Vietcombank→"VCB", Techcombank→"TCB", MB Bank→"MB", VietinBank→"CTG", BIDV→"BIDV", ACB→"ACB", Agribank→"VBA", Sacombank→"STB", VPBank→"VPB", TPBank→"TPB". Nếu không chắc mã chuẩn, trả tên viết tắt phổ biến (ví dụ "Techcombank").
 5. vu_quy_enabled = true chỉ khi người dùng có nhắc tới lễ Vu Quy/nhà gái, ngược lại false.
 6. Các đoạn SÁNG TẠO (story_quote, love_story, timeline, rsvp_message, footer_text): viết tiếng Việt tự nhiên, đúng văn phong, chân thành, không bịa thông tin cá nhân nhạy cảm.
 7. Chuyện tình yêu (block "love") — ĐÂY LÀ PHẦN QUAN TRỌNG, đọc kỹ:
-   • BẮT BUỘC TẠO khi: phần "Chuyện tình người dùng kể" CÓ nội dung, HOẶC ở trên có ghi "Số mốc chuyện tình mong muốn". Khi đó bạn PHẢI xuất các block "love" RIÊNG BIỆT — TUYỆT ĐỐI KHÔNG được bỏ qua, KHÔNG được thay thế bằng cách nhét chuyện tình vào story_quote/rsvp_message. Người dùng có kể chuyện tình mà bạn không xuất block love là SAI NGHIÊM TRỌNG.
-   • CHỈ KHÔNG tạo khi: để 'tự động' (KHÔNG ghi số mốc) VÀ người dùng KHÔNG kể gì — khi đó bỏ qua hoàn toàn, không tự bịa.
-   • SỐ MỐC: nếu có "Số mốc mong muốn" → bám sát số đó; nếu không → = số SỰ KIỆN/khoảnh khắc bạn TỰ nhận diện theo NGỮ NGHĨA (KHÔNG phải số dòng văn bản). Luôn kẹp tối đa ${MAX_LOVE_ITEMS} mốc.
+   • BẮT BUỘC TẠO khi: phần "Chuyện tình người dùng kể" CÓ nội dung. Khi đó bạn PHẢI xuất các block "love" RIÊNG BIỆT — TUYỆT ĐỐI KHÔNG được bỏ qua, KHÔNG được thay thế bằng cách nhét chuyện tình vào story_quote/rsvp_message. Người dùng có kể chuyện tình mà bạn không xuất block love là SAI NGHIÊM TRỌNG.
+   • CHỈ KHÔNG tạo khi: người dùng KHÔNG kể gì — khi đó bỏ qua hoàn toàn, không tự bịa.
+   • SỐ MỐC: = số SỰ KIỆN/khoảnh khắc bạn TỰ nhận diện theo NGỮ NGHĨA (KHÔNG phải số dòng văn bản). Luôn kẹp tối đa ${MAX_LOVE_ITEMS} mốc.
    • TÁCH Ý: người dùng có thể viết TỰ DO (một đoạn liền mạch, gộp nhiều ý trong một câu, hoặc mỗi ý một dòng) — hãy đọc hiểu rồi TỰ TÁCH/GỘP thành các mốc theo dòng thời gian: một câu chứa nhiều sự kiện thì TÁCH ra nhiều mốc; nhiều câu tả cùng một khoảnh khắc thì GỘP làm một. Giữ ĐÚNG ý & đúng thứ tự, KHÔNG bỏ sót sự kiện nào, KHÔNG thêm sự kiện mới.
    • NỘI DUNG MỖI MỐC: mỗi block love BẮT BUỘC đủ "date" + "title" + "content". Người dùng thường chỉ nêu ý ngắn/năm → bạn PHẢI TỰ LÀM GIÀU: viết "content" 1-2 câu tự nhiên, giàu cảm xúc, cụ thể hoá khoảnh khắc (từ chính ý đó + tên + văn phong; KHÔNG lặp lại suông title, KHÔNG bịa chi tiết nhạy cảm như địa chỉ/tên người lạ). KHÔNG xuất mốc thiếu content.
-8. Tên hiển thị trên thiệp — LUÔN tạo ĐỦ 2 block field "groom_name" và "bride_name", rút gọn họ tên đầy đủ (chú rể "${inp.groom_name}", cô dâu "${inp.bride_name}") còn 2 CHỮ để in trên thiệp, KHÔNG dùng nguyên họ tên. Mặc định lấy 2 CHỮ CUỐI (ví dụ "Đoàn Quang Vinh" → "Quang Vinh"; "Trần Thị Bích Ngọc" → "Bích Ngọc"). TUYỆT ĐỐI KHÔNG để chữ đệm "Thị" xuất hiện (thiệp cưới Việt Nam không bao giờ in chữ "Thị"): nếu 2 chữ cuối chứa "Thị" (ví dụ "Nguyễn Thị Anh" → 2 chữ cuối là "Thị Anh"), hãy BỎ "Thị" rồi lấy thêm chữ liền trước cho đủ 2 chữ (→ "Nguyễn Anh"). Nếu họ tên gốc chỉ có 1 chữ thì giữ nguyên. Dùng CHÍNH tên rút gọn này mỗi khi nhắc tới cô dâu/chú rể trong các đoạn SÁNG TẠO ở mục 6.
+8. Tên hiển thị trên thiệp — Từ HỌ TÊN ĐẦY ĐỦ chú rể & cô dâu bạn xác định được trong THÔNG TIN, LUÔN tạo ĐỦ 2 block field "groom_name" và "bride_name", rút gọn còn 2 CHỮ để in trên thiệp, KHÔNG dùng nguyên họ tên. Mặc định lấy 2 CHỮ CUỐI (ví dụ "Đoàn Quang Vinh" → "Quang Vinh"; "Trần Thị Bích Ngọc" → "Bích Ngọc"). TUYỆT ĐỐI KHÔNG để chữ đệm "Thị" xuất hiện (thiệp cưới Việt Nam không bao giờ in chữ "Thị"): nếu 2 chữ cuối chứa "Thị" (ví dụ "Nguyễn Thị Anh" → 2 chữ cuối là "Thị Anh"), hãy BỎ "Thị" rồi lấy thêm chữ liền trước cho đủ 2 chữ (→ "Nguyễn Anh"). Nếu họ tên gốc chỉ có 1 chữ thì giữ nguyên. Dùng CHÍNH tên rút gọn này mỗi khi nhắc tới cô dâu/chú rể trong các đoạn SÁNG TẠO ở mục 6.
 9. Địa điểm tổ chức lễ khi người dùng KHÔNG ghi rõ — NGOẠI LỆ được suy ra thay vì bỏ trống: ceremony_location (nơi lễ chính / tiệc cưới) mặc định lấy TRÙNG groom_address (địa chỉ nhà trai); vu_quy_location (CHỈ khi vu_quy_enabled=true) mặc định lấy TRÙNG bride_address (địa chỉ nhà gái). Chỉ suy ra khi ĐÃ có địa chỉ nhà tương ứng; không có thì bỏ trống, KHÔNG bịa nơi khác. Riêng địa điểm tiệc nhà trai/nhà gái (groom_party_location, bride_party_location): KHÔNG tự suy — chỉ điền khi người dùng có nói rõ.
 10. Lễ Vu Quy (chỉ khi vu_quy_enabled = true): nếu người dùng KHÔNG ghi rõ giờ Vu Quy, hãy tự suy ra — mặc định ngày Vu Quy TRÙNG ngày lễ chính (Thành Hôn/Tân Hôn). Với vu_quy_time: nếu người dùng có cung cấp CẢ địa chỉ nhà trai (groom_address) lẫn nhà gái (bride_address), hãy ƯỚC LƯỢNG thời gian di chuyển bằng Ô TÔ giữa hai địa chỉ, rồi đặt vu_quy_time SỚM hơn giờ lễ chính một khoảng đủ để đoàn nhà trai sang nhà gái làm lễ Vu Quy rồi ĐƯA DÂU quay về kịp giờ lễ chính (khoảng ≈ 2× thời gian di chuyển một chiều [tính cả lượt đi và lượt về] + ~30–45 phút làm lễ, làm tròn về mốc 5/10 phút hợp lý). Nếu KHÔNG đủ dữ liệu địa chỉ để ước lượng, đặt vu_quy_time TRÙNG giờ lễ chính.
 11. Slogan (story_quote) — LỜI NGỎ của chú rể dành cho cô dâu (hoặc lời chung của cặp đôi). Viết theo ĐÚNG "công thức" các câu mẫu sẵn của app:
@@ -732,7 +718,7 @@ Deno.serve(async (req) => {
   }
 
   const input = sanitizeInput(body)
-  if (!input) return json({ error: 'Thiếu tên cô dâu hoặc chú rể' }, 400, origin)
+  if (!input) return json({ error: 'Vui lòng nhập thông tin cô dâu, chú rể' }, 400, origin)
 
   // 3) Rate limit: theo user nếu đã đăng nhập, ngược lại theo IP.
   let allowed: boolean

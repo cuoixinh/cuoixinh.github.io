@@ -10,45 +10,39 @@ const _AI_BODY_HTML = `
   <div class="px-5 py-4 min-h-full flex flex-col">
     <!-- FORM NHẬP -->
     <div id="ai-form" class="space-y-5">
-      <p class="text-xs text-gray-500 -mt-0.5">
-        Điền vài thông tin, AI sẽ gợi ý slogan, chuyện tình, lịch trình và
-        tự điền các mục khác. Bạn xem trước rồi mới áp dụng.
-      </p>
-
-      <div class="space-y-3">
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-medium text-gray-500 mb-1.5">Họ và tên chú rể</label>
-            <div class="ai-inp-wrap">
-              <input id="ai-groom" type="text" maxlength="60" class="ai-inp has-clear" placeholder="Nguyễn Văn A" />
-              <button type="button" class="ai-inp-clear" data-clear="ai-groom" aria-label="Xoá" tabindex="-1">
-                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-              </button>
-            </div>
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-gray-500 mb-1.5">Họ và tên cô dâu</label>
-            <div class="ai-inp-wrap">
-              <input id="ai-bride" type="text" maxlength="60" class="ai-inp has-clear" placeholder="Trần Thị B" />
-              <button type="button" class="ai-inp-clear" data-clear="ai-bride" aria-label="Xoá" tabindex="-1">
-                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-              </button>
-            </div>
-          </div>
+      <!-- Thông tin -->
+      <div>
+        <div class="flex items-center justify-between mb-1.5">
+          <label class="block text-xs font-medium text-gray-500">Thông tin cô dâu/chú rể</label>
+          <button type="button" onclick="insertAiInfoTemplate()" class="ai-chip">
+            <i data-lucide="clipboard-list" style="width: 12px; height: 12px"></i>
+            Chèn mẫu
+          </button>
         </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-medium text-gray-500 mb-1.5">Ngày cưới</label>
-            <x-date bare id="ai-date" name="ai_wedding_date" input-class="ai-inp"></x-date>
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-gray-500 mb-1.5">Giờ cưới</label>
-            <input id="ai-time" type="text" readonly data-ai-timepicker class="ai-inp cursor-pointer" placeholder="Chọn giờ" />
-          </div>
-        </div>
+        <x-textarea
+          bare
+          id="ai-info"
+          rows="6"
+          maxlength="2500"
+          input-class="ai-inp resize-none"
+          placeholder="Nhập thông tin chú rể, cô dâu, ngày giờ cưới, địa điểm, cha mẹ hai bên, số tài khoản,..."
+        ></x-textarea>
       </div>
 
-      <!-- Cài đặt phong cách -->
+      <!-- Câu chuyện tình yêu -->
+      <div>
+        <label class="block text-xs font-medium text-gray-500 mb-1.5">Câu chuyện tình yêu</label>
+        <x-textarea
+          bare
+          id="ai-bullets"
+          rows="4"
+          maxlength="1500"
+          input-class="ai-inp resize-none"
+          placeholder="Ví dụ: gặp nhau 2021 ở Đà Lạt; lần đầu nắm tay ở Quy Nhơn; cầu hôn đúng dịp sinh nhật…"
+        ></x-textarea>
+      </div>
+
+      <!-- Văn phong -->
       <div>
         <label class="block text-xs font-medium text-gray-500 mb-1.5">Văn phong</label>
         <div class="ai-tone-wrap">
@@ -71,6 +65,7 @@ const _AI_BODY_HTML = `
         </div>
       </div>
 
+      <!-- Vùng miền -->
       <div>
         <label class="block text-xs font-medium text-gray-500 mb-1.5">Vùng miền</label>
         <div class="ai-cselect">
@@ -83,75 +78,6 @@ const _AI_BODY_HTML = `
             <button type="button" class="ai-cselect-opt" data-value="bac">Miền Bắc</button>
             <button type="button" class="ai-cselect-opt" data-value="trung">Miền Trung</button>
             <button type="button" class="ai-cselect-opt" data-value="nam">Miền Nam</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- BLOCK 1: Thông tin cô dâu/chú rể (AI trích xuất) -->
-      <div class="ai-block">
-        <div class="ai-block-head">
-          <span class="ai-block-title">
-            <i data-lucide="contact-round" style="width: 15px; height: 15px"></i>
-            Thông tin cô dâu/chú rể
-          </span>
-          <button type="button" onclick="insertAiInfoTemplate()" class="ai-chip">
-            <i data-lucide="clipboard-list" style="width: 12px; height: 12px"></i>
-            Chèn mẫu
-          </button>
-        </div>
-        <p class="ai-block-sub">
-          <i data-lucide="info" style="width: 13px; height: 13px; margin-top: 1px" class="flex-shrink-0 text-rose-400"></i>
-          <span>Càng nhiều thông tin, AI điền càng chính xác: bố mẹ hai bên, địa chỉ, tài khoản ngân hàng, lễ Vu Quy…</span>
-        </p>
-        <x-textarea
-          bare
-          id="ai-info"
-          rows="6"
-          maxlength="2500"
-          input-class="ai-inp resize-none"
-          placeholder="Ví dụ:&#10;Bố mẹ chú rể: Ông Nguyễn Văn An - Bà Trần Thị Bình&#10;Địa chỉ nhà trai: 12 Lê Lợi, Q.1, TP.HCM&#10;STK chú rể: Vietcombank - 0123456789&#10;Bấm 'Chèn mẫu' để có sẵn khung điền."
-        ></x-textarea>
-      </div>
-
-      <!-- BLOCK 2: Chuyện tình yêu -->
-      <div class="ai-block">
-        <div class="ai-block-head">
-          <span class="ai-block-title">
-            <i data-lucide="heart" style="width: 15px; height: 15px"></i>
-            Chuyện tình yêu
-          </span>
-        </div>
-        <p class="ai-block-sub">
-          <i data-lucide="info" style="width: 13px; height: 13px; margin-top: 1px" class="flex-shrink-0 text-rose-400"></i>
-          <span>Bạn có thể kể tự do (không cần gạch đầu dòng). Để trống và chọn “Tự động” thì AI sẽ không tự bịa chuyện tình.</span>
-        </p>
-        <div class="space-y-3">
-          <div>
-            <label class="block text-xs font-medium text-gray-500 mb-1.5">Số mốc chuyện tình</label>
-            <div class="ai-cselect">
-              <input type="hidden" id="ai-love-count" value="" />
-              <button type="button" class="ai-inp ai-select ai-cselect-btn">
-                <span class="ai-cselect-label">Tự động</span>
-              </button>
-              <div class="ai-cselect-panel hidden">
-                <button type="button" class="ai-cselect-opt sel" data-value="">Tự động</button>
-                <button type="button" class="ai-cselect-opt" data-value="3">3 mốc</button>
-                <button type="button" class="ai-cselect-opt" data-value="5">5 mốc</button>
-                <button type="button" class="ai-cselect-opt" data-value="7">7 mốc</button>
-                <button type="button" class="ai-cselect-opt" data-value="10">10 mốc</button>
-              </div>
-            </div>
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-gray-500 mb-1.5">Kể đôi nét về chuyện tình</label>
-            <x-textarea
-              bare
-              id="ai-bullets"
-              rows="4"
-              maxlength="1500"
-              input-class="ai-inp resize-none"
-              placeholder="Ví dụ: gặp nhau 2021 ở Đà Lạt; lần đầu nắm tay ở Quy Nhơn; cầu hôn đúng dịp sinh nhật…"
-            ></x-textarea>
           </div>
         </div>
       </div>
@@ -224,7 +150,7 @@ const _AI_FOOTER_HTML = `
       <button
         type="button"
         onclick="backFromAiHistory()"
-        class="w-full h-11 rounded-xl border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 transition-colors inline-flex items-center justify-center gap-2"
+        class="ai-back-btn"
       >
         <i data-lucide="arrow-left" style="width: 16px; height: 16px"></i> Quay lại
       </button>
@@ -236,7 +162,6 @@ const _AI_FOOTER_HTML = `
 let _aiResult = null;
 let _aiTone = "romantic";
 let _aiSheet = null;
-let _aiDateFp = null; // instance flatpickr cho ô ngày cưới trong modal
 let _aiSelectDocBound = false; // đã gắn listener đóng dropdown khi click ra ngoài chưa
 let _aiViewBeforeHistory = "form"; // để "Quay lại" từ lịch sử về đúng bước trước đó
 
@@ -251,13 +176,8 @@ function _saveAiDraft() {
     localStorage.setItem(
       AI_DRAFT_KEY,
       JSON.stringify({
-        groom: document.getElementById("ai-groom")?.value || "",
-        bride: document.getElementById("ai-bride")?.value || "",
-        date: document.getElementById("ai-date")?.value || "",
-        time: document.getElementById("ai-time")?.value || "",
         tone: _aiTone,
         region: document.getElementById("ai-region")?.value || "",
-        loveCount: document.getElementById("ai-love-count")?.value || "",
         bullets: document.getElementById("ai-bullets")?.value || "",
         info: document.getElementById("ai-info")?.value || "",
       }),
@@ -289,12 +209,7 @@ function openAiModal() {
     title: `<span class="inline-flex items-center gap-2"><i data-lucide="sparkles" style="width:18px;height:18px" class="text-rose-500"></i> Tạo nội dung bằng AI</span>`,
     height: "92vh",
     onClose: () => {
-      try {
-        _aiDateFp?.destroy();
-      } catch (e) {}
-      // Gỡ instance tạm của ô ngày trong modal khỏi registry chung.
-      if (window.flatpickrInstances) delete window.flatpickrInstances["ai_wedding_date"];
-      _aiDateFp = null;
+      _aiTeardownActiveEdit();
       _aiSheet = null;
     },
   });
@@ -313,21 +228,9 @@ function openAiModal() {
     const el = document.getElementById(id);
     if (el) el.value = v || "";
   };
-  // Ô ngày cưới nay là <x-date> (tự init flatpickr bằng cấu hình chung) →
-  // thao tác qua instance thay vì set .value trực tiếp.
-  _aiDateFp = document.getElementById("ai-date")?._flatpickr || null;
-  set("ai-groom", draft.groom);
-  set("ai-bride", draft.bride);
-  // Chuẩn hoá về ISO (nháp cũ có thể còn lưu d/m/Y) rồi set qua flatpickr.
-  const _dISO = _aiDateToISO(draft.date || "");
-  if (_dISO && _aiDateFp) {
-    try { _aiDateFp.setDate(_dISO, true); } catch (e) {}
-  }
-  set("ai-time", draft.time);
   set("ai-bullets", draft.bullets);
   set("ai-info", draft.info);
   _aiSelectApply("ai-region", draft.region);
-  _aiSelectApply("ai-love-count", draft.loveCount);
   _aiTone = draft.tone || "romantic";
 
   _injectAiHistoryButton();
@@ -373,38 +276,9 @@ function _wireAiForm() {
       if (btn && btn.dataset.tone) _setAiTone(btn.dataset.tone);
     });
   }
-  ["ai-groom", "ai-bride", "ai-bullets", "ai-info"].forEach((id) => {
+  ["ai-bullets", "ai-info"].forEach((id) => {
     document.getElementById(id)?.addEventListener("input", _saveAiDraft);
   });
-
-  // Nút "x" của các ô input thường (tên cô dâu/chú rể): xoá nội dung + ẩn/hiện theo value.
-  document.querySelectorAll("#ai-form .ai-inp-clear").forEach((btn) => {
-    const inp = document.getElementById(btn.dataset.clear);
-    if (!inp) return;
-    const sync = () => btn.classList.toggle("show", !!inp.value);
-    inp.addEventListener("input", sync);
-    inp.addEventListener("change", sync);
-    btn.addEventListener("click", () => {
-      inp.value = "";
-      inp.focus();
-      inp.dispatchEvent(new Event("input", { bubbles: true }));
-    });
-    sync();
-  });
-  // Ô ngày cưới nay là <x-date> dùng CHUNG flatpickr với form thiết lập (đã tự
-  // init). Lưu nháp khi đổi ngày qua sự kiện "change" mà flatpickr phát ra.
-  document.getElementById("ai-date")?.addEventListener("change", _saveAiDraft);
-
-  // Control giờ cưới: dùng CHUNG time picker với màn thiết lập (openTimePicker ở core/utils.js).
-  const timeEl = document.getElementById("ai-time");
-  if (timeEl && typeof openTimePicker === "function") {
-    timeEl.addEventListener("click", () => {
-      openTimePicker(timeEl, timeEl.value, (val) => {
-        timeEl.value = val;
-        _saveAiDraft();
-      });
-    });
-  }
 
   _wireAiSelects();
 }
@@ -414,11 +288,6 @@ function _wireAiForm() {
 function _syncAiClearButtons() {
   ["ai-info", "ai-bullets"].forEach((id) => {
     document.getElementById(id)?.closest("x-textarea")?.syncClearBtn?.();
-  });
-  // Ô input thường (tên cô dâu/chú rể): tự bật/tắt nút "x" theo value hiện tại.
-  document.querySelectorAll("#ai-form .ai-inp-clear").forEach((btn) => {
-    const inp = document.getElementById(btn.dataset.clear);
-    if (inp) btn.classList.toggle("show", !!inp.value);
   });
 }
 
@@ -430,21 +299,14 @@ function clearAiForm() {
     const el = document.getElementById(id);
     if (el) el.value = v || "";
   };
-  set("ai-groom", "");
-  set("ai-bride", "");
-  set("ai-time", "");
   set("ai-info", "");
   set("ai-bullets", "");
-  if (_aiDateFp) {
-    try { _aiDateFp.clear(); } catch (e) {}
-  }
   _aiSelectApply("ai-region", "");
-  _aiSelectApply("ai-love-count", "");
   _aiTone = "romantic";
   _setAiTone(_aiTone);
   _syncAiClearButtons();
   _saveAiDraft();
-  document.getElementById("ai-groom")?.focus();
+  document.getElementById("ai-info")?.focus();
 }
 
 // Cuộn dải văn phong sang trái/phải (nút mũi tên).
@@ -539,6 +401,7 @@ function _setAiView(view) {
 }
 
 function backToAiForm() {
+  _aiTeardownActiveEdit();
   _setAiView("form");
   // reset trạng thái streaming của khu preview
   const status = document.getElementById("ai-stream-status");
@@ -568,11 +431,12 @@ function _loadAiHistory() {
 function _pushAiHistory(payload, result) {
   if (!result) return;
   try {
+    // Tên hiển thị nay do AI trích xuất (payload không còn tên) → lấy từ result.fields.
     const entry = {
       id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
       at: Date.now(),
-      groom: payload.groom_name || "",
-      bride: payload.bride_name || "",
+      groom: result.fields?.groom_name || "",
+      bride: result.fields?.bride_name || "",
       tone: payload.tone || "",
       story_quote: result.story_quote || "",
       payload, // giữ input đã dùng để "Xem trước" có thể khôi phục & tạo lại
@@ -690,9 +554,6 @@ function _restoreAiInputs(p) {
     const el = document.getElementById(id);
     if (el) el.value = v || "";
   };
-  set("ai-groom", p.groom_name);
-  set("ai-bride", p.bride_name);
-  set("ai-time", p.wedding_time);
   set("ai-info", p.info);
   // story_love là text nguyên văn; payload cũ (lịch sử) có thể còn mảng "bullets".
   set(
@@ -703,14 +564,7 @@ function _restoreAiInputs(p) {
         ? p.bullets.map((b) => "- " + b).join("\n")
         : p.bullets || "",
   );
-  const iso = _aiDateToISO(p.wedding_date || "");
-  if (_aiDateFp) {
-    try {
-      iso ? _aiDateFp.setDate(iso, true) : _aiDateFp.clear();
-    } catch (e) {}
-  }
   _aiSelectApply("ai-region", p.region || "");
-  _aiSelectApply("ai-love-count", p.love_count ? String(p.love_count) : "");
   _aiTone = p.tone || "romantic";
   _setAiTone(_aiTone);
   _syncAiClearButtons();
@@ -726,32 +580,24 @@ function deleteAiHistory(id) {
 }
 
 async function submitAiGenerate() {
-  const groom = (document.getElementById("ai-groom")?.value || "").trim();
-  const bride = (document.getElementById("ai-bride")?.value || "").trim();
-  const date = (document.getElementById("ai-date")?.value || "").trim();
-  const time = (document.getElementById("ai-time")?.value || "").trim();
   const storyLove = (document.getElementById("ai-bullets")?.value || "").trim();
   const info = (document.getElementById("ai-info")?.value || "").trim();
   const region = document.getElementById("ai-region")?.value || "";
-  const loveCount = parseInt(document.getElementById("ai-love-count")?.value || "0", 10) || 0;
 
-  if (!groom || !bride) {
-    showToast("⚠️ Vui lòng nhập tên cô dâu và chú rể", "warning");
+  // Tên/ngày/giờ cưới nay nằm trong ô Thông tin để AI tự trích → bắt buộc có nội dung.
+  if (!info) {
+    showToast("⚠️ Vui lòng nhập thông tin cô dâu, chú rể (tên, ngày, giờ cưới…)", "warning");
+    document.getElementById("ai-info")?.focus();
     return;
   }
 
   // Chuyện tình gửi lên NGUYÊN VĂN (textarea liền mạch) — backend tự tách mốc theo
-  // ngữ nghĩa, không cần client cắt dòng thành mảng.
+  // ngữ nghĩa (số mốc để AI tự quyết theo prompt).
   const payload = {
-    groom_name: groom,
-    bride_name: bride,
-    wedding_date: date,
-    wedding_time: time,
     tone: _aiTone,
     story_love: storyLove,
     info,
     region,
-    love_count: loveCount,
   };
 
   const btn = document.getElementById("ai-generate-btn");
@@ -897,16 +743,35 @@ function _renderAiSkeleton() {
     group("22%", card("lg"));
 }
 
-// Icon bút chì gợi ý ô có thể sửa (bấm để focus vào ô kế bên).
-function _aiEditPencil() {
-  return `<button type="button" class="ai-edit-ico" aria-label="Sửa"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>`;
+// ── Sửa kết quả AI: bấm bút chì → BIND thành control tương ứng ────────────────
+// AI có thể trả sai → cho sửa. KHÔNG dùng contenteditable nữa mà "swap" ô hiển thị
+// sang đúng control của form: x-input (chữ ngắn), x-textarea (đoạn dài/slogan),
+// x-date (ngày), time-picker (giờ). Giá trị sửa ghi ngược vào _aiResult để "Áp dụng".
+const _AI_PENCIL_SVG = `<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>`;
+let _aiEid = 0; // reset mỗi lần render để eid ổn định trong 1 lần vẽ
+
+// Ô hiển thị (đọc): span/p mang data-eid để pencil cùng eid tìm ra khi swap.
+function _aiDisp(eid, value, cls = "", tag = "span", empty = "(trống)") {
+  const has = value !== "" && value != null;
+  const inner = has ? escapeHtml(String(value)) : `<span class="ai-disp-empty">${empty}</span>`;
+  return `<${tag} class="ai-disp ${cls}" data-eid="${eid}">${inner}</${tag}>`;
 }
-// Ô nội dung sửa trực tiếp (contenteditable) — kèm data-* để biết ghi ngược vào đâu.
-function _aiEd(text, attrs, cls = "") {
-  const a = Object.entries(attrs)
-    .map(([k, v]) => `${k}="${escapeHtml(String(v))}"`)
-    .join(" ");
-  return `<span class="ai-editable ${cls}" contenteditable="true" spellcheck="false" ${a}>${escapeHtml(text || "")}</span>`;
+// Nút bút chì: nắm control cần bind + đích ghi (target) + eid để tìm ô hiển thị.
+function _aiPencil(eid, ctrl, target) {
+  return `<button type="button" class="ai-edit-ico" data-eid="${eid}" data-ctrl="${ctrl}" data-target="${escapeHtml(target)}" aria-label="Sửa">${_AI_PENCIL_SVG}</button>`;
+}
+// Cặp [hiển thị][bút chì] liền nhau (dùng cho các ô inline: chuyện tình, lịch trình, slogan).
+function _aiCell(value, ctrl, target, opt = {}) {
+  const eid = ++_aiEid;
+  const { cls = "", tag = "span", empty = "(trống)" } = opt;
+  return _aiDisp(eid, value, cls, tag, empty) + _aiPencil(eid, ctrl, target);
+}
+// Loại control cho từng field trích xuất theo tên khoá.
+function _aiCtrlForField(key, full) {
+  if (/_date$/.test(key)) return "date";
+  if (/_time$/.test(key)) return "time";
+  if (full || key === "rsvp_message" || key === "footer_text") return "textarea";
+  return "input";
 }
 
 function _renderAiPreview(result) {
@@ -915,13 +780,21 @@ function _renderAiPreview(result) {
   // Có dữ liệu thật → mở lại cuộn (đã khoá lúc skeleton) và gắn cơ chế sửa.
   box.closest(".overflow-y-auto")?.classList.remove("ai-lock-scroll");
   _bindAiPreviewEditing(box);
+  // DOM sắp dựng lại → gỡ editor đang mở (nếu có) để không rò listener ngoài.
+  if (_aiActiveEdit) {
+    document.removeEventListener("pointerdown", _aiActiveEdit.onDocDown, true);
+    _aiActiveEdit = null;
+  }
+  _aiEid = 0;
 
   const quoteHtml = result.story_quote
     ? `<div>
-         <div class="ai-ed-head">
-           <p class="text-xs font-semibold text-gray-500">Slogan</p>${_aiEditPencil()}
+         <p class="text-xs font-semibold text-gray-500 mb-1">Slogan</p>
+         <div class="ai-item bg-rose-50 rounded-xl px-3 py-2 border border-rose-100">
+           <div class="ai-item-head">
+             ${_aiCell(result.story_quote, "textarea", "q", { cls: "text-sm text-gray-800 italic", empty: "(thêm slogan)" })}
+           </div>
          </div>
-         <p class="ai-editable text-sm text-gray-800 italic bg-rose-50 rounded-xl px-3 py-2 border border-rose-100" contenteditable="true" spellcheck="false" data-eq="1">${escapeHtml(result.story_quote)}</p>
        </div>`
     : "";
 
@@ -934,13 +807,14 @@ function _renderAiPreview(result) {
                .map(
                  (it, i) => `<div class="ai-item text-sm bg-gray-50 rounded-xl px-3 py-2 border border-gray-100">
                    <div class="ai-item-head">
-                     <div class="min-w-0">
-                       ${_aiEd(it.title || "", { "data-el": i, "data-elk": "title" }, "font-medium text-gray-800")}
-                       <span class="text-xs text-gray-400"> · ${_aiEd(it.date || "", { "data-el": i, "data-elk": "date" })}</span>
+                     <div class="min-w-0 ai-love-title">
+                       ${_aiCell(it.title || "", "input", `l:${i}:title`, { cls: "font-medium text-gray-800", empty: "(tiêu đề)" })}
+                       <span class="text-xs text-gray-400 ai-love-date"> · ${_aiCell(it.date || "", "input", `l:${i}:date`, { empty: "(mốc)" })}</span>
                      </div>
-                     ${_aiEditPencil()}
                    </div>
-                   <p class="text-xs text-gray-600 mt-0.5">${_aiEd(it.content || "", { "data-el": i, "data-elk": "content" })}</p>
+                   <div class="ai-item-head mt-0.5">
+                     ${_aiCell(it.content || "", "textarea", `l:${i}:content`, { cls: "text-xs text-gray-600", empty: "(thêm mô tả)" })}
+                   </div>
                  </div>`,
                )
                .join("")}
@@ -956,9 +830,8 @@ function _renderAiPreview(result) {
              ${result.timeline
                .map(
                  (it, i) => `<div class="ai-item text-sm bg-gray-50 rounded-xl px-3 py-2 border border-gray-100 flex items-center gap-2">
-                   ${_aiEd(it.time || "", { "data-et": i, "data-etk": "time" }, "text-xs font-semibold text-rose-500 w-12 flex-shrink-0")}
-                   ${_aiEd(it.title || "", { "data-et": i, "data-etk": "title" }, "text-gray-800 flex-1")}
-                   ${_aiEditPencil()}
+                   ${_aiCell(it.time || "", "time", `t:${i}:time`, { cls: "text-xs font-semibold text-rose-500 whitespace-nowrap", empty: "(giờ)" })}
+                   ${_aiCell(it.title || "", "input", `t:${i}:title`, { cls: "text-gray-800 flex-1", empty: "(việc)" })}
                  </div>`,
                )
                .join("")}
@@ -981,11 +854,13 @@ function _renderAiPreview(result) {
                   <span class="ai-fld-val">Có</span>
                 </div>`;
       }
+      const eid = ++_aiEid;
+      const ctrl = _aiCtrlForField(key, full);
       return `<div class="ai-fld${full ? " full" : ""}">
                 <div class="ai-fld-top">
-                  <span class="ai-fld-label">${label}</span>${_aiEditPencil()}
+                  <span class="ai-fld-label">${label}</span>${_aiPencil(eid, ctrl, "f:" + key)}
                 </div>
-                ${_aiEd(String(v), { "data-ef": key }, "ai-fld-val")}
+                ${_aiDisp(eid, String(v), "ai-fld-val")}
               </div>`;
     })
     .filter(Boolean)
@@ -1003,47 +878,194 @@ function _renderAiPreview(result) {
   if (typeof _setAiView === "function") _setAiView("preview");
 }
 
-// Cho phép sửa trực tiếp kết quả AI (AI có thể trả sai). Gắn 1 lần cho khung
-// preview (element giữ nguyên qua các lần đổi innerHTML nên listener không mất):
-//  • bấm bút chì → focus ô kế bên, đặt con trỏ cuối.
-//  • gõ vào ô .ai-editable → ghi ngược giá trị vào _aiResult để "Áp dụng" dùng bản đã sửa.
+// Đọc/ghi giá trị theo "target" đã mã hoá: "q" | "f:<key>" | "l:<idx>:<sub>" | "t:<idx>:<sub>".
+function _aiGetTarget(t) {
+  if (!_aiResult) return "";
+  if (t === "q") return _aiResult.story_quote || "";
+  const [k, a, b] = t.split(":");
+  if (k === "f") return (_aiResult.fields || {})[a] ?? "";
+  if (k === "l") return (_aiResult.love_story?.[+a] || {})[b] ?? "";
+  if (k === "t") return (_aiResult.timeline?.[+a] || {})[b] ?? "";
+  return "";
+}
+function _aiSetTarget(t, val) {
+  if (!_aiResult) return;
+  if (t === "q") {
+    _aiResult.story_quote = val;
+    return;
+  }
+  const [k, a, b] = t.split(":");
+  if (k === "f") (_aiResult.fields = _aiResult.fields || {})[a] = val;
+  else if (k === "l") {
+    const it = _aiResult.love_story?.[+a];
+    if (it) it[b] = val;
+  } else if (k === "t") {
+    const it = _aiResult.timeline?.[+a];
+    if (it) it[b] = val;
+  }
+}
+
+// Bấm bút chì → thay ô hiển thị bằng control tương ứng, nạp sẵn giá trị, và ghi
+// ngược vào _aiResult mỗi khi người dùng sửa. Gắn 1 lần (element #ai-preview-content
+// giữ nguyên qua các lần đổi innerHTML nên listener không mất).
 function _bindAiPreviewEditing(box) {
   if (box.dataset.editBound === "1") return;
   box.dataset.editBound = "1";
-
   box.addEventListener("click", (e) => {
     const pencil = e.target.closest(".ai-edit-ico");
-    if (!pencil) return;
-    const card = pencil.closest(".ai-fld, .ai-item, div");
-    const ed = card?.querySelector(".ai-editable");
-    if (!ed) return;
-    ed.focus();
-    try {
-      const r = document.createRange();
-      r.selectNodeContents(ed);
-      r.collapse(false);
-      const sel = window.getSelection();
-      sel.removeAllRanges();
-      sel.addRange(r);
-    } catch {}
+    if (pencil && !pencil.classList.contains("hidden")) _swapToControl(box, pencil);
   });
+}
 
-  box.addEventListener("input", (e) => {
-    const el = e.target.closest?.(".ai-editable");
-    if (!el || !_aiResult) return;
-    const val = el.textContent.trim();
-    if (el.dataset.ef) {
-      (_aiResult.fields = _aiResult.fields || {})[el.dataset.ef] = val;
-    } else if (el.dataset.eq) {
-      _aiResult.story_quote = val;
-    } else if (el.dataset.el != null) {
-      const it = (_aiResult.love_story || [])[+el.dataset.el];
-      if (it) it[el.dataset.elk] = val;
-    } else if (el.dataset.et != null) {
-      const it = (_aiResult.timeline || [])[+el.dataset.et];
-      if (it) it[el.dataset.etk] = val;
+// Editor đang mở (chỉ 1 tại một thời điểm): giữ đích ghi + cách đọc giá trị + listener.
+let _aiActiveEdit = null;
+
+// Gỡ editor đang mở KHÔNG dựng lại preview (dùng khi rời preview: về form / đóng modal).
+function _aiTeardownActiveEdit() {
+  if (!_aiActiveEdit) return;
+  document.removeEventListener("pointerdown", _aiActiveEdit.onDocDown, true);
+  _aiActiveEdit = null;
+}
+
+const _AI_CHECK_SVG = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+
+// Đóng editor đang mở: save=true → lưu giá trị mới; save=false → bỏ (giữ nguyên cũ).
+// Cả 2 trường hợp đều dựng lại preview (ô về dạng hiển thị div như cũ, không còn control).
+function _aiCloseActiveEdit(save) {
+  const a = _aiActiveEdit;
+  if (!a) return;
+  _aiActiveEdit = null;
+  document.removeEventListener("pointerdown", a.onDocDown, true);
+  if (save) _aiSetTarget(a.target, a.readVal());
+  // Không lưu → không cần khôi phục (chưa hề ghi vào _aiResult trong lúc sửa).
+  _renderAiPreview(_aiResult);
+}
+
+function _swapToControl(box, pencil) {
+  const eid = pencil.dataset.eid;
+  const disp = box.querySelector(`.ai-disp[data-eid="${eid}"]`);
+  if (!disp) return;
+  const ctrl = pencil.dataset.ctrl;
+  const target = pencil.dataset.target;
+  const cur = String(_aiGetTarget(target) || "");
+
+  // Chèn holder vào DOM TRƯỚC rồi mới tạo control bên trong — custom element chỉ
+  // chạy connectedCallback (dựng input/flatpickr) khi đã gắn vào document.
+  const holder = document.createElement("div");
+  holder.className = "ai-edit-live";
+  const ctrlWrap = document.createElement("div");
+  ctrlWrap.className = "ai-edit-ctrl";
+  const okBtn = document.createElement("button");
+  okBtn.type = "button";
+  okBtn.className = "ai-edit-ok";
+  okBtn.title = "Lưu";
+  okBtn.setAttribute("aria-label", "Lưu");
+  okBtn.innerHTML = _AI_CHECK_SVG;
+  holder.appendChild(ctrlWrap);
+  disp.replaceWith(holder);
+
+  let readVal = () => cur;
+  let dateInput = null; // để loại trừ click trong lịch flatpickr khỏi "focus out"
+
+  if (ctrl === "textarea") {
+    const el = document.createElement("x-textarea");
+    el.setAttribute("bare", "");
+    el.setAttribute("rows", "2");
+    el.setAttribute("input-class", "ai-inp resize-none");
+    ctrlWrap.appendChild(el);
+    const ta = el.querySelector("textarea");
+    ta.value = cur;
+    el.syncClearBtn?.();
+    readVal = () => ta.value.trim();
+    ta.focus();
+  } else if (ctrl === "date") {
+    // KHÔNG dùng x-date (nó tự init flatpickr kiểu append-body → lịch nhảy lung
+    // tung trong bottom-sheet có transform). Tự init với static=true + appendTo
+    // ctrlWrap → lịch nằm NGAY DƯỚI ô, và tự căn trái/phải nếu tràn mép phải.
+    const input = document.createElement("input");
+    input.type = "date";
+    input.className = "ai-inp";
+    ctrlWrap.appendChild(input);
+    dateInput = input;
+    readVal = () => {
+      const d = input._flatpickr?.selectedDates?.[0];
+      return d instanceof Date && !isNaN(d)
+        ? `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
+        : input.value.trim();
+    };
+    // Smart position: sau khi mở, nếu lịch tràn mép phải màn hình thì căn phải.
+    const smartPos = (_sd, _ds, inst) => {
+      const cal = inst.calendarContainer;
+      if (!cal) return;
+      cal.style.left = "0";
+      cal.style.right = "auto";
+      requestAnimationFrame(() => {
+        const r = cal.getBoundingClientRect();
+        if (r.right > window.innerWidth - 8) {
+          cal.style.left = "auto";
+          cal.style.right = "0";
+        }
+      });
+    };
+    if (window.flatpickr && typeof window._weddingFpOptions === "function") {
+      const opts = window._weddingFpOptions(input);
+      opts.static = true;
+      opts.appendTo = ctrlWrap;
+      opts.onOpen = smartPos;
+      const fp = flatpickr(input, opts);
+      if (cur) try { fp.setDate(cur, false); } catch {}
+      fp.open();
+    } else {
+      input.value = cur;
+      input.focus();
     }
-  });
+  } else if (ctrl === "time") {
+    const input = document.createElement("input");
+    input.type = "text";
+    input.readOnly = true;
+    input.className = "ai-inp cursor-pointer";
+    input.placeholder = "Chọn giờ";
+    input.value = cur;
+    readVal = () => input.value.trim();
+    const openPicker = () => {
+      if (typeof openTimePicker === "function") {
+        // Chọn giờ trong picker = xác nhận → lưu luôn (đóng editor, về dạng hiển thị).
+        openTimePicker(input, input.value, (val) => {
+          input.value = val;
+          _aiCloseActiveEdit(true);
+        });
+      }
+    };
+    input.addEventListener("click", openPicker);
+    ctrlWrap.appendChild(input);
+    openPicker();
+  } else {
+    const el = document.createElement("x-input");
+    ctrlWrap.appendChild(el);
+    const input = el.querySelector("input");
+    input.value = cur;
+    el.syncClearBtn?.();
+    readVal = () => input.value.trim();
+    input.focus();
+  }
+
+  // Nút ✓ nằm BÊN TRONG ô nhập, cùng cấp với nút × (đặt sau control → nổi trên cùng).
+  ctrlWrap.appendChild(okBtn);
+  pencil.classList.add("hidden"); // đang sửa → ẩn bút chì
+
+  // "Focus out" = bấm/chạm ra ngoài editor (không phải trong lịch flatpickr / popup
+  // giờ) → HUỶ, trả lại dữ liệu cũ. Dùng pointerdown capture để bắt được CẢ chuột
+  // LẪN cảm ứng (mobile không phát 'mousedown' khi chạm) và bắt trước cả blur.
+  const onDocDown = (e) => {
+    if (holder.contains(e.target)) return; // trong editor (kể cả nút ✓/x)
+    if (dateInput?._flatpickr?.calendarContainer?.contains(e.target)) return; // lịch
+    if (document.getElementById("tp-popup")?.contains(e.target)) return; // popup giờ
+    _aiCloseActiveEdit(false);
+  };
+  document.addEventListener("pointerdown", onDocDown, true);
+  okBtn.addEventListener("click", () => _aiCloseActiveEdit(true));
+
+  _aiActiveEdit = { target, readVal, onDocDown };
 }
 
 // Nhãn hiển thị cho các field trích xuất (theo thứ tự trong preview)
@@ -1130,13 +1152,8 @@ function _doApplyAiResult() {
     renderTimelineList();
   }
 
-  // 4) Các field trích xuất/sinh khác → đổ vào form
+  // 4) Các field trích xuất/sinh khác (gồm ngày & giờ cưới AI trích từ Thông tin) → đổ vào form
   const f = _aiResult.fields || {};
-  // Ngày & giờ cưới do người dùng CHỌN ở form được ưu tiên (không để AI đè lên).
-  const wd = _aiDateToISO(document.getElementById("ai-date")?.value || "");
-  const wt = (document.getElementById("ai-time")?.value || "").trim();
-  if (wd) f.ceremony_date = wd;
-  if (wt) f.ceremony_time = wt;
   Object.keys(f).forEach((key) => _aiSetField(key, f[key]));
 
   // 5) Bật hiển thị các section tương ứng khi có nội dung
@@ -1236,17 +1253,20 @@ function _aiEnableSection(section) {
 }
 
 // Chèn khung mẫu vào ô thông tin để người dùng chỉ điền chỗ trống (để trống, không "...").
-// Ngày/giờ LỄ CƯỚI đã chọn ở trên; mẫu bổ sung địa điểm lễ, cha mẹ, STK.
+// Mẫu gồm tên cô dâu/chú rể, ngày & giờ cưới (AI tự trích), rồi địa điểm lễ, cha mẹ, STK.
 // Không có dòng riêng cho địa điểm Vu Quy: nếu người dùng không ghi cụ thể, AI tự lấy
 // trùng địa chỉ nhà trai/nhà gái (xem rule ở backend buildPrompt).
 const _AI_INFO_TEMPLATE = [
-  "Địa điểm tổ chức lễ cưới: ",
+  "Chú rể (họ tên đầy đủ): ",
+  "Cô dâu (họ tên đầy đủ): ",
+  "Ngày/giờ tổ chức lễ cưới: ",
   "Địa chỉ nhà trai: ",
   "Địa chỉ nhà gái: ",
   "Bố mẹ chú rể (bố / mẹ): ",
   "Bố mẹ cô dâu (bố / mẹ): ",
   "STK chú rể (số tài khoản / ngân hàng): ",
   "STK cô dâu (số tài khoản / ngân hàng): ",
+  "Lịch trình cưới: ",
 ]
   .map((line) => "- " + line) // gạch đầu dòng cho từng ý
   .join("\n");
@@ -1261,22 +1281,6 @@ function insertAiInfoTemplate() {
   _syncAiClearButtons(); // gán .value bằng code không tự phát "input" → tự đồng bộ nút "x"
   ta.focus();
   ta.setSelectionRange(ta.value.length, ta.value.length);
-}
-
-// ── Ngày cưới (d/m/Y) → ISO YYYY-MM-DD để set vào flatpickr của form ──────────
-function _aiDateToISO(str) {
-  const s = String(str || "").trim();
-  if (!s) return "";
-  try {
-    const d = _aiDateFp?.selectedDates?.[0];
-    if (d instanceof Date && !isNaN(d)) {
-      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-    }
-  } catch (e) {}
-  const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-  if (m) return `${m[3]}-${m[2].padStart(2, "0")}-${m[1].padStart(2, "0")}`;
-  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
-  return "";
 }
 
 // ── Ngân hàng: mã/tên viết tắt AI trả về → chuỗi đầy đủ trong BANK_LIST ───────

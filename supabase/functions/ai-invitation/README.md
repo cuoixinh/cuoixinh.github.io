@@ -4,7 +4,7 @@ Tính năng: người dùng nhập vài thông tin (tên, ngày cưới, văn ph
 
 `fields` phủ: tên, tên/ngày/giờ/nơi lễ, Vu Quy, cha mẹ + địa chỉ hai bên, ngày/giờ/nơi tiệc nhà trai & nhà gái, lời mời RSVP, lời cảm ơn footer, và ngân hàng/STK/chủ TK hai bên. **Không** gồm: ảnh, link bản đồ nhúng, nhạc. AI chỉ trích thông tin người dùng cung cấp, không bịa.
 
-**Tham số tuỳ chọn của input:** `region` (`""`|`bac`|`trung`|`nam` — điều chỉnh cách xưng hô & tên nghi lễ theo vùng), `love_count` (0 = tuỳ AI, hoặc 3/5/7 — số mốc chuyện tình mong muốn). Form còn có nút **"Chèn mẫu"** đổ sẵn khung để người dùng điền vào ô "thông tin cá nhân".
+**Tham số tuỳ chọn của input:** `region` (`""`|`bac`|`trung`|`nam` — điều chỉnh cách xưng hô & tên nghi lễ theo vùng). Số mốc chuyện tình do AI tự quyết theo ngữ nghĩa. Form còn có nút **"Chèn mẫu"** đổ sẵn khung để người dùng điền vào ô "thông tin cá nhân".
 
 ### Streaming (mặc định của UI)
 AI được prompt trả về **MẢNG JSON phẳng các "block"** (không lồng) — mỗi phần tử là một object độc lập, nên có thể parse & hiển thị **từng block** khi đang stream:
@@ -144,14 +144,10 @@ curl -X POST https://lcobawmkywtxhpezndsh.supabase.co/functions/v1/ai-invitation
   -H "Authorization: Bearer <ACCESS_TOKEN>" \
   -H "Content-Type: application/json" \
   -d '{
-    "groom_name": "Văn A",
-    "bride_name": "Thị B",
-    "wedding_date": "20/12/2026",
     "tone": "romantic",
     "region": "bac",
-    "love_count": 5,
-    "bullets": ["Gặp nhau năm 2021 ở Đà Lạt", "Chuyến đi Quy Nhơn", "Cầu hôn dịp sinh nhật"],
-    "info": "Lễ Thành Hôn 11:00 20/12/2026 tại Nhà thờ Chính Tòa.\nTiệc nhà trai 18:00 20/12 tại TT Tiệc cưới ABC, 12 Lê Lợi.\nBố mẹ chú rể: Nguyễn Văn X - Trần Thị Y.\nSTK chú rể: Vietcombank 0123456789."
+    "story_love": "Gặp nhau năm 2021 ở Đà Lạt; chuyến đi Quy Nhơn; cầu hôn dịp sinh nhật.",
+    "info": "Chú rể: Nguyễn Văn A. Cô dâu: Trần Thị B.\nNgày cưới: 20/12/2026. Giờ cưới: 11:00.\nLễ Thành Hôn tại Nhà thờ Chính Tòa.\nTiệc nhà trai 18:00 20/12 tại TT Tiệc cưới ABC, 12 Lê Lợi.\nBố mẹ chú rể: Nguyễn Văn X - Trần Thị Y.\nSTK chú rể: Vietcombank 0123456789."
   }'
 ```
 Kết quả mong đợi: `{ "data": { "story_quote": "...", "love_story": [...], "timeline": [...], "fields": { "ceremony_time": "11:00", "groom_father": "Nguyễn Văn X", "groom_bank_number": "0123456789", ... } }, "provider": "gemini" }`.
