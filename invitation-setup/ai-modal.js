@@ -279,13 +279,38 @@ function _wireAiForm() {
   }
   ["ai-bullets", "ai-info"].forEach((id) => {
     document.getElementById(id)?.addEventListener("input", _saveAiDraft);
-    // Cụm Hoàn tác/Làm lại (x-undo.js) — nổi góc dưới-phải ô, chạy trên undo stack
-    // native của trình duyệt (chung mạch với Ctrl+Z). mount mặc định = .x-ta-wrap.
-    window.attachUndoRedo?.(document.getElementById(id));
+    // Cụm Hoàn tác/Làm lại (x-undo.js) + nút micro "Nói để nhập" (x-speech.js) —
+    // nổi góc dưới-phải ô. speech.questions: câu hỏi gợi ý để người dùng nói.
+    window.attachUndoRedo?.(document.getElementById(id), {
+      speech: _AI_SPEECH[id],
+    });
   });
 
   _wireAiSelects();
 }
+
+// Cấu hình "Nói để nhập" cho từng ô: tiêu đề popup + câu hỏi gợi ý (đọc để trả lời).
+const _AI_SPEECH = {
+  "ai-info": {
+    title: "Nói thông tin cô dâu / chú rể",
+    questions: [
+      "Tên chú rể và tên cô dâu là gì?",
+      "Ngày và giờ tổ chức lễ cưới?",
+      "Địa điểm tổ chức ở đâu?",
+      "Tên bố mẹ hai bên?",
+      "Số tài khoản mừng cưới (nếu có)?",
+    ],
+  },
+  "ai-bullets": {
+    title: "Kể chuyện tình yêu",
+    questions: [
+      "Hai bạn quen nhau khi nào, ở đâu?",
+      "Kỷ niệm đáng nhớ nhất là gì?",
+      "Màn cầu hôn diễn ra thế nào?",
+      "Điều bạn yêu nhất ở đối phương?",
+    ],
+  },
+};
 
 // Đồng bộ nút "x" của các <x-textarea> sau khi gán value bằng code (khôi phục nháp
 // / xem trước lịch sử) — vì gán .value trực tiếp không phát sự kiện input.

@@ -46,6 +46,11 @@
     `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" ` +
     `stroke-width="2" stroke-linecap="round" stroke-linejoin="round">` +
     `<path d="m15 14 5-5-5-5"/><path d="M20 9H9.5A5.5 5.5 0 0 0 4 14.5 5.5 5.5 0 0 0 9.5 20H13"/></svg>`;
+  const MIC_SVG =
+    `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" ` +
+    `stroke-width="2" stroke-linecap="round" stroke-linejoin="round">` +
+    `<path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>` +
+    `<path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>`;
 
   function _btn(title, svg) {
     const b = document.createElement("button");
@@ -68,9 +73,27 @@
 
     const box = document.createElement("div");
     box.className = "x-undo" + (opts.className ? " " + opts.className : "");
+
+    // Nút micro (opt-in): chỉ hiện khi truyền opts.speech VÀ trình duyệt hỗ trợ.
+    // Bấm → mở hộp thoại "Nói để nhập" (x-speech.js), nói xong tự chèn vào ô này.
+    let micBtn = null;
+    if (opts.speech && global.speechSupported && global.speechSupported()) {
+      micBtn = _btn("Nói để nhập", MIC_SVG);
+      micBtn.addEventListener("click", () => {
+        global.openSpeechDialog &&
+          global.openSpeechDialog({
+            target,
+            questions: opts.speech.questions || [],
+            lang: opts.speech.lang || "vi-VN",
+            title: opts.speech.title,
+          });
+      });
+    }
+
     const undoBtn = _btn(opts.undoTitle || "Hoàn tác", UNDO_SVG);
     const redoBtn = _btn(opts.redoTitle || "Làm lại", REDO_SVG);
-    box.append(undoBtn, redoBtn);
+    if (micBtn) box.append(micBtn, undoBtn, redoBtn);
+    else box.append(undoBtn, redoBtn);
     mount.appendChild(box);
 
     // ── Lịch sử tự quản lý ──────────────────────────────────────────────────
