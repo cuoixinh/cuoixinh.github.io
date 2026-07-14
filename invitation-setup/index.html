@@ -264,7 +264,9 @@
       >
         <div class="max-w-4xl mx-auto flex items-stretch">
           <!-- Chuyển Chỉnh sửa/Xem trước -->
-          <div class="flex-1 sm:flex-[2] flex items-center justify-center px-2 sm:px-3">
+          <div
+            class="flex-1 sm:flex-[2] flex items-center justify-center px-2 sm:px-3"
+          >
             <div class="h-8 w-full skeleton rounded-full"></div>
           </div>
           <!-- Cấu hình -->
@@ -440,8 +442,14 @@
               class="h-8 w-auto"
             />
           </a>
-          <div class="flex items-center gap-1.5 text-[11px] min-w-0 flex-1 px-0 sm:px-3">
-            <a href="/" class="text-color-secondary font-semibold hover:opacity-80 transition-opacity shrink-0">Trang chủ</a>
+          <div
+            class="flex items-center gap-1.5 text-[11px] min-w-0 flex-1 px-0 sm:px-3"
+          >
+            <a
+              href="/"
+              class="text-color-secondary font-semibold hover:opacity-80 transition-opacity shrink-0"
+              >Trang chủ</a
+            >
             <span class="text-gray-300 shrink-0">/</span>
             <span class="text-gray-400 truncate">Thiết lập thiệp cưới</span>
           </div>
@@ -467,7 +475,7 @@
                 src=""
                 alt=""
                 class="h-full w-full object-cover object-top"
-                onerror="this.style.display='none'"
+                onerror="this.style.display = 'none'"
               />
             </span>
             <!-- Nhãn -->
@@ -501,34 +509,56 @@
         </div>
       </div>
       <!-- Step Indicator -->
-      <div class="bg-white border-b border-rose-100 px-4 py-2 sticky top-12 z-40">
+      <div
+        class="bg-white border-b border-rose-100 px-4 py-2 sticky top-12 z-40"
+      >
         <div class="max-w-4xl mx-auto flex items-center">
           <div class="flex items-center gap-1 flex-shrink-0">
-            <div class="w-5 h-5 rounded-full bg-rose-400 flex items-center justify-center">
-              <i data-lucide="check" style="width:10px;height:10px" class="text-white"></i>
+            <div
+              class="w-5 h-5 rounded-full bg-rose-400 flex items-center justify-center"
+            >
+              <i
+                data-lucide="check"
+                style="width: 10px; height: 10px"
+                class="text-white"
+              ></i>
             </div>
             <span class="text-[10px] text-rose-400 font-medium">Chọn mẫu</span>
           </div>
           <div class="flex-1 h-px bg-rose-300 mx-1.5"></div>
           <div class="flex items-center gap-1 flex-shrink-0">
-            <div class="w-5 h-5 rounded-full bg-rose-500 flex items-center justify-center">
+            <div
+              class="w-5 h-5 rounded-full bg-rose-500 flex items-center justify-center"
+            >
               <span class="text-white text-[10px] font-bold">2</span>
             </div>
-            <span class="text-[10px] text-rose-600 font-semibold">Thông tin</span>
+            <span class="text-[10px] text-rose-600 font-semibold"
+              >Thông tin</span
+            >
           </div>
           <div class="flex-1 h-px bg-gray-200 mx-1.5" id="step-line-3"></div>
           <div class="flex items-center gap-1 flex-shrink-0">
-            <div class="w-5 h-5 rounded-full bg-gray-200 flex items-center justify-center" id="step-3-dot">
+            <div
+              class="w-5 h-5 rounded-full bg-gray-200 flex items-center justify-center"
+              id="step-3-dot"
+            >
               <span class="text-gray-400 text-[10px] font-bold">3</span>
             </div>
-            <span class="text-[10px] text-gray-400" id="step-3-label">Xem trước</span>
+            <span class="text-[10px] text-gray-400" id="step-3-label"
+              >Xem trước</span
+            >
           </div>
           <div class="flex-1 h-px bg-gray-200 mx-1.5" id="step-line-4"></div>
           <div class="flex items-center gap-1 flex-shrink-0">
-            <div class="w-5 h-5 rounded-full bg-gray-200 flex items-center justify-center" id="step-4-dot">
+            <div
+              class="w-5 h-5 rounded-full bg-gray-200 flex items-center justify-center"
+              id="step-4-dot"
+            >
               <span class="text-gray-400 text-[10px] font-bold">4</span>
             </div>
-            <span class="text-[10px] text-gray-400" id="step-4-label">Thanh toán</span>
+            <span class="text-[10px] text-gray-400" id="step-4-label"
+              >Thanh toán</span
+            >
           </div>
         </div>
       </div>
@@ -627,34 +657,6 @@
               id="enable_footer"
               value="true"
             />
-
-            <!-- AI: Gợi ý nội dung thiệp (PC: banner; mobile: bong bóng nổi phía dưới) -->
-            <div
-              class="hidden md:block rounded-xl overflow-hidden animate-fade-in border border-rose-200 bg-gradient-to-br from-rose-50 to-pink-50"
-            >
-              <div class="px-5 py-4 flex items-center gap-4">
-                <div
-                  class="w-11 h-11 rounded-full bg-white/70 flex items-center justify-center flex-shrink-0 text-rose-500"
-                >
-                  <i data-lucide="sparkles"></i>
-                </div>
-                <div class="flex-1 min-w-0">
-                  <p class="text-sm font-semibold text-gray-800">
-                    Để AI giúp bạn viết nội dung
-                  </p>
-                  <p class="text-xs text-gray-500 mt-0.5">
-                    Nhập vài thông tin, AI gợi ý slogan, chuyện tình yêu và lịch trình.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onclick="openAiModal()"
-                  class="btn-pink flex-shrink-0"
-                >
-                  <i data-lucide="sparkles"></i> Tạo bằng AI
-                </button>
-              </div>
-            </div>
 
             <!-- 1. THÔNG TIN CẶP ĐÔI -->
             <div
@@ -798,7 +800,11 @@
               </div>
               <div id="section-ceremony-body" class="hidden p-6 space-y-4">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <x-date label="Ngày cưới" name="ceremony_date" required></x-date>
+                  <x-date
+                    label="Ngày cưới"
+                    name="ceremony_date"
+                    required
+                  ></x-date>
                   <x-input
                     label="Tên nghi lễ"
                     name="ceremony_name"
@@ -878,7 +884,10 @@
                       id="vu_quy_enabled"
                       value="true"
                     />
-                    <x-switch key="vu-quy" onclick="toggleVuQuy(event)"></x-switch>
+                    <x-switch
+                      key="vu-quy"
+                      onclick="toggleVuQuy(event)"
+                    ></x-switch>
                   </div>
                   <div id="vu-quy-fields" class="space-y-4 mt-4">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -958,7 +967,10 @@
                     <p class="text-sm text-gray-700">Gia đình hai bên</p>
                   </div>
                   <div class="flex items-center gap-3">
-                    <x-switch key="family" onclick="toggleSectionVis('family', event)"></x-switch>
+                    <x-switch
+                      key="family"
+                      onclick="toggleSectionVis('family', event)"
+                    ></x-switch>
                     <i
                       id="section-family-chevron"
                       data-lucide="chevron-down"
@@ -1053,7 +1065,10 @@
                     <p class="text-sm text-gray-700">Tiệc cưới</p>
                   </div>
                   <div class="flex items-center gap-3">
-                    <x-switch key="party" onclick="toggleSectionVis('party', event)"></x-switch>
+                    <x-switch
+                      key="party"
+                      onclick="toggleSectionVis('party', event)"
+                    ></x-switch>
                     <i
                       id="section-party-chevron"
                       data-lucide="chevron-down"
@@ -1086,8 +1101,14 @@
                 <!-- Nhà trai panel -->
                 <div id="party-panel-groom" class="p-6 space-y-4">
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <x-date label="Ngày đãi tiệc" name="groom_party_date"></x-date>
-                    <x-time label="Giờ đãi tiệc" name="groom_party_time"></x-time>
+                    <x-date
+                      label="Ngày đãi tiệc"
+                      name="groom_party_date"
+                    ></x-date>
+                    <x-time
+                      label="Giờ đãi tiệc"
+                      name="groom_party_time"
+                    ></x-time>
                   </div>
                   <p
                     id="groom-party-lunar-display"
@@ -1154,8 +1175,14 @@
                 <!-- Nhà gái panel -->
                 <div id="party-panel-bride" class="hidden p-6 space-y-4">
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <x-date label="Ngày đãi tiệc" name="bride_party_date"></x-date>
-                    <x-time label="Giờ đãi tiệc" name="bride_party_time"></x-time>
+                    <x-date
+                      label="Ngày đãi tiệc"
+                      name="bride_party_date"
+                    ></x-date>
+                    <x-time
+                      label="Giờ đãi tiệc"
+                      name="bride_party_time"
+                    ></x-time>
                   </div>
                   <p
                     id="bride-party-lunar-display"
@@ -1239,7 +1266,10 @@
                     <p class="text-sm text-gray-700">Ảnh cưới</p>
                   </div>
                   <div class="flex items-center gap-3">
-                    <x-switch key="photos" onclick="toggleSectionVis('photos', event)"></x-switch>
+                    <x-switch
+                      key="photos"
+                      onclick="toggleSectionVis('photos', event)"
+                    ></x-switch>
                     <i
                       id="section-photos-chevron"
                       data-lucide="chevron-down"
@@ -1288,7 +1318,10 @@
                     <p class="text-sm text-gray-700">Lịch trình ngày cưới</p>
                   </div>
                   <div class="flex items-center gap-3">
-                    <x-switch key="timeline" onclick="toggleSectionVis('timeline', event)"></x-switch>
+                    <x-switch
+                      key="timeline"
+                      onclick="toggleSectionVis('timeline', event)"
+                    ></x-switch>
                     <i
                       id="section-timeline-chevron"
                       data-lucide="chevron-down"
@@ -1476,7 +1509,10 @@
                     <p class="text-sm text-gray-700">Câu chuyện tình yêu</p>
                   </div>
                   <div class="flex items-center gap-3">
-                    <x-switch key="love_story" onclick="toggleSectionVis('love_story', event)"></x-switch>
+                    <x-switch
+                      key="love_story"
+                      onclick="toggleSectionVis('love_story', event)"
+                    ></x-switch>
                     <i
                       id="section-love_story-chevron"
                       data-lucide="chevron-down"
@@ -1520,7 +1556,10 @@
                     <p class="text-sm text-gray-700">Xác nhận tham dự</p>
                   </div>
                   <div class="flex items-center gap-3">
-                    <x-switch key="rsvp" onclick="toggleSectionVis('rsvp', event)"></x-switch>
+                    <x-switch
+                      key="rsvp"
+                      onclick="toggleSectionVis('rsvp', event)"
+                    ></x-switch>
                     <i
                       id="section-rsvp-chevron"
                       data-lucide="chevron-down"
@@ -1559,7 +1598,10 @@
                     <p class="text-sm text-gray-700">Hộp mừng cưới</p>
                   </div>
                   <div class="flex items-center gap-3">
-                    <x-switch key="gift" onclick="toggleSectionVis('gift', event)"></x-switch>
+                    <x-switch
+                      key="gift"
+                      onclick="toggleSectionVis('gift', event)"
+                    ></x-switch>
                     <i
                       id="section-gift-chevron"
                       data-lucide="chevron-down"
@@ -1737,7 +1779,10 @@
                     <p class="text-sm text-gray-700">Footer</p>
                   </div>
                   <div class="flex items-center gap-3">
-                    <x-switch key="footer" onclick="toggleSectionVis('footer', event)"></x-switch>
+                    <x-switch
+                      key="footer"
+                      onclick="toggleSectionVis('footer', event)"
+                    ></x-switch>
                     <i
                       id="section-footer-chevron"
                       data-lucide="chevron-down"
@@ -1836,7 +1881,10 @@
                 <i data-lucide="music" class="w-4 h-4 text-color-secondary"></i>
                 <p class="text-sm font-medium text-gray-700">Nhạc nền</p>
               </div>
-              <x-switch key="music" onclick="toggleSectionVis('music', event)"></x-switch>
+              <x-switch
+                key="music"
+                onclick="toggleSectionVis('music', event)"
+              ></x-switch>
             </div>
             <div
               class="flex items-center gap-1.5 bg-gray-50 border border-gray-100 rounded-md px-2.5 py-1.5"
@@ -1919,8 +1967,24 @@
           id="guests-lock"
           class="hidden flex-1 flex-col items-center justify-center gap-4 px-6 text-center"
         >
-          <div class="w-16 h-16 rounded-full bg-rose-50 flex items-center justify-center">
-            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-rose-400"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <div
+            class="w-16 h-16 rounded-full bg-rose-50 flex items-center justify-center"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="28"
+              height="28"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="text-rose-400"
+            >
+              <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </svg>
           </div>
           <div>
             <p class="text-sm font-semibold text-gray-700">
@@ -2033,7 +2097,9 @@
             class="flex-none px-3 sm:flex-1 sm:px-0 flex flex-col items-center justify-center gap-1 py-3 text-gray-400 border-t-2 border-transparent transition-colors"
           >
             <i data-lucide="settings" class="text-base"></i>
-            <span class="hidden sm:inline text-[11px] font-medium">Cấu hình</span>
+            <span class="hidden sm:inline text-[11px] font-medium"
+              >Cấu hình</span
+            >
           </button>
           <button
             type="button"
@@ -2042,7 +2108,9 @@
             class="flex-none px-3 sm:flex-1 sm:px-0 flex flex-col items-center justify-center gap-1 py-3 text-gray-400 border-t-2 border-transparent transition-colors"
           >
             <i data-lucide="users" class="text-base"></i>
-            <span class="hidden sm:inline text-[11px] font-medium">Khách mời</span>
+            <span class="hidden sm:inline text-[11px] font-medium"
+              >Khách mời</span
+            >
           </button>
           <div class="flex-1 flex items-center justify-center px-1.5 py-2">
             <button
@@ -2112,6 +2180,8 @@
       <!-- UI Layer -->
       <script src="../core/x-input.js"></script>
       <script src="../core/x-controls.js"></script>
+      <!-- Cụm Hoàn tác/Làm lại dùng chung (undo/redo native) -->
+      <script src="../core/x-undo.js"></script>
       <script src="index.js"></script>
       <!-- AI: tạo nội dung thiệp (tách riêng) -->
       <script src="ai-modal.js"></script>
@@ -2271,18 +2341,53 @@
       </div>
     </div>
 
-    <!-- FAB "Tạo với AI" — chỉ hiển thị ở mobile (PC dùng banner ở trên) -->
-    <button
-      type="button"
-      onclick="openAiModal()"
-      class="ai-fab md:hidden"
-      aria-label="Tạo nội dung bằng AI"
-    >
-      <span class="ai-fab-label flex gap-2">
-        <span class="ai-fab-label-msg">✨ AI giúp hoàn thiện nội dung thiệp</span>
-        <span class="ai-fab-label-cta">Trải nghiệm ngay</span>
-      </span>
-      <span class="ai-fab-bubble"><i data-lucide="sparkles"></i></span>
-    </button>
+    <!-- Thẻ Soft "Tạo với AI" — nổi góc dưới-phải, hiển thị ở cả PC lẫn mobile -->
+    <div class="ai-fab">
+      <!-- Thẻ mời (glassmorphism) — bấm cả thẻ hoặc nút để mở popup AI -->
+      <div
+        class="ai-card"
+        role="button"
+        tabindex="0"
+        onclick="openAiModal()"
+        aria-label="Tạo nội dung bằng AI"
+      >
+        <button
+          type="button"
+          class="ai-fab-close"
+          aria-label="Đóng gợi ý"
+          title="Đóng gợi ý"
+          onclick="
+            event.stopPropagation();
+            dismissAiFab();
+          "
+        >
+          <i data-lucide="x"></i>
+        </button>
+        <div class="ai-icon"><i data-lucide="sparkles"></i></div>
+        <div class="ai-title">Tạo thiệp với AI</div>
+        <div class="ai-desc">
+          Vài dòng thông tin, AI hoàn thiện cả tấm thiệp.
+        </div>
+        <button
+          type="button"
+          class="ai-card-btn"
+          onclick="
+            event.stopPropagation();
+            openAiModal();
+          "
+        >
+          Thử ngay ✨
+        </button>
+      </div>
+      <!-- Nút thu gọn: hiện sau khi đóng thẻ, vẫn là lối vào AI -->
+      <button
+        type="button"
+        class="ai-mini"
+        onclick="openAiModal()"
+        aria-label="Tạo nội dung bằng AI"
+      >
+        <i data-lucide="sparkles"></i>
+      </button>
+    </div>
   </body>
 </html>

@@ -251,7 +251,8 @@ function _injectAiHistoryButton() {
   hb.title = "Lịch sử tạo";
   // Cùng khuôn với nút X (p-1.5, icon 20px, SVG thô) để canh thẳng hàng tuyệt đối.
   // Icon "clipboard-clock" (Lucide) — dán SVG thô để không bị svg.lucide{width:1em} bóp nhỏ.
-  hb.className = "p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 transition-colors";
+  hb.className =
+    "p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 transition-colors";
   hb.innerHTML = `<svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 14v2.2l1.6 1"/><path d="M16 4h2a2 2 0 0 1 2 2v.832"/><path d="M8 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h2"/><circle cx="16" cy="16" r="6"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg>`;
   hb.addEventListener("click", openAiHistory);
   // Gom [lịch sử][X] vào một nhóm để justify-between không đẩy nút ra giữa header.
@@ -278,6 +279,9 @@ function _wireAiForm() {
   }
   ["ai-bullets", "ai-info"].forEach((id) => {
     document.getElementById(id)?.addEventListener("input", _saveAiDraft);
+    // Cụm Hoàn tác/Làm lại (x-undo.js) — nổi góc dưới-phải ô, chạy trên undo stack
+    // native của trình duyệt (chung mạch với Ctrl+Z). mount mặc định = .x-ta-wrap.
+    window.attachUndoRedo?.(document.getElementById(id));
   });
 
   _wireAiSelects();
@@ -343,9 +347,9 @@ function _wireAiSelects() {
           label.textContent = opt.textContent.trim();
           label.classList.remove("is-placeholder");
         }
-        panel.querySelectorAll(".ai-cselect-opt").forEach((o) =>
-          o.classList.toggle("sel", o === opt),
-        );
+        panel
+          .querySelectorAll(".ai-cselect-opt")
+          .forEach((o) => o.classList.toggle("sel", o === opt));
         panel.classList.add("hidden");
         btn.classList.remove("open");
         _saveAiDraft();
@@ -361,8 +365,12 @@ function _wireAiSelects() {
 }
 
 function _closeAllAiSelects() {
-  document.querySelectorAll(".ai-cselect-panel").forEach((p) => p.classList.add("hidden"));
-  document.querySelectorAll(".ai-cselect-btn.open").forEach((b) => b.classList.remove("open"));
+  document
+    .querySelectorAll(".ai-cselect-panel")
+    .forEach((p) => p.classList.add("hidden"));
+  document
+    .querySelectorAll(".ai-cselect-btn.open")
+    .forEach((b) => b.classList.remove("open"));
 }
 
 // Set value cho 1 combobox tuỳ biến + cập nhật nhãn/hạng mục đang chọn (dùng khi khôi phục nháp).
@@ -387,8 +395,16 @@ function _aiSelectApply(hiddenId, value) {
 
 // Chuyển giữa các bước: 'form' (nhập), 'preview' (kết quả), 'history' (lịch sử).
 function _setAiView(view) {
-  const bodies = { form: "ai-form", preview: "ai-preview", history: "ai-history" };
-  const footers = { form: "ai-footer-form", preview: "ai-footer-preview", history: "ai-footer-history" };
+  const bodies = {
+    form: "ai-form",
+    preview: "ai-preview",
+    history: "ai-history",
+  };
+  const footers = {
+    form: "ai-footer-form",
+    preview: "ai-footer-preview",
+    history: "ai-footer-history",
+  };
   Object.entries(bodies).forEach(([v, id]) =>
     document.getElementById(id)?.classList.toggle("hidden", v !== view),
   );
@@ -405,7 +421,7 @@ function backToAiForm() {
   _setAiView("form");
   // reset trạng thái streaming của khu preview
   const status = document.getElementById("ai-stream-status");
-  if (status) status.classList.add("hidden"), status.classList.remove("flex");
+  if (status) (status.classList.add("hidden"), status.classList.remove("flex"));
   document
     .getElementById("ai-preview-content")
     ?.closest(".overflow-y-auto")
@@ -414,9 +430,14 @@ function backToAiForm() {
 
 // ── Lịch sử tạo (chỉ localStorage) ────────────────────────────────────────────
 const _AI_TONE_NAMES = {
-  romantic: "Lãng mạn", traditional: "Truyền thống", humorous: "Dí dỏm",
-  poetic: "Thơ mộng", modern: "Hiện đại", luxury: "Sang trọng",
-  cute: "Dễ thương", vintage: "Cổ điển",
+  romantic: "Lãng mạn",
+  traditional: "Truyền thống",
+  humorous: "Dí dỏm",
+  poetic: "Thơ mộng",
+  modern: "Hiện đại",
+  luxury: "Sang trọng",
+  cute: "Dễ thương",
+  vintage: "Cổ điển",
 };
 
 function _loadAiHistory() {
@@ -444,7 +465,10 @@ function _pushAiHistory(payload, result) {
     };
     const list = _loadAiHistory();
     list.unshift(entry);
-    localStorage.setItem(AI_HISTORY_KEY, JSON.stringify(list.slice(0, AI_HISTORY_MAX)));
+    localStorage.setItem(
+      AI_HISTORY_KEY,
+      JSON.stringify(list.slice(0, AI_HISTORY_MAX)),
+    );
   } catch {}
 }
 
@@ -461,7 +485,8 @@ function _fmtAiHistoryTime(ts) {
 function openAiHistory() {
   if (!document.getElementById("ai-history")) return;
   _aiViewBeforeHistory =
-    _aiResult && !document.getElementById("ai-preview")?.classList.contains("hidden")
+    _aiResult &&
+    !document.getElementById("ai-preview")?.classList.contains("hidden")
       ? "preview"
       : "form";
   _renderAiHistory();
@@ -469,7 +494,9 @@ function openAiHistory() {
 }
 
 function backFromAiHistory() {
-  _setAiView(_aiViewBeforeHistory === "preview" && _aiResult ? "preview" : "form");
+  _setAiView(
+    _aiViewBeforeHistory === "preview" && _aiResult ? "preview" : "form",
+  );
 }
 
 function _renderAiHistory() {
@@ -586,7 +613,10 @@ async function submitAiGenerate() {
 
   // Tên/ngày/giờ cưới nay nằm trong ô Thông tin để AI tự trích → bắt buộc có nội dung.
   if (!info) {
-    showToast("⚠️ Vui lòng nhập thông tin cô dâu, chú rể (tên, ngày, giờ cưới…)", "warning");
+    showToast(
+      "⚠️ Vui lòng nhập thông tin cô dâu, chú rể (tên, ngày, giờ cưới…)",
+      "warning",
+    );
     document.getElementById("ai-info")?.focus();
     return;
   }
@@ -616,7 +646,8 @@ async function submitAiGenerate() {
   // Lúc stream: chuyển sang preview, khoá "Tạo lại", nút "Áp dụng" xoay + "Đang tạo…"
   const enterPreview = () => {
     _setAiView("preview");
-    if (statusEl) statusEl.classList.remove("hidden"), statusEl.classList.add("flex");
+    if (statusEl)
+      (statusEl.classList.remove("hidden"), statusEl.classList.add("flex"));
     const backBtn = document.getElementById("ai-back-btn");
     const applyBtn = document.getElementById("ai-apply-btn");
     if (backBtn) backBtn.disabled = true;
@@ -627,7 +658,8 @@ async function submitAiGenerate() {
     if (typeof lucide !== "undefined") lucide.createIcons();
   };
   const finishPreview = () => {
-    if (statusEl) statusEl.classList.add("hidden"), statusEl.classList.remove("flex");
+    if (statusEl)
+      (statusEl.classList.add("hidden"), statusEl.classList.remove("flex"));
     const backBtn = document.getElementById("ai-back-btn");
     const applyBtn = document.getElementById("ai-apply-btn");
     if (backBtn) backBtn.disabled = false;
@@ -659,7 +691,8 @@ async function submitAiGenerate() {
       }
     });
 
-    if (!gotAny) throw new Error("AI chưa tạo được nội dung, vui lòng thử lại.");
+    if (!gotAny)
+      throw new Error("AI chưa tạo được nội dung, vui lòng thử lại.");
     finishPreview();
     _renderAiPreview(_aiResult);
     _pushAiHistory(payload, _aiResult);
@@ -680,7 +713,10 @@ async function submitAiGenerate() {
     } else {
       // Đã stream được một phần → giữ lại, chỉ báo nhẹ
       finishPreview();
-      showToast("⚠️ " + (err.message || "Tạo bị gián đoạn, dùng phần đã có"), "warning");
+      showToast(
+        "⚠️ " + (err.message || "Tạo bị gián đoạn, dùng phần đã có"),
+        "warning",
+      );
     }
   } finally {
     if (btn) {
@@ -753,7 +789,9 @@ let _aiEid = 0; // reset mỗi lần render để eid ổn định trong 1 lần
 // Ô hiển thị (đọc): span/p mang data-eid để pencil cùng eid tìm ra khi swap.
 function _aiDisp(eid, value, cls = "", tag = "span", empty = "(trống)") {
   const has = value !== "" && value != null;
-  const inner = has ? escapeHtml(String(value)) : `<span class="ai-disp-empty">${empty}</span>`;
+  const inner = has
+    ? escapeHtml(String(value))
+    : `<span class="ai-disp-empty">${empty}</span>`;
   return `<${tag} class="ai-disp ${cls}" data-eid="${eid}">${inner}</${tag}>`;
 }
 // Nút bút chì: nắm control cần bind + đích ghi (target) + eid để tìm ô hiển thị.
@@ -770,7 +808,8 @@ function _aiCell(value, ctrl, target, opt = {}) {
 function _aiCtrlForField(key, full) {
   if (/_date$/.test(key)) return "date";
   if (/_time$/.test(key)) return "time";
-  if (full || key === "rsvp_message" || key === "footer_text") return "textarea";
+  if (full || key === "rsvp_message" || key === "footer_text")
+    return "textarea";
   return "input";
 }
 
@@ -805,7 +844,10 @@ function _renderAiPreview(result) {
            <div class="space-y-1.5">
              ${result.love_story
                .map(
-                 (it, i) => `<div class="ai-item text-sm bg-gray-50 rounded-xl px-3 py-2 border border-gray-100">
+                 (
+                   it,
+                   i,
+                 ) => `<div class="ai-item text-sm bg-gray-50 rounded-xl px-3 py-2 border border-gray-100">
                    <div class="ai-item-head">
                      <div class="min-w-0 ai-love-title">
                        ${_aiCell(it.title || "", "input", `l:${i}:title`, { cls: "font-medium text-gray-800", empty: "(tiêu đề)" })}
@@ -829,7 +871,10 @@ function _renderAiPreview(result) {
            <div class="space-y-1.5">
              ${result.timeline
                .map(
-                 (it, i) => `<div class="ai-item text-sm bg-gray-50 rounded-xl px-3 py-2 border border-gray-100 flex items-center gap-2">
+                 (
+                   it,
+                   i,
+                 ) => `<div class="ai-item text-sm bg-gray-50 rounded-xl px-3 py-2 border border-gray-100 flex items-center gap-2">
                    ${_aiCell(it.time || "", "time", `t:${i}:time`, { cls: "text-xs font-semibold text-rose-500 whitespace-nowrap", empty: "(giờ)" })}
                    ${_aiCell(it.title || "", "input", `t:${i}:title`, { cls: "text-gray-800 flex-1", empty: "(việc)" })}
                  </div>`,
@@ -846,7 +891,8 @@ function _renderAiPreview(result) {
       let v = f[key];
       if (v === undefined || v === null || v === "" || v === false) return "";
       // Ngân hàng: hiển thị tên đầy đủ đã map thay vì mã thô
-      if (key === "groom_bank_name" || key === "bride_bank_name") v = _resolveBankName(v);
+      if (key === "groom_bank_name" || key === "bride_bank_name")
+        v = _resolveBankName(v);
       // Field boolean (VD "Có lễ Vu Quy") KHÔNG cho sửa (tránh phá kiểu true/false).
       if (v === true) {
         return `<div class="ai-fld${full ? " full" : ""}">
@@ -913,7 +959,8 @@ function _bindAiPreviewEditing(box) {
   box.dataset.editBound = "1";
   box.addEventListener("click", (e) => {
     const pencil = e.target.closest(".ai-edit-ico");
-    if (pencil && !pencil.classList.contains("hidden")) _swapToControl(box, pencil);
+    if (pencil && !pencil.classList.contains("hidden"))
+      _swapToControl(box, pencil);
   });
 }
 
@@ -1013,7 +1060,10 @@ function _swapToControl(box, pencil) {
       opts.appendTo = ctrlWrap;
       opts.onOpen = smartPos;
       const fp = flatpickr(input, opts);
-      if (cur) try { fp.setDate(cur, false); } catch {}
+      if (cur)
+        try {
+          fp.setDate(cur, false);
+        } catch {}
       fp.open();
     } else {
       input.value = cur;
@@ -1164,13 +1214,21 @@ function _doApplyAiResult() {
   if (f.groom_father || f.groom_mother || f.bride_father || f.bride_mother)
     _aiEnableSection("family");
   if (
-    f.groom_party_date || f.groom_party_time || f.groom_party_location ||
-    f.bride_party_date || f.bride_party_time || f.bride_party_location
+    f.groom_party_date ||
+    f.groom_party_time ||
+    f.groom_party_location ||
+    f.bride_party_date ||
+    f.bride_party_time ||
+    f.bride_party_location
   )
     _aiEnableSection("party");
   if (
-    f.groom_bank_name || f.groom_bank_number || f.groom_bank_owner ||
-    f.bride_bank_name || f.bride_bank_number || f.bride_bank_owner
+    f.groom_bank_name ||
+    f.groom_bank_number ||
+    f.groom_bank_owner ||
+    f.bride_bank_name ||
+    f.bride_bank_number ||
+    f.bride_bank_owner
   )
     _aiEnableSection("gift");
 
@@ -1275,60 +1333,108 @@ function insertAiInfoTemplate() {
   const ta = document.getElementById("ai-info");
   if (!ta) return;
   const cur = ta.value.trim();
-  // Còn trống → chèn mẫu; đã có nội dung → nối thêm vào cuối (không ghi đè)
-  ta.value = cur ? `${cur}\n\n${_AI_INFO_TEMPLATE}` : _AI_INFO_TEMPLATE;
-  _saveAiDraft();
-  _syncAiClearButtons(); // gán .value bằng code không tự phát "input" → tự đồng bộ nút "x"
+  // Còn trống → chèn mẫu; đã có nội dung → nối thêm vào cuối (không ghi đè).
+  const insert = cur ? `\n\n${_AI_INFO_TEMPLATE}` : _AI_INFO_TEMPLATE;
+  // Chèn qua execCommand insertText (đưa con trỏ về cuối trước) thay vì gán .value:
+  // giữ được stack undo native → có thể Hoàn tác/Ctrl+Z để bỏ phần mẫu vừa chèn.
+  // execCommand cũng tự phát "input" nên autosave + nút "x" xoá tự đồng bộ.
   ta.focus();
   ta.setSelectionRange(ta.value.length, ta.value.length);
+  let ok = false;
+  try {
+    ok = document.execCommand("insertText", false, insert);
+  } catch {}
+  if (!ok) {
+    // Trình duyệt không hỗ trợ → fallback gán trực tiếp (mất undo cho lần chèn này).
+    ta.value = cur ? `${cur}\n\n${_AI_INFO_TEMPLATE}` : _AI_INFO_TEMPLATE;
+    ta.dispatchEvent(new Event("input", { bubbles: true }));
+    ta.setSelectionRange(ta.value.length, ta.value.length);
+  }
 }
 
 // ── Ngân hàng: mã/tên viết tắt AI trả về → chuỗi đầy đủ trong BANK_LIST ───────
 // AI được yêu cầu trả mã (VD "VCB", "MB", "TCB"); ở đây map về đúng tên control.
 const _BANK_CODE_MAP = {
   vcb: "Vietcombank",
-  ctg: "VietinBank", icb: "VietinBank", vietin: "VietinBank",
+  ctg: "VietinBank",
+  icb: "VietinBank",
+  vietin: "VietinBank",
   bidv: "BIDV",
-  vba: "Agribank", agri: "Agribank", agribank: "Agribank",
-  mb: "MB Bank", mbbank: "MB Bank",
-  tcb: "Techcombank", techcom: "Techcombank",
+  vba: "Agribank",
+  agri: "Agribank",
+  agribank: "Agribank",
+  mb: "MB Bank",
+  mbbank: "MB Bank",
+  tcb: "Techcombank",
+  techcom: "Techcombank",
   acb: "ACB",
-  vpb: "VPBank", vpbank: "VPBank",
-  tpb: "TPBank", tpbank: "TPBank",
-  stb: "Sacombank", sacom: "Sacombank",
-  hdb: "HDBank", hdbank: "HDBank",
+  vpb: "VPBank",
+  vpbank: "VPBank",
+  tpb: "TPBank",
+  tpbank: "TPBank",
+  stb: "Sacombank",
+  sacom: "Sacombank",
+  hdb: "HDBank",
+  hdbank: "HDBank",
   vib: "VIB",
   shb: "SHB",
-  eib: "Eximbank", exim: "Eximbank",
+  eib: "Eximbank",
+  exim: "Eximbank",
   msb: "MSB",
   ocb: "OCB",
-  ssb: "SeABank", seab: "SeABank", seabank: "SeABank",
-  bvb: "VietCapital Bank", vccb: "VietCapital Bank", banviet: "VietCapital Bank",
+  ssb: "SeABank",
+  seab: "SeABank",
+  seabank: "SeABank",
+  bvb: "VietCapital Bank",
+  vccb: "VietCapital Bank",
+  banviet: "VietCapital Bank",
   scb: "SCB",
-  vbb: "VietBank", vietbank: "VietBank",
-  lpb: "LienVietPostBank", lienviet: "LienVietPostBank",
-  pvcb: "PVcomBank", pvcombank: "PVcomBank",
-  bab: "BacABank", bacabank: "BacABank",
-  vab: "VietABank", vieta: "VietABank",
-  ncb: "NCB", nvb: "NCB",
-  sgb: "SaigonBank", sgicb: "SaigonBank",
-  abb: "ABBank", abbank: "ABBank",
-  nab: "Nam A Bank", namabank: "Nam A Bank", nama: "Nam A Bank",
-  pgb: "PGBank", pgbank: "PGBank",
-  bvbank: "BaoViet Bank", baoviet: "BaoViet Bank",
-  gpb: "GPBank", gpbank: "GPBank",
-  oceanbank: "OceanBank", ojb: "OceanBank",
-  cbb: "CBBank", cbbank: "CBBank",
-  klb: "KienLongBank", kienlong: "KienLongBank",
-  dab: "DongA Bank", dongabank: "DongA Bank", donga: "DongA Bank",
+  vbb: "VietBank",
+  vietbank: "VietBank",
+  lpb: "LienVietPostBank",
+  lienviet: "LienVietPostBank",
+  pvcb: "PVcomBank",
+  pvcombank: "PVcomBank",
+  bab: "BacABank",
+  bacabank: "BacABank",
+  vab: "VietABank",
+  vieta: "VietABank",
+  ncb: "NCB",
+  nvb: "NCB",
+  sgb: "SaigonBank",
+  sgicb: "SaigonBank",
+  abb: "ABBank",
+  abbank: "ABBank",
+  nab: "Nam A Bank",
+  namabank: "Nam A Bank",
+  nama: "Nam A Bank",
+  pgb: "PGBank",
+  pgbank: "PGBank",
+  bvbank: "BaoViet Bank",
+  baoviet: "BaoViet Bank",
+  gpb: "GPBank",
+  gpbank: "GPBank",
+  oceanbank: "OceanBank",
+  ojb: "OceanBank",
+  cbb: "CBBank",
+  cbbank: "CBBank",
+  klb: "KienLongBank",
+  kienlong: "KienLongBank",
+  dab: "DongA Bank",
+  dongabank: "DongA Bank",
+  donga: "DongA Bank",
   uob: "UOB",
-  scvn: "Standard Chartered", standard: "Standard Chartered",
+  scvn: "Standard Chartered",
+  standard: "Standard Chartered",
   hsbc: "HSBC",
-  shbvn: "Shinhan Bank", shinhan: "Shinhan Bank",
+  shbvn: "Shinhan Bank",
+  shinhan: "Shinhan Bank",
   woori: "Woori Bank",
-  hlb: "Hong Leong Bank", hongleong: "Hong Leong Bank",
+  hlb: "Hong Leong Bank",
+  hongleong: "Hong Leong Bank",
   cimb: "CIMB",
-  pbvn: "Public Bank", publicbank: "Public Bank",
+  pbvn: "Public Bank",
+  publicbank: "Public Bank",
 };
 
 function _normBank(s) {
@@ -1368,26 +1474,59 @@ function _resolveBankName(codeOrName) {
   return raw; // không tìm được → giữ nguyên (control vẫn cho nhập tự do)
 }
 
-// ── Định vị FAB "Tạo với AI" ─────────────────────────────────────────────────
-// Luôn cách mép TRÊN của thanh điều hướng dưới cùng đúng 16px — bất kể navbar có
-// hay không Local Draft Notice (chiều cao thay đổi). Đặt biến CSS --ai-fab-bottom
-// theo chiều cao thực của navbar; theo dõi bằng ResizeObserver để tự cập nhật khi
-// notice hiện/ẩn hoặc bị đóng.
+// ── Định vị thẻ Soft "Tạo với AI" ────────────────────────────────────────────
+// DỌC: luôn cách mép TRÊN thanh nav dưới cùng đúng 16px (theo chiều cao thực của
+//   navbar, kể cả khi có Local Draft Notice) — qua biến CSS --ai-fab-bottom.
+// NGANG: bám theo mép PHẢI của #wedding-form (thẻ thiết lập), không phải mép màn:
+//   • Màn rộng còn nhiều khoảng trắng bên phải form → đặt NGOÀI form, cách mép
+//     phải form 16px (thẻ nằm gọn trong khoảng trắng).
+//   • Màn hẹp không đủ chỗ → đặt PHÍA TRONG, mép phải thẻ TRÙNG mép phải form (0px).
+// Theo dõi bằng ResizeObserver (nav + form) và sự kiện resize để luôn khớp.
+const _AI_FAB_GAP = 8;
+const _AI_FAB_CARD_W = 192; // bề rộng thẻ (12rem) — ngưỡng quyết định NGOÀI/TRONG
+
 function _positionAiFab() {
   const nav = document.getElementById("bottom-nav-bar");
-  if (!nav) return;
-  document.documentElement.style.setProperty(
-    "--ai-fab-bottom",
-    nav.offsetHeight + 16 + "px",
-  );
+  if (nav) {
+    document.documentElement.style.setProperty(
+      "--ai-fab-bottom",
+      nav.offsetHeight + 8 + "px",
+    );
+  }
+  const fab = document.querySelector(".ai-fab");
+  const form = document.getElementById("wedding-form");
+  if (!fab || !form) return;
+  const r = form.getBoundingClientRect();
+  const vw = document.documentElement.clientWidth;
+  const gapRight = vw - r.right; // khoảng trắng bên phải form
+  // Ngưỡng dựa trên bề rộng THẺ (không phải nút thu gọn) để chế độ ổn định khi thu/mở.
+  if (gapRight >= _AI_FAB_GAP + _AI_FAB_CARD_W + 8) {
+    // NGOÀI form: căn trái tại (mép phải form + 16px) → thẻ nằm trong khoảng trắng.
+    fab.style.left = r.right + _AI_FAB_GAP + "px";
+    fab.style.right = "auto";
+  } else {
+    // PHÍA TRONG: căn phải, mép phải thẻ TRÙNG mép phải form (cách 0px).
+    fab.style.left = "auto";
+    fab.style.right = gapRight + "px";
+  }
+}
+
+// Đóng thẻ mời của FAB (nút "x"): thu thẻ về nút tròn nhỏ (.ai-mini) trong phiên hiện
+// tại, vẫn giữ lối vào AI. KHÔNG ghi nhớ — tải lại trang thì thẻ mời hiện lại.
+function dismissAiFab() {
+  document.querySelector(".ai-fab")?.classList.add("collapsed");
+  _positionAiFab(); // bề rộng đổi (thẻ → nút nhỏ) → tính lại vị trí cho khớp
 }
 
 (function _initAiFabPosition() {
   const start = () => {
     _positionAiFab();
-    const nav = document.getElementById("bottom-nav-bar");
-    if (nav && window.ResizeObserver) {
-      new ResizeObserver(_positionAiFab).observe(nav);
+    if (window.ResizeObserver) {
+      const ro = new ResizeObserver(_positionAiFab);
+      const nav = document.getElementById("bottom-nav-bar");
+      const form = document.getElementById("wedding-form");
+      if (nav) ro.observe(nav);
+      if (form) ro.observe(form);
     }
     window.addEventListener("resize", _positionAiFab);
     // Reflow sau khi font/layout ổn định.
