@@ -47,7 +47,7 @@
       ".xsp-q-item{font-size:12px;color:#6b7280;line-height:1.5;padding-left:16px;position:relative}",
       ".xsp-q-item::before{content:'•';position:absolute;left:4px;color:#fda4af}",
       ".xsp-transcript{min-height:120px;max-height:240px;overflow-y:auto;border:1px solid #e5e7eb;",
-      "border-radius:12px;padding:12px;font-size:16px;line-height:1.5;color:#374151;background:#fafafa;white-space:pre-wrap;word-break:break-word}",
+      "border-radius:12px;padding:12px;font-size:12px;line-height:1.5;color:#374151;background:#fafafa;white-space:pre-wrap;word-break:break-word}",
       ".xsp-interim{color:#9ca3af}",
       ".xsp-placeholder{color:#b6bcc6}",
       ".xsp-foot{display:flex;align-items:center;gap:12px;padding:12px 16px 16px;border-top:1px solid #f3f4f6}",
@@ -60,12 +60,31 @@
       "background:linear-gradient(135deg,#cbb9f5,#81b1ff);color:#fff;display:inline-flex;",
       "align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(99,102,241,.35)}",
       ".xsp-mic svg{width:20px;height:20px}",
-      ".xsp-status{flex:1;min-width:0;font-size:12px;color:#6b7280}",
-      ".xsp-stop{flex-shrink:0;height:40px;padding:0 16px;border:none;border-radius:12px;",
+      ".xsp-status{flex:1;min-width:0;font-size:12px;color:#6b7280;white-space:nowrap;",
+      "overflow:hidden;text-overflow:ellipsis}",
+      ".xsp-actions{flex-shrink:0;display:inline-flex;align-items:center;gap:8px}",
+      ".xsp-pause{box-sizing:border-box;height:40px;padding:0 16px;border:1px solid #e5e7eb;border-radius:12px;",
+      "background:#fff;color:#374151;font-size:12px;font-weight:600;cursor:pointer;",
+      "display:inline-flex;align-items:center;gap:8px}",
+      ".xsp-pause:hover{background:#f3f4f6}",
+      ".xsp-pause svg{width:16px;height:16px}",
+      ".xsp-apply{box-sizing:border-box;height:40px;padding:0 16px;border:1px solid transparent;border-radius:12px;",
       "background:#111827;color:#fff;font-size:12px;font-weight:600;cursor:pointer;",
       "display:inline-flex;align-items:center;gap:8px}",
-      ".xsp-stop:hover{background:#000}",
-      ".xsp-stop svg{width:16px;height:16px}",
+      ".xsp-apply:hover{background:#000}",
+      ".xsp-apply svg{width:16px;height:16px}",
+      ".xsp-mic-wrap.paused .xsp-mic{filter:grayscale(.4);opacity:.85}",
+      // ── Mobile: thu nhỏ hàng nút thao tác ──────────────────────────────────
+      "@media (max-width:480px){",
+      ".xsp-foot{gap:8px;padding:8px 12px 12px}",
+      ".xsp-mic-wrap{width:40px;height:40px}",
+      ".xsp-mic{width:32px;height:32px}",
+      ".xsp-mic svg{width:16px;height:16px}",
+      ".xsp-actions{gap:8px}",
+      ".xsp-pause{height:32px;padding:0 12px;border-radius:8px;gap:4px}",
+      ".xsp-apply{height:32px;padding:0 12px;border-radius:8px;gap:4px}",
+      ".xsp-pause svg,.xsp-apply svg{width:14px;height:14px}",
+      "}",
     ].join("");
     document.head.appendChild(s);
   }
@@ -78,6 +97,12 @@
   const STOP_SVG =
     `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" stroke="none">` +
     `<rect x="6" y="6" width="12" height="12" rx="2"/></svg>`;
+  const PLAY_SVG =
+    `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" stroke="none">` +
+    `<path d="M8 5v14l11-7z"/></svg>`;
+  const CHECK_SVG =
+    `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" ` +
+    `stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>`;
   const X_SVG =
     `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" ` +
     `stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">` +
@@ -123,14 +148,15 @@
         </div>
         <div class="xsp-body">
           ${qHtml}
-          <div class="xsp-transcript" aria-live="polite">
-            <span class="xsp-final"></span><span class="xsp-interim"></span><span class="xsp-placeholder">Bắt đầu nói, chữ sẽ hiện dần ở đây…</span>
-          </div>
+          <div class="xsp-transcript" aria-live="polite"><span class="xsp-final"></span><span class="xsp-interim"></span><span class="xsp-placeholder">Đang lắng nghe… bạn nói đi nhé</span></div>
         </div>
         <div class="xsp-foot">
           <div class="xsp-mic-wrap"><div class="xsp-mic-pulse"></div><div class="xsp-mic">${MIC_SVG}</div></div>
           <span class="xsp-status">Đang lắng nghe…</span>
-          <button type="button" class="xsp-stop">${STOP_SVG} Dừng &amp; chèn</button>
+          <div class="xsp-actions">
+            <button type="button" class="xsp-pause">${STOP_SVG}<span class="xsp-pause-label">Dừng</span></button>
+            <button type="button" class="xsp-apply">${CHECK_SVG} Áp dụng</button>
+          </div>
         </div>
       </div>`;
     document.body.appendChild(overlay);
@@ -143,12 +169,14 @@
     const micWrap = overlay.querySelector(".xsp-mic-wrap");
     const pulse = overlay.querySelector(".xsp-mic-pulse");
     const statusEl = overlay.querySelector(".xsp-status");
-    const stopBtn = overlay.querySelector(".xsp-stop");
+    const pauseBtn = overlay.querySelector(".xsp-pause");
+    const applyBtn = overlay.querySelector(".xsp-apply");
     const closeBtn = overlay.querySelector(".xsp-close");
 
     // ── Trạng thái ──────────────────────────────────────────────────────────
     let finalText = "";
     let stopping = false;
+    let paused = false; // tạm dừng thu âm (nút Dừng ⇄ Tiếp tục)
     let audioCtx = null,
       analyser = null,
       micStream = null,
@@ -174,6 +202,13 @@
       src.connect(analyser);
       dataArr = new Uint8Array(analyser.fftSize);
       const loop = () => {
+        if (paused) {
+          // Tạm dừng → vòng tròn về cỡ gốc, vẫn giữ vòng lặp để tiếp tục mượt.
+          pulse.style.transform = "scale(1)";
+          pulse.style.opacity = "0.15";
+          rafId = requestAnimationFrame(loop);
+          return;
+        }
         analyser.getByteTimeDomainData(dataArr);
         let sum = 0;
         for (let i = 0; i < dataArr.length; i++) {
@@ -211,8 +246,9 @@
       // 'no-speech' / 'aborted' → để onend tự khởi động lại.
     };
     rec.onend = () => {
-      // Chrome tự dừng sau khoảng lặng dù continuous=true → khởi động lại nếu chưa Dừng.
-      if (!stopping) {
+      // Chrome tự dừng sau khoảng lặng dù continuous=true → khởi động lại nếu chưa
+      // đóng và không đang tạm dừng.
+      if (!stopping && !paused) {
         try {
           rec.start();
         } catch {}
@@ -256,6 +292,22 @@
       }
     }
 
+    // Dừng ⇄ Tiếp tục: tạm dừng/khởi động lại thu âm (KHÔNG chèn, KHÔNG đóng).
+    function togglePause() {
+      paused = !paused;
+      if (paused) {
+        try { rec.stop(); } catch {}
+        pauseBtn.innerHTML = PLAY_SVG + `<span class="xsp-pause-label">Tiếp tục</span>`;
+        statusEl.textContent = "Đã tạm dừng";
+        micWrap.classList.add("paused");
+      } else {
+        try { rec.start(); } catch {}
+        pauseBtn.innerHTML = STOP_SVG + `<span class="xsp-pause-label">Dừng</span>`;
+        statusEl.textContent = "Đang lắng nghe…";
+        micWrap.classList.remove("paused");
+      }
+    }
+
     const onKey = (ev) => {
       if (ev.key === "Escape") {
         ev.preventDefault();
@@ -263,7 +315,8 @@
       }
     };
 
-    stopBtn.addEventListener("click", commitAndClose);
+    pauseBtn.addEventListener("click", togglePause);
+    applyBtn.addEventListener("click", commitAndClose); // chèn nội dung rồi đóng
     closeBtn.addEventListener("click", cleanup); // đóng KHÔNG chèn
     overlay.addEventListener("mousedown", (ev) => {
       if (ev.target === overlay) cleanup(); // bấm nền tối = huỷ

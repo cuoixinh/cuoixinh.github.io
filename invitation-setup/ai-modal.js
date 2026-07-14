@@ -14,10 +14,16 @@ const _AI_BODY_HTML = `
       <div>
         <div class="flex items-center justify-between mb-1.5">
           <label class="block text-xs font-medium text-gray-500">Thông tin cô dâu/chú rể</label>
-          <button type="button" onclick="insertAiInfoTemplate()" class="ai-chip">
-            <i data-lucide="clipboard-list" style="width: 12px; height: 12px"></i>
-            Chèn mẫu
-          </button>
+          <div class="flex items-center gap-2">
+            <button type="button" data-ai-speech onclick="openAiSpeech('ai-info')" class="ai-chip ai-chip-mic">
+              <i data-lucide="mic" style="width: 12px; height: 12px"></i>
+              Nói
+            </button>
+            <button type="button" onclick="insertAiInfoTemplate()" class="ai-chip">
+              <i data-lucide="clipboard-list" style="width: 12px; height: 12px"></i>
+              Chèn mẫu
+            </button>
+          </div>
         </div>
         <x-textarea
           bare
@@ -31,7 +37,13 @@ const _AI_BODY_HTML = `
 
       <!-- Câu chuyện tình yêu -->
       <div>
-        <label class="block text-xs font-medium text-gray-500 mb-1.5">Câu chuyện tình yêu</label>
+        <div class="flex items-center justify-between mb-1.5">
+          <label class="block text-xs font-medium text-gray-500">Câu chuyện tình yêu</label>
+          <button type="button" data-ai-speech onclick="openAiSpeech('ai-bullets')" class="ai-chip ai-chip-mic">
+            <i data-lucide="mic" style="width: 12px; height: 12px"></i>
+            Nói
+          </button>
+        </div>
         <x-textarea
           bare
           id="ai-bullets"
@@ -169,6 +181,8 @@ let _aiViewBeforeHistory = "form"; // để "Quay lại" từ lịch sử về �
 const AI_DRAFT_KEY = `cuoixinh_ai_draft_${WEDDING_ID}`;
 // Lịch sử các nội dung AI đã tạo (chỉ lưu localStorage, KHÔNG lưu DB).
 const AI_HISTORY_KEY = `cuoixinh_ai_history_${WEDDING_ID}`;
+// Ghi nhớ đã thu gọn thẻ mời AI (chỉ còn icon) — giữ qua các lần tải lại trang.
+const AI_FAB_KEY = `cuoixinh_ai_fab_collapsed_${WEDDING_ID}`;
 const AI_HISTORY_MAX = 12;
 
 function _saveAiDraft() {
@@ -203,6 +217,10 @@ function _setAiTone(tone) {
 
 function openAiModal() {
   if (_aiSheet) return; // đang mở
+
+  // Đã mở popup AI → thu gọn thẻ mời về icon nhỏ (như bấm "x"). Khi thoát modal
+  // sẽ chỉ còn lại icon, không hiện lại thẻ to.
+  dismissAiFab();
 
   const sheet = openBottomSheet({
     id: "ai-sheet",
@@ -286,7 +304,28 @@ function _wireAiForm() {
     });
   });
 
+  // Trình duyệt không hỗ trợ giọng nói → gỡ nút "Nói" trên hàng label.
+  if (!window.speechSupported?.()) {
+    document
+      .querySelectorAll("#ai-form [data-ai-speech]")
+      .forEach((b) => b.remove());
+  }
+
   _wireAiSelects();
+}
+
+// Mở hộp thoại "Nói để nhập" cho một ô (dùng chung cấu hình _AI_SPEECH với nút mic
+// góc dưới-phải của x-undo). Gọi từ nút "Nói" trên hàng label.
+function openAiSpeech(id) {
+  const ta = document.getElementById(id);
+  if (!ta) return;
+  const cfg = _AI_SPEECH[id] || {};
+  window.openSpeechDialog?.({
+    target: ta,
+    questions: cfg.questions || [],
+    lang: cfg.lang || "vi-VN",
+    title: cfg.title,
+  });
 }
 
 // Cấu hình "Nói để nhập" cho từng ô: tiêu đề popup + câu hỏi gợi ý (đọc để trả lời).
@@ -299,6 +338,7 @@ const _AI_SPEECH = {
       "Địa điểm tổ chức ở đâu?",
       "Tên bố mẹ hai bên?",
       "Số tài khoản mừng cưới (nếu có)?",
+      "Lịch trình ngày cưới (giờ đón dâu, lễ, tiệc)?",
     ],
   },
   "ai-bullets": {
@@ -1509,6 +1549,34 @@ function _resolveBankName(codeOrName) {
 // Theo dõi bằng ResizeObserver (nav + form) và sự kiện resize để luôn khớp.
 const _AI_FAB_GAP = 8;
 const _AI_FAB_CARD_W = 192; // bề rộng thẻ (12rem) — ngưỡng quyết định NGOÀI/TRONG
+// Vị trí do người dùng KÉO đặt (nhớ qua các lần tải trang). Có giá trị = chế độ thủ
+// công → bỏ auto-định-vị theo #wedding-form, chỉ kẹp lại trong màn khi resize.
+const _AI_FAB_POS_KEY = `cuoixinh_ai_fab_pos_${WEDDING_ID}`;
+
+function _loadFabPos() {
+  try { return JSON.parse(localStorage.getItem(_AI_FAB_POS_KEY) || "null"); } catch { return null; }
+}
+function _saveFabPos(p) {
+  try { localStorage.setItem(_AI_FAB_POS_KEY, JSON.stringify(p)); } catch {}
+}
+
+// Áp vị trí thủ công (nếu có), kẹp trong khung nhìn (chừa 8px mép). Trả về true nếu áp.
+function _applyManualFabPos() {
+  const pos = _loadFabPos();
+  const fab = document.querySelector(".ai-fab");
+  if (!pos || !fab) return false;
+  const w = fab.offsetWidth, h = fab.offsetHeight;
+  const vw = document.documentElement.clientWidth;
+  const vh = document.documentElement.clientHeight;
+  const M = 8;
+  const left = Math.max(M, Math.min(pos.left, vw - w - M));
+  const top = Math.max(M, Math.min(pos.top, vh - h - M));
+  fab.style.left = left + "px";
+  fab.style.top = top + "px";
+  fab.style.right = "auto";
+  fab.style.bottom = "auto";
+  return true;
+}
 
 function _positionAiFab() {
   const nav = document.getElementById("bottom-nav-bar");
@@ -1518,6 +1586,8 @@ function _positionAiFab() {
       nav.offsetHeight + 8 + "px",
     );
   }
+  // Đã kéo đặt tay → giữ nguyên vị trí đó (chỉ kẹp lại trong màn), bỏ auto-layout.
+  if (_applyManualFabPos()) return;
   const fab = document.querySelector(".ai-fab");
   const form = document.getElementById("wedding-form");
   if (!fab || !form) return;
@@ -1540,12 +1610,75 @@ function _positionAiFab() {
 // tại, vẫn giữ lối vào AI. KHÔNG ghi nhớ — tải lại trang thì thẻ mời hiện lại.
 function dismissAiFab() {
   document.querySelector(".ai-fab")?.classList.add("collapsed");
+  try { localStorage.setItem(AI_FAB_KEY, "1"); } catch {} // nhớ để lần sau chỉ hiện icon
   _positionAiFab(); // bề rộng đổi (thẻ → nút nhỏ) → tính lại vị trí cho khớp
+}
+
+// Cho phép KÉO-THẢ cả bong bóng AI (.ai-fab: thẻ mời lẫn nút thu gọn). Kéo quá 5px
+// mới tính là kéo (để cú chạm/bấm bình thường vẫn mở popup); thả xong nhớ vị trí và
+// chặn đúng cú click phát sinh ngay sau đó để không lỡ mở popup.
+function _setupFabDrag() {
+  const fab = document.querySelector(".ai-fab");
+  if (!fab) return;
+  const TH = 5;
+  let startX = 0, startY = 0, baseLeft = 0, baseTop = 0, moved = false, dragging = false;
+
+  fab.addEventListener("pointerdown", (e) => {
+    if (e.button !== 0 && e.pointerType === "mouse") return; // chỉ chuột trái
+    if (e.target.closest(".ai-fab-close")) return; // nút X — để bấm đóng, không kéo
+    const r = fab.getBoundingClientRect();
+    baseLeft = r.left; baseTop = r.top;
+    startX = e.clientX; startY = e.clientY;
+    moved = false; dragging = true;
+    try { fab.setPointerCapture(e.pointerId); } catch {}
+  });
+
+  fab.addEventListener("pointermove", (e) => {
+    if (!dragging) return;
+    const dx = e.clientX - startX, dy = e.clientY - startY;
+    if (!moved && Math.hypot(dx, dy) < TH) return;
+    moved = true;
+    fab.classList.add("dragging");
+    const w = fab.offsetWidth, h = fab.offsetHeight;
+    const vw = document.documentElement.clientWidth;
+    const vh = document.documentElement.clientHeight;
+    const M = 8;
+    const left = Math.max(M, Math.min(baseLeft + dx, vw - w - M));
+    const top = Math.max(M, Math.min(baseTop + dy, vh - h - M));
+    fab.style.left = left + "px";
+    fab.style.top = top + "px";
+    fab.style.right = "auto";
+    fab.style.bottom = "auto";
+  });
+
+  const end = (e) => {
+    if (!dragging) return;
+    dragging = false;
+    try { fab.releasePointerCapture(e.pointerId); } catch {}
+    if (moved) {
+      fab.classList.remove("dragging");
+      const r = fab.getBoundingClientRect();
+      _saveFabPos({ left: r.left, top: r.top }); // nhớ vị trí đã kéo
+      // Nuốt cú click sinh ra ngay sau khi thả để không mở popup do vừa kéo.
+      const swallow = (ev) => { ev.stopPropagation(); ev.preventDefault(); };
+      fab.addEventListener("click", swallow, { capture: true, once: true });
+      setTimeout(() => fab.removeEventListener("click", swallow, { capture: true }), 0);
+    }
+  };
+  fab.addEventListener("pointerup", end);
+  fab.addEventListener("pointercancel", end);
 }
 
 (function _initAiFabPosition() {
   const start = () => {
+    // Khôi phục trạng thái: nếu lần trước đã thu gọn → hiện luôn dạng icon nhỏ.
+    try {
+      if (localStorage.getItem(AI_FAB_KEY) === "1") {
+        document.querySelector(".ai-fab")?.classList.add("collapsed");
+      }
+    } catch {}
     _positionAiFab();
+    _setupFabDrag();
     if (window.ResizeObserver) {
       const ro = new ResizeObserver(_positionAiFab);
       const nav = document.getElementById("bottom-nav-bar");

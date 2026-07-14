@@ -8,10 +8,11 @@
 .ai-fab {
   position: fixed;
   right: 1rem;
+  touch-action: none; /* kéo bằng cảm ứng không làm cuộn trang */
   /* Luôn cách mép trên thanh điều hướng dưới cùng 16px. Giá trị --ai-fab-bottom
      do JS cập nhật theo chiều cao thực của navbar (kể cả khi có Local Draft
      Notice). Fallback ~ chiều cao navbar mặc định + 16px khi JS chưa chạy. */
-  bottom: var(--ai-fab-bottom, calc(60px + 16px));
+  bottom: var(--ai-fab-bottom, calc(60px + 24px));
   z-index: 45;
 }
 
@@ -121,6 +122,7 @@
 
 /* Nút thu gọn: nút tròn gradient tím→xanh + icon ✨ trắng (khớp .ai-icon). */
 .ai-mini {
+  position: relative;
   width: 3.25rem;
   height: 3.25rem;
   border: none;
@@ -130,11 +132,35 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #cbb9f5, #81b1ff);
+  /* Lớp 1: dải sáng nghiêng lướt qua (animate background-position).
+     Lớp 2: nền gradient gốc. Bo tròn tự cắt dải sáng theo hình tròn. */
+  background:
+    linear-gradient(110deg, transparent 42%, rgba(255, 255, 255, 0.6) 50%, transparent 58%) no-repeat,
+    linear-gradient(135deg, #cbb9f5, #81b1ff) no-repeat;
+  background-size: 200% 100%, 100% 100%;
+  background-position: 120% 0, 0 0;
   box-shadow: 0 10px 25px rgba(99, 102, 241, 0.35);
   color: #fff;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
-  animation: ai-card-in 0.4s ease-out both;
+  animation: ai-card-in 0.4s ease-out both,
+    ai-mini-shine 3s ease-in-out 0.4s infinite;
+}
+/* Sóng lan tỏa như phát sóng điện thoại — CHỈ phát ra 2 bên: border trong suốt,
+   chỉ tô cạnh trái + phải → thành 2 cung khuyết ( ) ở hai bên. Lệch pha 1s. */
+.ai-mini::before,
+.ai-mini::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  border-left-color: rgba(129, 177, 255, 0.6);
+  border-right-color: rgba(129, 177, 255, 0.6);
+  pointer-events: none;
+  animation: ai-mini-radar 2s ease-out infinite;
+}
+.ai-mini::after {
+  animation-delay: 1s;
 }
 .ai-mini:hover {
   transform: scale(1.06);
@@ -144,6 +170,38 @@
   width: 26px;
   height: 26px;
 }
+@keyframes ai-mini-shine {
+  0% {
+    background-position: 120% 0, 0 0;
+  }
+  33% {
+    background-position: -20% 0, 0 0;
+  }
+  100% {
+    background-position: -20% 0, 0 0;
+  }
+}
+@keyframes ai-mini-radar {
+  0% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(2.1);
+    opacity: 0;
+  }
+}
+
+/* Đang kéo: con trỏ "nắm", tắt transition để bám tay mượt, khỏi chọn chữ. */
+.ai-fab.dragging {
+  cursor: grabbing;
+  user-select: none;
+}
+.ai-fab.dragging .ai-card,
+.ai-fab.dragging .ai-mini {
+  transition: none;
+  cursor: grabbing;
+}
 
 /* Chuyển thẻ ↔ nút thu gọn (robust hơn class .hidden của Tailwind về thứ tự nạp). */
 .ai-fab .ai-mini { display: none; }
@@ -152,6 +210,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .ai-card, .ai-mini { animation: none; }
+  .ai-mini::before, .ai-mini::after { display: none; }
   .ai-card, .ai-card-btn, .ai-mini { transition: none; }
   .ai-card:hover, .ai-mini:hover { transform: none; }
 }
@@ -399,6 +458,15 @@ textarea.ai-inp {
 }
 .ai-chip:hover {
   background: #ffe4e6;
+}
+/* Biến thể "Nói" (mic) — tông tím/xanh khớp icon AI, phân biệt với "Chèn mẫu" */
+.ai-chip-mic {
+  color: #6d4fce;
+  background: #f3efff;
+  border-color: #ddd0fb;
+}
+.ai-chip-mic:hover {
+  background: #e9e1ff;
 }
 /* Nút "x" xoá nhanh của textarea nay do <x-textarea> tự dựng & tự style
    (xem core/x-controls.js). Ô "Thông tin cô dâu/chú rể" dùng <x-textarea>. */

@@ -506,6 +506,19 @@ function _savePreviewData() {
   });
   data.image_focal_points = focalPoints;
 
+  // love_story & timeline là mảng JSONB (không phải field text). FormData chỉ lấy
+  // được CHUỖI JSON từ hidden input → renderLoveStory/renderTimeline (yêu cầu Array)
+  // sẽ bỏ qua và ẩn mục. Ghi đè bằng mảng thật; ảnh mốc chưa lưu → blob URL để
+  // preview thấy ngay (getImageUrl bên theme cho qua blob:/http, resolve tên file).
+  data.timeline = _timelineItems.map((it) => ({ ...it }));
+  data.love_story = _loveStoryItems.map((it, idx) => {
+    const pending = _loveStoryPendingImages[idx];
+    return {
+      ...it,
+      image_url: pending ? URL.createObjectURL(pending) : it.image_url || null,
+    };
+  });
+
   sessionStorage.setItem("preview_data", JSON.stringify(data));
 }
 
