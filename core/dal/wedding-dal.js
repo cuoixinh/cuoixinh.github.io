@@ -11,6 +11,27 @@ class WeddingDAL {
   }
 
   /**
+   * Header cho request GHI (POST/PATCH): luôn kèm apikey (qua gateway) và đính JWT
+   * của user khi đã đăng nhập để edge function gán/nhận chủ (user_id). Khách chưa
+   * đăng nhập → dùng anon key, edge để user_id null.
+   */
+  async _authHeaders() {
+    let token = null;
+    const sb = typeof window !== "undefined" && window.AuthUI && window.AuthUI.supabase;
+    if (sb) {
+      try {
+        const { data } = await sb.auth.getSession();
+        token = data?.session?.access_token ?? null;
+      } catch (e) {}
+    }
+    return {
+      "Content-Type": "application/json",
+      apikey: this.anonKey,
+      Authorization: `Bearer ${token || this.anonKey}`,
+    };
+  }
+
+  /**
    * Fetch wedding data by slug
    * @param {string} slug - Wedding slug
    * @returns {Promise<Object>} Wedding data
@@ -73,10 +94,7 @@ class WeddingDAL {
     const apiUrl = this.workerUrl || this.edgeUrl;
     const response = await fetch(apiUrl, {
       method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${this.anonKey}`,
-      },
+      headers: await this._authHeaders(),
       body: JSON.stringify(payload),
     });
 
@@ -96,10 +114,7 @@ class WeddingDAL {
   async createWedding(payload) {
     const response = await fetch(this.edgeUrl, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${this.anonKey}`,
-      },
+      headers: await this._authHeaders(),
       body: JSON.stringify(payload),
     });
 
@@ -117,10 +132,7 @@ class WeddingDAL {
   async createDraftWedding(manage_id, theme) {
     const response = await fetch(this.edgeUrl, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${this.anonKey}`,
-      },
+      headers: await this._authHeaders(),
       body: JSON.stringify({ manage_id, theme, is_published: false }),
     });
     if (!response.ok) {

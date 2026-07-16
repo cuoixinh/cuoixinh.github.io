@@ -203,6 +203,9 @@
   cursor: grabbing;
 }
 
+/* Ẩn hoàn toàn thẻ AI khi trang còn skeleton (F5). Gỡ trong _showContent(). */
+.ai-fab.hidden-boot { display: none; }
+
 /* Chuyển thẻ ↔ nút thu gọn (robust hơn class .hidden của Tailwind về thứ tự nạp). */
 .ai-fab .ai-mini { display: none; }
 .ai-fab.collapsed .ai-card { display: none; }

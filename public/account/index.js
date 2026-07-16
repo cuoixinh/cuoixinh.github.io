@@ -85,19 +85,120 @@ function updateAuthBlock() {
   }
 }
 
+function _ordersKey() {
+  return currentUser ? "orders_" + currentUser.email : "guestOrders";
+}
+
+function _readLocalOrders() {
+  try {
+    return JSON.parse(localStorage.getItem(_ordersKey()) || "[]");
+  } catch (e) {
+    return [];
+  }
+}
+
+function _themeToName(theme) {
+  return (
+    (theme || "")
+      .split("-")
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(" ") || "Thiệp Cưới"
+  );
+}
+
+// Lấy danh sách thiệp của user từ DB (gồm cả bản nháp is_published=false).
+async function fetchMyWeddings() {
+  if (!currentUser) return [];
+  let token = null;
+  try {
+    token =
+      (await supabaseClient.auth.getSession()).data?.session?.access_token ??
+      null;
+  } catch (e) {}
+  if (!token) return [];
+  try {
+    const res = await fetch(CONFIG.supabase.edgeUrl + "?resource=my-weddings", {
+      headers: {
+        apikey: CONFIG.supabase.anonKey,
+        Authorization: "Bearer " + token,
+      },
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return Array.isArray(data) ? data : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+// Gộp thiệp từ DB vào danh sách đơn (localStorage). Trùng manage_id → cập nhật
+// (không hạ cấp completed đã thanh toán); chưa có → thêm mới. Trạng thái:
+//   chưa xuất bản → "draft" (bản nháp)
+//   đã xuất bản + còn expires_at (dùng thử, chưa trả tiền) → "pending" (chưa thanh toán)
+//   đã xuất bản + expires_at null (đã thanh toán) → "completed" (hoàn thành)
+function _mergeWeddings(orders, weddings) {
+  const result = orders.slice();
+  const idxByManage = new Map();
+  result.forEach((o, i) => {
+    if (o.manage_id) idxByManage.set(o.manage_id, i);
+  });
+
+  weddings.forEach((w) => {
+    const dbStatus = !w.is_published
+      ? "draft"
+      : w.expires_at
+        ? "pending"
+        : "completed";
+    const i = idxByManage.get(w.id);
+    if (i != null) {
+      const base = result[i];
+      result[i] = {
+        ...base,
+        manage_id: w.id,
+        theme: w.theme || base.theme,
+        templateName: base.templateName || _themeToName(w.theme),
+        groomName: w.groom_name || base.groomName || "",
+        brideName: w.bride_name || base.brideName || "",
+        status: base.status === "completed" ? "completed" : dbStatus,
+      };
+    } else {
+      result.push({
+        id: "CX" + (w.id || "").replace(/-/g, "").slice(0, 6).toUpperCase(),
+        date: w.created_at || new Date().toISOString(),
+        manage_id: w.id,
+        theme: w.theme,
+        templateName: _themeToName(w.theme),
+        groomName: w.groom_name || "",
+        brideName: w.bride_name || "",
+        status: dbStatus,
+      });
+      idxByManage.set(w.id, result.length - 1);
+    }
+  });
+  return result;
+}
+
+async function _refreshOrdersFromDb(localOrders) {
+  const weddings = await fetchMyWeddings();
+  if (!weddings.length) return;
+  const merged = _mergeWeddings(localOrders, weddings);
+  try {
+    localStorage.setItem(_ordersKey(), JSON.stringify(merged));
+  } catch (e) {}
+  renderOrders(merged);
+}
+
 function loadOrders() {
+  const orders = _readLocalOrders();
+  renderOrders(orders); // hiện ngay từ cache localStorage
+  if (currentUser) _refreshOrdersFromDb(orders); // rồi bổ sung thiệp/draft từ DB
+}
+
+function renderOrders(orders) {
   const listEl = document.getElementById("orders-list");
   const emptyEl = document.getElementById("empty-orders");
-  let orders = [];
-  const key = currentUser ? "orders_" + currentUser.email : "guestOrders";
-  const str = localStorage.getItem(key);
-  if (str) {
-    try {
-      orders = JSON.parse(str);
-    } catch (e) {}
-  }
 
-  if (orders.length === 0) {
+  if (!orders || orders.length === 0) {
     listEl.innerHTML = "";
     emptyEl.classList.remove("hidden");
   } else {
@@ -185,6 +286,16 @@ function setupOrderModal() {
 
 function renderOrderDetail(order) {
   const statusConfig = {
+    draft: {
+      icon: "fa-pen-nib",
+      iconBg: "bg-gray-50",
+      iconColor: "text-gray-400",
+      title: "Bản nháp",
+      desc: "Thiệp đang là bản nháp, chưa xuất bản. Tiếp tục chỉnh sửa rồi xuất bản để chia sẻ với khách mời.",
+      action: order.manage_id
+        ? `<a href="${window.location.origin}/invitation-setup/?id=${order.manage_id}" class="flex items-center justify-center gap-2 w-full py-3 rounded-full text-white text-sm font-medium mt-2" style="background-color:#f43f5e;text-decoration:none;"><i class="fas fa-edit"></i>Tiếp tục chỉnh sửa</a>`
+        : null,
+    },
     pending: {
       icon: "fa-clock",
       iconBg: "bg-yellow-50",
@@ -290,6 +401,7 @@ function renderOrderDetail(order) {
 
 function getStatusHint(status) {
   var map = {
+    draft: "Nhấn để tiếp tục chỉnh sửa",
     pending: "Nhấn để thanh toán",
     completed: "Nhấn để xem thiệp cưới",
     cancelled: "Nhấn để xem chi tiết",
@@ -360,6 +472,7 @@ document
 
 function getStatusClass(status) {
   var map = {
+    draft: "bg-gray-100 text-gray-700",
     pending: "bg-yellow-100 text-yellow-800",
     completed: "bg-green-100 text-green-800",
     cancelled: "bg-red-100 text-red-800",
@@ -369,6 +482,7 @@ function getStatusClass(status) {
 
 function getStatusText(status) {
   var map = {
+    draft: "Bản nháp",
     pending: "Chưa thanh toán",
     completed: "Hoàn thành",
     cancelled: "Đã hủy",

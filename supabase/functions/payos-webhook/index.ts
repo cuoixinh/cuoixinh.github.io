@@ -155,18 +155,30 @@ serve(withAxiom("payos-webhook", async (req, log) => {
 
       // Update wedding record
       const payment_status = paymentData.code === "00" ? "completed" : "failed";
-      
+
+      const updateFields: Record<string, unknown> = {
+        payment_status,
+        transaction_id: paymentData.transactionDateTime || paymentData.orderCode,
+        payment_time: new Date().toISOString(),
+      };
+      // Thanh toán thành công → gỡ hạn dùng thử: mở thiệp vĩnh viễn (không hết hạn).
+      if (payment_status === "completed") {
+        updateFields.expires_at = null;
+      }
+
       const { error: updateError } = await supabaseClient
         .from("weddings")
-        .update({
-          payment_status,
-          transaction_id: paymentData.transactionDateTime || paymentData.orderCode,
-          payment_time: new Date().toISOString(),
-        })
+        .update(updateFields)
         .eq("id", manage_id);
 
       if (updateError) {
         console.error("Update error:", updateError);
+        log.error("payos.update_failed", {
+          manage_id,
+          error: updateError.message,
+          code: updateError.code,
+          details: updateError.details,
+        });
         return new Response(JSON.stringify({ error: "Failed to update payment status" }), {
           status: 500,
           headers: { ...corsHeaders, "Content-Type": "application/json" },

@@ -23,6 +23,22 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
   )
 
+  // Lấy user_id từ JWT của người dùng (header Authorization: Bearer <access_token>).
+  // Client vẫn gửi apikey = anon key để qua gateway; nếu Authorization chỉ là anon key
+  // (khách chưa đăng nhập) thì getUser sẽ null → trả null.
+  async function getUserId(): Promise<string | null> {
+    const authHeader = req.headers.get('Authorization') || ''
+    const jwt = authHeader.replace(/^Bearer\s+/i, '').trim()
+    if (!jwt || jwt === Deno.env.get('SUPABASE_ANON_KEY')) return null
+    try {
+      const { data, error } = await supabase.auth.getUser(jwt)
+      if (error) return null
+      return data.user?.id ?? null
+    } catch {
+      return null
+    }
+  }
+
   // Helper function to get unique slug
   async function getUniqueSlug(baseSlug: string, excludeId?: string): Promise<string> {
     let finalSlug = baseSlug;
@@ -187,6 +203,10 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
     if (theme_setting) insertPayload.theme_setting = theme_setting
     if (typeof is_published === 'boolean') insertPayload.is_published = is_published
 
+    // Gắn chủ sở hữu nếu người tạo đã đăng nhập (để trang Đơn hàng liệt kê được).
+    const creatorId = await getUserId()
+    if (creatorId) insertPayload.user_id = creatorId
+
     const { data, error } = await supabase
       .from('weddings')
       .insert(insertPayload)
@@ -219,11 +239,18 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
     // Kiểm tra id tồn tại và lấy data hiện tại
     const { data: existing, error: fetchError } = await supabase
       .from('weddings')
-      .select('cover_image_url, groom_image_url, bride_image_url, groom_qr_url, bride_qr_url, gallery_images')
+      .select('cover_image_url, groom_image_url, bride_image_url, groom_qr_url, bride_qr_url, gallery_images, user_id, payment_status')
       .eq('id', id)
       .single()
 
     if (fetchError || !existing) {
+      // Phân biệt "không tìm thấy thật" với lỗi query (VD thiếu cột user_id) — log rõ.
+      log.error('wedding.patch_fetch_failed', {
+        id,
+        error: fetchError?.message,
+        code: fetchError?.code,
+        details: fetchError?.details,
+      })
       return new Response(JSON.stringify({ error: 'Wedding not found' }), {
         status: 404, headers: corsHeaders
       })
@@ -329,16 +356,37 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
     }
     // ---- End validate ----
 
-    if (fields.is_published === true) {
+    // Xuất bản = lên DÙNG THỬ 3 ngày: đặt expires_at = now + 3 ngày. Thanh toán
+    // thành công (payos-webhook) mới gán expires_at = null → mở vĩnh viễn. Guard:
+    // thiệp đã thanh toán rồi thì KHÔNG reset về dùng thử khi publish/lưu lại.
+    if (fields.is_published === true && existing.payment_status !== 'completed') {
       const expiresAt = new Date()
       expiresAt.setDate(expiresAt.getDate() + 3)
       fields.expires_at = expiresAt.toISOString()
     }
 
+    // Thiệp chưa có chủ + người sửa đã đăng nhập → nhận làm chủ (claim). Nhờ vậy
+    // các draft tạo lúc chưa đăng nhập sẽ gắn với user ngay khi họ đăng nhập & lưu.
+    // Không cho đổi chủ nếu thiệp đã có chủ (bỏ qua user_id do client gửi lên).
+    delete fields.user_id
+    if (!existing.user_id) {
+      const editorId = await getUserId()
+      if (editorId) fields.user_id = editorId
+    }
+
     const { error } = await supabase
       .from('weddings').update(fields).eq('id', id)
 
-    if (error) return new Response(JSON.stringify({ error }), { status: 500, headers: corsHeaders })
+    if (error) {
+      log.error('wedding.update_failed', {
+        id,
+        error: error.message,
+        code: error.code,
+        details: error.details,
+        fields: Object.keys(fields),
+      })
+      return new Response(JSON.stringify({ error }), { status: 500, headers: corsHeaders })
+    }
 
     return new Response(JSON.stringify({ success: true }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -459,6 +507,29 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
       })
     }
     
+    // ── Của tôi: danh sách thiệp của user đang đăng nhập (cho trang Đơn hàng) ──
+    if (resource === 'my-weddings') {
+      const userId = await getUserId()
+      if (!userId) {
+        return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+          status: 401, headers: corsHeaders
+        })
+      }
+
+      const { data, error } = await supabase
+        .from('weddings')
+        .select('id, slug, groom_name, bride_name, theme, is_published, created_at, expires_at')
+        .eq('user_id', userId)
+        .eq('is_active', true)
+        .order('created_at', { ascending: false })
+
+      if (error) return new Response(JSON.stringify({ error }), { status: 500, headers: corsHeaders })
+
+      return new Response(JSON.stringify(data ?? []), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
     // List all weddings with pagination (admin only)
     if (list === 'true') {
       if (!isAdmin) {

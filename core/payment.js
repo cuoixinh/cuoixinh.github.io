@@ -1024,11 +1024,15 @@
           orders = JSON.parse(localStorage.getItem(storageKey) || "[]");
         } catch (e) {}
 
+        // Gộp theo manage_id trước (tránh tạo đơn trùng khi thanh toán cho một bản
+        // nháp đã có sẵn trong danh sách), sau đó mới tới đơn pending cùng mẫu.
         const existingIdx = orders.findIndex(
-          (o) => o.templateName === templateName && o.status === "pending",
+          (o) =>
+            (manage_id && o.manage_id === manage_id) ||
+            (o.templateName === templateName && o.status === "pending"),
         );
         if (existingIdx >= 0) {
-          orders[existingIdx] = order;
+          orders[existingIdx] = { ...orders[existingIdx], ...order };
         } else {
           orders.push(order);
         }

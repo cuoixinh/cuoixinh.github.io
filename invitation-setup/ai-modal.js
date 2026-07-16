@@ -1560,7 +1560,9 @@ function _saveFabPos(p) {
   try { localStorage.setItem(_AI_FAB_POS_KEY, JSON.stringify(p)); } catch {}
 }
 
-// Áp vị trí thủ công (nếu có), kẹp trong khung nhìn (chừa 8px mép). Trả về true nếu áp.
+// Áp vị trí thủ công (nếu có), luôn BÁM LỀ theo cạnh đã lưu (giống AssistiveTouch):
+// tính lại left từ side + bề rộng hiện tại nên đúng lề kể cả khi đổi kích thước màn,
+// xoay máy, hay thẻ thu/mở (card ↔ mini). Kẹp chiều dọc trong khung. Trả về true nếu áp.
 function _applyManualFabPos() {
   const pos = _loadFabPos();
   const fab = document.querySelector(".ai-fab");
@@ -1569,7 +1571,13 @@ function _applyManualFabPos() {
   const vw = document.documentElement.clientWidth;
   const vh = document.documentElement.clientHeight;
   const M = 8;
-  const left = Math.max(M, Math.min(pos.left, vw - w - M));
+  // side mới (left/right) → bám lề; dữ liệu cũ (pos.left tuyệt đối) vẫn đọc được.
+  let left;
+  if (pos.side === "left" || pos.side === "right") {
+    left = pos.side === "left" ? M : vw - w - M;
+  } else {
+    left = Math.max(M, Math.min(pos.left ?? (vw - w - M), vw - w - M));
+  }
   const top = Math.max(M, Math.min(pos.top, vh - h - M));
   fab.style.left = left + "px";
   fab.style.top = top + "px";
@@ -1580,7 +1588,11 @@ function _applyManualFabPos() {
 
 function _positionAiFab() {
   const nav = document.getElementById("bottom-nav-bar");
-  if (nav) {
+  // Chỉ ghi khi navbar đã render (offsetHeight > 0). Lúc skeleton, #bottom-nav-bar
+  // còn trong #actual-content (display:none) → offsetHeight = 0; nếu ghi sẽ thành
+  // 8px, dán fab sát đáy đè lên thanh skeleton. Bỏ qua để dùng fallback CSS
+  // (calc(60px + 24px)) cho fab nổi cao hơn thanh dưới.
+  if (nav && nav.offsetHeight > 0) {
     document.documentElement.style.setProperty(
       "--ai-fab-bottom",
       nav.offsetHeight + 8 + "px",
@@ -1592,6 +1604,10 @@ function _positionAiFab() {
   const form = document.getElementById("wedding-form");
   if (!fab || !form) return;
   const r = form.getBoundingClientRect();
+  // Đang skeleton: #actual-content còn .hidden (display:none) nên rect form toàn 0.
+  // Tính theo lúc này sẽ khiến thẻ nhảy sang trái (left:16px). Bỏ qua, giữ vị trí
+  // mặc định của CSS (right:1rem); ResizeObserver sẽ gọi lại khi form hiện ra.
+  if (r.width === 0) return;
   const vw = document.documentElement.clientWidth;
   const gapRight = vw - r.right; // khoảng trắng bên phải form
   // Ngưỡng dựa trên bề rộng THẺ (không phải nút thu gọn) để chế độ ổn định khi thu/mở.
@@ -1657,8 +1673,24 @@ function _setupFabDrag() {
     try { fab.releasePointerCapture(e.pointerId); } catch {}
     if (moved) {
       fab.classList.remove("dragging");
+      // Bám lề gần nhất theo chiều ngang (giống bong bóng AssistiveTouch iPhone):
+      // tâm thẻ ở nửa trái → dán lề trái, nửa phải → dán lề phải. Giữ nguyên chiều dọc.
+      const w = fab.offsetWidth, h = fab.offsetHeight;
+      const vw = document.documentElement.clientWidth;
+      const vh = document.documentElement.clientHeight;
+      const M = 8;
       const r = fab.getBoundingClientRect();
-      _saveFabPos({ left: r.left, top: r.top }); // nhớ vị trí đã kéo
+      const snapLeft = (r.left + w / 2) < vw / 2 ? M : vw - w - M;
+      const top = Math.max(M, Math.min(r.top, vh - h - M));
+      // Trượt mượt về lề rồi bỏ transition để lần kéo sau vẫn bám tay tức thì.
+      fab.style.transition = "left 0.22s cubic-bezier(0.32,0.72,0,1), top 0.22s cubic-bezier(0.32,0.72,0,1)";
+      fab.style.left = snapLeft + "px";
+      fab.style.top = top + "px";
+      fab.style.right = "auto";
+      fab.style.bottom = "auto";
+      const clearT = () => { fab.style.transition = ""; fab.removeEventListener("transitionend", clearT); };
+      fab.addEventListener("transitionend", clearT);
+      _saveFabPos({ side: snapLeft === M ? "left" : "right", top }); // nhớ cạnh đã bám
       // Nuốt cú click sinh ra ngay sau khi thả để không mở popup do vừa kéo.
       const swallow = (ev) => { ev.stopPropagation(); ev.preventDefault(); };
       fab.addEventListener("click", swallow, { capture: true, once: true });

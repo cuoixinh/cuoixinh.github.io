@@ -757,7 +757,10 @@ Deno.serve(withAxiom('ai-invitation', async (req, log) => {
       rawText = await callGeminiRotating(prompt, geminiKeys)
       provider = 'gemini'
     } catch (e) {
-      console.error('Gemini (all keys) failed:', e instanceof Error ? e.message : e)
+      // Warn (còn fallback Groq): log message thật để biết vì sao Gemini hỏng.
+      const msg = e instanceof Error ? e.message : String(e)
+      console.error('Gemini (all keys) failed:', msg)
+      log.warn('ai.gemini_failed', { error: msg })
     }
   }
 
@@ -766,11 +769,17 @@ Deno.serve(withAxiom('ai-invitation', async (req, log) => {
       rawText = await callGroq(prompt, groqKey)
       provider = 'groq'
     } catch (e) {
-      console.error('Groq failed:', e instanceof Error ? e.message : e)
+      const msg = e instanceof Error ? e.message : String(e)
+      console.error('Groq failed:', msg)
+      log.warn('ai.groq_failed', { error: msg })
     }
   }
 
   if (!rawText) {
+    log.error('ai.all_providers_failed', {
+      gemini_keys: geminiKeys.length,
+      has_groq: Boolean(groqKey),
+    })
     return json({ error: 'Dịch vụ AI đang bận, vui lòng thử lại sau ít phút.' }, 503, origin)
   }
 
@@ -778,7 +787,11 @@ Deno.serve(withAxiom('ai-invitation', async (req, log) => {
   let result: Record<string, unknown>
   try {
     result = parseAndClamp(rawText)
-  } catch {
+  } catch (e) {
+    log.error('ai.parse_failed', {
+      error: e instanceof Error ? e.message : String(e),
+      raw_snippet: String(rawText).slice(0, 500),
+    })
     return json({ error: 'AI trả về không hợp lệ, vui lòng thử lại.' }, 502, origin)
   }
 

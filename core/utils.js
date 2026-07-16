@@ -481,9 +481,10 @@ function openBottomSheet({ id, title, height = '80vh', onClose } = {}) {
 
   const modal = document.createElement('div');
   modal.id = id;
-  modal.className = 'fixed inset-0 bg-black/40 flex items-end justify-center z-[9999]';
+  // Mobile: neo cố định ở cạnh đáy (bottom-sheet). Desktop (sm+): căn giữa màn hình.
+  modal.className = 'fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center z-[9999]';
   modal.innerHTML = `
-    <div id="${id}-card" class="bg-white rounded-t-2xl max-w-3xl w-full flex flex-col overflow-hidden shadow-2xl" style="height:${height}"><!-- dvh override below -->
+    <div id="${id}-card" class="bg-white rounded-t-2xl sm:rounded-2xl max-w-3xl w-full flex flex-col overflow-hidden shadow-2xl" style="height:${height}"><!-- dvh override below -->
       <div class="flex justify-center items-center pt-2.5 pb-1 flex-shrink-0">
         <span class="w-10 h-1.5 rounded-full bg-gray-300"></span>
       </div>

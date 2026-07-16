@@ -120,10 +120,22 @@ export function withAxiom(source: string, handler: Handler): (req: Request) => P
 
     try {
       const res = await handler(req, log)
-      log.info('request.done', {
+      const done: Fields = {
         status: res.status,
         duration_ms: Date.now() - started,
-      })
+      }
+      if (res.status >= 400) {
+        // Response lỗi (kể cả khi handler chỉ `return` chứ không `throw`): đọc kèm
+        // body để lộ chi tiết (hầu hết nhánh đã trả {error:...}). Body chỉ là thông
+        // báo lỗi nên an toàn để log; cắt bớt tránh payload quá dài.
+        let body: string | undefined
+        try { body = (await res.clone().text()).slice(0, 2000) } catch { /* không đọc được body */ }
+        // 5xx = lỗi server → error; 4xx = client sai (thiếu field, 401/404) → warn cho đỡ nhiễu.
+        if (res.status >= 500) log.error('request.failed', { ...done, body })
+        else log.warn('request.failed', { ...done, body })
+      } else {
+        log.info('request.done', done)
+      }
       await scheduleFlush(log)
       return res
     } catch (err) {

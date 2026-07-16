@@ -2285,6 +2285,7 @@
       <script src="../core/helpers/alert.js"></script>
       <script src="../core/helpers/validate.js"></script>
       <script src="../core/helpers/guide-helper.js"></script>
+      <script src="../core/helpers/tooltip.js"></script>
       <script src="../core/helpers/theme-setting-helper.js"></script>
 
       <!-- UI Layer -->
@@ -2453,8 +2454,9 @@
       </div>
     </div>
 
-    <!-- Thẻ Soft "Tạo với AI" — nổi góc dưới-phải, hiển thị ở cả PC lẫn mobile -->
-    <div class="ai-fab">
+    <!-- Thẻ Soft "Tạo với AI" — nổi góc dưới-phải, hiển thị ở cả PC lẫn mobile.
+         Ẩn khi đang skeleton (hidden-boot), gỡ trong _showContent() khi content hiện. -->
+    <div class="ai-fab hidden-boot">
       <!-- Thẻ mời (glassmorphism) — bấm cả thẻ hoặc nút để mở popup AI -->
       <div
         class="ai-card"
@@ -2497,6 +2499,8 @@
         class="ai-mini"
         onclick="openAiModal()"
         aria-label="Tạo nội dung bằng AI"
+        data-tooltip="Tạo thiệp với AI"
+        data-tooltip-pos="left"
       >
         <i data-lucide="sparkles"></i>
       </button>

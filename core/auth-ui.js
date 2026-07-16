@@ -14,6 +14,17 @@
   const _toast = (m, t) =>
     (typeof showToast === "function" ? showToast(m, t) : console.log("[auth]", m));
 
+  // Cờ nhớ "vừa bấm đăng nhập OAuth" → sau khi redirect quay lại + có phiên thì toast.
+  const _OAUTH_TOAST_KEY = "cx_oauth_login_toast";
+  sb.auth.onAuthStateChange((_event, session) => {
+    let pending = null;
+    try { pending = sessionStorage.getItem(_OAUTH_TOAST_KEY); } catch {}
+    if (session?.user && pending) {
+      try { sessionStorage.removeItem(_OAUTH_TOAST_KEY); } catch {}
+      _toast("Đăng nhập thành công", "success");
+    }
+  });
+
   // Map lỗi Supabase Auth sang thông báo tiếng Việt THEO error code (ổn định hơn message).
   // Tham chiếu: https://supabase.com/docs/guides/auth/debugging/error-codes
   const _AUTH_ERR = {
@@ -271,11 +282,17 @@
     root.querySelectorAll("[data-auth-oauth]").forEach((btn) => {
       btn.addEventListener("click", async () => {
         const provider = btn.getAttribute("data-auth-oauth");
+        // Đánh dấu để sau khi redirect OAuth quay lại thì toast "Đăng nhập thành công".
+        // (Luồng OTP toast ngay tại chỗ; OAuth rời trang nên phải nhớ qua sessionStorage.)
+        try { sessionStorage.setItem(_OAUTH_TOAST_KEY, "1"); } catch {}
         const { error } = await sb.auth.signInWithOAuth({
           provider,
           options: { redirectTo: oauthRedirect },
         });
-        if (error) _toast(_friendlyError(error), "error");
+        if (error) {
+          try { sessionStorage.removeItem(_OAUTH_TOAST_KEY); } catch {}
+          _toast(_friendlyError(error), "error");
+        }
       });
     });
   }

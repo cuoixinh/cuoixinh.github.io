@@ -30,12 +30,16 @@ function saveLocalDraft(data) {
       DRAFT_LOCAL_KEY,
       JSON.stringify({ ...data, _localOnly: _isLocalDraft }),
     );
-  } catch (e) { console.error("saveLocalDraft:", e); }
+  } catch (e) {
+    console.error("saveLocalDraft:", e);
+  }
 }
 function clearLocalDraft() {
   try {
     localStorage.removeItem(DRAFT_LOCAL_KEY);
-  } catch (e) { console.error("clearLocalDraft:", e); }
+  } catch (e) {
+    console.error("clearLocalDraft:", e);
+  }
 }
 
 // ============= INDEXED DB — PENDING IMAGES =============
@@ -55,7 +59,10 @@ function _openIDB() {
       if (!db.objectStoreNames.contains(_IDB_STORE))
         db.createObjectStore(_IDB_STORE, { keyPath: "key" });
     };
-    req.onsuccess = (e) => { _idb = e.target.result; resolve(_idb); };
+    req.onsuccess = (e) => {
+      _idb = e.target.result;
+      resolve(_idb);
+    };
     req.onerror = (e) => reject(e.target.error);
   });
 }
@@ -69,7 +76,9 @@ async function _idbPut(record) {
       tx.oncomplete = res;
       tx.onerror = (e) => rej(e.target.error);
     });
-  } catch (e) { console.error("_idbPut:", e); }
+  } catch (e) {
+    console.error("_idbPut:", e);
+  }
 }
 
 async function _idbDelete(key) {
@@ -82,25 +91,34 @@ async function _idbDelete(key) {
       tx.oncomplete = res;
       tx.onerror = (e) => rej(e.target.error);
     });
-  } catch (e) { console.error("_idbDelete:", e); }
+  } catch (e) {
+    console.error("_idbDelete:", e);
+  }
 }
 
 async function _idbGetAll() {
   try {
     const db = await _openIDB();
     return await new Promise((res, rej) => {
-      const req = db.transaction(_IDB_STORE, "readonly")
-        .objectStore(_IDB_STORE).getAll();
+      const req = db
+        .transaction(_IDB_STORE, "readonly")
+        .objectStore(_IDB_STORE)
+        .getAll();
       req.onsuccess = (e) => res(e.target.result || []);
       req.onerror = (e) => rej(e.target.error);
     });
-  } catch (e) { console.error("_idbGetAll:", e); return []; }
+  } catch (e) {
+    console.error("_idbGetAll:", e);
+    return [];
+  }
 }
 
 async function _idbClearWedding() {
   try {
     const all = await _idbGetAll();
-    const keys = all.filter((r) => r.weddingId === WEDDING_ID).map((r) => r.key);
+    const keys = all
+      .filter((r) => r.weddingId === WEDDING_ID)
+      .map((r) => r.key);
     if (!keys.length) return;
     const db = await _openIDB();
     await new Promise((res, rej) => {
@@ -110,7 +128,9 @@ async function _idbClearWedding() {
       tx.oncomplete = res;
       tx.onerror = (e) => rej(e.target.error);
     });
-  } catch (e) { console.error("_idbClearWedding:", e); }
+  } catch (e) {
+    console.error("_idbClearWedding:", e);
+  }
 }
 
 // File → IDB key — cần để biết key nào cần xoá khi user bỏ ảnh gallery pending
@@ -138,8 +158,9 @@ async function _idbSaveFocal(fieldName) {
 }
 
 async function _idbSaveLoveStoryImages() {
-  const entries = Object.entries(_loveStoryPendingImages)
-    .map(([idx, file]) => ({ idx: parseInt(idx), file }));
+  const entries = Object.entries(_loveStoryPendingImages).map(
+    ([idx, file]) => ({ idx: parseInt(idx), file }),
+  );
   if (!entries.length) {
     await _idbDelete(`${WEDDING_ID}_lsImg`);
     return;
@@ -193,14 +214,17 @@ async function _idbUpdateGalleryFocal(file) {
       req.onsuccess = (e) => {
         const record = e.target.result;
         if (record) {
-          record.focalPoint = pendingFocalPoints.gallery_images.get(file) || null;
+          record.focalPoint =
+            pendingFocalPoints.gallery_images.get(file) || null;
           store.put(record);
         }
         resolve();
       };
       req.onerror = (e) => reject(e.target.error);
     });
-  } catch (e) { console.error("_idbUpdateFocal:", e); }
+  } catch (e) {
+    console.error("_idbUpdateFocal:", e);
+  }
 }
 
 async function _idbRestoreAll() {
@@ -226,13 +250,15 @@ async function _idbRestoreAll() {
       .sort((a, b) => (a.order || 0) - (b.order || 0));
     for (const r of gallery) {
       pendingUploads.galleryImages.push(r.file);
-      if (r.focalPoint) pendingFocalPoints.gallery_images.set(r.file, r.focalPoint);
+      if (r.focalPoint)
+        pendingFocalPoints.gallery_images.set(r.file, r.focalPoint);
       _galleryIdbKeys.set(r.file, r.key);
     }
 
     // Restore focal-only adjustments for DB gallery images
     for (const r of mine.filter((r) => r.type === "gallery_focal")) {
-      if (r.focalPoint && r.filename) pendingFocalPoints.gallery_images.set(r.filename, r.focalPoint);
+      if (r.focalPoint && r.filename)
+        pendingFocalPoints.gallery_images.set(r.filename, r.focalPoint);
     }
 
     // Restore love story pending images
@@ -244,11 +270,18 @@ async function _idbRestoreAll() {
     }
 
     // Re-render image UIs với dữ liệu vừa restore
-    ["cover_image_url", "groom_image_url", "bride_image_url", "groom_qr_url", "bride_qr_url"]
-      .forEach((f) => renderSingleImageUpload(f));
+    [
+      "cover_image_url",
+      "groom_image_url",
+      "bride_image_url",
+      "groom_qr_url",
+      "bride_qr_url",
+    ].forEach((f) => renderSingleImageUpload(f));
     renderGalleryGrid();
     if (Object.keys(_loveStoryPendingImages).length) renderLoveStoryList();
-  } catch (e) { console.error("_idbRestoreAll:", e); }
+  } catch (e) {
+    console.error("_idbRestoreAll:", e);
+  }
 }
 
 function getCurrentUser() {
@@ -460,8 +493,19 @@ function _savePreviewData() {
   const form = document.getElementById("wedding-form");
   if (!form) return;
 
-  const IMAGE_FIELDS = ["cover_image_url", "groom_image_url", "bride_image_url", "groom_qr_url", "bride_qr_url"];
-  const data = { is_active: true, theme: WEDDING_THEME, slug: WEDDING_SLUG, theme_setting: _themeSetting };
+  const IMAGE_FIELDS = [
+    "cover_image_url",
+    "groom_image_url",
+    "bride_image_url",
+    "groom_qr_url",
+    "bride_qr_url",
+  ];
+  const data = {
+    is_active: true,
+    theme: WEDDING_THEME,
+    slug: WEDDING_SLUG,
+    theme_setting: _themeSetting,
+  };
 
   // Collect text fields; convert image filenames → full URLs
   const formData = new FormData(form);
@@ -485,7 +529,9 @@ function _savePreviewData() {
   const existingGalleryUrls = existingFilenames.map((f) => getImageUrl(f));
 
   // Gallery: pending files → blob URLs
-  const pendingGalleryUrls = pendingUploads.galleryImages.map((f) => URL.createObjectURL(f));
+  const pendingGalleryUrls = pendingUploads.galleryImages.map((f) =>
+    URL.createObjectURL(f),
+  );
 
   const allGalleryUrls = [...existingGalleryUrls, ...pendingGalleryUrls];
   if (allGalleryUrls.length) data.gallery_images = allGalleryUrls;
@@ -535,7 +581,10 @@ function _setActiveTab(tabId) {
       configBtn.classList.add("text-color-secondary", "border-color-secondary");
       configBtn.classList.remove("text-gray-400", "border-transparent");
     } else {
-      configBtn.classList.remove("text-color-secondary", "border-color-secondary");
+      configBtn.classList.remove(
+        "text-color-secondary",
+        "border-color-secondary",
+      );
       configBtn.classList.add("text-gray-400", "border-transparent");
     }
   }
@@ -546,7 +595,10 @@ function _setActiveTab(tabId) {
       themeBtn.classList.add("text-color-secondary", "border-color-secondary");
       themeBtn.classList.remove("text-gray-400", "border-transparent");
     } else {
-      themeBtn.classList.remove("text-color-secondary", "border-color-secondary");
+      themeBtn.classList.remove(
+        "text-color-secondary",
+        "border-color-secondary",
+      );
       themeBtn.classList.add("text-gray-400", "border-transparent");
     }
   }
@@ -557,29 +609,62 @@ function _setActiveTab(tabId) {
       guestsBtn.classList.add("text-color-secondary", "border-color-secondary");
       guestsBtn.classList.remove("text-gray-400", "border-transparent");
     } else {
-      guestsBtn.classList.remove("text-color-secondary", "border-color-secondary");
+      guestsBtn.classList.remove(
+        "text-color-secondary",
+        "border-color-secondary",
+      );
       guestsBtn.classList.add("text-gray-400", "border-transparent");
     }
   }
 
   // Segmented switch: ẩn focus khi ở tab config/khách mời
-  const editBtn    = document.getElementById("switch-edit");
+  const editBtn = document.getElementById("switch-edit");
   const previewBtn = document.getElementById("switch-preview");
   if (!editBtn || !previewBtn) return;
   if (tabId === "config" || tabId === "guests" || tabId === "theme") {
-    editBtn.classList.remove("bg-white", "shadow-sm", "text-gray-700", "font-semibold");
+    editBtn.classList.remove(
+      "bg-white",
+      "shadow-sm",
+      "text-gray-700",
+      "font-semibold",
+    );
     editBtn.classList.add("text-gray-400", "font-medium");
-    previewBtn.classList.remove("bg-white", "shadow-sm", "text-rose-500", "font-semibold");
+    previewBtn.classList.remove(
+      "bg-white",
+      "shadow-sm",
+      "text-rose-500",
+      "font-semibold",
+    );
     previewBtn.classList.add("text-gray-400", "font-medium");
   } else if (tabId === "preview") {
-    previewBtn.classList.add("bg-white", "shadow-sm", "text-rose-500", "font-semibold");
+    previewBtn.classList.add(
+      "bg-white",
+      "shadow-sm",
+      "text-rose-500",
+      "font-semibold",
+    );
     previewBtn.classList.remove("text-gray-400", "font-medium");
-    editBtn.classList.remove("bg-white", "shadow-sm", "text-gray-700", "font-semibold");
+    editBtn.classList.remove(
+      "bg-white",
+      "shadow-sm",
+      "text-gray-700",
+      "font-semibold",
+    );
     editBtn.classList.add("text-gray-400", "font-medium");
   } else {
-    editBtn.classList.add("bg-white", "shadow-sm", "text-gray-700", "font-semibold");
+    editBtn.classList.add(
+      "bg-white",
+      "shadow-sm",
+      "text-gray-700",
+      "font-semibold",
+    );
     editBtn.classList.remove("text-gray-400", "font-medium");
-    previewBtn.classList.remove("bg-white", "shadow-sm", "text-rose-500", "font-semibold");
+    previewBtn.classList.remove(
+      "bg-white",
+      "shadow-sm",
+      "text-rose-500",
+      "font-semibold",
+    );
     previewBtn.classList.add("text-gray-400", "font-medium");
   }
 }
@@ -589,16 +674,16 @@ let _isDirty = false;
 function _setDirty(dirty) {
   _isDirty = dirty;
 
-  const draft   = document.getElementById("tab-draft");
+  const draft = document.getElementById("tab-draft");
   const publish = document.getElementById("tab-publish");
 
   if (draft) {
-    draft.classList.toggle("border-rose-400",  dirty);
-    draft.classList.toggle("text-rose-500",    dirty);
-    draft.classList.toggle("bg-rose-50",       dirty);
-    draft.classList.toggle("border-gray-300",  !dirty);
-    draft.classList.toggle("text-gray-500",    !dirty);
-    draft.classList.toggle("bg-white",         !dirty);
+    draft.classList.toggle("border-rose-400", dirty);
+    draft.classList.toggle("text-rose-500", dirty);
+    draft.classList.toggle("bg-rose-50", dirty);
+    draft.classList.toggle("border-gray-300", !dirty);
+    draft.classList.toggle("text-gray-500", !dirty);
+    draft.classList.toggle("bg-white", !dirty);
   }
   if (publish) {
     publish.classList.toggle("bg-rose-600", dirty);
@@ -612,13 +697,16 @@ function togglePreview() {
 
 function switchTab(tab) {
   // Danh sách khách mời có luồng mở riêng (panel iframe + URL ?tab=guests)
-  if (tab === "guests") { openGuestsPage(); return; }
+  if (tab === "guests") {
+    openGuestsPage();
+    return;
+  }
 
-  const formPanel    = document.getElementById("form-panel");
+  const formPanel = document.getElementById("form-panel");
   const previewPanel = document.getElementById("preview-panel");
-  const configPanel  = document.getElementById("config-panel");
-  const themePanel   = document.getElementById("theme-panel");
-  const guestsPanel  = document.getElementById("guests-panel");
+  const configPanel = document.getElementById("config-panel");
+  const themePanel = document.getElementById("theme-panel");
+  const guestsPanel = document.getElementById("guests-panel");
 
   // Rời khỏi danh sách khách mời khi chuyển sang tab khác
   if (guestsPanel) guestsPanel.classList.add("hidden");
@@ -626,8 +714,11 @@ function switchTab(tab) {
 
   // Persist tab in URL without reloading
   const _url = new URL(window.location.href);
-  if (tab === "edit") { _url.searchParams.delete("tab"); }
-  else { _url.searchParams.set("tab", tab); }
+  if (tab === "edit") {
+    _url.searchParams.delete("tab");
+  } else {
+    _url.searchParams.set("tab", tab);
+  }
   history.replaceState(null, "", _url);
 
   if (tab === "preview") {
@@ -678,7 +769,7 @@ function _initConfigPanel() {
   }
 
   // Sync clear-button state for all x-inputs in config panel
-  document.querySelectorAll('x-input').forEach(el => el.syncClearBtn?.());
+  document.querySelectorAll("x-input").forEach((el) => el.syncClearBtn?.());
 }
 
 // ============= THEME (GIAO DIỆN) PANEL =============
@@ -696,15 +787,15 @@ let _themePanelReady = false;
 function _fillFontSelect(selectEl, types) {
   if (!selectEl || !window.THEME_FONTS) return;
   selectEl.innerHTML = "";
-  window.THEME_FONTS.filter((f) => types.includes(f.type) || f.type === "both").forEach(
-    (f) => {
-      const opt = document.createElement("option");
-      opt.value = f.name;
-      opt.textContent = f.name;
-      opt.style.fontFamily = `'${f.name}', sans-serif`;
-      selectEl.appendChild(opt);
-    },
-  );
+  window.THEME_FONTS.filter(
+    (f) => types.includes(f.type) || f.type === "both",
+  ).forEach((f) => {
+    const opt = document.createElement("option");
+    opt.value = f.name;
+    opt.textContent = f.name;
+    opt.style.fontFamily = `'${f.name}', sans-serif`;
+    selectEl.appendChild(opt);
+  });
 }
 
 function _buildSwatches(containerId, colors, targetInputId) {
@@ -733,8 +824,16 @@ function _initThemePanel() {
   if (!_themePanelReady) {
     _fillFontSelect(document.getElementById("theme-heading-font"), ["heading"]);
     _fillFontSelect(document.getElementById("theme-body-font"), ["body"]);
-    _buildSwatches("theme-heading-swatches", window.THEME_HEADING_COLORS, "theme-heading-color");
-    _buildSwatches("theme-accent-swatches", window.THEME_ACCENT_COLORS, "theme-accent-color");
+    _buildSwatches(
+      "theme-heading-swatches",
+      window.THEME_HEADING_COLORS,
+      "theme-heading-color",
+    );
+    _buildSwatches(
+      "theme-accent-swatches",
+      window.THEME_ACCENT_COLORS,
+      "theme-accent-color",
+    );
     _themePanelReady = true;
   }
 
@@ -790,7 +889,8 @@ window.resetThemeSetting = resetThemeSetting;
 
 function _toSlug(str) {
   return (str || "")
-    .normalize("NFD").replace(/[̀-ͯ]/g, "")
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
     .replace(/đ/gi, "d")
     .toLowerCase()
     .replace(/[^a-z0-9\s-]/g, "")
@@ -802,21 +902,27 @@ async function _isSlugAvailable(slug) {
   try {
     const res = await fetch(
       `${CONFIG.supabase.edgeUrl}?slug=${encodeURIComponent(slug)}`,
-      { headers: { Authorization: `Bearer ${CONFIG.supabase.anonKey}` } }
+      { headers: { Authorization: `Bearer ${CONFIG.supabase.anonKey}` } },
     );
     if (!res.ok) return true; // 404 = chưa có ai dùng
     const data = await res.json();
     // Nếu kết quả trả về là wedding này → coi như available
     return !data || data.id === WEDDING_ID;
-  } catch { return true; }
+  } catch {
+    return true;
+  }
 }
 
 async function _resolvePublishSlug() {
   // Nếu user đã nhập slug thủ công trong Cấu hình → giữ nguyên
   if (WEDDING_SLUG && !WEDDING_SLUG.startsWith("wedding-")) return WEDDING_SLUG;
 
-  const groomName = (document.querySelector('[name="groom_name"]')?.value || "").trim();
-  const brideName = (document.querySelector('[name="bride_name"]')?.value || "").trim();
+  const groomName = (
+    document.querySelector('[name="groom_name"]')?.value || ""
+  ).trim();
+  const brideName = (
+    document.querySelector('[name="bride_name"]')?.value || ""
+  ).trim();
   if (!groomName || !brideName) return WEDDING_SLUG;
 
   const groomSlug = _toSlug(groomName);
@@ -836,9 +942,9 @@ async function _resolvePublishSlug() {
 }
 
 function _updateSlugPreview() {
-  const input   = document.getElementById("slug-input");
+  const input = document.getElementById("slug-input");
   const preview = document.getElementById("slug-preview");
-  const row     = document.getElementById("slug-preview-row");
+  const row = document.getElementById("slug-preview-row");
   if (!input || !preview) return;
   const val = input.value.trim();
   if (val) {
@@ -852,11 +958,14 @@ function _updateSlugPreview() {
 function copyInviteLink() {
   const preview = document.getElementById("slug-preview");
   if (!preview?.textContent) return;
-  navigator.clipboard.writeText(preview.textContent).then(() => {
-    showToast("✅ Đã sao chép link thiệp!");
-  }).catch(() => {
-    showToast("❌ Không thể sao chép, hãy copy thủ công");
-  });
+  navigator.clipboard
+    .writeText(preview.textContent)
+    .then(() => {
+      showToast("✅ Đã sao chép link thiệp!");
+    })
+    .catch(() => {
+      showToast("❌ Không thể sao chép, hãy copy thủ công");
+    });
 }
 
 async function saveDraft() {
@@ -897,14 +1006,75 @@ async function publishWedding() {
   WEDDING_SLUG = await _resolvePublishSlug();
   // Cập nhật input slug trong panel cấu hình nếu đang mở
   const slugInput = document.getElementById("slug-input");
-  if (slugInput) { slugInput.value = WEDDING_SLUG; _updateSlugPreview(); }
+  if (slugInput) {
+    slugInput.value = WEDDING_SLUG;
+    _updateSlugPreview();
+  }
   const ok = await saveAll({ is_published: true }, "Đang xuất bản...");
   if (!ok) return;
 
   IS_PUBLISHED = true;
   _syncAdvancedSection();
+  _syncLocalOrder({ published: true }); // để thiệp hiện trong mục "Đơn hàng" của trang tài khoản
 
   _setActiveTab("edit");
+}
+
+// Ghi/cập nhật một đơn vào localStorage để trang tài khoản hiển thị thiệp.
+// - Đã đăng nhập → key `orders_<email>`; khách → `guestOrders` (đăng nhập sau sẽ tự gộp).
+// - published=true → status "pending" (đã xuất bản, dùng thử, CHƯA thanh toán);
+//   ngược lại là "draft" (bản nháp). Chỉ khi thanh toán xong (đồng bộ từ DB) mới
+//   thành "completed" — xem _mergeWeddings ở trang tài khoản.
+// Trùng manage_id thì cập nhật, chưa có thì thêm. Không tạo đơn rỗng, không hạ cấp completed.
+function _syncLocalOrder({ published = false } = {}) {
+  const user = getCurrentUser();
+  const key = user?.email ? "orders_" + user.email : "guestOrders";
+
+  const form = document.getElementById("wedding-form");
+  const fd = form ? new FormData(form) : null;
+  const groomName = (fd?.get("groom_name") || "").toString().trim();
+  const brideName = (fd?.get("bride_name") || "").toString().trim();
+
+  // Bản nháp chưa có tên cô dâu/chú rể → chưa tạo đơn (tránh đơn trống lúc mới mở form).
+  if (!published && !groomName && !brideName) return;
+
+  const templateName =
+    sessionStorage.getItem("draft_template_name") ||
+    (WEDDING_THEME || "")
+      .split("-")
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(" ") ||
+    "Thiệp Cưới";
+
+  let orders = [];
+  try {
+    orders = JSON.parse(localStorage.getItem(key) || "[]");
+  } catch (e) {}
+
+  const idx = orders.findIndex((o) => o.manage_id === WEDDING_ID);
+  const base = idx >= 0 ? orders[idx] : {};
+  // Đã thanh toán (completed) thì giữ nguyên. Xuất bản = "pending" (chưa thanh toán),
+  // không lùi về draft khi auto-save bản nháp.
+  const status =
+    base.status === "completed" ? "completed" : published ? "pending" : "draft";
+  const order = {
+    ...base,
+    id: base.id || "CX" + Date.now().toString().slice(-6),
+    date: base.date || new Date().toISOString(),
+    manage_id: WEDDING_ID,
+    theme: WEDDING_THEME,
+    templateName,
+    groomName,
+    brideName,
+    status,
+  };
+
+  if (idx >= 0) orders[idx] = order;
+  else orders.push(order);
+
+  try {
+    localStorage.setItem(key, JSON.stringify(orders));
+  } catch (e) {}
 }
 
 // ============= AUTO-SAVE =============
@@ -915,7 +1085,13 @@ function _doAutoSave() {
   if (!form) return;
 
   const formData = new FormData(form);
-  const payload = { id: WEDDING_ID, slug: WEDDING_SLUG, theme: WEDDING_THEME, is_active: true, theme_setting: _themeSetting };
+  const payload = {
+    id: WEDDING_ID,
+    slug: WEDDING_SLUG,
+    theme: WEDDING_THEME,
+    is_active: true,
+    theme_setting: _themeSetting,
+  };
 
   formData.forEach((value, key) => {
     if (key === "gallery_images_raw" || key === "slug") return;
@@ -930,15 +1106,19 @@ function _doAutoSave() {
   // YouTube music
   const ytInput = document.getElementById("youtube-link-input");
   const musicInput = document.getElementById("music-url-input");
-  payload.music_url = ytInput?.value?.trim() || musicInput?.value?.trim() || null;
+  payload.music_url =
+    ytInput?.value?.trim() || musicInput?.value?.trim() || null;
 
   // Gallery (filenames đã lưu — pending uploads là blob trong memory, ko thể lưu localStorage)
-  const galleryTA = document.querySelector('textarea[name="gallery_images_raw"]');
+  const galleryTA = document.querySelector(
+    'textarea[name="gallery_images_raw"]',
+  );
   payload.gallery_images = galleryTA
     ? galleryTA.value.trim().split("\n").filter(Boolean)
     : [];
 
   saveLocalDraft(payload);
+  _syncLocalOrder(); // bản nháp cũng hiện trong "Đơn hàng" (khách: guestOrders) ngay khi đã có tên
 }
 
 function _scheduleAutoSave() {
@@ -997,17 +1177,20 @@ let _guestsIframeLoadedId = null;
 
 function openGuestsPage(e) {
   if (e) e.preventDefault();
-  if (!WEDDING_ID) { showToast("⚠️ Cần lưu thiệp trước khi quản lý khách mời"); return; }
+  if (!WEDDING_ID) {
+    showToast("⚠️ Cần lưu thiệp trước khi quản lý khách mời");
+    return;
+  }
 
   // Lưu tab vào URL mà không reload
   const _url = new URL(window.location.href);
   _url.searchParams.set("tab", "guests");
   history.replaceState(null, "", _url);
 
-  const formPanel    = document.getElementById("form-panel");
+  const formPanel = document.getElementById("form-panel");
   const previewPanel = document.getElementById("preview-panel");
-  const configPanel  = document.getElementById("config-panel");
-  const guestsPanel  = document.getElementById("guests-panel");
+  const configPanel = document.getElementById("config-panel");
+  const guestsPanel = document.getElementById("guests-panel");
 
   // Chưa xuất bản → hiện lớp khoá; đã xuất bản → nạp iframe quản lý khách mời
   _updateGuestsPanelLock();
@@ -1023,13 +1206,19 @@ function openGuestsPage(e) {
 // Đồng bộ lớp khoá / iframe của panel khách mời theo trạng thái xuất bản
 function _updateGuestsPanelLock() {
   const guestsLock = document.getElementById("guests-lock");
-  const iframe     = document.getElementById("guests-iframe");
+  const iframe = document.getElementById("guests-iframe");
   if (!IS_PUBLISHED) {
     // Chưa xuất bản: khoá tính năng, không nạp iframe
-    if (guestsLock) { guestsLock.classList.remove("hidden"); guestsLock.classList.add("flex"); }
+    if (guestsLock) {
+      guestsLock.classList.remove("hidden");
+      guestsLock.classList.add("flex");
+    }
     if (iframe) iframe.classList.add("hidden");
   } else {
-    if (guestsLock) { guestsLock.classList.add("hidden"); guestsLock.classList.remove("flex"); }
+    if (guestsLock) {
+      guestsLock.classList.add("hidden");
+      guestsLock.classList.remove("flex");
+    }
     if (iframe) {
       iframe.classList.remove("hidden");
       if (_guestsIframeLoadedId !== WEDDING_ID) {
@@ -1051,7 +1240,10 @@ function exitGuestsPanel() {
 let _importState = { headers: [], data: [], side: "" };
 
 function downloadGuestTemplate() {
-  if (typeof XLSX === "undefined") { showToast("⚠️ Đang tải thư viện, thử lại sau"); return; }
+  if (typeof XLSX === "undefined") {
+    showToast("⚠️ Đang tải thư viện, thử lại sau");
+    return;
+  }
   guestBL.downloadTemplate();
 }
 
@@ -1072,7 +1264,11 @@ async function handleExcelUpload(event, side) {
 function _openMappingModal(headers, data) {
   const mapping = guestBL.autoDetectMapping(headers);
   const noOpt = `<option value="-1">— Không chọn —</option>`;
-  const opts = headers.map((h, i) => `<option value="${i}">${h || "(Cột " + (i+1) + ")"}</option>`).join("");
+  const opts = headers
+    .map(
+      (h, i) => `<option value="${i}">${h || "(Cột " + (i + 1) + ")"}</option>`,
+    )
+    .join("");
 
   document.getElementById("map-full-name").innerHTML = opts;
   document.getElementById("map-display-name").innerHTML = noOpt + opts;
@@ -1084,7 +1280,9 @@ function _openMappingModal(headers, data) {
 
   _renderMappingPreview(headers, data.slice(0, 4));
 
-  document.querySelector("input[name='import-mode'][value='overwrite']").checked = true;
+  document.querySelector(
+    "input[name='import-mode'][value='overwrite']",
+  ).checked = true;
 
   const modal = document.getElementById("import-mapping-modal");
   modal.classList.remove("hidden");
@@ -1099,12 +1297,23 @@ function closeMappingModal() {
 }
 
 function _renderMappingPreview(headers, rows) {
-  const th = headers.map(h => `<th class="px-2 py-1.5 text-left text-xs font-medium text-gray-500 whitespace-nowrap">${h}</th>`).join("");
-  const trs = rows.map(row =>
-    `<tr class="border-t border-gray-100">${
-      headers.map((_, i) => `<td class="px-2 py-1.5 text-xs text-gray-700 max-w-[100px] truncate">${row[i] ?? ""}</td>`).join("")
-    }</tr>`
-  ).join("");
+  const th = headers
+    .map(
+      (h) =>
+        `<th class="px-2 py-1.5 text-left text-xs font-medium text-gray-500 whitespace-nowrap">${h}</th>`,
+    )
+    .join("");
+  const trs = rows
+    .map(
+      (row) =>
+        `<tr class="border-t border-gray-100">${headers
+          .map(
+            (_, i) =>
+              `<td class="px-2 py-1.5 text-xs text-gray-700 max-w-[100px] truncate">${row[i] ?? ""}</td>`,
+          )
+          .join("")}</tr>`,
+    )
+    .join("");
   document.getElementById("mapping-preview").innerHTML = `
     <div class="overflow-x-auto rounded-lg border border-gray-200">
       <table class="w-full text-left"><thead class="bg-gray-50"><tr>${th}</tr></thead><tbody>${trs}</tbody></table>
@@ -1124,15 +1333,24 @@ async function confirmImport() {
     return;
   }
 
-  const overwrite = document.querySelector("input[name='import-mode']:checked").value === "overwrite";
+  const overwrite =
+    document.querySelector("input[name='import-mode']:checked").value ===
+    "overwrite";
   const { data, side } = _importState;
 
   closeMappingModal();
   showLoading(true, "Đang nhập khẩu...");
 
   try {
-    const result = await guestBL.importGuests(WEDDING_ID, side, data, colMapping, overwrite);
-    const skipMsg = result.skipped > 0 ? `, bỏ qua ${result.skipped} trùng` : "";
+    const result = await guestBL.importGuests(
+      WEDDING_ID,
+      side,
+      data,
+      colMapping,
+      overwrite,
+    );
+    const skipMsg =
+      result.skipped > 0 ? `, bỏ qua ${result.skipped} trùng` : "";
     showToast(`✅ Đã nhập ${result.inserted} khách${skipMsg}`);
     await loadGuestList(side);
   } catch (err) {
@@ -1161,7 +1379,9 @@ function _renderGuestList(guests, side) {
     return;
   }
 
-  const rows = guests.map(g => `
+  const rows = guests
+    .map(
+      (g) => `
     <tr class="border-t border-gray-100 hover:bg-gray-50/50">
       <td class="px-3 py-2.5">
         <p class="text-xs font-medium text-gray-800 truncate max-w-[100px]">${g.full_name}</p>
@@ -1169,24 +1389,32 @@ function _renderGuestList(guests, side) {
       </td>
       <td class="px-3 py-2.5 text-xs text-gray-500 truncate max-w-[80px]">${g.relationship || "—"}</td>
       <td class="px-3 py-2.5 text-center">
-        ${g.link
-          ? `<button type="button" onclick="copyGuestLink('${g.link}')" class="text-rose-400 hover:text-rose-600 transition-colors">
+        ${
+          g.link
+            ? `<button type="button" onclick="copyGuestLink('${g.link}')" class="text-rose-400 hover:text-rose-600 transition-colors">
                <i data-lucide="copy" style="width:14px;height:14px"></i>
              </button>`
-          : `<span class="text-gray-300 text-xs">—</span>`}
+            : `<span class="text-gray-300 text-xs">—</span>`
+        }
       </td>
       <td class="px-3 py-2.5">
-        ${g.viewed
-          ? `<span class="inline-flex items-center gap-1 text-xs text-green-600 bg-green-50 px-1.5 py-0.5 rounded-full whitespace-nowrap">✓ Đã xem</span>
+        ${
+          g.viewed
+            ? `<span class="inline-flex items-center gap-1 text-xs text-green-600 bg-green-50 px-1.5 py-0.5 rounded-full whitespace-nowrap">✓ Đã xem</span>
              ${g.viewed_at ? `<p class="text-xs text-gray-400 mt-0.5 whitespace-nowrap">${_formatGuestDate(g.viewed_at)}</p>` : ""}`
-          : `<span class="text-xs text-gray-400">Chưa xem</span>`}
+            : `<span class="text-xs text-gray-400">Chưa xem</span>`
+        }
       </td>
       <td class="px-3 py-2.5 text-xs whitespace-nowrap">
-        ${g.confirmed
-          ? `<span class="${g.confirmed.includes("Có") ? "text-green-600" : "text-red-500"}">${g.confirmed}</span>`
-          : `<span class="text-gray-400">—</span>`}
+        ${
+          g.confirmed
+            ? `<span class="${g.confirmed.includes("Có") ? "text-green-600" : "text-red-500"}">${g.confirmed}</span>`
+            : `<span class="text-gray-400">—</span>`
+        }
       </td>
-    </tr>`).join("");
+    </tr>`,
+    )
+    .join("");
 
   container.innerHTML = `
     <div class="overflow-x-auto rounded-lg border border-gray-200 -mx-0">
@@ -1215,45 +1443,71 @@ function copyGuestLink(link) {
 function _formatGuestDate(dateStr) {
   if (!dateStr) return "";
   const d = new Date(dateStr);
-  return d.toLocaleString("vi-VN", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+  return d.toLocaleString("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 function switchGuestsTab(side) {
   const isGroom = side === "groom";
-  document.getElementById("guests-panel-groom").classList.toggle("hidden", !isGroom);
-  document.getElementById("guests-panel-bride").classList.toggle("hidden", isGroom);
+  document
+    .getElementById("guests-panel-groom")
+    .classList.toggle("hidden", !isGroom);
+  document
+    .getElementById("guests-panel-bride")
+    .classList.toggle("hidden", isGroom);
 
-  const ACTIVE   = ["bg-rose-50", "text-rose-600", "border-b-2", "border-rose-400"];
+  const ACTIVE = [
+    "bg-rose-50",
+    "text-rose-600",
+    "border-b-2",
+    "border-rose-400",
+  ];
   const INACTIVE = ["text-gray-500", "hover:bg-gray-50", "hover:text-gray-700"];
   const tabGroom = document.getElementById("tab-guests-groom");
   const tabBride = document.getElementById("tab-guests-bride");
 
   if (isGroom) {
-    tabGroom.classList.add(...ACTIVE);    tabGroom.classList.remove(...INACTIVE);
-    tabBride.classList.add(...INACTIVE);  tabBride.classList.remove(...ACTIVE);
+    tabGroom.classList.add(...ACTIVE);
+    tabGroom.classList.remove(...INACTIVE);
+    tabBride.classList.add(...INACTIVE);
+    tabBride.classList.remove(...ACTIVE);
   } else {
-    tabBride.classList.add(...ACTIVE);    tabBride.classList.remove(...INACTIVE);
-    tabGroom.classList.add(...INACTIVE);  tabGroom.classList.remove(...ACTIVE);
+    tabBride.classList.add(...ACTIVE);
+    tabBride.classList.remove(...INACTIVE);
+    tabGroom.classList.add(...INACTIVE);
+    tabGroom.classList.remove(...ACTIVE);
   }
 }
 
 function generateQuickLink(side) {
   const name = document.getElementById(`quick-link-name-${side}`).value.trim();
-  const rel  = document.getElementById(`quick-link-rel-${side}`).value.trim();
-  if (!name || !rel) { showToast("❌ Vui lòng nhập tên và quan hệ khách"); return; }
+  const rel = document.getElementById(`quick-link-rel-${side}`).value.trim();
+  if (!name || !rel) {
+    showToast("❌ Vui lòng nhập tên và quan hệ khách");
+    return;
+  }
 
-  const slug = WEDDING_SLUG || (WEDDING_ID ? `wedding-${WEDDING_ID.slice(0, 8)}` : "");
-  if (!slug) { showToast("❌ Không xác định được thiệp, vui lòng tải lại trang"); return; }
+  const slug =
+    WEDDING_SLUG || (WEDDING_ID ? `wedding-${WEDDING_ID.slice(0, 8)}` : "");
+  if (!slug) {
+    showToast("❌ Không xác định được thiệp, vui lòng tải lại trang");
+    return;
+  }
 
   const encName = encryptData(name);
-  const encRel  = encryptData(rel);
-  const base    = side === "groom"
-    ? `${DOMAIN}/${slug}?isGroom=true`
-    : `${DOMAIN}/${slug}`;
+  const encRel = encryptData(rel);
+  const base =
+    side === "groom" ? `${DOMAIN}/${slug}?isGroom=true` : `${DOMAIN}/${slug}`;
   const link = `${base}&name=${encName}&relationship=${encRel}`;
 
   document.getElementById(`quick-link-output-${side}`).value = link;
-  document.getElementById(`quick-link-result-${side}`).classList.remove("hidden");
+  document
+    .getElementById(`quick-link-result-${side}`)
+    .classList.remove("hidden");
 }
 
 function shareViaMessenger(url, side) {
@@ -1725,7 +1979,6 @@ async function resizeImage(
   return await imageBL.resizeImage(file);
 }
 
-
 // ============= IMAGE PREVIEW FUNCTIONS =============
 
 function showImagePreview(fieldName, url) {
@@ -1863,7 +2116,9 @@ function renderSingleImageUpload(fieldName) {
     objectFit = "object-contain";
   }
 
-  const _fp = FOCAL_POINT_FIELDS.includes(fieldName) ? pendingFocalPoints[fieldName] : null;
+  const _fp = FOCAL_POINT_FIELDS.includes(fieldName)
+    ? pendingFocalPoints[fieldName]
+    : null;
   const _fpStyle = _fp ? ` style="object-position: ${_fp.x}% ${_fp.y}%"` : "";
 
   // Nút chỉnh khung: QR → cắt lại (crop); ảnh khác → điểm lấy nét (focal)
@@ -1872,10 +2127,10 @@ function renderSingleImageUpload(fieldName) {
         <i data-lucide="crop" class="w-3.5 h-3.5"></i>
       </button>`
     : FOCAL_POINT_FIELDS.includes(fieldName)
-    ? `<button onclick="adjustSingleImageFocalPoint('${fieldName}')" title="Chỉnh điểm lấy nét" class="absolute bottom-1 right-1 bg-black/50 hover:bg-black/70 text-white rounded-full w-6 h-6 flex items-center justify-center transition-colors shadow-md">
+      ? `<button onclick="adjustSingleImageFocalPoint('${fieldName}')" title="Chỉnh điểm lấy nét" class="absolute bottom-1 right-1 bg-black/50 hover:bg-black/70 text-white rounded-full w-6 h-6 flex items-center justify-center transition-colors shadow-md">
         <i data-lucide="focus" class="w-3.5 h-3.5"></i>
       </button>`
-    : "";
+      : "";
 
   // Check if there's a pending upload (new file selected)
   if (pendingUploads.singleImages[fieldName]) {
@@ -2031,26 +2286,31 @@ async function handleImageUpload(event, fieldName) {
 
   if (FOCAL_POINT_FIELDS.includes(fieldName)) {
     // Mở picker chọn điểm lấy nét trước khi xử lý & lưu ảnh
-    openFocalPointPicker(file, pendingFocalPoints[fieldName], async (focal) => {
-      pendingFocalPoints[fieldName] = focal;
-      showLoading(
-        true,
-        "Ảnh vượt quá dung lượng cho phép, đang nén ảnh lại...",
-      );
-      try {
-        const processedFile = await resizeImage(file, 1, 1920, 1920);
-        pendingUploads.singleImages[fieldName] = processedFile;
-        _idbSaveSingle(fieldName, processedFile);
-        _idbDelete(`${WEDDING_ID}_sf_${fieldName}`);
-        renderSingleImageUpload(fieldName);
-        showToast("✅ Đã chọn ảnh (chưa lưu)");
-      } catch (error) {
-        console.error("Error processing image:", error);
-        showToast("❌ Lỗi xử lý ảnh: " + error.message);
-      } finally {
-        showLoading(false);
-      }
-    }, _qrGiftInfo(fieldName));
+    openFocalPointPicker(
+      file,
+      pendingFocalPoints[fieldName],
+      async (focal) => {
+        pendingFocalPoints[fieldName] = focal;
+        showLoading(
+          true,
+          "Ảnh vượt quá dung lượng cho phép, đang nén ảnh lại...",
+        );
+        try {
+          const processedFile = await resizeImage(file, 1, 1920, 1920);
+          pendingUploads.singleImages[fieldName] = processedFile;
+          _idbSaveSingle(fieldName, processedFile);
+          _idbDelete(`${WEDDING_ID}_sf_${fieldName}`);
+          renderSingleImageUpload(fieldName);
+          showToast("✅ Đã chọn ảnh (chưa lưu)");
+        } catch (error) {
+          console.error("Error processing image:", error);
+          showToast("❌ Lỗi xử lý ảnh: " + error.message);
+        } finally {
+          showLoading(false);
+        }
+      },
+      _qrGiftInfo(fieldName),
+    );
   } else {
     // Normal image upload (no crop)
     showLoading(true, "Ảnh vượt quá dung lượng cho phép, đang nén ảnh lại...");
@@ -2088,7 +2348,8 @@ function _qrGiftInfo(fieldName) {
   const v = (n) => (fd ? (fd.get(n) || "").toString().trim() : "");
   const name = v(`${side}_name`);
   return {
-    label: (side === "groom" ? "Chú Rể" : "Cô Dâu") + (name ? ` · ${name}` : ""),
+    label:
+      (side === "groom" ? "Chú Rể" : "Cô Dâu") + (name ? ` · ${name}` : ""),
     bankName: v(`${side}_bank_name`),
     bankNumber: v(`${side}_bank_number`),
     bankOwner: v(`${side}_bank_owner`),
@@ -2106,16 +2367,21 @@ function adjustSingleImageFocalPoint(fieldName) {
     pendingFile || (existingFilename ? getImageUrl(existingFilename) : null);
   if (!source) return;
 
-  openFocalPointPicker(source, pendingFocalPoints[fieldName], (focal) => {
-    pendingFocalPoints[fieldName] = focal;
-    renderSingleImageUpload(fieldName);
-    if (pendingUploads.singleImages[fieldName]) {
-      _idbSaveSingle(fieldName, pendingUploads.singleImages[fieldName]);
-    } else {
-      _idbSaveFocal(fieldName);
-    }
-    showToast("✅ Đã cập nhật điểm lấy nét");
-  }, _qrGiftInfo(fieldName));
+  openFocalPointPicker(
+    source,
+    pendingFocalPoints[fieldName],
+    (focal) => {
+      pendingFocalPoints[fieldName] = focal;
+      renderSingleImageUpload(fieldName);
+      if (pendingUploads.singleImages[fieldName]) {
+        _idbSaveSingle(fieldName, pendingUploads.singleImages[fieldName]);
+      } else {
+        _idbSaveFocal(fieldName);
+      }
+      showToast("✅ Đã cập nhật điểm lấy nét");
+    },
+    _qrGiftInfo(fieldName),
+  );
 }
 
 /**
@@ -2176,31 +2442,39 @@ function adjustGalleryFocalPoint(globalIndex, source) {
 
 // ============= YOUTUBE SEARCH =============
 function _escHtml(s) {
-  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  return String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }
 
 function _renderYtItems(items) {
-  return items.map(item => `
+  return items
+    .map(
+      (item) => `
     <button type="button" data-yt-url="${_escHtml(item.url)}"
       class="yt-result-btn w-full flex gap-3 p-2 rounded-lg hover:bg-rose-50 text-left transition-colors">
       <img src="${_escHtml(item.thumbnail)}" class="w-20 h-12 rounded object-cover shrink-0 bg-gray-100" loading="lazy" />
       <div class="min-w-0 flex-1">
         <p class="text-xs font-medium text-gray-800 line-clamp-2 leading-snug">${_escHtml(item.title)}</p>
-        <p class="text-[10px] text-gray-400 mt-1">${_escHtml(item.channel)}${item.duration ? ' · ' + _escHtml(item.duration) : ''}</p>
+        <p class="text-[10px] text-gray-400 mt-1">${_escHtml(item.channel)}${item.duration ? " · " + _escHtml(item.duration) : ""}</p>
       </div>
     </button>
-  `).join('');
+  `,
+    )
+    .join("");
 }
 
 function _rewireYtResultBtns(container) {
-  container.querySelectorAll('.yt-result-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
+  container.querySelectorAll(".yt-result-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
       const url = btn.dataset.ytUrl;
       if (!url) return;
-      const ytInput = document.getElementById('youtube-link-input');
+      const ytInput = document.getElementById("youtube-link-input");
       ytInput.value = url;
-      ytInput.dispatchEvent(new Event('input', { bubbles: true }));
-      container.innerHTML = '';
+      ytInput.dispatchEvent(new Event("input", { bubbles: true }));
+      container.innerHTML = "";
       autoPreviewYouTubeMusic();
     });
   });
@@ -2209,7 +2483,7 @@ function _rewireYtResultBtns(container) {
 let _ytSuggestionsCache = null;
 
 async function _showYouTubeSuggestions() {
-  const results = document.getElementById('youtube-search-results');
+  const results = document.getElementById("youtube-search-results");
   if (!results) return;
 
   if (_ytSuggestionsCache) {
@@ -2218,17 +2492,18 @@ async function _showYouTubeSuggestions() {
     return;
   }
 
-  results.innerHTML = '<p class="text-xs text-gray-400 py-3 text-center">Đang tải gợi ý...</p>';
+  results.innerHTML =
+    '<p class="text-xs text-gray-400 py-3 text-center">Đang tải gợi ý...</p>';
 
   try {
     const res = await fetch(
-      `${CONFIG.supabase.edgeUrl}?resource=youtube-search&q=${encodeURIComponent('Một đời')}`,
-      { headers: { Authorization: `Bearer ${CONFIG.supabase.anonKey}` } }
+      `${CONFIG.supabase.edgeUrl}?resource=youtube-search&q=${encodeURIComponent("Một đời")}`,
+      { headers: { Authorization: `Bearer ${CONFIG.supabase.anonKey}` } },
     );
     const items = await res.json();
 
     if (!Array.isArray(items) || items.length === 0) {
-      results.innerHTML = '';
+      results.innerHTML = "";
       return;
     }
 
@@ -2239,32 +2514,35 @@ async function _showYouTubeSuggestions() {
     _ytSuggestionsCache = results.innerHTML;
     _rewireYtResultBtns(results);
   } catch {
-    results.innerHTML = '';
+    results.innerHTML = "";
   }
 }
 
 async function _doYouTubeSearch(q) {
-  const results = document.getElementById('youtube-search-results');
+  const results = document.getElementById("youtube-search-results");
   if (!results) return;
 
-  results.innerHTML = '<p class="text-xs text-gray-400 py-3 text-center">Đang tìm...</p>';
+  results.innerHTML =
+    '<p class="text-xs text-gray-400 py-3 text-center">Đang tìm...</p>';
 
   try {
     const res = await fetch(
       `${CONFIG.supabase.edgeUrl}?resource=youtube-search&q=${encodeURIComponent(q)}`,
-      { headers: { Authorization: `Bearer ${CONFIG.supabase.anonKey}` } }
+      { headers: { Authorization: `Bearer ${CONFIG.supabase.anonKey}` } },
     );
     const items = await res.json();
 
     if (!Array.isArray(items) || items.length === 0) {
-      results.innerHTML = '<p class="text-xs text-gray-400 py-3 text-center">Không tìm thấy kết quả.</p>';
+      results.innerHTML =
+        '<p class="text-xs text-gray-400 py-3 text-center">Không tìm thấy kết quả.</p>';
       return;
     }
 
     results.innerHTML = _renderYtItems(items);
     _rewireYtResultBtns(results);
   } catch {
-    results.innerHTML = '<p class="text-xs text-red-400 py-3 text-center">Lỗi tìm kiếm. Vui lòng thử lại.</p>';
+    results.innerHTML =
+      '<p class="text-xs text-red-400 py-3 text-center">Lỗi tìm kiếm. Vui lòng thử lại.</p>';
   }
 }
 
@@ -2287,11 +2565,11 @@ function extractYouTubeVideoId(url) {
 }
 
 function autoPreviewYouTubeMusic() {
-  const input   = document.getElementById("youtube-link-input");
+  const input = document.getElementById("youtube-link-input");
   const preview = document.getElementById("youtube-preview");
-  const error   = document.getElementById("youtube-error");
+  const error = document.getElementById("youtube-error");
   const results = document.getElementById("youtube-search-results");
-  const val     = input.value.trim();
+  const val = input.value.trim();
 
   if (!val) {
     preview.classList.add("hidden");
@@ -2301,10 +2579,10 @@ function autoPreviewYouTubeMusic() {
     return;
   }
 
-  const isUrl = val.includes('youtube.com') || val.includes('youtu.be');
+  const isUrl = val.includes("youtube.com") || val.includes("youtu.be");
 
   if (isUrl) {
-    if (results) results.innerHTML = '';
+    if (results) results.innerHTML = "";
     const videoId = extractYouTubeVideoId(val);
     if (!videoId) {
       preview.classList.add("hidden");
@@ -2328,7 +2606,7 @@ let _ytApiInjected = false;
 const _ytApiQueue = [];
 
 window.onYouTubeIframeAPIReady = function () {
-  _ytApiQueue.forEach(cb => cb());
+  _ytApiQueue.forEach((cb) => cb());
   _ytApiQueue.length = 0;
 };
 
@@ -2337,8 +2615,8 @@ function _ensureYTApi(cb) {
   _ytApiQueue.push(cb);
   if (!_ytApiInjected) {
     _ytApiInjected = true;
-    const s = document.createElement('script');
-    s.src = 'https://www.youtube.com/iframe_api';
+    const s = document.createElement("script");
+    s.src = "https://www.youtube.com/iframe_api";
     document.head.appendChild(s);
   }
 }
@@ -2347,42 +2625,45 @@ function showYouTubePreview(videoId, url) {
   const preview = document.getElementById("youtube-preview");
 
   if (_ytPreviewPlayer) {
-    try { _ytPreviewPlayer.destroy(); } catch {}
+    try {
+      _ytPreviewPlayer.destroy();
+    } catch {}
     _ytPreviewPlayer = null;
   }
 
   // Tạo lại player container nếu đã bị remove() lần trước
-  let playerWrap = document.getElementById('youtube-player-container');
+  let playerWrap = document.getElementById("youtube-player-container");
   if (!playerWrap) {
-    playerWrap = document.createElement('div');
-    playerWrap.id = 'youtube-player-container';
-    playerWrap.className = 'aspect-video bg-black rounded-lg overflow-hidden';
-    preview.querySelector('.bg-gray-50').prepend(playerWrap);
+    playerWrap = document.createElement("div");
+    playerWrap.id = "youtube-player-container";
+    playerWrap.className = "aspect-video bg-black rounded-lg overflow-hidden";
+    preview.querySelector(".bg-gray-50").prepend(playerWrap);
   }
-  playerWrap.innerHTML = '<div id="_yt_target" style="width:100%;height:100%"></div>';
+  playerWrap.innerHTML =
+    '<div id="_yt_target" style="width:100%;height:100%"></div>';
 
-  const thumb = document.getElementById('youtube-fallback-thumb');
-  if (thumb) thumb.style.display = 'none';
+  const thumb = document.getElementById("youtube-fallback-thumb");
+  if (thumb) thumb.style.display = "none";
   preview.classList.remove("hidden");
 
   _ensureYTApi(() => {
-    _ytPreviewPlayer = new YT.Player('_yt_target', {
+    _ytPreviewPlayer = new YT.Player("_yt_target", {
       videoId,
       playerVars: { autoplay: 0, modestbranding: 1, rel: 0 },
       events: {
         onError: (e) => {
           if (e.data === 101 || e.data === 150) {
-            document.getElementById('youtube-player-container')?.remove();
-            const thumb = document.getElementById('youtube-fallback-thumb');
+            document.getElementById("youtube-player-container")?.remove();
+            const thumb = document.getElementById("youtube-fallback-thumb");
             if (thumb) {
               thumb.src = `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
-              thumb.style.display = '';
+              thumb.style.display = "";
               thumb.onclick = () =>
-                window.open(`https://youtu.be/${videoId}`, '_blank');
+                window.open(`https://youtu.be/${videoId}`, "_blank");
             }
           }
-        }
-      }
+        },
+      },
     });
   });
 }
@@ -2401,7 +2682,6 @@ function renderExistingYouTubeMusic(musicUrl) {
   // Auto preview
   autoPreviewYouTubeMusic();
 }
-
 
 // Setup auto-preview on input change
 document.addEventListener("DOMContentLoaded", function () {
@@ -2645,6 +2925,13 @@ function removeExistingGalleryImage(index) {
 function _showContent() {
   document.getElementById("skeleton-loader")?.classList.add("hidden");
   document.getElementById("actual-content")?.classList.remove("hidden");
+  // Content thật đã hiện → show thẻ AI (đang ẩn lúc skeleton) và đặt lại vị trí
+  // cho khớp form (lúc này #wedding-form mới có kích thước thật).
+  const fab = document.querySelector(".ai-fab");
+  if (fab) {
+    fab.classList.remove("hidden-boot");
+    if (typeof _positionAiFab === "function") _positionAiFab();
+  }
   _updateHeaderThemeBadge();
   const params = new URLSearchParams(window.location.search);
   const savedTab = params.get("tab");
@@ -2653,10 +2940,10 @@ function _showContent() {
   setTimeout(() => _setDirty(false), 0);
 
   // Nếu được redirect về sau khi đăng nhập để xuất bản → auto trigger
-  if (params.get('pendingPublish') === '1') {
+  if (params.get("pendingPublish") === "1") {
     const cleanUrl = new URL(window.location.href);
-    cleanUrl.searchParams.delete('pendingPublish');
-    history.replaceState(null, '', cleanUrl.toString());
+    cleanUrl.searchParams.delete("pendingPublish");
+    history.replaceState(null, "", cleanUrl.toString());
     setTimeout(() => publishWedding(), 300);
   }
 }
@@ -2715,7 +3002,13 @@ function fillForm(data) {
   // Tuỳ chỉnh giao diện (font/màu chữ)
   if (data.theme_setting != null) {
     let ts = data.theme_setting;
-    if (typeof ts === "string") { try { ts = JSON.parse(ts); } catch (e) { ts = {}; } }
+    if (typeof ts === "string") {
+      try {
+        ts = JSON.parse(ts);
+      } catch (e) {
+        ts = {};
+      }
+    }
     if (ts && typeof ts === "object") _themeSetting = ts;
   }
 
@@ -2736,17 +3029,30 @@ function fillForm(data) {
   // Process image_focal_points FIRST so pendingFocalPoints is ready before any renderSingleImageUpload call
   if (data.image_focal_points) {
     let points = data.image_focal_points;
-    if (typeof points === "string") { try { points = JSON.parse(points); } catch (e) { points = {}; } }
+    if (typeof points === "string") {
+      try {
+        points = JSON.parse(points);
+      } catch (e) {
+        points = {};
+      }
+    }
     if (points && typeof points === "object") {
       FOCAL_POINT_FIELDS.forEach((field) => {
         if (points[field] && typeof points[field].x === "number") {
-          pendingFocalPoints[field] = { x: points[field].x, y: points[field].y };
+          pendingFocalPoints[field] = {
+            x: points[field].x,
+            y: points[field].y,
+          };
         }
       });
       const galleryFp = points.gallery_images;
-      const entries = galleryFp && typeof galleryFp === "object" && !Array.isArray(galleryFp)
-        ? Object.entries(galleryFp).filter(([, p]) => p && typeof p.x === "number" && typeof p.y === "number")
-        : [];
+      const entries =
+        galleryFp && typeof galleryFp === "object" && !Array.isArray(galleryFp)
+          ? Object.entries(galleryFp).filter(
+              ([, p]) =>
+                p && typeof p.x === "number" && typeof p.y === "number",
+            )
+          : [];
       pendingFocalPoints.gallery_images = new Map(entries);
     }
   }
@@ -2900,12 +3206,15 @@ function fillForm(data) {
   if (typeof lucide !== "undefined") lucide.createIcons();
 
   // Sync clear-button state on all x-input components after programmatic fill
-  document.querySelectorAll('x-input').forEach(el => el.syncClearBtn?.());
+  document.querySelectorAll("x-input").forEach((el) => el.syncClearBtn?.());
 }
 
 async function saveAll(overrides = {}, label = "Đang lưu...") {
   const form = document.getElementById("wedding-form");
-  if (!validateForm(form)) { showLoading(false); return false; }
+  if (!validateForm(form)) {
+    showLoading(false);
+    return false;
+  }
 
   try {
     // Step 1: Upload pending images
@@ -2921,7 +3230,11 @@ async function saveAll(overrides = {}, label = "Đang lưu...") {
     // Step 2: Prepare form data
     const form = document.getElementById("wedding-form");
     const formData = new FormData(form);
-    const payload = { id: WEDDING_ID, slug: WEDDING_SLUG, theme_setting: _themeSetting };
+    const payload = {
+      id: WEDDING_ID,
+      slug: WEDDING_SLUG,
+      theme_setting: _themeSetting,
+    };
 
     // Step 2.5: Get YouTube music URL (prioritize textbox input over hidden input)
     const youtubeTextbox = document.getElementById("youtube-link-input");
@@ -3032,12 +3345,10 @@ async function saveAll(overrides = {}, label = "Đang lưu...") {
     } else if (getCurrentUser()) {
       // Local draft + đã đăng nhập → tạo record trong DB lần đầu
       const generatedSlug = payload.slug || `wedding-${WEDDING_ID.slice(0, 8)}`;
+      // Đính JWT user (qua _authHeaders) để edge gán user_id = chủ thiệp ngay khi tạo.
       await fetch(CONFIG.supabase.edgeUrl, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${CONFIG.supabase.anonKey}`,
-        },
+        headers: await window.weddingDAL._authHeaders(),
         body: JSON.stringify({
           manage_id: WEDDING_ID,
           theme: WEDDING_THEME,
@@ -3102,11 +3413,9 @@ async function saveAll(overrides = {}, label = "Đang lưu...") {
     renderGalleryGrid();
 
     if (_isLocalDraft && !getCurrentUser()) {
-      showToast(
-        "💾 Đã lưu nháp vào thiết bị (đăng nhập để đồng bộ lên server)",
-      );
+      showToast("Đã lưu nháp vào thiết bị này");
     } else {
-      showToast("✅ Đã lưu thành công!");
+      showToast("Đã lưu thành công!");
     }
     _setDirty(false);
     return true;
@@ -3175,7 +3484,7 @@ function _syncTimelineHidden() {
 }
 
 function _ensureTimelineDefault(type) {
-  const has = _timelineItems.some(i => (i.type || "ceremony") === type);
+  const has = _timelineItems.some((i) => (i.type || "ceremony") === type);
   if (!has) {
     _timelineItems.push({ time: "", title: "", type });
     _syncTimelineHidden();
@@ -3216,11 +3525,14 @@ function _renderTimelineRows(listEl, type, colorClass) {
 
 function renderTimelineList() {
   const cList = document.getElementById("timeline-list");
-  if (cList) _renderTimelineRows(cList, "ceremony", "bg-cyan-50 border-cyan-100");
+  if (cList)
+    _renderTimelineRows(cList, "ceremony", "bg-cyan-50 border-cyan-100");
   const pList = document.getElementById("timeline-party-list");
-  if (pList) _renderTimelineRows(pList, "party", "bg-amber-50 border-amber-100");
+  if (pList)
+    _renderTimelineRows(pList, "party", "bg-amber-50 border-amber-100");
   const bpList = document.getElementById("timeline-bride-party-list");
-  if (bpList) _renderTimelineRows(bpList, "bride-party", "bg-amber-50 border-amber-100");
+  if (bpList)
+    _renderTimelineRows(bpList, "bride-party", "bg-amber-50 border-amber-100");
   if (typeof lucide !== "undefined") lucide.createIcons();
 }
 
@@ -3243,9 +3555,12 @@ function addTimelineItem(type = "ceremony") {
   _timelineItems.push({ time: "", title: "", type });
   _syncTimelineHidden();
   renderTimelineList();
-  const listId = type === "bride-party" ? "timeline-bride-party-list"
-    : type === "party" ? "timeline-party-list"
-    : "timeline-list";
+  const listId =
+    type === "bride-party"
+      ? "timeline-bride-party-list"
+      : type === "party"
+        ? "timeline-party-list"
+        : "timeline-list";
   const list = document.getElementById(listId);
   if (list) {
     const inputs = list.querySelectorAll("input[type=text]");
@@ -3261,7 +3576,7 @@ function removeTimelineItem(idx) {
 
 function _updateTimelinePartySection() {
   const enabled = document.getElementById("enable_party")?.value === "true";
-  ["timeline-party-sub", "timeline-bride-party-sub"].forEach(id => {
+  ["timeline-party-sub", "timeline-bride-party-sub"].forEach((id) => {
     const el = document.getElementById(id);
     if (el) el.style.display = enabled ? "" : "none";
   });
@@ -3277,7 +3592,8 @@ function _updateTimelinePartyDateBadge() {
   const btn = document.getElementById("btn-add-party");
   const noDate = document.getElementById("timeline-party-no-date");
   if (!badge || !text) return;
-  const val = document.querySelector('input[name="groom_party_date"]')?.value || "";
+  const val =
+    document.querySelector('input[name="groom_party_date"]')?.value || "";
   if (!val) {
     badge.classList.add("hidden");
     if (btn) btn.style.display = "none";
@@ -3299,7 +3615,8 @@ function _updateTimelineBridePartyDateBadge() {
   const btn = document.getElementById("btn-add-bride-party");
   const noDate = document.getElementById("timeline-bride-party-no-date");
   if (!badge || !text) return;
-  const val = document.querySelector('input[name="bride_party_date"]')?.value || "";
+  const val =
+    document.querySelector('input[name="bride_party_date"]')?.value || "";
   if (!val) {
     badge.classList.add("hidden");
     if (btn) btn.style.display = "none";
@@ -3343,7 +3660,9 @@ function renderLoveStoryList() {
   _loveStoryItems.forEach((item, idx) => {
     const preview = _loveStoryImagePreview(idx);
     const _lsFp = item.focal_point;
-    const lsFpStyle = _lsFp ? ` style="object-position:${_lsFp.x}% ${_lsFp.y}%"` : "";
+    const lsFpStyle = _lsFp
+      ? ` style="object-position:${_lsFp.x}% ${_lsFp.y}%"`
+      : "";
     const div = document.createElement("div");
     div.className =
       "bg-rose-50 rounded-2xl p-3 border border-rose-100 space-y-2";
@@ -3522,7 +3841,8 @@ function _updateTimelineDateBadge() {
   const btn = document.getElementById("btn-add-ceremony");
   const noDate = document.getElementById("timeline-ceremony-no-date");
   if (!badge || !text) return;
-  const val = document.querySelector('input[name="ceremony_date"]')?.value || "";
+  const val =
+    document.querySelector('input[name="ceremony_date"]')?.value || "";
   if (!val) {
     badge.classList.add("hidden");
     if (btn) btn.style.display = "none";
@@ -3814,15 +4134,25 @@ function initializePage() {
 
   // Party sub-section visibility + date badge
   _updateTimelinePartySection();
-  const groomPartyDateEl = document.querySelector('input[name="groom_party_date"]');
+  const groomPartyDateEl = document.querySelector(
+    'input[name="groom_party_date"]',
+  );
   if (groomPartyDateEl) {
     groomPartyDateEl.addEventListener("change", _updateTimelinePartyDateBadge);
     groomPartyDateEl.addEventListener("input", _updateTimelinePartyDateBadge);
   }
-  const bridePartyDateEl = document.querySelector('input[name="bride_party_date"]');
+  const bridePartyDateEl = document.querySelector(
+    'input[name="bride_party_date"]',
+  );
   if (bridePartyDateEl) {
-    bridePartyDateEl.addEventListener("change", _updateTimelineBridePartyDateBadge);
-    bridePartyDateEl.addEventListener("input", _updateTimelineBridePartyDateBadge);
+    bridePartyDateEl.addEventListener(
+      "change",
+      _updateTimelineBridePartyDateBadge,
+    );
+    bridePartyDateEl.addEventListener(
+      "input",
+      _updateTimelineBridePartyDateBadge,
+    );
   }
 
   // Setup form submit handler
@@ -3839,7 +4169,8 @@ function initializePage() {
 
   // Sync party "Trùng địa điểm" khi user gõ tay vào ceremony/vu_quy location
   ["ceremony_location", "vu_quy_location"].forEach((name) => {
-    document.querySelector(`input[name="${name}"]`)
+    document
+      .querySelector(`input[name="${name}"]`)
       ?.addEventListener("input", _syncPartyIfSame);
   });
 
@@ -3852,7 +4183,8 @@ function initializePage() {
   ].forEach(([mapSide, name]) => {
     const inp = document.querySelector(`input[name="${name}"]`);
     inp?.addEventListener("input", () => {
-      if (!inp.value.trim() && typeof clearMapAddress === "function") clearMapAddress(mapSide);
+      if (!inp.value.trim() && typeof clearMapAddress === "function")
+        clearMapAddress(mapSide);
     });
   });
 
@@ -3915,8 +4247,6 @@ function toggleVuQuy(event) {
   if (fields) fields.classList.toggle("hidden", !newVal);
 }
 
-
-
 // Khi địa điểm nguồn (ceremony/vu_quy) thay đổi, re-sync tất cả party đang bật "Trùng địa điểm"
 function _syncPartyIfSame() {
   ["groom", "bride"].forEach((side) => {
@@ -3938,14 +4268,19 @@ function togglePartySameLoc(side, event, force) {
   const newActive = force !== undefined ? force : check.checked;
   check.checked = newActive;
 
-  const locationInput = document.querySelector(`input[name="${side}_party_location"]`);
+  const locationInput = document.querySelector(
+    `input[name="${side}_party_location"]`,
+  );
   const mapEmbedInput = document.getElementById(`${side}_party_map_embed_url`);
   const mapDisplay = document.getElementById(`${side}_party-map-display`);
   const mapAddress = document.getElementById(`${side}_party-map-address`);
   // Nút "Bản đồ" là suffix-button bên trong <x-input> (không có id riêng) → lấy qua x-input
-  const partyXInput = document.querySelector(`x-input[name="${side}_party_location"]`);
-  const mapBtn = (partyXInput && partyXInput.querySelector("button:not(.x-clear)"))
-    || document.getElementById(`${side}-party-map-btn`);
+  const partyXInput = document.querySelector(
+    `x-input[name="${side}_party_location"]`,
+  );
+  const mapBtn =
+    (partyXInput && partyXInput.querySelector("button:not(.x-clear)")) ||
+    document.getElementById(`${side}-party-map-btn`);
   // Nút X xoá của x-input và nút X trên tag bản đồ — phải khoá luôn khi "trùng địa điểm"
   const xClearBtn = partyXInput && partyXInput.querySelector(".x-clear");
   const tagClearBtn = mapDisplay && mapDisplay.querySelector("button");
@@ -3956,7 +4291,8 @@ function togglePartySameLoc(side, event, force) {
     let srcMapId = "ceremony_map_embed_url";
     let srcAddrId = "ceremony-map-address";
     if (side === "bride") {
-      const vuQuyEnabled = document.getElementById("vu_quy_enabled")?.value === "true";
+      const vuQuyEnabled =
+        document.getElementById("vu_quy_enabled")?.value === "true";
       if (vuQuyEnabled) {
         srcLocName = "vu_quy_location";
         srcMapId = "vu_quy_map_embed_url";
@@ -3971,7 +4307,11 @@ function togglePartySameLoc(side, event, force) {
       locationInput.value = srcLoc?.value || "";
       locationInput.readOnly = true;
       // Dùng ! (important) để đè bg-white/text mặc định của x-input → nhìn rõ trạng thái khoá
-      locationInput.classList.add("!bg-gray-100", "!text-gray-400", "cursor-not-allowed");
+      locationInput.classList.add(
+        "!bg-gray-100",
+        "!text-gray-400",
+        "cursor-not-allowed",
+      );
       // Phát input để autosave lưu giá trị vừa bind (form nghe "input")
       locationInput.dispatchEvent(new Event("input", { bubbles: true }));
     }
@@ -3991,7 +4331,11 @@ function togglePartySameLoc(side, event, force) {
   } else {
     if (locationInput) {
       locationInput.readOnly = false;
-      locationInput.classList.remove("!bg-gray-100", "!text-gray-400", "cursor-not-allowed");
+      locationInput.classList.remove(
+        "!bg-gray-100",
+        "!text-gray-400",
+        "cursor-not-allowed",
+      );
     }
     if (mapBtn) {
       mapBtn.disabled = false;
@@ -4024,7 +4368,9 @@ function initCeremonySection(data) {
 
   // Default "same as ceremony" checked if party_location is empty (new draft)
   ["groom", "bride"].forEach((side) => {
-    const partyLoc = document.querySelector(`input[name="${side}_party_location"]`);
+    const partyLoc = document.querySelector(
+      `input[name="${side}_party_location"]`,
+    );
     const hasOwnLocation = partyLoc?.value?.trim();
     togglePartySameLoc(side, null, !hasOwnLocation);
   });
@@ -4060,77 +4406,78 @@ window.publishWedding = publishWedding;
 window._weddingFpOptions = function (input) {
   return {
     locale: {
-        months: {
-          shorthand: [
-            "T1",
-            "T2",
-            "T3",
-            "T4",
-            "T5",
-            "T6",
-            "T7",
-            "T8",
-            "T9",
-            "T10",
-            "T11",
-            "T12",
-          ],
-          longhand: [
-            "Tháng 1",
-            "Tháng 2",
-            "Tháng 3",
-            "Tháng 4",
-            "Tháng 5",
-            "Tháng 6",
-            "Tháng 7",
-            "Tháng 8",
-            "Tháng 9",
-            "Tháng 10",
-            "Tháng 11",
-            "Tháng 12",
-          ],
-        },
-        weekdays: {
-          shorthand: ["CN", "T2", "T3", "T4", "T5", "T6", "T7"],
-          longhand: [
-            "Chủ Nhật",
-            "Thứ Hai",
-            "Thứ Ba",
-            "Thứ Tư",
-            "Thứ Năm",
-            "Thứ Sáu",
-            "Thứ Bảy",
-          ],
-        },
-        firstDayOfWeek: 1,
-        rangeSeparator: " đến ",
-        weekAbbreviation: "Tuần",
-        scrollTitle: "Cuộn để tăng",
-        toggleTitle: "Nhấp để chuyển đổi",
+      months: {
+        shorthand: [
+          "T1",
+          "T2",
+          "T3",
+          "T4",
+          "T5",
+          "T6",
+          "T7",
+          "T8",
+          "T9",
+          "T10",
+          "T11",
+          "T12",
+        ],
+        longhand: [
+          "Tháng 1",
+          "Tháng 2",
+          "Tháng 3",
+          "Tháng 4",
+          "Tháng 5",
+          "Tháng 6",
+          "Tháng 7",
+          "Tháng 8",
+          "Tháng 9",
+          "Tháng 10",
+          "Tháng 11",
+          "Tháng 12",
+        ],
       },
-      dateFormat: "Y-m-d",
-      altInput: true,
-      altFormat: "d/m/Y",
-      allowInput: false,
-      disableMobile: true,
-      minDate: "today",
-      onReady: function (selectedDates, dateStr, instance) {
-        instance.altInput.placeholder = "Chọn ngày...";
+      weekdays: {
+        shorthand: ["CN", "T2", "T3", "T4", "T5", "T6", "T7"],
+        longhand: [
+          "Chủ Nhật",
+          "Thứ Hai",
+          "Thứ Ba",
+          "Thứ Tư",
+          "Thứ Năm",
+          "Thứ Sáu",
+          "Thứ Bảy",
+        ],
       },
-      onChange: function (selectedDates, dateStr, instance) {
-        const event = new Event("change", { bubbles: true });
-        input.dispatchEvent(event);
-      },
-      onClose: function (selectedDates, dateStr, instance) {
-        const event = new Event("change", { bubbles: true });
-        input.dispatchEvent(event);
-      },
+      firstDayOfWeek: 1,
+      rangeSeparator: " đến ",
+      weekAbbreviation: "Tuần",
+      scrollTitle: "Cuộn để tăng",
+      toggleTitle: "Nhấp để chuyển đổi",
+    },
+    dateFormat: "Y-m-d",
+    altInput: true,
+    altFormat: "d/m/Y",
+    allowInput: false,
+    disableMobile: true,
+    minDate: "today",
+    onReady: function (selectedDates, dateStr, instance) {
+      instance.altInput.placeholder = "Chọn ngày...";
+    },
+    onChange: function (selectedDates, dateStr, instance) {
+      const event = new Event("change", { bubbles: true });
+      input.dispatchEvent(event);
+    },
+    onClose: function (selectedDates, dateStr, instance) {
+      const event = new Event("change", { bubbles: true });
+      input.dispatchEvent(event);
+    },
   };
 };
 
 // Khởi tạo flatpickr cho 1 ô ngày bằng cấu hình chung + đăng ký instance theo name.
 window.createWeddingDatepicker = function (input) {
-  if (!window.flatpickr || !input || input._flatpickr) return input?._flatpickr || null;
+  if (!window.flatpickr || !input || input._flatpickr)
+    return input?._flatpickr || null;
   const instance = flatpickr(input, window._weddingFpOptions(input));
   if (!window.flatpickrInstances) window.flatpickrInstances = {};
   if (input.name) window.flatpickrInstances[input.name] = instance;
@@ -4210,9 +4557,12 @@ async function openThemePicker() {
   sheet.body.innerHTML = `<div class="flex items-center justify-center py-10 text-gray-400 text-sm">Đang tải...</div>`;
 
   try {
-    const res = await fetch(`${CONFIG.supabase.edgeUrl}?resource=public-templates`, {
-      headers: { Authorization: `Bearer ${CONFIG.supabase.anonKey}` },
-    });
+    const res = await fetch(
+      `${CONFIG.supabase.edgeUrl}?resource=public-templates`,
+      {
+        headers: { Authorization: `Bearer ${CONFIG.supabase.anonKey}` },
+      },
+    );
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const rows = await res.json();
 
@@ -4221,7 +4571,8 @@ async function openThemePicker() {
         ${rows
           .map((t) => {
             const isCurrent = t.theme === WEDDING_THEME;
-            const thumb = t.thumbnailUrl || `/assets/images/templates/${t.theme}.jpg`;
+            const thumb =
+              t.thumbnailUrl || `/assets/images/templates/${t.theme}.jpg`;
             return `
             <button type="button"
               ${isCurrent ? 'id="theme-picker-current"' : ""}
@@ -4238,9 +4589,11 @@ async function openThemePicker() {
                   ${t.originalPrice > t.price ? `<span class="text-[11px] text-gray-400 line-through">${t.originalPrice.toLocaleString("vi-VN")}đ</span>` : ""}
                 </div>
               </div>
-              ${isCurrent
-                ? `<span class="flex-shrink-0 bg-rose-500 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full">Đang dùng</span>`
-                : `<svg class="flex-shrink-0 w-4 h-4 text-gray-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>`}
+              ${
+                isCurrent
+                  ? `<span class="flex-shrink-0 bg-rose-500 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full">Đang dùng</span>`
+                  : `<svg class="flex-shrink-0 w-4 h-4 text-gray-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>`
+              }
             </button>`;
           })
           .join("")}
@@ -4249,7 +4602,8 @@ async function openThemePicker() {
     // Auto scroll đến mẫu đang dùng
     requestAnimationFrame(() => {
       const current = document.getElementById("theme-picker-current");
-      if (current) current.scrollIntoView({ block: "center", behavior: "smooth" });
+      if (current)
+        current.scrollIntoView({ block: "center", behavior: "smooth" });
     });
   } catch {
     sheet.body.innerHTML = `<div class="text-center text-red-500 py-10 text-sm">Không thể tải danh sách mẫu. Vui lòng thử lại.</div>`;
@@ -4270,11 +4624,18 @@ function _updateHeaderThemeBadge(displayName) {
   }
   const el = document.getElementById("header-theme-name");
   if (!el) return;
-  if (displayName) { el.textContent = displayName; return; }
+  if (displayName) {
+    el.textContent = displayName;
+    return;
+  }
   const stored = sessionStorage.getItem("draft_template_name");
-  if (stored) { el.textContent = stored; return; }
-  el.textContent = WEDDING_THEME
-    .split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+  if (stored) {
+    el.textContent = stored;
+    return;
+  }
+  el.textContent = WEDDING_THEME.split("-")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
 }
 
 function _applyThemeChange(newTheme, displayName) {
@@ -4300,7 +4661,7 @@ window._applyThemeChange = _applyThemeChange;
 // ============= ADVANCED SECTION LOCK =============
 
 function _syncAdvancedSection() {
-  const draftTab  = document.getElementById("tab-draft");
+  const draftTab = document.getElementById("tab-draft");
   if (draftTab) draftTab.classList.toggle("hidden", IS_PUBLISHED);
 
   // Tab Khách mời: vẫn bấm được, tooltip báo khi chưa xuất bản (không gắn badge trên navbar)
