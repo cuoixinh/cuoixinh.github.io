@@ -25,6 +25,11 @@ async function loadWeddingData(weddingSlug, renderCallback) {
       return;
     }
 
+    // Áp dụng tuỳ chỉnh font/màu chữ (nếu có) trước khi render
+    if (typeof applyThemeSetting === "function") {
+      applyThemeSetting(wedding.theme_setting);
+    }
+
     renderCallback(wedding);
   } catch (error) {
     console.error("Lỗi load wedding data:", error);

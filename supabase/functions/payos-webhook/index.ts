@@ -3,6 +3,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { withAxiom } from "../_shared/axiom.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -40,7 +41,7 @@ async function verifyWebhookSignature(payload: Record<string, any>, receivedSign
   }
 }
 
-serve(async (req) => {
+serve(withAxiom("payos-webhook", async (req, log) => {
   // Handle OPTIONS for CORS
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -206,4 +207,4 @@ serve(async (req) => {
     status: 405,
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
-});
+}));

@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { withAxiom } from "../_shared/axiom.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -110,7 +111,7 @@ async function getUniqueSlug(supabaseClient: any, baseSlug: string, excludeId?: 
   return finalSlug;
 }
 
-serve(async (req) => {
+serve(withAxiom("payment-handler", async (req, log) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
@@ -118,6 +119,7 @@ serve(async (req) => {
   try {
     const url = new URL(req.url);
     const path = url.pathname;
+    log.info("payment.route", { path });
     
     // For webhook endpoint, we don't need Supabase client with auth
     // PayOS webhook doesn't send Authorization header
@@ -149,13 +151,13 @@ serve(async (req) => {
       });
     }
   } catch (error) {
-    console.error("Error:", error);
+    log.error("payment.error", { error: error.message });
     return new Response(JSON.stringify({ error: error.message || "Internal server error" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
-});
+}));
 
 async function handleCreatePayment(req: Request, supabaseClient: any) {
   try {

@@ -7,6 +7,9 @@ let WEDDING_SLUG = "";
 let WEDDING_THEME = "basic-gold";
 let _currentMusicUrl = "";
 
+// Tuỳ chỉnh giao diện (font + màu chữ) — lưu vào cột theme_setting (JSONB)
+let _themeSetting = {};
+
 // Draft state: true = chỉ có trong localStorage, chưa lên DB
 let _isLocalDraft = false;
 
@@ -458,7 +461,7 @@ function _savePreviewData() {
   if (!form) return;
 
   const IMAGE_FIELDS = ["cover_image_url", "groom_image_url", "bride_image_url", "groom_qr_url", "bride_qr_url"];
-  const data = { is_active: true, theme: WEDDING_THEME, slug: WEDDING_SLUG };
+  const data = { is_active: true, theme: WEDDING_THEME, slug: WEDDING_SLUG, theme_setting: _themeSetting };
 
   // Collect text fields; convert image filenames → full URLs
   const formData = new FormData(form);
@@ -537,6 +540,17 @@ function _setActiveTab(tabId) {
     }
   }
 
+  const themeBtn = document.getElementById("tab-theme");
+  if (themeBtn) {
+    if (tabId === "theme") {
+      themeBtn.classList.add("text-color-secondary", "border-color-secondary");
+      themeBtn.classList.remove("text-gray-400", "border-transparent");
+    } else {
+      themeBtn.classList.remove("text-color-secondary", "border-color-secondary");
+      themeBtn.classList.add("text-gray-400", "border-transparent");
+    }
+  }
+
   const guestsBtn = document.getElementById("tab-guests");
   if (guestsBtn) {
     if (tabId === "guests") {
@@ -552,7 +566,7 @@ function _setActiveTab(tabId) {
   const editBtn    = document.getElementById("switch-edit");
   const previewBtn = document.getElementById("switch-preview");
   if (!editBtn || !previewBtn) return;
-  if (tabId === "config" || tabId === "guests") {
+  if (tabId === "config" || tabId === "guests" || tabId === "theme") {
     editBtn.classList.remove("bg-white", "shadow-sm", "text-gray-700", "font-semibold");
     editBtn.classList.add("text-gray-400", "font-medium");
     previewBtn.classList.remove("bg-white", "shadow-sm", "text-rose-500", "font-semibold");
@@ -603,10 +617,12 @@ function switchTab(tab) {
   const formPanel    = document.getElementById("form-panel");
   const previewPanel = document.getElementById("preview-panel");
   const configPanel  = document.getElementById("config-panel");
+  const themePanel   = document.getElementById("theme-panel");
   const guestsPanel  = document.getElementById("guests-panel");
 
   // Rời khỏi danh sách khách mời khi chuyển sang tab khác
   if (guestsPanel) guestsPanel.classList.add("hidden");
+  if (themePanel) themePanel.classList.add("hidden");
 
   // Persist tab in URL without reloading
   const _url = new URL(window.location.href);
@@ -627,8 +643,17 @@ function switchTab(tab) {
     _isPreviewActive = false;
     formPanel.classList.add("hidden");
     previewPanel.classList.add("hidden");
+    configPanel.classList.add("hidden");
+    if (themePanel) themePanel.classList.add("hidden");
     configPanel.classList.remove("hidden");
     _initConfigPanel();
+  } else if (tab === "theme") {
+    _isPreviewActive = false;
+    formPanel.classList.add("hidden");
+    previewPanel.classList.add("hidden");
+    configPanel.classList.add("hidden");
+    if (themePanel) themePanel.classList.remove("hidden");
+    _initThemePanel();
   } else {
     _isPreviewActive = false;
     formPanel.classList.remove("hidden");
@@ -655,6 +680,113 @@ function _initConfigPanel() {
   // Sync clear-button state for all x-inputs in config panel
   document.querySelectorAll('x-input').forEach(el => el.syncClearBtn?.());
 }
+
+// ============= THEME (GIAO DIỆN) PANEL =============
+
+// Giá trị mặc định hiển thị trên control khi thiệp chưa cấu hình riêng
+const THEME_DEFAULTS = {
+  heading_font: "Playfair Display",
+  body_font: "Be Vietnam Pro",
+  heading_color: "#2d2d2d",
+  accent_color: "#c0a062",
+};
+
+let _themePanelReady = false;
+
+function _fillFontSelect(selectEl, types) {
+  if (!selectEl || !window.THEME_FONTS) return;
+  selectEl.innerHTML = "";
+  window.THEME_FONTS.filter((f) => types.includes(f.type) || f.type === "both").forEach(
+    (f) => {
+      const opt = document.createElement("option");
+      opt.value = f.name;
+      opt.textContent = f.name;
+      opt.style.fontFamily = `'${f.name}', sans-serif`;
+      selectEl.appendChild(opt);
+    },
+  );
+}
+
+function _buildSwatches(containerId, colors, targetInputId) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.innerHTML = "";
+  (colors || []).forEach((c) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.title = c;
+    btn.style.backgroundColor = c;
+    btn.className =
+      "w-6 h-6 rounded-full border border-black/10 shadow-sm hover:scale-110 transition-transform";
+    btn.onclick = () => {
+      const input = document.getElementById(targetInputId);
+      if (input) {
+        input.value = c;
+        onThemeSettingChange();
+      }
+    };
+    container.appendChild(btn);
+  });
+}
+
+function _initThemePanel() {
+  if (!_themePanelReady) {
+    _fillFontSelect(document.getElementById("theme-heading-font"), ["heading"]);
+    _fillFontSelect(document.getElementById("theme-body-font"), ["body"]);
+    _buildSwatches("theme-heading-swatches", window.THEME_HEADING_COLORS, "theme-heading-color");
+    _buildSwatches("theme-accent-swatches", window.THEME_ACCENT_COLORS, "theme-accent-color");
+    _themePanelReady = true;
+  }
+
+  // Đổ giá trị hiện tại (hoặc mặc định) vào control
+  const s = _themeSetting || {};
+  const hf = document.getElementById("theme-heading-font");
+  const bf = document.getElementById("theme-body-font");
+  const hc = document.getElementById("theme-heading-color");
+  const ac = document.getElementById("theme-accent-color");
+  if (hf) hf.value = s.heading_font || THEME_DEFAULTS.heading_font;
+  if (bf) bf.value = s.body_font || THEME_DEFAULTS.body_font;
+  if (hc) hc.value = s.heading_color || THEME_DEFAULTS.heading_color;
+  if (ac) ac.value = s.accent_color || THEME_DEFAULTS.accent_color;
+}
+
+function onThemeSettingChange() {
+  const hf = document.getElementById("theme-heading-font");
+  const bf = document.getElementById("theme-body-font");
+  const hc = document.getElementById("theme-heading-color");
+  const ac = document.getElementById("theme-accent-color");
+
+  _themeSetting = {
+    heading_font: hf ? hf.value : "",
+    body_font: bf ? bf.value : "",
+    heading_color: hc ? hc.value : "",
+    accent_color: ac ? ac.value : "",
+  };
+
+  _setDirty(true);
+
+  // Áp dụng ngay vào iframe xem trước nếu đang mở
+  const iframe = document.getElementById("preview-iframe");
+  if (iframe?.contentWindow?.applyThemeSetting) {
+    iframe.contentWindow.applyThemeSetting(_themeSetting);
+  }
+}
+
+function resetThemeSetting() {
+  _themeSetting = {};
+  _initThemePanel();
+  _setDirty(true);
+
+  const iframe = document.getElementById("preview-iframe");
+  if (iframe && iframe.src) {
+    // Reload iframe để xoá hết override, quay về mặc định của theme
+    _savePreviewData();
+    iframe.src = iframe.src;
+  }
+}
+
+window.onThemeSettingChange = onThemeSettingChange;
+window.resetThemeSetting = resetThemeSetting;
 
 function _toSlug(str) {
   return (str || "")
@@ -783,7 +915,7 @@ function _doAutoSave() {
   if (!form) return;
 
   const formData = new FormData(form);
-  const payload = { id: WEDDING_ID, slug: WEDDING_SLUG, theme: WEDDING_THEME, is_active: true };
+  const payload = { id: WEDDING_ID, slug: WEDDING_SLUG, theme: WEDDING_THEME, is_active: true, theme_setting: _themeSetting };
 
   formData.forEach((value, key) => {
     if (key === "gallery_images_raw" || key === "slug") return;
@@ -2580,6 +2712,13 @@ function fillForm(data) {
     window.flatpickrInstances ? Object.keys(window.flatpickrInstances) : "none",
   );
 
+  // Tuỳ chỉnh giao diện (font/màu chữ)
+  if (data.theme_setting != null) {
+    let ts = data.theme_setting;
+    if (typeof ts === "string") { try { ts = JSON.parse(ts); } catch (e) { ts = {}; } }
+    if (ts && typeof ts === "object") _themeSetting = ts;
+  }
+
   // Save slug + theme for generating links
   if (data.slug) {
     WEDDING_SLUG = data.slug;
@@ -2702,6 +2841,9 @@ function fillForm(data) {
     // image_focal_points already processed before this loop
     if (key === "image_focal_points") return;
 
+    // theme_setting đã xử lý trước vòng lặp
+    if (key === "theme_setting") return;
+
     // Special handling for YouTube music URL
     if (key === "music_url") {
       _currentMusicUrl = data[key] || "";
@@ -2779,7 +2921,7 @@ async function saveAll(overrides = {}, label = "Đang lưu...") {
     // Step 2: Prepare form data
     const form = document.getElementById("wedding-form");
     const formData = new FormData(form);
-    const payload = { id: WEDDING_ID, slug: WEDDING_SLUG };
+    const payload = { id: WEDDING_ID, slug: WEDDING_SLUG, theme_setting: _themeSetting };
 
     // Step 2.5: Get YouTube music URL (prioritize textbox input over hidden input)
     const youtubeTextbox = document.getElementById("youtube-link-input");

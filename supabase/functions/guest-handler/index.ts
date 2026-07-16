@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { withAxiom } from '../_shared/axiom.ts'
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -35,7 +36,7 @@ function sanitizeGuest(raw: Record<string, unknown>, wedding_id: string, side: s
   }
 }
 
-Deno.serve(async (req) => {
+Deno.serve(withAxiom('guest-handler', async (req, log) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS })
 
   const supabase = createClient(
@@ -269,4 +270,4 @@ Deno.serve(async (req) => {
   }
 
   return fail('Method not allowed', 405)
-})
+}))

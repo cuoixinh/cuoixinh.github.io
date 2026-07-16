@@ -26,6 +26,7 @@ Làm trên **Supabase Dashboard → SQL Editor** (không cần CLI):
 | **RC1.0** | 2026-06-28 | Baseline: weddings, guests, templates, template_pricing, orders, order_details, payment_logs | `RC1.0/database-complete.sql` |
 | **RC1.1** | 2026-07-09 | Thêm bảng `ai_usage` (rate-limit tính năng AI sinh nội dung thiệp) | `RC1.1/ai_usage.sql` |
 | **RC1.2** | 2026-07-09 | Thêm bảng `ai_usage_ip` (rate-limit theo IP cho khách chưa đăng nhập dùng AI) | `RC1.2/ai_usage_ip.sql` |
+| **RC1.3** | 2026-07-16 | Thêm cột `weddings.theme_setting` (jsonb) lưu tuỳ chỉnh font + màu chữ cho tab Giao diện | `RC1.3/theme_setting.sql` |
 
 ## Khi thêm phiên bản mới
 

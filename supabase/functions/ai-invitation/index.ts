@@ -15,6 +15,7 @@
 //    (việc xác thực/tuỳ chọn đã xử lý bên trong hàm).
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { withAxiom } from '../_shared/axiom.ts'
 
 // ── Cấu hình ────────────────────────────────────────────────────────────────
 const ALLOWED_ORIGINS = [
@@ -688,7 +689,7 @@ function buildStreamResponse(
 }
 
 // ── Handler ──────────────────────────────────────────────────────────────────
-Deno.serve(async (req) => {
+Deno.serve(withAxiom('ai-invitation', async (req, log) => {
   const origin = req.headers.get('origin')
 
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders(origin) })
@@ -785,5 +786,6 @@ Deno.serve(async (req) => {
     return json({ error: 'AI chưa tạo được nội dung, vui lòng thử lại.' }, 502, origin)
   }
 
+  log.info('ai.generated', { provider, anon: !user })
   return json({ data: result, provider }, 200, origin)
-})
+}))

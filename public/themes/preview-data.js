@@ -188,6 +188,9 @@ if (window.location.search.includes("preview=true")) {
         try {
           const data = JSON.parse(raw);
           if (typeof renderWedding === "function") {
+            if (typeof applyThemeSetting === "function") {
+              applyThemeSetting(data.theme_setting);
+            }
             renderWedding(data);
             return;
           }

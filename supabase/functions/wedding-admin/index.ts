@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { withAxiom } from '../_shared/axiom.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -6,7 +7,7 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE, OPTIONS',
 }
 
-Deno.serve(async (req) => {
+Deno.serve(withAxiom('wedding-admin', async (req, log) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
@@ -159,7 +160,7 @@ Deno.serve(async (req) => {
   // POST → Tạo bản ghi mới (public - KH tự tạo sau khi thanh toán hoặc tạo draft)
   if (method === 'POST') {
     const body = await req.json()
-    const { slug, id: clientId, contact, manage_id, theme, is_published, ...extraFields } = body
+    const { slug, id: clientId, contact, manage_id, theme, theme_setting, is_published, ...extraFields } = body
 
     // manage_id là alias của id (từ draft flow)
     const resolvedId = clientId || manage_id
@@ -183,6 +184,7 @@ Deno.serve(async (req) => {
     if (resolvedId)    insertPayload.id          = resolvedId
     if (contact)       insertPayload.contact      = contact
     if (theme)         insertPayload.theme        = theme
+    if (theme_setting) insertPayload.theme_setting = theme_setting
     if (typeof is_published === 'boolean') insertPayload.is_published = is_published
 
     const { data, error } = await supabase
@@ -191,7 +193,12 @@ Deno.serve(async (req) => {
       .select('id, slug')
       .single()
 
-    if (error) return new Response(JSON.stringify({ error }), { status: 500, headers: corsHeaders })
+    if (error) {
+      log.error('wedding.create_failed', { error: error.message })
+      return new Response(JSON.stringify({ error }), { status: 500, headers: corsHeaders })
+    }
+
+    log.info('wedding.created', { id: data.id, slug: data.slug })
 
     return new Response(JSON.stringify({ id: data.id, slug: data.slug }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -576,4 +583,4 @@ Deno.serve(async (req) => {
   return new Response(JSON.stringify({ error: 'Method not allowed' }), {
     status: 405, headers: corsHeaders
   })
-})
+}))
