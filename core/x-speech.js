@@ -175,6 +175,7 @@
 
     // ── Trạng thái ──────────────────────────────────────────────────────────
     let finalText = "";
+    let lastInterim = ""; // phần đang nói dở (chưa chốt) — vẫn phải chèn khi Áp dụng
     let stopping = false;
     let paused = false; // tạm dừng thu âm (nút Dừng ⇄ Tiếp tục)
     let audioCtx = null,
@@ -236,6 +237,7 @@
         if (r.isFinal) finalText += r[0].transcript;
         else interim += r[0].transcript;
       }
+      lastInterim = interim;
       renderTranscript(interim);
     };
     rec.onerror = (e) => {
@@ -274,7 +276,9 @@
     }
 
     function commitAndClose() {
-      const text = finalText.trim();
+      // Gộp cả phần đang nói dở (interim) — bấm Áp dụng lúc đang nói vẫn phải chèn
+      // trọn câu, không rớt mấy chữ cuối chưa kịp chốt.
+      const text = (finalText + " " + lastInterim).replace(/\s+/g, " ").trim();
       cleanup();
       if (text && target) {
         const cur = target.value || "";

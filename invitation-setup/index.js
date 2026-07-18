@@ -1018,6 +1018,157 @@ async function publishWedding() {
   _syncLocalOrder({ published: true }); // để thiệp hiện trong mục "Đơn hàng" của trang tài khoản
 
   _setActiveTab("edit");
+  showPublishSuccessPopup();
+}
+
+// Popup mừng "Thiệp đã sẵn sàng" — mang tinh thần thiệp cưới (script Great Vibes +
+// serif Playfair + đường viền vàng đính hình trái tim), cá nhân hoá bằng TÊN cô dâu/
+// chú rể. Không dùng bố cục "bước 1-2-3" khô khan. Tự dựng DOM + style riêng (scoped).
+function _ensurePublishPopupAssets() {
+  if (!document.getElementById("ps-fonts")) {
+    const l = document.createElement("link");
+    l.id = "ps-fonts";
+    l.rel = "stylesheet";
+    l.href =
+      "https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:wght@600;700&display=swap";
+    document.head.appendChild(l);
+  }
+  if (document.getElementById("ps-style")) return;
+  const s = document.createElement("style");
+  s.id = "ps-style";
+  s.textContent = `
+    #publish-success-modal{position:fixed;inset:0;z-index:300;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(61,24,34,.5);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
+    #publish-success-modal button,#publish-success-modal a{cursor:pointer}
+    .ps-card{width:100%;max-width:384px;max-height:92vh;overflow-y:auto;background:#fffaf8;border-radius:28px;box-shadow:0 26px 64px -14px rgba(159,48,74,.4);animation:ps-in .5s cubic-bezier(.22,.9,.3,1) both}
+    @keyframes ps-in{from{opacity:0;transform:translateY(18px) scale(.97)}to{opacity:1;transform:none}}
+    .ps-head{position:relative;text-align:center;padding:32px 28px 20px;background:radial-gradient(120% 88% at 50% -8%,#ffe6ee 0%,#fff4f0 52%,#fffaf8 100%)}
+    .ps-x{position:absolute;top:14px;right:14px;width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center;border-radius:999px;color:#cc9aa6;background:rgba(255,255,255,.55);transition:.15s}
+    .ps-x:hover{color:#a34a60;background:#fff}
+    .ps-orn{display:flex;align-items:center;justify-content:center;gap:9px;margin-bottom:2px}
+    .ps-orn i{display:block;height:1px;width:46px}
+    .ps-orn i:first-child{background:linear-gradient(90deg,transparent,#d8b878)}
+    .ps-orn i:last-child{background:linear-gradient(90deg,#d8b878,transparent)}
+    .ps-congrats{font-family:'Great Vibes',cursive;font-size:2.7rem;line-height:1;color:#e0708a;margin:6px 0 6px}
+    .ps-title{font-family:'Playfair Display',serif;font-size:1.16rem;font-weight:600;color:#7d4f5a;letter-spacing:.2px}
+    .ps-couple{font-family:'Playfair Display',serif;font-size:.98rem;color:#ad7a87;margin-top:9px;display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center}
+    .ps-sub{font-size:12.5px;color:#b98f9b;margin-top:8px}
+    .ps-body{padding:4px 24px 22px}
+    .ps-eyebrow{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#cf9fac;margin:18px 4px 10px}
+    .ps-link{border:1px solid #ffdbe4;background:#fff;border-radius:18px;padding:13px 14px 12px}
+    .ps-link+.ps-link{margin-top:10px}
+    .ps-link-label{font-size:13px;font-weight:600;color:#7d4f5a}
+    .ps-link-sub{font-size:11px;color:#bb909c;margin-top:1px}
+    .ps-url{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;color:#a9808d;word-break:break-all;margin-top:8px}
+    .ps-acts{display:flex;gap:8px;margin-top:11px}
+    .ps-soft{flex:1;height:38px;border-radius:11px;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:12.5px;font-weight:600;border:1px solid #ffd0dc;color:#e11d48;background:#fff5f7;transition:.15s}
+    .ps-soft:hover{background:#ffe4ea}
+    .ps-soft i{width:14px;height:14px}
+    .ps-primary{width:100%;height:50px;border-radius:15px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:14px;font-weight:700;color:#fff;background:linear-gradient(135deg,#fb7185,#e11d48);box-shadow:0 12px 26px -10px rgba(225,29,72,.55);transition:.15s;border:none}
+    .ps-primary:hover{filter:brightness(1.05);box-shadow:0 14px 30px -10px rgba(225,29,72,.65)}
+    .ps-primary i{width:16px;height:16px}
+    .ps-note{font-size:12.5px;line-height:1.6;color:#a97e8b;text-align:center;margin-top:14px;padding:0 6px}
+    .ps-note b{color:#7d4f5a;font-weight:600}
+    .ps-done{display:block;width:100%;margin-top:16px;padding:11px;font-size:13px;font-weight:600;color:#bb909c;background:none;border:none}
+    .ps-done:hover{color:#7d4f5a}
+    @media (prefers-reduced-motion:reduce){.ps-card{animation:none}}`;
+  document.head.appendChild(s);
+}
+
+function showPublishSuccessPopup() {
+  const slug =
+    WEDDING_SLUG || (WEDDING_ID ? `wedding-${WEDDING_ID.slice(0, 8)}` : "");
+  if (!slug) return;
+  const generalUrl = `${DOMAIN}/${slug}`;
+  const groomUrl = `${generalUrl}?isGroom=true`;
+  const familyOn = document.getElementById("enable_family")?.value === "true";
+
+  const form = document.getElementById("wedding-form");
+  const fd = form ? new FormData(form) : null;
+  const groom = (fd?.get("groom_name") || "").toString().trim();
+  const bride = (fd?.get("bride_name") || "").toString().trim();
+  const esc = (s) =>
+    String(s).replace(
+      /[&<>"]/g,
+      (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]),
+    );
+
+  _ensurePublishPopupAssets();
+  document.getElementById("publish-success-modal")?.remove();
+
+  const HEART = (fill, size) =>
+    `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="${fill}"><path d="M12 21s-6.7-4.3-9.4-7C.9 12.3.5 10.5 1 8.9A4.5 4.5 0 0 1 8.5 6.9l.5.5.5-.5a4.5 4.5 0 0 1 7.5 2c.5 1.6.1 3.4-1.6 5.1C18.7 16.7 12 21 12 21z"/></svg>`;
+
+  // Có đủ tên → hàng "Chú rể ♥ Cô dâu"; thiếu → câu dẫn nhẹ nhàng.
+  const coupleHtml =
+    groom && bride
+      ? `<div class="ps-couple">${esc(groom)} ${HEART("#fb7185", 13)} ${esc(bride)}</div>`
+      : `<p class="ps-sub">Giờ bạn có thể trao thiệp đến những người thương yêu</p>`;
+
+  const linkRow = (label, sub, url) => `
+    <div class="ps-link">
+      <div class="ps-link-label">${label}</div>
+      <div class="ps-link-sub">${sub}</div>
+      <div class="ps-url">${url}</div>
+      <div class="ps-acts">
+        <button type="button" class="ps-soft" data-ps-open="${url}"><i data-lucide="eye"></i>Xem thử</button>
+        <button type="button" class="ps-soft" data-ps-copy="${url}"><i data-lucide="copy"></i>Sao chép</button>
+      </div>
+    </div>`;
+
+  const linksHtml = familyOn
+    ? linkRow("Thiệp nhà gái", "Ưu tiên lễ · tiệc nhà gái", generalUrl) +
+      linkRow("Thiệp nhà trai", "Ưu tiên lễ · tiệc nhà trai", groomUrl)
+    : linkRow("Link thiệp cưới", "Gửi cho tất cả khách mời", generalUrl);
+
+  const modal = document.createElement("div");
+  modal.id = "publish-success-modal";
+  modal.innerHTML = `
+    <div class="ps-card">
+      <div class="ps-head">
+        <button type="button" data-ps-close class="ps-x"><i data-lucide="x" style="width:18px;height:18px"></i></button>
+        <div class="ps-orn"><i></i>${HEART("#c9a86a", 15)}<i></i></div>
+        <div class="ps-congrats">Chúc mừng</div>
+        <div class="ps-title">Thiệp cưới đã sẵn sàng</div>
+        ${coupleHtml}
+      </div>
+      <div class="ps-body">
+        <div class="ps-eyebrow">Chia sẻ thiệp</div>
+        ${linksHtml}
+
+        <div class="ps-eyebrow">Khách mời &amp; lời chúc</div>
+        <button type="button" class="ps-primary" data-ps-guests><i data-lucide="users"></i>Quản lý khách mời<i data-lucide="arrow-right"></i></button>
+        <p class="ps-note">Gửi link cho <b>người thân, bạn bè</b> để họ chung vui và <b>gửi lời chúc</b> đến hai bạn.</p>
+
+        <button type="button" class="ps-done" data-ps-close>Hoàn tất</button>
+      </div>
+    </div>`;
+
+  const close = () => {
+    document.removeEventListener("keydown", onKey, true);
+    modal.remove();
+  };
+  const onKey = (e) => {
+    if (e.key === "Escape") { e.preventDefault(); close(); }
+  };
+
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) return close(); // bấm nền tối = đóng
+    if (e.target.closest("[data-ps-close]")) return close();
+    if (e.target.closest("[data-ps-guests]")) { close(); switchTab("guests"); return; }
+    const openBtn = e.target.closest("[data-ps-open]");
+    if (openBtn) { window.open(openBtn.getAttribute("data-ps-open"), "_blank"); return; }
+    const copyBtn = e.target.closest("[data-ps-copy]");
+    if (copyBtn) {
+      navigator.clipboard
+        .writeText(copyBtn.getAttribute("data-ps-copy"))
+        .then(() => showToast("✅ Đã sao chép link thiệp!"))
+        .catch(() => showToast("❌ Không thể sao chép, hãy copy thủ công"));
+    }
+  });
+
+  document.body.appendChild(modal);
+  document.addEventListener("keydown", onKey, true);
+  if (window.lucide) lucide.createIcons();
 }
 
 // Ghi/cập nhật một đơn vào localStorage để trang tài khoản hiển thị thiệp.

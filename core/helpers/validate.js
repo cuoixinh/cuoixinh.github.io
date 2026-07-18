@@ -38,13 +38,20 @@ function _setup() {
     // flatpickr altInput có required nhưng không có name — bỏ qua
     if (!input.name) return;
 
-    // Add * to the preceding label
+    // Add * to the preceding label — CHỈ khi nhãn chưa có dấu * sẵn. Web component
+    // x-* (x-input/x-date/x-textarea) tự render * khi required; nếu ở đây thêm nữa sẽ
+    // thành "**" (VD label "Ngày cưới" của <x-date>).
     const label = input.previousElementSibling;
     if (label && (label.tagName === "LABEL" || label.tagName === "P")) {
-      const star = document.createElement("span");
-      star.className = "cx-req-star";
-      star.textContent = "*";
-      label.appendChild(star);
+      const hasStar =
+        label.querySelector(".cx-req-star, .text-rose-500") ||
+        label.textContent.includes("*");
+      if (!hasStar) {
+        const star = document.createElement("span");
+        star.className = "cx-req-star";
+        star.textContent = "*";
+        label.appendChild(star);
+      }
     }
 
     // Insert error message node after input

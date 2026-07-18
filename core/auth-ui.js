@@ -14,14 +14,61 @@
   const _toast = (m, t) =>
     (typeof showToast === "function" ? showToast(m, t) : console.log("[auth]", m));
 
+  // Tên hiển thị của khách: ưu tiên tên đầy đủ (OAuth) → tên → phần trước @ của email → "bạn".
+  function displayName(user) {
+    const m = (user && user.user_metadata) || {};
+    const n = (m.full_name || m.name || m.display_name || "").trim();
+    if (n) return n;
+    const email = (user && user.email) || "";
+    return email ? email.split("@")[0] : "bạn";
+  }
+
   // Cờ nhớ "vừa bấm đăng nhập OAuth" → sau khi redirect quay lại + có phiên thì toast.
   const _OAUTH_TOAST_KEY = "cx_oauth_login_toast";
+  // Đánh dấu "vừa đăng nhập OAuth" để trang kế tiếp (có phiên) toast lời chào. Dùng ở nút
+  // OAuth VÀ ở trang trung chuyển (account) trước khi điều hướng tiếp — nếu không, toast
+  // chỉ chớp trên trang trung chuyển rồi bị redirect xoá mất.
+  function armLoginToast() {
+    try { sessionStorage.setItem(_OAUTH_TOAST_KEY, "1"); } catch {}
+  }
+  // Toast lời chào "Xin chào <tên>" — dùng chung cho OAuth (qua cờ) lẫn OTP (gọi trực tiếp).
+  function greet(user) {
+    _toast("Xin chào " + displayName(user), "success");
+  }
+
+  // ── Đưa OAuth về đúng màn đang đứng (không phụ thuộc whitelist) ──────────────
+  // Supabase chỉ chấp redirectTo trong whitelist; URL lạ → nó đá về Site URL (trang
+  // chủ). Vì auth-ui.js được nạp ở MỌI trang (kể cả trang chủ), ta không cần trang
+  // đích phải whitelist: cứ nhớ màn cần quay lại vào sessionStorage, rồi ở BẤT KỲ
+  // trang nào OAuth hạ cánh, listener dưới đây tự bật về đúng màn đó.
+  const _OAUTH_RETURN_KEY = "cx_oauth_return";
+  // So khớp theo PATHNAME (bỏ origin/hash/query) để tránh lệch trailing-slash hay
+  // query bị trang đích dọn (vd pendingPublish) gây bật đi bật lại.
+  const _samePath = (a, b) => {
+    try {
+      const pa = new URL(a, location.href).pathname.replace(/\/+$/, "");
+      const pb = new URL(b, location.href).pathname.replace(/\/+$/, "");
+      return pa === pb;
+    } catch { return false; }
+  };
   sb.auth.onAuthStateChange((_event, session) => {
+    if (!session?.user) return;
+    // 1) Còn màn cần quay lại + đang đứng SAI màn → bật về đó (giữ cờ toast để chào ở đích).
+    let ret = null;
+    try { ret = sessionStorage.getItem(_OAUTH_RETURN_KEY); } catch {}
+    if (ret) {
+      try { sessionStorage.removeItem(_OAUTH_RETURN_KEY); } catch {}
+      if (!_samePath(location.href, ret)) {
+        window.location.replace(ret);
+        return;
+      }
+    }
+    // 2) Đã ở đúng màn → chào (nếu vừa đăng nhập OAuth).
     let pending = null;
     try { pending = sessionStorage.getItem(_OAUTH_TOAST_KEY); } catch {}
-    if (session?.user && pending) {
+    if (pending) {
       try { sessionStorage.removeItem(_OAUTH_TOAST_KEY); } catch {}
-      _toast("Đăng nhập thành công", "success");
+      greet(session.user);
     }
   });
 
@@ -232,7 +279,7 @@
           type: "email",
         });
         if (error) throw error;
-        _toast("Đăng nhập thành công", "success");
+        greet(data.user);
         opts.onAuth && opts.onAuth(data.user);
       } catch (err) {
         _toast(_friendlyError(err), "error");
@@ -282,15 +329,20 @@
     root.querySelectorAll("[data-auth-oauth]").forEach((btn) => {
       btn.addEventListener("click", async () => {
         const provider = btn.getAttribute("data-auth-oauth");
-        // Đánh dấu để sau khi redirect OAuth quay lại thì toast "Đăng nhập thành công".
+        // Đánh dấu để sau khi redirect OAuth quay lại thì toast lời chào.
         // (Luồng OTP toast ngay tại chỗ; OAuth rời trang nên phải nhớ qua sessionStorage.)
-        try { sessionStorage.setItem(_OAUTH_TOAST_KEY, "1"); } catch {}
+        armLoginToast();
+        // Nhớ màn cần quay lại. redirectTo thử về thẳng màn đó; nếu URL chưa whitelist,
+        // Supabase đá về Site URL (trang chủ) — nhưng auth-ui.js ở trang chủ sẽ đọc
+        // cờ này và tự bật về đúng màn (xem onAuthStateChange ở trên).
+        try { sessionStorage.setItem(_OAUTH_RETURN_KEY, oauthRedirect); } catch {}
         const { error } = await sb.auth.signInWithOAuth({
           provider,
           options: { redirectTo: oauthRedirect },
         });
         if (error) {
           try { sessionStorage.removeItem(_OAUTH_TOAST_KEY); } catch {}
+          try { sessionStorage.removeItem(_OAUTH_RETURN_KEY); } catch {}
           _toast(_friendlyError(error), "error");
         }
       });
@@ -365,5 +417,5 @@
     });
   }
 
-  window.AuthUI = { supabase: sb, renderForm, openModal, closeModal };
+  window.AuthUI = { supabase: sb, renderForm, openModal, closeModal, armLoginToast };
 })();

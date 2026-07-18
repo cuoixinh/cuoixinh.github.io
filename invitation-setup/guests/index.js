@@ -20,9 +20,9 @@ document.addEventListener("click", (e) => {
   const guestId = btn.dataset.guestId;
   const side    = btn.dataset.side;
 
-  if (action === "copy" && link)      { e.stopPropagation(); copyGuestLink(link); }
-  if (action === "messenger" && link) { e.stopPropagation(); shareViaMessenger(link); }
-  if (action === "menu" && guestId)   { e.stopPropagation(); _openRowMenu(btn, guestId, side); }
+  if (action === "copy" && link)         { e.stopPropagation(); copyGuestLink(link); }
+  if (action === "share" && guestId)     { e.stopPropagation(); _openShareModal(guestId, side); }
+  if (action === "menu" && guestId)      { e.stopPropagation(); _openRowMenu(btn, guestId, side); }
 });
 
 function goBack() {
@@ -435,9 +435,9 @@ function _renderGuestList(side) {
             class="w-6 h-6 rounded-md border border-gray-200 flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-gray-50 transition-colors">
             <i data-lucide="copy" style="width:11px;height:11px"></i>
           </button>
-          <button type="button" data-link="${_esc(g.link)}" data-action="messenger" title="Gửi Messenger"
-            class="w-6 h-6 rounded-md flex items-center justify-center bg-[#0084FF] hover:bg-[#0070D8] transition-colors">
-            <svg style="width:11px;height:11px;fill:white" viewBox="0 0 24 24"><path d="M12 0C5.373 0 0 4.975 0 11.111c0 3.497 1.745 6.616 4.472 8.652V24l4.086-2.242c1.09.301 2.246.464 3.442.464 6.627 0 12-4.975 12-11.111S18.627 0 12 0zm1.193 14.963L10.1 11.625l-6.112 3.338 6.724-7.143 3.093 3.338 6.112-3.338-6.724 7.143z"/></svg>
+          <button type="button" data-guest-id="${_esc(g.id)}" data-side="${side}" data-action="share" title="Chia sẻ"
+            class="w-6 h-6 rounded-md border border-gray-200 flex items-center justify-center text-gray-400 hover:text-rose-500 hover:bg-rose-50 transition-colors">
+            <i data-lucide="share-2" style="width:11px;height:11px"></i>
           </button>` : ""}
           <button type="button" data-guest-id="${_esc(g.id)}" data-side="${side}" data-action="menu"
             class="w-6 h-6 rounded-md border border-gray-200 flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-gray-50 transition-colors">
@@ -480,18 +480,21 @@ function _renderGuestList(side) {
   lucide.createIcons();
 }
 
-function shareViaMessenger(link) {
-  const url = `fb-messenger://share/?link=${encodeURIComponent(link)}`;
-  const web = `https://www.facebook.com/dialog/send?link=${encodeURIComponent(link)}&app_id=966242223397117&redirect_uri=${encodeURIComponent(window.location.href)}`;
-  const a = document.createElement("a");
-  a.href = url;
-  a.click();
-  // Fallback web nếu không mở được app
-  setTimeout(() => window.open(web, "_blank"), 1000);
-}
-
 function copyGuestLink(link) {
   navigator.clipboard.writeText(link).then(() => showToast("✅ Đã copy link"));
+}
+
+// ─── Share (chia sẻ link 1 khách) ─────────────────────────────────────────────
+// Popup + logic chia sẻ nằm ở core/share-social.js (dùng chung nhiều nơi).
+
+function _openShareModal(guestId, side) {
+  const guest = _allGuests[side]?.find(g => g.id === guestId);
+  if (!guest || !guest.link) { showToast("⚠️ Khách này chưa có link"); return; }
+
+  ShareSocial.open({
+    link: guest.link,
+    subtitle: guest.display_name || guest.full_name || "",
+  });
 }
 
 // ─── Row Menu (3 chấm) ────────────────────────────────────────────────────────

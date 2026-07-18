@@ -1825,11 +1825,17 @@
         id="config-panel"
         class="hidden fixed inset-0 bottom-[60px] z-[200] bg-[#fdf8f9] overflow-y-auto"
       >
-        <!-- Header đồng nhất style với Quản lý khách mời (không có nút back) -->
+        <!-- Header breadcrumb đồng nhất với thanh trên cùng (font-size 11px) -->
         <div class="bg-white border-b border-gray-100 sticky top-0 z-10">
           <div class="max-w-4xl mx-auto px-4 h-14 flex items-center gap-2">
-            <i data-lucide="settings" class="w-4 h-4 text-color-secondary"></i>
-            <h1 class="text-sm font-semibold text-gray-800">Cấu hình thiệp</h1>
+            <i data-lucide="settings" class="w-4 h-4 text-color-secondary shrink-0"></i>
+            <h1 class="text-[11px] truncate min-w-0">
+              <a href="/" class="font-semibold text-color-secondary hover:opacity-80 transition-opacity">Trang chủ</a>
+              <span class="font-normal text-gray-300 mx-0.5">/</span>
+              <a href="#" onclick="switchTab('edit');return false;" class="font-semibold text-color-secondary hover:opacity-80 transition-opacity">Thiết lập thiệp cưới</a>
+              <span class="font-normal text-gray-300 mx-0.5">/</span>
+              <span class="font-normal text-gray-400">Cấu hình thiệp</span>
+            </h1>
           </div>
         </div>
         <div class="max-w-4xl mx-auto px-4 py-6 pb-10 space-y-4">
@@ -1964,10 +1970,16 @@
       >
         <div class="bg-white border-b border-gray-100 sticky top-0 z-10">
           <div class="max-w-4xl mx-auto px-4 h-14 flex items-center gap-2">
-            <span class="text-color-secondary font-serif font-bold text-lg leading-none"
+            <span class="text-color-secondary font-serif font-bold text-lg leading-none shrink-0"
               >A</span
             >
-            <h1 class="text-sm font-semibold text-gray-800">Giao diện thiệp</h1>
+            <h1 class="text-[11px] truncate min-w-0">
+              <a href="/" class="font-semibold text-color-secondary hover:opacity-80 transition-opacity">Trang chủ</a>
+              <span class="font-normal text-gray-300 mx-0.5">/</span>
+              <a href="#" onclick="switchTab('edit');return false;" class="font-semibold text-color-secondary hover:opacity-80 transition-opacity">Thiết lập thiệp cưới</a>
+              <span class="font-normal text-gray-300 mx-0.5">/</span>
+              <span class="font-normal text-gray-400">Giao diện thiệp</span>
+            </h1>
           </div>
         </div>
         <div class="max-w-4xl mx-auto px-4 py-6 pb-10 space-y-4">

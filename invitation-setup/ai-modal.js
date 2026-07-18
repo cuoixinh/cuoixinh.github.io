@@ -1547,8 +1547,28 @@ function _resolveBankName(codeOrName) {
 //     phải form 16px (thẻ nằm gọn trong khoảng trắng).
 //   • Màn hẹp không đủ chỗ → đặt PHÍA TRONG, mép phải thẻ TRÙNG mép phải form (0px).
 // Theo dõi bằng ResizeObserver (nav + form) và sự kiện resize để luôn khớp.
-const _AI_FAB_GAP = 8;
+const _AI_FAB_GAP = 16;
 const _AI_FAB_CARD_W = 192; // bề rộng thẻ (12rem) — ngưỡng quyết định NGOÀI/TRONG
+
+// Toạ độ left (px) để BÁM LỀ #wedding-form theo cạnh cho trước — dùng chung cho auto
+// định-vị (_positionAiFab) LẪN bám lề sau khi kéo-thả, để "thả tay" trùng đúng vị trí
+// "lúc hiển thị card":
+//   • Còn đủ khoảng trắng ngoài form (chứa lọt thẻ 12rem) → NGOÀI, cách mép form 16px.
+//   • Không đủ → PHÍA TRONG, mép thẻ TRÙNG mép form (0px).
+//   • Chưa có form (skeleton, rect=0) → fallback bám lề màn (M=8).
+function _fabSnapLeft(side, w) {
+  const vw = document.documentElement.clientWidth;
+  const M = 8;
+  const form = document.getElementById("wedding-form");
+  const r = form && form.getBoundingClientRect();
+  if (!r || r.width === 0) return side === "left" ? M : vw - w - M;
+  // Ngưỡng theo bề rộng THẺ (không phải nút thu gọn) để chế độ ổn định khi thu/mở.
+  const fits = (gap) => gap >= _AI_FAB_GAP + _AI_FAB_CARD_W + 8;
+  if (side === "left") {
+    return fits(r.left) ? r.left - _AI_FAB_GAP - w : r.left;
+  }
+  return fits(vw - r.right) ? r.right + _AI_FAB_GAP : r.right - w;
+}
 // Vị trí do người dùng KÉO đặt (nhớ qua các lần tải trang). Có giá trị = chế độ thủ
 // công → bỏ auto-định-vị theo #wedding-form, chỉ kẹp lại trong màn khi resize.
 const _AI_FAB_POS_KEY = `cuoixinh_ai_fab_pos_${WEDDING_ID}`;
@@ -1571,10 +1591,11 @@ function _applyManualFabPos() {
   const vw = document.documentElement.clientWidth;
   const vh = document.documentElement.clientHeight;
   const M = 8;
-  // side mới (left/right) → bám lề; dữ liệu cũ (pos.left tuyệt đối) vẫn đọc được.
+  // side mới (left/right) → bám lề FORM (khớp lúc hiển thị card); dữ liệu cũ
+  // (pos.left tuyệt đối) vẫn đọc được, chỉ kẹp lại trong màn.
   let left;
   if (pos.side === "left" || pos.side === "right") {
-    left = pos.side === "left" ? M : vw - w - M;
+    left = _fabSnapLeft(pos.side, w);
   } else {
     left = Math.max(M, Math.min(pos.left ?? (vw - w - M), vw - w - M));
   }
@@ -1608,18 +1629,9 @@ function _positionAiFab() {
   // Tính theo lúc này sẽ khiến thẻ nhảy sang trái (left:16px). Bỏ qua, giữ vị trí
   // mặc định của CSS (right:1rem); ResizeObserver sẽ gọi lại khi form hiện ra.
   if (r.width === 0) return;
-  const vw = document.documentElement.clientWidth;
-  const gapRight = vw - r.right; // khoảng trắng bên phải form
-  // Ngưỡng dựa trên bề rộng THẺ (không phải nút thu gọn) để chế độ ổn định khi thu/mở.
-  if (gapRight >= _AI_FAB_GAP + _AI_FAB_CARD_W + 8) {
-    // NGOÀI form: căn trái tại (mép phải form + 16px) → thẻ nằm trong khoảng trắng.
-    fab.style.left = r.right + _AI_FAB_GAP + "px";
-    fab.style.right = "auto";
-  } else {
-    // PHÍA TRONG: căn phải, mép phải thẻ TRÙNG mép phải form (cách 0px).
-    fab.style.left = "auto";
-    fab.style.right = gapRight + "px";
-  }
+  // Bám lề PHẢI của form: ngoài form (cách 16px) nếu đủ chỗ, không thì trùng mép phải.
+  fab.style.left = _fabSnapLeft("right", fab.offsetWidth) + "px";
+  fab.style.right = "auto";
 }
 
 // Đóng thẻ mời của FAB (nút "x"): thu thẻ về nút tròn nhỏ (.ai-mini) trong phiên hiện
@@ -1646,14 +1658,20 @@ function _setupFabDrag() {
     baseLeft = r.left; baseTop = r.top;
     startX = e.clientX; startY = e.clientY;
     moved = false; dragging = true;
-    try { fab.setPointerCapture(e.pointerId); } catch {}
+    // KHÔNG setPointerCapture ở đây: bắt con trỏ ngay từ pointerdown khiến sự kiện
+    // click gốc bị nuốt/đổi target → không mở được popup khi CHẠM/BẤM thường. Chỉ bắt
+    // con trỏ khi đã thực sự KÉO (xem pointermove).
   });
 
   fab.addEventListener("pointermove", (e) => {
     if (!dragging) return;
     const dx = e.clientX - startX, dy = e.clientY - startY;
     if (!moved && Math.hypot(dx, dy) < TH) return;
-    moved = true;
+    if (!moved) {
+      moved = true;
+      // Vượt ngưỡng → mới là kéo: giờ mới bắt con trỏ để bám tay kể cả khi ra ngoài thẻ.
+      try { fab.setPointerCapture(e.pointerId); } catch {}
+    }
     fab.classList.add("dragging");
     const w = fab.offsetWidth, h = fab.offsetHeight;
     const vw = document.documentElement.clientWidth;
@@ -1674,13 +1692,16 @@ function _setupFabDrag() {
     if (moved) {
       fab.classList.remove("dragging");
       // Bám lề gần nhất theo chiều ngang (giống bong bóng AssistiveTouch iPhone):
-      // tâm thẻ ở nửa trái → dán lề trái, nửa phải → dán lề phải. Giữ nguyên chiều dọc.
+      // tâm thẻ ở nửa trái → dán lề trái, nửa phải → dán lề phải. Nhưng "lề" ở đây là
+      // lề của #wedding-form (cách 16px) — trùng đúng vị trí lúc hiển thị card, chứ
+      // không phải mép màn. Giữ nguyên chiều dọc.
       const w = fab.offsetWidth, h = fab.offsetHeight;
       const vw = document.documentElement.clientWidth;
       const vh = document.documentElement.clientHeight;
       const M = 8;
       const r = fab.getBoundingClientRect();
-      const snapLeft = (r.left + w / 2) < vw / 2 ? M : vw - w - M;
+      const side = (r.left + w / 2) < vw / 2 ? "left" : "right";
+      const snapLeft = _fabSnapLeft(side, w);
       const top = Math.max(M, Math.min(r.top, vh - h - M));
       // Trượt mượt về lề rồi bỏ transition để lần kéo sau vẫn bám tay tức thì.
       fab.style.transition = "left 0.22s cubic-bezier(0.32,0.72,0,1), top 0.22s cubic-bezier(0.32,0.72,0,1)";
@@ -1690,7 +1711,7 @@ function _setupFabDrag() {
       fab.style.bottom = "auto";
       const clearT = () => { fab.style.transition = ""; fab.removeEventListener("transitionend", clearT); };
       fab.addEventListener("transitionend", clearT);
-      _saveFabPos({ side: snapLeft === M ? "left" : "right", top }); // nhớ cạnh đã bám
+      _saveFabPos({ side, top }); // nhớ cạnh đã bám
       // Nuốt cú click sinh ra ngay sau khi thả để không mở popup do vừa kéo.
       const swallow = (ev) => { ev.stopPropagation(); ev.preventDefault(); };
       fab.addEventListener("click", swallow, { capture: true, once: true });

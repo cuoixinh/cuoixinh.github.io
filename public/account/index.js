@@ -25,21 +25,24 @@ const POST_LOGIN_REDIRECT_KEY = "post_login_redirect";
 })();
 
 // Sau khi đăng nhập xong, nếu có đích lưu sẵn (từ urlRedirect) thì điều hướng tiếp về đó.
-function _redirectAfterLogin() {
+// freshLogin = vừa đăng nhập (sự kiện SIGNED_IN) → mang theo toast "Đăng nhập thành
+// công" sang trang đích; nếu không, toast chỉ chớp trên trang này rồi bị replace() xoá.
+function _redirectAfterLogin(freshLogin) {
   if (!currentUser) return;
   const target = sessionStorage.getItem(POST_LOGIN_REDIRECT_KEY);
   if (!target) return;
   sessionStorage.removeItem(POST_LOGIN_REDIRECT_KEY);
+  if (freshLogin && window.AuthUI?.armLoginToast) AuthUI.armLoginToast();
   window.location.replace(target);
 }
 
 async function initAccount() {
-  supabaseClient.auth.onAuthStateChange((_event, session) => {
+  supabaseClient.auth.onAuthStateChange((event, session) => {
     currentUser = session?.user ?? null;
     updateAuthBlock();
     loadOrders();
     loadProfile();
-    _redirectAfterLogin();
+    _redirectAfterLogin(event === "SIGNED_IN");
   });
 
   const {
