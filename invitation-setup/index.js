@@ -670,9 +670,16 @@ function _setActiveTab(tabId) {
 }
 
 let _isDirty = false;
+// Theo dõi dirty RIÊNG từng tab để dấu * chỉ hiện ở tab bị sửa: "edit" | "config" | "theme"
+const _dirtyTabs = new Set();
 
-function _setDirty(dirty) {
+function _setDirty(dirty, tab) {
   _isDirty = dirty;
+  if (dirty) {
+    if (tab) _dirtyTabs.add(tab);
+  } else {
+    _dirtyTabs.clear();
+  }
 
   const draft = document.getElementById("tab-draft");
   const publish = document.getElementById("tab-publish");
@@ -689,6 +696,20 @@ function _setDirty(dirty) {
     publish.classList.toggle("bg-rose-600", dirty);
     publish.classList.toggle("bg-rose-500", !dirty);
   }
+
+  _updateDirtyMarks();
+}
+
+// Dấu * trên các tab (giống Notepad) — CHỈ hiển thị với thiệp ĐÃ xuất bản mà đang có
+// thay đổi chưa lưu. Thiệp chưa xuất bản đã có autosave nên không cần.
+function _updateDirtyMarks() {
+  const map = { edit: "switch-edit", config: "tab-config", theme: "tab-theme" };
+  Object.entries(map).forEach(([tab, id]) => {
+    const star = document.querySelector(`#${id} .tab-dirty-star`);
+    if (star) {
+      star.classList.toggle("hidden", !(IS_PUBLISHED && _dirtyTabs.has(tab)));
+    }
+  });
 }
 
 function togglePreview() {
@@ -759,11 +780,12 @@ function _initConfigPanel() {
   if (slugInput && WEDDING_SLUG) slugInput.value = WEDDING_SLUG;
   _updateSlugPreview();
 
-  const ytInput = document.getElementById("youtube-link-input");
-  if (ytInput && !ytInput.value && _currentMusicUrl) {
+  // Input hiển thị TÊN bài, URL thật nằm ở thẻ ẩn #music-url-input.
+  const musicUrlHidden = document.getElementById("music-url-input");
+  if (musicUrlHidden?.value) {
+    // Đã chọn bài (tag + preview dựng sẵn từ lần load) → giữ nguyên
+  } else if (_currentMusicUrl) {
     renderExistingYouTubeMusic(_currentMusicUrl);
-  } else if (ytInput?.value) {
-    autoPreviewYouTubeMusic();
   } else {
     _showYouTubeSuggestions();
   }
@@ -862,7 +884,7 @@ function onThemeSettingChange() {
     accent_color: ac ? ac.value : "",
   };
 
-  _setDirty(true);
+  _setDirty(true, "theme");
 
   // Áp dụng ngay vào iframe xem trước nếu đang mở
   const iframe = document.getElementById("preview-iframe");
@@ -874,7 +896,7 @@ function onThemeSettingChange() {
 function resetThemeSetting() {
   _themeSetting = {};
   _initThemePanel();
-  _setDirty(true);
+  _setDirty(true, "theme");
 
   const iframe = document.getElementById("preview-iframe");
   if (iframe && iframe.src) {
@@ -966,6 +988,51 @@ function copyInviteLink() {
     .catch(() => {
       showToast("❌ Không thể sao chép, hãy copy thủ công");
     });
+}
+
+// Chèn biến trộn (##Danh xưng##, ##link##) vào ô câu mẫu chia sẻ tại vị trí con trỏ
+function insertShareVar(token) {
+  const el = document.getElementById("share-message-template");
+  if (!el) return;
+  const start = el.selectionStart ?? el.value.length;
+  const end = el.selectionEnd ?? el.value.length;
+  el.value = el.value.slice(0, start) + token + el.value.slice(end);
+  const pos = start + token.length;
+  el.focus();
+  el.setSelectionRange(pos, pos);
+  _scheduleAutoSave("config");
+}
+
+// ─── Câu mẫu chia sẻ có sẵn (10 câu trong core/constant.js) ───────────────────
+
+let _shareTplIndex = -1; // mẫu đang chọn — để "Đổi mẫu" không lặp lại câu vừa rồi
+
+function _pickShareTemplate() {
+  const list = window.SHARE_MESSAGE_TEMPLATES || [];
+  if (!list.length) return "";
+  let i = Math.floor(Math.random() * list.length);
+  if (list.length > 1 && i === _shareTplIndex) i = (i + 1) % list.length;
+  _shareTplIndex = i;
+  return list[i];
+}
+
+// Chèn 1 câu mẫu ngẫu nhiên (set trực tiếp .value → không kích hoạt oninput nên nút "Đổi mẫu" vẫn hiện)
+function _fillShareTemplate() {
+  const el = document.getElementById("share-message-template");
+  if (!el) return;
+  el.value = _pickShareTemplate();
+  document.getElementById("share-template-refresh")?.classList.remove("hidden");
+  el.closest("x-input, x-textarea")?.syncClearBtn?.();
+  _scheduleAutoSave("config");
+}
+
+function insertShareTemplate() { _fillShareTemplate(); }   // nút "Chèn mẫu"
+function refreshShareTemplate() { _fillShareTemplate(); }  // nút "Đổi mẫu khác"
+
+// Gõ tay vào ô câu mẫu → ẩn nút "Đổi mẫu" (nút này chỉ dành cho luồng Chèn mẫu)
+function onShareTemplateInput() {
+  document.getElementById("share-template-refresh")?.classList.add("hidden");
+  _scheduleAutoSave("config");
 }
 
 async function saveDraft() {
@@ -1254,11 +1321,13 @@ function _doAutoSave() {
     }
   });
 
-  // YouTube music
-  const ytInput = document.getElementById("youtube-link-input");
-  const musicInput = document.getElementById("music-url-input");
+  // YouTube music — URL thật nằm ở thẻ ẩn (#music-url-input); input chỉ hiện tên bài
   payload.music_url =
-    ytInput?.value?.trim() || musicInput?.value?.trim() || null;
+    document.getElementById("music-url-input")?.value?.trim() || null;
+
+  // Câu mẫu chia sẻ (ngoài <form>)
+  payload.share_message_template =
+    document.getElementById("share-message-template")?.value?.trim() || null;
 
   // Gallery (filenames đã lưu — pending uploads là blob trong memory, ko thể lưu localStorage)
   const galleryTA = document.querySelector(
@@ -1272,8 +1341,9 @@ function _doAutoSave() {
   _syncLocalOrder(); // bản nháp cũng hiện trong "Đơn hàng" (khách: guestOrders) ngay khi đã có tên
 }
 
-function _scheduleAutoSave() {
-  _setDirty(true);
+// tab: tab nào bị sửa để gắn dấu * đúng chỗ ("edit" mặc định — form chính)
+function _scheduleAutoSave(tab = "edit") {
+  _setDirty(true, tab);
   // Đã mua thiệp (đã thanh toán, is_published = true) → không auto-save nữa
   if (IS_PUBLISHED) return;
   clearTimeout(_autoSaveTimer);
@@ -1283,8 +1353,9 @@ function _scheduleAutoSave() {
 function _initAutoSave() {
   const form = document.getElementById("wedding-form");
   if (!form) return;
-  form.addEventListener("input", _scheduleAutoSave);
-  form.addEventListener("change", _scheduleAutoSave);
+  // Bọc arrow để không truyền event làm tham số tab
+  form.addEventListener("input", () => _scheduleAutoSave("edit"));
+  form.addEventListener("change", () => _scheduleAutoSave("edit"));
 }
 
 // ============= DRAFT PAYMENT =============
@@ -2604,7 +2675,7 @@ function _renderYtItems(items) {
   return items
     .map(
       (item) => `
-    <button type="button" data-yt-url="${_escHtml(item.url)}"
+    <button type="button" data-yt-url="${_escHtml(item.url)}" data-yt-title="${_escHtml(item.title)}"
       class="yt-result-btn w-full flex gap-3 p-2 rounded-lg hover:bg-rose-50 text-left transition-colors">
       <img src="${_escHtml(item.thumbnail)}" class="w-20 h-12 rounded object-cover shrink-0 bg-gray-100" loading="lazy" />
       <div class="min-w-0 flex-1">
@@ -2622,11 +2693,9 @@ function _rewireYtResultBtns(container) {
     btn.addEventListener("click", () => {
       const url = btn.dataset.ytUrl;
       if (!url) return;
-      const ytInput = document.getElementById("youtube-link-input");
-      ytInput.value = url;
-      ytInput.dispatchEvent(new Event("input", { bubbles: true }));
-      container.innerHTML = "";
-      autoPreviewYouTubeMusic();
+      // Đã có sẵn tên bài từ kết quả tìm kiếm → chọn luôn, khỏi gọi oEmbed
+      selectYouTubeSong(url, btn.dataset.ytTitle || "");
+      _scheduleAutoSave("config");
     });
   });
 }
@@ -2715,15 +2784,15 @@ function extractYouTubeVideoId(url) {
   return null;
 }
 
+// Input là ô TÌM KIẾM độc lập — gõ/xoá ở đây KHÔNG đụng tới bài đã chọn (tag + URL).
+// Chỉ dán 1 URL hợp lệ mới là hành động "chọn bài" (ghi đè tag).
 function autoPreviewYouTubeMusic() {
   const input = document.getElementById("youtube-link-input");
-  const preview = document.getElementById("youtube-preview");
   const error = document.getElementById("youtube-error");
   const results = document.getElementById("youtube-search-results");
   const val = input.value.trim();
 
   if (!val) {
-    preview.classList.add("hidden");
     error?.classList.add("hidden");
     input.classList.remove("border-red-400");
     _showYouTubeSuggestions();
@@ -2736,20 +2805,94 @@ function autoPreviewYouTubeMusic() {
     if (results) results.innerHTML = "";
     const videoId = extractYouTubeVideoId(val);
     if (!videoId) {
-      preview.classList.add("hidden");
       error?.classList.remove("hidden");
       input.classList.add("border-red-400");
       return;
     }
     error?.classList.add("hidden");
     input.classList.remove("border-red-400");
-    showYouTubePreview(videoId, val);
+    // Dán URL hợp lệ = chọn bài → ghi đè tag + URL, lấy tên qua oEmbed
+    selectYouTubeSong(val, "");
+    _scheduleAutoSave("config");
   } else {
-    preview.classList.add("hidden");
+    // Gõ text = tìm kiếm; bài đã chọn (tag/URL/preview) giữ nguyên
     error?.classList.add("hidden");
     input.classList.remove("border-red-400");
     _doYouTubeSearch(val);
   }
+}
+
+// Chọn 1 bài (ghi đè bài cũ): lưu URL vào thẻ ẩn + hiện tag + preview. Tag/URL là "bài đang chọn".
+// Ô input chỉ hiển thị tên cho tiện nhìn — sửa/xóa input sau đó KHÔNG ảnh hưởng tag.
+// title rỗng (dán URL / load từ DB) → tự lấy qua YouTube oEmbed.
+async function selectYouTubeSong(url, title) {
+  const videoId = extractYouTubeVideoId(url);
+  if (!videoId) return;
+
+  _setMusicUrl(url);
+  showYouTubePreview(videoId, url);
+  const results = document.getElementById("youtube-search-results");
+  if (results) results.innerHTML = "";
+  document.getElementById("youtube-error")?.classList.add("hidden");
+
+  if (!title) title = await _fetchYouTubeTitle(url);
+  const name = title || url;
+
+  const input = document.getElementById("youtube-link-input");
+  if (input) {
+    input.value = name;
+    input.closest("x-input, x-textarea")?.syncClearBtn?.();
+  }
+  _showMusicTag(name);
+}
+
+// Lấy tên bài từ URL YouTube (endpoint oEmbed công khai, có CORS)
+async function _fetchYouTubeTitle(url) {
+  try {
+    const res = await fetch(
+      `https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`,
+    );
+    if (!res.ok) return "";
+    const data = await res.json();
+    return data.title || "";
+  } catch {
+    return "";
+  }
+}
+
+// Ghi URL thật vào thẻ ẩn (nguồn dữ liệu để lưu music_url)
+function _setMusicUrl(url) {
+  const el = document.getElementById("music-url-input");
+  if (el) el.value = url || "";
+}
+
+// Hiện/ẩn tag tên bài hát dưới input
+function _showMusicTag(name) {
+  const tag = document.getElementById("music-selected-tag");
+  const nameEl = document.getElementById("music-selected-name");
+  if (!tag) return;
+  if (name) {
+    if (nameEl) nameEl.textContent = name;
+    tag.classList.remove("hidden");
+    if (window.lucide) lucide.createIcons();
+  } else {
+    tag.classList.add("hidden");
+  }
+}
+
+// Gỡ bài hát đã chọn (nút x trên tag)
+function clearMusicSelection() {
+  _setMusicUrl("");
+  _showMusicTag("");
+  const input = document.getElementById("youtube-link-input");
+  if (input) {
+    input.value = "";
+    input.closest("x-input, x-textarea")?.syncClearBtn?.();
+  }
+  document.getElementById("youtube-preview")?.classList.add("hidden");
+  document.getElementById("youtube-error")?.classList.add("hidden");
+  _scheduleAutoSave("config");
+  _showYouTubeSuggestions();
 }
 
 let _ytPreviewPlayer = null;
@@ -2827,11 +2970,9 @@ function renderExistingYouTubeMusic(musicUrl) {
     return; // Not a YouTube URL
   }
 
-  const input = document.getElementById("youtube-link-input");
-  input.value = musicUrl;
-
-  // Auto preview
-  autoPreviewYouTubeMusic();
+  // Load từ DB: chỉ có URL → selectYouTubeSong tự lấy tên bài (oEmbed), hiện tag + preview.
+  // Không gọi _scheduleAutoSave để tránh đánh dấu "dirty" khi vừa nạp.
+  selectYouTubeSong(musicUrl, "");
 }
 
 // Setup auto-preview on input change
@@ -3177,6 +3318,12 @@ function fillForm(data) {
     if (brideLink) brideLink.value = `${DOMAIN}/${data.slug}`;
   }
 
+  // Câu mẫu chia sẻ (nằm ngoài <form> nên fill riêng)
+  if (data.share_message_template !== undefined) {
+    const tplEl = document.getElementById("share-message-template");
+    if (tplEl) tplEl.value = data.share_message_template || "";
+  }
+
   // Process image_focal_points FIRST so pendingFocalPoints is ready before any renderSingleImageUpload call
   if (data.image_focal_points) {
     let points = data.image_focal_points;
@@ -3387,13 +3534,11 @@ async function saveAll(overrides = {}, label = "Đang lưu...") {
       theme_setting: _themeSetting,
     };
 
-    // Step 2.5: Get YouTube music URL (prioritize textbox input over hidden input)
-    const youtubeTextbox = document.getElementById("youtube-link-input");
-    const musicUrlInput = document.getElementById("music-url-input");
-
-    // Use textbox value if available, otherwise use hidden input
-    const musicUrl =
-      youtubeTextbox?.value?.trim() || musicUrlInput?.value?.trim();
+    // Step 2.5: Get YouTube music URL — URL thật lấy từ thẻ ẩn (#music-url-input);
+    // input hiển thị chỉ chứa TÊN bài nên không dùng để lưu.
+    const musicUrl = document
+      .getElementById("music-url-input")
+      ?.value?.trim();
 
     if (musicUrl) {
       // Validate YouTube URL
@@ -3407,6 +3552,10 @@ async function saveAll(overrides = {}, label = "Đang lưu...") {
       // If empty, explicitly set to null to clear music
       payload.music_url = null;
     }
+
+    // Câu mẫu chia sẻ (ngoài <form> nên thu thập riêng)
+    payload.share_message_template =
+      document.getElementById("share-message-template")?.value?.trim() || null;
 
     // Add deleted images list
     const allDeletedImages = [
@@ -3562,6 +3711,11 @@ async function saveAll(overrides = {}, label = "Đang lưu...") {
     renderSingleImageUpload("groom_qr_url");
     renderSingleImageUpload("bride_qr_url");
     renderGalleryGrid();
+
+    // Đồng bộ câu mẫu chia sẻ sang iframe khách mời (nếu đã nạp) — tránh phải F5 mới có câu mới
+    document
+      .getElementById("guests-iframe")
+      ?.contentWindow?.setShareTemplate?.(payload.share_message_template ?? null);
 
     if (_isLocalDraft && !getCurrentUser()) {
       showToast("Đã lưu nháp vào thiết bị này");
@@ -4812,8 +4966,18 @@ window._applyThemeChange = _applyThemeChange;
 // ============= ADVANCED SECTION LOCK =============
 
 function _syncAdvancedSection() {
+  // Ẩn cả container nút "Lưu nháp" khi đã xuất bản → nhường không gian cho nút "Lưu & Xuất bản"
+  const draftWrap = document.getElementById("tab-draft-wrap");
+  if (draftWrap) draftWrap.classList.toggle("hidden", IS_PUBLISHED);
   const draftTab = document.getElementById("tab-draft");
   if (draftTab) draftTab.classList.toggle("hidden", IS_PUBLISHED);
+
+  // Thiệp đã xuất bản: nút chính đóng vai trò "lưu lại" → đổi nhãn "Lưu & Xuất bản"
+  const publishLabel = document.querySelector("#tab-publish span");
+  if (publishLabel) {
+    publishLabel.textContent = IS_PUBLISHED ? "Lưu & Xuất bản" : "Xuất bản";
+  }
+  _updateDirtyMarks();
 
   // Tab Khách mời: vẫn bấm được, tooltip báo khi chưa xuất bản (không gắn badge trên navbar)
   const guestsTab = document.getElementById("tab-guests");

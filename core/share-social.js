@@ -8,15 +8,13 @@
  *     link: "https://motdoi.com.vn/thiep/abc",   // bắt buộc — link cần chia sẻ
  *     title: "Chia sẻ thiệp cưới",               // tuỳ chọn — tiêu đề popup
  *     subtitle: "Anh Minh",                       // tuỳ chọn — dòng phụ (tên khách/cặp đôi)
- *     message: "Trân trọng kính mời…",            // tuỳ chọn — lời nhắn kèm khi share
+ *     message: "Trân trọng kính mời…",            // tuỳ chọn — lời nhắn kèm khi share; để trống → chỉ share link
  *   });
  *
  * Phụ thuộc mềm: showToast (core/helpers/alert.js) và lucide — có thì dùng, không có vẫn chạy.
  */
 (function (global) {
   "use strict";
-
-  const DEFAULT_MESSAGE = "Trân trọng kính mời bạn đến chung vui cùng đám cưới của chúng mình 💌";
 
   // Danh sách kênh chia sẻ. `url(ctx)` trả về web URL, hoặc dùng `handler(ctx)` để xử lý riêng.
   const CHANNELS = [
@@ -28,7 +26,7 @@
     {
       key: "messenger", label: "Messenger", bg: "bg-gradient-to-br from-[#00B2FF] to-[#006AFF]",
       svg: `<svg viewBox="0 0 24 24" style="width:22px;height:22px;fill:white"><path d="M12 0C5.373 0 0 4.975 0 11.111c0 3.497 1.745 6.616 4.472 8.652V24l4.086-2.242c1.09.301 2.246.464 3.442.464 6.627 0 12-4.975 12-11.111S18.627 0 12 0zm1.193 14.963L10.1 11.625l-6.112 3.338 6.724-7.143 3.093 3.338 6.112-3.338-6.724 7.143z"/></svg>`,
-      handler: ({ link }) => shareViaMessenger(link),
+      handler: (ctx) => shareViaMessenger(ctx.link),
     },
     {
       key: "zalo", label: "Zalo", bg: "bg-[#0068FF]",
@@ -36,12 +34,12 @@
       url: ({ enc }) => `https://sp.zalo.me/plugins/share?href=${enc}`,
     },
     {
-      key: "whatsapp", label: "WhatsApp", bg: "bg-[#25D366]",
+      key: "whatsapp", label: "WhatsApp", bg: "bg-[#25D366]", textInUrl: true,
       svg: `<svg viewBox="0 0 24 24" style="width:22px;height:22px;fill:white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.464 3.488"/></svg>`,
       url: ({ msgEnc }) => `https://api.whatsapp.com/send?text=${msgEnc}`,
     },
     {
-      key: "twitter", label: "X (Twitter)", bg: "bg-black",
+      key: "twitter", label: "X (Twitter)", bg: "bg-black", textInUrl: true,
       svg: `<svg viewBox="0 0 24 24" style="width:19px;height:19px;fill:white"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>`,
       url: ({ msgEnc }) => `https://twitter.com/intent/tweet?text=${msgEnc}`,
     },
@@ -49,8 +47,25 @@
 
   // ─── Helpers ────────────────────────────────────────────────────────────────
 
-  function _toast(msg, type) {
-    if (typeof global.showToast === "function") global.showToast(msg, type);
+  function _toast(msg, type, icon) {
+    if (typeof global.showToast === "function") global.showToast(msg, type, icon);
+  }
+
+  // Toast báo đã copy — hiện icon lucide "copy" ở ô icon của toast
+  function _copyToast(text) {
+    _toast(text, "default", "copy");
+  }
+
+  // Trộn mẫu: thay ##biến## bằng giá trị trong `vars` (key so khớp không phân biệt hoa/thường).
+  // VD: renderTemplate("Chào ##Danh xưng##, link: ##link##", { "danh xưng": "Anh A", link: "..." })
+  function renderTemplate(tpl, vars) {
+    if (!tpl) return "";
+    const map = {};
+    Object.keys(vars || {}).forEach(k => { map[k.trim().toLowerCase()] = vars[k]; });
+    return String(tpl).replace(/##\s*([^#]+?)\s*##/g, (m, key) => {
+      const v = map[key.trim().toLowerCase()];
+      return v != null ? v : m;
+    });
   }
 
   function _refreshIcons() {
@@ -60,7 +75,7 @@
   function copyLink(link) {
     if (!link) return;
     navigator.clipboard.writeText(link)
-      .then(() => _toast("✅ Đã copy link"))
+      .then(() => _copyToast("Đã copy link"))
       .catch(() => _toast("❌ Không copy được link"));
   }
 
@@ -80,8 +95,10 @@
         await navigator.share({ title: ctx.title, text: ctx.message, url: ctx.link });
       } catch (_) { /* user huỷ */ }
     } else {
-      copyLink(ctx.link);
-      _toast("📋 Đã copy link — dán để chia sẻ nhé");
+      // Trình duyệt không hỗ trợ Web Share → copy nội dung (lời nhắn nếu có, không thì link)
+      navigator.clipboard?.writeText(ctx.message || ctx.link)
+        .then(() => _copyToast(ctx.message ? "Đã copy lời nhắn — dán để chia sẻ nhé" : "Đã copy link"))
+        .catch(() => {});
     }
   }
 
@@ -139,6 +156,13 @@
       if (!btn || !_ctx) return;
       const ch = CHANNELS.find(c => c.key === btn.dataset.channel);
       if (!ch) return;
+      // Kênh không nhét được lời nhắn vào URL (Facebook, Messenger, Zalo) → copy sẵn nội dung
+      // để user dán vào ô chat/status. Có câu mẫu → copy lời nhắn; không có → copy link.
+      if (!ch.textInUrl) {
+        navigator.clipboard?.writeText(_ctx.message || _ctx.link)
+          .then(() => _copyToast(_ctx.message ? "Đã copy lời nhắn — dán vào ô soạn tin nhé" : "Đã copy link"))
+          .catch(() => {});
+      }
       if (typeof ch.handler === "function") { ch.handler(_ctx); return; }
       const url = ch.url(_ctx);
       if (url) global.open(url, "_blank", "noopener,noreferrer");
@@ -151,13 +175,15 @@
     const link = opts && opts.link;
     if (!link) { _toast("⚠️ Không có link để chia sẻ"); return; }
 
-    const message = (opts.message || DEFAULT_MESSAGE) + " " + link;
+    // `message` là lời nhắn đã trộn sẵn (dùng nguyên văn). Để trống → không kèm câu nào,
+    // các kênh nhét text vào URL sẽ chỉ chia sẻ link.
+    const message = opts.message || "";
     _ctx = {
       link,
       message,
       title: opts.title || "Chia sẻ thiệp cưới",
       enc: encodeURIComponent(link),
-      msgEnc: encodeURIComponent(message),
+      msgEnc: encodeURIComponent(message || link),
     };
 
     const modal = _ensureModal();
@@ -184,5 +210,5 @@
     _modal.classList.remove("flex");
   }
 
-  global.ShareSocial = { open, close, copyLink, shareViaMessenger, shareViaSystem };
+  global.ShareSocial = { open, close, copyLink, shareViaMessenger, shareViaSystem, renderTemplate };
 })(window);

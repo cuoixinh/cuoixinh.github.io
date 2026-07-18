@@ -1,9 +1,11 @@
 /**
  * showTour — simple spotlight tour
  * @param {Array<{selector:string, title:string, desc:string, onEnter?:Function}>} steps
- * @param {{ storageKey?:string }} options
+ * @param {{ storageKey?:string, onDone?:(completed:boolean)=>void }} options
+ *   onDone(completed): gọi khi tour đóng — completed=true nếu người dùng bấm "Xong"
+ *   ở bước cuối (hoàn tất), false nếu bỏ qua / bấm ra ngoài.
  */
-function showTour(steps, { storageKey } = {}) {
+function showTour(steps, { storageKey, onDone } = {}) {
   if (storageKey && localStorage.getItem(storageKey)) return;
 
   let current  = 0;
@@ -50,26 +52,40 @@ function showTour(steps, { storageKey } = {}) {
     el.style.borderRadius = "";
   }
 
+  /* Đặt tip cạnh phần tử theo hướng còn đủ chỗ (dưới → trên → phải → trái),
+     rồi LUÔN kẹp trong viewport để không bao giờ bị khuất mép — kể cả khi phần
+     tử cao hơn màn hình (vd mục "Điền thông tin" trên máy nhỏ). */
   function placeTip(el) {
-    const r      = el.getBoundingClientRect();
-    const W      = 268;
-    const GAP    = 12;
-    const tipH   = tip.offsetHeight || 160;
+    const r    = el.getBoundingClientRect();
+    const GAP  = 12;
+    const M    = 12; /* lề an toàn với mép màn */
+    const vw   = window.innerWidth;
+    const vh   = window.innerHeight;
+    const tipW = tip.offsetWidth  || 268;
+    const tipH = tip.offsetHeight || 160;
 
-    tip.style.left = Math.max(GAP, Math.min(r.left, window.innerWidth - W - GAP)) + "px";
-
-    const spaceBelow = window.innerHeight - r.bottom;
+    const spaceBelow = vh - r.bottom;
     const spaceAbove = r.top;
+    const spaceRight = vw - r.right;
+    const spaceLeft  = r.left;
+
+    let top, left;
     if (spaceBelow >= tipH + GAP) {
-      tip.style.top = (r.bottom + GAP) + "px";
+      top = r.bottom + GAP;                 left = r.left;                     /* dưới */
     } else if (spaceAbove >= tipH + GAP) {
-      tip.style.top = (r.top - tipH - GAP) + "px";
+      top = r.top - tipH - GAP;             left = r.left;                     /* trên */
+    } else if (spaceRight >= tipW + GAP) {
+      left = r.right + GAP;                 top = r.top + r.height / 2 - tipH / 2; /* phải */
+    } else if (spaceLeft >= tipW + GAP) {
+      left = r.left - tipW - GAP;           top = r.top + r.height / 2 - tipH / 2; /* trái */
     } else {
-      /* không đủ chỗ cả hai phía — chọn phía rộng hơn */
-      tip.style.top = spaceBelow >= spaceAbove
-        ? (r.bottom + GAP) + "px"
-        : Math.max(GAP, r.top - tipH - GAP) + "px";
+      /* không đủ chỗ phía nào — chọn phía dọc rộng hơn */
+      top  = spaceBelow >= spaceAbove ? r.bottom + GAP : r.top - tipH - GAP;
+      left = r.left;
     }
+
+    tip.style.left = Math.max(M, Math.min(left, vw - tipW - M)) + "px";
+    tip.style.top  = Math.max(M, Math.min(top,  vh - tipH - M)) + "px";
   }
 
   function renderTip(el) {
@@ -88,9 +104,9 @@ function showTour(steps, { storageKey } = {}) {
       </div>`;
 
     tip.querySelector("#t-next").onclick = () => {
-      if (current < steps.length - 1) { current++; go(); } else finish();
+      if (current < steps.length - 1) { current++; go(); } else finish(true);
     };
-    tip.querySelector("#t-skip").onclick = finish;
+    tip.querySelector("#t-skip").onclick = () => finish(false);
     placeTip(el);
   }
 
@@ -105,13 +121,14 @@ function showTour(steps, { storageKey } = {}) {
     prevEl = el;
   }
 
-  function finish() {
+  function finish(completed) {
     if (prevEl) unhighlight(prevEl);
     if (storageKey) localStorage.setItem(storageKey, "1");
     overlay.remove();
     tip.remove();
+    if (typeof onDone === "function") onDone(!!completed);
   }
 
-  overlay.onclick = finish;
+  overlay.onclick = () => finish(false);
   go();
 }

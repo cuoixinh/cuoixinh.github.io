@@ -66,7 +66,7 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
     if (action === 'wedding') {
       const { data, error } = await supabase
         .from('weddings')
-        .select('slug')
+        .select('slug, share_message_template')
         .eq('id', wedding_id)
         .single()
       if (error) return fail('Thiệp không tồn tại', 404)

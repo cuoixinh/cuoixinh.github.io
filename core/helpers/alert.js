@@ -69,11 +69,12 @@
 
 let _toastTimer = null;
 
-function showToast(msg, type = "default") {
+// icon (tuỳ chọn): tên icon lucide (vd "copy") → hiện thay cho ký hiệu mặc định của type.
+function showToast(msg, type = "default", icon = null) {
   const el    = document.getElementById("cx-toast");
-  const icon  = document.getElementById("cx-toast-icon");
+  const iconEl = document.getElementById("cx-toast-icon");
   const text  = document.getElementById("cx-toast-msg");
-  if (!el || !icon || !text) return;
+  if (!el || !iconEl || !text) return;
 
   const cfg = {
     success: { symbol: "✓", bg: "#dcfce7", color: "#15803d" },
@@ -90,9 +91,15 @@ function showToast(msg, type = "default") {
   }
 
   const c = cfg[type] || cfg.default;
-  icon.style.background = c.bg;
-  icon.style.color      = c.color;
-  icon.textContent      = c.symbol;
+  iconEl.style.background = c.bg;
+  iconEl.style.color      = c.color;
+  if (icon && typeof lucide !== "undefined") {
+    iconEl.innerHTML = `<i data-lucide="${icon}" style="width:16px;height:16px"></i>`;
+    lucide.createIcons();
+  } else {
+    iconEl.innerHTML = "";
+    iconEl.textContent = c.symbol;
+  }
   text.innerHTML        = msg.replace(/^[✅❌⚠️📋🗑️]\s*/, ""); // strip leading emoji
 
   el.classList.add("visible");

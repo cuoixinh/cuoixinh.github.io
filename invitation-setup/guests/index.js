@@ -8,7 +8,7 @@ let _currentTab = "groom";
 document.addEventListener("DOMContentLoaded", async () => {
   lucide.createIcons();
   if (!WEDDING_ID) { showToast("⚠️ Không tìm thấy ID thiệp"); return; }
-  await Promise.all([loadGuestList("groom"), loadGuestList("bride")]);
+  await Promise.all([loadGuestList("groom"), loadGuestList("bride"), _getWedding()]);
 });
 
 // Event delegation cho action buttons trong table (tránh inline onclick với dữ liệu user)
@@ -247,14 +247,24 @@ async function confirmImport() {
 
 // ─── Link Generation ──────────────────────────────────────────────────────────
 
-let _weddingSlug = null;
+let _wedding = null;
+
+async function _getWedding() {
+  if (_wedding) return _wedding;
+  _wedding = await guestDAL.getWedding(WEDDING_ID) || {};
+  return _wedding;
+}
 
 async function _getWeddingSlug() {
-  if (_weddingSlug) return _weddingSlug;
-  const wedding = await guestDAL.getWedding(WEDDING_ID);
-  _weddingSlug = wedding?.slug || null;
-  return _weddingSlug;
+  return (await _getWedding())?.slug || null;
 }
+
+// Trang cha (setup) gọi sau khi lưu để cập nhật câu mẫu chia sẻ ngay trong cache,
+// khỏi phải reload iframe / F5 mới lấy được câu mới.
+window.setShareTemplate = function (val) {
+  if (!_wedding) _wedding = {};
+  _wedding.share_message_template = val || "";
+};
 
 async function _generateGuestLinks(side) {
   try {
@@ -491,9 +501,17 @@ function _openShareModal(guestId, side) {
   const guest = _allGuests[side]?.find(g => g.id === guestId);
   if (!guest || !guest.link) { showToast("⚠️ Khách này chưa có link"); return; }
 
+  const name = guest.display_name || guest.full_name || "";
+  const tpl = _wedding?.share_message_template;
+  // Có câu mẫu → trộn thông tin khách; không có → dùng câu mặc định của ShareSocial
+  const message = tpl
+    ? ShareSocial.renderTemplate(tpl, { "danh xưng": name, link: guest.link })
+    : undefined;
+
   ShareSocial.open({
     link: guest.link,
-    subtitle: guest.display_name || guest.full_name || "",
+    subtitle: name,
+    message,
   });
 }
 
