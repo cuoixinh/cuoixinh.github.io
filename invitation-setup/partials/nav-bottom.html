@@ -1,0 +1,138 @@
+      <!-- Bottom Navigation Bar -->
+      <div
+        id="bottom-nav-bar"
+        class="fixed bottom-0 left-0 right-0 z-[300] bg-white border-t border-rose-100 shadow-[0_-2px_12px_rgba(0,0,0,0.06)]"
+      >
+        <!-- Local Draft Notice — con đầu tiên của navbar → luôn nằm sát ngay trên các tab -->
+        <div
+          id="local-draft-notice"
+          class="hidden bg-rose-50 border-b border-rose-100 px-4 py-2"
+        >
+          <div class="max-w-4xl mx-auto flex items-center justify-center gap-2">
+            <span class="text-center text-xs text-gray-600">
+              Mọi thay đổi đang được lưu tạm ngay trên trình duyệt này.
+              <button
+                type="button"
+                onclick="
+                  window.location.href =
+                    '../public/account/?urlRedirect=' +
+                    encodeURIComponent(window.location.href)
+                "
+                class="text-color-secondary font-semibold underline-offset-2 hover:underline"
+              >
+                Đăng nhập
+              </button>
+              để xuất bản và quản lý thiệp.
+            </span>
+            <button
+              type="button"
+              onclick="
+                document
+                  .getElementById('local-draft-notice')
+                  .classList.add('hidden')
+              "
+              class="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <svg
+                class="w-3.5 h-3.5"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M18 6 6 18" />
+                <path d="m6 6 12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="max-w-4xl mx-auto flex items-stretch">
+          <!-- Edit/Preview Switch -->
+          <div
+            class="flex-1 sm:flex-[2] flex items-center justify-center px-2 sm:px-3 border-t-2 border-transparent"
+          >
+            <div id="tour-view-switch" class="flex w-full bg-gray-100 rounded-full p-0.5 gap-0.5">
+              <button
+                type="button"
+                id="switch-edit"
+                onclick="switchTab('edit')"
+                class="relative flex-1 flex items-center justify-center gap-1 h-8 rounded-full text-[11px] font-semibold bg-white shadow-sm text-gray-700 transition-all"
+              >
+                <span class="tab-dirty-star hidden absolute top-0.5 right-1.5 text-rose-500 text-[13px] font-bold leading-none" title="Có thay đổi chưa lưu">*</span>
+                <i data-lucide="pen" style="width: 12px; height: 12px"></i>
+                <span class="hidden sm:inline">Chỉnh sửa</span>
+              </button>
+              <button
+                type="button"
+                id="switch-preview"
+                onclick="switchTab('preview')"
+                class="flex-1 flex items-center justify-center gap-1 h-8 rounded-full text-[11px] font-medium text-gray-400 transition-all"
+              >
+                <i data-lucide="eye" style="width: 12px; height: 12px"></i>
+                <span class="hidden sm:inline">Xem trước</span>
+              </button>
+            </div>
+          </div>
+          <button
+            type="button"
+            onclick="switchTab('config')"
+            id="tab-config"
+            class="relative flex-none px-3 sm:flex-1 sm:px-0 flex flex-col items-center justify-center gap-1 py-3 text-gray-400 border-t-2 border-transparent transition-colors"
+          >
+            <span class="tab-dirty-star hidden absolute top-1 right-1.5 sm:right-3 text-rose-500 text-[13px] font-bold leading-none" title="Có thay đổi chưa lưu">*</span>
+            <i data-lucide="settings" class="text-base"></i>
+            <span class="hidden sm:inline text-[11px] font-medium"
+              >Cấu hình</span
+            >
+          </button>
+          <button
+            type="button"
+            onclick="switchTab('theme')"
+            id="tab-theme"
+            class="relative flex-none px-3 sm:flex-1 sm:px-0 flex flex-col items-center justify-center gap-1 py-3 text-gray-400 border-t-2 border-transparent transition-colors"
+          >
+            <span class="tab-dirty-star hidden absolute top-1 right-1.5 sm:right-3 text-rose-500 text-[13px] font-bold leading-none" title="Có thay đổi chưa lưu">*</span>
+            <i data-lucide="palette" class="text-base"></i>
+            <span class="hidden sm:inline text-[11px] font-medium"
+              >Giao diện</span
+            >
+          </button>
+          <button
+            type="button"
+            onclick="openGuestsPage(event)"
+            id="tab-guests"
+            class="flex-none px-3 sm:flex-1 sm:px-0 flex flex-col items-center justify-center gap-1 py-3 text-gray-400 border-t-2 border-transparent transition-colors"
+          >
+            <i data-lucide="users" class="text-base"></i>
+            <span class="hidden sm:inline text-[11px] font-medium"
+              >Khách mời</span
+            >
+          </button>
+          <div id="tab-draft-wrap" class="flex-1 flex items-center justify-center px-1.5 py-2">
+            <button
+              type="button"
+              onclick="saveDraft()"
+              id="tab-draft"
+              class="w-full flex items-center justify-center gap-1.5 h-9 rounded-full border border-gray-300 text-gray-500 bg-white text-[11px] font-medium transition-all active:opacity-75"
+            >
+              <i data-lucide="file-text" style="width: 13px; height: 13px"></i>
+              <span>Lưu nháp</span>
+            </button>
+          </div>
+          <div class="flex-1 flex items-center justify-center px-1.5 py-2">
+            <button
+              type="button"
+              onclick="publishWedding()"
+              id="tab-publish"
+              class="w-full flex items-center justify-center gap-1 h-9 px-1 rounded-full bg-rose-500 text-white text-[11px] font-medium whitespace-nowrap transition-all active:opacity-75"
+            >
+              <i data-lucide="send" style="width: 13px; height: 13px" class="shrink-0"></i>
+              <span>Xuất bản</span>
+            </button>
+          </div>
+        </div>
+      </div>

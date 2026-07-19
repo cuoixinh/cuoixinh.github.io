@@ -447,7 +447,18 @@ function _hideAddressSuggestions(dropdown) {
   if (dropdown) { dropdown.innerHTML = ""; dropdown.classList.add("hidden"); }
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+function _initAddressFields() {
   initAddressAutocomplete("groom_address", true);
   initAddressAutocomplete("bride_address", true);
-});
+}
+
+// Trang nạp DOM động (invitation-setup) chèn script sau khi DOMContentLoaded đã
+// bắn. Hàng đợi của loader chạy sau khi mọi script đã nạp — cần vậy vì input
+// địa chỉ nằm trong <x-input>, chỉ tồn tại sau khi x-input.js upgrade component.
+if (window.__cxOnReady) {
+  window.__cxOnReady(_initAddressFields);
+} else if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", _initAddressFields);
+} else {
+  _initAddressFields();
+}

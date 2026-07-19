@@ -179,7 +179,7 @@ Sửa trong `supabase/functions/ai-invitation/index.ts` (nhớ deploy lại sau 
 
 Sửa văn phong / cấu trúc nội dung: hàm `buildPrompt()` và `RESPONSE_SCHEMA`.
 
-> ⚠️ `timeline[].type` phải khớp app: `ceremony` / `party` / `bride-party`. Đừng đổi sang giá trị khác nếu không sửa cả phần render bên `invitation-setup/index.js`.
+> ⚠️ `timeline[].type` phải khớp app: `ceremony` / `party` / `bride-party`. Đừng đổi sang giá trị khác nếu không sửa cả phần render bên `invitation-setup/js/14-timeline-story.js`.
 
 ---
 
@@ -204,4 +204,4 @@ Sửa văn phong / cấu trúc nội dung: hàm `buildPrompt()` và `RESPONSE_SC
 - `core/dal/ai-dal.js` — client gọi function (gắn JWT)
 - `core/config.js` — `CONFIG.supabase.aiInvitationUrl`
 - `invitation-setup/index.html` — banner + `#ai-modal` + nạp `ai-dal.js`
-- `invitation-setup/index.js` — `openAiModal / submitAiGenerate / _renderAiPreview / applyAiResult`
+- `invitation-setup/ai-modal.js` — `openAiModal / submitAiGenerate / _renderAiPreview / applyAiResult`

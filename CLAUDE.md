@@ -27,6 +27,10 @@ index.html / index.js        Landing page
 router.html, 404.html        Clean URL routing (production, GitHub Pages)
 admin/                       Trang admin (cần ADMIN_SECRET_TOKEN)
 invitation-setup/            Trình tạo/chỉnh thiệp của khách (tab: nội dung, giao diện, khách mời…)
+  ├─ index.html              Vỏ trang: head, skeleton, các thẻ mount rỗng
+  ├─ loader.js               Nạp partials/*.html rồi mới chèn script trong js/
+  ├─ partials/               Từng "màn" tách riêng (form-panel, config-panel, theme-panel…)
+  └─ js/                     Logic UI tách theo tính năng, nạp theo thứ tự khai báo ở loader.js
 public/themes/               Các theme thiệp cưới (romantic-gold, vintage-forest, basic-gold…)
 core/                        Logic dùng chung (3-layer)
   ├─ config.js, supabase.js, utils.js, payment.js, auth-ui.js
@@ -63,6 +67,13 @@ Không gọi thẳng từ UI xuống DAL bỏ qua BL khi có logic nghiệp vụ
 
 ### Web components (`x-*`)
 - `[name=X]` trong querySelector khớp **`<x-input>`** chứ không phải `<input>` con — cẩn thận khi set/get value (fillForm, autosave restore).
+
+### `invitation-setup` — trang nạp DOM động
+Trang này KHÔNG đặt panel và script trong HTML tĩnh: `loader.js` fetch `partials/*.html`, chèn vào các thẻ mount, rồi mới chèn script trong `js/`. Hệ quả:
+- Thêm file JS mới → phải đăng ký vào mảng `SCRIPTS` trong `loader.js`, **đúng thứ tự**. Thêm màn mới → thêm partial + thẻ mount trong `index.html` + mục trong `PARTIALS`.
+- **Không dùng `DOMContentLoaded`** trong các file này — lúc script chạy thì nó đã bắn xong. Dùng `window.__cxOnReady(fn)` (loader cung cấp), nó chạy sau khi TOÀN BỘ script đã nạp.
+- Function declaration chỉ hoist **trong cùng một file**. Lệnh top-level (vd `window.foo = foo`) chỉ được tham chiếu thứ khai báo ở file nạp **trước hoặc cùng file** — nếu không sẽ `ReferenceError`.
+- File dùng chung trong `core/` mà bind vào DOM của trang này cần giữ nhánh dự phòng: `__cxOnReady` → `readyState` → gọi thẳng, để các trang khác không đổi hành vi.
 
 ### Auth
 - Không tự parse `localStorage` thủ công để lấy user — token supabase-js v2 có thể là `base64-...` và sẽ vỡ. Dùng API của supabase client.

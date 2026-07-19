@@ -1,0 +1,117 @@
+    <!-- ====== IMPORT MAPPING MODAL ====== -->
+    <div
+      id="import-mapping-modal"
+      class="fixed inset-0 z-[99999] bg-black/50 hidden items-center justify-center p-4"
+    >
+      <div
+        class="bg-white rounded-2xl w-full max-w-md shadow-xl overflow-hidden max-h-[90vh] flex flex-col"
+      >
+        <!-- Header -->
+        <div
+          class="flex items-center justify-between px-5 py-4 border-b border-gray-100"
+        >
+          <div>
+            <h3 class="text-sm font-semibold text-gray-800">
+              Mapping cột dữ liệu
+            </h3>
+            <p class="text-xs text-gray-400 mt-0.5">
+              Chọn cột tương ứng từ file Excel
+            </p>
+          </div>
+          <button
+            type="button"
+            onclick="closeMappingModal()"
+            class="w-7 h-7 rounded-full flex items-center justify-center hover:bg-gray-100 text-gray-400"
+          >
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+        <!-- Body -->
+        <div class="flex-1 overflow-y-auto px-5 py-4 space-y-4">
+          <!-- Mapping selects -->
+          <div class="space-y-3">
+            <div class="flex items-center gap-3">
+              <span class="text-xs text-gray-600 w-28 shrink-0"
+                >Họ và tên <span class="text-rose-500">*</span></span
+              >
+              <select
+                id="map-full-name"
+                class="flex-1 h-9 px-2 border border-gray-200 rounded-lg text-xs text-gray-700 outline-none focus:ring-2 focus:ring-rose-500/30"
+              ></select>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="text-xs text-gray-600 w-28 shrink-0"
+                >Tên hiển thị</span
+              >
+              <select
+                id="map-display-name"
+                class="flex-1 h-9 px-2 border border-gray-200 rounded-lg text-xs text-gray-700 outline-none focus:ring-2 focus:ring-rose-500/30"
+              ></select>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="text-xs text-gray-600 w-28 shrink-0">Quan hệ</span>
+              <select
+                id="map-relationship"
+                class="flex-1 h-9 px-2 border border-gray-200 rounded-lg text-xs text-gray-700 outline-none focus:ring-2 focus:ring-rose-500/30"
+              ></select>
+            </div>
+          </div>
+
+          <!-- Preview -->
+          <div>
+            <p class="text-xs font-medium text-gray-500 mb-2">
+              Xem trước dữ liệu
+            </p>
+            <div id="mapping-preview"></div>
+          </div>
+
+          <!-- Import mode -->
+          <div class="bg-gray-50 rounded-xl p-3 space-y-2">
+            <p class="text-xs font-medium text-gray-600">Khi nhập khẩu:</p>
+            <label class="flex items-center gap-2.5 cursor-pointer">
+              <input
+                type="radio"
+                name="import-mode"
+                value="overwrite"
+                checked
+                class="accent-rose-500 w-3.5 h-3.5"
+              />
+              <span class="text-xs text-gray-700">Ghi đè toàn bộ</span>
+            </label>
+            <label class="flex items-center gap-2.5 cursor-pointer">
+              <input
+                type="radio"
+                name="import-mode"
+                value="merge"
+                class="accent-rose-500 w-3.5 h-3.5"
+              />
+              <span class="text-xs text-gray-700"
+                >Không ghi đè
+                <span class="text-gray-400"
+                  >(bỏ qua trùng Họ tên + Tên thiệp)</span
+                ></span
+              >
+            </label>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="flex gap-2 px-5 py-4 border-t border-gray-100">
+          <button
+            type="button"
+            onclick="closeMappingModal()"
+            class="flex-1 h-9 rounded-lg text-xs border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
+          >
+            Huỷ
+          </button>
+          <button
+            type="button"
+            onclick="confirmImport()"
+            class="flex-1 h-9 rounded-lg text-xs font-medium text-white bg-rose-500 hover:bg-rose-600 transition-colors"
+          >
+            Nhập khẩu
+          </button>
+        </div>
+      </div>
+    </div>

@@ -1,0 +1,241 @@
+/* Style riêng cho trang thiết lập thiệp (invitation-setup).
+   Tách từ khối <style> inline trong index.html — nội dung giữ nguyên.
+   Style modal AI: xem ai-modal.css */
+
+/* Chiều cao thanh dưới = navbar (60px) + local draft notice (nếu hiện).
+   JS đo lại qua ResizeObserver; giá trị này là mặc định khi chưa có notice. */
+:root {
+  --nav-h: 60px;
+}
+
+/* Chip chọn màu: Coloris bọc ô input bằng .clr-field rồi hiện màu qua
+   một <button>. Ta thu cả cụm về hình tròn 32px và giấu phần chữ hex,
+   chỉ chừa lại vòng màu. */
+.color-chip .clr-field {
+  display: block;
+  width: 32px;
+  height: 32px;
+  border-radius: 9999px;
+}
+.color-chip .clr-field input {
+  /* block để input không nằm trên baseline của dòng: nút màu được căn
+     giữa tuyệt đối, còn input thì theo dòng — lệch nhau vài px làm vòng
+     focus trông lệch tâm so với vòng màu. */
+  display: block;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 9999px;
+  background: transparent;
+  color: transparent;
+  caret-color: transparent;
+  font-size: 0;
+  cursor: pointer;
+}
+.color-chip .clr-field input:focus-visible {
+  outline: 2px solid #e8b4b8;
+  outline-offset: 2px;
+}
+/* Mặc định nút màu chỉ rộng 30px và dạt phải — kéo full để thành hình tròn */
+.color-chip .clr-field button {
+  width: 100%;
+  height: 100%;
+  right: 0;
+  border-radius: 9999px;
+}
+/* Vòng viền trong giúp màu rất sáng (trắng, kem) vẫn nổi trên nền trắng */
+.color-chip .clr-field button::after {
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.14),
+    0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+/* Vị trí ngang của popup do _clampPickerToChip() trong index.js tính lại
+   (bám giữa chip rồi kẹp trong màn hình). Không đặt !important ở đây,
+   nếu không sẽ chặn mất inline style mà hàm đó ghi. */
+
+/* Skeleton animation */
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.skeleton {
+  animation: shimmer 2s infinite linear;
+  background: linear-gradient(
+    to right,
+    #f0f0f0 4%,
+    #e0e0e0 25%,
+    #f0f0f0 36%
+  );
+  background-size: 1000px 100%;
+}
+
+/* Custom Flatpickr styling to match Tailwind design */
+.flatpickr-calendar {
+  background: white;
+  border-radius: 1rem;
+  box-shadow:
+    0 20px 25px -5px rgb(0 0 0 / 0.1),
+    0 8px 10px -6px rgb(0 0 0 / 0.1);
+  border: 1px solid #e5e7eb;
+  font-family: "Inter", sans-serif;
+  width: min(340px, calc(100vw - 32px)) !important;
+}
+.flatpickr-innerContainer {
+  padding: 0 0.75rem 0.75rem 0.75rem;
+}
+.flatpickr-rContainer {
+  width: 100%;
+}
+.flatpickr-days {
+  width: 100% !important;
+}
+.flatpickr-months {
+  border-radius: 1rem 1rem 0 0;
+  background: linear-gradient(to right, #fdf2f8, #fce7f3);
+  padding: 0.75rem;
+}
+.flatpickr-months .flatpickr-month {
+  display: flex !important;
+  align-items: center !important;
+}
+.flatpickr-current-month {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1f2937;
+  display: flex !important;
+  align-items: center !important;
+  padding-top: 0 !important;
+  gap: 0.5rem;
+}
+.flatpickr-current-month .flatpickr-monthDropdown-months {
+  appearance: none;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 0.375rem 1.75rem 0.375rem 0.625rem;
+  font-weight: 600;
+  color: #1f2937;
+  font-size: 0.9375rem;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+  background-position: right 0.375rem center;
+  background-repeat: no-repeat;
+  background-size: 1rem;
+  transition: all 0.2s;
+  min-width: auto;
+  width: auto;
+}
+.flatpickr-current-month .flatpickr-monthDropdown-months:hover {
+  border-color: #f43f5e !important;
+  background: white !important;
+}
+.flatpickr-current-month .flatpickr-monthDropdown-months option {
+  background: #fef2f2;
+  color: #1f2937;
+}
+.flatpickr-current-month .numInputWrapper {
+  display: inline-flex;
+  align-items: center;
+}
+.flatpickr-current-month .numInputWrapper input {
+  font-weight: 600;
+  color: #1f2937;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 0.375rem 0.5rem;
+  font-size: 0.9375rem;
+  width: 4.5rem;
+  text-align: center;
+  transition: all 0.2s;
+}
+.flatpickr-current-month .numInputWrapper input:hover {
+  border-color: #f43f5e !important;
+  background: white !important;
+}
+.flatpickr-current-month .numInputWrapper input:focus {
+  outline: none;
+  border-color: #f43f5e;
+  box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.1);
+}
+.flatpickr-current-month .numInputWrapper span {
+  display: none;
+}
+.flatpickr-prev-month,
+.flatpickr-next-month {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  position: static !important;
+  padding: 0.5rem !important;
+  border-radius: 0.5rem;
+  transition: all 0.2s;
+}
+.flatpickr-prev-month:hover,
+.flatpickr-next-month:hover {
+  background: white;
+}
+.flatpickr-prev-month:hover svg,
+.flatpickr-next-month:hover svg {
+  fill: #f43f5e;
+}
+.flatpickr-weekdays {
+  margin-top: 0.5rem;
+}
+.flatpickr-weekday {
+  color: #f43f5e !important;
+  font-weight: 600 !important;
+  font-size: 0.875rem !important;
+}
+.flatpickr-day {
+  border-radius: 0.5rem;
+  font-weight: 500;
+  color: #374151;
+}
+.flatpickr-day:hover {
+  background: #fce7f3;
+  border-color: #fce7f3;
+}
+.flatpickr-day.selected {
+  background: linear-gradient(to right, #f43f5e, #ec4899);
+  border-color: #f43f5e;
+  font-weight: 600;
+  color: white !important;
+}
+.flatpickr-day.today {
+  border-color: #f43f5e;
+  color: #f43f5e;
+  font-weight: 600;
+}
+.flatpickr-day.selected.today {
+  background: linear-gradient(to right, #f43f5e, #ec4899);
+  border-color: #f43f5e;
+  color: white !important;
+  font-weight: 600;
+}
+/* Override readonly styling on altInput — keep same look as a normal input */
+input.flatpickr-input.flatpickr-alt-input[readonly],
+input.flatpickr-input[readonly] {
+  background-color: white !important;
+  opacity: 1 !important;
+  cursor: pointer !important;
+  -webkit-text-fill-color: #1f2937 !important;
+}
+/* Shared action button style — defined in common.css, no override needed */
+
+/* Lucide icon sizing — inherits font-size of parent context */
+svg.lucide {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.125em;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}

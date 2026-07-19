@@ -30,7 +30,16 @@
   `;
   document.head.appendChild(style);
 
-  document.addEventListener("DOMContentLoaded", _setup);
+  // Trang nạp DOM động (invitation-setup) chèn script sau khi DOMContentLoaded đã
+  // bắn. Hàng đợi của loader chạy sau khi mọi script đã nạp — cần vậy vì [required]
+  // phần lớn nằm trong <x-input>, chỉ tồn tại sau khi x-input.js upgrade component.
+  if (window.__cxOnReady) {
+    window.__cxOnReady(_setup);
+  } else if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", _setup);
+  } else {
+    _setup();
+  }
 })();
 
 function _setup() {

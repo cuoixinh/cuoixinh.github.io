@@ -72,7 +72,7 @@ supabase secrets set AXIOM_TOKEN=xaat-xxxx AXIOM_DATASET=cuoixinh-backend
 ## Phần 2 — Tab thiết lập Theme (font + màu chữ)
 
 ### Bối cảnh
-- Trình soạn thiệp: `invitation-setup/index.html` + `invitation-setup/index.js`.
+- Trình soạn thiệp: `invitation-setup/index.html` + `invitation-setup/js/`.
 - Thanh điều hướng dưới cùng (`#bottom-nav-bar`) có các nút: Chỉnh sửa/Xem trước, **Cấu hình** (`switchTab('config')`), Khách mời, Lưu nháp, Xuất bản.
 - Thiệp public render qua `renderWedding(w)` trong `public/themes/<theme>/index.js`, với `w` là bản ghi wedding.
 - Chế độ xem trước: `public/themes/preview-data.js` đọc `sessionStorage.preview_data` rồi gọi `renderWedding`.
@@ -136,7 +136,7 @@ Include `theme-setting-helper.js` trong 3 theme (`romantic-gold`, `vintage-fores
 - [x] Hook vào `wedding-helper.js` + `preview-data.js`.
 - [x] Include helper trong 3 theme + trình soạn.
 - [x] Nút nav + `#theme-panel` trong `invitation-setup/index.html`.
-- [x] Logic `switchTab('theme')`, `_initThemePanel`, load/save trong `invitation-setup/index.js`.
+- [x] Logic `switchTab('theme')`, `_initThemePanel`, load/save trong `invitation-setup/js/04-nav-tabs.js` + `js/05-theme-panel.js`.
 - [x] `wedding-admin` POST nhận `theme_setting`.
 
 ---

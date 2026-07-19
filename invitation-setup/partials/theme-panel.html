@@ -1,0 +1,106 @@
+      <!-- Theme Panel: preview thiệp chiếm phần lớn + thanh chỉnh gọn ở đáy -->
+      <div
+        id="theme-panel"
+        class="hidden fixed inset-0 bottom-[var(--nav-h)] z-[200] bg-white flex flex-col"
+      >
+        <!-- Preview thiệp (cập nhật trực tiếp khi chỉnh) -->
+        <iframe
+          id="theme-preview-iframe"
+          src=""
+          class="flex-1 border-0 w-full min-h-0"
+          allowfullscreen
+        ></iframe>
+
+        <!-- Thanh chỉnh giao diện (tối giản) -->
+        <div
+          id="theme-controls"
+          class="shrink-0 bg-white border-t border-gray-200 shadow-[0_-4px_12px_rgba(0,0,0,0.04)] px-4 py-3 space-y-3"
+        >
+          <!-- Phông chữ -->
+          <div class="flex items-center gap-2">
+            <label
+              for="theme-heading-font"
+              class="text-[12px] text-gray-500 shrink-0 whitespace-nowrap"
+              >Tiêu đề</label
+            >
+            <select
+              id="theme-heading-font"
+              onchange="onThemeSettingChange()"
+              class="flex-1 min-w-0 h-8 px-2 rounded-lg border border-gray-300 text-[12px] text-gray-700 bg-white focus:outline-none focus:border-rose-300 focus:ring-2 focus:ring-rose-100"
+            ></select>
+            <label
+              for="theme-body-font"
+              class="text-[12px] text-gray-500 shrink-0 whitespace-nowrap"
+              >Nội dung</label
+            >
+            <select
+              id="theme-body-font"
+              onchange="onThemeSettingChange()"
+              class="flex-1 min-w-0 h-8 px-2 rounded-lg border border-gray-300 text-[12px] text-gray-700 bg-white focus:outline-none focus:border-rose-300 focus:ring-2 focus:ring-rose-100"
+            ></select>
+          </div>
+
+          <!-- Màu: mỗi phần 1 chip chọn màu tự do -->
+          <div class="flex items-start gap-2">
+            <div class="flex-1 grid grid-cols-4 gap-2">
+              <div class="flex flex-col items-center gap-1.5">
+                <div class="color-chip">
+                  <input
+                    type="text"
+                    id="theme-heading-color"
+                    class="theme-color-input"
+                    aria-label="Chọn màu tiêu đề"
+                    title="Màu tiêu đề — tên, tiêu đề mục"
+                  />
+                </div>
+                <span class="text-[12px] text-gray-500 leading-none">Tiêu đề</span>
+              </div>
+              <div class="flex flex-col items-center gap-1.5">
+                <div class="color-chip">
+                  <input
+                    type="text"
+                    id="theme-body-color"
+                    class="theme-color-input"
+                    aria-label="Chọn màu nội dung"
+                    title="Màu nội dung — lời mời, ngày giờ, địa chỉ"
+                  />
+                </div>
+                <span class="text-[12px] text-gray-500 leading-none">Nội dung</span>
+              </div>
+              <div class="flex flex-col items-center gap-1.5">
+                <div class="color-chip">
+                  <input
+                    type="text"
+                    id="theme-accent-color"
+                    class="theme-color-input"
+                    aria-label="Chọn màu nhấn"
+                    title="Màu nhấn — icon, hoa văn, viền trang trí"
+                  />
+                </div>
+                <span class="text-[12px] text-gray-500 leading-none">Nhấn</span>
+              </div>
+              <div class="flex flex-col items-center gap-1.5">
+                <div class="color-chip">
+                  <input
+                    type="text"
+                    id="theme-background-color"
+                    class="theme-color-input"
+                    aria-label="Chọn màu nền"
+                    title="Màu nền thiệp"
+                  />
+                </div>
+                <span class="text-[12px] text-gray-500 leading-none">Nền</span>
+              </div>
+            </div>
+            <button
+              type="button"
+              onclick="resetThemeSetting()"
+              title="Khôi phục mặc định"
+              class="shrink-0 w-8 h-8 rounded-full border border-gray-200 text-gray-400 hover:bg-gray-50 hover:text-gray-600 hover:border-gray-300 flex items-center justify-center transition-colors"
+            >
+              <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+      <!-- /theme-panel -->

@@ -1,0 +1,51 @@
+    <!-- Thẻ Soft "Tạo với AI" — nổi góc dưới-phải, hiển thị ở cả PC lẫn mobile.
+         Ẩn khi đang skeleton (hidden-boot), gỡ trong _showContent() khi content hiện. -->
+    <div class="ai-fab hidden-boot">
+      <!-- Thẻ mời (glassmorphism) — bấm cả thẻ hoặc nút để mở popup AI -->
+      <div
+        class="ai-card"
+        role="button"
+        tabindex="0"
+        onclick="openAiModal()"
+        aria-label="Tạo nội dung bằng AI"
+      >
+        <button
+          type="button"
+          class="ai-fab-close"
+          aria-label="Đóng gợi ý"
+          title="Đóng gợi ý"
+          onclick="
+            event.stopPropagation();
+            dismissAiFab();
+          "
+        >
+          <i data-lucide="x"></i>
+        </button>
+        <div class="ai-icon"><i data-lucide="sparkles"></i></div>
+        <div class="ai-title">Tạo thiệp với AI</div>
+        <div class="ai-desc">
+          Vài dòng thông tin, AI hoàn thiện cả tấm thiệp.
+        </div>
+        <button
+          type="button"
+          class="ai-card-btn"
+          onclick="
+            event.stopPropagation();
+            openAiModal();
+          "
+        >
+          Thử ngay ✨
+        </button>
+      </div>
+      <!-- Nút thu gọn: hiện sau khi đóng thẻ, vẫn là lối vào AI -->
+      <button
+        type="button"
+        class="ai-mini"
+        onclick="openAiModal()"
+        aria-label="Tạo nội dung bằng AI"
+        data-tooltip="Tạo thiệp với AI"
+        data-tooltip-pos="left"
+      >
+        <i data-lucide="sparkles"></i>
+      </button>
+    </div>
