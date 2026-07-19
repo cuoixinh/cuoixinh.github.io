@@ -764,6 +764,12 @@ function switchTab(tab) {
     formPanel.classList.add("hidden");
     previewPanel.classList.add("hidden");
     configPanel.classList.add("hidden");
+    // Nạp preview thiệp vào ngay trong tab giao diện để xem trực tiếp khi chỉnh
+    _savePreviewData();
+    const tIframe = document.getElementById("theme-preview-iframe");
+    if (tIframe) {
+      tIframe.src = `/public/themes/${WEDDING_THEME}/?preview=true&source=live&isGroom=true&t=${Date.now()}`;
+    }
     if (themePanel) themePanel.classList.remove("hidden");
     _initThemePanel();
   } else {
@@ -801,8 +807,17 @@ const THEME_DEFAULTS = {
   heading_font: "Playfair Display",
   body_font: "Be Vietnam Pro",
   heading_color: "#2d2d2d",
+  body_color: "#78716c",
   accent_color: "#c0a062",
+  background_color: "#ffffff",
 };
+
+// Mặc định = font/màu GỐC của chính theme đang dùng (THEME_PRESETS trong
+// theme-setting-helper.js). Theme chưa khai báo thì rơi về THEME_DEFAULTS.
+function _themeDefaults() {
+  const preset = window.THEME_PRESETS && window.THEME_PRESETS[WEDDING_THEME];
+  return { ...THEME_DEFAULTS, ...(preset || {}) };
+}
 
 let _themePanelReady = false;
 
@@ -820,74 +835,133 @@ function _fillFontSelect(selectEl, types) {
   });
 }
 
-function _buildSwatches(containerId, colors, targetInputId) {
-  const container = document.getElementById(containerId);
-  if (!container) return;
-  container.innerHTML = "";
-  (colors || []).forEach((c) => {
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.title = c;
-    btn.style.backgroundColor = c;
-    btn.className =
-      "w-6 h-6 rounded-full border border-black/10 shadow-sm hover:scale-110 transition-transform";
-    btn.onclick = () => {
-      const input = document.getElementById(targetInputId);
-      if (input) {
-        input.value = c;
-        onThemeSettingChange();
-      }
-    };
-    container.appendChild(btn);
+// 4 ô màu của thanh chỉnh: id phần tử ↔ khoá trong theme_setting
+const THEME_COLOR_FIELDS = [
+  { id: "theme-heading-color", key: "heading_color" },
+  { id: "theme-body-color", key: "body_color" },
+  { id: "theme-accent-color", key: "accent_color" },
+  { id: "theme-background-color", key: "background_color" },
+];
+
+// Giá trị nằm ở input.value; ô màu tròn là .clr-field bọc ngoài, Coloris tô
+// nó bằng inline style `color`. Set thẳng cả hai để khỏi phải bắn event
+// (bắn event sẽ chạy qua handler và đánh dấu "chưa lưu" oan).
+function _chipValue(id, val) {
+  const el = document.getElementById(id);
+  if (!el) return "";
+  if (val !== undefined) {
+    el.value = val;
+    const field = el.parentNode;
+    if (field && field.classList.contains("clr-field")) {
+      field.style.color = val;
+    }
+  }
+  return el.value || "";
+}
+
+function _initColorPickers() {
+  // Thư viện nạp từ CDN — hỏng mạng thì chip vẫn giữ giá trị, chỉ không mở
+  // được bảng chọn; phần còn lại của tab vẫn dùng bình thường.
+  if (typeof Coloris === "undefined") return;
+
+  const preset = window.THEME_PRESETS && window.THEME_PRESETS[WEDDING_THEME];
+  Coloris({
+    el: ".theme-color-input",
+    themeMode: "light",
+    theme: "large",
+    alpha: false,
+    format: "hex",
+    focusInput: false,
+    selectInput: false,
+    margin: 16, // mặc định 2px, sát chip quá
+    swatches: (preset && preset.swatches) || [],
+  });
+
+  THEME_COLOR_FIELDS.forEach(({ id }) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener("input", () => onThemeSettingChange());
+    // Coloris định vị xong trong chính handler click của nó → chờ hết frame
+    // rồi mới căn lại, nếu không sẽ bị nó ghi đè.
+    ["click", "focus"].forEach((evt) =>
+      el.addEventListener(evt, () => {
+        _openChip = el;
+        requestAnimationFrame(() => _clampPickerToChip(el));
+      }),
+    );
+  });
+
+  // Xoay máy / đổi kích thước khi đang mở thì căn lại
+  window.addEventListener("resize", () => {
+    const picker = document.getElementById("clr-picker");
+    if (picker && picker.classList.contains("clr-open")) {
+      _clampPickerToChip(_openChip);
+    }
   });
 }
 
+let _openChip = null;
+
+// Coloris chống tràn ngang bằng cách DÓNG PHẢI popup vào ô input — công thức
+// đó giả định input rộng cỡ popup. Chip của ta chỉ 32px nên popup bị đẩy văng
+// ra ngoài mép trái. Tự căn: lấy tâm chip làm gốc rồi kẹp trong màn hình.
+// Chiều dọc để nguyên cho Coloris tự lật lên, phần đó nó tính đúng.
+function _clampPickerToChip(chipEl) {
+  const picker = document.getElementById("clr-picker");
+  if (!picker || !chipEl) return;
+  const chip = chipEl.getBoundingClientRect();
+  const w = picker.offsetWidth;
+  const vw = document.documentElement.clientWidth;
+  const gap = 8;
+  const left = Math.max(
+    gap,
+    Math.min(chip.left + chip.width / 2 - w / 2, vw - w - gap),
+  );
+  picker.style.left = `${left}px`;
+}
+
 function _initThemePanel() {
+  const s = _themeSetting || {};
+  const d = _themeDefaults();
+
+  // Đổ màu vào chip TRƯỚC khi khởi tạo Coloris: lúc bọc .clr-field, Coloris
+  // lấy luôn input.value làm màu hiển thị của ô tròn.
+  THEME_COLOR_FIELDS.forEach(({ id, key }) => {
+    _chipValue(id, s[key] || d[key]);
+  });
+
   if (!_themePanelReady) {
     _fillFontSelect(document.getElementById("theme-heading-font"), ["heading"]);
     _fillFontSelect(document.getElementById("theme-body-font"), ["body"]);
-    _buildSwatches(
-      "theme-heading-swatches",
-      window.THEME_HEADING_COLORS,
-      "theme-heading-color",
-    );
-    _buildSwatches(
-      "theme-accent-swatches",
-      window.THEME_ACCENT_COLORS,
-      "theme-accent-color",
-    );
+    _initColorPickers();
     _themePanelReady = true;
   }
 
-  // Đổ giá trị hiện tại (hoặc mặc định) vào control
-  const s = _themeSetting || {};
   const hf = document.getElementById("theme-heading-font");
   const bf = document.getElementById("theme-body-font");
-  const hc = document.getElementById("theme-heading-color");
-  const ac = document.getElementById("theme-accent-color");
-  if (hf) hf.value = s.heading_font || THEME_DEFAULTS.heading_font;
-  if (bf) bf.value = s.body_font || THEME_DEFAULTS.body_font;
-  if (hc) hc.value = s.heading_color || THEME_DEFAULTS.heading_color;
-  if (ac) ac.value = s.accent_color || THEME_DEFAULTS.accent_color;
+  if (hf) hf.value = s.heading_font || d.heading_font;
+  if (bf) bf.value = s.body_font || d.body_font;
+
+  // Icon (reset) trong thanh chỉnh
+  if (window.lucide) lucide.createIcons();
 }
 
 function onThemeSettingChange() {
   const hf = document.getElementById("theme-heading-font");
   const bf = document.getElementById("theme-body-font");
-  const hc = document.getElementById("theme-heading-color");
-  const ac = document.getElementById("theme-accent-color");
 
   _themeSetting = {
     heading_font: hf ? hf.value : "",
     body_font: bf ? bf.value : "",
-    heading_color: hc ? hc.value : "",
-    accent_color: ac ? ac.value : "",
   };
+  THEME_COLOR_FIELDS.forEach(({ id, key }) => {
+    _themeSetting[key] = _chipValue(id);
+  });
 
   _setDirty(true, "theme");
 
-  // Áp dụng ngay vào iframe xem trước nếu đang mở
-  const iframe = document.getElementById("preview-iframe");
+  // Áp dụng ngay vào iframe preview trong tab giao diện
+  const iframe = document.getElementById("theme-preview-iframe");
   if (iframe?.contentWindow?.applyThemeSetting) {
     iframe.contentWindow.applyThemeSetting(_themeSetting);
   }
@@ -898,7 +972,7 @@ function resetThemeSetting() {
   _initThemePanel();
   _setDirty(true, "theme");
 
-  const iframe = document.getElementById("preview-iframe");
+  const iframe = document.getElementById("theme-preview-iframe");
   if (iframe && iframe.src) {
     // Reload iframe để xoá hết override, quay về mặc định của theme
     _savePreviewData();
@@ -3244,6 +3318,28 @@ function _updateLocalDraftNotice() {
   const notice = document.getElementById("local-draft-notice");
   if (!notice) return;
   notice.classList.toggle("hidden", !(_isLocalDraft && !getCurrentUser()));
+  _syncNavHeight();
+}
+
+// --nav-h = chiều cao thật của thanh dưới (navbar + local draft notice nếu hiện).
+// Panel giao diện dựa vào biến này để thanh chỉnh luôn nằm ngay trên notice,
+// hoặc ngay trên navbar khi không có notice.
+function _syncNavHeight() {
+  const bar = document.getElementById("bottom-nav-bar");
+  if (!bar) return;
+  document.documentElement.style.setProperty("--nav-h", `${bar.offsetHeight}px`);
+}
+
+function _initNavHeightWatcher() {
+  const bar = document.getElementById("bottom-nav-bar");
+  if (!bar) return;
+  _syncNavHeight();
+  // Bắt cả khi notice bị đóng bằng nút X và khi chữ xuống dòng lúc đổi kích thước
+  if (window.ResizeObserver) {
+    new ResizeObserver(_syncNavHeight).observe(bar);
+  } else {
+    window.addEventListener("resize", _syncNavHeight);
+  }
 }
 
 async function loadData() {
@@ -4820,6 +4916,7 @@ function scalePreviewIframe() {
 }
 window.addEventListener("resize", scalePreviewIframe);
 document.addEventListener("DOMContentLoaded", scalePreviewIframe);
+document.addEventListener("DOMContentLoaded", _initNavHeightWatcher);
 
 // ============= MUSIC UPLOAD CONTAINER =============
 
