@@ -2366,13 +2366,23 @@
           if (!sessionStorage.getItem("show_tour")) return;
           sessionStorage.removeItem("show_tour");
 
+          // "Đang ở màn chỉnh sửa" = panel form đang hiển thị (không phải preview/config/theme).
+          const isOnEditScreen = () => {
+            const fp = document.getElementById("form-panel");
+            return !!fp && !fp.classList.contains("hidden");
+          };
+
           const STEPS = [
             {
               selector: "#tour-theme-btn",
               title: "Chọn mẫu thiệp",
               desc: "Nhấn vào đây để đổi mẫu thiệp bất cứ lúc nào. Bạn có thể thử nhiều mẫu trước khi quyết định.",
+              advanceOnClick: true,
+              // Mở popup chọn mẫu → chờ người dùng chọn/đóng xong (popup biến mất) mới sang bước 2.
+              advanceWhen: () => !document.getElementById("theme-picker-modal"),
             },
             {
+              // Bước nhập nhiều thông tin — KHÔNG advanceOnClick để người dùng thao tác thoải mái.
               selector: "#tour-couple",
               title: "Điền thông tin",
               desc: "Điền đầy đủ thông tin cặp đôi, ngày giờ, địa điểm, ảnh cưới và nhạc nền vào các mục bên dưới.",
@@ -2380,12 +2390,16 @@
             {
               selector: "#switch-preview",
               title: "Xem trước thiệp",
-              desc: "Nhấn để xem thiệp của bạn trông như thế nào trên điện thoại của khách mời.",
+              desc: "Nhấn để xem thử thiệp trên điện thoại khách mời — thanh công cụ vẫn ở đây để bạn tiếp tục.",
+              // Nhấn xem trước → sang bước 4 ngay (nút Xuất bản vẫn hiện ở thanh dưới,
+              // preview mờ phía sau overlay nên vẫn thấy được).
+              advanceOnClick: true,
             },
             {
               selector: "#tab-publish",
               title: "Xuất bản & gửi khách",
               desc: "Khi đã ưng ý, nhấn xuất bản để kích hoạt thiệp và chia sẻ link đến từng khách mời.",
+              advanceOnClick: true,
             },
           ];
 
@@ -2408,8 +2422,28 @@
                   desc: "Chỉ vài dòng thông tin, AI sẽ tự hoàn thiện nội dung cả tấm thiệp. Bấm “Thử ngay” để bắt đầu nhé!",
                 },
               ],
-              { storageKey: AI_HINT_KEY },
+              { storageKey: AI_HINT_KEY, dismissOnTargetClick: true },
             );
+          }
+
+          // Đếm 2s để gợi ý AI, nhưng CHỈ khi đang ở màn chỉnh sửa. Nếu đang xem
+          // trước (hoặc tab khác) thì chờ tới khi người dùng quay lại edit mới đếm.
+          function scheduleAiHint() {
+            if (isOnEditScreen()) {
+              setTimeout(showAiHint, 2000);
+              return;
+            }
+            const obs = new MutationObserver(() => {
+              if (isOnEditScreen()) {
+                obs.disconnect();
+                setTimeout(showAiHint, 2000);
+              }
+            });
+            obs.observe(document.body, {
+              attributes: true,
+              subtree: true,
+              attributeFilter: ["class"],
+            });
           }
 
           // Wait for page to finish initializing before starting tour
@@ -2418,7 +2452,7 @@
               showTour(STEPS, {
                 storageKey: "cuoixinh_tour_seen",
                 onDone: (completed) => {
-                  if (completed) setTimeout(showAiHint, 2000);
+                  if (completed) scheduleAiHint();
                 },
               }),
             800,

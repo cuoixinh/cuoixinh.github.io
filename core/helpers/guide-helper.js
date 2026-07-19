@@ -1,15 +1,24 @@
 /**
  * showTour — simple spotlight tour
- * @param {Array<{selector:string, title:string, desc:string, onEnter?:Function}>} steps
- * @param {{ storageKey?:string, onDone?:(completed:boolean)=>void }} options
+ * @param {Array<{selector:string, title:string, desc:string, advanceOnClick?:boolean, advanceWhen?:()=>boolean}>} steps
+ *   advanceOnClick (từng bước): click vào phần tử spotlight KHÔNG chặn hành động gốc
+ *   (mở popup, đổi tab…). Tour tạm ẩn để người dùng thao tác thoải mái; xong mới tự
+ *   sang bước kế. "Xong" là khi advanceWhen() trả về true (nếu có), hoặc ngay lập tức.
+ *   advanceWhen: điều kiện coi-như-hoàn-tất-thao-tác (vd modal đã đóng, đã quay lại
+ *   màn edit). Tour theo dõi DOM tới khi điều kiện đúng rồi mới sang bước kế.
+ * @param {{ storageKey?:string, onDone?:(completed:boolean)=>void, dismissOnTargetClick?:boolean }} options
  *   onDone(completed): gọi khi tour đóng — completed=true nếu người dùng bấm "Xong"
- *   ở bước cuối (hoàn tất), false nếu bỏ qua / bấm ra ngoài.
+ *   ở bước cuối (hoàn tất), false nếu bỏ qua.
+ *   dismissOnTargetClick: bấm vào chính phần tử đang spotlight sẽ đóng tour (coi như
+ *   hoàn tất). Hữu ích khi phần tử đó tự mở popup/hành động riêng (vd thẻ "Tạo với AI").
  */
-function showTour(steps, { storageKey, onDone } = {}) {
+function showTour(steps, { storageKey, onDone, dismissOnTargetClick } = {}) {
   if (storageKey && localStorage.getItem(storageKey)) return;
 
   let current  = 0;
   let prevEl   = null;
+  let targetClick = null; /* { el, fn } — listener capture trên phần tử spotlight */
+  let cancelWait  = null; /* huỷ theo-dõi advanceWhen đang chờ (nếu có) */
 
   const overlay = document.createElement("div");
   overlay.style.cssText = "position:fixed;inset:0;z-index:9000;background:rgba(45,25,41,0.6);pointer-events:all";
@@ -103,15 +112,62 @@ function showTour(steps, { storageKey, onDone } = {}) {
         <button id="t-next" style="font-size:12px;font-weight:600;color:#fff;background:#ec829e;border:none;cursor:pointer;padding:5px 14px;border-radius:999px;display:inline-flex;align-items:center;gap:4px">${isLast ? "Xong" : "Tiếp"} ${ARROW}</button>
       </div>`;
 
-    tip.querySelector("#t-next").onclick = () => {
-      if (current < steps.length - 1) { current++; go(); } else finish(true);
-    };
+    tip.querySelector("#t-next").onclick = advance;
     tip.querySelector("#t-skip").onclick = () => finish(false);
     placeTip(el);
   }
 
+  /* Sang bước kế; bước cuối → hoàn tất. */
+  function advance() {
+    if (current < steps.length - 1) { current++; go(); }
+    else finish(true);
+  }
+
+  function clearTargetClick() {
+    if (targetClick) {
+      targetClick.el.removeEventListener("click", targetClick.fn, true);
+      targetClick = null;
+    }
+    if (cancelWait) { cancelWait(); cancelWait = null; }
+  }
+
+  /* Theo dõi DOM tới khi pred() đúng rồi gọi cb(). Trả về hàm huỷ. */
+  function waitUntil(pred, cb) {
+    let done = false;
+    const stop = () => {
+      if (done) return;
+      done = true;
+      obs.disconnect();
+      clearInterval(iv);
+    };
+    const tick = () => {
+      if (done) return;
+      if (pred()) { stop(); cb(); }
+    };
+    const obs = new MutationObserver(tick);
+    obs.observe(document.body, {
+      attributes: true, childList: true, subtree: true, attributeFilter: ["class", "style", "hidden"],
+    });
+    const iv = setInterval(tick, 300); /* phòng khi thay đổi không qua DOM mutation */
+    return stop;
+  }
+
+  /* Ẩn tạm tour (overlay + tip) để người dùng thao tác với popup/tab vừa mở. */
+  function pauseTour() {
+    if (prevEl) unhighlight(prevEl);
+    prevEl = null;
+    overlay.style.display = "none";
+    tip.style.display     = "none";
+  }
+  function resumeAndAdvance() {
+    overlay.style.display = "";
+    tip.style.display     = "";
+    advance();
+  }
+
   function go() {
     if (prevEl) unhighlight(prevEl);
+    clearTargetClick();
     const step = steps[current];
     const el = document.querySelector(step.selector);
     if (!el) return;
@@ -119,9 +175,40 @@ function showTour(steps, { storageKey, onDone } = {}) {
     highlight(el);
     renderTip(el);
     prevEl = el;
+    if (step.advanceOnClick) {
+      /* KHÔNG chặn: để hành động gốc (mở modal/đổi tab) chạy. Ẩn tour trong lúc
+         người dùng thao tác; xong (advanceWhen đúng) mới sang bước kế. Capture để
+         bắt được click cả khi phần tử/nút con gọi stopPropagation. */
+      const fn = (e) => {
+        if (!el.contains(e.target)) return;
+        clearTargetClick();
+        pauseTour();
+        if (typeof step.advanceWhen === "function") {
+          /* Chờ 1 nhịp cho hành động gốc kịp khởi động (mở modal / đổi tab) rồi
+             mới theo dõi — tránh advanceWhen đúng ngay do trạng thái chưa đổi. */
+          setTimeout(() => {
+            cancelWait = waitUntil(step.advanceWhen, () => {
+              cancelWait = null;
+              resumeAndAdvance();
+            });
+          }, 80);
+        } else {
+          resumeAndAdvance();
+        }
+      };
+      el.addEventListener("click", fn, true);
+      targetClick = { el, fn };
+    } else if (dismissOnTargetClick) {
+      /* Capture phase: bắt được click cả khi nút con gọi stopPropagation
+         (vd nút "Thử ngay" trong thẻ AI). Đóng tour rồi để hành động gốc chạy. */
+      const fn = () => finish(true);
+      el.addEventListener("click", fn, true);
+      targetClick = { el, fn };
+    }
   }
 
   function finish(completed) {
+    clearTargetClick();
     if (prevEl) unhighlight(prevEl);
     if (storageKey) localStorage.setItem(storageKey, "1");
     overlay.remove();
@@ -129,6 +216,7 @@ function showTour(steps, { storageKey, onDone } = {}) {
     if (typeof onDone === "function") onDone(!!completed);
   }
 
-  overlay.onclick = () => finish(false);
+  /* Click ra ngoài overlay KHÔNG đóng tour — chỉ chặn xuyên click xuống trang. */
+  overlay.onclick = (e) => { e.preventDefault(); e.stopPropagation(); };
   go();
 }
