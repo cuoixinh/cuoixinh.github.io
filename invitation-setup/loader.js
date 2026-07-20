@@ -12,6 +12,11 @@
 (function () {
   // [id thẻ mount, đường dẫn partial]. Thứ tự chèn không quan trọng vì mỗi partial
   // thay thế đúng thẻ mount của nó, vị trí trong DOM đã cố định sẵn ở index.html.
+  // Skeleton tách riêng khỏi PARTIALS: nó là màn chờ, phải chèn NGAY khi về chứ
+  // không đợi các partial khác — gộp chung Promise.all thì nó xuất hiện cùng lúc
+  // với nội dung thật và mất sạch tác dụng.
+  const SKELETON = ["mount-skeleton", "partials/skeleton.html"];
+
   const PARTIALS = [
     ["mount-header", "partials/header.html"],
     ["mount-form-panel", "partials/form-panel.html"],
@@ -115,15 +120,22 @@
     });
   }
 
+  function fetchText(url) {
+    return fetch(url).then((r) => {
+      if (!r.ok) throw new Error(url + " → HTTP " + r.status);
+      return r.text();
+    });
+  }
+
   async function boot() {
-    const htmls = await Promise.all(
-      PARTIALS.map(([, url]) =>
-        fetch(url).then((r) => {
-          if (!r.ok) throw new Error(url + " → HTTP " + r.status);
-          return r.text();
-        }),
-      ),
-    );
+    // Bắn cả hai nhóm request cùng lúc, nhưng chèn skeleton ngay khi nó về —
+    // skeleton nhỏ nên thường tới trước, lấp chỗ trống trong lúc chờ phần còn lại.
+    const skeletonReq = fetchText(SKELETON[1]);
+    const restReq = Promise.all(PARTIALS.map(([, url]) => fetchText(url)));
+
+    injectPartial(SKELETON[0], await skeletonReq);
+
+    const htmls = await restReq;
     PARTIALS.forEach(([mountId], i) => injectPartial(mountId, htmls[i]));
 
     // Icon nằm trong partial vừa chèn nên phải dựng lại, nếu không sẽ trống trơn.

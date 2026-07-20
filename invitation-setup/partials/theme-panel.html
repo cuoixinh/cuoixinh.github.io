@@ -92,13 +92,24 @@
                 <span class="text-[12px] text-gray-500 leading-none">Nền</span>
               </div>
             </div>
+            <!-- Khôi phục: cố ý KHÔNG tròn như chip màu — đây là hành động,
+                 không phải một giá trị màu. Có nhãn để không lạc lõng giữa
+                 4 cột đều có nhãn. -->
             <button
               type="button"
               onclick="resetThemeSetting()"
-              title="Khôi phục mặc định"
-              class="shrink-0 w-8 h-8 rounded-full border border-gray-200 text-gray-400 hover:bg-gray-50 hover:text-gray-600 hover:border-gray-300 flex items-center justify-center transition-colors"
+              title="Khôi phục phông chữ và màu về mặc định của thiệp"
+              class="shrink-0 flex flex-col items-center gap-1.5 group focus:outline-none"
             >
-              <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+              <span
+                class="w-8 h-8 rounded-lg bg-gray-50 border border-gray-200 text-gray-400 flex items-center justify-center transition-all group-hover:bg-rose-50 group-hover:border-rose-200 group-hover:text-rose-400 group-active:scale-95 group-focus-visible:ring-2 group-focus-visible:ring-rose-200 group-focus-visible:ring-offset-2"
+              >
+                <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+              </span>
+              <span
+                class="text-[12px] text-gray-500 leading-none whitespace-nowrap transition-colors group-hover:text-rose-400"
+                >Khôi phục</span
+              >
             </button>
           </div>
         </div>
