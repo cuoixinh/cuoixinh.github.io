@@ -740,6 +740,32 @@
                   referrerpolicy="no-referrer-when-downgrade"
                 >
                 </iframe>
+                <!-- Minh họa khi chưa có dữ liệu bản đồ -->
+                <div
+                  id="map-placeholder"
+                  class="hidden absolute inset-0 flex flex-col items-center justify-center gap-2 bg-rose-pastel-50"
+                  style="
+                    background-image: linear-gradient(
+                        rgba(212, 165, 165, 0.1) 1px,
+                        transparent 1px
+                      ),
+                      linear-gradient(
+                        90deg,
+                        rgba(212, 165, 165, 0.1) 1px,
+                        transparent 1px
+                      );
+                    background-size: 24px 24px;
+                  "
+                >
+                  <i
+                    class="fas fa-map-marked-alt text-rose-pastel-200 text-2xl"
+                  ></i>
+                  <span
+                    class="text-[11px] uppercase tracking-[2px] text-stone-custom-400 font-inter"
+                  >
+                    Chưa có bản đồ
+                  </span>
+                </div>
                 <div class="absolute inset-0"></div>
               </div>
               <!-- Footer -->

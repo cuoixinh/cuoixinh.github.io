@@ -8,6 +8,28 @@
   --nav-h: 60px;
 }
 
+/* ============================================================
+   Cột chỉnh giao diện (#theme-controls) trên desktop.
+   Mobile giữ nguyên thanh dưới full-width → mọi thứ ở đây chỉ áp
+   dụng từ md (>=768px). Rộng mặc định 1/4 cụm, kéo được: JS ghi
+   --theme-ctrl-w (px) lên #theme-controls, min/max kẹp lại đây.
+   Đặt trong media query để inline var không ảnh hưởng mobile.
+   ============================================================ */
+@media (min-width: 768px) {
+  #theme-controls {
+    flex: 0 0 auto;
+    width: var(--theme-ctrl-w, 25%);
+    min-width: 340px;
+    max-width: 560px;
+  }
+  /* Chip màu to hơn cho dễ bấm trên desktop (mobile vẫn 32px) */
+  #theme-controls .color-chip .clr-field,
+  #theme-controls .color-chip .clr-field input {
+    width: 40px;
+    height: 40px;
+  }
+}
+
 /* Chip chọn màu: Coloris bọc ô input bằng .clr-field rồi hiện màu qua
    một <button>. Ta thu cả cụm về hình tròn 32px và giấu phần chữ hex,
    chỉ chừa lại vòng màu. */

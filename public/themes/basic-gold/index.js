@@ -191,8 +191,17 @@ function renderWedding(w) {
 
   // --- MAP (party location) ---
   const partyMapUrl = w[`${side}_party_map_embed_url`];
-  const showMap = _isEnabled(w[`${side}_party_show_location`]) && !!partyMapUrl;
-  if (showMap) renderMap(partyMapUrl, partyLocation);
+  const showMap = _isEnabled(w[`${side}_party_show_location`]);
+  if (showMap) {
+    renderMap(partyMapUrl, partyLocation);
+    // Chưa có URL bản đồ → hiện minh họa dữ liệu trống thay cho iframe
+    const hasMap = !!extractMapEmbedUrl(partyMapUrl);
+    _toggleEl("map-thumbnail-iframe", hasMap);
+    _toggleEl("map-placeholder", !hasMap);
+    // Không có bản đồ thì vô hiệu hoá click "Mở Maps"
+    const mapLink = document.getElementById("map-link");
+    if (mapLink) mapLink.classList.toggle("pointer-events-none", !hasMap);
+  }
   _toggleEl("section-map", showMap);
 
   // --- FOOTER ---

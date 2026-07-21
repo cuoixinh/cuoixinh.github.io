@@ -1,50 +1,99 @@
-      <!-- Theme Panel: preview thiệp chiếm phần lớn + thanh chỉnh gọn ở đáy -->
+<!-- Theme Panel: mobile = thanh chỉnh ở đáy; md+ = cột chỉnh bên phải -->
+<div
+  id="theme-panel"
+  class="hidden fixed inset-0 bottom-[var(--nav-h)] z-[200] bg-white flex flex-col"
+>
+  <!-- Cụm preview + controls:
+             mobile = xếp dọc full; md+ = xếp ngang full-width để iframe đủ rộng
+             cho thiệp nở tới max (768px). Controls là card ~1/4 nằm NGOÀI bên phải,
+             cách preview đúng thanh kéo (16px). p-4 = 16px đệm quanh cụm. -->
+  <div class="flex-1 min-h-0 w-full flex flex-col md:flex-row md:p-4">
+    <!-- Preview thiệp (cập nhật trực tiếp khi chỉnh) -->
+    <iframe
+      id="theme-preview-iframe"
+      src=""
+      class="flex-1 border-0 w-full min-h-0 min-w-0 md:rounded-xl md:border md:border-gray-200 md:shadow-sm"
+      allowfullscreen
+    ></iframe>
+
+    <!-- Thanh kéo đổi rộng cột chỉnh (chỉ desktop; cũng đóng vai khe 16px) -->
+    <div
+      id="theme-resize"
+      role="separator"
+      aria-orientation="vertical"
+      aria-label="Kéo để đổi độ rộng bảng chỉnh"
+      title="Kéo để đổi độ rộng"
+      class="hidden md:flex md:w-4 shrink-0 items-center justify-center cursor-col-resize select-none touch-none group"
+    >
+      <span
+        class="w-1 h-10 rounded-full bg-gray-200 transition-colors group-hover:bg-rose-300 group-active:bg-rose-400"
+      ></span>
+    </div>
+
+    <!-- Thanh chỉnh giao diện
+             mobile: thanh dưới full (nền/viền/bóng trên như navbar)
+             md+:   card ~1/4 bên phải (viền + bóng đủ 4 cạnh, kéo rộng được),
+                    rộng theo --theme-ctrl-w (xem setup.css), cuộn dọc nếu tràn -->
+    <div
+      id="theme-controls"
+      class="shrink-0 bg-white border-t border-gray-200 shadow-[0_-4px_12px_rgba(0,0,0,0.04)] md:overflow-y-auto md:rounded-xl md:border md:border-gray-200 md:shadow-lg"
+    >
       <div
-        id="theme-panel"
-        class="hidden fixed inset-0 bottom-[var(--nav-h)] z-[200] bg-white flex flex-col"
+        class="w-full max-w-4xl mx-auto px-4 py-3 space-y-3 md:px-5 md:py-5 md:space-y-6"
       >
-        <!-- Preview thiệp (cập nhật trực tiếp khi chỉnh) -->
-        <iframe
-          id="theme-preview-iframe"
-          src=""
-          class="flex-1 border-0 w-full min-h-0"
-          allowfullscreen
-        ></iframe>
-
-        <!-- Thanh chỉnh giao diện (tối giản) -->
-        <div
-          id="theme-controls"
-          class="shrink-0 bg-white border-t border-gray-200 shadow-[0_-4px_12px_rgba(0,0,0,0.04)] px-4 py-3 space-y-3"
-        >
-          <!-- Phông chữ -->
-          <div class="flex items-center gap-2">
-            <label
-              for="theme-heading-font"
-              class="text-[12px] text-gray-500 shrink-0 whitespace-nowrap"
-              >Tiêu đề</label
-            >
-            <x-combobox
-              id="theme-heading-font"
-              preview-font
-              onchange="onThemeSettingChange()"
-              class="flex-1 min-w-0"
-            ></x-combobox>
-            <label
-              for="theme-body-font"
-              class="text-[12px] text-gray-500 shrink-0 whitespace-nowrap"
-              >Nội dung</label
-            >
-            <x-combobox
-              id="theme-body-font"
-              preview-font
-              onchange="onThemeSettingChange()"
-              class="flex-1 min-w-0"
-            ></x-combobox>
+        <!-- Phông chữ -->
+        <div class="md:space-y-2.5">
+          <p
+            class="hidden md:block text-[11px] font-semibold uppercase tracking-[0.08em] text-gray-400"
+          >
+            Phông chữ
+          </p>
+          <!-- mobile: 2 selector cạnh nhau; md+: xếp dọc trong cột -->
+          <div
+            class="flex items-center gap-2 md:flex-col md:items-stretch md:gap-4"
+          >
+            <div class="flex items-center gap-2 flex-1 min-w-0 md:w-full">
+              <label
+                for="theme-heading-font"
+                class="text-[12px] text-gray-500 shrink-0 whitespace-nowrap md:text-[12.5px] md:w-16 md:text-right"
+                >Tiêu đề</label
+              >
+              <x-combobox
+                id="theme-heading-font"
+                preview-font
+                onchange="onThemeSettingChange()"
+                class="flex-1 min-w-0"
+              ></x-combobox>
+            </div>
+            <div class="flex items-center gap-2 flex-1 min-w-0 md:w-full">
+              <label
+                for="theme-body-font"
+                class="text-[12px] text-gray-500 shrink-0 whitespace-nowrap md:text-[12.5px] md:w-16 md:text-right"
+                >Nội dung</label
+              >
+              <x-combobox
+                id="theme-body-font"
+                preview-font
+                onchange="onThemeSettingChange()"
+                class="flex-1 min-w-0"
+              ></x-combobox>
+            </div>
           </div>
+        </div>
 
-          <!-- Màu: mỗi phần 1 chip chọn màu tự do -->
-          <div class="flex items-start gap-2">
-            <div class="flex-1 grid grid-cols-4 gap-2">
+        <!-- Màu: mỗi phần 1 chip chọn màu tự do -->
+        <div class="md:space-y-3">
+          <p
+            class="hidden md:block text-[11px] font-semibold uppercase tracking-[0.08em] text-gray-400"
+          >
+            Màu sắc
+          </p>
+          <!-- mobile: 4 chip + nút Khôi phục cùng hàng.
+               md+: chip chiếm full ngang (giãn ĐỀU theo width), Khôi phục xuống dòng -->
+          <div class="flex items-start gap-2 md:flex-wrap md:gap-y-3">
+            <div
+              class="flex-1 grid grid-cols-4 gap-2 md:gap-3 md:flex-none md:w-full"
+            >
               <div class="flex flex-col items-center gap-1.5">
                 <div class="color-chip">
                   <input
@@ -56,7 +105,10 @@
                     title="Màu tiêu đề — tên, tiêu đề mục"
                   />
                 </div>
-                <span class="text-[12px] text-gray-500 leading-none">Tiêu đề</span>
+                <span
+                  class="text-[12px] text-gray-500 leading-none md:text-[12.5px] md:mt-0.5"
+                  >Tiêu đề</span
+                >
               </div>
               <div class="flex flex-col items-center gap-1.5">
                 <div class="color-chip">
@@ -69,7 +121,10 @@
                     title="Màu nội dung — lời mời, ngày giờ, địa chỉ"
                   />
                 </div>
-                <span class="text-[12px] text-gray-500 leading-none">Nội dung</span>
+                <span
+                  class="text-[12px] text-gray-500 leading-none md:text-[12.5px] md:mt-0.5"
+                  >Nội dung</span
+                >
               </div>
               <div class="flex flex-col items-center gap-1.5">
                 <div class="color-chip">
@@ -82,7 +137,10 @@
                     title="Màu nhấn — icon, hoa văn, viền trang trí"
                   />
                 </div>
-                <span class="text-[12px] text-gray-500 leading-none">Nhấn</span>
+                <span
+                  class="text-[12px] text-gray-500 leading-none md:text-[12.5px] md:mt-0.5"
+                  >Nhấn</span
+                >
               </div>
               <div class="flex flex-col items-center gap-1.5">
                 <div class="color-chip">
@@ -95,17 +153,19 @@
                     title="Màu nền thiệp"
                   />
                 </div>
-                <span class="text-[12px] text-gray-500 leading-none">Nền</span>
+                <span
+                  class="text-[12px] text-gray-500 leading-none md:text-[12.5px] md:mt-0.5"
+                  >Nền</span
+                >
               </div>
             </div>
-            <!-- Khôi phục: cố ý KHÔNG tròn như chip màu — đây là hành động,
-                 không phải một giá trị màu. Có nhãn để không lạc lõng giữa
-                 4 cột đều có nhãn. -->
+            <!-- Khôi phục — MOBILE: icon vuông + nhãn dưới (khớp 4 cột chip).
+                 Cố ý KHÔNG tròn như chip màu vì đây là hành động, không phải giá trị màu. -->
             <button
               type="button"
               onclick="resetThemeSetting()"
               title="Khôi phục phông chữ và màu về mặc định của thiệp"
-              class="shrink-0 flex flex-col items-center gap-1.5 group focus:outline-none"
+              class="shrink-0 flex flex-col items-center gap-1.5 group focus:outline-none md:hidden"
             >
               <span
                 class="w-8 h-8 rounded-lg bg-gray-50 border border-gray-200 text-gray-400 flex items-center justify-center transition-all group-hover:bg-rose-50 group-hover:border-rose-200 group-hover:text-rose-400 group-active:scale-95 group-focus-visible:ring-2 group-focus-visible:ring-rose-200 group-focus-visible:ring-offset-2"
@@ -117,7 +177,24 @@
                 >Khôi phục</span
               >
             </button>
+            <!-- Khôi phục — DESKTOP: nút button đầy đủ, chiếm nguyên dòng dưới hàng chip -->
+            <button
+              type="button"
+              onclick="resetThemeSetting()"
+              title="Khôi phục phông chữ và màu về mặc định của thiệp"
+              class="hidden md:flex md:w-full md:items-center md:justify-center md:gap-2 md:px-4 md:py-2.5 md:rounded-lg md:border md:border-gray-200 md:bg-white md:text-[13px] md:font-medium md:text-gray-600 md:shadow-sm md:transition-colors md:hover:bg-rose-50 md:hover:border-rose-200 md:hover:text-rose-500 md:active:scale-[0.99] focus:outline-none md:focus-visible:ring-2 md:focus-visible:ring-rose-200 md:focus-visible:ring-offset-2"
+            >
+              <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+              <span>Khôi phục về mặc định</span>
+            </button>
           </div>
         </div>
+        <!-- /section Màu sắc -->
       </div>
-      <!-- /theme-panel -->
+      <!-- /nội dung padding controls -->
+    </div>
+    <!-- /theme-controls -->
+  </div>
+  <!-- /cụm preview + controls (max-w-4xl) -->
+</div>
+<!-- /theme-panel -->

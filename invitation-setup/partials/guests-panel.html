@@ -1,54 +1,54 @@
-      <!-- Guests Panel (iframe giữ nguyên navbar, tái sử dụng guests/index.html) -->
-      <div
-        id="guests-panel"
-        class="hidden fixed inset-0 bottom-[60px] z-[200] bg-[#fdf8f9] flex flex-col"
+<!-- Guests Panel (iframe giữ nguyên navbar, tái sử dụng guests/index.html) -->
+<div
+  id="guests-panel"
+  class="hidden fixed inset-0 bottom-[60px] z-[200] bg-[#fdf8f9] flex flex-col"
+>
+  <!-- Khoá khi chưa xuất bản thiệp. -->
+  <div
+    id="guests-lock"
+    class="hidden flex-1 flex-col items-center justify-center gap-4 px-6 text-center"
+  >
+    <div
+      class="w-16 h-16 rounded-full bg-rose-50 flex items-center justify-center"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="28"
+        height="28"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        class="text-rose-400"
       >
-        <!-- Khoá khi chưa xuất bản thiệp -->
-        <div
-          id="guests-lock"
-          class="hidden flex-1 flex-col items-center justify-center gap-4 px-6 text-center"
-        >
-          <div
-            class="w-16 h-16 rounded-full bg-rose-50 flex items-center justify-center"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="28"
-              height="28"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              class="text-rose-400"
-            >
-              <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
-              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-            </svg>
-          </div>
-          <div>
-            <p class="text-sm font-semibold text-gray-700">
-              Tính năng khách mời chưa khả dụng
-            </p>
-            <p class="text-xs text-gray-500 mt-1 max-w-xs mx-auto">
-              Bạn cần xuất bản thiệp cưới trước khi thêm và quản lý danh sách
-              khách mời.
-            </p>
-          </div>
-          <button
-            type="button"
-            onclick="publishWedding()"
-            class="h-9 px-5 rounded-lg text-sm font-medium text-white bg-rose-500 hover:bg-rose-600 transition-colors flex items-center gap-1.5"
-          >
-            <i data-lucide="send" style="width: 14px; height: 14px"></i>
-            Xuất bản thiệp
-          </button>
-        </div>
-        <iframe
-          id="guests-iframe"
-          src=""
-          class="flex-1 border-0 w-full min-h-0"
-        ></iframe>
-      </div>
-      <!-- /guests-panel -->
+        <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+      </svg>
+    </div>
+    <div>
+      <p class="text-sm font-semibold text-gray-700">
+        Tính năng khách mời chưa khả dụng
+      </p>
+      <p class="text-xs text-gray-500 mt-1 max-w-xs mx-auto">
+        Bạn cần xuất bản thiệp cưới trước khi thêm và quản lý danh sách khách
+        mời.
+      </p>
+    </div>
+    <button
+      type="button"
+      onclick="publishWedding()"
+      class="h-9 px-5 rounded-lg text-sm font-medium text-white bg-rose-500 hover:bg-rose-600 transition-colors flex items-center gap-1.5"
+    >
+      <i data-lucide="send" style="width: 14px; height: 14px"></i>
+      Xuất bản thiệp
+    </button>
+  </div>
+  <iframe
+    id="guests-iframe"
+    src=""
+    class="flex-1 border-0 w-full min-h-0"
+  ></iframe>
+</div>
+<!-- /guests-panel -->

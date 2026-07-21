@@ -200,6 +200,80 @@ function resetThemeSetting() {
 window.onThemeSettingChange = onThemeSettingChange;
 window.resetThemeSetting = resetThemeSetting;
 
+// ─── Kéo đổi rộng cột chỉnh (chỉ desktop) ─────────────────────────────────────
+// Ghi --theme-ctrl-w (px) lên #theme-controls; setup.css chỉ đọc biến này trong
+// media query >=768px nên KHÔNG đụng tới thanh dưới ở mobile. min/max kẹp ở CSS.
+const _THEME_CTRL_MIN = 340;
+const _THEME_CTRL_MAX = 560;
+
+function _initThemeResize() {
+  const handle = document.getElementById("theme-resize");
+  const controls = document.getElementById("theme-controls");
+  const panel = document.getElementById("theme-panel");
+  const iframe = document.getElementById("theme-preview-iframe");
+  if (!handle || !controls || !panel) return;
+
+  // Khôi phục độ rộng đã lưu (nếu có)
+  try {
+    const saved = localStorage.getItem("cx_theme_ctrl_w");
+    if (saved) controls.style.setProperty("--theme-ctrl-w", saved);
+  } catch (e) {}
+
+  let dragging = false;
+
+  const apply = (clientX) => {
+    // Mép phải cột = mép phải panel trừ 16px đệm (p-4). Rộng = mép phải − chuột.
+    const right = panel.getBoundingClientRect().right - 16;
+    let w = right - clientX;
+    w = Math.max(_THEME_CTRL_MIN, Math.min(_THEME_CTRL_MAX, w));
+    controls.style.setProperty("--theme-ctrl-w", w + "px");
+  };
+
+  const stop = (e) => {
+    if (!dragging) return;
+    dragging = false;
+    document.body.style.cursor = "";
+    document.body.style.userSelect = "";
+    if (iframe) iframe.style.pointerEvents = "";
+    try {
+      handle.releasePointerCapture(e.pointerId);
+    } catch (err) {}
+    try {
+      localStorage.setItem(
+        "cx_theme_ctrl_w",
+        controls.style.getPropertyValue("--theme-ctrl-w"),
+      );
+    } catch (err) {}
+  };
+
+  handle.addEventListener("pointerdown", (e) => {
+    if (!window.matchMedia("(min-width: 768px)").matches) return;
+    dragging = true;
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+    // Chặn iframe nuốt con trỏ khi kéo qua vùng preview
+    if (iframe) iframe.style.pointerEvents = "none";
+    handle.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  });
+  handle.addEventListener("pointermove", (e) => {
+    if (dragging) apply(e.clientX);
+  });
+  handle.addEventListener("pointerup", stop);
+  handle.addEventListener("pointercancel", stop);
+
+  // Nhấp đúp thanh kéo → trả về mặc định 1/4
+  handle.addEventListener("dblclick", () => {
+    controls.style.removeProperty("--theme-ctrl-w");
+    try {
+      localStorage.removeItem("cx_theme_ctrl_w");
+    } catch (e) {}
+  });
+}
+
+if (window.__cxOnReady) window.__cxOnReady(_initThemeResize);
+else _initThemeResize();
+
 function _toSlug(str) {
   return (str || "")
     .normalize("NFD")
