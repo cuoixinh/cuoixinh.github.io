@@ -23,21 +23,23 @@
               class="text-[12px] text-gray-500 shrink-0 whitespace-nowrap"
               >Tiêu đề</label
             >
-            <select
+            <x-combobox
               id="theme-heading-font"
+              preview-font
               onchange="onThemeSettingChange()"
-              class="flex-1 min-w-0 h-8 px-2 rounded-lg border border-gray-300 text-[12px] text-gray-700 bg-white focus:outline-none focus:border-rose-300 focus:ring-2 focus:ring-rose-100"
-            ></select>
+              class="flex-1 min-w-0"
+            ></x-combobox>
             <label
               for="theme-body-font"
               class="text-[12px] text-gray-500 shrink-0 whitespace-nowrap"
               >Nội dung</label
             >
-            <select
+            <x-combobox
               id="theme-body-font"
+              preview-font
               onchange="onThemeSettingChange()"
-              class="flex-1 min-w-0 h-8 px-2 rounded-lg border border-gray-300 text-[12px] text-gray-700 bg-white focus:outline-none focus:border-rose-300 focus:ring-2 focus:ring-rose-100"
-            ></select>
+              class="flex-1 min-w-0"
+            ></x-combobox>
           </div>
 
           <!-- Màu: mỗi phần 1 chip chọn màu tự do -->
@@ -47,6 +49,7 @@
                 <div class="color-chip">
                   <input
                     type="text"
+                    inputmode="none"
                     id="theme-heading-color"
                     class="theme-color-input"
                     aria-label="Chọn màu tiêu đề"
@@ -59,6 +62,7 @@
                 <div class="color-chip">
                   <input
                     type="text"
+                    inputmode="none"
                     id="theme-body-color"
                     class="theme-color-input"
                     aria-label="Chọn màu nội dung"
@@ -71,6 +75,7 @@
                 <div class="color-chip">
                   <input
                     type="text"
+                    inputmode="none"
                     id="theme-accent-color"
                     class="theme-color-input"
                     aria-label="Chọn màu nhấn"
@@ -83,6 +88,7 @@
                 <div class="color-chip">
                   <input
                     type="text"
+                    inputmode="none"
                     id="theme-background-color"
                     class="theme-color-input"
                     aria-label="Chọn màu nền"

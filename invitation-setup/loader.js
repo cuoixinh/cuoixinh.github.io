@@ -54,6 +54,7 @@
     "../core/x-controls.js",
     "../core/x-speech.js",
     "../core/x-undo.js",
+    "../core/x-combobox.js",
     // index.js cũ, tách theo tính năng. 01-state.js phải đứng đầu: nó khai báo
     // state toàn cục và _onDomReady() mà các file sau dùng tới.
     "js/01-state.js",

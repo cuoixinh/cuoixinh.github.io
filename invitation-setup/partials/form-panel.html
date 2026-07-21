@@ -1,1242 +1,1139 @@
-      <!-- Form Panel (toggle with preview) -->
-      <div id="form-panel">
-        <div class="max-w-4xl mx-auto px-4 py-8 pb-24">
-          <!-- Form -->
-          <form id="wedding-form" class="flex flex-col gap-6" autocomplete="on">
-            <input type="hidden" name="cover_image_url" />
-            <input type="hidden" name="groom_image_url" />
-            <input type="hidden" name="bride_image_url" />
-            <input type="hidden" name="groom_qr_url" />
-            <input type="hidden" name="bride_qr_url" />
-            <textarea name="gallery_images_raw" class="hidden"></textarea>
-            <input
-              type="hidden"
-              name="rsvp_enabled"
-              id="rsvp_enabled"
-              value="true"
-            />
-            <input
-              type="hidden"
-              name="timeline"
-              id="timeline-value"
-              value="[]"
-            />
-            <input
-              type="hidden"
-              name="love_story"
-              id="love-story-value"
-              value="[]"
-            />
+<!-- Form Panel (toggle with preview) -->
+<div id="form-panel">
+  <div class="max-w-4xl mx-auto px-4 py-8 pb-24">
+    <!-- Form -->
+    <form id="wedding-form" class="flex flex-col gap-6" autocomplete="on">
+      <input type="hidden" name="cover_image_url" />
+      <input type="hidden" name="groom_image_url" />
+      <input type="hidden" name="bride_image_url" />
+      <input type="hidden" name="groom_qr_url" />
+      <input type="hidden" name="bride_qr_url" />
+      <textarea name="gallery_images_raw" class="hidden"></textarea>
+      <input type="hidden" name="rsvp_enabled" id="rsvp_enabled" value="true" />
+      <input type="hidden" name="timeline" id="timeline-value" value="[]" />
+      <input type="hidden" name="love_story" id="love-story-value" value="[]" />
 
-            <input
-              type="hidden"
-              name="ceremony_lunar"
-              id="ceremony-lunar-value"
-            />
-            <input
-              type="hidden"
-              name="groom_party_lunar"
-              id="groom-party-lunar-value"
-            />
-            <input
-              type="hidden"
-              name="bride_party_lunar"
-              id="bride-party-lunar-value"
-            />
-            <!-- Section visibility toggles -->
-            <input
-              type="hidden"
-              name="enable_family"
-              id="enable_family"
-              value="true"
-            />
-            <input
-              type="hidden"
-              name="enable_party"
-              id="enable_party"
-              value="true"
-            />
-            <input
-              type="hidden"
-              name="enable_photos"
-              id="enable_photos"
-              value="true"
-            />
-            <input
-              type="hidden"
-              name="enable_timeline"
-              id="enable_timeline"
-              value="true"
-            />
-            <input
-              type="hidden"
-              name="enable_love_story"
-              id="enable_love_story"
-              value="true"
-            />
-            <input
-              type="hidden"
-              name="enable_music"
-              id="enable_music"
-              value="true"
-            />
-            <input
-              type="hidden"
-              name="enable_gift"
-              id="enable_gift"
-              value="true"
-            />
-            <input
-              type="hidden"
-              name="enable_footer"
-              id="enable_footer"
-              value="true"
-            />
+      <input type="hidden" name="ceremony_lunar" id="ceremony-lunar-value" />
+      <input
+        type="hidden"
+        name="groom_party_lunar"
+        id="groom-party-lunar-value"
+      />
+      <input
+        type="hidden"
+        name="bride_party_lunar"
+        id="bride-party-lunar-value"
+      />
+      <!-- Section visibility toggles -->
+      <input
+        type="hidden"
+        name="enable_family"
+        id="enable_family"
+        value="true"
+      />
+      <input type="hidden" name="enable_party" id="enable_party" value="true" />
+      <input
+        type="hidden"
+        name="enable_photos"
+        id="enable_photos"
+        value="true"
+      />
+      <input
+        type="hidden"
+        name="enable_timeline"
+        id="enable_timeline"
+        value="true"
+      />
+      <input
+        type="hidden"
+        name="enable_love_story"
+        id="enable_love_story"
+        value="true"
+      />
+      <input type="hidden" name="enable_music" id="enable_music" value="true" />
+      <input type="hidden" name="enable_gift" id="enable_gift" value="true" />
+      <input
+        type="hidden"
+        name="enable_footer"
+        id="enable_footer"
+        value="true"
+      />
 
-            <!-- 1. THÔNG TIN CẶP ĐÔI -->
-            <div
-              id="tour-couple"
-              class="bg-white rounded-xl overflow-hidden animate-fade-in border border-gray-200"
-            >
-              <div
-                class="bg-white px-6 py-4 border-b border-gray-100 cursor-pointer select-none"
-                onclick="toggleSection('couple')"
-              >
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center gap-2">
-                    <i
-                      data-lucide="heart"
-                      class="text-[18px] text-color-secondary"
-                    ></i>
-                    <p class="text-sm text-gray-700">Thông tin cặp đôi</p>
-                  </div>
-                  <i
-                    id="section-couple-chevron"
-                    data-lucide="chevron-down"
-                    class="text-gray-400 text-sm"
-                  ></i>
-                </div>
-              </div>
-              <div id="section-couple-body" class="hidden p-6 space-y-6">
-                <!-- Tên cặp đôi -->
-                <div class="grid gap-4 sm:grid-cols-2">
-                  <x-input
-                    label="Tên chú rể (tên dùng trong lễ cưới)"
-                    name="groom_name"
-                    icon="mars"
-                    required
-                    placeholder="Ví dụ: Quang Vinh"
-                  ></x-input>
-                  <x-input
-                    label="Tên cô dâu (tên dùng trong lễ cưới)"
-                    name="bride_name"
-                    icon="venus"
-                    required
-                    placeholder="Ví dụ: Hải Yến"
-                  ></x-input>
-                </div>
-                <!-- Ảnh chú rể & cô dâu -->
-                <div class="grid grid-cols-2 gap-4">
-                  <div class="space-y-3">
-                    <p class="text-sm text-gray-700 flex items-center gap-1">
-                      <i
-                        data-lucide="mars"
-                        class="text-color-secondary text-xs"
-                      ></i>
-                      Ảnh chú rể
-                    </p>
-                    <div id="groom-container" class="w-full"></div>
-                    <input
-                      type="file"
-                      id="groom-file-input"
-                      accept="image/*"
-                      class="hidden"
-                      onchange="handleImageUpload(event, 'groom_image_url')"
-                    />
-                  </div>
-                  <div class="space-y-3">
-                    <p class="text-sm text-gray-700 flex items-center gap-1">
-                      <i
-                        data-lucide="venus"
-                        class="text-color-secondary text-xs"
-                      ></i>
-                      Ảnh cô dâu
-                    </p>
-                    <div id="bride-container" class="w-full"></div>
-                    <input
-                      type="file"
-                      id="bride-file-input"
-                      accept="image/*"
-                      class="hidden"
-                      onchange="handleImageUpload(event, 'bride_image_url')"
-                    />
-                  </div>
-                </div>
-                <!-- Ảnh cặp đôi -->
-                <div>
-                  <label
-                    class="block text-sm text-gray-700 mb-2 flex items-center gap-2"
-                    ><i data-lucide="image" class="text-color-secondary"></i>
-                    Ảnh cặp đôi</label
-                  >
-                  <div id="cover-container" class="w-full max-w-xs"></div>
-                  <input
-                    type="file"
-                    id="cover-file-input"
-                    accept="image/*"
-                    class="hidden"
-                    onchange="handleImageUpload(event, 'cover_image_url')"
-                  />
-                </div>
-                <!-- Quote -->
-                <div>
-                  <x-textarea
-                    label="Slogan"
-                    icon="quote"
-                    name="story_quote"
-                    id="story-quote-textarea"
-                    rows="3"
-                    placeholder="Ví dụ: Cảm ơn em đã đến bên đời nhau, cùng nhau viết nên câu chuyện của riêng chúng ta."
-                  ></x-textarea>
-                  <button
-                    type="button"
-                    onclick="randomQuote()"
-                    class="btn-pink mt-2"
-                  >
-                    <i data-lucide="dices"></i> Generate
-                  </button>
-                </div>
-              </div>
+      <!-- 1. THÔNG TIN CẶP ĐÔI -->
+      <div
+        id="tour-couple"
+        class="bg-white rounded-xl overflow-hidden animate-fade-in border border-gray-200"
+      >
+        <div
+          class="bg-white px-6 py-4 border-b border-gray-100 cursor-pointer select-none"
+          onclick="toggleSection('couple')"
+        >
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <i
+                data-lucide="heart"
+                class="text-[18px] text-color-secondary"
+              ></i>
+              <p class="text-sm text-gray-700">Thông tin cặp đôi</p>
             </div>
-
-            <!-- 2. SỰ KIỆN CƯỚI -->
-            <div
-              id="tour-ceremony"
-              class="bg-white rounded-xl overflow-hidden animate-fade-in border border-gray-200"
-            >
-              <div
-                class="bg-white px-6 py-4 border-b border-gray-100 cursor-pointer select-none"
-                onclick="toggleSection('ceremony')"
-              >
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center gap-2">
-                    <i
-                      data-lucide="church"
-                      class="text-[18px] text-color-secondary"
-                    ></i>
-                    <p class="text-sm text-gray-700">Sự kiện cưới</p>
-                  </div>
-                  <i
-                    id="section-ceremony-chevron"
-                    data-lucide="chevron-down"
-                    class="text-gray-400 text-sm"
-                  ></i>
-                </div>
-              </div>
-              <div id="section-ceremony-body" class="hidden p-6 space-y-4">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <x-date
-                    label="Ngày cưới"
-                    name="ceremony_date"
-                    required
-                  ></x-date>
-                  <x-input
-                    label="Tên nghi lễ"
-                    name="ceremony_name"
-                    icon="tag"
-                    placeholder="Lễ thành hôn"
-                  ></x-input>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <x-time label="Giờ tổ chức lễ" name="ceremony_time"></x-time>
-                  <div>
-                    <label
-                      class="text-sm text-gray-700 flex items-center gap-2 mb-2"
-                    >
-                      <i data-lucide="map-pin" class="text-color-secondary"></i
-                      >Địa điểm lễ cưới
-                    </label>
-                    <div id="ceremony-location-row" class="flex gap-2">
-                      <x-input
-                        class="flex-1 min-w-0"
-                        name="ceremony_location"
-                        placeholder="Nhập địa điểm lễ cưới..."
-                        suffix-btn-label="Bản đồ"
-                        suffix-btn-icon="map-pin"
-                        suffix-btn-action="openMapPicker('ceremony')"
-                      ></x-input>
-                    </div>
-                    <input
-                      type="hidden"
-                      name="ceremony_map_embed_url"
-                      id="ceremony_map_embed_url"
-                    />
-                    <div id="ceremony-picker-wrap">
-                      <div
-                        id="ceremony-map-display"
-                        class="hidden items-center gap-2 mt-2 bg-gray-50 border border-gray-100 rounded-lg px-3 py-2"
-                      >
-                        <svg
-                          class="w-3.5 h-3.5 flex-shrink-0 text-rose-400"
-                          xmlns="http://www.w3.org/2000/svg"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="2"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                        >
-                          <path
-                            d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"
-                          />
-                          <circle cx="12" cy="10" r="3" />
-                        </svg>
-                        <span
-                          id="ceremony-map-address"
-                          class="flex-1 text-sm text-gray-700 truncate"
-                        ></span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <p
-                  id="ceremony-lunar-display"
-                  class="text-sm text-gray-500 italic"
-                >
-                  Chọn ngày để tự động tính ngày âm lịch
-                </p>
-                <div class="pt-2 border-t border-gray-100">
-                  <div class="flex items-center justify-between gap-3">
-                    <div>
-                      <p class="text-sm font-medium text-gray-700">Lễ vu quy</p>
-                      <p class="text-xs text-gray-400 mt-0.5">
-                        Hiển thị thay cho lễ thành hôn trong thiệp nhà gái
-                      </p>
-                    </div>
-                    <input
-                      type="hidden"
-                      name="vu_quy_enabled"
-                      id="vu_quy_enabled"
-                      value="true"
-                    />
-                    <x-switch
-                      key="vu-quy"
-                      onclick="toggleVuQuy(event)"
-                    ></x-switch>
-                  </div>
-                  <div id="vu-quy-fields" class="space-y-4 mt-4">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <x-time label="Giờ vu quy" name="vu_quy_time"></x-time>
-                      <div>
-                        <label
-                          class="text-sm text-gray-700 flex items-center gap-2 mb-2"
-                        >
-                          <i
-                            data-lucide="map-pin"
-                            class="text-color-secondary"
-                          ></i
-                          >Địa điểm vu quy
-                        </label>
-                        <div id="vu-quy-location-row" class="flex gap-2">
-                          <x-input
-                            class="flex-1 min-w-0"
-                            name="vu_quy_location"
-                            placeholder="Nhập địa điểm vu quy..."
-                            suffix-btn-label="Bản đồ"
-                            suffix-btn-icon="map-pin"
-                            suffix-btn-action="openMapPicker('vu_quy')"
-                          ></x-input>
-                        </div>
-                        <input
-                          type="hidden"
-                          name="vu_quy_map_embed_url"
-                          id="vu_quy_map_embed_url"
-                        />
-                        <div id="vu_quy-picker-wrap">
-                          <div
-                            id="vu_quy-map-display"
-                            class="hidden items-center gap-2 mt-2 bg-gray-50 border border-gray-100 rounded-lg px-3 py-2"
-                          >
-                            <svg
-                              class="w-3.5 h-3.5 flex-shrink-0 text-rose-400"
-                              xmlns="http://www.w3.org/2000/svg"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              stroke-width="2"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                            >
-                              <path
-                                d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"
-                              />
-                              <circle cx="12" cy="10" r="3" />
-                            </svg>
-                            <span
-                              id="vu_quy-map-address"
-                              class="flex-1 text-sm text-gray-700 truncate"
-                            ></span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+            <i
+              id="section-couple-chevron"
+              data-lucide="chevron-down"
+              class="text-gray-400 text-sm"
+            ></i>
+          </div>
+        </div>
+        <div id="section-couple-body" class="hidden p-6 space-y-6">
+          <!-- Tên cặp đôi -->
+          <div class="grid gap-4 sm:grid-cols-2">
+            <x-input
+              label="Tên chú rể (tên dùng trong lễ cưới)"
+              name="groom_name"
+              icon="mars"
+              required
+              placeholder="Ví dụ: Quang Vinh"
+            ></x-input>
+            <x-input
+              label="Tên cô dâu (tên dùng trong lễ cưới)"
+              name="bride_name"
+              icon="venus"
+              required
+              placeholder="Ví dụ: Hải Yến"
+            ></x-input>
+          </div>
+          <!-- Ảnh chú rể & cô dâu -->
+          <div class="grid grid-cols-2 gap-4">
+            <div class="space-y-3">
+              <p class="text-sm text-gray-700 flex items-center gap-1">
+                <i data-lucide="mars" class="text-color-secondary text-xs"></i>
+                Ảnh chú rể
+              </p>
+              <div id="groom-container" class="w-full"></div>
+              <input
+                type="file"
+                id="groom-file-input"
+                accept="image/*"
+                class="hidden"
+                onchange="handleImageUpload(event, 'groom_image_url')"
+              />
             </div>
-
-            <!-- 3. GIA ĐÌNH HAI BÊN -->
-            <div
-              class="bg-white rounded-xl overflow-hidden animate-fade-in border border-gray-200"
-            >
-              <div
-                class="bg-white px-6 py-4 border-b border-gray-100 cursor-pointer select-none"
-                onclick="toggleSection('family')"
-              >
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center gap-2">
-                    <i
-                      data-lucide="users"
-                      class="text-[18px] text-color-secondary"
-                    ></i>
-                    <p class="text-sm text-gray-700">Gia đình hai bên</p>
-                  </div>
-                  <div class="flex items-center gap-3">
-                    <x-switch
-                      key="family"
-                      onclick="toggleSectionVis('family', event)"
-                    ></x-switch>
-                    <i
-                      id="section-family-chevron"
-                      data-lucide="chevron-down"
-                      class="text-gray-400 text-sm"
-                    ></i>
-                  </div>
-                </div>
-              </div>
-              <div id="section-family-body" class="hidden">
-                <!-- Tab bar -->
-                <div class="flex border-b border-gray-100">
-                  <button
-                    type="button"
-                    onclick="switchFamilyTab('groom')"
-                    id="family-tab-groom"
-                    class="flex-1 py-3 text-sm font-medium flex items-center justify-center gap-1.5 bg-rose-50 text-rose-600 border-b-2 border-rose-500 transition-colors"
-                  >
-                    <i data-lucide="mars" class="w-3.5 h-3.5"></i> Nhà trai
-                  </button>
-                  <button
-                    type="button"
-                    onclick="switchFamilyTab('bride')"
-                    id="family-tab-bride"
-                    class="flex-1 py-3 text-sm font-medium flex items-center justify-center gap-1.5 text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors"
-                  >
-                    <i data-lucide="venus" class="w-3.5 h-3.5"></i> Nhà gái
-                  </button>
-                </div>
-
-                <!-- Nhà trai panel -->
-                <div id="family-panel-groom" class="p-6 space-y-4">
-                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <x-input
-                      label="Bố chú rể"
-                      name="groom_father"
-                      placeholder="Ví dụ: Đoàn Văn Lối"
-                    ></x-input>
-                    <x-input
-                      label="Mẹ chú rể"
-                      name="groom_mother"
-                      placeholder="Ví dụ: Trần Thị Kích"
-                    ></x-input>
-                  </div>
-                  <x-input
-                    label="Địa chỉ nhà trai"
-                    name="groom_address"
-                    icon="home"
-                    placeholder="Ví dụ: Chu Trần, Yên Lãng, Hà Nội"
-                    autocomplete="off"
-                  ></x-input>
-                </div>
-
-                <!-- Nhà gái panel -->
-                <div id="family-panel-bride" class="hidden p-6 space-y-4">
-                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <x-input
-                      label="Bố cô dâu"
-                      name="bride_father"
-                      placeholder="Ví dụ: Vương Đức Bắc"
-                    ></x-input>
-                    <x-input
-                      label="Mẹ cô dâu"
-                      name="bride_mother"
-                      placeholder="Ví dụ: Nguyễn Thị Khuyên"
-                    ></x-input>
-                  </div>
-                  <x-input
-                    label="Địa chỉ nhà gái"
-                    name="bride_address"
-                    icon="home"
-                    placeholder="Ví dụ: Tân Trường, Mao Điền, Hải Phòng"
-                    autocomplete="off"
-                  ></x-input>
-                </div>
-              </div>
+            <div class="space-y-3">
+              <p class="text-sm text-gray-700 flex items-center gap-1">
+                <i data-lucide="venus" class="text-color-secondary text-xs"></i>
+                Ảnh cô dâu
+              </p>
+              <div id="bride-container" class="w-full"></div>
+              <input
+                type="file"
+                id="bride-file-input"
+                accept="image/*"
+                class="hidden"
+                onchange="handleImageUpload(event, 'bride_image_url')"
+              />
             </div>
-
-            <!-- 4. TIỆC CƯỚI -->
-            <div
-              class="bg-white rounded-xl overflow-hidden animate-fade-in border border-gray-200"
+          </div>
+          <!-- Ảnh cặp đôi -->
+          <div>
+            <label
+              class="block text-sm text-gray-700 mb-2 flex items-center gap-2"
+              ><i data-lucide="image" class="text-color-secondary"></i> Ảnh cặp
+              đôi</label
             >
-              <div
-                class="bg-white px-6 py-4 border-b border-gray-100 cursor-pointer select-none"
-                onclick="toggleSection('party')"
-              >
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center gap-2">
-                    <i
-                      data-lucide="utensils"
-                      class="text-[18px] text-color-secondary"
-                    ></i>
-                    <p class="text-sm text-gray-700">Tiệc cưới</p>
-                  </div>
-                  <div class="flex items-center gap-3">
-                    <x-switch
-                      key="party"
-                      onclick="toggleSectionVis('party', event)"
-                    ></x-switch>
-                    <i
-                      id="section-party-chevron"
-                      data-lucide="chevron-down"
-                      class="text-gray-400 text-sm"
-                    ></i>
-                  </div>
-                </div>
-              </div>
-              <div id="section-party-body" class="hidden">
-                <!-- Tab bar -->
-                <div class="flex border-b border-gray-100">
-                  <button
-                    type="button"
-                    onclick="switchPartyTab('groom')"
-                    id="party-tab-groom"
-                    class="flex-1 py-3 text-sm font-medium flex items-center justify-center gap-1.5 bg-rose-50 text-rose-600 border-b-2 border-rose-500 transition-colors"
-                  >
-                    <i data-lucide="mars" class="w-3.5 h-3.5"></i> Nhà trai
-                  </button>
-                  <button
-                    type="button"
-                    onclick="switchPartyTab('bride')"
-                    id="party-tab-bride"
-                    class="flex-1 py-3 text-sm font-medium flex items-center justify-center gap-1.5 text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors"
-                  >
-                    <i data-lucide="venus" class="w-3.5 h-3.5"></i> Nhà gái
-                  </button>
-                </div>
-
-                <!-- Nhà trai panel -->
-                <div id="party-panel-groom" class="p-6 space-y-4">
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <x-date
-                      label="Ngày đãi tiệc"
-                      name="groom_party_date"
-                    ></x-date>
-                    <x-time
-                      label="Giờ đãi tiệc"
-                      name="groom_party_time"
-                    ></x-time>
-                  </div>
-                  <p
-                    id="groom-party-lunar-display"
-                    class="text-sm text-gray-500 italic"
-                  >
-                    Chọn ngày để tự động tính ngày âm lịch
-                  </p>
-                  <div class="space-y-2">
-                    <label
-                      class="text-sm text-gray-700 flex items-center gap-2"
-                    >
-                      <i data-lucide="map-pin" class="text-color-secondary"></i
-                      >Địa điểm tiệc
-                    </label>
-                    <x-check
-                      key="groom-party-same"
-                      label="Trùng địa điểm lễ thành hôn"
-                      onchange="togglePartySameLoc('groom', event)"
-                    ></x-check>
-                    <div id="groom-party-location-row" class="flex gap-2">
-                      <x-input
-                        class="flex-1 min-w-0"
-                        name="groom_party_location"
-                        placeholder="Ví dụ: Trung tâm tiệc cưới Hoàng Gia, Q.1, TP.HCM"
-                        suffix-btn-label="Bản đồ"
-                        suffix-btn-icon="map-pin"
-                        suffix-btn-action="openMapPicker('groom_party')"
-                      ></x-input>
-                    </div>
-                    <input
-                      type="hidden"
-                      name="groom_party_map_embed_url"
-                      id="groom_party_map_embed_url"
-                    />
-                    <div id="groom_party-picker-wrap">
-                      <div
-                        id="groom_party-map-display"
-                        class="hidden items-center gap-2 bg-gray-50 border border-gray-100 rounded-lg px-3 py-2"
-                      >
-                        <svg
-                          class="w-3.5 h-3.5 flex-shrink-0 text-rose-400"
-                          xmlns="http://www.w3.org/2000/svg"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="2"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                        >
-                          <path
-                            d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"
-                          />
-                          <circle cx="12" cy="10" r="3" />
-                        </svg>
-                        <span
-                          id="groom_party-map-address"
-                          class="flex-1 text-sm text-gray-700 truncate"
-                        ></span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Nhà gái panel -->
-                <div id="party-panel-bride" class="hidden p-6 space-y-4">
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <x-date
-                      label="Ngày đãi tiệc"
-                      name="bride_party_date"
-                    ></x-date>
-                    <x-time
-                      label="Giờ đãi tiệc"
-                      name="bride_party_time"
-                    ></x-time>
-                  </div>
-                  <p
-                    id="bride-party-lunar-display"
-                    class="text-sm text-gray-500 italic"
-                  >
-                    Chọn ngày để tự động tính ngày âm lịch
-                  </p>
-                  <div class="space-y-2">
-                    <label
-                      class="text-sm text-gray-700 flex items-center gap-2"
-                    >
-                      <i data-lucide="map-pin" class="text-color-secondary"></i
-                      >Địa điểm tiệc
-                    </label>
-                    <x-check
-                      key="bride-party-same"
-                      label="Trùng địa điểm lễ vu quy"
-                      onchange="togglePartySameLoc('bride', event)"
-                    ></x-check>
-                    <div id="bride-party-location-row" class="flex gap-2">
-                      <x-input
-                        class="flex-1 min-w-0"
-                        name="bride_party_location"
-                        placeholder="Ví dụ: Nhà hàng Riverside, Q.3, TP.HCM"
-                        suffix-btn-label="Bản đồ"
-                        suffix-btn-icon="map-pin"
-                        suffix-btn-action="openMapPicker('bride_party')"
-                      ></x-input>
-                    </div>
-                    <input
-                      type="hidden"
-                      name="bride_party_map_embed_url"
-                      id="bride_party_map_embed_url"
-                    />
-                    <div id="bride_party-picker-wrap">
-                      <div
-                        id="bride_party-map-display"
-                        class="hidden items-center gap-2 bg-gray-50 border border-gray-100 rounded-lg px-3 py-2"
-                      >
-                        <svg
-                          class="w-3.5 h-3.5 flex-shrink-0 text-rose-400"
-                          xmlns="http://www.w3.org/2000/svg"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="2"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                        >
-                          <path
-                            d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"
-                          />
-                          <circle cx="12" cy="10" r="3" />
-                        </svg>
-                        <span
-                          id="bride_party-map-address"
-                          class="flex-1 text-sm text-gray-700 truncate"
-                        ></span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- 6. ẢNH CƯỚI -->
-            <div
-              id="tour-photos"
-              class="bg-white rounded-xl overflow-hidden animate-fade-in border border-gray-200"
-            >
-              <div
-                class="bg-white px-6 py-4 border-b border-gray-100 cursor-pointer select-none"
-                onclick="toggleSection('photos')"
-              >
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center gap-2">
-                    <i
-                      data-lucide="camera"
-                      class="text-[18px] text-color-secondary"
-                    ></i>
-                    <p class="text-sm text-gray-700">Ảnh cưới</p>
-                  </div>
-                  <div class="flex items-center gap-3">
-                    <x-switch
-                      key="photos"
-                      onclick="toggleSectionVis('photos', event)"
-                    ></x-switch>
-                    <i
-                      id="section-photos-chevron"
-                      data-lucide="chevron-down"
-                      class="text-gray-400 text-sm"
-                    ></i>
-                  </div>
-                </div>
-              </div>
-              <div id="section-photos-body" class="hidden p-6 space-y-6">
-                <div>
-                  <label
-                    class="block text-sm text-gray-700 mb-2 flex items-center gap-2"
-                    ><i data-lucide="images" class="text-color-secondary"></i>
-                    Album ảnh (tối đa 10 ảnh)</label
-                  >
-                  <div
-                    id="gallery-container"
-                    class="grid grid-cols-3 sm:grid-cols-5 gap-3"
-                  ></div>
-                  <input
-                    type="file"
-                    id="gallery-file-input"
-                    accept="image/*"
-                    multiple
-                    class="hidden"
-                    onchange="handleGalleryUpload(event)"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <!-- 6. LỊCH TRÌNH NGÀY CƯỚI -->
-            <div
-              class="bg-white rounded-xl overflow-hidden animate-fade-in border border-gray-200"
-            >
-              <div
-                class="bg-white px-6 py-4 border-b border-gray-100 cursor-pointer select-none"
-                onclick="toggleSection('timeline')"
-              >
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center gap-2">
-                    <i
-                      data-lucide="calendar"
-                      class="text-[18px] text-color-secondary"
-                    ></i>
-                    <p class="text-sm text-gray-700">Lịch trình ngày cưới</p>
-                  </div>
-                  <div class="flex items-center gap-3">
-                    <x-switch
-                      key="timeline"
-                      onclick="toggleSectionVis('timeline', event)"
-                    ></x-switch>
-                    <i
-                      id="section-timeline-chevron"
-                      data-lucide="chevron-down"
-                      class="text-gray-400 text-sm"
-                    ></i>
-                  </div>
-                </div>
-              </div>
-              <div id="section-timeline-body" class="hidden">
-                <!-- Tab bar — chỉ toggle phần Tiệc cưới -->
-                <div class="flex border-b border-gray-100">
-                  <button
-                    type="button"
-                    onclick="switchTimelineTab('groom')"
-                    id="timeline-tab-groom"
-                    class="flex-1 py-3 text-sm font-medium flex items-center justify-center gap-1.5 bg-rose-50 text-rose-600 border-b-2 border-rose-500 transition-colors"
-                  >
-                    <i data-lucide="mars" class="w-3.5 h-3.5"></i> Nhà trai
-                  </button>
-                  <button
-                    type="button"
-                    onclick="switchTimelineTab('bride')"
-                    id="timeline-tab-bride"
-                    class="flex-1 py-3 text-sm font-medium flex items-center justify-center gap-1.5 text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors"
-                  >
-                    <i data-lucide="venus" class="w-3.5 h-3.5"></i> Nhà gái
-                  </button>
-                </div>
-
-                <!-- Tiệc nhà trai -->
-                <div id="timeline-panel-groom" class="px-6 pt-4 pb-2 space-y-3">
-                  <div id="timeline-party-sub" class="space-y-3">
-                    <p
-                      class="text-xs font-semibold text-amber-600 uppercase tracking-wide"
-                    >
-                      Tiệc cưới
-                    </p>
-                    <div
-                      id="timeline-party-date-badge"
-                      class="hidden flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-xl"
-                    >
-                      <i
-                        data-lucide="calendar-days"
-                        class="w-4 h-4 text-amber-500 flex-shrink-0"
-                      ></i>
-                      <span
-                        id="timeline-party-date-text"
-                        class="text-sm font-medium text-amber-700"
-                      ></span>
-                    </div>
-                    <div id="timeline-party-list" class="space-y-3"></div>
-                    <p
-                      id="timeline-party-no-date"
-                      class="hidden text-sm text-gray-400 italic py-1"
-                    >
-                      Hãy
-                      <a
-                        onclick="_openSectionAndScroll('party')"
-                        class="text-amber-500 not-italic font-medium underline cursor-pointer"
-                        >thiết lập</a
-                      >
-                      ngày tổ chức tiệc nhà trai để thêm sự kiện
-                    </p>
-                    <button
-                      id="btn-add-party"
-                      type="button"
-                      onclick="addTimelineItem('party')"
-                      class="btn-pink mt-1"
-                    >
-                      <i data-lucide="plus"></i> Thêm sự kiện
-                    </button>
-                  </div>
-                </div>
-
-                <!-- Tiệc nhà gái -->
-                <div
-                  id="timeline-panel-bride"
-                  class="hidden px-6 pt-4 pb-2 space-y-3"
-                >
-                  <div id="timeline-bride-party-sub" class="space-y-3">
-                    <p
-                      class="text-xs font-semibold text-amber-600 uppercase tracking-wide"
-                    >
-                      Tiệc cưới
-                    </p>
-                    <div
-                      id="timeline-bride-party-date-badge"
-                      class="hidden flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-xl"
-                    >
-                      <i
-                        data-lucide="calendar-days"
-                        class="w-4 h-4 text-amber-500 flex-shrink-0"
-                      ></i>
-                      <span
-                        id="timeline-bride-party-date-text"
-                        class="text-sm font-medium text-amber-700"
-                      ></span>
-                    </div>
-                    <div id="timeline-bride-party-list" class="space-y-3"></div>
-                    <p
-                      id="timeline-bride-party-no-date"
-                      class="hidden text-sm text-gray-400 italic py-1"
-                    >
-                      Hãy
-                      <a
-                        onclick="
-                          _openSectionAndScroll('party');
-                          switchPartyTab('bride');
-                        "
-                        class="text-amber-500 not-italic font-medium underline cursor-pointer"
-                        >thiết lập</a
-                      >
-                      ngày tổ chức tiệc nhà gái để thêm sự kiện
-                    </p>
-                    <button
-                      id="btn-add-bride-party"
-                      type="button"
-                      onclick="addTimelineItem('bride-party')"
-                      class="btn-pink mt-1"
-                    >
-                      <i data-lucide="plus"></i> Thêm sự kiện
-                    </button>
-                  </div>
-                </div>
-
-                <!-- Lễ cưới — dùng chung, luôn hiển thị -->
-                <div class="px-6 pt-2 pb-6 space-y-4 border-t border-gray-100">
-                  <p
-                    class="text-xs font-semibold text-cyan-600 uppercase tracking-wide pt-2"
-                  >
-                    Lễ cưới
-                  </p>
-                  <div
-                    id="timeline-date-badge"
-                    class="hidden flex items-center gap-2 px-3 py-2 bg-cyan-50 border border-cyan-200 rounded-xl"
-                  >
-                    <i
-                      data-lucide="calendar-days"
-                      class="w-4 h-4 text-cyan-500 flex-shrink-0"
-                    ></i>
-                    <span
-                      id="timeline-date-text"
-                      class="text-sm font-medium text-cyan-700"
-                    ></span>
-                  </div>
-                  <div id="timeline-list" class="space-y-3"></div>
-                  <p
-                    id="timeline-ceremony-no-date"
-                    class="hidden text-sm text-gray-400 italic py-1"
-                  >
-                    Hãy
-                    <a
-                      onclick="_openSectionAndScroll('ceremony')"
-                      class="text-cyan-500 not-italic font-medium underline cursor-pointer"
-                      >thiết lập</a
-                    >
-                    ngày lễ cưới để thêm sự kiện
-                  </p>
-                  <button
-                    id="btn-add-ceremony"
-                    type="button"
-                    onclick="addTimelineItem('ceremony')"
-                    class="btn-pink mt-1"
-                  >
-                    <i data-lucide="plus"></i> Thêm sự kiện
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <!-- 7. CÂU CHUYỆN TÌNH YÊU -->
-            <div
-              class="bg-white rounded-xl overflow-hidden animate-fade-in border border-gray-200"
-            >
-              <div
-                class="bg-white px-6 py-4 border-b border-gray-100 cursor-pointer select-none"
-                onclick="toggleSection('love_story')"
-              >
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center gap-2">
-                    <i
-                      data-lucide="heart"
-                      class="text-[18px] text-color-secondary"
-                    ></i>
-                    <p class="text-sm text-gray-700">Câu chuyện tình yêu</p>
-                  </div>
-                  <div class="flex items-center gap-3">
-                    <x-switch
-                      key="love_story"
-                      onclick="toggleSectionVis('love_story', event)"
-                    ></x-switch>
-                    <i
-                      id="section-love_story-chevron"
-                      data-lucide="chevron-down"
-                      class="text-gray-400 text-sm"
-                    ></i>
-                  </div>
-                </div>
-              </div>
-              <div id="section-love_story-body" class="hidden p-6 space-y-4">
-                <p class="text-xs text-gray-500">
-                  Kể lại hành trình tình yêu của hai bạn. Ví dụ: lần đầu gặp,
-                  ngày hẹn hò, ngày cầu hôn...
-                </p>
-                <div id="love-story-list" class="space-y-3"></div>
-                <button
-                  type="button"
-                  onclick="addLoveStoryItem()"
-                  class="btn-pink mt-2"
-                >
-                  <i data-lucide="plus"></i> Thêm mốc
-                </button>
-              </div>
-            </div>
-
-            <!-- 8. XÁC NHẬN THAM DỰ (RSVP) - music đã chuyển sang tab Cấu hình -->
-
-            <!-- 8. XÁC NHẬN THAM DỰ (RSVP) -->
-            <div
-              class="bg-white rounded-xl overflow-hidden animate-fade-in border border-gray-200"
-            >
-              <div
-                class="bg-white px-6 py-4 border-b border-gray-100 cursor-pointer select-none"
-                onclick="toggleSection('rsvp')"
-              >
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center gap-2">
-                    <i
-                      data-lucide="circle-check"
-                      class="text-[18px] text-color-secondary"
-                    ></i>
-                    <p class="text-sm text-gray-700">Xác nhận tham dự</p>
-                  </div>
-                  <div class="flex items-center gap-3">
-                    <x-switch
-                      key="rsvp"
-                      onclick="toggleSectionVis('rsvp', event)"
-                    ></x-switch>
-                    <i
-                      id="section-rsvp-chevron"
-                      data-lucide="chevron-down"
-                      class="text-gray-400 text-sm"
-                    ></i>
-                  </div>
-                </div>
-              </div>
-              <div id="section-rsvp-body" class="hidden p-6 space-y-6">
-                <div>
-                  <x-textarea
-                    label="Lời nhắn xác nhận tham dự"
-                    icon="message-circle"
-                    name="rsvp_message"
-                    rows="3"
-                    placeholder="Ví dụ: Sự có mặt của bạn là món quà ý nghĩa nhất với chúng mình."
-                  ></x-textarea>
-                </div>
-              </div>
-            </div>
-
-            <!-- 9. HỘP MỪNG CƯỚI -->
-            <div
-              class="bg-white rounded-xl overflow-hidden animate-fade-in border border-gray-200"
-            >
-              <div
-                class="bg-white px-6 py-4 border-b border-gray-100 cursor-pointer select-none"
-                onclick="toggleSection('gift')"
-              >
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center gap-2">
-                    <i
-                      data-lucide="gift"
-                      class="text-[18px] text-color-secondary"
-                    ></i>
-                    <p class="text-sm text-gray-700">Hộp mừng cưới</p>
-                  </div>
-                  <div class="flex items-center gap-3">
-                    <x-switch
-                      key="gift"
-                      onclick="toggleSectionVis('gift', event)"
-                    ></x-switch>
-                    <i
-                      id="section-gift-chevron"
-                      data-lucide="chevron-down"
-                      class="text-gray-400 text-sm"
-                    ></i>
-                  </div>
-                </div>
-              </div>
-              <div id="section-gift-body" class="hidden p-6 space-y-6">
-                <div class="rounded-2xl border border-gray-100 overflow-hidden">
-                  <div
-                    class="px-5 py-3 bg-rose-50 border-b border-rose-100 flex items-center gap-2"
-                  >
-                    <i
-                      data-lucide="mars"
-                      class="w-4 h-4 text-color-secondary"
-                    ></i>
-                    <span class="text-sm font-semibold text-gray-700"
-                      >Nhà trai</span
-                    >
-                  </div>
-                  <div class="p-5 space-y-4">
-                    <div class="relative">
-                      <label
-                        class="block text-sm text-gray-700 mb-2 flex items-center gap-2"
-                        ><i
-                          data-lucide="landmark"
-                          class="text-color-secondary"
-                        ></i
-                        >Tên ngân hàng</label
-                      >
-                      <input
-                        type="text"
-                        id="groom-bank-input"
-                        placeholder="Tìm theo tên hoặc mã ngân hàng..."
-                        class="w-full h-10 px-3 py-2 border border-gray-200 rounded-md text-sm text-gray-800 bg-white outline-none transition-all placeholder:text-gray-400/50 focus:ring-2 focus:ring-rose-500/30 focus:ring-offset-2"
-                        autocomplete="off"
-                      />
-                      <input
-                        type="hidden"
-                        name="groom_bank_name"
-                        id="groom-bank-value"
-                      />
-                      <div
-                        id="groom-bank-dropdown"
-                        class="hidden absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-2xl shadow-lg max-h-60 overflow-y-auto"
-                      ></div>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <x-input
-                        label="Số tài khoản"
-                        name="groom_bank_number"
-                        icon="credit-card"
-                        placeholder="Ví dụ: 0123456789"
-                        mono
-                      ></x-input>
-                      <x-input
-                        label="Tên chủ tài khoản"
-                        name="groom_bank_owner"
-                        icon="user"
-                        placeholder="Ví dụ: DOAN QUANG VINH"
-                      ></x-input>
-                    </div>
-                    <div>
-                      <label
-                        class="block text-sm text-gray-700 mb-2 flex items-center gap-2"
-                        ><i
-                          data-lucide="qr-code"
-                          class="text-color-secondary"
-                        ></i
-                        >Ảnh QR chuyển khoản</label
-                      >
-                      <div id="groom-qr-container" class="w-32"></div>
-                      <input
-                        type="file"
-                        id="groom-qr-file-input"
-                        accept="image/*"
-                        class="hidden"
-                        onchange="handleImageUpload(event, 'groom_qr_url')"
-                      />
-                    </div>
-                  </div>
-                </div>
-                <div class="rounded-2xl border border-gray-100 overflow-hidden">
-                  <div
-                    class="px-5 py-3 bg-rose-50 border-b border-rose-100 flex items-center gap-2"
-                  >
-                    <i
-                      data-lucide="venus"
-                      class="w-4 h-4 text-color-secondary"
-                    ></i>
-                    <span class="text-sm font-semibold text-gray-700"
-                      >Nhà gái</span
-                    >
-                  </div>
-                  <div class="p-5 space-y-4">
-                    <div class="relative">
-                      <label
-                        class="block text-sm text-gray-700 mb-2 flex items-center gap-2"
-                        ><i
-                          data-lucide="landmark"
-                          class="text-color-secondary"
-                        ></i
-                        >Tên ngân hàng</label
-                      >
-                      <input
-                        type="text"
-                        id="bride-bank-input"
-                        placeholder="Tìm theo tên hoặc mã ngân hàng..."
-                        class="w-full h-10 px-3 py-2 border border-gray-200 rounded-md text-sm text-gray-800 bg-white outline-none transition-all placeholder:text-gray-400/50 focus:ring-2 focus:ring-rose-500/30 focus:ring-offset-2"
-                        autocomplete="off"
-                      />
-                      <input
-                        type="hidden"
-                        name="bride_bank_name"
-                        id="bride-bank-value"
-                      />
-                      <div
-                        id="bride-bank-dropdown"
-                        class="hidden absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-2xl shadow-lg max-h-60 overflow-y-auto"
-                      ></div>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <x-input
-                        label="Số tài khoản"
-                        name="bride_bank_number"
-                        icon="credit-card"
-                        placeholder="Ví dụ: 0987654321"
-                        mono
-                      ></x-input>
-                      <x-input
-                        label="Tên chủ tài khoản"
-                        name="bride_bank_owner"
-                        icon="user"
-                        placeholder="Ví dụ: VUONG THI HAI YEN"
-                      ></x-input>
-                    </div>
-                    <div>
-                      <label
-                        class="block text-sm text-gray-700 mb-2 flex items-center gap-2"
-                        ><i
-                          data-lucide="qr-code"
-                          class="text-color-secondary"
-                        ></i
-                        >Ảnh QR chuyển khoản</label
-                      >
-                      <div id="bride-qr-container" class="w-32"></div>
-                      <input
-                        type="file"
-                        id="bride-qr-file-input"
-                        accept="image/*"
-                        class="hidden"
-                        onchange="handleImageUpload(event, 'bride_qr_url')"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- 11. FOOTER -->
-            <div
-              class="bg-white rounded-xl overflow-hidden animate-fade-in border border-gray-200"
-            >
-              <div
-                class="bg-white px-6 py-4 border-b border-gray-100 cursor-pointer select-none"
-                onclick="toggleSection('footer')"
-              >
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center gap-2">
-                    <i
-                      data-lucide="flag"
-                      class="text-[18px] text-color-secondary"
-                    ></i>
-                    <p class="text-sm text-gray-700">Footer</p>
-                  </div>
-                  <div class="flex items-center gap-3">
-                    <x-switch
-                      key="footer"
-                      onclick="toggleSectionVis('footer', event)"
-                    ></x-switch>
-                    <i
-                      id="section-footer-chevron"
-                      data-lucide="chevron-down"
-                      class="text-gray-400 text-sm"
-                    ></i>
-                  </div>
-                </div>
-              </div>
-              <div id="section-footer-body" class="hidden p-6 space-y-4">
-                <x-textarea
-                  label="Lời cảm ơn / Footer"
-                  icon="heart"
-                  name="footer_text"
-                  rows="4"
-                  placeholder="Ví dụ: Trân trọng cảm ơn sự hiện diện của quý khách. Sự có mặt của bạn là niềm vinh hạnh lớn nhất của chúng tôi."
-                ></x-textarea>
-              </div>
-            </div>
-          </form>
+            <div id="cover-container" class="w-full max-w-xs"></div>
+            <input
+              type="file"
+              id="cover-file-input"
+              accept="image/*"
+              class="hidden"
+              onchange="handleImageUpload(event, 'cover_image_url')"
+            />
+          </div>
+          <!-- Quote -->
+          <div>
+            <x-textarea
+              label="Slogan"
+              icon="quote"
+              name="story_quote"
+              id="story-quote-textarea"
+              rows="3"
+              placeholder="Ví dụ: Cảm ơn em đã đến bên đời nhau, cùng nhau viết nên câu chuyện của riêng chúng ta."
+            ></x-textarea>
+            <button type="button" onclick="randomQuote()" class="btn-pink mt-2">
+              <i data-lucide="dices"></i> Generate
+            </button>
+          </div>
         </div>
       </div>
-      <!-- /form-panel -->
+
+      <!-- 2. SỰ KIỆN CƯỚI -->
+      <div
+        id="tour-ceremony"
+        class="bg-white rounded-xl overflow-hidden animate-fade-in border border-gray-200"
+      >
+        <div
+          class="bg-white px-6 py-4 border-b border-gray-100 cursor-pointer select-none"
+          onclick="toggleSection('ceremony')"
+        >
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <i
+                data-lucide="church"
+                class="text-[18px] text-color-secondary"
+              ></i>
+              <p class="text-sm text-gray-700">Sự kiện cưới</p>
+            </div>
+            <i
+              id="section-ceremony-chevron"
+              data-lucide="chevron-down"
+              class="text-gray-400 text-sm"
+            ></i>
+          </div>
+        </div>
+        <div id="section-ceremony-body" class="hidden p-6 space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <x-date label="Ngày cưới" name="ceremony_date" required></x-date>
+            <x-input
+              label="Tên nghi lễ"
+              name="ceremony_name"
+              icon="tag"
+              placeholder="Lễ thành hôn"
+            ></x-input>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <x-time label="Giờ tổ chức lễ" name="ceremony_time"></x-time>
+            <div>
+              <label class="text-sm text-gray-700 flex items-center gap-2 mb-2">
+                <i data-lucide="map-pin" class="text-color-secondary"></i>Địa
+                điểm lễ cưới
+              </label>
+              <div id="ceremony-location-row" class="flex gap-2">
+                <x-input
+                  class="flex-1 min-w-0"
+                  name="ceremony_location"
+                  placeholder="Nhập địa điểm lễ cưới..."
+                  suffix-btn-label="Bản đồ"
+                  suffix-btn-icon="map-pin"
+                  suffix-btn-action="openMapPicker('ceremony')"
+                ></x-input>
+              </div>
+              <input
+                type="hidden"
+                name="ceremony_map_embed_url"
+                id="ceremony_map_embed_url"
+              />
+              <div id="ceremony-picker-wrap">
+                <div
+                  id="ceremony-map-display"
+                  class="hidden items-center gap-2 mt-2 bg-gray-50 border border-gray-100 rounded-lg px-3 py-2"
+                >
+                  <svg
+                    class="w-3.5 h-3.5 flex-shrink-0 text-rose-400"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+                    <circle cx="12" cy="10" r="3" />
+                  </svg>
+                  <span
+                    id="ceremony-map-address"
+                    class="flex-1 text-sm text-gray-700 truncate"
+                  ></span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p id="ceremony-lunar-display" class="text-sm text-gray-500 italic">
+            Chọn ngày để tự động tính ngày âm lịch
+          </p>
+          <div class="pt-2 border-t border-gray-100">
+            <div class="flex items-center justify-between gap-3">
+              <div>
+                <p class="text-sm font-medium text-gray-700">Lễ vu quy</p>
+                <p class="text-xs text-gray-400 mt-0.5">
+                  Hiển thị thay cho lễ thành hôn trong thiệp nhà gái
+                </p>
+              </div>
+              <input
+                type="hidden"
+                name="vu_quy_enabled"
+                id="vu_quy_enabled"
+                value="true"
+              />
+              <x-switch key="vu-quy" onclick="toggleVuQuy(event)"></x-switch>
+            </div>
+            <div id="vu-quy-fields" class="space-y-4 mt-4">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <x-time label="Giờ vu quy" name="vu_quy_time"></x-time>
+                <div>
+                  <label
+                    class="text-sm text-gray-700 flex items-center gap-2 mb-2"
+                  >
+                    <i data-lucide="map-pin" class="text-color-secondary"></i
+                    >Địa điểm vu quy
+                  </label>
+                  <div id="vu-quy-location-row" class="flex gap-2">
+                    <x-input
+                      class="flex-1 min-w-0"
+                      name="vu_quy_location"
+                      placeholder="Nhập địa điểm vu quy..."
+                      suffix-btn-label="Bản đồ"
+                      suffix-btn-icon="map-pin"
+                      suffix-btn-action="openMapPicker('vu_quy')"
+                    ></x-input>
+                  </div>
+                  <input
+                    type="hidden"
+                    name="vu_quy_map_embed_url"
+                    id="vu_quy_map_embed_url"
+                  />
+                  <div id="vu_quy-picker-wrap">
+                    <div
+                      id="vu_quy-map-display"
+                      class="hidden items-center gap-2 mt-2 bg-gray-50 border border-gray-100 rounded-lg px-3 py-2"
+                    >
+                      <svg
+                        class="w-3.5 h-3.5 flex-shrink-0 text-rose-400"
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <path
+                          d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"
+                        />
+                        <circle cx="12" cy="10" r="3" />
+                      </svg>
+                      <span
+                        id="vu_quy-map-address"
+                        class="flex-1 text-sm text-gray-700 truncate"
+                      ></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. GIA ĐÌNH HAI BÊN -->
+      <div
+        class="bg-white rounded-xl overflow-hidden animate-fade-in border border-gray-200"
+      >
+        <div
+          class="bg-white px-6 py-4 border-b border-gray-100 cursor-pointer select-none"
+          onclick="toggleSection('family')"
+        >
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <i
+                data-lucide="users"
+                class="text-[18px] text-color-secondary"
+              ></i>
+              <p class="text-sm text-gray-700">Gia đình hai bên</p>
+            </div>
+            <div class="flex items-center gap-3">
+              <x-switch
+                key="family"
+                onclick="toggleSectionVis('family', event)"
+              ></x-switch>
+              <i
+                id="section-family-chevron"
+                data-lucide="chevron-down"
+                class="text-gray-400 text-sm"
+              ></i>
+            </div>
+          </div>
+        </div>
+        <div id="section-family-body" class="hidden">
+          <!-- Tab bar -->
+          <div class="flex border-b border-gray-100">
+            <button
+              type="button"
+              onclick="switchFamilyTab('groom')"
+              id="family-tab-groom"
+              class="flex-1 py-3 text-sm font-medium flex items-center justify-center gap-1.5 bg-rose-50 text-rose-600 border-b-2 border-rose-500 transition-colors"
+            >
+              <i data-lucide="mars" class="w-3.5 h-3.5"></i> Nhà trai
+            </button>
+            <button
+              type="button"
+              onclick="switchFamilyTab('bride')"
+              id="family-tab-bride"
+              class="flex-1 py-3 text-sm font-medium flex items-center justify-center gap-1.5 text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors"
+            >
+              <i data-lucide="venus" class="w-3.5 h-3.5"></i> Nhà gái
+            </button>
+          </div>
+
+          <!-- Nhà trai panel -->
+          <div id="family-panel-groom" class="p-6 space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <x-input
+                label="Bố chú rể"
+                name="groom_father"
+                placeholder="Ví dụ: Đoàn Văn Lối"
+              ></x-input>
+              <x-input
+                label="Mẹ chú rể"
+                name="groom_mother"
+                placeholder="Ví dụ: Trần Thị Kích"
+              ></x-input>
+            </div>
+            <x-input
+              label="Địa chỉ nhà trai"
+              name="groom_address"
+              icon="home"
+              placeholder="Ví dụ: Chu Trần, Yên Lãng, Hà Nội"
+              autocomplete="off"
+            ></x-input>
+          </div>
+
+          <!-- Nhà gái panel -->
+          <div id="family-panel-bride" class="hidden p-6 space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <x-input
+                label="Bố cô dâu"
+                name="bride_father"
+                placeholder="Ví dụ: Vương Đức Bắc"
+              ></x-input>
+              <x-input
+                label="Mẹ cô dâu"
+                name="bride_mother"
+                placeholder="Ví dụ: Nguyễn Thị Khuyên"
+              ></x-input>
+            </div>
+            <x-input
+              label="Địa chỉ nhà gái"
+              name="bride_address"
+              icon="home"
+              placeholder="Ví dụ: Tân Trường, Mao Điền, Hải Phòng"
+              autocomplete="off"
+            ></x-input>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. TIỆC CƯỚI -->
+      <div
+        class="bg-white rounded-xl overflow-hidden animate-fade-in border border-gray-200"
+      >
+        <div
+          class="bg-white px-6 py-4 border-b border-gray-100 cursor-pointer select-none"
+          onclick="toggleSection('party')"
+        >
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <i
+                data-lucide="utensils"
+                class="text-[18px] text-color-secondary"
+              ></i>
+              <p class="text-sm text-gray-700">Tiệc cưới</p>
+            </div>
+            <div class="flex items-center gap-3">
+              <x-switch
+                key="party"
+                onclick="toggleSectionVis('party', event)"
+              ></x-switch>
+              <i
+                id="section-party-chevron"
+                data-lucide="chevron-down"
+                class="text-gray-400 text-sm"
+              ></i>
+            </div>
+          </div>
+        </div>
+        <div id="section-party-body" class="hidden">
+          <!-- Tab bar -->
+          <div class="flex border-b border-gray-100">
+            <button
+              type="button"
+              onclick="switchPartyTab('groom')"
+              id="party-tab-groom"
+              class="flex-1 py-3 text-sm font-medium flex items-center justify-center gap-1.5 bg-rose-50 text-rose-600 border-b-2 border-rose-500 transition-colors"
+            >
+              <i data-lucide="mars" class="w-3.5 h-3.5"></i> Nhà trai
+            </button>
+            <button
+              type="button"
+              onclick="switchPartyTab('bride')"
+              id="party-tab-bride"
+              class="flex-1 py-3 text-sm font-medium flex items-center justify-center gap-1.5 text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors"
+            >
+              <i data-lucide="venus" class="w-3.5 h-3.5"></i> Nhà gái
+            </button>
+          </div>
+
+          <!-- Nhà trai panel -->
+          <div id="party-panel-groom" class="p-6 space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <x-date label="Ngày đãi tiệc" name="groom_party_date"></x-date>
+              <x-time label="Giờ đãi tiệc" name="groom_party_time"></x-time>
+            </div>
+            <p
+              id="groom-party-lunar-display"
+              class="text-sm text-gray-500 italic"
+            >
+              Chọn ngày để tự động tính ngày âm lịch
+            </p>
+            <div class="space-y-2">
+              <label class="text-sm text-gray-700 flex items-center gap-2">
+                <i data-lucide="map-pin" class="text-color-secondary"></i>Địa
+                điểm tiệc
+              </label>
+              <x-check
+                key="groom-party-same"
+                label="Trùng địa điểm lễ thành hôn"
+                onchange="togglePartySameLoc('groom', event)"
+              ></x-check>
+              <div id="groom-party-location-row" class="flex gap-2">
+                <x-input
+                  class="flex-1 min-w-0"
+                  name="groom_party_location"
+                  placeholder="Ví dụ: Trung tâm tiệc cưới Hoàng Gia, Q.1, TP.HCM"
+                  suffix-btn-label="Bản đồ"
+                  suffix-btn-icon="map-pin"
+                  suffix-btn-action="openMapPicker('groom_party')"
+                ></x-input>
+              </div>
+              <input
+                type="hidden"
+                name="groom_party_map_embed_url"
+                id="groom_party_map_embed_url"
+              />
+              <div id="groom_party-picker-wrap">
+                <div
+                  id="groom_party-map-display"
+                  class="hidden items-center gap-2 bg-gray-50 border border-gray-100 rounded-lg px-3 py-2"
+                >
+                  <svg
+                    class="w-3.5 h-3.5 flex-shrink-0 text-rose-400"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+                    <circle cx="12" cy="10" r="3" />
+                  </svg>
+                  <span
+                    id="groom_party-map-address"
+                    class="flex-1 text-sm text-gray-700 truncate"
+                  ></span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Nhà gái panel -->
+          <div id="party-panel-bride" class="hidden p-6 space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <x-date label="Ngày đãi tiệc" name="bride_party_date"></x-date>
+              <x-time label="Giờ đãi tiệc" name="bride_party_time"></x-time>
+            </div>
+            <p
+              id="bride-party-lunar-display"
+              class="text-sm text-gray-500 italic"
+            >
+              Chọn ngày để tự động tính ngày âm lịch
+            </p>
+            <div class="space-y-2">
+              <label class="text-sm text-gray-700 flex items-center gap-2">
+                <i data-lucide="map-pin" class="text-color-secondary"></i>Địa
+                điểm tiệc
+              </label>
+              <x-check
+                key="bride-party-same"
+                label="Trùng địa điểm lễ vu quy"
+                onchange="togglePartySameLoc('bride', event)"
+              ></x-check>
+              <div id="bride-party-location-row" class="flex gap-2">
+                <x-input
+                  class="flex-1 min-w-0"
+                  name="bride_party_location"
+                  placeholder="Ví dụ: Nhà hàng Riverside, Q.3, TP.HCM"
+                  suffix-btn-label="Bản đồ"
+                  suffix-btn-icon="map-pin"
+                  suffix-btn-action="openMapPicker('bride_party')"
+                ></x-input>
+              </div>
+              <input
+                type="hidden"
+                name="bride_party_map_embed_url"
+                id="bride_party_map_embed_url"
+              />
+              <div id="bride_party-picker-wrap">
+                <div
+                  id="bride_party-map-display"
+                  class="hidden items-center gap-2 bg-gray-50 border border-gray-100 rounded-lg px-3 py-2"
+                >
+                  <svg
+                    class="w-3.5 h-3.5 flex-shrink-0 text-rose-400"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+                    <circle cx="12" cy="10" r="3" />
+                  </svg>
+                  <span
+                    id="bride_party-map-address"
+                    class="flex-1 text-sm text-gray-700 truncate"
+                  ></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6. ẢNH CƯỚI -->
+      <div
+        id="tour-photos"
+        class="bg-white rounded-xl overflow-hidden animate-fade-in border border-gray-200"
+      >
+        <div
+          class="bg-white px-6 py-4 border-b border-gray-100 cursor-pointer select-none"
+          onclick="toggleSection('photos')"
+        >
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <i
+                data-lucide="camera"
+                class="text-[18px] text-color-secondary"
+              ></i>
+              <p class="text-sm text-gray-700">Ảnh cưới</p>
+            </div>
+            <div class="flex items-center gap-3">
+              <x-switch
+                key="photos"
+                onclick="toggleSectionVis('photos', event)"
+              ></x-switch>
+              <i
+                id="section-photos-chevron"
+                data-lucide="chevron-down"
+                class="text-gray-400 text-sm"
+              ></i>
+            </div>
+          </div>
+        </div>
+        <div id="section-photos-body" class="hidden p-6 space-y-6">
+          <div>
+            <label
+              class="block text-sm text-gray-700 mb-2 flex items-center gap-2"
+              ><i data-lucide="images" class="text-color-secondary"></i> Album
+              ảnh (tối đa 10 ảnh)</label
+            >
+            <div
+              id="gallery-container"
+              class="grid grid-cols-3 sm:grid-cols-5 gap-3"
+            ></div>
+            <input
+              type="file"
+              id="gallery-file-input"
+              accept="image/*"
+              multiple
+              class="hidden"
+              onchange="handleGalleryUpload(event)"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- 6. LỊCH TRÌNH NGÀY CƯỚI -->
+      <div
+        class="bg-white rounded-xl overflow-hidden animate-fade-in border border-gray-200"
+      >
+        <div
+          class="bg-white px-6 py-4 border-b border-gray-100 cursor-pointer select-none"
+          onclick="toggleSection('timeline')"
+        >
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <i
+                data-lucide="calendar"
+                class="text-[18px] text-color-secondary"
+              ></i>
+              <p class="text-sm text-gray-700">Lịch trình ngày cưới</p>
+            </div>
+            <div class="flex items-center gap-3">
+              <x-switch
+                key="timeline"
+                onclick="toggleSectionVis('timeline', event)"
+              ></x-switch>
+              <i
+                id="section-timeline-chevron"
+                data-lucide="chevron-down"
+                class="text-gray-400 text-sm"
+              ></i>
+            </div>
+          </div>
+        </div>
+        <div id="section-timeline-body" class="hidden">
+          <!-- Tab bar — chỉ toggle phần Tiệc cưới -->
+          <div class="flex border-b border-gray-100">
+            <button
+              type="button"
+              onclick="switchTimelineTab('groom')"
+              id="timeline-tab-groom"
+              class="flex-1 py-3 text-sm font-medium flex items-center justify-center gap-1.5 bg-rose-50 text-rose-600 border-b-2 border-rose-500 transition-colors"
+            >
+              <i data-lucide="mars" class="w-3.5 h-3.5"></i> Nhà trai
+            </button>
+            <button
+              type="button"
+              onclick="switchTimelineTab('bride')"
+              id="timeline-tab-bride"
+              class="flex-1 py-3 text-sm font-medium flex items-center justify-center gap-1.5 text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors"
+            >
+              <i data-lucide="venus" class="w-3.5 h-3.5"></i> Nhà gái
+            </button>
+          </div>
+
+          <!-- Tiệc nhà trai -->
+          <div id="timeline-panel-groom" class="px-6 pt-4 pb-2 space-y-3">
+            <div id="timeline-party-sub" class="space-y-3">
+              <p
+                class="text-xs font-semibold text-amber-600 uppercase tracking-wide"
+              >
+                Tiệc cưới
+              </p>
+              <div
+                id="timeline-party-date-badge"
+                class="hidden flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-xl"
+              >
+                <i
+                  data-lucide="calendar-days"
+                  class="w-4 h-4 text-amber-500 flex-shrink-0"
+                ></i>
+                <span
+                  id="timeline-party-date-text"
+                  class="text-sm font-medium text-amber-700"
+                ></span>
+              </div>
+              <div id="timeline-party-list" class="space-y-3"></div>
+              <p
+                id="timeline-party-no-date"
+                class="hidden text-sm text-gray-400 italic py-1"
+              >
+                Hãy
+                <a
+                  onclick="_openSectionAndScroll('party')"
+                  class="text-amber-500 not-italic font-medium underline cursor-pointer"
+                  >thiết lập</a
+                >
+                ngày tổ chức tiệc nhà trai để thêm sự kiện
+              </p>
+              <button
+                id="btn-add-party"
+                type="button"
+                onclick="addTimelineItem('party')"
+                class="btn-pink mt-1"
+              >
+                <i data-lucide="plus"></i> Thêm sự kiện
+              </button>
+            </div>
+          </div>
+
+          <!-- Tiệc nhà gái -->
+          <div
+            id="timeline-panel-bride"
+            class="hidden px-6 pt-4 pb-2 space-y-3"
+          >
+            <div id="timeline-bride-party-sub" class="space-y-3">
+              <p
+                class="text-xs font-semibold text-amber-600 uppercase tracking-wide"
+              >
+                Tiệc cưới
+              </p>
+              <div
+                id="timeline-bride-party-date-badge"
+                class="hidden flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-xl"
+              >
+                <i
+                  data-lucide="calendar-days"
+                  class="w-4 h-4 text-amber-500 flex-shrink-0"
+                ></i>
+                <span
+                  id="timeline-bride-party-date-text"
+                  class="text-sm font-medium text-amber-700"
+                ></span>
+              </div>
+              <div id="timeline-bride-party-list" class="space-y-3"></div>
+              <p
+                id="timeline-bride-party-no-date"
+                class="hidden text-sm text-gray-400 italic py-1"
+              >
+                Hãy
+                <a
+                  onclick="
+                    _openSectionAndScroll('party');
+                    switchPartyTab('bride');
+                  "
+                  class="text-amber-500 not-italic font-medium underline cursor-pointer"
+                  >thiết lập</a
+                >
+                ngày tổ chức tiệc nhà gái để thêm sự kiện
+              </p>
+              <button
+                id="btn-add-bride-party"
+                type="button"
+                onclick="addTimelineItem('bride-party')"
+                class="btn-pink mt-1"
+              >
+                <i data-lucide="plus"></i> Thêm sự kiện
+              </button>
+            </div>
+          </div>
+
+          <!-- Lễ cưới — dùng chung, luôn hiển thị -->
+          <div class="px-6 pt-2 pb-6 space-y-4 border-t border-gray-100">
+            <p
+              class="text-xs font-semibold text-cyan-600 uppercase tracking-wide pt-2"
+            >
+              Lễ cưới
+            </p>
+            <div
+              id="timeline-date-badge"
+              class="hidden flex items-center gap-2 px-3 py-2 bg-cyan-50 border border-cyan-200 rounded-xl"
+            >
+              <i
+                data-lucide="calendar-days"
+                class="w-4 h-4 text-cyan-500 flex-shrink-0"
+              ></i>
+              <span
+                id="timeline-date-text"
+                class="text-sm font-medium text-cyan-700"
+              ></span>
+            </div>
+            <div id="timeline-list" class="space-y-3"></div>
+            <p
+              id="timeline-ceremony-no-date"
+              class="hidden text-sm text-gray-400 italic py-1"
+            >
+              Hãy
+              <a
+                onclick="_openSectionAndScroll('ceremony')"
+                class="text-cyan-500 not-italic font-medium underline cursor-pointer"
+                >thiết lập</a
+              >
+              ngày lễ cưới để thêm sự kiện
+            </p>
+            <button
+              id="btn-add-ceremony"
+              type="button"
+              onclick="addTimelineItem('ceremony')"
+              class="btn-pink mt-1"
+            >
+              <i data-lucide="plus"></i> Thêm sự kiện
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 7. CÂU CHUYỆN TÌNH YÊU -->
+      <div
+        class="bg-white rounded-xl overflow-hidden animate-fade-in border border-gray-200"
+      >
+        <div
+          class="bg-white px-6 py-4 border-b border-gray-100 cursor-pointer select-none"
+          onclick="toggleSection('love_story')"
+        >
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <i
+                data-lucide="heart"
+                class="text-[18px] text-color-secondary"
+              ></i>
+              <p class="text-sm text-gray-700">Câu chuyện tình yêu</p>
+            </div>
+            <div class="flex items-center gap-3">
+              <x-switch
+                key="love_story"
+                onclick="toggleSectionVis('love_story', event)"
+              ></x-switch>
+              <i
+                id="section-love_story-chevron"
+                data-lucide="chevron-down"
+                class="text-gray-400 text-sm"
+              ></i>
+            </div>
+          </div>
+        </div>
+        <div id="section-love_story-body" class="hidden p-6 space-y-4">
+          <p class="text-xs text-gray-500">
+            Kể lại hành trình tình yêu của hai bạn. Ví dụ: lần đầu gặp, ngày hẹn
+            hò, ngày cầu hôn...
+          </p>
+          <div id="love-story-list" class="space-y-3"></div>
+          <button
+            type="button"
+            onclick="addLoveStoryItem()"
+            class="btn-pink mt-2"
+          >
+            <i data-lucide="plus"></i> Thêm mốc
+          </button>
+        </div>
+      </div>
+
+      <!-- 8. XÁC NHẬN THAM DỰ (RSVP) - music đã chuyển sang tab Cấu hình -->
+
+      <!-- 8. XÁC NHẬN THAM DỰ (RSVP) -->
+      <div
+        class="bg-white rounded-xl overflow-hidden animate-fade-in border border-gray-200"
+      >
+        <div
+          class="bg-white px-6 py-4 border-b border-gray-100 cursor-pointer select-none"
+          onclick="toggleSection('rsvp')"
+        >
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <i
+                data-lucide="circle-check"
+                class="text-[18px] text-color-secondary"
+              ></i>
+              <p class="text-sm text-gray-700">Xác nhận tham dự</p>
+            </div>
+            <div class="flex items-center gap-3">
+              <x-switch
+                key="rsvp"
+                onclick="toggleSectionVis('rsvp', event)"
+              ></x-switch>
+              <i
+                id="section-rsvp-chevron"
+                data-lucide="chevron-down"
+                class="text-gray-400 text-sm"
+              ></i>
+            </div>
+          </div>
+        </div>
+        <div id="section-rsvp-body" class="hidden p-6 space-y-6">
+          <div>
+            <x-textarea
+              label="Lời nhắn xác nhận tham dự"
+              icon="message-circle"
+              name="rsvp_message"
+              rows="3"
+              placeholder="Ví dụ: Sự có mặt của bạn là món quà ý nghĩa nhất với chúng mình."
+            ></x-textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- 9. HỘP MỪNG CƯỚI -->
+      <div
+        class="bg-white rounded-xl overflow-hidden animate-fade-in border border-gray-200"
+      >
+        <div
+          class="bg-white px-6 py-4 border-b border-gray-100 cursor-pointer select-none"
+          onclick="toggleSection('gift')"
+        >
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <i
+                data-lucide="gift"
+                class="text-[18px] text-color-secondary"
+              ></i>
+              <p class="text-sm text-gray-700">Hộp mừng cưới</p>
+            </div>
+            <div class="flex items-center gap-3">
+              <x-switch
+                key="gift"
+                onclick="toggleSectionVis('gift', event)"
+              ></x-switch>
+              <i
+                id="section-gift-chevron"
+                data-lucide="chevron-down"
+                class="text-gray-400 text-sm"
+              ></i>
+            </div>
+          </div>
+        </div>
+        <div id="section-gift-body" class="hidden p-6 space-y-6">
+          <div class="rounded-2xl border border-gray-100 overflow-hidden">
+            <div
+              class="px-5 py-3 bg-rose-50 border-b border-rose-100 flex items-center gap-2"
+            >
+              <i data-lucide="mars" class="w-4 h-4 text-color-secondary"></i>
+              <span class="text-sm font-semibold text-gray-700">Nhà trai</span>
+            </div>
+            <div class="p-5 space-y-4">
+              <div class="relative">
+                <label
+                  class="block text-sm text-gray-700 mb-2 flex items-center gap-2"
+                  ><i data-lucide="landmark" class="text-color-secondary"></i
+                  >Tên ngân hàng</label
+                >
+                <input
+                  type="text"
+                  id="groom-bank-input"
+                  placeholder="Tìm theo tên hoặc mã ngân hàng..."
+                  class="w-full h-10 px-3 py-2 border border-gray-200 rounded-md text-sm text-gray-800 bg-white outline-none transition-all placeholder:text-gray-400/50 focus:ring-2 focus:ring-rose-500/30 focus:ring-offset-2"
+                  autocomplete="off"
+                />
+                <input
+                  type="hidden"
+                  name="groom_bank_name"
+                  id="groom-bank-value"
+                />
+                <div
+                  id="groom-bank-dropdown"
+                  class="hidden absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-2xl shadow-lg max-h-60 overflow-y-auto"
+                ></div>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <x-input
+                  label="Số tài khoản"
+                  name="groom_bank_number"
+                  icon="credit-card"
+                  placeholder="Ví dụ: 0123456789"
+                  mono
+                ></x-input>
+                <x-input
+                  label="Tên chủ tài khoản"
+                  name="groom_bank_owner"
+                  icon="user"
+                  placeholder="Ví dụ: DOAN QUANG VINH"
+                ></x-input>
+              </div>
+              <div>
+                <label
+                  class="block text-sm text-gray-700 mb-2 flex items-center gap-2"
+                  ><i data-lucide="qr-code" class="text-color-secondary"></i>Ảnh
+                  QR chuyển khoản</label
+                >
+                <div id="groom-qr-container" class="w-32"></div>
+                <input
+                  type="file"
+                  id="groom-qr-file-input"
+                  accept="image/*"
+                  class="hidden"
+                  onchange="handleImageUpload(event, 'groom_qr_url')"
+                />
+              </div>
+            </div>
+          </div>
+          <div class="rounded-2xl border border-gray-100 overflow-hidden">
+            <div
+              class="px-5 py-3 bg-rose-50 border-b border-rose-100 flex items-center gap-2"
+            >
+              <i data-lucide="venus" class="w-4 h-4 text-color-secondary"></i>
+              <span class="text-sm font-semibold text-gray-700">Nhà gái</span>
+            </div>
+            <div class="p-5 space-y-4">
+              <div class="relative">
+                <label
+                  class="block text-sm text-gray-700 mb-2 flex items-center gap-2"
+                  ><i data-lucide="landmark" class="text-color-secondary"></i
+                  >Tên ngân hàng</label
+                >
+                <input
+                  type="text"
+                  id="bride-bank-input"
+                  placeholder="Tìm theo tên hoặc mã ngân hàng..."
+                  class="w-full h-10 px-3 py-2 border border-gray-200 rounded-md text-sm text-gray-800 bg-white outline-none transition-all placeholder:text-gray-400/50 focus:ring-2 focus:ring-rose-500/30 focus:ring-offset-2"
+                  autocomplete="off"
+                />
+                <input
+                  type="hidden"
+                  name="bride_bank_name"
+                  id="bride-bank-value"
+                />
+                <div
+                  id="bride-bank-dropdown"
+                  class="hidden absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-2xl shadow-lg max-h-60 overflow-y-auto"
+                ></div>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <x-input
+                  label="Số tài khoản"
+                  name="bride_bank_number"
+                  icon="credit-card"
+                  placeholder="Ví dụ: 0987654321"
+                  mono
+                ></x-input>
+                <x-input
+                  label="Tên chủ tài khoản"
+                  name="bride_bank_owner"
+                  icon="user"
+                  placeholder="Ví dụ: VUONG THI HAI YEN"
+                ></x-input>
+              </div>
+              <div>
+                <label
+                  class="block text-sm text-gray-700 mb-2 flex items-center gap-2"
+                  ><i data-lucide="qr-code" class="text-color-secondary"></i>Ảnh
+                  QR chuyển khoản</label
+                >
+                <div id="bride-qr-container" class="w-32"></div>
+                <input
+                  type="file"
+                  id="bride-qr-file-input"
+                  accept="image/*"
+                  class="hidden"
+                  onchange="handleImageUpload(event, 'bride_qr_url')"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 11. FOOTER -->
+      <div
+        class="bg-white rounded-xl overflow-hidden animate-fade-in border border-gray-200"
+      >
+        <div
+          class="bg-white px-6 py-4 border-b border-gray-100 cursor-pointer select-none"
+          onclick="toggleSection('footer')"
+        >
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <i
+                data-lucide="flag"
+                class="text-[18px] text-color-secondary"
+              ></i>
+              <p class="text-sm text-gray-700">Footer</p>
+            </div>
+            <div class="flex items-center gap-3">
+              <x-switch
+                key="footer"
+                onclick="toggleSectionVis('footer', event)"
+              ></x-switch>
+              <i
+                id="section-footer-chevron"
+                data-lucide="chevron-down"
+                class="text-gray-400 text-sm"
+              ></i>
+            </div>
+          </div>
+        </div>
+        <div id="section-footer-body" class="hidden p-6 space-y-4">
+          <x-textarea
+            label="Lời cảm ơn / Footer"
+            icon="heart"
+            name="footer_text"
+            rows="4"
+            placeholder="Ví dụ: Trân trọng cảm ơn sự hiện diện của quý khách. Sự có mặt của bạn là niềm vinh hạnh lớn nhất của chúng tôi."
+          ></x-textarea>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+<!-- /form-panel -->

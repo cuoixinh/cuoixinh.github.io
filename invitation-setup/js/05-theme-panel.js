@@ -23,18 +23,13 @@ function _themeDefaults() {
 
 let _themePanelReady = false;
 
-function _fillFontSelect(selectEl, types) {
-  if (!selectEl || !window.THEME_FONTS) return;
-  selectEl.innerHTML = "";
-  window.THEME_FONTS.filter(
+// Đổ danh sách font vào <x-combobox> (preview đúng font từng dòng, tự lật lên).
+function _fillFontCombo(el, types) {
+  if (!el || !el.setOptions || !window.THEME_FONTS) return;
+  const items = window.THEME_FONTS.filter(
     (f) => types.includes(f.type) || f.type === "both",
-  ).forEach((f) => {
-    const opt = document.createElement("option");
-    opt.value = f.name;
-    opt.textContent = f.name;
-    opt.style.fontFamily = `'${f.name}', sans-serif`;
-    selectEl.appendChild(opt);
-  });
+  ).map((f) => ({ value: f.name, label: f.name }));
+  el.setOptions(items);
 }
 
 // 4 ô màu của thanh chỉnh: id phần tử ↔ khoá trong theme_setting
@@ -78,6 +73,25 @@ function _initColorPickers() {
     margin: 16, // mặc định 2px, sát chip quá
     swatches: (preset && preset.swatches) || [],
   });
+
+  // Fork @melloware/coloris không có option closeButton → tự chèn nút "Xong"
+  // vào cuối bảng chọn (Coloris.close() đóng picker; màu đã áp live nên chỉ
+  // cần đóng). Chèn 1 lần; picker #clr-picker do Coloris dựng sẵn khi init.
+  const picker = document.getElementById("clr-picker");
+
+  // Không cho bàn phím ảo bật lên khi chạm ô hex trong picker (mobile).
+  // inputmode="none" ẩn bàn phím ảo nhưng vẫn gõ được bằng bàn phím cứng.
+  const hexInput = document.getElementById("clr-color-value");
+  if (hexInput) hexInput.setAttribute("inputmode", "none");
+
+  if (picker && !picker.querySelector(".cx-clr-done")) {
+    const done = document.createElement("button");
+    done.type = "button";
+    done.className = "cx-clr-done";
+    done.textContent = "Xong";
+    done.addEventListener("click", () => window.Coloris?.close());
+    picker.appendChild(done);
+  }
 
   THEME_COLOR_FIELDS.forEach(({ id }) => {
     const el = document.getElementById(id);
@@ -133,12 +147,13 @@ function _initThemePanel() {
   });
 
   if (!_themePanelReady) {
-    _fillFontSelect(document.getElementById("theme-heading-font"), ["heading"]);
-    _fillFontSelect(document.getElementById("theme-body-font"), ["body"]);
+    _fillFontCombo(document.getElementById("theme-heading-font"), ["heading"]);
+    _fillFontCombo(document.getElementById("theme-body-font"), ["body"]);
     _initColorPickers();
     _themePanelReady = true;
   }
 
+  // <x-combobox>.value tự đồng bộ nhãn khi gán (kể cả lúc nạp thiệp / reset).
   const hf = document.getElementById("theme-heading-font");
   const bf = document.getElementById("theme-body-font");
   if (hf) hf.value = s.heading_font || d.heading_font;
