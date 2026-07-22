@@ -51,6 +51,58 @@ class AiDAL {
   }
 
   /**
+   * Tối ưu (làm giàu) nội dung MỘT ô văn bản bằng AI.
+   * Dùng chung Edge Function ai-invitation với `mode: "optimize"`; prompt do
+   * `inputType` quyết định ở server.
+   * @param {{inputType:string, text:string, tone?:string}} input
+   *        inputType: slogan | rsvp | footer | love_story | timeline.
+   * @returns {Promise<string>} văn bản đã tối ưu.
+   */
+  async optimizeText({ inputType, text, tone }) {
+    const token = await this._token();
+    const headers = {
+      "Content-Type": "application/json",
+      apikey: CONFIG.supabase.anonKey,
+      Authorization: `Bearer ${token || CONFIG.supabase.anonKey}`,
+    };
+
+    const res = await fetch(this._url, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ mode: "optimize", inputType, text, tone }),
+    });
+
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(json.error || "Không tối ưu được nội dung, vui lòng thử lại");
+    return json.text || "";
+  }
+
+  /**
+   * Tạo "Câu chuyện tình yêu": người dùng kể tự do → AI tách thành danh sách mốc.
+   * Dùng chung Edge Function ai-invitation với `mode: "love_story"`.
+   * @param {{text:string, tone?:string}} input
+   * @returns {Promise<Array<{date:string,title:string,content:string}>>}
+   */
+  async generateLoveStory({ text, tone }) {
+    const token = await this._token();
+    const headers = {
+      "Content-Type": "application/json",
+      apikey: CONFIG.supabase.anonKey,
+      Authorization: `Bearer ${token || CONFIG.supabase.anonKey}`,
+    };
+
+    const res = await fetch(this._url, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ mode: "love_story", text, tone }),
+    });
+
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(json.error || "Không tạo được câu chuyện, vui lòng thử lại");
+    return Array.isArray(json.items) ? json.items : [];
+  }
+
+  /**
    * Sinh nội dung dạng STREAMING: server trả NDJSON, mỗi dòng là một sự kiện.
    * @param {object} input  — như generateInvitation.
    * @param {(evt:{block?:object, full?:object, meta?:object})=>void} onEvent

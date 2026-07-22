@@ -47,7 +47,7 @@ const _AI_BODY_HTML = `
         <x-textarea
           bare
           id="ai-bullets"
-          rows="4"
+          rows="6"
           maxlength="1500"
           input-class="ai-inp resize-none"
           placeholder="Ví dụ: gặp nhau 2021 ở Đà Lạt; lần đầu nắm tay ở Quy Nhơn; cầu hôn đúng dịp sinh nhật…"
@@ -1082,7 +1082,7 @@ function _swapToControl(box, pencil) {
   if (ctrl === "textarea") {
     const el = document.createElement("x-textarea");
     el.setAttribute("bare", "");
-    el.setAttribute("rows", "2");
+    el.setAttribute("rows", "3");
     el.setAttribute("input-class", "ai-inp resize-none");
     ctrlWrap.appendChild(el);
     const ta = el.querySelector("textarea");
@@ -1574,10 +1574,16 @@ function _fabSnapLeft(side, w) {
 const _AI_FAB_POS_KEY = `cuoixinh_ai_fab_pos_${WEDDING_ID}`;
 
 function _loadFabPos() {
-  try { return JSON.parse(localStorage.getItem(_AI_FAB_POS_KEY) || "null"); } catch { return null; }
+  try {
+    return JSON.parse(localStorage.getItem(_AI_FAB_POS_KEY) || "null");
+  } catch {
+    return null;
+  }
 }
 function _saveFabPos(p) {
-  try { localStorage.setItem(_AI_FAB_POS_KEY, JSON.stringify(p)); } catch {}
+  try {
+    localStorage.setItem(_AI_FAB_POS_KEY, JSON.stringify(p));
+  } catch {}
 }
 
 // Áp vị trí thủ công (nếu có), luôn BÁM LỀ theo cạnh đã lưu (giống AssistiveTouch):
@@ -1587,7 +1593,8 @@ function _applyManualFabPos() {
   const pos = _loadFabPos();
   const fab = document.querySelector(".ai-fab");
   if (!pos || !fab) return false;
-  const w = fab.offsetWidth, h = fab.offsetHeight;
+  const w = fab.offsetWidth,
+    h = fab.offsetHeight;
   const vw = document.documentElement.clientWidth;
   const vh = document.documentElement.clientHeight;
   const M = 8;
@@ -1597,7 +1604,7 @@ function _applyManualFabPos() {
   if (pos.side === "left" || pos.side === "right") {
     left = _fabSnapLeft(pos.side, w);
   } else {
-    left = Math.max(M, Math.min(pos.left ?? (vw - w - M), vw - w - M));
+    left = Math.max(M, Math.min(pos.left ?? vw - w - M, vw - w - M));
   }
   const top = Math.max(M, Math.min(pos.top, vh - h - M));
   fab.style.left = left + "px";
@@ -1638,7 +1645,9 @@ function _positionAiFab() {
 // tại, vẫn giữ lối vào AI. KHÔNG ghi nhớ — tải lại trang thì thẻ mời hiện lại.
 function dismissAiFab() {
   document.querySelector(".ai-fab")?.classList.add("collapsed");
-  try { localStorage.setItem(AI_FAB_KEY, "1"); } catch {} // nhớ để lần sau chỉ hiện icon
+  try {
+    localStorage.setItem(AI_FAB_KEY, "1");
+  } catch {} // nhớ để lần sau chỉ hiện icon
   _positionAiFab(); // bề rộng đổi (thẻ → nút nhỏ) → tính lại vị trí cho khớp
 }
 
@@ -1649,15 +1658,23 @@ function _setupFabDrag() {
   const fab = document.querySelector(".ai-fab");
   if (!fab) return;
   const TH = 5;
-  let startX = 0, startY = 0, baseLeft = 0, baseTop = 0, moved = false, dragging = false;
+  let startX = 0,
+    startY = 0,
+    baseLeft = 0,
+    baseTop = 0,
+    moved = false,
+    dragging = false;
 
   fab.addEventListener("pointerdown", (e) => {
     if (e.button !== 0 && e.pointerType === "mouse") return; // chỉ chuột trái
     if (e.target.closest(".ai-fab-close")) return; // nút X — để bấm đóng, không kéo
     const r = fab.getBoundingClientRect();
-    baseLeft = r.left; baseTop = r.top;
-    startX = e.clientX; startY = e.clientY;
-    moved = false; dragging = true;
+    baseLeft = r.left;
+    baseTop = r.top;
+    startX = e.clientX;
+    startY = e.clientY;
+    moved = false;
+    dragging = true;
     // KHÔNG setPointerCapture ở đây: bắt con trỏ ngay từ pointerdown khiến sự kiện
     // click gốc bị nuốt/đổi target → không mở được popup khi CHẠM/BẤM thường. Chỉ bắt
     // con trỏ khi đã thực sự KÉO (xem pointermove).
@@ -1665,15 +1682,19 @@ function _setupFabDrag() {
 
   fab.addEventListener("pointermove", (e) => {
     if (!dragging) return;
-    const dx = e.clientX - startX, dy = e.clientY - startY;
+    const dx = e.clientX - startX,
+      dy = e.clientY - startY;
     if (!moved && Math.hypot(dx, dy) < TH) return;
     if (!moved) {
       moved = true;
       // Vượt ngưỡng → mới là kéo: giờ mới bắt con trỏ để bám tay kể cả khi ra ngoài thẻ.
-      try { fab.setPointerCapture(e.pointerId); } catch {}
+      try {
+        fab.setPointerCapture(e.pointerId);
+      } catch {}
     }
     fab.classList.add("dragging");
-    const w = fab.offsetWidth, h = fab.offsetHeight;
+    const w = fab.offsetWidth,
+      h = fab.offsetHeight;
     const vw = document.documentElement.clientWidth;
     const vh = document.documentElement.clientHeight;
     const M = 8;
@@ -1688,34 +1709,47 @@ function _setupFabDrag() {
   const end = (e) => {
     if (!dragging) return;
     dragging = false;
-    try { fab.releasePointerCapture(e.pointerId); } catch {}
+    try {
+      fab.releasePointerCapture(e.pointerId);
+    } catch {}
     if (moved) {
       fab.classList.remove("dragging");
       // Bám lề gần nhất theo chiều ngang (giống bong bóng AssistiveTouch iPhone):
       // tâm thẻ ở nửa trái → dán lề trái, nửa phải → dán lề phải. Nhưng "lề" ở đây là
       // lề của #wedding-form (cách 16px) — trùng đúng vị trí lúc hiển thị card, chứ
       // không phải mép màn. Giữ nguyên chiều dọc.
-      const w = fab.offsetWidth, h = fab.offsetHeight;
+      const w = fab.offsetWidth,
+        h = fab.offsetHeight;
       const vw = document.documentElement.clientWidth;
       const vh = document.documentElement.clientHeight;
       const M = 8;
       const r = fab.getBoundingClientRect();
-      const side = (r.left + w / 2) < vw / 2 ? "left" : "right";
+      const side = r.left + w / 2 < vw / 2 ? "left" : "right";
       const snapLeft = _fabSnapLeft(side, w);
       const top = Math.max(M, Math.min(r.top, vh - h - M));
       // Trượt mượt về lề rồi bỏ transition để lần kéo sau vẫn bám tay tức thì.
-      fab.style.transition = "left 0.22s cubic-bezier(0.32,0.72,0,1), top 0.22s cubic-bezier(0.32,0.72,0,1)";
+      fab.style.transition =
+        "left 0.22s cubic-bezier(0.32,0.72,0,1), top 0.22s cubic-bezier(0.32,0.72,0,1)";
       fab.style.left = snapLeft + "px";
       fab.style.top = top + "px";
       fab.style.right = "auto";
       fab.style.bottom = "auto";
-      const clearT = () => { fab.style.transition = ""; fab.removeEventListener("transitionend", clearT); };
+      const clearT = () => {
+        fab.style.transition = "";
+        fab.removeEventListener("transitionend", clearT);
+      };
       fab.addEventListener("transitionend", clearT);
       _saveFabPos({ side, top }); // nhớ cạnh đã bám
       // Nuốt cú click sinh ra ngay sau khi thả để không mở popup do vừa kéo.
-      const swallow = (ev) => { ev.stopPropagation(); ev.preventDefault(); };
+      const swallow = (ev) => {
+        ev.stopPropagation();
+        ev.preventDefault();
+      };
       fab.addEventListener("click", swallow, { capture: true, once: true });
-      setTimeout(() => fab.removeEventListener("click", swallow, { capture: true }), 0);
+      setTimeout(
+        () => fab.removeEventListener("click", swallow, { capture: true }),
+        0,
+      );
     }
   };
   fab.addEventListener("pointerup", end);

@@ -53,8 +53,9 @@ Không gọi thẳng từ UI xuống DAL bỏ qua BL khi có logic nghiệp vụ
 ## Quy tắc bắt buộc
 
 ### CSS
-- **Luôn dùng Tailwind CSS** làm mặc định — style bằng utility class, hạn chế viết CSS thủ công. Config: `public/themes/tailwind.config.js`.
+- **Luôn dùng Tailwind CSS** làm mặc định — style bằng utility class, hạn chế viết CSS thủ công. Config runtime: `public/themes/tailwind.config.js` (Tailwind Play CDN, không build).
 - Khi buộc phải viết CSS/giá trị tuỳ chỉnh (arbitrary value, file `.css`): dùng **`px`** (không dùng `rem`) và **bội số của 4** (4, 8, 12, 16, 24…).
+- **`styles/common.css` là FILE SINH RA — đừng sửa trực tiếp.** Sửa nguồn `styles/common.src.css` (các class `.btn-*` dùng `@apply`) rồi chạy `npm run build:css` (hoặc `npm run watch:css`) để biên dịch. Config build: `styles/tailwind.build.cjs` (`content:[]`, `preflight:false` — chỉ nở `@apply`, không quét HTML, không chèn reset). CDN vẫn lo utility trong `class=` lúc chạy.
 
 ### Database (Supabase)
 - Mọi thay đổi schema → viết script SQL vào `changelogs/RCx.y/` (thư mục mới), **idempotent** (`if not exists`, `add column if not exists`…).

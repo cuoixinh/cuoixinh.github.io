@@ -75,6 +75,7 @@
     "js/16-ceremony.js",
     "js/17-pickers.js",
     "js/18-theme-picker.js",
+    "js/19-ai-optimize.js",
     "ai-modal.js",
     "tour-setup.js",
   ];

@@ -15,7 +15,7 @@
 //    (việc xác thực/tuỳ chọn đã xử lý bên trong hàm).
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { withAxiom } from '../_shared/axiom.ts'
+import { withAxiom, type Logger } from '../_shared/axiom.ts'
 
 // ── Cấu hình ────────────────────────────────────────────────────────────────
 const ALLOWED_ORIGINS = [
@@ -36,6 +36,7 @@ const MAX_INFO_LEN     = 2500    // textarea "thông tin cá nhân" (dump tự d
 const MAX_LOVE_ITEMS   = 10     // khớp core/config.js → maxLoveStoryItems (cap cứng khi áp vào thiệp)
 const MAX_TIMELINE     = 10
 const MAX_TEXT_LEN     = 600     // giới hạn mỗi trường text AI trả về
+const MAX_OPTIMIZE_IN  = 800     // độ dài tối đa văn bản đầu vào cho nút "Tối ưu"
 
 // Whitelist field AI được phép điền + độ dài tối đa (an toàn, chống bơm khoá lạ).
 // KHÔNG có: ảnh, *_map_embed_url, music_url (AI không tự sinh được/không nên bịa).
@@ -199,6 +200,88 @@ Danh sách "key" hợp lệ cho block "field": groom_name, bride_name, ceremony_
 THỨ TỰ XUẤT BLOCK (QUAN TRỌNG — phải theo ĐÚNG thứ tự này để khớp giao diện hiển thị, xuất dần từng block một): (1) TẤT CẢ các block "field" trước; (2) rồi CÁC BLOCK LOVE (bắt buộc có nếu người dùng kể chuyện tình — xem mục 7); (3) rồi các block "timeline"; (4) CUỐI CÙNG là block "text" story_quote. Trả về DUY NHẤT một mảng JSON theo đúng thứ tự trên.`
 }
 
+// ── Prompt cho nút "Tối ưu" (làm giàu 1 ô văn bản theo inputType) ─────────────
+// Mỗi loại ô có hướng dẫn + giới hạn riêng. `multiline=false` → ép về 1 dòng.
+const OPTIMIZE_SPECS: Record<string, { maxOut: number; multiline: boolean; guide: string }> = {
+  slogan: {
+    maxOut: 200, multiline: false,
+    guide: 'Slogan / lời ngỏ của cặp đôi in trên thiệp: CHỈ 1 câu ngắn gọn (khoảng 12–24 chữ), tối đa 2 vế, giàu chất thơ và cảm xúc. TUYỆT ĐỐI KHÔNG chứa tên riêng, ngày tháng hay địa điểm — mang tính phổ quát về tình yêu/hôn nhân. KHÔNG đặt dấu ngoặc kép.',
+  },
+  rsvp: {
+    maxOut: 400, multiline: true,
+    guide: 'Lời nhắn mời khách xác nhận tham dự (RSVP): ấm áp, chân thành, trân trọng lời mời và mong khách phản hồi. Khoảng 1–2 câu.',
+  },
+  footer: {
+    maxOut: 300, multiline: true,
+    guide: 'Lời cảm ơn ở cuối thiệp (footer): trang trọng, ấm áp, cảm ơn sự hiện diện của quan khách. Khoảng 1–2 câu.',
+  },
+  love_story: {
+    maxOut: 400, multiline: true,
+    guide: 'Nội dung MỘT mốc trong câu chuyện tình yêu: kể lại khoảnh khắc đó thật sinh động, giàu cảm xúc và cụ thể. Khoảng 1–2 câu. KHÔNG bịa chi tiết nhạy cảm (địa chỉ, tên người lạ) không có trong bản gốc.',
+  },
+  timeline: {
+    maxOut: 120, multiline: false,
+    guide: 'Tên/mô tả MỘT sự kiện trong lịch trình ngày cưới (ví dụ "Đón khách", "Làm lễ gia tiên"): viết ngắn gọn, rõ ràng, trang trọng và mạch lạc hơn. TỐI ĐA khoảng 6–10 chữ, KHÔNG kèm giờ giấc.',
+  },
+  share: {
+    maxOut: 500, multiline: true,
+    guide: 'Tin nhắn mời khách kèm link thiệp (gửi qua Zalo/Messenger): thân mật, ấm áp, dễ thương, mời khách bấm vào xem thiệp. Khoảng 1–3 câu. TUYỆT ĐỐI GIỮ NGUYÊN VĂN mọi biến dạng ##...## (ví dụ ##Danh xưng##, ##link##) — KHÔNG dịch, KHÔNG đổi tên, KHÔNG xoá, KHÔNG thêm khoảng trắng bên trong; giữ đúng SỐ LƯỢNG và vị trí hợp lý (##Danh xưng## ở lời chào đầu, ##link## ở cuối). Nếu bản gốc thiếu ##link## thì thêm câu mời kèm ##link## ở cuối.',
+  },
+}
+
+function buildOptimizePrompt(inputType: string, text: string, tone: string): string {
+  const spec = OPTIMIZE_SPECS[inputType]
+  return `Bạn là trợ lý biên tập nội dung thiệp cưới tiếng Việt. Nhiệm vụ: VIẾT LẠI đoạn dưới đây cho hay hơn — sinh động, giàu cảm xúc, mượt mà hơn — nhưng GIỮ ĐÚNG ý gốc của người dùng.
+
+Loại nội dung: ${spec.guide}
+Văn phong: ${TONE_LABEL[tone] ?? TONE_LABEL.romantic}.
+
+QUY TẮC:
+- Bám sát ý & thông tin có thật người dùng nhập; KHÔNG bịa thêm chi tiết cá nhân (tên, ngày, địa chỉ, con số) không có trong bản gốc.
+- Viết tiếng Việt tự nhiên, có dấu đầy đủ.
+${spec.multiline ? '' : '- Chỉ MỘT dòng, KHÔNG xuống dòng.\n'}- Trả về DUY NHẤT đoạn văn bản đã tối ưu — KHÔNG giải thích, KHÔNG markdown, KHÔNG bao ngoặc kép.
+
+Đoạn gốc của người dùng:
+"""
+${text}
+"""`
+}
+
+// ── Prompt "Tạo câu chuyện tình yêu" (sinh danh sách mốc từ đoạn kể tự do) ────
+const LOVE_ITEM_SCHEMA = {
+  type: 'array',
+  items: {
+    type: 'object',
+    properties: {
+      date: { type: 'string', description: 'Mốc thời gian ngắn, VD "Mùa xuân 2020" (có thể rỗng)' },
+      title: { type: 'string', description: 'Tiêu đề ngắn cho khoảnh khắc' },
+      content: { type: 'string', description: '1-2 câu kể lại sinh động, giàu cảm xúc' },
+    },
+    required: ['title', 'content'],
+  },
+}
+
+function buildLoveStoryPrompt(text: string, tone: string): string {
+  return `Bạn là trợ lý viết "Câu chuyện tình yêu" cho thiệp cưới tiếng Việt. Người dùng kể TỰ DO câu chuyện của họ (một đoạn liền mạch, có thể gộp nhiều ý trong một câu, hoặc mỗi ý một dòng). Nhiệm vụ: đọc hiểu rồi TÁCH thành các MỐC theo dòng thời gian, mỗi mốc là một object {date, title, content}.
+
+Văn phong: ${TONE_LABEL[tone] ?? TONE_LABEL.romantic}.
+
+QUY TẮC:
+- SỐ MỐC = số sự kiện/khoảnh khắc bạn TỰ nhận diện theo NGỮ NGHĨA (KHÔNG phải số dòng). Tối đa ${MAX_LOVE_ITEMS} mốc.
+- TÁCH/GỘP: một câu chứa nhiều sự kiện thì tách thành nhiều mốc; nhiều câu tả cùng một khoảnh khắc thì gộp làm một. Giữ ĐÚNG ý & đúng thứ tự thời gian, KHÔNG bỏ sót sự kiện nào, KHÔNG bịa sự kiện mới.
+- "date": mốc thời gian ngắn (VD "Mùa xuân 2020", "03/2021", "Hè 2022") nếu suy ra được từ lời kể; không rõ thì để "".
+- "title": tiêu đề ngắn gọn cho khoảnh khắc (VD "Lần đầu gặp gỡ", "Ngày cầu hôn").
+- "content": BẮT BUỘC 1-2 câu kể lại sinh động, giàu cảm xúc, cụ thể hoá khoảnh khắc đó. KHÔNG lặp lại suông title, KHÔNG bịa chi tiết nhạy cảm (địa chỉ, tên người lạ) không có trong lời kể.
+- Tiếng Việt tự nhiên, có dấu đầy đủ.
+
+ĐẦU RA BẮT BUỘC: DUY NHẤT một MẢNG JSON các object {date, title, content} theo thứ tự thời gian, KHÔNG markdown, KHÔNG object bọc ngoài.
+
+Câu chuyện người dùng kể:
+"""
+${text}
+"""`
+}
+
 // Schema ép cấu trúc cho Gemini: MẢNG các phần tử theo anyOf (mỗi block 1 dạng riêng).
 // Nhờ anyOf, block "love" BẮT BUỘC có title + content (structured output không thể bỏ
 // qua content nữa). Wire format vẫn là [{...},{...}] nên scanner streaming đọc từng
@@ -246,6 +329,39 @@ const RESPONSE_SCHEMA = {
   items: { anyOf: [BLOCK_TEXT, BLOCK_LOVE, BLOCK_TIMELINE, BLOCK_FIELD] },
 }
 
+// ── Cấu hình gọi provider (gom 1 chỗ cho dễ chỉnh) ───────────────────────────
+const GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta/models'
+const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions'
+
+// generationConfig của Gemini theo từng tác vụ.
+const GEN_CFG_INVITATION = {
+  temperature: 0.9,
+  responseMimeType: 'application/json',
+  responseSchema: RESPONSE_SCHEMA,
+  // Nới trần token: tránh JSON bị cắt ngang khiến block cuối (slogan) bị mất.
+  maxOutputTokens: 65536,
+}
+const GEN_CFG_TEXT = { temperature: 0.9, maxOutputTokens: 2048 }
+const GEN_CFG_LOVE = {
+  temperature: 0.9,
+  responseMimeType: 'application/json',
+  responseSchema: LOVE_ITEM_SCHEMA,
+  maxOutputTokens: 16384,
+}
+
+// System message của Groq (fallback) theo từng tác vụ.
+const GROQ_SYS_INVITATION =
+  'Bạn trả về DUY NHẤT một object JSON hợp lệ, không markdown, gồm các khoá: story_quote (string), love_story (mảng {date,title,content}), timeline (mảng {time,title,type}), fields (object các trường thông tin thiệp; chỉ điền field người dùng cung cấp, không có thì ""). Tuân thủ mọi quy tắc trong phần hướng dẫn của người dùng.'
+const GROQ_SYS_TEXT =
+  'Bạn là trợ lý biên tập tiếng Việt. Chỉ trả về DUY NHẤT đoạn văn bản đã tối ưu, KHÔNG giải thích, KHÔNG markdown, KHÔNG bao ngoặc kép.'
+const GROQ_SYS_LOVE =
+  'Bạn trả về DUY NHẤT một object JSON hợp lệ dạng {"items":[{"date":"","title":"","content":""}, ...]}, không markdown. Tuân thủ mọi quy tắc trong phần hướng dẫn của người dùng.'
+
+// Rút gọn message lỗi cho log. (Kiểu log dùng chung `Logger` từ _shared/axiom.ts.)
+function errMsg(e: unknown): string {
+  return e instanceof Error ? e.message : String(e)
+}
+
 // ── Gọi provider ─────────────────────────────────────────────────────────────
 function withTimeout(ms: number) {
   const ctrl = new AbortController()
@@ -264,46 +380,19 @@ function getGeminiKeys(): string[] {
   return [...new Set(keys)] // loại trùng
 }
 
-// Thử lần lượt từng key Gemini; gặp lỗi/hết quota (429) thì xoay sang key kế tiếp.
-// Bắt đầu từ vị trí ngẫu nhiên để rải tải giữa các key.
-async function callGeminiRotating(prompt: string, keys: string[]): Promise<string> {
-  const n = keys.length
-  const start = Math.floor(Math.random() * n)
-  let lastErr: unknown = null
-  for (let i = 0; i < n; i++) {
-    const key = keys[(start + i) % n]
-    try {
-      return await callGemini(prompt, key)
-    } catch (e) {
-      lastErr = e
-      console.error(`Gemini key #${(start + i) % n} failed:`, e instanceof Error ? e.message : e)
-      // tiếp tục sang key kế tiếp
-    }
-  }
-  throw lastErr ?? new Error('gemini all keys failed')
-}
-
-async function callGemini(prompt: string, apiKey: string): Promise<string> {
+// Gọi Gemini generateContent với generationConfig tuỳ tác vụ (GEN_CFG_*).
+async function callGemini(prompt: string, apiKey: string, genConfig: Record<string, unknown>): Promise<string> {
   const t = withTimeout(REQ_TIMEOUT_MS)
   try {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        signal: t.signal,
-        body: JSON.stringify({
-          contents: [{ role: 'user', parts: [{ text: prompt }] }],
-          generationConfig: {
-            temperature: 0.9,
-            responseMimeType: 'application/json',
-            responseSchema: RESPONSE_SCHEMA,
-            // Tắt "thinking" (2.5-flash bật mặc định) + nới trần token: tránh JSON
-            maxOutputTokens: 65536
-          },
-        }),
-      },
-    )
+    const res = await fetch(`${GEMINI_BASE}/${GEMINI_MODEL}:generateContent?key=${apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      signal: t.signal,
+      body: JSON.stringify({
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        generationConfig: genConfig,
+      }),
+    })
     if (!res.ok) throw new Error(`gemini ${res.status}`)
     const data = await res.json()
     const text = data?.candidates?.[0]?.content?.parts?.[0]?.text
@@ -314,29 +403,42 @@ async function callGemini(prompt: string, apiKey: string): Promise<string> {
   }
 }
 
-async function callGroq(prompt: string, apiKey: string): Promise<string> {
+// Thử lần lượt từng key Gemini; lỗi/hết quota (429) thì xoay sang key kế tiếp.
+// Bắt đầu từ vị trí ngẫu nhiên để rải tải giữa các key.
+async function callGeminiRotating(prompt: string, keys: string[], genConfig: Record<string, unknown>): Promise<string> {
+  const n = keys.length
+  const start = Math.floor(Math.random() * n)
+  let lastErr: unknown = null
+  for (let i = 0; i < n; i++) {
+    const key = keys[(start + i) % n]
+    try {
+      return await callGemini(prompt, key, genConfig)
+    } catch (e) {
+      lastErr = e
+      console.error(`Gemini key #${(start + i) % n} failed:`, errMsg(e))
+    }
+  }
+  throw lastErr ?? new Error('gemini all keys failed')
+}
+
+// Gọi Groq (fallback) — system tuỳ tác vụ (GROQ_SYS_*); jsonMode bật response_format json_object.
+async function callGroq(prompt: string, apiKey: string, opts: { system: string; jsonMode?: boolean }): Promise<string> {
   const t = withTimeout(REQ_TIMEOUT_MS)
   try {
-    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    const payload: Record<string, unknown> = {
+      model: GROQ_MODEL,
+      temperature: 0.9,
+      messages: [
+        { role: 'system', content: opts.system },
+        { role: 'user', content: prompt },
+      ],
+    }
+    if (opts.jsonMode) payload.response_format = { type: 'json_object' }
+    const res = await fetch(GROQ_URL, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      },
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
       signal: t.signal,
-      body: JSON.stringify({
-        model: GROQ_MODEL,
-        temperature: 0.9,
-        response_format: { type: 'json_object' },
-        messages: [
-          {
-            role: 'system',
-            content:
-              'Bạn trả về DUY NHẤT một object JSON hợp lệ, không markdown, gồm các khoá: story_quote (string), love_story (mảng {date,title,content}), timeline (mảng {time,title,type}), fields (object các trường thông tin thiệp; chỉ điền field người dùng cung cấp, không có thì ""). Tuân thủ mọi quy tắc trong phần hướng dẫn của người dùng.',
-          },
-          { role: 'user', content: prompt },
-        ],
-      }),
+      body: JSON.stringify(payload),
     })
     if (!res.ok) throw new Error(`groq ${res.status}`)
     const data = await res.json()
@@ -346,6 +448,69 @@ async function callGroq(prompt: string, apiKey: string): Promise<string> {
   } finally {
     t.clear()
   }
+}
+
+// HÀM CHUNG cho MỌI tác vụ non-stream: Gemini (xoay vòng key) → fallback Groq.
+// Trả { raw, provider } hoặc null nếu cả hai provider đều hỏng.
+async function generateWithFallback(
+  prompt: string,
+  cfg: { gemini: Record<string, unknown>; groq: { system: string; jsonMode?: boolean } },
+  log: Logger,
+  tag: string,
+): Promise<{ raw: string; provider: string } | null> {
+  const keys = getGeminiKeys()
+  if (keys.length) {
+    try {
+      return { raw: await callGeminiRotating(prompt, keys, cfg.gemini), provider: 'gemini' }
+    } catch (e) {
+      log.warn(`ai.${tag}_gemini_failed`, { error: errMsg(e) })
+    }
+  }
+  const groqKey = Deno.env.get('GROQ_API_KEY')
+  if (groqKey) {
+    try {
+      return { raw: await callGroq(prompt, groqKey, cfg.groq), provider: 'groq' }
+    } catch (e) {
+      log.warn(`ai.${tag}_groq_failed`, { error: errMsg(e) })
+    }
+  }
+  return null
+}
+
+// Parse + clamp danh sách mốc chuyện tình (chấp nhận mảng thẳng hoặc {items|love_story:[...]}).
+function cleanLoveItems(rawText: string): Array<{ date: string; title: string; content: string }> {
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(rawText)
+  } catch {
+    const m = rawText.match(/\[[\s\S]*\]/) || rawText.match(/\{[\s\S]*\}/)
+    if (!m) return []
+    try { parsed = JSON.parse(m[0]) } catch { return [] }
+  }
+  const arr: any[] = Array.isArray(parsed)
+    ? parsed
+    : (Array.isArray((parsed as any)?.items) ? (parsed as any).items
+      : Array.isArray((parsed as any)?.love_story) ? (parsed as any).love_story : [])
+  const out: Array<{ date: string; title: string; content: string }> = []
+  for (const it of arr) {
+    if (out.length >= MAX_LOVE_ITEMS) break
+    const date = clampStr(it?.date, 40)
+    const title = clampStr(it?.title, 120)
+    const content = clampStr(it?.content, MAX_TEXT_LEN)
+    if (title || content) out.push({ date, title, content })
+  }
+  return out
+}
+
+// Làm sạch text tối ưu: bỏ hàng rào code, ngoặc kép bao ngoài, gộp khoảng trắng, clamp.
+function cleanOptimizeOut(raw: string, max: number): string {
+  let s = String(raw ?? '')
+    .replace(/^\s*```[a-zA-Z]*\s*/, '')
+    .replace(/\s*```\s*$/, '')
+    .trim()
+  s = s.replace(/^["'“”«»]+/, '').replace(/["'“”«»]+$/, '').trim()
+  s = s.replace(/[ \t]+/g, ' ').replace(/\n{3,}/g, '\n\n').trim()
+  return s.slice(0, max)
 }
 
 // ── Chuẩn hoá output (theo block) ────────────────────────────────────────────
@@ -568,24 +733,42 @@ function clientIp(req: Request): string {
   return first || req.headers.get('x-real-ip') || 'unknown'
 }
 
+// HÀM CHUNG: bump + kiểm hạn mức (theo user nếu đăng nhập, ngược lại theo IP).
+// Trả null nếu còn lượt; trả Response 429 nếu đã hết (để handler return luôn).
+async function enforceRateLimit(
+  req: Request,
+  admin: ReturnType<typeof createClient>,
+  user: { id: string } | null,
+  origin: string | null,
+): Promise<Response | null> {
+  const allowed = user
+    ? await checkAndBumpUsage(admin, user.id)
+    : await checkAndBumpUsageIp(admin, clientIp(req))
+  if (allowed) return null
+  const limit = user ? DAILY_LIMIT : ANON_DAILY_LIMIT
+  return json(
+    { error: `Bạn đã dùng hết ${limit} lượt AI hôm nay. Vui lòng thử lại vào ngày mai${user ? '' : ' hoặc đăng nhập để có thêm lượt'}.` },
+    429,
+    origin,
+  )
+}
+
+// Chuẩn hoá tone: chỉ nhận trong VALID_TONES, mặc định 'romantic'.
+function pickTone(v: unknown): string {
+  return VALID_TONES.includes(String(v)) ? String(v) : 'romantic'
+}
+
 // ── Streaming (block-by-block) ───────────────────────────────────────────────
 async function callGeminiStreamRaw(prompt: string, apiKey: string, signal: AbortSignal): Promise<Response> {
   const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:streamGenerateContent?alt=sse&key=${apiKey}`,
+    `${GEMINI_BASE}/${GEMINI_MODEL}:streamGenerateContent?alt=sse&key=${apiKey}`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       signal,
       body: JSON.stringify({
         contents: [{ role: 'user', parts: [{ text: prompt }] }],
-        generationConfig: {
-          temperature: 0.9,
-          responseMimeType: 'application/json',
-          responseSchema: RESPONSE_SCHEMA,
-          // Tắt "thinking" (2.5-flash bật mặc định) + nới trần token: tránh JSON
-          // bị cắt ngang khiến block CUỐI (slogan story_quote) bị mất.
-          maxOutputTokens: 65536,
-        },
+        generationConfig: GEN_CFG_INVITATION,
       }),
     },
   )
@@ -662,7 +845,7 @@ function buildStreamResponse(
       // Fallback Groq (non-stream) chỉ khi CHƯA emit được block nào
       if (emitted === 0 && groqKey) {
         try {
-          const text = await callGroq(prompt, groqKey)
+          const text = await callGroq(prompt, groqKey, { system: GROQ_SYS_INVITATION, jsonMode: true })
           const result = parseAndClamp(text)
           send({ full: result })
           provider = 'groq'
@@ -686,6 +869,74 @@ function buildStreamResponse(
       'Cache-Control': 'no-cache',
     },
   })
+}
+
+// ── Nhánh "Tối ưu" (làm giàu 1 ô văn bản) ────────────────────────────────────
+// Dùng chung xác thực/rate-limit/CORS với luồng sinh thiệp. Nhận { inputType, text,
+// tone? } → trả { text }. inputType quyết định prompt (xem OPTIMIZE_SPECS).
+async function handleOptimize(
+  req: Request,
+  admin: ReturnType<typeof createClient>,
+  user: { id: string } | null,
+  origin: string | null,
+  body: Record<string, unknown>,
+  log: Logger,
+): Promise<Response> {
+  const inputType = String(body.inputType ?? '')
+  const spec = OPTIMIZE_SPECS[inputType]
+  if (!spec) return json({ error: 'Loại nội dung không hợp lệ' }, 400, origin)
+
+  const text = clampText(body.text, MAX_OPTIMIZE_IN)
+  if (!text) return json({ error: 'Chưa có nội dung để tối ưu' }, 400, origin)
+
+  const limited = await enforceRateLimit(req, admin, user, origin)
+  if (limited) return limited
+
+  const res = await generateWithFallback(
+    buildOptimizePrompt(inputType, text, pickTone(body.tone)),
+    { gemini: GEN_CFG_TEXT, groq: { system: GROQ_SYS_TEXT } },
+    log,
+    'optimize',
+  )
+  if (!res) return json({ error: 'Dịch vụ AI đang bận, vui lòng thử lại sau ít phút.' }, 503, origin)
+
+  let out = cleanOptimizeOut(res.raw, spec.maxOut)
+  if (!spec.multiline) out = out.replace(/\s*\n+\s*/g, ' ').trim()
+  if (!out) return json({ error: 'AI chưa tối ưu được, vui lòng thử lại.' }, 502, origin)
+
+  log.info('ai.optimized', { inputType, provider: res.provider, anon: !user })
+  return json({ text: out, provider: res.provider }, 200, origin)
+}
+
+// ── Nhánh "Tạo câu chuyện tình yêu" (sinh danh sách mốc) ─────────────────────
+// Dùng chung xác thực/rate-limit/CORS. Nhận { text, tone? } → trả { items:[{date,title,content}] }.
+async function handleLoveStory(
+  req: Request,
+  admin: ReturnType<typeof createClient>,
+  user: { id: string } | null,
+  origin: string | null,
+  body: Record<string, unknown>,
+  log: Logger,
+): Promise<Response> {
+  const text = clampText(body.text, MAX_STORY_LOVE_LEN)
+  if (!text) return json({ error: 'Hãy kể câu chuyện tình yêu trước' }, 400, origin)
+
+  const limited = await enforceRateLimit(req, admin, user, origin)
+  if (limited) return limited
+
+  const res = await generateWithFallback(
+    buildLoveStoryPrompt(text, pickTone(body.tone)),
+    { gemini: GEN_CFG_LOVE, groq: { system: GROQ_SYS_LOVE, jsonMode: true } },
+    log,
+    'love',
+  )
+  if (!res) return json({ error: 'Dịch vụ AI đang bận, vui lòng thử lại sau ít phút.' }, 503, origin)
+
+  const items = cleanLoveItems(res.raw)
+  if (!items.length) return json({ error: 'AI chưa tạo được mốc nào, vui lòng thử lại.' }, 502, origin)
+
+  log.info('ai.love_generated', { count: items.length, provider: res.provider, anon: !user })
+  return json({ items, provider: res.provider }, 200, origin)
 }
 
 // ── Handler ──────────────────────────────────────────────────────────────────
@@ -718,67 +969,41 @@ Deno.serve(withAxiom('ai-invitation', async (req, log) => {
     return json({ error: 'Dữ liệu không hợp lệ' }, 400, origin)
   }
 
+  // 2.5) Nhánh "Tối ưu": làm giàu 1 ô văn bản (shape input khác, xử lý riêng).
+  if (body.mode === 'optimize') {
+    return await handleOptimize(req, admin, user, origin, body, log)
+  }
+
+  // 2.6) Nhánh "Tạo câu chuyện tình yêu": sinh danh sách mốc từ đoạn kể tự do.
+  if (body.mode === 'love_story') {
+    return await handleLoveStory(req, admin, user, origin, body, log)
+  }
+
   const input = sanitizeInput(body)
   if (!input) return json({ error: 'Vui lòng nhập thông tin cô dâu, chú rể' }, 400, origin)
 
-  // 3) Rate limit: theo user nếu đã đăng nhập, ngược lại theo IP.
-  let allowed: boolean
-  let limitForMsg: number
-  if (user) {
-    allowed = await checkAndBumpUsage(admin, user.id)
-    limitForMsg = DAILY_LIMIT
-  } else {
-    allowed = await checkAndBumpUsageIp(admin, clientIp(req))
-    limitForMsg = ANON_DAILY_LIMIT
-  }
-  if (!allowed) {
-    return json(
-      { error: `Bạn đã dùng hết ${limitForMsg} lượt tạo bằng AI hôm nay. Vui lòng thử lại vào ngày mai${user ? '' : ' hoặc đăng nhập để có thêm lượt'}.` },
-      429,
-      origin,
-    )
-  }
+  // 3) Rate limit (hàm chung: theo user nếu đăng nhập, ngược lại theo IP).
+  const limited = await enforceRateLimit(req, admin, user, origin)
+  if (limited) return limited
 
   const prompt = buildPrompt(input)
-  const geminiKeys = getGeminiKeys()
-  const groqKey = Deno.env.get('GROQ_API_KEY')
 
   // 3.5) Streaming: client gửi { stream: true } và có key Gemini → trả NDJSON từng block.
-  if (body.stream === true && geminiKeys.length) {
-    return buildStreamResponse(prompt, geminiKeys, groqKey, origin)
+  if (body.stream === true && getGeminiKeys().length) {
+    return buildStreamResponse(prompt, getGeminiKeys(), Deno.env.get('GROQ_API_KEY'), origin)
   }
 
-  // 4) Gọi AI non-stream (Gemini → Groq fallback)
-  let rawText: string | null = null
-  let provider = ''
-
-  if (geminiKeys.length) {
-    try {
-      rawText = await callGeminiRotating(prompt, geminiKeys)
-      provider = 'gemini'
-    } catch (e) {
-      // Warn (còn fallback Groq): log message thật để biết vì sao Gemini hỏng.
-      const msg = e instanceof Error ? e.message : String(e)
-      console.error('Gemini (all keys) failed:', msg)
-      log.warn('ai.gemini_failed', { error: msg })
-    }
-  }
-
-  if (!rawText && groqKey) {
-    try {
-      rawText = await callGroq(prompt, groqKey)
-      provider = 'groq'
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e)
-      console.error('Groq failed:', msg)
-      log.warn('ai.groq_failed', { error: msg })
-    }
-  }
-
-  if (!rawText) {
+  // 4) Gọi AI non-stream qua hàm chung (Gemini → Groq fallback).
+  const res = await generateWithFallback(
+    prompt,
+    { gemini: GEN_CFG_INVITATION, groq: { system: GROQ_SYS_INVITATION, jsonMode: true } },
+    log,
+    'generate',
+  )
+  if (!res) {
     log.error('ai.all_providers_failed', {
-      gemini_keys: geminiKeys.length,
-      has_groq: Boolean(groqKey),
+      gemini_keys: getGeminiKeys().length,
+      has_groq: Boolean(Deno.env.get('GROQ_API_KEY')),
     })
     return json({ error: 'Dịch vụ AI đang bận, vui lòng thử lại sau ít phút.' }, 503, origin)
   }
@@ -786,11 +1011,11 @@ Deno.serve(withAxiom('ai-invitation', async (req, log) => {
   // 5) Chuẩn hoá + clamp output
   let result: Record<string, unknown>
   try {
-    result = parseAndClamp(rawText)
+    result = parseAndClamp(res.raw)
   } catch (e) {
     log.error('ai.parse_failed', {
-      error: e instanceof Error ? e.message : String(e),
-      raw_snippet: String(rawText).slice(0, 500),
+      error: errMsg(e),
+      raw_snippet: String(res.raw).slice(0, 500),
     })
     return json({ error: 'AI trả về không hợp lệ, vui lòng thử lại.' }, 502, origin)
   }
@@ -799,6 +1024,6 @@ Deno.serve(withAxiom('ai-invitation', async (req, log) => {
     return json({ error: 'AI chưa tạo được nội dung, vui lòng thử lại.' }, 502, origin)
   }
 
-  log.info('ai.generated', { provider, anon: !user })
-  return json({ data: result, provider }, 200, origin)
+  log.info('ai.generated', { provider: res.provider, anon: !user })
+  return json({ data: result, provider: res.provider }, 200, origin)
 }))

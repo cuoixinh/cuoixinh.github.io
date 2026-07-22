@@ -13,28 +13,47 @@
 //  • Phím tắt chỉ chặn khi con trỏ đang Ở TRONG ô đó (listener gắn trên chính ô).
 //
 // Cách dùng:
-//    attachUndoRedo(textareaEl);                       // gắn vào ô, nút góc dưới-phải
+//    attachUndoRedo(textareaEl);                       // gắn vào ô → thanh navbar đáy
 //    attachUndoRedo(el, { mount, className, max });     // tuỳ biến vị trí/gắn/độ sâu
 //
-// mount mặc định là el.parentElement và cần position:relative để nút định vị đúng.
-// (Với <x-textarea>, .x-ta-wrap đã là position:relative sẵn.)
+// mount mặc định là el.parentElement; nếu đang position:static sẽ tự set relative để
+// thanh công cụ định vị đúng. (Với <x-textarea>, .x-ta-wrap đã relative sẵn.)
+//
+// Bố cục: attachUndoRedo bọc textarea trong 1 KHUNG .x-ta-frame (flex cột). Khung mang
+// VIỀN GIẢ (border + bo góc + focus ring); textarea bên trong bỏ viền/nền/ring của nó.
+// Thanh .x-ta-toolbar là hàng flex CUỐI trong khung (không overlay) → chữ + thanh cuộn
+// nằm gọn trong textarea phía trên, thanh công cụ [Tối ưu · Mic · Hoàn tác · Làm lại]
+// căn phải bên dưới.
 // ============================================================================
 (function (global) {
   // Tiêm CSS 1 lần (component tự đủ style, nơi dùng không phải khai báo lại).
-  if (!document.getElementById("x-undo-style")) {
+  if (!document.getElementById("x-ta-toolbar-style")) {
     const s = document.createElement("style");
-    s.id = "x-undo-style";
+    s.id = "x-ta-toolbar-style";
     s.textContent =
-      ".x-undo{position:absolute;right:4px;bottom:8px;display:inline-flex;gap:8px;" +
-      "padding:2px 4px;border-radius:8px;background:rgba(255,255,255,.92);" +
-      "backdrop-filter:blur(2px);z-index:2}" +
-      ".x-undo-btn{display:inline-flex;align-items:center;justify-content:center;" +
-      "width:16px;height:16px;padding:0;border:none;border-radius:4px;" +
+      // Khung bọc: viền giả thay cho viền của textarea; focus-within → hiện ring.
+      ".x-ta-frame{display:flex;flex-direction:column;border:1px solid #e5e7eb;" +
+      "border-radius:8px;background:#fff;overflow:hidden;" +
+      "transition:border-color .15s ease,box-shadow .15s ease}" +
+      ".x-ta-frame:focus-within{border-color:#fb7185;box-shadow:0 0 0 3px rgba(251,113,133,.18)}" +
+      // Textarea trong khung: bỏ viền/nền/ring/bo góc/resize riêng (khung lo hết).
+      ".x-ta-frame>textarea{flex:1 1 auto;border:none!important;border-radius:0!important;" +
+      "background:transparent!important;box-shadow:none!important;outline:none!important;" +
+      "resize:none!important}" +
+      // Thanh công cụ: hàng flex cuối khung, kéo hết bề ngang, các nút căn phải.
+      ".x-ta-toolbar{display:flex;align-items:center;justify-content:flex-end;gap:6px;" +
+      "padding:4px 8px;background:#fff}" +
+      ".x-ta-toolbar-btn{display:inline-flex;align-items:center;justify-content:center;" +
+      "width:20px;height:20px;padding:0;border:none;border-radius:4px;" +
       "color:#9ca3af;background:transparent;cursor:pointer;" +
       "transition:color .12s ease,background .12s ease}" +
-      ".x-undo-btn:hover:not(:disabled){color:#e11d48;background:#fff1f2}" +
-      ".x-undo-btn:disabled{opacity:.4;cursor:default}" +
-      ".x-undo-btn svg{width:14px;height:14px}";
+      ".x-ta-toolbar-btn:hover:not(:disabled){color:#e11d48;background:#fff1f2}" +
+      ".x-ta-toolbar-btn:disabled{opacity:.4;cursor:default}" +
+      ".x-ta-toolbar-btn svg{width:14px;height:14px}" +
+      // Nút "Tối ưu" (AI) khi đang gọi: khoá + icon quay.
+      ".x-ta-toolbar-btn[data-loading='1']{pointer-events:none;opacity:.5}" +
+      ".x-ta-toolbar-btn[data-loading='1'] svg{animation:x-ta-toolbar-spin .9s linear infinite}" +
+      "@keyframes x-ta-toolbar-spin{to{transform:rotate(360deg)}}";
     document.head.appendChild(s);
   }
 
@@ -51,11 +70,18 @@
     `stroke-width="2" stroke-linecap="round" stroke-linejoin="round">` +
     `<path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>` +
     `<path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>`;
+  // pencil-sparkles (lucide) — nút "Tối ưu bằng AI".
+  const PENCIL_SVG =
+    `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" ` +
+    `stroke-width="2" stroke-linecap="round" stroke-linejoin="round">` +
+    `<path d="M10 3H8"/><path d="m15.007 5.008 3.987 3.986"/><path d="M20 15v4"/>` +
+    `<path d="M21.174 6.813a2.82 2.82 0 0 0-3.986-3.987L3.842 16.175a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/>` +
+    `<path d="M22 17h-4"/><path d="M4 5v4"/><path d="M6 7H2"/><path d="M9 2v2"/></svg>`;
 
   function _btn(title, svg) {
     const b = document.createElement("button");
     b.type = "button";
-    b.className = "x-undo-btn";
+    b.className = "x-ta-toolbar-btn";
     b.title = title;
     b.setAttribute("aria-label", title);
     b.innerHTML = svg;
@@ -70,9 +96,15 @@
     if (!target || target._xUndo) return target ? target._xUndo : null;
     const mount = opts.mount || target.parentElement;
     if (!mount) return null;
+    // Bọc textarea trong 1 khung: khung mang viền giả, textarea bỏ viền → thanh cuộn
+    // nằm đúng trong textarea, thanh công cụ là hàng flex dưới đáy (không overlay).
+    const frame = document.createElement("div");
+    frame.className = "x-ta-frame";
+    mount.insertBefore(frame, target);
+    frame.appendChild(target);
 
     const box = document.createElement("div");
-    box.className = "x-undo" + (opts.className ? " " + opts.className : "");
+    box.className = "x-ta-toolbar" + (opts.className ? " " + opts.className : "");
 
     // Nút micro (opt-in): chỉ hiện khi truyền opts.speech VÀ trình duyệt hỗ trợ.
     // Bấm → mở hộp thoại "Nói để nhập" (x-speech.js), nói xong tự chèn vào ô này.
@@ -90,11 +122,22 @@
       });
     }
 
+    // Nút "Tối ưu bằng AI" (opt-in): chỉ hiện khi truyền opts.optimize (hàm).
+    // Bấm → gọi hàm với (target, chính nút) để nơi dùng tự xử lý gọi AI + loading.
+    let optBtn = null;
+    if (typeof opts.optimize === "function") {
+      optBtn = _btn(opts.optimizeTitle || "Tối ưu bằng AI", PENCIL_SVG);
+      optBtn.addEventListener("click", () => opts.optimize(target, optBtn));
+    }
+
     const undoBtn = _btn(opts.undoTitle || "Hoàn tác", UNDO_SVG);
     const redoBtn = _btn(opts.redoTitle || "Làm lại", REDO_SVG);
-    if (micBtn) box.append(micBtn, undoBtn, redoBtn);
-    else box.append(undoBtn, redoBtn);
-    mount.appendChild(box);
+    const parts = [];
+    if (optBtn) parts.push(optBtn);
+    if (micBtn) parts.push(micBtn);
+    parts.push(undoBtn, redoBtn);
+    box.append(...parts);
+    frame.appendChild(box); // thanh công cụ = hàng cuối trong khung, dưới textarea
 
     // ── Lịch sử tự quản lý ──────────────────────────────────────────────────
     const MAX = opts.max || 200;
@@ -196,6 +239,11 @@
         target.removeEventListener("input", onInput);
         target.removeEventListener("keydown", onKey);
         box.remove();
+        // Gỡ khung: trả textarea về vị trí cũ rồi xoá khung.
+        if (frame.parentNode) {
+          frame.parentNode.insertBefore(target, frame);
+          frame.remove();
+        }
         delete target._xUndo;
       },
     };

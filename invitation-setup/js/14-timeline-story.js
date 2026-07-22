@@ -44,6 +44,10 @@ function _renderTimelineRows(listEl, type, colorClass) {
         class="flex-1 min-w-0 h-10 px-3 border border-gray-200 rounded-xl text-sm text-gray-800 bg-white outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-400/20"
         oninput="_timelineItems[${idx}].title=this.value;_syncTimelineHidden();"
       />
+      <button type="button" onclick="optimizeTimelineTitle(${idx}, this)"
+        class="btn-ai-icon" title="Tối ưu bằng AI">
+        <i data-lucide="pencil-sparkles" class="w-4 h-4"></i>
+      </button>
       <button type="button" onclick="removeTimelineItem(${idx})"
         class="flex-shrink-0 w-8 h-8 flex items-center justify-center bg-red-100 hover:bg-red-200 text-red-500 rounded-lg transition-colors" title="Xóa">
         <i data-lucide="trash-2" class="w-4 h-4"></i>
@@ -210,10 +214,9 @@ function renderLoveStoryList() {
       <input type="text" value="${escapeHtml(item.title || "")}" placeholder="Ví dụ: Lần đầu gặp gỡ"
         class="w-full h-10 px-3 py-2 border border-gray-200 rounded-md text-sm text-gray-800 bg-white outline-none transition-all placeholder:text-gray-400/50 focus:ring-2 focus:ring-rose-500/30 focus:ring-offset-2"
         oninput="_loveStoryItems[${idx}].title=this.value;_syncLoveStoryHidden();const lb=document.getElementById('ls-label-${idx}');if(lb)lb.textContent=this.value||'Mốc ${idx + 1}';" />
-      <textarea placeholder="Kể ngắn về khoảnh khắc này..." rows="2"
-        class="w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-gray-800 bg-white outline-none transition-all placeholder:text-gray-400/50 focus:ring-2 focus:ring-rose-500/30 focus:ring-offset-2 resize-none"
-        oninput="_loveStoryItems[${idx}].content=this.value;_syncLoveStoryHidden();"
-      >${escapeHtml(item.content || "")}</textarea>
+      <x-textarea bare rows="3" data-ls-content="${idx}"
+        input-class="w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-gray-800 bg-white outline-none transition-all placeholder:text-gray-400/50 focus:ring-2 focus:ring-rose-500/30 focus:ring-offset-2 resize-none"
+        placeholder="Kể ngắn về khoảnh khắc này..."></x-textarea>
       <div class="flex items-center flex-wrap gap-2">
         <input type="file" id="ls-img-input-${idx}" accept="image/*" class="hidden"
           onchange="handleLoveStoryImage(${idx}, this)" />
@@ -242,6 +245,8 @@ function renderLoveStoryList() {
     list.appendChild(div);
   });
   if (typeof lucide !== "undefined") lucide.createIcons();
+  // Nạp value + gắn cụm AI (Tối ưu/Mic/Undo/Redo) cho các <x-textarea> vừa dựng.
+  if (typeof _wireLoveStoryTextareas === "function") _wireLoveStoryTextareas(list);
 }
 
 // Wraps openFocalPointPicker as a Promise. Resolves with {x,y} on confirm, null on cancel.
