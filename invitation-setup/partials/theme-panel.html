@@ -41,6 +41,31 @@
       <div
         class="w-full max-w-4xl mx-auto px-4 py-3 space-y-3 md:px-5 md:py-5 md:space-y-6"
       >
+        <!-- Gợi ý: click chữ trên thiệp để chỉnh riêng (dismissible, nhớ localStorage) -->
+        <div
+          id="theme-edit-hint"
+          class="hidden flex items-start gap-2 rounded-lg bg-rose-50 border border-rose-100 px-3 py-2"
+        >
+          <i
+            data-lucide="mouse-pointer-click"
+            class="w-4 h-4 text-rose-400 shrink-0 mt-0.5"
+          ></i>
+          <p class="flex-1 text-[12px] leading-snug text-gray-600">
+            <b class="font-semibold text-gray-700">Mẹo:</b> Nhấp vào bất kỳ dòng
+            chữ nào trên thiệp để chỉnh riêng phông, cỡ, màu…
+          </p>
+          <button
+            type="button"
+            onclick="dismissEditHint()"
+            class="shrink-0 text-gray-400 hover:text-gray-600"
+            aria-label="Đóng gợi ý"
+          >
+            <i data-lucide="x" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+
+        <!-- Nhóm chỉnh chung (phông + màu toàn thiệp) — ẩn khi mở bảng chỉnh 1 dòng -->
+        <div id="theme-main-controls" class="space-y-3 md:space-y-6">
         <!-- Phông chữ -->
         <div class="md:space-y-2.5">
           <p
@@ -190,6 +215,149 @@
           </div>
         </div>
         <!-- /section Màu sắc -->
+        </div>
+        <!-- /theme-main-controls -->
+
+        <!-- Bảng chỉnh CHI TIẾT 1 dòng chữ (hiện khi click text trên preview) -->
+        <div
+          id="theme-line-editor"
+          class="hidden space-y-3 md:space-y-4 max-h-[52vh] overflow-y-auto md:max-h-none"
+        >
+          <div class="flex items-center justify-between gap-2">
+            <button type="button" onclick="closeLineEditor()" class="cx-le-back">
+              <i data-lucide="arrow-left" class="w-4 h-4"></i><span>Quay lại</span>
+            </button>
+            <button type="button" onclick="clearLineOverride()" class="cx-le-clear">
+              <i data-lucide="rotate-ccw" class="w-4 h-4"></i><span>Lấy lại mặc định</span>
+            </button>
+          </div>
+          <p class="text-[12px] text-gray-500">
+            Đang chỉnh:
+            <span id="cx-le-sample" class="font-medium text-gray-700"></span>
+          </p>
+
+          <!-- Nhóm control CHỮ (font/cỡ/màu/kiểu/căn) -->
+          <div id="cx-le-text" class="space-y-3 md:space-y-4">
+          <!-- Phông -->
+          <div class="cx-le-row">
+            <label class="cx-le-label">Phông</label>
+            <x-combobox
+              id="cx-line-font"
+              preview-font
+              placeholder="Mặc định"
+              onchange="onLineFontChange()"
+              class="flex-1 min-w-0"
+            ></x-combobox>
+          </div>
+
+          <!-- Cỡ chữ -->
+          <div class="cx-le-row">
+            <label class="cx-le-label">Cỡ chữ</label>
+            <div class="cx-le-size">
+              <button type="button" onclick="stepLineSize(-1)" aria-label="Giảm cỡ chữ">−</button>
+              <input
+                id="cx-line-size"
+                type="number"
+                min="8"
+                max="200"
+                readonly
+                tabindex="-1"
+              />
+              <span class="cx-le-unit">px</span>
+              <button type="button" onclick="stepLineSize(1)" aria-label="Tăng cỡ chữ">+</button>
+            </div>
+          </div>
+
+          <!-- Màu -->
+          <div class="cx-le-row">
+            <label class="cx-le-label">Màu chữ</label>
+            <div class="color-chip">
+              <input
+                type="text"
+                inputmode="none"
+                id="cx-line-color"
+                class="theme-color-input"
+                aria-label="Màu chữ dòng này"
+              />
+            </div>
+          </div>
+
+          <!-- Đậm / Nghiêng -->
+          <div class="cx-le-row">
+            <label class="cx-le-label">Kiểu</label>
+            <div class="cx-le-seg">
+              <button type="button" id="cx-line-bold" onclick="toggleLineStyle('bold')" title="Đậm">
+                <i data-lucide="bold" class="w-4 h-4"></i>
+              </button>
+              <button type="button" id="cx-line-underline" onclick="toggleLineStyle('underline')" title="Gạch chân">
+                <i data-lucide="underline" class="w-4 h-4"></i>
+              </button>
+              <button type="button" id="cx-line-italic" onclick="toggleLineStyle('italic')" title="Nghiêng">
+                <i data-lucide="italic" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Căn lề -->
+          <div class="cx-le-row">
+            <label class="cx-le-label">Căn lề</label>
+            <div class="cx-le-seg" id="cx-line-align">
+              <button type="button" data-align="left" onclick="setLineAlign('left')" title="Trái">
+                <i data-lucide="align-left" class="w-4 h-4"></i>
+              </button>
+              <button type="button" data-align="center" onclick="setLineAlign('center')" title="Giữa">
+                <i data-lucide="align-center" class="w-4 h-4"></i>
+              </button>
+              <button type="button" data-align="right" onclick="setLineAlign('right')" title="Phải">
+                <i data-lucide="align-right" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+          </div>
+          <!-- /cx-le-text -->
+
+          <!-- Nhóm control ẢNH (rộng/cao + giữ tỉ lệ) -->
+          <div id="cx-le-image" class="hidden space-y-3 md:space-y-4">
+            <div class="cx-le-row">
+              <label class="cx-le-label">Rộng</label>
+              <div class="cx-le-size">
+                <button type="button" onclick="stepImgSize('w', -1)" aria-label="Giảm rộng">−</button>
+                <input
+                  id="cx-img-w"
+                  type="number"
+                  min="8"
+                  max="2000"
+                  inputmode="numeric"
+                  onchange="onImgSizeChange('w')"
+                />
+                <span class="cx-le-unit">px</span>
+                <button type="button" onclick="stepImgSize('w', 1)" aria-label="Tăng rộng">+</button>
+              </div>
+            </div>
+            <div class="cx-le-row">
+              <label class="cx-le-label">Cao</label>
+              <div class="cx-le-size">
+                <button type="button" onclick="stepImgSize('h', -1)" aria-label="Giảm cao">−</button>
+                <input
+                  id="cx-img-h"
+                  type="number"
+                  min="8"
+                  max="2000"
+                  inputmode="numeric"
+                  onchange="onImgSizeChange('h')"
+                />
+                <span class="cx-le-unit">px</span>
+                <button type="button" onclick="stepImgSize('h', 1)" aria-label="Tăng cao">+</button>
+              </div>
+            </div>
+            <label class="cx-le-check">
+              <input type="checkbox" id="cx-img-ratio" checked onchange="onImgRatioToggle()" />
+              <span>Giữ nguyên tỉ lệ</span>
+            </label>
+          </div>
+          <!-- /cx-le-image -->
+        </div>
+        <!-- /theme-line-editor -->
       </div>
       <!-- /nội dung padding controls -->
     </div>

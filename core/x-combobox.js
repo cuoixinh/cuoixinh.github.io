@@ -135,31 +135,58 @@ class XCombobox extends HTMLElement {
     this._chev.classList.add("rotate-180");
     this._isOpen = true;
 
-    // Tự lật: thiếu chỗ dưới & phía trên rộng hơn → bung lên; kẹp max-height.
-    const r = this._btn.getBoundingClientRect();
-    const listH = this._list.offsetHeight;
-    const spaceBelow = window.innerHeight - r.bottom;
-    const spaceAbove = r.top;
-    const up = spaceBelow < listH + 8 && spaceAbove > spaceBelow;
-    this._list.classList.toggle("bottom-full", up);
-    this._list.classList.toggle("top-full", !up);
-    const avail = (up ? spaceAbove : spaceBelow) - 12;
-    this._list.style.maxHeight = Math.max(96, Math.min(240, avail)) + "px";
+    // Định vị bằng position:FIXED để popup THOÁT khỏi mọi vùng cuộn (overflow) của
+    // panel. Trước đây dùng absolute nên bị bảng chỉnh (max-h + overflow-y-auto) cắt
+    // mất phần tràn. fixed không bị overflow của ancestor cắt (miễn ancestor không
+    // tạo containing-block bằng transform/filter…).
+    this._position();
 
     const active = this._list.querySelector('.x-cb-opt[data-active="1"]');
     if (active) active.scrollIntoView({ block: "nearest" });
 
     // Đóng khi bấm ra ngoài / Esc — hoãn 1 nhịp để không dính chính cú click mở.
+    // Bám lại vị trí khi cuộn/đổi kích thước (list fixed nên phải theo nút bấm).
     this._onDoc = (e) => {
       if (!this.contains(e.target)) this._close();
     };
     this._onKey = (e) => {
       if (e.key === "Escape") this._close();
     };
+    this._onReflow = (e) => {
+      // Bỏ qua khi cuộn CHÍNH danh sách (internal scroll): _position() reset
+      // max-height khiến scrollTop nhảy về 0 → không cuộn được bên trong list.
+      if (e && e.type === "scroll" && this._list.contains(e.target)) return;
+      this._position();
+    };
     setTimeout(() => {
       document.addEventListener("click", this._onDoc);
       document.addEventListener("keydown", this._onKey);
+      window.addEventListener("scroll", this._onReflow, true);
+      window.addEventListener("resize", this._onReflow);
     }, 0);
+  }
+
+  // Đặt danh sách (position:fixed) bám mép nút bấm; tự lật lên nếu thiếu chỗ dưới.
+  _position() {
+    const list = this._list;
+    const r = this._btn.getBoundingClientRect();
+    const gap = 4;
+    list.style.position = "fixed";
+    list.style.margin = "0";
+    list.style.right = "auto";
+    list.style.left = r.left + "px";
+    list.style.width = r.width + "px";
+    list.style.maxHeight = "none";
+    const listH = list.scrollHeight;
+    const spaceBelow = window.innerHeight - r.bottom;
+    const spaceAbove = r.top;
+    const up = spaceBelow < listH + gap + 8 && spaceAbove > spaceBelow;
+    const avail = (up ? spaceAbove : spaceBelow) - gap - 8;
+    const maxH = Math.max(96, Math.min(240, avail));
+    list.style.maxHeight = maxH + "px";
+    list.style.top = up
+      ? Math.max(8, r.top - Math.min(listH, maxH) - gap) + "px"
+      : r.bottom + gap + "px";
   }
 
   _close() {
@@ -169,6 +196,8 @@ class XCombobox extends HTMLElement {
     this._isOpen = false;
     document.removeEventListener("click", this._onDoc);
     document.removeEventListener("keydown", this._onKey);
+    window.removeEventListener("scroll", this._onReflow, true);
+    window.removeEventListener("resize", this._onReflow);
   }
 }
 

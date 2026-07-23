@@ -285,7 +285,8 @@ function switchTab(tab) {
     _savePreviewData();
     const tIframe = document.getElementById("theme-preview-iframe");
     if (tIframe) {
-      tIframe.src = `/public/themes/${WEDDING_THEME}/?preview=true&source=live&isGroom=true&t=${Date.now()}`;
+      // edit=1 → bật runtime chỉnh chi tiết từng dòng chữ (chỉ ở tab Giao diện).
+      tIframe.src = `/public/themes/${WEDDING_THEME}/?preview=true&source=live&edit=1&isGroom=true&t=${Date.now()}`;
     }
     if (themePanel) themePanel.classList.remove("hidden");
     _initThemePanel();

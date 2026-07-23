@@ -97,6 +97,27 @@ const BACKGROUND_COLOR_SELECTORS = "body, #main-card";
 
 let _loadedFonts = new Set();
 
+// ── Sanitize cho ghi đè theo từng dòng (text_overrides) ─────────────────────
+// text_overrides được render trên CẢ trang public nên phải làm sạch trước khi
+// nhét vào CSS. Selector do runtime chỉnh-tay tự sinh (chỉ #id, tag, :nth-child).
+function _cxSafeSelector(sel) {
+  if (typeof sel !== "string" || !sel || sel.length > 400) return "";
+  return /^[#.\w\s>:()[\]="'-]+$/.test(sel) ? sel : "";
+}
+function _cxSafeFont(f) {
+  return typeof f === "string" ? f.replace(/['"\\<>{}]/g, "").trim() : "";
+}
+function _cxSafeColor(c) {
+  return (
+    typeof c === "string" &&
+    /^(#[0-9a-fA-F]{3,8}|rgba?\([\d.,\s%]+\))$/.test(c.trim())
+  );
+}
+function _cxSafeNum(n) {
+  const v = Number(n);
+  return Number.isFinite(v) && v > 0 && v < 1000;
+}
+
 // Nạp 1 Google Font (nếu chưa nạp)
 function _loadGoogleFont(fontName) {
   if (!fontName || _loadedFonts.has(fontName)) return;
@@ -156,6 +177,39 @@ function applyThemeSetting(setting) {
     );
   }
 
+  // ── Ghi đè chi tiết TỪNG DÒNG chữ (tính năng nâng cao) ────────────────────
+  // setting.text_overrides = { "<selector>": { font, size, color, weight, italic, align } }
+  // Selector là đường dẫn dài (nth-child) → độ ưu tiên cao hơn rule class chung
+  // ở trên nên thắng. Vẫn dùng !important để chắc ăn với style inline của theme.
+  if (setting.text_overrides && typeof setting.text_overrides === "object") {
+    for (const [sel, o] of Object.entries(setting.text_overrides)) {
+      const safeSel = _cxSafeSelector(sel);
+      if (!safeSel || !o || typeof o !== "object") continue;
+      const decls = [];
+      if (o.font) {
+        const f = _cxSafeFont(o.font);
+        if (f) {
+          _loadGoogleFont(f);
+          decls.push(`font-family: '${f}', serif !important`);
+        }
+      }
+      if (_cxSafeNum(o.size)) decls.push(`font-size: ${Number(o.size)}px !important`);
+      if (_cxSafeColor(o.color)) decls.push(`color: ${o.color.trim()} !important`);
+      if (_cxSafeNum(o.weight)) decls.push(`font-weight: ${Number(o.weight)} !important`);
+      if (o.italic) decls.push(`font-style: italic !important`);
+      if (o.underline) decls.push(`text-decoration: underline !important`);
+      if (o.align && /^(left|center|right|justify)$/.test(o.align))
+        decls.push(`text-align: ${o.align} !important`);
+      // Kích thước ảnh (khung ảnh). Gỡ max-width/height để ảnh phóng to vượt cỡ gốc được.
+      const hasSize = _cxSafeNum(o.width) || _cxSafeNum(o.height);
+      if (_cxSafeNum(o.width)) decls.push(`width: ${Number(o.width)}px !important`);
+      if (_cxSafeNum(o.height)) decls.push(`height: ${Number(o.height)}px !important`);
+      if (hasSize)
+        decls.push(`max-width: none !important`, `max-height: none !important`);
+      if (decls.length) rules.push(`${safeSel} { ${decls.join("; ")} }`);
+    }
+  }
+
   let styleEl = document.getElementById("theme-setting-override");
   if (!styleEl) {
     styleEl = document.createElement("style");
@@ -175,3 +229,254 @@ if (typeof window !== "undefined") {
   window.THEME_ACCENT_COLORS = THEME_ACCENT_COLORS;
   window.applyThemeSetting = applyThemeSetting;
 }
+
+// ============================================================
+// EDIT RUNTIME — chỉnh chi tiết từng dòng chữ.
+// CHỈ chạy bên trong iframe preview của tab Giao diện: ?preview=true&edit=1.
+// Rê chuột → highlight vùng có chữ; click → gửi selector + style hiện tại về
+// trang cha (postMessage) để mở bảng chỉnh riêng. Trang cha (không có edit=1)
+// và tab Xem trước (không có edit=1) sẽ KHÔNG kích hoạt runtime này.
+// ============================================================
+(function _cxTextEditRuntime() {
+  if (typeof window === "undefined" || window.top === window) return; // phải ở trong iframe
+  let params;
+  try {
+    params = new URLSearchParams(window.location.search);
+  } catch (e) {
+    return;
+  }
+  if (params.get("edit") !== "1" || params.get("preview") !== "true") return;
+
+  let hovered = null;
+  let picked = null;
+  let tip = null;
+
+  // Phần tử "chỉnh được": có text-node trực tiếp, không nằm trong control tương tác.
+  function _isEditable(el) {
+    if (!el || el.nodeType !== 1) return false;
+    if (
+      el.closest(
+        "a, button, input, textarea, select, iframe, [contenteditable], .cx-no-edit",
+      )
+    )
+      return false;
+    for (const n of el.childNodes) {
+      if (n.nodeType === 3 && n.nodeValue.trim()) return true;
+    }
+    return false;
+  }
+
+  // Từ target (có thể là inline con) đi lên tối đa vài bậc tìm phần tử có text.
+  function _resolveTextEl(target) {
+    let el = target;
+    for (let i = 0; el && i < 4; i++, el = el.parentElement) {
+      if (_isEditable(el)) return el;
+    }
+    return null;
+  }
+
+  // Với ảnh: đổi kích thước ở KHUNG bao sát ảnh (ảnh thường w-full/h-full trong khung
+  // nên chỉnh thẳng <img> sẽ không thấy). Đi lên qua các lớp bọc CÙNG kích thước ảnh
+  // tới khung ngoài cùng — chính nó quyết định kích thước hiển thị.
+  function _imgResizeTarget(img) {
+    let el = img;
+    const ir = img.getBoundingClientRect();
+    let parent = el.parentElement;
+    while (parent && el.id !== "main-card" && el !== document.body) {
+      const pr = parent.getBoundingClientRect();
+      const tight =
+        Math.abs(pr.width - ir.width) < 3 && Math.abs(pr.height - ir.height) < 3;
+      if (!tight) break;
+      el = parent;
+      parent = parent.parentElement;
+    }
+    return el;
+  }
+
+  // Phân giải phần tử đang trỏ: ảnh (chỉnh kích thước) hay chữ (chỉnh phông…).
+  function _resolveTarget(target) {
+    const img = target && target.closest ? target.closest("img") : null;
+    if (img && !img.closest("a, button, .cx-no-edit"))
+      return { el: _imgResizeTarget(img), isImage: true };
+    const el = _resolveTextEl(target);
+    return el ? { el, isImage: false } : null;
+  }
+
+  // Gửi thông tin ẢNH (selector + kích thước + tỉ lệ hiện tại) về trang cha.
+  function _sendImgPick(el, selector) {
+    const r = el.getBoundingClientRect();
+    const w = Math.round(r.width);
+    const h = Math.round(r.height);
+    parent.postMessage(
+      {
+        type: "cx-text-pick",
+        isImage: true,
+        selector: selector || _selector(el),
+        sample: "ảnh",
+        width: w,
+        height: h,
+        ratio: h ? w / h : 1,
+      },
+      "*",
+    );
+  }
+
+  // Selector ỔN ĐỊNH: đi lên tới tổ tiên gần nhất có id "sạch" (hoặc body), ghép
+  // :nth-child. Cùng data → cùng DOM nên khớp giữa preview và trang public.
+  function _selector(el) {
+    const parts = [];
+    let node = el;
+    while (
+      node &&
+      node.nodeType === 1 &&
+      node !== document.body &&
+      node !== document.documentElement
+    ) {
+      if (node.id && /^[A-Za-z][\w-]*$/.test(node.id)) {
+        parts.unshift("#" + node.id);
+        return parts.join(" > ");
+      }
+      const parent = node.parentElement;
+      if (!parent) break;
+      const idx = Array.prototype.indexOf.call(parent.children, node) + 1;
+      parts.unshift(node.tagName.toLowerCase() + ":nth-child(" + idx + ")");
+      node = parent;
+    }
+    parts.unshift("body");
+    return parts.join(" > ");
+  }
+
+  function _rgbToHex(rgb) {
+    const m = (rgb || "").match(/\d+/g);
+    if (!m || m.length < 3) return "#000000";
+    return (
+      "#" +
+      m
+        .slice(0, 3)
+        .map((x) => (+x).toString(16).padStart(2, "0"))
+        .join("")
+    );
+  }
+
+  function _positionTip(e) {
+    if (!tip) return;
+    tip.style.left = e.clientX + 14 + "px";
+    tip.style.top = e.clientY + "px";
+  }
+
+  function _onMove(e) {
+    const res = _resolveTarget(e.target);
+    const el = res && res.el;
+    if (el === hovered) {
+      if (el) _positionTip(e);
+      return;
+    }
+    if (hovered) hovered.classList.remove("cx-edit-hover");
+    hovered = el;
+    if (hovered) {
+      hovered.classList.add("cx-edit-hover");
+      if (tip) {
+        tip.textContent = res.isImage ? "Nhấp để chỉnh kích thước" : "Nhấp để chỉnh";
+        tip.style.opacity = "1";
+      }
+      _positionTip(e);
+    } else if (tip) {
+      tip.style.opacity = "0";
+    }
+  }
+
+  function _onLeave() {
+    if (hovered) hovered.classList.remove("cx-edit-hover");
+    hovered = null;
+    if (tip) tip.style.opacity = "0";
+  }
+
+  // Gửi thông tin dòng (selector + style hiện tại) về trang cha để mở/cập nhật bảng chỉnh.
+  function _sendPick(el, selector) {
+    const cs = getComputedStyle(el);
+    parent.postMessage(
+      {
+        type: "cx-text-pick",
+        selector,
+        sample: (el.textContent || "").trim().slice(0, 48),
+        computed: {
+          fontFamily: cs.fontFamily,
+          fontSize: Math.round(parseFloat(cs.fontSize)) || 16,
+          color: _rgbToHex(cs.color),
+          fontWeight: cs.fontWeight,
+          fontStyle: cs.fontStyle,
+          textDecoration: cs.textDecorationLine,
+          textAlign: cs.textAlign,
+        },
+      },
+      "*",
+    );
+  }
+
+  function _onClick(e) {
+    const res = _resolveTarget(e.target);
+    if (!res) return;
+    e.preventDefault();
+    e.stopPropagation();
+    if (picked) picked.classList.remove("cx-edit-picked");
+    picked = res.el;
+    res.el.classList.add("cx-edit-picked");
+    const sel = _selector(res.el);
+    if (res.isImage) _sendImgPick(res.el, sel);
+    else _sendPick(res.el, sel);
+  }
+
+  function _init() {
+    const style = document.createElement("style");
+    // outline-offset ÂM: vẽ viền VÀO TRONG element để không bị ancestor có
+    // overflow (vd couple-names nằm trong .overflow-x-auto) cắt mất một cạnh.
+    style.textContent =
+      ".cx-edit-hover{outline:2px dashed rgba(244,63,94,.7)!important;outline-offset:-2px!important;cursor:pointer!important}" +
+      ".cx-edit-picked{outline:2px solid #e11d48!important;outline-offset:-2px!important}" +
+      "#cx-edit-tip{position:fixed;z-index:2147483000;pointer-events:none;background:#e11d48;color:#fff;" +
+      "font:600 11px/1.4 system-ui,-apple-system,sans-serif;padding:3px 8px;border-radius:6px;white-space:nowrap;" +
+      "transform:translateY(-50%);box-shadow:0 2px 8px rgba(0,0,0,.25);opacity:0;transition:opacity .1s}";
+    document.head.appendChild(style);
+
+    tip = document.createElement("div");
+    tip.id = "cx-edit-tip";
+    tip.textContent = "Nhấp để chỉnh";
+    document.body.appendChild(tip);
+
+    // Delegation trên document → bắt được cả phần tử render động sau này.
+    document.addEventListener("mousemove", _onMove, true);
+    document.addEventListener("mouseleave", _onLeave, true);
+    document.addEventListener("click", _onClick, true);
+
+    window.addEventListener("message", (ev) => {
+      const d = ev.data;
+      if (!d) return;
+      // Trang cha yêu cầu bỏ chọn (đóng bảng chỉnh) → xoá viền đang chọn.
+      if (d.type === "cx-clear-pick" && picked) {
+        picked.classList.remove("cx-edit-picked");
+        picked = null;
+        return;
+      }
+      // Trang cha vừa xoá override 1 dòng → tính lại style mặc định của dòng đó,
+      // gửi về để cập nhật bảng chỉnh (vẫn giữ dòng đang chọn, không đóng bảng).
+      if (d.type === "cx-recompute" && d.selector) {
+        let el = null;
+        try {
+          el = document.querySelector(d.selector);
+        } catch (e) {}
+        if (!el) return;
+        if (picked !== el) {
+          if (picked) picked.classList.remove("cx-edit-picked");
+          picked = el;
+          el.classList.add("cx-edit-picked");
+        }
+        if (d.isImage) _sendImgPick(el, d.selector);
+        else _sendPick(el, d.selector);
+      }
+    });
+  }
+
+  if (document.readyState === "loading")
+    document.addEventListener("DOMContentLoaded", _init);
+  else _init();
+})();

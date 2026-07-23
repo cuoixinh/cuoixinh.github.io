@@ -31,7 +31,8 @@ function _fillFontCombo(el, types) {
   ).map((f) => ({ value: f.name, label: f.name }));
   el.setOptions(items);
   // Nạp trước các font để mỗi dòng preview hiện đúng kiểu chữ (không rơi về fallback).
-  if (window.loadThemeFont) items.forEach((it) => window.loadThemeFont(it.value));
+  if (window.loadThemeFont)
+    items.forEach((it) => window.loadThemeFont(it.value));
 }
 
 // 4 ô màu của thanh chỉnh: id phần tử ↔ khoá trong theme_setting
@@ -109,6 +110,18 @@ function _initColorPickers() {
     );
   });
 
+  // Chip màu của bảng chỉnh CHI TIẾT 1 dòng (dùng chung Coloris qua .theme-color-input)
+  const lineColor = document.getElementById("cx-line-color");
+  if (lineColor) {
+    lineColor.addEventListener("input", () => onLineColorChange());
+    ["click", "focus"].forEach((evt) =>
+      lineColor.addEventListener(evt, () => {
+        _openChip = lineColor;
+        requestAnimationFrame(() => _clampPickerToChip(lineColor));
+      }),
+    );
+  }
+
   // Xoay máy / đổi kích thước khi đang mở thì căn lại
   window.addEventListener("resize", () => {
     const picker = document.getElementById("clr-picker");
@@ -161,6 +174,10 @@ function _initThemePanel() {
   if (hf) hf.value = s.heading_font || d.heading_font;
   if (bf) bf.value = s.body_font || d.body_font;
 
+  // Mở tab Giao diện → về nhóm chỉnh chung, đóng bảng chỉnh 1 dòng (nếu đang mở)
+  closeLineEditor();
+  _initEditHint();
+
   // Icon (reset) trong thanh chỉnh
   if (window.lucide) lucide.createIcons();
 }
@@ -169,6 +186,9 @@ function onThemeSettingChange() {
   const hf = document.getElementById("theme-heading-font");
   const bf = document.getElementById("theme-body-font");
 
+  // Giữ lại ghi đè từng dòng (text_overrides) — nếu không sẽ bị xoá khi dựng lại object.
+  const overrides = _themeSetting.text_overrides;
+
   _themeSetting = {
     heading_font: hf ? hf.value : "",
     body_font: bf ? bf.value : "",
@@ -176,6 +196,8 @@ function onThemeSettingChange() {
   THEME_COLOR_FIELDS.forEach(({ id, key }) => {
     _themeSetting[key] = _chipValue(id);
   });
+  if (overrides && Object.keys(overrides).length)
+    _themeSetting.text_overrides = overrides;
 
   _setDirty(true, "theme");
 
@@ -201,6 +223,342 @@ function resetThemeSetting() {
 
 window.onThemeSettingChange = onThemeSettingChange;
 window.resetThemeSetting = resetThemeSetting;
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CHỈNH CHI TIẾT TỪNG DÒNG CHỮ (advanced)
+// Runtime trong iframe (theme-setting-helper.js) gửi 'cx-text-pick' khi click 1
+// dòng chữ → mở bảng chỉnh riêng ở #theme-line-editor. Mỗi thay đổi cập nhật
+// _themeSetting.text_overrides[selector] rồi áp lại vào iframe preview.
+// ═══════════════════════════════════════════════════════════════════════════
+
+let _lineSel = null; // selector dòng/ảnh đang chỉnh
+let _lineFontReady = false; // đã nạp options font cho combobox chưa
+let _lineIsImage = false; // dòng đang chỉnh là ẢNH?
+let _imgRatio = 1; // tỉ lệ rộng/cao dùng khi "giữ tỉ lệ"
+let _lineComputed = {}; // style computed của dòng lúc mở (fallback cho chữ mẫu)
+
+// Nhận tín hiệu click text từ iframe tab Giao diện (đúng nguồn mới nhận).
+window.addEventListener("message", (ev) => {
+  const d = ev.data;
+  if (!d || d.type !== "cx-text-pick") return;
+  const iframe = document.getElementById("theme-preview-iframe");
+  if (iframe && ev.source === iframe.contentWindow) _openLineEditor(d);
+});
+
+function _lineIframe() {
+  return document.getElementById("theme-preview-iframe");
+}
+
+function _openLineEditor(msg) {
+  _lineSel = msg.selector;
+  _lineIsImage = !!msg.isImage;
+  const ov =
+    (_themeSetting.text_overrides && _themeSetting.text_overrides[_lineSel]) ||
+    {};
+
+  document.getElementById("theme-main-controls")?.classList.add("hidden");
+  document.getElementById("theme-edit-hint")?.classList.add("hidden");
+  document.getElementById("theme-line-editor")?.classList.remove("hidden");
+
+  // Đổi giữa nhóm control CHỮ và ẢNH
+  document
+    .getElementById("cx-le-text")
+    ?.classList.toggle("hidden", _lineIsImage);
+  document
+    .getElementById("cx-le-image")
+    ?.classList.toggle("hidden", !_lineIsImage);
+
+  const sample = document.getElementById("cx-le-sample");
+  if (sample)
+    sample.textContent = _lineIsImage
+      ? "ảnh"
+      : msg.sample
+        ? `“${msg.sample}”`
+        : "dòng này";
+
+  if (_lineIsImage) _openImgEditor(msg, ov);
+  else _openTextEditor(msg, msg.computed || {}, ov);
+
+  if (window.lucide) lucide.createIcons();
+}
+
+function _openTextEditor(msg, c, ov) {
+  _lineComputed = c;
+  // Font — nạp options 1 lần (đủ cả heading + body cho từng dòng)
+  const fontEl = document.getElementById("cx-line-font");
+  if (fontEl && !_lineFontReady) {
+    _fillFontCombo(fontEl, ["heading", "body"]);
+    _lineFontReady = true;
+  }
+  // Ưu tiên override; nếu chưa có, dò font THẬT của dòng (khớp danh sách THEME_FONTS)
+  // để combobox hiện đúng phông đang dùng thay vì "Mặc định".
+  if (fontEl) fontEl.value = ov.font || _matchThemeFont(c.fontFamily) || "";
+
+  // Cỡ chữ — override nếu có, không thì lấy computed
+  const sizeEl = document.getElementById("cx-line-size");
+  if (sizeEl) sizeEl.value = ov.size || c.fontSize || 16;
+
+  // Màu
+  const color = ov.color || c.color || "#000000";
+  _chipValueRaw("cx-line-color", color);
+
+  // Đậm / nghiêng / gạch chân / căn lề
+  _setToggle(
+    "cx-line-bold",
+    ov.weight ? Number(ov.weight) >= 600 : Number(c.fontWeight) >= 600,
+  );
+  _setToggle(
+    "cx-line-underline",
+    ov.underline != null
+      ? !!ov.underline
+      : (c.textDecoration || "").includes("underline"),
+  );
+  _setToggle(
+    "cx-line-italic",
+    ov.italic != null ? !!ov.italic : c.fontStyle === "italic",
+  );
+  _setAlignButtons(ov.align || "");
+}
+
+function _openImgEditor(msg, ov) {
+  const w = ov.width || msg.width || 0;
+  const h = ov.height || msg.height || 0;
+  _imgRatio =
+    ov.width && ov.height
+      ? ov.width / ov.height
+      : msg.ratio || (w && h ? w / h : 1);
+  const wEl = document.getElementById("cx-img-w");
+  const hEl = document.getElementById("cx-img-h");
+  if (wEl) wEl.value = w || "";
+  if (hEl) hEl.value = h || "";
+  const keep = document.getElementById("cx-img-ratio");
+  if (keep) keep.checked = true;
+  _setSampleColor(""); // "ảnh" dùng màu mặc định
+}
+
+function closeLineEditor() {
+  document.getElementById("theme-line-editor")?.classList.add("hidden");
+  document.getElementById("theme-main-controls")?.classList.remove("hidden");
+  _initEditHint();
+  _lineIframe()?.contentWindow?.postMessage({ type: "cx-clear-pick" }, "*");
+  _lineSel = null;
+}
+window.closeLineEditor = closeLineEditor;
+
+function _lineOverride() {
+  if (!_themeSetting.text_overrides) _themeSetting.text_overrides = {};
+  if (!_themeSetting.text_overrides[_lineSel])
+    _themeSetting.text_overrides[_lineSel] = {};
+  return _themeSetting.text_overrides[_lineSel];
+}
+
+// Sau mỗi thay đổi 1 dòng: đánh dấu chưa lưu + áp lại vào iframe preview.
+function _applyLine() {
+  _setDirty(true, "theme");
+  _lineIframe()?.contentWindow?.applyThemeSetting?.(_themeSetting);
+}
+
+function onLineFontChange() {
+  if (!_lineSel) return;
+  const v = document.getElementById("cx-line-font")?.value || "";
+  const o = _lineOverride();
+  if (v) o.font = v;
+  else delete o.font;
+  _applyLine();
+}
+window.onLineFontChange = onLineFontChange;
+
+function onLineSizeChange() {
+  if (!_lineSel) return;
+  const v = parseInt(document.getElementById("cx-line-size")?.value, 10);
+  const o = _lineOverride();
+  if (v > 0) o.size = v;
+  else delete o.size;
+  _applyLine();
+}
+window.onLineSizeChange = onLineSizeChange;
+
+function stepLineSize(delta) {
+  const el = document.getElementById("cx-line-size");
+  if (!el) return;
+  const cur = parseInt(el.value, 10) || 16;
+  el.value = Math.max(8, Math.min(200, cur + delta));
+  onLineSizeChange();
+}
+window.stepLineSize = stepLineSize;
+
+function onLineColorChange() {
+  if (!_lineSel) return;
+  const v = document.getElementById("cx-line-color")?.value || "";
+  const o = _lineOverride();
+  if (v) o.color = v;
+  else delete o.color;
+  _setSampleColor(v); // chữ mẫu đổi màu theo live
+  _applyLine();
+}
+window.onLineColorChange = onLineColorChange;
+
+// Tô chữ mẫu "Đang chỉnh: ..." bằng màu đang chọn ("" → trả về màu mặc định).
+function _setSampleColor(color) {
+  const s = document.getElementById("cx-le-sample");
+  if (s) s.style.color = color || "";
+}
+
+function toggleLineStyle(kind) {
+  if (!_lineSel) return;
+  const o = _lineOverride();
+  if (kind === "bold") {
+    const on = !document
+      .getElementById("cx-line-bold")
+      ?.classList.contains("active");
+    _setToggle("cx-line-bold", on);
+    if (on) o.weight = "700";
+    else delete o.weight;
+  } else if (kind === "underline") {
+    const on = !document
+      .getElementById("cx-line-underline")
+      ?.classList.contains("active");
+    _setToggle("cx-line-underline", on);
+    if (on) o.underline = true;
+    else delete o.underline;
+  } else {
+    const on = !document
+      .getElementById("cx-line-italic")
+      ?.classList.contains("active");
+    _setToggle("cx-line-italic", on);
+    if (on) o.italic = true;
+    else delete o.italic;
+  }
+  _applyLine();
+}
+window.toggleLineStyle = toggleLineStyle;
+
+function setLineAlign(a) {
+  if (!_lineSel) return;
+  const o = _lineOverride();
+  if (o.align === a) {
+    delete o.align; // bấm lại nút đang chọn → bỏ căn riêng
+    a = "";
+  } else {
+    o.align = a;
+  }
+  _setAlignButtons(a);
+  _applyLine();
+}
+window.setLineAlign = setLineAlign;
+
+function clearLineOverride() {
+  if (!_lineSel) return;
+  if (_themeSetting.text_overrides)
+    delete _themeSetting.text_overrides[_lineSel];
+  _applyLine(); // xoá override + áp lại vào preview
+  // GIỮ NGUYÊN màn đang sửa: xin iframe tính lại giá trị mặc định của dòng/ảnh để
+  // cập nhật control (font/cỡ/màu… hoặc rộng/cao) về đúng mặc định.
+  _lineIframe()?.contentWindow?.postMessage(
+    { type: "cx-recompute", selector: _lineSel, isImage: _lineIsImage },
+    "*",
+  );
+}
+window.clearLineOverride = clearLineOverride;
+
+// ─── Chỉnh KÍCH THƯỚC ẢNH ────────────────────────────────────────────────────
+function onImgSizeChange(which) {
+  if (!_lineSel) return;
+  const wEl = document.getElementById("cx-img-w");
+  const hEl = document.getElementById("cx-img-h");
+  const keep = document.getElementById("cx-img-ratio")?.checked;
+  let w = parseInt(wEl?.value, 10);
+  let h = parseInt(hEl?.value, 10);
+  // Giữ tỉ lệ: đổi chiều nào thì chiều kia tính theo _imgRatio.
+  if (keep && _imgRatio) {
+    if (which === "w" && w > 0) {
+      h = Math.round(w / _imgRatio);
+      if (hEl) hEl.value = h;
+    } else if (which === "h" && h > 0) {
+      w = Math.round(h * _imgRatio);
+      if (wEl) wEl.value = w;
+    }
+  }
+  const o = _lineOverride();
+  if (w > 0) o.width = w;
+  else delete o.width;
+  if (h > 0) o.height = h;
+  else delete o.height;
+  _applyLine();
+}
+window.onImgSizeChange = onImgSizeChange;
+
+function stepImgSize(which, delta) {
+  const el = document.getElementById(which === "w" ? "cx-img-w" : "cx-img-h");
+  if (!el) return;
+  const cur = parseInt(el.value, 10) || 0;
+  el.value = Math.max(8, Math.min(2000, cur + delta * 10)); // bước 10px cho ảnh
+  onImgSizeChange(which);
+}
+window.stepImgSize = stepImgSize;
+
+function onImgRatioToggle() {
+  // Bật "giữ tỉ lệ" → chốt tỉ lệ theo kích thước hiện tại.
+  const w = parseInt(document.getElementById("cx-img-w")?.value, 10);
+  const h = parseInt(document.getElementById("cx-img-h")?.value, 10);
+  if (document.getElementById("cx-img-ratio")?.checked && w > 0 && h > 0)
+    _imgRatio = w / h;
+}
+window.onImgRatioToggle = onImgRatioToggle;
+
+// Set giá trị chip màu (input + ô tròn .clr-field do Coloris bọc) không bắn event.
+function _chipValueRaw(id, val) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.value = val;
+  const field = el.parentNode;
+  if (field && field.classList.contains("clr-field")) field.style.color = val;
+}
+
+function _setToggle(id, on) {
+  document.getElementById(id)?.classList.toggle("active", !!on);
+}
+
+// Lấy font đầu tiên trong computed font-family (vd "'Playfair Display', serif")
+// và khớp (không phân biệt hoa/thường) với danh sách THEME_FONTS. Không khớp → ""
+// (combobox chỉ chứa font trong danh sách; font trang trí ngoài danh sách để "Mặc định").
+function _matchThemeFont(css) {
+  if (!css) return "";
+  const first = css
+    .split(",")[0]
+    .trim()
+    .replace(/^['"]|['"]$/g, "");
+  const names = (window.THEME_FONTS || []).map((f) => f.name);
+  return names.find((n) => n.toLowerCase() === first.toLowerCase()) || "";
+}
+
+function _setAlignButtons(a) {
+  document.querySelectorAll("#cx-line-align button").forEach((b) => {
+    b.classList.toggle("active", b.dataset.align === a);
+  });
+}
+
+// ─── Banner gợi ý "nhấp chữ để chỉnh" (nhớ đã đóng qua localStorage) ──────────
+function _initEditHint() {
+  const hint = document.getElementById("theme-edit-hint");
+  if (!hint) return;
+  const lineOpen = !document
+    .getElementById("theme-line-editor")
+    ?.classList.contains("hidden");
+  let dismissed = false;
+  try {
+    dismissed = localStorage.getItem("cx_theme_edit_hint") === "1";
+  } catch (e) {}
+  hint.classList.toggle("hidden", dismissed || lineOpen);
+}
+
+function dismissEditHint() {
+  document.getElementById("theme-edit-hint")?.classList.add("hidden");
+  try {
+    localStorage.setItem("cx_theme_edit_hint", "1");
+  } catch (e) {}
+}
+window.dismissEditHint = dismissEditHint;
 
 // ─── Kéo đổi rộng cột chỉnh (chỉ desktop) ─────────────────────────────────────
 // Ghi --theme-ctrl-w (px) lên #theme-controls; setup.css chỉ đọc biến này trong
@@ -393,8 +751,12 @@ function _fillShareTemplate() {
   _scheduleAutoSave("config");
 }
 
-function insertShareTemplate() { _fillShareTemplate(); }   // nút "Chèn mẫu"
-function refreshShareTemplate() { _fillShareTemplate(); }  // nút "Đổi mẫu khác"
+function insertShareTemplate() {
+  _fillShareTemplate();
+} // nút "Chèn mẫu"
+function refreshShareTemplate() {
+  _fillShareTemplate();
+} // nút "Đổi mẫu khác"
 
 // Gõ tay vào ô câu mẫu → ẩn nút "Đổi mẫu" (nút này chỉ dành cho luồng Chèn mẫu)
 function onShareTemplateInput() {
@@ -524,7 +886,7 @@ function showPublishSuccessPopup() {
   const esc = (s) =>
     String(s).replace(
       /[&<>"]/g,
-      (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]),
+      (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c],
     );
 
   _ensurePublishPopupAssets();
@@ -583,15 +945,25 @@ function showPublishSuccessPopup() {
     modal.remove();
   };
   const onKey = (e) => {
-    if (e.key === "Escape") { e.preventDefault(); close(); }
+    if (e.key === "Escape") {
+      e.preventDefault();
+      close();
+    }
   };
 
   modal.addEventListener("click", (e) => {
     if (e.target === modal) return close(); // bấm nền tối = đóng
     if (e.target.closest("[data-ps-close]")) return close();
-    if (e.target.closest("[data-ps-guests]")) { close(); switchTab("guests"); return; }
+    if (e.target.closest("[data-ps-guests]")) {
+      close();
+      switchTab("guests");
+      return;
+    }
     const openBtn = e.target.closest("[data-ps-open]");
-    if (openBtn) { window.open(openBtn.getAttribute("data-ps-open"), "_blank"); return; }
+    if (openBtn) {
+      window.open(openBtn.getAttribute("data-ps-open"), "_blank");
+      return;
+    }
     const copyBtn = e.target.closest("[data-ps-copy]");
     if (copyBtn) {
       navigator.clipboard
@@ -662,4 +1034,3 @@ function _syncLocalOrder({ published = false } = {}) {
     localStorage.setItem(key, JSON.stringify(orders));
   } catch (e) {}
 }
-
