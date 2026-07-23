@@ -43,7 +43,9 @@ function _showTaSkeleton(ta) {
   if (getComputedStyle(host).position === "static") host.style.position = "relative";
   const sk = document.createElement("div");
   sk.className = "x-ta-skeleton";
-  const rows = Math.max(3, Math.min(6, parseInt(ta.getAttribute("rows"), 10) || 3));
+  // Số thanh skeleton = số dòng nhìn thấy (cao ô / line-height), thay vì đọc rows.
+  const lh = parseFloat(getComputedStyle(ta).lineHeight) || 20;
+  const rows = Math.max(3, Math.min(7, Math.floor((ta.clientHeight || lh * 4) / lh)));
   sk.innerHTML = "<span></span>".repeat(rows);
   sk.style.top = ta.offsetTop + "px";
   sk.style.left = ta.offsetLeft + "px";

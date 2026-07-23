@@ -37,6 +37,7 @@ class XInput extends HTMLElement {
     const autocomplete = this.getAttribute('autocomplete') || 'off';
     const rows         = this.getAttribute('rows') || '3';
     const isMono       = this.hasAttribute('mono');
+    const isUpper      = this.hasAttribute('uppercase');
     const isRequired   = this.hasAttribute('required');
     const isReadonly   = this.hasAttribute('readonly');
     const isTextarea   = type === 'textarea';
@@ -58,7 +59,7 @@ class XInput extends HTMLElement {
       .join(' ');
 
     // ── HTML ────────────────────────────────────────────────────────────────
-    const extraCls = isMono ? ' font-mono' : '';
+    const extraCls = (isMono ? ' font-mono' : '') + (isUpper ? ' uppercase' : '');
 
     const labelHtml = label
       ? `<label for="${inputId}" class="block text-sm text-gray-700 mb-1.5 flex items-center gap-1.5">
@@ -101,7 +102,22 @@ class XInput extends HTMLElement {
     const control  = this.querySelector('input, textarea');
     const clearBtn = this.querySelector('.x-clear');
 
-    const sync = () => clearBtn.classList.toggle('hidden', !control.value);
+    // uppercase: ép giá trị THẬT về chữ hoa (không chỉ hiển thị) — dùng cho tên chủ
+    // tài khoản NH. Giữ vị trí con trỏ khi đang gõ; toUpperCase không đổi độ dài ký tự
+    // (kể cả tiếng Việt á→Á) nên selectionStart/End vẫn hợp lệ.
+    const sync = () => {
+      if (isUpper && control.value) {
+        const up = control.value.toUpperCase();
+        if (up !== control.value) {
+          const s = control.selectionStart, e = control.selectionEnd;
+          control.value = up;
+          if (document.activeElement === control) {
+            try { control.setSelectionRange(s, e); } catch {}
+          }
+        }
+      }
+      clearBtn.classList.toggle('hidden', !control.value);
+    };
 
     control.addEventListener('input', sync);
     control.addEventListener('change', sync);

@@ -7,17 +7,44 @@
 // Danh sách font (Google Fonts) — đều hỗ trợ tiếng Việt.
 // type: 'heading' (serif/display cho tiêu đề) | 'body' (sans cho nội dung) | 'both'
 const THEME_FONTS = [
+  // — Tiêu đề: serif / display (đều có bộ ký tự tiếng Việt) —
   { name: "Playfair Display", type: "heading" },
   { name: "Cormorant Garamond", type: "heading" },
-  { name: "Lora", type: "both" },
+  { name: "Cormorant SC", type: "heading" },
   { name: "Prata", type: "heading" },
+  { name: "Merriweather", type: "heading" },
+  { name: "EB Garamond", type: "heading" },
+  { name: "Yeseva One", type: "heading" },
+  // — Tiêu đề nghệ thuật: chữ viết tay / thư pháp —
   { name: "Dancing Script", type: "heading" },
+  { name: "Great Vibes", type: "heading" },
+  { name: "Pacifico", type: "heading" },
+  { name: "Lobster", type: "heading" },
+  { name: "Allura", type: "heading" },
+  { name: "Alex Brush", type: "heading" },
+  { name: "Pinyon Script", type: "heading" },
+  { name: "Style Script", type: "heading" },
+  { name: "Birthstone", type: "heading" },
+  { name: "Fleur De Leah", type: "heading" },
+  // — Dùng được cả tiêu đề lẫn nội dung —
+  { name: "Lora", type: "both" },
+  { name: "Vollkorn", type: "both" },
+  { name: "Noto Serif", type: "both" },
+  // — Nội dung: sans-serif dễ đọc —
   { name: "Inter", type: "body" },
   { name: "Be Vietnam Pro", type: "body" },
   { name: "Montserrat", type: "body" },
   { name: "Nunito", type: "body" },
+  { name: "Nunito Sans", type: "body" },
   { name: "Quicksand", type: "body" },
   { name: "Josefin Sans", type: "body" },
+  { name: "Roboto", type: "body" },
+  { name: "Open Sans", type: "body" },
+  { name: "Source Sans 3", type: "body" },
+  { name: "Mulish", type: "body" },
+  { name: "Work Sans", type: "body" },
+  { name: "Manrope", type: "body" },
+  { name: "Lexend", type: "body" },
 ];
 
 // Font + màu GỐC của từng theme (đúng như thiết kế ban đầu).
@@ -141,6 +168,7 @@ function applyThemeSetting(setting) {
 // Export ra global (các theme dùng qua <script>, không có module system)
 if (typeof window !== "undefined") {
   window.THEME_FONTS = THEME_FONTS;
+  window.loadThemeFont = _loadGoogleFont; // để bảng chọn nạp trước font cho preview
   window.THEME_PRESETS = THEME_PRESETS;
   window.THEME_HEADING_COLORS = THEME_HEADING_COLORS;
   window.THEME_BODY_COLORS = THEME_BODY_COLORS;

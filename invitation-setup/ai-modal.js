@@ -28,7 +28,6 @@ const _AI_BODY_HTML = `
         <x-textarea
           bare
           id="ai-info"
-          rows="6"
           maxlength="2500"
           input-class="ai-inp resize-none"
           placeholder="Nhập thông tin chú rể, cô dâu, ngày giờ cưới, địa điểm, cha mẹ hai bên, số tài khoản,..."
@@ -47,7 +46,6 @@ const _AI_BODY_HTML = `
         <x-textarea
           bare
           id="ai-bullets"
-          rows="6"
           maxlength="1500"
           input-class="ai-inp resize-none"
           placeholder="Ví dụ: gặp nhau 2021 ở Đà Lạt; lần đầu nắm tay ở Quy Nhơn; cầu hôn đúng dịp sinh nhật…"
@@ -1082,7 +1080,6 @@ function _swapToControl(box, pencil) {
   if (ctrl === "textarea") {
     const el = document.createElement("x-textarea");
     el.setAttribute("bare", "");
-    el.setAttribute("rows", "3");
     el.setAttribute("input-class", "ai-inp resize-none");
     ctrlWrap.appendChild(el);
     const ta = el.querySelector("textarea");
@@ -1586,6 +1583,42 @@ function _saveFabPos(p) {
   } catch {}
 }
 
+// Chiều cao thực của thanh nav dưới cùng (0 nếu chưa render). Dùng để KẸP đáy khi
+// kéo/thả FAB: mép dưới bong bóng không được lấn xuống dưới đỉnh navbar, tránh bị
+// các icon ở navbar che khuất.
+function _fabNavH() {
+  const nav = document.getElementById("bottom-nav-bar");
+  return nav && nav.offsetHeight > 0 ? nav.offsetHeight : 0;
+}
+
+// Khi Local Draft Notice bị đóng, navbar thấp đi. Nếu bong bóng AI đang KÉO-ĐẶT tay
+// và đang tựa SÁT đáy cũ (mép notice), tự trượt nó xuống tựa vào navbar mới để không
+// để hở đúng bằng chiều cao notice. Chế độ auto không cần (bám --ai-fab-bottom sẵn).
+// oldNavH = chiều cao navbar ĐO TRƯỚC khi ẩn notice (bên gọi truyền vào).
+function _snapFabAfterNavShrink(oldNavH) {
+  const fab = document.querySelector(".ai-fab");
+  const pos = _loadFabPos();
+  if (!fab || !pos) return; // chỉ áp cho chế độ kéo tay
+  const h = fab.offsetHeight;
+  const vh = document.documentElement.clientHeight;
+  const M = 8;
+  const oldMaxTop = vh - oldNavH - h - M;
+  const newMaxTop = vh - _fabNavH() - h - M;
+  if (newMaxTop <= oldMaxTop) return; // navbar không thấp đi → thôi
+  // Đang tựa sát đáy cũ (trong ~8px) mới đẩy; nổi cao hơn thì giữ nguyên.
+  if (fab.getBoundingClientRect().top < oldMaxTop - 8) return;
+  fab.style.transition = "top 0.22s cubic-bezier(0.32,0.72,0,1)";
+  fab.style.top = newMaxTop + "px";
+  fab.style.bottom = "auto";
+  const clearT = () => {
+    fab.style.transition = "";
+    fab.removeEventListener("transitionend", clearT);
+  };
+  fab.addEventListener("transitionend", clearT);
+  _saveFabPos({ ...pos, top: newMaxTop }); // nhớ vị trí mới
+}
+window._snapFabAfterNavShrink = _snapFabAfterNavShrink;
+
 // Áp vị trí thủ công (nếu có), luôn BÁM LỀ theo cạnh đã lưu (giống AssistiveTouch):
 // tính lại left từ side + bề rộng hiện tại nên đúng lề kể cả khi đổi kích thước màn,
 // xoay máy, hay thẻ thu/mở (card ↔ mini). Kẹp chiều dọc trong khung. Trả về true nếu áp.
@@ -1606,7 +1639,7 @@ function _applyManualFabPos() {
   } else {
     left = Math.max(M, Math.min(pos.left ?? vw - w - M, vw - w - M));
   }
-  const top = Math.max(M, Math.min(pos.top, vh - h - M));
+  const top = Math.max(M, Math.min(pos.top, vh - _fabNavH() - h - M));
   fab.style.left = left + "px";
   fab.style.top = top + "px";
   fab.style.right = "auto";
@@ -1662,6 +1695,7 @@ function _setupFabDrag() {
     startY = 0,
     baseLeft = 0,
     baseTop = 0,
+    navH = 0,
     moved = false,
     dragging = false;
 
@@ -1673,6 +1707,9 @@ function _setupFabDrag() {
     baseTop = r.top;
     startX = e.clientX;
     startY = e.clientY;
+    // Chốt chiều cao navbar 1 lần lúc bắt đầu kéo (đọc offsetHeight mỗi pointermove
+    // gây reflow, và giá trị này không đổi trong 1 lần kéo).
+    navH = _fabNavH();
     moved = false;
     dragging = true;
     // KHÔNG setPointerCapture ở đây: bắt con trỏ ngay từ pointerdown khiến sự kiện
@@ -1699,7 +1736,7 @@ function _setupFabDrag() {
     const vh = document.documentElement.clientHeight;
     const M = 8;
     const left = Math.max(M, Math.min(baseLeft + dx, vw - w - M));
-    const top = Math.max(M, Math.min(baseTop + dy, vh - h - M));
+    const top = Math.max(M, Math.min(baseTop + dy, vh - navH - h - M));
     fab.style.left = left + "px";
     fab.style.top = top + "px";
     fab.style.right = "auto";
@@ -1726,7 +1763,7 @@ function _setupFabDrag() {
       const r = fab.getBoundingClientRect();
       const side = r.left + w / 2 < vw / 2 ? "left" : "right";
       const snapLeft = _fabSnapLeft(side, w);
-      const top = Math.max(M, Math.min(r.top, vh - h - M));
+      const top = Math.max(M, Math.min(r.top, vh - _fabNavH() - h - M));
       // Trượt mượt về lề rồi bỏ transition để lần kéo sau vẫn bám tay tức thì.
       fab.style.transition =
         "left 0.22s cubic-bezier(0.32,0.72,0,1), top 0.22s cubic-bezier(0.32,0.72,0,1)";

@@ -155,7 +155,6 @@
               icon="quote"
               name="story_quote"
               id="story-quote-textarea"
-              rows="3"
               placeholder="Ví dụ: Cảm ơn em đã đến bên đời nhau, cùng nhau viết nên câu chuyện của riêng chúng ta."
             ></x-textarea>
             <button type="button" onclick="randomQuote()" class="btn-pink mt-2">
@@ -900,7 +899,7 @@
             </label>
             <textarea
               id="love-ai-input"
-              rows="5"
+              style="height: 130px"
               placeholder="Ví dụ: Tụi mình quen nhau mùa thu 2019 khi học chung lớp tiếng Anh. Năm sau thì chính thức yêu, cùng nhau đi phượt Đà Lạt. Đến Giáng sinh 2022 anh cầu hôn trong bất ngờ..."
               class="w-full px-3 py-2.5 rounded-lg border border-violet-200 text-sm text-gray-700 bg-white outline-none focus:border-violet-400 resize-y placeholder:text-gray-400/60"
             ></textarea>
@@ -973,7 +972,6 @@
               label="Lời nhắn xác nhận tham dự"
               icon="message-circle"
               name="rsvp_message"
-              rows="3"
               placeholder="Ví dụ: Sự có mặt của bạn là món quà ý nghĩa nhất với chúng mình."
             ></x-textarea>
           </div>
@@ -1054,6 +1052,7 @@
                   name="groom_bank_owner"
                   icon="user"
                   placeholder="Ví dụ: DOAN QUANG VINH"
+                  uppercase
                 ></x-input>
               </div>
               <div>
@@ -1117,6 +1116,7 @@
                   name="bride_bank_owner"
                   icon="user"
                   placeholder="Ví dụ: VUONG THI HAI YEN"
+                  uppercase
                 ></x-input>
               </div>
               <div>
@@ -1173,7 +1173,6 @@
             label="Lời cảm ơn / Footer"
             icon="heart"
             name="footer_text"
-            rows="3"
             placeholder="Ví dụ: Trân trọng cảm ơn sự hiện diện của quý khách. Sự có mặt của bạn là niềm vinh hạnh lớn nhất của chúng tôi."
           ></x-textarea>
         </div>

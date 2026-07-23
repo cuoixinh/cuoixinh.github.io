@@ -30,10 +30,40 @@ function _showContent() {
   }
 }
 
+// Người dùng bấm X để tắt thông báo "đang lưu tạm trên trình duyệt" → nhớ luôn
+// vào localStorage (theo từng thiệp) để lần sau vào không hiện lại.
+const _DRAFT_NOTICE_DISMISS_KEY = `cuoixinh_draft_notice_dismissed_${WEDDING_ID}`;
+
+function _isDraftNoticeDismissed() {
+  try {
+    return localStorage.getItem(_DRAFT_NOTICE_DISMISS_KEY) === "1";
+  } catch (e) {
+    return false;
+  }
+}
+
+function dismissLocalDraftNotice() {
+  try {
+    localStorage.setItem(_DRAFT_NOTICE_DISMISS_KEY, "1");
+  } catch (e) {
+    /* localStorage đầy/chặn — vẫn ẩn cho phiên này */
+  }
+  // Đo chiều cao navbar TRƯỚC khi ẩn notice để biết bong bóng AI có đang tựa sát nó.
+  const bar = document.getElementById("bottom-nav-bar");
+  const oldNavH = bar ? bar.offsetHeight : 0;
+  document.getElementById("local-draft-notice")?.classList.add("hidden");
+  _syncNavHeight();
+  // Bong bóng AI đang tựa sát notice → tự trượt xuống tựa navbar mới (không để hở).
+  window._snapFabAfterNavShrink?.(oldNavH);
+}
+window.dismissLocalDraftNotice = dismissLocalDraftNotice;
+
 function _updateLocalDraftNotice() {
   const notice = document.getElementById("local-draft-notice");
   if (!notice) return;
-  notice.classList.toggle("hidden", !(_isLocalDraft && !getCurrentUser()));
+  const shouldShow =
+    _isLocalDraft && !getCurrentUser() && !_isDraftNoticeDismissed();
+  notice.classList.toggle("hidden", !shouldShow);
   _syncNavHeight();
 }
 
@@ -319,9 +349,65 @@ function fillForm(data) {
   document.querySelectorAll("x-input").forEach((el) => el.syncClearBtn?.());
 }
 
+// Các ô ngày sự kiện không được ở quá khứ. Picker đã đặt minDate="today" nhưng
+// vẫn chốt lại ở tầng lưu để chặn dữ liệu cũ / giá trị nhập bằng đường khác.
+const _FUTURE_DATE_FIELDS = [
+  ["ceremony_date", "Ngày cưới"],
+  ["groom_party_date", "Ngày đãi tiệc nhà trai"],
+  ["bride_party_date", "Ngày đãi tiệc nhà gái"],
+];
+
+function _setDateFieldError(wrap, message) {
+  if (!wrap) return;
+  wrap.classList.toggle("cx-date-invalid", !!message);
+  let msg = wrap.querySelector(".cx-date-err");
+  if (message) {
+    if (!msg) {
+      msg = document.createElement("p");
+      msg.className = "cx-date-err";
+      wrap.appendChild(msg);
+    }
+    msg.textContent = message;
+  } else if (msg) {
+    msg.remove();
+  }
+}
+
+function _validateFutureDates() {
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+  let firstInvalid = null;
+  let firstLabel = "";
+
+  for (const [name, label] of _FUTURE_DATE_FIELDS) {
+    const fp = window.flatpickrInstances?.[name];
+    const wrap = fp?.input?.closest("x-date") || fp?.input?.parentElement;
+    if (!wrap) continue;
+    const d = fp?.selectedDates?.[0];
+    const isPast = d instanceof Date && !isNaN(d) && d < startOfToday;
+    _setDateFieldError(wrap, isPast ? `${label} phải từ hôm nay trở đi` : null);
+    if (isPast && !firstInvalid) {
+      firstInvalid = fp.altInput || fp.input;
+      firstLabel = label;
+    }
+  }
+
+  if (firstInvalid) {
+    showToast(`❌ ${firstLabel} không được ở quá khứ`);
+    if (typeof _expandSection === "function") _expandSection(firstInvalid);
+    firstInvalid.scrollIntoView?.({ behavior: "smooth", block: "center" });
+    return false;
+  }
+  return true;
+}
+
 async function saveAll(overrides = {}, label = "Đang lưu...") {
   const form = document.getElementById("wedding-form");
   if (!validateForm(form)) {
+    showLoading(false);
+    return false;
+  }
+  if (!_validateFutureDates()) {
     showLoading(false);
     return false;
   }

@@ -30,6 +30,8 @@ function _fillFontCombo(el, types) {
     (f) => types.includes(f.type) || f.type === "both",
   ).map((f) => ({ value: f.name, label: f.name }));
   el.setOptions(items);
+  // Nạp trước các font để mỗi dòng preview hiện đúng kiểu chữ (không rơi về fallback).
+  if (window.loadThemeFont) items.forEach((it) => window.loadThemeFont(it.value));
 }
 
 // 4 ô màu của thanh chỉnh: id phần tử ↔ khoá trong theme_setting
@@ -413,6 +415,7 @@ async function publishWedding() {
     showToast("⚠️ Vui lòng điền đủ thông tin bắt buộc trước khi xuất bản");
     return;
   }
+  if (!_validateFutureDates()) return;
 
   if (!getCurrentUser()) {
     // Chưa đăng nhập → hiện popup đăng nhập/tạo tài khoản ngay tại chỗ (không rời trang).

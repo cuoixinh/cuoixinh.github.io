@@ -1,8 +1,8 @@
 /* ===========================================================================
-   NGUỒN của styles/common.css — CHỈNH Ở ĐÂY rồi build.
-   Build:  npm run build:css   (hoặc watch:css khi đang code)
-   Chỉ các class .btn-* dùng @apply (cần Tailwind CLI biên dịch); phần còn lại là
-   CSS thuần vì Tailwind không diễn đạt được (biến CSS, @font-face, keyframes…).
+   CSS dùng chung toàn site — CHỈNH TRỰC TIẾP file này (không còn build step).
+   Utility runtime (class= trong HTML) vẫn do Tailwind Play CDN lo; file này chứa
+   các thứ CDN không diễn đạt được: .btn-*, biến CSS (--primary…), @font-face,
+   keyframes, cover screen, scrollbar, tinh chỉnh iOS…
    =========================================================================== */
 
 /* =============================================
@@ -443,6 +443,31 @@
 #paymentModal *::-webkit-scrollbar-thumb:hover,
 #paymentModal::-webkit-scrollbar-thumb:hover {
   background: rgb(202, 202, 202);
+}
+
+/* Thanh cuộn textarea: desktop mặc định to & xấu → làm mảnh 4px, bo 8px, giống mobile */
+
+textarea {
+  scrollbar-width: thin;
+  /* Firefox */
+  scrollbar-color: rgb(209 213 219) transparent;
+}
+
+textarea::-webkit-scrollbar {
+  width: 4px;
+}
+
+textarea::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+textarea::-webkit-scrollbar-thumb {
+  background: rgb(209 213 219);
+  border-radius: 8px;
+}
+
+textarea::-webkit-scrollbar-thumb:hover {
+  background: rgb(156 163 175);
 }
 
 /* iOS Safari: prevent auto-zoom on input focus (triggered when font-size < 16px).

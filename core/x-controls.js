@@ -66,7 +66,10 @@ class XDate extends HTMLElement {
     if (!bare && icon && window.lucide) lucide.createIcons({ nodes: [this] });
     // Nếu được gắn SAU khi trang đã init xong (VD dựng động trong modal), tự khởi
     // tạo flatpickr bằng cấu hình CHUNG để mọi control ngày đồng nhất.
-    if (window._weddingDateReady && typeof window.createWeddingDatepicker === "function") {
+    if (
+      window._weddingDateReady &&
+      typeof window.createWeddingDatepicker === "function"
+    ) {
       const inp = this.querySelector("input");
       if (inp && !inp._flatpickr) window.createWeddingDatepicker(inp);
     }
@@ -167,7 +170,9 @@ class XCheck extends HTMLElement {
 //   label / icon / required — nhãn (kèm dấu * đỏ khi required); bỏ qua nếu có `bare`.
 //   bare        — không tự vẽ <label> (nơi dùng đã có nhãn/header riêng, VD modal AI).
 //   input-class — thay class mặc định của <textarea> (để khớp style nơi khác, VD .ai-inp).
-//   rows / maxlength / placeholder / name / id — chuyển thẳng xuống <textarea>.
+//   height      — chiều cao ô (CSS height, mặc định 130px = cao bằng 6 dòng chữ). KHÔNG
+//                 dùng rows nữa — dùng height để control tự chủ chiều cao theo line-height.
+//   maxlength / placeholder / name / id — chuyển thẳng xuống <textarea>.
 //   no-clear    — không hiển thị nút xoá (một số ô không cần).
 // Mọi data-* được truyền xuống <textarea> để logic ngoài (autosave…) chạy như cũ.
 class XTextarea extends HTMLElement {
@@ -176,7 +181,8 @@ class XTextarea extends HTMLElement {
     const label = this.getAttribute("label") || "";
     const icon = this.getAttribute("icon") || "";
     const placeholder = this.getAttribute("placeholder") || "";
-    const rows = this.getAttribute("rows") || "3";
+    // Chiều cao ô = 6 lần line-height của chữ (đơn vị lh tự bám line-height mỗi ô).
+    const height = this.getAttribute("height") || "130px";
     const maxlength = this.getAttribute("maxlength");
     const required = this.hasAttribute("required");
     const bare = this.hasAttribute("bare");
@@ -202,7 +208,7 @@ class XTextarea extends HTMLElement {
     this.innerHTML =
       (bare ? "" : labelHtml) +
       `<div class="x-ta-wrap">
-         <textarea name="${name}" id="${inputId}" rows="${rows}"
+         <textarea name="${name}" id="${inputId}" style="height:${height}"
            ${maxlength ? `maxlength="${maxlength}"` : ""} ${required ? "required" : ""} ${dataAttrs}
            placeholder="${placeholder}" class="${inputClass}"></textarea>
          ${noClear ? "" : `<button type="button" class="x-ta-clear" aria-label="Xoá nội dung">${_X_TA_CLEAR_SVG}</button>`}
