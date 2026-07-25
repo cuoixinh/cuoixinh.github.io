@@ -1,227 +1,16 @@
-// ============= CONFIGURATION =============
-const EDGE_URL = CONFIG.supabase.edgeUrl;
-const ANON_KEY = CONFIG.supabase.anonKey;
-const SUPABASE_URL = CONFIG.supabase.url;
-const DOMAIN = window.location.origin;
-
-// Initialize Supabase client
-const supabaseClient = supabase.createClient(SUPABASE_URL, ANON_KEY);
-
-let ADMIN_TOKEN = sessionStorage.getItem("admin_token");
-if (!ADMIN_TOKEN) {
-  ADMIN_TOKEN = prompt("Nhập mã quản trị:");
-  if (ADMIN_TOKEN) {
-    sessionStorage.setItem("admin_token", ADMIN_TOKEN);
-  } else {
-    document.body.innerHTML =
-      '<p style="text-align:center;margin-top:40px;color:#999">Không có quyền truy cập</p>';
-  }
-}
-
-// ============= TAB SWITCHING =============
-function switchTab(tabName, pushState = true) {
-  document.querySelectorAll(".tab-button").forEach((btn) => btn.classList.remove("active"));
-  document.getElementById(`tab-${tabName}`).classList.add("active");
-
-  document.querySelectorAll(".tab-content").forEach((c) => c.classList.remove("active"));
-  document.getElementById(`content-${tabName}`).classList.add("active");
-
-  if (pushState) history.replaceState(null, "", `#${tabName}`);
-
-  if (tabName === "weddings") {
-    loadPage(1);
-  } else if (tabName === "templates") {
-    loadTemplates();
-  }
-}
-
-// Restore tab from URL hash on load
-(function () {
-  const tab = location.hash.replace("#", "");
-  if (tab === "weddings" || tab === "templates") {
-    switchTab(tab, false);
-  }
-})();
-
-// ============= WEDDINGS TAB =============
-let currentPage = 1;
-let totalPages = 1;
-let currentSearch = "";
-let editingId = null;
-
-function searchWeddings() {
-  const searchValue = document.getElementById("search-input").value.trim();
-  currentSearch = searchValue;
-  loadPage(1);
-}
-
-function clearSearch() {
-  document.getElementById("search-input").value = "";
-  currentSearch = "";
-  loadPage(1);
-}
-
-async function loadPage(page) {
-  if (page < 1 || (totalPages > 0 && page > totalPages)) return;
-  currentPage = page;
-  try {
-    let url = `${EDGE_URL}?list=true&page=${page}&limit=10&token=${ADMIN_TOKEN}`;
-    if (currentSearch) url += `&search=${encodeURIComponent(currentSearch)}`;
-    const res = await fetch(url, {
-      headers: { Authorization: `Bearer ${ANON_KEY}` },
-    });
-    const result = await res.json();
-    if (!res.ok) throw new Error(result.error || "Lỗi tải danh sách");
-    renderList(result.data);
-    updatePagination(result.pagination);
-  } catch (e) {
-    document.getElementById("wedding-list").innerHTML =
-      `<tr><td colspan="9" class="text-center py-8 text-red-500">${e.message}</td></tr>`;
-  }
-}
-
-function renderList(weddings) {
-  const tbody = document.getElementById("wedding-list");
-  if (!weddings || weddings.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="9" class="text-center py-8 text-gray-400">Chưa có thiệp nào</td></tr>`;
-    return;
-  }
-  tbody.innerHTML = weddings
-    .map(
-      (w) => `
-    <tr class="border-b border-gray-100 hover:bg-gray-50">
-      <td class="py-3 px-4 text-sm text-gray-700 font-mono">${w.slug || "-"}</td>
-      <td class="py-3 px-4 text-sm">
-        <a href="${DOMAIN}/public/themes/${w.theme || 'basic-gold'}/?slug=${w.slug}" target="_blank" class="text-rose-500 hover:underline text-xs">${DOMAIN}/${w.slug}</a>
-      </td>
-      <td class="py-3 px-4 text-sm">
-        <button onclick="copyManageLink('${w.id}')" class="text-blue-600 hover:underline text-xs">📋 Copy link</button>
-      </td>
-      <td class="py-3 px-4 text-sm text-gray-700">${w.groom_name || "-"}</td>
-      <td class="py-3 px-4 text-sm text-gray-700">${w.bride_name || "-"}</td>
-      <td class="py-3 px-4 text-sm">
-        <span class="text-xs font-mono ${w.payment_order_id ? "text-blue-600" : "text-gray-400"}">${w.payment_order_id || "-"}</span>
-      </td>
-      <td class="py-3 px-4 text-sm">
-        <span class="status-badge ${w.is_active ? "status-active" : "status-inactive"}">${w.is_active ? "Hoạt động" : "Tắt"}</span>
-      </td>
-      <td class="py-3 px-4 text-sm text-gray-500">${formatDate(w.created_at)}</td>
-      <td class="py-3 px-4 text-sm">
-        <div class="flex gap-2">
-          <button onclick="toggleStatus('${w.id}', ${!w.is_active})" title="${w.is_active ? "Tắt" : "Bật"}">${w.is_active ? "🔒" : "🔓"}</button>
-          <button onclick="openEditModal('${w.id}', '${w.slug}')" title="Sửa slug">✏️</button>
-          <button onclick="deleteWedding('${w.id}', '${w.slug}')" title="Xóa">🗑️</button>
-        </div>
-      </td>
-    </tr>`,
-    )
-    .join("");
-}
-
-function formatDate(dateStr) {
-  return new Date(dateStr).toLocaleDateString("vi-VN", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
-function updatePagination(pagination) {
-  currentPage = pagination.page;
-  totalPages = pagination.totalPages;
-  document.getElementById("current-page").textContent = pagination.page;
-  document.getElementById("total-pages").textContent = pagination.totalPages;
-  document.getElementById("total-records").textContent = pagination.total;
-  document.getElementById("btn-prev").disabled = pagination.page === 1;
-  document.getElementById("btn-next").disabled =
-    pagination.page === pagination.totalPages;
-}
-
-function copyManageLink(id) {
-  navigator.clipboard.writeText(`${DOMAIN}/invitation-setup/?id=${id}`);
-  alert("Đã copy link quản lý!");
-}
-
-async function toggleStatus(id, newStatus) {
-  if (!confirm(`Bạn có chắc muốn ${newStatus ? "bật" : "tắt"} thiệp này?`))
-    return;
-  try {
-    const res = await fetch(`${EDGE_URL}?token=${ADMIN_TOKEN}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${ANON_KEY}`,
-      },
-      body: JSON.stringify({ id, is_active: newStatus }),
-    });
-    if (!res.ok) throw new Error("Lỗi cập nhật trạng thái");
-    loadPage(currentPage);
-  } catch (e) {
-    alert(e.message);
-  }
-}
-
-function openEditModal(id, slug) {
-  editingId = id;
-  document.getElementById("edit-slug-input").value = slug;
-  document.getElementById("modal-edit").classList.remove("hidden");
-  document.getElementById("modal-edit").classList.add("flex");
-}
-
-function closeModal() {
-  editingId = null;
-  document.getElementById("modal-edit").classList.add("hidden");
-  document.getElementById("modal-edit").classList.remove("flex");
-}
-
-async function saveSlug() {
-  const newSlug = document.getElementById("edit-slug-input").value.trim();
-  if (!newSlug) {
-    alert("Vui lòng nhập slug");
-    return;
-  }
-  try {
-    const res = await fetch(`${EDGE_URL}?token=${ADMIN_TOKEN}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${ANON_KEY}`,
-      },
-      body: JSON.stringify({ id: editingId, slug: newSlug }),
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Lỗi cập nhật slug");
-    closeModal();
-    loadPage(currentPage);
-  } catch (e) {
-    alert(e.message);
-  }
-}
-
-async function deleteWedding(id, slug) {
-  if (
-    !confirm(
-      `Bạn có chắc muốn xóa thiệp "${slug}"?\n\nThao tác này không thể hoàn tác!`,
-    )
-  )
-    return;
-  try {
-    const res = await fetch(`${EDGE_URL}?id=${id}&token=${ADMIN_TOKEN}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${ANON_KEY}` },
-    });
-    if (!res.ok) throw new Error("Lỗi xóa thiệp");
-    loadPage(currentPage);
-  } catch (e) {
-    alert(e.message);
-  }
-}
+// ============= TAB: Templates =============
+let editingTemplateId = null;
 
 async function purgeTemplatesCache() {
   const btn = document.getElementById("purge-cache-btn");
   const originalHTML = btn.innerHTML;
+
+  if (!CONFIG.cloudflare.templatesCache) {
+    alert(
+      "⚠️ Cache proxy chưa được cấu hình (USE_CACHE = false trong core/config.js — đang ở chế độ test local). Tính năng này chỉ hoạt động ở production.",
+    );
+    return;
+  }
 
   try {
     btn.disabled = true;
@@ -251,9 +40,6 @@ async function purgeTemplatesCache() {
     btn.innerHTML = originalHTML;
   }
 }
-
-// ============= TEMPLATES TAB =============
-let editingTemplateId = null;
 
 async function loadTemplates() {
   try {
@@ -387,19 +173,19 @@ function clearTemplateForm() {
   document.getElementById("template-is-active").checked = true;
 }
 
-// Auto-fill preview URL when template name changes
-document.addEventListener("DOMContentLoaded", () => {
-  const templateNameInput = document.getElementById("template-name");
-  const previewUrlInput = document.getElementById("template-preview-url");
-
-  templateNameInput.addEventListener("input", (e) => {
-    const templateName = e.target.value.trim();
-    if (templateName) {
-      previewUrlInput.value = `public/themes/${templateName}.html?preview=true`;
-    } else {
-      previewUrlInput.value = "";
-    }
-  });
+// Auto-fill preview URL khi đổi template name. Không dùng DOMContentLoaded:
+// file này chỉ chạy sau khi loader.js đã chèn xong partial templates-panel.html
+// nên #template-name đã tồn tại, và lúc đó DOMContentLoaded của trang thường
+// đã bắn xong từ lâu (script được loader chèn bằng createElement rất muộn).
+const templateNameInput = document.getElementById("template-name");
+const previewUrlInput = document.getElementById("template-preview-url");
+templateNameInput.addEventListener("input", (e) => {
+  const templateName = e.target.value.trim();
+  if (templateName) {
+    previewUrlInput.value = `public/themes/${templateName}.html?preview=true`;
+  } else {
+    previewUrlInput.value = "";
+  }
 });
 
 async function loadTemplateData(templateId) {
@@ -567,18 +353,71 @@ async function deleteTemplate(templateId, displayName) {
   }
 }
 
-// ============= EVENT LISTENERS =============
-document.getElementById("search-input").addEventListener("keydown", (e) => {
-  if (e.key === "Enter") searchWeddings();
-});
+// ============= SCAN IMAGE IFRAME =============
+const SCAN_SERVER = "http://127.0.0.1:3001";
 
-// Allow search when input changes (including when cleared)
-document.getElementById("search-input").addEventListener("input", (e) => {
-  if (e.target.value.trim() === "") {
-    currentSearch = "";
+function closeScanModal() {
+  const m = document.getElementById("modal-scan");
+  m.classList.add("hidden");
+  m.classList.remove("flex");
+}
+
+function startScanImages() {
+  const selected = [...document.querySelectorAll("input[name='tpl-scan']:checked")].map((cb) => cb.value);
+  if (!selected.length) {
+    alert("Hãy tick chọn ít nhất một template trong danh sách.");
+    return;
   }
-});
 
-// ============= INITIALIZATION =============
-// Load weddings by default
-loadPage(1);
+  const m = document.getElementById("modal-scan");
+  m.classList.remove("hidden");
+  m.classList.add("flex");
+  document.getElementById("scan-log").innerHTML = "";
+  document.getElementById("scan-done-bar").classList.add("hidden");
+  document.getElementById("scan-close-btn").style.cssText = "pointer-events:none;opacity:0.4";
+
+  appendScanLog("⏳ Đang kết nối scan server...", "text-yellow-300");
+
+  const es = new EventSource(`${SCAN_SERVER}/scan?templates=${encodeURIComponent(selected.join(","))}`);
+
+  es.onmessage = (e) => {
+    const d = JSON.parse(e.data);
+    if (d.type === "start") {
+      appendScanLog(d.message, "text-yellow-300");
+    } else if (d.type === "progress") {
+      const cls = d.message.startsWith("✅") ? "text-green-400"
+                : d.message.startsWith("❌") ? "text-red-400"
+                : d.message.startsWith("⚠️") ? "text-yellow-300"
+                : "text-gray-300";
+      appendScanLog(d.message, cls);
+    } else if (d.type === "done") {
+      appendScanLog(d.message, "text-green-300 font-bold");
+      const ok = (d.results || []).filter((r) => r.ok).length;
+      const total = (d.results || []).length;
+      document.getElementById("scan-progress-fill").style.width = total ? `${(ok / total) * 100}%` : "100%";
+      document.getElementById("scan-done-label").textContent = `${ok}/${total}`;
+      document.getElementById("scan-done-bar").classList.remove("hidden");
+      document.getElementById("scan-close-btn").style.cssText = "";
+      es.close();
+    } else if (d.type === "error") {
+      appendScanLog("❌ " + d.message, "text-red-400");
+      document.getElementById("scan-close-btn").style.cssText = "";
+      es.close();
+    }
+  };
+
+  es.onerror = () => {
+    appendScanLog("❌ Không kết nối được scan server. Chạy: node scripts/server.js", "text-red-400");
+    document.getElementById("scan-close-btn").style.cssText = "";
+    es.close();
+  };
+}
+
+function appendScanLog(msg, cls = "text-green-400") {
+  const log = document.getElementById("scan-log");
+  const line = document.createElement("div");
+  line.className = cls;
+  line.textContent = msg;
+  log.appendChild(line);
+  log.scrollTop = log.scrollHeight;
+}
