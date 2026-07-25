@@ -61,13 +61,14 @@ function renderGalleryGrid() {
   // Render existing images from DB
   existingFilenames.forEach((filename, index) => {
     const fullUrl = getImageUrl(filename);
+    const fp = getGalleryFocalPoint(filename);
     const div = document.createElement("div");
     div.className =
       "relative rounded-xl overflow-hidden border border-rose-200 shadow-sm group bg-gray-100";
     div.style.width = "100%";
     div.style.aspectRatio = "1";
     div.innerHTML = `
-      <img src="${fullUrl}" alt="Gallery ${index + 1}" class="w-full h-full object-contain" />
+      <img src="${fullUrl}" alt="Gallery ${index + 1}" class="w-full h-full object-contain" style="object-position: ${fp.x}% ${fp.y}%" />
       <button onclick="adjustGalleryFocalPoint(${index}, '${fullUrl}')" title="Chỉnh điểm lấy nét" class="absolute bottom-1 right-1 bg-black/50 hover:bg-black/70 text-white rounded-full w-6 h-6 flex items-center justify-center transition-colors shadow-md">
         <i data-lucide="focus" class="w-3.5 h-3.5"></i>
       </button>
@@ -82,13 +83,14 @@ function renderGalleryGrid() {
   pendingUploads.galleryImages.forEach((file, index) => {
     const url = URL.createObjectURL(file);
     const globalIndex = existingFilenames.length + index;
+    const fp = getGalleryFocalPoint(file);
     const div = document.createElement("div");
     div.className =
       "relative rounded-xl overflow-hidden border border-rose-200 shadow-sm group bg-gray-100";
     div.style.width = "100%";
     div.style.aspectRatio = "1";
     div.innerHTML = `
-      <img src="${url}" alt="New ${index + 1}" class="w-full h-full object-contain" />
+      <img src="${url}" alt="New ${index + 1}" class="w-full h-full object-contain" style="object-position: ${fp.x}% ${fp.y}%" />
       <button onclick="adjustGalleryFocalPoint(${globalIndex}, '${url}')" title="Chỉnh điểm lấy nét" class="absolute bottom-1 right-1 bg-black/50 hover:bg-black/70 text-white rounded-full w-6 h-6 flex items-center justify-center transition-colors shadow-md">
         <i data-lucide="focus" class="w-3.5 h-3.5"></i>
       </button>

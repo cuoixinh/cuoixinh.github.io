@@ -6,6 +6,17 @@
     <title>Cưới Xinh — Quản trị</title>
     <link rel="icon" type="image/png" href="../assets/icons/logo.png" />
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ["Inter", "sans-serif"],
+            },
+          },
+        },
+      };
+    </script>
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
@@ -14,125 +25,34 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap"
       rel="stylesheet"
     />
-    <style>
-      body {
-        font-family: "Inter", sans-serif;
-      }
-      .status-badge {
-        display: inline-block;
-        padding: 2px 8px;
-        border-radius: 9999px;
-        font-size: 11px;
-        font-weight: 500;
-      }
-      .status-active {
-        background: #dcfce7;
-        color: #166534;
-      }
-      .status-inactive {
-        background: #fee2e2;
-        color: #991b1b;
-      }
-      .tab-button {
-        flex: 1;
-        padding: 1rem 1.5rem;
-        border-bottom: 3px solid transparent;
-        transition: all 0.2s;
-        font-size: 0.95rem;
-        color: #6b7280;
-        background: transparent;
-        cursor: pointer;
-        border: none;
-        outline: none;
-      }
-      .tab-button:hover {
-        background: #f9fafb;
-        color: #374151;
-      }
-      .tab-button.active {
-        border-bottom-color: rgb(251 113 133);
-        color: rgb(251 113 133);
-        font-weight: 600;
-        background: #fff;
-      }
-      .tab-content {
-        display: none;
-      }
-      .tab-content.active {
-        display: block;
-      }
-
-      /* Responsive tables */
-      @media (max-width: 1024px) {
-        .table-container {
-          overflow-x: auto;
-          -webkit-overflow-scrolling: touch;
-        }
-        table {
-          min-width: 800px;
-        }
-      }
-
-      @media (max-width: 640px) {
-        .tab-button {
-          padding: 0.875rem 1rem;
-          font-size: 0.875rem;
-        }
-        .tab-button i {
-          display: block;
-          margin: 0 auto 0.25rem;
-        }
-        h1 {
-          font-size: 1.5rem !important;
-        }
-      }
-    </style>
   </head>
   <body class="bg-gray-50 min-h-screen p-2 sm:p-4 md:p-6">
     <div class="max-w-7xl mx-auto">
       <div class="flex items-center justify-between mb-4 sm:mb-6 md:mb-8 px-2">
         <h1 class="text-2xl sm:text-3xl">
-          <a href="/" class="text-sm sm:text-base font-semibold hover:opacity-80 transition-opacity align-middle" style="color: rgb(251 113 133)">Trang chủ</a>
+          <button
+            type="button"
+            onclick="switchTab('dashboard')"
+            class="text-sm sm:text-base font-semibold hover:opacity-80 transition-opacity align-middle"
+            style="color: rgb(251 113 133)"
+          >
+            Trang chủ
+          </button>
           <span class="text-sm sm:text-base font-normal text-gray-300 mx-1 align-middle">/</span>
-          <span class="font-normal text-gray-400 align-middle">Quản lý Hệ thống</span>
+          <span
+            id="breadcrumb-current"
+            class="text-sm sm:text-base font-normal text-gray-400 align-middle"
+            >Quản lý Hệ thống</span
+          >
         </h1>
         <a href="/" class="shrink-0">
           <img src="../assets/icons/logo.png" alt="Cưới Xinh" class="h-9 w-auto" />
         </a>
       </div>
 
-      <!-- Tabs (điều hướng chung, không thuộc riêng tab nào nên giữ tĩnh ở shell) -->
-      <div class="bg-white rounded-t-2xl shadow-lg">
-        <div class="flex border-b border-gray-200">
-          <button
-            onclick="switchTab('dashboard')"
-            id="tab-dashboard"
-            class="tab-button active"
-          >
-            <i class="fas fa-gauge-high sm:mr-2"></i
-            ><span class="hidden sm:inline">Dashboard</span
-            ><span class="sm:hidden">Dashboard</span>
-          </button>
-          <button
-            onclick="switchTab('weddings')"
-            id="tab-weddings"
-            class="tab-button"
-          >
-            <i class="fas fa-heart sm:mr-2"></i
-            ><span class="hidden sm:inline">Thiệp Cưới</span
-            ><span class="sm:hidden">Thiệp</span>
-          </button>
-          <button
-            onclick="switchTab('templates')"
-            id="tab-templates"
-            class="tab-button"
-          >
-            <i class="fas fa-palette sm:mr-2"></i><span>Templates</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Nội dung từng tab được nạp động từ partials/ — xem loader.js -->
+      <!-- Nội dung từng màn được nạp động từ partials/ — xem loader.js.
+           Không còn tab bar: điều hướng qua card ở Dashboard + breadcrumb ở
+           header (switchTab() vẫn giữ tên cũ, chỉ đổi UI gọi nó). -->
       <span id="mount-dashboard" hidden></span>
       <span id="mount-weddings" hidden></span>
       <span id="mount-templates" hidden></span>

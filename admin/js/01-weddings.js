@@ -58,7 +58,7 @@ function renderList(weddings) {
         <span class="text-xs font-mono ${w.payment_order_id ? "text-blue-600" : "text-gray-400"}">${w.payment_order_id || "-"}</span>
       </td>
       <td class="py-3 px-4 text-sm">
-        <span class="status-badge ${w.is_active ? "status-active" : "status-inactive"}">${w.is_active ? "Hoạt động" : "Tắt"}</span>
+        <span class="inline-block px-2 py-0.5 rounded-full text-xs font-medium ${w.is_active ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}">${w.is_active ? "Hoạt động" : "Tắt"}</span>
       </td>
       <td class="py-3 px-4 text-sm text-gray-500">${formatDate(w.created_at)}</td>
       <td class="py-3 px-4 text-sm">

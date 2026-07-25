@@ -21,13 +21,22 @@ if (!ADMIN_TOKEN) {
   }
 }
 
-// ============= TAB SWITCHING =============
-function switchTab(tabName, pushState = true) {
-  document.querySelectorAll(".tab-button").forEach((btn) => btn.classList.remove("active"));
-  document.getElementById(`tab-${tabName}`).classList.add("active");
+// ============= CHUYỂN MÀN (Dashboard / Weddings / Templates) =============
+// Không còn tab bar — điều hướng qua card ở Dashboard và breadcrumb ở header
+// (span#breadcrumb-current đổi nhãn theo màn đang xem). Giữ tên switchTab để
+// không phải đổi tên khắp các file gọi nó.
+const TAB_NAMES = ["dashboard", "weddings", "templates"];
+const TAB_BREADCRUMB_LABELS = {
+  dashboard: "Quản lý Hệ thống",
+  weddings: "Thiệp Cưới",
+  templates: "Templates",
+};
 
-  document.querySelectorAll(".tab-content").forEach((c) => c.classList.remove("active"));
-  document.getElementById(`content-${tabName}`).classList.add("active");
+function switchTab(tabName, pushState = true) {
+  TAB_NAMES.forEach((name) => {
+    document.getElementById(`content-${name}`).classList.toggle("hidden", name !== tabName);
+  });
+  document.getElementById("breadcrumb-current").textContent = TAB_BREADCRUMB_LABELS[tabName];
 
   if (pushState) history.replaceState(null, "", `#${tabName}`);
 
