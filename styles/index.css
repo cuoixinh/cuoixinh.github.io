@@ -1,0 +1,386 @@
+/* Trang chủ (index.html) — animation, khối UI riêng của landing page.
+   Biến CSS dùng chung + màu sắc trang chủ nằm ở đầu file. */
+
+:root {
+  --pink: rgb(255 183 202);
+  --mauve: rgb(173 122 135);
+  --pink-light: rgb(255 220 230);
+  --pink-deep: rgb(236 130 158);
+}
+
+/* ── Hero floating petals ── */
+@keyframes floatPetal {
+  0% {
+    transform: translateY(0) rotate(0deg) scale(1);
+    opacity: 0.55;
+  }
+  50% {
+    transform: translateY(-22px) rotate(18deg) scale(1.08);
+    opacity: 0.75;
+  }
+  100% {
+    transform: translateY(0) rotate(0deg) scale(1);
+    opacity: 0.55;
+  }
+}
+.hero-petal {
+  position: absolute;
+  pointer-events: none;
+  border-radius: 50% 10% 50% 10%;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 183, 202, 0.55),
+    rgba(252, 207, 232, 0.35)
+  );
+  animation: floatPetal ease-in-out infinite;
+}
+
+/* ── Hero entrance animations ── */
+@keyframes heroFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.hero-anim {
+  opacity: 0;
+  animation: heroFadeUp 0.7s ease-out forwards;
+}
+.hero-anim-1 {
+  animation-delay: 0.1s;
+}
+.hero-anim-2 {
+  animation-delay: 0.25s;
+}
+.hero-anim-3 {
+  animation-delay: 0.4s;
+}
+.hero-anim-4 {
+  animation-delay: 0.55s;
+}
+.hero-anim-5 {
+  animation-delay: 0.7s;
+}
+
+/* ── Card stack decoration ── */
+@keyframes cardFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+.card-stack {
+  position: relative;
+  width: 260px;
+  height: 420px;
+}
+.card-stack .card {
+  position: absolute;
+  border-radius: 20px;
+  overflow: hidden;
+}
+.card-stack .card-3 {
+  width: 185px;
+  height: 310px;
+  top: 55px;
+  right: -35px;
+  transform: rotate(10deg);
+  background: linear-gradient(135deg, #fce7f3, #fbcfe8);
+  opacity: 0.35;
+}
+.card-stack .card-2 {
+  width: 210px;
+  height: 340px;
+  top: 28px;
+  right: -14px;
+  transform: rotate(5deg);
+  background: #fff;
+  box-shadow: 0 12px 32px rgba(200, 100, 130, 0.14);
+  border: 1px solid #fce7f3;
+}
+.card-stack .card-1 {
+  width: 224px;
+  height: 355px;
+  top: 0;
+  right: 0;
+  background: #fff;
+  box-shadow: 0 24px 56px rgba(200, 100, 130, 0.28);
+  border: 1px solid #fce7f3;
+  animation: cardFloat 4s ease-in-out infinite;
+}
+.card-stack .card-1 img {
+  width: 100%;
+  height: 54%;
+  object-fit: cover;
+  display: block;
+}
+.card-stack .card-1 .card-text {
+  padding: 14px 18px;
+}
+/* shine strip on card-1 */
+.card-stack .card-1::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -60%;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(
+    105deg,
+    transparent 40%,
+    rgba(255, 255, 255, 0.22) 50%,
+    transparent 60%
+  );
+  animation: cardShine 5s ease-in-out 1.5s infinite;
+}
+@keyframes cardShine {
+  0%,
+  80%,
+  100% {
+    left: -60%;
+  }
+  40% {
+    left: 120%;
+  }
+}
+
+/* Section divider wave */
+.wave-divider {
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  line-height: 0;
+}
+.wave-divider svg {
+  display: block;
+  width: 100%;
+}
+
+/* Feature row */
+.feature-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 16px 0;
+  border-bottom: 1px solid #fce7f3;
+}
+.feature-row:last-child {
+  border-bottom: none;
+}
+.feature-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, #fce7f3, #fbcfe8);
+}
+
+/* Step connector */
+.step-connector {
+  position: absolute;
+  top: 32px;
+  left: calc(50% + 40px);
+  right: calc(-50% + 40px);
+  height: 0;
+  border-top: 2px dashed rgba(255, 183, 202, 0.55);
+}
+
+/* Scrollbar hide */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* ── Carousel ── */
+.carousel-3d-stage {
+  position: relative;
+  width: 100%;
+  min-height: 0;
+  overflow: visible;
+}
+.carousel-3d-track {
+  position: absolute;
+  inset: 0;
+}
+.carousel-3d-card {
+  position: absolute;
+  width: var(--cx-card-w, 220px);
+  height: var(--cx-card-h, 420px);
+  left: 50%;
+  top: 50%;
+  margin-left: calc(var(--cx-card-w, 220px) / -2);
+  margin-top: calc(var(--cx-card-h, 420px) / -2);
+  transition:
+    transform 0.65s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    opacity 0.45s;
+  will-change: transform;
+  cursor: pointer;
+}
+.carousel-3d-card.is-active {
+  cursor: default;
+}
+.art-template-card {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 24px;
+  border: none;
+  background: rgba(255, 255, 255, 0.85);
+  padding: 8px;
+  transition: box-shadow 0.5s;
+  box-shadow: 0 2px 12px rgba(212, 165, 165, 0.1);
+}
+.carousel-3d-card.is-active .art-template-card {
+  box-shadow: 0 6px 28px -4px rgba(88, 45, 54, 0.22);
+}
+.art-template-overlay {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.45s ease;
+}
+.carousel-3d-card.is-active .art-template-overlay {
+  opacity: 1;
+  pointer-events: auto;
+}
+.carousel-dot {
+  height: 8px;
+  border-radius: 9999px;
+  transition: all 0.3s ease;
+  border: none;
+  cursor: pointer;
+}
+#carouselPrevBtn,
+#carouselNextBtn {
+  z-index: 30;
+}
+
+/* Card skeleton – white base + sweeping light ray */
+@keyframes light-ray {
+  0% {
+    transform: translateX(-220%) skewX(-18deg);
+  }
+  100% {
+    transform: translateX(520%) skewX(-18deg);
+  }
+}
+.card-skeleton {
+  background: linear-gradient(160deg, #fdf4f7 0%, #fce8f1 100%);
+  overflow: hidden;
+}
+.card-skeleton::after {
+  content: "";
+  position: absolute;
+  top: -10%;
+  left: 0;
+  width: 28%;
+  height: 120%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.55) 45%,
+    rgba(255, 255, 255, 0.85) 50%,
+    rgba(255, 255, 255, 0.55) 55%,
+    transparent 100%
+  );
+  animation: light-ray 1.6s infinite ease-in-out;
+  pointer-events: none;
+}
+
+/* Nav scroll effect */
+.nav-scrolled {
+  box-shadow: 0 2px 20px rgba(200, 100, 130, 0.08);
+}
+#main-nav {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+#main-nav.nav-hidden {
+  transform: translateY(-100%);
+}
+
+/* ── Scroll Reveal ── */
+.reveal {
+  opacity: 0;
+  transform: translateY(22px);
+  transition: opacity 0.65s ease, transform 0.65s ease;
+}
+.reveal.revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+.reveal-delay-1 { transition-delay: 0.08s; }
+.reveal-delay-2 { transition-delay: 0.18s; }
+.reveal-delay-3 { transition-delay: 0.28s; }
+
+/* ── Testimonial card ── */
+.testimonial-card {
+  background: white;
+  border-radius: 14px;
+  padding: 24px 24px 22px;
+  border: 1px solid rgba(255, 183, 202, 0.25);
+  border-left: 3px solid rgba(236, 130, 158, 0.5);
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+.testimonial-card::before {
+  content: '\201C';
+  position: absolute;
+  top: -2px;
+  left: 16px;
+  font-family: 'Playfair Display', serif;
+  font-size: 84px;
+  line-height: 1;
+  color: rgba(255, 183, 202, 0.14);
+  pointer-events: none;
+  user-select: none;
+}
+.testimonial-card:hover {
+  box-shadow: 0 14px 36px rgba(200, 100, 130, 0.12);
+  transform: translateY(-3px);
+}
+.testimonial-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 13px;
+  color: white;
+  background: linear-gradient(135deg, var(--pink-deep), var(--pink));
+  flex-shrink: 0;
+}
+
+/* ── Mobile menu open state ── */
+#mobileMenu.open {
+  display: flex;
+}
+
+/* ── Chat widget: thu gọn thành ghim (mobile lẫn desktop) ── */
+#chatWidget {
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+#chatWidget.chat-widget-collapsed {
+  opacity: 0;
+  transform: translateX(16px);
+  pointer-events: none;
+}
+#chatPinTab {
+  touch-action: none;
+}
+

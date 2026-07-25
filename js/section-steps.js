@@ -1,0 +1,28 @@
+// --- Steps list (#steps) ---
+
+const STEPS_DATA = [
+  { n: 1, icon: "fa-palette",        title: "Chọn mẫu thiệp",      desc: "Xem demo trực tiếp. Đổi mẫu thoải mái, miễn phí.",          last: false },
+  { n: 2, icon: "fa-pen-to-square",  title: "Điền thông tin",       desc: "Tên, ảnh, ngày cưới, câu chuyện tình yêu, nhạc nền...",    last: false },
+  { n: 3, icon: "fa-eye",            title: "Xem trước & chia sẻ", desc: "Xem thiệp thật, gửi link cho người thân thử trước.",       last: false },
+  { n: 4, icon: "fa-lock",           title: "Thanh toán một lần",   desc: "Ưng ý mới cần thanh toán. Một lần — dùng trọn đời.",       last: true  },
+];
+
+function renderSteps() {
+  const el = document.getElementById("stepsList");
+  if (!el) return;
+  el.innerHTML = STEPS_DATA.map((s) => `
+<div class="step-card reveal reveal-delay-${s.n}${s.last ? "" : " relative"} text-center px-2">
+  ${s.last ? "" : '<div class="hidden md:block step-connector"></div>'}
+  <div class="relative w-16 h-16 mx-auto mb-5">
+    <span class="absolute -top-1 -right-2 text-5xl font-black leading-none select-none pointer-events-none" style="color:rgba(255,183,202,0.22);">${s.n}</span>
+    <div class="w-16 h-16 rounded-2xl flex items-center justify-center" style="background:linear-gradient(135deg,#fce7f3,#fbcfe8);box-shadow:0 4px 18px rgba(244,114,182,0.18);">
+      <i class="fas ${s.icon} text-xl" style="color:#c96080;"></i>
+    </div>
+  </div>
+  <div class="inline-flex items-center mb-3 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-widest uppercase" style="background:rgba(255,183,202,0.18);color:var(--pink-deep);">Bước ${s.n}</div>
+  <h3 class="font-playfair font-semibold mb-2 text-[#5a3a45]">${s.title}</h3>
+  <p class="text-sm opacity-60 leading-relaxed">${s.desc}</p>
+</div>`).join("");
+  setupRevealObserver();
+}
+
