@@ -417,6 +417,12 @@
       .nav-scrolled {
         box-shadow: 0 2px 20px rgba(200, 100, 130, 0.08);
       }
+      #main-nav {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+      #main-nav.nav-hidden {
+        transform: translateY(-100%);
+      }
 
       /* ── Scroll Reveal ── */
       .reveal {
@@ -476,6 +482,19 @@
       /* ── Mobile menu open state ── */
       #mobileMenu.open {
         display: flex;
+      }
+
+      /* ── Chat widget: thu gọn thành ghim (mobile lẫn desktop) ── */
+      #chatWidget {
+        transition: opacity 0.25s ease, transform 0.25s ease;
+      }
+      #chatWidget.chat-widget-collapsed {
+        opacity: 0;
+        transform: translateX(16px);
+        pointer-events: none;
+      }
+      #chatPinTab {
+        touch-action: none;
       }
 
     </style>
@@ -793,7 +812,7 @@
 
     <!-- ===== TEMPLATE GALLERY ===== -->
     <section id="templates" class="bg-[#fef1f7] flex flex-col" style="min-height: 100vh">
-      <div class="max-w-6xl mx-auto pb-3 pt-8 px-5 shrink-0">
+      <div class="max-w-6xl mx-auto py-8 px-5 shrink-0">
         <h2
           class="font-playfair text-3xl md:text-4xl font-semibold text-center mb-2 text-[#5a3a45]"
         >
@@ -1206,6 +1225,20 @@
       </a>
     </div>
 
+    <!-- Ghim gom các tính năng hỗ trợ nổi (Messenger, sau này thêm trợ lý AI…) — mọi màn hình -->
+    <button
+      id="chatPinTab"
+      type="button"
+      aria-label="Mở các tính năng hỗ trợ"
+      class="hidden fixed z-50 right-0 bottom-[calc(80px_+_env(safe-area-inset-bottom,0px))] w-9 h-16 items-center justify-end transition-transform active:scale-95"
+    >
+      <span
+        class="flex items-center justify-center w-[16px] h-[40px] rounded-l-[8px] border border-r-0 border-white/40 bg-[linear-gradient(155deg,var(--pink-deep),var(--pink))] shadow-[0_8px_24px_rgba(200,100,130,0.4)]"
+      >
+        <i id="chatPinIcon" class="fas fa-chevron-left text-white" style="font-size: 10px"></i>
+      </span>
+    </button>
+
     <script>
       // Widget hỗ trợ: xoay vòng câu chữ mỗi 3s, kèm hiệu ứng "đang gõ"
       (function initSupportRotator() {
@@ -1242,17 +1275,234 @@
           }, 650);
         }, 3000);
 
-        // Nút X: tắt tạm thời cả widget (thẻ + icon). Không lưu → F5 lại hiện.
+        // Nút X: đóng thẻ hỗ trợ, thu vào pin tab ở mép phải (mọi kích thước
+        // màn hình) — vẫn mở lại được qua click/vuốt vào pin tab.
         var closeBtn = document.getElementById("supportClose");
         var widget = document.getElementById("chatWidget");
         if (closeBtn) {
           closeBtn.addEventListener("click", function (e) {
             e.preventDefault();
             e.stopPropagation();
-            if (widget) widget.style.display = "none";
             clearInterval(rotTimer);
+            if (typeof window.__cxChatCollapse === "function") {
+              window.__cxChatCollapse();
+            } else if (widget) {
+              widget.style.display = "none";
+            }
           });
         }
+      })();
+    </script>
+
+    <script>
+      // Ghim widget hỗ trợ vào mép phải — hoạt động ở mọi kích thước màn hình.
+      // Trên mobile, bắt đầu cuộn sẽ tự thu gọn; trên desktop chỉ thu gọn khi
+      // người dùng chủ động bấm (nút X hoặc chính pin tab). Pin tab luôn hiển
+      // thị sau khi đã kích hoạt (không tự ẩn) — chỉ đảo chiều mũi tên theo
+      // trạng thái đóng/mở. Tap hoặc vuốt từ ghim ra (sang trái) để mở lại widget.
+      // Kéo ghim lên/xuống để đổi vị trí — widget hỗ trợ khi mở sẽ bám theo vị
+      // trí này. Vị trí + trạng thái đóng/mở dùng chung 1 key localStorage,
+      // giữ nguyên sau khi F5.
+      (function initChatPinOnScroll() {
+        var widget = document.getElementById("chatWidget");
+        var pinTab = document.getElementById("chatPinTab");
+        var pinIcon = document.getElementById("chatPinIcon");
+        if (!widget || !pinTab) return;
+
+        var SWIPE_OUT_DISTANCE = 24; // px vuốt sang trái đủ để coi là "kéo ra"
+        var DRAG_MODE_THRESHOLD = 6; // px di chuyển tối thiểu để phân biệt kéo dọc/ngang
+        var STORAGE_KEY = "cxChatPinBottom";
+        var PIN_DEFAULT_BOTTOM = 80; // vị trí mặc định khi chưa có cache (khớp class ban đầu)
+        var WIDGET_DEFAULT_BOTTOM = 18;
+        var PIN_WIDGET_OFFSET = PIN_DEFAULT_BOTTOM - WIDGET_DEFAULT_BOTTOM;
+
+        var collapsed = false;
+        var pinBottom = PIN_DEFAULT_BOTTOM;
+        var dragState = null;
+        var gestureHandled = false;
+
+        function isMobile() {
+          return window.matchMedia("(max-width: 767px)").matches;
+        }
+
+        function setArrow(dir) {
+          if (!pinIcon) return;
+          pinIcon.classList.toggle("fa-chevron-left", dir === "left");
+          pinIcon.classList.toggle("fa-chevron-right", dir === "right");
+        }
+
+        function showPinTab() {
+          pinTab.classList.remove("hidden");
+          pinTab.classList.add("flex");
+        }
+
+        function clampBottom(v) {
+          var minB = 16;
+          var maxB = Math.max(minB, window.innerHeight - 64 - 80); // chừa navbar + chiều cao ghim
+          return Math.min(Math.max(v, minB), maxB);
+        }
+
+        // Dùng chung 1 key cho cả vị trí (b) lẫn trạng thái đóng/mở (c).
+        function loadSavedState() {
+          var raw = null;
+          try {
+            raw = localStorage.getItem(STORAGE_KEY);
+          } catch (e) {
+            return null;
+          }
+          if (raw === null) return null;
+          try {
+            var parsed = JSON.parse(raw);
+            if (parsed && typeof parsed === "object") {
+              return {
+                bottom: typeof parsed.b === "number" ? parsed.b : null,
+                collapsed: !!parsed.c,
+              };
+            }
+          } catch (e) {
+            // bỏ qua, thử fallback bên dưới (bản cũ lưu thẳng số)
+          }
+          var legacy = parseFloat(raw);
+          return isNaN(legacy) ? null : { bottom: legacy, collapsed: false };
+        }
+
+        function saveState() {
+          try {
+            localStorage.setItem(
+              STORAGE_KEY,
+              JSON.stringify({ b: pinBottom, c: collapsed }),
+            );
+          } catch (e) {}
+        }
+
+        // Widget hỗ trợ (thẻ + nút Messenger) luôn bám theo vị trí ghim,
+        // giữ nguyên khoảng cách mặc định giữa hai phần tử.
+        function applyPinPosition() {
+          pinTab.style.bottom =
+            "calc(" + pinBottom + "px + env(safe-area-inset-bottom, 0px))";
+          var widgetBottom = Math.max(pinBottom - PIN_WIDGET_OFFSET, 8);
+          widget.style.bottom =
+            "calc(" + widgetBottom + "px + env(safe-area-inset-bottom, 0px))";
+        }
+
+        function initPosition() {
+          var saved = loadSavedState();
+          pinBottom = clampBottom(
+            saved && saved.bottom !== null ? saved.bottom : PIN_DEFAULT_BOTTOM,
+          );
+          applyPinPosition();
+          // Khôi phục đúng trạng thái đã ẩn từ lần trước, không đợi cuộn mới ẩn.
+          if (saved && saved.collapsed) collapse();
+        }
+
+        // Thu gọn/mở lại hoạt động như nhau ở mọi kích thước màn hình.
+        function collapse() {
+          collapsed = true;
+          widget.classList.add("chat-widget-collapsed");
+          showPinTab();
+          setArrow("left"); // mũi tên trái = đang thu gọn, tap để mở
+          saveState();
+        }
+
+        function expand() {
+          collapsed = false;
+          widget.classList.remove("chat-widget-collapsed");
+          showPinTab();
+          setArrow("right"); // mũi tên phải = đang mở, tap để thu gọn
+          saveState();
+        }
+
+        // Tự thu gọn khi cuộn: chỉ áp dụng cho mobile. Ở desktop, widget vẫn
+        // hiện bình thường khi cuộn — chỉ ẩn khi người dùng chủ động bấm (nút X
+        // hoặc chính pin tab).
+        window.addEventListener(
+          "scroll",
+          function () {
+            if (isMobile() && !collapsed) collapse();
+          },
+          { passive: true },
+        );
+
+        // Kéo ghim: dùng Pointer Events để gộp chung touch/mouse/pen.
+        // Ưu tiên hướng di chuyển đầu tiên (dọc = kéo đổi vị trí, ngang = vuốt mở).
+        pinTab.addEventListener("pointerdown", function (e) {
+          if (e.pointerType === "mouse" && e.button !== 0) return;
+          dragState = {
+            startY: e.clientY,
+            startX: e.clientX,
+            startBottom: pinBottom,
+            mode: null,
+          };
+          gestureHandled = false;
+          try {
+            pinTab.setPointerCapture(e.pointerId);
+          } catch (err) {}
+        });
+
+        pinTab.addEventListener(
+          "pointermove",
+          function (e) {
+            if (!dragState) return;
+            var dy = dragState.startY - e.clientY; // kéo lên = dương
+            var dx = e.clientX - dragState.startX;
+
+            if (!dragState.mode) {
+              if (
+                Math.abs(dy) > DRAG_MODE_THRESHOLD ||
+                Math.abs(dx) > DRAG_MODE_THRESHOLD
+              ) {
+                dragState.mode =
+                  Math.abs(dy) >= Math.abs(dx) ? "vertical" : "horizontal";
+              } else {
+                return;
+              }
+            }
+
+            if (dragState.mode === "vertical") {
+              gestureHandled = true;
+              pinBottom = clampBottom(dragState.startBottom + dy);
+              applyPinPosition();
+              e.preventDefault();
+            } else if (dragState.mode === "horizontal") {
+              if (collapsed && dx < -SWIPE_OUT_DISTANCE) {
+                gestureHandled = true;
+                expand();
+              }
+            }
+          },
+          { passive: false },
+        );
+
+        function finishDrag() {
+          if (dragState && dragState.mode === "vertical") {
+            saveState();
+          }
+          dragState = null;
+        }
+
+        pinTab.addEventListener("pointerup", finishDrag);
+        pinTab.addEventListener("pointercancel", finishDrag);
+
+        pinTab.addEventListener("click", function (e) {
+          e.preventDefault();
+          if (gestureHandled) {
+            gestureHandled = false;
+            return;
+          }
+          if (collapsed) expand();
+          else collapse();
+        });
+
+        window.addEventListener("resize", function () {
+          pinBottom = clampBottom(pinBottom);
+          applyPinPosition();
+        });
+
+        initPosition();
+
+        // Cho nút X (đóng thẻ Messenger) tái dùng logic thu gọn trên mobile,
+        // để pin tab vẫn mở lại được sau khi đóng.
+        window.__cxChatCollapse = collapse;
       })();
     </script>
 
@@ -1264,16 +1514,60 @@
     <script src="core/payment.js"></script>
 
     <script>
-      // Nav scroll effect
-      window.addEventListener(
-        "scroll",
-        () => {
-          document
-            .getElementById("main-nav")
-            .classList.toggle("nav-scrolled", window.scrollY > 20);
-        },
-        { passive: true },
-      );
+      // Nav scroll effect: đổ bóng khi rời top + tự ẩn/hiện theo hướng & tốc độ cuộn
+      (function initNavAutoHide() {
+        const nav = document.getElementById("main-nav");
+        const mobileMenu = document.getElementById("mobileMenu");
+        if (!nav) return;
+
+        const TOP_THRESHOLD = 80; // gần đầu trang -> luôn hiện navbar
+        const MOVE_DEADZONE = 6; // bỏ qua rung lắc/cuộn cực nhẹ
+        const FAST_SWIPE_SPEED = 0.6; // px/ms — vuốt lên nhanh mới cho hiện lại navbar
+
+        let lastY = window.scrollY;
+        let lastT = performance.now();
+        let ticking = false;
+
+        function isMobileMenuOpen() {
+          return mobileMenu && !mobileMenu.classList.contains("hidden");
+        }
+
+        function onScroll() {
+          if (ticking) return;
+          ticking = true;
+          requestAnimationFrame(() => {
+            const currentY = Math.max(window.scrollY, 0);
+            const currentT = performance.now();
+            const deltaY = currentY - lastY;
+            const deltaT = Math.max(currentT - lastT, 1);
+            const speed = Math.abs(deltaY) / deltaT; // px/ms
+
+            nav.classList.toggle("nav-scrolled", currentY > 20);
+
+            if (!isMobileMenuOpen()) {
+              if (currentY <= TOP_THRESHOLD) {
+                // Gần đầu trang: luôn hiện navbar
+                nav.classList.remove("nav-hidden");
+              } else if (deltaY > MOVE_DEADZONE) {
+                // Cuộn xuống: ẩn ngay, không phân biệt tốc độ
+                nav.classList.add("nav-hidden");
+              } else if (deltaY < -MOVE_DEADZONE) {
+                // Cuộn lên: chỉ hiện lại nếu vuốt đủ nhanh (flick).
+                // Vuốt lên chậm/từ từ = đang đọc lại nội dung, không show navbar.
+                if (speed >= FAST_SWIPE_SPEED) {
+                  nav.classList.remove("nav-hidden");
+                }
+              }
+            }
+
+            lastY = currentY;
+            lastT = currentT;
+            ticking = false;
+          });
+        }
+
+        window.addEventListener("scroll", onScroll, { passive: true });
+      })();
     </script>
   </body>
 </html>
