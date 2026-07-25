@@ -6,6 +6,7 @@ const TEMPLATES_API_URL = CONFIG.cloudflare.templatesCache
 
 let templates = [];
 let carouselActiveIndex = 0;
+let _cardW = 220; // chiều rộng card active hiện tại (px), cập nhật bởi sizeCarousel()
 
 async function fetchTemplatesViaEdge() {
   const res = await fetch(`${CONFIG.supabase.edgeUrl}?resource=public-templates`, {
@@ -348,17 +349,15 @@ function setActiveCard(index) {
   });
 
   updateDots();
-  updateMobileInfoCard();
   resetImageScroll();
 }
 
 function applyCardTransform(card, offset) {
-  const mobile = window.innerWidth < 640;
   const abs = Math.abs(offset);
 
   if (abs > 1) {
     const dir = offset > 0 ? 1 : -1;
-    card.style.transform = `translateX(${dir * (mobile ? 400 : 600)}px) scale(0.5)`;
+    card.style.transform = `translateX(${dir * _cardW * 1.8}px) scale(0.5)`;
     card.style.opacity = "0";
     card.style.zIndex = "1";
     card.style.pointerEvents = "none";
@@ -373,7 +372,8 @@ function applyCardTransform(card, offset) {
     card.style.pointerEvents = "auto";
     card.classList.add("is-active");
   } else {
-    const tx = mobile ? 145 : 175;
+    // Card kề bên chỉ ló ra ở mép — tỉ lệ theo bề rộng card để luôn cân đối
+    const tx = _cardW * 0.8;
     const dir = offset > 0 ? 1 : -1;
     card.style.transform = `translateX(${dir * tx}px) scale(0.85)`;
     card.style.opacity = "0.4";
@@ -381,6 +381,32 @@ function applyCardTransform(card, offset) {
     card.style.pointerEvents = "auto";
     card.classList.remove("is-active");
   }
+}
+
+// Tính kích thước card để thiệp active lấp đầy chiều cao khả dụng (to & rộng nhất),
+// giữ tỉ lệ dáng điện thoại; giới hạn bề rộng để card kề bên vẫn ló mép.
+function sizeCarousel() {
+  const stage = document.getElementById("templateCarousel");
+  if (!stage) return;
+  const h = stage.clientHeight;
+  const w = stage.clientWidth;
+  if (!h || !w) return;
+
+  // Desktop dùng tỉ lệ rộng hơn để thiệp to hơn hẳn mobile (chiều cao đã kịch trần)
+  const mobile = w < 640;
+  const ASPECT = mobile ? 0.52 : 0.64;
+  let cardH = h;
+  let cardW = Math.round(cardH * ASPECT);
+
+  const maxW = mobile ? w * 0.9 : Math.min(w * 0.5, 580);
+  if (cardW > maxW) {
+    cardW = Math.round(maxW);
+    cardH = Math.round(cardW / ASPECT);
+  }
+
+  _cardW = cardW;
+  stage.style.setProperty("--cx-card-w", cardW + "px");
+  stage.style.setProperty("--cx-card-h", cardH + "px");
 }
 
 function updateDots() {
@@ -395,40 +421,6 @@ function updateDots() {
   `,
     )
     .join("");
-}
-
-function updateMobileInfoCard() {
-  const container = document.getElementById("carouselMobileInfo");
-  if (!container) return;
-  const t = templates[carouselActiveIndex];
-  if (!t) {
-    container.innerHTML = "";
-    return;
-  }
-  const categoryLabel =
-    t.category === "premium" ? "Thiệp cao cấp" : "Thiệp miễn phí";
-  container.innerHTML = `
-    <div class="mb-2 flex items-center gap-1.5">
-      <span class="inline-flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-semibold" style="background:rgba(255,183,202,0.15);color:var(--pink-deep);">
-        <i class="fas fa-tag text-[9px] shrink-0"></i>
-        <span class="truncate">${categoryLabel}</span>
-      </span>
-    </div>
-    <p class="truncate font-playfair text-lg font-semibold leading-tight text-[#5a3a45]">${t.name}</p>
-    <p class="mt-1 line-clamp-2 text-xs leading-relaxed" style="color:var(--mauve);">${t.description || ""}</p>
-    <div class="mt-3 flex items-center gap-2">
-      <button onclick="openPreview('${t.id}')"
-        class="flex-1 h-9 rounded-md border text-xs font-semibold flex items-center justify-center gap-1.5 bg-white/75 transition-colors"
-        style="border-color:rgba(212,165,165,0.2);">
-        <i class="fas fa-eye text-[11px]"></i>Xem Demo
-      </button>
-      <button onclick="createDraft('${t.id}')"
-        class="flex-1 h-9 rounded-md text-xs font-semibold flex items-center justify-center gap-1.5 text-white"
-        style="background:#f43f5e;">
-        Tạo nhanh <i class="fas fa-arrow-right text-[11px]"></i>
-      </button>
-    </div>
-  `;
 }
 
 function initCarousel3D() {
@@ -481,17 +473,21 @@ function initCarousel3D() {
     if (e.key === "ArrowRight") scrollCarousel("next");
   });
 
-  // Resize → recalc transforms
+  // Resize → tính lại kích thước card + transform
   let resizeTimer = null;
   window.addEventListener(
     "resize",
     () => {
       clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(() => setActiveCard(carouselActiveIndex), 120);
+      resizeTimer = setTimeout(() => {
+        sizeCarousel();
+        setActiveCard(carouselActiveIndex);
+      }, 120);
     },
     { passive: true },
   );
 
+  sizeCarousel();
   setActiveCard(0);
 }
 
@@ -590,26 +586,34 @@ function renderTemplateCards() {
            />`
         : "";
 
+      const categoryLabel =
+        t.category === "premium" ? "Thiệp cao cấp" : "Thiệp miễn phí";
+
       return `
       <div class="carousel-3d-card" data-index="${index}">
         <div class="art-template-card">
-          <div class="relative h-full overflow-hidden rounded-[6px]" style="background:#fff;">
+          <div class="relative h-full overflow-hidden rounded-[16px]" style="background:#fff;">
             <div class="absolute inset-0 overflow-y-hidden">
               ${imageContent}
             </div>
           </div>
-          <div class="art-template-overlay absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent pt-12 pb-4 px-3 rounded-b-[6px]">
-            <p class="text-white font-semibold text-sm leading-snug truncate drop-shadow-sm">${t.name}</p>
-            <p class="text-white/70 text-xs mt-0.5 line-clamp-2 leading-relaxed">${t.description || ""}</p>
-            <div class="mt-2 flex gap-1.5" style="pointer-events:auto;">
-              <button onclick="openPreview('${t.id}')"
-                class="flex-1 h-7 rounded text-[10px] font-semibold bg-white/20 text-white border border-white/30 backdrop-blur-sm transition-colors hover:bg-white/30">
-                Xem demo
+          <div class="art-template-overlay absolute bottom-0 left-0 right-0 pt-16 pb-4 px-4 rounded-b-[16px]"
+            style="background:linear-gradient(to top, rgb(132 132 132 / 90%) 0%, rgb(186 186 186 / 60%) 48%, transparent 100%);">
+            <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 mb-2 text-[10px] font-semibold text-white" style="background:rgba(255,255,255,0.22);backdrop-filter:blur(4px);">
+              <i class="fas fa-tag text-[9px]"></i>${categoryLabel}
+            </span>
+            <p class="text-white font-playfair font-semibold text-base leading-snug truncate drop-shadow-sm">${t.name}</p>
+            <p class="text-white/85 text-xs mt-0.5 line-clamp-2 leading-relaxed">${t.description || ""}</p>
+            <div class="mt-3 flex gap-2" style="pointer-events:auto;">
+              <button onclick="event.stopPropagation(); openPreview('${t.id}')"
+                class="flex-1 h-9 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors hover:bg-white"
+                style="background:rgba(255,255,255,0.85);color:#5a3a45;border:1px solid rgba(212,165,165,0.35);">
+                <i class="fas fa-eye text-[11px]"></i>Xem demo
               </button>
               <button onclick="event.stopPropagation(); createDraft('${t.id}')"
-                class="flex-1 h-7 rounded text-[10px] font-semibold text-white transition-colors"
+                class="flex-1 h-9 rounded-lg text-xs font-semibold text-white flex items-center justify-center gap-1.5 transition-colors"
                 style="pointer-events:auto;background:var(--pink-deep);">
-                Dùng ngay
+                Dùng ngay<i class="fas fa-arrow-right text-[11px]"></i>
               </button>
             </div>
           </div>
@@ -726,7 +730,7 @@ function renderSteps() {
   if (!el) return;
   el.innerHTML = STEPS_DATA.map((s) => `
 <div class="step-card reveal reveal-delay-${s.n}${s.last ? "" : " relative"} text-center px-2">
-  ${s.last ? "" : '<div class="hidden lg:block step-connector"></div>'}
+  ${s.last ? "" : '<div class="hidden md:block step-connector"></div>'}
   <div class="relative w-16 h-16 mx-auto mb-5">
     <span class="absolute -top-1 -right-2 text-5xl font-black leading-none select-none pointer-events-none" style="color:rgba(255,183,202,0.22);">${s.n}</span>
     <div class="w-16 h-16 rounded-2xl flex items-center justify-center" style="background:linear-gradient(135deg,#fce7f3,#fbcfe8);box-shadow:0 4px 18px rgba(244,114,182,0.18);">

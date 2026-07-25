@@ -320,13 +320,9 @@
       /* ── Carousel ── */
       .carousel-3d-stage {
         position: relative;
-        height: 490px;
+        width: 100%;
+        min-height: 0;
         overflow: visible;
-      }
-      @media (max-width: 639px) {
-        .carousel-3d-stage {
-          height: 440px;
-        }
       }
       .carousel-3d-track {
         position: absolute;
@@ -334,25 +330,17 @@
       }
       .carousel-3d-card {
         position: absolute;
-        width: 220px;
-        height: 420px;
+        width: var(--cx-card-w, 220px);
+        height: var(--cx-card-h, 420px);
         left: 50%;
         top: 50%;
-        margin-left: -110px;
-        margin-top: -220px;
+        margin-left: calc(var(--cx-card-w, 220px) / -2);
+        margin-top: calc(var(--cx-card-h, 420px) / -2);
         transition:
           transform 0.65s cubic-bezier(0.25, 0.46, 0.45, 0.94),
           opacity 0.45s;
         will-change: transform;
         cursor: pointer;
-      }
-      @media (max-width: 639px) {
-        .carousel-3d-card {
-          width: 200px;
-          height: 380px;
-          margin-left: -100px;
-          margin-top: -200px;
-        }
       }
       .carousel-3d-card.is-active {
         cursor: default;
@@ -362,10 +350,10 @@
         height: 100%;
         width: 100%;
         overflow: hidden;
-        border-radius: 8px;
+        border-radius: 24px;
         border: none;
         background: rgba(255, 255, 255, 0.85);
-        padding: 6px;
+        padding: 8px;
         transition: box-shadow 0.5s;
         box-shadow: 0 2px 12px rgba(212, 165, 165, 0.1);
       }
@@ -373,7 +361,13 @@
         box-shadow: 0 6px 28px -4px rgba(88, 45, 54, 0.22);
       }
       .art-template-overlay {
-        display: none;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.45s ease;
+      }
+      .carousel-3d-card.is-active .art-template-overlay {
+        opacity: 1;
+        pointer-events: auto;
       }
       .carousel-dot {
         height: 8px;
@@ -669,12 +663,12 @@
 
       <div class="max-w-6xl mx-auto px-5">
         <div
-          class="flex flex-col lg:flex-row items-center gap-12 py-4 lg:py-16"
+          class="flex flex-col md:flex-row items-center gap-12 py-4 md:py-16"
         >
           <!-- Left: copy -->
-          <div class="flex-1 text-center lg:text-left">
+          <div class="flex-1 text-left">
             <p
-              class="hero-anim hero-anim-1 font-cormorant italic text-lg mb-3"
+              class="hero-anim hero-anim-1 font-cormorant italic text-lg mb-0 md:mb-3"
               style="color: var(--pink)"
             >
               ✦ Thiệp cưới điện tử ✦
@@ -690,25 +684,25 @@
               Cưới Xinh
             </h1>
             <h2
-              class="hero-anim hero-anim-3 font-playfair font-semibold leading-snug mb-5 text-[#5a3a45]"
-              style="font-size: clamp(1.45rem, 3.5vw, 2.1rem)"
+              class="hero-anim hero-anim-3 font-playfair font-semibold leading-snug mb-4 text-[#5a3a45]"
+              style="font-size: clamp(1.15rem, 5vw, 2.1rem)"
             >
-              Thiệp cưới online đẹp —<br />kể câu chuyện tình yêu của bạn
+              Kể câu chuyện tình yêu của bạn
             </h2>
             <p
-              class="hero-anim hero-anim-3 text-base leading-relaxed max-w-md mx-auto lg:mx-0 mb-8 opacity-75"
+              class="hero-anim hero-anim-3 text-sm md:text-base leading-relaxed max-w-md md:mx-0 mb-6 opacity-75"
             >
-              Dùng thử hoàn toàn miễn phí.</br> Chỉ thanh toán khi bạn thật sự ưng ý.
+              Dùng thử hoàn toàn miễn phí.<br />Chỉ thanh toán khi bạn thật sự ưng ý.
             </p>
 
             <!-- CTAs -->
             <div
-              class="hero-anim hero-anim-4 flex flex-col sm:flex-row gap-3 justify-center lg:justify-start mb-7"
+              class="hero-anim hero-anim-4 flex flex-col sm:flex-row gap-3 justify-start mb-7"
             >
               <a
                 href="/invitation-setup/"
                 onclick="goCreateDraft(event)"
-                class="relative overflow-hidden px-7 py-3.5 rounded-full text-base font-semibold text-white transition-all hover:-translate-y-0.5 active:scale-95 bg-[linear-gradient(90deg,#e11d48,#ec4899,#f472b6,#ec4899,#e11d48)] bg-[length:300%_100%] shadow-[0_8px_26px_rgba(219,39,119,0.42)] animate-ctaFlow motion-reduce:animate-none before:content-[''] before:absolute before:top-0 before:bottom-0 before:left-0 before:w-1/3 before:-skew-x-12 before:bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.7),transparent)] before:animate-ctaShine before:pointer-events-none motion-reduce:before:hidden"
+                class="text-center relative overflow-hidden px-7 py-3.5 rounded-full text-base font-semibold text-white transition-all hover:-translate-y-0.5 active:scale-95 bg-[linear-gradient(90deg,#e11d48,#ec4899,#f472b6,#ec4899,#e11d48)] bg-[length:300%_100%] shadow-[0_8px_26px_rgba(219,39,119,0.42)] animate-ctaFlow motion-reduce:animate-none before:content-[''] before:absolute before:top-0 before:bottom-0 before:left-0 before:w-1/3 before:-skew-x-12 before:bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.7),transparent)] before:animate-ctaShine before:pointer-events-none motion-reduce:before:hidden"
               >
                 <span class="relative z-10">
                   Tạo thiệp của tôi
@@ -717,7 +711,7 @@
               </a>
               <a
                 href="/theme-template/"
-                class="px-7 py-3.5 rounded-full text-base font-medium border border-[1px] bg-white/80 backdrop-blur-sm transition-all hover:bg-rose-pastel-100 hover:-translate-y-0.5"
+                class="text-center px-7 py-3.5 rounded-full text-base font-medium border border-[1px] bg-white/80 backdrop-blur-sm transition-all hover:bg-rose-pastel-100 hover:-translate-y-0.5"
                 style="border-color: var(--pink); color: var(--mauve)"
               >
                 Xem mẫu thiệp
@@ -726,62 +720,30 @@
 
             <!-- Trust -->
             <div
-              class="hero-anim hero-anim-5 flex flex-wrap gap-2.5 justify-center lg:justify-start"
+              class="hero-anim hero-anim-5 flex flex-wrap gap-2 justify-center max-w-[360px] mx-auto md:mx-0"
             >
-              <div
-                class="flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-rose-pastel-200 bg-white/70 backdrop-blur-sm"
-              >
-                <span
-                  class="w-4 h-4 rounded-full flex items-center justify-center shrink-0"
-                  style="background: var(--pink)"
-                  ><i class="fas fa-gift text-[8px] text-white"></i
-                ></span>
-                <span class="text-xs font-medium" style="color: var(--mauve)"
-                  >Dùng thử miễn phí</span
-                >
+              <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-rose-pastel-200 bg-white/70 backdrop-blur-sm">
+                <span class="w-4 h-4 rounded-full flex items-center justify-center shrink-0" style="background: var(--pink)"><i class="fas fa-gift text-[8px] text-white"></i></span>
+                <span class="text-xs font-medium whitespace-nowrap" style="color: var(--mauve)">Dùng thử miễn phí</span>
               </div>
-              <div
-                class="flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-rose-pastel-200 bg-white/70 backdrop-blur-sm"
-              >
-                <span
-                  class="w-4 h-4 rounded-full flex items-center justify-center shrink-0"
-                  style="background: var(--pink)"
-                  ><i class="fas fa-sync-alt text-[8px] text-white"></i
-                ></span>
-                <span class="text-xs font-medium" style="color: var(--mauve)"
-                  >Đổi mẫu mọi lúc</span
-                >
+              <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-rose-pastel-200 bg-white/70 backdrop-blur-sm">
+                <span class="w-4 h-4 rounded-full flex items-center justify-center shrink-0" style="background: var(--pink)"><i class="fas fa-sync-alt text-[8px] text-white"></i></span>
+                <span class="text-xs font-medium whitespace-nowrap" style="color: var(--mauve)">Đổi mẫu mọi lúc</span>
               </div>
-              <div
-                class="flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-rose-pastel-200 bg-white/70 backdrop-blur-sm"
-              >
-                <span
-                  class="w-4 h-4 rounded-full flex items-center justify-center shrink-0"
-                  style="background: var(--pink)"
-                  ><i class="fas fa-mobile-alt text-[8px] text-white"></i
-                ></span>
-                <span class="text-xs font-medium" style="color: var(--mauve)"
-                  >Không cần cài app</span
-                >
+              <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-rose-pastel-200 bg-white/70 backdrop-blur-sm">
+                <span class="w-4 h-4 rounded-full flex items-center justify-center shrink-0" style="background: var(--pink)"><i class="fas fa-mobile-alt text-[8px] text-white"></i></span>
+                <span class="text-xs font-medium whitespace-nowrap" style="color: var(--mauve)">Không cài app</span>
               </div>
-              <div
-                class="flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-rose-pastel-200 bg-white/70 backdrop-blur-sm"
-              >
-                <span
-                  class="w-4 h-4 rounded-full flex items-center justify-center shrink-0"
-                  style="background: var(--pink)"
-                  ><i class="fas fa-bolt text-[8px] text-white"></i
-                ></span>
-                <span class="text-xs font-medium" style="color: var(--mauve)"
-                  >Tạo xong trong 5 phút</span
-                >
+              <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-rose-pastel-200 bg-white/70 backdrop-blur-sm">
+                <span class="w-4 h-4 rounded-full flex items-center justify-center shrink-0" style="background: var(--pink)"><i class="fas fa-infinity text-[8px] text-white"></i></span>
+                <span class="text-xs font-medium whitespace-nowrap" style="color: var(--mauve)">Thiệp vĩnh viễn</span>
               </div>
             </div>
           </div>
 
           <!-- Right: decorative card stack -->
           <div
-            class="hero-anim hero-anim-3 shrink-0 hidden sm:flex justify-center lg:justify-end pr-10"
+            class="hero-anim hero-anim-3 shrink-0 hidden md:flex justify-end pr-10"
           >
             <div class="card-stack">
               <div class="card card-3"></div>
@@ -830,66 +792,61 @@
     </section>
 
     <!-- ===== TEMPLATE GALLERY ===== -->
-    <section id="templates" class="py-16 bg-[#fef1f7]">
-      <div class="max-w-6xl mx-auto px-5 mb-10">
+    <section id="templates" class="bg-[#fef1f7] flex flex-col" style="min-height: 100vh">
+      <div class="max-w-6xl mx-auto pb-3 pt-8 px-5 shrink-0">
         <h2
           class="font-playfair text-3xl md:text-4xl font-semibold text-center mb-2 text-[#5a3a45]"
         >
-          Mẫu thiệp đẹp, tinh tế
+          Mẫu thiệp
         </h2>
         <p class="text-center text-sm opacity-60">
           Chọn thoải mái — đổi mẫu miễn phí bất cứ lúc nào
         </p>
       </div>
 
-      <div class="overflow-hidden">
-        <div class="relative">
-          <div id="templateCarousel" class="carousel-3d-stage">
-            <div id="templateCarouselInner" class="carousel-3d-track"></div>
-            <button
-              id="carouselPrevBtn"
-              onclick="scrollCarousel('prev')"
-              class="absolute left-3 sm:left-[calc(50%-340px)] top-1/2 z-30 -translate-y-4 w-8 h-8 flex items-center justify-center rounded-full border border-white/70 bg-white/80 shadow-md backdrop-blur-sm transition-all hover:bg-white active:scale-95"
-              aria-label="Thiệp trước"
-            >
-              <i
-                class="fas fa-chevron-left text-[#5a3a45]"
-                style="font-size: 1rem"
-              ></i>
-            </button>
-            <button
-              id="carouselNextBtn"
-              onclick="scrollCarousel('next')"
-              class="absolute right-3 sm:right-[calc(50%-340px)] top-1/2 z-30 -translate-y-4 w-8 h-8 flex items-center justify-center rounded-full border border-white/70 bg-white/80 shadow-md backdrop-blur-sm transition-all hover:bg-white active:scale-95"
-              aria-label="Thiệp tiếp theo"
-            >
-              <i
-                class="fas fa-chevron-right text-[#5a3a45]"
-                style="font-size: 1rem"
-              ></i>
-            </button>
-          </div>
+      <div class="relative flex-1 flex flex-col overflow-hidden min-h-0">
+        <div id="templateCarousel" class="carousel-3d-stage flex-1">
+          <div id="templateCarouselInner" class="carousel-3d-track"></div>
+        </div>
 
-          <!-- Template info card -->
-          <div
-            id="carouselMobileInfo"
-            class="mx-auto mt-4 max-w-[360px] rounded-[8px] p-3 text-left"
-            style="
-              border: 1px solid rgba(255, 255, 255, 0.75);
-              background: rgba(255, 255, 255, 0.85);
-              box-shadow: 0 2px 12px rgba(212, 165, 165, 0.15);
-            "
-          ></div>
+        <button
+          id="carouselPrevBtn"
+          onclick="scrollCarousel('prev')"
+          class="absolute left-3 sm:left-6 top-1/2 z-40 -translate-y-1/2 hidden lg:flex h-10 w-10 items-center justify-center rounded-full border border-white/60 bg-white/40 text-[#5a3a45] shadow-[0_6px_20px_rgba(200,100,130,0.14)] backdrop-blur-md transition-colors duration-200 hover:bg-white/70 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ec829e]/40"
+          aria-label="Thiệp trước"
+        >
+          <i class="fas fa-chevron-left text-base"></i>
+        </button>
+        <button
+          id="carouselNextBtn"
+          onclick="scrollCarousel('next')"
+          class="absolute right-3 sm:right-6 top-1/2 z-40 -translate-y-1/2 hidden lg:flex h-10 w-10 items-center justify-center rounded-full border border-white/60 bg-white/40 text-[#5a3a45] shadow-[0_6px_20px_rgba(200,100,130,0.14)] backdrop-blur-md transition-colors duration-200 hover:bg-white/70 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ec829e]/40"
+          aria-label="Thiệp tiếp theo"
+        >
+          <i class="fas fa-chevron-right text-base"></i>
+        </button>
 
-          <div
-            id="carouselDots"
-            class="flex justify-center gap-1.5 mt-4"
-          ></div>
+        <div class="shrink-0 flex items-center justify-center gap-4 py-3">
+          <button
+            onclick="scrollCarousel('prev')"
+            class="lg:hidden flex h-8 w-8 items-center justify-center text-[#5a3a45]/45 transition-colors hover:text-[#5a3a45] active:scale-90"
+            aria-label="Thiệp trước"
+          >
+            <i class="fas fa-arrow-left text-base"></i>
+          </button>
+          <div id="carouselDots" class="flex justify-center gap-1.5"></div>
+          <button
+            onclick="scrollCarousel('next')"
+            class="lg:hidden flex h-8 w-8 items-center justify-center text-[#5a3a45]/45 transition-colors hover:text-[#5a3a45] active:scale-90"
+            aria-label="Thiệp tiếp theo"
+          >
+            <i class="fas fa-arrow-right text-base"></i>
+          </button>
         </div>
       </div>
 
       <!-- Wave bottom -->
-      <div class="wave-divider mt-8">
+      <div class="wave-divider shrink-0">
         <svg
           viewBox="0 0 1440 40"
           xmlns="http://www.w3.org/2000/svg"
@@ -907,10 +864,10 @@
     <!-- ===== INSIDE THE INVITATION ===== -->
     <section id="inside" class="py-16 bg-white">
       <div class="max-w-6xl mx-auto px-5">
-        <div class="flex flex-col lg:flex-row items-center gap-14">
+        <div class="flex flex-col md:flex-row items-center gap-14">
 
           <!-- Left: phone mockup (real iPhone frame, transparent screen) -->
-          <div class="reveal shrink-0 hidden lg:flex justify-center px-[50px]">
+          <div class="reveal shrink-0 hidden md:flex justify-center px-[50px]">
             <div class="relative w-[220px] h-[430px]">
 
               <!-- Wedding card content — visible through the transparent screen -->
@@ -1012,7 +969,7 @@
 
         <div
           id="stepsList"
-          class="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8"
+          class="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8"
         ></div>
       </div>
     </section>
@@ -1035,7 +992,7 @@
         <!-- scrollable on mobile, grid on desktop — rendered by JS -->
         <div
           id="benefitsGrid"
-          class="scrollbar-hide -mx-1 flex snap-x gap-3 overflow-x-auto px-1 scroll-pl-1 pb-3 sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-4 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-3"
+          class="scrollbar-hide -mx-1 flex snap-x gap-3 overflow-x-auto px-1 scroll-pl-1 pb-3 sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-4 sm:overflow-visible sm:px-0 sm:pb-0 md:grid-cols-3"
         ></div>
       </div>
     </section>
