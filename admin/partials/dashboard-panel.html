@@ -7,7 +7,7 @@
     <p class="text-sm text-gray-500 mb-6">
       Chọn một mục dưới đây để bắt đầu quản lý.
     </p>
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       <button
         onclick="switchTab('weddings')"
         class="flex items-center gap-4 p-5 border border-gray-200 rounded-2xl hover:border-rose-300 hover:bg-rose-50/50 transition-colors text-left"
@@ -37,6 +37,22 @@
           <div class="font-semibold text-gray-800">Templates</div>
           <div class="text-xs text-gray-500">
             Quản lý mẫu thiệp, cache, scan ảnh
+          </div>
+        </div>
+      </button>
+      <button
+        onclick="switchTab('sample-images')"
+        class="flex items-center gap-4 p-5 border border-gray-200 rounded-2xl hover:border-amber-300 hover:bg-amber-50/50 transition-colors text-left"
+      >
+        <div
+          class="w-12 h-12 shrink-0 rounded-xl bg-amber-100 text-amber-500 flex items-center justify-center text-xl"
+        >
+          <i class="fas fa-images"></i>
+        </div>
+        <div>
+          <div class="font-semibold text-gray-800">Ảnh mẫu</div>
+          <div class="text-xs text-gray-500">
+            Ảnh demo + điểm lấy nét cho từng theme
           </div>
         </div>
       </button>

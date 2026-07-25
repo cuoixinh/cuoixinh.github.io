@@ -25,11 +25,12 @@ if (!ADMIN_TOKEN) {
 // Không còn tab bar — điều hướng qua card ở Dashboard và breadcrumb ở header
 // (span#breadcrumb-current đổi nhãn theo màn đang xem). Giữ tên switchTab để
 // không phải đổi tên khắp các file gọi nó.
-const TAB_NAMES = ["dashboard", "weddings", "templates"];
+const TAB_NAMES = ["dashboard", "weddings", "templates", "sample-images"];
 const TAB_BREADCRUMB_LABELS = {
   dashboard: "Quản lý Hệ thống",
   weddings: "Thiệp Cưới",
   templates: "Templates",
+  "sample-images": "Ảnh mẫu",
 };
 
 function switchTab(tabName, pushState = true) {
@@ -44,13 +45,18 @@ function switchTab(tabName, pushState = true) {
     loadPage(1);
   } else if (tabName === "templates") {
     loadTemplates();
+  } else if (tabName === "sample-images") {
+    initSampleImagesPanel();
   }
 }
 
-// Restore tab từ URL hash (nếu không có hash thì giữ Dashboard mặc định, không gọi API)
-(function () {
+// Restore tab từ URL hash (nếu không có hash thì giữ Dashboard mặc định, không gọi API).
+// Gọi từ loader.js SAU KHI toàn bộ script theo tab đã nạp xong (không gọi ở đây
+// — lúc file này chạy, js/01-weddings.js/02-templates.js/03-sample-images.js
+// chưa nạp nên loadPage()/loadTemplates()/initSampleImagesPanel() còn undefined).
+function restoreTabFromHash() {
   const tab = location.hash.replace("#", "");
-  if (tab === "dashboard" || tab === "weddings" || tab === "templates") {
+  if (TAB_NAMES.includes(tab)) {
     switchTab(tab, false);
   }
-})();
+}

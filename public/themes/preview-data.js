@@ -18,7 +18,76 @@ function lunarStr(d) {
   return `Ngày ${d.getDate()} tháng ${d.getMonth() + 1} năm ${lunarYear}`;
 }
 
-function loadPreviewData() {
+// Nhận diện theme hiện tại từ URL (vd .../public/themes/romantic-gold/index.html)
+// để biết thư mục assets/data-template/<theme>/ nào cần đọc.
+function currentThemeName() {
+  const m = window.location.pathname.match(/\/themes\/([^/]+)\//);
+  return m ? m[1] : null;
+}
+
+// Đọc bộ ảnh mẫu (do admin tạo ở tab "Ảnh mẫu") cho theme hiện tại, nếu có.
+// Trả về null nếu chưa có data.json (theme chưa được chuẩn bị ảnh mẫu) hoặc lỗi mạng —
+// khi đó giữ nguyên ảnh generic hardcode như trước.
+async function loadThemeSampleImages() {
+  const theme = currentThemeName();
+  if (!theme) return null;
+  try {
+    const res = await fetch(`../../../assets/data-template/${theme}/data.json`, {
+      cache: "no-store",
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (e) {
+    return null;
+  }
+}
+
+// Đè các field ảnh của `w` bằng bộ ảnh mẫu (nếu có), build full path tới
+// assets/data-template/<theme>/<filename> — getImageUrl() (core/utils.js) giữ
+// nguyên các chuỗi bắt đầu bằng "../" nên không cần sửa gì ở phía render.
+function applyThemeSampleImages(w, sample, theme) {
+  if (!sample) return;
+  const base = `../../../assets/data-template/${theme}`;
+  const toPath = (filename) => `${base}/${filename}`;
+
+  const focalPoints = {};
+  ["cover_image_url", "groom_image_url", "bride_image_url"].forEach((field) => {
+    if (sample[field]) {
+      w[field] = toPath(sample[field]);
+      if (sample.image_focal_points?.[field]) {
+        focalPoints[field] = sample.image_focal_points[field];
+      }
+    }
+  });
+  ["groom_qr_url", "bride_qr_url"].forEach((field) => {
+    if (sample[field]) w[field] = toPath(sample[field]);
+  });
+
+  if (Array.isArray(sample.gallery_images) && sample.gallery_images.length) {
+    const galleryFocal = {};
+    w.gallery_images = sample.gallery_images.map((filename) => {
+      const fullPath = toPath(filename);
+      // Key focal point theo full path đã map — data.json lưu key theo filename
+      // gốc, nhưng renderer tra cứu bằng chính giá trị trong w.gallery_images.
+      if (sample.image_focal_points?.gallery_images?.[filename]) {
+        galleryFocal[fullPath] = sample.image_focal_points.gallery_images[filename];
+      }
+      return fullPath;
+    });
+    focalPoints.gallery_images = galleryFocal;
+  }
+
+  if (Array.isArray(sample.love_story) && sample.love_story.length) {
+    w.love_story = sample.love_story.map((item) => ({
+      ...item,
+      image_url: item.image_url ? toPath(item.image_url) : item.image_url,
+    }));
+  }
+
+  w.image_focal_points = focalPoints;
+}
+
+async function loadPreviewData() {
   const w = {
     is_active: true,
 
@@ -170,6 +239,10 @@ function loadPreviewData() {
     enable_gift: true,
     enable_footer: true,
   };
+
+  const theme = currentThemeName();
+  const sample = theme ? await loadThemeSampleImages() : null;
+  if (sample) applyThemeSampleImages(w, sample, theme);
 
   if (typeof renderWedding === "function") {
     renderWedding(w);

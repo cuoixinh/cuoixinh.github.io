@@ -9,15 +9,21 @@
     ["mount-dashboard", "partials/dashboard-panel.html"],
     ["mount-weddings", "partials/weddings-panel.html"],
     ["mount-templates", "partials/templates-panel.html"],
+    ["mount-sample-images", "partials/sample-images-panel.html"],
   ];
 
   // Thứ tự có phụ thuộc: config (CONFIG global) → core dùng chung (ADMIN_TOKEN,
-  // supabaseClient, switchTab) → logic riêng từng tab.
+  // supabaseClient, switchTab) → utils/BL dùng cho focal point & crop ảnh →
+  // logic riêng từng tab.
   const SCRIPTS = [
     "../core/config.js",
     "js/00-core.js",
+    "../core/helpers/alert.js",
+    "../core/bl/image-bl.js",
+    "../core/utils.js",
     "js/01-weddings.js",
     "js/02-templates.js",
+    "js/03-sample-images.js",
   ];
 
   function injectPartial(mountId, html) {
@@ -55,6 +61,10 @@
     PARTIALS.forEach(([mountId], i) => injectPartial(mountId, htmls[i]));
 
     await loadScripts(SCRIPTS);
+
+    // Khôi phục tab từ URL hash CHỈ SAU KHI mọi script theo tab đã nạp xong —
+    // xem restoreTabFromHash() trong 00-core.js.
+    restoreTabFromHash();
   }
 
   boot().catch((err) => {

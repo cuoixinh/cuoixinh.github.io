@@ -362,8 +362,13 @@ function closeScanModal() {
   m.classList.remove("flex");
 }
 
-function startScanImages() {
-  const selected = [...document.querySelectorAll("input[name='tpl-scan']:checked")].map((cb) => cb.value);
+// templateNames (tuỳ chọn): mảng tên template cần scan — dùng khi gọi tự động
+// (vd sau khi lưu Ảnh mẫu cho 1 theme). Bỏ trống thì đọc từ checkbox đã tick
+// trong bảng Templates (hành vi cũ, gọi từ nút "Scan Image IFrame").
+function startScanImages(templateNames) {
+  const selected =
+    templateNames ||
+    [...document.querySelectorAll("input[name='tpl-scan']:checked")].map((cb) => cb.value);
   if (!selected.length) {
     alert("Hãy tick chọn ít nhất một template trong danh sách.");
     return;

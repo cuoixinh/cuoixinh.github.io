@@ -483,8 +483,12 @@ function openBottomSheet({ id, title, height = '80vh', onClose } = {}) {
   modal.id = id;
   // Mobile: neo cố định ở cạnh đáy (bottom-sheet). Desktop (sm+): căn giữa màn hình.
   modal.className = 'fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center z-[9999]';
+  // Mobile: chiều cao theo tham số height (thường 80dvh, chừa khoảng hở phía trên).
+  // sm+ (không còn dính đáy màn hình, tách hẳn thành popup nổi giữa): mở gần full
+  // (92vh) để có đủ chỗ cho nội dung nhiều khối preview mà không cần co kéo layout.
+  const mobileHeightClass = `h-[${height.replace('vh', 'dvh')}]`;
   modal.innerHTML = `
-    <div id="${id}-card" class="bg-white rounded-t-2xl sm:rounded-2xl max-w-3xl w-full flex flex-col overflow-hidden shadow-2xl" style="height:${height}"><!-- dvh override below -->
+    <div id="${id}-card" class="bg-white rounded-t-2xl sm:rounded-2xl max-w-3xl w-full flex flex-col overflow-hidden shadow-2xl ${mobileHeightClass} sm:h-[92vh]">
       <div class="flex justify-center items-center pt-2.5 pb-1 flex-shrink-0">
         <span class="w-10 h-1.5 rounded-full bg-gray-300"></span>
       </div>
@@ -504,7 +508,6 @@ function openBottomSheet({ id, title, height = '80vh', onClose } = {}) {
   document.body.style.overflow = 'hidden';
 
   const card  = document.getElementById(`${id}-card`);
-  card.style.height = height.replace('vh', 'dvh'); // dvh recalculates when browser UI shows/hides
   const body  = document.getElementById(`${id}-body`);
   const footer = document.getElementById(`${id}-footer`);
 
@@ -610,7 +613,12 @@ function openFocalPointPicker(imageSource, currentFocal, callback, giftInfo) {
     : `
       <div class="flex-shrink-0">
         <p class="text-xs font-semibold text-gray-500 mb-2">Xem trước các tỉ lệ</p>
-        <div class="grid grid-cols-3 gap-3">
+        <!-- Nếu để grid giãn hết bề ngang card (desktop tới max-w-3xl ~768px), ô Dọc
+             (9:16) sẽ cao vài trăm px dù popup đã mở full. max-w-[380px] mx-auto giới
+             hạn bề rộng cả khối lại (mọi kích thước màn hình) để 3 ô vẫn đúng tỉ lệ
+             tương quan với nhau, chỉ là thu nhỏ đồng đều xuống kích thước hợp lý —
+             trên màn hẹp hơn 380px, max-width tự nhường cho bề rộng card sẵn có. -->
+        <div class="grid grid-cols-3 gap-3 max-w-[340px] sm:max-w-[380px] mx-auto">
           <div>
             <div class="aspect-square rounded-lg overflow-hidden bg-gray-100 border border-gray-200">
               <img id="focal-preview-1-1" src="" alt="" class="w-full h-full object-cover" />
