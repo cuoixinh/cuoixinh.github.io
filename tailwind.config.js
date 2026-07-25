@@ -1,4 +1,16 @@
-tailwind.config = {
+// Build local cho trang chủ (index.html) — thay thế Tailwind Play CDN.
+// Nội dung theme.extend giữ nguyên từ js/tailwind-config.js (bản chạy qua CDN cũ).
+// content chỉ quét đúng những file index.html thực sự nạp, để không lẫn class
+// của các trang khác (invitation-setup, admin, public/themes... vẫn dùng CDN).
+module.exports = {
+  content: [
+    "./index.html",
+    "./js/**/*.js",
+    "./core/config.js",
+    "./core/helpers/alert.js",
+    "./core/auth-ui.js",
+    "./core/payment.js",
+  ],
   theme: {
     extend: {
       fontFamily: {
@@ -70,4 +82,5 @@ tailwind.config = {
       },
     },
   },
+  plugins: [],
 };

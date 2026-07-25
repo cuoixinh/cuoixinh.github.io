@@ -1,0 +1,12 @@
+{
+  "name": "cuoixinh-web",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "build:css": "tailwindcss -i ./styles/tailwind-src.css -o ./styles/build.css --minify",
+    "watch:css": "tailwindcss -i ./styles/tailwind-src.css -o ./styles/build.css --watch"
+  },
+  "devDependencies": {
+    "tailwindcss": "3.4.17"
+  }
+}
