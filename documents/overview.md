@@ -75,7 +75,7 @@ flowchart TD
         V -. F-12 .-> GB[Guestbook\nlời chúc]:::future
         V -. F-13 .-> RSVP[Xác nhận tham dự\n→ Supabase]:::future
         V -. F-24 .-> CAL[Thêm vào\nGoogle/Apple Calendar]:::future
-        V -. F-31 .-> QRMOBILE[Quét QR\nxem trên mobile]:::future
+        V -- F-31 --> QRMOBILE[Quét QR\nxem trên mobile]:::guest
     end
 
     subgraph mgmt ["📊 Quản lý — Admin / CDCR"]
@@ -216,6 +216,7 @@ Tất cả ảnh (cover, groom, bride, gallery, love story) đều hỗ trợ ch
 
 - **Đếm ngược ngày cưới (F-05):** widget countdown hiển thị trên thiệp
 - Xác nhận tham dự (RSVP): nút Tham dự / Không tham dự hiển thị lời cảm ơn — *hiện chỉ phản hồi tại chỗ, chưa lưu Supabase (xem F-13)*
+- **Quét QR xem trên mobile (F-31):** khi xem thiệp trên desktop (≥1024px), card nổi (góc dưới phải) hiện sẵn mã QR mã hoá link hiện tại (giữ nguyên tên khách đã cá nhân hoá nếu có) — không cần bấm gì, quét là mở luôn trên điện thoại. Có nút thu gọn về icon tròn nhỏ + nút sao chép liên kết dự phòng. Tự ẩn trong preview của editor. Thư viện `qrcodejs` nạp động qua CDN khi cần, không tải sẵn cho khách xem trên mobile.
 
 ### Quản lý đơn hàng cho khách (F-02)
 
@@ -245,7 +246,6 @@ Tất cả ảnh (cover, groom, bride, gallery, love story) đều hỗ trợ ch
 | F-06 | **Slideshow / video cover**          | Thay ảnh bìa bằng slideshow nhiều ảnh hoặc video ngắn           |
 | F-08 | **Ảnh bìa + overlay text tùy chỉnh** | Thêm text / sticker lên ảnh bìa trong editor                    |
 | F-30 | **Lọc mẫu thiệp**                    | Lọc / tìm kiếm mẫu theo phong cách, màu sắc (khi có nhiều mẫu)  |
-| F-31 | **Quét QR xem trên mobile**           | Khi xem thiệp trên desktop, hiển thị QR để quét và mở nhanh trên điện thoại |
 
 ### P2 — Khách mời & Tương tác
 

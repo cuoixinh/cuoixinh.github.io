@@ -89,15 +89,11 @@ function updateAuthBlock() {
 }
 
 function _ordersKey() {
-  return currentUser ? "orders_" + currentUser.email : "guestOrders";
+  return buildCacheKey("orders", currentUser ? currentUser.email : "guest");
 }
 
 function _readLocalOrders() {
-  try {
-    return JSON.parse(localStorage.getItem(_ordersKey()) || "[]");
-  } catch (e) {
-    return [];
-  }
+  return getCache(_ordersKey(), []);
 }
 
 function _themeToName(theme) {
@@ -185,9 +181,7 @@ async function _refreshOrdersFromDb(localOrders) {
   const weddings = await fetchMyWeddings();
   if (!weddings.length) return;
   const merged = _mergeWeddings(localOrders, weddings);
-  try {
-    localStorage.setItem(_ordersKey(), JSON.stringify(merged));
-  } catch (e) {}
+  setCache(_ordersKey(), merged);
   renderOrders(merged);
 }
 
@@ -256,11 +250,7 @@ function renderOrders(orders) {
 // ===== ORDER MODAL =====
 
 function openOrderModal(index) {
-  const key = currentUser ? "orders_" + currentUser.email : "guestOrders";
-  let orders = [];
-  try {
-    orders = JSON.parse(localStorage.getItem(key) || "[]");
-  } catch (e) {}
+  const orders = getCache(_ordersKey(), []);
   const order = orders[index];
   if (!order) return;
 
@@ -414,28 +404,24 @@ function getStatusHint(status) {
 
 function mergeGuestOrders() {
   if (!currentUser) return;
-  const guestStr = localStorage.getItem("guestOrders");
-  if (!guestStr) return;
-  try {
-    const guestOrders = JSON.parse(guestStr);
-    if (!guestOrders.length) return;
-    const key = "orders_" + currentUser.email;
-    let userOrders = [];
-    const userStr = localStorage.getItem(key);
-    if (userStr) userOrders = JSON.parse(userStr);
+  const guestKey = buildCacheKey("orders", "guest");
+  const guestOrders = getCache(guestKey, []);
+  if (!guestOrders.length) return;
 
-    // Merge: chỉ thêm nếu chưa có cùng templateName
-    const existingTemplates = new Set(userOrders.map((o) => o.templateName));
-    const toMerge = guestOrders.filter(
-      (o) => !existingTemplates.has(o.templateName),
-    );
+  const key = buildCacheKey("orders", currentUser.email);
+  const userOrders = getCache(key, []);
 
-    if (toMerge.length > 0) {
-      localStorage.setItem(key, JSON.stringify(userOrders.concat(toMerge)));
-    }
-    localStorage.removeItem("guestOrders");
-    loadOrders();
-  } catch (e) {}
+  // Merge: chỉ thêm nếu chưa có cùng templateName
+  const existingTemplates = new Set(userOrders.map((o) => o.templateName));
+  const toMerge = guestOrders.filter(
+    (o) => !existingTemplates.has(o.templateName),
+  );
+
+  if (toMerge.length > 0) {
+    setCache(key, userOrders.concat(toMerge));
+  }
+  removeCache(guestKey);
+  loadOrders();
 }
 
 function loadProfile() {

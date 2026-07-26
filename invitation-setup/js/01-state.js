@@ -33,30 +33,15 @@ let _isLocalDraft = false;
 
 // Publish state — controls whether Advanced section is enabled
 let IS_PUBLISHED = false;
-const DRAFT_LOCAL_KEY = `cuoixinh_draft_${WEDDING_ID}`;
+const DRAFT_LOCAL_KEY = buildCacheKey("draft", WEDDING_ID);
 
 function getLocalDraft() {
-  try {
-    return JSON.parse(localStorage.getItem(DRAFT_LOCAL_KEY) || "null");
-  } catch (e) {
-    return null;
-  }
+  return getCache(DRAFT_LOCAL_KEY);
 }
 function saveLocalDraft(data) {
-  try {
-    localStorage.setItem(
-      DRAFT_LOCAL_KEY,
-      JSON.stringify({ ...data, _localOnly: _isLocalDraft }),
-    );
-  } catch (e) {
-    console.error("saveLocalDraft:", e);
-  }
+  setCache(DRAFT_LOCAL_KEY, { ...data, _localOnly: _isLocalDraft });
 }
 function clearLocalDraft() {
-  try {
-    localStorage.removeItem(DRAFT_LOCAL_KEY);
-  } catch (e) {
-    console.error("clearLocalDraft:", e);
-  }
+  removeCache(DRAFT_LOCAL_KEY);
 }
 

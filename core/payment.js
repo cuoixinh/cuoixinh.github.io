@@ -471,15 +471,14 @@
 
     // Sau thanh toán: đẩy localStorage draft data lên DB (nếu có)
     if (manage_id && window.weddingDAL) {
-      const draftKey = `cuoixinh_draft_${manage_id}`;
-      let draftData = null;
-      try { draftData = JSON.parse(localStorage.getItem(draftKey) || "null"); } catch (e) {}
+      const draftKey = buildCacheKey("draft", manage_id);
+      const draftData = getCache(draftKey);
 
       if (draftData) {
         // Có draft local → PATCH toàn bộ data lên DB + set is_published=true
         const { _localOnly, ...fields } = draftData;
         window.weddingDAL.updateWedding({ id: manage_id, ...fields, is_published: true })
-          .then(() => { try { localStorage.removeItem(draftKey); } catch(e){} })
+          .then(() => removeCache(draftKey))
           .catch(() => {});
       } else {
         // Không có draft local → chỉ publish
@@ -521,16 +520,9 @@
     const sessionUser = getCurrentUser();
     const sessionEmail = sessionUser?.email || "";
     const email = document.getElementById("payment-email").value.trim();
-    const storageKey = sessionEmail
-      ? "orders_" + sessionEmail
-      : email
-        ? "orders_" + email
-        : "guestOrders";
+    const storageKey = buildCacheKey("orders", sessionEmail || email || "guest");
 
-    let orders = [];
-    try {
-      orders = JSON.parse(localStorage.getItem(storageKey) || "[]");
-    } catch (e) {}
+    const orders = getCache(storageKey, []);
 
     // Find and update the pending order
     const orderIdx = orders.findIndex(
@@ -546,7 +538,7 @@
       };
     }
 
-    localStorage.setItem(storageKey, JSON.stringify(orders));
+    setCache(storageKey, orders);
   }
 
   // Inject modal HTML vào body
@@ -824,13 +816,8 @@
       // Lưu order pending ngay khi mở modal (nếu chưa có)
       const sessionUser = getCurrentUser();
       const sessionEmail = sessionUser?.email || "";
-      const storageKey = sessionEmail
-        ? "orders_" + sessionEmail
-        : "guestOrders";
-      let orders = [];
-      try {
-        orders = JSON.parse(localStorage.getItem(storageKey) || "[]");
-      } catch (e) {}
+      const storageKey = buildCacheKey("orders", sessionEmail || "guest");
+      const orders = getCache(storageKey, []);
       const alreadyExists = orders.some((o) => o.templateName === templateName);
       if (!alreadyExists) {
         orders.push({
@@ -840,7 +827,7 @@
           date: new Date().toISOString(),
           slug: null,
         });
-        localStorage.setItem(storageKey, JSON.stringify(orders));
+        setCache(storageKey, orders);
       }
 
       // Reset steps
@@ -1023,16 +1010,9 @@
 
         const sessionUser = getCurrentUser();
         const sessionEmail = sessionUser?.email || "";
-        const storageKey = sessionEmail
-          ? "orders_" + sessionEmail
-          : email
-            ? "orders_" + email
-            : "guestOrders";
+        const storageKey = buildCacheKey("orders", sessionEmail || email || "guest");
 
-        let orders = [];
-        try {
-          orders = JSON.parse(localStorage.getItem(storageKey) || "[]");
-        } catch (e) {}
+        const orders = getCache(storageKey, []);
 
         // Gộp theo manage_id trước (tránh tạo đơn trùng khi thanh toán cho một bản
         // nháp đã có sẵn trong danh sách), sau đó mới tới đơn pending cùng mẫu.
@@ -1046,7 +1026,7 @@
         } else {
           orders.push(order);
         }
-        localStorage.setItem(storageKey, JSON.stringify(orders));
+        setCache(storageKey, orders);
 
         // Call createPayment API
         const paymentData = {

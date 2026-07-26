@@ -545,18 +545,13 @@ function _initEditHint() {
   const lineOpen = !document
     .getElementById("theme-line-editor")
     ?.classList.contains("hidden");
-  let dismissed = false;
-  try {
-    dismissed = localStorage.getItem("cx_theme_edit_hint") === "1";
-  } catch (e) {}
+  const dismissed = getCache(buildCacheKey("theme_edit_hint"));
   hint.classList.toggle("hidden", dismissed || lineOpen);
 }
 
 function dismissEditHint() {
   document.getElementById("theme-edit-hint")?.classList.add("hidden");
-  try {
-    localStorage.setItem("cx_theme_edit_hint", "1");
-  } catch (e) {}
+  setCache(buildCacheKey("theme_edit_hint"), true);
 }
 window.dismissEditHint = dismissEditHint;
 
@@ -574,10 +569,8 @@ function _initThemeResize() {
   if (!handle || !controls || !panel) return;
 
   // Khôi phục độ rộng đã lưu (nếu có)
-  try {
-    const saved = localStorage.getItem("cx_theme_ctrl_w");
-    if (saved) controls.style.setProperty("--theme-ctrl-w", saved);
-  } catch (e) {}
+  const saved = getCache(buildCacheKey("theme_ctrl_w"));
+  if (saved) controls.style.setProperty("--theme-ctrl-w", saved);
 
   let dragging = false;
 
@@ -598,12 +591,10 @@ function _initThemeResize() {
     try {
       handle.releasePointerCapture(e.pointerId);
     } catch (err) {}
-    try {
-      localStorage.setItem(
-        "cx_theme_ctrl_w",
-        controls.style.getPropertyValue("--theme-ctrl-w"),
-      );
-    } catch (err) {}
+    setCache(
+      buildCacheKey("theme_ctrl_w"),
+      controls.style.getPropertyValue("--theme-ctrl-w"),
+    );
   };
 
   handle.addEventListener("pointerdown", (e) => {
@@ -625,9 +616,7 @@ function _initThemeResize() {
   // Nhấp đúp thanh kéo → trả về mặc định 1/4
   handle.addEventListener("dblclick", () => {
     controls.style.removeProperty("--theme-ctrl-w");
-    try {
-      localStorage.removeItem("cx_theme_ctrl_w");
-    } catch (e) {}
+    removeCache(buildCacheKey("theme_ctrl_w"));
   });
 }
 
@@ -978,15 +967,15 @@ function showPublishSuccessPopup() {
   if (window.lucide) lucide.createIcons();
 }
 
-// Ghi/cập nhật một đơn vào localStorage để trang tài khoản hiển thị thiệp.
-// - Đã đăng nhập → key `orders_<email>`; khách → `guestOrders` (đăng nhập sau sẽ tự gộp).
+// Ghi/cập nhật một đơn vào cache để trang tài khoản hiển thị thiệp.
+// - Đã đăng nhập → key theo email; khách → key "guest" (đăng nhập sau sẽ tự gộp).
 // - published=true → status "pending" (đã xuất bản, dùng thử, CHƯA thanh toán);
 //   ngược lại là "draft" (bản nháp). Chỉ khi thanh toán xong (đồng bộ từ DB) mới
 //   thành "completed" — xem _mergeWeddings ở trang tài khoản.
 // Trùng manage_id thì cập nhật, chưa có thì thêm. Không tạo đơn rỗng, không hạ cấp completed.
 function _syncLocalOrder({ published = false } = {}) {
   const user = getCurrentUser();
-  const key = user?.email ? "orders_" + user.email : "guestOrders";
+  const key = buildCacheKey("orders", user?.email || "guest");
 
   const form = document.getElementById("wedding-form");
   const fd = form ? new FormData(form) : null;
@@ -1004,10 +993,7 @@ function _syncLocalOrder({ published = false } = {}) {
       .join(" ") ||
     "Thiệp Cưới";
 
-  let orders = [];
-  try {
-    orders = JSON.parse(localStorage.getItem(key) || "[]");
-  } catch (e) {}
+  const orders = getCache(key, []);
 
   const idx = orders.findIndex((o) => o.manage_id === WEDDING_ID);
   const base = idx >= 0 ? orders[idx] : {};
@@ -1030,7 +1016,5 @@ function _syncLocalOrder({ published = false } = {}) {
   if (idx >= 0) orders[idx] = order;
   else orders.push(order);
 
-  try {
-    localStorage.setItem(key, JSON.stringify(orders));
-  } catch (e) {}
+  setCache(key, orders);
 }

@@ -46,13 +46,13 @@
 
   // Gợi ý card "Tạo thiệp với AI" — một BƯỚC TÁCH RIÊNG, chỉ hiện 1 lần cho
   // người mới, sau khi họ đã hoàn tất 4 bước hướng dẫn ở trên (đợi 2s).
-  const AI_HINT_KEY = "cuoixinh_ai_hint_seen";
+  const AI_HINT_KEY = buildCacheKey("ai_hint_seen");
   function showAiHint() {
-    if (localStorage.getItem(AI_HINT_KEY)) return;
+    if (getCache(AI_HINT_KEY)) return;
     // Thẻ mời phải đang hiển thị (chưa thu gọn) mới spotlight được.
     const card = document.querySelector(".ai-fab:not(.collapsed) .ai-card");
     if (!card || card.offsetParent === null) {
-      localStorage.setItem(AI_HINT_KEY, "1"); // không hiện được → coi như đã xong
+      setCache(AI_HINT_KEY, true); // không hiện được → coi như đã xong
       return;
     }
     showTour(
@@ -91,7 +91,7 @@
   setTimeout(
     () =>
       showTour(STEPS, {
-        storageKey: "cuoixinh_tour_seen",
+        storageKey: buildCacheKey("tour_seen"),
         onDone: (completed) => {
           if (completed) scheduleAiHint();
         },

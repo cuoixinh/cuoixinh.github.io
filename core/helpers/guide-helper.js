@@ -13,7 +13,7 @@
  *   hoàn tất). Hữu ích khi phần tử đó tự mở popup/hành động riêng (vd thẻ "Tạo với AI").
  */
 function showTour(steps, { storageKey, onDone, dismissOnTargetClick } = {}) {
-  if (storageKey && localStorage.getItem(storageKey)) return;
+  if (storageKey && getCache(storageKey)) return;
 
   let current  = 0;
   let prevEl   = null;
@@ -210,7 +210,7 @@ function showTour(steps, { storageKey, onDone, dismissOnTargetClick } = {}) {
   function finish(completed) {
     clearTargetClick();
     if (prevEl) unhighlight(prevEl);
-    if (storageKey) localStorage.setItem(storageKey, "1");
+    if (storageKey) setCache(storageKey, true);
     overlay.remove();
     tip.remove();
     if (typeof onDone === "function") onDone(!!completed);

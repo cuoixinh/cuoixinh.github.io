@@ -31,6 +31,7 @@
   // Giữ NGUYÊN thứ tự cũ trong index.html — có phụ thuộc: config → DAL → BL →
   // supabase → helpers → x-* → index.js.
   const SCRIPTS = [
+    "../core/cache-util.js",
     "../core/config.js",
     "../core/constant.js",
     "../core/auth-ui.js",

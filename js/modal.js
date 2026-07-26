@@ -45,12 +45,11 @@ function _generateUUID() {
 
 function _doCreateDraft(template) {
   const manage_id = _generateUUID();
-  try {
-    localStorage.setItem(
-      `cuoixinh_draft_${manage_id}`,
-      JSON.stringify({ theme: template.theme, is_published: false, _localOnly: true }),
-    );
-  } catch (e) {}
+  setCache(buildCacheKey("draft", manage_id), {
+    theme: template.theme,
+    is_published: false,
+    _localOnly: true,
+  });
   sessionStorage.setItem("draft_template_name", template.name);
   sessionStorage.setItem("draft_theme", template.theme);
   sessionStorage.setItem("show_tour", "1");
@@ -58,16 +57,14 @@ function _doCreateDraft(template) {
 }
 
 function _findExistingDraftWithTheme(theme) {
-  try {
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (!key || !key.startsWith("cuoixinh_draft_")) continue;
-      const data = JSON.parse(localStorage.getItem(key) || "null");
-      if (data && data.theme === theme) {
-        return { id: key.replace("cuoixinh_draft_", ""), data };
-      }
+  const prefix = buildCacheKey("draft") + "_";
+  const keys = listCacheKeys((k) => k.startsWith(prefix));
+  for (const key of keys) {
+    const data = getCache(key);
+    if (data && data.theme === theme) {
+      return { id: key.slice(prefix.length), data };
     }
-  } catch (e) {}
+  }
   return null;
 }
 

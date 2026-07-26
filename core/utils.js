@@ -985,7 +985,6 @@ function closeTimePicker() {
   const params = new URLSearchParams(window.location.search);
   if (params.get("preview") !== "true") return;
   if (params.get("source") === "live") return;
-  if (params.get("embedded") === "true") return;
 
   // Lấy tên theme từ URL path: /public/themes/basic-gold/ → basic-gold
   const pathParts = window.location.pathname.replace(/\/$/, "").split("/").filter(Boolean);
@@ -1003,12 +1002,11 @@ function closeTimePicker() {
 
   function _chooseTheme() {
     var uuid = _generateUUID();
-    try {
-      localStorage.setItem(
-        "cuoixinh_draft_" + uuid,
-        JSON.stringify({ theme: themeName, is_published: false, _localOnly: true })
-      );
-    } catch (e) {}
+    setCache(buildCacheKey("draft", uuid), {
+      theme: themeName,
+      is_published: false,
+      _localOnly: true,
+    });
     sessionStorage.setItem("draft_theme", themeName);
     sessionStorage.setItem("draft_template_name", themeDisplay);
     sessionStorage.setItem("show_tour", "1");

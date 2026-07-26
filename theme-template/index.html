@@ -1127,6 +1127,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.8" integrity="sha384-Tve8O+C6PBzsIMK/IRCwHbi8fyEzXIlIs6OfVBZHubplwYhaQF/4Mzxqgg+pp/oy" crossorigin="anonymous"></script>
+    <script src="../core/cache-util.js"></script>
     <script src="../core/config.js"></script>
     <script src="../core/helpers/alert.js"></script>
     <script src="../core/auth-ui.js"></script>
@@ -1144,16 +1145,11 @@
         const t = theme
           ? allTemplates.find((x) => x.theme === theme)
           : allTemplates[0];
-        try {
-          localStorage.setItem(
-            `cuoixinh_draft_${manage_id}`,
-            JSON.stringify({
-              theme: t ? t.theme : theme || "",
-              is_published: false,
-              _localOnly: true,
-            }),
-          );
-        } catch (_) {}
+        setCache(buildCacheKey("draft", manage_id), {
+          theme: t ? t.theme : theme || "",
+          is_published: false,
+          _localOnly: true,
+        });
         if (t) {
           sessionStorage.setItem("draft_template_name", name || t.name);
           sessionStorage.setItem("draft_theme", t.theme);

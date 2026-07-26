@@ -176,33 +176,24 @@ let _aiSelectDocBound = false; // đã gắn listener đóng dropdown khi click 
 let _aiViewBeforeHistory = "form"; // để "Quay lại" từ lịch sử về đúng bước trước đó
 
 // Cache nội dung đang nhập trong modal AI → lỡ tắt vào lại không phải gõ lại.
-const AI_DRAFT_KEY = `cuoixinh_ai_draft_${WEDDING_ID}`;
-// Lịch sử các nội dung AI đã tạo (chỉ lưu localStorage, KHÔNG lưu DB).
-const AI_HISTORY_KEY = `cuoixinh_ai_history_${WEDDING_ID}`;
+const AI_DRAFT_KEY = buildCacheKey("ai_draft", WEDDING_ID);
+// Lịch sử các nội dung AI đã tạo (chỉ lưu cache, KHÔNG lưu DB).
+const AI_HISTORY_KEY = buildCacheKey("ai_history", WEDDING_ID);
 // Ghi nhớ đã thu gọn thẻ mời AI (chỉ còn icon) — giữ qua các lần tải lại trang.
-const AI_FAB_KEY = `cuoixinh_ai_fab_collapsed_${WEDDING_ID}`;
+const AI_FAB_KEY = buildCacheKey("ai_fab_collapsed", WEDDING_ID);
 const AI_HISTORY_MAX = 12;
 
 function _saveAiDraft() {
-  try {
-    localStorage.setItem(
-      AI_DRAFT_KEY,
-      JSON.stringify({
-        tone: _aiTone,
-        region: document.getElementById("ai-region")?.value || "",
-        bullets: document.getElementById("ai-bullets")?.value || "",
-        info: document.getElementById("ai-info")?.value || "",
-      }),
-    );
-  } catch {}
+  setCache(AI_DRAFT_KEY, {
+    tone: _aiTone,
+    region: document.getElementById("ai-region")?.value || "",
+    bullets: document.getElementById("ai-bullets")?.value || "",
+    info: document.getElementById("ai-info")?.value || "",
+  });
 }
 
 function _loadAiDraft() {
-  try {
-    return JSON.parse(localStorage.getItem(AI_DRAFT_KEY) || "null");
-  } catch {
-    return null;
-  }
+  return getCache(AI_DRAFT_KEY);
 }
 
 function _setAiTone(tone) {
@@ -504,35 +495,26 @@ const _AI_TONE_NAMES = {
 };
 
 function _loadAiHistory() {
-  try {
-    const arr = JSON.parse(localStorage.getItem(AI_HISTORY_KEY) || "[]");
-    return Array.isArray(arr) ? arr : [];
-  } catch {
-    return [];
-  }
+  const arr = getCache(AI_HISTORY_KEY, []);
+  return Array.isArray(arr) ? arr : [];
 }
 
 function _pushAiHistory(payload, result) {
   if (!result) return;
-  try {
-    // Tên hiển thị nay do AI trích xuất (payload không còn tên) → lấy từ result.fields.
-    const entry = {
-      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
-      at: Date.now(),
-      groom: result.fields?.groom_name || "",
-      bride: result.fields?.bride_name || "",
-      tone: payload.tone || "",
-      story_quote: result.story_quote || "",
-      payload, // giữ input đã dùng để "Xem trước" có thể khôi phục & tạo lại
-      result,
-    };
-    const list = _loadAiHistory();
-    list.unshift(entry);
-    localStorage.setItem(
-      AI_HISTORY_KEY,
-      JSON.stringify(list.slice(0, AI_HISTORY_MAX)),
-    );
-  } catch {}
+  // Tên hiển thị nay do AI trích xuất (payload không còn tên) → lấy từ result.fields.
+  const entry = {
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    at: Date.now(),
+    groom: result.fields?.groom_name || "",
+    bride: result.fields?.bride_name || "",
+    tone: payload.tone || "",
+    story_quote: result.story_quote || "",
+    payload, // giữ input đã dùng để "Xem trước" có thể khôi phục & tạo lại
+    result,
+  };
+  const list = _loadAiHistory();
+  list.unshift(entry);
+  setCache(AI_HISTORY_KEY, list.slice(0, AI_HISTORY_MAX));
 }
 
 function _fmtAiHistoryTime(ts) {
@@ -662,10 +644,8 @@ function _restoreAiInputs(p) {
 }
 
 function deleteAiHistory(id) {
-  try {
-    const list = _loadAiHistory().filter((e) => e.id !== id);
-    localStorage.setItem(AI_HISTORY_KEY, JSON.stringify(list));
-  } catch {}
+  const list = _loadAiHistory().filter((e) => e.id !== id);
+  setCache(AI_HISTORY_KEY, list);
   _renderAiHistory();
 }
 
@@ -1568,19 +1548,13 @@ function _fabSnapLeft(side, w) {
 }
 // Vị trí do người dùng KÉO đặt (nhớ qua các lần tải trang). Có giá trị = chế độ thủ
 // công → bỏ auto-định-vị theo #wedding-form, chỉ kẹp lại trong màn khi resize.
-const _AI_FAB_POS_KEY = `cuoixinh_ai_fab_pos_${WEDDING_ID}`;
+const _AI_FAB_POS_KEY = buildCacheKey("ai_fab_pos", WEDDING_ID);
 
 function _loadFabPos() {
-  try {
-    return JSON.parse(localStorage.getItem(_AI_FAB_POS_KEY) || "null");
-  } catch {
-    return null;
-  }
+  return getCache(_AI_FAB_POS_KEY);
 }
 function _saveFabPos(p) {
-  try {
-    localStorage.setItem(_AI_FAB_POS_KEY, JSON.stringify(p));
-  } catch {}
+  setCache(_AI_FAB_POS_KEY, p);
 }
 
 // Chiều cao thực của thanh nav dưới cùng (0 nếu chưa render). Dùng để KẸP đáy khi
@@ -1674,13 +1648,11 @@ function _positionAiFab() {
   fab.style.right = "auto";
 }
 
-// Đóng thẻ mời của FAB (nút "x"): thu thẻ về nút tròn nhỏ (.ai-mini) trong phiên hiện
-// tại, vẫn giữ lối vào AI. KHÔNG ghi nhớ — tải lại trang thì thẻ mời hiện lại.
+// Đóng thẻ mời của FAB (nút "x"): thu thẻ về nút tròn nhỏ (.ai-mini), vẫn giữ lối
+// vào AI. Nhớ qua cache — tải lại trang vẫn chỉ hiện icon nhỏ.
 function dismissAiFab() {
   document.querySelector(".ai-fab")?.classList.add("collapsed");
-  try {
-    localStorage.setItem(AI_FAB_KEY, "1");
-  } catch {} // nhớ để lần sau chỉ hiện icon
+  setCache(AI_FAB_KEY, true);
   _positionAiFab(); // bề rộng đổi (thẻ → nút nhỏ) → tính lại vị trí cho khớp
 }
 
@@ -1796,11 +1768,9 @@ function _setupFabDrag() {
 (function _initAiFabPosition() {
   const start = () => {
     // Khôi phục trạng thái: nếu lần trước đã thu gọn → hiện luôn dạng icon nhỏ.
-    try {
-      if (localStorage.getItem(AI_FAB_KEY) === "1") {
-        document.querySelector(".ai-fab")?.classList.add("collapsed");
-      }
-    } catch {}
+    if (getCache(AI_FAB_KEY)) {
+      document.querySelector(".ai-fab")?.classList.add("collapsed");
+    }
     _positionAiFab();
     _setupFabDrag();
     if (window.ResizeObserver) {

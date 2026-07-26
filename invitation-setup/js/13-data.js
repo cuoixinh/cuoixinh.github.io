@@ -32,22 +32,14 @@ function _showContent() {
 
 // Người dùng bấm X để tắt thông báo "đang lưu tạm trên trình duyệt" → nhớ luôn
 // vào localStorage (theo từng thiệp) để lần sau vào không hiện lại.
-const _DRAFT_NOTICE_DISMISS_KEY = `cuoixinh_draft_notice_dismissed_${WEDDING_ID}`;
+const _DRAFT_NOTICE_DISMISS_KEY = buildCacheKey("draft_notice_dismissed", WEDDING_ID);
 
 function _isDraftNoticeDismissed() {
-  try {
-    return localStorage.getItem(_DRAFT_NOTICE_DISMISS_KEY) === "1";
-  } catch (e) {
-    return false;
-  }
+  return !!getCache(_DRAFT_NOTICE_DISMISS_KEY);
 }
 
 function dismissLocalDraftNotice() {
-  try {
-    localStorage.setItem(_DRAFT_NOTICE_DISMISS_KEY, "1");
-  } catch (e) {
-    /* localStorage đầy/chặn — vẫn ẩn cho phiên này */
-  }
+  setCache(_DRAFT_NOTICE_DISMISS_KEY, true);
   // Đo chiều cao navbar TRƯỚC khi ẩn notice để biết bong bóng AI có đang tựa sát nó.
   const bar = document.getElementById("bottom-nav-bar");
   const oldNavH = bar ? bar.offsetHeight : 0;

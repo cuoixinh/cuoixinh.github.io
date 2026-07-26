@@ -14,7 +14,7 @@
 
   var SWIPE_OUT_DISTANCE = 24; // px vuốt sang trái đủ để coi là "kéo ra"
   var DRAG_MODE_THRESHOLD = 6; // px di chuyển tối thiểu để phân biệt kéo dọc/ngang
-  var STORAGE_KEY = "cxChatPinBottom";
+  var STORAGE_KEY = buildCacheKey("chat_pin_bottom");
   var PIN_DEFAULT_BOTTOM = 80; // vị trí mặc định khi chưa có cache (khớp class ban đầu)
   var WIDGET_DEFAULT_BOTTOM = 18;
   var PIN_WIDGET_OFFSET = PIN_DEFAULT_BOTTOM - WIDGET_DEFAULT_BOTTOM;
@@ -47,35 +47,16 @@
 
   // Dùng chung 1 key cho cả vị trí (b) lẫn trạng thái đóng/mở (c).
   function loadSavedState() {
-    var raw = null;
-    try {
-      raw = localStorage.getItem(STORAGE_KEY);
-    } catch (e) {
-      return null;
-    }
-    if (raw === null) return null;
-    try {
-      var parsed = JSON.parse(raw);
-      if (parsed && typeof parsed === "object") {
-        return {
-          bottom: typeof parsed.b === "number" ? parsed.b : null,
-          collapsed: !!parsed.c,
-        };
-      }
-    } catch (e) {
-      // bỏ qua, thử fallback bên dưới (bản cũ lưu thẳng số)
-    }
-    var legacy = parseFloat(raw);
-    return isNaN(legacy) ? null : { bottom: legacy, collapsed: false };
+    var parsed = getCache(STORAGE_KEY);
+    if (!parsed || typeof parsed !== "object") return null;
+    return {
+      bottom: typeof parsed.b === "number" ? parsed.b : null,
+      collapsed: !!parsed.c,
+    };
   }
 
   function saveState() {
-    try {
-      localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify({ b: pinBottom, c: collapsed }),
-      );
-    } catch (e) {}
+    setCache(STORAGE_KEY, { b: pinBottom, c: collapsed });
   }
 
   // Widget hỗ trợ (thẻ + nút Messenger) luôn bám theo vị trí ghim,
