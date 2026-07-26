@@ -58,6 +58,8 @@ Không gọi thẳng từ UI xuống DAL bỏ qua BL khi có logic nghiệp vụ
 - **`styles/common.css` chỉnh TRỰC TIẾP** (không có build step) — chứa `.btn-*`, biến CSS (`--primary`…), `@font-face`, keyframes, scrollbar, tinh chỉnh iOS. Viết CSS thuần (không `@apply`, vì CDN không xử lý `@apply` trong file `.css` nạp qua `<link>`). Utility trong `class=` của HTML vẫn do Tailwind Play CDN lo lúc chạy.
 
 ### Database (Supabase)
+- **Supabase MCP chỉ để ĐỌC** (`.mcp.json`, read-only, project `lcobawmkywtxhpezndsh`). Dùng `list_tables` / `execute_sql` để biết cấu trúc bảng thật khi thi công, thay vì suy ra schema từ `changelogs/` — changelogs là lịch sử thay đổi, không phải nguồn sự thật về trạng thái hiện tại.
+- **TUYỆT ĐỐI không sửa DB qua MCP.** Mọi thay đổi schema/dữ liệu vẫn phải đi đường changelog → người dùng tự chạy ở Dashboard. Không đề xuất bỏ cờ `--read-only`.
 - Mọi thay đổi schema → viết script SQL vào `changelogs/RCx.y/` (thư mục mới), **idempotent** (`if not exists`, `add column if not exists`…).
 - Tăng **minor** (1.1→1.2) cho thay đổi thường; **major** (1.x→2.0) cho breaking change (kèm baseline `database-complete.sql` mới).
 - Sau khi thêm script, cập nhật bảng **Lịch sử phiên bản** trong `changelogs/README.md`.
