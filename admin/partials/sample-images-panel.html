@@ -7,7 +7,9 @@
         Upload ảnh demo + căn điểm lấy nét cho từng theme, dùng làm bản xem
         thử khi khách chưa nhập data. Lưu thẳng vào
         <code class="font-mono">assets/data-template/</code> trên máy — chỉ
-        chạy được khi mở trang bằng Chrome/Edge trên localhost.
+        chạy được khi mở trang bằng Chrome/Edge trên localhost. Chọn theme sẽ
+        tự quét và nạp ảnh sẵn có trong thư mục; khi lưu sẽ
+        <b>ghi đè toàn bộ ảnh</b> của thư mục theme đó.
       </p>
     </div>
 
@@ -62,6 +64,22 @@
 
       <!-- Form ảnh mẫu (chỉ hiện sau khi đã chọn theme) -->
       <div id="si-form" class="hidden space-y-6">
+        <!-- Bản nháp khôi phục sau khi F5 -->
+        <div
+          id="si-draft-banner"
+          class="hidden flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800"
+        >
+          <i class="fas fa-clock-rotate-left mt-0.5"></i>
+          <span id="si-draft-banner-text" class="flex-1 min-w-0"></span>
+          <button
+            type="button"
+            onclick="siDiscardDraft()"
+            class="shrink-0 px-3 py-1 rounded-lg border border-amber-300 hover:bg-amber-100 transition-colors"
+          >
+            Bỏ nháp
+          </button>
+        </div>
+
         <!-- Ảnh chính -->
         <div>
           <h3 class="text-sm font-semibold text-gray-700 mb-3">Ảnh chính</h3>
@@ -186,7 +204,12 @@
         </div>
 
         <!-- Actions -->
-        <div class="flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-100">
+        <div
+          class="flex flex-col sm:flex-row sm:items-center gap-3 pt-4 border-t border-gray-100"
+        >
+          <span id="si-dirty-status" class="hidden text-xs text-amber-600 sm:order-last">
+            ● Có thay đổi chưa lưu vào ổ đĩa
+          </span>
           <button
             type="button"
             onclick="siPreviewTheme()"

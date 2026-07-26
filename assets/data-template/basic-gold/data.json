@@ -1,0 +1,83 @@
+{
+  "image_focal_points": {
+    "gallery_images": {
+      "gallery-01.png": {
+        "x": 46,
+        "y": 25
+      },
+      "gallery-02.png": {
+        "x": 53,
+        "y": 13
+      },
+      "gallery-03.png": {
+        "x": 49,
+        "y": 24
+      },
+      "gallery-04.png": {
+        "x": 63,
+        "y": 14
+      },
+      "gallery-05.png": {
+        "x": 75,
+        "y": 25
+      },
+      "gallery-06.png": {
+        "x": 50,
+        "y": 24
+      },
+      "gallery-07.png": {
+        "x": 49,
+        "y": 24
+      },
+      "gallery-08.png": {
+        "x": 59,
+        "y": 18
+      },
+      "gallery-09.png": {
+        "x": 50,
+        "y": 61
+      },
+      "gallery-10.jpg": {
+        "x": 48,
+        "y": 32
+      }
+    },
+    "cover_image_url": {
+      "x": 51,
+      "y": 18
+    },
+    "groom_image_url": {
+      "x": 65,
+      "y": 14
+    },
+    "bride_image_url": {
+      "x": 40,
+      "y": 23
+    }
+  },
+  "cover_image_url": "cover.png",
+  "groom_image_url": "groom.png",
+  "bride_image_url": "bride.png",
+  "groom_qr_url": "groom-qr.png",
+  "bride_qr_url": "bride-qr.png",
+  "gallery_images": [
+    "gallery-01.png",
+    "gallery-02.png",
+    "gallery-03.png",
+    "gallery-04.png",
+    "gallery-05.png",
+    "gallery-06.png",
+    "gallery-07.png",
+    "gallery-08.png",
+    "gallery-09.png",
+    "gallery-10.jpg"
+  ],
+  "love_story": [
+    {
+      "date": "",
+      "title": "",
+      "content": ""
+    }
+  ],
+  "updated_at": "2026-07-26T07:58:02.250Z"
+}
