@@ -1,30 +1,39 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { withAxiom } from '../_shared/axiom.ts'
 
-const CORS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'content-type',
-  'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE, OPTIONS',
+// ── CORS ─────────────────────────────────────────────────────────────────────
+// Allowlist origin thay cho '*' (danh sách giống ai-invitation). CORS chỉ ràng
+// buộc trình duyệt — lớp bảo vệ thật là kiểm tra chủ sở hữu thiệp bên dưới.
+const ALLOWED_ORIGINS = [
+  'https://cuoixinh.com',
+  'https://www.cuoixinh.com',
+  'https://cuoixinh.github.io',
+  'http://localhost:5500',
+  'http://127.0.0.1:5500',
+  'http://localhost:3000',
+  'https://urban-train-4j44q69x76vv3jv99-5500.app.github.dev',
+]
+
+function isAllowedOrigin(origin: string): boolean {
+  if (ALLOWED_ORIGINS.includes(origin)) return true
+  return /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)
+}
+
+function buildCors(origin: string | null) {
+  const allow = origin && isAllowedOrigin(origin) ? origin : ALLOWED_ORIGINS[0]
+  return {
+    'Access-Control-Allow-Origin': allow,
+    // authorization/apikey cần được cho phép, nếu không preflight sẽ chặn JWT của user.
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-admin-token',
+    'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE, OPTIONS',
+    'Vary': 'Origin',
+  }
 }
 
 const MAX_PER_SIDE = 100
 const MAX_FIELD_LEN = 200
 const MAX_REL_LEN = 100
 const BATCH_SIZE = 50
-
-function ok(data: unknown, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { ...CORS, 'Content-Type': 'application/json' },
-  })
-}
-
-function fail(message: string, status = 400) {
-  return new Response(JSON.stringify({ error: message }), {
-    status,
-    headers: { ...CORS, 'Content-Type': 'application/json' },
-  })
-}
 
 function sanitizeGuest(raw: Record<string, unknown>, wedding_id: string, side: string) {
   return {
@@ -37,6 +46,24 @@ function sanitizeGuest(raw: Record<string, unknown>, wedding_id: string, side: s
 }
 
 Deno.serve(withAxiom('guest-handler', async (req, log) => {
+  // Header CORS theo Origin của chính request này. ok()/fail() định nghĩa trong
+  // handler để đóng gói giá trị này, tránh dùng biến chung giữa các request.
+  const CORS = buildCors(req.headers.get('Origin'))
+
+  function ok(data: unknown, status = 200) {
+    return new Response(JSON.stringify(data), {
+      status,
+      headers: { ...CORS, 'Content-Type': 'application/json' },
+    })
+  }
+
+  function fail(message: string, status = 400) {
+    return new Response(JSON.stringify({ error: message }), {
+      status,
+      headers: { ...CORS, 'Content-Type': 'application/json' },
+    })
+  }
+
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS })
 
   const supabase = createClient(
@@ -47,10 +74,78 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
   const url = new URL(req.url)
   const action = url.searchParams.get('action') ?? ''
 
+  // ── Phân quyền ────────────────────────────────────────────────────────────
+  // Trước đây toàn bộ function KHÔNG có xác thực: chỉ cần biết wedding_id là
+  // đọc/sửa/xoá được danh sách khách mời của bất kỳ đám cưới nào.
+  // Chính sách mới: phải đăng nhập và phải là chủ thiệp (xem docs/security-audit-plan.md #3).
+  const isAdmin = (req.headers.get('x-admin-token') ?? '') === Deno.env.get('ADMIN_SECRET_TOKEN')
+
+  async function getUserId(): Promise<string | null> {
+    const authHeader = req.headers.get('Authorization') || ''
+    const jwt = authHeader.replace(/^Bearer\s+/i, '').trim()
+    if (!jwt || jwt === Deno.env.get('SUPABASE_ANON_KEY')) return null
+    try {
+      const { data, error } = await supabase.auth.getUser(jwt)
+      if (error) return null
+      return data.user?.id ?? null
+    } catch {
+      return null
+    }
+  }
+
+  // Trả về Response lỗi nếu người gọi không phải chủ thiệp, null nếu hợp lệ.
+  async function denyIfNotOwner(wedding_id: string): Promise<Response | null> {
+    if (isAdmin) return null
+
+    const userId = await getUserId()
+    if (!userId) {
+      return fail('Vui lòng đăng nhập để quản lý khách mời', 401)
+    }
+
+    const { data: wedding } = await supabase
+      .from('weddings')
+      .select('user_id')
+      .eq('id', wedding_id)
+      .maybeSingle()
+
+    if (!wedding) return fail('Thiệp không tồn tại', 404)
+
+    // Thiệp cũ chưa có chủ: chưa claim thì chưa cho thao tác khách mời — chủ thật
+    // chỉ cần mở trang chỉnh sửa thiệp một lần (đã đăng nhập) là nhận chủ, xem
+    // wedding-admin PATCH.
+    if (wedding.user_id !== userId) {
+      log.warn('guest.forbidden', { wedding_id, userId })
+      return fail('Bạn không có quyền quản lý khách mời của thiệp này', 403)
+    }
+    return null
+  }
+
+  // Với thao tác chỉ có guest id: suy ra wedding_id từ chính các bản ghi guest,
+  // rồi kiểm tra quyền. Chặn việc sửa/xoá guest thuộc thiệp của người khác.
+  async function denyIfNotOwnerOfGuests(ids: string[]): Promise<Response | null> {
+    if (isAdmin) return null
+
+    const { data: rows, error } = await supabase
+      .from('guests')
+      .select('wedding_id')
+      .in('id', ids)
+
+    if (error) return fail(error.message, 500)
+    if (!rows || rows.length === 0) return fail('Không tìm thấy khách mời', 404)
+
+    const weddingIds = [...new Set(rows.map(r => r.wedding_id))]
+    if (weddingIds.length > 1) return fail('Yêu cầu không hợp lệ', 400)
+
+    return await denyIfNotOwner(weddingIds[0])
+  }
+
   // ── GET: đọc guests hoặc thông tin thiệp ─────────────────────────────────
   if (req.method === 'GET') {
     const wedding_id = url.searchParams.get('wedding_id')
     if (!wedding_id) return fail('Thiếu wedding_id')
+
+    const denied = await denyIfNotOwner(wedding_id)
+    if (denied) return denied
 
     // Danh sách khách
     if (action === 'list') {
@@ -87,6 +182,9 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
     const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
     if (!ids.every(id => uuidRe.test(id))) return fail('ID không hợp lệ')
 
+    const denied = await denyIfNotOwnerOfGuests(ids)
+    if (denied) return denied
+
     const { error } = await supabase.from('guests').delete().in('id', ids)
     if (error) return fail(error.message, 500)
     return ok({ deleted: ids.length })
@@ -103,6 +201,9 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
 
       const full = String(full_name ?? '').trim().slice(0, MAX_FIELD_LEN)
       if (!full) return fail('Họ và tên không được để trống')
+
+      const denied = await denyIfNotOwnerOfGuests([id])
+      if (denied) return denied
 
       const { error } = await supabase.from('guests').update({
         full_name: full,
@@ -126,6 +227,9 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
         if (!u.link || u.link.length > 2048) return fail('Link không hợp lệ')
       }
 
+      const denied = await denyIfNotOwnerOfGuests(updates.map(u => u.id))
+      if (denied) return denied
+
       // Upsert link cho từng guest trong batch
       const promises = updates.map(u =>
         supabase.from('guests').update({ link: u.link }).eq('id', u.id)
@@ -148,6 +252,9 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
     if (!wedding_id || !side || !['groom', 'bride'].includes(side)) {
       return fail('Thiếu wedding_id hoặc side không hợp lệ')
     }
+
+    const denied = await denyIfNotOwner(wedding_id)
+    if (denied) return denied
 
     // Xác nhận wedding tồn tại
     const { data: wedding } = await supabase

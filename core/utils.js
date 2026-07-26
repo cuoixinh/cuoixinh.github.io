@@ -9,6 +9,27 @@ const STORAGE_BASE_URL = CONFIG.cloudflare.imageProxy || CONFIG.supabase.storage
 // ============= DOM HELPERS =============
 
 /**
+ * Escape ký tự có ý nghĩa trong HTML. Dùng khi buộc phải ghép chuỗi vào
+ * innerHTML — ưu tiên textContent/setText khi có thể.
+ *
+ * Đây là bản DÙNG CHUNG duy nhất: trước đây mỗi file tự viết một bản, bản trong
+ * render-helper.js thiếu escape dấu nháy đơn (') nên không an toàn khi chèn vào
+ * thuộc tính bọc bằng nháy đơn.
+ *
+ * @param {*} str - Giá trị cần escape
+ * @returns {string} Chuỗi đã escape
+ */
+function escapeHtml(str) {
+  if (str === null || str === undefined) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+/**
  * Set text content of an element by ID
  * @param {string} id - Element ID
  * @param {string} value - Text value to set

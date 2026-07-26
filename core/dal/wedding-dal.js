@@ -90,6 +90,17 @@ class WeddingDAL {
    * @param {Object} payload - Data to update (must include id)
    * @returns {Promise<Object>} Updated wedding data
    */
+  /**
+   * Ném Error kèm .code / .status để tầng trên phân biệt được lỗi cần đăng nhập
+   * (AUTH_REQUIRED) hay không có quyền (FORBIDDEN) với lỗi máy chủ thông thường.
+   */
+  _httpError(response, errorData) {
+    const err = new Error(errorData.error || `HTTP ${response.status}`);
+    err.status = response.status;
+    if (errorData.code) err.code = errorData.code;
+    return err;
+  }
+
   async updateWedding(payload) {
     const apiUrl = this.workerUrl || this.edgeUrl;
     const response = await fetch(apiUrl, {
@@ -100,7 +111,7 @@ class WeddingDAL {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error || `HTTP ${response.status}`);
+      throw this._httpError(response, errorData);
     }
 
     return await response.json();
@@ -156,10 +167,11 @@ class WeddingDAL {
    * @returns {Promise<void>}
    */
   async deleteWedding(id, token) {
-    const response = await fetch(`${this.edgeUrl}?id=${id}&token=${token}`, {
+    const response = await fetch(`${this.edgeUrl}?id=${id}`, {
       method: "DELETE",
       headers: {
         Authorization: `Bearer ${this.anonKey}`,
+        "x-admin-token": token,
       },
     });
 
@@ -174,9 +186,10 @@ class WeddingDAL {
    * @returns {Promise<Array>} List of weddings
    */
   async listWeddings(token) {
-    const response = await fetch(`${this.edgeUrl}?list=true&token=${token}`, {
+    const response = await fetch(`${this.edgeUrl}?list=true`, {
       headers: {
         Authorization: `Bearer ${this.anonKey}`,
+        "x-admin-token": token,
       },
     });
 

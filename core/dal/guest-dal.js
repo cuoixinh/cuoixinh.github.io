@@ -5,9 +5,30 @@ class GuestDAL {
 
   // ── Helpers ───────────────────────────────────────────────────────────────
 
+  /**
+   * Header cho mọi request: đính JWT của user đang đăng nhập. guest-handler yêu
+   * cầu người gọi là CHỦ THIỆP mới được đọc/sửa danh sách khách mời — không còn
+   * cho phép chỉ cần biết wedding_id như trước.
+   */
+  async _authHeaders() {
+    let token = null;
+    const sb = typeof window !== 'undefined' && window.AuthUI && window.AuthUI.supabase;
+    if (sb) {
+      try {
+        const { data } = await sb.auth.getSession();
+        token = data?.session?.access_token ?? null;
+      } catch (e) {}
+    }
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) headers.Authorization = `Bearer ${token}`;
+    return headers;
+  }
+
   async _get(action, params = {}) {
     const qs = new URLSearchParams({ action, ...params });
-    const res = await fetch(`${this._url}?${qs}`);
+    const res = await fetch(`${this._url}?${qs}`, {
+      headers: await this._authHeaders(),
+    });
     const json = await res.json();
     if (!res.ok) throw new Error(json.error || 'Lỗi máy chủ');
     return json;
@@ -16,7 +37,7 @@ class GuestDAL {
   async _post(action, body) {
     const res = await fetch(`${this._url}?action=${action}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await this._authHeaders(),
       body: JSON.stringify(body),
     });
     const json = await res.json();
@@ -27,7 +48,7 @@ class GuestDAL {
   async _patch(action, body) {
     const res = await fetch(`${this._url}?action=${action}`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await this._authHeaders(),
       body: JSON.stringify(body),
     });
     const json = await res.json();
@@ -38,7 +59,7 @@ class GuestDAL {
   async _delete(body) {
     const res = await fetch(this._url, {
       method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await this._authHeaders(),
       body: JSON.stringify(body),
     });
     const json = await res.json();

@@ -1,25 +1,26 @@
 // ============= PAYMENT =============
 
+// User hiện tại lấy từ Supabase SDK. KHÔNG tự parse localStorage: token
+// supabase-js v2 có thể ở dạng "base64-<...>" nên JSON.parse thẳng sẽ vỡ và âm
+// thầm coi người đã đăng nhập là chưa đăng nhập.
+let _sessionUser = null;
+(function initSessionUser() {
+  const sb = window.AuthUI && window.AuthUI.supabase;
+  if (!sb) return;
+  sb.auth
+    .getSession()
+    .then(({ data }) => {
+      _sessionUser = data?.session?.user ?? null;
+    })
+    .catch(() => {});
+  sb.auth.onAuthStateChange((_event, session) => {
+    _sessionUser = session?.user ?? null;
+  });
+})();
+
 function getCurrentUser() {
-  // Ưu tiên user lấy từ Supabase SDK (đã giải mã đúng session)
-  if (_authUser) return _authUser;
-  try {
-    const keys = Object.keys(localStorage);
-    const sessionKey = keys.find(
-      (k) => k.startsWith("sb-") && k.endsWith("-auth-token"),
-    );
-    if (!sessionKey) return null;
-    let raw = localStorage.getItem(sessionKey);
-    if (!raw) return null;
-    // supabase-js v2 mới lưu giá trị có tiền tố "base64-" → cần decode trước khi parse
-    if (raw.startsWith("base64-")) {
-      raw = atob(raw.slice(7));
-    }
-    const session = JSON.parse(raw);
-    return session?.user ?? null;
-  } catch (e) {
-    return null;
-  }
+  // _authUser do auth-ui set khi đăng nhập trong phiên hiện tại
+  return _authUser || _sessionUser;
 }
 
 function openPayment(templateId) {

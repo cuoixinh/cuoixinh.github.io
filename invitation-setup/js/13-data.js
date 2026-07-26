@@ -624,6 +624,20 @@ async function saveAll(overrides = {}, label = "Đang lưu...") {
     return true;
   } catch (e) {
     console.error("Save error:", e);
+
+    // Thiệp giờ bắt buộc đăng nhập mới sửa được (chống người lạ có link UUID sửa
+    // thiệp, tráo QR nhận tiền mừng). Nhắc đăng nhập thay vì báo lỗi thô; bản nháp
+    // đã được lưu ở localStorage phía trên nên không mất dữ liệu.
+    if (e.code === "AUTH_REQUIRED" || e.status === 401) {
+      showToast("Vui lòng đăng nhập để lưu thiệp lên hệ thống");
+      window.AuthUI?.openModal?.({ onAuth: () => location.reload() });
+      return false;
+    }
+    if (e.code === "FORBIDDEN" || e.status === 403) {
+      showToast("❌ Bạn không có quyền chỉnh sửa thiệp này");
+      return false;
+    }
+
     showToast("❌ Lỗi: " + e.message);
     return false;
   } finally {

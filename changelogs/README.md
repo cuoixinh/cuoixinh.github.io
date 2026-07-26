@@ -32,6 +32,7 @@ Làm trên **Supabase Dashboard → SQL Editor** (không cần CLI):
 | **RC1.4** | 2026-07-16 | Thêm cột `weddings.user_id` (→ auth.users) gắn thiệp với tài khoản, để trang Đơn hàng liệt kê cả draft trong DB                         | `RC1.4/user_id.sql`           |
 | **RC1.5** | 2026-07-17 | Thêm cột `weddings.expires_at` (timestamptz) — hạn dùng thử 3 ngày khi xuất bản; thanh toán thành công → gán null (kích hoạt vĩnh viễn) | `RC1.5/expires_at.sql`        |
 | **RC1.6** | 2026-07-18 | Thêm cột `weddings.share_message_template` (text) — câu mẫu chia sẻ (mail merge `##Danh xưng##`, `##link##`) cấu hình ở tab Cấu hình              | `RC1.6/share_message_template.sql` |
+| **RC1.7** | 2026-07-26 | Siết RLS: bỏ policy `USING (true)` trên `weddings`/`guests`, bật RLS cho `payment_logs`, siết INSERT `orders`/`order_details` theo `auth.uid()` | `RC1.7/rls_hardening.sql`     |
 
 ## Khi thêm phiên bản mới
 

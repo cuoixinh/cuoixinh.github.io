@@ -20,10 +20,10 @@ async function loadPage(page) {
   if (page < 1) return;
   currentPage = page;
   try {
-    let url = `${EDGE_URL}?list=true&page=${page}&limit=10&token=${ADMIN_TOKEN}`;
+    let url = `${EDGE_URL}?list=true&page=${page}&limit=10`;
     if (currentSearch) url += `&search=${encodeURIComponent(currentSearch)}`;
     const res = await fetch(url, {
-      headers: { Authorization: `Bearer ${ANON_KEY}` },
+      headers: adminHeaders(),
     });
     const result = await res.json();
     if (!res.ok) throw new Error(result.error || "Lỗi tải danh sách");
@@ -103,12 +103,9 @@ async function toggleStatus(id, newStatus) {
   if (!confirm(`Bạn có chắc muốn ${newStatus ? "bật" : "tắt"} thiệp này?`))
     return;
   try {
-    const res = await fetch(`${EDGE_URL}?token=${ADMIN_TOKEN}`, {
+    const res = await fetch(`${EDGE_URL}`, {
       method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${ANON_KEY}`,
-      },
+      headers: adminHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify({ id, is_active: newStatus }),
     });
     if (!res.ok) throw new Error("Lỗi cập nhật trạng thái");
@@ -138,12 +135,9 @@ async function saveSlug() {
     return;
   }
   try {
-    const res = await fetch(`${EDGE_URL}?token=${ADMIN_TOKEN}`, {
+    const res = await fetch(`${EDGE_URL}`, {
       method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${ANON_KEY}`,
-      },
+      headers: adminHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify({ id: editingId, slug: newSlug }),
     });
     const data = await res.json();
@@ -163,9 +157,9 @@ async function deleteWedding(id, slug) {
   )
     return;
   try {
-    const res = await fetch(`${EDGE_URL}?id=${id}&token=${ADMIN_TOKEN}`, {
+    const res = await fetch(`${EDGE_URL}?id=${id}`, {
       method: "DELETE",
-      headers: { Authorization: `Bearer ${ANON_KEY}` },
+      headers: adminHeaders(),
     });
     if (!res.ok) throw new Error("Lỗi xóa thiệp");
     loadPage(currentPage);

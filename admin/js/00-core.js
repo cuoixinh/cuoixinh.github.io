@@ -21,6 +21,21 @@ if (!ADMIN_TOKEN) {
   }
 }
 
+/**
+ * Header chuẩn cho mọi request quản trị tới edge function.
+ *
+ * Token đi trong HEADER `x-admin-token`, không phải query string: URL bị ghi vào
+ * access log của Supabase/Cloudflare, lịch sử trình duyệt và header Referer, nên
+ * token nằm trong URL là rò rỉ ra nhiều nơi ngoài tầm kiểm soát.
+ */
+function adminHeaders(extra = {}) {
+  return {
+    Authorization: `Bearer ${ANON_KEY}`,
+    "x-admin-token": ADMIN_TOKEN,
+    ...extra,
+  };
+}
+
 // ============= CHUYỂN MÀN (Dashboard / Weddings / Templates) =============
 // Không còn tab bar — điều hướng qua card ở Dashboard và breadcrumb ở header
 // (span#breadcrumb-current đổi nhãn theo màn đang xem). Giữ tên switchTab để

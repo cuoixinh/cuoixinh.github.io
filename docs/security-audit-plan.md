@@ -2,189 +2,324 @@
 
 ## Context
 
-Audit read-only trên toàn bộ codebase (frontend vanilla JS, Supabase Edge Functions, Postgres RLS) để xác định lỗ hổng bảo mật trước khi mở rộng người dùng. Phát hiện gồm 1 lỗ hổng **giả mạo thanh toán qua webhook** (mất tiền thật) và nhiều lỗ hổng **IDOR/RLS** cho phép sửa/đọc dữ liệu của người khác chỉ cần biết UUID. Plan này liệt kê từng vấn đề theo mức độ nghiêm trọng và giải pháp cụ thể, để xử lý theo thứ tự ưu tiên.
+Audit toàn bộ codebase (frontend vanilla JS, Supabase Edge Functions, Postgres RLS, Cloudflare Workers) để xác định lỗ hổng bảo mật trước khi mở rộng người dùng.
+
+Phát hiện nghiêm trọng nhất: **giả mạo thanh toán qua webhook** và **IDOR cho phép tráo mã QR nhận tiền mừng cưới** — cả hai đều có tác động tài chính trực tiếp.
+
+Bản plan này **đã qua một vòng review lại** sau khi đọc kỹ code thật; phần "Đính chính so với bản đầu" ở cuối ghi rõ những chỗ bản đầu tiên nói sai.
+
+## Trạng thái thi hành (2026-07-26)
+
+**Đã sửa xong trong code** — chưa deploy, chưa commit:
+
+| # | Việc | File chính |
+|---|---|---|
+| 1 | PayOS verify chữ ký ở **shadow mode** + constant-time compare | `supabase/functions/payos-webhook/index.ts` |
+| 1/13 | Proxy không còn nuốt lỗi, trả status thật để PayOS retry | `cloudflare-worker/payos-webhook-proxy.js` |
+| 2 | Allowlist field PATCH (chặn tự ghi `payment_status`) | `supabase/functions/wedding-admin/index.ts` |
+| 3 | Bắt buộc đăng nhập + ownership check PATCH/POST | `supabase/functions/wedding-admin/index.ts` |
+| 3 | Chống tráo ảnh/QR: chỉ nhận ảnh trên host hệ thống | `supabase/functions/wedding-admin/index.ts` |
+| 3 | `guest-handler`: JWT + kiểm tra chủ thiệp ở cả 6 nhánh | `supabase/functions/guest-handler/index.ts`, `core/dal/guest-dal.js` |
+| 3 | Client nhắc đăng nhập khi gặp `AUTH_REQUIRED`/`FORBIDDEN` | `invitation-setup/js/13-data.js`, `core/dal/wedding-dal.js` |
+| 4a | Migration siết RLS | `changelogs/RC1.7/rls_hardening.sql` |
+| 4b | GET public không còn trả field thanh toán | `supabase/functions/wedding-admin/index.ts` |
+| 5 | Admin token chuyển sang header + constant-time | `admin/js/00-core.js`, `01-weddings.js`, `02-templates.js`, `core/dal/wedding-dal.js` |
+| 6 | CORS allowlist origin (theo mẫu `ai-invitation`) | `wedding-admin`, `guest-handler` |
+| 7 | Vá PostgREST filter injection | `supabase/functions/wedding-admin/index.ts` |
+| 8 | Gộp `escapeHtml` dùng chung, vá `maps-helper` | `core/utils.js` + 4 file bỏ bản trùng |
+| 16 | Pin version + SRI cho CDN (bỏ `@latest`) | 9 file HTML |
+| 17 | `getCurrentUser()` dùng supabase.auth API | `core/payment.js`, `js/home-payment.js` |
+
+Toàn bộ file đã qua kiểm tra cú pháp. **Chưa chạy thử end-to-end** — xem mục Kiểm chứng.
+
+### Việc PHẢI làm thủ công (không tự động hoá được từ đây)
+
+1. **Deploy Edge Functions**: `wedding-admin`, `guest-handler`, `payos-webhook` (Supabase CLI chưa cài trên máy này).
+2. **Deploy Cloudflare Worker** `payos-webhook-proxy` (Wrangler chưa cài).
+3. **Chạy migration** `changelogs/RC1.7/rls_hardening.sql` qua Supabase Dashboard → SQL Editor.
+4. **Chạy query đếm thiệp vô chủ** (ở cuối file migration) để quyết định mốc hạn chót cho thiệp `user_id IS NULL`.
+5. **Theo dõi log Axiom** `payos.signature_check` sau 1–2 giao dịch thật → nếu `matched: true` thì đặt biến môi trường `PAYOS_ENFORCE_SIGNATURE=true` để bật chặn (không cần sửa code).
+6. **Supabase Storage bucket policy**: giới hạn MIME type + kích thước (#9) — chỉ làm được trên Dashboard.
+7. **Cloudflare Rate Limiting Rules** cho `guest-handler`/`wedding-admin` (#12, #14) — cấu hình trên Dashboard.
+8. **Cấu hình Axiom cho Worker** — nên có, thiếu thì worker vẫn chạy, chỉ không đẩy log.
+   ⚠️ Secret của Cloudflare **tách biệt hoàn toàn** với secret của Supabase: `AXIOM_TOKEN`
+   đã đặt trong Supabase (cho `_shared/axiom.ts`) không dùng lại được ở Worker.
+   - Tên dataset không phải bí mật → khai trong `[vars]` của `wrangler-webhook.toml`
+   - Token → `wrangler secret put AXIOM_TOKEN --config wrangler-webhook.toml`
+
+### Quan sát (observability) sau đợt vá
+
+Sự kiện Axiom cần theo dõi:
+
+| Log | Ý nghĩa |
+|---|---|
+| `payos.signature_check` | **Mốc quyết định** bật `PAYOS_ENFORCE_SIGNATURE` — chờ `matched: true` trên giao dịch thật |
+| `payos.wedding_not_found` | Khách trả tiền nhưng không tìm ra thiệp → tiền vào mà thiệp không mở |
+| `payos.amount_mismatch` | Sai cấu hình giá, **hoặc** có người thử giả mạo webhook với số tiền tự đặt |
+| `payos.pricing_not_found` / `payos.update_failed` | Lỗi mở khoá thiệp sau thanh toán |
+| `proxy.upstream_error` / `proxy.upstream_unreachable` | Worker không đẩy được webhook vào Supabase (nguồn log duy nhất cho case này) |
+| `wedding.patch_forbidden` / `guest.forbidden` | Có người thử sửa thiệp/khách mời của người khác |
+| `wedding.patch_image_rejected` | Có người thử tráo ảnh/QR sang host ngoài |
+| `wedding.claimed` | Thiệp vô chủ được nhận — soi xem có ai claim bất thường không |
+
+### Quyết định thay đổi trong lúc thi hành
+
+- **Không tạo bảng rate-limit trong DB** như dự tính ban đầu (#11, #12). Sau khi bắt buộc đăng nhập, vector spam tạo draft và thao tác khách mời đã giảm mạnh; Cloudflare Rate Limiting Rules là lựa chọn rẻ và nhanh hơn cho phần còn lại. Tránh thêm bảng chưa dùng tới.
+- **`admin/js/03-sample-images.js` giữ bản `escapeHtml` cục bộ** (đã bổ sung escape `'`) vì `admin/index.html` không nạp `core/utils.js`.
+- **CORS áp bằng cách tính header theo từng request ở đầu handler**, không phải sửa ~40 chỗ trả response — giảm rủi ro sót.
 
 ---
 
-## Mức độ CAO — cần vá ngay (tiền thật, IDOR toàn hệ thống)
+## Quyết định đã chốt
+
+| Vấn đề | Quyết định |
+|---|---|
+| Mô hình quyền sửa thiệp (#3) | **Bắt buộc đăng nhập mới sửa được thiệp.** Xem chiến lược migration ở #3 — đây là thay đổi sản phẩm, không chỉ là vá kỹ thuật. |
+| Bật verify chữ ký PayOS (#1) | **Shadow mode trước** (log-only), xác nhận thuật toán đúng trên giao dịch thật rồi mới hard-fail. |
+
+---
+
+## Nhóm A — Mức CAO, vá trước
 
 ### 1. PayOS webhook không xác thực chữ ký
-**File:** `supabase/functions/payos-webhook/index.ts:75-91`
-Chữ ký HMAC-SHA256 được tính đúng nhưng kết quả verify bị bỏ qua chủ động (`console.warn("...proceeding without verification (INSECURE)")`, câu `return 401` đã bị comment out). Bất kỳ ai POST payload giả tới endpoint này đều được xử lý như thanh toán hợp lệ — **giả mạo thanh toán, mất doanh thu thật**.
 
-**Cần xác nhận trước:** URL webhook cấu hình bên dashboard PayOS đang trỏ tới `payos-webhook` hay `payment-handler` (handler `handleWebhook` trong `payment-handler/index.ts:339-360` đã verify đúng và an toàn). Nếu PayOS đang gọi `payos-webhook` — đây là lỗ hổng đang khai thác được ngay bây giờ.
+**File:** `supabase/functions/payos-webhook/index.ts`
 
-**Giải pháp:** Bỏ comment, trả `401` khi thiếu/sai chữ ký. Nếu `payos-webhook` là bản cũ không còn dùng, xoá hẳn function (giảm bề mặt tấn công) và trỏ webhook PayOS về `payment-handler`.
+Chữ ký HMAC-SHA256 được tính đúng nhưng kết quả verify bị bỏ qua chủ động, kèm ghi chú `"FIX THIS IN PRODUCTION"` và câu `return 401` đã comment out. Bất kỳ ai POST payload giả đều được xử lý như thanh toán hợp lệ.
 
-### 2. Bypass thanh toán qua endpoint quản lý thiệp
-**File:** `supabase/functions/wedding-admin/index.ts:229-378` (PATCH resource `weddings`)
-`fields` cho phép update chỉ loại trừ `id`, `deleted_images`, `user_id`, và `is_active` (khi không phải admin) — **không có allowlist cho `payment_status`, `payment_amount`, `transaction_id`, `expires_at`**. Khách hàng (không cần token admin) có thể tự gọi PATCH với `{"payment_status": "completed"}` để mở khoá thiệp vĩnh viễn mà không cần trả tiền.
+**Đường đi thật của webhook (đã xác minh):** PayOS → `cloudflare-worker/payos-webhook-proxy.js` → Edge Function `payos-webhook`. Tức là lỗ hổng này **đang sống**, không phải code chết.
 
-**Giải pháp:** Chuyển từ blocklist sang **allowlist** field được phép sửa bởi non-admin (tên, nội dung, theme, ảnh, guest config...). Mọi field liên quan thanh toán chỉ được ghi từ `payment-handler`/webhook nội bộ.
+**Hai rủi ro khiến không được hard-fail ngay:**
 
-### 3. IDOR — sửa thiệp/khách mời của người khác chỉ cần biết UUID
-- `wedding-admin` PATCH không kiểm tra ownership: chỉ auto-claim `user_id` nếu thiệp chưa có chủ (dòng 368-375), sau đó ai cầm `id` cũng PATCH được `contact`, số tài khoản ngân hàng, `slug`, `is_published`.
-- `supabase/functions/guest-handler/index.ts` — **toàn bộ file không có xác thực nào** (không JWT, không token) cho list/insert/import/update/delete guest, chỉ cần biết `wedding_id`.
-- UUID (`weddings.id`) lại chính là link chia sẻ công khai (`/invitation-setup/?id=<uuid>`, nút "Copy link" ở `public/account/index.js`, `core/payment.js:503`) → dễ lộ qua lịch sử trình duyệt/chat/screenshot, và ai nhặt được link là toàn quyền sửa thiệp.
+1. **Có hai thuật toán ký khác nhau trong repo, một cái sai.**
+   - `payos-webhook`: HMAC trên `payload.data` → khớp spec PayOS.
+   - `payment-handler/index.ts:29-38`: HMAC trên *toàn bộ payload* trừ `signature` → object lồng `data` serialize thành `[object Object]` → **luôn sai**. Handler này thực chất từ chối cả webhook thật; nó "an toàn" theo nghĩa vô dụng.
+   - Việc dev cũ tắt verify ở `payos-webhook` gợi ý nó **từng fail trên thực tế** → phải chứng minh thuật toán đúng trước khi tin.
 
-**Giải pháp:** Thêm kiểm tra ownership (so `user_id` với JWT của người gọi, hoặc thêm "edit token" riêng biệt với "view slug") trong `wedding-admin` PATCH và toàn bộ `guest-handler`. Cân nhắc tách biệt UUID public (dùng để share/xem) khỏi secret dùng để sửa.
+2. **Proxy nuốt lỗi.** `payos-webhook-proxy.js` luôn trả `200` cho PayOS bất kể kết quả thật. Nếu verify sai → khách trả tiền, thiệp không mở, **PayOS không retry, không ai được báo**.
 
-#### Kịch bản khai thác cụ thể (đã xác minh trong code): tráo QR nhận tiền mừng cưới
+**Giải pháp — 3 bước, theo thứ tự:**
 
-Đây là hệ quả **trực tiếp và nghiêm trọng nhất** của lỗ hổng IDOR ở trên, đáng nêu riêng vì tác động tài chính rõ ràng — đúng kiểu lừa đảo "tráo mã QR mừng cưới" đã từng xảy ra thực tế ở Việt Nam:
+1. **Shadow mode:** tính chữ ký, `log.info('payos.signature_check', { matched: true/false })` qua Axiom, **vẫn xử lý đơn như cũ**. Deploy, chờ 1–2 giao dịch thật.
+2. **Sửa proxy** để lỗi không bị nuốt: forward status thật của Edge Function về PayOS (hoặc ít nhất log.error + cảnh báo khi Edge trả non-2xx), để PayOS retry đúng cơ chế.
+3. **Hard-fail:** khi log xác nhận `matched: true` trên giao dịch thật → trả `401` cho chữ ký thiếu/sai. Dùng constant-time compare.
 
-- QR mừng cưới **không được sinh động từ số tài khoản** (không qua VietQR API) — nó chỉ là **ảnh do chủ thiệp tự upload**, lưu trong 2 field `groom_qr_url`/`bride_qr_url` của bảng `weddings` (`invitation-setup/js/10-images.js:132-133`), sau đó hiển thị thẳng qua `<img src>`: `core/helpers/render-helper.js:157,165` → `setAttr("groom-qr-img", "src", getImageUrl(wedding.groom_qr_url))`.
-- `getImageUrl()` (`core/utils.js:70-85`) nhận **bất kỳ chuỗi nào bắt đầu bằng `http`** và trả nguyên văn làm `src` — không kiểm tra domain có phải storage của chính hệ thống hay không.
-- Vì `wedding-admin` PATCH không allowlist field và không kiểm tra ownership (mục #2, #3), một attacker chỉ cần biết `id` của thiệp (chính là UUID trong link share/quản lý) là gọi được:
-  ```
-  PATCH .../wedding-admin  { id: "<uuid-thiệp-nạn-nhân>", groom_qr_url: "https://attacker.com/fake-qr.png" }
-  ```
-  → **mọi khách mời mở link thiệp từ thời điểm đó** sẽ thấy mã QR của hacker thay vì QR thật của cô dâu/chú rể, quét và chuyển tiền mừng cưới thẳng vào tài khoản kẻ tấn công — chủ thiệp không hề nhận được cảnh báo gì cho tới khi có người thắc mắc.
-- Rủi ro áp dụng tương tự cho mọi field ảnh khác (`cover_image_url`, `groom_image_url`, `bride_image_url`, `gallery_images`) vì cùng đi qua `getImageUrl()` không kiểm tra domain, nhưng QR là nghiêm trọng nhất vì gắn trực tiếp với tiền.
+> Trạng thái hiện tại: file đã được sửa sang **hard-fail + constant-time compare**. Cần **hạ xuống shadow mode** trước khi deploy, giữ lại phần constant-time.
 
-**Giải pháp (ngoài việc vá #2/#3):**
-1. Vá ownership check + allowlist field ở `wedding-admin` PATCH sẽ chặn đứng vector chính này.
-2. Bổ sung thêm lớp phòng thủ độc lập: validate `groom_qr_url`/`bride_qr_url` (và các field ảnh khác) ở server-side chỉ chấp nhận URL thuộc domain Storage của chính hệ thống (`*.supabase.co/storage/...` hoặc domain Cloudflare image-proxy riêng), từ chối mọi URL ngoài — kể cả khi ownership check sau này có sơ hở khác, field ảnh vẫn không thể trỏ ra ngoài.
-3. Cân nhắc thêm cảnh báo/notification (email) cho chủ thiệp mỗi khi `groom_qr_url`/`bride_qr_url`/thông tin ngân hàng bị thay đổi, để phát hiện sớm nếu vẫn có sơ hở lọt qua.
+Ngoài ra: `payment-handler`'s `verifyWebhookSignature` cần sửa cho đúng spec (dùng `payload.data`) hoặc xoá hẳn handler webhook trùng lặp này để tránh nhầm lẫn về sau.
 
-### 4. RLS thiếu/hở trên các bảng chính
-**File:** `changelogs/RC1.0/database-complete.sql`
-- `weddings` (dòng 209-211): `"Public read" USING (true)` — không lọc `is_published`/`is_active` → **toàn bộ thiệp kể cả draft chưa trả tiền đọc được công khai qua anon key**, lộ số tài khoản ngân hàng, `payment_order_id`, `transaction_id`.
-- `guests` (dòng 254-276): `"Public read guests" USING (true)` → enumerate toàn bộ khách mời mọi wedding qua REST API trực tiếp. Policy `"Guest self-update RSVP fields"` (268-270) dùng `USING (true)` không giới hạn cột → có thể sửa `full_name/link/side` thay vì chỉ RSVP như comment mô tả.
-- `payment_logs` (dòng 362-380): **RLS chưa được bật, không có policy nào** — bảng log thanh toán mở hoàn toàn.
+### 2. Bypass thanh toán qua PATCH `wedding-admin`
 
-**Giải pháp:** Viết migration mới trong `changelogs/RC1.x/` (idempotent):
-- `weddings`: SELECT policy public chỉ trả field an toàn (ẩn bank info/transaction_id khỏi anon) hoặc lọc `is_published = true`.
-- `guests`: SELECT giới hạn theo `wedding_id` được truyền đúng ngữ cảnh (không enumerate toàn bảng); UPDATE policy giới hạn cột bằng `WITH CHECK` chỉ cho phép field RSVP.
-- `payment_logs`: `ENABLE ROW LEVEL SECURITY` + policy chỉ cho owner/service_role đọc.
-- Cập nhật bảng **Lịch sử phiên bản** trong `changelogs/README.md` theo quy ước dự án.
+**File:** `supabase/functions/wedding-admin/index.ts:229-378`
 
----
+`const { id, deleted_images, ...fields } = body` rồi chỉ `delete fields.is_active` (non-admin) và `delete fields.user_id`. **`payment_status`, `payment_amount`, `transaction_id`, `expires_at` đi thẳng vào `update()`** → client tự PATCH `{"payment_status":"completed"}` là mở khoá thiệp vĩnh viễn, không cần trả tiền.
 
-## Mức độ TRUNG BÌNH
+**Giải pháp:** đổi blocklist → **allowlist**. Khai báo `CUSTOMER_EDITABLE_FIELDS` (nội dung thiệp: tên, ngày, địa điểm, theme, ảnh, timeline, love_story, contact, guest config, slug, is_published…). Mọi field ngoài danh sách bị loại bỏ với non-admin. Field thanh toán chỉ được ghi từ `payment-handler`/webhook.
 
-### 5. Admin token gửi qua URL query string
-**Files:** `admin/js/01-weddings.js`, `admin/js/02-templates.js`, `core/dal/wedding-dal.js`
-Token gửi trong query string ở mọi request → lộ vào access log Supabase/Cloudflare, browser history, Referer header. Xác thực server (`wedding-admin/index.ts:16-17`) chỉ so `token === env` bằng `===` thường, không rate-limit/lockout → có thể brute-force.
+### 3. IDOR — ai có UUID là toàn quyền sửa thiệp
 
-**Giải pháp:** Chuyển token sang HTTP header (`Authorization: Bearer`). Thêm rate-limit/backoff cho endpoint admin. Cân nhắc constant-time compare.
+- PATCH **không kiểm tra ownership**; chỉ auto-claim `user_id` khi thiệp chưa có chủ (`index.ts:372-375`).
+- `guest-handler/index.ts` — **toàn bộ file không có xác thực nào** cho list/insert/import/update/delete, chỉ cần biết `wedding_id`.
+- UUID vừa là link chia sẻ vừa là chìa khoá sửa → lộ qua lịch sử trình duyệt, chat, ảnh chụp màn hình.
 
-### 6. CORS wildcard trên toàn bộ Edge Functions
-**Files:** `payos-webhook`, `payment-handler`, `wedding-admin`, `guest-handler` (đều set `Access-Control-Allow-Origin: '*'`)
-Không kèm credentials nên chưa phải lỗ hổng leak cổ điển, nhưng kết hợp với auth yếu ở mục 3/5 khiến site bất kỳ gọi được API từ browser người dùng khác. `ai-invitation` đã làm đúng chuẩn (allowlist origin phản chiếu).
+#### Kịch bản khai thác đã xác minh: tráo QR nhận tiền mừng cưới
 
-**Giải pháp:** Áp dụng allowlist origin (theo mẫu `ai-invitation`) cho các function còn lại.
+QR mừng cưới **không sinh động từ số tài khoản** — nó là **ảnh do chủ thiệp upload**, lưu ở `groom_qr_url`/`bride_qr_url`, render thẳng qua `<img src>` (`core/helpers/render-helper.js:157,165`). `getImageUrl()` (`core/utils.js:70-85`) nhận **mọi chuỗi bắt đầu bằng `http`** và trả nguyên văn — không kiểm tra domain.
 
-### 7. Thiếu Content-Security-Policy
-Không có `<meta http-equiv="Content-Security-Policy">` ở bất kỳ trang HTML nào, `cloudflare-worker/` cũng không set CSP/`X-Content-Type-Options`. Hiện escape XSS ở tầng render đã khá tốt (xem mục 9) nhưng thiếu lớp phòng thủ chiều sâu.
-
-**Giải pháp:** Thêm CSP header qua Cloudflare Worker (script-src tự host + domain cần thiết, object-src 'none', frame-ancestors phù hợp) áp dụng cho toàn site.
-
-### 8. PostgREST filter injection ở tìm kiếm admin
-**File:** `supabase/functions/wedding-admin/index.ts:552`
-`baseQuery.or(\`slug.ilike.%${search}%,...\`)` nối chuỗi trực tiếp vào cú pháp filter PostgREST — `search` chứa dấu phẩy/ngoặc có thể thêm điều kiện lạ. Chỉ admin gọi được nên rủi ro thấp nhưng nên vá theo chuẩn.
-
-**Giải pháp:** Escape ký tự đặc biệt (`,`, `(`, `)`, `%`, `*`) trong `search` trước khi build filter string, hoặc dùng `.filter()` với tham số riêng thay vì string interpolation.
-
-### 9. Escape HTML không nhất quán, trùng lặp code
-- `escapeHtml()` (`core/helpers/render-helper.js:264-271`) thiếu escape dấu `'`; `_esc()` (`invitation-setup/guests/index.js:361-367`) escape đủ — hai hàm làm cùng việc, định nghĩa riêng lẻ.
-- `core/helpers/maps-helper.js:242` chèn `display_name` (gợi ý địa chỉ từ Nominatim/OSM) thẳng vào `innerHTML` không escape; dòng 429/433 tự viết escape tay chỉ xử lý `&`/`"`, thiếu `<`/`>`/`'`.
-- Trang thiệp công khai (nơi rủi ro cao nhất) đã escape nhất quán qua `escapeHtml`/`textContent` — rủi ro XSS thực tế ở đây thấp, nhưng nợ kỹ thuật đáng dọn trước khi thêm tính năng mới (vd guest book công khai).
-
-**Giải pháp:** Gộp về một hàm `escapeHtml()` dùng chung đặt trong `core/utils.js`, escape đủ 5 ký tự (`&<>"'`), thay thế mọi bản sao cục bộ. Áp dụng cho `maps-helper.js`.
-
-### 10. Upload ảnh chỉ validate ở client
-**File:** `core/bl/image-bl.js:20-33`, `core/dal/storage-dal.js:19-32`
-`validateImageFile()` chỉ chạy client-side, chấp nhận `image/svg+xml`. Nếu bỏ qua UI và gọi thẳng Supabase Storage REST API bằng token hợp lệ, có thể upload SVG/HTML chứa script rồi share link ra ngoài (dù `resizeImage()` rasterize ảnh qua canvas trước khi upload nên luồng UI bình thường đã an toàn).
-
-**Giải pháp:** Cấu hình allow-list MIME type ở Supabase Storage bucket policy (ngoài phạm vi code) hoặc kiểm tra lại MIME server-side trong Edge Function nếu có luồng upload qua đó.
-
----
-
-## DDoS / Spam / Lạm dụng tài nguyên (Resource-exhaustion DoS)
-
-Hạ tầng dùng Cloudflare (Workers/CDN) trước GitHub Pages nên **DDoS tầng mạng (L3/L4)** đã được Cloudflare tự động chặn — không cần làm gì thêm miễn DNS các domain đang **proxy qua Cloudflare (orange cloud)**, không phải "DNS only". Rủi ro thực sự nằm ở **tầng ứng dụng (L7)**: dự án chạy trên Supabase Edge Functions + API AI trả phí theo lượt gọi, nên spam request không cần làm sập site — chỉ cần request đủ nhiều để **đội chi phí (financial DoS)** hoặc làm bloat database.
-
-### 11. Tạo thiệp draft không giới hạn — spam ghi DB
-**File:** `supabase/functions/wedding-admin/index.ts:176-212` (POST tạo `weddings`)
-Endpoint public, không cần đăng nhập, không token, **không rate-limit** — "KH tự tạo sau khi thanh toán hoặc tạo draft". Một script đơn giản có thể gọi lặp vô hạn để tạo hàng loạt bản ghi `weddings` rác → phình database, tốn quota Supabase, làm nhiễu dashboard admin.
-
-**Giải pháp:** Rate-limit theo IP (theo mẫu `ai-invitation/index.ts:705-738`, dùng `x-forwarded-for` + bảng đếm/ngày), hoặc yêu cầu Cloudflare Turnstile token trước khi tạo draft.
-
-### 12. `guest-handler` không xác thực + không rate-limit theo IP
-**File:** `supabase/functions/guest-handler/index.ts`
-Đã có giới hạn hợp lý về **dung lượng mỗi request** (`MAX_PER_SIDE=100`, `MAX_FIELD_LEN=200`, tối đa 200 id/lần — dòng 10-12, 84, 121, 190) nhưng **không giới hạn số lần gọi theo thời gian**. Vì không cần xác thực (đã nêu ở mục 3), kẻ tấn công có thể lặp vô hạn chu trình import/xoá trên cùng một `wedding_id` để dội request liên tục vào Supabase — tốn compute quota, có thể trigger giới hạn/billing cao hơn dự kiến hoặc làm chậm dịch vụ cho người dùng thật.
-
-**Giải pháp:** Thêm rate-limit theo IP hoặc theo `wedding_id` (vd tối đa N request/phút) tại tầng Edge Function hoặc qua Cloudflare Rate Limiting Rules (dashboard, áp cho path `*guest-handler*`).
-
-### 13. `payos-webhook-proxy.js` — bộ chuyển tiếp mở, không kiểm tra gì trước khi forward
-**File:** `cloudflare-worker/payos-webhook-proxy.js:60-90`
-Worker này nhận **bất kỳ POST nào dài ≥ 20 ký tự** và forward thẳng vào Supabase Edge Function `payos-webhook` ở background (`ctx.waitUntil`), luôn trả `200 success` cho phía gọi bất kể kết quả thật — thiết kế này vốn để PayOS luôn thấy webhook "thành công", nhưng đồng thời biến worker thành **một điểm khuếch đại (amplifier) miễn phí**: ai cũng có thể spam POST tới URL Cloudflare Worker công khai này để dội request vào Supabase, và vì `payos-webhook` phía sau đang **bỏ qua xác thực chữ ký** (mục #1), mỗi request giả này còn có nguy cơ bị xử lý như một sự kiện thanh toán thật.
-
-**Giải pháp:** Vá mục #1 trước (bật lại verify signature) để chặn phần lớn hệ quả; đồng thời thêm rate-limit tại chính worker này (dùng Cloudflare KV hoặc Durable Object đếm request/IP) trước khi `ctx.waitUntil(fetch(...))`.
-
-### 14. `wedding-cache-proxy.js` — PATCH/DELETE không qua cache, không rate-limit
-**File:** `cloudflare-worker/wedding-cache-proxy.js`
-Chỉ GET theo `slug`/`id` được cache (giảm tải tốt cho traffic đọc bình thường). Nhưng PATCH/DELETE luôn forward trực tiếp tới Supabase, không có giới hạn tần suất — kết hợp với lỗ hổng IDOR/allowlist ở mục #2, #3, một script spam PATCH liên tục vào cùng `id` vừa tốn compute vừa tăng khả năng khai thác race-condition trên các lỗ hổng đó.
-
-**Giải pháp:** Thêm rate-limit cho method PATCH/DELETE tại worker (theo IP), độc lập với cache GET.
-
-### 15. Không có CAPTCHA/Turnstile ở bất kỳ form public nào
-Grep toàn repo không thấy Cloudflare Turnstile/reCAPTCHA được tích hợp ở bất kỳ đâu — kể cả nơi rủi ro cao nhất (tạo thiệp draft, `ai-invitation`). Đây là lớp phòng thủ đơn giản, chi phí thấp (Turnstile miễn phí, tích hợp nhanh) để chặn phần lớn spam tự động mà không ảnh hưởng người dùng thật.
-
-**Giải pháp:** Thêm Cloudflare Turnstile ở form tạo thiệp (`invitation-setup`) và trước khi gọi `ai-invitation` lần đầu trong phiên; verify token ở phía Edge Function trước khi xử lý.
-
----
-
-## Chuỗi cung ứng (Supply-chain) & mã nguồn bên thứ ba
-
-### 16. Script CDN không có SRI, một số không pin version
-**Files:** hầu hết mọi trang HTML (`index.html`, `admin/index.html`, `invitation-setup/index.html`, `public/themes/*/index.html`, `public/account/index.html`, `theme-template/index.html`)
-Toàn bộ site — kể cả trang admin và trang xử lý thanh toán/thiệp — nạp thư viện trực tiếp từ CDN công cộng (`cdn.tailwindcss.com`, `cdn.jsdelivr.net`, `cdnjs.cloudflare.com`, `unpkg.com`): Supabase JS SDK, Font Awesome, crypto-js, xlsx, lucide, leaflet, flatpickr, coloris, cropperjs. **Không một thẻ `<script>`/`<link>` nào có thuộc tính `integrity` (SRI)**. Đáng chú ý nhất:
-- `@supabase/supabase-js@2` — chỉ pin major version, tự động nhận mọi bản patch/minor mới mà không kiểm soát.
-- `lucide@latest` (`invitation-setup/index.html:58`, `invitation-setup/guests/index.html:12`) — luôn lấy bản **mới nhất tuyệt đối**, không pin gì cả.
-
-Nếu CDN bị compromise hoặc một bản phát hành của gói npm bị chèn mã độc (kiểu tấn công chuỗi cung ứng đã từng xảy ra thực tế với nhiều gói npm phổ biến), mã độc sẽ chạy trên **mọi trang của toàn bộ website**, kể cả nơi xử lý phiên đăng nhập Supabase và luồng thanh toán.
-
-**Giải pháp:** Pin version cụ thể tới patch (vd `@supabase/supabase-js@2.45.4`, không dùng `@latest`); thêm `integrity="sha384-..."` + `crossorigin="anonymous"` cho các script/link từ CDN, đặc biệt là `supabase-js`. Cân nhắc tự host các thư viện ổn định (không cần cập nhật thường xuyên) trong repo thay vì phụ thuộc runtime vào CDN ngoài.
-
-### 17. Tự parse localStorage để lấy session — vi phạm quy tắc Auth của dự án
-**File:** `core/payment.js:712-725` (`getCurrentUser()`)
-```js
-const sessionKey = keys.find(k => k.startsWith("sb-") && k.endsWith("-auth-token"));
-const session = JSON.parse(localStorage.getItem(sessionKey));
 ```
-Đây chính xác là điều CLAUDE.md đã cảnh báo ở mục Auth: token supabase-js v2 có thể ở định dạng `base64-...` và JSON.parse trực tiếp sẽ vỡ (throw, bị bắt bởi `catch` nên fail-safe về `null`, nhưng nghĩa là `getCurrentUser()` có thể âm thầm coi người dùng đã đăng nhập là **chưa đăng nhập** trong một số phiên bản trình duyệt/định dạng token — không phải lỗ hổng cấp quyền, nhưng là lỗi tin cậy dữ liệu, và là chỗ duy nhất trong codebase phá vỡ quy ước đã đặt ra).
+PATCH .../wedding-admin  { id: "<uuid-nạn-nhân>", groom_qr_url: "https://attacker.com/fake-qr.png" }
+```
 
-**Giải pháp:** Dùng `supabase.auth.getUser()` / `getSession()` (API chính thức) thay vì tự đọc `localStorage`, đúng theo quy tắc đã ghi trong `CLAUDE.md`.
+→ Mọi khách mời mở thiệp từ lúc đó quét phải QR của kẻ tấn công, tiền mừng cưới chảy thẳng vào tài khoản nó. Chủ thiệp không được cảnh báo gì.
 
-**Việc đã kiểm tra và OK (không cần hành động):** không có file `.env`/secret nào được commit vào git (`git ls-files` sạch), `npm audit` không phát hiện lỗ hổng dependency nào, module logging `_shared/axiom.ts` có comment nhắc rõ không log dữ liệu nhạy cảm và tuân thủ đúng trong code hiện tại.
+#### Giải pháp: bắt buộc đăng nhập mới sửa (đã chốt)
+
+Hạ tầng đã sẵn: `core/dal/wedding-dal.js:18-32` (`_authHeaders()`) **đã đính JWT** của user khi đã đăng nhập; `getUserId()` phía Edge Function đã có. Việc cần làm:
+
+**a) Edge Function `wedding-admin`:**
+- `PATCH`: yêu cầu `getUserId()` trả về non-null **và** khớp `existing.user_id` → nếu không, `403`. Admin token vẫn bypass.
+- `POST` (tạo mới): yêu cầu đăng nhập → `user_id` luôn được set, không còn sinh thiệp vô chủ.
+- `GET ?id=` (nạp vào trình sửa): cũng cần ownership — xem #4b.
+
+**b) Xử lý thiệp cũ `user_id = NULL` (quan trọng nhất):**
+Không thể khoá cứng ngay, sẽ giết luôn thiệp của khách hàng hiện hữu. Chiến lược grandfather:
+- Thiệp `user_id IS NULL` → **user đăng nhập đầu tiên mở link sửa sẽ nhận làm chủ** (giữ hành vi claim hiện có, nhưng bắt buộc phải đăng nhập mới claim được).
+- Ghi log Axiom mọi lần claim (`wedding.claimed`, kèm `wedding_id`, `user_id`, IP) để soi bất thường.
+- **Rủi ro còn lại phải chấp nhận:** trong cửa sổ trước khi chủ thật đăng nhập claim, kẻ có UUID rò rỉ vẫn có thể claim trước. Giảm thiểu bằng: đặt **hạn chót** (vd 30 ngày) — sau đó thiệp chưa claim chuyển sang chỉ-đọc, cần admin hỗ trợ. Cần chạy một query đếm xem hiện có bao nhiêu thiệp `user_id IS NULL` để lượng hoá quy mô trước khi chọn mốc.
+
+**c) Client:**
+- `invitation-setup` phải gate sau đăng nhập (dùng `core/auth-ui.js` sẵn có — đã hỗ trợ OTP email + OAuth).
+- Thông báo rõ cho người dùng: "đăng nhập để chỉnh sửa thiệp" thay vì lỗi 403 trần trụi.
+
+**d) `guest-handler`:** cùng nguyên tắc — mọi thao tác ghi phải kèm JWT và kiểm tra người gọi sở hữu `wedding_id` đó.
+
+**e) Vẫn giữ công khai:** trang thiệp `/slug` cho khách mời xem **không** yêu cầu đăng nhập. Chỉ luồng *sửa* mới cần.
+
+#### Lớp phòng thủ độc lập (làm kể cả khi đã có ownership check)
+
+Validate server-side: `groom_qr_url`/`bride_qr_url` và mọi field ảnh chỉ nhận **filename trần** hoặc URL thuộc domain storage của hệ thống; từ chối URL ngoài. Kể cả ownership check sau này có sơ hở, ảnh vẫn không thể trỏ ra ngoài. Cân nhắc thêm email cảnh báo chủ thiệp khi QR/thông tin ngân hàng đổi.
+
+### 4. Rò rỉ dữ liệu qua đường đọc
+
+**a) RLS hở (`changelogs/RC1.0/database-complete.sql`):**
+- `weddings` (209-211): `"Public read" USING (true)` → **mọi thiệp kể cả draft chưa trả tiền đọc được bằng anon key**, lộ số tài khoản, `payment_order_id`, `transaction_id`.
+- `guests` (254-276): `"Public read guests" USING (true)` → enumerate toàn bộ khách mời mọi đám. Policy update dùng `USING (true)` không giới hạn cột → sửa được `full_name/link/side` chứ không chỉ RSVP.
+- `payment_logs` (362-380): **chưa bật RLS, không policy nào**.
+
+Anon key nằm công khai trong `core/config.js`, nên `curl https://<project>.supabase.co/rest/v1/weddings?select=*` là khai thác được thật.
+
+> **Tin tốt:** grep xác nhận client **không** truy vấn thẳng `weddings`/`guests` — toàn bộ đi qua Edge Function (service_role, bypass RLS). Nên **siết RLS không làm vỡ app**. Đổi lại, RLS ở đây là phòng thủ chiều sâu chống truy cập anon key trực tiếp, **không** phải authz chính của sản phẩm — authz thật nằm ở #2/#3.
+
+**b) GET trả `select('*')` cho bất kỳ ai** (`wedding-admin/index.ts:584`) — đây mới là đường rò **đang sống**, vì client đi qua đúng path này. Thiệp lấy theo slug trả về cả `transaction_id`, `payment_order_id`, `payment_status`, `user_id`, `expires_at`.
+
+**Giải pháp:**
+- Viết migration idempotent trong `changelogs/RC1.x/`: `weddings` lọc `is_published`/ẩn field nhạy cảm; `guests` giới hạn theo `wedding_id` + `WITH CHECK` giới hạn cột RSVP; `payment_logs` bật RLS chỉ service_role; `orders`/`order_details` siết INSERT về `auth.uid() = user_id`.
+- Tạo sẵn bảng đếm cho rate-limit (#11, #12) **trong cùng migration này**.
+- GET public: trả **allowlist field** cần cho việc render thiệp; field thanh toán/nội bộ chỉ trả cho admin hoặc chủ sở hữu.
+- Cập nhật bảng **Lịch sử phiên bản** trong `changelogs/README.md`.
 
 ---
 
-## Mức độ THẤP
+## Nhóm B — Mức TRUNG BÌNH
 
-- `core/config.js:31` — `purgeSecret` Cloudflare hardcode trong bundle client. Nên chuyển việc purge cache qua Edge Function/Worker có xác thực riêng thay vì để secret trong client bundle.
-- HMAC signature compare bằng `===` thay vì constant-time (`payos-webhook`, `payment-handler`) — rủi ro timing attack thấp qua mạng nhưng nên dùng `crypto.timingSafeEqual` tương đương cho chuẩn mực.
-- `orders`/`order_details` INSERT `WITH CHECK (true)` cho phép spam bản ghi tuỳ ý — nên giới hạn theo `auth.uid() = user_id`.
-- Rate limit IP cho `ai-invitation` dựa vào `x-forwarded-for` (có thể spoof/luân chuyển) — chấp nhận được ở quy mô hiện tại.
+### 5. Admin token trong query string
+**Files:** `admin/js/01-weddings.js`, `admin/js/02-templates.js`, `core/dal/wedding-dal.js:159,177`
+Token đi trong URL → lộ vào access log Supabase/Cloudflare, browser history, `Referer`. Server so sánh `token === env` không constant-time, không rate-limit → brute-force được.
+
+**Giải pháp:** chuyển sang header `x-admin-token` — **Edge Function đã hỗ trợ sẵn** (`index.ts:16`) và Cloudflare worker đã forward header, nên chỉ cần sửa phía client. Thêm constant-time compare + rate-limit/backoff.
+
+### 6. CORS wildcard
+`payos-webhook`, `payment-handler`, `wedding-admin`, `guest-handler` đều `Access-Control-Allow-Origin: '*'`. `ai-invitation` đã làm đúng (allowlist origin) — dùng làm mẫu.
+
+> **Đừng kỳ vọng sai:** CORS chỉ ràng buộc trình duyệt, `curl`/script bỏ qua hoàn toàn. Với `guest-handler` (không auth) CORS **không** bảo vệ được gì — fix thật là #3. Với `payos-webhook` (server-to-server, không có `Origin`) thì allowlist là vô nghĩa. Làm mục này vì vệ sinh, không phải vì nó chặn được tấn công.
+
+### 7. PostgREST filter injection ở tìm kiếm admin
+`wedding-admin/index.ts:552` — `baseQuery.or(\`slug.ilike.%${search}%,...\`)` nối chuỗi thẳng vào cú pháp filter. Chỉ admin gọi được nên rủi ro thấp.
+**Giải pháp:** escape `,` `(` `)` `%` `*` trong `search`, hoặc tách thành `.filter()` có tham số.
+
+### 8. Escape HTML trùng lặp, không nhất quán
+- `escapeHtml()` (`core/helpers/render-helper.js:264-271`) thiếu escape `'`; `_esc()` (`invitation-setup/guests/index.js:361-367`) escape đủ — hai bản làm cùng việc.
+- `core/helpers/maps-helper.js:242` chèn `display_name` (từ Nominatim/OSM) vào `innerHTML` **không escape**; dòng 429/433 escape tay chỉ `&`/`"`.
+- Trang thiệp công khai (nơi rủi ro cao nhất) **đã escape nhất quán** — rủi ro thực tế thấp, đây là dọn nợ kỹ thuật trước khi thêm tính năng mới (vd guest book).
+
+**Giải pháp:** gộp một `escapeHtml()` trong `core/utils.js` (đủ 5 ký tự `&<>"'`), thay mọi bản sao, áp cho `maps-helper.js`.
+
+### 9. Upload ảnh chỉ validate client-side
+`core/bl/image-bl.js:20-33` chỉ chạy ở client, chấp nhận `image/svg+xml`. Gọi thẳng Storage REST API bỏ qua UI thì upload được SVG/HTML chứa script. (`resizeImage()` rasterize qua canvas nên luồng UI thường vẫn an toàn.)
+**Giải pháp:** cấu hình allow-list MIME + giới hạn size ở **Supabase Storage bucket policy** (dashboard, ngoài repo).
+
+### 10. Thiếu Content-Security-Policy
+
+**Đính chính cơ chế:** các Cloudflare Worker hiện có **không phục vụ HTML** (chỉ proxy ảnh/API/cache) — HTML do GitHub Pages trả. Nên không thể set CSP qua Worker như bản plan đầu viết. Cách đúng: **Cloudflare Transform Rules → Response Headers** (dashboard, domain đã proxy qua Cloudflare), hoặc `<meta http-equiv>` từng trang.
+
+**Kỳ vọng thực tế:** Tailwind Play CDN cần `unsafe-eval`, inline `<script>` nằm khắp nơi cần `unsafe-inline` → CSP **sẽ không chặn được XSS inline**. Giá trị chỉ ở mức hạn chế domain nạp script/ảnh, cho tới khi bỏ Tailwind CDN và gom inline script. Ưu tiên thấp, đừng coi là lá chắn XSS.
 
 ---
 
-## Thứ tự xử lý đề xuất
+## Nhóm C — DDoS / Spam / Lạm dụng tài nguyên
 
-1. **Ngay lập tức:** xác nhận endpoint webhook PayOS thực tế đang dùng (#1), vá allowlist field PATCH (#2), thêm ownership check (#3) — mục #3 bao gồm cả kịch bản tráo QR mừng cưới, ưu tiên cao nhất vì tác động tài chính trực tiếp tới khách hàng. Việc vá #1 cũng giảm phần lớn rủi ro của #13.
-2. **Trong tuần:** migration RLS cho `weddings`/`guests`/`payment_logs` (#4), CORS allowlist (#6), admin token qua header (#5), rate-limit tạo draft wedding (#11) và `guest-handler` (#12).
-3. **Kế tiếp:** CSP header (#7), gộp escape helper (#9), vá filter injection (#8), rate-limit các Cloudflare Worker proxy (#13, #14), thêm Turnstile (#15).
-4. **Khi có thời gian:** dọn secret client-side (#11 mục Thấp), constant-time compare, giới hạn INSERT `orders`, pin version + thêm SRI cho script CDN (#16), sửa `getCurrentUser()` dùng API chính thức (#17).
+DDoS tầng mạng (L3/L4) đã được Cloudflare lo, miễn domain đang **proxy (orange cloud)**. Rủi ro thật ở **tầng ứng dụng**: spam không cần làm sập site, chỉ cần đội chi phí Supabase/AI hoặc phình DB.
 
-## Kiểm chứng sau khi vá
+### 11. Tạo thiệp draft không giới hạn
+`wedding-admin/index.ts:176-212` — POST public, không token, **không rate-limit**. Script đơn giản tạo được vô hạn bản ghi rác.
+**Giải pháp:** sau khi áp #3 (bắt buộc đăng nhập để tạo) thì rủi ro giảm mạnh — còn lại thêm rate-limit theo `user_id`/IP (mẫu: `ai-invitation/index.ts:705-738`).
 
-- Gọi thử `payos-webhook` với payload không có/sai chữ ký → phải nhận `401`.
-- Gọi PATCH `wedding-admin` với `payment_status` từ một UUID không phải admin → phải bị từ chối hoặc field bị loại bỏ âm thầm.
-- Dùng anon key gọi trực tiếp Supabase REST (`select * from guests`) không kèm điều kiện → không được trả về toàn bộ bảng.
-- Kiểm tra `payment_logs` bằng anon key → phải bị từ chối truy cập.
-- Test lại luồng thanh toán thật (staging) end-to-end sau khi sửa webhook, đảm bảo không phá luồng hợp lệ.
-- Viết script gọi lặp (vd 100 request/phút) tới POST tạo draft wedding và tới `guest-handler` → phải bị chặn/hạn chế sau ngưỡng đặt ra, không phải toàn bộ đều `200`.
-- Kiểm tra domain Cloudflare Worker (`payos-webhook-proxy`, `wedding-cache-proxy`, `image-proxy`) đang **proxy (orange cloud)** chứ không phải "DNS only" trong Cloudflare dashboard.
-- Thử PATCH `groom_qr_url`/`bride_qr_url` của một thiệp bất kỳ (không phải chủ) thành URL ảnh ngoài (`https://example.com/test.png`) → phải bị từ chối; mở lại trang thiệp đó, ảnh QR hiển thị **không được đổi**.
+### 12. `guest-handler` không rate-limit
+Đã giới hạn **dung lượng mỗi request** (`MAX_PER_SIDE=100`, `MAX_FIELD_LEN=200`, ≤200 id/lần) nhưng **không giới hạn tần suất**. Lặp vô hạn chu trình import/xoá là dội được request vào Supabase.
+**Giải pháp:** rate-limit theo IP/`wedding_id`. **Cloudflare Rate Limiting Rules (dashboard)** là lớp chặn rẻ và nhanh hơn đếm trong DB — nên làm trước.
+
+### 13. `payos-webhook-proxy.js` — chuyển tiếp mở
+Nhận **mọi POST ≥ 20 ký tự** và forward vào Supabase ở background, luôn trả `200`. Vừa là điểm khuếch đại spam miễn phí, vừa **nuốt lỗi** khiến PayOS không retry (xem #1).
+**Giải pháp:** gộp với bước 2 của #1 — trả status thật + rate-limit theo IP (Cloudflare KV/Durable Object) trước khi forward.
+
+### 14. `wedding-cache-proxy.js` — PATCH/DELETE không giới hạn
+Chỉ GET được cache; PATCH/DELETE forward thẳng, không giới hạn tần suất.
+**Giải pháp:** rate-limit riêng cho PATCH/DELETE theo IP.
+
+### 15. Không có CAPTCHA/Turnstile
+Không tích hợp ở bất kỳ form public nào.
+**Giải pháp:** cân nhắc Turnstile cho `ai-invitation` (tốn phí LLM). Sau khi #3 bắt buộc đăng nhập, nhu cầu CAPTCHA ở luồng tạo thiệp giảm đáng kể — **đánh giá lại sau #3 rồi mới quyết**.
+
+---
+
+## Nhóm D — Chuỗi cung ứng
+
+### 16. Script CDN không SRI, một số không pin version
+Mọi trang — kể cả admin và luồng thanh toán — nạp lib từ `cdn.jsdelivr.net`, `cdnjs.cloudflare.com`, `unpkg.com`, `cdn.tailwindcss.com`. **Không thẻ nào có `integrity`.** Nặng nhất: `lucide@latest` (`invitation-setup/index.html:58`, `guests/index.html:12`) luôn lấy bản mới nhất tuyệt đối; `@supabase/supabase-js@2` chỉ pin major.
+
+CDN hoặc gói npm bị chèn mã độc → chạy trên **mọi trang**, gồm cả nơi giữ session Supabase và luồng thanh toán.
+
+**Giải pháp (có giới hạn thực tế):**
+- **Pin version chính xác cho tất cả** — đặc biệt bỏ `@latest`.
+- **Thêm SRI** cho lib tĩnh: `supabase-js`, `crypto-js`, `xlsx`, `cropperjs`, `leaflet`, `flatpickr`, `coloris`.
+- **Không áp được SRI:** Google Fonts CSS (nội dung đổi theo user-agent) và `cdn.tailwindcss.com` (script JIT) — chấp nhận ngoại lệ, hoặc tự host về repo.
+
+### 17. Tự parse localStorage lấy session
+`core/payment.js:712-725` tự tìm key `sb-*-auth-token` rồi `JSON.parse` — đúng thứ `CLAUDE.md` đã cấm (token v2 có thể là `base64-...` → parse vỡ, `catch` nuốt lỗi → user đã đăng nhập bị coi là chưa).
+**Giải pháp:** dùng `supabase.auth.getUser()`/`getSession()`.
+
+---
+
+## Nhóm E — Mức THẤP
+
+- `core/config.js:31` — `purgeSecret` Cloudflare hardcode trong bundle client. Chuyển purge qua Edge Function/Worker có xác thực riêng.
+- Rate-limit IP của `ai-invitation` dựa `x-forwarded-for` (spoof/luân chuyển được) — chấp nhận được ở quy mô hiện tại.
+
+**Đã kiểm tra, không cần hành động:** không có `.env`/secret nào bị commit (`git ls-files` sạch); `npm audit` 0 lỗ hổng; `_shared/axiom.ts` không log dữ liệu nhạy cảm; service_role key chỉ nằm server-side, client chỉ dùng anon key.
+
+---
+
+## Thứ tự thi hành
+
+**Đợt 1 — chặn chảy máu (không phá gì):**
+1. Allowlist field PATCH (#2)
+2. Validate domain field ảnh/QR (#3, lớp phòng thủ độc lập)
+3. PayOS shadow mode + sửa proxy nuốt lỗi (#1 bước 1-2)
+
+> Riêng 3 việc này đã chặn được **tráo QR** và **bypass thanh toán** mà không đụng tới UX.
+
+**Đợt 2 — đổi mô hình quyền (cần thông báo người dùng):**
+4. Đếm số thiệp `user_id IS NULL` để lượng hoá tác động
+5. Bắt buộc đăng nhập cho PATCH/POST + `guest-handler` (#3a, #3d)
+6. Gate `invitation-setup` sau đăng nhập (#3c)
+7. Grandfather thiệp cũ + log claim (#3b)
+
+**Đợt 3 — siết đường đọc:**
+8. Migration RLS + bảng rate-limit (#4a)
+9. Allowlist field cho GET public (#4b)
+10. PayOS hard-fail sau khi log xác nhận (#1 bước 3)
+
+**Đợt 4 — vệ sinh:**
+11. Admin token qua header + constant-time (#5)
+12. Rate-limit Cloudflare Rules (#12, #13, #14), gộp escapeHtml (#8), filter injection (#7), CORS (#6)
+13. Pin version + SRI (#16), `getCurrentUser()` (#17), bucket MIME policy (#9), purgeSecret (Nhóm E)
+14. Đánh giá lại nhu cầu Turnstile (#15) và CSP (#10)
+
+---
+
+## Kiểm chứng
+
+- **Webhook:** shadow mode → đọc log Axiom `payos.signature_check` sau giao dịch thật, xác nhận `matched: true` trước khi hard-fail. Sau hard-fail: POST payload sai chữ ký → `401`; giao dịch thật vẫn mở khoá thiệp bình thường.
+- **Bypass thanh toán:** PATCH `{"payment_status":"completed"}` bằng tài khoản thường → field bị loại, DB không đổi.
+- **Tráo QR:** PATCH `groom_qr_url` thành `https://example.com/x.png` → bị từ chối; mở lại trang thiệp, QR **không đổi**.
+- **IDOR:** đăng nhập tài khoản A, PATCH thiệp của B → `403`. Thiệp `user_id NULL` → user đăng nhập đầu tiên claim được, user thứ hai bị `403`.
+- **Sửa thiệp không đăng nhập** → bị chặn kèm thông báo rõ ràng, **không** phải lỗi 403 trần.
+- **Xem thiệp công khai** (`/slug`, không đăng nhập) → vẫn hoạt động bình thường. Đây là bài test hồi quy quan trọng nhất của Đợt 2.
+- **Rò rỉ đọc:** `curl` REST bằng anon key `?select=*` trên `weddings`/`guests`/`payment_logs` → bị từ chối/không trả toàn bảng. GET thiệp public → không còn `transaction_id`/`payment_order_id`/`user_id`.
+- **Spam:** script 100 req/phút vào tạo draft và `guest-handler` → bị chặn sau ngưỡng.
+- **Hạ tầng:** xác nhận domain Worker đang **proxy (orange cloud)**, không phải "DNS only".
+
+---
+
+## Đính chính so với bản plan đầu
+
+Ghi lại để không lặp lại nhận định sai:
+
+1. **PayOS:** bản đầu nói "chỉ cần bỏ comment, trả 401". Sai — bỏ qua rủi ro thuật toán ký có thể lệch, cộng với proxy nuốt lỗi → có thể mất đơn thật âm thầm. Đã đổi sang shadow mode.
+2. **`payment-handler` "an toàn":** sai. Thuật toán ký của nó HMAC trên toàn payload → luôn từ chối cả webhook thật.
+3. **CSP qua Cloudflare Worker:** sai cơ chế — Worker không phục vụ HTML. Phải dùng Transform Rules, và giá trị thực tế thấp vì Tailwind CDN + inline script.
+4. **CORS:** bản đầu ngụ ý đây là biện pháp bảo vệ. Thực tế chỉ ràng buộc trình duyệt; với endpoint không auth thì vô dụng.
+5. **Thiếu sót:** không phát hiện GET `select('*')` trả field thanh toán ra public — đây mới là đường rò đang sống, vì client đi qua Edge Function chứ không đọc bảng trực tiếp.
+6. **RLS:** bản đầu ngụ ý RLS là fix chính. Thực tế client không truy vấn bảng trực tiếp → RLS là phòng thủ chiều sâu; authz thật nằm ở Edge Function.
+7. **SRI:** không áp được cho Google Fonts và Tailwind CDN — cần ghi rõ ngoại lệ.
+8. **Đánh số trùng:** `#11` từng dùng cho cả "spam draft" lẫn "purgeSecret". Đã đánh số lại.

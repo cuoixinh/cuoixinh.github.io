@@ -5,5 +5,22 @@ compatibility_date = "2024-01-01"
 # Deploy command:
 # wrangler deploy --config wrangler-webhook.toml
 
+# ── Log về Axiom ─────────────────────────────────────────────────────────────
+# Nên có: đây là nguồn log DUY NHẤT khi worker không với tới được Supabase —
+# lúc đó không Edge Function nào chạy để tự ghi log. Thiếu cấu hình thì worker
+# vẫn chạy bình thường, chỉ không đẩy log (no-op).
+#
+# LƯU Ý: secret của Cloudflare TÁCH BIỆT hoàn toàn với secret của Supabase.
+# AXIOM_TOKEN đã đặt trong Supabase (cho _shared/axiom.ts) KHÔNG dùng lại được ở
+# đây — phải đặt riêng bên Cloudflare.
+#
+# 1) Tên dataset không phải bí mật → khai báo thẳng ở đây (bỏ comment, điền tên
+#    dataset đang dùng cho Edge Function):
+# [vars]
+# AXIOM_DATASET = "ten-dataset-cua-ban"
+#
+# 2) Token là bí mật → đặt qua secret:
+# wrangler secret put AXIOM_TOKEN --config wrangler-webhook.toml
+
 # After deploy, use the Cloudflare Worker URL as webhook:
 # https://payos-webhook-proxy.YOUR_SUBDOMAIN.workers.dev

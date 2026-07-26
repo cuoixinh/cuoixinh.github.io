@@ -709,19 +709,29 @@
     document.body.appendChild(el.firstElementChild);
   }
 
-  // Đọc user từ localStorage (Supabase session)
+  // User hiện tại, đồng bộ từ API chính thức của supabase-js.
+  //
+  // KHÔNG tự đọc/parse localStorage: supabase-js v2 có thể lưu token dưới dạng
+  // "base64-<...>" nên JSON.parse thẳng sẽ ném lỗi và âm thầm coi người đã đăng
+  // nhập là chưa đăng nhập. Thay vào đó lấy session qua API rồi cache lại, và
+  // theo dõi onAuthStateChange để cache luôn khớp trạng thái thật.
+  let _currentUser = null;
+  (function initCurrentUser() {
+    const sb = window.AuthUI && window.AuthUI.supabase;
+    if (!sb) return;
+    sb.auth
+      .getSession()
+      .then(({ data }) => {
+        _currentUser = data?.session?.user ?? null;
+      })
+      .catch(() => {});
+    sb.auth.onAuthStateChange((_event, session) => {
+      _currentUser = session?.user ?? null;
+    });
+  })();
+
   function getCurrentUser() {
-    try {
-      const keys = Object.keys(localStorage);
-      const sessionKey = keys.find(
-        (k) => k.startsWith("sb-") && k.endsWith("-auth-token"),
-      );
-      if (!sessionKey) return null;
-      const session = JSON.parse(localStorage.getItem(sessionKey));
-      return session?.user ?? null;
-    } catch (e) {
-      return null;
-    }
+    return _currentUser;
   }
 
   window.copyManageLink = function () {

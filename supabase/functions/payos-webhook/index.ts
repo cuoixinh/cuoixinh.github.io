@@ -10,6 +10,15 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "content-type",
 };
 
+function timingSafeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) {
+    diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return diff === 0;
+}
+
 async function verifyWebhookSignature(payload: Record<string, any>, receivedSignature: string, secretKey: string): Promise<boolean> {
   try {
     // Sort keys alphabetically
@@ -34,7 +43,7 @@ async function verifyWebhookSignature(payload: Record<string, any>, receivedSign
     console.log("Expected signature:", expectedSignature);
     console.log("Received signature:", receivedSignature);
     
-    return expectedSignature === receivedSignature;
+    return timingSafeEqual(expectedSignature, receivedSignature);
   } catch (error) {
     console.error("Signature verification error:", error);
     return false;
@@ -72,27 +81,55 @@ serve(withAxiom("payos-webhook", async (req, log) => {
         throw new Error("Missing PAYOS_CHECKSUM_KEY");
       }
 
+      // ── Xác thực chữ ký webhook — triển khai 2 pha ────────────────────────
+      // Xem docs/security-audit-plan.md #1. Lý do không chặn ngay:
+      //   - Bản cũ tắt verify kèm ghi chú "FIX THIS IN PRODUCTION" → nhiều khả
+      //     năng thuật toán từng fail trên giao dịch thật.
+      //   - payos-webhook-proxy luôn trả 200 cho PayOS nên nếu ta chặn nhầm thì
+      //     PayOS KHÔNG retry: khách trả tiền mà thiệp không mở, không ai biết.
+      //
+      // Pha 1 (hiện tại): SHADOW MODE — tính chữ ký, ghi log kết quả, vẫn xử lý
+      //   đơn như cũ. Theo dõi log `payos.signature_check` trên Axiom.
+      // Pha 2: khi log xác nhận matched=true trên giao dịch thật → đặt biến môi
+      //   trường PAYOS_ENFORCE_SIGNATURE=true để trả 401. Không cần sửa code.
+      const enforceSignature = Deno.env.get("PAYOS_ENFORCE_SIGNATURE") === "true";
       const receivedSignature = payload.signature;
-      if (!receivedSignature) {
-        console.warn("Missing signature - proceeding without verification (INSECURE)");
-      } else {
-        // PayOS signature is calculated from the 'data' object, not the whole payload
-        const isValid = await verifyWebhookSignature(payload.data, receivedSignature, checksumKey);
-        if (!isValid) {
-          console.error("Invalid webhook signature - proceeding anyway (INSECURE - FIX THIS IN PRODUCTION)");
-          // TODO: Fix signature verification before production
-          // return new Response(JSON.stringify({ error: "Invalid signature" }), {
-          //   status: 401,
-          //   headers: { ...corsHeaders, "Content-Type": "application/json" },
-          // });
-        } else {
-          console.log("Webhook signature verified successfully");
+
+      // PayOS signature is calculated from the 'data' object, not the whole payload
+      const signatureValid = receivedSignature
+        ? await verifyWebhookSignature(payload.data, receivedSignature, checksumKey)
+        : false;
+
+      log.info("payos.signature_check", {
+        orderCode: payload?.data?.orderCode ?? null,
+        hasSignature: Boolean(receivedSignature),
+        matched: signatureValid,
+        enforcing: enforceSignature,
+      });
+
+      if (!signatureValid) {
+        if (enforceSignature) {
+          log.error("payos.signature_rejected", {
+            orderCode: payload?.data?.orderCode ?? null,
+            hasSignature: Boolean(receivedSignature),
+          });
+          return new Response(JSON.stringify({ error: "Invalid signature" }), {
+            status: 401,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
         }
+        console.warn(
+          "PayOS signature MISMATCH — shadow mode, vẫn xử lý đơn. " +
+          "Kiểm tra log payos.signature_check trước khi bật PAYOS_ENFORCE_SIGNATURE=true.",
+        );
+      } else {
+        console.log("Webhook signature verified successfully");
       }
 
       // Extract payment data
       const paymentData = payload.data;
       if (!paymentData) {
+        log.error("payos.missing_payment_data", {});
         return new Response(JSON.stringify({ error: "Missing payment data" }), {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -120,6 +157,13 @@ serve(withAxiom("payos-webhook", async (req, log) => {
 
       if (weddingError || !weddingData) {
         console.error("Wedding not found:", weddingError);
+        // Khách đã trả tiền nhưng không tìm ra thiệp tương ứng → tiền vào mà thiệp
+        // không mở. Phải cảnh báo được, không để lẫn trong console.
+        log.error("payos.wedding_not_found", {
+          orderCode: orderCodeFromPayOS,
+          payment_order_id: fullOrderId,
+          error: weddingError?.message,
+        });
         return new Response(JSON.stringify({ error: "Wedding not found" }), {
           status: 404,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -139,6 +183,12 @@ serve(withAxiom("payos-webhook", async (req, log) => {
 
       if (pricingError || !pricingData) {
         console.error("Pricing validation error:", pricingError);
+        log.error("payos.pricing_not_found", {
+          orderCode: orderCodeFromPayOS,
+          manage_id,
+          theme: theme_name,
+          error: pricingError?.message,
+        });
         return new Response(JSON.stringify({ error: "Invalid template pricing" }), {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -147,6 +197,14 @@ serve(withAxiom("payos-webhook", async (req, log) => {
 
       if (paymentData.amount !== pricingData.price) {
         console.error("Amount mismatch. Expected:", pricingData.price, "Got:", paymentData.amount);
+        // Vừa là dấu hiệu cấu hình giá sai, vừa là dấu hiệu có người thử giả mạo
+        // webhook với số tiền tự đặt → cần thấy được trên Axiom.
+        log.error("payos.amount_mismatch", {
+          orderCode: orderCodeFromPayOS,
+          manage_id,
+          expected: pricingData.price,
+          received: paymentData.amount,
+        });
         return new Response(JSON.stringify({ error: "Amount mismatch" }), {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },

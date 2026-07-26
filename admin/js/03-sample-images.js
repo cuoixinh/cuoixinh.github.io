@@ -273,12 +273,16 @@ async function siLoadThemeData() {
   siRenderLoveStory();
 }
 
+// Bản cục bộ: trang admin không nạp core/utils.js nên không dùng được bản chung.
+// Giữ đồng bộ với escapeHtml() trong core/utils.js (escape đủ 5 ký tự).
 function escapeHtml(str) {
-  return String(str || "")
+  if (str === null || str === undefined) return "";
+  return String(str)
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
 // ============= Ảnh đơn (cover / groom / bride / QR) =============

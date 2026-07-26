@@ -44,9 +44,9 @@ async function purgeTemplatesCache() {
 async function loadTemplates() {
   try {
     const res = await fetch(
-      `${EDGE_URL}?resource=templates&token=${ADMIN_TOKEN}`,
+      `${EDGE_URL}?resource=templates`,
       {
-        headers: { Authorization: `Bearer ${ANON_KEY}` },
+        headers: adminHeaders(),
       },
     );
 
@@ -191,9 +191,9 @@ templateNameInput.addEventListener("input", (e) => {
 async function loadTemplateData(templateId) {
   try {
     const res = await fetch(
-      `${EDGE_URL}?resource=templates&id=${templateId}&token=${ADMIN_TOKEN}`,
+      `${EDGE_URL}?resource=templates&id=${templateId}`,
       {
-        headers: { Authorization: `Bearer ${ANON_KEY}` },
+        headers: adminHeaders(),
       },
     );
 
@@ -264,22 +264,16 @@ async function saveTemplate() {
     let res;
     if (editingTemplateId) {
       // Update existing template
-      res = await fetch(`${EDGE_URL}?resource=templates&token=${ADMIN_TOKEN}`, {
+      res = await fetch(`${EDGE_URL}?resource=templates`, {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${ANON_KEY}`,
-        },
+        headers: adminHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({ id: editingTemplateId, ...payload }),
       });
     } else {
       // Insert new template
-      res = await fetch(`${EDGE_URL}?resource=templates&token=${ADMIN_TOKEN}`, {
+      res = await fetch(`${EDGE_URL}?resource=templates`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${ANON_KEY}`,
-        },
+        headers: adminHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify(payload),
       });
     }
@@ -325,10 +319,10 @@ async function deleteTemplate(templateId, displayName) {
 
   try {
     const res = await fetch(
-      `${EDGE_URL}?resource=templates&id=${templateId}&token=${ADMIN_TOKEN}`,
+      `${EDGE_URL}?resource=templates&id=${templateId}`,
       {
         method: "DELETE",
-        headers: { Authorization: `Bearer ${ANON_KEY}` },
+        headers: adminHeaders(),
       },
     );
 

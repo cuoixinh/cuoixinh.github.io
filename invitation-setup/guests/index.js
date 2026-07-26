@@ -358,14 +358,7 @@ function goToPage(side, page) {
   document.getElementById(`guest-list-${side}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
-function _esc(str) {
-  return String(str || "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
+// _esc: dùng escapeHtml() chung từ core/utils.js (nạp trước file này).
 
 function _buildPageBtns(side, cur, total) {
   const pages = [];
@@ -419,15 +412,15 @@ function _renderGuestList(side) {
   const rows = pageGuests.map(g => `
     <tr class="border-t border-gray-100 hover:bg-gray-50/50">
       <td class="px-3 py-2.5">
-        <p class="text-xs font-medium text-gray-800">${_esc(g.full_name)}</p>
-        ${g.display_name ? `<p class="text-xs text-gray-400">${_esc(g.display_name)}</p>` : ""}
+        <p class="text-xs font-medium text-gray-800">${escapeHtml(g.full_name)}</p>
+        ${g.display_name ? `<p class="text-xs text-gray-400">${escapeHtml(g.display_name)}</p>` : ""}
       </td>
       <td class="px-3 py-2.5 max-w-[160px]">
         ${g.link
-          ? `<a href="${_esc(g.link)}" target="_blank" rel="noopener noreferrer" class="text-xs text-blue-500 hover:underline block truncate font-mono">${_esc(g.link)}</a>`
+          ? `<a href="${escapeHtml(g.link)}" target="_blank" rel="noopener noreferrer" class="text-xs text-blue-500 hover:underline block truncate font-mono">${escapeHtml(g.link)}</a>`
           : `<span class="text-gray-300 text-xs">—</span>`}
       </td>
-      <td class="px-3 py-2.5 text-xs text-gray-500">${_esc(g.relationship) || "—"}</td>
+      <td class="px-3 py-2.5 text-xs text-gray-500">${escapeHtml(g.relationship) || "—"}</td>
       <td class="px-3 py-2.5">
         ${g.viewed
           ? `<span class="inline-flex items-center gap-1 text-xs text-green-600 bg-green-50 px-1.5 py-0.5 rounded-full whitespace-nowrap">✓ Đã xem</span>`
@@ -435,21 +428,21 @@ function _renderGuestList(side) {
       </td>
       <td class="px-3 py-2.5 text-xs whitespace-nowrap">
         ${g.confirmed
-          ? `<span class="${g.confirmed.includes("Có") ? "text-green-600" : "text-red-500"}">${_esc(g.confirmed)}</span>`
+          ? `<span class="${g.confirmed.includes("Có") ? "text-green-600" : "text-red-500"}">${escapeHtml(g.confirmed)}</span>`
           : `<span class="text-gray-400">—</span>`}
       </td>
       <td class="sticky right-0 bg-white py-2 px-3 border-l border-gray-100 text-center">
         <div class="flex items-center justify-center gap-1.5">
           ${g.link ? `
-          <button type="button" data-link="${_esc(g.link)}" data-action="copy" title="Copy link"
+          <button type="button" data-link="${escapeHtml(g.link)}" data-action="copy" title="Copy link"
             class="w-6 h-6 rounded-md border border-gray-200 flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-gray-50 transition-colors">
             <i data-lucide="copy" style="width:11px;height:11px"></i>
           </button>
-          <button type="button" data-guest-id="${_esc(g.id)}" data-side="${side}" data-action="share" title="Chia sẻ"
+          <button type="button" data-guest-id="${escapeHtml(g.id)}" data-side="${side}" data-action="share" title="Chia sẻ"
             class="w-6 h-6 rounded-md border border-gray-200 flex items-center justify-center text-gray-400 hover:text-rose-500 hover:bg-rose-50 transition-colors">
             <i data-lucide="share-2" style="width:11px;height:11px"></i>
           </button>` : ""}
-          <button type="button" data-guest-id="${_esc(g.id)}" data-side="${side}" data-action="menu"
+          <button type="button" data-guest-id="${escapeHtml(g.id)}" data-side="${side}" data-action="menu"
             class="w-6 h-6 rounded-md border border-gray-200 flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-gray-50 transition-colors">
             <i data-lucide="more-vertical" style="width:11px;height:11px"></i>
           </button>

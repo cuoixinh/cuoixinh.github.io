@@ -239,7 +239,7 @@ function _renderMapSuggestions(results) {
       <svg class="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-rose-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>
       </svg>
-      <span class="line-clamp-2">${r.display_name}</span>
+      <span class="line-clamp-2">${escapeHtml(r.display_name)}</span>
     </button>`).join("");
 }
 
@@ -426,11 +426,12 @@ function initAddressAutocomplete(inputId, isFreeText = false) {
         positionDropdown();
         dropdown.classList.remove("hidden");
         dropdown.innerHTML = results.map(r => {
-          const escaped = r.display_name.replace(/&/g, "&amp;").replace(/"/g, "&quot;");
+          // escapeHtml() chung: bản cũ tự viết tay, chỉ xử lý & và " nên bỏ lọt < > '
+          const escaped = escapeHtml(r.display_name);
           return `<button type="button" data-address="${escaped}"
             class="w-full text-left px-3 py-2.5 text-sm text-gray-700 hover:bg-rose-50 flex items-start gap-2 border-b border-gray-100 last:border-0 transition-colors">
             <svg class="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-rose-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-            <span class="line-clamp-2">${r.display_name}</span>
+            <span class="line-clamp-2">${escaped}</span>
           </button>`;
         }).join("");
       } catch (e) { _hideAddressSuggestions(dropdown); }

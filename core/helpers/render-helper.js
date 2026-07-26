@@ -261,14 +261,7 @@ function renderLoveStory(events) {
     .join("");
 }
 
-function escapeHtml(str) {
-  if (!str) return "";
-  return String(str)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
+// escapeHtml() dùng chung từ core/utils.js (nạp trước file này ở mọi trang).
 
 /**
  * Setup mini calendar with ceremony and party dates

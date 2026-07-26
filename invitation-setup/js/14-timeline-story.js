@@ -70,13 +70,8 @@ function renderTimelineList() {
   if (typeof lucide !== "undefined") lucide.createIcons();
 }
 
-function escapeHtml(str) {
-  return String(str)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
+// escapeHtml() dùng chung từ core/utils.js (loader nạp trước các file js/).
+// Bản cũ khai báo ở đây ghi đè bản chung bằng phiên bản thiếu escape dấu nháy đơn.
 
 function addTimelineItem(type = "ceremony") {
   const max = CONFIG.maxLoveStoryItems || 10;
