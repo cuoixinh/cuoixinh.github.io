@@ -56,12 +56,46 @@ Quy ước quan trọng:
 - Nút **Sinh dữ liệu bằng AI** gọi Edge Function `ai-invitation` với
   `mode: "sample"` — server tự nghĩ ra cả cặp đôi hư cấu (tên, cha mẹ, địa chỉ,
   ngày giờ, ngân hàng, chuyện tình, lịch trình, lời ngỏ). Client không giữ sẵn
-  dữ liệu mẫu nào. Còn 4 ô Google Maps embed + link nhạc phải tự nhập, và ảnh
-  vẫn up tay.
+  dữ liệu mẫu nào. Còn link nhạc phải tự nhập và ảnh vẫn up tay.
+- 4 ô **Google Maps embed URL** có nút **Chọn trên bản đồ** (dùng chung
+  `openMapPicker()` với trang thiết lập thiệp — cần Leaflet ở `admin/index.html`)
+  và hiện sẵn địa chỉ đã gõ ở ô "Địa điểm" cùng khối để chép / mở thẳng Google
+  Maps đã điền từ khoá. Dán cả thẻ `<iframe>` cũng được, phần `src` tự tách.
+- Hai khối tiệc có ô tích **"Trùng địa điểm …"**, cùng luật với
+  `invitation-setup/js/16-ceremony.js`: tiệc nhà **trai** theo Lễ thành hôn,
+  tiệc nhà **gái** theo Lễ vu quy nếu vu quy bật, không thì cũng Lễ thành hôn.
+  Đang tích thì ô địa điểm + link bản đồ bị khoá và tự chép từ nguồn (kể cả khi
+  gõ dở hoặc vừa chọn trên bản đồ). Ô tích **không** được ghi vào `data.json` —
+  file luôn chứa giá trị đã giải ra; mở lại thì suy ngược: địa điểm tiệc còn
+  trống nghĩa là đang trùng.
 - Admin **quét thư mục** khi chọn theme: ảnh đặt đúng tên như trên vẫn được nhận
   dù `data.json` thiếu; ảnh tên lạ được đưa vào album và đổi tên chuẩn khi lưu.
 - Bấm **Lưu vào ổ đĩa** sẽ **ghi đè toàn bộ ảnh** trong thư mục theme: file ảnh
-  nào không thuộc bộ vừa ghi đều bị xoá (file không phải ảnh giữ nguyên).
+  nào không thuộc bộ vừa ghi đều bị xoá (file không phải ảnh giữ nguyên). Ảnh
+  đọc lên từ chính thư mục này, chưa sửa và vẫn giữ nguyên tên thì **không ghi
+  lại** — bộ ảnh mẫu cỡ vài chục MB, lưu lại tất mỗi lần vừa lâu vừa dễ đứt.
+- `data.json` được ghi **2 lần** mỗi lần lưu: ngay đầu (phần chữ + tham chiếu
+  ảnh cũ, để chữ an toàn không phải chờ vài chục MB ảnh) và cuối cùng (chốt tên
+  ảnh chuẩn). Ảnh ghi lỗi giữa chừng thì bước xoá ảnh cũ **không** chạy và
+  thông báo lỗi nêu rõ tên file chết.
+- **Lưu dở dang tự ghi tiếp**: `saveSampleImages()` đặt cờ `si_resume_save`
+  (localStorage) trước khi động vào đĩa và xoá ở `finally`. Trang chết giữa
+  chừng thì `finally` không chạy → cờ ở lại, lần chọn theme sau
+  `siResumeSaveIfInterrupted()` tự ghi tiếp. Ảnh nào đã đúng trên đĩa được
+  `siIsUnchanged()` bỏ qua (so tên+cỡ, không khớp thì so từng byte với file
+  thật) nên mỗi vòng chỉ ghi phần còn thiếu. Tối đa `SI_MAX_RESUME` = 5 vòng
+  rồi nhường lại cho người dùng, tránh lặp vô tận.
+- ⚠️ **Live Server**: nó theo dõi cả workspace nên mỗi ảnh ghi ra là reload
+  trang, cắt ngang vòng lưu — mà KHÔNG có thông báo lỗi nào (trang chết trước
+  khi tới `catch`). `.vscode/settings.json` đã thêm `assets/data-template/**`
+  vào `liveServer.settings.ignoreFiles` — sửa file này xong phải **tắt/bật lại
+  Live Server** mới ăn. Dứt điểm hơn: tắt Live Server, chạy server không có
+  watcher **trên đúng cổng 5500** để giữ nguyên origin (quyền thư mục + bản nháp
+  lưu theo origin trong IndexedDB, đổi cổng là mất):
+
+  ```bash
+  python3 -m http.server 5500 --bind 127.0.0.1
+  ```
 - `content` chỉ chứa field đã nhập (chuỗi rỗng bị bỏ); riêng các công tắc
   (`enable_*`, `vu_quy_enabled`, `rsvp_enabled`, `*_show_location`) luôn được ghi
   vì `false` cũng là một lựa chọn.

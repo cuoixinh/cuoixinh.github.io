@@ -1,4 +1,17 @@
 {
   "liveServer.settings.mount": [],
-  "liveServer.settings.file": "404.html"
+  "liveServer.settings.file": "404.html",
+  // Tab "Dữ liệu mẫu" của trang admin ghi thẳng ảnh vào assets/data-template/
+  // qua File System Access API. Live Server theo dõi cả workspace nên mỗi file
+  // ảnh ghi ra là nó reload trang — reload giữa chừng thì vòng ghi ảnh đứt và
+  // data.json (ghi ở bước cuối) không bao giờ tới lượt. Bỏ qua thư mục này.
+  // 4 mục đầu là danh sách mặc định của Live Server, khai lại kẻo mất.
+  "liveServer.settings.ignoreFiles": [
+    ".vscode/**",
+    "**/*.scss",
+    "**/*.sass",
+    "**/*.ts",
+    "assets/data-template/**",
+    "**/assets/data-template/**"
+  ]
 }

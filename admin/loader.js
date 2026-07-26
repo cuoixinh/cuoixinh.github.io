@@ -21,6 +21,10 @@
     "../core/helpers/alert.js",
     "../core/bl/image-bl.js",
     "../core/utils.js",
+    // Picker chọn địa điểm cho 4 ô Google Maps ở tab "Dữ liệu mẫu" — đúng
+    // picker của trang thiết lập thiệp. Phải đứng SAU utils.js (dùng
+    // openBottomSheet/escapeHtml) và cần Leaflet đã có ở index.html.
+    "../core/helpers/maps-helper.js",
     // Dùng cho tab "Dữ liệu mẫu": aiDAL (nhờ AI sinh nội dung) và
     // formatLunarDate (tự tính ngày âm từ ngày dương) — cả hai đều thuần
     // logic, không bind DOM của trang nào.

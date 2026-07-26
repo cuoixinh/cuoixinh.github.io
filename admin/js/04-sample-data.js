@@ -43,7 +43,7 @@ const SI_CONTENT_GROUPS = [
       { name: "ceremony_time", label: "Giờ", type: "time" },
       { name: "ceremony_lunar", label: "Ngày âm (tự tính theo ngày dương)", type: "text" },
       { name: "ceremony_location", label: "Địa điểm", type: "text", wide: true },
-      { name: "ceremony_map_embed_url", label: "Google Maps embed URL", type: "textarea", wide: true },
+      { name: "ceremony_map_embed_url", label: "Google Maps embed URL", type: "map", wide: true },
     ],
   },
   {
@@ -53,31 +53,33 @@ const SI_CONTENT_GROUPS = [
       { name: "vu_quy_enabled", label: "Hiện lễ vu quy", type: "switch" },
       { name: "vu_quy_time", label: "Giờ", type: "time" },
       { name: "vu_quy_location", label: "Địa điểm", type: "text", wide: true },
-      { name: "vu_quy_map_embed_url", label: "Google Maps embed URL", type: "textarea", wide: true },
+      { name: "vu_quy_map_embed_url", label: "Google Maps embed URL", type: "map", wide: true },
     ],
   },
   {
     title: "Tiệc nhà trai",
     icon: "fa-champagne-glasses",
+    sameLoc: "groom_party", // ô tích "Trùng địa điểm ..." — xem siRenderSameLocRow
     fields: [
       { name: "groom_party_date", label: "Ngày", type: "date", lunar: "groom_party_lunar" },
       { name: "groom_party_time", label: "Giờ", type: "time" },
       { name: "groom_party_lunar", label: "Ngày âm (tự tính)", type: "text" },
       { name: "groom_party_show_location", label: "Hiện địa điểm", type: "switch" },
       { name: "groom_party_location", label: "Địa điểm", type: "text", wide: true },
-      { name: "groom_party_map_embed_url", label: "Google Maps embed URL", type: "textarea", wide: true },
+      { name: "groom_party_map_embed_url", label: "Google Maps embed URL", type: "map", wide: true },
     ],
   },
   {
     title: "Tiệc nhà gái",
     icon: "fa-champagne-glasses",
+    sameLoc: "bride_party",
     fields: [
       { name: "bride_party_date", label: "Ngày", type: "date", lunar: "bride_party_lunar" },
       { name: "bride_party_time", label: "Giờ", type: "time" },
       { name: "bride_party_lunar", label: "Ngày âm (tự tính)", type: "text" },
       { name: "bride_party_show_location", label: "Hiện địa điểm", type: "switch" },
       { name: "bride_party_location", label: "Địa điểm", type: "text", wide: true },
-      { name: "bride_party_map_embed_url", label: "Google Maps embed URL", type: "textarea", wide: true },
+      { name: "bride_party_map_embed_url", label: "Google Maps embed URL", type: "map", wide: true },
     ],
   },
   {
@@ -193,9 +195,91 @@ function siCollectContent() {
 
 // ============= Render form nội dung =============
 
+// ============= "Trùng địa điểm" cho tiệc nhà trai / nhà gái =============
+// Cùng luật với trang thiết lập thiệp (invitation-setup/js/16-ceremony.js):
+// tiệc nhà TRAI lấy theo Lễ thành hôn; tiệc nhà GÁI lấy theo Lễ vu quy nếu vu
+// quy đang bật, không thì cũng Lễ thành hôn.
+//
+// Không lưu ô tích vào data.json — cũng như bên thiết lập thiệp, nó chỉ là lối
+// nhập nhanh; thứ ghi ra file luôn là địa điểm + link bản đồ đã giải ra. Mở lại
+// thì suy ngược: ô "Địa điểm" của tiệc còn trống nghĩa là đang trùng.
+
+const SI_PARTY_SIDES = ["groom_party", "bride_party"];
+const SI_SOURCE_LABEL = { ceremony: "Lễ thành hôn", vu_quy: "Lễ vu quy" };
+
+// src giữ chính object content đã suy ra, để biết khi nào cần suy lại (đổi
+// theme, khôi phục bản nháp → content là object mới).
+let siSameLoc = { src: null, groom_party: false, bride_party: false };
+
+function siEnsureSameLoc() {
+  const content = siData?.content;
+  if (!content || siSameLoc.src === content) return;
+  siSameLoc = {
+    src: content,
+    groom_party: !String(content.groom_party_location || "").trim(),
+    bride_party: !String(content.bride_party_location || "").trim(),
+  };
+}
+
+function siPartySource(side) {
+  return side === "bride_party" && siData?.content?.vu_quy_enabled
+    ? "vu_quy"
+    : "ceremony";
+}
+
+// Ô nào đang bị khoá vì trùng địa điểm (không cho gõ / không cho chọn bản đồ).
+function siIsFieldLocked(name) {
+  const m = name.match(/^(groom_party|bride_party)_(location|map_embed_url)$/);
+  return !!m && siSameLoc[m[1]] === true;
+}
+
+function siRenderSameLocRow(side) {
+  const on = siSameLoc[side] === true;
+  return `
+    <label class="flex items-center gap-2 mb-3 text-sm text-gray-600 cursor-pointer">
+      <input type="checkbox" ${on ? "checked" : ""}
+        onchange="siTogglePartySameLoc('${side}', this.checked)"
+        class="w-4 h-4 accent-rose-400 cursor-pointer" />
+      Trùng địa điểm ${escapeHtml(SI_SOURCE_LABEL[siPartySource(side)])}
+    </label>`;
+}
+
+// Chép địa điểm + link bản đồ từ nguồn sang tiệc đang bật "trùng".
+// dom=true: đẩy luôn xuống ô đang hiển thị (dùng khi người dùng đang GÕ ở ô
+// nguồn — render lại cả form giữa chừng sẽ mất con trỏ).
+function siSyncSameLoc(side, dom) {
+  if (siSameLoc[side] !== true || !siData?.content) return;
+  const src = siPartySource(side);
+  ["location", "map_embed_url"].forEach((suffix) => {
+    const name = `${side}_${suffix}`;
+    siData.content[name] = siData.content[`${src}_${suffix}`] || "";
+    if (dom) {
+      const el = document.querySelector(`[data-si-content="${name}"]`);
+      if (el) el.value = siData.content[name];
+    }
+  });
+  if (dom) siSyncMapAddress(side);
+}
+
+function siSyncAllSameLoc(dom) {
+  SI_PARTY_SIDES.forEach((side) => siSyncSameLoc(side, dom));
+}
+
+function siTogglePartySameLoc(side, checked) {
+  siEnsureSameLoc();
+  siSameLoc[side] = checked;
+  // Bật thì kéo địa điểm nguồn về ngay; tắt thì giữ nguyên giá trị đang có để
+  // sửa tiếp (giống bên thiết lập thiệp, tắt chỉ là mở khoá).
+  siSyncSameLoc(side, false);
+  siRenderContentForm();
+  siMarkDirty(true);
+}
+
 function siRenderContentForm() {
   const host = document.getElementById("si-content-fields");
   if (!host || !siData?.content) return;
+  siEnsureSameLoc();
+  siSyncAllSameLoc(false);
   // Ghi nhớ nhóm nào đang mở để render lại (sau khi AI điền) không bị đóng hết.
   const opened = new Set(
     [...host.querySelectorAll("details[open]")].map((d) => d.dataset.group),
@@ -209,6 +293,7 @@ function siRenderContentGroup(group, open) {
   const switches = group.fields.filter((f) => f.type === "switch");
   const others = group.fields.filter((f) => f.type !== "switch");
   const body =
+    (group.sameLoc ? siRenderSameLocRow(group.sameLoc) : "") +
     (switches.length
       ? `<div class="flex flex-wrap gap-x-6 gap-y-2 mb-3">${switches.map(siRenderContentField).join("")}</div>`
       : "") +
@@ -243,11 +328,13 @@ function siRenderContentField(field) {
   const wrapClass = field.wide ? "sm:col-span-2" : "";
   const label = `<label class="block text-xs text-gray-500 mb-1">${escapeHtml(field.label)}</label>`;
 
+  if (field.type === "map") return siRenderMapField(field, value, wrapClass);
+
   if (field.type === "textarea") {
     return `
       <div class="${wrapClass}">
         ${label}
-        <textarea rows="2" data-si-content="${field.name}"
+        <textarea rows="2" name="${field.name}" data-si-content="${field.name}"
           oninput="siSetContent('${field.name}', this.value)"
           class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm resize-none focus:outline-none focus:border-rose-300">${escapeHtml(value)}</textarea>
       </div>`;
@@ -258,17 +345,171 @@ function siRenderContentField(field) {
     ? `siSetContentDate('${field.name}', this.value, '${field.lunar}')`
     : `siSetContent('${field.name}', this.value)`;
 
+  // Đang "trùng địa điểm" thì ô địa điểm của tiệc chỉ để xem — giá trị do ô
+  // nguồn quyết định, gõ vào đây sẽ bị ghi đè ngay lần đồng bộ sau.
+  const locked = siIsFieldLocked(field.name);
+
+  // name= để applyMapPicker() (maps-helper.js) tìm được ô "…_location" mà điền
+  // tên địa điểm vừa chọn — nó nhắm [name="…"], không phải data-si-content.
   return `
     <div class="${wrapClass}">
       ${label}
-      <input type="${field.type}" value="${escapeHtml(value)}" data-si-content="${field.name}"
-        oninput="${onInput}" class="${inputClass}" />
+      <input type="${field.type}" value="${escapeHtml(value)}" name="${field.name}" data-si-content="${field.name}"
+        ${locked ? "readonly" : `oninput="${onInput}"`}
+        class="${inputClass}${locked ? " bg-gray-100 text-gray-400 cursor-not-allowed" : ""}" />
     </div>`;
 }
+
+// ============= Ô Google Maps: địa chỉ sẵn + picker bản đồ =============
+// Ngoài ô dán link nhúng, hiện luôn địa chỉ đã gõ ở ô "Địa điểm" cùng khối để
+// chép nhanh / mở thẳng Google Maps đã điền sẵn ô tìm kiếm (còn mỗi việc
+// Share → Embed a map → dán ngược lại). Nút "Chọn trên bản đồ" dùng lại
+// openMapPicker() của core/helpers/maps-helper.js — đúng picker của trang
+// thiết lập thiệp, nên id ô URL phải là "<side>_map_embed_url" và khối địa chỉ
+// phải mang id "<side>-map-display" / "<side>-map-address" cho nó ghi vào.
+
+const SI_MAP_NO_ADDRESS = "Chưa có địa chỉ — nhập ở ô “Địa điểm” phía trên";
+
+function siMapSide(name) {
+  return name.replace(/_map_embed_url$/, "");
+}
+
+function siRenderMapField(field, value, wrapClass) {
+  const side = siMapSide(field.name);
+  const addr = String(siData.content[`${side}_location`] || "").trim();
+  const chipBtn =
+    "shrink-0 h-6 px-2 rounded-md text-xs text-gray-500 hover:text-rose-500 hover:bg-white transition-colors";
+
+  // Trùng địa điểm → link nhúng do ô nguồn quyết định: khoá ô, ẩn nút chọn bản
+  // đồ, thay bằng dòng nhắc để biết vì sao không sửa được.
+  const locked = siIsFieldLocked(field.name);
+  const action = locked
+    ? `<span class="shrink-0 text-xs text-gray-400 italic">Theo ${escapeHtml(SI_SOURCE_LABEL[siPartySource(side)])}</span>`
+    : `<button type="button" onclick="siOpenMapPicker('${side}')"
+          class="shrink-0 text-xs text-rose-500 hover:text-rose-600 flex items-center gap-1">
+          <i class="fas fa-map-location-dot"></i> Chọn trên bản đồ
+        </button>`;
+
+  return `
+    <div class="${wrapClass}">
+      <div class="flex items-center justify-between gap-2 mb-1">
+        <label class="text-xs text-gray-500">${escapeHtml(field.label)}</label>
+        ${action}
+      </div>
+      <div id="${side}-map-display" class="flex items-center gap-2 mb-2 px-3 py-2 bg-rose-50 border border-rose-100 rounded-lg">
+        <i class="fas fa-location-dot text-rose-300 text-xs shrink-0"></i>
+        <span id="${side}-map-address"
+          class="flex-1 min-w-0 truncate text-xs ${addr ? "text-gray-600" : "text-gray-400 italic"}"
+          >${escapeHtml(addr || SI_MAP_NO_ADDRESS)}</span>
+        <button type="button" onclick="siCopyMapAddress('${side}')" title="Sao chép địa chỉ" class="${chipBtn}">
+          <i class="fas fa-copy"></i> Chép
+        </button>
+        <button type="button" onclick="siOpenMapsSearch('${side}')" title="Mở Google Maps với địa chỉ này" class="${chipBtn}">
+          <i class="fas fa-up-right-from-square"></i> Mở Maps
+        </button>
+      </div>
+      <textarea rows="2" id="${field.name}" name="${field.name}" data-si-content="${field.name}"
+        placeholder="Dán link nhúng — dán cả thẻ &lt;iframe&gt; cũng được, tự tách"
+        ${locked ? "readonly" : `oninput="siSetContent('${field.name}', this.value)" onchange="siSetMapEmbed('${field.name}', this)"`}
+        class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm resize-none focus:outline-none focus:border-rose-300${locked ? " bg-gray-100 text-gray-400 cursor-not-allowed" : ""}">${escapeHtml(value)}</textarea>
+    </div>`;
+}
+
+// Đồng bộ dòng địa chỉ gợi ý theo ô "Địa điểm" đang gõ.
+function siSyncMapAddress(side) {
+  const el = document.getElementById(`${side}-map-address`);
+  if (!el || !siData?.content) return;
+  const addr = String(siData.content[`${side}_location`] || "").trim();
+  el.textContent = addr || SI_MAP_NO_ADDRESS;
+  el.classList.toggle("text-gray-600", !!addr);
+  el.classList.toggle("text-gray-400", !addr);
+  el.classList.toggle("italic", !addr);
+}
+
+function siMapAddress(side) {
+  return String(siData?.content?.[`${side}_location`] || "").trim();
+}
+
+function siCopyMapAddress(side) {
+  const addr = siMapAddress(side);
+  if (!addr) {
+    showToast("⚠️ Chưa nhập địa điểm để sao chép");
+    return;
+  }
+  navigator.clipboard
+    .writeText(addr)
+    .then(() => showToast("✅ Đã chép địa chỉ — dán vào ô tìm kiếm của Google Maps"))
+    .catch(() => showToast("❌ Trình duyệt chặn sao chép, hãy bôi đen rồi copy tay"));
+}
+
+function siOpenMapsSearch(side) {
+  const addr = siMapAddress(side);
+  const url = addr
+    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr)}`
+    : "https://www.google.com/maps";
+  window.open(url, "_blank", "noopener");
+}
+
+function siOpenMapPicker(side) {
+  if (siIsFieldLocked(`${side}_map_embed_url`)) {
+    showToast(`⚠️ Đang trùng địa điểm ${SI_SOURCE_LABEL[siPartySource(side)]} — bỏ tích để chọn riêng`);
+    return;
+  }
+  if (typeof openMapPicker !== "function" || typeof L === "undefined") {
+    showToast("❌ Chưa nạp được bản đồ — thử tải lại trang");
+    return;
+  }
+  openMapPicker(side);
+}
+
+// Dán nguyên thẻ <iframe> của Google Maps → tự lấy phần src.
+function siSetMapEmbed(name, el) {
+  const raw = el.value.trim();
+  if (raw.includes("<iframe") && raw.includes("src=")) {
+    const m = raw.match(/src=["']([^"']+)["']/);
+    if (m) {
+      el.value = m[1];
+      showToast("✅ Đã tách link nhúng từ iframe");
+    }
+  }
+  siSetContent(name, el.value);
+}
+
+// maps-helper.js gọi hook này sau khi áp vị trí. Nó ghi thẳng .value của ô URL
+// (không bắn sự kiện input) nên phải tự kéo giá trị từ DOM về state, nếu không
+// bấm "Lưu vào ổ đĩa" sẽ ghi ra link cũ.
+window._onLocationSourceChanged = function (side) {
+  if (!siData?.content) return;
+  [`${side}_map_embed_url`, `${side}_location`].forEach((name) => {
+    if (!SI_CONTENT_FIELD_BY_NAME[name]) return;
+    const el = document.querySelector(`[data-si-content="${name}"]`);
+    if (el) siData.content[name] = el.value;
+  });
+  siSyncMapAddress(side);
+  // Chọn bản đồ cho lễ thành hôn / vu quy → tiệc đang "trùng" phải theo luôn.
+  if (side === "ceremony" || side === "vu_quy") siSyncAllSameLoc(true);
+  siMarkDirty(true);
+};
 
 function siSetContent(name, value) {
   if (!siData?.content) return;
   siData.content[name] = value;
+  // Địa điểm đổi → cập nhật luôn dòng địa chỉ gợi ý dưới ô Google Maps.
+  if (name.endsWith("_location")) siSyncMapAddress(name.replace(/_location$/, ""));
+
+  // Gõ ở ô nguồn (lễ thành hôn / vu quy) → đẩy ngay sang tiệc đang "trùng".
+  // dom=true vì người dùng đang gõ dở, render lại cả form là mất con trỏ.
+  if (/^(ceremony|vu_quy)_(location|map_embed_url)$/.test(name)) {
+    siSyncAllSameLoc(true);
+  }
+
+  // Bật/tắt vu quy đổi luôn NGUỒN của tiệc nhà gái → phải vẽ lại (nhãn ô tích
+  // đổi theo, và địa điểm phải kéo từ nguồn mới).
+  if (name === "vu_quy_enabled") {
+    siSyncAllSameLoc(false);
+    siRenderContentForm();
+  }
+
   siMarkDirty();
 }
 
@@ -380,6 +621,10 @@ function siApplyAiResult(res) {
     siData.content.story_quote = String(res.story_quote).trim();
     applied++;
   }
+
+  // AI trả về địa điểm riêng cho từng tiệc → suy lại ô tích "trùng địa điểm"
+  // thay vì giữ trạng thái cũ rồi ghi đè mất dữ liệu AI vừa sinh.
+  siSameLoc.src = null;
 
   if (Array.isArray(res?.timeline) && res.timeline.length) {
     siData.content.timeline = res.timeline

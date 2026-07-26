@@ -33,6 +33,13 @@ const SI_MAX_LOVE_STORY = CONFIG.maxLoveStoryItems || 10;
 const SI_IMAGE_EXT_RE = /\.(jpe?g|png|webp|gif|avif|bmp)$/i;
 const SI_LAST_THEME_KEY = "si_last_theme";
 
+// Lưu dở dang: cờ được đặt lúc bắt đầu ghi và xoá ở finally. Trang chết giữa
+// chừng (Live Server reload, đóng nhầm tab, Chrome kill vì thiếu RAM) thì
+// finally không chạy → cờ còn lại, lần mở sau tự ghi tiếp chỗ dở.
+// Chặn số vòng để không lặp vô tận nếu hỏng vì lý do khác.
+const SI_RESUME_KEY = "si_resume_save";
+const SI_MAX_RESUME = 5;
+
 const SI_FIELD_BASENAME = {
   cover_image_url: "cover",
   groom_image_url: "groom",
@@ -275,6 +282,9 @@ async function onSampleImagesThemeChange() {
   } finally {
     showLoading(false);
   }
+
+  // Nạp xong mới xét: lần lưu trước có bỏ dở không thì ghi tiếp cho xong.
+  await siResumeSaveIfInterrupted();
 }
 
 function siEmptySingle() {
@@ -289,13 +299,47 @@ function siEmptyData() {
   return { singleImages, gallery: [], loveStory: [], content: siContentDefaults() };
 }
 
+// data.json hỏng cú pháp (sửa tay lỡ để dấu phẩy thừa…) là trường hợp NGUY
+// HIỂM nhất: parse lỗi → coi như thư mục chưa có gì → điểm lấy nét, phần chữ,
+// thứ tự album, lời kể chuyện tình đều bị bỏ → bấm Lưu là ghi đè mất sạch,
+// trong khi ảnh vẫn hiện đủ (nhờ quét thư mục) nên nhìn không thấy gì bất
+// thường. Phân biệt rõ "chưa có file" (bình thường) với "có mà hỏng" (phải la
+// lên + sao lưu trước khi ghi đè).
+let siJsonBroken = null; // { text, message } khi data.json có nhưng parse lỗi
+
 async function siReadJsonSafe(dirHandle) {
+  siJsonBroken = null;
+  let text;
   try {
     const fh = await dirHandle.getFileHandle("data.json");
-    const file = await fh.getFile();
-    return JSON.parse(await file.text());
+    text = await (await fh.getFile()).text();
   } catch (e) {
+    return {}; // chưa có data.json → thư mục mới, không có gì để mất
+  }
+  if (!text.trim()) return {};
+  try {
+    return JSON.parse(text);
+  } catch (e) {
+    siJsonBroken = { text, message: e.message };
+    console.error("data.json hỏng cú pháp:", e.message);
     return {};
+  }
+}
+
+// Trước khi ghi đè một data.json hỏng, chép nguyên văn ra data.json.bak để còn
+// đường lấy lại phần chữ / điểm lấy nét đã gõ.
+async function siBackupBrokenJson() {
+  if (!siJsonBroken || !siThemeHandle) return false;
+  try {
+    await siWriteFile(
+      siThemeHandle,
+      "data.json.bak",
+      new Blob([siJsonBroken.text], { type: "text/plain" }),
+    );
+    return true;
+  } catch (e) {
+    console.error("Không sao lưu được data.json hỏng:", e);
+    return false;
   }
 }
 
@@ -397,6 +441,9 @@ async function siLoadThemeData() {
         blob: file,
         focal: json.image_focal_points?.[field] || { x: 50, y: 50 },
         previewUrl: URL.createObjectURL(file),
+        // Dấu vết file gốc trên đĩa → lúc lưu bỏ qua ảnh y nguyên (siIsUnchanged).
+        srcName: name,
+        srcSize: file.size,
       };
     }
 
@@ -457,6 +504,8 @@ async function siLoadThemeData() {
           y: 50,
         },
         previewUrl: URL.createObjectURL(file),
+        srcName: name,
+        srcSize: file.size,
       });
     }
 
@@ -469,7 +518,15 @@ async function siLoadThemeData() {
         blob: file,
         focal: item.focal,
         previewUrl: file ? URL.createObjectURL(file) : null,
+        srcName: item.name || null,
+        srcSize: file ? file.size : 0,
       });
+    }
+
+    if (siJsonBroken) {
+      showToast(
+        `❌ data.json LỖI CÚ PHÁP (${siJsonBroken.message}) — điểm lấy nét và phần chữ KHÔNG nạp được. Sửa file rồi chọn lại theme; bấm Lưu bây giờ sẽ ghi đè bằng giá trị mặc định.`,
+      );
     }
 
     const skipped = strays.length - strays.filter((n) => used.has(n)).length;
@@ -558,20 +615,32 @@ async function siSaveDraft() {
   const singleImages = {};
   SI_SINGLE_FIELDS.forEach((f) => {
     const entry = siData.singleImages[f];
-    singleImages[f] = { blob: entry.blob, focal: entry.focal };
+    singleImages[f] = {
+      blob: entry.blob,
+      focal: entry.focal,
+      srcName: entry.srcName || null,
+      srcSize: entry.srcSize || 0,
+    };
   });
   const draft = {
     theme: siCurrentTheme,
     updatedAt: Date.now(),
     content: siData.content,
     singleImages,
-    gallery: siData.gallery.map((i) => ({ blob: i.blob, focal: i.focal })),
+    gallery: siData.gallery.map((i) => ({
+      blob: i.blob,
+      focal: i.focal,
+      srcName: i.srcName || null,
+      srcSize: i.srcSize || 0,
+    })),
     loveStory: siData.loveStory.map((i) => ({
       date: i.date,
       title: i.title,
       content: i.content,
       blob: i.blob,
       focal: i.focal,
+      srcName: i.srcName || null,
+      srcSize: i.srcSize || 0,
     })),
   };
   try {
@@ -590,6 +659,8 @@ function siApplyDraft(draft) {
       blob: o?.blob || null,
       focal: o?.focal || { x: 50, y: 50 },
       previewUrl: o?.blob ? URL.createObjectURL(o.blob) : null,
+      srcName: o?.srcName || null,
+      srcSize: o?.srcSize || 0,
     });
     siData = siEmptyData();
     siData.content = siNormalizeContent(draft.content);
@@ -974,6 +1045,145 @@ async function siWriteFile(dirHandle, filename, blob) {
   await writable.close();
 }
 
+// Ảnh đọc lên từ chính thư mục này, chưa đổi gì và vẫn giữ nguyên tên file →
+// khỏi ghi lại. Bộ ảnh mẫu nặng ~35 MB nên nếu lần lưu nào cũng chép lại tất
+// thì vừa lâu vừa dễ hỏng giữa chừng (mất luôn data.json ghi ở bước cuối).
+async function siIsUnchanged(entry, filename) {
+  // Đường nhanh, không đụng đĩa: blob đọc lên từ chính file đó, chưa ai thay.
+  if (entry.srcName === filename && entry.srcSize === entry.blob.size) return true;
+
+  // Không có dấu vết thì đối chiếu thẳng với file trên đĩa. Bắt buộc phải có
+  // nhánh này để LƯU TIẾP được: bản nháp trong IndexedDB không mang theo
+  // srcName của những ảnh vừa ghi xong trong lần lưu bị cắt ngang, thiếu nó
+  // thì mỗi lần nối tiếp lại chép lại cả vài chục MB và không bao giờ về đích.
+  try {
+    const file = await (await siThemeHandle.getFileHandle(filename)).getFile();
+    if (file.size !== entry.blob.size) return false;
+    return await siSameBytes(file, entry.blob);
+  } catch (e) {
+    return false; // chưa có file trên đĩa → cứ ghi
+  }
+}
+
+// So từng byte chứ không chỉ so kích thước: hai ảnh khác nhau vẫn có thể trùng
+// số byte, bỏ qua nhầm thì ảnh mới không bao giờ xuống đĩa. Đọc nhanh hơn ghi
+// nhiều lần nên vẫn lời.
+async function siSameBytes(fileA, blobB) {
+  const [a, b] = await Promise.all([fileA.arrayBuffer(), blobB.arrayBuffer()]);
+  if (a.byteLength !== b.byteLength) return false;
+  const va = new Uint8Array(a);
+  const vb = new Uint8Array(b);
+  for (let i = 0; i < va.length; i++) if (va[i] !== vb[i]) return false;
+  return true;
+}
+
+// Ghi 1 ảnh, kèm tiến độ. Lỗi được bọc lại cho biết CHẾT Ở FILE NÀO — trước đây
+// chỉ nhận được message trống rỗng của DOMException, không lần ra được.
+async function siWriteImage(entry, filename, progress) {
+  if (await siIsUnchanged(entry, filename)) {
+    progress(filename, true);
+    return;
+  }
+  progress(filename, false);
+  try {
+    await siWriteFile(siThemeHandle, filename, entry.blob);
+  } catch (e) {
+    throw new Error(`ghi "${filename}" thất bại — ${e.name || "Lỗi"}: ${e.message}`);
+  }
+  entry.srcName = filename;
+  entry.srcSize = entry.blob.size;
+}
+
+// ============= Lưu dở dang → tự ghi tiếp =============
+
+function siReadResumeState() {
+  try {
+    const raw = localStorage.getItem(SI_RESUME_KEY);
+    const st = raw ? JSON.parse(raw) : null;
+    return st && typeof st.theme === "string" ? st : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+// Đặt cờ TRƯỚC khi động vào đĩa. Giữ nguyên số vòng đã nối tiếp (siResumeSave
+// đã tăng sẵn), lượt lưu tay bình thường thì không có cờ cũ nên về 0.
+function siMarkSaveStarted() {
+  const prev = siReadResumeState();
+  const attempts = prev && prev.theme === siCurrentTheme ? prev.attempts || 0 : 0;
+  try {
+    localStorage.setItem(
+      SI_RESUME_KEY,
+      JSON.stringify({ theme: siCurrentTheme, attempts }),
+    );
+  } catch (e) {}
+}
+
+function siClearSaveFlag() {
+  try {
+    localStorage.removeItem(SI_RESUME_KEY);
+  } catch (e) {}
+}
+
+// Gọi sau khi theme đã nạp xong (kể cả từ bản nháp): thấy cờ còn sót nghĩa là
+// lần lưu trước chết giữa chừng → ghi tiếp. Ảnh nào đã đúng trên đĩa sẽ được
+// siIsUnchanged() bỏ qua nên mỗi vòng chỉ ghi phần còn thiếu, vài vòng là xong.
+async function siResumeSaveIfInterrupted() {
+  const st = siReadResumeState();
+  if (!st || st.theme !== siCurrentTheme || !siThemeHandle) return;
+
+  const attempts = (st.attempts || 0) + 1;
+  if (attempts > SI_MAX_RESUME) {
+    siClearSaveFlag();
+    showToast(
+      `⚠️ Lần lưu trước bị cắt ngang ${SI_MAX_RESUME} lần liên tiếp — hãy bấm "Lưu vào ổ đĩa" và xem console`,
+    );
+    return;
+  }
+
+  try {
+    localStorage.setItem(
+      SI_RESUME_KEY,
+      JSON.stringify({ theme: siCurrentTheme, attempts }),
+    );
+  } catch (e) {}
+
+  showToast(`⏳ Lần lưu trước chưa xong — đang ghi tiếp (vòng ${attempts}/${SI_MAX_RESUME})`);
+  await saveSampleImages();
+}
+
+// Ghi RIÊNG phần chữ vào data.json, giữ nguyên tham chiếu ảnh đang có trên
+// đĩa. Dùng ở 2 chỗ: đầu lần lưu (để chữ an toàn ngay, không phải chờ ghi xong
+// vài chục MB ảnh) và ở nhánh lỗi (ảnh đứt giữa chừng thì chữ vẫn còn).
+async function siWriteContentOnly() {
+  if (!siThemeHandle || !siData?.content) return false;
+  try {
+    const old = await siReadJsonSafe(siThemeHandle);
+    old.content = siCollectContent();
+    if (siData.loveStory.length) {
+      const oldLs = Array.isArray(old.love_story) ? old.love_story : [];
+      old.love_story = siData.loveStory.map((item, i) => {
+        const entry = { date: item.date, title: item.title, content: item.content };
+        if (oldLs[i]?.image_url) {
+          entry.image_url = oldLs[i].image_url;
+          entry.focal_point = oldLs[i].focal_point;
+        }
+        return entry;
+      });
+    }
+    old.updated_at = new Date().toISOString();
+    await siWriteFile(
+      siThemeHandle,
+      "data.json",
+      new Blob([JSON.stringify(old, null, 2)], { type: "application/json" }),
+    );
+    return true;
+  } catch (e) {
+    console.error("Không cứu được phần chữ:", e);
+    return false;
+  }
+}
+
 function siExtFromBlob(blob, fallback) {
   const type = blob.type || "";
   if (type.includes("png")) return "png";
@@ -1008,13 +1218,40 @@ async function saveSampleImages() {
     return;
   }
 
+  // File hỏng mà vẫn muốn lưu → giữ lại nguyên văn bản cũ đã, đừng ghi đè mất.
+  const backedUp = await siBackupBrokenJson();
+
   const btn = document.getElementById("si-save-btn");
   btn.disabled = true;
-  showLoading(true, "Đang lưu...");
+  siMarkSaveStarted();
+  showLoading(true, "Đang lưu phần chữ...");
 
   try {
+    // Phần CHỮ ghi TRƯỚC, kèm tham chiếu ảnh cũ: nó nhẹ (vài KB) và là thứ gõ
+    // tay mất công nhất. Ảnh nặng vài chục MB, ghi lâu, đứt giữa chừng là
+    // chuyện đã xảy ra nhiều lần — đừng để chữ chết chung với ảnh. Cuối hàm
+    // data.json được ghi đè lại lần nữa với tên ảnh chuẩn.
+    await siWriteContentOnly();
+
     const json = { image_focal_points: { gallery_images: {} } };
     const keepFiles = new Set(["data.json"]);
+
+    // Tiến độ: bộ ảnh mẫu cỡ vài chục MB, ghi hết mất cả phút. Không hiện gì
+    // thì dễ tưởng treo rồi F5 giữa chừng — mà F5 lúc đó là mất data.json.
+    const total =
+      SI_SINGLE_FIELDS.filter((f) => siData.singleImages[f].blob).length +
+      siData.gallery.length +
+      siData.loveStory.filter((i) => i.blob).length;
+    let done = 0;
+    let skipped = 0;
+    const progress = (filename, unchanged) => {
+      done++;
+      if (unchanged) skipped++;
+      showLoading(
+        true,
+        `Đang lưu ảnh ${done}/${total} — ${unchanged ? "giữ nguyên" : "ghi"} ${filename}`,
+      );
+    };
 
     for (const field of SI_SINGLE_FIELDS) {
       const entry = siData.singleImages[field];
@@ -1022,7 +1259,7 @@ async function saveSampleImages() {
       const isCrop = SI_CROP_FIELDS.includes(field);
       const ext = isCrop ? "png" : siExtFromBlob(entry.blob, "jpg");
       const filename = `${SI_FIELD_BASENAME[field]}.${ext}`;
-      await siWriteFile(siThemeHandle, filename, entry.blob);
+      await siWriteImage(entry, filename, progress);
       keepFiles.add(filename);
       json[field] = filename;
       if (SI_FOCAL_POINT_FIELDS.includes(field)) {
@@ -1035,7 +1272,7 @@ async function saveSampleImages() {
       const item = siData.gallery[i];
       const ext = siExtFromBlob(item.blob, "jpg");
       const filename = `gallery-${String(i + 1).padStart(2, "0")}.${ext}`;
-      await siWriteFile(siThemeHandle, filename, item.blob);
+      await siWriteImage(item, filename, progress);
       keepFiles.add(filename);
       galleryNames.push(filename);
       json.image_focal_points.gallery_images[filename] = item.focal;
@@ -1049,7 +1286,7 @@ async function saveSampleImages() {
       if (item.blob) {
         const ext = siExtFromBlob(item.blob, "jpg");
         const filename = `love-story-${String(i + 1).padStart(2, "0")}.${ext}`;
-        await siWriteFile(siThemeHandle, filename, item.blob);
+        await siWriteImage(item, filename, progress);
         keepFiles.add(filename);
         entry.image_url = filename;
         entry.focal_point = item.focal;
@@ -1057,6 +1294,8 @@ async function saveSampleImages() {
       loveStoryOut.push(entry);
     }
     if (loveStoryOut.length) json.love_story = loveStoryOut;
+
+    showLoading(true, "Đang ghi data.json...");
 
     // Phần chữ của thiệp mẫu (tên, ngày giờ, địa điểm, lịch trình…).
     json.content = siCollectContent();
@@ -1081,6 +1320,8 @@ async function saveSampleImages() {
 
     showToast(
       `✅ Đã lưu dữ liệu mẫu cho theme ${siCurrentTheme}` +
+        (backedUp ? " (bản data.json hỏng đã chép sang data.json.bak)" : "") +
+        (skipped ? ` (${skipped} ảnh không đổi nên giữ nguyên)` : "") +
         (removed ? ` (đã xoá ${removed} ảnh cũ)` : ""),
     );
 
@@ -1091,8 +1332,17 @@ async function saveSampleImages() {
     }
   } catch (e) {
     console.error(e);
-    showToast("❌ Lỗi lưu: " + e.message);
+    // Ảnh chết giữa chừng → data.json chưa ghi. Đừng để mất luôn phần chữ.
+    const rescued = await siWriteContentOnly();
+    showToast(
+      "❌ Lỗi lưu: " +
+        e.message +
+        (rescued ? " — đã kịp giữ phần chữ vào data.json" : ""),
+    );
   } finally {
+    // Chạy cho cả thành công lẫn lỗi ĐÃ BÁO. Trang chết ngang thì finally
+    // không chạy → cờ ở lại để lần mở sau ghi tiếp.
+    siClearSaveFlag();
     btn.disabled = false;
     showLoading(false);
   }
