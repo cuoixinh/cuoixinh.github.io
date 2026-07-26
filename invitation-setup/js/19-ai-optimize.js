@@ -67,7 +67,13 @@ async function _runAiOptimize(btn, inputType, getVal, setVal, targetEl) {
   _setAiWandLoading(btn, true);
   const sk = _showTaSkeleton(targetEl);
   try {
-    const out = await aiDAL.optimizeText({ inputType, text: cur });
+    const out = await aiDAL.optimizeText({
+      inputType,
+      text: cur,
+      // Chỉ có tác dụng với ô chuyện tình: server lọc tên riêng khỏi mốc.
+      groomName: (document.querySelector('[name="groom_name"]')?.value || "").trim(),
+      brideName: (document.querySelector('[name="bride_name"]')?.value || "").trim(),
+    });
     if (out) {
       setVal(out);
       showToast("✨ Đã tối ưu bằng AI");
@@ -238,7 +244,13 @@ async function generateLoveStoryAi(btn) {
   if (btn && btn.dataset.loading === "1") return;
   _setAiWandLoading(btn, true);
   try {
-    const items = await aiDAL.generateLoveStory({ text });
+    // Gửi kèm tên đang điền: chuyện tình phải ở ngôi "chúng mình/anh/em",
+    // server dùng hai tên này để lọc nốt tên nếu AI lỡ gọi thẳng.
+    const items = await aiDAL.generateLoveStory({
+      text,
+      groomName: (document.querySelector('[name="groom_name"]')?.value || "").trim(),
+      brideName: (document.querySelector('[name="bride_name"]')?.value || "").trim(),
+    });
     if (!items.length) {
       showToast("⚠️ AI chưa tạo được mốc nào, thử kể chi tiết hơn nhé");
       return;

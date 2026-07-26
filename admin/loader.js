@@ -21,9 +21,15 @@
     "../core/helpers/alert.js",
     "../core/bl/image-bl.js",
     "../core/utils.js",
+    // Dùng cho tab "Dữ liệu mẫu": aiDAL (nhờ AI sinh nội dung) và
+    // formatLunarDate (tự tính ngày âm từ ngày dương) — cả hai đều thuần
+    // logic, không bind DOM của trang nào.
+    "../core/dal/ai-dal.js",
+    "../invitation-setup/js/09-lunar.js",
     "js/01-weddings.js",
     "js/02-templates.js",
     "js/03-sample-images.js",
+    "js/04-sample-data.js",
   ];
 
   function injectPartial(mountId, html) {

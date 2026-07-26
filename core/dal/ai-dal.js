@@ -54,11 +54,13 @@ class AiDAL {
    * Tối ưu (làm giàu) nội dung MỘT ô văn bản bằng AI.
    * Dùng chung Edge Function ai-invitation với `mode: "optimize"`; prompt do
    * `inputType` quyết định ở server.
-   * @param {{inputType:string, text:string, tone?:string}} input
+   * @param {{inputType:string, text:string, tone?:string, groomName?:string, brideName?:string}} input
    *        inputType: slogan | rsvp | footer | love_story | timeline.
+   *        groomName/brideName: chỉ cần cho love_story — server dùng để lọc tên
+   *        riêng khỏi mốc chuyện tình (luôn xưng "chúng mình"/"anh"/"em").
    * @returns {Promise<string>} văn bản đã tối ưu.
    */
-  async optimizeText({ inputType, text, tone }) {
+  async optimizeText({ inputType, text, tone, groomName, brideName }) {
     const token = await this._token();
     const headers = {
       "Content-Type": "application/json",
@@ -69,7 +71,15 @@ class AiDAL {
     const res = await fetch(this._url, {
       method: "POST",
       headers,
-      body: JSON.stringify({ mode: "optimize", inputType, text, tone }),
+      body: JSON.stringify({
+        mode: "optimize",
+        inputType,
+        text,
+        tone,
+        // Chỉ dùng cho inputType="love_story": server lọc tên khỏi mốc chuyện tình.
+        groom_name: groomName || "",
+        bride_name: brideName || "",
+      }),
     });
 
     const json = await res.json().catch(() => ({}));
@@ -80,10 +90,13 @@ class AiDAL {
   /**
    * Tạo "Câu chuyện tình yêu": người dùng kể tự do → AI tách thành danh sách mốc.
    * Dùng chung Edge Function ai-invitation với `mode: "love_story"`.
-   * @param {{text:string, tone?:string}} input
+   *
+   * Chuyện tình luôn ở ngôi "chúng mình/chúng tôi/anh/em", không gọi tên riêng —
+   * gửi kèm groom_name/bride_name để server lọc nốt tên nếu model lỡ nhắc tới.
+   * @param {{text:string, tone?:string, groomName?:string, brideName?:string}} input
    * @returns {Promise<Array<{date:string,title:string,content:string}>>}
    */
-  async generateLoveStory({ text, tone }) {
+  async generateLoveStory({ text, tone, groomName, brideName }) {
     const token = await this._token();
     const headers = {
       "Content-Type": "application/json",
@@ -94,12 +107,46 @@ class AiDAL {
     const res = await fetch(this._url, {
       method: "POST",
       headers,
-      body: JSON.stringify({ mode: "love_story", text, tone }),
+      body: JSON.stringify({
+        mode: "love_story",
+        text,
+        tone,
+        groom_name: groomName || "",
+        bride_name: brideName || "",
+      }),
     });
 
     const json = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(json.error || "Không tạo được câu chuyện, vui lòng thử lại");
     return Array.isArray(json.items) ? json.items : [];
+  }
+
+  /**
+   * Sinh trọn bộ DỮ LIỆU MẪU cho một theme (trang admin → "Dữ liệu mẫu").
+   * Không có input để trích xuất: server (`mode: "sample"`) tự dựng cả cặp đôi
+   * hư cấu — tên, cha mẹ, địa chỉ, ngày giờ, ngân hàng, chuyện tình, lịch
+   * trình, lời ngỏ. Trả về cùng shape với generateInvitation().
+   * @param {{tone?:string, region?:string, hint?:string}} input
+   *        hint: yêu cầu thêm dạng tự do (không bắt buộc).
+   * @returns {Promise<{story_quote:string, love_story:Array, timeline:Array, fields:Object}>}
+   */
+  async generateSampleData({ tone, region, hint } = {}) {
+    const token = await this._token();
+    const headers = {
+      "Content-Type": "application/json",
+      apikey: CONFIG.supabase.anonKey,
+      Authorization: `Bearer ${token || CONFIG.supabase.anonKey}`,
+    };
+
+    const res = await fetch(this._url, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ mode: "sample", tone, region, hint }),
+    });
+
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(json.error || "Không tạo được dữ liệu mẫu, vui lòng thử lại");
+    return json.data;
   }
 
   /**

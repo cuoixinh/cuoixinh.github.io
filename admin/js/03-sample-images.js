@@ -1,9 +1,11 @@
-// ============= TAB: Ảnh mẫu =============
-// Upload ảnh demo + căn điểm lấy nét cho từng theme (public/themes/), lưu
-// thẳng ảnh + JSON vào assets/data-template/<theme>/ trên máy qua File System
-// Access API. Chỉ chạy trên Chrome/Edge desktop, đang mở qua localhost — xem
-// core/utils.js (openFocalPointPicker, openImageCropModal) cho phần UI chọn
-// điểm lấy nét / cắt ảnh dùng chung với invitation-setup.
+// ============= TAB "Dữ liệu mẫu": phần ẢNH =============
+// Mỗi theme (public/themes/) có một bộ dữ liệu demo riêng nằm trong
+// assets/data-template/<theme>/ trên máy, ghi qua File System Access API
+// (Chrome/Edge desktop, mở qua localhost). File này lo ẢNH + toàn bộ khung
+// state/nháp/lưu; phần CHỮ (tên, ngày cưới, lịch trình, AI sinh nội dung…) ở
+// 04-sample-data.js, dùng chung siData/siMarkDirty khai báo tại đây.
+// Xem core/utils.js (openFocalPointPicker, openImageCropModal) cho phần UI
+// chọn điểm lấy nét / cắt ảnh dùng chung với invitation-setup.
 //
 // Ba quy ước quan trọng:
 // 1. Chọn theme → QUÉT thư mục theme, bind mọi ảnh sẵn có (kể cả khi data.json
@@ -282,7 +284,9 @@ function siEmptySingle() {
 function siEmptyData() {
   const singleImages = {};
   SI_SINGLE_FIELDS.forEach((f) => (singleImages[f] = siEmptySingle()));
-  return { singleImages, gallery: [], loveStory: [] };
+  // content: phần chữ của thiệp mẫu (04-sample-data.js) — cùng nằm trong
+  // data.json của theme, cùng luồng nháp/lưu với ảnh.
+  return { singleImages, gallery: [], loveStory: [], content: siContentDefaults() };
 }
 
 async function siReadJsonSafe(dirHandle) {
@@ -362,6 +366,7 @@ async function siLoadThemeData() {
 
   try {
     const json = await siReadJsonSafe(siThemeHandle);
+    siData.content = siNormalizeContent(json.content);
     const diskNames = await siListImageFiles(siThemeHandle);
     const used = new Set();
 
@@ -483,6 +488,8 @@ function siRenderAll() {
   SI_SINGLE_FIELDS.forEach(siRenderSingleImage);
   siRenderGallery();
   siRenderLoveStory();
+  siRenderContentForm();
+  siRenderTimeline();
 }
 
 // ============= Bản nháp: giữ ảnh đang nhập qua F5 =============
@@ -556,6 +563,7 @@ async function siSaveDraft() {
   const draft = {
     theme: siCurrentTheme,
     updatedAt: Date.now(),
+    content: siData.content,
     singleImages,
     gallery: siData.gallery.map((i) => ({ blob: i.blob, focal: i.focal })),
     loveStory: siData.loveStory.map((i) => ({
@@ -584,6 +592,7 @@ function siApplyDraft(draft) {
       previewUrl: o?.blob ? URL.createObjectURL(o.blob) : null,
     });
     siData = siEmptyData();
+    siData.content = siNormalizeContent(draft.content);
     SI_SINGLE_FIELDS.forEach((f) => {
       if (draft.singleImages?.[f]) {
         siData.singleImages[f] = toEntry(draft.singleImages[f]);
@@ -1049,6 +1058,9 @@ async function saveSampleImages() {
     }
     if (loveStoryOut.length) json.love_story = loveStoryOut;
 
+    // Phần chữ của thiệp mẫu (tên, ngày giờ, địa điểm, lịch trình…).
+    json.content = siCollectContent();
+
     // Xoá ảnh cũ TRƯỚC khi ghi JSON, để nếu lỗi giữa chừng thì data.json cũ
     // vẫn trỏ tới đúng bộ ảnh còn nguyên vẹn.
     const removed = await siWipeOtherImages(siThemeHandle, keepFiles);
@@ -1068,7 +1080,7 @@ async function saveSampleImages() {
     siSetDirtyIndicator(false);
 
     showToast(
-      `✅ Đã lưu ảnh mẫu cho theme ${siCurrentTheme}` +
+      `✅ Đã lưu dữ liệu mẫu cho theme ${siCurrentTheme}` +
         (removed ? ` (đã xoá ${removed} ảnh cũ)` : ""),
     );
 

@@ -25,9 +25,9 @@ function currentThemeName() {
   return m ? m[1] : null;
 }
 
-// Đọc bộ ảnh mẫu (do admin tạo ở tab "Ảnh mẫu") cho theme hiện tại, nếu có.
-// Trả về null nếu chưa có data.json (theme chưa được chuẩn bị ảnh mẫu) hoặc lỗi mạng —
-// khi đó giữ nguyên ảnh generic hardcode như trước.
+// Đọc bộ dữ liệu mẫu (do admin tạo ở tab "Dữ liệu mẫu") cho theme hiện tại, nếu có.
+// Trả về null nếu chưa có data.json (theme chưa được chuẩn bị dữ liệu mẫu) hoặc lỗi mạng —
+// khi đó giữ nguyên ảnh + nội dung generic hardcode như trước.
 async function loadThemeSampleImages() {
   const theme = currentThemeName();
   if (!theme) return null;
@@ -85,6 +85,23 @@ function applyThemeSampleImages(w, sample, theme) {
   }
 
   w.image_focal_points = focalPoints;
+}
+
+// Đè phần CHỮ (tên, ngày giờ, địa điểm, lịch trình, lời ngỏ, công tắc khối…).
+// Admin chỉ ghi vào data.json những field đã nhập nên field trống vẫn giữ giá
+// trị mặc định hardcode phía dưới — không cần đồng bộ danh sách field ở đây.
+function applyThemeSampleContent(w, sample) {
+  const content = sample?.content;
+  if (!content || typeof content !== "object") return;
+  Object.assign(w, content);
+
+  // Ngày âm mặc định được tính từ ngày dương mặc định. Nếu mẫu đổi ngày dương
+  // mà không kèm ngày âm thì bỏ trống, đừng hiện ngày âm của ngày khác.
+  ["ceremony", "groom_party", "bride_party"].forEach((prefix) => {
+    if (content[`${prefix}_date`] && !content[`${prefix}_lunar`]) {
+      w[`${prefix}_lunar`] = "";
+    }
+  });
 }
 
 async function loadPreviewData() {
@@ -242,7 +259,10 @@ async function loadPreviewData() {
 
   const theme = currentThemeName();
   const sample = theme ? await loadThemeSampleImages() : null;
-  if (sample) applyThemeSampleImages(w, sample, theme);
+  if (sample) {
+    applyThemeSampleImages(w, sample, theme);
+    applyThemeSampleContent(w, sample);
+  }
 
   if (typeof renderWedding === "function") {
     renderWedding(w);

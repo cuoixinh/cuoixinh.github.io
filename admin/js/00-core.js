@@ -45,7 +45,7 @@ const TAB_BREADCRUMB_LABELS = {
   dashboard: "Quản lý Hệ thống",
   weddings: "Thiệp Cưới",
   templates: "Templates",
-  "sample-images": "Ảnh mẫu",
+  "sample-images": "Dữ liệu mẫu",
 };
 
 function switchTab(tabName, pushState = true) {
