@@ -437,10 +437,14 @@ input.flatpickr-input[readonly] {
   background: #fff;
   transition: all 0.15s;
 }
-.cx-le-seg button:hover {
-  border-color: #fecdd3;
-  color: #e11d48;
-  background: #fff1f2;
+/* Hover XÁM (khác hẳn active hồng) + chỉ trên thiết bị hover thật → sau khi bỏ
+   active, con trỏ còn trên nút cũng không bị "dính" nền hồng như đang chọn. */
+@media (hover: hover) {
+  .cx-le-seg button:hover {
+    border-color: #d1d5db;
+    background: #f3f4f6;
+    color: #374151;
+  }
 }
 .cx-le-seg button.active {
   border-color: #fb7185;
@@ -477,6 +481,99 @@ input.flatpickr-input[readonly] {
 }
 .cx-le-clear:hover {
   background: #ffe4e6;
+}
+
+/* Ô sửa Nội dung */
+.cx-le-label-block {
+  display: block;
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 4px;
+}
+.cx-le-textarea {
+  width: 100%;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 8px;
+  font-size: 13px;
+  color: #1f2937;
+  outline: none;
+  resize: vertical;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+.cx-le-textarea:focus {
+  border-color: #fb7185;
+  box-shadow: 0 0 0 2px rgba(244, 63, 94, 0.15);
+}
+
+/* Thêm văn bản (palette mẫu khối) */
+.cx-addtext {
+  position: relative;
+}
+.cx-addtext-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 44px;
+  border-radius: 12px;
+  border: 1px dashed #fb7185;
+  color: #e11d48;
+  background: #fff5f6;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.15s;
+}
+.cx-addtext-btn:hover {
+  background: #ffe4e6;
+}
+.cx-addtext-palette {
+  margin-top: 8px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.cx-addtext-palette button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 12px 4px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  color: #374151;
+  font-size: 12px;
+  transition: all 0.15s;
+}
+.cx-addtext-palette button {
+  cursor: grab;
+  touch-action: none;
+}
+.cx-addtext-palette button:active {
+  cursor: grabbing;
+}
+.cx-addtext-palette button:hover {
+  border-color: #fb7185;
+  background: #fff5f6;
+  color: #e11d48;
+}
+/* Bóng mờ theo con trỏ khi kéo mẫu từ palette vào thiệp */
+.cx-drag-ghost {
+  position: fixed;
+  z-index: 9999;
+  pointer-events: none;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: #e11d48;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 .cx-le-check {
   display: inline-flex;

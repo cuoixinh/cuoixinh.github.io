@@ -78,18 +78,38 @@ const THEME_PRESETS = {
 };
 
 // Màu gợi ý cho picker
-const THEME_HEADING_COLORS = ["#2d2d2d", "#4a3f35", "#3b4a3f", "#5c4033", "#1f2937", "#7a4b52"];
-const THEME_BODY_COLORS = ["#78716c", "#57534e", "#6b6562", "#4a4a4a", "#5a5148", "#44403c"];
-const THEME_ACCENT_COLORS = ["#c0a062", "#b98a3c", "#7fa38a", "#d4a5a5", "#a8763e", "#9caf88"];
+const THEME_HEADING_COLORS = [
+  "#2d2d2d",
+  "#4a3f35",
+  "#3b4a3f",
+  "#5c4033",
+  "#1f2937",
+  "#7a4b52",
+];
+const THEME_BODY_COLORS = [
+  "#78716c",
+  "#57534e",
+  "#6b6562",
+  "#4a4a4a",
+  "#5a5148",
+  "#44403c",
+];
+const THEME_ACCENT_COLORS = [
+  "#c0a062",
+  "#b98a3c",
+  "#7fa38a",
+  "#d4a5a5",
+  "#a8763e",
+  "#9caf88",
+];
 
 // Các class font/màu mà theme đang dùng → ghi đè khi có theme_setting.
-const HEADING_FONT_SELECTORS = ".font-cormorant, .font-playfair, .font-cinzel, .font-prata";
+const HEADING_FONT_SELECTORS =
+  ".font-cormorant, .font-playfair, .font-cinzel, .font-prata";
 const BODY_FONT_SELECTORS = "body, .font-inter";
 // Tiêu đề = chữ lớn đậm; Nội dung = chữ đọc thường; Nhấn = icon/hoa văn/viền trang trí.
-const HEADING_COLOR_SELECTORS =
-  ".text-charcoal, .text-stone-custom-500";
-const BODY_COLOR_SELECTORS =
-  ".text-stone-custom-400";
+const HEADING_COLOR_SELECTORS = ".text-charcoal, .text-stone-custom-500";
+const BODY_COLOR_SELECTORS = ".text-stone-custom-400";
 const ACCENT_COLOR_SELECTORS =
   ".text-gold-400, .text-gold-300, .text-sage-400, .text-sage-300, .text-rose-pastel-300, .text-rose-pastel-200";
 // Nền thiệp: body (khung ngoài) + thẻ chính của thiệp.
@@ -116,6 +136,488 @@ function _cxSafeColor(c) {
 function _cxSafeNum(n) {
   const v = Number(n);
   return Number.isFinite(v) && v > 0 && v < 1000;
+}
+
+// Đang ở chế độ CHỈNH (iframe tab Giao diện có ?edit=1)?
+function _isEditMode() {
+  try {
+    return new URLSearchParams(window.location.search).get("edit") === "1";
+  } catch (e) {
+    return false;
+  }
+}
+
+// Phần tử "bound" (lấy từ dữ liệu/Thiết lập) → KHÓA sửa text trực tiếp.
+// data-cx-bound do setText gắn; thêm vài container động/rsvp theo id.
+const _CX_BOUND_SEL =
+  "[data-cx-bound], #love-story-list, #timeline-list-render, #rsvp-custom-message";
+
+// Áp NỘI DUNG text đã sửa (text_overrides[sel].text). Phải chạy SAU render vì đổi
+// textContent (không phải CSS). Bỏ qua phần tử bound và phần tử có con (chỉ sửa
+// text thuần, tránh phá cấu trúc/icon).
+function applyTextOverrides(setting) {
+  if (typeof setting === "string") {
+    try {
+      setting = JSON.parse(setting);
+    } catch (e) {
+      setting = null;
+    }
+  }
+  const ov = (setting && setting.text_overrides) || {};
+  // Các selector đang muốn đổi nội dung
+  const wanted = [];
+  for (const [sel, o] of Object.entries(ov)) {
+    if (o && o.text != null) {
+      const safeSel = _cxSafeSelector(sel);
+      if (safeSel) wanted.push([safeSel, o.text]);
+    }
+  }
+  // Áp: lần đầu lưu text GỐC vào data-cx-orig rồi mới ghi text mới.
+  wanted.forEach(([sel, text]) => {
+    let el = null;
+    try {
+      el = document.querySelector(sel);
+    } catch (e) {}
+    if (!el || el.children.length || el.closest(_CX_BOUND_SEL)) return;
+    if (!el.hasAttribute("data-cx-orig"))
+      el.setAttribute("data-cx-orig", el.textContent);
+    el.textContent = text;
+  });
+  // Phục hồi phần tử TỪNG đổi nhưng nay đã bỏ override → trả lại text gốc.
+  document.querySelectorAll("[data-cx-orig]").forEach((el) => {
+    const still = wanted.some(([sel]) => {
+      try {
+        return el.matches(sel);
+      } catch (e) {
+        return false;
+      }
+    });
+    if (!still) {
+      el.textContent = el.getAttribute("data-cx-orig");
+      el.removeAttribute("data-cx-orig");
+    }
+  });
+}
+
+// ============================================================
+// CUSTOM BLOCKS — khối văn bản người dùng tự thêm (đoạn / danh sách / bullets),
+// chèn GIỮA CÁC MỤC. Chèn append cuối DOM (không đổi nth-child của section) rồi
+// định vị bằng flex `order`. Lưu ở theme_setting.custom_blocks; render cả public
+// lẫn preview; ở chế độ chỉnh (edit=1) thì cho sửa/kéo/xoá.
+// ============================================================
+let _cxBlocks = [];
+
+function _cxSafeQ(sel) {
+  const safe = _cxSafeSelector(sel);
+  if (!safe) return null;
+  try {
+    return document.querySelector(safe);
+  } catch (e) {
+    return null;
+  }
+}
+
+// Container chứa các "mục" của thiệp = con của #main-card có nhiều section nhất.
+function _cxSectionsContainer() {
+  const card = document.getElementById("main-card");
+  if (!card) return null;
+  let best = null,
+    bestN = -1;
+  for (const child of card.children) {
+    if (child.classList && child.classList.contains("cx-custom-block")) continue;
+    const n = child.querySelectorAll(
+      "[id^='section-'],[id^='couple-'],[id^='invite-'],[id^='ceremony'],[id^='party']",
+    ).length;
+    if (n > bestN) {
+      bestN = n;
+      best = child;
+    }
+  }
+  return best || card;
+}
+
+function _cxRealSections(container) {
+  return Array.from(container.children).filter(
+    (c) =>
+      !c.classList ||
+      (!c.classList.contains("cx-custom-block") &&
+        !c.classList.contains("cx-cb-dropline")),
+  );
+}
+
+// Danh sách MỐC thả (mịn): đi sâu vào các wrapper flex-column (tối đa 2 cấp) để có
+// mốc ở mức section (gia đình, Thư mời, lễ, tiệc…) chứ không chỉ vài con cấp trên.
+function _cxGatherTargets(container, out, depth) {
+  for (const child of container.children) {
+    if (
+      child.classList &&
+      (child.classList.contains("cx-custom-block") ||
+        child.classList.contains("cx-cb-dropline"))
+    )
+      continue;
+    const cs = getComputedStyle(child);
+    if (cs.display === "none") continue;
+    const isColFlex =
+      cs.display.indexOf("flex") !== -1 && cs.flexDirection === "column";
+    // Wrapper flex-col → đi sâu (không lấy chính wrapper làm mốc); còn lại → mốc.
+    if (isColFlex && child.children.length && depth < 2)
+      _cxGatherTargets(child, out, depth + 1);
+    else out.push(child);
+  }
+}
+function _cxDropTargets() {
+  const root = _cxSectionsContainer();
+  if (!root) return [];
+  const out = [];
+  _cxGatherTargets(root, out, 0);
+  return out;
+}
+
+// Selector NEO ổn định cho 1 section (bỏ qua custom-block khi đếm nth-child).
+function _cxAnchorSelector(el) {
+  const parts = [];
+  let node = el;
+  while (
+    node &&
+    node.nodeType === 1 &&
+    node !== document.body &&
+    node !== document.documentElement
+  ) {
+    if (node.id && /^[A-Za-z][\w-]*$/.test(node.id)) {
+      parts.unshift("#" + node.id);
+      return parts.join(" > ");
+    }
+    const parent = node.parentElement;
+    if (!parent) break;
+    let idx = 0;
+    for (const sib of parent.children) {
+      if (
+        sib.classList &&
+        (sib.classList.contains("cx-custom-block") ||
+          sib.classList.contains("cx-cb-dropline"))
+      )
+        continue;
+      idx++;
+      if (sib === node) break;
+    }
+    parts.unshift(node.tagName.toLowerCase() + ":nth-child(" + idx + ")");
+    node = parent;
+  }
+  parts.unshift("body");
+  return parts.join(" > ");
+}
+
+function _cxBuildBlockNode(b, edit) {
+  const wrap = document.createElement("div");
+  wrap.className = "cx-custom-block";
+  wrap.setAttribute("data-cb-id", b.id);
+  let body;
+  if (b.type === "ordered" || b.type === "bullet") {
+    body = document.createElement(b.type === "ordered" ? "ol" : "ul");
+    const items =
+      Array.isArray(b.content) && b.content.length ? b.content : ["Mục 1"];
+    items.forEach((t) => {
+      const li = document.createElement("li");
+      li.textContent = t;
+      body.appendChild(li);
+    });
+  } else {
+    body = document.createElement("p");
+    body.textContent = typeof b.content === "string" ? b.content : "Văn bản";
+  }
+  body.className = "cx-cb-body";
+  if (edit) {
+    body.setAttribute("contenteditable", "true");
+    body.addEventListener("input", () => _cxOnEdit(b.id));
+    const tools = document.createElement("div");
+    tools.className = "cx-cb-tools";
+    tools.innerHTML =
+      '<button type="button" class="cx-cb-drag" title="Kéo để di chuyển">⠿</button>' +
+      '<button type="button" class="cx-cb-del" title="Xoá">×</button>';
+    tools.querySelector(".cx-cb-del").addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      _cxDelete(b.id);
+    });
+    _cxWireDrag(tools.querySelector(".cx-cb-drag"), b.id);
+    wrap.appendChild(tools);
+  }
+  wrap.appendChild(body);
+  return wrap;
+}
+
+function _cxRender() {
+  const container = _cxSectionsContainer();
+  if (!container) return;
+  const card = document.getElementById("main-card") || container;
+  _cxEnsureStyle();
+  // Xoá block cũ + trả lại order đã set lần trước (đánh dấu data-cx-ord).
+  card.querySelectorAll(".cx-custom-block").forEach((n) => n.remove());
+  card.querySelectorAll("[data-cx-ord]").forEach((el) => {
+    el.style.order = "";
+    el.removeAttribute("data-cx-ord");
+  });
+  const edit = _isEditMode();
+
+  // Chèn từng block vào PARENT của mốc (afterAnchor). Append cuối parent → không
+  // đổi nth-child của các con thật trong parent đó (giữ text-override/ẩn ổn định).
+  const byParent = new Map();
+  _cxBlocks.forEach((b) => {
+    const anchorEl = b.afterAnchor ? _cxSafeQ(b.afterAnchor) : null;
+    const parent = (anchorEl && anchorEl.parentElement) || container;
+    const node = _cxBuildBlockNode(b, edit);
+    node._cxAnchorEl = anchorEl;
+    parent.appendChild(node);
+    if (!byParent.has(parent)) byParent.set(parent, []);
+    byParent.get(parent).push(node);
+  });
+
+  // Gán flex order trong từng parent (chỉ parent là flex-column) để khối nằm đúng chỗ.
+  byParent.forEach((nodes, parent) => {
+    const cs = getComputedStyle(parent);
+    if (!(cs.display.indexOf("flex") !== -1 && cs.flexDirection === "column"))
+      return;
+    const reals = Array.from(parent.children).filter(
+      (c) => !c.classList.contains("cx-custom-block"),
+    );
+    reals.forEach((s, i) => {
+      s.style.order = String(i * 100);
+      s.setAttribute("data-cx-ord", "1");
+    });
+    const sub = {};
+    nodes.forEach((node) => {
+      const a = node._cxAnchorEl;
+      let base = -50; // đầu parent
+      if (a) {
+        const idx = reals.indexOf(a);
+        base = idx >= 0 ? idx * 100 + 50 : reals.length * 100;
+      }
+      sub[base] = (sub[base] || 0) + 1;
+      node.style.order = String(base + sub[base]);
+      node.setAttribute("data-cx-ord", "1");
+    });
+  });
+}
+
+// Đọc lại nội dung từ DOM về model
+function _cxReadContent(wrap, type) {
+  if (type === "ordered" || type === "bullet")
+    return Array.from(wrap.querySelectorAll("li")).map((li) => li.textContent);
+  const body = wrap.querySelector(".cx-cb-body");
+  return body ? body.textContent : "";
+}
+
+function _cxFind(id) {
+  return _cxBlocks.find((b) => b.id === id);
+}
+
+let _cxReportTimer = null;
+function _cxReport() {
+  clearTimeout(_cxReportTimer);
+  _cxReportTimer = setTimeout(() => {
+    try {
+      parent.postMessage({ type: "cx-blocks-changed", blocks: _cxBlocks }, "*");
+    } catch (e) {}
+  }, 200);
+}
+
+function _cxOnEdit(id) {
+  const b = _cxFind(id);
+  const wrap = document.querySelector(
+    '.cx-custom-block[data-cb-id="' + id + '"]',
+  );
+  if (!b || !wrap) return;
+  b.content = _cxReadContent(wrap, b.type);
+  _cxReport();
+}
+
+function _cxDelete(id) {
+  _cxBlocks = _cxBlocks.filter((b) => b.id !== id);
+  _cxRender();
+  _cxReport();
+}
+
+function _cxAddAt(type, anchorEl) {
+  const t = type === "ordered" || type === "bullet" ? type : "paragraph";
+  const id =
+    "cb_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  const content = t === "paragraph" ? "Văn bản mới" : ["Mục 1", "Mục 2"];
+  _cxBlocks.push({
+    id,
+    type: t,
+    content,
+    afterAnchor: anchorEl ? _cxAnchorSelector(anchorEl) : null,
+  });
+  _cxRender();
+  _cxReport();
+  const body = document.querySelector(
+    '.cx-custom-block[data-cb-id="' + id + '"] .cx-cb-body',
+  );
+  if (body) {
+    body.scrollIntoView({ behavior: "smooth", block: "center" });
+    body.focus();
+  }
+}
+
+// Thêm ở cuối (bấm mẫu, không kéo)
+function _cxAdd(type) {
+  const targets = _cxDropTargets();
+  _cxAddAt(type, targets[targets.length - 1] || null);
+}
+
+// ── Kéo mẫu TỪ palette (trang cha) vào thiệp ───────────────────────────────
+// Trang cha (giữ pointer-capture) gửi toạ độ y (theo viewport iframe) khi rê trên
+// iframe → hiện vạch chèn; thả → thêm khối tại đó.
+let _cxExtAnchor = undefined;
+
+// Đặt vạch chèn ở ĐÁY mốc bằng toạ độ VIEWPORT (position:fixed) → không lệch do
+// padding/offsetParent, không bị #main-card overflow cắt. Gắn vào body.
+function _cxPlaceLine(line, anchorEl) {
+  const container = _cxSectionsContainer();
+  const cr = container.getBoundingClientRect();
+  line.style.position = "fixed";
+  line.style.left = cr.left + "px";
+  line.style.width = cr.width + "px";
+  line.style.right = "auto";
+  line.style.top =
+    (anchorEl ? anchorEl.getBoundingClientRect().bottom : cr.top) + "px";
+  line.style.display = "block";
+}
+function _cxExtLine() {
+  let line = document.getElementById("cx-ext-dropline");
+  if (!line) {
+    line = document.createElement("div");
+    line.id = "cx-ext-dropline";
+    line.className = "cx-cb-dropline";
+  }
+  if (line.parentNode !== document.body) document.body.appendChild(line);
+  return line;
+}
+function _cxDragOver(y) {
+  const line = _cxExtLine();
+  if (!line) return;
+  let anchorEl = null;
+  for (const s of _cxDropTargets()) {
+    const r = s.getBoundingClientRect();
+    if (y > r.top + r.height / 2) anchorEl = s;
+  }
+  _cxExtAnchor = anchorEl;
+  _cxPlaceLine(line, anchorEl);
+}
+function _cxDragCancel() {
+  const line = document.getElementById("cx-ext-dropline");
+  if (line) line.remove();
+  _cxExtAnchor = undefined;
+}
+function _cxDropAt(type, y) {
+  if (typeof y === "number") _cxDragOver(y); // chốt anchor đúng vị trí thả
+  const anchorEl = _cxExtAnchor;
+  _cxDragCancel();
+  _cxAddAt(type, anchorEl);
+}
+
+// ── Kéo-thả đổi vị trí (giữa các mục) ──────────────────────────────────────
+let _cxDrag = null;
+function _cxWireDrag(handle, id) {
+  handle.addEventListener("pointerdown", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const container = _cxSectionsContainer();
+    if (!container) return;
+    // setPointerCapture → mọi pointermove/up dồn về handle, không rớt khi rê ra ngoài.
+    try {
+      handle.setPointerCapture(e.pointerId);
+    } catch (err) {}
+    document.body.style.userSelect = "none";
+    handle.style.cursor = "grabbing";
+    const line = document.createElement("div");
+    line.className = "cx-cb-dropline";
+    document.body.appendChild(line);
+    _cxDrag = { id, container, line, anchorEl: null };
+    const move = (ev) => _cxDragMove(ev);
+    const up = () => {
+      handle.removeEventListener("pointermove", move);
+      handle.removeEventListener("pointerup", up);
+      handle.removeEventListener("pointercancel", up);
+      document.body.style.userSelect = "";
+      handle.style.cursor = "";
+      _cxDragEnd();
+    };
+    handle.addEventListener("pointermove", move);
+    handle.addEventListener("pointerup", up);
+    handle.addEventListener("pointercancel", up);
+    _cxDragMove(e);
+  });
+}
+
+function _cxDragMove(ev) {
+  if (!_cxDrag) return;
+  const { line } = _cxDrag;
+  let anchorEl = null;
+  for (const s of _cxDropTargets()) {
+    const r = s.getBoundingClientRect();
+    if (ev.clientY > r.top + r.height / 2) anchorEl = s;
+  }
+  _cxDrag.anchorEl = anchorEl;
+  _cxPlaceLine(line, anchorEl);
+}
+
+function _cxDragEnd() {
+  if (!_cxDrag) return;
+  const { id, line, anchorEl } = _cxDrag;
+  line.remove();
+  _cxDrag = null;
+  const b = _cxFind(id);
+  if (!b) return;
+  b.afterAnchor = anchorEl ? _cxAnchorSelector(anchorEl) : null;
+  _cxRender();
+  _cxReport();
+}
+
+function _cxEnsureStyle() {
+  if (document.getElementById("cx-cb-style")) return;
+  const s = document.createElement("style");
+  s.id = "cx-cb-style";
+  s.textContent =
+    ".cx-custom-block{position:relative;width:100%}" +
+    ".cx-cb-body{outline:none}" +
+    ".cx-custom-block ol,.cx-custom-block ul{display:inline-block;text-align:left;padding-left:1.5em;margin:0}" +
+    ".cx-custom-block ol{list-style:decimal}.cx-custom-block ul{list-style:disc}" +
+    ".cx-cb-tools{position:absolute;top:-12px;right:-6px;display:flex;gap:6px;z-index:6}" +
+    ".cx-cb-tools button{width:26px;height:26px;border-radius:9999px;border:2px solid #fff;color:#fff;font:600 15px/1 system-ui,sans-serif;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;padding:0}" +
+    ".cx-cb-drag{background:#6b7280;cursor:grab;touch-action:none}" +
+    ".cx-cb-drag:active{cursor:grabbing}" +
+    ".cx-cb-del{background:#e11d48}" +
+    ".cx-cb-dropline{position:absolute;left:0;right:0;height:3px;background:#e11d48;border-radius:2px;z-index:2147483000;pointer-events:none;display:none}";
+  document.head.appendChild(s);
+}
+
+// Render từ theme_setting (public + preview + edit). Nạp model rồi vẽ.
+function applyCustomBlocks(setting) {
+  if (!document.getElementById("main-card")) return;
+  if (typeof setting === "string") {
+    try {
+      setting = JSON.parse(setting);
+    } catch (e) {
+      setting = null;
+    }
+  }
+  const arr =
+    setting && Array.isArray(setting.custom_blocks) ? setting.custom_blocks : [];
+  _cxBlocks = arr.map((b) => ({ ...b }));
+  _cxRender();
+}
+
+// Trong iframe chỉnh (edit=1): nhận lệnh "thêm khối" từ trang cha.
+if (typeof window !== "undefined" && window.top !== window) {
+  window.addEventListener("message", (ev) => {
+    const d = ev.data;
+    if (!d || !_isEditMode()) return;
+    if (d.type === "cx-add-block") _cxAdd(d.blockType);
+    else if (d.type === "cx-drag-over") _cxDragOver(d.y);
+    else if (d.type === "cx-drop") _cxDropAt(d.blockType, d.y);
+    else if (d.type === "cx-drag-cancel") _cxDragCancel();
+  });
 }
 
 // Nạp 1 Google Font (nếu chưa nạp)
@@ -160,15 +662,21 @@ function applyThemeSetting(setting) {
   }
 
   if (setting.heading_color) {
-    rules.push(`${HEADING_COLOR_SELECTORS} { color: ${setting.heading_color} !important; }`);
+    rules.push(
+      `${HEADING_COLOR_SELECTORS} { color: ${setting.heading_color} !important; }`,
+    );
   }
 
   if (setting.body_color) {
-    rules.push(`${BODY_COLOR_SELECTORS} { color: ${setting.body_color} !important; }`);
+    rules.push(
+      `${BODY_COLOR_SELECTORS} { color: ${setting.body_color} !important; }`,
+    );
   }
 
   if (setting.accent_color) {
-    rules.push(`${ACCENT_COLOR_SELECTORS} { color: ${setting.accent_color} !important; }`);
+    rules.push(
+      `${ACCENT_COLOR_SELECTORS} { color: ${setting.accent_color} !important; }`,
+    );
   }
 
   if (setting.background_color) {
@@ -185,6 +693,11 @@ function applyThemeSetting(setting) {
     for (const [sel, o] of Object.entries(setting.text_overrides)) {
       const safeSel = _cxSafeSelector(sel);
       if (!safeSel || !o || typeof o !== "object") continue;
+      // Ẩn thành phần = xoá khỏi hiển thị HẲN (cả lúc chỉnh lẫn public). Không khôi
+      // phục riêng — muốn hiện lại phải "Khôi phục mặc định" ở bảng chỉnh chung.
+      if (o.hidden) {
+        rules.push(`${safeSel} { display: none !important; }`);
+      }
       const decls = [];
       if (o.font) {
         const f = _cxSafeFont(o.font);
@@ -193,17 +706,22 @@ function applyThemeSetting(setting) {
           decls.push(`font-family: '${f}', serif !important`);
         }
       }
-      if (_cxSafeNum(o.size)) decls.push(`font-size: ${Number(o.size)}px !important`);
-      if (_cxSafeColor(o.color)) decls.push(`color: ${o.color.trim()} !important`);
-      if (_cxSafeNum(o.weight)) decls.push(`font-weight: ${Number(o.weight)} !important`);
+      if (_cxSafeNum(o.size))
+        decls.push(`font-size: ${Number(o.size)}px !important`);
+      if (_cxSafeColor(o.color))
+        decls.push(`color: ${o.color.trim()} !important`);
+      if (_cxSafeNum(o.weight))
+        decls.push(`font-weight: ${Number(o.weight)} !important`);
       if (o.italic) decls.push(`font-style: italic !important`);
       if (o.underline) decls.push(`text-decoration: underline !important`);
       if (o.align && /^(left|center|right|justify)$/.test(o.align))
         decls.push(`text-align: ${o.align} !important`);
       // Kích thước ảnh (khung ảnh). Gỡ max-width/height để ảnh phóng to vượt cỡ gốc được.
       const hasSize = _cxSafeNum(o.width) || _cxSafeNum(o.height);
-      if (_cxSafeNum(o.width)) decls.push(`width: ${Number(o.width)}px !important`);
-      if (_cxSafeNum(o.height)) decls.push(`height: ${Number(o.height)}px !important`);
+      if (_cxSafeNum(o.width))
+        decls.push(`width: ${Number(o.width)}px !important`);
+      if (_cxSafeNum(o.height))
+        decls.push(`height: ${Number(o.height)}px !important`);
       if (hasSize)
         decls.push(`max-width: none !important`, `max-height: none !important`);
       if (decls.length) rules.push(`${safeSel} { ${decls.join("; ")} }`);
@@ -228,6 +746,8 @@ if (typeof window !== "undefined") {
   window.THEME_BODY_COLORS = THEME_BODY_COLORS;
   window.THEME_ACCENT_COLORS = THEME_ACCENT_COLORS;
   window.applyThemeSetting = applyThemeSetting;
+  window.applyTextOverrides = applyTextOverrides;
+  window.applyCustomBlocks = applyCustomBlocks;
 }
 
 // ============================================================
@@ -250,6 +770,7 @@ if (typeof window !== "undefined") {
   let hovered = null;
   let picked = null;
   let tip = null;
+  let delBtn = null;
 
   // Phần tử "chỉnh được": có text-node trực tiếp, không nằm trong control tương tác.
   function _isEditable(el) {
@@ -285,7 +806,8 @@ if (typeof window !== "undefined") {
     while (parent && el.id !== "main-card" && el !== document.body) {
       const pr = parent.getBoundingClientRect();
       const tight =
-        Math.abs(pr.width - ir.width) < 3 && Math.abs(pr.height - ir.height) < 3;
+        Math.abs(pr.width - ir.width) < 3 &&
+        Math.abs(pr.height - ir.height) < 3;
       if (!tight) break;
       el = parent;
       parent = parent.parentElement;
@@ -376,7 +898,9 @@ if (typeof window !== "undefined") {
     if (hovered) {
       hovered.classList.add("cx-edit-hover");
       if (tip) {
-        tip.textContent = res.isImage ? "Nhấp để chỉnh kích thước" : "Nhấp để chỉnh";
+        tip.textContent = res.isImage
+          ? "Nhấp để chỉnh kích thước"
+          : "Nhấp để chỉnh";
         tip.style.opacity = "1";
       }
       _positionTip(e);
@@ -391,14 +915,25 @@ if (typeof window !== "undefined") {
     if (tip) tip.style.opacity = "0";
   }
 
+  // Phần tử bound (lấy từ Thiết lập) → khoá sửa text trực tiếp.
+  function _isBound(el) {
+    return !!el.closest(
+      "[data-cx-bound], #love-story-list, #timeline-list-render, #rsvp-custom-message",
+    );
+  }
+
   // Gửi thông tin dòng (selector + style hiện tại) về trang cha để mở/cập nhật bảng chỉnh.
   function _sendPick(el, selector) {
     const cs = getComputedStyle(el);
+    const txt = (el.textContent || "").trim();
     parent.postMessage(
       {
         type: "cx-text-pick",
         selector,
-        sample: (el.textContent || "").trim().slice(0, 48),
+        sample: txt.slice(0, 48),
+        bound: _isBound(el),
+        textOnly: el.children.length === 0,
+        text: txt.slice(0, 2000),
         computed: {
           fontFamily: cs.fontFamily,
           fontSize: Math.round(parseFloat(cs.fontSize)) || 16,
@@ -413,7 +948,48 @@ if (typeof window !== "undefined") {
     );
   }
 
+  // Nút X "ẩn thành phần" nổi ở góc trên-phải phần tử đang chọn. Bấm → báo trang
+  // cha ẩn (xoá khỏi thiệp). Chỉ 1 nút, bám theo phần tử picked.
+  function _ensureDelBtn() {
+    if (delBtn) return delBtn;
+    delBtn = document.createElement("button");
+    delBtn.id = "cx-del-btn";
+    delBtn.type = "button";
+    delBtn.setAttribute("aria-label", "Ẩn thành phần");
+    delBtn.innerHTML =
+      '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+    delBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (picked)
+        parent.postMessage(
+          { type: "cx-hide", selector: _selector(picked) },
+          "*",
+        );
+    });
+    document.body.appendChild(delBtn);
+    return delBtn;
+  }
+
+  function _positionDelBtn() {
+    if (!picked || !delBtn || delBtn.style.display === "none") return;
+    const r = picked.getBoundingClientRect();
+    delBtn.style.left = r.right - 12 + "px";
+    delBtn.style.top = r.top - 12 + "px";
+  }
+
+  function _showDelBtn() {
+    _ensureDelBtn();
+    delBtn.style.display = "flex";
+    _positionDelBtn();
+  }
+
+  function _hideDelBtn() {
+    if (delBtn) delBtn.style.display = "none";
+  }
+
   function _onClick(e) {
+    if (delBtn && e.target.closest("#cx-del-btn")) return; // để nút X tự xử lý
     const res = _resolveTarget(e.target);
     if (!res) return;
     e.preventDefault();
@@ -424,6 +1000,7 @@ if (typeof window !== "undefined") {
     const sel = _selector(res.el);
     if (res.isImage) _sendImgPick(res.el, sel);
     else _sendPick(res.el, sel);
+    _showDelBtn();
   }
 
   function _init() {
@@ -435,7 +1012,11 @@ if (typeof window !== "undefined") {
       ".cx-edit-picked{outline:2px solid #e11d48!important;outline-offset:-2px!important}" +
       "#cx-edit-tip{position:fixed;z-index:2147483000;pointer-events:none;background:#e11d48;color:#fff;" +
       "font:600 11px/1.4 system-ui,-apple-system,sans-serif;padding:3px 8px;border-radius:6px;white-space:nowrap;" +
-      "transform:translateY(-50%);box-shadow:0 2px 8px rgba(0,0,0,.25);opacity:0;transition:opacity .1s}";
+      "transform:translateY(-50%);box-shadow:0 2px 8px rgba(0,0,0,.25);opacity:0;transition:opacity .1s}" +
+      "#cx-del-btn{position:fixed;z-index:2147483001;width:22px;height:22px;padding:0;border-radius:9999px;" +
+      "background:#000;color:#fff;border:0px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.3);display:none;" +
+      "align-items:center;justify-content:center;cursor:pointer}" +
+      "#cx-del-btn:hover{background:#be123c}";
     document.head.appendChild(style);
 
     tip = document.createElement("div");
@@ -447,6 +1028,9 @@ if (typeof window !== "undefined") {
     document.addEventListener("mousemove", _onMove, true);
     document.addEventListener("mouseleave", _onLeave, true);
     document.addEventListener("click", _onClick, true);
+    // Nút X bám phần tử picked khi cuộn/đổi kích thước.
+    document.addEventListener("scroll", _positionDelBtn, true);
+    window.addEventListener("resize", _positionDelBtn);
 
     window.addEventListener("message", (ev) => {
       const d = ev.data;
@@ -455,6 +1039,29 @@ if (typeof window !== "undefined") {
       if (d.type === "cx-clear-pick" && picked) {
         picked.classList.remove("cx-edit-picked");
         picked = null;
+        _hideDelBtn();
+        return;
+      }
+      // Trang cha vừa mở bảng chỉnh (iframe co lại) → nếu dòng/ảnh đang chỉnh nằm
+      // ngoài vùng nhìn thấy thì cuộn MƯỢT đưa nó vào giữa preview còn thấy.
+      if (d.type === "cx-scroll" && d.selector) {
+        let el = null;
+        try {
+          el = document.querySelector(d.selector);
+        } catch (e) {}
+        if (el) {
+          const r = el.getBoundingClientRect();
+          const vh =
+            window.innerHeight || document.documentElement.clientHeight;
+          const m = 40; // đệm mép để không bị sát viền/bị che
+          if (r.top < m || r.bottom > vh - m) {
+            el.scrollIntoView({
+              behavior: "smooth",
+              block: "center",
+              inline: "nearest",
+            });
+          }
+        }
         return;
       }
       // Trang cha vừa xoá override 1 dòng → tính lại style mặc định của dòng đó,
@@ -472,6 +1079,7 @@ if (typeof window !== "undefined") {
         }
         if (d.isImage) _sendImgPick(el, d.selector);
         else _sendPick(el, d.selector);
+        _showDelBtn();
       }
     });
   }

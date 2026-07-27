@@ -39,7 +39,7 @@
       class="shrink-0 bg-white border-t border-gray-200 shadow-[0_-4px_12px_rgba(0,0,0,0.04)] md:overflow-y-auto md:rounded-xl md:border md:border-gray-200 md:shadow-lg"
     >
       <div
-        class="w-full max-w-4xl mx-auto px-4 py-3 space-y-3 md:px-5 md:py-5 md:space-y-6"
+        class="w-full max-w-4xl mx-auto px-4 pb-3 space-y-3 md:px-5 md:py-5 md:space-y-6"
       >
         <!-- Gợi ý: click chữ trên thiệp để chỉnh riêng (dismissible, nhớ localStorage) -->
         <div
@@ -66,59 +66,68 @@
 
         <!-- Nhóm chỉnh chung (phông + màu toàn thiệp) — ẩn khi mở bảng chỉnh 1 dòng -->
         <div id="theme-main-controls" class="space-y-3 md:space-y-6">
-        <!-- Phông chữ -->
-        <div class="md:space-y-2.5">
-          <p
-            class="hidden md:block text-[11px] font-semibold uppercase tracking-[0.08em] text-gray-400"
-          >
-            Phông chữ
-          </p>
-          <!-- mobile: 2 selector cạnh nhau; md+: xếp dọc trong cột -->
-          <div
-            class="flex items-center gap-2 md:flex-col md:items-stretch md:gap-4"
-          >
-            <div class="flex items-center gap-2 flex-1 min-w-0 md:w-full">
-              <label
-                for="theme-heading-font"
-                class="text-[12px] text-gray-500 shrink-0 whitespace-nowrap md:text-[12.5px] md:w-16 md:text-right"
-                >Tiêu đề</label
-              >
-              <x-combobox
-                id="theme-heading-font"
-                preview-font
-                onchange="onThemeSettingChange()"
-                class="flex-1 min-w-0"
-              ></x-combobox>
-            </div>
-            <div class="flex items-center gap-2 flex-1 min-w-0 md:w-full">
-              <label
-                for="theme-body-font"
-                class="text-[12px] text-gray-500 shrink-0 whitespace-nowrap md:text-[12.5px] md:w-16 md:text-right"
-                >Nội dung</label
-              >
-              <x-combobox
-                id="theme-body-font"
-                preview-font
-                onchange="onThemeSettingChange()"
-                class="flex-1 min-w-0"
-              ></x-combobox>
+          <!-- Khôi phục — MOBILE: pill hồng canh TRÊN-PHẢI (desktop dùng button ở dưới) -->
+          <div class="flex justify-end md:hidden">
+            <button
+              type="button"
+              onclick="resetThemeSetting()"
+              title="Khôi phục phông chữ và màu về mặc định của thiệp"
+              class="cx-le-clear"
+            >
+              <i data-lucide="rotate-ccw" class="w-4 h-4"></i
+              ><span>Khôi phục mặc định</span>
+            </button>
+          </div>
+          <!-- Phông chữ -->
+          <div class="md:space-y-2.5">
+            <p
+              class="hidden md:block text-[11px] font-semibold uppercase tracking-[0.08em] text-gray-400"
+            >
+              Phông chữ
+            </p>
+            <!-- mobile: 2 selector cạnh nhau; md+: xếp dọc trong cột -->
+            <div
+              class="flex items-center gap-2 md:flex-col md:items-stretch md:gap-4"
+            >
+              <div class="flex items-center gap-2 flex-1 min-w-0 md:w-full">
+                <label
+                  for="theme-heading-font"
+                  class="text-[12px] text-gray-500 shrink-0 whitespace-nowrap md:text-[12.5px] md:w-16 md:text-right"
+                  >Tiêu đề</label
+                >
+                <x-combobox
+                  id="theme-heading-font"
+                  preview-font
+                  onchange="onThemeSettingChange()"
+                  class="flex-1 min-w-0"
+                ></x-combobox>
+              </div>
+              <div class="flex items-center gap-2 flex-1 min-w-0 md:w-full">
+                <label
+                  for="theme-body-font"
+                  class="text-[12px] text-gray-500 shrink-0 whitespace-nowrap md:text-[12.5px] md:w-16 md:text-right"
+                  >Nội dung</label
+                >
+                <x-combobox
+                  id="theme-body-font"
+                  preview-font
+                  onchange="onThemeSettingChange()"
+                  class="flex-1 min-w-0"
+                ></x-combobox>
+              </div>
             </div>
           </div>
-        </div>
 
-        <!-- Màu: mỗi phần 1 chip chọn màu tự do -->
-        <div class="md:space-y-3">
-          <p
-            class="hidden md:block text-[11px] font-semibold uppercase tracking-[0.08em] text-gray-400"
-          >
-            Màu sắc
-          </p>
-          <!-- mobile: 4 chip + nút Khôi phục cùng hàng.
-               md+: chip chiếm full ngang (giãn ĐỀU theo width), Khôi phục xuống dòng -->
-          <div class="flex items-start gap-2 md:flex-wrap md:gap-y-3">
-            <div
-              class="flex-1 grid grid-cols-4 gap-2 md:gap-3 md:flex-none md:w-full"
+          <!-- Màu: mỗi phần 1 chip chọn màu tự do -->
+          <div class="md:space-y-3">
+            <p
+              class="hidden md:block text-[11px] font-semibold uppercase tracking-[0.08em] text-gray-400"
             >
+              Màu sắc
+            </p>
+            <!-- mobile: 4 chip + nút Khôi phục cùng hàng.
+               md+: chip chiếm full ngang (giãn ĐỀU theo width), Khôi phục xuống dòng -->
+            <div class="grid grid-cols-4 gap-2 md:gap-3">
               <div class="flex flex-col items-center gap-1.5">
                 <div class="color-chip">
                   <input
@@ -184,37 +193,57 @@
                 >
               </div>
             </div>
-            <!-- Khôi phục — MOBILE: icon vuông + nhãn dưới (khớp 4 cột chip).
-                 Cố ý KHÔNG tròn như chip màu vì đây là hành động, không phải giá trị màu. -->
-            <button
-              type="button"
-              onclick="resetThemeSetting()"
-              title="Khôi phục phông chữ và màu về mặc định của thiệp"
-              class="shrink-0 flex flex-col items-center gap-1.5 group focus:outline-none md:hidden"
-            >
-              <span
-                class="w-8 h-8 rounded-lg bg-gray-50 border border-gray-200 text-gray-400 flex items-center justify-center transition-all group-hover:bg-rose-50 group-hover:border-rose-200 group-hover:text-rose-400 group-active:scale-95 group-focus-visible:ring-2 group-focus-visible:ring-rose-200 group-focus-visible:ring-offset-2"
-              >
-                <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
-              </span>
-              <span
-                class="text-[12px] text-gray-500 leading-none whitespace-nowrap transition-colors group-hover:text-rose-400"
-                >Khôi phục</span
-              >
-            </button>
-            <!-- Khôi phục — DESKTOP: nút button đầy đủ, chiếm nguyên dòng dưới hàng chip -->
-            <button
-              type="button"
-              onclick="resetThemeSetting()"
-              title="Khôi phục phông chữ và màu về mặc định của thiệp"
-              class="hidden md:flex md:w-full md:items-center md:justify-center md:gap-2 md:px-4 md:py-2.5 md:rounded-lg md:border md:border-gray-200 md:bg-white md:text-[13px] md:font-medium md:text-gray-600 md:shadow-sm md:transition-colors md:hover:bg-rose-50 md:hover:border-rose-200 md:hover:text-rose-500 md:active:scale-[0.99] focus:outline-none md:focus-visible:ring-2 md:focus-visible:ring-rose-200 md:focus-visible:ring-offset-2"
-            >
-              <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
-              <span>Khôi phục về mặc định</span>
-            </button>
           </div>
-        </div>
-        <!-- /section Màu sắc -->
+          <!-- /section Màu sắc -->
+
+          <!-- Thêm văn bản: mở bảng chọn mẫu, bấm 1 mẫu → chèn khối vào thiệp -->
+          <div class="cx-addtext">
+            <button
+              type="button"
+              onclick="toggleAddTextPalette()"
+              class="cx-addtext-btn"
+            >
+              <i data-lucide="type" class="!w-[16px] !h-[16px]"></i
+              ><span>Thêm văn bản</span>
+            </button>
+            <div id="cx-addtext-palette" class="hidden cx-addtext-palette">
+              <button
+                type="button"
+                title="Kéo vào thiệp hoặc bấm để thêm"
+                onpointerdown="startPaletteDrag(event,'paragraph')"
+              >
+                <i data-lucide="align-left" class="!w-[16px] !h-[16px]"></i
+                ><span>Văn bản</span>
+              </button>
+              <button
+                type="button"
+                title="Kéo vào thiệp hoặc bấm để thêm"
+                onpointerdown="startPaletteDrag(event,'ordered')"
+              >
+                <i data-lucide="list-ordered" class="!w-[16px] !h-[16px]"></i
+                ><span>Danh sách</span>
+              </button>
+              <button
+                type="button"
+                title="Kéo vào thiệp hoặc bấm để thêm"
+                onpointerdown="startPaletteDrag(event,'bullet')"
+              >
+                <i data-lucide="list" class="!w-[16px] !h-[16px]"></i
+                ><span>Bullets</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Khôi phục — DESKTOP: button đầy đủ, nằm dưới cùng bảng chỉnh chung -->
+          <button
+            type="button"
+            onclick="resetThemeSetting()"
+            title="Khôi phục phông chữ và màu về mặc định của thiệp"
+            class="hidden md:flex w-full items-center justify-center gap-2 h-11 rounded-xl border border-gray-200 bg-white text-[13px] font-medium text-gray-600 shadow-sm transition-all hover:border-rose-300 hover:bg-rose-50 hover:text-rose-500 hover:shadow-md active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-200 focus-visible:ring-offset-2"
+          >
+            <i data-lucide="rotate-ccw" class="!w-[16px] !h-[16px]"></i>
+            <span>Khôi phục mặc định</span>
+          </button>
         </div>
         <!-- /theme-main-controls -->
 
@@ -224,95 +253,158 @@
           class="hidden space-y-3 md:space-y-4 max-h-[52vh] overflow-y-auto md:max-h-none"
         >
           <div class="flex items-center justify-between gap-2">
-            <button type="button" onclick="closeLineEditor()" class="cx-le-back">
-              <i data-lucide="arrow-left" class="w-4 h-4"></i><span>Quay lại</span>
+            <button
+              type="button"
+              onclick="closeLineEditor()"
+              class="cx-le-back"
+            >
+              <i data-lucide="arrow-left" class="w-4 h-4"></i
+              ><span>Quay lại</span>
             </button>
-            <button type="button" onclick="clearLineOverride()" class="cx-le-clear">
-              <i data-lucide="rotate-ccw" class="w-4 h-4"></i><span>Lấy lại mặc định</span>
+            <button
+              type="button"
+              onclick="clearLineOverride()"
+              class="cx-le-clear"
+            >
+              <i data-lucide="rotate-ccw" class="w-4 h-4"></i
+              ><span>Mặc định</span>
             </button>
           </div>
           <p class="text-[12px] text-gray-500">
-            Đang chỉnh:
+            Nội dung đang chọn:
             <span id="cx-le-sample" class="font-medium text-gray-700"></span>
           </p>
 
-          <!-- Nhóm control CHỮ (font/cỡ/màu/kiểu/căn) -->
+          <!-- Nhóm control CHỮ (nội dung/font/cỡ/màu/kiểu/căn) -->
           <div id="cx-le-text" class="space-y-3 md:space-y-4">
-          <!-- Phông -->
-          <div class="cx-le-row">
-            <label class="cx-le-label">Phông</label>
-            <x-combobox
-              id="cx-line-font"
-              preview-font
-              placeholder="Mặc định"
-              onchange="onLineFontChange()"
-              class="flex-1 min-w-0"
-            ></x-combobox>
-          </div>
-
-          <!-- Cỡ chữ -->
-          <div class="cx-le-row">
-            <label class="cx-le-label">Cỡ chữ</label>
-            <div class="cx-le-size">
-              <button type="button" onclick="stepLineSize(-1)" aria-label="Giảm cỡ chữ">−</button>
-              <input
-                id="cx-line-size"
-                type="number"
-                min="8"
-                max="200"
-                readonly
-                tabindex="-1"
-              />
-              <span class="cx-le-unit">px</span>
-              <button type="button" onclick="stepLineSize(1)" aria-label="Tăng cỡ chữ">+</button>
+            <!-- Nội dung — chỉ hiện khi text tĩnh sửa được (bound/không-text-thuần → ẩn hẳn) -->
+            <div id="cx-le-content">
+              <label class="cx-le-label-block">Nội dung</label>
+              <textarea
+                id="cx-line-text"
+                rows="2"
+                oninput="onLineTextChange()"
+                placeholder="Nhập nội dung…"
+                class="cx-le-textarea"
+              ></textarea>
             </div>
-          </div>
-
-          <!-- Màu -->
-          <div class="cx-le-row">
-            <label class="cx-le-label">Màu chữ</label>
-            <div class="color-chip">
-              <input
-                type="text"
-                inputmode="none"
-                id="cx-line-color"
-                class="theme-color-input"
-                aria-label="Màu chữ dòng này"
-              />
+            <!-- Phông -->
+            <div class="cx-le-row">
+              <label class="cx-le-label">Phông</label>
+              <x-combobox
+                id="cx-line-font"
+                preview-font
+                placeholder="Mặc định"
+                onchange="onLineFontChange()"
+                class="flex-1 min-w-0"
+              ></x-combobox>
             </div>
-          </div>
 
-          <!-- Đậm / Nghiêng -->
-          <div class="cx-le-row">
-            <label class="cx-le-label">Kiểu</label>
-            <div class="cx-le-seg">
-              <button type="button" id="cx-line-bold" onclick="toggleLineStyle('bold')" title="Đậm">
-                <i data-lucide="bold" class="w-4 h-4"></i>
-              </button>
-              <button type="button" id="cx-line-underline" onclick="toggleLineStyle('underline')" title="Gạch chân">
-                <i data-lucide="underline" class="w-4 h-4"></i>
-              </button>
-              <button type="button" id="cx-line-italic" onclick="toggleLineStyle('italic')" title="Nghiêng">
-                <i data-lucide="italic" class="w-4 h-4"></i>
-              </button>
+            <!-- Cỡ chữ -->
+            <div class="cx-le-row">
+              <label class="cx-le-label">Cỡ chữ</label>
+              <div class="cx-le-size">
+                <button
+                  type="button"
+                  onclick="stepLineSize(-1)"
+                  aria-label="Giảm cỡ chữ"
+                >
+                  −
+                </button>
+                <input
+                  id="cx-line-size"
+                  type="number"
+                  min="8"
+                  max="200"
+                  readonly
+                  tabindex="-1"
+                />
+                <span class="cx-le-unit">px</span>
+                <button
+                  type="button"
+                  onclick="stepLineSize(1)"
+                  aria-label="Tăng cỡ chữ"
+                >
+                  +
+                </button>
+              </div>
             </div>
-          </div>
 
-          <!-- Căn lề -->
-          <div class="cx-le-row">
-            <label class="cx-le-label">Căn lề</label>
-            <div class="cx-le-seg" id="cx-line-align">
-              <button type="button" data-align="left" onclick="setLineAlign('left')" title="Trái">
-                <i data-lucide="align-left" class="w-4 h-4"></i>
-              </button>
-              <button type="button" data-align="center" onclick="setLineAlign('center')" title="Giữa">
-                <i data-lucide="align-center" class="w-4 h-4"></i>
-              </button>
-              <button type="button" data-align="right" onclick="setLineAlign('right')" title="Phải">
-                <i data-lucide="align-right" class="w-4 h-4"></i>
-              </button>
+            <!-- Màu -->
+            <div class="cx-le-row">
+              <label class="cx-le-label">Màu chữ</label>
+              <div class="color-chip">
+                <input
+                  type="text"
+                  inputmode="none"
+                  id="cx-line-color"
+                  class="theme-color-input"
+                  aria-label="Màu chữ dòng này"
+                />
+              </div>
             </div>
-          </div>
+
+            <!-- Đậm / Nghiêng -->
+            <div class="cx-le-row">
+              <label class="cx-le-label">Kiểu</label>
+              <div class="cx-le-seg">
+                <button
+                  type="button"
+                  id="cx-line-bold"
+                  onclick="toggleLineStyle('bold')"
+                  title="Đậm"
+                >
+                  <i data-lucide="bold" class="w-4 h-4"></i>
+                </button>
+                <button
+                  type="button"
+                  id="cx-line-underline"
+                  onclick="toggleLineStyle('underline')"
+                  title="Gạch chân"
+                >
+                  <i data-lucide="underline" class="w-4 h-4"></i>
+                </button>
+                <button
+                  type="button"
+                  id="cx-line-italic"
+                  onclick="toggleLineStyle('italic')"
+                  title="Nghiêng"
+                >
+                  <i data-lucide="italic" class="w-4 h-4"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Căn lề -->
+            <div class="cx-le-row">
+              <label class="cx-le-label">Căn lề</label>
+              <div class="cx-le-seg" id="cx-line-align">
+                <button
+                  type="button"
+                  data-align="left"
+                  onclick="setLineAlign('left')"
+                  title="Trái"
+                >
+                  <i data-lucide="align-left" class="w-4 h-4"></i>
+                </button>
+                <button
+                  type="button"
+                  data-align="center"
+                  onclick="setLineAlign('center')"
+                  title="Giữa"
+                >
+                  <i data-lucide="align-center" class="w-4 h-4"></i>
+                </button>
+                <button
+                  type="button"
+                  data-align="right"
+                  onclick="setLineAlign('right')"
+                  title="Phải"
+                >
+                  <i data-lucide="align-right" class="w-4 h-4"></i>
+                </button>
+              </div>
+            </div>
           </div>
           <!-- /cx-le-text -->
 
@@ -321,7 +413,13 @@
             <div class="cx-le-row">
               <label class="cx-le-label">Rộng</label>
               <div class="cx-le-size">
-                <button type="button" onclick="stepImgSize('w', -1)" aria-label="Giảm rộng">−</button>
+                <button
+                  type="button"
+                  onclick="stepImgSize('w', -1)"
+                  aria-label="Giảm rộng"
+                >
+                  −
+                </button>
                 <input
                   id="cx-img-w"
                   type="number"
@@ -331,13 +429,25 @@
                   onchange="onImgSizeChange('w')"
                 />
                 <span class="cx-le-unit">px</span>
-                <button type="button" onclick="stepImgSize('w', 1)" aria-label="Tăng rộng">+</button>
+                <button
+                  type="button"
+                  onclick="stepImgSize('w', 1)"
+                  aria-label="Tăng rộng"
+                >
+                  +
+                </button>
               </div>
             </div>
             <div class="cx-le-row">
               <label class="cx-le-label">Cao</label>
               <div class="cx-le-size">
-                <button type="button" onclick="stepImgSize('h', -1)" aria-label="Giảm cao">−</button>
+                <button
+                  type="button"
+                  onclick="stepImgSize('h', -1)"
+                  aria-label="Giảm cao"
+                >
+                  −
+                </button>
                 <input
                   id="cx-img-h"
                   type="number"
@@ -347,11 +457,22 @@
                   onchange="onImgSizeChange('h')"
                 />
                 <span class="cx-le-unit">px</span>
-                <button type="button" onclick="stepImgSize('h', 1)" aria-label="Tăng cao">+</button>
+                <button
+                  type="button"
+                  onclick="stepImgSize('h', 1)"
+                  aria-label="Tăng cao"
+                >
+                  +
+                </button>
               </div>
             </div>
             <label class="cx-le-check">
-              <input type="checkbox" id="cx-img-ratio" checked onchange="onImgRatioToggle()" />
+              <input
+                type="checkbox"
+                id="cx-img-ratio"
+                checked
+                onchange="onImgRatioToggle()"
+              />
               <span>Giữ nguyên tỉ lệ</span>
             </label>
           </div>

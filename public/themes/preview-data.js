@@ -265,6 +265,13 @@ if (window.location.search.includes("preview=true")) {
               applyThemeSetting(data.theme_setting);
             }
             renderWedding(data);
+            // Áp nội dung text đã sửa (sau render)
+            if (typeof applyTextOverrides === "function") {
+              applyTextOverrides(data.theme_setting);
+            }
+            if (typeof applyCustomBlocks === "function") {
+              applyCustomBlocks(data.theme_setting);
+            }
             return;
           }
         } catch (e) {}

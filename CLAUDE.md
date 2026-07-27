@@ -78,6 +78,27 @@ Trang này KHÔNG đặt panel và script trong HTML tĩnh: `loader.js` fetch `p
 - Function declaration chỉ hoist **trong cùng một file**. Lệnh top-level (vd `window.foo = foo`) chỉ được tham chiếu thứ khai báo ở file nạp **trước hoặc cùng file** — nếu không sẽ `ReferenceError`.
 - File dùng chung trong `core/` mà bind vào DOM của trang này cần giữ nhánh dự phòng: `__cxOnReady` → `readyState` → gọi thẳng, để các trang khác không đổi hành vi.
 
+### Theme thiệp mới (`public/themes/*`)
+Để một theme mới chạy đúng với tính năng **chỉnh giao diện** (font/màu chung, sửa/ẩn text từng phần, thêm khối văn bản) trong tab Giao diện:
+
+**Bắt buộc:**
+- **Có `#main-card`** — khung thiệp, dùng cho `background_color` và làm gốc cho runtime chỉnh + custom blocks. Không có thì các tính năng ẩn/sửa/thêm khối không chạy.
+- **Container các "mục" là flex-column** (`display:flex; flex-direction:column`) — để khối văn bản thêm mới chèn được GIỮA các mục (định vị bằng `flex order`, append cuối DOM để không đổi `nth-child`). Không phải flex-col → khối rơi xuống cuối.
+- **Bind dữ liệu qua `setText(id, value)`** (`core/utils.js`) — helper tự gắn `data-cx-bound` để KHÓA sửa text trực tiếp (text từ Thiết lập chỉ sửa trong Thiết lập). Bind thẳng `el.textContent =` sẽ KHÔNG bị khóa → user sửa được và ghi đè giá trị Thiết lập.
+- **Đi qua luồng render chuẩn**: `applyThemeSetting` (trước render) → `renderWedding` → `applyTextOverrides` → `applyCustomBlocks`. Dùng `loadWeddingData` (public, `core/helpers/wedding-helper.js`) và `preview-data.js` (preview) như các theme hiện có — theme chỉ cần cung cấp `renderWedding`.
+- **Dùng đúng bộ class font/màu** mà `theme-setting-helper.js` nhắm (các hằng `HEADING_FONT_SELECTORS`, `BODY_*`, `*_COLOR_SELECTORS`, `BACKGROUND_COLOR_SELECTORS`). Class khác → phải **bổ sung vào các hằng đó**.
+
+**Nên có (ổn định hơn):**
+- Section có `id` (`#section-...`) → neo custom block + selector text-override bền, nhất là khi cấu trúc nhà trai/nhà gái khác nhau.
+- Id chuẩn cho list động: `#timeline-list-render`, `#love-story-list`, `#rsvp-custom-message` (đã nằm trong `_CX_BOUND_SEL` để khóa). Id khác → thêm vào `_CX_BOUND_SEL`.
+- Text muốn cho sửa nội dung nên là **text thuần** (không lồng icon/thẻ con) — có con thì mục "Nội dung" tự ẩn.
+
+**Khi thêm theme mới, cập nhật trong `theme-setting-helper.js`:**
+- `THEME_PRESETS["<tên-theme>"]` — font/màu GỐC + `swatches` (dùng cho "Khôi phục mặc định" và bảng chọn màu).
+- Mở rộng các hằng `*_SELECTORS` nếu theme dùng class khác; `_CX_BOUND_SEL` nếu id list động khác.
+
+(Không cần đụng `edit=1`/runtime — loader của `invitation-setup` tự thêm; theme không biết vẫn chạy.)
+
 ### Auth
 - Không tự parse `localStorage` thủ công để lấy user — token supabase-js v2 có thể là `base64-...` và sẽ vỡ. Dùng API của supabase client.
 

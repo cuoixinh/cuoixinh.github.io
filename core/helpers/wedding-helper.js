@@ -31,6 +31,15 @@ async function loadWeddingData(weddingSlug, renderCallback) {
     }
 
     renderCallback(wedding);
+
+    // Áp NỘI DUNG text đã sửa (phải sau render vì đổi textContent, không phải CSS)
+    if (typeof applyTextOverrides === "function") {
+      applyTextOverrides(wedding.theme_setting);
+    }
+    // Render các khối văn bản người dùng tự thêm
+    if (typeof applyCustomBlocks === "function") {
+      applyCustomBlocks(wedding.theme_setting);
+    }
   } catch (error) {
     console.error("Lỗi load wedding data:", error);
     if (!isPreviewMode()) {

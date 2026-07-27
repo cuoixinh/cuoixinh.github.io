@@ -39,6 +39,10 @@ function setText(id, value, placeholder = "") {
   const el = document.getElementById(id);
   if (!el) return;
   el.textContent = value || placeholder;
+  // Đánh dấu "văn bản bind từ dữ liệu/thiết lập" để trình chỉnh giao diện KHÓA sửa
+  // trực tiếp (muốn đổi phải vào tab Thiết lập). setText dùng chung mọi theme nên
+  // 1 chỗ này phủ gần hết text bound.
+  el.setAttribute("data-cx-bound", "1");
 }
 
 /**
