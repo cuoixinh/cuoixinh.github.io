@@ -61,7 +61,7 @@ function buildMobileQRWidget() {
         id="qr-mobile-canvas"
         class="w-[150px] h-[150px] mx-auto bg-white rounded-xl border border-gray-100 flex items-center justify-center p-1.5"
       ><i class="fas fa-spinner fa-spin text-gray-300 text-xl"></i></div>
-      <p class="font-inter text-[10px] text-gray-400 mt-2 leading-snug">Quét mã để mở nhanh trên di động</p>
+      <p id="qr-mobile-hint" class="font-inter text-[10px] text-gray-400 mt-2 leading-snug">Quét mã để mở nhanh trên di động</p>
     </div>
     <button
       id="qr-mobile-mini"
@@ -86,18 +86,62 @@ function buildMobileQRWidget() {
 }
 
 /**
- * Render sẵn mã QR của link hiện tại vào card (giữ nguyên tên khách
- * đã cá nhân hoá trong URL nếu có).
+ * Link sẽ nạp vào mã QR.
+ *
+ * Trang thiệp thật (và preview mẫu demo): URL hiện tại mở ở máy nào cũng ra đúng
+ * nội dung đó → dùng thẳng, giữ nguyên tên khách đã cá nhân hoá trong URL nếu có.
+ *
+ * Preview dữ liệu thật (`source=live`, trong trang Thiết lập): nội dung lấy từ
+ * `sessionStorage.preview_data` của CHÍNH trình duyệt này. Máy khác quét URL iframe
+ * sẽ không có sessionStorage đó nên rơi về dữ liệu demo — sai hoàn toàn thứ đang
+ * xem. Vì vậy link thiệp thật do trang Thiết lập truyền sang qua `?qr=` (bản đã
+ * lưu gần nhất trên hệ thống); không có (thiệp chưa lưu lên hệ thống) → không dựng
+ * QR, hiện lời nhắc thay thế.
+ */
+function getQRTargetUrl() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("source") !== "live") return window.location.href;
+  return params.get("qr") || null; // URLSearchParams đã tự giải mã
+}
+
+/**
+ * Thiệp chưa lên hệ thống → máy khác không tải được nội dung đang xem.
+ * Nói rõ lý do thay vì đưa mã QR dẫn tới bản demo.
+ */
+function renderMobileQRUnavailable() {
+  const qrContainer = document.getElementById("qr-mobile-canvas");
+  if (!qrContainer) return;
+  qrContainer.innerHTML = `
+    <div class="text-center px-2">
+      <i class="fas fa-cloud-arrow-up text-gray-300 text-xl mb-1.5"></i>
+      <p class="font-inter text-[10px] text-gray-500 leading-snug">Xuất bản để xem trên điện thoại</p>
+    </div>
+  `;
+  const hint = document.getElementById("qr-mobile-hint");
+  if (hint) {
+    hint.textContent = "Thiệp chưa xuất bản nên máy khác chưa xem được.";
+  }
+}
+
+/**
+ * Render sẵn mã QR vào card. Không cần bấm gì.
  */
 async function renderMobileQR() {
   const qrContainer = document.getElementById("qr-mobile-canvas");
   if (!qrContainer || qrMobileRendered) return;
 
+  const target = getQRTargetUrl();
+  if (!target) {
+    renderMobileQRUnavailable();
+    qrMobileRendered = true;
+    return;
+  }
+
   try {
     await loadQRCodeLib();
     qrContainer.innerHTML = "";
     new QRCode(qrContainer, {
-      text: window.location.href,
+      text: target,
       width: 150,
       height: 150,
       colorDark: "#000000",

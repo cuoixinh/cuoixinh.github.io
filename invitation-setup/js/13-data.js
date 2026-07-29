@@ -421,6 +421,10 @@ async function saveAll(overrides = {}, label = "Đang lưu...") {
     const payload = {
       id: WEDDING_ID,
       slug: WEDDING_SLUG,
+      // theme không phải field của <form> nên phải gửi tay: thiếu nó thì đổi mẫu
+      // xong lưu, DB vẫn giữ mẫu cũ → thiệp thật (và QR xem trên điện thoại)
+      // hiện sai mẫu so với màn đang chỉnh.
+      theme: WEDDING_THEME,
       theme_setting: _themeSetting,
     };
 

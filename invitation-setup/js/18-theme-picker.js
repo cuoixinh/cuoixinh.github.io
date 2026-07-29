@@ -111,11 +111,13 @@ function _applyThemeChange(newTheme, displayName) {
   sessionStorage.setItem("draft_theme", newTheme);
   if (displayName) sessionStorage.setItem("draft_template_name", displayName);
   _updateHeaderThemeBadge(displayName);
+  // Mẫu mới chỉ nằm trong bộ nhớ tới khi bấm Lưu → đánh dấu chưa lưu để nút Lưu
+  // sáng lên và QR "xem trên điện thoại" báo đúng là đang lệch với bản trên hệ thống.
+  _scheduleAutoSave("theme");
   if (_isPreviewActive) {
     _savePreviewData();
     const iframe = document.getElementById("preview-iframe");
-    if (iframe)
-      iframe.src = `/public/themes/${WEDDING_THEME}/?preview=true&source=live&isGroom=true&t=${Date.now()}`;
+    if (iframe) iframe.src = _previewIframeSrc();
   }
   closeThemePicker();
   showToast("✅ Đã đổi mẫu thiệp");

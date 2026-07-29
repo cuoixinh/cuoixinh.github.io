@@ -88,6 +88,42 @@ function _savePreviewData() {
   sessionStorage.setItem("preview_data", JSON.stringify(data));
 }
 
+// ============= LINK CHO QR "XEM TRÊN ĐIỆN THOẠI" =============
+
+// Preview đọc dữ liệu từ sessionStorage của trình duyệt này, nên URL iframe quét
+// bằng máy khác chỉ ra bản demo. Máy khác chỉ xem được khi thiệp đã nằm trên hệ
+// thống → trả link thiệp thật, chưa lưu DB thì trả "" để iframe ẩn mã QR đi.
+function _mobilePreviewUrl() {
+  if (_isLocalDraft || !WEDDING_SLUG) return "";
+  // Clean URL (/slug) do 404.html của GitHub Pages điều hướng — chạy local không
+  // có nên trỏ thẳng vào theme để quét từ điện thoại trong cùng mạng LAN vẫn mở được.
+  const isLocal = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
+  const slug = encodeURIComponent(WEDDING_SLUG);
+  return isLocal
+    ? `${DOMAIN}/public/themes/${WEDDING_THEME}/?slug=${slug}&isGroom=true`
+    : `${DOMAIN}/${slug}?isGroom=true`;
+}
+
+// src iframe preview. extra: tham số riêng của từng tab (vd "&edit=1").
+function _previewIframeSrc(extra = "") {
+  const qrUrl = _mobilePreviewUrl();
+  const qrParam = qrUrl ? `&qr=${encodeURIComponent(qrUrl)}` : "";
+  return `/public/themes/${WEDDING_THEME}/?preview=true&source=live${extra}&isGroom=true${qrParam}&t=${Date.now()}`;
+}
+
+// Lưu xong trong lúc đang mở tab Xem trước mà link QR đổi (thiệp lần đầu lên hệ
+// thống, hoặc đổi slug) → nạp lại iframe cho QR trỏ đúng. Link không đổi thì thôi:
+// điện thoại vốn xem bản đã lưu gần nhất nên không cần reload sau mỗi lần lưu.
+function _refreshPreviewQR() {
+  const iframe = document.getElementById("preview-iframe");
+  if (!_isPreviewActive || !iframe || !iframe.src) return;
+  const currentQr =
+    new URL(iframe.src, location.origin).searchParams.get("qr") || "";
+  if (currentQr === _mobilePreviewUrl()) return;
+  _savePreviewData();
+  iframe.src = _previewIframeSrc();
+}
+
 // ============= BOTTOM NAV TABS =============
 
 function _setActiveTab(tabId) {
@@ -196,6 +232,7 @@ function _setDirty(dirty, tab) {
     if (tab) _dirtyTabs.add(tab);
   } else {
     _dirtyTabs.clear();
+    _refreshPreviewQR();
   }
 
   const draft = document.getElementById("tab-draft");
@@ -263,7 +300,7 @@ function switchTab(tab) {
     _isPreviewActive = true;
     _savePreviewData();
     const iframe = document.getElementById("preview-iframe");
-    iframe.src = `/public/themes/${WEDDING_THEME}/?preview=true&source=live&isGroom=true&t=${Date.now()}`;
+    iframe.src = _previewIframeSrc();
     formPanel.classList.add("hidden");
     previewPanel.classList.remove("hidden");
     configPanel.classList.add("hidden");
@@ -286,7 +323,7 @@ function switchTab(tab) {
     const tIframe = document.getElementById("theme-preview-iframe");
     if (tIframe) {
       // edit=1 → bật runtime chỉnh chi tiết từng dòng chữ (chỉ ở tab Giao diện).
-      tIframe.src = `/public/themes/${WEDDING_THEME}/?preview=true&source=live&edit=1&isGroom=true&t=${Date.now()}`;
+      tIframe.src = _previewIframeSrc("&edit=1");
     }
     if (themePanel) themePanel.classList.remove("hidden");
     _initThemePanel();
