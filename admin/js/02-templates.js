@@ -350,10 +350,58 @@ async function deleteTemplate(templateId, displayName) {
 // ============= SCAN IMAGE IFRAME =============
 const SCAN_SERVER = "http://127.0.0.1:3001";
 
+// Có giá trị khi modal đang ở nhánh "scan server chưa bật" và luồng lưu đang
+// chờ người dùng quyết định. Đóng modal lúc đó = huỷ, chứ không phải chỉ tắt
+// cửa sổ — nếu không luồng lưu sẽ treo mãi.
+let scanHelpResolve = null;
+
+function settleScanHelp(goOn) {
+  if (!scanHelpResolve) return;
+  const resolve = scanHelpResolve;
+  scanHelpResolve = null;
+  document.getElementById("scan-continue-btn").classList.add("hidden");
+  document.getElementById("scan-dismiss-btn").textContent = "Đóng";
+  resolve(goOn);
+}
+
 function closeScanModal() {
   const m = document.getElementById("modal-scan");
   m.classList.add("hidden");
   m.classList.remove("flex");
+  settleScanHelp(false);
+}
+
+function scanHelpContinue() {
+  const m = document.getElementById("modal-scan");
+  m.classList.add("hidden");
+  m.classList.remove("flex");
+  settleScanHelp(true);
+}
+
+// Báo "scan server chưa bật" bằng CHÍNH modal Scan Image IFrame, cùng khung log
+// đen, thay vì confirm() native lạc lõng. Trả về true nếu người dùng chọn đi
+// tiếp (lưu nhưng bỏ scan), false nếu huỷ để đi bật server.
+function showScanServerHelp() {
+  return new Promise((resolve) => {
+    scanHelpResolve = resolve;
+
+    const m = document.getElementById("modal-scan");
+    m.classList.remove("hidden");
+    m.classList.add("flex");
+    document.getElementById("scan-log").innerHTML = "";
+    document.getElementById("scan-done-bar").classList.add("hidden");
+    document.getElementById("scan-close-btn").style.cssText = "";
+    document.getElementById("scan-continue-btn").classList.remove("hidden");
+    document.getElementById("scan-dismiss-btn").textContent = "Huỷ";
+
+    appendScanLog("❌ Scan server chưa chạy ở " + SCAN_SERVER, "text-red-400");
+    appendScanLog(" ");
+    appendScanLog("Mở terminal ở thư mục dự án và chạy:", "text-yellow-300");
+    appendScanLog("    cd scripts && npm run server", "text-white font-bold");
+    appendScanLog(" ");
+    appendScanLog("Bật xong thì bấm \"Huỷ\" rồi Lưu lại để có cả ảnh thumbnail.", "text-gray-300");
+    appendScanLog("Hoặc \"Vẫn lưu, bỏ scan\" để ghi dữ liệu ngay, thumbnail giữ ảnh cũ.", "text-gray-300");
+  });
 }
 
 // templateNames (tuỳ chọn): mảng tên template cần scan — dùng khi gọi tự động
@@ -374,6 +422,9 @@ function startScanImages(templateNames) {
   document.getElementById("scan-log").innerHTML = "";
   document.getElementById("scan-done-bar").classList.add("hidden");
   document.getElementById("scan-close-btn").style.cssText = "pointer-events:none;opacity:0.4";
+  // Modal dùng chung với showScanServerHelp() — dọn lại footer về dạng scan.
+  document.getElementById("scan-continue-btn").classList.add("hidden");
+  document.getElementById("scan-dismiss-btn").textContent = "Đóng";
 
   appendScanLog("⏳ Đang kết nối scan server...", "text-yellow-300");
 

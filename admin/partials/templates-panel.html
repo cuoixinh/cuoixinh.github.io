@@ -324,8 +324,12 @@
       </div>
       <span id="scan-done-label" class="text-xs text-gray-500 whitespace-nowrap"></span>
     </div>
-    <div class="flex justify-end">
-      <button onclick="closeScanModal()" class="px-4 py-2 border border-gray-200 rounded-lg text-sm hover:bg-gray-50">Đóng</button>
+    <!-- "Vẫn lưu" chỉ hiện ở nhánh báo scan server chưa bật (showScanServerHelp),
+         lúc scan chạy bình thường thì ẩn. -->
+    <div class="flex justify-end gap-2">
+      <button id="scan-continue-btn" onclick="scanHelpContinue()"
+        class="hidden px-4 py-2 bg-rose-400 hover:bg-rose-500 text-white rounded-lg text-sm">Vẫn lưu, bỏ scan</button>
+      <button id="scan-dismiss-btn" onclick="closeScanModal()" class="px-4 py-2 border border-gray-200 rounded-lg text-sm hover:bg-gray-50">Đóng</button>
     </div>
   </div>
 </div>

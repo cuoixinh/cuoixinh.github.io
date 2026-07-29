@@ -1038,6 +1038,19 @@ function siRemoveLoveStoryImage(idx) {
 
 // ============= Lưu vào ổ đĩa =============
 
+// Scan server (scripts/server.js) phải chạy tay ở terminal nên rất hay quên.
+// Server chỉ phục vụ /scan, path khác trả 404 — nhưng vẫn kèm CORS header nên
+// fetch RESOLVE là server sống, REJECT là chưa bật. Không dùng EventSource để
+// dò vì nó tự retry ngầm.
+async function siScanServerUp(timeoutMs = 1500) {
+  try {
+    await fetch(`${SCAN_SERVER}/ping`, { signal: AbortSignal.timeout(timeoutMs) });
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
 async function siWriteFile(dirHandle, filename, blob) {
   const fh = await dirHandle.getFileHandle(filename, { create: true });
   const writable = await fh.createWritable();
@@ -1149,7 +1162,7 @@ async function siResumeSaveIfInterrupted() {
   } catch (e) {}
 
   showToast(`⏳ Lần lưu trước chưa xong — đang ghi tiếp (vòng ${attempts}/${SI_MAX_RESUME})`);
-  await saveSampleImages();
+  await saveSampleImages({ scan: false });
 }
 
 // Ghi RIÊNG phần chữ vào data.json, giữ nguyên tham chiếu ảnh đang có trên
@@ -1212,10 +1225,21 @@ async function siWipeOtherImages(dirHandle, keepFiles) {
   return toDelete.length;
 }
 
-async function saveSampleImages() {
+// scan: chỉ true khi người dùng TỰ bấm "Lưu vào ổ đĩa" (nút không truyền tham
+// số). Nhánh ghi tiếp tự động truyền false — đừng hỏi han lúc người ta chỉ vừa
+// chọn theme, cũng đừng bật modal scan mà họ không hề bấm gì.
+async function saveSampleImages({ scan = true } = {}) {
   if (!siThemeHandle || !siCurrentTheme) {
     showToast("❌ Chưa chọn theme hoặc chưa kết nối thư mục");
     return;
+  }
+
+  // Hỏi NGAY ĐẦU, trước khi chạm vào đĩa. Báo ở cuối thì vô dụng: lúc đó ảnh đã
+  // ghi ra, Live Server thấy file mới là reload trang, popup biến mất trước khi
+  // đọc kịp. Ở đây chưa file nào đổi nên trang còn đứng yên.
+  if (scan && !(await siScanServerUp())) {
+    if (!(await showScanServerHelp())) return;
+    scan = false;
   }
 
   // File hỏng mà vẫn muốn lưu → giữ lại nguyên văn bản cũ đã, đừng ghi đè mất.
@@ -1327,7 +1351,7 @@ async function saveSampleImages() {
 
     // Ảnh demo vừa đổi → chụp lại thumbnail preview của template này (dùng
     // chung "Scan Image IFrame" ở tab Templates, xem 02-templates.js).
-    if (typeof startScanImages === "function") {
+    if (scan && typeof startScanImages === "function") {
       startScanImages([siCurrentTheme]);
     }
   } catch (e) {
