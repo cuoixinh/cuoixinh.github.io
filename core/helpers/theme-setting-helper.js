@@ -224,7 +224,8 @@ function _cxSectionsContainer() {
   let best = null,
     bestN = -1;
   for (const child of card.children) {
-    if (child.classList && child.classList.contains("cx-custom-block")) continue;
+    if (child.classList && child.classList.contains("cx-custom-block"))
+      continue;
     const n = child.querySelectorAll(
       "[id^='section-'],[id^='couple-'],[id^='invite-'],[id^='ceremony'],[id^='party']",
     ).length;
@@ -307,10 +308,38 @@ function _cxAnchorSelector(el) {
   return parts.join(" > ");
 }
 
+// Khối đang chọn: hiện viền nét đứt + 2 nút (kéo giữa-trên, xoá phải-trên).
+// Bấm ra ngoài thì ẩn, bấm lại vào khối thì hiện lại. Giữ theo id để _cxRender()
+// dựng lại DOM vẫn còn trạng thái.
+let _cxActiveId = null;
+let _cxOutsideBound = false;
+
+function _cxSetActive(id) {
+  _cxActiveId = id || null;
+  document.querySelectorAll(".cx-custom-block").forEach((n) => {
+    n.classList.toggle(
+      "cx-cb-active",
+      n.getAttribute("data-cb-id") === _cxActiveId,
+    );
+  });
+}
+
+function _cxBindOutsideClick() {
+  if (_cxOutsideBound) return;
+  _cxOutsideBound = true;
+  document.addEventListener("pointerdown", (e) => {
+    const t = e.target;
+    if (t && t.closest && t.closest(".cx-custom-block")) return;
+    if (_cxActiveId) _cxSetActive(null);
+  });
+}
+
 function _cxBuildBlockNode(b, edit) {
   const wrap = document.createElement("div");
   wrap.className = "cx-custom-block";
   wrap.setAttribute("data-cb-id", b.id);
+  if (edit) wrap.classList.add("cx-cb-edit");
+  if (edit && b.id === _cxActiveId) wrap.classList.add("cx-cb-active");
   let body;
   if (b.type === "ordered" || b.type === "bullet") {
     body = document.createElement(b.type === "ordered" ? "ol" : "ul");
@@ -326,14 +355,36 @@ function _cxBuildBlockNode(b, edit) {
     body.textContent = typeof b.content === "string" ? b.content : "Văn bản";
   }
   body.className = "cx-cb-body";
+  // id ổn định (giống nhau ở edit/preview/public) → selector "#cb_xxx" dùng cho
+  // text_overrides font/cỡ/màu. data-cx-bound: nội dung khối do model quản (sửa
+  // trực tiếp trên thiệp) nên khoá mục "Nội dung" ở bảng chỉnh chi tiết và không
+  // để applyTextOverrides ghi đè.
+  body.id = b.id;
+  body.setAttribute("data-cx-bound", "1");
   if (edit) {
     body.setAttribute("contenteditable", "true");
     body.addEventListener("input", () => _cxOnEdit(b.id));
+    // Bấm vào khối → chọn khối + mở luôn bảng chỉnh chi tiết cho chữ trong khối
+    // (bấm vào 2 nút công cụ thì bỏ qua, chúng tự xử lý).
+    wrap.addEventListener("pointerdown", (e) => {
+      if (e.target && e.target.closest && e.target.closest(".cx-cb-tools"))
+        return;
+      _cxSetActive(b.id);
+      if (window.__cxPickBlockBody) window.__cxPickBlockBody(body);
+    });
     const tools = document.createElement("div");
     tools.className = "cx-cb-tools";
+    // Icon vẽ bằng SVG (glyph ⠿ / × mỗi máy một kiểu, canh giữa không đều).
+    // Nút kéo dùng đúng icon grip-vertical như tay nắm ở bảng chọn mẫu.
     tools.innerHTML =
-      '<button type="button" class="cx-cb-drag" title="Kéo để di chuyển">⠿</button>' +
-      '<button type="button" class="cx-cb-del" title="Xoá">×</button>';
+      '<button type="button" class="cx-cb-drag" title="Kéo để di chuyển" aria-label="Kéo để di chuyển">' +
+      '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+      '<circle cx="9" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="19" r="1"/>' +
+      '<circle cx="15" cy="5" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="19" r="1"/>' +
+      "</svg></button>" +
+      '<button type="button" class="cx-cb-del" title="Xoá" aria-label="Xoá khối">' +
+      '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>' +
+      "</button>";
     tools.querySelector(".cx-cb-del").addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
@@ -358,6 +409,7 @@ function _cxRender() {
     el.removeAttribute("data-cx-ord");
   });
   const edit = _isEditMode();
+  if (edit) _cxBindOutsideClick();
 
   // Chèn từng block vào PARENT của mốc (afterAnchor). Append cuối parent → không
   // đổi nth-child của các con thật trong parent đó (giữ text-override/ẩn ổn định).
@@ -433,8 +485,14 @@ function _cxOnEdit(id) {
 
 function _cxDelete(id) {
   _cxBlocks = _cxBlocks.filter((b) => b.id !== id);
+  if (_cxActiveId === id) _cxActiveId = null;
   _cxRender();
   _cxReport();
+  // Bảng chỉnh chi tiết có thể đang trỏ vào khối vừa xoá → bảo trang cha đóng.
+  try {
+    if (window.top !== window)
+      parent.postMessage({ type: "cx-line-close" }, "*");
+  } catch (e) {}
 }
 
 function _cxAddAt(type, anchorEl) {
@@ -448,6 +506,7 @@ function _cxAddAt(type, anchorEl) {
     content,
     afterAnchor: anchorEl ? _cxAnchorSelector(anchorEl) : null,
   });
+  _cxActiveId = id; // khối vừa thêm → hiện sẵn viền + nút
   _cxRender();
   _cxReport();
   const body = document.querySelector(
@@ -456,6 +515,8 @@ function _cxAddAt(type, anchorEl) {
   if (body) {
     body.scrollIntoView({ behavior: "smooth", block: "center" });
     body.focus();
+    // Thêm/thả xong → mở luôn bảng chỉnh chi tiết (phông, cỡ, màu…) cho khối mới
+    if (window.__cxPickBlockBody) window.__cxPickBlockBody(body);
   }
 }
 
@@ -572,6 +633,9 @@ function _cxDragEnd() {
   b.afterAnchor = anchorEl ? _cxAnchorSelector(anchorEl) : null;
   _cxRender();
   _cxReport();
+  // Kéo xong → mở bảng chỉnh chi tiết cho khối vừa đặt (như lúc mới thêm)
+  const body = document.getElementById(id);
+  if (body && window.__cxPickBlockBody) window.__cxPickBlockBody(body);
 }
 
 function _cxEnsureStyle() {
@@ -583,11 +647,25 @@ function _cxEnsureStyle() {
     ".cx-cb-body{outline:none}" +
     ".cx-custom-block ol,.cx-custom-block ul{display:inline-block;text-align:left;padding-left:1.5em;margin:0}" +
     ".cx-custom-block ol{list-style:decimal}.cx-custom-block ul{list-style:disc}" +
-    ".cx-cb-tools{position:absolute;top:-12px;right:-6px;display:flex;gap:6px;z-index:6}" +
-    ".cx-cb-tools button{width:26px;height:26px;border-radius:9999px;border:2px solid #fff;color:#fff;font:600 15px/1 system-ui,sans-serif;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;padding:0}" +
-    ".cx-cb-drag{background:#6b7280;cursor:grab;touch-action:none}" +
-    ".cx-cb-drag:active{cursor:grabbing}" +
-    ".cx-cb-del{background:#e11d48}" +
+    // Viền nét đứt + 2 nút CHỈ hiện khi khối đang được chọn (bấm ra ngoài là ẩn).
+    // outline-offset dương để viền ôm ngoài, không chạm chữ; outline không chiếm
+    // chỗ nên không đẩy layout của thiệp.
+    // Chỉ ở chế độ chỉnh mới chừa khoảng đệm, để nút kéo (giữa-trên) không sát
+    // chữ. Trang public giữ nguyên khoảng cách gốc của thiệp.
+    ".cx-cb-edit{padding:12px 0}" +
+    ".cx-cb-active{outline:1px dashed #e11d48;outline-offset:4px}" +
+    ".cx-cb-tools{position:absolute;inset:0;pointer-events:none;z-index:6;display:none}" +
+    ".cx-cb-active>.cx-cb-tools{display:block}" +
+    // Nút tròn 22px, kiểu giống nút X "ẩn thành phần" (#cx-del-btn).
+    // Selector 2 class để không bị rule chung (.cx-cb-tools button) đè mất.
+    ".cx-cb-tools button{pointer-events:auto;position:absolute;top:-15px;width:22px;height:22px;border-radius:9999px;box-shadow:0 2px 6px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;padding:0;line-height:0;cursor:pointer;transition:background .15s}" +
+    ".cx-cb-tools svg{display:block}" +
+    // Kéo: giữa-trên, nền trắng + 6 chấm xám như tay nắm trong bảng chọn mẫu
+    ".cx-cb-tools .cx-cb-drag{left:50%;transform:translateX(-50%);background:#fff;color:#6b7280;border:1px solid #e5e7eb;cursor:grab;touch-action:none}" +
+    ".cx-cb-tools .cx-cb-drag:active{cursor:grabbing}" +
+    // Xoá: phải-trên, nền đen chữ trắng
+    ".cx-cb-tools .cx-cb-del{right:-8px;background:#000;color:#fff;border:0}" +
+    ".cx-cb-tools .cx-cb-del:hover{background:#be123c}" +
     ".cx-cb-dropline{position:absolute;left:0;right:0;height:3px;background:#e11d48;border-radius:2px;z-index:2147483000;pointer-events:none;display:none}";
   document.head.appendChild(s);
 }
@@ -603,7 +681,9 @@ function applyCustomBlocks(setting) {
     }
   }
   const arr =
-    setting && Array.isArray(setting.custom_blocks) ? setting.custom_blocks : [];
+    setting && Array.isArray(setting.custom_blocks)
+      ? setting.custom_blocks
+      : [];
   _cxBlocks = arr.map((b) => ({ ...b }));
   _cxRender();
 }
@@ -1003,13 +1083,27 @@ if (typeof window !== "undefined") {
     _showDelBtn();
   }
 
+  // Khối văn bản tự thêm là contenteditable nên _isEditable() bỏ qua (không bắt
+  // hover/click như chữ thường). Custom-block gọi hàm này để mở bảng chỉnh chi
+  // tiết cho chữ trong khối; viền + nút của khối do chính nó lo (.cx-cb-active)
+  // nên ở đây bỏ picked/nút X để khỏi chồng 2 lớp viền.
+  window.__cxPickBlockBody = function (el) {
+    if (!el) return;
+    if (picked) picked.classList.remove("cx-edit-picked");
+    picked = null;
+    _hideDelBtn();
+    _sendPick(el, _selector(el));
+  };
+
   function _init() {
     const style = document.createElement("style");
     // outline-offset ÂM: vẽ viền VÀO TRONG element để không bị ancestor có
     // overflow (vd couple-names nằm trong .overflow-x-auto) cắt mất một cạnh.
     style.textContent =
-      ".cx-edit-hover{outline:2px dashed rgba(244,63,94,.7)!important;outline-offset:-2px!important;cursor:pointer!important}" +
-      ".cx-edit-picked{outline:2px solid #e11d48!important;outline-offset:-2px!important}" +
+      // Rê chuột: nét đứt XÁM 1px. Đang chọn: nét đứt MÀU 1px (đồng nhất với
+      // khối văn bản .cx-cb-active).
+      ".cx-edit-hover{outline:1px dashed #9ca3af!important;outline-offset:-2px!important;cursor:pointer!important}" +
+      ".cx-edit-picked{outline:1px dashed #e11d48!important;outline-offset:-2px!important}" +
       "#cx-edit-tip{position:fixed;z-index:2147483000;pointer-events:none;background:#e11d48;color:#fff;" +
       "font:600 11px/1.4 system-ui,-apple-system,sans-serif;padding:3px 8px;border-radius:6px;white-space:nowrap;" +
       "transform:translateY(-50%);box-shadow:0 2px 8px rgba(0,0,0,.25);opacity:0;transition:opacity .1s}" +

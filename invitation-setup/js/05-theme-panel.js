@@ -100,55 +100,76 @@ function _initColorPickers() {
     const el = document.getElementById(id);
     if (!el) return;
     el.addEventListener("input", () => onThemeSettingChange());
-    // Coloris định vị xong trong chính handler click của nó → chờ hết frame
-    // rồi mới căn lại, nếu không sẽ bị nó ghi đè.
-    ["click", "focus"].forEach((evt) =>
-      el.addEventListener(evt, () => {
-        _openChip = el;
-        requestAnimationFrame(() => _clampPickerToChip(el));
-      }),
-    );
+    el.addEventListener("click", () => {
+      _openChip = el;
+      _alignPickerToChip(el);
+    });
   });
 
   // Chip màu của bảng chỉnh CHI TIẾT 1 dòng (dùng chung Coloris qua .theme-color-input)
   const lineColor = document.getElementById("cx-line-color");
   if (lineColor) {
     lineColor.addEventListener("input", () => onLineColorChange());
-    ["click", "focus"].forEach((evt) =>
-      lineColor.addEventListener(evt, () => {
-        _openChip = lineColor;
-        requestAnimationFrame(() => _clampPickerToChip(lineColor));
-      }),
-    );
+    lineColor.addEventListener("click", () => {
+      _openChip = lineColor;
+      _alignPickerToChip(lineColor);
+    });
   }
 
-  // Xoay máy / đổi kích thước khi đang mở thì căn lại
+  // Xoay máy / đổi kích thước khi đang mở → mở lại để Coloris tính lại vị trí
+  // VÀ đo lại vùng màu (không dời popup bằng tay, xem _alignPickerToChip).
   window.addEventListener("resize", () => {
     const picker = document.getElementById("clr-picker");
-    if (picker && picker.classList.contains("clr-open")) {
-      _clampPickerToChip(_openChip);
+    if (picker?.classList.contains("clr-open") && _openChip?.isConnected) {
+      _openChip.click();
     }
   });
 }
 
 let _openChip = null;
 
-// Coloris chống tràn ngang bằng cách DÓNG PHẢI popup vào ô input — công thức
-// đó giả định input rộng cỡ popup. Chip của ta chỉ 32px nên popup bị đẩy văng
-// ra ngoài mép trái. Tự căn: lấy tâm chip làm gốc rồi kẹp trong màn hình.
-// Chiều dọc để nguyên cho Coloris tự lật lên, phần đó nó tính đúng.
-function _clampPickerToChip(chipEl) {
+// Coloris chống tràn ngang bằng cách DÓNG PHẢI popup vào ô input — công thức đó
+// giả định input rộng cỡ popup, còn chip của ta chỉ 32px nên popup lệch hẳn.
+//
+// KHÔNG được dời popup sau khi Coloris mở: ngay trong handler click, nó đo và
+// CACHE toạ độ vùng màu theo vị trí vừa đặt (colorAreaDims). Dời popup sau đó
+// làm toạ độ cache lệch đúng bằng khoảng dời → kéo trong vùng màu ra màu không
+// khớp con trỏ.
+//
+// Cách làm: dời TẠM chính ô input (position:relative) TRƯỚC khi Coloris đo —
+// handler này gắn thẳng trên input nên chạy ở pha target, sớm hơn handler uỷ
+// quyền trên document của Coloris — để tự Coloris đặt popup vào giữa chip rồi
+// cache đúng. Trả ô input về chỗ cũ trong requestAnimationFrame (chạy trước khi
+// vẽ) nên không thấy nhảy hình.
+function _alignPickerToChip(chipEl) {
   const picker = document.getElementById("clr-picker");
   if (!picker || !chipEl) return;
-  const chip = chipEl.getBoundingClientRect();
+
+  // Popup đang ẩn thì offsetWidth = 0 → mượn class clr-open để đo rồi trả lại.
+  const wasOpen = picker.classList.contains("clr-open");
+  if (!wasOpen) picker.classList.add("clr-open");
   const w = picker.offsetWidth;
+  if (!wasOpen) picker.classList.remove("clr-open");
+  if (!w) return;
+
+  const chip = chipEl.getBoundingClientRect();
   const vw = document.documentElement.clientWidth;
   const gap = 8;
   const left = Math.max(
     gap,
     Math.min(chip.left + chip.width / 2 - w / 2, vw - w - gap),
   );
-  picker.style.left = `${left}px`;
+  const dx = Math.round(left - chip.left);
+  if (!dx) return;
+
+  const pos = chipEl.style.position;
+  const l = chipEl.style.left;
+  chipEl.style.position = "relative";
+  chipEl.style.left = `${dx}px`;
+  requestAnimationFrame(() => {
+    chipEl.style.position = pos;
+    chipEl.style.left = l;
+  });
 }
 
 function _initThemePanel() {
@@ -174,7 +195,8 @@ function _initThemePanel() {
   if (hf) hf.value = s.heading_font || d.heading_font;
   if (bf) bf.value = s.body_font || d.body_font;
 
-  // Mở tab Giao diện → về nhóm chỉnh chung, đóng bảng chỉnh 1 dòng (nếu đang mở)
+  // Mở tab Giao diện → về nhóm chỉnh chung, đóng bảng chỉnh 1 dòng / thêm văn bản
+  document.getElementById("theme-addtext-panel")?.classList.add("hidden");
   closeLineEditor();
   _initEditHint();
 
@@ -250,6 +272,8 @@ window.addEventListener("message", (ev) => {
   if (!iframe || ev.source !== iframe.contentWindow) return;
   if (d.type === "cx-text-pick") _openLineEditor(d);
   else if (d.type === "cx-hide") hidePickedElement(d.selector);
+  // Khối văn bản đang chỉnh vừa bị xoá trong thiệp → đóng bảng chỉnh chi tiết
+  else if (d.type === "cx-line-close") closeLineEditor();
   else if (d.type === "cx-blocks-changed") {
     // Runtime báo danh sách khối văn bản đã đổi → lưu vào theme_setting + đánh dấu chưa lưu.
     _themeSetting.custom_blocks = Array.isArray(d.blocks) ? d.blocks : [];
@@ -257,14 +281,27 @@ window.addEventListener("message", (ev) => {
   }
 });
 
-// ─── Thêm văn bản (palette mẫu) ──────────────────────────────────────────────
-function toggleAddTextPalette() {
-  document.getElementById("cx-addtext-palette")?.classList.toggle("hidden");
+// ─── Thêm văn bản (bảng chọn mẫu riêng) ──────────────────────────────────────
+// Mở như bảng chỉnh 1 dòng: chiếm chỗ nhóm chỉnh chung (ẩn phông/màu) để chỉ còn
+// các mẫu khối — tránh rối khi đang kéo-thả vào thiệp.
+function openAddTextPanel() {
+  document.getElementById("theme-line-editor")?.classList.add("hidden");
+  document.getElementById("theme-main-controls")?.classList.add("hidden");
+  document.getElementById("theme-edit-hint")?.classList.add("hidden");
+  document.getElementById("theme-addtext-panel")?.classList.remove("hidden");
+  if (window.lucide) lucide.createIcons();
 }
-window.toggleAddTextPalette = toggleAddTextPalette;
+window.openAddTextPanel = openAddTextPanel;
+
+function closeAddTextPanel() {
+  document.getElementById("theme-addtext-panel")?.classList.add("hidden");
+  document.getElementById("theme-main-controls")?.classList.remove("hidden");
+  _initEditHint();
+}
+window.closeAddTextPanel = closeAddTextPanel;
 
 function addTextBlock(type) {
-  document.getElementById("cx-addtext-palette")?.classList.add("hidden");
+  closeAddTextPanel();
   _setDirty(true, "theme");
   _lineIframe()?.contentWindow?.postMessage(
     { type: "cx-add-block", blockType: type },
@@ -288,12 +325,17 @@ function startPaletteDrag(e, type) {
   // Tắt pointer-events iframe → con trỏ rê qua iframe parent VẪN nhận pointermove.
   const iframe = _lineIframe();
   if (iframe) iframe.style.pointerEvents = "none";
+  // Khoảng lệch từ con trỏ tới góc trên-trái thẻ mẫu → ghost nằm ĐÚNG chỗ vừa
+  // "nhấc" lên, con trỏ giữ nguyên điểm bấm trên thẻ.
+  const r = btn.getBoundingClientRect();
   _paletteDrag = {
     type,
     btn,
     iframe,
     x0: e.clientX,
     y0: e.clientY,
+    offX: e.clientX - r.left,
+    offY: e.clientY - r.top,
     moved: false,
     ghost: null,
     over: false,
@@ -317,18 +359,22 @@ function _paletteDragMove(ev) {
   if (!d.moved) {
     if (Math.hypot(ev.clientX - d.x0, ev.clientY - d.y0) < 6) return;
     d.moved = true;
-    d.ghost = document.createElement("div");
-    d.ghost.className = "cx-drag-ghost";
-    d.ghost.textContent =
-      d.type === "paragraph"
-        ? "Văn bản"
-        : d.type === "ordered"
-          ? "Danh sách"
-          : "Bullets";
+    // Bóng mờ = BẢN SAO của chính mẫu đang kéo (mờ 50%) cho dễ nhận ra
+    d.ghost = d.btn.cloneNode(true);
+    d.ghost.removeAttribute("id");
+    d.ghost.classList.add("cx-drag-ghost");
+    d.ghost.style.width = `${d.btn.offsetWidth}px`;
+    // Đặt sẵn vị trí trước khi gắn vào DOM → hiện ngay tại con trỏ, không nhảy
+    d.ghost.style.left = `${ev.clientX - d.offX}px`;
+    d.ghost.style.top = `${ev.clientY - d.offY}px`;
     document.body.appendChild(d.ghost);
   }
-  d.ghost.style.left = ev.clientX + 14 + "px";
-  d.ghost.style.top = ev.clientY + 14 + "px";
+  // Bám con trỏ theo đúng điểm đã bấm; kẹp ngang cho khỏi lòi ra mép màn hình
+  const gw = d.ghost.offsetWidth || d.btn.offsetWidth;
+  const vw = document.documentElement.clientWidth;
+  d.ghost.style.left =
+    Math.max(8, Math.min(ev.clientX - d.offX, vw - gw - 8)) + "px";
+  d.ghost.style.top = ev.clientY - d.offY + "px";
   const iframe = _lineIframe();
   const r = iframe && iframe.getBoundingClientRect();
   const inside =
@@ -360,7 +406,7 @@ function _paletteDragEnd(ev) {
     addTextBlock(d.type); // chỉ bấm → thêm ở cuối
   } else if (d.over && iframe) {
     const r = iframe.getBoundingClientRect();
-    document.getElementById("cx-addtext-palette")?.classList.add("hidden");
+    closeAddTextPanel();
     _setDirty(true, "theme");
     iframe.contentWindow?.postMessage(
       { type: "cx-drop", blockType: d.type, y: ev.clientY - r.top },
@@ -383,6 +429,7 @@ function _openLineEditor(msg) {
     {};
 
   document.getElementById("theme-main-controls")?.classList.add("hidden");
+  document.getElementById("theme-addtext-panel")?.classList.add("hidden");
   document.getElementById("theme-edit-hint")?.classList.add("hidden");
   document.getElementById("theme-line-editor")?.classList.remove("hidden");
 
@@ -394,6 +441,8 @@ function _openLineEditor(msg) {
     .getElementById("cx-le-image")
     ?.classList.toggle("hidden", !_lineIsImage);
 
+  // Mặc định hiện dòng nhắc; _openTextEditor sẽ ẩn nếu có ô sửa Nội dung
+  document.getElementById("cx-le-sample-row")?.classList.remove("hidden");
   const sample = document.getElementById("cx-le-sample");
   if (sample)
     sample.textContent = _lineIsImage
@@ -429,7 +478,12 @@ function _openTextEditor(msg, c, ov) {
   const ta = document.getElementById("cx-line-text");
   const canEditText = _lineTextOnly && !_lineBound;
   box?.classList.toggle("hidden", !canEditText);
-  if (canEditText && ta) ta.value = (ov.text != null ? ov.text : msg.text) || "";
+  // Có ô sửa Nội dung rồi thì bỏ dòng "Nội dung đang chọn" cho popup gọn
+  document
+    .getElementById("cx-le-sample-row")
+    ?.classList.toggle("hidden", canEditText);
+  if (canEditText && ta)
+    ta.value = (ov.text != null ? ov.text : msg.text) || "";
 
   // Font — nạp options 1 lần (đủ cả heading + body cho từng dòng)
   const fontEl = document.getElementById("cx-line-font");
@@ -562,10 +616,10 @@ function _syncSampleStyle() {
     return;
   }
   const font = document.getElementById("cx-line-font")?.value || "";
-  const size = parseInt(document.getElementById("cx-line-size")?.value, 10) || 0;
+  const size =
+    parseInt(document.getElementById("cx-line-size")?.value, 10) || 0;
   const color = document.getElementById("cx-line-color")?.value || "";
-  const has = (id) =>
-    document.getElementById(id)?.classList.contains("active");
+  const has = (id) => document.getElementById(id)?.classList.contains("active");
 
   s.style.fontFamily = font ? `'${font}'` : _lineComputed.fontFamily || "";
   s.style.fontSize = Math.min(size || _lineComputed.fontSize || 16, 48) + "px";
@@ -639,7 +693,8 @@ function hidePickedElement(selector) {
   const sel = selector || _lineSel;
   if (!sel) return;
   if (!_themeSetting.text_overrides) _themeSetting.text_overrides = {};
-  if (!_themeSetting.text_overrides[sel]) _themeSetting.text_overrides[sel] = {};
+  if (!_themeSetting.text_overrides[sel])
+    _themeSetting.text_overrides[sel] = {};
   _themeSetting.text_overrides[sel].hidden = true;
   _applyLine();
   // Phần tử đã biến mất hẳn → đóng bảng chỉnh + bỏ chọn (ẩn nút X).
@@ -742,8 +797,11 @@ function _initEditHint() {
   const lineOpen = !document
     .getElementById("theme-line-editor")
     ?.classList.contains("hidden");
+  const addOpen = !document
+    .getElementById("theme-addtext-panel")
+    ?.classList.contains("hidden");
   const dismissed = getCache(buildCacheKey("theme_edit_hint"));
-  hint.classList.toggle("hidden", dismissed || lineOpen);
+  hint.classList.toggle("hidden", dismissed || lineOpen || addOpen);
 }
 
 function dismissEditHint() {

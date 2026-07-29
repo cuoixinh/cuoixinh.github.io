@@ -73,9 +73,10 @@
     0 1px 3px rgba(0, 0, 0, 0.12);
 }
 
-/* Vị trí ngang của popup do _clampPickerToChip() trong index.js tính lại
-   (bám giữa chip rồi kẹp trong màn hình). Không đặt !important ở đây,
-   nếu không sẽ chặn mất inline style mà hàm đó ghi. */
+/* Vị trí ngang của popup: _alignPickerToChip() trong js/05-theme-panel.js dời
+   TẠM ô input trước khi Coloris đo, để chính Coloris đặt popup vào giữa chip
+   (dời popup sau khi mở sẽ làm lệch toạ độ vùng màu nó đã cache). Không đặt
+   !important ở đây, nếu không sẽ chặn mất inline style Coloris ghi. */
 
 /* ============================================================
    Bảng chọn màu (Coloris) — tùy biến hợp tông thiệp cưới.
@@ -182,12 +183,7 @@
 
 .skeleton {
   animation: shimmer 2s infinite linear;
-  background: linear-gradient(
-    to right,
-    #f0f0f0 4%,
-    #e0e0e0 25%,
-    #f0f0f0 36%
-  );
+  background: linear-gradient(to right, #f0f0f0 4%, #e0e0e0 25%, #f0f0f0 36%);
   background-size: 1000px 100%;
 }
 
@@ -452,21 +448,26 @@ input.flatpickr-input[readonly] {
   background: #ffe4e6;
   font-weight: 600;
 }
-.cx-le-back {
+/* Nút "Xong" — đóng bảng chỉnh 1 dòng, đứng cùng bên phải với "Mặc định" */
+.cx-le-done {
   display: inline-flex;
   align-items: center;
   gap: 4px;
   font-size: 12px;
-  color: #6b7280;
-  padding: 4px 0px;
+  font-weight: 600;
+  color: #111827;
+  background: #f3f4f6;
+  padding: 4px 12px;
   border-radius: 8px;
   transition:
     background 0.15s,
     color 0.15s;
 }
-.cx-le-back:hover {
-  background: #f3f4f6;
-  color: #374151;
+.cx-le-done:hover {
+  background: #e5e7eb;
+}
+.cx-le-done:active {
+  background: #d1d5db;
 }
 .cx-le-clear {
   display: inline-flex;
@@ -475,12 +476,16 @@ input.flatpickr-input[readonly] {
   font-size: 12px;
   font-weight: 500;
   color: #e11d48;
-  padding: 4px 8px;
+  background: #f3f4f6;
+  padding: 4px 12px;
   border-radius: 8px;
   transition: background 0.15s;
 }
 .cx-le-clear:hover {
-  background: #ffe4e6;
+  background: #e5e7eb;
+}
+.cx-le-clear:active {
+  background: #d1d5db;
 }
 
 /* Ô sửa Nội dung */
@@ -508,72 +513,126 @@ input.flatpickr-input[readonly] {
   box-shadow: 0 0 0 2px rgba(244, 63, 94, 0.15);
 }
 
-/* Thêm văn bản (palette mẫu khối) */
-.cx-addtext {
-  position: relative;
-}
-.cx-addtext-btn {
-  width: 100%;
-  display: flex;
+/* Tile chức năng "Thêm vào thiệp" — cùng cỡ chip màu (32px, desktop 40px)
+   để xếp chung lưới 4 cột; viền nét đứt ngụ ý "ô thêm mới". */
+.cx-tile {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  height: 44px;
-  border-radius: 12px;
+  width: 32px;
+  height: 32px;
+  border-radius: 9999px;
   border: 1px dashed #fb7185;
-  color: #e11d48;
   background: #fff5f6;
-  font-size: 13px;
-  font-weight: 500;
+  color: #e11d48;
   transition: all 0.15s;
 }
-.cx-addtext-btn:hover {
-  background: #ffe4e6;
+/* Hover: giữ nguyên nét đứt, chỉ đậm nền lên một chút */
+.cx-tile:hover {
+  background: #ffe9ec;
 }
-.cx-addtext-palette {
-  margin-top: 8px;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
+.cx-tile:focus-visible {
+  outline: 2px solid #e8b4b8;
+  outline-offset: 2px;
 }
-.cx-addtext-palette button {
+.cx-tile-ico {
+  width: 16px !important;
+  height: 16px !important;
+}
+@media (min-width: 768px) {
+  .cx-tile {
+    width: 40px;
+    height: 40px;
+  }
+  .cx-tile-ico {
+    width: 20px !important;
+    height: 20px !important;
+  }
+}
+
+/* Bảng chọn mẫu khối — danh sách dọc, kéo-thả vào thiệp */
+.cx-addtext-list {
   display: flex;
   flex-direction: column;
+  gap: 8px;
+}
+.cx-addtext-item {
+  display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 4px;
-  padding: 12px 4px;
-  border-radius: 8px;
+  gap: 12px;
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 12px;
   border: 1px solid #e5e7eb;
   background: #fff;
   color: #374151;
-  font-size: 12px;
-  transition: all 0.15s;
-}
-.cx-addtext-palette button {
+  text-align: left;
   cursor: grab;
   touch-action: none;
+  transition: all 0.15s;
 }
-.cx-addtext-palette button:active {
-  cursor: grabbing;
-}
-.cx-addtext-palette button:hover {
+.cx-addtext-item:hover {
   border-color: #fb7185;
   background: #fff5f6;
+}
+.cx-addtext-item:active {
+  cursor: grabbing;
+}
+.cx-addtext-ico {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  border-radius: 8px;
+  background: #f3f4f6;
+  color: #6b7280;
+  transition: all 0.15s;
+}
+.cx-addtext-item:hover .cx-addtext-ico {
+  background: #ffe4e6;
   color: #e11d48;
 }
-/* Bóng mờ theo con trỏ khi kéo mẫu từ palette vào thiệp */
+.cx-addtext-txt {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.cx-addtext-txt b {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 16px;
+}
+.cx-addtext-txt small {
+  font-size: 12px;
+  line-height: 16px;
+  color: #9ca3af;
+}
+.cx-addtext-grip {
+  flex: 0 0 auto;
+  color: #d1d5db;
+}
+.cx-addtext-item:hover .cx-addtext-grip {
+  color: #fb7185;
+}
+/* Bóng mờ theo con trỏ khi kéo mẫu từ palette vào thiệp:
+   là bản sao của chính thẻ mẫu, làm mờ để phân biệt với bản gốc. */
 .cx-drag-ghost {
   position: fixed;
+  left: 0;
+  top: 0;
   z-index: 9999;
   pointer-events: none;
-  padding: 6px 12px;
-  border-radius: 8px;
-  background: #e11d48;
-  color: #fff;
-  font-size: 12px;
-  font-weight: 600;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  opacity: 0.5;
+  border-color: #fb7185;
+  background: #fff5f6;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
+  /* Bản sao mang theo transition của .cx-addtext-item → phải tắt, nếu không
+     ghost sẽ "bay" từ góc (0,0) tới con trỏ ở lần đặt vị trí đầu tiên. */
+  transition: none;
 }
 .cx-le-check {
   display: inline-flex;

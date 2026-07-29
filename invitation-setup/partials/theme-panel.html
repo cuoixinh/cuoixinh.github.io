@@ -36,7 +36,7 @@
                     rộng theo --theme-ctrl-w (xem setup.css), cuộn dọc nếu tràn -->
     <div
       id="theme-controls"
-      class="shrink-0 bg-white border-t border-gray-200 shadow-[0_-4px_12px_rgba(0,0,0,0.04)] md:overflow-y-auto md:rounded-xl md:border md:border-gray-200 md:shadow-lg"
+      class="shrink-0 bg-white border-t border-gray-200 shadow-[0_-4px_16px_rgba(0,0,0,0.12)] md:overflow-y-auto md:rounded-xl md:border md:border-gray-200 md:shadow-lg"
     >
       <div
         class="w-full max-w-4xl mx-auto px-4 pb-3 space-y-3 md:px-5 md:py-5 md:space-y-6"
@@ -196,41 +196,29 @@
           </div>
           <!-- /section Màu sắc -->
 
-          <!-- Thêm văn bản: mở bảng chọn mẫu, bấm 1 mẫu → chèn khối vào thiệp -->
-          <div class="cx-addtext">
-            <button
-              type="button"
-              onclick="toggleAddTextPalette()"
-              class="cx-addtext-btn"
+          <!-- Thêm vào thiệp: tile nhỏ cỡ chip màu, xếp lưới 4 cột —
+               còn 3 ô trống cho các chức năng thêm sau này -->
+          <div class="md:space-y-3">
+            <p
+              class="hidden md:block text-[11px] font-semibold uppercase tracking-[0.08em] text-gray-400"
             >
-              <i data-lucide="type" class="!w-[16px] !h-[16px]"></i
-              ><span>Thêm văn bản</span>
-            </button>
-            <div id="cx-addtext-palette" class="hidden cx-addtext-palette">
-              <button
-                type="button"
-                title="Kéo vào thiệp hoặc bấm để thêm"
-                onpointerdown="startPaletteDrag(event,'paragraph')"
-              >
-                <i data-lucide="align-left" class="!w-[16px] !h-[16px]"></i
-                ><span>Văn bản</span>
-              </button>
-              <button
-                type="button"
-                title="Kéo vào thiệp hoặc bấm để thêm"
-                onpointerdown="startPaletteDrag(event,'ordered')"
-              >
-                <i data-lucide="list-ordered" class="!w-[16px] !h-[16px]"></i
-                ><span>Danh sách</span>
-              </button>
-              <button
-                type="button"
-                title="Kéo vào thiệp hoặc bấm để thêm"
-                onpointerdown="startPaletteDrag(event,'bullet')"
-              >
-                <i data-lucide="list" class="!w-[16px] !h-[16px]"></i
-                ><span>Bullets</span>
-              </button>
+              Thêm vào thiệp
+            </p>
+            <div class="grid grid-cols-4 gap-2 md:gap-3">
+              <div class="flex flex-col items-center gap-1.5">
+                <button
+                  type="button"
+                  onclick="openAddTextPanel()"
+                  title="Thêm khối văn bản vào thiệp"
+                  class="cx-tile"
+                >
+                  <i data-lucide="type" class="cx-tile-ico"></i>
+                </button>
+                <span
+                  class="text-[12px] text-gray-500 leading-none md:text-[12.5px] md:mt-0.5"
+                  >Văn bản</span
+                >
+              </div>
             </div>
           </div>
 
@@ -252,15 +240,7 @@
           id="theme-line-editor"
           class="hidden space-y-3 md:space-y-4 max-h-[52vh] overflow-y-auto md:max-h-none"
         >
-          <div class="flex items-center justify-between gap-2">
-            <button
-              type="button"
-              onclick="closeLineEditor()"
-              class="cx-le-back"
-            >
-              <i data-lucide="arrow-left" class="w-4 h-4"></i
-              ><span>Quay lại</span>
-            </button>
+          <div class="flex items-center justify-end gap-2">
             <button
               type="button"
               onclick="clearLineOverride()"
@@ -269,8 +249,16 @@
               <i data-lucide="rotate-ccw" class="w-4 h-4"></i
               ><span>Mặc định</span>
             </button>
+            <button
+              type="button"
+              onclick="closeLineEditor()"
+              class="cx-le-done"
+            >
+              <span>Xong</span>
+            </button>
           </div>
-          <p class="text-[12px] text-gray-500">
+          <!-- Nhắc đang chỉnh dòng nào — ẩn khi có ô sửa Nội dung (đã thấy chữ ở đó) -->
+          <p id="cx-le-sample-row" class="text-[12px] text-gray-500">
             Nội dung đang chọn:
             <span id="cx-le-sample" class="font-medium text-gray-700"></span>
           </p>
@@ -479,6 +467,82 @@
           <!-- /cx-le-image -->
         </div>
         <!-- /theme-line-editor -->
+
+        <!-- Bảng THÊM VĂN BẢN (thay chỗ nhóm chỉnh chung, giống bảng chỉnh 1 dòng) -->
+        <div
+          id="theme-addtext-panel"
+          class="hidden space-y-3 md:space-y-4 max-h-[52vh] overflow-y-auto md:max-h-none"
+        >
+          <div class="flex items-center justify-end gap-2">
+            <button
+              type="button"
+              onclick="closeAddTextPanel()"
+              class="cx-le-done"
+            >
+              <span>Xong</span>
+            </button>
+          </div>
+          <p class="text-[12px] text-gray-500">
+            Kéo mẫu vào vị trí muốn chèn trên thiệp, hoặc bấm để thêm vào cuối.
+          </p>
+          <div id="cx-addtext-palette" class="cx-addtext-list">
+            <button
+              type="button"
+              title="Kéo vào thiệp hoặc bấm để thêm"
+              onpointerdown="startPaletteDrag(event,'paragraph')"
+              class="cx-addtext-item"
+            >
+              <span class="cx-addtext-ico">
+                <i data-lucide="align-left" class="!w-[16px] !h-[16px]"></i>
+              </span>
+              <span class="cx-addtext-txt">
+                <b>Văn bản</b>
+                <small>Đoạn chữ tự do</small>
+              </span>
+              <i
+                data-lucide="grip-vertical"
+                class="cx-addtext-grip !w-[16px] !h-[16px]"
+              ></i>
+            </button>
+            <button
+              type="button"
+              title="Kéo vào thiệp hoặc bấm để thêm"
+              onpointerdown="startPaletteDrag(event,'ordered')"
+              class="cx-addtext-item"
+            >
+              <span class="cx-addtext-ico">
+                <i data-lucide="list-ordered" class="!w-[16px] !h-[16px]"></i>
+              </span>
+              <span class="cx-addtext-txt">
+                <b>Danh sách</b>
+                <small>Các dòng đánh số 1, 2, 3…</small>
+              </span>
+              <i
+                data-lucide="grip-vertical"
+                class="cx-addtext-grip !w-[16px] !h-[16px]"
+              ></i>
+            </button>
+            <button
+              type="button"
+              title="Kéo vào thiệp hoặc bấm để thêm"
+              onpointerdown="startPaletteDrag(event,'bullet')"
+              class="cx-addtext-item"
+            >
+              <span class="cx-addtext-ico">
+                <i data-lucide="list" class="!w-[16px] !h-[16px]"></i>
+              </span>
+              <span class="cx-addtext-txt">
+                <b>Bullets</b>
+                <small>Các dòng có dấu chấm đầu dòng</small>
+              </span>
+              <i
+                data-lucide="grip-vertical"
+                class="cx-addtext-grip !w-[16px] !h-[16px]"
+              ></i>
+            </button>
+          </div>
+        </div>
+        <!-- /theme-addtext-panel -->
       </div>
       <!-- /nội dung padding controls -->
     </div>
