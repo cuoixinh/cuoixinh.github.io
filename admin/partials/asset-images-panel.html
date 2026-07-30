@@ -1,0 +1,184 @@
+<!-- Tab Content: Ảnh mẫu (kho ảnh tĩnh dùng chung) -->
+<div id="content-asset-images" class="hidden">
+  <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+    <div class="p-3 sm:p-4 md:p-6 border-b border-gray-100">
+      <h2 class="text-base sm:text-lg font-semibold text-gray-800">Ảnh mẫu</h2>
+      <p class="text-xs sm:text-sm text-gray-500 mt-1">
+        Kho ảnh tĩnh <b>dùng chung</b> cho cả web: icon hoa trang trí (dùng ở tab
+        Giao diện của trình tạo thiệp), khung viền, ảnh landing… Kết nối thư mục
+        <code class="font-mono">assets/</code> một lần, chọn danh mục (hoặc tự gõ
+        tên thư mục con), thả ảnh vào rồi bấm <b>Lưu vào thư mục</b> để ghi xuống
+        <code class="font-mono">assets/&lt;danh mục&gt;/</code> — chỉ chạy được
+        khi mở trang bằng Chrome/Edge trên localhost. Lúc lưu, ảnh vượt ngưỡng
+        của danh mục được <b>nén</b> và <b>tự đặt tên theo thư mục</b> kèm số thứ
+        tự (<code class="font-mono">flowers_01.png</code>,
+        <code class="font-mono">flowers_02.png</code>…) — số chạy tiếp nên không
+        đè lên ảnh cũ. Mỗi thư mục có
+        <code class="font-mono">manifest.json</code> giữ danh sách ảnh + điểm lấy
+        nét cho web đọc. Ghi xong nhớ <b>commit &amp; push</b> thì production mới
+        có ảnh.
+      </p>
+    </div>
+
+    <!-- Banner: trình duyệt không hỗ trợ File System Access API -->
+    <div
+      id="ax-unsupported-banner"
+      class="hidden m-4 sm:m-6 p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700 flex items-start gap-2"
+    >
+      <i class="fas fa-triangle-exclamation mt-0.5"></i>
+      <span>
+        Trình duyệt hiện tại không hỗ trợ File System Access API. Tính năng này
+        chỉ chạy được trên Chrome hoặc Edge (desktop) đang mở trang qua
+        localhost.
+      </span>
+    </div>
+
+    <div id="ax-body" class="p-3 sm:p-4 md:p-6 space-y-5">
+      <!-- Kết nối thư mục gốc dự án -->
+      <div
+        class="flex flex-col sm:flex-row sm:items-center gap-3 p-4 bg-gray-50 rounded-xl border border-gray-200"
+      >
+        <div class="flex-1 min-w-0">
+          <div class="text-sm font-medium text-gray-700">
+            Thư mục gốc: <code class="font-mono">assets/</code> của dự án
+          </div>
+          <div id="ax-folder-status" class="text-xs text-gray-500 mt-0.5">
+            Chưa kết nối
+          </div>
+        </div>
+        <button
+          id="ax-connect-btn"
+          onclick="connectAssetRootFolder()"
+          class="shrink-0 px-4 py-2 bg-rose-400 hover:bg-rose-500 text-white rounded-lg text-sm font-medium transition-colors"
+        >
+          Chọn thư mục
+        </button>
+      </div>
+
+      <!-- Chọn danh mục / đường dẫn đích -->
+      <div id="ax-picker" class="hidden space-y-3">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1"
+            >Danh mục ảnh</label
+          >
+          <select
+            id="ax-preset-select"
+            onchange="onAssetPresetChange()"
+            class="w-full sm:w-80 px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-rose-300"
+          >
+            <option value="">-- Chọn danh mục --</option>
+          </select>
+        </div>
+
+        <div id="ax-custom-path-wrap" class="hidden">
+          <label class="block text-sm font-medium text-gray-700 mb-1"
+            >Tên thư mục con trong <code class="font-mono">assets/</code></label
+          >
+          <div class="flex flex-col sm:flex-row gap-2">
+            <input
+              id="ax-path-input"
+              type="text"
+              placeholder="flowers"
+              onkeydown="if (event.key === 'Enter') openAssetFolder()"
+              class="flex-1 sm:max-w-md px-4 py-2 border border-gray-200 rounded-lg text-sm font-mono focus:outline-none focus:border-rose-300"
+            />
+            <button
+              type="button"
+              onclick="openAssetFolder()"
+              class="shrink-0 px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
+            >
+              Mở thư mục
+            </button>
+          </div>
+          <p class="text-xs text-gray-400 mt-1">
+            Đúng 1 cấp, chỉ dùng chữ, số, dấu <code class="font-mono">-</code> và
+            <code class="font-mono">_</code>. Thư mục chưa có sẽ được tạo khi
+            upload ảnh đầu tiên.
+          </p>
+        </div>
+      </div>
+
+      <!-- Thư mục đích: upload + danh sách ảnh -->
+      <div id="ax-panel" class="hidden space-y-4">
+        <div
+          class="flex flex-col sm:flex-row sm:items-center gap-2 pb-3 border-b border-gray-100"
+        >
+          <div class="flex-1 min-w-0">
+            <div
+              id="ax-path-label"
+              class="text-sm font-mono font-medium text-gray-700 truncate"
+            ></div>
+            <div id="ax-folder-meta" class="text-xs text-gray-500 mt-0.5"></div>
+          </div>
+          <div class="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onclick="axCopyAllPaths()"
+              class="px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-medium hover:bg-gray-50 transition-colors flex items-center gap-1.5"
+            >
+              <i class="fas fa-list"></i> Copy tất cả đường dẫn
+            </button>
+            <button
+              type="button"
+              onclick="axLoadFiles()"
+              class="px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-medium hover:bg-gray-50 transition-colors flex items-center gap-1.5"
+            >
+              <i class="fas fa-rotate"></i> Tải lại
+            </button>
+          </div>
+        </div>
+
+        <!-- Vùng thả ảnh -->
+        <div
+          id="ax-dropzone"
+          class="flex flex-col items-center justify-center gap-2 p-6 border-2 border-dashed border-gray-300 rounded-xl text-center cursor-pointer hover:border-rose-300 hover:bg-rose-50/40 transition-colors"
+        >
+          <i class="fas fa-cloud-arrow-up text-2xl text-rose-300"></i>
+          <div class="text-sm font-medium text-gray-700">
+            Kéo thả ảnh vào đây hoặc bấm để chọn nhiều file
+          </div>
+          <div class="text-xs text-gray-400">
+            Ảnh vào hàng chờ trước — bấm “Lưu vào thư mục” mới ghi xuống đĩa
+          </div>
+          <div id="ax-limit-hint" class="text-xs text-gray-400"></div>
+        </div>
+        <input
+          type="file"
+          id="ax-file-input"
+          accept="image/*"
+          multiple
+          class="hidden"
+          onchange="axHandleUpload(event)"
+        />
+
+        <!-- Danh sách ảnh trong thư mục -->
+        <div
+          id="ax-grid"
+          class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3"
+        ></div>
+        <p id="ax-empty" class="hidden text-sm text-gray-400 text-center py-6">
+          Thư mục chưa có ảnh nào.
+        </p>
+
+        <!-- Ghi xuống đĩa chỉ xảy ra ở nút này (và nút Xoá từng ảnh) -->
+        <div
+          class="flex flex-col sm:flex-row sm:items-center gap-3 pt-4 border-t border-gray-100"
+        >
+          <span
+            id="ax-dirty-status"
+            class="hidden text-xs text-amber-600 sm:order-last"
+          ></span>
+          <button
+            type="button"
+            id="ax-save-btn"
+            onclick="axSaveChanges()"
+            disabled
+            class="flex-1 sm:flex-none px-5 py-2.5 bg-rose-400 hover:bg-rose-500 text-white rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 opacity-50 disabled:cursor-not-allowed"
+          >
+            <i class="fas fa-floppy-disk"></i> Lưu vào thư mục
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

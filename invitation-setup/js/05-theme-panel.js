@@ -263,6 +263,8 @@ let _imgRatio = 1; // tỉ lệ rộng/cao dùng khi "giữ tỉ lệ"
 let _lineComputed = {}; // style computed của dòng lúc mở (fallback cho chữ mẫu)
 let _lineBound = false; // text bound từ Thiết lập? → khoá sửa nội dung
 let _lineTextOnly = true; // phần tử chỉ chứa text thuần? → mới cho sửa nội dung
+let _lineBlockId = null; // đang chỉnh KHỐI văn bản tự thêm? (id khối) → nội dung
+let _lineBlockList = false; // khối đó là danh sách? → mỗi dòng 1 mục
 
 // Nhận tín hiệu click text từ iframe tab Giao diện (đúng nguồn mới nhận).
 window.addEventListener("message", (ev) => {
@@ -471,6 +473,10 @@ function _openTextEditor(msg, c, ov) {
   _lineComputed = c;
   _lineBound = !!msg.bound;
   _lineTextOnly = msg.textOnly !== false;
+  // Khối văn bản tự thêm: nội dung nằm trong custom_blocks, sửa ở ô "Nội dung"
+  // dưới đây rồi gửi về runtime (không đi qua text_overrides).
+  _lineBlockId = msg.blockId || null;
+  _lineBlockList = !!msg.blockList;
 
   // Nội dung: chỉ hiện khi là text thuần (không có con) và KHÔNG bound; ngược lại
   // ẩn hẳn mục (không note/tooltip).
@@ -482,8 +488,24 @@ function _openTextEditor(msg, c, ov) {
   document
     .getElementById("cx-le-sample-row")
     ?.classList.toggle("hidden", canEditText);
-  if (canEditText && ta)
-    ta.value = (ov.text != null ? ov.text : msg.text) || "";
+  if (canEditText && ta) {
+    ta.value = _lineBlockId
+      ? msg.text || ""
+      : (ov.text != null ? ov.text : msg.text) || "";
+    // Danh sách: mỗi dòng là 1 mục → ô cao hơn + nhắc trong nhãn/placeholder
+    ta.rows = _lineBlockList ? 4 : 2;
+    ta.placeholder = _lineBlockList ? "Mỗi dòng một mục…" : "Nhập nội dung…";
+    const label = box?.querySelector("label");
+    if (label)
+      label.textContent = _lineBlockList
+        ? "Nội dung (mỗi dòng một mục)"
+        : "Nội dung";
+    // Khối vừa thêm → focus + chọn sẵn chữ mẫu để gõ đè lên ngay
+    if (msg.fresh) {
+      ta.focus();
+      ta.select();
+    }
+  }
 
   // Font — nạp options 1 lần (đủ cả heading + body cho từng dòng)
   const fontEl = document.getElementById("cx-line-font");
@@ -544,6 +566,8 @@ function closeLineEditor() {
   _initEditHint();
   _lineIframe()?.contentWindow?.postMessage({ type: "cx-clear-pick" }, "*");
   _lineSel = null;
+  _lineBlockId = null;
+  _lineBlockList = false;
 }
 window.closeLineEditor = closeLineEditor;
 
@@ -705,6 +729,15 @@ function hidePickedElement(selector) {
 function onLineTextChange() {
   if (!_lineSel || _lineBound || !_lineTextOnly) return;
   const v = document.getElementById("cx-line-text")?.value ?? "";
+  // Khối văn bản tự thêm: nội dung là của khối (custom_blocks) → nhờ runtime ghi
+  // vào model + vẽ lại; nó tự báo 'cx-blocks-changed' để lưu và đánh dấu chưa lưu.
+  if (_lineBlockId) {
+    _lineIframe()?.contentWindow?.postMessage(
+      { type: "cx-block-text", id: _lineBlockId, text: v },
+      "*",
+    );
+    return;
+  }
   const o = _lineOverride();
   if (v.trim() === "")
     delete o.text; // rỗng → trả về nội dung gốc (applyTextOverrides phục hồi)

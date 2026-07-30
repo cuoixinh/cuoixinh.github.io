@@ -40,12 +40,19 @@ function adminHeaders(extra = {}) {
 // Không còn tab bar — điều hướng qua card ở Dashboard và breadcrumb ở header
 // (span#breadcrumb-current đổi nhãn theo màn đang xem). Giữ tên switchTab để
 // không phải đổi tên khắp các file gọi nó.
-const TAB_NAMES = ["dashboard", "weddings", "templates", "sample-images"];
+const TAB_NAMES = [
+  "dashboard",
+  "weddings",
+  "templates",
+  "sample-images",
+  "asset-images",
+];
 const TAB_BREADCRUMB_LABELS = {
   dashboard: "Quản lý Hệ thống",
   weddings: "Thiệp Cưới",
   templates: "Templates",
   "sample-images": "Dữ liệu mẫu",
+  "asset-images": "Ảnh mẫu",
 };
 
 function switchTab(tabName, pushState = true) {
@@ -62,13 +69,16 @@ function switchTab(tabName, pushState = true) {
     loadTemplates();
   } else if (tabName === "sample-images") {
     initSampleImagesPanel();
+  } else if (tabName === "asset-images") {
+    initAssetImagesPanel();
   }
 }
 
 // Restore tab từ URL hash (nếu không có hash thì giữ Dashboard mặc định, không gọi API).
 // Gọi từ loader.js SAU KHI toàn bộ script theo tab đã nạp xong (không gọi ở đây
-// — lúc file này chạy, js/01-weddings.js/02-templates.js/03-sample-images.js
-// chưa nạp nên loadPage()/loadTemplates()/initSampleImagesPanel() còn undefined).
+// — lúc file này chạy, js/01-weddings.js…05-asset-images.js chưa nạp nên
+// loadPage()/loadTemplates()/initSampleImagesPanel()/initAssetImagesPanel()
+// còn undefined).
 function restoreTabFromHash() {
   const tab = location.hash.replace("#", "");
   if (TAB_NAMES.includes(tab)) {

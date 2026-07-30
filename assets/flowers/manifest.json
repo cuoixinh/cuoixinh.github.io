@@ -1,0 +1,17 @@
+{
+  "path": "/assets/flowers",
+  "updated_at": "2026-07-30T12:26:46.347Z",
+  "images": [
+    {
+      "file": "flowers_01.png",
+      "url": "/assets/flowers/flowers_01.png",
+      "width": 1024,
+      "height": 683,
+      "size": 471529,
+      "focal_point": {
+        "x": 50,
+        "y": 50
+      }
+    }
+  ]
+}

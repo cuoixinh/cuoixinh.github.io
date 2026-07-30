@@ -356,14 +356,13 @@ function _cxBuildBlockNode(b, edit) {
   }
   body.className = "cx-cb-body";
   // id ổn định (giống nhau ở edit/preview/public) → selector "#cb_xxx" dùng cho
-  // text_overrides font/cỡ/màu. data-cx-bound: nội dung khối do model quản (sửa
-  // trực tiếp trên thiệp) nên khoá mục "Nội dung" ở bảng chỉnh chi tiết và không
-  // để applyTextOverrides ghi đè.
+  // text_overrides font/cỡ/màu. data-cx-bound: nội dung khối nằm trong model
+  // (custom_blocks) nên applyTextOverrides không được ghi đè.
   body.id = b.id;
   body.setAttribute("data-cx-bound", "1");
   if (edit) {
-    body.setAttribute("contenteditable", "true");
-    body.addEventListener("input", () => _cxOnEdit(b.id));
+    // Nội dung SỬA Ở PANEL (ô "Nội dung" trong bảng chỉnh chi tiết), không sửa
+    // trực tiếp trên thiệp → không đặt contenteditable.
     // Bấm vào khối → chọn khối + mở luôn bảng chỉnh chi tiết cho chữ trong khối
     // (bấm vào 2 nút công cụ thì bỏ qua, chúng tự xử lý).
     wrap.addEventListener("pointerdown", (e) => {
@@ -451,12 +450,35 @@ function _cxRender() {
   });
 }
 
-// Đọc lại nội dung từ DOM về model
-function _cxReadContent(wrap, type) {
-  if (type === "ordered" || type === "bullet")
-    return Array.from(wrap.querySelectorAll("li")).map((li) => li.textContent);
-  const body = wrap.querySelector(".cx-cb-body");
-  return body ? body.textContent : "";
+// Nội dung khối dưới dạng TEXT cho ô "Nội dung" ở panel: danh sách thì mỗi mục
+// một dòng.
+function _cxContentText(b) {
+  if (Array.isArray(b.content)) return b.content.join("\n");
+  return typeof b.content === "string" ? b.content : "";
+}
+
+// Panel sửa nội dung → cập nhật model + DOM tại chỗ (không _cxRender để khỏi
+// dựng lại cả cây, mất trạng thái đang chọn).
+function _cxSetContent(id, text) {
+  const b = _cxFind(id);
+  if (!b) return;
+  const body = document.getElementById(id);
+  const isList = b.type === "ordered" || b.type === "bullet";
+  if (isList) {
+    b.content = String(text == null ? "" : text).split("\n");
+    if (body) {
+      body.textContent = "";
+      b.content.forEach((t) => {
+        const li = document.createElement("li");
+        li.textContent = t;
+        body.appendChild(li);
+      });
+    }
+  } else {
+    b.content = String(text == null ? "" : text);
+    if (body) body.textContent = b.content;
+  }
+  _cxReport();
 }
 
 function _cxFind(id) {
@@ -471,16 +493,6 @@ function _cxReport() {
       parent.postMessage({ type: "cx-blocks-changed", blocks: _cxBlocks }, "*");
     } catch (e) {}
   }, 200);
-}
-
-function _cxOnEdit(id) {
-  const b = _cxFind(id);
-  const wrap = document.querySelector(
-    '.cx-custom-block[data-cb-id="' + id + '"]',
-  );
-  if (!b || !wrap) return;
-  b.content = _cxReadContent(wrap, b.type);
-  _cxReport();
 }
 
 function _cxDelete(id) {
@@ -514,9 +526,10 @@ function _cxAddAt(type, anchorEl) {
   );
   if (body) {
     body.scrollIntoView({ behavior: "smooth", block: "center" });
-    body.focus();
-    // Thêm/thả xong → mở luôn bảng chỉnh chi tiết (phông, cỡ, màu…) cho khối mới
-    if (window.__cxPickBlockBody) window.__cxPickBlockBody(body);
+    // Thêm/thả xong → mở luôn bảng chỉnh chi tiết (phông, cỡ, màu…) cho khối mới;
+    // fresh:true để panel focus sẵn ô "Nội dung" cho gõ ngay.
+    if (window.__cxPickBlockBody)
+      window.__cxPickBlockBody(body, { fresh: true });
   }
 }
 
@@ -578,6 +591,44 @@ function _cxDropAt(type, y) {
 }
 
 // ── Kéo-thả đổi vị trí (giữa các mục) ──────────────────────────────────────
+// Bóng mờ đi theo con trỏ = bản sao của chính khối đang kéo (giống ghost khi kéo
+// mẫu từ panel). Gắn vào body nên KHÔNG kế thừa font/màu của thiệp → copy tay
+// vài thuộc tính chữ từ khối gốc; nền lấy đúng nền thiệp cho khỏi lộ chữ nền.
+function _cxMakeGhost(wrap, ev) {
+  const g = wrap.cloneNode(true);
+  g.className = "cx-cb-ghost";
+  g.removeAttribute("data-cb-id");
+  g.querySelectorAll(".cx-cb-tools").forEach((n) => n.remove());
+  g.querySelectorAll("[id]").forEach((n) => n.removeAttribute("id"));
+  g.querySelectorAll("[contenteditable]").forEach((n) =>
+    n.removeAttribute("contenteditable"),
+  );
+  const src = wrap.querySelector(".cx-cb-body") || wrap;
+  const cs = getComputedStyle(src);
+  [
+    "fontFamily",
+    "fontSize",
+    "fontWeight",
+    "fontStyle",
+    "lineHeight",
+    "letterSpacing",
+    "textAlign",
+    "color",
+  ].forEach((p) => {
+    g.style[p] = cs[p];
+  });
+  const card = document.getElementById("main-card");
+  g.style.background = card
+    ? getComputedStyle(card).backgroundColor
+    : "#ffffff";
+  const r = wrap.getBoundingClientRect();
+  g.style.width = r.width + "px";
+  g.style.left = r.left + "px";
+  g.style.top = r.top + "px";
+  document.body.appendChild(g);
+  return { ghost: g, offX: ev.clientX - r.left, offY: ev.clientY - r.top };
+}
+
 let _cxDrag = null;
 function _cxWireDrag(handle, id) {
   handle.addEventListener("pointerdown", (e) => {
@@ -594,7 +645,20 @@ function _cxWireDrag(handle, id) {
     const line = document.createElement("div");
     line.className = "cx-cb-dropline";
     document.body.appendChild(line);
-    _cxDrag = { id, container, line, anchorEl: null };
+    // Bóng mờ theo con trỏ + làm mờ khối gốc để thấy rõ đang nhấc khối nào
+    const wrap = handle.closest(".cx-custom-block");
+    const g = wrap ? _cxMakeGhost(wrap, e) : null;
+    if (wrap) wrap.classList.add("cx-cb-dragging");
+    _cxDrag = {
+      id,
+      container,
+      line,
+      anchorEl: null,
+      wrap,
+      ghost: g && g.ghost,
+      offX: g ? g.offX : 0,
+      offY: g ? g.offY : 0,
+    };
     const move = (ev) => _cxDragMove(ev);
     const up = () => {
       handle.removeEventListener("pointermove", move);
@@ -613,7 +677,11 @@ function _cxWireDrag(handle, id) {
 
 function _cxDragMove(ev) {
   if (!_cxDrag) return;
-  const { line } = _cxDrag;
+  const { line, ghost } = _cxDrag;
+  if (ghost) {
+    ghost.style.left = ev.clientX - _cxDrag.offX + "px";
+    ghost.style.top = ev.clientY - _cxDrag.offY + "px";
+  }
   let anchorEl = null;
   for (const s of _cxDropTargets()) {
     const r = s.getBoundingClientRect();
@@ -625,8 +693,10 @@ function _cxDragMove(ev) {
 
 function _cxDragEnd() {
   if (!_cxDrag) return;
-  const { id, line, anchorEl } = _cxDrag;
+  const { id, line, anchorEl, ghost, wrap } = _cxDrag;
   line.remove();
+  if (ghost) ghost.remove();
+  if (wrap) wrap.classList.remove("cx-cb-dragging");
   _cxDrag = null;
   const b = _cxFind(id);
   if (!b) return;
@@ -666,7 +736,12 @@ function _cxEnsureStyle() {
     // Xoá: phải-trên, nền đen chữ trắng
     ".cx-cb-tools .cx-cb-del{right:-8px;background:#000;color:#fff;border:0}" +
     ".cx-cb-tools .cx-cb-del:hover{background:#be123c}" +
-    ".cx-cb-dropline{position:absolute;left:0;right:0;height:3px;background:#e11d48;border-radius:2px;z-index:2147483000;pointer-events:none;display:none}";
+    ".cx-cb-dropline{position:absolute;left:0;right:0;height:3px;background:#e11d48;border-radius:2px;z-index:2147483000;pointer-events:none;display:none}" +
+    // Bóng mờ khi kéo đổi vị trí + khối gốc mờ đi trong lúc kéo
+    ".cx-cb-ghost{position:fixed;z-index:2147483002;pointer-events:none;opacity:.5;padding:12px 0;border-radius:8px;outline:1px dashed #e11d48;outline-offset:4px;box-shadow:0 8px 20px rgba(0,0,0,.18);transition:none}" +
+    ".cx-cb-ghost ol,.cx-cb-ghost ul{display:inline-block;text-align:left;padding-left:1.5em;margin:0}" +
+    ".cx-cb-ghost ol{list-style:decimal}.cx-cb-ghost ul{list-style:disc}" +
+    ".cx-cb-dragging{opacity:.35}";
   document.head.appendChild(s);
 }
 
@@ -697,6 +772,8 @@ if (typeof window !== "undefined" && window.top !== window) {
     else if (d.type === "cx-drag-over") _cxDragOver(d.y);
     else if (d.type === "cx-drop") _cxDropAt(d.blockType, d.y);
     else if (d.type === "cx-drag-cancel") _cxDragCancel();
+    // Ô "Nội dung" ở panel vừa đổi → ghi vào model khối
+    else if (d.type === "cx-block-text") _cxSetContent(d.id, d.text);
   });
 }
 
@@ -855,9 +932,11 @@ if (typeof window !== "undefined") {
   // Phần tử "chỉnh được": có text-node trực tiếp, không nằm trong control tương tác.
   function _isEditable(el) {
     if (!el || el.nodeType !== 1) return false;
+    // .cx-custom-block: khối tự thêm có luồng chọn riêng (__cxPickBlockBody) nên
+    // không để runtime chung bắt hover/click vào nó.
     if (
       el.closest(
-        "a, button, input, textarea, select, iframe, [contenteditable], .cx-no-edit",
+        "a, button, input, textarea, select, iframe, [contenteditable], .cx-no-edit, .cx-custom-block",
       )
     )
       return false;
@@ -1002,28 +1081,33 @@ if (typeof window !== "undefined") {
     );
   }
 
-  // Gửi thông tin dòng (selector + style hiện tại) về trang cha để mở/cập nhật bảng chỉnh.
-  function _sendPick(el, selector) {
+  // Gửi thông tin dòng (selector + style hiện tại) về trang cha để mở/cập nhật
+  // bảng chỉnh. `extra` để khối văn bản tự thêm ghi đè vài field (xem
+  // __cxPickBlockBody).
+  function _sendPick(el, selector, extra) {
     const cs = getComputedStyle(el);
     const txt = (el.textContent || "").trim();
     parent.postMessage(
-      {
-        type: "cx-text-pick",
-        selector,
-        sample: txt.slice(0, 48),
-        bound: _isBound(el),
-        textOnly: el.children.length === 0,
-        text: txt.slice(0, 2000),
-        computed: {
-          fontFamily: cs.fontFamily,
-          fontSize: Math.round(parseFloat(cs.fontSize)) || 16,
-          color: _rgbToHex(cs.color),
-          fontWeight: cs.fontWeight,
-          fontStyle: cs.fontStyle,
-          textDecoration: cs.textDecorationLine,
-          textAlign: cs.textAlign,
+      Object.assign(
+        {
+          type: "cx-text-pick",
+          selector,
+          sample: txt.slice(0, 48),
+          bound: _isBound(el),
+          textOnly: el.children.length === 0,
+          text: txt.slice(0, 2000),
+          computed: {
+            fontFamily: cs.fontFamily,
+            fontSize: Math.round(parseFloat(cs.fontSize)) || 16,
+            color: _rgbToHex(cs.color),
+            fontWeight: cs.fontWeight,
+            fontStyle: cs.fontStyle,
+            textDecoration: cs.textDecorationLine,
+            textAlign: cs.textAlign,
+          },
         },
-      },
+        extra || {},
+      ),
       "*",
     );
   }
@@ -1083,16 +1167,36 @@ if (typeof window !== "undefined") {
     _showDelBtn();
   }
 
-  // Khối văn bản tự thêm là contenteditable nên _isEditable() bỏ qua (không bắt
-  // hover/click như chữ thường). Custom-block gọi hàm này để mở bảng chỉnh chi
-  // tiết cho chữ trong khối; viền + nút của khối do chính nó lo (.cx-cb-active)
-  // nên ở đây bỏ picked/nút X để khỏi chồng 2 lớp viền.
-  window.__cxPickBlockBody = function (el) {
+  // Custom-block gọi hàm này để mở bảng chỉnh chi tiết cho chữ trong khối. Viền
+  // + nút của khối do chính nó lo (.cx-cb-active) nên bỏ picked/nút X để khỏi
+  // chồng 2 lớp viền. Nội dung khối sửa ở ô "Nội dung" của panel → luôn gửi
+  // bound:false + textOnly:true (danh sách có <li> con vẫn cho sửa) kèm blockId
+  // để trang cha ghi vào model thay vì text_overrides.
+  window.__cxPickBlockBody = function (el, more) {
     if (!el) return;
     if (picked) picked.classList.remove("cx-edit-picked");
     picked = null;
     _hideDelBtn();
-    _sendPick(el, _selector(el));
+    const isList = el.tagName === "OL" || el.tagName === "UL";
+    const text = isList
+      ? Array.from(el.querySelectorAll("li"))
+          .map((li) => li.textContent)
+          .join("\n")
+      : el.textContent || "";
+    _sendPick(
+      el,
+      _selector(el),
+      Object.assign(
+        {
+          bound: false,
+          textOnly: true,
+          text: text.slice(0, 2000),
+          blockId: el.id || null,
+          blockList: isList,
+        },
+        more || {},
+      ),
+    );
   };
 
   function _init() {
@@ -1166,6 +1270,12 @@ if (typeof window !== "undefined") {
           el = document.querySelector(d.selector);
         } catch (e) {}
         if (!el) return;
+        // Khối văn bản tự thêm → đi lại đúng luồng riêng của nó (giữ ô "Nội
+        // dung", không bật viền/nút X của runtime chung).
+        if (el.closest(".cx-custom-block")) {
+          window.__cxPickBlockBody(el);
+          return;
+        }
         if (picked !== el) {
           if (picked) picked.classList.remove("cx-edit-picked");
           picked = el;
