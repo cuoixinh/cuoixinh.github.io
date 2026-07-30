@@ -141,7 +141,7 @@ function extractMapUrl(textarea) {
     const srcMatch = value.match(/src=["']([^"']+)["']/);
     if (srcMatch && srcMatch[1]) {
       textarea.value = srcMatch[1];
-      showToast("✅ Đã trích xuất URL từ iframe");
+      showToast("Đã trích xuất URL từ iframe", "success");
     }
   }
 }

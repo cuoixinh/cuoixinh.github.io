@@ -7,7 +7,7 @@ let _currentTab = "groom";
 
 document.addEventListener("DOMContentLoaded", async () => {
   lucide.createIcons();
-  if (!WEDDING_ID) { showToast("⚠️ Không tìm thấy ID thiệp"); return; }
+  if (!WEDDING_ID) { showToast("Không tìm thấy ID thiệp", "warning"); return; }
   await Promise.all([loadGuestList("groom"), loadGuestList("bride"), _getWedding()]);
 });
 
@@ -82,7 +82,7 @@ async function confirmAddGuest() {
 
   if (!full_name) {
     document.getElementById("add-guest-fullname").focus();
-    showToast("⚠️ Vui lòng nhập họ và tên");
+    showToast("Vui lòng nhập họ và tên", "warning");
     return;
   }
 
@@ -93,7 +93,7 @@ async function confirmAddGuest() {
     await _generateGuestLinks(_addGuestSide);
     await loadGuestList(_addGuestSide);
   } catch (err) {
-    showToast("❌ " + err.message);
+    showToast(err.message, "error");
   } finally {
     showLoading(false);
   }
@@ -103,7 +103,7 @@ async function confirmAddGuest() {
 
 function exportGuestList(side) {
   const guests = _allGuests[side];
-  if (!guests || guests.length === 0) { showToast("⚠️ Chưa có khách mời để xuất"); return; }
+  if (!guests || guests.length === 0) { showToast("Chưa có khách mời để xuất", "warning"); return; }
 
   const headers = ["Họ và tên", "Tên hiển thị", "Xưng hô", "Link cá nhân", "Đã xem", "Xác nhận", "Lời chúc"];
   const rows = guests.map(g => [
@@ -138,7 +138,7 @@ function exportGuestList(side) {
   const wb = _XLSX.utils.book_new();
   _XLSX.utils.book_append_sheet(wb, ws, "Khách mời");
   _XLSX.writeFile(wb, `danh-sach-khach-${sideLabel}.xlsx`, { cellStyles: true });
-  showToast(`✅ Đã xuất ${guests.length} khách mời`);
+  showToast(`Đã xuất ${guests.length} khách mời`, "success");
 }
 
 // ─── Excel Import ──────────────────────────────────────────────────────────────
@@ -149,14 +149,14 @@ async function regenerateLinks(side) {
     await _generateGuestLinks(side);
     await loadGuestList(side);
   } catch (err) {
-    showToast("❌ " + err.message);
+    showToast(err.message, "error");
   } finally {
     showLoading(false);
   }
 }
 
 function downloadGuestTemplate() {
-  if (typeof XLSX === "undefined") { showToast("⚠️ Đang tải thư viện, thử lại sau"); return; }
+  if (typeof XLSX === "undefined") { showToast("Đang tải thư viện, thử lại sau", "warning"); return; }
   guestBL.downloadTemplate();
 }
 
@@ -169,7 +169,7 @@ async function handleExcelUpload(event, side) {
     _importState = { headers, data, side };
     _openMappingModal(headers, data);
   } catch (err) {
-    showToast("❌ " + err.message);
+    showToast(err.message, "error");
   }
 }
 
@@ -222,7 +222,7 @@ async function confirmImport() {
   };
 
   if (isNaN(colMapping.full_name) || colMapping.full_name < 0) {
-    showToast("⚠️ Vui lòng chọn cột Họ và tên");
+    showToast("Vui lòng chọn cột Họ và tên", "warning");
     return;
   }
 
@@ -235,11 +235,11 @@ async function confirmImport() {
   try {
     const result = await guestBL.importGuests(WEDDING_ID, side, data, colMapping, overwrite);
     const skipMsg = result.skipped > 0 ? `, bỏ qua ${result.skipped} trùng` : "";
-    showToast(`✅ Đã nhập ${result.inserted} khách${skipMsg}`);
+    showToast(`Đã nhập ${result.inserted} khách${skipMsg}`, "success");
     await _generateGuestLinks(side);
     await loadGuestList(side);
   } catch (err) {
-    showToast("❌ Nhập khẩu thất bại: " + err.message);
+    showToast("Nhập khẩu thất bại: " + err.message, "error");
   } finally {
     showLoading(false);
   }
@@ -269,7 +269,7 @@ window.setShareTemplate = function (val) {
 async function _generateGuestLinks(side) {
   try {
     const slug = await _getWeddingSlug();
-    if (!slug) { showToast("⚠️ Không tìm thấy slug thiệp, không thể tạo link"); return; }
+    if (!slug) { showToast("Không tìm thấy slug thiệp, không thể tạo link", "warning"); return; }
 
     const guests = await guestDAL.getGuests(WEDDING_ID, side);
     const noLink = guests.filter(g => !g.link);
@@ -286,10 +286,10 @@ async function _generateGuestLinks(side) {
     });
     await guestDAL.updateGuestsBatchLinks(updates);
 
-    showToast(`✅ Đã tạo link cho ${noLink.length} khách`);
+    showToast(`Đã tạo link cho ${noLink.length} khách`, "success");
   } catch (err) {
     console.error("Generate links error:", err);
-    showToast("❌ Tạo link thất bại: " + err.message);
+    showToast("Tạo link thất bại: " + err.message, "error");
   }
 }
 
@@ -484,7 +484,7 @@ function _renderGuestList(side) {
 }
 
 function copyGuestLink(link) {
-  navigator.clipboard.writeText(link).then(() => showToast("✅ Đã copy link"));
+  navigator.clipboard.writeText(link).then(() => showToast("Đã copy link", "success"));
 }
 
 // ─── Share (chia sẻ link 1 khách) ─────────────────────────────────────────────
@@ -492,7 +492,7 @@ function copyGuestLink(link) {
 
 function _openShareModal(guestId, side) {
   const guest = _allGuests[side]?.find(g => g.id === guestId);
-  if (!guest || !guest.link) { showToast("⚠️ Khách này chưa có link"); return; }
+  if (!guest || !guest.link) { showToast("Khách này chưa có link", "warning"); return; }
 
   const name = guest.display_name || guest.full_name || "";
   const tpl = _wedding?.share_message_template;
@@ -579,7 +579,7 @@ function _openEditGuest(guest, side) {
 
 async function confirmEditGuest() {
   const full_name = document.getElementById("add-guest-fullname").value.trim();
-  if (!full_name) { showToast("⚠️ Vui lòng nhập họ và tên"); return; }
+  if (!full_name) { showToast("Vui lòng nhập họ và tên", "warning"); return; }
 
   closeAddGuestModal();
   // Reset modal về trạng thái thêm mới
@@ -594,10 +594,10 @@ async function confirmEditGuest() {
       display_name: document.getElementById("add-guest-displayname").value.trim(),
       relationship: document.getElementById("add-guest-relationship").value.trim(),
     });
-    showToast("✅ Đã cập nhật khách mời");
+    showToast("Đã cập nhật khách mời", "success");
     await loadGuestList(_addGuestSide);
   } catch (err) {
-    showToast("❌ Cập nhật thất bại: " + err.message);
+    showToast("Cập nhật thất bại: " + err.message, "error");
   } finally {
     showLoading(false);
     _editGuestId = null;
@@ -611,10 +611,10 @@ async function _deleteGuest(guest, side) {
   showLoading(true, "Đang xóa...");
   try {
     await guestDAL.deleteGuestsByIds([guest.id]);
-    showToast("✅ Đã xóa khách mời");
+    showToast("Đã xóa khách mời", "success");
     await loadGuestList(side);
   } catch (err) {
-    showToast("❌ Xóa thất bại: " + err.message);
+    showToast("Xóa thất bại: " + err.message, "error");
   } finally {
     showLoading(false);
   }

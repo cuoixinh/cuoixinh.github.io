@@ -120,7 +120,7 @@ function _applyThemeChange(newTheme, displayName) {
     if (iframe) iframe.src = _previewIframeSrc();
   }
   closeThemePicker();
-  showToast("✅ Đã đổi mẫu thiệp");
+  showToast("Đã đổi mẫu thiệp", "success");
 }
 window._applyThemeChange = _applyThemeChange;
 

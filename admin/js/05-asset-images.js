@@ -174,7 +174,7 @@ async function connectAssetRootFolder() {
     if (btn.dataset.mode === "regrant" && axRootHandle) {
       const perm = await axRootHandle.requestPermission({ mode: "readwrite" });
       if (perm !== "granted") {
-        showToast("❌ Chưa cấp quyền truy cập thư mục");
+        showToast("Chưa cấp quyền truy cập thư mục", "error");
         return;
       }
       axSetFolderStatus("connected", axRootHandle.name);
@@ -190,7 +190,7 @@ async function connectAssetRootFolder() {
     });
     const perm = await handle.requestPermission({ mode: "readwrite" });
     if (perm !== "granted") {
-      showToast("❌ Chưa cấp quyền truy cập thư mục");
+      showToast("Chưa cấp quyền truy cập thư mục", "error");
       return;
     }
 
@@ -199,12 +199,12 @@ async function connectAssetRootFolder() {
     axCurrentFolder = "";
     await siIdbPut(SI_IDB_STORE, AX_IDB_KEY, handle);
     axSetFolderStatus("connected", handle.name);
-    showToast("✅ Đã kết nối thư mục gốc: " + handle.name);
+    showToast("Đã kết nối thư mục gốc: " + handle.name, "success");
     await axRestoreLastFolder();
   } catch (e) {
     if (e.name !== "AbortError") {
       console.error(e);
-      showToast("❌ Lỗi chọn thư mục: " + e.message);
+      showToast("Lỗi chọn thư mục: " + e.message, "error");
     }
   }
 }
@@ -266,7 +266,7 @@ async function onAssetPresetChange() {
 async function openAssetFolder() {
   const folder = axNormalizeFolder(document.getElementById("ax-path-input").value);
   if (!folder) {
-    showToast("⚠️ Tên thư mục không hợp lệ — 1 cấp, chỉ chữ, số, dấu - và _");
+    showToast("Tên thư mục không hợp lệ — 1 cấp, chỉ chữ, số, dấu - và _", "warning");
     return;
   }
   if (folder !== axCurrentFolder && !(await axConfirmDiscard())) return;
@@ -292,12 +292,12 @@ async function axOpenFolder(folder, { silent = false } = {}) {
     axDirHandle = null;
     if (e.name !== "NotFoundError" && e.name !== "TypeMismatchError") {
       console.error(e);
-      showToast("❌ Không mở được thư mục: " + e.message);
+      showToast("Không mở được thư mục: " + e.message, "error");
       axClosePanel();
       return;
     }
     if (!silent) {
-      showToast(`⚠️ Chưa có thư mục ${folder}/ — sẽ tạo khi upload ảnh đầu tiên`);
+      showToast(`Chưa có thư mục ${folder}/ — sẽ tạo khi upload ảnh đầu tiên`, "warning");
     }
   }
 
@@ -405,7 +405,7 @@ async function axLoadFiles(focalOverrides = null) {
       }
     } catch (e) {
       console.error(e);
-      showToast("❌ Không đọc được thư mục: " + e.message);
+      showToast("Không đọc được thư mục: " + e.message, "error");
     } finally {
       showLoading(false);
     }
@@ -589,7 +589,7 @@ function axAdjustFocal(item, isPending) {
     item.focal = focal;
     if (!isPending) axFocalDirty = true;
     axRenderPanel();
-    showToast("✅ Đã cập nhật điểm lấy nét — nhớ bấm Lưu");
+    showToast("Đã cập nhật điểm lấy nét — nhớ bấm Lưu", "success");
   });
 }
 
@@ -605,7 +605,7 @@ function axRemovePending(idx) {
 async function axCopy(text, okMsg) {
   try {
     await navigator.clipboard.writeText(text);
-    showToast("✅ " + okMsg);
+    showToast(okMsg, "success");
   } catch (e) {
     showAlert("Copy thủ công", text, "info");
   }
@@ -613,7 +613,7 @@ async function axCopy(text, okMsg) {
 
 function axCopyAllPaths() {
   if (!axFiles.length) {
-    showToast("⚠️ Thư mục chưa có ảnh nào");
+    showToast("Thư mục chưa có ảnh nào", "warning");
     return;
   }
   return axCopy(
@@ -660,14 +660,14 @@ function axHandleUpload(event) {
  */
 async function axStageFiles(files) {
   if (!axRootHandle || !axCurrentFolder) {
-    showToast("⚠️ Chưa chọn thư mục đích");
+    showToast("Chưa chọn thư mục đích", "warning");
     return;
   }
 
   const images = files.filter((f) => f.type.startsWith("image/"));
   const notImages = files.length - images.length;
   if (!images.length) {
-    showToast("⚠️ Không có file ảnh nào");
+    showToast("Không có file ảnh nào", "warning");
     return;
   }
 
@@ -688,9 +688,9 @@ async function axStageFiles(files) {
   }
 
   axRenderPanel();
-  const msg = [`✅ Đã thêm ${images.length} ảnh vào hàng chờ — bấm Lưu để ghi`];
+  const msg = [`Đã thêm ${images.length} ảnh vào hàng chờ — bấm Lưu để ghi`];
   if (notImages) msg.push(`bỏ qua ${notImages} file không phải ảnh`);
-  showToast(msg.join(" · "));
+  showToast(msg.join(" · "), notImages ? "warning" : "success");
 }
 
 // Đuôi file lấy theo blob SAU khi nén (canvas có thể đổi định dạng), không có
@@ -767,7 +767,7 @@ async function axSyncManifest() {
     );
   } catch (e) {
     console.error("Không ghi được manifest.json:", e);
-    showToast("⚠️ Ảnh đã lưu nhưng không ghi được manifest.json — xem console");
+    showToast("Ảnh đã lưu nhưng không ghi được manifest.json — xem console", "warning");
   }
 }
 
@@ -791,7 +791,7 @@ async function axSaveChanges() {
       });
     } catch (e) {
       console.error(e);
-      showToast("❌ Không tạo được thư mục: " + e.message);
+      showToast("Không tạo được thư mục: " + e.message, "error");
       axRenderSaveBar();
       return;
     }
@@ -873,11 +873,11 @@ async function axSaveChanges() {
       savedNames.length > 1
         ? `${savedNames[0]} → ${savedNames[savedNames.length - 1]}`
         : savedNames[0];
-    const parts = [`✅ Đã lưu ${savedNames.length} ảnh vào ${axFolderUrl()}/ (${range})`];
+    const parts = [`Đã lưu ${savedNames.length} ảnh vào ${axFolderUrl()}/ (${range})`];
     if (compressed) parts.push(`nén ${compressed} ảnh (giảm ${axFormatSize(savedBytes)})`);
-    showToast(parts.join(" · "));
+    showToast(parts.join(" · "), "success");
   } else if (!errors.length) {
-    showToast("✅ Đã lưu điểm lấy nét vào manifest.json");
+    showToast("Đã lưu điểm lấy nét vào manifest.json", "success");
   }
 
   if (errors.length) {
@@ -914,10 +914,10 @@ async function axDeleteFile(name) {
     // (ảnh loading="lazy" chưa kịp tải) là Chrome báo ERR_FILE_NOT_FOUND.
     axClearGrid();
     await axDirHandle.removeEntry(name);
-    showToast("✅ Đã xoá " + name);
+    showToast("Đã xoá " + name, "success");
   } catch (e) {
     console.error(e);
-    showToast("❌ Không xoá được: " + e.message);
+    showToast("Không xoá được: " + e.message, "error");
   }
   await axLoadFiles(keepFocals);
   await axSyncManifest();

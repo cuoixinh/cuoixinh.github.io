@@ -345,13 +345,13 @@ async function handleGalleryUpload(event) {
   const remainingSlots =
     MAX_GALLERY_IMAGES - pendingUploads.galleryImages.length;
   if (remainingSlots <= 0) {
-    showToast(`❌ Đã đạt giới hạn ${MAX_GALLERY_IMAGES} ảnh`);
+    showToast(`Đã đạt giới hạn ${MAX_GALLERY_IMAGES} ảnh`, "error");
     return;
   }
 
   const filesToProcess = files.slice(0, remainingSlots);
   if (files.length > remainingSlots) {
-    showToast(`⚠️ Chỉ chọn được ${remainingSlots} ảnh nữa`);
+    showToast(`Chỉ chọn được ${remainingSlots} ảnh nữa`, "warning");
   }
 
   const errors = [];
@@ -387,7 +387,7 @@ async function handleGalleryUpload(event) {
   }
 
   renderGalleryGrid();
-  if (added > 0) showToast(`✅ Đã chọn ${added} ảnh (chưa lưu)`);
-  if (errors.length > 0) showToast(`⚠️ ${errors.length} ảnh lỗi`);
+  if (added > 0) showToast(`Đã chọn ${added} ảnh (chưa lưu)`, "success");
+  if (errors.length > 0) showToast(`${errors.length} ảnh lỗi`, "warning");
 }
 

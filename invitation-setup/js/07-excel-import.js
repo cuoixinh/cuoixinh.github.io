@@ -8,7 +8,7 @@ let _importState = { headers: [], data: [], side: "" };
 
 function downloadGuestTemplate() {
   if (typeof XLSX === "undefined") {
-    showToast("⚠️ Đang tải thư viện, thử lại sau");
+    showToast("Đang tải thư viện, thử lại sau", "warning");
     return;
   }
   guestBL.downloadTemplate();
@@ -24,7 +24,7 @@ async function handleExcelUpload(event, side) {
     _importState = { headers, data, side };
     _openMappingModal(headers, data);
   } catch (err) {
-    showToast("❌ " + err.message);
+    showToast(err.message, "error");
   }
 }
 
@@ -96,7 +96,7 @@ async function confirmImport() {
   };
 
   if (isNaN(colMapping.full_name) || colMapping.full_name < 0) {
-    showToast("⚠️ Vui lòng chọn cột Họ và tên");
+    showToast("Vui lòng chọn cột Họ và tên", "warning");
     return;
   }
 
@@ -118,10 +118,10 @@ async function confirmImport() {
     );
     const skipMsg =
       result.skipped > 0 ? `, bỏ qua ${result.skipped} trùng` : "";
-    showToast(`✅ Đã nhập ${result.inserted} khách${skipMsg}`);
+    showToast(`Đã nhập ${result.inserted} khách${skipMsg}`, "success");
     await loadGuestList(side);
   } catch (err) {
-    showToast("❌ Nhập khẩu thất bại: " + err.message);
+    showToast("Nhập khẩu thất bại: " + err.message, "error");
   } finally {
     showLoading(false);
   }
@@ -204,7 +204,7 @@ function _renderGuestList(guests, side) {
 }
 
 function copyGuestLink(link) {
-  navigator.clipboard.writeText(link).then(() => showToast("✅ Đã copy link"));
+  navigator.clipboard.writeText(link).then(() => showToast("Đã copy link", "success"));
 }
 
 function _formatGuestDate(dateStr) {
@@ -254,14 +254,14 @@ function generateQuickLink(side) {
   const name = document.getElementById(`quick-link-name-${side}`).value.trim();
   const rel = document.getElementById(`quick-link-rel-${side}`).value.trim();
   if (!name || !rel) {
-    showToast("❌ Vui lòng nhập tên và quan hệ khách");
+    showToast("Vui lòng nhập tên và quan hệ khách", "error");
     return;
   }
 
   const slug =
     WEDDING_SLUG || (WEDDING_ID ? `wedding-${WEDDING_ID.slice(0, 8)}` : "");
   if (!slug) {
-    showToast("❌ Không xác định được thiệp, vui lòng tải lại trang");
+    showToast("Không xác định được thiệp, vui lòng tải lại trang", "error");
     return;
   }
 
@@ -303,6 +303,6 @@ function copyMessengerLink(side) {
   const link = document.getElementById(`quick-link-output-${side}`)?.value;
   if (!link) return;
   navigator.clipboard.writeText(link);
-  showToast("📋 Đã copy! Mở Messenger rồi dán link vào hộp chat");
+  showToast("Đã copy! Mở Messenger rồi dán link vào hộp chat", "default", "clipboard");
 }
 

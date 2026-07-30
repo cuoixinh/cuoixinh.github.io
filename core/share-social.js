@@ -76,7 +76,7 @@
     if (!link) return;
     navigator.clipboard.writeText(link)
       .then(() => _copyToast("Đã copy link"))
-      .catch(() => _toast("❌ Không copy được link"));
+      .catch(() => _toast("Không copy được link", "error"));
   }
 
   function shareViaMessenger(link) {
@@ -173,7 +173,7 @@
 
   function open(opts) {
     const link = opts && opts.link;
-    if (!link) { _toast("⚠️ Không có link để chia sẻ"); return; }
+    if (!link) { _toast("Không có link để chia sẻ", "warning"); return; }
 
     // `message` là lời nhắn đã trộn sẵn (dùng nguyên văn). Để trống → không kèm câu nào,
     // các kênh nhét text vào URL sẽ chỉ chia sẻ link.

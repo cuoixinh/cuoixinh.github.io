@@ -433,13 +433,13 @@ function siMapAddress(side) {
 function siCopyMapAddress(side) {
   const addr = siMapAddress(side);
   if (!addr) {
-    showToast("⚠️ Chưa nhập địa điểm để sao chép");
+    showToast("Chưa nhập địa điểm để sao chép", "warning");
     return;
   }
   navigator.clipboard
     .writeText(addr)
-    .then(() => showToast("✅ Đã chép địa chỉ — dán vào ô tìm kiếm của Google Maps"))
-    .catch(() => showToast("❌ Trình duyệt chặn sao chép, hãy bôi đen rồi copy tay"));
+    .then(() => showToast("Đã chép địa chỉ — dán vào ô tìm kiếm của Google Maps", "success"))
+    .catch(() => showToast("Trình duyệt chặn sao chép, hãy bôi đen rồi copy tay", "error"));
 }
 
 function siOpenMapsSearch(side) {
@@ -452,11 +452,11 @@ function siOpenMapsSearch(side) {
 
 function siOpenMapPicker(side) {
   if (siIsFieldLocked(`${side}_map_embed_url`)) {
-    showToast(`⚠️ Đang trùng địa điểm ${SI_SOURCE_LABEL[siPartySource(side)]} — bỏ tích để chọn riêng`);
+    showToast(`Đang trùng địa điểm ${SI_SOURCE_LABEL[siPartySource(side)]} — bỏ tích để chọn riêng`, "warning");
     return;
   }
   if (typeof openMapPicker !== "function" || typeof L === "undefined") {
-    showToast("❌ Chưa nạp được bản đồ — thử tải lại trang");
+    showToast("Chưa nạp được bản đồ — thử tải lại trang", "error");
     return;
   }
   openMapPicker(side);
@@ -469,7 +469,7 @@ function siSetMapEmbed(name, el) {
     const m = raw.match(/src=["']([^"']+)["']/);
     if (m) {
       el.value = m[1];
-      showToast("✅ Đã tách link nhúng từ iframe");
+      showToast("Đã tách link nhúng từ iframe", "success");
     }
   }
   siSetContent(name, el.value);
@@ -566,7 +566,7 @@ function siRenderTimeline() {
 function siAddTimelineItem() {
   if (!siData?.content) return;
   if ((siData.content.timeline || []).length >= SI_MAX_TIMELINE) {
-    showToast(`⚠️ Tối đa ${SI_MAX_TIMELINE} mốc lịch trình`);
+    showToast(`Tối đa ${SI_MAX_TIMELINE} mốc lịch trình`, "warning");
     return;
   }
   siData.content.timeline.push({ time: "", title: "", type: "ceremony" });
@@ -655,11 +655,11 @@ function siApplyAiResult(res) {
 
 async function siGenerateSampleDataWithAI() {
   if (!siCurrentTheme || !siData) {
-    showToast("⚠️ Hãy chọn theme trước");
+    showToast("Hãy chọn theme trước", "warning");
     return;
   }
   if (typeof aiDAL === "undefined") {
-    showToast("❌ Chưa nạp được AiDAL");
+    showToast("Chưa nạp được AiDAL", "error");
     return;
   }
 
@@ -676,11 +676,15 @@ async function siGenerateSampleDataWithAI() {
     const applied = siApplyAiResult(res);
     siRenderAll();
     siMarkDirty(true);
-    showToast(
-      applied
-        ? `✨ AI đã điền ${applied} mục — kiểm tra rồi bấm "Lưu vào ổ đĩa"`
-        : "⚠️ AI chưa trả về nội dung dùng được, thử lại nhé",
-    );
+    if (applied) {
+      showToast(
+        `AI đã điền ${applied} mục — kiểm tra rồi bấm "Lưu vào ổ đĩa"`,
+        "default",
+        "sparkles",
+      );
+    } else {
+      showToast("AI chưa trả về nội dung dùng được, thử lại nhé", "warning");
+    }
   } catch (e) {
     console.error(e);
     // Bản Edge Function cũ chưa biết mode "sample" → rơi vào nhánh sinh thiệp
@@ -688,8 +692,9 @@ async function siGenerateSampleDataWithAI() {
     const msg = e?.message || "Không sinh được dữ liệu";
     showToast(
       /thông tin cô dâu|chú rể/i.test(msg)
-        ? "❌ Edge Function ai-invitation chưa có chế độ dữ liệu mẫu — cần deploy lại"
-        : "❌ " + msg,
+        ? "Edge Function ai-invitation chưa có chế độ dữ liệu mẫu — cần deploy lại"
+        : msg,
+      "error",
     );
   } finally {
     btn.disabled = false;

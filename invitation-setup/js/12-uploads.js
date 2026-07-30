@@ -106,7 +106,7 @@ function removeImage(fieldName) {
   // Render UI
   renderSingleImageUpload(fieldName);
 
-  showToast("🗑️ Đã xóa ảnh");
+  showToast("Đã xóa ảnh", "default", "trash-2");
 }
 
 function removeGalleryImage(index) {
@@ -123,7 +123,7 @@ function removeGalleryImage(index) {
   // Render grid
   renderGalleryGrid();
 
-  showToast("🗑️ Đã xóa ảnh");
+  showToast("Đã xóa ảnh", "default", "trash-2");
 }
 
 function removeExistingGalleryImage(index) {
@@ -160,6 +160,6 @@ function removeExistingGalleryImage(index) {
   // Render grid
   renderGalleryGrid();
 
-  showToast("🗑️ Đã xóa ảnh");
+  showToast("Đã xóa ảnh", "default", "trash-2");
 }
 

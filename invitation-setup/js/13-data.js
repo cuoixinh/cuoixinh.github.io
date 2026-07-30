@@ -366,7 +366,7 @@ async function saveAll(overrides = {}, label = "Đang lưu...") {
 
     if (errors.length > 0) {
       console.error("Upload errors:", errors);
-      showToast(`⚠️ ${errors.length} ảnh lỗi khi upload`);
+      showToast(`${errors.length} ảnh lỗi khi upload`, "warning");
     }
 
     // Step 2: Prepare form data
@@ -566,9 +566,9 @@ async function saveAll(overrides = {}, label = "Đang lưu...") {
       ?.contentWindow?.setShareTemplate?.(payload.share_message_template ?? null);
 
     if (_isLocalDraft && !IS_LOGIN) {
-      showToast("Đã lưu nháp vào thiết bị này");
+      showToast("Đã lưu nháp vào thiết bị này", "success");
     } else {
-      showToast("Đã lưu thành công!");
+      showToast("Đã lưu thành công!", "success");
     }
     _setDirty(false);
     return true;
@@ -579,16 +579,16 @@ async function saveAll(overrides = {}, label = "Đang lưu...") {
     // thiệp, tráo QR nhận tiền mừng). Nhắc đăng nhập thay vì báo lỗi thô; bản nháp
     // đã được lưu ở localStorage phía trên nên không mất dữ liệu.
     if (e.code === "AUTH_REQUIRED" || e.status === 401) {
-      showToast("Vui lòng đăng nhập để lưu thiệp lên hệ thống");
+      showToast("Vui lòng đăng nhập để lưu thiệp lên hệ thống", "warning");
       window.AuthUI?.openModal?.({ onAuth: () => location.reload() });
       return false;
     }
     if (e.code === "FORBIDDEN" || e.status === 403) {
-      showToast("❌ Bạn không có quyền chỉnh sửa thiệp này");
+      showToast("Bạn không có quyền chỉnh sửa thiệp này", "error");
       return false;
     }
 
-    showToast("❌ Lỗi: " + e.message);
+    showToast("Lỗi: " + e.message, "error");
     return false;
   } finally {
     showLoading(false);
@@ -600,7 +600,7 @@ function copyText(inputId) {
   if (!input) return;
 
   navigator.clipboard.writeText(input.value);
-  showToast("📋 Đã copy link!");
+  showToast("Đã copy link!", "default", "clipboard");
 }
 
 async function applySlug() {
@@ -614,7 +614,7 @@ async function applySlug() {
     .replace(/-+/g, "-")
     .replace(/^-|-$/g, "");
   if (!newSlug) {
-    showToast("❌ Vui lòng nhập slug hợp lệ");
+    showToast("Vui lòng nhập slug hợp lệ", "error");
     return;
   }
 
@@ -631,9 +631,9 @@ async function applySlug() {
     const brideLink = document.getElementById("link-bride");
     if (groomLink) groomLink.value = `${DOMAIN}/${newSlug}?isGroom=true`;
     if (brideLink) brideLink.value = `${DOMAIN}/${newSlug}`;
-    showToast("✅ Đã cập nhật slug!");
+    showToast("Đã cập nhật slug!", "success");
   } catch (e) {
-    showToast("❌ " + e.message);
+    showToast(e.message, "error");
   } finally {
     showLoading(false);
   }

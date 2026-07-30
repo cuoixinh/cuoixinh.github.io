@@ -4,6 +4,56 @@
  * Creates DOM elements dynamically — no static HTML required.
  */
 
+// ─── Icon lucide ─────────────────────────────────────────────────────────────
+// Nhúng thẳng path thay vì gọi lucide.createIcons(): file này dùng chung cho CẢ
+// landing, account, theme-template và admin — 4 trang KHÔNG nạp thư viện lucide
+// (chỉ invitation-setup + guests có). Phụ thuộc window.lucide thì 4 trang đó
+// icon trống trơn. Path lấy từ lucide-static 1.28.0 nên trùng khít bộ nét với
+// icon lucide trong trang. Thêm icon mới: copy phần trong <svg> của icon tương ứng.
+const _LUCIDE_PATHS = {
+  check: '<path d="M20 6 9 17l-5-5"/>',
+  x: '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+  "triangle-alert":
+    '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/>',
+  info: '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>',
+  sparkles:
+    '<path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"/><path d="M20 2v4"/><path d="M22 4h-4"/><circle cx="4" cy="20" r="2"/>',
+  "trash-2":
+    '<path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
+  clipboard:
+    '<rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>',
+  copy: '<rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>',
+  "folder-open":
+    '<path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"/>',
+  hourglass:
+    '<path d="M5 22h14"/><path d="M5 2h14"/><path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"/><path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"/>',
+};
+
+// Trả về markup svg của icon lucide, hoặc null nếu chưa nhúng path tên đó.
+function _lucideSvg(name, size) {
+  const inner = _LUCIDE_PATHS[name];
+  if (!inner) return null;
+  return (
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" ` +
+    `viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" ` +
+    `stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${inner}</svg>`
+  );
+}
+
+// Đặt icon lucide vào 1 ô tròn. Tên ngoài bộ nhúng sẵn → mượn thư viện lucide
+// nếu trang có nạp; không có nữa thì rơi về icon dự phòng cho khỏi trống ô.
+function _setLucideIcon(el, name, size, fallback) {
+  const svg = _lucideSvg(name, size);
+  if (svg) {
+    el.innerHTML = svg;
+  } else if (typeof lucide !== "undefined") {
+    el.innerHTML = `<i data-lucide="${name}" style="width:${size}px;height:${size}px"></i>`;
+    lucide.createIcons({ nodes: [el] });
+  } else {
+    el.innerHTML = _lucideSvg(fallback, size) || "";
+  }
+}
+
 // ─── Toast ───────────────────────────────────────────────────────────────────
 
 (function _initToast() {
@@ -43,9 +93,7 @@
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
-      font-size: 15px;
-      font-weight: 700;
-      line-height: 1;
+      line-height: 0;
     }
     #cx-toast-msg {
       flex: 1;
@@ -69,7 +117,15 @@
 
 let _toastTimer = null;
 
-// icon (tuỳ chọn): tên icon lucide (vd "copy") → hiện thay cho ký hiệu mặc định của type.
+const _TOAST_TYPE_ICON = {
+  success: "check",
+  error: "x",
+  warning: "triangle-alert",
+  default: "info",
+};
+
+// type quyết định màu + icon mặc định. icon (tuỳ chọn): tên icon lucide (vd "copy")
+// để đổi riêng icon mà vẫn giữ màu của type — tên có sẵn xem _LUCIDE_PATHS.
 function showToast(msg, type = "default", icon = null) {
   const el    = document.getElementById("cx-toast");
   const iconEl = document.getElementById("cx-toast-icon");
@@ -77,30 +133,18 @@ function showToast(msg, type = "default", icon = null) {
   if (!el || !iconEl || !text) return;
 
   const cfg = {
-    success: { symbol: "✓", bg: "#dcfce7", color: "#15803d" },
-    error:   { symbol: "✕", bg: "#fee2e2", color: "#dc2626" },
-    warning: { symbol: "!",  bg: "#fef3c7", color: "#d97706" },
-    default: { symbol: "·",  bg: "#f3f4f6", color: "#6b7280" },
+    success: { bg: "#dcfce7", color: "#15803d" },
+    error:   { bg: "#fee2e2", color: "#dc2626" },
+    warning: { bg: "#fef3c7", color: "#d97706" },
+    default: { bg: "#f3f4f6", color: "#6b7280" },
   };
 
-  // auto-detect type from emoji prefix if no explicit type given
-  if (type === "default") {
-    if (msg.startsWith("✅"))      type = "success";
-    else if (msg.startsWith("❌")) type = "error";
-    else if (msg.startsWith("⚠️")) type = "warning";
-  }
-
-  const c = cfg[type] || cfg.default;
+  const c        = cfg[type] || cfg.default;
+  const typeIcon = _TOAST_TYPE_ICON[type] || _TOAST_TYPE_ICON.default;
   iconEl.style.background = c.bg;
   iconEl.style.color      = c.color;
-  if (icon && typeof lucide !== "undefined") {
-    iconEl.innerHTML = `<i data-lucide="${icon}" style="width:16px;height:16px"></i>`;
-    lucide.createIcons();
-  } else {
-    iconEl.innerHTML = "";
-    iconEl.textContent = c.symbol;
-  }
-  text.innerHTML        = msg.replace(/^[✅❌⚠️📋🗑️]\s*/, ""); // strip leading emoji
+  _setLucideIcon(iconEl, icon || typeIcon, 18, typeIcon);
+  text.innerHTML        = msg;
 
   el.classList.add("visible");
 
@@ -135,7 +179,7 @@ function showToast(msg, type = "default", icon = null) {
     #cx-alert-icon {
       width: 36px; height: 36px; border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0; font-size: 17px; font-weight: 700;
+      flex-shrink: 0; line-height: 0;
     }
     #cx-alert-title { font-size: 15px; font-weight: 700; color: #1f2937; flex: 1; }
     #cx-alert-body {
@@ -191,17 +235,18 @@ function _settleDialog(val) {
 }
 
 const _DLG_ICONS = {
-  error:   { symbol: "✕", bg: "#fee2e2", color: "#dc2626" },
-  warning: { symbol: "!", bg: "#fef3c7", color: "#d97706" },
-  info:    { symbol: "i", bg: "#eff6ff", color: "#2563eb" },
-  success: { symbol: "✓", bg: "#dcfce7", color: "#15803d" },
+  error:   { icon: "x",              bg: "#fee2e2", color: "#dc2626" },
+  warning: { icon: "triangle-alert", bg: "#fef3c7", color: "#d97706" },
+  info:    { icon: "info",           bg: "#eff6ff", color: "#2563eb" },
+  success: { icon: "check",          bg: "#dcfce7", color: "#15803d" },
 };
 
 /**
  * Base dialog dùng chung → Promise<boolean>.
  * @param {{title?:string, message?:string, type?:"error"|"warning"|"info"|"success",
- *          confirm?:boolean, okText?:string, cancelText?:string}} opts
+ *          icon?:string, confirm?:boolean, okText?:string, cancelText?:string}} opts
  *   confirm=true → hiện thêm nút Huỷ (2 nút); mặc định chỉ 1 nút (alert).
+ *   icon → tên icon lucide thay cho icon mặc định của type, MÀU vẫn theo type.
  */
 function showDialog(opts = {}) {
   // Nếu còn hộp thoại cũ chưa đóng → coi như huỷ trước khi mở cái mới.
@@ -211,7 +256,7 @@ function showDialog(opts = {}) {
   const icon = document.getElementById("cx-alert-icon");
   icon.style.background = c.bg;
   icon.style.color = c.color;
-  icon.textContent = c.symbol;
+  _setLucideIcon(icon, opts.icon || c.icon, 20, c.icon);
   document.getElementById("cx-alert-title").textContent = opts.title || "";
   document.getElementById("cx-alert-body").textContent = opts.message || "";
 
@@ -229,23 +274,26 @@ function showDialog(opts = {}) {
  * Alert 1 nút (giữ nguyên chữ ký cũ).
  * @param {string} title
  * @param {string} message — hỗ trợ \n
- * @param {"error"|"warning"|"info"} type
+ * @param {"error"|"warning"|"info"|"success"} [type]
+ * @param {string} [icon] — tên icon lucide thay icon mặc định của type (màu giữ theo type)
  */
-function showAlert(title, message, type = "error") {
-  return showDialog({ title, message, type });
+function showAlert(title, message, type = "error", icon = null) {
+  return showDialog({ title, message, type, icon });
 }
 
 /**
  * Confirm 2 nút (Huỷ / Xác nhận) → Promise<boolean>.
  * @param {string} title
  * @param {string} message — hỗ trợ \n
- * @param {{type?:"warning"|"error"|"info", confirmText?:string, cancelText?:string}} [opts]
+ * @param {{type?:"warning"|"error"|"info"|"success", icon?:string,
+ *          confirmText?:string, cancelText?:string}} [opts]
  */
 function showConfirm(title, message, opts = {}) {
   return showDialog({
     title,
     message,
     type: opts.type || "warning",
+    icon: opts.icon,
     confirm: true,
     okText: opts.confirmText,
     cancelText: opts.cancelText,

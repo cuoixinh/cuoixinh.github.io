@@ -211,7 +211,7 @@ async function connectSampleImagesFolder() {
     if (btn.dataset.mode === "regrant" && siRootHandle) {
       const perm = await siRootHandle.requestPermission({ mode: "readwrite" });
       if (perm !== "granted") {
-        showToast("❌ Chưa cấp quyền truy cập thư mục");
+        showToast("Chưa cấp quyền truy cập thư mục", "error");
         return;
       }
       siSetFolderStatus("connected");
@@ -222,18 +222,18 @@ async function connectSampleImagesFolder() {
     const handle = await window.showDirectoryPicker();
     const perm = await handle.requestPermission({ mode: "readwrite" });
     if (perm !== "granted") {
-      showToast("❌ Chưa cấp quyền truy cập thư mục");
+      showToast("Chưa cấp quyền truy cập thư mục", "error");
       return;
     }
     siRootHandle = handle;
     await siIdbSetHandle(handle);
     siSetFolderStatus("connected");
-    showToast("✅ Đã kết nối thư mục");
+    showToast("Đã kết nối thư mục", "success");
     await siRestoreLastTheme();
   } catch (e) {
     if (e.name !== "AbortError") {
       console.error(e);
-      showToast("❌ Lỗi chọn thư mục: " + e.message);
+      showToast("Lỗi chọn thư mục: " + e.message, "error");
     }
   }
 }
@@ -273,14 +273,14 @@ async function onSampleImagesThemeChange() {
       siShowDraftBanner(null);
       siSetDirtyIndicator(false);
       if (foundOnDisk) {
-        showToast(`📂 Đã nạp ${foundOnDisk} ảnh có sẵn trong thư mục`);
+        showToast(`Đã nạp ${foundOnDisk} ảnh có sẵn trong thư mục`, "default", "folder-open");
       }
     }
 
     document.getElementById("si-form").classList.remove("hidden");
   } catch (e) {
     console.error(e);
-    showToast("❌ Lỗi tải dữ liệu theme: " + e.message);
+    showToast("Lỗi tải dữ liệu theme: " + e.message, "error");
   } finally {
     showLoading(false);
   }
@@ -527,13 +527,14 @@ async function siLoadThemeData() {
 
     if (siJsonBroken) {
       showToast(
-        `❌ data.json LỖI CÚ PHÁP (${siJsonBroken.message}) — điểm lấy nét và phần chữ KHÔNG nạp được. Sửa file rồi chọn lại theme; bấm Lưu bây giờ sẽ ghi đè bằng giá trị mặc định.`,
+        `data.json LỖI CÚ PHÁP (${siJsonBroken.message}) — điểm lấy nét và phần chữ KHÔNG nạp được. Sửa file rồi chọn lại theme; bấm Lưu bây giờ sẽ ghi đè bằng giá trị mặc định.`,
+        "error",
       );
     }
 
     const skipped = strays.length - strays.filter((n) => used.has(n)).length;
     if (skipped > 0) {
-      showToast(`⚠️ ${skipped} ảnh trong thư mục bị bỏ qua (vượt giới hạn)`);
+      showToast(`${skipped} ảnh trong thư mục bị bỏ qua (vượt giới hạn)`, "warning");
     }
 
     siRenderAll();
@@ -696,10 +697,10 @@ async function siDiscardDraft() {
     await siLoadThemeData();
     siShowDraftBanner(null);
     siSetDirtyIndicator(false);
-    showToast("✅ Đã bỏ bản nháp");
+    showToast("Đã bỏ bản nháp", "success");
   } catch (e) {
     console.error(e);
-    showToast("❌ Lỗi tải lại: " + e.message);
+    showToast("Lỗi tải lại: " + e.message, "error");
   } finally {
     showLoading(false);
   }
@@ -759,7 +760,7 @@ async function siHandleSingleUpload(event, fieldName) {
   event.target.value = "";
   if (!file) return;
   if (!file.type.startsWith("image/")) {
-    showToast("❌ Chỉ chấp nhận file ảnh!");
+    showToast("Chỉ chấp nhận file ảnh!", "error");
     return;
   }
 
@@ -790,7 +791,7 @@ async function siHandleSingleUpload(event, fieldName) {
       siRenderSingleImage(fieldName);
       siMarkDirty(true);
     } catch (e) {
-      showToast("❌ Lỗi xử lý ảnh: " + e.message);
+      showToast("Lỗi xử lý ảnh: " + e.message, "error");
     } finally {
       showLoading(false);
     }
@@ -804,7 +805,7 @@ function siAdjustSingleFocal(fieldName) {
     entry.focal = focal;
     siRenderSingleImage(fieldName);
     siMarkDirty(true);
-    showToast("✅ Đã cập nhật điểm lấy nét");
+    showToast("Đã cập nhật điểm lấy nét", "success");
   });
 }
 
@@ -873,7 +874,7 @@ async function siHandleGalleryUpload(event) {
   event.target.value = "";
   const room = SI_MAX_GALLERY - siData.gallery.length;
   if (room <= 0) {
-    showToast(`⚠️ Tối đa ${SI_MAX_GALLERY} ảnh`);
+    showToast(`Tối đa ${SI_MAX_GALLERY} ảnh`, "warning");
     return;
   }
 
@@ -889,7 +890,7 @@ async function siHandleGalleryUpload(event) {
       });
     }
   } catch (e) {
-    showToast("❌ Lỗi xử lý ảnh: " + e.message);
+    showToast("Lỗi xử lý ảnh: " + e.message, "error");
   } finally {
     showLoading(false);
   }
@@ -904,7 +905,7 @@ function siAdjustGalleryFocal(idx) {
     item.focal = focal;
     siRenderGallery();
     siMarkDirty(true);
-    showToast("✅ Đã cập nhật điểm lấy nét");
+    showToast("Đã cập nhật điểm lấy nét", "success");
   });
 }
 
@@ -972,7 +973,7 @@ function siRenderLoveStory() {
 
 function siAddLoveStoryItem() {
   if (siData.loveStory.length >= SI_MAX_LOVE_STORY) {
-    showToast(`⚠️ Tối đa ${SI_MAX_LOVE_STORY} mốc`);
+    showToast(`Tối đa ${SI_MAX_LOVE_STORY} mốc`, "warning");
     return;
   }
   siData.loveStory.push({
@@ -998,7 +999,7 @@ async function siHandleLoveStoryUpload(event, idx) {
   event.target.value = "";
   if (!file) return;
   if (!file.type.startsWith("image/")) {
-    showToast("❌ Chỉ chấp nhận file ảnh!");
+    showToast("Chỉ chấp nhận file ảnh!", "error");
     return;
   }
 
@@ -1013,7 +1014,7 @@ async function siHandleLoveStoryUpload(event, idx) {
       siRenderLoveStory();
       siMarkDirty(true);
     } catch (e) {
-      showToast("❌ Lỗi xử lý ảnh: " + e.message);
+      showToast("Lỗi xử lý ảnh: " + e.message, "error");
     } finally {
       showLoading(false);
     }
@@ -1214,7 +1215,8 @@ async function siResumeSaveIfInterrupted() {
   if (attempts > SI_MAX_RESUME) {
     siClearSaveFlag();
     showToast(
-      `⚠️ Lần lưu trước bị cắt ngang ${SI_MAX_RESUME} lần liên tiếp — hãy bấm "Lưu vào ổ đĩa" và xem console`,
+      `Lần lưu trước bị cắt ngang ${SI_MAX_RESUME} lần liên tiếp — hãy bấm "Lưu vào ổ đĩa" và xem console`,
+      "warning",
     );
     return;
   }
@@ -1226,7 +1228,7 @@ async function siResumeSaveIfInterrupted() {
     );
   } catch (e) {}
 
-  showToast(`⏳ Lần lưu trước chưa xong — đang ghi tiếp (vòng ${attempts}/${SI_MAX_RESUME})`);
+  showToast(`Lần lưu trước chưa xong — đang ghi tiếp (vòng ${attempts}/${SI_MAX_RESUME})`, "default", "hourglass");
   await saveSampleImages({ scan: false });
 }
 
@@ -1295,7 +1297,7 @@ async function siWipeOtherImages(dirHandle, keepFiles) {
 // chọn theme, cũng đừng bật modal scan mà họ không hề bấm gì.
 async function saveSampleImages({ scan = true } = {}) {
   if (!siThemeHandle || !siCurrentTheme) {
-    showToast("❌ Chưa chọn theme hoặc chưa kết nối thư mục");
+    showToast("Chưa chọn theme hoặc chưa kết nối thư mục", "error");
     return;
   }
 
@@ -1412,13 +1414,14 @@ async function saveSampleImages({ scan = true } = {}) {
     siSetDirtyIndicator(false);
 
     showToast(
-      `✅ Đã lưu dữ liệu mẫu cho theme ${siCurrentTheme}` +
+      `Đã lưu dữ liệu mẫu cho theme ${siCurrentTheme}` +
         (backedUp ? " (bản data.json hỏng đã chép sang data.json.bak)" : "") +
         (compressed
           ? ` (đã nén ${compressed} ảnh, giảm ${siFormatMB(savedBytes)})`
           : "") +
         (skipped ? ` (${skipped} ảnh không đổi nên giữ nguyên)` : "") +
         (removed ? ` (đã xoá ${removed} ảnh cũ)` : ""),
+      "success",
     );
 
     // Ảnh demo vừa đổi → chụp lại thumbnail preview của template này (dùng
@@ -1431,9 +1434,10 @@ async function saveSampleImages({ scan = true } = {}) {
     // Ảnh chết giữa chừng → data.json chưa ghi. Đừng để mất luôn phần chữ.
     const rescued = await siWriteContentOnly();
     showToast(
-      "❌ Lỗi lưu: " +
+      "Lỗi lưu: " +
         e.message +
         (rescued ? " — đã kịp giữ phần chữ vào data.json" : ""),
+      "error",
     );
   } finally {
     // Chạy cho cả thành công lẫn lỗi ĐÃ BÁO. Trang chết ngang thì finally
@@ -1446,12 +1450,12 @@ async function saveSampleImages({ scan = true } = {}) {
 
 function siPreviewTheme() {
   if (!siCurrentTheme) {
-    showToast("⚠️ Hãy chọn theme trước");
+    showToast("Hãy chọn theme trước", "warning");
     return;
   }
   // Trang xem thử fetch assets/data-template/<theme>/ → chỉ thấy ảnh đã ghi.
   if (siDirty) {
-    showToast("⚠️ Có thay đổi chưa lưu — bản xem thử vẫn là ảnh cũ trên đĩa");
+    showToast("Có thay đổi chưa lưu — bản xem thử vẫn là ảnh cũ trên đĩa", "warning");
   }
   window.open(
     `../public/themes/${siCurrentTheme}/index.html?preview=true`,

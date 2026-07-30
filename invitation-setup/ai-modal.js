@@ -595,7 +595,7 @@ function _renderAiHistory() {
 function previewAiHistory(id) {
   const entry = _loadAiHistory().find((e) => e.id === id);
   if (!entry || !entry.result) {
-    showToast("⚠️ Không tìm thấy nội dung", "warning");
+    showToast("Không tìm thấy nội dung", "warning");
     return;
   }
   if (entry.payload) _restoreAiInputs(entry.payload);
@@ -657,7 +657,7 @@ async function submitAiGenerate() {
   // Tên/ngày/giờ cưới nay nằm trong ô Thông tin để AI tự trích → bắt buộc có nội dung.
   if (!info) {
     showToast(
-      "⚠️ Vui lòng nhập thông tin cô dâu, chú rể (tên, ngày, giờ cưới…)",
+      "Vui lòng nhập thông tin cô dâu, chú rể (tên, ngày, giờ cưới…)",
       "warning",
     );
     document.getElementById("ai-info")?.focus();
@@ -750,14 +750,14 @@ async function submitAiGenerate() {
         _renderAiPreview(result);
         _pushAiHistory(payload, result);
       } catch (err2) {
-        showToast("❌ " + (err2.message || "Không tạo được nội dung"), "error");
+        showToast(err2.message || "Không tạo được nội dung", "error");
         backToAiForm();
       }
     } else {
       // Đã stream được một phần → giữ lại, chỉ báo nhẹ
       finishPreview();
       showToast(
-        "⚠️ " + (err.message || "Tạo bị gián đoạn, dùng phần đã có"),
+        err.message || "Tạo bị gián đoạn, dùng phần đã có",
         "warning",
       );
     }
@@ -1278,7 +1278,7 @@ function _doApplyAiResult() {
   _scheduleAutoSave();
 
   closeAiModal();
-  showToast("✅ Đã áp dụng nội dung AI vào thiệp", "success");
+  showToast("Đã áp dụng nội dung AI vào thiệp", "success");
 }
 
 // Đổ 1 giá trị vào field của form (tái dùng cách xử lý như fillForm):

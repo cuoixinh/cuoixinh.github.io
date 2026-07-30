@@ -78,7 +78,7 @@ function addTimelineItem(type = "ceremony") {
   if (
     _timelineItems.filter((i) => (i.type || "ceremony") === type).length >= max
   ) {
-    showToast(`⚠️ Tối đa ${max} mốc`);
+    showToast(`Tối đa ${max} mốc`, "warning");
     return;
   }
   _timelineItems.push({ time: "", title: "", type });
@@ -268,7 +268,7 @@ async function handleLoveStoryImage(idx, input) {
   const file = input.files[0];
   if (!file) return;
   if (!file.type.startsWith("image/")) {
-    showToast("❌ Chỉ chấp nhận file ảnh!");
+    showToast("Chỉ chấp nhận file ảnh!", "error");
     return;
   }
   input.value = "";
@@ -285,7 +285,7 @@ async function handleLoveStoryImage(idx, input) {
     _syncLoveStoryHidden();
     _idbSaveLoveStoryImages();
   } catch (e) {
-    showToast("❌ Lỗi xử lý ảnh");
+    showToast("Lỗi xử lý ảnh", "error");
   } finally {
     showLoading(false);
   }
@@ -307,7 +307,7 @@ async function adjustLoveStoryFocalPoint(idx) {
   _loveStoryItems[idx].focal_point = focal;
   _syncLoveStoryHidden();
   renderLoveStoryList();
-  showToast("✅ Đã cập nhật điểm lấy nét");
+  showToast("Đã cập nhật điểm lấy nét", "success");
 }
 
 function removeLoveStoryImage(idx) {
@@ -321,7 +321,7 @@ function removeLoveStoryImage(idx) {
 
 function addLoveStoryItem() {
   if (_loveStoryItems.length >= MAX_LOVE_STORY_ITEMS) {
-    showToast(`⚠️ Tối đa ${MAX_LOVE_STORY_ITEMS} mốc`);
+    showToast(`Tối đa ${MAX_LOVE_STORY_ITEMS} mốc`, "warning");
     return;
   }
   _loveStoryItems.push({ date: "", title: "", content: "", image_url: null });

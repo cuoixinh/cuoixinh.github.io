@@ -380,7 +380,7 @@ function initializePage() {
       }
     }, 50);
   } else {
-    showToast("❌ Không tìm thấy ID thiệp cưới!");
+    showToast("Không tìm thấy ID thiệp cưới!", "error");
   }
 
   if (typeof lucide !== "undefined") lucide.createIcons();

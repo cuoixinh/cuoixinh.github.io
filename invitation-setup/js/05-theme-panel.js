@@ -1175,10 +1175,10 @@ function copyInviteLink() {
   navigator.clipboard
     .writeText(preview.textContent)
     .then(() => {
-      showToast("✅ Đã sao chép link thiệp!");
+      showToast("Đã sao chép link thiệp!", "success");
     })
     .catch(() => {
-      showToast("❌ Không thể sao chép, hãy copy thủ công");
+      showToast("Không thể sao chép, hãy copy thủ công", "error");
     });
 }
 
@@ -1241,7 +1241,7 @@ async function publishWedding() {
   // Validate form TRƯỚC khi yêu cầu đăng nhập — tránh bắt user đăng nhập rồi mới báo thiếu thông tin
   const form = document.getElementById("wedding-form");
   if (!validateForm(form)) {
-    showToast("⚠️ Vui lòng điền đủ thông tin bắt buộc trước khi xuất bản");
+    showToast("Vui lòng điền đủ thông tin bắt buộc trước khi xuất bản", "warning");
     return;
   }
 
@@ -1317,7 +1317,10 @@ function _ensurePublishPopupAssets() {
     #publish-success-modal{position:fixed;inset:0;z-index:300;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(58,26,34,.55);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
     #publish-success-modal button,#publish-success-modal a{cursor:pointer}
     #publish-success-modal :focus-visible{outline:2px solid #e11d48;outline-offset:2px}
-    .ps-card{width:100%;max-width:384px;max-height:92vh;overflow-y:auto;background:#fffdfa;border-radius:28px;box-shadow:0 24px 64px -16px rgba(74,44,53,.45);animation:ps-in .5s cubic-bezier(.22,.9,.3,1) both}
+    /* 92dvh chứ không chỉ 92vh: trên iOS/Android, vh tính theo viewport lúc thanh
+       công cụ trình duyệt ĐANG ẨN, nên 92vh vẫn có thể cao hơn phần nhìn thấy thật
+       và popup bị cắt. Trình duyệt cũ không hiểu dvh sẽ bỏ qua dòng sau, còn 92vh. */
+    .ps-card{width:100%;max-width:384px;max-height:92vh;max-height:92dvh;overflow-y:auto;background:#fffdfa;border-radius:28px;box-shadow:0 24px 64px -16px rgba(74,44,53,.45);animation:ps-in .5s cubic-bezier(.22,.9,.3,1) both}
     @keyframes ps-in{from{opacity:0;transform:translateY(16px) scale(.98)}to{opacity:1;transform:none}}
     .ps-head{position:relative;text-align:center;padding:32px 28px 0px}
     .ps-x{position:absolute;top:12px;right:12px;width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;border-radius:999px;color:#b39aa1;background:transparent;transition:color .15s ease,background .15s ease}
@@ -1334,27 +1337,51 @@ function _ensurePublishPopupAssets() {
     .ps-congrats{font-family:'Italianno',cursive;font-size:64px;line-height:1.25;color:#b8425f;margin:4px 0 0;animation:ps-rise .5s .16s cubic-bezier(.22,.9,.3,1) both}
     @keyframes ps-rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
     .ps-title{font-size:12px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:#9b7d86}
-    .ps-couple{font-family:'Playfair Display',serif;font-size:16px;color:#4a2c35;margin-top:12px;display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center}
-    .ps-sub{font-size:12px;color:#9b7d86;margin:12px 0 0}
-    .ps-body{padding:0 24px 24px}
-    .ps-eyebrow{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#c2a15a;margin:24px 4px 12px}
+    .ps-couple{font-family:'Playfair Display',serif;font-size:16px;color:#4a2c35;margin-top:8px;display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center}
+    .ps-sub{font-size:12px;color:#9b7d86;margin:8px 0 0}
+    .ps-body{padding:0 24px 20px}
+    .ps-eyebrow{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#c2a15a;margin:16px 4px 8px}
     .ps-eyebrow::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,#ecdfc4,transparent)}
-    .ps-link{border:1px solid #f0e4d4;background:#fffaf4;border-radius:20px;padding:16px}
-    .ps-link+.ps-link{margin-top:12px}
-    .ps-link-label{font-size:16px;font-weight:600;color:#4a2c35}
-    .ps-link-sub{font-size:12px;color:#9b7d86;margin-top:4px}
-    .ps-url{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;color:#7d5a64;word-break:break-all;margin-top:12px;padding:8px 12px;background:#fff;border:1px solid #f4ece2;border-radius:12px}
-    .ps-acts{display:flex;gap:8px;margin-top:12px}
-    .ps-soft{flex:1;height:40px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:12px;font-weight:600;border:1px solid #ffd9e1;color:#e11d48;background:#fff;transition:background .15s ease,border-color .15s ease}
+    .ps-link{border:1px solid #f0e4d4;background:#fffaf4;border-radius:16px;padding:12px}
+    .ps-link+.ps-link{margin-top:8px}
+    .ps-link-top{display:flex;align-items:center;gap:12px}
+    .ps-link-text{flex:1;min-width:0}
+    .ps-link-label{font-size:16px;font-weight:600;line-height:1.2;color:#4a2c35}
+    .ps-link-sub{font-size:12px;line-height:1.3;color:#9b7d86;margin-top:2px}
+    /* 1 dòng + cắt đuôi: link nhà trai có thêm ?isGroom=true nên xuống 2 dòng,
+       làm hai thẻ lệch nhau và cao thêm. Link đầy đủ vẫn nằm ở nút Sao chép. */
+    .ps-url{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;line-height:1.3;color:#9b7d86;margin-top:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .ps-acts{display:flex;gap:8px;flex-shrink:0}
+    .ps-soft{width:36px;height:36px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #ffd9e1;color:#e11d48;background:#fff;transition:background .15s ease,border-color .15s ease}
     .ps-soft:hover{background:#fff1f4;border-color:#ffc4d2}
     .ps-soft i{width:16px;height:16px}
-    .ps-primary{width:100%;height:52px;border-radius:16px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:16px;font-weight:600;color:#fff;background:#e11d48;border:none;transition:background .15s ease}
+    /* margin-top thay cho eyebrow đã bỏ: nút này mở sang việc KHÁC (khách mời),
+       dính sát thẻ link cuối thì đọc như vẫn thuộc mục "Chia sẻ thiệp". */
+    .ps-primary{width:100%;height:48px;margin-top:20px;border-radius:16px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:16px;font-weight:600;color:#fff;background:#e11d48;border:none;transition:background .15s ease}
     .ps-primary:hover{background:#c81742}
     .ps-primary i{width:16px;height:16px}
-    .ps-note{font-size:12px;line-height:1.6;color:#9b7d86;text-align:center;margin:16px 0 0;padding:0 8px}
+    .ps-note{font-size:12px;line-height:1.5;color:#9b7d86;text-align:center;margin:8px 0 0;padding:0 8px}
     .ps-note b{color:#4a2c35;font-weight:600}
-    .ps-done{display:block;width:100%;margin-top:16px;padding:12px;font-size:12px;font-weight:600;color:#b39aa1;background:none;border:none}
-    .ps-done:hover{color:#4a2c35}
+    /* Nền ngà nhạt + viền mảnh (cùng bộ với thẻ link) thay vì chữ trơn: vẫn nhẹ hơn
+       hẳn nút hồng phía trên, nhưng nhìn ra là NÚT chứ không phải dòng chữ phụ. */
+    .ps-done{display:flex;align-items:center;justify-content:center;width:100%;height:40px;margin-top:8px;border-radius:12px;font-size:12px;font-weight:600;color:#7d5a64;background:#f7f0e8;border:1px solid #f0e4d4;transition:background .15s ease,color .15s ease}
+    .ps-done:hover{background:#f1e7db;color:#4a2c35}
+    /* Màn thấp (iPhone SE… và mọi máy khi thanh công cụ trình duyệt đang hiện):
+       bóp tiếp phần trang trí để KHÔNG phải cuộn — bỏ dòng chú thích, hạ cỡ chữ
+       "Chúc mừng" và lề trên. Máy cao vẫn giữ nguyên thiết kế đầy đủ. */
+    @media (max-height:640px){
+      .ps-head{padding-top:20px}
+      .ps-congrats{font-size:52px}
+      .ps-note{display:none}
+      .ps-eyebrow{margin-top:12px}
+    }
+    /* Cực thấp (máy nhỏ xoay ngang, cửa sổ tí hon): bỏ nốt dòng link hiển thị và
+       nới popup gần kín màn. Nút Sao chép vẫn chép đủ link nên không mất chức năng. */
+    @media (max-height:520px){
+      #publish-success-modal{padding:8px}
+      .ps-card{max-height:96dvh}
+      .ps-url{display:none}
+    }
     @media (prefers-reduced-motion:reduce){.ps-card,.ps-congrats,.ps-orn i{animation:none}}`;
   document.head.appendChild(s);
 }
@@ -1389,15 +1416,22 @@ function showPublishSuccessPopup() {
       ? `<div class="ps-couple">${esc(groom)} ${HEART("#fb7185", 13)} ${esc(bride)}</div>`
       : `<p class="ps-sub">Giờ bạn có thể trao thiệp đến những người thương yêu</p>`;
 
+  // Nhãn + 2 nút CÙNG một hàng (nút chỉ còn icon, có title/aria-label): xếp dọc
+  // nhãn → mô tả → link → 2 nút full-width tốn ~170px mỗi thẻ, hai thẻ là popup
+  // vượt màn hình điện thoại. Gói lại còn ~80px mà không bỏ mục nào.
   const linkRow = (label, sub, url) => `
     <div class="ps-link">
-      <div class="ps-link-label">${label}</div>
-      <div class="ps-link-sub">${sub}</div>
-      <div class="ps-url">${url}</div>
-      <div class="ps-acts">
-        <button type="button" class="ps-soft" data-ps-open="${url}"><i data-lucide="eye"></i>Xem thử</button>
-        <button type="button" class="ps-soft" data-ps-copy="${url}"><i data-lucide="copy"></i>Sao chép</button>
+      <div class="ps-link-top">
+        <div class="ps-link-text">
+          <div class="ps-link-label">${label}</div>
+          <div class="ps-link-sub">${sub}</div>
+        </div>
+        <div class="ps-acts">
+          <button type="button" class="ps-soft" data-ps-open="${url}" title="Xem thử" aria-label="Xem thử ${label}"><i data-lucide="eye"></i></button>
+          <button type="button" class="ps-soft" data-ps-copy="${url}" title="Sao chép" aria-label="Sao chép ${label}"><i data-lucide="copy"></i></button>
+        </div>
       </div>
+      <div class="ps-url">${url}</div>
     </div>`;
 
   const linksHtml = familyOn
@@ -1423,9 +1457,8 @@ function showPublishSuccessPopup() {
         <div class="ps-eyebrow">Chia sẻ thiệp</div>
         ${linksHtml}
 
-        <div class="ps-eyebrow">Khách mời &amp; lời chúc</div>
         <button type="button" class="ps-primary" data-ps-guests><i data-lucide="users"></i>Quản lý khách mời<i data-lucide="arrow-right"></i></button>
-        <p class="ps-note">Gửi link cho <b>người thân, bạn bè</b> để họ chung vui và <b>gửi lời chúc</b> đến hai bạn.</p>
+        <p class="ps-note">Gửi link để mọi người chung vui và <b>gửi lời chúc</b>.</p>
 
         <button type="button" class="ps-done" data-ps-close>Hoàn tất</button>
       </div>
@@ -1443,7 +1476,8 @@ function showPublishSuccessPopup() {
   };
 
   modal.addEventListener("click", (e) => {
-    if (e.target === modal) return close(); // bấm nền tối = đóng
+    // Bấm nền tối KHÔNG đóng: đây là màn duy nhất đưa link thiệp cho khách, lỡ
+    // chạm ra ngoài mà mất là phải mò lại. Chỉ nút ✕ và "Hoàn tất" mới đóng.
     if (e.target.closest("[data-ps-close]")) return close();
     if (e.target.closest("[data-ps-guests]")) {
       close();
@@ -1459,8 +1493,8 @@ function showPublishSuccessPopup() {
     if (copyBtn) {
       navigator.clipboard
         .writeText(copyBtn.getAttribute("data-ps-copy"))
-        .then(() => showToast("✅ Đã sao chép link thiệp!"))
-        .catch(() => showToast("❌ Không thể sao chép, hãy copy thủ công"));
+        .then(() => showToast("Đã sao chép link thiệp!", "success"))
+        .catch(() => showToast("Không thể sao chép, hãy copy thủ công", "error"));
     }
   });
 

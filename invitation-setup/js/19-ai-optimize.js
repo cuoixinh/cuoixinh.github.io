@@ -61,7 +61,7 @@ async function _runAiOptimize(btn, inputType, getVal, setVal, targetEl) {
   if (btn && btn.dataset.loading === "1") return; // chống bấm chồng
   const cur = String(getVal() || "").trim();
   if (!cur) {
-    showToast("⚠️ Hãy nhập nội dung trước khi tối ưu");
+    showToast("Hãy nhập nội dung trước khi tối ưu", "warning");
     return;
   }
   _setAiWandLoading(btn, true);
@@ -76,12 +76,12 @@ async function _runAiOptimize(btn, inputType, getVal, setVal, targetEl) {
     });
     if (out) {
       setVal(out);
-      showToast("✨ Đã tối ưu bằng AI");
+      showToast("Đã tối ưu bằng AI", "default", "sparkles");
     } else {
-      showToast("⚠️ AI chưa tối ưu được, thử lại nhé");
+      showToast("AI chưa tối ưu được, thử lại nhé", "warning");
     }
   } catch (e) {
-    showToast("❌ " + (e?.message || "Không tối ưu được"));
+    showToast(e?.message || "Không tối ưu được", "error");
   } finally {
     _setAiWandLoading(btn, false);
     sk?.remove();
@@ -156,7 +156,7 @@ function _attachShareControls(target) {
           t.dispatchEvent(new Event("input", { bubbles: true }));
           const after = tokensOf(v);
           const lost = [...before].filter((x) => !after.has(x));
-          if (lost.length) showToast("⚠️ Kiểm tra lại biến: " + lost.join(", "));
+          if (lost.length) showToast("Kiểm tra lại biến: " + lost.join(", "), "warning");
         },
         t,
       );
@@ -237,7 +237,7 @@ async function generateLoveStoryAi(btn) {
   if (!ta) return;
   const text = ta.value.trim();
   if (!text) {
-    showToast("⚠️ Hãy kể câu chuyện tình yêu trước");
+    showToast("Hãy kể câu chuyện tình yêu trước", "warning");
     ta.focus();
     return;
   }
@@ -252,7 +252,7 @@ async function generateLoveStoryAi(btn) {
       brideName: (document.querySelector('input[name="bride_name"]')?.value || "").trim(),
     });
     if (!items.length) {
-      showToast("⚠️ AI chưa tạo được mốc nào, thử kể chi tiết hơn nhé");
+      showToast("AI chưa tạo được mốc nào, thử kể chi tiết hơn nhé", "warning");
       return;
     }
     // Thay toàn bộ danh sách bằng các mốc AI tạo (cắt theo trần cho phép).
@@ -276,11 +276,11 @@ async function generateLoveStoryAi(btn) {
     document
       .getElementById("love-story-value")
       ?.dispatchEvent(new Event("input", { bubbles: true }));
-    showToast("✨ Đã tạo " + _loveStoryItems.length + " mốc chuyện tình");
+    showToast("Đã tạo " + _loveStoryItems.length + " mốc chuyện tình", "default", "sparkles");
     ta.value = "";
     toggleLoveAiPanel(false);
   } catch (e) {
-    showToast("❌ " + (e?.message || "Không tạo được"));
+    showToast(e?.message || "Không tạo được", "error");
   } finally {
     _setAiWandLoading(btn, false);
   }

@@ -107,7 +107,7 @@ let _guestsIframeLoadedId = null;
 function openGuestsPage(e) {
   if (e) e.preventDefault();
   if (!WEDDING_ID) {
-    showToast("⚠️ Cần lưu thiệp trước khi quản lý khách mời");
+    showToast("Cần lưu thiệp trước khi quản lý khách mời", "warning");
     return;
   }
 

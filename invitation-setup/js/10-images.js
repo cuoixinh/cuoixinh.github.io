@@ -321,7 +321,7 @@ async function handleImageUpload(event, fieldName) {
   );
 
   if (!file.type.startsWith("image/")) {
-    showToast("❌ Chỉ chấp nhận file ảnh!");
+    showToast("Chỉ chấp nhận file ảnh!", "error");
     return;
   }
 
@@ -352,10 +352,10 @@ async function handleImageUpload(event, fieldName) {
           _idbSaveSingle(fieldName, processedFile);
           _idbDelete(`${WEDDING_ID}_sf_${fieldName}`);
           renderSingleImageUpload(fieldName);
-          showToast("✅ Đã chọn ảnh (chưa lưu)");
+          showToast("Đã chọn ảnh (chưa lưu)", "success");
         } catch (error) {
           console.error("Error processing image:", error);
-          showToast("❌ Lỗi xử lý ảnh: " + error.message);
+          showToast("Lỗi xử lý ảnh: " + error.message, "error");
         } finally {
           showLoading(false);
         }
@@ -377,10 +377,10 @@ async function handleImageUpload(event, fieldName) {
       // Render UI
       renderSingleImageUpload(fieldName);
 
-      showToast("✅ Đã chọn ảnh (chưa lưu)");
+      showToast("Đã chọn ảnh (chưa lưu)", "success");
     } catch (error) {
       console.error("Error processing image:", error);
-      showToast("❌ Lỗi xử lý ảnh: " + error.message);
+      showToast("Lỗi xử lý ảnh: " + error.message, "error");
     } finally {
       showLoading(false);
     }
@@ -429,7 +429,7 @@ function adjustSingleImageFocalPoint(fieldName) {
       } else {
         _idbSaveFocal(fieldName);
       }
-      showToast("✅ Đã cập nhật điểm lấy nét");
+      showToast("Đã cập nhật điểm lấy nét", "success");
     },
     _qrGiftInfo(fieldName),
   );
@@ -448,7 +448,7 @@ function _storeCroppedImage(fieldName, blob, origName) {
   // Crop đã "nướng" khung hình vào ảnh → không cần focal point nữa
   pendingFocalPoints[fieldName] = { x: 50, y: 50 };
   renderSingleImageUpload(fieldName);
-  showToast("✅ Đã cắt ảnh (chưa lưu)");
+  showToast("Đã cắt ảnh (chưa lưu)", "success");
 }
 
 /**
@@ -465,7 +465,7 @@ async function recropSingleImage(fieldName) {
       source = await resp.blob();
     } catch (e) {
       console.error("recrop fetch error:", e);
-      showToast("❌ Không tải được ảnh để cắt lại");
+      showToast("Không tải được ảnh để cắt lại", "error");
       return;
     }
   }
@@ -487,7 +487,7 @@ function adjustGalleryFocalPoint(globalIndex, source) {
     setGalleryFocalPoint(key, focal);
     if (key instanceof File) _idbUpdateGalleryFocal(key);
     else _idbSaveGalleryFocal(key);
-    showToast("✅ Đã cập nhật điểm lấy nét");
+    showToast("Đã cập nhật điểm lấy nét", "success");
   });
 }
 
