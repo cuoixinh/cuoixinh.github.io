@@ -1092,15 +1092,18 @@ function _initThemeResize() {
 if (window.__cxOnReady) window.__cxOnReady(_initThemeResize);
 else _initThemeResize();
 
+// Tên có dấu → slug thuần a-z0-9 và dấu "-" ("Hải Yến" → "hai-yen").
+// Kết quả phải TRÙNG KHÍT với weddingBL.validateSlug() (core/bl/wedding-bl.js):
+// nó mới là thứ chạy trước khi gửi lên server, nên nếu ở đây còn sót ký tự lạ hay
+// dấu "-" thừa thì slug đem đi kiểm tra trùng khác slug thực sự được lưu → ăn 409.
 function _toSlug(str) {
   return (str || "")
     .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .replace(/đ/gi, "d")
+    .replace(/[\u0300-\u036f]/g, "") // dấu thanh/dấu mũ (viết dạng \u để không hỏng khi file bị đổi encoding)
+    .replace(/đ/gi, "d") // Đ/đ không tách dấu bằng NFD nên phải thay tay
     .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, "")
-    .trim()
-    .replace(/\s+/g, "-");
+    .replace(/[^a-z0-9]+/g, "-") // khoảng trắng & ký tự lạ đều thành "-", gộp liền nhau
+    .replace(/^-|-$/g, "");
 }
 
 async function _isSlugAvailable(slug) {
@@ -1122,11 +1125,13 @@ async function _resolvePublishSlug() {
   // Nếu user đã nhập slug thủ công trong Cấu hình → giữ nguyên
   if (WEDDING_SLUG && !WEDDING_SLUG.startsWith("wedding-")) return WEDDING_SLUG;
 
+  // Phải nhắm `input[name=...]`: `[name=...]` khớp <x-input> (host giữ nguyên
+  // attribute name) — host không có .value → tên rỗng → rơi về slug wedding-xxxx.
   const groomName = (
-    document.querySelector('[name="groom_name"]')?.value || ""
+    document.querySelector('input[name="groom_name"]')?.value || ""
   ).trim();
   const brideName = (
-    document.querySelector('[name="bride_name"]')?.value || ""
+    document.querySelector('input[name="bride_name"]')?.value || ""
   ).trim();
   if (!groomName || !brideName) return WEDDING_SLUG;
 
@@ -1137,11 +1142,15 @@ async function _resolvePublishSlug() {
   const fullSlug = `${groomSlug}-${brideSlug}`;
   if (await _isSlugAvailable(fullSlug)) return fullSlug;
 
-  // Lần 2: thêm "&" ở giữa
-  const andSlug = `${groomSlug}-&-${brideSlug}`;
-  if (await _isSlugAvailable(andSlug)) return andSlug;
+  // Trùng → thêm hậu tố số. Không dùng ký tự lạ ("&", "_") làm biến thể: BL
+  // validateSlug đổi mọi ký tự ngoài [a-z0-9-] thành "-" rồi gộp dấu "-" liền
+  // nhau, nên "a-&-b" rút gọn lại đúng "a-b" đang trùng → PATCH báo lỗi slug.
+  for (let i = 2; i <= 5; i++) {
+    const numbered = `${fullSlug}-${i}`;
+    if (await _isSlugAvailable(numbered)) return numbered;
+  }
 
-  // Lần 3: random số 2 chữ số
+  // Cuối cùng: random số 2 chữ số
   const rand = Math.floor(Math.random() * 90) + 10; // 10–99
   return `${fullSlug}-${rand}`;
 }
@@ -1235,7 +1244,6 @@ async function publishWedding() {
     showToast("⚠️ Vui lòng điền đủ thông tin bắt buộc trước khi xuất bản");
     return;
   }
-  if (!_validateFutureDates()) return;
 
   // Đọc lại phiên ngay tại đây: hàm này còn được gọi lại từ onAuth của popup đăng
   // nhập bên dưới, đọc cờ cũ là mở popup lần nữa thành vòng lặp. Hỏi supabase
@@ -1262,6 +1270,10 @@ async function publishWedding() {
   }
   _setActiveTab("publish");
   showLoading(true, "Đang chuẩn bị...");
+  // Nạp font/CSS của popup mừng NGAY từ đây, không đợi lúc mở popup: tới lúc lưu
+  // xong (upload ảnh + ghi DB) thì font đã về, popup hiện ra là chữ đúng ngay.
+  // Hàm idempotent nên gọi sớm không tạo thêm thẻ nào.
+  _ensurePublishPopupAssets();
   WEDDING_SLUG = await _resolvePublishSlug();
   // Cập nhật input slug trong panel cấu hình nếu đang mở
   const slugInput = document.getElementById("slug-input");
@@ -1280,56 +1292,70 @@ async function publishWedding() {
   showPublishSuccessPopup();
 }
 
-// Popup mừng "Thiệp đã sẵn sàng" — mang tinh thần thiệp cưới (script Great Vibes +
-// serif Playfair + đường viền vàng đính hình trái tim), cá nhân hoá bằng TÊN cô dâu/
-// chú rể. Không dùng bố cục "bước 1-2-3" khô khan. Tự dựng DOM + style riêng (scoped).
+// Popup mừng "Thiệp đã sẵn sàng" — dựng theo tinh thần tấm thiệp IN: nền giấy ngà,
+// mực nâu mận, kẻ nhũ vàng + hình thoi ấn loát, chữ "Chúc mừng" viết tay (Italianno)
+// làm nhân vật chính; hồng #e11d48 chỉ dành cho nút bấm để phân biệt rõ "trang trí"
+// với "bấm được". Cá nhân hoá bằng TÊN cô dâu/chú rể, không dùng bố cục "bước 1-2-3".
+// Tự dựng DOM + style riêng (scoped, chỉ nạp lần đầu qua _ensurePublishPopupAssets).
 function _ensurePublishPopupAssets() {
   if (!document.getElementById("ps-fonts")) {
     const l = document.createElement("link");
     l.id = "ps-fonts";
     l.rel = "stylesheet";
+    // display=block (KHÔNG phải swap): Italianno có thân chữ nhỏ hơn hẳn font dự
+    // phòng cursive của máy, swap sẽ vẽ chữ "Chúc mừng" bằng font hệ thống trước rồi
+    // tráo — cùng 64px nhưng nhìn như chữ tự thu nhỏ lại. block giữ chữ ẩn tới khi
+    // font về (tối đa ~3s, sau đó vẫn vẽ bằng font dự phòng nên không bao giờ mất chữ).
     l.href =
-      "https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:wght@600;700&display=swap";
+      "https://fonts.googleapis.com/css2?family=Italianno&family=Playfair+Display:wght@600;700&display=block";
     document.head.appendChild(l);
   }
   if (document.getElementById("ps-style")) return;
   const s = document.createElement("style");
   s.id = "ps-style";
   s.textContent = `
-    #publish-success-modal{position:fixed;inset:0;z-index:300;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(61,24,34,.5);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
+    #publish-success-modal{position:fixed;inset:0;z-index:300;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(58,26,34,.55);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
     #publish-success-modal button,#publish-success-modal a{cursor:pointer}
-    .ps-card{width:100%;max-width:384px;max-height:92vh;overflow-y:auto;background:#fffaf8;border-radius:28px;box-shadow:0 26px 64px -14px rgba(159,48,74,.4);animation:ps-in .5s cubic-bezier(.22,.9,.3,1) both}
-    @keyframes ps-in{from{opacity:0;transform:translateY(18px) scale(.97)}to{opacity:1;transform:none}}
-    .ps-head{position:relative;text-align:center;padding:32px 28px 20px;background:radial-gradient(120% 88% at 50% -8%,#ffe6ee 0%,#fff4f0 52%,#fffaf8 100%)}
-    .ps-x{position:absolute;top:14px;right:14px;width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center;border-radius:999px;color:#cc9aa6;background:rgba(255,255,255,.55);transition:.15s}
-    .ps-x:hover{color:#a34a60;background:#fff}
-    .ps-orn{display:flex;align-items:center;justify-content:center;gap:9px;margin-bottom:2px}
-    .ps-orn i{display:block;height:1px;width:46px}
-    .ps-orn i:first-child{background:linear-gradient(90deg,transparent,#d8b878)}
-    .ps-orn i:last-child{background:linear-gradient(90deg,#d8b878,transparent)}
-    .ps-congrats{font-family:'Great Vibes',cursive;font-size:2.7rem;line-height:1;color:#e0708a;margin:6px 0 6px}
-    .ps-title{font-family:'Playfair Display',serif;font-size:1.16rem;font-weight:600;color:#7d4f5a;letter-spacing:.2px}
-    .ps-couple{font-family:'Playfair Display',serif;font-size:.98rem;color:#ad7a87;margin-top:9px;display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center}
-    .ps-sub{font-size:12.5px;color:#b98f9b;margin-top:8px}
-    .ps-body{padding:4px 24px 22px}
-    .ps-eyebrow{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#cf9fac;margin:18px 4px 10px}
-    .ps-link{border:1px solid #ffdbe4;background:#fff;border-radius:18px;padding:13px 14px 12px}
-    .ps-link+.ps-link{margin-top:10px}
-    .ps-link-label{font-size:13px;font-weight:600;color:#7d4f5a}
-    .ps-link-sub{font-size:11px;color:#bb909c;margin-top:1px}
-    .ps-url{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;color:#a9808d;word-break:break-all;margin-top:8px}
-    .ps-acts{display:flex;gap:8px;margin-top:11px}
-    .ps-soft{flex:1;height:38px;border-radius:11px;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:12.5px;font-weight:600;border:1px solid #ffd0dc;color:#e11d48;background:#fff5f7;transition:.15s}
-    .ps-soft:hover{background:#ffe4ea}
-    .ps-soft i{width:14px;height:14px}
-    .ps-primary{width:100%;height:50px;border-radius:15px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:14px;font-weight:700;color:#fff;background:linear-gradient(135deg,#fb7185,#e11d48);box-shadow:0 12px 26px -10px rgba(225,29,72,.55);transition:.15s;border:none}
-    .ps-primary:hover{filter:brightness(1.05);box-shadow:0 14px 30px -10px rgba(225,29,72,.65)}
+    #publish-success-modal :focus-visible{outline:2px solid #e11d48;outline-offset:2px}
+    .ps-card{width:100%;max-width:384px;max-height:92vh;overflow-y:auto;background:#fffdfa;border-radius:28px;box-shadow:0 24px 64px -16px rgba(74,44,53,.45);animation:ps-in .5s cubic-bezier(.22,.9,.3,1) both}
+    @keyframes ps-in{from{opacity:0;transform:translateY(16px) scale(.98)}to{opacity:1;transform:none}}
+    .ps-head{position:relative;text-align:center;padding:32px 28px 0px}
+    .ps-x{position:absolute;top:12px;right:12px;width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;border-radius:999px;color:#b39aa1;background:transparent;transition:color .15s ease,background .15s ease}
+    .ps-x:hover{color:#4a2c35;background:#f5ece8}
+    /* Kẻ nhũ + hình thoi: mô-típ ấn loát trên thiệp in — điểm nhấn DUY NHẤT của popup */
+    .ps-orn{display:flex;align-items:center;justify-content:center;gap:12px}
+    .ps-orn i{display:block;height:1px;width:48px;transform-origin:center;animation:ps-rule .6s .08s cubic-bezier(.22,.9,.3,1) both}
+    .ps-orn i:first-child{background:linear-gradient(90deg,transparent,#c2a15a)}
+    .ps-orn i:last-child{background:linear-gradient(90deg,#c2a15a,transparent)}
+    .ps-orn b{width:8px;height:8px;border-radius:1px;background:#c2a15a;transform:rotate(45deg)}
+    @keyframes ps-rule{from{opacity:0;transform:scaleX(0)}to{opacity:1;transform:none}}
+    /* line-height rộng: Italianno có nét bay cao + đuôi chữ dài, bó sát là dấu "ú/ừ"
+       đè lên kẻ nhũ và chữ "g" trong "mừng" chạm dòng dưới */
+    .ps-congrats{font-family:'Italianno',cursive;font-size:64px;line-height:1.25;color:#b8425f;margin:4px 0 0;animation:ps-rise .5s .16s cubic-bezier(.22,.9,.3,1) both}
+    @keyframes ps-rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+    .ps-title{font-size:12px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:#9b7d86}
+    .ps-couple{font-family:'Playfair Display',serif;font-size:16px;color:#4a2c35;margin-top:12px;display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center}
+    .ps-sub{font-size:12px;color:#9b7d86;margin:12px 0 0}
+    .ps-body{padding:0 24px 24px}
+    .ps-eyebrow{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#c2a15a;margin:24px 4px 12px}
+    .ps-eyebrow::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,#ecdfc4,transparent)}
+    .ps-link{border:1px solid #f0e4d4;background:#fffaf4;border-radius:20px;padding:16px}
+    .ps-link+.ps-link{margin-top:12px}
+    .ps-link-label{font-size:16px;font-weight:600;color:#4a2c35}
+    .ps-link-sub{font-size:12px;color:#9b7d86;margin-top:4px}
+    .ps-url{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;color:#7d5a64;word-break:break-all;margin-top:12px;padding:8px 12px;background:#fff;border:1px solid #f4ece2;border-radius:12px}
+    .ps-acts{display:flex;gap:8px;margin-top:12px}
+    .ps-soft{flex:1;height:40px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:12px;font-weight:600;border:1px solid #ffd9e1;color:#e11d48;background:#fff;transition:background .15s ease,border-color .15s ease}
+    .ps-soft:hover{background:#fff1f4;border-color:#ffc4d2}
+    .ps-soft i{width:16px;height:16px}
+    .ps-primary{width:100%;height:52px;border-radius:16px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:16px;font-weight:600;color:#fff;background:#e11d48;border:none;transition:background .15s ease}
+    .ps-primary:hover{background:#c81742}
     .ps-primary i{width:16px;height:16px}
-    .ps-note{font-size:12.5px;line-height:1.6;color:#a97e8b;text-align:center;margin-top:14px;padding:0 6px}
-    .ps-note b{color:#7d4f5a;font-weight:600}
-    .ps-done{display:block;width:100%;margin-top:16px;padding:11px;font-size:13px;font-weight:600;color:#bb909c;background:none;border:none}
-    .ps-done:hover{color:#7d4f5a}
-    @media (prefers-reduced-motion:reduce){.ps-card{animation:none}}`;
+    .ps-note{font-size:12px;line-height:1.6;color:#9b7d86;text-align:center;margin:16px 0 0;padding:0 8px}
+    .ps-note b{color:#4a2c35;font-weight:600}
+    .ps-done{display:block;width:100%;margin-top:16px;padding:12px;font-size:12px;font-weight:600;color:#b39aa1;background:none;border:none}
+    .ps-done:hover{color:#4a2c35}
+    @media (prefers-reduced-motion:reduce){.ps-card,.ps-congrats,.ps-orn i{animation:none}}`;
   document.head.appendChild(s);
 }
 
@@ -1381,13 +1407,16 @@ function showPublishSuccessPopup() {
 
   const modal = document.createElement("div");
   modal.id = "publish-success-modal";
+  modal.setAttribute("role", "dialog");
+  modal.setAttribute("aria-modal", "true");
+  modal.setAttribute("aria-labelledby", "ps-title");
   modal.innerHTML = `
     <div class="ps-card">
       <div class="ps-head">
-        <button type="button" data-ps-close class="ps-x"><i data-lucide="x" style="width:18px;height:18px"></i></button>
-        <div class="ps-orn"><i></i>${HEART("#c9a86a", 15)}<i></i></div>
+        <button type="button" data-ps-close class="ps-x" aria-label="Đóng"><i data-lucide="x" style="width:18px;height:18px"></i></button>
+        <div class="ps-orn" aria-hidden="true"><i></i><b></b><i></i></div>
         <div class="ps-congrats">Chúc mừng</div>
-        <div class="ps-title">Thiệp cưới đã sẵn sàng</div>
+        <div class="ps-title" id="ps-title">Thiệp cưới đã sẵn sàng</div>
         ${coupleHtml}
       </div>
       <div class="ps-body">

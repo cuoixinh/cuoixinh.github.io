@@ -341,18 +341,6 @@ input.flatpickr-input[readonly] {
 }
 /* Shared action button style — defined in common.css, no override needed */
 
-/* Ngày sự kiện ở quá khứ — viền đỏ + dòng nhắc (tách riêng khỏi validate.js
-   để không đụng thông báo "Không được để trống" của trường bắt buộc) */
-.cx-date-invalid input {
-  border-color: #f43f5e !important;
-  box-shadow: 0 0 0 2px rgba(244, 63, 94, 0.15) !important;
-}
-.cx-date-err {
-  font-size: 12px;
-  color: #f43f5e;
-  margin-top: 4px;
-}
-
 /* ── Bảng chỉnh chi tiết từng dòng chữ (tab Giao diện) ── */
 .cx-le-row {
   display: flex;

@@ -62,7 +62,8 @@ window._weddingFpOptions = function (input) {
     altFormat: "d/m/Y",
     allowInput: false,
     disableMobile: true,
-    minDate: "today",
+    // KHÔNG đặt minDate: cho phép chọn/bind cả ngày trong quá khứ (thiệp cưới đã
+    // diễn ra vẫn phải mở lại chỉnh được — minDate khiến setDate lúc bind bị bỏ).
     onReady: function (selectedDates, dateStr, instance) {
       instance.altInput.placeholder = "Chọn ngày...";
     },

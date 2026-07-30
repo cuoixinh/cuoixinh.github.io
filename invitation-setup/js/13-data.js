@@ -344,65 +344,11 @@ function fillForm(data) {
   document.querySelectorAll("x-input").forEach((el) => el.syncClearBtn?.());
 }
 
-// Các ô ngày sự kiện không được ở quá khứ. Picker đã đặt minDate="today" nhưng
-// vẫn chốt lại ở tầng lưu để chặn dữ liệu cũ / giá trị nhập bằng đường khác.
-const _FUTURE_DATE_FIELDS = [
-  ["ceremony_date", "Ngày cưới"],
-  ["groom_party_date", "Ngày đãi tiệc nhà trai"],
-  ["bride_party_date", "Ngày đãi tiệc nhà gái"],
-];
-
-function _setDateFieldError(wrap, message) {
-  if (!wrap) return;
-  wrap.classList.toggle("cx-date-invalid", !!message);
-  let msg = wrap.querySelector(".cx-date-err");
-  if (message) {
-    if (!msg) {
-      msg = document.createElement("p");
-      msg.className = "cx-date-err";
-      wrap.appendChild(msg);
-    }
-    msg.textContent = message;
-  } else if (msg) {
-    msg.remove();
-  }
-}
-
-function _validateFutureDates() {
-  const startOfToday = new Date();
-  startOfToday.setHours(0, 0, 0, 0);
-  let firstInvalid = null;
-  let firstLabel = "";
-
-  for (const [name, label] of _FUTURE_DATE_FIELDS) {
-    const fp = window.flatpickrInstances?.[name];
-    const wrap = fp?.input?.closest("x-date") || fp?.input?.parentElement;
-    if (!wrap) continue;
-    const d = fp?.selectedDates?.[0];
-    const isPast = d instanceof Date && !isNaN(d) && d < startOfToday;
-    _setDateFieldError(wrap, isPast ? `${label} phải từ hôm nay trở đi` : null);
-    if (isPast && !firstInvalid) {
-      firstInvalid = fp.altInput || fp.input;
-      firstLabel = label;
-    }
-  }
-
-  if (firstInvalid) {
-    showToast(`❌ ${firstLabel} không được ở quá khứ`);
-    if (typeof _expandSection === "function") _expandSection(firstInvalid);
-    firstInvalid.scrollIntoView?.({ behavior: "smooth", block: "center" });
-    return false;
-  }
-  return true;
-}
+// Ngày sự kiện KHÔNG bị chặn theo hôm nay — cho nhập/lưu cả ngày trong quá khứ.
 
 async function saveAll(overrides = {}, label = "Đang lưu...") {
   const form = document.getElementById("wedding-form");
   if (!validateForm(form)) {
-    showLoading(false);
-    return false;
-  }
-  if (!_validateFutureDates()) {
     showLoading(false);
     return false;
   }
