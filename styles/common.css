@@ -445,6 +445,44 @@
   background: rgb(202, 202, 202);
 }
 
+/* Dải cuộn ngang 1 hàng (vd hàng tag "Trust" ở hero): giấu thanh cuộn và làm
+   MỜ DẦN nội dung ở phía còn cuộn được để người dùng biết là kéo được.
+   Dùng mask (không phải lớp gradient màu) nên không phụ thuộc màu nền phía sau.
+   js/scroll-fade.js gán --fade-left / --fade-right = 0 hoặc 32px theo vị trí cuộn. */
+
+.scroll-fade {
+  --fade-left: 0px;
+  --fade-right: 0px;
+  /* Khai báo thẳng ở đây chứ không phó mặc utility `flex-nowrap`: styles/build.css
+     (bản Tailwind build sẵn của landing) hiện KHÔNG có rule .flex-nowrap, nên nếu
+     chỉ dựa vào class thì hàng tag chỉ tình cờ đúng nhờ giá trị mặc định. */
+  flex-wrap: nowrap;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  /* Firefox */
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 var(--fade-left),
+    #000 calc(100% - var(--fade-right)),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 var(--fade-left),
+    #000 calc(100% - var(--fade-right)),
+    transparent 100%
+  );
+  transition:
+    -webkit-mask-image 0.2s ease,
+    mask-image 0.2s ease;
+}
+
+.scroll-fade::-webkit-scrollbar {
+  display: none;
+}
+
 /* Thanh cuộn textarea: desktop mặc định to & xấu → làm mảnh 4px, bo 8px, giống mobile */
 
 textarea {

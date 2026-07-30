@@ -225,8 +225,10 @@
         <div
           class="flex flex-col md:flex-row items-center gap-12 py-4 md:py-16"
         >
-          <!-- Left: copy -->
-          <div class="flex-1 text-left">
+          <!-- Left: copy. w-full + min-w-0: hàng tag "Trust" cuộn ngang có
+               max-content rộng hơn màn hình, không chặn thì cột này phình theo
+               và tag tràn ra ngoài thay vì cuộn được. -->
+          <div class="flex-1 w-full min-w-0 text-left">
             <p
               class="hero-anim hero-anim-1 font-cormorant italic text-lg mb-0 md:mb-3"
               style="color: var(--pink)"
@@ -278,23 +280,24 @@
               </a>
             </div>
 
-            <!-- Trust -->
+            <!-- Trust: luôn 1 hàng, hẹp thì cuộn ngang (mờ dần ở phía còn cuộn được) -->
             <div
-              class="hero-anim hero-anim-5 flex flex-wrap gap-2 mx-auto md:mx-0"
+              data-scroll-fade
+              class="scroll-fade hero-anim hero-anim-5 flex flex-nowrap gap-2 overflow-x-auto"
             >
-              <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-rose-pastel-200 bg-white/70 backdrop-blur-sm">
+              <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-rose-pastel-200 bg-white/70 backdrop-blur-sm shrink-0">
                 <span class="w-4 h-4 rounded-full flex items-center justify-center shrink-0" style="background: var(--pink)"><i class="fas fa-gift text-[8px] text-white"></i></span>
                 <span class="text-xs font-medium whitespace-nowrap" style="color: var(--mauve)">Dùng thử miễn phí</span>
               </div>
-              <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-rose-pastel-200 bg-white/70 backdrop-blur-sm">
+              <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-rose-pastel-200 bg-white/70 backdrop-blur-sm shrink-0">
                 <span class="w-4 h-4 rounded-full flex items-center justify-center shrink-0" style="background: var(--pink)"><i class="fas fa-sync-alt text-[8px] text-white"></i></span>
                 <span class="text-xs font-medium whitespace-nowrap" style="color: var(--mauve)">Đổi mẫu mọi lúc</span>
               </div>
-              <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-rose-pastel-200 bg-white/70 backdrop-blur-sm">
+              <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-rose-pastel-200 bg-white/70 backdrop-blur-sm shrink-0">
                 <span class="w-4 h-4 rounded-full flex items-center justify-center shrink-0" style="background: var(--pink)"><i class="fas fa-mobile-alt text-[8px] text-white"></i></span>
                 <span class="text-xs font-medium whitespace-nowrap" style="color: var(--mauve)">Không cài app</span>
               </div>
-              <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-rose-pastel-200 bg-white/70 backdrop-blur-sm">
+              <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-rose-pastel-200 bg-white/70 backdrop-blur-sm shrink-0">
                 <span class="w-4 h-4 rounded-full flex items-center justify-center shrink-0" style="background: var(--pink)"><i class="fas fa-infinity text-[8px] text-white"></i></span>
                 <span class="text-xs font-medium whitespace-nowrap" style="color: var(--mauve)">Thiệp vĩnh viễn</span>
               </div>
@@ -802,6 +805,7 @@
     <script src="js/section-benefits.js"></script>
     <script src="js/section-testimonials.js"></script>
     <script src="js/scroll-reveal.js"></script>
+    <script src="js/scroll-fade.js"></script>
     <script src="core/payment.js"></script>
 
     <script src="js/nav-autohide.js"></script>
