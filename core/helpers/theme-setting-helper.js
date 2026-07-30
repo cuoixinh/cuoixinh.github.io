@@ -822,12 +822,17 @@ function _cxDecorEnsureStyle() {
     ".cx-decor img{display:block;width:100%;height:auto;-webkit-user-drag:none;user-select:none;pointer-events:none}" +
     ".cx-decor-edit{pointer-events:auto;cursor:grab;touch-action:none}" +
     ".cx-decor-edit.cx-decor-active{outline:1px dashed #e11d48;outline-offset:4px}" +
+    // Hoa nằm SAU nội dung thì không bấm vào được (nội dung che mất) → ở chế độ
+    // chỉnh, mỗi hoa "sau chữ" có thêm một bản trong suốt ở lớp trên để bắt
+    // chuột và mang bộ nút; ảnh thật vẫn nằm dưới đúng như lúc khách xem.
+    ".cx-decor-proxy img{visibility:hidden}" +
     ".cx-decor-h{position:absolute;width:24px;height:24px;border-radius:9999px;" +
     "background:#fff;border:1px solid #e11d48;color:#e11d48;display:none;" +
     "align-items:center;justify-content:center;padding:0;cursor:pointer;" +
     "box-shadow:0 2px 6px rgba(0,0,0,.18);touch-action:none;z-index:1}" +
     ".cx-decor-active .cx-decor-h{display:flex}" +
     ".cx-decor-del{top:-12px;left:-12px}" +
+    ".cx-decor-copy{top:-12px;left:50%;margin-left:-12px}" +
     ".cx-decor-rot{top:-12px;right:-12px;cursor:grab}" +
     ".cx-decor-size{bottom:-12px;right:-12px;cursor:nwse-resize}" +
     ".cx-decor-back{bottom:-12px;left:-12px}";
@@ -880,11 +885,22 @@ function _cxDecorStyle(node, d) {
   node.style.transform = `translate(-50%, -50%) rotate(${d.rot || 0}deg)`;
 }
 
+// Hoa "sau chữ" có 2 node: bản trong suốt bắt chuột (node) + ảnh thật ở lớp
+// dưới (_cxTwin). Kéo/xoay/phóng to phải cập nhật cả hai.
+function _cxDecorApply(node, d) {
+  _cxDecorStyle(node, d);
+  if (node._cxTwin) _cxDecorStyle(node._cxTwin, d);
+}
+
 const _CX_DECOR_ICONS = {
   del: '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
   rot: '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg>',
   size: '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M9 21H3v-6"/><path d="M21 3l-7 7"/><path d="M3 21l7-7"/></svg>',
-  back: '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="12" height="12" rx="2"/><path d="M9 21h10a2 2 0 0 0 2-2V9"/></svg>',
+  // Hai tấm chồng nhau = NHÂN ĐÔI (đúng nghĩa quen thuộc của icon này).
+  copy: '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
+  // Nhiều lớp xếp chồng = ĐỔI LỚP trước/sau, không lẫn với nhân đôi.
+  layers:
+    '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 7l10 5 10-5-10-5Z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/></svg>',
 };
 
 function _cxDecorButton(cls, title, icon) {
@@ -919,10 +935,16 @@ function _cxDecorNode(d, edit) {
     e.stopPropagation();
     _cxDecorDelete(d.id);
   });
+  const copy = _cxDecorButton("cx-decor-copy", "Nhân đôi", _CX_DECOR_ICONS.copy);
+  copy.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    _cxDecorDuplicate(d.id);
+  });
   const back = _cxDecorButton(
     "cx-decor-back",
     d.behind ? "Đưa lên trước chữ" : "Đưa ra sau chữ",
-    _CX_DECOR_ICONS.back,
+    _CX_DECOR_ICONS.layers,
   );
   back.addEventListener("click", (e) => {
     e.preventDefault();
@@ -933,7 +955,7 @@ function _cxDecorNode(d, edit) {
   });
   const rot = _cxDecorButton("cx-decor-rot", "Kéo để xoay", _CX_DECOR_ICONS.rot);
   const size = _cxDecorButton("cx-decor-size", "Kéo để phóng to", _CX_DECOR_ICONS.size);
-  node.append(del, back, rot, size);
+  node.append(del, copy, back, rot, size);
 
   _cxDecorWireMove(node, d);
   _cxDecorWireHandle(rot, node, d, "rotate");
@@ -959,7 +981,7 @@ function _cxDecorWireMove(node, d) {
     const move = (ev) => {
       d.x = _cxDecorClamp(start.dx + ((ev.clientX - start.x) / r.width) * 100, 0, 100);
       d.y = _cxDecorClamp(start.dy + ((ev.clientY - start.y) / r.height) * 100, 0, 100);
-      _cxDecorStyle(node, d);
+      _cxDecorApply(node, d);
     };
     const up = () => {
       node.removeEventListener("pointermove", move);
@@ -1010,7 +1032,7 @@ function _cxDecorWireHandle(btn, node, d, mode) {
         if (ev.shiftKey) next = Math.round(next / 15) * 15;
         d.rot = ((next % 360) + 360) % 360;
       }
-      _cxDecorStyle(node, d);
+      _cxDecorApply(node, d);
     };
     const up = () => {
       btn.removeEventListener("pointermove", move);
@@ -1043,8 +1065,59 @@ function _cxDecorRender() {
   // Layer luôn trong suốt với chuột; chỉ TỪNG ảnh ở chế độ chỉnh mới bắt chuột
   // (class cx-decor-edit) — trang công khai không được để hoa chắn nút bấm.
   _cxDecors.forEach((d) => {
-    (d.behind ? back : front).appendChild(_cxDecorNode(d, edit));
+    if (!edit || !d.behind) {
+      (d.behind ? back : front).appendChild(_cxDecorNode(d, edit));
+      return;
+    }
+    // Hoa "sau chữ" lúc CHỈNH: ảnh thật vẫn ở lớp sau (thấy đúng như khách
+    // xem), nhưng bộ điều khiển là một bản trong suốt ở lớp trước — nếu không
+    // thì nội dung thiệp che mất, bấm chọn lại không được nữa.
+    const visual = _cxDecorNode(d, false);
+    back.appendChild(visual);
+    const ctrl = _cxDecorNode(d, true);
+    ctrl.classList.add("cx-decor-proxy");
+    ctrl._cxTwin = visual;
+    front.appendChild(ctrl);
   });
+}
+
+/**
+ * Nhân đôi: bản sao lệch CHÉO một đoạn nhỏ để nhìn ra ngay là có 2 bông, nhưng
+ * vẫn đủ gần chỗ cũ.
+ *
+ * Đoạn lệch tính bằng PX thật rồi đổi ngược ra % của từng trục: thiệp cao gấp
+ * nhiều lần bề ngang nên nếu cộng thẳng cùng một số % cho cả hai trục thì dọc
+ * nhảy cả trăm px trong khi ngang chỉ nhích vài chục — nhìn như bị rơi xuống
+ * chứ không phải bản sao. Lấy theo cỡ bông hoa (18% bề ngang của nó, tối thiểu
+ * 12px) để hoa to lệch nhiều, icon nhỏ lệch ít.
+ */
+function _cxDecorDuplicate(id) {
+  const src = _cxDecorFind(id);
+  if (!src) return;
+
+  const card = document.getElementById("main-card");
+  const r = card && card.getBoundingClientRect();
+  let dx = 2;
+  let dy = 2;
+  if (r && r.width && r.height) {
+    const stepPx = Math.max(12, (src.w / 100) * r.width * 0.18);
+    dx = (stepPx / r.width) * 100;
+    dy = (stepPx / r.height) * 100;
+  }
+  // Sát mép phải/đáy thì lệch ngược lại cho khỏi bị kẹp mất phần lệch.
+  const nx = src.x + dx > 97 ? src.x - dx : src.x + dx;
+  const ny = src.y + dy > 97 ? src.y - dy : src.y + dy;
+
+  const copy = {
+    ...src,
+    id: "dc_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    x: Math.round(_cxDecorClamp(nx, 0, 100) * 10) / 10,
+    y: Math.round(_cxDecorClamp(ny, 0, 100) * 10) / 10,
+  };
+  _cxDecors.push(copy);
+  _cxDecorActiveId = copy.id; // bản mới thành cái đang chọn để kéo đi luôn
+  _cxDecorRender();
+  _cxDecorReport();
 }
 
 function _cxDecorDelete(id) {
