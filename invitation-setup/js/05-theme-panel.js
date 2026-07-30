@@ -1023,7 +1023,10 @@ async function publishWedding() {
   }
   if (!_validateFutureDates()) return;
 
-  if (!getCurrentUser()) {
+  // Đọc lại phiên ngay tại đây: hàm này còn được gọi lại từ onAuth của popup đăng
+  // nhập bên dưới, đọc cờ cũ là mở popup lần nữa thành vòng lặp.
+  _syncLoginState();
+  if (!IS_LOGIN) {
     // Chưa đăng nhập → hiện popup đăng nhập/tạo tài khoản ngay tại chỗ (không rời trang).
     // OAuth vẫn redirect: đính pendingPublish=1 để tự xuất bản khi quay lại.
     if (window.AuthUI) {

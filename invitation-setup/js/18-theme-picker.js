@@ -127,25 +127,32 @@ window._applyThemeChange = _applyThemeChange;
 // ============= ADVANCED SECTION LOCK =============
 
 function _syncAdvancedSection() {
+  // Đã xuất bản NHƯNG phải còn đăng nhập (xem chú thích IS_PUBLISHED ở 01-state.js).
+  // Đăng xuất rồi mở lại thiệp đã xuất bản thì quay về đúng bộ nút của khách chưa
+  // đăng nhập: "Lưu nháp" + "Xuất bản" (bấm "Xuất bản" sẽ mở popup đăng nhập).
+  const published = IS_PUBLISHED && IS_LOGIN;
+
   // Ẩn cả container nút "Lưu nháp" khi đã xuất bản → nhường không gian cho nút "Lưu & Xuất bản"
   const draftWrap = document.getElementById("tab-draft-wrap");
-  if (draftWrap) draftWrap.classList.toggle("hidden", IS_PUBLISHED);
+  if (draftWrap) draftWrap.classList.toggle("hidden", published);
   const draftTab = document.getElementById("tab-draft");
-  if (draftTab) draftTab.classList.toggle("hidden", IS_PUBLISHED);
+  if (draftTab) draftTab.classList.toggle("hidden", published);
 
   // Thiệp đã xuất bản: nút chính đóng vai trò "lưu lại" → đổi nhãn "Lưu & Xuất bản"
   const publishLabel = document.querySelector("#tab-publish span");
   if (publishLabel) {
-    publishLabel.textContent = IS_PUBLISHED ? "Lưu & Xuất bản" : "Xuất bản";
+    publishLabel.textContent = published ? "Lưu & Xuất bản" : "Xuất bản";
   }
   _updateDirtyMarks();
 
   // Tab Khách mời: vẫn bấm được, tooltip báo khi chưa xuất bản (không gắn badge trên navbar)
   const guestsTab = document.getElementById("tab-guests");
   if (guestsTab) {
-    guestsTab.title = IS_PUBLISHED
+    guestsTab.title = published
       ? ""
-      : "Cần xuất bản thiệp trước khi quản lý khách mời";
+      : IS_PUBLISHED
+        ? "Đăng nhập lại để quản lý khách mời"
+        : "Cần xuất bản thiệp trước khi quản lý khách mời";
   }
 
   // Nếu panel khách mời đang mở → cập nhật lại lớp khoá/iframe ngay
