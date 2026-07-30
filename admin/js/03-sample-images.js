@@ -13,6 +13,8 @@
 // 2. Mọi thay đổi được ghi bản nháp vào IndexedDB → F5 không mất ảnh đang nhập.
 // 3. "Lưu vào ổ đĩa" GHI ĐÈ toàn bộ ảnh trong thư mục: file ảnh nào không nằm
 //    trong bộ vừa ghi đều bị xoá.
+// 4. Lưu là NÉN: ảnh chưa đạt ngưỡng của ảnh khách upload (≤1920px, ≤1MB) bị nén
+//    và ghi đè; ảnh đã đạt thì bỏ qua (siCompressAllForSave).
 
 const SI_THEMES = [
   { value: "romantic-gold", label: "Romantic Gold" },
@@ -48,8 +50,8 @@ const SI_FIELD_BASENAME = {
   bride_qr_url: "bride-qr",
 };
 
-// resizeImage() không cần upload lên Supabase — truyền storageDAL=null vì chỉ
-// dùng phương thức resizeImage() (thuần canvas, không đụng storage).
+// Chỉ dùng resizeImage()/compressIfNeeded() (thuần canvas, không đụng storage)
+// nên truyền storageDAL=null — ảnh mẫu ghi xuống ổ đĩa, không lên Supabase.
 const siImageBL = new ImageBL(null);
 
 let siRootHandle = null;
@@ -1107,6 +1109,69 @@ async function siWriteImage(entry, filename, progress) {
   entry.srcSize = entry.blob.size;
 }
 
+// ============= Nén ảnh trước khi ghi =============
+
+function siFormatMB(bytes) {
+  const mb = bytes / 1024 / 1024;
+  return mb >= 1 ? `${mb.toFixed(1)} MB` : `${Math.round(bytes / 1024)} KB`;
+}
+
+// Ảnh mẫu hay được chép TAY vào thư mục theme (kéo thẳng từ máy ảnh, ảnh gốc
+// 5-10 MB) hoặc bind lại từ những lần lưu cũ chưa qua nén — thiệp mẫu vì thế
+// nặng hơn cả thiệp thật của khách. Trước mỗi lần lưu, ép mọi ảnh về đúng ngưỡng
+// của ảnh khách tự upload (ImageBL: ≤ 1920px, ≤ 1MB):
+//   - đã thoả → BỎ QUA, không mã hoá lại (giữ nguyên chất lượng, khỏi tốn thời
+//     gian, và siIsUnchanged() vẫn bỏ qua được lúc ghi);
+//   - chưa thoả → nén rồi GHI ĐÈ luôn file trên đĩa.
+// GIF/AVIF/BMP bị ImageBL.canRecompress() loại (canvas làm mất animation / đổi
+// định dạng) nên giữ nguyên.
+async function siCompressAllForSave() {
+  const entries = [
+    ...SI_SINGLE_FIELDS.map((f) => siData.singleImages[f]),
+    ...siData.gallery,
+    ...siData.loveStory,
+  ].filter((e) => e && e.blob);
+
+  let compressed = 0;
+  let savedBytes = 0;
+
+  for (let i = 0; i < entries.length; i++) {
+    const entry = entries[i];
+    // Đã kiểm trong phiên này rồi (vd vòng ghi tiếp sau khi bị cắt ngang) thì
+    // khỏi decode lại cả chục MB ảnh.
+    if (entry.sizeChecked) continue;
+
+    showLoading(true, `Đang kiểm tra dung lượng ảnh ${i + 1}/${entries.length}...`);
+    try {
+      const before = entry.blob.size;
+      const res = await siImageBL.compressIfNeeded(entry.blob);
+      entry.sizeChecked = true;
+      if (!res.compressed) continue;
+
+      entry.blob = res.file;
+      // Xoá dấu vết file gốc: bản trong RAM không còn khớp file trên đĩa nữa,
+      // để siIsUnchanged() không bỏ qua (kể cả khi cỡ file tình cờ trùng).
+      entry.srcName = null;
+      entry.srcSize = 0;
+      if (entry.previewUrl) URL.revokeObjectURL(entry.previewUrl);
+      entry.previewUrl = URL.createObjectURL(res.file);
+      savedBytes += before - res.file.size;
+      compressed++;
+    } catch (e) {
+      // Nén lỗi không được làm hỏng cả lần lưu — cứ ghi bản gốc.
+      entry.sizeChecked = true;
+      console.warn("Không nén được ảnh, giữ nguyên bản gốc:", entry.srcName, e);
+    }
+  }
+
+  if (compressed) {
+    SI_SINGLE_FIELDS.forEach(siRenderSingleImage);
+    siRenderGallery();
+    siRenderLoveStory();
+  }
+  return { compressed, savedBytes };
+}
+
 // ============= Lưu dở dang → tự ghi tiếp =============
 
 function siReadResumeState() {
@@ -1257,6 +1322,10 @@ async function saveSampleImages({ scan = true } = {}) {
     // data.json được ghi đè lại lần nữa với tên ảnh chuẩn.
     await siWriteContentOnly();
 
+    // Nén trước khi tính tiến độ/ghi: ảnh nào phải nén thì blob đã đổi nên bước
+    // ghi bên dưới tự thấy "khác đĩa" và ghi đè.
+    const { compressed, savedBytes } = await siCompressAllForSave();
+
     const json = { image_focal_points: { gallery_images: {} } };
     const keepFiles = new Set(["data.json"]);
 
@@ -1345,6 +1414,9 @@ async function saveSampleImages({ scan = true } = {}) {
     showToast(
       `✅ Đã lưu dữ liệu mẫu cho theme ${siCurrentTheme}` +
         (backedUp ? " (bản data.json hỏng đã chép sang data.json.bak)" : "") +
+        (compressed
+          ? ` (đã nén ${compressed} ảnh, giảm ${siFormatMB(savedBytes)})`
+          : "") +
         (skipped ? ` (${skipped} ảnh không đổi nên giữ nguyên)` : "") +
         (removed ? ` (đã xoá ${removed} ảnh cũ)` : ""),
     );

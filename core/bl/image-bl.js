@@ -87,6 +87,76 @@ class ImageBL {
   }
 
   /**
+   * Đọc kích thước thật của ảnh mà không vẽ lại canvas.
+   * @param {Blob|File} file
+   * @returns {Promise<{width:number,height:number}|null>} null nếu không decode được
+   */
+  async getImageDimensions(file) {
+    if (typeof createImageBitmap === "function") {
+      try {
+        const bitmap = await createImageBitmap(file);
+        const dim = { width: bitmap.width, height: bitmap.height };
+        if (bitmap.close) bitmap.close();
+        return dim;
+      } catch (e) {
+        // Safari cũ / định dạng lạ → rơi xuống nhánh <img> bên dưới
+      }
+    }
+
+    return new Promise((resolve) => {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => {
+        resolve({ width: img.naturalWidth, height: img.naturalHeight });
+        URL.revokeObjectURL(url);
+      };
+      img.onerror = () => {
+        resolve(null);
+        URL.revokeObjectURL(url);
+      };
+      img.src = url;
+    });
+  }
+
+  /**
+   * Định dạng có thể mã hoá lại qua canvas mà không mất mát ngoài ý muốn.
+   * GIF (mất animation), AVIF/BMP/SVG (canvas đổi luôn định dạng, lệch đuôi
+   * file) đều bị loại — thà giữ nguyên còn hơn phá file.
+   * @param {Blob|File} file
+   * @returns {boolean}
+   */
+  canRecompress(file) {
+    const type = (file?.type || "").toLowerCase();
+    return ["image/jpeg", "image/jpg", "image/png", "image/webp"].includes(type);
+  }
+
+  /**
+   * Nén ảnh CHỈ KHI cần: ảnh đã đạt ngưỡng thì trả lại nguyên bản (không mã hoá
+   * lại → không mất chất lượng vô ích), chưa đạt thì trả bản đã nén.
+   * @param {Blob|File} file
+   * @returns {Promise<{file: Blob|File, compressed: boolean}>}
+   */
+  async compressIfNeeded(file) {
+    if (!file || !this.canRecompress(file)) return { file, compressed: false };
+
+    const tooHeavy = file.size > this.maxSizeMB * 1024 * 1024;
+    const dim = await this.getImageDimensions(file);
+    const tooLarge =
+      !!dim && (dim.width > this.maxWidth || dim.height > this.maxHeight);
+
+    if (!tooHeavy && !tooLarge) return { file, compressed: false };
+    if (!dim) return { file, compressed: false }; // không decode được → để yên
+
+    const out = await this.resizeImage(file);
+
+    // Ảnh vốn đã tối ưu sẵn (JPEG quality thấp chẳng hạn): mã hoá lại có thể ra
+    // file NẶNG HƠN. Khung ảnh không vượt ngưỡng thì giữ bản gốc cho lành.
+    if (!tooLarge && out.size >= file.size) return { file, compressed: false };
+
+    return { file: out, compressed: true };
+  }
+
+  /**
    * Compress canvas to target size
    * @private
    */
@@ -100,8 +170,10 @@ class ImageBL {
 
         const sizeMB = blob.size / 1024 / 1024;
 
-        // If still too large and quality can be reduced, try again
-        if (sizeMB > this.maxSizeMB && quality > 0.3) {
+        // If still too large and quality can be reduced, try again. PNG bỏ qua
+        // tham số quality nên hạ quality chỉ tốn thêm vòng mã hoá vô ích.
+        const lossy = /jpeg|jpg|webp/i.test(originalFile.type || "");
+        if (sizeMB > this.maxSizeMB && quality > 0.3 && lossy) {
           this._compressCanvas(
             canvas,
             originalFile,

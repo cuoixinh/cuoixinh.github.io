@@ -74,6 +74,14 @@ Quy ước quan trọng:
   nào không thuộc bộ vừa ghi đều bị xoá (file không phải ảnh giữ nguyên). Ảnh
   đọc lên từ chính thư mục này, chưa sửa và vẫn giữ nguyên tên thì **không ghi
   lại** — bộ ảnh mẫu cỡ vài chục MB, lưu lại tất mỗi lần vừa lâu vừa dễ đứt.
+- **Nén ảnh khi lưu** (`siCompressAllForSave()`): mỗi lần lưu, mọi ảnh được soi
+  lại theo đúng ngưỡng của ảnh khách tự upload (`core/bl/image-bl.js`: ≤ 1920px
+  mỗi chiều, ≤ 1MB). Ảnh đã thoả thì **bỏ qua**, không mã hoá lại; ảnh chưa thoả
+  thì nén rồi **ghi đè** luôn file trên đĩa. Nhờ vậy ảnh chép tay vào thư mục
+  (ảnh gốc máy ảnh 5-10MB) không còn làm thiệp mẫu nặng hơn thiệp thật. Ngoại lệ:
+  GIF/AVIF/BMP giữ nguyên (`ImageBL.canRecompress()` — qua canvas là mất
+  animation / đổi định dạng), và JPEG đã tối ưu sẵn mà nén lại còn nặng hơn thì
+  cũng giữ bản gốc.
 - `data.json` được ghi **2 lần** mỗi lần lưu: ngay đầu (phần chữ + tham chiếu
   ảnh cũ, để chữ an toàn không phải chờ vài chục MB ảnh) và cuối cùng (chốt tên
   ảnh chuẩn). Ảnh ghi lỗi giữa chừng thì bước xoá ảnh cũ **không** chạy và
