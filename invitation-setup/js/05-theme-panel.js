@@ -1238,8 +1238,9 @@ async function publishWedding() {
   if (!_validateFutureDates()) return;
 
   // Đọc lại phiên ngay tại đây: hàm này còn được gọi lại từ onAuth của popup đăng
-  // nhập bên dưới, đọc cờ cũ là mở popup lần nữa thành vòng lặp.
-  _syncLoginState();
+  // nhập bên dưới, đọc cờ cũ là mở popup lần nữa thành vòng lặp. Hỏi supabase
+  // (await) để token hết hạn không bị tính nhầm là còn đăng nhập.
+  await _refreshLoginState();
   if (!IS_LOGIN) {
     // Chưa đăng nhập → hiện popup đăng nhập/tạo tài khoản ngay tại chỗ (không rời trang).
     // OAuth vẫn redirect: đính pendingPublish=1 để tự xuất bản khi quay lại.
@@ -1446,7 +1447,7 @@ function showPublishSuccessPopup() {
 //   thành "completed" — xem _mergeWeddings ở trang tài khoản.
 // Trùng manage_id thì cập nhật, chưa có thì thêm. Không tạo đơn rỗng, không hạ cấp completed.
 function _syncLocalOrder({ published = false } = {}) {
-  const user = getCurrentUser();
+  const user = window.CXAuth?.getUserSync();
   const key = buildCacheKey("orders", user?.email || "guest");
 
   const form = document.getElementById("wedding-form");

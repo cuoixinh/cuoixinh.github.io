@@ -1131,6 +1131,7 @@
     <script src="../core/config.js"></script>
     <script src="../core/helpers/alert.js"></script>
     <script src="../core/auth-ui.js"></script>
+    <script src="../core/auth.js"></script>
     <script>
       /* ── Draft helpers ── */
       function _generateUUID() {
@@ -1176,17 +1177,16 @@
       }
 
       // "Quản lý thiệp" luôn hiện; chỉ ẩn nút "Đăng nhập" khi đã có phiên.
+      // Trạng thái phiên hỏi CXAuth (core/auth.js) — nguồn sự thật duy nhất.
       (function _initThemeAuth() {
         const loginBtn = document.getElementById("ttLoginBtn");
-        const apply = (user) => {
-          if (loginBtn) loginBtn.style.display = user ? "none" : "";
+        const apply = (loggedIn) => {
+          if (loginBtn) loginBtn.style.display = loggedIn ? "none" : "";
         };
-        const sb = window.AuthUI && AuthUI.supabase;
-        if (!sb) return;
-        sb.auth
-          .getSession()
-          .then(({ data }) => apply(data?.session?.user ?? null));
-        sb.auth.onAuthStateChange((_e, s) => apply(s?.user ?? null));
+        if (!window.CXAuth) return;
+        apply(CXAuth.isLoggedIn()); // vẽ ngay, khỏi nhấp nháy
+        CXAuth.onChange((user) => apply(!!user));
+        CXAuth.getUser().then((user) => apply(!!user));
       })();
 
       /* ── SVG helpers ── */

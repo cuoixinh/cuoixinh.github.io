@@ -235,6 +235,10 @@
     <!-- Scripts -->
     <script src="../../core/cache-util.js"></script>
     <script src="../../core/config.js"></script>
+    <!-- Trang này chạy trong iframe (không có AuthUI của trang cha) nhưng vẫn gọi
+         guest-handler — vốn bắt buộc JWT của CHỦ THIỆP. Không nạp core/auth.js là
+         request đi thiếu token và ăn 401. -->
+    <script src="../../core/auth.js"></script>
     <script src="../../core/utils.js"></script>
     <script src="../../core/dal/wedding-dal.js"></script>
     <script src="../../core/dal/storage-dal.js"></script>

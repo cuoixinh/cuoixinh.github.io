@@ -8,16 +8,9 @@ class AiDAL {
     this._url = CONFIG.supabase.aiInvitationUrl;
   }
 
-  /** Lấy access token của phiên hiện tại (null nếu chưa đăng nhập). */
+  /** Access token của phiên hiện tại — CXAuth (core/auth.js). null nếu chưa đăng nhập. */
   async _token() {
-    const sb = window.AuthUI?.supabase;
-    if (!sb) return null;
-    try {
-      const { data } = await sb.auth.getSession();
-      return data?.session?.access_token ?? null;
-    } catch {
-      return null;
-    }
+    return (await window.CXAuth?.accessToken()) ?? null;
   }
 
   /**

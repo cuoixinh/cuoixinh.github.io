@@ -701,29 +701,9 @@
     document.body.appendChild(el.firstElementChild);
   }
 
-  // User hiện tại, đồng bộ từ API chính thức của supabase-js.
-  //
-  // KHÔNG tự đọc/parse localStorage: supabase-js v2 có thể lưu token dưới dạng
-  // "base64-<...>" nên JSON.parse thẳng sẽ ném lỗi và âm thầm coi người đã đăng
-  // nhập là chưa đăng nhập. Thay vào đó lấy session qua API rồi cache lại, và
-  // theo dõi onAuthStateChange để cache luôn khớp trạng thái thật.
-  let _currentUser = null;
-  (function initCurrentUser() {
-    const sb = window.AuthUI && window.AuthUI.supabase;
-    if (!sb) return;
-    sb.auth
-      .getSession()
-      .then(({ data }) => {
-        _currentUser = data?.session?.user ?? null;
-      })
-      .catch(() => {});
-    sb.auth.onAuthStateChange((_event, session) => {
-      _currentUser = session?.user ?? null;
-    });
-  })();
-
+  // User hiện tại — hỏi CXAuth (core/auth.js), nguồn sự thật duy nhất của cả site.
   function getCurrentUser() {
-    return _currentUser;
+    return window.CXAuth?.getUserSync() ?? null;
   }
 
   window.copyManageLink = function () {

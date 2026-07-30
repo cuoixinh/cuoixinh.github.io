@@ -100,8 +100,12 @@ Trang này KHÔNG đặt panel và script trong HTML tĩnh: `loader.js` fetch `p
 (Không cần đụng `edit=1`/runtime — loader của `invitation-setup` tự thêm; theme không biết vẫn chạy.)
 
 ### Auth
-- Không tự parse `localStorage` thủ công để lấy user — token supabase-js v2 có thể là `base64-...` và sẽ vỡ. Dùng API của supabase client.
-- `invitation-setup` có cờ **`IS_LOGIN`** (`01-state.js`) — nơi duy nhất để hỏi "đã đăng nhập chưa". Cờ được `_syncLoginState()` làm mới lúc `loadData`, trước mỗi lần lưu/xuất bản, và `_watchLoginState()` tự cập nhật + vẽ lại nút theo `onAuthStateChange` (đăng nhập trong popup, đăng xuất ở tab khác). Chỉ gọi `getCurrentUser()` khi cần **object** user (vd `user.email`).
+- **`core/auth.js` (`window.CXAuth`) là nguồn sự thật DUY NHẤT** cho "đang đăng nhập hay chưa". Không viết thêm bản `getCurrentUser()` riêng cho từng trang, không tự parse `localStorage` (token supabase-js v2 có thể là `base64-...` và sẽ vỡ), không tạo thêm supabase client. Trang nào cần auth thì nạp `core/auth.js` ngay sau `core/auth-ui.js`.
+  - `CXAuth.isLoggedIn()` / `getUserSync()` — trả lời **ngay** (đọc storage): dùng để **vẽ UI**, khỏi nhấp nháy.
+  - `await CXAuth.getUser()` / `accessToken()` — hỏi supabase (tự refresh token): **bắt buộc** trước mọi quyết định **GHI** (lưu DB, xuất bản, gọi API cần quyền). Access token hết hạn vẫn refresh được, nên bản sync không đủ để kết luận mất phiên.
+  - `CXAuth.onChange(cb)` — theo dõi phiên đổi (đăng nhập popup, đăng xuất ở tab khác); chỉ bắn khi user thật sự đổi.
+- DAL lấy JWT qua `CXAuth.accessToken()` (`wedding/guest/ai-dal`). **Trang nào GHI dữ liệu thì phải nạp `core/auth.js`**, kể cả trang chạy trong iframe (`invitation-setup/guests/` không có `AuthUI` của trang cha) — thiếu là request đi không token và ăn 401. Trang thiệp public chỉ đọc nên không cần.
+- `invitation-setup` có cờ **`IS_LOGIN`** (`01-state.js`) — nơi duy nhất trong trang để hỏi "đã đăng nhập chưa". `_syncLoginState()` (sync, lúc `loadData`) / `_refreshLoginState()` (await, trước mỗi lần lưu/xuất bản) đều đi qua `_applyLoginState()` — hàm này tự vẽ lại nút khi cờ đổi, **đừng gán thẳng `IS_LOGIN`** ở nơi khác.
 - `IS_PUBLISHED` là **cờ dữ liệu, không phải quyền**: `getWeddingById` đọc bằng anon key nên người đã đăng xuất vẫn nhận `is_published: true`, và bản nháp trong cache cũng giữ cờ đó. Nút/chức năng thực chất cần đăng nhập (nhãn "Lưu & Xuất bản", ẩn "Lưu nháp", panel khách mời) phải xét `IS_PUBLISHED && IS_LOGIN`.
 
 ## Phân quyền

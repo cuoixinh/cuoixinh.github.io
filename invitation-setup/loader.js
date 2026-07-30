@@ -35,6 +35,7 @@
     "../core/config.js",
     "../core/constant.js",
     "../core/auth-ui.js",
+    "../core/auth.js",
     "../core/utils.js",
     "../core/dal/wedding-dal.js",
     "../core/dal/storage-dal.js",

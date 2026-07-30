@@ -1,7 +1,7 @@
 // "Quản lý thiệp" luôn hiển thị (kể cả chưa đăng nhập — vì có thể có nháp/đơn trong
 // localStorage). Chỉ nút "Đăng nhập" mới ẩn/hiện theo phiên; đăng nhập mở popup tại chỗ.
 function updateNavAuthBtn() {
-  const loggedIn = !!getCurrentUser();
+  const loggedIn = !!window.CXAuth?.isLoggedIn();
   const el = document.getElementById("navLoginBtn");
   if (el) el.style.display = loggedIn ? "none" : "";
 }
@@ -20,35 +20,11 @@ function openLoginPopup() {
   });
 }
 
-// ===== Supabase auth (nguồn tin cậy cho trạng thái đăng nhập trên trang chủ) =====
-let _sbClient = null;
-let _authUser = null;
-
+// ===== Trạng thái đăng nhập: hỏi CXAuth (core/auth.js), không tự cache =====
 function _initHomeAuth() {
-  updateNavAuthBtn(); // render ngay từ localStorage (fallback) để tránh nhấp nháy
-  // Tái sử dụng client của AuthUI để chỉ có 1 phiên/listener (tránh cảnh báo nhiều GoTrueClient)
-  if (window.AuthUI && AuthUI.supabase) {
-    _sbClient = AuthUI.supabase;
-  } else if (window.supabase && window.CONFIG?.supabase) {
-    try {
-      _sbClient = window.supabase.createClient(
-        CONFIG.supabase.url,
-        CONFIG.supabase.anonKey,
-      );
-    } catch (e) {
-      return;
-    }
-  } else {
-    return;
-  }
-  _sbClient.auth.getSession().then(({ data }) => {
-    _authUser = data?.session?.user ?? null;
-    updateNavAuthBtn();
-  });
-  _sbClient.auth.onAuthStateChange((_event, session) => {
-    _authUser = session?.user ?? null;
-    updateNavAuthBtn();
-  });
+  updateNavAuthBtn(); // vẽ ngay từ storage (sync) để nút không nhấp nháy
+  window.CXAuth?.onChange(updateNavAuthBtn); // đăng nhập/đăng xuất, kể cả ở tab khác
+  window.CXAuth?.getUser().then(updateNavAuthBtn); // chốt lại bằng phiên thật
 }
 
 document.addEventListener("DOMContentLoaded", _initHomeAuth);

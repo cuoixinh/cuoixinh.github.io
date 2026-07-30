@@ -14,16 +14,12 @@ class WeddingDAL {
    * Header cho request GHI (POST/PATCH): luôn kèm apikey (qua gateway) và đính JWT
    * của user khi đã đăng nhập để edge function gán/nhận chủ (user_id). Khách chưa
    * đăng nhập → dùng anon key, edge để user_id null.
+   *
+   * Token lấy qua CXAuth (core/auth.js) — nguồn sự thật duy nhất. Trang không nạp
+   * core/auth.js (các trang thiệp public, chỉ ĐỌC) thì token = null → anon key.
    */
   async _authHeaders() {
-    let token = null;
-    const sb = typeof window !== "undefined" && window.AuthUI && window.AuthUI.supabase;
-    if (sb) {
-      try {
-        const { data } = await sb.auth.getSession();
-        token = data?.session?.access_token ?? null;
-      } catch (e) {}
-    }
+    const token = (await window.CXAuth?.accessToken()) ?? null;
     return {
       "Content-Type": "application/json",
       apikey: this.anonKey,

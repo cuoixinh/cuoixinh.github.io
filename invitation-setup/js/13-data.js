@@ -408,8 +408,9 @@ async function saveAll(overrides = {}, label = "Đang lưu...") {
   }
 
   // Đọc lại phiên ngay trước khi ghi: quyết định "chỉ lưu localStorage" hay "tạo
-  // record trong DB" ở dưới dựa vào cờ này, để lệch là lưu sai chỗ.
-  _syncLoginState();
+  // record trong DB" ở dưới dựa vào cờ này, để lệch là lưu sai chỗ. Hỏi supabase
+  // (await) chứ không đọc storage — token hết hạn thì storage vẫn còn nguyên.
+  await _refreshLoginState();
 
   try {
     // Step 1: Upload pending images

@@ -4,8 +4,11 @@
  */
 
 // ===== INITIALIZE SUPABASE CLIENT =====
-let supabaseClient = null;
-if (typeof window.supabase !== "undefined") {
+// Ưu tiên dùng lại client của AuthUI (trang nào có form đăng nhập cũng đã tạo sẵn):
+// hai client trên cùng một trang là hai phiên + hai listener song song, supabase-js
+// kêu "Multiple GoTrueClient instances" và trạng thái đăng nhập dễ lệch nhau.
+let supabaseClient = window.AuthUI?.supabase || null;
+if (!supabaseClient && typeof window.supabase !== "undefined") {
   supabaseClient = window.supabase.createClient(
     CONFIG.supabase.url,
     CONFIG.supabase.anonKey,

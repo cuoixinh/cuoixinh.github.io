@@ -18,6 +18,7 @@
   // logic riêng từng tab.
   const SCRIPTS = [
     "../core/config.js",
+    "../core/auth.js", // nguồn duy nhất cho phiên đăng nhập (ai-dal đính JWT)
     "js/00-core.js",
     "../core/helpers/alert.js",
     "../core/bl/image-bl.js",

@@ -11,14 +11,7 @@ class GuestDAL {
    * cho phép chỉ cần biết wedding_id như trước.
    */
   async _authHeaders() {
-    let token = null;
-    const sb = typeof window !== 'undefined' && window.AuthUI && window.AuthUI.supabase;
-    if (sb) {
-      try {
-        const { data } = await sb.auth.getSession();
-        token = data?.session?.access_token ?? null;
-      } catch (e) {}
-    }
+    const token = (await window.CXAuth?.accessToken()) ?? null;
     const headers = { 'Content-Type': 'application/json' };
     if (token) headers.Authorization = `Bearer ${token}`;
     return headers;

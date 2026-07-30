@@ -244,21 +244,6 @@ async function _idbRestoreAll() {
   }
 }
 
-function getCurrentUser() {
-  try {
-    const key = Object.keys(localStorage).find(
-      (k) => k.startsWith("sb-") && k.endsWith("-auth-token"),
-    );
-    if (!key) return null;
-    let raw = localStorage.getItem(key);
-    if (!raw) return null;
-    // supabase-js v2 có thể lưu dạng "base64-<b64(json)>" → giải mã (UTF-8) trước khi parse
-    if (raw.startsWith("base64-")) {
-      raw = decodeURIComponent(escape(atob(raw.slice(7))));
-    }
-    return JSON.parse(raw)?.user ?? null;
-  } catch (e) {
-    return null;
-  }
-}
+// (Trạng thái đăng nhập: hỏi CXAuth ở core/auth.js — CXAuth.isLoggedIn() /
+//  getUserSync() để vẽ UI, await CXAuth.getUser() trước khi ghi DB.)
 

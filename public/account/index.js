@@ -37,22 +37,22 @@ function _redirectAfterLogin(freshLogin) {
 }
 
 async function initAccount() {
-  supabaseClient.auth.onAuthStateChange((event, session) => {
-    currentUser = session?.user ?? null;
+  // Phiên hỏi CXAuth (core/auth.js) — nguồn sự thật duy nhất của cả site.
+  // Lấy phiên TRƯỚC rồi mới đăng ký onChange: ngược lại thì lần đồng bộ đầu tiên
+  // bắn luôn callback và trang render/loadOrders() hai lần.
+  currentUser = await CXAuth.getUser();
+  updateAuthBlock();
+  loadOrders();
+  loadProfile();
+  _redirectAfterLogin();
+
+  CXAuth.onChange((user, event) => {
+    currentUser = user;
     updateAuthBlock();
     loadOrders();
     loadProfile();
     _redirectAfterLogin(event === "SIGNED_IN");
   });
-
-  const {
-    data: { session },
-  } = await supabaseClient.auth.getSession();
-  currentUser = session?.user ?? null;
-  updateAuthBlock();
-  loadOrders();
-  loadProfile();
-  _redirectAfterLogin();
 }
 
 async function logout() {
@@ -108,12 +108,7 @@ function _themeToName(theme) {
 // Lấy danh sách thiệp của user từ DB (gồm cả bản nháp is_published=false).
 async function fetchMyWeddings() {
   if (!currentUser) return [];
-  let token = null;
-  try {
-    token =
-      (await supabaseClient.auth.getSession()).data?.session?.access_token ??
-      null;
-  } catch (e) {}
+  const token = await CXAuth.accessToken();
   if (!token) return [];
   try {
     const res = await fetch(CONFIG.supabase.edgeUrl + "?resource=my-weddings", {
