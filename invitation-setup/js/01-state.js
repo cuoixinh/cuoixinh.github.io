@@ -31,18 +31,42 @@ let _themeSetting = {};
 // Draft state: true = chỉ có trong localStorage, chưa lên DB
 let _isLocalDraft = false;
 
-// Publish state — controls whether Advanced section is enabled
-let IS_PUBLISHED = false;
+// Đang đăng nhập hay không — CỜ dùng chung cho cả trang, thay vì mỗi nơi tự gọi
+// getCurrentUser(). Được đặt lúc nạp dữ liệu (loadData), trước mỗi hành động
+// lưu/xuất bản, và tự cập nhật theo mọi biến động phiên (đăng nhập, đăng xuất,
+// kể cả thao tác ở tab khác) nhờ _watchLoginState().
+let IS_LOGIN = false;
 
-// IS_PUBLISHED chỉ là cờ ĐỌC TỪ DỮ LIỆU, không phải quyền: nó được gán từ
+// Publish state — controls whether Advanced section is enabled.
+// LƯU Ý: IS_PUBLISHED chỉ là cờ ĐỌC TỪ DỮ LIỆU, KHÔNG phải quyền — nó được gán từ
 // `data.is_published` của bản đọc về (getWeddingById dùng ANON KEY nên người đã
 // đăng xuất vẫn đọc được thiệp) hoặc từ bản nháp còn trong cache của trình duyệt
 // (payload có is_published: true được ghi vào cache TRƯỚC khi gọi DB, lần publish
-// nào lỗi giữa chừng là cờ đó nằm lại). Vì vậy mọi affordance "đã xuất bản" mà
-// THỰC CHẤT cần đăng nhập (nhãn "Lưu & Xuất bản", ẩn nút "Lưu nháp", mở panel
-// khách mời) phải hỏi hàm này thay vì đọc thẳng IS_PUBLISHED.
-function isPublishedForUi() {
-  return IS_PUBLISHED && !!getCurrentUser();
+// nào lỗi giữa chừng là cờ đó nằm lại). Nút/chức năng "đã xuất bản" mà THỰC CHẤT
+// cần đăng nhập (nhãn "Lưu & Xuất bản", ẩn nút "Lưu nháp", panel khách mời) phải
+// xét `IS_PUBLISHED && IS_LOGIN`.
+let IS_PUBLISHED = false;
+
+function _syncLoginState() {
+  IS_LOGIN = !!getCurrentUser();
+  return IS_LOGIN;
+}
+
+// Phiên đăng nhập đổi giữa lúc đang mở trang (bấm đăng nhập trong popup, hoặc
+// đăng xuất ở tab khác — supabase-js đồng bộ token qua localStorage) → cập nhật
+// cờ và vẽ lại bộ nút cho khớp, khỏi phải F5.
+let _loginWatchStarted = false;
+
+function _watchLoginState() {
+  _syncLoginState();
+  if (_loginWatchStarted) return; // gọi lại chỉ để làm mới cờ, đừng đăng ký thêm listener
+  _loginWatchStarted = true;
+  window.supabaseClient?.auth?.onAuthStateChange(() => {
+    const before = IS_LOGIN;
+    if (_syncLoginState() === before) return;
+    _syncAdvancedSection();
+    _updateLocalDraftNotice();
+  });
 }
 
 const DRAFT_LOCAL_KEY = buildCacheKey("draft", WEDDING_ID);

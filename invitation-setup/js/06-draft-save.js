@@ -150,12 +150,12 @@ function _setGuestsLockReason(reason) {
 }
 
 // Đồng bộ lớp khoá / iframe của panel khách mời theo trạng thái xuất bản.
-// Dùng isPublishedForUi(): quản lý khách mời cần JWT, đã đăng xuất thì iframe chỉ
-// nạp ra lỗi — khoá lại và mời đăng nhập rõ ràng hơn.
+// Xét cả IS_LOGIN: quản lý khách mời cần JWT, đã đăng xuất thì iframe chỉ nạp ra
+// lỗi — khoá lại và mời đăng nhập rõ ràng hơn.
 function _updateGuestsPanelLock() {
   const guestsLock = document.getElementById("guests-lock");
   const iframe = document.getElementById("guests-iframe");
-  if (!isPublishedForUi()) {
+  if (!(IS_PUBLISHED && IS_LOGIN)) {
     // Chưa xuất bản (hoặc đã xuất bản mà mất phiên đăng nhập): khoá, không nạp iframe
     _setGuestsLockReason(IS_PUBLISHED ? "logged-out" : "unpublished");
     if (guestsLock) {

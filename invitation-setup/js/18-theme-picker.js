@@ -127,10 +127,10 @@ window._applyThemeChange = _applyThemeChange;
 // ============= ADVANCED SECTION LOCK =============
 
 function _syncAdvancedSection() {
-  // Đã xuất bản NHƯNG phải còn đăng nhập — xem isPublishedForUi() (01-state.js).
+  // Đã xuất bản NHƯNG phải còn đăng nhập (xem chú thích IS_PUBLISHED ở 01-state.js).
   // Đăng xuất rồi mở lại thiệp đã xuất bản thì quay về đúng bộ nút của khách chưa
   // đăng nhập: "Lưu nháp" + "Xuất bản" (bấm "Xuất bản" sẽ mở popup đăng nhập).
-  const published = isPublishedForUi();
+  const published = IS_PUBLISHED && IS_LOGIN;
 
   // Ẩn cả container nút "Lưu nháp" khi đã xuất bản → nhường không gian cho nút "Lưu & Xuất bản"
   const draftWrap = document.getElementById("tab-draft-wrap");

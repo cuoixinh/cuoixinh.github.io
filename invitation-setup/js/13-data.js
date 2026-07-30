@@ -53,8 +53,7 @@ window.dismissLocalDraftNotice = dismissLocalDraftNotice;
 function _updateLocalDraftNotice() {
   const notice = document.getElementById("local-draft-notice");
   if (!notice) return;
-  const shouldShow =
-    _isLocalDraft && !getCurrentUser() && !_isDraftNoticeDismissed();
+  const shouldShow = _isLocalDraft && !IS_LOGIN && !_isDraftNoticeDismissed();
   notice.classList.toggle("hidden", !shouldShow);
   _syncNavHeight();
 }
@@ -81,6 +80,10 @@ function _initNavHeightWatcher() {
 }
 
 async function loadData() {
+  // Chốt IS_LOGIN trước khi fillForm() — fillForm gọi _syncAdvancedSection(), mà
+  // bộ nút Lưu nháp / Xuất bản phụ thuộc cờ này.
+  _watchLoginState();
+
   // Kiểm tra localStorage trước — nếu _localOnly thì KHÔNG gọi DB
   const localData = getLocalDraft();
   if (localData?._localOnly) {
@@ -404,6 +407,10 @@ async function saveAll(overrides = {}, label = "Đang lưu...") {
     return false;
   }
 
+  // Đọc lại phiên ngay trước khi ghi: quyết định "chỉ lưu localStorage" hay "tạo
+  // record trong DB" ở dưới dựa vào cờ này, để lệch là lưu sai chỗ.
+  _syncLoginState();
+
   try {
     // Step 1: Upload pending images
     showLoading(true, "Đang tải ảnh lên server...");
@@ -536,7 +543,7 @@ async function saveAll(overrides = {}, label = "Đang lưu...") {
     if (!_isLocalDraft) {
       // Record đã có trong DB → PATCH bình thường
       await weddingBL.updateWedding(payload);
-    } else if (getCurrentUser()) {
+    } else if (IS_LOGIN) {
       // Local draft + đã đăng nhập → tạo record trong DB lần đầu
       const generatedSlug = payload.slug || `wedding-${WEDDING_ID.slice(0, 8)}`;
       // Đính JWT user (qua _authHeaders) để edge gán user_id = chủ thiệp ngay khi tạo.
@@ -611,7 +618,7 @@ async function saveAll(overrides = {}, label = "Đang lưu...") {
       .getElementById("guests-iframe")
       ?.contentWindow?.setShareTemplate?.(payload.share_message_template ?? null);
 
-    if (_isLocalDraft && !getCurrentUser()) {
+    if (_isLocalDraft && !IS_LOGIN) {
       showToast("Đã lưu nháp vào thiết bị này");
     } else {
       showToast("Đã lưu thành công!");
