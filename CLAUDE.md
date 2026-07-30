@@ -101,6 +101,7 @@ Trang này KHÔNG đặt panel và script trong HTML tĩnh: `loader.js` fetch `p
 
 ### Auth
 - Không tự parse `localStorage` thủ công để lấy user — token supabase-js v2 có thể là `base64-...` và sẽ vỡ. Dùng API của supabase client.
+- `IS_PUBLISHED` (invitation-setup) là **cờ dữ liệu, không phải quyền**: `getWeddingById` đọc bằng anon key nên người đã đăng xuất vẫn nhận `is_published: true`, và bản nháp trong cache cũng giữ cờ đó. Nút/chức năng nào thực chất cần đăng nhập (nhãn "Lưu & Xuất bản", ẩn "Lưu nháp", panel khách mời) phải hỏi `isPublishedForUi()` (`01-state.js`).
 
 ## Phân quyền
 

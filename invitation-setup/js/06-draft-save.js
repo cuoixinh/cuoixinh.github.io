@@ -132,12 +132,32 @@ function openGuestsPage(e) {
   _setActiveTab("guests");
 }
 
-// Đồng bộ lớp khoá / iframe của panel khách mời theo trạng thái xuất bản
+// Thiệp đã xuất bản mà mất phiên đăng nhập thì lý do bị khoá KHÔNG phải "chưa xuất
+// bản" — đổi lời cho khớp, nút bấm vẫn là publishWedding() vì hàm đó tự mở popup
+// đăng nhập khi chưa có user.
+function _setGuestsLockReason(reason) {
+  const desc = document.getElementById("guests-lock-desc");
+  const cta = document.getElementById("guests-lock-cta-label");
+  if (desc) {
+    desc.textContent =
+      reason === "logged-out"
+        ? "Phiên đăng nhập đã kết thúc. Đăng nhập lại để thêm và quản lý danh sách khách mời."
+        : "Bạn cần xuất bản thiệp cưới trước khi thêm và quản lý danh sách khách mời.";
+  }
+  if (cta) {
+    cta.textContent = reason === "logged-out" ? "Đăng nhập" : "Xuất bản thiệp";
+  }
+}
+
+// Đồng bộ lớp khoá / iframe của panel khách mời theo trạng thái xuất bản.
+// Dùng isPublishedForUi(): quản lý khách mời cần JWT, đã đăng xuất thì iframe chỉ
+// nạp ra lỗi — khoá lại và mời đăng nhập rõ ràng hơn.
 function _updateGuestsPanelLock() {
   const guestsLock = document.getElementById("guests-lock");
   const iframe = document.getElementById("guests-iframe");
-  if (!IS_PUBLISHED) {
-    // Chưa xuất bản: khoá tính năng, không nạp iframe
+  if (!isPublishedForUi()) {
+    // Chưa xuất bản (hoặc đã xuất bản mà mất phiên đăng nhập): khoá, không nạp iframe
+    _setGuestsLockReason(IS_PUBLISHED ? "logged-out" : "unpublished");
     if (guestsLock) {
       guestsLock.classList.remove("hidden");
       guestsLock.classList.add("flex");
