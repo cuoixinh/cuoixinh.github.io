@@ -292,6 +292,9 @@ if (window.location.search.includes("preview=true")) {
             if (typeof applyCustomBlocks === "function") {
               applyCustomBlocks(data.theme_setting);
             }
+            if (typeof applyDecorations === "function") {
+              applyDecorations(data.theme_setting);
+            }
             return;
           }
         } catch (e) {}

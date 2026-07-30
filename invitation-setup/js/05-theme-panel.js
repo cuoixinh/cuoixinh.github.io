@@ -195,8 +195,10 @@ function _initThemePanel() {
   if (hf) hf.value = s.heading_font || d.heading_font;
   if (bf) bf.value = s.body_font || d.body_font;
 
-  // Mở tab Giao diện → về nhóm chỉnh chung, đóng bảng chỉnh 1 dòng / thêm văn bản
+  // Mở tab Giao diện → về nhóm chỉnh chung, đóng bảng chỉnh 1 dòng / thêm văn
+  // bản / trang trí
   document.getElementById("theme-addtext-panel")?.classList.add("hidden");
+  document.getElementById("theme-decor-panel")?.classList.add("hidden");
   closeLineEditor();
   _initEditHint();
 
@@ -208,9 +210,11 @@ function onThemeSettingChange() {
   const hf = document.getElementById("theme-heading-font");
   const bf = document.getElementById("theme-body-font");
 
-  // Giữ lại ghi đè từng dòng + khối văn bản — nếu không sẽ bị xoá khi dựng lại object.
+  // Giữ lại ghi đè từng dòng + khối văn bản + hoạ tiết — nếu không sẽ bị xoá
+  // khi dựng lại object.
   const overrides = _themeSetting.text_overrides;
   const blocks = _themeSetting.custom_blocks;
+  const decors = _themeSetting.decorations;
 
   _themeSetting = {
     heading_font: hf ? hf.value : "",
@@ -223,6 +227,8 @@ function onThemeSettingChange() {
     _themeSetting.text_overrides = overrides;
   if (Array.isArray(blocks) && blocks.length)
     _themeSetting.custom_blocks = blocks;
+  if (Array.isArray(decors) && decors.length)
+    _themeSetting.decorations = decors;
 
   _setDirty(true, "theme");
 
@@ -280,6 +286,10 @@ window.addEventListener("message", (ev) => {
     // Runtime báo danh sách khối văn bản đã đổi → lưu vào theme_setting + đánh dấu chưa lưu.
     _themeSetting.custom_blocks = Array.isArray(d.blocks) ? d.blocks : [];
     _setDirty(true, "theme");
+  } else if (d.type === "cx-decors-changed") {
+    // Hoạ tiết vừa thêm / kéo / xoay / xoá trong thiệp → lưu toạ độ mới.
+    _themeSetting.decorations = Array.isArray(d.decors) ? d.decors : [];
+    _setDirty(true, "theme");
   }
 });
 
@@ -288,6 +298,7 @@ window.addEventListener("message", (ev) => {
 // các mẫu khối — tránh rối khi đang kéo-thả vào thiệp.
 function openAddTextPanel() {
   document.getElementById("theme-line-editor")?.classList.add("hidden");
+  document.getElementById("theme-decor-panel")?.classList.add("hidden");
   document.getElementById("theme-main-controls")?.classList.add("hidden");
   document.getElementById("theme-edit-hint")?.classList.add("hidden");
   document.getElementById("theme-addtext-panel")?.classList.remove("hidden");
@@ -419,6 +430,175 @@ function _paletteDragEnd(ev) {
   }
 }
 
+// ─── Trang trí: bảng chọn hoa (nạp từ kho ảnh mẫu) ───────────────────────────
+// Danh sách lấy ở /assets/flowers/manifest.json — file do tab "Ảnh mẫu" bên
+// /admin ghi ra mỗi lần lưu. Trang tĩnh không list được thư mục qua HTTP nên
+// manifest là nguồn duy nhất.
+const DECOR_MANIFEST_URL = "/assets/flowers/manifest.json";
+let _decorItems = null; // cache trong phiên; null = chưa nạp
+
+function openDecorPanel() {
+  document.getElementById("theme-line-editor")?.classList.add("hidden");
+  document.getElementById("theme-addtext-panel")?.classList.add("hidden");
+  document.getElementById("theme-main-controls")?.classList.add("hidden");
+  document.getElementById("theme-edit-hint")?.classList.add("hidden");
+  document.getElementById("theme-decor-panel")?.classList.remove("hidden");
+  _renderDecorPalette();
+  if (window.lucide) lucide.createIcons();
+}
+window.openDecorPanel = openDecorPanel;
+
+function closeDecorPanel() {
+  document.getElementById("theme-decor-panel")?.classList.add("hidden");
+  document.getElementById("theme-main-controls")?.classList.remove("hidden");
+  _initEditHint();
+}
+window.closeDecorPanel = closeDecorPanel;
+
+function _decorEmpty(msg) {
+  const el = document.getElementById("cx-decor-empty");
+  if (!el) return;
+  el.textContent = msg || "";
+  el.classList.toggle("hidden", !msg);
+}
+
+async function _renderDecorPalette() {
+  const grid = document.getElementById("cx-decor-palette");
+  if (!grid || grid.dataset.rendered === "1") return;
+
+  if (!_decorItems) {
+    try {
+      const res = await fetch(DECOR_MANIFEST_URL, { cache: "no-cache" });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      const json = await res.json();
+      _decorItems = (json.images || [])
+        .filter((i) => i && (i.url || i.file))
+        .map((i) => ({
+          url: i.url || `/assets/flowers/${i.file}`,
+          name: i.file || "",
+        }));
+    } catch (e) {
+      console.warn("Không nạp được danh sách hoạ tiết:", e);
+      _decorEmpty("Chưa tải được danh sách hoạ tiết. Thử tải lại trang.");
+      return;
+    }
+  }
+
+  if (!_decorItems.length) {
+    _decorEmpty("Chưa có hoạ tiết nào — thêm ảnh ở trang quản trị, mục Ảnh mẫu.");
+    return;
+  }
+
+  _decorEmpty("");
+  grid.textContent = "";
+  _decorItems.forEach((item) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.title = "Kéo vào thiệp hoặc bấm để thêm";
+    btn.className = "cx-decor-item";
+    const img = document.createElement("img");
+    img.src = item.url;
+    img.alt = item.name;
+    img.loading = "lazy";
+    btn.appendChild(img);
+    // Gắn listener (không dùng onpointerdown="" trong HTML): đường dẫn ảnh có
+    // thể chứa ký tự làm vỡ attribute.
+    btn.addEventListener("pointerdown", (e) => startDecorDrag(e, item.url));
+    grid.appendChild(btn);
+  });
+  grid.dataset.rendered = "1";
+}
+
+// Kéo hoa TỪ bảng chọn THẢ vào thiệp — cùng cách với mẫu văn bản: giữ
+// pointer-capture ở nút, tắt pointer-events của iframe để parent vẫn nhận
+// pointermove, thả trong iframe thì gửi TOẠ ĐỘ điểm thả cho runtime.
+let _decorDrag = null;
+function startDecorDrag(e, src) {
+  if (e.button != null && e.button !== 0) return;
+  const btn = e.currentTarget;
+  e.preventDefault();
+  try {
+    btn.setPointerCapture(e.pointerId);
+  } catch (err) {}
+  const iframe = _lineIframe();
+  if (iframe) iframe.style.pointerEvents = "none";
+  const r = btn.getBoundingClientRect();
+  _decorDrag = {
+    src,
+    btn,
+    iframe,
+    x0: e.clientX,
+    y0: e.clientY,
+    offX: e.clientX - r.left,
+    offY: e.clientY - r.top,
+    moved: false,
+    ghost: null,
+  };
+  const move = (ev) => _decorDragMove(ev);
+  const up = (ev) => {
+    btn.removeEventListener("pointermove", move);
+    btn.removeEventListener("pointerup", up);
+    btn.removeEventListener("pointercancel", up);
+    _decorDragEnd(ev);
+  };
+  btn.addEventListener("pointermove", move);
+  btn.addEventListener("pointerup", up);
+  btn.addEventListener("pointercancel", up);
+}
+window.startDecorDrag = startDecorDrag;
+
+function _decorDragMove(ev) {
+  const d = _decorDrag;
+  if (!d) return;
+  if (!d.moved) {
+    if (Math.hypot(ev.clientX - d.x0, ev.clientY - d.y0) < 6) return;
+    d.moved = true;
+    d.ghost = d.btn.cloneNode(true);
+    d.ghost.removeAttribute("id");
+    d.ghost.classList.add("cx-drag-ghost");
+    d.ghost.style.width = `${d.btn.offsetWidth}px`;
+    d.ghost.style.left = `${ev.clientX - d.offX}px`;
+    d.ghost.style.top = `${ev.clientY - d.offY}px`;
+    document.body.appendChild(d.ghost);
+  }
+  const gw = d.ghost.offsetWidth || d.btn.offsetWidth;
+  const vw = document.documentElement.clientWidth;
+  d.ghost.style.left =
+    Math.max(8, Math.min(ev.clientX - d.offX, vw - gw - 8)) + "px";
+  d.ghost.style.top = ev.clientY - d.offY + "px";
+}
+
+function _decorDragEnd(ev) {
+  const d = _decorDrag;
+  _decorDrag = null;
+  if (!d) return;
+  d.ghost?.remove();
+  if (d.iframe) d.iframe.style.pointerEvents = "";
+  const iframe = d.iframe || _lineIframe();
+  if (!iframe) return;
+
+  const r = iframe.getBoundingClientRect();
+  const inside =
+    d.moved &&
+    ev.clientX >= r.left &&
+    ev.clientX <= r.right &&
+    ev.clientY >= r.top &&
+    ev.clientY <= r.bottom;
+
+  // Bấm (không kéo) → thả vào giữa thiệp; kéo ra ngoài iframe → bỏ qua.
+  if (!d.moved) {
+    _addDecor(d.src, null, null);
+  } else if (inside) {
+    _addDecor(d.src, ev.clientX - r.left, ev.clientY - r.top);
+  }
+}
+
+function _addDecor(src, x, y) {
+  closeDecorPanel();
+  _setDirty(true, "theme");
+  _lineIframe()?.contentWindow?.postMessage({ type: "cx-add-decor", src, x, y }, "*");
+}
+
 function _lineIframe() {
   return document.getElementById("theme-preview-iframe");
 }
@@ -432,6 +612,7 @@ function _openLineEditor(msg) {
 
   document.getElementById("theme-main-controls")?.classList.add("hidden");
   document.getElementById("theme-addtext-panel")?.classList.add("hidden");
+  document.getElementById("theme-decor-panel")?.classList.add("hidden");
   document.getElementById("theme-edit-hint")?.classList.add("hidden");
   document.getElementById("theme-line-editor")?.classList.remove("hidden");
 

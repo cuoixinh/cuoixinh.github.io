@@ -224,7 +224,11 @@ function _cxSectionsContainer() {
   let best = null,
     bestN = -1;
   for (const child of card.children) {
-    if (child.classList && child.classList.contains("cx-custom-block"))
+    if (
+      child.classList &&
+      (child.classList.contains("cx-custom-block") ||
+        child.classList.contains("cx-decor-layer"))
+    )
       continue;
     const n = child.querySelectorAll(
       "[id^='section-'],[id^='couple-'],[id^='invite-'],[id^='ceremony'],[id^='party']",
@@ -242,7 +246,8 @@ function _cxRealSections(container) {
     (c) =>
       !c.classList ||
       (!c.classList.contains("cx-custom-block") &&
-        !c.classList.contains("cx-cb-dropline")),
+        !c.classList.contains("cx-cb-dropline") &&
+        !c.classList.contains("cx-decor-layer")),
   );
 }
 
@@ -253,7 +258,8 @@ function _cxGatherTargets(container, out, depth) {
     if (
       child.classList &&
       (child.classList.contains("cx-custom-block") ||
-        child.classList.contains("cx-cb-dropline"))
+        child.classList.contains("cx-cb-dropline") ||
+        child.classList.contains("cx-decor-layer"))
     )
       continue;
     const cs = getComputedStyle(child);
@@ -763,6 +769,345 @@ function applyCustomBlocks(setting) {
   _cxRender();
 }
 
+// ============================================================
+// DECORATIONS — hoa / hoạ tiết thả tự do lên thiệp bằng TOẠ ĐỘ.
+// Lưu ở theme_setting.decorations = [{ id, src, x, y, w, rot, behind }]:
+//   x, y  % so với #main-card, tính theo TÂM ảnh → giữ đúng chỗ trên mọi khổ
+//         màn hình, không lệ thuộc px của máy lúc chỉnh.
+//   w     % chiều rộng thiệp (cao tự theo tỉ lệ ảnh); rot: độ;
+//   behind true = nằm SAU nội dung thiệp (hoa nền), false = đè lên trên.
+// Public/preview chỉ vẽ và KHÔNG bắt chuột. edit=1 thì kéo để đổi chỗ, kèm 4
+// nút: xoá (trên-trái), xoay (trên-phải), phóng to (dưới-phải), đổi lớp (dưới-trái).
+// ============================================================
+const CX_DECOR_DEFAULT_W = 18; // % bề ngang thiệp
+const CX_DECOR_MIN_W = 3;
+const CX_DECOR_MAX_W = 100;
+
+let _cxDecors = [];
+let _cxDecorActiveId = null;
+let _cxDecorOutsideBound = false;
+
+function _cxDecorLayer(behind) {
+  const card = document.getElementById("main-card");
+  if (!card) return null;
+  // Toạ độ tính theo #main-card nên nó phải là gốc định vị.
+  if (getComputedStyle(card).position === "static") card.style.position = "relative";
+  // …và phải TỰ TẠO stacking context, nếu không lớp z-index:-1 (hoa nền) rơi ra
+  // ngữ cảnh gốc và bị chính nền trắng của thiệp che mất. isolation không đổi
+  // layout, chỉ đóng khung thứ tự chồng lớp trong thiệp.
+  if (getComputedStyle(card).isolation !== "isolate") card.style.isolation = "isolate";
+  const id = behind ? "cx-decor-layer-back" : "cx-decor-layer";
+  let layer = document.getElementById(id);
+  if (!layer || layer.parentElement !== card) {
+    layer = document.createElement("div");
+    layer.id = id;
+    layer.className = "cx-decor-layer";
+    // 45: các theme dùng tới z-20 cho nội dung TRONG thiệp nên phải cao hơn,
+    // nhưng vẫn thấp hơn mấy lớp phủ fixed NGOÀI thiệp (cover z-50, nút nhạc
+    // z-60, lightbox z-100) — hoa không được che những thứ đó.
+    // -1: nằm sau nội dung thiệp nhưng vẫn trên nền thiệp.
+    layer.style.zIndex = behind ? "-1" : "45";
+    card.appendChild(layer);
+  }
+  return layer;
+}
+
+function _cxDecorEnsureStyle() {
+  if (document.getElementById("cx-decor-style")) return;
+  const s = document.createElement("style");
+  s.id = "cx-decor-style";
+  s.textContent =
+    ".cx-decor-layer{position:absolute;inset:0;overflow:hidden;pointer-events:none}" +
+    ".cx-decor{position:absolute;transform-origin:center center}" +
+    ".cx-decor img{display:block;width:100%;height:auto;-webkit-user-drag:none;user-select:none;pointer-events:none}" +
+    ".cx-decor-edit{pointer-events:auto;cursor:grab;touch-action:none}" +
+    ".cx-decor-edit.cx-decor-active{outline:1px dashed #e11d48;outline-offset:4px}" +
+    ".cx-decor-h{position:absolute;width:24px;height:24px;border-radius:9999px;" +
+    "background:#fff;border:1px solid #e11d48;color:#e11d48;display:none;" +
+    "align-items:center;justify-content:center;padding:0;cursor:pointer;" +
+    "box-shadow:0 2px 6px rgba(0,0,0,.18);touch-action:none;z-index:1}" +
+    ".cx-decor-active .cx-decor-h{display:flex}" +
+    ".cx-decor-del{top:-12px;left:-12px}" +
+    ".cx-decor-rot{top:-12px;right:-12px;cursor:grab}" +
+    ".cx-decor-size{bottom:-12px;right:-12px;cursor:nwse-resize}" +
+    ".cx-decor-back{bottom:-12px;left:-12px}";
+  document.head.appendChild(s);
+}
+
+function _cxDecorClamp(v, min, max) {
+  return Math.max(min, Math.min(max, v));
+}
+
+function _cxDecorFind(id) {
+  return _cxDecors.find((d) => d.id === id);
+}
+
+let _cxDecorReportTimer = null;
+function _cxDecorReport() {
+  clearTimeout(_cxDecorReportTimer);
+  _cxDecorReportTimer = setTimeout(() => {
+    try {
+      parent.postMessage({ type: "cx-decors-changed", decors: _cxDecors }, "*");
+    } catch (e) {}
+  }, 200);
+}
+
+function _cxDecorSetActive(id) {
+  _cxDecorActiveId = id || null;
+  document.querySelectorAll(".cx-decor").forEach((n) => {
+    n.classList.toggle(
+      "cx-decor-active",
+      n.getAttribute("data-decor-id") === _cxDecorActiveId,
+    );
+  });
+}
+
+function _cxDecorBindOutside() {
+  if (_cxDecorOutsideBound) return;
+  _cxDecorOutsideBound = true;
+  document.addEventListener("pointerdown", (e) => {
+    const t = e.target;
+    if (t && t.closest && t.closest(".cx-decor")) return;
+    if (_cxDecorActiveId) _cxDecorSetActive(null);
+  });
+}
+
+// Ghi style vị trí/kích thước từ model lên node (dùng cả lúc render lẫn lúc kéo).
+function _cxDecorStyle(node, d) {
+  node.style.left = d.x + "%";
+  node.style.top = d.y + "%";
+  node.style.width = d.w + "%";
+  node.style.transform = `translate(-50%, -50%) rotate(${d.rot || 0}deg)`;
+}
+
+const _CX_DECOR_ICONS = {
+  del: '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+  rot: '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg>',
+  size: '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M9 21H3v-6"/><path d="M21 3l-7 7"/><path d="M3 21l7-7"/></svg>',
+  back: '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="12" height="12" rx="2"/><path d="M9 21h10a2 2 0 0 0 2-2V9"/></svg>',
+};
+
+function _cxDecorButton(cls, title, icon) {
+  const b = document.createElement("button");
+  b.type = "button";
+  b.className = "cx-decor-h " + cls;
+  b.title = title;
+  b.setAttribute("aria-label", title);
+  b.innerHTML = icon;
+  return b;
+}
+
+function _cxDecorNode(d, edit) {
+  const node = document.createElement("div");
+  node.className = "cx-decor" + (edit ? " cx-decor-edit" : "");
+  node.setAttribute("data-decor-id", d.id);
+  if (edit && d.id === _cxDecorActiveId) node.classList.add("cx-decor-active");
+  _cxDecorStyle(node, d);
+
+  const img = document.createElement("img");
+  img.src = d.src;
+  img.alt = "";
+  // KHÔNG dùng loading="lazy": thiệp rất dài nên hoa ở dưới sẽ chưa tải, khung
+  // bọc cao 0px → không bấm/kéo được (và ở public thì hụt cả chỗ trống).
+  node.appendChild(img);
+
+  if (!edit) return node;
+
+  const del = _cxDecorButton("cx-decor-del", "Xoá", _CX_DECOR_ICONS.del);
+  del.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    _cxDecorDelete(d.id);
+  });
+  const back = _cxDecorButton(
+    "cx-decor-back",
+    d.behind ? "Đưa lên trước chữ" : "Đưa ra sau chữ",
+    _CX_DECOR_ICONS.back,
+  );
+  back.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    d.behind = !d.behind;
+    _cxDecorRender();
+    _cxDecorReport();
+  });
+  const rot = _cxDecorButton("cx-decor-rot", "Kéo để xoay", _CX_DECOR_ICONS.rot);
+  const size = _cxDecorButton("cx-decor-size", "Kéo để phóng to", _CX_DECOR_ICONS.size);
+  node.append(del, back, rot, size);
+
+  _cxDecorWireMove(node, d);
+  _cxDecorWireHandle(rot, node, d, "rotate");
+  _cxDecorWireHandle(size, node, d, "resize");
+  return node;
+}
+
+// Kéo cả ảnh → đổi toạ độ tâm (%).
+function _cxDecorWireMove(node, d) {
+  node.addEventListener("pointerdown", (e) => {
+    if (e.target.closest(".cx-decor-h")) return; // nút công cụ tự lo
+    _cxDecorSetActive(d.id);
+    const card = document.getElementById("main-card");
+    if (!card) return;
+    const r = card.getBoundingClientRect();
+    const start = { x: e.clientX, y: e.clientY, dx: d.x, dy: d.y };
+    e.preventDefault();
+    try {
+      node.setPointerCapture(e.pointerId);
+    } catch (err) {}
+    node.style.cursor = "grabbing";
+
+    const move = (ev) => {
+      d.x = _cxDecorClamp(start.dx + ((ev.clientX - start.x) / r.width) * 100, 0, 100);
+      d.y = _cxDecorClamp(start.dy + ((ev.clientY - start.y) / r.height) * 100, 0, 100);
+      _cxDecorStyle(node, d);
+    };
+    const up = () => {
+      node.removeEventListener("pointermove", move);
+      node.removeEventListener("pointerup", up);
+      node.removeEventListener("pointercancel", up);
+      node.style.cursor = "";
+      // Làm tròn 1 chữ số thập phân: đủ mịn mà JSON không phình vì số lẻ dài.
+      d.x = Math.round(d.x * 10) / 10;
+      d.y = Math.round(d.y * 10) / 10;
+      _cxDecorReport();
+    };
+    node.addEventListener("pointermove", move);
+    node.addEventListener("pointerup", up);
+    node.addEventListener("pointercancel", up);
+  });
+}
+
+// Tay nắm xoay / phóng to. Cả hai tính theo VECTOR từ tâm ảnh tới con trỏ nên
+// không phụ thuộc góc đang xoay.
+function _cxDecorWireHandle(btn, node, d, mode) {
+  btn.addEventListener("pointerdown", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    _cxDecorSetActive(d.id);
+    const box = node.getBoundingClientRect();
+    const cx = box.left + box.width / 2;
+    const cy = box.top + box.height / 2;
+    const startDist = Math.hypot(e.clientX - cx, e.clientY - cy) || 1;
+    const startAngle = (Math.atan2(e.clientY - cy, e.clientX - cx) * 180) / Math.PI;
+    const startW = d.w;
+    const startRot = d.rot || 0;
+    try {
+      btn.setPointerCapture(e.pointerId);
+    } catch (err) {}
+
+    const move = (ev) => {
+      if (mode === "resize") {
+        const dist = Math.hypot(ev.clientX - cx, ev.clientY - cy);
+        d.w = _cxDecorClamp(
+          startW * (dist / startDist),
+          CX_DECOR_MIN_W,
+          CX_DECOR_MAX_W,
+        );
+      } else {
+        const ang = (Math.atan2(ev.clientY - cy, ev.clientX - cx) * 180) / Math.PI;
+        let next = Math.round(startRot + (ang - startAngle));
+        // Giữ phím Shift → nhảy từng 15° cho dễ canh thẳng.
+        if (ev.shiftKey) next = Math.round(next / 15) * 15;
+        d.rot = ((next % 360) + 360) % 360;
+      }
+      _cxDecorStyle(node, d);
+    };
+    const up = () => {
+      btn.removeEventListener("pointermove", move);
+      btn.removeEventListener("pointerup", up);
+      btn.removeEventListener("pointercancel", up);
+      // Làm tròn khi thả: số lẻ 12 chữ số thập phân chỉ tổ phình JSON.
+      d.w = Math.round(d.w * 10) / 10;
+      d.x = Math.round(d.x * 10) / 10;
+      d.y = Math.round(d.y * 10) / 10;
+      _cxDecorReport();
+    };
+    btn.addEventListener("pointermove", move);
+    btn.addEventListener("pointerup", up);
+    btn.addEventListener("pointercancel", up);
+  });
+}
+
+function _cxDecorRender() {
+  if (!document.getElementById("main-card")) return;
+  _cxDecorEnsureStyle();
+  const edit = _isEditMode();
+  if (edit) _cxDecorBindOutside();
+
+  const front = _cxDecorLayer(false);
+  const back = _cxDecorLayer(true);
+  if (!front || !back) return;
+  front.innerHTML = "";
+  back.innerHTML = "";
+
+  // Layer luôn trong suốt với chuột; chỉ TỪNG ảnh ở chế độ chỉnh mới bắt chuột
+  // (class cx-decor-edit) — trang công khai không được để hoa chắn nút bấm.
+  _cxDecors.forEach((d) => {
+    (d.behind ? back : front).appendChild(_cxDecorNode(d, edit));
+  });
+}
+
+function _cxDecorDelete(id) {
+  _cxDecors = _cxDecors.filter((d) => d.id !== id);
+  if (_cxDecorActiveId === id) _cxDecorActiveId = null;
+  _cxDecorRender();
+  _cxDecorReport();
+}
+
+/**
+ * Thêm 1 hoạ tiết. Toạ độ nhận từ trang cha là PX theo viewport iframe (điểm
+ * thả), đổi sang % của #main-card ở đây; không truyền → đặt giữa thiệp.
+ */
+function _cxDecorAdd(src, clientX, clientY) {
+  const card = document.getElementById("main-card");
+  if (!card || !src) return;
+  const r = card.getBoundingClientRect();
+  const x =
+    clientX == null ? 50 : _cxDecorClamp(((clientX - r.left) / r.width) * 100, 0, 100);
+  const y =
+    clientY == null ? 50 : _cxDecorClamp(((clientY - r.top) / r.height) * 100, 0, 100);
+
+  const id = "dc_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  _cxDecors.push({
+    id,
+    src,
+    x: Math.round(x * 10) / 10,
+    y: Math.round(y * 10) / 10,
+    w: CX_DECOR_DEFAULT_W,
+    rot: 0,
+    behind: false,
+  });
+  _cxDecorActiveId = id; // vừa thả → hiện sẵn viền + nút
+  _cxDecorRender();
+  _cxDecorReport();
+}
+
+// Render từ theme_setting (public + preview + edit).
+function applyDecorations(setting) {
+  if (!document.getElementById("main-card")) return;
+  if (typeof setting === "string") {
+    try {
+      setting = JSON.parse(setting);
+    } catch (e) {
+      setting = null;
+    }
+  }
+  const arr =
+    setting && Array.isArray(setting.decorations) ? setting.decorations : [];
+  _cxDecors = arr
+    .filter((d) => d && typeof d.src === "string")
+    .map((d) => ({
+      id: d.id || "dc_" + Math.random().toString(36).slice(2, 8),
+      src: d.src,
+      x: _cxDecorClamp(Number(d.x) || 0, 0, 100),
+      y: _cxDecorClamp(Number(d.y) || 0, 0, 100),
+      w: _cxDecorClamp(Number(d.w) || CX_DECOR_DEFAULT_W, CX_DECOR_MIN_W, CX_DECOR_MAX_W),
+      rot: Number(d.rot) || 0,
+      behind: !!d.behind,
+    }));
+  _cxDecorRender();
+}
+
 // Trong iframe chỉnh (edit=1): nhận lệnh "thêm khối" từ trang cha.
 if (typeof window !== "undefined" && window.top !== window) {
   window.addEventListener("message", (ev) => {
@@ -774,6 +1119,8 @@ if (typeof window !== "undefined" && window.top !== window) {
     else if (d.type === "cx-drag-cancel") _cxDragCancel();
     // Ô "Nội dung" ở panel vừa đổi → ghi vào model khối
     else if (d.type === "cx-block-text") _cxSetContent(d.id, d.text);
+    // Hoạ tiết: thả từ bảng chọn của panel (x,y = px theo viewport iframe)
+    else if (d.type === "cx-add-decor") _cxDecorAdd(d.src, d.x, d.y);
   });
 }
 
@@ -905,6 +1252,7 @@ if (typeof window !== "undefined") {
   window.applyThemeSetting = applyThemeSetting;
   window.applyTextOverrides = applyTextOverrides;
   window.applyCustomBlocks = applyCustomBlocks;
+  window.applyDecorations = applyDecorations;
 }
 
 // ============================================================
@@ -933,10 +1281,11 @@ if (typeof window !== "undefined") {
   function _isEditable(el) {
     if (!el || el.nodeType !== 1) return false;
     // .cx-custom-block: khối tự thêm có luồng chọn riêng (__cxPickBlockBody) nên
-    // không để runtime chung bắt hover/click vào nó.
+    // không để runtime chung bắt hover/click vào nó. .cx-decor: hoạ tiết có bộ
+    // nút riêng (kéo/xoay/phóng to/xoá), không phải chữ để chỉnh.
     if (
       el.closest(
-        "a, button, input, textarea, select, iframe, [contenteditable], .cx-no-edit, .cx-custom-block",
+        "a, button, input, textarea, select, iframe, [contenteditable], .cx-no-edit, .cx-custom-block, .cx-decor",
       )
     )
       return false;

@@ -219,6 +219,20 @@
                   >Văn bản</span
                 >
               </div>
+              <div class="flex flex-col items-center gap-1.5">
+                <button
+                  type="button"
+                  onclick="openDecorPanel()"
+                  title="Thả hoa, hoạ tiết trang trí lên thiệp"
+                  class="cx-tile"
+                >
+                  <i data-lucide="flower-2" class="cx-tile-ico"></i>
+                </button>
+                <span
+                  class="text-[12px] text-gray-500 leading-none md:text-[12.5px] md:mt-0.5"
+                  >Trang trí</span
+                >
+              </div>
             </div>
           </div>
 
@@ -543,6 +557,30 @@
           </div>
         </div>
         <!-- /theme-addtext-panel -->
+
+        <!-- Bảng chọn HOẠ TIẾT: kéo ảnh từ đây thả vào bất kỳ chỗ nào trên
+             thiệp (lưu theo toạ độ %). Danh sách nạp từ /assets/flowers. -->
+        <div
+          id="theme-decor-panel"
+          class="hidden space-y-3 md:space-y-4 max-h-[52vh] overflow-y-auto md:max-h-none"
+        >
+          <div class="flex items-center justify-end gap-2">
+            <button type="button" onclick="closeDecorPanel()" class="cx-le-done">
+              <span>Xong</span>
+            </button>
+          </div>
+          <p class="text-[12px] text-gray-500">
+            Kéo hoa thả vào vị trí bất kỳ trên thiệp, hoặc bấm để đặt vào giữa.
+            Thả xong bấm vào hoa để kéo đổi chỗ, xoay, phóng to, đưa ra sau chữ
+            hoặc xoá.
+          </p>
+          <div
+            id="cx-decor-palette"
+            class="grid grid-cols-3 gap-2 md:grid-cols-4"
+          ></div>
+          <p id="cx-decor-empty" class="hidden text-[12px] text-gray-400"></p>
+        </div>
+        <!-- /theme-decor-panel -->
       </div>
       <!-- /nội dung padding controls -->
     </div>

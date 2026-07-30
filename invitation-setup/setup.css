@@ -618,6 +618,45 @@ input.flatpickr-input[readonly] {
 .cx-addtext-item:hover .cx-addtext-grip {
   color: #fb7185;
 }
+/* Ô chọn hoạ tiết trong bảng "Trang trí" — nền ca-rô để thấy vùng trong suốt
+   của icon PNG, kéo được như thẻ mẫu văn bản. */
+.cx-decor-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1 / 1;
+  padding: 8px;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  background-color: #fff;
+  background-image: linear-gradient(45deg, #f3f4f6 25%, transparent 25%),
+    linear-gradient(-45deg, #f3f4f6 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #f3f4f6 75%),
+    linear-gradient(-45deg, transparent 75%, #f3f4f6 75%);
+  background-size: 16px 16px;
+  background-position:
+    0 0,
+    0 8px,
+    8px -8px,
+    -8px 0;
+  cursor: grab;
+  touch-action: none;
+  transition: all 0.15s;
+}
+.cx-decor-item:hover {
+  border-color: #fb7185;
+}
+.cx-decor-item:active {
+  cursor: grabbing;
+}
+.cx-decor-item img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+
 /* Bóng mờ theo con trỏ khi kéo mẫu từ palette vào thiệp:
    là bản sao của chính thẻ mẫu, làm mờ để phân biệt với bản gốc. */
 .cx-drag-ghost {

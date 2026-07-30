@@ -40,6 +40,10 @@ async function loadWeddingData(weddingSlug, renderCallback) {
     if (typeof applyCustomBlocks === "function") {
       applyCustomBlocks(wedding.theme_setting);
     }
+    // Hoa / hoạ tiết trang trí thả theo toạ độ
+    if (typeof applyDecorations === "function") {
+      applyDecorations(wedding.theme_setting);
+    }
   } catch (error) {
     console.error("Lỗi load wedding data:", error);
     if (!isPreviewMode()) {
