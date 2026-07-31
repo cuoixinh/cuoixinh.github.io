@@ -1,0 +1,670 @@
+/* ============================================================
+   AI: Tạo nội dung thiệp — style cho modal (openBottomSheet)
+   Partial của styles/tailwind-src.css → styles/build.css.
+   Thay cho invitation-setup/ai-modal.css. Xem thêm ai-modal.js.
+
+   Phần map 1:1 với utility → @apply; gradient nhiều lớp, keyframes,
+   backdrop-filter, box-shadow tuỳ biến → giữ CSS thuần.
+   ============================================================ */
+
+/* Thẻ Soft "Tạo với AI" — thẻ glassmorphism nổi góc dưới-phải, hiển thị ở CẢ PC
+   lẫn mobile (không còn banner PC riêng). Bấm X → thu về nút tròn nhỏ. */
+.ai-fab {
+  @apply fixed right-4 z-[45];
+
+  touch-action: none; /* kéo bằng cảm ứng không làm cuộn trang */
+  /* Luôn cách mép trên thanh điều hướng dưới cùng 16px. Giá trị --ai-fab-bottom
+     do JS cập nhật theo chiều cao thực của navbar (kể cả khi có Local Draft
+     Notice). Fallback ~ chiều cao navbar mặc định + 16px khi JS chưa chạy. */
+  bottom: var(--ai-fab-bottom, calc(60px + 24px));
+}
+
+/* Thẻ mời kiểu "glassmorphism": nền trắng mờ + blur, bo góc lớn, icon vuông
+   gradient tím→xanh, tiêu đề + mô tả + nút CTA tối. Vào mượt bằng trượt lên +
+   hiện dần. Bấm cả thẻ (hoặc nút CTA) → mở popup AI. */
+.ai-card {
+  @apply relative w-48 cursor-pointer rounded-3xl p-[18px];
+
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 12px 34px rgba(15, 23, 42, 0.14);
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+  animation: ai-card-in 0.5s ease-out both;
+}
+
+@keyframes ai-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ai-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.18);
+}
+
+/* Icon vuông bo góc, gradient tím→xanh + đổ bóng tím. */
+.ai-icon {
+  @apply mx-auto flex h-[52px] w-[52px] items-center justify-center
+         rounded-[18px];
+
+  background: linear-gradient(135deg, #cbb9f5, #81b1ff);
+  box-shadow: 0 10px 25px rgba(99, 102, 241, 0.3);
+}
+
+.ai-icon svg {
+  @apply h-6 w-6 text-white;
+}
+
+.ai-title {
+  @apply mt-3.5 text-center text-[15px] font-bold text-gray-800;
+}
+
+.ai-desc {
+  @apply mt-2 text-center text-[13px] leading-normal text-gray-500;
+}
+
+.ai-card-btn {
+  @apply mt-3.5 h-10 w-full cursor-pointer rounded-xl border-none bg-gray-900
+         text-[13px] font-semibold text-white;
+
+  transition: background 0.25s ease;
+}
+
+.ai-card-btn:hover {
+  @apply bg-black;
+}
+
+/* Nút "x" đóng thẻ mời — tròn nhỏ ở góc trên-phải trong thẻ. Bấm → thu thẻ về
+   nút tròn nhỏ (.ai-mini) để mobile vẫn còn lối vào AI. */
+.ai-fab-close {
+  @apply absolute right-2.5 top-2.5 z-[1] inline-flex h-[22px] w-[22px]
+         cursor-pointer items-center justify-center rounded-full border-none
+         p-0 text-gray-400;
+
+  background: rgba(243, 244, 246, 0.9);
+  transition:
+    color 0.15s ease,
+    background 0.15s ease;
+}
+
+.ai-fab-close:hover {
+  @apply bg-gray-200 text-gray-600;
+}
+
+.ai-fab-close svg {
+  @apply h-[13px] w-[13px];
+}
+
+/* Nút thu gọn: nút tròn gradient tím→xanh + icon ✨ trắng (khớp .ai-icon). */
+.ai-mini {
+  @apply relative inline-flex h-[52px] w-[52px] cursor-pointer items-center
+         justify-center rounded-full border-none p-0 text-white;
+
+  /* Lớp 1: dải sáng nghiêng lướt qua (animate background-position).
+     Lớp 2: nền gradient gốc. Bo tròn tự cắt dải sáng theo hình tròn. */
+  background:
+    linear-gradient(
+        110deg,
+        transparent 42%,
+        rgba(255, 255, 255, 0.6) 50%,
+        transparent 58%
+      )
+      no-repeat,
+    linear-gradient(135deg, #cbb9f5, #81b1ff) no-repeat;
+  background-size:
+    200% 100%,
+    100% 100%;
+  background-position:
+    120% 0,
+    0 0;
+  box-shadow: 0 10px 25px rgba(99, 102, 241, 0.35);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+  animation:
+    ai-card-in 0.4s ease-out both,
+    ai-mini-shine 3s ease-in-out 0.4s infinite;
+}
+
+/* Sóng lan tỏa như phát sóng điện thoại — CHỈ phát ra 2 bên: border trong suốt,
+   chỉ tô cạnh trái + phải → thành 2 cung khuyết ( ) ở hai bên. Lệch pha 1s. */
+.ai-mini::before,
+.ai-mini::after {
+  @apply pointer-events-none absolute inset-0 rounded-full;
+
+  content: "";
+  border: 2px solid transparent;
+  border-left-color: rgba(129, 177, 255, 0.6);
+  border-right-color: rgba(129, 177, 255, 0.6);
+  animation: ai-mini-radar 2s ease-out infinite;
+}
+
+.ai-mini::after {
+  animation-delay: 1s;
+}
+
+.ai-mini:hover {
+  transform: scale(1.06);
+  box-shadow: 0 12px 28px rgba(99, 102, 241, 0.45);
+}
+
+.ai-mini svg {
+  @apply h-[26px] w-[26px];
+}
+
+@keyframes ai-mini-shine {
+  0% {
+    background-position:
+      120% 0,
+      0 0;
+  }
+  33% {
+    background-position:
+      -20% 0,
+      0 0;
+  }
+  100% {
+    background-position:
+      -20% 0,
+      0 0;
+  }
+}
+
+@keyframes ai-mini-radar {
+  0% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(2.1);
+    opacity: 0;
+  }
+}
+
+/* Đang kéo: con trỏ "nắm", tắt transition để bám tay mượt, khỏi chọn chữ. */
+.ai-fab.dragging {
+  @apply cursor-grabbing select-none;
+}
+
+.ai-fab.dragging .ai-card,
+.ai-fab.dragging .ai-mini {
+  @apply cursor-grabbing transition-none;
+}
+
+/* Ẩn hoàn toàn thẻ AI khi trang còn skeleton (F5). Gỡ trong _showContent(). */
+.ai-fab.hidden-boot {
+  /* Viết thẳng display:none, KHÔNG dùng utility `hidden` qua @apply: khi
+     lớp đó được @apply ở nơi khác, Tailwind nhân bản mọi selector có
+     chứa `.hidden` (vd #ai-history:not(.hidden)) thành rule rác luôn
+     khớp — panel lịch sử AI sẽ hiện cả khi đã bị ẩn. */
+  display: none;
+}
+
+/* Chuyển thẻ ↔ nút thu gọn. Độ đặc hiệu (0,2,0) nên luôn thắng .hidden của
+   Tailwind (0,1,0), bất kể thứ tự nạp. */
+.ai-fab .ai-mini {
+  display: none;
+}
+
+.ai-fab.collapsed .ai-card {
+  display: none;
+}
+
+.ai-fab.collapsed .ai-mini {
+  @apply inline-flex;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ai-card,
+  .ai-mini {
+    animation: none;
+  }
+
+  .ai-mini::before,
+  .ai-mini::after {
+    display: none;
+  }
+
+  .ai-card,
+  .ai-card-btn,
+  .ai-mini {
+    @apply transition-none;
+  }
+
+  .ai-card:hover,
+  .ai-mini:hover {
+    transform: none;
+  }
+}
+
+/* Nút "Quay lại" ở màn Lịch sử tạo — nổi bật với tông rose, không chìm như
+   nút viền xám thường; mũi tên trượt nhẹ sang trái khi hover. */
+.ai-back-btn {
+  @apply inline-flex h-11 w-full cursor-pointer items-center justify-center
+         gap-2 rounded-xl text-[0.875rem] font-semibold text-rose-600;
+
+  background: linear-gradient(135deg, #fff5f7 0%, #ffe4e9 100%);
+  border: 1.5px solid #fecdd3;
+  box-shadow: 0 4px 12px -4px rgba(244, 63, 94, 0.28);
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.ai-back-btn:hover {
+  @apply border-rose-300;
+
+  background: linear-gradient(135deg, #ffe4e9 0%, #fecdd3 100%);
+  box-shadow: 0 7px 18px -4px rgba(244, 63, 94, 0.42);
+  transform: translateY(-1px);
+}
+
+.ai-back-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 3px 9px -4px rgba(244, 63, 94, 0.35);
+}
+
+.ai-back-btn svg {
+  transition: transform 0.18s ease;
+}
+
+.ai-back-btn:hover svg {
+  transform: translateX(-3px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ai-back-btn,
+  .ai-back-btn svg {
+    @apply transition-none;
+  }
+
+  .ai-back-btn:hover {
+    transform: none;
+  }
+
+  .ai-back-btn:hover svg {
+    transform: none;
+  }
+}
+
+/* Dải chọn văn phong: cuộn ngang + nút mũi tên hai bên */
+.ai-tone-wrap {
+  @apply flex items-center gap-1.5;
+}
+
+.ai-tone-scroll {
+  @apply flex min-w-0 flex-1 gap-2 overflow-x-auto p-0.5;
+
+  scroll-behavior: smooth;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge cũ */
+}
+
+.ai-tone-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.ai-tone-nav {
+  @apply inline-flex h-7 w-7 flex-none items-center justify-center rounded-full
+         border border-gray-200 bg-white text-gray-400 transition-all
+         duration-150;
+}
+
+.ai-tone-nav:hover {
+  @apply border-rose-300 text-rose-600;
+}
+
+/* Nút chọn văn phong (item trong dải cuộn) */
+.ai-tone-btn {
+  @apply h-10 flex-none whitespace-nowrap rounded-xl border border-gray-200
+         bg-white px-4 text-[13px] text-gray-500 transition-all duration-150;
+}
+
+.ai-tone-btn:hover {
+  @apply border-rose-300;
+}
+
+.ai-tone-btn.active {
+  @apply border-rose-500 bg-rose-50 font-semibold text-rose-600;
+}
+
+/* Input dùng chung trong form AI */
+.ai-inp {
+  @apply h-11 w-full rounded-xl border border-gray-200 bg-white px-3.5
+         text-[0.875rem] text-gray-700 outline-none;
+
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+textarea.ai-inp {
+  @apply h-auto px-3.5 py-2.5 leading-normal;
+}
+
+.ai-inp:focus {
+  @apply border-rose-400;
+
+  box-shadow: 0 0 0 3px rgba(251, 113, 133, 0.18);
+}
+
+.ai-inp::placeholder {
+  @apply text-[#b6bcc6];
+}
+
+/* Ô input thường có nút "x" xoá nhanh (tên cô dâu/chú rể) */
+.ai-inp-wrap {
+  @apply relative;
+}
+
+.ai-inp.has-clear {
+  @apply pr-9;
+}
+
+.ai-inp-clear {
+  @apply absolute right-2 top-1/2 h-5 w-5 -translate-y-1/2 items-center
+         justify-center rounded-md text-gray-400;
+
+  display: none;
+
+  transition:
+    color 0.12s ease,
+    background 0.12s ease;
+}
+
+.ai-inp-clear.show {
+  @apply inline-flex;
+}
+
+.ai-inp-clear:hover {
+  @apply bg-gray-100 text-gray-600;
+}
+
+/* Combobox: bỏ mũi tên mặc định (xấu), thay chevron tuỳ biến cho gọn đẹp */
+.ai-select {
+  @apply cursor-pointer appearance-none pr-10;
+
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.8rem center;
+}
+
+.ai-select::-ms-expand {
+  display: none;
+}
+
+/* Combobox tuỳ biến: panel rộng ĐÚNG bằng control (left/right = 0) */
+.ai-cselect {
+  @apply relative;
+}
+
+.ai-cselect-btn {
+  @apply flex items-center text-left;
+}
+
+.ai-cselect-btn .ai-cselect-label {
+  @apply flex-1 overflow-hidden text-ellipsis whitespace-nowrap;
+}
+
+.ai-cselect-label.is-placeholder {
+  @apply text-[#b6bcc6];
+}
+
+.ai-cselect-btn.open {
+  @apply border-rose-400;
+
+  box-shadow: 0 0 0 3px rgba(251, 113, 133, 0.18);
+}
+
+.ai-cselect-panel {
+  @apply absolute left-0 right-0 top-[calc(100%+4px)] z-50 max-h-60
+         overflow-y-auto rounded-xl border border-gray-200 bg-white p-1;
+
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.12);
+}
+
+.ai-cselect-opt {
+  @apply block w-full cursor-pointer rounded-lg px-3 py-2 text-left
+         text-[0.875rem] text-gray-700;
+
+  transition: background 0.12s ease;
+}
+
+.ai-cselect-opt:hover {
+  @apply bg-rose-50;
+}
+
+.ai-cselect-opt.sel {
+  @apply bg-rose-50 font-semibold text-rose-600;
+}
+
+/* Chip nhỏ (nút "Chèn mẫu") */
+.ai-chip {
+  @apply inline-flex items-center gap-1 rounded-full border border-rose-200
+         bg-rose-50 px-2.5 py-1 text-[11px] font-semibold text-rose-600;
+
+  transition: background 0.15s ease;
+}
+
+.ai-chip:hover {
+  @apply bg-rose-100;
+}
+
+/* Biến thể "Nói" (mic) — tông tím/xanh khớp icon AI, phân biệt với "Chèn mẫu" */
+.ai-chip-mic {
+  @apply border-[#ddd0fb] bg-[#f3efff] text-[#6d4fce];
+}
+
+.ai-chip-mic:hover {
+  @apply bg-[#e9e1ff];
+}
+
+/* Nút "x" xoá nhanh của textarea nay do <x-textarea> tự dựng & tự style
+   (xem core/x-controls.js). Ô "Thông tin cô dâu/chú rể" dùng <x-textarea>. */
+
+/* Skeleton loading khi AI đang tạo (khớp thứ tự hiển thị của preview) */
+.ai-sk {
+  @apply rounded-lg;
+
+  background: linear-gradient(90deg, #f1f2f4 25%, #e7e9ec 37%, #f1f2f4 63%);
+  background-size: 200% 100%;
+  animation: ai-shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes ai-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.ai-sk-group {
+  @apply mb-4;
+}
+
+.ai-sk-label {
+  @apply mb-2 h-[0.7rem] rounded;
+}
+
+.ai-sk-box {
+  @apply h-[52px]; /* nằm trong .ai-fld-grid (2 cột) */
+}
+
+.ai-sk-card {
+  @apply mb-1.5 h-11;
+}
+
+.ai-sk-card.sm {
+  @apply h-9;
+}
+
+.ai-sk-card.lg {
+  @apply h-[60px];
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ai-sk {
+    animation: none;
+  }
+}
+
+/* Khoá cuộn khung sheet khi đang hiển thị skeleton (placeholder gọn trong 1 màn) */
+.ai-lock-scroll {
+  @apply !overflow-hidden;
+}
+
+/* Sửa kết quả AI: ô hiển thị + bút chì → bấm để bind sang control tương ứng */
+.ai-disp-empty {
+  @apply italic text-[#b6bcc6];
+}
+
+.ai-edit-live {
+  @apply mt-0.5 w-full;
+}
+
+.ai-edit-ctrl {
+  @apply relative w-full;
+}
+
+/* Chừa lề phải cho nút ✓ (và nút × của control nếu có), để 2 nút nằm TRONG ô nhập.
+   Chỉ nhắm ô nhập chính (con trực tiếp) — KHÔNG đụng input bên trong lịch flatpickr. */
+.ai-edit-ctrl > input {
+  padding-right: 2.4rem !important; /* chỉ có ✓ (ô ngày/giờ không có ×) */
+}
+
+.ai-edit-ctrl x-input input,
+.ai-edit-ctrl x-textarea textarea {
+  padding-right: 3.9rem !important; /* có cả × lẫn ✓ */
+}
+
+/* Dời nút × của control sang trái để nhường chỗ ✓ ở ngoài cùng bên phải. */
+.ai-edit-ctrl .x-clear,
+.ai-edit-ctrl .x-ta-clear {
+  right: 2.1rem !important;
+}
+
+/* Nút ✓ lưu — nằm trong ô nhập, cùng cấp & bên phải nút ×, CÙNG MÀU với nút ×. */
+.ai-edit-ok {
+  @apply absolute right-2 top-2 inline-flex h-6 w-6 items-center justify-center
+         rounded-md bg-transparent text-gray-400;
+
+  transition:
+    color 0.12s ease,
+    background 0.12s ease;
+}
+
+.ai-edit-ok:hover {
+  @apply bg-gray-100 text-gray-600;
+}
+
+.ai-edit-ico {
+  @apply inline-flex h-[18px] w-[18px] flex-shrink-0 items-center
+         justify-center rounded-md text-[#cbd0d6];
+
+  transition:
+    color 0.12s ease,
+    background 0.12s ease;
+}
+
+.ai-edit-ico:hover {
+  @apply bg-rose-50 text-rose-500;
+}
+
+/* Header nhóm có nút bút chì bên phải (VD Slogan) */
+.ai-ed-head {
+  @apply mb-1 flex items-center justify-between gap-2;
+}
+
+/* Mốc chuyện tình: hàng tiêu đề (title · date) + bút chì bên phải */
+.ai-item-head {
+  @apply flex items-start justify-between gap-2;
+}
+
+/* Field trích xuất: hàng nhãn + bút chì */
+.ai-fld-top {
+  @apply flex items-center justify-between gap-1;
+}
+
+/* Block/card gom nhóm: "Thông tin cô dâu/chú rể" và "Chuyện tình yêu" tách bạch */
+.ai-block {
+  @apply rounded-2xl border border-[#eef0f2] bg-[#fcfcfd] px-3.5 pb-4 pt-3.5;
+}
+
+.ai-block-head {
+  @apply mb-2 flex items-center justify-between gap-2;
+}
+
+.ai-block-title {
+  @apply inline-flex items-center gap-[0.4rem] text-[13px] font-bold
+         text-gray-700;
+}
+
+.ai-block-title i,
+.ai-block-title svg {
+  @apply flex-shrink-0 text-rose-500;
+}
+
+.ai-block-sub {
+  @apply mb-2.5 flex items-start gap-1.5 text-xs leading-[1.45] text-gray-500;
+}
+
+/* Textarea thông tin cô dâu/chú rể: cuộn được khi nội dung dài (kể cả trên mobile
+   bên trong bottom-sheet — overscroll-behavior giữ cuộn trong ô, không đẩy sheet) */
+textarea#ai-info {
+  @apply max-h-[40vh] overflow-y-auto;
+
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+}
+
+/* Preview: từng hạng mục thông tin dâu/rể hiển thị riêng lẻ (không dồn 1 khối) */
+.ai-fld-grid {
+  @apply grid grid-cols-2 gap-2;
+}
+
+.ai-fld {
+  @apply flex min-w-0 flex-col gap-0.5 rounded-[10px] border border-[#f1f2f4]
+         bg-[#fafafa] px-2.5 py-2;
+}
+
+.ai-fld.full {
+  @apply col-span-full;
+}
+
+.ai-fld-label {
+  @apply text-[11px] leading-[1.2] text-gray-400;
+}
+
+.ai-fld-val {
+  @apply break-words text-[13px] font-medium leading-[1.35] text-gray-700;
+}
+
+/* Lịch sử tạo: khi đang là view đang hiện, kéo dài hết chiều cao còn lại của
+   sheet để danh sách/trạng thái rỗng không bị dồn lên đầu, chừa khoảng trống bên dưới. */
+#ai-history:not(.hidden) {
+  @apply flex min-h-0 flex-1 flex-col;
+}
+
+#ai-history-list {
+  @apply flex min-h-0 flex-1 flex-col;
+}
+
+/* Trạng thái rỗng ("Chưa có nội dung...") canh giữa trong toàn bộ khoảng trống đó. */
+#ai-history-list > .ai-history-empty {
+  @apply flex flex-1 flex-col items-center justify-center;
+}

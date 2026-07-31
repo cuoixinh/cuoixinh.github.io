@@ -1,6 +1,14 @@
-/* Style riêng cho trang thiết lập thiệp (invitation-setup).
-   Tách từ khối <style> inline trong index.html — nội dung giữ nguyên.
-   Style modal AI: xem ai-modal.css */
+/* ===========================================================================
+   Partial cho trang thiết lập thiệp (invitation-setup) — @import vào
+   styles/tailwind-src.css → styles/build.css. Thay cho invitation-setup/setup.css.
+
+   Nguyên tắc chuyển đổi:
+   • Component CỦA MÌNH (.cx-*, .color-chip) → viết bằng @apply.
+   • Override DOM của thư viện ngoài (#clr-picker của Coloris, .flatpickr-*)
+     → GIỮ CSS THUẦN: các rule này phụ thuộc `order`, calc(), !important và
+     cấu trúc DOM do lib dựng, @apply không diễn đạt được mà chỉ thêm rủi ro.
+   • Style modal AI: xem styles/_ai-modal.css
+   =========================================================================== */
 
 /* Chiều cao thanh dưới = navbar (60px) + local draft notice (nếu hiện).
    JS đo lại qua ResizeObserver; giá trị này là mặc định khi chưa có notice. */
@@ -22,50 +30,42 @@
     min-width: 340px;
     max-width: 560px;
   }
+
   /* Chip màu to hơn cho dễ bấm trên desktop (mobile vẫn 32px) */
   #theme-controls .color-chip .clr-field,
   #theme-controls .color-chip .clr-field input {
-    width: 40px;
-    height: 40px;
+    @apply h-10 w-10;
   }
 }
 
 /* Chip chọn màu: Coloris bọc ô input bằng .clr-field rồi hiện màu qua
    một <button>. Ta thu cả cụm về hình tròn 32px và giấu phần chữ hex,
-   chỉ chừa lại vòng màu. */
+   chỉ chừa lại vòng màu. (Chip to hơn 40px từ md cho dễ bấm trên desktop.) */
 .color-chip .clr-field {
-  display: block;
-  width: 32px;
-  height: 32px;
-  border-radius: 9999px;
+  @apply block h-8 w-8 rounded-full;
 }
+
 .color-chip .clr-field input {
   /* block để input không nằm trên baseline của dòng: nút màu được căn
      giữa tuyệt đối, còn input thì theo dòng — lệch nhau vài px làm vòng
      focus trông lệch tâm so với vòng màu. */
-  display: block;
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  border: 0;
-  border-radius: 9999px;
-  background: transparent;
-  color: transparent;
+  @apply block h-8 w-8 cursor-pointer rounded-full border-0 bg-transparent
+         p-0 text-[0px] text-transparent;
+
   caret-color: transparent;
-  font-size: 0;
-  cursor: pointer;
 }
+
 .color-chip .clr-field input:focus-visible {
+  @apply outline-offset-2;
+
   outline: 2px solid #e8b4b8;
-  outline-offset: 2px;
 }
+
 /* Mặc định nút màu chỉ rộng 30px và dạt phải — kéo full để thành hình tròn */
 .color-chip .clr-field button {
-  width: 100%;
-  height: 100%;
-  right: 0;
-  border-radius: 9999px;
+  @apply right-0 h-full w-full rounded-full;
 }
+
 /* Vòng viền trong giúp màu rất sáng (trắng, kem) vẫn nổi trên nền trắng */
 .color-chip .clr-field button::after {
   box-shadow:
@@ -83,6 +83,7 @@
    Coloris xếp phần tử bằng flex `order`; ta gán lại để ra bố cục dọc:
    vùng màu → thanh hue → swatch → hàng cuối (preview · hex · nút Xong).
    Đè lên CSS gốc bằng #clr-picker; dùng px & bội số 4 theo quy tắc dự án.
+   DOM của lib → giữ CSS thuần (xem ghi chú đầu file).
    ============================================================ */
 #clr-picker.clr-large {
   width: 264px;
@@ -172,7 +173,7 @@
 }
 
 /* Skeleton animation */
-@keyframes shimmer {
+@keyframes cx-skeleton-shimmer {
   0% {
     background-position: -1000px 0;
   }
@@ -182,12 +183,14 @@
 }
 
 .skeleton {
-  animation: shimmer 2s infinite linear;
+  animation: cx-skeleton-shimmer 2s infinite linear;
   background: linear-gradient(to right, #f0f0f0 4%, #e0e0e0 25%, #f0f0f0 36%);
   background-size: 1000px 100%;
 }
 
-/* Custom Flatpickr styling to match Tailwind design */
+/* ============================================================
+   Flatpickr — DOM của thư viện ngoài, giữ CSS thuần (xem đầu file).
+   ============================================================ */
 .flatpickr-calendar {
   background: white;
   border-radius: 1rem;
@@ -339,284 +342,212 @@ input.flatpickr-input[readonly] {
   cursor: pointer !important;
   -webkit-text-fill-color: #1f2937 !important;
 }
-/* Shared action button style — defined in common.css, no override needed */
+
+/* ===========================================================================
+   Component của mình — viết bằng @apply
+   =========================================================================== */
 
 /* ── Bảng chỉnh chi tiết từng dòng chữ (tab Giao diện) ── */
 .cx-le-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+  @apply flex items-center gap-3;
 }
+
 .cx-le-label {
-  flex-shrink: 0;
-  width: 64px;
-  font-size: 12px;
-  color: #6b7280;
+  @apply w-16 flex-shrink-0 text-[12px] text-gray-500;
 }
+
 .cx-le-size {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 2px 4px;
-  background: #fff;
+  @apply inline-flex items-center gap-1 rounded-lg border border-gray-200
+         bg-white px-1 py-0.5;
 }
+
 .cx-le-size button {
-  width: 28px;
-  height: 28px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 6px;
-  font-size: 18px;
-  line-height: 1;
-  color: #6b7280;
-  background: #f9fafb;
-  transition:
-    background 0.15s,
-    color 0.15s;
+  @apply inline-flex h-7 w-7 items-center justify-center rounded-md bg-gray-50
+         text-lg leading-none text-gray-500 transition-[background-color,color]
+         duration-150;
 }
+
 .cx-le-size button:hover {
-  background: #fff1f2;
-  color: #e11d48;
+  @apply bg-rose-50 text-rose-600;
 }
+
 .cx-le-size input {
-  width: 48px;
-  text-align: center;
-  border: none;
-  outline: none;
-  font-size: 13px;
-  color: #1f2937;
-  background: transparent;
+  @apply w-12 border-none bg-transparent text-center text-[13px] text-gray-800
+         outline-none;
+
   -moz-appearance: textfield;
 }
+
 .cx-le-size input::-webkit-outer-spin-button,
 .cx-le-size input::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
+
 /* Ô readonly (cỡ chữ) chỉ hiển thị giá trị — chỉnh bằng nút −/+, không gõ/không focus */
 .cx-le-size input[readonly] {
-  cursor: default;
-  pointer-events: none;
+  @apply pointer-events-none cursor-default;
 }
+
 .cx-le-unit {
-  font-size: 11px;
-  color: #9ca3af;
+  @apply text-[11px] text-gray-400;
 }
+
 .cx-le-seg {
-  display: inline-flex;
-  gap: 4px;
+  @apply inline-flex gap-1;
 }
+
 .cx-le-seg button {
-  width: 36px;
-  height: 32px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  color: #6b7280;
-  background: #fff;
-  transition: all 0.15s;
+  @apply inline-flex h-8 w-9 items-center justify-center rounded-lg border
+         border-gray-200 bg-white text-gray-500 transition-all duration-150;
 }
+
 /* Hover XÁM (khác hẳn active hồng) + chỉ trên thiết bị hover thật → sau khi bỏ
    active, con trỏ còn trên nút cũng không bị "dính" nền hồng như đang chọn. */
 @media (hover: hover) {
   .cx-le-seg button:hover {
-    border-color: #d1d5db;
-    background: #f3f4f6;
-    color: #374151;
+    @apply border-gray-300 bg-gray-100 text-gray-700;
   }
 }
+
 .cx-le-seg button.active {
-  border-color: #fb7185;
-  color: #e11d48;
-  background: #ffe4e6;
-  font-weight: 600;
+  @apply border-rose-400 bg-rose-100 font-semibold text-rose-600;
 }
+
 /* Nút "Xong" — đóng bảng chỉnh 1 dòng, đứng cùng bên phải với "Mặc định" */
 .cx-le-done {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 12px;
-  font-weight: 600;
-  color: #111827;
-  background: #f3f4f6;
-  padding: 4px 12px;
-  border-radius: 8px;
-  transition:
-    background 0.15s,
-    color 0.15s;
+  @apply inline-flex items-center gap-1 rounded-lg bg-gray-100 px-3 py-1
+         text-[12px] font-semibold text-gray-900
+         transition-[background-color,color] duration-150;
 }
+
 .cx-le-done:hover {
-  background: #e5e7eb;
+  @apply bg-gray-200;
 }
+
 .cx-le-done:active {
-  background: #d1d5db;
+  @apply bg-gray-300;
 }
+
 .cx-le-clear {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 12px;
-  font-weight: 500;
-  color: #e11d48;
-  background: #f3f4f6;
-  padding: 4px 12px;
-  border-radius: 8px;
-  transition: background 0.15s;
+  @apply inline-flex items-center gap-1 rounded-lg bg-gray-100 px-3 py-1
+         text-[12px] font-medium text-rose-600 transition-[background-color]
+         duration-150;
 }
+
 .cx-le-clear:hover {
-  background: #e5e7eb;
+  @apply bg-gray-200;
 }
+
 .cx-le-clear:active {
-  background: #d1d5db;
+  @apply bg-gray-300;
 }
 
 /* Ô sửa Nội dung */
 .cx-le-label-block {
-  display: block;
-  font-size: 12px;
-  color: #6b7280;
-  margin-bottom: 4px;
+  @apply mb-1 block text-[12px] text-gray-500;
 }
+
 .cx-le-textarea {
-  width: 100%;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 8px;
-  font-size: 13px;
-  color: #1f2937;
-  outline: none;
-  resize: vertical;
-  transition:
-    border-color 0.15s,
-    box-shadow 0.15s;
+  @apply w-full resize-y rounded-lg border border-gray-200 p-2 text-[13px]
+         text-gray-800 outline-none
+         transition-[border-color,box-shadow] duration-150;
 }
+
 .cx-le-textarea:focus {
-  border-color: #fb7185;
+  @apply border-rose-400;
+
   box-shadow: 0 0 0 2px rgba(244, 63, 94, 0.15);
+}
+
+.cx-le-check {
+  @apply inline-flex cursor-pointer select-none items-center gap-2 text-[13px]
+         text-gray-700;
+}
+
+.cx-le-check input {
+  @apply h-4 w-4 cursor-pointer accent-rose-600;
 }
 
 /* Tile chức năng "Thêm vào thiệp" — cùng cỡ chip màu (32px, desktop 40px)
    để xếp chung lưới 4 cột; viền nét đứt ngụ ý "ô thêm mới". */
 .cx-tile {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 9999px;
-  border: 1px dashed #fb7185;
-  background: #fff5f6;
-  color: #e11d48;
-  transition: all 0.15s;
+  @apply inline-flex h-8 w-8 items-center justify-center rounded-full border
+         border-dashed border-rose-400 bg-[#fff5f6] text-rose-600
+         transition-all duration-150 md:h-10 md:w-10;
 }
+
 /* Hover: giữ nguyên nét đứt, chỉ đậm nền lên một chút */
 .cx-tile:hover {
-  background: #ffe9ec;
+  @apply bg-[#ffe9ec];
 }
+
 .cx-tile:focus-visible {
+  @apply outline-offset-2;
+
   outline: 2px solid #e8b4b8;
-  outline-offset: 2px;
 }
+
 .cx-tile-ico {
-  width: 16px !important;
-  height: 16px !important;
-}
-@media (min-width: 768px) {
-  .cx-tile {
-    width: 40px;
-    height: 40px;
-  }
-  .cx-tile-ico {
-    width: 20px !important;
-    height: 20px !important;
-  }
+  @apply !h-4 !w-4 md:!h-5 md:!w-5;
 }
 
 /* Bảng chọn mẫu khối — danh sách dọc, kéo-thả vào thiệp */
 .cx-addtext-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  @apply flex flex-col gap-2;
 }
+
 .cx-addtext-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  padding: 8px 12px;
-  border-radius: 12px;
-  border: 1px solid #e5e7eb;
-  background: #fff;
-  color: #374151;
-  text-align: left;
-  cursor: grab;
+  @apply flex w-full cursor-grab items-center gap-3 rounded-xl border
+         border-gray-200 bg-white px-3 py-2 text-left text-gray-700
+         transition-all duration-150;
+
   touch-action: none;
-  transition: all 0.15s;
 }
+
 .cx-addtext-item:hover {
-  border-color: #fb7185;
-  background: #fff5f6;
+  @apply border-rose-400 bg-[#fff5f6];
 }
+
 .cx-addtext-item:active {
-  cursor: grabbing;
+  @apply cursor-grabbing;
 }
+
 .cx-addtext-ico {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  flex: 0 0 auto;
-  border-radius: 8px;
-  background: #f3f4f6;
-  color: #6b7280;
-  transition: all 0.15s;
+  @apply inline-flex h-8 w-8 flex-none items-center justify-center rounded-lg
+         bg-gray-100 text-gray-500 transition-all duration-150;
 }
+
 .cx-addtext-item:hover .cx-addtext-ico {
-  background: #ffe4e6;
-  color: #e11d48;
+  @apply bg-rose-100 text-rose-600;
 }
+
 .cx-addtext-txt {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  flex: 1 1 auto;
-  min-width: 0;
+  @apply flex min-w-0 flex-auto flex-col gap-0.5;
 }
+
 .cx-addtext-txt b {
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 16px;
+  @apply text-[13px] font-semibold leading-4;
 }
+
 .cx-addtext-txt small {
-  font-size: 12px;
-  line-height: 16px;
-  color: #9ca3af;
+  @apply text-xs leading-4 text-gray-400;
 }
+
 .cx-addtext-grip {
-  flex: 0 0 auto;
-  color: #d1d5db;
+  @apply flex-none text-gray-300;
 }
+
 .cx-addtext-item:hover .cx-addtext-grip {
-  color: #fb7185;
+  @apply text-rose-400;
 }
+
 /* Ô chọn hoạ tiết trong bảng "Trang trí" — nền ca-rô để thấy vùng trong suốt
    của icon PNG, kéo được như thẻ mẫu văn bản. */
 .cx-decor-item {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  aspect-ratio: 1 / 1;
-  padding: 8px;
-  border-radius: 12px;
-  border: 1px solid #e5e7eb;
-  background-color: #fff;
+  @apply flex aspect-square cursor-grab items-center justify-center rounded-xl
+         border border-gray-200 bg-white p-2 transition-all duration-150;
+
   background-image: linear-gradient(45deg, #f3f4f6 25%, transparent 25%),
     linear-gradient(-45deg, #f3f4f6 25%, transparent 25%),
     linear-gradient(45deg, transparent 75%, #f3f4f6 75%),
@@ -627,62 +558,38 @@ input.flatpickr-input[readonly] {
     0 8px,
     8px -8px,
     -8px 0;
-  cursor: grab;
   touch-action: none;
-  transition: all 0.15s;
 }
+
 .cx-decor-item:hover {
-  border-color: #fb7185;
+  @apply border-rose-400;
 }
+
 .cx-decor-item:active {
-  cursor: grabbing;
+  @apply cursor-grabbing;
 }
+
 .cx-decor-item img {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-  pointer-events: none;
+  @apply pointer-events-none max-h-full max-w-full object-contain;
+
   -webkit-user-drag: none;
 }
 
 /* Bóng mờ theo con trỏ khi kéo mẫu từ palette vào thiệp:
    là bản sao của chính thẻ mẫu, làm mờ để phân biệt với bản gốc. */
 .cx-drag-ghost {
-  position: fixed;
-  left: 0;
-  top: 0;
-  z-index: 9999;
-  pointer-events: none;
-  opacity: 0.5;
-  border-color: #fb7185;
-  background: #fff5f6;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
   /* Bản sao mang theo transition của .cx-addtext-item → phải tắt, nếu không
      ghost sẽ "bay" từ góc (0,0) tới con trỏ ở lần đặt vị trí đầu tiên. */
-  transition: none;
-}
-.cx-le-check {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  color: #374151;
-  cursor: pointer;
-  user-select: none;
-}
-.cx-le-check input {
-  width: 16px;
-  height: 16px;
-  accent-color: #e11d48;
-  cursor: pointer;
+  @apply pointer-events-none fixed left-0 top-0 z-[9999] border-rose-400
+         bg-[#fff5f6] opacity-50 transition-none;
+
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
 }
 
 /* Lucide icon sizing — inherits font-size of parent context */
 svg.lucide {
-  display: inline-block;
-  width: 1em;
-  height: 1em;
+  @apply inline-block h-[1em] w-[1em] flex-shrink-0;
+
   vertical-align: -0.125em;
-  flex-shrink: 0;
   transition: transform 0.2s ease;
 }

@@ -1,0 +1,12 @@
+/* Chỉ chứa `@tailwind base` (preflight + base tuỳ biến của Tailwind).
+
+   Vì sao tách riêng: postcss-import CHỈ xử lý `@import` nằm ở ĐẦU file — đặt
+   `@import` sau một rule khác thì nó bị bỏ qua âm thầm. Nhưng các partial lại
+   PHẢI nằm SAU preflight, nếu không preflight ghi đè mất (vd fix chống zoom
+   iOS `input,select,textarea{font-size:16px}` sẽ thua `font-size:100%` của
+   preflight).
+
+   Cách giải: import file này TRƯỚC các partial khác — thứ tự cuối cùng thành
+   base → partial → components → utilities, đúng ý đồ cascade. */
+
+@tailwind base;

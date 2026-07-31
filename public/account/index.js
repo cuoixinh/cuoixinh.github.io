@@ -483,13 +483,19 @@ function formatDate(dateStr) {
   });
 }
 
+// Class của tab đang chọn — trước đây là .tab-active viết tay trong <style> của
+// index.html, nay là utility Tailwind (border-primary/text-primary đọc biến
+// --primary trong styles/_common.css).
+var TAB_ACTIVE_CLASSES = ["border-b-2", "border-primary", "text-primary"];
+
 function switchTab(tabName) {
   document.querySelectorAll(".tab-btn").forEach(function (btn) {
-    btn.classList.remove("tab-active");
+    btn.classList.remove.apply(btn.classList, TAB_ACTIVE_CLASSES);
     btn.classList.add("text-gray-500");
   });
-  document.getElementById("tab-" + tabName).classList.add("tab-active");
-  document.getElementById("tab-" + tabName).classList.remove("text-gray-500");
+  var activeBtn = document.getElementById("tab-" + tabName);
+  activeBtn.classList.add.apply(activeBtn.classList, TAB_ACTIVE_CLASSES);
+  activeBtn.classList.remove("text-gray-500");
   document.getElementById("content-orders").classList.add("hidden");
   document.getElementById("content-profile").classList.add("hidden");
   document.getElementById("content-" + tabName).classList.remove("hidden");

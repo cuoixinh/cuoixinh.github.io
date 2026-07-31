@@ -5,18 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Cưới Xinh — Quản trị</title>
     <link rel="icon" type="image/png" href="../assets/icons/logo.png" />
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            fontFamily: {
-              sans: ["Inter", "sans-serif"],
-            },
-          },
-        },
-      };
-    </script>
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
@@ -25,7 +13,9 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="../styles/common.css" />
+    <!-- Tailwind build local (npm run build:css) — thay cho Play CDN; đã gồm cả
+         phần dùng chung của common.css cũ. Xem tailwind.config.js. -->
+    <link rel="stylesheet" href="../styles/build.css" />
     <!-- Leaflet: dùng cho picker chọn địa điểm ở tab "Dữ liệu mẫu"
          (core/helpers/maps-helper.js, chung với trang thiết lập thiệp) -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -36,7 +26,10 @@
     />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
   </head>
-  <body class="bg-gray-50 min-h-screen p-2 sm:p-4 md:p-6">
+  <!-- font-inter thay cho fontFamily.sans = Inter trong config inline cũ: nay
+       dùng chung một build với trang chủ nên đặt font ở đây, không đổi mặc định
+       toàn site. -->
+  <body class="font-inter bg-gray-50 min-h-screen p-2 sm:p-4 md:p-6">
     <div class="max-w-7xl mx-auto">
       <div class="flex items-center justify-between mb-4 sm:mb-6 md:mb-8 px-2">
         <h1 class="text-2xl sm:text-3xl">

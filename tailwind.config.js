@@ -1,15 +1,29 @@
-// Build local cho trang chủ (index.html) — thay thế Tailwind Play CDN.
-// Nội dung theme.extend giữ nguyên từ js/tailwind-config.js (bản chạy qua CDN cũ).
-// content chỉ quét đúng những file index.html thực sự nạp, để không lẫn class
-// của các trang khác (invitation-setup, admin, public/themes... vẫn dùng CDN).
+// Build Tailwind cho CÁC TRANG ỨNG DỤNG (npm run build:css):
+//   index.html · admin/ · public/account/ · invitation-setup/ (+ guests/) ·
+//   theme-template/
+// Nguồn: styles/tailwind-src.css → styles/build.css
+//
+// Trang thiệp public/themes/* dùng build RIÊNG (tailwind.themes.config.js →
+// styles/themes.css) vì bảng màu `rose-pastel` của theme khác hẳn: hồng khói
+// (#d4a5a5) so với hồng phấn (#fbcfe8) ở đây. Cùng tên class, khác giá trị →
+// không gộp chung một file được.
+//
+// theme.extend dưới đây là hợp nhất của các `tailwind.config` inline cũ nằm
+// trong <head> từng trang (admin, account, invitation-setup, theme-template),
+// nay đã gỡ hết cùng với thẻ <script src="cdn.tailwindcss.com">.
 module.exports = {
   content: [
     "./index.html",
+    "./404.html",
+    "./router.html",
     "./js/**/*.js",
-    "./core/config.js",
-    "./core/helpers/alert.js",
-    "./core/auth-ui.js",
-    "./core/payment.js",
+    "./core/**/*.js",
+    "./admin/**/*.{html,js}",
+    "./public/account/**/*.{html,js}",
+    // invitation-setup nạp partials/*.html động qua loader.js → phải quét cả
+    // thư mục partials, nếu không class trong đó bị purge mất.
+    "./invitation-setup/**/*.{html,js}",
+    "./theme-template/**/*.{html,js}",
   ],
   theme: {
     extend: {
@@ -28,6 +42,22 @@ module.exports = {
           300: "#fbcfe8",
         },
         cream: { 50: "#fffbf7", 100: "#fff5f0", 200: "#ffe8e0" },
+        // invitation-setup (config inline cũ)
+        "pink-light": "rgb(255 163 181)",
+        "pink-light-hover": "rgb(255 143 161)",
+        // Design token dùng chung — thay cho 6 utility viết tay trong
+        // common.css cũ (.bg-primary, .bg-primary-subtle, .text-color-primary,
+        // .text-color-secondary, .border-color-secondary). Giá trị đọc từ biến
+        // CSS khai báo ở styles/_common.css nên vẫn đổi được một chỗ.
+        primary: "var(--primary)",
+        "primary-subtle": "var(--primary-subtle)",
+        "color-primary": "var(--text-color-primary)",
+        "color-secondary": "var(--text-color-secondary)",
+      },
+      // .border-primary cũ đọc --primary-border (hiện trùng giá trị --primary
+      // nhưng là token riêng) → giữ đúng bằng cách extend riêng borderColor.
+      borderColor: {
+        primary: "var(--primary-border)",
       },
       keyframes: {
         bubbleIn: {
@@ -64,6 +94,11 @@ module.exports = {
             boxShadow: "0 8px 26px rgba(219,39,119,.42)",
           },
         },
+        // invitation-setup (config inline cũ)
+        fadeIn: {
+          "0%": { opacity: "0", transform: "translateY(10px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
         ctaShine: {
           "0%": { transform: "translateX(-120%) skewX(-18deg)" },
           "55%,100%": { transform: "translateX(320%) skewX(-18deg)" },
@@ -79,6 +114,8 @@ module.exports = {
         msgIn: "msgIn .35s ease-out",
         ctaFlow: "ctaFlow 4s ease-in-out infinite",
         ctaShine: "ctaShine 3.4s ease-in-out infinite",
+        // invitation-setup (config inline cũ)
+        "fade-in": "fadeIn 0.3s ease-out",
       },
     },
   },

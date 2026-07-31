@@ -1,0 +1,15 @@
+/* Nguồn build Tailwind cho TRANG THIỆP: public/themes/* (basic-gold,
+   vintage-forest, romantic-gold) và mọi theme thêm sau này.
+   Build: npm run build:themes  →  xuất ra styles/themes.css (đã purge + minify).
+
+   Vì sao tách khỏi styles/build.css: bảng màu `rose-pastel` của theme là tông
+   hồng khói (#d4a5a5…), còn của trang ứng dụng là hồng phấn (#fbcfe8…) — cùng
+   tên class nhưng khác giá trị nên phải là hai build riêng.
+
+   Xem thứ tự @import trong styles/_base.css. */
+
+@import "./_base.css";
+@import "./_common.css";
+
+@tailwind components;
+@tailwind utilities;

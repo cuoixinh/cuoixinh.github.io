@@ -25,31 +25,6 @@
     />
     <script src="https://cdn.jsdelivr.net/npm/@melloware/coloris@0.10.3/dist/coloris.min.js"></script>
 
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            fontFamily: {
-              sans: ["Inter", "sans-serif"],
-            },
-            colors: {
-              "pink-light": "rgb(255 163 181)",
-              "pink-light-hover": "rgb(255 143 161)",
-            },
-            animation: {
-              "fade-in": "fadeIn 0.3s ease-out",
-            },
-            keyframes: {
-              fadeIn: {
-                "0%": { opacity: "0", transform: "translateY(10px)" },
-                "100%": { opacity: "1", transform: "translateY(0)" },
-              },
-            },
-          },
-        },
-      };
-    </script>
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
       rel="stylesheet"
@@ -67,15 +42,16 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css" integrity="sha384-RkASv+6KfBMW9eknReJIJ6b3UnjKOKC5bOUaNgIY778NFbQ8MtWq9Lr/khUgqtTt" crossorigin="anonymous"
     />
-    <!-- Common CSS -->
-    <link rel="stylesheet" href="../styles/common.css" />
-    <!-- AI modal CSS -->
-    <link rel="stylesheet" href="ai-modal.css" />
-    <!-- Style riêng của trang thiết lập -->
-    <link rel="stylesheet" href="setup.css" />
+    <!-- Tailwind build local (npm run build:css) — thay cho Play CDN. Gộp cả 3
+         file CSS cũ của trang: common.css + ai-modal.css + setup.css (nay là
+         styles/_common.css, _ai-modal.css, _setup.css). PHẢI đứng sau CSS của
+         Coloris/Flatpickr ở trên vì có các rule đè lên chúng.
+         Xem tailwind.config.js + styles/tailwind-src.css. -->
+    <link rel="stylesheet" href="../styles/build.css" />
   </head>
+  <!-- font-inter thay cho fontFamily.sans = Inter trong config inline cũ. -->
   <body
-    class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 overflow-x-hidden"
+    class="font-inter min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 overflow-x-hidden"
   >
     <span id="mount-skeleton" hidden></span>
 
