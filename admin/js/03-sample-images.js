@@ -15,7 +15,8 @@
 //    trong bộ vừa ghi đều bị xoá.
 // 4. Nén ĐÚNG MỘT LẦN, ngay lúc ảnh vào state — admin chọn ảnh, hoặc bind từ đĩa
 //    (siBindImage) — bằng ImageHelper.prepareImage(), cùng hàm với luồng khách ở
-//    invitation-setup (≤1920px, ≤1MB). Ảnh đã đạt ngưỡng thì giữ nguyên bản.
+//    invitation-setup nhưng ngưỡng RỘNG HƠN: ≤1920px, ≤1.5MB (xem
+//    SI_IMAGE_LIMITS) thay vì 1MB. Ảnh đã đạt ngưỡng thì giữ nguyên bản.
 //    Lúc lưu KHÔNG xử lý gì nữa, chỉ ghi thẳng blob xuống đĩa.
 
 const SI_THEMES = [
@@ -36,6 +37,11 @@ const SI_MAX_LOVE_STORY = CONFIG.maxLoveStoryItems || 10;
 
 const SI_IMAGE_EXT_RE = /\.(jpe?g|png|webp|gif|avif|bmp)$/i;
 const SI_LAST_THEME_KEY = "si_last_theme";
+
+// Ngưỡng nén của ảnh mẫu — RỘNG HƠN ảnh khách tự upload. Khai báo ở
+// CONFIG.image.sampleData (core/config.js); phần không khai lấy theo mặc định
+// của ImageHelper (khung ảnh 1920px).
+const SI_IMAGE_LIMITS = CONFIG.image.sampleData;
 
 // Lưu dở dang: cờ được đặt lúc bắt đầu ghi và xoá ở finally. Trang chết giữa
 // chừng (Live Server reload, đóng nhầm tab, Chrome kill vì thiếu RAM) thì
@@ -381,7 +387,7 @@ async function siBindImage(dirHandle, filename) {
   if (!raw) return null;
 
   try {
-    const { file, compressed } = await ImageHelper.prepareImage(raw);
+    const { file, compressed } = await ImageHelper.prepareImage(raw, SI_IMAGE_LIMITS);
     if (compressed) {
       siLoadCompressed.count++;
       siLoadCompressed.savedBytes += raw.size - file.size;
@@ -809,7 +815,7 @@ async function siHandleSingleUpload(event, fieldName) {
   openFocalPointPicker(file, current, async (focal) => {
     showLoading(true, "Đang xử lý ảnh...");
     try {
-      const { file: processed } = await ImageHelper.prepareImage(file);
+      const { file: processed } = await ImageHelper.prepareImage(file, SI_IMAGE_LIMITS);
       siData.singleImages[fieldName] = {
         blob: processed,
         focal,
@@ -845,7 +851,7 @@ async function siStoreCropped(fieldName, blob) {
   // nên hầu như luôn đạt ngưỡng → trả nguyên bản, không mã hoá lại.
   let processed = cropped;
   try {
-    processed = (await ImageHelper.prepareImage(cropped)).file;
+    processed = (await ImageHelper.prepareImage(cropped, SI_IMAGE_LIMITS)).file;
   } catch (e) {
     console.warn("Không nén được ảnh cắt, giữ nguyên bản gốc:", e);
   }
@@ -922,7 +928,7 @@ async function siHandleGalleryUpload(event) {
   try {
     for (const file of files.slice(0, room)) {
       if (!file.type.startsWith("image/")) continue;
-      const { file: processed } = await ImageHelper.prepareImage(file);
+      const { file: processed } = await ImageHelper.prepareImage(file, SI_IMAGE_LIMITS);
       siData.gallery.push({
         blob: processed,
         focal: { x: 50, y: 50 },
@@ -1047,7 +1053,7 @@ async function siHandleLoveStoryUpload(event, idx) {
   openFocalPointPicker(file, current, async (focal) => {
     showLoading(true, "Đang xử lý ảnh...");
     try {
-      const { file: processed } = await ImageHelper.prepareImage(file);
+      const { file: processed } = await ImageHelper.prepareImage(file, SI_IMAGE_LIMITS);
       siData.loveStory[idx].blob = processed;
       siData.loveStory[idx].focal = focal;
       siData.loveStory[idx].previewUrl = URL.createObjectURL(processed);

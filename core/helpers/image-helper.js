@@ -18,17 +18,23 @@
 // helper — hai tab admin dùng ngưỡng khác nhau nên biến dùng chung là mầm bug.
 
 window.ImageHelper = (function () {
+  // Ngưỡng khai báo tập trung ở core/config.js (CONFIG.image) — sửa số ở đó,
+  // không sửa ở đây. Fallback chỉ để helper còn chạy nếu trang nào quên nạp
+  // config.js trước.
+  const _cfg = (typeof CONFIG !== "undefined" && CONFIG.image) || {};
+
   // Ngưỡng mặc định = ngưỡng ảnh khách tự upload.
   const DEFAULT_LIMITS = {
     maxWidth: 1920,
     maxHeight: 1920,
     maxSizeMB: 1,
     quality: 0.85,
+    ..._cfg.customer,
   };
 
   // Ảnh gốc từ máy ảnh có thể rất nặng; resize xong mới nhẹ. Đây là chặn đầu
   // vào để không treo trình duyệt khi decode.
-  const MAX_INPUT_MB = 50;
+  const MAX_INPUT_MB = _cfg.maxInputMB || 50;
 
   // Định dạng mã hoá lại qua canvas được mà không mất mát ngoài ý muốn.
   // GIF (mất animation), AVIF/BMP/SVG (canvas đổi luôn định dạng, lệch đuôi

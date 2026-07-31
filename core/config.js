@@ -42,6 +42,39 @@ const CONFIG = {
     timeout: 300000, // 5 minutes
   },
 
+  // Ngưỡng nén ảnh phía client (core/helpers/image-helper.js).
+  // Cả web nén ĐÚNG MỘT LẦN, ngay lúc ảnh vào state (người dùng chọn ảnh / bind
+  // ảnh từ đĩa); lúc lưu KHÔNG nén lại. Ảnh đã đạt ngưỡng thì giữ nguyên bản gốc.
+  image: {
+    // Chặn đầu vào trước khi decode — ảnh nặng hơn mức này bị từ chối luôn để
+    // không treo trình duyệt. Áp cho MỌI luồng.
+    maxInputMB: 50,
+
+    // Ảnh khách tự upload (invitation-setup). Siết chặt nhất: ảnh đi qua băng
+    // thông Supabase và được tải lại mỗi lần khách mời mở thiệp.
+    customer: {
+      maxWidth: 1920,
+      maxHeight: 1920,
+      maxSizeMB: 1,
+      quality: 0.85,
+    },
+
+    // Ảnh mẫu của theme (admin → tab "Dữ liệu mẫu"). Ghi thẳng vào repo, admin
+    // tự kiểm soát nên cho nặng hơn khách để giữ chất lượng. Chỉ ghi đè phần
+    // khác `customer`; khung ảnh vẫn 1920px.
+    sampleData: {
+      maxSizeMB: 1.5,
+    },
+
+    // Kho ảnh dùng chung (admin → tab "Ảnh mẫu"). Mọi danh mục (icon hoa, khung
+    // viền, ảnh landing) đều dùng ngưỡng này. Danh mục nào cần siết chặt hơn thì
+    // khai maxPx/maxSizeMB riêng tại AX_PRESETS trong admin/js/05-asset-images.js.
+    assets: {
+      maxPx: 1920,
+      maxSizeMB: 1,
+    },
+  },
+
   // Love Story
   maxLoveStoryItems: 10,
 

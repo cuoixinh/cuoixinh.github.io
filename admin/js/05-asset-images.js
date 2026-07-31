@@ -28,24 +28,22 @@
 // Danh mục dựng sẵn. Thêm loại ảnh mới → thêm 1 dòng ở đây (không có preset thì
 // vẫn tự gõ tên thư mục được ở ô "Khác").
 // folder: tên thư mục con trong assets/, ĐÚNG MỘT CẤP.
-// maxPx / maxSizeMB: ngưỡng nén riêng của danh mục, thiếu thì lấy AX_DEFAULT_LIMITS
-// (đúng ngưỡng ảnh khách tự upload: 1920px, 1MB).
+// Mọi danh mục hiện dùng CHUNG ngưỡng mặc định AX_DEFAULT_LIMITS
+// (CONFIG.image.assets: 1920px, 1MB) — cứ vượt là nén, dưới ngưỡng thì giữ
+// nguyên file gốc. Danh mục nào sau này cần siết chặt hơn thì thêm maxPx /
+// maxSizeMB vào ngay dòng của nó, axLimitsFor() tự ưu tiên giá trị đó.
 const AX_PRESETS = [
   {
     value: "flowers",
     label: "Icon hoa trang trí",
     folder: "flowers",
     note: "Icon hoa, lá, hoạ tiết chèn vào thiệp ở tab Giao diện",
-    maxPx: 1024,
-    maxSizeMB: 0.3,
   },
   {
     value: "frames",
     label: "Khung & viền trang trí",
     folder: "frames",
     note: "Khung ảnh, viền, đường chia trang trí",
-    maxPx: 1600,
-    maxSizeMB: 0.5,
   },
   {
     value: "images",
@@ -55,7 +53,9 @@ const AX_PRESETS = [
   },
 ];
 
-const AX_DEFAULT_LIMITS = { maxPx: 1920, maxSizeMB: 1 };
+// Danh mục không khai ngưỡng riêng → dùng ngưỡng mặc định của kho ảnh
+// (CONFIG.image.assets, core/config.js).
+const AX_DEFAULT_LIMITS = CONFIG.image.assets;
 const AX_CUSTOM_VALUE = "__custom__";
 
 const AX_IMAGE_EXT_RE = /\.(jpe?g|png|webp|gif|avif|bmp|svg)$/i;
