@@ -13,7 +13,6 @@
     />
 
     <link rel="icon" type="image/png" href="../assets/icons/logo.png" />
-    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -21,26 +20,11 @@
       rel="stylesheet"
     />
 
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            fontFamily: {
-              playfair: ["Playfair Display", "serif"],
-              inter: ["Inter", "sans-serif"],
-            },
-            colors: {
-              "rose-pastel": {
-                50: "#fffbf7",
-                100: "#fef1f7",
-                200: "#fce7f3",
-                300: "#fbcfe8",
-              },
-            },
-          },
-        },
-      };
-    </script>
+    <!-- Tailwind build local (npm run build:css) — thay cho Play CDN.
+         Xem tailwind.config.js. Khối <style> ngay dưới là style riêng của trang
+         này (gradient/shadow/pseudo-element tuỳ biến — Tailwind không diễn đạt
+         được) và PHẢI đứng sau link này để đè đúng, nhất là .skeleton. -->
+    <link rel="stylesheet" href="../styles/build.css" />
 
     <style>
       :root {

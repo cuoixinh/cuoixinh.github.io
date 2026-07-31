@@ -1,8 +1,17 @@
 /* ===========================================================================
-   CSS dùng chung toàn site — CHỈNH TRỰC TIẾP file này (không còn build step).
-   Utility runtime (class= trong HTML) vẫn do Tailwind Play CDN lo; file này chứa
-   các thứ CDN không diễn đạt được: .btn-*, biến CSS (--primary…), @font-face,
-   keyframes, cover screen, scrollbar, tinh chỉnh iOS…
+   Partial dùng chung toàn site — được @import vào CẢ HAI bản build:
+     styles/tailwind-src.css  → styles/build.css   (landing, admin, account,
+                                                    invitation-setup, template)
+     styles/themes-src.css    → styles/themes.css  (public/themes/*)
+
+   Thay cho styles/common.css cũ. Đã có build step nên phần nào map 1:1 với
+   utility Tailwind thì viết bằng @apply; phần Tailwind KHÔNG diễn đạt được
+   (biến CSS, @font-face, keyframes, gradient tuỳ biến, mask, scrollbar của
+   trình duyệt, env()/dvh, @supports) vẫn giữ CSS thuần.
+
+   Lưu ý: 6 utility màu cũ (.bg-primary, .text-color-primary…) nay do Tailwind
+   sinh ra từ theme.extend.colors trong tailwind.config.js — không khai báo tay
+   ở đây nữa.
    =========================================================================== */
 
 /* =============================================
@@ -11,104 +20,55 @@
 
 :root {
   /* Màu hồng pastel chủ đạo */
-  --primary:        rgb(255 183 202);
-  --primary-hover:  rgb(255 163 181);
+  --primary: rgb(255 183 202);
+  --primary-hover: rgb(255 163 181);
   --primary-active: rgb(255 143 161);
   --primary-subtle: rgb(255 245 248);
   --primary-border: rgb(255 183 202);
   /* Màu chữ nâu-hồng chủ đạo */
   --text-color-primary: rgb(173 122 135);
-  /* Màu hồng đậm — icon, switch ON, accent */
+  /* Màu hồng đậm — icon, switch ON, accent (rose-400) */
   --text-color-secondary: rgb(251 113 133);
-  /* rose-400 */
 }
 
-/* Utility classes dùng chung (biến CSS → giữ CSS thuần) */
-
-.bg-primary             {
-  background-color: var(--primary);
-}
-
-.bg-primary-subtle      {
-  background-color: var(--primary-subtle);
-}
-
-.text-color-primary     {
-  color: var(--text-color-primary);
-}
-
-.text-color-secondary   {
-  color: var(--text-color-secondary);
-}
-
-.border-primary         {
-  border-color: var(--primary-border);
-}
-
-.border-color-secondary {
-  border-color: var(--text-color-secondary);
-}
-
-/* Shared action button style */
+/* ── Nút hành động dùng chung ──────────────────────────────────────────── */
 
 .btn-pink {
-  display:        inline-flex;
-  cursor:        pointer;
-  align-items:        center;
-  gap:        0.5rem;
-  white-space:        nowrap;
-  border-radius:        0.5rem;
-  border-style:        none;
-  --tw-bg-opacity:        1;
-  background-color:        rgb(244 63 94 / var(--tw-bg-opacity, 1));
-  padding-left:        1rem;
-  padding-right:        1rem;
-  padding-top:        0.5rem;
-  padding-bottom:        0.5rem;
-  font-size:        0.875rem;
-  line-height:        1.25rem;
-  font-weight:        500;
-  --tw-text-opacity:        1;
-  color:        rgb(255 255 255 / var(--tw-text-opacity, 1));
-  transition: background 0.15s ease, box-shadow 0.15s ease;
+  @apply inline-flex cursor-pointer items-center gap-2 whitespace-nowrap
+         rounded-lg border-none bg-rose-500 px-4 py-2 text-sm font-medium
+         text-white;
+
+  transition:
+    background 0.15s ease,
+    box-shadow 0.15s ease;
   box-shadow: 0 1px 3px rgb(0 0 0 / 0.12);
 }
 
 .btn-pink:hover {
-  --tw-bg-opacity:        1;
-  background-color:        rgb(225 29 72 / var(--tw-bg-opacity, 1));
+  @apply bg-rose-600;
+
   box-shadow: 0 2px 8px rgb(244 63 94 / 0.35);
 }
 
 .btn-pink:active {
-  --tw-bg-opacity:        1;
-  background-color:        rgb(190 18 60 / var(--tw-bg-opacity, 1));
+  @apply bg-rose-700;
 }
 
-/* Nút "Tối ưu"/"Tạo" bằng AI — nền gradient tím→hồng (giữ raw vì gradient) */
+/* Nút "Tối ưu"/"Tạo" bằng AI — nền gradient tím→hồng (gradient giữ CSS thuần) */
 
 .btn-ai {
-  display:        inline-flex;
-  cursor:        pointer;
-  align-items:        center;
-  gap:        0.375rem;
-  white-space:        nowrap;
-  border-radius:        0.5rem;
-  border-style:        none;
-  padding-left:        0.875rem;
-  padding-right:        0.875rem;
-  padding-top:        0.5rem;
-  padding-bottom:        0.5rem;
-  font-size:        13px;
-  font-weight:        500;
-  --tw-text-opacity:        1;
-  color:        rgb(255 255 255 / var(--tw-text-opacity, 1));
+  @apply inline-flex cursor-pointer items-center gap-1.5 whitespace-nowrap
+         rounded-lg border-none px-3.5 py-2 text-[13px] font-medium text-white;
+
   background: linear-gradient(135deg, rgb(139 92 246), rgb(217 70 239));
-  transition: filter 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+  transition:
+    filter 0.15s ease,
+    box-shadow 0.15s ease,
+    opacity 0.15s ease;
   box-shadow: 0 1px 3px rgb(0 0 0 / 0.12);
 }
 
-.btn-ai:hover  {
+.btn-ai:hover {
   filter: brightness(1.06);
   box-shadow: 0 2px 10px rgb(168 85 247 / 0.4);
 }
@@ -120,35 +80,20 @@
 /* Biến thể icon-only vuông (hàng "Lịch trình ngày cưới") */
 
 .btn-ai-icon {
-  display:        inline-flex;
-  height:        2rem;
-  width:        2rem;
-  flex-shrink:        0;
-  cursor:        pointer;
-  align-items:        center;
-  justify-content:        center;
-  border-radius:        0.5rem;
-  border-style:        none;
-  --tw-bg-opacity:        1;
-  background-color:        rgb(243 232 255 / var(--tw-bg-opacity, 1));
-  --tw-text-opacity:        1;
-  color:        rgb(147 51 234 / var(--tw-text-opacity, 1));
-  transition-property:        color, background-color, border-color, text-decoration-color, fill, stroke;
-  transition-timing-function:        cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration:        150ms;
+  @apply inline-flex h-8 w-8 flex-shrink-0 cursor-pointer items-center
+         justify-center rounded-lg border-none bg-purple-100 text-purple-600
+         transition-colors;
 }
 
 .btn-ai-icon:hover {
-  --tw-bg-opacity:        1;
-  background-color:        rgb(233 213 255 / var(--tw-bg-opacity, 1));
+  @apply bg-purple-200;
 }
 
 /* Trạng thái đang gọi AI: khoá click + icon quay */
 
 .btn-ai[data-loading="1"],
 .btn-ai-icon[data-loading="1"] {
-  pointer-events:        none;
-  opacity:        0.65;
+  @apply pointer-events-none opacity-65;
 }
 
 .btn-ai[data-loading="1"] svg,
@@ -162,27 +107,22 @@
   }
 }
 
-/* The Nautigal font */
+/* ── Font tự host ────────────────────────────────────────────────────────── */
+
+/* Đường dẫn tính từ styles/build.css và styles/themes.css (cùng nằm trong
+   styles/) nên ../assets/... vẫn đúng như common.css cũ. */
 
 @font-face {
   font-family: "TheNautigal";
-
   src: url("../assets/fonts/TheNautigal-Regular.ttf") format("truetype");
-
   font-weight: normal;
-
   font-style: normal;
 }
 
-/* Katty Diona font */
-
 @font-face {
   font-family: "KattyDiona";
-
   src: url("../assets/fonts/katty-diona.woff2") format("woff2");
-
   font-weight: normal;
-
   font-style: normal;
 }
 
@@ -204,10 +144,15 @@
   }
 }
 
-/* Scroll Animations */
+/* ── Scroll Animations ───────────────────────────────────────────────────── */
+
+/* transform giữ CSS thuần: @apply translate-* sẽ ghi cả chuỗi biến --tw-*
+   (rotate/skew/scale) vào transform, còn .reveal.visible lại đặt
+   `transform: none` — viết thẳng dễ đọc và chắc chắn hơn. */
 
 .reveal {
-  opacity: 0;
+  @apply opacity-0;
+
   transition:
     opacity 0.6s ease,
     transform 0.6s ease;
@@ -219,6 +164,16 @@
 
 .reveal.from-left {
   transform: translateX(-40px);
+}
+
+.reveal.from-right {
+  transform: translateX(40px);
+}
+
+.reveal.visible {
+  @apply opacity-100;
+
+  transform: none;
 }
 
 /* Toast Notification Animations */
@@ -247,27 +202,18 @@
   }
 }
 
-.reveal.from-right {
-  transform: translateX(40px);
-}
-
-.reveal.visible {
-  opacity: 1;
-  transform: none;
-}
-
 /* Attend button selected animation */
 
 @keyframes btnPop {
-  0%   {
+  0% {
     transform: scale(1);
   }
 
-  40%  {
+  40% {
     transform: scale(1.06);
   }
 
-  70%  {
+  70% {
     transform: scale(0.97);
   }
 
@@ -283,11 +229,12 @@
 /* Idle pulse for attend buttons */
 
 @keyframes idlePulse {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
   }
 
-  50%       {
+  50% {
     transform: scale(1.03);
   }
 }
@@ -302,8 +249,8 @@
 
 /* Shimmer text effect */
 
-@keyframes shimmer {
-  0%   {
+@keyframes cx-shimmer-text {
+  0% {
     background-position: -200% center;
   }
 
@@ -313,24 +260,25 @@
 }
 
 .shimmer-text {
+  @apply bg-clip-text text-transparent;
+
   background: linear-gradient(
-        90deg,
-        #a8a29e 0%,
-        #a8a29e 35%,
-        #d4a5a5 45%,
-        #f5d5d8 50%,
-        #d4a5a5 55%,
-        #a8a29e 65%,
-        #a8a29e 100%
-    );
+    90deg,
+    #a8a29e 0%,
+    #a8a29e 35%,
+    #d4a5a5 45%,
+    #f5d5d8 50%,
+    #d4a5a5 55%,
+    #a8a29e 65%,
+    #a8a29e 100%
+  );
   background-size: 200% auto;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: shimmer 2.5s linear infinite;
+  animation: cx-shimmer-text 2.5s linear infinite;
 }
 
-/* Cover Screen */
+/* ── Cover Screen ────────────────────────────────────────────────────────── */
 
 #cover-screen {
   animation: coverFadeIn 0.8s ease-out;
@@ -342,7 +290,7 @@
     opacity: 0;
   }
 
-  to   {
+  to {
     opacity: 1;
   }
 }
@@ -357,7 +305,7 @@
     transform: scale(1);
   }
 
-  to   {
+  to {
     opacity: 0;
     transform: scale(1.04);
   }
@@ -366,28 +314,33 @@
 /* Open button shimmer */
 
 .open-btn {
-  box-shadow: 0 4px 20px rgba(212,165,165,0.2);
+  box-shadow: 0 4px 20px rgba(212, 165, 165, 0.2);
 }
 
 .btn-shimmer {
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 60%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
+  @apply absolute left-[-100%] top-0 h-full w-3/5;
+
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.6),
+    transparent
+  );
   animation: btnShimmer 2.5s ease-in-out infinite;
 }
 
 @keyframes btnShimmer {
-  0%   {
+  0% {
     left: -100%;
   }
 
-  50%, 100% {
+  50%,
+  100% {
     left: 150%;
   }
 }
+
+/* ── iOS / viewport ──────────────────────────────────────────────────────── */
 
 /* iOS Safe Area */
 
@@ -397,28 +350,27 @@
   padding-bottom: env(safe-area-inset-bottom);
 }
 
-/* Dynamic viewport height - tránh bị che bởi browser navbar iOS */
-
-#cover-screen > div {
-  min-height: 100dvh;
-}
-
-#main-card .relative.z-20 {
-  min-height: 100dvh;
-}
-
-/* Fallback cho iOS cũ không support dvh */
+/* Dynamic viewport height — tránh bị che bởi browser navbar iOS.
+   Dòng calc(var(--vh)) là fallback cho iOS cũ không hỗ trợ dvh; dòng 100dvh
+   ngay sau đó ghi đè khi trình duyệt hiểu dvh. */
 
 #cover-screen > div {
   min-height: calc(var(--vh, 1vh) * 100);
   min-height: 100dvh;
-  /* override nếu browser support */
 }
 
-#main-card .relative.z-20 {
+/* Viết bằng attribute selector chứ KHÔNG phải `.relative.z-20`: `relative` là
+   utility Tailwind và đang được @apply ở nơi khác trong cùng bản build, nên
+   Tailwind sẽ nhân bản selector này cho từng rule có `@apply relative`
+   (#main-card .ai-card.z-20, #main-card .testimonial-card.z-20…). Dạng
+   [class~="..."] khớp y hệt, cùng độ đặc hiệu, và Tailwind không đụng vào. */
+
+#main-card [class~="relative"][class~="z-20"] {
   min-height: calc(var(--vh, 1vh) * 100);
   min-height: 100dvh;
 }
+
+/* ── Scrollbar ───────────────────────────────────────────────────────────── */
 
 /* Custom scrollbar for payment modal */
 
@@ -453,13 +405,11 @@
 .scroll-fade {
   --fade-left: 0px;
   --fade-right: 0px;
-  /* Khai báo thẳng ở đây chứ không phó mặc utility `flex-nowrap`: styles/build.css
-     (bản Tailwind build sẵn của landing) hiện KHÔNG có rule .flex-nowrap, nên nếu
-     chỉ dựa vào class thì hàng tag chỉ tình cờ đúng nhờ giá trị mặc định. */
-  flex-wrap: nowrap;
+
+  @apply flex-nowrap;
+
   -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-  /* Firefox */
+  scrollbar-width: none; /* Firefox */
   -webkit-mask-image: linear-gradient(
     to right,
     transparent 0,
@@ -486,8 +436,7 @@
 /* Thanh cuộn textarea: desktop mặc định to & xấu → làm mảnh 4px, bo 8px, giống mobile */
 
 textarea {
-  scrollbar-width: thin;
-  /* Firefox */
+  scrollbar-width: thin; /* Firefox */
   scrollbar-color: rgb(209 213 219) transparent;
 }
 
@@ -513,7 +462,9 @@ textarea::-webkit-scrollbar-thumb:hover {
    font-size: 16px is the minimum to suppress Safari's zoom behavior.         */
 
 @supports (-webkit-touch-callout: none) {
-  input, select, textarea {
+  input,
+  select,
+  textarea {
     font-size: 16px;
   }
 }

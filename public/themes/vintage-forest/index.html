@@ -8,7 +8,6 @@
     />
     <title>Cưới Xinh — Thiệp Cưới</title>
     <link rel="icon" type="image/png" href="../../../assets/icons/logo.png" />
-    <script src="https://cdn.tailwindcss.com"></script>
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
@@ -19,7 +18,10 @@
       href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Great+Vibes&family=Inter:wght@300;400;500&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Cinzel:wght@400;600&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="../../../styles/common.css" />
+    <!-- Tailwind build local (npm run build:themes) — thay cho Play CDN.
+         Đã gồm phần dùng chung của common.css cũ + bảng màu theme.
+         Xem tailwind.themes.config.js + styles/themes-src.css. -->
+    <link rel="stylesheet" href="../../../styles/themes.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <style>
       @font-face {
@@ -29,7 +31,6 @@
         font-style: normal;
       }
     </style>
-    <script src="../tailwind.config.js"></script>
   </head>
   <body
     class="bg-vintage-cream min-h-screen flex justify-center items-center p-0 md:py-5"

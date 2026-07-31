@@ -5,17 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
     <title>Quản lý khách mời</title>
     <link rel="icon" type="image/png" href="../../assets/icons/logo.png" />
-    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.8" integrity="sha384-Tve8O+C6PBzsIMK/IRCwHbi8fyEzXIlIs6OfVBZHubplwYhaQF/4Mzxqgg+pp/oy" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
     <script src="https://unpkg.com/lucide@1.26.0/dist/umd/lucide.min.js" integrity="sha384-8/6sFI5UzGbr1Dgef7WSZvE4UemcVc/jyaQNsM+MilmnHQ9sce/pRv86XXj5Cg5m" crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="../../styles/common.css" />
-    <style>
-      body { font-family: "Inter", sans-serif; background: #fdf8f9; }
-    </style>
+    <!-- Tailwind build local (npm run build:css) — thay cho Play CDN; đã gồm cả
+         phần dùng chung của common.css cũ. Xem tailwind.config.js. -->
+    <link rel="stylesheet" href="../../styles/build.css" />
   </head>
-  <body class="min-h-screen">
+  <!-- font-inter + bg-[#fdf8f9] thay cho khối <style> cũ. -->
+  <body class="font-inter bg-[#fdf8f9] min-h-screen">
 
     <!-- Header -->
     <div class="bg-white border-b border-gray-100 sticky top-0 z-10">

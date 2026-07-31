@@ -3,7 +3,7 @@
 // dòng. Phía nào còn cuộn được thì mờ dần ở mép để lộ ra là kéo được (mất hẳn
 // mờ khi đã cuộn kịch, và không mờ gì cả khi nội dung vừa đủ chỗ).
 //
-// Cách dùng: thêm `data-scroll-fade` + class `.scroll-fade` (styles/common.css)
+// Cách dùng: thêm `data-scroll-fade` + class `.scroll-fade` (styles/_common.css)
 // vào chính phần tử có overflow-x-auto. Không cần khai báo gì thêm.
 
 const SCROLL_FADE_WIDTH = 32; // px, khớp bước 4px của dự án

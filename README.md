@@ -79,9 +79,15 @@ root/
 │       ├── wedding-bl.js
 │       └── image-bl.js
 │
-├── styles/                       # CSS files
-│   ├── landing.css
-│   └── common.css
+├── styles/                       # Nguồn + kết quả build Tailwind (npm run build)
+│   ├── _base.css                 # partial: @tailwind base
+│   ├── _common.css               # partial: dùng chung cả 2 build
+│   ├── _setup.css                # partial: invitation-setup
+│   ├── _ai-modal.css             # partial: modal AI
+│   ├── tailwind-src.css          # → build.css   (trang ứng dụng)
+│   ├── themes-src.css            # → themes.css  (trang thiệp)
+│   ├── build.css                 # build sẵn — commit vào repo
+│   └── themes.css                # build sẵn — commit vào repo
 │
 └── assets/                       # Static assets
     ├── fonts/

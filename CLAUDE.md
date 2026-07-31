@@ -5,18 +5,23 @@ Ngôn ngữ làm việc: **tiếng Việt**.
 
 ## Tech stack
 
-- **Frontend:** Vanilla JavaScript, HTML5, **Tailwind CSS** (không build step, chạy trực tiếp file tĩnh)
+- **Frontend:** Vanilla JavaScript, HTML5, **Tailwind CSS** (build local bằng Tailwind CLI, không còn Play CDN)
 - **Backend:** Supabase (Postgres + Storage + Edge Functions, Deno/TypeScript)
 - **Payment:** PayOS
 - **Hosting:** GitHub Pages · **CDN/Proxy:** Cloudflare Workers
 
 ## Chạy local
 
-Dùng bất kỳ static server nào (không có bước build):
+Trang vẫn là file tĩnh, chỉ CSS là cần build:
 
 ```bash
+npm install                    # lần đầu
+npm run build                  # build cả 2 file CSS (xem mục CSS)
 python -m http.server 8000     # hoặc Live Server (VS Code), npx http-server -p 8000
 ```
+
+Đang sửa CSS thì chạy `npm run watch:css` (trang ứng dụng) hoặc
+`npm run watch:themes` (trang thiệp) cho tự build lại.
 
 Truy cập `http://localhost:8000` — local dùng **full URL** (vd `/admin/index.html`); production dùng **clean URL** qua `router.html` (vd `cuoixinh.com/admin`).
 
@@ -38,7 +43,13 @@ core/                        Logic dùng chung (3-layer)
   ├─ bl/                     Business Logic     — validate, transform, business rules
   ├─ components/, helpers/   UI components & helpers
   └─ x-*.js                  Web components tuỳ biến (x-input, x-controls, x-speech, x-undo)
-styles/                      CSS (common.css, landing.css)
+styles/                      Nguồn + kết quả build Tailwind (xem mục CSS)
+  ├─ _base.css               Chỉ `@tailwind base` — phải @import ĐẦU TIÊN
+  ├─ _common.css             Dùng chung cả 2 build: token, .btn-*, @font-face, keyframes…
+  ├─ _setup.css              invitation-setup (.cx-*, Coloris, Flatpickr)
+  ├─ _ai-modal.css           Modal AI (.ai-*)
+  ├─ tailwind-src.css        → build.css   (trang ứng dụng)
+  └─ themes-src.css          → themes.css  (trang thiệp)
 supabase/functions/          Edge Functions: ai-invitation, guest-handler, payment-handler,
                              payos-webhook, wedding-admin, _shared
 changelogs/                  Lịch sử thay đổi DB (xem mục Database)
@@ -53,9 +64,22 @@ Không gọi thẳng từ UI xuống DAL bỏ qua BL khi có logic nghiệp vụ
 ## Quy tắc bắt buộc
 
 ### CSS
-- **Luôn dùng Tailwind CSS** làm mặc định — style bằng utility class, hạn chế viết CSS thủ công. Config runtime: `public/themes/tailwind.config.js` (Tailwind Play CDN, không build).
+- **Luôn dùng Tailwind CSS** làm mặc định — style bằng utility class, hạn chế viết CSS thủ công.
+- **KHÔNG còn Tailwind Play CDN.** Mọi trang nạp file build sẵn; **sửa CSS xong phải chạy `npm run build` và commit cả file build**, nếu không production không đổi.
+- **Hai bản build riêng** (bắt buộc, không gộp được — cùng tên `rose-pastel` nhưng khác giá trị: hồng phấn `#fbcfe8` vs hồng khói `#d4a5a5`):
+
+  | Build | Config | Nguồn → Kết quả | Trang dùng |
+  |---|---|---|---|
+  | Ứng dụng | `tailwind.config.js` | `styles/tailwind-src.css` → `styles/build.css` | `index.html`, `admin/`, `public/account/`, `invitation-setup/` (+ `guests/`), `theme-template/` |
+  | Thiệp | `tailwind.themes.config.js` | `styles/themes-src.css` → `styles/themes.css` | `public/themes/*` |
+
+- **Thêm thư mục/trang mới → phải thêm vào `content` của config tương ứng**, nếu không class bị purge cắt mất (CDN cũ sinh class lúc chạy nên không có vấn đề này, giờ thì có).
+- **Không ghép tên class từ mảnh chuỗi** (`` `bg-${color}` ``, `"text-" + size`) — purge quét văn bản thô nên sẽ không thấy. Viết trọn tên class trong từng nhánh (`cond ? "bg-green-100" : "bg-red-100"`).
+- **CSS thủ công viết vào `styles/_*.css`, KHÔNG bọc trong `@layer components`** — nội dung trong `@layer` bị purge nếu tên class chỉ xuất hiện trong chuỗi JS. Để ở top-level thì luôn được giữ, và vẫn đúng cascade (base → partial → utilities) nhờ `_base.css` import đầu tiên.
+- `@import` **chỉ chạy khi nằm ở đầu file** — postcss-import bỏ qua âm thầm nếu đặt sau một rule khác.
+- Phần nào map 1:1 với utility thì dùng `@apply`; phần Tailwind không diễn đạt được (keyframes, biến CSS, gradient nhiều lớp, mask, scrollbar trình duyệt, `env()`/`dvh`, `@supports`, và **override DOM của thư viện ngoài** như Coloris/Flatpickr) thì giữ CSS thuần.
 - Khi buộc phải viết CSS/giá trị tuỳ chỉnh (arbitrary value, file `.css`): dùng **`px`** (không dùng `rem`) và **bội số của 4** (4, 8, 12, 16, 24…).
-- **`styles/common.css` chỉnh TRỰC TIẾP** (không có build step) — chứa `.btn-*`, biến CSS (`--primary`…), `@font-face`, keyframes, scrollbar, tinh chỉnh iOS. Viết CSS thuần (không `@apply`, vì CDN không xử lý `@apply` trong file `.css` nạp qua `<link>`). Utility trong `class=` của HTML vẫn do Tailwind Play CDN lo lúc chạy.
+- Đặt tên `@keyframes` có tiền tố (`cx-…`) — keyframes trùng tên trong cùng một file build sẽ đè nhau âm thầm.
 
 ### Database (Supabase)
 - **Supabase MCP chỉ để ĐỌC** (`.mcp.json`, read-only, project `lcobawmkywtxhpezndsh`). Dùng `list_tables` / `execute_sql` để biết cấu trúc bảng thật khi thi công, thay vì suy ra schema từ `changelogs/` — changelogs là lịch sử thay đổi, không phải nguồn sự thật về trạng thái hiện tại.
@@ -96,6 +120,11 @@ Trang này KHÔNG đặt panel và script trong HTML tĩnh: `loader.js` fetch `p
 **Khi thêm theme mới, cập nhật trong `theme-setting-helper.js`:**
 - `THEME_PRESETS["<tên-theme>"]` — font/màu GỐC + `swatches` (dùng cho "Khôi phục mặc định" và bảng chọn màu).
 - Mở rộng các hằng `*_SELECTORS` nếu theme dùng class khác; `_CX_BOUND_SEL` nếu id list động khác.
+
+**Và trong `tailwind.themes.config.js`:** khai báo font/màu riêng của theme vào `theme.extend`
+(trước đây là `public/themes/tailwind.config.js` chạy qua CDN — file đó đã bỏ). Trang thiệp nạp
+`styles/themes.css`; thêm xong nhớ `npm run build:themes`. Thư mục `public/themes/**` đã nằm sẵn
+trong `content` nên không cần sửa glob.
 
 (Không cần đụng `edit=1`/runtime — loader của `invitation-setup` tự thêm; theme không biết vẫn chạy.)
 

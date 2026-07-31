@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Đơn hàng - Cưới Xinh</title>
     <link rel="icon" type="image/png" href="../../assets/icons/logo.png" />
-    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.8" integrity="sha384-Tve8O+C6PBzsIMK/IRCwHbi8fyEzXIlIs6OfVBZHubplwYhaQF/4Mzxqgg+pp/oy" crossorigin="anonymous"></script>
     <link
       rel="stylesheet"
@@ -17,34 +16,13 @@
       href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap"
       rel="stylesheet"
     />
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            fontFamily: {
-              playfair: ["Playfair Display", "serif"],
-              inter: ["Inter", "sans-serif"],
-            },
-            colors: {
-              "rose-pastel": { 100: "#fef1f7", 200: "#fce7f3", 300: "#fbcfe8" },
-            },
-          },
-        },
-      };
-    </script>
-    <style>
-      body {
-        font-family: "Inter", sans-serif;
-        color: rgb(173 122 135);
-      }
-      .tab-active {
-        border-bottom: 2px solid rgb(255 183 202);
-        color: rgb(255 183 202) !important;
-      }
-    </style>
-    <link rel="stylesheet" href="../../styles/common.css" />
+    <!-- Tailwind build local (npm run build:css) — thay cho Play CDN; đã gồm cả
+         phần dùng chung của common.css cũ. Xem tailwind.config.js. -->
+    <link rel="stylesheet" href="../../styles/build.css" />
   </head>
-  <body class="bg-rose-pastel-100 min-h-screen">
+  <!-- font-inter + text-color-primary thay cho khối <style> cũ (body{font-family
+       Inter; color rgb(173 122 135)}); text-color-primary đọc biến --text-color-primary. -->
+  <body class="font-inter text-color-primary bg-rose-pastel-100 min-h-screen">
     <nav class="bg-white/95 backdrop-blur-sm border-b border-rose-pastel-200">
       <div class="container mx-auto px-4 max-w-2xl">
         <div class="flex items-center justify-between h-16 gap-3">
@@ -120,7 +98,7 @@
       <div class="bg-white rounded-2xl shadow-sm">
         <div class="flex border-b border-gray-200">
           <button
-            class="tab-btn tab-active px-6 py-4 text-sm font-medium"
+            class="tab-btn border-b-2 border-primary text-primary px-6 py-4 text-sm font-medium"
             onclick="switchTab('orders')"
             id="tab-orders"
           >

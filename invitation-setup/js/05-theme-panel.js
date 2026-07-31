@@ -1025,7 +1025,7 @@ function dismissEditHint() {
 window.dismissEditHint = dismissEditHint;
 
 // ─── Kéo đổi rộng cột chỉnh (chỉ desktop) ─────────────────────────────────────
-// Ghi --theme-ctrl-w (px) lên #theme-controls; setup.css chỉ đọc biến này trong
+// Ghi --theme-ctrl-w (px) lên #theme-controls; styles/_setup.css chỉ đọc biến này trong
 // media query >=768px nên KHÔNG đụng tới thanh dưới ở mobile. min/max kẹp ở CSS.
 const _THEME_CTRL_MIN = 340;
 const _THEME_CTRL_MAX = 560;

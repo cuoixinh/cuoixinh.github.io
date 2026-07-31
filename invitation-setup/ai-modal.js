@@ -2,7 +2,7 @@
 // AI: TẠO NỘI DUNG THIỆP
 // Tách khỏi index.js/index.html cho gọn. Nạp SAU index.js
 // (cần WEDDING_ID, showToast, openBottomSheet, các hàm form... ở global).
-// Style: ai-modal.css.
+// Style: styles/_ai-modal.css.
 // ============================================================
 
 // ── Markup modal (bơm vào body/footer của base bottom-sheet) ────────────────
