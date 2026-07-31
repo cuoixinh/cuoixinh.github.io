@@ -48,6 +48,7 @@
     "../core/payment.js",
     "../core/helpers/maps-helper.js",
     "../core/helpers/alert.js",
+    "../core/helpers/image-helper.js",
     "../core/helpers/validate.js",
     "../core/helpers/guide-helper.js",
     "../core/helpers/tooltip.js",

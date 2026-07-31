@@ -4,6 +4,8 @@
 
 // ============= ACTUAL UPLOAD FUNCTIONS =============
 
+// Ảnh trong pendingUploads đã được nén sẵn lúc người dùng chọn (prepareImage ở
+// 10-images.js) → ở đây chỉ đẩy lên storage, KHÔNG nén lại lần nữa.
 async function uploadSingleImage(fieldName, file) {
   // Use BL layer to upload
   return await imageBL.uploadSingleImage(WEDDING_ID, fieldName, file);

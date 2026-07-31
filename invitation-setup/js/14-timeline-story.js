@@ -279,7 +279,7 @@ async function handleLoveStoryImage(idx, input) {
   if (!focal) return;
   showLoading(true, "Đang xử lý ảnh...");
   try {
-    const processed = await resizeImage(file, 1, 1920, 1920);
+    const processed = await prepareImage(file);
     _loveStoryPendingImages[idx] = processed;
     _loveStoryItems[idx].focal_point = focal;
     _syncLoveStoryHidden();

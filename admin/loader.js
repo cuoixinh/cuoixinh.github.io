@@ -14,14 +14,16 @@
   ];
 
   // Thứ tự có phụ thuộc: config (CONFIG global) → core dùng chung (ADMIN_TOKEN,
-  // supabaseClient, switchTab) → utils/BL dùng cho focal point & crop ảnh →
-  // logic riêng từng tab.
+  // supabaseClient, switchTab) → helper xử lý ảnh + utils (focal point & crop
+  // ảnh) → logic riêng từng tab.
   const SCRIPTS = [
     "../core/config.js",
     "../core/auth.js", // nguồn duy nhất cho phiên đăng nhập (ai-dal đính JWT)
     "js/00-core.js",
     "../core/helpers/alert.js",
-    "../core/bl/image-bl.js",
+    // Nén/đo ảnh (thuần canvas) cho tab "Dữ liệu mẫu" và "Ảnh mẫu". Ảnh admin
+    // ghi thẳng xuống ổ đĩa nên KHÔNG cần image-bl.js (tầng storage Supabase).
+    "../core/helpers/image-helper.js",
     "../core/utils.js",
     // Picker chọn địa điểm cho 4 ô Google Maps ở tab "Dữ liệu mẫu" — đúng
     // picker của trang thiết lập thiệp. Phải đứng SAU utils.js (dùng

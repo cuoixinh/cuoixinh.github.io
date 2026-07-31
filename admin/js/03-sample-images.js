@@ -13,8 +13,10 @@
 // 2. Mọi thay đổi được ghi bản nháp vào IndexedDB → F5 không mất ảnh đang nhập.
 // 3. "Lưu vào ổ đĩa" GHI ĐÈ toàn bộ ảnh trong thư mục: file ảnh nào không nằm
 //    trong bộ vừa ghi đều bị xoá.
-// 4. Lưu là NÉN: ảnh chưa đạt ngưỡng của ảnh khách upload (≤1920px, ≤1MB) bị nén
-//    và ghi đè; ảnh đã đạt thì bỏ qua (siCompressAllForSave).
+// 4. Nén ĐÚNG MỘT LẦN, ngay lúc ảnh vào state — admin chọn ảnh, hoặc bind từ đĩa
+//    (siBindImage) — bằng ImageHelper.prepareImage(), cùng hàm với luồng khách ở
+//    invitation-setup (≤1920px, ≤1MB). Ảnh đã đạt ngưỡng thì giữ nguyên bản.
+//    Lúc lưu KHÔNG xử lý gì nữa, chỉ ghi thẳng blob xuống đĩa.
 
 const SI_THEMES = [
   { value: "romantic-gold", label: "Romantic Gold" },
@@ -50,9 +52,9 @@ const SI_FIELD_BASENAME = {
   bride_qr_url: "bride-qr",
 };
 
-// Chỉ dùng resizeImage()/compressIfNeeded() (thuần canvas, không đụng storage)
-// nên truyền storageDAL=null — ảnh mẫu ghi xuống ổ đĩa, không lên Supabase.
-const siImageBL = new ImageBL(null);
+// Thống kê ảnh bị nén trong lần nạp gần nhất (siBindImage cộng dồn) — chỉ để báo
+// cho admin biết thư mục theme vừa có ảnh quá khổ.
+const siLoadCompressed = { count: 0, savedBytes: 0 };
 
 let siRootHandle = null;
 let siThemeHandle = null;
@@ -363,6 +365,36 @@ async function siReadAsMemoryFile(dirHandle, filename) {
   }
 }
 
+// Ảnh mẫu hay được chép TAY vào thư mục theme (kéo thẳng từ máy ảnh, ảnh gốc
+// 5-10 MB) hoặc còn sót từ những lần lưu cũ chưa qua nén — thiệp mẫu vì thế nặng
+// hơn cả thiệp thật của khách. Nén ngay lúc BIND, cùng một chỗ với lúc admin tự
+// chọn ảnh, để mọi blob trong siData đều đã đạt chuẩn và bước lưu chỉ việc ghi.
+//
+// Ảnh đã đạt ngưỡng → giữ nguyên bản + ghi lại dấu vết file gốc (srcName/srcSize)
+// để siIsUnchanged() bỏ qua lúc ghi. Ảnh vừa bị nén → BỎ dấu vết, vì bản trong
+// RAM không còn khớp file trên đĩa nữa, phải ghi đè.
+//
+// GIF/AVIF/BMP bị ImageHelper.canRecompress() loại (canvas làm mất animation / đổi
+// định dạng) nên luôn giữ nguyên.
+async function siBindImage(dirHandle, filename) {
+  const raw = await siReadAsMemoryFile(dirHandle, filename);
+  if (!raw) return null;
+
+  try {
+    const { file, compressed } = await ImageHelper.prepareImage(raw);
+    if (compressed) {
+      siLoadCompressed.count++;
+      siLoadCompressed.savedBytes += raw.size - file.size;
+      return { blob: file, srcName: null, srcSize: 0 };
+    }
+  } catch (e) {
+    // Nén lỗi (ảnh > 50MB, file hỏng…) không được làm hỏng cả lần nạp.
+    console.warn("Không nén được ảnh, giữ nguyên bản gốc:", filename, e);
+  }
+
+  return { blob: raw, srcName: filename, srcSize: raw.size };
+}
+
 function siTypeFromName(name) {
   const ext = (name.split(".").pop() || "").toLowerCase();
   if (ext === "png") return "image/png";
@@ -409,6 +441,8 @@ async function siLoadThemeData() {
   siRevokePreviews();
   siData = siEmptyData();
   siSuspendDraft = true;
+  siLoadCompressed.count = 0;
+  siLoadCompressed.savedBytes = 0;
 
   try {
     const json = await siReadJsonSafe(siThemeHandle);
@@ -437,15 +471,12 @@ async function siLoadThemeData() {
         n.toLowerCase().startsWith(prefix),
       );
       if (!name) continue;
-      const file = await siReadAsMemoryFile(siThemeHandle, name);
-      if (!file) continue;
+      const bound = await siBindImage(siThemeHandle, name);
+      if (!bound) continue;
       siData.singleImages[field] = {
-        blob: file,
+        ...bound,
         focal: json.image_focal_points?.[field] || { x: 50, y: 50 },
-        previewUrl: URL.createObjectURL(file),
-        // Dấu vết file gốc trên đĩa → lúc lưu bỏ qua ảnh y nguyên (siIsUnchanged).
-        srcName: name,
-        srcSize: file.size,
+        previewUrl: URL.createObjectURL(bound.blob),
       };
     }
 
@@ -497,31 +528,29 @@ async function siLoadThemeData() {
     });
 
     for (const name of galleryPlan.slice(0, SI_MAX_GALLERY)) {
-      const file = await siReadAsMemoryFile(siThemeHandle, name);
-      if (!file) continue;
+      const bound = await siBindImage(siThemeHandle, name);
+      if (!bound) continue;
       siData.gallery.push({
-        blob: file,
+        ...bound,
         focal: json.image_focal_points?.gallery_images?.[name] || {
           x: 50,
           y: 50,
         },
-        previewUrl: URL.createObjectURL(file),
-        srcName: name,
-        srcSize: file.size,
+        previewUrl: URL.createObjectURL(bound.blob),
       });
     }
 
     for (const item of lsPlan) {
-      const file = await siReadAsMemoryFile(siThemeHandle, item.name);
+      const bound = await siBindImage(siThemeHandle, item.name);
       siData.loveStory.push({
         date: item.date,
         title: item.title,
         content: item.content,
-        blob: file,
+        blob: bound ? bound.blob : null,
         focal: item.focal,
-        previewUrl: file ? URL.createObjectURL(file) : null,
-        srcName: item.name || null,
-        srcSize: file ? file.size : 0,
+        previewUrl: bound ? URL.createObjectURL(bound.blob) : null,
+        srcName: bound ? bound.srcName : null,
+        srcSize: bound ? bound.srcSize : 0,
       });
     }
 
@@ -535,6 +564,13 @@ async function siLoadThemeData() {
     const skipped = strays.length - strays.filter((n) => used.has(n)).length;
     if (skipped > 0) {
       showToast(`${skipped} ảnh trong thư mục bị bỏ qua (vượt giới hạn)`, "warning");
+    }
+
+    if (siLoadCompressed.count > 0) {
+      showToast(
+        `Đã nén ${siLoadCompressed.count} ảnh quá khổ trong thư mục (giảm ${siFormatMB(siLoadCompressed.savedBytes)}) — bấm Lưu để ghi đè xuống đĩa`,
+        "warning",
+      );
     }
 
     siRenderAll();
@@ -765,16 +801,7 @@ async function siHandleSingleUpload(event, fieldName) {
   }
 
   if (SI_CROP_FIELDS.includes(fieldName)) {
-    openImageCropModal(file, (blob) => {
-      const namedBlob = new File([blob], "cropped.png", { type: "image/png" });
-      siData.singleImages[fieldName] = {
-        blob: namedBlob,
-        focal: { x: 50, y: 50 },
-        previewUrl: URL.createObjectURL(namedBlob),
-      };
-      siRenderSingleImage(fieldName);
-      siMarkDirty(true);
-    });
+    openImageCropModal(file, (blob) => siStoreCropped(fieldName, blob));
     return;
   }
 
@@ -782,11 +809,11 @@ async function siHandleSingleUpload(event, fieldName) {
   openFocalPointPicker(file, current, async (focal) => {
     showLoading(true, "Đang xử lý ảnh...");
     try {
-      const resized = await siImageBL.resizeImage(file);
+      const { file: processed } = await ImageHelper.prepareImage(file);
       siData.singleImages[fieldName] = {
-        blob: resized,
+        blob: processed,
         focal,
-        previewUrl: URL.createObjectURL(resized),
+        previewUrl: URL.createObjectURL(processed),
       };
       siRenderSingleImage(fieldName);
       siMarkDirty(true);
@@ -809,19 +836,32 @@ function siAdjustSingleFocal(fieldName) {
   });
 }
 
+// Ảnh vừa cắt xong (QR) → vào state. Cắt lần đầu và cắt lại đều đi qua đây để
+// chỉ có MỘT chỗ quyết định ảnh được nén thế nào.
+async function siStoreCropped(fieldName, blob) {
+  if (!blob) return;
+  const cropped = new File([blob], "cropped.png", { type: "image/png" });
+  // Đi qua prepareImage như mọi ảnh khác cho đồng nhất. Ảnh cắt ra đã 800x800
+  // nên hầu như luôn đạt ngưỡng → trả nguyên bản, không mã hoá lại.
+  let processed = cropped;
+  try {
+    processed = (await ImageHelper.prepareImage(cropped)).file;
+  } catch (e) {
+    console.warn("Không nén được ảnh cắt, giữ nguyên bản gốc:", e);
+  }
+  siData.singleImages[fieldName] = {
+    blob: processed,
+    focal: { x: 50, y: 50 },
+    previewUrl: URL.createObjectURL(processed),
+  };
+  siRenderSingleImage(fieldName);
+  siMarkDirty(true);
+}
+
 function siRecropSingle(fieldName) {
   const entry = siData.singleImages[fieldName];
   if (!entry.blob) return;
-  openImageCropModal(entry.blob, (blob) => {
-    const namedBlob = new File([blob], "cropped.png", { type: "image/png" });
-    siData.singleImages[fieldName] = {
-      blob: namedBlob,
-      focal: { x: 50, y: 50 },
-      previewUrl: URL.createObjectURL(namedBlob),
-    };
-    siRenderSingleImage(fieldName);
-    siMarkDirty(true);
-  });
+  openImageCropModal(entry.blob, (blob) => siStoreCropped(fieldName, blob));
 }
 
 function siRemoveSingle(fieldName) {
@@ -882,11 +922,11 @@ async function siHandleGalleryUpload(event) {
   try {
     for (const file of files.slice(0, room)) {
       if (!file.type.startsWith("image/")) continue;
-      const resized = await siImageBL.resizeImage(file);
+      const { file: processed } = await ImageHelper.prepareImage(file);
       siData.gallery.push({
-        blob: resized,
+        blob: processed,
         focal: { x: 50, y: 50 },
-        previewUrl: URL.createObjectURL(resized),
+        previewUrl: URL.createObjectURL(processed),
       });
     }
   } catch (e) {
@@ -1007,10 +1047,10 @@ async function siHandleLoveStoryUpload(event, idx) {
   openFocalPointPicker(file, current, async (focal) => {
     showLoading(true, "Đang xử lý ảnh...");
     try {
-      const resized = await siImageBL.resizeImage(file);
-      siData.loveStory[idx].blob = resized;
+      const { file: processed } = await ImageHelper.prepareImage(file);
+      siData.loveStory[idx].blob = processed;
       siData.loveStory[idx].focal = focal;
-      siData.loveStory[idx].previewUrl = URL.createObjectURL(resized);
+      siData.loveStory[idx].previewUrl = URL.createObjectURL(processed);
       siRenderLoveStory();
       siMarkDirty(true);
     } catch (e) {
@@ -1110,67 +1150,9 @@ async function siWriteImage(entry, filename, progress) {
   entry.srcSize = entry.blob.size;
 }
 
-// ============= Nén ảnh trước khi ghi =============
-
 function siFormatMB(bytes) {
   const mb = bytes / 1024 / 1024;
   return mb >= 1 ? `${mb.toFixed(1)} MB` : `${Math.round(bytes / 1024)} KB`;
-}
-
-// Ảnh mẫu hay được chép TAY vào thư mục theme (kéo thẳng từ máy ảnh, ảnh gốc
-// 5-10 MB) hoặc bind lại từ những lần lưu cũ chưa qua nén — thiệp mẫu vì thế
-// nặng hơn cả thiệp thật của khách. Trước mỗi lần lưu, ép mọi ảnh về đúng ngưỡng
-// của ảnh khách tự upload (ImageBL: ≤ 1920px, ≤ 1MB):
-//   - đã thoả → BỎ QUA, không mã hoá lại (giữ nguyên chất lượng, khỏi tốn thời
-//     gian, và siIsUnchanged() vẫn bỏ qua được lúc ghi);
-//   - chưa thoả → nén rồi GHI ĐÈ luôn file trên đĩa.
-// GIF/AVIF/BMP bị ImageBL.canRecompress() loại (canvas làm mất animation / đổi
-// định dạng) nên giữ nguyên.
-async function siCompressAllForSave() {
-  const entries = [
-    ...SI_SINGLE_FIELDS.map((f) => siData.singleImages[f]),
-    ...siData.gallery,
-    ...siData.loveStory,
-  ].filter((e) => e && e.blob);
-
-  let compressed = 0;
-  let savedBytes = 0;
-
-  for (let i = 0; i < entries.length; i++) {
-    const entry = entries[i];
-    // Đã kiểm trong phiên này rồi (vd vòng ghi tiếp sau khi bị cắt ngang) thì
-    // khỏi decode lại cả chục MB ảnh.
-    if (entry.sizeChecked) continue;
-
-    showLoading(true, `Đang kiểm tra dung lượng ảnh ${i + 1}/${entries.length}...`);
-    try {
-      const before = entry.blob.size;
-      const res = await siImageBL.compressIfNeeded(entry.blob);
-      entry.sizeChecked = true;
-      if (!res.compressed) continue;
-
-      entry.blob = res.file;
-      // Xoá dấu vết file gốc: bản trong RAM không còn khớp file trên đĩa nữa,
-      // để siIsUnchanged() không bỏ qua (kể cả khi cỡ file tình cờ trùng).
-      entry.srcName = null;
-      entry.srcSize = 0;
-      if (entry.previewUrl) URL.revokeObjectURL(entry.previewUrl);
-      entry.previewUrl = URL.createObjectURL(res.file);
-      savedBytes += before - res.file.size;
-      compressed++;
-    } catch (e) {
-      // Nén lỗi không được làm hỏng cả lần lưu — cứ ghi bản gốc.
-      entry.sizeChecked = true;
-      console.warn("Không nén được ảnh, giữ nguyên bản gốc:", entry.srcName, e);
-    }
-  }
-
-  if (compressed) {
-    SI_SINGLE_FIELDS.forEach(siRenderSingleImage);
-    siRenderGallery();
-    siRenderLoveStory();
-  }
-  return { compressed, savedBytes };
 }
 
 // ============= Lưu dở dang → tự ghi tiếp =============
@@ -1324,10 +1306,8 @@ async function saveSampleImages({ scan = true } = {}) {
     // data.json được ghi đè lại lần nữa với tên ảnh chuẩn.
     await siWriteContentOnly();
 
-    // Nén trước khi tính tiến độ/ghi: ảnh nào phải nén thì blob đã đổi nên bước
-    // ghi bên dưới tự thấy "khác đĩa" và ghi đè.
-    const { compressed, savedBytes } = await siCompressAllForSave();
-
+    // Ảnh trong siData đã được nén sẵn lúc chọn/lúc bind từ đĩa (siBindImage) →
+    // ở đây chỉ ghi thẳng, không đụng canvas nữa.
     const json = { image_focal_points: { gallery_images: {} } };
     const keepFiles = new Set(["data.json"]);
 
@@ -1416,9 +1396,6 @@ async function saveSampleImages({ scan = true } = {}) {
     showToast(
       `Đã lưu dữ liệu mẫu cho theme ${siCurrentTheme}` +
         (backedUp ? " (bản data.json hỏng đã chép sang data.json.bak)" : "") +
-        (compressed
-          ? ` (đã nén ${compressed} ảnh, giảm ${siFormatMB(savedBytes)})`
-          : "") +
         (skipped ? ` (${skipped} ảnh không đổi nên giữ nguyên)` : "") +
         (removed ? ` (đã xoá ${removed} ảnh cũ)` : ""),
       "success",

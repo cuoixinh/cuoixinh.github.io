@@ -6,13 +6,14 @@
 // desktop mở qua localhost).
 //
 // Quy ước (giữ đúng "rule" của tab Dữ liệu mẫu):
-// 0. Thả ảnh vào là ảnh nằm CHỜ (chưa đụng đĩa), bấm "Lưu vào thư mục" mới nén
-//    + ghi — giống tab Dữ liệu mẫu. Trước lúc lưu vẫn chỉnh được điểm lấy nét
-//    hoặc bỏ bớt ảnh.
-// 1. Ghi là NÉN: ảnh vượt ngưỡng của danh mục bị nén qua ImageBL rồi mới ghi;
-//    ảnh đã đạt thì giữ nguyên file gốc (không mã hoá lại → không mất chất
-//    lượng vô ích). GIF/AVIF/BMP/SVG bị ImageBL.canRecompress() loại nên luôn
-//    giữ nguyên.
+// 0. Thả ảnh vào là ảnh nằm CHỜ (chưa đụng đĩa), bấm "Lưu vào thư mục" mới ghi.
+//    Trước lúc lưu vẫn chỉnh được điểm lấy nét hoặc bỏ bớt ảnh.
+// 1. Nén ĐÚNG MỘT LẦN, ngay lúc thả vào hàng chờ (axStageFiles), qua
+//    ImageHelper.prepareImage() — cùng hàm với tab Dữ liệu mẫu và luồng khách ở
+//    invitation-setup, chỉ khác ngưỡng (lấy theo danh mục). Ảnh đã đạt ngưỡng
+//    thì giữ nguyên file gốc (không mã hoá lại → không mất chất lượng vô ích);
+//    GIF/AVIF/BMP/SVG bị ImageHelper.canRecompress() loại nên luôn giữ nguyên.
+//    Lúc lưu KHÔNG xử lý gì nữa, chỉ ghi thẳng blob xuống đĩa.
 // 2. Tên file đặt theo TÊN THƯ MỤC + số thứ tự: flowers_01.png, flowers_02.png…
 //    (tên gốc lúc tải về thường vô nghĩa). Số chạy tiếp từ số lớn nhất đang có
 //    nên không bao giờ ghi đè; ảnh cũ chỉ mất khi bấm Xoá — ngược hẳn với tab
@@ -70,10 +71,6 @@ const AX_DEFAULT_FOCAL = { x: 50, y: 50 };
 // siIdbGet/siIdbPut khai báo ở js/03-sample-images.js: file đó luôn nạp trước
 // file này (xem mảng SCRIPTS trong loader.js).
 const AX_IDB_KEY = "assets-root";
-
-// Chỉ dùng compressIfNeeded()/getImageDimensions() (thuần canvas) → storageDAL
-// = null, ảnh ghi xuống đĩa chứ không lên Supabase.
-const axImageBL = new ImageBL(null);
 
 let axRootHandle = null; // thư mục assets/
 let axDirHandle = null; // thư mục đích; null = tên hợp lệ nhưng thư mục chưa tồn tại
@@ -393,7 +390,7 @@ async function axLoadFiles(focalOverrides = null) {
 
       for (const [name, handle] of handles) {
         const file = await handle.getFile();
-        const dim = await axImageBL.getImageDimensions(file).catch(() => null);
+        const dim = await ImageHelper.getImageDimensions(file).catch(() => null);
         const focal = focalOverrides?.[name] || focals[name] || { ...AX_DEFAULT_FOCAL };
         axFiles.push({
           name,
@@ -450,7 +447,7 @@ function axRenderPanel() {
   document.getElementById("ax-folder-meta").textContent = meta.join(" · ");
 
   document.getElementById("ax-limit-hint").textContent =
-    `Ảnh vượt ${limits.maxPx}px hoặc ${axFormatSize(limits.maxSizeMB * 1024 * 1024)} sẽ được nén lúc lưu (GIF/SVG giữ nguyên)`;
+    `Ảnh vượt ${limits.maxPx}px hoặc ${axFormatSize(limits.maxSizeMB * 1024 * 1024)} sẽ được nén ngay khi thả vào (GIF/SVG giữ nguyên)`;
 
   axRenderGrid();
   axRenderSaveBar();
@@ -655,8 +652,15 @@ function axHandleUpload(event) {
 }
 
 /**
- * Nhận nhiều ảnh cùng lúc và xếp vào hàng chờ. KHÔNG ghi gì xuống đĩa, cũng
- * chưa nén — nén lúc lưu (axSaveChanges) để ảnh vừa thả xem trước vẫn là bản gốc.
+ * Nhận nhiều ảnh cùng lúc và xếp vào hàng chờ. KHÔNG ghi gì xuống đĩa.
+ *
+ * Nén NGAY TẠI ĐÂY, đúng một lần — cùng quy ước với tab Dữ liệu mẫu và luồng
+ * khách ở invitation-setup (ImageHelper.prepareImage). Bấm Lưu chỉ còn ghi thẳng
+ * blob xuống đĩa. Nhờ vậy dung lượng/kích thước hiện trong hàng chờ cũng là số
+ * THẬT sẽ nằm trên đĩa, chứ không phải số của bản gốc.
+ *
+ * Ngưỡng lấy theo danh mục đang mở — đổi thư mục thì axConfirmDiscard() bắt dọn
+ * hàng chờ trước, nên ảnh trong hàng chờ luôn thuộc đúng danh mục này.
  */
 async function axStageFiles(files) {
   if (!axRootHandle || !axCurrentFolder) {
@@ -671,10 +675,36 @@ async function axStageFiles(files) {
     return;
   }
 
+  const limits = axLimitsFor(axCurrentFolder);
+  const imageLimits = {
+    maxWidth: limits.maxPx,
+    maxHeight: limits.maxPx,
+    maxSizeMB: limits.maxSizeMB,
+  };
+
+  let compressed = 0;
+  let savedBytes = 0;
+
   showLoading(true, `Đang đọc ${images.length} ảnh...`);
   try {
-    for (const file of images) {
-      const dim = await axImageBL.getImageDimensions(file).catch(() => null);
+    for (let i = 0; i < images.length; i++) {
+      const original = images[i];
+      showLoading(true, `Đang xử lý ảnh ${i + 1}/${images.length}...`);
+
+      let file = original;
+      try {
+        const res = await ImageHelper.prepareImage(original, imageLimits);
+        if (res.compressed) {
+          file = res.file;
+          savedBytes += res.savedBytes;
+          compressed++;
+        }
+      } catch (e) {
+        // Nén lỗi (ảnh > 50MB, file hỏng…) không được chặn cả mẻ — giữ bản gốc.
+        console.warn("Không nén được ảnh, giữ nguyên bản gốc:", original.name, e);
+      }
+
+      const dim = await ImageHelper.getImageDimensions(file).catch(() => null);
       axPending.push({
         file,
         size: file.size,
@@ -689,6 +719,7 @@ async function axStageFiles(files) {
 
   axRenderPanel();
   const msg = [`Đã thêm ${images.length} ảnh vào hàng chờ — bấm Lưu để ghi`];
+  if (compressed) msg.push(`nén ${compressed} ảnh (giảm ${axFormatSize(savedBytes)})`);
   if (notImages) msg.push(`bỏ qua ${notImages} file không phải ảnh`);
   showToast(msg.join(" · "), notImages ? "warning" : "success");
 }
@@ -797,11 +828,6 @@ async function axSaveChanges() {
     }
   }
 
-  const limits = axLimitsFor(axCurrentFolder);
-  axImageBL.maxWidth = limits.maxPx;
-  axImageBL.maxHeight = limits.maxPx;
-  axImageBL.maxSizeMB = limits.maxSizeMB;
-
   // Tên đã có trên đĩa (lowercase: macOS/Windows không phân biệt hoa thường).
   const taken = new Set(axFiles.map((f) => f.name.toLowerCase()));
   for await (const [name, handle] of axDirHandle.entries()) {
@@ -817,30 +843,22 @@ async function axSaveChanges() {
   });
   const savedNames = [];
   const leftover = []; // ảnh ghi lỗi → giữ trong hàng chờ để thử lại
-  let compressed = 0;
-  let savedBytes = 0;
   const errors = [];
 
   const total = axPending.length;
   try {
     for (let i = 0; i < total; i++) {
       const item = axPending[i];
-      showLoading(true, `Đang xử lý ảnh ${i + 1}/${total}...`);
+      showLoading(true, `Đang ghi ảnh ${i + 1}/${total}...`);
       try {
-        let blob = item.file;
-        const res = await axImageBL.compressIfNeeded(item.file);
-        if (res.compressed) {
-          savedBytes += item.file.size - res.file.size;
-          compressed++;
-          blob = res.file;
-        }
-
+        // item.file đã được nén sẵn lúc thả vào hàng chờ (axStageFiles) →
+        // ở đây chỉ ghi thẳng.
         const filename = axIndexedName(
           axCurrentFolder,
           nextIndex,
-          axExtFromBlob(blob, item.file.name),
+          axExtFromBlob(item.file, item.file.name),
         );
-        await axWriteFile(axDirHandle, filename, blob);
+        await axWriteFile(axDirHandle, filename, item.file);
         // Chỉ nhích số khi ghi XONG: ảnh lỗi không để lại lỗ hổng số thứ tự.
         nextIndex++;
         taken.add(filename.toLowerCase());
@@ -873,9 +891,10 @@ async function axSaveChanges() {
       savedNames.length > 1
         ? `${savedNames[0]} → ${savedNames[savedNames.length - 1]}`
         : savedNames[0];
-    const parts = [`Đã lưu ${savedNames.length} ảnh vào ${axFolderUrl()}/ (${range})`];
-    if (compressed) parts.push(`nén ${compressed} ảnh (giảm ${axFormatSize(savedBytes)})`);
-    showToast(parts.join(" · "), "success");
+    showToast(
+      `Đã lưu ${savedNames.length} ảnh vào ${axFolderUrl()}/ (${range})`,
+      "success",
+    );
   } else if (!errors.length) {
     showToast("Đã lưu điểm lấy nét vào manifest.json", "success");
   }

@@ -17,15 +17,13 @@ function getImageUrl(filename) {
   return storageDAL.getPublicUrl(filename);
 }
 
-// Resize image if too large (use BL layer)
-async function resizeImage(
-  file,
-  maxSizeMB = 1,
-  maxWidth = 1920,
-  maxHeight = 1920,
-  quality = 0.85,
-) {
-  return await imageBL.resizeImage(file);
+// Nén ảnh MỘT LẦN, ngay lúc người dùng chọn — dùng chung
+// ImageHelper.prepareImage() (core/helpers/image-helper.js) với luồng ảnh mẫu ở
+// admin. Ảnh đã đạt ngưỡng (≤ 1920px, ≤ 1MB) thì giữ nguyên bản gốc.
+// Lúc lưu (12-uploads.js) không nén lại nữa.
+async function prepareImage(file) {
+  const { file: processed } = await ImageHelper.prepareImage(file);
+  return processed;
 }
 
 // ============= IMAGE PREVIEW FUNCTIONS =============
@@ -342,12 +340,9 @@ async function handleImageUpload(event, fieldName) {
       pendingFocalPoints[fieldName],
       async (focal) => {
         pendingFocalPoints[fieldName] = focal;
-        showLoading(
-          true,
-          "Ảnh vượt quá dung lượng cho phép, đang nén ảnh lại...",
-        );
+        showLoading(true, "Đang xử lý ảnh...");
         try {
-          const processedFile = await resizeImage(file, 1, 1920, 1920);
+          const processedFile = await prepareImage(file);
           pendingUploads.singleImages[fieldName] = processedFile;
           _idbSaveSingle(fieldName, processedFile);
           _idbDelete(`${WEDDING_ID}_sf_${fieldName}`);
@@ -364,11 +359,11 @@ async function handleImageUpload(event, fieldName) {
     );
   } else {
     // Normal image upload (no crop)
-    showLoading(true, "Ảnh vượt quá dung lượng cho phép, đang nén ảnh lại...");
+    showLoading(true, "Đang xử lý ảnh...");
 
     try {
-      // Resize image locally
-      const processedFile = await resizeImage(file, 1, 1920, 1920);
+      // Nén ảnh ngay tại máy (chỉ khi vượt ngưỡng)
+      const processedFile = await prepareImage(file);
 
       // Store file for later upload
       pendingUploads.singleImages[fieldName] = processedFile;
@@ -438,10 +433,18 @@ function adjustSingleImageFocalPoint(fieldName) {
 /**
  * Lưu ảnh đã cắt (blob từ crop modal) cho field QR — thay ảnh, xoá focal cũ
  */
-function _storeCroppedImage(fieldName, blob, origName) {
+async function _storeCroppedImage(fieldName, blob, origName) {
   if (!blob) return;
   const base = (origName || "qr").replace(/\.[^.]+$/, "");
-  const file = new File([blob], `${base}.png`, { type: "image/png" });
+  const cropped = new File([blob], `${base}.png`, { type: "image/png" });
+  // Đi qua prepareImage như mọi ảnh khác cho đồng nhất. Ảnh cắt ra đã 800x800
+  // nên hầu như luôn đạt ngưỡng → trả nguyên bản, không mã hoá lại.
+  let file = cropped;
+  try {
+    file = await prepareImage(cropped);
+  } catch (e) {
+    console.warn("Không nén được ảnh cắt, giữ nguyên bản gốc:", e);
+  }
   pendingUploads.singleImages[fieldName] = file;
   _idbSaveSingle(fieldName, file);
   _idbDelete(`${WEDDING_ID}_sf_${fieldName}`); // xoá bản ghi focal-only (nếu có)
@@ -474,6 +477,62 @@ async function recropSingleImage(fieldName) {
     (blob) => _storeCroppedImage(fieldName, blob, source.name),
     _qrGiftInfo(fieldName),
   );
+}
+
+// ============= GALLERY UPLOAD =============
+
+async function handleGalleryUpload(event) {
+  const files = Array.from(event.target.files);
+  event.target.value = "";
+  if (files.length === 0) return;
+
+  const remainingSlots =
+    MAX_GALLERY_IMAGES - pendingUploads.galleryImages.length;
+  if (remainingSlots <= 0) {
+    showToast(`Đã đạt giới hạn ${MAX_GALLERY_IMAGES} ảnh`, "error");
+    return;
+  }
+
+  const filesToProcess = files.slice(0, remainingSlots);
+  if (files.length > remainingSlots) {
+    showToast(`Chỉ chọn được ${remainingSlots} ảnh nữa`, "warning");
+  }
+
+  const errors = [];
+  let added = 0;
+
+  for (let i = 0; i < filesToProcess.length; i++) {
+    const file = filesToProcess[i];
+    if (!file.type.startsWith("image/")) {
+      errors.push(`${file.name} không phải ảnh`);
+      continue;
+    }
+
+    // Open focal point picker for this image
+    const focal = await _openFocalPickerAsync(file, { x: 50, y: 50 });
+    if (!focal) continue; // user cancelled this image
+
+    showLoading(true, "Đang xử lý ảnh...");
+    try {
+      const processedFile = await prepareImage(file);
+      pendingUploads.galleryImages.push(processedFile);
+      pendingFocalPoints.gallery_images.set(processedFile, focal);
+      _idbAddGallery(processedFile);
+      added++;
+      const progress = Math.round((added / filesToProcess.length) * 100);
+      const progressEl = document.getElementById("upload-progress");
+      if (progressEl) progressEl.textContent = `${progress}%`;
+    } catch (error) {
+      console.error(`Error processing ${file.name}:`, error);
+      errors.push(`${file.name}: ${error.message}`);
+    } finally {
+      showLoading(false);
+    }
+  }
+
+  renderGalleryGrid();
+  if (added > 0) showToast(`Đã chọn ${added} ảnh (chưa lưu)`, "success");
+  if (errors.length > 0) showToast(`${errors.length} ảnh lỗi`, "warning");
 }
 
 /**
