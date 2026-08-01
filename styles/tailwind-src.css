@@ -140,9 +140,7 @@
 .cx-landing [class~="text-pink-500"] {
   color: rgb(255 183 202) !important;
 }
-.cx-landing :is(h1, h2, h3, h4, h5, h6, p, span, div, a, button, label) {
-  color: inherit;
-}
+
 .cx-landing [class~="text-white"] {
   color: white !important;
 }
