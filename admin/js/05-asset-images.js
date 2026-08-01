@@ -680,6 +680,11 @@ async function axStageFiles(files) {
     maxWidth: limits.maxPx,
     maxHeight: limits.maxPx,
     maxSizeMB: limits.maxSizeMB,
+    // BẮT BUỘC truyền: whitelist mặc định của ImageHelper là whitelist ảnh
+    // KHÁCH (không có SVG). Kho ảnh có SVG thật (icon hoa, khung viền) nên phải
+    // đưa danh sách rộng hơn của CONFIG.image.assets vào, không thì validate
+    // chặn nhầm ngay từ lúc thả file.
+    allowedTypes: AX_DEFAULT_LIMITS.allowedTypes,
   };
 
   let compressed = 0;

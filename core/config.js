@@ -50,6 +50,23 @@ const CONFIG = {
     // không treo trình duyệt. Áp cho MỌI luồng.
     maxInputMB: 50,
 
+    // Định dạng được NHẬN (whitelist, không dùng `image/*`). Đây là danh sách
+    // mặc định — áp cho ảnh khách upload:
+    //   - SVG bị loại: là file chủ động (chứa được script), không phải ảnh bitmap.
+    //   - HEIC/HEIF bị loại: nén không được (canvas không decode) mà nhiều trình
+    //     duyệt desktop cũng không hiển thị được → khách mời mở thiệp thấy ảnh vỡ.
+    //   - BMP/TIFF bị loại: nặng vô lý, người dùng nên đổi sang JPG.
+    // GIF/AVIF vẫn nhận nhưng ImageHelper.canRecompress() không nén (giữ nguyên bản).
+    // Luồng nào cần nới thì khai `allowedTypes` riêng bên dưới.
+    allowedTypes: [
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+      "image/webp",
+      "image/gif",
+      "image/avif",
+    ],
+
     // Ảnh khách tự upload (invitation-setup). Siết chặt nhất: ảnh đi qua băng
     // thông Supabase và được tải lại mỗi lần khách mời mở thiệp.
     customer: {
@@ -64,6 +81,16 @@ const CONFIG = {
     // khác `customer`; khung ảnh vẫn 1920px.
     sampleData: {
       maxSizeMB: 1.5,
+      // Khớp SI_IMAGE_EXT_RE trong admin/js/03-sample-images.js (có thêm BMP).
+      allowedTypes: [
+        "image/jpeg",
+        "image/jpg",
+        "image/png",
+        "image/webp",
+        "image/gif",
+        "image/avif",
+        "image/bmp",
+      ],
     },
 
     // Kho ảnh dùng chung (admin → tab "Ảnh mẫu"). Mọi danh mục (icon hoa, khung
@@ -72,6 +99,19 @@ const CONFIG = {
     assets: {
       maxPx: 1920,
       maxSizeMB: 1,
+      // Kho ảnh CÓ SVG thật (icon hoa, khung viền) — khớp AX_IMAGE_EXT_RE trong
+      // admin/js/05-asset-images.js. Chỉ admin mới up được vào đây nên chấp nhận
+      // được; ảnh khách vẫn dùng whitelist mặc định ở trên.
+      allowedTypes: [
+        "image/jpeg",
+        "image/jpg",
+        "image/png",
+        "image/webp",
+        "image/gif",
+        "image/avif",
+        "image/bmp",
+        "image/svg+xml",
+      ],
     },
   },
 

@@ -17,12 +17,45 @@ function getImageUrl(filename) {
   return storageDAL.getPublicUrl(filename);
 }
 
+// Chặn định dạng ngay khi chọn file. Whitelist khai ở CONFIG.image.allowedTypes
+// (core/config.js) — không kiểm `image/*` nữa vì SVG (file chủ động, chứa được
+// script) và HEIC (nhiều trình duyệt desktop không hiển thị được → khách mời
+// thấy ảnh vỡ) đều lọt qua kiểu kiểm đó.
+function _checkImageType(file) {
+  if (ImageHelper.isAllowedType(file)) return true;
+  showToast(
+    "Định dạng không hỗ trợ — hãy dùng JPG, PNG hoặc WebP (ảnh iPhone .HEIC cần đổi sang JPG).",
+    "error",
+  );
+  return false;
+}
+
+// Ảnh không nén được mà vẫn nặng hơn mức này thì phải báo cho người dùng biết.
+// 3MB: dưới mức đó thì thiệp vẫn mở nhanh, trên mức đó khách mời dùng 3G sẽ thấy rõ.
+const HEAVY_UNCOMPRESSED_BYTES = 3 * 1024 * 1024;
+
 // Nén ảnh MỘT LẦN, ngay lúc người dùng chọn — dùng chung
 // ImageHelper.prepareImage() (core/helpers/image-helper.js) với luồng ảnh mẫu ở
 // admin. Ảnh đã đạt ngưỡng (≤ 1920px, ≤ 1MB) thì giữ nguyên bản gốc.
 // Lúc lưu (12-uploads.js) không nén lại nữa.
+//
+// compressIfNeeded() có nhiều đường trả về NGUYÊN BẢN không nén: định dạng
+// không nén được (GIF/AVIF), decode hỏng (ảnh panorama quá lớn, máy yếu hết
+// RAM), hoặc bản nén còn to hơn bản gốc. Các đường đó im lặng — không bắt lấy
+// cờ `compressed` thì người dùng vẫn thấy "Đã chọn ảnh" y như bình thường, rồi
+// một file 12MB đi thẳng lên Storage và mọi khách mời phải tải về. Chỉ phát
+// hiện khi có người kêu thiệp mở chậm, nên cảnh báo ngay tại đây.
 async function prepareImage(file) {
-  const { file: processed } = await ImageHelper.prepareImage(file);
+  const { file: processed, compressed } = await ImageHelper.prepareImage(file);
+
+  if (!compressed && processed.size > HEAVY_UNCOMPRESSED_BYTES) {
+    const mb = (processed.size / 1024 / 1024).toFixed(1);
+    showToast(
+      `Ảnh ${mb}MB không nén được — khách mời sẽ tải rất chậm. Nên đổi sang JPG rồi tải lại.`,
+      "warning",
+    );
+  }
+
   return processed;
 }
 
@@ -318,10 +351,7 @@ async function handleImageUpload(event, fieldName) {
     `Selected image for ${fieldName}: ${file.name}, size: ${(file.size / 1024 / 1024).toFixed(2)}MB`,
   );
 
-  if (!file.type.startsWith("image/")) {
-    showToast("Chỉ chấp nhận file ảnh!", "error");
-    return;
-  }
+  if (!_checkImageType(file)) return;
 
   if (CROP_FIELDS.includes(fieldName)) {
     // Hộp mừng cưới: mở modal cắt ảnh (crop 1:1, có zoom + kéo) rồi lưu ảnh đã cắt
@@ -503,8 +533,8 @@ async function handleGalleryUpload(event) {
 
   for (let i = 0; i < filesToProcess.length; i++) {
     const file = filesToProcess[i];
-    if (!file.type.startsWith("image/")) {
-      errors.push(`${file.name} không phải ảnh`);
+    if (!ImageHelper.isAllowedType(file)) {
+      errors.push(`${file.name}: định dạng không hỗ trợ`);
       continue;
     }
 

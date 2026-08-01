@@ -213,7 +213,7 @@ function renderLoveStoryList() {
         input-class="w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-gray-800 bg-white outline-none transition-all placeholder:text-gray-400/50 focus:ring-2 focus:ring-rose-500/30 focus:ring-offset-2 resize-none"
         placeholder="Kể ngắn về khoảnh khắc này..."></x-textarea>
       <div class="flex items-center flex-wrap gap-2">
-        <input type="file" id="ls-img-input-${idx}" accept="image/*" class="hidden"
+        <input type="file" id="ls-img-input-${idx}" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" class="hidden"
           onchange="handleLoveStoryImage(${idx}, this)" />
         ${
           preview
@@ -267,10 +267,7 @@ function _openFocalPickerAsync(source, currentFocal) {
 async function handleLoveStoryImage(idx, input) {
   const file = input.files[0];
   if (!file) return;
-  if (!file.type.startsWith("image/")) {
-    showToast("Chỉ chấp nhận file ảnh!", "error");
-    return;
-  }
+  if (!_checkImageType(file)) return; // khai ở 10-images.js (nạp trước file này)
   input.value = "";
   const focal = await _openFocalPickerAsync(
     file,
