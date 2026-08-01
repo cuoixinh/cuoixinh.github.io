@@ -541,6 +541,22 @@ html.cx-landing {
   animation: light-ray 1.6s infinite ease-in-out;
   pointer-events: none;
 }
+/* Ảnh tải lỗi: tắt hiệu ứng quét sáng, hiện icon nhẹ thay cho ảnh hỏng */
+.card-skeleton.is-error::after {
+  display: none;
+}
+.card-skeleton-fallback {
+  display: none;
+  position: absolute;
+  inset: 0;
+  align-items: center;
+  justify-content: center;
+  color: #f3c6d8;
+  font-size: 32px;
+}
+.card-skeleton.is-error .card-skeleton-fallback {
+  display: flex;
+}
 
 .nav-scrolled {
   box-shadow: 0 2px 20px rgba(200, 100, 130, 0.08);

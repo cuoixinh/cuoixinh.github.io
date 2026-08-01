@@ -56,8 +56,17 @@ function initHeroImage() {
   const skeleton = document.getElementById("hero-skeleton");
   const card = document.getElementById("hero-card-preview");
   if (img) {
+    // Ảnh ẩn cho tới khi tải xong: mạng chậm / lỗi thì chỉ thấy skeleton,
+    // không thấy icon "ảnh hỏng" của trình duyệt.
+    img.onload = () => {
+      img.style.opacity = "1";
+      if (skeleton) skeleton.style.display = "none";
+    };
+    img.onerror = () => {
+      img.style.display = "none";
+      if (skeleton) skeleton.classList.add("is-error");
+    };
     img.src = `/assets/images/templates/${first.theme}.jpg`;
-    img.onload = () => { if (skeleton) skeleton.style.display = "none"; };
   }
   if (card) {
     card.style.cursor = "pointer";
