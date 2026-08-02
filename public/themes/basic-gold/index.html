@@ -28,15 +28,137 @@
   <body
     class="bg-white min-h-screen flex justify-center items-center p-0 md:py-5"
   >
-    <!-- Music Control Button -->
-    <button
+    <!-- Trình phát nhạc nền — chỉ là MARKUP. Toàn bộ logic (icon phát/dừng, tên
+         bài, tiến trình, tua) nằm ở core/helpers/music-player-helper.js và gắn
+         vào qua các thuộc tính data-cx-music bên dưới → theme khác muốn UI khác
+         thì chỉ việc viết HTML khác, không đụng JS.
+         Giữ id="music-toggle" vì setupMusic() trong core/helpers/render-helper.js
+         ẩn/hiện theo id này (display:none / flex) — nên thẻ phải là flex-col.
+         Cố ý KHÔNG đặt id="music-icon" (icon của nút tròn kiểu cũ) để
+         updateMusicIcon() dùng chung không ghi đè icon của thẻ này.
+         .cx-no-edit để runtime chỉnh-tay của tab Giao diện bỏ qua thẻ này.
+         Màu chữ dùng stone của Tailwind (không phải stone-custom) để cài đặt
+         màu của người dùng không làm chữ trên thẻ mất hút.
+         Canh giữa bằng inset-x-0 + mx-auto chứ KHÔNG dùng -translate-x-1/2:
+         tổ tiên có transform sẽ thành containing block, bong bóng `fixed` bên
+         trong sẽ neo theo thẻ này thay vì theo màn hình → kéo thả sai chỗ. -->
+    <div
       id="music-toggle"
-      class="fixed bottom-4 right-4 z-[60] w-10 h-10 md:w-12 md:h-12 rounded-full bg-white/90 backdrop-blur-sm shadow-lg flex items-center justify-center text-rose-pastel-300 hover:bg-white transition-all duration-300"
-      onclick="toggleYouTubeMusic()"
-      aria-label="Toggle music"
+      data-cx-music="root"
+      data-cx-play-icon="fas fa-play ml-px"
+      data-cx-pause-icon="fas fa-pause"
+      data-cx-seek="10"
+      data-cx-empty-title="Nhạc nền"
+      data-cx-reveal-on-scroll="64"
+      class="cx-mp cx-mp-fixed-top cx-no-edit fixed top-0 inset-x-0 mx-auto z-[60] w-full max-w-[430px] md:max-w-[768px] flex-col px-2 md:px-3"
+      style="display: none"
     >
-      <i id="music-icon" class="fas fa-music text-base md:text-lg"></i>
-    </button>
+      <!-- .cx-mp-bar = thanh trên đỉnh. LUÔN đứng yên ở đây, không kéo được;
+           vuốt lên tay nắm thì nó ẩn đi và bong bóng bên dưới hiện ra. -->
+      <div
+        class="cx-mp-bar mt-2 rounded-2xl overflow-hidden shadow-lg backdrop-blur-md bg-gradient-to-r from-rose-pastel-100/95 to-rose-pastel-200/95"
+      >
+        <!-- Tất cả trên MỘT hàng (cao 48px): bìa · tên bài · lùi/phát/tới.
+             CHÍNH THẺ NÀY là thanh tiến trình (data-cx-music="progress"): phần đã
+             phát được tô sáng dần từ trái sang, bấm chỗ nào tua tới chỗ đó — không
+             tốn thêm một dải riêng. Helper tự bỏ qua cú bấm rơi vào nút bên trong.
+             Các phần tử nội dung phải là `relative` để nằm TRÊN lớp tô. -->
+        <div
+          data-cx-music="progress"
+          class="cx-mp-prog relative flex items-center gap-2 px-3 py-2 overflow-hidden cursor-pointer"
+        >
+          <!-- Phần đã phát -->
+          <div
+            data-cx-music="fill"
+            class="cx-mp-fill absolute inset-y-0 left-0 w-0 bg-white/40 pointer-events-none"
+          ></div>
+
+          <!-- Ảnh bìa: nốt nhạc là nền dự phòng, có thumbnail thì ảnh đè lên -->
+          <div
+            class="relative shrink-0 w-8 h-8 rounded-lg overflow-hidden bg-gradient-to-br from-rose-pastel-200 to-rose-pastel-300 ring-1 ring-inset ring-white/40 flex items-center justify-center"
+          >
+            <i class="cx-mp-note fas fa-music text-white text-[11px]"></i>
+            <img
+              data-cx-music="thumb"
+              alt=""
+              hidden
+              class="absolute inset-0 w-full h-full object-cover"
+            />
+          </div>
+
+          <!-- Tên bài -->
+          <div class="relative min-w-0 flex-1 overflow-hidden">
+            <div
+              data-cx-music="title"
+              class="cx-mp-title font-inter italic text-[13px] text-stone-600 leading-tight"
+            >
+              Nhạc nền
+            </div>
+          </div>
+
+          <!-- Lùi 10 giây · Phát/Tạm dừng · Tới 10 giây -->
+          <div class="relative shrink-0 flex items-center gap-1">
+            <button
+              type="button"
+              data-cx-music="back"
+              aria-label="Lùi 10 giây"
+              class="w-8 h-8 rounded-full bg-white/40 text-stone-600 flex items-center justify-center transition-transform active:scale-90"
+            >
+              <i class="fas fa-backward text-[10px]"></i>
+            </button>
+            <button
+              type="button"
+              data-cx-music="toggle"
+              aria-label="Phát hoặc tạm dừng nhạc nền"
+              class="w-8 h-8 rounded-full bg-white/80 text-stone-600 flex items-center justify-center shadow-sm transition-transform active:scale-90"
+            >
+              <!-- Class ở đây là phần của theme (cỡ chữ); helper ghép thêm
+                   fa-play / fa-pause vào tuỳ trạng thái. -->
+              <i data-cx-music="icon" class="text-[11px]"></i>
+            </button>
+            <button
+              type="button"
+              data-cx-music="forward"
+              aria-label="Tới 10 giây"
+              class="w-8 h-8 rounded-full bg-white/40 text-stone-600 flex items-center justify-center transition-transform active:scale-90"
+            >
+              <i class="fas fa-forward text-[10px]"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Tay nắm: vuốt lên để thu thanh về bong bóng. Rộng hết khối cho dễ
+             vuốt; helper lo cử chỉ. -->
+        <button
+          type="button"
+          data-cx-music="handle"
+          aria-label="Vuốt lên để thu gọn trình phát nhạc"
+          class="cx-mp-handle w-full h-4 flex items-center justify-center cursor-grab active:cursor-grabbing"
+        >
+          <span class="w-8 h-1 rounded-full bg-white/70"></span>
+        </button>
+      </div>
+
+      <!-- Bong bóng: chỉ hiện khi đã thu gọn. Kéo đi khắp màn hình, thả tay thì
+           tự bay về bám lề; CHẠM (không kéo) = mở lại thanh. Neo sẵn bên phải,
+           helper ghi đè left/top khi bị kéo. Trong bong bóng chỉ có ảnh bìa bài
+           hát (thumbnail YouTube), nốt nhạc là nền dự phòng khi chưa có ảnh. -->
+      <button
+        type="button"
+        data-cx-music="bubble"
+        aria-label="Mở lại thanh nhạc"
+        class="cx-mp-bubble fixed right-3 top-24 w-9 h-9 rounded-full shadow-[0_8px_24px_rgba(120,70,80,0.4)] ring-2 ring-white/70 bg-gradient-to-br from-rose-pastel-200 to-rose-pastel-300 items-center justify-center cursor-grab active:cursor-grabbing"
+      >
+        <i class="cx-mp-note fas fa-music text-white text-[10px]"></i>
+        <!-- cx-mp-spin: quay tròn khi đang phát -->
+        <img
+          data-cx-music="thumb"
+          alt=""
+          hidden
+          class="cx-mp-spin absolute inset-0 w-full h-full rounded-full object-cover"
+        />
+      </button>
+    </div>
 
     <!-- Cover Screen -->
     <div
@@ -746,7 +868,8 @@
                   id="map-placeholder"
                   class="hidden absolute inset-0 flex flex-col items-center justify-center gap-2 bg-rose-pastel-50"
                   style="
-                    background-image: linear-gradient(
+                    background-image:
+                      linear-gradient(
                         rgba(212, 165, 165, 0.1) 1px,
                         transparent 1px
                       ),
@@ -858,7 +981,11 @@
     <script src="../../../core/config.js"></script>
 
     <!-- Supabase SDK -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.8" integrity="sha384-Tve8O+C6PBzsIMK/IRCwHbi8fyEzXIlIs6OfVBZHubplwYhaQF/4Mzxqgg+pp/oy" crossorigin="anonymous"></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.8"
+      integrity="sha384-Tve8O+C6PBzsIMK/IRCwHbi8fyEzXIlIs6OfVBZHubplwYhaQF/4Mzxqgg+pp/oy"
+      crossorigin="anonymous"
+    ></script>
 
     <!-- DAL Layer -->
     <script src="../../../core/dal/wedding-dal.js"></script>
@@ -876,6 +1003,8 @@
 
     <!-- Helper files -->
     <script src="../../../core/helpers/youtube-helper.js"></script>
+    <!-- Phải nạp SAU youtube-helper (nguồn phát nhạc) -->
+    <script src="../../../core/helpers/music-player-helper.js"></script>
     <script src="../../../core/helpers/lightbox-helper.js"></script>
     <script src="../../../core/helpers/calendar-helper.js"></script>
     <script src="../../../core/helpers/wedding-helper.js"></script>
@@ -885,23 +1014,5 @@
 
     <!-- UI Layer -->
     <script src="index.js"></script>
-
-    <script>
-      // Background Music Control
-      let isPlaying = false;
-      const bgMusic = document.getElementById("bg-music");
-      const musicIcon = document.getElementById("music-icon");
-
-      // Initialize music source
-      function initMusic() {
-        // Check if we have wedding data with music_url
-        if (window.weddingData && window.weddingData.music_url) {
-          bgMusic.src = window.weddingData.music_url;
-        } else {
-          // Default music for preview
-          bgMusic.src = "../../../assets/musics/Beautiful In White.mp3";
-        }
-      }
-    </script>
   </body>
 </html>

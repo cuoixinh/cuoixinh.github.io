@@ -5,6 +5,9 @@
 let youtubePlayer = null;
 let isYouTubeMusicReady = false;
 let isYouTubePlaying = false;
+// Biết từ lúc khởi tạo, không phải đợi player nạp xong metadata — dùng để dựng
+// URL ảnh bìa (thumbnail) cho UI hiển thị sớm.
+let _musicVideoId = null;
 
 /**
  * Load YouTube IFrame API
@@ -60,6 +63,7 @@ function initYouTubeMusic(musicUrl) {
 
   const videoId = extractYouTubeVideoId(musicUrl);
   if (!videoId) return;
+  _musicVideoId = videoId;
 
   loadYouTubeAPI();
 
@@ -94,6 +98,7 @@ function initYouTubeMusic(musicUrl) {
             // KHÔNG coi như đang phát: trình duyệt có thể chặn (xem
             // _playOnFirstGesture). onStateChange mới là nguồn sự thật.
             _playOnFirstGesture();
+            _emitMusicState();
           },
           onStateChange: (event) => {
             if (event.data === YT.PlayerState.ENDED) {
@@ -101,6 +106,7 @@ function initYouTubeMusic(musicUrl) {
             }
             isYouTubePlaying = event.data === YT.PlayerState.PLAYING;
             updateMusicIcon();
+            _emitMusicState();
           },
         },
       });
@@ -160,6 +166,23 @@ function toggleYouTubeMusic() {
     _musicUserPaused = false;
   }
   updateMusicIcon();
+  _emitMusicState();
+}
+
+/**
+ * Phát tiếp — nhưng CHỈ khi người dùng chưa chủ động bấm dừng.
+ * Dùng cho các mốc "nên phát lại" do UI quyết định (vd theme cho hiện trình phát
+ * khi cuộn xuống). Người dùng đã bấm dừng thì tôn trọng, không tự bật lại.
+ * @returns {boolean} có gọi phát hay không
+ */
+function resumeMusicIfAllowed() {
+  if (!youtubePlayer || isYouTubePlaying || _musicUserPaused) return false;
+  try {
+    youtubePlayer.playVideo();
+  } catch (e) {
+    return false;
+  }
+  return true;
 }
 
 /**
@@ -174,5 +197,82 @@ function updateMusicIcon() {
   }
 }
 
+// ── Thông tin bài đang phát (cho theme vẽ thanh nhạc kiểu app nghe nhạc) ────
+// Phần dưới đây chỉ BỔ SUNG: theme nào không nghe `cx:music-state` và không gọi
+// getMusicInfo/getMusicPosition thì hành vi cũ (nút tròn + updateMusicIcon)
+// không đổi chút nào.
+
+/**
+ * @returns {{playing: boolean, title: string, author: string, videoId: string,
+ *            thumbnail: string}}
+ */
+function getMusicInfo() {
+  let title = "";
+  let author = "";
+  let videoId = _musicVideoId || "";
+  try {
+    // getVideoData chỉ có sau khi player nạp xong metadata → có thể rỗng ở
+    // những lần gọi đầu, người gọi cứ hỏi lại ở lần cập nhật sau.
+    const d =
+      youtubePlayer &&
+      youtubePlayer.getVideoData &&
+      youtubePlayer.getVideoData();
+    if (d) {
+      title = d.title || "";
+      author = d.author || "";
+      videoId = d.video_id || videoId;
+    }
+  } catch (e) {}
+  return {
+    playing: isYouTubePlaying,
+    title,
+    author,
+    videoId,
+    // mqdefault: 320×180, luôn tồn tại với mọi video (maxres thì không).
+    thumbnail: videoId
+      ? "https://img.youtube.com/vi/" + videoId + "/mqdefault.jpg"
+      : "",
+  };
+}
+
+/**
+ * @returns {{current: number, duration: number}} giây
+ */
+function getMusicPosition() {
+  try {
+    if (youtubePlayer && youtubePlayer.getDuration) {
+      return {
+        current: youtubePlayer.getCurrentTime() || 0,
+        duration: youtubePlayer.getDuration() || 0,
+      };
+    }
+  } catch (e) {}
+  return { current: 0, duration: 0 };
+}
+
+/**
+ * Tua tới giây chỉ định (thanh tiến trình bấm để tua).
+ * @param {number} seconds
+ */
+function seekMusic(seconds) {
+  try {
+    if (youtubePlayer && youtubePlayer.seekTo) {
+      youtubePlayer.seekTo(Math.max(0, seconds), true);
+    }
+  } catch (e) {}
+}
+
+function _emitMusicState() {
+  try {
+    window.dispatchEvent(
+      new CustomEvent("cx:music-state", { detail: getMusicInfo() }),
+    );
+  } catch (e) {}
+}
+
 // Make toggle function global
 window.toggleYouTubeMusic = toggleYouTubeMusic;
+window.getMusicInfo = getMusicInfo;
+window.resumeMusicIfAllowed = resumeMusicIfAllowed;
+window.getMusicPosition = getMusicPosition;
+window.seekMusic = seekMusic;

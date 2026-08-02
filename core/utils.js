@@ -1038,8 +1038,13 @@ function closeTimePicker() {
     document.body.appendChild(navbar);
     document.body.style.paddingBottom = (navbar.offsetHeight || NAVBAR_H) + "px";
 
+    // Đẩy nút nhạc lên khỏi navbar — chỉ với theme còn dùng nút tròn neo ở đáy.
+    // basic-gold đã đổi sang thanh nhạc neo ở ĐỈNH: gán bottom vào đó sẽ vừa
+    // top vừa bottom → phần tử bị kéo giãn hết màn hình.
     var musicBtn = document.getElementById("music-toggle");
-    if (musicBtn) musicBtn.style.bottom = ((navbar.offsetHeight || NAVBAR_H) + 8) + "px";
+    if (musicBtn && getComputedStyle(musicBtn).bottom !== "auto") {
+      musicBtn.style.bottom = ((navbar.offsetHeight || NAVBAR_H) + 8) + "px";
+    }
 
     document.getElementById("pnav-close").addEventListener("click", function () { history.back(); });
     document.getElementById("pnav-choose").addEventListener("click", _chooseTheme);

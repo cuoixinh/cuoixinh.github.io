@@ -1,0 +1,164 @@
+/* ── Trình phát nhạc nền: phần CSS dùng chung cho mọi theme ─────────────────
+   Cặp với core/helpers/music-player-helper.js. Chỉ nạp trong build THIỆP
+   (styles/themes-src.css).
+
+   Ở đây CHỈ có những thứ utility Tailwind không tả được (keyframes, safe-area,
+   vùng chạm, biến CSS). Bố cục/màu/kích thước là chuyện riêng của từng theme →
+   viết utility thẳng trong HTML của theme, đừng dồn vào đây.
+   KHÔNG bọc @layer (xem CLAUDE.md). */
+
+/* Thẻ bọc neo cố định ở đỉnh màn hình (class tuỳ chọn — theme nào đặt trình
+   phát ở chỗ khác thì không dùng). */
+
+.cx-mp-fixed-top {
+  /* iOS: né tai thỏ, khớp với padding-top của #main-card trong _common.css */
+  padding-top: env(safe-area-inset-top, 0px);
+
+  /* Thẻ bọc thường rộng bằng thiệp nhưng trình phát chỉ chiếm một phần —
+     đừng để khoảng trống hai bên nuốt cú chạm vào nội dung bên dưới. */
+  pointer-events: none;
+}
+
+.cx-mp-fixed-top > * {
+  pointer-events: auto;
+}
+
+/* Chỉ hiện khi đã cuộn xuống (theme bật bằng data-cx-reveal-on-scroll).
+   Chỉ nhắm .cx-mp-bar (thanh trên cùng) chứ không nhắm cả thẻ root: bong bóng
+   cũng nằm trong root, mà nó thì phải hiện kể cả khi đang ở đầu trang.
+   Không dùng `display` vì setupMusic() đang quản thuộc tính đó. */
+
+.cx-mp-bar {
+  transition:
+    opacity 0.4s ease,
+    transform 0.4s cubic-bezier(0.32, 0.72, 0, 1),
+    visibility 0.4s;
+}
+
+/* Thanh ẩn = nấp hẳn trên mép màn (-100% chiều cao, trừ hao thêm khoảng cách
+   theme đặt) + mờ đi. Dùng CHUNG cho cả hai lý do ẩn, để hướng chuyển động luôn
+   nhất quán: vuốt lên thì bay lên nấp, cuộn tới thì bay xuống hiện ra.
+   Không dùng `display: none` vì thế thì không có gì để chuyển tiếp.
+
+   Đặt transform ở ĐÂY được vì bong bóng là thẻ ANH EM của .cx-mp-bar, không
+   phải con — transform ở đây không tạo containing block cho `fixed` của nó. */
+
+.cx-mp-reveal.is-hidden .cx-mp-bar,
+.is-collapsed .cx-mp-bar {
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(calc(-100% - 16px));
+}
+
+.cx-mp-bubble {
+  display: none;
+
+  /* Cử chỉ kéo do JS lo — để trình duyệt cuộn trang theo thì kéo không mượt */
+  touch-action: none;
+  animation: cx-mp-pop 0.25s ease-out;
+}
+
+.is-collapsed .cx-mp-bubble {
+  display: flex;
+}
+
+@keyframes cx-mp-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Vuốt trên tay nắm không được kéo theo cả trang */
+
+.cx-mp-handle {
+  touch-action: none;
+}
+
+/* Quay tròn khi đang phát (đĩa nhạc / ảnh bìa trong bong bóng). Theme gắn class
+   này vào phần NỘI DUNG tròn chứ đừng gắn lên chính bong bóng: bong bóng đang
+   giữ hiệu ứng cx-mp-pop, hai animation cùng đổi `transform` thì cái sau đè cái
+   trước chứ không cộng lại. Nội dung tròn nên xoay cái nào nhìn cũng như nhau. */
+
+.cx-mp.is-playing .cx-mp-spin {
+  animation: cx-mp-spin 8s linear infinite;
+}
+
+@keyframes cx-mp-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Nốt nhạc / hoạ tiết trên ảnh bìa: thở nhẹ khi đang phát, đứng yên khi dừng.
+   .is-playing do helper gắn lên thẻ root. */
+
+.cx-mp.is-playing .cx-mp-note {
+  animation: cx-mp-breathe 2.4s ease-in-out infinite;
+}
+
+@keyframes cx-mp-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.12);
+  }
+}
+
+/* Tên bài dài → chạy qua chạy lại thay vì cắt cụt.
+   --cx-mp-shift do helper tính (phần bị tràn); không có thì đứng yên. */
+
+.cx-mp-title {
+  white-space: nowrap;
+  will-change: transform;
+}
+
+.cx-mp-title.is-scroll {
+  /* Tên ngắn có thể canh giữa tuỳ theme; tên dài phải về canh trái, không thì
+     nowrap tràn cả hai bên và marquee mất đoạn đầu. */
+  text-align: left;
+  animation: cx-mp-scroll 9s ease-in-out infinite alternate;
+}
+
+@keyframes cx-mp-scroll {
+  0%,
+  12% {
+    transform: translateX(0);
+  }
+
+  88%,
+  100% {
+    transform: translateX(var(--cx-mp-shift, 0px));
+  }
+}
+
+/* Vùng tiến trình mảnh (theme kẻ một dải riêng): nới vùng chạm cho dễ bấm tua.
+   Theme nào lấy cả thẻ trình phát làm vùng tiến trình thì thẻ đã đủ rộng, phần
+   nới này bị overflow-hidden cắt nên vô hại. */
+
+.cx-mp-prog::before {
+  content: "";
+  position: absolute;
+  inset: -8px 0;
+}
+
+.cx-mp-fill {
+  transition: width 0.25s linear;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cx-mp.is-playing .cx-mp-note,
+  .cx-mp.is-playing .cx-mp-spin,
+  .cx-mp-title.is-scroll,
+  .cx-mp-bubble {
+    animation: none;
+  }
+}
