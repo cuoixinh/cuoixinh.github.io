@@ -33,6 +33,14 @@ function _savePreviewData() {
     data[key] = IMAGE_FIELDS.includes(key) ? getImageUrl(v) : v;
   });
 
+  // Nhạc nền: #music-url-input nằm trong config-panel, NGOÀI <form id="wedding-form">
+  // nên FormData ở trên không thấy. Không gửi tay thì preview luôn thiếu music_url
+  // → setupMusic() ẩn nút nhạc và không phát gì dù đã chọn bài ở tab Thiết lập.
+  const musicUrl = document
+    .getElementById("music-url-input")
+    ?.value?.trim();
+  if (musicUrl) data.music_url = musicUrl;
+
   // Override single images with pending blob URLs (unsaved new files)
   for (const [field, file] of Object.entries(pendingUploads.singleImages)) {
     data[field] = URL.createObjectURL(file);
