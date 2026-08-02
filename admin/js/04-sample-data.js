@@ -102,7 +102,16 @@ const SI_CONTENT_GROUPS = [
       { name: "rsvp_enabled", label: "Bật xác nhận tham dự", type: "switch" },
       { name: "rsvp_message", label: "Lời mời xác nhận tham dự", type: "textarea", wide: true },
       { name: "footer_text", label: "Lời cảm ơn cuối thiệp", type: "textarea", wide: true },
-      { name: "music_url", label: "Nhạc nền (YouTube)", type: "youtube", wide: true },
+    ],
+  },
+  {
+    // Khối riêng, kèm luôn công tắc bật/tắt — xếp giống thẻ "Nhạc nền" ở tab
+    // Thiết lập của trang thiệp, nên enable_music KHÔNG nằm ở "Hiện / ẩn khối".
+    title: "Nhạc nền",
+    icon: "fa-music",
+    fields: [
+      { name: "enable_music", label: "Bật nhạc nền", type: "switch" },
+      { name: "music_url", label: "Bài hát (YouTube)", type: "youtube", wide: true },
     ],
   },
   {
@@ -114,7 +123,6 @@ const SI_CONTENT_GROUPS = [
       { name: "enable_photos", label: "Album ảnh", type: "switch" },
       { name: "enable_timeline", label: "Lịch trình", type: "switch" },
       { name: "enable_love_story", label: "Chuyện tình yêu", type: "switch" },
-      { name: "enable_music", label: "Nhạc nền", type: "switch" },
       { name: "enable_gift", label: "Mừng cưới", type: "switch" },
       { name: "enable_footer", label: "Lời cảm ơn", type: "switch" },
     ],
@@ -287,8 +295,8 @@ function siRenderContentForm() {
   host.innerHTML = SI_CONTENT_GROUPS.map((g, i) =>
     siRenderContentGroup(g, opened.size ? opened.has(g.title) : i === 0),
   ).join("");
-  // Bài nhạc mới nạp từ data.json chỉ có URL → xin tên bài rồi vá vào tag.
-  siYtEnsureTitle();
+  // Ô nhạc vừa bị vẽ lại → gắn lại listener + dựng lại tag/preview.
+  siYtBind();
 }
 
 function siRenderContentGroup(group, open) {
@@ -533,245 +541,95 @@ function siSetContentDate(name, value, lunarName) {
 }
 
 // ============= Ô nhạc nền YouTube =============
-// Cùng luồng với trang thiết lập thiệp (invitation-setup/js/11-youtube.js): gõ
-// CHỮ = tìm bài qua Edge Function `youtube-search`, dán ĐƯỜNG DẪN = chọn luôn,
-// bỏ trống ô thì hiện gợi ý. Bấm 1 kết quả là ghi đè bài đang chọn.
+// KHÔNG viết lại logic: tab này nạp thẳng invitation-setup/js/11-youtube.js
+// (xem loader.js) để tìm bài / dán link / gợi ý / nghe thử chạy đúng y như tab
+// "Thiết lập thiệp" — kể cả preview bằng YouTube IFrame API và ảnh thumbnail
+// dự phòng khi video chặn nhúng. Ở đây chỉ dựng đúng bộ id mà file đó nhắm tới
+// và bắc hai cây cầu về state của trang admin (xem _scheduleAutoSave bên dưới).
 //
-// Khác một điểm: form này vẽ lại bằng innerHTML (đổi theme, bật/tắt vu quy,
-// AI điền…) nên KHÔNG giữ state trong DOM — bài đang chọn là
-// siData.content.music_url, tên bài cache ở siYtTitles để vẽ lại tag mà không
-// phải hỏi oEmbed lần nữa. Preview dùng iframe nhúng thẳng (không cần
-// YouTube IFrame API như bên thiết lập thiệp vì ở đây chỉ nghe thử).
-
-const SI_YT_FIELD = "music_url";
-const siYtTitles = {}; // url → tên bài (lấy từ kết quả tìm kiếm hoặc oEmbed)
-let siYtSuggestCache = null; // HTML danh sách gợi ý, chỉ tải một lần
-let siYtTimer = null;
-
-function siYtVideoId(url) {
-  const m = String(url || "").match(
-    /(?:youtube\.com\/(?:watch\?v=|embed\/|v\/)|youtu\.be\/)([\w-]{6,})/,
-  );
-  return m ? m[1] : null;
-}
-
-function siYtPreviewHtml(videoId) {
-  return `
-    <div class="aspect-video bg-black rounded-lg overflow-hidden">
-      <iframe src="https://www.youtube.com/embed/${encodeURIComponent(videoId)}"
-        title="Nghe thử nhạc nền" loading="lazy" allowfullscreen
-        allow="accelerometer; encrypted-media; picture-in-picture"
-        class="w-full h-full border-0"></iframe>
-    </div>`;
-}
+// Khác biệt duy nhất: form admin vẽ lại bằng innerHTML (đổi theme, bật/tắt vu
+// quy, AI điền…) nên ô nhạc là DOM MỚI mỗi lần — phải gắn lại listener và dựng
+// lại tag/preview từ music_url, việc mà bên thiết lập thiệp chỉ làm một lần lúc
+// nạp thiệp. Xem siYtBind().
 
 function siRenderYouTubeField(field, value, wrapClass) {
-  const url = String(value || "").trim();
-  const videoId = siYtVideoId(url);
-  const name = siYtTitles[url] || url;
-
   return `
     <div class="${wrapClass}">
       <label class="block text-xs text-gray-500 mb-1">${escapeHtml(field.label)}</label>
-      <!-- KHÔNG gắn data-si-content: ô này chứa TÊN bài (ô tìm kiếm), giá trị
-           thật nằm ở siData.content.music_url -->
-      <input type="text" id="si-yt-input"
-        value="${escapeHtml(videoId ? name : "")}"
-        placeholder="Nhập tên bài hát hoặc dán đường dẫn YouTube..."
-        oninput="siYtOnInput(this.value)" onfocus="siYtOnFocus(this.value)"
+      <input type="text" id="youtube-link-input"
+        placeholder="Nhập tên bài hát hoặc dán đường dẫn ..."
         class="w-full h-10 px-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-rose-300" />
+      <!-- Link thật lưu ngầm ở thẻ ẩn (nguồn dữ liệu của 11-youtube.js); ô phía
+           trên chỉ hiện TÊN bài, gõ/xoá ở đó không đụng bài đã chọn -->
+      <input type="hidden" id="music-url-input" value="${escapeHtml(String(value ?? ""))}" />
 
-      <div id="si-yt-tag" class="mt-2${videoId ? "" : " hidden"}">
+      <div id="music-selected-tag" class="hidden mt-2">
         <span class="inline-flex items-center gap-1.5 max-w-full px-2.5 py-1 rounded-full bg-rose-50 text-rose-600 border border-rose-100 text-xs">
           <i class="fas fa-music shrink-0"></i>
-          <span id="si-yt-name" class="truncate">${escapeHtml(name)}</span>
-          <button type="button" onclick="siYtClear()" title="Gỡ bài hát"
+          <span id="music-selected-name" class="truncate"></span>
+          <button type="button" onclick="clearMusicSelection()" title="Gỡ bài hát"
             class="shrink-0 hover:text-rose-800">
             <i class="fas fa-xmark"></i>
           </button>
         </span>
       </div>
 
-      <p id="si-yt-error" class="hidden mt-1 text-xs text-red-500">
-        Đường dẫn YouTube không hợp lệ.
+      <p id="youtube-error" class="hidden mt-1 text-xs text-red-500">
+        Đường dẫn không hợp lệ.
       </p>
 
-      <div id="si-yt-results" class="mt-2 space-y-1 max-h-64 overflow-y-auto"></div>
+      <div id="youtube-search-results" class="mt-2 space-y-1 max-h-64 overflow-y-auto rounded-lg"></div>
 
-      <div id="si-yt-preview" class="mt-2${videoId ? "" : " hidden"}">
-        ${videoId ? siYtPreviewHtml(videoId) : ""}
+      <div id="youtube-preview" class="hidden mt-2">
+        <div class="bg-gray-50 rounded-lg p-3">
+          <div id="youtube-player-container" class="aspect-video bg-black rounded-lg overflow-hidden"></div>
+          <img id="youtube-fallback-thumb" src="" alt=""
+            style="display: none; cursor: pointer"
+            class="w-full aspect-video object-cover rounded-lg" />
+        </div>
       </div>
     </div>`;
 }
 
-// Vẽ lại RIÊNG ô nhạc theo state (khỏi render cả form — mất con trỏ ở ô khác).
-function siYtSyncField() {
-  const url = String(siData?.content?.[SI_YT_FIELD] || "").trim();
-  const videoId = siYtVideoId(url);
-  const name = siYtTitles[url] || url;
+// Gắn lại listener cho ô vừa render (cùng debounce 500ms / paste 100ms với
+// _onDomReady trong 11-youtube.js) rồi dựng lại tag + preview từ music_url.
+let siYtDebounce = null;
 
-  const results = document.getElementById("si-yt-results");
-  if (results) results.innerHTML = "";
-  document.getElementById("si-yt-error")?.classList.add("hidden");
+function siYtBind() {
+  const input = document.getElementById("youtube-link-input");
+  if (!input) return;
 
-  const input = document.getElementById("si-yt-input");
-  if (input) input.value = videoId ? name : "";
+  input.addEventListener("input", () => {
+    clearTimeout(siYtDebounce);
+    siYtDebounce = setTimeout(autoPreviewYouTubeMusic, 500);
+  });
+  input.addEventListener("paste", () => setTimeout(autoPreviewYouTubeMusic, 100));
 
-  const nameEl = document.getElementById("si-yt-name");
-  if (nameEl) nameEl.textContent = name;
-  document.getElementById("si-yt-tag")?.classList.toggle("hidden", !videoId);
+  // Chỉ có URL → tự lấy tên bài (oEmbed) rồi hiện tag + preview, KHÔNG đánh dấu
+  // bẩn: đây là dựng lại giao diện, không phải người dùng đổi bài.
+  renderExistingYouTubeMusic(String(siData?.content?.music_url || ""));
+}
 
-  const preview = document.getElementById("si-yt-preview");
-  if (preview) {
-    preview.innerHTML = videoId ? siYtPreviewHtml(videoId) : "";
-    preview.classList.toggle("hidden", !videoId);
+// ===== Hai cây cầu cho 11-youtube.js chạy được trong trang admin =====
+
+// File đó gọi _onDomReady() ở cuối để gắn listener lần đầu. Lúc admin nạp nó
+// thì form chưa render nên lần gắn đó là no-op — việc gắn thật do siYtBind lo.
+function _onDomReady(fn) {
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", fn);
+  } else {
+    fn();
   }
 }
 
-async function siYtFetchItems(q) {
-  const res = await fetch(
-    `${CONFIG.supabase.edgeUrl}?resource=youtube-search&q=${encodeURIComponent(q)}`,
-    { headers: { Authorization: `Bearer ${CONFIG.supabase.anonKey}` } },
-  );
-  const items = await res.json();
-  return Array.isArray(items) ? items : [];
-}
-
-function siYtItemsHtml(items) {
-  return items
-    .map(
-      (item) => `
-      <button type="button" onclick="siYtPick(this)"
-        data-yt-url="${escapeHtml(item.url)}" data-yt-title="${escapeHtml(item.title)}"
-        class="w-full flex gap-3 p-2 rounded-lg hover:bg-rose-50 text-left transition-colors">
-        <img src="${escapeHtml(item.thumbnail)}" alt="" loading="lazy"
-          class="w-20 h-12 rounded object-cover shrink-0 bg-gray-100" />
-        <div class="min-w-0 flex-1">
-          <p class="text-xs font-medium text-gray-800 line-clamp-2 leading-snug">${escapeHtml(item.title)}</p>
-          <p class="text-[10px] text-gray-400 mt-1">${escapeHtml(item.channel)}${item.duration ? " · " + escapeHtml(item.duration) : ""}</p>
-        </div>
-      </button>`,
-    )
-    .join("");
-}
-
-async function siYtSearch(q) {
-  const results = document.getElementById("si-yt-results");
-  if (!results) return;
-  results.innerHTML =
-    '<p class="text-xs text-gray-400 py-3 text-center">Đang tìm...</p>';
-  try {
-    const items = await siYtFetchItems(q);
-    results.innerHTML = items.length
-      ? siYtItemsHtml(items)
-      : '<p class="text-xs text-gray-400 py-3 text-center">Không tìm thấy kết quả.</p>';
-  } catch {
-    results.innerHTML =
-      '<p class="text-xs text-red-400 py-3 text-center">Lỗi tìm kiếm, thử lại nhé.</p>';
-  }
-}
-
-async function siYtSuggest() {
-  const results = document.getElementById("si-yt-results");
-  if (!results) return;
-
-  if (siYtSuggestCache !== null) {
-    results.innerHTML = siYtSuggestCache;
-    return;
-  }
-
-  results.innerHTML =
-    '<p class="text-xs text-gray-400 py-3 text-center">Đang tải gợi ý...</p>';
-  try {
-    const items = await siYtFetchItems("nhạc đám cưới");
-    siYtSuggestCache = items.length
-      ? '<p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider px-1 pb-1">Gợi ý</p>' +
-        siYtItemsHtml(items)
-      : "";
-  } catch {
-    siYtSuggestCache = "";
-  }
-  results.innerHTML = siYtSuggestCache;
-}
-
-function siYtOnFocus(val) {
-  if (!String(val).trim()) siYtSuggest();
-}
-
-// Ô này là ô TÌM KIẾM: gõ/xoá ở đây không đụng tới bài đã chọn (tag + preview).
-// Chỉ dán một đường dẫn hợp lệ hoặc bấm kết quả mới là "chọn bài".
-function siYtOnInput(val) {
-  clearTimeout(siYtTimer);
-  siYtTimer = setTimeout(() => siYtHandleInput(String(val).trim()), 500);
-}
-
-function siYtHandleInput(val) {
-  const results = document.getElementById("si-yt-results");
-  const error = document.getElementById("si-yt-error");
-
-  if (!val) {
-    error?.classList.add("hidden");
-    siYtSuggest();
-    return;
-  }
-
-  if (val.includes("youtube.com") || val.includes("youtu.be")) {
-    if (results) results.innerHTML = "";
-    if (!siYtVideoId(val)) {
-      error?.classList.remove("hidden");
-      return;
-    }
-    error?.classList.add("hidden");
-    siYtSelect(val, "");
-    return;
-  }
-
-  error?.classList.add("hidden");
-  siYtSearch(val);
-}
-
-function siYtPick(btn) {
-  siYtSelect(btn.dataset.ytUrl, btn.dataset.ytTitle || "");
-}
-
-function siYtSelect(url, title) {
-  if (!siData?.content || !siYtVideoId(url)) return;
-  siData.content[SI_YT_FIELD] = url;
-  if (title) siYtTitles[url] = title;
-  siYtSyncField();
+// Mỗi lần đổi bài, 11-youtube.js ghi URL vào thẻ ẩn rồi gọi
+// _scheduleAutoSave("config") (bên thiết lập thiệp là autosave nháp). Ở admin,
+// đây là chỗ kéo URL từ thẻ ẩn về siData.content rồi đánh dấu bẩn để lưu nháp.
+function _scheduleAutoSave() {
+  const el = document.getElementById("music-url-input");
+  if (!siData?.content || !el) return;
+  siData.content.music_url = el.value || "";
   siMarkDirty(true);
-  siYtEnsureTitle(); // chưa biết tên bài (dán link) → hỏi oEmbed rồi vá vào tag
-}
-
-function siYtClear() {
-  if (!siData?.content) return;
-  siData.content[SI_YT_FIELD] = "";
-  siYtSyncField();
-  siMarkDirty(true);
-  siYtSuggest();
-}
-
-// Chỉ có URL (dán link / nạp từ data.json) → lấy tên bài qua oEmbed công khai.
-async function siYtEnsureTitle() {
-  const url = String(siData?.content?.[SI_YT_FIELD] || "").trim();
-  if (!url || !siYtVideoId(url) || siYtTitles[url]) return;
-
-  let title = "";
-  try {
-    const res = await fetch(
-      `https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`,
-    );
-    if (res.ok) title = (await res.json())?.title || "";
-  } catch {}
-  if (!title) return;
-
-  siYtTitles[url] = title;
-  // Trong lúc chờ, người dùng có thể đã đổi/gỡ bài — chỉ vá khi vẫn là bài này.
-  if (String(siData?.content?.[SI_YT_FIELD] || "").trim() !== url) return;
-  const nameEl = document.getElementById("si-yt-name");
-  if (nameEl) nameEl.textContent = title;
-  const input = document.getElementById("si-yt-input");
-  if (input && input.value.trim() === url) input.value = title;
 }
 
 // ============= Lịch trình =============

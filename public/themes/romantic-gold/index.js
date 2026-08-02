@@ -55,7 +55,7 @@ function renderWedding(w) {
   const side = _isGroom ? "groom" : "bride";
 
   // --- MUSIC ---
-  setupMusic(w.music_url);
+  setupMusic(w.music_url, w.enable_music);
 
   // --- MONOGRAM ---
   const groomInitial = w.groom_name

@@ -103,7 +103,7 @@ function renderWedding(w) {
   const side = _isGroom ? "groom" : "bride";
 
   // --- MUSIC ---
-  setupMusic(_isEnabled(w.enable_music) ? w.music_url : null);
+  setupMusic(w.music_url, w.enable_music);
 
   // --- COVER ---
   renderCover(w);

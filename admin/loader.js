@@ -38,6 +38,11 @@
     "js/02-templates.js",
     "js/03-sample-images.js",
     "js/04-sample-data.js",
+    // Ô "Nhạc nền" của tab "Dữ liệu mẫu" dùng LẠI nguyên logic YouTube của
+    // trang thiết lập thiệp (tìm bài, dán link, gợi ý, nghe thử). Phải đứng SAU
+    // 04: nó gọi _onDomReady lúc nạp và _scheduleAutoSave lúc đổi bài — cả hai
+    // đều là bản dành riêng cho admin khai báo trong 04-sample-data.js.
+    "../invitation-setup/js/11-youtube.js",
     // Phải đứng SAU 03: dùng lại siIdbGet/siIdbPut + hằng SI_IDB_STORE của nó
     // để cất handle thư mục gốc (khác key, xem AX_IDB_KEY).
     "js/05-asset-images.js",

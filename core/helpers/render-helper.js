@@ -291,11 +291,15 @@ function setupMiniCalendar(ceremonyDate, partyDate) {
 /**
  * Setup music player
  * @param {string} musicUrl - YouTube music URL
+ * @param {boolean|string} [enabled] - cờ enable_music; bỏ trống = coi như bật.
+ *   Tắt công tắc "Nhạc nền" thì KHÔNG phát và ẩn luôn nút nhạc, dù đã chọn bài.
+ *   Dữ liệu về từ form là chuỗi "true"/"false" nên phải so cả hai kiểu.
  */
-function setupMusic(musicUrl) {
+function setupMusic(musicUrl, enabled) {
   const musicToggleBtn = document.getElementById("music-toggle");
+  const on = enabled !== false && enabled !== "false" && !!musicUrl;
 
-  if (musicUrl) {
+  if (on) {
     initYouTubeMusic(musicUrl);
     if (musicToggleBtn) {
       musicToggleBtn.style.display = "flex";

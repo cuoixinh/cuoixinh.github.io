@@ -65,10 +65,14 @@
         id="preview-panel"
         class="hidden fixed inset-0 bottom-[var(--nav-h)] z-[200] bg-white flex flex-col"
       >
+        <!-- allow="autoplay": trình phát nhạc là iframe youtube.com lồng bên
+             trong (khác origin) nên phải được uỷ quyền qua TỪNG lớp iframe,
+             thiếu là nhạc nền không tự phát dù đã chọn bài. -->
         <iframe
           id="preview-iframe"
           src=""
           class="flex-1 border-0 w-full min-h-0"
+          allow="autoplay; encrypted-media"
           allowfullscreen
         ></iframe>
       </div>

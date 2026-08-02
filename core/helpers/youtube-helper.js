@@ -91,8 +91,9 @@ function initYouTubeMusic(musicUrl) {
           onReady: (event) => {
             event.target.setVolume(30);
             event.target.playVideo();
-            isYouTubePlaying = true;
-            updateMusicIcon();
+            // KHÔNG coi như đang phát: trình duyệt có thể chặn (xem
+            // _playOnFirstGesture). onStateChange mới là nguồn sự thật.
+            _playOnFirstGesture();
           },
           onStateChange: (event) => {
             if (event.data === YT.PlayerState.ENDED) {
@@ -108,6 +109,42 @@ function initYouTubeMusic(musicUrl) {
 }
 
 /**
+ * Trình duyệt CHẶN nhạc tự phát khi trang chưa được người dùng chạm vào lần nào,
+ * nên playVideo() lúc onReady thường im lặng thất bại. Rõ nhất là khung xem thử:
+ * cú bấm "Xem thử" nằm ở TRANG CHA, còn iframe thì vừa nạp xong nên chưa có
+ * tương tác nào của riêng nó. Thiệp thật cũng vậy khi mở link lần đầu.
+ *
+ * Cách chữa: chờ tương tác ĐẦU TIÊN (chạm / bấm / cuộn / gõ phím) rồi phát —
+ * lúc đó trình duyệt mới cho. Nghe capture để bắt được cả cú bấm "Mở thiệp".
+ * Đang phát hoặc người dùng tự bấm tắt thì thôi, không tự bật lại.
+ */
+const _MUSIC_GESTURES = ["pointerdown", "touchstart", "keydown", "wheel"];
+let _musicUserPaused = false;
+let _musicGestureArmed = false;
+
+function _playOnFirstGesture() {
+  if (_musicGestureArmed) return;
+  _musicGestureArmed = true;
+
+  const onGesture = () => {
+    _MUSIC_GESTURES.forEach((ev) =>
+      document.removeEventListener(ev, onGesture, true),
+    );
+    _musicGestureArmed = false;
+    if (!youtubePlayer || isYouTubePlaying || _musicUserPaused) return;
+    youtubePlayer.playVideo();
+    // Cú chạm đó vẫn chưa đủ (hiếm) → chờ tiếp cú sau.
+    setTimeout(() => {
+      if (!isYouTubePlaying && !_musicUserPaused) _playOnFirstGesture();
+    }, 1000);
+  };
+
+  _MUSIC_GESTURES.forEach((ev) =>
+    document.addEventListener(ev, onGesture, { capture: true, passive: true }),
+  );
+}
+
+/**
  * Toggle YouTube music play/pause
  */
 function toggleYouTubeMusic() {
@@ -116,9 +153,11 @@ function toggleYouTubeMusic() {
   if (isYouTubePlaying) {
     youtubePlayer.pauseVideo();
     isYouTubePlaying = false;
+    _musicUserPaused = true;
   } else {
     youtubePlayer.playVideo();
     isYouTubePlaying = true;
+    _musicUserPaused = false;
   }
   updateMusicIcon();
 }
