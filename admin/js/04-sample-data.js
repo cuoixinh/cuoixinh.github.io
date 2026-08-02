@@ -102,7 +102,7 @@ const SI_CONTENT_GROUPS = [
       { name: "rsvp_enabled", label: "Bật xác nhận tham dự", type: "switch" },
       { name: "rsvp_message", label: "Lời mời xác nhận tham dự", type: "textarea", wide: true },
       { name: "footer_text", label: "Lời cảm ơn cuối thiệp", type: "textarea", wide: true },
-      { name: "music_url", label: "Nhạc nền (YouTube URL)", type: "text", wide: true },
+      { name: "music_url", label: "Nhạc nền (YouTube)", type: "youtube", wide: true },
     ],
   },
   {
@@ -287,6 +287,8 @@ function siRenderContentForm() {
   host.innerHTML = SI_CONTENT_GROUPS.map((g, i) =>
     siRenderContentGroup(g, opened.size ? opened.has(g.title) : i === 0),
   ).join("");
+  // Bài nhạc mới nạp từ data.json chỉ có URL → xin tên bài rồi vá vào tag.
+  siYtEnsureTitle();
 }
 
 function siRenderContentGroup(group, open) {
@@ -329,6 +331,9 @@ function siRenderContentField(field) {
   const label = `<label class="block text-xs text-gray-500 mb-1">${escapeHtml(field.label)}</label>`;
 
   if (field.type === "map") return siRenderMapField(field, value, wrapClass);
+
+  if (field.type === "youtube")
+    return siRenderYouTubeField(field, value, wrapClass);
 
   if (field.type === "textarea") {
     return `
@@ -525,6 +530,248 @@ function siSetContentDate(name, value, lunarName) {
     if (el) el.value = lunar;
   }
   siMarkDirty();
+}
+
+// ============= Ô nhạc nền YouTube =============
+// Cùng luồng với trang thiết lập thiệp (invitation-setup/js/11-youtube.js): gõ
+// CHỮ = tìm bài qua Edge Function `youtube-search`, dán ĐƯỜNG DẪN = chọn luôn,
+// bỏ trống ô thì hiện gợi ý. Bấm 1 kết quả là ghi đè bài đang chọn.
+//
+// Khác một điểm: form này vẽ lại bằng innerHTML (đổi theme, bật/tắt vu quy,
+// AI điền…) nên KHÔNG giữ state trong DOM — bài đang chọn là
+// siData.content.music_url, tên bài cache ở siYtTitles để vẽ lại tag mà không
+// phải hỏi oEmbed lần nữa. Preview dùng iframe nhúng thẳng (không cần
+// YouTube IFrame API như bên thiết lập thiệp vì ở đây chỉ nghe thử).
+
+const SI_YT_FIELD = "music_url";
+const siYtTitles = {}; // url → tên bài (lấy từ kết quả tìm kiếm hoặc oEmbed)
+let siYtSuggestCache = null; // HTML danh sách gợi ý, chỉ tải một lần
+let siYtTimer = null;
+
+function siYtVideoId(url) {
+  const m = String(url || "").match(
+    /(?:youtube\.com\/(?:watch\?v=|embed\/|v\/)|youtu\.be\/)([\w-]{6,})/,
+  );
+  return m ? m[1] : null;
+}
+
+function siYtPreviewHtml(videoId) {
+  return `
+    <div class="aspect-video bg-black rounded-lg overflow-hidden">
+      <iframe src="https://www.youtube.com/embed/${encodeURIComponent(videoId)}"
+        title="Nghe thử nhạc nền" loading="lazy" allowfullscreen
+        allow="accelerometer; encrypted-media; picture-in-picture"
+        class="w-full h-full border-0"></iframe>
+    </div>`;
+}
+
+function siRenderYouTubeField(field, value, wrapClass) {
+  const url = String(value || "").trim();
+  const videoId = siYtVideoId(url);
+  const name = siYtTitles[url] || url;
+
+  return `
+    <div class="${wrapClass}">
+      <label class="block text-xs text-gray-500 mb-1">${escapeHtml(field.label)}</label>
+      <!-- KHÔNG gắn data-si-content: ô này chứa TÊN bài (ô tìm kiếm), giá trị
+           thật nằm ở siData.content.music_url -->
+      <input type="text" id="si-yt-input"
+        value="${escapeHtml(videoId ? name : "")}"
+        placeholder="Nhập tên bài hát hoặc dán đường dẫn YouTube..."
+        oninput="siYtOnInput(this.value)" onfocus="siYtOnFocus(this.value)"
+        class="w-full h-10 px-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-rose-300" />
+
+      <div id="si-yt-tag" class="mt-2${videoId ? "" : " hidden"}">
+        <span class="inline-flex items-center gap-1.5 max-w-full px-2.5 py-1 rounded-full bg-rose-50 text-rose-600 border border-rose-100 text-xs">
+          <i class="fas fa-music shrink-0"></i>
+          <span id="si-yt-name" class="truncate">${escapeHtml(name)}</span>
+          <button type="button" onclick="siYtClear()" title="Gỡ bài hát"
+            class="shrink-0 hover:text-rose-800">
+            <i class="fas fa-xmark"></i>
+          </button>
+        </span>
+      </div>
+
+      <p id="si-yt-error" class="hidden mt-1 text-xs text-red-500">
+        Đường dẫn YouTube không hợp lệ.
+      </p>
+
+      <div id="si-yt-results" class="mt-2 space-y-1 max-h-64 overflow-y-auto"></div>
+
+      <div id="si-yt-preview" class="mt-2${videoId ? "" : " hidden"}">
+        ${videoId ? siYtPreviewHtml(videoId) : ""}
+      </div>
+    </div>`;
+}
+
+// Vẽ lại RIÊNG ô nhạc theo state (khỏi render cả form — mất con trỏ ở ô khác).
+function siYtSyncField() {
+  const url = String(siData?.content?.[SI_YT_FIELD] || "").trim();
+  const videoId = siYtVideoId(url);
+  const name = siYtTitles[url] || url;
+
+  const results = document.getElementById("si-yt-results");
+  if (results) results.innerHTML = "";
+  document.getElementById("si-yt-error")?.classList.add("hidden");
+
+  const input = document.getElementById("si-yt-input");
+  if (input) input.value = videoId ? name : "";
+
+  const nameEl = document.getElementById("si-yt-name");
+  if (nameEl) nameEl.textContent = name;
+  document.getElementById("si-yt-tag")?.classList.toggle("hidden", !videoId);
+
+  const preview = document.getElementById("si-yt-preview");
+  if (preview) {
+    preview.innerHTML = videoId ? siYtPreviewHtml(videoId) : "";
+    preview.classList.toggle("hidden", !videoId);
+  }
+}
+
+async function siYtFetchItems(q) {
+  const res = await fetch(
+    `${CONFIG.supabase.edgeUrl}?resource=youtube-search&q=${encodeURIComponent(q)}`,
+    { headers: { Authorization: `Bearer ${CONFIG.supabase.anonKey}` } },
+  );
+  const items = await res.json();
+  return Array.isArray(items) ? items : [];
+}
+
+function siYtItemsHtml(items) {
+  return items
+    .map(
+      (item) => `
+      <button type="button" onclick="siYtPick(this)"
+        data-yt-url="${escapeHtml(item.url)}" data-yt-title="${escapeHtml(item.title)}"
+        class="w-full flex gap-3 p-2 rounded-lg hover:bg-rose-50 text-left transition-colors">
+        <img src="${escapeHtml(item.thumbnail)}" alt="" loading="lazy"
+          class="w-20 h-12 rounded object-cover shrink-0 bg-gray-100" />
+        <div class="min-w-0 flex-1">
+          <p class="text-xs font-medium text-gray-800 line-clamp-2 leading-snug">${escapeHtml(item.title)}</p>
+          <p class="text-[10px] text-gray-400 mt-1">${escapeHtml(item.channel)}${item.duration ? " · " + escapeHtml(item.duration) : ""}</p>
+        </div>
+      </button>`,
+    )
+    .join("");
+}
+
+async function siYtSearch(q) {
+  const results = document.getElementById("si-yt-results");
+  if (!results) return;
+  results.innerHTML =
+    '<p class="text-xs text-gray-400 py-3 text-center">Đang tìm...</p>';
+  try {
+    const items = await siYtFetchItems(q);
+    results.innerHTML = items.length
+      ? siYtItemsHtml(items)
+      : '<p class="text-xs text-gray-400 py-3 text-center">Không tìm thấy kết quả.</p>';
+  } catch {
+    results.innerHTML =
+      '<p class="text-xs text-red-400 py-3 text-center">Lỗi tìm kiếm, thử lại nhé.</p>';
+  }
+}
+
+async function siYtSuggest() {
+  const results = document.getElementById("si-yt-results");
+  if (!results) return;
+
+  if (siYtSuggestCache !== null) {
+    results.innerHTML = siYtSuggestCache;
+    return;
+  }
+
+  results.innerHTML =
+    '<p class="text-xs text-gray-400 py-3 text-center">Đang tải gợi ý...</p>';
+  try {
+    const items = await siYtFetchItems("nhạc đám cưới");
+    siYtSuggestCache = items.length
+      ? '<p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider px-1 pb-1">Gợi ý</p>' +
+        siYtItemsHtml(items)
+      : "";
+  } catch {
+    siYtSuggestCache = "";
+  }
+  results.innerHTML = siYtSuggestCache;
+}
+
+function siYtOnFocus(val) {
+  if (!String(val).trim()) siYtSuggest();
+}
+
+// Ô này là ô TÌM KIẾM: gõ/xoá ở đây không đụng tới bài đã chọn (tag + preview).
+// Chỉ dán một đường dẫn hợp lệ hoặc bấm kết quả mới là "chọn bài".
+function siYtOnInput(val) {
+  clearTimeout(siYtTimer);
+  siYtTimer = setTimeout(() => siYtHandleInput(String(val).trim()), 500);
+}
+
+function siYtHandleInput(val) {
+  const results = document.getElementById("si-yt-results");
+  const error = document.getElementById("si-yt-error");
+
+  if (!val) {
+    error?.classList.add("hidden");
+    siYtSuggest();
+    return;
+  }
+
+  if (val.includes("youtube.com") || val.includes("youtu.be")) {
+    if (results) results.innerHTML = "";
+    if (!siYtVideoId(val)) {
+      error?.classList.remove("hidden");
+      return;
+    }
+    error?.classList.add("hidden");
+    siYtSelect(val, "");
+    return;
+  }
+
+  error?.classList.add("hidden");
+  siYtSearch(val);
+}
+
+function siYtPick(btn) {
+  siYtSelect(btn.dataset.ytUrl, btn.dataset.ytTitle || "");
+}
+
+function siYtSelect(url, title) {
+  if (!siData?.content || !siYtVideoId(url)) return;
+  siData.content[SI_YT_FIELD] = url;
+  if (title) siYtTitles[url] = title;
+  siYtSyncField();
+  siMarkDirty(true);
+  siYtEnsureTitle(); // chưa biết tên bài (dán link) → hỏi oEmbed rồi vá vào tag
+}
+
+function siYtClear() {
+  if (!siData?.content) return;
+  siData.content[SI_YT_FIELD] = "";
+  siYtSyncField();
+  siMarkDirty(true);
+  siYtSuggest();
+}
+
+// Chỉ có URL (dán link / nạp từ data.json) → lấy tên bài qua oEmbed công khai.
+async function siYtEnsureTitle() {
+  const url = String(siData?.content?.[SI_YT_FIELD] || "").trim();
+  if (!url || !siYtVideoId(url) || siYtTitles[url]) return;
+
+  let title = "";
+  try {
+    const res = await fetch(
+      `https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`,
+    );
+    if (res.ok) title = (await res.json())?.title || "";
+  } catch {}
+  if (!title) return;
+
+  siYtTitles[url] = title;
+  // Trong lúc chờ, người dùng có thể đã đổi/gỡ bài — chỉ vá khi vẫn là bài này.
+  if (String(siData?.content?.[SI_YT_FIELD] || "").trim() !== url) return;
+  const nameEl = document.getElementById("si-yt-name");
+  if (nameEl) nameEl.textContent = title;
+  const input = document.getElementById("si-yt-input");
+  if (input && input.value.trim() === url) input.value = title;
 }
 
 // ============= Lịch trình =============
