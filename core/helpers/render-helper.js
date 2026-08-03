@@ -299,6 +299,11 @@ function setupMusic(musicUrl, enabled) {
   const musicToggleBtn = document.getElementById("music-toggle");
   const on = enabled !== false && enabled !== "false" && !!musicUrl;
 
+  // Công cụ "Trình phát nhạc" (tab Giao diện) cần biết thiệp có nhạc hay chưa để
+  // quyết định vẽ trình phát hay vẽ ô nhắc "chưa có nhạc nền" — mà nó chạy sau
+  // renderWedding nên không tự hỏi lại dữ liệu được.
+  window.__cxMusicOn = on;
+
   if (on) {
     initYouTubeMusic(musicUrl);
     if (musicToggleBtn) {
@@ -330,20 +335,38 @@ function setupMusic(musicUrl, enabled) {
  * Text ở đây KHÔNG đi qua setText: cả trình phát nằm trong thẻ .cx-no-edit nên
  * runtime chỉnh-tay của tab Giao diện đã bỏ qua sẵn, không cần khoá thêm.
  *
+ * Đổ cho MỌI trình phát đang có trên trang, không riêng cái của theme: công cụ
+ * "Trình phát nhạc" ở tab Giao diện dựng thêm trình phát riêng, và nó dựng SAU
+ * renderWedding → tham số được nhớ lại để runtime gọi lại (xem replay bên dưới).
+ *
  * @param {Object} wedding - Dữ liệu thiệp
  * @param {Object} [opts] - Phần lễ đã được theme tính sẵn (nhà gái có thể là Vu Quy)
  * @param {string} [opts.ceremonyName] - Tên lễ hiển thị
  * @param {string} [opts.ceremonyTime] - Giờ lễ hiển thị
  * @param {string} [opts.ceremonyLocation] - Địa điểm lễ hiển thị
+ * @param {HTMLElement} [scope] - Chỉ đổ trong thẻ này (runtime công cụ dùng)
  */
-function renderMusicSummary(wedding, opts = {}) {
-  const root =
-    document.querySelector('[data-cx-music="root"]') ||
-    document.getElementById("music-toggle");
-  if (!root || !wedding) return;
+function renderMusicSummary(wedding, opts = {}, scope) {
+  if (!wedding) return;
+  // Nhớ lại để dựng trình phát muộn vẫn có dữ liệu. Cờ này cũng là câu trả lời
+  // cho "theme có cung cấp tóm tắt không?" — theme không gọi thì công cụ bỏ luôn
+  // phần kéo xuống thay vì bày ra một khối rỗng.
+  if (!scope) window.__cxMusicSummary = { wedding, opts };
 
-  const _all = (role) =>
-    root.querySelectorAll('[data-cx-summary="' + role + '"]');
+  const roots = scope
+    ? [scope]
+    : Array.from(document.querySelectorAll('[data-cx-music="root"]')).concat(
+        Array.from(document.querySelectorAll("#music-toggle")),
+      );
+  if (!roots.length) return;
+
+  const _all = (role) => {
+    const out = [];
+    roots.forEach((r) =>
+      out.push(...r.querySelectorAll('[data-cx-summary="' + role + '"]')),
+    );
+    return out;
+  };
 
   const _setText = (role, value) => {
     _all(role).forEach((el) => {
@@ -403,3 +426,8 @@ window.renderLoveStory = renderLoveStory;
 window.setupMiniCalendar = setupMiniCalendar;
 window.setupMusic = setupMusic;
 window.renderMusicSummary = renderMusicSummary;
+// Đổ lại tóm tắt cho một trình phát vừa được dựng thêm (công cụ ở tab Giao diện).
+window.replayMusicSummary = function (scope) {
+  const a = window.__cxMusicSummary;
+  if (a && scope) renderMusicSummary(a.wedding, a.opts, scope);
+};

@@ -116,6 +116,12 @@ function setupMusicPlayer(root) {
   //   bong bóng  ←(vuốt lên)—  thanh  —(vuốt xuống)→  thanh + khối mở rộng
   // is-collapsed = đang ở bong bóng; is-expanded = đang mở khối tóm tắt.
   // Hai cờ không bao giờ cùng bật (thu về bong bóng thì đóng khối luôn).
+  //
+  // Không có bong bóng (và cũng không có nút mở lại riêng) thì BỎ hẳn nấc thu
+  // gọn: thu lại mà không còn gì để bấm là nhốt luôn người dùng, không mở ra
+  // được nữa. Trình phát do công cụ ở tab Giao diện dựng nằm đúng vào ca này —
+  // nó đã thả được ở bất kỳ đâu nên không cần bong bóng.
+  const canCollapse = !!($("bubble") || $("expand"));
 
   function _isCollapsed() {
     return root.classList.contains("is-collapsed");
@@ -133,6 +139,7 @@ function setupMusicPlayer(root) {
   }
 
   function _setCollapsed(v) {
+    if (v && !canCollapse) return;
     root.classList.toggle("is-collapsed", !!v);
     // Thu về bong bóng thì khối mở rộng cũng phải đóng, không thì lần mở lại
     // thanh sau đó bung nguyên cả khối ra giữa màn hình.

@@ -180,6 +180,410 @@
   transition: width 0.25s linear;
 }
 
+/* ── Công cụ "Trình phát nhạc" (thả vào thiệp ở tab Giao diện) ──────────────
+   Markup do core/helpers/tools-helper.js dựng, vị trí do theme-setting-helper
+   đặt. Ba mẫu: .cx-tw-bar (thanh ngang) · .cx-tw-mini (nút tròn) · .cx-tw-card.
+
+   MỌI kích thước bên trong viết bằng `em`, còn font-size của .cx-tw thì runtime
+   tính theo bề ngang thật của widget → kéo to nhỏ là cả widget phóng theo tỉ lệ,
+   không phải chỉnh lại từng con số. Đây cũng là lý do phần này là CSS thuần chứ
+   không phải utility Tailwind.
+
+   Màu đi qua biến để theme muốn đổi thì đặt lại trên #main-card. */
+
+/* Nền phải ĐẶC: widget nằm đè lên chính nội dung thiệp (ảnh, chữ) chứ không
+   phải lên mép màn hình trống như thanh nhạc sẵn có của theme — để trong mờ thì
+   chữ thiệp xuyên qua, đọc không ra. */
+
+.cx-tw {
+  --cx-tw-bg: rgba(255, 255, 255, 0.95);
+  --cx-tw-fg: #4a4142;
+  --cx-tw-dim: #8a7b7d;
+  --cx-tw-chip: rgba(140, 115, 118, 0.12);
+  --cx-tw-fill: rgba(212, 165, 165, 0.32);
+  --cx-tw-accent: #be7880;
+  --cx-tw-shadow: 0 8px 24px rgba(90, 60, 65, 0.22);
+  position: relative;
+  display: block;
+  width: 100%;
+  color: var(--cx-tw-fg);
+  font-size: 13px;
+  line-height: 1.35;
+  text-align: left;
+}
+
+.cx-tw svg {
+  display: block;
+  width: 1em;
+  height: 1em;
+}
+
+/* Nút bấm chung */
+
+.cx-tw-btn {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.3em;
+  height: 2.3em;
+  padding: 0;
+  border: 0;
+  border-radius: 9999px;
+  background: var(--cx-tw-chip);
+  color: inherit;
+  font-size: 0.8em;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.cx-tw-btn-main {
+  background: var(--cx-tw-accent);
+  color: #fff;
+  box-shadow: 0 1px 3px rgba(90, 60, 65, 0.25);
+}
+
+.cx-tw-btn:active {
+  transform: scale(0.9);
+}
+
+.cx-tw-ic-pause,
+.cx-tw.is-playing .cx-tw-ic-play {
+  display: none;
+}
+
+.cx-tw.is-playing .cx-tw-ic-pause {
+  display: block;
+}
+
+/* Ảnh bìa + nốt nhạc dự phòng */
+
+.cx-tw-art {
+  position: relative;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: linear-gradient(135deg, #eec6cc, #d79aa2);
+  color: #fff;
+}
+
+.cx-tw-art img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cx-tw-note {
+  font-size: 0.75em;
+}
+
+.cx-tw-art-sq {
+  width: 2.5em;
+  height: 2.5em;
+  border-radius: 0.75em;
+}
+
+.cx-tw-art-round,
+.cx-tw-art-round img {
+  border-radius: 9999px;
+}
+
+.cx-tw-art-round {
+  width: 100%;
+  height: 100%;
+}
+
+.cx-tw-art-cover {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 0.9em;
+}
+
+/* Tên bài: khung cắt để marquee (.cx-mp-title) có chỗ chạy */
+
+.cx-tw-titlewrap {
+  display: block;
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+}
+
+.cx-tw-title {
+  display: block;
+  font-style: italic;
+  font-size: 1em;
+}
+
+.cx-tw-ctrls {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 0.3em;
+}
+
+/* ── Mẫu: thanh ngang ─────────────────────────────────────────────────────── */
+
+.cx-tw-bar {
+  border-radius: 1.25em;
+  overflow: hidden;
+  background: var(--cx-tw-bg);
+  box-shadow: var(--cx-tw-shadow);
+  backdrop-filter: blur(8px);
+}
+
+.cx-tw-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+  padding: 0.6em 0.9em;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.cx-tw-row > *:not(.cx-tw-fill) {
+  position: relative;
+}
+
+.cx-tw-fill-row {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  background: var(--cx-tw-fill);
+  pointer-events: none;
+}
+
+.cx-tw-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 1.25em;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: grab;
+}
+
+.cx-tw-handle span {
+  width: 2.6em;
+  height: 0.28em;
+  border-radius: 9999px;
+  background: rgba(140, 120, 122, 0.45);
+}
+
+/* ── Mẫu: nút tròn ────────────────────────────────────────────────────────── */
+
+.cx-tw-mini {
+  aspect-ratio: 1;
+}
+
+.cx-tw-mini-btn {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 9999px;
+  background: none;
+  box-shadow:
+    var(--cx-tw-shadow),
+    0 0 0 0.15em rgba(255, 255, 255, 0.85);
+  cursor: pointer;
+}
+
+/* Icon phát/dừng đè lên ảnh bìa, có lớp tối mờ cho dễ đọc trên ảnh sáng */
+
+.cx-tw-mini-ic {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: rgba(0, 0, 0, 0.22);
+  color: #fff;
+  font-size: 1em;
+}
+
+/* ── Mẫu: thẻ nhạc ────────────────────────────────────────────────────────── */
+
+.cx-tw-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4em;
+  padding: 0.9em;
+  border-radius: 1.25em;
+  background: var(--cx-tw-bg);
+  box-shadow: var(--cx-tw-shadow);
+  backdrop-filter: blur(8px);
+  text-align: center;
+}
+
+.cx-tw-cover {
+  display: block;
+  width: 100%;
+  margin-bottom: 0.2em;
+}
+
+.cx-tw-card .cx-tw-titlewrap {
+  width: 100%;
+  flex: none;
+  text-align: center;
+}
+
+.cx-tw-artist {
+  display: block;
+  font-size: 0.8em;
+  color: var(--cx-tw-dim);
+}
+
+.cx-tw-artist:empty {
+  display: none;
+}
+
+.cx-tw-prog {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 0.3em;
+  margin-top: 0.3em;
+  border-radius: 9999px;
+  background: var(--cx-tw-chip);
+  cursor: pointer;
+}
+
+.cx-tw-card .cx-tw-fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  border-radius: 9999px;
+  background: var(--cx-tw-accent);
+}
+
+.cx-tw-times {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  font-size: 0.72em;
+  color: var(--cx-tw-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.cx-tw-card .cx-tw-ctrls {
+  gap: 0.5em;
+  margin-top: 0.2em;
+}
+
+/* ── Khối tóm tắt trong mẫu thanh ngang ───────────────────────────────────── */
+
+.cx-tw-panel-in {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+  padding: 0.2em 0.9em 0.6em;
+}
+
+.cx-tw-profiles {
+  display: flex;
+  align-items: stretch;
+  gap: 0.5em;
+}
+
+.cx-tw-profile {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25em;
+  padding: 0.5em;
+  border-radius: 0.9em;
+  background: var(--cx-tw-chip);
+  text-align: center;
+}
+
+.cx-tw-avatar {
+  width: 3.4em;
+  height: 3.4em;
+  border-radius: 9999px;
+  object-fit: cover;
+  box-shadow: 0 0 0 0.15em rgba(255, 255, 255, 0.8);
+}
+
+.cx-tw-role {
+  display: block;
+  font-size: 0.7em;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--cx-tw-dim);
+}
+
+.cx-tw-who {
+  display: block;
+  width: 100%;
+  font-size: 0.92em;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cx-tw-amp {
+  align-self: center;
+  font-style: italic;
+  color: var(--cx-tw-dim);
+}
+
+.cx-tw-event {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1em;
+  padding: 0.5em 0.8em;
+  border-radius: 0.9em;
+  background: var(--cx-tw-chip);
+  text-align: center;
+}
+
+.cx-tw-date {
+  display: block;
+  font-size: 1.15em;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.cx-tw-when,
+.cx-tw-where {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4em;
+  font-size: 0.85em;
+  color: var(--cx-tw-dim);
+}
+
+.cx-tw-when-time {
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+}
+
+.cx-tw-where svg {
+  font-size: 0.9em;
+  opacity: 0.7;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .cx-mp.is-playing .cx-mp-note,
   .cx-mp.is-playing .cx-mp-spin,

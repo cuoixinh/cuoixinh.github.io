@@ -52,6 +52,7 @@
     "../core/helpers/validate.js",
     "../core/helpers/guide-helper.js",
     "../core/helpers/tooltip.js",
+    "../core/helpers/tools-helper.js",
     "../core/helpers/theme-setting-helper.js",
     "../core/x-input.js",
     "../core/x-controls.js",

@@ -146,6 +146,29 @@ Kéo xuống ở tay nắm mở khối tóm tắt thiệp (`data-cx-music="panel
 `renderMusicSummary(w, {...})` (`render-helper.js`) đổ vào các ô `data-cx-summary="…"` —
 theme muốn có khối này thì thêm markup + gọi hàm đó trong `renderWedding`.
 
+### Công cụ thả lên thiệp (tab Giao diện → Công cụ)
+
+Tiện ích người dùng tự thả vào thiệp, đặt theo **toạ độ tự do** như hoạ tiết (không
+chèn giữa các mục như khối văn bản). Lưu ở `theme_setting.tools = [{ id, tool,
+variant, x, y, w, visible }]` — cùng blob JSON với `custom_blocks`/`decorations`
+nên **không cần changelog DB**.
+
+- **Danh mục** ở `core/helpers/tools-helper.js` (`window.CX_TOOLS`): mỗi công cụ khai
+  báo `name/desc/icon/single/needs/variants[]/build(variant)`. Thêm công cụ mới **chỉ
+  sửa file này** — bảng chọn và runtime tự đọc, không phải đụng HTML hay panel.
+- **Runtime** ở `theme-setting-helper.js` (mục TOOLS, song song mục DECORATIONS):
+  `applyTools(setting)` + kéo/phóng to/đổi mẫu/ẩn/xoá khi `edit=1`. Nhớ gọi
+  `applyTools` trong luồng render (`wedding-helper.js`, `preview-data.js`) **sau**
+  `renderWedding` — nó cần cờ `window.__cxMusicOn` do `setupMusic` đặt.
+- **Bảng chọn** ở `05-theme-panel.js` (`openToolsPanel`, `startToolDrag`) +
+  `partials/theme-panel.html` (`#theme-tools-panel`), kiểu kéo-thả sao y Trang trí.
+- Markup mẫu dùng **class tự viết `.cx-tw-*`** trong `styles/_music-player.css`, kích
+  thước bên trong bằng `em`; runtime đặt `font-size` theo bề ngang thật → kéo to nhỏ
+  là cả widget phóng theo.
+- Công cụ nhạc **thay chỗ** trình phát sẵn có của theme: có công cụ thì `#music-toggle`
+  bị ẩn, gỡ công cụ thì trả lại. Bật/tắt nhạc vẫn là việc của tab Thiết lập
+  (`enable_music` + link nhạc); `visible` ở đây chỉ ẩn/hiện phần giao diện.
+
 ### Auth
 
 - **`core/auth.js` (`window.CXAuth`) là nguồn sự thật DUY NHẤT** cho "đang đăng nhập hay chưa". Không viết thêm bản `getCurrentUser()` riêng cho từng trang, không tự parse `localStorage` (token supabase-js v2 có thể là `base64-...` và sẽ vỡ), không tạo thêm supabase client. Trang nào cần auth thì nạp `core/auth.js` ngay sau `core/auth-ui.js`.
