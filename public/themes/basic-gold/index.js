@@ -128,6 +128,14 @@ function renderWedding(w) {
   const displayTime = isVuQuy ? w.vu_quy_time : w.ceremony_time;
   const displayLoc = isVuQuy ? w.vu_quy_location : w.ceremony_location || "";
 
+  // Khối tóm tắt trong trình phát nhạc (kéo xuống mới thấy) — dùng CHÍNH phần lễ
+  // đang hiển thị, để nhà gái bật Vu Quy thì tóm tắt cũng là Vu Quy.
+  renderMusicSummary(w, {
+    ceremonyName,
+    ceremonyTime: displayTime,
+    ceremonyLocation: displayLoc,
+  });
+
   setText("ceremony-event-name", ceremonyName);
   setText("party-section-label", "Tiệc Mừng " + ceremonyName);
   renderCeremonyDate(w.ceremony_date, displayTime, w.ceremony_lunar);

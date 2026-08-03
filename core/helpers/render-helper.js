@@ -311,6 +311,84 @@ function setupMusic(musicUrl, enabled) {
   }
 }
 
+/**
+ * Đổ dữ liệu vào khối "tóm tắt thiệp" của trình phát nhạc (phần hiện ra khi kéo
+ * xuống — xem data-cx-music="panel" trong core/helpers/music-player-helper.js).
+ *
+ * Theme đánh dấu từng ô bằng data-cx-summary, tất cả đều không bắt buộc:
+ *   groom-photo / bride-photo   <img> ảnh chú rể / cô dâu
+ *   groom-name  / bride-name    Tên
+ *   event-name                  Tên lễ (Lễ Thành Hôn / Lễ Vu Quy)
+ *   event-date                  Ngày lễ CHÍNH, dạng dd.mm.yyyy (không phải tiệc)
+ *   event-weekday               Thứ trong tuần của ngày đó
+ *   event-time                  Giờ làm lễ
+ *   event-location              Địa điểm làm lễ
+ *
+ * Ô nào không có dữ liệu mà nằm trong thẻ có [data-cx-summary-row] thì cả hàng
+ * đó bị ẩn — khối tóm tắt vốn chật, để lại dòng "----" thì rối hơn là bỏ đi.
+ *
+ * Text ở đây KHÔNG đi qua setText: cả trình phát nằm trong thẻ .cx-no-edit nên
+ * runtime chỉnh-tay của tab Giao diện đã bỏ qua sẵn, không cần khoá thêm.
+ *
+ * @param {Object} wedding - Dữ liệu thiệp
+ * @param {Object} [opts] - Phần lễ đã được theme tính sẵn (nhà gái có thể là Vu Quy)
+ * @param {string} [opts.ceremonyName] - Tên lễ hiển thị
+ * @param {string} [opts.ceremonyTime] - Giờ lễ hiển thị
+ * @param {string} [opts.ceremonyLocation] - Địa điểm lễ hiển thị
+ */
+function renderMusicSummary(wedding, opts = {}) {
+  const root =
+    document.querySelector('[data-cx-music="root"]') ||
+    document.getElementById("music-toggle");
+  if (!root || !wedding) return;
+
+  const _all = (role) =>
+    root.querySelectorAll('[data-cx-summary="' + role + '"]');
+
+  const _setText = (role, value) => {
+    _all(role).forEach((el) => {
+      const row = el.closest("[data-cx-summary-row]");
+      if (row) row.classList.toggle("hidden", !value);
+      el.textContent = value || "";
+    });
+  };
+
+  const _setPhoto = (role, filename, focal) => {
+    _all(role).forEach((el) => {
+      el.src = getImageUrl(filename);
+      if (focal && typeof focal.x === "number" && typeof focal.y === "number") {
+        el.style.objectPosition = `${focal.x}% ${focal.y}%`;
+      }
+    });
+  };
+
+  const focals = wedding.image_focal_points || {};
+  _setPhoto("groom-photo", wedding.groom_image_url, focals.groom_image_url);
+  _setPhoto("bride-photo", wedding.bride_image_url, focals.bride_image_url);
+  _setText("groom-name", wedding.groom_name);
+  _setText("bride-name", wedding.bride_name);
+
+  _setText("event-name", opts.ceremonyName || wedding.ceremony_name || "");
+  _setText("event-time", opts.ceremonyTime || wedding.ceremony_time || "");
+  _setText(
+    "event-location",
+    opts.ceremonyLocation || wedding.ceremony_location || "",
+  );
+
+  const date = wedding.ceremony_date;
+  if (date) {
+    const d = new Date(date);
+    _setText(
+      "event-date",
+      `${d.getDate()}.${String(d.getMonth() + 1).padStart(2, "0")}.${d.getFullYear()}`,
+    );
+    _setText("event-weekday", WEEKDAYS[d.getDay()]);
+  } else {
+    _setText("event-date", "");
+    _setText("event-weekday", "");
+  }
+}
+
 // Make functions global
 window.WEEKDAYS = WEEKDAYS;
 window.renderCeremonyDate = renderCeremonyDate;
@@ -324,3 +402,4 @@ window.renderStoryQuote = renderStoryQuote;
 window.renderLoveStory = renderLoveStory;
 window.setupMiniCalendar = setupMiniCalendar;
 window.setupMusic = setupMusic;
+window.renderMusicSummary = renderMusicSummary;
