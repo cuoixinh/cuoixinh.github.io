@@ -73,22 +73,27 @@
 
   // Khối tóm tắt thiệp (kéo tay nắm xuống). .cx-mp-panel phải có ĐÚNG MỘT thẻ
   // con bọc tất cả — CSS cắt chiều cao ở thẻ con đó.
-  const profile = (role, label, photo, name) => `
-    <div
-      class="flex-1 min-w-0 flex flex-col items-center gap-1 rounded-xl bg-white/45 px-2 py-2"
-    >
+  // CHỈ dùng font Cormorant + Inter: đó là hai font cả ba theme đều nạp, font
+  // khác (Cinzel, Playfair…) sẽ rơi về serif hệ thống ở romantic-gold.
+  // Ô nào trống thì ẩn cả hàng — bọc trong [data-cx-summary-row] và để sẵn
+  // `hidden` (render-helper gỡ ra khi có dữ liệu).
+  const profile = (label, photo, name) => `
+    <div class="flex-1 min-w-0 flex flex-col items-center gap-1.5">
       <div
-        class="w-12 h-12 rounded-full overflow-hidden shrink-0 ring-2 ring-white/80 shadow-sm bg-gradient-to-br from-rose-pastel-200 to-rose-pastel-300"
+        class="w-14 h-14 rounded-full overflow-hidden shrink-0 ring-2 ring-white/80 shadow-sm bg-gradient-to-br from-rose-pastel-200 to-rose-pastel-300"
       >
         <img data-cx-summary="${photo}" alt="" class="w-full h-full object-cover" />
       </div>
-      <div class="text-[9px] uppercase tracking-[2px] text-stone-500 font-inter">
-        ${label}
+      <div class="flex flex-col items-center gap-0.5 w-full">
+        <div class="font-inter text-[9px] uppercase tracking-[2px] text-stone-500">
+          ${label}
+        </div>
+        <!-- Tên tiếng Việt hay dài → cho xuống 2 dòng thay vì cắt cụt -->
+        <div
+          data-cx-summary="${name}"
+          class="w-full text-center font-cormorant text-[17px] font-semibold leading-tight text-stone-700 line-clamp-2"
+        ></div>
       </div>
-      <div
-        data-cx-summary="${name}"
-        class="w-full truncate text-center font-cinzel text-[12px] font-semibold tracking-wide text-stone-700"
-      ></div>
     </div>`;
 
   const summaryPanel = `
@@ -96,42 +101,62 @@
       <div>
         <!-- max-w: trên md thanh rộng tới 768px, để khối tóm tắt giãn hết cỡ thì
              hai profile loãng ra mà ảnh vẫn bé — giữ nó ở khổ thiệp. -->
-        <div class="flex flex-col gap-2 px-3 pt-1 pb-2 w-full max-w-[430px] mx-auto">
-          <div class="flex items-stretch gap-2">
-            ${profile("groom", "Chú Rể", "groom-photo", "groom-name")}
-            <div class="self-center font-cormorant italic text-[18px] text-stone-500">
+        <div class="flex flex-col gap-3 px-4 pt-2 pb-3 w-full max-w-[430px] mx-auto">
+          <!-- items-start + mt-4: dấu & canh theo TÂM hai ảnh, không theo tâm cột
+               (cột cao thấp khác nhau khi tên xuống 2 dòng). -->
+          <div class="flex items-start gap-2">
+            ${profile("Chú Rể", "groom-photo", "groom-name")}
+            <div class="mt-4 font-cormorant italic text-[22px] leading-none text-stone-500/80">
               &amp;
             </div>
-            ${profile("bride", "Cô Dâu", "bride-photo", "bride-name")}
+            ${profile("Cô Dâu", "bride-photo", "bride-name")}
           </div>
 
-          <!-- Ngày & nơi làm lễ -->
-          <div
-            class="flex flex-col items-center gap-0.5 rounded-xl bg-white/45 px-3 py-2 text-center"
-          >
+          <!-- Vạch ngăn kèm hạt kim cương nhỏ, thay cho việc lồng thêm một hộp -->
+          <div class="flex items-center gap-2">
+            <span class="flex-1 h-px bg-white/60"></span>
+            <span class="w-1.5 h-1.5 rotate-45 bg-white/80"></span>
+            <span class="flex-1 h-px bg-white/60"></span>
+          </div>
+
+          <!-- Lễ: tên lễ (nhãn) → ngày (nhân vật chính) → nơi tổ chức -->
+          <div class="flex flex-col items-center gap-1.5 text-center">
+            <!-- Cùng một thẻ vừa mang dữ liệu vừa là "hàng" (closest() tính cả
+                 chính nó) → không cần thẻ bọc riêng. -->
             <div
+              data-cx-summary-row
               data-cx-summary="event-name"
-              class="text-[9px] uppercase tracking-[2px] text-stone-500 font-inter"
+              class="hidden font-inter text-[9px] uppercase tracking-[3px] text-stone-500"
             ></div>
-            <div
-              data-cx-summary="event-date"
-              class="font-playfair text-[15px] font-semibold leading-tight text-stone-700"
-            ></div>
-            <div
-              class="flex items-center justify-center gap-1.5 text-[11px] text-stone-600 font-inter"
-            >
-              <span data-cx-summary="event-weekday"></span>
-              <!-- Không có giờ thì cả dấu · lẫn giờ cùng ẩn (data-cx-summary-row) -->
-              <span data-cx-summary-row class="hidden flex items-center gap-1.5">
-                <span class="text-stone-400">·</span>
+
+            <!-- Thứ · NGÀY · giờ trên một hàng, ngăn bằng gạch dọc mảnh. Gạch nằm
+                 TRONG hàng có thể ẩn để lúc thiếu giờ/thứ không còn gạch mồ côi. -->
+            <div class="flex items-center justify-center gap-2.5">
+              <span
+                data-cx-summary-row
+                class="hidden flex items-center gap-2.5 font-inter text-[10px] uppercase tracking-[1px] text-stone-500"
+              >
+                <span data-cx-summary="event-weekday"></span>
+                <span class="w-px h-5 bg-white/70"></span>
+              </span>
+              <span
+                data-cx-summary="event-date"
+                class="font-cormorant text-[22px] font-semibold leading-none tracking-wide text-stone-700"
+              ></span>
+              <span
+                data-cx-summary-row
+                class="hidden flex items-center gap-2.5 font-inter text-[10px] uppercase tracking-[1px] text-stone-500"
+              >
+                <span class="w-px h-5 bg-white/70"></span>
                 <span data-cx-summary="event-time"></span>
               </span>
             </div>
+
             <div
               data-cx-summary-row
-              class="hidden flex items-center justify-center gap-1 text-[11px] text-stone-600 font-inter"
+              class="hidden flex items-start justify-center gap-1.5 max-w-[300px] font-inter text-[11px] leading-snug text-stone-600"
             >
-              <i class="fas fa-map-marker-alt text-rose-pastel-300 text-[9px]"></i>
+              <i class="fas fa-map-marker-alt mt-0.5 text-[9px] text-stone-500"></i>
               <span data-cx-summary="event-location" class="line-clamp-2"></span>
             </div>
           </div>
