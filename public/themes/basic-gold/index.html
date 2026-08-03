@@ -24,252 +24,26 @@
     <link rel="stylesheet" href="../../../styles/themes.css" />
     <!-- CryptoJS for decryption -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <!-- Markup trình phát nhạc — nạp ở HEAD vì script nội tuyến ngay đầu <body>
+         gọi CXMusicPlayer.build() để dựng thanh nhạc. -->
+    <script src="../../../core/components/music-player.js"></script>
   </head>
   <body
     class="bg-white min-h-screen flex justify-center items-center p-0 md:py-5"
   >
-    <!-- Trình phát nhạc nền — chỉ là MARKUP. Toàn bộ logic (icon phát/dừng, tên
-         bài, tiến trình, tua) nằm ở core/helpers/music-player-helper.js và gắn
-         vào qua các thuộc tính data-cx-music bên dưới → theme khác muốn UI khác
-         thì chỉ việc viết HTML khác, không đụng JS.
-         Giữ id="music-toggle" vì setupMusic() trong core/helpers/render-helper.js
-         ẩn/hiện theo id này (display:none / flex) — nên thẻ phải là flex-col.
-         Cố ý KHÔNG đặt id="music-icon" (icon của nút tròn kiểu cũ) để
-         updateMusicIcon() dùng chung không ghi đè icon của thẻ này.
-         .cx-no-edit để runtime chỉnh-tay của tab Giao diện bỏ qua thẻ này.
-         Màu chữ dùng stone của Tailwind (không phải stone-custom) để cài đặt
-         màu của người dùng không làm chữ trên thẻ mất hút.
-         Canh giữa bằng inset-x-0 + mx-auto chứ KHÔNG dùng -translate-x-1/2:
-         tổ tiên có transform sẽ thành containing block, bong bóng `fixed` bên
-         trong sẽ neo theo thẻ này thay vì theo màn hình → kéo thả sai chỗ. -->
-    <div
-      id="music-toggle"
-      data-cx-music="root"
-      data-cx-play-icon="fas fa-play ml-px"
-      data-cx-pause-icon="fas fa-pause"
-      data-cx-seek="10"
-      data-cx-empty-title="Nhạc nền"
-      data-cx-reveal-on-scroll="64"
-      class="cx-mp cx-mp-fixed-top cx-no-edit fixed top-0 inset-x-0 mx-auto z-[60] w-full max-w-[430px] md:max-w-[768px] flex-col px-2 md:px-3"
-      style="display: none"
-    >
-      <!-- .cx-mp-bar = thanh trên đỉnh. LUÔN đứng yên ở đây, không kéo được;
-           vuốt lên tay nắm thì nó ẩn đi và bong bóng bên dưới hiện ra. -->
-      <div
-        class="cx-mp-bar mt-2 rounded-2xl overflow-hidden shadow-lg backdrop-blur-md bg-gradient-to-r from-rose-pastel-100/95 to-rose-pastel-200/95"
-      >
-        <!-- Tất cả trên MỘT hàng (cao 48px): bìa · tên bài · lùi/phát/tới.
-             CHÍNH THẺ NÀY là thanh tiến trình (data-cx-music="progress"): phần đã
-             phát được tô sáng dần từ trái sang, bấm chỗ nào tua tới chỗ đó — không
-             tốn thêm một dải riêng. Helper tự bỏ qua cú bấm rơi vào nút bên trong.
-             Các phần tử nội dung phải là `relative` để nằm TRÊN lớp tô. -->
-        <div
-          data-cx-music="progress"
-          class="cx-mp-prog relative flex items-center gap-2 px-3 py-2 overflow-hidden cursor-pointer"
-        >
-          <!-- Phần đã phát -->
-          <div
-            data-cx-music="fill"
-            class="cx-mp-fill absolute inset-y-0 left-0 w-0 bg-white/40 pointer-events-none"
-          ></div>
-
-          <!-- Ảnh bìa: nốt nhạc là nền dự phòng, có thumbnail thì ảnh đè lên -->
-          <div
-            class="relative shrink-0 w-8 h-8 rounded-lg overflow-hidden bg-gradient-to-br from-rose-pastel-200 to-rose-pastel-300 ring-1 ring-inset ring-white/40 flex items-center justify-center"
-          >
-            <i class="cx-mp-note fas fa-music text-white text-[11px]"></i>
-            <img
-              data-cx-music="thumb"
-              alt=""
-              hidden
-              class="absolute inset-0 w-full h-full object-cover"
-            />
-          </div>
-
-          <!-- Tên bài -->
-          <div class="relative min-w-0 flex-1 overflow-hidden">
-            <div
-              data-cx-music="title"
-              class="cx-mp-title font-inter italic text-[13px] text-stone-600 leading-tight"
-            >
-              Nhạc nền
-            </div>
-          </div>
-
-          <!-- Lùi 10 giây · Phát/Tạm dừng · Tới 10 giây -->
-          <div class="relative shrink-0 flex items-center gap-1">
-            <button
-              type="button"
-              data-cx-music="back"
-              aria-label="Lùi 10 giây"
-              class="w-8 h-8 rounded-full bg-white/40 text-stone-600 flex items-center justify-center transition-transform active:scale-90"
-            >
-              <i class="fas fa-backward text-[10px]"></i>
-            </button>
-            <button
-              type="button"
-              data-cx-music="toggle"
-              aria-label="Phát hoặc tạm dừng nhạc nền"
-              class="w-8 h-8 rounded-full bg-white/80 text-stone-600 flex items-center justify-center shadow-sm transition-transform active:scale-90"
-            >
-              <!-- Class ở đây là phần của theme (cỡ chữ); helper ghép thêm
-                   fa-play / fa-pause vào tuỳ trạng thái. -->
-              <i data-cx-music="icon" class="text-[11px]"></i>
-            </button>
-            <button
-              type="button"
-              data-cx-music="forward"
-              aria-label="Tới 10 giây"
-              class="w-8 h-8 rounded-full bg-white/40 text-stone-600 flex items-center justify-center transition-transform active:scale-90"
-            >
-              <i class="fas fa-forward text-[10px]"></i>
-            </button>
-          </div>
-        </div>
-
-        <!-- Khối mở rộng: kéo XUỐNG ở tay nắm mới hiện. Tóm tắt thiệp: hai
-             "profile" chú rể / cô dâu, rồi ngày và nơi làm LỄ (ngày chính, không
-             phải ngày tiệc). Dữ liệu do renderMusicSummary() đổ vào qua các
-             thuộc tính data-cx-summary — xem core/helpers/render-helper.js.
-             .cx-mp-panel phải có ĐÚNG MỘT thẻ con bọc tất cả: CSS cắt chiều cao ở
-             thẻ con đó, để nội dung thành nhiều thẻ anh em thì phần ngoài thẻ đầu
-             không bị cắt và lòi ra lúc đang đóng.
-             Chữ dùng stone của Tailwind (không phải stone-custom) cho khớp phần
-             còn lại của thanh — xem ghi chú ở thẻ #music-toggle. -->
-        <div data-cx-music="panel" class="cx-mp-panel">
-          <div>
-            <!-- max-w: trên md thanh rộng tới 768px, để khối tóm tắt giãn hết cỡ
-                 thì hai profile loãng ra mà ảnh vẫn bé — giữ nó ở khổ thiệp. -->
-            <div
-              class="flex flex-col gap-2 px-3 pt-1 pb-2 w-full max-w-[430px] mx-auto"
-            >
-              <!-- Hai profile: mỗi bên một người -->
-              <div class="flex items-stretch gap-2">
-                <div
-                  class="flex-1 min-w-0 flex flex-col items-center gap-1 rounded-xl bg-white/45 px-2 py-2"
-                >
-                  <div
-                    class="w-12 h-12 rounded-full overflow-hidden shrink-0 ring-2 ring-white/80 shadow-sm bg-gradient-to-br from-rose-pastel-200 to-rose-pastel-300"
-                  >
-                    <img
-                      data-cx-summary="groom-photo"
-                      alt=""
-                      class="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div
-                    class="text-[9px] uppercase tracking-[2px] text-stone-500 font-inter"
-                  >
-                    Chú Rể
-                  </div>
-                  <div
-                    data-cx-summary="groom-name"
-                    class="w-full truncate text-center font-cinzel text-[12px] font-semibold tracking-wide text-stone-700"
-                  ></div>
-                </div>
-
-                <div
-                  class="self-center font-cormorant italic text-[18px] text-stone-500"
-                >
-                  &amp;
-                </div>
-
-                <div
-                  class="flex-1 min-w-0 flex flex-col items-center gap-1 rounded-xl bg-white/45 px-2 py-2"
-                >
-                  <div
-                    class="w-12 h-12 rounded-full overflow-hidden shrink-0 ring-2 ring-white/80 shadow-sm bg-gradient-to-br from-rose-pastel-200 to-rose-pastel-300"
-                  >
-                    <img
-                      data-cx-summary="bride-photo"
-                      alt=""
-                      class="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div
-                    class="text-[9px] uppercase tracking-[2px] text-stone-500 font-inter"
-                  >
-                    Cô Dâu
-                  </div>
-                  <div
-                    data-cx-summary="bride-name"
-                    class="w-full truncate text-center font-cinzel text-[12px] font-semibold tracking-wide text-stone-700"
-                  ></div>
-                </div>
-              </div>
-
-              <!-- Ngày & nơi làm lễ -->
-              <div
-                class="flex flex-col items-center gap-0.5 rounded-xl bg-white/45 px-3 py-2 text-center"
-              >
-                <div
-                  data-cx-summary="event-name"
-                  class="text-[9px] uppercase tracking-[2px] text-stone-500 font-inter"
-                ></div>
-                <div
-                  data-cx-summary="event-date"
-                  class="font-playfair text-[15px] font-semibold leading-tight text-stone-700"
-                ></div>
-                <div
-                  class="flex items-center justify-center gap-1.5 text-[11px] text-stone-600 font-inter"
-                >
-                  <span data-cx-summary="event-weekday"></span>
-                  <!-- Không có giờ thì cả dấu · lẫn giờ cùng ẩn (data-cx-summary-row) -->
-                  <span
-                    data-cx-summary-row
-                    class="hidden flex items-center gap-1.5"
-                  >
-                    <span class="text-stone-400">·</span>
-                    <span data-cx-summary="event-time"></span>
-                  </span>
-                </div>
-                <div
-                  data-cx-summary-row
-                  class="hidden flex items-center justify-center gap-1 text-[11px] text-stone-600 font-inter"
-                >
-                  <i
-                    class="fas fa-map-marker-alt text-rose-pastel-300 text-[9px]"
-                  ></i>
-                  <span data-cx-summary="event-location" class="line-clamp-2"
-                  ></span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Tay nắm: vuốt lên thu thanh về bong bóng, vuốt xuống mở khối tóm tắt
-             bên trên. Rộng hết khối cho dễ vuốt; helper lo cử chỉ. -->
-        <button
-          type="button"
-          data-cx-music="handle"
-          aria-label="Vuốt xuống để xem tóm tắt thiệp, vuốt lên để thu gọn trình phát nhạc"
-          class="cx-mp-handle w-full h-4 flex items-center justify-center cursor-grab active:cursor-grabbing"
-        >
-          <span class="w-8 h-1 rounded-full bg-white/70"></span>
-        </button>
-      </div>
-
-      <!-- Bong bóng: chỉ hiện khi đã thu gọn. Kéo đi khắp màn hình, thả tay thì
-           tự bay về bám lề; CHẠM (không kéo) = mở lại thanh. Neo sẵn bên phải,
-           helper ghi đè left/top khi bị kéo. Trong bong bóng chỉ có ảnh bìa bài
-           hát (thumbnail YouTube), nốt nhạc là nền dự phòng khi chưa có ảnh. -->
-      <button
-        type="button"
-        data-cx-music="bubble"
-        aria-label="Mở lại thanh nhạc"
-        class="cx-mp-bubble fixed right-3 top-24 w-9 h-9 rounded-full shadow-[0_8px_24px_rgba(120,70,80,0.4)] ring-2 ring-white/70 bg-gradient-to-br from-rose-pastel-200 to-rose-pastel-300 items-center justify-center cursor-grab active:cursor-grabbing"
-      >
-        <i class="cx-mp-note fas fa-music text-white text-[10px]"></i>
-        <!-- cx-mp-spin: quay tròn khi đang phát -->
-        <img
-          data-cx-music="thumb"
-          alt=""
-          hidden
-          class="cx-mp-spin absolute inset-0 w-full h-full rounded-full object-cover"
-        />
-      </button>
-    </div>
+    <!-- Trình phát nhạc nền: markup do core/components/music-player.js dựng —
+         thiệp và panel "Thành phần" (tab Giao diện) dùng CHUNG một bản, sửa
+         một chỗ là cả hai đổi theo. Logic (icon phát/dừng, tên bài, tiến trình,
+         tua, cử chỉ tay nắm) vẫn ở core/helpers/music-player-helper.js.
+         Dựng ngay tại đây (script nội tuyến) để thẻ trình phát vẫn là con ĐẦU
+         TIÊN của body như trước: bong bóng thu gọn dùng position fixed, tổ tiên
+         có transform sẽ thành containing block và làm nó neo sai chỗ. -->
+    <div id="cx-music-mount"></div>
+    <script>
+      document.currentScript.previousElementSibling.replaceWith(
+        CXMusicPlayer.build({ variant: "bar", chrome: "fixed-top" }),
+      );
+    </script>
 
     <!-- Cover Screen -->
     <div
@@ -1116,9 +890,9 @@
     <script src="../../../core/helpers/youtube-helper.js"></script>
     <!-- Phải nạp SAU youtube-helper (nguồn phát nhạc) -->
     <script src="../../../core/helpers/music-player-helper.js"></script>
-    <!-- Kho công cụ thả được lên thiệp (tab Giao diện) — phải nạp TRƯỚC
-         theme-setting-helper vì runtime công cụ ở đó đọc window.CX_TOOLS -->
-    <script src="../../../core/helpers/tools-helper.js"></script>
+    <!-- Kho thành phần thả được lên thiệp (tab Giao diện) — phải nạp TRƯỚC
+         theme-setting-helper vì runtime thành phần ở đó đọc window.CX_ELEMENTS -->
+    <script src="../../../core/helpers/element-helper.js"></script>
     <script src="../../../core/helpers/lightbox-helper.js"></script>
     <script src="../../../core/helpers/calendar-helper.js"></script>
     <script src="../../../core/helpers/wedding-helper.js"></script>

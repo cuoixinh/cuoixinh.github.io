@@ -1,5 +1,8 @@
 {
   "env": {
     "SUPABASE_ACCESS_TOKEN": "sbp_b5069235cd8710ada32547fb79d1eabcaa8fb25c"
-  }
+  },
+  "enabledMcpjsonServers": [
+    "supabase"
+  ]
 }

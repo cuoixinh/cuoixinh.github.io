@@ -19,6 +19,11 @@
 
 @import "./_base.css";
 @import "./_common.css";
+
+/* Trình phát nhạc: bảng "Thành phần" ở invitation-setup dựng widget THẬT
+   (CX_ELEMENTS.build) làm ảnh xem trước, nên trang ứng dụng cũng cần bộ .cx-mw-*
+   này — không phải chỉ build thiệp. */
+@import "./_music-player.css";
 @import "./_setup.css";
 @import "./_ai-modal.css";
 

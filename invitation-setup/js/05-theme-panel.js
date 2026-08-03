@@ -199,6 +199,7 @@ function _initThemePanel() {
   // bản / trang trí
   document.getElementById("theme-addtext-panel")?.classList.add("hidden");
   document.getElementById("theme-decor-panel")?.classList.add("hidden");
+  document.getElementById("theme-elements-panel")?.classList.add("hidden");
   closeLineEditor();
   _initEditHint();
 
@@ -290,12 +291,11 @@ window.addEventListener("message", (ev) => {
     // Hoạ tiết vừa thêm / kéo / xoay / xoá trong thiệp → lưu toạ độ mới.
     _themeSetting.decorations = Array.isArray(d.decors) ? d.decors : [];
     _setDirty(true, "theme");
-  } else if (d.type === "cx-tools-changed") {
-    // Công cụ vừa thả / kéo / đổi mẫu / ẩn / xoá → lưu lại và vẽ lại danh sách
-    // "Đã có trên thiệp" (bảng Công cụ có thể đang mở).
-    _themeSetting.tools = Array.isArray(d.tools) ? d.tools : [];
+  } else if (d.type === "cx-elements-changed") {
+    // Thành phần vừa thả / kéo / đổi mẫu / ẩn / xoá — mọi thao tác chỉnh đều làm
+    // NGAY TRÊN THIỆP (nút quanh widget), bảng chọn chỉ để thả nên chỉ cần lưu.
+    _themeSetting.elements = Array.isArray(d.elements) ? d.elements : [];
     _setDirty(true, "theme");
-    _renderPlacedTools();
   }
 });
 
@@ -307,6 +307,7 @@ function openAddTextPanel() {
   document.getElementById("theme-decor-panel")?.classList.add("hidden");
   document.getElementById("theme-main-controls")?.classList.add("hidden");
   document.getElementById("theme-edit-hint")?.classList.add("hidden");
+  document.getElementById("theme-elements-panel")?.classList.add("hidden");
   document.getElementById("theme-addtext-panel")?.classList.remove("hidden");
   if (window.lucide) lucide.createIcons();
 }
@@ -421,9 +422,10 @@ function _paletteDragEnd(ev) {
   d.ghost?.remove();
   if (d.iframe) d.iframe.style.pointerEvents = ""; // khôi phục tương tác iframe
   const iframe = d.iframe || _lineIframe();
-  if (!d.moved) {
-    addTextBlock(d.type); // chỉ bấm → thêm ở cuối
-  } else if (d.over && iframe) {
+  // Nhả tay TRÊN thiệp → chèn đúng chỗ đó; nhả ở chỗ khác (bấm tại chỗ, hoặc kéo
+  // rồi buông ngoài thiệp) → thêm ở cuối. Không có nhánh "im lặng bỏ qua": một cú
+  // bấm bình thường vẫn lệch vài px nên rất dễ bị tính là kéo.
+  if (d.over && iframe) {
     const r = iframe.getBoundingClientRect();
     closeAddTextPanel();
     _setDirty(true, "theme");
@@ -432,7 +434,9 @@ function _paletteDragEnd(ev) {
       "*",
     );
   } else {
+    // Dọn vạch chèn trước rồi mới thêm, không thì vạch còn nằm lại trên thiệp.
     iframe?.contentWindow?.postMessage({ type: "cx-drag-cancel" }, "*");
+    addTextBlock(d.type);
   }
 }
 
@@ -448,6 +452,7 @@ function openDecorPanel() {
   document.getElementById("theme-addtext-panel")?.classList.add("hidden");
   document.getElementById("theme-main-controls")?.classList.add("hidden");
   document.getElementById("theme-edit-hint")?.classList.add("hidden");
+  document.getElementById("theme-elements-panel")?.classList.add("hidden");
   document.getElementById("theme-decor-panel")?.classList.remove("hidden");
   _renderDecorPalette();
   if (window.lucide) lucide.createIcons();
@@ -501,7 +506,7 @@ async function _renderDecorPalette() {
     const btn = document.createElement("button");
     btn.type = "button";
     btn.title = "Kéo vào thiệp hoặc bấm để thêm";
-    btn.className = "cx-decor-item";
+    btn.className = "cx-pal-item cx-pal-item-img";
     const img = document.createElement("img");
     img.src = item.url;
     img.alt = item.name;
@@ -591,11 +596,13 @@ function _decorDragEnd(ev) {
     ev.clientY >= r.top &&
     ev.clientY <= r.bottom;
 
-  // Bấm (không kéo) → thả vào giữa thiệp; kéo ra ngoài iframe → bỏ qua.
-  if (!d.moved) {
-    _addDecor(d.src, null, null);
-  } else if (inside) {
+  // Nhả tay TRÊN thiệp → đặt đúng chỗ đó; nhả ở chỗ khác (bấm tại chỗ, hoặc kéo
+  // rồi buông ngoài thiệp) → thêm vào giữa. Không có nhánh "im lặng bỏ qua":
+  // một cú bấm bình thường vẫn lệch vài px nên rất dễ bị tính là kéo.
+  if (inside) {
     _addDecor(d.src, ev.clientX - r.left, ev.clientY - r.top);
+  } else {
+    _addDecor(d.src, null, null);
   }
 }
 
@@ -605,148 +612,158 @@ function _addDecor(src, x, y) {
   _lineIframe()?.contentWindow?.postMessage({ type: "cx-add-decor", src, x, y }, "*");
 }
 
-// ─── Công cụ: bảng chọn công cụ thả lên thiệp ────────────────────────────────
-// Danh mục lấy từ window.CX_TOOLS (core/helpers/tools-helper.js) nên thêm công
-// cụ mới thì không phải sửa gì ở đây. Cách kéo-thả giống hệt hoạ tiết (lưu theo
-// toạ độ), chỉ khác là sau khi thả thì bảng VẪN MỞ — người dùng thường chọn mẫu
-// ngay sau đó.
+// ─── Thành phần: bảng chọn thành phần thả lên thiệp ──────────────────────────
+// Danh mục lấy từ window.CX_ELEMENTS (core/helpers/element-helper.js) nên thêm
+// thành phần mới thì không phải sửa gì ở đây. Hành xử giống hệt Trang trí:
+// BẤM ô mẫu → thêm vào giữa thiệp; KÉO ô mẫu thả xuống → đặt đúng chỗ thả. Thêm
+// xong đóng bảng luôn — chỉnh tiếp (đổi mẫu, ẩn, xoá, phóng to) làm ngay trên
+// thiệp bằng các nút quanh widget.
 
-function openToolsPanel() {
+function openElementsPanel() {
   document.getElementById("theme-line-editor")?.classList.add("hidden");
   document.getElementById("theme-addtext-panel")?.classList.add("hidden");
   document.getElementById("theme-decor-panel")?.classList.add("hidden");
   document.getElementById("theme-main-controls")?.classList.add("hidden");
   document.getElementById("theme-edit-hint")?.classList.add("hidden");
-  document.getElementById("theme-tools-panel")?.classList.remove("hidden");
-  _renderToolsPalette();
-  _renderPlacedTools();
+  document.getElementById("theme-elements-panel")?.classList.remove("hidden");
+  _renderElementsPalette();
   if (window.lucide) lucide.createIcons();
 }
-window.openToolsPanel = openToolsPanel;
+window.openElementsPanel = openElementsPanel;
 
-function closeToolsPanel() {
-  document.getElementById("theme-tools-panel")?.classList.add("hidden");
+function closeElementsPanel() {
+  document.getElementById("theme-elements-panel")?.classList.add("hidden");
   document.getElementById("theme-main-controls")?.classList.remove("hidden");
   _initEditHint();
 }
-window.closeToolsPanel = closeToolsPanel;
+window.closeElementsPanel = closeElementsPanel;
 
-// Thiệp đã chọn bài nhạc chưa? Ô thật nằm ở tab Thiết lập (ngoài <form>), đây
-// chỉ đọc để nhắc — bật/tắt nhạc vẫn là việc của tab Thiết lập.
-function _hasMusicUrl() {
-  return !!document.getElementById("music-url-input")?.value?.trim();
+// ─── Xem trước thành phần: dựng WIDGET THẬT rồi thu nhỏ vừa ô ───────────────────
+// Ô mẫu không vẽ lại bằng icon mà gọi thẳng def.build(variant) — cùng hàm mà
+// runtime dùng để đặt lên thiệp — nên bảng chọn luôn khớp với thứ người dùng
+// sẽ thấy, kể cả sau này widget đổi kiểu.
+// Dựng ở kích thước THẬT của một tấm thiệp cỡ trung (bề ngang thiệp ~400px),
+// rồi mới thu nhỏ cả cụm cho vừa ô — làm vậy thì tỉ lệ bên trong (cỡ chữ so với
+// nút, với ảnh bìa) đúng y lúc widget nằm trên thiệp. Đặt bừa một bề ngang quy
+// chiếu rồi tính font theo nó sẽ ra tỉ lệ khác.
+const EL_PREVIEW_CARD_W = 400;
+const EL_PREVIEW_MAX_SCALE = 1.15; // mẫu nhỏ (nút tròn) được phóng cho vừa ô
+const EL_PREVIEW_PAD = 0.9; // chừa mép, đừng để widget dính viền ô
+
+// Widget thật có <button> bên trong; ô mẫu cũng là <button> nên phải hạ chúng
+// xuống <span> (nút lồng nút thì trình đọc màn hình đọc sai), đồng thời gỡ
+// data-cx-music để không helper nào bám vào bản xem trước.
+function _inertPreview(node) {
+  node.querySelectorAll("button").forEach((b) => {
+    const s = document.createElement("span");
+    s.className = b.className;
+    s.innerHTML = b.innerHTML;
+    b.replaceWith(s);
+  });
+  node
+    .querySelectorAll("[data-cx-music]")
+    .forEach((el) => el.removeAttribute("data-cx-music"));
+  node.removeAttribute("data-cx-music");
+  return node;
 }
 
-function _renderToolsPalette() {
-  const box = document.getElementById("cx-tools-palette");
-  if (!box || box.dataset.rendered === "1") return;
-  const reg = window.CX_TOOLS || {};
+function _elPreview(def, v) {
+  const box = document.createElement("span");
+  box.className = "cx-pal-prev";
+  const stage = document.createElement("span");
+  stage.className = "cx-pal-stage";
+  // Bề ngang widget = % bề ngang thiệp, đúng như lúc thả thật.
+  const w = (EL_PREVIEW_CARD_W * v.w) / 100;
+  stage.style.width = w + "px";
+  const node = _inertPreview(def.build(v.id));
+  // Cỡ chữ phải đặt trên CHÍNH widget (.cx-tw có font-size riêng, đặt ở thẻ bọc
+  // sẽ bị đè) — cùng công thức với _cxElStyle của runtime.
+  if (v.fs) node.style.fontSize = Math.round(w * v.fs * 10) / 10 + "px";
+  stage.appendChild(node);
+  box.appendChild(stage);
+  return box;
+}
+
+// Đo xong mới scale: lúc dựng, ô còn nằm trong panel đang ẩn nên chưa có kích
+// thước. Gọi lại mỗi lần mở bảng.
+function _fitElPreviews(root) {
+  (root || document).querySelectorAll(".cx-pal-prev").forEach((box) => {
+    const stage = box.firstElementChild;
+    if (!stage) return;
+    const bw = box.clientWidth;
+    const bh = box.clientHeight;
+    const sw = stage.offsetWidth;
+    const sh = stage.offsetHeight;
+    if (!bw || !bh || !sw || !sh) return;
+    const k =
+      Math.min(bw / sw, bh / sh, EL_PREVIEW_MAX_SCALE) * EL_PREVIEW_PAD;
+    stage.style.transform = `translate(-50%, -50%) scale(${k})`;
+  });
+}
+
+// Cột chỉnh kéo đổi rộng được (#theme-resize) → ô mẫu rộng hẹp theo, hệ số
+// scale cũ thành sai. Theo dõi kích thước bảng để tính lại.
+function _initElPreviewResize() {
+  const panel = document.getElementById("theme-elements-panel");
+  if (!panel || typeof ResizeObserver === "undefined") return;
+  new ResizeObserver(() => {
+    if (!panel.classList.contains("hidden")) _fitElPreviews(panel);
+  }).observe(panel);
+}
+
+// Ô mẫu: MỖI MẪU một ô (không phải mỗi thành phần một ô) — chọn mẫu nào thì thả
+// thẳng mẫu đó, khỏi thả xong mới đi đổi.
+function _renderElementsPalette() {
+  const box = document.getElementById("cx-elements-palette");
+  if (!box) return;
+  if (box.dataset.rendered === "1") {
+    _fitElPreviews(box);
+    return;
+  }
+  const reg = window.CX_ELEMENTS || {};
+  const defs = Object.values(reg);
   box.textContent = "";
-  Object.values(reg).forEach((def) => {
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "cx-addtext-item";
-    btn.title = "Kéo vào thiệp hoặc bấm để thêm";
-    btn.innerHTML =
-      '<span class="cx-addtext-ico">' +
-      def.icon +
-      "</span>" +
-      '<span class="cx-addtext-txt"><b></b><small></small></span>' +
-      '<i data-lucide="grip-vertical" class="cx-addtext-grip !w-[16px] !h-[16px]"></i>';
-    // Tên/mô tả gán bằng textContent (không nhét vào chuỗi HTML) cho an toàn.
-    btn.querySelector("b").textContent = def.name;
-    btn.querySelector("small").textContent = def.desc || "";
-    btn.addEventListener("pointerdown", (e) => startToolDrag(e, def.id));
-    box.appendChild(btn);
+  defs.forEach((def) => {
+    // Một thành phần thì khỏi cần nhãn nhóm; nhiều thành phần mới phải ghi rõ ô nào
+    // thuộc thành phần nào.
+    if (defs.length > 1) {
+      const lb = document.createElement("p");
+      lb.className = "cx-pal-group";
+      lb.textContent = def.name;
+      box.appendChild(lb);
+    }
+    def.variants.forEach((v) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "cx-pal-item cx-pal-item-prev";
+      btn.title =
+        def.name +
+        " · " +
+        v.name +
+        (v.desc ? " — " + v.desc : "") +
+        " (kéo vào thiệp hoặc bấm để thêm)";
+      btn.appendChild(_elPreview(def, v));
+      const cap = document.createElement("span");
+      cap.className = "cx-pal-txt";
+      cap.textContent = v.name;
+      btn.appendChild(cap);
+      const grip = document.createElement("i");
+      grip.setAttribute("data-lucide", "grip-vertical");
+      grip.className = "cx-pal-grip !w-[14px] !h-[14px]";
+      btn.appendChild(grip);
+      btn.addEventListener("pointerdown", (e) => startElementDrag(e, def.id, v.id));
+      box.appendChild(btn);
+    });
   });
   box.dataset.rendered = "1";
+  _fitElPreviews(box);
 }
 
-// Danh sách công cụ ĐÃ thả: đổi mẫu, ẩn/hiện, xoá. Vẽ lại mỗi lần model đổi.
-function _renderPlacedTools() {
-  const wrap = document.getElementById("cx-tools-placed");
-  const list = document.getElementById("cx-tools-placed-list");
-  if (!wrap || !list) return;
-  const reg = window.CX_TOOLS || {};
-  const tools = Array.isArray(_themeSetting.tools) ? _themeSetting.tools : [];
-  wrap.classList.toggle("hidden", tools.length === 0);
-  list.textContent = "";
-
-  tools.forEach((t) => {
-    const def = reg[t.tool];
-    if (!def) return;
-    const card = document.createElement("div");
-    card.className = "cx-tool-card" + (t.visible === false ? " cx-tool-card-off" : "");
-
-    const head = document.createElement("div");
-    head.className = "cx-tool-card-head";
-    const name = document.createElement("span");
-    name.className = "cx-tool-card-name";
-    name.textContent = def.name + (t.visible === false ? " · đang ẩn" : "");
-    const eye = document.createElement("button");
-    eye.type = "button";
-    eye.className = "cx-tool-act";
-    eye.title = t.visible === false ? "Hiện lại trên thiệp" : "Ẩn trên thiệp";
-    eye.setAttribute("aria-label", eye.title);
-    eye.innerHTML =
-      '<i data-lucide="' +
-      (t.visible === false ? "eye-off" : "eye") +
-      '" class="!w-[15px] !h-[15px]"></i>';
-    eye.addEventListener("click", () =>
-      _toolMessage("cx-tool-set", { id: t.id, patch: { visible: t.visible === false } }),
-    );
-    const del = document.createElement("button");
-    del.type = "button";
-    del.className = "cx-tool-act";
-    del.title = "Gỡ khỏi thiệp";
-    del.setAttribute("aria-label", del.title);
-    del.innerHTML = '<i data-lucide="trash-2" class="!w-[15px] !h-[15px]"></i>';
-    del.addEventListener("click", () => _toolMessage("cx-tool-del", { id: t.id }));
-    head.append(name, eye, del);
-
-    const skins = document.createElement("div");
-    skins.className = "cx-tool-skins";
-    def.variants.forEach((v) => {
-      const b = document.createElement("button");
-      b.type = "button";
-      b.className = "cx-tool-skin-btn";
-      b.textContent = v.name;
-      b.title = v.desc || v.name;
-      b.setAttribute("aria-pressed", String(v.id === t.variant));
-      b.addEventListener("click", () =>
-        _toolMessage("cx-tool-set", { id: t.id, patch: { variant: v.id } }),
-      );
-      skins.appendChild(b);
-    });
-
-    card.append(head, skins);
-
-    // Công cụ cần nhạc nền mà thiệp chưa chọn bài → nhắc, kèm lối sang Thiết lập.
-    if (def.needs === "music" && !_hasMusicUrl()) {
-      const warn = document.createElement("div");
-      warn.className = "cx-tool-warn";
-      warn.innerHTML =
-        '<i data-lucide="info" class="!w-[14px] !h-[14px] mt-px shrink-0"></i>' +
-        "<span>Thiệp chưa có nhạc nền nên trình phát chưa hiện ra. " +
-        'Chọn bài ở tab <b>Thiết lập</b> → mục Nhạc nền.</span>';
-      card.appendChild(warn);
-    }
-
-    list.appendChild(card);
-  });
-  if (window.lucide) lucide.createIcons();
-}
-
-function _toolMessage(type, payload) {
-  _setDirty(true, "theme");
-  _lineIframe()?.contentWindow?.postMessage({ type, ...payload }, "*");
-}
-
-// Kéo công cụ TỪ bảng chọn THẢ vào thiệp — y hệt hoạ tiết: giữ pointer-capture ở
+// Kéo thành phần TỪ bảng chọn THẢ vào thiệp — y hệt hoạ tiết: giữ pointer-capture ở
 // nút, tắt pointer-events của iframe để trang cha vẫn nhận pointermove, thả trong
 // iframe thì gửi TOẠ ĐỘ điểm thả cho runtime.
-let _toolDrag = null;
-function startToolDrag(e, toolId) {
+let _elDrag = null;
+function startElementDrag(e, elementId, variantId) {
   if (e.button != null && e.button !== 0) return;
   const btn = e.currentTarget;
   e.preventDefault();
@@ -756,8 +773,9 @@ function startToolDrag(e, toolId) {
   const iframe = _lineIframe();
   if (iframe) iframe.style.pointerEvents = "none";
   const r = btn.getBoundingClientRect();
-  _toolDrag = {
-    toolId,
+  _elDrag = {
+    elementId,
+    variantId,
     btn,
     iframe,
     x0: e.clientX,
@@ -767,21 +785,21 @@ function startToolDrag(e, toolId) {
     moved: false,
     ghost: null,
   };
-  const move = (ev) => _toolDragMove(ev);
+  const move = (ev) => _elDragMove(ev);
   const up = (ev) => {
     btn.removeEventListener("pointermove", move);
     btn.removeEventListener("pointerup", up);
     btn.removeEventListener("pointercancel", up);
-    _toolDragEnd(ev);
+    _elDragEnd(ev);
   };
   btn.addEventListener("pointermove", move);
   btn.addEventListener("pointerup", up);
   btn.addEventListener("pointercancel", up);
 }
-window.startToolDrag = startToolDrag;
+window.startElementDrag = startElementDrag;
 
-function _toolDragMove(ev) {
-  const d = _toolDrag;
+function _elDragMove(ev) {
+  const d = _elDrag;
   if (!d) return;
   if (!d.moved) {
     if (Math.hypot(ev.clientX - d.x0, ev.clientY - d.y0) < 6) return;
@@ -801,9 +819,9 @@ function _toolDragMove(ev) {
   d.ghost.style.top = ev.clientY - d.offY + "px";
 }
 
-function _toolDragEnd(ev) {
-  const d = _toolDrag;
-  _toolDrag = null;
+function _elDragEnd(ev) {
+  const d = _elDrag;
+  _elDrag = null;
   if (!d) return;
   d.ghost?.remove();
   if (d.iframe) d.iframe.style.pointerEvents = "";
@@ -818,18 +836,19 @@ function _toolDragEnd(ev) {
     ev.clientY >= r.top &&
     ev.clientY <= r.bottom;
 
-  // Bấm (không kéo) → đặt vào giữa thiệp; kéo ra ngoài iframe → bỏ qua.
-  if (!d.moved) {
-    _addTool(d.toolId, null, null);
-  } else if (inside) {
-    _addTool(d.toolId, ev.clientX - r.left, ev.clientY - r.top);
+  // Giống Trang trí: nhả tay trên thiệp → đúng chỗ đó, chỗ khác → vào giữa.
+  if (inside) {
+    _addElement(d.elementId, d.variantId, ev.clientX - r.left, ev.clientY - r.top);
+  } else {
+    _addElement(d.elementId, d.variantId, null, null);
   }
 }
 
-function _addTool(toolId, x, y) {
+function _addElement(elementId, variantId, x, y) {
+  closeElementsPanel();
   _setDirty(true, "theme");
   _lineIframe()?.contentWindow?.postMessage(
-    { type: "cx-add-tool", tool: toolId, x, y },
+    { type: "cx-add-element", element: elementId, variant: variantId, x, y },
     "*",
   );
 }
@@ -849,6 +868,7 @@ function _openLineEditor(msg) {
   document.getElementById("theme-addtext-panel")?.classList.add("hidden");
   document.getElementById("theme-decor-panel")?.classList.add("hidden");
   document.getElementById("theme-edit-hint")?.classList.add("hidden");
+  document.getElementById("theme-elements-panel")?.classList.add("hidden");
   document.getElementById("theme-line-editor")?.classList.remove("hidden");
 
   // Đổi giữa nhóm control CHỮ và ẢNH
@@ -1324,8 +1344,13 @@ function _initThemeResize() {
   });
 }
 
-if (window.__cxOnReady) window.__cxOnReady(_initThemeResize);
-else _initThemeResize();
+function _initThemePanelObservers() {
+  _initThemeResize();
+  _initElPreviewResize();
+}
+
+if (window.__cxOnReady) window.__cxOnReady(_initThemePanelObservers);
+else _initThemePanelObservers();
 
 // Tên có dấu → slug thuần a-z0-9 và dấu "-" ("Hải Yến" → "hai-yen").
 // Kết quả phải TRÙNG KHÍT với weddingBL.validateSlug() (core/bl/wedding-bl.js):

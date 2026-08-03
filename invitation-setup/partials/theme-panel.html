@@ -45,7 +45,7 @@
         <!-- Gợi ý: click chữ trên thiệp để chỉnh riêng (dismissible, nhớ localStorage) -->
         <div
           id="theme-edit-hint"
-          class="hidden flex items-start gap-2 rounded-lg bg-rose-50 border border-rose-100 px-3 py-2"
+          class="hidden flex items-start gap-2 rounded-lg bg-rose-50 border border-rose-100 px-3 py-2 mt-2"
         >
           <i
             data-lucide="mouse-pointer-click"
@@ -237,15 +237,15 @@
               <div class="flex flex-col items-center gap-1.5">
                 <button
                   type="button"
-                  onclick="openToolsPanel()"
-                  title="Thả công cụ (trình phát nhạc…) lên thiệp"
+                  onclick="openElementsPanel()"
+                  title="Thả thành phần (trình phát nhạc…) lên thiệp"
                   class="cx-tile"
                 >
-                  <i data-lucide="wrench" class="cx-tile-ico"></i>
+                  <i data-lucide="blocks" class="cx-tile-ico"></i>
                 </button>
                 <span
                   class="text-[12px] text-gray-500 leading-none md:text-[12.5px] md:mt-0.5"
-                  >Công cụ</span
+                  >Thành phần</span
                 >
               </div>
             </div>
@@ -514,59 +514,50 @@
           <p class="text-[12px] text-gray-500">
             Kéo mẫu vào vị trí muốn chèn trên thiệp, hoặc bấm để thêm vào cuối.
           </p>
-          <div id="cx-addtext-palette" class="cx-addtext-list">
+          <div id="cx-addtext-palette" class="cx-pal-grid">
             <button
               type="button"
-              title="Kéo vào thiệp hoặc bấm để thêm"
+              title="Đoạn chữ tự do — kéo vào thiệp hoặc bấm để thêm"
               onpointerdown="startPaletteDrag(event,'paragraph')"
-              class="cx-addtext-item"
+              class="cx-pal-item"
             >
-              <span class="cx-addtext-ico">
-                <i data-lucide="align-left" class="!w-[16px] !h-[16px]"></i>
+              <span class="cx-pal-ico">
+                <i data-lucide="align-left" class="!w-[18px] !h-[18px]"></i>
               </span>
-              <span class="cx-addtext-txt">
-                <b>Văn bản</b>
-                <small>Đoạn chữ tự do</small>
-              </span>
+              <span class="cx-pal-txt">Văn bản</span>
               <i
                 data-lucide="grip-vertical"
-                class="cx-addtext-grip !w-[16px] !h-[16px]"
+                class="cx-pal-grip !w-[14px] !h-[14px]"
               ></i>
             </button>
             <button
               type="button"
-              title="Kéo vào thiệp hoặc bấm để thêm"
+              title="Các dòng đánh số 1, 2, 3… — kéo vào thiệp hoặc bấm để thêm"
               onpointerdown="startPaletteDrag(event,'ordered')"
-              class="cx-addtext-item"
+              class="cx-pal-item"
             >
-              <span class="cx-addtext-ico">
-                <i data-lucide="list-ordered" class="!w-[16px] !h-[16px]"></i>
+              <span class="cx-pal-ico">
+                <i data-lucide="list-ordered" class="!w-[18px] !h-[18px]"></i>
               </span>
-              <span class="cx-addtext-txt">
-                <b>Danh sách</b>
-                <small>Các dòng đánh số 1, 2, 3…</small>
-              </span>
+              <span class="cx-pal-txt">Danh sách</span>
               <i
                 data-lucide="grip-vertical"
-                class="cx-addtext-grip !w-[16px] !h-[16px]"
+                class="cx-pal-grip !w-[14px] !h-[14px]"
               ></i>
             </button>
             <button
               type="button"
-              title="Kéo vào thiệp hoặc bấm để thêm"
+              title="Các dòng có dấu chấm đầu dòng — kéo vào thiệp hoặc bấm để thêm"
               onpointerdown="startPaletteDrag(event,'bullet')"
-              class="cx-addtext-item"
+              class="cx-pal-item"
             >
-              <span class="cx-addtext-ico">
-                <i data-lucide="list" class="!w-[16px] !h-[16px]"></i>
+              <span class="cx-pal-ico">
+                <i data-lucide="list" class="!w-[18px] !h-[18px]"></i>
               </span>
-              <span class="cx-addtext-txt">
-                <b>Bullets</b>
-                <small>Các dòng có dấu chấm đầu dòng</small>
-              </span>
+              <span class="cx-pal-txt">Bullets</span>
               <i
                 data-lucide="grip-vertical"
-                class="cx-addtext-grip !w-[16px] !h-[16px]"
+                class="cx-pal-grip !w-[14px] !h-[14px]"
               ></i>
             </button>
           </div>
@@ -580,7 +571,11 @@
           class="hidden space-y-3 md:space-y-4 max-h-[52vh] overflow-y-auto md:max-h-none"
         >
           <div class="flex items-center justify-end gap-2">
-            <button type="button" onclick="closeDecorPanel()" class="cx-le-done">
+            <button
+              type="button"
+              onclick="closeDecorPanel()"
+              class="cx-le-done"
+            >
               <span>Xong</span>
             </button>
           </div>
@@ -589,45 +584,36 @@
             Thả xong bấm vào hoa để kéo đổi chỗ, xoay, phóng to, đưa ra sau chữ
             hoặc xoá.
           </p>
-          <div
-            id="cx-decor-palette"
-            class="grid grid-cols-3 gap-2 md:grid-cols-4"
-          ></div>
+          <div id="cx-decor-palette" class="cx-pal-grid"></div>
           <p id="cx-decor-empty" class="hidden text-[12px] text-gray-400"></p>
         </div>
         <!-- /theme-decor-panel -->
 
-        <!-- Bảng CÔNG CỤ: kéo công cụ (trình phát nhạc…) thả vào chỗ bất kỳ trên
-             thiệp, lưu theo toạ độ như hoạ tiết. Danh mục công cụ nạp từ
-             window.CX_TOOLS (core/helpers/tools-helper.js) nên thêm công cụ mới
-             không phải sửa HTML này. -->
+        <!-- Bảng THÀNH PHẦN: kéo thành phần (trình phát nhạc…) thả vào chỗ bất kỳ
+             trên thiệp, lưu theo toạ độ như hoạ tiết. Danh mục nạp từ
+             window.CX_ELEMENTS (core/helpers/element-helper.js) nên thêm thành
+             phần mới không phải sửa HTML này. -->
         <div
-          id="theme-tools-panel"
+          id="theme-elements-panel"
           class="hidden space-y-3 md:space-y-4 max-h-[52vh] overflow-y-auto md:max-h-none"
         >
           <div class="flex items-center justify-end gap-2">
-            <button type="button" onclick="closeToolsPanel()" class="cx-le-done">
+            <button
+              type="button"
+              onclick="closeElementsPanel()"
+              class="cx-le-done"
+            >
               <span>Xong</span>
             </button>
           </div>
           <p class="text-[12px] text-gray-500">
-            Kéo công cụ thả vào vị trí bất kỳ trên thiệp, hoặc bấm để đặt vào
-            giữa. Thả xong bấm vào công cụ trên thiệp để kéo đổi chỗ, đổi mẫu, ẩn
-            hoặc xoá.
+            Kéo thành phần thả vào vị trí bất kỳ trên thiệp, hoặc bấm để đặt vào
+            giữa. Thả xong bấm vào thành phần trên thiệp để kéo đổi chỗ, đổi mẫu,
+            ẩn hoặc xoá.
           </p>
-          <div id="cx-tools-palette" class="cx-addtext-list"></div>
-
-          <!-- Đã có trên thiệp: đổi mẫu / ẩn hiện / xoá ngay tại bảng -->
-          <div id="cx-tools-placed" class="hidden space-y-2">
-            <p
-              class="text-[11px] font-semibold uppercase tracking-[0.08em] text-gray-400"
-            >
-              Đã có trên thiệp
-            </p>
-            <div id="cx-tools-placed-list" class="flex flex-col gap-2"></div>
-          </div>
+          <div id="cx-elements-palette" class="cx-pal-grid"></div>
         </div>
-        <!-- /theme-tools-panel -->
+        <!-- /theme-elements-panel -->
       </div>
       <!-- /nội dung padding controls -->
     </div>

@@ -138,35 +138,42 @@ trong `content` nên không cần sửa glob.
 
 (Không cần đụng `edit=1`/runtime — loader của `invitation-setup` tự thêm; theme không biết vẫn chạy.)
 
-**Trình phát nhạc nền:** UI riêng từng theme, nhưng logic **không viết lại trong theme** —
-`music-player-helper.js` lo hết, theme chỉ viết HTML và đánh dấu vai trò bằng `data-cx-music="…"`
-(xem đầu file helper; mẫu ở `basic-gold/index.html`). Nạp helper **sau** `youtube-helper.js`;
+**Trình phát nhạc nền:** markup ở `core/components/music-player.js`
+(`CXMusicPlayer.build({ variant, chrome })`) — trang thiệp và panel "Thành phần" dùng
+CHUNG một bản; basic-gold chỉ gọi hàm đó. Logic **không viết lại trong theme** —
+`music-player-helper.js` lo hết, markup chỉ đánh dấu vai trò bằng `data-cx-music="…"`
+(xem đầu file helper). Nạp component + helper **sau** `youtube-helper.js`;
 thẻ root giữ `id="music-toggle"` + `.cx-no-edit`; class icon đặt trong thuộc tính HTML (purge).
+Theme muốn UI khác thì tự viết HTML với cùng bộ `data-cx-music`, không phải đụng JS.
 Kéo xuống ở tay nắm mở khối tóm tắt thiệp (`data-cx-music="panel"`): nội dung do
 `renderMusicSummary(w, {...})` (`render-helper.js`) đổ vào các ô `data-cx-summary="…"` —
 theme muốn có khối này thì thêm markup + gọi hàm đó trong `renderWedding`.
 
-### Công cụ thả lên thiệp (tab Giao diện → Công cụ)
+### Thành phần thả lên thiệp (tab Giao diện → Thành phần)
 
-Tiện ích người dùng tự thả vào thiệp, đặt theo **toạ độ tự do** như hoạ tiết (không
-chèn giữa các mục như khối văn bản). Lưu ở `theme_setting.tools = [{ id, tool,
-variant, x, y, w, visible }]` — cùng blob JSON với `custom_blocks`/`decorations`
-nên **không cần changelog DB**.
+Khối giao diện người dùng tự thả vào thiệp, đặt theo **toạ độ tự do** như hoạ tiết
+(không chèn giữa các mục như khối văn bản). Lưu ở `theme_setting.elements = [{ id,
+element, variant, x, y, w, visible }]` — cùng blob JSON với `custom_blocks`/
+`decorations` nên **không cần changelog DB**.
 
-- **Danh mục** ở `core/helpers/tools-helper.js` (`window.CX_TOOLS`): mỗi công cụ khai
-  báo `name/desc/icon/single/needs/variants[]/build(variant)`. Thêm công cụ mới **chỉ
-  sửa file này** — bảng chọn và runtime tự đọc, không phải đụng HTML hay panel.
-- **Runtime** ở `theme-setting-helper.js` (mục TOOLS, song song mục DECORATIONS):
-  `applyTools(setting)` + kéo/phóng to/đổi mẫu/ẩn/xoá khi `edit=1`. Nhớ gọi
-  `applyTools` trong luồng render (`wedding-helper.js`, `preview-data.js`) **sau**
+- **Danh mục** ở `core/helpers/element-helper.js` (`window.CX_ELEMENTS`): mỗi thành
+  phần khai báo `name/desc/icon/single/needs/variants[]/build(variant)`, còn markup
+  do component trong `core/components/` dựng. Thêm thành phần mới = viết component
+  + thêm một mục ở đây, không đụng HTML/panel.
+- **Runtime** ở `theme-setting-helper.js` (mục ELEMENTS, song song mục DECORATIONS):
+  `applyElements(setting)` + kéo/phóng to/đổi mẫu/ẩn/xoá khi `edit=1`. Nhớ gọi
+  `applyElements` trong luồng render (`wedding-helper.js`, `preview-data.js`) **sau**
   `renderWedding` — nó cần cờ `window.__cxMusicOn` do `setupMusic` đặt.
-- **Bảng chọn** ở `05-theme-panel.js` (`openToolsPanel`, `startToolDrag`) +
-  `partials/theme-panel.html` (`#theme-tools-panel`), kiểu kéo-thả sao y Trang trí.
-- Markup mẫu dùng **class tự viết `.cx-tw-*`** trong `styles/_music-player.css`, kích
-  thước bên trong bằng `em`; runtime đặt `font-size` theo bề ngang thật → kéo to nhỏ
-  là cả widget phóng theo.
-- Công cụ nhạc **thay chỗ** trình phát sẵn có của theme: có công cụ thì `#music-toggle`
-  bị ẩn, gỡ công cụ thì trả lại. Bật/tắt nhạc vẫn là việc của tab Thiết lập
+- **Bảng chọn** ở `05-theme-panel.js` (`openElementsPanel`, `startElementDrag`) +
+  `partials/theme-panel.html` (`#theme-elements-panel`), kéo-thả sao y Trang trí.
+  Ba bảng Văn bản · Trang trí · Thành phần dùng chung lưới ô mẫu `.cx-pal-*`
+  (`styles/_setup.css`); ô mẫu thành phần dựng bằng chính `def.build(variant)` nên
+  `styles/_music-player.css` phải nạp ở **cả hai** build, không chỉ build thiệp.
+- Markup mẫu dùng **class tự viết `.cx-mw-*`** (music widget) trong
+  `styles/_music-player.css`, kích thước bên trong bằng `em`; runtime đặt `font-size`
+  theo bề ngang thật → kéo to nhỏ là cả widget phóng theo.
+- Thành phần nhạc **thay chỗ** trình phát sẵn có của theme: có nó thì `#music-toggle`
+  bị ẩn, gỡ đi thì trả lại. Bật/tắt nhạc vẫn là việc của tab Thiết lập
   (`enable_music` + link nhạc); `visible` ở đây chỉ ẩn/hiện phần giao diện.
 
 ### Auth

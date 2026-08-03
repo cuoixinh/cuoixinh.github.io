@@ -31,6 +31,10 @@ module.exports = {
         playfair: ["Playfair Display", "serif"],
         vibes: ["Great Vibes", "cursive"],
         cormorant: ["Cormorant Garamond", "serif"],
+        // Trình phát nhạc dùng chung (core/components/music-player.js) mượn
+        // font của basic-gold cho khối tóm tắt — khai ở đây để bản xem trước
+        // trong panel "Thành phần" không rơi về font mặc định.
+        cinzel: ["Cinzel", "serif"],
         inter: ["Inter", "sans-serif"],
         allura: ["Allura", "cursive"],
       },

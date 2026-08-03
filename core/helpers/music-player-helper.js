@@ -103,7 +103,24 @@ function setupMusicPlayer(root) {
   // position…) — nhớ lại để mỗi lần đổi play↔pause còn ghép vào, chứ ghi đè cả
   // className thì theme không đặt được gì lên thẻ này.
   const iconBase = new Map();
-  iconEls.forEach((el) => iconBase.set(el, el.className.trim()));
+  // Bỏ đi các class thuộc BỘ ICON (fa-play / fa-pause…) nếu markup có đặt sẵn:
+  // markup được dựng sẵn một icon mặc định để lúc CHƯA gắn logic (ô xem trước
+  // trong panel "Thành phần", widget ở chế độ chỉnh) nút phát không rỗng trơ.
+  // Không lọc thì mỗi lần đổi trạng thái sẽ ghép chồng cả fa-play lẫn fa-pause.
+  const iconSet = new Set(
+    ((root.dataset.cxPlayIcon || "") + " " + (root.dataset.cxPauseIcon || ""))
+      .split(/\s+/)
+      .filter(Boolean),
+  );
+  iconEls.forEach((el) =>
+    iconBase.set(
+      el,
+      el.className
+        .split(/\s+/)
+        .filter((c) => c && !iconSet.has(c))
+        .join(" "),
+    ),
+  );
   const seekStep = Number(root.dataset.cxSeek) || 10;
   const emptyTitle = root.dataset.cxEmptyTitle || "Nhạc nền";
 

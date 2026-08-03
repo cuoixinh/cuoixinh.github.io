@@ -492,62 +492,102 @@ input.flatpickr-input[readonly] {
   @apply !h-4 !w-4 md:!h-5 md:!w-5;
 }
 
-/* Bảng chọn mẫu khối — danh sách dọc, kéo-thả vào thiệp */
-.cx-addtext-list {
-  @apply flex flex-col gap-2;
+/* Bảng chọn mẫu (Văn bản · Trang trí · Thành phần) — DÙNG CHUNG một lưới 3 ô
+   vuông để ba bảng nhìn giống hệt nhau. Mỗi ô kéo-thả được vào thiệp. */
+.cx-pal-grid {
+  @apply grid grid-cols-3 gap-2;
 }
 
-.cx-addtext-item {
-  @apply flex w-full cursor-grab items-center gap-3 rounded-xl border
-         border-gray-200 bg-white px-3 py-2 text-left text-gray-700
-         transition-all duration-150;
+.cx-pal-item {
+  @apply relative flex aspect-square cursor-grab flex-col items-center
+         justify-center gap-2 rounded-xl border border-gray-200 bg-white p-2
+         text-center text-gray-700 transition-all duration-150;
 
   touch-action: none;
 }
 
-.cx-addtext-item:hover {
+.cx-pal-item:hover {
   @apply border-rose-400 bg-[#fff5f6];
 }
 
-.cx-addtext-item:active {
+.cx-pal-item:active {
   @apply cursor-grabbing;
 }
 
-.cx-addtext-ico {
-  @apply inline-flex h-8 w-8 flex-none items-center justify-center rounded-lg
+.cx-pal-ico {
+  @apply inline-flex h-9 w-9 flex-none items-center justify-center rounded-lg
          bg-gray-100 text-gray-500 transition-all duration-150;
 }
 
-.cx-addtext-item:hover .cx-addtext-ico {
+.cx-pal-item:hover .cx-pal-ico {
   @apply bg-rose-100 text-rose-600;
 }
 
-.cx-addtext-txt {
-  @apply flex min-w-0 flex-auto flex-col gap-0.5;
+/* Icon thành phần là SVG thô (không phải lucide, không có class kích thước) —
+   SVG không khai báo width/height sẽ nở 300×150, phải chốt cỡ ở đây. */
+.cx-pal-ico svg {
+  @apply h-[18px] w-[18px];
 }
 
-.cx-addtext-txt b {
-  @apply text-[13px] font-semibold leading-4;
+/* Tên mẫu: ô vuông hẹp nên chỉ để tên, phần mô tả đưa vào title (tooltip). */
+.cx-pal-txt {
+  @apply w-full text-[12px] font-semibold leading-4;
+
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
-.cx-addtext-txt small {
-  @apply text-xs leading-4 text-gray-400;
+/* Tay nắm: góc trên phải, chỉ để báo "kéo được" nên không chiếm chỗ. */
+.cx-pal-grip {
+  @apply pointer-events-none absolute right-1 top-1 text-gray-300;
 }
 
-.cx-addtext-grip {
-  @apply flex-none text-gray-300;
-}
-
-.cx-addtext-item:hover .cx-addtext-grip {
+.cx-pal-item:hover .cx-pal-grip {
   @apply text-rose-400;
 }
 
-/* Ô chọn hoạ tiết trong bảng "Trang trí" — nền ca-rô để thấy vùng trong suốt
-   của icon PNG, kéo được như thẻ mẫu văn bản. */
-.cx-decor-item {
-  @apply flex aspect-square cursor-grab items-center justify-center rounded-xl
-         border border-gray-200 bg-white p-2 transition-all duration-150;
+/* Biến thể xem trước (thành phần): dựng WIDGET THẬT bằng CX_ELEMENTS.build rồi thu
+   nhỏ vừa ô, nên tỉ lệ giống hệt lúc nằm trên thiệp. Nền hơi kem để widget nền
+   trắng nổi lên — giả lập việc nó đang nằm đè trên mặt thiệp. */
+.cx-pal-item-prev {
+  @apply justify-between gap-0.5 p-1;
+}
 
+/* Chú thích tên mẫu: ép nhỏ hết mức để phần xem trước được nhiều chỗ nhất */
+.cx-pal-item-prev .cx-pal-txt {
+  /* block + truncate: đè display:-webkit-box của .cx-pal-txt để có "…" khi dài */
+  @apply block truncate px-0.5 text-[10px] font-semibold leading-3 text-gray-500;
+}
+
+.cx-pal-prev {
+  @apply relative w-full flex-auto overflow-hidden rounded-lg;
+
+  background: linear-gradient(155deg, #faf5f2 0%, #f1e5e2 100%);
+}
+
+/* Dựng ở bề ngang quy chiếu cố định rồi scale bằng transform (JS đo xong mới
+   đặt) — cách duy nhất giữ đúng tỉ lệ khi mọi kích thước bên trong tính bằng
+   `em` theo font-size của widget. */
+.cx-pal-stage {
+  @apply absolute left-1/2 top-1/2 block;
+
+  transform: translate(-50%, -50%);
+  transform-origin: center center;
+}
+
+/* Xem trước là ảnh TĨNH: không bấm được, không chạy chữ, không xoay ảnh bìa. */
+.cx-pal-prev,
+.cx-pal-prev * {
+  pointer-events: none !important;
+  animation: none !important;
+  transition: none !important;
+}
+
+/* Biến thể ảnh (hoạ tiết): ảnh chiếm trọn ô, nền ca-rô để thấy vùng trong
+   suốt của PNG. Nền ca-rô là background-image nên màu hover vẫn lộ qua. */
+.cx-pal-item-img {
   background-image: linear-gradient(45deg, #f3f4f6 25%, transparent 25%),
     linear-gradient(-45deg, #f3f4f6 25%, transparent 25%),
     linear-gradient(45deg, transparent 75%, #f3f4f6 75%),
@@ -558,74 +598,24 @@ input.flatpickr-input[readonly] {
     0 8px,
     8px -8px,
     -8px 0;
-  touch-action: none;
 }
 
-.cx-decor-item:hover {
-  @apply border-rose-400;
-}
-
-.cx-decor-item:active {
-  @apply cursor-grabbing;
-}
-
-.cx-decor-item img {
+.cx-pal-item-img img {
   @apply pointer-events-none max-h-full max-w-full object-contain;
 
   -webkit-user-drag: none;
 }
 
-/* Bảng "Công cụ" — thẻ một công cụ ĐÃ THẢ lên thiệp: tên + nút ẩn/xoá ở hàng
-   trên, dãy mẫu ở hàng dưới. Khác .cx-addtext-item (thẻ để KÉO) nên không dùng
-   chung: thẻ này không kéo được, bên trong toàn nút bấm. */
-.cx-tool-card {
-  @apply flex flex-col gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2.5;
-}
-
-.cx-tool-card-head {
-  @apply flex items-center gap-3;
-}
-
-.cx-tool-card-name {
-  @apply min-w-0 flex-auto truncate text-[13px] font-semibold text-gray-700;
-}
-
-.cx-tool-card-off .cx-tool-card-name {
-  @apply text-gray-400;
-}
-
-/* Nút tròn ẩn/hiện + xoá */
-.cx-tool-act {
-  @apply inline-flex h-7 w-7 flex-none items-center justify-center rounded-lg
-         border border-gray-200 bg-white text-gray-500 transition-all
-         duration-150 hover:border-rose-400 hover:bg-[#fff5f6] hover:text-rose-600;
-}
-
-/* Dãy chọn mẫu */
-.cx-tool-skins {
-  @apply flex flex-wrap gap-1.5;
-}
-
-.cx-tool-skin-btn {
-  @apply rounded-lg border border-gray-200 bg-white px-2.5 py-1 text-[12px]
-         text-gray-600 transition-all duration-150 hover:border-rose-400
-         hover:bg-[#fff5f6] hover:text-rose-600;
-}
-
-.cx-tool-skin-btn[aria-pressed="true"] {
-  @apply border-rose-400 bg-[#fff5f6] font-semibold text-rose-600;
-}
-
-/* Nhắc chưa có nhạc nền */
-.cx-tool-warn {
-  @apply flex items-start gap-2 rounded-xl border border-dashed border-amber-300
-         bg-amber-50 px-3 py-2 text-[12px] leading-4 text-amber-700;
+/* Nhãn nhóm trong bảng chọn (tên thành phần) — chiếm trọn hàng lưới */
+.cx-pal-group {
+  @apply col-span-3 text-[11px] font-semibold uppercase tracking-[0.08em]
+         text-gray-400;
 }
 
 /* Bóng mờ theo con trỏ khi kéo mẫu từ palette vào thiệp:
    là bản sao của chính thẻ mẫu, làm mờ để phân biệt với bản gốc. */
 .cx-drag-ghost {
-  /* Bản sao mang theo transition của .cx-addtext-item → phải tắt, nếu không
+  /* Bản sao mang theo transition của .cx-pal-item → phải tắt, nếu không
      ghost sẽ "bay" từ góc (0,0) tới con trỏ ở lần đặt vị trí đầu tiên. */
   @apply pointer-events-none fixed left-0 top-0 z-[9999] border-rose-400
          bg-[#fff5f6] opacity-50 transition-none;
