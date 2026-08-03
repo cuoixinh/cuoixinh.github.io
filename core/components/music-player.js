@@ -271,8 +271,11 @@
       node.className = "cx-mp w-full flex flex-col";
     }
 
-    // .cx-mp-bar = thanh trên đỉnh. LUÔN đứng yên ở đó, không kéo được; vuốt
-    // lên tay nắm thì nó ẩn đi và bong bóng bên dưới hiện ra.
+    // .cx-mp-bar = thanh trên đỉnh. LUÔN đứng yên ở đó, không kéo đi chỗ khác;
+    // vuốt lên thì nó ẩn đi và bong bóng bên dưới hiện ra.
+    // Cả thanh là vùng vuốt đổi nấc (data-cx-music="swipe") chứ không chỉ mỗi
+    // tay nắm — kèm .cx-mp-swipe để khoá touch-action, nếu không cử chỉ bị nuốt
+    // thành cuộn trang.
     const barCls = fixed
       ? "cx-mp-bar mt-2 rounded-2xl overflow-hidden shadow-lg backdrop-blur-md bg-gradient-to-r from-rose-pastel-100/95 to-rose-pastel-200/95"
       : "cx-mp-bar rounded-2xl overflow-hidden shadow-lg backdrop-blur-md bg-gradient-to-r from-rose-pastel-100/95 to-rose-pastel-200/95";
@@ -280,7 +283,10 @@
     node.innerHTML =
       '<div class="' +
       barCls +
-      '">' +
+      (withSummary ? " cx-mp-swipe" : "") +
+      '"' +
+      (withSummary ? ' data-cx-music="swipe"' : "") +
+      ">" +
       barRow +
       (withSummary ? summaryPanel + handle : "") +
       "</div>" +

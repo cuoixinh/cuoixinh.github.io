@@ -68,9 +68,11 @@
   }
 }
 
-/* Vuốt trên tay nắm không được kéo theo cả trang */
+/* Vùng nhận cử chỉ vuốt đổi nấc (cả thanh, và tay nắm khi theme chỉ đánh dấu
+   mỗi nó): cử chỉ do JS lo nên không được để trình duyệt cuộn trang thay. */
 
-.cx-mp-handle {
+.cx-mp-handle,
+.cx-mp-swipe {
   touch-action: none;
 }
 

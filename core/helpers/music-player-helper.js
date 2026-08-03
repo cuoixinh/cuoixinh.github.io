@@ -6,7 +6,9 @@
 //   root · toggle · icon · title · artist · fill · time · duration · back ·
 //   forward · thumb (<img> ảnh bìa) · expand
 //   progress  vùng bấm để tua; có thể là chính cả thẻ trình phát
-//   handle    tay nắm: vuốt lên thu gọn, vuốt xuống mở panel
+//   handle    tay nắm: chạm để đi một nấc
+//   swipe     vùng nhận vuốt dọc đổi nấc (nên là cả thanh); thiếu thì chỉ vuốt
+//             được trên handle. Vùng này phải touch-action:none.
 //   panel     khối mở rộng (tóm tắt thiệp) — helper bật class .is-expanded
 //   bubble    bong bóng nổi khi đã thu gọn; có nó mới bật được nấc thu gọn
 //
@@ -243,11 +245,15 @@ function setupMusicPlayer(root) {
     });
   }
 
-  // Cử chỉ tay nắm: vuốt lên/xuống đi một nấc, chạm thì nhảy nấc ngược lại.
-  // Chỉ bắt trên tay nắm — bắt cả thanh thì vuốt cuộn trang cũng làm nó thu gọn.
-  if (handleEl) {
+  // Cử chỉ đổi nấc: vuốt dọc trên vùng "swipe" (thường là CẢ thanh cho dễ trúng,
+  // không có thì lùi về đúng tay nắm), chạm tay nắm thì nhảy nấc ngược lại.
+  // Vùng vuốt phải khoá touch-action, không thì trình duyệt cuộn trang và cướp
+  // mất cử chỉ (xem .cx-mp-swipe trong styles/_music-player.css).
+  const swipeEl = $("swipe") || handleEl;
+  if (swipeEl) {
     const SWIPE_MIN = 16; // px — đủ để phân biệt vuốt với chạm
 
+    let startX = 0;
     let startY = null;
     let swiped = false;
 
@@ -264,12 +270,30 @@ function setupMusicPlayer(root) {
       }
     }
 
-    // Theo dõi tiếp trên window: tay nắm chỉ cao 16px và chuột không có implicit
-    // pointer capture như cảm ứng.
+    // Vuốt xong trình duyệt vẫn bắn click → nuốt đúng cú đó ở nấc capture của
+    // root, không thì vuốt trên thanh tiến trình hoá ra tua, vuốt trên nút hoá
+    // ra bật/tắt nhạc. Đăng ký lúc THẢ TAY: gỡ bằng setTimeout(0) nên đăng ký
+    // sớm hơn (lúc đang giữ) là bị gỡ trước khi click kịp bắn.
+    function _swallowClick() {
+      const fn = (ev) => {
+        ev.stopPropagation();
+        ev.preventDefault();
+      };
+      root.addEventListener("click", fn, { capture: true, once: true });
+      setTimeout(
+        () => root.removeEventListener("click", fn, { capture: true }),
+        0,
+      );
+    }
+
+    // Theo dõi tiếp trên window: con trỏ dễ ra khỏi vùng vuốt giữa chừng và
+    // chuột không có implicit pointer capture như cảm ứng.
     const _onMove = (e) => {
       if (startY === null) return;
       const dy = e.clientY - startY;
-      if (Math.abs(dy) < SWIPE_MIN) return;
+      const dx = e.clientX - startX;
+      // Chỉ nhận vuốt DỌC: kéo ngang trên thanh tiến trình không được đổi nấc.
+      if (Math.abs(dy) < SWIPE_MIN || Math.abs(dy) <= Math.abs(dx)) return;
       startY = null;
       swiped = true;
       _step(dy > 0);
@@ -279,22 +303,26 @@ function setupMusicPlayer(root) {
       window.removeEventListener("pointermove", _onMove);
       window.removeEventListener("pointerup", _endSwipe);
       window.removeEventListener("pointercancel", _endSwipe);
+      if (swiped) {
+        swiped = false;
+        _swallowClick();
+      }
     };
 
-    handleEl.addEventListener("pointerdown", function (e) {
+    swipeEl.addEventListener("pointerdown", function (e) {
+      if (e.pointerType === "mouse" && e.button !== 0) return;
+      startX = e.clientX;
       startY = e.clientY;
       swiped = false;
       window.addEventListener("pointermove", _onMove);
       window.addEventListener("pointerup", _endSwipe);
       window.addEventListener("pointercancel", _endSwipe);
     });
+  }
 
-    // Vuốt xong trình duyệt vẫn bắn click → bỏ qua đúng một lần.
+  // Chạm tay nắm (không vuốt) = đi nấc ngược lại nấc hiện tại.
+  if (handleEl) {
     handleEl.addEventListener("click", function () {
-      if (swiped) {
-        swiped = false;
-        return;
-      }
       if (_isCollapsed()) _setCollapsed(false);
       else if (_isExpanded()) _setExpanded(false);
       else if (panelEl) _setExpanded(true);
