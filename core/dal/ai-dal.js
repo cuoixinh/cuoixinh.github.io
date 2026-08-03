@@ -1,7 +1,6 @@
 /**
- * AiDAL — gọi Edge Function ai-invitation để sinh nội dung thiệp bằng AI.
- * KHÔNG bắt buộc đăng nhập: nếu đã đăng nhập thì đính JWT (rate-limit theo user),
- * chưa đăng nhập vẫn dùng được (rate-limit theo IP ở phía server).
+ * AiDAL — gọi Edge Function ai-invitation. Không bắt buộc đăng nhập: đã đăng nhập
+ * thì đính JWT (rate-limit theo user), chưa thì rate-limit theo IP ở server.
  */
 class AiDAL {
   constructor() {
@@ -14,12 +13,9 @@ class AiDAL {
   }
 
   /**
-   * Sinh nội dung thiệp.
-   * @param {{tone?:string, story_love?:string, info:string, region?:string,
-   *          love_count?:number}} input  — `info` (BẮT BUỘC): dump thông tin tự do,
-   *          GỒM tên cô dâu/chú rể, ngày & giờ cưới… để AI trích xuất; `story_love`:
-   *          chuyện tình nguyên văn (text liền mạch, backend tự tách mốc).
-   * @returns {Promise<{story_quote:string, love_story:Array, timeline:Array, fields:Object}>}
+   * Sinh nội dung thiệp. `info` (BẮT BUỘC) là dump thông tin tự do — gồm tên cô
+   * dâu/chú rể, ngày & giờ cưới… để AI trích xuất; `story_love` là chuyện tình
+   * nguyên văn, backend tự tách mốc.
    */
   async generateInvitation(input) {
     const token = await this._token();
@@ -44,14 +40,9 @@ class AiDAL {
   }
 
   /**
-   * Tối ưu (làm giàu) nội dung MỘT ô văn bản bằng AI.
-   * Dùng chung Edge Function ai-invitation với `mode: "optimize"`; prompt do
-   * `inputType` quyết định ở server.
-   * @param {{inputType:string, text:string, tone?:string, groomName?:string, brideName?:string}} input
-   *        inputType: slogan | rsvp | footer | love_story | timeline.
-   *        groomName/brideName: chỉ cần cho love_story — server dùng để lọc tên
-   *        riêng khỏi mốc chuyện tình (luôn xưng "chúng mình"/"anh"/"em").
-   * @returns {Promise<string>} văn bản đã tối ưu.
+   * Tối ưu (làm giàu) nội dung MỘT ô văn bản — `mode: "optimize"`, prompt do
+   * inputType quyết định ở server: slogan | rsvp | footer | love_story | timeline.
+   * groomName/brideName chỉ cần cho love_story để server lọc tên riêng khỏi mốc.
    */
   async optimizeText({ inputType, text, tone, groomName, brideName }) {
     const token = await this._token();
@@ -81,13 +72,9 @@ class AiDAL {
   }
 
   /**
-   * Tạo "Câu chuyện tình yêu": người dùng kể tự do → AI tách thành danh sách mốc.
-   * Dùng chung Edge Function ai-invitation với `mode: "love_story"`.
-   *
-   * Chuyện tình luôn ở ngôi "chúng mình/chúng tôi/anh/em", không gọi tên riêng —
-   * gửi kèm groom_name/bride_name để server lọc nốt tên nếu model lỡ nhắc tới.
-   * @param {{text:string, tone?:string, groomName?:string, brideName?:string}} input
-   * @returns {Promise<Array<{date:string,title:string,content:string}>>}
+   * Tạo "Câu chuyện tình yêu": người dùng kể tự do → AI tách thành danh sách mốc
+   * (`mode: "love_story"`). Luôn xưng "chúng mình/anh/em"; gửi kèm tên để server
+   * lọc nốt nếu model lỡ nhắc tới.
    */
   async generateLoveStory({ text, tone, groomName, brideName }) {
     const token = await this._token();
@@ -115,13 +102,9 @@ class AiDAL {
   }
 
   /**
-   * Sinh trọn bộ DỮ LIỆU MẪU cho một theme (trang admin → "Dữ liệu mẫu").
-   * Không có input để trích xuất: server (`mode: "sample"`) tự dựng cả cặp đôi
-   * hư cấu — tên, cha mẹ, địa chỉ, ngày giờ, ngân hàng, chuyện tình, lịch
-   * trình, lời ngỏ. Trả về cùng shape với generateInvitation().
-   * @param {{tone?:string, region?:string, hint?:string}} input
-   *        hint: yêu cầu thêm dạng tự do (không bắt buộc).
-   * @returns {Promise<{story_quote:string, love_story:Array, timeline:Array, fields:Object}>}
+   * Sinh trọn bộ DỮ LIỆU MẪU cho một theme (`mode: "sample"`): server tự dựng cặp
+   * đôi hư cấu, trả về cùng shape với generateInvitation(). hint: yêu cầu thêm
+   * dạng tự do.
    */
   async generateSampleData({ tone, region, hint } = {}) {
     const token = await this._token();
@@ -143,10 +126,9 @@ class AiDAL {
   }
 
   /**
-   * Sinh nội dung dạng STREAMING: server trả NDJSON, mỗi dòng là một sự kiện.
-   * @param {object} input  — như generateInvitation.
-   * @param {(evt:{block?:object, full?:object, meta?:object})=>void} onEvent
-   *        block: 1 block sạch; full: kết quả đầy đủ (fallback Groq); meta: {done,provider} | {error}.
+   * Sinh nội dung dạng STREAMING: server trả NDJSON, mỗi dòng một sự kiện —
+   * block: 1 block sạch; full: kết quả đầy đủ (fallback Groq);
+   * meta: {done,provider} | {error}.
    */
   async generateInvitationStream(input, onEvent) {
     const token = await this._token();

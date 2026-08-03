@@ -1,20 +1,12 @@
 // Nạp các "màn" của trang thiết lập thiệp từ partials/ rồi mới chèn script app.
-//
-// Vì sao phải làm vậy: index.html chỉ còn phần vỏ (skeleton + các thẻ mount rỗng),
-// toàn bộ panel nằm ở partials/*.html và được fetch bất đồng bộ. DOMContentLoaded
-// bắn TRƯỚC khi partial kịp chèn vào DOM, nên nếu để script app ở thẻ <script> tĩnh
-// thì chúng sẽ chạy lúc DOM còn rỗng. Chèn script sau khi inject xong thì lúc chạy
-// readyState đã là interactive/complete → mọi đoạn init theo idiom
-// `if (readyState === "loading") … else run()` tự chạy ngay và thấy đủ DOM.
-//
-// Các thư viện CDN bên thứ ba vẫn nằm ở thẻ <script> tĩnh trong index.html: chúng
-// không phụ thuộc DOM của app và luôn tải xong trước file này.
+// index.html chỉ còn phần vỏ (skeleton + các thẻ mount rỗng), toàn bộ panel nằm ở
+// partials/*.html và fetch bất đồng bộ — DOMContentLoaded bắn TRƯỚC khi partial
+// kịp chèn, nên script app phải được chèn SAU khi inject xong.
+// Thư viện CDN bên thứ ba vẫn nằm ở thẻ <script> tĩnh trong index.html.
 (function () {
-  // [id thẻ mount, đường dẫn partial]. Thứ tự chèn không quan trọng vì mỗi partial
-  // thay thế đúng thẻ mount của nó, vị trí trong DOM đã cố định sẵn ở index.html.
-  // Skeleton tách riêng khỏi PARTIALS: nó là màn chờ, phải chèn NGAY khi về chứ
-  // không đợi các partial khác — gộp chung Promise.all thì nó xuất hiện cùng lúc
-  // với nội dung thật và mất sạch tác dụng.
+  // [id thẻ mount, đường dẫn partial]. Thứ tự không quan trọng vì mỗi partial thay
+  // đúng thẻ mount của nó. Skeleton tách riêng: nó là màn chờ, phải chèn NGAY khi
+  // về chứ không đợi các partial khác.
   const SKELETON = ["mount-skeleton", "partials/skeleton.html"];
 
   const PARTIALS = [
@@ -85,15 +77,10 @@
     "tour-setup.js",
   ];
 
-  // Hàng đợi "chạy khi app đã sẵn sàng".
-  //
-  // Trước đây các file dùng DOMContentLoaded, tức chạy sau khi DOM parse xong VÀ
-  // mọi thẻ <script> tĩnh đã thực thi. Nay script nạp động nên nếu chỉ dựa vào
-  // readyState thì mỗi file chạy ngay tại vị trí của nó trong danh sách — file nạp
-  // sớm sẽ không thấy thứ do file nạp sau tạo ra. Cụ thể: maps-helper.js đứng
-  // trước x-input.js, chạy ngay thì <x-input name="groom_address"> chưa upgrade
-  // nên chưa có <input id="groom_address"> bên trong → autocomplete gắn hụt.
-  // Hàng đợi này giữ đúng ngữ nghĩa cũ: chỉ chạy sau khi TOÀN BỘ script đã nạp.
+  // Hàng đợi "chạy khi app đã sẵn sàng". Script nạp động nên nếu chỉ dựa vào
+  // readyState thì mỗi file chạy ngay tại vị trí của nó — file nạp sớm không thấy
+  // thứ do file nạp sau tạo ra (maps-helper.js chạy trước khi <x-input> upgrade →
+  // autocomplete gắn hụt). Hàng đợi chỉ chạy sau khi TOÀN BỘ script đã nạp.
   const readyQueue = [];
   let ready = false;
   window.__cxOnReady = function (fn) {

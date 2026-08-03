@@ -32,12 +32,10 @@
     class="bg-white min-h-screen flex justify-center items-center p-0 md:py-5"
   >
     <!-- Trình phát nhạc nền: markup do core/components/music-player.js dựng —
-         thiệp và panel "Thành phần" (tab Giao diện) dùng CHUNG một bản, sửa
-         một chỗ là cả hai đổi theo. Logic (icon phát/dừng, tên bài, tiến trình,
-         tua, cử chỉ tay nắm) vẫn ở core/helpers/music-player-helper.js.
-         Dựng ngay tại đây (script nội tuyến) để thẻ trình phát vẫn là con ĐẦU
-         TIÊN của body như trước: bong bóng thu gọn dùng position fixed, tổ tiên
-         có transform sẽ thành containing block và làm nó neo sai chỗ. -->
+         thiệp và panel "Thành phần" dùng CHUNG một bản; logic ở
+         core/helpers/music-player-helper.js. Dựng bằng script nội tuyến ngay tại
+         đây để thẻ vẫn là con ĐẦU TIÊN của body: bong bóng thu gọn dùng
+         position:fixed, tổ tiên có transform sẽ làm nó neo sai chỗ. -->
     <div id="cx-music-mount"></div>
     <script>
       document.currentScript.previousElementSibling.replaceWith(

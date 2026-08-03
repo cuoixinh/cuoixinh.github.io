@@ -1,11 +1,7 @@
-/* ============================================================
-   AI: Tạo nội dung thiệp — style cho modal (openBottomSheet)
-   Partial của styles/tailwind-src.css → styles/build.css.
-   Thay cho invitation-setup/ai-modal.css. Xem thêm ai-modal.js.
-
+/* AI: Tạo nội dung thiệp — style cho modal (openBottomSheet). Partial của
+   styles/tailwind-src.css → styles/build.css. Xem thêm invitation-setup/ai-modal.js.
    Phần map 1:1 với utility → @apply; gradient nhiều lớp, keyframes,
-   backdrop-filter, box-shadow tuỳ biến → giữ CSS thuần.
-   ============================================================ */
+   backdrop-filter, box-shadow tuỳ biến → giữ CSS thuần. */
 
 /* Thẻ Soft "Tạo với AI" — thẻ glassmorphism nổi góc dưới-phải, hiển thị ở CẢ PC
    lẫn mobile (không còn banner PC riêng). Bấm X → thu về nút tròn nhỏ. */
@@ -203,10 +199,8 @@
 
 /* Ẩn hoàn toàn thẻ AI khi trang còn skeleton (F5). Gỡ trong _showContent(). */
 .ai-fab.hidden-boot {
-  /* Viết thẳng display:none, KHÔNG dùng utility `hidden` qua @apply: khi
-     lớp đó được @apply ở nơi khác, Tailwind nhân bản mọi selector có
-     chứa `.hidden` (vd #ai-history:not(.hidden)) thành rule rác luôn
-     khớp — panel lịch sử AI sẽ hiện cả khi đã bị ẩn. */
+  /* Viết thẳng display:none, KHÔNG dùng utility `hidden` qua @apply: Tailwind sẽ
+     nhân bản mọi selector chứa `.hidden` thành rule rác luôn khớp. */
   display: none;
 }
 

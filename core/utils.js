@@ -8,17 +8,7 @@ const STORAGE_BASE_URL = CONFIG.cloudflare.imageProxy || CONFIG.supabase.storage
 
 // ============= DOM HELPERS =============
 
-/**
- * Escape ký tự có ý nghĩa trong HTML. Dùng khi buộc phải ghép chuỗi vào
- * innerHTML — ưu tiên textContent/setText khi có thể.
- *
- * Đây là bản DÙNG CHUNG duy nhất: trước đây mỗi file tự viết một bản, bản trong
- * render-helper.js thiếu escape dấu nháy đơn (') nên không an toàn khi chèn vào
- * thuộc tính bọc bằng nháy đơn.
- *
- * @param {*} str - Giá trị cần escape
- * @returns {string} Chuỗi đã escape
- */
+/** Escape ký tự HTML — dùng khi buộc phải ghép chuỗi vào innerHTML. */
 function escapeHtml(str) {
   if (str === null || str === undefined) return "";
   return String(str)
@@ -29,12 +19,6 @@ function escapeHtml(str) {
     .replace(/'/g, "&#39;");
 }
 
-/**
- * Set text content of an element by ID
- * @param {string} id - Element ID
- * @param {string} value - Text value to set
- * @param {string} placeholder - Placeholder text if value is empty
- */
 function setText(id, value, placeholder = "") {
   const el = document.getElementById(id);
   if (!el) return;
@@ -45,24 +29,12 @@ function setText(id, value, placeholder = "") {
   el.setAttribute("data-cx-bound", "1");
 }
 
-/**
- * Set attribute of an element by ID
- * @param {string} id - Element ID
- * @param {string} attr - Attribute name
- * @param {string} value - Attribute value
- * @param {string} placeholder - Placeholder value if value is empty
- */
 function setAttr(id, attr, value, placeholder = "") {
   const el = document.getElementById(id);
   if (!el) return;
   el.setAttribute(attr, value || placeholder);
 }
 
-/**
- * Set image src with ring border styling
- * @param {string} id - Image element ID
- * @param {string} filename - Image filename or URL
- */
 function setImageWithRing(id, filename) {
   const el = document.getElementById(id);
   if (!el) return;
@@ -87,11 +59,6 @@ function setImageWithRing(id, filename) {
 
 // ============= IMAGE HELPERS =============
 
-/**
- * Get full image URL from filename
- * @param {string} filename - Image filename or URL
- * @returns {string} Full image URL or placeholder SVG
- */
 function getImageUrl(filename) {
   if (!filename) {
     return createPlaceholderSVG("Chưa có ảnh");
@@ -110,11 +77,6 @@ function getImageUrl(filename) {
   return `${STORAGE_BASE_URL}/${filename}`;
 }
 
-/**
- * Create placeholder SVG with camera icon
- * @param {string} text - Text to display
- * @returns {string} Data URI of SVG
- */
 function createPlaceholderSVG(text = "Chưa có ảnh") {
   const svg = `
     <svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400">
@@ -134,11 +96,7 @@ function createPlaceholderSVG(text = "Chưa có ảnh") {
 
 // ============= MAP HELPERS =============
 
-/**
- * Extract clean Google Maps embed URL from iframe HTML or return URL as-is
- * @param {string} value - Raw value (URL or iframe HTML)
- * @returns {string} Clean embed URL
- */
+/** Lấy URL embed Google Maps sạch từ HTML iframe (hoặc trả lại nguyên URL). */
 function extractMapEmbedUrl(value) {
   if (!value) return "";
 
@@ -162,11 +120,6 @@ function extractMapEmbedUrl(value) {
 
 // ============= ENCRYPTION HELPERS =============
 
-/**
- * Decrypt AES encrypted data
- * @param {string} encryptedText - Encrypted text
- * @returns {string} Decrypted text
- */
 function encryptData(text) {
   if (!text) return "";
   try {
@@ -192,18 +145,10 @@ function decryptData(encryptedText) {
 
 // ============= PREVIEW MODE HELPERS =============
 
-/**
- * Check if in preview mode
- * @returns {boolean} True if in preview mode
- */
 function isPreviewMode() {
   return window.location.search.includes("preview=true");
 }
 
-/**
- * Show preview mode alert toast
- * @returns {boolean} Always returns true
- */
 function showPreviewAlert() {
   const toast = document.createElement("div");
   toast.className = "fixed top-5 left-1/2 -translate-x-1/2 z-[10000] px-6 py-3 rounded-lg text-sm text-white shadow-md animate-fade-in";
@@ -240,10 +185,6 @@ function initViewportFix() {
 
 // ============= URL HELPERS =============
 
-/**
- * Get slug from URL
- * @returns {string} Wedding slug
- */
 function getSlugFromUrl() {
   const urlParams = new URLSearchParams(window.location.search);
   let slug = urlParams.get("slug");
@@ -282,10 +223,6 @@ function getSlugFromUrl() {
   return slug;
 }
 
-/**
- * Get isGroom parameter from URL
- * @returns {boolean} True if groom side
- */
 function isGroomSide() {
   const urlParams = new URLSearchParams(window.location.search);
   return urlParams.get("isGroom") !== "false";
@@ -297,11 +234,8 @@ function isGroomSide() {
 // ============= IMAGE CROP HELPERS =============
 
 /**
- * Open image crop modal for QR codes (1:1 aspect ratio)
- * @param {File} file - Image file to crop
- * @param {Function} callback - Callback function with cropped blob
- * @param {{label?:string,bankName?:string,bankNumber?:string,bankOwner?:string}} [giftInfo]
- *        Khi có → hiển thị preview kiểu block Hộp Mừng Cưới (tên NH / STK / chủ TK)
+ * Mở modal cắt ảnh QR (tỉ lệ 1:1). Có `giftInfo` thì xem trước theo kiểu block
+ * Hộp Mừng Cưới (tên NH / STK / chủ TK).
  */
 function openImageCropModal(file, callback, giftInfo) {
   const sheet = openBottomSheet({
@@ -436,10 +370,7 @@ function openImageCropModal(file, callback, giftInfo) {
   reader.readAsDataURL(file);
 }
 
-/**
- * Reusable swipe-down-to-close for bottom sheet modals.
- * Returns a cleanup function to remove all listeners.
- */
+/** Vuốt xuống để đóng bottom-sheet modal. Trả về hàm cleanup. */
 function _setupBottomSheetSwipe(cardEl, closeFn) {
   if (!cardEl) return () => {};
   let startY = 0, deltaY = 0, active = false;
@@ -490,16 +421,10 @@ function _setupBottomSheetSwipe(cardEl, closeFn) {
 }
 
 /**
- * Creates a standard bottom-sheet modal shell (overlay → handle → header → body → footer).
- * Handles: body-scroll lock, swipe-to-close, X button, z-index.
- *
- * @param {object} opts
- * @param {string}   opts.id       - Unique outer modal element ID
- * @param {string}   opts.title    - Header title HTML string
- * @param {string}   [opts.height='92vh'] - CSS height for the card
- * @param {Function} [opts.onClose]       - Extra cleanup run just before removal
- * @returns {{ body: HTMLElement, footer: HTMLElement, close: Function } | null}
- *   Returns null if a modal with that id already exists.
+ * Dựng khung bottom-sheet modal (overlay → handle → header → body → footer),
+ * kèm khoá cuộn body, vuốt-để-đóng, nút X, z-index.
+ * @returns {{body:HTMLElement, footer:HTMLElement, close:Function}|null}
+ *   null nếu đã có modal trùng id.
  */
 function openBottomSheet({ id, title, height = '80vh', onClose } = {}) {
   if (document.getElementById(id)) return null;
@@ -589,11 +514,8 @@ function applyCrop() {
 // ============= FOCAL POINT PICKER =============
 
 /**
- * Open focal-point picker — let user drag a "focus point" on the image and
- * preview how it will look when cropped at 3 common ratios (1:1, 16:9, 9:16).
- * @param {File|string} imageSource - Image file or existing image URL
- * @param {{x:number,y:number}} [currentFocal] - Current focal point in % (default center)
- * @param {Function} callback - Called with {x, y} in % when user confirms
+ * Mở bảng chọn điểm lấy nét: kéo điểm trên ảnh, xem trước ở 3 tỉ lệ thường gặp
+ * (1:1, 16:9, 9:16). callback nhận {x, y} theo %.
  */
 function openFocalPointPicker(imageSource, currentFocal, callback, giftInfo) {
   const focal = {

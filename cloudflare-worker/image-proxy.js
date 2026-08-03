@@ -1,8 +1,4 @@
-/**
- * Cloudflare Worker - Image Proxy cho Supabase Storage
- *
- * Cache ảnh 30 ngày, giảm bandwidth Supabase Storage
- */
+/** Cloudflare Worker — proxy ảnh Supabase Storage, cache 30 ngày. */
 
 const STORAGE_BASE_URL =
   "https://lcobawmkywtxhpezndsh.supabase.co/storage/v1/object/public/wedding-images";

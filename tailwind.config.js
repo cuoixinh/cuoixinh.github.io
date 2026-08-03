@@ -4,13 +4,8 @@
 // Nguồn: styles/tailwind-src.css → styles/build.css
 //
 // Trang thiệp public/themes/* dùng build RIÊNG (tailwind.themes.config.js →
-// styles/themes.css) vì bảng màu `rose-pastel` của theme khác hẳn: hồng khói
-// (#d4a5a5) so với hồng phấn (#fbcfe8) ở đây. Cùng tên class, khác giá trị →
-// không gộp chung một file được.
-//
-// theme.extend dưới đây là hợp nhất của các `tailwind.config` inline cũ nằm
-// trong <head> từng trang (admin, account, invitation-setup, theme-template),
-// nay đã gỡ hết cùng với thẻ <script src="cdn.tailwindcss.com">.
+// styles/themes.css) vì `rose-pastel` ở đó là hồng khói (#d4a5a5), còn ở đây là
+// hồng phấn (#fbcfe8) — cùng tên class, khác giá trị nên không gộp chung được.
 module.exports = {
   content: [
     "./index.html",
@@ -49,10 +44,8 @@ module.exports = {
         // invitation-setup (config inline cũ)
         "pink-light": "rgb(255 163 181)",
         "pink-light-hover": "rgb(255 143 161)",
-        // Design token dùng chung — thay cho 6 utility viết tay trong
-        // common.css cũ (.bg-primary, .bg-primary-subtle, .text-color-primary,
-        // .text-color-secondary, .border-color-secondary). Giá trị đọc từ biến
-        // CSS khai báo ở styles/_common.css nên vẫn đổi được một chỗ.
+        // Design token dùng chung; giá trị đọc từ biến CSS khai báo ở
+        // styles/_common.css nên vẫn đổi được một chỗ.
         primary: "var(--primary)",
         "primary-subtle": "var(--primary-subtle)",
         "color-primary": "var(--text-color-primary)",

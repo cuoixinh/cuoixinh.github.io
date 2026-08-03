@@ -1,12 +1,9 @@
-// ============================================================================
-// auth-ui.js — UI + logic đăng nhập / tạo tài khoản DÙNG CHUNG
-// Dùng cho: popup đăng nhập ở trang chủ, mẫu thiệp, đơn hàng và invitation-setup.
-// Yêu cầu nạp sau: supabase-js, core/config.js. (showToast tuỳ chọn.)
-//   AuthUI.supabase              → client dùng chung (account/index.js tái sử dụng)
-//   AuthUI.renderForm(el, opts)  → đổ form vào 1 container, opts.onAuth(user) khi login OK
-//   AuthUI.openModal(opts)       → mở popup chứa form; opts.onAuth(user), opts.oauthRedirect
+// auth-ui.js — UI + logic đăng nhập / tạo tài khoản DÙNG CHUNG (trang chủ, mẫu
+// thiệp, đơn hàng, invitation-setup). Nạp sau supabase-js và core/config.js.
+//   AuthUI.supabase              client dùng chung
+//   AuthUI.renderForm(el, opts)  đổ form vào 1 container; opts.onAuth(user)
+//   AuthUI.openModal(opts)       mở popup chứa form; opts.oauthRedirect
 //   AuthUI.closeModal()
-// ============================================================================
 (function () {
   const { createClient } = window.supabase;
   const sb = createClient(CONFIG.supabase.url, CONFIG.supabase.anonKey);
@@ -36,11 +33,10 @@
     _toast("Xin chào " + displayName(user), "success");
   }
 
-  // ── Đưa OAuth về đúng màn đang đứng (không phụ thuộc whitelist) ──────────────
-  // Supabase chỉ chấp redirectTo trong whitelist; URL lạ → nó đá về Site URL (trang
-  // chủ). Vì auth-ui.js được nạp ở MỌI trang (kể cả trang chủ), ta không cần trang
-  // đích phải whitelist: cứ nhớ màn cần quay lại vào sessionStorage, rồi ở BẤT KỲ
-  // trang nào OAuth hạ cánh, listener dưới đây tự bật về đúng màn đó.
+  // ── Đưa OAuth về đúng màn đang đứng ───────────────────────────────────────
+  // Supabase chỉ chấp redirectTo trong whitelist. auth-ui.js được nạp ở MỌI trang
+  // nên: nhớ màn cần quay lại vào sessionStorage, OAuth hạ cánh ở trang nào thì
+  // listener dưới đây tự bật về đúng màn đó.
   const _OAUTH_RETURN_KEY = "cx_oauth_return";
   // So khớp theo PATHNAME (bỏ origin/hash/query) để tránh lệch trailing-slash hay
   // query bị trang đích dọn (vd pendingPublish) gây bật đi bật lại.

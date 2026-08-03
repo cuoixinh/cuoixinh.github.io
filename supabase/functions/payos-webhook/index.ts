@@ -82,14 +82,9 @@ serve(withAxiom("payos-webhook", async (req, log) => {
       }
 
       // ── Xác thực chữ ký webhook — triển khai 2 pha ────────────────────────
-      // Xem docs/security-audit-plan.md #1. Lý do không chặn ngay:
-      //   - Bản cũ tắt verify kèm ghi chú "FIX THIS IN PRODUCTION" → nhiều khả
-      //     năng thuật toán từng fail trên giao dịch thật.
-      //   - payos-webhook-proxy luôn trả 200 cho PayOS nên nếu ta chặn nhầm thì
-      //     PayOS KHÔNG retry: khách trả tiền mà thiệp không mở, không ai biết.
-      //
-      // Pha 1 (hiện tại): SHADOW MODE — tính chữ ký, ghi log kết quả, vẫn xử lý
-      //   đơn như cũ. Theo dõi log `payos.signature_check` trên Axiom.
+      // Xem docs/security-audit-plan.md #1.
+      // Pha 1 (hiện tại): SHADOW MODE — tính chữ ký, ghi log
+      //   `payos.signature_check` trên Axiom, vẫn xử lý đơn như cũ.
       // Pha 2: khi log xác nhận matched=true trên giao dịch thật → đặt biến môi
       //   trường PAYOS_ENFORCE_SIGNATURE=true để trả 401. Không cần sửa code.
       const enforceSignature = Deno.env.get("PAYOS_ENFORCE_SIGNATURE") === "true";

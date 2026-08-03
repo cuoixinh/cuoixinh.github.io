@@ -55,10 +55,6 @@ function renderMiniCalendar() {
   container.innerHTML = html;
 }
 
-/**
- * Update wedding dates for calendar
- * @param {Array} dates - Array of {year, month, day} objects
- */
 function updateWeddingDates(dates) {
   weddingDates.length = 0;
   dates.forEach((d) => weddingDates.push(d));

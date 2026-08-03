@@ -1,13 +1,9 @@
 // ============= TAB "Dữ liệu mẫu": phần NỘI DUNG (chữ) =============
-// 03-sample-images.js lo ẢNH; file này lo CHỮ: tên cô dâu/chú rể, gia đình,
-// ngày giờ, địa điểm, lịch trình, lời ngỏ, ngân hàng, bật/tắt từng khối…
-// Tất cả nằm chung data.json của theme dưới khoá "content"; trang thiệp đọc
-// qua public/themes/preview-data.js và đắp lên bộ data preview mặc định
-// (field nào bỏ trống thì giữ giá trị mặc định cũ).
-//
-// Nạp SAU 03-sample-images.js (xem loader.js): dùng siData / siMarkDirty /
-// escapeHtml khai báo ở file đó — chỉ tham chiếu trong thân hàm nên lúc chạy
-// mọi script đã nạp xong.
+// 03-sample-images.js lo ẢNH; file này lo CHỮ (tên, gia đình, ngày giờ, địa
+// điểm, lịch trình, lời ngỏ, ngân hàng…). Tất cả nằm trong khoá "content" của
+// data.json; trang thiệp đọc qua public/themes/preview-data.js rồi đắp lên bộ
+// data preview mặc định.
+// Nạp SAU 03-sample-images.js: dùng siData / siMarkDirty / escapeHtml của file đó.
 
 const SI_MAX_TIMELINE = 10;
 
@@ -204,13 +200,10 @@ function siCollectContent() {
 // ============= Render form nội dung =============
 
 // ============= "Trùng địa điểm" cho tiệc nhà trai / nhà gái =============
-// Cùng luật với trang thiết lập thiệp (invitation-setup/js/16-ceremony.js):
-// tiệc nhà TRAI lấy theo Lễ thành hôn; tiệc nhà GÁI lấy theo Lễ vu quy nếu vu
-// quy đang bật, không thì cũng Lễ thành hôn.
-//
-// Không lưu ô tích vào data.json — cũng như bên thiết lập thiệp, nó chỉ là lối
-// nhập nhanh; thứ ghi ra file luôn là địa điểm + link bản đồ đã giải ra. Mở lại
-// thì suy ngược: ô "Địa điểm" của tiệc còn trống nghĩa là đang trùng.
+// Cùng luật với invitation-setup/js/16-ceremony.js: tiệc nhà TRAI lấy theo Lễ
+// thành hôn; tiệc nhà GÁI lấy theo Lễ vu quy nếu vu quy đang bật.
+// Ô tích không lưu vào data.json — thứ ghi ra file luôn là địa điểm + link bản đồ
+// đã giải ra; mở lại thì suy ngược: ô "Địa điểm" của tiệc trống = đang trùng.
 
 const SI_PARTY_SIDES = ["groom_party", "bride_party"];
 const SI_SOURCE_LABEL = { ceremony: "Lễ thành hôn", vu_quy: "Lễ vu quy" };
@@ -374,12 +367,10 @@ function siRenderContentField(field) {
 }
 
 // ============= Ô Google Maps: địa chỉ sẵn + picker bản đồ =============
-// Ngoài ô dán link nhúng, hiện luôn địa chỉ đã gõ ở ô "Địa điểm" cùng khối để
-// chép nhanh / mở thẳng Google Maps đã điền sẵn ô tìm kiếm (còn mỗi việc
-// Share → Embed a map → dán ngược lại). Nút "Chọn trên bản đồ" dùng lại
-// openMapPicker() của core/helpers/maps-helper.js — đúng picker của trang
-// thiết lập thiệp, nên id ô URL phải là "<side>_map_embed_url" và khối địa chỉ
-// phải mang id "<side>-map-display" / "<side>-map-address" cho nó ghi vào.
+// Ngoài ô dán link nhúng, hiện luôn địa chỉ đã gõ ở ô "Địa điểm" để chép nhanh /
+// mở thẳng Google Maps. Nút "Chọn trên bản đồ" dùng lại openMapPicker()
+// (core/helpers/maps-helper.js) → id ô URL phải là "<side>_map_embed_url" và khối
+// địa chỉ phải mang id "<side>-map-display" / "<side>-map-address".
 
 const SI_MAP_NO_ADDRESS = "Chưa có địa chỉ — nhập ở ô “Địa điểm” phía trên";
 
@@ -541,16 +532,11 @@ function siSetContentDate(name, value, lunarName) {
 }
 
 // ============= Ô nhạc nền YouTube =============
-// KHÔNG viết lại logic: tab này nạp thẳng invitation-setup/js/11-youtube.js
-// (xem loader.js) để tìm bài / dán link / gợi ý / nghe thử chạy đúng y như tab
-// "Thiết lập thiệp" — kể cả preview bằng YouTube IFrame API và ảnh thumbnail
-// dự phòng khi video chặn nhúng. Ở đây chỉ dựng đúng bộ id mà file đó nhắm tới
-// và bắc hai cây cầu về state của trang admin (xem _scheduleAutoSave bên dưới).
-//
-// Khác biệt duy nhất: form admin vẽ lại bằng innerHTML (đổi theme, bật/tắt vu
-// quy, AI điền…) nên ô nhạc là DOM MỚI mỗi lần — phải gắn lại listener và dựng
-// lại tag/preview từ music_url, việc mà bên thiết lập thiệp chỉ làm một lần lúc
-// nạp thiệp. Xem siYtBind().
+// KHÔNG viết lại logic: tab này nạp thẳng invitation-setup/js/11-youtube.js (xem
+// loader.js), ở đây chỉ dựng đúng bộ id mà file đó nhắm tới và bắc cầu về state
+// của trang admin (xem _scheduleAutoSave bên dưới).
+// Khác biệt: form admin vẽ lại bằng innerHTML nên ô nhạc là DOM MỚI mỗi lần →
+// phải gắn lại listener và dựng lại tag/preview từ music_url (xem siYtBind()).
 
 function siRenderYouTubeField(field, value, wrapClass) {
   return `
@@ -693,14 +679,11 @@ function siSetTimelineField(idx, key, value) {
 }
 
 // ============= Nhờ AI sinh dữ liệu mẫu =============
-// Toàn bộ dữ liệu do AI nghĩ ra: Edge Function ai-invitation có chế độ riêng
-// `mode: "sample"` (xem supabase/functions/ai-invitation/index.ts) tự dựng cả
-// cặp đôi hư cấu — tên, cha mẹ, địa chỉ, ngày giờ lễ/tiệc, ngân hàng, chuyện
-// tình, lịch trình, lời ngỏ. Client không giữ kho tên/địa danh nào; mỗi lần
-// bấm là một cặp khác, không phải xào lại dữ liệu demo cũ.
-//
+// Edge Function ai-invitation có chế độ `mode: "sample"` tự dựng cả cặp đôi hư
+// cấu: tên, cha mẹ, địa chỉ, ngày giờ lễ/tiệc, ngân hàng, chuyện tình, lịch
+// trình, lời ngỏ. Client không giữ kho tên/địa danh nào.
 // Ảnh thì AI không sinh được — phần đó vẫn up tay (03-sample-images.js).
-// Lưu ý hạn mức: trang admin không đăng nhập nên tính theo IP (5 lượt/ngày).
+// Trang admin không đăng nhập nên hạn mức tính theo IP (5 lượt/ngày).
 
 
 function siApplyAiResult(res) {

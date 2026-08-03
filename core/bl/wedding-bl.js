@@ -1,7 +1,4 @@
-/**
- * BL (Business Logic Layer) - Wedding
- * Xử lý logic nghiệp vụ, validation, transform data
- */
+/** BL — Wedding: validation, transform, business rules. */
 
 class WeddingBL {
   constructor(weddingDAL, storageDAL) {
@@ -9,11 +6,6 @@ class WeddingBL {
     this.storage = storageDAL;
   }
 
-  /**
-   * Get wedding data by slug with validation
-   * @param {string} slug - Wedding slug
-   * @returns {Promise<Object>} Processed wedding data
-   */
   async getWeddingBySlug(slug) {
     if (!slug) {
       throw new Error("Slug is required");
@@ -28,11 +20,6 @@ class WeddingBL {
     return this.processWeddingData(data);
   }
 
-  /**
-   * Get wedding data by ID with validation
-   * @param {string} id - Wedding UUID
-   * @returns {Promise<Object>} Processed wedding data
-   */
   async getWeddingById(id) {
     if (!id) {
       throw new Error("ID is required");
@@ -47,11 +34,7 @@ class WeddingBL {
     return this.processWeddingData(data);
   }
 
-  /**
-   * Process wedding data (transform filenames to URLs)
-   * @param {Object} data - Raw wedding data
-   * @returns {Object} Processed data
-   */
+  /** Transform dữ liệu thô: đổi tên file ảnh thành URL đầy đủ. */
   processWeddingData(data) {
     const processed = { ...data };
 
@@ -85,11 +68,6 @@ class WeddingBL {
     return processed;
   }
 
-  /**
-   * Update wedding with validation
-   * @param {Object} payload - Update payload
-   * @returns {Promise<Object>} Updated data
-   */
   async updateWedding(payload) {
     if (!payload.id) {
       throw new Error("Wedding ID is required");
@@ -111,11 +89,6 @@ class WeddingBL {
     return await this.dal.updateWedding(payload);
   }
 
-  /**
-   * Create new wedding with validation
-   * @param {Object} payload - Wedding data
-   * @returns {Promise<Object>} Created data
-   */
   async createWedding(payload) {
     // Validate required fields
     if (!payload.contact) {
@@ -129,11 +102,7 @@ class WeddingBL {
     return await this.dal.createWedding(payload);
   }
 
-  /**
-   * Validate and normalize slug
-   * @param {string} slug - Raw slug
-   * @returns {string} Normalized slug
-   */
+  /** Chuẩn hoá + validate slug. */
   validateSlug(slug) {
     if (!slug) {
       throw new Error("Slug cannot be empty");
@@ -153,11 +122,6 @@ class WeddingBL {
     return normalized;
   }
 
-  /**
-   * Check if wedding is active
-   * @param {Object} wedding - Wedding data
-   * @returns {boolean}
-   */
   isActive(wedding) {
     return wedding && wedding.is_active === true;
   }

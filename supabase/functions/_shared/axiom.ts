@@ -1,15 +1,8 @@
 // _shared/axiom.ts — Logger tập trung, đẩy log về Axiom cho các Edge Function.
-//
-// Cách dùng:
-//   import { withAxiom } from '../_shared/axiom.ts'
 //   Deno.serve(withAxiom('wedding-admin', async (req, log) => {
-//     log.info('wedding.created', { id })
-//     return new Response(...)
+//     log.info('wedding.created', { id }); return new Response(...)
 //   }))
-//
-// Nếu thiếu AXIOM_TOKEN / AXIOM_DATASET → logger no-op (không lỗi, không gửi),
-// nên môi trường local/dev vẫn chạy bình thường.
-//
+// Thiếu AXIOM_TOKEN / AXIOM_DATASET → logger no-op nên local/dev vẫn chạy.
 // ⚠️ KHÔNG log dữ liệu nhạy cảm (token thanh toán, chữ ký webhook, key AI).
 
 const AXIOM_TOKEN = Deno.env.get('AXIOM_TOKEN') ?? ''

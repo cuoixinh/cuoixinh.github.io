@@ -8,13 +8,9 @@ const SUPABASE_ANON_KEY =
 
 /**
  * Đẩy log về Axiom, cùng dataset với các Edge Function (xem _shared/axiom.ts).
- *
- * Cần thiết vì Worker này là chốt chặn cuối của luồng thanh toán: khi nó không
- * với tới được Supabase, KHÔNG có Edge Function nào chạy nên Axiom sẽ không có
- * bất kỳ dấu vết nào nếu chỉ dựa vào console.error (log Cloudflare lưu ngắn hạn).
- *
- * Thiếu AXIOM_TOKEN/AXIOM_DATASET → no-op, không bao giờ làm hỏng luồng webhook.
- * Đặt secret: wrangler secret put AXIOM_TOKEN --config wrangler-webhook.toml
+ * Worker này là chốt chặn cuối của luồng thanh toán: nó không với tới được
+ * Supabase thì không Edge Function nào chạy, Axiom sẽ không có dấu vết nào.
+ * Thiếu AXIOM_TOKEN/AXIOM_DATASET → no-op.
  */
 function axiomLog(env, ctx, level, message, fields = {}) {
   const token = env?.AXIOM_TOKEN;
@@ -94,13 +90,9 @@ export default {
           );
         }
 
-        // Webhook THẬT: forward và CHỜ kết quả, trả status thật về PayOS.
-        //
-        // Trước đây worker luôn trả 200 và forward ở background (ctx.waitUntil),
-        // nên mọi lỗi phía Supabase đều bị nuốt: PayOS tưởng thành công và KHÔNG
-        // retry → khách trả tiền mà thiệp không được mở, không ai biết.
-        // Xử lý phía sau là idempotent (update theo payment_order_id) nên để
-        // PayOS retry khi nhận non-2xx là an toàn.
+        // Webhook THẬT: forward và CHỜ kết quả, trả status thật về PayOS. Xử lý
+        // phía sau là idempotent (update theo payment_order_id) nên để PayOS
+        // retry khi nhận non-2xx là an toàn.
         const forwardHeaders = {
           "Content-Type": "application/json",
           Authorization: `Bearer ${SUPABASE_ANON_KEY}`,

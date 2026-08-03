@@ -1,17 +1,8 @@
 /**
- * share-social.js — Module chia sẻ link qua mạng xã hội (dùng chung)
- *
- * Dựng popup động, không cần HTML tĩnh. Dùng ở bất kỳ trang nào có nạp file này.
- *
- * Cách dùng:
- *   ShareSocial.open({
- *     link: "https://motdoi.com.vn/thiep/abc",   // bắt buộc — link cần chia sẻ
- *     title: "Chia sẻ thiệp cưới",               // tuỳ chọn — tiêu đề popup
- *     subtitle: "Anh Minh",                       // tuỳ chọn — dòng phụ (tên khách/cặp đôi)
- *     message: "Trân trọng kính mời…",            // tuỳ chọn — lời nhắn kèm khi share; để trống → chỉ share link
- *   });
- *
- * Phụ thuộc mềm: showToast (core/helpers/alert.js) và lucide — có thì dùng, không có vẫn chạy.
+ * Chia sẻ link qua mạng xã hội (dùng chung). Dựng popup động, không cần HTML tĩnh.
+ *   ShareSocial.open({ link, title?, subtitle?, message? })
+ * link bắt buộc; message để trống → chỉ share link.
+ * Phụ thuộc mềm: showToast (core/helpers/alert.js) và lucide — không có vẫn chạy.
  */
 (function (global) {
   "use strict";

@@ -1,11 +1,8 @@
-/* ── Trình phát nhạc nền: phần CSS dùng chung cho mọi theme ─────────────────
-   Cặp với core/helpers/music-player-helper.js. Nạp trong CẢ HAI build: thiệp
-   (styles/themes-src.css) và ứng dụng (styles/tailwind-src.css) — bảng "Thành
-   phần" ở invitation-setup dựng widget thật để xem trước nên cũng cần .cx-mw-*.
-
-   Ở đây CHỈ có những thứ utility Tailwind không tả được (keyframes, safe-area,
-   vùng chạm, biến CSS). Bố cục/màu/kích thước là chuyện riêng của từng theme →
-   viết utility thẳng trong HTML của theme, đừng dồn vào đây.
+/* Trình phát nhạc nền — CSS dùng chung cho mọi theme, cặp với
+   core/helpers/music-player-helper.js. Nạp trong CẢ HAI build (thiệp + ứng dụng):
+   bảng "Thành phần" ở invitation-setup dựng widget thật để xem trước.
+   Ở đây CHỈ có thứ utility Tailwind không tả được (keyframes, safe-area, vùng
+   chạm, biến CSS); bố cục/màu là chuyện riêng của từng theme.
    KHÔNG bọc @layer (xem CLAUDE.md). */
 
 /* Thẻ bọc neo cố định ở đỉnh màn hình (class tuỳ chọn — theme nào đặt trình
@@ -24,10 +21,9 @@
   pointer-events: auto;
 }
 
-/* Chỉ hiện khi đã cuộn xuống (theme bật bằng data-cx-reveal-on-scroll).
-   Chỉ nhắm .cx-mp-bar (thanh trên cùng) chứ không nhắm cả thẻ root: bong bóng
-   cũng nằm trong root, mà nó thì phải hiện kể cả khi đang ở đầu trang.
-   Không dùng `display` vì setupMusic() đang quản thuộc tính đó. */
+/* Chỉ hiện khi đã cuộn xuống (data-cx-reveal-on-scroll). Chỉ nhắm .cx-mp-bar chứ
+   không nhắm cả thẻ root — bong bóng phải hiện kể cả khi đang ở đầu trang. Không
+   dùng `display` vì setupMusic() đang quản thuộc tính đó. */
 
 .cx-mp-bar {
   transition:
@@ -36,13 +32,10 @@
     visibility 0.4s;
 }
 
-/* Thanh ẩn = nấp hẳn trên mép màn (-100% chiều cao, trừ hao thêm khoảng cách
-   theme đặt) + mờ đi. Dùng CHUNG cho cả hai lý do ẩn, để hướng chuyển động luôn
-   nhất quán: vuốt lên thì bay lên nấp, cuộn tới thì bay xuống hiện ra.
-   Không dùng `display: none` vì thế thì không có gì để chuyển tiếp.
-
-   Đặt transform ở ĐÂY được vì bong bóng là thẻ ANH EM của .cx-mp-bar, không
-   phải con — transform ở đây không tạo containing block cho `fixed` của nó. */
+/* Thanh ẩn = nấp hẳn trên mép màn + mờ đi; dùng CHUNG cho cả hai lý do ẩn để
+   hướng chuyển động nhất quán. Không dùng `display:none` vì thế thì không có gì
+   để chuyển tiếp. Đặt transform ở đây được vì bong bóng là thẻ ANH EM của
+   .cx-mp-bar, không phải con. */
 
 .cx-mp-reveal.is-hidden .cx-mp-bar,
 .is-collapsed .cx-mp-bar {
@@ -81,12 +74,9 @@
   touch-action: none;
 }
 
-/* Khối mở rộng (kéo xuống ở tay nắm): cao 0 → cao vừa đủ nội dung.
-   Dùng grid-template-rows 0fr→1fr vì đây là cách DUY NHẤT chuyển tiếp mượt tới
-   chiều cao "tự động" mà không phải đo bằng JS (max-height cố định thì hoặc cắt
-   cụt nội dung dài, hoặc trượt ì ạch khi nội dung ngắn).
-   Thẻ CON phải overflow:hidden + min-height:0 — hàng grid co lại nhưng nội dung
-   bên trong không tự cắt theo. */
+/* Khối mở rộng (kéo xuống ở tay nắm): cao 0 → vừa đủ nội dung.
+   grid-template-rows 0fr→1fr là cách DUY NHẤT chuyển tiếp mượt tới chiều cao
+   "tự động" mà không phải đo bằng JS. Thẻ CON phải overflow:hidden + min-height:0. */
 
 .cx-mp-panel {
   display: grid;
@@ -107,10 +97,8 @@
   opacity: 1;
 }
 
-/* Quay tròn khi đang phát (đĩa nhạc / ảnh bìa trong bong bóng). Theme gắn class
-   này vào phần NỘI DUNG tròn chứ đừng gắn lên chính bong bóng: bong bóng đang
-   giữ hiệu ứng cx-mp-pop, hai animation cùng đổi `transform` thì cái sau đè cái
-   trước chứ không cộng lại. Nội dung tròn nên xoay cái nào nhìn cũng như nhau. */
+/* Quay tròn khi đang phát. Gắn vào phần NỘI DUNG tròn, đừng gắn lên chính bong
+   bóng — nó đang giữ cx-mp-pop, hai animation cùng đổi `transform` sẽ đè nhau. */
 
 .cx-mp.is-playing .cx-mp-spin {
   animation: cx-mp-spin 8s linear infinite;
@@ -181,17 +169,12 @@
   transition: width 0.25s linear;
 }
 
-/* ── Hai mẫu gọn của thành phần "Trình phát nhạc" ──────────────────────────────
-   Markup do core/components/music-player.js dựng, vị trí do theme-setting-helper
-   đặt. Chỉ còn .cx-mw-mini (nút tròn) và .cx-mw-card (thẻ nhạc) — mẫu thanh
-   ngang đã dùng chung markup Tailwind với basic-gold nên không cần bộ này nữa.
-
+/* ── Hai mẫu gọn của thành phần "Trình phát nhạc" ────────────────────────────
+   .cx-mw-mini (nút tròn) và .cx-mw-card (thẻ nhạc); markup do
+   core/components/music-player.js dựng, vị trí do theme-setting-helper đặt.
    MỌI kích thước bên trong viết bằng `em`, còn font-size của .cx-mw thì runtime
-   tính theo bề ngang thật của widget → kéo to nhỏ là cả widget phóng theo tỉ lệ,
-   không phải chỉnh lại từng con số. Đây cũng là lý do phần này là CSS thuần chứ
-   không phải utility Tailwind.
-
-   Màu đi qua biến để theme muốn đổi thì đặt lại trên #main-card. */
+   tính theo bề ngang thật → kéo to nhỏ là cả widget phóng theo tỉ lệ (cũng là lý
+   do phần này là CSS thuần). Màu đi qua biến để theme đặt lại trên #main-card. */
 
 /* Nền phải ĐẶC: widget nằm đè lên chính nội dung thiệp (ảnh, chữ) chứ không
    phải lên mép màn hình trống như thanh nhạc sẵn có của theme — để trong mờ thì

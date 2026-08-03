@@ -1,7 +1,6 @@
 /**
- * validate.js — Form validation helper
- * Usage: call validateForm(formEl) before saving; returns true if valid.
- * Mark required fields with the `required` attribute on the input.
+ * Validate form: gọi validateForm(formEl) trước khi lưu. Đánh dấu ô bắt buộc
+ * bằng thuộc tính `required` trên input.
  */
 
 (function _initValidation() {
@@ -111,10 +110,8 @@ function _isEmpty(input) {
 }
 
 /**
- * Validates all [required] inputs that have a name attribute.
- * Opens collapsed sections and scrolls to first invalid field.
- * @param {HTMLElement} formEl
- * @returns {boolean} true if all valid
+ * Validate mọi ô [required] có name; mở section đang gập và cuộn tới ô sai đầu
+ * tiên. Trả true nếu hợp lệ hết.
  */
 function validateForm(formEl) {
   const fields = [...(formEl || document).querySelectorAll("[required]")]

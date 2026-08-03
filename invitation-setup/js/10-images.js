@@ -17,10 +17,9 @@ function getImageUrl(filename) {
   return storageDAL.getPublicUrl(filename);
 }
 
-// Chặn định dạng ngay khi chọn file. Whitelist khai ở CONFIG.image.allowedTypes
-// (core/config.js) — không kiểm `image/*` nữa vì SVG (file chủ động, chứa được
-// script) và HEIC (nhiều trình duyệt desktop không hiển thị được → khách mời
-// thấy ảnh vỡ) đều lọt qua kiểu kiểm đó.
+// Chặn định dạng ngay khi chọn file, theo whitelist CONFIG.image.allowedTypes —
+// không kiểm `image/*` vì SVG (file chủ động) và HEIC (desktop không hiển thị
+// được) đều lọt qua kiểu kiểm đó.
 function _checkImageType(file) {
   if (ImageHelper.isAllowedType(file)) return true;
   showToast(
@@ -34,17 +33,11 @@ function _checkImageType(file) {
 // 3MB: dưới mức đó thì thiệp vẫn mở nhanh, trên mức đó khách mời dùng 3G sẽ thấy rõ.
 const HEAVY_UNCOMPRESSED_BYTES = 3 * 1024 * 1024;
 
-// Nén ảnh MỘT LẦN, ngay lúc người dùng chọn — dùng chung
-// ImageHelper.prepareImage() (core/helpers/image-helper.js) với luồng ảnh mẫu ở
-// admin. Ảnh đã đạt ngưỡng (≤ 1920px, ≤ 1MB) thì giữ nguyên bản gốc.
-// Lúc lưu (12-uploads.js) không nén lại nữa.
-//
-// compressIfNeeded() có nhiều đường trả về NGUYÊN BẢN không nén: định dạng
-// không nén được (GIF/AVIF), decode hỏng (ảnh panorama quá lớn, máy yếu hết
-// RAM), hoặc bản nén còn to hơn bản gốc. Các đường đó im lặng — không bắt lấy
-// cờ `compressed` thì người dùng vẫn thấy "Đã chọn ảnh" y như bình thường, rồi
-// một file 12MB đi thẳng lên Storage và mọi khách mời phải tải về. Chỉ phát
-// hiện khi có người kêu thiệp mở chậm, nên cảnh báo ngay tại đây.
+// Nén ảnh MỘT LẦN, ngay lúc người dùng chọn — ImageHelper.prepareImage(), chung
+// với luồng ảnh mẫu ở admin; lúc lưu (12-uploads.js) không nén lại.
+// compressIfNeeded() có nhiều đường trả về NGUYÊN BẢN mà im lặng (định dạng không
+// nén được, decode hỏng, bản nén còn to hơn) → phải bắt cờ `compressed` và cảnh
+// báo, không thì một file 12MB đi thẳng lên Storage.
 async function prepareImage(file) {
   const { file: processed, compressed } = await ImageHelper.prepareImage(file);
 
@@ -414,7 +407,7 @@ async function handleImageUpload(event, fieldName) {
 
 /**
  * Với field QR (groom_qr_url/bride_qr_url): đọc thông tin ngân hàng của đúng bên
- * để focal picker hiển thị preview giống block Hộp Mừng Cưới. Field khác → null.
+ * để focal picker xem trước giống block Hộp Mừng Cưới. Field khác → null.
  */
 function _qrGiftInfo(fieldName) {
   if (fieldName !== "groom_qr_url" && fieldName !== "bride_qr_url") return null;

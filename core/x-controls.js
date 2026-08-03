@@ -1,9 +1,6 @@
-// ============================================================================
 // Custom form controls — bọc trình bày, LUÔN render đúng <input>/DOM & id như cũ
-// để mọi logic binding hiện có (FormData, fillForm, flatpickr, timepicker,
-// toggleSectionVis, togglePartySameLoc…) chạy nguyên vẹn.
-// Nạp file này TRƯỚC index.js (custom element upgrade đồng bộ lúc parse).
-// ============================================================================
+// để mọi logic binding hiện có (FormData, fillForm, flatpickr, timepicker…) chạy
+// nguyên vẹn. Nạp file này TRƯỚC index.js (custom element upgrade lúc parse).
 (function () {
   const s = document.createElement("style");
   // x-date/x-time/x-textarea là field khối (thay <div> trong grid) → block.
@@ -45,10 +42,9 @@ function _labelHtml(inputId, icon, label, required) {
     </label>`;
 }
 
-// ── <x-date> → <input type="date"> (flatpickr được init bởi index.js như cũ) ──
-// Thuộc tính tuỳ chọn:
-//   bare         — không tự vẽ <label> (khi nơi dùng đã có nhãn riêng, VD modal AI)
-//   input-class  — thay class mặc định của ô input (để khớp style nơi khác, VD .ai-inp)
+// ── <x-date> → <input type="date"> (flatpickr init ở index.js như cũ) ───────
+//   bare         không tự vẽ <label> (nơi dùng đã có nhãn riêng)
+//   input-class  thay class mặc định của ô input
 class XDate extends HTMLElement {
   connectedCallback() {
     const name = this.getAttribute("name") || "";
@@ -165,16 +161,12 @@ class XCheck extends HTMLElement {
   }
 }
 
-// ── <x-textarea> → <textarea> + nút "x" xoá nhanh (giống clear của <x-input>) ──
-// Thuộc tính:
-//   label / icon / required — nhãn (kèm dấu * đỏ khi required); bỏ qua nếu có `bare`.
-//   bare        — không tự vẽ <label> (nơi dùng đã có nhãn/header riêng, VD modal AI).
-//   input-class — thay class mặc định của <textarea> (để khớp style nơi khác, VD .ai-inp).
-//   height      — chiều cao ô (CSS height, mặc định 130px = cao bằng 6 dòng chữ). KHÔNG
-//                 dùng rows nữa — dùng height để control tự chủ chiều cao theo line-height.
-//   maxlength / placeholder / name / id — chuyển thẳng xuống <textarea>.
-//   no-clear    — không hiển thị nút xoá (một số ô không cần).
-// Mọi data-* được truyền xuống <textarea> để logic ngoài (autosave…) chạy như cũ.
+// ── <x-textarea> → <textarea> + nút "x" xoá nhanh ──────────────────────────
+//   label / icon / required   nhãn kèm dấu * đỏ; bỏ qua nếu có `bare`
+//   bare / input-class        như <x-date>
+//   height                    chiều cao ô (CSS height, mặc định 130px ≈ 6 dòng)
+//   no-clear                  không hiện nút xoá
+//   maxlength / placeholder / name / id và mọi data-* → chuyển thẳng xuống <textarea>
 class XTextarea extends HTMLElement {
   connectedCallback() {
     const name = this.getAttribute("name") || "";

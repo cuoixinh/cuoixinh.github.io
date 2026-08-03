@@ -1,7 +1,4 @@
-/**
- * DAL (Data Access Layer) - Wedding
- * Chỉ chứa các hàm truy vấn database, không có logic nghiệp vụ
- */
+/** DAL — Wedding: chỉ truy vấn database, không có logic nghiệp vụ. */
 
 class WeddingDAL {
   constructor(config) {
@@ -11,12 +8,10 @@ class WeddingDAL {
   }
 
   /**
-   * Header cho request GHI (POST/PATCH): luôn kèm apikey (qua gateway) và đính JWT
-   * của user khi đã đăng nhập để edge function gán/nhận chủ (user_id). Khách chưa
-   * đăng nhập → dùng anon key, edge để user_id null.
-   *
-   * Token lấy qua CXAuth (core/auth.js) — nguồn sự thật duy nhất. Trang không nạp
-   * core/auth.js (các trang thiệp public, chỉ ĐỌC) thì token = null → anon key.
+   * Header cho request GHI (POST/PATCH): luôn kèm apikey, và đính JWT của user khi
+   * đã đăng nhập để edge function gán/nhận chủ (user_id). Token lấy qua CXAuth
+   * (core/auth.js); trang không nạp core/auth.js (thiệp public, chỉ ĐỌC) → token
+   * null → dùng anon key.
    */
   async _authHeaders() {
     const token = (await window.CXAuth?.accessToken()) ?? null;
@@ -27,11 +22,6 @@ class WeddingDAL {
     };
   }
 
-  /**
-   * Fetch wedding data by slug
-   * @param {string} slug - Wedding slug
-   * @returns {Promise<Object>} Wedding data
-   */
   async getWeddingBySlug(slug) {
     const apiUrl = this.workerUrl || this.edgeUrl;
     const response = await fetch(`${apiUrl}?slug=${encodeURIComponent(slug)}`, {
@@ -53,11 +43,6 @@ class WeddingDAL {
     return data;
   }
 
-  /**
-   * Fetch wedding data by ID
-   * @param {string} id - Wedding UUID
-   * @returns {Promise<Object>} Wedding data
-   */
   async getWeddingById(id) {
     const response = await fetch(
       `${this.edgeUrl}?id=${encodeURIComponent(id)}`,
@@ -82,13 +67,8 @@ class WeddingDAL {
   }
 
   /**
-   * Update wedding data
-   * @param {Object} payload - Data to update (must include id)
-   * @returns {Promise<Object>} Updated wedding data
-   */
-  /**
-   * Ném Error kèm .code / .status để tầng trên phân biệt được lỗi cần đăng nhập
-   * (AUTH_REQUIRED) hay không có quyền (FORBIDDEN) với lỗi máy chủ thông thường.
+   * Cập nhật thiệp. Ném Error kèm .code / .status để tầng trên phân biệt lỗi cần
+   * đăng nhập (AUTH_REQUIRED) hay không có quyền (FORBIDDEN) với lỗi máy chủ.
    */
   _httpError(response, errorData) {
     const err = new Error(errorData.error || `HTTP ${response.status}`);
@@ -113,11 +93,6 @@ class WeddingDAL {
     return await response.json();
   }
 
-  /**
-   * Create new wedding
-   * @param {Object} payload - Wedding data
-   * @returns {Promise<Object>} Created wedding data
-   */
   async createWedding(payload) {
     const response = await fetch(this.edgeUrl, {
       method: "POST",
@@ -156,12 +131,6 @@ class WeddingDAL {
     return await this.updateWedding({ id, is_published: true });
   }
 
-  /**
-   * Delete wedding
-   * @param {string} id - Wedding UUID
-   * @param {string} token - Admin token
-   * @returns {Promise<void>}
-   */
   async deleteWedding(id, token) {
     const response = await fetch(`${this.edgeUrl}?id=${id}`, {
       method: "DELETE",
@@ -176,11 +145,7 @@ class WeddingDAL {
     }
   }
 
-  /**
-   * List all weddings (admin only)
-   * @param {string} token - Admin token
-   * @returns {Promise<Array>} List of weddings
-   */
+  /** Liệt kê toàn bộ thiệp (chỉ admin). */
   async listWeddings(token) {
     const response = await fetch(`${this.edgeUrl}?list=true`, {
       headers: {

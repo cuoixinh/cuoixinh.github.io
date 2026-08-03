@@ -3,10 +3,9 @@
   id="theme-panel"
   class="hidden fixed inset-0 bottom-[var(--nav-h)] z-[200] bg-white flex flex-col"
 >
-  <!-- Cụm preview + controls:
-             mobile = xếp dọc full; md+ = xếp ngang full-width để iframe đủ rộng
-             cho thiệp nở tới max (768px). Controls là card ~1/4 nằm NGOÀI bên phải,
-             cách preview đúng thanh kéo (16px). p-4 = 16px đệm quanh cụm. -->
+  <!-- Cụm preview + controls: mobile xếp dọc full; md+ xếp ngang full-width để
+       iframe đủ rộng cho thiệp nở tới max (768px). Controls là card ~1/4 nằm
+       NGOÀI bên phải, cách preview đúng thanh kéo (16px). -->
   <div class="flex-1 min-h-0 w-full flex flex-col md:flex-row md:p-4">
     <!-- Preview thiệp (cập nhật trực tiếp khi chỉnh) -->
     <iframe
@@ -31,10 +30,8 @@
       ></span>
     </div>
 
-    <!-- Thanh chỉnh giao diện
-             mobile: thanh dưới full (nền/viền/bóng trên như navbar)
-             md+:   card ~1/4 bên phải (viền + bóng đủ 4 cạnh, kéo rộng được),
-                    rộng theo --theme-ctrl-w (xem styles/_setup.css), cuộn dọc nếu tràn -->
+    <!-- Thanh chỉnh giao diện: mobile = thanh dưới full (như navbar); md+ = card
+             ~1/4 bên phải, kéo rộng được theo --theme-ctrl-w (styles/_setup.css) -->
     <div
       id="theme-controls"
       class="shrink-0 bg-white border-t border-gray-200 shadow-[0_-4px_16px_rgba(0,0,0,0.12)] md:overflow-y-auto md:rounded-xl md:border md:border-gray-200 md:shadow-lg"
@@ -591,8 +588,7 @@
 
         <!-- Bảng THÀNH PHẦN: kéo thành phần (trình phát nhạc…) thả vào chỗ bất kỳ
              trên thiệp, lưu theo toạ độ như hoạ tiết. Danh mục nạp từ
-             window.CX_ELEMENTS (core/helpers/element-helper.js) nên thêm thành
-             phần mới không phải sửa HTML này. -->
+             window.CX_ELEMENTS nên thêm thành phần mới không phải sửa HTML này. -->
         <div
           id="theme-elements-panel"
           class="hidden space-y-3 md:space-y-4 max-h-[52vh] overflow-y-auto md:max-h-none"

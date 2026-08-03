@@ -1,8 +1,6 @@
-// Nạp từng "màn" (tab) của trang quản trị từ partials/ rồi mới chèn script
-// theo tab. Lý do giống invitation-setup/loader.js: index.html chỉ còn vỏ +
-// các thẻ mount rỗng, nội dung tab nằm ở partials/*.html và fetch bất đồng bộ.
-// Script theo tab chỉ chạy SAU khi toàn bộ partial đã chèn xong nên không cần
-// DOMContentLoaded — lúc mỗi file trong SCRIPTS thực thi, DOM của nó đã có sẵn.
+// Nạp từng "màn" (tab) của trang quản trị từ partials/ rồi mới chèn script theo
+// tab — cùng cách với invitation-setup/loader.js. Script chỉ chạy SAU khi toàn bộ
+// partial đã chèn xong nên không cần DOMContentLoaded.
 (function () {
   // [id thẻ mount, đường dẫn partial]
   const PARTIALS = [
@@ -38,10 +36,9 @@
     "js/02-templates.js",
     "js/03-sample-images.js",
     "js/04-sample-data.js",
-    // Ô "Nhạc nền" của tab "Dữ liệu mẫu" dùng LẠI nguyên logic YouTube của
-    // trang thiết lập thiệp (tìm bài, dán link, gợi ý, nghe thử). Phải đứng SAU
-    // 04: nó gọi _onDomReady lúc nạp và _scheduleAutoSave lúc đổi bài — cả hai
-    // đều là bản dành riêng cho admin khai báo trong 04-sample-data.js.
+    // Ô "Nhạc nền" của tab "Dữ liệu mẫu" dùng LẠI logic YouTube của trang thiết
+    // lập thiệp. Phải đứng SAU 04: nó gọi _onDomReady và _scheduleAutoSave — bản
+    // dành riêng cho admin khai báo trong 04-sample-data.js.
     "../invitation-setup/js/11-youtube.js",
     // Phải đứng SAU 03: dùng lại siIdbGet/siIdbPut + hằng SI_IDB_STORE của nó
     // để cất handle thư mục gốc (khác key, xem AX_IDB_KEY).

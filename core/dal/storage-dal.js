@@ -1,7 +1,4 @@
-/**
- * DAL (Data Access Layer) - Storage
- * Chỉ chứa các hàm upload/delete file từ Supabase Storage
- */
+/** DAL — Storage: upload / delete file trên Supabase Storage. */
 
 class StorageDAL {
   constructor(supabaseClient, config) {
@@ -10,12 +7,6 @@ class StorageDAL {
     this.storageBaseUrl = config.cloudflare.imageProxy || config.supabase.storageUrl;
   }
 
-  /**
-   * Upload single file to storage
-   * @param {string} filename - Target filename
-   * @param {File} file - File object
-   * @returns {Promise<string>} Uploaded filename
-   */
   async uploadFile(filename, file) {
     const { data, error } = await this.supabase.storage
       .from(this.bucket)
@@ -31,11 +22,6 @@ class StorageDAL {
     return filename;
   }
 
-  /**
-   * Delete file from storage
-   * @param {string} filename - Filename to delete
-   * @returns {Promise<void>}
-   */
   async deleteFile(filename) {
     const { error } = await this.supabase.storage
       .from(this.bucket)
@@ -46,11 +32,6 @@ class StorageDAL {
     }
   }
 
-  /**
-   * Delete multiple files from storage
-   * @param {Array<string>} filenames - Array of filenames
-   * @returns {Promise<Array>} Results
-   */
   async deleteFiles(filenames) {
     const results = [];
 
@@ -66,11 +47,6 @@ class StorageDAL {
     return results;
   }
 
-  /**
-   * Get public URL for a file
-   * @param {string} filename - Filename
-   * @returns {string} Public URL
-   */
   getPublicUrl(filename) {
     if (!filename) return "";
 

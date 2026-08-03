@@ -28,11 +28,6 @@ window.onYouTubeIframeAPIReady = function () {
   isYouTubeMusicReady = true;
 };
 
-/**
- * Extract YouTube video ID from URL
- * @param {string} url - YouTube URL
- * @returns {string|null} Video ID or null
- */
 function extractYouTubeVideoId(url) {
   const patterns = [
     /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/,
@@ -49,10 +44,6 @@ function extractYouTubeVideoId(url) {
   return null;
 }
 
-/**
- * Initialize YouTube music player
- * @param {string} musicUrl - YouTube URL
- */
 function initYouTubeMusic(musicUrl) {
   if (
     !musicUrl ||
@@ -115,14 +106,8 @@ function initYouTubeMusic(musicUrl) {
 }
 
 /**
- * Trình duyệt CHẶN nhạc tự phát khi trang chưa được người dùng chạm vào lần nào,
- * nên playVideo() lúc onReady thường im lặng thất bại. Rõ nhất là khung xem thử:
- * cú bấm "Xem thử" nằm ở TRANG CHA, còn iframe thì vừa nạp xong nên chưa có
- * tương tác nào của riêng nó. Thiệp thật cũng vậy khi mở link lần đầu.
- *
- * Cách chữa: chờ tương tác ĐẦU TIÊN (chạm / bấm / cuộn / gõ phím) rồi phát —
- * lúc đó trình duyệt mới cho. Nghe capture để bắt được cả cú bấm "Mở thiệp".
- * Đang phát hoặc người dùng tự bấm tắt thì thôi, không tự bật lại.
+ * Trình duyệt chặn tự phát khi trang chưa có tương tác nào → chờ tương tác đầu
+ * tiên (chạm/bấm/cuộn/gõ phím) rồi mới phát. Người dùng đã tự bấm tắt thì thôi.
  */
 const _MUSIC_GESTURES = ["pointerdown", "touchstart", "keydown", "wheel"];
 let _musicUserPaused = false;
@@ -169,12 +154,7 @@ function toggleYouTubeMusic() {
   _emitMusicState();
 }
 
-/**
- * Phát tiếp — nhưng CHỈ khi người dùng chưa chủ động bấm dừng.
- * Dùng cho các mốc "nên phát lại" do UI quyết định (vd theme cho hiện trình phát
- * khi cuộn xuống). Người dùng đã bấm dừng thì tôn trọng, không tự bật lại.
- * @returns {boolean} có gọi phát hay không
- */
+/** Phát tiếp — CHỈ khi người dùng chưa chủ động bấm dừng. */
 function resumeMusicIfAllowed() {
   if (!youtubePlayer || isYouTubePlaying || _musicUserPaused) return false;
   try {
@@ -198,14 +178,7 @@ function updateMusicIcon() {
 }
 
 // ── Thông tin bài đang phát (cho theme vẽ thanh nhạc kiểu app nghe nhạc) ────
-// Phần dưới đây chỉ BỔ SUNG: theme nào không nghe `cx:music-state` và không gọi
-// getMusicInfo/getMusicPosition thì hành vi cũ (nút tròn + updateMusicIcon)
-// không đổi chút nào.
 
-/**
- * @returns {{playing: boolean, title: string, author: string, videoId: string,
- *            thumbnail: string}}
- */
 function getMusicInfo() {
   let title = "";
   let author = "";
@@ -250,10 +223,7 @@ function getMusicPosition() {
   return { current: 0, duration: 0 };
 }
 
-/**
- * Tua tới giây chỉ định (thanh tiến trình bấm để tua).
- * @param {number} seconds
- */
+/** Tua tới giây chỉ định. */
 function seekMusic(seconds) {
   try {
     if (youtubePlayer && youtubePlayer.seekTo) {

@@ -1,11 +1,7 @@
 /**
- * BL (Business Logic Layer) - Image Storage
- *
- * Đưa ảnh lên / xoá ảnh khỏi Supabase Storage. Phần XỬ LÝ ảnh (đo kích thước,
- * resize, nén — thuần canvas, không đụng mạng) nằm ở core/helpers/image-helper.js.
- *
- * File truyền vào đây PHẢI đã qua ImageHelper.prepareImage() lúc người dùng
- * chọn ảnh: cả web nén ĐÚNG MỘT LẦN, lúc lưu không nén lại.
+ * BL — Storage ảnh: đưa lên / xoá ảnh khỏi Supabase Storage. Phần XỬ LÝ ảnh (đo
+ * kích thước, resize, nén) nằm ở core/helpers/image-helper.js.
+ * File truyền vào đây PHẢI đã qua ImageHelper.prepareImage().
  */
 
 class ImageBL {
@@ -13,14 +9,6 @@ class ImageBL {
     this.storage = storageDAL;
   }
 
-  /**
-   * Upload single image
-   *
-   * @param {string} weddingId - Wedding UUID
-   * @param {string} fieldName - Field name (e.g., "cover_image_url")
-   * @param {File} file - File đã chuẩn hoá sẵn
-   * @returns {Promise<string>} Uploaded filename
-   */
   async uploadSingleImage(weddingId, fieldName, file) {
     // Generate filename
     const extension = file.name.split(".").pop();
@@ -32,12 +20,6 @@ class ImageBL {
     return await this.storage.uploadFile(filename, file);
   }
 
-  /**
-   * Upload multiple images (gallery)
-   * @param {string} weddingId - Wedding UUID
-   * @param {Array<File>} files - Array of files
-   * @returns {Promise<Object>} Result with filenames and errors
-   */
   async uploadMultipleImages(weddingId, files) {
     const filenames = [];
     const errors = [];
@@ -62,11 +44,6 @@ class ImageBL {
     return { filenames, errors };
   }
 
-  /**
-   * Delete images from storage
-   * @param {Array<string>} filenames - Array of filenames
-   * @returns {Promise<Array>} Results
-   */
   async deleteImages(filenames) {
     if (!filenames || filenames.length === 0) {
       return [];
@@ -84,10 +61,6 @@ class ImageBL {
     return await this.storage.deleteFiles(filenamesToDelete);
   }
 
-  /**
-   * Generate UUID for filename
-   * @returns {string} UUID
-   */
   generateUUID() {
     return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(
       /[xy]/g,

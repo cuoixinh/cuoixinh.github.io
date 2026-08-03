@@ -126,10 +126,9 @@ async function fetchMyWeddings() {
 }
 
 // Gộp thiệp từ DB vào danh sách đơn (localStorage). Trùng manage_id → cập nhật
-// (không hạ cấp completed đã thanh toán); chưa có → thêm mới. Trạng thái:
-//   chưa xuất bản → "draft" (bản nháp)
-//   đã xuất bản + còn expires_at (dùng thử, chưa trả tiền) → "pending" (chưa thanh toán)
-//   đã xuất bản + expires_at null (đã thanh toán) → "completed" (hoàn thành)
+// (không hạ cấp completed đã thanh toán); chưa có → thêm mới. Trạng thái: chưa
+// xuất bản = "draft"; đã xuất bản + còn expires_at = "pending" (chưa thanh toán);
+// đã xuất bản + expires_at null = "completed".
 function _mergeWeddings(orders, weddings) {
   const result = orders.slice();
   const idxByManage = new Map();

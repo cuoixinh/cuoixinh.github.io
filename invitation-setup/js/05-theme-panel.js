@@ -128,19 +128,10 @@ function _initColorPickers() {
 
 let _openChip = null;
 
-// Coloris chống tràn ngang bằng cách DÓNG PHẢI popup vào ô input — công thức đó
-// giả định input rộng cỡ popup, còn chip của ta chỉ 32px nên popup lệch hẳn.
-//
-// KHÔNG được dời popup sau khi Coloris mở: ngay trong handler click, nó đo và
-// CACHE toạ độ vùng màu theo vị trí vừa đặt (colorAreaDims). Dời popup sau đó
-// làm toạ độ cache lệch đúng bằng khoảng dời → kéo trong vùng màu ra màu không
-// khớp con trỏ.
-//
-// Cách làm: dời TẠM chính ô input (position:relative) TRƯỚC khi Coloris đo —
-// handler này gắn thẳng trên input nên chạy ở pha target, sớm hơn handler uỷ
-// quyền trên document của Coloris — để tự Coloris đặt popup vào giữa chip rồi
-// cache đúng. Trả ô input về chỗ cũ trong requestAnimationFrame (chạy trước khi
-// vẽ) nên không thấy nhảy hình.
+// Coloris dóng phải popup vào ô input, mà chip của ta chỉ 32px nên popup lệch.
+// Cách chữa: dời TẠM chính ô input (position:relative) TRƯỚC khi Coloris đo, rồi
+// trả về chỗ cũ trong requestAnimationFrame. Không được dời popup sau khi mở —
+// Coloris đã cache toạ độ vùng màu, dời sau là kéo ra màu lệch con trỏ.
 function _alignPickerToChip(chipEl) {
   const picker = document.getElementById("clr-picker");
   if (!picker || !chipEl) return;
@@ -256,12 +247,10 @@ function resetThemeSetting() {
 window.onThemeSettingChange = onThemeSettingChange;
 window.resetThemeSetting = resetThemeSetting;
 
-// ═══════════════════════════════════════════════════════════════════════════
-// CHỈNH CHI TIẾT TỪNG DÒNG CHỮ (advanced)
+// ── CHỈNH CHI TIẾT TỪNG DÒNG CHỮ ───────────────────────────────────────────
 // Runtime trong iframe (theme-setting-helper.js) gửi 'cx-text-pick' khi click 1
-// dòng chữ → mở bảng chỉnh riêng ở #theme-line-editor. Mỗi thay đổi cập nhật
+// dòng chữ → mở bảng riêng ở #theme-line-editor. Mỗi thay đổi ghi vào
 // _themeSetting.text_overrides[selector] rồi áp lại vào iframe preview.
-// ═══════════════════════════════════════════════════════════════════════════
 
 let _lineSel = null; // selector dòng/ảnh đang chỉnh
 let _lineFontReady = false; // đã nạp options font cho combobox chưa
@@ -330,10 +319,8 @@ function addTextBlock(type) {
 }
 window.addTextBlock = addTextBlock;
 
-// Kéo mẫu TỪ palette THẢ vào thiệp. setPointerCapture trên nút → parent vẫn nhận
-// pointermove kể cả khi con trỏ ở trên iframe; gửi toạ độ (theo viewport iframe)
-// cho runtime hiện vạch chèn; thả trên iframe → runtime thêm khối tại đó. Bấm mà
-// không kéo (di chuyển < 6px) → thêm ở cuối như cũ.
+// Kéo mẫu TỪ palette THẢ vào thiệp. setPointerCapture trên nút để parent vẫn nhận
+// pointermove kể cả khi con trỏ ở trên iframe; bấm mà không kéo (<6px) → thêm ở cuối.
 let _paletteDrag = null;
 function startPaletteDrag(e, type) {
   if (e.button != null && e.button !== 0) return; // chỉ chuột trái
@@ -440,10 +427,9 @@ function _paletteDragEnd(ev) {
   }
 }
 
-// ─── Trang trí: bảng chọn hoa (nạp từ kho ảnh mẫu) ───────────────────────────
+// ─── Trang trí: bảng chọn hoa (nạp từ kho ảnh mẫu) ──────────────────────────
 // Danh sách lấy ở /assets/flowers/manifest.json — file do tab "Ảnh mẫu" bên
-// /admin ghi ra mỗi lần lưu. Trang tĩnh không list được thư mục qua HTTP nên
-// manifest là nguồn duy nhất.
+// /admin ghi ra; trang tĩnh không list được thư mục qua HTTP.
 const DECOR_MANIFEST_URL = "/assets/flowers/manifest.json";
 let _decorItems = null; // cache trong phiên; null = chưa nạp
 
@@ -612,12 +598,10 @@ function _addDecor(src, x, y) {
   _lineIframe()?.contentWindow?.postMessage({ type: "cx-add-decor", src, x, y }, "*");
 }
 
-// ─── Thành phần: bảng chọn thành phần thả lên thiệp ──────────────────────────
+// ─── Thành phần: bảng chọn thành phần thả lên thiệp ─────────────────────────
 // Danh mục lấy từ window.CX_ELEMENTS (core/helpers/element-helper.js) nên thêm
-// thành phần mới thì không phải sửa gì ở đây. Hành xử giống hệt Trang trí:
-// BẤM ô mẫu → thêm vào giữa thiệp; KÉO ô mẫu thả xuống → đặt đúng chỗ thả. Thêm
-// xong đóng bảng luôn — chỉnh tiếp (đổi mẫu, ẩn, xoá, phóng to) làm ngay trên
-// thiệp bằng các nút quanh widget.
+// thành phần mới không phải sửa gì ở đây. Bấm ô mẫu → thêm vào giữa thiệp; kéo
+// ô mẫu thả xuống → đặt đúng chỗ thả. Thêm xong đóng bảng luôn.
 
 function openElementsPanel() {
   document.getElementById("theme-line-editor")?.classList.add("hidden");
@@ -638,14 +622,10 @@ function closeElementsPanel() {
 }
 window.closeElementsPanel = closeElementsPanel;
 
-// ─── Xem trước thành phần: dựng WIDGET THẬT rồi thu nhỏ vừa ô ───────────────────
-// Ô mẫu không vẽ lại bằng icon mà gọi thẳng def.build(variant) — cùng hàm mà
-// runtime dùng để đặt lên thiệp — nên bảng chọn luôn khớp với thứ người dùng
-// sẽ thấy, kể cả sau này widget đổi kiểu.
-// Dựng ở kích thước THẬT của một tấm thiệp cỡ trung (bề ngang thiệp ~400px),
-// rồi mới thu nhỏ cả cụm cho vừa ô — làm vậy thì tỉ lệ bên trong (cỡ chữ so với
-// nút, với ảnh bìa) đúng y lúc widget nằm trên thiệp. Đặt bừa một bề ngang quy
-// chiếu rồi tính font theo nó sẽ ra tỉ lệ khác.
+// ─── Xem trước thành phần: dựng widget thật rồi thu nhỏ vừa ô ───────────────
+// Ô mẫu gọi thẳng def.build(variant) — cùng hàm runtime dùng để đặt lên thiệp.
+// Dựng ở bề ngang thiệp thật (~400px) rồi mới thu nhỏ cả cụm, để tỉ lệ bên trong
+// (cỡ chữ so với nút, với ảnh bìa) đúng như lúc widget nằm trên thiệp.
 const EL_PREVIEW_CARD_W = 400;
 const EL_PREVIEW_MAX_SCALE = 1.15; // mẫu nhỏ (nút tròn) được phóng cho vừa ô
 const EL_PREVIEW_PAD = 0.9; // chừa mép, đừng để widget dính viền ô
@@ -1352,10 +1332,9 @@ function _initThemePanelObservers() {
 if (window.__cxOnReady) window.__cxOnReady(_initThemePanelObservers);
 else _initThemePanelObservers();
 
-// Tên có dấu → slug thuần a-z0-9 và dấu "-" ("Hải Yến" → "hai-yen").
-// Kết quả phải TRÙNG KHÍT với weddingBL.validateSlug() (core/bl/wedding-bl.js):
-// nó mới là thứ chạy trước khi gửi lên server, nên nếu ở đây còn sót ký tự lạ hay
-// dấu "-" thừa thì slug đem đi kiểm tra trùng khác slug thực sự được lưu → ăn 409.
+// Tên có dấu → slug thuần a-z0-9 và dấu "-". Kết quả phải TRÙNG KHÍT với
+// weddingBL.validateSlug() (core/bl/wedding-bl.js) — lệch thì slug đem đi kiểm
+// tra trùng khác slug thực sự được lưu → ăn 409.
 function _toSlug(str) {
   return (str || "")
     .normalize("NFD")
@@ -1552,20 +1531,16 @@ async function publishWedding() {
   showPublishSuccessPopup();
 }
 
-// Popup mừng "Thiệp đã sẵn sàng" — dựng theo tinh thần tấm thiệp IN: nền giấy ngà,
-// mực nâu mận, kẻ nhũ vàng + hình thoi ấn loát, chữ "Chúc mừng" viết tay (Italianno)
-// làm nhân vật chính; hồng #e11d48 chỉ dành cho nút bấm để phân biệt rõ "trang trí"
-// với "bấm được". Cá nhân hoá bằng TÊN cô dâu/chú rể, không dùng bố cục "bước 1-2-3".
-// Tự dựng DOM + style riêng (scoped, chỉ nạp lần đầu qua _ensurePublishPopupAssets).
+// Popup mừng "Thiệp đã sẵn sàng", cá nhân hoá bằng tên cô dâu/chú rể. Tự dựng
+// DOM + style riêng (scoped, nạp lần đầu qua _ensurePublishPopupAssets).
 function _ensurePublishPopupAssets() {
   if (!document.getElementById("ps-fonts")) {
     const l = document.createElement("link");
     l.id = "ps-fonts";
     l.rel = "stylesheet";
-    // display=block (KHÔNG phải swap): Italianno có thân chữ nhỏ hơn hẳn font dự
-    // phòng cursive của máy, swap sẽ vẽ chữ "Chúc mừng" bằng font hệ thống trước rồi
-    // tráo — cùng 64px nhưng nhìn như chữ tự thu nhỏ lại. block giữ chữ ẩn tới khi
-    // font về (tối đa ~3s, sau đó vẫn vẽ bằng font dự phòng nên không bao giờ mất chữ).
+    // display=block (không phải swap): Italianno có thân chữ nhỏ hơn hẳn font
+    // cursive dự phòng, swap sẽ vẽ bằng font hệ thống rồi tráo, nhìn như chữ tự
+    // thu nhỏ lại.
     l.href =
       "https://fonts.googleapis.com/css2?family=Italianno&family=Playfair+Display:wght@600;700&display=block";
     document.head.appendChild(l);
@@ -1764,11 +1739,10 @@ function showPublishSuccessPopup() {
 }
 
 // Ghi/cập nhật một đơn vào cache để trang tài khoản hiển thị thiệp.
-// - Đã đăng nhập → key theo email; khách → key "guest" (đăng nhập sau sẽ tự gộp).
-// - published=true → status "pending" (đã xuất bản, dùng thử, CHƯA thanh toán);
-//   ngược lại là "draft" (bản nháp). Chỉ khi thanh toán xong (đồng bộ từ DB) mới
-//   thành "completed" — xem _mergeWeddings ở trang tài khoản.
-// Trùng manage_id thì cập nhật, chưa có thì thêm. Không tạo đơn rỗng, không hạ cấp completed.
+// - Đã đăng nhập → key theo email; khách → key "guest" (đăng nhập sau tự gộp).
+// - published=true → status "pending" (đã xuất bản, chưa thanh toán), ngược lại
+//   "draft"; "completed" chỉ đến từ DB khi đã thanh toán.
+// Trùng manage_id thì cập nhật, không tạo đơn rỗng, không hạ cấp completed.
 function _syncLocalOrder({ published = false } = {}) {
   const user = window.CXAuth?.getUserSync();
   const key = buildCacheKey("orders", user?.email || "guest");

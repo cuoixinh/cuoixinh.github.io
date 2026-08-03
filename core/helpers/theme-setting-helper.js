@@ -1,8 +1,5 @@
-// ============================================================
-// THEME-SETTING-HELPER.JS
-// Áp dụng tuỳ chỉnh font + màu chữ (theme_setting) lên thiệp.
-// Dùng chung cho: trang thiệp public, chế độ xem trước, trình soạn thiệp.
-// ============================================================
+// Áp dụng theme_setting lên thiệp: font/màu chung, khối văn bản, hoạ tiết,
+// thành phần. Dùng chung cho trang thiệp public, xem trước và trình soạn thiệp.
 
 // Danh sách font (Google Fonts) — đều hỗ trợ tiếng Việt.
 // type: 'heading' (serif/display cho tiêu đề) | 'body' (sans cho nội dung) | 'both'
@@ -199,12 +196,9 @@ function applyTextOverrides(setting) {
   });
 }
 
-// ============================================================
-// CUSTOM BLOCKS — khối văn bản người dùng tự thêm (đoạn / danh sách / bullets),
-// chèn GIỮA CÁC MỤC. Chèn append cuối DOM (không đổi nth-child của section) rồi
-// định vị bằng flex `order`. Lưu ở theme_setting.custom_blocks; render cả public
-// lẫn preview; ở chế độ chỉnh (edit=1) thì cho sửa/kéo/xoá.
-// ============================================================
+// ── CUSTOM BLOCKS — khối văn bản người dùng tự thêm, chèn GIỮA CÁC MỤC ─────
+// Append cuối DOM (không đổi nth-child của section) rồi định vị bằng flex
+// `order`. Lưu ở theme_setting.custom_blocks; edit=1 thì cho sửa/kéo/xoá.
 let _cxBlocks = [];
 
 function _cxSafeQ(sel) {
@@ -367,10 +361,8 @@ function _cxBuildBlockNode(b, edit) {
   body.id = b.id;
   body.setAttribute("data-cx-bound", "1");
   if (edit) {
-    // Nội dung SỬA Ở PANEL (ô "Nội dung" trong bảng chỉnh chi tiết), không sửa
-    // trực tiếp trên thiệp → không đặt contenteditable.
-    // Bấm vào khối → chọn khối + mở luôn bảng chỉnh chi tiết cho chữ trong khối
-    // (bấm vào 2 nút công cụ thì bỏ qua, chúng tự xử lý).
+    // Nội dung sửa ở ô "Nội dung" của panel, không sửa trực tiếp trên thiệp.
+    // Bấm vào khối = chọn khối + mở bảng chỉnh chi tiết cho chữ trong khối.
     wrap.addEventListener("pointerdown", (e) => {
       if (e.target && e.target.closest && e.target.closest(".cx-cb-tools"))
         return;
@@ -597,9 +589,8 @@ function _cxDropAt(type, y) {
 }
 
 // ── Kéo-thả đổi vị trí (giữa các mục) ──────────────────────────────────────
-// Bóng mờ đi theo con trỏ = bản sao của chính khối đang kéo (giống ghost khi kéo
-// mẫu từ panel). Gắn vào body nên KHÔNG kế thừa font/màu của thiệp → copy tay
-// vài thuộc tính chữ từ khối gốc; nền lấy đúng nền thiệp cho khỏi lộ chữ nền.
+// Bóng mờ theo con trỏ là bản sao khối đang kéo; nó gắn vào body nên phải copy
+// tay font/màu/nền từ khối gốc.
 function _cxMakeGhost(wrap, ev) {
   const g = wrap.cloneNode(true);
   g.className = "cx-cb-ghost";
@@ -723,11 +714,8 @@ function _cxEnsureStyle() {
     ".cx-cb-body{outline:none}" +
     ".cx-custom-block ol,.cx-custom-block ul{display:inline-block;text-align:left;padding-left:1.5em;margin:0}" +
     ".cx-custom-block ol{list-style:decimal}.cx-custom-block ul{list-style:disc}" +
-    // Viền nét đứt + 2 nút CHỈ hiện khi khối đang được chọn (bấm ra ngoài là ẩn).
-    // outline-offset dương để viền ôm ngoài, không chạm chữ; outline không chiếm
-    // chỗ nên không đẩy layout của thiệp.
-    // Chỉ ở chế độ chỉnh mới chừa khoảng đệm, để nút kéo (giữa-trên) không sát
-    // chữ. Trang public giữ nguyên khoảng cách gốc của thiệp.
+    // Viền nét đứt + 2 nút chỉ hiện khi khối đang được chọn. outline không chiếm
+    // chỗ nên không đẩy layout; chỉ chế độ chỉnh mới chừa đệm cho nút kéo.
     ".cx-cb-edit{padding:12px 0}" +
     ".cx-cb-active{outline:1px dashed #e11d48;outline-offset:4px}" +
     ".cx-cb-tools{position:absolute;inset:0;pointer-events:none;z-index:6;display:none}" +
@@ -769,16 +757,13 @@ function applyCustomBlocks(setting) {
   _cxRender();
 }
 
-// ============================================================
-// DECORATIONS — hoa / hoạ tiết thả tự do lên thiệp bằng TOẠ ĐỘ.
-// Lưu ở theme_setting.decorations = [{ id, src, x, y, w, rot, behind }]:
-//   x, y  % so với #main-card, tính theo TÂM ảnh → giữ đúng chỗ trên mọi khổ
-//         màn hình, không lệ thuộc px của máy lúc chỉnh.
-//   w     % chiều rộng thiệp (cao tự theo tỉ lệ ảnh); rot: độ;
-//   behind true = nằm SAU nội dung thiệp (hoa nền), false = đè lên trên.
-// Public/preview chỉ vẽ và KHÔNG bắt chuột. edit=1 thì kéo để đổi chỗ, kèm 4
-// nút: xoá (trên-trái), xoay (trên-phải), phóng to (dưới-phải), đổi lớp (dưới-trái).
-// ============================================================
+// ── DECORATIONS — hoa / hoạ tiết thả tự do lên thiệp bằng toạ độ ───────────
+// theme_setting.decorations = [{ id, src, x, y, w, rot, behind }]
+//   x, y  % so với #main-card, tính theo TÂM ảnh
+//   w     % chiều rộng thiệp (cao tự theo tỉ lệ); rot: độ
+//   behind  true = nằm sau nội dung thiệp
+// Public/preview chỉ vẽ và không bắt chuột; edit=1 thì kéo được, kèm 4 nút
+// (xoá, xoay, phóng to, đổi lớp).
 const CX_DECOR_DEFAULT_W = 18; // % bề ngang thiệp
 const CX_DECOR_MIN_W = 3;
 const CX_DECOR_MAX_W = 100;
@@ -802,10 +787,9 @@ function _cxDecorLayer(behind) {
     layer = document.createElement("div");
     layer.id = id;
     layer.className = "cx-decor-layer";
-    // 45: các theme dùng tới z-20 cho nội dung TRONG thiệp nên phải cao hơn,
-    // nhưng vẫn thấp hơn mấy lớp phủ fixed NGOÀI thiệp (cover z-50, nút nhạc
-    // z-60, lightbox z-100) — hoa không được che những thứ đó.
-    // -1: nằm sau nội dung thiệp nhưng vẫn trên nền thiệp.
+    // 45: cao hơn nội dung trong thiệp (z-20) nhưng thấp hơn các lớp phủ fixed
+    // ngoài thiệp (cover z-50, nhạc z-60, lightbox z-100).
+    // -1: sau nội dung thiệp nhưng vẫn trên nền thiệp.
     layer.style.zIndex = behind ? "-1" : "45";
     card.appendChild(layer);
   }
@@ -1082,14 +1066,8 @@ function _cxDecorRender() {
 }
 
 /**
- * Nhân đôi: bản sao lệch CHÉO một đoạn nhỏ để nhìn ra ngay là có 2 bông, nhưng
- * vẫn đủ gần chỗ cũ.
- *
- * Đoạn lệch tính bằng PX thật rồi đổi ngược ra % của từng trục: thiệp cao gấp
- * nhiều lần bề ngang nên nếu cộng thẳng cùng một số % cho cả hai trục thì dọc
- * nhảy cả trăm px trong khi ngang chỉ nhích vài chục — nhìn như bị rơi xuống
- * chứ không phải bản sao. Lấy theo cỡ bông hoa (18% bề ngang của nó, tối thiểu
- * 12px) để hoa to lệch nhiều, icon nhỏ lệch ít.
+ * Nhân đôi hoạ tiết: bản sao lệch chéo một đoạn tính theo cỡ bông (18% bề ngang
+ * của nó, tối thiểu 12px) rồi đổi ra % của từng trục.
  */
 function _cxDecorDuplicate(id) {
   const src = _cxDecorFind(id);
@@ -1127,11 +1105,9 @@ function _cxDecorDelete(id) {
   _cxDecorReport();
 }
 
-// Thêm mà KHÔNG kéo (bấm ô mẫu ở bảng chọn) thì đặt ở ĐẦU KHUNG ĐANG XEM chứ
-// không phải giữa thiệp: thiệp dài, giữa thiệp thường nằm ngoài màn hình nên bấm
-// xong không thấy gì. 36px tính từ mép trên khung nhìn xuống MÉP TRÊN của khối.
-// Vì x/y là TÂM khối (transform translate(-50%,-50%)) nên phải cộng nửa chiều
-// cao — mà chiều cao chỉ biết sau khi dựng, do đó đo ở đây rồi đặt lại y.
+// Thêm mà không kéo (bấm ô mẫu ở bảng chọn) thì đặt ở ĐẦU KHUNG ĐANG XEM, cách
+// mép trên 36px. x/y là TÂM khối nên phải cộng nửa chiều cao — chiều cao chỉ
+// biết sau khi dựng, do đó đo rồi đặt lại y.
 const CX_ADD_TOP_GAP = 36;
 
 function _cxPlaceAtViewTop(item, node, style, report) {
@@ -1164,9 +1140,8 @@ function _cxPlaceAtViewTop(item, node, style, report) {
 }
 
 /**
- * Thêm 1 hoạ tiết. Toạ độ nhận từ trang cha là PX theo viewport iframe (điểm
- * thả), đổi sang % của #main-card ở đây; không truyền (bấm ô mẫu) → đặt ở đầu
- * khung đang xem.
+ * Thêm 1 hoạ tiết. Toạ độ nhận từ trang cha là px theo viewport iframe, đổi sang
+ * % của #main-card; không truyền (bấm ô mẫu) → đặt ở đầu khung đang xem.
  */
 function _cxDecorAdd(src, clientX, clientY) {
   const card = document.getElementById("main-card");
@@ -1230,20 +1205,13 @@ function applyDecorations(setting) {
   _cxDecorRender();
 }
 
-// ============================================================
-// ELEMENTS — "thành phần" thả tự do lên thiệp (trước mắt: Trình phát nhạc).
-// Danh mục thành phần + markup từng mẫu nằm ở core/helpers/element-helper.js.
-// Lưu ở theme_setting.elements = [{ id, element, variant, x, y, w, visible }]:
-//   x, y  % so với #main-card, tính theo TÂM widget — giống hoạ tiết, nên giữ
-//         đúng chỗ trên mọi khổ màn hình.
-//   w     % bề ngang thiệp; visible=false = tạm ẩn (vẫn giữ chỗ để bật lại).
-//
-// Khác hoạ tiết ở đúng hai chỗ:
-//   · Trang công khai widget PHẢI bấm được (phát, tua, kéo xem tóm tắt) nên nó
-//     luôn bắt chuột, không như hoa chỉ để ngắm.
-//   · Ngược lại, ở chế độ chỉnh thì KHOÁ hết tương tác bên trong — không thì kéo
-//     widget đi lại hoá ra bấm nút phát.
-// ============================================================
+// ── ELEMENTS — "thành phần" thả tự do lên thiệp (hiện có: Trình phát nhạc) ──
+// Danh mục + markup từng mẫu ở core/helpers/element-helper.js.
+// theme_setting.elements = [{ id, element, variant, x, y, w, visible }]
+//   x, y  % so với #main-card, tính theo TÂM widget
+//   w     % bề ngang thiệp; visible=false = tạm ẩn (vẫn giữ chỗ)
+// Khác hoạ tiết: trang công khai widget PHẢI bấm được (phát, tua, kéo xem tóm
+// tắt); ngược lại chế độ chỉnh khoá hết tương tác bên trong để kéo được widget.
 let _cxElements = [];
 let _cxElActiveId = null;
 let _cxElOutsideBound = false;
@@ -1629,12 +1597,9 @@ function _cxElSet(id, patch) {
 }
 
 /**
- * Thả một thành phần. Toạ độ nhận từ trang cha là PX theo viewport iframe (điểm
- * thả), đổi sang % của #main-card ở đây; không truyền (bấm ô mẫu) → đặt ở đầu
- * khung đang xem.
- * Thành phần `single` đã có sẵn thì KHÔNG thêm cái thứ hai, chỉ dời tới chỗ đó.
- * `variantId` = mẫu người dùng chọn ở bảng (mỗi mẫu một ô); không truyền thì
- * lấy mẫu đầu danh sách.
+ * Thả một thành phần. Toạ độ nhận từ trang cha là px theo viewport iframe, đổi
+ * sang % của #main-card; không truyền (bấm ô mẫu) → đặt ở đầu khung đang xem.
+ * Thành phần `single` đã có sẵn thì chỉ dời tới chỗ đó, không thêm cái thứ hai.
  */
 function _cxElAdd(elementId, clientX, clientY, variantId) {
   const def = (window.CX_ELEMENTS || {})[elementId];
@@ -1753,10 +1718,7 @@ function _loadGoogleFont(fontName) {
   document.head.appendChild(link);
 }
 
-/**
- * Áp dụng theme_setting lên trang hiện tại.
- * @param {Object|string} setting - { heading_font, body_font, heading_color, body_color, accent_color, background_color }
- */
+/** Áp dụng theme_setting (font + màu chung) lên trang hiện tại. */
 function applyThemeSetting(setting) {
   if (typeof setting === "string") {
     try {
@@ -1807,10 +1769,9 @@ function applyThemeSetting(setting) {
     );
   }
 
-  // ── Ghi đè chi tiết TỪNG DÒNG chữ (tính năng nâng cao) ────────────────────
+  // ── Ghi đè chi tiết TỪNG DÒNG chữ ─────────────────────────────────────────
   // setting.text_overrides = { "<selector>": { font, size, color, weight, italic, align } }
-  // Selector là đường dẫn dài (nth-child) → độ ưu tiên cao hơn rule class chung
-  // ở trên nên thắng. Vẫn dùng !important để chắc ăn với style inline của theme.
+  // Selector nth-child nên ưu tiên cao hơn rule class chung ở trên.
   if (setting.text_overrides && typeof setting.text_overrides === "object") {
     for (const [sel, o] of Object.entries(setting.text_overrides)) {
       const safeSel = _cxSafeSelector(sel);
@@ -1874,13 +1835,10 @@ if (typeof window !== "undefined") {
   window.applyElements = applyElements;
 }
 
-// ============================================================
-// EDIT RUNTIME — chỉnh chi tiết từng dòng chữ.
-// CHỈ chạy bên trong iframe preview của tab Giao diện: ?preview=true&edit=1.
-// Rê chuột → highlight vùng có chữ; click → gửi selector + style hiện tại về
-// trang cha (postMessage) để mở bảng chỉnh riêng. Trang cha (không có edit=1)
-// và tab Xem trước (không có edit=1) sẽ KHÔNG kích hoạt runtime này.
-// ============================================================
+// ── EDIT RUNTIME — chỉnh chi tiết từng dòng chữ ────────────────────────────
+// CHỈ chạy trong iframe preview của tab Giao diện (?preview=true&edit=1): rê
+// chuột thì highlight vùng có chữ, click thì gửi selector + style hiện tại về
+// trang cha (postMessage) để mở bảng chỉnh riêng.
 (function _cxTextEditRuntime() {
   if (typeof window === "undefined" || window.top === window) return; // phải ở trong iframe
   let params;
@@ -2136,10 +2094,8 @@ if (typeof window !== "undefined") {
   }
 
   // Custom-block gọi hàm này để mở bảng chỉnh chi tiết cho chữ trong khối. Viền
-  // + nút của khối do chính nó lo (.cx-cb-active) nên bỏ picked/nút X để khỏi
-  // chồng 2 lớp viền. Nội dung khối sửa ở ô "Nội dung" của panel → luôn gửi
-  // bound:false + textOnly:true (danh sách có <li> con vẫn cho sửa) kèm blockId
-  // để trang cha ghi vào model thay vì text_overrides.
+  // + nút do chính khối lo nên bỏ picked/nút X; luôn gửi bound:false +
+  // textOnly:true kèm blockId để trang cha ghi vào model thay vì text_overrides.
   window.__cxPickBlockBody = function (el, more) {
     if (!el) return;
     if (picked) picked.classList.remove("cx-edit-picked");

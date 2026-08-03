@@ -1,30 +1,18 @@
-// ============================================================
-// ELEMENT-HELPER.JS — Kho "Thành phần" thả được lên thiệp
-// ============================================================
+// Kho "Thành phần" thả được lên thiệp (tab Giao diện) — khối giao diện đặt theo
+// TOẠ ĐỘ tự do như hoạ tiết. File này chỉ khai báo DANH MỤC (window.CX_ELEMENTS):
+// markup do component trong core/components/ dựng, phần thả/kéo/lưu ở
+// theme-setting-helper.js (mục ELEMENTS), bảng chọn ở 05-theme-panel.js — nên
+// thêm thành phần mới chỉ cần thêm một mục ở đây.
 //
-// Thành phần = một khối giao diện nhỏ người dùng thả vào thiệp ở tab Giao diện,
-// đặt ở TOẠ ĐỘ tự do y như hoạ tiết (không chèn giữa các mục như khối văn bản).
-// Trước mắt chỉ có Trình phát nhạc; file này là chỗ đăng ký thành phần mới.
-//
-// File chỉ khai báo DANH MỤC. Markup do component trong core/components/ dựng
-// (thiệp và panel dùng chung một bản), phần thả/kéo/lưu nằm ở
-// theme-setting-helper.js (mục ELEMENTS), phần bảng chọn ở invitation-setup/js/
-// 05-theme-panel.js — cả hai đều đọc window.CX_ELEMENTS nên thêm thành phần mới
-// thì chỉ cần thêm một mục ở đây.
-//
-// ── Khai báo một thành phần ────────────────────────────────────────────────
-//   id        Khoá lưu trong theme_setting.elements[].element
-//   name/desc Chữ hiện ở bảng chọn
-//   icon      SVG (chuỗi) — dự phòng khi không dựng được ảnh xem trước
-//   single    true = mỗi thiệp chỉ được một cái (thả lần nữa thì dời chỗ)
-//   variants  Danh sách MẪU: { id, name, desc, w, minW, maxW, fs }
-//               w/minW/maxW  bề ngang tính theo % bề ngang thiệp
-//               fs           hệ số cỡ chữ: font-size = bề ngang thật × fs.
-//                            CHỈ đặt cho mẫu viết bằng `em` (nút tròn, thẻ
-//                            nhạc) — kéo to nhỏ là cả widget phóng theo. Mẫu
-//                            dựng bằng utility Tailwind cỡ cố định thì BỎ TRỐNG,
-//                            không thì chữ phóng to mà khung nút vẫn nguyên.
-//   build(variant) → HTMLElement, đã gắn sẵn các vai trò data-cx-music.
+// Khai báo một thành phần:
+//   id        khoá lưu trong theme_setting.elements[].element
+//   name/desc chữ hiện ở bảng chọn
+//   icon      SVG (chuỗi), dự phòng khi không dựng được ảnh xem trước
+//   single    true = mỗi thiệp chỉ một cái (thả lần nữa thì dời chỗ)
+//   variants  [{ id, name, desc, w, minW, maxW, fs }] — w/minW/maxW là % bề ngang
+//             thiệp; fs = hệ số cỡ chữ (font-size = bề ngang thật × fs), CHỈ đặt
+//             cho mẫu viết bằng `em`, mẫu dùng utility cỡ cố định thì bỏ trống
+//   build(variant) → HTMLElement, đã gắn sẵn các vai trò data-cx-music
 //
 // Nạp file này SAU core/components/music-player.js.
 

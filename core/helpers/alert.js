@@ -1,15 +1,9 @@
-/**
- * alert.js — Shared UI notification helpers
- * Provides: showToast, showLoading
- * Creates DOM elements dynamically — no static HTML required.
- */
+/** Thông báo dùng chung: showToast, showLoading. Tự dựng DOM, không cần HTML tĩnh. */
 
-// ─── Icon lucide ─────────────────────────────────────────────────────────────
-// Nhúng thẳng path thay vì gọi lucide.createIcons(): file này dùng chung cho CẢ
-// landing, account, theme-template và admin — 4 trang KHÔNG nạp thư viện lucide
-// (chỉ invitation-setup + guests có). Phụ thuộc window.lucide thì 4 trang đó
-// icon trống trơn. Path lấy từ lucide-static 1.28.0 nên trùng khít bộ nét với
-// icon lucide trong trang. Thêm icon mới: copy phần trong <svg> của icon tương ứng.
+// ─── Icon lucide ────────────────────────────────────────────────────────────
+// Nhúng thẳng path thay vì gọi lucide.createIcons(): file này dùng chung cho cả
+// landing, account, theme-template và admin — 4 trang KHÔNG nạp thư viện lucide.
+// Path lấy từ lucide-static 1.28.0; thêm icon mới thì copy phần trong <svg>.
 const _LUCIDE_PATHS = {
   check: '<path d="M20 6 9 17l-5-5"/>',
   x: '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
@@ -242,11 +236,9 @@ const _DLG_ICONS = {
 };
 
 /**
- * Base dialog dùng chung → Promise<boolean>.
- * @param {{title?:string, message?:string, type?:"error"|"warning"|"info"|"success",
- *          icon?:string, confirm?:boolean, okText?:string, cancelText?:string}} opts
- *   confirm=true → hiện thêm nút Huỷ (2 nút); mặc định chỉ 1 nút (alert).
- *   icon → tên icon lucide thay cho icon mặc định của type, MÀU vẫn theo type.
+ * Base dialog dùng chung → Promise<boolean>. confirm=true thì hiện thêm nút Huỷ
+ * (2 nút), mặc định 1 nút. icon = tên icon lucide thay icon mặc định của type
+ * (màu vẫn theo type).
  */
 function showDialog(opts = {}) {
   // Nếu còn hộp thoại cũ chưa đóng → coi như huỷ trước khi mở cái mới.
@@ -270,24 +262,12 @@ function showDialog(opts = {}) {
   return new Promise((resolve) => { _dialogResolve = resolve; });
 }
 
-/**
- * Alert 1 nút (giữ nguyên chữ ký cũ).
- * @param {string} title
- * @param {string} message — hỗ trợ \n
- * @param {"error"|"warning"|"info"|"success"} [type]
- * @param {string} [icon] — tên icon lucide thay icon mặc định của type (màu giữ theo type)
- */
+/** Alert 1 nút. message hỗ trợ xuống dòng; icon thay icon mặc định của type. */
 function showAlert(title, message, type = "error", icon = null) {
   return showDialog({ title, message, type, icon });
 }
 
-/**
- * Confirm 2 nút (Huỷ / Xác nhận) → Promise<boolean>.
- * @param {string} title
- * @param {string} message — hỗ trợ \n
- * @param {{type?:"warning"|"error"|"info"|"success", icon?:string,
- *          confirmText?:string, cancelText?:string}} [opts]
- */
+/** Confirm 2 nút (Huỷ / Xác nhận) → Promise<boolean>. */
 function showConfirm(title, message, opts = {}) {
   return showDialog({
     title,

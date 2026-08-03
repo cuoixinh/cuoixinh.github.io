@@ -1,18 +1,10 @@
-// <x-combobox> — dropdown chọn 1 giá trị, thay cho <select> gốc.
-//
-// Vì sao có: <select> gốc trên di động bung bàn phím/khó style, và không
-// preview được nội dung từng lựa chọn (vd font). Component này là nút bấm mở
-// danh sách tuỳ biến, TỰ LẬT LÊN khi thiếu chỗ bên dưới, và có thể render mỗi
-// dòng bằng đúng font của nó (thuộc tính `preview-font`).
-//
-// API:
-//   el.setOptions([{ value, label }])  – nạp danh sách
-//   el.value = "x"                      – gán (tự cập nhật nhãn + mục đang chọn)
-//   el.value                            – đọc giá trị hiện tại
-//   bắn sự kiện "change" (bubbles) khi người dùng chọn → dùng được onchange="".
-//
-// Thuộc tính: preview-font (render mỗi dòng + nhãn bằng font = value),
-//             placeholder (chữ mờ khi chưa chọn).
+// <x-combobox> — dropdown chọn 1 giá trị, thay cho <select> gốc: nút bấm mở danh
+// sách tuỳ biến, TỰ LẬT LÊN khi thiếu chỗ bên dưới, render được mỗi dòng bằng
+// đúng font của nó.
+//   el.setOptions([{ value, label }])  nạp danh sách
+//   el.value                           đọc / gán (tự cập nhật nhãn + mục chọn)
+//   bắn sự kiện "change" (bubbles) khi người dùng chọn → dùng được onchange=""
+// Thuộc tính: preview-font (render mỗi dòng bằng font = value), placeholder.
 
 (function () {
   const s = document.createElement("style");
@@ -135,10 +127,8 @@ class XCombobox extends HTMLElement {
     this._chev.classList.add("rotate-180");
     this._isOpen = true;
 
-    // Định vị bằng position:FIXED để popup THOÁT khỏi mọi vùng cuộn (overflow) của
-    // panel. Trước đây dùng absolute nên bị bảng chỉnh (max-h + overflow-y-auto) cắt
-    // mất phần tràn. fixed không bị overflow của ancestor cắt (miễn ancestor không
-    // tạo containing-block bằng transform/filter…).
+    // Định vị bằng position:FIXED để popup THOÁT khỏi mọi vùng cuộn (overflow)
+    // của panel — absolute sẽ bị bảng chỉnh (max-h + overflow-y-auto) cắt mất.
     this._position();
 
     const active = this._list.querySelector('.x-cb-opt[data-active="1"]');

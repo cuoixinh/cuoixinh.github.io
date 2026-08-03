@@ -1,10 +1,9 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { withAxiom } from '../_shared/axiom.ts'
 
-// ── CORS ─────────────────────────────────────────────────────────────────────
-// Allowlist origin thay cho '*' (danh sách giống ai-invitation). Lưu ý đây chỉ là
-// vệ sinh: CORS chỉ ràng buộc trình duyệt, curl/script bỏ qua hoàn toàn. Lớp bảo
-// vệ thật là kiểm tra quyền theo user_id ở PATCH/POST.
+// ── CORS ────────────────────────────────────────────────────────────────────
+// Allowlist origin thay cho '*'. Chỉ là vệ sinh — CORS ràng buộc trình duyệt,
+// curl/script bỏ qua; lớp bảo vệ thật là kiểm tra quyền theo user_id ở PATCH/POST.
 const ALLOWED_ORIGINS = [
   'https://cuoixinh.com',
   'https://www.cuoixinh.com',
@@ -48,13 +47,11 @@ function escapePostgrestPattern(value: string): string {
   return value.replace(/[,()*\\]/g, '')
 }
 
-// ── Bảo mật: field khách được phép tự sửa ────────────────────────────────────
-// Dùng ALLOWLIST (không phải blocklist): field nào không có tên ở đây sẽ bị loại
-// bỏ khỏi payload của người dùng thường. Quan trọng nhất là chặn các cột thanh
-// toán (payment_status, payment_amount, transaction_id, payment_time,
-// payment_order_id, expires_at) — chúng CHỈ được ghi từ payment-handler /
-// payos-webhook. Trước đây dùng blocklist nên client tự PATCH
-// { payment_status: 'completed' } là mở khoá thiệp vĩnh viễn mà không trả tiền.
+// ── Bảo mật: field khách được phép tự sửa ───────────────────────────────────
+// ALLOWLIST (không phải blocklist): field nào không có tên ở đây sẽ bị loại khỏi
+// payload của người dùng thường. Quan trọng nhất là các cột thanh toán
+// (payment_status, payment_amount, transaction_id, payment_time,
+// payment_order_id, expires_at) — chỉ payment-handler / payos-webhook được ghi.
 const CUSTOMER_EDITABLE_FIELDS = new Set([
   'slug', 'is_published',
   // Thông tin chung
@@ -89,11 +86,10 @@ const CUSTOMER_EDITABLE_FIELDS = new Set([
   'enable_love_story', 'enable_music', 'enable_gift', 'enable_footer',
 ])
 
-// ── Bảo mật: chống tráo ảnh (đặc biệt QR mừng cưới) ──────────────────────────
-// QR mừng cưới là ẢNH do chủ thiệp upload, render thẳng qua <img src>. Nếu field
-// này nhận URL tuỳ ý, kẻ tấn công đổi sang QR của nó → khách mời quét và chuyển
-// tiền mừng vào tài khoản kẻ tấn công. Chỉ chấp nhận tên file trong storage của
-// hệ thống hoặc URL thuộc host của hệ thống.
+// ── Bảo mật: chống tráo ảnh (đặc biệt QR mừng cưới) ─────────────────────────
+// QR mừng cưới render thẳng qua <img src>; nhận URL tuỳ ý thì kẻ tấn công đổi
+// sang QR của nó và khách mời chuyển tiền nhầm. Chỉ chấp nhận tên file trong
+// storage của hệ thống hoặc URL thuộc host của hệ thống.
 const ALLOWED_IMAGE_HOSTS = new Set([
   'lcobawmkywtxhpezndsh.supabase.co',
   'wedding-image-proxy.cuoixinh-api.workers.dev',
@@ -389,15 +385,11 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
     }
 
     // ── Phân quyền sửa thiệp ─────────────────────────────────────────────────
-    // Chính sách: BẮT BUỘC ĐĂNG NHẬP mới sửa được (xem docs/security-audit-plan.md #3).
-    // Trước đây ai biết UUID là toàn quyền sửa, mà UUID nằm ngay trong link chia
-    // sẻ → kẻ tấn công tráo được ảnh QR mừng cưới, đổi số tài khoản nhận tiền.
-    //
-    // Thiệp cũ chưa có chủ (user_id NULL, tạo trước khi áp chính sách): người
-    // đăng nhập ĐẦU TIÊN mở link sẽ nhận làm chủ (grandfather) — xem claim bên dưới.
-    //
-    // Đặt TRƯỚC khối xoá ảnh: xoá ảnh cũng là thao tác ghi, không được phép chạy
-    // trước khi kiểm tra quyền.
+    // BẮT BUỘC ĐĂNG NHẬP mới sửa được (xem docs/security-audit-plan.md #3) — UUID
+    // nằm ngay trong link chia sẻ nên không thể coi là chứng thư.
+    // Thiệp cũ chưa có chủ (user_id NULL): người đăng nhập ĐẦU TIÊN mở link sẽ
+    // nhận làm chủ (claim bên dưới).
+    // Đặt TRƯỚC khối xoá ảnh: xoá ảnh cũng là thao tác ghi.
     const editorId = isAdmin ? null : await getUserId()
     if (!isAdmin) {
       if (!editorId) {
@@ -549,10 +541,9 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
       fields.expires_at = expiresAt.toISOString()
     }
 
-    // Thiệp chưa có chủ + người sửa đã đăng nhập → nhận làm chủ (claim). Đây là
-    // đường grandfather cho thiệp tạo trước khi bắt buộc đăng nhập.
-    // Không cho đổi chủ nếu thiệp đã có chủ (bỏ qua user_id do client gửi lên).
-    // Ghi log mọi lần claim để soi bất thường (thiệp bị người lạ nhận trước chủ thật).
+    // Thiệp chưa có chủ + người sửa đã đăng nhập → nhận làm chủ (claim), đường
+    // grandfather cho thiệp tạo trước khi bắt buộc đăng nhập. Thiệp đã có chủ thì
+    // bỏ qua user_id client gửi lên. Ghi log mọi lần claim để soi bất thường.
     delete fields.user_id
     if (!existing.user_id && editorId) {
       fields.user_id = editorId
@@ -772,12 +763,8 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
     // Chỉ admin mới nhận đủ field. Người dùng thường (kể cả chủ thiệp) nhận
     // allowlist các field cần để render/chỉnh thiệp — KHÔNG kèm dữ liệu thanh toán
     // (payment_status, payment_order_id, transaction_id, payment_time,
-    // payment_amount, expires_at) và user_id.
-    //
-    // Trước đây GET trả select('*') cho bất kỳ ai biết slug → lộ thông tin thanh
-    // toán ra công khai. Lọc ngay tại truy vấn (thay vì xoá sau) để dữ liệu nhạy
-    // cảm không bao giờ rời khỏi DB, và không phải xác thực JWT trên đường hot
-    // của trang thiệp công khai (vốn được cache).
+    // payment_amount, expires_at) và user_id. Lọc ngay tại truy vấn để dữ liệu nhạy
+    // cảm không bao giờ rời khỏi DB.
     const PUBLIC_WEDDING_COLUMNS = ['id', 'is_active', 'created_at', ...CUSTOMER_EDITABLE_FIELDS].join(', ')
 
     let query = supabase.from('weddings').select(isAdmin ? '*' : PUBLIC_WEDDING_COLUMNS)

@@ -1,21 +1,11 @@
 /* Nguồn build Tailwind cho CÁC TRANG ỨNG DỤNG:
      index.html · admin/ · public/account/ · invitation-setup/ (+ guests/) ·
      theme-template/
-   Build: npm run build:css  →  xuất ra styles/build.css (đã purge + minify).
+   Build: npm run build:css → styles/build.css (đã purge + minify).
 
-   Trang thiệp public/themes/* KHÔNG dùng file này mà dùng styles/themes-src.css
-   → styles/themes.css: hai nhóm có bảng màu `rose-pastel` khác nhau (hồng phấn
-   vs hồng khói) nên không gộp chung một build được.
-
-   Các @import phải nằm ngay đầu file (postcss-import bỏ qua @import đứng sau
-   rule khác) — xem giải thích thứ tự trong styles/_base.css.
-
-   Nội dung phía dưới chuyển thể từ styles/landing.css + styles/index.css cũ,
-   dùng @apply cho phần map đúng 1:1 với thang giá trị mặc định của Tailwind.
-   Những gì Tailwind không có utility tương ứng (keyframes, pseudo-element
-   content, gradient/shadow tuỳ chỉnh, scrollbar riêng của trình duyệt,
-   biến CSS...) vẫn giữ nguyên CSS thuần — @apply không thay thế được các
-   trường hợp này. */
+   Trang thiệp public/themes/* dùng styles/themes-src.css → themes.css: hai nhóm
+   có bảng màu `rose-pastel` khác nhau nên không gộp chung một build được.
+   Các @import phải nằm ngay đầu file (xem styles/_base.css). */
 
 @import "./_base.css";
 @import "./_common.css";
@@ -115,21 +105,16 @@
 
 /* ═══════════ Từ styles/landing.css ═══════════ */
 
-/* Ghi đè màu chữ mặc định + màu xám/pink-500 của Tailwind — giữ CSS thuần
-   vì đang override chính các utility class bằng !important.
-
-   BẮT BUỘC khoanh trong .cx-landing (class đặt trên <html> của index.html):
-   trước đây build.css chỉ trang chủ nạp nên để trần cũng không sao, nhưng nay
-   admin/, invitation-setup/, account/, guests/, theme-template/ dùng CHUNG file
-   này — để trần thì mọi .text-gray-* ở các trang đó bị ép thành màu nâu-hồng. */
+/* Ghi đè màu chữ mặc định của Tailwind — giữ CSS thuần vì đang override chính các
+   utility bằng !important. BẮT BUỘC khoanh trong .cx-landing (class trên <html>
+   của index.html): file này dùng CHUNG cho admin/, invitation-setup/, account/,
+   guests/, theme-template/ — để trần thì mọi .text-gray-* ở đó bị ép đổi màu. */
 .cx-landing body {
   color: rgb(173 122 135) !important;
 }
-/* Dùng [class~="..."] thay cho .text-gray-500 …: các lớp này đang được @apply
-   trong styles/_setup.css & _ai-modal.css, nên nếu viết dạng dấu chấm thì
-   Tailwind sẽ nhân bản rule này ra cho TỪNG component có @apply đó
-   (.cx-landing .ai-inp, .cx-landing .cx-le-label…). Attribute selector khớp y
-   hệt, cùng độ đặc hiệu (0,2,0), và Tailwind không viết lại. */
+/* Dùng [class~="..."] thay cho .text-gray-500…: các lớp này đang được @apply
+   trong _setup.css & _ai-modal.css nên viết dạng dấu chấm sẽ bị Tailwind nhân bản
+   rule ra cho TỪNG component có @apply đó. */
 .cx-landing [class~="text-gray-50"],
 .cx-landing [class~="text-gray-100"],
 .cx-landing [class~="text-gray-200"],
@@ -277,11 +262,6 @@ html.cx-landing {
   background-color: rgb(255 200 215);
   box-shadow: 0 4px 8px rgba(255, 183, 202, 0.4);
 }
-
-/* Đã bỏ các rule .modal, .modal-xxx, .btn-primary, .btn-secondary,
-   .preview-iframe: CSS mồ côi cho popup xem trước thiệp (id previewModal) —
-   phần tử này không còn tồn tại trong index.html hiện tại (đã đổi sang điều
-   hướng thẳng previewUrl), nên các rule này chưa từng được áp dụng. */
 
 .template-features-wrapper {
   @apply relative my-4;

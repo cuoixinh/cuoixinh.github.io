@@ -6,10 +6,6 @@ const lightboxImages = [];
 let lightboxIndex = 0;
 let lightboxScale = 1;
 
-/**
- * Open lightbox at specific image index
- * @param {number} index - Image index
- */
 function openLightbox(index) {
   const lightbox = document.getElementById("lightbox");
   const lbImg = document.getElementById("lb-img");
@@ -94,11 +90,6 @@ function lightboxPrev() {
   showLightboxImage();
 }
 
-/**
- * Get distance between two touch points
- * @param {TouchList} touches - Touch points
- * @returns {number} Distance
- */
 function getTouchDistance(touches) {
   const dx = touches[0].clientX - touches[1].clientX;
   const dy = touches[0].clientY - touches[1].clientY;

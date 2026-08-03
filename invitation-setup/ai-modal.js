@@ -1,9 +1,5 @@
-// ============================================================
-// AI: TẠO NỘI DUNG THIỆP
-// Tách khỏi index.js/index.html cho gọn. Nạp SAU index.js
-// (cần WEDDING_ID, showToast, openBottomSheet, các hàm form... ở global).
-// Style: styles/_ai-modal.css.
-// ============================================================
+// AI: tạo nội dung thiệp. Nạp SAU index.js (cần WEDDING_ID, showToast,
+// openBottomSheet, các hàm form… ở global). Style: styles/_ai-modal.css.
 
 // ── Markup modal (bơm vào body/footer của base bottom-sheet) ────────────────
 const _AI_BODY_HTML = `
@@ -822,10 +818,9 @@ function _renderAiSkeleton() {
     group("22%", card("lg"));
 }
 
-// ── Sửa kết quả AI: bấm bút chì → BIND thành control tương ứng ────────────────
-// AI có thể trả sai → cho sửa. KHÔNG dùng contenteditable nữa mà "swap" ô hiển thị
-// sang đúng control của form: x-input (chữ ngắn), x-textarea (đoạn dài/slogan),
-// x-date (ngày), time-picker (giờ). Giá trị sửa ghi ngược vào _aiResult để "Áp dụng".
+// ── Sửa kết quả AI: bấm bút chì → BIND thành control tương ứng ──────────────
+// "Swap" ô hiển thị sang đúng control của form: x-input (chữ ngắn), x-textarea
+// (đoạn dài), x-date (ngày), time-picker (giờ). Giá trị ghi ngược vào _aiResult.
 const _AI_PENCIL_SVG = `<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>`;
 let _aiEid = 0; // reset mỗi lần render để eid ổn định trong 1 lần vẽ
 
@@ -1352,10 +1347,9 @@ function _aiEnableSection(section) {
     _updateTimelinePartySection();
 }
 
-// Chèn khung mẫu vào ô thông tin để người dùng chỉ điền chỗ trống (để trống, không "...").
-// Mẫu gồm tên cô dâu/chú rể, ngày & giờ cưới (AI tự trích), rồi địa điểm lễ, cha mẹ, STK.
-// Không có dòng riêng cho địa điểm Vu Quy: nếu người dùng không ghi cụ thể, AI tự lấy
-// trùng địa chỉ nhà trai/nhà gái (xem rule ở backend buildPrompt).
+// Chèn khung mẫu vào ô thông tin để người dùng chỉ điền chỗ trống: tên cô dâu/
+// chú rể, ngày & giờ cưới, địa điểm lễ, cha mẹ, STK. Không có dòng riêng cho địa
+// điểm Vu Quy — AI tự lấy trùng địa chỉ nhà trai/nhà gái.
 const _AI_INFO_TEMPLATE = [
   "Chú rể (họ tên đầy đủ): ",
   "Cô dâu (họ tên đầy đủ): ",
@@ -1516,23 +1510,17 @@ function _resolveBankName(codeOrName) {
   return raw; // không tìm được → giữ nguyên (control vẫn cho nhập tự do)
 }
 
-// ── Định vị thẻ Soft "Tạo với AI" ────────────────────────────────────────────
-// DỌC: luôn cách mép TRÊN thanh nav dưới cùng đúng 16px (theo chiều cao thực của
-//   navbar, kể cả khi có Local Draft Notice) — qua biến CSS --ai-fab-bottom.
-// NGANG: bám theo mép PHẢI của #wedding-form (thẻ thiết lập), không phải mép màn:
-//   • Màn rộng còn nhiều khoảng trắng bên phải form → đặt NGOÀI form, cách mép
-//     phải form 16px (thẻ nằm gọn trong khoảng trắng).
-//   • Màn hẹp không đủ chỗ → đặt PHÍA TRONG, mép phải thẻ TRÙNG mép phải form (0px).
-// Theo dõi bằng ResizeObserver (nav + form) và sự kiện resize để luôn khớp.
+// ── Định vị thẻ Soft "Tạo với AI" ──────────────────────────────────────────
+// DỌC: cách mép TRÊN thanh nav dưới cùng đúng 16px, qua biến CSS --ai-fab-bottom.
+// NGANG: bám mép PHẢI của #wedding-form (không phải mép màn) — còn khoảng trắng
+// thì đặt NGOÀI form cách 16px, không đủ chỗ thì đặt PHÍA TRONG, mép phải trùng
+// mép form. Theo dõi bằng ResizeObserver (nav + form) và sự kiện resize.
 const _AI_FAB_GAP = 16;
 const _AI_FAB_CARD_W = 192; // bề rộng thẻ (12rem) — ngưỡng quyết định NGOÀI/TRONG
 
-// Toạ độ left (px) để BÁM LỀ #wedding-form theo cạnh cho trước — dùng chung cho auto
-// định-vị (_positionAiFab) LẪN bám lề sau khi kéo-thả, để "thả tay" trùng đúng vị trí
-// "lúc hiển thị card":
-//   • Còn đủ khoảng trắng ngoài form (chứa lọt thẻ 12rem) → NGOÀI, cách mép form 16px.
-//   • Không đủ → PHÍA TRONG, mép thẻ TRÙNG mép form (0px).
-//   • Chưa có form (skeleton, rect=0) → fallback bám lề màn (M=8).
+// Toạ độ left (px) để bám lề #wedding-form theo cạnh cho trước — dùng chung cho
+// auto định-vị lẫn bám lề sau khi kéo-thả. Chưa có form (skeleton, rect=0) thì
+// fallback bám lề màn (M=8).
 function _fabSnapLeft(side, w) {
   const vw = document.documentElement.clientWidth;
   const M = 8;
@@ -1565,10 +1553,9 @@ function _fabNavH() {
   return nav && nav.offsetHeight > 0 ? nav.offsetHeight : 0;
 }
 
-// Khi Local Draft Notice bị đóng, navbar thấp đi. Nếu bong bóng AI đang KÉO-ĐẶT tay
-// và đang tựa SÁT đáy cũ (mép notice), tự trượt nó xuống tựa vào navbar mới để không
-// để hở đúng bằng chiều cao notice. Chế độ auto không cần (bám --ai-fab-bottom sẵn).
-// oldNavH = chiều cao navbar ĐO TRƯỚC khi ẩn notice (bên gọi truyền vào).
+// Đóng Local Draft Notice làm navbar thấp đi: bong bóng AI đang ở chế độ kéo-đặt
+// tay và tựa sát đáy cũ thì trượt xuống tựa navbar mới. oldNavH = chiều cao
+// navbar đo TRƯỚC khi ẩn notice (bên gọi truyền vào).
 function _snapFabAfterNavShrink(oldNavH) {
   const fab = document.querySelector(".ai-fab");
   const pos = _loadFabPos();
@@ -1623,10 +1610,8 @@ function _applyManualFabPos() {
 
 function _positionAiFab() {
   const nav = document.getElementById("bottom-nav-bar");
-  // Chỉ ghi khi navbar đã render (offsetHeight > 0). Lúc skeleton, #bottom-nav-bar
-  // còn trong #actual-content (display:none) → offsetHeight = 0; nếu ghi sẽ thành
-  // 8px, dán fab sát đáy đè lên thanh skeleton. Bỏ qua để dùng fallback CSS
-  // (calc(60px + 24px)) cho fab nổi cao hơn thanh dưới.
+  // Chỉ ghi khi navbar đã render (offsetHeight > 0): lúc skeleton nó bằng 0, ghi
+  // vào sẽ dán fab sát đáy đè lên thanh skeleton.
   if (nav && nav.offsetHeight > 0) {
     document.documentElement.style.setProperty(
       "--ai-fab-bottom",
@@ -1723,10 +1708,9 @@ function _setupFabDrag() {
     } catch {}
     if (moved) {
       fab.classList.remove("dragging");
-      // Bám lề gần nhất theo chiều ngang (giống bong bóng AssistiveTouch iPhone):
-      // tâm thẻ ở nửa trái → dán lề trái, nửa phải → dán lề phải. Nhưng "lề" ở đây là
-      // lề của #wedding-form (cách 16px) — trùng đúng vị trí lúc hiển thị card, chứ
-      // không phải mép màn. Giữ nguyên chiều dọc.
+      // Bám lề gần nhất theo chiều ngang: tâm thẻ ở nửa trái → dán lề trái, nửa
+      // phải → dán lề phải. "Lề" là lề của #wedding-form (cách 16px), không phải
+      // mép màn. Giữ nguyên chiều dọc.
       const w = fab.offsetWidth,
         h = fab.offsetHeight;
       const vw = document.documentElement.clientWidth;

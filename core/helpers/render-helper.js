@@ -12,12 +12,6 @@ const WEEKDAYS = [
   "Thứ Bảy",
 ];
 
-/**
- * Render ceremony date information
- * @param {string} ceremonyDate - ISO date string
- * @param {string} ceremonyTime - Time string (e.g., "10:00")
- * @param {string} ceremonyLunar - Lunar date string
- */
 function renderCeremonyDate(ceremonyDate, ceremonyTime, ceremonyLunar) {
   if (ceremonyDate) {
     const d = new Date(ceremonyDate);
@@ -32,14 +26,6 @@ function renderCeremonyDate(ceremonyDate, ceremonyTime, ceremonyLunar) {
   setText("invite-lunar", ceremonyLunar, "--------------------");
 }
 
-/**
- * Render party date information
- * @param {string} partyDate - ISO date string
- * @param {string} partyTime - Time string
- * @param {string} partyLunar - Lunar date string
- * @param {string} partyLocation - Location string
- * @param {string} format - Format type: "full" (template1) or "split" (template2)
- */
 function renderPartyDate(
   partyDate,
   partyTime,
@@ -80,11 +66,7 @@ function renderPartyDate(
   setText("party-location", partyLocation, "------------------------");
 }
 
-/**
- * Áp dụng điểm lấy nét (focal point) cho ảnh để hiển thị đẹp ở mọi tỉ lệ khung hình
- * @param {string} elementId - ID của thẻ <img>
- * @param {{x:number,y:number}} [focalPoint] - Toạ độ % điểm lấy nét; bỏ qua nếu không có
- */
+/** Áp dụng điểm lấy nét (toạ độ %) cho ảnh; bỏ qua nếu không có. */
 function applyFocalPoint(elementId, focalPoint) {
   if (
     !focalPoint ||
@@ -96,10 +78,6 @@ function applyFocalPoint(elementId, focalPoint) {
   if (el) el.style.objectPosition = `${focalPoint.x}% ${focalPoint.y}%`;
 }
 
-/**
- * Render couple information (names, parents, addresses, photos)
- * @param {Object} wedding - Wedding data object
- */
 function renderCoupleInfo(wedding) {
   // Groom info
   setText("groom-father", wedding.groom_father, "--------------------");
@@ -144,10 +122,6 @@ function renderCoupleInfo(wedding) {
   }
 }
 
-/**
- * Render QR codes for both groom and bride
- * @param {Object} wedding - Wedding data object
- */
 function renderQRCodes(wedding) {
   // Groom QR
   setText("groom-bank-label", wedding.groom_name, "----------");
@@ -166,11 +140,6 @@ function renderQRCodes(wedding) {
   applyFocalPoint("bride-qr-img", wedding.image_focal_points?.bride_qr_url);
 }
 
-/**
- * Render map iframe and link
- * @param {string} mapEmbedUrl - Raw map embed URL
- * @param {string} locationName - Location name to display
- */
 function renderMap(mapEmbedUrl, locationName) {
   const mapEmbed = extractMapEmbedUrl(mapEmbedUrl);
 
@@ -185,10 +154,6 @@ function renderMap(mapEmbedUrl, locationName) {
   setText("map-location-name", locationName, "------------------------");
 }
 
-/**
- * Render cover screen with couple names and background
- * @param {Object} wedding - Wedding data object
- */
 function renderCover(wedding) {
   const coverBgImg = document.getElementById("cover-bg-img");
   if (coverBgImg) {
@@ -203,11 +168,6 @@ function renderCover(wedding) {
   setText("cover-bride-name", wedding.bride_name, "----------");
 }
 
-/**
- * Render hero section with main photo and couple names
- * @param {Object} wedding - Wedding data object
- * @param {boolean} useRing - Whether to use setImageWithRing function
- */
 function renderHero(wedding, useRing = true) {
   if (useRing && typeof setImageWithRing === "function") {
     setImageWithRing("main-photo", wedding.cover_image_url);
@@ -220,18 +180,10 @@ function renderHero(wedding, useRing = true) {
   setText("couple-names-bride", wedding.bride_name, "----------");
 }
 
-/**
- * Render story quote
- * @param {string} quote - Quote text
- */
 function renderStoryQuote(quote) {
   if (quote) setText("story-quote", `"${quote}"`);
 }
 
-/**
- * Render love story timeline section
- * @param {Array} events - Array of {date, title, content} items
- */
 function renderLoveStory(events) {
   const section = document.getElementById("love-story");
   if (!section) return;
@@ -263,11 +215,6 @@ function renderLoveStory(events) {
 
 // escapeHtml() dùng chung từ core/utils.js (nạp trước file này ở mọi trang).
 
-/**
- * Setup mini calendar with ceremony and party dates
- * @param {string} ceremonyDate - ISO date string
- * @param {string} partyDate - ISO date string
- */
 function setupMiniCalendar(ceremonyDate, partyDate) {
   if (ceremonyDate && partyDate) {
     const d1 = new Date(ceremonyDate);
@@ -289,11 +236,8 @@ function setupMiniCalendar(ceremonyDate, partyDate) {
 }
 
 /**
- * Setup music player
- * @param {string} musicUrl - YouTube music URL
- * @param {boolean|string} [enabled] - cờ enable_music; bỏ trống = coi như bật.
- *   Tắt công tắc "Nhạc nền" thì KHÔNG phát và ẩn luôn nút nhạc, dù đã chọn bài.
- *   Dữ liệu về từ form là chuỗi "true"/"false" nên phải so cả hai kiểu.
+ * Bật trình phát nhạc. `enabled` = cờ enable_music, bỏ trống coi như bật; dữ
+ * liệu từ form là chuỗi "true"/"false" nên phải so cả hai kiểu.
  */
 function setupMusic(musicUrl, enabled) {
   const musicToggleBtn = document.getElementById("music-toggle");
@@ -317,34 +261,12 @@ function setupMusic(musicUrl, enabled) {
 }
 
 /**
- * Đổ dữ liệu vào khối "tóm tắt thiệp" của trình phát nhạc (phần hiện ra khi kéo
- * xuống — xem data-cx-music="panel" trong core/helpers/music-player-helper.js).
- *
- * Theme đánh dấu từng ô bằng data-cx-summary, tất cả đều không bắt buộc:
- *   groom-photo / bride-photo   <img> ảnh chú rể / cô dâu
- *   groom-name  / bride-name    Tên
- *   event-name                  Tên lễ (Lễ Thành Hôn / Lễ Vu Quy)
- *   event-date                  Ngày lễ CHÍNH, dạng dd.mm.yyyy (không phải tiệc)
- *   event-weekday               Thứ trong tuần của ngày đó
- *   event-time                  Giờ làm lễ
- *   event-location              Địa điểm làm lễ
- *
- * Ô nào không có dữ liệu mà nằm trong thẻ có [data-cx-summary-row] thì cả hàng
- * đó bị ẩn — khối tóm tắt vốn chật, để lại dòng "----" thì rối hơn là bỏ đi.
- *
- * Text ở đây KHÔNG đi qua setText: cả trình phát nằm trong thẻ .cx-no-edit nên
- * runtime chỉnh-tay của tab Giao diện đã bỏ qua sẵn, không cần khoá thêm.
- *
- * Đổ cho MỌI trình phát đang có trên trang, không riêng cái của theme: công cụ
- * "Trình phát nhạc" ở tab Giao diện dựng thêm trình phát riêng, và nó dựng SAU
- * renderWedding → tham số được nhớ lại để runtime gọi lại (xem replay bên dưới).
- *
- * @param {Object} wedding - Dữ liệu thiệp
- * @param {Object} [opts] - Phần lễ đã được theme tính sẵn (nhà gái có thể là Vu Quy)
- * @param {string} [opts.ceremonyName] - Tên lễ hiển thị
- * @param {string} [opts.ceremonyTime] - Giờ lễ hiển thị
- * @param {string} [opts.ceremonyLocation] - Địa điểm lễ hiển thị
- * @param {HTMLElement} [scope] - Chỉ đổ trong thẻ này (runtime công cụ dùng)
+ * Đổ dữ liệu vào khối "tóm tắt thiệp" của trình phát nhạc. Theme đánh dấu ô
+ * bằng data-cx-summary (đều không bắt buộc): groom-photo/bride-photo,
+ * groom-name/bride-name, event-name, event-date (ngày LỄ, dd.mm.yyyy),
+ * event-weekday, event-time, event-location.
+ * Ô rỗng nằm trong thẻ [data-cx-summary-row] thì ẩn cả hàng.
+ * Đổ cho mọi trình phát đang có trên trang, không riêng cái của theme.
  */
 function renderMusicSummary(wedding, opts = {}, scope) {
   if (!wedding) return;

@@ -75,9 +75,8 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
   const action = url.searchParams.get('action') ?? ''
 
   // ── Phân quyền ────────────────────────────────────────────────────────────
-  // Trước đây toàn bộ function KHÔNG có xác thực: chỉ cần biết wedding_id là
-  // đọc/sửa/xoá được danh sách khách mời của bất kỳ đám cưới nào.
-  // Chính sách mới: phải đăng nhập và phải là chủ thiệp (xem docs/security-audit-plan.md #3).
+  // Phải đăng nhập VÀ phải là chủ thiệp mới đọc/sửa được danh sách khách mời
+  // (xem docs/security-audit-plan.md #3).
   const isAdmin = (req.headers.get('x-admin-token') ?? '') === Deno.env.get('ADMIN_SECRET_TOKEN')
 
   async function getUserId(): Promise<string | null> {

@@ -6,9 +6,8 @@ class GuestDAL {
   // ── Helpers ───────────────────────────────────────────────────────────────
 
   /**
-   * Header cho mọi request: đính JWT của user đang đăng nhập. guest-handler yêu
-   * cầu người gọi là CHỦ THIỆP mới được đọc/sửa danh sách khách mời — không còn
-   * cho phép chỉ cần biết wedding_id như trước.
+   * Header cho mọi request: đính JWT của user đang đăng nhập — guest-handler yêu
+   * cầu người gọi là CHỦ THIỆP mới được đọc/sửa danh sách khách mời.
    */
   async _authHeaders() {
     const token = (await window.CXAuth?.accessToken()) ?? null;

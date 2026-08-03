@@ -1,12 +1,9 @@
 /**
- * tooltip.js — Tooltip dùng chung, nền đen, có arrow, tự chọn vị trí (smart position).
- *
- * Cách dùng: thêm thuộc tính `data-tooltip="Nội dung"` vào bất kỳ phần tử nào.
- *   <button data-tooltip="Tạo thiệp với AI">…</button>
- * Tuỳ chọn vị trí ưu tiên: `data-tooltip-pos="top|bottom|left|right"` (mặc định "top").
- *
- * Chỉ một tooltip singleton dùng lại cho mọi phần tử; hiện khi hover/focus, ẩn khi rời/blur.
- * Tự lật sang phía đối diện nếu thiếu chỗ, và kẹp trong khung nhìn (arrow bám theo tâm target).
+ * Tooltip dùng chung, nền đen, có arrow, tự chọn vị trí.
+ * Thêm `data-tooltip="Nội dung"` vào phần tử bất kỳ; vị trí ưu tiên qua
+ * `data-tooltip-pos="top|bottom|left|right"` (mặc định "top").
+ * Một singleton dùng lại cho mọi phần tử; tự lật phía khi thiếu chỗ và kẹp trong
+ * khung nhìn.
  */
 (function () {
   if (window.__cxTooltipReady) return;

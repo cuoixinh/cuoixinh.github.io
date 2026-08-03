@@ -1,18 +1,9 @@
-/* ===========================================================================
-   Partial dùng chung toàn site — được @import vào CẢ HAI bản build:
-     styles/tailwind-src.css  → styles/build.css   (landing, admin, account,
-                                                    invitation-setup, template)
-     styles/themes-src.css    → styles/themes.css  (public/themes/*)
-
-   Thay cho styles/common.css cũ. Đã có build step nên phần nào map 1:1 với
-   utility Tailwind thì viết bằng @apply; phần Tailwind KHÔNG diễn đạt được
-   (biến CSS, @font-face, keyframes, gradient tuỳ biến, mask, scrollbar của
-   trình duyệt, env()/dvh, @supports) vẫn giữ CSS thuần.
-
-   Lưu ý: 6 utility màu cũ (.bg-primary, .text-color-primary…) nay do Tailwind
-   sinh ra từ theme.extend.colors trong tailwind.config.js — không khai báo tay
-   ở đây nữa.
-   =========================================================================== */
+/* Partial dùng chung toàn site — @import vào CẢ HAI bản build:
+     styles/tailwind-src.css → build.css   (landing, admin, account, setup, template)
+     styles/themes-src.css   → themes.css  (public/themes/*)
+   Phần map 1:1 với utility thì viết bằng @apply; phần Tailwind KHÔNG diễn đạt
+   được (biến CSS, @font-face, keyframes, gradient tuỳ biến, mask, scrollbar,
+   env()/dvh, @supports) vẫn giữ CSS thuần. */
 
 /* =============================================
    DESIGN TOKENS — chỉnh ở đây để thay đổi toàn bộ
@@ -359,11 +350,9 @@
   min-height: 100dvh;
 }
 
-/* Viết bằng attribute selector chứ KHÔNG phải `.relative.z-20`: `relative` là
-   utility Tailwind và đang được @apply ở nơi khác trong cùng bản build, nên
-   Tailwind sẽ nhân bản selector này cho từng rule có `@apply relative`
-   (#main-card .ai-card.z-20, #main-card .testimonial-card.z-20…). Dạng
-   [class~="..."] khớp y hệt, cùng độ đặc hiệu, và Tailwind không đụng vào. */
+/* Viết bằng attribute selector chứ KHÔNG phải `.relative.z-20`: `relative` đang
+   được @apply ở nơi khác trong cùng bản build nên Tailwind sẽ nhân bản selector
+   này cho từng rule đó. [class~="..."] khớp y hệt, cùng độ đặc hiệu. */
 
 #main-card [class~="relative"][class~="z-20"] {
   min-height: calc(var(--vh, 1vh) * 100);
@@ -397,10 +386,9 @@
   background: rgb(202, 202, 202);
 }
 
-/* Dải cuộn ngang 1 hàng (vd hàng tag "Trust" ở hero): giấu thanh cuộn và làm
-   MỜ DẦN nội dung ở phía còn cuộn được để người dùng biết là kéo được.
-   Dùng mask (không phải lớp gradient màu) nên không phụ thuộc màu nền phía sau.
-   js/scroll-fade.js gán --fade-left / --fade-right = 0 hoặc 32px theo vị trí cuộn. */
+/* Dải cuộn ngang 1 hàng: giấu thanh cuộn và làm MỜ DẦN nội dung ở phía còn cuộn
+   được. Dùng mask nên không phụ thuộc màu nền; js/scroll-fade.js gán
+   --fade-left / --fade-right theo vị trí cuộn. */
 
 .scroll-fade {
   --fade-left: 0px;

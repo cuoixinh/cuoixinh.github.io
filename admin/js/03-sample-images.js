@@ -1,23 +1,16 @@
 // ============= TAB "Dữ liệu mẫu": phần ẢNH =============
-// Mỗi theme (public/themes/) có một bộ dữ liệu demo riêng nằm trong
-// assets/data-template/<theme>/ trên máy, ghi qua File System Access API
-// (Chrome/Edge desktop, mở qua localhost). File này lo ẢNH + toàn bộ khung
-// state/nháp/lưu; phần CHỮ (tên, ngày cưới, lịch trình, AI sinh nội dung…) ở
-// 04-sample-data.js, dùng chung siData/siMarkDirty khai báo tại đây.
-// Xem core/utils.js (openFocalPointPicker, openImageCropModal) cho phần UI
-// chọn điểm lấy nét / cắt ảnh dùng chung với invitation-setup.
+// Bộ demo của mỗi theme nằm ở assets/data-template/<theme>/, ghi qua File System
+// Access API (Chrome/Edge desktop, mở qua localhost). File này lo ẢNH + khung
+// state/nháp/lưu; phần CHỮ ở 04-sample-data.js, dùng chung siData/siMarkDirty
+// khai báo tại đây.
 //
-// Ba quy ước quan trọng:
-// 1. Chọn theme → QUÉT thư mục theme, bind mọi ảnh sẵn có (kể cả khi data.json
-//    thiếu/không có) để không phải up lại → không sinh file trùng.
-// 2. Mọi thay đổi được ghi bản nháp vào IndexedDB → F5 không mất ảnh đang nhập.
-// 3. "Lưu vào ổ đĩa" GHI ĐÈ toàn bộ ảnh trong thư mục: file ảnh nào không nằm
-//    trong bộ vừa ghi đều bị xoá.
-// 4. Nén ĐÚNG MỘT LẦN, ngay lúc ảnh vào state — admin chọn ảnh, hoặc bind từ đĩa
-//    (siBindImage) — bằng ImageHelper.prepareImage(), cùng hàm với luồng khách ở
-//    invitation-setup nhưng ngưỡng RỘNG HƠN: ≤1920px, ≤1.5MB (xem
-//    SI_IMAGE_LIMITS) thay vì 1MB. Ảnh đã đạt ngưỡng thì giữ nguyên bản.
-//    Lúc lưu KHÔNG xử lý gì nữa, chỉ ghi thẳng blob xuống đĩa.
+// Quy ước:
+// 1. Chọn theme → QUÉT thư mục, bind mọi ảnh sẵn có (kể cả khi thiếu data.json)
+//    để không phải up lại → không sinh file trùng.
+// 2. Mọi thay đổi ghi bản nháp vào IndexedDB → F5 không mất ảnh đang nhập.
+// 3. "Lưu vào ổ đĩa" GHI ĐÈ toàn bộ ảnh trong thư mục.
+// 4. Nén ĐÚNG MỘT LẦN lúc ảnh vào state, qua ImageHelper.prepareImage() với
+//    ngưỡng SI_IMAGE_LIMITS (≤1920px, ≤1.5MB); lúc lưu chỉ ghi blob xuống đĩa.
 
 const SI_THEMES = [
   { value: "romantic-gold", label: "Romantic Gold" },
@@ -43,10 +36,8 @@ const SI_LAST_THEME_KEY = "si_last_theme";
 // của ImageHelper (khung ảnh 1920px).
 const SI_IMAGE_LIMITS = CONFIG.image.sampleData;
 
-// Lưu dở dang: cờ được đặt lúc bắt đầu ghi và xoá ở finally. Trang chết giữa
-// chừng (Live Server reload, đóng nhầm tab, Chrome kill vì thiếu RAM) thì
-// finally không chạy → cờ còn lại, lần mở sau tự ghi tiếp chỗ dở.
-// Chặn số vòng để không lặp vô tận nếu hỏng vì lý do khác.
+// Cờ "lưu dở dang": đặt lúc bắt đầu ghi, xoá ở finally. Trang chết giữa chừng
+// thì cờ còn lại → lần mở sau tự ghi tiếp. Chặn số vòng để không lặp vô tận.
 const SI_RESUME_KEY = "si_resume_save";
 const SI_MAX_RESUME = 5;
 
@@ -68,9 +59,8 @@ let siCurrentTheme = null;
 let siData = null;
 
 // ============= IndexedDB: directory handle + bản nháp =============
-// store "handles": handle thư mục đã chọn (khỏi phải chọn lại mỗi lần mở).
-// store "drafts": bản nháp theo theme (key = tên theme) — chứa Blob nên
-// localStorage không dùng được.
+// store "handles": handle thư mục đã chọn. store "drafts": bản nháp theo theme
+// (chứa Blob nên localStorage không dùng được).
 
 const SI_IDB_NAME = "cx_admin_fs";
 const SI_IDB_VER = 2;
@@ -309,12 +299,9 @@ function siEmptyData() {
   return { singleImages, gallery: [], loveStory: [], content: siContentDefaults() };
 }
 
-// data.json hỏng cú pháp (sửa tay lỡ để dấu phẩy thừa…) là trường hợp NGUY
-// HIỂM nhất: parse lỗi → coi như thư mục chưa có gì → điểm lấy nét, phần chữ,
-// thứ tự album, lời kể chuyện tình đều bị bỏ → bấm Lưu là ghi đè mất sạch,
-// trong khi ảnh vẫn hiện đủ (nhờ quét thư mục) nên nhìn không thấy gì bất
-// thường. Phân biệt rõ "chưa có file" (bình thường) với "có mà hỏng" (phải la
-// lên + sao lưu trước khi ghi đè).
+// data.json hỏng cú pháp là ca nguy hiểm nhất: parse lỗi → tưởng thư mục chưa có
+// gì → bấm Lưu là ghi đè mất điểm lấy nét, phần chữ, thứ tự album. Phải phân biệt
+// "chưa có file" (bình thường) với "có mà hỏng" (báo động + sao lưu trước khi ghi).
 let siJsonBroken = null; // { text, message } khi data.json có nhưng parse lỗi
 
 async function siReadJsonSafe(dirHandle) {
@@ -353,10 +340,8 @@ async function siBackupBrokenJson() {
   }
 }
 
-// Đọc file thành Blob TRONG BỘ NHỚ. File của File System Access API chỉ là con
-// trỏ tới đường dẫn: lúc lưu ta ghi đè/đổi tên chính những file này, con trỏ cũ
-// sẽ đọc lỗi (ảnh gallery đảo thứ tự là dính ngay). Copy sẵn vào RAM để việc
-// ghi đè và cả bản nháp trong IndexedDB đều an toàn.
+// Đọc file thành Blob TRONG BỘ NHỚ: File của File System Access API chỉ là con trỏ
+// tới đường dẫn, mà lúc lưu ta ghi đè/đổi tên chính những file đó.
 async function siReadAsMemoryFile(dirHandle, filename) {
   if (!filename) return null;
   try {
@@ -371,17 +356,11 @@ async function siReadAsMemoryFile(dirHandle, filename) {
   }
 }
 
-// Ảnh mẫu hay được chép TAY vào thư mục theme (kéo thẳng từ máy ảnh, ảnh gốc
-// 5-10 MB) hoặc còn sót từ những lần lưu cũ chưa qua nén — thiệp mẫu vì thế nặng
-// hơn cả thiệp thật của khách. Nén ngay lúc BIND, cùng một chỗ với lúc admin tự
-// chọn ảnh, để mọi blob trong siData đều đã đạt chuẩn và bước lưu chỉ việc ghi.
-//
-// Ảnh đã đạt ngưỡng → giữ nguyên bản + ghi lại dấu vết file gốc (srcName/srcSize)
-// để siIsUnchanged() bỏ qua lúc ghi. Ảnh vừa bị nén → BỎ dấu vết, vì bản trong
-// RAM không còn khớp file trên đĩa nữa, phải ghi đè.
-//
-// GIF/AVIF/BMP bị ImageHelper.canRecompress() loại (canvas làm mất animation / đổi
-// định dạng) nên luôn giữ nguyên.
+// Nén ngay lúc BIND (ảnh mẫu hay được chép tay vào thư mục, còn nguyên cỡ gốc) để
+// mọi blob trong siData đều đã đạt chuẩn và bước lưu chỉ việc ghi.
+// Ảnh đạt ngưỡng → giữ nguyên + ghi dấu vết file gốc (srcName/srcSize) cho
+// siIsUnchanged() bỏ qua lúc ghi; ảnh vừa nén → bỏ dấu vết vì bản trong RAM không
+// còn khớp đĩa. GIF/AVIF/BMP bị canRecompress() loại nên luôn giữ nguyên.
 async function siBindImage(dirHandle, filename) {
   const raw = await siReadAsMemoryFile(dirHandle, filename);
   if (!raw) return null;
@@ -435,12 +414,8 @@ function siRevokePreviews() {
 
 /**
  * Nạp dữ liệu của theme đang chọn: QUÉT thư mục rồi bind mọi ảnh tìm được.
- *
- * data.json chỉ là nguồn cho phần METADATA (điểm lấy nét, nội dung mốc yêu) và
- * thứ tự ưu tiên; file ảnh thì lấy theo những gì thực sự có trên đĩa. Nhờ vậy
- * thư mục được sao chép tay / thiếu data.json vẫn hiện đủ ảnh, khỏi up lại và
- * khỏi sinh file trùng.
- *
+ * data.json chỉ là nguồn METADATA (điểm lấy nét, nội dung mốc yêu) và thứ tự ưu
+ * tiên; file ảnh lấy theo những gì thực sự có trên đĩa.
  * @returns {Promise<number>} số ảnh đã bind từ đĩa
  */
 async function siLoadThemeData() {
@@ -1087,10 +1062,8 @@ function siRemoveLoveStoryImage(idx) {
 
 // ============= Lưu vào ổ đĩa =============
 
-// Scan server (scripts/server.js) phải chạy tay ở terminal nên rất hay quên.
-// Server chỉ phục vụ /scan, path khác trả 404 — nhưng vẫn kèm CORS header nên
-// fetch RESOLVE là server sống, REJECT là chưa bật. Không dùng EventSource để
-// dò vì nó tự retry ngầm.
+// Dò scan server (scripts/server.js) có đang bật không: nó chỉ phục vụ /scan,
+// path khác trả 404 nhưng vẫn kèm CORS header → fetch resolve là server sống.
 async function siScanServerUp(timeoutMs = 1500) {
   try {
     await fetch(`${SCAN_SERVER}/ping`, { signal: AbortSignal.timeout(timeoutMs) });
@@ -1114,10 +1087,9 @@ async function siIsUnchanged(entry, filename) {
   // Đường nhanh, không đụng đĩa: blob đọc lên từ chính file đó, chưa ai thay.
   if (entry.srcName === filename && entry.srcSize === entry.blob.size) return true;
 
-  // Không có dấu vết thì đối chiếu thẳng với file trên đĩa. Bắt buộc phải có
-  // nhánh này để LƯU TIẾP được: bản nháp trong IndexedDB không mang theo
-  // srcName của những ảnh vừa ghi xong trong lần lưu bị cắt ngang, thiếu nó
-  // thì mỗi lần nối tiếp lại chép lại cả vài chục MB và không bao giờ về đích.
+  // Không có dấu vết thì đối chiếu thẳng với file trên đĩa. Bản nháp trong
+  // IndexedDB không mang srcName của ảnh vừa ghi ở lần lưu bị cắt ngang, thiếu
+  // nhánh này thì mỗi lần lưu tiếp lại chép lại cả vài chục MB.
   try {
     const file = await (await siThemeHandle.getFileHandle(filename)).getFile();
     if (file.size !== entry.blob.size) return false;
@@ -1306,10 +1278,9 @@ async function saveSampleImages({ scan = true } = {}) {
   showLoading(true, "Đang lưu phần chữ...");
 
   try {
-    // Phần CHỮ ghi TRƯỚC, kèm tham chiếu ảnh cũ: nó nhẹ (vài KB) và là thứ gõ
-    // tay mất công nhất. Ảnh nặng vài chục MB, ghi lâu, đứt giữa chừng là
-    // chuyện đã xảy ra nhiều lần — đừng để chữ chết chung với ảnh. Cuối hàm
-    // data.json được ghi đè lại lần nữa với tên ảnh chuẩn.
+    // Ghi phần CHỮ TRƯỚC (nhẹ, gõ tay mất công nhất) kèm tham chiếu ảnh cũ, để
+    // ảnh nặng ghi đứt giữa chừng không kéo chữ chết theo. Cuối hàm data.json
+    // được ghi đè lại lần nữa với tên ảnh chuẩn.
     await siWriteContentOnly();
 
     // Ảnh trong siData đã được nén sẵn lúc chọn/lúc bind từ đĩa (siBindImage) →

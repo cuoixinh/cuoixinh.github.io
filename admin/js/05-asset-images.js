@@ -1,37 +1,24 @@
 // ============= TAB "Ảnh mẫu": kho ảnh tĩnh dùng chung =============
-// Khác với tab "Dữ liệu mẫu" (bộ ảnh + nội dung demo RIÊNG của từng theme),
-// tab này là kho ảnh DÙNG CHUNG cho cả web: icon hoa trang trí cho tab Giao
-// diện, khung viền, ảnh landing… Không có state phức tạp — chọn thư mục đích,
-// thả ảnh vào là ghi thẳng xuống đĩa (File System Access API, Chrome/Edge
-// desktop mở qua localhost).
+// Khác tab "Dữ liệu mẫu" (bộ demo riêng của từng theme): đây là kho ảnh DÙNG
+// CHUNG cho cả web — icon hoa trang trí, khung viền, ảnh landing. Ghi thẳng
+// xuống đĩa qua File System Access API.
 //
-// Quy ước (giữ đúng "rule" của tab Dữ liệu mẫu):
-// 0. Thả ảnh vào là ảnh nằm CHỜ (chưa đụng đĩa), bấm "Lưu vào thư mục" mới ghi.
-//    Trước lúc lưu vẫn chỉnh được điểm lấy nét hoặc bỏ bớt ảnh.
-// 1. Nén ĐÚNG MỘT LẦN, ngay lúc thả vào hàng chờ (axStageFiles), qua
-//    ImageHelper.prepareImage() — cùng hàm với tab Dữ liệu mẫu và luồng khách ở
-//    invitation-setup, chỉ khác ngưỡng (lấy theo danh mục). Ảnh đã đạt ngưỡng
-//    thì giữ nguyên file gốc (không mã hoá lại → không mất chất lượng vô ích);
-//    GIF/AVIF/BMP/SVG bị ImageHelper.canRecompress() loại nên luôn giữ nguyên.
-//    Lúc lưu KHÔNG xử lý gì nữa, chỉ ghi thẳng blob xuống đĩa.
-// 2. Tên file đặt theo TÊN THƯ MỤC + số thứ tự: flowers_01.png, flowers_02.png…
-//    (tên gốc lúc tải về thường vô nghĩa). Số chạy tiếp từ số lớn nhất đang có
-//    nên không bao giờ ghi đè; ảnh cũ chỉ mất khi bấm Xoá — ngược hẳn với tab
-//    Dữ liệu mẫu (ghi đè cả thư mục), vì kho này có thể đang được thiệp thật
-//    tham chiếu tới.
-// 3. Thư mục gốc là thư mục ASSETS của dự án, mỗi danh mục là MỘT thư mục con
-//    ngay trong đó (assets/flowers, assets/frames…) — không lồng nhiều cấp.
-//    URL trên web dựng lại từ tên thư mục gốc: /<gốc>/<danh mục>/<file>.
+// Quy ước:
+// 0. Thả ảnh vào là ảnh nằm CHỜ; bấm "Lưu vào thư mục" mới ghi.
+// 1. Nén ĐÚNG MỘT LẦN lúc thả vào hàng chờ (axStageFiles →
+//    ImageHelper.prepareImage), ngưỡng lấy theo danh mục; GIF/AVIF/BMP/SVG bị
+//    canRecompress() loại nên luôn giữ nguyên.
+// 2. Tên file = TÊN THƯ MỤC + số thứ tự (flowers_01.png…), chạy tiếp từ số lớn
+//    nhất đang có nên KHÔNG bao giờ ghi đè; ảnh cũ chỉ mất khi bấm Xoá.
+// 3. Thư mục gốc là assets/ của dự án, mỗi danh mục là MỘT thư mục con.
+//    URL trên web: /<gốc>/<danh mục>/<file>.
 //
 // Ảnh ghi ra là file tĩnh trong repo → phải commit & push mới lên production.
 
-// Danh mục dựng sẵn. Thêm loại ảnh mới → thêm 1 dòng ở đây (không có preset thì
-// vẫn tự gõ tên thư mục được ở ô "Khác").
-// folder: tên thư mục con trong assets/, ĐÚNG MỘT CẤP.
-// Mọi danh mục hiện dùng CHUNG ngưỡng mặc định AX_DEFAULT_LIMITS
-// (CONFIG.image.assets: 1920px, 1MB) — cứ vượt là nén, dưới ngưỡng thì giữ
-// nguyên file gốc. Danh mục nào sau này cần siết chặt hơn thì thêm maxPx /
-// maxSizeMB vào ngay dòng của nó, axLimitsFor() tự ưu tiên giá trị đó.
+// Danh mục dựng sẵn — thêm loại ảnh mới thì thêm 1 dòng ở đây (ô "Khác" vẫn cho
+// tự gõ tên thư mục). folder: thư mục con trong assets/, ĐÚNG MỘT CẤP.
+// Ngưỡng mặc định là AX_DEFAULT_LIMITS; danh mục nào cần siết hơn thì thêm
+// maxPx / maxSizeMB vào ngay dòng của nó (axLimitsFor tự ưu tiên).
 const AX_PRESETS = [
   {
     value: "flowers",
@@ -67,9 +54,8 @@ const AX_MANIFEST_NAME = "manifest.json";
 const AX_DEFAULT_FOCAL = { x: 50, y: 50 };
 
 // Handle thư mục gốc nằm chung store "handles" của tab Dữ liệu mẫu (IndexedDB
-// cx_admin_fs) nhưng KHÁC KEY — hai tab chọn hai thư mục khác nhau. Dùng lại
-// siIdbGet/siIdbPut khai báo ở js/03-sample-images.js: file đó luôn nạp trước
-// file này (xem mảng SCRIPTS trong loader.js).
+// cx_admin_fs) nhưng KHÁC KEY. Dùng lại siIdbGet/siIdbPut khai báo ở
+// 03-sample-images.js — file đó luôn nạp trước file này.
 const AX_IDB_KEY = "assets-root";
 
 let axRootHandle = null; // thư mục assets/
@@ -208,11 +194,7 @@ async function connectAssetRootFolder() {
 
 // ============= Chọn thư mục đích =============
 
-/**
- * Chuẩn hoá tên thư mục con do người dùng gõ. ĐÚNG MỘT CẤP — gõ "decor/flowers"
- * bị loại, vì thư mục gốc đã là assets/ rồi.
- * @returns {string} "" nếu không hợp lệ (rỗng, có "/", "..", ký tự lạ…)
- */
+/** Chuẩn hoá tên thư mục con do người dùng gõ. ĐÚNG MỘT CẤP; "" = không hợp lệ. */
 function axNormalizeFolder(raw) {
   const name = String(raw || "").trim();
   // Có dấu / hoặc \ là loại thẳng, KHÔNG cắt bớt: "../../etc" mà cắt thành
@@ -272,8 +254,8 @@ async function openAssetFolder() {
 }
 
 /**
- * Mở thư mục con trong assets/. Thư mục chưa tồn tại KHÔNG bị tạo ngay — chỉ
- * tạo lúc upload ảnh đầu tiên, để gõ nhầm tên không đẻ ra thư mục rác.
+ * Mở thư mục con trong assets/. Thư mục chưa tồn tại chỉ được tạo lúc upload ảnh
+ * đầu tiên, để gõ nhầm tên không đẻ ra thư mục rác.
  */
 async function axOpenFolder(folder, { silent = false } = {}) {
   if (!axRootHandle) return;
@@ -313,11 +295,7 @@ function axClosePanel() {
   axDirHandle = null;
 }
 
-/**
- * Hỏi trước khi rời thư mục đang có thay đổi chưa lưu (ảnh chờ + điểm lấy nét
- * chỉ nằm trong RAM, đổi thư mục là mất sạch).
- * @returns {Promise<boolean>} true = cứ đi tiếp
- */
+/** Hỏi trước khi rời thư mục còn thay đổi chưa lưu. true = cứ đi tiếp. */
 async function axConfirmDiscard() {
   if (!axIsDirty()) return true;
   const what = axPending.length
@@ -364,10 +342,7 @@ async function axReadManifestFocals(dirHandle) {
   }
 }
 
-/**
- * @param {Object} [focalOverrides] { "<tên file>": {x,y} } — điểm lấy nét vừa
- *   chọn cho ảnh mới ghi, manifest trên đĩa chưa kịp biết.
- */
+/** @param {Object} [focalOverrides] { "<tên file>": {x,y} } điểm lấy nét vừa chọn. */
 async function axLoadFiles(focalOverrides = null) {
   if (!axCurrentFolder) return;
 
@@ -494,10 +469,8 @@ function axIsDefaultFocal(focal) {
 }
 
 /**
- * Một ô ảnh. Nút chỉnh điểm lấy nét nằm GÓC DƯỚI TRÁI và chỉ hiện khi rê chuột
- * (hoặc khi ảnh đã được chỉnh) — mặc định không bày ra, giống tab Dữ liệu mẫu.
- * @param {Object} item ảnh trên đĩa hoặc ảnh chờ lưu
- * @param {{ pending?: boolean, title: string, subtitle: string }} opts
+ * Một ô ảnh. Nút chỉnh điểm lấy nét nằm góc dưới trái và chỉ hiện khi rê chuột
+ * (hoặc khi ảnh đã được chỉnh).
  */
 function axBuildCard(item, opts) {
   const card = document.createElement("div");
@@ -652,15 +625,9 @@ function axHandleUpload(event) {
 }
 
 /**
- * Nhận nhiều ảnh cùng lúc và xếp vào hàng chờ. KHÔNG ghi gì xuống đĩa.
- *
- * Nén NGAY TẠI ĐÂY, đúng một lần — cùng quy ước với tab Dữ liệu mẫu và luồng
- * khách ở invitation-setup (ImageHelper.prepareImage). Bấm Lưu chỉ còn ghi thẳng
- * blob xuống đĩa. Nhờ vậy dung lượng/kích thước hiện trong hàng chờ cũng là số
- * THẬT sẽ nằm trên đĩa, chứ không phải số của bản gốc.
- *
- * Ngưỡng lấy theo danh mục đang mở — đổi thư mục thì axConfirmDiscard() bắt dọn
- * hàng chờ trước, nên ảnh trong hàng chờ luôn thuộc đúng danh mục này.
+ * Nhận nhiều ảnh cùng lúc và xếp vào hàng chờ, KHÔNG ghi gì xuống đĩa.
+ * Nén ngay tại đây (ImageHelper.prepareImage) nên dung lượng/kích thước hiện
+ * trong hàng chờ là số THẬT sẽ nằm trên đĩa. Ngưỡng lấy theo danh mục đang mở.
  */
 async function axStageFiles(files) {
   if (!axRootHandle || !axCurrentFolder) {
@@ -680,10 +647,8 @@ async function axStageFiles(files) {
     maxWidth: limits.maxPx,
     maxHeight: limits.maxPx,
     maxSizeMB: limits.maxSizeMB,
-    // BẮT BUỘC truyền: whitelist mặc định của ImageHelper là whitelist ảnh
-    // KHÁCH (không có SVG). Kho ảnh có SVG thật (icon hoa, khung viền) nên phải
-    // đưa danh sách rộng hơn của CONFIG.image.assets vào, không thì validate
-    // chặn nhầm ngay từ lúc thả file.
+    // BẮT BUỘC truyền: whitelist mặc định của ImageHelper là whitelist ảnh KHÁCH
+    // (không có SVG), mà kho ảnh có SVG thật (icon hoa, khung viền).
     allowedTypes: AX_DEFAULT_LIMITS.allowedTypes,
   };
 
@@ -743,10 +708,8 @@ function axExtFromBlob(blob, originalName) {
   return m ? m[1].toLowerCase() : "png";
 }
 
-// Tên file KHÔNG lấy theo tên gốc (ảnh tải về hay có kiểu
-// "chatgpt-image-18-26-48-30-thg-7-2026.png") mà đặt theo tên thư mục + số thứ
-// tự: flowers_01.png, flowers_02.png… Số chạy tiếp từ số lớn nhất đang có nên
-// KHÔNG bao giờ đè lên ảnh cũ (ảnh cũ có thể đang được thiệp thật dùng).
+// Tên file đặt theo tên thư mục + số thứ tự (flowers_01.png…), không lấy tên gốc.
+// Số chạy tiếp từ số lớn nhất đang có nên KHÔNG bao giờ đè lên ảnh cũ.
 function axIndexFromName(name, folder) {
   const esc = folder.replace(/[.*+?^${}()|[\]\\-]/g, "\\$&");
   const m = new RegExp(`^${esc}_(\\d+)\\.`, "i").exec(name);
@@ -775,9 +738,8 @@ async function axWriteFile(dirHandle, filename, blob) {
 }
 
 /**
- * Ghi lại manifest.json của thư mục — vừa là danh sách ảnh cho web đọc, vừa là
- * chỗ duy nhất lưu điểm lấy nét. Gọi SAU axLoadFiles(): danh sách lấy thẳng từ
- * axFiles nên luôn khớp đĩa.
+ * Ghi lại manifest.json của thư mục — danh sách ảnh cho web đọc, kiêm chỗ duy
+ * nhất lưu điểm lấy nét. Gọi SAU axLoadFiles().
  */
 async function axSyncManifest() {
   if (!axDirHandle) return;
@@ -810,8 +772,8 @@ async function axSyncManifest() {
 // ============= Lưu xuống thư mục =============
 
 /**
- * Nén + ghi toàn bộ ảnh đang chờ, rồi ghi lại manifest.json (kèm điểm lấy nét
- * của cả ảnh cũ). Đây là chỗ DUY NHẤT động vào đĩa ngoài nút Xoá.
+ * Ghi toàn bộ ảnh đang chờ rồi ghi lại manifest.json (kèm điểm lấy nét của cả
+ * ảnh cũ). Chỗ DUY NHẤT động vào đĩa ngoài nút Xoá.
  */
 async function axSaveChanges() {
   if (!axRootHandle || !axCurrentFolder || !axIsDirty()) return;

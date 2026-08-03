@@ -1,11 +1,7 @@
 // Build Tailwind cho TRANG THIỆP public/themes/* (npm run build:themes).
 // Nguồn: styles/themes-src.css → styles/themes.css
-//
-// Chuyển thể từ public/themes/tailwind.config.js (bản chạy qua Play CDN cũ),
-// giữ nguyên fontFamily/colors để không đổi giao diện thiệp đang chạy.
-//
-// Tách khỏi tailwind.config.js vì `rose-pastel` ở đây là tông hồng khói
-// (#d4a5a5) — trùng tên nhưng khác giá trị với bảng hồng phấn của trang ứng dụng.
+// Tách khỏi tailwind.config.js vì `rose-pastel` ở đây là tông hồng khói (#d4a5a5)
+// — trùng tên nhưng khác giá trị với bảng hồng phấn của trang ứng dụng.
 module.exports = {
   content: [
     "./public/themes/**/*.{html,js}",

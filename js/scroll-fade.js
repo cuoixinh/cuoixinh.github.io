@@ -1,10 +1,7 @@
 // ============= SCROLL FADE =============
-// Dải cuộn ngang giữ nội dung trên MỘT hàng: hết đất thì cuộn chứ không xuống
-// dòng. Phía nào còn cuộn được thì mờ dần ở mép để lộ ra là kéo được (mất hẳn
-// mờ khi đã cuộn kịch, và không mờ gì cả khi nội dung vừa đủ chỗ).
-//
-// Cách dùng: thêm `data-scroll-fade` + class `.scroll-fade` (styles/_common.css)
-// vào chính phần tử có overflow-x-auto. Không cần khai báo gì thêm.
+// Dải cuộn ngang giữ nội dung trên MỘT hàng: phía nào còn cuộn được thì mờ dần ở
+// mép để lộ ra là kéo được. Cách dùng: thêm `data-scroll-fade` + class
+// `.scroll-fade` (styles/_common.css) vào chính phần tử có overflow-x-auto.
 
 const SCROLL_FADE_WIDTH = 32; // px, khớp bước 4px của dự án
 

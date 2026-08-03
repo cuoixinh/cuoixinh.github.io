@@ -2,11 +2,6 @@
 // WEDDING-HELPER.JS - Wedding data loading and personalization
 // ============================================================
 
-/**
- * Load wedding data by slug
- * @param {string} weddingSlug - Wedding slug
- * @param {Function} renderCallback - Callback to render wedding data
- */
 async function loadWeddingData(weddingSlug, renderCallback) {
   if (!weddingSlug) {
     if (!isPreviewMode()) {
@@ -57,12 +52,6 @@ async function loadWeddingData(weddingSlug, renderCallback) {
   }
 }
 
-/**
- * Setup personalized greeting from URL parameters
- * @param {string} weddingSlug - Wedding slug
- * @param {boolean} isGroom - Is groom side
- * @param {Function} openInvitationCallback - Callback to open invitation
- */
 function setupPersonalizedGreeting(
   weddingSlug,
   isGroom,
@@ -104,10 +93,6 @@ function setupPersonalizedGreeting(
   }
 }
 
-/**
- * Open invitation (called when user clicks "Mở Thiệp")
- * @param {Function} callback - Optional callback after opening (for template-specific logic)
- */
 function openInvitation(callback) {
   const cover = document.getElementById("cover-screen");
   const main = document.getElementById("main-card");
@@ -139,10 +124,6 @@ function openInvitation(callback) {
   }, 600);
 }
 
-/**
- * Confirm attendance (RSVP)
- * @param {boolean} attending - True if attending
- */
 function confirmAttend(attending) {
   if (showPreviewAlert()) return;
 
@@ -173,10 +154,6 @@ function confirmAttend(attending) {
   msg.classList.remove("hidden");
 }
 
-/**
- * Save QR code image
- * @param {string} id - Image element ID
- */
 async function saveQR(id) {
   if (showPreviewAlert()) return;
 

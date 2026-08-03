@@ -1,78 +1,21 @@
-// ============================================================
-// MUSIC-PLAYER-HELPER.JS - Trình phát nhạc nền: phần LOGIC dùng chung
-// ============================================================
+// Trình phát nhạc nền — phần LOGIC dùng chung; theme CHỈ cung cấp HTML.
+// Nguồn phát là core/helpers/youtube-helper.js (sự kiện `cx:music-state`) → nạp
+// file này SAU youtube-helper. Ẩn/hiện cả trình phát do setupMusic() lo.
 //
-// Mỗi theme có UI trình phát khác nhau (nút tròn góc màn hình, thẻ kiểu app
-// nghe nhạc, thanh mỏng…), nhưng việc phải làm thì giống hệt: đổi icon
-// phát/dừng, hiện tên bài, chạy thanh tiến trình, tua. File này giữ toàn bộ
-// phần đó; theme CHỈ cung cấp HTML.
+// Theme đánh dấu vai trò bằng data-cx-music, chỉ "root" là bắt buộc:
+//   root · toggle · icon · title · artist · fill · time · duration · back ·
+//   forward · thumb (<img> ảnh bìa) · expand
+//   progress  vùng bấm để tua; có thể là chính cả thẻ trình phát
+//   handle    tay nắm: vuốt lên thu gọn, vuốt xuống mở panel
+//   panel     khối mở rộng (tóm tắt thiệp) — helper bật class .is-expanded
+//   bubble    bong bóng nổi khi đã thu gọn; có nó mới bật được nấc thu gọn
 //
-// Nguồn phát nhạc là core/helpers/youtube-helper.js (sự kiện `cx:music-state`
-// + getMusicInfo/getMusicPosition/seekMusic) → nạp file này SAU youtube-helper.
-// Ẩn/hiện cả trình phát vẫn do setupMusic() trong render-helper.js lo.
-//
-// ── Cách một theme khai báo UI ─────────────────────────────────────────────
-// Đánh dấu từng phần bằng data-cx-music, tất cả đều KHÔNG bắt buộc trừ "root":
-//
-//   data-cx-music="root"      Thẻ bọc ngoài. Được gắn/gỡ class .is-playing.
-//                             Không có thì helper lấy tạm #music-toggle
-//                             (id mà setupMusic dùng để ẩn/hiện).
-//   data-cx-music="toggle"    Nút phát/tạm dừng.
-//   data-cx-music="icon"      Thẻ icon bên trong nút phát (đổi play ↔ pause).
-//   data-cx-music="title"     Tên bài. Dài quá khung thì tự chạy (marquee) nếu
-//                             có class .cx-mp-title.
-//   data-cx-music="artist"    Nghệ sĩ / kênh.
-//   data-cx-music="progress"  Vùng tiến trình (bấm vào để tua). Có thể là một
-//                             dải mỏng riêng, hoặc đặt thẳng lên thẻ trình phát
-//                             để cả thanh là tiến trình — cú bấm rơi vào nút
-//                             bên trong tự được bỏ qua.
-//   data-cx-music="fill"      Phần đã phát; helper chỉ đặt `width` theo %.
-//   data-cx-music="time"      Thời gian đang phát, dạng m:ss.
-//   data-cx-music="duration"  Tổng thời lượng, dạng m:ss.
-//   data-cx-music="back"      Lùi (mặc định 10 giây).
-//   data-cx-music="forward"   Tới (mặc định 10 giây).
-//   data-cx-music="thumb"     <img> ảnh bìa bài hát (thumbnail YouTube). Đặt bao
-//                             nhiêu thẻ cũng được, helper cập nhật hết; chưa có
-//                             ảnh thì thẻ ở trạng thái `hidden`.
-//   data-cx-music="handle"    Tay nắm: vuốt lên thì thu gọn, vuốt xuống thì mở
-//                             rộng. Có thẻ này là bật tính năng thu gọn.
-//   data-cx-music="panel"     Khối mở rộng (tóm tắt thiệp…) — hiện khi kéo XUỐNG
-//                             ở tay nắm. Helper chỉ bật/tắt class `is-expanded`
-//                             trên thẻ root, còn hình hài (cao bao nhiêu, hiện ra
-//                             kiểu gì) là CSS của theme. Không có thẻ này thì tay
-//                             nắm giữ nguyên hành vi cũ (chỉ thu gọn/mở lại).
-//   data-cx-music="bubble"    Bong bóng nổi hiện khi đã thu gọn: kéo thả đi được
-//                             khắp màn hình, thả tay thì tự bay về bám lề gần
-//                             nhất; chạm (không kéo) = mở lại thanh. Thanh nhạc
-//                             thì luôn đứng yên ở trên, không kéo được.
-//   data-cx-music="expand"    Nút mở lại thanh, cho theme muốn tách riêng nút đó
-//                             ra khỏi bong bóng.
-//
-// Tuỳ chỉnh đặt trên thẻ root:
-//
-//   data-cx-play-icon   Class icon lúc đang dừng   (vd "fas fa-play")
-//   data-cx-pause-icon  Class icon lúc đang phát   (vd "fas fa-pause")
-//                       Hai cái này được GHÉP vào class theme đặt sẵn trên thẻ
-//                       icon, nên cỡ chữ / canh chỉnh cứ viết thẳng ở thẻ đó —
-//                       mỗi chỗ đặt icon để một cỡ khác nhau được.
-//   data-cx-seek        Số giây cho nút lùi/tới    (mặc định 10)
-//   data-cx-empty-title Chữ hiện khi chưa có tên bài (mặc định "Nhạc nền")
-//   data-cx-reveal-on-scroll
-//                       Có thuộc tính này thì trình phát chỉ hiện khi đã cuộn
-//                       quá N px (giá trị của thuộc tính, mặc định 64); ở đầu
-//                       trang thì mờ đi. Không đặt → luôn hiện.
-//                       Mỗi lần cuộn xuống làm lộ trình phát cũng là một lần thử
-//                       phát tiếp — trừ khi người dùng đã chủ động bấm dừng.
-//
-// Viết class icon vào HTML (không phải chuỗi trong JS) là cố ý: purge của
-// Tailwind quét văn bản thô nên class trong thuộc tính HTML thì thấy, còn class
-// ghép trong JS của helper thì không (xem CLAUDE.md).
+// Tuỳ chỉnh trên thẻ root: data-cx-play-icon / data-cx-pause-icon (class icon,
+// ghép vào class theme đặt sẵn — viết trong HTML để purge thấy), data-cx-seek
+// (giây, mặc định 10), data-cx-empty-title, data-cx-reveal-on-scroll (chỉ hiện
+// sau khi cuộn quá N px, mặc định 64).
 
-/**
- * Gắn logic vào một trình phát nhạc đã có sẵn trong DOM.
- * @param {HTMLElement} [root] - Thẻ bọc; bỏ trống thì tự dò trong document.
- * @returns {boolean} true nếu gắn được
- */
+/** Gắn logic vào trình phát đã có trong DOM. Bỏ trống `root` thì tự dò. */
 function setupMusicPlayer(root) {
   root =
     root ||
@@ -103,10 +46,8 @@ function setupMusicPlayer(root) {
   // position…) — nhớ lại để mỗi lần đổi play↔pause còn ghép vào, chứ ghi đè cả
   // className thì theme không đặt được gì lên thẻ này.
   const iconBase = new Map();
-  // Bỏ đi các class thuộc BỘ ICON (fa-play / fa-pause…) nếu markup có đặt sẵn:
-  // markup được dựng sẵn một icon mặc định để lúc CHƯA gắn logic (ô xem trước
-  // trong panel "Thành phần", widget ở chế độ chỉnh) nút phát không rỗng trơ.
-  // Không lọc thì mỗi lần đổi trạng thái sẽ ghép chồng cả fa-play lẫn fa-pause.
+  // Bỏ class thuộc bộ icon (fa-play/fa-pause…) markup đặt sẵn, không thì mỗi lần
+  // đổi trạng thái sẽ ghép chồng cả hai glyph.
   const iconSet = new Set(
     ((root.dataset.cxPlayIcon || "") + " " + (root.dataset.cxPauseIcon || ""))
       .split(/\s+/)
@@ -129,15 +70,9 @@ function setupMusicPlayer(root) {
   // Do khối "chỉ hiện khi đã cuộn" gán (nếu theme bật). Xem _setCollapsed.
   let _setBarHidden = null;
 
-  // Ba trạng thái, đi lên đi xuống theo một trục dọc:
-  //   bong bóng  ←(vuốt lên)—  thanh  —(vuốt xuống)→  thanh + khối mở rộng
-  // is-collapsed = đang ở bong bóng; is-expanded = đang mở khối tóm tắt.
-  // Hai cờ không bao giờ cùng bật (thu về bong bóng thì đóng khối luôn).
-  //
-  // Không có bong bóng (và cũng không có nút mở lại riêng) thì BỎ hẳn nấc thu
-  // gọn: thu lại mà không còn gì để bấm là nhốt luôn người dùng, không mở ra
-  // được nữa. Trình phát do công cụ ở tab Giao diện dựng nằm đúng vào ca này —
-  // nó đã thả được ở bất kỳ đâu nên không cần bong bóng.
+  // Ba nấc trên một trục dọc:
+  //   bong bóng ←(vuốt lên)— thanh —(vuốt xuống)→ thanh + khối mở rộng
+  // Không có bong bóng lẫn nút mở lại thì bỏ hẳn nấc thu gọn.
   const canCollapse = !!($("bubble") || $("expand"));
 
   function _isCollapsed() {
@@ -283,10 +218,8 @@ function setupMusicPlayer(root) {
     }),
   );
 
-  // Bấm vào thanh tiến trình để tua tới đúng chỗ.
-  // Vùng "progress" có thể chính là cả thẻ trình phát (theme tô sáng phần đã
-  // phát lên nền thay vì kẻ một dải riêng) → phải bỏ qua cú bấm rơi vào nút
-  // bên trong, không thì bấm Phát cũng bị tua.
+  // Bấm vào thanh tiến trình để tua. Vùng "progress" có thể là cả thẻ trình phát
+  // → bỏ qua cú bấm rơi vào nút bên trong.
   if (progEl) {
     progEl.addEventListener("click", function (e) {
       // Đang thu gọn: chạm vào dải mỏng còn ló ra là mở lại, không tua.
@@ -310,10 +243,8 @@ function setupMusicPlayer(root) {
     });
   }
 
-  // Tay nắm: vuốt lên đi xuống một nấc, vuốt xuống đi lên một nấc, chạm thì
-  // nhảy nấc theo hướng còn lại.
-  // Cử chỉ CHỈ bắt trên tay nắm (kèm touch-action:none trong CSS) — bắt trên cả
-  // thanh thì mọi cú vuốt để cuộn trang lỡ chạm vào thanh đều làm nó thu gọn.
+  // Cử chỉ tay nắm: vuốt lên/xuống đi một nấc, chạm thì nhảy nấc ngược lại.
+  // Chỉ bắt trên tay nắm — bắt cả thanh thì vuốt cuộn trang cũng làm nó thu gọn.
   if (handleEl) {
     const SWIPE_MIN = 16; // px — đủ để phân biệt vuốt với chạm
 
@@ -333,10 +264,8 @@ function setupMusicPlayer(root) {
       }
     }
 
-    // Cử chỉ BẮT ĐẦU ở tay nắm nhưng theo dõi tiếp trên window: tay nắm chỉ cao
-    // 16px nên vừa nhấc tay đi một chút là con trỏ đã ra khỏi nó. Chuột không có
-    // implicit pointer capture như cảm ứng → nghe ngay trên tay nắm thì bản mobile
-    // chạy mà bản chuột (xem trước ở invitation-setup) thì không nhận cú vuốt nào.
+    // Theo dõi tiếp trên window: tay nắm chỉ cao 16px và chuột không có implicit
+    // pointer capture như cảm ứng.
     const _onMove = (e) => {
       if (startY === null) return;
       const dy = e.clientY - startY;
@@ -361,9 +290,6 @@ function setupMusicPlayer(root) {
     });
 
     // Vuốt xong trình duyệt vẫn bắn click → bỏ qua đúng một lần.
-    // Chạm = đi nấc NGƯỢC với trạng thái đang ở: đang thu gọn hoặc đang mở khối
-    // thì về thanh, đang ở thanh thì mở khối (theme không có khối thì thu gọn,
-    // giữ nguyên hành vi cũ).
     handleEl.addEventListener("click", function () {
       if (swiped) {
         swiped = false;
@@ -393,13 +319,9 @@ function setupMusicPlayer(root) {
     }
   }
 
-  // Bong bóng nổi (hiện khi đã thu gọn): kéo thả đi được, thả tay thì tự bay về
-  // bám lề gần nhất — cùng lối với bong bóng trợ lý AI ở invitation-setup
-  // (ai-modal.js) và AssistiveTouch của iPhone. Chạm (không kéo) = phát/tạm dừng.
-  //
-  // Vị trí ghi thẳng vào style.left/top nên thẻ bong bóng phải `position: fixed`
-  // và KHÔNG có tổ tiên nào mang `transform` — transform tạo containing block
-  // mới, fixed sẽ tính theo thẻ đó chứ không theo màn hình.
+  // Bong bóng nổi khi đã thu gọn: kéo thả được, thả tay thì bay về bám lề gần
+  // nhất, chạm = phát/tạm dừng. Vị trí ghi vào style.left/top nên thẻ phải
+  // `position: fixed` và không có tổ tiên nào mang `transform`.
   const bubbleEl = $("bubble");
   if (bubbleEl) {
     const EDGE = 8; // px chừa ra ở mép màn hình

@@ -1,8 +1,4 @@
-/**
- * constant.js — Hằng số dùng chung toàn app.
- *
- * Nạp sớm (trước các file dùng tới) qua <script src="core/constant.js">.
- */
+/** Hằng số dùng chung toàn app. Nạp sớm, trước các file dùng tới. */
 (function (global) {
   "use strict";
 

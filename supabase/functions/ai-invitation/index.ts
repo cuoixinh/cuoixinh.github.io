@@ -1,18 +1,11 @@
 // ai-invitation — sinh nội dung thiệp cưới bằng AI (Gemini chính, Groq fallback).
 //
-// Bảo mật:
-//   • KHÔNG bắt buộc đăng nhập. Nếu có JWT hợp lệ → rate-limit theo user/ngày
-//     (bảng ai_usage). Nếu không → rate-limit theo IP/ngày (bảng ai_usage_ip),
-//     hạn mức thấp hơn để chống lạm dụng.
-//   • Validate + clamp input (chống prompt quá dài / lạm dụng token).
-//   • Validate + clamp output trước khi trả về.
-//   • API key AI chỉ nằm trong secret của Edge Function, không lộ ra client.
-//   • CORS allowlist (phản chiếu origin hợp lệ).
-//   • Timeout khi gọi nhà cung cấp AI.
-//   • Không rò rỉ lỗi chi tiết của provider ra client.
+// Không bắt buộc đăng nhập: có JWT hợp lệ → rate-limit theo user/ngày (bảng
+// ai_usage), không có → theo IP/ngày (ai_usage_ip, hạn mức thấp hơn). Validate +
+// clamp cả input lẫn output, CORS allowlist, timeout khi gọi provider, không rò
+// lỗi chi tiết của provider ra client; API key chỉ nằm trong secret.
 //
-// ⚠️ Deploy KÈM cờ --no-verify-jwt để khách chưa đăng nhập vẫn gọi được
-//    (việc xác thực/tuỳ chọn đã xử lý bên trong hàm).
+// ⚠️ Deploy KÈM cờ --no-verify-jwt để khách chưa đăng nhập vẫn gọi được.
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { withAxiom, type Logger } from '../_shared/axiom.ts'
@@ -198,12 +191,10 @@ QUY TẮC BẮT BUỘC:
 THỨ TỰ XUẤT BLOCK (bắt buộc đúng thứ tự, xuất dần từng block để giao diện hiện kịp): (1) tất cả block "field"; (2) các block "love"; (3) các block "timeline"; (4) cuối cùng block "text" story_quote.`
 }
 
-// ── Prompt "dữ liệu mẫu" (mode=sample) ───────────────────────────────────────
-// Khác hẳn buildPrompt: ở đây KHÔNG có dữ liệu người dùng để trích xuất, AI
-// phải TỰ NGHĨ RA trọn bộ một cặp đôi hư cấu cho thiệp DEMO (trang admin →
-// "Dữ liệu mẫu"). Vì vậy quy tắc "không được bịa" của buildPrompt bị đảo lại —
-// đây là chỗ DUY NHẤT được phép sáng tác thông tin cá nhân, và chỉ vì nó không
-// gắn với người thật nào.
+// ── Prompt "dữ liệu mẫu" (mode=sample) ──────────────────────────────────────
+// Khác buildPrompt: không có dữ liệu người dùng để trích xuất, AI phải TỰ NGHĨ RA
+// trọn bộ một cặp đôi hư cấu cho thiệp DEMO. Đây là chỗ DUY NHẤT được phép sáng
+// tác thông tin cá nhân.
 function buildSamplePrompt(tone: string, region: string, hint: string): string {
   const today = new Date().toISOString().slice(0, 10)
 
@@ -323,10 +314,8 @@ ${text}
 """`
 }
 
-// Schema ép cấu trúc cho Gemini: MẢNG các phần tử theo anyOf (mỗi block 1 dạng riêng).
-// Nhờ anyOf, block "love" BẮT BUỘC có title + content (structured output không thể bỏ
-// qua content nữa). Wire format vẫn là [{...},{...}] nên scanner streaming đọc từng
-// object hoạt động như cũ.
+// Schema ép cấu trúc cho Gemini: MẢNG các phần tử theo anyOf (mỗi block một dạng
+// riêng). Nhờ anyOf, block "love" BẮT BUỘC có title + content.
 const BLOCK_TEXT = {
   type: 'object',
   properties: {
@@ -378,14 +367,11 @@ const RESPONSE_SCHEMA = {
 const GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta/models'
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions'
 
-// Ngân sách "suy nghĩ" của Gemini 2.5 Flash. Model này BẬT thinking mặc định
-// (thinkingBudget = -1, động) và hay tiêu vài nghìn token suy nghĩ TRƯỚC khi
-// bắt đầu trả lời — đó là phần chờ lâu nhất, hơn hẳn độ dài prompt. Các tác vụ
-// ở đây output đã bị ép theo responseSchema nên gần như không cần suy luận:
+// Ngân sách "suy nghĩ" của Gemini 2.5 Flash — model bật thinking mặc định và hay
+// tiêu vài nghìn token trước khi trả lời, đó là phần chờ lâu nhất. Output ở đây đã
+// bị ép theo responseSchema nên gần như không cần suy luận:
 //   • 0   → tắt hẳn (viết lại 1 ô, tách mốc chuyện tình, bịa dữ liệu demo)
-//   • 512 → chừa một ít cho luồng sinh thiệp thật (mục 8/10 có suy ra tên rút
-//           gọn và ước lượng giờ vu quy theo quãng đường)
-// Chỉnh hai số này nếu thấy chất lượng tụt.
+//   • 512 → chừa một ít cho luồng sinh thiệp thật (suy tên rút gọn, ước giờ vu quy)
 const THINK_OFF = { thinkingBudget: 0 }
 const THINK_LOW = { thinkingBudget: 512 }
 
@@ -598,10 +584,8 @@ function cleanBlock(raw: any): CleanBlock | null {
     const date = clampStr(raw.date, 40)
     const title = clampStr(raw.title, 120)
     const content = clampStr(raw.content, MAX_TEXT_LEN)
-    // Chỉ cần có title là giữ lại (một mốc hợp lệ). Prompt (mục 7) đã ép AI viết
-    // content; nhưng KHÔNG loại mốc chỉ vì lỡ thiếu content — thà hiện mốc với
-    // tiêu đề còn hơn mất trắng cả chuyện tình. Mốc rỗng hoàn toàn (không title,
-    // không content) mới bỏ.
+    // Chỉ cần có title là giữ lại. KHÔNG loại mốc chỉ vì thiếu content — thà hiện
+    // mốc với tiêu đề còn hơn mất trắng cả chuyện tình. Mốc rỗng hoàn toàn mới bỏ.
     return title || content ? { type: 'love', date, title, content } : null
   }
 
@@ -641,11 +625,10 @@ function cleanBlock(raw: any): CleanBlock | null {
   return null
 }
 
-// ── Lưới chặn tên riêng trong chuyện tình ────────────────────────────────────
-// Prompt đã cấm gọi tên (LOVE_VOICE_RULE) nhưng model vẫn có thể lỡ, mà yêu cầu
-// là TUYỆT ĐỐI không có tên thật. Nên chặn thêm ở output: đổi tên đã biết thành
-// đại từ. Chỉ động vào block "love" — các đoạn khác (lời mời, lời cảm ơn) vẫn
-// được phép nhắc tên.
+// ── Lưới chặn tên riêng trong chuyện tình ───────────────────────────────────
+// Prompt đã cấm gọi tên (LOVE_VOICE_RULE) nhưng model vẫn có thể lỡ → chặn thêm ở
+// output: đổi tên đã biết thành đại từ. Chỉ động vào block "love"; lời mời / lời
+// cảm ơn vẫn được nhắc tên.
 const NAME_CHAR = '[\\p{L}\\p{M}\\d]'
 
 function escapeRe(s: string): string {
@@ -1089,11 +1072,10 @@ async function handleLoveStory(
   return json({ items, provider: res.provider }, 200, origin)
 }
 
-// ── Nhánh "Dữ liệu mẫu" (mode=sample) ────────────────────────────────────────
-// Trang admin → "Dữ liệu mẫu": không có input nào để trích xuất, AI tự dựng cả
-// bộ. Nhận { tone?, region?, hint? } → trả { data: {story_quote, love_story,
-// timeline, fields} } y hệt nhánh sinh thiệp, nên client dùng chung code áp kết
-// quả. Vẫn đi qua xác thực/rate-limit/CORS/clamp output như mọi nhánh khác.
+// ── Nhánh "Dữ liệu mẫu" (mode=sample) ───────────────────────────────────────
+// Nhận { tone?, region?, hint? } → trả { data: {story_quote, love_story, timeline,
+// fields} } y hệt nhánh sinh thiệp nên client dùng chung code áp kết quả. Vẫn đi
+// qua xác thực / rate-limit / CORS / clamp output như mọi nhánh khác.
 async function handleSampleData(
   req: Request,
   admin: ReturnType<typeof createClient>,

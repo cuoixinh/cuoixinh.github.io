@@ -1,19 +1,11 @@
-// ============================================================================
 // x-speech — hộp thoại "Nói để nhập" (speech-to-text) DÙNG CHUNG.
-//
-// window.openSpeechDialog({ target, questions, lang, title }) mở popup:
-//   • Trên cùng: danh sách câu hỏi gợi ý để người dùng nói (trả lời).
-//   • Giữa: 1 thẻ div nhìn giống textarea, hiện chữ nhận dạng dần khi nói
-//     (chữ chốt màu đậm, chữ tạm màu nhạt).
-//   • Dưới: vòng tròn micro PHÌNH TO theo âm lượng (im lặng thì nhỏ lại) + nút Dừng.
-//   • Bấm "Dừng" → tắt thu âm, đóng popup, CHÈN nội dung vừa nói vào `target`
-//     (nối vào cuối) rồi phát 'input' để autosave / x-undo / nút xoá tự đồng bộ.
-//
-// window.speechSupported() → có hỗ trợ SpeechRecognition hay không.
-//
-// Nhận dạng: SpeechRecognition (Chrome/Edge/Safari). Âm lượng: getUserMedia +
-// AnalyserNode (nếu bị từ chối vẫn chạy nhận dạng, vòng tròn dùng nhịp "thở" mặc định).
-// ============================================================================
+//   window.openSpeechDialog({ target, questions, lang, title }) mở popup: câu hỏi
+//     gợi ý, ô hiện chữ nhận dạng dần (chữ chốt đậm, chữ tạm nhạt), vòng tròn
+//     micro phình theo âm lượng. Bấm "Dừng" → chèn nội dung vào `target` (nối
+//     vào cuối) rồi phát 'input' để autosave / x-undo tự đồng bộ.
+//   window.speechSupported() → có hỗ trợ SpeechRecognition hay không.
+// Âm lượng dùng getUserMedia + AnalyserNode; bị từ chối thì vẫn chạy nhận dạng,
+// vòng tròn chuyển sang nhịp "thở" mặc định.
 (function (global) {
   const Rec = global.SpeechRecognition || global.webkitSpeechRecognition;
 

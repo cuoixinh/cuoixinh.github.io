@@ -1,30 +1,17 @@
-// ============================================================================
 // x-undo — cụm nút Hoàn tác/Làm lại DÙNG CHUNG, gắn được cho mọi <textarea>/<input>.
 //
-// Cơ chế: TỰ QUẢN LÝ lịch sử (không dùng execCommand native). Mỗi lần gõ được gộp
-// thành 1 mốc (debounce ~350ms); undo/redo khôi phục snapshot {value, vị trí con trỏ}.
-// Nhờ tự giữ stack nên biết CHÍNH XÁC độ sâu → bật/tắt (disabled) 2 nút đúng 100%.
-// Đồng thời CHẶN Ctrl/Cmd+Z (undo) và Ctrl/Cmd+Shift+Z / Ctrl+Y (redo) NGAY TRÊN ô
-// → chỉ còn MỘT hệ undo duy nhất, phím tắt và nút bấm luôn khớp nhau.
+// TỰ QUẢN LÝ lịch sử (không dùng execCommand): mỗi lần gõ gộp thành 1 mốc
+// (debounce ~350ms), undo/redo khôi phục snapshot {value, vị trí con trỏ} nên
+// biết chính xác độ sâu để bật/tắt 2 nút. Chặn luôn Ctrl/Cmd+Z và
+// Ctrl/Cmd+Shift+Z / Ctrl+Y ngay trên ô → chỉ còn MỘT hệ undo duy nhất.
 //
-// Lưu ý khi dùng:
-//  • Gán .value bằng code mà muốn được ghi vào lịch sử → nhớ phát sự kiện 'input'
-//    (target.dispatchEvent(new Event('input',{bubbles:true}))) sau khi gán.
-//  • Phím tắt chỉ chặn khi con trỏ đang Ở TRONG ô đó (listener gắn trên chính ô).
+//   attachUndoRedo(textareaEl);                    // → thanh navbar đáy
+//   attachUndoRedo(el, { mount, className, max }); // tuỳ biến vị trí/độ sâu
 //
-// Cách dùng:
-//    attachUndoRedo(textareaEl);                       // gắn vào ô → thanh navbar đáy
-//    attachUndoRedo(el, { mount, className, max });     // tuỳ biến vị trí/gắn/độ sâu
-//
-// mount mặc định là el.parentElement; nếu đang position:static sẽ tự set relative để
-// thanh công cụ định vị đúng. (Với <x-textarea>, .x-ta-wrap đã relative sẵn.)
-//
-// Bố cục: attachUndoRedo bọc textarea trong 1 KHUNG .x-ta-frame (flex cột). Khung mang
-// VIỀN GIẢ (border + bo góc + focus ring); textarea bên trong bỏ viền/nền/ring của nó.
-// Thanh .x-ta-toolbar là hàng flex CUỐI trong khung (không overlay) → chữ + thanh cuộn
-// nằm gọn trong textarea phía trên, thanh công cụ [Tối ưu · Mic · Hoàn tác · Làm lại]
-// căn phải bên dưới.
-// ============================================================================
+// Gán .value bằng code mà muốn ghi vào lịch sử thì nhớ phát sự kiện 'input'.
+// mount mặc định là el.parentElement (đang static thì tự set relative).
+// Bố cục: bọc textarea trong khung .x-ta-frame (flex cột) mang viền giả; thanh
+// .x-ta-toolbar là hàng flex CUỐI trong khung [Tối ưu · Mic · Hoàn tác · Làm lại].
 (function (global) {
   // Tiêm CSS 1 lần (component tự đủ style, nơi dùng không phải khai báo lại).
   if (!document.getElementById("x-ta-toolbar-style")) {

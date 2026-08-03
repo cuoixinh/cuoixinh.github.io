@@ -1,7 +1,4 @@
-/**
- * Centralized Configuration
- * All API keys, URLs, and secrets in one place
- */
+/** Cấu hình tập trung: API key, URL, ngưỡng ảnh… */
 
 // Set false khi test localhost để bypass Cloudflare cache → hit Supabase trực tiếp
 const USE_CACHE = false;
@@ -50,14 +47,11 @@ const CONFIG = {
     // không treo trình duyệt. Áp cho MỌI luồng.
     maxInputMB: 50,
 
-    // Định dạng được NHẬN (whitelist, không dùng `image/*`). Đây là danh sách
-    // mặc định — áp cho ảnh khách upload:
-    //   - SVG bị loại: là file chủ động (chứa được script), không phải ảnh bitmap.
-    //   - HEIC/HEIF bị loại: nén không được (canvas không decode) mà nhiều trình
-    //     duyệt desktop cũng không hiển thị được → khách mời mở thiệp thấy ảnh vỡ.
-    //   - BMP/TIFF bị loại: nặng vô lý, người dùng nên đổi sang JPG.
-    // GIF/AVIF vẫn nhận nhưng ImageHelper.canRecompress() không nén (giữ nguyên bản).
-    // Luồng nào cần nới thì khai `allowedTypes` riêng bên dưới.
+    // Định dạng được NHẬN (whitelist, không dùng `image/*`) — mặc định cho ảnh
+    // khách. SVG loại (file chủ động, chứa được script); HEIC/HEIF loại (canvas
+    // không decode, nhiều trình duyệt desktop không hiển thị); BMP/TIFF loại
+    // (nặng vô lý). GIF/AVIF nhận nhưng canRecompress() không nén.
+    // Luồng nào cần nới thì khai `allowedTypes` riêng.
     allowedTypes: [
       "image/jpeg",
       "image/jpg",

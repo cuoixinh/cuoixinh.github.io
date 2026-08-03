@@ -1,16 +1,10 @@
 /**
- * showTour — simple spotlight tour
- * @param {Array<{selector:string, title:string, desc:string, advanceOnClick?:boolean, advanceWhen?:()=>boolean}>} steps
- *   advanceOnClick (từng bước): click vào phần tử spotlight KHÔNG chặn hành động gốc
- *   (mở popup, đổi tab…). Tour tạm ẩn để người dùng thao tác thoải mái; xong mới tự
- *   sang bước kế. "Xong" là khi advanceWhen() trả về true (nếu có), hoặc ngay lập tức.
- *   advanceWhen: điều kiện coi-như-hoàn-tất-thao-tác (vd modal đã đóng, đã quay lại
- *   màn edit). Tour theo dõi DOM tới khi điều kiện đúng rồi mới sang bước kế.
- * @param {{ storageKey?:string, onDone?:(completed:boolean)=>void, dismissOnTargetClick?:boolean }} options
- *   onDone(completed): gọi khi tour đóng — completed=true nếu người dùng bấm "Xong"
- *   ở bước cuối (hoàn tất), false nếu bỏ qua.
- *   dismissOnTargetClick: bấm vào chính phần tử đang spotlight sẽ đóng tour (coi như
- *   hoàn tất). Hữu ích khi phần tử đó tự mở popup/hành động riêng (vd thẻ "Tạo với AI").
+ * showTour — spotlight tour đơn giản.
+ * steps: [{ selector, title, desc, advanceOnClick?, advanceWhen? }]
+ *   advanceOnClick: click vào phần tử spotlight KHÔNG chặn hành động gốc (mở
+ *     popup, đổi tab…); tour tạm ẩn rồi sang bước kế khi advanceWhen() đúng.
+ *   advanceWhen: điều kiện coi như xong thao tác (modal đã đóng, đã quay lại…).
+ * options: { storageKey?, onDone?(completed), dismissOnTargetClick? }
  */
 function showTour(steps, { storageKey, onDone, dismissOnTargetClick } = {}) {
   if (storageKey && getCache(storageKey)) return;

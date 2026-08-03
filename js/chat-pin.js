@@ -1,11 +1,7 @@
-// Ghim widget hỗ trợ vào mép phải — hoạt động ở mọi kích thước màn hình.
-// Trên mobile, bắt đầu cuộn sẽ tự thu gọn; trên desktop chỉ thu gọn khi
-// người dùng chủ động bấm (nút X hoặc chính pin tab). Pin tab luôn hiển
-// thị sau khi đã kích hoạt (không tự ẩn) — chỉ đảo chiều mũi tên theo
-// trạng thái đóng/mở. Tap hoặc vuốt từ ghim ra (sang trái) để mở lại widget.
-// Kéo ghim lên/xuống để đổi vị trí — widget hỗ trợ khi mở sẽ bám theo vị
-// trí này. Vị trí + trạng thái đóng/mở dùng chung 1 key localStorage,
-// giữ nguyên sau khi F5.
+// Ghim widget hỗ trợ vào mép phải. Mobile: bắt đầu cuộn thì tự thu gọn; desktop:
+// chỉ thu khi người dùng bấm (nút X hoặc pin tab). Tap hoặc vuốt từ ghim ra để mở
+// lại; kéo ghim lên/xuống để đổi vị trí (widget bám theo). Vị trí + trạng thái
+// đóng/mở dùng chung 1 key localStorage.
 (function initChatPinOnScroll() {
   var widget = document.getElementById("chatWidget");
   var pinTab = document.getElementById("chatPinTab");

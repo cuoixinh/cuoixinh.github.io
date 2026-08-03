@@ -1,42 +1,10 @@
-// ============================================================
-// COMPONENT: TRÌNH PHÁT NHẠC NỀN
-// ============================================================
-//
-// Một chỗ duy nhất giữ MARKUP của trình phát nhạc. Trước đây markup này nằm
-// thẳng trong public/themes/basic-gold/index.html (hơn 200 dòng) nên panel
-// "Thành phần" phải tự vẽ lại một bản khác — sửa một bên là hai bên lệch nhau.
-// Giờ cả hai chỗ gọi chung CXMusicPlayer.build():
-//
-//   · Trang thiệp   basic-gold dựng bản `fixed-top` (thanh neo đỉnh màn hình,
-//                   vuốt lên thu về bong bóng).
-//   · Panel Thành phần  runtime dựng bản `inline` để thả tự do lên thiệp
-//                   (core/helpers/element-helper.js).
-//
-// LOGIC không nằm ở đây: đổi icon phát/dừng, tên bài, tiến trình, tua, cử chỉ
-// tay nắm… đều do core/helpers/music-player-helper.js lo, gắn vào qua các
-// thuộc tính data-cx-music. File này chỉ dựng HTML rồi trả về thẻ gốc.
-// Dữ liệu khối tóm tắt do renderMusicSummary() (render-helper.js) đổ vào các ô
-// data-cx-summary.
-//
-// ── Vì sao class Tailwind viết trọn vẹn trong chuỗi ────────────────────────
-// Purge quét văn bản thô. `core/**/*.js` đã nằm trong `content` của CẢ HAI
-// config (tailwind.config.js và tailwind.themes.config.js) nên class ở đây
-// được sinh ra ở cả build ứng dụng lẫn build thiệp — miễn là viết TRỌN tên
-// class, không ghép từ mảnh chuỗi (xem CLAUDE.md).
-//
-// ── Lưu ý màu ở panel ──────────────────────────────────────────────────────
-// `rose-pastel` là hai bảng màu khác nhau: hồng khói (#f5d5d8…) ở build thiệp,
-// hồng phấn (#fef1f7…) ở build ứng dụng. Cùng tên class nên bản xem trước
-// trong panel hơi khác tông so với lúc nằm trên thiệp. Đây là đánh đổi đã
-// chọn khi giữ nguyên class Tailwind của basic-gold.
+// Markup dùng chung của trình phát nhạc: trang thiệp (fixed-top) và panel
+// "Thành phần" (inline). Logic ở core/helpers/music-player-helper.js, gắn qua
+// các thuộc tính data-cx-music.
 
 (function () {
-  // ── Bản THANH NGANG (nguyên bản của basic-gold) ───────────────────────────
-  // Toàn bộ trên một hàng cao 48px: bìa · tên bài · lùi/phát/tới.
-  // CHÍNH hàng đó là thanh tiến trình (data-cx-music="progress"): phần đã phát
-  // được tô sáng dần từ trái sang, bấm chỗ nào tua tới chỗ đó — không tốn thêm
-  // một dải riêng. Helper tự bỏ qua cú bấm rơi vào nút bên trong. Các phần tử
-  // nội dung phải là `relative` để nằm TRÊN lớp tô.
+  // Mẫu THANH NGANG: bìa · tên bài · lùi/phát/tới. Cả hàng là thanh tiến trình
+  // (bấm để tua) nên nội dung bên trong phải `relative`.
   const barRow = `
     <div
       data-cx-music="progress"
@@ -103,13 +71,8 @@
       </div>
     </div>`;
 
-  // Khối mở rộng: kéo XUỐNG ở tay nắm mới hiện. Tóm tắt thiệp: hai "profile"
-  // chú rể / cô dâu, rồi ngày và nơi làm LỄ (ngày chính, không phải ngày tiệc).
-  // .cx-mp-panel phải có ĐÚNG MỘT thẻ con bọc tất cả: CSS cắt chiều cao ở thẻ
-  // con đó, để nội dung thành nhiều thẻ anh em thì phần ngoài thẻ đầu không bị
-  // cắt và lòi ra lúc đang đóng.
-  // Chữ dùng stone của Tailwind (không phải stone-custom) để cài đặt màu của
-  // người dùng không làm chữ trên thẻ mất hút.
+  // Khối tóm tắt thiệp (kéo tay nắm xuống). .cx-mp-panel phải có ĐÚNG MỘT thẻ
+  // con bọc tất cả — CSS cắt chiều cao ở thẻ con đó.
   const profile = (role, label, photo, name) => `
     <div
       class="flex-1 min-w-0 flex flex-col items-center gap-1 rounded-xl bg-white/45 px-2 py-2"
@@ -176,10 +139,7 @@
       </div>
     </div>`;
 
-  // Tay nắm: vuốt lên thu thanh về bong bóng, vuốt xuống mở khối tóm tắt bên
-  // trên. Rộng hết khối cho dễ vuốt; helper lo cử chỉ. Bản `inline` không có
-  // bong bóng — helper tự tắt việc thu gọn khi thiếu bong bóng (canCollapse),
-  // nên tay nắm ở đó chỉ còn nhiệm vụ mở khối tóm tắt.
+  // Tay nắm: vuốt lên thu về bong bóng, vuốt xuống mở khối tóm tắt.
   const handle = `
     <button
       type="button"
@@ -190,10 +150,7 @@
       <span class="w-8 h-1 rounded-full bg-white/70"></span>
     </button>`;
 
-  // Bong bóng: chỉ hiện khi đã thu gọn. Kéo đi khắp màn hình, thả tay thì tự
-  // bay về bám lề; CHẠM (không kéo) = mở lại thanh. Neo sẵn bên phải, helper
-  // ghi đè left/top khi bị kéo. Bên trong chỉ có ảnh bìa bài hát, nốt nhạc là
-  // nền dự phòng khi chưa có ảnh.
+  // Bong bóng: hiện khi đã thu gọn, kéo thả được, chạm = mở lại thanh.
   const bubble = `
     <button
       type="button"
@@ -211,11 +168,8 @@
       />
     </button>`;
 
-  // ── Hai mẫu gọn: NÚT TRÒN và THẺ NHẠC ─────────────────────────────────────
-  // Khác bản thanh ngang ở chỗ dùng class TỰ VIẾT .cx-mw-* (styles/_music-player.css)
-  // với mọi kích thước bên trong tính bằng `em`: runtime đặt font-size theo bề
-  // ngang thật nên kéo to nhỏ là cả widget phóng theo tỉ lệ. Icon là SVG inline
-  // để không phụ thuộc Font Awesome.
+  // Hai mẫu gọn (nút tròn, thẻ nhạc): class .cx-mw-* (styles/_music-player.css),
+  // kích thước bên trong bằng `em` → kéo to nhỏ là cả widget phóng theo.
   const SVG = {
     note: '<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M13 2 6 3.6v6.6a2.2 2.2 0 1 0 1.2 1.9V6l4.6-1v3.6a2.2 2.2 0 1 0 1.2 1.9z"/></svg>',
     play: '<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M4 2.5v11l9-5.5z"/></svg>',
@@ -233,10 +187,7 @@
     SVG.note +
     '</span><img data-cx-music="thumb" alt="" hidden class="cx-mp-spin" /></span>';
 
-  // Nút phát của hai mẫu gọn: hai icon chồng nhau, CSS chọn cái nào hiện theo
-  // .is-playing trên thẻ root. Cố ý KHÔNG dùng data-cx-play-icon/pause-icon
-  // (cách đổi class icon của Font Awesome) — hai mẫu này phải chạy được cả ở
-  // theme không nạp Font Awesome.
+  // Nút phát của hai mẫu gọn: hai icon SVG chồng nhau, CSS chọn theo .is-playing.
   const playBtn = (cls) =>
     '<button type="button" data-cx-music="toggle" aria-label="Phát hoặc tạm dừng nhạc nền" class="' +
     cls +
@@ -280,19 +231,9 @@
 
   /**
    * Dựng trình phát nhạc.
-   * @param {Object} [opts]
-   * @param {"bar"|"mini"|"card"} [opts.variant="bar"] Mẫu hiển thị.
-   * @param {"fixed-top"|"inline"} [opts.chrome="inline"]
-   *        fixed-top = thanh neo đỉnh màn hình + bong bóng thu gọn (trang thiệp);
-   *        inline    = khối trần, người dùng tự đặt chỗ (panel Thành phần).
-   * @param {boolean} [opts.summary]
-   *        Có khối tóm tắt thiệp (kéo tay nắm xuống) hay không. Mặc định:
-   *        fixed-top luôn có; inline chỉ có khi theme thật sự cung cấp dữ liệu
-   *        tóm tắt (window.__cxMusicSummary do renderMusicSummary đặt) — không
-   *        thì bày ra một khối rỗng.
-   * @param {number} [opts.revealOnScroll=64] Chỉ dùng cho fixed-top: hiện khi
-   *        đã cuộn quá N px. Truyền 0 để luôn hiện.
-   * @returns {HTMLElement} thẻ gốc, đã gắn sẵn các vai trò data-cx-music.
+   * @param {{variant?:"bar"|"mini"|"card", chrome?:"fixed-top"|"inline",
+   *          summary?:boolean, revealOnScroll?:number}} [opts]
+   * @returns {HTMLElement}
    */
   function build(opts) {
     const o = opts || {};
@@ -311,15 +252,9 @@
       return node;
     }
 
-    // ── Mẫu thanh ngang ──
-    // Giữ id="music-toggle" vì setupMusic() (render-helper.js) ẩn/hiện theo id
-    // này (display:none / flex) — nên thẻ phải là flex-col.
-    // Cố ý KHÔNG đặt id="music-icon" (icon của nút tròn kiểu cũ) để
-    // updateMusicIcon() dùng chung không ghi đè icon của thẻ này.
-    // .cx-no-edit để runtime chỉnh-tay của tab Giao diện bỏ qua thẻ này.
-    // Canh giữa bằng inset-x-0 + mx-auto chứ KHÔNG dùng -translate-x-1/2: tổ
-    // tiên có transform sẽ thành containing block, bong bóng `fixed` bên trong
-    // sẽ neo theo thẻ này thay vì theo màn hình → kéo thả sai chỗ.
+    // Mẫu thanh ngang. id="music-toggle" để setupMusic() ẩn/hiện (display
+    // none/flex) → thẻ phải flex-col. Canh giữa bằng inset-x-0 + mx-auto, không
+    // dùng translate (transform ở tổ tiên làm bong bóng `fixed` neo sai chỗ).
     node.setAttribute("data-cx-play-icon", "fas fa-play ml-px");
     node.setAttribute("data-cx-pause-icon", "fas fa-pause");
 

@@ -1,23 +1,17 @@
 /**
  * AUTH.JS — Nguồn sự thật DUY NHẤT cho câu hỏi "đang đăng nhập hay chưa".
- *
- * Trước đây mỗi trang tự trả lời một kiểu: invitation-setup parse localStorage
- * bằng tay, payment.js / home-payment.js / auth-nav.js / theme-template mỗi nơi
- * cache một biến riêng từ getSession(). Hành vi lệch nhau và sửa một lỗi phải
- * sửa 6 chỗ → gom hết về đây.
- *
  * Nạp SAU core/config.js + supabase-js (và core/auth-ui.js nếu trang có), TRƯỚC
- * mọi file gọi CXAuth. Client được lấy lười (lazy) nên không cần chặt hơn thế.
+ * mọi file gọi CXAuth.
  *
- *   CXAuth.isLoggedIn()   → boolean NGAY LẬP TỨC — dùng để vẽ UI lần đầu
- *   CXAuth.getUserSync()  → user | null, cùng nguồn với isLoggedIn()
- *   CXAuth.getUser()      → Promise<user|null> — hỏi supabase (tự refresh token)
- *   CXAuth.accessToken()  → Promise<string|null> — JWT cho request cần quyền
- *   CXAuth.onChange(cb)   → theo dõi phiên, trả về hàm huỷ đăng ký
+ *   CXAuth.isLoggedIn()   boolean NGAY LẬP TỨC — dùng để vẽ UI lần đầu
+ *   CXAuth.getUserSync()  user | null, cùng nguồn với isLoggedIn()
+ *   CXAuth.getUser()      Promise<user|null> — hỏi supabase (tự refresh token)
+ *   CXAuth.accessToken()  Promise<string|null> — JWT cho request cần quyền
+ *   CXAuth.onChange(cb)   theo dõi phiên, trả về hàm huỷ đăng ký
  *
  * QUY TẮC: vẽ UI thì dùng bản SYNC (khỏi nhấp nháy); mọi quyết định GHI (lưu DB,
- * xuất bản, gọi API cần quyền) phải `await` bản ASYNC — access token hết hạn vẫn
- * refresh lại được, nên chỉ supabase mới biết chắc phiên còn hay đã mất.
+ * xuất bản, gọi API cần quyền) phải `await` bản ASYNC — token hết hạn vẫn refresh
+ * được nên chỉ supabase mới biết chắc phiên còn hay đã mất.
  */
 (function () {
   let _client = null;

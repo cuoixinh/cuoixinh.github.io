@@ -1,7 +1,5 @@
 // Cấu hình, state toàn cục của trang, bản nháp localStorage và _onDomReady().
 // PHẢI nạp đầu tiên: các file sau dùng _onDomReady và state khai báo ở đây.
-//
-// Tách từ index.js (dòng 1–57 bản gốc). Thứ tự nạp khai báo ở loader.js.
 
 // Configuration
 const WEDDING_ID = new URLSearchParams(window.location.search).get("id");
@@ -31,20 +29,15 @@ let _themeSetting = {};
 // Draft state: true = chỉ có trong localStorage, chưa lên DB
 let _isLocalDraft = false;
 
-// Đang đăng nhập hay không — CỜ dùng chung cho cả trang, thay vì mỗi nơi tự hỏi
-// CXAuth (core/auth.js). Được đặt lúc nạp dữ liệu (loadData), trước mỗi hành động
-// lưu/xuất bản, và tự cập nhật theo mọi biến động phiên (đăng nhập, đăng xuất,
-// kể cả thao tác ở tab khác) nhờ _watchLoginState().
+// Đang đăng nhập hay không — CỜ dùng chung cho cả trang thay vì mỗi nơi tự hỏi
+// CXAuth (core/auth.js). Đặt lúc nạp dữ liệu (loadData), trước mỗi lần lưu/xuất
+// bản, và tự cập nhật theo mọi biến động phiên nhờ _watchLoginState().
 let IS_LOGIN = false;
 
-// Publish state — controls whether Advanced section is enabled.
-// LƯU Ý: IS_PUBLISHED chỉ là cờ ĐỌC TỪ DỮ LIỆU, KHÔNG phải quyền — nó được gán từ
-// `data.is_published` của bản đọc về (getWeddingById dùng ANON KEY nên người đã
-// đăng xuất vẫn đọc được thiệp) hoặc từ bản nháp còn trong cache của trình duyệt
-// (payload có is_published: true được ghi vào cache TRƯỚC khi gọi DB, lần publish
-// nào lỗi giữa chừng là cờ đó nằm lại). Nút/chức năng "đã xuất bản" mà THỰC CHẤT
-// cần đăng nhập (nhãn "Lưu & Xuất bản", ẩn nút "Lưu nháp", panel khách mời) phải
-// xét `IS_PUBLISHED && IS_LOGIN`.
+// IS_PUBLISHED là cờ ĐỌC TỪ DỮ LIỆU, KHÔNG phải quyền: getWeddingById dùng ANON
+// KEY nên người đã đăng xuất vẫn đọc được, và bản nháp trong cache cũng giữ cờ đó.
+// Nút/chức năng thực chất cần đăng nhập (nhãn "Lưu & Xuất bản", ẩn "Lưu nháp",
+// panel khách mời) phải xét `IS_PUBLISHED && IS_LOGIN`.
 let IS_PUBLISHED = false;
 
 // Gán cờ và vẽ lại UI phụ thuộc phiên NGAY khi giá trị đổi. Mọi lối cập nhật cờ

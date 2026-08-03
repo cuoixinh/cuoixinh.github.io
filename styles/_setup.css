@@ -1,14 +1,8 @@
-/* ===========================================================================
-   Partial cho trang thiết lập thiệp (invitation-setup) — @import vào
-   styles/tailwind-src.css → styles/build.css. Thay cho invitation-setup/setup.css.
-
-   Nguyên tắc chuyển đổi:
-   • Component CỦA MÌNH (.cx-*, .color-chip) → viết bằng @apply.
-   • Override DOM của thư viện ngoài (#clr-picker của Coloris, .flatpickr-*)
-     → GIỮ CSS THUẦN: các rule này phụ thuộc `order`, calc(), !important và
-     cấu trúc DOM do lib dựng, @apply không diễn đạt được mà chỉ thêm rủi ro.
-   • Style modal AI: xem styles/_ai-modal.css
-   =========================================================================== */
+/* Partial cho trang thiết lập thiệp (invitation-setup) — @import vào
+   styles/tailwind-src.css → styles/build.css.
+   Component của mình (.cx-*, .color-chip) viết bằng @apply; override DOM của thư
+   viện ngoài (#clr-picker của Coloris, .flatpickr-*) giữ CSS THUẦN.
+   Style modal AI: xem styles/_ai-modal.css. */
 
 /* Chiều cao thanh dưới = navbar (60px) + local draft notice (nếu hiện).
    JS đo lại qua ResizeObserver; giá trị này là mặc định khi chưa có notice. */
@@ -16,13 +10,9 @@
   --nav-h: 60px;
 }
 
-/* ============================================================
-   Cột chỉnh giao diện (#theme-controls) trên desktop.
-   Mobile giữ nguyên thanh dưới full-width → mọi thứ ở đây chỉ áp
-   dụng từ md (>=768px). Rộng mặc định 1/4 cụm, kéo được: JS ghi
-   --theme-ctrl-w (px) lên #theme-controls, min/max kẹp lại đây.
-   Đặt trong media query để inline var không ảnh hưởng mobile.
-   ============================================================ */
+/* Cột chỉnh giao diện (#theme-controls) trên desktop — mọi thứ ở đây chỉ áp dụng
+   từ md (>=768px). Rộng mặc định 1/4 cụm, kéo được: JS ghi --theme-ctrl-w (px),
+   min/max kẹp ở đây. Đặt trong media query để inline var không ảnh hưởng mobile. */
 @media (min-width: 768px) {
   #theme-controls {
     flex: 0 0 auto;
@@ -73,18 +63,12 @@
     0 1px 3px rgba(0, 0, 0, 0.12);
 }
 
-/* Vị trí ngang của popup: _alignPickerToChip() trong js/05-theme-panel.js dời
-   TẠM ô input trước khi Coloris đo, để chính Coloris đặt popup vào giữa chip
-   (dời popup sau khi mở sẽ làm lệch toạ độ vùng màu nó đã cache). Không đặt
-   !important ở đây, nếu không sẽ chặn mất inline style Coloris ghi. */
+/* Vị trí ngang của popup do _alignPickerToChip() (js/05-theme-panel.js) lo. Không
+   đặt !important ở đây, nếu không sẽ chặn mất inline style Coloris ghi. */
 
-/* ============================================================
-   Bảng chọn màu (Coloris) — tùy biến hợp tông thiệp cưới.
-   Coloris xếp phần tử bằng flex `order`; ta gán lại để ra bố cục dọc:
-   vùng màu → thanh hue → swatch → hàng cuối (preview · hex · nút Xong).
-   Đè lên CSS gốc bằng #clr-picker; dùng px & bội số 4 theo quy tắc dự án.
-   DOM của lib → giữ CSS thuần (xem ghi chú đầu file).
-   ============================================================ */
+/* Bảng chọn màu (Coloris) — hợp tông thiệp cưới. Coloris xếp phần tử bằng flex
+   `order`; gán lại để ra bố cục dọc: vùng màu → hue → swatch → hàng cuối. Đè bằng
+   #clr-picker; DOM của lib nên giữ CSS thuần. */
 #clr-picker.clr-large {
   width: 264px;
   align-items: center; /* căn giữa dọc cho hàng cuối (preview · hex · Xong) */

@@ -1,14 +1,10 @@
-// Tích hợp AI "Tối ưu" (làm giàu nội dung) cho các ô văn bản của trang thiết lập.
-// Dùng CHUNG endpoint ai-invitation (mode=optimize), truyền inputType để server chọn
-// prompt phù hợp (slogan | rsvp | footer | love_story | timeline | share).
-//
-// Các textarea AI dùng CHUNG thanh navbar đáy ô giống modal "Tạo nội dung với AI":
-// [Tối ưu · Mic · Hoàn tác · Làm lại] — do x-undo.js (attachUndoRedo) dựng, cùng style
-// .x-ta-toolbar-btn. Nút "Tối ưu" là tuỳ chọn opts.optimize của attachUndoRedo.
-//
-// Đăng ký trong loader.js SAU 14-timeline-story.js: tham chiếu state _loveStoryItems
-// / _timelineItems (khai báo ở file 14) chỉ bên trong thân hàm, chạy lúc runtime nên
-// toàn bộ script đã nạp xong.
+// AI "Tối ưu" (làm giàu nội dung) cho các ô văn bản của trang thiết lập. Dùng
+// CHUNG endpoint ai-invitation (mode=optimize), truyền inputType để server chọn
+// prompt (slogan | rsvp | footer | love_story | timeline | share).
+// Nút "Tối ưu" là tuỳ chọn opts.optimize của attachUndoRedo (x-undo.js), nằm trên
+// cùng thanh [Tối ưu · Mic · Hoàn tác · Làm lại].
+// Đăng ký trong loader.js SAU 14-timeline-story.js (dùng _loveStoryItems /
+// _timelineItems khai báo ở đó).
 
 // Bật/tắt trạng thái "đang tối ưu" của nút (CSS làm icon quay + khoá click).
 function _setAiWandLoading(btn, on) {

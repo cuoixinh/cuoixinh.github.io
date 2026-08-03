@@ -1,9 +1,6 @@
-// ============================================================
-// QR-MOBILE-HELPER.JS - QR code để mở thiệp nhanh trên mobile (F-31)
-// Dùng chung cho cả 3 theme: tự dựng card nổi (không cần đặt HTML
-// riêng ở từng template) hiện sẵn mã QR - không cần bấm gì, chỉ
-// hiện trên desktop (Tailwind `lg:`), có thể thu gọn về nút tròn nhỏ.
-// ============================================================
+// QR mở thiệp nhanh trên mobile (F-31). Dùng chung cho cả 3 theme: tự dựng card
+// nổi hiện sẵn mã QR (không cần HTML riêng ở từng template), chỉ hiện trên
+// desktop (Tailwind `lg:`), thu gọn được về nút tròn nhỏ.
 
 const QRCODEJS_CDN_URL =
   "https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js";
@@ -11,10 +8,7 @@ const QRCODEJS_CDN_URL =
 let qrLibLoadPromise = null;
 let qrMobileRendered = false;
 
-/**
- * Key cache lưu trạng thái thu gọn - theo từng thiệp (slug) để đóng
- * ở thiệp này không ảnh hưởng thiệp khác xem cùng trình duyệt.
- */
+/** Key cache trạng thái thu gọn — theo từng thiệp (slug). */
 function getQRCollapseStorageKey() {
   const slug = typeof getSlugFromUrl === "function" ? getSlugFromUrl() : null;
   return buildCacheKey("qr_mobile_collapsed", slug || "default");
@@ -38,10 +32,7 @@ function loadQRCodeLib() {
   return qrLibLoadPromise;
 }
 
-/**
- * Dựng markup card + nút thu gọn, chèn vào cuối body. Không cần đặt
- * sẵn trong từng file index.html của theme.
- */
+/** Dựng markup card + nút thu gọn, chèn vào cuối body. */
 function buildMobileQRWidget() {
   if (document.getElementById("qr-mobile-fab")) return;
 
@@ -86,17 +77,11 @@ function buildMobileQRWidget() {
 }
 
 /**
- * Link sẽ nạp vào mã QR.
- *
- * Trang thiệp thật (và preview mẫu demo): URL hiện tại mở ở máy nào cũng ra đúng
- * nội dung đó → dùng thẳng, giữ nguyên tên khách đã cá nhân hoá trong URL nếu có.
- *
- * Preview dữ liệu thật (`source=live`, trong trang Thiết lập): nội dung lấy từ
- * `sessionStorage.preview_data` của CHÍNH trình duyệt này. Máy khác quét URL iframe
- * sẽ không có sessionStorage đó nên rơi về dữ liệu demo — sai hoàn toàn thứ đang
- * xem. Vì vậy link thiệp thật do trang Thiết lập truyền sang qua `?qr=` (bản đã
- * lưu gần nhất trên hệ thống); không có (thiệp chưa lưu lên hệ thống) → không dựng
- * QR, hiện lời nhắc thay thế.
+ * Link sẽ nạp vào mã QR. Trang thiệp thật và preview mẫu demo: dùng thẳng URL
+ * hiện tại. Preview dữ liệu thật (`source=live`) lấy nội dung từ
+ * sessionStorage.preview_data của CHÍNH trình duyệt này nên máy khác quét sẽ ra
+ * dữ liệu demo → dùng link thiệp thật do trang Thiết lập truyền qua `?qr=`;
+ * không có (thiệp chưa lưu lên hệ thống) → không dựng QR.
  */
 function getQRTargetUrl() {
   const params = new URLSearchParams(window.location.search);
@@ -104,10 +89,7 @@ function getQRTargetUrl() {
   return params.get("qr") || null; // URLSearchParams đã tự giải mã
 }
 
-/**
- * Thiệp chưa lên hệ thống → máy khác không tải được nội dung đang xem.
- * Nói rõ lý do thay vì đưa mã QR dẫn tới bản demo.
- */
+/** Thiệp chưa lên hệ thống → nói rõ lý do thay vì đưa QR dẫn tới bản demo. */
 function renderMobileQRUnavailable() {
   const qrContainer = document.getElementById("qr-mobile-canvas");
   if (!qrContainer) return;
@@ -181,10 +163,8 @@ function expandMobileQR() {
 }
 
 function initMobileQRWidget() {
-  // Chỉ ẩn trong iframe nhỏ ở tab "Giao diện" (?edit=1 - đang chỉnh màu/chữ
-  // trực tiếp, không gian chật, hiện QR sẽ vướng). Tab "Xem trước"
-  // (source=live, không edit) là iframe toàn màn hình mô phỏng đúng trải
-  // nghiệm khách thật nên vẫn hiện QR bình thường.
+  // Chỉ ẩn trong iframe nhỏ ở tab "Giao diện" (?edit=1, không gian chật). Tab
+  // "Xem trước" (source=live, không edit) vẫn hiện QR bình thường.
   const params = new URLSearchParams(window.location.search);
   if (params.get("edit") === "1") return;
 
