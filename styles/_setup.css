@@ -575,6 +575,53 @@ input.flatpickr-input[readonly] {
   -webkit-user-drag: none;
 }
 
+/* Bảng "Công cụ" — thẻ một công cụ ĐÃ THẢ lên thiệp: tên + nút ẩn/xoá ở hàng
+   trên, dãy mẫu ở hàng dưới. Khác .cx-addtext-item (thẻ để KÉO) nên không dùng
+   chung: thẻ này không kéo được, bên trong toàn nút bấm. */
+.cx-tool-card {
+  @apply flex flex-col gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2.5;
+}
+
+.cx-tool-card-head {
+  @apply flex items-center gap-3;
+}
+
+.cx-tool-card-name {
+  @apply min-w-0 flex-auto truncate text-[13px] font-semibold text-gray-700;
+}
+
+.cx-tool-card-off .cx-tool-card-name {
+  @apply text-gray-400;
+}
+
+/* Nút tròn ẩn/hiện + xoá */
+.cx-tool-act {
+  @apply inline-flex h-7 w-7 flex-none items-center justify-center rounded-lg
+         border border-gray-200 bg-white text-gray-500 transition-all
+         duration-150 hover:border-rose-400 hover:bg-[#fff5f6] hover:text-rose-600;
+}
+
+/* Dãy chọn mẫu */
+.cx-tool-skins {
+  @apply flex flex-wrap gap-1.5;
+}
+
+.cx-tool-skin-btn {
+  @apply rounded-lg border border-gray-200 bg-white px-2.5 py-1 text-[12px]
+         text-gray-600 transition-all duration-150 hover:border-rose-400
+         hover:bg-[#fff5f6] hover:text-rose-600;
+}
+
+.cx-tool-skin-btn[aria-pressed="true"] {
+  @apply border-rose-400 bg-[#fff5f6] font-semibold text-rose-600;
+}
+
+/* Nhắc chưa có nhạc nền */
+.cx-tool-warn {
+  @apply flex items-start gap-2 rounded-xl border border-dashed border-amber-300
+         bg-amber-50 px-3 py-2 text-[12px] leading-4 text-amber-700;
+}
+
 /* Bóng mờ theo con trỏ khi kéo mẫu từ palette vào thiệp:
    là bản sao của chính thẻ mẫu, làm mờ để phân biệt với bản gốc. */
 .cx-drag-ghost {

@@ -290,6 +290,12 @@ window.addEventListener("message", (ev) => {
     // Hoạ tiết vừa thêm / kéo / xoay / xoá trong thiệp → lưu toạ độ mới.
     _themeSetting.decorations = Array.isArray(d.decors) ? d.decors : [];
     _setDirty(true, "theme");
+  } else if (d.type === "cx-tools-changed") {
+    // Công cụ vừa thả / kéo / đổi mẫu / ẩn / xoá → lưu lại và vẽ lại danh sách
+    // "Đã có trên thiệp" (bảng Công cụ có thể đang mở).
+    _themeSetting.tools = Array.isArray(d.tools) ? d.tools : [];
+    _setDirty(true, "theme");
+    _renderPlacedTools();
   }
 });
 
@@ -597,6 +603,235 @@ function _addDecor(src, x, y) {
   closeDecorPanel();
   _setDirty(true, "theme");
   _lineIframe()?.contentWindow?.postMessage({ type: "cx-add-decor", src, x, y }, "*");
+}
+
+// ─── Công cụ: bảng chọn công cụ thả lên thiệp ────────────────────────────────
+// Danh mục lấy từ window.CX_TOOLS (core/helpers/tools-helper.js) nên thêm công
+// cụ mới thì không phải sửa gì ở đây. Cách kéo-thả giống hệt hoạ tiết (lưu theo
+// toạ độ), chỉ khác là sau khi thả thì bảng VẪN MỞ — người dùng thường chọn mẫu
+// ngay sau đó.
+
+function openToolsPanel() {
+  document.getElementById("theme-line-editor")?.classList.add("hidden");
+  document.getElementById("theme-addtext-panel")?.classList.add("hidden");
+  document.getElementById("theme-decor-panel")?.classList.add("hidden");
+  document.getElementById("theme-main-controls")?.classList.add("hidden");
+  document.getElementById("theme-edit-hint")?.classList.add("hidden");
+  document.getElementById("theme-tools-panel")?.classList.remove("hidden");
+  _renderToolsPalette();
+  _renderPlacedTools();
+  if (window.lucide) lucide.createIcons();
+}
+window.openToolsPanel = openToolsPanel;
+
+function closeToolsPanel() {
+  document.getElementById("theme-tools-panel")?.classList.add("hidden");
+  document.getElementById("theme-main-controls")?.classList.remove("hidden");
+  _initEditHint();
+}
+window.closeToolsPanel = closeToolsPanel;
+
+// Thiệp đã chọn bài nhạc chưa? Ô thật nằm ở tab Thiết lập (ngoài <form>), đây
+// chỉ đọc để nhắc — bật/tắt nhạc vẫn là việc của tab Thiết lập.
+function _hasMusicUrl() {
+  return !!document.getElementById("music-url-input")?.value?.trim();
+}
+
+function _renderToolsPalette() {
+  const box = document.getElementById("cx-tools-palette");
+  if (!box || box.dataset.rendered === "1") return;
+  const reg = window.CX_TOOLS || {};
+  box.textContent = "";
+  Object.values(reg).forEach((def) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "cx-addtext-item";
+    btn.title = "Kéo vào thiệp hoặc bấm để thêm";
+    btn.innerHTML =
+      '<span class="cx-addtext-ico">' +
+      def.icon +
+      "</span>" +
+      '<span class="cx-addtext-txt"><b></b><small></small></span>' +
+      '<i data-lucide="grip-vertical" class="cx-addtext-grip !w-[16px] !h-[16px]"></i>';
+    // Tên/mô tả gán bằng textContent (không nhét vào chuỗi HTML) cho an toàn.
+    btn.querySelector("b").textContent = def.name;
+    btn.querySelector("small").textContent = def.desc || "";
+    btn.addEventListener("pointerdown", (e) => startToolDrag(e, def.id));
+    box.appendChild(btn);
+  });
+  box.dataset.rendered = "1";
+}
+
+// Danh sách công cụ ĐÃ thả: đổi mẫu, ẩn/hiện, xoá. Vẽ lại mỗi lần model đổi.
+function _renderPlacedTools() {
+  const wrap = document.getElementById("cx-tools-placed");
+  const list = document.getElementById("cx-tools-placed-list");
+  if (!wrap || !list) return;
+  const reg = window.CX_TOOLS || {};
+  const tools = Array.isArray(_themeSetting.tools) ? _themeSetting.tools : [];
+  wrap.classList.toggle("hidden", tools.length === 0);
+  list.textContent = "";
+
+  tools.forEach((t) => {
+    const def = reg[t.tool];
+    if (!def) return;
+    const card = document.createElement("div");
+    card.className = "cx-tool-card" + (t.visible === false ? " cx-tool-card-off" : "");
+
+    const head = document.createElement("div");
+    head.className = "cx-tool-card-head";
+    const name = document.createElement("span");
+    name.className = "cx-tool-card-name";
+    name.textContent = def.name + (t.visible === false ? " · đang ẩn" : "");
+    const eye = document.createElement("button");
+    eye.type = "button";
+    eye.className = "cx-tool-act";
+    eye.title = t.visible === false ? "Hiện lại trên thiệp" : "Ẩn trên thiệp";
+    eye.setAttribute("aria-label", eye.title);
+    eye.innerHTML =
+      '<i data-lucide="' +
+      (t.visible === false ? "eye-off" : "eye") +
+      '" class="!w-[15px] !h-[15px]"></i>';
+    eye.addEventListener("click", () =>
+      _toolMessage("cx-tool-set", { id: t.id, patch: { visible: t.visible === false } }),
+    );
+    const del = document.createElement("button");
+    del.type = "button";
+    del.className = "cx-tool-act";
+    del.title = "Gỡ khỏi thiệp";
+    del.setAttribute("aria-label", del.title);
+    del.innerHTML = '<i data-lucide="trash-2" class="!w-[15px] !h-[15px]"></i>';
+    del.addEventListener("click", () => _toolMessage("cx-tool-del", { id: t.id }));
+    head.append(name, eye, del);
+
+    const skins = document.createElement("div");
+    skins.className = "cx-tool-skins";
+    def.variants.forEach((v) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "cx-tool-skin-btn";
+      b.textContent = v.name;
+      b.title = v.desc || v.name;
+      b.setAttribute("aria-pressed", String(v.id === t.variant));
+      b.addEventListener("click", () =>
+        _toolMessage("cx-tool-set", { id: t.id, patch: { variant: v.id } }),
+      );
+      skins.appendChild(b);
+    });
+
+    card.append(head, skins);
+
+    // Công cụ cần nhạc nền mà thiệp chưa chọn bài → nhắc, kèm lối sang Thiết lập.
+    if (def.needs === "music" && !_hasMusicUrl()) {
+      const warn = document.createElement("div");
+      warn.className = "cx-tool-warn";
+      warn.innerHTML =
+        '<i data-lucide="info" class="!w-[14px] !h-[14px] mt-px shrink-0"></i>' +
+        "<span>Thiệp chưa có nhạc nền nên trình phát chưa hiện ra. " +
+        'Chọn bài ở tab <b>Thiết lập</b> → mục Nhạc nền.</span>';
+      card.appendChild(warn);
+    }
+
+    list.appendChild(card);
+  });
+  if (window.lucide) lucide.createIcons();
+}
+
+function _toolMessage(type, payload) {
+  _setDirty(true, "theme");
+  _lineIframe()?.contentWindow?.postMessage({ type, ...payload }, "*");
+}
+
+// Kéo công cụ TỪ bảng chọn THẢ vào thiệp — y hệt hoạ tiết: giữ pointer-capture ở
+// nút, tắt pointer-events của iframe để trang cha vẫn nhận pointermove, thả trong
+// iframe thì gửi TOẠ ĐỘ điểm thả cho runtime.
+let _toolDrag = null;
+function startToolDrag(e, toolId) {
+  if (e.button != null && e.button !== 0) return;
+  const btn = e.currentTarget;
+  e.preventDefault();
+  try {
+    btn.setPointerCapture(e.pointerId);
+  } catch (err) {}
+  const iframe = _lineIframe();
+  if (iframe) iframe.style.pointerEvents = "none";
+  const r = btn.getBoundingClientRect();
+  _toolDrag = {
+    toolId,
+    btn,
+    iframe,
+    x0: e.clientX,
+    y0: e.clientY,
+    offX: e.clientX - r.left,
+    offY: e.clientY - r.top,
+    moved: false,
+    ghost: null,
+  };
+  const move = (ev) => _toolDragMove(ev);
+  const up = (ev) => {
+    btn.removeEventListener("pointermove", move);
+    btn.removeEventListener("pointerup", up);
+    btn.removeEventListener("pointercancel", up);
+    _toolDragEnd(ev);
+  };
+  btn.addEventListener("pointermove", move);
+  btn.addEventListener("pointerup", up);
+  btn.addEventListener("pointercancel", up);
+}
+window.startToolDrag = startToolDrag;
+
+function _toolDragMove(ev) {
+  const d = _toolDrag;
+  if (!d) return;
+  if (!d.moved) {
+    if (Math.hypot(ev.clientX - d.x0, ev.clientY - d.y0) < 6) return;
+    d.moved = true;
+    d.ghost = d.btn.cloneNode(true);
+    d.ghost.removeAttribute("id");
+    d.ghost.classList.add("cx-drag-ghost");
+    d.ghost.style.width = `${d.btn.offsetWidth}px`;
+    d.ghost.style.left = `${ev.clientX - d.offX}px`;
+    d.ghost.style.top = `${ev.clientY - d.offY}px`;
+    document.body.appendChild(d.ghost);
+  }
+  const gw = d.ghost.offsetWidth || d.btn.offsetWidth;
+  const vw = document.documentElement.clientWidth;
+  d.ghost.style.left =
+    Math.max(8, Math.min(ev.clientX - d.offX, vw - gw - 8)) + "px";
+  d.ghost.style.top = ev.clientY - d.offY + "px";
+}
+
+function _toolDragEnd(ev) {
+  const d = _toolDrag;
+  _toolDrag = null;
+  if (!d) return;
+  d.ghost?.remove();
+  if (d.iframe) d.iframe.style.pointerEvents = "";
+  const iframe = d.iframe || _lineIframe();
+  if (!iframe) return;
+
+  const r = iframe.getBoundingClientRect();
+  const inside =
+    d.moved &&
+    ev.clientX >= r.left &&
+    ev.clientX <= r.right &&
+    ev.clientY >= r.top &&
+    ev.clientY <= r.bottom;
+
+  // Bấm (không kéo) → đặt vào giữa thiệp; kéo ra ngoài iframe → bỏ qua.
+  if (!d.moved) {
+    _addTool(d.toolId, null, null);
+  } else if (inside) {
+    _addTool(d.toolId, ev.clientX - r.left, ev.clientY - r.top);
+  }
+}
+
+function _addTool(toolId, x, y) {
+  _setDirty(true, "theme");
+  _lineIframe()?.contentWindow?.postMessage(
+    { type: "cx-add-tool", tool: toolId, x, y },
+    "*",
+  );
 }
 
 function _lineIframe() {

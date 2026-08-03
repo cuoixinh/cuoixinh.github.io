@@ -44,6 +44,11 @@ async function loadWeddingData(weddingSlug, renderCallback) {
     if (typeof applyDecorations === "function") {
       applyDecorations(wedding.theme_setting);
     }
+    // Công cụ thả lên thiệp (trình phát nhạc…) — sau renderWedding vì nó cần
+    // biết thiệp có nhạc nền chưa (setupMusic đặt cờ __cxMusicOn).
+    if (typeof applyTools === "function") {
+      applyTools(wedding.theme_setting);
+    }
   } catch (error) {
     console.error("Lỗi load wedding data:", error);
     if (!isPreviewMode()) {

@@ -1181,6 +1181,478 @@ function applyDecorations(setting) {
   _cxDecorRender();
 }
 
+// ============================================================
+// TOOLS — "công cụ" thả tự do lên thiệp (trước mắt: Trình phát nhạc).
+// Danh mục công cụ + markup từng mẫu nằm ở core/helpers/tools-helper.js.
+// Lưu ở theme_setting.tools = [{ id, tool, variant, x, y, w, visible }]:
+//   x, y  % so với #main-card, tính theo TÂM widget — giống hoạ tiết, nên giữ
+//         đúng chỗ trên mọi khổ màn hình.
+//   w     % bề ngang thiệp; visible=false = tạm ẩn (vẫn giữ chỗ để bật lại).
+//
+// Khác hoạ tiết ở đúng hai chỗ:
+//   · Trang công khai widget PHẢI bấm được (phát, tua, kéo xem tóm tắt) nên nó
+//     luôn bắt chuột, không như hoa chỉ để ngắm.
+//   · Ngược lại, ở chế độ chỉnh thì KHOÁ hết tương tác bên trong — không thì kéo
+//     widget đi lại hoá ra bấm nút phát.
+// ============================================================
+let _cxTools = [];
+let _cxToolActiveId = null;
+let _cxToolOutsideBound = false;
+let _cxToolResizeBound = false;
+
+function _cxToolDef(t) {
+  return (window.CX_TOOLS || {})[t && t.tool];
+}
+
+function _cxToolVariant(t) {
+  const def = _cxToolDef(t);
+  if (!def) return null;
+  return def.variants.find((v) => v.id === t.variant) || def.variants[0];
+}
+
+// Công cụ cần nhạc nền mà thiệp chưa có link → không vẽ trình phát câm.
+function _cxToolReady(t) {
+  const def = _cxToolDef(t);
+  return !def || def.needs !== "music" || !!window.__cxMusicOn;
+}
+
+function _cxToolLayer() {
+  const card = document.getElementById("main-card");
+  if (!card) return null;
+  if (getComputedStyle(card).position === "static")
+    card.style.position = "relative";
+  if (getComputedStyle(card).isolation !== "isolate")
+    card.style.isolation = "isolate";
+  let layer = document.getElementById("cx-tool-layer");
+  if (!layer || layer.parentElement !== card) {
+    layer = document.createElement("div");
+    layer.id = "cx-tool-layer";
+    layer.className = "cx-tool-layer";
+    // 46: ngay trên lớp hoa (45) — công cụ là thứ bấm được nên không để hoa đè.
+    layer.style.zIndex = "46";
+    card.appendChild(layer);
+  }
+  return layer;
+}
+
+function _cxToolEnsureStyle() {
+  if (document.getElementById("cx-tool-style")) return;
+  const s = document.createElement("style");
+  s.id = "cx-tool-style";
+  s.textContent =
+    ".cx-tool-layer{position:absolute;inset:0;overflow:hidden;pointer-events:none}" +
+    ".cx-tool{position:absolute;transform:translate(-50%,-50%);pointer-events:auto}" +
+    // Chế độ chỉnh: cả widget là một mảng để kéo, ruột không bấm được.
+    ".cx-tool-edit{cursor:grab;touch-action:none}" +
+    ".cx-tool-edit>*{pointer-events:none}" +
+    ".cx-tool-edit.cx-tool-active{outline:1px dashed #e11d48;outline-offset:6px}" +
+    // Đang tắt hiển thị: chỉ thấy mờ ở chế độ chỉnh để còn bật lại / dời chỗ.
+    ".cx-tool-off{opacity:.4}" +
+    ".cx-tool-badge{position:absolute;left:50%;top:-2.2em;transform:translateX(-50%);" +
+    "display:none;padding:2px 8px;border-radius:9999px;background:#111;color:#fff;" +
+    "font:500 11px/1.6 system-ui,sans-serif;white-space:nowrap;pointer-events:none}" +
+    ".cx-tool-off .cx-tool-badge{display:block}" +
+    // Ô nhắc khi chưa có nhạc nền (chỉ hiện lúc chỉnh)
+    ".cx-tool-hint{display:flex;align-items:center;gap:8px;padding:10px 12px;" +
+    "border:1px dashed #e11d48;border-radius:12px;background:rgba(255,255,255,.9);" +
+    "color:#9f1239;font:500 12px/1.4 system-ui,sans-serif;text-align:left}" +
+    // Bộ nút giống hoạ tiết cho quen tay
+    ".cx-tool-h{position:absolute;width:24px;height:24px;border-radius:9999px;" +
+    "background:#fff;border:1px solid #e11d48;color:#e11d48;display:none;" +
+    "align-items:center;justify-content:center;padding:0;cursor:pointer;" +
+    "box-shadow:0 2px 6px rgba(0,0,0,.18);touch-action:none;z-index:1;pointer-events:auto}" +
+    ".cx-tool-active .cx-tool-h{display:flex}" +
+    ".cx-tool-del{top:-12px;left:-12px}" +
+    ".cx-tool-skin{top:-12px;left:50%;margin-left:-12px}" +
+    ".cx-tool-eye{bottom:-12px;left:-12px}" +
+    ".cx-tool-size{bottom:-12px;right:-12px;cursor:nwse-resize}";
+  document.head.appendChild(s);
+}
+
+// Vị trí + bề ngang + CỠ CHỮ. Cỡ chữ tính từ bề ngang thật của widget (hệ số
+// `fs` của từng mẫu) vì ruột widget viết bằng `em` — nhờ vậy kéo to nhỏ là phóng
+// cả widget theo tỉ lệ, không phải widget to mà chữ vẫn bé như cũ.
+function _cxToolStyle(node, t) {
+  const v = _cxToolVariant(t);
+  node.style.left = t.x + "%";
+  node.style.top = t.y + "%";
+  node.style.width = t.w + "%";
+  const card = document.getElementById("main-card");
+  const cw = card ? card.getBoundingClientRect().width : 0;
+  if (cw && v && v.fs) {
+    node.style.fontSize =
+      Math.max(7, Math.round(((cw * t.w) / 100) * v.fs * 10) / 10) + "px";
+  }
+}
+
+let _cxToolReportTimer = null;
+function _cxToolReport() {
+  clearTimeout(_cxToolReportTimer);
+  _cxToolReportTimer = setTimeout(() => {
+    try {
+      parent.postMessage({ type: "cx-tools-changed", tools: _cxTools }, "*");
+    } catch (e) {}
+  }, 200);
+}
+
+function _cxToolSetActive(id) {
+  _cxToolActiveId = id || null;
+  document.querySelectorAll(".cx-tool").forEach((n) => {
+    n.classList.toggle(
+      "cx-tool-active",
+      n.getAttribute("data-tool-id") === _cxToolActiveId,
+    );
+  });
+}
+
+function _cxToolBindOutside() {
+  if (_cxToolOutsideBound) return;
+  _cxToolOutsideBound = true;
+  document.addEventListener("pointerdown", (e) => {
+    const t = e.target;
+    if (t && t.closest && t.closest(".cx-tool")) return;
+    if (_cxToolActiveId) _cxToolSetActive(null);
+  });
+}
+
+const _CX_TOOL_ICONS = {
+  skin: '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>',
+  eye: '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>',
+  eyeOff:
+    '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.6 6.1A9.9 9.9 0 0 1 12 6c6.4 0 10 7 10 7a15 15 0 0 1-3 3.7M6.6 6.6A15 15 0 0 0 2 13s3.6 7 10 7a9.6 9.6 0 0 0 4.6-1.1"/><path d="M2 2l20 20"/></svg>',
+};
+
+function _cxToolButton(cls, title, icon) {
+  const b = document.createElement("button");
+  b.type = "button";
+  b.className = "cx-tool-h " + cls;
+  b.title = title;
+  b.setAttribute("aria-label", title);
+  b.innerHTML = icon;
+  return b;
+}
+
+function _cxToolBody(t) {
+  const def = _cxToolDef(t);
+  const v = _cxToolVariant(t);
+  if (!def || !v) return null;
+  if (!_cxToolReady(t)) {
+    const hint = document.createElement("div");
+    hint.className = "cx-tool-hint";
+    hint.innerHTML =
+      def.icon + "<span>Chưa có nhạc nền — chọn bài ở tab Thiết lập</span>";
+    return hint;
+  }
+  return def.build(v.id);
+}
+
+function _cxToolNode(t, edit) {
+  const node = document.createElement("div");
+  node.className = "cx-tool" + (edit ? " cx-tool-edit" : "");
+  node.setAttribute("data-tool-id", t.id);
+  if (edit && t.id === _cxToolActiveId) node.classList.add("cx-tool-active");
+  if (edit && !t.visible) node.classList.add("cx-tool-off");
+  _cxToolStyle(node, t);
+
+  const body = _cxToolBody(t);
+  if (!body) return null;
+  node.appendChild(body);
+  node._cxBody = body;
+
+  if (!edit) return node;
+
+  const badge = document.createElement("span");
+  badge.className = "cx-tool-badge";
+  badge.textContent = "Đang ẩn";
+  node.appendChild(badge);
+
+  const del = _cxToolButton("cx-tool-del", "Xoá", _CX_DECOR_ICONS.del);
+  del.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    _cxToolDelete(t.id);
+  });
+  // Đổi mẫu ngay trên thiệp: bấm là xoay vòng qua các mẫu của công cụ. Bảng
+  // Công cụ bên trái vẫn chọn thẳng được từng mẫu.
+  const def = _cxToolDef(t);
+  const skin = _cxToolButton(
+    "cx-tool-skin",
+    "Đổi mẫu (" + (_cxToolVariant(t) || {}).name + ")",
+    _CX_TOOL_ICONS.skin,
+  );
+  skin.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const list = def.variants;
+    const i = list.findIndex((v) => v.id === t.variant);
+    _cxToolSet(t.id, { variant: list[(i + 1) % list.length].id });
+  });
+  const eye = _cxToolButton(
+    "cx-tool-eye",
+    t.visible ? "Ẩn trên thiệp" : "Hiện lại",
+    t.visible ? _CX_TOOL_ICONS.eye : _CX_TOOL_ICONS.eyeOff,
+  );
+  eye.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    _cxToolSet(t.id, { visible: !t.visible });
+  });
+  const size = _cxToolButton(
+    "cx-tool-size",
+    "Kéo để phóng to",
+    _CX_DECOR_ICONS.size,
+  );
+  node.append(del, skin, eye, size);
+
+  _cxToolWireMove(node, t);
+  _cxToolWireResize(size, node, t);
+  return node;
+}
+
+// Kéo cả widget → đổi toạ độ tâm (%). Giống hệt hoạ tiết.
+function _cxToolWireMove(node, t) {
+  node.addEventListener("pointerdown", (e) => {
+    if (e.target.closest(".cx-tool-h")) return;
+    _cxToolSetActive(t.id);
+    const card = document.getElementById("main-card");
+    if (!card) return;
+    const r = card.getBoundingClientRect();
+    const start = { x: e.clientX, y: e.clientY, dx: t.x, dy: t.y };
+    e.preventDefault();
+    try {
+      node.setPointerCapture(e.pointerId);
+    } catch (err) {}
+    node.style.cursor = "grabbing";
+
+    const move = (ev) => {
+      t.x = _cxDecorClamp(
+        start.dx + ((ev.clientX - start.x) / r.width) * 100,
+        0,
+        100,
+      );
+      t.y = _cxDecorClamp(
+        start.dy + ((ev.clientY - start.y) / r.height) * 100,
+        0,
+        100,
+      );
+      _cxToolStyle(node, t);
+    };
+    const up = () => {
+      node.removeEventListener("pointermove", move);
+      node.removeEventListener("pointerup", up);
+      node.removeEventListener("pointercancel", up);
+      node.style.cursor = "";
+      t.x = Math.round(t.x * 10) / 10;
+      t.y = Math.round(t.y * 10) / 10;
+      _cxToolReport();
+    };
+    node.addEventListener("pointermove", move);
+    node.addEventListener("pointerup", up);
+    node.addEventListener("pointercancel", up);
+  });
+}
+
+// Phóng to: chỉ đổi bề ngang (không xoay — widget có chữ, nghiêng là không đọc
+// được). Kẹp trong khoảng min/max của TỪNG MẪU: nút tròn 34% đã là to, còn
+// thanh ngang dưới 45% thì chữ và ba nút chen nhau.
+function _cxToolWireResize(btn, node, t) {
+  btn.addEventListener("pointerdown", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    _cxToolSetActive(t.id);
+    const v = _cxToolVariant(t) || {};
+    const box = node.getBoundingClientRect();
+    const cx = box.left + box.width / 2;
+    const cy = box.top + box.height / 2;
+    const startDist = Math.hypot(e.clientX - cx, e.clientY - cy) || 1;
+    const startW = t.w;
+    try {
+      btn.setPointerCapture(e.pointerId);
+    } catch (err) {}
+
+    const move = (ev) => {
+      const dist = Math.hypot(ev.clientX - cx, ev.clientY - cy);
+      t.w = _cxDecorClamp(
+        startW * (dist / startDist),
+        v.minW || 8,
+        v.maxW || 100,
+      );
+      _cxToolStyle(node, t);
+    };
+    const up = () => {
+      btn.removeEventListener("pointermove", move);
+      btn.removeEventListener("pointerup", up);
+      btn.removeEventListener("pointercancel", up);
+      t.w = Math.round(t.w * 10) / 10;
+      _cxToolReport();
+    };
+    btn.addEventListener("pointermove", move);
+    btn.addEventListener("pointerup", up);
+    btn.addEventListener("pointercancel", up);
+  });
+}
+
+function _cxToolRender() {
+  if (!document.getElementById("main-card")) return;
+  _cxToolEnsureStyle();
+  const edit = _isEditMode();
+  if (edit) _cxToolBindOutside();
+
+  const layer = _cxToolLayer();
+  if (!layer) return;
+  layer.innerHTML = "";
+
+  // Có công cụ nhạc thì trình phát SẴN CÓ của theme phải nhường chỗ, không thì
+  // thiệp có hai trình phát cùng lúc. Gỡ công cụ đi thì trả lại như cũ.
+  const themePlayer = document.getElementById("music-toggle");
+  if (themePlayer) {
+    if (_cxTools.some((t) => t.tool === "music")) {
+      themePlayer.dataset.cxToolHidden = "1";
+      themePlayer.style.display = "none";
+    } else if (themePlayer.dataset.cxToolHidden) {
+      delete themePlayer.dataset.cxToolHidden;
+      themePlayer.style.display = window.__cxMusicOn ? "flex" : "none";
+    }
+  }
+
+  _cxTools.forEach((t) => {
+    // Tắt hiển thị / chưa có nhạc → trang công khai không vẽ gì; lúc chỉnh vẫn
+    // vẽ (mờ đi) để còn bật lại hoặc dời chỗ.
+    if (!edit && (!t.visible || !_cxToolReady(t))) return;
+    const node = _cxToolNode(t, edit);
+    if (!node) return;
+    layer.appendChild(node);
+    // Gắn logic trình phát SAU khi đã vào DOM (helper đo khung để chạy chữ).
+    // Chế độ chỉnh thì không gắn: ruột widget đã bị khoá chuột, gắn vào chỉ tổ
+    // bật nhạc ngoài ý muốn khi bấm chọn.
+    if (edit || !_cxToolReady(t)) return;
+    if (window.replayMusicSummary) window.replayMusicSummary(node._cxBody);
+    if (window.setupMusicPlayer) window.setupMusicPlayer(node._cxBody);
+  });
+
+  // Đổi khổ màn hình → bề ngang thiệp đổi → phải tính lại cỡ chữ theo px.
+  if (!_cxToolResizeBound) {
+    _cxToolResizeBound = true;
+    let raf = 0;
+    window.addEventListener("resize", () => {
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        raf = 0;
+        document.querySelectorAll(".cx-tool").forEach((n) => {
+          const t = _cxTools.find(
+            (x) => x.id === n.getAttribute("data-tool-id"),
+          );
+          if (t) _cxToolStyle(n, t);
+        });
+      });
+    });
+  }
+}
+
+function _cxToolFind(id) {
+  return _cxTools.find((t) => t.id === id);
+}
+
+function _cxToolDelete(id) {
+  _cxTools = _cxTools.filter((t) => t.id !== id);
+  if (_cxToolActiveId === id) _cxToolActiveId = null;
+  _cxToolRender();
+  _cxToolReport();
+}
+
+// Đổi mẫu / bật tắt hiển thị. Đổi mẫu thì trả bề ngang về mặc định của mẫu mới:
+// thanh ngang 88% mà giữ nguyên khi sang nút tròn thì ra một nút to bằng nửa thiệp.
+function _cxToolSet(id, patch) {
+  const t = _cxToolFind(id);
+  if (!t || !patch) return;
+  if (patch.variant && patch.variant !== t.variant) {
+    const def = _cxToolDef(t);
+    const v = def && def.variants.find((x) => x.id === patch.variant);
+    if (v) {
+      t.variant = v.id;
+      t.w = v.w;
+    }
+  }
+  if (typeof patch.visible === "boolean") t.visible = patch.visible;
+  _cxToolActiveId = t.id;
+  _cxToolRender();
+  _cxToolReport();
+}
+
+/**
+ * Thả một công cụ. Toạ độ nhận từ trang cha là PX theo viewport iframe (điểm
+ * thả), đổi sang % của #main-card ở đây; không truyền → đặt giữa thiệp.
+ * Công cụ `single` đã có sẵn thì KHÔNG thêm cái thứ hai, chỉ dời tới chỗ vừa thả.
+ */
+function _cxToolAdd(toolId, clientX, clientY) {
+  const def = (window.CX_TOOLS || {})[toolId];
+  const card = document.getElementById("main-card");
+  if (!def || !card) return;
+  const r = card.getBoundingClientRect();
+  const x =
+    clientX == null
+      ? 50
+      : _cxDecorClamp(((clientX - r.left) / r.width) * 100, 0, 100);
+  const y =
+    clientY == null
+      ? 50
+      : _cxDecorClamp(((clientY - r.top) / r.height) * 100, 0, 100);
+
+  const exist = def.single && _cxTools.find((t) => t.tool === toolId);
+  if (exist) {
+    exist.x = Math.round(x * 10) / 10;
+    exist.y = Math.round(y * 10) / 10;
+    exist.visible = true; // thả lại = muốn thấy nó
+    _cxToolActiveId = exist.id;
+  } else {
+    const v = def.variants[0];
+    const id =
+      "tl_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    _cxTools.push({
+      id,
+      tool: toolId,
+      variant: v.id,
+      x: Math.round(x * 10) / 10,
+      y: Math.round(y * 10) / 10,
+      w: v.w,
+      visible: true,
+    });
+    _cxToolActiveId = id;
+  }
+  _cxToolRender();
+  _cxToolReport();
+}
+
+// Render từ theme_setting (public + preview + edit).
+function applyTools(setting) {
+  if (!document.getElementById("main-card")) return;
+  if (typeof setting === "string") {
+    try {
+      setting = JSON.parse(setting);
+    } catch (e) {
+      setting = null;
+    }
+  }
+  const arr = setting && Array.isArray(setting.tools) ? setting.tools : [];
+  const reg = window.CX_TOOLS || {};
+  _cxTools = arr
+    .filter((t) => t && reg[t.tool])
+    .map((t) => {
+      const def = reg[t.tool];
+      const v = def.variants.find((x) => x.id === t.variant) || def.variants[0];
+      return {
+        id: t.id || "tl_" + Math.random().toString(36).slice(2, 8),
+        tool: t.tool,
+        variant: v.id,
+        x: _cxDecorClamp(Number(t.x) || 0, 0, 100),
+        y: _cxDecorClamp(Number(t.y) || 0, 0, 100),
+        w: _cxDecorClamp(Number(t.w) || v.w, v.minW, v.maxW),
+        visible: t.visible !== false,
+      };
+    });
+  _cxToolRender();
+}
+
 // Trong iframe chỉnh (edit=1): nhận lệnh "thêm khối" từ trang cha.
 if (typeof window !== "undefined" && window.top !== window) {
   window.addEventListener("message", (ev) => {
@@ -1194,6 +1666,10 @@ if (typeof window !== "undefined" && window.top !== window) {
     else if (d.type === "cx-block-text") _cxSetContent(d.id, d.text);
     // Hoạ tiết: thả từ bảng chọn của panel (x,y = px theo viewport iframe)
     else if (d.type === "cx-add-decor") _cxDecorAdd(d.src, d.x, d.y);
+    // Công cụ: thả từ bảng chọn, và đổi mẫu / ẩn hiện từ bảng
+    else if (d.type === "cx-add-tool") _cxToolAdd(d.tool, d.x, d.y);
+    else if (d.type === "cx-tool-set") _cxToolSet(d.id, d.patch);
+    else if (d.type === "cx-tool-del") _cxToolDelete(d.id);
   });
 }
 
@@ -1326,6 +1802,7 @@ if (typeof window !== "undefined") {
   window.applyTextOverrides = applyTextOverrides;
   window.applyCustomBlocks = applyCustomBlocks;
   window.applyDecorations = applyDecorations;
+  window.applyTools = applyTools;
 }
 
 // ============================================================

@@ -234,6 +234,20 @@
                   >Trang trí</span
                 >
               </div>
+              <div class="flex flex-col items-center gap-1.5">
+                <button
+                  type="button"
+                  onclick="openToolsPanel()"
+                  title="Thả công cụ (trình phát nhạc…) lên thiệp"
+                  class="cx-tile"
+                >
+                  <i data-lucide="wrench" class="cx-tile-ico"></i>
+                </button>
+                <span
+                  class="text-[12px] text-gray-500 leading-none md:text-[12.5px] md:mt-0.5"
+                  >Công cụ</span
+                >
+              </div>
             </div>
           </div>
 
@@ -582,6 +596,38 @@
           <p id="cx-decor-empty" class="hidden text-[12px] text-gray-400"></p>
         </div>
         <!-- /theme-decor-panel -->
+
+        <!-- Bảng CÔNG CỤ: kéo công cụ (trình phát nhạc…) thả vào chỗ bất kỳ trên
+             thiệp, lưu theo toạ độ như hoạ tiết. Danh mục công cụ nạp từ
+             window.CX_TOOLS (core/helpers/tools-helper.js) nên thêm công cụ mới
+             không phải sửa HTML này. -->
+        <div
+          id="theme-tools-panel"
+          class="hidden space-y-3 md:space-y-4 max-h-[52vh] overflow-y-auto md:max-h-none"
+        >
+          <div class="flex items-center justify-end gap-2">
+            <button type="button" onclick="closeToolsPanel()" class="cx-le-done">
+              <span>Xong</span>
+            </button>
+          </div>
+          <p class="text-[12px] text-gray-500">
+            Kéo công cụ thả vào vị trí bất kỳ trên thiệp, hoặc bấm để đặt vào
+            giữa. Thả xong bấm vào công cụ trên thiệp để kéo đổi chỗ, đổi mẫu, ẩn
+            hoặc xoá.
+          </p>
+          <div id="cx-tools-palette" class="cx-addtext-list"></div>
+
+          <!-- Đã có trên thiệp: đổi mẫu / ẩn hiện / xoá ngay tại bảng -->
+          <div id="cx-tools-placed" class="hidden space-y-2">
+            <p
+              class="text-[11px] font-semibold uppercase tracking-[0.08em] text-gray-400"
+            >
+              Đã có trên thiệp
+            </p>
+            <div id="cx-tools-placed-list" class="flex flex-col gap-2"></div>
+          </div>
+        </div>
+        <!-- /theme-tools-panel -->
       </div>
       <!-- /nội dung padding controls -->
     </div>

@@ -295,6 +295,9 @@ if (window.location.search.includes("preview=true")) {
             if (typeof applyDecorations === "function") {
               applyDecorations(data.theme_setting);
             }
+            if (typeof applyTools === "function") {
+              applyTools(data.theme_setting);
+            }
             return;
           }
         } catch (e) {}
