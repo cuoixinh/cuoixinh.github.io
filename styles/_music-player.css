@@ -80,6 +80,32 @@
   touch-action: none;
 }
 
+/* Khối mở rộng (kéo xuống ở tay nắm): cao 0 → cao vừa đủ nội dung.
+   Dùng grid-template-rows 0fr→1fr vì đây là cách DUY NHẤT chuyển tiếp mượt tới
+   chiều cao "tự động" mà không phải đo bằng JS (max-height cố định thì hoặc cắt
+   cụt nội dung dài, hoặc trượt ì ạch khi nội dung ngắn).
+   Thẻ CON phải overflow:hidden + min-height:0 — hàng grid co lại nhưng nội dung
+   bên trong không tự cắt theo. */
+
+.cx-mp-panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition:
+    grid-template-rows 0.35s cubic-bezier(0.32, 0.72, 0, 1),
+    opacity 0.25s ease;
+}
+
+.cx-mp-panel > * {
+  overflow: hidden;
+  min-height: 0;
+}
+
+.is-expanded .cx-mp-panel {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
 /* Quay tròn khi đang phát (đĩa nhạc / ảnh bìa trong bong bóng). Theme gắn class
    này vào phần NỘI DUNG tròn chứ đừng gắn lên chính bong bóng: bong bóng đang
    giữ hiệu ứng cx-mp-pop, hai animation cùng đổi `transform` thì cái sau đè cái
@@ -160,5 +186,9 @@
   .cx-mp-title.is-scroll,
   .cx-mp-bubble {
     animation: none;
+  }
+
+  .cx-mp-panel {
+    transition: none;
   }
 }

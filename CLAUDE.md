@@ -142,6 +142,9 @@ trong `content` nên không cần sửa glob.
 `music-player-helper.js` lo hết, theme chỉ viết HTML và đánh dấu vai trò bằng `data-cx-music="…"`
 (xem đầu file helper; mẫu ở `basic-gold/index.html`). Nạp helper **sau** `youtube-helper.js`;
 thẻ root giữ `id="music-toggle"` + `.cx-no-edit`; class icon đặt trong thuộc tính HTML (purge).
+Kéo xuống ở tay nắm mở khối tóm tắt thiệp (`data-cx-music="panel"`): nội dung do
+`renderMusicSummary(w, {...})` (`render-helper.js`) đổ vào các ô `data-cx-summary="…"` —
+theme muốn có khối này thì thêm markup + gọi hàm đó trong `renderWedding`.
 
 ### Auth
 

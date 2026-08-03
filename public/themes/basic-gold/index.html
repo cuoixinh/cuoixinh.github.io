@@ -127,12 +127,123 @@
           </div>
         </div>
 
-        <!-- Tay nắm: vuốt lên để thu thanh về bong bóng. Rộng hết khối cho dễ
-             vuốt; helper lo cử chỉ. -->
+        <!-- Khối mở rộng: kéo XUỐNG ở tay nắm mới hiện. Tóm tắt thiệp: hai
+             "profile" chú rể / cô dâu, rồi ngày và nơi làm LỄ (ngày chính, không
+             phải ngày tiệc). Dữ liệu do renderMusicSummary() đổ vào qua các
+             thuộc tính data-cx-summary — xem core/helpers/render-helper.js.
+             .cx-mp-panel phải có ĐÚNG MỘT thẻ con bọc tất cả: CSS cắt chiều cao ở
+             thẻ con đó, để nội dung thành nhiều thẻ anh em thì phần ngoài thẻ đầu
+             không bị cắt và lòi ra lúc đang đóng.
+             Chữ dùng stone của Tailwind (không phải stone-custom) cho khớp phần
+             còn lại của thanh — xem ghi chú ở thẻ #music-toggle. -->
+        <div data-cx-music="panel" class="cx-mp-panel">
+          <div>
+            <!-- max-w: trên md thanh rộng tới 768px, để khối tóm tắt giãn hết cỡ
+                 thì hai profile loãng ra mà ảnh vẫn bé — giữ nó ở khổ thiệp. -->
+            <div
+              class="flex flex-col gap-2 px-3 pt-1 pb-2 w-full max-w-[430px] mx-auto"
+            >
+              <!-- Hai profile: mỗi bên một người -->
+              <div class="flex items-stretch gap-2">
+                <div
+                  class="flex-1 min-w-0 flex flex-col items-center gap-1 rounded-xl bg-white/45 px-2 py-2"
+                >
+                  <div
+                    class="w-12 h-12 rounded-full overflow-hidden shrink-0 ring-2 ring-white/80 shadow-sm bg-gradient-to-br from-rose-pastel-200 to-rose-pastel-300"
+                  >
+                    <img
+                      data-cx-summary="groom-photo"
+                      alt=""
+                      class="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div
+                    class="text-[9px] uppercase tracking-[2px] text-stone-500 font-inter"
+                  >
+                    Chú Rể
+                  </div>
+                  <div
+                    data-cx-summary="groom-name"
+                    class="w-full truncate text-center font-cinzel text-[12px] font-semibold tracking-wide text-stone-700"
+                  ></div>
+                </div>
+
+                <div
+                  class="self-center font-cormorant italic text-[18px] text-stone-500"
+                >
+                  &amp;
+                </div>
+
+                <div
+                  class="flex-1 min-w-0 flex flex-col items-center gap-1 rounded-xl bg-white/45 px-2 py-2"
+                >
+                  <div
+                    class="w-12 h-12 rounded-full overflow-hidden shrink-0 ring-2 ring-white/80 shadow-sm bg-gradient-to-br from-rose-pastel-200 to-rose-pastel-300"
+                  >
+                    <img
+                      data-cx-summary="bride-photo"
+                      alt=""
+                      class="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div
+                    class="text-[9px] uppercase tracking-[2px] text-stone-500 font-inter"
+                  >
+                    Cô Dâu
+                  </div>
+                  <div
+                    data-cx-summary="bride-name"
+                    class="w-full truncate text-center font-cinzel text-[12px] font-semibold tracking-wide text-stone-700"
+                  ></div>
+                </div>
+              </div>
+
+              <!-- Ngày & nơi làm lễ -->
+              <div
+                class="flex flex-col items-center gap-0.5 rounded-xl bg-white/45 px-3 py-2 text-center"
+              >
+                <div
+                  data-cx-summary="event-name"
+                  class="text-[9px] uppercase tracking-[2px] text-stone-500 font-inter"
+                ></div>
+                <div
+                  data-cx-summary="event-date"
+                  class="font-playfair text-[15px] font-semibold leading-tight text-stone-700"
+                ></div>
+                <div
+                  class="flex items-center justify-center gap-1.5 text-[11px] text-stone-600 font-inter"
+                >
+                  <span data-cx-summary="event-weekday"></span>
+                  <!-- Không có giờ thì cả dấu · lẫn giờ cùng ẩn (data-cx-summary-row) -->
+                  <span
+                    data-cx-summary-row
+                    class="hidden flex items-center gap-1.5"
+                  >
+                    <span class="text-stone-400">·</span>
+                    <span data-cx-summary="event-time"></span>
+                  </span>
+                </div>
+                <div
+                  data-cx-summary-row
+                  class="hidden flex items-center justify-center gap-1 text-[11px] text-stone-600 font-inter"
+                >
+                  <i
+                    class="fas fa-map-marker-alt text-rose-pastel-300 text-[9px]"
+                  ></i>
+                  <span data-cx-summary="event-location" class="line-clamp-2"
+                  ></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tay nắm: vuốt lên thu thanh về bong bóng, vuốt xuống mở khối tóm tắt
+             bên trên. Rộng hết khối cho dễ vuốt; helper lo cử chỉ. -->
         <button
           type="button"
           data-cx-music="handle"
-          aria-label="Vuốt lên để thu gọn trình phát nhạc"
+          aria-label="Vuốt xuống để xem tóm tắt thiệp, vuốt lên để thu gọn trình phát nhạc"
           class="cx-mp-handle w-full h-4 flex items-center justify-center cursor-grab active:cursor-grabbing"
         >
           <span class="w-8 h-1 rounded-full bg-white/70"></span>

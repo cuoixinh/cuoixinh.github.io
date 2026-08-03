@@ -34,8 +34,13 @@
 //   data-cx-music="thumb"     <img> ảnh bìa bài hát (thumbnail YouTube). Đặt bao
 //                             nhiêu thẻ cũng được, helper cập nhật hết; chưa có
 //                             ảnh thì thẻ ở trạng thái `hidden`.
-//   data-cx-music="handle"    Tay nắm: vuốt lên thì thu gọn. Có thẻ này là bật
-//                             tính năng thu gọn.
+//   data-cx-music="handle"    Tay nắm: vuốt lên thì thu gọn, vuốt xuống thì mở
+//                             rộng. Có thẻ này là bật tính năng thu gọn.
+//   data-cx-music="panel"     Khối mở rộng (tóm tắt thiệp…) — hiện khi kéo XUỐNG
+//                             ở tay nắm. Helper chỉ bật/tắt class `is-expanded`
+//                             trên thẻ root, còn hình hài (cao bao nhiêu, hiện ra
+//                             kiểu gì) là CSS của theme. Không có thẻ này thì tay
+//                             nắm giữ nguyên hành vi cũ (chỉ thu gọn/mở lại).
 //   data-cx-music="bubble"    Bong bóng nổi hiện khi đã thu gọn: kéo thả đi được
 //                             khắp màn hình, thả tay thì tự bay về bám lề gần
 //                             nhất; chạm (không kéo) = mở lại thanh. Thanh nhạc
@@ -85,10 +90,12 @@ function setupMusicPlayer(root) {
   const titleEl = $("title");
   const artistEl = $("artist");
   const progEl = $("progress");
+  const panelEl = $("panel");
   const fillEl = $("fill");
   const timeEl = $("time");
   const durEl = $("duration");
   const thumbEls = $$("thumb");
+  const handleEl = $("handle");
 
   const playIcon = root.dataset.cxPlayIcon || "";
   const pauseIcon = root.dataset.cxPauseIcon || "";
@@ -105,12 +112,31 @@ function setupMusicPlayer(root) {
   // Do khối "chỉ hiện khi đã cuộn" gán (nếu theme bật). Xem _setCollapsed.
   let _setBarHidden = null;
 
+  // Ba trạng thái, đi lên đi xuống theo một trục dọc:
+  //   bong bóng  ←(vuốt lên)—  thanh  —(vuốt xuống)→  thanh + khối mở rộng
+  // is-collapsed = đang ở bong bóng; is-expanded = đang mở khối tóm tắt.
+  // Hai cờ không bao giờ cùng bật (thu về bong bóng thì đóng khối luôn).
+
   function _isCollapsed() {
     return root.classList.contains("is-collapsed");
   }
 
+  function _isExpanded() {
+    return root.classList.contains("is-expanded");
+  }
+
+  function _setExpanded(v) {
+    if (!panelEl) return;
+    v = !!v;
+    root.classList.toggle("is-expanded", v);
+    if (handleEl) handleEl.setAttribute("aria-expanded", v ? "true" : "false");
+  }
+
   function _setCollapsed(v) {
     root.classList.toggle("is-collapsed", !!v);
+    // Thu về bong bóng thì khối mở rộng cũng phải đóng, không thì lần mở lại
+    // thanh sau đó bung nguyên cả khối ra giữa màn hình.
+    if (v) _setExpanded(false);
     // Mở lại bằng tay lúc đang ở đầu trang thì luật "chỉ hiện khi đã cuộn" phải
     // nhường: không thì thanh vẫn nấp trên mép màn mà bong bóng đã biến mất —
     // người dùng mất sạch đường vào trình phát.
@@ -260,42 +286,87 @@ function setupMusicPlayer(root) {
     });
   }
 
-  // Tay nắm: vuốt lên thu gọn, vuốt xuống mở lại, chạm thì bật/tắt.
+  // Tay nắm: vuốt lên đi xuống một nấc, vuốt xuống đi lên một nấc, chạm thì
+  // nhảy nấc theo hướng còn lại.
   // Cử chỉ CHỈ bắt trên tay nắm (kèm touch-action:none trong CSS) — bắt trên cả
   // thanh thì mọi cú vuốt để cuộn trang lỡ chạm vào thanh đều làm nó thu gọn.
-  const handleEl = $("handle");
   if (handleEl) {
     const SWIPE_MIN = 16; // px — đủ để phân biệt vuốt với chạm
 
     let startY = null;
     let swiped = false;
 
-    handleEl.addEventListener("pointerdown", function (e) {
-      startY = e.clientY;
-      swiped = false;
-    });
-    handleEl.addEventListener("pointermove", function (e) {
+    // Vuốt lên: đang mở khối thì đóng khối trước, hết khối mới thu về bong bóng.
+    // Vuốt xuống: đang ở bong bóng thì trả thanh về trước, rồi mới mở khối.
+    // Đi từng nấc như vậy để không bao giờ nhảy thẳng từ bong bóng ra cả khối.
+    function _step(down) {
+      if (down) {
+        if (_isCollapsed()) _setCollapsed(false);
+        else _setExpanded(true);
+      } else {
+        if (_isExpanded()) _setExpanded(false);
+        else _setCollapsed(true);
+      }
+    }
+
+    // Cử chỉ BẮT ĐẦU ở tay nắm nhưng theo dõi tiếp trên window: tay nắm chỉ cao
+    // 16px nên vừa nhấc tay đi một chút là con trỏ đã ra khỏi nó. Chuột không có
+    // implicit pointer capture như cảm ứng → nghe ngay trên tay nắm thì bản mobile
+    // chạy mà bản chuột (xem trước ở invitation-setup) thì không nhận cú vuốt nào.
+    const _onMove = (e) => {
       if (startY === null) return;
       const dy = e.clientY - startY;
       if (Math.abs(dy) < SWIPE_MIN) return;
       startY = null;
       swiped = true;
-      _setCollapsed(dy < 0);
-    });
+      _step(dy > 0);
+    };
     const _endSwipe = () => {
       startY = null;
+      window.removeEventListener("pointermove", _onMove);
+      window.removeEventListener("pointerup", _endSwipe);
+      window.removeEventListener("pointercancel", _endSwipe);
     };
-    handleEl.addEventListener("pointerup", _endSwipe);
-    handleEl.addEventListener("pointercancel", _endSwipe);
+
+    handleEl.addEventListener("pointerdown", function (e) {
+      startY = e.clientY;
+      swiped = false;
+      window.addEventListener("pointermove", _onMove);
+      window.addEventListener("pointerup", _endSwipe);
+      window.addEventListener("pointercancel", _endSwipe);
+    });
 
     // Vuốt xong trình duyệt vẫn bắn click → bỏ qua đúng một lần.
+    // Chạm = đi nấc NGƯỢC với trạng thái đang ở: đang thu gọn hoặc đang mở khối
+    // thì về thanh, đang ở thanh thì mở khối (theme không có khối thì thu gọn,
+    // giữ nguyên hành vi cũ).
     handleEl.addEventListener("click", function () {
       if (swiped) {
         swiped = false;
         return;
       }
-      _setCollapsed(!_isCollapsed());
+      if (_isCollapsed()) _setCollapsed(false);
+      else if (_isExpanded()) _setExpanded(false);
+      else if (panelEl) _setExpanded(true);
+      else _setCollapsed(true);
     });
+
+    if (panelEl) {
+      handleEl.setAttribute("aria-expanded", "false");
+
+      // Cuộn trang / chạm ra ngoài trong lúc đang mở → đóng khối lại. Khối nằm
+      // đè lên đầu thiệp nên để nó mở mãi là chắn mất nội dung.
+      window.addEventListener(
+        "scroll",
+        () => {
+          if (_isExpanded()) _setExpanded(false);
+        },
+        { passive: true },
+      );
+      document.addEventListener("pointerdown", function (e) {
+        if (_isExpanded() && !root.contains(e.target)) _setExpanded(false);
+      });
+    }
   }
 
   // Bong bóng nổi (hiện khi đã thu gọn): kéo thả đi được, thả tay thì tự bay về
