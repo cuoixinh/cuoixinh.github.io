@@ -124,6 +124,9 @@ Bắt buộc để chạy đúng với tab Giao diện:
 - **Thành phần thả lên thiệp:** danh mục ở `core/helpers/element-helper.js`, runtime ở
   `theme-setting-helper.js`, bảng chọn ở `05-theme-panel.js`. Lưu trong
   `theme_setting.elements` (cùng blob JSON với `custom_blocks`) → không cần changelog DB.
+  Tuỳ chọn riêng của mỗi thành phần khai báo bằng `options` + `apply()` trong danh mục
+  (bảng điều chỉnh tự dựng control), **tối đa 3 ô màu** — Coloris chỉ bọc được input
+  có sẵn trong `theme-panel.html`.
 - **Sơ đồ Mermaid:** sửa sơ đồ thì đồng bộ luôn bảng roadmap + text mô tả bên dưới.
 
 ## Phân quyền

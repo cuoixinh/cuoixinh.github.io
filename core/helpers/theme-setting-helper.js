@@ -943,11 +943,12 @@ function _cxDecorEnsureStyle() {
     "align-items:center;justify-content:center;padding:0;cursor:pointer;" +
     "box-shadow:0 2px 6px rgba(0,0,0,.18);touch-action:none;z-index:1}" +
     ".cx-decor-active .cx-decor-h{display:flex}" +
-    ".cx-decor-del{top:-12px;left:-12px}" +
-    ".cx-decor-copy{top:-12px;left:50%;margin-left:-12px}" +
-    ".cx-decor-rot{top:-12px;right:-12px;cursor:grab}" +
-    ".cx-decor-size{bottom:-12px;right:-12px;cursor:nwse-resize}" +
-    ".cx-decor-back{bottom:-12px;left:-12px}";
+    // Tâm nút nằm ĐÚNG trên đường kẻ đứt: nửa nút (12px) + outline-offset (4px).
+    ".cx-decor-del{top:-16px;left:-16px}" +
+    ".cx-decor-copy{top:-16px;left:50%;margin-left:-12px}" +
+    ".cx-decor-rot{top:-16px;right:-16px;cursor:grab}" +
+    ".cx-decor-size{bottom:-16px;right:-16px;cursor:nwse-resize}" +
+    ".cx-decor-back{bottom:-16px;left:-16px}";
   document.head.appendChild(s);
 }
 
@@ -1357,9 +1358,11 @@ function applyDecorations(setting) {
 
 // ── ELEMENTS — "thành phần" thả tự do lên thiệp (hiện có: Trình phát nhạc) ──
 // Danh mục + markup từng mẫu ở core/helpers/element-helper.js.
-// theme_setting.elements = [{ id, element, variant, x, y, w }]
+// theme_setting.elements = [{ id, element, variant, x, y, w, opts }]
 //   x, y  % so với #main-card, tính theo TÂM widget
 //   w     % bề ngang thiệp
+//   opts  tuỳ chọn riêng của thành phần (ảnh bìa, màu…) — danh mục khai báo ở
+//         element-helper.js, áp bằng def.apply()
 // Khác hoạ tiết: trang công khai widget PHẢI bấm được (phát, tua, kéo xem tóm
 // tắt); ngược lại chế độ chỉnh khoá hết tương tác bên trong để kéo được widget.
 let _cxElements = [];
@@ -1423,9 +1426,10 @@ function _cxElEnsureStyle() {
     "align-items:center;justify-content:center;padding:0;cursor:pointer;" +
     "box-shadow:0 2px 6px rgba(0,0,0,.18);touch-action:none;z-index:1;pointer-events:auto}" +
     ".cx-el-active .cx-el-h{display:flex}" +
-    ".cx-el-del{top:-12px;left:-12px}" +
-    ".cx-el-skin{top:-12px;left:50%;margin-left:-12px}" +
-    ".cx-el-size{bottom:-12px;right:-12px;cursor:nwse-resize}";
+    // Tâm nút nằm ĐÚNG trên đường kẻ đứt: nửa nút (12px) + outline-offset (6px).
+    ".cx-el-del{top:-18px;left:-18px}" +
+    ".cx-el-skin{top:-18px;left:50%;margin-left:-12px}" +
+    ".cx-el-size{bottom:-18px;right:-18px;cursor:nwse-resize}";
   document.head.appendChild(s);
 }
 
@@ -1455,6 +1459,8 @@ function _cxElReport() {
   }, 200);
 }
 
+// Chọn widget nào thì bảng bên trái mở đúng phần điều chỉnh của nó (giống khối
+// văn bản); bỏ chọn thì đóng bảng.
 function _cxElSetActive(id) {
   _cxElActiveId = id || null;
   document.querySelectorAll(".cx-el").forEach((n) => {
@@ -1463,6 +1469,27 @@ function _cxElSetActive(id) {
       n.getAttribute("data-el-id") === _cxElActiveId,
     );
   });
+  _cxElSendPick();
+}
+
+function _cxElSendPick() {
+  if (typeof window === "undefined" || window.top === window) return;
+  const t = _cxElActiveId && _cxElFind(_cxElActiveId);
+  try {
+    parent.postMessage(
+      t
+        ? {
+            type: "cx-element-pick",
+            id: t.id,
+            element: t.element,
+            variant: t.variant,
+            w: t.w,
+            opts: t.opts || {},
+          }
+        : { type: "cx-element-close" },
+      "*",
+    );
+  } catch (e) {}
 }
 
 function _cxElBindOutside() {
@@ -1496,7 +1523,9 @@ function _cxElBody(t) {
       def.icon + "<span>Chưa có nhạc nền — chọn bài ở tab Thiết lập</span>";
     return hint;
   }
-  return def.build(v.id);
+  const body = def.build(v.id);
+  if (def.apply) def.apply(body, t.opts || {});
+  return body;
 }
 
 function _cxElNode(t, edit) {
@@ -1714,13 +1743,14 @@ function _cxElFind(id) {
 
 function _cxElDelete(id) {
   _cxElements = _cxElements.filter((t) => t.id !== id);
-  if (_cxElActiveId === id) _cxElActiveId = null;
   _cxElRender();
+  if (_cxElActiveId === id) _cxElSetActive(null);
   _cxElReport();
 }
 
-// Đổi mẫu: trả bề ngang về mặc định của mẫu mới — thanh ngang 88% mà giữ nguyên
-// khi sang nút tròn thì ra một nút to bằng nửa thiệp.
+// Đổi mẫu / bề ngang / tuỳ chọn riêng từ bảng bên trái. Đổi mẫu thì trả bề ngang
+// về mặc định của mẫu mới — thanh ngang 88% mà giữ nguyên khi sang nút tròn thì
+// ra một nút to bằng nửa thiệp.
 function _cxElSet(id, patch) {
   const t = _cxElFind(id);
   if (!t || !patch) return;
@@ -1734,7 +1764,33 @@ function _cxElSet(id, patch) {
   }
   _cxElActiveId = t.id;
   _cxElRender();
+  _cxElSendPick(); // bảng lấy lại giá trị thật (đổi mẫu là bề ngang cũng đổi)
   _cxElReport();
+}
+
+// Thanh trượt kích thước / ô màu ở bảng: sửa TẠI CHỖ, không dựng lại widget —
+// dựng lại giữa chừng là ngắt nhạc đang phát, và cũng không báo pick ngược lại
+// (bảng đang giữ con trỏ trên control). `done` = nhả tay → chốt & lưu.
+function _cxElResize(id, w, done) {
+  const t = _cxElFind(id);
+  if (!t) return;
+  const v = _cxElVariant(t) || {};
+  t.w = _cxDecorClamp(Number(w) || t.w, v.minW || 8, v.maxW || 100);
+  const node = document.querySelector('.cx-el[data-el-id="' + t.id + '"]');
+  if (node) _cxElStyle(node, t);
+  if (!done) return;
+  t.w = Math.round(t.w * 10) / 10;
+  _cxElReport();
+}
+
+function _cxElSetOpts(id, opts, replace, done) {
+  const t = _cxElFind(id);
+  if (!t) return;
+  t.opts = replace ? opts || {} : Object.assign({}, t.opts, opts);
+  const def = _cxElDef(t);
+  const node = document.querySelector('.cx-el[data-el-id="' + t.id + '"]');
+  if (node && node._cxBody && def && def.apply) def.apply(node._cxBody, t.opts);
+  if (done) _cxElReport();
 }
 
 /**
@@ -1779,10 +1835,12 @@ function _cxElAdd(elementId, clientX, clientY, variantId) {
       x: Math.round(x * 10) / 10,
       y: Math.round(y * 10) / 10,
       w: v.w,
+      opts: {},
     });
     _cxElActiveId = id;
   }
   _cxElRender();
+  _cxElSendPick(); // thả xong → bảng chuyển sang phần điều chỉnh của nó
   if (!atPoint) {
     const item = _cxElements.find((t) => t.id === _cxElActiveId);
     _cxPlaceAtViewTop(
@@ -1819,6 +1877,7 @@ function applyElements(setting) {
         x: _cxDecorClamp(Number(t.x) || 0, 0, 100),
         y: _cxDecorClamp(Number(t.y) || 0, 0, 100),
         w: _cxDecorClamp(Number(t.w) || v.w, v.minW, v.maxW),
+        opts: t.opts && typeof t.opts === "object" ? t.opts : {},
       };
     });
   _cxElRender();
@@ -1837,10 +1896,14 @@ if (typeof window !== "undefined" && window.top !== window) {
     else if (d.type === "cx-block-text") _cxSetContent(d.id, d.text);
     // Hoạ tiết: thả từ bảng chọn của panel (x,y = px theo viewport iframe)
     else if (d.type === "cx-add-decor") _cxDecorAdd(d.src, d.x, d.y);
-    // Công cụ: thả từ bảng chọn, và đổi mẫu / xoá từ bảng
+    // Thành phần: thả từ bảng chọn, và đổi mẫu / kích thước / tuỳ chọn / xoá từ
+    // bảng điều chỉnh
     else if (d.type === "cx-add-element")
       _cxElAdd(d.element, d.x, d.y, d.variant);
     else if (d.type === "cx-element-set") _cxElSet(d.id, d.patch);
+    else if (d.type === "cx-element-size") _cxElResize(d.id, d.w, d.done);
+    else if (d.type === "cx-element-opts")
+      _cxElSetOpts(d.id, d.opts, d.replace, d.done);
     else if (d.type === "cx-element-del") _cxElDelete(d.id);
   });
 }

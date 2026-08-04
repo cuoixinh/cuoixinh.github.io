@@ -116,6 +116,19 @@ function _initColorPickers() {
     });
   }
 
+  // Chip màu của bảng ĐIỀU CHỈNH THÀNH PHẦN — mỗi ô phục vụ tuỳ chọn nào là do
+  // _fillElColorSlot gán (data-opt-id), nên ở đây chỉ cần nối sự kiện.
+  for (let i = 0; i < EL_COLOR_SLOTS; i++) {
+    const chip = document.getElementById("cx-el-color-" + i);
+    if (!chip) continue;
+    chip.addEventListener("input", () => onElementColorInput(i, false));
+    chip.addEventListener("change", () => onElementColorInput(i, true));
+    chip.addEventListener("click", () => {
+      _openChip = chip;
+      _alignPickerToChip(chip);
+    });
+  }
+
   // Xoay máy / đổi kích thước khi đang mở → mở lại để Coloris tính lại vị trí
   // VÀ đo lại vùng màu (không dời popup bằng tay, xem _alignPickerToChip).
   window.addEventListener("resize", () => {
@@ -191,6 +204,7 @@ function _initThemePanel() {
   document.getElementById("theme-addtext-panel")?.classList.add("hidden");
   document.getElementById("theme-decor-panel")?.classList.add("hidden");
   document.getElementById("theme-elements-panel")?.classList.add("hidden");
+  _hideElementEditor();
   closeLineEditor();
   _initEditHint();
 
@@ -207,6 +221,7 @@ function onThemeSettingChange() {
   const overrides = _themeSetting.text_overrides;
   const blocks = _themeSetting.custom_blocks;
   const decors = _themeSetting.decorations;
+  const elements = _themeSetting.elements;
 
   _themeSetting = {
     heading_font: hf ? hf.value : "",
@@ -221,6 +236,8 @@ function onThemeSettingChange() {
     _themeSetting.custom_blocks = blocks;
   if (Array.isArray(decors) && decors.length)
     _themeSetting.decorations = decors;
+  if (Array.isArray(elements) && elements.length)
+    _themeSetting.elements = elements;
 
   _setDirty(true, "theme");
 
@@ -281,10 +298,15 @@ window.addEventListener("message", (ev) => {
     _themeSetting.decorations = Array.isArray(d.decors) ? d.decors : [];
     _setDirty(true, "theme");
   } else if (d.type === "cx-elements-changed") {
-    // Thành phần vừa thả / kéo / đổi mẫu / phóng to / xoá — mọi thao tác chỉnh đều
-    // làm NGAY TRÊN THIỆP (nút quanh widget), bảng chọn chỉ để thả nên chỉ cần lưu.
+    // Thành phần vừa thả / kéo / phóng to / xoá → lưu, và nếu bảng điều chỉnh
+    // đang mở cho chính nó thì kéo thanh trượt theo (chụm 2 ngón trên thiệp).
     _themeSetting.elements = Array.isArray(d.elements) ? d.elements : [];
     _setDirty(true, "theme");
+    _syncElWidthFromCard();
+  } else if (d.type === "cx-element-pick") {
+    openElementEditor(d);
+  } else if (d.type === "cx-element-close") {
+    closeElementEditor();
   } else if (d.type === "cx-text-size") {
     // Vừa chụm 2 ngón trên khối văn bản trong thiệp → cỡ chữ mới.
     _setTextSizeFromCard(d.selector, d.size);
@@ -318,6 +340,7 @@ function openAddTextPanel() {
   document.getElementById("theme-main-controls")?.classList.add("hidden");
   document.getElementById("theme-edit-hint")?.classList.add("hidden");
   document.getElementById("theme-elements-panel")?.classList.add("hidden");
+  _hideElementEditor();
   document.getElementById("theme-addtext-panel")?.classList.remove("hidden");
   if (window.lucide) lucide.createIcons();
 }
@@ -460,6 +483,7 @@ function openDecorPanel() {
   document.getElementById("theme-main-controls")?.classList.add("hidden");
   document.getElementById("theme-edit-hint")?.classList.add("hidden");
   document.getElementById("theme-elements-panel")?.classList.add("hidden");
+  _hideElementEditor();
   document.getElementById("theme-decor-panel")?.classList.remove("hidden");
   _renderDecorPalette();
   if (window.lucide) lucide.createIcons();
@@ -628,6 +652,7 @@ function openElementsPanel() {
   document.getElementById("theme-line-editor")?.classList.add("hidden");
   document.getElementById("theme-addtext-panel")?.classList.add("hidden");
   document.getElementById("theme-decor-panel")?.classList.add("hidden");
+  _hideElementEditor();
   document.getElementById("theme-main-controls")?.classList.add("hidden");
   document.getElementById("theme-edit-hint")?.classList.add("hidden");
   document.getElementById("theme-elements-panel")?.classList.remove("hidden");
@@ -668,7 +693,7 @@ function _inertPreview(node) {
   return node;
 }
 
-function _elPreview(def, v) {
+function _elPreview(def, v, opts) {
   const box = document.createElement("span");
   box.className = "cx-pal-prev";
   const stage = document.createElement("span");
@@ -676,7 +701,10 @@ function _elPreview(def, v) {
   // Bề ngang widget = % bề ngang thiệp, đúng như lúc thả thật.
   const w = (EL_PREVIEW_CARD_W * v.w) / 100;
   stage.style.width = w + "px";
-  const node = _inertPreview(def.build(v.id));
+  const built = def.build(v.id);
+  // Áp tuỳ chọn TRƯỚC khi vô hiệu hoá: applyArt tìm ô ảnh qua data-cx-music.
+  if (opts && def.apply) def.apply(built, opts);
+  const node = _inertPreview(built);
   // Cỡ chữ phải đặt trên CHÍNH widget (.cx-tw có font-size riêng, đặt ở thẻ bọc
   // sẽ bị đè) — cùng công thức với _cxElStyle của runtime.
   if (v.fs) node.style.fontSize = Math.round(w * v.fs * 10) / 10 + "px";
@@ -848,11 +876,231 @@ function _elDragEnd(ev) {
 function _addElement(elementId, variantId, x, y) {
   closeElementsPanel();
   _setDirty(true, "theme");
+  // Thả xong runtime gửi 'cx-element-pick' → bảng tự chuyển sang phần điều chỉnh.
   _lineIframe()?.contentWindow?.postMessage(
     { type: "cx-add-element", element: elementId, variant: variantId, x, y },
     "*",
   );
 }
+
+// ─── Điều chỉnh THÀNH PHẦN đang chọn ────────────────────────────────────────
+// Runtime gửi 'cx-element-pick' khi vừa thả hoặc bấm vào thành phần trên thiệp
+// (giống 'cx-text-pick' của chữ). Mẫu và kích thước là phần chung cho mọi thành
+// phần; các tuỳ chọn riêng dựng từ CX_ELEMENTS[…].options — ô màu dùng 3 hàng
+// có sẵn trong HTML vì Coloris chỉ bọc được input đã nằm trong DOM.
+const EL_COLOR_SLOTS = 3;
+
+let _elSel = null; // id thành phần đang chỉnh
+let _elDefCur = null; // khai báo của nó trong CX_ELEMENTS
+let _elOpts = {}; // opts hiện hành (bản sao để vẽ control)
+
+function openElementEditor(msg) {
+  const def = (window.CX_ELEMENTS || {})[msg.element];
+  if (!def) return;
+  _elSel = msg.id;
+  _elDefCur = def;
+  _elOpts = Object.assign({}, msg.opts);
+
+  document.getElementById("theme-line-editor")?.classList.add("hidden");
+  document.getElementById("theme-addtext-panel")?.classList.add("hidden");
+  document.getElementById("theme-decor-panel")?.classList.add("hidden");
+  document.getElementById("theme-elements-panel")?.classList.add("hidden");
+  document.getElementById("theme-main-controls")?.classList.add("hidden");
+  document.getElementById("theme-edit-hint")?.classList.add("hidden");
+  document.getElementById("theme-element-editor")?.classList.remove("hidden");
+
+  const name = document.getElementById("cx-el-name");
+  if (name) name.textContent = def.name;
+
+  _renderElVariants(msg.variant);
+  _syncElWidth(msg.w, _elVariantOf(msg.variant));
+  _renderElOptions();
+  if (window.lucide) lucide.createIcons();
+}
+
+function closeElementEditor() {
+  const box = document.getElementById("theme-element-editor");
+  if (!box || box.classList.contains("hidden")) return;
+  _hideElementEditor();
+  document.getElementById("theme-main-controls")?.classList.remove("hidden");
+  _initEditHint();
+}
+window.closeElementEditor = closeElementEditor;
+
+// Bảng khác sắp chiếm chỗ → chỉ cất đi, KHÔNG bật lại nhóm chỉnh chung.
+function _hideElementEditor() {
+  document.getElementById("theme-element-editor")?.classList.add("hidden");
+  _elSel = null;
+  _elDefCur = null;
+}
+
+function _elVariantOf(id) {
+  const list = (_elDefCur && _elDefCur.variants) || [];
+  return list.find((v) => v.id === id) || list[0] || {};
+}
+
+function _elSend(msg) {
+  if (!_elSel) return;
+  _setDirty(true, "theme");
+  _lineIframe()?.contentWindow?.postMessage(
+    Object.assign({ id: _elSel }, msg),
+    "*",
+  );
+}
+
+// Ô mẫu: xem trước dựng bằng chính opts đang chọn nên nhìn thấy trước màu/ảnh bìa
+// sẽ ra sao ở mẫu khác.
+function _renderElVariants(current) {
+  const box = document.getElementById("cx-el-variants");
+  if (!box || !_elDefCur) return;
+  box.textContent = "";
+  _elDefCur.variants.forEach((v) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className =
+      "cx-pal-item cx-pal-item-prev" + (v.id === current ? " is-on" : "");
+    btn.title = v.name + (v.desc ? " — " + v.desc : "");
+    btn.appendChild(_elPreview(_elDefCur, v, _elOpts));
+    const cap = document.createElement("span");
+    cap.className = "cx-pal-txt";
+    cap.textContent = v.name;
+    btn.appendChild(cap);
+    btn.addEventListener("click", () => {
+      if (v.id === current) return;
+      _elSend({ type: "cx-element-set", patch: { variant: v.id } });
+    });
+    box.appendChild(btn);
+  });
+  _fitElPreviews(box);
+}
+
+// Kéo / chụm trên thiệp làm đổi bề ngang → thanh trượt chạy theo. Bỏ qua khi
+// chính thanh trượt đang được kéo (nếu không con trỏ bị giật về).
+function _syncElWidthFromCard() {
+  if (!_elSel || document.activeElement?.id === "cx-el-width") return;
+  const t = (_themeSetting.elements || []).find((x) => x.id === _elSel);
+  if (t) _syncElWidth(t.w, _elVariantOf(t.variant));
+}
+
+function _syncElWidth(w, variant) {
+  const el = document.getElementById("cx-el-width");
+  const out = document.getElementById("cx-el-width-val");
+  if (el) {
+    el.min = variant.minW || 8;
+    el.max = variant.maxW || 100;
+    el.value = Math.round(w);
+  }
+  if (out) out.textContent = Math.round(w) + "%";
+}
+
+function onElementWidthInput() {
+  const el = document.getElementById("cx-el-width");
+  if (!el) return;
+  const out = document.getElementById("cx-el-width-val");
+  if (out) out.textContent = el.value + "%";
+  _elSend({ type: "cx-element-size", w: Number(el.value) });
+}
+window.onElementWidthInput = onElementWidthInput;
+
+function onElementWidthCommit() {
+  const el = document.getElementById("cx-el-width");
+  if (!el) return;
+  _elSend({ type: "cx-element-size", w: Number(el.value), done: true });
+}
+window.onElementWidthCommit = onElementWidthCommit;
+
+// Tuỳ chọn riêng: 'choice' dựng động, 'color' đổ vào 3 hàng chip có sẵn.
+function _renderElOptions() {
+  const box = document.getElementById("cx-el-options");
+  if (!box) return;
+  box.textContent = "";
+  const list = (_elDefCur && _elDefCur.options) || [];
+  let slot = 0;
+
+  list.forEach((o) => {
+    if (o.type === "color") {
+      if (slot >= EL_COLOR_SLOTS) return;
+      _fillElColorSlot(slot++, o);
+      return;
+    }
+    if (o.type !== "choice") return;
+    const row = document.createElement("div");
+    row.className = "cx-le-row";
+    const label = document.createElement("label");
+    label.className = "cx-le-label";
+    label.textContent = o.label;
+    const seg = document.createElement("div");
+    seg.className = "cx-le-seg cx-le-seg-text";
+    const cur = _elOpts[o.id] || o.def;
+    o.items.forEach((it) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = it.id === cur ? "active" : "";
+      b.textContent = it.name;
+      b.addEventListener("click", () => {
+        _elOpts[o.id] = it.id;
+        _renderElOptions();
+        _renderElVariants(_elCurrentVariantId());
+        _elSend({
+          type: "cx-element-opts",
+          opts: { [o.id]: it.id },
+          done: true,
+        });
+      });
+      seg.appendChild(b);
+    });
+    row.append(label, seg);
+    box.appendChild(row);
+  });
+
+  // Hàng màu thừa (thành phần khai báo ít hơn 3 màu) thì ẩn đi
+  for (let i = slot; i < EL_COLOR_SLOTS; i++)
+    document.getElementById("cx-el-color-row-" + i)?.classList.add("hidden");
+}
+
+function _elCurrentVariantId() {
+  const on = document.querySelector("#cx-el-variants .is-on");
+  const i = on ? Array.prototype.indexOf.call(on.parentNode.children, on) : 0;
+  return ((_elDefCur && _elDefCur.variants[i]) || {}).id;
+}
+
+function _fillElColorSlot(i, o) {
+  const row = document.getElementById("cx-el-color-row-" + i);
+  const label = document.getElementById("cx-el-color-label-" + i);
+  if (!row) return;
+  row.classList.remove("hidden");
+  row.dataset.optId = o.id;
+  if (label) label.textContent = o.label;
+  _chipValueRaw("cx-el-color-" + i, _elOpts[o.id] || o.def || "#ffffff");
+}
+
+// Coloris bắn 'input' liên tục khi kéo trong bảng màu → áp live, chỉ chốt lưu khi
+// đóng bảng (change).
+function onElementColorInput(i, done) {
+  const row = document.getElementById("cx-el-color-row-" + i);
+  const input = document.getElementById("cx-el-color-" + i);
+  if (!row || !input || !row.dataset.optId) return;
+  _elOpts[row.dataset.optId] = input.value;
+  _elSend({
+    type: "cx-element-opts",
+    opts: { [row.dataset.optId]: input.value },
+    done: !!done,
+  });
+}
+
+function resetElementOptions() {
+  _elOpts = {};
+  _renderElOptions();
+  _renderElVariants(_elCurrentVariantId());
+  _elSend({ type: "cx-element-opts", opts: {}, replace: true, done: true });
+}
+window.resetElementOptions = resetElementOptions;
+
+function deleteActiveElement() {
+  _elSend({ type: "cx-element-del" });
+  closeElementEditor();
+}
+window.deleteActiveElement = deleteActiveElement;
 
 function _lineIframe() {
   return document.getElementById("theme-preview-iframe");
@@ -870,6 +1118,7 @@ function _openLineEditor(msg) {
   document.getElementById("theme-decor-panel")?.classList.add("hidden");
   document.getElementById("theme-edit-hint")?.classList.add("hidden");
   document.getElementById("theme-elements-panel")?.classList.add("hidden");
+  _hideElementEditor();
   document.getElementById("theme-line-editor")?.classList.remove("hidden");
 
   // Đổi giữa nhóm control CHỮ và ẢNH

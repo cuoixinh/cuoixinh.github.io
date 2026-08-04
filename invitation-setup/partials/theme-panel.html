@@ -604,12 +604,116 @@
           </div>
           <p class="text-[12px] text-gray-500">
             Kéo thành phần thả vào vị trí bất kỳ trên thiệp, hoặc bấm để đặt vào
-            giữa. Thả xong bấm vào thành phần trên thiệp để kéo đổi chỗ, đổi mẫu,
-            ẩn hoặc xoá.
+            giữa. Thả xong bảng này chuyển sang phần điều chỉnh của thành phần.
           </p>
           <div id="cx-elements-palette" class="cx-pal-grid"></div>
         </div>
         <!-- /theme-elements-panel -->
+
+        <!-- Bảng ĐIỀU CHỈNH THÀNH PHẦN: mở khi vừa thả hoặc bấm vào thành phần
+             trên thiệp. Mẫu / kích thước là phần chung; các tuỳ chọn riêng dựng
+             từ window.CX_ELEMENTS[…].options nên thêm thành phần mới không phải
+             sửa HTML này — trừ 3 ô màu, Coloris cần input có sẵn trong DOM. -->
+        <div
+          id="theme-element-editor"
+          class="hidden space-y-3 md:space-y-4 max-h-[52vh] overflow-y-auto md:max-h-none"
+        >
+          <div class="flex items-center justify-end gap-2">
+            <button
+              type="button"
+              onclick="closeElementEditor()"
+              class="cx-le-done"
+            >
+              <span>Xong</span>
+            </button>
+          </div>
+          <p class="text-[12px] text-gray-500">
+            <span id="cx-el-name" class="font-medium text-gray-700"></span> —
+            kéo trên thiệp để đổi chỗ, chụm 2 ngón (hoặc nút góc) để phóng to.
+          </p>
+
+          <div>
+            <label class="cx-le-label-block">Mẫu</label>
+            <div id="cx-el-variants" class="cx-pal-grid"></div>
+          </div>
+
+          <div class="cx-le-row">
+            <label class="cx-le-label">Kích thước</label>
+            <input
+              id="cx-el-width"
+              type="range"
+              min="8"
+              max="100"
+              step="1"
+              oninput="onElementWidthInput()"
+              onchange="onElementWidthCommit()"
+              class="flex-1 min-w-0 accent-rose-500"
+              aria-label="Bề ngang thành phần"
+            />
+            <span
+              id="cx-el-width-val"
+              class="w-10 text-right text-[12px] tabular-nums text-gray-500"
+            ></span>
+          </div>
+
+          <!-- Tuỳ chọn dạng "chọn 1 trong nhiều" -->
+          <div id="cx-el-options" class="space-y-3 md:space-y-4"></div>
+
+          <!-- Ô màu: dựng sẵn 3 ô, panel bật/tắt và đặt nhãn theo khai báo -->
+          <div id="cx-el-color-row-0" class="cx-le-row hidden">
+            <label class="cx-le-label" id="cx-el-color-label-0"></label>
+            <div class="color-chip">
+              <input
+                type="text"
+                inputmode="none"
+                id="cx-el-color-0"
+                class="theme-color-input"
+              />
+            </div>
+          </div>
+          <div id="cx-el-color-row-1" class="cx-le-row hidden">
+            <label class="cx-le-label" id="cx-el-color-label-1"></label>
+            <div class="color-chip">
+              <input
+                type="text"
+                inputmode="none"
+                id="cx-el-color-1"
+                class="theme-color-input"
+              />
+            </div>
+          </div>
+          <div id="cx-el-color-row-2" class="cx-le-row hidden">
+            <label class="cx-le-label" id="cx-el-color-label-2"></label>
+            <div class="color-chip">
+              <input
+                type="text"
+                inputmode="none"
+                id="cx-el-color-2"
+                class="theme-color-input"
+              />
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 pt-1">
+            <button
+              type="button"
+              onclick="resetElementOptions()"
+              class="cx-le-clear"
+            >
+              <i data-lucide="rotate-ccw" class="w-4 h-4"></i
+              ><span>Mặc định</span>
+            </button>
+            <button
+              type="button"
+              onclick="deleteActiveElement()"
+              class="cx-le-danger"
+            >
+              <i data-lucide="trash-2" class="w-4 h-4"></i
+              ><span>Xoá thành phần</span>
+            </button>
+          </div>
+        </div>
+        <!-- /theme-element-editor -->
       </div>
       <!-- /nội dung padding controls -->
     </div>

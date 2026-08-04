@@ -146,6 +146,8 @@ function setupMusicPlayer(root) {
     }
     const thumb = (info && info.thumbnail) || "";
     thumbEls.forEach((el) => {
+      // Widget đã chọn ảnh riêng (ảnh cặp đôi / chỉ nốt nhạc) → đừng đổ ảnh bài hát.
+      if (el.hasAttribute("data-cx-art-lock")) return;
       if (!thumb || el.getAttribute("src") === thumb) return;
       el.onerror = () => {
         el.hidden = true;
