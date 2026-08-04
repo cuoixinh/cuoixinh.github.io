@@ -14,6 +14,7 @@
    (CX_ELEMENTS.build) làm ảnh xem trước, nên trang ứng dụng cũng cần bộ .cx-mw-*
    này — không phải chỉ build thiệp. */
 @import "./_music-player.css";
+@import "./_progress.css";
 @import "./_setup.css";
 @import "./_ai-modal.css";
 

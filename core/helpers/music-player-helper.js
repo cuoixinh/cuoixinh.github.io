@@ -17,6 +17,16 @@
 // (giây, mặc định 10), data-cx-empty-title, data-cx-reveal-on-scroll (chỉ hiện
 // sau khi cuộn quá N px, mặc định 64).
 
+// Đang ở iframe chỉnh giao diện (?edit=1)? — vài hiệu ứng "tự ẩn" phải tắt đi
+// thì mới bấm vào trình phát mà chỉnh được.
+function _cxMusicEditMode() {
+  try {
+    return new URLSearchParams(window.location.search).get("edit") === "1";
+  } catch (e) {
+    return false;
+  }
+}
+
 /** Gắn logic vào trình phát đã có trong DOM. Bỏ trống `root` thì tự dò. */
 function setupMusicPlayer(root) {
   root =
@@ -470,7 +480,9 @@ function setupMusicPlayer(root) {
 
   // Chỉ hiện khi đã cuộn xuống (tuỳ chọn). Không đụng tới `display` vì đó là
   // phần setupMusic() quản (bật/tắt nhạc nền) — ở đây chỉ mờ/hiện bằng class.
-  if (root.dataset.cxRevealOnScroll !== undefined) {
+  // Trong trình chỉnh giao diện thì bỏ qua: trình phát là thứ bấm vào để sửa,
+  // phải thấy ngay từ đầu chứ không bắt cuộn xuống mới lộ ra.
+  if (root.dataset.cxRevealOnScroll !== undefined && !_cxMusicEditMode()) {
     const threshold = Number(root.dataset.cxRevealOnScroll) || 64;
     root.classList.add("cx-mp-reveal");
 

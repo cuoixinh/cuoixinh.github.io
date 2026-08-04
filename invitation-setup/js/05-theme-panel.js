@@ -222,6 +222,7 @@ function onThemeSettingChange() {
   const blocks = _themeSetting.custom_blocks;
   const decors = _themeSetting.decorations;
   const elements = _themeSetting.elements;
+  const musicSeeded = _themeSetting.music_seeded;
 
   _themeSetting = {
     heading_font: hf ? hf.value : "",
@@ -238,6 +239,7 @@ function onThemeSettingChange() {
     _themeSetting.decorations = decors;
   if (Array.isArray(elements) && elements.length)
     _themeSetting.elements = elements;
+  if (musicSeeded) _themeSetting.music_seeded = true;
 
   _setDirty(true, "theme");
 
@@ -285,8 +287,13 @@ window.addEventListener("message", (ev) => {
   if (!d) return;
   const iframe = document.getElementById("theme-preview-iframe");
   if (!iframe || ev.source !== iframe.contentWindow) return;
-  if (d.type === "cx-text-pick") _openLineEditor(d);
-  else if (d.type === "cx-hide") hidePickedElement(d.selector);
+  if (d.type === "cx-text-pick") {
+    // Đang mở bảng chọn hoạ tiết: cú bấm trên thiệp (kể cả trúng chữ) không được
+    // kéo sang bảng chỉnh chữ — người dùng đang ở giữa việc thêm hoạ tiết.
+    const decor = document.getElementById("theme-decor-panel");
+    if (decor && !decor.classList.contains("hidden")) return;
+    _openLineEditor(d);
+  } else if (d.type === "cx-hide") hidePickedElement(d.selector);
   // Khối văn bản đang chỉnh vừa bị xoá trong thiệp → đóng bảng chỉnh chi tiết
   else if (d.type === "cx-line-close") closeLineEditor();
   else if (d.type === "cx-blocks-changed") {
@@ -301,6 +308,9 @@ window.addEventListener("message", (ev) => {
     // Thành phần vừa thả / kéo / phóng to / xoá → lưu, và nếu bảng điều chỉnh
     // đang mở cho chính nó thì kéo thanh trượt theo (chụm 2 ngón trên thiệp).
     _themeSetting.elements = Array.isArray(d.elements) ? d.elements : [];
+    // Trình phát của theme đã chuyển thành thành phần → nhớ lại, không thì lần
+    // mở sau lại dựng thêm một cái nữa dù người dùng đã xoá.
+    if (d.seeded) _themeSetting.music_seeded = true;
     _setDirty(true, "theme");
     _syncElWidthFromCard();
   } else if (d.type === "cx-element-pick") {
@@ -331,6 +341,29 @@ function _setTextSizeFromCard(selector, size) {
   _lineIframe()?.contentWindow?.applyThemeSetting?.(_themeSetting);
 }
 
+// ─── Bỏ chọn hoạ tiết / thành phần khi bấm ra ngoài thiệp ────────────────────
+// pointerdown ở trang cha không lọt vào iframe nên runtime không tự biết là mình
+// đã "focus out" — phải báo sang, không thì bộ nút (xoá, xoay…) còn treo trên
+// hoa/widget vừa thao tác. "all" = bỏ chọn cả thành phần; mặc định chỉ hoạ tiết,
+// vì thành phần đang mở bảng điều chỉnh riêng thì phải giữ chọn.
+function _blurCards(what) {
+  _lineIframe()?.contentWindow?.postMessage({ type: "cx-blur", what }, "*");
+}
+
+// Bắt ở pha capture: nút trong bảng chọn có stopPropagation nên nghe ở pha nổi
+// bọt sẽ hụt mất cú bấm.
+function _initCardBlur() {
+  document.addEventListener(
+    "pointerdown",
+    () => {
+      if (document.getElementById("theme-panel")?.classList.contains("hidden"))
+        return;
+      _blurCards();
+    },
+    true,
+  );
+}
+
 // ─── Thêm văn bản (bảng chọn mẫu riêng) ──────────────────────────────────────
 // Mở như bảng chỉnh 1 dòng: chiếm chỗ nhóm chỉnh chung (ẩn phông/màu) để chỉ còn
 // các mẫu khối — tránh rối khi đang kéo-thả vào thiệp.
@@ -342,9 +375,71 @@ function openAddTextPanel() {
   document.getElementById("theme-elements-panel")?.classList.add("hidden");
   _hideElementEditor();
   document.getElementById("theme-addtext-panel")?.classList.remove("hidden");
+  _renderTextPresets();
   if (window.lucide) lucide.createIcons();
 }
 window.openAddTextPanel = openAddTextPanel;
+
+// Ô mẫu văn bản: dựng bằng chính CX_TEXT_PRESET_BUILD mà runtime dùng, thu nhỏ
+// vừa ô (dùng chung _fitElPreviews của bảng Thành phần) nên xem trước = kết quả
+// thật. Dựng một lần rồi thôi, mở lại chỉ tính lại tỉ lệ.
+const TPL_PREVIEW_CARD_W = 300; // bề ngang quy chiếu khi dựng, px
+
+function _renderTextPresets() {
+  const box = document.getElementById("cx-addtext-presets");
+  if (!box) return;
+  if (box.dataset.rendered === "1") {
+    _fitElPreviews(box);
+    return;
+  }
+  // Xem trước nằm ở trang chỉnh (ngoài iframe) nên CSS mẫu phải có ở đây nữa.
+  window.CX_TEXT_PRESET_ENSURE_STYLE?.(document);
+  const presets = window.CX_TEXT_PRESETS || [];
+  box.textContent = "";
+  presets.forEach((def) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "cx-pal-row";
+    btn.title = def.name + " — kéo vào thiệp hoặc bấm để thêm";
+
+    const prev = document.createElement("span");
+    prev.className = "cx-pal-prev";
+    const stage = document.createElement("span");
+    stage.className = "cx-pal-stage";
+    stage.style.width = TPL_PREVIEW_CARD_W + "px";
+    stage.appendChild(window.CX_TEXT_PRESET_BUILD(def, null, null));
+    prev.appendChild(stage);
+    btn.appendChild(prev);
+
+    const txt = document.createElement("span");
+    txt.className = "cx-pal-row-txt";
+    const name = document.createElement("span");
+    name.className = "cx-pal-row-name";
+    name.textContent = def.name;
+    const desc = document.createElement("span");
+    desc.className = "cx-pal-row-desc";
+    desc.textContent = def.desc || "";
+    txt.append(name, desc);
+    btn.appendChild(txt);
+
+    const grip = document.createElement("i");
+    grip.setAttribute("data-lucide", "grip-vertical");
+    grip.className = "cx-pal-grip !w-[14px] !h-[14px]";
+    btn.appendChild(grip);
+
+    btn.addEventListener("pointerdown", (e) =>
+      startPaletteDrag(e, "preset:" + def.id),
+    );
+    box.appendChild(btn);
+  });
+  box.dataset.rendered = "1";
+  // Panel vừa hiện xong mới đo được kích thước ô → hoãn một nhịp.
+  requestAnimationFrame(() => {
+    _fitElPreviews(box);
+    const scroll = document.getElementById("cx-addtext-scroll");
+    if (scroll) _updateSheetFade(scroll);
+  });
+}
 
 function closeAddTextPanel() {
   document.getElementById("theme-addtext-panel")?.classList.add("hidden");
@@ -637,8 +732,9 @@ function _decorDragEnd(ev) {
   }
 }
 
+// Hoạ tiết không có bảng cấp 3 (chỉnh ngay trên thiệp bằng bộ nút của nó) → thả
+// xong Ở LẠI bảng chọn để thêm tiếp; rời bảng bằng nút quay lại.
 function _addDecor(src, x, y) {
-  closeDecorPanel();
   _setDirty(true, "theme");
   _lineIframe()?.contentWindow?.postMessage({ type: "cx-add-decor", src, x, y }, "*");
 }
@@ -733,11 +829,14 @@ function _fitElPreviews(root) {
 // Cột chỉnh kéo đổi rộng được (#theme-resize) → ô mẫu rộng hẹp theo, hệ số
 // scale cũ thành sai. Theo dõi kích thước bảng để tính lại.
 function _initElPreviewResize() {
-  const panel = document.getElementById("theme-elements-panel");
-  if (!panel || typeof ResizeObserver === "undefined") return;
-  new ResizeObserver(() => {
-    if (!panel.classList.contains("hidden")) _fitElPreviews(panel);
-  }).observe(panel);
+  if (typeof ResizeObserver === "undefined") return;
+  ["theme-elements-panel", "theme-addtext-panel"].forEach((id) => {
+    const panel = document.getElementById(id);
+    if (!panel) return;
+    new ResizeObserver(() => {
+      if (!panel.classList.contains("hidden")) _fitElPreviews(panel);
+    }).observe(panel);
+  });
 }
 
 // Ô mẫu: MỖI MẪU một ô (không phải mỗi thành phần một ô) — chọn mẫu nào thì thả
@@ -873,26 +972,41 @@ function _elDragEnd(ev) {
   }
 }
 
+// Không đánh dấu chưa-lưu ở đây: bấm ô mẫu khi thiệp ĐÃ có thành phần đó thì
+// runtime chỉ chọn nó lên chứ không sửa gì. Có thay đổi thật thì runtime tự gửi
+// 'cx-elements-changed' và dấu * bật lên theo.
 function _addElement(elementId, variantId, x, y) {
   closeElementsPanel();
-  _setDirty(true, "theme");
   // Thả xong runtime gửi 'cx-element-pick' → bảng tự chuyển sang phần điều chỉnh.
   _lineIframe()?.contentWindow?.postMessage(
     { type: "cx-add-element", element: elementId, variant: variantId, x, y },
     "*",
   );
+  // Nhỡ tin pick thì người dùng phải bấm lại vào widget mới chỉnh được — hỏi lại
+  // một nhịp cho chắc (runtime đã chọn sẵn thì chỉ việc gửi lại trạng thái).
+  setTimeout(() => {
+    const box = document.getElementById("theme-element-editor");
+    if (!box || !box.classList.contains("hidden")) return;
+    _lineIframe()?.contentWindow?.postMessage(
+      { type: "cx-element-repick", element: elementId },
+      "*",
+    );
+  }, 150);
 }
 
 // ─── Điều chỉnh THÀNH PHẦN đang chọn ────────────────────────────────────────
 // Runtime gửi 'cx-element-pick' khi vừa thả hoặc bấm vào thành phần trên thiệp
 // (giống 'cx-text-pick' của chữ). Mẫu và kích thước là phần chung cho mọi thành
-// phần; các tuỳ chọn riêng dựng từ CX_ELEMENTS[…].options — ô màu dùng 3 hàng
-// có sẵn trong HTML vì Coloris chỉ bọc được input đã nằm trong DOM.
-const EL_COLOR_SLOTS = 3;
+// phần; các tuỳ chọn riêng dựng từ CX_ELEMENTS[…].options — ô màu dùng các hàng
+// có sẵn trong HTML vì Coloris chỉ bọc được input đã nằm trong DOM. Mỗi mẫu chỉ
+// hiện những ô màu nó khai báo trong `colors` (core/helpers/element-color-enum.js).
+const EL_COLOR_SLOTS = 4;
 
 let _elSel = null; // id thành phần đang chỉnh
 let _elDefCur = null; // khai báo của nó trong CX_ELEMENTS
+let _elVarCur = null; // mẫu đang chọn — quyết định hiện ô màu nào
 let _elOpts = {}; // opts hiện hành (bản sao để vẽ control)
+let _elBase = {}; // màu thật của widget trên thiệp (ô nào chưa chỉnh thì lấy đây)
 
 function openElementEditor(msg) {
   const def = (window.CX_ELEMENTS || {})[msg.element];
@@ -900,6 +1014,7 @@ function openElementEditor(msg) {
   _elSel = msg.id;
   _elDefCur = def;
   _elOpts = Object.assign({}, msg.opts);
+  _elBase = Object.assign({}, msg.base);
 
   document.getElementById("theme-line-editor")?.classList.add("hidden");
   document.getElementById("theme-addtext-panel")?.classList.add("hidden");
@@ -912,8 +1027,8 @@ function openElementEditor(msg) {
   const name = document.getElementById("cx-el-name");
   if (name) name.textContent = def.name;
 
-  _renderElVariants(msg.variant);
-  _syncElWidth(msg.w, _elVariantOf(msg.variant));
+  _elVarCur = _elVariantOf(msg.variant);
+  _syncElWidth(msg.w, _elVarCur);
   _renderElOptions();
   if (window.lucide) lucide.createIcons();
 }
@@ -928,10 +1043,14 @@ function closeElementEditor() {
 window.closeElementEditor = closeElementEditor;
 
 // Bảng khác sắp chiếm chỗ → chỉ cất đi, KHÔNG bật lại nhóm chỉnh chung.
+// Đóng bảng thì bỏ chọn luôn widget trong thiệp, nếu không bộ nút (xoá, đổi mẫu…)
+// còn treo trên nó.
 function _hideElementEditor() {
+  _blurCards("all");
   document.getElementById("theme-element-editor")?.classList.add("hidden");
   _elSel = null;
   _elDefCur = null;
+  _elVarCur = null;
 }
 
 function _elVariantOf(id) {
@@ -948,56 +1067,32 @@ function _elSend(msg) {
   );
 }
 
-// Ô mẫu: xem trước dựng bằng chính opts đang chọn nên nhìn thấy trước màu/ảnh bìa
-// sẽ ra sao ở mẫu khác.
-function _renderElVariants(current) {
-  const box = document.getElementById("cx-el-variants");
-  if (!box || !_elDefCur) return;
-  box.textContent = "";
-  _elDefCur.variants.forEach((v) => {
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className =
-      "cx-pal-item cx-pal-item-prev" + (v.id === current ? " is-on" : "");
-    btn.title = v.name + (v.desc ? " — " + v.desc : "");
-    btn.appendChild(_elPreview(_elDefCur, v, _elOpts));
-    const cap = document.createElement("span");
-    cap.className = "cx-pal-txt";
-    cap.textContent = v.name;
-    btn.appendChild(cap);
-    btn.addEventListener("click", () => {
-      if (v.id === current) return;
-      _elSend({ type: "cx-element-set", patch: { variant: v.id } });
-    });
-    box.appendChild(btn);
-  });
-  _fitElPreviews(box);
-}
-
-// Kéo / chụm trên thiệp làm đổi bề ngang → thanh trượt chạy theo. Bỏ qua khi
-// chính thanh trượt đang được kéo (nếu không con trỏ bị giật về).
 function _syncElWidthFromCard() {
   if (!_elSel || document.activeElement?.id === "cx-el-width") return;
   const t = (_themeSetting.elements || []).find((x) => x.id === _elSel);
   if (t) _syncElWidth(t.w, _elVariantOf(t.variant));
 }
 
+// Bọc ô kích thước thành thanh viên thuốc. Chỉ chạy một lần; partial đã nằm
+// trong DOM trước khi các script này được chèn nên không cần chờ thêm.
+function _initElWidthSlider() {
+  const el = document.getElementById("cx-el-width");
+  if (el) window.CXProgress?.attach(el);
+}
+
+// min/max đổi theo mẫu đang chọn nên phải vẽ lại thanh sau khi gán.
 function _syncElWidth(w, variant) {
   const el = document.getElementById("cx-el-width");
-  const out = document.getElementById("cx-el-width-val");
-  if (el) {
-    el.min = variant.minW || 8;
-    el.max = variant.maxW || 100;
-    el.value = Math.round(w);
-  }
-  if (out) out.textContent = Math.round(w) + "%";
+  if (!el) return;
+  el.min = variant.minW || 8;
+  el.max = variant.maxW || 100;
+  el.value = Math.round(w);
+  window.CXProgress?.paint(el);
 }
 
 function onElementWidthInput() {
   const el = document.getElementById("cx-el-width");
   if (!el) return;
-  const out = document.getElementById("cx-el-width-val");
-  if (out) out.textContent = el.value + "%";
   _elSend({ type: "cx-element-size", w: Number(el.value) });
 }
 window.onElementWidthInput = onElementWidthInput;
@@ -1009,17 +1104,20 @@ function onElementWidthCommit() {
 }
 window.onElementWidthCommit = onElementWidthCommit;
 
-// Tuỳ chọn riêng: 'choice' dựng động, 'color' đổ vào 3 hàng chip có sẵn.
+// Tuỳ chọn riêng: 'choice' dựng động, 'color' đổ vào các hàng chip có sẵn.
+// Ô màu lọc theo `colors` của mẫu đang chọn — nút tròn không có nền/chữ nên chỉ
+// còn 2 ô. Mẫu không khai báo `colors` thì hiện hết.
 function _renderElOptions() {
   const box = document.getElementById("cx-el-options");
   if (!box) return;
   box.textContent = "";
   const list = (_elDefCur && _elDefCur.options) || [];
+  const only = _elVarCur && _elVarCur.colors;
   let slot = 0;
 
   list.forEach((o) => {
     if (o.type === "color") {
-      if (slot >= EL_COLOR_SLOTS) return;
+      if (slot >= EL_COLOR_SLOTS || (only && !only.includes(o.id))) return;
       _fillElColorSlot(slot++, o);
       return;
     }
@@ -1040,7 +1138,6 @@ function _renderElOptions() {
       b.addEventListener("click", () => {
         _elOpts[o.id] = it.id;
         _renderElOptions();
-        _renderElVariants(_elCurrentVariantId());
         _elSend({
           type: "cx-element-opts",
           opts: { [o.id]: it.id },
@@ -1053,15 +1150,11 @@ function _renderElOptions() {
     box.appendChild(row);
   });
 
-  // Hàng màu thừa (thành phần khai báo ít hơn 3 màu) thì ẩn đi
+  // Ô màu thừa (mẫu này không dùng tới) thì ẩn đi; không màu nào thì ẩn cả hàng
+  // cho khỏi hở khoảng trống.
   for (let i = slot; i < EL_COLOR_SLOTS; i++)
     document.getElementById("cx-el-color-row-" + i)?.classList.add("hidden");
-}
-
-function _elCurrentVariantId() {
-  const on = document.querySelector("#cx-el-variants .is-on");
-  const i = on ? Array.prototype.indexOf.call(on.parentNode.children, on) : 0;
-  return ((_elDefCur && _elDefCur.variants[i]) || {}).id;
+  document.getElementById("cx-el-colors")?.classList.toggle("hidden", !slot);
 }
 
 function _fillElColorSlot(i, o) {
@@ -1071,7 +1164,10 @@ function _fillElColorSlot(i, o) {
   row.classList.remove("hidden");
   row.dataset.optId = o.id;
   if (label) label.textContent = o.label;
-  _chipValueRaw("cx-el-color-" + i, _elOpts[o.id] || o.def || "#ffffff");
+  _chipValueRaw(
+    "cx-el-color-" + i,
+    _elOpts[o.id] || _elBase[o.id] || o.def || "#ffffff",
+  );
 }
 
 // Coloris bắn 'input' liên tục khi kéo trong bảng màu → áp live, chỉ chốt lưu khi
@@ -1091,16 +1187,9 @@ function onElementColorInput(i, done) {
 function resetElementOptions() {
   _elOpts = {};
   _renderElOptions();
-  _renderElVariants(_elCurrentVariantId());
   _elSend({ type: "cx-element-opts", opts: {}, replace: true, done: true });
 }
 window.resetElementOptions = resetElementOptions;
-
-function deleteActiveElement() {
-  _elSend({ type: "cx-element-del" });
-  closeElementEditor();
-}
-window.deleteActiveElement = deleteActiveElement;
 
 function _lineIframe() {
   return document.getElementById("theme-preview-iframe");
@@ -1185,7 +1274,7 @@ function _openTextEditor(msg, c, ov) {
     if (label)
       label.textContent = _lineBlockList
         ? "Nội dung (mỗi dòng một mục)"
-        : "Nội dung";
+        : msg.blockLabel || "Nội dung";
     // Khối vừa thêm → focus + chọn sẵn chữ mẫu để gõ đè lên ngay
     if (msg.fresh) {
       ta.focus();
@@ -1247,7 +1336,12 @@ function _openImgEditor(msg, ov) {
 }
 
 function closeLineEditor() {
-  document.getElementById("theme-line-editor")?.classList.add("hidden");
+  const box = document.getElementById("theme-line-editor");
+  // Bảng đang đóng sẵn thì thôi: runtime báo "thôi chỉnh dòng" cả khi người dùng
+  // đang mở bảng khác (chọn mẫu, điều chỉnh thành phần) — bật lại nhóm chỉnh
+  // chung lúc đó là đá người dùng ra khỏi bảng họ đang dùng.
+  if (!box || box.classList.contains("hidden")) return;
+  box.classList.add("hidden");
   document.getElementById("theme-main-controls")?.classList.remove("hidden");
   _initEditHint();
   _lineIframe()?.contentWindow?.postMessage({ type: "cx-clear-pick" }, "*");
@@ -1594,9 +1688,81 @@ function _initThemeResize() {
   });
 }
 
+// ─── Vùng cuộn cao thấp có tay nắm (bảng Thêm văn bản) ──────────────────────
+// Mặc định chỉ cao SHEET_MIN cho khỏi chiếm hết màn; kéo tay nắm LÊN để nới cao
+// (chạm không kéo = bung hết / thu về). Chỉ chạy ở mobile — từ md+ cả cột chỉnh
+// đã tự cuộn nên CSS tắt tay nắm.
+const SHEET_MIN = 200; // px
+const SHEET_MAX_VH = 0.52; // trần = 52% chiều cao màn hình
+const SHEET_DRAG_MIN = 6; // px, dưới ngưỡng này tính là chạm
+
+function _sheetMax() {
+  return Math.max(SHEET_MIN, Math.round(window.innerHeight * SHEET_MAX_VH));
+}
+
+// Dải trắng mờ chỉ hiện khi còn nội dung chưa thấy.
+function _updateSheetFade(body) {
+  const fade = body.parentElement?.querySelector(".cx-sheet-fade");
+  if (!fade) return;
+  const rest = body.scrollHeight - body.clientHeight - body.scrollTop;
+  fade.classList.toggle("is-end", rest <= 4);
+}
+
+function _initSheet(bodyId, handleId) {
+  const body = document.getElementById(bodyId);
+  const handle = document.getElementById(handleId);
+  if (!body || !handle) return;
+
+  // Giữ chiều cao đã chọn ở biến riêng: lúc panel đang ẩn thì clientHeight = 0,
+  // đọc lại từ DOM sẽ tự xoá mất mức người dùng vừa kéo.
+  let cur = SHEET_MIN;
+  const setH = (px) => {
+    cur = Math.round(Math.min(Math.max(px, SHEET_MIN), _sheetMax()));
+    body.style.setProperty("--cx-sheet-h", cur + "px");
+    _updateSheetFade(body);
+  };
+
+  let drag = null;
+  handle.addEventListener("pointerdown", (e) => {
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+    e.preventDefault();
+    try {
+      handle.setPointerCapture(e.pointerId);
+    } catch (err) {}
+    drag = { y0: e.clientY, h0: cur, moved: false };
+  });
+  handle.addEventListener("pointermove", (e) => {
+    if (!drag) return;
+    const dy = e.clientY - drag.y0;
+    if (!drag.moved && Math.abs(dy) < SHEET_DRAG_MIN) return;
+    drag.moved = true;
+    setH(drag.h0 - dy); // kéo lên (dy âm) = cao lên
+  });
+  const end = () => {
+    if (!drag) return;
+    // Chạm không kéo: đang thấp thì bung hết cỡ, đang cao thì thu về.
+    if (!drag.moved) setH(drag.h0 >= _sheetMax() - 4 ? SHEET_MIN : _sheetMax());
+    drag = null;
+  };
+  handle.addEventListener("pointerup", end);
+  handle.addEventListener("pointercancel", end);
+
+  body.addEventListener("scroll", () => _updateSheetFade(body), {
+    passive: true,
+  });
+  // Nội dung/khung đổi cỡ (dựng xong ô mẫu, xoay máy) → tính lại dải mờ.
+  if (typeof ResizeObserver !== "undefined")
+    new ResizeObserver(() => _updateSheetFade(body)).observe(body);
+  // Xoay máy → trần đổi, kẹp lại mức đang chọn.
+  window.addEventListener("resize", () => setH(cur));
+}
+
 function _initThemePanelObservers() {
+  _initElWidthSlider();
   _initThemeResize();
   _initElPreviewResize();
+  _initSheet("cx-addtext-scroll", "cx-addtext-handle");
+  _initCardBlur();
 }
 
 if (window.__cxOnReady) window.__cxOnReady(_initThemePanelObservers);

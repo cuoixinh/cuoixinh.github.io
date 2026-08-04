@@ -3,7 +3,7 @@
 Website tạo thiệp cưới online. Vanilla JS (không framework), kiến trúc 3-layer.
 Ngôn ngữ làm việc: **tiếng Việt**.
 
-> **Phạm vi file này:** bản tóm tắt luồng project, KHÔNG phải changelog.
+> **Phạm vi file này:** bản tóm tắt luồng project, KHÔNG phải lịch sử thay đổi.
 > Chỉ bổ sung khi có **nghiệp vụ mới** hoặc **quy tắc quan trọng** (thứ mà làm sai
 > là hỏng/mất dữ liệu). Chi tiết triển khai → comment cạnh code. Thay đổi thường
 > chỉ sửa lại câu đang sai, không thêm mục mới.
@@ -56,10 +56,10 @@ Không gọi thẳng UI → DAL khi có logic nghiệp vụ.
   **sửa CSS xong phải `npm run build` và commit cả file build**.
 - **Hai bản build riêng, không gộp được** (cùng tên màu nhưng khác giá trị):
 
-  | Build    | Config                      | Nguồn → Kết quả                       | Trang dùng                                  |
-  | -------- | --------------------------- | ------------------------------------- | ------------------------------------------- |
-  | Ứng dụng | `tailwind.config.js`        | `tailwind-src.css` → `build.css`      | `index`, `admin/`, `invitation-setup/`, `public/account/`, `theme-template/` |
-  | Thiệp    | `tailwind.themes.config.js` | `themes-src.css` → `themes.css`       | `public/themes/*`                           |
+  | Build    | Config                      | Nguồn → Kết quả                  | Trang dùng                                                                   |
+  | -------- | --------------------------- | -------------------------------- | ---------------------------------------------------------------------------- |
+  | Ứng dụng | `tailwind.config.js`        | `tailwind-src.css` → `build.css` | `index`, `admin/`, `invitation-setup/`, `public/account/`, `theme-template/` |
+  | Thiệp    | `tailwind.themes.config.js` | `themes-src.css` → `themes.css`  | `public/themes/*`                                                            |
 
 - Thêm thư mục/trang mới → **thêm vào `content`** của config tương ứng, không thì bị purge.
 - **Không ghép tên class từ chuỗi** (`` `bg-${c}` ``) — purge quét văn bản thô. Viết trọn tên class.
@@ -125,8 +125,24 @@ Bắt buộc để chạy đúng với tab Giao diện:
   `theme-setting-helper.js`, bảng chọn ở `05-theme-panel.js`. Lưu trong
   `theme_setting.elements` (cùng blob JSON với `custom_blocks`) → không cần changelog DB.
   Tuỳ chọn riêng của mỗi thành phần khai báo bằng `options` + `apply()` trong danh mục
-  (bảng điều chỉnh tự dựng control), **tối đa 3 ô màu** — Coloris chỉ bọc được input
-  có sẵn trong `theme-panel.html`.
+  (bảng điều chỉnh tự dựng control). Ô màu dùng bộ khoá cố định ở
+  `core/helpers/element-color-enum.js` (nạp TRƯỚC `element-helper.js`); mỗi **mẫu**
+  liệt kê trong `variants[].colors` những ô nó dùng. Số ô tối đa = `EL_COLOR_SLOTS`
+  (`05-theme-panel.js`) và phải có sẵn bấy nhiêu hàng chip trong `theme-panel.html` —
+  Coloris chỉ bọc được input đã nằm trong DOM. Ô màu nên có `from(node)` đọc màu đang
+  hiện của widget để chip mở đúng màu người dùng đang thấy.
+  Khai báo `pin: true` thì widget **ghim theo màn hình** (nổi ở lớp `#cx-el-pin-layer`
+  gắn vào `<body>`, không cuộn theo thiệp) — khi đó `y` đã lưu là % chiều cao KHUNG NHÌN
+  chứ không phải % chiều cao thiệp; `x` vẫn là % bề ngang thiệp.
+  Trình phát **sẵn có của theme** (`#music-toggle`) không phải ngoại lệ: lần đầu mở
+  trình chỉnh nó được dựng thành một mục trong `elements` (cờ `theme_setting.music_seeded`
+  để xoá rồi thì đừng dựng lại), từ đó mọi hành xử giống hệt thành phần tự thêm.
+- **Mẫu văn bản (preset) ở tab Văn bản:** danh mục + CSS của từng mẫu ở
+  `core/helpers/text-preset-helper.js` (nạp TRƯỚC `theme-setting-helper.js`), thêm mẫu mới
+  chỉ sửa file đó — bảng chọn tự dựng. Lưu trong `custom_blocks` dạng
+  `{type:"preset", preset, parts}`; mỗi part là một phần chữ chỉnh riêng được, id thật là
+  `<blockId>__<key>` nên `text_overrides` nhắm được từng phần. Cỡ chữ trong CSS mẫu viết
+  bằng `em` để chụm 2 ngón phóng cả cụm cân đối.
 - **Sơ đồ Mermaid:** sửa sơ đồ thì đồng bộ luôn bảng roadmap + text mô tả bên dưới.
 
 ## Phân quyền

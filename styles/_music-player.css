@@ -193,9 +193,20 @@
   background-color: var(--cx-mw-chip);
 }
 
+/* Nút phát: nền đặc nên icon mặc định lật sang trắng cho đọc được, trừ khi
+   người dùng đã chọn màu "Nút điều khiển" riêng. */
+
 .cx-tint-accent .cx-mp-bar [data-cx-music="toggle"] {
   background-color: var(--cx-mw-accent);
-  color: #fff;
+  color: var(--cx-mw-ctrl, #fff);
+}
+
+/* "Nút điều khiển" = màu icon trong nút; đặt SAU .cx-tint-fg để đè được màu chữ
+   khi người dùng chọn cả hai. */
+
+.cx-tint-ctrl .cx-mp-bar [data-cx-music="back"],
+.cx-tint-ctrl .cx-mp-bar [data-cx-music="forward"] {
+  color: var(--cx-mw-ctrl);
 }
 
 .cx-tint-accent .cx-mp-bar .cx-mp-fill {
@@ -249,7 +260,7 @@
   border: 0;
   border-radius: 9999px;
   background: var(--cx-mw-chip);
-  color: inherit;
+  color: var(--cx-mw-ctrl, currentcolor);
   font-size: 0.8em;
   cursor: pointer;
   transition: transform 0.15s ease;
@@ -257,7 +268,7 @@
 
 .cx-mw-btn-main {
   background: var(--cx-mw-accent);
-  color: #fff;
+  color: var(--cx-mw-ctrl, #fff);
   box-shadow: 0 1px 3px rgba(90, 60, 65, 0.25);
 }
 
@@ -368,8 +379,14 @@
   justify-content: center;
   border-radius: 9999px;
   background: rgba(0, 0, 0, 0.22);
-  color: #fff;
+  color: var(--cx-mw-ctrl, #fff);
   font-size: 1em;
+}
+
+/* Nút tròn không có nút phát riêng — "Nền nút" chính là lớp phủ này. */
+
+.cx-tint-accent .cx-mw-mini-ic {
+  background: var(--cx-mw-accent);
 }
 
 /* ── Mẫu: thẻ nhạc ────────────────────────────────────────────────────────── */
