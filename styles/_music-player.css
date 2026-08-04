@@ -171,6 +171,37 @@
   transition: width 0.25s linear;
 }
 
+/* ── Đổi màu widget thả lên thiệp (bảng "Điều chỉnh thành phần") ─────────────
+   Nút tròn / thẻ nhạc đã đọc thẳng biến --cx-mw-* nên không cần rule nào; mẫu
+   THANH NGANG dựng bằng utility Tailwind nên phải đè ở đây. Mỗi class chỉ đè
+   đúng thứ người dùng đã chọn — không chọn màu nào thì thanh giữ nguyên gradient
+   hồng mặc định. */
+
+.cx-tint-bg .cx-mp-bar {
+  background-image: none;
+  background-color: var(--cx-mw-bg);
+}
+
+.cx-tint-fg .cx-mp-title,
+.cx-tint-fg .cx-mp-bar [data-cx-music="back"],
+.cx-tint-fg .cx-mp-bar [data-cx-music="forward"] {
+  color: var(--cx-mw-fg);
+}
+
+.cx-tint-accent .cx-mp-bar [data-cx-music="back"],
+.cx-tint-accent .cx-mp-bar [data-cx-music="forward"] {
+  background-color: var(--cx-mw-chip);
+}
+
+.cx-tint-accent .cx-mp-bar [data-cx-music="toggle"] {
+  background-color: var(--cx-mw-accent);
+  color: #fff;
+}
+
+.cx-tint-accent .cx-mp-bar .cx-mp-fill {
+  background-color: var(--cx-mw-fill);
+}
+
 /* ── Hai mẫu gọn của thành phần "Trình phát nhạc" ────────────────────────────
    .cx-mw-mini (nút tròn) và .cx-mw-card (thẻ nhạc); markup do
    core/components/music-player.js dựng, vị trí do theme-setting-helper đặt.

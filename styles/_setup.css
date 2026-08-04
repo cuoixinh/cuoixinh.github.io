@@ -444,6 +444,39 @@ input.flatpickr-input[readonly] {
   box-shadow: 0 0 0 2px rgba(244, 63, 94, 0.15);
 }
 
+/* Dãy chọn CÓ CHỮ (tuỳ chọn của thành phần) — nút icon mặc định chốt 36px vuông,
+   nhãn chữ phải cho giãn và xuống hàng. */
+.cx-le-seg-text {
+  @apply flex flex-wrap justify-end;
+}
+
+.cx-le-seg-text button {
+  @apply w-auto px-2.5 text-[12px];
+}
+
+/* Nút phá huỷ (xoá thành phần) — cùng dáng .cx-le-clear nhưng đỏ và chiếm hết
+   chỗ còn lại của hàng. */
+.cx-le-danger {
+  @apply inline-flex h-8 flex-1 items-center justify-center gap-1.5 rounded-lg
+         border border-rose-200 bg-white px-3 text-[12px] font-medium
+         text-rose-600 transition-all duration-150;
+}
+
+.cx-le-danger:hover {
+  @apply border-rose-300 bg-rose-50;
+}
+
+.cx-le-danger:active {
+  @apply scale-[0.98];
+}
+
+/* Ô mẫu ĐANG DÙNG trong bảng điều chỉnh thành phần */
+.cx-pal-item.is-on {
+  @apply border-rose-400 bg-[#fff5f6];
+
+  box-shadow: 0 0 0 2px rgba(244, 63, 94, 0.15);
+}
+
 .cx-le-check {
   @apply inline-flex cursor-pointer select-none items-center gap-2 text-[13px]
          text-gray-700;
