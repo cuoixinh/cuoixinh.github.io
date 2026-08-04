@@ -196,6 +196,97 @@ function applyTextOverrides(setting) {
   });
 }
 
+// ── CHỤM 2 NGÓN ĐỂ PHÓNG TO ────────────────────────────────────────────────
+// Dùng chung cho khối văn bản / hoạ tiết / thành phần: đặt 2 ngón NGAY TRONG
+// lòng khối rồi chụm-xoè là đổi cỡ, khỏi phải trúng nút góc. Máy tính: Ctrl +
+// lăn chuột (đúng cử chỉ chụm của bàn rê).
+//   onStart()  ghi lại cỡ đang có   ·  onScale(k)  k = tỉ lệ so với lúc bắt đầu
+//   onEnd()    làm tròn + lưu
+// Trả về hàm hỏi "đang chụm?" — thao tác KÉO 1 ngón phải tự dừng khi thấy cờ này,
+// nếu không ngón thứ hai sẽ vừa phóng to vừa lôi khối đi.
+function _cxWirePinch(node, onStart, onScale, onEnd) {
+  const pts = new Map();
+  let base = 0;
+  let live = false;
+  let wheelK = 1;
+  let wheelTimer = null;
+
+  const spread = () => {
+    const [a, b] = Array.from(pts.values());
+    return Math.hypot(a.x - b.x, a.y - b.y);
+  };
+  const finish = () => {
+    if (!live) return;
+    live = false;
+    onEnd();
+  };
+
+  // Ngón ĐẦU phải chạm vào khối, ngón thứ hai bắt ở cấp document: khối nhỏ (bông
+  // hoa 20% bề ngang) thì ngón kia rất dễ đặt hụt ra ngoài mép.
+  const down = (e) => {
+    if (e.pointerType === "mouse" || pts.size >= 2) return;
+    pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pts.size < 2) return;
+    base = spread() || 1;
+    live = true;
+    onStart();
+  };
+  const move = (e) => {
+    const p = pts.get(e.pointerId);
+    if (!p) return;
+    p.x = e.clientX;
+    p.y = e.clientY;
+    if (!live) return;
+    e.preventDefault();
+    onScale(spread() / base);
+  };
+  const off = (e) => {
+    if (!pts.delete(e.pointerId)) return;
+    if (pts.size < 2) finish();
+    if (!pts.size) unwatch();
+  };
+  const watch = () => {
+    document.addEventListener("pointerdown", down, true);
+    document.addEventListener("pointermove", move, true);
+    document.addEventListener("pointerup", off, true);
+    document.addEventListener("pointercancel", off, true);
+  };
+  const unwatch = () => {
+    document.removeEventListener("pointerdown", down, true);
+    document.removeEventListener("pointermove", move, true);
+    document.removeEventListener("pointerup", off, true);
+    document.removeEventListener("pointercancel", off, true);
+  };
+
+  node.addEventListener("pointerdown", (e) => {
+    if (e.pointerType === "mouse" || pts.size) return;
+    pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    watch(); // gắn sau khi ngón đầu đã vào sổ → không đếm trùng chính nó
+  });
+
+  // Lăn liên tục là NHIỀU sự kiện: gộp thành một lần chỉnh, chốt khi ngừng lăn
+  // 200ms để không ghi model (và báo trang cha) sau từng nấc.
+  node.addEventListener(
+    "wheel",
+    (e) => {
+      if (!e.ctrlKey) return;
+      e.preventDefault();
+      if (!live) {
+        live = true;
+        wheelK = 1;
+        onStart();
+      }
+      wheelK = Math.max(0.05, Math.min(20, wheelK * Math.exp(-e.deltaY / 180)));
+      onScale(wheelK);
+      clearTimeout(wheelTimer);
+      wheelTimer = setTimeout(finish, 200);
+    },
+    { passive: false },
+  );
+
+  return () => live;
+}
+
 // ── CUSTOM BLOCKS — khối văn bản người dùng tự thêm, chèn GIỮA CÁC MỤC ─────
 // Append cuối DOM (không đổi nth-child của section) rồi định vị bằng flex
 // `order`. Lưu ở theme_setting.custom_blocks; edit=1 thì cho sửa/kéo/xoá.
@@ -389,9 +480,44 @@ function _cxBuildBlockNode(b, edit) {
     });
     _cxWireDrag(tools.querySelector(".cx-cb-drag"), b.id);
     wrap.appendChild(tools);
+    _cxWireBlockPinch(wrap, body, b.id);
   }
   wrap.appendChild(body);
   return wrap;
+}
+
+// Chụm 2 ngón trên khối văn bản = đổi CỠ CHỮ. Cỡ chữ của khối nằm ở
+// text_overrides["#<id>"] do trang cha giữ, nên vừa chụm chỉ ghi tạm inline
+// (!important để thắng chính rule text_overrides đang áp) rồi báo trang cha lưu
+// — applyThemeSetting gỡ bản tạm khi cỡ mới đã vào CSS.
+const CX_CB_MIN_SIZE = 8;
+const CX_CB_MAX_SIZE = 200;
+
+function _cxWireBlockPinch(wrap, body, id) {
+  let base = 16;
+  _cxWirePinch(
+    wrap,
+    () => {
+      base = parseFloat(getComputedStyle(body).fontSize) || 16;
+    },
+    (k) => {
+      const px = Math.round(
+        _cxDecorClamp(base * k, CX_CB_MIN_SIZE, CX_CB_MAX_SIZE),
+      );
+      body.style.setProperty("font-size", px + "px", "important");
+      body.setAttribute("data-cx-pinch", "1");
+    },
+    () => {
+      const px = parseInt(body.style.fontSize, 10);
+      if (!(px > 0)) return;
+      try {
+        parent.postMessage(
+          { type: "cx-text-size", selector: "#" + id, size: px },
+          "*",
+        );
+      } catch (e) {}
+    },
+  );
 }
 
 function _cxRender() {
@@ -716,7 +842,9 @@ function _cxEnsureStyle() {
     ".cx-custom-block ol{list-style:decimal}.cx-custom-block ul{list-style:disc}" +
     // Viền nét đứt + 2 nút chỉ hiện khi khối đang được chọn. outline không chiếm
     // chỗ nên không đẩy layout; chỉ chế độ chỉnh mới chừa đệm cho nút kéo.
-    ".cx-cb-edit{padding:12px 0}" +
+    // pan-y: giữ cuộn trang bằng 1 ngón, nhưng nhường cử chỉ 2 ngón cho JS
+    // (chụm để đổi cỡ chữ) thay vì để trình duyệt zoom cả trang.
+    ".cx-cb-edit{padding:12px 0;touch-action:pan-y}" +
     ".cx-cb-active{outline:1px dashed #e11d48;outline-offset:4px}" +
     ".cx-cb-tools{position:absolute;inset:0;pointer-events:none;z-index:6;display:none}" +
     ".cx-cb-active>.cx-cb-tools{display:block}" +
@@ -941,14 +1069,33 @@ function _cxDecorNode(d, edit) {
   const size = _cxDecorButton("cx-decor-size", "Kéo để phóng to", _CX_DECOR_ICONS.size);
   node.append(del, copy, back, rot, size);
 
-  _cxDecorWireMove(node, d);
+  // Chụm 2 ngón ngay trên ảnh = phóng to, khỏi phải trúng nút góc.
+  let pinchW = d.w;
+  const pinching = _cxWirePinch(
+    node,
+    () => {
+      _cxDecorSetActive(d.id);
+      pinchW = d.w;
+    },
+    (k) => {
+      d.w = _cxDecorClamp(pinchW * k, CX_DECOR_MIN_W, CX_DECOR_MAX_W);
+      _cxDecorApply(node, d);
+    },
+    () => {
+      d.w = Math.round(d.w * 10) / 10;
+      _cxDecorReport();
+    },
+  );
+
+  _cxDecorWireMove(node, d, pinching);
   _cxDecorWireHandle(rot, node, d, "rotate");
   _cxDecorWireHandle(size, node, d, "resize");
   return node;
 }
 
-// Kéo cả ảnh → đổi toạ độ tâm (%).
-function _cxDecorWireMove(node, d) {
+// Kéo cả ảnh → đổi toạ độ tâm (%). Ngón thứ hai chạm vào = đang chụm để phóng
+// to, dừng kéo (không thì ảnh vừa to ra vừa chạy theo ngón).
+function _cxDecorWireMove(node, d, pinching) {
   node.addEventListener("pointerdown", (e) => {
     if (e.target.closest(".cx-decor-h")) return; // nút công cụ tự lo
     _cxDecorSetActive(d.id);
@@ -963,11 +1110,14 @@ function _cxDecorWireMove(node, d) {
     node.style.cursor = "grabbing";
 
     const move = (ev) => {
+      if (ev.pointerId !== e.pointerId) return;
+      if (pinching && pinching()) return;
       d.x = _cxDecorClamp(start.dx + ((ev.clientX - start.x) / r.width) * 100, 0, 100);
       d.y = _cxDecorClamp(start.dy + ((ev.clientY - start.y) / r.height) * 100, 0, 100);
       _cxDecorApply(node, d);
     };
-    const up = () => {
+    const up = (ev) => {
+      if (ev.pointerId !== e.pointerId) return;
       node.removeEventListener("pointermove", move);
       node.removeEventListener("pointerup", up);
       node.removeEventListener("pointercancel", up);
@@ -1207,9 +1357,9 @@ function applyDecorations(setting) {
 
 // ── ELEMENTS — "thành phần" thả tự do lên thiệp (hiện có: Trình phát nhạc) ──
 // Danh mục + markup từng mẫu ở core/helpers/element-helper.js.
-// theme_setting.elements = [{ id, element, variant, x, y, w, visible }]
+// theme_setting.elements = [{ id, element, variant, x, y, w }]
 //   x, y  % so với #main-card, tính theo TÂM widget
-//   w     % bề ngang thiệp; visible=false = tạm ẩn (vẫn giữ chỗ)
+//   w     % bề ngang thiệp
 // Khác hoạ tiết: trang công khai widget PHẢI bấm được (phát, tua, kéo xem tóm
 // tắt); ngược lại chế độ chỉnh khoá hết tương tác bên trong để kéo được widget.
 let _cxElements = [];
@@ -1263,12 +1413,6 @@ function _cxElEnsureStyle() {
     ".cx-el-edit{cursor:grab;touch-action:none}" +
     ".cx-el-edit>*{pointer-events:none}" +
     ".cx-el-edit.cx-el-active{outline:1px dashed #e11d48;outline-offset:6px}" +
-    // Đang tắt hiển thị: chỉ thấy mờ ở chế độ chỉnh để còn bật lại / dời chỗ.
-    ".cx-el-off{opacity:.4}" +
-    ".cx-el-badge{position:absolute;left:50%;top:-2.2em;transform:translateX(-50%);" +
-    "display:none;padding:2px 8px;border-radius:9999px;background:#111;color:#fff;" +
-    "font:500 11px/1.6 system-ui,sans-serif;white-space:nowrap;pointer-events:none}" +
-    ".cx-el-off .cx-el-badge{display:block}" +
     // Ô nhắc khi chưa có nhạc nền (chỉ hiện lúc chỉnh)
     ".cx-el-hint{display:flex;align-items:center;gap:8px;padding:10px 12px;" +
     "border:1px dashed #e11d48;border-radius:12px;background:rgba(255,255,255,.9);" +
@@ -1281,7 +1425,6 @@ function _cxElEnsureStyle() {
     ".cx-el-active .cx-el-h{display:flex}" +
     ".cx-el-del{top:-12px;left:-12px}" +
     ".cx-el-skin{top:-12px;left:50%;margin-left:-12px}" +
-    ".cx-el-eye{bottom:-12px;left:-12px}" +
     ".cx-el-size{bottom:-12px;right:-12px;cursor:nwse-resize}";
   document.head.appendChild(s);
 }
@@ -1332,13 +1475,6 @@ function _cxElBindOutside() {
   });
 }
 
-const _CX_EL_ICONS = {
-  skin: '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>',
-  eye: '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>',
-  eyeOff:
-    '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.6 6.1A9.9 9.9 0 0 1 12 6c6.4 0 10 7 10 7a15 15 0 0 1-3 3.7M6.6 6.6A15 15 0 0 0 2 13s3.6 7 10 7a9.6 9.6 0 0 0 4.6-1.1"/><path d="M2 2l20 20"/></svg>',
-};
-
 function _cxElButton(cls, title, icon) {
   const b = document.createElement("button");
   b.type = "button";
@@ -1368,7 +1504,6 @@ function _cxElNode(t, edit) {
   node.className = "cx-el" + (edit ? " cx-el-edit" : "");
   node.setAttribute("data-el-id", t.id);
   if (edit && t.id === _cxElActiveId) node.classList.add("cx-el-active");
-  if (edit && !t.visible) node.classList.add("cx-el-off");
   _cxElStyle(node, t);
 
   const body = _cxElBody(t);
@@ -1377,11 +1512,6 @@ function _cxElNode(t, edit) {
   node._cxBody = body;
 
   if (!edit) return node;
-
-  const badge = document.createElement("span");
-  badge.className = "cx-el-badge";
-  badge.textContent = "Đang ẩn";
-  node.appendChild(badge);
 
   const del = _cxElButton("cx-el-del", "Xoá", _CX_DECOR_ICONS.del);
   del.addEventListener("click", (e) => {
@@ -1395,7 +1525,7 @@ function _cxElNode(t, edit) {
   const skin = _cxElButton(
     "cx-el-skin",
     "Đổi mẫu (" + (_cxElVariant(t) || {}).name + ")",
-    _CX_EL_ICONS.skin,
+    _CX_DECOR_ICONS.rot,
   );
   skin.addEventListener("click", (e) => {
     e.preventDefault();
@@ -1404,30 +1534,40 @@ function _cxElNode(t, edit) {
     const i = list.findIndex((v) => v.id === t.variant);
     _cxElSet(t.id, { variant: list[(i + 1) % list.length].id });
   });
-  const eye = _cxElButton(
-    "cx-el-eye",
-    t.visible ? "Ẩn trên thiệp" : "Hiện lại",
-    t.visible ? _CX_EL_ICONS.eye : _CX_EL_ICONS.eyeOff,
-  );
-  eye.addEventListener("click", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    _cxElSet(t.id, { visible: !t.visible });
-  });
   const size = _cxElButton(
     "cx-el-size",
     "Kéo để phóng to",
     _CX_DECOR_ICONS.size,
   );
-  node.append(del, skin, eye, size);
+  node.append(del, skin, size);
 
-  _cxElWireMove(node, t);
+  // Chụm 2 ngón ngay trong lòng widget = phóng to, khỏi phải trúng nút góc.
+  let pinchW = t.w;
+  const pinching = _cxWirePinch(
+    node,
+    () => {
+      _cxElSetActive(t.id);
+      pinchW = t.w;
+    },
+    (k) => {
+      const v = _cxElVariant(t) || {};
+      t.w = _cxDecorClamp(pinchW * k, v.minW || 8, v.maxW || 100);
+      _cxElStyle(node, t); // đổi cả cỡ chữ bên trong theo bề ngang mới
+    },
+    () => {
+      t.w = Math.round(t.w * 10) / 10;
+      _cxElReport();
+    },
+  );
+
+  _cxElWireMove(node, t, pinching);
   _cxElWireResize(size, node, t);
   return node;
 }
 
-// Kéo cả widget → đổi toạ độ tâm (%). Giống hệt hoạ tiết.
-function _cxElWireMove(node, t) {
+// Kéo cả widget → đổi toạ độ tâm (%). Giống hệt hoạ tiết: ngón thứ hai chạm vào
+// là đang chụm để phóng to nên phải dừng kéo.
+function _cxElWireMove(node, t, pinching) {
   node.addEventListener("pointerdown", (e) => {
     if (e.target.closest(".cx-el-h")) return;
     _cxElSetActive(t.id);
@@ -1442,6 +1582,8 @@ function _cxElWireMove(node, t) {
     node.style.cursor = "grabbing";
 
     const move = (ev) => {
+      if (ev.pointerId !== e.pointerId) return;
+      if (pinching && pinching()) return;
       t.x = _cxDecorClamp(
         start.dx + ((ev.clientX - start.x) / r.width) * 100,
         0,
@@ -1454,7 +1596,8 @@ function _cxElWireMove(node, t) {
       );
       _cxElStyle(node, t);
     };
-    const up = () => {
+    const up = (ev) => {
+      if (ev.pointerId !== e.pointerId) return;
       node.removeEventListener("pointermove", move);
       node.removeEventListener("pointerup", up);
       node.removeEventListener("pointercancel", up);
@@ -1533,9 +1676,8 @@ function _cxElRender() {
   }
 
   _cxElements.forEach((t) => {
-    // Tắt hiển thị / chưa có nhạc → trang công khai không vẽ gì; lúc chỉnh vẫn
-    // vẽ (mờ đi) để còn bật lại hoặc dời chỗ.
-    if (!edit && (!t.visible || !_cxElReady(t))) return;
+    // Chưa có nhạc → trang công khai không vẽ gì; lúc chỉnh vẫn vẽ ô nhắc.
+    if (!edit && !_cxElReady(t)) return;
     const node = _cxElNode(t, edit);
     if (!node) return;
     layer.appendChild(node);
@@ -1577,8 +1719,8 @@ function _cxElDelete(id) {
   _cxElReport();
 }
 
-// Đổi mẫu / bật tắt hiển thị. Đổi mẫu thì trả bề ngang về mặc định của mẫu mới:
-// thanh ngang 88% mà giữ nguyên khi sang nút tròn thì ra một nút to bằng nửa thiệp.
+// Đổi mẫu: trả bề ngang về mặc định của mẫu mới — thanh ngang 88% mà giữ nguyên
+// khi sang nút tròn thì ra một nút to bằng nửa thiệp.
 function _cxElSet(id, patch) {
   const t = _cxElFind(id);
   if (!t || !patch) return;
@@ -1590,7 +1732,6 @@ function _cxElSet(id, patch) {
       t.w = v.w;
     }
   }
-  if (typeof patch.visible === "boolean") t.visible = patch.visible;
   _cxElActiveId = t.id;
   _cxElRender();
   _cxElReport();
@@ -1620,7 +1761,6 @@ function _cxElAdd(elementId, clientX, clientY, variantId) {
   if (exist) {
     exist.x = Math.round(x * 10) / 10;
     exist.y = Math.round(y * 10) / 10;
-    exist.visible = true; // thả lại = muốn thấy nó
     // Thả ô mẫu KHÁC lên thành phần đã có = đổi mẫu; bề ngang lấy lại theo mẫu mới
     // vì mỗi mẫu một khoảng min/max riêng (thanh ngang 88% vs nút tròn 16%).
     if (variantId && exist.variant !== variant.id) {
@@ -1639,7 +1779,6 @@ function _cxElAdd(elementId, clientX, clientY, variantId) {
       x: Math.round(x * 10) / 10,
       y: Math.round(y * 10) / 10,
       w: v.w,
-      visible: true,
     });
     _cxElActiveId = id;
   }
@@ -1680,7 +1819,6 @@ function applyElements(setting) {
         x: _cxDecorClamp(Number(t.x) || 0, 0, 100),
         y: _cxDecorClamp(Number(t.y) || 0, 0, 100),
         w: _cxDecorClamp(Number(t.w) || v.w, v.minW, v.maxW),
-        visible: t.visible !== false,
       };
     });
   _cxElRender();
@@ -1699,7 +1837,7 @@ if (typeof window !== "undefined" && window.top !== window) {
     else if (d.type === "cx-block-text") _cxSetContent(d.id, d.text);
     // Hoạ tiết: thả từ bảng chọn của panel (x,y = px theo viewport iframe)
     else if (d.type === "cx-add-decor") _cxDecorAdd(d.src, d.x, d.y);
-    // Công cụ: thả từ bảng chọn, và đổi mẫu / ẩn hiện từ bảng
+    // Công cụ: thả từ bảng chọn, và đổi mẫu / xoá từ bảng
     else if (d.type === "cx-add-element")
       _cxElAdd(d.element, d.x, d.y, d.variant);
     else if (d.type === "cx-element-set") _cxElSet(d.id, d.patch);
@@ -1818,6 +1956,13 @@ function applyThemeSetting(setting) {
     document.head.appendChild(styleEl);
   }
   styleEl.textContent = rules.join("\n");
+
+  // Cỡ chữ ghi tạm lúc chụm 2 ngón (inline !important) nay đã nằm trong
+  // text_overrides → gỡ đi, không thì nó đè mọi lần chỉnh cỡ sau ở bảng.
+  document.querySelectorAll("[data-cx-pinch]").forEach((el) => {
+    el.style.removeProperty("font-size");
+    el.removeAttribute("data-cx-pinch");
+  });
 }
 
 // Export ra global (các theme dùng qua <script>, không có module system)

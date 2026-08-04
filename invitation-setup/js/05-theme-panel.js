@@ -281,12 +281,33 @@ window.addEventListener("message", (ev) => {
     _themeSetting.decorations = Array.isArray(d.decors) ? d.decors : [];
     _setDirty(true, "theme");
   } else if (d.type === "cx-elements-changed") {
-    // Thành phần vừa thả / kéo / đổi mẫu / ẩn / xoá — mọi thao tác chỉnh đều làm
-    // NGAY TRÊN THIỆP (nút quanh widget), bảng chọn chỉ để thả nên chỉ cần lưu.
+    // Thành phần vừa thả / kéo / đổi mẫu / phóng to / xoá — mọi thao tác chỉnh đều
+    // làm NGAY TRÊN THIỆP (nút quanh widget), bảng chọn chỉ để thả nên chỉ cần lưu.
     _themeSetting.elements = Array.isArray(d.elements) ? d.elements : [];
     _setDirty(true, "theme");
+  } else if (d.type === "cx-text-size") {
+    // Vừa chụm 2 ngón trên khối văn bản trong thiệp → cỡ chữ mới.
+    _setTextSizeFromCard(d.selector, d.size);
   }
 });
+
+// Cỡ chữ chụm được ghi vào text_overrides y như khi gõ ở ô "Cỡ chữ"; bảng chỉnh
+// đang mở đúng khối đó thì đồng bộ luôn ô nhập cho khỏi lệch.
+function _setTextSizeFromCard(selector, size) {
+  const n = parseInt(size, 10);
+  if (!selector || !(n > 0)) return;
+  if (!_themeSetting.text_overrides) _themeSetting.text_overrides = {};
+  if (!_themeSetting.text_overrides[selector])
+    _themeSetting.text_overrides[selector] = {};
+  _themeSetting.text_overrides[selector].size = n;
+  if (_lineSel === selector) {
+    const el = document.getElementById("cx-line-size");
+    if (el) el.value = n;
+    _syncSampleStyle();
+  }
+  _setDirty(true, "theme");
+  _lineIframe()?.contentWindow?.applyThemeSetting?.(_themeSetting);
+}
 
 // ─── Thêm văn bản (bảng chọn mẫu riêng) ──────────────────────────────────────
 // Mở như bảng chỉnh 1 dòng: chiếm chỗ nhóm chỉnh chung (ẩn phông/màu) để chỉ còn
