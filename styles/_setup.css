@@ -686,7 +686,9 @@ input.flatpickr-input[readonly] {
 }
 
 /* ============================================================
-   Vùng cuộn cao thấp có tay nắm ("sheet") — dùng ở bảng Thêm văn bản.
+   Vùng cuộn cao thấp có tay nắm ("sheet") — bọc TOÀN BỘ bảng chỉnh giao diện,
+   nên mọi bảng (chung, chỉnh chữ, thêm văn bản, trang trí, thành phần, điều
+   chỉnh) cao bằng nhau: mặc định 1/4 màn hình, kéo tay nắm lên để nới.
    Chiều cao thật nằm ở --cx-sheet-h, JS (_initSheet) ghi khi kéo tay nắm;
    .cx-sheet-fade là dải trắng mờ báo "còn nội dung phía dưới", JS gắn class
    .is-end khi đã cuộn tới đáy. Từ md+ cả cột đã tự cuộn nên tắt hết.
@@ -698,13 +700,7 @@ input.flatpickr-input[readonly] {
 .cx-sheet-body {
   @apply overflow-y-auto overscroll-contain;
 
-  max-height: var(--cx-sheet-h, 200px);
-}
-
-/* Khoảng cách giữa các mục trong vùng cuộn (panel dùng space-y ở lớp ngoài,
-   không với tới đây được). */
-.cx-sheet-body > * + * {
-  @apply mt-3;
+  max-height: var(--cx-sheet-h, 25vh);
 }
 
 .cx-sheet-fade {

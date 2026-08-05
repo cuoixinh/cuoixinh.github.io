@@ -375,6 +375,7 @@ function openAddTextPanel() {
   document.getElementById("theme-elements-panel")?.classList.add("hidden");
   _hideElementEditor();
   document.getElementById("theme-addtext-panel")?.classList.remove("hidden");
+  _resetCtrlScroll();
   _renderTextPresets();
   if (window.lucide) lucide.createIcons();
 }
@@ -400,7 +401,7 @@ function _renderTextPresets() {
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "cx-pal-row";
-    btn.title = def.name + " — kéo vào thiệp hoặc bấm để thêm";
+    btn.title = def.name + " — kéo vào thiệp để thêm";
 
     const prev = document.createElement("span");
     prev.className = "cx-pal-prev";
@@ -436,91 +437,103 @@ function _renderTextPresets() {
   // Panel vừa hiện xong mới đo được kích thước ô → hoãn một nhịp.
   requestAnimationFrame(() => {
     _fitElPreviews(box);
-    const scroll = document.getElementById("cx-addtext-scroll");
-    if (scroll) _updateSheetFade(scroll);
+    _resetCtrlScroll();
   });
 }
 
 function closeAddTextPanel() {
   document.getElementById("theme-addtext-panel")?.classList.add("hidden");
   document.getElementById("theme-main-controls")?.classList.remove("hidden");
+  _resetCtrlScroll();
   _initEditHint();
 }
 window.closeAddTextPanel = closeAddTextPanel;
 
-function addTextBlock(type) {
-  closeAddTextPanel();
-  _setDirty(true, "theme");
-  _lineIframe()?.contentWindow?.postMessage(
-    { type: "cx-add-block", blockType: type },
-    "*",
-  );
-}
-window.addTextBlock = addTextBlock;
+// ─── Kéo mẫu từ bảng chọn ra thiệp (dùng chung cho Văn bản / Trang trí / Thành phần) ──
+// Quy tắc: CHỈ kéo mới thêm được — bấm tại chỗ không làm gì; và phải kéo RA KHỎI
+// bảng chọn rồi nhả TRÊN thiệp mới tính là thả. Còn ở trong bảng thì cử chỉ kéo
+// dùng để cuộn danh sách (ô mẫu đặt touch-action:none nên trình duyệt không tự
+// cuộn giúp). Mỗi bảng chỉ khai báo 3 việc riêng: over / cancel / drop.
+const PAL_DRAG_MIN = 6; // px, dưới ngưỡng này coi như chưa kéo
 
-// Kéo mẫu TỪ palette THẢ vào thiệp. setPointerCapture trên nút để parent vẫn nhận
-// pointermove kể cả khi con trỏ ở trên iframe; bấm mà không kéo (<6px) → thêm ở cuối.
-let _paletteDrag = null;
-function startPaletteDrag(e, type) {
+let _palDrag = null;
+
+function _inThemeControls(x, y) {
+  const box = document.getElementById("theme-controls");
+  if (!box) return false;
+  const r = box.getBoundingClientRect();
+  return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
+}
+
+// setPointerCapture trên nút để trang cha vẫn nhận pointermove kể cả khi con trỏ
+// đã ở trên iframe; tắt luôn pointer-events của iframe vì lý do đó.
+function _startPalDrag(e, hooks) {
   if (e.button != null && e.button !== 0) return; // chỉ chuột trái
   const btn = e.currentTarget;
   e.preventDefault();
   try {
     btn.setPointerCapture(e.pointerId);
   } catch (err) {}
-  // Tắt pointer-events iframe → con trỏ rê qua iframe parent VẪN nhận pointermove.
   const iframe = _lineIframe();
   if (iframe) iframe.style.pointerEvents = "none";
-  // Khoảng lệch từ con trỏ tới góc trên-trái thẻ mẫu → ghost nằm ĐÚNG chỗ vừa
-  // "nhấc" lên, con trỏ giữ nguyên điểm bấm trên thẻ.
+  // Khoảng lệch từ con trỏ tới góc trên-trái ô mẫu → bóng mờ nằm ĐÚNG chỗ vừa
+  // "nhấc" lên, con trỏ giữ nguyên điểm bấm trên ô.
   const r = btn.getBoundingClientRect();
-  _paletteDrag = {
-    type,
+  const scroller = btn.closest(".cx-sheet-body");
+  _palDrag = {
+    hooks,
     btn,
     iframe,
     x0: e.clientX,
     y0: e.clientY,
     offX: e.clientX - r.left,
     offY: e.clientY - r.top,
-    moved: false,
+    scroller,
+    top0: scroller ? scroller.scrollTop : 0,
+    out: false, // đã ra khỏi bảng chọn ít nhất một lần
     ghost: null,
-    over: false,
+    over: false, // con trỏ đang ở trên thiệp
   };
-  const move = (ev) => _paletteDragMove(ev);
+  const move = (ev) => _palDragMove(ev);
   const up = (ev) => {
     btn.removeEventListener("pointermove", move);
     btn.removeEventListener("pointerup", up);
     btn.removeEventListener("pointercancel", up);
-    _paletteDragEnd(ev);
+    _palDragEnd(ev);
   };
   btn.addEventListener("pointermove", move);
   btn.addEventListener("pointerup", up);
   btn.addEventListener("pointercancel", up);
 }
-window.startPaletteDrag = startPaletteDrag;
 
-function _paletteDragMove(ev) {
-  const d = _paletteDrag;
+function _palDragMove(ev) {
+  const d = _palDrag;
   if (!d) return;
-  if (!d.moved) {
-    if (Math.hypot(ev.clientX - d.x0, ev.clientY - d.y0) < 6) return;
-    d.moved = true;
-    // Bóng mờ = BẢN SAO của chính mẫu đang kéo (mờ 50%) cho dễ nhận ra
+  // Chưa rời bảng: kéo dọc = cuộn danh sách, chưa dựng bóng mờ.
+  if (!d.out) {
+    if (_inThemeControls(ev.clientX, ev.clientY)) {
+      if (d.scroller) d.scroller.scrollTop = d.top0 - (ev.clientY - d.y0);
+      return;
+    }
+    if (Math.hypot(ev.clientX - d.x0, ev.clientY - d.y0) < PAL_DRAG_MIN) return;
+    d.out = true;
+    // Bóng mờ = BẢN SAO của chính ô mẫu đang kéo (mờ 50%) cho dễ nhận ra.
     d.ghost = d.btn.cloneNode(true);
     d.ghost.removeAttribute("id");
     d.ghost.classList.add("cx-drag-ghost");
     d.ghost.style.width = `${d.btn.offsetWidth}px`;
-    // Đặt sẵn vị trí trước khi gắn vào DOM → hiện ngay tại con trỏ, không nhảy
+    // Đặt sẵn vị trí trước khi gắn vào DOM → hiện ngay tại con trỏ, không nhảy.
     d.ghost.style.left = `${ev.clientX - d.offX}px`;
     d.ghost.style.top = `${ev.clientY - d.offY}px`;
     document.body.appendChild(d.ghost);
   }
-  // Bám con trỏ theo đúng điểm đã bấm; kẹp ngang cho khỏi lòi ra mép màn hình
+  // Bám con trỏ theo đúng điểm đã bấm; kẹp ngang cho khỏi lòi ra mép màn hình.
   const gw = d.ghost.offsetWidth || d.btn.offsetWidth;
   const vw = document.documentElement.clientWidth;
   d.ghost.style.left =
     Math.max(8, Math.min(ev.clientX - d.offX, vw - gw - 8)) + "px";
   d.ghost.style.top = ev.clientY - d.offY + "px";
+
   const iframe = _lineIframe();
   const r = iframe && iframe.getBoundingClientRect();
   const inside =
@@ -531,40 +544,48 @@ function _paletteDragMove(ev) {
     ev.clientY <= r.bottom;
   if (inside) {
     d.over = true;
-    iframe.contentWindow?.postMessage(
-      { type: "cx-drag-over", y: ev.clientY - r.top },
-      "*",
-    );
+    d.hooks.onOver?.(iframe, ev.clientX - r.left, ev.clientY - r.top);
   } else if (d.over) {
     d.over = false;
-    iframe?.contentWindow?.postMessage({ type: "cx-drag-cancel" }, "*");
+    d.hooks.onCancel?.(iframe);
   }
 }
 
-function _paletteDragEnd(ev) {
-  const d = _paletteDrag;
-  _paletteDrag = null;
+function _palDragEnd(ev) {
+  const d = _palDrag;
+  _palDrag = null;
   if (!d) return;
   d.ghost?.remove();
   if (d.iframe) d.iframe.style.pointerEvents = ""; // khôi phục tương tác iframe
   const iframe = d.iframe || _lineIframe();
-  // Nhả tay TRÊN thiệp → chèn đúng chỗ đó; nhả ở chỗ khác (bấm tại chỗ, hoặc kéo
-  // rồi buông ngoài thiệp) → thêm ở cuối. Không có nhánh "im lặng bỏ qua": một cú
-  // bấm bình thường vẫn lệch vài px nên rất dễ bị tính là kéo.
-  if (d.over && iframe) {
-    const r = iframe.getBoundingClientRect();
-    closeAddTextPanel();
-    _setDirty(true, "theme");
-    iframe.contentWindow?.postMessage(
-      { type: "cx-drop", blockType: d.type, y: ev.clientY - r.top },
-      "*",
-    );
-  } else {
-    // Dọn vạch chèn trước rồi mới thêm, không thì vạch còn nằm lại trên thiệp.
-    iframe?.contentWindow?.postMessage({ type: "cx-drag-cancel" }, "*");
-    addTextBlock(d.type);
+  // Nhả tay trong bảng chọn (bấm tại chỗ, hoặc kéo rồi quay lại) → KHÔNG thêm gì,
+  // chỉ dọn dấu vết. Chỉ nhả TRÊN thiệp mới tính là thả.
+  if (!d.out || !d.over || !iframe) {
+    d.hooks.onCancel?.(iframe);
+    return;
   }
+  const r = iframe.getBoundingClientRect();
+  d.hooks.onDrop(iframe, ev.clientX - r.left, ev.clientY - r.top);
 }
+
+// Mẫu văn bản: lúc rê trên thiệp runtime vẽ vạch chèn theo toạ độ Y.
+function startPaletteDrag(e, type) {
+  _startPalDrag(e, {
+    onOver: (iframe, x, y) =>
+      iframe.contentWindow?.postMessage({ type: "cx-drag-over", y }, "*"),
+    onCancel: (iframe) =>
+      iframe?.contentWindow?.postMessage({ type: "cx-drag-cancel" }, "*"),
+    onDrop: (iframe, x, y) => {
+      closeAddTextPanel();
+      _setDirty(true, "theme");
+      iframe.contentWindow?.postMessage(
+        { type: "cx-drop", blockType: type, y },
+        "*",
+      );
+    },
+  });
+}
+window.startPaletteDrag = startPaletteDrag;
 
 // ─── Trang trí: bảng chọn hoa (nạp từ kho ảnh mẫu) ──────────────────────────
 // Danh sách lấy ở /assets/flowers/manifest.json — file do tab "Ảnh mẫu" bên
@@ -580,6 +601,7 @@ function openDecorPanel() {
   document.getElementById("theme-elements-panel")?.classList.add("hidden");
   _hideElementEditor();
   document.getElementById("theme-decor-panel")?.classList.remove("hidden");
+  _resetCtrlScroll();
   _renderDecorPalette();
   if (window.lucide) lucide.createIcons();
 }
@@ -588,6 +610,7 @@ window.openDecorPanel = openDecorPanel;
 function closeDecorPanel() {
   document.getElementById("theme-decor-panel")?.classList.add("hidden");
   document.getElementById("theme-main-controls")?.classList.remove("hidden");
+  _resetCtrlScroll();
   _initEditHint();
 }
 window.closeDecorPanel = closeDecorPanel;
@@ -631,7 +654,7 @@ async function _renderDecorPalette() {
   _decorItems.forEach((item) => {
     const btn = document.createElement("button");
     btn.type = "button";
-    btn.title = "Kéo vào thiệp hoặc bấm để thêm";
+    btn.title = "Kéo vào thiệp để thêm";
     btn.className = "cx-pal-item cx-pal-item-img";
     const img = document.createElement("img");
     img.src = item.url;
@@ -646,91 +669,13 @@ async function _renderDecorPalette() {
   grid.dataset.rendered = "1";
 }
 
-// Kéo hoa TỪ bảng chọn THẢ vào thiệp — cùng cách với mẫu văn bản: giữ
-// pointer-capture ở nút, tắt pointer-events của iframe để parent vẫn nhận
-// pointermove, thả trong iframe thì gửi TOẠ ĐỘ điểm thả cho runtime.
-let _decorDrag = null;
+// Kéo hoa TỪ bảng chọn THẢ vào thiệp — thả ở đâu đặt ở đó (lưu theo toạ độ %).
 function startDecorDrag(e, src) {
-  if (e.button != null && e.button !== 0) return;
-  const btn = e.currentTarget;
-  e.preventDefault();
-  try {
-    btn.setPointerCapture(e.pointerId);
-  } catch (err) {}
-  const iframe = _lineIframe();
-  if (iframe) iframe.style.pointerEvents = "none";
-  const r = btn.getBoundingClientRect();
-  _decorDrag = {
-    src,
-    btn,
-    iframe,
-    x0: e.clientX,
-    y0: e.clientY,
-    offX: e.clientX - r.left,
-    offY: e.clientY - r.top,
-    moved: false,
-    ghost: null,
-  };
-  const move = (ev) => _decorDragMove(ev);
-  const up = (ev) => {
-    btn.removeEventListener("pointermove", move);
-    btn.removeEventListener("pointerup", up);
-    btn.removeEventListener("pointercancel", up);
-    _decorDragEnd(ev);
-  };
-  btn.addEventListener("pointermove", move);
-  btn.addEventListener("pointerup", up);
-  btn.addEventListener("pointercancel", up);
+  _startPalDrag(e, {
+    onDrop: (iframe, x, y) => _addDecor(src, x, y),
+  });
 }
 window.startDecorDrag = startDecorDrag;
-
-function _decorDragMove(ev) {
-  const d = _decorDrag;
-  if (!d) return;
-  if (!d.moved) {
-    if (Math.hypot(ev.clientX - d.x0, ev.clientY - d.y0) < 6) return;
-    d.moved = true;
-    d.ghost = d.btn.cloneNode(true);
-    d.ghost.removeAttribute("id");
-    d.ghost.classList.add("cx-drag-ghost");
-    d.ghost.style.width = `${d.btn.offsetWidth}px`;
-    d.ghost.style.left = `${ev.clientX - d.offX}px`;
-    d.ghost.style.top = `${ev.clientY - d.offY}px`;
-    document.body.appendChild(d.ghost);
-  }
-  const gw = d.ghost.offsetWidth || d.btn.offsetWidth;
-  const vw = document.documentElement.clientWidth;
-  d.ghost.style.left =
-    Math.max(8, Math.min(ev.clientX - d.offX, vw - gw - 8)) + "px";
-  d.ghost.style.top = ev.clientY - d.offY + "px";
-}
-
-function _decorDragEnd(ev) {
-  const d = _decorDrag;
-  _decorDrag = null;
-  if (!d) return;
-  d.ghost?.remove();
-  if (d.iframe) d.iframe.style.pointerEvents = "";
-  const iframe = d.iframe || _lineIframe();
-  if (!iframe) return;
-
-  const r = iframe.getBoundingClientRect();
-  const inside =
-    d.moved &&
-    ev.clientX >= r.left &&
-    ev.clientX <= r.right &&
-    ev.clientY >= r.top &&
-    ev.clientY <= r.bottom;
-
-  // Nhả tay TRÊN thiệp → đặt đúng chỗ đó; nhả ở chỗ khác (bấm tại chỗ, hoặc kéo
-  // rồi buông ngoài thiệp) → thêm vào giữa. Không có nhánh "im lặng bỏ qua":
-  // một cú bấm bình thường vẫn lệch vài px nên rất dễ bị tính là kéo.
-  if (inside) {
-    _addDecor(d.src, ev.clientX - r.left, ev.clientY - r.top);
-  } else {
-    _addDecor(d.src, null, null);
-  }
-}
 
 // Hoạ tiết không có bảng cấp 3 (chỉnh ngay trên thiệp bằng bộ nút của nó) → thả
 // xong Ở LẠI bảng chọn để thêm tiếp; rời bảng bằng nút quay lại.
@@ -741,8 +686,8 @@ function _addDecor(src, x, y) {
 
 // ─── Thành phần: bảng chọn thành phần thả lên thiệp ─────────────────────────
 // Danh mục lấy từ window.CX_ELEMENTS (core/helpers/element-helper.js) nên thêm
-// thành phần mới không phải sửa gì ở đây. Bấm ô mẫu → thêm vào giữa thiệp; kéo
-// ô mẫu thả xuống → đặt đúng chỗ thả. Thêm xong đóng bảng luôn.
+// thành phần mới không phải sửa gì ở đây. Kéo ô mẫu ra khỏi bảng rồi thả lên
+// thiệp → đặt đúng chỗ thả (bấm tại chỗ không thêm gì). Thả xong đóng bảng luôn.
 
 function openElementsPanel() {
   document.getElementById("theme-line-editor")?.classList.add("hidden");
@@ -752,6 +697,7 @@ function openElementsPanel() {
   document.getElementById("theme-main-controls")?.classList.add("hidden");
   document.getElementById("theme-edit-hint")?.classList.add("hidden");
   document.getElementById("theme-elements-panel")?.classList.remove("hidden");
+  _resetCtrlScroll();
   _renderElementsPalette();
   if (window.lucide) lucide.createIcons();
 }
@@ -760,6 +706,7 @@ window.openElementsPanel = openElementsPanel;
 function closeElementsPanel() {
   document.getElementById("theme-elements-panel")?.classList.add("hidden");
   document.getElementById("theme-main-controls")?.classList.remove("hidden");
+  _resetCtrlScroll();
   _initEditHint();
 }
 window.closeElementsPanel = closeElementsPanel;
@@ -869,7 +816,7 @@ function _renderElementsPalette() {
         " · " +
         v.name +
         (v.desc ? " — " + v.desc : "") +
-        " (kéo vào thiệp hoặc bấm để thêm)";
+        " (kéo vào thiệp để thêm)";
       btn.appendChild(_elPreview(def, v));
       const cap = document.createElement("span");
       cap.className = "cx-pal-txt";
@@ -887,93 +834,16 @@ function _renderElementsPalette() {
   _fitElPreviews(box);
 }
 
-// Kéo thành phần TỪ bảng chọn THẢ vào thiệp — y hệt hoạ tiết: giữ pointer-capture ở
-// nút, tắt pointer-events của iframe để trang cha vẫn nhận pointermove, thả trong
-// iframe thì gửi TOẠ ĐỘ điểm thả cho runtime.
-let _elDrag = null;
+// Kéo thành phần TỪ bảng chọn THẢ vào thiệp — y hệt hoạ tiết, thả ở đâu đặt ở đó.
 function startElementDrag(e, elementId, variantId) {
-  if (e.button != null && e.button !== 0) return;
-  const btn = e.currentTarget;
-  e.preventDefault();
-  try {
-    btn.setPointerCapture(e.pointerId);
-  } catch (err) {}
-  const iframe = _lineIframe();
-  if (iframe) iframe.style.pointerEvents = "none";
-  const r = btn.getBoundingClientRect();
-  _elDrag = {
-    elementId,
-    variantId,
-    btn,
-    iframe,
-    x0: e.clientX,
-    y0: e.clientY,
-    offX: e.clientX - r.left,
-    offY: e.clientY - r.top,
-    moved: false,
-    ghost: null,
-  };
-  const move = (ev) => _elDragMove(ev);
-  const up = (ev) => {
-    btn.removeEventListener("pointermove", move);
-    btn.removeEventListener("pointerup", up);
-    btn.removeEventListener("pointercancel", up);
-    _elDragEnd(ev);
-  };
-  btn.addEventListener("pointermove", move);
-  btn.addEventListener("pointerup", up);
-  btn.addEventListener("pointercancel", up);
+  _startPalDrag(e, {
+    onDrop: (iframe, x, y) => _addElement(elementId, variantId, x, y),
+  });
 }
 window.startElementDrag = startElementDrag;
 
-function _elDragMove(ev) {
-  const d = _elDrag;
-  if (!d) return;
-  if (!d.moved) {
-    if (Math.hypot(ev.clientX - d.x0, ev.clientY - d.y0) < 6) return;
-    d.moved = true;
-    d.ghost = d.btn.cloneNode(true);
-    d.ghost.removeAttribute("id");
-    d.ghost.classList.add("cx-drag-ghost");
-    d.ghost.style.width = `${d.btn.offsetWidth}px`;
-    d.ghost.style.left = `${ev.clientX - d.offX}px`;
-    d.ghost.style.top = `${ev.clientY - d.offY}px`;
-    document.body.appendChild(d.ghost);
-  }
-  const gw = d.ghost.offsetWidth || d.btn.offsetWidth;
-  const vw = document.documentElement.clientWidth;
-  d.ghost.style.left =
-    Math.max(8, Math.min(ev.clientX - d.offX, vw - gw - 8)) + "px";
-  d.ghost.style.top = ev.clientY - d.offY + "px";
-}
-
-function _elDragEnd(ev) {
-  const d = _elDrag;
-  _elDrag = null;
-  if (!d) return;
-  d.ghost?.remove();
-  if (d.iframe) d.iframe.style.pointerEvents = "";
-  const iframe = d.iframe || _lineIframe();
-  if (!iframe) return;
-
-  const r = iframe.getBoundingClientRect();
-  const inside =
-    d.moved &&
-    ev.clientX >= r.left &&
-    ev.clientX <= r.right &&
-    ev.clientY >= r.top &&
-    ev.clientY <= r.bottom;
-
-  // Giống Trang trí: nhả tay trên thiệp → đúng chỗ đó, chỗ khác → vào giữa.
-  if (inside) {
-    _addElement(d.elementId, d.variantId, ev.clientX - r.left, ev.clientY - r.top);
-  } else {
-    _addElement(d.elementId, d.variantId, null, null);
-  }
-}
-
-// Không đánh dấu chưa-lưu ở đây: bấm ô mẫu khi thiệp ĐÃ có thành phần đó thì
-// runtime chỉ chọn nó lên chứ không sửa gì. Có thay đổi thật thì runtime tự gửi
+// Không đánh dấu chưa-lưu ở đây: thả trúng thành phần thiệp ĐÃ có thì runtime chỉ
+// chọn nó lên chứ không sửa gì. Có thay đổi thật thì runtime tự gửi
 // 'cx-elements-changed' và dấu * bật lên theo.
 function _addElement(elementId, variantId, x, y) {
   closeElementsPanel();
@@ -1023,6 +893,7 @@ function openElementEditor(msg) {
   document.getElementById("theme-main-controls")?.classList.add("hidden");
   document.getElementById("theme-edit-hint")?.classList.add("hidden");
   document.getElementById("theme-element-editor")?.classList.remove("hidden");
+  _resetCtrlScroll();
 
   const name = document.getElementById("cx-el-name");
   if (name) name.textContent = def.name;
@@ -1038,6 +909,7 @@ function closeElementEditor() {
   if (!box || box.classList.contains("hidden")) return;
   _hideElementEditor();
   document.getElementById("theme-main-controls")?.classList.remove("hidden");
+  _resetCtrlScroll();
   _initEditHint();
 }
 window.closeElementEditor = closeElementEditor;
@@ -1209,6 +1081,7 @@ function _openLineEditor(msg) {
   document.getElementById("theme-elements-panel")?.classList.add("hidden");
   _hideElementEditor();
   document.getElementById("theme-line-editor")?.classList.remove("hidden");
+  _resetCtrlScroll();
 
   // Đổi giữa nhóm control CHỮ và ẢNH
   document
@@ -1343,6 +1216,7 @@ function closeLineEditor() {
   if (!box || box.classList.contains("hidden")) return;
   box.classList.add("hidden");
   document.getElementById("theme-main-controls")?.classList.remove("hidden");
+  _resetCtrlScroll();
   _initEditHint();
   _lineIframe()?.contentWindow?.postMessage({ type: "cx-clear-pick" }, "*");
   _lineSel = null;
@@ -1688,16 +1562,22 @@ function _initThemeResize() {
   });
 }
 
-// ─── Vùng cuộn cao thấp có tay nắm (bảng Thêm văn bản) ──────────────────────
-// Mặc định chỉ cao SHEET_MIN cho khỏi chiếm hết màn; kéo tay nắm LÊN để nới cao
-// (chạm không kéo = bung hết / thu về). Chỉ chạy ở mobile — từ md+ cả cột chỉnh
-// đã tự cuộn nên CSS tắt tay nắm.
-const SHEET_MIN = 200; // px
-const SHEET_MAX_VH = 0.52; // trần = 52% chiều cao màn hình
+// ─── Vùng cuộn cao thấp có tay nắm (bọc CẢ bảng chỉnh giao diện) ───────────
+// Mọi bảng (chung, chỉnh chữ, thêm văn bản, trang trí, thành phần, điều chỉnh)
+// nằm chung một vùng cuộn nên cao bằng nhau: mặc định 1/4 màn cho đỡ che thiệp,
+// kéo tay nắm LÊN để nới (chạm không kéo = bung hết / thu về). Chỉ chạy ở mobile
+// — từ md+ cả cột chỉnh đã tự cuộn nên CSS tắt tay nắm.
+const SHEET_MIN_VH = 0.25; // sàn = 1/4 chiều cao màn hình
+const SHEET_MAX_VH = 0.6; // trần = 60% chiều cao màn hình
+const SHEET_MIN_PX = 120; // màn rất thấp thì vẫn phải đủ chỗ cho 1 hàng control
 const SHEET_DRAG_MIN = 6; // px, dưới ngưỡng này tính là chạm
 
+function _sheetMin() {
+  return Math.max(SHEET_MIN_PX, Math.round(window.innerHeight * SHEET_MIN_VH));
+}
+
 function _sheetMax() {
-  return Math.max(SHEET_MIN, Math.round(window.innerHeight * SHEET_MAX_VH));
+  return Math.max(_sheetMin(), Math.round(window.innerHeight * SHEET_MAX_VH));
 }
 
 // Dải trắng mờ chỉ hiện khi còn nội dung chưa thấy.
@@ -1708,19 +1588,29 @@ function _updateSheetFade(body) {
   fade.classList.toggle("is-end", rest <= 4);
 }
 
+// Đổi bảng thì cuộn về đầu + tính lại dải mờ — bảng mới cao bằng bảng cũ nên
+// giữ nguyên scrollTop sẽ mở ra ở lưng chừng nội dung.
+function _resetCtrlScroll() {
+  const body = document.getElementById("cx-ctrl-scroll");
+  if (!body) return;
+  body.scrollTop = 0;
+  requestAnimationFrame(() => _updateSheetFade(body));
+}
+
 function _initSheet(bodyId, handleId) {
   const body = document.getElementById(bodyId);
   const handle = document.getElementById(handleId);
   if (!body || !handle) return;
 
-  // Giữ chiều cao đã chọn ở biến riêng: lúc panel đang ẩn thì clientHeight = 0,
+  // Giữ chiều cao đã chọn ở biến riêng: lúc bảng đang ẩn thì clientHeight = 0,
   // đọc lại từ DOM sẽ tự xoá mất mức người dùng vừa kéo.
-  let cur = SHEET_MIN;
+  let cur = _sheetMin();
   const setH = (px) => {
-    cur = Math.round(Math.min(Math.max(px, SHEET_MIN), _sheetMax()));
+    cur = Math.round(Math.min(Math.max(px, _sheetMin()), _sheetMax()));
     body.style.setProperty("--cx-sheet-h", cur + "px");
     _updateSheetFade(body);
   };
+  setH(cur);
 
   let drag = null;
   handle.addEventListener("pointerdown", (e) => {
@@ -1741,7 +1631,7 @@ function _initSheet(bodyId, handleId) {
   const end = () => {
     if (!drag) return;
     // Chạm không kéo: đang thấp thì bung hết cỡ, đang cao thì thu về.
-    if (!drag.moved) setH(drag.h0 >= _sheetMax() - 4 ? SHEET_MIN : _sheetMax());
+    if (!drag.moved) setH(drag.h0 >= _sheetMax() - 4 ? _sheetMin() : _sheetMax());
     drag = null;
   };
   handle.addEventListener("pointerup", end);
@@ -1750,10 +1640,10 @@ function _initSheet(bodyId, handleId) {
   body.addEventListener("scroll", () => _updateSheetFade(body), {
     passive: true,
   });
-  // Nội dung/khung đổi cỡ (dựng xong ô mẫu, xoay máy) → tính lại dải mờ.
+  // Nội dung/khung đổi cỡ (dựng xong ô mẫu, đổi bảng, xoay máy) → tính lại dải mờ.
   if (typeof ResizeObserver !== "undefined")
     new ResizeObserver(() => _updateSheetFade(body)).observe(body);
-  // Xoay máy → trần đổi, kẹp lại mức đang chọn.
+  // Xoay máy → sàn/trần đổi, kẹp lại mức đang chọn.
   window.addEventListener("resize", () => setH(cur));
 }
 
@@ -1761,7 +1651,7 @@ function _initThemePanelObservers() {
   _initElWidthSlider();
   _initThemeResize();
   _initElPreviewResize();
-  _initSheet("cx-addtext-scroll", "cx-addtext-handle");
+  _initSheet("cx-ctrl-scroll", "cx-ctrl-handle");
   _initCardBlur();
 }
 
