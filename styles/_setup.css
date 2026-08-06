@@ -403,6 +403,7 @@ input.flatpickr-input[readonly] {
   @apply flex items-center justify-between gap-2;
 }
 
+
 /* Quay lại — đóng bảng cấp 2, trả về nhóm chỉnh chung. Chữ cạnh mũi tên là
    tên bảng đang mở, giúp thấy mình đang ở nhánh nào. */
 .cx-le-back {
@@ -700,7 +701,14 @@ input.flatpickr-input[readonly] {
 .cx-sheet-body {
   @apply overflow-y-auto overscroll-contain;
 
-  max-height: var(--cx-sheet-h, 25vh);
+  max-height: var(--cx-sheet-h, 200px);
+  /* Trượt mượt khi nhảy giữa hai mức; lúc đang bám tay thì JS gắn .is-dragging
+     để tắt đi, không thì khung chạy trễ so với ngón tay. */
+  transition: max-height 0.18s ease;
+}
+
+.cx-sheet-body.is-dragging {
+  transition: none;
 }
 
 .cx-sheet-fade {
@@ -714,20 +722,27 @@ input.flatpickr-input[readonly] {
   @apply opacity-0;
 }
 
-/* Tay nắm: nằm ở ĐỈNH bảng như tay nắm của popup dạng sheet. Kéo LÊN để nới cao
-   vùng cuộn; chạm không kéo = bung hết cỡ / thu về mức thấp. */
+/* Đầu bảng: vạch kéo + hàng nút của bảng đang mở, gộp một khối nằm NGOÀI vùng
+   cuộn nên nút không trôi đi khi cuộn nội dung. Kéo LÊN để nới cao vùng cuộn;
+   chạm không kéo = bung hết cỡ / thu về mức thấp. Cả khối là vùng kéo (nút bên
+   trong được JS bỏ qua) để ngón tay dễ trúng. */
 .cx-sheet-handle {
-  @apply flex cursor-ns-resize touch-none select-none items-center
-         justify-center pb-1 pt-2;
+  @apply cursor-ns-resize touch-none select-none px-4 pb-2 pt-2
+         md:cursor-auto md:px-5 md:pb-3 md:pt-5;
 }
 
-.cx-sheet-handle span {
-  @apply block h-1 w-10 rounded-full bg-gray-200 transition-colors;
+.cx-sheet-grip {
+  @apply mx-auto mb-2 block h-1 w-10 rounded-full bg-gray-200 transition-colors;
 }
 
-.cx-sheet-handle:hover span,
-.cx-sheet-handle:active span {
+.cx-sheet-handle:hover .cx-sheet-grip,
+.cx-sheet-handle:active .cx-sheet-grip {
   @apply bg-rose-300;
+}
+
+/* Bảng nào không có nút nào (hàng nút rỗng) thì khối vẫn phải cao đủ để kéo. */
+.cx-sheet-actions {
+  @apply min-h-0;
 }
 
 @media (min-width: 768px) {
@@ -735,48 +750,11 @@ input.flatpickr-input[readonly] {
     max-height: none;
   }
 
+  /* Desktop không kéo (cả cột đã tự cuộn) nhưng HÀNG NÚT vẫn phải hiện. */
   .cx-sheet-fade,
-  .cx-sheet-handle {
+  .cx-sheet-grip {
     display: none;
   }
-}
-
-/* Mẫu văn bản (preset): thẻ NẰM NGANG — bố cục của mẫu là thứ cần nhìn, ô vuông
-   nhỏ như .cx-pal-item không đủ chỗ. Xem trước bên trái, tên + mô tả bên phải. */
-.cx-pal-list {
-  @apply mt-2 grid grid-cols-1 gap-2;
-}
-
-.cx-pal-row {
-  @apply relative flex w-full cursor-grab items-center gap-3 rounded-xl border
-         border-gray-200 bg-white p-2 text-left text-gray-700
-         transition-all duration-150;
-
-  touch-action: none;
-}
-
-.cx-pal-row:hover {
-  @apply border-rose-400 bg-[#fff5f6];
-}
-
-.cx-pal-row:active {
-  @apply cursor-grabbing;
-}
-
-.cx-pal-row .cx-pal-prev {
-  @apply h-20 w-32 flex-none rounded-lg bg-gray-50;
-}
-
-.cx-pal-row-txt {
-  @apply min-w-0 flex-1;
-}
-
-.cx-pal-row-name {
-  @apply truncate text-[13px] font-semibold text-gray-700 mr-1;
-}
-
-.cx-pal-row-desc {
-  @apply mt-0.5 text-[11px] leading-4 text-gray-400;
 }
 
 /* Bóng mờ theo con trỏ khi kéo mẫu từ palette vào thiệp:

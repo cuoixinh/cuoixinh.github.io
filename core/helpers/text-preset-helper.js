@@ -6,10 +6,12 @@
 // Khai báo một mẫu:
 //   id      khoá lưu trong custom_blocks[].preset
 //   name    chữ hiện ở bảng chọn; desc là dòng phụ bên dưới
-//   parts   [{ key, tag, label, def, inline, multiline }] — mỗi part là MỘT phần
+//   parts   [{ key, tag, label, def, preview, inline, multiline }] — mỗi part là MỘT phần
 //           chữ chỉnh riêng được (bấm vào nó mở bảng chỉnh phông/cỡ/màu).
 //           key vào id thật: "<blockId>__<key>"; các part inline liền nhau được
 //           gộp vào một dòng (dùng cho tiêu đề hai tông màu).
+//           `preview` là chữ NGẮN chỉ dùng cho ô xem trước ở bảng chọn — ô vuông
+//           nhỏ, chữ dài xuống dòng nhiều lần làm cả cụm bị thu bé lại.
 //   css     style mặc định, PHẢI bọc trong .cx-tpl-<id> để không đụng mẫu khác.
 //           Cỡ chữ trong mẫu viết bằng `em` → chụm 2 ngón phóng cả cụm cân đối.
 //           Màu để `inherit`/`currentColor` cho hợp mọi theme.
@@ -19,25 +21,53 @@
 (function () {
   const PRESETS = [
     {
+      id: "basic",
+      name: "Văn bản",
+      desc: "Một dòng chữ trơn, theo phông và màu của thiệp",
+      parts: [
+        {
+          key: "text",
+          tag: "p",
+          label: "Nội dung",
+          multiline: true,
+          def: "Văn bản mới",
+        },
+      ],
+      // Không đặt phông/màu/canh lề: để nguyên của thiệp, người dùng tự chỉnh.
+      css: ".cx-tpl-basic{font-size:16px}.cx-tpl-basic__text{line-height:1.6;margin:0}",
+    },
+    {
       id: "headline",
       name: "Tiêu đề & mô tả",
-      desc: "Tiêu đề lớn hai tông màu, mô tả ngắn bên dưới",
+      desc: "Tiêu đề lớn chữ chuyển màu, mô tả ngắn bên dưới",
       parts: [
-        { key: "title", tag: "span", label: "Tiêu đề", inline: true, def: "Save the" },
-        { key: "accent", tag: "span", label: "Chữ nhấn", inline: true, def: "Date" },
+        {
+          key: "title",
+          tag: "span",
+          label: "Tiêu đề",
+          inline: true,
+          def: "Save the Date",
+        },
         {
           key: "detail",
           tag: "p",
           label: "Mô tả",
           multiline: true,
           def: "Chúng mình sẽ về chung một nhà — rất mong có bạn ở đó để ngày vui thêm trọn vẹn.",
+          preview: "Rất mong có bạn ở đó.",
         },
       ],
       css:
         ".cx-tpl-headline{text-align:left;max-width:min(88%,420px);margin:0 auto;font-size:16px}" +
         ".cx-tpl-headline .cx-tpl-row{margin:0 0 8px}" +
-        ".cx-tpl-headline__title,.cx-tpl-headline__accent{font-size:2em;font-weight:800;letter-spacing:-.02em;line-height:1.15}" +
-        ".cx-tpl-headline__accent{opacity:.55}" +
+        // Chữ chuyển màu: tô nền gradient rồi xén theo hình chữ. Phải là phần tử
+        // INLINE thì khung nền mới ôm sát chữ (block thì gradient trải hết bề
+        // ngang, chữ ngắn chỉ ăn được đoạn đầu). Chọn màu ở bảng chỉnh sẽ ghi đè
+        // -webkit-text-fill-color → chữ về lại một màu đặc.
+        ".cx-tpl-headline__title{font-size:2em;font-weight:800;letter-spacing:-.02em;line-height:1.15;" +
+        "background-image:linear-gradient(90deg,var(--cx-tpl-g1,#f43f5e),var(--cx-tpl-g2,#f59e0b));" +
+        "-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent}" +
+        ".cx-tpl-prev .cx-tpl-headline__title{font-size:1.5em}" +
         ".cx-tpl-headline__detail{font-size:.95em;line-height:1.6;opacity:.75;margin:0}",
     },
     {
@@ -53,12 +83,14 @@
           label: "Mô tả",
           multiline: true,
           def: "Sự hiện diện của bạn là niềm vinh hạnh của gia đình chúng tôi.",
+          preview: "Kính mong bạn có mặt.",
         },
       ],
       css:
         ".cx-tpl-poster{text-align:center;max-width:min(90%,460px);margin:0 auto;font-size:16px}" +
         ".cx-tpl-poster__eyebrow{font-size:.72em;letter-spacing:.32em;text-transform:uppercase;opacity:.6;margin:0 0 8px}" +
         ".cx-tpl-poster__title{font-size:2.4em;line-height:1.1;margin:0}" +
+        ".cx-tpl-prev .cx-tpl-poster__title{font-size:1.6em}" +
         // Kẻ mảnh dưới tiêu đề: phần trang trí của mẫu nên vẽ bằng CSS, không
         // thành một part để người dùng khỏi phải chỉnh.
         ".cx-tpl-poster__title::after{content:'';display:block;width:48px;height:1px;background:currentColor;opacity:.4;margin:16px auto}" +
@@ -75,6 +107,7 @@
           label: "Câu thoại",
           multiline: true,
           def: "Đi khắp thế gian, cuối cùng vẫn muốn về nhà — nơi có em.",
+          preview: "Cuối cùng vẫn muốn về nhà.",
         },
         { key: "by", tag: "p", label: "Người nói", def: "Lời của chú rể" },
       ],
@@ -96,12 +129,14 @@
   PRESETS.forEach((p) => (byId[p.id] = p));
 
   // Dựng DOM của mẫu. content = { <key>: text }, thiếu key nào thì lấy def.
+  // preview = true thì thêm class .cx-tpl-prev (ô mẫu ở bảng chọn): mẫu tự hạ
+  // cỡ tiêu đề trong CSS của mình cho cân với ô vuông nhỏ.
   // idPrefix có thì mỗi part được gán id "<idPrefix>__<key>" + data-cx-part để
   // bảng chỉnh chi tiết và text_overrides nhắm được từng phần; bỏ trống (xem
   // trước ở bảng chọn) thì không gán id, tránh trùng id với khối thật.
-  function build(def, content, idPrefix) {
+  function build(def, content, idPrefix, preview) {
     const root = document.createElement("div");
-    root.className = "cx-tpl cx-tpl-" + def.id;
+    root.className = "cx-tpl cx-tpl-" + def.id + (preview ? " cx-tpl-prev" : "");
     let row = null;
     def.parts.forEach((p) => {
       const el = document.createElement(p.tag || "p");

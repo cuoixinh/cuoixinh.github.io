@@ -2413,10 +2413,29 @@ function applyThemeSetting(setting) {
       }
       if (_cxSafeNum(o.size))
         decls.push(`font-size: ${Number(o.size)}px !important`);
+      // -webkit-text-fill-color đi kèm: chữ gradient (mẫu văn bản) tô bằng thuộc
+      // tính đó, chỉ đặt `color` thì màu người dùng chọn không ăn thua.
       if (_cxSafeColor(o.color))
-        decls.push(`color: ${o.color.trim()} !important`);
+        decls.push(
+          `color: ${o.color.trim()} !important`,
+          `-webkit-text-fill-color: ${o.color.trim()} !important`,
+        );
       if (_cxSafeNum(o.weight))
         decls.push(`font-weight: ${Number(o.weight)} !important`);
+      // Chuyển màu: tô nền gradient rồi xén theo hình chữ. Phải đứng SAU `color`
+      // để thắng nó. inline-block cho khung nền ôm sát chữ — để block thì dải
+      // màu trải hết bề ngang, chữ ngắn chỉ ăn được một đoạn giữa dải.
+      const g = o.gradient;
+      if (g && _cxSafeColor(g.from) && _cxSafeColor(g.to)) {
+        decls.push(
+          `background-image: linear-gradient(90deg, ${g.from.trim()}, ${g.to.trim()}) !important`,
+          `-webkit-background-clip: text !important`,
+          `background-clip: text !important`,
+          `-webkit-text-fill-color: transparent !important`,
+          `color: transparent !important`,
+          `display: inline-block !important`,
+        );
+      }
       if (o.italic) decls.push(`font-style: italic !important`);
       if (o.underline) decls.push(`text-decoration: underline !important`);
       if (o.align && /^(left|center|right|justify)$/.test(o.align))
@@ -2601,6 +2620,22 @@ if (typeof window !== "undefined") {
     );
   }
 
+  // Chữ đang ĐỔ MÀU (background-clip:text + chữ trong suốt): computed color là
+  // trong suốt nên báo lên bảng chỉnh sẽ thành đen. Lấy 2 chặng màu của dải để
+  // bảng mở đúng trạng thái. Trả null nếu không phải chữ đổ màu.
+  function _textGradient(cs) {
+    const clip = cs.webkitBackgroundClip || cs.backgroundClip;
+    if (clip !== "text") return null;
+    const fill = cs.webkitTextFillColor || cs.color || "";
+    if (!/rgba\([^)]*,\s*0\s*\)/.test(fill)) return null;
+    const stops = (cs.backgroundImage || "").match(/rgba?\([^)]*\)/g);
+    if (!stops || stops.length < 2) return null;
+    return {
+      from: _rgbToHex(stops[0]),
+      to: _rgbToHex(stops[stops.length - 1]),
+    };
+  }
+
   function _positionTip(e) {
     if (!tip) return;
     tip.style.left = e.clientX + 14 + "px";
@@ -2649,6 +2684,7 @@ if (typeof window !== "undefined") {
   function _sendPick(el, selector, extra) {
     const cs = getComputedStyle(el);
     const txt = (el.textContent || "").trim();
+    const grad = _textGradient(cs);
     parent.postMessage(
       Object.assign(
         {
@@ -2661,7 +2697,11 @@ if (typeof window !== "undefined") {
           computed: {
             fontFamily: cs.fontFamily,
             fontSize: Math.round(parseFloat(cs.fontSize)) || 16,
-            color: _rgbToHex(cs.color),
+            // Chữ đổ màu thì màu hiệu lực là chặng ĐẦU của dải, không phải
+            // cs.color (đang trong suốt → ra đen).
+            color: (grad && grad.from) || _rgbToHex(cs.color),
+            gradFrom: grad ? grad.from : "",
+            gradTo: grad ? grad.to : "",
             fontWeight: cs.fontWeight,
             fontStyle: cs.fontStyle,
             textDecoration: cs.textDecorationLine,

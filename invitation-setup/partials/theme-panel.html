@@ -36,29 +36,117 @@
       id="theme-controls"
       class="shrink-0 bg-white border-t border-gray-200 shadow-[0_-4px_16px_rgba(0,0,0,0.12)] md:overflow-y-auto md:rounded-xl md:border md:border-gray-200 md:shadow-lg"
     >
-      <!-- Tay nắm + vùng cuộn DÙNG CHUNG cho mọi bảng (chung, chỉnh chữ, thêm
+      <!-- Đầu bảng + vùng cuộn DÙNG CHUNG cho mọi bảng (chung, chỉnh chữ, thêm
            văn bản, trang trí, thành phần, điều chỉnh): nhờ vậy bảng nào cũng cao
-           bằng nhau — mặc định 1/4 màn cho đỡ che thiệp, kéo tay nắm lên khi cần
-           xem nhiều hơn. Chỉ có tác dụng ở mobile (md+ cả cột đã tự cuộn). -->
-      <div
-        id="cx-ctrl-handle"
-        class="cx-sheet-handle"
-        role="separator"
-        aria-orientation="horizontal"
-        aria-label="Kéo lên để mở rộng bảng chỉnh"
-        title="Kéo lên để mở rộng"
-      >
-        <span></span>
+           bằng nhau — mặc định 200px cho đỡ che thiệp, kéo tay nắm lên khi cần
+           xem nhiều hơn (chỉ có tác dụng ở mobile; md+ cả cột đã tự cuộn).
+           Đầu bảng gom VẠCH KÉO + HÀNG NÚT của bảng đang mở vào một khối nằm
+           NGOÀI vùng cuộn → nút không trôi đi khi cuộn nội dung. Hàng nút nào
+           hiện là do _syncCtrlHead() (js/05-theme-panel.js) soi bảng nào đang mở,
+           nên thêm bảng mới chỉ cần khai báo trong CTRL_HEADS. -->
+      <div id="cx-ctrl-handle" class="cx-sheet-handle">
+        <span
+          class="cx-sheet-grip"
+          role="separator"
+          aria-orientation="horizontal"
+          aria-label="Kéo lên để mở rộng bảng chỉnh"
+          title="Kéo lên để mở rộng"
+        ></span>
+        <div id="cx-ctrl-actions" class="cx-sheet-actions">
+          <!-- Khôi phục — MOBILE: pill hồng canh phải (desktop dùng button ở dưới) -->
+          <div id="cx-head-main" class="flex justify-end md:hidden">
+            <button
+              type="button"
+              onclick="resetThemeSetting()"
+              title="Khôi phục phông chữ và màu về mặc định của thiệp"
+              class="cx-le-clear"
+            >
+              <i data-lucide="rotate-ccw" class="w-4 h-4"></i
+              ><span>Khôi phục mặc định</span>
+            </button>
+          </div>
+          <div id="cx-head-line" class="hidden cx-le-head">
+            <button
+              type="button"
+              onclick="closeLineEditor()"
+              class="cx-le-back"
+              aria-label="Quay lại"
+            >
+              <i data-lucide="arrow-left" class="w-4 h-4"></i
+              ><span>Chỉnh chữ</span>
+            </button>
+            <button
+              type="button"
+              onclick="clearLineOverride()"
+              class="cx-le-clear"
+            >
+              <i data-lucide="rotate-ccw" class="w-4 h-4"></i
+              ><span>Mặc định</span>
+            </button>
+          </div>
+          <div id="cx-head-addtext" class="hidden cx-le-head">
+            <button
+              type="button"
+              onclick="closeAddTextPanel()"
+              class="cx-le-back"
+              aria-label="Quay lại"
+            >
+              <i data-lucide="arrow-left" class="w-4 h-4"></i
+              ><span>Văn bản</span>
+            </button>
+          </div>
+          <div id="cx-head-decor" class="hidden cx-le-head">
+            <button
+              type="button"
+              onclick="closeDecorPanel()"
+              class="cx-le-back"
+              aria-label="Quay lại"
+            >
+              <i data-lucide="arrow-left" class="w-4 h-4"></i
+              ><span>Trang trí</span>
+            </button>
+          </div>
+          <div id="cx-head-elements" class="hidden cx-le-head">
+            <button
+              type="button"
+              onclick="closeElementsPanel()"
+              class="cx-le-back"
+              aria-label="Quay lại"
+            >
+              <i data-lucide="arrow-left" class="w-4 h-4"></i
+              ><span>Thành phần</span>
+            </button>
+          </div>
+          <div id="cx-head-element-editor" class="hidden cx-le-head">
+            <button
+              type="button"
+              onclick="closeElementEditor()"
+              class="cx-le-back"
+              aria-label="Quay lại"
+            >
+              <i data-lucide="arrow-left" class="w-4 h-4"></i
+              ><span>Điều chỉnh</span>
+            </button>
+            <button
+              type="button"
+              onclick="resetElementOptions()"
+              class="cx-le-clear"
+            >
+              <i data-lucide="rotate-ccw" class="w-4 h-4"></i
+              ><span>Mặc định</span>
+            </button>
+          </div>
+        </div>
       </div>
       <div class="cx-sheet">
         <div id="cx-ctrl-scroll" class="cx-sheet-body">
           <div
-            class="w-full max-w-4xl mx-auto px-4 pb-3 space-y-3 md:px-5 md:py-5 md:space-y-6"
+            class="w-full max-w-4xl mx-auto px-4 pb-3 md:px-5 md:py-5"
           >
             <!-- Gợi ý: click chữ trên thiệp để chỉnh riêng (dismissible, nhớ localStorage) -->
             <div
               id="theme-edit-hint"
-              class="hidden flex items-start gap-2 rounded-lg bg-rose-50 border border-rose-100 px-3 py-2 mt-2"
+              class="hidden flex items-start gap-2 rounded-lg bg-rose-50 border border-rose-100 px-3 py-2 mt-2 mb-3"
             >
               <i
                 data-lucide="mouse-pointer-click"
@@ -80,18 +168,6 @@
 
             <!-- Nhóm chỉnh chung (phông + màu toàn thiệp) — ẩn khi mở bảng chỉnh 1 dòng -->
             <div id="theme-main-controls" class="space-y-3 md:space-y-6">
-              <!-- Khôi phục — MOBILE: pill hồng canh TRÊN-PHẢI (desktop dùng button ở dưới) -->
-              <div class="flex justify-end md:hidden">
-                <button
-                  type="button"
-                  onclick="resetThemeSetting()"
-                  title="Khôi phục phông chữ và màu về mặc định của thiệp"
-                  class="cx-le-clear"
-                >
-                  <i data-lucide="rotate-ccw" class="w-4 h-4"></i
-                  ><span>Khôi phục mặc định</span>
-                </button>
-              </div>
               <!-- Phông chữ -->
               <div class="md:space-y-2.5">
                 <p
@@ -273,25 +349,6 @@
               id="theme-line-editor"
               class="hidden space-y-3 md:space-y-4"
             >
-              <div class="cx-le-head">
-                <button
-                  type="button"
-                  onclick="closeLineEditor()"
-                  class="cx-le-back"
-                  aria-label="Quay lại"
-                >
-                  <i data-lucide="arrow-left" class="w-4 h-4"></i
-                  ><span>Chỉnh chữ</span>
-                </button>
-                <button
-                  type="button"
-                  onclick="clearLineOverride()"
-                  class="cx-le-clear"
-                >
-                  <i data-lucide="rotate-ccw" class="w-4 h-4"></i
-                  ><span>Mặc định</span>
-                </button>
-              </div>
               <!-- Nhắc đang chỉnh dòng nào — ẩn khi có ô sửa Nội dung (đã thấy chữ ở đó) -->
               <p id="cx-le-sample-row" class="text-[12px] text-gray-500">
                 Nội dung đang chọn:
@@ -353,17 +410,39 @@
                   </div>
                 </div>
 
-                <!-- Màu -->
+                <!-- Màu — bật nút chuyển màu thì hiện thêm ô thứ hai: chữ đổ
+                     từ màu ô 1 sang màu ô 2 -->
                 <div class="cx-le-row">
                   <label class="cx-le-label">Màu chữ</label>
-                  <div class="color-chip">
-                    <input
-                      type="text"
-                      inputmode="none"
-                      id="cx-line-color"
-                      class="theme-color-input"
-                      aria-label="Màu chữ dòng này"
-                    />
+                  <div class="flex items-center gap-2">
+                    <div class="color-chip">
+                      <input
+                        type="text"
+                        inputmode="none"
+                        id="cx-line-color"
+                        class="theme-color-input"
+                        aria-label="Màu chữ dòng này"
+                      />
+                    </div>
+                    <div id="cx-line-color2-wrap" class="hidden color-chip">
+                      <input
+                        type="text"
+                        inputmode="none"
+                        id="cx-line-color2"
+                        class="theme-color-input"
+                        aria-label="Màu cuối của dải chuyển màu"
+                      />
+                    </div>
+                    <div class="cx-le-seg">
+                      <button
+                        type="button"
+                        id="cx-line-gradient"
+                        onclick="toggleLineGradient()"
+                        title="Chuyển màu (gradient)"
+                      >
+                        <i data-lucide="droplets" class="w-4 h-4"></i>
+                      </button>
+                    </div>
                   </div>
                 </div>
 
@@ -505,42 +584,13 @@
 
             <!-- Bảng THÊM VĂN BẢN (thay chỗ nhóm chỉnh chung, giống bảng chỉnh 1 dòng) -->
             <div id="theme-addtext-panel" class="hidden space-y-3 md:space-y-4">
-              <div class="cx-le-head">
-                <button
-                  type="button"
-                  onclick="closeAddTextPanel()"
-                  class="cx-le-back"
-                  aria-label="Quay lại"
-                >
-                  <i data-lucide="arrow-left" class="w-4 h-4"></i
-                  ><span>Văn bản</span>
-                </button>
-              </div>
               <p class="text-[12px] text-gray-500">
                 Kéo mẫu ra khỏi bảng và thả lên thiệp để đặt vào vị trí mong muốn.
               </p>
-              <div id="cx-addtext-palette" class="cx-pal-grid">
-                <button
-                  type="button"
-                  title="Đoạn chữ tự do — kéo vào thiệp"
-                  onpointerdown="startPaletteDrag(event,'paragraph')"
-                  class="cx-pal-item"
-                >
-                  <span class="cx-pal-ico">
-                    <i data-lucide="align-left" class="!w-[18px] !h-[18px]"></i>
-                  </span>
-                  <span class="cx-pal-txt">Văn bản</span>
-                  <i
-                    data-lucide="grip-vertical"
-                    class="cx-pal-grip !w-[14px] !h-[14px]"
-                  ></i>
-                </button>
-              </div>
-              <!-- Mẫu thiết kế sẵn — ô mẫu dựng động từ CX_TEXT_PRESETS
-                   (core/helpers/text-preset-helper.js), thêm mẫu mới không phải
-                   sửa ở đây. -->
-              <p class="cx-pal-group">Mẫu thiết kế sẵn</p>
-              <div id="cx-addtext-presets" class="cx-pal-list"></div>
+              <!-- Ô mẫu dựng động từ CX_TEXT_PRESETS
+                   (core/helpers/text-preset-helper.js) — kể cả mẫu cơ bản
+                   "Văn bản" — nên thêm mẫu mới không phải sửa file này. -->
+              <div id="cx-addtext-palette" class="cx-pal-grid"></div>
             </div>
             <!-- /theme-addtext-panel -->
 
@@ -550,17 +600,6 @@
               id="theme-decor-panel"
               class="hidden space-y-3 md:space-y-4"
             >
-              <div class="cx-le-head">
-                <button
-                  type="button"
-                  onclick="closeDecorPanel()"
-                  class="cx-le-back"
-                  aria-label="Quay lại"
-                >
-                  <i data-lucide="arrow-left" class="w-4 h-4"></i
-                  ><span>Trang trí</span>
-                </button>
-              </div>
               <p class="text-[12px] text-gray-500">
                 Kéo mẫu ra khỏi bảng và thả lên thiệp để đặt vào vị trí mong muốn.
               </p>
@@ -576,17 +615,6 @@
               id="theme-elements-panel"
               class="hidden space-y-3 md:space-y-4"
             >
-              <div class="cx-le-head">
-                <button
-                  type="button"
-                  onclick="closeElementsPanel()"
-                  class="cx-le-back"
-                  aria-label="Quay lại"
-                >
-                  <i data-lucide="arrow-left" class="w-4 h-4"></i
-                  ><span>Thành phần</span>
-                </button>
-              </div>
               <p class="text-[12px] text-gray-500">
                 Kéo mẫu ra khỏi bảng và thả lên thiệp để đặt vào vị trí mong muốn.
               </p>
@@ -602,25 +630,6 @@
               id="theme-element-editor"
               class="hidden space-y-3 md:space-y-4"
             >
-              <div class="cx-le-head">
-                <button
-                  type="button"
-                  onclick="closeElementEditor()"
-                  class="cx-le-back"
-                  aria-label="Quay lại"
-                >
-                  <i data-lucide="arrow-left" class="w-4 h-4"></i
-                  ><span>Điều chỉnh</span>
-                </button>
-                <button
-                  type="button"
-                  onclick="resetElementOptions()"
-                  class="cx-le-clear"
-                >
-                  <i data-lucide="rotate-ccw" class="w-4 h-4"></i
-                  ><span>Mặc định</span>
-                </button>
-              </div>
 
               <!-- Không có mục "Mẫu" ở đây: đổi mẫu bằng nút trên chính widget, giữ
                    bảng gọn và CAO KHÔNG ĐỔI (xem ghi chú chiều cao ở styles/_setup.css). -->

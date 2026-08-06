@@ -106,15 +106,20 @@ function _initColorPickers() {
     });
   });
 
-  // Chip màu của bảng chỉnh CHI TIẾT 1 dòng (dùng chung Coloris qua .theme-color-input)
-  const lineColor = document.getElementById("cx-line-color");
-  if (lineColor) {
-    lineColor.addEventListener("input", () => onLineColorChange());
-    lineColor.addEventListener("click", () => {
-      _openChip = lineColor;
-      _alignPickerToChip(lineColor);
+  // Chip màu của bảng chỉnh CHI TIẾT 1 dòng (dùng chung Coloris qua .theme-color-input).
+  // Ô thứ hai chỉ dùng khi bật chuyển màu — nó là màu CUỐI của dải.
+  [
+    ["cx-line-color", () => onLineColorChange()],
+    ["cx-line-color2", () => onLineColor2Change()],
+  ].forEach(([id, fn]) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener("input", fn);
+    el.addEventListener("click", () => {
+      _openChip = el;
+      _alignPickerToChip(el);
     });
-  }
+  });
 
   // Chip màu của bảng ĐIỀU CHỈNH THÀNH PHẦN — mỗi ô phục vụ tuỳ chọn nào là do
   // _fillElColorSlot gán (data-opt-id), nên ở đây chỉ cần nối sự kiện.
@@ -384,10 +389,12 @@ window.openAddTextPanel = openAddTextPanel;
 // Ô mẫu văn bản: dựng bằng chính CX_TEXT_PRESET_BUILD mà runtime dùng, thu nhỏ
 // vừa ô (dùng chung _fitElPreviews của bảng Thành phần) nên xem trước = kết quả
 // thật. Dựng một lần rồi thôi, mở lại chỉ tính lại tỉ lệ.
-const TPL_PREVIEW_CARD_W = 300; // bề ngang quy chiếu khi dựng, px
+// Bề ngang quy chiếu khi dựng: hẹp thì cụm chữ ít bị thu nhỏ lúc nhét vừa ô
+// vuông → chữ xem trước to, dễ đọc. Kèm theo là chữ `preview` ngắn của mỗi mẫu.
+const TPL_PREVIEW_CARD_W = 150; // px
 
 function _renderTextPresets() {
-  const box = document.getElementById("cx-addtext-presets");
+  const box = document.getElementById("cx-addtext-palette");
   if (!box) return;
   if (box.dataset.rendered === "1") {
     _fitElPreviews(box);
@@ -400,29 +407,23 @@ function _renderTextPresets() {
   presets.forEach((def) => {
     const btn = document.createElement("button");
     btn.type = "button";
-    btn.className = "cx-pal-row";
-    btn.title = def.name + " — kéo vào thiệp để thêm";
+    btn.className = "cx-pal-item cx-pal-item-prev";
+    btn.title =
+      def.name + (def.desc ? " — " + def.desc : "") + " (kéo vào thiệp)";
 
     const prev = document.createElement("span");
     prev.className = "cx-pal-prev";
     const stage = document.createElement("span");
     stage.className = "cx-pal-stage";
     stage.style.width = TPL_PREVIEW_CARD_W + "px";
-    stage.appendChild(window.CX_TEXT_PRESET_BUILD(def, null, null));
+    const short = {};
+    def.parts.forEach((p) => (short[p.key] = p.preview || p.def));
+    stage.appendChild(window.CX_TEXT_PRESET_BUILD(def, short, null, true));
     prev.appendChild(stage);
     btn.appendChild(prev);
 
-    const txt = document.createElement("span");
-    txt.className = "cx-pal-row-txt";
-    const name = document.createElement("span");
-    name.className = "cx-pal-row-name";
-    name.textContent = def.name;
-    const desc = document.createElement("span");
-    desc.className = "cx-pal-row-desc";
-    desc.textContent = def.desc || "";
-    txt.append(name, desc);
-    btn.appendChild(txt);
-
+    // Không có nhãn tên: bố cục của mẫu đã tự nói lên nó là gì, tên/mô tả để ở
+    // title (tooltip) cho ô xem trước được trọn chỗ.
     const grip = document.createElement("i");
     grip.setAttribute("data-lucide", "grip-vertical");
     grip.className = "cx-pal-grip !w-[14px] !h-[14px]";
@@ -1169,9 +1170,13 @@ function _openTextEditor(msg, c, ov) {
   const sizeEl = document.getElementById("cx-line-size");
   if (sizeEl) sizeEl.value = ov.size || c.fontSize || 16;
 
-  // Màu
-  const color = ov.color || c.color || "#000000";
+  // Màu — ưu tiên override, không có thì lấy màu ĐANG hiện (kể cả khi màu đó do
+  // mẫu đổ gradient: runtime đã quy về chặng đầu của dải, xem computed.gradFrom).
+  const grad =
+    ov.gradient || (c.gradFrom && c.gradTo ? { from: c.gradFrom, to: c.gradTo } : null);
+  const color = (grad && grad.from) || ov.color || c.color || "#000000";
   _chipValueRaw("cx-line-color", color);
+  _syncGradientUI(!!grad, grad && grad.to);
 
   // Đậm / nghiêng / gạch chân / căn lề
   _setToggle(
@@ -1278,10 +1283,82 @@ function onLineColorChange() {
   const o = _lineOverride();
   if (v) o.color = v;
   else delete o.color;
+  // Đang bật chuyển màu: ô 1 là màu ĐẦU của dải. Dải có thể mới chỉ do CSS của
+  // mẫu vẽ ra (chưa có trong model) → chốt luôn thành override, không thì màu
+  // vừa chọn lại giết mất gradient.
+  if (v && _lineGradientOn()) o.gradient = { from: v, to: _lineGradientTo(o) };
   _syncSampleStyle(); // chữ mẫu đổi theo live
   _applyLine();
 }
 window.onLineColorChange = onLineColorChange;
+
+// ── Chuyển màu (gradient) cho một dòng chữ ─────────────────────────────────
+// text_overrides[sel].gradient = { from, to }; có nó thì chữ đổ màu, bỏ đi thì
+// về lại màu đặc của ô 1. Ô 2 chỉ hiện khi đang bật.
+const LINE_GRADIENT_TO = "#f59e0b"; // màu cuối gợi ý khi bật lần đầu
+
+// Trạng thái BẬT lấy từ nút, không lấy từ model: dải màu có thể đang do CSS của
+// mẫu vẽ ra chứ chưa nằm trong text_overrides.
+function _lineGradientOn() {
+  return !!document
+    .getElementById("cx-line-gradient")
+    ?.classList.contains("active");
+}
+
+function _lineGradientTo(o) {
+  return (
+    document.getElementById("cx-line-color2")?.value ||
+    (o && o.gradient && o.gradient.to) ||
+    LINE_GRADIENT_TO
+  );
+}
+
+function _syncGradientUI(on, to) {
+  _setToggle("cx-line-gradient", on);
+  document
+    .getElementById("cx-line-color2-wrap")
+    ?.classList.toggle("hidden", !on);
+  if (on) _chipValueRaw("cx-line-color2", to || LINE_GRADIENT_TO);
+}
+
+function toggleLineGradient() {
+  if (!_lineSel) return;
+  const o = _lineOverride();
+  const on = document
+    .getElementById("cx-line-gradient")
+    ?.classList.contains("active");
+  const chip = (id) => document.getElementById(id)?.value || "";
+  if (on) {
+    delete o.gradient;
+    // Mẫu có sẵn chữ đổ màu trong CSS của nó → phải ghi một màu ĐẶC mới huỷ được.
+    o.color = chip("cx-line-color") || o.color || "#111827";
+  } else {
+    o.gradient = {
+      from: chip("cx-line-color") || _lineComputed.color || "#111827",
+      to: chip("cx-line-color2") || LINE_GRADIENT_TO,
+    };
+  }
+  _syncGradientUI(!on, o.gradient && o.gradient.to);
+  _syncSampleStyle();
+  _applyLine();
+}
+window.toggleLineGradient = toggleLineGradient;
+
+function onLineColor2Change() {
+  if (!_lineSel || !_lineGradientOn()) return;
+  const o = _lineOverride();
+  o.gradient = {
+    from:
+      document.getElementById("cx-line-color")?.value ||
+      (o.gradient && o.gradient.from) ||
+      _lineComputed.color ||
+      "#111827",
+    to: _lineGradientTo(o),
+  };
+  _syncSampleStyle();
+  _applyLine();
+}
+window.onLineColor2Change = onLineColor2Change;
 
 // Chữ mẫu "Đang chỉnh: ..." hiển thị bằng ĐÚNG font/cỡ/màu/đậm/nghiêng/gạch chân
 // đang chọn (preview trực tiếp). Đọc từ chính các control (đã nạp giá trị hiệu lực),
@@ -1305,6 +1382,16 @@ function _syncSampleStyle() {
   s.style.fontWeight = has("cx-line-bold") ? "700" : "";
   s.style.fontStyle = has("cx-line-italic") ? "italic" : "";
   s.style.textDecoration = has("cx-line-underline") ? "underline" : "";
+  // Chuyển màu: tô nền rồi xén theo hình chữ, giống hệt cách áp lên thiệp.
+  const to = has("cx-line-gradient")
+    ? document.getElementById("cx-line-color2")?.value || ""
+    : "";
+  s.style.backgroundImage = to
+    ? `linear-gradient(90deg, ${color || "#111827"}, ${to})`
+    : "";
+  s.style.webkitBackgroundClip = to ? "text" : "";
+  s.style.backgroundClip = to ? "text" : "";
+  s.style.webkitTextFillColor = to ? "transparent" : "";
   if (font && window.loadThemeFont) window.loadThemeFont(font);
 }
 
@@ -1564,20 +1651,22 @@ function _initThemeResize() {
 
 // ─── Vùng cuộn cao thấp có tay nắm (bọc CẢ bảng chỉnh giao diện) ───────────
 // Mọi bảng (chung, chỉnh chữ, thêm văn bản, trang trí, thành phần, điều chỉnh)
-// nằm chung một vùng cuộn nên cao bằng nhau: mặc định 1/4 màn cho đỡ che thiệp,
-// kéo tay nắm LÊN để nới (chạm không kéo = bung hết / thu về). Chỉ chạy ở mobile
-// — từ md+ cả cột chỉnh đã tự cuộn nên CSS tắt tay nắm.
-const SHEET_MIN_VH = 0.25; // sàn = 1/4 chiều cao màn hình
-const SHEET_MAX_VH = 0.6; // trần = 60% chiều cao màn hình
-const SHEET_MIN_PX = 120; // màn rất thấp thì vẫn phải đủ chỗ cho 1 hàng control
+// nằm chung một vùng cuộn nên cao bằng nhau. CHỈ CÓ HAI MỨC: mức thấp 200px cho
+// đỡ che thiệp, và mức cao = nửa màn hình. Vuốt/chạm tay nắm là nhảy hẳn sang mức
+// kia, buông tay giữa chừng thì trượt về mức gần nhất — không dừng lưng chừng.
+// Chỉ chạy ở mobile — từ md+ cả cột chỉnh đã tự cuộn nên CSS tắt tay nắm.
+// Đổi SHEET_MIN thì sửa luôn giá trị dự phòng của --cx-sheet-h ở styles/_setup.css.
+const SHEET_MIN = 200; // px — mức thấp, cũng là chiều cao mặc định
+const SHEET_MAX_VH = 0.5; // mức cao = 50% chiều cao màn hình
 const SHEET_DRAG_MIN = 6; // px, dưới ngưỡng này tính là chạm
 
-function _sheetMin() {
-  return Math.max(SHEET_MIN_PX, Math.round(window.innerHeight * SHEET_MIN_VH));
-}
-
-function _sheetMax() {
-  return Math.max(_sheetMin(), Math.round(window.innerHeight * SHEET_MAX_VH));
+// Mức cao thật sự: nội dung ngắn hơn nửa màn thì lấy đúng chiều cao nội dung,
+// đừng chừa khoảng trắng thừa. scrollHeight ≥ clientHeight nên khi nội dung đã
+// vừa khung, nó bằng luôn chiều cao hiện tại → mức cao trùng mức thấp, hết vuốt.
+function _sheetMax(body) {
+  const vh = Math.round(window.innerHeight * SHEET_MAX_VH);
+  const content = body ? body.scrollHeight : vh;
+  return Math.max(SHEET_MIN, Math.min(vh, content));
 }
 
 // Dải trắng mờ chỉ hiện khi còn nội dung chưa thấy.
@@ -1586,6 +1675,45 @@ function _updateSheetFade(body) {
   if (!fade) return;
   const rest = body.scrollHeight - body.clientHeight - body.scrollTop;
   fade.classList.toggle("is-end", rest <= 4);
+}
+
+// Hàng nút của mỗi bảng nằm ở khối đầu bảng (#cx-ctrl-actions), ngoài vùng cuộn.
+// Bảng nào đang mở thì hiện hàng nút của bảng đó: [id bảng, id hàng nút], xét từ
+// trên xuống, không bảng nào mở thì rơi về hàng nút của nhóm chỉnh chung.
+// Thêm bảng mới → thêm một dòng ở đây, khỏi đụng vào các hàm mở/đóng bảng.
+const CTRL_HEADS = [
+  ["theme-element-editor", "cx-head-element-editor"],
+  ["theme-elements-panel", "cx-head-elements"],
+  ["theme-decor-panel", "cx-head-decor"],
+  ["theme-addtext-panel", "cx-head-addtext"],
+  ["theme-line-editor", "cx-head-line"],
+];
+
+function _syncCtrlHead() {
+  const open = CTRL_HEADS.find(
+    ([panelId]) =>
+      !document.getElementById(panelId)?.classList.contains("hidden"),
+  );
+  const active = open ? open[1] : "cx-head-main";
+  CTRL_HEADS.forEach(([, headId]) =>
+    document.getElementById(headId)?.classList.toggle("hidden", headId !== active),
+  );
+  document
+    .getElementById("cx-head-main")
+    ?.classList.toggle("hidden", active !== "cx-head-main");
+  if (window.lucide) lucide.createIcons();
+}
+
+// Bảng được ẩn/hiện ở cả chục chỗ trong file này → theo dõi thuộc tính class
+// thay vì gọi tay ở từng chỗ (sót một nhánh là mất luôn nút Quay lại).
+function _initCtrlHeadSync() {
+  if (typeof MutationObserver === "undefined") return;
+  const obs = new MutationObserver(_syncCtrlHead);
+  CTRL_HEADS.forEach(([panelId]) => {
+    const el = document.getElementById(panelId);
+    if (el) obs.observe(el, { attributes: true, attributeFilter: ["class"] });
+  });
+  _syncCtrlHead();
 }
 
 // Đổi bảng thì cuộn về đầu + tính lại dải mờ — bảng mới cao bằng bảng cũ nên
@@ -1604,34 +1732,48 @@ function _initSheet(bodyId, handleId) {
 
   // Giữ chiều cao đã chọn ở biến riêng: lúc bảng đang ẩn thì clientHeight = 0,
   // đọc lại từ DOM sẽ tự xoá mất mức người dùng vừa kéo.
-  let cur = _sheetMin();
-  const setH = (px) => {
-    cur = Math.round(Math.min(Math.max(px, _sheetMin()), _sheetMax()));
+  let cur = SHEET_MIN;
+  const setH = (px, max) => {
+    cur = Math.round(
+      Math.min(Math.max(px, SHEET_MIN), max == null ? _sheetMax(body) : max),
+    );
     body.style.setProperty("--cx-sheet-h", cur + "px");
     _updateSheetFade(body);
   };
   setH(cur);
 
   let drag = null;
+  const grip = handle.querySelector(".cx-sheet-grip");
   handle.addEventListener("pointerdown", (e) => {
     if (e.pointerType === "mouse" && e.button !== 0) return;
+    // Nút trong khối đầu bảng (Quay lại, Khôi phục…) không phải chỗ để kéo.
+    if (e.target.closest && e.target.closest("button")) return;
+    // md+ ẩn vạch kéo = không cho kéo (cả cột chỉnh đã tự cuộn).
+    if (grip && getComputedStyle(grip).display === "none") return;
     e.preventDefault();
     try {
       handle.setPointerCapture(e.pointerId);
     } catch (err) {}
-    drag = { y0: e.clientY, h0: cur, moved: false };
+    // Chốt mức cao NGAY LÚC BẮT ĐẦU: đang kéo thì scrollHeight đổi theo chiều
+    // cao khung, tính lại giữa chừng sẽ ra trần nhảy nhót.
+    drag = { y0: e.clientY, h0: cur, max: _sheetMax(body), moved: false };
+    body.classList.add("is-dragging"); // tắt hiệu ứng trượt, bám tay tức thì
   });
   handle.addEventListener("pointermove", (e) => {
     if (!drag) return;
     const dy = e.clientY - drag.y0;
     if (!drag.moved && Math.abs(dy) < SHEET_DRAG_MIN) return;
     drag.moved = true;
-    setH(drag.h0 - dy); // kéo lên (dy âm) = cao lên
+    setH(drag.h0 - dy, drag.max); // kéo lên (dy âm) = cao lên
   });
   const end = () => {
     if (!drag) return;
-    // Chạm không kéo: đang thấp thì bung hết cỡ, đang cao thì thu về.
-    if (!drag.moved) setH(drag.h0 >= _sheetMax() - 4 ? _sheetMin() : _sheetMax());
+    body.classList.remove("is-dragging");
+    // Luôn về đúng MỘT TRONG HAI mức. Vuốt: trượt về mức gần chỗ buông tay hơn.
+    // Chạm không vuốt: nhảy sang mức còn lại.
+    const max = drag.max;
+    if (drag.moved) setH(cur > (SHEET_MIN + max) / 2 ? max : SHEET_MIN, max);
+    else setH(drag.h0 >= max - 4 ? SHEET_MIN : max, max);
     drag = null;
   };
   handle.addEventListener("pointerup", end);
@@ -1652,6 +1794,7 @@ function _initThemePanelObservers() {
   _initThemeResize();
   _initElPreviewResize();
   _initSheet("cx-ctrl-scroll", "cx-ctrl-handle");
+  _initCtrlHeadSync();
   _initCardBlur();
 }
 
