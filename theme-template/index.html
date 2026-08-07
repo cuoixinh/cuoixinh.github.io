@@ -27,14 +27,14 @@
 
     <style>
       :root {
-        --primary: rgb(var(--pink-deep-rgb)); /* pink-deep — same as homepage */
-        --mauve: rgb(var(--mauve-rgb));
-        --dark: rgb(var(--mauve-dark-rgb)); /* mauve-dark */
-        --pink-lt: rgb(var(--pink-400-rgb));
-        --bg: rgb(var(--cream-soft-rgb));
-        --fg: rgb(var(--plum-dark-rgb));
-        --muted: rgb(var(--mauve-dark-rgb)/0.55);
-        --border: rgb(var(--pink-deep-rgb)/0.25);
+        --primary: rgb(var(--brand-accent-rgb)); /* pink-deep — same as homepage */
+        --mauve: rgb(var(--text-body-rgb));
+        --dark: rgb(var(--text-heading-rgb)); /* mauve-dark */
+        --pink-lt: rgb(var(--brand-primary-rgb));
+        --bg: rgb(var(--preview-page-bg-rgb));
+        --fg: rgb(var(--scrim-plum-rgb));
+        --muted: rgb(var(--text-heading-rgb)/0.55);
+        --border: rgb(var(--brand-accent-rgb)/0.25);
       }
 
       * {
@@ -56,7 +56,7 @@
         }
       }
       .skeleton {
-        background: linear-gradient(160deg, rgb(var(--landing-preview-from-rgb)), rgb(var(--landing-preview-to-rgb)));
+        background: linear-gradient(160deg, rgb(var(--preview-bg-from-rgb)), rgb(var(--preview-bg-to-rgb)));
         position: relative;
         overflow: hidden;
       }
@@ -67,7 +67,7 @@
         background: linear-gradient(
           90deg,
           transparent 30%,
-          rgb(var(--white-rgb)/0.55) 50%,
+          rgb(var(--surface-base-rgb)/0.55) 50%,
           transparent 70%
         );
         animation: shimmer 1.4s infinite;
@@ -75,7 +75,7 @@
 
       /* ─── Nav ─── */
       .nav-scrolled {
-        box-shadow: 0 1px 24px rgb(var(--shadow-pink-rgb)/0.1);
+        box-shadow: 0 1px 24px rgb(var(--shadow-brand-rgb)/0.1);
       }
 
       /* ─── Dot grid overlay ─── */
@@ -85,8 +85,8 @@
         inset: 0;
         pointer-events: none;
         background-image:
-          linear-gradient(rgb(var(--pink-deep-rgb)/0.07) 1px, transparent 1px),
-          linear-gradient(90deg, rgb(var(--pink-deep-rgb)/0.06) 1px, transparent 1px);
+          linear-gradient(rgb(var(--brand-accent-rgb)/0.07) 1px, transparent 1px),
+          linear-gradient(90deg, rgb(var(--brand-accent-rgb)/0.06) 1px, transparent 1px);
         background-size: 32px 32px;
         z-index: 0;
       }
@@ -98,10 +98,10 @@
         overflow: hidden;
         border-radius: 10px;
         background: white;
-        border: 1px solid rgb(var(--pink-400-rgb)/0.4);
+        border: 1px solid rgb(var(--brand-primary-rgb)/0.4);
         box-shadow:
-          0 2px 8px rgb(var(--shadow-pink-rgb)/0.05),
-          0 12px 32px -18px rgb(var(--shadow-wine-rgb)/0.18);
+          0 2px 8px rgb(var(--shadow-brand-rgb)/0.05),
+          0 12px 32px -18px rgb(var(--preview-shadow-rgb)/0.18);
         transition:
           transform 0.26s ease,
           box-shadow 0.26s ease,
@@ -110,10 +110,10 @@
 
       .template-card:hover {
         transform: translateY(-5px);
-        border-color: rgb(var(--pink-deep-rgb)/0.45);
+        border-color: rgb(var(--brand-accent-rgb)/0.45);
         box-shadow:
-          0 4px 16px rgb(var(--shadow-pink-rgb)/0.1),
-          0 24px 56px -24px rgb(var(--shadow-wine-rgb)/0.28);
+          0 4px 16px rgb(var(--shadow-brand-rgb)/0.1),
+          0 24px 56px -24px rgb(var(--preview-shadow-rgb)/0.28);
       }
       .template-card:active {
         transform: scale(0.985);
@@ -125,12 +125,12 @@
         margin: 0 auto;
         max-width: 185px;
         border-radius: 1rem;
-        border: 1.5px solid rgb(var(--pink-400-rgb)/0.5);
+        border: 1.5px solid rgb(var(--brand-primary-rgb)/0.5);
         background: white;
         padding: 5px;
         box-shadow:
-          0 20px 52px -28px rgb(var(--mauve-dark-rgb)/0.6),
-          0 4px 12px rgb(var(--pink-deep-rgb)/0.1);
+          0 20px 52px -28px rgb(var(--text-heading-rgb)/0.6),
+          0 4px 12px rgb(var(--brand-accent-rgb)/0.1);
       }
       @media (min-width: 640px) {
         .phone-frame {
@@ -145,7 +145,7 @@
         width: 100%;
         overflow: hidden;
         border-radius: 0.72rem;
-        background: rgb(var(--landing-preview-from-rgb));
+        background: rgb(var(--preview-bg-from-rgb));
         aspect-ratio: 14 / 29;
       }
       @media (min-width: 640px) {
@@ -161,7 +161,7 @@
         display: none;
         align-items: center;
         justify-content: center;
-        background: rgb(var(--plum-dark-rgb)/0.3);
+        background: rgb(var(--scrim-plum-rgb)/0.3);
         backdrop-filter: blur(2px);
         opacity: 0;
         transition: opacity 0.2s;
@@ -191,7 +191,7 @@
         transform: rotate(180deg);
       }
       .faq-item.open {
-        border-color: rgb(var(--pink-deep-rgb)/0.4) !important;
+        border-color: rgb(var(--brand-accent-rgb)/0.4) !important;
       }
 
       html {
@@ -220,13 +220,13 @@
             <a
               href="/"
               class="hover:opacity-70 transition-opacity"
-              style="color: var(--mauve)"
+              style="color: var(--text-primary)"
               >Trang chủ</a
             >
             <a
               href="/theme-template/"
               class="hover:opacity-70 transition-opacity"
-              style="color: var(--mauve)"
+              style="color: var(--text-primary)"
               >Mẫu thiệp</a
             >
           </nav>
@@ -236,7 +236,7 @@
               id="ttManageBtn"
               href="/public/account/"
               class="inline-flex items-center gap-1.5 rounded-full text-xs sm:text-sm font-medium px-3 sm:px-3.5 py-1.5 sm:py-2 transition-colors hover:bg-rose-pastel-100 whitespace-nowrap"
-              style="color: var(--mauve)"
+              style="color: var(--text-primary)"
               ><svg class="w-3.5 h-3.5 opacity-80" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="7" x="3" y="3" rx="1.5"/><rect width="7" height="7" x="14" y="3" rx="1.5"/><rect width="7" height="7" x="14" y="14" rx="1.5"/><rect width="7" height="7" x="3" y="14" rx="1.5"/></svg>
               Quản lý thiệp</a
             >
@@ -245,7 +245,7 @@
               type="button"
               onclick="openLoginPopup()"
               class="inline-flex items-center rounded-full text-xs sm:text-sm font-semibold px-4 sm:px-5 py-1.5 sm:py-2 text-white shadow-sm transition-all hover:opacity-90 whitespace-nowrap"
-              style="background: rgb(var(--rose-500-rgb))"
+              style="background: rgb(var(--action-primary-rgb))"
             >
               Đăng nhập
             </button>
@@ -253,8 +253,8 @@
               onclick="startDraft()"
               class="hidden md:inline-flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-full text-white shadow-sm transition-opacity hover:opacity-90 whitespace-nowrap"
               style="
-                background: linear-gradient(135deg, rgb(var(--pink-magenta-rgb)), rgb(var(--rose-500-rgb)));
-                box-shadow: 0 4px 14px rgb(var(--pink-magenta-rgb)/0.35);
+                background: linear-gradient(135deg, rgb(var(--cta-accent-rgb)), rgb(var(--action-primary-rgb)));
+                box-shadow: 0 4px 14px rgb(var(--cta-accent-rgb)/0.35);
                 letter-spacing: 0.01em;
               "
             >
@@ -269,7 +269,7 @@
     <!-- ═══ MOBILE BOTTOM NAV ═══ -->
     <nav
       class="fixed bottom-0 left-0 right-0 z-40 border-t md:hidden"
-      style="background: rgb(var(--white-rgb)); border-color: rgb(var(--pink-400-rgb)/0.35)"
+      style="background: rgb(var(--surface-base-rgb)); border-color: rgb(var(--brand-primary-rgb)/0.35)"
     >
       <div
         class="flex items-center justify-around px-2 pt-1.5"
@@ -379,10 +379,10 @@
             <div
               class="inline-flex items-center rounded-2xl"
               style="
-                background: rgb(var(--white-rgb)/0.75);
-                border: 1px solid rgb(var(--pink-400-rgb)/0.35);
+                background: rgb(var(--surface-base-rgb)/0.75);
+                border: 1px solid rgb(var(--brand-primary-rgb)/0.35);
                 backdrop-filter: blur(8px);
-                box-shadow: 0 4px 20px -8px rgb(var(--pink-deep-rgb)/0.15);
+                box-shadow: 0 4px 20px -8px rgb(var(--brand-accent-rgb)/0.15);
               "
             >
               <div class="px-5 sm:px-8 py-3">
@@ -402,7 +402,7 @@
               </div>
               <div
                 class="h-8 w-px"
-                style="background: rgb(var(--pink-deep-rgb)/0.3)"
+                style="background: rgb(var(--brand-accent-rgb)/0.3)"
               ></div>
               <div class="px-5 sm:px-8 py-3">
                 <p
@@ -421,7 +421,7 @@
               </div>
               <div
                 class="h-8 w-px"
-                style="background: rgb(var(--pink-deep-rgb)/0.3)"
+                style="background: rgb(var(--brand-accent-rgb)/0.3)"
               ></div>
               <div class="px-5 sm:px-8 py-3">
                 <p
@@ -450,39 +450,39 @@
         >
           <path
             d="M20 200 Q60 120 120 80 Q160 50 200 20"
-            stroke="rgb(var(--pink-deep-rgb))"
+            stroke="rgb(var(--brand-accent-rgb))"
             stroke-width="1"
           />
           <path
             d="M10 180 Q50 130 100 100 Q140 76 180 30"
-            stroke="rgb(var(--pink-deep-rgb))"
+            stroke="rgb(var(--brand-accent-rgb))"
             stroke-width="0.8"
           />
-          <circle cx="80" cy="140" r="18" stroke="rgb(var(--pink-deep-rgb))" stroke-width="0.8" />
-          <circle cx="80" cy="140" r="10" stroke="rgb(var(--pink-deep-rgb))" stroke-width="0.6" />
+          <circle cx="80" cy="140" r="18" stroke="rgb(var(--brand-accent-rgb))" stroke-width="0.8" />
+          <circle cx="80" cy="140" r="10" stroke="rgb(var(--brand-accent-rgb))" stroke-width="0.6" />
           <path
             d="M80 122 Q95 110 110 122"
-            stroke="rgb(var(--pink-deep-rgb))"
+            stroke="rgb(var(--brand-accent-rgb))"
             stroke-width="0.7"
           />
           <path
             d="M60 148 Q48 158 52 172"
-            stroke="rgb(var(--pink-deep-rgb))"
+            stroke="rgb(var(--brand-accent-rgb))"
             stroke-width="0.7"
           />
           <path
             d="M100 148 Q112 158 108 172"
-            stroke="rgb(var(--pink-deep-rgb))"
+            stroke="rgb(var(--brand-accent-rgb))"
             stroke-width="0.7"
           />
           <path
             d="M140 60 Q155 50 150 35 Q145 50 130 55 Q145 52 140 60Z"
-            stroke="rgb(var(--pink-deep-rgb))"
+            stroke="rgb(var(--brand-accent-rgb))"
             stroke-width="0.7"
           />
           <path
             d="M155 45 Q165 32 162 20 Q158 32 148 38"
-            stroke="rgb(var(--pink-deep-rgb))"
+            stroke="rgb(var(--brand-accent-rgb))"
             stroke-width="0.6"
           />
         </svg>
@@ -495,24 +495,24 @@
         >
           <path
             d="M20 200 Q60 120 120 80 Q160 50 200 20"
-            stroke="rgb(var(--pink-deep-rgb))"
+            stroke="rgb(var(--brand-accent-rgb))"
             stroke-width="1"
           />
           <path
             d="M10 180 Q50 130 100 100 Q140 76 180 30"
-            stroke="rgb(var(--pink-deep-rgb))"
+            stroke="rgb(var(--brand-accent-rgb))"
             stroke-width="0.8"
           />
-          <circle cx="80" cy="140" r="18" stroke="rgb(var(--pink-deep-rgb))" stroke-width="0.8" />
-          <circle cx="80" cy="140" r="10" stroke="rgb(var(--pink-deep-rgb))" stroke-width="0.6" />
+          <circle cx="80" cy="140" r="18" stroke="rgb(var(--brand-accent-rgb))" stroke-width="0.8" />
+          <circle cx="80" cy="140" r="10" stroke="rgb(var(--brand-accent-rgb))" stroke-width="0.6" />
           <path
             d="M80 122 Q95 110 110 122"
-            stroke="rgb(var(--pink-deep-rgb))"
+            stroke="rgb(var(--brand-accent-rgb))"
             stroke-width="0.7"
           />
           <path
             d="M140 60 Q155 50 150 35 Q145 50 130 55 Q145 52 140 60Z"
-            stroke="rgb(var(--pink-deep-rgb))"
+            stroke="rgb(var(--brand-accent-rgb))"
             stroke-width="0.7"
           />
         </svg>
@@ -522,8 +522,8 @@
       <div
         class="hidden sm:block border-y"
         style="
-          border-color: rgb(var(--pink-400-rgb)/0.3);
-          background: rgb(var(--white-rgb)/0.6);
+          border-color: rgb(var(--brand-primary-rgb)/0.3);
+          background: rgb(var(--surface-base-rgb)/0.6);
         "
       >
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
@@ -548,7 +548,7 @@
               <div class="flex items-center gap-2.5 mb-2">
                 <div
                   class="shrink-0 w-7 h-7 flex items-center justify-center rounded-full"
-                  style="background: rgb(var(--pink-deep-rgb)/0.1)"
+                  style="background: rgb(var(--brand-accent-rgb)/0.1)"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -591,7 +591,7 @@
               style="
                 grid-row: span 3;
                 width: 1px;
-                background: rgb(var(--pink-400-rgb)/0.45);
+                background: rgb(var(--brand-primary-rgb)/0.45);
                 align-self: stretch;
               "
             ></div>
@@ -609,7 +609,7 @@
               <div class="flex items-center gap-2.5 mb-2">
                 <div
                   class="shrink-0 w-7 h-7 flex items-center justify-center rounded-full"
-                  style="background: rgb(var(--pink-deep-rgb)/0.1)"
+                  style="background: rgb(var(--brand-accent-rgb)/0.1)"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -650,7 +650,7 @@
               style="
                 grid-row: span 3;
                 width: 1px;
-                background: rgb(var(--pink-400-rgb)/0.45);
+                background: rgb(var(--brand-primary-rgb)/0.45);
                 align-self: stretch;
               "
             ></div>
@@ -668,7 +668,7 @@
               <div class="flex items-center gap-2.5 mb-2">
                 <div
                   class="shrink-0 w-7 h-7 flex items-center justify-center rounded-full"
-                  style="background: rgb(var(--pink-deep-rgb)/0.1)"
+                  style="background: rgb(var(--brand-accent-rgb)/0.1)"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -705,7 +705,7 @@
               style="
                 grid-row: span 3;
                 width: 1px;
-                background: rgb(var(--pink-400-rgb)/0.45);
+                background: rgb(var(--brand-primary-rgb)/0.45);
                 align-self: stretch;
               "
             ></div>
@@ -723,7 +723,7 @@
               <div class="flex items-center gap-2.5 mb-2">
                 <div
                   class="shrink-0 w-7 h-7 flex items-center justify-center rounded-full"
-                  style="background: rgb(var(--pink-deep-rgb)/0.1)"
+                  style="background: rgb(var(--brand-accent-rgb)/0.1)"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -765,7 +765,7 @@
           <div class="flex items-center gap-4 mb-6 sm:mb-8">
             <span
               class="h-px flex-1"
-              style="background: rgb(var(--pink-400-rgb)/0.35)"
+              style="background: rgb(var(--brand-primary-rgb)/0.35)"
             ></span>
             <p
               class="text-xs font-semibold uppercase tracking-[0.2em]"
@@ -775,7 +775,7 @@
             </p>
             <span
               class="h-px flex-1"
-              style="background: rgb(var(--pink-400-rgb)/0.35)"
+              style="background: rgb(var(--brand-primary-rgb)/0.35)"
             ></span>
           </div>
 
@@ -832,23 +832,23 @@
       </section>
 
       <!-- ─── CTA — full-bleed wine section ─── -->
-      <section style="background: linear-gradient(135deg, rgb(var(--pink-deep-rgb)), rgb(var(--pink-dusty-rgb)))">
+      <section style="background: linear-gradient(135deg, rgb(var(--brand-accent-rgb)), rgb(var(--preview-btn-to-rgb)))">
         <div class="max-w-3xl mx-auto px-4 sm:px-6 py-12 sm:py-16 text-center">
           <p
             class="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.22em] mb-3"
-            style="color: rgb(var(--white-rgb)/0.55)"
+            style="color: rgb(var(--text-inverse-rgb)/0.55)"
           >
             Miễn phí cho đến khi bạn sẵn sàng
           </p>
           <h2
             class="font-playfair text-[1.5rem] sm:text-2xl lg:text-3xl font-semibold leading-snug mb-3"
-            style="color: rgb(var(--white-rgb))"
+            style="color: rgb(var(--text-inverse-rgb))"
           >
             Chọn mẫu, tạo thử, đổi thoải mái — chỉ trả khi thật sự ưng
           </h2>
           <p
             class="text-sm sm:text-[15px] leading-relaxed mb-7"
-            style="color: rgb(var(--white-rgb)/0.65)"
+            style="color: rgb(var(--text-inverse-rgb)/0.65)"
           >
             Tạo bản nháp không giới hạn thời gian. Khi đổi sang mẫu khác, ảnh và
             thông tin đám cưới vẫn giữ nguyên — không cần nhập lại.
@@ -857,9 +857,9 @@
             onclick="startDraft()"
             class="inline-flex items-center gap-2 px-6 py-3 rounded-md text-sm font-semibold hover:opacity-90 transition-opacity"
             style="
-              background: rgb(var(--white-rgb));
-              color: rgb(var(--pink-deep-rgb));
-              box-shadow: 0 4px 20px rgb(var(--shadow-wine-rgb)/0.22);
+              background: rgb(var(--surface-base-rgb));
+              color: rgb(var(--brand-accent-rgb));
+              box-shadow: 0 4px 20px rgb(var(--preview-shadow-rgb)/0.22);
             "
           >
             Xem mẫu và tạo thử
@@ -886,7 +886,7 @@
         class="py-10 sm:py-16"
         style="
           background: var(--bg);
-          border-top: 1px solid rgb(var(--pink-400-rgb)/0.3);
+          border-top: 1px solid rgb(var(--brand-primary-rgb)/0.3);
         "
         aria-labelledby="faq-heading"
       >
@@ -909,7 +909,7 @@
           <div class="space-y-2">
             <div
               class="faq-item border rounded-lg bg-white overflow-hidden"
-              style="border-color: rgb(var(--pink-400-rgb)/0.35)"
+              style="border-color: rgb(var(--brand-primary-rgb)/0.35)"
             >
               <button
                 type="button"
@@ -949,7 +949,7 @@
 
             <div
               class="faq-item border rounded-lg bg-white overflow-hidden"
-              style="border-color: rgb(var(--pink-400-rgb)/0.35)"
+              style="border-color: rgb(var(--brand-primary-rgb)/0.35)"
             >
               <button
                 type="button"
@@ -989,7 +989,7 @@
 
             <div
               class="faq-item border rounded-lg bg-white overflow-hidden"
-              style="border-color: rgb(var(--pink-400-rgb)/0.35)"
+              style="border-color: rgb(var(--brand-primary-rgb)/0.35)"
             >
               <button
                 type="button"
@@ -1028,7 +1028,7 @@
 
             <div
               class="faq-item border rounded-lg bg-white overflow-hidden"
-              style="border-color: rgb(var(--pink-400-rgb)/0.35)"
+              style="border-color: rgb(var(--brand-primary-rgb)/0.35)"
             >
               <button
                 type="button"
@@ -1068,7 +1068,7 @@
 
             <div
               class="faq-item border rounded-lg bg-white overflow-hidden"
-              style="border-color: rgb(var(--pink-400-rgb)/0.35)"
+              style="border-color: rgb(var(--brand-primary-rgb)/0.35)"
             >
               <button
                 type="button"
@@ -1228,7 +1228,7 @@
           ? `
           <div class="absolute left-2 top-3 sm:left-2.5 sm:top-3.5 z-10">
             <span class="text-[9px] font-bold tracking-[0.18em] uppercase px-2 py-0.5 rounded-sm"
-                  style="background:rgb(var(--pink-deep-rgb)/0.1);color:var(--primary);letter-spacing:0.18em">${catLabel}</span>
+                  style="background:rgb(var(--brand-accent-rgb)/0.1);color:var(--primary);letter-spacing:0.18em">${catLabel}</span>
           </div>`
           : "";
 
@@ -1245,7 +1245,7 @@
         const usageHTML =
           t.usageCount > 0
             ? `
-          <div class="border-t pt-2 sm:pt-2.5 mt-0.5" style="border-color:rgb(var(--pink-deep-rgb)/0.1)">
+          <div class="border-t pt-2 sm:pt-2.5 mt-0.5" style="border-color:rgb(var(--brand-accent-rgb)/0.1)">
             <span class="inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-medium"
                   style="color:var(--muted)">
               <span style="display:flex;align-items:center">${SVG_USERS}</span>${t.usageCount} đôi đã dùng
@@ -1255,15 +1255,15 @@
 
         return `
           <div class="template-card" data-id="${t.id}" onclick="openPreview('${t.previewUrl}')">
-            <div class="relative" style="aspect-ratio:9/16;overflow:hidden;background:rgb(var(--landing-preview-from-rgb))">
+            <div class="relative" style="aspect-ratio:9/16;overflow:hidden;background:rgb(var(--preview-bg-from-rgb))">
               <img src="${imgSrc}" alt="${t.name}" loading="lazy" class="absolute inset-0 w-full h-full object-cover object-top" />
               <div class="absolute inset-x-0 bottom-0 h-20"
-                   style="background:linear-gradient(to top,rgb(var(--plum-dark-rgb)/0.45) 0%,transparent)"></div>
+                   style="background:linear-gradient(to top,rgb(var(--scrim-plum-rgb)/0.45) 0%,transparent)"></div>
               ${catBadge}
               ${hotBadge}
               <div class="card-hover-overlay">
                 <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-semibold"
-                      style="background:rgb(var(--white-rgb));color:var(--primary);box-shadow:0 4px 16px rgb(var(--black-rgb)/0.2)">
+                      style="background:rgb(var(--surface-base-rgb));color:var(--primary);box-shadow:0 4px 16px rgb(var(--shadow-neutral-rgb)/0.2)">
                   <span style="display:flex;align-items:center;color:var(--primary)">${SVG_EYE}</span>Xem chi tiết
                 </span>
               </div>

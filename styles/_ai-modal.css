@@ -25,7 +25,7 @@
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   border: 1px solid var(--ai-panel-border);
-  box-shadow: 0 12px 34px rgb(var(--overlay-slate-rgb) / 0.14);
+  box-shadow: 0 12px 34px rgb(var(--scrim-slate-rgb) / 0.14);
   transition:
     transform 0.3s ease,
     box-shadow 0.3s ease;
@@ -45,7 +45,7 @@
 
 .ai-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 20px 45px rgb(var(--overlay-slate-rgb) / 0.18);
+  box-shadow: 0 20px 45px rgb(var(--scrim-slate-rgb) / 0.18);
 }
 
 /* Icon vuông bo góc, gradient tím→xanh + đổ bóng tím. */
@@ -54,7 +54,7 @@
          rounded-[18px];
 
   background: linear-gradient(135deg, var(--ai-soft-from), var(--ai-soft-to));
-  box-shadow: 0 10px 25px rgb(var(--indigo-500-rgb) / 0.3);
+  box-shadow: 0 10px 25px rgb(var(--ai-glow-rgb) / 0.3);
 }
 
 .ai-icon svg {
@@ -112,7 +112,7 @@
     linear-gradient(
         110deg,
         transparent 42%,
-        rgb(var(--white-rgb) / 0.6) 50%,
+        rgb(var(--surface-base-rgb) / 0.6) 50%,
         transparent 58%
       )
       no-repeat,
@@ -123,7 +123,7 @@
   background-position:
     120% 0,
     0 0;
-  box-shadow: 0 10px 25px rgb(var(--indigo-500-rgb) / 0.35);
+  box-shadow: 0 10px 25px rgb(var(--ai-glow-rgb) / 0.35);
   transition:
     transform 0.2s ease,
     box-shadow 0.2s ease;
@@ -140,8 +140,8 @@
 
   content: "";
   border: 2px solid transparent;
-  border-left-color: rgb(var(--sky-400-rgb) / 0.6);
-  border-right-color: rgb(var(--sky-400-rgb) / 0.6);
+  border-left-color: rgb(var(--ai-soft-to-rgb) / 0.6);
+  border-right-color: rgb(var(--ai-soft-to-rgb) / 0.6);
   animation: ai-mini-radar 2s ease-out infinite;
 }
 
@@ -151,7 +151,7 @@
 
 .ai-mini:hover {
   transform: scale(1.06);
-  box-shadow: 0 12px 28px rgb(var(--indigo-500-rgb) / 0.45);
+  box-shadow: 0 12px 28px rgb(var(--ai-glow-rgb) / 0.45);
 }
 
 .ai-mini svg {
@@ -253,7 +253,7 @@
     var(--ai-suggest-to) 100%
   );
   border: 1.5px solid var(--ai-suggest-border);
-  box-shadow: 0 4px 12px -4px rgb(var(--shadow-rose-rgb) / 0.28);
+  box-shadow: 0 4px 12px -4px rgb(var(--shadow-action-rgb) / 0.28);
   transition:
     transform 0.15s ease,
     box-shadow 0.15s ease,
@@ -269,13 +269,13 @@
     var(--ai-suggest-to) 0%,
     var(--ai-suggest-border) 100%
   );
-  box-shadow: 0 7px 18px -4px rgb(var(--shadow-rose-rgb) / 0.42);
+  box-shadow: 0 7px 18px -4px rgb(var(--shadow-action-rgb) / 0.42);
   transform: translateY(-1px);
 }
 
 .ai-back-btn:active {
   transform: translateY(0);
-  box-shadow: 0 3px 9px -4px rgb(var(--shadow-rose-rgb) / 0.35);
+  box-shadow: 0 3px 9px -4px rgb(var(--shadow-action-rgb) / 0.35);
 }
 
 .ai-back-btn svg {
@@ -359,7 +359,7 @@ textarea.ai-inp {
 .ai-inp:focus {
   @apply border-rose-400;
 
-  box-shadow: 0 0 0 3px rgb(var(--rose-400-rgb) / 0.18);
+  box-shadow: 0 0 0 3px rgb(var(--focus-ring-rgb) / 0.18);
 }
 
 .ai-inp::placeholder {
@@ -427,7 +427,7 @@ textarea.ai-inp {
 .ai-cselect-btn.open {
   @apply border-rose-400;
 
-  box-shadow: 0 0 0 3px rgb(var(--rose-400-rgb) / 0.18);
+  box-shadow: 0 0 0 3px rgb(var(--focus-ring-rgb) / 0.18);
 }
 
 .ai-cselect-panel {

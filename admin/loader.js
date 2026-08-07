@@ -90,7 +90,7 @@
     console.error("[loader] nạp trang thất bại:", err);
     document.body.insertAdjacentHTML(
       "afterbegin",
-      '<div style="padding:16px;font:14px/1.5 Inter,sans-serif;color:rgb(var(--rose-800-rgb));background:rgb(var(--rose-50-rgb));border-bottom:1px solid rgb(var(--rose-200-rgb))">' +
+      '<div style="padding:16px;font:14px/1.5 Inter,sans-serif;color:rgb(var(--notice-text-rgb));background:rgb(var(--notice-bg-rgb));border-bottom:1px solid rgb(var(--notice-border-rgb))">' +
         "Không tải được giao diện. Vui lòng tải lại trang." +
         "</div>",
     );

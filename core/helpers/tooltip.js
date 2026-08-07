@@ -18,9 +18,9 @@
     #cx-tip {
       position: fixed; z-index: 2147483646; top: 0; left: 0;
       max-width: 240px; padding: 8px 12px;
-      background: rgb(var(--gray-900-rgb)); color: rgb(var(--white-rgb));
+      background: rgb(var(--tooltip-bg-rgb)); color: rgb(var(--tooltip-text-rgb));
       font-size: 12px; line-height: 1.5; font-weight: 500; font-family: inherit;
-      border-radius: 8px; box-shadow: 0 4px 16px rgb(var(--black-rgb)/.24);
+      border-radius: 8px; box-shadow: 0 4px 16px rgb(var(--shadow-neutral-rgb)/.24);
       pointer-events: none; opacity: 0; transform: translateY(2px);
       transition: opacity .12s ease, transform .12s ease;
       white-space: normal; word-break: break-word;
@@ -31,10 +31,10 @@
       border: ${ARROW}px solid transparent;
     }
     /* Arrow theo phía đặt tooltip (data-place trên #cx-tip) */
-    #cx-tip[data-place="top"]::after    { top: 100%; left: var(--arrow-x, 50%); transform: translateX(-50%); border-top-color: rgb(var(--gray-900-rgb)); }
-    #cx-tip[data-place="bottom"]::after { bottom: 100%; left: var(--arrow-x, 50%); transform: translateX(-50%); border-bottom-color: rgb(var(--gray-900-rgb)); }
-    #cx-tip[data-place="left"]::after   { left: 100%; top: var(--arrow-y, 50%); transform: translateY(-50%); border-left-color: rgb(var(--gray-900-rgb)); }
-    #cx-tip[data-place="right"]::after  { right: 100%; top: var(--arrow-y, 50%); transform: translateY(-50%); border-right-color: rgb(var(--gray-900-rgb)); }
+    #cx-tip[data-place="top"]::after    { top: 100%; left: var(--arrow-x, 50%); transform: translateX(-50%); border-top-color: rgb(var(--tooltip-bg-rgb)); }
+    #cx-tip[data-place="bottom"]::after { bottom: 100%; left: var(--arrow-x, 50%); transform: translateX(-50%); border-bottom-color: rgb(var(--tooltip-bg-rgb)); }
+    #cx-tip[data-place="left"]::after   { left: 100%; top: var(--arrow-y, 50%); transform: translateY(-50%); border-left-color: rgb(var(--tooltip-bg-rgb)); }
+    #cx-tip[data-place="right"]::after  { right: 100%; top: var(--arrow-y, 50%); transform: translateY(-50%); border-right-color: rgb(var(--tooltip-bg-rgb)); }
     @media (prefers-reduced-motion: reduce) { #cx-tip { transition: none; } }
   `;
   document.head.appendChild(style);

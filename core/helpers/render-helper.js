@@ -203,7 +203,7 @@ function renderLoveStory(events) {
         : "";
       return `
     <div class="relative pl-[14px] ${pbClass} text-left">
-      <div class="absolute left-[-6px] top-[3px] w-[10px] h-[10px] rounded-full bg-[rgb(var(--rose-300-rgb))] border-2 border-white shadow-[0_0_0_2px_rgb(var(--rose-300-rgb))]"></div>
+      <div class="absolute left-[-6px] top-[3px] w-[10px] h-[10px] rounded-full bg-[rgb(var(--timeline-dot-rgb))] border-2 border-white shadow-[0_0_0_2px_rgb(var(--timeline-dot-rgb))]"></div>
       ${ev.date ? `<div class="text-[0.7rem] font-bold text-red-400 tracking-[0.06em] mb-0.5">${escapeHtml(ev.date)}</div>` : ""}
       ${ev.title ? `<div class="text-[0.95rem] font-semibold text-stone-custom-500 font-cormorant mb-1">${escapeHtml(ev.title)}</div>` : ""}
       ${ev.content ? `<div class="text-[0.82rem] text-stone-custom-500 leading-[1.65]${imgSrc ? " mb-2" : ""}">${escapeHtml(ev.content)}</div>` : ""}

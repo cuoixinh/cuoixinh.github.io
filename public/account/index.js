@@ -280,7 +280,7 @@ function renderOrderDetail(order) {
       title: "Bản nháp",
       desc: "Thiệp đang là bản nháp, chưa xuất bản. Tiếp tục chỉnh sửa rồi xuất bản để chia sẻ với khách mời.",
       action: order.manage_id
-        ? `<a href="${window.location.origin}/invitation-setup/?id=${order.manage_id}" class="flex items-center justify-center gap-2 w-full py-3 rounded-full text-white text-sm font-medium mt-2" style="background-color:rgb(var(--rose-500-rgb));text-decoration:none;"><i class="fas fa-edit"></i>Tiếp tục chỉnh sửa</a>`
+        ? `<a href="${window.location.origin}/invitation-setup/?id=${order.manage_id}" class="flex items-center justify-center gap-2 w-full py-3 rounded-full text-white text-sm font-medium mt-2" style="background-color:rgb(var(--action-primary-rgb));text-decoration:none;"><i class="fas fa-edit"></i>Tiếp tục chỉnh sửa</a>`
         : null,
     },
     pending: {
@@ -289,7 +289,7 @@ function renderOrderDetail(order) {
       iconColor: "text-yellow-400",
       title: "Chưa thanh toán",
       desc: "Đơn hàng này chưa được thanh toán. Vui lòng hoàn tất thanh toán để nhận thiệp.",
-      action: `<button onclick="closeOrderModal(); PaymentModal.open('${order.templateName || ""}', '${order.theme || "basic-gold"}')" class="flex items-center justify-center gap-2 w-full py-3 rounded-full text-white text-sm font-medium mt-2" style="background-color:rgb(var(--rose-500-rgb));border:none;cursor:pointer;"><i class="fas fa-credit-card"></i>Thanh toán ngay</button>`,
+      action: `<button onclick="closeOrderModal(); PaymentModal.open('${order.templateName || ""}', '${order.theme || "basic-gold"}')" class="flex items-center justify-center gap-2 w-full py-3 rounded-full text-white text-sm font-medium mt-2" style="background-color:rgb(var(--action-primary-rgb));border:none;cursor:pointer;"><i class="fas fa-credit-card"></i>Thanh toán ngay</button>`,
     },
     processing: {
       icon: "fa-paint-brush",
@@ -307,18 +307,18 @@ function renderOrderDetail(order) {
       desc: "Thiệp cưới của bạn đã hoàn thành. Dùng link bên dưới để thiết lập và chia sẻ với khách mời.",
       action: order.manage_id
         ? `
-        <div style="padding:0.75rem;border-radius:0.75rem;border:1px dashed rgb(var(--pink-400-rgb));background:rgb(var(--pink-50-rgb));margin-top:0.5rem;">
-          <p style="font-size:0.7rem;color:rgb(var(--gray-400-rgb));margin:0 0 0.5rem;">Link thiết lập thiệp cưới</p>
+        <div style="padding:0.75rem;border-radius:0.75rem;border:1px dashed rgb(var(--brand-primary-rgb));background:rgb(var(--surface-brand-subtle-rgb));margin-top:0.5rem;">
+          <p style="font-size:0.7rem;color:rgb(var(--text-idle-rgb));margin:0 0 0.5rem;">Link thiết lập thiệp cưới</p>
           <div style="display:flex;gap:0.5rem;align-items:center;">
             <input readonly value="${window.location.origin}/invitation-setup/?id=${order.manage_id}"
-              style="flex:1;padding:0.4rem 0.6rem;border-radius:0.5rem;border:1px solid rgb(var(--gray-200-rgb));font-size:0.65rem;color:rgb(var(--gray-500-rgb));background:white;outline:none;min-width:0;" />
+              style="flex:1;padding:0.4rem 0.6rem;border-radius:0.5rem;border:1px solid rgb(var(--border-field-rgb));font-size:0.65rem;color:rgb(var(--text-tertiary-rgb));background:white;outline:none;min-width:0;" />
             <button onclick="navigator.clipboard.writeText('${window.location.origin}/invitation-setup/?id=${order.manage_id}').then(()=>{this.innerHTML='<i class=\\'fas fa-check\\'></i>';setTimeout(()=>{this.innerHTML='<i class=\\'fas fa-copy\\'></i>';},2000)})"
-              style="padding:0.4rem 0.6rem;border-radius:0.5rem;background:rgb(var(--rose-500-rgb));color:white;border:none;cursor:pointer;font-size:0.7rem;flex-shrink:0;">
+              style="padding:0.4rem 0.6rem;border-radius:0.5rem;background:rgb(var(--action-primary-rgb));color:white;border:none;cursor:pointer;font-size:0.7rem;flex-shrink:0;">
               <i class="fas fa-copy"></i>
             </button>
           </div>
           <a href="${window.location.origin}/invitation-setup/?id=${order.manage_id}" target="_blank"
-            style="display:flex;align-items:center;justify-content:center;gap:0.5rem;margin-top:0.5rem;padding:0.6rem;border-radius:9999px;background:rgb(var(--rose-500-rgb));color:white;font-size:0.8rem;font-weight:600;text-decoration:none;">
+            style="display:flex;align-items:center;justify-content:center;gap:0.5rem;margin-top:0.5rem;padding:0.6rem;border-radius:9999px;background:rgb(var(--action-primary-rgb));color:white;font-size:0.8rem;font-weight:600;text-decoration:none;">
             <i class="fas fa-edit"></i> Thiết lập thiệp ngay
           </a>
         </div>`
@@ -331,7 +331,7 @@ function renderOrderDetail(order) {
       title: "Đơn hàng đã bị hủy",
       desc: "Đơn hàng này đã bị hủy. Nếu có thắc mắc, vui lòng liên hệ với chúng tôi.",
       action:
-        '<a href="index.html#contact" class="flex items-center justify-center gap-2 w-full py-3 rounded-full text-sm font-medium mt-2 border-2" style="border-color: rgb(var(--pink-400-rgb)); color: rgb(var(--mauve-rgb));"><i class="fas fa-headset"></i>Liên hệ hỗ trợ</a>',
+        '<a href="index.html#contact" class="flex items-center justify-center gap-2 w-full py-3 rounded-full text-sm font-medium mt-2 border-2" style="border-color: rgb(var(--brand-primary-rgb)); color: rgb(var(--text-body-rgb));"><i class="fas fa-headset"></i>Liên hệ hỗ trợ</a>',
     },
   };
 
@@ -343,12 +343,12 @@ function renderOrderDetail(order) {
       <div class="w-16 h-16 rounded-full ${cfg.iconBg} flex items-center justify-center mb-3">
         <i class="fas ${cfg.icon} ${cfg.iconColor} text-2xl"></i>
       </div>
-      <p class="font-semibold" style="color: rgb(var(--mauve-rgb));">${cfg.title}</p>
+      <p class="font-semibold" style="color: rgb(var(--text-body-rgb));">${cfg.title}</p>
       <p class="text-sm text-gray-400 mt-1 leading-relaxed">${cfg.desc}</p>
     </div>
 
     <!-- Order Info -->
-    <div class="rounded-2xl p-4 mb-4 space-y-2.5" style="background-color: rgb(var(--gray-25-rgb));">
+    <div class="rounded-2xl p-4 mb-4 space-y-2.5" style="background-color: rgb(var(--surface-hover-rgb));">
       <div class="flex justify-between text-sm">
         <span class="text-gray-400">Mã đơn</span>
         <span class="font-mono font-medium text-xs text-gray-600">#${order.id || "-"}</span>
@@ -381,7 +381,7 @@ function renderOrderDetail(order) {
 
     <!-- Contact -->
     <p class="text-center text-xs text-gray-400 mt-4">
-      Cần hỗ trợ? <a href="tel:0348840032" class="underline" style="color: rgb(var(--pink-400-rgb));">034.884.0032</a>
+      Cần hỗ trợ? <a href="tel:0348840032" class="underline" style="color: rgb(var(--brand-primary-rgb));">034.884.0032</a>
     </p>
   `;
 }

@@ -15,10 +15,10 @@ function showTour(steps, { storageKey, onDone, dismissOnTargetClick } = {}) {
   let cancelWait  = null; /* huỷ theo-dõi advanceWhen đang chờ (nếu có) */
 
   const overlay = document.createElement("div");
-  overlay.style.cssText = "position:fixed;inset:0;z-index:9000;background:rgb(var(--plum-dark-rgb)/0.6);pointer-events:all";
+  overlay.style.cssText = "position:fixed;inset:0;z-index:9000;background:rgb(var(--scrim-plum-rgb)/0.6);pointer-events:all";
 
   const tip = document.createElement("div");
-  tip.style.cssText = "position:fixed;z-index:9002;background:rgb(var(--white-rgb));border-radius:14px;padding:14px 16px 12px;width:268px;box-shadow:0 8px 32px rgb(var(--plum-dark-rgb)/.18);font-family:inherit";
+  tip.style.cssText = "position:fixed;z-index:9002;background:rgb(var(--surface-base-rgb));border-radius:14px;padding:14px 16px 12px;width:268px;box-shadow:0 8px 32px rgb(var(--scrim-plum-rgb)/.18);font-family:inherit";
 
   const ARROW = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>`;
 
@@ -39,7 +39,7 @@ function showTour(steps, { storageKey, onDone, dismissOnTargetClick } = {}) {
     }
     el.style.position     = "relative";
     el.style.zIndex       = el._tourAncestor ? "2" : "9001";
-    el.style.boxShadow    = "0 0 0 3px rgb(var(--pink-deep-rgb)/0.9), 0 0 0 7px rgb(var(--pink-deep-rgb)/0.15)";
+    el.style.boxShadow    = "0 0 0 3px rgb(var(--brand-accent-rgb)/0.9), 0 0 0 7px rgb(var(--brand-accent-rgb)/0.15)";
     el.style.borderRadius = "12px";
   }
 
@@ -95,15 +95,15 @@ function showTour(steps, { storageKey, onDone, dismissOnTargetClick } = {}) {
     const isLast = current === steps.length - 1;
     const step   = steps[current];
     tip.innerHTML = `
-      <div style="font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgb(var(--mauve-dark-rgb)/.38);margin-bottom:5px">${current + 1} / ${steps.length}</div>
-      <div style="font-size:14px;font-weight:600;color:rgb(var(--plum-dark-rgb));margin-bottom:3px">${step.title}</div>
-      <div style="font-size:12px;line-height:1.65;color:rgb(var(--mauve-dark-rgb)/.58);margin-bottom:10px">${step.desc}</div>
+      <div style="font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgb(var(--text-heading-rgb)/.38);margin-bottom:5px">${current + 1} / ${steps.length}</div>
+      <div style="font-size:14px;font-weight:600;color:rgb(var(--scrim-plum-rgb));margin-bottom:3px">${step.title}</div>
+      <div style="font-size:12px;line-height:1.65;color:rgb(var(--text-heading-rgb)/.58);margin-bottom:10px">${step.desc}</div>
       <div style="display:flex;gap:5px;margin-bottom:10px">${steps.map((_, i) =>
-        `<div style="height:3px;flex:1;border-radius:2px;background:${i <= current ? "rgb(var(--pink-deep-rgb))" : "rgb(var(--pink-deep-rgb)/.2)"}"></div>`
+        `<div style="height:3px;flex:1;border-radius:2px;background:${i <= current ? "rgb(var(--brand-accent-rgb))" : "rgb(var(--brand-accent-rgb)/.2)"}"></div>`
       ).join("")}</div>
       <div style="display:flex;align-items:center;justify-content:space-between">
-        <button id="t-skip" style="font-size:12px;color:rgb(var(--mauve-dark-rgb)/.38);background:none;border:none;cursor:pointer;padding:0;${isLast ? "visibility:hidden" : ""}">Bỏ qua</button>
-        <button id="t-next" style="font-size:12px;font-weight:600;color:rgb(var(--white-rgb));background:rgb(var(--pink-deep-rgb));border:none;cursor:pointer;padding:5px 14px;border-radius:999px;display:inline-flex;align-items:center;gap:4px">${isLast ? "Xong" : "Tiếp"} ${ARROW}</button>
+        <button id="t-skip" style="font-size:12px;color:rgb(var(--text-heading-rgb)/.38);background:none;border:none;cursor:pointer;padding:0;${isLast ? "visibility:hidden" : ""}">Bỏ qua</button>
+        <button id="t-next" style="font-size:12px;font-weight:600;color:rgb(var(--text-inverse-rgb));background:rgb(var(--brand-accent-rgb));border:none;cursor:pointer;padding:5px 14px;border-radius:999px;display:inline-flex;align-items:center;gap:4px">${isLast ? "Xong" : "Tiếp"} ${ARROW}</button>
       </div>`;
 
     tip.querySelector("#t-next").onclick = advance;

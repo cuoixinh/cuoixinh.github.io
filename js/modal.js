@@ -72,7 +72,7 @@ function _showDraftConflictModal(existingId, template) {
   const overlay = document.createElement("div");
   overlay.id = "draft-conflict-overlay";
   overlay.className = "fixed inset-0 z-[9999] flex items-center justify-center px-4";
-  overlay.style.background = "rgb(var(--black-rgb)/0.45)";
+  overlay.style.background = "rgb(var(--scrim-rgb)/0.45)";
   overlay.innerHTML = `
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6" style="animation:scaleIn .18s ease">
       <div class="text-center mb-4">
@@ -86,7 +86,7 @@ function _showDraftConflictModal(existingId, template) {
       </div>
       <div class="flex gap-3">
         <button id="_draft-new-btn" class="flex-1 h-11 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer">Tạo mới</button>
-        <button id="_draft-continue-btn" class="flex-1 h-11 rounded-xl text-sm font-semibold text-white transition-colors cursor-pointer" style="background:rgb(var(--rose-500-rgb))">Tiếp tục</button>
+        <button id="_draft-continue-btn" class="flex-1 h-11 rounded-xl text-sm font-semibold text-white transition-colors cursor-pointer" style="background:rgb(var(--action-primary-rgb))">Tiếp tục</button>
       </div>
     </div>
     <style>#draft-conflict-overlay * { box-sizing: border-box; } @keyframes scaleIn { from { opacity:0; transform:scale(.92) } to { opacity:1; transform:scale(1) } }</style>

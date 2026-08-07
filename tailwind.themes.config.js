@@ -1,6 +1,6 @@
 // Build Tailwind cho TRANG THIỆP public/themes/* (npm run build:themes).
 // Nguồn: styles/themes-src.css → styles/themes.css
-// Tách khỏi tailwind.config.js vì `rose-pastel` ở đây là tông hồng khói (rgb(var(--shadow-blush-rgb)))
+// Tách khỏi tailwind.config.js vì `rose-pastel` ở đây là tông hồng khói (#d4a5a5)
 // — trùng tên nhưng khác giá trị với bảng hồng phấn của trang ứng dụng.
 module.exports = {
   content: [
@@ -28,7 +28,7 @@ module.exports = {
         inter: ["Inter", "sans-serif"],
       },
       // Mọi giá trị màu lấy từ styles/_colors.css (mục "PALETTE THIỆP").
-      // Dạng `rgb(var(--x-rgb) / <alpha-value>)` để giữ modifier alpha
+      // Dạng `rgb(var(--token-rgb) / <alpha-value>)` để giữ modifier alpha
       // (text-vintage-brown/70, to-sage-50/90…).
       colors: {
         // Basic Gold
@@ -72,10 +72,10 @@ module.exports = {
           green: "rgb(var(--card-vintage-green-rgb) / <alpha-value>)",
         },
         // Design token dùng chung (styles/_colors.css)
-        primary: "rgb(var(--pink-400-rgb) / <alpha-value>)",
-        "primary-subtle": "rgb(var(--pink-50-rgb) / <alpha-value>)",
-        "color-primary": "rgb(var(--mauve-rgb) / <alpha-value>)",
-        "color-secondary": "rgb(var(--rose-400-rgb) / <alpha-value>)",
+        primary: "rgb(var(--brand-primary-rgb) / <alpha-value>)",
+        "primary-subtle": "rgb(var(--surface-brand-subtle-rgb) / <alpha-value>)",
+        "color-primary": "rgb(var(--text-body-rgb) / <alpha-value>)",
+        "color-secondary": "rgb(var(--focus-ring-rgb) / <alpha-value>)",
       },
       borderColor: {
         primary: "var(--brand-primary-border)",

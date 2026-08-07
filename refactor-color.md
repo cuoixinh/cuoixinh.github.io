@@ -43,20 +43,24 @@ styles/_colors.css      ← NGUỒN SỰ THẬT DUY NHẤT cho mọi màu
 **cả hai** entrypoint (`tailwind-src.css` và `themes-src.css`) → một lần khai báo, hai
 bản build cùng dùng.
 
-### 2.2 Hai tầng token
+### 2.2 Token đặt tên theo VAI TRÒ, lưu dạng kênh RGB
+
+**Không có tầng "palette sắc độ".** Mỗi token mang đúng một vai trò trong giao diện;
+tên nói thành phần nào / bộ phận nào, không nói màu gì.
 
 ```css
 :root {
-  /* Tầng 1 — palette gốc, lưu dạng KÊNH RGB để dùng được với alpha */
-  --pink-400-rgb: 255 183 202;
-
-  /* Tầng 2 — token ngữ nghĩa, là màu dùng thẳng */
-  --brand-primary: rgb(var(--pink-400-rgb));
-  --navbar-bg: rgb(var(--white-rgb));
+  --brand-primary-rgb: 255 183 202;   /* hồng chủ đạo */
+  --text-heading-rgb: 90 58 69;       /* chữ tiêu đề */
+  --btn-primary-bg: rgb(var(--action-primary-rgb));
+  --tooltip-bg-rgb: 17 24 39;
 }
 ```
 
-Vì sao tầng 1 lưu kênh chứ không lưu `#hex`: Tailwind cần dạng
+Dùng: `var(--btn-primary-bg)`, hoặc pha alpha tại chỗ
+`rgb(var(--brand-primary-rgb) / .4)`.
+
+Vì sao lưu kênh chứ không lưu `#hex`: Tailwind cần dạng
 `rgb(var(--x) / <alpha-value>)` thì `bg-primary/50`, `text-vintage-brown/70` mới chạy —
 codebase **đang dùng** các modifier đó (`music-player.js`, `vintage-forest/index.html`…),
 nếu nhét `#hex` vào config thì mất alpha modifier.
@@ -72,23 +76,38 @@ nếu nhét `#hex` vào config thì mất alpha modifier.
 | Arbitrary + alpha          | `bg-[rgb(var(--pink-400-rgb)/0.25)]` (không có dấu cách) |
 | `style=""` inline / JS     | `style="color:var(--text-heading)"`           |
 
-### 2.4 Quy ước đặt tên (tiếng Anh, vai trò trước — biến thể sau)
+### 2.4 Quy ước đặt tên (tiếng Anh, theo chức năng)
 
 ```
---<domain>-<role>[-<state>]
-   navbar-bg        card-border      btn-primary-bg-hover
-   text-heading     input-focus-ring music-widget-accent
+--<thành-phần>-<bộ-phận>[-<trạng-thái>]
+   btn-primary-bg-hover   tooltip-bg          music-widget-accent
+   text-heading           timeline-dot        setup-input-border-focus
+   state-error-text       chat-typing-dot     landing-cta-btn-from
 ```
 
-Nhóm trong file theo domain, mỗi nhóm một comment 1 dòng:
+Cấm đặt tên theo sắc độ (`--rose-400`, `--gray-100`). Cùng một giá trị mà hai nơi
+dùng cho hai việc khác nhau thì tách thành hai token — để sửa "nút xoá" không kéo
+theo "viền ô nhập sai".
 
-1. `Base palette` — pink / rose / mauve / gray / gold / sage / vintage (kênh RGB)
-2. `Semantic` — surface, text, border, overlay, shadow
-3. `Feedback` — success / error / warning / info
-4. `Components` — button, ai, alert-dialog, music player, progress, setup nav,
-   speech, tooltip, undo, guide, payment, landing
-5. `Card themes` — palette riêng của `public/themes/*` (basic-gold, romantic-gold,
-   vintage-forest) — chỉ là **giá trị** cho `tailwind.themes.config.js`
+Các nhóm trong file:
+
+1. `Thương hiệu` — hồng chủ đạo và biến thể trạng thái
+2. `Chữ` — heading / body / label / caption / title / placeholder…
+3. `Nền & viền`
+4. `Trạng thái` — success / error / warning / info / invalid
+5. `Nút & điều khiển`
+6. `Lớp phủ & đổ bóng`
+7. `Thành phần` — nút, AI, trình phát nhạc, tooltip, trình chỉnh thiệp, bộ chọn
+   ngày, xem trước thiệp, landing, chat, dòng thời gian, shimmer, màn bìa…
+8. `Token dùng thẳng` — bản `rgb()` sẵn cho chỗ không cần alpha
+9. `Thương hiệu bên thứ ba` — Facebook / Messenger / Zalo / WhatsApp / Google
+10. `Bảng màu riêng của từng theme thiệp`
+
+**Ngoại lệ có chủ ý:** nhóm 10 (`--card-gold-300-rgb`, `--card-vintage-brown-rgb`,
+`--app-rose-pastel-100-rgb`) giữ tên theo thang màu, vì chính nó là **tên class
+Tailwind** dùng trong markup thiệp (`bg-gold-300`, `text-vintage-brown/70`). Đổi tên
+biến ở đây sẽ lệch với tên class mà người viết theme đang dùng. Đây cũng là bảng màu
+**nhận dạng riêng của từng theme**, không phải màu hệ thống.
 
 ---
 

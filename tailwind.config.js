@@ -4,8 +4,8 @@
 // Nguồn: styles/tailwind-src.css → styles/build.css
 //
 // Trang thiệp public/themes/* dùng build RIÊNG (tailwind.themes.config.js →
-// styles/themes.css) vì `rose-pastel` ở đó là hồng khói (rgb(var(--shadow-blush-rgb))), còn ở đây là
-// hồng phấn (rgb(var(--blossom-200-rgb))) — cùng tên class, khác giá trị nên không gộp chung được.
+// styles/themes.css) vì `rose-pastel` ở đó là hồng khói (#d4a5a5), còn ở đây là
+// hồng phấn (#fbcfe8) — cùng tên class, khác giá trị nên không gộp chung được.
 module.exports = {
   content: [
     "./index.html",
@@ -34,7 +34,7 @@ module.exports = {
         allura: ["Allura", "cursive"],
       },
       // Mọi giá trị màu lấy từ styles/_colors.css. Dạng
-      // `rgb(var(--x-rgb) / <alpha-value>)` để modifier alpha (bg-primary/50)
+      // `rgb(var(--token-rgb) / <alpha-value>)` để modifier alpha (bg-primary/50)
       // vẫn chạy — nhét thẳng var() đặc là mất tính năng đó.
       colors: {
         "rose-pastel": {
@@ -49,13 +49,13 @@ module.exports = {
           200: "rgb(var(--card-cream-200-rgb) / <alpha-value>)",
         },
         // invitation-setup (config inline cũ)
-        "pink-light": "rgb(var(--pink-500-rgb) / <alpha-value>)",
-        "pink-light-hover": "rgb(var(--pink-600-rgb) / <alpha-value>)",
+        "pink-light": "rgb(var(--brand-primary-hover-rgb) / <alpha-value>)",
+        "pink-light-hover": "rgb(var(--brand-primary-active-rgb) / <alpha-value>)",
         // Design token dùng chung
-        primary: "rgb(var(--pink-400-rgb) / <alpha-value>)",
-        "primary-subtle": "rgb(var(--pink-50-rgb) / <alpha-value>)",
-        "color-primary": "rgb(var(--mauve-rgb) / <alpha-value>)",
-        "color-secondary": "rgb(var(--rose-400-rgb) / <alpha-value>)",
+        primary: "rgb(var(--brand-primary-rgb) / <alpha-value>)",
+        "primary-subtle": "rgb(var(--surface-brand-subtle-rgb) / <alpha-value>)",
+        "color-primary": "rgb(var(--text-body-rgb) / <alpha-value>)",
+        "color-secondary": "rgb(var(--focus-ring-rgb) / <alpha-value>)",
       },
       // .border-primary đọc token viền riêng (hiện trùng giá trị --primary
       // nhưng là token riêng) → giữ đúng bằng cách extend riêng borderColor.
@@ -71,9 +71,9 @@ module.exports = {
           "100%": { transform: "scale(1.9)", opacity: "0" },
         },
         dotPulse: {
-          "0%": { boxShadow: "0 0 0 0 rgb(var(--dot-pulse-rgb) / .55)" },
-          "70%": { boxShadow: "0 0 0 7px rgb(var(--dot-pulse-rgb) / 0)" },
-          "100%": { boxShadow: "0 0 0 0 rgb(var(--dot-pulse-rgb) / 0)" },
+          "0%": { boxShadow: "0 0 0 0 rgb(var(--chat-online-dot-rgb) / .55)" },
+          "70%": { boxShadow: "0 0 0 7px rgb(var(--chat-online-dot-rgb) / 0)" },
+          "100%": { boxShadow: "0 0 0 0 rgb(var(--chat-online-dot-rgb) / 0)" },
         },
         typing: {
           "0%,60%,100%": { transform: "translateY(0)", opacity: ".5" },
@@ -86,15 +86,15 @@ module.exports = {
         ctaFlow: {
           "0%": {
             backgroundPosition: "100% 0",
-            boxShadow: "0 8px 26px rgb(var(--cta-shadow-rgb) / .42)",
+            boxShadow: "0 8px 26px rgb(var(--cta-accent-rgb) / .42)",
           },
           "50%": {
             boxShadow:
-              "0 12px 34px rgb(var(--cta-shadow-rgb) / .62), 0 0 22px 2px rgb(var(--rose-500-rgb) / .32)",
+              "0 12px 34px rgb(var(--cta-accent-rgb) / .62), 0 0 22px 2px rgb(var(--action-primary-rgb) / .32)",
           },
           "100%": {
             backgroundPosition: "-200% 0",
-            boxShadow: "0 8px 26px rgb(var(--cta-shadow-rgb) / .42)",
+            boxShadow: "0 8px 26px rgb(var(--cta-accent-rgb) / .42)",
           },
         },
         // invitation-setup (config inline cũ)

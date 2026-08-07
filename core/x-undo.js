@@ -19,22 +19,22 @@
     s.id = "x-ta-toolbar-style";
     s.textContent =
       // Khung bọc: viền giả thay cho viền của textarea; focus-within → hiện ring.
-      ".x-ta-frame{display:flex;flex-direction:column;border:1px solid rgb(var(--gray-200-rgb));" +
-      "border-radius:8px;background:rgb(var(--white-rgb));overflow:hidden;" +
+      ".x-ta-frame{display:flex;flex-direction:column;border:1px solid rgb(var(--border-field-rgb));" +
+      "border-radius:8px;background:rgb(var(--surface-base-rgb));overflow:hidden;" +
       "transition:border-color .15s ease,box-shadow .15s ease}" +
-      ".x-ta-frame:focus-within{border-color:rgb(var(--rose-400-rgb));box-shadow:0 0 0 3px rgb(var(--rose-400-rgb)/.18)}" +
+      ".x-ta-frame:focus-within{border-color:rgb(var(--focus-ring-rgb));box-shadow:0 0 0 3px rgb(var(--focus-ring-rgb)/.18)}" +
       // Textarea trong khung: bỏ viền/nền/ring/bo góc/resize riêng (khung lo hết).
       ".x-ta-frame>textarea{flex:1 1 auto;border:none!important;border-radius:0!important;" +
       "background:transparent!important;box-shadow:none!important;outline:none!important;" +
       "resize:none!important}" +
       // Thanh công cụ: hàng flex cuối khung, kéo hết bề ngang, các nút căn phải.
       ".x-ta-toolbar{display:flex;align-items:center;justify-content:flex-end;gap:6px;" +
-      "padding:4px 8px;background:rgb(var(--white-rgb))}" +
+      "padding:4px 8px;background:rgb(var(--surface-base-rgb))}" +
       ".x-ta-toolbar-btn{display:inline-flex;align-items:center;justify-content:center;" +
       "width:20px;height:20px;padding:0;border:none;border-radius:4px;" +
-      "color:rgb(var(--gray-400-rgb));background:transparent;cursor:pointer;" +
+      "color:rgb(var(--text-idle-rgb));background:transparent;cursor:pointer;" +
       "transition:color .12s ease,background .12s ease}" +
-      ".x-ta-toolbar-btn:hover:not(:disabled){color:rgb(var(--rose-600-rgb));background:rgb(var(--rose-50-rgb))}" +
+      ".x-ta-toolbar-btn:hover:not(:disabled){color:rgb(var(--action-primary-hover-rgb));background:rgb(var(--notice-bg-rgb))}" +
       ".x-ta-toolbar-btn:disabled{opacity:.4;cursor:default}" +
       ".x-ta-toolbar-btn svg{width:14px;height:14px}" +
       // Nút "Tối ưu" (AI) khi đang gọi: khoá + icon quay.

@@ -231,7 +231,7 @@
   --cx-mw-chip: var(--music-widget-chip);
   --cx-mw-fill: var(--music-widget-fill);
   --cx-mw-accent: var(--music-widget-accent);
-  --cx-mw-shadow: 0 8px 24px rgb(var(--shadow-mulberry-rgb) / 0.22);
+  --cx-mw-shadow: 0 8px 24px rgb(var(--music-shadow-rgb) / 0.22);
   position: relative;
   display: block;
   width: 100%;
@@ -269,7 +269,7 @@
 .cx-mw-btn-main {
   background: var(--cx-mw-accent);
   color: var(--cx-mw-ctrl, var(--music-widget-ctrl));
-  box-shadow: 0 1px 3px rgb(var(--shadow-mulberry-rgb) / 0.25);
+  box-shadow: 0 1px 3px rgb(var(--music-shadow-rgb) / 0.25);
 }
 
 .cx-mw-btn:active {
@@ -369,7 +369,7 @@
   background: none;
   box-shadow:
     var(--cx-mw-shadow),
-    0 0 0 0.15em rgb(var(--white-rgb) / 0.85);
+    0 0 0 0.15em rgb(var(--surface-base-rgb) / 0.85);
   cursor: pointer;
 }
 
@@ -382,7 +382,7 @@
   align-items: center;
   justify-content: center;
   border-radius: 9999px;
-  background: rgb(var(--overlay-dark-rgb) / 0.22);
+  background: rgb(var(--scrim-rgb) / 0.22);
   color: var(--cx-mw-ctrl, var(--music-widget-ctrl));
   font-size: 1em;
 }

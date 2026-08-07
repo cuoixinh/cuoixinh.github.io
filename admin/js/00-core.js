@@ -17,7 +17,7 @@ if (!ADMIN_TOKEN) {
     sessionStorage.setItem("admin_token", ADMIN_TOKEN);
   } else {
     document.body.innerHTML =
-      '<p style="text-align:center;margin-top:40px;color:rgb(var(--gray-mid-rgb))">Không có quyền truy cập</p>';
+      '<p style="text-align:center;margin-top:40px;color:rgb(var(--text-disabled-rgb))">Không có quyền truy cập</p>';
   }
 }
 

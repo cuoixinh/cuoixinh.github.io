@@ -54,19 +54,19 @@ function renderBenefits() {
   if (!el) return;
   el.innerHTML = BENEFITS_DATA.map((b, i) => {
     const featuredBadge = b.featured
-      ? `<div class="absolute top-4 right-4 rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-wide" style="background:rgb(var(--pink-400-rgb)/0.18);color:var(--pink-deep);">NỔI BẬT</div>`
+      ? `<div class="absolute top-4 right-4 rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-wide" style="background:rgb(var(--brand-primary-rgb)/0.18);color:var(--brand-accent);">NỔI BẬT</div>`
       : "";
     const shadow = b.featured
-      ? "hover:shadow-[0_20px_48px_-28px_rgb(var(--shadow-plum-rgb)/0.45)] shadow-sm"
-      : "hover:shadow-[0_20px_48px_-28px_rgb(var(--shadow-plum-rgb)/0.30)]";
+      ? "hover:shadow-[0_20px_48px_-28px_rgb(var(--shadow-card-rgb)/0.45)] shadow-sm"
+      : "hover:shadow-[0_20px_48px_-28px_rgb(var(--shadow-card-rgb)/0.30)]";
     const rel = b.featured ? " relative" : "";
     const delay = ` reveal-delay-${(i % 3) + 1}`;
-    return `<div class="group reveal${delay}${rel} min-w-[82%] snap-start sm:min-w-0 rounded-[10px] border p-5 sm:p-6 transition-all duration-300 hover:-translate-y-1 ${shadow}" style="border-color:rgb(var(--pink-400-rgb)/0.35);background:rgb(var(--white-rgb)/0.9);">
+    return `<div class="group reveal${delay}${rel} min-w-[82%] snap-start sm:min-w-0 rounded-[10px] border p-5 sm:p-6 transition-all duration-300 hover:-translate-y-1 ${shadow}" style="border-color:rgb(var(--brand-primary-rgb)/0.35);background:rgb(var(--surface-base-rgb)/0.9);">
   ${featuredBadge}
   <div class="mb-4 flex h-10 w-10 items-center justify-center rounded-[8px] border ${b.iconCls} transition-transform duration-300 group-hover:-rotate-3 group-hover:scale-105">
     <i class="fas ${b.icon}" style="font-size:1rem;"></i>
   </div>
-  <h3 class="font-semibold text-[15px] mb-1.5 text-[rgb(var(--mauve-dark-rgb))]">${b.title}</h3>
+  <h3 class="font-semibold text-[15px] mb-1.5 text-[rgb(var(--text-heading-rgb))]">${b.title}</h3>
   <p class="text-sm leading-relaxed opacity-60">${b.desc}</p>
 </div>`;
   }).join("");

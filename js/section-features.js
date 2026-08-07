@@ -14,9 +14,9 @@ function renderFeatures() {
   if (!el) return;
   el.innerHTML = FEATURES_DATA.map(
     (f, i) => `<div class="feature-row reveal reveal-delay-${(i % 3) + 1}">
-  <div class="feature-icon"><i class="fas ${f.icon} text-sm" style="color:var(--pink);"></i></div>
+  <div class="feature-icon"><i class="fas ${f.icon} text-sm" style="color:var(--brand-primary);"></i></div>
   <div>
-    <p class="font-semibold text-sm mb-0.5 text-[rgb(var(--mauve-dark-rgb))]">${f.title}</p>
+    <p class="font-semibold text-sm mb-0.5 text-[rgb(var(--text-heading-rgb))]">${f.title}</p>
     <p class="text-sm opacity-60 leading-relaxed">${f.desc}</p>
   </div>
 </div>`,

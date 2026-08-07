@@ -75,7 +75,7 @@
   padding-bottom: 4px;
   border-radius: 16px;
   background: var(--setup-surface);
-  box-shadow: 0 12px 32px -8px rgb(var(--shadow-plum-deep-rgb) / 0.28);
+  box-shadow: 0 12px 32px -8px rgb(var(--shadow-panel-rgb) / 0.28);
 }
 
 /* Vùng chọn màu — bo góc trên khớp popup */
@@ -135,7 +135,7 @@
 }
 #clr-picker input.clr-color:focus {
   border-color: var(--setup-input-border-focus);
-  box-shadow: 0 0 0 3px rgb(var(--shadow-blush-rgb) / 0.25);
+  box-shadow: 0 0 0 3px rgb(var(--shadow-soft-rgb) / 0.25);
 }
 
 /* Nút "Xong" — pill nhỏ, canh phải dưới cùng (order lớn để luôn cuối cùng) */
@@ -203,8 +203,8 @@
   border-radius: 1rem 1rem 0 0;
   background: linear-gradient(
     to right,
-    rgb(var(--blossom-50-rgb)),
-    rgb(var(--blossom-100-rgb))
+    rgb(var(--datepicker-header-from-rgb)),
+    rgb(var(--datepicker-header-to-rgb))
   );
   padding: 0.75rem;
 }
@@ -244,7 +244,7 @@
   background: white !important;
 }
 .flatpickr-current-month .flatpickr-monthDropdown-months option {
-  background: var(--error-tint);
+  background: rgb(var(--state-error-tint-rgb));
   color: var(--text-neutral-strong);
 }
 .flatpickr-current-month .numInputWrapper {
@@ -270,7 +270,7 @@
 .flatpickr-current-month .numInputWrapper input:focus {
   outline: none;
   border-color: var(--setup-invalid);
-  box-shadow: 0 0 0 3px rgb(var(--shadow-rose-rgb) / 0.1);
+  box-shadow: 0 0 0 3px rgb(var(--shadow-action-rgb) / 0.1);
 }
 .flatpickr-current-month .numInputWrapper span {
   display: none;
@@ -313,8 +313,8 @@
 .flatpickr-day.selected {
   background: linear-gradient(
     to right,
-    rgb(var(--rose-500-rgb)),
-    rgb(var(--blossom-500-rgb))
+    rgb(var(--datepicker-selected-from-rgb)),
+    rgb(var(--datepicker-selected-to-rgb))
   );
   border-color: var(--setup-invalid);
   font-weight: 600;
@@ -328,8 +328,8 @@
 .flatpickr-day.selected.today {
   background: linear-gradient(
     to right,
-    rgb(var(--rose-500-rgb)),
-    rgb(var(--blossom-500-rgb))
+    rgb(var(--datepicker-selected-from-rgb)),
+    rgb(var(--datepicker-selected-to-rgb))
   );
   border-color: var(--setup-invalid);
   color: white !important;
@@ -469,7 +469,7 @@ input.flatpickr-input[readonly] {
 .cx-le-textarea:focus {
   @apply border-rose-400;
 
-  box-shadow: 0 0 0 2px rgb(var(--shadow-rose-rgb) / 0.15);
+  box-shadow: 0 0 0 2px rgb(var(--shadow-action-rgb) / 0.15);
 }
 
 /* Dãy chọn CÓ CHỮ (tuỳ chọn của thành phần) — nút icon mặc định chốt 36px vuông,
@@ -486,7 +486,7 @@ input.flatpickr-input[readonly] {
 .cx-pal-item.is-on {
   @apply border-rose-400 bg-[color:var(--setup-invalid-soft)];
 
-  box-shadow: 0 0 0 2px rgb(var(--shadow-rose-rgb) / 0.15);
+  box-shadow: 0 0 0 2px rgb(var(--shadow-action-rgb) / 0.15);
 }
 
 .cx-le-check {
@@ -735,7 +735,7 @@ input.flatpickr-input[readonly] {
   background: linear-gradient(
     to top,
     var(--surface-base) 15%,
-    rgb(var(--white-rgb) / 0)
+    rgb(var(--surface-base-rgb) / 0)
   );
 }
 
