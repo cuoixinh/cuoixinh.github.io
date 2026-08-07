@@ -18,11 +18,13 @@
 @import "./_setup.css";
 @import "./_ai-modal.css";
 
+/* Alias ngắn cho landing page — giá trị gốc ở styles/_colors.css. */
+
 :root {
-  --pink: rgb(255 183 202);
-  --mauve: rgb(173 122 135);
-  --pink-light: rgb(255 220 230);
-  --pink-deep: rgb(236 130 158);
+  --pink: var(--brand-primary);
+  --mauve: var(--text-primary);
+  --pink-light: rgb(var(--pink-200-rgb));
+  --pink-deep: var(--brand-accent);
 }
 
 @keyframes floatPetal {
@@ -97,7 +99,7 @@
     background-color: transparent;
   }
   50% {
-    background-color: rgba(252, 231, 243, 0.5);
+    background-color: rgb(var(--blossom-100-rgb) / 0.5);
   }
 }
 
@@ -111,7 +113,7 @@
    của index.html): file này dùng CHUNG cho admin/, invitation-setup/, account/,
    guests/, theme-template/ — để trần thì mọi .text-gray-* ở đó bị ép đổi màu. */
 .cx-landing body {
-  color: rgb(173 122 135) !important;
+  color: var(--text-primary) !important;
 }
 /* Dùng [class~="..."] thay cho .text-gray-500…: các lớp này đang được @apply
    trong _setup.css & _ai-modal.css nên viết dạng dấu chấm sẽ bị Tailwind nhân bản
@@ -126,10 +128,10 @@
 .cx-landing [class~="text-gray-700"],
 .cx-landing [class~="text-gray-800"],
 .cx-landing [class~="text-gray-900"] {
-  color: rgb(173 122 135) !important;
+  color: var(--text-primary) !important;
 }
 .cx-landing [class~="text-pink-500"] {
-  color: rgb(255 183 202) !important;
+  color: var(--brand-primary) !important;
 }
 
 .cx-landing [class~="text-white"] {
@@ -153,26 +155,31 @@ html.cx-landing {
    Tailwind không sinh 2 thuộc tính này nên giữ CSS thuần */
 .logo-simple {
   font-family: 'Pacifico', cursive;
-  background: linear-gradient(135deg, #ec4899 0%, #f472b6 50%, #fbbf24 100%);
+  background: linear-gradient(
+    135deg,
+    var(--landing-heading-gradient-from) 0%,
+    var(--landing-heading-gradient-via) 50%,
+    var(--landing-heading-gradient-to) 100%
+  );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  filter: drop-shadow(0 2px 4px rgba(236, 72, 153, 0.2));
+  filter: drop-shadow(0 2px 4px rgb(var(--blossom-500-rgb) / 0.2));
 }
 
 /* Carousel Navigation Buttons */
 .carousel-nav-btn {
   @apply absolute top-1/2 -translate-y-1/2 z-10 flex h-12 w-12 cursor-pointer
     items-center justify-center rounded-full bg-white/95 backdrop-blur-sm;
-  color: #453535;
-  border: 2px solid rgba(251, 207, 232, 0.5);
+  color: var(--landing-text-dark);
+  border: 2px solid rgb(var(--blossom-200-rgb) / 0.5);
   transition: all 0.3s ease;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 6px rgb(var(--shadow-neutral-rgb) / 0.1);
 }
 .carousel-nav-btn:hover {
   @apply -translate-y-1/2 scale-110 border-pink-200 bg-pink-200;
-  color: #453535;
-  box-shadow: 0 10px 20px rgba(251, 207, 232, 0.4);
+  color: var(--landing-text-dark);
+  box-shadow: 0 10px 20px rgb(var(--blossom-200-rgb) / 0.4);
 }
 .carousel-nav-btn:active {
   @apply -translate-y-1/2 scale-95;
@@ -200,8 +207,8 @@ html.cx-landing {
   @apply flex-none overflow-hidden rounded-xl bg-white;
   width: 280px;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(251, 207, 232, 0.3);
+  box-shadow: 0 4px 6px rgb(var(--shadow-neutral-rgb) / 0.1);
+  border: 1px solid rgb(var(--blossom-200-rgb) / 0.3);
 }
 @media (min-width: 768px) {
   .template-card-carousel {
@@ -210,7 +217,7 @@ html.cx-landing {
 }
 .template-card-carousel:hover {
   @apply border-pink-200;
-  box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 12px rgb(var(--shadow-neutral-rgb) / 0.15);
 }
 @media (max-width: 768px) {
   .template-card-carousel {
@@ -236,12 +243,12 @@ html.cx-landing {
 .btn-preview-carousel {
   @apply inline-flex cursor-pointer items-center rounded-full border-none
     bg-white px-6 py-3 font-semibold;
-  color: rgb(173 122 135);
+  color: var(--text-primary);
   transition: all 0.3s ease;
 }
 .btn-preview-carousel:hover {
   @apply bg-pink-200;
-  color: rgb(255 183 202);
+  color: var(--brand-primary);
 }
 
 .template-info-carousel {
@@ -256,12 +263,12 @@ html.cx-landing {
 .btn-choose-carousel {
   @apply w-full cursor-pointer rounded-full border-none px-4 py-2 text-sm
     font-semibold text-white;
-  background-color: rgb(255 183 202);
+  background-color: var(--brand-primary);
   transition: all 0.3s ease;
 }
 .btn-choose-carousel:hover {
-  background-color: rgb(255 200 215);
-  box-shadow: 0 4px 8px rgba(255, 183, 202, 0.4);
+  background-color: rgb(var(--pink-300-rgb));
+  box-shadow: 0 4px 8px rgb(var(--pink-400-rgb) / 0.4);
 }
 
 .template-features-wrapper {
@@ -281,12 +288,20 @@ html.cx-landing {
 }
 .template-features-wrapper::before {
   left: -1px;
-  background: linear-gradient(to right, rgba(255, 255, 255, 0.9), transparent);
+  background: linear-gradient(
+    to right,
+    rgb(var(--white-rgb) / 0.9),
+    transparent
+  );
   transition: opacity 0.2s ease;
 }
 .template-features-wrapper::after {
   right: 0;
-  background: linear-gradient(to left, rgba(255, 255, 255, 0.9), transparent);
+  background: linear-gradient(
+    to left,
+    rgb(var(--white-rgb) / 0.9),
+    transparent
+  );
   transition: opacity 0.2s ease;
 }
 .template-features-wrapper.hide-fade-left::before {
@@ -305,7 +320,7 @@ html.cx-landing {
 /* scrollbar-color/::-webkit-scrollbar* không có utility tương ứng */
 .template-features:hover,
 .template-features:active {
-  scrollbar-color: rgba(209, 213, 219, 0.5) transparent;
+  scrollbar-color: rgb(var(--gray-300-rgb) / 0.5) transparent;
 }
 .template-features::-webkit-scrollbar {
   height: 6px;
@@ -321,16 +336,16 @@ html.cx-landing {
 }
 .template-features:hover::-webkit-scrollbar-thumb,
 .template-features:active::-webkit-scrollbar-thumb {
-  background: rgba(209, 213, 219, 0.5);
+  background: rgb(var(--gray-300-rgb) / 0.5);
 }
 .template-features::-webkit-scrollbar-thumb:hover {
-  background: rgba(209, 213, 219, 0.7);
+  background: rgb(var(--gray-300-rgb) / 0.7);
 }
 
 .feature-tag {
   @apply relative z-0 shrink-0 whitespace-nowrap rounded-full bg-pink-100
     px-3 py-1 text-sm font-medium;
-  color: rgb(255 183 202);
+  color: var(--brand-primary);
 }
 
 /* animate-in/highlight-pulse dùng @keyframes riêng (khai báo ở trên) */
@@ -344,8 +359,8 @@ html.cx-landing {
 /* animate-spin đã là utility có sẵn của Tailwind (spin 1s linear infinite) */
 .loading-spinner {
   @apply mx-auto my-8 h-10 w-10 animate-spin rounded-full;
-  border: 3px solid #f3f4f6;
-  border-top: 3px solid rgb(255 183 202);
+  border: 3px solid var(--surface-muted);
+  border-top: 3px solid var(--brand-primary);
 }
 
 /* ═══════════ Từ styles/index.css (trang chủ) ═══════════ */
@@ -355,8 +370,8 @@ html.cx-landing {
   border-radius: 50% 10% 50% 10%;
   background: linear-gradient(
     135deg,
-    rgba(255, 183, 202, 0.55),
-    rgba(252, 207, 232, 0.35)
+    rgb(var(--pink-400-rgb) / 0.55),
+    rgb(var(--blossom-200-warm-rgb) / 0.35)
   );
   animation: floatPetal ease-in-out infinite;
 }
@@ -386,7 +401,11 @@ html.cx-landing {
   top: 55px;
   right: -35px;
   transform: rotate(10deg);
-  background: linear-gradient(135deg, #fce7f3, #fbcfe8);
+  background: linear-gradient(
+    135deg,
+    var(--landing-card-from),
+    var(--landing-card-to)
+  );
   opacity: 0.35;
 }
 .card-stack .card-2 {
@@ -395,18 +414,18 @@ html.cx-landing {
   top: 28px;
   right: -14px;
   transform: rotate(5deg);
-  background: #fff;
-  box-shadow: 0 12px 32px rgba(200, 100, 130, 0.14);
-  border: 1px solid #fce7f3;
+  background: var(--surface-card);
+  box-shadow: 0 12px 32px rgb(var(--shadow-pink-rgb) / 0.14);
+  border: 1px solid var(--border-blossom);
 }
 .card-stack .card-1 {
   width: 224px;
   height: 355px;
   top: 0;
   right: 0;
-  background: #fff;
-  box-shadow: 0 24px 56px rgba(200, 100, 130, 0.28);
-  border: 1px solid #fce7f3;
+  background: var(--surface-card);
+  box-shadow: 0 24px 56px rgb(var(--shadow-pink-rgb) / 0.28);
+  border: 1px solid var(--border-blossom);
   animation: cardFloat 4s ease-in-out infinite;
 }
 .card-stack .card-1 img {
@@ -426,7 +445,7 @@ html.cx-landing {
   background: linear-gradient(
     105deg,
     transparent 40%,
-    rgba(255, 255, 255, 0.22) 50%,
+    rgb(var(--white-rgb) / 0.22) 50%,
     transparent 60%
   );
   animation: cardShine 5s ease-in-out 1.5s infinite;
@@ -449,14 +468,18 @@ html.cx-landing {
 .feature-icon {
   @apply flex h-10 w-10 shrink-0 items-center justify-center;
   border-radius: 10px;
-  background: linear-gradient(135deg, #fce7f3, #fbcfe8);
+  background: linear-gradient(
+    135deg,
+    var(--landing-card-from),
+    var(--landing-card-to)
+  );
 }
 
 .step-connector {
   @apply absolute top-8 h-0;
   left: calc(50% + 40px);
   right: calc(-50% + 40px);
-  border-top: 2px dashed rgba(255, 183, 202, 0.55);
+  border-top: 2px dashed rgb(var(--pink-400-rgb) / 0.55);
 }
 
 .carousel-3d-stage {
@@ -482,10 +505,10 @@ html.cx-landing {
   @apply relative h-full w-full overflow-hidden rounded-3xl border-none
     bg-white/85 p-2;
   transition: box-shadow 0.5s;
-  box-shadow: 0 2px 12px rgba(212, 165, 165, 0.1);
+  box-shadow: 0 2px 12px rgb(var(--shadow-blush-rgb) / 0.1);
 }
 .carousel-3d-card.is-active .art-template-card {
-  box-shadow: 0 6px 28px -4px rgba(88, 45, 54, 0.22);
+  box-shadow: 0 6px 28px -4px rgb(var(--shadow-plum-rgb) / 0.22);
 }
 .art-template-overlay {
   @apply pointer-events-none opacity-0;
@@ -505,7 +528,11 @@ html.cx-landing {
 
 .card-skeleton {
   @apply overflow-hidden;
-  background: linear-gradient(160deg, #fdf4f7 0%, #fce8f1 100%);
+  background: linear-gradient(
+    160deg,
+    var(--landing-preview-from) 0%,
+    var(--landing-preview-to) 100%
+  );
 }
 .card-skeleton::after {
   content: "";
@@ -517,9 +544,9 @@ html.cx-landing {
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(255, 255, 255, 0.55) 45%,
-    rgba(255, 255, 255, 0.85) 50%,
-    rgba(255, 255, 255, 0.55) 55%,
+    rgb(var(--white-rgb) / 0.55) 45%,
+    rgb(var(--white-rgb) / 0.85) 50%,
+    rgb(var(--white-rgb) / 0.55) 55%,
     transparent 100%
   );
   animation: light-ray 1.6s infinite ease-in-out;
@@ -535,7 +562,7 @@ html.cx-landing {
   inset: 0;
   align-items: center;
   justify-content: center;
-  color: #f3c6d8;
+  color: var(--landing-quote-mark);
   font-size: 32px;
 }
 .card-skeleton.is-error .card-skeleton-fallback {
@@ -543,7 +570,7 @@ html.cx-landing {
 }
 
 .nav-scrolled {
-  box-shadow: 0 2px 20px rgba(200, 100, 130, 0.08);
+  box-shadow: 0 2px 20px rgb(var(--shadow-pink-rgb) / 0.08);
 }
 #main-nav {
   transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -568,8 +595,8 @@ html.cx-landing {
   @apply relative overflow-hidden bg-white;
   border-radius: 14px;
   padding: 24px 24px 22px;
-  border: 1px solid rgba(255, 183, 202, 0.25);
-  border-left: 3px solid rgba(236, 130, 158, 0.5);
+  border: 1px solid rgb(var(--pink-400-rgb) / 0.25);
+  border-left: 3px solid rgb(var(--pink-deep-rgb) / 0.5);
   transition: box-shadow 0.3s ease, transform 0.3s ease;
 }
 .testimonial-card::before {
@@ -580,12 +607,12 @@ html.cx-landing {
   font-family: 'Playfair Display', serif;
   font-size: 84px;
   line-height: 1;
-  color: rgba(255, 183, 202, 0.14);
+  color: rgb(var(--pink-400-rgb) / 0.14);
   pointer-events: none;
   user-select: none;
 }
 .testimonial-card:hover {
-  box-shadow: 0 14px 36px rgba(200, 100, 130, 0.12);
+  box-shadow: 0 14px 36px rgb(var(--shadow-pink-rgb) / 0.12);
   transform: translateY(-3px);
 }
 .testimonial-avatar {

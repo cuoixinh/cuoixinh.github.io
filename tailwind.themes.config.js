@@ -1,6 +1,6 @@
 // Build Tailwind cho TRANG THIỆP public/themes/* (npm run build:themes).
 // Nguồn: styles/themes-src.css → styles/themes.css
-// Tách khỏi tailwind.config.js vì `rose-pastel` ở đây là tông hồng khói (#d4a5a5)
+// Tách khỏi tailwind.config.js vì `rose-pastel` ở đây là tông hồng khói (rgb(var(--shadow-blush-rgb)))
 // — trùng tên nhưng khác giá trị với bảng hồng phấn của trang ứng dụng.
 module.exports = {
   content: [
@@ -27,56 +27,58 @@ module.exports = {
         cormorant: ["Cormorant Garamond", "serif"],
         inter: ["Inter", "sans-serif"],
       },
+      // Mọi giá trị màu lấy từ styles/_colors.css (mục "PALETTE THIỆP").
+      // Dạng `rgb(var(--x-rgb) / <alpha-value>)` để giữ modifier alpha
+      // (text-vintage-brown/70, to-sage-50/90…).
       colors: {
         // Basic Gold
         cream: {
-          50: "#fffbf7",
-          100: "#fff5f0",
-          200: "#ffe8e0",
+          50: "rgb(var(--card-cream-50-rgb) / <alpha-value>)",
+          100: "rgb(var(--card-cream-100-rgb) / <alpha-value>)",
+          200: "rgb(var(--card-cream-200-rgb) / <alpha-value>)",
         },
         "rose-pastel": {
-          50: "#fef0f2",
-          100: "#f5d5d8",
-          200: "#e8b4b8",
-          300: "#d4a5a5",
+          50: "rgb(var(--card-blush-50-rgb) / <alpha-value>)",
+          100: "rgb(var(--card-blush-100-rgb) / <alpha-value>)",
+          200: "rgb(var(--card-blush-200-rgb) / <alpha-value>)",
+          300: "rgb(var(--card-blush-300-rgb) / <alpha-value>)",
         },
         "stone-custom": {
-          400: "#78716c",
-          500: "#6b6562",
-          600: "#44403c",
+          400: "rgb(var(--card-stone-400-rgb) / <alpha-value>)",
+          500: "rgb(var(--card-stone-500-rgb) / <alpha-value>)",
+          600: "rgb(var(--card-stone-600-rgb) / <alpha-value>)",
         },
         // Romantic Gold
         sage: {
-          50: "#f6f7f6",
-          100: "#e8ebe8",
-          200: "#d1d8d1",
-          300: "#b4bfb4",
-          400: "#8a9a8a",
+          50: "rgb(var(--card-sage-50-rgb) / <alpha-value>)",
+          100: "rgb(var(--card-sage-100-rgb) / <alpha-value>)",
+          200: "rgb(var(--card-sage-200-rgb) / <alpha-value>)",
+          300: "rgb(var(--card-sage-300-rgb) / <alpha-value>)",
+          400: "rgb(var(--card-sage-400-rgb) / <alpha-value>)",
         },
         gold: {
-          100: "#f5f0e8",
-          200: "#e8dcc8",
-          300: "#c9b896",
-          400: "#a89968",
+          100: "rgb(var(--card-gold-100-rgb) / <alpha-value>)",
+          200: "rgb(var(--card-gold-200-rgb) / <alpha-value>)",
+          300: "rgb(var(--card-gold-300-rgb) / <alpha-value>)",
+          400: "rgb(var(--card-gold-400-rgb) / <alpha-value>)",
         },
-        charcoal: "#2d3436",
+        charcoal: "rgb(var(--card-charcoal-rgb) / <alpha-value>)",
         // Vintage Forest
         vintage: {
-          cream: "#faf8f3",
-          beige: "#f5f1e8",
-          brown: "#8b7355",
-          dark: "#4a3f35",
-          green: "#3d4f3d",
+          cream: "rgb(var(--card-vintage-cream-rgb) / <alpha-value>)",
+          beige: "rgb(var(--card-vintage-beige-rgb) / <alpha-value>)",
+          brown: "rgb(var(--card-vintage-brown-rgb) / <alpha-value>)",
+          dark: "rgb(var(--card-vintage-dark-rgb) / <alpha-value>)",
+          green: "rgb(var(--card-vintage-green-rgb) / <alpha-value>)",
         },
-        // Design token dùng chung (styles/_common.css) — thay 6 utility viết tay
-        // trong common.css cũ.
-        primary: "var(--primary)",
-        "primary-subtle": "var(--primary-subtle)",
-        "color-primary": "var(--text-color-primary)",
-        "color-secondary": "var(--text-color-secondary)",
+        // Design token dùng chung (styles/_colors.css)
+        primary: "rgb(var(--pink-400-rgb) / <alpha-value>)",
+        "primary-subtle": "rgb(var(--pink-50-rgb) / <alpha-value>)",
+        "color-primary": "rgb(var(--mauve-rgb) / <alpha-value>)",
+        "color-secondary": "rgb(var(--rose-400-rgb) / <alpha-value>)",
       },
       borderColor: {
-        primary: "var(--primary-border)",
+        primary: "var(--brand-primary-border)",
       },
       // showToast() trong core/utils.js (dùng chung, chạy cả trên trang thiệp)
       // gắn class animate-fade-in. Config CDN cũ của theme không khai báo nên

@@ -21,11 +21,11 @@
 .ai-card {
   @apply relative w-48 cursor-pointer rounded-3xl p-[18px];
 
-  background: rgba(255, 255, 255, 0.88);
+  background: var(--ai-panel-bg);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  box-shadow: 0 12px 34px rgba(15, 23, 42, 0.14);
+  border: 1px solid var(--ai-panel-border);
+  box-shadow: 0 12px 34px rgb(var(--overlay-slate-rgb) / 0.14);
   transition:
     transform 0.3s ease,
     box-shadow 0.3s ease;
@@ -45,7 +45,7 @@
 
 .ai-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.18);
+  box-shadow: 0 20px 45px rgb(var(--overlay-slate-rgb) / 0.18);
 }
 
 /* Icon vuông bo góc, gradient tím→xanh + đổ bóng tím. */
@@ -53,8 +53,8 @@
   @apply mx-auto flex h-[52px] w-[52px] items-center justify-center
          rounded-[18px];
 
-  background: linear-gradient(135deg, #cbb9f5, #81b1ff);
-  box-shadow: 0 10px 25px rgba(99, 102, 241, 0.3);
+  background: linear-gradient(135deg, var(--ai-soft-from), var(--ai-soft-to));
+  box-shadow: 0 10px 25px rgb(var(--indigo-500-rgb) / 0.3);
 }
 
 .ai-icon svg {
@@ -87,7 +87,7 @@
          cursor-pointer items-center justify-center rounded-full border-none
          p-0 text-gray-400;
 
-  background: rgba(243, 244, 246, 0.9);
+  background: var(--ai-scrim-bg);
   transition:
     color 0.15s ease,
     background 0.15s ease;
@@ -112,18 +112,18 @@
     linear-gradient(
         110deg,
         transparent 42%,
-        rgba(255, 255, 255, 0.6) 50%,
+        rgb(var(--white-rgb) / 0.6) 50%,
         transparent 58%
       )
       no-repeat,
-    linear-gradient(135deg, #cbb9f5, #81b1ff) no-repeat;
+    linear-gradient(135deg, var(--ai-soft-from), var(--ai-soft-to)) no-repeat;
   background-size:
     200% 100%,
     100% 100%;
   background-position:
     120% 0,
     0 0;
-  box-shadow: 0 10px 25px rgba(99, 102, 241, 0.35);
+  box-shadow: 0 10px 25px rgb(var(--indigo-500-rgb) / 0.35);
   transition:
     transform 0.2s ease,
     box-shadow 0.2s ease;
@@ -140,8 +140,8 @@
 
   content: "";
   border: 2px solid transparent;
-  border-left-color: rgba(129, 177, 255, 0.6);
-  border-right-color: rgba(129, 177, 255, 0.6);
+  border-left-color: rgb(var(--sky-400-rgb) / 0.6);
+  border-right-color: rgb(var(--sky-400-rgb) / 0.6);
   animation: ai-mini-radar 2s ease-out infinite;
 }
 
@@ -151,7 +151,7 @@
 
 .ai-mini:hover {
   transform: scale(1.06);
-  box-shadow: 0 12px 28px rgba(99, 102, 241, 0.45);
+  box-shadow: 0 12px 28px rgb(var(--indigo-500-rgb) / 0.45);
 }
 
 .ai-mini svg {
@@ -247,9 +247,13 @@
   @apply inline-flex h-11 w-full cursor-pointer items-center justify-center
          gap-2 rounded-xl text-[0.875rem] font-semibold text-rose-600;
 
-  background: linear-gradient(135deg, #fff5f7 0%, #ffe4e9 100%);
-  border: 1.5px solid #fecdd3;
-  box-shadow: 0 4px 12px -4px rgba(244, 63, 94, 0.28);
+  background: linear-gradient(
+    135deg,
+    var(--ai-suggest-from) 0%,
+    var(--ai-suggest-to) 100%
+  );
+  border: 1.5px solid var(--ai-suggest-border);
+  box-shadow: 0 4px 12px -4px rgb(var(--shadow-rose-rgb) / 0.28);
   transition:
     transform 0.15s ease,
     box-shadow 0.15s ease,
@@ -260,14 +264,18 @@
 .ai-back-btn:hover {
   @apply border-rose-300;
 
-  background: linear-gradient(135deg, #ffe4e9 0%, #fecdd3 100%);
-  box-shadow: 0 7px 18px -4px rgba(244, 63, 94, 0.42);
+  background: linear-gradient(
+    135deg,
+    var(--ai-suggest-to) 0%,
+    var(--ai-suggest-border) 100%
+  );
+  box-shadow: 0 7px 18px -4px rgb(var(--shadow-rose-rgb) / 0.42);
   transform: translateY(-1px);
 }
 
 .ai-back-btn:active {
   transform: translateY(0);
-  box-shadow: 0 3px 9px -4px rgba(244, 63, 94, 0.35);
+  box-shadow: 0 3px 9px -4px rgb(var(--shadow-rose-rgb) / 0.35);
 }
 
 .ai-back-btn svg {
@@ -351,11 +359,11 @@ textarea.ai-inp {
 .ai-inp:focus {
   @apply border-rose-400;
 
-  box-shadow: 0 0 0 3px rgba(251, 113, 133, 0.18);
+  box-shadow: 0 0 0 3px rgb(var(--rose-400-rgb) / 0.18);
 }
 
 .ai-inp::placeholder {
-  @apply text-[#b6bcc6];
+  @apply text-[color:var(--text-placeholder)];
 }
 
 /* Ô input thường có nút "x" xoá nhanh (tên cô dâu/chú rể) */
@@ -413,20 +421,20 @@ textarea.ai-inp {
 }
 
 .ai-cselect-label.is-placeholder {
-  @apply text-[#b6bcc6];
+  @apply text-[color:var(--text-placeholder)];
 }
 
 .ai-cselect-btn.open {
   @apply border-rose-400;
 
-  box-shadow: 0 0 0 3px rgba(251, 113, 133, 0.18);
+  box-shadow: 0 0 0 3px rgb(var(--rose-400-rgb) / 0.18);
 }
 
 .ai-cselect-panel {
   @apply absolute left-0 right-0 top-[calc(100%+4px)] z-50 max-h-60
          overflow-y-auto rounded-xl border border-gray-200 bg-white p-1;
 
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 10px 25px -5px rgb(var(--shadow-neutral-rgb) / 0.12);
 }
 
 .ai-cselect-opt {
@@ -458,11 +466,12 @@ textarea.ai-inp {
 
 /* Biến thể "Nói" (mic) — tông tím/xanh khớp icon AI, phân biệt với "Chèn mẫu" */
 .ai-chip-mic {
-  @apply border-[#ddd0fb] bg-[#f3efff] text-[#6d4fce];
+  @apply border-[color:var(--ai-chip-border)] bg-[color:var(--ai-chip-bg)]
+         text-[color:var(--ai-chip-text)];
 }
 
 .ai-chip-mic:hover {
-  @apply bg-[#e9e1ff];
+  @apply bg-[color:var(--ai-chip-bg-hover)];
 }
 
 /* Nút "x" xoá nhanh của textarea nay do <x-textarea> tự dựng & tự style
@@ -472,7 +481,12 @@ textarea.ai-inp {
 .ai-sk {
   @apply rounded-lg;
 
-  background: linear-gradient(90deg, #f1f2f4 25%, #e7e9ec 37%, #f1f2f4 63%);
+  background: linear-gradient(
+    90deg,
+    var(--ai-skeleton-base) 25%,
+    var(--ai-skeleton-shine) 37%,
+    var(--ai-skeleton-base) 63%
+  );
   background-size: 200% 100%;
   animation: ai-shimmer 1.4s ease-in-out infinite;
 }
@@ -523,7 +537,7 @@ textarea.ai-inp {
 
 /* Sửa kết quả AI: ô hiển thị + bút chì → bấm để bind sang control tương ứng */
 .ai-disp-empty {
-  @apply italic text-[#b6bcc6];
+  @apply italic text-[color:var(--text-placeholder)];
 }
 
 .ai-edit-live {
@@ -567,7 +581,7 @@ textarea.ai-inp {
 
 .ai-edit-ico {
   @apply inline-flex h-[18px] w-[18px] flex-shrink-0 items-center
-         justify-center rounded-md text-[#cbd0d6];
+         justify-center rounded-md text-[color:var(--ai-icon-muted)];
 
   transition:
     color 0.12s ease,
@@ -595,7 +609,8 @@ textarea.ai-inp {
 
 /* Block/card gom nhóm: "Thông tin cô dâu/chú rể" và "Chuyện tình yêu" tách bạch */
 .ai-block {
-  @apply rounded-2xl border border-[#eef0f2] bg-[#fcfcfd] px-3.5 pb-4 pt-3.5;
+  @apply rounded-2xl border border-[color:var(--ai-card-border)]
+         bg-[color:var(--ai-card-bg)] px-3.5 pb-4 pt-3.5;
 }
 
 .ai-block-head {
@@ -632,8 +647,9 @@ textarea#ai-info {
 }
 
 .ai-fld {
-  @apply flex min-w-0 flex-col gap-0.5 rounded-[10px] border border-[#f1f2f4]
-         bg-[#fafafa] px-2.5 py-2;
+  @apply flex min-w-0 flex-col gap-0.5 rounded-[10px]
+         border border-[color:var(--ai-item-border)]
+         bg-[color:var(--ai-item-bg)] px-2.5 py-2;
 }
 
 .ai-fld.full {

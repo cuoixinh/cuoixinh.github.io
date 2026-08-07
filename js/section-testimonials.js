@@ -32,12 +32,12 @@ function renderTestimonials() {
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
         <div class="testimonial-avatar">${t.avatar}</div>
         <div>
-          <p style="font-weight:600;font-size:14px;color:#5a3a45;line-height:1.3;">${t.name}</p>
+          <p style="font-weight:600;font-size:14px;color:rgb(var(--mauve-dark-rgb));line-height:1.3;">${t.name}</p>
           <p style="font-size:12px;opacity:0.5;margin-top:2px;">${t.date}</p>
         </div>
       </div>
       <div style="display:flex;gap:2px;margin-bottom:12px;">
-        ${"<i class='fas fa-star' style='font-size:10px;color:#f59e0b;'></i>".repeat(t.rating)}
+        ${"<i class='fas fa-star' style='font-size:10px;color:rgb(var(--amber-500-rgb));'></i>".repeat(t.rating)}
       </div>
       <p style="font-size:14px;line-height:1.65;opacity:0.7;">"${t.text}"</p>
     </div>

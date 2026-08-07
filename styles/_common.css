@@ -5,22 +5,7 @@
    được (biến CSS, @font-face, keyframes, gradient tuỳ biến, mask, scrollbar,
    env()/dvh, @supports) vẫn giữ CSS thuần. */
 
-/* =============================================
-   DESIGN TOKENS — chỉnh ở đây để thay đổi toàn bộ
-   ============================================= */
-
-:root {
-  /* Màu hồng pastel chủ đạo */
-  --primary: rgb(255 183 202);
-  --primary-hover: rgb(255 163 181);
-  --primary-active: rgb(255 143 161);
-  --primary-subtle: rgb(255 245 248);
-  --primary-border: rgb(255 183 202);
-  /* Màu chữ nâu-hồng chủ đạo */
-  --text-color-primary: rgb(173 122 135);
-  /* Màu hồng đậm — icon, switch ON, accent (rose-400) */
-  --text-color-secondary: rgb(251 113 133);
-}
+/* Token màu (--primary, --text-*, --btn-*…) khai ở styles/_colors.css. */
 
 /* ── Nút hành động dùng chung ──────────────────────────────────────────── */
 
@@ -32,13 +17,13 @@
   transition:
     background 0.15s ease,
     box-shadow 0.15s ease;
-  box-shadow: 0 1px 3px rgb(0 0 0 / 0.12);
+  box-shadow: 0 1px 3px rgb(var(--shadow-neutral-rgb) / 0.12);
 }
 
 .btn-pink:hover {
   @apply bg-rose-600;
 
-  box-shadow: 0 2px 8px rgb(244 63 94 / 0.35);
+  box-shadow: 0 2px 8px rgb(var(--shadow-rose-rgb) / 0.35);
 }
 
 .btn-pink:active {
@@ -51,17 +36,17 @@
   @apply inline-flex cursor-pointer items-center gap-1.5 whitespace-nowrap
          rounded-lg border-none px-3.5 py-2 text-[13px] font-medium text-white;
 
-  background: linear-gradient(135deg, rgb(139 92 246), rgb(217 70 239));
+  background: linear-gradient(135deg, var(--ai-gradient-from), var(--ai-gradient-to));
   transition:
     filter 0.15s ease,
     box-shadow 0.15s ease,
     opacity 0.15s ease;
-  box-shadow: 0 1px 3px rgb(0 0 0 / 0.12);
+  box-shadow: 0 1px 3px rgb(var(--shadow-neutral-rgb) / 0.12);
 }
 
 .btn-ai:hover {
   filter: brightness(1.06);
-  box-shadow: 0 2px 10px rgb(168 85 247 / 0.4);
+  box-shadow: 0 2px 10px rgb(var(--violet-500-rgb) / 0.4);
 }
 
 .btn-ai:active {
@@ -122,7 +107,7 @@
 .bg-gradient-radial {
   background: radial-gradient(
     circle at 30% 30%,
-    rgba(255, 255, 255, 0.3) 0%,
+    rgb(var(--white-rgb) / 0.3) 0%,
     transparent 60%
   );
 }
@@ -255,13 +240,13 @@
 
   background: linear-gradient(
     90deg,
-    #a8a29e 0%,
-    #a8a29e 35%,
-    #d4a5a5 45%,
-    #f5d5d8 50%,
-    #d4a5a5 55%,
-    #a8a29e 65%,
-    #a8a29e 100%
+    rgb(var(--stone-400-rgb)) 0%,
+    rgb(var(--stone-400-rgb)) 35%,
+    rgb(var(--card-blush-300-rgb)) 45%,
+    rgb(var(--card-blush-100-rgb)) 50%,
+    rgb(var(--card-blush-300-rgb)) 55%,
+    rgb(var(--stone-400-rgb)) 65%,
+    rgb(var(--stone-400-rgb)) 100%
   );
   background-size: 200% auto;
   -webkit-background-clip: text;
@@ -273,7 +258,12 @@
 
 #cover-screen {
   animation: coverFadeIn 0.8s ease-out;
-  background: linear-gradient(135deg, #fffbf7 0%, #f5ebe0 50%, #fffbf7 100%);
+  background: linear-gradient(
+    135deg,
+    rgb(var(--card-cream-50-rgb)) 0%,
+    rgb(var(--card-sand-rgb)) 50%,
+    rgb(var(--card-cream-50-rgb)) 100%
+  );
 }
 
 @keyframes coverFadeIn {
@@ -305,7 +295,7 @@
 /* Open button shimmer */
 
 .open-btn {
-  box-shadow: 0 4px 20px rgba(212, 165, 165, 0.2);
+  box-shadow: 0 4px 20px rgb(var(--shadow-blush-rgb) / 0.2);
 }
 
 .btn-shimmer {
@@ -314,7 +304,7 @@
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(255, 255, 255, 0.6),
+    rgb(var(--white-rgb) / 0.6),
     transparent
   );
   animation: btnShimmer 2.5s ease-in-out infinite;
@@ -377,13 +367,13 @@
 
 #paymentModal *::-webkit-scrollbar-thumb,
 #paymentModal::-webkit-scrollbar-thumb {
-  background: rgb(202, 202, 202);
+  background: var(--scrollbar-track);
   border-radius: 8px;
 }
 
 #paymentModal *::-webkit-scrollbar-thumb:hover,
 #paymentModal::-webkit-scrollbar-thumb:hover {
-  background: rgb(202, 202, 202);
+  background: var(--scrollbar-track);
 }
 
 /* Dải cuộn ngang 1 hàng: giấu thanh cuộn và làm MỜ DẦN nội dung ở phía còn cuộn
@@ -425,7 +415,7 @@
 
 textarea {
   scrollbar-width: thin; /* Firefox */
-  scrollbar-color: rgb(209 213 219) transparent;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
 }
 
 textarea::-webkit-scrollbar {
@@ -437,12 +427,12 @@ textarea::-webkit-scrollbar-track {
 }
 
 textarea::-webkit-scrollbar-thumb {
-  background: rgb(209 213 219);
+  background: var(--scrollbar-thumb);
   border-radius: 8px;
 }
 
 textarea::-webkit-scrollbar-thumb:hover {
-  background: rgb(156 163 175);
+  background: var(--scrollbar-thumb-hover);
 }
 
 /* iOS Safari: prevent auto-zoom on input focus (triggered when font-size < 16px).

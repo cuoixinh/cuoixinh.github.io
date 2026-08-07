@@ -23,11 +23,11 @@ function renderMiniCalendar() {
 
   let html = `
     <div style="font-family:'Inter',sans-serif;">
-      <div style="text-align:center; font-size:14px; letter-spacing:2px; text-transform:uppercase; color:#8a9a8a; font-weight:600; margin-bottom:12px;">
+      <div style="text-align:center; font-size:14px; letter-spacing:2px; text-transform:uppercase; color:rgb(var(--card-sage-400-rgb)); font-weight:600; margin-bottom:12px;">
         Tháng ${month} · ${year}
       </div>
       <div style="display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-bottom:6px;">
-        ${dayNames.map((d) => `<div style="text-align:center; font-size:11px; color:#b4bfb4; padding:4px 0;">${d}</div>`).join("")}
+        ${dayNames.map((d) => `<div style="text-align:center; font-size:11px; color:rgb(var(--card-sage-300-rgb)); padding:4px 0;">${d}</div>`).join("")}
       </div>
       <div style="display:grid; grid-template-columns:repeat(7,1fr); gap:4px;">
         ${Array(firstDay).fill("<div></div>").join("")}
@@ -42,8 +42,8 @@ function renderMiniCalendar() {
               font-size:12px;
               ${
                 isMarked
-                  ? "background:#c9b896; color:white; font-weight:600; box-shadow:0 2px 8px rgba(201,184,150,0.4);"
-                  : "color:#2d3436;"
+                  ? "background:rgb(var(--card-gold-300-rgb)); color:white; font-weight:600; box-shadow:0 2px 8px rgb(var(--card-gold-300-rgb)/0.4);"
+                  : "color:rgb(var(--card-charcoal-rgb));"
               }
             ">${day}</div>
           </div>`;

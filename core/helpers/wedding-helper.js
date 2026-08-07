@@ -140,13 +140,13 @@ function confirmAttend(attending) {
   btnDecline.style.cssText = "";
 
   if (attending) {
-    btnAttend.style.background = "rgba(212,165,165,0.2)";
-    btnAttend.style.borderColor = "#d4a5a5";
+    btnAttend.style.background = "rgb(var(--shadow-blush-rgb)/0.2)";
+    btnAttend.style.borderColor = "rgb(var(--shadow-blush-rgb))";
     btnAttend.classList.add("btn-selected");
     msg.textContent = "Cảm ơn bạn! Chúng tôi rất mong được gặp bạn 🌸";
   } else {
-    btnDecline.style.background = "rgba(168,162,158,0.1)";
-    btnDecline.style.borderColor = "#a8a29e";
+    btnDecline.style.background = "rgb(var(--stone-400-rgb)/0.1)";
+    btnDecline.style.borderColor = "rgb(var(--stone-400-rgb))";
     btnDecline.classList.add("btn-selected");
     msg.textContent = "Cảm ơn bạn đã phản hồi. Chúc bạn nhiều sức khỏe!";
   }

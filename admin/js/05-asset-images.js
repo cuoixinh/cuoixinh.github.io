@@ -448,10 +448,10 @@ function axRenderSaveBar() {
 // Nền ca-rô để thấy vùng trong suốt của icon PNG.
 const AX_CHECKER_STYLE =
   "background-image:" +
-  "linear-gradient(45deg,#f1f5f9 25%,transparent 25%)," +
-  "linear-gradient(-45deg,#f1f5f9 25%,transparent 25%)," +
-  "linear-gradient(45deg,transparent 75%,#f1f5f9 75%)," +
-  "linear-gradient(-45deg,transparent 75%,#f1f5f9 75%);" +
+  "linear-gradient(45deg,rgb(var(--slate-100-rgb)) 25%,transparent 25%)," +
+  "linear-gradient(-45deg,rgb(var(--slate-100-rgb)) 25%,transparent 25%)," +
+  "linear-gradient(45deg,transparent 75%,rgb(var(--slate-100-rgb)) 75%)," +
+  "linear-gradient(-45deg,transparent 75%,rgb(var(--slate-100-rgb)) 75%);" +
   "background-size:16px 16px;" +
   "background-position:0 0,0 8px,8px -8px,-8px 0;";
 

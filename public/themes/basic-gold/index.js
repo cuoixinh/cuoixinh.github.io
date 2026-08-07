@@ -75,7 +75,7 @@ function renderTimeline(items, side, partyDate, ceremonyDate, ceremonyName) {
       const pbClass = i === groupItems.length - 1 ? "pb-1" : "pb-4";
       return `
         <div class="relative pl-[14px] ${pbClass} text-left">
-          <div class="absolute left-[-6px] top-[3px] w-[10px] h-[10px] rounded-full bg-[#fda4af] border-2 border-white shadow-[0_0_0_2px_#fda4af]"></div>
+          <div class="absolute left-[-6px] top-[3px] w-[10px] h-[10px] rounded-full bg-[rgb(var(--rose-300-rgb))] border-2 border-white shadow-[0_0_0_2px_rgb(var(--rose-300-rgb))]"></div>
           <div class="text-[0.7rem] font-bold text-red-400 tracking-[0.06em] mb-0.5">${escapeHtml(item.time || "")}</div>
           <div class="text-[0.95rem] font-cormorant text-stone-custom-500 leading-snug">${escapeHtml(item.title || "")}</div>
         </div>`;
@@ -86,7 +86,7 @@ function renderTimeline(items, side, partyDate, ceremonyDate, ceremonyName) {
           <span class="text-[11px] uppercase tracking-widest text-stone-custom-400 font-inter">${escapeHtml(label)}</span>
           ${dateLabel ? `<span class="text-[10px] text-stone-custom-400 font-inter">· ${escapeHtml(dateLabel)}</span>` : ""}
         </div>
-        <div class="flex flex-col border-l-2 border-[#fce7f3] ml-[5px]">
+        <div class="flex flex-col border-l-2 border-[rgb(var(--blossom-100-rgb))] ml-[5px]">
           ${items}
         </div>
       </div>`;
@@ -244,7 +244,7 @@ const CAROUSEL_STYLES = {
     opacity: "1",
     transform: "none",
     zIndex: "10",
-    boxShadow: "0 20px 40px rgba(212,165,165,0.3)",
+    boxShadow: "0 20px 40px rgb(var(--shadow-blush-rgb)/0.3)",
     visibility: "visible",
   },
   side: {
@@ -253,7 +253,7 @@ const CAROUSEL_STYLES = {
     opacity: "0.55",
     transform: "none",
     zIndex: "5",
-    boxShadow: "0 4px 12px rgba(212,165,165,0.1)",
+    boxShadow: "0 4px 12px rgb(var(--shadow-blush-rgb)/0.1)",
     visibility: "visible",
   },
   hidden: {
@@ -289,7 +289,7 @@ function updateCarousel() {
   });
 
   dots.forEach((dot, i) => {
-    dot.style.background = i === current ? "#d4a5a5" : "#f5d5d8";
+    dot.style.background = i === current ? "rgb(var(--shadow-blush-rgb))" : "rgb(var(--card-blush-100-rgb))";
     dot.style.width = i === current ? "16px" : "6px";
   });
 }

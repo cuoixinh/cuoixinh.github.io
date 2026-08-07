@@ -73,10 +73,10 @@ function _setLucideIcon(el, name, size, fallback) {
       display: flex;
       align-items: center;
       gap: 10px;
-      background: #fff;
+      background: rgb(var(--white-rgb));
       border-radius: 16px;
       padding: 12px 16px 12px 12px;
-      box-shadow: 0 4px 20px rgba(0,0,0,.10), 0 1px 4px rgba(0,0,0,.06);
+      box-shadow: 0 4px 20px rgb(var(--black-rgb)/.10), 0 1px 4px rgb(var(--black-rgb)/.06);
       font-family: inherit;
     }
     #cx-toast-icon {
@@ -93,7 +93,7 @@ function _setLucideIcon(el, name, size, fallback) {
       flex: 1;
       font-size: 13px;
       font-weight: 500;
-      color: #1f2937;
+      color: rgb(var(--gray-800-rgb));
       line-height: 1.45;
     }
   `;
@@ -127,10 +127,10 @@ function showToast(msg, type = "default", icon = null) {
   if (!el || !iconEl || !text) return;
 
   const cfg = {
-    success: { bg: "#dcfce7", color: "#15803d" },
-    error:   { bg: "#fee2e2", color: "#dc2626" },
-    warning: { bg: "#fef3c7", color: "#d97706" },
-    default: { bg: "#f3f4f6", color: "#6b7280" },
+    success: { bg: "rgb(var(--green-bg-rgb))", color: "rgb(var(--green-fg-rgb))" },
+    error:   { bg: "rgb(var(--red-bg-rgb))", color: "rgb(var(--red-fg-rgb))" },
+    warning: { bg: "rgb(var(--amber-bg-rgb))", color: "rgb(var(--amber-fg-rgb))" },
+    default: { bg: "rgb(var(--gray-100-rgb))", color: "rgb(var(--gray-500-rgb))" },
   };
 
   const c        = cfg[type] || cfg.default;
@@ -155,15 +155,15 @@ function showToast(msg, type = "default", icon = null) {
   style.textContent = `
     #cx-alert-backdrop {
       position: fixed; inset: 0; z-index: 1000000;
-      background: rgba(0,0,0,0.45);
+      background: rgb(var(--black-rgb)/0.45);
       display: none; align-items: center; justify-content: center;
       padding: 20px;
     }
     #cx-alert-backdrop.visible { display: flex; }
     #cx-alert-box {
-      background: #fff; border-radius: 20px;
+      background: rgb(var(--white-rgb)); border-radius: 20px;
       width: 100%; max-width: 400px;
-      box-shadow: 0 20px 60px rgba(0,0,0,.18);
+      box-shadow: 0 20px 60px rgb(var(--black-rgb)/.18);
       overflow: hidden; font-family: inherit;
     }
     #cx-alert-header {
@@ -175,10 +175,10 @@ function showToast(msg, type = "default", icon = null) {
       display: flex; align-items: center; justify-content: center;
       flex-shrink: 0; line-height: 0;
     }
-    #cx-alert-title { font-size: 15px; font-weight: 700; color: #1f2937; flex: 1; }
+    #cx-alert-title { font-size: 15px; font-weight: 700; color: rgb(var(--gray-800-rgb)); flex: 1; }
     #cx-alert-body {
       padding: 0 20px 18px;
-      font-size: 13px; color: #4b5563; line-height: 1.7;
+      font-size: 13px; color: rgb(var(--gray-600-rgb)); line-height: 1.7;
       white-space: pre-line; max-height: 50vh; overflow-y: auto;
     }
     #cx-alert-footer { padding: 0 20px 18px; display: flex; gap: 10px; }
@@ -187,10 +187,10 @@ function showToast(msg, type = "default", icon = null) {
       font-size: 13px; font-weight: 600; font-family: inherit; border: none;
       transition: background .15s ease, border-color .15s ease;
     }
-    .cx-dlg-cancel { background: #fff; color: #4b5563; border: 1px solid #e5e7eb; }
-    .cx-dlg-cancel:hover { background: #f9fafb; }
-    .cx-dlg-ok { background: #f43f5e; color: #fff; }
-    .cx-dlg-ok:hover { background: #e11d48; }
+    .cx-dlg-cancel { background: rgb(var(--white-rgb)); color: rgb(var(--gray-600-rgb)); border: 1px solid rgb(var(--gray-200-rgb)); }
+    .cx-dlg-cancel:hover { background: rgb(var(--gray-25-rgb)); }
+    .cx-dlg-ok { background: rgb(var(--rose-500-rgb)); color: rgb(var(--white-rgb)); }
+    .cx-dlg-ok:hover { background: rgb(var(--rose-600-rgb)); }
     .cx-dlg-hidden { display: none !important; }
   `;
   document.head.appendChild(style);
@@ -229,10 +229,10 @@ function _settleDialog(val) {
 }
 
 const _DLG_ICONS = {
-  error:   { icon: "x",              bg: "#fee2e2", color: "#dc2626" },
-  warning: { icon: "triangle-alert", bg: "#fef3c7", color: "#d97706" },
-  info:    { icon: "info",           bg: "#eff6ff", color: "#2563eb" },
-  success: { icon: "check",          bg: "#dcfce7", color: "#15803d" },
+  error:   { icon: "x",              bg: "rgb(var(--red-bg-rgb))", color: "rgb(var(--red-fg-rgb))" },
+  warning: { icon: "triangle-alert", bg: "rgb(var(--amber-bg-rgb))", color: "rgb(var(--amber-fg-rgb))" },
+  info:    { icon: "info",           bg: "rgb(var(--blue-bg-rgb))", color: "rgb(var(--blue-fg-rgb))" },
+  success: { icon: "check",          bg: "rgb(var(--green-bg-rgb))", color: "rgb(var(--green-fg-rgb))" },
 };
 
 /**
@@ -295,14 +295,14 @@ function showConfirm(title, message, opts = {}) {
   const overlay = document.createElement("div");
   overlay.id = "cx-loading";
   overlay.style.cssText =
-    "position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:99998;" +
+    "position:fixed;inset:0;background:rgb(var(--black-rgb)/0.5);z-index:99998;" +
     "display:none;align-items:center;justify-content:center;flex-direction:column;gap:12px;";
 
   overlay.innerHTML = `
-    <div style="width:224px;height:4px;background:rgba(255,255,255,0.2);border-radius:999px;overflow:hidden">
-      <div style="height:100%;width:40%;background:#ec829e;border-radius:999px;animation:cxLoadingBar 1.1s ease-in-out infinite"></div>
+    <div style="width:224px;height:4px;background:rgb(var(--white-rgb)/0.2);border-radius:999px;overflow:hidden">
+      <div style="height:100%;width:40%;background:rgb(var(--pink-deep-rgb));border-radius:999px;animation:cxLoadingBar 1.1s ease-in-out infinite"></div>
     </div>
-    <p id="cx-loading-msg" style="font-size:12px;font-weight:500;color:rgba(255,255,255,0.8);font-family:inherit">Đang xử lý...</p>
+    <p id="cx-loading-msg" style="font-size:12px;font-weight:500;color:rgb(var(--white-rgb)/0.8);font-family:inherit">Đang xử lý...</p>
   `;
   document.body.appendChild(overlay);
 })();

@@ -198,7 +198,7 @@
 
 .cx-tint-accent .cx-mp-bar [data-cx-music="toggle"] {
   background-color: var(--cx-mw-accent);
-  color: var(--cx-mw-ctrl, #fff);
+  color: var(--cx-mw-ctrl, var(--music-widget-ctrl));
 }
 
 /* "Nút điều khiển" = màu icon trong nút; đặt SAU .cx-tint-fg để đè được màu chữ
@@ -225,13 +225,13 @@
    chữ thiệp xuyên qua, đọc không ra. */
 
 .cx-mw {
-  --cx-mw-bg: rgba(255, 255, 255, 0.95);
-  --cx-mw-fg: #4a4142;
-  --cx-mw-dim: #8a7b7d;
-  --cx-mw-chip: rgba(140, 115, 118, 0.12);
-  --cx-mw-fill: rgba(212, 165, 165, 0.32);
-  --cx-mw-accent: #be7880;
-  --cx-mw-shadow: 0 8px 24px rgba(90, 60, 65, 0.22);
+  --cx-mw-bg: var(--music-widget-bg);
+  --cx-mw-fg: var(--music-widget-fg);
+  --cx-mw-dim: var(--music-widget-dim);
+  --cx-mw-chip: var(--music-widget-chip);
+  --cx-mw-fill: var(--music-widget-fill);
+  --cx-mw-accent: var(--music-widget-accent);
+  --cx-mw-shadow: 0 8px 24px rgb(var(--shadow-mulberry-rgb) / 0.22);
   position: relative;
   display: block;
   width: 100%;
@@ -268,8 +268,8 @@
 
 .cx-mw-btn-main {
   background: var(--cx-mw-accent);
-  color: var(--cx-mw-ctrl, #fff);
-  box-shadow: 0 1px 3px rgba(90, 60, 65, 0.25);
+  color: var(--cx-mw-ctrl, var(--music-widget-ctrl));
+  box-shadow: 0 1px 3px rgb(var(--shadow-mulberry-rgb) / 0.25);
 }
 
 .cx-mw-btn:active {
@@ -294,8 +294,12 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  background: linear-gradient(135deg, #eec6cc, #d79aa2);
-  color: #fff;
+  background: linear-gradient(
+    135deg,
+    var(--music-bubble-from),
+    var(--music-bubble-to)
+  );
+  color: var(--text-inverse);
 }
 
 .cx-mw-art img {
@@ -365,7 +369,7 @@
   background: none;
   box-shadow:
     var(--cx-mw-shadow),
-    0 0 0 0.15em rgba(255, 255, 255, 0.85);
+    0 0 0 0.15em rgb(var(--white-rgb) / 0.85);
   cursor: pointer;
 }
 
@@ -378,8 +382,8 @@
   align-items: center;
   justify-content: center;
   border-radius: 9999px;
-  background: rgba(0, 0, 0, 0.22);
-  color: var(--cx-mw-ctrl, #fff);
+  background: rgb(var(--overlay-dark-rgb) / 0.22);
+  color: var(--cx-mw-ctrl, var(--music-widget-ctrl));
   font-size: 1em;
 }
 

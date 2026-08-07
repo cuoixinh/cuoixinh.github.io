@@ -33,8 +33,8 @@ async function loadTemplates() {
     const inner = document.getElementById("templateCarouselInner");
     if (inner) {
       inner.innerHTML = `
-        <div class="text-center p-8" style="color: rgb(173 122 135);">
-          <i class="fas fa-exclamation-triangle text-4xl mb-4" style="color: rgb(255 183 202);"></i>
+        <div class="text-center p-8" style="color: rgb(var(--mauve-rgb));">
+          <i class="fas fa-exclamation-triangle text-4xl mb-4" style="color: rgb(var(--pink-400-rgb));"></i>
           <p class="text-lg font-semibold mb-2">Không thể tải danh sách mẫu thiệp</p>
           <p class="text-sm opacity-70">Vui lòng thử lại sau hoặc liên hệ hỗ trợ</p>
         </div>

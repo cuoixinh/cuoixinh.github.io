@@ -1,0 +1,409 @@
+/* NGUỒN SỰ THẬT DUY NHẤT cho mọi màu của project (xem refactor-color.md).
+   Import ở đầu styles/_base.css → có mặt ở CẢ HAI bản build (build.css & themes.css).
+   Hai tầng: palette gốc lưu KÊNH RGB ("255 183 202") để dùng được alpha, rồi token
+   ngữ nghĩa dựng từ palette. Cần alpha thì viết rgb(var(--x-rgb) / .4); trong class
+   Tailwind arbitrary phải viết liền không dấu cách: bg-[rgb(var(--x-rgb)/0.4)]. */
+
+:root {
+  /* ============================================================
+     1. PALETTE GỐC — chỉ là giá trị, đừng dùng thẳng ngoài file này
+     ============================================================ */
+
+  /* Trung tính */
+  --white-rgb: 255 255 255;
+  --black-rgb: 0 0 0;
+  --gray-50-rgb: 250 250 250;
+  --gray-100-rgb: 243 244 246;
+  --gray-150-rgb: 241 242 244;
+  --gray-200-rgb: 229 231 235;
+  --gray-250-rgb: 231 233 236;
+  --gray-300-rgb: 209 213 219;
+  --gray-400-rgb: 156 163 175;
+  --gray-500-rgb: 107 114 128;
+  --gray-600-rgb: 75 85 99;
+  --gray-700-rgb: 55 65 81;
+  --gray-800-rgb: 31 41 55;
+  --gray-900-rgb: 17 24 39;
+  --slate-900-rgb: 15 23 42;
+  --silver-rgb: 202 202 202;
+  --stone-400-rgb: 168 162 158;
+  --silver-light-rgb: 240 240 240;
+  --silver-dark-rgb: 224 224 224;
+  --smoke-rgb: 245 245 245;
+  --smoke-dark-rgb: 208 208 208;
+  --steel-rgb: 182 188 198;
+  --steel-light-rgb: 203 208 214;
+  --steel-pale-rgb: 238 240 242;
+  --steel-white-rgb: 252 252 253;
+
+  /* Hồng phấn chủ đạo (thương hiệu) */
+  --pink-50-rgb: 255 245 248;
+  --pink-100-rgb: 255 240 245;
+  --pink-150-rgb: 255 250 252;
+  --pink-200-rgb: 255 220 230;
+  --pink-300-rgb: 255 200 215;
+  --pink-400-rgb: 255 183 202;
+  --pink-500-rgb: 255 163 181;
+  --pink-600-rgb: 255 143 161;
+  --pink-deep-rgb: 236 130 158;
+  --mauve-rgb: 173 122 135;
+  --mauve-dark-rgb: 90 58 69;
+  --mauve-muted-rgb: 160 112 128;
+  --mauve-soft-rgb: 169 138 146;
+  --mauve-deep-rgb: 138 107 115;
+
+  /* Thang rose (Tailwind) */
+  --rose-50-rgb: 255 241 242;
+  --rose-100-rgb: 255 228 233;
+  --rose-200-rgb: 254 205 211;
+  --rose-300-rgb: 253 164 175;
+  --rose-400-rgb: 251 113 133;
+  --rose-500-rgb: 244 63 94;
+  --rose-600-rgb: 225 29 72;
+
+  /* Thang blossom = pink của Tailwind (tách tên để khỏi đụng hồng phấn ở trên) */
+  --blossom-50-rgb: 253 242 248;
+  --blossom-100-rgb: 252 231 243;
+  --blossom-200-rgb: 251 207 232;
+  --blossom-200-warm-rgb: 252 207 232;
+  --blossom-400-rgb: 244 114 182;
+  --blossom-500-rgb: 236 72 153;
+
+  /* Tím / xanh — nhóm tính năng AI */
+  --violet-300-rgb: 203 185 245;
+  --violet-400-rgb: 139 92 246;
+  --violet-500-rgb: 168 85 247;
+  --violet-600-rgb: 109 79 206;
+  --violet-pale-rgb: 243 239 255;
+  --violet-soft-rgb: 233 225 255;
+  --violet-border-rgb: 221 208 251;
+  --fuchsia-500-rgb: 217 70 239;
+  --indigo-500-rgb: 99 102 241;
+  --sky-400-rgb: 129 177 255;
+
+  /* Vàng / hổ phách */
+  --amber-400-rgb: 251 191 36;
+  --amber-500-rgb: 245 158 11;
+
+  /* Nâu-mận (chữ tiêu đề, đổ bóng thiệp) */
+  --plum-900-rgb: 45 15 26;
+  --plum-800-rgb: 62 26 40;
+  --plum-dark-rgb: 45 25 41;
+  --mauve-slate-rgb: 107 74 85;
+  --mauve-light-rgb: 176 138 149;
+  --mauve-rose-rgb: 190 90 118;
+
+  /* Hồng bổ sung */
+  --pink-mist-rgb: 253 248 249;
+  --pink-cloud-rgb: 255 251 248;
+  --setup-surface-rgb: 255 250 248;
+  --pink-blush-rgb: 255 245 247;
+  --pink-candy-rgb: 249 168 196;
+  --pink-350-rgb: 244 160 184;
+  --pink-bright-rgb: 244 114 160;
+  --pink-vivid-rgb: 224 85 133;
+  --pink-rose-rgb: 201 96 128;
+  --pink-dusty-rgb: 212 102 138;
+  --pink-magenta-rgb: 219 39 119;
+  --rose-fog-rgb: 255 248 248;
+  --rose-mist-rgb: 255 210 210;
+  --rose-mist-deep-rgb: 255 200 200;
+  --rose-700-rgb: 190 18 60;
+  --rose-800-rgb: 159 18 57;
+  --setup-invalid-soft-rgb: 255 245 246;
+
+  /* Kem / vàng cổ */
+  --cream-soft-rgb: 255 250 247;
+  --cream-warm-rgb: 255 245 235;
+  --gold-antique-rgb: 201 160 64;
+  --gold-light-rgb: 224 187 85;
+
+  /* Xám bổ sung */
+  --gray-25-rgb: 249 250 251;
+  --gray-mid-rgb: 153 153 153;
+  --gray-line-rgb: 238 238 238;
+  --gray-photo-rgb: 132 132 132;
+  --gray-photo-light-rgb: 186 186 186;
+  --slate-100-rgb: 241 245 249;
+  --placeholder-text-rgb: 192 192 192;
+
+  --landing-text-dark-rgb: 69 53 53;
+  --landing-quote-mark-rgb: 243 198 216;
+  --music-bubble-from-rgb: 238 198 204;
+  --music-bubble-to-rgb: 215 154 162;
+  --music-widget-dim-rgb: 138 123 125;
+  --music-widget-chip-rgb: 140 115 118;
+  --setup-input-border-rgb: 240 215 217;
+  --setup-chip-text-rgb: 163 74 96;
+
+  /* Feedback bổ sung */
+  --green-500-rgb: 34 197 94;
+  --green-tint-rgb: 236 253 243;
+  --red-500-rgb: 239 68 68;
+
+  /* Đổ bóng bổ sung */
+  --shadow-wine-rgb: 114 41 54;
+  --shadow-cocoa-rgb: 120 70 80;
+  --shadow-berry-rgb: 180 80 110;
+
+  /* Landing / theme-template (dạng kênh để pha alpha) */
+  --landing-hero-tint-rgb: 249 240 243;
+  --landing-preview-from-rgb: 253 244 247;
+  --landing-preview-to-rgb: 252 232 241;
+
+  /* Trình phát nhạc (dạng kênh) */
+  --music-widget-fg-rgb: 74 65 66;
+  --music-widget-accent-rgb: 190 120 128;
+
+  /* Màu thương hiệu bên thứ ba — cố định theo brand guideline, đừng đổi tuỳ hứng */
+  --social-facebook-rgb: 24 119 242;
+  --social-messenger-from-rgb: 0 178 255;
+  --social-messenger-to-rgb: 0 106 255;
+  --social-zalo-rgb: 0 104 255;
+  --social-whatsapp-rgb: 37 211 102;
+  --google-blue-rgb: 66 133 244;
+  --google-green-rgb: 52 168 83;
+  --google-yellow-rgb: 251 188 5;
+  --google-red-rgb: 234 67 53;
+
+  /* Feedback (Tailwind emerald/red/amber/blue) */
+  --green-bg-rgb: 220 252 231;
+  --green-fg-rgb: 21 128 61;
+  --red-bg-rgb: 254 226 226;
+  --red-fg-rgb: 220 38 38;
+  --red-tint-rgb: 254 242 242;
+  --amber-bg-rgb: 254 243 199;
+  --amber-fg-rgb: 217 119 6;
+  --blue-bg-rgb: 239 246 255;
+  --blue-fg-rgb: 37 99 235;
+
+  /* ============================================================
+     2. TOKEN NGỮ NGHĨA — dùng cái này trong CSS/HTML/JS
+     ============================================================ */
+
+  /* Thương hiệu */
+  --brand-primary: rgb(var(--pink-400-rgb));
+  --brand-primary-hover: rgb(var(--pink-500-rgb));
+  --brand-primary-active: rgb(var(--pink-600-rgb));
+  --brand-primary-subtle: rgb(var(--pink-50-rgb));
+  --brand-primary-border: rgb(var(--pink-400-rgb));
+  --brand-accent: rgb(var(--pink-deep-rgb));
+
+  /* Tương thích ngược — tên cũ đang dùng khắp nơi, giữ làm alias */
+  --primary: var(--brand-primary);
+  --primary-hover: var(--brand-primary-hover);
+  --primary-active: var(--brand-primary-active);
+  --primary-subtle: var(--brand-primary-subtle);
+  --primary-border: var(--brand-primary-border);
+
+  /* Chữ */
+  --text-primary: rgb(var(--mauve-rgb));
+  --text-secondary: rgb(var(--rose-400-rgb));
+  --text-heading: rgb(var(--mauve-dark-rgb));
+  --text-muted: rgb(var(--mauve-soft-rgb));
+  --text-subtle: rgb(var(--mauve-deep-rgb));
+  --text-inverse: rgb(var(--white-rgb));
+  --text-neutral-strong: rgb(var(--gray-800-rgb));
+  --text-neutral: rgb(var(--gray-700-rgb));
+  --text-neutral-soft: rgb(var(--gray-600-rgb));
+  --text-neutral-muted: rgb(var(--gray-500-rgb));
+  --text-neutral-faint: rgb(var(--gray-400-rgb));
+  --text-placeholder: rgb(var(--steel-rgb));
+
+  /* Alias tên cũ trong tailwind.config.js */
+  --text-color-primary: var(--text-primary);
+  --text-color-secondary: var(--text-secondary);
+
+  /* Nền & viền */
+  --surface-base: rgb(var(--white-rgb));
+  --surface-card: rgb(var(--white-rgb));
+  --surface-muted: rgb(var(--gray-100-rgb));
+  --surface-subtle: rgb(var(--gray-50-rgb));
+  --surface-pink: rgb(var(--pink-100-rgb));
+  --surface-pink-soft: rgb(var(--pink-150-rgb));
+  --surface-blossom: rgb(var(--blossom-100-rgb));
+  --border-default: rgb(var(--gray-200-rgb));
+  --border-subtle: rgb(var(--steel-pale-rgb));
+  --border-pink: rgb(var(--pink-100-rgb));
+  --border-blossom: rgb(var(--blossom-100-rgb));
+
+  /* Lớp phủ & đổ bóng (dạng kênh để pha alpha tại chỗ) */
+  --overlay-dark-rgb: var(--black-rgb);
+  --overlay-slate-rgb: var(--slate-900-rgb);
+  --overlay-plum-rgb: 58 26 34;
+  --shadow-neutral-rgb: var(--black-rgb);
+  --shadow-pink-rgb: 200 100 130;
+  --shadow-rose-rgb: var(--rose-500-rgb);
+  --shadow-plum-rgb: 88 45 54;
+  --shadow-plum-deep-rgb: 61 24 34;
+  --shadow-blush-rgb: 212 165 165;
+  --shadow-mulberry-rgb: 90 60 65;
+
+  /* Feedback */
+  --success-bg: rgb(var(--green-bg-rgb));
+  --success-fg: rgb(var(--green-fg-rgb));
+  --error-bg: rgb(var(--red-bg-rgb));
+  --error-fg: rgb(var(--red-fg-rgb));
+  --error-tint: rgb(var(--red-tint-rgb));
+  --warning-bg: rgb(var(--amber-bg-rgb));
+  --warning-fg: rgb(var(--amber-fg-rgb));
+  --info-bg: rgb(var(--blue-bg-rgb));
+  --info-fg: rgb(var(--blue-fg-rgb));
+
+  /* ── Nút ───────────────────────────────────────────────────── */
+  --btn-primary-bg: rgb(var(--rose-500-rgb));
+  --btn-primary-bg-hover: rgb(var(--rose-600-rgb));
+  --btn-primary-text: rgb(var(--white-rgb));
+  --btn-danger-border: rgb(var(--rose-500-rgb));
+  --btn-neutral-bg: rgb(var(--white-rgb));
+  --btn-neutral-text: rgb(var(--gray-600-rgb));
+  --btn-neutral-border: rgb(var(--gray-200-rgb));
+  --btn-neutral-bg-hover: rgb(var(--gray-50-rgb));
+  --btn-dark-bg: rgb(var(--gray-900-rgb));
+  --btn-dark-bg-hover: rgb(var(--black-rgb));
+
+  /* ── Nhóm AI (nút, modal, ô nhập giọng nói) ────────────────── */
+  --ai-gradient-from: rgb(var(--violet-400-rgb));
+  --ai-gradient-to: rgb(var(--fuchsia-500-rgb));
+  --ai-soft-from: rgb(var(--violet-300-rgb));
+  --ai-soft-to: rgb(var(--sky-400-rgb));
+  --ai-chip-bg: rgb(var(--violet-pale-rgb));
+  --ai-chip-bg-hover: rgb(var(--violet-soft-rgb));
+  --ai-chip-border: rgb(var(--violet-border-rgb));
+  --ai-chip-text: rgb(var(--violet-600-rgb));
+  --ai-panel-bg: rgb(var(--white-rgb) / 0.88);
+  --ai-panel-border: rgb(var(--white-rgb) / 0.8);
+  --ai-scrim-bg: rgb(var(--gray-100-rgb) / 0.9);
+  --ai-skeleton-base: rgb(var(--gray-150-rgb));
+  --ai-skeleton-shine: rgb(var(--gray-250-rgb));
+  --ai-card-bg: rgb(var(--steel-white-rgb));
+  --ai-card-border: rgb(var(--steel-pale-rgb));
+  --ai-item-bg: rgb(var(--gray-50-rgb));
+  --ai-item-border: rgb(var(--gray-150-rgb));
+  --ai-icon-muted: rgb(var(--steel-light-rgb));
+  --ai-suggest-from: rgb(var(--pink-blush-rgb));
+  --ai-suggest-to: rgb(var(--rose-100-rgb));
+  --ai-suggest-border: rgb(var(--rose-200-rgb));
+
+  /* ── Trình phát nhạc (widget dùng chung) ───────────────────── */
+  --music-widget-bg: rgb(var(--white-rgb) / 0.95);
+  --music-widget-fg: rgb(var(--music-widget-fg-rgb));
+  --music-widget-dim: rgb(var(--music-widget-dim-rgb));
+  --music-widget-chip: rgb(var(--music-widget-chip-rgb) / 0.12);
+  --music-widget-fill: rgb(var(--shadow-blush-rgb) / 0.32);
+  --music-widget-accent: rgb(var(--music-widget-accent-rgb));
+  --music-widget-ctrl: rgb(var(--white-rgb));
+  --music-bubble-from: rgb(var(--music-bubble-from-rgb));
+  --music-bubble-to: rgb(var(--music-bubble-to-rgb));
+
+  /* ── invitation-setup (form, nav, thẻ chọn) ────────────────── */
+  --setup-surface: rgb(var(--setup-surface-rgb));
+  --setup-input-border: rgb(var(--setup-input-border-rgb));
+  --setup-input-text: rgb(var(--card-stone-500-rgb));
+  --setup-input-border-focus: rgb(var(--card-blush-300-rgb));
+  --setup-chip-bg: rgb(var(--card-blush-100-rgb));
+  --setup-chip-text: rgb(var(--setup-chip-text-rgb));
+  --setup-chip-bg-hover: rgb(var(--card-blush-200-rgb));
+  --setup-outline: rgb(var(--card-blush-200-rgb));
+  --setup-skeleton-base: rgb(var(--silver-light-rgb));
+  --setup-skeleton-shine: rgb(var(--silver-dark-rgb));
+  --setup-invalid: rgb(var(--rose-500-rgb));
+  --setup-invalid-soft: rgb(var(--setup-invalid-soft-rgb));
+  --setup-checker: rgb(var(--gray-100-rgb));
+
+  /* ── Landing page ──────────────────────────────────────────── */
+  --landing-heading-gradient-from: rgb(var(--blossom-500-rgb));
+  --landing-heading-gradient-via: rgb(var(--blossom-400-rgb));
+  --landing-heading-gradient-to: rgb(var(--amber-400-rgb));
+  --landing-cta-from: rgb(var(--rose-600-rgb));
+  --landing-cta-via: rgb(var(--blossom-500-rgb));
+  --landing-cta-to: rgb(var(--blossom-400-rgb));
+  --landing-text-dark: rgb(var(--landing-text-dark-rgb));
+  --landing-card-from: rgb(var(--blossom-100-rgb));
+  --landing-card-to: rgb(var(--blossom-200-rgb));
+  --landing-preview-from: rgb(var(--landing-preview-from-rgb));
+  --landing-preview-to: rgb(var(--landing-preview-to-rgb));
+  --landing-hero-tint: rgb(var(--landing-hero-tint-rgb));
+  --landing-quote-mark: rgb(var(--landing-quote-mark-rgb));
+  --landing-badge-from: rgb(var(--amber-500-rgb));
+  --landing-badge-to: rgb(var(--amber-400-rgb));
+  --landing-focus-ring: rgb(var(--pink-deep-rgb));
+  /* Gradient viết sẵn: Tailwind không bắt được arbitrary value lồng nhiều lớp
+     ngoặc, nên khai ở đây rồi dùng bg-[image:var(--…)]. */
+  --landing-cta-gradient: linear-gradient(
+    90deg,
+    rgb(var(--rose-600-rgb)),
+    rgb(var(--blossom-500-rgb)),
+    rgb(var(--blossom-400-rgb)),
+    rgb(var(--blossom-500-rgb)),
+    rgb(var(--rose-600-rgb))
+  );
+  --landing-cta-shine: linear-gradient(
+    90deg,
+    transparent,
+    rgb(var(--white-rgb) / 0.7),
+    transparent
+  );
+  --social-messenger-gradient: linear-gradient(
+    135deg,
+    rgb(var(--social-messenger-from-rgb)),
+    rgb(var(--social-messenger-to-rgb))
+  );
+  /* Dùng trong keyframes của tailwind.config.js (chấm "đang online", nút CTA) */
+  --dot-pulse-rgb: var(--green-500-rgb);
+  --cta-shadow-rgb: var(--pink-magenta-rgb);
+
+  /* ── Ảnh placeholder (SVG sinh trong core/utils.js) ────────── */
+  --placeholder-bg: rgb(var(--smoke-rgb));
+  --placeholder-shape: rgb(var(--smoke-dark-rgb));
+  --placeholder-lens: rgb(var(--silver-dark-rgb));
+  --placeholder-lens-inner: rgb(var(--silver-light-rgb));
+  --placeholder-text: rgb(var(--placeholder-text-rgb));
+
+  /* ── Thanh cuộn dùng chung ─────────────────────────────────── */
+  --scrollbar-thumb: rgb(var(--gray-300-rgb));
+  --scrollbar-thumb-hover: rgb(var(--gray-400-rgb));
+  --scrollbar-track: rgb(var(--silver-rgb));
+
+  /* ============================================================
+     3. PALETTE THIỆP — giá trị cho tailwind.themes.config.js
+     ============================================================ */
+
+  /* Basic Gold */
+  --card-cream-50-rgb: 255 251 247;
+  --card-cream-100-rgb: 255 245 240;
+  --card-cream-200-rgb: 255 232 224;
+  --card-blush-50-rgb: 254 240 242;
+  --card-blush-100-rgb: 245 213 216;
+  --card-blush-200-rgb: 232 180 184;
+  --card-blush-300-rgb: 212 165 165;
+  --card-stone-400-rgb: 120 113 108;
+  --card-stone-500-rgb: 107 101 98;
+  --card-stone-600-rgb: 68 64 60;
+  --card-sand-rgb: 245 235 224;
+
+  /* Romantic Gold */
+  --card-sage-50-rgb: 246 247 246;
+  --card-sage-100-rgb: 232 235 232;
+  --card-sage-200-rgb: 209 216 209;
+  --card-sage-300-rgb: 180 191 180;
+  --card-sage-400-rgb: 138 154 138;
+  --card-gold-100-rgb: 245 240 232;
+  --card-gold-200-rgb: 232 220 200;
+  --card-gold-300-rgb: 201 184 150;
+  --card-gold-400-rgb: 168 153 104;
+  --card-charcoal-rgb: 45 52 54;
+
+  /* Vintage Forest */
+  --card-vintage-cream-rgb: 250 248 243;
+  --card-vintage-beige-rgb: 245 241 232;
+  --card-vintage-brown-rgb: 139 115 85;
+  --card-vintage-dark-rgb: 74 63 53;
+  --card-vintage-green-rgb: 61 79 61;
+
+  /* Bảng hồng phấn của TRANG ỨNG DỤNG (khác rose-pastel của thiệp) */
+  --app-rose-pastel-50-rgb: 255 251 247;
+  --app-rose-pastel-100-rgb: 254 241 247;
+  --app-rose-pastel-200-rgb: 252 231 243;
+  --app-rose-pastel-300-rgb: 251 207 232;
+}

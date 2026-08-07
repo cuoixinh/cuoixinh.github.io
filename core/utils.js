@@ -152,7 +152,7 @@ function isPreviewMode() {
 function showPreviewAlert() {
   const toast = document.createElement("div");
   toast.className = "fixed top-5 left-1/2 -translate-x-1/2 z-[10000] px-6 py-3 rounded-lg text-sm text-white shadow-md animate-fade-in";
-  toast.style.background = "rgba(212,165,165,0.95)";
+  toast.style.background = "rgb(var(--shadow-blush-rgb)/0.95)";
   toast.textContent = "Chức năng này không khả dụng ở chế độ xem thử";
   document.body.appendChild(toast);
 
@@ -259,16 +259,16 @@ function openImageCropModal(file, callback, giftInfo) {
     ? `
         <div class="flex-shrink-0 flex flex-col gap-2">
           <p class="text-xs font-semibold text-gray-500">Xem trước trên thiệp</p>
-          <div class="rounded-2xl p-4" style="background:linear-gradient(160deg,#fffbf8,#fff5f7);">
+          <div class="rounded-2xl p-4" style="background:linear-gradient(160deg,rgb(var(--pink-cloud-rgb)),rgb(var(--pink-blush-rgb)));">
             <div class="flex flex-col gap-1.5 items-center">
-              <div id="crop-gift-label" class="text-[11px] text-[#8a6b73]">Chú Rể</div>
+              <div id="crop-gift-label" class="text-[11px] text-[rgb(var(--mauve-deep-rgb))]">Chú Rể</div>
               <div class="bg-white rounded-2xl p-2 shadow-md">
                 <div id="crop-preview" class="w-[92px] h-[92px] overflow-hidden"></div>
               </div>
               <div class="flex flex-col gap-0.5 items-center text-center max-w-full">
-                <div id="crop-gift-bankname" class="text-[11px] text-[#a98a92] truncate max-w-[240px]">----------------</div>
-                <div id="crop-gift-number" class="text-[13px] text-[#5a3a45] font-medium truncate max-w-[240px]">------------</div>
-                <div id="crop-gift-owner" class="text-[12px] text-[#5a3a45] font-semibold truncate max-w-[240px]">--------------------</div>
+                <div id="crop-gift-bankname" class="text-[11px] text-[rgb(var(--mauve-soft-rgb))] truncate max-w-[240px]">----------------</div>
+                <div id="crop-gift-number" class="text-[13px] text-[rgb(var(--mauve-dark-rgb))] font-medium truncate max-w-[240px]">------------</div>
+                <div id="crop-gift-owner" class="text-[12px] text-[rgb(var(--mauve-dark-rgb))] font-semibold truncate max-w-[240px]">--------------------</div>
               </div>
             </div>
           </div>
@@ -543,16 +543,16 @@ function openFocalPointPicker(imageSource, currentFocal, callback, giftInfo) {
     ? `
       <div class="flex-shrink-0">
         <p class="text-xs font-semibold text-gray-500 mb-2">Xem trước trên thiệp</p>
-        <div class="rounded-2xl p-4" style="background:linear-gradient(160deg,#fffbf8,#fff5f7);">
+        <div class="rounded-2xl p-4" style="background:linear-gradient(160deg,rgb(var(--pink-cloud-rgb)),rgb(var(--pink-blush-rgb)));">
           <div class="flex flex-col gap-1.5 items-center">
-            <div id="focal-gift-label" class="text-[11px] text-[#8a6b73]">Chú Rể</div>
+            <div id="focal-gift-label" class="text-[11px] text-[rgb(var(--mauve-deep-rgb))]">Chú Rể</div>
             <div class="bg-white rounded-2xl p-2 shadow-md">
               <img id="focal-preview-qr" src="" alt="" class="w-[92px] h-[92px] object-cover" />
             </div>
             <div class="flex flex-col gap-0.5 items-center text-center max-w-full">
-              <div id="focal-gift-bankname" class="text-[11px] text-[#a98a92] truncate max-w-[240px]">----------------</div>
-              <div id="focal-gift-number" class="text-[13px] text-[#5a3a45] font-medium truncate max-w-[240px]">------------</div>
-              <div id="focal-gift-owner" class="text-[12px] text-[#5a3a45] font-semibold truncate max-w-[240px]">--------------------</div>
+              <div id="focal-gift-bankname" class="text-[11px] text-[rgb(var(--mauve-soft-rgb))] truncate max-w-[240px]">----------------</div>
+              <div id="focal-gift-number" class="text-[13px] text-[rgb(var(--mauve-dark-rgb))] font-medium truncate max-w-[240px]">------------</div>
+              <div id="focal-gift-owner" class="text-[12px] text-[rgb(var(--mauve-dark-rgb))] font-semibold truncate max-w-[240px]">--------------------</div>
             </div>
           </div>
         </div>
@@ -781,14 +781,14 @@ function openTimePicker(anchorEl, currentValue, callback) {
 
   // Render CYCLES repetitions for infinite wrap illusion
   const makeItems = (count) => Array.from({ length: count * CYCLES }, (_, i) =>
-    `<div style="height:${ITEM_H}px;scroll-snap-align:center;font-size:0.875rem;display:flex;align-items:center;justify-content:center;font-weight:500;color:#1f2937;user-select:none">${String(i % count).padStart(2, '0')}</div>`
+    `<div style="height:${ITEM_H}px;scroll-snap-align:center;font-size:0.875rem;display:flex;align-items:center;justify-content:center;font-weight:500;color:rgb(var(--gray-800-rgb));user-select:none">${String(i % count).padStart(2, '0')}</div>`
   ).join('');
 
   const colHtml = (id, count) => `
     <div style="position:relative;flex:1;height:${COL_H}px">
-      <div style="position:absolute;left:0;right:0;top:0;height:${PAD}px;background:linear-gradient(to bottom,white,rgba(255,255,255,0));z-index:2;pointer-events:none"></div>
-      <div style="position:absolute;left:0;right:0;bottom:0;height:${PAD}px;background:linear-gradient(to top,white,rgba(255,255,255,0));z-index:2;pointer-events:none"></div>
-      <div style="position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);height:${ITEM_H}px;border-top:1.5px solid #fda4af;border-bottom:1.5px solid #fda4af;border-radius:6px;background:rgba(255,241,242,0.7);z-index:1;pointer-events:none"></div>
+      <div style="position:absolute;left:0;right:0;top:0;height:${PAD}px;background:linear-gradient(to bottom,white,rgb(var(--white-rgb)/0));z-index:2;pointer-events:none"></div>
+      <div style="position:absolute;left:0;right:0;bottom:0;height:${PAD}px;background:linear-gradient(to top,white,rgb(var(--white-rgb)/0));z-index:2;pointer-events:none"></div>
+      <div style="position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);height:${ITEM_H}px;border-top:1.5px solid rgb(var(--rose-300-rgb));border-bottom:1.5px solid rgb(var(--rose-300-rgb));border-radius:6px;background:rgb(var(--rose-50-rgb)/0.7);z-index:1;pointer-events:none"></div>
       <div id="${id}" style="height:100%;overflow-y:scroll;scroll-snap-type:y mandatory;scrollbar-width:none;-ms-overflow-style:none">
         <div style="padding:${PAD}px 0">${makeItems(count)}</div>
       </div>
@@ -796,11 +796,11 @@ function openTimePicker(anchorEl, currentValue, callback) {
 
   const popup = document.createElement('div');
   popup.id = 'tp-popup';
-  popup.style.cssText = 'position:fixed;z-index:99999;background:white;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.15),0 2px 6px rgba(0,0,0,0.08);overflow:hidden;width:160px';
+  popup.style.cssText = 'position:fixed;z-index:99999;background:white;border-radius:12px;box-shadow:0 8px 24px rgb(var(--black-rgb)/0.15),0 2px 6px rgb(var(--black-rgb)/0.08);overflow:hidden;width:160px';
   popup.innerHTML = `
     <div style="display:flex;align-items:center;padding:8px 10px 0;gap:0">
       ${colHtml('tp-hours', H_COUNT)}
-      <div style="flex-shrink:0;font-size:1rem;font-weight:300;color:#d1d5db;padding:0 3px">:</div>
+      <div style="flex-shrink:0;font-size:1rem;font-weight:300;color:rgb(var(--gray-300-rgb));padding:0 3px">:</div>
       ${colHtml('tp-minutes', M_COUNT)}
     </div>
     <div class="flex gap-1.5 px-2.5 pb-2.5 pt-1.5">
@@ -944,14 +944,14 @@ function closeTimePicker() {
   var navbar = document.createElement("div");
   navbar.id = "preview-nav";
   navbar.className = "fixed bottom-0 left-1/2 -translate-x-1/2 z-[9999] w-full max-w-[430px] md:max-w-[768px] flex items-center justify-end gap-2.5 px-4 py-2.5 bg-white/95 backdrop-blur border-t border-rose-100";
-  navbar.style.cssText = "padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));box-shadow:0 -4px 24px rgba(180,80,110,0.10);";
+  navbar.style.cssText = "padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));box-shadow:0 -4px 24px rgb(var(--shadow-berry-rgb)/0.10);";
 
   navbar.innerHTML =
-    '<button id="pnav-close" class="flex items-center gap-1 px-3 h-8 rounded-full border border-rose-100 bg-transparent text-xs font-medium text-[#a07080] whitespace-nowrap shrink-0 cursor-pointer hover:bg-rose-50 transition-colors">' +
+    '<button id="pnav-close" class="flex items-center gap-1 px-3 h-8 rounded-full border border-rose-100 bg-transparent text-xs font-medium text-[rgb(var(--mauve-muted-rgb))] whitespace-nowrap shrink-0 cursor-pointer hover:bg-rose-50 transition-colors">' +
     '  <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>' +
     '  Quay lại' +
     '</button>' +
-    '<button id="pnav-choose" class="flex items-center gap-1.5 px-4 h-8 rounded-full text-xs font-bold text-white whitespace-nowrap cursor-pointer hover:opacity-90 transition-opacity" style="background:linear-gradient(135deg,#f472a0,#e05585);box-shadow:0 3px 10px rgba(224,85,133,0.3);">' +
+    '<button id="pnav-choose" class="flex items-center gap-1.5 px-4 h-8 rounded-full text-xs font-bold text-white whitespace-nowrap cursor-pointer hover:opacity-90 transition-opacity" style="background:linear-gradient(135deg,rgb(var(--pink-bright-rgb)),rgb(var(--pink-vivid-rgb)));box-shadow:0 3px 10px rgb(var(--pink-vivid-rgb)/0.3);">' +
     '  Dùng mẫu này' +
     '  <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>' +
     '</button>';
