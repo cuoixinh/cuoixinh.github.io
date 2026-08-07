@@ -7,7 +7,8 @@
     "build:css": "tailwindcss -c ./tailwind.config.js -i ./styles/tailwind-src.css -o ./styles/build.css --minify",
     "build:themes": "tailwindcss -c ./tailwind.themes.config.js -i ./styles/themes-src.css -o ./styles/themes.css --minify",
     "watch:css": "tailwindcss -c ./tailwind.config.js -i ./styles/tailwind-src.css -o ./styles/build.css --watch",
-    "watch:themes": "tailwindcss -c ./tailwind.themes.config.js -i ./styles/themes-src.css -o ./styles/themes.css --watch"
+    "watch:themes": "tailwindcss -c ./tailwind.themes.config.js -i ./styles/themes-src.css -o ./styles/themes.css --watch",
+    "deploy:functions": "bash scripts/deploy-functions.sh"
   },
   "devDependencies": {
     "tailwindcss": "3.4.17"
