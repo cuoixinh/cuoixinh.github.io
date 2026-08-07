@@ -26,8 +26,10 @@
     <link rel="stylesheet" href="../styles/build.css" />
 
     <style>
+      /* Biến CỤC BỘ của riêng trang này (không phải token toàn cục):
+         --primary ở đây là hồng đậm nhấn, không phải hồng chủ đạo. */
       :root {
-        --primary: rgb(var(--brand-accent-rgb)); /* pink-deep — same as homepage */
+        --primary: rgb(var(--brand-accent-rgb));
         --mauve: rgb(var(--text-body-rgb));
         --dark: rgb(var(--text-heading-rgb)); /* mauve-dark */
         --pink-lt: rgb(var(--brand-primary-rgb));
@@ -67,7 +69,7 @@
         background: linear-gradient(
           90deg,
           transparent 30%,
-          rgb(var(--surface-base-rgb)/0.55) 50%,
+          rgb(var(--white-rgb)/0.55) 50%,
           transparent 70%
         );
         animation: shimmer 1.4s infinite;
@@ -220,13 +222,13 @@
             <a
               href="/"
               class="hover:opacity-70 transition-opacity"
-              style="color: var(--text-primary)"
+              style="color: rgb(var(--text-body-rgb))"
               >Trang chủ</a
             >
             <a
               href="/theme-template/"
               class="hover:opacity-70 transition-opacity"
-              style="color: var(--text-primary)"
+              style="color: rgb(var(--text-body-rgb))"
               >Mẫu thiệp</a
             >
           </nav>
@@ -236,7 +238,7 @@
               id="ttManageBtn"
               href="/public/account/"
               class="inline-flex items-center gap-1.5 rounded-full text-xs sm:text-sm font-medium px-3 sm:px-3.5 py-1.5 sm:py-2 transition-colors hover:bg-rose-pastel-100 whitespace-nowrap"
-              style="color: var(--text-primary)"
+              style="color: rgb(var(--text-body-rgb))"
               ><svg class="w-3.5 h-3.5 opacity-80" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="7" x="3" y="3" rx="1.5"/><rect width="7" height="7" x="14" y="3" rx="1.5"/><rect width="7" height="7" x="14" y="14" rx="1.5"/><rect width="7" height="7" x="3" y="14" rx="1.5"/></svg>
               Quản lý thiệp</a
             >
@@ -269,7 +271,7 @@
     <!-- ═══ MOBILE BOTTOM NAV ═══ -->
     <nav
       class="fixed bottom-0 left-0 right-0 z-40 border-t md:hidden"
-      style="background: rgb(var(--surface-base-rgb)); border-color: rgb(var(--brand-primary-rgb)/0.35)"
+      style="background: rgb(var(--white-rgb)); border-color: rgb(var(--brand-primary-rgb)/0.35)"
     >
       <div
         class="flex items-center justify-around px-2 pt-1.5"
@@ -379,7 +381,7 @@
             <div
               class="inline-flex items-center rounded-2xl"
               style="
-                background: rgb(var(--surface-base-rgb)/0.75);
+                background: rgb(var(--white-rgb)/0.75);
                 border: 1px solid rgb(var(--brand-primary-rgb)/0.35);
                 backdrop-filter: blur(8px);
                 box-shadow: 0 4px 20px -8px rgb(var(--brand-accent-rgb)/0.15);
@@ -523,7 +525,7 @@
         class="hidden sm:block border-y"
         style="
           border-color: rgb(var(--brand-primary-rgb)/0.3);
-          background: rgb(var(--surface-base-rgb)/0.6);
+          background: rgb(var(--white-rgb)/0.6);
         "
       >
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
@@ -836,19 +838,19 @@
         <div class="max-w-3xl mx-auto px-4 sm:px-6 py-12 sm:py-16 text-center">
           <p
             class="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.22em] mb-3"
-            style="color: rgb(var(--text-inverse-rgb)/0.55)"
+            style="color: rgb(var(--white-rgb)/0.55)"
           >
             Miễn phí cho đến khi bạn sẵn sàng
           </p>
           <h2
             class="font-playfair text-[1.5rem] sm:text-2xl lg:text-3xl font-semibold leading-snug mb-3"
-            style="color: rgb(var(--text-inverse-rgb))"
+            style="color: rgb(var(--white-rgb))"
           >
             Chọn mẫu, tạo thử, đổi thoải mái — chỉ trả khi thật sự ưng
           </h2>
           <p
             class="text-sm sm:text-[15px] leading-relaxed mb-7"
-            style="color: rgb(var(--text-inverse-rgb)/0.65)"
+            style="color: rgb(var(--white-rgb)/0.65)"
           >
             Tạo bản nháp không giới hạn thời gian. Khi đổi sang mẫu khác, ảnh và
             thông tin đám cưới vẫn giữ nguyên — không cần nhập lại.
@@ -857,7 +859,7 @@
             onclick="startDraft()"
             class="inline-flex items-center gap-2 px-6 py-3 rounded-md text-sm font-semibold hover:opacity-90 transition-opacity"
             style="
-              background: rgb(var(--surface-base-rgb));
+              background: rgb(var(--white-rgb));
               color: rgb(var(--brand-accent-rgb));
               box-shadow: 0 4px 20px rgb(var(--preview-shadow-rgb)/0.22);
             "
@@ -1263,7 +1265,7 @@
               ${hotBadge}
               <div class="card-hover-overlay">
                 <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-semibold"
-                      style="background:rgb(var(--surface-base-rgb));color:var(--primary);box-shadow:0 4px 16px rgb(var(--shadow-neutral-rgb)/0.2)">
+                      style="background:rgb(var(--white-rgb));color:var(--primary);box-shadow:0 4px 16px rgb(var(--scrim-rgb)/0.2)">
                   <span style="display:flex;align-items:center;color:var(--primary)">${SVG_EYE}</span>Xem chi tiết
                 </span>
               </div>

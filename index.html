@@ -41,7 +41,7 @@
 
   </head>
 
-  <body class="bg-white" style="color: var(--text-primary)">
+  <body class="bg-white" style="color: rgb(var(--text-body-rgb))">
     <!-- ===== NAV ===== -->
     <nav
       id="main-nav"
@@ -60,19 +60,19 @@
             <a
               href="/theme-template/"
               class="hover:opacity-70 transition-opacity"
-              style="color: var(--text-primary)"
+              style="color: rgb(var(--text-body-rgb))"
               >Mẫu thiệp</a
             >
             <a
               href="#inside"
               class="hover:opacity-70 transition-opacity"
-              style="color: var(--text-primary)"
+              style="color: rgb(var(--text-body-rgb))"
               >Tính năng</a
             >
             <a
               href="#steps"
               class="hover:opacity-70 transition-opacity"
-              style="color: var(--text-primary)"
+              style="color: rgb(var(--text-body-rgb))"
               >Cách dùng</a
             >
           </div>
@@ -81,7 +81,7 @@
               id="navManageBtn"
               href="/public/account/"
               class="inline-flex items-center gap-1.5 rounded-full text-xs sm:text-sm font-medium px-3 sm:px-3.5 py-1.5 sm:py-2 transition-colors hover:bg-rose-pastel-100 whitespace-nowrap"
-              style="color: var(--text-primary)"
+              style="color: rgb(var(--text-body-rgb))"
             >
               <svg class="w-3.5 h-3.5 opacity-80" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="7" x="3" y="3" rx="1.5"/><rect width="7" height="7" x="14" y="3" rx="1.5"/><rect width="7" height="7" x="14" y="14" rx="1.5"/><rect width="7" height="7" x="3" y="14" rx="1.5"/></svg>
               Quản lý thiệp
@@ -100,7 +100,7 @@
               onclick="toggleMobileMenu()"
               aria-label="Menu"
             >
-              <i id="navHamburgerIcon" class="fas fa-bars text-sm" style="color: var(--text-primary)"></i>
+              <i id="navHamburgerIcon" class="fas fa-bars text-sm" style="color: rgb(var(--text-body-rgb))"></i>
             </button>
           </div>
         </div>
@@ -112,13 +112,13 @@
       id="mobileMenu"
       class="hidden fixed top-16 left-0 right-0 z-40 bg-white border-b border-rose-pastel-200 shadow-lg px-5 py-4 flex-col gap-1 md:hidden"
     >
-      <a href="/theme-template/" onclick="closeMobileMenu()" class="flex items-center gap-2 py-3 border-b border-rose-pastel-100 hover:opacity-70 transition-opacity text-sm font-medium" style="color: var(--text-primary)">
+      <a href="/theme-template/" onclick="closeMobileMenu()" class="flex items-center gap-2 py-3 border-b border-rose-pastel-100 hover:opacity-70 transition-opacity text-sm font-medium" style="color: rgb(var(--text-body-rgb))">
         <i class="fas fa-layer-group text-xs w-4 opacity-60"></i> Mẫu thiệp
       </a>
-      <a href="#inside" onclick="closeMobileMenu()" class="flex items-center gap-2 py-3 border-b border-rose-pastel-100 hover:opacity-70 transition-opacity text-sm font-medium" style="color: var(--text-primary)">
+      <a href="#inside" onclick="closeMobileMenu()" class="flex items-center gap-2 py-3 border-b border-rose-pastel-100 hover:opacity-70 transition-opacity text-sm font-medium" style="color: rgb(var(--text-body-rgb))">
         <i class="fas fa-star text-xs w-4 opacity-60"></i> Tính năng
       </a>
-      <a href="#steps" onclick="closeMobileMenu()" class="flex items-center gap-2 py-3 hover:opacity-70 transition-opacity text-sm font-medium" style="color: var(--text-primary)">
+      <a href="#steps" onclick="closeMobileMenu()" class="flex items-center gap-2 py-3 hover:opacity-70 transition-opacity text-sm font-medium" style="color: rgb(var(--text-body-rgb))">
         <i class="fas fa-list-ol text-xs w-4 opacity-60"></i> Cách dùng
       </a>
     </div>
@@ -231,7 +231,7 @@
           <div class="flex-1 w-full min-w-0 text-left">
             <p
               class="hero-anim hero-anim-1 font-cormorant italic text-lg mb-0 md:mb-3"
-              style="color: var(--brand-primary)"
+              style="color: rgb(var(--brand-primary-rgb))"
             >
               ✦ Thiệp cưới điện tử ✦
             </p>
@@ -239,7 +239,7 @@
               class="hero-anim hero-anim-2 font-allura leading-tight mb-4"
               style="
                 font-size: clamp(3.8rem, 9vw, 6.5rem);
-                color: var(--brand-primary);
+                color: rgb(var(--brand-primary-rgb));
                 text-shadow: 0 4px 24px rgb(var(--brand-primary-rgb)/0.45);
               "
             >
@@ -274,7 +274,7 @@
               <a
                 href="/theme-template/"
                 class="text-center px-7 py-3.5 rounded-full text-base font-medium border border-[1px] bg-white/80 backdrop-blur-sm transition-all hover:bg-rose-pastel-100 hover:-translate-y-0.5"
-                style="border-color: var(--brand-primary); color: var(--text-primary)"
+                style="border-color: rgb(var(--brand-primary-rgb)); color: rgb(var(--text-body-rgb))"
               >
                 Xem mẫu thiệp
               </a>
@@ -286,20 +286,20 @@
               class="scroll-fade hero-anim hero-anim-5 flex flex-nowrap gap-2 overflow-x-auto"
             >
               <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-rose-pastel-200 bg-white/70 backdrop-blur-sm shrink-0">
-                <span class="w-4 h-4 rounded-full flex items-center justify-center shrink-0" style="background: var(--brand-primary)"><i class="fas fa-gift text-[8px] text-white"></i></span>
-                <span class="text-xs font-medium whitespace-nowrap" style="color: var(--text-primary)">Dùng thử miễn phí</span>
+                <span class="w-4 h-4 rounded-full flex items-center justify-center shrink-0" style="background: rgb(var(--brand-primary-rgb))"><i class="fas fa-gift text-[8px] text-white"></i></span>
+                <span class="text-xs font-medium whitespace-nowrap" style="color: rgb(var(--text-body-rgb))">Dùng thử miễn phí</span>
               </div>
               <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-rose-pastel-200 bg-white/70 backdrop-blur-sm shrink-0">
-                <span class="w-4 h-4 rounded-full flex items-center justify-center shrink-0" style="background: var(--brand-primary)"><i class="fas fa-sync-alt text-[8px] text-white"></i></span>
-                <span class="text-xs font-medium whitespace-nowrap" style="color: var(--text-primary)">Đổi mẫu mọi lúc</span>
+                <span class="w-4 h-4 rounded-full flex items-center justify-center shrink-0" style="background: rgb(var(--brand-primary-rgb))"><i class="fas fa-sync-alt text-[8px] text-white"></i></span>
+                <span class="text-xs font-medium whitespace-nowrap" style="color: rgb(var(--text-body-rgb))">Đổi mẫu mọi lúc</span>
               </div>
               <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-rose-pastel-200 bg-white/70 backdrop-blur-sm shrink-0">
-                <span class="w-4 h-4 rounded-full flex items-center justify-center shrink-0" style="background: var(--brand-primary)"><i class="fas fa-mobile-alt text-[8px] text-white"></i></span>
-                <span class="text-xs font-medium whitespace-nowrap" style="color: var(--text-primary)">Không cài app</span>
+                <span class="w-4 h-4 rounded-full flex items-center justify-center shrink-0" style="background: rgb(var(--brand-primary-rgb))"><i class="fas fa-mobile-alt text-[8px] text-white"></i></span>
+                <span class="text-xs font-medium whitespace-nowrap" style="color: rgb(var(--text-body-rgb))">Không cài app</span>
               </div>
               <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-rose-pastel-200 bg-white/70 backdrop-blur-sm shrink-0">
-                <span class="w-4 h-4 rounded-full flex items-center justify-center shrink-0" style="background: var(--brand-primary)"><i class="fas fa-infinity text-[8px] text-white"></i></span>
-                <span class="text-xs font-medium whitespace-nowrap" style="color: var(--text-primary)">Thiệp vĩnh viễn</span>
+                <span class="w-4 h-4 rounded-full flex items-center justify-center shrink-0" style="background: rgb(var(--brand-primary-rgb))"><i class="fas fa-infinity text-[8px] text-white"></i></span>
+                <span class="text-xs font-medium whitespace-nowrap" style="color: rgb(var(--text-body-rgb))">Thiệp vĩnh viễn</span>
               </div>
             </div>
           </div>
@@ -316,19 +316,19 @@
                   <div
                     class="h-[90px] rounded-[10px] mb-[14px]"
                     style="
-                      background: linear-gradient(135deg, rgb(var(--preview-line-rgb)), rgb(var(--preview-line-strong-rgb)));
+                      background: linear-gradient(135deg, rgb(var(--surface-blossom-rgb)), rgb(var(--surface-blossom-strong-rgb)));
                     "
                   ></div>
                   <div
-                    class="h-[10px] bg-[rgb(var(--preview-line-strong-rgb))] rounded-[4px] mb-2 w-[65%]"
+                    class="h-[10px] bg-[rgb(var(--surface-blossom-strong-rgb))] rounded-[4px] mb-2 w-[65%]"
                   ></div>
-                  <div class="h-2 bg-[rgb(var(--preview-line-rgb))] rounded-[4px] mb-[6px]"></div>
-                  <div class="h-2 bg-[rgb(var(--preview-line-rgb))] rounded-[4px] w-4/5"></div>
-                  <div class="h-2 bg-[rgb(var(--preview-line-rgb))] rounded-[4px] mt-4 w-1/2"></div>
+                  <div class="h-2 bg-[rgb(var(--surface-blossom-rgb))] rounded-[4px] mb-[6px]"></div>
+                  <div class="h-2 bg-[rgb(var(--surface-blossom-rgb))] rounded-[4px] w-4/5"></div>
+                  <div class="h-2 bg-[rgb(var(--surface-blossom-rgb))] rounded-[4px] mt-4 w-1/2"></div>
                 </div>
               </div>
               <div class="card card-1" id="hero-card-preview">
-                <div style="position:absolute;top:10px;right:10px;z-index:10;background:linear-gradient(135deg,rgb(var(--landing-badge-from-rgb)),rgb(var(--landing-badge-to-rgb)));color:white;font-size:9px;font-weight:800;padding:4px 9px;border-radius:20px;box-shadow:0 2px 10px rgb(var(--landing-badge-from-rgb)/0.45);letter-spacing:0.04em;display:flex;align-items:center;gap:3px;">
+                <div style="position:absolute;top:10px;right:10px;z-index:10;background:linear-gradient(135deg,rgb(var(--accent-amber-rgb)),rgb(var(--accent-amber-light-rgb)));color:white;font-size:9px;font-weight:800;padding:4px 9px;border-radius:20px;box-shadow:0 2px 10px rgb(var(--accent-amber-rgb)/0.45);letter-spacing:0.04em;display:flex;align-items:center;gap:3px;">
                   <i class="fas fa-star" style="font-size:7px;"></i> BEST SELLER
                 </div>
                 <div style="position:absolute;inset:0;overflow:hidden;background:rgb(var(--landing-hero-tint-rgb));">
@@ -438,7 +438,7 @@
             <div class="relative w-[220px] h-[430px]">
 
               <!-- Wedding card content — visible through the transparent screen -->
-              <div class="absolute top-[1.5%] left-[5.1%] w-[89.8%] h-[96%] rounded-[22px] overflow-hidden flex flex-col" style="background:linear-gradient(160deg,rgb(var(--surface-tint-warm-rgb)),rgb(var(--preview-line-rgb)));">
+              <div class="absolute top-[1.5%] left-[5.1%] w-[89.8%] h-[96%] rounded-[22px] overflow-hidden flex flex-col" style="background:linear-gradient(160deg,rgb(var(--surface-tint-warm-rgb)),rgb(var(--surface-blossom-rgb)));">
                 <div class="flex-1 flex flex-col justify-center text-center px-3.5 pt-[22px] pb-3.5">
                   <p class="font-vibes text-[23px] text-[rgb(var(--brand-primary-rgb))] mb-[5px] leading-[1.2]">Cưới Xinh</p>
                   <div class="w-11 h-px mx-auto mb-[9px] bg-[rgb(var(--brand-primary-rgb)/0.5)]"></div>
@@ -579,7 +579,7 @@
     <section
       id="contact"
       class="py-24 relative overflow-hidden"
-      style="background: linear-gradient(150deg, rgb(var(--landing-cta-bg-rgb)) 0%, rgb(var(--landing-cta-bg-mid-rgb)) 55%, rgb(var(--landing-cta-bg-rgb)) 100%);"
+      style="background: linear-gradient(150deg, rgb(var(--landing-dark-rgb)) 0%, rgb(var(--landing-cta-bg-mid-rgb)) 55%, rgb(var(--landing-dark-rgb)) 100%);"
     >
       <!-- Radial glow -->
       <div class="absolute inset-0 pointer-events-none" style="background: radial-gradient(ellipse 65% 55% at 50% 50%, rgb(var(--landing-cta-btn-from-rgb)/0.08) 0%, transparent 70%);"></div>
@@ -604,7 +604,7 @@
           href="/invitation-setup/"
           onclick="goCreateDraft(event)"
           class="inline-block px-9 py-4 rounded-full text-base font-semibold transition-all hover:-translate-y-0.5 active:scale-95"
-          style="background: linear-gradient(135deg, rgb(var(--landing-cta-btn-from-rgb)), rgb(var(--landing-cta-btn-to-rgb))); color: rgb(var(--landing-cta-bg-rgb)); box-shadow: 0 8px 28px rgb(var(--landing-cta-btn-from-rgb)/0.32);"
+          style="background: linear-gradient(135deg, rgb(var(--landing-cta-btn-from-rgb)), rgb(var(--landing-cta-btn-to-rgb))); color: rgb(var(--landing-dark-rgb)); box-shadow: 0 8px 28px rgb(var(--landing-cta-btn-from-rgb)/0.32);"
         >
           Tạo thiệp của tôi <i class="fas fa-arrow-right ml-2 text-sm"></i>
         </a>
@@ -718,7 +718,7 @@
           href="https://m.me/61591515875537"
           target="_blank"
           rel="noopener"
-          class="relative block w-[214px] max-[420px]:w-[182px] bg-white rounded-2xl px-[13px] py-2.5 no-underline text-inherit opacity-0 translate-y-2.5 animate-bubbleIn-1 transition border border-[rgb(var(--brand-primary-rgb)/0.5)] shadow-[0_8px_26px_rgb(var(--shadow-deep-rgb)/0.16)] hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgb(var(--shadow-deep-rgb)/0.22)] after:content-[''] after:absolute after:-right-1.5 after:bottom-4 after:w-3 after:h-3 after:bg-white after:border-r after:border-t after:border-[rgb(var(--brand-primary-rgb)/0.5)] after:rotate-45"
+          class="relative block w-[214px] max-[420px]:w-[182px] bg-white rounded-2xl px-[13px] py-2.5 no-underline text-inherit opacity-0 translate-y-2.5 animate-bubbleIn-1 transition border border-[rgb(var(--brand-primary-rgb)/0.5)] shadow-[0_8px_26px_rgb(var(--landing-dark-rgb)/0.16)] hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgb(var(--landing-dark-rgb)/0.22)] after:content-[''] after:absolute after:-right-1.5 after:bottom-4 after:w-3 after:h-3 after:bg-white after:border-r after:border-t after:border-[rgb(var(--brand-primary-rgb)/0.5)] after:rotate-45"
           aria-label="Chat hỗ trợ qua Messenger"
         >
           <div
@@ -751,7 +751,7 @@
         <button
           id="supportClose"
           type="button"
-          class="absolute -top-2 -right-2 w-[22px] h-[22px] rounded-full bg-white border border-[rgb(var(--brand-primary-rgb)/0.6)] text-[rgb(var(--chat-action-icon-rgb))] flex items-center justify-center text-[11px] leading-none cursor-pointer z-[3] opacity-0 animate-bubbleIn-2 transition shadow-[0_2px_8px_rgb(var(--shadow-deep-rgb)/0.14)] hover:scale-110 hover:text-pink-500 hover:bg-[rgb(var(--surface-tint-warm-rgb))]"
+          class="absolute -top-2 -right-2 w-[22px] h-[22px] rounded-full bg-white border border-[rgb(var(--brand-primary-rgb)/0.6)] text-[rgb(var(--chat-action-icon-rgb))] flex items-center justify-center text-[11px] leading-none cursor-pointer z-[3] opacity-0 animate-bubbleIn-2 transition shadow-[0_2px_8px_rgb(var(--landing-dark-rgb)/0.14)] hover:scale-110 hover:text-pink-500 hover:bg-[rgb(var(--surface-tint-warm-rgb))]"
           aria-label="Đóng thẻ hỗ trợ"
         >
           <i class="fas fa-times"></i>
@@ -763,7 +763,7 @@
         href="https://m.me/61591515875537"
         target="_blank"
         rel="noopener"
-        class="relative w-[52px] h-[52px] rounded-full flex items-center justify-center text-white text-2xl shrink-0 transition opacity-0 translate-y-4 scale-90 animate-bubbleIn shadow-[0_6px_20px_rgb(var(--shadow-deep-rgb)/0.22)] hover:scale-[1.06] hover:shadow-[0_10px_26px_rgb(var(--shadow-deep-rgb)/0.3)] bg-[image:var(--social-messenger-gradient)] before:content-[''] before:absolute before:inset-0 before:rounded-full before:bg-[image:var(--social-messenger-gradient)] before:-z-10 before:animate-bubblePulse motion-reduce:before:animate-none"
+        class="relative w-[52px] h-[52px] rounded-full flex items-center justify-center text-white text-2xl shrink-0 transition opacity-0 translate-y-4 scale-90 animate-bubbleIn shadow-[0_6px_20px_rgb(var(--landing-dark-rgb)/0.22)] hover:scale-[1.06] hover:shadow-[0_10px_26px_rgb(var(--landing-dark-rgb)/0.3)] bg-[image:var(--social-messenger-gradient)] before:content-[''] before:absolute before:inset-0 before:rounded-full before:bg-[image:var(--social-messenger-gradient)] before:-z-10 before:animate-bubblePulse motion-reduce:before:animate-none"
         aria-label="Chat hỗ trợ qua Messenger"
       >
         <i class="fa-brands fa-facebook-messenger"></i>
@@ -781,7 +781,7 @@
       class="hidden fixed z-50 right-0 bottom-[calc(80px_+_env(safe-area-inset-bottom,0px))] w-9 h-16 items-center justify-end transition-transform active:scale-95"
     >
       <span
-        class="flex items-center justify-center w-[16px] h-[40px] rounded-l-[8px] border border-r-0 border-white/40 bg-[linear-gradient(155deg,var(--brand-accent),var(--brand-primary))] shadow-[0_8px_24px_rgb(var(--shadow-brand-rgb)/0.4)]"
+        class="flex items-center justify-center w-[16px] h-[40px] rounded-l-[8px] border border-r-0 border-white/40 bg-[linear-gradient(155deg,rgb(var(--brand-accent-rgb)),rgb(var(--brand-primary-rgb)))] shadow-[0_8px_24px_rgb(var(--shadow-brand-rgb)/0.4)]"
       >
         <i id="chatPinIcon" class="fas fa-chevron-left text-white" style="font-size: 10px"></i>
       </span>

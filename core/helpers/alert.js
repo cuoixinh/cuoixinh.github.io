@@ -73,10 +73,10 @@ function _setLucideIcon(el, name, size, fallback) {
       display: flex;
       align-items: center;
       gap: 10px;
-      background: rgb(var(--surface-base-rgb));
+      background: rgb(var(--white-rgb));
       border-radius: 16px;
       padding: 12px 16px 12px 12px;
-      box-shadow: 0 4px 20px rgb(var(--shadow-neutral-rgb)/.10), 0 1px 4px rgb(var(--shadow-neutral-rgb)/.06);
+      box-shadow: 0 4px 20px rgb(var(--scrim-rgb)/.10), 0 1px 4px rgb(var(--scrim-rgb)/.06);
       font-family: inherit;
     }
     #cx-toast-icon {
@@ -161,9 +161,9 @@ function showToast(msg, type = "default", icon = null) {
     }
     #cx-alert-backdrop.visible { display: flex; }
     #cx-alert-box {
-      background: rgb(var(--surface-base-rgb)); border-radius: 20px;
+      background: rgb(var(--white-rgb)); border-radius: 20px;
       width: 100%; max-width: 400px;
-      box-shadow: 0 20px 60px rgb(var(--shadow-neutral-rgb)/.18);
+      box-shadow: 0 20px 60px rgb(var(--scrim-rgb)/.18);
       overflow: hidden; font-family: inherit;
     }
     #cx-alert-header {
@@ -187,9 +187,9 @@ function showToast(msg, type = "default", icon = null) {
       font-size: 13px; font-weight: 600; font-family: inherit; border: none;
       transition: background .15s ease, border-color .15s ease;
     }
-    .cx-dlg-cancel { background: var(--btn-neutral-bg); color: var(--btn-neutral-text); border: 1px solid var(--btn-neutral-border); }
-    .cx-dlg-cancel:hover { background: var(--btn-neutral-bg-hover); }
-    .cx-dlg-ok { background: rgb(var(--action-primary-rgb)); color: rgb(var(--text-inverse-rgb)); }
+    .cx-dlg-cancel { background: rgb(var(--white-rgb)); color: rgb(var(--text-secondary-rgb)); border: 1px solid rgb(var(--border-field-rgb)); }
+    .cx-dlg-cancel:hover { background: rgb(var(--surface-hover-rgb)); }
+    .cx-dlg-ok { background: rgb(var(--action-primary-rgb)); color: rgb(var(--white-rgb)); }
     .cx-dlg-ok:hover { background: rgb(var(--action-primary-hover-rgb)); }
     .cx-dlg-hidden { display: none !important; }
   `;
@@ -299,10 +299,10 @@ function showConfirm(title, message, opts = {}) {
     "display:none;align-items:center;justify-content:center;flex-direction:column;gap:12px;";
 
   overlay.innerHTML = `
-    <div style="width:224px;height:4px;background:rgb(var(--surface-base-rgb)/0.2);border-radius:999px;overflow:hidden">
+    <div style="width:224px;height:4px;background:rgb(var(--white-rgb)/0.2);border-radius:999px;overflow:hidden">
       <div style="height:100%;width:40%;background:rgb(var(--brand-accent-rgb));border-radius:999px;animation:cxLoadingBar 1.1s ease-in-out infinite"></div>
     </div>
-    <p id="cx-loading-msg" style="font-size:12px;font-weight:500;color:rgb(var(--text-inverse-rgb)/0.8);font-family:inherit">Đang xử lý...</p>
+    <p id="cx-loading-msg" style="font-size:12px;font-weight:500;color:rgb(var(--white-rgb)/0.8);font-family:inherit">Đang xử lý...</p>
   `;
   document.body.appendChild(overlay);
 })();

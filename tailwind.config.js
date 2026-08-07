@@ -38,10 +38,10 @@ module.exports = {
       // vẫn chạy — nhét thẳng var() đặc là mất tính năng đó.
       colors: {
         "rose-pastel": {
-          50: "rgb(var(--app-rose-pastel-50-rgb) / <alpha-value>)",
-          100: "rgb(var(--app-rose-pastel-100-rgb) / <alpha-value>)",
-          200: "rgb(var(--app-rose-pastel-200-rgb) / <alpha-value>)",
-          300: "rgb(var(--app-rose-pastel-300-rgb) / <alpha-value>)",
+          50: "rgb(var(--card-cream-50-rgb) / <alpha-value>)",
+          100: "rgb(var(--surface-section-rgb) / <alpha-value>)",
+          200: "rgb(var(--surface-blossom-rgb) / <alpha-value>)",
+          300: "rgb(var(--surface-blossom-strong-rgb) / <alpha-value>)",
         },
         cream: {
           50: "rgb(var(--card-cream-50-rgb) / <alpha-value>)",
@@ -60,7 +60,7 @@ module.exports = {
       // .border-primary đọc token viền riêng (hiện trùng giá trị --primary
       // nhưng là token riêng) → giữ đúng bằng cách extend riêng borderColor.
       borderColor: {
-        primary: "var(--brand-primary-border)",
+        primary: "rgb(var(--brand-primary-rgb))",
       },
       keyframes: {
         bubbleIn: {

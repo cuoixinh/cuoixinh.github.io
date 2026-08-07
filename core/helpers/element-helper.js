@@ -202,7 +202,7 @@
         },
         color(
           C.BG,
-          "rgb(var(--surface-base-rgb))",
+          "rgb(var(--white-rgb))",
           (node) =>
             paintOf(
               node.querySelector(".cx-mp-bar") ||
@@ -220,7 +220,7 @@
         // nó trước, các mẫu khác mới rơi về nút phát.
         color(
           C.CTRL,
-          "rgb(var(--surface-base-rgb))",
+          "rgb(var(--white-rgb))",
           (node) =>
             inkOf(
               node.querySelector(".cx-mw-mini-ic") ||

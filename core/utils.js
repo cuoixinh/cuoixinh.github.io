@@ -152,7 +152,7 @@ function isPreviewMode() {
 function showPreviewAlert() {
   const toast = document.createElement("div");
   toast.className = "fixed top-5 left-1/2 -translate-x-1/2 z-[10000] px-6 py-3 rounded-lg text-sm text-white shadow-md animate-fade-in";
-  toast.style.background = "rgb(var(--shadow-soft-rgb)/0.95)";
+  toast.style.background = "rgb(var(--card-blush-300-rgb)/0.95)";
   toast.textContent = "Chức năng này không khả dụng ở chế độ xem thử";
   document.body.appendChild(toast);
 
@@ -596,7 +596,7 @@ function openFocalPointPicker(imageSource, currentFocal, callback, giftInfo) {
       <div class="flex flex-col flex-1 min-h-0 gap-2">
         <div id="focal-image-wrap" class="relative rounded-xl overflow-hidden bg-gray-100 cursor-crosshair select-none touch-none flex-1 min-h-0">
           <img id="focal-image" src="" alt="" class="w-full h-full object-contain block pointer-events-none select-none" draggable="false" />
-          <div id="focal-marker" class="absolute w-6 h-6 -ml-3 -mt-3 rounded-full border-2 border-white shadow-lg pointer-events-none" style="left:50%;top:50%;background-color:var(--primary);"></div>
+          <div id="focal-marker" class="absolute w-6 h-6 -ml-3 -mt-3 rounded-full border-2 border-white shadow-lg pointer-events-none" style="left:50%;top:50%;background-color:rgb(var(--brand-primary-rgb));"></div>
         </div>
         <p class="text-xs text-gray-500 flex-shrink-0">${hintText}</p>
       </div>
@@ -786,8 +786,8 @@ function openTimePicker(anchorEl, currentValue, callback) {
 
   const colHtml = (id, count) => `
     <div style="position:relative;flex:1;height:${COL_H}px">
-      <div style="position:absolute;left:0;right:0;top:0;height:${PAD}px;background:linear-gradient(to bottom,white,rgb(var(--surface-base-rgb)/0));z-index:2;pointer-events:none"></div>
-      <div style="position:absolute;left:0;right:0;bottom:0;height:${PAD}px;background:linear-gradient(to top,white,rgb(var(--surface-base-rgb)/0));z-index:2;pointer-events:none"></div>
+      <div style="position:absolute;left:0;right:0;top:0;height:${PAD}px;background:linear-gradient(to bottom,white,rgb(var(--white-rgb)/0));z-index:2;pointer-events:none"></div>
+      <div style="position:absolute;left:0;right:0;bottom:0;height:${PAD}px;background:linear-gradient(to top,white,rgb(var(--white-rgb)/0));z-index:2;pointer-events:none"></div>
       <div style="position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);height:${ITEM_H}px;border-top:1.5px solid rgb(var(--timeline-dot-rgb));border-bottom:1.5px solid rgb(var(--timeline-dot-rgb));border-radius:6px;background:rgb(var(--notice-bg-rgb)/0.7);z-index:1;pointer-events:none"></div>
       <div id="${id}" style="height:100%;overflow-y:scroll;scroll-snap-type:y mandatory;scrollbar-width:none;-ms-overflow-style:none">
         <div style="padding:${PAD}px 0">${makeItems(count)}</div>
@@ -796,11 +796,11 @@ function openTimePicker(anchorEl, currentValue, callback) {
 
   const popup = document.createElement('div');
   popup.id = 'tp-popup';
-  popup.style.cssText = 'position:fixed;z-index:99999;background:white;border-radius:12px;box-shadow:0 8px 24px rgb(var(--shadow-neutral-rgb)/0.15),0 2px 6px rgb(var(--shadow-neutral-rgb)/0.08);overflow:hidden;width:160px';
+  popup.style.cssText = 'position:fixed;z-index:99999;background:white;border-radius:12px;box-shadow:0 8px 24px rgb(var(--scrim-rgb)/0.15),0 2px 6px rgb(var(--scrim-rgb)/0.08);overflow:hidden;width:160px';
   popup.innerHTML = `
     <div style="display:flex;align-items:center;padding:8px 10px 0;gap:0">
       ${colHtml('tp-hours', H_COUNT)}
-      <div style="flex-shrink:0;font-size:1rem;font-weight:300;color:rgb(var(--text-separator-rgb));padding:0 3px">:</div>
+      <div style="flex-shrink:0;font-size:1rem;font-weight:300;color:rgb(var(--divider-rgb));padding:0 3px">:</div>
       ${colHtml('tp-minutes', M_COUNT)}
     </div>
     <div class="flex gap-1.5 px-2.5 pb-2.5 pt-1.5">

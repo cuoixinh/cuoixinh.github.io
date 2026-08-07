@@ -37,7 +37,7 @@ function renderTestimonials() {
         </div>
       </div>
       <div style="display:flex;gap:2px;margin-bottom:12px;">
-        ${"<i class='fas fa-star' style='font-size:10px;color:rgb(var(--rating-star-rgb));'></i>".repeat(t.rating)}
+        ${"<i class='fas fa-star' style='font-size:10px;color:rgb(var(--accent-amber-rgb));'></i>".repeat(t.rating)}
       </div>
       <p style="font-size:14px;line-height:1.65;opacity:0.7;">"${t.text}"</p>
     </div>

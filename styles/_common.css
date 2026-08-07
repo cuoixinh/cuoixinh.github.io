@@ -13,21 +13,21 @@
   @apply inline-flex cursor-pointer items-center gap-2 whitespace-nowrap
          rounded-lg border-none px-4 py-2 text-sm font-medium;
 
-  background-color: var(--btn-primary-bg);
-  color: var(--btn-primary-text);
+  background-color: rgb(var(--action-primary-rgb));
+  color: rgb(var(--white-rgb));
   transition:
     background 0.15s ease,
     box-shadow 0.15s ease;
-  box-shadow: 0 1px 3px rgb(var(--shadow-neutral-rgb) / 0.12);
+  box-shadow: 0 1px 3px rgb(var(--scrim-rgb) / 0.12);
 }
 
 .btn-pink:hover {
-  background-color: var(--btn-primary-bg-hover);
-  box-shadow: 0 2px 8px rgb(var(--shadow-action-rgb) / 0.35);
+  background-color: rgb(var(--action-primary-hover-rgb));
+  box-shadow: 0 2px 8px rgb(var(--action-primary-rgb) / 0.35);
 }
 
 .btn-pink:active {
-  background-color: var(--btn-primary-bg-active);
+  background-color: rgb(var(--action-primary-deep-rgb));
 }
 
 /* Nút "Tối ưu"/"Tạo" bằng AI — nền gradient tím→hồng (gradient giữ CSS thuần) */
@@ -36,12 +36,12 @@
   @apply inline-flex cursor-pointer items-center gap-1.5 whitespace-nowrap
          rounded-lg border-none px-3.5 py-2 text-[13px] font-medium text-white;
 
-  background: linear-gradient(135deg, var(--ai-gradient-from), var(--ai-gradient-to));
+  background: linear-gradient(135deg, rgb(var(--ai-gradient-from-rgb)), rgb(var(--ai-gradient-to-rgb)));
   transition:
     filter 0.15s ease,
     box-shadow 0.15s ease,
     opacity 0.15s ease;
-  box-shadow: 0 1px 3px rgb(var(--shadow-neutral-rgb) / 0.12);
+  box-shadow: 0 1px 3px rgb(var(--scrim-rgb) / 0.12);
 }
 
 .btn-ai:hover {
@@ -107,7 +107,7 @@
 .bg-gradient-radial {
   background: radial-gradient(
     circle at 30% 30%,
-    rgb(var(--surface-base-rgb) / 0.3) 0%,
+    rgb(var(--white-rgb) / 0.3) 0%,
     transparent 60%
   );
 }
@@ -240,13 +240,13 @@
 
   background: linear-gradient(
     90deg,
-    rgb(var(--shimmer-base-rgb)) 0%,
-    rgb(var(--shimmer-base-rgb)) 35%,
-    rgb(var(--shimmer-highlight-rgb)) 45%,
-    rgb(var(--shimmer-mid-rgb)) 50%,
-    rgb(var(--shimmer-highlight-rgb)) 55%,
-    rgb(var(--shimmer-base-rgb)) 65%,
-    rgb(var(--shimmer-base-rgb)) 100%
+    rgb(var(--neutral-warm-rgb)) 0%,
+    rgb(var(--neutral-warm-rgb)) 35%,
+    rgb(var(--card-blush-300-rgb)) 45%,
+    rgb(var(--card-blush-100-rgb)) 50%,
+    rgb(var(--card-blush-300-rgb)) 55%,
+    rgb(var(--neutral-warm-rgb)) 65%,
+    rgb(var(--neutral-warm-rgb)) 100%
   );
   background-size: 200% auto;
   -webkit-background-clip: text;
@@ -260,9 +260,9 @@
   animation: coverFadeIn 0.8s ease-out;
   background: linear-gradient(
     135deg,
-    rgb(var(--cover-bg-from-rgb)) 0%,
+    rgb(var(--card-cream-50-rgb)) 0%,
     rgb(var(--cover-bg-mid-rgb)) 50%,
-    rgb(var(--cover-bg-from-rgb)) 100%
+    rgb(var(--card-cream-50-rgb)) 100%
   );
 }
 
@@ -295,7 +295,7 @@
 /* Open button shimmer */
 
 .open-btn {
-  box-shadow: 0 4px 20px rgb(var(--shadow-soft-rgb) / 0.2);
+  box-shadow: 0 4px 20px rgb(var(--card-blush-300-rgb) / 0.2);
 }
 
 .btn-shimmer {
@@ -304,7 +304,7 @@
   background: linear-gradient(
     90deg,
     transparent,
-    rgb(var(--surface-base-rgb) / 0.6),
+    rgb(var(--white-rgb) / 0.6),
     transparent
   );
   animation: btnShimmer 2.5s ease-in-out infinite;
@@ -367,13 +367,13 @@
 
 #paymentModal *::-webkit-scrollbar-thumb,
 #paymentModal::-webkit-scrollbar-thumb {
-  background: var(--scrollbar-track);
+  background: rgb(var(--scrollbar-track-rgb));
   border-radius: 8px;
 }
 
 #paymentModal *::-webkit-scrollbar-thumb:hover,
 #paymentModal::-webkit-scrollbar-thumb:hover {
-  background: var(--scrollbar-track);
+  background: rgb(var(--scrollbar-track-rgb));
 }
 
 /* Dải cuộn ngang 1 hàng: giấu thanh cuộn và làm MỜ DẦN nội dung ở phía còn cuộn
@@ -415,7 +415,7 @@
 
 textarea {
   scrollbar-width: thin; /* Firefox */
-  scrollbar-color: var(--scrollbar-thumb) transparent;
+  scrollbar-color: rgb(var(--divider-rgb)) transparent;
 }
 
 textarea::-webkit-scrollbar {
@@ -427,12 +427,12 @@ textarea::-webkit-scrollbar-track {
 }
 
 textarea::-webkit-scrollbar-thumb {
-  background: var(--scrollbar-thumb);
+  background: rgb(var(--divider-rgb));
   border-radius: 8px;
 }
 
 textarea::-webkit-scrollbar-thumb:hover {
-  background: var(--scrollbar-thumb-hover);
+  background: rgb(var(--text-idle-rgb));
 }
 
 /* iOS Safari: prevent auto-zoom on input focus (triggered when font-size < 16px).

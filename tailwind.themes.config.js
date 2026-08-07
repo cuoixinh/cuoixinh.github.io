@@ -78,7 +78,7 @@ module.exports = {
         "color-secondary": "rgb(var(--focus-ring-rgb) / <alpha-value>)",
       },
       borderColor: {
-        primary: "var(--brand-primary-border)",
+        primary: "rgb(var(--brand-primary-rgb))",
       },
       // showToast() trong core/utils.js (dùng chung, chạy cả trên trang thiệp)
       // gắn class animate-fade-in. Config CDN cũ của theme không khai báo nên

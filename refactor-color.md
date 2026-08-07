@@ -43,22 +43,30 @@ styles/_colors.css      ← NGUỒN SỰ THẬT DUY NHẤT cho mọi màu
 **cả hai** entrypoint (`tailwind-src.css` và `themes-src.css`) → một lần khai báo, hai
 bản build cùng dùng.
 
-### 2.2 Token đặt tên theo VAI TRÒ, lưu dạng kênh RGB
+### 2.2 Mỗi mã màu — đúng MỘT tên, lưu dạng kênh RGB
 
-**Không có tầng "palette sắc độ".** Mỗi token mang đúng một vai trò trong giao diện;
-tên nói thành phần nào / bộ phận nào, không nói màu gì.
+**Không có tầng "palette sắc độ", cũng không có hai tên cho cùng một mã màu.**
+162 mã màu = 162 token. Tên nói thành phần nào / bộ phận nào, không nói màu gì.
 
 ```css
 :root {
   --brand-primary-rgb: 255 183 202;   /* hồng chủ đạo */
   --text-heading-rgb: 90 58 69;       /* chữ tiêu đề */
-  --btn-primary-bg: rgb(var(--action-primary-rgb));
-  --tooltip-bg-rgb: 17 24 39;
+  --action-primary-rgb: 244 63 94;    /* nút chính, viền ô nhập sai, đổ bóng nút */
+  --surface-inverse-rgb: 17 24 39;    /* nền tối tương phản: tooltip, nút Áp dụng */
 }
 ```
 
-Dùng: `var(--btn-primary-bg)`, hoặc pha alpha tại chỗ
-`rgb(var(--brand-primary-rgb) / .4)`.
+Chỉ có một dạng: kênh RGB. Dùng `rgb(var(--brand-primary-rgb))`, cần trong suốt thì
+`rgb(var(--brand-primary-rgb) / .4)`. Không còn cặp `--x` / `--x-rgb` song song.
+
+Ngoại lệ duy nhất là **token ghép sẵn** (mục 14 trong file) — thứ không phải một mã
+màu đơn: gradient viết sẵn và vài giá trị đã pha alpha cố định
+(`--music-widget-bg`, `--landing-cta-gradient`…).
+
+Khi một mã màu phục vụ nhiều việc, tên phải bao được tất cả:
+`--action-primary-rgb` dùng cho nút chính, viền ô nhập sai, ngày được chọn trong
+lịch và đổ bóng nút — đổi nó là đổi cả bộ, đúng như mong đợi.
 
 Vì sao lưu kênh chứ không lưu `#hex`: Tailwind cần dạng
 `rgb(var(--x) / <alpha-value>)` thì `bg-primary/50`, `text-vintage-brown/70` mới chạy —
@@ -69,12 +77,12 @@ nếu nhét `#hex` vào config thì mất alpha modifier.
 
 | Nơi dùng                   | Viết thế nào                                  |
 | -------------------------- | --------------------------------------------- |
-| CSS thường                 | `color: var(--text-heading);`                 |
-| CSS cần alpha              | `rgb(var(--pink-400-rgb) / 0.4)`              |
-| Tailwind config            | `"rgb(var(--pink-400-rgb) / <alpha-value>)"`  |
-| Class arbitrary trong HTML | `bg-[var(--card-bg)]`, `text-[color:var(--text-heading)]` |
-| Arbitrary + alpha          | `bg-[rgb(var(--pink-400-rgb)/0.25)]` (không có dấu cách) |
-| `style=""` inline / JS     | `style="color:var(--text-heading)"`           |
+| CSS thường                 | `color: rgb(var(--text-heading-rgb));`        |
+| CSS cần alpha              | `rgb(var(--brand-primary-rgb) / 0.4)`         |
+| Tailwind config            | `"rgb(var(--brand-primary-rgb) / <alpha-value>)"` |
+| Class arbitrary trong HTML | `bg-[rgb(var(--surface-panel-rgb))]`          |
+| Arbitrary + alpha          | `bg-[rgb(var(--brand-primary-rgb)/0.25)]` (không có dấu cách) |
+| `style=""` inline / JS     | `style="color:rgb(var(--text-heading-rgb))"`  |
 
 ### 2.4 Quy ước đặt tên (tiếng Anh, theo chức năng)
 
@@ -85,9 +93,8 @@ nếu nhét `#hex` vào config thì mất alpha modifier.
    state-error-text       chat-typing-dot     landing-cta-btn-from
 ```
 
-Cấm đặt tên theo sắc độ (`--rose-400`, `--gray-100`). Cùng một giá trị mà hai nơi
-dùng cho hai việc khác nhau thì tách thành hai token — để sửa "nút xoá" không kéo
-theo "viền ô nhập sai".
+Cấm đặt tên theo sắc độ (`--rose-400`, `--gray-100`). Cũng cấm đặt hai tên cho cùng
+một mã màu — trước khi thêm token mới phải kiểm tra mã màu đó đã có tên chưa.
 
 Các nhóm trong file:
 
@@ -97,13 +104,13 @@ Các nhóm trong file:
 4. `Trạng thái` — success / error / warning / info / invalid
 5. `Nút & điều khiển`
 6. `Lớp phủ & đổ bóng`
-7. `Thành phần` — nút, AI, trình phát nhạc, tooltip, trình chỉnh thiệp, bộ chọn
-   ngày, xem trước thiệp, landing, chat, dòng thời gian, shimmer, màn bìa…
-8. `Token dùng thẳng` — bản `rgb()` sẵn cho chỗ không cần alpha
-9. `Thương hiệu bên thứ ba` — Facebook / Messenger / Zalo / WhatsApp / Google
-10. `Bảng màu riêng của từng theme thiệp`
+7. `Nhóm AI` — nút Tối ưu, modal gợi ý, ô nhập giọng nói
+8. `Trình phát nhạc` · 9. `Trình chỉnh thiệp` · 10. `Xem trước thiệp` · 11. `Landing`
+12. `Thương hiệu bên thứ ba` — Facebook / Messenger / Zalo / WhatsApp / Google
+13. `Bảng màu riêng của từng theme thiệp`
+14. `Token ghép sẵn` — gradient & giá trị đã pha alpha
 
-**Ngoại lệ có chủ ý:** nhóm 10 (`--card-gold-300-rgb`, `--card-vintage-brown-rgb`,
+**Ngoại lệ có chủ ý:** nhóm 13 (`--card-gold-300-rgb`, `--card-vintage-brown-rgb`,
 `--app-rose-pastel-100-rgb`) giữ tên theo thang màu, vì chính nó là **tên class
 Tailwind** dùng trong markup thiệp (`bg-gold-300`, `text-vintage-brown/70`). Đổi tên
 biến ở đây sẽ lệch với tên class mà người viết theme đang dùng. Đây cũng là bảng màu
@@ -143,6 +150,7 @@ biến ở đây sẽ lệch với tên class mà người viết theme đang d�
 | `router.html`                                                     | Trang chuyển hướng độc lập, KHÔNG nạp `build.css` → `var()` không resolve được.        |
 | `#000` trong `mask-image` (`styles/_common.css`)                  | Là mốc độ sáng của mask, không phải màu giao diện.                                     |
 | SVG placeholder trong `core/utils.js` (`createPlaceholderSVG`)    | Nhúng dạng `data:image/svg+xml` → biến CSS của trang không áp vào được.                |
+| `--primary` khai trong `<style>` của `theme-template/index.html`  | Biến **cục bộ của riêng trang đó** (hồng đậm nhấn), trùng tên nhưng không phải token toàn cục. |
 
 ---
 

@@ -86,7 +86,7 @@ function renderTimeline(items, side, partyDate, ceremonyDate, ceremonyName) {
           <span class="text-[11px] uppercase tracking-widest text-stone-custom-400 font-inter">${escapeHtml(label)}</span>
           ${dateLabel ? `<span class="text-[10px] text-stone-custom-400 font-inter">· ${escapeHtml(dateLabel)}</span>` : ""}
         </div>
-        <div class="flex flex-col border-l-2 border-[rgb(var(--timeline-line-rgb))] ml-[5px]">
+        <div class="flex flex-col border-l-2 border-[rgb(var(--surface-blossom-rgb))] ml-[5px]">
           ${items}
         </div>
       </div>`;
@@ -244,7 +244,7 @@ const CAROUSEL_STYLES = {
     opacity: "1",
     transform: "none",
     zIndex: "10",
-    boxShadow: "0 20px 40px rgb(var(--shadow-soft-rgb)/0.3)",
+    boxShadow: "0 20px 40px rgb(var(--card-blush-300-rgb)/0.3)",
     visibility: "visible",
   },
   side: {
@@ -253,7 +253,7 @@ const CAROUSEL_STYLES = {
     opacity: "0.55",
     transform: "none",
     zIndex: "5",
-    boxShadow: "0 4px 12px rgb(var(--shadow-soft-rgb)/0.1)",
+    boxShadow: "0 4px 12px rgb(var(--card-blush-300-rgb)/0.1)",
     visibility: "visible",
   },
   hidden: {
@@ -289,7 +289,7 @@ function updateCarousel() {
   });
 
   dots.forEach((dot, i) => {
-    dot.style.background = i === current ? "rgb(var(--shadow-soft-rgb))" : "rgb(var(--card-blush-100-rgb))";
+    dot.style.background = i === current ? "rgb(var(--card-blush-300-rgb))" : "rgb(var(--card-blush-100-rgb))";
     dot.style.width = i === current ? "16px" : "6px";
   });
 }

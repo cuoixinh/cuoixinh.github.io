@@ -117,7 +117,7 @@ function updateDots() {
     .map(
       (_, i) => `
     <button onclick="setActiveCard(${i})" class="carousel-dot"
-      style="width:${i === carouselActiveIndex ? "20px" : "8px"};background:${i === carouselActiveIndex ? "var(--brand-primary)" : "rgb(var(--scrim-rgb)/0.2)"};"
+      style="width:${i === carouselActiveIndex ? "20px" : "8px"};background:${i === carouselActiveIndex ? "rgb(var(--brand-primary-rgb))" : "rgb(var(--scrim-rgb)/0.2)"};"
       aria-label="Slide ${i + 1}"></button>
   `,
     )

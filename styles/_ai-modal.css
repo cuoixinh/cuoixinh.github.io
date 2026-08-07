@@ -53,7 +53,7 @@
   @apply mx-auto flex h-[52px] w-[52px] items-center justify-center
          rounded-[18px];
 
-  background: linear-gradient(135deg, var(--ai-soft-from), var(--ai-soft-to));
+  background: linear-gradient(135deg, rgb(var(--ai-soft-from-rgb)), rgb(var(--ai-soft-to-rgb)));
   box-shadow: 0 10px 25px rgb(var(--ai-glow-rgb) / 0.3);
 }
 
@@ -112,11 +112,11 @@
     linear-gradient(
         110deg,
         transparent 42%,
-        rgb(var(--surface-base-rgb) / 0.6) 50%,
+        rgb(var(--white-rgb) / 0.6) 50%,
         transparent 58%
       )
       no-repeat,
-    linear-gradient(135deg, var(--ai-soft-from), var(--ai-soft-to)) no-repeat;
+    linear-gradient(135deg, rgb(var(--ai-soft-from-rgb)), rgb(var(--ai-soft-to-rgb))) no-repeat;
   background-size:
     200% 100%,
     100% 100%;
@@ -249,11 +249,11 @@
 
   background: linear-gradient(
     135deg,
-    var(--ai-suggest-from) 0%,
-    var(--ai-suggest-to) 100%
+    rgb(var(--surface-tint-warm-rgb)) 0%,
+    rgb(var(--ai-suggest-to-rgb)) 100%
   );
-  border: 1.5px solid var(--ai-suggest-border);
-  box-shadow: 0 4px 12px -4px rgb(var(--shadow-action-rgb) / 0.28);
+  border: 1.5px solid rgb(var(--notice-border-rgb));
+  box-shadow: 0 4px 12px -4px rgb(var(--action-primary-rgb) / 0.28);
   transition:
     transform 0.15s ease,
     box-shadow 0.15s ease,
@@ -266,16 +266,16 @@
 
   background: linear-gradient(
     135deg,
-    var(--ai-suggest-to) 0%,
-    var(--ai-suggest-border) 100%
+    rgb(var(--ai-suggest-to-rgb)) 0%,
+    rgb(var(--notice-border-rgb)) 100%
   );
-  box-shadow: 0 7px 18px -4px rgb(var(--shadow-action-rgb) / 0.42);
+  box-shadow: 0 7px 18px -4px rgb(var(--action-primary-rgb) / 0.42);
   transform: translateY(-1px);
 }
 
 .ai-back-btn:active {
   transform: translateY(0);
-  box-shadow: 0 3px 9px -4px rgb(var(--shadow-action-rgb) / 0.35);
+  box-shadow: 0 3px 9px -4px rgb(var(--action-primary-rgb) / 0.35);
 }
 
 .ai-back-btn svg {
@@ -363,7 +363,7 @@ textarea.ai-inp {
 }
 
 .ai-inp::placeholder {
-  @apply text-[color:var(--text-placeholder)];
+  @apply text-[color:rgb(var(--text-placeholder-rgb))];
 }
 
 /* Ô input thường có nút "x" xoá nhanh (tên cô dâu/chú rể) */
@@ -421,7 +421,7 @@ textarea.ai-inp {
 }
 
 .ai-cselect-label.is-placeholder {
-  @apply text-[color:var(--text-placeholder)];
+  @apply text-[color:rgb(var(--text-placeholder-rgb))];
 }
 
 .ai-cselect-btn.open {
@@ -434,7 +434,7 @@ textarea.ai-inp {
   @apply absolute left-0 right-0 top-[calc(100%+4px)] z-50 max-h-60
          overflow-y-auto rounded-xl border border-gray-200 bg-white p-1;
 
-  box-shadow: 0 10px 25px -5px rgb(var(--shadow-neutral-rgb) / 0.12);
+  box-shadow: 0 10px 25px -5px rgb(var(--scrim-rgb) / 0.12);
 }
 
 .ai-cselect-opt {
@@ -466,12 +466,12 @@ textarea.ai-inp {
 
 /* Biến thể "Nói" (mic) — tông tím/xanh khớp icon AI, phân biệt với "Chèn mẫu" */
 .ai-chip-mic {
-  @apply border-[color:var(--ai-chip-border)] bg-[color:var(--ai-chip-bg)]
-         text-[color:var(--ai-chip-text)];
+  @apply border-[color:rgb(var(--ai-chip-border-rgb))] bg-[color:rgb(var(--ai-chip-bg-rgb))]
+         text-[color:rgb(var(--ai-chip-text-rgb))];
 }
 
 .ai-chip-mic:hover {
-  @apply bg-[color:var(--ai-chip-bg-hover)];
+  @apply bg-[color:rgb(var(--ai-chip-bg-hover-rgb))];
 }
 
 /* Nút "x" xoá nhanh của textarea nay do <x-textarea> tự dựng & tự style
@@ -483,9 +483,9 @@ textarea.ai-inp {
 
   background: linear-gradient(
     90deg,
-    var(--ai-skeleton-base) 25%,
-    var(--ai-skeleton-shine) 37%,
-    var(--ai-skeleton-base) 63%
+    rgb(var(--ai-skeleton-base-rgb)) 25%,
+    rgb(var(--ai-skeleton-shine-rgb)) 37%,
+    rgb(var(--ai-skeleton-base-rgb)) 63%
   );
   background-size: 200% 100%;
   animation: ai-shimmer 1.4s ease-in-out infinite;
@@ -537,7 +537,7 @@ textarea.ai-inp {
 
 /* Sửa kết quả AI: ô hiển thị + bút chì → bấm để bind sang control tương ứng */
 .ai-disp-empty {
-  @apply italic text-[color:var(--text-placeholder)];
+  @apply italic text-[color:rgb(var(--text-placeholder-rgb))];
 }
 
 .ai-edit-live {
@@ -581,7 +581,7 @@ textarea.ai-inp {
 
 .ai-edit-ico {
   @apply inline-flex h-[18px] w-[18px] flex-shrink-0 items-center
-         justify-center rounded-md text-[color:var(--ai-icon-muted)];
+         justify-center rounded-md text-[color:rgb(var(--ai-icon-muted-rgb))];
 
   transition:
     color 0.12s ease,
@@ -609,8 +609,8 @@ textarea.ai-inp {
 
 /* Block/card gom nhóm: "Thông tin cô dâu/chú rể" và "Chuyện tình yêu" tách bạch */
 .ai-block {
-  @apply rounded-2xl border border-[color:var(--ai-card-border)]
-         bg-[color:var(--ai-card-bg)] px-3.5 pb-4 pt-3.5;
+  @apply rounded-2xl border border-[color:rgb(var(--border-subtle-rgb))]
+         bg-[color:rgb(var(--ai-card-bg-rgb))] px-3.5 pb-4 pt-3.5;
 }
 
 .ai-block-head {
@@ -648,8 +648,8 @@ textarea#ai-info {
 
 .ai-fld {
   @apply flex min-w-0 flex-col gap-0.5 rounded-[10px]
-         border border-[color:var(--ai-item-border)]
-         bg-[color:var(--ai-item-bg)] px-2.5 py-2;
+         border border-[color:rgb(var(--ai-skeleton-base-rgb))]
+         bg-[color:rgb(var(--surface-readonly-rgb))] px-2.5 py-2;
 }
 
 .ai-fld.full {
