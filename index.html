@@ -136,6 +136,10 @@
         );
       "
     >
+      <!-- Nền thiệp cưới (SVG do admin sinh) — js/hero-background.js gán ảnh.
+           Chưa có nền thì lớp này trong suốt, hero giữ gradient sẵn có. -->
+      <div id="hero-bg" class="hero-bg" aria-hidden="true"></div>
+
       <!-- Floating petals background -->
       <div aria-hidden="true">
         <div
@@ -221,7 +225,7 @@
         ></div>
       </div>
 
-      <div class="max-w-6xl mx-auto px-5">
+      <div class="max-w-6xl mx-auto px-5 relative z-10">
         <div
           class="flex flex-col md:flex-row items-center gap-12 py-4 md:py-16"
         >
@@ -813,6 +817,7 @@
     <script src="js/scroll-fade.js"></script>
     <script src="core/payment.js"></script>
 
+    <script src="js/hero-background.js"></script>
     <script src="js/nav-autohide.js"></script>
   </body>
 </html>

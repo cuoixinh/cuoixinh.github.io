@@ -125,6 +125,8 @@ Bắt buộc để chạy đúng với tab Giao diện:
   nên không bao giờ lệch desktop một nền, mobile một nền.
 - `manifest.json` là **nơi duy nhất** web đọc được danh sách nền (GitHub Pages không cho liệt kê
   thư mục qua HTTP). Mọi thao tác ghi/xoá phải gọi `bgSyncManifest()` sau đó.
+  Bên đọc hiện có: `js/hero-background.js` (màn mở đầu trang chủ) — chưa có nền thì im lặng
+  bỏ qua, hero giữ nguyên gradient sẵn có.
 - Trùng tên là **ghi đè** (có hỏi lại) — khác tab "Ảnh mẫu" vốn tự đánh số để không bao giờ ghi đè.
 - Thêm chỗ dùng nền mới: thêm **một mục** vào `BG_SLOTS` (`admin/js/06-background-ai.js`), hết.
 - Prompt bind sẵn theo từng chỗ dùng, admin sửa ngay trên textarea (nhớ vào `localStorage`);

@@ -356,6 +356,32 @@ html.cx-landing {
 
 /* ═══════════ Từ styles/index.css (trang chủ) ═══════════ */
 
+/* Nền thiệp cưới ở màn mở đầu — ảnh SVG do tab "Ảnh nền" của admin sinh ra,
+   đường dẫn do js/hero-background.js gán vào --hero-bg-url.
+   Chưa có nền thì biến rỗng → lớp này trong suốt, hero giữ nguyên gradient cũ.
+   Tắt dần ở đáy bằng mask (không phải gradient màu) nên không phụ thuộc màu nền
+   phía sau; #000 ở đây là mốc ĐỘ SÁNG của mask, không phải màu giao diện. */
+
+.hero-bg {
+  @apply pointer-events-none absolute inset-0;
+
+  z-index: 0;
+  background-image: var(--hero-bg-url);
+  background-size: cover;
+  background-position: center top;
+  background-repeat: no-repeat;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 55%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 55%, transparent 100%);
+}
+
+/* Chỉ hiện khi đã nạp được ảnh — tránh nháy một lớp trống lúc đang tải. */
+
+.hero-bg.is-on {
+  opacity: 0.3;
+}
+
 .hero-petal {
   @apply pointer-events-none absolute;
   border-radius: 50% 10% 50% 10%;
