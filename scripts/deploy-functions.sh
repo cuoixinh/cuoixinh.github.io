@@ -20,7 +20,6 @@ VERIFY=(
 NO_VERIFY=(
   guest-handler      # core/dal/guest-dal.js: khách chưa đăng nhập không gửi header
   payos-webhook      # PayOS gọi từ ngoài, chỉ ký HMAC
-  ai-background      # chặn bằng x-admin-token
 )
 
 for fn in "${VERIFY[@]}"; do

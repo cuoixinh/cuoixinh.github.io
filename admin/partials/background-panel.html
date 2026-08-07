@@ -1,9 +1,11 @@
-<!-- Tab Content: Ảnh nền (sinh bằng AI) -->
+<!-- Tab Content: Ảnh nền (tự viết HTML rồi chụp) -->
 <div id="content-background" class="hidden">
   <div class="bg-white rounded-2xl shadow-lg overflow-hidden p-4 sm:p-6">
     <h2 class="text-lg sm:text-xl font-semibold text-gray-800 mb-1">Ảnh nền</h2>
     <p class="text-sm text-gray-500 mb-5">
-      Nhờ AI vẽ ảnh nền SVG rồi ghi thẳng vào thư mục <code>assets/background/…</code> của dự án.
+      Dán mã HTML của bạn vào, bấm Run để xem, rồi chụp lại thành ảnh nền ghi vào
+      <code>assets/background/…</code>. Nút "Lấy đường dẫn ảnh" chỉ để chép nhanh đường dẫn
+      của ảnh có sẵn trong <code>assets/</code> vào mã.
     </p>
 
     <!-- Trình duyệt không có File System Access API (Safari, Firefox) -->
@@ -57,43 +59,108 @@
           </div>
         </div>
 
-        <!-- Prompt: đổ sẵn từ mẫu, sửa được, tự nhớ bản đã sửa -->
-        <div class="mb-4">
+        <!-- Bảng tra đường dẫn: chỉ để chép vào mã, KHÔNG ảnh hưởng tới việc chụp -->
+        <div class="mb-5">
           <div class="flex items-center justify-between mb-1">
             <label class="block text-xs font-medium text-gray-600">
-              Prompt gửi cho AI
-              <span class="font-normal text-gray-400">— sửa thoải mái, tự lưu lại</span>
+              Đường dẫn ảnh
+              <span id="bg-photo-count" class="font-normal text-gray-400"></span>
             </label>
-            <button
-              type="button"
-              onclick="resetBackgroundPrompt()"
-              class="text-xs text-gray-500 underline hover:text-gray-700"
-            >
-              Khôi phục mẫu gốc
-            </button>
+            <div class="flex items-center gap-3">
+              <button
+                id="bg-copy-all-btn"
+                type="button"
+                onclick="bgCopyAllPaths()"
+                class="hidden text-xs text-gray-500 underline hover:text-gray-700"
+              >
+                Chép tất cả
+              </button>
+              <button
+                type="button"
+                onclick="bgPickPhotos()"
+                class="text-xs text-rose-500 underline hover:text-rose-600"
+              >
+                Lấy đường dẫn ảnh
+              </button>
+            </div>
           </div>
-          <textarea
-            id="bg-prompt"
-            rows="10"
-            oninput="onBackgroundPromptInput()"
-            class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm font-mono leading-relaxed"
-          ></textarea>
-          <p class="text-xs text-gray-500 mt-1">
-            Khổ ảnh và các ràng buộc kỹ thuật (chỉ trả SVG, cấm script/ảnh ngoài…) do máy chủ
-            tự thêm — ở đây chỉ cần tả phần mỹ thuật.
+          <div id="bg-photo-list" class="grid grid-cols-2 lg:grid-cols-3 gap-2"></div>
+          <p id="bg-photo-empty" class="text-xs text-gray-500 mt-1">
+            Chọn ảnh trong <code>assets/</code> để lấy đường dẫn dùng được trên web. Không bắt
+            buộc — mã của bạn trỏ thẳng đường dẫn nào thì lúc chụp vẫn lấy đúng ảnh đó.
           </p>
         </div>
 
-        <div class="flex flex-wrap items-center gap-3 mb-5">
-          <button id="bg-generate-btn" type="button" onclick="generateBackground()" class="btn-ai">
-            Tạo ảnh nền bằng AI
-          </button>
-          <span id="bg-generate-status" class="text-xs text-gray-500"></span>
+        <!-- Soạn mã: dán HTML → Run xem trong iframe → ưng thì chụp thành ảnh -->
+        <div id="bg-editor-wrap" class="mb-6">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <label class="block text-xs font-medium text-gray-600">
+                  Mã HTML
+                  <span class="font-normal text-gray-400">— dán mã của bạn vào đây</span>
+                </label>
+                <button
+                  type="button"
+                  onclick="bgRunPreview()"
+                  class="inline-flex items-center gap-1 rounded-md bg-gray-800 px-2.5 py-1 text-xs font-medium text-white hover:bg-gray-700"
+                >
+                  ▶ Run
+                </button>
+              </div>
+              <x-textarea
+                id="bg-html-source"
+                bare
+                no-clear
+                height="420px"
+                input-class="w-full px-3 py-2 border border-gray-200 rounded-lg text-[11px] font-mono leading-relaxed text-gray-800 bg-white outline-none focus:ring-2 focus:ring-rose-500/30 resize-none"
+              ></x-textarea>
+            </div>
+
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <span class="block text-xs font-medium text-gray-600">Xem trước</span>
+                <span id="bg-preview-scale" class="text-[11px] text-gray-400"></span>
+              </div>
+              <!-- Khung bám tỉ lệ khổ đang chọn; iframe bên trong render ở kích thước
+                   THẬT rồi thu nhỏ bằng transform để không phải chỉnh lại CSS trong mã. -->
+              <div
+                id="bg-iframe-box"
+                class="rounded-xl border border-gray-200 overflow-hidden bg-[rgb(var(--checkerboard-rgb))] relative"
+              >
+                <iframe
+                  id="bg-iframe"
+                  sandbox=""
+                  title="Xem trước thiết kế"
+                  class="block border-0 origin-top-left"
+                ></iframe>
+              </div>
+              <p class="text-xs text-gray-500 mt-1">
+                Ảnh nào khung này tải được thì lúc chụp cũng nhúng đúng ảnh đó. Xem lại ảnh
+                cuối ở dưới trước khi lưu.
+              </p>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-3 mt-3">
+            <button
+              id="bg-capture-btn"
+              type="button"
+              onclick="captureBackground()"
+              class="btn-pink"
+            >
+              Chụp thành ảnh nền
+            </button>
+            <span id="bg-capture-status" class="text-xs text-gray-500"></span>
+          </div>
         </div>
 
-        <!-- Xem trước + lưu -->
+        <!-- Ảnh đã chụp + lưu -->
         <div id="bg-preview-wrap" class="hidden mb-6">
-          <div class="text-xs font-medium text-gray-600 mb-1">Xem trước</div>
+          <div class="text-xs font-medium text-gray-600 mb-1">
+            Ảnh nền đã chụp
+            <span class="font-normal text-gray-400">— đây đúng là file sẽ được lưu</span>
+          </div>
           <!-- Chặn chiều cao: nền mobile là khổ dọc 1080×1920, để h-auto thì
                khung xem trước cao gấp đôi màn hình. -->
           <div

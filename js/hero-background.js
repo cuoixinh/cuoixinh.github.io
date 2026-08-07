@@ -1,8 +1,8 @@
 // Nền thiệp cưới cho màn mở đầu trang chủ (#hero).
 //
-// Ảnh là file SVG tĩnh trong assets/background/started/, do tab "Ảnh nền" của
-// trang quản trị sinh ra. GitHub Pages không cho liệt kê thư mục qua HTTP nên
-// danh sách chỉ đọc được từ manifest.json.
+// Ảnh là file WebP tĩnh trong assets/background/started/, do tab "Ảnh nền" của
+// trang quản trị chụp từ mã HTML mà AI dựng. GitHub Pages không cho liệt kê thư
+// mục qua HTTP nên danh sách chỉ đọc được từ manifest.json.
 //
 // Chọn nền: lấy BỘ mới nhất (updated_at), rồi mới chọn biến thể hợp khổ màn
 // hình. Chọn theo bộ nên không bao giờ desktop một nền, mobile một nền. Bộ mới

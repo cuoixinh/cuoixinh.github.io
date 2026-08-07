@@ -16,9 +16,6 @@ const CONFIG = {
       "https://lcobawmkywtxhpezndsh.supabase.co/functions/v1/guest-handler",
     aiInvitationUrl:
       "https://lcobawmkywtxhpezndsh.supabase.co/functions/v1/ai-invitation",
-    // Sinh ảnh nền SVG — CHỈ quản trị gọi được (chặn bằng x-admin-token).
-    aiBackgroundUrl:
-      "https://lcobawmkywtxhpezndsh.supabase.co/functions/v1/ai-background",
     storageUrl:
       "https://lcobawmkywtxhpezndsh.supabase.co/storage/v1/object/public/wedding-images",
   },

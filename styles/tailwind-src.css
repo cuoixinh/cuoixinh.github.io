@@ -356,7 +356,7 @@ html.cx-landing {
 
 /* ═══════════ Từ styles/index.css (trang chủ) ═══════════ */
 
-/* Nền thiệp cưới ở màn mở đầu — ảnh SVG do tab "Ảnh nền" của admin sinh ra,
+/* Nền thiệp cưới ở màn mở đầu — ảnh WebP do tab "Ảnh nền" của admin chụp ra,
    đường dẫn do js/hero-background.js gán vào --hero-bg-url.
    Chưa có nền thì biến rỗng → lớp này trong suốt, hero giữ nguyên gradient cũ.
    Tắt dần ở đáy bằng mask (không phải gradient màu) nên không phụ thuộc màu nền
