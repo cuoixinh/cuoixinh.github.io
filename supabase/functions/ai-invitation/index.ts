@@ -9,21 +9,24 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { withAxiom, type Logger } from '../_shared/axiom.ts'
+// Tầng gọi model + CORS dùng chung với ai-background (xem _shared/ai-provider.ts).
+import {
+  GEMINI_BASE,
+  GEMINI_MODEL,
+  REQ_TIMEOUT_MS,
+  callGroq,
+  corsHeaders,
+  errMsg,
+  generateWithFallback,
+  getGeminiKeys,
+  json,
+  withTimeout,
+} from '../_shared/ai-provider.ts'
 
 // ── Cấu hình ────────────────────────────────────────────────────────────────
-const ALLOWED_ORIGINS = [
-  'https://cuoixinh.com',
-  'https://www.cuoixinh.com',
-  'https://cuoixinh.github.io',
-  'http://localhost:5500',
-  'http://127.0.0.1:5500',
-  'http://localhost:3000',
-  'https://urban-train-4j44q69x76vv3jv99-5500.app.github.dev'
-]
 
 const DAILY_LIMIT      = 15      // số lần gọi AI tối đa / user đã đăng nhập / ngày
 const ANON_DAILY_LIMIT = 5       // số lần gọi AI tối đa / IP (khách chưa đăng nhập) / ngày
-const REQ_TIMEOUT_MS   = 25000   // timeout mỗi lần gọi provider
 const MAX_STORY_LOVE_LEN = 1500  // textarea "chuyện tình" (nguyên văn, khớp maxlength client)
 const MAX_INFO_LEN     = 2500    // textarea "thông tin cá nhân" (dump tự do)
 const MAX_LOVE_ITEMS   = 10     // khớp core/config.js → maxLoveStoryItems (cap cứng khi áp vào thiệp)
@@ -47,33 +50,9 @@ const FIELD_SPECS: Record<string, number> = {
 }
 const VALID_TONES      = ['romantic', 'traditional', 'humorous', 'poetic', 'modern', 'luxury', 'cute', 'vintage']
 
-const GEMINI_MODEL = 'gemini-2.5-flash'
-const GROQ_MODEL   = 'llama-3.3-70b-versatile'
 
 // ── CORS ─────────────────────────────────────────────────────────────────────
 // Cho phép: origin nằm trong allowlist, hoặc bất kỳ localhost/127.0.0.1 (mọi cổng, để dev).
-function isAllowedOrigin(origin: string): boolean {
-  if (ALLOWED_ORIGINS.includes(origin)) return true
-  return /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)
-}
-
-function corsHeaders(origin: string | null) {
-  const allow = origin && isAllowedOrigin(origin) ? origin : ALLOWED_ORIGINS[0]
-  return {
-    'Access-Control-Allow-Origin': allow,
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Vary': 'Origin',
-  }
-}
-
-function json(data: unknown, status: number, origin: string | null) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { ...corsHeaders(origin), 'Content-Type': 'application/json' },
-  })
-}
-
 // ── Chuẩn hoá input ──────────────────────────────────────────────────────────
 function clampStr(v: unknown, max: number): string {
   return String(v ?? '').replace(/\s+/g, ' ').trim().slice(0, max)
@@ -364,8 +343,6 @@ const RESPONSE_SCHEMA = {
 }
 
 // ── Cấu hình gọi provider (gom 1 chỗ cho dễ chỉnh) ───────────────────────────
-const GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta/models'
-const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions'
 
 // Ngân sách "suy nghĩ" của Gemini 2.5 Flash — model bật thinking mặc định và hay
 // tiêu vài nghìn token trước khi trả lời, đó là phần chờ lâu nhất. Output ở đây đã
@@ -402,126 +379,6 @@ const GROQ_SYS_TEXT =
   'Bạn là trợ lý biên tập tiếng Việt. Chỉ trả về DUY NHẤT đoạn văn bản đã tối ưu, KHÔNG giải thích, KHÔNG markdown, KHÔNG bao ngoặc kép.'
 const GROQ_SYS_LOVE =
   'Bạn trả về DUY NHẤT một object JSON hợp lệ dạng {"items":[{"date":"","title":"","content":""}, ...]}, không markdown. Tuân thủ mọi quy tắc trong phần hướng dẫn của người dùng.'
-
-// Rút gọn message lỗi cho log. (Kiểu log dùng chung `Logger` từ _shared/axiom.ts.)
-function errMsg(e: unknown): string {
-  return e instanceof Error ? e.message : String(e)
-}
-
-// ── Gọi provider ─────────────────────────────────────────────────────────────
-function withTimeout(ms: number) {
-  const ctrl = new AbortController()
-  const id = setTimeout(() => ctrl.abort(), ms)
-  return { signal: ctrl.signal, clear: () => clearTimeout(id) }
-}
-
-// Đọc danh sách key Gemini để xoay vòng.
-// Hỗ trợ cả GEMINI_API_KEYS (nhiều key, phân tách bằng dấu chấm phẩy ";") lẫn GEMINI_API_KEY (1 key).
-function getGeminiKeys(): string[] {
-  const multi = Deno.env.get('GEMINI_API_KEYS') ?? ''
-  const single = Deno.env.get('GEMINI_API_KEY') ?? ''
-  const keys = [...multi.split(';'), single]
-    .map((k) => k.trim())
-    .filter(Boolean)
-  return [...new Set(keys)] // loại trùng
-}
-
-// Gọi Gemini generateContent với generationConfig tuỳ tác vụ (GEN_CFG_*).
-async function callGemini(prompt: string, apiKey: string, genConfig: Record<string, unknown>): Promise<string> {
-  const t = withTimeout(REQ_TIMEOUT_MS)
-  try {
-    const res = await fetch(`${GEMINI_BASE}/${GEMINI_MODEL}:generateContent?key=${apiKey}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      signal: t.signal,
-      body: JSON.stringify({
-        contents: [{ role: 'user', parts: [{ text: prompt }] }],
-        generationConfig: genConfig,
-      }),
-    })
-    if (!res.ok) throw new Error(`gemini ${res.status}`)
-    const data = await res.json()
-    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text
-    if (!text) throw new Error('gemini empty')
-    return text
-  } finally {
-    t.clear()
-  }
-}
-
-// Thử lần lượt từng key Gemini; lỗi/hết quota (429) thì xoay sang key kế tiếp.
-// Bắt đầu từ vị trí ngẫu nhiên để rải tải giữa các key.
-async function callGeminiRotating(prompt: string, keys: string[], genConfig: Record<string, unknown>): Promise<string> {
-  const n = keys.length
-  const start = Math.floor(Math.random() * n)
-  let lastErr: unknown = null
-  for (let i = 0; i < n; i++) {
-    const key = keys[(start + i) % n]
-    try {
-      return await callGemini(prompt, key, genConfig)
-    } catch (e) {
-      lastErr = e
-      console.error(`Gemini key #${(start + i) % n} failed:`, errMsg(e))
-    }
-  }
-  throw lastErr ?? new Error('gemini all keys failed')
-}
-
-// Gọi Groq (fallback) — system tuỳ tác vụ (GROQ_SYS_*); jsonMode bật response_format json_object.
-async function callGroq(prompt: string, apiKey: string, opts: { system: string; jsonMode?: boolean }): Promise<string> {
-  const t = withTimeout(REQ_TIMEOUT_MS)
-  try {
-    const payload: Record<string, unknown> = {
-      model: GROQ_MODEL,
-      temperature: 0.9,
-      messages: [
-        { role: 'system', content: opts.system },
-        { role: 'user', content: prompt },
-      ],
-    }
-    if (opts.jsonMode) payload.response_format = { type: 'json_object' }
-    const res = await fetch(GROQ_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
-      signal: t.signal,
-      body: JSON.stringify(payload),
-    })
-    if (!res.ok) throw new Error(`groq ${res.status}`)
-    const data = await res.json()
-    const text = data?.choices?.[0]?.message?.content
-    if (!text) throw new Error('groq empty')
-    return text
-  } finally {
-    t.clear()
-  }
-}
-
-// HÀM CHUNG cho MỌI tác vụ non-stream: Gemini (xoay vòng key) → fallback Groq.
-// Trả { raw, provider } hoặc null nếu cả hai provider đều hỏng.
-async function generateWithFallback(
-  prompt: string,
-  cfg: { gemini: Record<string, unknown>; groq: { system: string; jsonMode?: boolean } },
-  log: Logger,
-  tag: string,
-): Promise<{ raw: string; provider: string } | null> {
-  const keys = getGeminiKeys()
-  if (keys.length) {
-    try {
-      return { raw: await callGeminiRotating(prompt, keys, cfg.gemini), provider: 'gemini' }
-    } catch (e) {
-      log.warn(`ai.${tag}_gemini_failed`, { error: errMsg(e) })
-    }
-  }
-  const groqKey = Deno.env.get('GROQ_API_KEY')
-  if (groqKey) {
-    try {
-      return { raw: await callGroq(prompt, groqKey, cfg.groq), provider: 'groq' }
-    } catch (e) {
-      log.warn(`ai.${tag}_groq_failed`, { error: errMsg(e) })
-    }
-  }
-  return null
-}
 
 // Parse + clamp danh sách mốc chuyện tình (chấp nhận mảng thẳng hoặc {items|love_story:[...]}).
 function cleanLoveItems(rawText: string): Array<{ date: string; title: string; content: string }> {

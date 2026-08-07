@@ -32,6 +32,7 @@ invitation-setup/        Trình tạo/chỉnh thiệp — index.html (vỏ) + lo
 public/themes/           Các theme thiệp (romantic-gold, vintage-forest, basic-gold…)
 core/                    Dùng chung: dal/ · bl/ · components/ · helpers/ · x-*.js (web components)
 styles/                  Nguồn `_*.css` + 2 bản build (xem mục CSS)
+assets/background/       Ảnh nền SVG do tab "Ảnh nền" của admin sinh ra (mỗi chỗ dùng 1 thư mục con)
 supabase/functions/      Edge Functions
 changelogs/              Lịch sử thay đổi DB
 cloudflare-worker/       Workers proxy/cache
@@ -114,6 +115,26 @@ Bắt buộc để chạy đúng với tab Giao diện:
   `theme-setting-helper.js`, và font/màu riêng vào `theme.extend` của `tailwind.themes.config.js`
   (rồi `npm run build:themes`).
 - Nên có: `id` cho từng section, text thuần (không lồng icon) cho phần cho phép sửa.
+
+### Ảnh nền sinh bằng AI (tab "Ảnh nền" ở admin)
+
+- Nền là **file SVG tĩnh trong repo** (`assets/background/<chỗ dùng>/`), không phải dữ liệu DB
+  → ghi xong **phải commit & push** mới lên production.
+- Một nền = **một BỘ** gồm nhiều biến thể khổ màn hình, tên file `<tên>-<biến thể>.svg`.
+  Web lấy **bộ mới nhất** theo `updated_at` rồi mới chọn biến thể hợp màn hình — chọn theo bộ
+  nên không bao giờ lệch desktop một nền, mobile một nền.
+- `manifest.json` là **nơi duy nhất** web đọc được danh sách nền (GitHub Pages không cho liệt kê
+  thư mục qua HTTP). Mọi thao tác ghi/xoá phải gọi `bgSyncManifest()` sau đó.
+  Bên đọc hiện có: `js/hero-background.js` (màn mở đầu trang chủ) — chưa có nền thì im lặng
+  bỏ qua, hero giữ nguyên gradient sẵn có.
+- Trùng tên là **ghi đè** (có hỏi lại) — khác tab "Ảnh mẫu" vốn tự đánh số để không bao giờ ghi đè.
+- Thêm chỗ dùng nền mới: thêm **một mục** vào `BG_SLOTS` (`admin/js/06-background-ai.js`), hết.
+- Prompt bind sẵn theo từng chỗ dùng, admin sửa ngay trên textarea (nhớ vào `localStorage`);
+  `{{palette}}` được thay bằng bảng màu thật đọc từ biến CSS nên luôn khớp `styles/_colors.css`.
+- Edge Function `ai-background` **chỉ quản trị gọi được** (`x-admin-token`) vì nhận prompt tự do —
+  khác `ai-invitation` là endpoint công khai. Ràng buộc kỹ thuật (chỉ trả SVG, cấm script/URL ngoài,
+  trần dung lượng) do **server** nối vào prompt, admin sửa prompt không bỏ qua được.
+  Sửa `_shared/ai-provider.ts` thì phải deploy lại **cả hai** function AI.
 
 ### Khác
 

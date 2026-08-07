@@ -46,6 +46,7 @@ const TAB_NAMES = [
   "templates",
   "sample-images",
   "asset-images",
+  "background",
 ];
 const TAB_BREADCRUMB_LABELS = {
   dashboard: "Quản lý Hệ thống",
@@ -53,6 +54,7 @@ const TAB_BREADCRUMB_LABELS = {
   templates: "Templates",
   "sample-images": "Dữ liệu mẫu",
   "asset-images": "Ảnh mẫu",
+  background: "Ảnh nền",
 };
 
 function switchTab(tabName, pushState = true) {
@@ -71,13 +73,15 @@ function switchTab(tabName, pushState = true) {
     initSampleImagesPanel();
   } else if (tabName === "asset-images") {
     initAssetImagesPanel();
+  } else if (tabName === "background") {
+    initBackgroundPanel();
   }
 }
 
 // Restore tab từ URL hash (nếu không có hash thì giữ Dashboard mặc định, không gọi API).
 // Gọi từ loader.js SAU KHI toàn bộ script theo tab đã nạp xong (không gọi ở đây
 // — lúc file này chạy, js/01-weddings.js…05-asset-images.js chưa nạp nên
-// loadPage()/loadTemplates()/initSampleImagesPanel()/initAssetImagesPanel()
+// loadPage()/loadTemplates()/initSampleImagesPanel()/initAssetImagesPanel()/initBackgroundPanel()
 // còn undefined).
 function restoreTabFromHash() {
   const tab = location.hash.replace("#", "");
