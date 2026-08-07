@@ -18,10 +18,10 @@ function _setAiWandLoading(btn, on) {
   s.id = "x-ta-skeleton-style";
   s.textContent =
     ".x-ta-skeleton{position:absolute;z-index:5;display:flex;flex-direction:column;" +
-    "gap:10px;padding:12px 14px;border-radius:8px;background:#fff;overflow:hidden;" +
+    "gap:10px;padding:12px 14px;border-radius:8px;background:rgb(var(--white-rgb));overflow:hidden;" +
     "box-sizing:border-box;pointer-events:none}" +
     ".x-ta-skeleton span{height:11px;border-radius:6px;" +
-    "background:linear-gradient(90deg,#eee 25%,#f5f5f5 37%,#eee 63%);" +
+    "background:linear-gradient(90deg,rgb(var(--skeleton-base-rgb)) 25%,rgb(var(--skeleton-shine-rgb)) 37%,rgb(var(--skeleton-base-rgb)) 63%);" +
     "background-size:400% 100%;animation:x-ta-sk 1.4s ease infinite}" +
     ".x-ta-skeleton span:nth-child(3n+1){width:92%}" +
     ".x-ta-skeleton span:nth-child(3n+2){width:78%}" +

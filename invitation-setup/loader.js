@@ -154,7 +154,7 @@
     console.error("[loader] nạp trang thất bại:", err);
     document.body.insertAdjacentHTML(
       "afterbegin",
-      '<div style="padding:16px;font:14px/1.5 Inter,sans-serif;color:#9f1239;background:#fff1f2;border-bottom:1px solid #fecdd3">' +
+      '<div style="padding:16px;font:14px/1.5 Inter,sans-serif;color:rgb(var(--notice-text-rgb));background:rgb(var(--notice-bg-rgb));border-bottom:1px solid rgb(var(--notice-border-rgb))">' +
         "Không tải được giao diện. Vui lòng tải lại trang." +
         "</div>",
     );

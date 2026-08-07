@@ -21,7 +21,7 @@
     <link rel="stylesheet" href="../../styles/build.css" />
   </head>
   <!-- font-inter + text-color-primary thay cho khối <style> cũ (body{font-family
-       Inter; color rgb(173 122 135)}); text-color-primary đọc biến --text-color-primary. -->
+       Inter; color #ad7a87}); text-color-primary đọc biến --text-color-primary. -->
   <body class="font-inter text-color-primary bg-rose-pastel-100 min-h-screen">
     <nav class="bg-white/95 backdrop-blur-sm border-b border-rose-pastel-200">
       <div class="container mx-auto px-4 max-w-2xl">
@@ -46,9 +46,9 @@
             <div class="flex items-center gap-3 min-w-0">
               <div
                 class="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
-                style="background-color: rgb(254 241 247)"
+                style="background-color: rgb(var(--surface-section-rgb))"
               >
-                <i class="fas fa-user text-sm" style="color: rgb(255 183 202)"></i>
+                <i class="fas fa-user text-sm" style="color: rgb(var(--brand-primary-rgb))"></i>
               </div>
               <div class="min-w-0">
                 <p class="font-medium text-sm">Khách</p>
@@ -71,11 +71,11 @@
               <div
                 id="user-avatar"
                 class="w-9 h-9 rounded-full flex items-center justify-center overflow-hidden"
-                style="background-color: rgb(254 241 247)"
+                style="background-color: rgb(var(--surface-section-rgb))"
               >
                 <i
                   class="fas fa-user text-sm"
-                  style="color: rgb(255 183 202)"
+                  style="color: rgb(var(--brand-primary-rgb))"
                 ></i>
               </div>
               <div>
@@ -86,7 +86,7 @@
             <button
               onclick="logout()"
               class="text-sm px-4 py-1.5 rounded-full border transition-all hover:bg-gray-50"
-              style="border-color: rgb(255 183 202); color: rgb(173 122 135)"
+              style="border-color: rgb(var(--brand-primary-rgb)); color: rgb(var(--text-body-rgb))"
             >
               Đăng xuất
             </button>
@@ -174,7 +174,7 @@
     <div
       id="order-modal"
       class="fixed inset-0 z-50 hidden items-center justify-center p-4"
-      style="background: rgba(0, 0, 0, 0.5)"
+      style="background: rgb(var(--scrim-rgb)/0.5)"
     >
       <div
         class="bg-white rounded-2xl w-full max-w-md shadow-xl overflow-hidden"
@@ -183,7 +183,7 @@
         <div
           class="flex items-center justify-between px-6 py-4 border-b border-gray-100"
         >
-          <h3 class="font-semibold text-base" style="color: rgb(173 122 135)">
+          <h3 class="font-semibold text-base" style="color: rgb(var(--text-body-rgb))">
             Chi tiết đơn hàng
           </h3>
           <button

@@ -1,0 +1,274 @@
+/* NGUỒN SỰ THẬT DUY NHẤT cho mọi màu của project (xem refactor-color.md).
+   Import ở đầu styles/_base.css → có mặt ở CẢ HAI bản build (build.css & themes.css).
+
+   MỖI MÃ MÀU CHỈ CÓ ĐÚNG MỘT TÊN — tên đặt theo vai trò của thành phần, không
+   theo sắc độ. Giá trị lưu dạng kênh RGB để pha alpha tại chỗ:
+   rgb(var(--brand-primary-rgb) / .4). Trong class Tailwind arbitrary phải viết
+   liền không dấu cách: bg-[rgb(var(--brand-primary-rgb)/0.4)]. */
+
+:root {
+  /* ============================================================
+     1. THƯƠNG HIỆU — tông hồng phấn chủ đạo
+     ============================================================ */
+
+  --brand-primary-rgb: 255 183 202;  /* hồng chủ đạo */
+  --brand-primary-hover-rgb: 255 163 181;
+  --brand-primary-active-rgb: 255 143 161;
+  --brand-primary-strong-rgb: 255 200 215;  /* hover nút chọn mẫu */
+  --brand-accent-rgb: 236 130 158;  /* hồng đậm nhấn */
+  --brand-accent-light-rgb: 244 160 184;
+
+  /* ============================================================
+     2. CHỮ
+     ============================================================ */
+
+
+  /* Tông nâu-hồng của web thiệp */
+  --text-heading-rgb: 90 58 69;
+  --text-body-rgb: 173 122 135;
+  --text-label-rgb: 169 138 146;
+  --text-caption-rgb: 138 107 115;
+  --text-muted-rgb: 160 112 128;
+  --avatar-initial-rgb: 190 90 118;  /* chữ cái đầu trong avatar tròn */
+
+  /* Tông xám trung tính (hộp thoại, form, tooltip) */
+  --text-title-rgb: 31 41 55;
+  --text-strong-rgb: 55 65 81;
+  --text-secondary-rgb: 75 85 99;
+  --text-tertiary-rgb: 107 114 128;
+  --text-disabled-rgb: 153 153 153;
+  --text-idle-rgb: 156 163 175;
+  --text-placeholder-rgb: 182 188 198;
+
+  /* Trắng — dùng cho cả nền, chữ đảo màu và nút điều khiển trình phát nhạc */
+  --white-rgb: 255 255 255;
+
+  /* ============================================================
+     3. NỀN & VIỀN
+     ============================================================ */
+
+  --surface-hover-rgb: 249 250 251;
+  --surface-control-rgb: 243 244 246;
+  --surface-readonly-rgb: 250 250 250;
+  --surface-inverse-rgb: 17 24 39;  /* nền tối tương phản: tooltip, nút Áp dụng */
+
+  /* Nền hồng nhạt — cũng là thang rose-pastel/ pink-* của Tailwind */
+  --surface-brand-subtle-rgb: 255 245 248;
+  --surface-brand-rgb: 255 240 245;
+  --surface-brand-soft-rgb: 255 250 252;
+  --surface-tint-rgb: 255 251 248;
+  --surface-tint-warm-rgb: 255 245 247;
+  --surface-panel-rgb: 253 248 249;
+  --surface-section-rgb: 254 241 247;
+  --surface-blossom-rgb: 252 231 243;
+  --surface-blossom-strong-rgb: 251 207 232;
+
+  --border-field-rgb: 229 231 235;
+  --border-subtle-rgb: 238 240 242;
+  --divider-rgb: 209 213 219;  /* gạch ngăn, thumb thanh cuộn */
+  --checkerboard-rgb: 241 245 249;  /* ô kẻ caro sau ảnh trong suốt (admin) */
+  --scrollbar-track-rgb: 202 202 202;
+
+  /* ============================================================
+     4. TRẠNG THÁI (toast, hộp thoại, ô nhập lỗi)
+     ============================================================ */
+
+  --state-success-bg-rgb: 220 252 231;
+  --state-success-text-rgb: 21 128 61;
+  --state-success-tint-rgb: 236 253 243;
+  --state-error-bg-rgb: 254 226 226;
+  --state-error-text-rgb: 220 38 38;
+  --state-error-tint-rgb: 254 242 242;
+  --state-warning-bg-rgb: 254 243 199;
+  --state-warning-text-rgb: 217 119 6;
+  --state-info-bg-rgb: 239 246 255;
+  --state-info-text-rgb: 37 99 235;
+  --state-invalid-rgb: 239 68 68;
+
+  /* Dải thông báo lỗi khi loader không nạp được trang */
+  --notice-bg-rgb: 255 241 242;
+  --notice-border-rgb: 254 205 211;
+  --notice-text-rgb: 159 18 57;
+
+  /* ============================================================
+     5. HÀNH ĐỘNG (nút, ô nhập sai, ngày được chọn)
+     ============================================================ */
+
+  --action-primary-rgb: 244 63 94;  /* nút chính, viền ô nhập sai, đổ bóng nút */
+  --action-primary-hover-rgb: 225 29 72;
+  --action-primary-deep-rgb: 190 18 60;
+  --action-accent-rgb: 236 72 153;  /* vế thứ hai của gradient nút & tiêu đề */
+  --action-accent-light-rgb: 244 114 182;
+  --focus-ring-rgb: 251 113 133;
+  --cta-accent-rgb: 219 39 119;  /* nút kêu gọi hành động */
+  --accent-amber-rgb: 245 158 11;  /* sao đánh giá, nhãn HOT */
+  --accent-amber-light-rgb: 251 191 36;
+  --datepicker-header-from-rgb: 253 242 248;  /* nền tháng trong bộ chọn ngày */
+
+  /* ============================================================
+     6. LỚP PHỦ & ĐỔ BÓNG
+     ============================================================ */
+
+  --scrim-rgb: 0 0 0;  /* phủ tối & đổ bóng đen */
+  --scrim-slate-rgb: 15 23 42;
+  --scrim-plum-rgb: 45 25 41;
+  --shadow-brand-rgb: 200 100 130;
+  --shadow-card-rgb: 88 45 54;
+  --shadow-panel-rgb: 61 24 34;
+  --preview-shadow-rgb: 114 41 54;
+  --music-shadow-rgb: 90 60 65;
+  --music-bubble-shadow-rgb: 120 70 80;
+  --action-bar-shadow-rgb: 180 80 110;
+
+  /* ============================================================
+     7. NHÓM AI (nút Tối ưu, modal gợi ý, ô nhập giọng nói)
+     ============================================================ */
+
+  --ai-gradient-from-rgb: 139 92 246;
+  --ai-gradient-to-rgb: 217 70 239;
+  --ai-soft-from-rgb: 203 185 245;
+  --ai-soft-to-rgb: 129 177 255;
+  --ai-glow-rgb: 99 102 241;
+  --ai-glow-strong-rgb: 168 85 247;
+  --ai-chip-bg-rgb: 243 239 255;
+  --ai-chip-bg-hover-rgb: 233 225 255;
+  --ai-chip-border-rgb: 221 208 251;
+  --ai-chip-text-rgb: 109 79 206;
+  --ai-skeleton-base-rgb: 241 242 244;
+  --ai-skeleton-shine-rgb: 231 233 236;
+  --ai-card-bg-rgb: 252 252 253;
+  --ai-suggest-to-rgb: 255 228 233;
+  --ai-icon-muted-rgb: 203 208 214;
+
+  /* ============================================================
+     8. TRÌNH PHÁT NHẠC
+     ============================================================ */
+
+  --music-widget-fg-rgb: 74 65 66;
+  --music-widget-dim-rgb: 138 123 125;
+  --music-widget-chip-rgb: 140 115 118;
+  --music-widget-accent-rgb: 190 120 128;
+  --music-bubble-from-rgb: 238 198 204;
+  --music-bubble-to-rgb: 215 154 162;
+
+  /* ============================================================
+     9. TRÌNH CHỈNH THIỆP (invitation-setup)
+     ============================================================ */
+
+  --setup-surface-rgb: 255 250 248;
+  --setup-input-border-rgb: 240 215 217;
+  --setup-chip-text-rgb: 163 74 96;
+  --setup-invalid-soft-rgb: 255 245 246;
+  --setup-skeleton-base-rgb: 240 240 240;
+  --setup-skeleton-shine-rgb: 224 224 224;
+  --skeleton-base-rgb: 238 238 238;  /* khung xương chờ ở modal AI */
+  --skeleton-shine-rgb: 245 245 245;
+
+  /* ============================================================
+     10. XEM TRƯỚC THIỆP (landing & theme-template)
+     ============================================================ */
+
+  --preview-bg-from-rgb: 253 244 247;
+  --preview-bg-to-rgb: 252 232 241;
+  --preview-page-bg-rgb: 255 250 247;
+  --preview-heart-bg-rgb: 252 207 232;
+  --preview-btn-to-rgb: 212 102 138;
+  --timeline-dot-rgb: 253 164 175;  /* chấm mốc dòng thời gian */
+  --cover-bg-mid-rgb: 245 235 224;  /* màn bìa thiệp */
+  --neutral-warm-rgb: 168 162 158;  /* chữ shimmer, nút Từ chối */
+
+  /* ============================================================
+     11. LANDING PAGE
+     ============================================================ */
+
+  --landing-dark-rgb: 45 15 26;  /* nền khối CTA cuối trang */
+  --landing-cta-bg-mid-rgb: 62 26 40;
+  --landing-cta-btn-from-rgb: 201 160 64;
+  --landing-cta-btn-to-rgb: 224 187 85;
+  --landing-cta-heading-rgb: 255 245 235;
+  --landing-cta-body-rgb: 255 210 210;
+  --landing-cta-note-rgb: 255 200 200;
+  --landing-hero-tint-rgb: 249 240 243;
+  --landing-text-dark-rgb: 69 53 53;
+  --landing-quote-mark-rgb: 243 198 216;
+  --landing-step-icon-rgb: 201 96 128;
+  --landing-photo-overlay-rgb: 132 132 132;
+  --landing-photo-overlay-soft-rgb: 186 186 186;
+
+  /* Bong bóng chat hỗ trợ */
+  --chat-typing-dot-rgb: 249 168 196;
+  --chat-message-text-rgb: 107 74 85;
+  --chat-action-icon-rgb: 176 138 149;
+  --chat-online-dot-rgb: 34 197 94;
+
+  /* Nút quà tặng / thanh hành động nổi */
+  --gift-btn-from-rgb: 244 114 160;
+  --gift-btn-to-rgb: 224 85 133;
+
+  /* ============================================================
+     12. THƯƠNG HIỆU BÊN THỨ BA — cố định theo brand guideline
+     ============================================================ */
+
+  --social-facebook-rgb: 24 119 242;
+  --social-messenger-from-rgb: 0 178 255;
+  --social-messenger-to-rgb: 0 106 255;
+  --social-zalo-rgb: 0 104 255;
+  --social-whatsapp-rgb: 37 211 102;
+  --google-blue-rgb: 66 133 244;
+  --google-green-rgb: 52 168 83;
+  --google-yellow-rgb: 251 188 5;
+  --google-red-rgb: 234 67 53;
+
+  /* ============================================================
+     13. BẢNG MÀU RIÊNG CỦA TỪNG THEME THIỆP
+     Giữ tên theo thang màu vì chính nó là tên class Tailwind dùng trong
+     markup thiệp (bg-gold-300, text-vintage-brown/70).
+     ============================================================ */
+
+
+  /* Basic Gold — cũng là tông hồng khói của trình chỉnh thiệp */
+  --card-cream-50-rgb: 255 251 247;
+  --card-cream-100-rgb: 255 245 240;
+  --card-cream-200-rgb: 255 232 224;
+  --card-blush-50-rgb: 254 240 242;
+  --card-blush-100-rgb: 245 213 216;
+  --card-blush-200-rgb: 232 180 184;
+  --card-blush-300-rgb: 212 165 165;
+  --card-stone-400-rgb: 120 113 108;
+  --card-stone-500-rgb: 107 101 98;
+  --card-stone-600-rgb: 68 64 60;
+
+  /* Romantic Gold */
+  --card-sage-50-rgb: 246 247 246;
+  --card-sage-100-rgb: 232 235 232;
+  --card-sage-200-rgb: 209 216 209;
+  --card-sage-300-rgb: 180 191 180;
+  --card-sage-400-rgb: 138 154 138;
+  --card-gold-100-rgb: 245 240 232;
+  --card-gold-200-rgb: 232 220 200;
+  --card-gold-300-rgb: 201 184 150;
+  --card-gold-400-rgb: 168 153 104;
+  --card-charcoal-rgb: 45 52 54;
+
+  /* Vintage Forest */
+  --card-vintage-cream-rgb: 250 248 243;
+  --card-vintage-beige-rgb: 245 241 232;
+  --card-vintage-brown-rgb: 139 115 85;
+  --card-vintage-dark-rgb: 74 63 53;
+  --card-vintage-green-rgb: 61 79 61;
+
+  /* ============================================================
+     14. TOKEN GHÉP SẴN (đã pha alpha / gradient)
+     ============================================================ */
+
+  --ai-panel-bg: rgb(var(--white-rgb) / 0.88);
+  --ai-panel-border: rgb(var(--white-rgb) / 0.8);
+  --ai-scrim-bg: rgb(var(--surface-control-rgb) / 0.9);
+  --music-widget-bg: rgb(var(--white-rgb) / 0.95);
+  --music-widget-chip: rgb(var(--music-widget-chip-rgb) / 0.12);
+  --music-widget-fill: rgb(var(--card-blush-300-rgb) / 0.32);
+  --landing-cta-gradient: linear-gradient( 90deg, rgb(var(--action-primary-hover-rgb)), rgb(var(--action-accent-rgb)), rgb(var(--action-accent-light-rgb)), rgb(var(--action-accent-rgb)), rgb(var(--action-primary-hover-rgb)) );
+  --landing-cta-shine: linear-gradient( 90deg, transparent, rgb(var(--white-rgb) / 0.7), transparent );
+  --social-messenger-gradient: linear-gradient( 135deg, rgb(var(--social-messenger-from-rgb)), rgb(var(--social-messenger-to-rgb)) );
+  --calendar-marked-glow: rgb(var(--card-gold-300-rgb) / 0.4);
+}

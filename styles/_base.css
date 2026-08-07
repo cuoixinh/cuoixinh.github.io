@@ -1,4 +1,8 @@
-/* Chỉ chứa `@tailwind base` (preflight + base tuỳ biến).
+@import "./_colors.css";
+
+/* Chỉ chứa `@tailwind base` (preflight + base tuỳ biến) và kéo theo bảng màu dùng
+   chung (styles/_colors.css) — file này là import đầu tiên của cả hai entrypoint
+   nên token màu có mặt ở build.css lẫn themes.css.
    Tách riêng vì postcss-import CHỈ xử lý `@import` nằm ở ĐẦU file, mà các partial
    lại PHẢI nằm SAU preflight (không thì bị preflight ghi đè). Import file này
    TRƯỚC các partial khác → thứ tự thành base → partial → components → utilities. */

@@ -7,14 +7,14 @@
   const style = document.createElement("style");
   style.textContent = `
     .cx-req-star {
-      color: #f43f5e;
+      color: rgb(var(--action-primary-rgb));
       font-weight: 600;
       margin-left: 2px;
     }
     .cx-field-err-msg {
       display: none;
       font-size: 11px;
-      color: #f43f5e;
+      color: rgb(var(--action-primary-rgb));
       margin-top: 4px;
     }
     .cx-field-invalid .cx-field-err-msg {
@@ -23,8 +23,8 @@
     .cx-field-invalid > input,
     .cx-field-invalid > textarea,
     .cx-field-invalid > select {
-      border-color: #f43f5e !important;
-      box-shadow: 0 0 0 2px rgba(244,63,94,.15) !important;
+      border-color: rgb(var(--action-primary-rgb)) !important;
+      box-shadow: 0 0 0 2px rgb(var(--action-primary-rgb)/.15) !important;
     }
   `;
   document.head.appendChild(style);

@@ -12,8 +12,8 @@
     "x-textarea .x-ta-wrap{position:relative}" +
     "x-textarea .x-ta-clear{position:absolute;top:.5rem;right:.5rem;display:none;" +
     "align-items:center;justify-content:center;width:1.5rem;height:1.5rem;border-radius:.375rem;" +
-    "color:#9ca3af;background:transparent;transition:color .15s ease,background .15s ease}" +
-    "x-textarea .x-ta-clear:hover{color:#4b5563;background:#f3f4f6}" +
+    "color:rgb(var(--text-idle-rgb));background:transparent;transition:color .15s ease,background .15s ease}" +
+    "x-textarea .x-ta-clear:hover{color:rgb(var(--text-secondary-rgb));background:rgb(var(--surface-control-rgb))}" +
     "x-textarea .x-ta-clear.show{display:inline-flex}";
   document.head.appendChild(s);
 })();

@@ -33,28 +33,34 @@ module.exports = {
         inter: ["Inter", "sans-serif"],
         allura: ["Allura", "cursive"],
       },
+      // Mọi giá trị màu lấy từ styles/_colors.css. Dạng
+      // `rgb(var(--token-rgb) / <alpha-value>)` để modifier alpha (bg-primary/50)
+      // vẫn chạy — nhét thẳng var() đặc là mất tính năng đó.
       colors: {
         "rose-pastel": {
-          50: "#fffbf7",
-          100: "#fef1f7",
-          200: "#fce7f3",
-          300: "#fbcfe8",
+          50: "rgb(var(--card-cream-50-rgb) / <alpha-value>)",
+          100: "rgb(var(--surface-section-rgb) / <alpha-value>)",
+          200: "rgb(var(--surface-blossom-rgb) / <alpha-value>)",
+          300: "rgb(var(--surface-blossom-strong-rgb) / <alpha-value>)",
         },
-        cream: { 50: "#fffbf7", 100: "#fff5f0", 200: "#ffe8e0" },
+        cream: {
+          50: "rgb(var(--card-cream-50-rgb) / <alpha-value>)",
+          100: "rgb(var(--card-cream-100-rgb) / <alpha-value>)",
+          200: "rgb(var(--card-cream-200-rgb) / <alpha-value>)",
+        },
         // invitation-setup (config inline cũ)
-        "pink-light": "rgb(255 163 181)",
-        "pink-light-hover": "rgb(255 143 161)",
-        // Design token dùng chung; giá trị đọc từ biến CSS khai báo ở
-        // styles/_common.css nên vẫn đổi được một chỗ.
-        primary: "var(--primary)",
-        "primary-subtle": "var(--primary-subtle)",
-        "color-primary": "var(--text-color-primary)",
-        "color-secondary": "var(--text-color-secondary)",
+        "pink-light": "rgb(var(--brand-primary-hover-rgb) / <alpha-value>)",
+        "pink-light-hover": "rgb(var(--brand-primary-active-rgb) / <alpha-value>)",
+        // Design token dùng chung
+        primary: "rgb(var(--brand-primary-rgb) / <alpha-value>)",
+        "primary-subtle": "rgb(var(--surface-brand-subtle-rgb) / <alpha-value>)",
+        "color-primary": "rgb(var(--text-body-rgb) / <alpha-value>)",
+        "color-secondary": "rgb(var(--focus-ring-rgb) / <alpha-value>)",
       },
-      // .border-primary cũ đọc --primary-border (hiện trùng giá trị --primary
+      // .border-primary đọc token viền riêng (hiện trùng giá trị --primary
       // nhưng là token riêng) → giữ đúng bằng cách extend riêng borderColor.
       borderColor: {
-        primary: "var(--primary-border)",
+        primary: "rgb(var(--brand-primary-rgb))",
       },
       keyframes: {
         bubbleIn: {
@@ -65,9 +71,9 @@ module.exports = {
           "100%": { transform: "scale(1.9)", opacity: "0" },
         },
         dotPulse: {
-          "0%": { boxShadow: "0 0 0 0 rgba(34,197,94,.55)" },
-          "70%": { boxShadow: "0 0 0 7px rgba(34,197,94,0)" },
-          "100%": { boxShadow: "0 0 0 0 rgba(34,197,94,0)" },
+          "0%": { boxShadow: "0 0 0 0 rgb(var(--chat-online-dot-rgb) / .55)" },
+          "70%": { boxShadow: "0 0 0 7px rgb(var(--chat-online-dot-rgb) / 0)" },
+          "100%": { boxShadow: "0 0 0 0 rgb(var(--chat-online-dot-rgb) / 0)" },
         },
         typing: {
           "0%,60%,100%": { transform: "translateY(0)", opacity: ".5" },
@@ -80,15 +86,15 @@ module.exports = {
         ctaFlow: {
           "0%": {
             backgroundPosition: "100% 0",
-            boxShadow: "0 8px 26px rgba(219,39,119,.42)",
+            boxShadow: "0 8px 26px rgb(var(--cta-accent-rgb) / .42)",
           },
           "50%": {
             boxShadow:
-              "0 12px 34px rgba(219,39,119,.62), 0 0 22px 2px rgba(244,63,94,.32)",
+              "0 12px 34px rgb(var(--cta-accent-rgb) / .62), 0 0 22px 2px rgb(var(--action-primary-rgb) / .32)",
           },
           "100%": {
             backgroundPosition: "-200% 0",
-            boxShadow: "0 8px 26px rgba(219,39,119,.42)",
+            boxShadow: "0 8px 26px rgb(var(--cta-accent-rgb) / .42)",
           },
         },
         // invitation-setup (config inline cũ)

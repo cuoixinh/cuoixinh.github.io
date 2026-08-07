@@ -181,7 +181,7 @@
       type="button"
       data-cx-music="bubble"
       aria-label="Mở lại thanh nhạc"
-      class="cx-mp-bubble fixed right-3 top-24 w-9 h-9 rounded-full shadow-[0_8px_24px_rgba(120,70,80,0.4)] ring-2 ring-white/70 bg-gradient-to-br from-rose-pastel-200 to-rose-pastel-300 items-center justify-center cursor-grab active:cursor-grabbing"
+      class="cx-mp-bubble fixed right-3 top-24 w-9 h-9 rounded-full shadow-[0_8px_24px_rgb(var(--music-bubble-shadow-rgb)/0.4)] ring-2 ring-white/70 bg-gradient-to-br from-rose-pastel-200 to-rose-pastel-300 items-center justify-center cursor-grab active:cursor-grabbing"
     >
       <i class="cx-mp-note fas fa-music text-white text-[10px]"></i>
       <!-- cx-mp-spin: quay tròn khi đang phát -->

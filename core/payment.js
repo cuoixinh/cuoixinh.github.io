@@ -96,29 +96,29 @@
             <div class="w-14 h-14 rounded-full bg-gradient-to-br from-pink-300 to-pink-200 flex items-center justify-center mx-auto mb-3 shadow-lg shadow-pink-200/50">
               <i class="fas fa-qrcode text-white text-xl"></i>
             </div>
-            <h3 class="font-playfair text-xl font-bold mb-1" style="color:rgb(173 122 135);">Quét mã thanh toán</h3>
+            <h3 class="font-playfair text-xl font-bold mb-1" style="color:rgb(var(--text-body-rgb));">Quét mã thanh toán</h3>
             <p class="text-xs text-gray-400">Sử dụng app ngân hàng để quét mã QR</p>
           </div>
 
           <!-- QR Code with decorative border -->
-          <div class="from-pink-50 m-[8px] relative rounded-2xl to-white" style="border-color:rgb(255 240 245);">
-            <div class="absolute -top-2 -left-2 w-5 h-5 border-t-[3px] border-l-[3px] rounded-tl" style="border-color:rgb(255 183 202);"></div>
-            <div class="absolute -top-2 -right-2 w-5 h-5 border-t-[3px] border-r-[3px] rounded-tr" style="border-color:rgb(255 183 202);"></div>
-            <div class="absolute -bottom-2 -left-2 w-5 h-5 border-b-[3px] border-l-[3px] rounded-bl" style="border-color:rgb(255 183 202);"></div>
-            <div class="absolute -bottom-2 -right-2 w-5 h-5 border-b-[3px] border-r-[3px] rounded-br" style="border-color:rgb(255 183 202);"></div>
+          <div class="from-pink-50 m-[8px] relative rounded-2xl to-white" style="border-color:rgb(var(--surface-brand-rgb));">
+            <div class="absolute -top-2 -left-2 w-5 h-5 border-t-[3px] border-l-[3px] rounded-tl" style="border-color:rgb(var(--brand-primary-rgb));"></div>
+            <div class="absolute -top-2 -right-2 w-5 h-5 border-t-[3px] border-r-[3px] rounded-tr" style="border-color:rgb(var(--brand-primary-rgb));"></div>
+            <div class="absolute -bottom-2 -left-2 w-5 h-5 border-b-[3px] border-l-[3px] rounded-bl" style="border-color:rgb(var(--brand-primary-rgb));"></div>
+            <div class="absolute -bottom-2 -right-2 w-5 h-5 border-b-[3px] border-r-[3px] rounded-br" style="border-color:rgb(var(--brand-primary-rgb));"></div>
             
             <div id="qrcode-container" class="w-[220px] h-[220px] min-w-[220px] min-h-[220px] flex items-center justify-center bg-white rounded-xl p-2"></div>
           </div>
 
           <!-- Payment Info Card -->
           <div class="w-full p-4 rounded-2xl bg-gradient-to-br from-gray-50 to-white border border-gray-100 shadow-sm">
-            <div class="flex items-center gap-3 mb-3 pb-3 border-b-2" style="border-color:rgb(255 240 245);">
-              <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background:rgb(255 240 245);">
-                <i class="fas fa-university text-base" style="color:rgb(255 183 202);"></i>
+            <div class="flex items-center gap-3 mb-3 pb-3 border-b-2" style="border-color:rgb(var(--surface-brand-rgb));">
+              <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background:rgb(var(--surface-brand-rgb));">
+                <i class="fas fa-university text-base" style="color:rgb(var(--brand-primary-rgb));"></i>
               </div>
               <div class="text-left">
                 <p class="text-[11px] text-gray-400 uppercase tracking-wide font-semibold m-0">Thông tin chuyển khoản</p>
-                <p class="text-sm font-semibold m-0" style="color:rgb(173 122 135);">${paymentInfo.amount.toLocaleString("vi-VN")}đ</p>
+                <p class="text-sm font-semibold m-0" style="color:rgb(var(--text-body-rgb));">${paymentInfo.amount.toLocaleString("vi-VN")}đ</p>
               </div>
             </div>
             
@@ -138,19 +138,19 @@
               <p class="text-sm text-gray-700 font-semibold font-mono m-0">${paymentInfo.account_number}</p>
             </div>
             
-            <div class="p-3 rounded-xl border border-dashed text-left" style="background:rgb(255 245 248);border-color:rgb(255 183 202);">
+            <div class="p-3 rounded-xl border border-dashed text-left" style="background:rgb(var(--surface-brand-subtle-rgb));border-color:rgb(var(--brand-primary-rgb));">
               <p class="text-[11px] text-gray-400 mb-1 font-medium">Nội dung chuyển khoản</p>
-              <p class="text-xs font-bold break-all m-0" style="color:rgb(173 122 135);">${paymentInfo.content}</p>
+              <p class="text-xs font-bold break-all m-0" style="color:rgb(var(--text-body-rgb));">${paymentInfo.content}</p>
             </div>
           </div>
 
           <!-- Instructions -->
-          <div class="w-full p-3.5 rounded-2xl border" style="background:rgb(255 250 252);border-color:rgb(255 240 245);">
+          <div class="w-full p-3.5 rounded-2xl border" style="background:rgb(var(--surface-brand-soft-rgb));border-color:rgb(var(--surface-brand-rgb));">
             <div class="flex items-center gap-2 mb-2">
-              <div class="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0" style="background:rgb(255 183 202);">
+              <div class="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0" style="background:rgb(var(--brand-primary-rgb));">
                 <i class="fas fa-mobile-alt text-white text-[11px]"></i>
               </div>
-              <p class="text-xs font-semibold m-0" style="color:rgb(173 122 135);">Hướng dẫn thanh toán</p>
+              <p class="text-xs font-semibold m-0" style="color:rgb(var(--text-body-rgb));">Hướng dẫn thanh toán</p>
             </div>
             <ol class="m-0 pl-6 text-xs text-gray-600 leading-relaxed text-left">
               <li>Mở ứng dụng ngân hàng của bạn</li>
@@ -163,10 +163,10 @@
           <!-- Status -->
           <div class="flex flex-col items-center gap-2 mt-1">
             <div class="w-11 h-11 rounded-full bg-gradient-to-br from-pink-100 to-pink-50 flex items-center justify-center shadow-lg shadow-pink-200/30">
-              <div class="w-5 h-5 border-[3px] rounded-full animate-spin" style="border-color:rgb(255 240 245);border-top-color:rgb(255 183 202);"></div>
+              <div class="w-5 h-5 border-[3px] rounded-full animate-spin" style="border-color:rgb(var(--surface-brand-rgb));border-top-color:rgb(var(--brand-primary-rgb));"></div>
             </div>
             <div class="text-center">
-              <p class="text-xs font-semibold m-0" style="color:rgb(173 122 135);">Đang chờ thanh toán...</p>
+              <p class="text-xs font-semibold m-0" style="color:rgb(var(--text-body-rgb));">Đang chờ thanh toán...</p>
               <p id="payment-timer" class="text-[11px] text-gray-400 mt-1 font-mono">00:00</p>
             </div>
           </div>
@@ -224,11 +224,11 @@
           // Fallback: show error message
           qrcodeContainer.innerHTML = `
           <div style="text-align:center;padding:32px;">
-            <div style="width:48px;height:48px;border-radius:9999px;background:#fee2e2;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
-              <i class="fas fa-exclamation-triangle" style="color:#dc2626;font-size:20px;"></i>
+            <div style="width:48px;height:48px;border-radius:9999px;background:rgb(var(--state-error-bg-rgb));display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+              <i class="fas fa-exclamation-triangle" style="color:rgb(var(--state-error-text-rgb));font-size:20px;"></i>
             </div>
-            <p style="color:#dc2626;font-size:14px;margin:0 0 8px;font-weight:600;">Không thể tạo mã QR</p>
-            <p style="color:#6b7280;font-size:12px;margin:0;">Vui lòng sử dụng nút thanh toán bên dưới</p>
+            <p style="color:rgb(var(--state-error-text-rgb));font-size:14px;margin:0 0 8px;font-weight:600;">Không thể tạo mã QR</p>
+            <p style="color:rgb(var(--text-tertiary-rgb));font-size:12px;margin:0;">Vui lòng sử dụng nút thanh toán bên dưới</p>
           </div>
         `;
         }
@@ -238,11 +238,11 @@
         if (qrcodeContainer) {
           qrcodeContainer.innerHTML = `
             <div style="text-align:center;padding:32px;">
-              <div style="width:48px;height:48px;border-radius:9999px;background:#fee2e2;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
-                <i class="fas fa-times-circle" style="color:#dc2626;font-size:20px;"></i>
+              <div style="width:48px;height:48px;border-radius:9999px;background:rgb(var(--state-error-bg-rgb));display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+                <i class="fas fa-times-circle" style="color:rgb(var(--state-error-text-rgb));font-size:20px;"></i>
               </div>
-              <p style="color:#dc2626;font-size:14px;margin:0 0 8px;font-weight:600;">Lỗi tạo mã QR</p>
-              <p style="color:#6b7280;font-size:12px;margin:0;">Vui lòng sử dụng nút thanh toán bên dưới</p>
+              <p style="color:rgb(var(--state-error-text-rgb));font-size:14px;margin:0 0 8px;font-weight:600;">Lỗi tạo mã QR</p>
+              <p style="color:rgb(var(--text-tertiary-rgb));font-size:12px;margin:0;">Vui lòng sử dụng nút thanh toán bên dưới</p>
             </div>
           `;
         }
@@ -557,33 +557,33 @@
           <!-- Step 1: Xác nhận đơn hàng -->
           <div id="payment-step-1">
             <div class="p-6 border-b border-gray-100">
-              <h3 class="font-playfair text-2xl font-bold m-0" style="color:rgb(173 122 135);">Xác nhận đơn hàng</h3>
+              <h3 class="font-playfair text-2xl font-bold m-0" style="color:rgb(var(--text-body-rgb));">Xác nhận đơn hàng</h3>
               <p class="text-sm text-gray-400 mt-1">Kiểm tra thông tin trước khi thanh toán</p>
             </div>
             <div class="p-6 flex flex-col gap-4">
               <!-- Thông tin mẫu -->
-              <div class="flex items-center gap-4 p-4 rounded-2xl border border-pink-200" style="background:#fff5f8;">
-                <div class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style="background:rgb(255 183 202);">
+              <div class="flex items-center gap-4 p-4 rounded-2xl border border-pink-200" style="background:rgb(var(--surface-brand-subtle-rgb));">
+                <div class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style="background:rgb(var(--brand-primary-rgb));">
                   <i class="fas fa-envelope-open-text text-white text-lg"></i>
                 </div>
                 <div>
-                  <p class="font-semibold text-sm m-0" style="color:rgb(173 122 135);" id="payment-template-name">-</p>
+                  <p class="font-semibold text-sm m-0" style="color:rgb(var(--text-body-rgb));" id="payment-template-name">-</p>
                   <p class="text-xs text-gray-400 m-0">Thiệp cưới online</p>
                 </div>
                 <div class="ml-auto text-right">
-                  <p id="payment-price" class="font-bold text-lg m-0" style="color:rgb(173 122 135);">299.000đ</p>
+                  <p id="payment-price" class="font-bold text-lg m-0" style="color:rgb(var(--text-body-rgb));">299.000đ</p>
                   <p id="payment-original-price" class="text-xs text-gray-300 line-through m-0">499.000đ</p>
                 </div>
               </div>
 
               <!-- User info nếu đã đăng nhập -->
-              <div id="payment-user-info" class="hidden items-center gap-3 p-3 rounded-2xl" style="background:rgb(255 245 248);">
-                <img id="payment-avatar" src="" alt="" class="w-10 h-10 rounded-full object-cover border-2" style="border-color:rgb(255 183 202);" />
+              <div id="payment-user-info" class="hidden items-center gap-3 p-3 rounded-2xl" style="background:rgb(var(--surface-brand-subtle-rgb));">
+                <img id="payment-avatar" src="" alt="" class="w-10 h-10 rounded-full object-cover border-2" style="border-color:rgb(var(--brand-primary-rgb));" />
                 <div>
-                  <p class="text-sm font-medium m-0" style="color:rgb(173 122 135);" id="payment-user-name-display"></p>
+                  <p class="text-sm font-medium m-0" style="color:rgb(var(--text-body-rgb));" id="payment-user-name-display"></p>
                   <p class="text-xs text-gray-400 m-0" id="payment-user-email-display"></p>
                 </div>
-                <i class="fas fa-check-circle ml-auto" style="color:rgb(255 183 202);"></i>
+                <i class="fas fa-check-circle ml-auto" style="color:rgb(var(--brand-primary-rgb));"></i>
               </div>
 
               <!-- Form -->
@@ -614,7 +614,7 @@
                     class="flex-1 px-3 py-2 rounded-xl border border-gray-200 text-sm outline-none uppercase tracking-wider focus:border-pink-300 transition-colors box-border" />
                   <button onclick="applyPromo()"
                     class="px-4 py-2 rounded-xl text-sm font-medium border-0 cursor-pointer transition-colors"
-                    style="background:rgb(255 240 245); color:rgb(173 122 135);">
+                    style="background:rgb(var(--surface-brand-rgb)); color:rgb(var(--text-body-rgb));">
                     Áp dụng
                   </button>
                 </div>
@@ -629,12 +629,12 @@
                 </div>
                 <div class="flex items-center justify-between">
                   <span class="text-sm text-gray-400">Tổng thanh toán</span>
-                  <span id="payment-total-price" class="font-bold text-xl" style="color:rgb(173 122 135);">299.000đ</span>
+                  <span id="payment-total-price" class="font-bold text-xl" style="color:rgb(var(--text-body-rgb));">299.000đ</span>
                 </div>
               </div>
 
               <button onclick="PaymentModal.process()"
-                class="w-full py-3.5 rounded-full text-white font-semibold text-sm border-0 cursor-pointer transition-colors hover:opacity-90" style="background:#f43f5e;">
+                class="w-full py-3.5 rounded-full text-white font-semibold text-sm border-0 cursor-pointer transition-colors hover:opacity-90" style="background:rgb(var(--action-primary-rgb));">
                 <i class="fas fa-lock mr-2 text-xs"></i>Thanh toán ngay
               </button>
               <p class="text-center text-xs text-gray-400 m-0">
@@ -646,11 +646,11 @@
 
           <!-- Step 2: Processing -->
           <div id="payment-step-2" class="hidden p-12 flex-col items-center gap-6 text-center">
-            <div class="w-16 h-16 rounded-full flex items-center justify-center" style="background:rgb(255 240 245);">
-              <div class="w-8 h-8 border-4 border-pink-100 rounded-full animate-spin" style="border-top-color:rgb(255 183 202);"></div>
+            <div class="w-16 h-16 rounded-full flex items-center justify-center" style="background:rgb(var(--surface-brand-rgb));">
+              <div class="w-8 h-8 border-4 border-pink-100 rounded-full animate-spin" style="border-top-color:rgb(var(--brand-primary-rgb));"></div>
             </div>
             <div>
-              <p class="font-semibold m-0" style="color:rgb(173 122 135);">Đang xử lý thanh toán...</p>
+              <p class="font-semibold m-0" style="color:rgb(var(--text-body-rgb));">Đang xử lý thanh toán...</p>
               <p class="text-sm text-gray-400 mt-1">Vui lòng không đóng cửa sổ này</p>
             </div>
           </div>
@@ -661,35 +661,35 @@
               <i class="fas fa-check text-white text-3xl"></i>
             </div>
             <div>
-              <h3 class="font-playfair text-2xl font-bold mb-2 m-0" style="color:rgb(173 122 135);">Thanh toán thành công!</h3>
+              <h3 class="font-playfair text-2xl font-bold mb-2 m-0" style="color:rgb(var(--text-body-rgb));">Thanh toán thành công!</h3>
               <p class="text-sm text-gray-600 leading-relaxed m-0">Nhấn vào link bên dưới để bắt đầu nhập thông tin thiệp cưới của bạn.</p>
             </div>
             <div class="w-full p-4 rounded-2xl bg-gray-50 text-left">
               <p class="text-xs text-gray-400 mb-2 font-medium uppercase tracking-wide">Thông tin đơn hàng</p>
-              <p class="text-sm font-medium m-0" style="color:rgb(173 122 135);" id="success-name"></p>
+              <p class="text-sm font-medium m-0" style="color:rgb(var(--text-body-rgb));" id="success-name"></p>
               <p class="text-xs text-gray-400 mt-1 m-0" id="success-phone"></p>
-              <p class="text-xs text-gray-400 mt-2 m-0">Mẫu: <span id="success-template" class="font-medium" style="color:rgb(173 122 135);"></span></p>
+              <p class="text-xs text-gray-400 mt-2 m-0">Mẫu: <span id="success-template" class="font-medium" style="color:rgb(var(--text-body-rgb));"></span></p>
             </div>
             <!-- Link setup thiệp -->
-            <div id="success-manage-block" class="w-full p-4 rounded-2xl border border-dashed text-left" style="border-color:rgb(255 183 202);background:rgb(255 245 248);">
+            <div id="success-manage-block" class="w-full p-4 rounded-2xl border border-dashed text-left" style="border-color:rgb(var(--brand-primary-rgb));background:rgb(var(--surface-brand-subtle-rgb));">
               <p class="text-xs text-gray-400 mb-2 font-medium">🎉 Link thiết lập thiệp cưới của bạn</p>
               <p class="text-[11px] text-gray-400 mb-3 leading-relaxed">Dùng link này để nhập thông tin cô dâu, chú rể và tùy chỉnh thiệp.</p>
               <div class="flex gap-2 items-center">
                 <input id="success-manage-link" readonly
                   class="flex-1 px-3 py-2 rounded-lg border border-gray-200 text-[11px] text-gray-600 bg-white outline-none min-w-0" />
                 <button onclick="copyManageLink()"
-                  class="px-3 py-2 rounded-lg text-white border-0 cursor-pointer text-xs whitespace-nowrap flex-shrink-0" style="background:#f43f5e;">
+                  class="px-3 py-2 rounded-lg text-white border-0 cursor-pointer text-xs whitespace-nowrap flex-shrink-0" style="background:rgb(var(--action-primary-rgb));">
                   <i class="fas fa-copy"></i>
                 </button>
               </div>
             </div>
             <div class="flex gap-3 w-full">
               <button onclick="PaymentModal.close()"
-                class="flex-1 py-3 rounded-full border-2 bg-white font-semibold text-sm cursor-pointer" style="border-color:rgb(255 183 202);color:rgb(173 122 135);">
+                class="flex-1 py-3 rounded-full border-2 bg-white font-semibold text-sm cursor-pointer" style="border-color:rgb(var(--brand-primary-rgb));color:rgb(var(--text-body-rgb));">
                 Đóng
               </button>
               <a id="success-manage-btn" href="#"
-                class="flex-1 py-3 rounded-full text-white font-semibold text-sm no-underline flex items-center justify-center gap-2" style="background:#f43f5e;">
+                class="flex-1 py-3 rounded-full text-white font-semibold text-sm no-underline flex items-center justify-center gap-2" style="background:rgb(var(--action-primary-rgb));">
                 <i class="fas fa-edit text-xs"></i>Thiết lập ngay
               </a>
             </div>
@@ -839,7 +839,7 @@
       // Reset inputs
       ["payment-name", "payment-phone", "payment-email"].forEach((id) => {
         document.getElementById(id).value = "";
-        document.getElementById(id).style.borderColor = "#e5e7eb";
+        document.getElementById(id).style.borderColor = "rgb(var(--border-field-rgb))";
       });
       ["payment-name-err", "payment-phone-err"].forEach((id) => {
         document.getElementById(id).style.display = "none";
@@ -902,22 +902,22 @@
       const nameInput = document.getElementById("payment-name");
       const nameErr = document.getElementById("payment-name-err");
       if (!name) {
-        nameInput.style.borderColor = "#ef4444";
+        nameInput.style.borderColor = "rgb(var(--state-invalid-rgb))";
         nameErr.style.display = "block";
         hasError = true;
       } else {
-        nameInput.style.borderColor = "#e5e7eb";
+        nameInput.style.borderColor = "rgb(var(--border-field-rgb))";
         nameErr.style.display = "none";
       }
 
       const phoneInput = document.getElementById("payment-phone");
       const phoneErr = document.getElementById("payment-phone-err");
       if (!phone) {
-        phoneInput.style.borderColor = "#ef4444";
+        phoneInput.style.borderColor = "rgb(var(--state-invalid-rgb))";
         phoneErr.style.display = "block";
         hasError = true;
       } else {
-        phoneInput.style.borderColor = "#e5e7eb";
+        phoneInput.style.borderColor = "rgb(var(--border-field-rgb))";
         phoneErr.style.display = "none";
       }
 
@@ -930,11 +930,11 @@
       // Step 2: Show processing - reset về loading state trước khi show
       const step2El = document.getElementById("payment-step-2");
       step2El.innerHTML = `
-        <div class="w-16 h-16 rounded-full flex items-center justify-center" style="background:rgb(255 240 245);">
-          <div class="w-8 h-8 border-4 border-pink-100 rounded-full animate-spin" style="border-top-color:rgb(255 183 202);"></div>
+        <div class="w-16 h-16 rounded-full flex items-center justify-center" style="background:rgb(var(--surface-brand-rgb));">
+          <div class="w-8 h-8 border-4 border-pink-100 rounded-full animate-spin" style="border-top-color:rgb(var(--brand-primary-rgb));"></div>
         </div>
         <div>
-          <p class="font-semibold m-0" style="color:rgb(173 122 135);">Đang xử lý thanh toán...</p>
+          <p class="font-semibold m-0" style="color:rgb(var(--text-body-rgb));">Đang xử lý thanh toán...</p>
           <p class="text-sm text-gray-400 mt-1">Vui lòng không đóng cửa sổ này</p>
         </div>
       `;
@@ -1081,7 +1081,7 @@
             if (msg) {
               msg.textContent =
                 "Thanh toán thất bại. Vui lòng tạo mã mới để thử lại.";
-              msg.style.color = "#dc2626";
+              msg.style.color = "rgb(var(--state-error-text-rgb))";
             }
           }
         } else {
@@ -1092,7 +1092,7 @@
             if (msg) {
               msg.textContent =
                 "Thanh toán vẫn chưa được xác nhận. Vui lòng liên hệ hỗ trợ nếu bạn đã thanh toán.";
-              msg.style.color = "#dc2626";
+              msg.style.color = "rgb(var(--state-error-text-rgb))";
             }
           }
         }
@@ -1104,7 +1104,7 @@
           if (msg) {
             msg.textContent =
               "Lỗi kết nối khi kiểm tra. Vui lòng thử lại hoặc liên hệ hỗ trợ.";
-            msg.style.color = "#dc2626";
+            msg.style.color = "rgb(var(--state-error-text-rgb))";
           }
         }
       }

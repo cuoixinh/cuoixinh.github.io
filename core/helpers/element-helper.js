@@ -202,7 +202,7 @@
         },
         color(
           C.BG,
-          "#ffffff",
+          "rgb(var(--white-rgb))",
           (node) =>
             paintOf(
               node.querySelector(".cx-mp-bar") ||
@@ -211,7 +211,7 @@
         ),
         color(
           C.TEXT,
-          "#4a4142",
+          "rgb(var(--music-widget-fg-rgb))",
           (node) =>
             inkOf(node.querySelector('[data-cx-music="title"]')) ||
             varOf(node, "--cx-mw-fg"),
@@ -220,7 +220,7 @@
         // nó trước, các mẫu khác mới rơi về nút phát.
         color(
           C.CTRL,
-          "#ffffff",
+          "rgb(var(--white-rgb))",
           (node) =>
             inkOf(
               node.querySelector(".cx-mw-mini-ic") ||
@@ -230,7 +230,7 @@
         ),
         color(
           C.CTRL_BG,
-          "#be7880",
+          "rgb(var(--music-widget-accent-rgb))",
           (node) =>
             paintOf(
               node.querySelector(".cx-mw-mini-ic") ||

@@ -44,7 +44,7 @@ async function openThemePicker() {
               class="flex items-center gap-4 px-4 py-3 text-left transition-colors w-full ${isCurrent ? "bg-rose-50" : "hover:bg-gray-50"}">
               <img src="${thumb}" alt="${t.name}"
                 class="w-16 h-24 rounded-xl object-cover object-top flex-shrink-0 border-2 ${isCurrent ? "border-rose-400" : "border-gray-200"}"
-                loading="lazy" onerror="this.style.background='#f3f4f6'" />
+                loading="lazy" onerror="this.style.background='rgb(var(--surface-control-rgb))'" />
               <div class="flex-1 min-w-0">
                 <p class="text-sm font-medium ${isCurrent ? "text-rose-600" : "text-gray-800"}">${t.name}</p>
                 ${t.description ? `<p class="text-xs text-gray-400 mt-0.5 line-clamp-2">${t.description}</p>` : ""}
