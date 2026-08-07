@@ -1,0 +1,139 @@
+<!-- Tab Content: Ảnh nền (sinh bằng AI) -->
+<div id="content-background" class="hidden">
+  <div class="bg-white rounded-2xl shadow-lg overflow-hidden p-4 sm:p-6">
+    <h2 class="text-lg sm:text-xl font-semibold text-gray-800 mb-1">Ảnh nền</h2>
+    <p class="text-sm text-gray-500 mb-5">
+      Nhờ AI vẽ ảnh nền SVG rồi ghi thẳng vào thư mục <code>assets/background/…</code> của dự án.
+    </p>
+
+    <!-- Trình duyệt không có File System Access API (Safari, Firefox) -->
+    <div
+      id="bg-unsupported-banner"
+      class="hidden rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800"
+    >
+      Trình duyệt này không ghi được file xuống ổ đĩa. Hãy mở trang quản trị bằng
+      <b>Chrome</b> hoặc <b>Edge</b> trên máy tính.
+    </div>
+
+    <div id="bg-body">
+      <!-- Kết nối thư mục assets/ (dùng chung handle với tab "Ảnh mẫu") -->
+      <div
+        class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-gray-200 p-4 mb-5"
+      >
+        <div>
+          <div class="text-sm font-medium text-gray-800">Thư mục gốc <code>assets/</code></div>
+          <div id="bg-folder-status" class="text-xs text-gray-500 mt-0.5">Chưa kết nối</div>
+        </div>
+        <button
+          id="bg-connect-btn"
+          type="button"
+          onclick="connectBackgroundRootFolder()"
+          class="btn-pink"
+        >
+          Chọn thư mục
+        </button>
+      </div>
+
+      <div id="bg-picker" class="hidden">
+        <!-- Chọn chỗ dùng nền + khổ màn hình -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
+          <div>
+            <label class="block text-xs font-medium text-gray-600 mb-1">Chỗ dùng nền</label>
+            <select
+              id="bg-slot-select"
+              onchange="onBackgroundSlotChange()"
+              class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+            ></select>
+            <p id="bg-slot-note" class="text-xs text-gray-500 mt-1"></p>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-600 mb-1">Khổ màn hình</label>
+            <select
+              id="bg-variant-select"
+              onchange="onBackgroundVariantChange()"
+              class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+            ></select>
+            <p id="bg-variant-note" class="text-xs text-gray-500 mt-1"></p>
+          </div>
+        </div>
+
+        <!-- Prompt: đổ sẵn từ mẫu, sửa được, tự nhớ bản đã sửa -->
+        <div class="mb-4">
+          <div class="flex items-center justify-between mb-1">
+            <label class="block text-xs font-medium text-gray-600">
+              Prompt gửi cho AI
+              <span class="font-normal text-gray-400">— sửa thoải mái, tự lưu lại</span>
+            </label>
+            <button
+              type="button"
+              onclick="resetBackgroundPrompt()"
+              class="text-xs text-gray-500 underline hover:text-gray-700"
+            >
+              Khôi phục mẫu gốc
+            </button>
+          </div>
+          <textarea
+            id="bg-prompt"
+            rows="10"
+            oninput="onBackgroundPromptInput()"
+            class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm font-mono leading-relaxed"
+          ></textarea>
+          <p class="text-xs text-gray-500 mt-1">
+            Khổ ảnh và các ràng buộc kỹ thuật (chỉ trả SVG, cấm script/ảnh ngoài…) do máy chủ
+            tự thêm — ở đây chỉ cần tả phần mỹ thuật.
+          </p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3 mb-5">
+          <button id="bg-generate-btn" type="button" onclick="generateBackground()" class="btn-ai">
+            Tạo ảnh nền bằng AI
+          </button>
+          <span id="bg-generate-status" class="text-xs text-gray-500"></span>
+        </div>
+
+        <!-- Xem trước + lưu -->
+        <div id="bg-preview-wrap" class="hidden mb-6">
+          <div class="text-xs font-medium text-gray-600 mb-1">Xem trước</div>
+          <!-- Chặn chiều cao: nền mobile là khổ dọc 1080×1920, để h-auto thì
+               khung xem trước cao gấp đôi màn hình. -->
+          <div
+            class="rounded-xl border border-gray-200 overflow-hidden bg-[rgb(var(--checkerboard-rgb))] flex justify-center"
+          >
+            <img
+              id="bg-preview"
+              alt="Xem trước ảnh nền"
+              class="max-h-[420px] w-auto max-w-full object-contain block"
+            />
+          </div>
+          <div class="flex flex-wrap items-end gap-3 mt-3">
+            <div class="flex-1 min-w-[220px]">
+              <label class="block text-xs font-medium text-gray-600 mb-1">Tên nền</label>
+              <input
+                id="bg-name-input"
+                type="text"
+                placeholder="vd: hoa-hong-pastel"
+                class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+              />
+              <p id="bg-filename-hint" class="text-xs text-gray-500 mt-1"></p>
+            </div>
+            <button id="bg-save-btn" type="button" onclick="saveBackground()" class="btn-pink">
+              Lưu vào thư mục
+            </button>
+          </div>
+        </div>
+
+        <!-- Nền đã có trong thư mục -->
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <div class="text-sm font-medium text-gray-800">Nền đã có</div>
+            <span id="bg-active-note" class="text-xs text-gray-500"></span>
+          </div>
+          <div id="bg-list" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3"></div>
+          <p id="bg-empty" class="hidden text-sm text-gray-500">
+            Thư mục chưa có nền nào.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
