@@ -29,18 +29,21 @@ function _initHomeAuth() {
 
 document.addEventListener("DOMContentLoaded", _initHomeAuth);
 
-function toggleMobileMenu() {
+// Gom về một chỗ để hai lối vào (toggle/close) không lệch trạng thái icon.
+function _setMobileMenuOpen(open) {
   const menu = document.getElementById("mobileMenu");
   const icon = document.getElementById("navHamburgerIcon");
-  const open = menu.classList.toggle("hidden");
-  icon.className = open ? "fas fa-bars text-base" : "fas fa-xmark text-base";
+  menu.classList.toggle("hidden", !open);
+  icon.className = open ? "fas fa-xmark text-base" : "fas fa-bars text-base";
+}
+
+function toggleMobileMenu() {
+  const menu = document.getElementById("mobileMenu");
+  _setMobileMenuOpen(menu.classList.contains("hidden"));
 }
 
 function closeMobileMenu() {
-  const menu = document.getElementById("mobileMenu");
-  const icon = document.getElementById("navHamburgerIcon");
-  menu.classList.add("hidden");
-  icon.className = "fas fa-bars text-base";
+  _setMobileMenuOpen(false);
 }
 
 function goCreateDraft(e) {

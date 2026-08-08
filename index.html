@@ -43,10 +43,8 @@
 
   <body class="bg-white" style="color: rgb(var(--text-body-rgb))">
     <!-- ===== NAV ===== -->
-    <nav
-      id="main-nav"
-      class="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-rose-pastel-200 transition-shadow"
-    >
+    <!-- Nền hồng nhạt + không viền (đặt ở #main-nav trong CSS) để liền khối với hero. -->
+    <nav id="main-nav" class="fixed top-0 left-0 right-0 z-50">
       <div class="max-w-6xl mx-auto px-5">
         <div class="flex items-center justify-between h-16">
           <a href="/" class="shrink-0">
@@ -110,7 +108,7 @@
     <!-- Mobile Menu -->
     <div
       id="mobileMenu"
-      class="hidden fixed top-16 left-0 right-0 z-40 bg-white border-b border-rose-pastel-200 shadow-lg px-5 py-4 flex-col gap-1 md:hidden"
+      class="hidden fixed top-16 left-0 right-0 z-40 border-b border-rose-pastel-200 shadow-lg px-5 py-4 flex-col gap-1 md:hidden"
     >
       <a href="/theme-template/" onclick="closeMobileMenu()" class="flex items-center gap-2 py-3 border-b border-rose-pastel-100 hover:opacity-70 transition-opacity text-sm font-medium" style="color: rgb(var(--text-body-rgb))">
         <i class="fas fa-layer-group text-xs w-4 opacity-60"></i> Mẫu thiệp
@@ -349,17 +347,6 @@
         </div>
       </div>
 
-      <!-- Wave bottom -->
-      <div class="wave-divider bg-white">
-        <svg
-          viewBox="0 0 1440 40"
-          xmlns="http://www.w3.org/2000/svg"
-          preserveAspectRatio="none"
-          class="h-[40px] bg-[rgb(var(--surface-section-rgb))]"
-        >
-          <path d="M0,0 C360,40 1080,40 1440,0 L1440,40 L0,40 Z" fill="white" />
-        </svg>
-      </div>
     </section>
 
     <!-- ===== TEMPLATE GALLERY ===== -->
@@ -416,20 +403,6 @@
         </div>
       </div>
 
-      <!-- Wave bottom -->
-      <div class="wave-divider shrink-0">
-        <svg
-          viewBox="0 0 1440 40"
-          xmlns="http://www.w3.org/2000/svg"
-          preserveAspectRatio="none"
-          class="h-[40px] bg-white"
-        >
-          <path
-            d="M0,40 C360,0 1080,0 1440,40 L1440,40 L0,40 Z"
-            fill="rgb(var(--surface-section-rgb))"
-          />
-        </svg>
-      </div>
     </section>
 
     <!-- ===== INSIDE THE INVITATION ===== -->

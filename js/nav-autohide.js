@@ -1,4 +1,4 @@
-// Nav scroll effect: đổ bóng khi rời top + tự ẩn/hiện theo hướng & tốc độ cuộn
+// Nav tự ẩn/hiện theo hướng & tốc độ cuộn (navbar trong suốt nên không có hiệu ứng nền)
 (function initNavAutoHide() {
   const nav = document.getElementById("main-nav");
   const mobileMenu = document.getElementById("mobileMenu");
@@ -25,8 +25,6 @@
       const deltaY = currentY - lastY;
       const deltaT = Math.max(currentT - lastT, 1);
       const speed = Math.abs(deltaY) / deltaT; // px/ms
-
-      nav.classList.toggle("nav-scrolled", currentY > 20);
 
       if (!isMobileMenuOpen()) {
         if (currentY <= TOP_THRESHOLD) {

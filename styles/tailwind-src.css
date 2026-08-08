@@ -379,7 +379,7 @@ html.cx-landing {
 /* Chỉ hiện khi đã nạp được ảnh — tránh nháy một lớp trống lúc đang tải. */
 
 .hero-bg.is-on {
-  opacity: 0.3;
+  opacity: 0.1;
 }
 
 .hero-petal {
@@ -466,14 +466,6 @@ html.cx-landing {
     transparent 60%
   );
   animation: cardShine 5s ease-in-out 1.5s infinite;
-}
-
-.wave-divider {
-  @apply block w-full overflow-hidden;
-  line-height: 0;
-}
-.wave-divider svg {
-  @apply block w-full;
 }
 
 .feature-row {
@@ -586,11 +578,16 @@ html.cx-landing {
   display: flex;
 }
 
-.nav-scrolled {
-  box-shadow: 0 2px 20px rgb(var(--shadow-brand-rgb) / 0.08);
+/* Nền hồng nhạt trùng tông với gradient của #hero, không viền → ở đầu trang navbar
+   liền một khối với hero, cuộn xuống thì vẫn đủ đặc để đọc chữ. Bảng menu mobile
+   dùng chung màu này (xem #mobileMenu) cho khỏi lộ vệt ghép. */
+
+#main-nav,
+#mobileMenu {
+  background: rgb(var(--surface-tint-warm-rgb));
 }
 #main-nav {
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: transform 0.3s ease;
 }
 #main-nav.nav-hidden {
   @apply -translate-y-full;
