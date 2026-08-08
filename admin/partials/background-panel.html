@@ -128,16 +128,21 @@
                 id="bg-iframe-box"
                 class="rounded-xl border border-gray-200 overflow-hidden bg-[rgb(var(--checkerboard-rgb))] relative"
               >
+                <!-- CỐ Ý không khai `sandbox`: cần JS chạy được VÀ trang này đọc lại được
+                     contentDocument để chụp. Cặp cờ tối thiểu làm được việc đó là
+                     allow-scripts + allow-same-origin, mà cặp đó vốn đã tương đương không
+                     sandbox (trình duyệt còn cảnh báo là "escape its sandboxing") — nên khai
+                     vào chỉ là lời hứa cách ly giả. Hệ quả: mã trong khung này chạm được
+                     trang admin, chỉ dán mã do chính mình viết. -->
                 <iframe
                   id="bg-iframe"
-                  sandbox=""
                   title="Xem trước thiết kế"
                   class="block border-0 origin-top-left"
                 ></iframe>
               </div>
               <p class="text-xs text-gray-500 mt-1">
-                Ảnh nào khung này tải được thì lúc chụp cũng nhúng đúng ảnh đó. Xem lại ảnh
-                cuối ở dưới trước khi lưu.
+                JS trong mã có chạy. Lúc chụp lấy đúng trạng thái khung này sau khi script đã
+                chạy xong — thấy sao được vậy. Xem lại ảnh cuối ở dưới trước khi lưu.
               </p>
             </div>
           </div>

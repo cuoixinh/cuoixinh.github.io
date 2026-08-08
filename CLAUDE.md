@@ -131,12 +131,22 @@ Không có AI ở đây; mã do người dùng tự viết bên ngoài rồi man
   thư mục qua HTTP). Mọi thao tác ghi/xoá phải gọi `bgSyncManifest()` sau đó.
   Bên đọc hiện có: `js/hero-background.js` (màn mở đầu trang chủ) — chưa có nền thì im lặng
   bỏ qua, hero giữ nguyên gradient sẵn có.
-- **Bất biến của tab: iframe thấy gì thì ảnh chụp phải ra đúng thế.** Vì vậy `bgInlineAssets()`
-  dò tài nguyên **từ chính mã** (`src`/`poster`/`xlink:href`/`url()`) chứ không dựa vào bảng
-  "Đường dẫn ảnh" — bảng đó chỉ là tiện ích chép đường dẫn, để trống vẫn chụp bình thường.
-  Đường dẫn giải theo URL trang admin, đúng bằng cách iframe `srcdoc` giải.
-  Cùng lý do: `bgSanitizeHtml()` **chỉ gỡ thứ chạy được** (script, `on*`, `javascript:`) — đúng
-  bằng những gì `sandbox=""` của iframe vốn đã chặn — và **không đụng tham chiếu ảnh/font**.
+- **Bất biến của tab: iframe thấy gì thì ảnh chụp phải ra đúng thế.** `<foreignObject>` không
+  chạy JS và không tải được file ngoài, nên hai cơ chế bù lại:
+  - `bgSnapshotFrame()` chụp **DOM sau khi script chạy** (`contentDocument`), không chụp mã gốc
+    → JS trong mã dùng được bình thường. `<canvas>` được đổi thành `<img>` data URI vì
+    `outerHTML` không mang theo pixel. Iframe vì thế **cố ý không khai `sandbox`**: cặp cờ tối
+    thiểu đủ dùng (`allow-scripts allow-same-origin`) vốn đã tương đương không sandbox, khai
+    vào chỉ là lời hứa cách ly giả. Hệ quả: **mã trong khung chạm được trang admin** (kể cả
+    `ADMIN_TOKEN`) — chỉ dán mã do chính mình viết.
+  - `bgInlineAssets()` dò tài nguyên **từ chính mã** (`src`/`poster`/`xlink:href`/`url()`,
+    và nạp `<link rel=stylesheet>` thành `<style>`) chứ không dựa vào bảng "Đường dẫn ảnh" —
+    bảng đó chỉ là tiện ích chép đường dẫn, để trống vẫn chụp bình thường. Đường dẫn giải theo
+    URL trang admin, đúng bằng cách iframe `srcdoc` giải.
+  - `bgSanitizeHtml()` chạy trên **bản chụp** (script đã chạy xong) nên gỡ `<script>`/`on*`
+    không mất gì; **không đụng tham chiếu ảnh/font**.
+  - Không có cách biết chắc "script đã xong" → `bgSettleFrame()` chờ `fonts.ready` + 2 nhịp vẽ
+    + `BG_SETTLE_MS`. Mã có hiệu ứng dài thì bấm Run xem cho ổn định rồi hẵng chụp.
 - **Chụp bằng `<foreignObject>`** (không dùng thư viện ngoài). Ba ràng buộc, sai là ra ảnh trắng:
   tài nguyên phải nhúng thành `data:` URI (SVG trong `<img>` không tải được file ngoài); HTML
   phải chuẩn hoá qua `DOMParser` + `XMLSerializer` cho hợp XML; chính file SVG phải là `data:`

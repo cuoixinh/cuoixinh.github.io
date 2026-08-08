@@ -1,0 +1,13 @@
+{
+  "path": "/assets/background/started",
+  "updated_at": "2026-08-08T10:09:49.906Z",
+  "backgrounds": [
+    {
+      "name": "bg-hero",
+      "updated_at": "2026-08-08T10:09:49.892Z",
+      "variants": {
+        "desktop": "bg-hero-desktop.webp"
+      }
+    }
+  ]
+}

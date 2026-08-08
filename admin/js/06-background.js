@@ -6,10 +6,12 @@
 // ra WebP → ghi xuống đĩa. HTML chỉ là bản vẽ trung gian, không lưu lại và không
 // bao giờ chèn vào DOM của trang.
 //
-// NGUYÊN TẮC: iframe thấy gì thì ảnh chụp phải ra đúng thế. Bước chụp vì vậy tự
-// dò MỌI tài nguyên mà mã tham chiếu rồi nhúng vào (xem bgInlineAssets) — không
-// dựa vào danh sách ảnh đã chọn. Bảng "Đường dẫn ảnh" chỉ là tiện ích chép đường
-// dẫn, bỏ trống vẫn chụp bình thường.
+// NGUYÊN TẮC: iframe thấy gì thì ảnh chụp phải ra đúng thế. Hai việc để giữ được
+// điều đó, vì <foreignObject> không chạy JS và không tải được file ngoài:
+//  - Chụp DOM SAU KHI script chạy (bgSnapshotFrame) chứ không chụp mã gốc.
+//  - Tự dò MỌI tài nguyên mã tham chiếu rồi nhúng vào (bgInlineAssets), không dựa
+//    vào danh sách ảnh đã chọn — bảng "Đường dẫn ảnh" chỉ là tiện ích chép đường
+//    dẫn, bỏ trống vẫn chụp bình thường.
 //
 // Quy ước:
 // 1. Một "nền" = MỘT BỘ nhiều biến thể khổ màn hình (desktop + mobile), tên file
@@ -44,6 +46,7 @@ const BG_MANIFEST_NAME = "manifest.json";
 const BG_MAX_MB = 1.2; // trần dung lượng ảnh nền ghi ra đĩa
 const BG_CAPTURE_QUALITY = 0.9;
 const BG_HTML_LS_KEY = "bg_html_draft"; // mã đang soạn, giữ qua F5
+const BG_SETTLE_MS = 400; // chờ JS trong mã dựng xong DOM trước khi chụp
 
 let bgRootHandle = null; // thư mục assets/
 let bgDirHandle = null; // thư mục đích của slot đang chọn
@@ -51,6 +54,7 @@ let bgItems = []; // nền đã có: [{ name, updated_at, variants: {key: filena
 let bgPhotos = []; // bảng tra đường dẫn: [{ path, w, h }] — KHÔNG liên quan tới việc chụp
 let bgPendingBlob = null; // ảnh đã chụp, chưa lưu
 let bgPreviewUrl = ""; // blob: URL của ảnh xem trước (phải revoke khi thay)
+let bgRenderedSrc = null; // mã đang thực sự chạy trong iframe, để biết có phải Run lại không
 
 // ============= Init tab =============
 
@@ -387,16 +391,70 @@ function bgFitPreview() {
 }
 
 /**
- * Đổ mã đang soạn vào iframe. `sandbox=""` chặn hẳn script — khớp với bgSanitizeHtml
- * ở bước chụp, nên hai bên cho ra cùng một kết quả. Đường dẫn trong srcdoc giải theo
- * URL trang admin, đúng bằng cách bgUrlToDataUrl giải lúc chụp.
+ * Đổ mã đang soạn vào iframe và chờ nó ổn định. JS trong mã CHẠY THẬT ở đây
+ * (iframe không sandbox), nên đợi thêm một nhịp cho script kịp dựng xong DOM.
+ * Đường dẫn trong srcdoc giải theo URL trang admin, đúng bằng cách bgUrlToDataUrl
+ * giải lúc chụp.
  */
-function bgRunPreview() {
+async function bgRunPreview() {
   const box = bgHtmlBox();
   const frame = document.getElementById("bg-iframe");
   if (!box || !frame) return;
+
   bgFitPreview();
+  const loaded = new Promise((resolve) => {
+    frame.addEventListener("load", resolve, { once: true });
+  });
   frame.srcdoc = box.value;
+  bgRenderedSrc = box.value;
+
+  await loaded;
+  await bgSettleFrame(frame);
+}
+
+/**
+ * Chờ khung vẽ xong: font đã nạp, đã qua 2 nhịp vẽ, cộng một khoảng nhỏ cho JS
+ * chạy trong setTimeout/animation. Không có cách nào biết chắc "script đã xong",
+ * nên đây là ước lượng — mã có hiệu ứng dài thì bấm Run xem rồi hẵng chụp.
+ */
+async function bgSettleFrame(frame) {
+  const win = frame.contentWindow;
+  try {
+    if (win?.document?.fonts?.ready) await win.document.fonts.ready;
+  } catch {
+    /* khác origin hoặc chưa sẵn sàng — bỏ qua, vẫn còn nhịp chờ bên dưới */
+  }
+  await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+  await new Promise((r) => setTimeout(r, BG_SETTLE_MS));
+}
+
+/**
+ * Ảnh chụp lấy DOM SAU KHI script chạy, không phải mã gốc — đó là cách giữ được
+ * "khung xem thấy gì thì ảnh ra thế" trong khi <foreignObject> vốn không chạy JS.
+ *
+ * <canvas> phải xử lý riêng: nội dung của nó là pixel, outerHTML không mang theo,
+ * nên đổi thành <img> data URI. Canvas bị nhiễm bẩn (vẽ ảnh khác origin) thì
+ * toDataURL ném lỗi → bỏ qua, để nguyên thẻ rỗng còn hơn hỏng cả ảnh.
+ */
+function bgSnapshotFrame(frame) {
+  const doc = frame.contentDocument;
+  if (!doc?.documentElement) throw new Error("không đọc được nội dung khung xem trước");
+
+  const clone = doc.documentElement.cloneNode(true);
+  const live = doc.querySelectorAll("canvas");
+  const copies = clone.querySelectorAll("canvas"); // clone sâu → cùng thứ tự với live
+  copies.forEach((node, i) => {
+    try {
+      const img = doc.createElement("img");
+      img.setAttribute("src", live[i].toDataURL());
+      img.setAttribute("style", node.getAttribute("style") || "");
+      if (node.getAttribute("class")) img.setAttribute("class", node.getAttribute("class"));
+      node.replaceWith(img);
+    } catch {
+      /* canvas nhiễm bẩn — giữ nguyên thẻ, phần đó sẽ trống trong ảnh */
+    }
+  });
+  return clone.outerHTML;
 }
 
 // Kéo cửa sổ → chỉ đo lại tỉ lệ, không nạp lại nội dung.
@@ -417,7 +475,15 @@ async function captureBackground() {
   btn.dataset.loading = "1";
   status.textContent = "Đang chụp…";
   try {
-    const html = bgSanitizeHtml(box.value);
+    // Sửa mã xong mà quên bấm Run thì tự chạy lại — nếu không sẽ chụp bản cũ.
+    const frame = document.getElementById("bg-iframe");
+    if (box.value !== bgRenderedSrc) {
+      status.textContent = "Đang chạy lại mã…";
+      await bgRunPreview();
+      status.textContent = "Đang chụp…";
+    }
+
+    const html = bgSanitizeHtml(bgSnapshotFrame(frame));
     if (!html) throw new Error("chưa có nội dung");
 
     const { file, failed } = await bgCaptureHtml(html, v.w, v.h);
@@ -444,13 +510,12 @@ async function captureBackground() {
 }
 
 /**
- * Bỏ những thứ CHẠY ĐƯỢC khỏi mã trước khi đem chụp.
+ * Dọn ảnh chụp DOM trước khi đưa vào <foreignObject>.
  *
- * Chỉ gỡ đúng phần script — KHÔNG đụng tới tham chiếu ảnh/font, vì bước chụp phải
- * ra đúng thứ iframe đang hiện. Cũng vì thế danh sách này khớp với những gì
- * `sandbox=""` của iframe vốn đã chặn, nên hai bên nhìn giống nhau.
- * Không cắt phần trước <html>: mã tự viết có thể mở đầu bằng <!DOCTYPE>, comment
- * hoặc chỉ là một mẩu <div> — cứ để nguyên, trình duyệt tự bọc.
+ * Chạy trên BẢN CHỤP (script đã chạy xong rồi) chứ không phải mã gốc, nên việc gỡ
+ * <script>/`on*` ở đây không làm mất gì: kết quả của chúng đã nằm sẵn trong DOM,
+ * còn <foreignObject> thì vốn không chạy JS. Gỡ đi cho bản serialize gọn và chắc.
+ * KHÔNG đụng tới tham chiếu ảnh/font — đó là phần phải giữ y nguyên.
  */
 function bgSanitizeHtml(raw) {
   return String(raw || "")
