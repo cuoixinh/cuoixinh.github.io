@@ -536,100 +536,148 @@ html.cx-landing {
   color: rgb(var(--text-body-rgb));
 }
 
-/* Các bước làm thiệp, dạng mốc nối bằng nét đứt (cùng motif "xé rời" của
-   .hero-invite-foot). Số thứ tự sinh bằng CSS counter và lưới dùng auto-fit
-   nên thêm/bớt <li> là xong: cột hẹp xếp 2x2, cột rộng dàn thành một hàng.
-   Nét nối vẽ bằng ::after của từng bước nên chỉ đúng khi các bước cùng nằm
-   một hàng — vì thế chỉ bật từ 640px. */
+/* Các bước làm thiệp vẽ theo lối sơ đồ: mỗi bước là một vòng tròn viền màu ôm
+   đĩa trắng đựng icon, nối sang bước kế bằng mũi tên, chữ nằm dưới sau một nét
+   đứt rơi xuống. Đây là hình minh hoạ tĩnh, KHÔNG bấm được — không đặt hover
+   hay đổ bóng nổi lên vòng tròn, tránh đọc nhầm thành nút.
+   Số thứ tự sinh bằng CSS counter và cột dàn bằng grid-auto-flow nên thêm/bớt
+   <li> là xong (nhớ cấp màu ở nth-child bên dưới). Sơ đồ LUÔN nằm một hàng ở
+   mọi khổ màn — điện thoại chỉ thu nhỏ lại, không xuống dòng, vì mũi tên nối
+   ngang chỉ đúng khi các bước cùng hàng.
+   --cx-orb là đường kính vòng, mọi kích thước khác (tâm mũi tên, điểm nối) tính
+   từ nó nên đổi cỡ chỉ cần sửa một chỗ mỗi breakpoint. */
 
 .hero-invite-steps {
   @apply grid w-full;
   counter-reset: cx-step;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 20px 8px;
+  --cx-orb: 40px;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
   max-width: 34rem;
 }
 
-/* Từ 640px cột đủ rộng thì để auto-fit tự chia: 4 bước dàn một hàng, thêm bước
-   thì xuống hàng. Ép 2 cột ở dưới mốc này vì auto-fit hay rơi vào 3 cột + 1 ô
-   lẻ trông rất gãy. */
-
 @media (min-width: 640px) {
   .hero-invite-steps {
-    grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
-    gap: 0;
+    --cx-orb: 54px;
   }
 }
+
+/* --cx-step-c là màu của cả bước: vòng, icon, mũi tên, nét đứt và dòng số.
+   Bước ngoài danh sách màu rơi về hồng nhấn mặc định. */
 
 .hero-invite-steps li {
   @apply relative flex flex-col items-center text-center;
   counter-increment: cx-step;
-  gap: 10px;
-  padding: 0 4px;
+  --cx-step-c: var(--brand-accent-rgb);
+  gap: 12px;
+  padding: 0 2px;
+}
+.hero-invite-steps li:nth-child(1) { --cx-step-c: var(--hero-step-1-rgb); }
+.hero-invite-steps li:nth-child(2) { --cx-step-c: var(--hero-step-2-rgb); }
+.hero-invite-steps li:nth-child(3) { --cx-step-c: var(--hero-step-3-rgb); }
+.hero-invite-steps li:nth-child(4) { --cx-step-c: var(--hero-step-4-rgb); }
+
+/* Mũi tên sang bước kế: ::after là thân, ::before là đầu nhọn, cả hai nằm ngang
+   tâm vòng và kéo từ mép phải vòng này tới mép trái vòng sau (li rộng bằng nhau
+   nên -50% + nửa vòng + 5px chạm đúng chỗ). */
+
+.hero-invite-steps li::after {
+  content: "";
+  @apply pointer-events-none absolute;
+  top: calc(var(--cx-orb) / 2);
+  left: calc(50% + var(--cx-orb) / 2 + 5px);
+  right: calc(-50% + var(--cx-orb) / 2 + 5px);
+  border-top: 2px solid rgb(var(--cx-step-c) / 0.55);
+}
+.hero-invite-steps li::before {
+  content: "";
+  @apply pointer-events-none absolute;
+  top: calc(var(--cx-orb) / 2);
+  right: calc(-50% + var(--cx-orb) / 2 + 5px);
+  width: 6px;
+  height: 6px;
+  border-top: 2px solid rgb(var(--cx-step-c) / 0.55);
+  border-right: 2px solid rgb(var(--cx-step-c) / 0.55);
+  transform: translate(-1px, calc(-50% + 1px)) rotate(45deg);
 }
 
-/* Nét nối sang bước kế: kéo từ mép phải huy hiệu bước này tới mép trái huy
-   hiệu bước sau (li rộng bằng nhau nên -50% + 26px chạm đúng chỗ). */
+/* content:none (không phải display:none) — cssnano gộp nhầm rule display
+   với `#ai-history:not(.hidden)` ở _ai-modal.css thành selector hỏng. */
+
+.hero-invite-steps li:last-child::after,
+.hero-invite-steps li:last-child::before {
+  content: none;
+}
+
+.hero-invite-steps li .hero-step-orb {
+  @apply relative z-[1] inline-flex shrink-0 items-center justify-center rounded-full;
+  width: var(--cx-orb);
+  height: var(--cx-orb);
+  border: 2px solid rgb(var(--cx-step-c));
+  color: rgb(var(--cx-step-c));
+  font-size: 14px;
+}
 
 @media (min-width: 640px) {
-  .hero-invite-steps li::after {
-    content: "";
-    @apply pointer-events-none absolute;
-    top: 21px;
-    left: calc(50% + 26px);
-    right: calc(-50% + 26px);
-    border-top: 1px dashed rgb(var(--brand-primary-rgb) / 0.6);
-  }
-  /* content:none (không phải display:none) — cssnano gộp nhầm rule display
-     với `#ai-history:not(.hidden)` ở _ai-modal.css thành selector hỏng. */
-  .hero-invite-steps li:last-child::after {
-    content: none;
+  .hero-invite-steps li .hero-step-orb {
+    font-size: 18px;
   }
 }
 
-/* Huy hiệu: nền đặc để nét nối chạy phía sau, số thứ tự đính góc như dấu đóng
-   trên thiệp in. */
+/* Đĩa trắng lọt trong vòng, chừa một khe hở như hình cắt giấy; nền đặc để mũi
+   tên chạy khuất phía sau. */
 
-.hero-invite-steps li .hero-step-medal {
-  @apply relative z-[1] inline-flex shrink-0 items-center justify-center rounded-full transition-all;
-  width: 44px;
-  height: 44px;
-  border: 1px solid rgb(var(--brand-primary-rgb) / 0.5);
-  background: rgb(var(--white-rgb) / 0.85);
-  box-shadow: 0 4px 12px rgb(var(--shadow-brand-rgb) / 0.12);
-  color: rgb(var(--brand-accent-rgb));
-  font-size: 15px;
+.hero-invite-steps li .hero-step-orb::before {
+  content: "";
+  @apply absolute rounded-full;
+  inset: 3px;
+  background: rgb(var(--white-rgb));
+  box-shadow: 0 2px 8px rgb(var(--shadow-brand-rgb) / 0.16);
 }
 
-.hero-invite-steps li .hero-step-medal::after {
-  content: counter(cx-step);
-  @apply absolute inline-flex items-center justify-center rounded-full font-cormorant font-bold text-white;
-  /* Cormorant mặc định dùng chữ số kiểu cổ: 1,2 cao bằng chữ thường còn 3,4
-     thò đuôi xuống, nên mỗi số nằm một độ cao khác nhau trong huy hiệu. Ép về
-     bộ số kiểu hiện đại để cả bốn số cùng cao và cùng nằm giữa. */
-  font-variant-numeric: lining-nums;
-  font-feature-settings: "lnum" 1;
-  top: -4px;
-  right: -4px;
-  width: 18px;
-  height: 18px;
-  font-size: 11px;
-  line-height: 1;
-  border: 1px solid rgb(var(--surface-tint-rgb));
-  background: rgb(var(--brand-accent-rgb));
+/* Nét đứt rơi từ đáy vòng xuống chữ, nằm gọn trong khoảng gap 12px của li. */
+
+.hero-invite-steps li .hero-step-orb::after {
+  content: "";
+  @apply absolute;
+  top: calc(100% + 2px);
+  left: 50%;
+  height: 8px;
+  border-left: 1px dashed rgb(var(--cx-step-c) / 0.55);
 }
 
-.hero-invite-steps li:hover .hero-step-medal {
-  border-color: rgb(var(--brand-accent-rgb) / 0.7);
-  transform: translateY(-2px);
+.hero-invite-steps li .hero-step-orb i {
+  @apply relative z-[1];
 }
 
 .hero-step-label {
   @apply block;
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 500;
   line-height: 1.35;
   color: rgb(var(--text-heading-rgb));
+}
+
+/* Dòng "BƯỚC 0x" phía trên tên bước — số lấy từ cùng counter với vòng. */
+
+.hero-step-label::before {
+  content: "Bước " counter(cx-step, decimal-leading-zero);
+  @apply block font-semibold uppercase;
+  margin-bottom: 4px;
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  color: rgb(var(--cx-step-c));
+}
+
+@media (min-width: 640px) {
+  .hero-step-label {
+    font-size: 12px;
+  }
+  .hero-step-label::before {
+    margin-bottom: 5px;
+    font-size: 10px;
+    letter-spacing: 0.16em;
+  }
 }
 
 .hero-invite-actions {
@@ -760,38 +808,53 @@ html.cx-landing {
   }
 }
 
+/* Cỡ chữ/khoảng hở ở đây cố ý nhỏ hơn khổ dọc: cả tấm thiệp + dòng "Xem mẫu
+   thiệp" phải lọt trong một khung nhìn máy tính (kể cả laptop chỉ còn ~700px
+   chiều cao), nếu không người dùng tưởng màn mở đầu là hết trang. Nới thêm chỗ
+   nào cũng phải đo lại dòng đó có còn thấy không. */
+
 @media (min-width: 1024px) {
   .hero-invite {
     @apply flex-row items-stretch;
-    min-height: clamp(460px, calc(100dvh - 152px), 600px);
+    min-height: clamp(420px, calc(100dvh - 152px), 560px);
   }
   .hero-invite-copy {
     @apply items-start justify-center text-left;
+    --cx-hero-line-gap: 20px;
     flex: 1.12 1 0;
     min-width: 0;
-    padding: 32px 36px;
+    padding: 22px 36px;
   }
   .hero-invite-name {
-    font-size: clamp(4rem, 7vw, 7rem);
+    font-size: clamp(3.4rem, 5.6vw, 5.4rem);
   }
   .hero-invite-rule {
-    margin-top: 18px;
+    margin-top: 14px;
   }
   .hero-invite-sub {
-    font-size: 19px;
+    font-size: 18px;
   }
-  .hero-invite-steps li .hero-step-medal {
-    width: 48px;
-    height: 48px;
+  .hero-invite-steps {
+    --cx-orb: 48px;
+  }
+  .hero-invite-steps li {
+    gap: 10px;
+  }
+  .hero-invite-steps li .hero-step-orb {
     font-size: 16px;
   }
-  .hero-invite-steps li::after {
-    top: 23px;
-    left: calc(50% + 28px);
-    right: calc(-50% + 28px);
-  }
   .hero-step-label {
-    font-size: 13px;
+    font-size: 12px;
+  }
+  .hero-invite-foot {
+    padding-top: 20px;
+  }
+  .hero-invite-cta {
+    padding: 13px 32px;
+    font-size: 15px;
+  }
+  .hero-invite-props {
+    margin-top: 18px;
   }
   .hero-invite-head,
   .hero-invite-foot,
@@ -855,6 +918,31 @@ html.cx-landing {
     height: 96%;
     border-radius: 11% / 5.3%;
     background: rgb(var(--white-rgb));
+  }
+}
+
+/* Cửa sổ máy tính thấp (laptop có nhiều thanh công cụ): thu thêm một nấc nữa
+   để dòng "Xem mẫu thiệp" vẫn nằm trong khung nhìn. */
+
+@media (min-width: 1024px) and (max-height: 680px) {
+  #hero {
+    padding-top: 40px;
+  }
+  .hero-invite-copy {
+    --cx-hero-line-gap: 14px;
+    padding: 14px 32px;
+  }
+  .hero-invite-name {
+    font-size: clamp(2.8rem, 4.6vw, 4.2rem);
+  }
+  .hero-invite-sub {
+    font-size: 16px;
+  }
+  .hero-invite-steps {
+    --cx-orb: 42px;
+  }
+  .hero-invite-foot {
+    padding-top: 16px;
   }
 }
 

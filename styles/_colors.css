@@ -192,6 +192,14 @@
   --landing-text-dark-rgb: 69 53 53;
   --landing-quote-mark-rgb: 243 198 216;
   --landing-step-icon-rgb: 201 96 128;
+
+  /* Sơ đồ các bước ở màn mở đầu — ombré vàng đồng → hồng → mận, mỗi bước một
+     sắc. Đã chọn đủ tối để dòng "BƯỚC 0x" đọc được trên nền sáng; thêm bước
+     thì thêm token ở đây + một nth-child trong tailwind-src.css. */
+  --hero-step-1-rgb: 165 115 40;
+  --hero-step-2-rgb: 190 78 100;
+  --hero-step-3-rgb: 168 62 132;
+  --hero-step-4-rgb: 116 62 132;
   --landing-photo-overlay-rgb: 132 132 132;
   --landing-photo-overlay-soft-rgb: 186 186 186;
 

@@ -179,26 +179,27 @@
               <div class="hero-invite-rule hero-anim hero-anim-2" aria-hidden="true">
                 <span></span><i class="fas fa-heart"></i><span></span>
               </div>
-              <!-- Các bước làm thiệp, dạng mốc nối bằng nét đứt. Số thứ tự do
-                   CSS counter sinh ra nên thêm/bớt <li> là đủ, không phải sửa
-                   gì thêm; lưới auto-fit tự chia lại cột theo số bước và bề
-                   ngang. Mỗi bước cần đúng 2 phần tử con: huy hiệu icon và
-                   nhãn. -->
+              <!-- Sơ đồ các bước làm thiệp: vòng tròn icon nối bằng mũi tên,
+                   chữ nằm dưới. Số thứ tự và dòng "BƯỚC 0x" do CSS counter
+                   sinh ra nên thêm/bớt <li> là đủ (chỉ cần cấp thêm màu ở
+                   .hero-invite-steps li:nth-child trong tailwind-src.css);
+                   lưới auto-fit tự chia lại cột. Mỗi bước cần đúng 2 phần tử
+                   con: vòng icon và nhãn. -->
               <ol class="hero-invite-steps hero-anim hero-anim-3">
                 <li>
-                  <span class="hero-step-medal" aria-hidden="true"><i class="fas fa-swatchbook"></i></span>
-                  <span class="hero-step-label">Chọn mẫu thiệp</span>
+                  <span class="hero-step-orb" aria-hidden="true"><i class="fas fa-swatchbook"></i></span>
+                  <span class="hero-step-label">Chọn mẫu</span>
                 </li>
                 <li>
-                  <span class="hero-step-medal" aria-hidden="true"><i class="fas fa-images"></i></span>
+                  <span class="hero-step-orb" aria-hidden="true"><i class="fas fa-images"></i></span>
                   <span class="hero-step-label">Điền thông tin</span>
                 </li>
                 <li>
-                  <span class="hero-step-medal" aria-hidden="true"><i class="fas fa-paper-plane"></i></span>
+                  <span class="hero-step-orb" aria-hidden="true"><i class="fas fa-paper-plane"></i></span>
                   <span class="hero-step-label">Xuất bản</span>
                 </li>
                 <li>
-                  <span class="hero-step-medal" aria-hidden="true"><i class="fas fa-envelope-open-text"></i></span>
+                  <span class="hero-step-orb" aria-hidden="true"><i class="fas fa-envelope-open-text"></i></span>
                   <span class="hero-step-label">Gửi thiệp</span>
                 </li>
               </ol>
