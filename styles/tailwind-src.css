@@ -18,21 +18,6 @@
 @import "./_setup.css";
 @import "./_ai-modal.css";
 
-@keyframes floatPetal {
-  0% {
-    transform: translateY(0) rotate(0deg) scale(1);
-    opacity: 0.55;
-  }
-  50% {
-    transform: translateY(-22px) rotate(18deg) scale(1.08);
-    opacity: 0.75;
-  }
-  100% {
-    transform: translateY(0) rotate(0deg) scale(1);
-    opacity: 0.55;
-  }
-}
-
 @keyframes heroFadeUp {
   from {
     opacity: 0;
@@ -41,27 +26,6 @@
   to {
     opacity: 1;
     transform: translateY(0);
-  }
-}
-
-@keyframes cardFloat {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-}
-
-@keyframes cardShine {
-  0%,
-  80%,
-  100% {
-    left: -60%;
-  }
-  40% {
-    left: 120%;
   }
 }
 
@@ -356,20 +320,31 @@ html.cx-landing {
 
 /* ═══════════ Từ styles/index.css (trang chủ) ═══════════ */
 
-/* Màn mở đầu cao trọn khung nhìn cả desktop lẫn mobile. Dùng min-height (không
-   phải height) nên nội dung cao hơn khung thì section giãn theo, không bị cắt.
-   calc(var(--vh)) là fallback cho iOS cũ chưa hiểu dvh; dòng 100dvh ghi đè sau. */
+/* ── Màn mở đầu ──────────────────────────────────────────────────────────
+   Toàn bộ nội dung nằm trong MỘT tấm thiệp giấy (.hero-invite) đặt trên nền
+   ảnh cưới. Thiệp chia hai phần: .hero-invite-copy cao theo nội dung, còn
+   .hero-invite-photo lấy hết chỗ thừa (flex) — nhờ vậy màn cao hay thấp,
+   ngang hay dọc đều kín, không hở khoảng trống ở đầu/cuối như bố cục cũ.
+   padding-top 64px = chiều cao navbar cố định (h-16). */
 
 #hero {
+  @apply relative flex flex-col overflow-hidden;
   min-height: calc(var(--vh, 1vh) * 100);
   min-height: 100dvh;
+  padding: 64px 16px 0;
+  background: linear-gradient(
+    160deg,
+    rgb(var(--surface-tint-rgb)) 0%,
+    rgb(var(--surface-tint-warm-rgb)) 50%,
+    rgb(var(--surface-tint-rgb)) 100%
+  );
 }
 
-/* Nền thiệp cưới ở màn mở đầu — ảnh WebP do tab "Ảnh nền" của admin chụp ra,
-   đường dẫn do js/hero-background.js gán vào --hero-bg-url.
-   Chưa có nền thì biến rỗng → lớp này trong suốt, hero giữ nguyên gradient cũ.
-   Tắt dần ở đáy bằng mask (không phải gradient màu) nên không phụ thuộc màu nền
-   phía sau; #000 ở đây là mốc ĐỘ SÁNG của mask, không phải màu giao diện. */
+/* Nền ảnh cưới ở màn mở đầu — ảnh WebP do tab "Ảnh nền" của admin chụp ra,
+   đường dẫn do js/hero-background.js gán vào --hero-bg-url. Chưa có nền thì
+   biến rỗng → lớp này trong suốt, hero giữ nguyên gradient. Tắt dần ở đáy bằng
+   mask (không phải gradient màu) nên không phụ thuộc màu nền phía sau; #000 ở
+   đây là mốc ĐỘ SÁNG của mask, không phải màu giao diện. */
 
 .hero-bg {
   @apply pointer-events-none absolute inset-0;
@@ -381,25 +356,36 @@ html.cx-landing {
   background-repeat: no-repeat;
   opacity: 0;
   transition: opacity 0.6s ease;
-  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 55%, transparent 100%);
-  mask-image: linear-gradient(to bottom, #000 0%, #000 55%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 60%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 60%, transparent 100%);
 }
 
-/* Chỉ hiện khi đã nạp được ảnh — tránh nháy một lớp trống lúc đang tải. */
+/* Chỉ hiện khi đã nạp được ảnh — tránh nháy một lớp trống lúc đang tải. Chữ
+   nằm trên giấy thiệp đục nên nền được để đậm hơn mức chỉ làm hoa văn. */
 
 .hero-bg.is-on {
-  opacity: 0.1;
+  opacity: 0.3;
 }
 
-.hero-petal {
-  @apply pointer-events-none absolute;
-  border-radius: 50% 10% 50% 10%;
-  background: linear-gradient(
-    135deg,
-    rgb(var(--brand-primary-rgb) / 0.55),
-    rgb(var(--preview-heart-bg-rgb) / 0.35)
+/* Lớp sương trắng giữa ảnh nền và tấm thiệp: giữ mép giấy tách khỏi ảnh. */
+
+.hero-veil {
+  @apply pointer-events-none absolute inset-0;
+  z-index: 0;
+  background: radial-gradient(
+    120% 85% at 50% 42%,
+    rgb(var(--white-rgb) / 0.55) 0%,
+    rgb(var(--white-rgb) / 0.18) 55%,
+    transparent 100%
   );
-  animation: floatPetal ease-in-out infinite;
+}
+
+.hero-stage {
+  @apply relative z-10 flex w-full flex-col justify-center;
+  flex: 1;
+  min-height: 0;
+  gap: 12px;
+  padding-block: 16px;
 }
 
 .hero-anim {
@@ -412,69 +398,455 @@ html.cx-landing {
 .hero-anim-4 { animation-delay: 0.55s; }
 .hero-anim-5 { animation-delay: 0.7s; }
 
-.card-stack {
-  @apply relative;
-  width: 260px;
-  height: 420px;
+/* Tấm thiệp. min-height (không phải height) nên nội dung dài hơn khung nhìn
+   thì thiệp giãn ra chứ không cắt chữ. 150px trừ đi = navbar + padding sân +
+   dòng "Xem mẫu thiệp". */
+
+.hero-invite {
+  @apply relative mx-auto flex w-full flex-col overflow-hidden;
+  max-width: 1120px;
+  min-height: clamp(460px, calc(100dvh - 152px), 760px);
+  padding: 12px;
+  border-radius: 24px;
+  background: rgb(var(--surface-tint-rgb));
+  box-shadow: 0 28px 70px rgb(var(--shadow-brand-rgb) / 0.2);
 }
-.card-stack .card {
-  @apply absolute overflow-hidden;
-  border-radius: 20px;
+
+/* Khung viền mảnh in trên giấy — chạy đè cả lên ảnh như viền in của thiệp thật. */
+
+.hero-invite::after {
+  content: "";
+  @apply pointer-events-none absolute;
+  inset: 12px;
+  z-index: 3;
+  border: 1px solid rgb(var(--brand-accent-rgb) / 0.45);
+  border-radius: 12px;
 }
-.card-stack .card-3 {
-  width: 185px;
-  height: 310px;
-  top: 55px;
-  right: -35px;
-  transform: rotate(10deg);
+
+.hero-invite-copy {
+  @apply relative z-[2] flex flex-col items-center text-center;
+  flex: 1 1 auto;
+  padding: 28px 16px 24px;
+}
+
+.hero-invite-head {
+  @apply flex w-full flex-col items-center;
+  margin-block: auto;
+}
+
+/* Nét đứt = chỗ "xé rời" của phiếu hồi đáp trên thiệp giấy. margin-top phải
+   bằng margin-bottom của .hero-invite-rule để khối các bước nằm giữa hai nét
+   với khoảng hở đều nhau. */
+
+.hero-invite-foot {
+  @apply flex w-full flex-col items-center;
+  padding-top: 28px;
+  border-top: 1px dashed rgb(var(--brand-primary-rgb) / 0.7);
+}
+
+/* Lối vào phụ "Tạo thiệp với AI". Dạng liên kết nhạt + nhãn "Mới" — tông tím
+   lấy từ bảng màu AI của project (giống hộp thoại AI trong trình soạn), cố ý
+   lệch khỏi tông hồng để bắt mắt mà không tranh chỗ với nút chính. */
+
+.hero-invite-ai {
+  @apply inline-flex items-center gap-2 rounded-full font-semibold transition-colors;
+  margin-top: 20px;
+  padding: 6px 14px 6px 6px;
+  font-size: 13px;
+  color: rgb(var(--ai-chip-text-rgb));
+}
+.hero-invite-ai:hover {
+  background: rgb(var(--ai-chip-bg-hover-rgb));
+}
+.hero-invite-ai svg {
+  @apply shrink-0;
+  width: 15px;
+  height: 15px;
+  margin-right: -2px;
+  color: rgb(var(--ai-gradient-from-rgb));
+}
+
+.hero-invite-ai-tag {
+  @apply inline-flex items-center rounded-full font-bold uppercase text-white;
+  padding: 3px 8px;
+  font-size: 10px;
+  letter-spacing: 0.08em;
   background: linear-gradient(
     135deg,
-    rgb(var(--surface-blossom-rgb)),
-    rgb(var(--surface-blossom-strong-rgb))
+    rgb(var(--ai-gradient-from-rgb)),
+    rgb(var(--ai-gradient-to-rgb))
   );
-  opacity: 0.35;
 }
-.card-stack .card-2 {
-  width: 210px;
-  height: 340px;
-  top: 28px;
-  right: -14px;
-  transform: rotate(5deg);
-  background: rgb(var(--white-rgb));
-  box-shadow: 0 12px 32px rgb(var(--shadow-brand-rgb) / 0.14);
-  border: 1px solid rgb(var(--surface-blossom-rgb));
+
+.hero-invite-eyebrow {
+  @apply font-cormorant font-semibold uppercase;
+  margin-bottom: 12px;
+  font-size: 12px;
+  letter-spacing: 0.32em;
+  color: rgb(var(--brand-accent-rgb));
 }
-.card-stack .card-1 {
-  width: 224px;
-  height: 355px;
-  top: 0;
-  right: 0;
-  background: rgb(var(--white-rgb));
-  box-shadow: 0 24px 56px rgb(var(--shadow-brand-rgb) / 0.28);
-  border: 1px solid rgb(var(--surface-blossom-rgb));
-  animation: cardFloat 4s ease-in-out infinite;
+
+.hero-invite-name {
+  @apply font-allura;
+  font-size: clamp(3.6rem, 15vw, 5.6rem);
+  line-height: 1;
+  padding-bottom: 0.06em;
+  color: rgb(var(--brand-accent-rgb));
+  text-shadow: 0 6px 26px rgb(var(--brand-primary-rgb) / 0.5);
 }
-.card-stack .card-1 img {
-  @apply block w-full object-cover;
-  height: 54%;
+
+/* Nét ngăn có trái tim. Kéo hết bề ngang cột chữ cho khớp nét đứt ở chân
+   thiệp (.hero-invite-foot) — hai nét cùng chiều dài thì tấm thiệp mới cân. */
+
+.hero-invite-rule {
+  @apply flex w-full items-center;
+  margin: 14px 0 28px;
+  gap: 12px;
+  color: rgb(var(--brand-primary-rgb));
 }
-.card-stack .card-1 .card-text {
-  padding: 14px 18px;
+.hero-invite-rule span {
+  @apply block h-px flex-1;
+  background: currentColor;
 }
-.card-stack .card-1::after {
+.hero-invite-rule i {
+  font-size: 9px;
+}
+
+/* Câu slogan đặt ngay dưới chữ ký "Cưới Xinh" — chữ nghiêng serif như dòng đề
+   tặng viết tay trên thiệp, cố ý nhạt hơn tên để không tranh chỗ. */
+
+.hero-invite-sub {
+  @apply font-cormorant italic;
+  max-width: 26rem;
+  margin-top: 8px;
+  font-size: 17px;
+  line-height: 1.45;
+  letter-spacing: 0.01em;
+  color: rgb(var(--text-body-rgb));
+}
+
+/* Các bước làm thiệp, dạng mốc nối bằng nét đứt (cùng motif "xé rời" của
+   .hero-invite-foot). Số thứ tự sinh bằng CSS counter và lưới dùng auto-fit
+   nên thêm/bớt <li> là xong: cột hẹp xếp 2x2, cột rộng dàn thành một hàng.
+   Nét nối vẽ bằng ::after của từng bước nên chỉ đúng khi các bước cùng nằm
+   một hàng — vì thế chỉ bật từ 640px. */
+
+.hero-invite-steps {
+  @apply grid w-full;
+  counter-reset: cx-step;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px 8px;
+  max-width: 34rem;
+}
+
+/* Từ 640px cột đủ rộng thì để auto-fit tự chia: 4 bước dàn một hàng, thêm bước
+   thì xuống hàng. Ép 2 cột ở dưới mốc này vì auto-fit hay rơi vào 3 cột + 1 ô
+   lẻ trông rất gãy. */
+
+@media (min-width: 640px) {
+  .hero-invite-steps {
+    grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
+    gap: 0;
+  }
+}
+
+.hero-invite-steps li {
+  @apply relative flex flex-col items-center text-center;
+  counter-increment: cx-step;
+  gap: 10px;
+  padding: 0 4px;
+}
+
+/* Nét nối sang bước kế: kéo từ mép phải huy hiệu bước này tới mép trái huy
+   hiệu bước sau (li rộng bằng nhau nên -50% + 26px chạm đúng chỗ). */
+
+@media (min-width: 640px) {
+  .hero-invite-steps li::after {
+    content: "";
+    @apply pointer-events-none absolute;
+    top: 21px;
+    left: calc(50% + 26px);
+    right: calc(-50% + 26px);
+    border-top: 1px dashed rgb(var(--brand-primary-rgb) / 0.6);
+  }
+  /* content:none (không phải display:none) — cssnano gộp nhầm rule display
+     với `#ai-history:not(.hidden)` ở _ai-modal.css thành selector hỏng. */
+  .hero-invite-steps li:last-child::after {
+    content: none;
+  }
+}
+
+/* Huy hiệu: nền đặc để nét nối chạy phía sau, số thứ tự đính góc như dấu đóng
+   trên thiệp in. */
+
+.hero-invite-steps li .hero-step-medal {
+  @apply relative z-[1] inline-flex shrink-0 items-center justify-center rounded-full transition-all;
+  width: 44px;
+  height: 44px;
+  border: 1px solid rgb(var(--brand-primary-rgb) / 0.5);
+  background: rgb(var(--white-rgb) / 0.85);
+  box-shadow: 0 4px 12px rgb(var(--shadow-brand-rgb) / 0.12);
+  color: rgb(var(--brand-accent-rgb));
+  font-size: 15px;
+}
+
+.hero-invite-steps li .hero-step-medal::after {
+  content: counter(cx-step);
+  @apply absolute inline-flex items-center justify-center rounded-full font-cormorant font-bold text-white;
+  top: -4px;
+  right: -4px;
+  width: 18px;
+  height: 18px;
+  font-size: 11px;
+  line-height: 1;
+  border: 1px solid rgb(var(--surface-tint-rgb));
+  background: rgb(var(--brand-accent-rgb));
+}
+
+.hero-invite-steps li:hover .hero-step-medal {
+  border-color: rgb(var(--brand-accent-rgb) / 0.7);
+  transform: translateY(-2px);
+}
+
+.hero-step-label {
+  @apply block;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.35;
+  color: rgb(var(--text-heading-rgb));
+}
+
+.hero-invite-actions {
+  @apply flex w-full flex-col items-center;
+}
+
+.hero-invite-cta {
+  @apply inline-flex w-full items-center justify-center rounded-full font-semibold text-white transition-all;
+  max-width: 320px;
+  padding: 16px 36px;
+  font-size: 16px;
+  background: rgb(var(--action-primary-rgb));
+  box-shadow: 0 12px 28px rgb(var(--action-primary-rgb) / 0.3);
+}
+.hero-invite-cta:hover {
+  background: rgb(var(--action-primary-hover-rgb));
+  transform: translateY(-1px);
+}
+.hero-invite-cta:active {
+  transform: scale(0.97);
+}
+
+.hero-invite-terms {
+  margin-top: 12px;
+  font-size: 12px;
+  color: rgb(var(--text-label-rgb));
+}
+
+/* Dòng cam kết đặt theo lối chữ trên thiệp: hoa nhỏ, giãn chữ, ngăn bằng chấm. */
+
+.hero-invite-props {
+  @apply flex flex-wrap items-center justify-center font-cormorant font-semibold uppercase;
+  margin-top: 24px;
+  gap: 4px 16px;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: rgb(var(--text-caption-rgb));
+}
+.hero-invite-props span + span::before {
   content: "";
-  position: absolute;
-  top: 0;
-  left: -60%;
-  width: 40%;
-  height: 100%;
-  background: linear-gradient(
-    105deg,
-    transparent 40%,
-    rgb(var(--white-rgb) / 0.22) 50%,
-    transparent 60%
-  );
-  animation: cardShine 5s ease-in-out 1.5s infinite;
+  @apply hidden;
+  width: 4px;
+  height: 4px;
+  margin: 0 11px 2px;
+  border-radius: 50%;
+  background: rgb(var(--brand-primary-rgb));
+}
+
+/* Nửa phải tấm thiệp — chỉ dựng từ 1024px (xem media query cuối file). Khổ
+   hẹp bỏ hẳn phần xem trước: nhồi thêm ảnh thiệp vào màn mở đầu điện thoại
+   chỉ làm tấm thiệp dài ra mà chẳng đọc được gì; việc khoe mẫu để mục "Mẫu
+   thiệp" ngay bên dưới lo. */
+
+.hero-invite-photo {
+  @apply hidden;
+}
+
+/* Thiệp cao hơn ô nhiều lần: cho object-position chạy top→bottom là lướt hết
+   trang thiệp mà không cần biết trước kích thước ảnh. */
+
+.hero-phone-screen img {
+  @apply absolute inset-0 h-full w-full object-cover;
+  object-position: center top;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  animation: cx-phone-scroll 24s ease-in-out infinite alternate;
+}
+
+@keyframes cx-phone-scroll {
+  0%,
+  6% { object-position: center top; }
+  94%,
+  100% { object-position: center bottom; }
+}
+
+.hero-invite-peek {
+  @apply absolute z-[4] inline-flex items-center rounded-full font-semibold uppercase backdrop-blur-sm transition-transform;
+  right: 16px;
+  bottom: 16px;
+  padding: 8px 16px;
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  color: rgb(var(--text-heading-rgb));
+  background: rgb(var(--white-rgb) / 0.88);
+  box-shadow: 0 4px 16px rgb(var(--shadow-card-rgb) / 0.22);
+}
+.hero-invite-photo:hover .hero-invite-peek {
+  transform: translateY(-2px);
+}
+
+.hero-scroll {
+  @apply relative z-10 inline-flex items-center gap-2 self-center font-cormorant font-semibold uppercase transition-opacity;
+  padding: 4px 12px;
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  color: rgb(var(--text-caption-rgb));
+  opacity: 0.75;
+}
+.hero-scroll:hover {
+  opacity: 1;
+}
+.hero-scroll i {
+  font-size: 9px;
+  animation: cx-hero-nudge 2.2s ease-in-out infinite;
+}
+
+@keyframes cx-hero-nudge {
+  0%,
+  100% { transform: translateY(0); }
+  50% { transform: translateY(3px); }
+}
+
+.hero-invite-cta:focus-visible,
+.hero-scroll:focus-visible,
+.hero-invite-photo:focus-visible {
+  outline: 2px solid rgb(var(--focus-ring-rgb));
+  outline-offset: 3px;
+}
+
+/* Từ 1024px tấm thiệp nằm ngang: nửa chữ căn trái, nửa ảnh tràn mép giấy.
+   Dưới mốc này (kể cả máy tính bảng) giữ bố cục dọc — cột chữ hẹp làm dòng
+   chữ ký "Cưới Xinh" phải thu nhỏ tới mức mất khí chất. */
+
+@media (min-width: 768px) {
+  #hero {
+    padding: 64px 20px 0;
+  }
+}
+
+@media (min-width: 1024px) {
+  .hero-invite {
+    @apply flex-row items-stretch;
+    min-height: clamp(460px, calc(100dvh - 152px), 600px);
+  }
+  .hero-invite-copy {
+    @apply items-start justify-center text-left;
+    flex: 1.12 1 0;
+    min-width: 0;
+    padding: 32px 36px;
+  }
+  .hero-invite-name {
+    font-size: clamp(4rem, 7vw, 7rem);
+  }
+  .hero-invite-rule {
+    margin: 18px 0 28px;
+  }
+  .hero-invite-sub {
+    font-size: 19px;
+  }
+  .hero-invite-steps li .hero-step-medal {
+    width: 48px;
+    height: 48px;
+    font-size: 16px;
+  }
+  .hero-invite-steps li::after {
+    top: 23px;
+    left: calc(50% + 28px);
+    right: calc(-50% + 28px);
+  }
+  .hero-step-label {
+    font-size: 13px;
+  }
+  .hero-invite-head,
+  .hero-invite-foot,
+  .hero-invite-actions {
+    @apply items-start;
+  }
+  .hero-invite-cta {
+    @apply w-auto;
+  }
+  .hero-invite-props {
+    @apply justify-start;
+  }
+  /* Dòng cam kết tụt xuống chân cột chữ như dòng chân của tấm thiệp in —
+     margin-top:auto nuốt luôn chỗ trống thừa nên cột không bị hụt đáy. */
+  .hero-invite-props {
+    gap: 4px 0;
+  }
+  .hero-invite-props span + span::before {
+    @apply inline-block;
+  }
+  .hero-invite-photo {
+    @apply relative flex cursor-pointer justify-center overflow-hidden;
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 0;
+    align-items: center;
+    padding: 24px 0 56px;
+    border-radius: 0 12px 12px 0;
+    border-left: 1px solid rgb(var(--brand-primary-rgb) / 0.35);
+    background: linear-gradient(
+      165deg,
+      rgb(var(--surface-brand-soft-rgb)),
+      rgb(var(--surface-brand-rgb))
+    );
+  }
+  /* Khung máy: ảnh có phần màn hình trong suốt nên thiệp đặt dưới lọt qua.
+     Toạ độ ô màn hình lấy đúng theo ảnh 393x768 (viền trái/phải 5.1%), giống
+     mục "Bên trong tấm thiệp". */
+  .hero-phone {
+    @apply relative shrink-0;
+    width: auto;
+    height: 100%;
+    max-width: 100%;
+    aspect-ratio: 393 / 768;
+    filter: drop-shadow(0 20px 36px rgb(var(--shadow-card-rgb) / 0.34));
+  }
+  .hero-phone-frame {
+    @apply pointer-events-none absolute inset-0 z-[2] block;
+    background: url("../assets/images/screen_ip.png") center / contain no-repeat;
+  }
+  .hero-phone-screen {
+    @apply absolute overflow-hidden;
+    top: 1.5%;
+    left: 5.1%;
+    width: 89.8%;
+    height: 96%;
+    border-radius: 11% / 5.3%;
+    background: rgb(var(--white-rgb));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-anim {
+    animation: none;
+    opacity: 1;
+  }
+  .hero-scroll i {
+    animation: none;
+  }
+  .hero-phone-screen img {
+    animation: none;
+  }
 }
 
 .feature-row {

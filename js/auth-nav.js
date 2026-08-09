@@ -69,11 +69,35 @@ function initHeroImage() {
       img.style.display = "none";
       if (skeleton) skeleton.classList.add("is-error");
     };
-    img.src = `/assets/images/templates/${first.theme}.jpg`;
+    // Ô xem trước chỉ hiện từ 1024px (.hero-invite-photo) → khổ hẹp đừng tải
+    // ảnh mẫu, chờ tới khi màn đủ rộng mới nạp.
+    const wide = window.matchMedia("(min-width: 1024px)");
+    const loadPreview = () => {
+      img.src = `/assets/images/templates/${first.theme}.jpg`;
+    };
+    if (wide.matches) {
+      loadPreview();
+    } else {
+      wide.addEventListener("change", function once(ev) {
+        if (!ev.matches) return;
+        wide.removeEventListener("change", once);
+        loadPreview();
+      });
+    }
   }
+  // Ảnh mẫu ở hero là <div> nên phải tự cấp vai trò + phím Enter/Space,
+  // không thì bàn phím không tới được bản xem thử.
   if (card) {
-    card.style.cursor = "pointer";
-    card.addEventListener("click", () => { window.location.href = first.previewUrl; });
+    const open = () => { window.location.href = first.previewUrl; };
+    card.setAttribute("role", "link");
+    card.setAttribute("tabindex", "0");
+    card.addEventListener("click", open);
+    card.addEventListener("keydown", (ev) => {
+      if (ev.key === "Enter" || ev.key === " ") {
+        ev.preventDefault();
+        open();
+      }
+    });
   }
 }
 
