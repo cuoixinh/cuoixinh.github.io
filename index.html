@@ -137,6 +137,36 @@
           <div class="hero-invite-copy">
             <!-- Phần trên: giới thiệu -->
             <div class="hero-invite-head">
+              <!-- Nhãn quảng bá tính năng AI, bấm được: tạo thiệp nháp rồi mở
+                   luôn bảng "Tạo nội dung bằng AI" ở trang thiết lập.
+                   Icon sparkles của lucide nhúng thẳng: trang chủ không nạp
+                   lucide, thêm cả thư viện chỉ vì một icon là không đáng. -->
+              <a
+                href="/invitation-setup/"
+                onclick="goCreateWithAi(event)"
+                class="hero-invite-ai hero-anim hero-anim-1"
+              >
+                <span class="hero-invite-ai-tag">Mới</span>
+                <svg
+                  class="lucide lucide-sparkles"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275Z" />
+                  <path d="M5 3v4" />
+                  <path d="M19 17v4" />
+                  <path d="M3 5h4" />
+                  <path d="M17 19h4" />
+                </svg>
+                Tạo thiệp bằng AI
+              </a>
+
               <p class="hero-invite-eyebrow hero-anim hero-anim-1">
                 Thiệp cưới điện tử
               </p>
@@ -161,15 +191,15 @@
                 </li>
                 <li>
                   <span class="hero-step-medal" aria-hidden="true"><i class="fas fa-images"></i></span>
-                  <span class="hero-step-label">Thêm ảnh và lời mời</span>
+                  <span class="hero-step-label">Điền thông tin</span>
                 </li>
                 <li>
                   <span class="hero-step-medal" aria-hidden="true"><i class="fas fa-paper-plane"></i></span>
-                  <span class="hero-step-label">Gửi link cho khách</span>
+                  <span class="hero-step-label">Xuất bản</span>
                 </li>
                 <li>
                   <span class="hero-step-medal" aria-hidden="true"><i class="fas fa-envelope-open-text"></i></span>
-                  <span class="hero-step-label">Nhận xác nhận đi dự</span>
+                  <span class="hero-step-label">Gửi thiệp</span>
                 </li>
               </ol>
             </div>

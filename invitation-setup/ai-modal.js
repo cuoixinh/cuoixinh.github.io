@@ -4,22 +4,13 @@
 // ── Markup modal (bơm vào body/footer của base bottom-sheet) ────────────────
 const _AI_BODY_HTML = `
   <div class="px-5 py-4 min-h-full flex flex-col">
-    <!-- FORM NHẬP -->
-    <div id="ai-form" class="space-y-5">
+    <!-- FORM NHẬP. Mỗi mục là một .ai-row: tiêu đề + mô tả + control. -->
+    <div id="ai-form" class="ai-rows">
       <!-- Thông tin -->
-      <div>
-        <div class="flex items-center justify-between mb-1.5">
-          <label class="block text-xs font-medium text-gray-500">Thông tin cô dâu/chú rể</label>
-          <div class="flex items-center gap-2">
-            <button type="button" data-ai-speech onclick="openAiSpeech('ai-info')" class="ai-chip ai-chip-mic">
-              <i data-lucide="mic" style="width: 12px; height: 12px"></i>
-              Nói
-            </button>
-            <button type="button" onclick="insertAiInfoTemplate()" class="ai-chip">
-              <i data-lucide="clipboard-list" style="width: 12px; height: 12px"></i>
-              Chèn mẫu
-            </button>
-          </div>
+      <section class="ai-row">
+        <div class="ai-row-head">
+          <h4 class="ai-row-title">Thông tin cặp đôi</h4>
+          <p class="ai-row-desc">Tên cô dâu/chú rể, ngày giờ, địa điểm, cha mẹ hai bên, số tài khoản…</p>
         </div>
         <x-textarea
           bare
@@ -28,16 +19,13 @@ const _AI_BODY_HTML = `
           input-class="ai-inp resize-none"
           placeholder="Nhập thông tin chú rể, cô dâu, ngày giờ cưới, địa điểm, cha mẹ hai bên, số tài khoản,..."
         ></x-textarea>
-      </div>
+      </section>
 
       <!-- Câu chuyện tình yêu -->
-      <div>
-        <div class="flex items-center justify-between mb-1.5">
-          <label class="block text-xs font-medium text-gray-500">Câu chuyện tình yêu</label>
-          <button type="button" data-ai-speech onclick="openAiSpeech('ai-bullets')" class="ai-chip ai-chip-mic">
-            <i data-lucide="mic" style="width: 12px; height: 12px"></i>
-            Nói
-          </button>
+      <section class="ai-row">
+        <div class="ai-row-head">
+          <h4 class="ai-row-title">Câu chuyện tình yêu</h4>
+          <p class="ai-row-desc">Vài cột mốc của hai bạn để AI kể lại thành câu chuyện.</p>
         </div>
         <x-textarea
           bare
@@ -46,48 +34,77 @@ const _AI_BODY_HTML = `
           input-class="ai-inp resize-none"
           placeholder="Ví dụ: gặp nhau 2021 ở Đà Lạt; lần đầu nắm tay ở Quy Nhơn; cầu hôn đúng dịp sinh nhật…"
         ></x-textarea>
-      </div>
+      </section>
 
-      <!-- Văn phong -->
-      <div>
-        <label class="block text-xs font-medium text-gray-500 mb-1.5">Văn phong</label>
-        <div class="ai-tone-wrap">
-          <button type="button" class="ai-tone-nav" onclick="scrollAiTones(-1)" aria-label="Trước">
-            <i data-lucide="chevron-left" style="width: 16px; height: 16px"></i>
+      <!-- Văn phong. Mỗi thẻ khoe một câu MẪU viết theo đúng giọng đó — xem là
+           biết chọn gì, không phải đọc mô tả trừu tượng. Lưới xếp TỐI ĐA 2 HÀNG
+           rồi tràn sang phải, cuộn ngang (mũi tên + vệt mờ trắng do
+           _wireAiToneScroll bật/tắt). Thêm/bớt thẻ ở đây thì khai tên tiếng Việt
+           vào _AI_TONE_NAMES để lịch sử hiện đúng. -->
+      <section class="ai-row">
+        <div class="ai-row-head">
+          <h4 class="ai-row-title">Văn phong</h4>
+          <p class="ai-row-desc">Giọng văn AI dùng khi viết lời mời và câu chuyện.</p>
+        </div>
+        <div class="ai-opt-wrap">
+          <div id="ai-tone" class="ai-opt-grid">
+          <button type="button" data-tone="romantic" class="ai-opt">
+            <span class="ai-opt-name">Lãng mạn</span>
+            <span class="ai-opt-sample">“Và rồi, mình tìm thấy nhau.”</span>
           </button>
-          <div id="ai-tone" class="ai-tone-scroll">
-            <button type="button" data-tone="romantic" class="ai-tone-btn">Lãng mạn</button>
-            <button type="button" data-tone="traditional" class="ai-tone-btn">Truyền thống</button>
-            <button type="button" data-tone="humorous" class="ai-tone-btn">Dí dỏm</button>
-            <button type="button" data-tone="poetic" class="ai-tone-btn">Thơ mộng</button>
-            <button type="button" data-tone="modern" class="ai-tone-btn">Hiện đại</button>
-            <button type="button" data-tone="luxury" class="ai-tone-btn">Sang trọng</button>
-            <button type="button" data-tone="cute" class="ai-tone-btn">Dễ thương</button>
-            <button type="button" data-tone="vintage" class="ai-tone-btn">Cổ điển</button>
-          </div>
-          <button type="button" class="ai-tone-nav" onclick="scrollAiTones(1)" aria-label="Sau">
-            <i data-lucide="chevron-right" style="width: 16px; height: 16px"></i>
+          <button type="button" data-tone="traditional" class="ai-opt">
+            <span class="ai-opt-name">Truyền thống</span>
+            <span class="ai-opt-sample">“Trân trọng kính mời quý vị.”</span>
+          </button>
+          <button type="button" data-tone="humorous" class="ai-opt">
+            <span class="ai-opt-name">Dí dỏm</span>
+            <span class="ai-opt-sample">“Cuối cùng cũng chốt đơn!”</span>
+          </button>
+          <button type="button" data-tone="poetic" class="ai-opt">
+            <span class="ai-opt-name">Thơ mộng</span>
+            <span class="ai-opt-sample">“Mùa thu ấy, tim gọi tên nhau.”</span>
+          </button>
+          <button type="button" data-tone="modern" class="ai-opt">
+            <span class="ai-opt-name">Hiện đại</span>
+            <span class="ai-opt-sample">“Tụi mình cưới nhau nhé!”</span>
+          </button>
+          <button type="button" data-tone="luxury" class="ai-opt">
+            <span class="ai-opt-name">Sang trọng</span>
+            <span class="ai-opt-sample">“Một khởi đầu trọn vẹn.”</span>
+          </button>
+          <button type="button" data-tone="cute" class="ai-opt">
+            <span class="ai-opt-name">Dễ thương</span>
+            <span class="ai-opt-sample">“Hai đứa về chung nhà nha!”</span>
+          </button>
+          <button type="button" data-tone="vintage" class="ai-opt">
+            <span class="ai-opt-name">Cổ điển</span>
+            <span class="ai-opt-sample">“Nên duyên trăm năm.”</span>
           </button>
         </div>
-      </div>
-
-      <!-- Vùng miền -->
-      <div>
-        <label class="block text-xs font-medium text-gray-500 mb-1.5">Vùng miền</label>
-        <div class="ai-cselect">
-          <input type="hidden" id="ai-region" value="" />
-          <button type="button" class="ai-inp ai-select ai-cselect-btn">
-            <span class="ai-cselect-label">Tự động</span>
+          <button type="button" class="ai-opt-nav is-prev" aria-label="Xem các văn phong trước">
+            <i data-lucide="chevron-left"></i>
           </button>
-          <div class="ai-cselect-panel hidden">
-            <button type="button" class="ai-cselect-opt sel" data-value="">Tự động</button>
-            <button type="button" class="ai-cselect-opt" data-value="bac">Miền Bắc</button>
-            <button type="button" class="ai-cselect-opt" data-value="trung">Miền Trung</button>
-            <button type="button" class="ai-cselect-opt" data-value="nam">Miền Nam</button>
-          </div>
+          <button type="button" class="ai-opt-nav is-next" aria-label="Xem thêm văn phong">
+            <i data-lucide="chevron-right"></i>
+          </button>
         </div>
-      </div>
+      </section>
 
+      <!-- Vùng miền. Giá trị nằm ở input hidden #ai-region (payload đọc chỗ đó);
+           để NGOÀI .ai-seg vì dải này chia cột đều theo số nút. -->
+      <section class="ai-row">
+        <div class="ai-row-head">
+          <h4 class="ai-row-title">Vùng miền</h4>
+          <p class="ai-row-desc">Cách xưng hô và từ ngữ theo vùng. Để “Tự động” thì AI tự đoán theo địa chỉ.</p>
+        </div>
+        <input type="hidden" id="ai-region" value="" />
+        <div id="ai-region-seg" class="ai-seg">
+          <button type="button" class="ai-seg-btn is-on" data-value="">Tự động</button>
+          <button type="button" class="ai-seg-btn" data-value="bac">Miền Bắc</button>
+          <button type="button" class="ai-seg-btn" data-value="trung">Miền Trung</button>
+          <button type="button" class="ai-seg-btn" data-value="nam">Miền Nam</button>
+        </div>
+      </section>
     </div>
 
     <!-- PREVIEW KẾT QUẢ -->
@@ -115,31 +132,30 @@ const _AI_BODY_HTML = `
 
 const _AI_FOOTER_HTML = `
   <div class="px-5 py-3.5 border-t border-gray-100 bg-white">
-    <div id="ai-footer-form" class="flex gap-2">
+    <div id="ai-footer-form" class="ai-tray">
       <button
         type="button"
         onclick="clearAiForm()"
         aria-label="Xoá toàn bộ nội dung đã nhập"
-        title="Xoá toàn bộ"
-        class="w-8 h-11 flex-shrink-0 flex items-center justify-center rounded-xl border border-gray-200 text-gray-400 hover:text-rose-500 hover:border-rose-200 transition-colors"
+        class="ai-btn-ghost"
       >
-        <i data-lucide="eraser" style="width:16px;height:16px"></i>
+        <i data-lucide="eraser" style="width:16px;height:16px"></i> Xoá hết
       </button>
       <button
         type="button"
         id="ai-generate-btn"
         onclick="submitAiGenerate()"
-        class="btn-pink flex-1 justify-center h-11"
+        class="ai-btn-main btn-pink"
       >
         <i data-lucide="sparkles"></i> Tạo nội dung
       </button>
     </div>
-    <div id="ai-footer-preview" class="hidden gap-2">
+    <div id="ai-footer-preview" class="hidden ai-tray">
       <button
         type="button"
         id="ai-back-btn"
         onclick="backToAiForm()"
-        class="flex-1 h-11 rounded-xl border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        class="ai-btn-ghost disabled:opacity-50 disabled:cursor-not-allowed"
       >
         Tạo lại
       </button>
@@ -147,16 +163,16 @@ const _AI_FOOTER_HTML = `
         type="button"
         id="ai-apply-btn"
         onclick="applyAiResult()"
-        class="flex-1 h-11 rounded-xl bg-rose-500 text-white text-sm font-medium hover:bg-rose-600 transition-colors disabled:opacity-60 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2"
+        class="ai-btn-main btn-pink disabled:opacity-60 disabled:cursor-not-allowed"
       >
         Áp dụng vào thiệp
       </button>
     </div>
-    <div id="ai-footer-history" class="hidden">
+    <div id="ai-footer-history" class="hidden ai-tray ai-tray-single">
       <button
         type="button"
         onclick="backFromAiHistory()"
-        class="ai-back-btn"
+        class="ai-btn-main btn-pink"
       >
         <i data-lucide="arrow-left" style="width: 16px; height: 16px"></i> Quay lại
       </button>
@@ -168,8 +184,8 @@ const _AI_FOOTER_HTML = `
 let _aiResult = null;
 let _aiTone = "romantic";
 let _aiSheet = null;
-let _aiSelectDocBound = false; // đã gắn listener đóng dropdown khi click ra ngoài chưa
 let _aiViewBeforeHistory = "form"; // để "Quay lại" từ lịch sử về đúng bước trước đó
+let _aiToneScrollCleanup = null; // gỡ listener resize của dải văn phong khi đóng modal
 
 // Cache nội dung đang nhập trong modal AI → lỡ tắt vào lại không phải gõ lại.
 const AI_DRAFT_KEY = buildCacheKey("ai_draft", WEDDING_ID);
@@ -194,8 +210,8 @@ function _loadAiDraft() {
 
 function _setAiTone(tone) {
   _aiTone = tone;
-  document.querySelectorAll("#ai-tone .ai-tone-btn").forEach((b) => {
-    b.classList.toggle("active", b.dataset.tone === tone);
+  document.querySelectorAll("#ai-tone .ai-opt").forEach((b) => {
+    b.classList.toggle("is-on", b.dataset.tone === tone);
   });
   _saveAiDraft();
 }
@@ -209,10 +225,12 @@ function openAiModal() {
 
   const sheet = openBottomSheet({
     id: "ai-sheet",
-    title: `<span class="inline-flex items-center gap-2"><i data-lucide="sparkles" style="width:18px;height:18px" class="text-rose-500"></i> Tạo nội dung bằng AI</span>`,
+    title: "Tạo nội dung bằng AI",
     height: "92vh",
     onClose: () => {
       _aiTeardownActiveEdit();
+      _aiToneScrollCleanup?.();
+      _aiToneScrollCleanup = null;
       _aiSheet = null;
     },
   });
@@ -233,7 +251,7 @@ function openAiModal() {
   };
   set("ai-bullets", draft.bullets);
   set("ai-info", draft.info);
-  _aiSelectApply("ai-region", draft.region);
+  _applyAiRegion(draft.region);
   _aiTone = draft.tone || "romantic";
 
   _injectAiHistoryButton();
@@ -271,12 +289,21 @@ function closeAiModal() {
   _aiSheet = null;
 }
 
+// Vào từ nhãn "Tạo thiệp bằng AI" ở trang chủ (goCreateWithAi) → mở sẵn bảng
+// AI. Phải xoá cờ show_tour ở TOP-LEVEL, tức trước khi tour-setup.js chạy —
+// file đó đọc cờ ngay lúc nạp, xoá muộn hơn thì tour vẫn chạy đè lên bảng AI.
+if (sessionStorage.getItem("open_ai_modal")) {
+  sessionStorage.removeItem("open_ai_modal");
+  sessionStorage.removeItem("show_tour");
+  window.__cxOnReady(openAiModal);
+}
+
 // Gắn listener cho các control trong modal (phải gọi mỗi lần mở vì DOM dựng lại).
 function _wireAiForm() {
   const tone = document.getElementById("ai-tone");
   if (tone) {
     tone.addEventListener("click", (e) => {
-      const btn = e.target.closest(".ai-tone-btn");
+      const btn = e.target.closest(".ai-opt");
       if (btn && btn.dataset.tone) _setAiTone(btn.dataset.tone);
     });
   }
@@ -289,31 +316,85 @@ function _wireAiForm() {
     });
   });
 
-  // Trình duyệt không hỗ trợ giọng nói → gỡ nút "Nói" trên hàng label.
-  if (!window.speechSupported?.()) {
-    document
-      .querySelectorAll("#ai-form [data-ai-speech]")
-      .forEach((b) => b.remove());
-  }
+  _injectAiTemplateBtn();
+  _wireAiToneScroll();
 
-  _wireAiSelects();
-}
-
-// Mở hộp thoại "Nói để nhập" cho một ô (dùng chung cấu hình _AI_SPEECH với nút mic
-// góc dưới-phải của x-undo). Gọi từ nút "Nói" trên hàng label.
-function openAiSpeech(id) {
-  const ta = document.getElementById(id);
-  if (!ta) return;
-  const cfg = _AI_SPEECH[id] || {};
-  window.openSpeechDialog?.({
-    target: ta,
-    questions: cfg.questions || [],
-    lang: cfg.lang || "vi-VN",
-    title: cfg.title,
+  document.getElementById("ai-region-seg")?.addEventListener("click", (e) => {
+    const btn = e.target.closest(".ai-seg-btn");
+    if (!btn) return;
+    _applyAiRegion(btn.dataset.value || "");
+    _saveAiDraft();
   });
 }
 
-// Cấu hình "Nói để nhập" cho từng ô: tiêu đề popup + câu hỏi gợi ý (đọc để trả lời).
+// Bật/tắt mũi tên + vệt mờ hai mép của dải văn phong theo vị trí cuộn thật, để
+// không bao giờ báo "còn nội dung" khi đã hết. Trả hàm dọn listener resize —
+// modal đóng là DOM biến mất, không gỡ thì listener sống mãi.
+function _wireAiToneScroll() {
+  const grid = document.getElementById("ai-tone");
+  const wrap = grid?.closest(".ai-opt-wrap");
+  if (!grid || !wrap) return;
+
+  const sync = () => {
+    const max = grid.scrollWidth - grid.clientWidth;
+    wrap.classList.toggle("can-prev", grid.scrollLeft > 1);
+    wrap.classList.toggle("can-next", grid.scrollLeft < max - 1);
+  };
+
+  // Mỗi lần bấm dịch TRỌN số cột đang thấy, không dịch theo % bề ngang — dừng
+  // lại luôn khớp mép thẻ chứ không cắt ngang giữa thẻ. Lưới xếp 2 hàng theo
+  // chiều dọc nên thẻ thứ 3 mới là cột kế: hiệu offsetLeft của nó với thẻ đầu
+  // chính là bước cột (đã gồm khe).
+  const stepPx = () => {
+    const items = grid.children;
+    const pitch =
+      items.length > 2 ? items[2].offsetLeft - items[0].offsetLeft : 0;
+    if (pitch <= 0) return grid.clientWidth;
+    return Math.max(1, Math.round(grid.clientWidth / pitch)) * pitch;
+  };
+
+  grid.addEventListener("scroll", sync, { passive: true });
+  window.addEventListener("resize", sync);
+  wrap.querySelectorAll(".ai-opt-nav").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const dir = btn.classList.contains("is-prev") ? -1 : 1;
+      grid.scrollBy({ left: dir * stepPx(), behavior: "smooth" });
+    });
+  });
+
+  sync();
+  // Chạy lại sau một nhịp vẽ: lúc gắn, font/scrollbar có thể chưa ổn định nên
+  // scrollWidth còn sai.
+  requestAnimationFrame(sync);
+  _aiToneScrollCleanup = () => window.removeEventListener("resize", sync);
+}
+
+// Đặt nút "Chèn mẫu" vào thanh công cụ đáy ô thông tin, ngay cạnh nút micro.
+// x-undo.js không có API thêm nút nên chèn thẳng vào .x-ta-toolbar do nó dựng —
+// phải gọi SAU attachUndoRedo và TRƯỚC lucide.createIcons() (icon còn là <i>).
+function _injectAiTemplateBtn() {
+  const bar = document
+    .getElementById("ai-info")
+    ?.closest(".x-ta-frame")
+    ?.querySelector(".x-ta-toolbar");
+  if (!bar || bar.querySelector(".ai-tpl-btn")) return;
+
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "ai-tpl-btn";
+  btn.title = "Chèn mẫu thông tin";
+  btn.innerHTML = '<i data-lucide="clipboard-list"></i> Chèn mẫu';
+  // Giữ focus ở ô nhập khi bấm, giống các nút sẵn có của thanh công cụ.
+  const keepFocus = (e) => e.preventDefault();
+  btn.addEventListener("mousedown", keepFocus);
+  btn.addEventListener("pointerdown", keepFocus);
+  btn.addEventListener("click", () => insertAiInfoTemplate());
+  bar.insertBefore(btn, bar.firstChild);
+}
+
+// Cấu hình "Nói để nhập" cho từng ô: tiêu đề popup + câu hỏi gợi ý (đọc để trả
+// lời). Lối vào duy nhất là nút micro ở thanh công cụ đáy ô (x-undo.js tự dựng
+// khi nhận opts.speech), nên trình duyệt không hỗ trợ giọng nói thì nút tự vắng.
 const _AI_SPEECH = {
   "ai-info": {
     title: "Nói thông tin cô dâu / chú rể",
@@ -355,7 +436,7 @@ function clearAiForm() {
   };
   set("ai-info", "");
   set("ai-bullets", "");
-  _aiSelectApply("ai-region", "");
+  _applyAiRegion("");
   _aiTone = "romantic";
   _setAiTone(_aiTone);
   _syncAiClearButtons();
@@ -363,84 +444,22 @@ function clearAiForm() {
   document.getElementById("ai-info")?.focus();
 }
 
-// Cuộn dải văn phong sang trái/phải (nút mũi tên).
-function scrollAiTones(dir) {
-  const el = document.getElementById("ai-tone");
-  if (el) el.scrollBy({ left: dir * 170, behavior: "smooth" });
-}
+// Chọn vùng miền trên dải segmented: ghi vào input hidden (chỗ payload đọc) rồi
+// tô nút đang chọn. "" = Tự động, cũng là một lựa chọn thật.
+function _applyAiRegion(value) {
+  const hidden = document.getElementById("ai-region");
+  if (hidden) hidden.value = value || "";
 
-// Combobox tuỳ biến (dropdown rộng đúng bằng control). Mỗi .ai-cselect gồm:
-// input hidden giữ value + nút hiển thị + panel các option.
-function _wireAiSelects() {
-  document.querySelectorAll("#ai-form .ai-cselect").forEach((root) => {
-    const btn = root.querySelector(".ai-cselect-btn");
-    const panel = root.querySelector(".ai-cselect-panel");
-    const label = root.querySelector(".ai-cselect-label");
-    const hidden = root.querySelector('input[type="hidden"]');
-    if (!btn || !panel) return;
-
-    btn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      const willOpen = panel.classList.contains("hidden");
-      _closeAllAiSelects();
-      panel.classList.toggle("hidden", !willOpen);
-      btn.classList.toggle("open", willOpen);
-    });
-
-    panel.querySelectorAll(".ai-cselect-opt").forEach((opt) => {
-      opt.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const val = opt.dataset.value || "";
-        if (hidden) hidden.value = val;
-        if (label) {
-          // "" nay là lựa chọn thật "Tự động" (không còn là placeholder trống).
-          label.textContent = opt.textContent.trim();
-          label.classList.remove("is-placeholder");
-        }
-        panel
-          .querySelectorAll(".ai-cselect-opt")
-          .forEach((o) => o.classList.toggle("sel", o === opt));
-        panel.classList.add("hidden");
-        btn.classList.remove("open");
-        _saveAiDraft();
-      });
-    });
+  const seg = document.getElementById("ai-region-seg");
+  if (!seg) return;
+  const btns = [...seg.querySelectorAll(".ai-seg-btn")];
+  btns.forEach((b) => {
+    b.classList.toggle("is-on", (b.dataset.value || "") === (value || ""));
   });
-
-  // Click ra ngoài → đóng mọi dropdown (gắn 1 lần cho document).
-  if (!_aiSelectDocBound) {
-    document.addEventListener("click", _closeAllAiSelects);
-    _aiSelectDocBound = true;
-  }
-}
-
-function _closeAllAiSelects() {
-  document
-    .querySelectorAll(".ai-cselect-panel")
-    .forEach((p) => p.classList.add("hidden"));
-  document
-    .querySelectorAll(".ai-cselect-btn.open")
-    .forEach((b) => b.classList.remove("open"));
-}
-
-// Set value cho 1 combobox tuỳ biến + cập nhật nhãn/hạng mục đang chọn (dùng khi khôi phục nháp).
-function _aiSelectApply(hiddenId, value) {
-  const hidden = document.getElementById(hiddenId);
-  if (!hidden) return;
-  hidden.value = value || "";
-  const root = hidden.closest(".ai-cselect");
-  if (!root) return;
-  const label = root.querySelector(".ai-cselect-label");
-  let matched = null;
-  root.querySelectorAll(".ai-cselect-opt").forEach((o) => {
-    const on = (o.dataset.value || "") === (value || "");
-    o.classList.toggle("sel", on);
-    if (on) matched = o;
-  });
-  if (label && matched) {
-    label.textContent = matched.textContent.trim();
-    label.classList.remove("is-placeholder");
-  }
+  // Con trượt trắng của dải segmented chạy bằng 2 biến CSS: --n (số nút) và
+  // --i (vị trí nút đang chọn) — xem .ai-seg::before.
+  seg.style.setProperty("--n", btns.length);
+  seg.style.setProperty("--i", Math.max(0, btns.findIndex((b) => b.classList.contains("is-on"))));
 }
 
 // Chuyển giữa các bước: 'form' (nhập), 'preview' (kết quả), 'history' (lịch sử).
@@ -632,7 +651,7 @@ function _restoreAiInputs(p) {
         ? p.bullets.map((b) => "- " + b).join("\n")
         : p.bullets || "",
   );
-  _aiSelectApply("ai-region", p.region || "");
+  _applyAiRegion(p.region || "");
   _aiTone = p.tone || "romantic";
   _setAiTone(_aiTone);
   _syncAiClearButtons();

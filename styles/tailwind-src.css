@@ -412,51 +412,57 @@ html.cx-landing {
   box-shadow: 0 28px 70px rgb(var(--shadow-brand-rgb) / 0.2);
 }
 
-/* Khung viền mảnh in trên giấy — chạy đè cả lên ảnh như viền in của thiệp thật. */
-
-.hero-invite::after {
-  content: "";
-  @apply pointer-events-none absolute;
-  inset: 12px;
-  z-index: 3;
-  border: 1px solid rgb(var(--brand-accent-rgb) / 0.45);
-  border-radius: 12px;
-}
+/* --cx-hero-line-gap: khoảng hở hai bên khối các bước, đo từ ĐƯỜNG KẺ (không
+   phải mép hộp) — xem .hero-invite-rule. justify-center + head/foot không co
+   là điều kiện để hở đều: chỗ trống thừa của tấm thiệp phải dồn ra ngoài cụm
+   chữ, nếu để margin auto thì nó chui vào khe giữa các bước và nét đứt. */
 
 .hero-invite-copy {
-  @apply relative z-[2] flex flex-col items-center text-center;
+  @apply relative z-[2] flex flex-col items-center justify-center text-center;
+  --cx-hero-line-gap: 28px;
+  --cx-hero-rule-h: 12px;
   flex: 1 1 auto;
   padding: 28px 16px 24px;
 }
 
-.hero-invite-head {
-  @apply flex w-full flex-col items-center;
-  margin-block: auto;
+.hero-invite-head,
+.hero-invite-foot {
+  @apply w-full shrink-0;
 }
 
-/* Nét đứt = chỗ "xé rời" của phiếu hồi đáp trên thiệp giấy. margin-top phải
-   bằng margin-bottom của .hero-invite-rule để khối các bước nằm giữa hai nét
-   với khoảng hở đều nhau. */
+.hero-invite-head {
+  @apply flex flex-col items-center;
+}
+
+/* Nét đứt = chỗ "xé rời" của phiếu hồi đáp trên thiệp giấy. */
 
 .hero-invite-foot {
-  @apply flex w-full flex-col items-center;
+  @apply flex flex-col items-center;
+  margin-top: var(--cx-hero-line-gap);
   padding-top: 28px;
   border-top: 1px dashed rgb(var(--brand-primary-rgb) / 0.7);
 }
 
-/* Lối vào phụ "Tạo thiệp với AI". Dạng liên kết nhạt + nhãn "Mới" — tông tím
-   lấy từ bảng màu AI của project (giống hộp thoại AI trong trình soạn), cố ý
-   lệch khỏi tông hồng để bắt mắt mà không tranh chỗ với nút chính. */
+/* Nhãn quảng bá tính năng AI, đặt trên cùng cột chữ, bấm được để vào trình
+   tạo thiệp. Tông tím lấy từ bảng màu AI của project (giống hộp thoại AI
+   trong trình soạn), cố ý lệch khỏi tông hồng để bắt mắt mà không tranh chỗ
+   với nút chính. */
 
 .hero-invite-ai {
-  @apply inline-flex items-center gap-2 rounded-full font-semibold transition-colors;
-  margin-top: 20px;
-  padding: 6px 14px 6px 6px;
+  @apply inline-flex items-center gap-2 rounded-full font-semibold transition-all;
+  margin-bottom: 16px;
+  padding: 5px 14px 5px 5px;
   font-size: 13px;
   color: rgb(var(--ai-chip-text-rgb));
+  background: rgb(var(--ai-chip-bg-rgb));
+  border: 1px solid rgb(var(--ai-chip-border-rgb));
 }
 .hero-invite-ai:hover {
   background: rgb(var(--ai-chip-bg-hover-rgb));
+  border-color: rgb(var(--ai-gradient-from-rgb) / 0.55);
+}
+.hero-invite-ai:active {
+  transform: scale(0.97);
 }
 .hero-invite-ai svg {
   @apply shrink-0;
@@ -496,11 +502,16 @@ html.cx-landing {
 }
 
 /* Nét ngăn có trái tim. Kéo hết bề ngang cột chữ cho khớp nét đứt ở chân
-   thiệp (.hero-invite-foot) — hai nét cùng chiều dài thì tấm thiệp mới cân. */
+   thiệp (.hero-invite-foot) — hai nét cùng chiều dài thì tấm thiệp mới cân.
+   Hộp cao hơn nét kẻ vì còn chứa trái tim, mà nét nằm chính giữa hộp, nên
+   margin-bottom phải trừ nửa chiều cao thì khoảng hở tính TỪ NÉT KẺ mới bằng
+   nét đứt phía dưới. Chốt height để phép trừ không phụ thuộc cỡ icon. */
 
 .hero-invite-rule {
   @apply flex w-full items-center;
-  margin: 14px 0 28px;
+  height: var(--cx-hero-rule-h);
+  margin-top: 14px;
+  margin-bottom: calc(var(--cx-hero-line-gap) - var(--cx-hero-rule-h) / 2);
   gap: 12px;
   color: rgb(var(--brand-primary-rgb));
 }
@@ -593,6 +604,11 @@ html.cx-landing {
 .hero-invite-steps li .hero-step-medal::after {
   content: counter(cx-step);
   @apply absolute inline-flex items-center justify-center rounded-full font-cormorant font-bold text-white;
+  /* Cormorant mặc định dùng chữ số kiểu cổ: 1,2 cao bằng chữ thường còn 3,4
+     thò đuôi xuống, nên mỗi số nằm một độ cao khác nhau trong huy hiệu. Ép về
+     bộ số kiểu hiện đại để cả bốn số cùng cao và cùng nằm giữa. */
+  font-variant-numeric: lining-nums;
+  font-feature-settings: "lnum" 1;
   top: -4px;
   right: -4px;
   width: 18px;
@@ -727,6 +743,7 @@ html.cx-landing {
 }
 
 .hero-invite-cta:focus-visible,
+.hero-invite-ai:focus-visible,
 .hero-scroll:focus-visible,
 .hero-invite-photo:focus-visible {
   outline: 2px solid rgb(var(--focus-ring-rgb));
@@ -758,7 +775,7 @@ html.cx-landing {
     font-size: clamp(4rem, 7vw, 7rem);
   }
   .hero-invite-rule {
-    margin: 18px 0 28px;
+    margin-top: 18px;
   }
   .hero-invite-sub {
     font-size: 19px;
@@ -795,14 +812,19 @@ html.cx-landing {
   .hero-invite-props span + span::before {
     @apply inline-block;
   }
+  /* margin âm = ăn hết padding 12px của tấm thiệp ở ba cạnh phải/trên/dưới để
+     nửa ảnh tràn sát mép giấy; cạnh trái giữ nguyên lề như cột chữ. Bo góc
+     phải bằng đúng bo của thiệp, phần thừa đã có overflow-hidden của
+     .hero-invite cắt. */
   .hero-invite-photo {
     @apply relative flex cursor-pointer justify-center overflow-hidden;
     flex: 1 1 0;
     min-width: 0;
     min-height: 0;
     align-items: center;
+    margin: -12px -12px -12px 0;
     padding: 24px 0 56px;
-    border-radius: 0 12px 12px 0;
+    border-radius: 0 24px 24px 0;
     border-left: 1px solid rgb(var(--brand-primary-rgb) / 0.35);
     background: linear-gradient(
       165deg,

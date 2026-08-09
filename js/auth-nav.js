@@ -52,6 +52,15 @@ function goCreateDraft(e) {
   if (first) createDraft(first.id);
 }
 
+// Vào trang thiết lập rồi mở luôn bảng "Tạo nội dung bằng AI". Cờ đặt ở
+// sessionStorage chứ không phải query string vì đường đi có thể vòng qua hộp
+// thoại "đã có thiệp nháp" — cờ vẫn còn khi người dùng chọn xong.
+// Bên đọc: invitation-setup/ai-modal.js.
+function goCreateWithAi(e) {
+  sessionStorage.setItem("open_ai_modal", "1");
+  goCreateDraft(e);
+}
+
 function initHeroImage() {
   const first = templates.find((t) => t.status === "active");
   if (!first) return;

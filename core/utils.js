@@ -436,18 +436,24 @@ function openBottomSheet({ id, title, height = '80vh', onClose } = {}) {
   // Mobile: chiều cao theo tham số height (thường 80dvh, chừa khoảng hở phía trên).
   // sm+ (không còn dính đáy màn hình, tách hẳn thành popup nổi giữa): mở gần full
   // (92vh) để có đủ chỗ cho nội dung nhiều khối preview mà không cần co kéo layout.
-  const mobileHeightClass = `h-[${height.replace('vh', 'dvh')}]`;
+  // Truyền qua biến --cx-sheet-h (kích thước ở .cx-sheet-card trong _common.css)
+  // chứ KHÔNG ghép tên class `h-[...]` — class ghép từ chuỗi bị Tailwind purge,
+  // thẻ mất chiều cao rồi nở theo nội dung và tràn khỏi màn hình.
+  const mobileHeight = height.replace('vh', 'dvh');
   modal.innerHTML = `
-    <div id="${id}-card" class="bg-white rounded-t-2xl sm:rounded-2xl max-w-3xl w-full flex flex-col overflow-hidden shadow-2xl ${mobileHeightClass} sm:h-[92vh]">
+    <div id="${id}-card" style="--cx-sheet-h:${mobileHeight}" class="cx-sheet-card bg-white rounded-t-2xl sm:rounded-2xl max-w-3xl w-full flex flex-col overflow-hidden shadow-2xl">
       <div class="flex justify-center items-center pt-2.5 pb-1 flex-shrink-0">
         <span class="w-10 h-1.5 rounded-full bg-gray-300"></span>
       </div>
-      <div class="px-5 py-3 border-b border-gray-200 flex items-center justify-between flex-shrink-0">
+      <div class="px-5 py-3 flex items-center justify-between flex-shrink-0">
         <h3 class="text-base font-semibold text-gray-800 flex items-center gap-2">${title}</h3>
         <button type="button" id="${id}-x-btn" class="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 transition-colors">
           <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
         </button>
       </div>
+      <!-- Vạch ngăn header/nội dung thụt vào bằng lề nội dung (mx-5), không kẻ
+           chạm mép modal — thẻ riêng chứ không phải border-b của header. -->
+      <div class="mx-5 h-px bg-gray-200 flex-shrink-0"></div>
       <div id="${id}-body" class="flex-1 min-h-0 flex flex-col overflow-hidden"></div>
       <div id="${id}-footer" class="flex-shrink-0"></div>
     </div>

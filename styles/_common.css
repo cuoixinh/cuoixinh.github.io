@@ -446,3 +446,18 @@ textarea::-webkit-scrollbar-thumb:hover {
     font-size: 16px;
   }
 }
+
+/* Khung bottom-sheet dựng bởi openBottomSheet() (core/utils.js). Chiều cao khổ
+   hẹp do lời gọi truyền vào qua biến --cx-sheet-h; từ 640px popup nổi giữa màn
+   nên dùng chiều cao cố định. Đừng quay lại kiểu class `h-[...]` ghép chuỗi —
+   Tailwind purge mất, thẻ nở theo nội dung và tràn khỏi màn hình. */
+
+.cx-sheet-card {
+  height: var(--cx-sheet-h, 80dvh);
+}
+
+@media (min-width: 640px) {
+  .cx-sheet-card {
+    height: 92vh;
+  }
+}
