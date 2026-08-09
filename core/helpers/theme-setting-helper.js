@@ -484,14 +484,14 @@ function _cxBuildBlockNode(b, edit) {
     // Icon vẽ bằng SVG (glyph ⠿ / × mỗi máy một kiểu, canh giữa không đều).
     // Nút kéo dùng đúng icon grip-vertical như tay nắm ở bảng chọn mẫu.
     tools.innerHTML =
-      '<button type="button" class="cx-cb-drag" title="Kéo để di chuyển" aria-label="Kéo để di chuyển">' +
+      '<x-button variant="ghost" type="button" title="Kéo để di chuyển" aria-label="Kéo để di chuyển" class="cx-cb-drag">' +
       '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
       '<circle cx="9" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="19" r="1"/>' +
       '<circle cx="15" cy="5" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="19" r="1"/>' +
-      "</svg></button>" +
-      '<button type="button" class="cx-cb-del" title="Xoá" aria-label="Xoá khối">' +
+      "</svg></x-button>" +
+      '<x-button variant="ghost" type="button" title="Xoá" aria-label="Xoá khối" class="cx-cb-del">' +
       '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>' +
-      "</button>";
+      "</x-button>";
     tools.querySelector(".cx-cb-del").addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();

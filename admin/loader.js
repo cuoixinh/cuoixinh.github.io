@@ -16,6 +16,7 @@
   // supabaseClient, switchTab) → helper xử lý ảnh + utils (focal point & crop
   // ảnh) → logic riêng từng tab.
   const SCRIPTS = [
+    "../core/x-button.js",
     "../core/config.js",
     "../core/auth.js", // nguồn duy nhất cho phiên đăng nhập (ai-dal đính JWT)
     "js/00-core.js",

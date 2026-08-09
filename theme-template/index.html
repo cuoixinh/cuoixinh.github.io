@@ -242,27 +242,17 @@
               ><svg class="w-3.5 h-3.5 opacity-80" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="7" x="3" y="3" rx="1.5"/><rect width="7" height="7" x="14" y="3" rx="1.5"/><rect width="7" height="7" x="14" y="14" rx="1.5"/><rect width="7" height="7" x="3" y="14" rx="1.5"/></svg>
               Quản lý thiệp</a
             >
-            <button
-              id="ttLoginBtn"
-              type="button"
-              onclick="openLoginPopup()"
-              class="inline-flex items-center rounded-full text-xs sm:text-sm font-semibold px-4 sm:px-5 py-1.5 sm:py-2 text-white shadow-sm transition-all hover:opacity-90 whitespace-nowrap"
-              style="background: rgb(var(--action-primary-rgb))"
-            >
+            <x-button size="sm" id="ttLoginBtn" type="button" onclick="openLoginPopup()" style="background: rgb(var(--action-primary-rgb))" class="sm:text-sm sm:px-5 sm:py-2 hover:opacity-90">
               Đăng nhập
-            </button>
-            <button
-              onclick="startDraft()"
-              class="hidden md:inline-flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-full text-white shadow-sm transition-opacity hover:opacity-90 whitespace-nowrap"
-              style="
+            </x-button>
+            <x-button onclick="startDraft()" style="
                 background: linear-gradient(135deg, rgb(var(--cta-accent-rgb)), rgb(var(--action-primary-rgb)));
                 box-shadow: 0 4px 14px rgb(var(--cta-accent-rgb)/0.35);
                 letter-spacing: 0.01em;
-              "
-            >
+              " class="hidden md:inline-flex hover:opacity-90">
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>
               Bắt đầu miễn phí
-            </button>
+            </x-button>
           </div>
         </div>
       </div>
@@ -855,15 +845,11 @@
             Tạo bản nháp không giới hạn thời gian. Khi đổi sang mẫu khác, ảnh và
             thông tin đám cưới vẫn giữ nguyên — không cần nhập lại.
           </p>
-          <button
-            onclick="startDraft()"
-            class="inline-flex items-center gap-2 px-6 py-3 rounded-md text-sm font-semibold hover:opacity-90 transition-opacity"
-            style="
+          <x-button size="lg" onclick="startDraft()" style="
               background: rgb(var(--white-rgb));
               color: rgb(var(--brand-accent-rgb));
               box-shadow: 0 4px 20px rgb(var(--preview-shadow-rgb)/0.22);
-            "
-          >
+            " class="hover:opacity-90">
             Xem mẫu và tạo thử
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -879,7 +865,7 @@
               <path d="M5 12h14" />
               <path d="m12 5 7 7-7 7" />
             </svg>
-          </button>
+          </x-button>
         </div>
       </section>
 
@@ -1112,6 +1098,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.8" integrity="sha384-Tve8O+C6PBzsIMK/IRCwHbi8fyEzXIlIs6OfVBZHubplwYhaQF/4Mzxqgg+pp/oy" crossorigin="anonymous"></script>
+    <script src="../core/x-button.js"></script>
     <script src="../core/cache-util.js"></script>
     <script src="../core/config.js"></script>
     <script src="../core/helpers/alert.js"></script>

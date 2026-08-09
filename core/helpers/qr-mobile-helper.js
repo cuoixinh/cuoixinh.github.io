@@ -41,12 +41,7 @@ function buildMobileQRWidget() {
   wrapper.className = "hidden lg:block fixed bottom-20 right-4 z-[60]";
   wrapper.innerHTML = `
     <div id="qr-mobile-card" class="w-[200px] bg-white rounded-2xl shadow-xl p-4 text-center relative">
-      <button
-        id="qr-mobile-collapse"
-        type="button"
-        class="absolute top-2 right-2 w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 hover:bg-gray-200 hover:text-gray-600 transition-colors"
-        aria-label="Ẩn gợi ý QR"
-      ><i class="fas fa-times text-[10px]"></i></button>
+      <x-button variant="soft" tone="neutral" size="xs" icon-only id="qr-mobile-collapse" type="button" aria-label="Ẩn gợi ý QR" class="absolute top-2 right-2"><i class="fas fa-times text-[10px]"></i></x-button>
       <p class="font-inter text-xs font-semibold text-gray-800 mb-2">Xem trên điện thoại</p>
       <div
         id="qr-mobile-canvas"
@@ -54,12 +49,7 @@ function buildMobileQRWidget() {
       ><i class="fas fa-spinner fa-spin text-gray-300 text-xl"></i></div>
       <p id="qr-mobile-hint" class="font-inter text-[10px] text-gray-400 mt-2 leading-snug">Quét mã để mở nhanh trên di động</p>
     </div>
-    <button
-      id="qr-mobile-mini"
-      type="button"
-      class="hidden w-12 h-12 rounded-full bg-white shadow-lg items-center justify-center text-amber-600 hover:bg-amber-50 transition-all duration-300"
-      aria-label="Xem QR mở thiệp trên mobile"
-    ><i class="fas fa-qrcode text-lg"></i></button>
+    <x-button variant="outline" size="lg" icon-only id="qr-mobile-mini" type="button" aria-label="Xem QR mở thiệp trên mobile" class="hidden text-amber-600"><i class="fas fa-qrcode text-lg"></i></x-button>
   `;
   document.body.appendChild(wrapper);
 

@@ -494,23 +494,23 @@ function axBuildCard(item, opts) {
         ? '<span class="absolute top-1.5 left-1.5 px-2 py-0.5 rounded-full bg-amber-400 text-white text-[10px] font-medium">Chờ lưu</span>'
         : ""
     }
-    <button type="button" data-act="focal" title="Chỉnh điểm lấy nét"
-      class="absolute bottom-14 left-1.5 w-7 h-7 rounded-full bg-black/50 hover:bg-black/70 text-white flex items-center justify-center transition-opacity ${
+    <x-button variant="overlay" size="xs" icon-only type="button" data-act="focal" title="Chỉnh điểm lấy nét"
+      class="absolute bottom-14 left-1.5 ${
         focalMoved ? "" : "opacity-0 group-hover:opacity-100"
       }">
       <i class="fas fa-crosshairs text-xs"></i>
-    </button>
+    </x-button>
     <div class="absolute top-1.5 right-1.5 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
       ${
         opts.pending
           ? ""
-          : `<button type="button" data-act="copy" title="Copy đường dẫn" class="w-7 h-7 rounded-full bg-black/50 hover:bg-black/70 text-white flex items-center justify-center">
+          : `<x-button variant="overlay" size="xs" icon-only type="button" data-act="copy" title="Copy đường dẫn">
                <i class="fas fa-link text-xs"></i>
-             </button>`
+             </x-button>`
       }
-      <button type="button" data-act="remove" title="${opts.pending ? "Bỏ ảnh này" : "Xoá ảnh"}" class="w-7 h-7 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center">
+      <x-button variant="overlay" tone="danger" size="xs" icon-only type="button" data-act="remove" title="${opts.pending ? "Bỏ ảnh này" : "Xoá ảnh"}">
         <i class="fas fa-times text-xs"></i>
-      </button>
+      </x-button>
     </div>
   `;
   return card;

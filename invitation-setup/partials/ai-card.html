@@ -9,43 +9,26 @@
         onclick="openAiModal()"
         aria-label="Tạo nội dung bằng AI"
       >
-        <button
-          type="button"
-          class="ai-fab-close"
-          aria-label="Đóng gợi ý"
-          title="Đóng gợi ý"
-          onclick="
+        <x-button variant="ghost" icon-only type="button" aria-label="Đóng gợi ý" title="Đóng gợi ý" onclick="
             event.stopPropagation();
             dismissAiFab();
-          "
-        >
+          " class="ai-fab-close">
           <i data-lucide="x"></i>
-        </button>
+        </x-button>
         <div class="ai-icon"><i data-lucide="sparkles"></i></div>
         <div class="ai-title">Tạo thiệp với AI</div>
         <div class="ai-desc">
           Vài dòng thông tin, AI hoàn thiện cả tấm thiệp.
         </div>
-        <button
-          type="button"
-          class="ai-card-btn"
-          onclick="
+        <x-button tone="neutral" full type="button" onclick="
             event.stopPropagation();
             openAiModal();
-          "
-        >
+          ">
           Thử ngay ✨
-        </button>
+        </x-button>
       </div>
       <!-- Nút thu gọn: hiện sau khi đóng thẻ, vẫn là lối vào AI -->
-      <button
-        type="button"
-        class="ai-mini"
-        onclick="openAiModal()"
-        aria-label="Tạo nội dung bằng AI"
-        data-tooltip="Tạo thiệp với AI"
-        data-tooltip-pos="left"
-      >
+      <x-button variant="bare" type="button" onclick="openAiModal()" aria-label="Tạo nội dung bằng AI" data-tooltip="Tạo thiệp với AI" data-tooltip-pos="left" class="ai-mini">
         <i data-lucide="sparkles"></i>
-      </button>
+      </x-button>
     </div>

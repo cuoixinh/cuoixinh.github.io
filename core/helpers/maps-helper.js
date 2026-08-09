@@ -106,9 +106,9 @@ function openMapPicker(side) {
         />
         <div id="map-picker-suggestions" class="hidden fixed bg-white border border-gray-200 rounded-xl shadow-lg z-[99999] max-h-52 overflow-y-auto"></div>
       </div>
-      <button onclick="searchMapPicker()" class="h-10 px-4 bg-rose-50 text-color-secondary rounded-lg text-sm font-medium hover:bg-rose-100 transition-colors flex items-center gap-1.5 flex-shrink-0">
+      <x-button variant="soft" onclick="searchMapPicker()" class="text-color-secondary flex-shrink-0">
         <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>Tìm
-      </button>
+      </x-button>
     </div>
     <div class="flex-1 min-h-0 relative">
       <div id="map-picker-map" style="width:100%;height:100%;"></div>
@@ -121,10 +121,9 @@ function openMapPicker(side) {
         <label class="text-sm font-medium text-gray-700">Tên hiển thị trên thiệp</label>
         <div class="flex items-center gap-1.5">
           <span class="text-xs text-gray-400">Sửa tên</span>
-          <button type="button" id="map-display-name-toggle" onclick="_toggleMapDisplayName()"
-            class="relative flex-shrink-0 inline-flex h-5 w-9 items-center rounded-full transition-colors duration-200 bg-gray-300">
+          <x-button variant="ghost" tone="neutral" size="xs" type="button" id="map-display-name-toggle" onclick="_toggleMapDisplayName()" class="relative flex-shrink-0 w-9">
             <span id="map-display-name-knob" class="inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform duration-200 translate-x-0.5"></span>
-          </button>
+          </x-button>
         </div>
       </div>
       <input id="map-picker-display-name" type="text" disabled value="${currentDisplayName.replace(/"/g, '&quot;')}"
@@ -133,10 +132,10 @@ function openMapPicker(side) {
       />
     </div>
     <div class="px-4 pb-3 flex gap-2">
-      <button onclick="closeMapPicker()" class="flex-1 h-10 border border-gray-200 rounded-xl text-sm text-gray-600 hover:bg-gray-50 transition-colors">Hủy</button>
-      <button onclick="applyMapPicker('${side}')" class="flex-1 h-10 rounded-xl text-sm font-semibold text-white bg-rose-500 hover:bg-rose-600 transition-colors flex items-center justify-center gap-1.5">
+      <x-button variant="outline" tone="neutral" onclick="closeMapPicker()" class="flex-1">Hủy</x-button>
+      <x-button onclick="applyMapPicker('${side}')" class="flex-1">
         <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Dùng vị trí này
-      </button>
+      </x-button>
     </div>
   `;
 

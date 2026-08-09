@@ -334,8 +334,8 @@ function bgRenderPhotos() {
         </div>
         <div class="flex items-center gap-2 mt-0.5">
           <span class="text-[10px] text-gray-400">${p.w}×${p.h}</span>
-          <button type="button" data-act="copy" class="text-[10px] text-rose-500 underline">Chép</button>
-          <button type="button" data-act="del" class="text-[10px] text-gray-400 underline">Bỏ</button>
+          <x-button variant="ghost" size="sm" type="button" data-act="copy" class="underline">Chép</x-button>
+          <x-button variant="ghost" tone="neutral" size="sm" type="button" data-act="del" class="underline">Bỏ</x-button>
         </div>
       </div>`;
     el.querySelector('[data-act="copy"]').onclick = () => bgCopyPath(p.path, "đường dẫn");
@@ -841,7 +841,7 @@ function bgCard(item, slot) {
         ${Object.keys(item.variants).join(" · ")}
         ${missing.length ? `<span class="text-amber-600">— thiếu ${missing.map((v) => v.key).join(", ")}</span>` : ""}
       </div>
-      <button type="button" class="mt-2 text-[11px] text-rose-500 underline">Xoá</button>
+      <x-button variant="ghost" tone="danger" size="sm" type="button" class="mt-2 underline">Xoá</x-button>
     </div>`;
   el.querySelector("button").onclick = () => deleteBackground(item.name);
   return el;

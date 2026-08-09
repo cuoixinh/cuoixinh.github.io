@@ -36,14 +36,10 @@
         mời.
       </p>
     </div>
-    <button
-      type="button"
-      onclick="publishWedding()"
-      class="h-9 px-5 rounded-lg text-sm font-medium text-white bg-rose-500 hover:bg-rose-600 transition-colors flex items-center gap-1.5"
-    >
+    <x-button type="button" onclick="publishWedding()">
       <i data-lucide="send" style="width: 14px; height: 14px"></i>
       <span id="guests-lock-cta-label">Xuất bản thiệp</span>
-    </button>
+    </x-button>
   </div>
   <iframe
     id="guests-iframe"

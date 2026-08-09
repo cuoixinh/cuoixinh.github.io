@@ -205,8 +205,8 @@ function showToast(msg, type = "default", icon = null) {
       </div>
       <div id="cx-alert-body"></div>
       <div id="cx-alert-footer">
-        <button type="button" id="cx-alert-cancel" class="cx-dlg-btn cx-dlg-cancel"></button>
-        <button type="button" id="cx-alert-ok" class="cx-dlg-btn cx-dlg-ok"></button>
+        <x-button variant="ghost" type="button" id="cx-alert-cancel" class="cx-dlg-btn cx-dlg-cancel"></x-button>
+        <x-button variant="ghost" type="button" id="cx-alert-ok" class="cx-dlg-btn cx-dlg-ok"></x-button>
       </div>
     </div>`;
   document.body.appendChild(backdrop);

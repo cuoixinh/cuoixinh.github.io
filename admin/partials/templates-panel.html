@@ -9,34 +9,20 @@
         Quản lý Templates
       </h2>
       <div class="flex gap-2 flex-wrap">
-        <button
-          id="purge-cache-btn"
-          onclick="purgeTemplatesCache()"
-          class="flex-1 sm:flex-none px-4 sm:px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
-          title="Xóa cache Cloudflare"
-        >
+        <x-button id="purge-cache-btn" onclick="purgeTemplatesCache()" title="Xóa cache Cloudflare" class="flex-1 sm:flex-none sm:px-6">
           <i class="fas fa-sync"></i>
           <span class="hidden sm:inline">Xóa Cache</span>
-        </button>
-        <button
-          id="scan-images-btn"
-          onclick="startScanImages()"
-          disabled
-          class="flex-1 sm:flex-none px-4 sm:px-6 py-2 bg-violet-500 hover:bg-violet-600 text-white rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
-          title="Tick chọn template trong danh sách rồi bấm scan"
-        >
+        </x-button>
+        <x-button id="scan-images-btn" onclick="startScanImages()" disabled title="Tick chọn template trong danh sách rồi bấm scan" class="flex-1 sm:flex-none sm:px-6">
           <i class="fas fa-camera"></i>
           <span class="hidden sm:inline">Scan Image IFrame</span
           ><span class="sm:hidden">Scan</span>
-        </button>
-        <button
-          onclick="openTemplateModal()"
-          class="flex-1 sm:flex-none px-4 sm:px-6 py-2 bg-rose-400 hover:bg-rose-500 text-white rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
-        >
+        </x-button>
+        <x-button onclick="openTemplateModal()" class="flex-1 sm:flex-none sm:px-6">
           <i class="fas fa-plus"></i>
           <span class="hidden sm:inline">Thêm Template</span
           ><span class="sm:hidden">Thêm</span>
-        </button>
+        </x-button>
       </div>
     </div>
 
@@ -290,18 +276,12 @@
     </div>
 
     <div class="flex gap-3 mt-6">
-      <button
-        onclick="closeTemplateModal()"
-        class="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-sm hover:bg-gray-50"
-      >
+      <x-button variant="outline" tone="neutral" onclick="closeTemplateModal()" class="flex-1">
         Hủy
-      </button>
-      <button
-        onclick="saveTemplate()"
-        class="flex-1 px-4 py-2 bg-rose-400 hover:bg-rose-500 text-white rounded-lg text-sm"
-      >
+      </x-button>
+      <x-button onclick="saveTemplate()" class="flex-1">
         Lưu
-      </button>
+      </x-button>
     </div>
   </div>
 </div>
@@ -313,8 +293,7 @@
       <h3 class="text-base font-semibold text-gray-800 flex items-center gap-2">
         <i class="fas fa-camera text-violet-500"></i> Scan Image IFrame
       </h3>
-      <button id="scan-close-btn" onclick="closeScanModal()"
-        class="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
+      <x-button variant="ghost" tone="neutral" id="scan-close-btn" onclick="closeScanModal()" class="text-xl">&times;</x-button>
     </div>
     <div id="scan-log"
       class="bg-gray-950 text-green-400 font-mono text-xs rounded-xl p-3 h-56 overflow-y-auto space-y-0.5 mb-4"></div>
@@ -327,9 +306,8 @@
     <!-- "Vẫn lưu" chỉ hiện ở nhánh báo scan server chưa bật (showScanServerHelp),
          lúc scan chạy bình thường thì ẩn. -->
     <div class="flex justify-end gap-2">
-      <button id="scan-continue-btn" onclick="scanHelpContinue()"
-        class="hidden px-4 py-2 bg-rose-400 hover:bg-rose-500 text-white rounded-lg text-sm">Vẫn lưu, bỏ scan</button>
-      <button id="scan-dismiss-btn" onclick="closeScanModal()" class="px-4 py-2 border border-gray-200 rounded-lg text-sm hover:bg-gray-50">Đóng</button>
+      <x-button id="scan-continue-btn" onclick="scanHelpContinue()" class="hidden">Vẫn lưu, bỏ scan</x-button>
+      <x-button variant="outline" tone="neutral" id="scan-dismiss-btn" onclick="closeScanModal()">Đóng</x-button>
     </div>
   </div>
 </div>

@@ -81,12 +81,12 @@ const _AI_BODY_HTML = `
             <span class="ai-opt-sample">“Nên duyên trăm năm.”</span>
           </button>
         </div>
-          <button type="button" class="ai-opt-nav is-prev" aria-label="Xem các văn phong trước">
+          <x-button variant="ghost" icon-only type="button" aria-label="Xem các văn phong trước" class="ai-opt-nav is-prev">
             <i data-lucide="chevron-left"></i>
-          </button>
-          <button type="button" class="ai-opt-nav is-next" aria-label="Xem thêm văn phong">
+          </x-button>
+          <x-button variant="ghost" icon-only type="button" aria-label="Xem thêm văn phong" class="ai-opt-nav is-next">
             <i data-lucide="chevron-right"></i>
-          </button>
+          </x-button>
         </div>
       </section>
 
@@ -133,49 +133,25 @@ const _AI_BODY_HTML = `
 const _AI_FOOTER_HTML = `
   <div class="px-5 py-3.5 border-t border-gray-100 bg-white">
     <div id="ai-footer-form" class="ai-tray">
-      <button
-        type="button"
-        onclick="clearAiForm()"
-        aria-label="Xoá toàn bộ nội dung đã nhập"
-        class="ai-btn-ghost"
-      >
+      <x-button variant="outline" tone="neutral" size="lg" type="button" onclick="clearAiForm()" aria-label="Xoá toàn bộ nội dung đã nhập">
         <i data-lucide="eraser" style="width:16px;height:16px"></i> Xoá hết
-      </button>
-      <button
-        type="button"
-        id="ai-generate-btn"
-        onclick="submitAiGenerate()"
-        class="ai-btn-main btn-pink"
-      >
+      </x-button>
+      <x-button size="lg" type="button" id="ai-generate-btn" onclick="submitAiGenerate()" class="btn-pink">
         <i data-lucide="sparkles"></i> Tạo nội dung
-      </button>
+      </x-button>
     </div>
     <div id="ai-footer-preview" class="hidden ai-tray">
-      <button
-        type="button"
-        id="ai-back-btn"
-        onclick="backToAiForm()"
-        class="ai-btn-ghost disabled:opacity-50 disabled:cursor-not-allowed"
-      >
+      <x-button variant="outline" tone="neutral" size="lg" type="button" id="ai-back-btn" onclick="backToAiForm()">
         Tạo lại
-      </button>
-      <button
-        type="button"
-        id="ai-apply-btn"
-        onclick="applyAiResult()"
-        class="ai-btn-main btn-pink disabled:opacity-60 disabled:cursor-not-allowed"
-      >
+      </x-button>
+      <x-button size="lg" type="button" id="ai-apply-btn" onclick="applyAiResult()" class="btn-pink">
         Áp dụng vào thiệp
-      </button>
+      </x-button>
     </div>
     <div id="ai-footer-history" class="hidden ai-tray ai-tray-single">
-      <button
-        type="button"
-        onclick="backFromAiHistory()"
-        class="ai-btn-main btn-pink"
-      >
+      <x-button size="lg" type="button" onclick="backFromAiHistory()" class="btn-pink">
         <i data-lucide="arrow-left" style="width: 16px; height: 16px"></i> Quay lại
-      </button>
+      </x-button>
     </div>
   </div>
 `;
@@ -590,14 +566,12 @@ function _renderAiHistory() {
           </div>
           ${quote}
           <div class="flex gap-2 mt-2.5">
-            <button type="button" onclick="previewAiHistory('${e.id}')"
-              class="flex-1 h-9 rounded-lg bg-rose-500 text-white text-xs font-medium hover:bg-rose-600 transition-colors inline-flex items-center justify-center gap-1.5">
+            <x-button type="button" onclick="previewAiHistory('${e.id}')" class="flex-1">
               <i data-lucide="eye" style="width:14px;height:14px"></i> Xem trước
-            </button>
-            <button type="button" onclick="deleteAiHistory('${e.id}')" title="Xoá"
-              class="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:text-rose-500 hover:border-rose-200 transition-colors">
+            </x-button>
+            <x-button variant="outline" tone="danger" icon-only type="button" onclick="deleteAiHistory('${e.id}')" title="Xoá">
               <i data-lucide="trash-2" style="width:15px;height:15px"></i>
-            </button>
+            </x-button>
           </div>
         </div>`;
     })
@@ -853,7 +827,7 @@ function _aiDisp(eid, value, cls = "", tag = "span", empty = "(trống)") {
 }
 // Nút bút chì: nắm control cần bind + đích ghi (target) + eid để tìm ô hiển thị.
 function _aiPencil(eid, ctrl, target) {
-  return `<button type="button" class="ai-edit-ico" data-eid="${eid}" data-ctrl="${ctrl}" data-target="${escapeHtml(target)}" aria-label="Sửa">${_AI_PENCIL_SVG}</button>`;
+  return `<x-button variant="ghost" type="button" data-eid="${eid}" data-ctrl="${ctrl}" data-target="${escapeHtml(target)}" aria-label="Sửa" class="ai-edit-ico">${_AI_PENCIL_SVG}</x-button>`;
 }
 // Cặp [hiển thị][bút chì] liền nhau (dùng cho các ô inline: chuyện tình, lịch trình, slogan).
 function _aiCell(value, ctrl, target, opt = {}) {

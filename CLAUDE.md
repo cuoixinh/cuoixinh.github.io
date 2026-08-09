@@ -157,6 +157,26 @@ Không có AI ở đây; mã do người dùng tự viết bên ngoài rồi man
 - Trùng tên là **ghi đè** (có hỏi lại) — khác tab "Ảnh mẫu" vốn tự đánh số để không bao giờ ghi đè.
 - Thêm chỗ dùng nền mới: thêm **một mục** vào `BG_SLOTS` (`admin/js/06-background.js`), hết.
 
+### Nút bấm — luôn dùng `<x-button>`
+
+Mọi nút hành động viết bằng `<x-button>` (`core/x-button.js`), **không viết `<button>` tay**.
+Hình dạng cố định là pill; khác nhau ở `variant` (`fill` · `outline` · `soft` · `ghost` ·
+`overlay` · `bare`) × `tone` (`brand` · `neutral` · `danger`) × `size` (`xs` · `sm` · `md` · `lg`),
+thêm `icon-only`, `full`, `icon="fas fa-…"`, `label="…"`.
+
+- Khi nạp, phần tử **tự thay mình bằng `<button>` thật** và bê hết attribute còn lại sang
+  (id, onclick, data-*, disabled, type…). Nên DOM lúc chạy y như viết tay: `getElementById`,
+  `closest("button")`, `parentElement`, selector CSS con đều không đổi.
+  Không có `type` thì mặc định `type="button"` — nút submit trong `<form>` phải ghi rõ `type="submit"`.
+- Trang mới phải **nạp `core/x-button.js`** (trang tĩnh: thẻ `<script>` trong `<head>`;
+  `admin/` và `invitation-setup/` : thêm vào `SCRIPTS` của `loader.js`), thiếu là nút không hiện.
+- `variant="bare"` = chỉ thống nhất hình pill, không áp màu/khổ — dùng cho `public/themes/*`
+  (mỗi theme một bảng màu riêng) và các nút có CSS riêng (`.ps-*`, tour `#t-next`).
+- Cố ý **không** đổi những thứ chỉ trông giống nút: chấm carousel, thẻ tuỳ chọn AI (`.ai-opt`),
+  thanh phân đoạn (`.ai-seg-btn`), tab (`nav-bottom`, tab Nhà trai/Nhà gái), hàng danh sách
+  (gợi ý Maps, kết quả YouTube, menu ngữ cảnh), thẻ điều hướng ở dashboard, nút trong lòng
+  control khác (`x-input`, `x-controls`, `music-player`). Biến chúng thành pill là sai.
+
 ### Khác
 
 - **Web components `x-*`:** `[name=X]` khớp `<x-input>` chứ không phải `<input>` con.

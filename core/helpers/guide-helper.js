@@ -102,8 +102,8 @@ function showTour(steps, { storageKey, onDone, dismissOnTargetClick } = {}) {
         `<div style="height:3px;flex:1;border-radius:2px;background:${i <= current ? "rgb(var(--brand-accent-rgb))" : "rgb(var(--brand-accent-rgb)/.2)"}"></div>`
       ).join("")}</div>
       <div style="display:flex;align-items:center;justify-content:space-between">
-        <button id="t-skip" style="font-size:12px;color:rgb(var(--text-heading-rgb)/.38);background:none;border:none;cursor:pointer;padding:0;${isLast ? "visibility:hidden" : ""}">Bỏ qua</button>
-        <button id="t-next" style="font-size:12px;font-weight:600;color:rgb(var(--white-rgb));background:rgb(var(--brand-accent-rgb));border:none;cursor:pointer;padding:5px 14px;border-radius:999px;display:inline-flex;align-items:center;gap:4px">${isLast ? "Xong" : "Tiếp"} ${ARROW}</button>
+        <x-button variant="bare" id="t-skip" style="font-size:12px;color:rgb(var(--text-heading-rgb)/.38);background:none;border:none;cursor:pointer;padding:0;${isLast ? "visibility:hidden" : ""}">Bỏ qua</x-button>
+        <x-button variant="bare" id="t-next" style="font-size:12px;font-weight:600;color:rgb(var(--white-rgb));background:rgb(var(--brand-accent-rgb));border:none;cursor:pointer;padding:5px 14px;border-radius:999px;display:inline-flex;align-items:center;gap:4px">${isLast ? "Xong" : "Tiếp"} ${ARROW}</x-button>
       </div>`;
 
     tip.querySelector("#t-next").onclick = advance;

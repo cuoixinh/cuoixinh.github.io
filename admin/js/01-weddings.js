@@ -50,7 +50,7 @@ function renderList(weddings) {
         <a href="${DOMAIN}/public/themes/${w.theme || 'basic-gold'}/?slug=${w.slug}" target="_blank" class="text-rose-500 hover:underline text-xs">${DOMAIN}/${w.slug}</a>
       </td>
       <td class="py-3 px-4 text-sm">
-        <button onclick="copyManageLink('${w.id}')" class="text-blue-600 hover:underline text-xs">📋 Copy link</button>
+        <x-button variant="ghost" tone="neutral" size="xs" onclick="copyManageLink('${w.id}')">📋 Copy link</x-button>
       </td>
       <td class="py-3 px-4 text-sm text-gray-700">${w.groom_name || "-"}</td>
       <td class="py-3 px-4 text-sm text-gray-700">${w.bride_name || "-"}</td>
@@ -63,9 +63,9 @@ function renderList(weddings) {
       <td class="py-3 px-4 text-sm text-gray-500">${formatDate(w.created_at)}</td>
       <td class="py-3 px-4 text-sm">
         <div class="flex gap-2">
-          <button onclick="toggleStatus('${w.id}', ${!w.is_active})" title="${w.is_active ? "Tắt" : "Bật"}">${w.is_active ? "🔒" : "🔓"}</button>
-          <button onclick="openEditModal('${w.id}', '${w.slug}')" title="Sửa slug">✏️</button>
-          <button onclick="deleteWedding('${w.id}', '${w.slug}')" title="Xóa">🗑️</button>
+          <x-button variant="soft" tone="neutral" size="xs" icon-only onclick="toggleStatus('${w.id}', ${!w.is_active})" title="${w.is_active ? "Tắt" : "Bật"}">${w.is_active ? "🔒" : "🔓"}</x-button>
+          <x-button variant="soft" tone="neutral" size="xs" icon-only onclick="openEditModal('${w.id}', '${w.slug}')" title="Sửa slug">✏️</x-button>
+          <x-button variant="soft" tone="danger" size="xs" icon-only onclick="deleteWedding('${w.id}', '${w.slug}')" title="Xóa">🗑️</x-button>
         </div>
       </td>
     </tr>`,

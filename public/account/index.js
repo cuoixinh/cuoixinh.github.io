@@ -289,7 +289,7 @@ function renderOrderDetail(order) {
       iconColor: "text-yellow-400",
       title: "Chưa thanh toán",
       desc: "Đơn hàng này chưa được thanh toán. Vui lòng hoàn tất thanh toán để nhận thiệp.",
-      action: `<button onclick="closeOrderModal(); PaymentModal.open('${order.templateName || ""}', '${order.theme || "basic-gold"}')" class="flex items-center justify-center gap-2 w-full py-3 rounded-full text-white text-sm font-medium mt-2" style="background-color:rgb(var(--action-primary-rgb));border:none;cursor:pointer;"><i class="fas fa-credit-card"></i>Thanh toán ngay</button>`,
+      action: `<x-button size="lg" full icon="fas fa-credit-card" onclick="closeOrderModal(); PaymentModal.open('${order.templateName || ""}', '${order.theme || "basic-gold"}')" class="mt-2">Thanh toán ngay</x-button>`,
     },
     processing: {
       icon: "fa-paint-brush",
@@ -312,10 +312,10 @@ function renderOrderDetail(order) {
           <div style="display:flex;gap:0.5rem;align-items:center;">
             <input readonly value="${window.location.origin}/invitation-setup/?id=${order.manage_id}"
               style="flex:1;padding:0.4rem 0.6rem;border-radius:0.5rem;border:1px solid rgb(var(--border-field-rgb));font-size:0.65rem;color:rgb(var(--text-tertiary-rgb));background:white;outline:none;min-width:0;" />
-            <button onclick="navigator.clipboard.writeText('${window.location.origin}/invitation-setup/?id=${order.manage_id}').then(()=>{this.innerHTML='<i class=\\'fas fa-check\\'></i>';setTimeout(()=>{this.innerHTML='<i class=\\'fas fa-copy\\'></i>';},2000)})"
-              style="padding:0.4rem 0.6rem;border-radius:0.5rem;background:rgb(var(--action-primary-rgb));color:white;border:none;cursor:pointer;font-size:0.7rem;flex-shrink:0;">
+            <x-button size="xs" icon-only onclick="navigator.clipboard.writeText('${window.location.origin}/invitation-setup/?id=${order.manage_id}').then(()=>{this.innerHTML='<i class=\\'fas fa-check\\'></i>';setTimeout(()=>{this.innerHTML='<i class=\\'fas fa-copy\\'></i>';},2000)})"
+              class="shrink-0">
               <i class="fas fa-copy"></i>
-            </button>
+            </x-button>
           </div>
           <a href="${window.location.origin}/invitation-setup/?id=${order.manage_id}" target="_blank"
             style="display:flex;align-items:center;justify-content:center;gap:0.5rem;margin-top:0.5rem;padding:0.6rem;border-radius:9999px;background:rgb(var(--action-primary-rgb));color:white;font-size:0.8rem;font-weight:600;text-decoration:none;">

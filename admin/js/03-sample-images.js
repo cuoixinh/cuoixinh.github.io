@@ -752,23 +752,23 @@ function siRenderSingleImage(fieldName) {
 
   if (entry.previewUrl) {
     const adjustBtn = isCrop
-      ? `<button type="button" onclick="siRecropSingle('${fieldName}')" title="Cắt lại ảnh" class="absolute bottom-1 right-1 bg-black/50 hover:bg-black/70 text-white rounded-full w-6 h-6 flex items-center justify-center transition-colors"><i class="fas fa-crop text-xs"></i></button>`
+      ? `<x-button variant="overlay" size="xs" icon-only type="button" onclick="siRecropSingle('${fieldName}')" title="Cắt lại ảnh" class="absolute bottom-1 right-1"><i class="fas fa-crop text-xs"></i></x-button>`
       : isFocal
-        ? `<button type="button" onclick="siAdjustSingleFocal('${fieldName}')" title="Chỉnh điểm lấy nét" class="absolute bottom-1 right-1 bg-black/50 hover:bg-black/70 text-white rounded-full w-6 h-6 flex items-center justify-center transition-colors"><i class="fas fa-crosshairs text-xs"></i></button>`
+        ? `<x-button variant="overlay" size="xs" icon-only type="button" onclick="siAdjustSingleFocal('${fieldName}')" title="Chỉnh điểm lấy nét" class="absolute bottom-1 right-1"><i class="fas fa-crosshairs text-xs"></i></x-button>`
         : "";
     container.innerHTML = `
       <div class="relative ${sizeClass} rounded-xl overflow-hidden border border-rose-200 shadow-sm group bg-gray-100">
         <img src="${entry.previewUrl}" class="w-full h-full object-cover"${fpStyle} />
         ${adjustBtn}
-        <button type="button" onclick="siRemoveSingle('${fieldName}')" class="absolute top-1 right-1 bg-red-500 rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors">
+        <x-button tone="danger" size="xs" icon-only type="button" onclick="siRemoveSingle('${fieldName}')" class="absolute top-1 right-1">
           <i class="fas fa-times text-xs text-white"></i>
-        </button>
+        </x-button>
       </div>`;
   } else {
     container.innerHTML = `
-      <button type="button" onclick="document.getElementById('si-${fieldName}-file-input').click()" class="flex items-center gap-1.5 h-8 px-3 rounded-xl border border-dashed border-rose-300 text-xs text-rose-400 hover:border-rose-400 hover:text-rose-500 transition-colors cursor-pointer">
+      <x-button variant="outline" size="sm" type="button" onclick="document.getElementById('si-${fieldName}-file-input').click()">
         <i class="fas fa-image text-xs"></i> Chọn ảnh
-      </button>`;
+      </x-button>`;
   }
 }
 
@@ -863,12 +863,12 @@ function siRenderGallery() {
       "relative aspect-square rounded-xl overflow-hidden border border-rose-200 shadow-sm group bg-gray-100";
     div.innerHTML = `
       <img src="${item.previewUrl}" class="w-full h-full object-cover" style="object-position: ${item.focal.x}% ${item.focal.y}%" />
-      <button type="button" onclick="siAdjustGalleryFocal(${idx})" title="Chỉnh điểm lấy nét" class="absolute bottom-1 right-1 bg-black/50 hover:bg-black/70 text-white rounded-full w-6 h-6 flex items-center justify-center transition-colors">
+      <x-button variant="overlay" size="xs" icon-only type="button" onclick="siAdjustGalleryFocal(${idx})" title="Chỉnh điểm lấy nét" class="absolute bottom-1 right-1">
         <i class="fas fa-crosshairs text-xs"></i>
-      </button>
-      <button type="button" onclick="siRemoveGalleryImage(${idx})" class="absolute top-1 right-1 bg-red-500 rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors">
+      </x-button>
+      <x-button tone="danger" size="xs" icon-only type="button" onclick="siRemoveGalleryImage(${idx})" class="absolute top-1 right-1">
         <i class="fas fa-times text-xs text-white"></i>
-      </button>
+      </x-button>
     `;
     container.appendChild(div);
   });
@@ -951,9 +951,9 @@ function siRenderLoveStory() {
     div.innerHTML = `
       <div class="flex items-center justify-between mb-1">
         <span id="si-ls-label-${idx}" class="text-xs font-medium text-rose-400">${escapeHtml(item.title) || `Mốc ${idx + 1}`}</span>
-        <button type="button" onclick="siRemoveLoveStoryItem(${idx})" class="flex items-center gap-1 text-xs text-gray-400 hover:text-red-400 transition-colors">
+        <x-button variant="ghost" tone="danger" size="sm" type="button" onclick="siRemoveLoveStoryItem(${idx})">
           <i class="fas fa-trash"></i> Xóa
-        </button>
+        </x-button>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
         <input type="text" value="${escapeHtml(item.date)}" placeholder="Ví dụ: Mùa xuân năm 2020"
@@ -972,16 +972,16 @@ function siRenderLoveStory() {
           item.previewUrl
             ? `<div class="relative w-16 h-16 rounded-xl overflow-hidden border border-rose-200 flex-shrink-0">
                 <img src="${item.previewUrl}" class="w-full h-full object-cover"${fpStyle} />
-                <button type="button" onclick="siAdjustLoveStoryFocal(${idx})" title="Chỉnh điểm lấy nét" class="absolute bottom-0.5 right-0.5 w-5 h-5 bg-black/50 rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors">
+                <x-button variant="overlay" size="xs" icon-only type="button" onclick="siAdjustLoveStoryFocal(${idx})" title="Chỉnh điểm lấy nét" class="absolute bottom-0.5 right-0.5">
                   <i class="fas fa-crosshairs" style="font-size:10px"></i>
-                </button>
-                <button type="button" onclick="siRemoveLoveStoryImage(${idx})" class="absolute top-0.5 right-0.5 w-5 h-5 bg-black/50 rounded-full flex items-center justify-center text-white hover:bg-red-500 transition-colors">
+                </x-button>
+                <x-button variant="overlay" tone="danger" size="xs" icon-only type="button" onclick="siRemoveLoveStoryImage(${idx})" class="absolute top-0.5 right-0.5">
                   <i class="fas fa-times" style="font-size:10px"></i>
-                </button>
+                </x-button>
               </div>`
-            : `<button type="button" onclick="document.getElementById('si-ls-file-input-${idx}').click()" class="flex items-center gap-1.5 h-8 px-3 rounded-xl border border-dashed border-rose-300 text-xs text-rose-400 hover:border-rose-400 hover:text-rose-500 transition-colors">
+            : `<x-button variant="outline" size="sm" type="button" onclick="document.getElementById('si-ls-file-input-${idx}').click()">
                 <i class="fas fa-image"></i> Thêm ảnh
-              </button>`
+              </x-button>`
         }
       </div>
     `;

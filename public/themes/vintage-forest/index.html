@@ -36,14 +36,9 @@
     class="bg-vintage-cream min-h-screen flex justify-center items-center p-0 md:py-5"
   >
     <!-- Music Control Button -->
-    <button
-      id="music-toggle"
-      class="fixed bottom-6 right-4 z-[60] w-12 h-12 rounded-full bg-white shadow-lg flex items-center justify-center text-vintage-brown hover:bg-vintage-beige transition-all duration-300"
-      onclick="toggleYouTubeMusic()"
-      style="display: none"
-    >
+    <x-button variant="bare" id="music-toggle" onclick="toggleYouTubeMusic()" style="display: none" class="fixed bottom-6 right-4 z-[60] w-12 h-12 bg-white shadow-lg text-vintage-brown hover:bg-vintage-beige transition-all duration-300">
       <i id="music-icon" class="fas fa-music text-lg"></i>
-    </button>
+    </x-button>
 
     <!-- Cover Screen -->
     <div
@@ -70,12 +65,9 @@
         >
           ----------
         </div>
-        <button
-          onclick="openInvitation()"
-          class="open-btn mt-4 px-8 py-3 bg-vintage-green text-white font-inter text-sm tracking-wider uppercase rounded-sm hover:bg-opacity-90 transition-all"
-        >
+        <x-button variant="bare" onclick="openInvitation()" class="open-btn mt-4 px-8 py-3 bg-vintage-green text-white font-inter text-sm tracking-wider uppercase hover:bg-opacity-90 transition-all">
           Mở Thiệp
-        </button>
+        </x-button>
       </div>
     </div>
 
@@ -308,20 +300,12 @@
             Xác nhận tham dự
           </div>
           <div class="grid grid-cols-2 gap-4 max-w-sm mx-auto">
-            <button
-              onclick="confirmAttend(true)"
-              id="btn-attend"
-              class="py-3 rounded-full border border-vintage-green/40 text-vintage-green hover:bg-vintage-green/10 hover:border-vintage-green transition-all font-cormorant italic text-[16px]"
-            >
+            <x-button variant="bare" onclick="confirmAttend(true)" id="btn-attend" class="py-3 border border-vintage-green/40 text-vintage-green hover:bg-vintage-green/10 hover:border-vintage-green transition-all font-cormorant italic text-[16px]">
               Tham dự
-            </button>
-            <button
-              onclick="confirmAttend(false)"
-              id="btn-decline"
-              class="py-3 rounded-full border border-vintage-brown/30 text-vintage-brown/70 hover:bg-vintage-brown/5 hover:border-vintage-brown/50 transition-all font-cormorant italic text-[16px]"
-            >
+            </x-button>
+            <x-button variant="bare" onclick="confirmAttend(false)" id="btn-decline" class="py-3 border border-vintage-brown/30 text-vintage-brown/70 hover:bg-vintage-brown/5 hover:border-vintage-brown/50 transition-all font-cormorant italic text-[16px]">
               Không tham dự
-            </button>
+            </x-button>
           </div>
           <div
             id="attend-msg"
@@ -413,12 +397,9 @@
             >
               --------------------
             </div>
-            <button
-              onclick="saveQR('groom-qr-img')"
-              class="text-[12px] text-vintage-brown/70 border border-vintage-brown/30 px-4 py-2 rounded-full hover:bg-vintage-brown/5 hover:border-vintage-brown/50 transition-all font-inter"
-            >
+            <x-button variant="bare" onclick="saveQR('groom-qr-img')" class="text-[12px] text-vintage-brown/70 border border-vintage-brown/30 px-4 py-2 hover:bg-vintage-brown/5 hover:border-vintage-brown/50 transition-all font-inter">
               <i class="fas fa-download mr-1"></i>Lưu QR
-            </button>
+            </x-button>
           </div>
 
           <!-- Bride QR -->
@@ -452,12 +433,9 @@
             >
               --------------------
             </div>
-            <button
-              onclick="saveQR('bride-qr-img')"
-              class="text-[12px] text-vintage-brown/70 border border-vintage-brown/30 px-4 py-2 rounded-full hover:bg-vintage-brown/5 hover:border-vintage-brown/50 transition-all font-inter"
-            >
+            <x-button variant="bare" onclick="saveQR('bride-qr-img')" class="text-[12px] text-vintage-brown/70 border border-vintage-brown/30 px-4 py-2 hover:bg-vintage-brown/5 hover:border-vintage-brown/50 transition-all font-inter">
               <i class="fas fa-download mr-1"></i>Lưu QR
-            </button>
+            </x-button>
           </div>
         </div>
       </section>
@@ -522,12 +500,9 @@
       id="lightbox"
       class="fixed inset-0 z-[100] bg-black/95 hidden flex-col items-center justify-center"
     >
-      <button
-        onclick="closeLightbox()"
-        class="absolute top-6 right-6 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center z-10"
-      >
+      <x-button variant="bare" onclick="closeLightbox()" class="absolute top-6 right-6 w-10 h-10 bg-white/10 z-10">
         <i class="fas fa-times text-white text-lg"></i>
-      </button>
+      </x-button>
       <div
         id="lb-counter"
         class="absolute top-6 left-6 text-white/60 text-sm font-inter"
@@ -540,22 +515,17 @@
           class="max-w-full max-h-full object-contain rounded-xl"
         />
       </div>
-      <button
-        onclick="lightboxPrev()"
-        class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center"
-      >
+      <x-button variant="bare" onclick="lightboxPrev()" class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/10">
         <i class="fas fa-chevron-left text-white"></i>
-      </button>
-      <button
-        onclick="lightboxNext()"
-        class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center"
-      >
+      </x-button>
+      <x-button variant="bare" onclick="lightboxNext()" class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/10">
         <i class="fas fa-chevron-right text-white"></i>
-      </button>
+      </x-button>
     </div>
 
     <!-- Load scripts -->
     <script src="../preview-data.js"></script>
+    <script src="../../../core/x-button.js"></script>
     <script src="../../../core/cache-util.js"></script>
     <script src="../../../core/config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.8" integrity="sha384-Tve8O+C6PBzsIMK/IRCwHbi8fyEzXIlIs6OfVBZHubplwYhaQF/4Mzxqgg+pp/oy" crossorigin="anonymous"></script>

@@ -112,12 +112,12 @@
       <div data-auth-root>
         <!-- Bước 1: OAuth (dọc) → hoặc → email -->
         <div data-auth-step="email" class="space-y-2.5">
-          <button type="button" data-auth-oauth="google" class="${_OAUTH_CLS}">
+          <x-button variant="ghost" type="button" data-auth-oauth="google" class="${_OAUTH_CLS}">
             ${_GG_SVG} Tiếp tục với Google
-          </button>
-          <button type="button" data-auth-oauth="facebook" class="${_OAUTH_CLS}">
+          </x-button>
+          <x-button variant="ghost" type="button" data-auth-oauth="facebook" class="${_OAUTH_CLS}">
             <span style="color:rgb(var(--social-facebook-rgb));display:flex">${_FB_SVG}</span> Tiếp tục với Facebook
-          </button>
+          </x-button>
 
           <div class="flex items-center gap-3 !my-4">
             <div class="flex-1 h-px bg-gray-200"></div>
@@ -130,9 +130,9 @@
             <input data-auth-email type="email" inputmode="email" autocomplete="email" required
               placeholder="email@example.com" class="${_INPUT_CLS}" />
           </div>
-          <button type="button" data-auth-send class="${_BTN_CLS} !mt-3">
+          <x-button variant="ghost" type="button" data-auth-send class="${_BTN_CLS} !mt-3">
             ${_MAIL_SVG}<span data-auth-send-label>Gửi mã đăng nhập</span>
-          </button>
+          </x-button>
           <p class="text-center text-xs text-gray-400 leading-relaxed !mt-3">
             Một mã gồm 6 chữ số sẽ được gửi tới email của bạn — đăng nhập chỉ trong vài giây, khỏi cần nhớ mật khẩu.
           </p>
@@ -145,11 +145,10 @@
 
         <!-- Bước 2: nhập mã 6 số -->
         <div data-auth-step="code" class="hidden space-y-4">
-          <button type="button" data-auth-change
-            class="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 transition-colors -ml-1 px-1 py-1 rounded-lg">
+          <x-button variant="ghost" tone="neutral" type="button" data-auth-change class="-ml-1">
             <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
             Đổi email
-          </button>
+          </x-button>
 
           <div class="text-center space-y-1">
             <p class="text-sm text-gray-600">Nhập mã 6 số chúng mình vừa gửi tới</p>
@@ -166,13 +165,13 @@
               .join("")}
           </div>
 
-          <button type="button" data-auth-verify class="${_BTN_CLS}">
+          <x-button variant="ghost" type="button" data-auth-verify class="${_BTN_CLS}">
             <span data-auth-verify-label>Xác nhận</span>
-          </button>
+          </x-button>
 
           <p class="text-center text-xs text-gray-500">
             Không nhận được mã?
-            <button type="button" data-auth-resend class="font-semibold text-color-secondary hover:underline">Gửi lại mã</button>
+            <x-button variant="ghost" type="button" data-auth-resend class="text-color-secondary hover:underline">Gửi lại mã</x-button>
           </p>
         </div>
       </div>`;
@@ -368,10 +367,9 @@
         <!-- Thanh gradient trên đỉnh -->
         <div class="h-1.5 bg-gradient-to-r from-[rgb(var(--brand-accent-rgb))] via-[rgb(var(--brand-accent-light-rgb))] to-[rgb(var(--brand-primary-rgb))]"></div>
 
-        <button type="button" data-auth-close
-          class="absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-100 text-gray-400 transition-colors">
+        <x-button variant="ghost" tone="neutral" size="sm" icon-only type="button" data-auth-close class="absolute top-3 right-3">
           <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-        </button>
+        </x-button>
 
         <div class="px-6 pt-6 pb-6">
           <!-- Trái tim -->

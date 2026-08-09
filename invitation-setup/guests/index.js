@@ -373,12 +373,10 @@ function _buildPageBtns(side, cur, total) {
   }
   const dot = `<span class="w-7 h-7 flex items-center justify-center text-xs text-gray-400">…</span>`;
   return pages.map(p => p === "..." ? dot : `
-    <button type="button" onclick="goToPage('${side}', ${p})"
-      class="w-7 h-7 rounded-lg text-xs font-medium transition-colors ${p === cur
-        ? "bg-rose-500 text-white"
-        : "border border-gray-200 text-gray-500 hover:bg-gray-50"}">
+    <x-button variant="${p === cur ? "fill" : "outline"}" tone="${p === cur ? "brand" : "neutral"}"
+      size="xs" icon-only type="button" onclick="goToPage('${side}', ${p})">
       ${p}
-    </button>`).join("");
+    </x-button>`).join("");
 }
 
 function _renderGuestList(side) {
@@ -434,18 +432,15 @@ function _renderGuestList(side) {
       <td class="sticky right-0 bg-white py-2 px-3 border-l border-gray-100 text-center">
         <div class="flex items-center justify-center gap-1.5">
           ${g.link ? `
-          <button type="button" data-link="${escapeHtml(g.link)}" data-action="copy" title="Copy link"
-            class="w-6 h-6 rounded-md border border-gray-200 flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-gray-50 transition-colors">
+          <x-button variant="outline" tone="neutral" size="xs" icon-only type="button" data-link="${escapeHtml(g.link)}" data-action="copy" title="Copy link">
             <i data-lucide="copy" style="width:11px;height:11px"></i>
-          </button>
-          <button type="button" data-guest-id="${escapeHtml(g.id)}" data-side="${side}" data-action="share" title="Chia sẻ"
-            class="w-6 h-6 rounded-md border border-gray-200 flex items-center justify-center text-gray-400 hover:text-rose-500 hover:bg-rose-50 transition-colors">
+          </x-button>
+          <x-button variant="outline" size="xs" icon-only type="button" data-guest-id="${escapeHtml(g.id)}" data-side="${side}" data-action="share" title="Chia sẻ">
             <i data-lucide="share-2" style="width:11px;height:11px"></i>
-          </button>` : ""}
-          <button type="button" data-guest-id="${escapeHtml(g.id)}" data-side="${side}" data-action="menu"
-            class="w-6 h-6 rounded-md border border-gray-200 flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-gray-50 transition-colors">
+          </x-button>` : ""}
+          <x-button variant="outline" tone="neutral" size="xs" icon-only type="button" data-guest-id="${escapeHtml(g.id)}" data-side="${side}" data-action="menu">
             <i data-lucide="more-vertical" style="width:11px;height:11px"></i>
-          </button>
+          </x-button>
         </div>
       </td>
     </tr>`).join("");
@@ -457,17 +452,15 @@ function _renderGuestList(side) {
     <div class="flex items-center justify-between mt-3 pt-2.5 border-t border-gray-100">
       <p class="text-xs text-gray-400">${from}–${to} / <span class="font-medium text-gray-600">${guests.length}</span> khách</p>
       <div class="flex items-center gap-1">
-        <button type="button" onclick="goToPage('${side}', ${cur - 1})"
-          ${cur === 1 ? "disabled" : ""}
-          class="w-7 h-7 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center transition-colors">
+        <x-button variant="outline" tone="neutral" size="xs" icon-only type="button" onclick="goToPage('${side}', ${cur - 1})"
+          ${cur === 1 ? "disabled" : ""}>
           <i data-lucide="chevron-left" style="width:13px;height:13px"></i>
-        </button>
+        </x-button>
         ${_buildPageBtns(side, cur, totalPages)}
-        <button type="button" onclick="goToPage('${side}', ${cur + 1})"
-          ${cur === totalPages ? "disabled" : ""}
-          class="w-7 h-7 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center transition-colors">
+        <x-button variant="outline" tone="neutral" size="xs" icon-only type="button" onclick="goToPage('${side}', ${cur + 1})"
+          ${cur === totalPages ? "disabled" : ""}>
           <i data-lucide="chevron-right" style="width:13px;height:13px"></i>
-        </button>
+        </x-button>
       </div>
     </div>`;
 

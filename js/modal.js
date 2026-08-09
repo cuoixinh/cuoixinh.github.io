@@ -24,7 +24,7 @@ function showIframeError() {
     <div class="iframe-error" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
       <i class="fas fa-exclamation-triangle"></i>
       <p class="text-lg font-semibold mb-2">Không thể tải preview</p>
-      <button onclick="closePreview()" class="btn-secondary">Đóng</button>
+      <x-button variant="outline" tone="neutral" onclick="closePreview()">Đóng</x-button>
     </div>
   `;
 }
@@ -85,8 +85,8 @@ function _showDraftConflictModal(existingId, template) {
         <p class="text-sm text-gray-500">Mẫu <strong class="text-gray-700">${template.name}</strong> đang được chỉnh sửa. Bạn muốn tiếp tục hay tạo mới?</p>
       </div>
       <div class="flex gap-3">
-        <button id="_draft-new-btn" class="flex-1 h-11 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer">Tạo mới</button>
-        <button id="_draft-continue-btn" class="flex-1 h-11 rounded-xl text-sm font-semibold text-white transition-colors cursor-pointer" style="background:rgb(var(--action-primary-rgb))">Tiếp tục</button>
+        <x-button variant="outline" tone="neutral" size="lg" id="_draft-new-btn" class="flex-1">Tạo mới</x-button>
+        <x-button size="lg" id="_draft-continue-btn" style="background:rgb(var(--action-primary-rgb))" class="flex-1">Tiếp tục</x-button>
       </div>
     </div>
     <style>#draft-conflict-overlay * { box-sizing: border-box; } @keyframes scaleIn { from { opacity:0; transform:scale(.92) } to { opacity:1; transform:scale(1) } }</style>

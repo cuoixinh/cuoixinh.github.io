@@ -389,10 +389,9 @@ function siRenderMapField(field, value, wrapClass) {
   const locked = siIsFieldLocked(field.name);
   const action = locked
     ? `<span class="shrink-0 text-xs text-gray-400 italic">Theo ${escapeHtml(SI_SOURCE_LABEL[siPartySource(side)])}</span>`
-    : `<button type="button" onclick="siOpenMapPicker('${side}')"
-          class="shrink-0 text-xs text-rose-500 hover:text-rose-600 flex items-center gap-1">
+    : `<x-button variant="ghost" size="sm" type="button" onclick="siOpenMapPicker('${side}')" class="shrink-0">
           <i class="fas fa-map-location-dot"></i> Chọn trên bản đồ
-        </button>`;
+        </x-button>`;
 
   return `
     <div class="${wrapClass}">
@@ -405,12 +404,12 @@ function siRenderMapField(field, value, wrapClass) {
         <span id="${side}-map-address"
           class="flex-1 min-w-0 truncate text-xs ${addr ? "text-gray-600" : "text-gray-400 italic"}"
           >${escapeHtml(addr || SI_MAP_NO_ADDRESS)}</span>
-        <button type="button" onclick="siCopyMapAddress('${side}')" title="Sao chép địa chỉ" class="${chipBtn}">
+        <x-button variant="ghost" type="button" onclick="siCopyMapAddress('${side}')" title="Sao chép địa chỉ" class="${chipBtn}">
           <i class="fas fa-copy"></i> Chép
-        </button>
-        <button type="button" onclick="siOpenMapsSearch('${side}')" title="Mở Google Maps với địa chỉ này" class="${chipBtn}">
+        </x-button>
+        <x-button variant="ghost" type="button" onclick="siOpenMapsSearch('${side}')" title="Mở Google Maps với địa chỉ này" class="${chipBtn}">
           <i class="fas fa-up-right-from-square"></i> Mở Maps
-        </button>
+        </x-button>
       </div>
       <textarea rows="2" id="${field.name}" name="${field.name}" data-si-content="${field.name}"
         placeholder="Dán link nhúng — dán cả thẻ &lt;iframe&gt; cũng được, tự tách"
@@ -553,10 +552,9 @@ function siRenderYouTubeField(field, value, wrapClass) {
         <span class="inline-flex items-center gap-1.5 max-w-full px-2.5 py-1 rounded-full bg-rose-50 text-rose-600 border border-rose-100 text-xs">
           <i class="fas fa-music shrink-0"></i>
           <span id="music-selected-name" class="truncate"></span>
-          <button type="button" onclick="clearMusicSelection()" title="Gỡ bài hát"
-            class="shrink-0 hover:text-rose-800">
+          <x-button variant="ghost" icon-only type="button" onclick="clearMusicSelection()" title="Gỡ bài hát" class="shrink-0">
             <i class="fas fa-xmark"></i>
-          </button>
+          </x-button>
         </span>
       </div>
 
@@ -642,10 +640,9 @@ function siRenderTimeline() {
               `<option value="${t.value}" ${t.value === item.type ? "selected" : ""}>${t.label}</option>`,
           ).join("")}
         </select>
-        <button type="button" onclick="siRemoveTimelineItem(${idx})"
-          class="shrink-0 h-10 px-3 text-xs text-gray-400 hover:text-red-400 transition-colors">
+        <x-button variant="ghost" tone="danger" icon-only type="button" onclick="siRemoveTimelineItem(${idx})" class="shrink-0">
           <i class="fas fa-trash"></i>
-        </button>
+        </x-button>
       </div>`,
     )
     .join("");

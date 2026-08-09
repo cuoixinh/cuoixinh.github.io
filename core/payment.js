@@ -183,18 +183,18 @@
               </div>
             </div>
             <div class="flex gap-2.5">
-              <button onclick="PaymentModal.retryCheck()" class="flex-1 px-2.5 py-2.5 rounded-lg border-2 border-gray-200 bg-white text-gray-700 text-xs font-semibold cursor-pointer transition-all hover:border-pink-300 hover:text-pink-400">
+              <x-button variant="outline" size="sm" onclick="PaymentModal.retryCheck()" class="flex-1">
                 <i class="fas fa-sync-alt mr-2"></i>Kiểm tra lại
-              </button>
-              <button onclick="PaymentModal.createNewPayment()" class="flex-1 px-2.5 py-2.5 rounded-lg bg-gradient-to-r from-pink-300 to-pink-200 text-white text-xs font-semibold border-0 cursor-pointer shadow-lg shadow-pink-200/50 transition-transform hover:-translate-y-0.5">
+              </x-button>
+              <x-button size="sm" onclick="PaymentModal.createNewPayment()" class="flex-1 from-pink-300 to-pink-200 hover:-translate-y-0.5">
                 <i class="fas fa-redo mr-2"></i>Tạo mã mới
-              </button>
+              </x-button>
             </div>
           </div>
 
-          <button onclick="PaymentModal.cancelPayment()" class="px-7 py-2.5 rounded-full border-2 border-gray-200 bg-white text-gray-500 text-xs font-medium cursor-pointer transition-all mt-1 hover:border-gray-300 hover:text-gray-700">
+          <x-button variant="outline" tone="neutral" size="sm" onclick="PaymentModal.cancelPayment()" class="mt-1">
             <i class="fas fa-times mr-2"></i>Hủy thanh toán
-          </button>
+          </x-button>
         </div>
       `;
 
@@ -550,9 +550,9 @@
         <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="PaymentModal.close()"></div>
         <div class="relative bg-white rounded-3xl max-w-[480px] w-full max-h-[90vh] shadow-2xl z-10 overflow-hidden">
           <div class="overflow-y-auto max-h-[90vh]">
-          <button onclick="PaymentModal.close()" class="absolute top-4 right-4 z-20 w-8 h-8 bg-white rounded-full border-0 cursor-pointer flex items-center justify-center shadow-md hover:shadow-lg transition-shadow">
+          <x-button variant="outline" size="sm" icon-only onclick="PaymentModal.close()" class="absolute top-4 right-4 z-20">
             <i class="fas fa-times text-gray-400 text-sm"></i>
-          </button>
+          </x-button>
 
           <!-- Step 1: Xác nhận đơn hàng -->
           <div id="payment-step-1">
@@ -612,11 +612,9 @@
                 <div class="flex gap-2">
                   <input id="promo-input" type="text" placeholder="Mã giảm giá"
                     class="flex-1 px-3 py-2 rounded-xl border border-gray-200 text-sm outline-none uppercase tracking-wider focus:border-pink-300 transition-colors box-border" />
-                  <button onclick="applyPromo()"
-                    class="px-4 py-2 rounded-xl text-sm font-medium border-0 cursor-pointer transition-colors"
-                    style="background:rgb(var(--surface-brand-rgb)); color:rgb(var(--text-body-rgb));">
+                  <x-button onclick="applyPromo()" style="background:rgb(var(--surface-brand-rgb)); color:rgb(var(--text-body-rgb));">
                     Áp dụng
-                  </button>
+                  </x-button>
                 </div>
                 <p id="promo-msg" class="hidden text-xs px-1"></p>
               </div>
@@ -633,10 +631,9 @@
                 </div>
               </div>
 
-              <button onclick="PaymentModal.process()"
-                class="w-full py-3.5 rounded-full text-white font-semibold text-sm border-0 cursor-pointer transition-colors hover:opacity-90" style="background:rgb(var(--action-primary-rgb));">
+              <x-button onclick="PaymentModal.process()" style="background:rgb(var(--action-primary-rgb));" class="w-full hover:opacity-90">
                 <i class="fas fa-lock mr-2 text-xs"></i>Thanh toán ngay
-              </button>
+              </x-button>
               <p class="text-center text-xs text-gray-400 m-0">
                 <i class="fas fa-shield-alt mr-1"></i>Thanh toán an toàn & bảo mật
               </p>
@@ -677,17 +674,15 @@
               <div class="flex gap-2 items-center">
                 <input id="success-manage-link" readonly
                   class="flex-1 px-3 py-2 rounded-lg border border-gray-200 text-[11px] text-gray-600 bg-white outline-none min-w-0" />
-                <button onclick="copyManageLink()"
-                  class="px-3 py-2 rounded-lg text-white border-0 cursor-pointer text-xs whitespace-nowrap flex-shrink-0" style="background:rgb(var(--action-primary-rgb));">
+                <x-button size="sm" icon-only onclick="copyManageLink()" style="background:rgb(var(--action-primary-rgb));" class="flex-shrink-0">
                   <i class="fas fa-copy"></i>
-                </button>
+                </x-button>
               </div>
             </div>
             <div class="flex gap-3 w-full">
-              <button onclick="PaymentModal.close()"
-                class="flex-1 py-3 rounded-full border-2 bg-white font-semibold text-sm cursor-pointer" style="border-color:rgb(var(--brand-primary-rgb));color:rgb(var(--text-body-rgb));">
+              <x-button variant="outline" size="lg" onclick="PaymentModal.close()" style="border-color:rgb(var(--brand-primary-rgb));color:rgb(var(--text-body-rgb));" class="flex-1">
                 Đóng
-              </button>
+              </x-button>
               <a id="success-manage-btn" href="#"
                 class="flex-1 py-3 rounded-full text-white font-semibold text-sm no-underline flex items-center justify-center gap-2" style="background:rgb(var(--action-primary-rgb));">
                 <i class="fas fa-edit text-xs"></i>Thiết lập ngay

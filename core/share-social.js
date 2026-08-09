@@ -113,24 +113,21 @@
               <p data-ss="subtitle" class="text-xs text-gray-400 truncate"></p>
             </div>
           </div>
-          <button type="button" data-ss="close"
-            class="w-7 h-7 rounded-full flex items-center justify-center hover:bg-gray-100 text-gray-400 shrink-0">
+          <x-button variant="ghost" tone="neutral" size="xs" icon-only type="button" data-ss="close" class="shrink-0">
             <i data-lucide="x" class="w-4 h-4"></i>
-          </button>
+          </x-button>
         </div>
         <div class="px-5 py-4 space-y-4">
           <div data-ss="channels" class="grid grid-cols-5 gap-2"></div>
           <div class="flex items-center gap-2 bg-gray-50 rounded-lg border border-gray-200 pl-3 pr-1.5 py-1.5">
             <span data-ss="link" class="flex-1 text-xs font-mono text-gray-500 truncate"></span>
-            <button type="button" data-ss="copy"
-              class="shrink-0 h-7 px-2.5 rounded-md text-xs font-medium text-rose-600 bg-rose-50 hover:bg-rose-100 transition-colors flex items-center gap-1">
+            <x-button variant="soft" size="xs" type="button" data-ss="copy" class="shrink-0">
               <i data-lucide="copy" style="width:13px;height:13px"></i> Sao chép
-            </button>
+            </x-button>
           </div>
-          <button type="button" data-ss="system"
-            class="w-full h-9 rounded-lg text-xs font-medium text-gray-700 border border-gray-200 hover:bg-gray-50 transition-colors flex items-center justify-center gap-2">
+          <x-button variant="outline" tone="neutral" type="button" data-ss="system" class="w-full">
             <i data-lucide="message-circle" style="width:14px;height:14px"></i> Chia sẻ qua ứng dụng khác
-          </button>
+          </x-button>
         </div>
       </div>`;
     document.body.appendChild(_modal);
@@ -185,10 +182,10 @@
     modal.querySelector("[data-ss=link]").textContent = link;
 
     modal.querySelector("[data-ss=channels]").innerHTML = CHANNELS.map(c => `
-      <button type="button" data-channel="${c.key}" class="flex flex-col items-center gap-1.5 group">
+      <x-button variant="ghost" type="button" data-channel="${c.key}" class="flex-col group">
         <span class="w-11 h-11 rounded-full ${c.bg} flex items-center justify-center group-hover:scale-105 transition-transform">${c.svg}</span>
         <span class="text-[10px] text-gray-500 text-center leading-tight">${c.label}</span>
-      </button>`).join("");
+      </x-button>`).join("");
 
     modal.classList.remove("hidden");
     modal.classList.add("flex");

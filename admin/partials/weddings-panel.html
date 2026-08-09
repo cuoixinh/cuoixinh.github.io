@@ -10,12 +10,9 @@
           placeholder="Tìm kiếm theo slug, tên..."
           class="flex-1 px-3 sm:px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-rose-300"
         />
-        <button
-          onclick="searchWeddings()"
-          class="px-4 sm:px-6 py-2 bg-rose-400 hover:bg-rose-500 text-white rounded-lg text-sm font-medium transition-colors whitespace-nowrap"
-        >
+        <x-button onclick="searchWeddings()" class="sm:px-6">
           Tìm kiếm
-        </button>
+        </x-button>
       </div>
     </div>
 
@@ -73,20 +70,12 @@
         bản ghi)
       </div>
       <div class="flex gap-2">
-        <button
-          onclick="loadPage(currentPage - 1)"
-          id="btn-prev"
-          class="px-3 sm:px-4 py-2 border border-gray-200 rounded-lg text-xs sm:text-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
+        <x-button variant="outline" tone="neutral" size="sm" onclick="loadPage(currentPage - 1)" id="btn-prev" class="sm:px-4 sm:text-sm">
           Trước
-        </button>
-        <button
-          onclick="loadPage(currentPage + 1)"
-          id="btn-next"
-          class="px-3 sm:px-4 py-2 border border-gray-200 rounded-lg text-xs sm:text-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
+        </x-button>
+        <x-button variant="outline" tone="neutral" size="sm" onclick="loadPage(currentPage + 1)" id="btn-next" class="sm:px-4 sm:text-sm">
           Sau
-        </button>
+        </x-button>
       </div>
     </div>
   </div>
@@ -107,18 +96,12 @@
       class="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-rose-300 mb-4"
     />
     <div class="flex gap-3">
-      <button
-        onclick="closeModal()"
-        class="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-sm hover:bg-gray-50"
-      >
+      <x-button variant="outline" tone="neutral" onclick="closeModal()" class="flex-1">
         Hủy
-      </button>
-      <button
-        onclick="saveSlug()"
-        class="flex-1 px-4 py-2 bg-rose-400 hover:bg-rose-500 text-white rounded-lg text-sm"
-      >
+      </x-button>
+      <x-button onclick="saveSlug()" class="flex-1">
         Lưu
-      </button>
+      </x-button>
     </div>
   </div>
 </div>

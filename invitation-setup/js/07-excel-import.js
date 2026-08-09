@@ -158,9 +158,9 @@ function _renderGuestList(guests, side) {
       <td class="px-3 py-2.5 text-center">
         ${
           g.link
-            ? `<button type="button" onclick="copyGuestLink('${g.link}')" class="text-rose-400 hover:text-rose-600 transition-colors">
+            ? `<x-button variant="ghost" icon-only type="button" onclick="copyGuestLink('${g.link}')">
                <i data-lucide="copy" style="width:14px;height:14px"></i>
-             </button>`
+             </x-button>`
             : `<span class="text-gray-300 text-xs">—</span>`
         }
       </td>

@@ -18,13 +18,9 @@
               Chọn cột tương ứng từ file Excel
             </p>
           </div>
-          <button
-            type="button"
-            onclick="closeMappingModal()"
-            class="w-7 h-7 rounded-full flex items-center justify-center hover:bg-gray-100 text-gray-400"
-          >
+          <x-button variant="ghost" tone="neutral" size="xs" icon-only type="button" onclick="closeMappingModal()">
             <i data-lucide="x" class="w-4 h-4"></i>
-          </button>
+          </x-button>
         </div>
 
         <!-- Body -->
@@ -98,20 +94,12 @@
 
         <!-- Footer -->
         <div class="flex gap-2 px-5 py-4 border-t border-gray-100">
-          <button
-            type="button"
-            onclick="closeMappingModal()"
-            class="flex-1 h-9 rounded-lg text-xs border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
-          >
+          <x-button variant="outline" tone="neutral" type="button" onclick="closeMappingModal()" class="flex-1">
             Huỷ
-          </button>
-          <button
-            type="button"
-            onclick="confirmImport()"
-            class="flex-1 h-9 rounded-lg text-xs font-medium text-white bg-rose-500 hover:bg-rose-600 transition-colors"
-          >
+          </x-button>
+          <x-button type="button" onclick="confirmImport()" class="flex-1">
             Nhập khẩu
-          </button>
+          </x-button>
         </div>
       </div>
     </div>

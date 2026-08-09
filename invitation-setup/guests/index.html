@@ -46,11 +46,9 @@
             class="flex-1 py-3 text-sm font-medium flex items-center justify-center gap-1.5 bg-rose-50 text-rose-600 border-b-2 border-rose-500 transition-colors">
             <i data-lucide="mars" class="w-3.5 h-3.5"></i> Nhà trai
           </button>
-          <button type="button" id="tab-bride"
-            onclick="switchTab('bride')"
-            class="flex-1 py-3 text-sm font-medium flex items-center justify-center gap-1.5 text-gray-500 hover:bg-gray-50 transition-colors">
+          <x-button variant="ghost" tone="neutral" size="lg" type="button" id="tab-bride" onclick="switchTab('bride')" class="flex-1">
             <i data-lucide="venus" class="w-3.5 h-3.5"></i> Nhà gái
-          </button>
+          </x-button>
         </div>
 
         <!-- Panel nhà trai -->
@@ -64,28 +62,24 @@
             </p>
             <div class="space-y-2">
               <div class="flex flex-wrap items-center gap-2">
-                <button type="button" onclick="openAddGuestModal('groom')"
-                  class="h-8 px-3 rounded-lg text-xs font-medium text-white bg-rose-500 hover:bg-rose-600 transition-colors flex items-center gap-1.5">
+                <x-button size="sm" type="button" onclick="openAddGuestModal('groom')">
                   <i data-lucide="user-plus" class="w-3.5 h-3.5"></i> Thêm khách
-                </button>
-                <button type="button" onclick="regenerateLinks('groom')"
-                  class="h-8 px-3 rounded-lg text-xs font-medium text-white bg-violet-500 hover:bg-violet-600 transition-colors flex items-center gap-1.5">
+                </x-button>
+                <x-button size="sm" type="button" onclick="regenerateLinks('groom')">
                   <i data-lucide="link" class="w-3.5 h-3.5"></i> Tạo lại link
-                </button>
+                </x-button>
               </div>
               <div class="flex flex-wrap items-center gap-2">
-                <button type="button" onclick="downloadGuestTemplate()"
-                  class="h-8 px-3 rounded-lg text-xs font-medium bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 transition-colors flex items-center gap-1.5">
+                <x-button variant="outline" size="sm" type="button" onclick="downloadGuestTemplate()" class="text-blue-600">
                   <i data-lucide="download" class="w-3.5 h-3.5"></i> Tải mẫu
-                </button>
+                </x-button>
                 <label class="h-8 px-3 rounded-lg text-xs font-medium text-white bg-blue-500 hover:bg-blue-600 transition-colors cursor-pointer flex items-center gap-1.5">
                   <i data-lucide="file-up" class="w-3.5 h-3.5"></i> Nhập Excel
                   <input type="file" class="hidden" accept=".xlsx,.xls" onchange="handleExcelUpload(event,'groom')">
                 </label>
-                <button type="button" onclick="exportGuestList('groom')"
-                  class="h-8 px-3 rounded-lg text-xs font-medium text-white bg-emerald-500 hover:bg-emerald-600 transition-colors flex items-center gap-1.5">
+                <x-button size="sm" type="button" onclick="exportGuestList('groom')">
                   <i data-lucide="file-down" class="w-3.5 h-3.5"></i> Xuất Excel
-                </button>
+                </x-button>
               </div>
             </div>
             <div id="guest-list-groom">
@@ -105,28 +99,24 @@
             </p>
             <div class="space-y-2">
               <div class="flex flex-wrap items-center gap-2">
-                <button type="button" onclick="openAddGuestModal('bride')"
-                  class="h-8 px-3 rounded-lg text-xs font-medium text-white bg-rose-500 hover:bg-rose-600 transition-colors flex items-center gap-1.5">
+                <x-button size="sm" type="button" onclick="openAddGuestModal('bride')">
                   <i data-lucide="user-plus" class="w-3.5 h-3.5"></i> Thêm khách
-                </button>
-                <button type="button" onclick="regenerateLinks('bride')"
-                  class="h-8 px-3 rounded-lg text-xs font-medium text-white bg-violet-500 hover:bg-violet-600 transition-colors flex items-center gap-1.5">
+                </x-button>
+                <x-button size="sm" type="button" onclick="regenerateLinks('bride')">
                   <i data-lucide="link" class="w-3.5 h-3.5"></i> Tạo lại link
-                </button>
+                </x-button>
               </div>
               <div class="flex flex-wrap items-center gap-2">
-                <button type="button" onclick="downloadGuestTemplate()"
-                  class="h-8 px-3 rounded-lg text-xs font-medium bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 transition-colors flex items-center gap-1.5">
+                <x-button variant="outline" size="sm" type="button" onclick="downloadGuestTemplate()" class="text-blue-600">
                   <i data-lucide="download" class="w-3.5 h-3.5"></i> Tải mẫu
-                </button>
+                </x-button>
                 <label class="h-8 px-3 rounded-lg text-xs font-medium text-white bg-blue-500 hover:bg-blue-600 transition-colors cursor-pointer flex items-center gap-1.5">
                   <i data-lucide="file-up" class="w-3.5 h-3.5"></i> Nhập Excel
                   <input type="file" class="hidden" accept=".xlsx,.xls" onchange="handleExcelUpload(event,'bride')">
                 </label>
-                <button type="button" onclick="exportGuestList('bride')"
-                  class="h-8 px-3 rounded-lg text-xs font-medium text-white bg-emerald-500 hover:bg-emerald-600 transition-colors flex items-center gap-1.5">
+                <x-button size="sm" type="button" onclick="exportGuestList('bride')">
                   <i data-lucide="file-down" class="w-3.5 h-3.5"></i> Xuất Excel
-                </button>
+                </x-button>
               </div>
             </div>
             <div id="guest-list-bride">
@@ -143,10 +133,9 @@
       <div class="bg-white rounded-2xl w-full max-w-sm shadow-xl overflow-hidden">
         <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
           <h3 class="text-sm font-semibold text-gray-800">Thêm 1 khách mời</h3>
-          <button type="button" onclick="closeAddGuestModal()"
-            class="w-7 h-7 rounded-full flex items-center justify-center hover:bg-gray-100 text-gray-400">
+          <x-button variant="ghost" tone="neutral" size="xs" icon-only type="button" onclick="closeAddGuestModal()">
             <i data-lucide="x" class="w-4 h-4"></i>
-          </button>
+          </x-button>
         </div>
         <div class="px-5 py-4 space-y-3">
           <div class="space-y-1.5">
@@ -166,10 +155,8 @@
           </div>
         </div>
         <div class="flex gap-2 px-5 py-4 border-t border-gray-100">
-          <button type="button" onclick="closeAddGuestModal()"
-            class="flex-1 h-9 rounded-lg text-xs border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">Huỷ</button>
-          <button type="button" onclick="confirmAddGuest()"
-            class="flex-1 h-9 rounded-lg text-xs font-medium text-white bg-rose-500 hover:bg-rose-600 transition-colors">Thêm khách</button>
+          <x-button variant="outline" tone="neutral" type="button" onclick="closeAddGuestModal()" class="flex-1">Huỷ</x-button>
+          <x-button type="button" onclick="confirmAddGuest()" class="flex-1">Thêm khách</x-button>
         </div>
       </div>
     </div>
@@ -183,10 +170,9 @@
             <h3 class="text-sm font-semibold text-gray-800">Mapping cột dữ liệu</h3>
             <p class="text-xs text-gray-400 mt-0.5">Chọn cột tương ứng từ file Excel</p>
           </div>
-          <button type="button" onclick="closeMappingModal()"
-            class="w-7 h-7 rounded-full flex items-center justify-center hover:bg-gray-100 text-gray-400">
+          <x-button variant="ghost" tone="neutral" size="xs" icon-only type="button" onclick="closeMappingModal()">
             <i data-lucide="x" class="w-4 h-4"></i>
-          </button>
+          </x-button>
         </div>
         <div class="flex-1 overflow-y-auto px-5 py-4 space-y-4">
           <div class="space-y-3">
@@ -223,15 +209,14 @@
           </div>
         </div>
         <div class="flex gap-2 px-5 py-4 border-t border-gray-100">
-          <button type="button" onclick="closeMappingModal()"
-            class="flex-1 h-9 rounded-lg text-xs border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">Huỷ</button>
-          <button type="button" onclick="confirmImport()"
-            class="flex-1 h-9 rounded-lg text-xs font-medium text-white bg-rose-500 hover:bg-rose-600 transition-colors">Nhập khẩu</button>
+          <x-button variant="outline" tone="neutral" type="button" onclick="closeMappingModal()" class="flex-1">Huỷ</x-button>
+          <x-button type="button" onclick="confirmImport()" class="flex-1">Nhập khẩu</x-button>
         </div>
       </div>
     </div>
 
     <!-- Scripts -->
+    <script src="../../core/x-button.js"></script>
     <script src="../../core/cache-util.js"></script>
     <script src="../../core/config.js"></script>
     <!-- Trang này chạy trong iframe (không có AuthUI của trang cha) nhưng vẫn gọi

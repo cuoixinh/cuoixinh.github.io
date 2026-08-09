@@ -26,6 +26,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <!-- Markup trình phát nhạc — nạp ở HEAD vì script nội tuyến ngay đầu <body>
          gọi CXMusicPlayer.build() để dựng thanh nhạc. -->
+    <script src="../../../core/x-button.js"></script>
     <script src="../../../core/components/music-player.js"></script>
   </head>
   <body
@@ -126,10 +127,7 @@
           </div>
 
           <!-- Nút mở thiệp -->
-          <button
-            onclick="openInvitation()"
-            class="open-btn relative overflow-hidden px-10 py-4 rounded-full border border-rose-pastel-200 bg-white/60 font-cormorant italic text-[18px] text-stone-custom-500 active:scale-95 transition-transform duration-200 touch-manipulation [-webkit-tap-highlight-color:transparent]"
-          >
+          <x-button variant="bare" onclick="openInvitation()" class="open-btn relative overflow-hidden px-10 py-4 border border-rose-pastel-200 bg-white/60 font-cormorant italic text-[18px] text-stone-custom-500 active:scale-95 transition-transform duration-200 touch-manipulation [-webkit-tap-highlight-color:transparent]">
             <span
               class="relative z-10 pointer-events-none flex items-center gap-2"
             >
@@ -139,7 +137,7 @@
               Mở Thiệp
             </span>
             <div class="btn-shimmer pointer-events-none"></div>
-          </button>
+          </x-button>
         </div>
       </div>
     </div>
@@ -496,11 +494,7 @@
                   class="hidden font-cormorant italic text-[14px] text-stone-custom-500 leading-relaxed"
                 ></div>
                 <div class="grid grid-cols-2 gap-4">
-                  <button
-                    onclick="confirmAttend(true)"
-                    id="btn-attend"
-                    class="flex flex-col items-center gap-2 py-4 rounded-2xl border border-rose-pastel-100 bg-white/50 active:scale-95 transition-all duration-200"
-                  >
+                  <x-button variant="bare" onclick="confirmAttend(true)" id="btn-attend" class="flex-col gap-2 py-4 border border-rose-pastel-100 bg-white/50 active:scale-95 transition-all duration-200">
                     <i
                       class="fas fa-check-circle text-rose-pastel-300 text-2xl"
                     ></i>
@@ -508,12 +502,8 @@
                       class="font-cormorant italic text-[16px] text-stone-custom-500"
                       >Tham dự</span
                     >
-                  </button>
-                  <button
-                    onclick="confirmAttend(false)"
-                    id="btn-decline"
-                    class="flex flex-col items-center gap-2 py-4 rounded-2xl border border-rose-pastel-100 bg-white/50 active:scale-95 transition-all duration-200"
-                  >
+                  </x-button>
+                  <x-button variant="bare" onclick="confirmAttend(false)" id="btn-decline" class="flex-col gap-2 py-4 border border-rose-pastel-100 bg-white/50 active:scale-95 transition-all duration-200">
                     <i
                       class="fas fa-times-circle text-stone-custom-400 text-2xl"
                     ></i>
@@ -521,7 +511,7 @@
                       class="font-cormorant italic text-[16px] text-stone-custom-500"
                       >Không tham dự</span
                     >
-                  </button>
+                  </x-button>
                 </div>
                 <div
                   id="attend-msg"
@@ -638,13 +628,10 @@
                     --------------------
                   </div>
                 </div>
-                <button
-                  onclick="saveQR('groom-qr-img')"
-                  class="flex items-center gap-2 px-4 py-2 rounded-full border border-rose-pastel-100 text-[12px] text-stone-custom-400 font-inter active:bg-rose-pastel-100 transition-colors"
-                >
+                <x-button variant="bare" onclick="saveQR('groom-qr-img')" class="gap-2 px-4 py-2 border border-rose-pastel-100 text-[12px] text-stone-custom-400 font-inter active:bg-rose-pastel-100 transition-colors">
                   <i class="fas fa-download text-rose-pastel-300 text-xs"></i>
                   Lưu QR
-                </button>
+                </x-button>
               </div>
 
               <!-- Cô Dâu -->
@@ -682,13 +669,10 @@
                     --------------------
                   </div>
                 </div>
-                <button
-                  onclick="saveQR('bride-qr-img')"
-                  class="flex items-center gap-2 px-4 py-2 rounded-full border border-rose-pastel-100 text-[12px] text-stone-custom-400 font-inter active:bg-rose-pastel-100 transition-colors"
-                >
+                <x-button variant="bare" onclick="saveQR('bride-qr-img')" class="gap-2 px-4 py-2 border border-rose-pastel-100 text-[12px] text-stone-custom-400 font-inter active:bg-rose-pastel-100 transition-colors">
                   <i class="fas fa-download text-rose-pastel-300 text-xs"></i>
                   Lưu QR
-                </button>
+                </x-button>
               </div>
             </div>
 
@@ -823,12 +807,9 @@
       class="fixed inset-0 z-[100] bg-black/95 hidden flex-col items-center justify-center"
     >
       <!-- Nút X -->
-      <button
-        onclick="closeLightbox()"
-        class="absolute top-6 right-6 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center z-10"
-      >
+      <x-button variant="bare" onclick="closeLightbox()" class="absolute top-6 right-6 w-10 h-10 bg-white/10 z-10">
         <i class="fas fa-times text-white text-lg"></i>
-      </button>
+      </x-button>
       <!-- Counter -->
       <div
         id="lb-counter"
@@ -844,18 +825,12 @@
         />
       </div>
       <!-- Prev / Next -->
-      <button
-        onclick="lightboxPrev()"
-        class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center"
-      >
+      <x-button variant="bare" onclick="lightboxPrev()" class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/10">
         <i class="fas fa-chevron-left text-white"></i>
-      </button>
-      <button
-        onclick="lightboxNext()"
-        class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center"
-      >
+      </x-button>
+      <x-button variant="bare" onclick="lightboxNext()" class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/10">
         <i class="fas fa-chevron-right text-white"></i>
-      </button>
+      </x-button>
     </div>
 
     <!-- Load scripts in correct order -->

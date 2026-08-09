@@ -57,12 +57,9 @@
                 </p>
               </div>
             </div>
-            <button
-              onclick="openLoginPopup()"
-              class="text-sm px-4 py-1.5 rounded-full text-white font-medium flex-shrink-0 bg-rose-500 hover:bg-rose-600 transition-colors"
-            >
+            <x-button onclick="openLoginPopup()" class="flex-shrink-0">
               Đăng nhập
-            </button>
+            </x-button>
           </div>
         </div>
         <div id="auth-loggedin" class="hidden">
@@ -83,13 +80,9 @@
                 <p class="text-xs text-gray-500" id="user-email"></p>
               </div>
             </div>
-            <button
-              onclick="logout()"
-              class="text-sm px-4 py-1.5 rounded-full border transition-all hover:bg-gray-50"
-              style="border-color: rgb(var(--brand-primary-rgb)); color: rgb(var(--text-body-rgb))"
-            >
+            <x-button variant="outline" tone="neutral" onclick="logout()" style="border-color: rgb(var(--brand-primary-rgb)); color: rgb(var(--text-body-rgb))">
               Đăng xuất
-            </button>
+            </x-button>
           </div>
         </div>
       </div>
@@ -104,13 +97,9 @@
           >
             <i class="fas fa-shopping-bag mr-2"></i>Đơn hàng
           </button>
-          <button
-            class="tab-btn px-6 py-4 text-sm font-medium text-gray-500"
-            onclick="switchTab('profile')"
-            id="tab-profile"
-          >
+          <x-button variant="ghost" tone="neutral" size="lg" onclick="switchTab('profile')" id="tab-profile" class="tab-btn">
             <i class="fas fa-user mr-2"></i>Thông tin cá nhân
-          </button>
+          </x-button>
         </div>
         <div id="content-orders" class="p-6">
           <div id="orders-list"></div>
@@ -150,17 +139,15 @@
                 placeholder="Nhập số điện thoại"
               ></x-input>
             </div>
-            <button
-              type="submit"
-              class="w-full py-3 rounded-lg text-white font-medium bg-rose-500 hover:bg-rose-600 transition-colors"
-            >
+            <x-button size="lg" type="submit" class="w-full">
               Lưu thông tin
-            </button>
+            </x-button>
           </form>
         </div>
       </div>
     </div>
 
+    <script src="../../core/x-button.js"></script>
     <script src="../../core/cache-util.js"></script>
     <script src="../../core/config.js"></script>
     <script src="../../core/helpers/alert.js"></script>
@@ -186,12 +173,9 @@
           <h3 class="font-semibold text-base" style="color: rgb(var(--text-body-rgb))">
             Chi tiết đơn hàng
           </h3>
-          <button
-            onclick="closeOrderModal()"
-            class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors"
-          >
+          <x-button variant="ghost" tone="neutral" size="sm" icon-only onclick="closeOrderModal()">
             <i class="fas fa-times text-gray-400 text-sm"></i>
-          </button>
+          </x-button>
         </div>
         <!-- Body -->
         <div id="order-modal-body" class="p-6"></div>

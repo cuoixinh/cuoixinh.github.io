@@ -2131,8 +2131,8 @@ function showPublishSuccessPopup() {
           <div class="ps-link-sub">${sub}</div>
         </div>
         <div class="ps-acts">
-          <button type="button" class="ps-soft" data-ps-open="${url}" title="Xem thử" aria-label="Xem thử ${label}"><i data-lucide="eye"></i></button>
-          <button type="button" class="ps-soft" data-ps-copy="${url}" title="Sao chép" aria-label="Sao chép ${label}"><i data-lucide="copy"></i></button>
+          <x-button variant="bare" type="button" class="ps-soft" data-ps-open="${url}" title="Xem thử" aria-label="Xem thử ${label}"><i data-lucide="eye"></i></x-button>
+          <x-button variant="bare" type="button" class="ps-soft" data-ps-copy="${url}" title="Sao chép" aria-label="Sao chép ${label}"><i data-lucide="copy"></i></x-button>
         </div>
       </div>
       <div class="ps-url">${url}</div>
@@ -2151,7 +2151,7 @@ function showPublishSuccessPopup() {
   modal.innerHTML = `
     <div class="ps-card">
       <div class="ps-head">
-        <button type="button" data-ps-close class="ps-x" aria-label="Đóng"><i data-lucide="x" style="width:18px;height:18px"></i></button>
+        <x-button variant="bare" type="button" data-ps-close class="ps-x" aria-label="Đóng"><i data-lucide="x" style="width:18px;height:18px"></i></x-button>
         <div class="ps-orn" aria-hidden="true"><i></i><b></b><i></i></div>
         <div class="ps-congrats">Chúc mừng</div>
         <div class="ps-title" id="ps-title">Thiệp cưới đã sẵn sàng</div>
@@ -2161,10 +2161,10 @@ function showPublishSuccessPopup() {
         <div class="ps-eyebrow">Chia sẻ thiệp</div>
         ${linksHtml}
 
-        <button type="button" class="ps-primary" data-ps-guests><i data-lucide="users"></i>Quản lý khách mời<i data-lucide="arrow-right"></i></button>
+        <x-button variant="bare" type="button" class="ps-primary" data-ps-guests><i data-lucide="users"></i>Quản lý khách mời<i data-lucide="arrow-right"></i></x-button>
         <p class="ps-note">Gửi link để mọi người chung vui và <b>gửi lời chúc</b>.</p>
 
-        <button type="button" class="ps-done" data-ps-close>Hoàn tất</button>
+        <x-button variant="bare" type="button" class="ps-done" data-ps-close>Hoàn tất</x-button>
       </div>
     </div>`;
 

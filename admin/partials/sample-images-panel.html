@@ -44,13 +44,9 @@
             Chưa kết nối
           </div>
         </div>
-        <button
-          id="si-connect-btn"
-          onclick="connectSampleImagesFolder()"
-          class="shrink-0 px-4 py-2 bg-rose-400 hover:bg-rose-500 text-white rounded-lg text-sm font-medium transition-colors"
-        >
+        <x-button id="si-connect-btn" onclick="connectSampleImagesFolder()" class="shrink-0">
           Chọn thư mục
-        </button>
+        </x-button>
       </div>
 
       <!-- Chọn theme -->
@@ -76,13 +72,9 @@
         >
           <i class="fas fa-clock-rotate-left mt-0.5"></i>
           <span id="si-draft-banner-text" class="flex-1 min-w-0"></span>
-          <button
-            type="button"
-            onclick="siDiscardDraft()"
-            class="shrink-0 px-3 py-1 rounded-lg border border-amber-300 hover:bg-amber-100 transition-colors"
-          >
+          <x-button variant="outline" type="button" onclick="siDiscardDraft()" class="shrink-0">
             Bỏ nháp
-          </button>
+          </x-button>
         </div>
 
         <!-- Nhờ AI sinh dữ liệu mẫu -->
@@ -127,14 +119,9 @@
             placeholder="Yêu cầu thêm, không bắt buộc — ví dụ: cặp đôi người Huế, cưới mùa thu, chú rể là bác sĩ…"
             class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm resize-y bg-white focus:outline-none focus:border-rose-300"
           ></textarea>
-          <button
-            type="button"
-            id="si-ai-generate-btn"
-            onclick="siGenerateSampleDataWithAI()"
-            class="w-full sm:w-auto px-4 py-2 bg-rose-400 hover:bg-rose-500 text-white rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
-          >
+          <x-button type="button" id="si-ai-generate-btn" onclick="siGenerateSampleDataWithAI()" class="w-full sm:w-auto">
             <i class="fas fa-wand-magic-sparkles"></i> Sinh dữ liệu bằng AI
-          </button>
+          </x-button>
         </div>
 
         <!-- Nội dung thiệp (render từ SI_CONTENT_GROUPS — xem 04-sample-data.js) -->
@@ -259,13 +246,9 @@
             >
           </div>
           <div id="si-love-story-list" class="space-y-4"></div>
-          <button
-            type="button"
-            onclick="siAddLoveStoryItem()"
-            class="mt-2 flex items-center gap-1.5 h-8 px-3 rounded-xl border border-dashed border-rose-300 text-xs text-rose-400 hover:border-rose-400 hover:text-rose-500 transition-colors cursor-pointer"
-          >
+          <x-button variant="outline" size="sm" type="button" onclick="siAddLoveStoryItem()" class="mt-2">
             <i class="fas fa-plus"></i> Thêm mốc
-          </button>
+          </x-button>
         </div>
 
         <!-- Lịch trình -->
@@ -277,13 +260,9 @@
             >
           </div>
           <div id="si-timeline-list" class="space-y-2"></div>
-          <button
-            type="button"
-            onclick="siAddTimelineItem()"
-            class="mt-2 flex items-center gap-1.5 h-8 px-3 rounded-xl border border-dashed border-rose-300 text-xs text-rose-400 hover:border-rose-400 hover:text-rose-500 transition-colors cursor-pointer"
-          >
+          <x-button variant="outline" size="sm" type="button" onclick="siAddTimelineItem()" class="mt-2">
             <i class="fas fa-plus"></i> Thêm mốc lịch trình
-          </button>
+          </x-button>
         </div>
 
         <!-- Actions -->
@@ -293,21 +272,12 @@
           <span id="si-dirty-status" class="hidden text-xs text-amber-600 sm:order-last">
             ● Có thay đổi chưa lưu vào ổ đĩa
           </span>
-          <button
-            type="button"
-            onclick="siPreviewTheme()"
-            class="flex-1 sm:flex-none px-5 py-2.5 border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
-          >
+          <x-button variant="outline" tone="neutral" type="button" onclick="siPreviewTheme()" class="flex-1 sm:flex-none">
             <i class="fas fa-eye"></i> Xem thử
-          </button>
-          <button
-            type="button"
-            id="si-save-btn"
-            onclick="saveSampleImages()"
-            class="flex-1 sm:flex-none px-5 py-2.5 bg-rose-400 hover:bg-rose-500 text-white rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
-          >
+          </x-button>
+          <x-button type="button" id="si-save-btn" onclick="saveSampleImages()" class="flex-1 sm:flex-none">
             <i class="fas fa-floppy-disk"></i> Lưu vào ổ đĩa
-          </button>
+          </x-button>
         </div>
       </div>
     </div>

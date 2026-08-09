@@ -44,14 +44,12 @@ function _renderTimelineRows(listEl, type, colorClass) {
         class="flex-1 min-w-0 h-10 px-3 border border-gray-200 rounded-xl text-sm text-gray-800 bg-white outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-400/20"
         oninput="_timelineItems[${idx}].title=this.value;_syncTimelineHidden();"
       />
-      <button type="button" onclick="optimizeTimelineTitle(${idx}, this)"
-        class="btn-ai-icon" title="Tối ưu bằng AI">
+      <x-button variant="bare" type="button" onclick="optimizeTimelineTitle(${idx}, this)" title="Tối ưu bằng AI" class="btn-ai-icon">
         <i data-lucide="pencil-sparkles" class="w-4 h-4"></i>
-      </button>
-      <button type="button" onclick="removeTimelineItem(${idx})"
-        class="flex-shrink-0 w-8 h-8 flex items-center justify-center bg-red-100 hover:bg-red-200 text-red-500 rounded-lg transition-colors" title="Xóa">
+      </x-button>
+      <x-button variant="soft" tone="danger" size="sm" icon-only type="button" onclick="removeTimelineItem(${idx})" title="Xóa" class="flex-shrink-0">
         <i data-lucide="trash-2" class="w-4 h-4"></i>
-      </button>
+      </x-button>
     `;
     listEl.appendChild(div);
   });
@@ -198,10 +196,9 @@ function renderLoveStoryList() {
     div.innerHTML = `
       <div class="flex items-center justify-between mb-1">
         <span id="ls-label-${idx}" class="text-xs font-medium text-rose-400">${escapeHtml(item.title) || `Mốc ${idx + 1}`}</span>
-        <button type="button" onclick="removeLoveStoryItem(${idx})"
-          class="flex items-center gap-1 text-xs text-gray-400 hover:text-red-400 transition-colors">
+        <x-button variant="ghost" tone="danger" size="sm" type="button" onclick="removeLoveStoryItem(${idx})">
           <i data-lucide="x" class="w-3.5 h-3.5"></i> Xóa
-        </button>
+        </x-button>
       </div>
       <input type="text" value="${escapeHtml(item.date || "")}" placeholder="Ví dụ: Mùa xuân năm 2020"
         class="w-full h-10 px-3 py-2 border border-gray-200 rounded-md text-sm text-gray-800 bg-white outline-none transition-all placeholder:text-gray-400/50 focus:ring-2 focus:ring-rose-500/30 focus:ring-offset-2"
@@ -220,20 +217,17 @@ function renderLoveStoryList() {
             ? `
         <div class="relative w-16 h-16 rounded-xl overflow-hidden border border-rose-200 flex-shrink-0">
           <img src="${preview}" class="w-full h-full object-cover"${lsFpStyle} />
-          <button type="button" onclick="adjustLoveStoryFocalPoint(${idx})"
-            title="Chỉnh điểm lấy nét" class="absolute bottom-0.5 right-0.5 w-5 h-5 bg-black/50 rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors">
+          <x-button variant="overlay" size="xs" icon-only type="button" onclick="adjustLoveStoryFocalPoint(${idx})" title="Chỉnh điểm lấy nét" class="absolute bottom-0.5 right-0.5">
             <i data-lucide="focus" class="w-3 h-3"></i>
-          </button>
-          <button type="button" onclick="removeLoveStoryImage(${idx})"
-            class="absolute top-0.5 right-0.5 w-5 h-5 bg-black/50 rounded-full flex items-center justify-center text-white hover:bg-red-500 transition-colors">
+          </x-button>
+          <x-button variant="overlay" tone="danger" size="xs" icon-only type="button" onclick="removeLoveStoryImage(${idx})" class="absolute top-0.5 right-0.5">
             <i data-lucide="x" class="w-3 h-3"></i>
-          </button>
+          </x-button>
         </div>`
             : `
-        <button type="button" onclick="document.getElementById('ls-img-input-${idx}').click()"
-          class="flex items-center gap-1.5 h-8 px-3 rounded-xl border border-dashed border-rose-300 text-xs text-rose-400 hover:border-rose-400 hover:text-rose-500 transition-colors">
+        <x-button variant="dashed" size="sm" type="button" onclick="document.getElementById('ls-img-input-${idx}').click()">
           <i data-lucide="image-plus" class="w-3.5 h-3.5"></i> Thêm ảnh
-        </button>`
+        </x-button>`
         }
       </div>
     `;

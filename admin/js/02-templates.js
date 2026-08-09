@@ -96,8 +96,8 @@ function renderTemplates(templates) {
       <td class="py-3 px-4 text-sm text-gray-600">${t.sort_order}</td>
       <td class="py-3 px-4 text-sm">
         <div class="flex gap-2">
-          <button onclick="editTemplate('${t.id}')" title="Sửa" class="text-blue-600 hover:text-blue-800">✏️</button>
-          <button onclick="deleteTemplate('${t.id}', '${t.display_name}')" title="Xóa" class="text-red-600 hover:text-red-800">🗑️</button>
+          <x-button variant="ghost" onclick="editTemplate('${t.id}')" title="Sửa" class="text-blue-600">✏️</x-button>
+          <x-button variant="ghost" tone="danger" onclick="deleteTemplate('${t.id}', '${t.display_name}')" title="Xóa">🗑️</x-button>
         </div>
       </td>
     </tr>`,

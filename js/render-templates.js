@@ -42,16 +42,12 @@ function renderTemplateCards() {
             <p class="text-white font-playfair font-semibold text-base leading-snug truncate drop-shadow-sm">${t.name}</p>
             <p class="text-white/85 text-xs mt-0.5 line-clamp-2 leading-relaxed">${t.description || ""}</p>
             <div class="mt-3 flex gap-2" style="pointer-events:auto;">
-              <button onclick="event.stopPropagation(); openPreview('${t.id}')"
-                class="flex-1 h-9 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors hover:bg-white"
-                style="background:rgb(var(--white-rgb)/0.85);color:rgb(var(--text-heading-rgb));border:1px solid rgb(var(--card-blush-300-rgb)/0.35);">
+              <x-button onclick="event.stopPropagation(); openPreview('${t.id}')" style="background:rgb(var(--white-rgb)/0.85);color:rgb(var(--text-heading-rgb));border:1px solid rgb(var(--card-blush-300-rgb)/0.35);" class="flex-1">
                 <i class="fas fa-eye text-[11px]"></i>Xem demo
-              </button>
-              <button onclick="event.stopPropagation(); createDraft('${t.id}')"
-                class="flex-1 h-9 rounded-lg text-xs font-semibold text-white flex items-center justify-center gap-1.5 transition-colors"
-                style="pointer-events:auto;background:rgb(var(--brand-accent-rgb));">
+              </x-button>
+              <x-button onclick="event.stopPropagation(); createDraft('${t.id}')" style="pointer-events:auto;background:rgb(var(--brand-accent-rgb));" class="flex-1">
                 Dùng ngay<i class="fas fa-arrow-right text-[11px]"></i>
-              </button>
+              </x-button>
             </div>
           </div>
         </div>

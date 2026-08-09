@@ -93,12 +93,12 @@ function renderGalleryGrid() {
     div.style.aspectRatio = "1";
     div.innerHTML = `
       <img src="${fullUrl}" alt="Gallery ${index + 1}" class="w-full h-full object-contain" style="object-position: ${fp.x}% ${fp.y}%" />
-      <button onclick="adjustGalleryFocalPoint(${index}, '${fullUrl}')" title="Chỉnh điểm lấy nét" class="absolute bottom-1 right-1 bg-black/50 hover:bg-black/70 text-white rounded-full w-6 h-6 flex items-center justify-center transition-colors shadow-md">
+      <x-button variant="overlay" size="xs" icon-only onclick="adjustGalleryFocalPoint(${index}, '${fullUrl}')" title="Chỉnh điểm lấy nét" class="absolute bottom-1 right-1">
         <i data-lucide="focus" class="w-3.5 h-3.5"></i>
-      </button>
-      <button onclick="removeExistingGalleryImage(${index})" class="absolute top-1 right-1 bg-red-500 rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors shadow-md p-1">
-        <img src="../assets/icons/bin.png" alt="Delete" class="w-full h-full" />
-      </button>
+      </x-button>
+      <x-button tone="danger" size="xs" icon-only onclick="removeExistingGalleryImage(${index})" title="Xoá ảnh" class="absolute top-1 right-1">
+        <img src="../assets/icons/bin.png" alt="Delete" class="w-3.5 h-3.5" />
+      </x-button>
     `;
     container.appendChild(div);
   });
@@ -115,12 +115,12 @@ function renderGalleryGrid() {
     div.style.aspectRatio = "1";
     div.innerHTML = `
       <img src="${url}" alt="New ${index + 1}" class="w-full h-full object-contain" style="object-position: ${fp.x}% ${fp.y}%" />
-      <button onclick="adjustGalleryFocalPoint(${globalIndex}, '${url}')" title="Chỉnh điểm lấy nét" class="absolute bottom-1 right-1 bg-black/50 hover:bg-black/70 text-white rounded-full w-6 h-6 flex items-center justify-center transition-colors shadow-md">
+      <x-button variant="overlay" size="xs" icon-only onclick="adjustGalleryFocalPoint(${globalIndex}, '${url}')" title="Chỉnh điểm lấy nét" class="absolute bottom-1 right-1">
         <i data-lucide="focus" class="w-3.5 h-3.5"></i>
-      </button>
-      <button onclick="removeGalleryImage(${index})" class="absolute top-1 right-1 bg-red-500 rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors shadow-md p-1">
-        <img src="../assets/icons/bin.png" alt="Delete" class="w-full h-full" />
-      </button>
+      </x-button>
+      <x-button tone="danger" size="xs" icon-only onclick="removeGalleryImage(${index})" title="Xoá ảnh" class="absolute top-1 right-1">
+        <img src="../assets/icons/bin.png" alt="Delete" class="w-3.5 h-3.5" />
+      </x-button>
     `;
     container.appendChild(div);
   });
@@ -132,17 +132,15 @@ function renderGalleryGrid() {
 
   // Render upload button outside grid if not at max
   if (totalImages < MAX_GALLERY_IMAGES) {
-    const uploadBtn = document.createElement("button");
-    uploadBtn.id = "gallery-add-btn";
-    uploadBtn.type = "button";
-    uploadBtn.className =
-      "mt-2 flex items-center gap-1.5 h-8 px-3 rounded-xl border border-dashed border-rose-300 text-xs text-rose-400 hover:border-rose-400 hover:text-rose-500 transition-colors cursor-pointer";
-    uploadBtn.onclick = () =>
-      document.getElementById("gallery-file-input").click();
-    uploadBtn.innerHTML = `
-      <i data-lucide="image-plus" class="w-3.5 h-3.5"></i> Thêm ảnh
-    `;
-    container.insertAdjacentElement("afterend", uploadBtn);
+    // <x-button> tự thay mình bằng <button> khi chèn, nên gắn onclick bằng
+    // attribute (thuộc tính .onclick đặt trước khi chèn sẽ mất theo phần tử cũ).
+    container.insertAdjacentHTML(
+      "afterend",
+      `<x-button variant="dashed" size="sm" id="gallery-add-btn" type="button"
+         onclick="document.getElementById('gallery-file-input').click()" class="mt-2">
+         <i data-lucide="image-plus" class="w-3.5 h-3.5"></i> Thêm ảnh
+       </x-button>`
+    );
     if (typeof lucide !== "undefined") lucide.createIcons();
   }
 }
@@ -198,13 +196,13 @@ function renderSingleImageUpload(fieldName) {
 
   // Nút chỉnh khung: QR → cắt lại (crop); ảnh khác → điểm lấy nét (focal)
   const _adjustBtn = CROP_FIELDS.includes(fieldName)
-    ? `<button onclick="recropSingleImage('${fieldName}')" title="Cắt lại ảnh" class="absolute bottom-1 right-1 bg-black/50 hover:bg-black/70 text-white rounded-full w-6 h-6 flex items-center justify-center transition-colors shadow-md">
+    ? `<x-button variant="overlay" size="xs" icon-only onclick="recropSingleImage('${fieldName}')" title="Cắt lại ảnh" class="absolute bottom-1 right-1">
         <i data-lucide="crop" class="w-3.5 h-3.5"></i>
-      </button>`
+      </x-button>`
     : FOCAL_POINT_FIELDS.includes(fieldName)
-      ? `<button onclick="adjustSingleImageFocalPoint('${fieldName}')" title="Chỉnh điểm lấy nét" class="absolute bottom-1 right-1 bg-black/50 hover:bg-black/70 text-white rounded-full w-6 h-6 flex items-center justify-center transition-colors shadow-md">
+      ? `<x-button variant="overlay" size="xs" icon-only onclick="adjustSingleImageFocalPoint('${fieldName}')" title="Chỉnh điểm lấy nét" class="absolute bottom-1 right-1">
         <i data-lucide="focus" class="w-3.5 h-3.5"></i>
-      </button>`
+      </x-button>`
       : "";
 
   // Check if there's a pending upload (new file selected)
@@ -221,9 +219,9 @@ function renderSingleImageUpload(fieldName) {
     div.innerHTML = `
       <img src="${url}" alt="Preview" class="w-full h-full ${objectFit}"${_fpStyle} />
       ${_adjustBtn}
-      <button onclick="removeImage('${fieldName}')" class="absolute top-1 right-1 bg-red-500 rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors shadow-md p-1">
-        <img src="../assets/icons/bin.png" alt="Delete" class="w-full h-full" />
-      </button>
+      <x-button tone="danger" size="xs" icon-only onclick="removeImage('${fieldName}')" title="Xoá ảnh" class="absolute top-1 right-1">
+        <img src="../assets/icons/bin.png" alt="Delete" class="w-3.5 h-3.5" />
+      </x-button>
     `;
     container.appendChild(div);
     if (typeof lucide !== "undefined") lucide.createIcons();
@@ -245,9 +243,9 @@ function renderSingleImageUpload(fieldName) {
       div.innerHTML = `
         <img src="${fullUrl}" alt="Preview" class="w-full h-full ${objectFit}"${_fpStyle} />
         ${_adjustBtn}
-        <button onclick="removeImage('${fieldName}')" class="absolute top-1 right-1 bg-red-500 rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors shadow-md p-1">
-          <img src="../assets/icons/bin.png" alt="Delete" class="w-full h-full" />
-        </button>
+        <x-button tone="danger" size="xs" icon-only onclick="removeImage('${fieldName}')" title="Xoá ảnh" class="absolute top-1 right-1">
+          <img src="../assets/icons/bin.png" alt="Delete" class="w-3.5 h-3.5" />
+        </x-button>
       `;
       container.appendChild(div);
       if (typeof lucide !== "undefined") lucide.createIcons();
@@ -262,15 +260,13 @@ function renderSingleImageUpload(fieldName) {
       };
       const uploadLabel = uploadLabels[fieldName] || "Chọn ảnh";
 
-      const uploadBtn = document.createElement("button");
-      uploadBtn.type = "button";
-      uploadBtn.className = `flex items-center gap-1.5 h-8 px-3 rounded-xl border border-dashed border-rose-300 text-xs text-rose-400 hover:border-rose-400 hover:text-rose-500 transition-colors cursor-pointer`;
-      uploadBtn.onclick = () =>
-        document.getElementById(`${prefix}-file-input`).click();
-      uploadBtn.innerHTML = `
-        <i data-lucide="image-plus" class="w-3.5 h-3.5"></i> Thêm ảnh
-      `;
-      container.appendChild(uploadBtn);
+      container.insertAdjacentHTML(
+        "beforeend",
+        `<x-button variant="dashed" size="sm" type="button"
+           onclick="document.getElementById('${prefix}-file-input').click()">
+           <i data-lucide="image-plus" class="w-3.5 h-3.5"></i> Thêm ảnh
+         </x-button>`
+      );
       if (typeof lucide !== "undefined") lucide.createIcons();
     }
   }

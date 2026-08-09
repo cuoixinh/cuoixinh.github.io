@@ -156,14 +156,9 @@
                 <b class="font-semibold text-gray-700">Mẹo:</b> Nhấp vào bất kỳ dòng
                 chữ nào trên thiệp để chỉnh riêng phông, cỡ, màu…
               </p>
-              <button
-                type="button"
-                onclick="dismissEditHint()"
-                class="shrink-0 text-gray-400 hover:text-gray-600"
-                aria-label="Đóng gợi ý"
-              >
+              <x-button variant="ghost" tone="neutral" icon-only type="button" onclick="dismissEditHint()" aria-label="Đóng gợi ý" class="shrink-0">
                 <i data-lucide="x" class="w-3.5 h-3.5"></i>
-              </button>
+              </x-button>
             </div>
 
             <!-- Nhóm chỉnh chung (phông + màu toàn thiệp) — ẩn khi mở bảng chỉnh 1 dòng -->
@@ -332,15 +327,10 @@
               </div>
 
               <!-- Khôi phục — DESKTOP: button đầy đủ, nằm dưới cùng bảng chỉnh chung -->
-              <button
-                type="button"
-                onclick="resetThemeSetting()"
-                title="Khôi phục phông chữ và màu về mặc định của thiệp"
-                class="hidden md:flex w-full items-center justify-center gap-2 h-11 rounded-xl border border-gray-200 bg-white text-[13px] font-medium text-gray-600 shadow-sm transition-all hover:border-rose-300 hover:bg-rose-50 hover:text-rose-500 hover:shadow-md active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-200 focus-visible:ring-offset-2"
-              >
+              <x-button variant="outline" size="lg" type="button" onclick="resetThemeSetting()" title="Khôi phục phông chữ và màu về mặc định của thiệp" class="hidden md:flex w-full focus-visible:ring-2 focus-visible:ring-rose-200 focus-visible:ring-offset-2">
                 <i data-lucide="rotate-ccw" class="!w-[16px] !h-[16px]"></i>
                 <span>Khôi phục mặc định</span>
-              </button>
+              </x-button>
             </div>
             <!-- /theme-main-controls -->
 
@@ -384,13 +374,9 @@
                 <div class="cx-le-row">
                   <label class="cx-le-label">Cỡ chữ</label>
                   <div class="cx-le-size">
-                    <button
-                      type="button"
-                      onclick="stepLineSize(-1)"
-                      aria-label="Giảm cỡ chữ"
-                    >
+                    <x-button variant="ghost" type="button" onclick="stepLineSize(-1)" aria-label="Giảm cỡ chữ">
                       −
-                    </button>
+                    </x-button>
                     <input
                       id="cx-line-size"
                       type="number"
@@ -400,13 +386,9 @@
                       tabindex="-1"
                     />
                     <span class="cx-le-unit">px</span>
-                    <button
-                      type="button"
-                      onclick="stepLineSize(1)"
-                      aria-label="Tăng cỡ chữ"
-                    >
+                    <x-button variant="ghost" type="button" onclick="stepLineSize(1)" aria-label="Tăng cỡ chữ">
                       +
-                    </button>
+                    </x-button>
                   </div>
                 </div>
 
@@ -434,14 +416,9 @@
                       />
                     </div>
                     <div class="cx-le-seg">
-                      <button
-                        type="button"
-                        id="cx-line-gradient"
-                        onclick="toggleLineGradient()"
-                        title="Chuyển màu (gradient)"
-                      >
+                      <x-button variant="ghost" icon-only type="button" id="cx-line-gradient" onclick="toggleLineGradient()" title="Chuyển màu (gradient)">
                         <i data-lucide="droplets" class="w-4 h-4"></i>
-                      </button>
+                      </x-button>
                     </div>
                   </div>
                 </div>
@@ -450,30 +427,15 @@
                 <div class="cx-le-row">
                   <label class="cx-le-label">Kiểu</label>
                   <div class="cx-le-seg">
-                    <button
-                      type="button"
-                      id="cx-line-bold"
-                      onclick="toggleLineStyle('bold')"
-                      title="Đậm"
-                    >
+                    <x-button variant="ghost" icon-only type="button" id="cx-line-bold" onclick="toggleLineStyle('bold')" title="Đậm">
                       <i data-lucide="bold" class="w-4 h-4"></i>
-                    </button>
-                    <button
-                      type="button"
-                      id="cx-line-underline"
-                      onclick="toggleLineStyle('underline')"
-                      title="Gạch chân"
-                    >
+                    </x-button>
+                    <x-button variant="ghost" icon-only type="button" id="cx-line-underline" onclick="toggleLineStyle('underline')" title="Gạch chân">
                       <i data-lucide="underline" class="w-4 h-4"></i>
-                    </button>
-                    <button
-                      type="button"
-                      id="cx-line-italic"
-                      onclick="toggleLineStyle('italic')"
-                      title="Nghiêng"
-                    >
+                    </x-button>
+                    <x-button variant="ghost" icon-only type="button" id="cx-line-italic" onclick="toggleLineStyle('italic')" title="Nghiêng">
                       <i data-lucide="italic" class="w-4 h-4"></i>
-                    </button>
+                    </x-button>
                   </div>
                 </div>
 
@@ -481,30 +443,15 @@
                 <div class="cx-le-row">
                   <label class="cx-le-label">Căn lề</label>
                   <div class="cx-le-seg" id="cx-line-align">
-                    <button
-                      type="button"
-                      data-align="left"
-                      onclick="setLineAlign('left')"
-                      title="Trái"
-                    >
+                    <x-button variant="ghost" icon-only type="button" data-align="left" onclick="setLineAlign('left')" title="Trái">
                       <i data-lucide="align-left" class="w-4 h-4"></i>
-                    </button>
-                    <button
-                      type="button"
-                      data-align="center"
-                      onclick="setLineAlign('center')"
-                      title="Giữa"
-                    >
+                    </x-button>
+                    <x-button variant="ghost" icon-only type="button" data-align="center" onclick="setLineAlign('center')" title="Giữa">
                       <i data-lucide="align-center" class="w-4 h-4"></i>
-                    </button>
-                    <button
-                      type="button"
-                      data-align="right"
-                      onclick="setLineAlign('right')"
-                      title="Phải"
-                    >
+                    </x-button>
+                    <x-button variant="ghost" icon-only type="button" data-align="right" onclick="setLineAlign('right')" title="Phải">
                       <i data-lucide="align-right" class="w-4 h-4"></i>
-                    </button>
+                    </x-button>
                   </div>
                 </div>
               </div>
@@ -515,13 +462,9 @@
                 <div class="cx-le-row">
                   <label class="cx-le-label">Rộng</label>
                   <div class="cx-le-size">
-                    <button
-                      type="button"
-                      onclick="stepImgSize('w', -1)"
-                      aria-label="Giảm rộng"
-                    >
+                    <x-button variant="ghost" type="button" onclick="stepImgSize('w', -1)" aria-label="Giảm rộng">
                       −
-                    </button>
+                    </x-button>
                     <input
                       id="cx-img-w"
                       type="number"
@@ -531,25 +474,17 @@
                       onchange="onImgSizeChange('w')"
                     />
                     <span class="cx-le-unit">px</span>
-                    <button
-                      type="button"
-                      onclick="stepImgSize('w', 1)"
-                      aria-label="Tăng rộng"
-                    >
+                    <x-button variant="ghost" type="button" onclick="stepImgSize('w', 1)" aria-label="Tăng rộng">
                       +
-                    </button>
+                    </x-button>
                   </div>
                 </div>
                 <div class="cx-le-row">
                   <label class="cx-le-label">Cao</label>
                   <div class="cx-le-size">
-                    <button
-                      type="button"
-                      onclick="stepImgSize('h', -1)"
-                      aria-label="Giảm cao"
-                    >
+                    <x-button variant="ghost" type="button" onclick="stepImgSize('h', -1)" aria-label="Giảm cao">
                       −
-                    </button>
+                    </x-button>
                     <input
                       id="cx-img-h"
                       type="number"
@@ -559,13 +494,9 @@
                       onchange="onImgSizeChange('h')"
                     />
                     <span class="cx-le-unit">px</span>
-                    <button
-                      type="button"
-                      onclick="stepImgSize('h', 1)"
-                      aria-label="Tăng cao"
-                    >
+                    <x-button variant="ghost" type="button" onclick="stepImgSize('h', 1)" aria-label="Tăng cao">
                       +
-                    </button>
+                    </x-button>
                   </div>
                 </div>
                 <label class="cx-le-check">

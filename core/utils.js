@@ -314,10 +314,10 @@ function openImageCropModal(file, callback, giftInfo) {
   }
   sheet.footer.innerHTML = `
     <div class="px-4 pb-4 flex gap-2">
-      <button onclick="closeCropModal()" class="flex-1 h-10 border border-gray-200 rounded-xl text-sm text-gray-600 hover:bg-gray-50 transition-colors">Hủy</button>
-      <button onclick="applyCrop()" class="flex-1 h-10 bg-rose-500 hover:bg-rose-600 text-white rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-1.5">
+      <x-button variant="outline" tone="neutral" onclick="closeCropModal()" class="flex-1">Hủy</x-button>
+      <x-button onclick="applyCrop()" class="flex-1">
         <i class="fas fa-check mr-1"></i>Áp dụng
-      </button>
+      </x-button>
     </div>
   `;
 
@@ -447,9 +447,9 @@ function openBottomSheet({ id, title, height = '80vh', onClose } = {}) {
       </div>
       <div class="px-5 py-3 flex items-center justify-between flex-shrink-0">
         <h3 class="text-base font-semibold text-gray-800 flex items-center gap-2">${title}</h3>
-        <button type="button" id="${id}-x-btn" class="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 transition-colors">
+        <x-button variant="ghost" tone="neutral" size="sm" icon-only type="button" id="${id}-x-btn">
           <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-        </button>
+        </x-button>
       </div>
       <!-- Vạch ngăn header/nội dung thụt vào bằng lề nội dung (mx-5), không kẻ
            chạm mép modal — thẻ riêng chứ không phải border-b của header. -->
@@ -623,16 +623,16 @@ function openFocalPointPicker(imageSource, currentFocal, callback, giftInfo) {
   }
   sheet.footer.innerHTML = `
     <div class="px-4 py-3 border-t border-gray-200 flex items-center justify-between gap-2">
-      <button onclick="resetFocalPoint()" class="h-10 px-4 bg-sky-50 text-sky-700 rounded-xl text-sm font-medium hover:bg-sky-100 transition-colors flex items-center gap-1.5">
+      <x-button variant="soft" onclick="resetFocalPoint()" class="text-sky-700">
         <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
         Đặt lại
-      </button>
+      </x-button>
       <div class="flex gap-2">
-        <button onclick="closeFocalPointPicker()" class="h-10 px-4 border border-gray-200 rounded-xl text-sm text-gray-600 hover:bg-gray-50 transition-colors">Hủy</button>
-        <button onclick="confirmFocalPoint()" class="h-10 px-5 rounded-xl text-sm font-semibold text-white bg-rose-500 hover:bg-rose-600 transition-colors flex items-center gap-1.5">
+        <x-button variant="outline" tone="neutral" onclick="closeFocalPointPicker()">Hủy</x-button>
+        <x-button onclick="confirmFocalPoint()">
           <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
           Áp dụng
-        </button>
+        </x-button>
       </div>
     </div>
   `;
@@ -810,8 +810,8 @@ function openTimePicker(anchorEl, currentValue, callback) {
       ${colHtml('tp-minutes', M_COUNT)}
     </div>
     <div class="flex gap-1.5 px-2.5 pb-2.5 pt-1.5">
-      <button id="tp-cancel" type="button" class="flex-1 h-8 border border-gray-200 rounded-lg text-xs text-gray-500 bg-white cursor-pointer hover:bg-gray-50 transition-colors">Hủy</button>
-      <button id="tp-confirm" type="button" class="flex-1 h-8 bg-rose-500 rounded-lg text-xs font-semibold text-white cursor-pointer hover:bg-rose-600 transition-colors">Xác nhận</button>
+      <x-button variant="outline" tone="neutral" size="sm" id="tp-cancel" type="button" class="flex-1">Hủy</x-button>
+      <x-button size="sm" id="tp-confirm" type="button" class="flex-1">Xác nhận</x-button>
     </div>`;
 
   if (!document.getElementById('tp-scrollbar-css')) {
@@ -953,14 +953,14 @@ function closeTimePicker() {
   navbar.style.cssText = "padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));box-shadow:0 -4px 24px rgb(var(--action-bar-shadow-rgb)/0.10);";
 
   navbar.innerHTML =
-    '<button id="pnav-close" class="flex items-center gap-1 px-3 h-8 rounded-full border border-rose-100 bg-transparent text-xs font-medium text-[rgb(var(--text-muted-rgb))] whitespace-nowrap shrink-0 cursor-pointer hover:bg-rose-50 transition-colors">' +
+    '<x-button variant="outline" size="sm" id="pnav-close" class="text-[rgb(var(--text-muted-rgb))] shrink-0">' +
     '  <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>' +
     '  Quay lại' +
-    '</button>' +
-    '<button id="pnav-choose" class="flex items-center gap-1.5 px-4 h-8 rounded-full text-xs font-bold text-white whitespace-nowrap cursor-pointer hover:opacity-90 transition-opacity" style="background:linear-gradient(135deg,rgb(var(--gift-btn-from-rgb)),rgb(var(--gift-btn-to-rgb)));box-shadow:0 3px 10px rgb(var(--gift-btn-to-rgb)/0.3);">' +
+    '</x-button>' +
+    '<x-button size="sm" id="pnav-choose" style="background:linear-gradient(135deg,rgb(var(--gift-btn-from-rgb)),rgb(var(--gift-btn-to-rgb)));box-shadow:0 3px 10px rgb(var(--gift-btn-to-rgb)/0.3);" class="hover:opacity-90">' +
     '  Dùng mẫu này' +
     '  <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>' +
-    '</button>';
+    '</x-button>';
 
   function _mount() {
     document.body.appendChild(navbar);
