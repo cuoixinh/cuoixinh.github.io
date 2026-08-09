@@ -19,7 +19,7 @@ flowchart TD
 
     subgraph landing ["🏠 Landing Page"]
         A([Trang chủ])
-        A --> HERO[Hero · CTA\nTạo thiệp của tôi]:::cdcr
+        A --> HERO[Hero · CTA\nTạo thiệp ngay]:::cdcr
         A --> COUNTER[500+ cặp đôi\nthoả mãn · stats]
         A --> BROWSE[Carousel mẫu thiệp\n3D · giá trên card]
         A --> FEAT[Tính năng\nbên trong thiệp]
@@ -145,7 +145,7 @@ Chọn template → Tạo draft → Điền thông tin → Preview
 
 | Mục          | Nội dung                                                  |
 | ------------ | --------------------------------------------------------- |
-| Hero & CTA        | Headline, nút "Tạo thiệp của tôi", trust badges                   |
+| Hero & CTA        | Headline, nút "Tạo thiệp ngay", trust badges                   |
 | Stats             | 500+ cặp đôi, 10+ mẫu, 5★ đánh giá — hardcoded trong hero        |
 | Carousel mẫu thiệp | 3D carousel, giá hiển thị trên từng card, xem demo thiệp thật   |
 | Tính năng         | Section giới thiệu nội dung bên trong thiệp + phone mockup        |

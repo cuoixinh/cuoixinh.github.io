@@ -91,7 +91,7 @@ Layout: grid 2 cột mobile, 4 cột desktop. 2 card "NỔI BẬT" có border h�
 ### [6] CTA BOTTOM
 
 - Primary CTA: **"Bắt đầu tạo thiệp — Miễn phí hoàn toàn"**
-- Button: `[Tạo thiệp của tôi →]` → `/invitation-setup/`
+- Button: `[Tạo thiệp ngay →]` → `/invitation-setup/`
 - 3 điểm nhỏ: "Dùng thử miễn phí · Đổi mẫu mọi lúc · Thanh toán một lần dùng trọn đời"
 - Contact info (email/phone) vẫn giữ nhưng nhỏ hơn, xuống dưới
 

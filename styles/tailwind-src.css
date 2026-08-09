@@ -356,6 +356,15 @@ html.cx-landing {
 
 /* ═══════════ Từ styles/index.css (trang chủ) ═══════════ */
 
+/* Màn mở đầu cao trọn khung nhìn cả desktop lẫn mobile. Dùng min-height (không
+   phải height) nên nội dung cao hơn khung thì section giãn theo, không bị cắt.
+   calc(var(--vh)) là fallback cho iOS cũ chưa hiểu dvh; dòng 100dvh ghi đè sau. */
+
+#hero {
+  min-height: calc(var(--vh, 1vh) * 100);
+  min-height: 100dvh;
+}
+
 /* Nền thiệp cưới ở màn mở đầu — ảnh WebP do tab "Ảnh nền" của admin chụp ra,
    đường dẫn do js/hero-background.js gán vào --hero-bg-url.
    Chưa có nền thì biến rỗng → lớp này trong suốt, hero giữ nguyên gradient cũ.
