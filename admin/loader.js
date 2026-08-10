@@ -10,6 +10,7 @@
     ["mount-sample-images", "partials/sample-images-panel.html"],
     ["mount-asset-images", "partials/asset-images-panel.html"],
     ["mount-background", "partials/background-panel.html"],
+    ["mount-promo", "partials/promo-panel.html"],
   ];
 
   // Thứ tự có phụ thuộc: config (CONFIG global) → core dùng chung (ADMIN_TOKEN,
@@ -52,6 +53,7 @@
     // Phải đứng SAU 03: dùng lại siIdbGet/siIdbPut + SI_IDB_STORE, và dùng CHUNG
     // handle thư mục assets/ với tab "Ảnh mẫu" (cùng key "assets-root").
     "js/06-background.js",
+    "js/07-promo.js",
   ];
 
   function injectPartial(mountId, html) {

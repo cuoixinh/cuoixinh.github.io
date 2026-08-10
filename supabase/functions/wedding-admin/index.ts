@@ -291,6 +291,237 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
     }
   }
 
+  // ============= MÃ GIẢM GIÁ (admin) =============
+  // Sinh mã hàng loạt / sửa / xoá. Việc TIÊU mã nằm ở payment-handler
+  // (cx_promo_reserve) — ở đây chỉ quản lý danh mục.
+  if (resource === 'promo-codes') {
+    if (!isAdmin) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401, headers: corsHeaders
+      })
+    }
+
+    // Bỏ 0/O/1/I/L để đọc-chép tay không nhầm.
+    const CODE_ALPHABET = '23456789ABCDEFGHJKMNPQRSTUVWXYZ'
+    const randomPart = (len: number) => {
+      const bytes = crypto.getRandomValues(new Uint8Array(len))
+      return Array.from(bytes, b => CODE_ALPHABET[b % CODE_ALPHABET.length]).join('')
+    }
+
+    // GET - danh sách mã, mỗi mã kèm toàn bộ lần áp mã còn hiệu lực
+    if (method === 'GET') {
+      const q = url.searchParams.get('q')?.trim()
+      const batchId = url.searchParams.get('batch_id')?.trim()
+
+      let query = supabase
+        .from('promo_codes')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(500)
+
+      if (q) query = query.ilike('code', `%${q}%`)
+      if (batchId) query = query.eq('batch_id', batchId)
+
+      const { data, error } = await query
+      if (error) return new Response(JSON.stringify({ error }), { status: 500, headers: corsHeaders })
+
+      // Kèm các lần áp mã (để admin thấy mã đã đi vào đơn nào).
+      const ids = (data ?? []).map(c => c.id)
+      let redemptions: Record<string, unknown>[] = []
+      if (ids.length) {
+        const { data: rd } = await supabase
+          .from('promo_redemptions')
+          .select('code_id, order_id, manage_id, user_key, status, final_amount, discount_amount, redeemed_at, reserved_at, expires_at')
+          .in('code_id', ids)
+          .in('status', ['reserved', 'redeemed'])
+          .order('reserved_at', { ascending: false })
+        redemptions = rd ?? []
+      }
+
+      const byCode: Record<string, unknown[]> = {}
+      for (const r of redemptions) {
+        const key = r.code_id as string
+        ;(byCode[key] ||= []).push(r)
+      }
+
+      return new Response(JSON.stringify((data ?? []).map(c => ({ ...c, redemptions: byCode[c.id] ?? [] }))), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    // POST - sinh mã. mode='generate' (hàng loạt, phần đuôi ngẫu nhiên) hoặc
+    // mode='single' (tự gõ mã đẹp).
+    if (method === 'POST') {
+      const body = await req.json()
+      const {
+        mode = 'generate',
+        prefix = '',
+        count = 1,
+        length = 6,
+        code: manualCode,
+        discount_type,
+        discount_value,
+        expires_at = null,
+        min_order_amount = 0,
+        max_uses = 1,
+        note = null,
+      } = body
+
+      if (!['percent', 'fixed'].includes(discount_type)) {
+        return new Response(JSON.stringify({ error: 'discount_type phải là percent hoặc fixed' }), {
+          status: 400, headers: corsHeaders
+        })
+      }
+      const value = Number(discount_value)
+      if (!Number.isFinite(value) || value <= 0 || (discount_type === 'percent' && value > 100)) {
+        return new Response(JSON.stringify({ error: 'Giá trị giảm không hợp lệ' }), {
+          status: 400, headers: corsHeaders
+        })
+      }
+
+      const batch_id = `B${Date.now().toString(36).toUpperCase()}`
+      const common = {
+        discount_type,
+        discount_value: Math.round(value),
+        expires_at: expires_at || null,
+        min_order_amount: Math.max(0, Number(min_order_amount) || 0),
+        // null = không giới hạn lượt dùng
+        max_uses: max_uses === null || max_uses === '' ? null : Math.max(1, Number(max_uses) || 1),
+        note: note || null,
+        batch_id,
+        is_active: true,
+        used_count: 0,
+      }
+
+      if (mode === 'single') {
+        const code = String(manualCode || '').trim().toUpperCase()
+        if (!code) return new Response(JSON.stringify({ error: 'Thiếu mã' }), { status: 400, headers: corsHeaders })
+
+        const { data, error } = await supabase
+          .from('promo_codes')
+          .insert([{ ...common, code }])
+          .select()
+          .single()
+
+        if (error) {
+          const msg = error.code === '23505' ? `Mã ${code} đã tồn tại` : error.message
+          return new Response(JSON.stringify({ error: msg }), { status: 400, headers: corsHeaders })
+        }
+        return new Response(JSON.stringify({ batch_id, codes: [data] }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        })
+      }
+
+      const total = Math.min(Math.max(1, Number(count) || 1), 200)
+      const len = Math.min(Math.max(4, Number(length) || 6), 12)
+      const cleanPrefix = String(prefix || '').trim().toUpperCase().replace(/[^A-Z0-9-]/g, '')
+
+      // Sinh dư rồi khử trùng tại chỗ; mã đụng hàng trong DB (unique) thì thử
+      // lại cả lô còn thiếu, tối đa 5 vòng.
+      const created: Record<string, unknown>[] = []
+      const seen = new Set<string>()
+      for (let round = 0; round < 5 && created.length < total; round++) {
+        const need = total - created.length
+        const batch: Record<string, unknown>[] = []
+        while (batch.length < need) {
+          const code = cleanPrefix + randomPart(len)
+          if (seen.has(code)) continue
+          seen.add(code)
+          batch.push({ ...common, code })
+        }
+
+        const { data, error } = await supabase.from('promo_codes').insert(batch).select()
+        if (!error) {
+          created.push(...(data ?? []))
+          continue
+        }
+        if (error.code !== '23505') {
+          return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: corsHeaders })
+        }
+        // Đụng mã: chèn lại từng cái, bỏ qua cái trùng.
+        for (const row of batch) {
+          const { data: one, error: oneErr } = await supabase.from('promo_codes').insert([row]).select().single()
+          if (!oneErr && one) created.push(one)
+        }
+      }
+
+      if (!created.length) {
+        return new Response(JSON.stringify({ error: 'Không sinh được mã nào, thử lại' }), {
+          status: 500, headers: corsHeaders
+        })
+      }
+
+      log.info('promo.generated', { batch_id, count: created.length, discount_type, discount_value: common.discount_value })
+
+      return new Response(JSON.stringify({ batch_id, codes: created }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    // PATCH - sửa mã (thường chỉ bật/tắt is_active)
+    if (method === 'PATCH') {
+      const { id, ...fields } = await req.json()
+      if (!id) return new Response(JSON.stringify({ error: 'Missing id' }), { status: 400, headers: corsHeaders })
+
+      // used_count là sổ sách của cx_promo_* — không cho sửa tay.
+      delete fields.used_count
+      delete fields.code
+
+      const { data, error } = await supabase
+        .from('promo_codes')
+        .update(fields)
+        .eq('id', id)
+        .select()
+        .single()
+
+      if (error) return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: corsHeaders })
+
+      return new Response(JSON.stringify(data), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    // DELETE - xoá mã chưa ai dùng. Mã đã có đơn chốt thì chỉ được TẮT, để giữ
+    // vết đơn hàng (promo_redemptions tham chiếu tới).
+    if (method === 'DELETE') {
+      const id = url.searchParams.get('id')
+      const batchId = url.searchParams.get('batch_id')
+      if (!id && !batchId) {
+        return new Response(JSON.stringify({ error: 'Missing id' }), { status: 400, headers: corsHeaders })
+      }
+
+      let target = supabase.from('promo_codes').select('id')
+      target = id ? target.eq('id', id) : target.eq('batch_id', batchId!)
+      const { data: codes } = await target
+      const codeIds = (codes ?? []).map(c => c.id)
+      if (!codeIds.length) {
+        return new Response(JSON.stringify({ error: 'Không tìm thấy mã' }), { status: 404, headers: corsHeaders })
+      }
+
+      const { data: used } = await supabase
+        .from('promo_redemptions')
+        .select('code_id')
+        .in('code_id', codeIds)
+        .eq('status', 'redeemed')
+
+      const usedIds = new Set((used ?? []).map(r => r.code_id))
+      const deletable = codeIds.filter(cid => !usedIds.has(cid))
+
+      if (!deletable.length) {
+        return new Response(JSON.stringify({ error: 'Mã đã được dùng cho đơn hàng, chỉ có thể tắt chứ không xoá' }), {
+          status: 409, headers: corsHeaders
+        })
+      }
+
+      const { error } = await supabase.from('promo_codes').delete().in('id', deletable)
+      if (error) return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: corsHeaders })
+
+      return new Response(JSON.stringify({ success: true, deleted: deletable.length, kept: codeIds.length - deletable.length }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+  }
+
   // ============= WEDDINGS MANAGEMENT =============
 
   // POST → Tạo bản ghi mới (public - KH tự tạo sau khi thanh toán hoặc tạo draft)
@@ -649,16 +880,18 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
     }
 
     // ── Public: kiểm tra mã khuyến mãi ──
+    // CHỈ để xem trước trên màn hình — không giữ lượt. Lượt thật do
+    // payment-handler giành qua cx_promo_reserve lúc khách bấm Thanh toán.
     if (resource === 'promo') {
       const code = url.searchParams.get('code')?.trim()
       if (!code) return new Response(JSON.stringify({ error: 'Thiếu code' }), { status: 400, headers: corsHeaders })
 
       const { data, error } = await supabase
         .from('promo_codes')
-        .select('code, discount_type, discount_value, expires_at')
-        .eq('code', code)
+        .select('code, discount_type, discount_value, expires_at, min_order_amount, max_uses, used_count')
+        .ilike('code', code)
         .eq('is_active', true)
-        .single()
+        .maybeSingle()
 
       if (error || !data) {
         return new Response(JSON.stringify({ valid: false, error: 'Mã không hợp lệ hoặc đã hết hạn' }), {
@@ -673,11 +906,37 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
         })
       }
 
+      if (data.max_uses != null && (data.used_count ?? 0) >= data.max_uses) {
+        return new Response(JSON.stringify({ valid: false, error: 'Mã đã hết lượt sử dụng' }), {
+          status: 200, headers: corsHeaders,
+        })
+      }
+
+      // Có theme thì đối chiếu luôn đơn tối thiểu để báo sớm, khỏi để khách bấm
+      // Thanh toán rồi mới bị từ chối.
+      const themeParam = url.searchParams.get('theme')?.trim()
+      const minOrder = data.min_order_amount ?? 0
+      if (themeParam && minOrder > 0) {
+        const { data: pricing } = await supabase
+          .from('template_pricing')
+          .select('price')
+          .eq('template_name', themeParam)
+          .eq('is_active', true)
+          .maybeSingle()
+        if (pricing && pricing.price < minOrder) {
+          return new Response(JSON.stringify({
+            valid: false,
+            error: `Đơn tối thiểu ${minOrder.toLocaleString('vi-VN')}đ mới dùng được mã này`,
+          }), { status: 200, headers: corsHeaders })
+        }
+      }
+
       return new Response(JSON.stringify({
         valid: true,
         code: data.code,
         discount_type: data.discount_type,
         discount_value: data.discount_value,
+        min_order_amount: minOrder,
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })

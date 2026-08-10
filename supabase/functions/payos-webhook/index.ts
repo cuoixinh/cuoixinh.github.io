@@ -146,7 +146,7 @@ serve(withAxiom("payos-webhook", async (req, log) => {
       
       const { data: weddingData, error: weddingError } = await supabaseClient
         .from("weddings")
-        .select("id, theme")
+        .select("id, theme, payment_amount")
         .eq("payment_order_id", fullOrderId)
         .single();
 
@@ -168,36 +168,43 @@ serve(withAxiom("payos-webhook", async (req, log) => {
       const manage_id = weddingData.id;
       const theme_name = weddingData.theme || "template1";
 
-      // Validate amount from database pricing
-      const { data: pricingData, error: pricingError } = await supabaseClient
-        .from("template_pricing")
-        .select("price")
-        .eq("template_name", theme_name)
-        .eq("is_active", true)
-        .single();
+      // Số tiền kỳ vọng là payment_amount đã chốt lúc tạo đơn — đã trừ mã giảm
+      // giá và do chính payment-handler ghi nên vẫn tin được (không phải số
+      // client gửi lên). Đơn cũ chưa có payment_amount → rơi về giá niêm yết.
+      let expectedAmount: number | null = weddingData.payment_amount ?? null;
 
-      if (pricingError || !pricingData) {
-        console.error("Pricing validation error:", pricingError);
-        log.error("payos.pricing_not_found", {
-          orderCode: orderCodeFromPayOS,
-          manage_id,
-          theme: theme_name,
-          error: pricingError?.message,
-        });
-        return new Response(JSON.stringify({ error: "Invalid template pricing" }), {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+      if (expectedAmount === null) {
+        const { data: pricingData, error: pricingError } = await supabaseClient
+          .from("template_pricing")
+          .select("price")
+          .eq("template_name", theme_name)
+          .eq("is_active", true)
+          .single();
+
+        if (pricingError || !pricingData) {
+          console.error("Pricing validation error:", pricingError);
+          log.error("payos.pricing_not_found", {
+            orderCode: orderCodeFromPayOS,
+            manage_id,
+            theme: theme_name,
+            error: pricingError?.message,
+          });
+          return new Response(JSON.stringify({ error: "Invalid template pricing" }), {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        expectedAmount = pricingData.price;
       }
 
-      if (paymentData.amount !== pricingData.price) {
-        console.error("Amount mismatch. Expected:", pricingData.price, "Got:", paymentData.amount);
+      if (paymentData.amount !== expectedAmount) {
+        console.error("Amount mismatch. Expected:", expectedAmount, "Got:", paymentData.amount);
         // Vừa là dấu hiệu cấu hình giá sai, vừa là dấu hiệu có người thử giả mạo
         // webhook với số tiền tự đặt → cần thấy được trên Axiom.
         log.error("payos.amount_mismatch", {
           orderCode: orderCodeFromPayOS,
           manage_id,
-          expected: pricingData.price,
+          expected: expectedAmount,
           received: paymentData.amount,
         });
         return new Response(JSON.stringify({ error: "Amount mismatch" }), {
@@ -236,6 +243,22 @@ serve(withAxiom("payos-webhook", async (req, log) => {
           status: 500,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
+      }
+
+      // Đánh dấu mã giảm giá đã dùng xong (xem changelogs/RC1.8). Thanh toán
+      // THẤT BẠI thì KHÔNG trả lượt: lượt đã trừ lúc áp mã và không hoàn lại.
+      // Tiền đã vào rồi nên lỗi ở đây CHỈ ghi log, không được trả lỗi cho PayOS.
+      if (payment_status === "completed") {
+        const { data: promoResult, error: promoError } = await supabaseClient
+          .rpc("cx_promo_redeem", { p_order_id: fullOrderId });
+        if (promoError || promoResult?.ok === false) {
+          log.error("promo.redeem_failed", {
+            order_id: fullOrderId,
+            manage_id,
+            error: promoError?.message,
+            result: promoResult,
+          });
+        }
       }
 
       // Log webhook event

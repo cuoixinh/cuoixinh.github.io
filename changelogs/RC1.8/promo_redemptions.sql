@@ -1,21 +1,33 @@
 -- ============================================================
--- CHANGELOG RC1.8  —  Mã giảm giá dùng 1 lần: bảng giữ chỗ + 3 hàm chốt mã
+-- CHANGELOG RC1.8  —  Mã giảm giá: trừ lượt khi áp mã + nhật ký dùng mã
 -- Base: RC1.7
 -- Ngày: 2026-08-09
 -- ------------------------------------------------------------
--- Lý do: bảng promo_codes có sẵn từ RC1.0 nhưng chưa có cách đảm bảo "mã chỉ
---   dùng 1 lần". Trừ used_count ngay lúc khách bấm Thanh toán thì mã chết oan
---   khi khách bỏ ngang; trừ lúc webhook báo thành công thì hai người cùng nhập
---   một mã đều qua được. Nên tách làm 2 nhịp GIỮ CHỖ → CHỐT:
+-- Lý do: bảng promo_codes có sẵn từ RC1.0 (max_uses = số lượt tối đa, null =
+--   không giới hạn) nhưng used_count chưa bao giờ được trừ, nên hạn mức lượt
+--   dùng vô nghĩa.
 --
---     process()      → cx_promo_reserve : used_count+1, giữ chỗ 15 phút theo order_id
---     webhook OK     → cx_promo_redeem  : chốt vĩnh viễn
---     webhook failed → cx_promo_release : trả lại lượt
---     khách bỏ ngang → hết 15' thì lần reserve kế tiếp tự dọn, trả lại lượt
+-- Luật nghiệp vụ:
+--   + Một ĐƠN chỉ áp được MỘT mã (order_id là unique trong promo_redemptions).
+--   + Một tài khoản dùng được NHIỀU mã, và dùng lại cùng một mã cho thiệp khác
+--     cũng được — không giới hạn TỔNG số lần. Nhưng tại MỘT thời điểm chỉ được
+--     giữ MỘT lượt đang chờ (xem "chống đốt lượt" trong cx_promo_reserve).
+--   + ÁP MÃ LÀ TRỪ LƯỢT NGAY và KHÔNG HOÀN LẠI. Mã 10 lượt, áp 1 lần còn 9 lượt;
+--     khách bỏ ngang không thanh toán thì vẫn là 9. Cố ý như vậy để không ai
+--     spam áp mã nhằm khoá lượt của người khác rồi thả ra.
+--   + Giữ chỗ có hạn 5 phút — đúng bằng thời gian client chờ quét QR
+--     (CONFIG.polling.timeout). Quá hạn thì bản ghi coi như bỏ, muốn thanh toán
+--     tiếp phải áp mã lại và lần đó TRỪ THÊM một lượt nữa.
+--
+--     process()   → cx_promo_reserve : used_count+1 (vĩnh viễn), ghi nhật ký 5 phút
+--     webhook OK  → cx_promo_redeem  : đánh dấu đã chốt (không xét hạn — tiền đã vào)
+--     lỗi hệ thống→ cx_promo_release : trả lượt, CHỈ dùng khi không tạo nổi đơn
+--                                      (PayOS từ chối, ghi DB hỏng) — lúc đó khách
+--                                      còn chưa được nhìn thấy mã QR để mà trả tiền.
 --
 --   Việc giành lượt nằm gọn trong MỘT câu update có điều kiện
---   (... where used_count < max_uses) nên Postgres khoá dòng, hai người cùng
---   nhập một mã thì chỉ một người giành được.
+--   (... where used_count < max_uses) nên Postgres khoá dòng: mã 10 lượt thì
+--   người thứ 11 bị chặn kể cả khi cả 11 bấm cùng lúc.
 --
 -- Thay đổi:
 --   + Bảng promo_redemptions: nhật ký từng lần áp mã (giữ chỗ / đã chốt / đã nhả).
@@ -46,6 +58,7 @@ create table if not exists public.promo_redemptions (
   code_id uuid not null references public.promo_codes(id) on delete cascade,
   code text not null,
   manage_id uuid,
+  user_key text,
   order_id text not null unique,
   base_amount integer not null,
   discount_amount integer not null,
@@ -56,12 +69,21 @@ create table if not exists public.promo_redemptions (
   redeemed_at timestamptz
 );
 
-comment on table public.promo_redemptions is 'Nhật ký áp mã giảm giá: giữ chỗ lúc tạo đơn → chốt khi webhook báo thanh toán thành công';
-comment on column public.promo_redemptions.status is 'reserved = đang giữ chỗ (còn hạn expires_at) · redeemed = đã chốt · released = đã nhả, lượt trả về promo_codes.used_count';
-comment on column public.promo_redemptions.expires_at is 'Hết hạn giữ chỗ (15 phút). Quá hạn mà vẫn reserved → lần reserve kế tiếp của cùng mã sẽ tự nhả';
+comment on table public.promo_redemptions is 'Nhật ký áp mã giảm giá: mỗi dòng là một lần áp mã vào một đơn';
+comment on column public.promo_redemptions.status is 'reserved = đã trừ lượt, đang chờ trả tiền · redeemed = đã thanh toán · released = huỷ do lỗi hệ thống, lượt đã trả về promo_codes.used_count';
+comment on column public.promo_redemptions.expires_at is 'Hạn giữ chỗ 5 phút. Quá hạn mà chưa trả tiền thì bản ghi coi như bỏ — lượt KHÔNG được hoàn lại, muốn trả tiếp phải áp mã lại';
+comment on column public.promo_redemptions.user_key is 'Ai đã dùng mã: uid:<user_id> khi đã đăng nhập, email:<email> cho khách vãng lai. Dùng để chặn một người giữ nhiều lượt cùng lúc (không giới hạn tổng số lần dùng)';
+
+-- Bảng đã dựng từ bản RC1.8 cũ thì bổ sung cột.
+alter table public.promo_redemptions
+  add column if not exists user_key text;
 
 create index if not exists idx_promo_redemptions_code_status on public.promo_redemptions(code_id, status);
 create index if not exists idx_promo_redemptions_manage on public.promo_redemptions(manage_id);
+-- drop trước: bản RC1.8 đầu chỉ đánh index (user_key), mà `if not exists` thì
+-- không nâng cấp định nghĩa cũ khi chạy lại script.
+drop index if exists idx_promo_redemptions_user;
+create index if not exists idx_promo_redemptions_user on public.promo_redemptions(user_key, status);
 
 -- RLS bật nhưng CỐ Ý không có policy nào: chỉ service_role (edge function) đụng
 -- tới bảng này; anon/authenticated không đọc được lịch sử dùng mã của người khác.
@@ -69,42 +91,22 @@ alter table public.promo_redemptions enable row level security;
 
 -- ============ 3. Hàm giữ chỗ / chốt / nhả ============
 
--- Nhả các lượt giữ chỗ đã quá hạn của MỘT mã. Gọi ngay trước khi giành lượt mới
--- nên không cần cron dọn định kỳ.
-create or replace function public.cx_promo_expire_stale(p_code_id uuid)
-returns void
-language plpgsql
-security definer
-set search_path = public
-as $$
-declare
-  v_freed integer;
-begin
-  with expired as (
-    update public.promo_redemptions
-       set status = 'released'
-     where code_id = p_code_id
-       and status = 'reserved'
-       and expires_at < now()
-    returning 1
-  )
-  select count(*) into v_freed from expired;
+-- Bản RC1.8 đầu tiên có hàm dọn giữ-chỗ-quá-hạn để hoàn lượt. Luật đã đổi:
+-- lượt không bao giờ hoàn, nên gỡ hẳn hàm này.
+drop function if exists public.cx_promo_expire_stale(uuid);
 
-  if v_freed > 0 then
-    update public.promo_codes
-       set used_count = greatest(0, coalesce(used_count, 0) - v_freed)
-     where id = p_code_id;
-  end if;
-end;
-$$;
-
--- Giành một lượt dùng mã cho đơn p_order_id.
+-- Giành một lượt dùng mã cho đơn p_order_id. Lượt bị trừ NGAY và không hoàn lại
+-- (trừ khi payment-handler gọi cx_promo_release vì không tạo nổi đơn).
+-- p_user_key: 'uid:<user_id>' / 'email:<email>' / null — chỉ để tra cứu.
 -- Trả jsonb: {ok:true, code, discount_amount, final_amount} hoặc {ok:false, reason, message}.
+drop function if exists public.cx_promo_reserve(text, uuid, text, integer);
+
 create or replace function public.cx_promo_reserve(
   p_code text,
   p_manage_id uuid,
   p_order_id text,
-  p_base_amount integer
+  p_base_amount integer,
+  p_user_key text default null
 )
 returns jsonb
 language plpgsql
@@ -113,11 +115,14 @@ set search_path = public
 as $$
 declare
   v_code public.promo_codes%rowtype;
+  v_code_id uuid;
   v_claimed public.promo_codes%rowtype;
   v_discount integer;
   v_existing public.promo_redemptions%rowtype;
 begin
-  -- Đơn đã áp mã rồi (client gọi lại) → trả lại đúng kết quả cũ, không giành thêm lượt.
+  -- Cùng một đơn gọi lại (client thử lại request) → trả kết quả cũ, KHÔNG trừ
+  -- thêm lượt. Đây là chống gọi trùng, không phải chống bỏ ngang rồi làm lại:
+  -- làm lại đơn mới thì order_id mới và tốn thêm một lượt, đúng như luật.
   select * into v_existing from public.promo_redemptions
    where order_id = p_order_id and status in ('reserved', 'redeemed');
   if found then
@@ -128,18 +133,46 @@ begin
     );
   end if;
 
-  select * into v_code from public.promo_codes where upper(code) = upper(btrim(p_code));
+  -- CHỐNG ĐỐT LƯỢT: create-payment gọi được bằng anon key (công khai trong
+  -- core/config.js) nên nếu không chặn, một script vài dòng đốt sạch lượt của
+  -- mã trong vài giây — mà luật là lượt không hoàn lại. Mỗi danh tính chỉ được
+  -- giữ MỘT lượt đang chờ: kẻ phá hoại đốt tối đa 1 lượt/5 phút/email, khách
+  -- thật không vướng vì họ chỉ mở một đơn tại một thời điểm.
+  --
+  -- Không có danh tính thì không có gì để đếm → không cho dùng mã. Nếu bỏ qua
+  -- ca này, chỉ cần để trống ô email là vô hiệu hoá toàn bộ lớp chặn bên dưới.
+  if p_user_key is null then
+    return jsonb_build_object('ok', false, 'reason', 'need_identity',
+      'message', 'Vui lòng nhập email hoặc đăng nhập để dùng mã giảm giá');
+  end if;
+
+  select * into v_existing from public.promo_redemptions
+   where user_key = p_user_key
+     and status = 'reserved'
+     and expires_at > now()
+   limit 1;
+  if found then
+    return jsonb_build_object('ok', false, 'reason', 'pending_order',
+      'message', 'Bạn đang có một đơn chờ thanh toán. Hoàn tất đơn đó hoặc đợi 5 phút rồi thử lại');
+  end if;
+
+  -- code là unique nhưng phân biệt hoa/thường, nên về lý thuyết có cả 'abc' lẫn
+  -- 'ABC': ưu tiên mã còn bật để khách gõ thường vẫn trúng mã đang chạy.
+  select * into v_code from public.promo_codes
+   where upper(code) = upper(btrim(p_code))
+   order by (is_active is true) desc, created_at desc
+   limit 1;
   if not found then
     return jsonb_build_object('ok', false, 'reason', 'not_found', 'message', 'Mã không hợp lệ');
   end if;
 
-  perform public.cx_promo_expire_stale(v_code.id);
+  v_code_id := v_code.id;
 
   -- Giành lượt: điều kiện nằm TRONG câu update để hai request song song không
   -- cùng qua được (Postgres khoá dòng khi update).
   update public.promo_codes
      set used_count = coalesce(used_count, 0) + 1
-   where id = v_code.id
+   where id = v_code_id
      and is_active = true
      and (expires_at is null or expires_at > now())
      and (max_uses is null or coalesce(used_count, 0) < max_uses)
@@ -148,7 +181,7 @@ begin
 
   if not found then
     -- Đọc lại để báo đúng lý do cho người dùng.
-    select * into v_code from public.promo_codes where id = v_code.id;
+    select * into v_code from public.promo_codes where id = v_code_id;
     if v_code.is_active is not true then
       return jsonb_build_object('ok', false, 'reason', 'inactive', 'message', 'Mã đã bị vô hiệu hoá');
     elsif v_code.expires_at is not null and v_code.expires_at <= now() then
@@ -157,7 +190,7 @@ begin
       return jsonb_build_object('ok', false, 'reason', 'min_order',
         'message', 'Đơn tối thiểu ' || coalesce(v_code.min_order_amount, 0) || 'đ mới dùng được mã này');
     else
-      return jsonb_build_object('ok', false, 'reason', 'used_up', 'message', 'Mã đã được sử dụng');
+      return jsonb_build_object('ok', false, 'reason', 'used_up', 'message', 'Mã đã hết lượt sử dụng');
     end if;
   end if;
 
@@ -167,11 +200,25 @@ begin
   end;
   v_discount := least(greatest(v_discount, 0), p_base_amount);
 
+  -- on conflict: đơn cũ cùng order_id đã bị nhả (released) thì ghi đè bằng lượt
+  -- vừa giành, không để unique(order_id) làm hỏng cả giao dịch.
   insert into public.promo_redemptions
-    (code_id, code, manage_id, order_id, base_amount, discount_amount, final_amount, expires_at)
+    (code_id, code, manage_id, user_key, order_id, base_amount, discount_amount, final_amount, expires_at)
   values
-    (v_claimed.id, v_claimed.code, p_manage_id, p_order_id, p_base_amount,
-     v_discount, p_base_amount - v_discount, now() + interval '15 minutes');
+    (v_claimed.id, v_claimed.code, p_manage_id, p_user_key, p_order_id, p_base_amount,
+     v_discount, p_base_amount - v_discount, now() + interval '5 minutes')
+  on conflict (order_id) do update set
+    code_id = excluded.code_id,
+    code = excluded.code,
+    manage_id = excluded.manage_id,
+    user_key = excluded.user_key,
+    base_amount = excluded.base_amount,
+    discount_amount = excluded.discount_amount,
+    final_amount = excluded.final_amount,
+    status = 'reserved',
+    reserved_at = now(),
+    expires_at = excluded.expires_at,
+    redeemed_at = null;
 
   return jsonb_build_object(
     'ok', true, 'code', v_claimed.code,
@@ -181,7 +228,9 @@ begin
 end;
 $$;
 
--- Chốt lượt đã giữ. Idempotent: PayOS gửi lặp webhook thì lần sau vẫn trả ok.
+-- Đánh dấu đã thanh toán. CỐ Ý không xét expires_at: tiền vào sau phút thứ 5 thì
+-- vẫn phải ghi nhận, lượt vốn đã bị trừ từ lúc áp mã rồi.
+-- Idempotent: PayOS gửi lặp webhook thì lần sau vẫn trả ok.
 create or replace function public.cx_promo_redeem(p_order_id text)
 returns jsonb
 language plpgsql
@@ -205,13 +254,15 @@ begin
     return jsonb_build_object('ok', true, 'note', 'no_promo');
   end if;
 
-  -- Đã released (giữ chỗ quá hạn) mà tiền vẫn vào: giữ nguyên trạng thái nhưng
-  -- báo về để edge function ghi log — đây là ca cần người xem lại.
+  -- Đã released (đơn bị huỷ vì lỗi hệ thống) mà tiền vẫn vào: giữ nguyên trạng
+  -- thái nhưng báo về để edge function ghi log — đây là ca cần người xem lại.
   return jsonb_build_object('ok', v_row.status = 'redeemed', 'status', v_row.status, 'code', v_row.code);
 end;
 $$;
 
--- Nhả lượt đang giữ, trả lại used_count. Idempotent.
+-- Trả lại lượt. CHỈ dùng khi không tạo nổi đơn (PayOS từ chối, ghi DB hỏng) —
+-- lúc đó khách còn chưa thấy mã QR nên không thể coi là "đã dùng mã". Khách bỏ
+-- ngang sau khi đã có QR thì KHÔNG gọi hàm này: lượt mất luôn.
 create or replace function public.cx_promo_release(p_order_id text)
 returns jsonb
 language plpgsql
@@ -240,12 +291,10 @@ $$;
 
 -- Chỉ edge function (service_role) được gọi. Client dùng anon key phải đi qua
 -- payment-handler, không tự giành lượt được.
-revoke all on function public.cx_promo_expire_stale(uuid) from public, anon, authenticated;
-revoke all on function public.cx_promo_reserve(text, uuid, text, integer) from public, anon, authenticated;
+revoke all on function public.cx_promo_reserve(text, uuid, text, integer, text) from public, anon, authenticated;
 revoke all on function public.cx_promo_redeem(text) from public, anon, authenticated;
 revoke all on function public.cx_promo_release(text) from public, anon, authenticated;
 
-grant execute on function public.cx_promo_expire_stale(uuid) to service_role;
-grant execute on function public.cx_promo_reserve(text, uuid, text, integer) to service_role;
+grant execute on function public.cx_promo_reserve(text, uuid, text, integer, text) to service_role;
 grant execute on function public.cx_promo_redeem(text) to service_role;
 grant execute on function public.cx_promo_release(text) to service_role;

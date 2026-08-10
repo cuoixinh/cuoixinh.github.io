@@ -17,17 +17,25 @@
   let currentOrderId = null;
   // ============= PAYMENT FUNCTIONS (Task 5.2, 5.3, 5.5, 5.8) =============
 
+  // JWT của phiên đang đăng nhập (null nếu là khách) — backend dùng để ghi nhận
+  // ai đã áp mã giảm giá; anon key thì ai cũng như ai.
+  async function _authToken() {
+    return (await window.CXAuth?.accessToken()) ?? null;
+  }
+
   // Task 5.2 & 6.1 & 6.2: Create payment with PayOS - Enhanced error handling
   async function createPayment(orderData) {
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
 
+      const token = await _authToken();
       const response = await fetch(`${PAYMENT_API_URL}/create-payment`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${ANON_KEY}`,
+          apikey: ANON_KEY,
+          Authorization: `Bearer ${token || ANON_KEY}`,
         },
         body: JSON.stringify(orderData),
         signal: controller.signal,
@@ -40,11 +48,19 @@
 
         // Handle specific HTTP status codes
         if (response.status === 400) {
-          throw new Error(
+          const err = new Error(
             errorData.error || "Thông tin không hợp lệ, vui lòng kiểm tra lại",
           );
+          // Mã giảm giá hỏng giữa chừng (hết lượt/hết hạn) → đánh dấu để
+          // process() bôi đỏ đúng ô mã thay vì báo lỗi chung.
+          if (errorData.promo_error) err.promoError = errorData.promo_error;
+          throw err;
         } else if (response.status === 401) {
-          throw new Error("Xác thực thất bại, vui lòng thử lại");
+          // 401 ở đây cũng dùng cho "mã này phải đăng nhập mới dùng được", nên
+          // phải ưu tiên message của server thay vì câu chung chung.
+          const err = new Error(errorData.error || "Xác thực thất bại, vui lòng thử lại");
+          if (errorData.promo_error) err.promoError = errorData.promo_error;
+          throw err;
         } else if (response.status === 404) {
           throw new Error("Không tìm thấy dịch vụ thanh toán");
         } else if (response.status >= 500) {
@@ -55,6 +71,13 @@
       }
 
       const data = await response.json();
+
+      // Đơn 0đ (mã giảm 100%) không đi qua PayOS nên không có QR — backend đã
+      // đánh dấu hoàn tất, chỉ cần order_id để hiện màn thành công.
+      if (data.free) {
+        if (!data.order_id) throw new Error("Dữ liệu phản hồi không hợp lệ");
+        return data;
+      }
 
       // Validate response format
       if (!data.qr_code || !data.payment_info || !data.order_id) {
@@ -601,9 +624,11 @@
                   <p id="payment-phone-err" class="hidden text-[11px] text-red-500 mt-1">Vui lòng nhập số điện thoại</p>
                 </div>
                 <div>
-                  <label class="text-xs font-medium text-gray-600 block mb-1">Email</label>
+                  <label class="text-xs font-medium text-gray-600 block mb-1">Email
+                    <span id="payment-email-req" class="hidden text-red-500">*</span></label>
                   <input id="payment-email" type="email" placeholder="email@example.com"
                     class="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none box-border transition-colors focus:border-pink-300" />
+                  <p id="payment-email-err" class="hidden text-[11px] text-red-500 mt-1">Nhập email để dùng mã giảm giá</p>
                 </div>
               </div>
 
@@ -725,9 +750,19 @@
     msg.classList.remove("hidden");
 
     try {
+      // Chỉ XEM TRƯỚC mức giảm, chưa giữ lượt của mã. Lượt thật do backend giành
+      // khi bấm Thanh toán (payment-handler → cx_promo_reserve), nên mã vẫn có
+      // thể hết lượt giữa chừng — lúc đó create-payment trả về promo_error.
+      const theme = window._paymentTheme ? `&theme=${encodeURIComponent(window._paymentTheme)}` : "";
+      const token = await _authToken();
       const res = await fetch(
-        `${CONFIG.supabase.edgeUrl}?resource=promo&code=${encodeURIComponent(code)}`,
-        { headers: { Authorization: `Bearer ${CONFIG.supabase.anonKey}` } }
+        `${CONFIG.supabase.edgeUrl}?resource=promo&code=${encodeURIComponent(code)}${theme}`,
+        {
+          headers: {
+            apikey: CONFIG.supabase.anonKey,
+            Authorization: `Bearer ${token || CONFIG.supabase.anonKey}`,
+          },
+        }
       );
       const data = await res.json();
 
@@ -736,13 +771,21 @@
         msg.textContent = data.error || "Mã không hợp lệ hoặc đã hết hạn";
         window._appliedPromo = null;
         document.getElementById("promo-discount-row").classList.add("hidden");
+        document.getElementById("payment-email-req")?.classList.add("hidden");
         _updateTotalWithPromo(null);
         return;
       }
 
       window._appliedPromo = data;
+      // Có mã là email thành bắt buộc: backend cần danh tính để chặn một người
+      // giữ nhiều lượt cùng lúc (xem cx_promo_reserve).
+      document.getElementById("payment-email-req")?.classList.remove("hidden");
       msg.className = "text-xs px-1 text-green-500";
-      msg.textContent = "Áp dụng thành công!";
+      const basePrice = window._paymentPricing?.price || 0;
+      msg.textContent =
+        _discountOf(data, basePrice) >= basePrice && basePrice > 0
+          ? "Áp dụng thành công — thiệp này miễn phí!"
+          : "Áp dụng thành công!";
       document.getElementById("promo-discount-row").classList.remove("hidden");
       _updateTotalWithPromo(data);
     } catch (e) {
@@ -751,15 +794,19 @@
     }
   };
 
+  // Mức giảm hiển thị. Con số CHỐT vẫn do backend tính lại lúc tạo đơn — đây
+  // chỉ là bản xem trước, phải khớp công thức trong cx_promo_reserve.
+  function _discountOf(promo, basePrice) {
+    if (!promo) return 0;
+    const raw = promo.discount_type === "percent"
+      ? Math.round(basePrice * promo.discount_value / 100)
+      : promo.discount_value;
+    return Math.min(Math.max(raw, 0), basePrice);
+  }
+
   function _updateTotalWithPromo(promo) {
     const basePrice = window._paymentPricing?.price || 299000;
-    let discount = 0;
-    if (promo) {
-      discount = promo.discount_type === "percent"
-        ? Math.round(basePrice * promo.discount_value / 100)
-        : promo.discount_value;
-      discount = Math.min(discount, basePrice);
-    }
+    const discount = _discountOf(promo, basePrice);
     const total = basePrice - discount;
     const totalEl = document.getElementById("payment-total-price");
     if (totalEl) totalEl.textContent = `${total.toLocaleString("vi-VN")}đ`;
@@ -784,6 +831,7 @@
       if (promoInput) promoInput.value = "";
       if (promoMsg) { promoMsg.textContent = ""; promoMsg.classList.add("hidden"); }
       if (discountRow) discountRow.classList.add("hidden");
+      document.getElementById("payment-email-req")?.classList.add("hidden");
 
       // Lưu pricing để dùng trong modal
       window._paymentPricing = pricing;
@@ -836,7 +884,7 @@
         document.getElementById(id).value = "";
         document.getElementById(id).style.borderColor = "rgb(var(--border-field-rgb))";
       });
-      ["payment-name-err", "payment-phone-err"].forEach((id) => {
+      ["payment-name-err", "payment-phone-err", "payment-email-err"].forEach((id) => {
         document.getElementById(id).style.display = "none";
       });
       const apiErr = document.getElementById("payment-api-error");
@@ -914,6 +962,19 @@
       } else {
         phoneInput.style.borderColor = "rgb(var(--border-field-rgb))";
         phoneErr.style.display = "none";
+      }
+
+      // Email chỉ bắt buộc khi có áp mã giảm giá — backend cần danh tính (đăng
+      // nhập hoặc email) để chặn một người ôm nhiều lượt cùng lúc.
+      const emailInput = document.getElementById("payment-email");
+      const emailErr = document.getElementById("payment-email-err");
+      if (window._appliedPromo && !email && !getCurrentUser()) {
+        emailInput.style.borderColor = "rgb(var(--state-invalid-rgb))";
+        emailErr.style.display = "block";
+        hasError = true;
+      } else {
+        emailInput.style.borderColor = "rgb(var(--border-field-rgb))";
+        emailErr.style.display = "none";
       }
 
       if (hasError) return;
@@ -1020,6 +1081,12 @@
 
         const paymentResult = await createPayment(paymentData);
 
+        // Mã giảm 100%: backend đã kích hoạt thiệp, không có QR để quét.
+        if (paymentResult.free) {
+          showSuccessScreen(paymentResult);
+          return;
+        }
+
         // Display QR code and start polling
         displayQRCode(
           paymentResult.qr_code,
@@ -1036,6 +1103,22 @@
         // Return to step 1 and preserve form state
         document.getElementById("payment-step-2").style.display = "none";
         document.getElementById("payment-step-1").style.display = "block";
+
+        // Mã giảm giá hỏng giữa chừng (người khác vừa dùng hết lượt, mã hết hạn…)
+        // → gỡ mã đang áp, trả tổng tiền về giá gốc và báo ngay tại ô mã.
+        if (error.promoError) {
+          window._appliedPromo = null;
+          const promoMsg = document.getElementById("promo-msg");
+          if (promoMsg) {
+            promoMsg.className = "text-xs px-1 text-red-500";
+            promoMsg.textContent = error.message;
+            promoMsg.classList.remove("hidden");
+          }
+          document.getElementById("promo-discount-row")?.classList.add("hidden");
+          document.getElementById("payment-email-req")?.classList.add("hidden");
+          _updateTotalWithPromo(null);
+          return;
+        }
 
         // Display user-friendly error message
         const errEl = document.getElementById("payment-api-error");

@@ -37,8 +37,28 @@ async function verifyWebhookSignature(payload: Record<string, any>, receivedSign
   }
 }
 
+/**
+ * Mã đơn gửi PayOS, cũng là khoá của `weddings.payment_order_id` (UNIQUE) và của
+ * lượt mã giảm giá trong `promo_redemptions.order_id`.
+ *
+ * 9 chữ số cuối của epoch ms + 5 chữ số ngẫu nhiên = 14 chữ số (PayOS nhận
+ * orderCode tới 9007199254740991 nên còn thừa xa).
+ *
+ * Phần ngẫu nhiên là BẮT BUỘC: chỉ dùng thời gian thì hai request trong cùng một
+ * mili giây ra cùng orderCode, và khi đó request thứ hai bị `cx_promo_reserve`
+ * nhận nhầm là "đơn cũ gọi lại", rồi lúc PayOS từ chối orderCode trùng nó sẽ
+ * nhả mất lượt mã giảm giá của request thứ nhất.
+ */
+function newOrderCode(): number {
+  const timePart = Date.now().toString().slice(-9);
+  const randPart = String(crypto.getRandomValues(new Uint32Array(1))[0] % 100000).padStart(5, "0");
+  return parseInt(timePart + randPart, 10);
+}
+
+// orderCode do bên gọi sinh và truyền vào: mã giảm giá phải giữ chỗ theo order_id
+// TRƯỚC khi gọi PayOS, để PayOS lỗi thì còn biết đường nhả lượt.
 async function createPaymentRequest(orderData: any, apiKey: string, clientId: string, checksumKey: string): Promise<any> {
-  const orderCode = parseInt(Date.now().toString().slice(-9));
+  const orderCode = orderData.orderCode;
   const requestData = {
     orderCode,
     amount: orderData.amount,
@@ -83,6 +103,23 @@ function getPayOSCredentials() {
   }
   
   return { apiKey, clientId, checksumKey };
+}
+
+// Danh tính người áp mã. Dùng để chặn một người ôm nhiều lượt cùng lúc và để
+// gác mã giảm 100% (chỉ chấp nhận uid:), nên KHÔNG chỉ là thông tin tra cứu.
+// Ưu tiên user_id từ JWT, khách chưa đăng nhập thì lấy email trong form.
+async function resolveUserKey(req: Request, supabaseClient: any, email?: string): Promise<string | null> {
+  const jwt = (req.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "").trim();
+  if (jwt && jwt !== Deno.env.get("SUPABASE_ANON_KEY")) {
+    try {
+      const { data } = await supabaseClient.auth.getUser(jwt);
+      if (data?.user?.id) return `uid:${data.user.id}`;
+    } catch (error) {
+      console.error("resolveUserKey failed:", error);
+    }
+  }
+  const clean = (email || "").trim().toLowerCase();
+  return clean ? `email:${clean}` : null;
 }
 
 async function getUniqueSlug(supabaseClient: any, baseSlug: string, excludeId?: string): Promise<string> {
@@ -160,9 +197,21 @@ serve(withAxiom("payment-handler", async (req, log) => {
 }));
 
 async function handleCreatePayment(req: Request, supabaseClient: any) {
+  // Đơn đang giữ lượt mã giảm giá. Khai ngoài try để catch cuối cùng nhả được
+  // lượt: hỏng ở bất kỳ bước nào sau khi trừ lượt thì khách còn chưa nhìn thấy
+  // mã QR, không thể tính là đã dùng mã. (Bỏ ngang SAU khi có QR thì mất lượt —
+  // ca đó không đi qua đây.)
+  let reservedOrderId: string | null = null;
+  const releasePromo = async () => {
+    if (!reservedOrderId) return;
+    const { error } = await supabaseClient.rpc("cx_promo_release", { p_order_id: reservedOrderId });
+    if (error) console.error("Promo release failed:", reservedOrderId, error);
+    reservedOrderId = null;
+  };
+
   try {
     const body = await req.json();
-    const { manage_id, customer_name, customer_phone, customer_email, template_name, theme } = body;
+    const { manage_id, customer_name, customer_phone, customer_email, template_name, theme, promo_code } = body;
 
     if (!manage_id || !customer_name || !customer_phone || !template_name) {
       return new Response(JSON.stringify({ error: "Missing required fields: manage_id, customer_name, customer_phone, template_name" }), {
@@ -188,33 +237,59 @@ async function handleCreatePayment(req: Request, supabaseClient: any) {
       });
     }
 
-    const paymentAmount = pricingData.price;
+    const basePrice = pricingData.price;
 
     // Validate amount is positive
-    if (paymentAmount <= 0) {
+    if (basePrice <= 0) {
       return new Response(JSON.stringify({ error: "Invalid price configuration" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const payosCredentials = getPayOSCredentials();
-    const baseUrl = req.headers.get("origin") || "https://yourdomain.com";
-
-    const paymentResponse = await createPaymentRequest(
-      {
-        amount: paymentAmount,
-        returnUrl: `${baseUrl}/payment-success`,
-        cancelUrl: `${baseUrl}/payment-cancel`,
-      },
-      payosCredentials.apiKey,
-      payosCredentials.clientId,
-      payosCredentials.checksumKey,
-    );
-
-    // Use orderCode from PayOS response (this is what PayOS will send in webhook)
-    const payosOrderCode = paymentResponse.orderCode;
+    // Sinh mã đơn TRƯỚC khi gọi PayOS: giữ chỗ mã giảm giá gắn theo order_id này.
+    const payosOrderCode = newOrderCode();
     const fullOrderId = `ORDER-${payosOrderCode}`;
+
+    // Trừ ngay một lượt của mã giảm giá (cx_promo_reserve — xem changelogs/RC1.8).
+    // Lượt KHÔNG hoàn lại nếu khách bỏ ngang; chỉ nhả khi đơn tạo không thành.
+    let discountAmount = 0;
+    let appliedPromoCode: string | null = null;
+    let userKey: string | null = null;
+    if (promo_code) {
+      userKey = await resolveUserKey(req, supabaseClient, customer_email);
+      const { data: reserve, error: reserveError } = await supabaseClient.rpc("cx_promo_reserve", {
+        p_code: promo_code,
+        p_manage_id: manage_id,
+        p_order_id: fullOrderId,
+        p_base_amount: basePrice,
+        p_user_key: userKey,
+      });
+
+      if (reserveError) {
+        console.error("Promo reserve error:", reserveError);
+        return new Response(JSON.stringify({ error: "Không kiểm tra được mã giảm giá, vui lòng thử lại" }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      if (!reserve?.ok) {
+        return new Response(JSON.stringify({
+          error: reserve?.message || "Mã giảm giá không dùng được",
+          promo_error: reserve?.reason || "invalid",
+        }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      discountAmount = reserve.discount_amount ?? 0;
+      appliedPromoCode = reserve.code ?? promo_code;
+      reservedOrderId = fullOrderId;
+    }
+
+    const paymentAmount = Math.max(0, basePrice - discountAmount);
 
     // Generate slug from customer name (remove Vietnamese accents) and ensure it's unique
     const removeVietnameseAccents = (str: string): string => {
@@ -232,6 +307,100 @@ async function handleCreatePayment(req: Request, supabaseClient: any) {
     
     const baseSlug = removeVietnameseAccents(customer_name);
     const finalSlug = await getUniqueSlug(supabaseClient, baseSlug, manage_id);
+
+    const pricingPayload = {
+      price: pricingData.price,
+      original_price: pricingData.original_price,
+      template_name: pricingData.template_name,
+      discount_amount: discountAmount,
+      final_price: paymentAmount,
+    };
+
+    // ── Mã giảm 100%: không có gì để thu ──
+    // PayOS không tạo được đơn 0đ nên bỏ qua hẳn cổng thanh toán, tự đánh dấu
+    // hoàn tất và gỡ hạn dùng thử (expires_at = null) đúng như webhook vẫn làm.
+    if (paymentAmount <= 0) {
+      // Nhánh này cấp thẳng sản phẩm mà không qua thanh toán, nên phải biết CHẮC
+      // ai nhận: email gõ tay thì bịa được, chỉ user_id từ JWT mới tin được.
+      if (!userKey?.startsWith("uid:")) {
+        await releasePromo();
+        return new Response(JSON.stringify({
+          error: "Vui lòng đăng nhập để dùng mã miễn phí này",
+          promo_error: "login_required",
+        }), {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // Một mốc thời gian duy nhất cho cả bản ghi DB lẫn response, không thì
+      // client lưu một giờ, DB một giờ khác.
+      const freeTransactionId = `PROMO-${appliedPromoCode}-${payosOrderCode}`;
+      const freePaidAt = new Date().toISOString();
+
+      const { error: freeError } = await supabaseClient
+        .from("weddings")
+        .upsert({
+          id: manage_id,
+          slug: finalSlug,
+          payment_status: "completed",
+          payment_order_id: fullOrderId,
+          payment_amount: 0,
+          payment_time: freePaidAt,
+          transaction_id: freeTransactionId,
+          expires_at: null,
+          theme: theme || "template1",
+        }, { onConflict: "id", ignoreDuplicates: false });
+
+      if (freeError) {
+        console.error("Failed to save free wedding:", freeError);
+        throw new Error("Failed to save payment information");
+      }
+
+      const { error: redeemError } = await supabaseClient.rpc("cx_promo_redeem", { p_order_id: fullOrderId });
+      if (redeemError) console.error("Promo redeem failed (free order):", redeemError);
+      // Đã chốt xong → catch bên dưới không được nhả lượt này nữa.
+      reservedOrderId = null;
+
+      await supabaseClient.from("payment_logs").insert({
+        order_id: fullOrderId,
+        manage_id,
+        event_type: "completed",
+        payload: { customer_name, customer_phone, customer_email, template_name, amount: 0, promo_code: appliedPromoCode },
+      });
+
+      return new Response(JSON.stringify({
+        success: true,
+        free: true,
+        order_id: fullOrderId,
+        manage_id,
+        slug: finalSlug,
+        transaction_id: freeTransactionId,
+        payment_time: freePaidAt,
+        promo_code: appliedPromoCode,
+        pricing: pricingPayload,
+      }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const payosCredentials = getPayOSCredentials();
+    const baseUrl = req.headers.get("origin") || "https://yourdomain.com";
+
+    // Lỗi từ đây trở đi (PayOS từ chối, ghi DB hỏng…) đều rơi xuống catch cuối
+    // hàm và nhả lượt mã đã giữ.
+    const paymentResponse = await createPaymentRequest(
+      {
+        orderCode: payosOrderCode,
+        amount: paymentAmount,
+        returnUrl: `${baseUrl}/payment-success`,
+        cancelUrl: `${baseUrl}/payment-cancel`,
+      },
+      payosCredentials.apiKey,
+      payosCredentials.clientId,
+      payosCredentials.checksumKey,
+    );
 
     // Upsert wedding record with payment info (insert if not exists, update if exists)
     const { error: upsertError } = await supabaseClient
@@ -257,7 +426,7 @@ async function handleCreatePayment(req: Request, supabaseClient: any) {
       order_id: fullOrderId,
       manage_id,
       event_type: "created",
-      payload: { customer_name, customer_phone, customer_email, template_name, amount: paymentAmount },
+      payload: { customer_name, customer_phone, customer_email, template_name, amount: paymentAmount, promo_code: appliedPromoCode },
     });
 
     return new Response(JSON.stringify({
@@ -271,11 +440,8 @@ async function handleCreatePayment(req: Request, supabaseClient: any) {
         amount: paymentResponse.data.amount,
         content: paymentResponse.data.description,
       },
-      pricing: {
-        price: pricingData.price,
-        original_price: pricingData.original_price,
-        template_name: pricingData.template_name,
-      },
+      pricing: pricingPayload,
+      promo_code: appliedPromoCode,
       checkout_url: paymentResponse.data.checkoutUrl,
     }), {
       status: 200,
@@ -283,6 +449,7 @@ async function handleCreatePayment(req: Request, supabaseClient: any) {
     });
   } catch (error) {
     console.error("Create payment error:", error);
+    await releasePromo();
     return new Response(JSON.stringify({ error: error.message || "Failed to create payment" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -370,12 +537,13 @@ async function handleWebhook(req: Request, supabaseClient: any) {
     const paymentData = payload.data;
     
     // Get manage_id from database using orderCode
+    const fullOrderId = `ORDER-${paymentData.orderCode}`;
     const { data: weddingData, error: fetchError } = await supabaseClient
       .from("weddings")
-      .select("id")
-      .eq("payment_order_id", `ORDER-${paymentData.orderCode}`)
+      .select("id, theme, payment_amount")
+      .eq("payment_order_id", fullOrderId)
       .single();
-    
+
     if (fetchError || !weddingData) {
       console.error("Could not find wedding record for order:", paymentData.orderCode);
       return new Response(JSON.stringify({ error: "Wedding record not found" }), {
@@ -386,24 +554,30 @@ async function handleWebhook(req: Request, supabaseClient: any) {
     const manage_id = weddingData.id;
     const theme_name = weddingData.theme || "template1";
 
-    // SECURITY: Validate amount from database pricing based on theme
-    const { data: pricingData, error: pricingError } = await supabaseClient
-      .from("template_pricing")
-      .select("price")
-      .eq("template_name", theme_name)
-      .eq("is_active", true)
-      .single();
+    // SECURITY: số tiền kỳ vọng là payment_amount đã chốt lúc tạo đơn (đã trừ mã
+    // giảm giá) — do chính backend ghi nên vẫn tin được. Đơn cũ chưa có
+    // payment_amount thì rơi về giá niêm yết của theme.
+    let expectedAmount = weddingData.payment_amount;
+    if (expectedAmount == null) {
+      const { data: pricingData, error: pricingError } = await supabaseClient
+        .from("template_pricing")
+        .select("price")
+        .eq("template_name", theme_name)
+        .eq("is_active", true)
+        .single();
 
-    if (pricingError || !pricingData) {
-      console.error("Pricing validation error:", pricingError);
-      return new Response(JSON.stringify({ error: "Invalid template pricing" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      if (pricingError || !pricingData) {
+        console.error("Pricing validation error:", pricingError);
+        return new Response(JSON.stringify({ error: "Invalid template pricing" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      expectedAmount = pricingData.price;
     }
 
-    if (paymentData.amount !== pricingData.price) {
-      console.error("Amount mismatch. Expected:", pricingData.price, "Got:", paymentData.amount);
+    if (paymentData.amount !== expectedAmount) {
+      console.error("Amount mismatch. Expected:", expectedAmount, "Got:", paymentData.amount);
       return new Response(JSON.stringify({ error: "Amount mismatch" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -438,6 +612,11 @@ async function handleWebhook(req: Request, supabaseClient: any) {
       console.error("Failed to update payment status:", updateError);
       throw new Error("Database update failed");
     }
+
+    // Tiền đã vào → chốt lượt mã giảm giá đang giữ chỗ. Lỗi thì chỉ ghi log,
+    // không được chặn webhook.
+    const { error: redeemError } = await supabaseClient.rpc("cx_promo_redeem", { p_order_id: fullOrderId });
+    if (redeemError) console.error("Promo redeem failed:", fullOrderId, redeemError);
 
     await supabaseClient.from("payment_logs").insert({
       order_id: paymentData.orderCode.toString(),
