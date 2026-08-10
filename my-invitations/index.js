@@ -281,7 +281,7 @@ function setState(state, counts) {
     : "Chọn một mẫu thiệp rồi bắt đầu điền thông tin — chỉ mất vài phút.";
 }
 
-const BADGE = "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold shadow-sm";
+const BADGE = "inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[9px] font-semibold shadow-sm sm:px-2 sm:text-[10px]";
 
 function cardHTML(c, i) {
   const state = cardState(c);
@@ -289,47 +289,52 @@ function cardHTML(c, i) {
   const days = daysLeft(c);
 
   const statusBadge = c.published
-    ? `<span class="${BADGE} bg-emerald-500 text-white"><i class="fas fa-check text-[10px]"></i>Đã xuất bản</span>`
-    : `<span class="${BADGE} bg-white/90 text-gray-600"><i class="fas fa-pen-nib text-[10px]"></i>Nháp</span>`;
+    ? `<span class="${BADGE} bg-emerald-500 text-white"><i class="fas fa-check text-[9px]"></i>Đã xuất bản</span>`
+    : `<span class="${BADGE} bg-white/90 text-gray-600"><i class="fas fa-pen-nib text-[9px]"></i>Nháp</span>`;
 
   let leftBadges = "";
   if (state === "trial" || state === "expired" || state === "published") {
     leftBadges =
-      `<span class="${BADGE} bg-amber-500 text-white"><i class="fas fa-credit-card text-[10px]"></i>Chưa kích hoạt</span>`;
+      `<span class="${BADGE} bg-amber-500 text-white"><i class="fas fa-credit-card text-[9px]"></i>Chưa kích hoạt</span>`;
     if (state === "trial") {
-      leftBadges += `<span class="${BADGE} bg-sky-500 text-white"><i class="fas fa-clock text-[10px]"></i>Dùng thử · còn ${days} ngày</span>`;
+      leftBadges += `<span class="${BADGE} bg-sky-500 text-white"><i class="fas fa-clock text-[9px]"></i><span class="sm:hidden">Còn ${days} ngày</span><span class="hidden sm:inline">Dùng thử · còn ${days} ngày</span></span>`;
     } else if (state === "expired") {
-      leftBadges += `<span class="${BADGE} bg-red-500 text-white"><i class="fas fa-clock text-[10px]"></i>Hết hạn dùng thử</span>`;
+      leftBadges += `<span class="${BADGE} bg-red-500 text-white"><i class="fas fa-clock text-[9px]"></i><span class="sm:hidden">Hết hạn</span><span class="hidden sm:inline">Hết hạn dùng thử</span></span>`;
     }
   } else if (state === "active") {
-    leftBadges = `<span class="${BADGE} bg-emerald-500 text-white"><i class="fas fa-circle-check text-[10px]"></i>Đã kích hoạt</span>`;
+    leftBadges = `<span class="${BADGE} bg-emerald-500 text-white"><i class="fas fa-circle-check text-[9px]"></i>Đã kích hoạt</span>`;
   }
 
   const note = noteHTML(state, days);
   const slugRow = c.slug ? slugRowHTML(c, i) : "";
 
   return `
-    <div class="group flex flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-shadow hover:shadow-md">
-      <div class="relative h-40 cursor-pointer overflow-hidden bg-gray-50" onclick="openEditor(${i})">
+    <div class="group flex flex-col overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm transition-shadow hover:shadow-md">
+      <div class="relative h-24 cursor-pointer overflow-hidden bg-gray-50 sm:h-28" onclick="openEditor(${i})">
         <img src="/assets/images/templates/${escAttr(c.theme)}.jpg" alt="${escAttr(title)}"
              loading="lazy" onerror="this.style.display='none'"
              class="h-full w-full object-cover object-top transition-transform duration-300 group-hover:scale-105" />
-        <div class="absolute left-3 top-3 flex flex-col items-start gap-1.5">${leftBadges}</div>
-        <div class="absolute right-3 top-3">${statusBadge}</div>
+        <div class="absolute left-1.5 top-1.5 flex flex-col items-start gap-1 sm:left-2 sm:top-2">${leftBadges}</div>
+        <div class="absolute right-2 top-2 hidden sm:block">${statusBadge}</div>
       </div>
 
-      <div class="flex flex-1 flex-col p-5">
-        <h3 class="cursor-pointer text-lg font-bold text-gray-900 hover:opacity-80" onclick="openEditor(${i})">${esc(title)}</h3>
+      <div class="flex flex-1 flex-col p-3 sm:p-4">
+        <h3 class="cursor-pointer truncate text-[13px] font-bold text-gray-900 hover:opacity-80 sm:text-[15px]" onclick="openEditor(${i})">${esc(title)}</h3>
 
-        <div class="mt-2.5 space-y-1.5 text-sm text-gray-500">
-          <p class="flex items-center gap-2"><i class="far fa-calendar w-4 text-xs text-gray-400"></i>Tạo ${formatDate(c.createdAt)}</p>
-          <p class="flex items-center gap-2"><i class="fas fa-palette w-4 text-xs text-gray-400"></i>${esc(themeName(c.theme))}</p>
-        </div>
+        <p class="mt-1 flex items-center gap-1.5 text-[11px] text-gray-500 sm:text-[12px]">
+          <i class="fas fa-palette text-[10px] text-gray-400"></i>
+          <span class="truncate">${esc(themeName(c.theme))}</span>
+          <span class="text-gray-300">·</span>
+          <span class="shrink-0">${formatDate(c.createdAt)}</span>
+        </p>
 
         ${note}
         ${slugRow}
+        <!-- Nêm co giãn: giữ tối thiểu 12px, phần dư đẩy hàng nút xuống đáy thẻ để
+             các thẻ cùng hàng thẳng chân nhau. -->
+        <div class="mt-3 flex-1"></div>
 
-        <div class="mt-4 flex items-center justify-around border-t border-gray-100 pt-2">
+        <div class="flex items-center justify-around border-t border-gray-100 pt-1.5">
           ${actionsHTML(c, i, state)}
         </div>
       </div>
@@ -338,34 +343,34 @@ function cardHTML(c, i) {
 
 function noteHTML(state, days) {
   if (state === "trial") {
-    return `<div class="mt-4 flex gap-2.5 rounded-xl bg-sky-50 p-3 text-xs leading-relaxed text-sky-800">
-      <i class="fas fa-clock mt-0.5 text-sky-500"></i>
-      <span>Còn ${days} ngày dùng thử. Thanh toán để khách mời vẫn xem được sau khi hết hạn.</span>
+    return `<div class="mt-3 hidden gap-2 rounded-lg bg-sky-50 p-2.5 sm:flex text-[11px] leading-relaxed text-sky-800">
+      <i class="fas fa-clock mt-0.5 text-[11px] text-sky-500"></i>
+      <span>Còn ${days} ngày dùng thử — thanh toán để giữ thiệp mở.</span>
     </div>`;
   }
   if (state === "expired") {
-    return `<div class="mt-4 flex gap-2.5 rounded-xl bg-red-50 p-3 text-xs leading-relaxed text-red-700">
-      <i class="fas fa-triangle-exclamation mt-0.5 text-red-500"></i>
-      <span>Đã hết hạn dùng thử, khách mời không mở được thiệp. Kích hoạt để mở lại vĩnh viễn.</span>
+    return `<div class="mt-3 hidden gap-2 rounded-lg bg-red-50 p-2.5 sm:flex text-[11px] leading-relaxed text-red-700">
+      <i class="fas fa-triangle-exclamation mt-0.5 text-[11px] text-red-500"></i>
+      <span>Hết hạn dùng thử — kích hoạt để mở lại cho khách mời.</span>
     </div>`;
   }
   if (state === "draft") {
-    return `<div class="mt-4 flex gap-2.5 rounded-xl bg-gray-50 p-3 text-xs leading-relaxed text-gray-600">
-      <i class="fas fa-pen-nib mt-0.5 text-gray-400"></i>
-      <span>Thiệp đang là bản nháp. Xuất bản trong trình chỉnh sửa để chia sẻ với khách mời.</span>
+    return `<div class="mt-3 hidden gap-2 rounded-lg bg-gray-50 p-2.5 sm:flex text-[11px] leading-relaxed text-gray-600">
+      <i class="fas fa-pen-nib mt-0.5 text-[11px] text-gray-400"></i>
+      <span>Bản nháp — xuất bản để chia sẻ với khách mời.</span>
     </div>`;
   }
   return "";
 }
 
 function slugRowHTML(c, i) {
-  return `<div class="mt-4 flex items-center gap-1 rounded-xl bg-gray-50 px-3 py-2">
-      <span class="flex-1 truncate font-mono text-xs text-gray-600">/${esc(c.slug)}</span>
-      <x-button variant="ghost" tone="neutral" size="sm" icon-only onclick="openSlugModal(${i})" aria-label="Đổi đường dẫn">
-        <i class="fas fa-gear text-xs"></i>
+  return `<div class="mt-3 hidden items-center gap-0.5 rounded-lg bg-gray-50 px-2.5 py-1 sm:flex">
+      <span class="flex-1 truncate font-mono text-[11px] text-gray-600">/${esc(c.slug)}</span>
+      <x-button variant="ghost" tone="neutral" size="xs" icon-only onclick="openSlugModal(${i})" aria-label="Đổi đường dẫn">
+        <i class="fas fa-gear text-[11px]"></i>
       </x-button>
-      <x-button variant="ghost" tone="neutral" size="sm" icon-only onclick="copyLink(${i}, this)" aria-label="Sao chép liên kết">
-        <i class="fas fa-copy text-xs"></i>
+      <x-button variant="ghost" tone="neutral" size="xs" icon-only onclick="copyLink(${i}, this)" aria-label="Sao chép liên kết">
+        <i class="fas fa-copy text-[11px]"></i>
       </x-button>
     </div>`;
 }
@@ -375,17 +380,17 @@ const ACTION = "flex-1";
 function actionsHTML(c, i, state) {
   const out = [];
   if (c.published && c.slug) {
-    out.push(`<x-button variant="ghost" tone="neutral" size="sm" icon="fas fa-eye" onclick="viewCard(${i})" class="${ACTION}">Xem</x-button>`);
-    out.push(`<x-button variant="ghost" tone="neutral" size="sm" icon="fas fa-share-nodes" onclick="shareCard(${i})" class="${ACTION}">Chia sẻ</x-button>`);
+    out.push(`<x-button variant="ghost" tone="neutral" size="xs" icon="fas fa-eye" onclick="viewCard(${i})" class="${ACTION}"><span class="hidden sm:inline">Xem</span></x-button>`);
+    out.push(`<x-button variant="ghost" tone="neutral" size="xs" icon="fas fa-share-nodes" onclick="shareCard(${i})" class="${ACTION}"><span class="hidden sm:inline">Chia sẻ</span></x-button>`);
   } else {
-    out.push(`<x-button variant="ghost" tone="neutral" size="sm" icon="fas fa-pen" onclick="openEditor(${i})" class="${ACTION}">Chỉnh sửa</x-button>`);
+    out.push(`<x-button variant="ghost" tone="neutral" size="xs" icon="fas fa-pen" onclick="openEditor(${i})" class="${ACTION}"><span class="hidden sm:inline">Chỉnh sửa</span></x-button>`);
   }
   if (state === "trial" || state === "expired" || state === "published") {
     // Kích hoạt là việc cần chú ý nhất trên thẻ → tô cam. Dùng "!" vì class màu của
     // ghost/neutral cùng độ ưu tiên, không có "!" thì thứ tự trong file CSS quyết định.
-    out.push(`<x-button variant="ghost" tone="neutral" size="sm" icon="fas fa-credit-card" onclick="activateCard(${i})" class="${ACTION} !text-amber-600 hover:!bg-amber-50 hover:!text-amber-700">Kích hoạt</x-button>`);
+    out.push(`<x-button variant="ghost" tone="neutral" size="xs" icon="fas fa-credit-card" onclick="activateCard(${i})" class="${ACTION} !text-amber-600 hover:!bg-amber-50 hover:!text-amber-700"><span class="hidden sm:inline">Kích hoạt</span></x-button>`);
   }
-  out.push(`<x-button variant="ghost" tone="danger" size="sm" icon-only onclick="deleteCard(${i})" aria-label="Xoá thiệp"><i class="fas fa-trash text-xs"></i></x-button>`);
+  out.push(`<x-button variant="ghost" tone="danger" size="xs" icon-only onclick="deleteCard(${i})" aria-label="Xoá thiệp"><i class="fas fa-trash text-[11px]"></i></x-button>`);
   return out.join("");
 }
 
@@ -428,8 +433,8 @@ async function copyLink(i, btn) {
   if (!c?.slug) return;
   await navigator.clipboard.writeText(publicUrl(c));
   const icon = btn.querySelector("i");
-  icon.className = "fas fa-check text-xs";
-  setTimeout(() => (icon.className = "fas fa-copy text-xs"), 2000);
+  icon.className = "fas fa-check text-[11px]";
+  setTimeout(() => (icon.className = "fas fa-copy text-[11px]"), 2000);
   showToast("Đã sao chép liên kết thiệp", "success");
 }
 
@@ -609,11 +614,8 @@ const escAttr = esc;
 
 function formatDate(dateStr) {
   if (!dateStr) return "-";
-  return new Date(dateStr).toLocaleDateString("vi-VN", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+  // Dạng số ngắn (10/8/2026) — thẻ đã chật, "10 tháng 8, 2026" chiếm gần cả dòng.
+  return new Date(dateStr).toLocaleDateString("vi-VN");
 }
 
 function toggleUserDropdown() {
