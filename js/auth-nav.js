@@ -9,7 +9,7 @@ function updateNavAuthBtn() {
 // Mở popup đăng nhập/tạo tài khoản ngay tại trang hiện tại (giống lúc Xuất bản thiệp).
 function openLoginPopup() {
   if (!window.AuthUI) {
-    window.location.href = `/public/account/?urlRedirect=${encodeURIComponent(window.location.href)}`;
+    window.location.href = `/my-invitations/?urlRedirect=${encodeURIComponent(window.location.href)}`;
     return;
   }
   AuthUI.openModal({

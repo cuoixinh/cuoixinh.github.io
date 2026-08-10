@@ -1972,7 +1972,7 @@ async function publishWedding() {
     } else {
       const returnUrl = new URL(window.location.href);
       returnUrl.searchParams.set("pendingPublish", "1");
-      window.location.href = `/public/account/?urlRedirect=${encodeURIComponent(returnUrl.toString())}`;
+      window.location.href = `/my-invitations/?urlRedirect=${encodeURIComponent(returnUrl.toString())}`;
     }
     return;
   }

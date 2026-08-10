@@ -1,5 +1,5 @@
 // Build Tailwind cho CÁC TRANG ỨNG DỤNG (npm run build:css):
-//   index.html · admin/ · public/account/ · invitation-setup/ (+ guests/) ·
+//   index.html · admin/ · my-invitations/ · invitation-setup/ (+ guests/) ·
 //   theme-template/
 // Nguồn: styles/tailwind-src.css → styles/build.css
 //
@@ -14,7 +14,7 @@ module.exports = {
     "./js/**/*.js",
     "./core/**/*.js",
     "./admin/**/*.{html,js}",
-    "./public/account/**/*.{html,js}",
+    "./my-invitations/**/*.{html,js}",
     // invitation-setup nạp partials/*.html động qua loader.js → phải quét cả
     // thư mục partials, nếu không class trong đó bị purge mất.
     "./invitation-setup/**/*.{html,js}",

@@ -130,7 +130,7 @@ biến ở đây sẽ lệch với tên class mà người viết theme đang d�
 - [x] `tailwind.config.js` + `tailwind.themes.config.js` — `colors` trỏ về token
 - [x] `index.html`, `theme-template/index.html`
 - [x] `invitation-setup/partials/*.html`, `invitation-setup/js/*`, `invitation-setup/loader.js`
-- [x] `admin/*`, `public/account/*`
+- [x] `admin/*`, `my-invitations/*`
 - [x] `core/*.js` — style tiêm động (`payment.js`, `alert.js`, `x-speech.js`, `x-undo.js`,
       `x-controls.js`, `utils.js`, `auth-ui.js`, `tooltip.js`, `guide-helper.js`,
       `share-social.js`, `qr-mobile-helper.js`, `render-helper.js`…)
@@ -173,7 +173,7 @@ biến ở đây sẽ lệch với tên class mà người viết theme đang d�
 2. Chuyển 5 file CSS trong `styles/` sang token (bỏ hết `:root` rải rác).
 3. Chuyển 2 file `tailwind*.config.js`.
 4. Quét HTML/JS theo thư mục: `index.html` → `js/` → `core/` → `invitation-setup/` →
-   `admin/` → `public/account/` → `theme-template/` → `public/themes/`.
+   `admin/` → `my-invitations/` → `theme-template/` → `public/themes/`.
 5. `npm run build` (bắt buộc — không còn Play CDN), commit cả `build.css` + `themes.css`.
 6. Kiểm tra còn sót: lệnh dưới phải chỉ còn các mục ở §3.2.
 

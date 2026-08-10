@@ -10,11 +10,13 @@
         .replace(/\/$/, "");
       const params = new URLSearchParams(window.location.search);
 
-      // Routing rules
+      // Routing rules. "account" là đường dẫn CŨ của trang quản lý thiệp — giữ lại
+      // để link đã chia sẻ không chết; /my-invitations/ là thư mục thật nên không
+      // cần khai ở đây (GitHub Pages phục vụ thẳng).
       const routes = {
         admin: "/admin/",
         manage: "/invitation-setup/",
-        account: "/public/account/",
+        account: "/my-invitations/",
         customer: "/invitation-setup/",
       };
 

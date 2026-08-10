@@ -31,7 +31,7 @@ Truy cập: `http://localhost:8000`
 - `http://localhost:8000/` - Landing page
 - `http://localhost:8000/admin/admin.html` - Admin dashboard
 - `http://localhost:8000/customer/manage.html?id=xxx` - Customer management
-- `http://localhost:8000/public/account/account.html` - Account page
+- `http://localhost:8000/my-invitations/account.html` - Account page
 - `http://localhost:8000/public/themes/template1.html?slug=xxx` - Wedding template
 
 **Production (clean URLs):**

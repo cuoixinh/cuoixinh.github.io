@@ -28,6 +28,7 @@ Local dùng full URL (`/admin/index.html`); production dùng clean URL qua `rout
 index.html               Landing page
 router.html, 404.html    Clean URL routing (production)
 admin/                   Trang admin (cần ADMIN_SECRET_TOKEN)
+my-invitations/          "Quản lý thiệp cưới" — lưới thẻ thiệp của khách + menu tài khoản
 invitation-setup/        Trình tạo/chỉnh thiệp — index.html (vỏ) + loader.js + partials/ + js/
 public/themes/           Các theme thiệp (romantic-gold, vintage-forest, basic-gold…)
 core/                    Dùng chung: dal/ · bl/ · components/ · helpers/ · x-*.js (web components)
@@ -59,7 +60,7 @@ Không gọi thẳng UI → DAL khi có logic nghiệp vụ.
 
   | Build    | Config                      | Nguồn → Kết quả                  | Trang dùng                                                                   |
   | -------- | --------------------------- | -------------------------------- | ---------------------------------------------------------------------------- |
-  | Ứng dụng | `tailwind.config.js`        | `tailwind-src.css` → `build.css` | `index`, `admin/`, `invitation-setup/`, `public/account/`, `theme-template/` |
+  | Ứng dụng | `tailwind.config.js`        | `tailwind-src.css` → `build.css` | `index`, `admin/`, `invitation-setup/`, `my-invitations/`, `theme-template/` |
   | Thiệp    | `tailwind.themes.config.js` | `themes-src.css` → `themes.css`  | `public/themes/*`                                                            |
 
 - Thêm thư mục/trang mới → **thêm vào `content`** của config tương ứng, không thì bị purge.

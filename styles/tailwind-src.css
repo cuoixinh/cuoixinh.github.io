@@ -1,5 +1,5 @@
 /* Nguồn build Tailwind cho CÁC TRANG ỨNG DỤNG:
-     index.html · admin/ · public/account/ · invitation-setup/ (+ guests/) ·
+     index.html · admin/ · my-invitations/ · invitation-setup/ (+ guests/) ·
      theme-template/
    Build: npm run build:css → styles/build.css (đã purge + minify).
 

@@ -23,7 +23,7 @@
 ### [1] NAV
 
 **Thay đổi:**
-- Bỏ "Đơn hàng" → đổi thành **"Quản lý thiệp"** → `/public/account/` (label rõ hơn, đúng với nội dung trang)
+- Bỏ "Đơn hàng" → đổi thành **"Quản lý thiệp"** → `/my-invitations/` (label rõ hơn, đúng với nội dung trang)
 - Đổi "Bắt đầu" → **"Tạo thiệp miễn phí"** → link thẳng đến `/invitation-setup/`
 - Nav links: "Mẫu thiệp" | "Tính năng" | "Cách dùng"
 
@@ -110,7 +110,7 @@ cho các cặp đôi VN    Quản lý thiệp
 © 2026 Cưới Xinh
 ```
 
-> Chỉ link đến trang đang tồn tại: `/` · `/invitation-setup/` · `/public/account/`
+> Chỉ link đến trang đang tồn tại: `/` · `/invitation-setup/` · `/my-invitations/`
 
 ---
 
