@@ -211,9 +211,15 @@ function showToast(msg, type = "default", icon = null) {
     </div>`;
   document.body.appendChild(backdrop);
 
-  document.getElementById("cx-alert-ok").addEventListener("click", () => _settleDialog(true));
-  document.getElementById("cx-alert-cancel").addEventListener("click", () => _settleDialog(false));
-  backdrop.addEventListener("click", (e) => { if (e.target === backdrop) _settleDialog(false); });
+  // Bắt sự kiện Ở BACKDROP chứ không gắn thẳng vào hai nút: <x-button> tự thay
+  // mình bằng <button> thật, và khi file này chạy lúc trang đang parse thì việc
+  // thay diễn ra tận DOMContentLoaded — listener gắn trước đó nằm lại trên phần
+  // tử đã bị vứt, bấm Huỷ/Xác nhận không có gì xảy ra. Backdrop thì không bị thay.
+  backdrop.addEventListener("click", (e) => {
+    if (e.target === backdrop) return _settleDialog(false);
+    const btn = e.target.closest("#cx-alert-ok, #cx-alert-cancel");
+    if (btn) _settleDialog(btn.id === "cx-alert-ok");
+  });
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && backdrop.classList.contains("visible")) _settleDialog(false);
   });
