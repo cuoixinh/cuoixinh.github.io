@@ -9,10 +9,10 @@
   @apply fixed right-4 z-[45];
 
   touch-action: none; /* kéo bằng cảm ứng không làm cuộn trang */
-  /* Luôn cách mép trên thanh điều hướng dưới cùng 16px. Giá trị --ai-fab-bottom
-     do JS cập nhật theo chiều cao thực của navbar (kể cả khi có Local Draft
-     Notice). Fallback ~ chiều cao navbar mặc định + 16px khi JS chưa chạy. */
-  bottom: var(--ai-fab-bottom, calc(60px + 24px));
+  /* Luôn nằm trên navbar VÀ cặp nút bước. Giá trị --ai-fab-bottom do
+     _positionAiFab() cập nhật theo chiều cao thực của cả hai (navbar cao thêm
+     khi mở ngăn kéo). Fallback dùng cho nhịp đầu, trước khi JS kịp đo. */
+  bottom: var(--ai-fab-bottom, 144px);
 }
 
 /* Thẻ mời kiểu "glassmorphism": nền trắng mờ + blur, bo góc lớn, icon vuông
@@ -80,8 +80,8 @@
   @apply bg-black;
 }
 
-/* Nút "x" đóng thẻ mời — tròn nhỏ ở góc trên-phải trong thẻ. Bấm → thu thẻ về
-   nút tròn nhỏ (.ai-mini) để mobile vẫn còn lối vào AI. */
+/* Nút "x" đóng thẻ mời — tròn nhỏ ở góc trên-phải trong thẻ. Bấm → ẩn hẳn thẻ;
+   lối vào AI còn lại nằm ở ngăn kéo navbar dưới (#nav-ai-btn). */
 .ai-fab-close {
   @apply absolute right-2.5 top-2.5 z-[1] inline-flex h-[22px] w-[22px]
          cursor-pointer items-center justify-center rounded-full border-none
@@ -101,99 +101,12 @@
   @apply h-[13px] w-[13px];
 }
 
-/* Nút thu gọn: nút tròn gradient tím→xanh + icon ✨ trắng (khớp .ai-icon). */
-.ai-mini {
-  @apply relative inline-flex h-[52px] w-[52px] cursor-pointer items-center
-         justify-center rounded-full border-none p-0 text-white;
-
-  /* Lớp 1: dải sáng nghiêng lướt qua (animate background-position).
-     Lớp 2: nền gradient gốc. Bo tròn tự cắt dải sáng theo hình tròn. */
-  background:
-    linear-gradient(
-        110deg,
-        transparent 42%,
-        rgb(var(--white-rgb) / 0.6) 50%,
-        transparent 58%
-      )
-      no-repeat,
-    linear-gradient(135deg, rgb(var(--ai-soft-from-rgb)), rgb(var(--ai-soft-to-rgb))) no-repeat;
-  background-size:
-    200% 100%,
-    100% 100%;
-  background-position:
-    120% 0,
-    0 0;
-  box-shadow: 0 10px 25px rgb(var(--ai-glow-rgb) / 0.35);
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
-  animation:
-    ai-card-in 0.4s ease-out both,
-    ai-mini-shine 3s ease-in-out 0.4s infinite;
-}
-
-/* Sóng lan tỏa như phát sóng điện thoại — CHỈ phát ra 2 bên: border trong suốt,
-   chỉ tô cạnh trái + phải → thành 2 cung khuyết ( ) ở hai bên. Lệch pha 1s. */
-.ai-mini::before,
-.ai-mini::after {
-  @apply pointer-events-none absolute inset-0 rounded-full;
-
-  content: "";
-  border: 2px solid transparent;
-  border-left-color: rgb(var(--ai-soft-to-rgb) / 0.6);
-  border-right-color: rgb(var(--ai-soft-to-rgb) / 0.6);
-  animation: ai-mini-radar 2s ease-out infinite;
-}
-
-.ai-mini::after {
-  animation-delay: 1s;
-}
-
-.ai-mini:hover {
-  transform: scale(1.06);
-  box-shadow: 0 12px 28px rgb(var(--ai-glow-rgb) / 0.45);
-}
-
-.ai-mini svg {
-  @apply h-[26px] w-[26px];
-}
-
-@keyframes ai-mini-shine {
-  0% {
-    background-position:
-      120% 0,
-      0 0;
-  }
-  33% {
-    background-position:
-      -20% 0,
-      0 0;
-  }
-  100% {
-    background-position:
-      -20% 0,
-      0 0;
-  }
-}
-
-@keyframes ai-mini-radar {
-  0% {
-    transform: scale(1);
-    opacity: 0.6;
-  }
-  100% {
-    transform: scale(2.1);
-    opacity: 0;
-  }
-}
-
 /* Đang kéo: con trỏ "nắm", tắt transition để bám tay mượt, khỏi chọn chữ. */
 .ai-fab.dragging {
   @apply cursor-grabbing select-none;
 }
 
-.ai-fab.dragging .ai-card,
-.ai-fab.dragging .ai-mini {
+.ai-fab.dragging .ai-card {
   @apply cursor-grabbing transition-none;
 }
 
@@ -204,39 +117,23 @@
   display: none;
 }
 
-/* Chuyển thẻ ↔ nút thu gọn. Độ đặc hiệu (0,2,0) nên luôn thắng .hidden của
-   Tailwind (0,1,0), bất kể thứ tự nạp. */
-.ai-fab .ai-mini {
+/* Bấm X → ẩn HẲN thẻ (không thu về nút nhỏ nữa). Độ đặc hiệu (0,2,0) nên luôn
+   thắng .hidden của Tailwind (0,1,0), bất kể thứ tự nạp. */
+.ai-fab.is-gone {
   display: none;
-}
-
-.ai-fab.collapsed .ai-card {
-  display: none;
-}
-
-.ai-fab.collapsed .ai-mini {
-  @apply inline-flex;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ai-card,
-  .ai-mini {
+  .ai-card {
     animation: none;
   }
 
-  .ai-mini::before,
-  .ai-mini::after {
-    display: none;
-  }
-
   .ai-card,
-  .ai-card-btn,
-  .ai-mini {
+  .ai-card-btn {
     @apply transition-none;
   }
 
-  .ai-card:hover,
-  .ai-mini:hover {
+  .ai-card:hover {
     transform: none;
   }
 }

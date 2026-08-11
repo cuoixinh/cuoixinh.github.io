@@ -97,6 +97,7 @@
     "js/19-ai-optimize.js",
     // Sau 03 (dùng SECTION_VIS_FIELDS) và sau 04 (dùng switchTab).
     "js/20-steps.js",
+    "js/21-shell.js",
     "ai-modal.js",
     "tour-setup.js",
   ];

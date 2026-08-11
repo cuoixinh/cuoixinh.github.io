@@ -4,10 +4,11 @@
    viện ngoài (#clr-picker của Coloris, .flatpickr-*) giữ CSS THUẦN.
    Style modal AI: xem styles/_ai-modal.css. */
 
-/* Chiều cao thanh dưới = navbar (60px) + local draft notice (nếu hiện).
-   JS đo lại qua ResizeObserver; giá trị này là mặc định khi chưa có notice. */
+/* Chiều cao thật của thanh dưới (hàng chính + tay nắm + phần hé của ngăn kéo,
+   và cả ngăn kéo khi mở). _syncNavHeight() đo lại qua ResizeObserver; đây chỉ
+   là giá trị mặc định cho nhịp đầu, trước khi JS kịp đo. */
 :root {
-  --nav-h: 60px;
+  --nav-h: 84px;
 }
 
 /* Cột chỉnh giao diện (#theme-controls) trên desktop — mọi thứ ở đây chỉ áp dụng
@@ -795,4 +796,81 @@ svg.lucide {
 
   vertical-align: -0.125em;
   transition: transform 0.2s ease;
+}
+
+/* ===== Vỏ trang: header tự thu + ngăn kéo navbar (js/21-shell.js) ===== */
+
+/* Hàng logo/breadcrumb trong #setup-topbar. Cuộn xuống thì THU CHIỀU CAO về 0
+   (không phải translate) để thanh bước bên dưới trượt lên sát mép trên — dùng
+   grid-template-rows vì `height: auto` không chạy transition được. */
+.cx-topbar-row {
+  display: grid;
+  grid-template-rows: 1fr;
+  overflow: hidden;
+  transition:
+    grid-template-rows 0.26s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.2s ease;
+}
+
+.cx-topbar-row > * {
+  min-height: 0; /* bắt buộc: không có thì hàng con không chịu co lại */
+}
+
+.cx-topbar-row.is-tucked {
+  grid-template-rows: 0fr;
+  opacity: 0;
+}
+
+/* Tay nắm ngăn kéo — dải nhỏ ở mép trên navbar, vuốt lên hoặc bấm để mở. */
+.cx-nav-grip {
+  @apply flex w-full items-center justify-center py-1.5;
+
+  touch-action: none; /* vuốt trên tay nắm không kéo trang cuộn theo */
+}
+
+.cx-nav-grip-bar {
+  @apply block h-1 w-9 rounded-full bg-gray-300 transition-colors;
+}
+
+.cx-nav-grip:hover .cx-nav-grip-bar {
+  @apply bg-gray-400;
+}
+
+/* Hàng hành động phụ. Lúc đóng vẫn chừa --cx-nav-peek để lộ mép trên các nút
+   (mờ đi) — đó là gợi ý "còn thứ ở trên", đừng đặt về 0. Chiều cao lúc mở do
+   js/21-shell.js đo và ghi inline, vì nội dung hàng này có thể đổi. */
+.cx-nav-extra {
+  --cx-nav-peek: 14px;
+
+  height: var(--cx-nav-peek);
+  overflow: hidden;
+  opacity: 0.4;
+  transition:
+    height 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.28s ease;
+}
+
+.cx-nav-extra.is-open {
+  opacity: 1;
+}
+
+/* Lúc đóng, phần hé ra không được bấm nhầm — mở hẳn mới cho tương tác. */
+.cx-nav-extra:not(.is-open) {
+  pointer-events: none;
+}
+
+.cx-nav-ai {
+  background: linear-gradient(
+    135deg,
+    rgb(var(--ai-soft-from-rgb) / 0.16),
+    rgb(var(--ai-soft-to-rgb) / 0.16)
+  );
+  color: rgb(var(--ai-glow-rgb));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cx-topbar-row,
+  .cx-nav-extra {
+    transition: none;
+  }
 }

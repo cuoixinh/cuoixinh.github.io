@@ -89,13 +89,17 @@
 
   // Wait for page to finish initializing before starting tour
   setTimeout(
-    () =>
+    () => {
+      // Bước 1 spotlight #tour-theme-btn, nút này nằm trong ngăn kéo navbar và
+      // mặc định đang đóng → phải mở ra trước, không thì tour soi vào chỗ khuất.
+      window.cxNavExtraOpen?.();
       showTour(STEPS, {
         storageKey: buildCacheKey("tour_seen"),
         onDone: (completed) => {
           if (completed) scheduleAiHint();
         },
-      }),
+      });
+    },
     800,
   );
 })();

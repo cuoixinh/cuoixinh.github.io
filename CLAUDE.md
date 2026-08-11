@@ -97,6 +97,16 @@ nó sẽ ăn mất một dòng ở mọi bước. **Thêm một bước phải s
 `steps/`, `STEP_PARTIALS` + thẻ mount, và `CX_STEPS` (`id` trùng `data-step`, thêm
 `vis` nếu group tắt được). Nhóm này chèn SAU `PARTIALS` vì mount nằm trong form-panel.
 
+**Vỏ trang** (`js/21-shell.js`): hàng logo/breadcrumb tự thu khi cuộn xuống, hiện lại khi
+cuộn lên — nó phải nằm CHUNG khối sticky `#setup-topbar` với thanh bước, và thu bằng
+`grid-template-rows: 1fr→0fr` (con trực tiếp không được đặt chiều cao cố định, nếu không
+track không co). Thu/mở làm tài liệu ngắn/dài đi → trình duyệt kẹp `scrollY` và bắn scroll
+ngược, nên phải khoá một nhịp sau mỗi lần đổi, không thì lật qua lật lại vô tận.
+Navbar dưới có **ngăn kéo** `#nav-extra` (vuốt dọc trên navbar hoặc bấm tay nắm): giữ lối
+vào Trợ lý AI và nút đổi mẫu thiệp, lúc đóng hé `--cx-nav-peek` cho biết còn thứ ở trên.
+Cú vuốt phải nuốt `click` sinh ra sau đó, không thì nó bấm nhầm nút bên trong ngăn kéo.
+Thẻ AI nổi (`.ai-fab`) bấm X là **ẩn hẳn** (`.is-gone`) — lối vào còn lại là `#nav-ai-btn`.
+
 ### Phiên bản & cache (GitHub Pages sau Cloudflare)
 
 GitHub Pages ép `Cache-Control: max-age=600` và không đọc `_headers` → không sửa được
