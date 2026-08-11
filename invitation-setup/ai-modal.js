@@ -1546,33 +1546,6 @@ function _fabNavH() {
   return nav && nav.offsetHeight > 0 ? nav.offsetHeight : 0;
 }
 
-// Đóng Local Draft Notice làm navbar thấp đi: bong bóng AI đang ở chế độ kéo-đặt
-// tay và tựa sát đáy cũ thì trượt xuống tựa navbar mới. oldNavH = chiều cao
-// navbar đo TRƯỚC khi ẩn notice (bên gọi truyền vào).
-function _snapFabAfterNavShrink(oldNavH) {
-  const fab = document.querySelector(".ai-fab");
-  const pos = _loadFabPos();
-  if (!fab || !pos) return; // chỉ áp cho chế độ kéo tay
-  const h = fab.offsetHeight;
-  const vh = document.documentElement.clientHeight;
-  const M = 8;
-  const oldMaxTop = vh - oldNavH - h - M;
-  const newMaxTop = vh - _fabNavH() - h - M;
-  if (newMaxTop <= oldMaxTop) return; // navbar không thấp đi → thôi
-  // Đang tựa sát đáy cũ (trong ~8px) mới đẩy; nổi cao hơn thì giữ nguyên.
-  if (fab.getBoundingClientRect().top < oldMaxTop - 8) return;
-  fab.style.transition = "top 0.22s cubic-bezier(0.32,0.72,0,1)";
-  fab.style.top = newMaxTop + "px";
-  fab.style.bottom = "auto";
-  const clearT = () => {
-    fab.style.transition = "";
-    fab.removeEventListener("transitionend", clearT);
-  };
-  fab.addEventListener("transitionend", clearT);
-  _saveFabPos({ ...pos, top: newMaxTop }); // nhớ vị trí mới
-}
-window._snapFabAfterNavShrink = _snapFabAfterNavShrink;
-
 // Áp vị trí thủ công (nếu có), luôn BÁM LỀ theo cạnh đã lưu (giống AssistiveTouch):
 // tính lại left từ side + bề rộng hiện tại nên đúng lề kể cả khi đổi kích thước màn,
 // xoay máy, hay thẻ thu/mở (card ↔ mini). Kẹp chiều dọc trong khung. Trả về true nếu áp.
@@ -1607,15 +1580,7 @@ function _positionAiFab() {
   // vào sẽ dán fab sát đáy đè lên thanh skeleton.
   if (nav && nav.offsetHeight > 0) {
     const navH = nav.offsetHeight;
-    // Thanh bước dính đáy ngay trên navbar → fab phải tránh CẢ HAI, không thì
-    // thẻ AI đè lên nút "Tiếp theo" (đúng chỗ người dùng cần bấm nhất).
-    const stepNav = document.getElementById("step-nav");
-    const stepH = stepNav && stepNav.offsetHeight > 0 ? stepNav.offsetHeight : 0;
-    document.documentElement.style.setProperty("--cx-step-nav-bottom", navH + "px");
-    document.documentElement.style.setProperty(
-      "--ai-fab-bottom",
-      navH + stepH + 8 + "px",
-    );
+    document.documentElement.style.setProperty("--ai-fab-bottom", navH + 8 + "px");
   }
   // Đã kéo đặt tay → giữ nguyên vị trí đó (chỉ kẹp lại trong màn), bỏ auto-layout.
   if (_applyManualFabPos()) return;

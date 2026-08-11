@@ -30,37 +30,8 @@ function _showContent() {
   }
 }
 
-// Người dùng bấm X để tắt thông báo "đang lưu tạm trên trình duyệt" → nhớ luôn
-// vào localStorage (theo từng thiệp) để lần sau vào không hiện lại.
-const _DRAFT_NOTICE_DISMISS_KEY = buildCacheKey("draft_notice_dismissed", WEDDING_ID);
-
-function _isDraftNoticeDismissed() {
-  return !!getCache(_DRAFT_NOTICE_DISMISS_KEY);
-}
-
-function dismissLocalDraftNotice() {
-  setCache(_DRAFT_NOTICE_DISMISS_KEY, true);
-  // Đo chiều cao navbar TRƯỚC khi ẩn notice để biết bong bóng AI có đang tựa sát nó.
-  const bar = document.getElementById("bottom-nav-bar");
-  const oldNavH = bar ? bar.offsetHeight : 0;
-  document.getElementById("local-draft-notice")?.classList.add("hidden");
-  _syncNavHeight();
-  // Bong bóng AI đang tựa sát notice → tự trượt xuống tựa navbar mới (không để hở).
-  window._snapFabAfterNavShrink?.(oldNavH);
-}
-window.dismissLocalDraftNotice = dismissLocalDraftNotice;
-
-function _updateLocalDraftNotice() {
-  const notice = document.getElementById("local-draft-notice");
-  if (!notice) return;
-  const shouldShow = _isLocalDraft && !IS_LOGIN && !_isDraftNoticeDismissed();
-  notice.classList.toggle("hidden", !shouldShow);
-  _syncNavHeight();
-}
-
-// --nav-h = chiều cao thật của thanh dưới (navbar + local draft notice nếu hiện).
-// Panel giao diện dựa vào biến này để thanh chỉnh luôn nằm ngay trên notice,
-// hoặc ngay trên navbar khi không có notice.
+// --nav-h = chiều cao thật của thanh dưới. Panel giao diện và phần đệm đáy của
+// form dựa vào biến này để không bị navbar che mất phần cuối nội dung.
 function _syncNavHeight() {
   const bar = document.getElementById("bottom-nav-bar");
   if (!bar) return;
@@ -71,7 +42,7 @@ function _initNavHeightWatcher() {
   const bar = document.getElementById("bottom-nav-bar");
   if (!bar) return;
   _syncNavHeight();
-  // Bắt cả khi notice bị đóng bằng nút X và khi chữ xuống dòng lúc đổi kích thước
+  // Bắt cả lúc chữ trong navbar xuống dòng khi đổi kích thước màn
   if (window.ResizeObserver) {
     new ResizeObserver(_syncNavHeight).observe(bar);
   } else {
@@ -91,7 +62,6 @@ async function loadData() {
     if (!localData.theme)
       localData.theme = sessionStorage.getItem("draft_theme") || "basic-gold";
     fillForm(localData);
-    _updateLocalDraftNotice();
     _showContent();
     await _idbRestoreAll();
     return;
@@ -102,7 +72,6 @@ async function loadData() {
     const data = await weddingBL.getWeddingById(WEDDING_ID);
     _isLocalDraft = false;
     fillForm(data);
-    _updateLocalDraftNotice();
     _showContent();
     await _idbRestoreAll();
     loadGuestList("groom").catch(console.error);
@@ -112,7 +81,6 @@ async function loadData() {
     _isLocalDraft = true;
     WEDDING_THEME = sessionStorage.getItem("draft_theme") || "basic-gold";
     fillForm({ theme: WEDDING_THEME, is_published: false });
-    _updateLocalDraftNotice();
     _showContent();
     await _idbRestoreAll();
   }
@@ -512,7 +480,6 @@ async function saveAll(overrides = {}, label = "Đang lưu...") {
     }
     // else: chỉ localStorage, chưa đăng nhập → không lưu DB
 
-    _updateLocalDraftNotice();
 
     // Step 5: Update hidden inputs with uploaded filenames
     for (const [fieldName, filename] of Object.entries(uploadedFilenames)) {

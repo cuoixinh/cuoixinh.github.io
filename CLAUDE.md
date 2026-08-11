@@ -91,9 +91,13 @@ Không gọi thẳng UI → DAL khi có logic nghiệp vụ.
 mở mới bỏ `.hidden` — ô của bước khác vẫn nằm trong DOM nên `FormData`/autosave không
 đổi. Chỉ ô `[required]` mới CHẶN nút "Tiếp theo"; `done()` chỉ đổi icon chip ✓/⚠.
 Mỗi bước một file `partials/steps/NN-<id>.html`; `form-panel.html` chỉ còn vỏ form
-(ô ẩn + thẻ mount + thanh điều hướng). **Thêm một bước phải sửa 3 chỗ**: file trong
+(ô ẩn + thẻ mount). Hai nút lùi/tiến nằm CHUNG hàng với chip ở `header.html` — không
+dựng lại khối điều hướng riêng dưới form. **Thêm một bước phải sửa 3 chỗ**: file trong
 `steps/`, `STEP_PARTIALS` + thẻ mount, và `CX_STEPS` (`id` trùng `data-step`, thêm
 `vis` nếu group tắt được). Nhóm này chèn SAU `PARTIALS` vì mount nằm trong form-panel.
+Vuốt ngang cũng đổi bước (cảm ứng/bút, không áp cho chuột): hai panel nằm chồng trong
+`#step-stack` và chạy theo ngón tay. Giống bấm chip, vuốt KHÔNG chạy `validateForm` —
+chỉ nút "Tiếp theo" mới chặn.
 
 ### Phiên bản & cache (GitHub Pages sau Cloudflare)
 

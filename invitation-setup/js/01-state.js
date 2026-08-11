@@ -47,7 +47,6 @@ function _applyLoginState(loggedIn) {
   if (loggedIn === IS_LOGIN) return IS_LOGIN;
   IS_LOGIN = loggedIn;
   _syncAdvancedSection();
-  _updateLocalDraftNotice();
   return IS_LOGIN;
 }
 

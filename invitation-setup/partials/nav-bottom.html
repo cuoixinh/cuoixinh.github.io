@@ -3,49 +3,6 @@
         id="bottom-nav-bar"
         class="fixed bottom-0 left-0 right-0 z-[300] bg-white border-t border-rose-100 shadow-[0_-2px_12px_rgb(var(--scrim-rgb)/0.06)]"
       >
-        <!-- Local Draft Notice — con đầu tiên của navbar → luôn nằm sát ngay trên các tab -->
-        <div
-          id="local-draft-notice"
-          class="hidden bg-rose-50 border-b border-rose-100 px-4 py-2"
-        >
-          <div class="max-w-4xl mx-auto flex items-center justify-center gap-2">
-            <span class="text-center text-xs text-gray-600">
-              Mọi thay đổi đang được lưu tạm ngay trên trình duyệt này.
-              <button
-                type="button"
-                onclick="
-                  window.location.href =
-                    '/my-invitations/?urlRedirect=' +
-                    encodeURIComponent(window.location.href)
-                "
-                class="text-color-secondary font-semibold underline-offset-2 hover:underline"
-              >
-                Đăng nhập
-              </button>
-              để xuất bản và quản lý thiệp.
-            </span>
-            <button
-              type="button"
-              onclick="dismissLocalDraftNotice()"
-              class="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
-            >
-              <svg
-                class="w-3.5 h-3.5"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path d="M18 6 6 18" />
-                <path d="m6 6 12 12" />
-              </svg>
-            </button>
-          </div>
-        </div>
-
         <div class="max-w-4xl mx-auto flex items-stretch">
           <!-- Edit/Preview Switch -->
           <div
