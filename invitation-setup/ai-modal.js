@@ -1514,8 +1514,16 @@ const _AI_FAB_CARD_W = 192; // bề rộng thẻ (12rem) — ngưỡng quyết �
 // Toạ độ left (px) để bám lề #wedding-form theo cạnh cho trước — dùng chung cho
 // auto định-vị lẫn bám lề sau khi kéo-thả. Chưa có form (skeleton, rect=0) thì
 // fallback bám lề màn (M=8).
-function _fabSnapLeft(side, w) {
+// Bề ngang VÙNG ỨNG DỤNG: từ 1024px trở lên, dải "xem trực tiếp" (#live-dock)
+// chiếm hẳn phần bên phải màn hình nên thẻ AI chỉ được đi tới mép trái của nó.
+function _fabVw() {
   const vw = document.documentElement.clientWidth;
+  const r = document.getElementById("live-dock")?.getBoundingClientRect();
+  return r?.width > 0 ? r.left : vw;
+}
+
+function _fabSnapLeft(side, w) {
+  const vw = _fabVw();
   const M = 8;
   const form = document.getElementById("wedding-form");
   const r = form && form.getBoundingClientRect();
@@ -1525,12 +1533,7 @@ function _fabSnapLeft(side, w) {
   if (side === "left") {
     return fits(r.left) ? r.left - _AI_FAB_GAP - w : r.left;
   }
-  // Bên phải form có thể đang là khung "xem trực tiếp" (js/22-live-preview.js) —
-  // chỗ trống thật chỉ tính tới mép trái của nó, không thì thẻ AI đè lên thiệp.
-  const dock = document.getElementById("live-dock");
-  const dockR = dock?.getBoundingClientRect();
-  const rightEdge = dockR?.width > 0 ? dockR.left : vw;
-  return fits(rightEdge - r.right) ? r.right + _AI_FAB_GAP : r.right - w;
+  return fits(vw - r.right) ? r.right + _AI_FAB_GAP : r.right - w;
 }
 // Vị trí do người dùng KÉO đặt (nhớ qua các lần tải trang). Có giá trị = chế độ thủ
 // công → bỏ auto-định-vị theo #wedding-form, chỉ kẹp lại trong màn khi resize.
@@ -1560,7 +1563,7 @@ function _applyManualFabPos() {
   if (!pos || !fab) return false;
   const w = fab.offsetWidth,
     h = fab.offsetHeight;
-  const vw = document.documentElement.clientWidth;
+  const vw = _fabVw();
   const vh = document.documentElement.clientHeight;
   const M = 8;
   // side mới (left/right) → bám lề FORM (khớp lúc hiển thị card); dữ liệu cũ
@@ -1667,7 +1670,7 @@ function _setupFabDrag() {
     fab.classList.add("dragging");
     const w = fab.offsetWidth,
       h = fab.offsetHeight;
-    const vw = document.documentElement.clientWidth;
+    const vw = _fabVw();
     const vh = document.documentElement.clientHeight;
     const M = 8;
     const left = Math.max(M, Math.min(baseLeft + dx, vw - w - M));
@@ -1691,7 +1694,7 @@ function _setupFabDrag() {
       // mép màn. Giữ nguyên chiều dọc.
       const w = fab.offsetWidth,
         h = fab.offsetHeight;
-      const vw = document.documentElement.clientWidth;
+      const vw = _fabVw();
       const vh = document.documentElement.clientHeight;
       const M = 8;
       const r = fab.getBoundingClientRect();

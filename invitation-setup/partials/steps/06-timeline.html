@@ -23,19 +23,31 @@
     </div>
   </div>
   <div id="section-timeline-body">
-    <!-- Tab bar — chỉ toggle phần Tiệc cưới -->
-    <div class="flex border-b border-gray-100">
-      <button
-        type="button"
-        onclick="switchTimelineTab('groom')"
-        id="timeline-tab-groom"
-        class="flex-1 py-3 text-sm font-medium flex items-center justify-center gap-1.5 bg-rose-50 text-rose-600 border-b-2 border-rose-500 transition-colors"
-      >
-        <i data-lucide="mars" class="w-3.5 h-3.5"></i> Nhà trai
-      </button>
-      <x-button variant="ghost" tone="neutral" size="lg" type="button" onclick="switchTimelineTab('bride')" id="timeline-tab-bride" class="flex-1">
-        <i data-lucide="venus" class="w-3.5 h-3.5"></i> Nhà gái
-      </x-button>
+    <!-- Tab bar — chỉ toggle phần Tiệc cưới. Dải segmented có con trượt chạy
+         (.cx-seg ở styles/_common.css). -->
+    <div class="px-4 pt-4">
+      <div id="timeline-seg" class="cx-seg" style="--n: 2" role="tablist">
+        <button
+          type="button"
+          role="tab"
+          aria-selected="true"
+          onclick="switchTimelineTab('groom')"
+          id="timeline-tab-groom"
+          class="cx-seg-btn is-on"
+        >
+          <i data-lucide="mars" class="w-3.5 h-3.5"></i> Nhà trai
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected="false"
+          onclick="switchTimelineTab('bride')"
+          id="timeline-tab-bride"
+          class="cx-seg-btn"
+        >
+          <i data-lucide="venus" class="w-3.5 h-3.5"></i> Nhà gái
+        </button>
+      </div>
     </div>
 
     <!-- Tiệc nhà trai -->

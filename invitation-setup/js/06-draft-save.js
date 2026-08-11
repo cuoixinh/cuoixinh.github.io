@@ -120,6 +120,8 @@ function openGuestsPage(e) {
   const configPanel = document.getElementById("config-panel");
   const guestsPanel = document.getElementById("guests-panel");
 
+  _syncRail("guests");
+
   // Chưa xuất bản → hiện lớp khoá; đã xuất bản → nạp iframe quản lý khách mời
   _updateGuestsPanelLock();
 

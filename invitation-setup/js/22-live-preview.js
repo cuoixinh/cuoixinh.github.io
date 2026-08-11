@@ -1,23 +1,23 @@
-// Khung điện thoại "xem trực tiếp": chạy chính thiệp đang chỉnh, đặt cạnh form ở
-// tab Chỉnh sửa. Chỉ có từ 1024px trở lên — hẹp hơn thì không đủ chỗ cho hai cột,
-// người dùng bấm "Xem trước" như cũ (nút đó cũng chỉ còn ở dưới 1024px).
-// Dùng lại _savePreviewData()/_previewIframeSrc() của js/04-nav-tabs.js.
+// Khung điện thoại "xem trực tiếp": chạy chính thiệp đang chỉnh trong dải cố định
+// sát mép phải (ngoài vùng ứng dụng — xem .cx-live-dock ở styles/_setup.css). Chỉ
+// có từ 820px trở lên (iPad dựng đứng vẫn đủ chỗ); hẹp hơn thì dải biến mất,
+// người dùng bấm "Xem trước". Dùng lại _savePreviewData()/_previewIframeSrc() của
+// js/04-nav-tabs.js.
 
-const CX_LIVE_MIN_W = 1024;
+const CX_LIVE_MIN_W = 820;
 const CX_LIVE_DELAY = 700; // gõ xong mới tải lại, không giật theo từng phím
 
 let _cxLiveTimer = null;
-let _cxTopbarMax = 0; // chiều cao vỏ trên lúc CHƯA thu (xem _cxLiveMeasure)
 
 function _cxLiveWide() {
   return window.innerWidth >= CX_LIVE_MIN_W;
 }
 
-/** Iframe đang thực sự nhìn thấy — panel khác đang mở thì không tải gì cả. */
+/** Iframe đang thực sự nhìn thấy — hẹp quá hoặc đang mở tab khác (cờ .cx-rail-off
+ *  của _syncRail) thì dải không hiện, tải lại chỉ tốn công. */
 function _cxLiveFrames() {
   if (!_cxLiveWide()) return [];
-  if (document.getElementById("form-panel")?.classList.contains("hidden"))
-    return [];
+  if (document.documentElement.classList.contains("cx-rail-off")) return [];
   const el = document.getElementById("live-preview-iframe");
   return el ? [el] : [];
 }
@@ -96,25 +96,10 @@ function cxLiveTouch() {
   _cxLiveTimer = setTimeout(cxLiveRefresh, CX_LIVE_DELAY);
 }
 
-// Ba số CSS cần đo: chiều cao vỏ trên (dock dính bên dưới nó) và bề rộng phần
-// dock chiếm (cặp nút bước phải canh giữa cột form chứ không giữa màn hình).
-// Vỏ trên tự thu khi cuộn → lấy giá trị LỚN NHẤT đã thấy, không thì dock nhấp
-// nhô theo mỗi lần thu/mở.
+// Thiệp dựng ở khổ 390px (máy thật) nên phải thu lại cho vừa ô màn hình — CSS
+// không chia được px cho px, đành đo bằng JS. Xem .cx-phone-view.
+// Bề rộng dải là thuần CSS (--cx-rail-w), không đo ở đây.
 function _cxLiveMeasure() {
-  const topbar = document.getElementById("setup-topbar");
-  const header = document.getElementById("setup-header");
-  // offsetHeight = 0 lúc còn skeleton (#actual-content ẩn) — ghi lúc đó là dán
-  // dock lên tận mép trên; ResizeObserver sẽ gọi lại khi trang hiện ra.
-  if (topbar?.offsetHeight > 0 && !header?.classList.contains("is-tucked")) {
-    _cxTopbarMax = Math.max(_cxTopbarMax, topbar.offsetHeight);
-    document.documentElement.style.setProperty(
-      "--cx-topbar-h",
-      `${_cxTopbarMax}px`,
-    );
-  }
-
-  // Thiệp dựng ở khổ 390px (máy thật) nên phải thu lại cho vừa ô màn hình —
-  // CSS không chia được px cho px, đành đo bằng JS. Xem .cx-phone-view.
   const scr = document.querySelector("#live-dock .cx-phone-screen");
   if (scr?.offsetWidth > 0) {
     document.documentElement.style.setProperty(
@@ -122,25 +107,14 @@ function _cxLiveMeasure() {
       String(scr.offsetWidth / 390),
     );
   }
-
-  const dock = document.getElementById("live-dock");
-  const r = dock?.getBoundingClientRect();
-  // clientWidth (không kể thanh cuộn) vì `right` của #step-nav cũng đo trong
-  // vùng đó — lấy innerWidth sẽ lệch đúng bề rộng thanh cuộn.
-  const vw = document.documentElement.clientWidth;
-  const w = r && r.width > 0 ? Math.round(vw - r.left) : 0;
-  document.documentElement.style.setProperty("--cx-dock-w", `${w}px`);
 }
 
 function _cxInitLive() {
   _cxLiveMeasure();
 
   if (window.ResizeObserver) {
-    const ro = new ResizeObserver(_cxLiveMeasure);
-    ["setup-topbar", "live-dock"].forEach((id) => {
-      const el = document.getElementById(id);
-      if (el) ro.observe(el);
-    });
+    const dock = document.getElementById("live-dock");
+    if (dock) new ResizeObserver(_cxLiveMeasure).observe(dock);
   }
   window.addEventListener(
     "resize",
@@ -148,7 +122,7 @@ function _cxInitLive() {
       _cxLiveMeasure();
       // Nhãn nút bước cuối đổi theo khổ màn ("Xem trước" ↔ "Cấu hình").
       window.cxRefreshStepStatus?.();
-      // Vừa vượt ngưỡng 1024px → khung mới xuất hiện, chưa có gì trong đó.
+      // Vừa vượt ngưỡng CX_LIVE_MIN_W → dải mới hiện, chưa có gì trong đó.
       const frames = _cxLiveFrames();
       if (frames.length && !frames[0].src) cxLiveRefresh();
     },

@@ -303,43 +303,11 @@
   background: rgb(var(--action-primary-rgb));
 }
 
-/* Dải segmented (vùng miền): con trượt trắng chạy dưới các nhãn thay vì tô nền
-   từng nút. --i = chỉ số nút đang chọn, --n = số nút; cả hai do
-   _applyAiRegion() đặt nên thêm/bớt vùng không phải sửa CSS. */
-
-.ai-seg {
-  @apply relative grid rounded-full bg-gray-100 p-1;
-
-  grid-auto-flow: column;
-  grid-auto-columns: 1fr;
-}
-
-.ai-seg::before {
-  @apply pointer-events-none absolute bottom-1 top-1 left-1 rounded-full bg-white;
-
-  content: "";
-  width: calc((100% - 8px) / var(--n, 4));
-  transform: translateX(calc(var(--i, 0) * 100%));
-  box-shadow: 0 2px 8px -2px rgb(var(--scrim-rgb) / 0.28);
-  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.ai-seg-btn {
-  @apply relative z-[1] rounded-full px-2 py-2 text-[12.5px] font-medium
-         text-gray-500 transition-colors;
-}
-
-.ai-seg-btn:hover {
-  @apply text-gray-700;
-}
-
-.ai-seg-btn.is-on {
-  @apply font-semibold text-rose-600;
-}
+/* Dải segmented vùng miền (.ai-seg) dùng chung bộ .cx-seg ở styles/_common.css —
+   _applyAiRegion() chỉ việc đặt --i/--n như mọi dải khác. */
 
 @media (prefers-reduced-motion: reduce) {
-  .ai-opt,
-  .ai-seg::before {
+  .ai-opt {
     @apply transition-none;
   }
 

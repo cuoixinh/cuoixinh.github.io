@@ -23,19 +23,30 @@
     </div>
   </div>
   <div id="section-party-body">
-    <!-- Tab bar -->
-    <div class="flex border-b border-gray-100">
-      <button
-        type="button"
-        onclick="switchPartyTab('groom')"
-        id="party-tab-groom"
-        class="flex-1 py-3 text-sm font-medium flex items-center justify-center gap-1.5 bg-rose-50 text-rose-600 border-b-2 border-rose-500 transition-colors"
-      >
-        <i data-lucide="mars" class="w-3.5 h-3.5"></i> Nhà trai
-      </button>
-      <x-button variant="ghost" tone="neutral" size="lg" type="button" onclick="switchPartyTab('bride')" id="party-tab-bride" class="flex-1">
-        <i data-lucide="venus" class="w-3.5 h-3.5"></i> Nhà gái
-      </x-button>
+    <!-- Tab bar: dải segmented có con trượt chạy (.cx-seg ở styles/_common.css). -->
+    <div class="px-4 pt-4">
+      <div id="party-seg" class="cx-seg" style="--n: 2" role="tablist">
+        <button
+          type="button"
+          role="tab"
+          aria-selected="true"
+          onclick="switchPartyTab('groom')"
+          id="party-tab-groom"
+          class="cx-seg-btn is-on"
+        >
+          <i data-lucide="mars" class="w-3.5 h-3.5"></i> Nhà trai
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected="false"
+          onclick="switchPartyTab('bride')"
+          id="party-tab-bride"
+          class="cx-seg-btn"
+        >
+          <i data-lucide="venus" class="w-3.5 h-3.5"></i> Nhà gái
+        </button>
+      </div>
     </div>
 
     <!-- Nhà trai panel -->

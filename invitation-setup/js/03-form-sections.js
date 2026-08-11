@@ -102,38 +102,19 @@ function _openSectionAndScroll(id) {
 }
 window._openSectionAndScroll = _openSectionAndScroll;
 
+// Đổi giữa Nhà trai / Nhà gái trên dải segmented (.cx-seg ở styles/_common.css):
+// con trượt chạy theo --i, nút đang chọn mang .is-on.
 function _switchTab(prefix, side) {
-  ["groom", "bride"].forEach((s) => {
+  const seg = document.getElementById(`${prefix}-seg`);
+  ["groom", "bride"].forEach((s, i) => {
     const tab = document.getElementById(`${prefix}-tab-${s}`);
     const panel = document.getElementById(`${prefix}-panel-${s}`);
     if (!tab || !panel) return;
-    if (s === side) {
-      tab.classList.add(
-        "bg-rose-50",
-        "text-rose-600",
-        "border-b-2",
-        "border-rose-400",
-      );
-      tab.classList.remove(
-        "text-gray-500",
-        "hover:bg-gray-50",
-        "hover:text-gray-700",
-      );
-      panel.classList.remove("hidden");
-    } else {
-      tab.classList.remove(
-        "bg-rose-50",
-        "text-rose-600",
-        "border-b-2",
-        "border-rose-400",
-      );
-      tab.classList.add(
-        "text-gray-500",
-        "hover:bg-gray-50",
-        "hover:text-gray-700",
-      );
-      panel.classList.add("hidden");
-    }
+    const on = s === side;
+    tab.classList.toggle("is-on", on);
+    tab.setAttribute("aria-selected", String(on));
+    panel.classList.toggle("hidden", !on);
+    if (on) seg?.style.setProperty("--i", String(i));
   });
 }
 window.switchPartyTab = (side) => _switchTab("party", side);

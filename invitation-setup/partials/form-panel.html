@@ -1,13 +1,10 @@
 <!-- Form Panel (toggle with preview) -->
 <div id="form-panel">
-  <!-- lg+ : form bên trái, khung điện thoại xem trực tiếp bên phải (js/22-live-preview.js).
-       Dưới 1024px chỉ còn form, dock tự ẩn bằng CSS. -->
-  <div class="lg:flex lg:items-start lg:justify-center lg:gap-6 lg:px-6">
   <!-- Đệm đáy = chiều cao THẬT của navbar (--nav-h, do _syncNavHeight đo) + chỗ
        cho cặp nút nổi #step-nav bên dưới: bước có nội dung ngắn vẫn xem hết được
        phần cuối, không bị che.
        scroll-mt chừa chỗ cho header + thanh bước (đều sticky) khi cxGoStep cuộn tới. -->
-  <div class="max-w-4xl mx-auto px-4 py-8 pb-[calc(var(--nav-h,60px)+84px)] lg:min-w-0 lg:flex-1 lg:px-0">
+  <div class="max-w-4xl mx-auto px-4 py-8 pb-[calc(var(--nav-h,60px)+84px)]">
     <!-- Form -->
     <form
       id="wedding-form"
@@ -92,47 +89,6 @@
     </form>
   </div>
 
-    <!-- Xem trực tiếp: khung điện thoại chạy chính thiệp đang chỉnh, tự tải lại
-         sau mỗi thay đổi (js/22-live-preview.js). -->
-    <aside id="live-dock" class="cx-live-dock" aria-label="Xem trực tiếp thiệp">
-      <div class="cx-live-head">
-        <div class="cx-live-bar">
-          <span class="cx-live-dot"></span>
-          <span class="cx-live-title">Xem trực tiếp</span>
-          <x-button
-            type="button"
-            id="live-reload"
-            variant="bare"
-            class="cx-live-reload"
-            onclick="cxLiveRefresh()"
-            aria-label="Tải lại bản xem trực tiếp"
-            title="Tải lại"
-          >
-            <i data-lucide="rotate-cw"></i>
-          </x-button>
-        </div>
-      </div>
-      <div class="cx-phone">
-        <div class="cx-phone-screen">
-          <!-- Không khai allow="autoplay": khung này chạy cạnh form nên nhạc nền
-               tự phát mỗi lần tải lại là phiền. Nghe nhạc thì sang tab Xem trước. -->
-          <iframe
-            id="live-preview-iframe"
-            src=""
-            class="cx-phone-view"
-            title="Xem trực tiếp thiệp"
-          ></iframe>
-        </div>
-        <!-- Vỏ máy nằm ĐÈ lên iframe (vùng màn hình của ảnh là trong suốt). -->
-        <img
-          src="../assets/images/screen_ip.png"
-          alt=""
-          class="cx-phone-frame"
-        />
-      </div>
-    </aside>
-  </div>
-
   <!-- Cặp nút điều hướng NỔI trên navbar. `fixed` nên không chiếm một dòng nào
        trong luồng form; phần đệm đáy của form (pb-…) đã chừa chỗ cho chúng.
        Nằm ngoài <form> để Enter trong ô nhập không đụng tới, và nằm TRONG
@@ -169,3 +125,42 @@
   </div>
 </div>
 <!-- /form-panel -->
+
+<!-- Xem trực tiếp: dải cố định sát mép phải màn hình, chạy chính thiệp đang
+     chỉnh và tự tải lại sau mỗi thay đổi (js/22-live-preview.js). Để NGOÀI
+     #form-panel vì nó `fixed`, không thuộc luồng form; ẩn/hiện theo tab do
+     _syncRail() lo. Chỉ có từ 820px trở lên. -->
+<aside id="live-dock" class="cx-live-dock" aria-label="Xem trực tiếp thiệp">
+  <div class="cx-phone">
+    <div class="cx-phone-screen">
+      <!-- Không khai allow="autoplay": khung này chạy cạnh form nên nhạc nền tự
+           phát mỗi lần tải lại là phiền. Nghe nhạc thì sang tab Xem trước. -->
+      <iframe
+        id="live-preview-iframe"
+        src=""
+        class="cx-phone-view"
+        title="Xem trực tiếp thiệp"
+      ></iframe>
+    </div>
+    <!-- Vỏ máy nằm ĐÈ lên iframe (vùng màn hình của ảnh là trong suốt). -->
+    <img src="../assets/images/screen_ip.png" alt="" class="cx-phone-frame" />
+  </div>
+  <!-- Nhãn "Xem trực tiếp" + nút tải lại, treo DƯỚI máy. -->
+  <div class="cx-live-head">
+    <div class="cx-live-bar">
+      <span class="cx-live-dot"></span>
+      <span class="cx-live-title">Xem trực tiếp</span>
+      <x-button
+        type="button"
+        id="live-reload"
+        variant="bare"
+        class="cx-live-reload"
+        onclick="cxLiveRefresh()"
+        aria-label="Tải lại bản xem trực tiếp"
+        title="Tải lại"
+      >
+        <i data-lucide="rotate-cw"></i>
+      </x-button>
+    </div>
+  </div>
+</aside>

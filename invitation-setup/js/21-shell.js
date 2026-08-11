@@ -51,22 +51,28 @@ function _cxInitTuck() {
 const _CX_POP_EDGE = 8;
 
 /**
- * Đặt thẻ giữa tâm nút ⋯ rồi kẹp trong màn hình, mũi tên vẫn chỉ đúng nút. Phải
- * đo lại mỗi lần mở: navbar co giãn theo bề ngang, và dưới sm nhãn "Tùy chọn"
- * ẩn đi làm nút hẹp lại.
+ * Đặt thẻ giữa tâm nút ⋯ rồi kẹp trong #nav-card (thẻ nền của navbar — hẹp hơn
+ * màn hình), mũi tên vẫn chỉ đúng nút. Phải đo lại mỗi lần mở: navbar co giãn
+ * theo bề ngang, và dưới sm nhãn "Tùy chọn" ẩn đi làm nút hẹp lại.
  */
 function _cxPlacePop(pop, btn) {
   if (!btn) return;
   const w = pop.offsetWidth;
   const b = btn.getBoundingClientRect();
-  const center = b.left + b.width / 2;
+  const center = b.left + b.width / 2; // toạ độ MÀN HÌNH
+  // `left` của thẻ tính trong lòng #nav-card (gốc toạ độ của nó), nên phải trừ
+  // đi mép trái thẻ nền — navbar không còn bám mép trái màn hình nữa.
+  const host = pop.offsetParent || document.getElementById("nav-card");
+  const hr = host?.getBoundingClientRect();
+  const x0 = hr?.left || 0;
+  const hw = hr?.width || window.innerWidth;
   const left = Math.min(
-    Math.max(center - w / 2, _CX_POP_EDGE),
-    window.innerWidth - w - _CX_POP_EDGE,
+    Math.max(center - x0 - w / 2, _CX_POP_EDGE),
+    hw - w - _CX_POP_EDGE,
   );
   pop.style.left = left + "px";
   // Mũi tên: px tính từ mép trái thẻ, chừa chỗ cho góc bo.
-  const tail = Math.min(Math.max(center - left, 20), w - 20);
+  const tail = Math.min(Math.max(center - x0 - left, 20), w - 20);
   pop.style.setProperty("--cx-pop-tail", tail + "px");
 }
 

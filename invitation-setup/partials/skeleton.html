@@ -1,10 +1,11 @@
     <!-- Skeleton Loading -->
     <div id="skeleton-loader" class="min-h-screen">
-      <!-- Bottom Bar Skeleton -->
-      <div
-        class="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-rose-100 shadow-[0_-2px_12px_rgb(var(--scrim-rgb)/0.06)]"
-      >
-        <div class="max-w-4xl mx-auto flex items-stretch">
+      <!-- Bottom Bar Skeleton — cùng hình dạng với #nav-card thật (thẻ nổi bo 4
+           góc, rộng bằng cột form) để lúc content hiện ra không nhảy. -->
+      <div class="fixed bottom-0 left-0 right-0 z-50 px-2 sm:px-4 pb-2">
+        <div
+          class="max-w-4xl mx-auto flex items-stretch bg-white border border-rose-100 rounded-3xl shadow-[0_-4px_18px_rgb(var(--scrim-rgb)/0.08)]"
+        >
           <!-- Chuyển Chỉnh sửa/Xem trước -->
           <div
             class="flex-1 sm:flex-[2] flex items-center justify-center px-2 sm:px-3"

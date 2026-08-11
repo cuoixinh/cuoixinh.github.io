@@ -183,7 +183,7 @@ function _setActiveTab(tabId) {
   const previewBtn = document.getElementById("switch-preview");
   if (!editBtn || !previewBtn) return;
 
-  // Từ lg trở lên nút này là một TAB như Cấu hình (xem #switch-edit trong
+  // Từ 820px trở lên nút này là một TAB như Cấu hình (xem #switch-edit trong
   // styles/_setup.css) — chỗ đó đọc .is-active để gạch trên và tô màu.
   editBtn.classList.toggle("is-active", tabId === "edit");
   if (tabId === "config" || tabId === "guests" || tabId === "theme") {
@@ -293,9 +293,18 @@ function togglePreview() {
   switchTab(_isPreviewActive ? "edit" : "preview");
 }
 
+/**
+ * Dải "xem trực tiếp" chỉ đi cùng tab Chỉnh sửa. Các tab khác là panel chiếm trọn
+ * màn: nhường lại chỗ cho chúng bằng cờ .cx-rail-off trên <html> — cờ này ép
+ * --cx-rail-w về 0 nên body, navbar và mọi panel tự trả lại phần bên phải.
+ */
+function _syncRail(tab) {
+  document.documentElement.classList.toggle("cx-rail-off", tab !== "edit");
+}
+
 function switchTab(tab) {
-  // Từ lg trở lên không có chế độ Xem trước riêng nữa (thiệp nằm sẵn trong khung
-  // điện thoại cạnh form) — link cũ ?tab=preview vẫn phải mở được trang.
+  // Từ 820px trở lên không có chế độ Xem trước riêng nữa (thiệp nằm sẵn trong
+  // khung điện thoại cạnh form) — link cũ ?tab=preview vẫn phải mở được trang.
   if (tab === "preview" && window.cxLiveWide?.()) tab = "edit";
 
   // Danh sách khách mời có luồng mở riêng (panel iframe + URL ?tab=guests)
@@ -303,6 +312,8 @@ function switchTab(tab) {
     openGuestsPage();
     return;
   }
+
+  _syncRail(tab);
 
   const formPanel = document.getElementById("form-panel");
   const previewPanel = document.getElementById("preview-panel");
@@ -360,7 +371,7 @@ function switchTab(tab) {
     configPanel.classList.add("hidden");
   }
   _setActiveTab(tab);
-  // Khung điện thoại đi theo tab (Chỉnh sửa / Xem trước dùng iframe khác nhau).
+  // Về lại tab Chỉnh sửa → dải bên phải dựng lại theo dữ liệu vừa lưu.
   if (typeof cxLiveRefresh === "function") cxLiveRefresh();
 }
 

@@ -1,7 +1,13 @@
       <!-- Vỏ trên cùng: hàng logo + thanh bước dính CHUNG một khối sticky. Phải
            chung khối thì lúc js/21-shell.js thu hàng logo lại (cuộn xuống), thanh
-           bước mới tự trượt lên sát mép trên thay vì để lại một dải trắng. -->
-      <div id="setup-topbar" class="sticky top-0 z-50 bg-white">
+           bước mới tự trượt lên sát mép trên thay vì để lại một dải trắng.
+           Vỏ TRONG SUỐT, nền nằm ở #setup-topcard → thanh trên là thẻ NỔI rộng
+           đúng bằng cột form (max-w-4xl), bo tròn 4 góc và cách mép trên 8px. -->
+      <div id="setup-topbar" class="sticky top-0 z-50 px-2 sm:px-4 pt-2">
+        <div
+          id="setup-topcard"
+          class="max-w-4xl mx-auto overflow-hidden bg-white border border-gray-100 rounded-3xl shadow-[0_4px_18px_rgb(var(--scrim-rgb)/0.07)]"
+        >
         <!-- Hàng logo + breadcrumb. Cuộn xuống thì thu về 0 (xem .cx-topbar-row),
              chỉ còn thanh bước ở lại. -->
         <div id="setup-header" class="cx-topbar-row border-b border-gray-100">
@@ -9,7 +15,7 @@
                chiều cao cố định, nếu không track vẫn giữ 48px và hàng không co.
                h-12 vì thế đẩy xuống một tầng. -->
           <div>
-            <div class="max-w-4xl mx-auto px-4 h-12 flex items-center">
+            <div class="px-4 h-12 flex items-center">
               <a
                 href="../"
                 class="hidden sm:flex items-center gap-2 hover:opacity-80 transition-opacity shrink-0"
@@ -98,16 +104,15 @@
              Chip do js/20-steps.js đổ ra từ mảng CX_STEPS: ✓ khi đủ, ⚠ khi thiếu.
              Cuộn ngang được vì 10 bước không nằm vừa bề ngang điện thoại.
              Nút lùi/tiến KHÔNG nằm ở đây: xem #step-nav trong form-panel.html. -->
-        <div class="border-b border-rose-100">
-          <!-- .cx-stepbar-wrap vẽ vệt trắng mờ hai mép báo còn cuộn được;
-               js/20-steps.js gắn .at-start/.at-end để tắt vệt ở đầu/cuối. -->
-          <div class="max-w-4xl mx-auto cx-stepbar-wrap">
-            <div
-              id="step-bar"
-              class="flex items-center gap-1 overflow-x-auto px-3 py-2 scrollbar-hide"
-              role="tablist"
-              aria-label="Các bước điền thông tin thiệp"
-            ></div>
-          </div>
+        <!-- .cx-stepbar-wrap vẽ vệt trắng mờ hai mép báo còn cuộn được;
+             js/20-steps.js gắn .at-start/.at-end để tắt vệt ở đầu/cuối. -->
+        <div class="cx-stepbar-wrap">
+          <div
+            id="step-bar"
+            class="flex items-center gap-1 overflow-x-auto px-3 py-2 scrollbar-hide"
+            role="tablist"
+            aria-label="Các bước điền thông tin thiệp"
+          ></div>
         </div>
+      </div>
       </div>

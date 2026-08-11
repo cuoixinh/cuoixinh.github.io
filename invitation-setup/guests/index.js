@@ -36,22 +36,21 @@ function goBack() {
 
 // ─── Tab ──────────────────────────────────────────────────────────────────────
 
+// Dải segmented (.cx-seg ở styles/_common.css): con trượt chạy theo --i, nút
+// đang chọn mang .is-on.
 function switchTab(side) {
   _currentTab = side;
-  const other = side === "groom" ? "bride" : "groom";
+  const seg = document.getElementById("guest-seg");
 
-  document.getElementById(`panel-${side}`).classList.remove("hidden");
-  document.getElementById(`panel-${other}`).classList.add("hidden");
-
-  const activeClass = ["bg-rose-50", "text-rose-600", "border-b-2", "border-rose-500"];
-  const inactiveClass = ["text-gray-500", "hover:bg-gray-50"];
-
-  const btn = document.getElementById(`tab-${side}`);
-  const otherBtn = document.getElementById(`tab-${other}`);
-  activeClass.forEach(c => btn.classList.add(c));
-  inactiveClass.forEach(c => btn.classList.remove(c));
-  activeClass.forEach(c => otherBtn.classList.remove(c));
-  inactiveClass.forEach(c => otherBtn.classList.add(c));
+  ["groom", "bride"].forEach((s, i) => {
+    const on = s === side;
+    document.getElementById(`panel-${s}`)?.classList.toggle("hidden", !on);
+    const btn = document.getElementById(`tab-${s}`);
+    if (!btn) return;
+    btn.classList.toggle("is-on", on);
+    btn.setAttribute("aria-selected", String(on));
+    if (on) seg?.style.setProperty("--i", String(i));
+  });
 }
 
 // ─── Add Single Guest ─────────────────────────────────────────────────────────

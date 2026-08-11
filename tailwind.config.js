@@ -22,6 +22,12 @@ module.exports = {
   ],
   theme: {
     extend: {
+      screens: {
+        // Ngưỡng có dải "xem trực tiếp" ở invitation-setup (iPad dựng đứng trở
+        // lên). Phải khớp CX_LIVE_MIN_W trong js/22-live-preview.js và các
+        // @media của dải trong styles/_setup.css.
+        pad: "820px",
+      },
       fontFamily: {
         playfair: ["Playfair Display", "serif"],
         vibes: ["Great Vibes", "cursive"],

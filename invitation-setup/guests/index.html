@@ -40,15 +40,19 @@
 
       <!-- Tab bar -->
       <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div class="flex border-b border-gray-100">
-          <button type="button" id="tab-groom"
-            onclick="switchTab('groom')"
-            class="flex-1 py-3 text-sm font-medium flex items-center justify-center gap-1.5 bg-rose-50 text-rose-600 border-b-2 border-rose-500 transition-colors">
-            <i data-lucide="mars" class="w-3.5 h-3.5"></i> Nhà trai
-          </button>
-          <x-button variant="ghost" tone="neutral" size="lg" type="button" id="tab-bride" onclick="switchTab('bride')" class="flex-1">
-            <i data-lucide="venus" class="w-3.5 h-3.5"></i> Nhà gái
-          </x-button>
+        <!-- Dải segmented có con trượt chạy (.cx-seg ở styles/_common.css);
+             --i do switchTab() đặt. -->
+        <div class="px-4 pt-4">
+          <div id="guest-seg" class="cx-seg" style="--n: 2" role="tablist">
+            <button type="button" id="tab-groom" role="tab" aria-selected="true"
+              onclick="switchTab('groom')" class="cx-seg-btn is-on">
+              <i data-lucide="mars" class="w-3.5 h-3.5"></i> Nhà trai
+            </button>
+            <button type="button" id="tab-bride" role="tab" aria-selected="false"
+              onclick="switchTab('bride')" class="cx-seg-btn">
+              <i data-lucide="venus" class="w-3.5 h-3.5"></i> Nhà gái
+            </button>
+          </div>
         </div>
 
         <!-- Panel nhà trai -->

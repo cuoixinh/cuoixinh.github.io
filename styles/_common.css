@@ -465,3 +465,52 @@ textarea::-webkit-scrollbar-thumb:hover {
     height: 92vh;
   }
 }
+
+/* ── Dải segmented bo tròn ───────────────────────────────────────────────────
+   Con trượt trắng CHẠY dưới các nhãn thay vì tô nền từng nút. Hai biến do JS
+   đặt: --n = số nút (ghi thẳng trong markup cũng được), --i = chỉ số nút đang
+   chọn → thêm/bớt nút không phải sửa CSS. Nút đang chọn mang thêm .is-on.
+   Dùng ở: vùng miền của popup AI (.ai-seg) và các tab Nhà trai/Nhà gái. */
+
+.cx-seg,
+.ai-seg {
+  @apply relative grid rounded-full bg-gray-100 p-1;
+
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+}
+
+.cx-seg::before,
+.ai-seg::before {
+  @apply pointer-events-none absolute bottom-1 top-1 left-1 rounded-full bg-white;
+
+  content: "";
+  width: calc((100% - 8px) / var(--n, 4));
+  transform: translateX(calc(var(--i, 0) * 100%));
+  box-shadow: 0 2px 8px -2px rgb(var(--scrim-rgb) / 0.28);
+  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.cx-seg-btn,
+.ai-seg-btn {
+  @apply relative z-[1] inline-flex items-center justify-center gap-1.5
+         rounded-full px-2 py-2 text-[12.5px] font-medium text-gray-500
+         transition-colors;
+}
+
+.cx-seg-btn:hover,
+.ai-seg-btn:hover {
+  @apply text-gray-700;
+}
+
+.cx-seg-btn.is-on,
+.ai-seg-btn.is-on {
+  @apply font-semibold text-rose-600;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cx-seg::before,
+  .ai-seg::before {
+    @apply transition-none;
+  }
+}

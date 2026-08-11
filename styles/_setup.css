@@ -907,45 +907,75 @@ svg.lucide {
   color: rgb(var(--focus-ring-rgb));
 }
 
-/* ── XEM TRỰC TIẾP TRONG KHUNG ĐIỆN THOẠI ──────────────────────────────────
-   Khung máy chạy chính thiệp đang chỉnh, hiện SONG SONG với form. Chỉ có từ
-   1024px trở lên — dưới mức đó màn hình không đủ chỗ cho hai cột, người dùng
-   bấm "Xem trước" như cũ (nút đó cũng chỉ còn ở dưới 1024px). */
+/* ── XEM TRỰC TIẾP: DẢI CỐ ĐỊNH SÁT MÉP PHẢI ───────────────────────────────
+   Từ 820px trở lên (iPad dựng đứng cũng có), thiệp đang chỉnh chạy trong một dải
+   nằm NGOÀI vùng ứng dụng: <body> chừa đúng --cx-rail-w bên phải nên mọi thứ
+   trong luồng (kể cả #setup-topbar dính) tự hẹp lại. Thứ gì `position: fixed`
+   thì padding không với tới → phải tự khai `right: var(--cx-rail-w)` (xem cuối
+   file). Hẹp hơn 820px dải biến mất, người dùng bấm "Xem trước" như cũ. */
 
-.cx-live-dock {
-  display: none;
+:root {
+  --cx-rail-w: 0px;
 }
 
-@media (min-width: 1024px) {
-  .cx-live-dock {
-    display: flex;
+@media (min-width: 820px) {
+  :root {
+    /* Máy cao gần hết màn (chừa chỗ cho thanh trạng thái dưới máy + đệm), rộng
+       suy ra TỪ chiều cao (0.5117 = 393/768, tỉ lệ ảnh khung máy) rồi kẹp theo
+       bề ngang để màn hẹp/siêu cao (iPad dựng đứng) không nuốt mất cột form. */
+    --cx-ph-h: min(78vh, calc(100vh - 128px));
+    --cx-ph-w: min(30vw, calc(var(--cx-ph-h) * 0.5117));
+    /* Lề hai bên máy — hẹp lại ở khổ tablet để trả thêm chỗ cho cột form. */
+    --cx-rail-pad: 40px;
+    --cx-rail-w: calc(var(--cx-ph-w) + var(--cx-rail-pad));
+  }
+
+  body {
+    padding-right: var(--cx-rail-w);
   }
 }
 
-.cx-live-dock {
-  @apply relative shrink-0 flex-col;
-
-  /* Máy cao 80% màn hình, hạ xuống khi chừng đó không lọt khoảng giữa vỏ trên và
-     navbar. Rộng suy ra TỪ chiều cao (0.5117 = 393/768, tỉ lệ ảnh khung máy),
-     kẹp thêm theo bề ngang để màn siêu cao không nuốt mất cột form.
-     --cx-topbar-h do js/22-live-preview.js đo (chiều cao vỏ trên lúc chưa thu). */
-  --cx-ph-h: min(
-    80vh,
-    calc(100vh - var(--cx-topbar-h, 96px) - var(--nav-h, 84px) - 64px)
-  );
-  --cx-ph-w: min(30vw, calc(var(--cx-ph-h) * 0.5117));
+@media (min-width: 1024px) {
+  :root {
+    --cx-rail-pad: 64px;
+  }
 }
 
-/* Dock ở tab Chỉnh sửa: dính ngay dưới vỏ trên khi cuộn form. */
-#live-dock {
-  position: sticky;
-  top: calc(var(--cx-topbar-h, 96px) + 12px);
+/* Tab khác Chỉnh sửa: panel chiếm trọn màn nên trả lại phần bên phải. Đặt
+   --cx-rail-w = 0 là đủ cho body/navbar/panel, chỉ còn dải phải tự ẩn.
+   Cờ do _syncRail() ở js/04-nav-tabs.js đặt. */
+html.cx-rail-off {
+  --cx-rail-w: 0px;
 }
 
-/* Thanh trạng thái treo DƯỚI máy, tách khỏi luồng — nằm trong luồng thì ăn mất
-   40px chiều cao, đúng phần vừa giành được cho khung. */
+.cx-live-dock,
+.cx-rail-off .cx-live-dock {
+  display: none;
+}
+
+@media (min-width: 820px) {
+  .cx-live-dock {
+    @apply fixed inset-y-0 right-0 z-[30] flex flex-col items-center
+           justify-center gap-2.5 border-l border-gray-200;
+
+    width: var(--cx-rail-w);
+    background:
+      radial-gradient(
+        120% 60% at 50% 0%,
+        rgb(var(--surface-tint-warm-rgb)) 0%,
+        rgb(var(--surface-tint-warm-rgb) / 0) 60%
+      ),
+      linear-gradient(
+        180deg,
+        rgb(var(--surface-panel-rgb)) 0%,
+        rgb(var(--white-rgb)) 100%
+      );
+  }
+}
+
+/* Thanh trạng thái nằm ngay DƯỚI máy. */
 .cx-live-head {
-  @apply absolute left-0 right-0 top-full flex justify-center pt-2.5;
+  @apply flex shrink-0 justify-center;
 }
 
 /* Một viên pill: chấm "đang chạy" · nhãn · nút tải lại. */
@@ -1053,19 +1083,31 @@ svg.lucide {
   transform-origin: 0 0;
 }
 
-/* Cặp nút bước nổi canh giữa CỘT FORM, không phải giữa màn hình — dock chiếm
-   mất phần bên phải. --cx-dock-w do js/22-live-preview.js đo. */
-@media (min-width: 1024px) {
-  #step-nav {
-    right: var(--cx-dock-w, 0px);
+/* Vùng ứng dụng DỪNG LẠI ở mép trái dải xem trực tiếp: thứ nằm trong luồng đã
+   được padding của <body> lo, còn mấy thứ `fixed` này phải tự lùi — thiếu một
+   dòng ở đây là navbar/panel tràn đè lên thiệp. */
+@media (min-width: 820px) {
+  #bottom-nav-bar,
+  #step-nav,
+  #preview-panel,
+  #config-panel,
+  #theme-panel,
+  #guests-panel {
+    right: var(--cx-rail-w);
+  }
+
+  /* Chỗ đứng cho nhịp đầu, trước khi _positionAiFab() ghi `left` thật. */
+  .ai-fab {
+    right: calc(var(--cx-rail-w) + 16px);
   }
 }
 
-/* Từ lg trở lên cụm chuyển chế độ chỉ còn một nút → cho "Chỉnh sửa" mặc đúng bộ
-   đồ của các tab khác (icon trên, nhãn dưới, gạch trên khi đang mở) thay vì viên
-   pill. Nhắm bằng id để thắng các utility mà _setActiveTab() gắn/gỡ; trạng thái
-   đang mở là .is-active do chính hàm đó đặt. Mobile không đụng tới. */
-@media (min-width: 1024px) {
+/* Từ 820px trở lên cụm chuyển chế độ chỉ còn một nút (không còn "Xem trước") →
+   cho "Chỉnh sửa" mặc đúng bộ đồ của các tab khác (icon trên, nhãn dưới, gạch
+   trên khi đang mở) thay vì viên pill. Nhắm bằng id để thắng các utility mà
+   _setActiveTab() gắn/gỡ; trạng thái đang mở là .is-active do chính hàm đó đặt.
+   Mobile không đụng tới. */
+@media (min-width: 820px) {
   #tour-view-switch {
     padding: 0;
     gap: 0;

@@ -93,16 +93,22 @@ NỔI (`fixed`) ngoài `<form>` — đưa nó vào luồng là ăn mất một d
 
 **Vỏ trang** (`js/21-shell.js`): hàng logo/breadcrumb tự thu khi cuộn, phải nằm chung khối
 sticky `#setup-topbar` với thanh bước và thu bằng `grid-template-rows: 1fr→0fr`. Mỗi lần
-thu/mở phải khoá một nhịp, không thì scroll bị kẹp và lật qua lại vô tận. Navbar dưới có
-nút "Tùy chọn" (`#nav-more`) mở popover chứa Trợ lý AI + Giao diện.
+thu/mở phải khoá một nhịp, không thì scroll bị kẹp và lật qua lại vô tận. Thanh trên và
+navbar dưới đều là **thẻ nổi rộng bằng cột form** (`#setup-topcard` / `#nav-card`, bo tròn
+hai góc phía trong) — vỏ ngoài chỉ trong suốt, đừng trả nền về cho nó. Navbar có nút
+"Tùy chọn" (`#nav-more`) mở popover chứa Trợ lý AI + Giao diện; popover neo và kẹp theo
+`#nav-card` chứ không theo bề ngang màn hình.
 
-**Xem trực tiếp** (`js/22-live-preview.js`): từ **1024px** trở lên, tab Chỉnh sửa có
-`#live-dock` cạnh form chạy chính thiệp đang chỉnh, và **không còn tab Xem trước** (nút ẩn,
+**Xem trực tiếp** (`js/22-live-preview.js`): từ **820px** trở lên (iPad dựng đứng cũng có),
+`#live-dock` là **dải cố định sát mép phải, NGOÀI vùng ứng dụng** — `<body>` chừa
+`--cx-rail-w` nên thứ trong luồng tự hẹp lại, còn thứ `fixed` (navbar, `#step-nav`, các panel
+toàn màn, `.ai-fab`) phải tự khai `right: var(--cx-rail-w)`, thiếu là tràn đè lên thiệp. Dải
+CHỈ đi cùng tab Chỉnh sửa: tab khác đặt cờ `.cx-rail-off` (`_syncRail`) ép `--cx-rail-w` về 0
+để panel chiếm trọn màn. Từ ngưỡng này cũng **không còn tab Xem trước** (nút ẩn,
 `switchTab("preview")` tự về `edit`). Cập nhật bằng cách **tải lại iframe**, hẹn giờ từ
 `_setDirty(true)` — mọi thay đổi đã đi qua đó nên đừng rải thêm listener, trừ ảnh (nằm ở
 `pendingUploads`, ngoài `<form>`) phải tự gọi `cxLiveTouch()`. Thiệp dựng ở **khổ 390px như
-máy thật** rồi thu bằng `--cx-scr-scale`; thứ gì nổi bên phải (`#step-nav`, `.ai-fab`) phải
-tránh dock qua `--cx-dock-w`. Cuộn tới mục đang chỉnh: gửi `{type:"cx-focus", key}`
+máy thật** rồi thu bằng `--cx-scr-scale`. Cuộn tới mục đang chỉnh: gửi `{type:"cx-focus", key}`
 (key = `data-step`), `core/helpers/preview-focus-helper.js` trong thiệp lo phần còn lại.
 
 ### Phiên bản & cache (GitHub Pages sau Cloudflare)
@@ -186,6 +192,9 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
 ### Khác
 
 - **Web components `x-*`:** `[name=X]` khớp `<x-input>` chứ không phải `<input>` con.
+- **Dải segmented `.cx-seg`** (`styles/_common.css`): con trượt chạy theo hai biến `--n`
+  (số nút) và `--i` (nút đang chọn), nút đang chọn thêm `.is-on` — JS chỉ đặt bấy nhiêu.
+  Dùng cho vùng miền ở popup AI và các tab Nhà trai/Nhà gái.
 - **Trình phát nhạc:** markup ở `core/components/music-player.js`, logic ở
   `music-player-helper.js` — theme chỉ đánh dấu vai trò bằng `data-cx-music="…"`.
 - **Thành phần thả lên thiệp:** danh mục `core/helpers/element-helper.js`, runtime
