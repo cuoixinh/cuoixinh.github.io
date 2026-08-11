@@ -66,25 +66,30 @@
         value="true"
       />
 
-      <span id="mount-step-couple" hidden></span>
+      <!-- Khung chồng của các bước: bước đang đi và bước sắp tới nằm ĐÈ lên nhau
+           khi vuốt, nên cần một mốc `position: relative` riêng — xem .cx-step-stack
+           trong styles/_setup.css và phần "VUỐT ĐỔI BƯỚC" ở js/20-steps.js. -->
+      <div id="step-stack" class="cx-step-stack">
+        <span id="mount-step-couple" hidden></span>
 
-      <span id="mount-step-ceremony" hidden></span>
+        <span id="mount-step-ceremony" hidden></span>
 
-      <span id="mount-step-family" hidden></span>
+        <span id="mount-step-family" hidden></span>
 
-      <span id="mount-step-party" hidden></span>
+        <span id="mount-step-party" hidden></span>
 
-      <span id="mount-step-photos" hidden></span>
+        <span id="mount-step-photos" hidden></span>
 
-      <span id="mount-step-timeline" hidden></span>
+        <span id="mount-step-timeline" hidden></span>
 
-      <span id="mount-step-love_story" hidden></span>
+        <span id="mount-step-love_story" hidden></span>
 
-      <span id="mount-step-rsvp" hidden></span>
+        <span id="mount-step-rsvp" hidden></span>
 
-      <span id="mount-step-gift" hidden></span>
+        <span id="mount-step-gift" hidden></span>
 
-      <span id="mount-step-footer" hidden></span>
+        <span id="mount-step-footer" hidden></span>
+      </div>
     </form>
   </div>
 </div>

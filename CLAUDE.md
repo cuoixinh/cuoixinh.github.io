@@ -95,6 +95,9 @@ Mỗi bước một file `partials/steps/NN-<id>.html`; `form-panel.html` chỉ 
 dựng lại khối điều hướng riêng dưới form. **Thêm một bước phải sửa 3 chỗ**: file trong
 `steps/`, `STEP_PARTIALS` + thẻ mount, và `CX_STEPS` (`id` trùng `data-step`, thêm
 `vis` nếu group tắt được). Nhóm này chèn SAU `PARTIALS` vì mount nằm trong form-panel.
+Vuốt ngang cũng đổi bước (cảm ứng/bút, không áp cho chuột): hai panel nằm chồng trong
+`#step-stack` và chạy theo ngón tay. Giống bấm chip, vuốt KHÔNG chạy `validateForm` —
+chỉ nút "Tiếp theo" mới chặn.
 
 ### Phiên bản & cache (GitHub Pages sau Cloudflare)
 
