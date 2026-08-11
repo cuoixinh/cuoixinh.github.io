@@ -16,9 +16,10 @@
   // Thứ tự có phụ thuộc: config (CONFIG global) → core dùng chung (ADMIN_TOKEN,
   // supabaseClient, switchTab) → helper xử lý ảnh + utils (focal point & crop
   // ảnh) → logic riêng từng tab.
+  // core/config.js KHÔNG nằm ở đây: nó được nạp riêng ở bước mồi trong boot() để
+  // lấy CONFIG.version, thêm vào đây nữa là nạp hai lần.
   const SCRIPTS = [
     "../core/x-button.js",
-    "../core/config.js",
     "../core/auth.js", // nguồn duy nhất cho phiên đăng nhập (ai-dal đính JWT)
     "js/00-core.js",
     "../core/helpers/alert.js",
@@ -86,11 +87,28 @@
     });
   }
 
+  // Đóng dấu phiên bản (CONFIG.version, xem core/config.js) để đổi số ở đó là
+  // ép lấy bản mới của cả bộ partial + script. Chỉ gọi được SAU bước mồi.
+  // CONFIG khai bằng `const` ở core/config.js → là binding lexical toàn cục, KHÔNG
+  // phải window.CONFIG. Phải đọc bằng tên trần, và bọc typeof phòng khi bước mồi
+  // hỏng (thiếu nó thì trả URL trần, trang vẫn chạy chứ không chết cả loader).
+  function withVersion(url) {
+    const v = typeof CONFIG !== "undefined" ? CONFIG.version : "";
+    if (!v) return url;
+    return url + (url.includes("?") ? "&" : "?") + "v=" + encodeURIComponent(v);
+  }
+
   async function boot() {
-    const htmls = await Promise.all(PARTIALS.map(([, url]) => fetchText(url)));
+    // Bước mồi: config.js nạp TRẦN (không ?v=) và phải xong trước mọi thứ khác —
+    // nó là nơi giữ số phiên bản dùng để đóng dấu phần còn lại.
+    await loadScripts(["../core/config.js"]);
+
+    const htmls = await Promise.all(
+      PARTIALS.map(([, url]) => fetchText(withVersion(url))),
+    );
     PARTIALS.forEach(([mountId], i) => injectPartial(mountId, htmls[i]));
 
-    await loadScripts(SCRIPTS);
+    await loadScripts(SCRIPTS.map(withVersion));
 
     // Khôi phục tab từ URL hash CHỈ SAU KHI mọi script theo tab đã nạp xong —
     // xem restoreTabFromHash() trong 00-core.js.

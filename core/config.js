@@ -3,7 +3,18 @@
 // Set false khi test localhost để bypass Cloudflare cache → hit Supabase trực tiếp
 const USE_CACHE = false;
 
+// ĐỔI GIÁ TRỊ NÀY MỖI LẦN DEPLOY. Hai loader (admin, invitation-setup) nối
+// `?v=<version>` vào mọi URL partial/script chúng nạp, nên đổi số ở đây là ép
+// trình duyệt lẫn CDN lấy bản mới của TOÀN BỘ nhóm đó cùng lúc — quan trọng vì
+// partial và script phải khớp bộ với nhau, lệch phiên bản là trang vỡ.
+// Bản thân file này KHÔNG mang `?v=` (nó là mỏ neo, phải đọc được version từ
+// nó trước đã) → trên Cloudflare phải có Cache Rule bypass `/core/config.js`,
+// nếu không đổi số ở đây cũng vô nghĩa.
+const CX_VERSION = "2026.08.11-1";
+
 const CONFIG = {
+  version: CX_VERSION,
+
   // Supabase
   supabase: {
     url: "https://lcobawmkywtxhpezndsh.supabase.co",

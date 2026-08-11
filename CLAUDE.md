@@ -95,6 +95,21 @@ Mỗi bước một file `partials/steps/NN-<id>.html`; `form-panel.html` chỉ 
 `steps/`, `STEP_PARTIALS` + thẻ mount, và `CX_STEPS` (`id` trùng `data-step`, thêm
 `vis` nếu group tắt được). Nhóm này chèn SAU `PARTIALS` vì mount nằm trong form-panel.
 
+### Phiên bản & cache (GitHub Pages sau Cloudflare)
+
+GitHub Pages ép `Cache-Control: max-age=600` và không đọc `_headers` → không sửa được
+từ repo. Chống bản cũ bằng **`CX_VERSION` trong `core/config.js`**: hai `loader.js`
+(admin, invitation-setup) nối `?v=<version>` vào mọi URL partial/script chúng nạp.
+
+- **Deploy là đổi `CX_VERSION`**, nếu không người dùng có thể nhận bản TRỘN — partial
+  mới đi với script cũ là trang vỡ, không phải chỉ trông cũ.
+- `config.js` nạp ở **bước mồi** đầu `boot()`, không mang `?v=` (phải đọc được version
+  từ nó trước). Đừng thêm nó vào `SCRIPTS` — thành nạp hai lần.
+  Cloudflare **phải** có Cache Rule bypass `/core/config.js`, thiếu là đổi số vô nghĩa.
+- `CONFIG` khai bằng `const` → binding lexical toàn cục, **không phải `window.CONFIG`**.
+- Thẻ `<script>`/`<link>` viết cứng trong HTML (`index`, `my-invitations`, `theme-template`…)
+  KHÔNG được đóng dấu — runtime không chen vào kịp.
+
 ### Auth
 
 - **`core/auth.js` (`window.CXAuth`) là nguồn sự thật DUY NHẤT** cho trạng thái đăng nhập.
