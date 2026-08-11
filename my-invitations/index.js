@@ -357,9 +357,12 @@ function cardHTML(c, i) {
              loading="lazy" onerror="this.style.display='none'"
              class="h-full w-full object-cover object-top transition-transform duration-300 group-hover:scale-105" />
         <div class="absolute left-1.5 top-1.5 flex flex-col items-start gap-1 sm:left-2 sm:top-2">${leftBadges}</div>
-        <!-- Hiện ở mọi khổ: trên mobile khối ghi chú bên dưới bị ẩn nên đây là chỗ
-             DUY NHẤT phân biệt thiệp nháp với thiệp đã xuất bản. -->
-        <div class="absolute right-1.5 top-1.5 sm:right-2 sm:top-2">${statusBadge}</div>
+        <!-- Ảnh thẻ chỉ rộng ~132px trên mobile, hai cụm badge đè lên nhau nếu cùng
+             hiện. Cụm trái chỉ có khi thiệp đã xuất bản — mà lúc đó nó đã nói thay
+             "Đã xuất bản" rồi, nên nhường chỗ. Thẻ nháp không có cụm trái nên badge
+             "Nháp" hiện ở mọi khổ: trên mobile khối ghi chú bên dưới bị ẩn, đây là
+             chỗ DUY NHẤT phân biệt nháp với đã xuất bản. -->
+        <div class="absolute right-1.5 top-1.5 sm:right-2 sm:top-2 ${leftBadges ? "hidden sm:block" : ""}">${statusBadge}</div>
       </div>
 
       <div class="flex flex-1 flex-col p-3 sm:p-4">
@@ -421,27 +424,52 @@ function slugRowHTML(c, i) {
     </div>`;
 }
 
-const ACTION = "flex-1";
+// Hàng nút cuối thẻ: toàn nút icon-only cỡ bằng nhau, `justify-around` của thẻ
+// rải đều — thẻ 2 nút hay 4 nút đều cân, không nút nào giãn hay bị bóp.
+// Bề ngang thẻ hẹp nhất chỉ ~132px (2 cột, máy 360px) mà riêng "Chỉnh sửa" kèm
+// chữ đã 93px, nên hàng này KHÔNG kèm được nhãn: 4 nút có chữ cần ~272px, tràn
+// ở mọi khổ 3–4 cột. Tên hành động nằm ở title/aria-label.
+// `shrink-0` là bắt buộc: mặc định flex cho co, thiếu nó nút Xoá bị bóp còn 11px.
+const ACTION = "shrink-0";
 
-// Tối đa 4 nút để thẻ không vỡ ở khổ 2 cột trên mobile. "Chỉnh sửa" LUÔN có mặt
-// (trước đây thiệp đã xuất bản chỉ vào sửa được bằng cách bấm ảnh/tên — không ai đoán ra);
-// khi cần "Kích hoạt" thì bỏ "Chia sẻ", link vẫn sao chép được ở hàng đường dẫn.
+function _actionBtn(icon, title, onclick, extra = "") {
+  return (
+    `<x-button variant="ghost" tone="neutral" size="xs" icon-only onclick="${onclick}"` +
+    ` title="${escAttr(title)}" aria-label="${escAttr(title)}" class="${ACTION} ${extra}">` +
+    `<i class="${icon} text-[11px]"></i></x-button>`
+  );
+}
+
+// Tối đa 4 nút. "Chỉnh sửa" LUÔN có mặt (trước đây thiệp đã xuất bản chỉ vào sửa
+// được bằng cách bấm ảnh/tên — không ai đoán ra); khi cần "Kích hoạt" thì bỏ
+// "Chia sẻ", link vẫn sao chép được ở hàng đường dẫn ngay trên.
 function actionsHTML(c, i, state) {
   const needsActivate = state === "trial" || state === "expired" || state === "published";
   const out = [];
   if (c.published && c.slug) {
-    out.push(`<x-button variant="ghost" tone="neutral" size="xs" icon="fas fa-eye" onclick="viewCard(${i})" class="${ACTION}"><span class="hidden sm:inline">Xem</span></x-button>`);
+    out.push(_actionBtn("fas fa-eye", "Xem thiệp", `viewCard(${i})`));
   }
-  out.push(`<x-button variant="ghost" tone="neutral" size="xs" icon="fas fa-pen" onclick="openEditor(${i})" class="${ACTION}"><span class="hidden sm:inline">Chỉnh sửa</span></x-button>`);
+  out.push(_actionBtn("fas fa-pen", "Chỉnh sửa", `openEditor(${i})`));
   if (c.published && c.slug && !needsActivate) {
-    out.push(`<x-button variant="ghost" tone="neutral" size="xs" icon="fas fa-share-nodes" onclick="shareCard(${i})" class="${ACTION}"><span class="hidden sm:inline">Chia sẻ</span></x-button>`);
+    out.push(_actionBtn("fas fa-share-nodes", "Chia sẻ", `shareCard(${i})`));
   }
   if (needsActivate) {
     // Kích hoạt là việc cần chú ý nhất trên thẻ → tô cam. Dùng "!" vì class màu của
     // ghost/neutral cùng độ ưu tiên, không có "!" thì thứ tự trong file CSS quyết định.
-    out.push(`<x-button variant="ghost" tone="neutral" size="xs" icon="fas fa-credit-card" onclick="activateCard(${i})" class="${ACTION} !text-amber-600 hover:!bg-amber-50 hover:!text-amber-700"><span class="hidden sm:inline">Kích hoạt</span></x-button>`);
+    out.push(
+      _actionBtn(
+        "fas fa-credit-card",
+        "Kích hoạt thiệp",
+        `activateCard(${i})`,
+        "!text-amber-600 hover:!bg-amber-50 hover:!text-amber-700",
+      ),
+    );
   }
-  out.push(`<x-button variant="ghost" tone="danger" size="xs" icon-only onclick="deleteCard(${i})" aria-label="Xoá thiệp"><i class="fas fa-trash text-[11px]"></i></x-button>`);
+  out.push(
+    `<x-button variant="ghost" tone="danger" size="xs" icon-only onclick="deleteCard(${i})"` +
+      ` title="Xoá thiệp" aria-label="Xoá thiệp" class="${ACTION}">` +
+      `<i class="fas fa-trash text-[11px]"></i></x-button>`,
+  );
   return out.join("");
 }
 
