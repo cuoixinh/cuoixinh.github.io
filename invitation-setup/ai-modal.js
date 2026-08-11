@@ -168,7 +168,7 @@ const AI_DRAFT_KEY = buildCacheKey("ai_draft", WEDDING_ID);
 // Lịch sử các nội dung AI đã tạo (chỉ lưu cache, KHÔNG lưu DB).
 const AI_HISTORY_KEY = buildCacheKey("ai_history", WEDDING_ID);
 // Ghi nhớ đã thu gọn thẻ mời AI (chỉ còn icon) — giữ qua các lần tải lại trang.
-const AI_FAB_KEY = buildCacheKey("ai_fab_collapsed", WEDDING_ID);
+const AI_FAB_KEY = buildCacheKey("ai_fab_dismissed", WEDDING_ID);
 const AI_HISTORY_MAX = 12;
 
 function _saveAiDraft() {
@@ -1580,7 +1580,15 @@ function _positionAiFab() {
   // vào sẽ dán fab sát đáy đè lên thanh skeleton.
   if (nav && nav.offsetHeight > 0) {
     const navH = nav.offsetHeight;
-    document.documentElement.style.setProperty("--ai-fab-bottom", navH + 8 + "px");
+    // Cặp nút "Trước đó / Tiếp theo" nổi ngay trên navbar → fab phải tránh CẢ HAI,
+    // không thì thẻ AI đè đúng chỗ người dùng cần bấm nhất. 12px là khoảng hở giữa
+    // navbar và cụm nút (xem `bottom` của #step-nav trong form-panel.html).
+    const stepNav = document.getElementById("step-nav");
+    const stepH = stepNav?.offsetHeight > 0 ? stepNav.offsetHeight + 12 : 0;
+    document.documentElement.style.setProperty(
+      "--ai-fab-bottom",
+      navH + stepH + 8 + "px",
+    );
   }
   // Đã kéo đặt tay → giữ nguyên vị trí đó (chỉ kẹp lại trong màn), bỏ auto-layout.
   if (_applyManualFabPos()) return;
@@ -1597,10 +1605,11 @@ function _positionAiFab() {
   fab.style.right = "auto";
 }
 
-// Đóng thẻ mời của FAB (nút "x"): thu thẻ về nút tròn nhỏ (.ai-mini), vẫn giữ lối
-// vào AI. Nhớ qua cache — tải lại trang vẫn chỉ hiện icon nhỏ.
+// Đóng thẻ mời của FAB (nút "x"): ẩn HẲN thẻ. Lối vào AI vẫn còn ở ngăn kéo
+// navbar dưới (#nav-ai-btn) nên không mất đường vào. Nhớ qua cache — tải lại
+// trang cũng không hiện lại.
 function dismissAiFab() {
-  document.querySelector(".ai-fab")?.classList.add("collapsed");
+  document.querySelector(".ai-fab")?.classList.add("is-gone");
   setCache(AI_FAB_KEY, true);
   _positionAiFab(); // bề rộng đổi (thẻ → nút nhỏ) → tính lại vị trí cho khớp
 }
@@ -1715,9 +1724,9 @@ function _setupFabDrag() {
 
 (function _initAiFabPosition() {
   const start = () => {
-    // Khôi phục trạng thái: nếu lần trước đã thu gọn → hiện luôn dạng icon nhỏ.
+    // Lần trước đã đóng thẻ → không dựng lại nữa.
     if (getCache(AI_FAB_KEY)) {
-      document.querySelector(".ai-fab")?.classList.add("collapsed");
+      document.querySelector(".ai-fab")?.classList.add("is-gone");
     }
     _positionAiFab();
     _setupFabDrag();

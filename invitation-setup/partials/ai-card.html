@@ -1,7 +1,8 @@
     <!-- Thẻ Soft "Tạo với AI" — nổi góc dưới-phải, hiển thị ở cả PC lẫn mobile.
-         Ẩn khi đang skeleton (hidden-boot), gỡ trong _showContent() khi content hiện. -->
+         Ẩn khi đang skeleton (hidden-boot), gỡ trong _showContent() khi content hiện.
+         Bấm X là ẨN HẲN (không thu về nút nhỏ) — lối vào AI còn lại nằm ở ngăn
+         kéo navbar dưới (#nav-ai-btn, partials/nav-bottom.html). -->
     <div class="ai-fab hidden-boot">
-      <!-- Thẻ mời (glassmorphism) — bấm cả thẻ hoặc nút để mở popup AI -->
       <div
         class="ai-card"
         role="button"
@@ -27,8 +28,4 @@
           Thử ngay ✨
         </x-button>
       </div>
-      <!-- Nút thu gọn: hiện sau khi đóng thẻ, vẫn là lối vào AI -->
-      <x-button variant="bare" type="button" onclick="openAiModal()" aria-label="Tạo nội dung bằng AI" data-tooltip="Tạo thiệp với AI" data-tooltip-pos="left" class="ai-mini">
-        <i data-lucide="sparkles"></i>
-      </x-button>
     </div>

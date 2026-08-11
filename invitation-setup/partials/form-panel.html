@@ -1,9 +1,10 @@
 <!-- Form Panel (toggle with preview) -->
 <div id="form-panel">
-  <!-- Đệm đáy = chiều cao THẬT của navbar (--nav-h, do _syncNavHeight đo) + 32px:
-       bước có nội dung ngắn vẫn xem hết được phần cuối, không bị navbar che.
+  <!-- Đệm đáy = chiều cao THẬT của navbar (--nav-h, do _syncNavHeight đo) + chỗ
+       cho cặp nút nổi #step-nav bên dưới: bước có nội dung ngắn vẫn xem hết được
+       phần cuối, không bị che.
        scroll-mt chừa chỗ cho header + thanh bước (đều sticky) khi cxGoStep cuộn tới. -->
-  <div class="max-w-4xl mx-auto px-4 py-8 pb-[calc(var(--nav-h,60px)+32px)]">
+  <div class="max-w-4xl mx-auto px-4 py-8 pb-[calc(var(--nav-h,60px)+84px)]">
     <!-- Form -->
     <form
       id="wedding-form"
@@ -66,31 +67,61 @@
         value="true"
       />
 
-      <!-- Khung chồng của các bước: bước đang đi và bước sắp tới nằm ĐÈ lên nhau
-           khi vuốt, nên cần một mốc `position: relative` riêng — xem .cx-step-stack
-           trong styles/_setup.css và phần "VUỐT ĐỔI BƯỚC" ở js/20-steps.js. -->
-      <div id="step-stack" class="cx-step-stack">
-        <span id="mount-step-couple" hidden></span>
+      <span id="mount-step-couple" hidden></span>
 
-        <span id="mount-step-ceremony" hidden></span>
+      <span id="mount-step-ceremony" hidden></span>
 
-        <span id="mount-step-family" hidden></span>
+      <span id="mount-step-family" hidden></span>
 
-        <span id="mount-step-party" hidden></span>
+      <span id="mount-step-party" hidden></span>
 
-        <span id="mount-step-photos" hidden></span>
+      <span id="mount-step-photos" hidden></span>
 
-        <span id="mount-step-timeline" hidden></span>
+      <span id="mount-step-timeline" hidden></span>
 
-        <span id="mount-step-love_story" hidden></span>
+      <span id="mount-step-love_story" hidden></span>
 
-        <span id="mount-step-rsvp" hidden></span>
+      <span id="mount-step-rsvp" hidden></span>
 
-        <span id="mount-step-gift" hidden></span>
+      <span id="mount-step-gift" hidden></span>
 
-        <span id="mount-step-footer" hidden></span>
-      </div>
+      <span id="mount-step-footer" hidden></span>
     </form>
+  </div>
+
+  <!-- Cặp nút điều hướng NỔI trên navbar. `fixed` nên không chiếm một dòng nào
+       trong luồng form; phần đệm đáy của form (pb-…) đã chừa chỗ cho chúng.
+       Nằm ngoài <form> để Enter trong ô nhập không đụng tới, và nằm TRONG
+       #form-panel để tự ẩn khi chuyển sang tab Xem trước / Cấu hình.
+       `bottom` bám --nav-h (chiều cao thật của navbar, do _syncNavHeight đo);
+       thẻ AI nổi cũng được đẩy lên trên cụm này nên không đè lên nhau. -->
+  <div
+    id="step-nav"
+    class="pointer-events-none fixed inset-x-0 z-[47] flex justify-center px-4"
+    style="bottom: calc(var(--nav-h, 60px) + 12px)"
+  >
+    <div class="pointer-events-auto flex items-center gap-2.5">
+      <x-button
+        type="button"
+        id="step-prev"
+        variant="outline"
+        tone="neutral"
+        onclick="cxStepPrev()"
+        class="bg-white shadow-lg"
+      >
+        <i data-lucide="chevron-left" style="width: 15px; height: 15px"></i>
+        Trước đó
+      </x-button>
+      <x-button
+        type="button"
+        id="step-next"
+        onclick="cxStepNext()"
+        class="shadow-lg"
+      >
+        <span id="step-next-label">Tiếp theo</span>
+        <i data-lucide="chevron-right" style="width: 15px; height: 15px"></i>
+      </x-button>
+    </div>
   </div>
 </div>
 <!-- /form-panel -->
