@@ -593,7 +593,7 @@ async function _submitSlug(e) {
 
   const normalized = _normalizeSlug(document.getElementById("slug-input").value);
   if (!normalized) {
-    showToast("Đường dẫn không hợp lệ — hãy dùng chữ không dấu, số và dấu gạch ngang", "error");
+    showToast("Đường dẫn phải có ít nhất một chữ cái hoặc chữ số", "error");
     return;
   }
   if (normalized === c.slug) {

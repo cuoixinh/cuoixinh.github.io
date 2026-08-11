@@ -103,16 +103,24 @@ class WeddingBL {
   }
 
   /** Chuẩn hoá + validate slug. */
+  /**
+   * Chuẩn hoá + validate slug. Đây là NƠI DUY NHẤT định nghĩa luật đặt slug —
+   * chỗ nào cần sinh/kiểm slug đều phải gọi vào đây, tự viết lại là hai bên lệch
+   * nhau rồi slug đem đi kiểm trùng khác slug thực sự lưu → ăn 409.
+   * Có dấu thì bỏ dấu ("Hoàng Lan" → "hoang-lan"), không băm thành "ho-ng".
+   * Hàm luỹ đẳng: gọi lại trên kết quả cũ vẫn ra chính nó.
+   */
   validateSlug(slug) {
     if (!slug) {
       throw new Error("Slug cannot be empty");
     }
 
-    const normalized = slug
-      .trim()
+    const normalized = String(slug)
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "") // dấu thanh/dấu mũ (viết dạng \u để không hỏng khi file bị đổi encoding)
+      .replace(/đ/gi, "d") // đ/Đ không tách dấu bằng NFD nên phải thay tay
       .toLowerCase()
-      .replace(/[^a-z0-9-]/g, "-")
-      .replace(/-+/g, "-")
+      .replace(/[^a-z0-9]+/g, "-") // khoảng trắng & ký tự lạ đều thành "-", gộp liền nhau
       .replace(/^-|-$/g, "");
 
     if (!normalized) {

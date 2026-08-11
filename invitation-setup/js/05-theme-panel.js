@@ -1801,17 +1801,16 @@ function _initThemePanelObservers() {
 if (window.__cxOnReady) window.__cxOnReady(_initThemePanelObservers);
 else _initThemePanelObservers();
 
-// Tên có dấu → slug thuần a-z0-9 và dấu "-". Kết quả phải TRÙNG KHÍT với
-// weddingBL.validateSlug() (core/bl/wedding-bl.js) — lệch thì slug đem đi kiểm
-// tra trùng khác slug thực sự được lưu → ăn 409.
+// Tên có dấu → slug thuần a-z0-9 và dấu "-". Luật đặt slug nằm ở
+// weddingBL.validateSlug(); gọi thẳng vào đó để slug đem đi kiểm trùng luôn
+// trùng khít slug thực sự được lưu — lệch nhau là ăn 409 lúc PATCH.
+// Khác validateSlug ở chỗ không ném lỗi: chuỗi không còn ký tự dùng được → "".
 function _toSlug(str) {
-  return (str || "")
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "") // dấu thanh/dấu mũ (viết dạng \u để không hỏng khi file bị đổi encoding)
-    .replace(/đ/gi, "d") // Đ/đ không tách dấu bằng NFD nên phải thay tay
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-") // khoảng trắng & ký tự lạ đều thành "-", gộp liền nhau
-    .replace(/^-|-$/g, "");
+  try {
+    return weddingBL.validateSlug(str);
+  } catch (e) {
+    return "";
+  }
 }
 
 async function _isSlugAvailable(slug) {
@@ -1868,7 +1867,9 @@ function _updateSlugPreview() {
   const preview = document.getElementById("slug-preview");
   const row = document.getElementById("slug-preview-row");
   if (!input || !preview) return;
-  const val = input.value.trim();
+  // Xem trước phải là slug ĐÃ chuẩn hoá, đúng thứ sẽ lưu — không thì người dùng
+  // thấy "/Hoàng Lan" nhưng nhận về "/hoang-lan".
+  const val = _toSlug(input.value);
   if (val) {
     preview.textContent = `${window.location.origin}/${val}`;
     if (row) row.style.display = "flex";
