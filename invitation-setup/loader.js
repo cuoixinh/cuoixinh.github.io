@@ -20,6 +20,23 @@
     ["mount-ai-card", "partials/ai-card.html"],
   ];
 
+  // Từng bước của form nội dung, mỗi bước một file trong partials/steps/.
+  // Thẻ mount nằm TRONG form-panel nên nhóm này phải chèn SAU PARTIALS (request
+  // vẫn bắn song song, chỉ hoãn lúc chèn). Thứ tự mảng = thứ tự bước hiển thị,
+  // phải khớp CX_STEPS trong js/20-steps.js.
+  const STEP_PARTIALS = [
+    ["mount-step-couple", "partials/steps/01-couple.html"],
+    ["mount-step-ceremony", "partials/steps/02-ceremony.html"],
+    ["mount-step-family", "partials/steps/03-family.html"],
+    ["mount-step-party", "partials/steps/04-party.html"],
+    ["mount-step-photos", "partials/steps/05-photos.html"],
+    ["mount-step-timeline", "partials/steps/06-timeline.html"],
+    ["mount-step-love_story", "partials/steps/07-love_story.html"],
+    ["mount-step-rsvp", "partials/steps/08-rsvp.html"],
+    ["mount-step-gift", "partials/steps/09-gift.html"],
+    ["mount-step-footer", "partials/steps/10-footer.html"],
+  ];
+
   // Giữ NGUYÊN thứ tự cũ trong index.html — có phụ thuộc: config → DAL → BL →
   // supabase → helpers → x-* → index.js.
   const SCRIPTS = [
@@ -77,6 +94,8 @@
     "js/17-pickers.js",
     "js/18-theme-picker.js",
     "js/19-ai-optimize.js",
+    // Sau 03 (dùng SECTION_VIS_FIELDS) và sau 04 (dùng switchTab).
+    "js/20-steps.js",
     "ai-modal.js",
     "tour-setup.js",
   ];
@@ -130,11 +149,16 @@
     // skeleton nhỏ nên thường tới trước, lấp chỗ trống trong lúc chờ phần còn lại.
     const skeletonReq = fetchText(SKELETON[1]);
     const restReq = Promise.all(PARTIALS.map(([, url]) => fetchText(url)));
+    const stepReq = Promise.all(STEP_PARTIALS.map(([, url]) => fetchText(url)));
 
     injectPartial(SKELETON[0], await skeletonReq);
 
     const htmls = await restReq;
     PARTIALS.forEach(([mountId], i) => injectPartial(mountId, htmls[i]));
+
+    // Sau form-panel: thẻ mount của các bước do chính nó mang vào.
+    const stepHtmls = await stepReq;
+    STEP_PARTIALS.forEach(([mountId], i) => injectPartial(mountId, stepHtmls[i]));
 
     // Icon nằm trong partial vừa chèn nên phải dựng lại, nếu không sẽ trống trơn.
     if (window.lucide) window.lucide.createIcons();

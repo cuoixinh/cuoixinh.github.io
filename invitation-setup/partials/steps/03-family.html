@@ -1,0 +1,87 @@
+<!-- Bước "Gia đình hai bên" — một mục trong CX_STEPS (js/20-steps.js).
+     Chèn vào #mount-step-family của form-panel.html; khai báo ở STEP_PARTIALS (loader.js). -->
+<div data-step="family"
+  class="bg-white rounded-xl overflow-hidden animate-fade-in border border-gray-200"
+>
+  <div
+    class="bg-white px-6 py-4 border-b border-gray-100"
+  >
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <i
+          data-lucide="users"
+          class="text-[18px] text-color-secondary"
+        ></i>
+        <p class="text-sm text-gray-700">Gia đình hai bên</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <x-switch
+          key="family"
+          onclick="toggleSectionVis('family', event)"
+        ></x-switch>
+      </div>
+    </div>
+  </div>
+  <div id="section-family-body">
+    <!-- Tab bar -->
+    <div class="flex border-b border-gray-100">
+      <button
+        type="button"
+        onclick="switchFamilyTab('groom')"
+        id="family-tab-groom"
+        class="flex-1 py-3 text-sm font-medium flex items-center justify-center gap-1.5 bg-rose-50 text-rose-600 border-b-2 border-rose-500 transition-colors"
+      >
+        <i data-lucide="mars" class="w-3.5 h-3.5"></i> Nhà trai
+      </button>
+      <x-button variant="ghost" tone="neutral" size="lg" type="button" onclick="switchFamilyTab('bride')" id="family-tab-bride" class="flex-1">
+        <i data-lucide="venus" class="w-3.5 h-3.5"></i> Nhà gái
+      </x-button>
+    </div>
+
+    <!-- Nhà trai panel -->
+    <div id="family-panel-groom" class="p-6 space-y-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <x-input
+          label="Bố chú rể"
+          name="groom_father"
+          placeholder="Ví dụ: Đoàn Văn Lối"
+        ></x-input>
+        <x-input
+          label="Mẹ chú rể"
+          name="groom_mother"
+          placeholder="Ví dụ: Trần Thị Kích"
+        ></x-input>
+      </div>
+      <x-input
+        label="Địa chỉ nhà trai"
+        name="groom_address"
+        icon="home"
+        placeholder="Ví dụ: Chu Trần, Yên Lãng, Hà Nội"
+        autocomplete="off"
+      ></x-input>
+    </div>
+
+    <!-- Nhà gái panel -->
+    <div id="family-panel-bride" class="hidden p-6 space-y-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <x-input
+          label="Bố cô dâu"
+          name="bride_father"
+          placeholder="Ví dụ: Vương Đức Bắc"
+        ></x-input>
+        <x-input
+          label="Mẹ cô dâu"
+          name="bride_mother"
+          placeholder="Ví dụ: Nguyễn Thị Khuyên"
+        ></x-input>
+      </div>
+      <x-input
+        label="Địa chỉ nhà gái"
+        name="bride_address"
+        icon="home"
+        placeholder="Ví dụ: Tân Trường, Mao Điền, Hải Phòng"
+        autocomplete="off"
+      ></x-input>
+    </div>
+  </div>
+</div>

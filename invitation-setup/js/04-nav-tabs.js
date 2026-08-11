@@ -311,7 +311,6 @@ function switchTab(tab) {
     formPanel.classList.add("hidden");
     previewPanel.classList.remove("hidden");
     configPanel.classList.add("hidden");
-    setStep(3);
   } else if (tab === "config") {
     _isPreviewActive = false;
     formPanel.classList.add("hidden");

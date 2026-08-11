@@ -1606,9 +1606,15 @@ function _positionAiFab() {
   // Chỉ ghi khi navbar đã render (offsetHeight > 0): lúc skeleton nó bằng 0, ghi
   // vào sẽ dán fab sát đáy đè lên thanh skeleton.
   if (nav && nav.offsetHeight > 0) {
+    const navH = nav.offsetHeight;
+    // Thanh bước dính đáy ngay trên navbar → fab phải tránh CẢ HAI, không thì
+    // thẻ AI đè lên nút "Tiếp theo" (đúng chỗ người dùng cần bấm nhất).
+    const stepNav = document.getElementById("step-nav");
+    const stepH = stepNav && stepNav.offsetHeight > 0 ? stepNav.offsetHeight : 0;
+    document.documentElement.style.setProperty("--cx-step-nav-bottom", navH + "px");
     document.documentElement.style.setProperty(
       "--ai-fab-bottom",
-      nav.offsetHeight + 8 + "px",
+      navH + stepH + 8 + "px",
     );
   }
   // Đã kéo đặt tay → giữ nguyên vị trí đó (chỉ kẹp lại trong màn), bỏ auto-layout.

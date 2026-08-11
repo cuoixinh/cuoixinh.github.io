@@ -1,0 +1,99 @@
+<!-- Bước "Thông tin cặp đôi" — một mục trong CX_STEPS (js/20-steps.js).
+     Chèn vào #mount-step-couple của form-panel.html; khai báo ở STEP_PARTIALS (loader.js). -->
+<div data-step="couple"
+  id="tour-couple"
+  class="bg-white rounded-xl overflow-hidden animate-fade-in border border-gray-200"
+>
+  <div
+    class="bg-white px-6 py-4 border-b border-gray-100"
+  >
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <i
+          data-lucide="heart"
+          class="text-[18px] text-color-secondary"
+        ></i>
+        <p class="text-sm text-gray-700">Thông tin cặp đôi</p>
+      </div>
+    </div>
+  </div>
+  <div id="section-couple-body" class="p-6 space-y-6">
+    <!-- Tên cặp đôi -->
+    <div class="grid gap-4 sm:grid-cols-2">
+      <x-input
+        label="Tên chú rể (tên dùng trong lễ cưới)"
+        name="groom_name"
+        icon="mars"
+        required
+        placeholder="Ví dụ: Quang Vinh"
+      ></x-input>
+      <x-input
+        label="Tên cô dâu (tên dùng trong lễ cưới)"
+        name="bride_name"
+        icon="venus"
+        required
+        placeholder="Ví dụ: Hải Yến"
+      ></x-input>
+    </div>
+    <!-- Ảnh chú rể & cô dâu -->
+    <div class="grid grid-cols-2 gap-4">
+      <div class="space-y-3">
+        <p class="text-sm text-gray-700 flex items-center gap-1">
+          <i data-lucide="mars" class="text-color-secondary text-xs"></i>
+          Ảnh chú rể
+        </p>
+        <div id="groom-container" class="w-full"></div>
+        <input
+          type="file"
+          id="groom-file-input"
+          accept="image/jpeg,image/png,image/webp,image/gif,image/avif"
+          class="hidden"
+          onchange="handleImageUpload(event, 'groom_image_url')"
+        />
+      </div>
+      <div class="space-y-3">
+        <p class="text-sm text-gray-700 flex items-center gap-1">
+          <i data-lucide="venus" class="text-color-secondary text-xs"></i>
+          Ảnh cô dâu
+        </p>
+        <div id="bride-container" class="w-full"></div>
+        <input
+          type="file"
+          id="bride-file-input"
+          accept="image/jpeg,image/png,image/webp,image/gif,image/avif"
+          class="hidden"
+          onchange="handleImageUpload(event, 'bride_image_url')"
+        />
+      </div>
+    </div>
+    <!-- Ảnh cặp đôi -->
+    <div>
+      <label
+        class="block text-sm text-gray-700 mb-2 flex items-center gap-2"
+        ><i data-lucide="image" class="text-color-secondary"></i> Ảnh cặp
+        đôi</label
+      >
+      <div id="cover-container" class="w-full max-w-xs"></div>
+      <input
+        type="file"
+        id="cover-file-input"
+        accept="image/jpeg,image/png,image/webp,image/gif,image/avif"
+        class="hidden"
+        onchange="handleImageUpload(event, 'cover_image_url')"
+      />
+    </div>
+    <!-- Quote -->
+    <div>
+      <x-textarea
+        label="Slogan"
+        icon="quote"
+        name="story_quote"
+        id="story-quote-textarea"
+        placeholder="Ví dụ: Cảm ơn em đã đến bên đời nhau, cùng nhau viết nên câu chuyện của riêng chúng ta."
+      ></x-textarea>
+      <x-button type="button" onclick="randomQuote()" class="mt-2">
+        <i data-lucide="dices"></i> Generate
+      </x-button>
+    </div>
+  </div>
+</div>

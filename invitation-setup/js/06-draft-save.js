@@ -68,7 +68,6 @@ function _initAutoSave() {
 // ============= DRAFT PAYMENT =============
 
 function openPaymentForDraft() {
-  setStep(4);
   const templateName =
     sessionStorage.getItem("draft_template_name") || "Thiệp Cưới";
   PaymentModal.open(templateName, WEDDING_THEME, {}, WEDDING_ID);
