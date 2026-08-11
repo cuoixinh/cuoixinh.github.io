@@ -47,9 +47,11 @@
         </div>
 
         <div class="max-w-4xl mx-auto flex items-stretch">
-          <!-- Edit/Preview Switch -->
+          <!-- Edit/Preview Switch. lg+ : chỉ còn "Chỉnh sửa" nên cụm này thôi
+               đóng vai segmented switch, #switch-edit mặc bộ đồ của các tab khác
+               (xem @media trong styles/_setup.css) → bỏ luôn lề và gạch của vỏ. -->
           <div
-            class="flex-1 sm:flex-[2] flex items-center justify-center px-2 sm:px-3 border-t-2 border-transparent"
+            class="flex-1 sm:flex-[2] lg:flex-1 flex items-center justify-center px-2 sm:px-3 lg:px-0 border-t-2 border-transparent lg:border-t-0"
           >
             <div id="tour-view-switch" class="flex w-full bg-gray-100 rounded-full p-0.5 gap-0.5">
               <button
@@ -58,15 +60,20 @@
                 onclick="switchTab('edit')"
                 class="relative flex-1 flex items-center justify-center gap-1 h-8 rounded-full text-[11px] font-semibold bg-white shadow-sm text-gray-700 transition-all"
               >
-                <span class="tab-dirty-star hidden absolute top-0.5 right-1.5 text-rose-500 text-[13px] font-bold leading-none" title="Có thay đổi chưa lưu">*</span>
-                <i data-lucide="pen" style="width: 12px; height: 12px"></i>
+                <span class="tab-dirty-star hidden absolute top-0.5 right-1.5 lg:top-1 lg:right-3 text-rose-500 text-[13px] font-bold leading-none" title="Có thay đổi chưa lưu">*</span>
+                <!-- Cỡ icon bằng class (không phải style inline) để lg đổi được:
+                     lucide bê nguyên style sang <svg>, inline thì CSS không đè nổi. -->
+                <i data-lucide="pen" class="w-3 h-3 lg:w-5 lg:h-5"></i>
                 <span class="hidden sm:inline">Chỉnh sửa</span>
               </button>
+              <!-- lg+ : thiệp đã hiện sẵn trong khung điện thoại cạnh form
+                   (js/22-live-preview.js) nên không còn chế độ Xem trước riêng —
+                   ẩn nút đi, chỉ còn "Chỉnh sửa". -->
               <button
                 type="button"
                 id="switch-preview"
                 onclick="switchTab('preview')"
-                class="flex-1 flex items-center justify-center gap-1 h-8 rounded-full text-[11px] font-medium text-gray-400 transition-all"
+                class="flex-1 lg:hidden flex items-center justify-center gap-1 h-8 rounded-full text-[11px] font-medium text-gray-400 transition-all"
               >
                 <i data-lucide="eye" style="width: 12px; height: 12px"></i>
                 <span class="hidden sm:inline">Xem trước</span>
@@ -99,7 +106,7 @@
           <!-- "Tùy chọn" — mở #nav-more-pop ở trên (js/21-shell.js). Dấu * chưa
                lưu của tab Giao diện dội lên chính nút này, vì mục kia nằm trong
                popover nên lúc đóng không ai thấy. -->
-          <div class="flex-none flex">
+          <div class="flex-none lg:flex-1 flex">
             <button
               type="button"
               onclick="cxNavMore()"
@@ -107,9 +114,9 @@
               aria-haspopup="true"
               aria-expanded="false"
               aria-controls="nav-more-pop"
-              class="relative flex-none px-3 flex flex-col items-center justify-center gap-1 py-3 text-gray-400 border-t-2 border-transparent transition-colors"
+              class="relative flex-none px-3 lg:w-full lg:px-0 flex flex-col items-center justify-center gap-1 py-3 text-gray-400 border-t-2 border-transparent transition-colors"
             >
-              <span class="tab-dirty-star hidden absolute top-1 right-1.5 text-rose-500 text-[13px] font-bold leading-none" title="Có thay đổi chưa lưu">*</span>
+              <span class="tab-dirty-star hidden absolute top-1 right-1.5 lg:right-3 text-rose-500 text-[13px] font-bold leading-none" title="Có thay đổi chưa lưu">*</span>
               <i data-lucide="more-horizontal" class="text-base"></i>
               <span class="hidden sm:inline text-[11px] font-medium"
                 >Tùy chọn</span
@@ -117,7 +124,9 @@
             </button>
           </div>
 
-          <div id="tab-draft-wrap" class="flex-1 flex items-center justify-center px-1.5 py-2">
+          <!-- Cặp nút hành động tách khỏi dãy tab bằng một khe rõ ràng: sát nhau
+               thì "Tùy chọn" trông như nằm trong cùng cụm với "Lưu nháp". -->
+          <div id="tab-draft-wrap" class="flex-1 flex items-center justify-center px-1.5 py-2 lg:ml-4">
             <button
               type="button"
               onclick="saveDraft()"

@@ -15,9 +15,14 @@ function _showContent() {
     if (typeof _positionAiFab === "function") _positionAiFab();
   }
   _updateHeaderThemeBadge();
+  // Dữ liệu đã đổ vào form → khung "xem trực tiếp" (nếu đang hiện) có cái để vẽ.
+  if (typeof cxLiveRefresh === "function") cxLiveRefresh();
   const params = new URLSearchParams(window.location.search);
   const savedTab = params.get("tab");
+  // Không có ?tab (hoặc ?tab=edit) vẫn phải đánh dấu "Chỉnh sửa" đang mở — panel
+  // của nó hiện sẵn từ HTML nên không cần switchTab, chỉ thiếu phần tô nút.
   if (savedTab && savedTab !== "edit") switchTab(savedTab);
+  else _setActiveTab("edit");
   // Reset dirty sau khi fill form xong — tránh false positive từ fillForm()
   setTimeout(() => _setDirty(false), 0);
 

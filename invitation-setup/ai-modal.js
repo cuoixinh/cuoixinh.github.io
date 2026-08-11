@@ -1525,7 +1525,12 @@ function _fabSnapLeft(side, w) {
   if (side === "left") {
     return fits(r.left) ? r.left - _AI_FAB_GAP - w : r.left;
   }
-  return fits(vw - r.right) ? r.right + _AI_FAB_GAP : r.right - w;
+  // Bên phải form có thể đang là khung "xem trực tiếp" (js/22-live-preview.js) —
+  // chỗ trống thật chỉ tính tới mép trái của nó, không thì thẻ AI đè lên thiệp.
+  const dock = document.getElementById("live-dock");
+  const dockR = dock?.getBoundingClientRect();
+  const rightEdge = dockR?.width > 0 ? dockR.left : vw;
+  return fits(rightEdge - r.right) ? r.right + _AI_FAB_GAP : r.right - w;
 }
 // Vị trí do người dùng KÉO đặt (nhớ qua các lần tải trang). Có giá trị = chế độ thủ
 // công → bỏ auto-định-vị theo #wedding-form, chỉ kẹp lại trong màn khi resize.

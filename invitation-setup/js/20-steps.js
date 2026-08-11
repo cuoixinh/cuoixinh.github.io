@@ -290,8 +290,15 @@ function _cxRenderNav() {
     prev.disabled = first;
   }
 
+  // Bước cuối dẫn đi đâu là tuỳ khổ màn: desktop đã thấy thiệp trong khung điện
+  // thoại rồi nên đưa thẳng sang Cấu hình (xem cxStepNext).
   const label = document.getElementById("step-next-label");
-  if (label) label.textContent = last ? "Xem trước" : "Tiếp theo";
+  if (label)
+    label.textContent = last
+      ? window.cxLiveWide?.()
+        ? "Cấu hình"
+        : "Xem trước"
+      : "Tiếp theo";
 
   // Tiến độ tổng chuyển thành tooltip: chip đã nói đủ vị trí lẫn trạng thái, để
   // thêm một dòng chữ nữa chỉ tốn chiều cao thanh.
@@ -336,6 +343,8 @@ function cxGoStep(id, opts = {}) {
       .getElementById("wedding-form")
       ?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
+  // Bản xem trực tiếp bám theo bước — không tải lại, chỉ cuộn tới mục tương ứng.
+  window.cxLiveFocus?.();
 }
 window.cxGoStep = cxGoStep;
 
@@ -360,7 +369,9 @@ function cxStepNext() {
   }
 
   if (_cxStepIndex >= CX_STEPS.length - 1) {
-    switchTab("preview");
+    // Desktop không còn tab Xem trước (thiệp nằm sẵn cạnh form) → điền xong thì
+    // việc tiếp theo là Cấu hình. URL mang ?tab=config nên tải lại vẫn đúng chỗ.
+    switchTab(window.cxLiveWide?.() ? "config" : "preview");
     return;
   }
   cxGoStep(_cxStepIndex + 1);

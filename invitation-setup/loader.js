@@ -98,6 +98,8 @@
     // Sau 03 (dùng SECTION_VIS_FIELDS) và sau 04 (dùng switchTab).
     "js/20-steps.js",
     "js/21-shell.js",
+    // Sau 04 (dùng _savePreviewData/_previewIframeSrc và cờ _isPreviewActive).
+    "js/22-live-preview.js",
     "ai-modal.js",
     "tour-setup.js",
   ];

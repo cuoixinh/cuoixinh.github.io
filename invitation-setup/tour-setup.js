@@ -31,7 +31,7 @@
       // Spotlight cả cụm "Chỉnh sửa / Xem trước".
       selector: "#tour-view-switch",
       title: "Chỉnh sửa & Xem trước",
-      desc: "Chuyển qua lại giữa Chỉnh sửa và Xem trước bất cứ lúc nào.",
+      desc: "Chuyển qua lại giữa Chỉnh sửa và Xem trước bất cứ lúc nào. Trên màn hình lớn, thiệp hiện luôn trong khung điện thoại bên phải nên không cần chuyển.",
       // Nhấn vào cụm (một trong hai nút) → sang bước 4 ngay. Thanh công cụ vẫn
       // hiển thị ở chế độ xem trước nên nút Xuất bản (bước 4) vẫn spotlight được.
       advanceOnClick: true,

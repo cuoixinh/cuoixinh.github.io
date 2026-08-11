@@ -182,6 +182,10 @@ function _setActiveTab(tabId) {
   const editBtn = document.getElementById("switch-edit");
   const previewBtn = document.getElementById("switch-preview");
   if (!editBtn || !previewBtn) return;
+
+  // Từ lg trở lên nút này là một TAB như Cấu hình (xem #switch-edit trong
+  // styles/_setup.css) — chỗ đó đọc .is-active để gạch trên và tô màu.
+  editBtn.classList.toggle("is-active", tabId === "edit");
   if (tabId === "config" || tabId === "guests" || tabId === "theme") {
     editBtn.classList.remove(
       "bg-white",
@@ -243,6 +247,10 @@ function _setDirty(dirty, tab) {
     _refreshPreviewQR();
   }
 
+  // Mọi thay đổi trên trang đều đi qua đây → cũng là chỗ hẹn tải lại khung
+  // "xem trực tiếp" (js/22-live-preview.js), khỏi phải rải listener từng nơi.
+  if (dirty && typeof cxLiveTouch === "function") cxLiveTouch();
+
   const draft = document.getElementById("tab-draft");
   const publish = document.getElementById("tab-publish");
 
@@ -286,6 +294,10 @@ function togglePreview() {
 }
 
 function switchTab(tab) {
+  // Từ lg trở lên không có chế độ Xem trước riêng nữa (thiệp nằm sẵn trong khung
+  // điện thoại cạnh form) — link cũ ?tab=preview vẫn phải mở được trang.
+  if (tab === "preview" && window.cxLiveWide?.()) tab = "edit";
+
   // Danh sách khách mời có luồng mở riêng (panel iframe + URL ?tab=guests)
   if (tab === "guests") {
     openGuestsPage();
@@ -348,6 +360,8 @@ function switchTab(tab) {
     configPanel.classList.add("hidden");
   }
   _setActiveTab(tab);
+  // Khung điện thoại đi theo tab (Chỉnh sửa / Xem trước dùng iframe khác nhau).
+  if (typeof cxLiveRefresh === "function") cxLiveRefresh();
 }
 
 function _initConfigPanel() {
