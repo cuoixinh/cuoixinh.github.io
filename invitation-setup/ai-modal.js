@@ -1580,7 +1580,15 @@ function _positionAiFab() {
   // vào sẽ dán fab sát đáy đè lên thanh skeleton.
   if (nav && nav.offsetHeight > 0) {
     const navH = nav.offsetHeight;
-    document.documentElement.style.setProperty("--ai-fab-bottom", navH + 8 + "px");
+    // Cặp nút "Trước đó / Tiếp theo" nổi ngay trên navbar → fab phải tránh CẢ HAI,
+    // không thì thẻ AI đè đúng chỗ người dùng cần bấm nhất. 12px là khoảng hở giữa
+    // navbar và cụm nút (xem `bottom` của #step-nav trong form-panel.html).
+    const stepNav = document.getElementById("step-nav");
+    const stepH = stepNav?.offsetHeight > 0 ? stepNav.offsetHeight + 12 : 0;
+    document.documentElement.style.setProperty(
+      "--ai-fab-bottom",
+      navH + stepH + 8 + "px",
+    );
   }
   // Đã kéo đặt tay → giữ nguyên vị trí đó (chỉ kẹp lại trong màn), bỏ auto-layout.
   if (_applyManualFabPos()) return;
