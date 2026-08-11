@@ -225,7 +225,6 @@ function _cxRenderPanels() {
   });
 
   // Group đang tắt: vẫn vào được để bật lại, nhưng phần nhập làm mờ và khoá.
-  const panel = document.querySelector(`#wedding-form [data-step="${cur.id}"]`);
   const body = document.getElementById(`section-${cur.id}-body`);
   if (body) {
     const off = _cxStepOff(cur);
@@ -233,27 +232,37 @@ function _cxRenderPanels() {
     body.classList.toggle("pointer-events-none", off);
     body.setAttribute("aria-disabled", String(off));
   }
-  if (panel) panel.scrollIntoView({ block: "nearest" });
 }
 
 function _cxRenderNav() {
   const first = _cxStepIndex === 0;
   const last = _cxStepIndex === CX_STEPS.length - 1;
 
+  // Giữ CHỖ của nút lùi ở bước đầu (invisible chứ không hidden), nếu không dải
+  // chip nhảy ngang mỗi lần rời bước 1.
   const prev = document.getElementById("step-prev");
-  if (prev) prev.classList.toggle("invisible", first);
+  if (prev) {
+    prev.classList.toggle("invisible", first);
+    prev.disabled = first;
+  }
 
   const label = document.getElementById("step-next-label");
-  if (label) label.textContent = last ? "Xong, xem trước" : "Tiếp theo";
+  // Bước cuối đổi hẳn ý nghĩa (rời form sang xem trước) nên chữ hiện ở mọi khổ
+  // màn; các bước giữa chỉ hiện chữ từ sm trở lên để nhường chỗ cho chip.
+  if (label) {
+    label.textContent = last ? "Xem trước" : "Tiếp theo";
+    label.classList.toggle("hidden", !last);
+    label.classList.toggle("sm:inline", !last);
+  }
 
-  // Mobile chỉ đủ chỗ cho "1/10"; phần "còn N mục chưa đủ" để dành màn rộng,
-  // nếu không dòng gợi ý xuống hàng làm thanh điều hướng cao gấp đôi.
-  const hint = document.getElementById("step-nav-hint");
-  if (hint) {
+  // Tiến độ tổng chuyển thành tooltip: chip đã nói đủ vị trí lẫn trạng thái, để
+  // thêm một dòng chữ nữa chỉ tốn chiều cao thanh.
+  const next = document.getElementById("step-next");
+  if (next) {
     const todo = CX_STEPS.filter((s) => _cxStepState(s) === "todo").length;
-    hint.innerHTML =
+    next.title =
       `Bước ${_cxStepIndex + 1}/${CX_STEPS.length}` +
-      (todo ? `<span class="hidden sm:inline"> · còn ${todo} mục chưa đủ</span>` : "");
+      (todo ? ` · còn ${todo} mục chưa đủ` : " · đã điền đủ");
   }
 }
 
@@ -279,8 +288,13 @@ function cxGoStep(id, opts = {}) {
   if (i < 0) return;
   _cxStepIndex = i;
   cxRenderSteps();
+  // Cuộn tới ĐẦU FORM chứ không tới #step-bar: thanh bước là sticky, đưa chính nó
+  // vào tầm nhìn thì trình duyệt tính theo chỗ nó đang dính, cuộn hụt. Form có
+  // scroll-mt-28 nên phần đầu bước không nằm dưới header + thanh bước.
   if (opts.scroll !== false) {
-    document.getElementById("step-bar")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    document
+      .getElementById("wedding-form")
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 }
 window.cxGoStep = cxGoStep;

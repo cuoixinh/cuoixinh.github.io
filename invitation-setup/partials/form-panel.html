@@ -1,8 +1,15 @@
 <!-- Form Panel (toggle with preview) -->
 <div id="form-panel">
-  <div class="max-w-4xl mx-auto px-4 py-8 pb-24">
+  <!-- Đệm đáy = chiều cao THẬT của navbar (--nav-h, do _syncNavHeight đo) + 32px:
+       bước có nội dung ngắn vẫn xem hết được phần cuối, không bị navbar che.
+       scroll-mt chừa chỗ cho header + thanh bước (đều sticky) khi cxGoStep cuộn tới. -->
+  <div class="max-w-4xl mx-auto px-4 py-8 pb-[calc(var(--nav-h,60px)+32px)]">
     <!-- Form -->
-    <form id="wedding-form" class="flex flex-col gap-6" autocomplete="on">
+    <form
+      id="wedding-form"
+      class="flex flex-col gap-6 scroll-mt-28"
+      autocomplete="on"
+    >
       <input type="hidden" name="cover_image_url" />
       <input type="hidden" name="groom_image_url" />
       <input type="hidden" name="bride_image_url" />
@@ -78,36 +85,6 @@
       <span id="mount-step-gift" hidden></span>
 
       <span id="mount-step-footer" hidden></span>
-
-      <!-- Điều hướng bước. Nằm TRONG form nên nút phải ghi rõ type="button",
-           không thì Enter trong ô nhập sẽ submit. Nội dung do js/20-steps.js đổ.
-           Dính đáy để bước nào cũng với tới được mà không phải cuộn hết group.
-           `bottom` bám --cx-step-nav-bottom (chiều cao thanh nav dưới) do ai-modal.js
-           cập nhật; thẻ AI cũng được đẩy lên trên thanh này nên không đè lên nhau. -->
-      <div
-        id="step-nav"
-        class="sticky z-[46] -mx-4 mt-2 flex items-center gap-3 border-t border-gray-100 bg-white/95 px-4 py-2.5 backdrop-blur"
-        style="bottom: var(--cx-step-nav-bottom, 60px)"
-      >
-        <x-button
-          type="button"
-          id="step-prev"
-          variant="outline"
-          tone="neutral"
-          onclick="cxStepPrev()"
-        >
-          <i data-lucide="chevron-left" style="width: 14px; height: 14px"></i>
-          Quay lại
-        </x-button>
-        <span
-          id="step-nav-hint"
-          class="flex-1 whitespace-nowrap text-center text-[11px] text-gray-400"
-        ></span>
-        <x-button type="button" id="step-next" onclick="cxStepNext()">
-          <span id="step-next-label">Tiếp theo</span>
-          <i data-lucide="chevron-right" style="width: 14px; height: 14px"></i>
-        </x-button>
-      </div>
     </form>
   </div>
 </div>

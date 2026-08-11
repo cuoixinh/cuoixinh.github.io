@@ -73,16 +73,41 @@
         </div>
       </div>
       <!-- Thanh bước — thay cho timeline cũ (Chọn mẫu/Thông tin/Xem trước/Thanh toán).
-           Nội dung do js/20-steps.js đổ ra từ mảng CX_STEPS: mỗi bước một chip có
-           số thứ tự, đổi thành ✓ khi đủ và ⚠ khi thiếu. Cuộn ngang được vì 10 bước
-           không nằm vừa bề ngang điện thoại. -->
+           Chip do js/20-steps.js đổ ra từ mảng CX_STEPS: ✓ khi đủ, ⚠ khi thiếu.
+           Hai nút điều hướng nằm CHUNG hàng với chip (không tách khối riêng dưới
+           form) — luôn thấy được vì cả thanh dính dưới header. Dải chip cuộn ngang
+           vì 10 bước không nằm vừa bề ngang điện thoại. -->
       <div class="bg-white border-b border-rose-100 sticky top-12 z-40">
-        <div class="max-w-4xl mx-auto">
+        <div class="max-w-4xl mx-auto flex items-center gap-2 px-2 py-1.5">
+          <x-button
+            type="button"
+            id="step-prev"
+            variant="ghost"
+            tone="neutral"
+            size="sm"
+            icon-only
+            onclick="cxStepPrev()"
+            title="Bước trước"
+            aria-label="Bước trước"
+            class="shrink-0"
+          >
+            <i data-lucide="chevron-left" style="width: 16px; height: 16px"></i>
+          </x-button>
           <div
             id="step-bar"
-            class="flex items-center gap-1 overflow-x-auto px-3 py-2 scrollbar-hide"
+            class="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto py-0.5 scrollbar-hide"
             role="tablist"
             aria-label="Các bước điền thông tin thiệp"
           ></div>
+          <x-button
+            type="button"
+            id="step-next"
+            size="sm"
+            onclick="cxStepNext()"
+            class="shrink-0"
+          >
+            <span id="step-next-label" class="hidden sm:inline">Tiếp theo</span>
+            <i data-lucide="chevron-right" style="width: 16px; height: 16px"></i>
+          </x-button>
         </div>
       </div>
