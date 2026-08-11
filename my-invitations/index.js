@@ -50,14 +50,16 @@ async function initPage() {
   // luôn callback và trang tải danh sách hai lần.
   currentUser = await CXAuth.getUser();
   updateAuthUI();
-  await loadCards();
+  // Chuyển hướng TRƯỚC khi tải danh sách: trang này chỉ là chặng trung chuyển khi
+  // có urlRedirect, tải thêm một vòng API rồi rời đi là phí.
   _redirectAfterLogin();
+  await loadCards();
 
   CXAuth.onChange((user, event) => {
     currentUser = user;
     updateAuthUI();
-    loadCards();
     _redirectAfterLogin(event === "SIGNED_IN");
+    loadCards();
   });
 }
 
@@ -108,6 +110,24 @@ function _ordersKey() {
   return buildCacheKey("orders", currentUser ? currentUser.email : "guest");
 }
 
+const GUEST_ORDERS_KEY = buildCacheKey("orders", "guest");
+
+// Đơn tạo lúc chưa đăng nhập nằm ở key "guest"; đăng nhập xong phải DỌN sang key
+// theo email, nếu không thiệp vừa làm biến mất khỏi danh sách như bị mất.
+// Gộp theo manage_id, bản ở key email thắng (đã đồng bộ xa hơn).
+function _absorbGuestOrders() {
+  if (!currentUser) return;
+  const guest = getCache(GUEST_ORDERS_KEY, []);
+  if (!Array.isArray(guest) || !guest.length) return;
+
+  const key = _ordersKey();
+  const mine = getCache(key, []);
+  const mineIds = new Set(mine.map((o) => o.manage_id).filter(Boolean));
+  const added = guest.filter((o) => o.manage_id && !mineIds.has(o.manage_id));
+  setCache(key, mine.concat(added));
+  removeCache(GUEST_ORDERS_KEY);
+}
+
 function _titleFromTheme(theme) {
   return (
     (theme || "")
@@ -137,27 +157,26 @@ async function loadThemeNames() {
   }
 }
 
+// Ném lỗi khi không lấy được danh sách — người gọi phải phân biệt "không có thiệp"
+// với "hỏng mạng", nuốt lỗi thành [] là báo sai cho người dùng là mất thiệp.
 async function fetchMyWeddings() {
-  if (!currentUser) return [];
   const token = await CXAuth.accessToken();
-  if (!token) return [];
-  try {
-    const res = await fetch(CONFIG.supabase.edgeUrl + "?resource=my-weddings", {
-      headers: {
-        apikey: CONFIG.supabase.anonKey,
-        Authorization: "Bearer " + token,
-      },
-    });
-    if (!res.ok) return [];
-    const data = await res.json();
-    return Array.isArray(data) ? data : [];
-  } catch (e) {
-    return [];
-  }
+  if (!token) throw new Error("Phiên đăng nhập đã hết hạn");
+
+  const res = await fetch(CONFIG.supabase.edgeUrl + "?resource=my-weddings", {
+    headers: {
+      apikey: CONFIG.supabase.anonKey,
+      Authorization: "Bearer " + token,
+    },
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const data = await res.json();
+  return Array.isArray(data) ? data : [];
 }
 
 // Đơn trong localStorage không có expires_at → expiresAt = undefined nghĩa là
 // "không rõ hạn dùng thử", thẻ chỉ hiện trạng thái chứ không đếm ngày.
+// local = chỉ tồn tại trên máy này (chưa có bản ghi DB) → xoá thẻ không gọi API.
 function _cardFromOrder(o) {
   return {
     id: o.manage_id,
@@ -168,6 +187,7 @@ function _cardFromOrder(o) {
     published: o.status !== "draft",
     expiresAt: o.status === "completed" ? null : undefined,
     createdAt: o.date,
+    local: true,
   };
 }
 
@@ -181,10 +201,17 @@ function _cardFromWedding(w) {
     published: !!w.is_published,
     expiresAt: w.expires_at || null,
     createdAt: w.created_at,
+    local: false,
   };
 }
 
+// Đổi phiên (đăng nhập/xuất) làm loadCards chạy chồng nhau; chỉ lần gọi MỚI NHẤT
+// được phép ghi CARDS, nếu không kết quả cũ về sau sẽ đè lên kết quả mới.
+let _loadSeq = 0;
+
 async function loadCards() {
+  const seq = ++_loadSeq;
+  _absorbGuestOrders();
   const local = getCache(_ordersKey(), []).filter((o) => o.manage_id);
 
   if (!currentUser) {
@@ -194,7 +221,16 @@ async function loadCards() {
   }
 
   setState("loading");
-  const weddings = await fetchMyWeddings();
+  let weddings;
+  try {
+    weddings = await fetchMyWeddings();
+  } catch (e) {
+    if (seq !== _loadSeq) return;
+    setState("error");
+    return;
+  }
+  if (seq !== _loadSeq) return;
+
   // DB là nguồn sự thật; đơn local chỉ bù những thiệp chưa kịp đồng bộ.
   const byId = new Map(weddings.map((w) => [w.id, _cardFromWedding(w)]));
   local.forEach((o) => {
@@ -252,21 +288,27 @@ function render() {
     badge.classList.toggle("hidden", !counts[tab]);
   });
 
-  const list = CARDS.filter((c) => matchTab(c, ACTIVE_TAB));
+  // Chỉ số nhớ sẵn theo CARDS: các hàm onclick trên thẻ nhắm vào CARDS[i], không
+  // phải vị trí trong danh sách đã lọc.
   const grid = document.getElementById("cards-grid");
-  grid.innerHTML = list.map((c) => cardHTML(c, CARDS.indexOf(c))).join("");
+  const list = [];
+  CARDS.forEach((c, i) => {
+    if (matchTab(c, ACTIVE_TAB)) list.push(cardHTML(c, i));
+  });
+  grid.innerHTML = list.join("");
 
   if (list.length) setState("grid");
   else if (!currentUser && !CARDS.length) setState("guest");
   else setState("empty", counts);
 }
 
-// Bốn khối loại trừ nhau: lưới thẻ · khung xương · rỗng · chưa đăng nhập.
+// Năm khối loại trừ nhau: lưới thẻ · khung xương · rỗng · chưa đăng nhập · lỗi tải.
 function setState(state, counts) {
   document.getElementById("cards-grid").classList.toggle("hidden", state !== "grid");
   document.getElementById("state-loading").classList.toggle("hidden", state !== "loading");
   document.getElementById("state-empty").classList.toggle("hidden", state !== "empty");
   document.getElementById("state-guest").classList.toggle("hidden", state !== "guest");
+  document.getElementById("state-error").classList.toggle("hidden", state !== "error");
 
   if (state !== "empty") return;
   // Rỗng vì lọc theo tab thì nói rõ, tránh hiểu nhầm là chưa có thiệp nào.
@@ -315,7 +357,12 @@ function cardHTML(c, i) {
              loading="lazy" onerror="this.style.display='none'"
              class="h-full w-full object-cover object-top transition-transform duration-300 group-hover:scale-105" />
         <div class="absolute left-1.5 top-1.5 flex flex-col items-start gap-1 sm:left-2 sm:top-2">${leftBadges}</div>
-        <div class="absolute right-2 top-2 hidden sm:block">${statusBadge}</div>
+        <!-- Ảnh thẻ chỉ rộng ~132px trên mobile, hai cụm badge đè lên nhau nếu cùng
+             hiện. Cụm trái chỉ có khi thiệp đã xuất bản — mà lúc đó nó đã nói thay
+             "Đã xuất bản" rồi, nên nhường chỗ. Thẻ nháp không có cụm trái nên badge
+             "Nháp" hiện ở mọi khổ: trên mobile khối ghi chú bên dưới bị ẩn, đây là
+             chỗ DUY NHẤT phân biệt nháp với đã xuất bản. -->
+        <div class="absolute right-1.5 top-1.5 sm:right-2 sm:top-2 ${leftBadges ? "hidden sm:block" : ""}">${statusBadge}</div>
       </div>
 
       <div class="flex flex-1 flex-col p-3 sm:p-4">
@@ -363,9 +410,11 @@ function noteHTML(state, days) {
   return "";
 }
 
+// Hiện ở mọi khổ màn hình: đổi đường dẫn và sao chép link là hai việc chính của
+// thiệp đã xuất bản, ẩn trên mobile là mất hẳn lối vào.
 function slugRowHTML(c, i) {
-  return `<div class="mt-3 hidden items-center gap-0.5 rounded-lg bg-gray-50 px-2.5 py-1 sm:flex">
-      <span class="flex-1 truncate font-mono text-[11px] text-gray-600">/${esc(c.slug)}</span>
+  return `<div class="mt-3 flex items-center gap-0.5 rounded-lg bg-gray-50 px-2 py-1 sm:px-2.5">
+      <span class="min-w-0 flex-1 truncate font-mono text-[11px] text-gray-600">/${esc(c.slug)}</span>
       <x-button variant="ghost" tone="neutral" size="xs" icon-only onclick="openSlugModal(${i})" aria-label="Đổi đường dẫn">
         <i class="fas fa-gear text-[11px]"></i>
       </x-button>
@@ -375,22 +424,52 @@ function slugRowHTML(c, i) {
     </div>`;
 }
 
-const ACTION = "flex-1";
+// Hàng nút cuối thẻ: toàn nút icon-only cỡ bằng nhau, `justify-around` của thẻ
+// rải đều — thẻ 2 nút hay 4 nút đều cân, không nút nào giãn hay bị bóp.
+// Bề ngang thẻ hẹp nhất chỉ ~132px (2 cột, máy 360px) mà riêng "Chỉnh sửa" kèm
+// chữ đã 93px, nên hàng này KHÔNG kèm được nhãn: 4 nút có chữ cần ~272px, tràn
+// ở mọi khổ 3–4 cột. Tên hành động nằm ở title/aria-label.
+// `shrink-0` là bắt buộc: mặc định flex cho co, thiếu nó nút Xoá bị bóp còn 11px.
+const ACTION = "shrink-0";
 
+function _actionBtn(icon, title, onclick, extra = "") {
+  return (
+    `<x-button variant="ghost" tone="neutral" size="xs" icon-only onclick="${onclick}"` +
+    ` title="${escAttr(title)}" aria-label="${escAttr(title)}" class="${ACTION} ${extra}">` +
+    `<i class="${icon} text-[11px]"></i></x-button>`
+  );
+}
+
+// Tối đa 4 nút. "Chỉnh sửa" LUÔN có mặt (trước đây thiệp đã xuất bản chỉ vào sửa
+// được bằng cách bấm ảnh/tên — không ai đoán ra); khi cần "Kích hoạt" thì bỏ
+// "Chia sẻ", link vẫn sao chép được ở hàng đường dẫn ngay trên.
 function actionsHTML(c, i, state) {
+  const needsActivate = state === "trial" || state === "expired" || state === "published";
   const out = [];
   if (c.published && c.slug) {
-    out.push(`<x-button variant="ghost" tone="neutral" size="xs" icon="fas fa-eye" onclick="viewCard(${i})" class="${ACTION}"><span class="hidden sm:inline">Xem</span></x-button>`);
-    out.push(`<x-button variant="ghost" tone="neutral" size="xs" icon="fas fa-share-nodes" onclick="shareCard(${i})" class="${ACTION}"><span class="hidden sm:inline">Chia sẻ</span></x-button>`);
-  } else {
-    out.push(`<x-button variant="ghost" tone="neutral" size="xs" icon="fas fa-pen" onclick="openEditor(${i})" class="${ACTION}"><span class="hidden sm:inline">Chỉnh sửa</span></x-button>`);
+    out.push(_actionBtn("fas fa-eye", "Xem thiệp", `viewCard(${i})`));
   }
-  if (state === "trial" || state === "expired" || state === "published") {
+  out.push(_actionBtn("fas fa-pen", "Chỉnh sửa", `openEditor(${i})`));
+  if (c.published && c.slug && !needsActivate) {
+    out.push(_actionBtn("fas fa-share-nodes", "Chia sẻ", `shareCard(${i})`));
+  }
+  if (needsActivate) {
     // Kích hoạt là việc cần chú ý nhất trên thẻ → tô cam. Dùng "!" vì class màu của
     // ghost/neutral cùng độ ưu tiên, không có "!" thì thứ tự trong file CSS quyết định.
-    out.push(`<x-button variant="ghost" tone="neutral" size="xs" icon="fas fa-credit-card" onclick="activateCard(${i})" class="${ACTION} !text-amber-600 hover:!bg-amber-50 hover:!text-amber-700"><span class="hidden sm:inline">Kích hoạt</span></x-button>`);
+    out.push(
+      _actionBtn(
+        "fas fa-credit-card",
+        "Kích hoạt thiệp",
+        `activateCard(${i})`,
+        "!text-amber-600 hover:!bg-amber-50 hover:!text-amber-700",
+      ),
+    );
   }
-  out.push(`<x-button variant="ghost" tone="danger" size="xs" icon-only onclick="deleteCard(${i})" aria-label="Xoá thiệp"><i class="fas fa-trash text-[11px]"></i></x-button>`);
+  out.push(
+    `<x-button variant="ghost" tone="danger" size="xs" icon-only onclick="deleteCard(${i})"` +
+      ` title="Xoá thiệp" aria-label="Xoá thiệp" class="${ACTION}">` +
+      `<i class="fas fa-trash text-[11px]"></i></x-button>`,
+  );
   return out.join("");
 }
 
@@ -424,18 +503,29 @@ async function shareCard(i) {
       if (e.name === "AbortError") return; // người dùng đóng bảng chia sẻ
     }
   }
-  await navigator.clipboard.writeText(url);
-  showToast("Đã sao chép liên kết thiệp", "success");
+  if (await _copyText(url)) showToast("Đã sao chép liên kết thiệp", "success");
 }
 
 async function copyLink(i, btn) {
   const c = CARDS[i];
   if (!c?.slug) return;
-  await navigator.clipboard.writeText(publicUrl(c));
+  if (!(await _copyText(publicUrl(c)))) return;
   const icon = btn.querySelector("i");
   icon.className = "fas fa-check text-[11px]";
   setTimeout(() => (icon.className = "fas fa-copy text-[11px]"), 2000);
   showToast("Đã sao chép liên kết thiệp", "success");
+}
+
+// clipboard ném lỗi khi trang không phải HTTPS hoặc người dùng chặn quyền — không
+// bắt thì nút bấm im lặng, người dùng tưởng đã copy được.
+async function _copyText(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch (e) {
+    showAlert("Không sao chép được", `Hãy sao chép thủ công:\n${text}`, "info");
+    return false;
+  }
 }
 
 function activateCard(i) {
@@ -456,6 +546,16 @@ async function deleteCard(i) {
     { confirmText: "Xoá thiệp" },
   );
   if (!ok) return;
+
+  // Thẻ chưa có bản ghi DB (đơn nháp trên máy) thì không có gì để gọi API — gọi
+  // vào chỉ nhận 401/404 rồi báo lỗi oan.
+  if (c.local) {
+    CARDS = CARDS.filter((x) => x !== c);
+    _dropFromLocalOrders(c.id);
+    render();
+    showToast("Đã xoá thiệp", "success");
+    return;
+  }
 
   showLoading(true, "Đang xoá thiệp...");
   try {
@@ -498,8 +598,18 @@ function closeSlugModal() {
   _closeModal("slug-modal");
 }
 
+// Preview phải là đường dẫn ĐÃ chuẩn hoá y như lúc lưu ("Lan Anh" → "lan-anh"),
+// không thì người dùng thấy một link mà nhận về một link khác.
+function _normalizeSlug(raw) {
+  try {
+    return weddingBL.validateSlug(raw);
+  } catch (e) {
+    return "";
+  }
+}
+
 function _syncSlugPreview() {
-  const val = document.getElementById("slug-input").value.trim();
+  const val = _normalizeSlug(document.getElementById("slug-input").value);
   document.getElementById("slug-preview").textContent =
     `${window.location.origin}/${val || "..."}`;
 }
@@ -509,16 +619,20 @@ async function _submitSlug(e) {
   const c = CARDS[_slugCardIndex];
   if (!c) return;
 
-  const raw = document.getElementById("slug-input").value.trim();
-  if (!raw) {
-    showToast("Vui lòng nhập đường dẫn", "error");
+  const normalized = _normalizeSlug(document.getElementById("slug-input").value);
+  if (!normalized) {
+    showToast("Đường dẫn phải có ít nhất một chữ cái hoặc chữ số", "error");
+    return;
+  }
+  if (normalized === c.slug) {
+    closeSlugModal();
     return;
   }
 
   showLoading(true, "Đang lưu đường dẫn...");
   try {
-    // weddingBL.updateWedding tự chuẩn hoá slug; đọc lại để thẻ hiện đúng bản đã lưu.
-    const normalized = weddingBL.validateSlug(raw);
+    // weddingBL.updateWedding tự chuẩn hoá slug; gửi bản đã chuẩn hoá để thẻ hiện
+    // đúng thứ đã lưu mà không phải tải lại danh sách.
     await weddingBL.updateWedding({ id: c.id, slug: normalized });
     c.slug = normalized;
     closeSlugModal();
@@ -614,16 +728,20 @@ const escAttr = esc;
 
 function formatDate(dateStr) {
   if (!dateStr) return "-";
+  const d = new Date(dateStr);
+  if (isNaN(d)) return "-"; // đơn cũ trong localStorage có thể thiếu/hỏng trường date
   // Dạng số ngắn (10/8/2026) — thẻ đã chật, "10 tháng 8, 2026" chiếm gần cả dòng.
-  return new Date(dateStr).toLocaleDateString("vi-VN");
+  return d.toLocaleDateString("vi-VN");
 }
 
 function toggleUserDropdown() {
-  document.getElementById("user-dropdown").classList.toggle("hidden");
+  const hidden = document.getElementById("user-dropdown").classList.toggle("hidden");
+  document.getElementById("user-menu-btn")?.setAttribute("aria-expanded", String(!hidden));
 }
 
 function closeUserDropdown() {
   document.getElementById("user-dropdown")?.classList.add("hidden");
+  document.getElementById("user-menu-btn")?.setAttribute("aria-expanded", "false");
 }
 
 // ===== GẮN SỰ KIỆN =====
@@ -651,6 +769,17 @@ function bindEvents() {
     document.getElementById(id).addEventListener("click", function (e) {
       if (e.target === this) _closeModal(id);
     });
+  });
+
+  // Esc: đóng modal đang mở, không có modal nào thì đóng menu tài khoản.
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape") return;
+    const open = ["slug-modal", "profile-modal"].find(
+      (id) => !document.getElementById(id).classList.contains("hidden"),
+    );
+    if (open === "slug-modal") closeSlugModal();
+    else if (open) _closeModal(open);
+    else closeUserDropdown();
   });
 }
 

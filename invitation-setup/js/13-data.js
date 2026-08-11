@@ -607,12 +607,8 @@ async function applySlug() {
   const input = document.getElementById("slug-input");
   if (!input) return;
 
-  const newSlug = input.value
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9-]/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "");
+  // Luật đặt slug ở weddingBL.validateSlug (bỏ dấu, chỉ giữ a-z0-9 và "-").
+  const newSlug = _toSlug(input.value);
   if (!newSlug) {
     showToast("Vui lòng nhập slug hợp lệ", "error");
     return;

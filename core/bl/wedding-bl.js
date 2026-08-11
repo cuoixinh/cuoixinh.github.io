@@ -1,5 +1,9 @@
 /** BL — Wedding: validation, transform, business rules. */
 
+// Trần độ dài slug (xem validateSlug). Nơi nào tự ghép hậu tố vào slug phải chừa
+// chỗ trong mức này, không thì validateSlug cắt mất hậu tố lúc lưu.
+const SLUG_MAX_LENGTH = 50;
+
 class WeddingBL {
   constructor(weddingDAL, storageDAL) {
     this.dal = weddingDAL;
@@ -102,18 +106,35 @@ class WeddingBL {
     return await this.dal.createWedding(payload);
   }
 
-  /** Chuẩn hoá + validate slug. */
+  /**
+   * Chuẩn hoá + validate slug. Đây là NƠI DUY NHẤT định nghĩa luật đặt slug —
+   * chỗ nào cần sinh/kiểm slug đều phải gọi vào đây, tự viết lại là hai bên lệch
+   * nhau rồi slug đem đi kiểm trùng khác slug thực sự lưu → ăn 409.
+   * Kết quả luôn khớp /^[a-z0-9]+(-[a-z0-9]+)*$/ và dài tối đa SLUG_MAX_LENGTH:
+   * có dấu thì bỏ dấu ("Hoàng Lan" → "hoang-lan"), không băm thành "ho-ng".
+   * Hàm luỹ đẳng: gọi lại trên kết quả cũ vẫn ra chính nó.
+   */
   validateSlug(slug) {
     if (!slug) {
       throw new Error("Slug cannot be empty");
     }
 
-    const normalized = slug
-      .trim()
+    let normalized = String(slug)
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "") // dấu thanh/dấu mũ (viết dạng \u để không hỏng khi file bị đổi encoding)
+      .replace(/đ/gi, "d") // đ/Đ không tách dấu bằng NFD nên phải thay tay
       .toLowerCase()
-      .replace(/[^a-z0-9-]/g, "-")
-      .replace(/-+/g, "-")
+      .replace(/[^a-z0-9]+/g, "-") // khoảng trắng & ký tự lạ đều thành "-", gộp liền nhau
       .replace(/^-|-$/g, "");
+
+    if (normalized.length > SLUG_MAX_LENGTH) {
+      const cut = normalized.slice(0, SLUG_MAX_LENGTH);
+      const lastDash = cut.lastIndexOf("-");
+      // Cắt tại gạch nối cho khỏi đứt giữa từ. Trừ khi gạch nối nằm quá sớm (một
+      // từ dài chiếm gần hết) — giữ lại mẩu vụn còn tệ hơn là cắt cứng giữa từ.
+      normalized =
+        lastDash >= SLUG_MAX_LENGTH / 2 ? cut.slice(0, lastDash) : cut.replace(/-$/, "");
+    }
 
     if (!normalized) {
       throw new Error("Invalid slug format");
@@ -130,4 +151,5 @@ class WeddingBL {
 // Export for use in other files
 if (typeof window !== "undefined") {
   window.WeddingBL = WeddingBL;
+  window.SLUG_MAX_LENGTH = SLUG_MAX_LENGTH;
 }
