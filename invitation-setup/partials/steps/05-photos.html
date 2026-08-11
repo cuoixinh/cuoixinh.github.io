@@ -1,0 +1,47 @@
+<!-- Bước "Ảnh cưới" — một mục trong CX_STEPS (js/20-steps.js).
+     Chèn vào #mount-step-photos của form-panel.html; khai báo ở STEP_PARTIALS (loader.js). -->
+<div data-step="photos"
+  id="tour-photos"
+  class="bg-white rounded-xl overflow-hidden animate-fade-in border border-gray-200"
+>
+  <div
+    class="bg-white px-6 py-4 border-b border-gray-100"
+  >
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <i
+          data-lucide="camera"
+          class="text-[18px] text-color-secondary"
+        ></i>
+        <p class="text-sm text-gray-700">Ảnh cưới</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <x-switch
+          key="photos"
+          onclick="toggleSectionVis('photos', event)"
+        ></x-switch>
+      </div>
+    </div>
+  </div>
+  <div id="section-photos-body" class="p-6 space-y-6">
+    <div>
+      <label
+        class="block text-sm text-gray-700 mb-2 flex items-center gap-2"
+        ><i data-lucide="images" class="text-color-secondary"></i> Album
+        ảnh (tối đa 10 ảnh)</label
+      >
+      <div
+        id="gallery-container"
+        class="grid grid-cols-3 sm:grid-cols-5 gap-3"
+      ></div>
+      <input
+        type="file"
+        id="gallery-file-input"
+        accept="image/jpeg,image/png,image/webp,image/gif,image/avif"
+        multiple
+        class="hidden"
+        onchange="handleGalleryUpload(event)"
+      />
+    </div>
+  </div>
+</div>

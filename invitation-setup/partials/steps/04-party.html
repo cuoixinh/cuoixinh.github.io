@@ -1,0 +1,169 @@
+<!-- Bước "Tiệc cưới" — một mục trong CX_STEPS (js/20-steps.js).
+     Chèn vào #mount-step-party của form-panel.html; khai báo ở STEP_PARTIALS (loader.js). -->
+<div data-step="party"
+  class="bg-white rounded-xl overflow-hidden animate-fade-in border border-gray-200"
+>
+  <div
+    class="bg-white px-6 py-4 border-b border-gray-100"
+  >
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <i
+          data-lucide="utensils"
+          class="text-[18px] text-color-secondary"
+        ></i>
+        <p class="text-sm text-gray-700">Tiệc cưới</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <x-switch
+          key="party"
+          onclick="toggleSectionVis('party', event)"
+        ></x-switch>
+      </div>
+    </div>
+  </div>
+  <div id="section-party-body">
+    <!-- Tab bar -->
+    <div class="flex border-b border-gray-100">
+      <button
+        type="button"
+        onclick="switchPartyTab('groom')"
+        id="party-tab-groom"
+        class="flex-1 py-3 text-sm font-medium flex items-center justify-center gap-1.5 bg-rose-50 text-rose-600 border-b-2 border-rose-500 transition-colors"
+      >
+        <i data-lucide="mars" class="w-3.5 h-3.5"></i> Nhà trai
+      </button>
+      <x-button variant="ghost" tone="neutral" size="lg" type="button" onclick="switchPartyTab('bride')" id="party-tab-bride" class="flex-1">
+        <i data-lucide="venus" class="w-3.5 h-3.5"></i> Nhà gái
+      </x-button>
+    </div>
+
+    <!-- Nhà trai panel -->
+    <div id="party-panel-groom" class="p-6 space-y-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <x-date label="Ngày đãi tiệc" name="groom_party_date"></x-date>
+        <x-time label="Giờ đãi tiệc" name="groom_party_time"></x-time>
+      </div>
+      <p
+        id="groom-party-lunar-display"
+        class="text-sm text-gray-500 italic"
+      >
+        Chọn ngày để tự động tính ngày âm lịch
+      </p>
+      <div class="space-y-2">
+        <label class="text-sm text-gray-700 flex items-center gap-2">
+          <i data-lucide="map-pin" class="text-color-secondary"></i>Địa
+          điểm tiệc
+        </label>
+        <x-check
+          key="groom-party-same"
+          label="Trùng địa điểm lễ thành hôn"
+          onchange="togglePartySameLoc('groom', event)"
+        ></x-check>
+        <div id="groom-party-location-row" class="flex gap-2">
+          <x-input
+            class="flex-1 min-w-0"
+            name="groom_party_location"
+            placeholder="Ví dụ: Trung tâm tiệc cưới Hoàng Gia, Q.1, TP.HCM"
+            suffix-btn-label="Bản đồ"
+            suffix-btn-icon="map-pin"
+            suffix-btn-action="openMapPicker('groom_party')"
+          ></x-input>
+        </div>
+        <input
+          type="hidden"
+          name="groom_party_map_embed_url"
+          id="groom_party_map_embed_url"
+        />
+        <div id="groom_party-picker-wrap">
+          <div
+            id="groom_party-map-display"
+            class="hidden items-center gap-2 bg-gray-50 border border-gray-100 rounded-lg px-3 py-2"
+          >
+            <svg
+              class="w-3.5 h-3.5 flex-shrink-0 text-rose-400"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+              <circle cx="12" cy="10" r="3" />
+            </svg>
+            <span
+              id="groom_party-map-address"
+              class="flex-1 text-sm text-gray-700 truncate"
+            ></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Nhà gái panel -->
+    <div id="party-panel-bride" class="hidden p-6 space-y-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <x-date label="Ngày đãi tiệc" name="bride_party_date"></x-date>
+        <x-time label="Giờ đãi tiệc" name="bride_party_time"></x-time>
+      </div>
+      <p
+        id="bride-party-lunar-display"
+        class="text-sm text-gray-500 italic"
+      >
+        Chọn ngày để tự động tính ngày âm lịch
+      </p>
+      <div class="space-y-2">
+        <label class="text-sm text-gray-700 flex items-center gap-2">
+          <i data-lucide="map-pin" class="text-color-secondary"></i>Địa
+          điểm tiệc
+        </label>
+        <x-check
+          key="bride-party-same"
+          label="Trùng địa điểm lễ vu quy"
+          onchange="togglePartySameLoc('bride', event)"
+        ></x-check>
+        <div id="bride-party-location-row" class="flex gap-2">
+          <x-input
+            class="flex-1 min-w-0"
+            name="bride_party_location"
+            placeholder="Ví dụ: Nhà hàng Riverside, Q.3, TP.HCM"
+            suffix-btn-label="Bản đồ"
+            suffix-btn-icon="map-pin"
+            suffix-btn-action="openMapPicker('bride_party')"
+          ></x-input>
+        </div>
+        <input
+          type="hidden"
+          name="bride_party_map_embed_url"
+          id="bride_party_map_embed_url"
+        />
+        <div id="bride_party-picker-wrap">
+          <div
+            id="bride_party-map-display"
+            class="hidden items-center gap-2 bg-gray-50 border border-gray-100 rounded-lg px-3 py-2"
+          >
+            <svg
+              class="w-3.5 h-3.5 flex-shrink-0 text-rose-400"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+              <circle cx="12" cy="10" r="3" />
+            </svg>
+            <span
+              id="bride_party-map-address"
+              class="flex-1 text-sm text-gray-700 truncate"
+            ></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

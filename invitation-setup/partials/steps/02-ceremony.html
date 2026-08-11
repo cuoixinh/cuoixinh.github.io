@@ -1,0 +1,153 @@
+<!-- Bước "Sự kiện cưới" — một mục trong CX_STEPS (js/20-steps.js).
+     Chèn vào #mount-step-ceremony của form-panel.html; khai báo ở STEP_PARTIALS (loader.js). -->
+<div data-step="ceremony"
+  id="tour-ceremony"
+  class="bg-white rounded-xl overflow-hidden animate-fade-in border border-gray-200"
+>
+  <div
+    class="bg-white px-6 py-4 border-b border-gray-100"
+  >
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <i
+          data-lucide="church"
+          class="text-[18px] text-color-secondary"
+        ></i>
+        <p class="text-sm text-gray-700">Sự kiện cưới</p>
+      </div>
+    </div>
+  </div>
+  <div id="section-ceremony-body" class="p-6 space-y-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <x-date label="Ngày cưới" name="ceremony_date" required></x-date>
+      <x-input
+        label="Tên nghi lễ"
+        name="ceremony_name"
+        icon="tag"
+        placeholder="Lễ thành hôn"
+      ></x-input>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <x-time label="Giờ tổ chức lễ" name="ceremony_time"></x-time>
+      <div>
+        <label class="text-sm text-gray-700 flex items-center gap-2 mb-2">
+          <i data-lucide="map-pin" class="text-color-secondary"></i>Địa
+          điểm lễ cưới
+        </label>
+        <div id="ceremony-location-row" class="flex gap-2">
+          <x-input
+            class="flex-1 min-w-0"
+            name="ceremony_location"
+            placeholder="Nhập địa điểm lễ cưới..."
+            suffix-btn-label="Bản đồ"
+            suffix-btn-icon="map-pin"
+            suffix-btn-action="openMapPicker('ceremony')"
+          ></x-input>
+        </div>
+        <input
+          type="hidden"
+          name="ceremony_map_embed_url"
+          id="ceremony_map_embed_url"
+        />
+        <div id="ceremony-picker-wrap">
+          <div
+            id="ceremony-map-display"
+            class="hidden items-center gap-2 mt-2 bg-gray-50 border border-gray-100 rounded-lg px-3 py-2"
+          >
+            <svg
+              class="w-3.5 h-3.5 flex-shrink-0 text-rose-400"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+              <circle cx="12" cy="10" r="3" />
+            </svg>
+            <span
+              id="ceremony-map-address"
+              class="flex-1 text-sm text-gray-700 truncate"
+            ></span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p id="ceremony-lunar-display" class="text-sm text-gray-500 italic">
+      Chọn ngày để tự động tính ngày âm lịch
+    </p>
+    <div class="pt-2 border-t border-gray-100">
+      <div class="flex items-center justify-between gap-3">
+        <div>
+          <p class="text-sm font-medium text-gray-700">Lễ vu quy</p>
+          <p class="text-xs text-gray-400 mt-0.5">
+            Hiển thị thay cho lễ thành hôn trong thiệp nhà gái
+          </p>
+        </div>
+        <input
+          type="hidden"
+          name="vu_quy_enabled"
+          id="vu_quy_enabled"
+          value="true"
+        />
+        <x-switch key="vu-quy" onclick="toggleVuQuy(event)"></x-switch>
+      </div>
+      <div id="vu-quy-fields" class="space-y-4 mt-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <x-time label="Giờ vu quy" name="vu_quy_time"></x-time>
+          <div>
+            <label
+              class="text-sm text-gray-700 flex items-center gap-2 mb-2"
+            >
+              <i data-lucide="map-pin" class="text-color-secondary"></i
+              >Địa điểm vu quy
+            </label>
+            <div id="vu-quy-location-row" class="flex gap-2">
+              <x-input
+                class="flex-1 min-w-0"
+                name="vu_quy_location"
+                placeholder="Nhập địa điểm vu quy..."
+                suffix-btn-label="Bản đồ"
+                suffix-btn-icon="map-pin"
+                suffix-btn-action="openMapPicker('vu_quy')"
+              ></x-input>
+            </div>
+            <input
+              type="hidden"
+              name="vu_quy_map_embed_url"
+              id="vu_quy_map_embed_url"
+            />
+            <div id="vu_quy-picker-wrap">
+              <div
+                id="vu_quy-map-display"
+                class="hidden items-center gap-2 mt-2 bg-gray-50 border border-gray-100 rounded-lg px-3 py-2"
+              >
+                <svg
+                  class="w-3.5 h-3.5 flex-shrink-0 text-rose-400"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path
+                    d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"
+                  />
+                  <circle cx="12" cy="10" r="3" />
+                </svg>
+                <span
+                  id="vu_quy-map-address"
+                  class="flex-1 text-sm text-gray-700 truncate"
+                ></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

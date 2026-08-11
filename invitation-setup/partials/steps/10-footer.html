@@ -1,0 +1,33 @@
+<!-- Bước "Lời cảm ơn / Footer" — một mục trong CX_STEPS (js/20-steps.js).
+     Chèn vào #mount-step-footer của form-panel.html; khai báo ở STEP_PARTIALS (loader.js). -->
+<div data-step="footer"
+  class="bg-white rounded-xl overflow-hidden animate-fade-in border border-gray-200"
+>
+  <div
+    class="bg-white px-6 py-4 border-b border-gray-100"
+  >
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <i
+          data-lucide="flag"
+          class="text-[18px] text-color-secondary"
+        ></i>
+        <p class="text-sm text-gray-700">Footer</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <x-switch
+          key="footer"
+          onclick="toggleSectionVis('footer', event)"
+        ></x-switch>
+      </div>
+    </div>
+  </div>
+  <div id="section-footer-body" class="p-6 space-y-4">
+    <x-textarea
+      label="Lời cảm ơn / Footer"
+      icon="heart"
+      name="footer_text"
+      placeholder="Ví dụ: Trân trọng cảm ơn sự hiện diện của quý khách. Sự có mặt của bạn là niềm vinh hạnh lớn nhất của chúng tôi."
+    ></x-textarea>
+  </div>
+</div>
