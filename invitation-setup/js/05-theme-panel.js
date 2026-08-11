@@ -1846,20 +1846,25 @@ async function _resolvePublishSlug() {
   const brideSlug = _toSlug(brideName);
 
   // Lần 1: họ và tên đầy đủ
-  const fullSlug = `${groomSlug}-${brideSlug}`;
+  const fullSlug = _toSlug(`${groomSlug}-${brideSlug}`);
+  if (!fullSlug) return WEDDING_SLUG;
   if (await _isSlugAvailable(fullSlug)) return fullSlug;
 
-  // Trùng → thêm hậu tố số. Không dùng ký tự lạ ("&", "_") làm biến thể: BL
-  // validateSlug đổi mọi ký tự ngoài [a-z0-9-] thành "-" rồi gộp dấu "-" liền
-  // nhau, nên "a-&-b" rút gọn lại đúng "a-b" đang trùng → PATCH báo lỗi slug.
+  // Trùng → thêm hậu tố số. Hai ràng buộc khi chọn biến thể, sai là slug đem đi
+  // kiểm trùng khác slug thực sự lưu → PATCH ăn 409:
+  // - Không dùng ký tự lạ ("&", "_"): validateSlug gộp chúng thành "-" nên
+  //   "a-&-b" rút gọn lại đúng "a-b" đang trùng.
+  // - Chừa chỗ cho hậu tố (dài nhất là "-99") trong trần độ dài, không thì tên
+  //   dài bị cắt mất đuôi và mọi biến thể rút về cùng một chuỗi.
+  const stem = _toSlug(fullSlug.slice(0, SLUG_MAX_LENGTH - 3));
   for (let i = 2; i <= 5; i++) {
-    const numbered = `${fullSlug}-${i}`;
+    const numbered = `${stem}-${i}`;
     if (await _isSlugAvailable(numbered)) return numbered;
   }
 
   // Cuối cùng: random số 2 chữ số
   const rand = Math.floor(Math.random() * 90) + 10; // 10–99
-  return `${fullSlug}-${rand}`;
+  return `${stem}-${rand}`;
 }
 
 function _updateSlugPreview() {
