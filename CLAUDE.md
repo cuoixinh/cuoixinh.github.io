@@ -89,7 +89,8 @@ Không gọi thẳng UI → DAL khi có logic nghiệp vụ.
 
 **Form nội dung đi theo BƯỚC** (`js/20-steps.js`): mỗi group là một bước, chỉ bước đang
 mở mới bỏ `.hidden` — ô của bước khác vẫn nằm trong DOM nên `FormData`/autosave không
-đổi. Chỉ ô `[required]` mới CHẶN nút "Tiếp theo"; `done()` chỉ đổi icon chip ✓/⚠.
+đổi. Chỉ ô `[required]` mới CHẶN nút "Tiếp theo"; `done()`/`some()` chỉ đổi màu chấm
+trên chip (đỏ chưa điền · vàng điền dở · xanh đủ · xám group đang tắt).
 Mỗi bước một file `partials/steps/NN-<id>.html`; `form-panel.html` chỉ còn vỏ form
 (ô ẩn + thẻ mount + `#step-nav`). `#step-nav` là cặp nút "Trước đó / Tiếp theo" NỔI
 (`fixed`) trên navbar, nằm ngoài `<form>` — đừng biến nó lại thành một khối trong luồng,
@@ -102,9 +103,11 @@ cuộn lên — nó phải nằm CHUNG khối sticky `#setup-topbar` với thanh
 `grid-template-rows: 1fr→0fr` (con trực tiếp không được đặt chiều cao cố định, nếu không
 track không co). Thu/mở làm tài liệu ngắn/dài đi → trình duyệt kẹp `scrollY` và bắn scroll
 ngược, nên phải khoá một nhịp sau mỗi lần đổi, không thì lật qua lật lại vô tận.
-Navbar dưới có **ngăn kéo** `#nav-extra` (vuốt dọc trên navbar hoặc bấm tay nắm): giữ lối
-vào Trợ lý AI và nút đổi mẫu thiệp, lúc đóng hé `--cx-nav-peek` cho biết còn thứ ở trên.
-Cú vuốt phải nuốt `click` sinh ra sau đó, không thì nó bấm nhầm nút bên trong ngăn kéo.
+Nút đổi mẫu thiệp (`#tour-theme-btn`) nằm cuối hàng breadcrumb trong `#setup-header`.
+Navbar dưới: nút "Tùy chọn" (`#nav-more`, ngay phải Khách mời) mở popover `#nav-more-pop`
+chứa Trợ lý AI và "Giao diện" (`#tab-theme` — pill nên đánh dấu đang mở bằng
+`.is-active`, không phải cặp class viền như các tab). Popover đóng thì pill khuất,
+nên `#nav-more` phải dội lại cả trạng thái active lẫn dấu `*` chưa lưu của Giao diện.
 Thẻ AI nổi (`.ai-fab`) bấm X là **ẩn hẳn** (`.is-gone`) — lối vào còn lại là `#nav-ai-btn`.
 
 ### Phiên bản & cache (GitHub Pages sau Cloudflare)

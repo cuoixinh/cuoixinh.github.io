@@ -3,84 +3,47 @@
         id="bottom-nav-bar"
         class="fixed bottom-0 left-0 right-0 z-[300] bg-white border-t border-rose-100 shadow-[0_-2px_12px_rgb(var(--scrim-rgb)/0.06)]"
       >
-        <!-- Ngăn kéo: vuốt lên (hoặc bấm tay nắm) để mở thêm một hàng hành động.
-             Lúc đóng vẫn hé một dải mờ để người dùng biết là còn thứ ở trên —
-             xem .cx-nav-extra trong styles/_setup.css và js/21-shell.js. -->
-        <button
-          type="button"
-          id="nav-grip"
-          class="cx-nav-grip"
-          aria-controls="nav-extra"
-          aria-expanded="false"
-          aria-label="Mở thêm hành động"
+        <!-- Popover của nút "Tùy chọn". Đặt ở tầng navbar (không lồng trong ô
+             nút) vì js/21-shell.js tự tính `left` theo tâm nút rồi kẹp trong màn
+             hình. Menu ngữ cảnh: hàng danh sách icon + nhãn, KHÔNG dùng
+             <x-button> (pill dành cho nút hành động). -->
+        <div
+          id="nav-more-pop"
+          class="cx-nav-pop hidden absolute bottom-full left-0 mb-3 w-60 flex flex-col gap-0.5 rounded-3xl border border-gray-100 bg-white p-1.5 shadow-xl"
+          role="menu"
         >
-          <span class="cx-nav-grip-bar"></span>
-        </button>
-        <div id="nav-extra" class="cx-nav-extra">
-          <div
-            class="max-w-4xl mx-auto flex items-center justify-center gap-2 px-3 pb-2"
+          <button
+            type="button"
+            id="nav-ai-btn"
+            role="menuitem"
+            onclick="openAiModal()"
+            class="cx-nav-pop-item"
           >
-            <x-button
-              type="button"
-              id="nav-ai-btn"
-              variant="soft"
-              onclick="openAiModal()"
-              class="cx-nav-ai"
-            >
-              <i data-lucide="sparkles" style="width: 14px; height: 14px"></i>
-              Trợ lý AI
-            </x-button>
+            <span class="cx-nav-pop-ico">
+              <i data-lucide="sparkles" style="width: 15px; height: 15px"></i>
+            </span>
+            Tạo thiệp với AI
+          </button>
 
-            <!-- Nút đổi mẫu thiệp (trước nằm ở header). Giữ NGUYÊN các id
-                 #tour-theme-btn / #header-theme-thumb / #header-theme-name:
-                 tour-setup.js và _updateHeaderThemeBadge() nhắm theo id này. -->
-            <x-button type="button" id="tour-theme-btn" onclick="openThemePicker()" aria-label="Đổi mẫu thiệp" style="
-                background: linear-gradient(135deg, rgb(var(--white-rgb)) 0%, rgb(var(--surface-tint-warm-rgb)) 100%);
-                border: 1px solid rgb(var(--brand-primary-rgb)/0.55);
-                box-shadow: 0 1px 4px rgb(var(--shadow-brand-rgb)/0.1);
-              " class="group pl-1.5 pr-1.5 hover:-translate-y-px">
-              <!-- Thumbnail mẫu đang dùng (live preview) -->
-              <span
-                class="relative h-[26px] w-[26px] rounded-full overflow-hidden shrink-0 ring-2 ring-white shadow-sm"
-                style="background: linear-gradient(135deg, rgb(var(--surface-blossom-rgb)), rgb(var(--surface-blossom-strong-rgb)))"
-              >
-                <img
-                  id="header-theme-thumb"
-                  src=""
-                  alt=""
-                  class="h-full w-full object-cover object-top"
-                  onerror="this.style.display = 'none'"
-                />
-              </span>
-              <!-- Nhãn -->
-              <span
-                class="flex flex-col items-start justify-center leading-none min-w-0"
-              >
-                <span
-                  class="text-[7.5px] uppercase font-bold"
-                  style="letter-spacing: 0.14em; color: rgb(var(--text-body-rgb)/0.6)"
-                  >Mẫu thiệp</span
-                >
-                <span
-                  id="header-theme-name"
-                  class="text-[12.5px] font-semibold max-w-[104px] truncate leading-tight mt-[2px]"
-                  style="color: rgb(var(--text-heading-rgb))"
-                  >Đổi mẫu</span
-                >
-              </span>
-              <!-- Nút đổi -->
-              <span
-                class="flex items-center gap-1 h-7 pl-2 pr-2.5 rounded-full text-[11px] font-semibold text-white shrink-0 transition-all group-hover:brightness-105"
-                style="
-                  background: linear-gradient(135deg, rgb(var(--brand-accent-rgb)), rgb(var(--brand-primary-rgb)));
-                  box-shadow: 0 2px 8px rgb(var(--brand-accent-rgb)/0.35);
-                "
-              >
-                <i data-lucide="arrow-left-right" class="w-3 h-3"></i>
-                <span class="hidden sm:inline">Đổi</span>
-              </span>
-            </x-button>
-          </div>
+          <!-- Giao diện: hàng menu chứ không phải tab dưới → trạng thái đang mở
+               đánh dấu bằng .is-active (xem .cx-nav-pill). -->
+          <button
+            type="button"
+            id="tab-theme"
+            role="menuitem"
+            onclick="switchTab('theme')"
+            class="cx-nav-pop-item cx-nav-pill relative"
+          >
+            <span class="cx-nav-pop-ico">
+              <i data-lucide="palette" style="width: 15px; height: 15px"></i>
+            </span>
+            Giao diện
+            <span
+              class="tab-dirty-star hidden ml-auto text-rose-500 text-[14px] font-bold leading-none"
+              title="Có thay đổi chưa lưu"
+              >*</span
+            >
+          </button>
         </div>
 
         <div class="max-w-4xl mx-auto flex items-stretch">
@@ -124,18 +87,6 @@
           </button>
           <button
             type="button"
-            onclick="switchTab('theme')"
-            id="tab-theme"
-            class="relative flex-none px-3 sm:flex-1 sm:px-0 flex flex-col items-center justify-center gap-1 py-3 text-gray-400 border-t-2 border-transparent transition-colors"
-          >
-            <span class="tab-dirty-star hidden absolute top-1 right-1.5 sm:right-3 text-rose-500 text-[13px] font-bold leading-none" title="Có thay đổi chưa lưu">*</span>
-            <i data-lucide="palette" class="text-base"></i>
-            <span class="hidden sm:inline text-[11px] font-medium"
-              >Giao diện</span
-            >
-          </button>
-          <button
-            type="button"
             onclick="openGuestsPage(event)"
             id="tab-guests"
             class="flex-none px-3 sm:flex-1 sm:px-0 flex flex-col items-center justify-center gap-1 py-3 text-gray-400 border-t-2 border-transparent transition-colors"
@@ -145,6 +96,27 @@
               >Khách mời</span
             >
           </button>
+          <!-- "Tùy chọn" — mở #nav-more-pop ở trên (js/21-shell.js). Dấu * chưa
+               lưu của tab Giao diện dội lên chính nút này, vì mục kia nằm trong
+               popover nên lúc đóng không ai thấy. -->
+          <div class="flex-none flex">
+            <button
+              type="button"
+              onclick="cxNavMore()"
+              id="nav-more"
+              aria-haspopup="true"
+              aria-expanded="false"
+              aria-controls="nav-more-pop"
+              class="relative flex-none px-3 flex flex-col items-center justify-center gap-1 py-3 text-gray-400 border-t-2 border-transparent transition-colors"
+            >
+              <span class="tab-dirty-star hidden absolute top-1 right-1.5 text-rose-500 text-[13px] font-bold leading-none" title="Có thay đổi chưa lưu">*</span>
+              <i data-lucide="more-horizontal" class="text-base"></i>
+              <span class="hidden sm:inline text-[11px] font-medium"
+                >Tùy chọn</span
+              >
+            </button>
+          </div>
+
           <div id="tab-draft-wrap" class="flex-1 flex items-center justify-center px-1.5 py-2">
             <button
               type="button"

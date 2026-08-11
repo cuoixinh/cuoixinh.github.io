@@ -1,10 +1,5 @@
-// Vỏ trang thiết lập: hàng logo tự thu khi cuộn xuống, và ngăn kéo hành động phụ
-// ở navbar dưới (vuốt lên / bấm tay nắm để mở).
-//
-// Chiều cao navbar do _syncNavHeight() (13-data.js) đo qua ResizeObserver, nên mở
-// ngăn kéo là --nav-h tự lớn theo — cặp nút #step-nav và thẻ AI tự dịch lên.
-
-// ===== HÀNG LOGO TỰ THU =====
+// Vỏ trang thiết lập: hàng logo/breadcrumb tự thu khi cuộn xuống, và popover
+// "Tùy chọn" ở navbar dưới (Trợ lý AI + Giao diện).
 
 const _CX_TUCK = {
   MIN_Y: 72, // dưới mức này luôn hiện — đầu trang không việc gì phải giấu
@@ -50,102 +45,80 @@ function _cxInitTuck() {
   window.addEventListener("scroll", _cxOnScroll, { passive: true });
 }
 
-// ===== NGĂN KÉO NAVBAR =====
+// ===== POPOVER "THÊM" =====
 
-// Vuốt dọc quá ngần này (px) trên tay nắm/navbar mới tính là mở/đóng.
-const _CX_DRAWER_SWIPE = 24;
-
-let _cxDrawerOpen = false;
-
-function _cxDrawerEl() {
-  return document.getElementById("nav-extra");
-}
+// Chừa mép màn hình khi thẻ phải dịch vào trong.
+const _CX_POP_EDGE = 8;
 
 /**
- * Mở/đóng ngăn kéo. Chiều cao lúc mở phải ĐO rồi ghi inline: nội dung hàng này
- * có thể đổi (thêm hành động, chữ xuống dòng) nên hằng số trong CSS sẽ sai.
+ * Đặt thẻ giữa tâm nút ⋯ rồi kẹp trong màn hình, mũi tên vẫn chỉ đúng nút. Phải
+ * đo lại mỗi lần mở: navbar co giãn theo bề ngang, và dưới sm nhãn "Tùy chọn"
+ * ẩn đi làm nút hẹp lại.
  */
-function cxNavExtra(open) {
-  const el = _cxDrawerEl();
-  if (!el || open === _cxDrawerOpen) return;
-  _cxDrawerOpen = open;
-  el.classList.toggle("is-open", open);
-  el.style.height = open ? el.scrollHeight + "px" : "";
-  const grip = document.getElementById("nav-grip");
-  if (grip) {
-    grip.setAttribute("aria-expanded", String(open));
-    grip.setAttribute(
-      "aria-label",
-      open ? "Thu gọn hành động" : "Mở thêm hành động",
-    );
-  }
+function _cxPlacePop(pop, btn) {
+  if (!btn) return;
+  const w = pop.offsetWidth;
+  const b = btn.getBoundingClientRect();
+  const center = b.left + b.width / 2;
+  const left = Math.min(
+    Math.max(center - w / 2, _CX_POP_EDGE),
+    window.innerWidth - w - _CX_POP_EDGE,
+  );
+  pop.style.left = left + "px";
+  // Mũi tên: px tính từ mép trái thẻ, chừa chỗ cho góc bo.
+  const tail = Math.min(Math.max(center - left, 20), w - 20);
+  pop.style.setProperty("--cx-pop-tail", tail + "px");
 }
-window.cxNavExtraOpen = () => cxNavExtra(true);
 
-function _cxInitDrawer() {
-  const bar = document.getElementById("bottom-nav-bar");
-  const grip = document.getElementById("nav-grip");
-  if (!bar || !grip || !_cxDrawerEl()) return;
+/** Mở/đóng popover; không truyền gì là đảo trạng thái (dùng cho onclick). */
+function cxNavMore(open) {
+  const pop = document.getElementById("nav-more-pop");
+  const btn = document.getElementById("nav-more");
+  if (!pop) return;
+  const next = open === undefined ? pop.classList.contains("hidden") : open;
+  pop.classList.toggle("hidden", !next);
+  btn?.setAttribute("aria-expanded", String(next));
+  if (next) _cxPlacePop(pop, btn);
+}
+window.cxNavMore = cxNavMore;
 
-  // Vuốt dọc ở BẤT KỲ đâu trên navbar: mép trên vốn hẹp, bắt mỗi tay nắm thì
-  // khó trúng. Chỉ nhận cảm ứng/bút — kéo chuột dọc trên navbar là thao tác
-  // bình thường của desktop.
-  let y0 = null;
-  let swiped = false;
+function _cxInitMore() {
+  const pop = document.getElementById("nav-more-pop");
+  const btn = document.getElementById("nav-more");
+  if (!pop || !btn) return;
 
-  bar.addEventListener(
-    "pointerdown",
-    (e) => {
-      y0 = e.pointerType === "mouse" ? null : e.clientY;
-      swiped = false;
-    },
-    { passive: true },
-  );
-  bar.addEventListener(
-    "pointerup",
-    (e) => {
-      if (y0 === null) return;
-      const dy = e.clientY - y0;
-      y0 = null;
-      if (Math.abs(dy) < _CX_DRAWER_SWIPE) return;
-      swiped = true;
-      cxNavExtra(dy < 0); // kéo lên mở, kéo xuống đóng
-    },
-    { passive: true },
-  );
-  bar.addEventListener("pointercancel", () => {
-    y0 = null;
+  // Chọn xong một mục thì đóng — popover che mất chính panel vừa mở.
+  pop.addEventListener("click", (e) => {
+    if (e.target.closest("button")) cxNavMore(false);
   });
 
-  // Trình duyệt vẫn bắn `click` sau chuỗi chạm, kể cả khi ngón đã trượt xa. Nuốt
-  // ở pha CAPTURE trên cả navbar: không thì cú vuốt bắt đầu trên tay nắm sẽ tự
-  // lật ngược trạng thái, còn cú vuốt bắt đầu trên một nút trong ngăn kéo sẽ bấm
-  // nhầm chính nút đó (mở popup AI, mở bảng chọn mẫu…).
-  bar.addEventListener(
+  // Bấm ra ngoài / Esc. Nghe ở pha CAPTURE để đóng được cả khi click bị nút bên
+  // dưới nuốt mất.
+  document.addEventListener(
     "click",
     (e) => {
-      if (!swiped) return;
-      swiped = false;
-      e.stopPropagation();
-      e.preventDefault();
+      if (pop.classList.contains("hidden")) return;
+      if (e.target.closest("#nav-more-pop, #nav-more")) return;
+      cxNavMore(false);
     },
     true,
   );
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") cxNavMore(false);
+  });
 
-  grip.addEventListener("click", () => cxNavExtra(!_cxDrawerOpen));
-
-  // Nội dung hàng đổi (đổi mẫu thiệp → nhãn dài ra) khi đang mở → đo lại.
-  if (window.ResizeObserver) {
-    new ResizeObserver(() => {
-      const el = _cxDrawerEl();
-      if (_cxDrawerOpen && el) el.style.height = el.scrollHeight + "px";
-    }).observe(_cxDrawerEl().firstElementChild);
-  }
+  window.addEventListener(
+    "resize",
+    () => {
+      if (!pop.classList.contains("hidden")) _cxPlacePop(pop, btn);
+    },
+    { passive: true },
+  );
 }
 
 function _cxInitShell() {
   _cxInitTuck();
-  _cxInitDrawer();
+  _cxInitMore();
 }
 
 if (window.__cxOnReady) window.__cxOnReady(_cxInitShell);

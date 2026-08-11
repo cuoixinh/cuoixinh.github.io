@@ -4,7 +4,9 @@
 // Ba thứ khai báo tập trung ở CX_STEPS dưới đây — thêm/bớt bước chỉ sửa mảng đó:
 //   id      trùng `data-step` của thẻ bọc group trong partials/form-panel.html
 //   vis     tên mục trong SECTION_VIS_FIELDS (03-form-sections.js) nếu group tắt được
-//   done()  tiêu chí "điền đủ" → quyết định chip hiện ✓ hay ⚠
+//   done()  tiêu chí "điền đủ" → chip xanh ✓
+//   some()  "đã điền được phần nào" → chip vàng ⚠; không có thì lấy theo done()
+//           (bước chỉ có đủ/không, không có trạng thái dở dang). Chưa gì cả → đỏ.
 //
 // Ô [required] mới là thứ CHẶN được "Tiếp theo"; done() chỉ đổi icon, không chặn.
 
@@ -26,6 +28,11 @@ function _cxAll(...names) {
   return names.every((n) => _cxVal(n));
 }
 
+/** Có ít nhất một ô đã điền. */
+function _cxAny(...names) {
+  return names.some((n) => _cxVal(n));
+}
+
 /** Mảng JSON trong ô ẩn (timeline, love_story) có ít nhất một phần tử. */
 function _cxListHas(name) {
   try {
@@ -42,12 +49,14 @@ const CX_STEPS = [
     label: "Cặp đôi",
     icon: "heart",
     done: () => _cxAll("groom_name", "bride_name"),
+    some: () => _cxAny("groom_name", "bride_name"),
   },
   {
     id: "ceremony",
     label: "Sự kiện",
     icon: "calendar-heart",
     done: () => _cxAll("ceremony_date", "ceremony_time", "ceremony_location"),
+    some: () => _cxAny("ceremony_date", "ceremony_time", "ceremony_location"),
   },
   {
     id: "family",
@@ -55,6 +64,7 @@ const CX_STEPS = [
     icon: "users",
     vis: "family",
     done: () => _cxAll("groom_father", "groom_mother", "bride_father", "bride_mother"),
+    some: () => _cxAny("groom_father", "groom_mother", "bride_father", "bride_mother"),
   },
   {
     id: "party",
@@ -65,6 +75,15 @@ const CX_STEPS = [
     done: () =>
       _cxAll("groom_party_date", "groom_party_time", "groom_party_location") ||
       _cxAll("bride_party_date", "bride_party_time", "bride_party_location"),
+    some: () =>
+      _cxAny(
+        "groom_party_date",
+        "groom_party_time",
+        "groom_party_location",
+        "bride_party_date",
+        "bride_party_time",
+        "bride_party_location",
+      ),
   },
   {
     id: "photos",
@@ -105,6 +124,15 @@ const CX_STEPS = [
     done: () =>
       _cxAll("groom_bank_name", "groom_bank_number", "groom_bank_owner") ||
       _cxAll("bride_bank_name", "bride_bank_number", "bride_bank_owner"),
+    some: () =>
+      _cxAny(
+        "groom_bank_name",
+        "groom_bank_number",
+        "groom_bank_owner",
+        "bride_bank_name",
+        "bride_bank_number",
+        "bride_bank_owner",
+      ),
   },
   {
     id: "footer",
@@ -134,22 +162,22 @@ function _cxStepOff(step) {
   return field ? document.getElementById(field)?.value === "false" : false;
 }
 
-/** "off" (đang tắt) · "done" (đủ) · "todo" (thiếu). */
+/** "off" (đang tắt) · "done" xanh · "partial" vàng · "empty" đỏ. */
 function _cxStepState(step) {
   if (_cxStepOff(step)) return "off";
   try {
-    return step.done() ? "done" : "todo";
+    if (step.done()) return "done";
+    return (step.some || step.done)() ? "partial" : "empty";
   } catch (e) {
-    return "todo";
+    return "empty";
   }
 }
 
 // ===== THANH BƯỚC =====
 
 const _CX_CHIP_BASE =
-  "group flex shrink-0 items-center gap-1.5 rounded-full border py-1 pl-1 pr-2.5 text-[11px] font-medium transition-colors";
-const _CX_DOT_BASE =
-  "flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold";
+  "group flex shrink-0 items-center gap-1.5 rounded-full border py-1 pl-2.5 pr-2.5 text-[11px] font-medium transition-colors";
+const _CX_DOT_BASE = "flex shrink-0 items-center justify-center";
 
 function _cxChipHTML(step, i) {
   const state = _cxStepState(step);
@@ -162,20 +190,23 @@ function _cxChipHTML(step, i) {
       ? "border-gray-100 bg-white text-gray-300"
       : "border-gray-200 bg-white text-gray-600 hover:border-rose-200 hover:text-rose-600";
 
-  let dot, mark;
-  if (state === "off") {
-    dot = "bg-gray-100 text-gray-300";
-    mark = '<i data-lucide="minus" style="width:11px;height:11px"></i>';
-  } else if (state === "done") {
-    dot = "bg-emerald-500 text-white";
-    mark = '<i data-lucide="check" style="width:11px;height:11px"></i>';
-  } else {
-    dot = "bg-amber-400 text-white";
-    mark = '<i data-lucide="alert-triangle" style="width:11px;height:11px"></i>';
-  }
+  // Ba mức: đỏ chưa điền gì · vàng điền dở · xanh đủ (xám là group đang tắt).
+  const DOT = {
+    off: ["text-gray-300", "minus"],
+    empty: ["text-red-500", "alert-circle"],
+    partial: ["text-amber-500", "alert-triangle"],
+    done: ["text-emerald-500", "check"],
+  };
+  const [dot, icon] = DOT[state] || DOT.empty;
+  const mark = `<i data-lucide="${icon}" style="width:13px;height:13px"></i>`;
 
-  const note =
-    state === "off" ? "đang tắt" : state === "done" ? "đã điền đủ" : "chưa điền đủ";
+  const NOTE = {
+    off: "đang tắt",
+    empty: "chưa điền",
+    partial: "điền còn thiếu",
+    done: "đã điền đủ",
+  };
+  const note = NOTE[state] || NOTE.empty;
 
   return (
     `<button type="button" role="tab" data-step-chip="${step.id}"` +
@@ -214,6 +245,19 @@ function cxRenderStepBar() {
   // Kéo chip đang mở vào tầm nhìn — thanh cuộn ngang, bước 8 nằm ngoài màn hình.
   const active = bar.querySelector('[aria-selected="true"]');
   active?.scrollIntoView({ block: "nearest", inline: "center", behavior: "smooth" });
+
+  _cxSyncBarFade();
+}
+
+// Vệt trắng mờ hai mép thanh bước (xem .cx-stepbar-wrap): chỉ hiện ở phía còn
+// cuộn được. Sai số 1px vì scrollLeft là số thực khi màn hình có tỉ lệ lẻ.
+function _cxSyncBarFade() {
+  const bar = document.getElementById("step-bar");
+  const wrap = bar?.parentElement;
+  if (!wrap) return;
+  const max = bar.scrollWidth - bar.clientWidth;
+  wrap.classList.toggle("at-start", bar.scrollLeft <= 1);
+  wrap.classList.toggle("at-end", bar.scrollLeft >= max - 1);
 }
 
 // ===== HIỆN/ẨN PANEL =====
@@ -253,7 +297,9 @@ function _cxRenderNav() {
   // thêm một dòng chữ nữa chỉ tốn chiều cao thanh.
   const next = document.getElementById("step-next");
   if (next) {
-    const todo = CX_STEPS.filter((s) => _cxStepState(s) === "todo").length;
+    const todo = CX_STEPS.filter((s) =>
+      ["empty", "partial"].includes(_cxStepState(s)),
+    ).length;
     next.title =
       `Bước ${_cxStepIndex + 1}/${CX_STEPS.length}` +
       (todo ? ` · còn ${todo} mục chưa đủ` : " · đã điền đủ");
@@ -324,7 +370,11 @@ window.cxStepNext = cxStepNext;
 // ===== KHỞI TẠO =====
 
 function _cxInitSteps() {
-  if (!document.getElementById("step-bar")) return;
+  const bar = document.getElementById("step-bar");
+  if (!bar) return;
+
+  bar.addEventListener("scroll", _cxSyncBarFade, { passive: true });
+  window.addEventListener("resize", _cxSyncBarFade, { passive: true });
 
   // Gõ ở bất kỳ ô nào cũng có thể làm một bước từ ⚠ sang ✓ → chấm lại trạng thái.
   // Nghe ở form (nổi bọt) nên ô thêm sau (mốc lịch trình, ảnh…) cũng được tính.

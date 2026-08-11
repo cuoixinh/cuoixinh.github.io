@@ -1,8 +1,6 @@
       <!-- Vỏ trên cùng: hàng logo + thanh bước dính CHUNG một khối sticky. Phải
            chung khối thì lúc js/21-shell.js thu hàng logo lại (cuộn xuống), thanh
-           bước mới tự trượt lên sát mép trên thay vì để lại một dải trắng.
-           Nút "Đổi mẫu" KHÔNG còn ở đây — nó nằm trong ngăn kéo của navbar dưới
-           (#nav-extra, partials/nav-bottom.html). -->
+           bước mới tự trượt lên sát mép trên thay vì để lại một dải trắng. -->
       <div id="setup-topbar" class="sticky top-0 z-50 bg-white">
         <!-- Hàng logo + breadcrumb. Cuộn xuống thì thu về 0 (xem .cx-topbar-row),
              chỉ còn thanh bước ở lại. -->
@@ -33,6 +31,65 @@
                 <span class="text-gray-300 shrink-0">/</span>
                 <span class="text-gray-400 truncate">Thiết lập thiệp cưới</span>
               </div>
+
+              <!-- Nút đổi mẫu thiệp, nằm cuối hàng breadcrumb. Giữ NGUYÊN các id
+                   #tour-theme-btn / #header-theme-thumb / #header-theme-name:
+                   tour-setup.js và _updateHeaderThemeBadge() nhắm theo id này. -->
+              <x-button
+                type="button"
+                id="tour-theme-btn"
+                variant="bare"
+                onclick="openThemePicker()"
+                aria-label="Đổi mẫu thiệp"
+                title="Đổi mẫu thiệp"
+                class="group shrink-0 ml-2 sm:ml-0 gap-1.5 h-9 pl-1 pr-1 hover:-translate-y-px"
+                style="
+                  background: linear-gradient(135deg, rgb(var(--white-rgb)) 0%, rgb(var(--surface-tint-warm-rgb)) 100%);
+                  border: 1px solid rgb(var(--brand-primary-rgb)/0.55);
+                  box-shadow: 0 1px 4px rgb(var(--shadow-brand-rgb)/0.1);
+                "
+              >
+                <!-- Thumbnail mẫu đang dùng -->
+                <span
+                  class="relative h-[26px] w-[26px] rounded-full overflow-hidden shrink-0 ring-2 ring-white shadow-sm"
+                  style="background: linear-gradient(135deg, rgb(var(--surface-blossom-rgb)), rgb(var(--surface-blossom-strong-rgb)))"
+                >
+                  <img
+                    id="header-theme-thumb"
+                    src=""
+                    alt=""
+                    class="h-full w-full object-cover object-top"
+                    onerror="this.style.display = 'none'"
+                  />
+                </span>
+                <!-- Nhãn: hàng breadcrumb hẹp nên điện thoại bỏ dòng phụ, chỉ giữ tên mẫu -->
+                <span
+                  class="flex flex-col items-start justify-center leading-none min-w-0"
+                >
+                  <span
+                    class="hidden sm:block text-[7.5px] uppercase font-bold"
+                    style="letter-spacing: 0.14em; color: rgb(var(--text-body-rgb)/0.6)"
+                    >Mẫu thiệp</span
+                  >
+                  <span
+                    id="header-theme-name"
+                    class="text-[12.5px] font-semibold max-w-[72px] sm:max-w-[104px] truncate leading-tight sm:mt-[2px]"
+                    style="color: rgb(var(--text-heading-rgb))"
+                    >Đổi mẫu</span
+                  >
+                </span>
+                <!-- Chip "Đổi" -->
+                <span
+                  class="flex items-center gap-1 h-7 px-2 sm:pr-2.5 rounded-full text-[11px] font-semibold text-white shrink-0 transition-all group-hover:brightness-105"
+                  style="
+                    background: linear-gradient(135deg, rgb(var(--brand-accent-rgb)), rgb(var(--brand-primary-rgb)));
+                    box-shadow: 0 2px 8px rgb(var(--brand-accent-rgb)/0.35);
+                  "
+                >
+                  <i data-lucide="arrow-left-right" class="w-3 h-3"></i>
+                  <span class="hidden sm:inline">Đổi</span>
+                </span>
+              </x-button>
             </div>
           </div>
         </div>
@@ -42,7 +99,9 @@
              Cuộn ngang được vì 10 bước không nằm vừa bề ngang điện thoại.
              Nút lùi/tiến KHÔNG nằm ở đây: xem #step-nav trong form-panel.html. -->
         <div class="border-b border-rose-100">
-          <div class="max-w-4xl mx-auto">
+          <!-- .cx-stepbar-wrap vẽ vệt trắng mờ hai mép báo còn cuộn được;
+               js/20-steps.js gắn .at-start/.at-end để tắt vệt ở đầu/cuối. -->
+          <div class="max-w-4xl mx-auto cx-stepbar-wrap">
             <div
               id="step-bar"
               class="flex items-center gap-1 overflow-x-auto px-3 py-2 scrollbar-hide"

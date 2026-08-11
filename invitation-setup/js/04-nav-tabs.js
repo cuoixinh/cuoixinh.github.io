@@ -149,18 +149,19 @@ function _setActiveTab(tabId) {
     }
   }
 
-  const themeBtn = document.getElementById("tab-theme");
-  if (themeBtn) {
-    if (tabId === "theme") {
-      themeBtn.classList.add("text-color-secondary", "border-color-secondary");
-      themeBtn.classList.remove("text-gray-400", "border-transparent");
-    } else {
-      themeBtn.classList.remove(
-        "text-color-secondary",
-        "border-color-secondary",
-      );
-      themeBtn.classList.add("text-gray-400", "border-transparent");
-    }
+  // Giao diện là pill trong popover "Tùy chọn" (không có gạch chân như tab) → đánh
+  // dấu đang mở bằng .is-active, xem .cx-nav-pill trong styles/_setup.css. Nút
+  // "Tùy chọn" sáng theo, vì popover đóng thì không ai thấy pill bên trong.
+  document
+    .getElementById("tab-theme")
+    ?.classList.toggle("is-active", tabId === "theme");
+
+  const moreBtn = document.getElementById("nav-more");
+  if (moreBtn) {
+    moreBtn.classList.toggle("text-color-secondary", tabId === "theme");
+    moreBtn.classList.toggle("border-color-secondary", tabId === "theme");
+    moreBtn.classList.toggle("text-gray-400", tabId !== "theme");
+    moreBtn.classList.toggle("border-transparent", tabId !== "theme");
   }
 
   const guestsBtn = document.getElementById("tab-guests");
@@ -264,8 +265,15 @@ function _setDirty(dirty, tab) {
 // Dấu * trên các tab (giống Notepad) — CHỈ hiển thị với thiệp ĐÃ xuất bản mà đang có
 // thay đổi chưa lưu. Thiệp chưa xuất bản đã có autosave nên không cần.
 function _updateDirtyMarks() {
-  const map = { edit: "switch-edit", config: "tab-config", theme: "tab-theme" };
-  Object.entries(map).forEach(([tab, id]) => {
+  // id nút → tab nó đại diện. #nav-more dội lại dấu của Giao diện vì pill kia
+  // nằm trong popover, đóng lại là khuất.
+  const map = {
+    "switch-edit": "edit",
+    "tab-config": "config",
+    "tab-theme": "theme",
+    "nav-more": "theme",
+  };
+  Object.entries(map).forEach(([id, tab]) => {
     const star = document.querySelector(`#${id} .tab-dirty-star`);
     if (star) {
       star.classList.toggle("hidden", !(IS_PUBLISHED && _dirtyTabs.has(tab)));
