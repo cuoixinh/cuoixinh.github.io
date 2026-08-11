@@ -77,6 +77,8 @@
     "js/17-pickers.js",
     "js/18-theme-picker.js",
     "js/19-ai-optimize.js",
+    // Sau 03 (dùng SECTION_VIS_FIELDS) và sau 04 (dùng switchTab).
+    "js/20-steps.js",
     "ai-modal.js",
     "tour-setup.js",
   ];

@@ -1,4 +1,5 @@
-// Bật/tắt hiển thị từng mục, accordion và step indicator của form nội dung.
+// Bật/tắt hiển thị từng mục và chuyển tab Nhà trai/Nhà gái của form nội dung.
+// Việc đi lại giữa các group nằm ở js/20-steps.js.
 //
 // Tách từ index.js (dòng 318–500 bản gốc). Thứ tự nạp khai báo ở loader.js.
 
@@ -44,6 +45,8 @@ function toggleSectionVis(section, event) {
   // Phát "input" để autosave lưu trạng thái switch (gán .value không tự phát sự kiện)
   hidden.dispatchEvent(new Event("input", { bubbles: true }));
   _updateVisUI(section, newVal);
+  // Chip của bước đổi giữa "đang tắt" và ✓/⚠, panel đổi trạng thái mờ.
+  window.cxRenderSteps?.();
   if (
     section === "party" &&
     typeof _updateTimelinePartySection === "function"
@@ -74,47 +77,28 @@ function toggleInfoTooltip(id) {
 }
 window.toggleInfoTooltip = toggleInfoTooltip;
 
-// ============= ACCORDION SECTIONS =============
+// ============= MỞ MỘT GROUP =============
+// Group giờ là BƯỚC (js/20-steps.js), không còn accordion gập/mở. Hai hàm dưới
+// giữ nguyên tên vì nhiều nơi gọi tới (validate.js, 15-init.js, tour) — chúng chỉ
+// còn là "nhảy tới bước đó".
 
 function toggleSection(id) {
-  const body = document.getElementById(`section-${id}-body`);
-  const chevron = document.getElementById(`section-${id}-chevron`);
-  if (!body) return;
-  const isOpen = !body.classList.contains("hidden");
-  const header = body.previousElementSibling;
-  if (isOpen) {
-    body.classList.add("hidden");
-    if (chevron) chevron.classList.remove("rotate-180");
-    if (header) {
-      header.classList.remove("bg-gray-50");
-      header.classList.add("bg-white");
-    }
-  } else {
-    // Love story: thêm 2 mốc mặc định nếu chưa từng có data
-    if (id === "love_story" && !_loveStoryKeyExists) {
-      _loveStoryItems = [
-        { date: "", title: "Lần đầu gặp gỡ", content: "", image_url: null },
-        { date: "", title: "Chuyến đi Quy Nhơn", content: "", image_url: null },
-      ];
-      _loveStoryKeyExists = true;
-      _syncLoveStoryHidden();
-      renderLoveStoryList();
-    }
-    body.classList.remove("hidden");
-    if (chevron) chevron.classList.add("rotate-180");
-    if (header) {
-      header.classList.remove("bg-white");
-      header.classList.add("bg-gray-50");
-    }
+  // Chuyện tình yêu: lần đầu mở thì mồi sẵn 2 mốc cho người dùng sửa, đỡ phải
+  // đối diện danh sách rỗng.
+  if (id === "love_story" && typeof _loveStoryKeyExists !== "undefined" && !_loveStoryKeyExists) {
+    _loveStoryItems = [
+      { date: "", title: "Lần đầu gặp gỡ", content: "", image_url: null },
+      { date: "", title: "Chuyến đi Quy Nhơn", content: "", image_url: null },
+    ];
+    _loveStoryKeyExists = true;
+    _syncLoveStoryHidden();
+    renderLoveStoryList();
   }
+  window.cxGoStep?.(id);
 }
 
 function _openSectionAndScroll(id) {
-  const body = document.getElementById(`section-${id}-body`);
-  if (!body) return;
-  if (body.classList.contains("hidden")) toggleSection(id);
-  const header = body.previousElementSibling;
-  (header || body).scrollIntoView({ behavior: "smooth", block: "start" });
+  toggleSection(id);
 }
 window._openSectionAndScroll = _openSectionAndScroll;
 
@@ -156,32 +140,4 @@ window.switchPartyTab = (side) => _switchTab("party", side);
 window.switchFamilyTab = (side) => _switchTab("family", side);
 window.switchTimelineTab = (side) => _switchTab("timeline", side);
 
-// ============= STEP INDICATOR =============
-
-function setStep(n) {
-  if (n >= 3) {
-    const dot = document.getElementById("step-3-dot");
-    if (dot) {
-      dot.className =
-        "w-6 h-6 rounded-full bg-rose-500 flex items-center justify-center";
-      dot.innerHTML = '<span class="text-white text-[11px] font-bold">3</span>';
-    }
-    const label = document.getElementById("step-3-label");
-    if (label) label.className = "text-[10px] text-rose-600 font-semibold";
-    const line = document.getElementById("step-line-3");
-    if (line) line.className = "flex-1 h-0.5 bg-rose-300 mx-2";
-  }
-  if (n >= 4) {
-    const dot = document.getElementById("step-4-dot");
-    if (dot) {
-      dot.className =
-        "w-6 h-6 rounded-full bg-rose-500 flex items-center justify-center";
-      dot.innerHTML = '<span class="text-white text-[11px] font-bold">4</span>';
-    }
-    const label = document.getElementById("step-4-label");
-    if (label) label.className = "text-[10px] text-rose-600 font-semibold";
-    const line = document.getElementById("step-line-4");
-    if (line) line.className = "flex-1 h-0.5 bg-rose-300 mx-2";
-  }
-}
 

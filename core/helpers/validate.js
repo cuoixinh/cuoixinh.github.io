@@ -84,12 +84,21 @@ function _clearError(input) {
   if (wrap) wrap.classList.remove("cx-field-invalid");
 }
 
+/** Đưa ô lỗi ra chỗ nhìn thấy được: về tab chỉnh sửa, rồi mở đúng bước chứa nó. */
 function _expandSection(input) {
   const formPanel = document.getElementById("form-panel");
   if (formPanel && formPanel.classList.contains("hidden")) {
     window.switchTab?.("edit");
   }
 
+  // invitation-setup: mỗi group là một bước, chỉ bước đang mở mới hiện.
+  const step = input.closest?.("[data-step]");
+  if (step && window.cxGoStep) {
+    window.cxGoStep(step.dataset.step, { scroll: false });
+    return;
+  }
+
+  // Trang khác vẫn có thể gập nội dung bằng .hidden trên khối "*-body".
   let el = input.parentElement;
   while (el && el !== document.body) {
     if (el.classList.contains("hidden") && el.id && el.id.includes("-body")) {

@@ -367,8 +367,6 @@ function initializePage() {
     });
   });
 
-  // Auto-open couple section on load
-  toggleSection("couple");
 
   // Load data after Flatpickr is ready
   if (WEDDING_ID) {

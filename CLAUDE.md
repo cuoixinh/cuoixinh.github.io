@@ -87,6 +87,12 @@ Không gọi thẳng UI → DAL khi có logic nghiệp vụ.
   File trong `core/` cần nhánh dự phòng: `__cxOnReady` → `readyState` → gọi thẳng.
 - Chỉ tham chiếu được thứ khai báo ở file nạp trước hoặc cùng file.
 
+**Form nội dung đi theo BƯỚC** (`js/20-steps.js`): mỗi group là một bước, chỉ bước đang
+mở mới bỏ `.hidden` — ô của bước khác vẫn nằm trong DOM nên `FormData`/autosave không
+đổi. Thêm/bớt group phải sửa `CX_STEPS` (id trùng `data-step` ở `form-panel.html`),
+kèm `vis` nếu group tắt được và `done()` quyết định chip hiện ✓ hay ⚠.
+Chỉ ô `[required]` mới CHẶN nút "Tiếp theo"; `done()` chỉ đổi icon.
+
 ### Auth
 
 - **`core/auth.js` (`window.CXAuth`) là nguồn sự thật DUY NHẤT** cho trạng thái đăng nhập.

@@ -60,13 +60,12 @@
       />
 
       <!-- 1. THÔNG TIN CẶP ĐÔI -->
-      <div
+      <div data-step="couple"
         id="tour-couple"
         class="bg-white rounded-xl overflow-hidden animate-fade-in border border-gray-200"
       >
         <div
-          class="bg-white px-6 py-4 border-b border-gray-100 cursor-pointer select-none"
-          onclick="toggleSection('couple')"
+          class="bg-white px-6 py-4 border-b border-gray-100"
         >
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
@@ -76,14 +75,9 @@
               ></i>
               <p class="text-sm text-gray-700">Thông tin cặp đôi</p>
             </div>
-            <i
-              id="section-couple-chevron"
-              data-lucide="chevron-down"
-              class="text-gray-400 text-sm"
-            ></i>
           </div>
         </div>
-        <div id="section-couple-body" class="hidden p-6 space-y-6">
+        <div id="section-couple-body" class="p-6 space-y-6">
           <!-- Tên cặp đôi -->
           <div class="grid gap-4 sm:grid-cols-2">
             <x-input
@@ -165,13 +159,12 @@
       </div>
 
       <!-- 2. SỰ KIỆN CƯỚI -->
-      <div
+      <div data-step="ceremony"
         id="tour-ceremony"
         class="bg-white rounded-xl overflow-hidden animate-fade-in border border-gray-200"
       >
         <div
-          class="bg-white px-6 py-4 border-b border-gray-100 cursor-pointer select-none"
-          onclick="toggleSection('ceremony')"
+          class="bg-white px-6 py-4 border-b border-gray-100"
         >
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
@@ -181,14 +174,9 @@
               ></i>
               <p class="text-sm text-gray-700">Sự kiện cưới</p>
             </div>
-            <i
-              id="section-ceremony-chevron"
-              data-lucide="chevron-down"
-              class="text-gray-400 text-sm"
-            ></i>
           </div>
         </div>
-        <div id="section-ceremony-body" class="hidden p-6 space-y-4">
+        <div id="section-ceremony-body" class="p-6 space-y-4">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <x-date label="Ngày cưới" name="ceremony_date" required></x-date>
             <x-input
@@ -324,12 +312,11 @@
       </div>
 
       <!-- 3. GIA ĐÌNH HAI BÊN -->
-      <div
+      <div data-step="family"
         class="bg-white rounded-xl overflow-hidden animate-fade-in border border-gray-200"
       >
         <div
-          class="bg-white px-6 py-4 border-b border-gray-100 cursor-pointer select-none"
-          onclick="toggleSection('family')"
+          class="bg-white px-6 py-4 border-b border-gray-100"
         >
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
@@ -344,15 +331,10 @@
                 key="family"
                 onclick="toggleSectionVis('family', event)"
               ></x-switch>
-              <i
-                id="section-family-chevron"
-                data-lucide="chevron-down"
-                class="text-gray-400 text-sm"
-              ></i>
             </div>
           </div>
         </div>
-        <div id="section-family-body" class="hidden">
+        <div id="section-family-body">
           <!-- Tab bar -->
           <div class="flex border-b border-gray-100">
             <button
@@ -417,12 +399,11 @@
       </div>
 
       <!-- 4. TIỆC CƯỚI -->
-      <div
+      <div data-step="party"
         class="bg-white rounded-xl overflow-hidden animate-fade-in border border-gray-200"
       >
         <div
-          class="bg-white px-6 py-4 border-b border-gray-100 cursor-pointer select-none"
-          onclick="toggleSection('party')"
+          class="bg-white px-6 py-4 border-b border-gray-100"
         >
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
@@ -437,15 +418,10 @@
                 key="party"
                 onclick="toggleSectionVis('party', event)"
               ></x-switch>
-              <i
-                id="section-party-chevron"
-                data-lucide="chevron-down"
-                class="text-gray-400 text-sm"
-              ></i>
             </div>
           </div>
         </div>
-        <div id="section-party-body" class="hidden">
+        <div id="section-party-body">
           <!-- Tab bar -->
           <div class="flex border-b border-gray-100">
             <button
@@ -592,13 +568,12 @@
       </div>
 
       <!-- 6. ẢNH CƯỚI -->
-      <div
+      <div data-step="photos"
         id="tour-photos"
         class="bg-white rounded-xl overflow-hidden animate-fade-in border border-gray-200"
       >
         <div
-          class="bg-white px-6 py-4 border-b border-gray-100 cursor-pointer select-none"
-          onclick="toggleSection('photos')"
+          class="bg-white px-6 py-4 border-b border-gray-100"
         >
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
@@ -613,15 +588,10 @@
                 key="photos"
                 onclick="toggleSectionVis('photos', event)"
               ></x-switch>
-              <i
-                id="section-photos-chevron"
-                data-lucide="chevron-down"
-                class="text-gray-400 text-sm"
-              ></i>
             </div>
           </div>
         </div>
-        <div id="section-photos-body" class="hidden p-6 space-y-6">
+        <div id="section-photos-body" class="p-6 space-y-6">
           <div>
             <label
               class="block text-sm text-gray-700 mb-2 flex items-center gap-2"
@@ -645,12 +615,11 @@
       </div>
 
       <!-- 6. LỊCH TRÌNH NGÀY CƯỚI -->
-      <div
+      <div data-step="timeline"
         class="bg-white rounded-xl overflow-hidden animate-fade-in border border-gray-200"
       >
         <div
-          class="bg-white px-6 py-4 border-b border-gray-100 cursor-pointer select-none"
-          onclick="toggleSection('timeline')"
+          class="bg-white px-6 py-4 border-b border-gray-100"
         >
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
@@ -665,15 +634,10 @@
                 key="timeline"
                 onclick="toggleSectionVis('timeline', event)"
               ></x-switch>
-              <i
-                id="section-timeline-chevron"
-                data-lucide="chevron-down"
-                class="text-gray-400 text-sm"
-              ></i>
             </div>
           </div>
         </div>
-        <div id="section-timeline-body" class="hidden">
+        <div id="section-timeline-body">
           <!-- Tab bar — chỉ toggle phần Tiệc cưới -->
           <div class="flex border-b border-gray-100">
             <button
@@ -816,12 +780,11 @@
       </div>
 
       <!-- 7. CÂU CHUYỆN TÌNH YÊU -->
-      <div
+      <div data-step="love_story"
         class="bg-white rounded-xl overflow-hidden animate-fade-in border border-gray-200"
       >
         <div
-          class="bg-white px-6 py-4 border-b border-gray-100 cursor-pointer select-none"
-          onclick="toggleSection('love_story')"
+          class="bg-white px-6 py-4 border-b border-gray-100"
         >
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
@@ -836,15 +799,10 @@
                 key="love_story"
                 onclick="toggleSectionVis('love_story', event)"
               ></x-switch>
-              <i
-                id="section-love_story-chevron"
-                data-lucide="chevron-down"
-                class="text-gray-400 text-sm"
-              ></i>
             </div>
           </div>
         </div>
-        <div id="section-love_story-body" class="hidden p-6 space-y-4">
+        <div id="section-love_story-body" class="p-6 space-y-4">
           <div class="flex items-start justify-between gap-3">
             <p class="text-xs text-gray-500">
               Kể lại hành trình tình yêu của hai bạn. Ví dụ: lần đầu gặp, ngày
@@ -892,12 +850,11 @@
       <!-- 8. XÁC NHẬN THAM DỰ (RSVP) - music đã chuyển sang tab Cấu hình -->
 
       <!-- 8. XÁC NHẬN THAM DỰ (RSVP) -->
-      <div
+      <div data-step="rsvp"
         class="bg-white rounded-xl overflow-hidden animate-fade-in border border-gray-200"
       >
         <div
-          class="bg-white px-6 py-4 border-b border-gray-100 cursor-pointer select-none"
-          onclick="toggleSection('rsvp')"
+          class="bg-white px-6 py-4 border-b border-gray-100"
         >
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
@@ -912,15 +869,10 @@
                 key="rsvp"
                 onclick="toggleSectionVis('rsvp', event)"
               ></x-switch>
-              <i
-                id="section-rsvp-chevron"
-                data-lucide="chevron-down"
-                class="text-gray-400 text-sm"
-              ></i>
             </div>
           </div>
         </div>
-        <div id="section-rsvp-body" class="hidden p-6 space-y-6">
+        <div id="section-rsvp-body" class="p-6 space-y-6">
           <div>
             <x-textarea
               label="Lời nhắn xác nhận tham dự"
@@ -933,12 +885,11 @@
       </div>
 
       <!-- 9. HỘP MỪNG CƯỚI -->
-      <div
+      <div data-step="gift"
         class="bg-white rounded-xl overflow-hidden animate-fade-in border border-gray-200"
       >
         <div
-          class="bg-white px-6 py-4 border-b border-gray-100 cursor-pointer select-none"
-          onclick="toggleSection('gift')"
+          class="bg-white px-6 py-4 border-b border-gray-100"
         >
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
@@ -953,15 +904,10 @@
                 key="gift"
                 onclick="toggleSectionVis('gift', event)"
               ></x-switch>
-              <i
-                id="section-gift-chevron"
-                data-lucide="chevron-down"
-                class="text-gray-400 text-sm"
-              ></i>
             </div>
           </div>
         </div>
-        <div id="section-gift-body" class="hidden p-6 space-y-6">
+        <div id="section-gift-body" class="p-6 space-y-6">
           <div class="rounded-2xl border border-gray-100 overflow-hidden">
             <div
               class="px-5 py-3 bg-rose-50 border-b border-rose-100 flex items-center gap-2"
@@ -1094,12 +1040,11 @@
       </div>
 
       <!-- 11. FOOTER -->
-      <div
+      <div data-step="footer"
         class="bg-white rounded-xl overflow-hidden animate-fade-in border border-gray-200"
       >
         <div
-          class="bg-white px-6 py-4 border-b border-gray-100 cursor-pointer select-none"
-          onclick="toggleSection('footer')"
+          class="bg-white px-6 py-4 border-b border-gray-100"
         >
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
@@ -1114,15 +1059,10 @@
                 key="footer"
                 onclick="toggleSectionVis('footer', event)"
               ></x-switch>
-              <i
-                id="section-footer-chevron"
-                data-lucide="chevron-down"
-                class="text-gray-400 text-sm"
-              ></i>
             </div>
           </div>
         </div>
-        <div id="section-footer-body" class="hidden p-6 space-y-4">
+        <div id="section-footer-body" class="p-6 space-y-4">
           <x-textarea
             label="Lời cảm ơn / Footer"
             icon="heart"
@@ -1130,6 +1070,36 @@
             placeholder="Ví dụ: Trân trọng cảm ơn sự hiện diện của quý khách. Sự có mặt của bạn là niềm vinh hạnh lớn nhất của chúng tôi."
           ></x-textarea>
         </div>
+      </div>
+
+      <!-- Điều hướng bước. Nằm TRONG form nên nút phải ghi rõ type="button",
+           không thì Enter trong ô nhập sẽ submit. Nội dung do js/20-steps.js đổ.
+           Dính đáy để bước nào cũng với tới được mà không phải cuộn hết group.
+           `bottom` bám --cx-step-nav-bottom (chiều cao thanh nav dưới) do ai-modal.js
+           cập nhật; thẻ AI cũng được đẩy lên trên thanh này nên không đè lên nhau. -->
+      <div
+        id="step-nav"
+        class="sticky z-[46] -mx-4 mt-2 flex items-center gap-3 border-t border-gray-100 bg-white/95 px-4 py-2.5 backdrop-blur"
+        style="bottom: var(--cx-step-nav-bottom, 60px)"
+      >
+        <x-button
+          type="button"
+          id="step-prev"
+          variant="outline"
+          tone="neutral"
+          onclick="cxStepPrev()"
+        >
+          <i data-lucide="chevron-left" style="width: 14px; height: 14px"></i>
+          Quay lại
+        </x-button>
+        <span
+          id="step-nav-hint"
+          class="flex-1 whitespace-nowrap text-center text-[11px] text-gray-400"
+        ></span>
+        <x-button type="button" id="step-next" onclick="cxStepNext()">
+          <span id="step-next-label">Tiếp theo</span>
+          <i data-lucide="chevron-right" style="width: 14px; height: 14px"></i>
+        </x-button>
       </div>
     </form>
   </div>
