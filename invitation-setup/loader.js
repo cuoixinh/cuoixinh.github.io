@@ -39,10 +39,11 @@
 
   // Giữ NGUYÊN thứ tự cũ trong index.html — có phụ thuộc: config → DAL → BL →
   // supabase → helpers → x-* → index.js.
+  // core/config.js KHÔNG nằm ở đây: nó được nạp riêng ở bước mồi trong boot() để
+  // lấy CONFIG.version, thêm vào đây nữa là nạp hai lần.
   const SCRIPTS = [
     "../core/x-button.js",
     "../core/cache-util.js",
-    "../core/config.js",
     "../core/constant.js",
     "../core/auth-ui.js",
     "../core/auth.js",
@@ -144,14 +145,32 @@
     });
   }
 
+  // Đóng dấu phiên bản (CONFIG.version, xem core/config.js) để đổi số ở đó là
+  // ép lấy bản mới của cả bộ partial + script. Chỉ gọi được SAU bước mồi.
+  // CONFIG khai bằng `const` ở core/config.js → là binding lexical toàn cục, KHÔNG
+  // phải window.CONFIG. Phải đọc bằng tên trần, và bọc typeof phòng khi bước mồi
+  // hỏng (thiếu nó thì trả URL trần, trang vẫn chạy chứ không chết cả loader).
+  function withVersion(url) {
+    const v = typeof CONFIG !== "undefined" ? CONFIG.version : "";
+    if (!v) return url;
+    return url + (url.includes("?") ? "&" : "?") + "v=" + encodeURIComponent(v);
+  }
+
   async function boot() {
-    // Bắn cả hai nhóm request cùng lúc, nhưng chèn skeleton ngay khi nó về —
-    // skeleton nhỏ nên thường tới trước, lấp chỗ trống trong lúc chờ phần còn lại.
+    // Bước mồi: config.js nạp TRẦN (không ?v=) và phải xong trước mọi thứ khác —
+    // nó là nơi giữ số phiên bản dùng để đóng dấu phần còn lại.
+    // Skeleton bắn song song và cũng không đóng dấu: nó chỉ là màn chờ, chèn được
+    // sớm chừng nào đỡ trắng màn chừng đó, bản cũ vài phút không hại gì.
     const skeletonReq = fetchText(SKELETON[1]);
-    const restReq = Promise.all(PARTIALS.map(([, url]) => fetchText(url)));
-    const stepReq = Promise.all(STEP_PARTIALS.map(([, url]) => fetchText(url)));
+    const configReq = loadScripts(["../core/config.js"]);
 
     injectPartial(SKELETON[0], await skeletonReq);
+    await configReq;
+
+    const restReq = Promise.all(PARTIALS.map(([, url]) => fetchText(withVersion(url))));
+    const stepReq = Promise.all(
+      STEP_PARTIALS.map(([, url]) => fetchText(withVersion(url))),
+    );
 
     const htmls = await restReq;
     PARTIALS.forEach(([mountId], i) => injectPartial(mountId, htmls[i]));
@@ -163,7 +182,7 @@
     // Icon nằm trong partial vừa chèn nên phải dựng lại, nếu không sẽ trống trơn.
     if (window.lucide) window.lucide.createIcons();
 
-    await loadScripts(SCRIPTS);
+    await loadScripts(SCRIPTS.map(withVersion));
 
     ready = true;
     readyQueue.splice(0).forEach((fn) => {
