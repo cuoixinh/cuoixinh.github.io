@@ -54,6 +54,9 @@
               <button
                 type="button"
                 id="user-menu-btn"
+                aria-haspopup="menu"
+                aria-expanded="false"
+                aria-label="Menu tài khoản"
                 class="flex items-center gap-1.5 rounded-full py-0.5 pl-0.5 pr-2 hover:bg-gray-50 transition-colors"
               >
                 <span
@@ -145,7 +148,8 @@
 
       <div id="cards-grid" class="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 xl:grid-cols-4"></div>
 
-      <!-- Khung xương lúc đang tải danh sách từ DB -->
+      <!-- Khung xương lúc đang tải danh sách từ DB. Lặp 4 thẻ để lấp đủ một hàng
+           lưới — một thẻ đơn độc trông như trang bị lỗi. -->
       <div id="state-loading" class="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 xl:grid-cols-4">
         <div class="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
           <div class="h-24 animate-pulse bg-gray-100 sm:h-28"></div>
@@ -155,6 +159,45 @@
             <div class="h-8 w-full animate-pulse rounded-lg bg-gray-100"></div>
           </div>
         </div>
+        <div class="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
+          <div class="h-24 animate-pulse bg-gray-100 sm:h-28"></div>
+          <div class="space-y-2.5 p-3 sm:p-4">
+            <div class="h-4 w-1/2 animate-pulse rounded bg-gray-100"></div>
+            <div class="h-3 w-2/3 animate-pulse rounded bg-gray-100"></div>
+            <div class="h-8 w-full animate-pulse rounded-lg bg-gray-100"></div>
+          </div>
+        </div>
+        <div class="hidden overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm md:block">
+          <div class="h-24 animate-pulse bg-gray-100 sm:h-28"></div>
+          <div class="space-y-2.5 p-3 sm:p-4">
+            <div class="h-4 w-1/2 animate-pulse rounded bg-gray-100"></div>
+            <div class="h-3 w-2/3 animate-pulse rounded bg-gray-100"></div>
+            <div class="h-8 w-full animate-pulse rounded-lg bg-gray-100"></div>
+          </div>
+        </div>
+        <div class="hidden overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm xl:block">
+          <div class="h-24 animate-pulse bg-gray-100 sm:h-28"></div>
+          <div class="space-y-2.5 p-3 sm:p-4">
+            <div class="h-4 w-1/2 animate-pulse rounded bg-gray-100"></div>
+            <div class="h-3 w-2/3 animate-pulse rounded bg-gray-100"></div>
+            <div class="h-8 w-full animate-pulse rounded-lg bg-gray-100"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tải danh sách hỏng (mạng/API) — phải nói rõ, không được im lặng rơi về
+           "Chưa có thiệp nào" vì người dùng sẽ tưởng mất thiệp. -->
+      <div id="state-error" class="hidden py-12 text-center">
+        <div class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-red-50">
+          <i class="fas fa-triangle-exclamation text-xl text-red-300"></i>
+        </div>
+        <p class="font-semibold text-gray-800">Không tải được danh sách thiệp</p>
+        <p class="mx-auto mt-1.5 max-w-sm text-[13px] text-gray-500">
+          Có thể do mất kết nối. Thiệp của bạn vẫn còn nguyên — hãy thử lại.
+        </p>
+        <x-button size="sm" icon="fas fa-rotate-right" onclick="loadCards()" class="mt-4">
+          Thử lại
+        </x-button>
       </div>
 
       <div id="state-empty" class="hidden py-12 text-center">

@@ -53,7 +53,9 @@ function escapePostgrestPattern(value: string): string {
 // (payment_status, payment_amount, transaction_id, payment_time,
 // payment_order_id, expires_at) — chỉ payment-handler / payos-webhook được ghi.
 const CUSTOMER_EDITABLE_FIELDS = new Set([
-  'slug', 'is_published',
+  // is_active = false là thao tác "xoá thiệp" ở trang Quản lý thiệp (ẩn khỏi
+  // danh sách, dữ liệu/ảnh vẫn còn). Quyền đã chặn ở trên theo user_id.
+  'slug', 'is_published', 'is_active',
   // Thông tin chung
   'groom_name', 'bride_name', 'story_quote', 'cover_image_url', 'gallery_images',
   // Lễ thành hôn
