@@ -832,16 +832,30 @@ svg.lucide {
    .hidden, không phải thuộc tính [hidden], nên `divide-y` của Tailwind đếm nhầm
    — phải tự viết luật này). */
 .cx-block {
-  @apply pb-2;
+  @apply relative pb-6;
 }
 
+/* Ranh giới giữa hai block KHÔNG dựa vào vạch kẻ (mảnh quá, lại giống đường kẻ
+   lạc trong biểu mẫu) mà dựa vào chính THANH TIÊU ĐỀ có nền tô của block sau:
+   một khoảng trắng nghỉ rồi tới dải tô — mắt đọc ra ngay "hết khối này, sang
+   khối khác". Bước bị ẩn mang class .hidden chứ không phải thuộc tính [hidden]
+   nên `divide-y` của Tailwind đếm nhầm, luật này phải tự viết. */
 #wedding-form > .cx-block:not(.hidden) ~ .cx-block:not(.hidden) {
-  @apply mt-2 border-t border-gray-100 pt-2;
+  @apply mt-5;
 }
 
-/* Tiêu đề block: icon + tên mục, có vạch mảnh ngăn với phần nhập bên dưới. */
+/* Thanh tiêu đề block: icon + tên mục trên nền tô ấm, full-bleed hết bề ngang
+   thẻ. Block đầu tiên nằm sát mép trên thẻ nên dải tô ăn theo góc bo luôn. */
 .cx-block-head {
-  @apply border-b border-gray-100 px-5 py-4 sm:px-6;
+  @apply px-5 py-4 sm:px-6;
+
+  background: rgb(var(--surface-tint-warm-rgb));
+  border-top: 1px solid rgb(var(--border-subtle-rgb));
+  border-bottom: 1px solid rgb(var(--border-subtle-rgb));
+}
+
+#wedding-form > .cx-block:first-child > .cx-block-head {
+  border-top: 0;
 }
 
 /* Thanh bước cuộn ngang: vệt trắng mờ hai mép cho biết còn chip ngoài tầm nhìn.
