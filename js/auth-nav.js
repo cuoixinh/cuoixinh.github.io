@@ -61,6 +61,13 @@ function goCreateWithAi(e) {
   goCreateDraft(e);
 }
 
+// Như trên nhưng mở luôn hộp thoại NÓI của ô "Thông tin cặp đôi" — người dùng
+// kể bằng miệng, AI dựng nội dung thiệp từ đó.
+function goCreateWithVoice(e) {
+  sessionStorage.setItem("open_ai_voice", "1");
+  goCreateWithAi(e);
+}
+
 function initHeroImage() {
   const first = templates.find((t) => t.status === "active");
   if (!first) return;

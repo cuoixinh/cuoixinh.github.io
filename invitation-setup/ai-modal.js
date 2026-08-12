@@ -236,6 +236,20 @@ function openAiModal() {
   _setAiView("form");
   _setAiTone(_aiTone);
   if (typeof lucide !== "undefined") lucide.createIcons();
+
+  // Vào từ "Tạo với giọng nói" ở trang chủ → mở thẳng hộp thoại nói của ô
+  // thông tin cặp đôi. Cờ chỉ dùng một lần; máy không hỗ trợ nhận giọng nói thì
+  // bỏ qua, người dùng vẫn gõ tay được.
+  if (sessionStorage.getItem("open_ai_voice")) {
+    sessionStorage.removeItem("open_ai_voice");
+    const target = document.getElementById("ai-info");
+    if (target && window.speechSupported?.()) {
+      setTimeout(
+        () => window.openSpeechDialog({ target, ..._AI_SPEECH["ai-info"] }),
+        250,
+      );
+    }
+  }
 }
 
 // Gắn nút "Lịch sử" vào header của bottom-sheet, cùng nhóm bên phải với nút X.

@@ -105,6 +105,13 @@ function sizeCarousel() {
     cardH = Math.round(cardW / ASPECT);
   }
 
+  // Không bao giờ cao hơn khung: thẻ cao quá là mép trên/dưới (kể cả cụm nút
+  // trong lớp phủ) bị cắt mất, ở điện thoại thấy rõ nhất.
+  if (cardH > h) {
+    cardH = h;
+    cardW = Math.round(cardH * ASPECT);
+  }
+
   _cardW = cardW;
   stage.style.setProperty("--cx-card-w", cardW + "px");
   stage.style.setProperty("--cx-card-h", cardH + "px");

@@ -684,20 +684,132 @@ html.cx-landing {
   @apply flex w-full flex-col items-center;
 }
 
-.hero-invite-cta {
-  @apply inline-flex w-full items-center justify-center rounded-full font-semibold text-white transition-all;
+/* NÚT ĐÔI: một viên thuốc liền khối gồm phần chính + phần mũi tên, ngăn nhau
+   bằng một vạch mờ. Bo góc nằm ở vỏ (overflow-hidden) nên hai nửa tự khớp mép;
+   popover neo theo vỏ này. */
+/* KHÔNG overflow-hidden ở vỏ: popover là con của vỏ, cắt là mất luôn. Bo góc
+   vì thế phải khai riêng cho từng nửa (xem hai luật dưới). */
+.hero-cta-split {
+  @apply relative inline-flex w-full items-stretch;
   max-width: 320px;
-  padding: 16px 36px;
-  font-size: 16px;
+  border-radius: 16px;
   background: rgb(var(--action-primary-rgb));
   box-shadow: 0 12px 28px rgb(var(--action-primary-rgb) / 0.3);
+  transition: transform 0.2s ease;
 }
-.hero-invite-cta:hover {
-  background: rgb(var(--action-primary-hover-rgb));
+.hero-cta-split:hover {
   transform: translateY(-1px);
 }
+
+.hero-invite-cta {
+  @apply inline-flex flex-1 items-center justify-center font-semibold text-white transition-colors;
+  padding: 16px 28px;
+  font-size: 16px;
+  border-radius: 16px 0 0 16px;
+  background: transparent;
+}
+.hero-cta-plus {
+  @apply shrink-0;
+  width: 20px;
+  height: 20px;
+  margin-right: 10px;
+}
+
+.hero-invite-cta:hover {
+  background: rgb(var(--action-primary-hover-rgb));
+}
 .hero-invite-cta:active {
-  transform: scale(0.97);
+  background: rgb(var(--action-primary-deep-rgb));
+}
+
+.hero-cta-caret {
+  @apply inline-flex shrink-0 cursor-pointer items-center justify-center border-none text-white transition-colors;
+  width: 52px;
+  border-radius: 0 16px 16px 0;
+  background: transparent;
+  border-left: 1px solid rgb(var(--white-rgb) / 0.28);
+}
+.hero-cta-caret:hover,
+.hero-cta-caret.is-open {
+  background: rgb(var(--action-primary-hover-rgb));
+}
+.hero-cta-caret svg {
+  width: 18px;
+  height: 18px;
+  transition: transform 0.2s ease;
+}
+.hero-cta-caret.is-open svg {
+  transform: rotate(180deg);
+}
+
+/* Popover chọn cách tạo — mở LÊN TRÊN vì nút nằm gần đáy tấm thiệp.
+   `display:flex` của class này cùng specificity với `[hidden]{display:none}` của
+   preflight và đứng sau nó → phải tự khai luật ẩn, nếu không menu luôn hiện. */
+/* Không overflow-hidden: đuôi nhọn ::after thò ra ngoài mép thẻ (mục con đã tự
+   bo góc nên cũng chẳng cần cắt). */
+.hero-cta-menu {
+  @apply absolute left-0 right-0 z-50 flex flex-col rounded-2xl border;
+  bottom: calc(100% + 10px);
+  padding: 6px;
+  gap: 2px;
+  border-color: rgb(var(--border-subtle-rgb));
+  background: rgb(var(--white-rgb));
+  box-shadow: 0 18px 40px rgb(var(--shadow-brand-rgb) / 0.22);
+}
+
+.hero-cta-menu[hidden] {
+  display: none;
+}
+
+/* Đuôi nhọn chỉ xuống nút mũi tên đã mở nó — cùng lối vẽ với popover "Tùy chọn"
+   ở navbar trang thiết lập (.cx-nav-pop): một ô vuông xoay 45°, chỉ để lại hai
+   cạnh dưới-phải nên phần giáp thẻ liền mạch. Nút mũi tên rộng 52px → tâm cách
+   mép phải 26px, trừ nửa ô 6px. */
+.hero-cta-menu::after {
+  content: "";
+  position: absolute;
+  right: 20px;
+  bottom: -7px;
+  width: 12px;
+  height: 12px;
+  transform: rotate(45deg);
+  border-right: 1px solid rgb(var(--border-subtle-rgb));
+  border-bottom: 1px solid rgb(var(--border-subtle-rgb));
+  border-bottom-right-radius: 3px;
+  background: rgb(var(--white-rgb));
+}
+
+.hero-cta-item {
+  @apply flex items-center rounded-xl text-left transition-colors;
+  gap: 10px;
+  padding: 10px;
+  color: rgb(var(--text-heading-rgb));
+}
+.hero-cta-item:hover {
+  background: rgb(var(--surface-tint-warm-rgb));
+}
+
+.hero-cta-item-ico {
+  @apply inline-flex shrink-0 items-center justify-center rounded-full;
+  width: 32px;
+  height: 32px;
+  background: rgb(var(--surface-blossom-rgb));
+  color: rgb(var(--action-primary-rgb));
+}
+.hero-cta-item-ico svg {
+  width: 16px;
+  height: 16px;
+}
+
+.hero-cta-item-name {
+  @apply block font-semibold;
+  font-size: 14px;
+}
+.hero-cta-item-desc {
+  @apply block;
+  margin-top: 1px;
+  font-size: 11px;
+  color: rgb(var(--text-label-rgb));
 }
 
 .hero-invite-terms {
@@ -791,6 +903,8 @@ html.cx-landing {
 }
 
 .hero-invite-cta:focus-visible,
+.hero-cta-caret:focus-visible,
+.hero-cta-item:focus-visible,
 .hero-invite-ai:focus-visible,
 .hero-scroll:focus-visible,
 .hero-invite-photo:focus-visible {
@@ -861,7 +975,8 @@ html.cx-landing {
   .hero-invite-actions {
     @apply items-start;
   }
-  .hero-invite-cta {
+  /* Cột chữ căn trái → nút đôi thu về đúng bề ngang nội dung. */
+  .hero-cta-split {
     @apply w-auto;
   }
   .hero-invite-props {
@@ -943,6 +1058,54 @@ html.cx-landing {
   }
   .hero-invite-foot {
     padding-top: 16px;
+  }
+}
+
+/* MÀN THẤP (điện thoại nhỏ, laptop 13", máy xoay ngang): sơ đồ các bước là chỗ
+   ngốn chiều cao nhiều nhất trong tấm thiệp mở đầu — thu nó lại để cả thiệp lẫn
+   dòng "Xem mẫu thiệp" vẫn lọt một khung nhìn. Nhắm theo CHIỀU CAO nên phải đặt
+   SAU mọi media theo bề ngang ở trên, nếu không --cx-orb của chúng đè lại. */
+@media (max-height: 740px) {
+  .hero-invite-steps {
+    --cx-orb: 36px;
+  }
+  .hero-invite-steps li {
+    gap: 8px;
+  }
+  .hero-invite-steps li .hero-step-orb {
+    font-size: 13px;
+  }
+  .hero-step-label {
+    font-size: 10px;
+  }
+  .hero-step-label::before {
+    margin-bottom: 2px;
+    font-size: 8px;
+  }
+}
+
+@media (max-height: 620px) {
+  .hero-invite-steps {
+    --cx-orb: 30px;
+  }
+  .hero-invite-steps li {
+    gap: 6px;
+  }
+  .hero-invite-steps li .hero-step-orb {
+    font-size: 11px;
+  }
+  .hero-step-label {
+    font-size: 9px;
+    line-height: 1.25;
+  }
+  .hero-step-label::before {
+    margin-bottom: 1px;
+    font-size: 7px;
+    letter-spacing: 0.08em;
+  }
+  /* Nét đứt rơi từ vòng xuống chữ ăn theo gap — gap co thì nét cũng phải co. */
+  .hero-invite-steps li .hero-step-orb::after {
+    height: 4px;
   }
 }
 
