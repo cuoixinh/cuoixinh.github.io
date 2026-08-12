@@ -1,16 +1,10 @@
 <!-- Bước "Thông tin cặp đôi" — một mục trong CX_STEPS (js/20-steps.js).
      Chèn vào #mount-step-couple của form-panel.html; khai báo ở STEP_PARTIALS (loader.js). -->
-<div data-step="couple"
-  id="tour-couple"
-  class="cx-block animate-fade-in"
->
+<div data-step="couple" id="tour-couple" class="cx-block animate-fade-in">
   <div class="cx-block-head">
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-2">
-        <i
-          data-lucide="heart"
-          class="text-[18px] text-color-secondary"
-        ></i>
+        <i data-lucide="heart" class="text-[18px] text-color-secondary"></i>
         <p class="text-sm text-gray-700">Thông tin cặp đôi</p>
       </div>
     </div>
@@ -66,12 +60,11 @@
     </div>
     <!-- Ảnh cặp đôi -->
     <div>
-      <label
-        class="block text-sm text-gray-700 mb-2 flex items-center gap-2"
+      <label class="block text-sm text-gray-700 mb-2 flex items-center gap-2"
         ><i data-lucide="image" class="text-color-secondary"></i> Ảnh cặp
         đôi</label
       >
-      <div id="cover-container" class="w-full max-w-xs"></div>
+      <div id="cover-container" class="w-full"></div>
       <input
         type="file"
         id="cover-file-input"
@@ -90,7 +83,7 @@
         placeholder="Ví dụ: Cảm ơn em đã đến bên đời nhau, cùng nhau viết nên câu chuyện của riêng chúng ta."
       ></x-textarea>
       <x-button type="button" onclick="randomQuote()" class="mt-2">
-        <i data-lucide="dices"></i> Generate
+        <i data-lucide="dices"></i> Tự tạo
       </x-button>
     </div>
   </div>

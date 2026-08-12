@@ -99,7 +99,7 @@ class XSwitch extends HTMLElement {
     // Mặc định hiển thị trạng thái bật; _updateVisUI/_initVisToggles sẽ đồng bộ ngay khi load.
     this.innerHTML = `
       <button type="button" id="vis-btn-${key}" ${onclick ? `onclick="${onclick}"` : ""}
-        class="relative flex-shrink-0 inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 bg-rose-500">
+        class="relative flex-shrink-0 inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 bg-rose-400">
         <span id="vis-knob-${key}"
           class="inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200 translate-x-6"></span>
       </button>`;

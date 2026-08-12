@@ -22,7 +22,7 @@ function toggleVuQuy(event) {
       knob.classList.remove("translate-x-1");
       knob.classList.add("translate-x-6");
     } else {
-      btn.classList.remove("bg-rose-400");
+      btn.classList.remove("bg-rose-400", "bg-rose-500");
       btn.classList.add("bg-gray-300");
       knob.classList.remove("translate-x-6");
       knob.classList.add("translate-x-1");
@@ -142,6 +142,7 @@ function initCeremonySection(data) {
   if (hidden) hidden.value = vuQuyEnabled ? "true" : "false";
   if (btn) {
     btn.classList.toggle("bg-rose-400", vuQuyEnabled);
+    btn.classList.toggle("bg-rose-500", false);
     btn.classList.toggle("bg-gray-300", !vuQuyEnabled);
   }
   if (knob) {

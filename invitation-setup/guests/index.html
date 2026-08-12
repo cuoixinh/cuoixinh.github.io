@@ -13,12 +13,17 @@
          phần dùng chung của common.css cũ. Xem tailwind.config.js. -->
     <link rel="stylesheet" href="../../styles/build.css" />
   </head>
-  <!-- font-inter + bg-[rgb(var(--surface-panel-rgb))] thay cho khối <style> cũ. -->
-  <body class="font-inter bg-[rgb(var(--surface-panel-rgb))] min-h-screen">
+  <!-- Nền dùng chung với trang thiết lập (--surface-tint-rgb): khung này chạy
+       trong iframe của tab "Khách mời" nên lệch màu là thấy ngay. -->
+  <body
+    class="font-inter bg-[rgb(var(--surface-tint-rgb))] h-screen flex flex-col overflow-hidden"
+  >
 
-    <!-- Header -->
-    <div class="bg-white border-b border-gray-100 sticky top-0 z-10">
-      <div class="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between gap-2">
+    <!-- Header: THẺ NỔI ghim trên, cùng khổ (max-w-4xl) và cùng kiểu bo góc với
+         thanh trên/navbar của trang thiết lập — khung này chạy trong iframe của
+         tab "Khách mời" nên phải thẳng hàng với chúng. -->
+    <div class="shrink-0 px-2 sm:px-4 pt-2 pb-2">
+      <div class="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between gap-2 bg-white border border-gray-100 rounded-3xl shadow-[0_4px_18px_rgb(var(--scrim-rgb)/0.07)]">
         <div class="flex items-center gap-2 min-w-0">
           <i data-lucide="users" class="w-4 h-4 text-color-secondary shrink-0"></i>
           <h1 class="text-[11px] truncate">
@@ -35,14 +40,16 @@
       </div>
     </div>
 
-    <!-- Main -->
-    <div class="max-w-2xl mx-auto px-4 py-5 space-y-4">
-
-      <!-- Tab bar -->
-      <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+    <!-- Main: THẺ NỔI duy nhất được cuộn (trang không cuộn) — thanh cuộn nằm
+         TRONG thẻ nên khổ không bị đẩy lệch so với header. -->
+    <div class="flex-1 min-h-0 px-2 sm:px-4 pb-2">
+      <div
+        id="guests-scroll"
+        class="h-full overflow-y-auto overscroll-contain max-w-4xl mx-auto bg-white border border-gray-100 rounded-3xl shadow-[0_4px_18px_rgb(var(--scrim-rgb)/0.07)]"
+      >
         <!-- Dải segmented có con trượt chạy (.cx-seg ở styles/_common.css);
              --i do switchTab() đặt. -->
-        <div class="px-4 pt-4">
+        <div class="px-4 sm:px-5 pt-5">
           <div id="guest-seg" class="cx-seg" style="--n: 2" role="tablist">
             <button type="button" id="tab-groom" role="tab" aria-selected="true"
               onclick="switchTab('groom')" class="cx-seg-btn is-on">
@@ -56,7 +63,7 @@
         </div>
 
         <!-- Panel nhà trai -->
-        <div id="panel-groom" class="p-5 space-y-4">
+        <div id="panel-groom" class="px-4 sm:px-5 py-5 space-y-4">
 
           <!-- Thêm 1 khách + Import -->
           <div class="space-y-3">
@@ -64,27 +71,31 @@
               <i data-lucide="users" class="w-3.5 h-3.5"></i>
               Danh sách khách mời
             </p>
-            <div class="space-y-2">
-              <div class="flex flex-wrap items-center gap-2">
-                <x-button size="sm" type="button" onclick="openAddGuestModal('groom')">
-                  <i data-lucide="user-plus" class="w-3.5 h-3.5"></i> Thêm khách
-                </x-button>
-                <x-button size="sm" type="button" onclick="regenerateLinks('groom')">
-                  <i data-lucide="link" class="w-3.5 h-3.5"></i> Tạo lại link
-                </x-button>
-              </div>
-              <div class="flex flex-wrap items-center gap-2">
-                <x-button variant="outline" size="sm" type="button" onclick="downloadGuestTemplate()" class="text-blue-600">
-                  <i data-lucide="download" class="w-3.5 h-3.5"></i> Tải mẫu
-                </x-button>
-                <label class="h-8 px-3 rounded-lg text-xs font-medium text-white bg-blue-500 hover:bg-blue-600 transition-colors cursor-pointer flex items-center gap-1.5">
-                  <i data-lucide="file-up" class="w-3.5 h-3.5"></i> Nhập Excel
-                  <input type="file" class="hidden" accept=".xlsx,.xls" onchange="handleExcelUpload(event,'groom')">
-                </label>
-                <x-button size="sm" type="button" onclick="exportGuestList('groom')">
-                  <i data-lucide="file-down" class="w-3.5 h-3.5"></i> Xuất Excel
-                </x-button>
-              </div>
+            <!-- Cụm thao tác: mỗi nút là một ô icon-tròn + nhãn dưới, cả cụm
+                 nằm trong một block mềm (.cx-tilebar ở styles/_setup.css). -->
+            <div class="cx-tilebar">
+              <x-button variant="bare" type="button" class="cx-tile cx-tile-primary" onclick="openAddGuestModal('groom')">
+                <span class="cx-tile-ico"><i data-lucide="user-plus"></i></span>
+                <span class="cx-tile-label">Thêm khách</span>
+              </x-button>
+              <x-button variant="bare" type="button" class="cx-tile cx-tile-violet" onclick="regenerateLinks('groom')">
+                <span class="cx-tile-ico"><i data-lucide="link"></i></span>
+                <span class="cx-tile-label">Tạo lại link</span>
+              </x-button>
+              <x-button variant="bare" type="button" class="cx-tile cx-tile-sky" onclick="downloadGuestTemplate()">
+                <span class="cx-tile-ico"><i data-lucide="download"></i></span>
+                <span class="cx-tile-label">Tải mẫu</span>
+              </x-button>
+              <!-- Nhập Excel là <label> bọc input file, không phải nút. -->
+              <label class="cx-tile cx-tile-amber">
+                <span class="cx-tile-ico"><i data-lucide="file-up"></i></span>
+                <span class="cx-tile-label">Nhập Excel</span>
+                <input type="file" class="hidden" accept=".xlsx,.xls" onchange="handleExcelUpload(event,'groom')">
+              </label>
+              <x-button variant="bare" type="button" class="cx-tile cx-tile-emerald" onclick="exportGuestList('groom')">
+                <span class="cx-tile-ico"><i data-lucide="file-down"></i></span>
+                <span class="cx-tile-label">Xuất Excel</span>
+              </x-button>
             </div>
             <div id="guest-list-groom">
               <p class="text-xs text-gray-400 text-center py-4">Chưa có khách mời nào</p>
@@ -93,7 +104,7 @@
         </div>
 
         <!-- Panel nhà gái -->
-        <div id="panel-bride" class="hidden p-5 space-y-4">
+        <div id="panel-bride" class="hidden px-4 sm:px-5 py-5 space-y-4">
 
           <!-- Thêm 1 khách + Import -->
           <div class="space-y-3">
@@ -101,27 +112,28 @@
               <i data-lucide="users" class="w-3.5 h-3.5"></i>
               Danh sách khách mời
             </p>
-            <div class="space-y-2">
-              <div class="flex flex-wrap items-center gap-2">
-                <x-button size="sm" type="button" onclick="openAddGuestModal('bride')">
-                  <i data-lucide="user-plus" class="w-3.5 h-3.5"></i> Thêm khách
-                </x-button>
-                <x-button size="sm" type="button" onclick="regenerateLinks('bride')">
-                  <i data-lucide="link" class="w-3.5 h-3.5"></i> Tạo lại link
-                </x-button>
-              </div>
-              <div class="flex flex-wrap items-center gap-2">
-                <x-button variant="outline" size="sm" type="button" onclick="downloadGuestTemplate()" class="text-blue-600">
-                  <i data-lucide="download" class="w-3.5 h-3.5"></i> Tải mẫu
-                </x-button>
-                <label class="h-8 px-3 rounded-lg text-xs font-medium text-white bg-blue-500 hover:bg-blue-600 transition-colors cursor-pointer flex items-center gap-1.5">
-                  <i data-lucide="file-up" class="w-3.5 h-3.5"></i> Nhập Excel
-                  <input type="file" class="hidden" accept=".xlsx,.xls" onchange="handleExcelUpload(event,'bride')">
-                </label>
-                <x-button size="sm" type="button" onclick="exportGuestList('bride')">
-                  <i data-lucide="file-down" class="w-3.5 h-3.5"></i> Xuất Excel
-                </x-button>
-              </div>
+            <div class="cx-tilebar">
+              <x-button variant="bare" type="button" class="cx-tile cx-tile-primary" onclick="openAddGuestModal('bride')">
+                <span class="cx-tile-ico"><i data-lucide="user-plus"></i></span>
+                <span class="cx-tile-label">Thêm khách</span>
+              </x-button>
+              <x-button variant="bare" type="button" class="cx-tile cx-tile-violet" onclick="regenerateLinks('bride')">
+                <span class="cx-tile-ico"><i data-lucide="link"></i></span>
+                <span class="cx-tile-label">Tạo lại link</span>
+              </x-button>
+              <x-button variant="bare" type="button" class="cx-tile cx-tile-sky" onclick="downloadGuestTemplate()">
+                <span class="cx-tile-ico"><i data-lucide="download"></i></span>
+                <span class="cx-tile-label">Tải mẫu</span>
+              </x-button>
+              <label class="cx-tile cx-tile-amber">
+                <span class="cx-tile-ico"><i data-lucide="file-up"></i></span>
+                <span class="cx-tile-label">Nhập Excel</span>
+                <input type="file" class="hidden" accept=".xlsx,.xls" onchange="handleExcelUpload(event,'bride')">
+              </label>
+              <x-button variant="bare" type="button" class="cx-tile cx-tile-emerald" onclick="exportGuestList('bride')">
+                <span class="cx-tile-ico"><i data-lucide="file-down"></i></span>
+                <span class="cx-tile-label">Xuất Excel</span>
+              </x-button>
             </div>
             <div id="guest-list-bride">
               <p class="text-xs text-gray-400 text-center py-4">Chưa có khách mời nào</p>

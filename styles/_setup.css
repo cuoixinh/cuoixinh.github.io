@@ -828,6 +828,118 @@ svg.lucide {
 
   height: calc(100dvh - var(--cx-top-h, 96px) - var(--nav-h, 84px) - 32px);
   box-shadow: 0 4px 18px rgb(var(--scrim-rgb) / 0.07);
+
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: rgb(var(--divider-rgb)) transparent;
+}
+
+/* ── CẶP NÚT LÙI/TIẾN CỦA BƯỚC (#step-nav) ────────────────────────────────
+   Một viên thuốc nổi trên navbar: nút lùi (mũi tên) · số bước · nút tiến. Nền
+   hơi mờ để nội dung phía sau còn thấy được là đang cuộn. */
+.cx-stepnav {
+  @apply flex items-center gap-[4px] rounded-full border border-gray-100 p-1;
+
+  background: rgb(var(--white-rgb) / 0.92);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 6px 20px rgb(var(--scrim-rgb) / 0.14);
+}
+
+.cx-stepnav-count {
+  @apply px-1.5 text-[11px] font-semibold tabular-nums text-gray-400;
+}
+
+/* Điện thoại: cụm này nổi ĐÈ lên nội dung nên phải gọn — thu nút, chữ và lề lại
+   một nấc so với khổ `size="sm"` của <x-button>. */
+@media (max-width: 639px) {
+  .cx-stepnav {
+    padding: 2px;
+    gap: 4px;
+  }
+
+  .cx-stepnav button {
+    height: 28px;
+    padding: 0 10px;
+    font-size: 11px;
+  }
+
+  .cx-stepnav #step-prev {
+    width: 28px;
+    padding: 0;
+  }
+
+  .cx-stepnav-count {
+    padding: 0 4px;
+    font-size: 10px;
+  }
+
+  .cx-stepnav svg {
+    width: 13px;
+    height: 13px;
+  }
+}
+
+/* Kéo-để-tải-lại (js/23-pull-refresh.js): vòng chỉ báo treo giữa mép trên, chạy
+   xuống theo tay. Nằm dưới navbar về z-index nhưng trên mọi thẻ nội dung. */
+.cx-ptr {
+  @apply pointer-events-none fixed left-1/2 top-2 z-[250] flex h-9 w-9
+         items-center justify-center rounded-full bg-white text-gray-400;
+
+  opacity: 0;
+  box-shadow: 0 4px 14px rgb(var(--scrim-rgb) / 0.14);
+  transition: opacity 0.15s ease;
+}
+
+.cx-ptr i,
+.cx-ptr svg {
+  @apply h-4 w-4;
+
+  transition: transform 0.15s ease;
+}
+
+/* Đủ ngưỡng: đổi màu + xoay để báo "nhả tay là tải lại". */
+.cx-ptr.is-ready {
+  color: rgb(var(--focus-ring-rgb));
+}
+
+.cx-ptr.is-ready svg {
+  transform: rotate(180deg);
+}
+
+/* Thẻ nội dung của tab Cấu hình và của trang Khách mời (chạy trong iframe) đi
+   theo đúng app shell của #setup-scroll: panel/trang không cuộn, chỉ thẻ này
+   cuộn nên thanh cuộn nằm TRONG thẻ, không đẩy lệch khổ so với thanh trên và
+   navbar. */
+#config-scroll,
+#guests-scroll {
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: rgb(var(--divider-rgb)) transparent;
+}
+
+/* Thanh cuộn mảnh 4px, không chiếm chỗ đáng kể của nội dung. */
+#setup-scroll::-webkit-scrollbar,
+#config-scroll::-webkit-scrollbar,
+#guests-scroll::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+#setup-scroll::-webkit-scrollbar-track,
+#config-scroll::-webkit-scrollbar-track,
+#guests-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+#setup-scroll::-webkit-scrollbar-thumb,
+#config-scroll::-webkit-scrollbar-thumb,
+#guests-scroll::-webkit-scrollbar-thumb {
+  background: rgb(var(--divider-rgb));
+  border-radius: 8px;
+}
+
+#setup-scroll::-webkit-scrollbar-thumb:hover,
+#config-scroll::-webkit-scrollbar-thumb:hover,
+#guests-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgb(var(--scrollbar-track-rgb));
 }
 
 /* ── MỘT BLOCK NỘI DUNG TRONG #setup-scroll ────────────────────────────────
@@ -845,8 +957,11 @@ svg.lucide {
    lạc trong biểu mẫu) mà dựa vào chính THANH TIÊU ĐỀ có nền tô: block này nối
    thẳng vào block kia, chỗ giáp ranh là dải tô — mắt đọc ra ngay "hết khối này,
    sang khối khác". Thanh tiêu đề: icon + tên mục, full-bleed hết bề ngang thẻ. */
+/* GHIM khi cuộn: thanh dính mép trên khung cuộn (#setup-scroll) suốt chiều dài
+   block của nó rồi bị block sau đẩy đi — luôn biết đang điền mục nào. Nền phải
+   ĐẶC, nếu không nội dung chạy phía sau sẽ lộ qua. */
 .cx-block-head {
-  @apply px-5 py-4 sm:px-6;
+  @apply sticky top-0 z-10 px-5 py-4 sm:px-6;
 
   background: rgb(var(--surface-tint-warm-rgb));
   border-top: 1px solid rgb(var(--border-subtle-rgb));
@@ -935,14 +1050,24 @@ svg.lucide {
     background-color 0.15s ease;
 }
 
-/* Ở navbar: cột icon + nhãn, gạch trên khi đang mở. Nhãn KHÔNG xuống dòng —
-   phép đo chỗ trống của js/21-shell.js dựa vào bề ngang tối thiểu này. */
+/* Ở navbar: cột icon + nhãn trong một viên PILL — navbar là thẻ nổi bo góc nên
+   mục đang mở tô nền bo tròn (không dùng gạch trên, gạch cắt ngang mép cong).
+   Lề dọc `my-3` là khoảng hở giữa pill và mép thẻ — đừng thu lại, pill sát viền
+   thẻ trông như bị cắt; nhãn KHÔNG xuống dòng vì phép đo chỗ trống của
+   js/21-shell.js dựa vào bề ngang tối thiểu này. */
 #nav-slots > .cx-navitem,
 #nav-more-wrap > .cx-navitem {
-  @apply flex flex-none flex-col items-center justify-center gap-1 px-2 py-3
-         text-[11px] font-medium text-gray-400 sm:px-3;
+  @apply my-3 flex flex-none flex-col items-center justify-center gap-1
+         rounded-full px-2 py-2 text-[11px] font-medium text-gray-400 sm:px-3;
+}
 
-  border-top: 2px solid transparent;
+/* Không dùng :not() ở đây (cssnano tráo đối số thành rule luôn khớp) — luật
+   .is-active viết SAU, cùng specificity nên vẫn thắng lượt hover. */
+#nav-slots > .cx-navitem:hover,
+#nav-more-wrap > .cx-navitem:hover {
+  @apply text-gray-500;
+
+  background: rgb(217 204 204 / 6%);
 }
 
 #nav-slots > .cx-navitem .cx-navitem-ico,
@@ -971,10 +1096,45 @@ svg.lucide {
   @apply absolute right-1.5 top-1;
 }
 
+/* Mục đang mở: pill nền xám rất nhạt, chữ mang màu brand để vẫn đọc ra ngay. */
 #nav-slots > .cx-navitem.is-active,
-#nav-more-wrap > .cx-navitem.is-active {
+#nav-more-wrap > .cx-navitem.is-active,
+#nav-slots > .cx-navitem.is-active:hover,
+#nav-more-wrap > .cx-navitem.is-active:hover {
+  background: rgb(217 204 204 / 10%);
   color: rgb(var(--focus-ring-rgb));
-  border-top-color: rgb(var(--focus-ring-rgb));
+}
+
+/* Bàn phím: vòng focus rõ trên MỌI nút của navbar (tab, "Tùy chọn", Lưu nháp,
+   Xuất bản, cụm Chỉnh sửa/Xem trước) — chuột bấm thì không hiện. */
+#nav-card button:focus-visible {
+  outline: 2px solid rgb(var(--focus-ring-rgb));
+  outline-offset: 2px;
+}
+
+/* Huy hiệu "mới": mục nào mang data-cx-new thì chữ trong thuộc tính hiện thành
+   một chip nhỏ. Ở navbar chip treo góc trên-phải ô, trong popover thì đứng cuối
+   hàng — cùng một phần tử dùng cho hai chỗ nên chia luật theo cha như .cx-navitem. */
+/* inline-flex + h-3 + leading-none: chữ nằm GIỮA nền chip ở mọi cỡ chữ; để chip
+   là hộp text thường thì phần chân chữ đẩy nhãn lệch xuống. */
+#nav-slots > .cx-navitem[data-cx-new]::after,
+#nav-more-wrap > .cx-navitem[data-cx-new]::after {
+  @apply absolute right-1 top-0.5 inline-flex h-3 items-center justify-center
+         rounded-full px-1 text-[8px] font-bold uppercase leading-none
+         tracking-wide text-white;
+
+  content: attr(data-cx-new);
+  background: rgb(var(--action-primary-rgb));
+}
+
+/* Điện thoại: ô chỉ còn icon nên chip phải dạt hẳn sang phải (nhô một chút ra
+   ngoài mép) — đứng trong lòng ô là che mất icon. */
+@media (max-width: 639px) {
+  #nav-slots > .cx-navitem[data-cx-new]::after,
+  #nav-more-wrap > .cx-navitem[data-cx-new]::after {
+    right: -6px;
+    top: 0;
+  }
 }
 
 /* Trong popover: hàng danh sách — ô icon bo góc + nhãn, sáng lên khi rê chuột. */
@@ -996,9 +1156,18 @@ svg.lucide {
   @apply ml-auto text-[14px];
 }
 
+#nav-more-pop > .cx-navitem[data-cx-new]::after {
+  @apply ml-auto inline-flex h-[14px] items-center justify-center rounded-full
+         px-1.5 text-[9px] font-bold uppercase leading-none tracking-wide
+         text-white;
+
+  content: attr(data-cx-new);
+  background: rgb(var(--action-primary-rgb));
+}
+
 #nav-more-pop > .cx-navitem.is-active,
 #nav-more-pop > .cx-navitem.is-active:hover {
-  background: rgb(var(--surface-blossom-rgb));
+  background: rgb(217 204 204 / 10%);
   color: rgb(var(--focus-ring-rgb));
 }
 
@@ -1007,18 +1176,69 @@ svg.lucide {
   color: rgb(var(--focus-ring-rgb));
 }
 
-/* Điện thoại: chỉ hai icon, hẹp nữa mới đủ chỗ cho hai nút hành động. Đây là
-   bề ngang TỐI THIỂU mà phép đo của js/21-shell.js dựa vào. */
+/* Bề ngang TỐI THIỂU của cụm switch ở MỌI khổ màn — phép đo chỗ trống của
+   js/21-shell.js dựa vào nó, và hẹp hơn 72px là icon + nhãn bị bó. Ô chứa
+   (#switch-wrap) vì thế phải luôn ≥ 72px + lề px-3 hai bên = 96px. */
 #tour-view-switch {
-  min-width: 72px;
+  min-width: 72px !important;
+}
+
+/* Điện thoại: hàng nav vừa khít, nên hai nút hành động THU NHỎ (vẫn đủ cả nhãn)
+   thay vì rút bớt chữ. Khổ 390px: 80 + 2×28 + 2×88 = 320px, còn dư chỗ. */
+@media (max-width: 639px) {
+  #tab-draft,
+  #tab-publish {
+    height: 32px;
+    padding: 0 10px;
+    font-size: 10px;
+    gap: 4px;
+  }
+
+  #tab-draft i,
+  #tab-draft svg,
+  #tab-publish i,
+  #tab-publish svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  #tab-draft-wrap,
+  #tab-publish-wrap {
+    padding-left: 2px;
+    padding-right: 2px;
+  }
+
+  #switch-wrap {
+    width: 80px;
+  }
+
+  #nav-slots > .cx-navitem,
+  #nav-more-wrap > .cx-navitem {
+    @apply px-1.5;
+  }
+}
+
+/* Cụm chuyển chế độ có khổ CỐ ĐỊNH ở mọi khổ màn (mobile 88px, sm 176px, pad
+   88px) — cho nó co giãn thì mỗi trang một bề ngang khác nhau. */
+#switch-wrap {
+  width: 88px;
+}
+
+/* Nhãn trong cụm switch không bao giờ ngắt dòng — chật thì phải nới ô ở dưới,
+   chứ chữ rơi xuống dòng là cả navbar cao thêm một nấc. */
+#switch-edit,
+#switch-preview {
+  white-space: nowrap;
 }
 
 /* Từ sm trở lên MỌI ô trong navbar đều KHỔ CỐ ĐỊNH: dãy tab xếp sát từ trái,
    chỗ thừa dồn hết vào `ml-auto` của #nav-actions nên hai nút hành động nằm sát
    mép phải. Đừng cho ô nào `flex-1` — một ô co giãn là cả hàng lệch. */
 @media (min-width: 640px) {
+  /* Khổ hai nút có nhãn ("Chỉnh sửa" · "Xem trước") — rộng rãi để chữ không bị
+     bó rồi ngắt dòng ở khổ tablet. */
   #switch-wrap {
-    width: 148px;
+    width: 222px;
   }
 
   #nav-slots > .cx-navitem,
@@ -1038,8 +1258,40 @@ svg.lucide {
 /* pad+ (820px): switch rụng mất nút "Xem trước", chỉ còn một tab → thu về đúng
    khổ của các tab khác cho thẳng hàng. */
 @media (min-width: 820px) {
+  /* 104px chứ không 88px như các tab: ô này còn giữ lề px-3 của vỏ, trừ đi vẫn
+     dư chỗ hai bên chữ "Chỉnh sửa" — 88px là pill ôm sát chữ, nhìn như bị cắt. */
   #switch-wrap {
-    width: 88px;
+    width: 104px;
+  }
+}
+
+/* 820–1023px (iPad dựng đứng): dải xem trực tiếp đã ăn ~300px bên phải nên
+   navbar chỉ còn hơn 480px. Khổ chuẩn của hai nút hành động (120/148) cộng lại
+   là tràn — cxNavReflow() chỉ lùi được các TAB, không thu nhỏ được nút — nên
+   phải tự hạ khổ mọi ô ở dải này. Đổi số nào thì cộng lại kiểm tra: tổng phải
+   ≤ bề ngang #nav-row. */
+@media (min-width: 820px) and (max-width: 1023px) {
+  /* 96px = 72px tối thiểu của #tour-view-switch + lề px-3 hai bên. */
+  #switch-wrap {
+    width: 96px;
+  }
+
+  #nav-slots > .cx-navitem,
+  #nav-more-wrap > .cx-navitem {
+    width: 80px;
+  }
+
+  #tab-draft-wrap {
+    width: 100px;
+  }
+
+  #tab-publish-wrap {
+    width: 120px;
+  }
+
+  #tab-draft,
+  #tab-publish {
+    @apply px-3;
   }
 }
 
@@ -1099,17 +1351,7 @@ html.cx-rail-off {
            justify-center gap-2.5 border-l border-gray-200;
 
     width: var(--cx-rail-w);
-    background:
-      radial-gradient(
-        120% 60% at 50% 0%,
-        rgb(var(--surface-tint-warm-rgb)) 0%,
-        rgb(var(--surface-tint-warm-rgb) / 0) 60%
-      ),
-      linear-gradient(
-        180deg,
-        rgb(var(--surface-panel-rgb)) 0%,
-        rgb(var(--white-rgb)) 100%
-      );
+    background: rgb(var(--surface-tint-rgb));
   }
 }
 
@@ -1243,35 +1485,115 @@ html.cx-rail-off {
 }
 
 /* Từ 820px trở lên cụm chuyển chế độ chỉ còn một nút (không còn "Xem trước") →
-   cho "Chỉnh sửa" mặc đúng bộ đồ của các tab khác (icon trên, nhãn dưới, gạch
-   trên khi đang mở) thay vì viên pill. Nhắm bằng id để thắng các utility mà
-   _setActiveTab() gắn/gỡ; trạng thái đang mở là .is-active do chính hàm đó đặt.
-   Mobile không đụng tới. */
+   cho "Chỉnh sửa" mặc đúng bộ đồ của các tab khác (icon trên, nhãn dưới, pill
+   hồng khi đang mở) thay vì viên pill xám của cụm switch. Nhắm bằng id để thắng
+   các utility mà _setActiveTab() gắn/gỡ; trạng thái đang mở là .is-active do
+   chính hàm đó đặt. Mobile không đụng tới. */
 @media (min-width: 820px) {
   #tour-view-switch {
     padding: 0;
     gap: 0;
-    min-width: 96px; /* đã là một tab như bao tab khác, không cần rộng như pill */
+    /* Bám đúng bề ngang ô chứa (ô luôn ≥ 96px nên vẫn qua mức tối thiểu 72px). */
+    width: 100%;
     border-radius: 0;
     background: transparent;
   }
 
+  /* Khổ và lề GIỐNG HỆT .cx-navitem (my-3 + py-2 + gap-1) để "Chỉnh sửa" đứng
+     thẳng hàng với các tab bên cạnh, pill cũng cùng chiều cao. */
   #switch-edit {
     flex-direction: column;
     gap: 4px;
     height: auto;
-    padding: 12px 0;
-    border-top: 2px solid transparent;
-    border-radius: 0;
+    margin: 12px 0;
+    padding: 8px 4px;
+    white-space: nowrap;
+    border-radius: 9999px;
     background: transparent;
     box-shadow: none;
     font-weight: 500;
     color: rgb(var(--text-idle-rgb));
-    transition: color 0.15s ease, border-color 0.15s ease;
+    transition:
+      color 0.15s ease,
+      background-color 0.15s ease;
   }
 
-  #switch-edit.is-active {
-    color: rgb(var(--focus-ring-rgb));
-    border-top-color: rgb(var(--focus-ring-rgb));
+  #switch-edit:hover {
+    background: rgb(var(--surface-brand-soft-rgb));
   }
+
+  #switch-edit.is-active,
+  #switch-edit.is-active:hover {
+    background: rgb(217 204 204 / 10%);
+    color: rgb(var(--focus-ring-rgb));
+  }
+}
+
+/* ── CỤM THAO TÁC DẠNG Ô (trang Khách mời) ─────────────────────────────────
+   Mỗi ô: icon trong vòng tròn, nhãn ngay dưới; cả cụm nằm trong MỘT block mềm
+   bo 8px. Ô là <x-button variant="bare"> (hoặc <label> cho input file) — bare
+   chỉ giữ hiệu ứng nhấn, hình dạng do mấy luật dưới đây quyết định. */
+/* LUÔN một hàng ở mọi khổ màn: không cho xuống dòng, chật thì các ô cùng co lại
+   (xem .cx-tile) chứ không tụt xuống hàng dưới. */
+.cx-tilebar {
+  /* w-full để màn hẹp dùng hết chỗ (không cắt nhãn khi vẫn còn khoảng trống),
+     max-w giữ cụm khỏi kéo dài lê thê trên desktop. */
+  @apply flex w-full max-w-[360px] flex-nowrap items-stretch gap-0.5
+         rounded-2xl p-1;
+
+  /* Cùng màu nền trang thiết lập — cụm chỉ là một mảng mềm chìm trên thẻ trắng. */
+  background: rgb(var(--surface-tint-rgb));
+}
+
+/* Các ô CHIA ĐỀU cả bề ngang cụm (`flex-1` + `min-w-0`) nên luôn đúng một hàng
+   và không chừa chỗ thừa ở mép phải. Cao 40px vừa đủ cho vòng icon 20px + khe
+   8px + nhãn 9px, đổi một số thì phải đổi cả bộ. */
+.cx-tile {
+  @apply flex h-10 min-w-0 flex-1 basis-16 cursor-pointer select-none flex-col
+         items-center justify-center gap-2 rounded-2xl px-0.5 text-center
+         transition-colors;
+}
+
+.cx-tile:hover {
+  background: rgb(var(--white-rgb) / 0.75);
+}
+
+.cx-tile:focus-visible {
+  outline: 2px solid rgb(var(--focus-ring-rgb));
+  outline-offset: -2px; /* thụt vào trong để không đè lên viền block bọc ngoài */
+}
+
+/* Vòng icon luôn CÓ MÀU — mặc định là tông brand, ô nào cần phân biệt thì gắn
+   thêm một class tông ở dưới (viết trọn tên để Tailwind purge quét được). */
+.cx-tile-ico {
+  @apply flex h-5 w-5 shrink-0 items-center justify-center rounded-full
+         bg-rose-100 text-[11px] text-rose-600;
+}
+
+.cx-tile-sky .cx-tile-ico {
+  @apply bg-sky-100 text-sky-600;
+}
+
+.cx-tile-amber .cx-tile-ico {
+  @apply bg-amber-100 text-amber-600;
+}
+
+.cx-tile-emerald .cx-tile-ico {
+  @apply bg-emerald-100 text-emerald-600;
+}
+
+.cx-tile-violet .cx-tile-ico {
+  @apply bg-violet-100 text-violet-600;
+}
+
+/* Nhãn chỉ nhỏ ngang vòng icon — cả ô đọc như một khối, chữ không lấn át icon.
+   `truncate` để ô co hết cỡ vẫn không đẩy hàng rộng ra. */
+.cx-tile-label {
+  @apply w-full truncate text-[9px] font-medium leading-none text-gray-600;
+}
+
+/* Ô việc chính (Thêm khách) — vòng icon tô ĐẶC để nổi hẳn khỏi các ô còn lại;
+   nhãn vẫn giữ nguyên cho cả hàng đọc như một dãy. */
+.cx-tile-primary .cx-tile-ico {
+  @apply bg-rose-500 text-white;
 }

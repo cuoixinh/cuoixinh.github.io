@@ -145,6 +145,15 @@ function renderGalleryGrid() {
   }
 }
 
+// Khung xem trước của ảnh chân dung/bìa: form chỉ cần nhận ra ảnh nào đang gắn
+// nên khung để nhỏ, khung thật trên thiệp do điểm lấy nét quyết định.
+// Ảnh bìa giữ dáng DỌC (3/4) vì thiệp cũng dựng dọc, chỉ cao hơn ảnh dâu/rể chút.
+const _PREVIEW_BOX = {
+  cover_image_url: { maxWidth: "100px", aspectRatio: "0.75" }, // 100×133
+  groom_image_url: { maxWidth: "175px", aspectRatio: "1.75" }, // 175×100
+  bride_image_url: { maxWidth: "175px", aspectRatio: "1.75" },
+};
+
 function renderSingleImageUpload(fieldName) {
   // Map field names to container IDs
   const containerMap = {
@@ -172,14 +181,12 @@ function renderSingleImageUpload(fieldName) {
 
   // Determine size and object-fit based on field
   let sizeClass, objectFit;
-  if (fieldName === "cover_image_url") {
-    sizeClass = "aspect-[3/4]"; // Khung dọc cho cover
-    objectFit = "object-cover";
-  } else if (
+  if (
+    fieldName === "cover_image_url" ||
     fieldName === "groom_image_url" ||
     fieldName === "bride_image_url"
   ) {
-    sizeClass = ""; // kích thước cố định 175x100, set inline
+    sizeClass = ""; // khổ đặt inline theo _PREVIEW_BOX
     objectFit = "object-cover";
   } else if (fieldName === "groom_qr_url" || fieldName === "bride_qr_url") {
     sizeClass = "aspect-square"; // QR code hình vuông — cover + focal point để cắt theo ý người dùng
@@ -211,10 +218,10 @@ function renderSingleImageUpload(fieldName) {
     const url = URL.createObjectURL(pendingUploads.singleImages[fieldName]);
     const div = document.createElement("div");
     div.className = `relative ${sizeClass} rounded-xl overflow-hidden border border-rose-200 shadow-sm group bg-gray-100`;
-    if (fieldName === "groom_image_url" || fieldName === "bride_image_url") {
+    if (_PREVIEW_BOX[fieldName]) {
       div.style.width = "100%";
-      div.style.maxWidth = "175px";
-      div.style.aspectRatio = "1.75";
+      div.style.maxWidth = _PREVIEW_BOX[fieldName].maxWidth;
+      div.style.aspectRatio = _PREVIEW_BOX[fieldName].aspectRatio;
     }
     div.innerHTML = `
       <img src="${url}" alt="Preview" class="w-full h-full ${objectFit}"${_fpStyle} />
@@ -235,10 +242,10 @@ function renderSingleImageUpload(fieldName) {
       const fullUrl = getImageUrl(existingFilename);
       const div = document.createElement("div");
       div.className = `relative ${sizeClass} rounded-xl overflow-hidden border border-rose-200 shadow-sm group bg-gray-100`;
-      if (fieldName === "groom_image_url" || fieldName === "bride_image_url") {
+      if (_PREVIEW_BOX[fieldName]) {
         div.style.width = "100%";
-        div.style.maxWidth = "175px";
-        div.style.aspectRatio = "1.75";
+        div.style.maxWidth = _PREVIEW_BOX[fieldName].maxWidth;
+        div.style.aspectRatio = _PREVIEW_BOX[fieldName].aspectRatio;
       }
       div.innerHTML = `
         <img src="${fullUrl}" alt="Preview" class="w-full h-full ${objectFit}"${_fpStyle} />

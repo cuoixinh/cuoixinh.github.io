@@ -98,13 +98,46 @@
              Nút lùi/tiến KHÔNG nằm ở đây: xem #step-nav trong form-panel.html. -->
         <!-- .cx-stepbar-wrap vẽ vệt trắng mờ hai mép báo còn cuộn được;
              js/20-steps.js gắn .at-start/.at-end để tắt vệt ở đầu/cuối. -->
-        <div class="cx-stepbar-wrap">
-          <div
-            id="step-bar"
-            class="flex items-center gap-1 overflow-x-auto px-3 py-2 scrollbar-hide"
-            role="tablist"
-            aria-label="Các bước điền thông tin thiệp"
-          ></div>
+        <!-- Hai nút kẹp hai đầu thanh chỉ CUỘN dãy chip (đổi bước là việc của
+             #step-nav ở đáy màn). Chúng nằm NGOÀI khung cuộn nên không bị chip
+             đẩy đi; _cxSyncBarFade() làm mờ nút khi phía đó đã hết chip. -->
+        <div class="flex items-center gap-0.5 px-1.5">
+          <x-button
+            type="button"
+            id="stepbar-prev"
+            variant="ghost"
+            tone="neutral"
+            size="sm"
+            icon-only
+            onclick="cxStepBarScroll(-1)"
+            title="Xem các bước trước"
+            aria-label="Cuộn thanh bước sang trái"
+            class="shrink-0"
+          >
+            <i data-lucide="chevron-left" class="w-4 h-4"></i>
+          </x-button>
+          <div class="cx-stepbar-wrap flex-1 min-w-0">
+            <div
+              id="step-bar"
+              class="flex items-center gap-1 overflow-x-auto px-1 py-2 scrollbar-hide"
+              role="tablist"
+              aria-label="Các bước điền thông tin thiệp"
+            ></div>
+          </div>
+          <x-button
+            type="button"
+            id="stepbar-next"
+            variant="ghost"
+            tone="neutral"
+            size="sm"
+            icon-only
+            onclick="cxStepBarScroll(1)"
+            title="Xem các bước sau"
+            aria-label="Cuộn thanh bước sang phải"
+            class="shrink-0"
+          >
+            <i data-lucide="chevron-right" class="w-4 h-4"></i>
+          </x-button>
         </div>
       </div>
       </div>

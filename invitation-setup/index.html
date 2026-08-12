@@ -1,7 +1,10 @@
 ﻿<!doctype html>
 <!-- cx-setup: cờ khoá phạm vi cho dải "Xem trực tiếp" + app shell (chỉ trang
-     này mới không cuộn trang) — styles/build.css dùng chung cho mọi trang. -->
-<html lang="vi" class="cx-setup">
+     này mới không cuộn trang) — styles/build.css dùng chung cho mọi trang.
+     cx-rail-off khai sẵn để lúc SKELETON trang chưa chừa lề phải cho dải xem
+     trực tiếp (dải chưa có gì để vẽ, chừa chỗ là ra một mảng trống);
+     _syncRail() gỡ cờ khi dữ liệu đã đổ xong và đang ở tab Chỉnh sửa. -->
+<html lang="vi" class="cx-setup cx-rail-off">
   <head>
     <meta charset="UTF-8" />
     <meta
@@ -58,7 +61,7 @@
   </head>
   <!-- font-inter thay cho fontFamily.sans = Inter trong config inline cũ. -->
   <body
-    class="font-inter min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 overflow-x-hidden"
+    class="font-inter min-h-screen bg-[rgb(var(--surface-tint-rgb))] overflow-x-hidden"
   >
     <span id="mount-skeleton" hidden></span>
 
@@ -70,18 +73,26 @@
       <!-- Preview Fullscreen Overlay -->
       <div
         id="preview-panel"
-        class="hidden fixed inset-0 bottom-[var(--nav-h)] z-[200] bg-white flex flex-col"
+        class="hidden fixed inset-0 bottom-[var(--nav-h)] z-[200] bg-[rgb(var(--surface-tint-rgb))] flex flex-col overflow-hidden"
       >
-        <!-- allow="autoplay": trình phát nhạc là iframe youtube.com lồng bên
-             trong (khác origin) nên phải được uỷ quyền qua TỪNG lớp iframe,
-             thiếu là nhạc nền không tự phát dù đã chọn bài. -->
-        <iframe
-          id="preview-iframe"
-          src=""
-          class="flex-1 border-0 w-full min-h-0"
-          allow="autoplay; encrypted-media"
-          allowfullscreen
-        ></iframe>
+        <!-- Thiệp nằm trong THẺ NỔI cùng khổ/cùng bo góc với các tab khác; vỏ
+             chỉ giữ lề 8px quanh thẻ. -->
+        <div class="flex-1 min-h-0 px-2 sm:px-4 pt-2 pb-2">
+          <div
+            class="h-full max-w-4xl mx-auto overflow-hidden bg-white border border-gray-100 rounded-3xl shadow-[0_4px_18px_rgb(var(--scrim-rgb)/0.07)]"
+          >
+            <!-- allow="autoplay": trình phát nhạc là iframe youtube.com lồng bên
+                 trong (khác origin) nên phải được uỷ quyền qua TỪNG lớp iframe,
+                 thiếu là nhạc nền không tự phát dù đã chọn bài. -->
+            <iframe
+              id="preview-iframe"
+              src=""
+              class="w-full h-full border-0"
+              allow="autoplay; encrypted-media"
+              allowfullscreen
+            ></iframe>
+          </div>
+        </div>
       </div>
       <!-- /preview-panel -->
 

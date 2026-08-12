@@ -133,24 +133,24 @@ const _AI_BODY_HTML = `
 const _AI_FOOTER_HTML = `
   <div class="px-5 py-3.5 border-t border-gray-100 bg-white">
     <div id="ai-footer-form" class="ai-tray">
-      <x-button variant="outline" tone="neutral" size="lg" type="button" onclick="clearAiForm()" aria-label="Xoá toàn bộ nội dung đã nhập">
-        <i data-lucide="eraser" style="width:16px;height:16px"></i> Xoá hết
+      <x-button variant="outline" tone="neutral" size="sm" type="button" onclick="clearAiForm()" class="ai-tray-btn" aria-label="Xoá toàn bộ nội dung đã nhập">
+        <i data-lucide="eraser" class="w-3.5 h-3.5"></i> Xoá hết
       </x-button>
-      <x-button size="lg" type="button" id="ai-generate-btn" onclick="submitAiGenerate()" class="btn-pink">
+      <x-button size="sm" type="button" id="ai-generate-btn" onclick="submitAiGenerate()" class="btn-pink ai-tray-btn">
         <i data-lucide="sparkles"></i> Tạo nội dung
       </x-button>
     </div>
     <div id="ai-footer-preview" class="hidden ai-tray">
-      <x-button variant="outline" tone="neutral" size="lg" type="button" id="ai-back-btn" onclick="backToAiForm()">
+      <x-button variant="outline" tone="neutral" size="sm" type="button" id="ai-back-btn" class="ai-tray-btn" onclick="backToAiForm()">
         Tạo lại
       </x-button>
-      <x-button size="lg" type="button" id="ai-apply-btn" onclick="applyAiResult()" class="btn-pink">
+      <x-button size="sm" type="button" id="ai-apply-btn" onclick="applyAiResult()" class="btn-pink ai-tray-btn">
         Áp dụng vào thiệp
       </x-button>
     </div>
     <div id="ai-footer-history" class="hidden ai-tray ai-tray-single">
-      <x-button size="lg" type="button" onclick="backFromAiHistory()" class="btn-pink">
-        <i data-lucide="arrow-left" style="width: 16px; height: 16px"></i> Quay lại
+      <x-button size="sm" type="button" onclick="backFromAiHistory()" class="btn-pink ai-tray-btn">
+        <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Quay lại
       </x-button>
     </div>
   </div>

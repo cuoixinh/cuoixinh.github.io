@@ -100,6 +100,7 @@
     "js/21-shell.js",
     // Sau 04 (dùng _savePreviewData/_previewIframeSrc và cờ _isPreviewActive).
     "js/22-live-preview.js",
+    "js/23-pull-refresh.js",
     "ai-modal.js",
     "tour-setup.js",
   ];

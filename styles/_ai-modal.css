@@ -256,14 +256,14 @@
   transition:
     border-color 0.15s ease,
     background 0.15s ease,
-    box-shadow 0.15s ease,
-    transform 0.15s ease;
+    box-shadow 0.15s ease;
 }
 
+/* Rê chuột chỉ đổi viền + bóng, KHÔNG nhấc thẻ lên: dãy văn phong nằm sát nhau
+   nên mỗi lần rê qua là cả hàng nhấp nhổm. */
 .ai-opt:hover {
   @apply border-rose-300;
 
-  transform: translateY(-1px);
   box-shadow: 0 6px 16px -8px rgb(var(--action-primary-rgb) / 0.45);
 }
 
@@ -310,52 +310,32 @@
   .ai-opt {
     @apply transition-none;
   }
-
-  .ai-opt:hover {
-    transform: none;
-  }
 }
 
 /* Khay nút ở chân popup: canh phải như modal chuẩn; khổ hẹp thì chia đôi
    hàng ngang cho đủ chỗ bấm. */
 
 .ai-tray {
-  @apply flex items-center justify-end gap-2.5;
+  @apply flex items-center justify-end gap-2;
 }
 
-.ai-btn-ghost {
-  @apply inline-flex h-11 items-center justify-center gap-2 rounded-full border
-         border-gray-200 px-5 text-sm font-medium text-gray-600
-         transition-colors;
+/* Cùng khổ với cặp "Lưu nháp"/"Xuất bản" ở navbar (h-9, chữ 11px) — ở MỌI khổ
+   màn, kể cả điện thoại: khay này chỉ là chỗ chốt việc, không phải nút chính
+   của trang. rounded-full đặt sau .btn-pink (import _common.css trước) nên đè
+   được bo góc mặc định của nút hồng. */
+.ai-tray-btn {
+  @apply inline-flex h-9 items-center justify-center gap-1.5 rounded-full px-3
+         py-0 text-[11px] font-medium leading-none sm:px-4;
+
+  /* Khoá đúng 36px: .btn-pink còn mang py-2/text-sm, để nguyên thì nút hồng
+     trong khay cao hơn nút viền bên cạnh. */
+  min-height: 36px;
+  max-height: 36px;
 }
 
-.ai-btn-ghost:hover {
-  @apply bg-gray-50 text-gray-800;
-}
-
-/* rounded-full đặt sau .btn-pink (import _common.css trước) nên đè được bo góc
-   mặc định của nút hồng. */
-.ai-btn-main {
-  @apply h-11 justify-center rounded-full px-6 text-sm font-semibold;
-}
-
-@media (max-width: 479px) {
-  .ai-tray {
-    @apply grid grid-cols-2;
-  }
-
-  .ai-tray > * {
-    @apply w-full;
-  }
-
-  /* Khay chỉ có một nút (màn Lịch sử) thì vẫn canh phải, không kéo full. */
-  .ai-tray.ai-tray-single {
-    @apply flex;
-  }
-
-  .ai-tray.ai-tray-single > * {
-    @apply w-auto;
-  }
+.ai-tray-btn i,
+.ai-tray-btn svg {
+  @apply h-3.5 w-3.5 shrink-0;
 }
 
 /* _setAiView ẩn khay của màn không dùng bằng class .hidden, mà .hidden chỉ có

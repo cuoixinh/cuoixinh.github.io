@@ -9,88 +9,117 @@
     <div id="setup-scroll" class="max-w-4xl mx-auto my-4">
       <!-- Đệm đáy chừa chỗ cho cặp nút nổi #step-nav (nằm đè lên đáy thẻ). -->
       <div class="pb-[84px]">
-    <!-- Form -->
-    <form
-      id="wedding-form"
-      class="flex flex-col gap-6 scroll-mt-4"
-      autocomplete="on"
-    >
-      <input type="hidden" name="cover_image_url" />
-      <input type="hidden" name="groom_image_url" />
-      <input type="hidden" name="bride_image_url" />
-      <input type="hidden" name="groom_qr_url" />
-      <input type="hidden" name="bride_qr_url" />
-      <textarea name="gallery_images_raw" class="hidden"></textarea>
-      <input type="hidden" name="rsvp_enabled" id="rsvp_enabled" value="true" />
-      <input type="hidden" name="timeline" id="timeline-value" value="[]" />
-      <input type="hidden" name="love_story" id="love-story-value" value="[]" />
+        <!-- Form -->
+        <form
+          id="wedding-form"
+          class="flex flex-col gap-6 scroll-mt-4"
+          autocomplete="on"
+        >
+          <input type="hidden" name="cover_image_url" />
+          <input type="hidden" name="groom_image_url" />
+          <input type="hidden" name="bride_image_url" />
+          <input type="hidden" name="groom_qr_url" />
+          <input type="hidden" name="bride_qr_url" />
+          <textarea name="gallery_images_raw" class="hidden"></textarea>
+          <input
+            type="hidden"
+            name="rsvp_enabled"
+            id="rsvp_enabled"
+            value="true"
+          />
+          <input type="hidden" name="timeline" id="timeline-value" value="[]" />
+          <input
+            type="hidden"
+            name="love_story"
+            id="love-story-value"
+            value="[]"
+          />
 
-      <input type="hidden" name="ceremony_lunar" id="ceremony-lunar-value" />
-      <input
-        type="hidden"
-        name="groom_party_lunar"
-        id="groom-party-lunar-value"
-      />
-      <input
-        type="hidden"
-        name="bride_party_lunar"
-        id="bride-party-lunar-value"
-      />
-      <!-- Section visibility toggles -->
-      <input
-        type="hidden"
-        name="enable_family"
-        id="enable_family"
-        value="true"
-      />
-      <input type="hidden" name="enable_party" id="enable_party" value="true" />
-      <input
-        type="hidden"
-        name="enable_photos"
-        id="enable_photos"
-        value="true"
-      />
-      <input
-        type="hidden"
-        name="enable_timeline"
-        id="enable_timeline"
-        value="true"
-      />
-      <input
-        type="hidden"
-        name="enable_love_story"
-        id="enable_love_story"
-        value="true"
-      />
-      <input type="hidden" name="enable_music" id="enable_music" value="true" />
-      <input type="hidden" name="enable_gift" id="enable_gift" value="true" />
-      <input
-        type="hidden"
-        name="enable_footer"
-        id="enable_footer"
-        value="true"
-      />
+          <input
+            type="hidden"
+            name="ceremony_lunar"
+            id="ceremony-lunar-value"
+          />
+          <input
+            type="hidden"
+            name="groom_party_lunar"
+            id="groom-party-lunar-value"
+          />
+          <input
+            type="hidden"
+            name="bride_party_lunar"
+            id="bride-party-lunar-value"
+          />
+          <!-- Section visibility toggles -->
+          <input
+            type="hidden"
+            name="enable_family"
+            id="enable_family"
+            value="true"
+          />
+          <input
+            type="hidden"
+            name="enable_party"
+            id="enable_party"
+            value="true"
+          />
+          <input
+            type="hidden"
+            name="enable_photos"
+            id="enable_photos"
+            value="true"
+          />
+          <input
+            type="hidden"
+            name="enable_timeline"
+            id="enable_timeline"
+            value="true"
+          />
+          <input
+            type="hidden"
+            name="enable_love_story"
+            id="enable_love_story"
+            value="true"
+          />
+          <input
+            type="hidden"
+            name="enable_music"
+            id="enable_music"
+            value="true"
+          />
+          <input
+            type="hidden"
+            name="enable_gift"
+            id="enable_gift"
+            value="true"
+          />
+          <input
+            type="hidden"
+            name="enable_footer"
+            id="enable_footer"
+            value="true"
+          />
 
-      <span id="mount-step-couple" hidden></span>
+          <span id="mount-step-couple" hidden></span>
 
-      <span id="mount-step-ceremony" hidden></span>
+          <span id="mount-step-ceremony" hidden></span>
 
-      <span id="mount-step-family" hidden></span>
+          <span id="mount-step-family" hidden></span>
 
-      <span id="mount-step-party" hidden></span>
+          <span id="mount-step-party" hidden></span>
 
-      <span id="mount-step-photos" hidden></span>
+          <span id="mount-step-photos" hidden></span>
 
-      <span id="mount-step-timeline" hidden></span>
+          <span id="mount-step-timeline" hidden></span>
 
-      <span id="mount-step-love_story" hidden></span>
+          <span id="mount-step-love_story" hidden></span>
 
-      <span id="mount-step-rsvp" hidden></span>
+          <span id="mount-step-rsvp" hidden></span>
 
-      <span id="mount-step-gift" hidden></span>
+          <span id="mount-step-gift" hidden></span>
 
-      <span id="mount-step-footer" hidden></span>
-    </form>
+          <span id="mount-step-footer" hidden></span>
+        </form>
       </div>
     </div>
   </div>
@@ -103,30 +132,37 @@
        thẻ AI nổi cũng được đẩy lên trên cụm này nên không đè lên nhau. -->
   <div
     id="step-nav"
-    class="pointer-events-none fixed inset-x-0 z-[47] flex justify-center px-4"
+    class="pointer-events-none fixed inset-x-0 z-[47] flex justify-center px-4 sm:px-6"
     style="bottom: calc(var(--nav-h, 60px) + 12px)"
   >
-    <div class="pointer-events-auto flex items-center gap-2.5">
-      <x-button
-        type="button"
-        id="step-prev"
-        variant="outline"
-        tone="neutral"
-        onclick="cxStepPrev()"
-        class="bg-white shadow-lg"
-      >
-        <i data-lucide="chevron-left" style="width: 15px; height: 15px"></i>
-        Trước đó
-      </x-button>
-      <x-button
-        type="button"
-        id="step-next"
-        onclick="cxStepNext()"
-        class="shadow-lg"
-      >
-        <span id="step-next-label">Tiếp theo</span>
-        <i data-lucide="chevron-right" style="width: 15px; height: 15px"></i>
-      </x-button>
+    <!-- Cụm nằm ở MÉP PHẢI cột nội dung (max-w-4xl như các thẻ nổi khác) chứ
+         không giữa màn: tay cầm máy ở đó, và giữa màn là chỗ đang đọc form. -->
+    <!-- MỘT viên thuốc nổi: nút lùi chỉ còn mũi tên (việc phụ), số bước ở giữa
+         cho biết đang ở đâu, nút tiến là nút chính có nhãn. Bước đầu giấu nút
+         lùi thì cụm tự co lại quanh phần còn lại. -->
+    <div class="w-full max-w-4xl flex justify-end">
+      <div class="cx-stepnav pointer-events-auto">
+        <x-button
+          type="button"
+          id="step-prev"
+          variant="ghost"
+          tone="neutral"
+          size="sm"
+          icon-only
+          onclick="cxStepPrev()"
+          title="Bước trước"
+          aria-label="Bước trước"
+        >
+          <!-- Cỡ icon bằng class, KHÔNG style inline: lucide bê nguyên style
+               sang <svg> nên media query thu nhỏ ở mobile sẽ không đè nổi. -->
+          <i data-lucide="chevron-left" class="w-4 h-4"></i>
+        </x-button>
+        <span id="step-count" class="cx-stepnav-count">1/1</span>
+        <x-button type="button" id="step-next" size="sm" onclick="cxStepNext()">
+          <span id="step-next-label">Tiếp</span>
+          <i data-lucide="chevron-right" class="w-4 h-4"></i>
+        </x-button>
+      </div>
     </div>
   </div>
 </div>

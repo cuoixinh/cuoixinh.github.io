@@ -63,8 +63,10 @@ const CX_STEPS = [
     label: "Gia đình",
     icon: "users",
     vis: "family",
-    done: () => _cxAll("groom_father", "groom_mother", "bride_father", "bride_mother"),
-    some: () => _cxAny("groom_father", "groom_mother", "bride_father", "bride_mother"),
+    done: () =>
+      _cxAll("groom_father", "groom_mother", "bride_father", "bride_mother"),
+    some: () =>
+      _cxAny("groom_father", "groom_mother", "bride_father", "bride_mother"),
   },
   {
     id: "party",
@@ -185,7 +187,7 @@ function _cxChipHTML(step, i) {
 
   // Viền/nền: bước đang mở nổi hẳn lên; các bước khác phân biệt bằng màu chấm.
   const chip = active
-    ? "border-rose-300 bg-rose-50 text-rose-700"
+    ? "border-rose-300 bg-rose-50 text-color-secondary"
     : state === "off"
       ? "border-gray-100 bg-white text-gray-300"
       : "border-gray-200 bg-white text-gray-600 hover:border-rose-200 hover:text-rose-600";
@@ -195,7 +197,7 @@ function _cxChipHTML(step, i) {
     off: ["text-gray-300", "minus"],
     empty: ["text-red-500", "alert-circle"],
     partial: ["text-amber-500", "alert-triangle"],
-    done: ["text-emerald-500", "check"],
+    done: ["text-emerald-500", "circle-check"],
   };
   const [dot, icon] = DOT[state] || DOT.empty;
   const mark = `<i data-lucide="${icon}" style="width:13px;height:13px"></i>`;
@@ -221,7 +223,10 @@ function _cxChipHTML(step, i) {
 function _cxEsc(s) {
   return String(s ?? "").replace(
     /[&<>"']/g,
-    (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch],
+    (ch) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[
+        ch
+      ],
   );
 }
 
@@ -236,7 +241,12 @@ function cxRenderStepBar() {
 
   const states = CX_STEPS.map(_cxStepState);
   const sig = states.join("|") + "@" + _cxStepIndex;
-  if (sig === _cxBarSig) return;
+  if (sig === _cxBarSig) {
+    // Không vẽ lại chip, nhưng vẫn phải chấm lại vệt mờ + hai nút cuộn: lần vẽ
+    // đầu chạy lúc thanh chưa có bề ngang thật nên chúng bị khoá oan.
+    _cxSyncBarFade();
+    return;
+  }
   _cxBarSig = sig;
 
   bar.innerHTML = CX_STEPS.map(_cxChipHTML).join("");
@@ -266,9 +276,24 @@ function _cxSyncBarFade() {
   const wrap = bar?.parentElement;
   if (!wrap) return;
   const max = bar.scrollWidth - bar.clientWidth;
-  wrap.classList.toggle("at-start", bar.scrollLeft <= 1);
-  wrap.classList.toggle("at-end", bar.scrollLeft >= max - 1);
+  const atStart = bar.scrollLeft <= 1;
+  const atEnd = bar.scrollLeft >= max - 1;
+  wrap.classList.toggle("at-start", atStart);
+  wrap.classList.toggle("at-end", atEnd);
+  // Hai nút kẹp hai đầu chỉ CUỘN thanh — mờ đi khi phía đó không còn gì để lộ.
+  const p = document.getElementById("stepbar-prev");
+  if (p) p.disabled = atStart;
+  const n = document.getElementById("stepbar-next");
+  if (n) n.disabled = atEnd;
 }
+
+/** Cuộn thanh bước sang trái/phải một khoảng gần bằng bề ngang đang thấy. */
+function cxStepBarScroll(dir) {
+  const bar = document.getElementById("step-bar");
+  if (!bar) return;
+  bar.scrollBy({ left: dir * bar.clientWidth * 0.7, behavior: "smooth" });
+}
+window.cxStepBarScroll = cxStepBarScroll;
 
 // ===== HIỆN/ẨN PANEL =====
 
@@ -299,13 +324,13 @@ function _cxRenderNav() {
   const first = _cxStepIndex === 0;
   const last = _cxStepIndex === CX_STEPS.length - 1;
 
-  // Bước đầu KHÔNG có gì để lùi → giấu hẳn nút, cụm còn lại tự canh giữa. Cặp nút
-  // nổi tự do (không nằm trong hàng nào) nên bỏ đi cũng chẳng làm gì xô lệch.
+  // Bước đầu không có gì để lùi → VÔ HIỆU chứ không giấu: cụm giữ nguyên bề
+  // ngang nên nút "Tiếp" không nhảy chỗ khi qua bước 2.
   const prev = document.getElementById("step-prev");
-  if (prev) {
-    prev.classList.toggle("hidden", first);
-    prev.disabled = first;
-  }
+  if (prev) prev.disabled = first;
+
+  // Hai nút kẹp thanh bước chỉ cuộn thanh — trạng thái của chúng do
+  // _cxSyncBarFade() đặt theo vị trí cuộn, không theo bước đang mở.
 
   // Bước cuối dẫn đi đâu là tuỳ khổ màn: desktop đã thấy thiệp trong khung điện
   // thoại rồi nên đưa thẳng sang Cấu hình (xem cxStepNext).
@@ -315,7 +340,10 @@ function _cxRenderNav() {
       ? window.cxLiveWide?.()
         ? "Cấu hình"
         : "Xem trước"
-      : "Tiếp theo";
+      : "Tiếp";
+
+  const count = document.getElementById("step-count");
+  if (count) count.textContent = `${_cxStepIndex + 1}/${CX_STEPS.length}`;
 
   // Tiến độ tổng chuyển thành tooltip: chip đã nói đủ vị trí lẫn trạng thái, để
   // thêm một dòng chữ nữa chỉ tốn chiều cao thanh.
@@ -380,7 +408,10 @@ function cxStepNext() {
 
   if (panel && !_cxStepOff(cur) && typeof validateForm === "function") {
     if (!validateForm(panel)) {
-      showToast("Vui lòng điền các ô bắt buộc trước khi sang bước sau", "error");
+      showToast(
+        "Vui lòng điền các ô bắt buộc trước khi sang bước sau",
+        "error",
+      );
       return;
     }
   }
@@ -403,6 +434,9 @@ function _cxInitSteps() {
 
   bar.addEventListener("scroll", _cxSyncBarFade, { passive: true });
   window.addEventListener("resize", _cxSyncBarFade, { passive: true });
+  // Chip nạp xong / thanh trên đổi bề ngang (dải xem trực tiếp bật tắt) đều đổi
+  // chuyện "còn cuộn được hay không" mà không phát scroll → phải tự theo dõi.
+  if (window.ResizeObserver) new ResizeObserver(_cxSyncBarFade).observe(bar);
 
   // Gõ ở bất kỳ ô nào cũng có thể làm một bước từ ⚠ sang ✓ → chấm lại trạng thái.
   // Nghe ở form (nổi bọt) nên ô thêm sau (mốc lịch trình, ảnh…) cũng được tính.

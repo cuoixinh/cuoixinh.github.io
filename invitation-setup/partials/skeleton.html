@@ -1,169 +1,95 @@
-    <!-- Skeleton Loading -->
-    <div id="skeleton-loader" class="min-h-screen">
-      <!-- Bottom Bar Skeleton — cùng hình dạng với #nav-card thật (thẻ nổi bo 4
-           góc, rộng bằng cột form) để lúc content hiện ra không nhảy. -->
-      <div class="fixed bottom-0 left-0 right-0 z-50 px-2 sm:px-4 pb-2">
-        <div
-          class="max-w-4xl mx-auto flex items-stretch bg-white border border-rose-100 rounded-3xl shadow-[0_-4px_18px_rgb(var(--scrim-rgb)/0.08)]"
-        >
-          <!-- Chuyển Chỉnh sửa/Xem trước -->
-          <div
-            class="flex-1 sm:flex-[2] flex items-center justify-center px-2 sm:px-3"
-          >
-            <div class="h-8 w-full skeleton rounded-full"></div>
-          </div>
-          <!-- Cấu hình -->
-          <div
-            class="flex-none px-3 sm:flex-1 sm:px-0 flex flex-col items-center justify-center py-3 gap-1.5"
-          >
-            <div class="h-4 w-4 skeleton rounded"></div>
-            <div class="h-2.5 w-10 skeleton rounded hidden sm:block"></div>
-          </div>
-          <!-- Khách mời -->
-          <div
-            class="flex-none px-3 sm:flex-1 sm:px-0 flex flex-col items-center justify-center py-3 gap-1.5"
-          >
-            <div class="h-4 w-4 skeleton rounded"></div>
-            <div class="h-2.5 w-10 skeleton rounded hidden sm:block"></div>
-          </div>
-          <!-- Lưu nháp -->
-          <div class="flex-1 flex items-center justify-center px-1.5 py-2">
-            <div class="h-9 w-full skeleton rounded-full"></div>
-          </div>
-          <!-- Xuất bản -->
-          <div class="flex-1 flex items-center justify-center px-1.5 py-2">
-            <div class="h-9 w-full skeleton rounded-full"></div>
-          </div>
-        </div>
+<!-- Skeleton Loading — DỰNG ĐÚNG APP SHELL của trang thật: ba thẻ nổi cùng khổ
+     (max-w-4xl) xếp dọc màn, trang không cuộn. Giữ khổ/lề/bo góc y như
+     #setup-topcard · #setup-scroll · #nav-card để lúc content thật hiện ra
+     không có cú nhảy nào. Sửa shell ở partials kia thì sửa luôn ở đây. -->
+<div id="skeleton-loader" class="h-[100dvh] flex flex-col overflow-hidden">
+  <!-- Thanh trên: hàng logo + breadcrumb + nút đổi mẫu, dưới là thanh bước. -->
+  <div class="shrink-0 px-2 sm:px-4 pt-2">
+    <div
+      class="max-w-4xl mx-auto overflow-hidden bg-white border border-gray-100 rounded-3xl shadow-[0_4px_18px_rgb(var(--scrim-rgb)/0.07)]"
+    >
+      <div class="border-b border-gray-100 px-4 h-12 flex items-center gap-3">
+        <div class="hidden sm:block h-8 w-8 skeleton rounded-full shrink-0"></div>
+        <div class="h-3 w-32 sm:w-44 skeleton rounded"></div>
+        <div class="ml-auto h-9 w-[110px] sm:w-[172px] skeleton rounded-full"></div>
       </div>
+      <!-- Thanh bước: các chip cuộn ngang, chip đầu là bước đang mở nên rộng hơn. -->
+      <div class="flex items-center gap-1 px-3 py-2 overflow-hidden">
+        <div class="h-7 w-28 skeleton rounded-full shrink-0"></div>
+        <div class="h-7 w-20 skeleton rounded-full shrink-0"></div>
+        <div class="h-7 w-24 skeleton rounded-full shrink-0"></div>
+        <div class="h-7 w-20 skeleton rounded-full shrink-0"></div>
+        <div class="h-7 w-24 skeleton rounded-full shrink-0"></div>
+        <div class="h-7 w-20 skeleton rounded-full shrink-0"></div>
+      </div>
+    </div>
+  </div>
 
-      <div class="max-w-4xl mx-auto px-4 py-8">
-        <!-- Link Section Skeleton -->
+  <!-- Vùng nội dung: một thẻ nổi duy nhất (thẻ thật là khung cuộn, ở đây chỉ cần
+       cắt phần thừa). Bên trong là một block: thanh tiêu đề + các ô nhập. -->
+  <div class="flex-1 min-h-0 px-2 sm:px-4 my-4">
+    <div
+      class="h-full overflow-hidden max-w-4xl mx-auto bg-white rounded-3xl shadow-[0_4px_18px_rgb(var(--scrim-rgb)/0.07)] px-4 sm:px-6 py-5 space-y-5"
+    >
+      <div class="h-9 w-52 skeleton rounded-full"></div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="h-14 skeleton rounded-2xl"></div>
+        <div class="h-14 skeleton rounded-2xl"></div>
+      </div>
+      <div class="h-14 skeleton rounded-2xl"></div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="h-14 skeleton rounded-2xl"></div>
+        <div class="h-14 skeleton rounded-2xl"></div>
+      </div>
+      <div class="h-24 skeleton rounded-2xl"></div>
+      <div class="h-40 w-full max-w-[220px] skeleton rounded-2xl"></div>
+    </div>
+  </div>
+
+  <!-- Navbar: cùng hình dạng #nav-card (thẻ nổi, lề trong, các ô khổ cố định từ
+       sm, hai nút hành động dồn phải bằng ml-auto). -->
+  <div class="shrink-0 px-2 sm:px-4 pb-2">
+    <div
+      class="max-w-4xl mx-auto flex items-stretch px-1.5 sm:px-2 bg-white border border-rose-100 rounded-3xl shadow-[0_-4px_18px_rgb(var(--scrim-rgb)/0.08)]"
+    >
+      <!-- Chuyển Chỉnh sửa/Xem trước -->
+      <div
+        class="flex-1 sm:flex-none sm:w-[148px] flex items-center justify-center px-1 sm:px-3"
+      >
+        <div class="h-8 w-full skeleton rounded-full"></div>
+      </div>
+      <!-- Ba tab: icon tròn + nhãn dưới -->
+      <div
+        class="flex-none sm:w-[88px] my-3 flex flex-col items-center justify-center gap-1 px-2 sm:px-3"
+      >
+        <div class="h-5 w-5 skeleton rounded-full"></div>
+        <div class="hidden sm:block h-2 w-10 skeleton rounded"></div>
+      </div>
+      <div
+        class="flex-none sm:w-[88px] my-3 flex flex-col items-center justify-center gap-1 px-2 sm:px-3"
+      >
+        <div class="h-5 w-5 skeleton rounded-full"></div>
+        <div class="hidden sm:block h-2 w-10 skeleton rounded"></div>
+      </div>
+      <div
+        class="hidden sm:flex flex-none sm:w-[88px] my-3 flex-col items-center justify-center gap-1 px-3"
+      >
+        <div class="h-5 w-5 skeleton rounded-full"></div>
+        <div class="h-2 w-10 skeleton rounded"></div>
+      </div>
+      <!-- Lưu nháp + Xuất bản -->
+      <div class="ml-auto flex items-stretch sm:pl-2">
         <div
-          class="bg-white rounded-3xl shadow-md border border-gray-100 p-6 mb-6"
+          class="flex-none sm:w-[120px] flex items-center justify-center px-1 sm:px-1.5 py-2"
         >
-          <div class="h-6 w-48 skeleton rounded-lg mb-4"></div>
-          <div class="space-y-4">
-            <div class="bg-white rounded-2xl p-4 border border-gray-100">
-              <div class="h-5 w-40 skeleton rounded mb-2"></div>
-              <div class="h-12 skeleton rounded-xl"></div>
-            </div>
-            <div class="bg-white rounded-2xl p-4 border border-gray-100">
-              <div class="h-5 w-40 skeleton rounded mb-2"></div>
-              <div class="h-12 skeleton rounded-xl"></div>
-            </div>
-          </div>
+          <div class="h-9 w-full min-w-[76px] skeleton rounded-full"></div>
         </div>
-
-        <!-- General Info Skeleton -->
         <div
-          class="bg-white rounded-3xl shadow-md border border-gray-100 overflow-hidden mb-6"
+          class="flex-none sm:w-[148px] flex items-center justify-center px-1 sm:px-1.5 py-2"
         >
-          <div class="bg-white px-6 py-4 border-b border-gray-100">
-            <div class="h-5 w-40 skeleton rounded"></div>
-          </div>
-          <div class="p-6 space-y-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <div class="h-14 skeleton rounded-2xl"></div>
-              <div class="h-14 skeleton rounded-2xl"></div>
-            </div>
-            <div class="h-24 skeleton rounded-2xl"></div>
-            <div class="aspect-[3/4] w-full max-w-xs skeleton rounded-lg"></div>
-            <div class="grid grid-cols-4 gap-3">
-              <div class="aspect-square skeleton rounded-lg"></div>
-              <div class="aspect-square skeleton rounded-lg"></div>
-              <div class="aspect-square skeleton rounded-lg"></div>
-              <div class="aspect-square skeleton rounded-lg"></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Ceremony Skeleton -->
-        <div
-          class="bg-white rounded-3xl shadow-md border border-gray-100 overflow-hidden mb-6"
-        >
-          <div class="bg-white px-6 py-4 border-b border-gray-100">
-            <div class="h-5 w-32 skeleton rounded"></div>
-          </div>
-          <div class="p-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div class="h-14 skeleton rounded-2xl"></div>
-              <div class="h-14 skeleton rounded-2xl"></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Two Column Skeleton -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <!-- Groom Skeleton -->
-          <div class="bg-white rounded-3xl shadow-md border border-gray-100">
-            <div class="bg-white px-6 py-4 border-b border-gray-100">
-              <div class="h-5 w-32 skeleton rounded"></div>
-            </div>
-            <div class="p-6 space-y-6">
-              <div class="grid grid-cols-2 gap-5">
-                <div class="h-14 skeleton rounded-2xl"></div>
-                <div class="h-14 skeleton rounded-2xl"></div>
-              </div>
-              <div class="h-14 skeleton rounded-2xl"></div>
-              <div class="h-52 w-[183px] skeleton rounded-lg"></div>
-              <div class="h-14 skeleton rounded-2xl"></div>
-              <div class="h-20 skeleton rounded-2xl"></div>
-              <div class="h-14 skeleton rounded-2xl"></div>
-              <div class="bg-white rounded-2xl p-5 border border-gray-100">
-                <div class="h-5 w-24 skeleton rounded mb-4"></div>
-                <div class="grid grid-cols-2 gap-4 mb-4">
-                  <div class="h-14 skeleton rounded-2xl"></div>
-                  <div class="h-14 skeleton rounded-2xl"></div>
-                </div>
-                <div class="h-14 skeleton rounded-2xl"></div>
-              </div>
-              <div class="bg-white rounded-2xl p-5 border border-gray-100">
-                <div class="h-5 w-32 skeleton rounded mb-4"></div>
-                <div class="h-14 skeleton rounded-2xl mb-4"></div>
-                <div class="grid grid-cols-2 gap-4 mb-4">
-                  <div class="h-14 skeleton rounded-2xl"></div>
-                  <div class="h-14 skeleton rounded-2xl"></div>
-                </div>
-                <div class="w-32 aspect-square skeleton rounded-lg"></div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Bride Skeleton -->
-          <div class="bg-white rounded-3xl shadow-md border border-gray-100">
-            <div class="bg-white px-6 py-4 border-b border-gray-100">
-              <div class="h-5 w-32 skeleton rounded"></div>
-            </div>
-            <div class="p-6 space-y-6">
-              <div class="grid grid-cols-2 gap-5">
-                <div class="h-14 skeleton rounded-2xl"></div>
-                <div class="h-14 skeleton rounded-2xl"></div>
-              </div>
-              <div class="h-14 skeleton rounded-2xl"></div>
-              <div class="h-52 w-[183px] skeleton rounded-lg"></div>
-              <div class="h-14 skeleton rounded-2xl"></div>
-              <div class="h-20 skeleton rounded-2xl"></div>
-              <div class="h-14 skeleton rounded-2xl"></div>
-              <div class="bg-white rounded-2xl p-5 border border-gray-100">
-                <div class="h-5 w-24 skeleton rounded mb-4"></div>
-                <div class="grid grid-cols-2 gap-4 mb-4">
-                  <div class="h-14 skeleton rounded-2xl"></div>
-                  <div class="h-14 skeleton rounded-2xl"></div>
-                </div>
-                <div class="h-14 skeleton rounded-2xl"></div>
-              </div>
-              <div class="bg-white rounded-2xl p-5 border border-gray-100">
-                <div class="h-5 w-32 skeleton rounded mb-4"></div>
-                <div class="h-14 skeleton rounded-2xl mb-4"></div>
-                <div class="grid grid-cols-2 gap-4 mb-4">
-                  <div class="h-14 skeleton rounded-2xl"></div>
-                  <div class="h-14 skeleton rounded-2xl"></div>
-                </div>
-                <div class="w-32 aspect-square skeleton rounded-lg"></div>
-              </div>
-            </div>
-          </div>
+          <div class="h-9 w-full min-w-[76px] skeleton rounded-full"></div>
         </div>
       </div>
     </div>
+  </div>
+</div>

@@ -175,7 +175,7 @@ function _setActiveTab(tabId) {
   if (!editBtn || !previewBtn) return;
 
   // Từ 820px trở lên nút này là một TAB như Cấu hình (xem #switch-edit trong
-  // styles/_setup.css) — chỗ đó đọc .is-active để gạch trên và tô màu.
+  // styles/_setup.css) — chỗ đó đọc .is-active để tô pill hồng.
   editBtn.classList.toggle("is-active", tabId === "edit");
   if (tabId === "config" || tabId === "guests" || tabId === "theme") {
     editBtn.classList.remove(
@@ -246,6 +246,10 @@ function _setDirty(dirty, tab) {
   const publish = document.getElementById("tab-publish");
 
   if (draft) {
+    // Gỡ bộ màu mặc định của <x-button variant="outline" tone="neutral"> — màu
+    // nút này do trạng thái "chưa lưu" quyết định, để cả hai bộ thì kết quả phụ
+    // thuộc thứ tự lớp trong build.css.
+    draft.classList.remove("border-gray-200", "text-gray-700");
     draft.classList.toggle("border-rose-400", dirty);
     draft.classList.toggle("text-rose-500", dirty);
     draft.classList.toggle("bg-rose-50", dirty);

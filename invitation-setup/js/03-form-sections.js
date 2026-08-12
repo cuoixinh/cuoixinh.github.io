@@ -27,7 +27,9 @@ function _updateVisUI(section, enabled) {
     knob.classList.remove("translate-x-1");
     knob.classList.add("translate-x-6");
   } else {
-    btn.classList.remove("bg-rose-400");
+    // Gỡ CẢ HAI sắc hồng: markup gốc của <x-switch> có thể dựng bằng lớp khác
+    // với lớp hàm này gắn vào — sót một lớp là công tắc tắt mà vẫn đỏ.
+    btn.classList.remove("bg-rose-400", "bg-rose-500");
     btn.classList.add("bg-gray-300");
     knob.classList.remove("translate-x-6");
     knob.classList.add("translate-x-1");
