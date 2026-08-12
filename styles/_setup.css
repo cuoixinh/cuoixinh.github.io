@@ -814,13 +814,14 @@ svg.lucide {
 }
 
 /* Chiều cao chừa lại đúng phần giữa. --cx-top-h do _cxSyncTopHeight() đo (đã
-   gồm lề trên của thanh), --nav-h do _syncNavHeight() đo (đã gồm lề dưới), 8px
-   là lề trên của chính vùng này (pt-2). */
+   gồm lề trên của thanh), --nav-h do _syncNavHeight() đo (đã gồm lề dưới), 32px
+   là `my-4` của chính thẻ này — đổi lề thì phải đổi cả hai chỗ, nếu không thẻ
+   thò xuống dưới navbar. */
 #setup-scroll {
   @apply overflow-y-auto overscroll-contain rounded-3xl border border-gray-100
          bg-white;
 
-  height: calc(100dvh - var(--cx-top-h, 96px) - var(--nav-h, 84px) - 8px);
+  height: calc(100dvh - var(--cx-top-h, 96px) - var(--nav-h, 84px) - 32px);
   box-shadow: 0 4px 18px rgb(var(--scrim-rgb) / 0.07);
 }
 
