@@ -12,48 +12,15 @@
         >
         <!-- Popover của nút "Tùy chọn". Đặt ở tầng #nav-card (không lồng trong ô
              nút) vì js/21-shell.js tự tính `left` theo tâm nút rồi kẹp trong bề
-             ngang thẻ. Menu ngữ cảnh: hàng danh sách icon + nhãn, KHÔNG dùng
-             <x-button> (pill dành cho nút hành động). -->
+             ngang thẻ. RỖNG trong HTML: các mục .cx-navitem do js/21-shell.js
+             chuyển vào đây khi navbar hết chỗ. -->
         <div
           id="nav-more-pop"
           class="cx-nav-pop hidden absolute bottom-full left-0 mb-3 w-60 flex flex-col gap-0.5 rounded-3xl border border-gray-100 bg-white p-1.5 shadow-xl"
           role="menu"
-        >
-          <button
-            type="button"
-            id="nav-ai-btn"
-            role="menuitem"
-            onclick="openAiModal()"
-            class="cx-nav-pop-item"
-          >
-            <span class="cx-nav-pop-ico">
-              <i data-lucide="sparkles" style="width: 15px; height: 15px"></i>
-            </span>
-            Tạo thiệp với AI
-          </button>
+        ></div>
 
-          <!-- Giao diện: hàng menu chứ không phải tab dưới → trạng thái đang mở
-               đánh dấu bằng .is-active (xem .cx-nav-pill). -->
-          <button
-            type="button"
-            id="tab-theme"
-            role="menuitem"
-            onclick="switchTab('theme')"
-            class="cx-nav-pop-item cx-nav-pill relative"
-          >
-            <span class="cx-nav-pop-ico">
-              <i data-lucide="palette" style="width: 15px; height: 15px"></i>
-            </span>
-            Giao diện
-            <span
-              class="tab-dirty-star hidden ml-auto text-rose-500 text-[14px] font-bold leading-none"
-              title="Có thay đổi chưa lưu"
-              >*</span
-            >
-          </button>
-        </div>
-
-        <div class="flex items-stretch">
+        <div id="nav-row" class="flex items-stretch">
           <!-- Edit/Preview Switch. pad+ (820px): chỉ còn "Chỉnh sửa" nên cụm này
                thôi đóng vai segmented switch, #switch-edit mặc bộ đồ của các tab
                khác (xem @media trong styles/_setup.css) → bỏ luôn lề và gạch của
@@ -88,33 +55,69 @@
               </button>
             </div>
           </div>
-          <button
-            type="button"
-            onclick="switchTab('config')"
-            id="tab-config"
-            class="relative flex-none px-3 sm:flex-1 sm:px-0 flex flex-col items-center justify-center gap-1 py-3 text-gray-400 border-t-2 border-transparent transition-colors"
-          >
-            <span class="tab-dirty-star hidden absolute top-1 right-1.5 sm:right-3 text-rose-500 text-[13px] font-bold leading-none" title="Có thay đổi chưa lưu">*</span>
-            <i data-lucide="settings" class="text-base"></i>
-            <span class="hidden sm:inline text-[11px] font-medium"
-              >Cấu hình</span
+
+          <!-- Chỗ đứng của các mục tràn được. Mục nào còn chỗ thì ở lại đây, hết
+               chỗ mới lùi vào #nav-more-pop — thứ tự ưu tiên khai ở CX_NAV_ITEMS
+               (js/21-shell.js), riêng "Cấu hình" ghim cứng, không bao giờ lùi.
+               Cùng một phần tử dùng cho cả hai chỗ: hình dạng do CHA quyết định
+               (xem .cx-navitem trong styles/_setup.css). -->
+          <div id="nav-slots" class="flex items-stretch">
+            <button
+              type="button"
+              onclick="switchTab('config')"
+              id="tab-config"
+              class="cx-navitem"
             >
-          </button>
-          <button
-            type="button"
-            onclick="openGuestsPage(event)"
-            id="tab-guests"
-            class="flex-none px-3 sm:flex-1 sm:px-0 flex flex-col items-center justify-center gap-1 py-3 text-gray-400 border-t-2 border-transparent transition-colors"
-          >
-            <i data-lucide="users" class="text-base"></i>
-            <span class="hidden sm:inline text-[11px] font-medium"
-              >Khách mời</span
+              <span class="cx-navitem-ico">
+                <i data-lucide="settings"></i>
+              </span>
+              <span class="cx-navitem-label">Cấu hình</span>
+              <span class="tab-dirty-star hidden text-rose-500 text-[13px] font-bold leading-none" title="Có thay đổi chưa lưu">*</span>
+            </button>
+
+            <button
+              type="button"
+              onclick="openGuestsPage(event)"
+              id="tab-guests"
+              class="cx-navitem"
             >
-          </button>
-          <!-- "Tùy chọn" — mở #nav-more-pop ở trên (js/21-shell.js). Dấu * chưa
-               lưu của tab Giao diện dội lên chính nút này, vì mục kia nằm trong
-               popover nên lúc đóng không ai thấy. -->
-          <div class="flex-none lg:flex-1 flex">
+              <span class="cx-navitem-ico">
+                <i data-lucide="users"></i>
+              </span>
+              <span class="cx-navitem-label">Khách mời</span>
+            </button>
+
+            <button
+              type="button"
+              id="tab-theme"
+              onclick="switchTab('theme')"
+              class="cx-navitem"
+            >
+              <span class="cx-navitem-ico">
+                <i data-lucide="palette"></i>
+              </span>
+              <span class="cx-navitem-label">Giao diện</span>
+              <span class="tab-dirty-star hidden text-rose-500 text-[13px] font-bold leading-none" title="Có thay đổi chưa lưu">*</span>
+            </button>
+
+            <button
+              type="button"
+              id="nav-ai-btn"
+              onclick="openAiModal()"
+              class="cx-navitem"
+            >
+              <span class="cx-navitem-ico">
+                <i data-lucide="sparkles"></i>
+              </span>
+              <span class="cx-navitem-label">Trợ lý AI</span>
+            </button>
+          </div>
+
+          <!-- "Tùy chọn" — mở #nav-more-pop ở trên. Vỏ ngoài mới là chỗ gắn
+               `hidden` (popover rỗng thì ẩn cả nút): cờ đó phải thắng luật hình
+               dạng của .cx-navitem nên không đặt thẳng lên nút. Dấu * chưa lưu
+               của các mục đang khuất trong popover dội lên chính nút này. -->
+          <div id="nav-more-wrap" class="hidden flex items-stretch">
             <button
               type="button"
               onclick="cxNavMore()"
@@ -122,13 +125,13 @@
               aria-haspopup="true"
               aria-expanded="false"
               aria-controls="nav-more-pop"
-              class="relative flex-none px-3 lg:w-full lg:px-0 flex flex-col items-center justify-center gap-1 py-3 text-gray-400 border-t-2 border-transparent transition-colors"
+              class="cx-navitem"
             >
-              <span class="tab-dirty-star hidden absolute top-1 right-1.5 lg:right-3 text-rose-500 text-[13px] font-bold leading-none" title="Có thay đổi chưa lưu">*</span>
-              <i data-lucide="more-horizontal" class="text-base"></i>
-              <span class="hidden sm:inline text-[11px] font-medium"
-                >Tùy chọn</span
-              >
+              <span class="cx-navitem-ico">
+                <i data-lucide="more-horizontal"></i>
+              </span>
+              <span class="cx-navitem-label">Tùy chọn</span>
+              <span class="tab-dirty-star hidden text-rose-500 text-[13px] font-bold leading-none" title="Có thay đổi chưa lưu">*</span>
             </button>
           </div>
 
@@ -139,13 +142,13 @@
               type="button"
               onclick="saveDraft()"
               id="tab-draft"
-              class="w-full flex items-center justify-center gap-1.5 h-9 rounded-full border border-gray-300 text-gray-500 bg-white text-[11px] font-medium transition-all active:opacity-75"
+              class="w-full flex items-center justify-center gap-1.5 h-9 rounded-full border border-gray-300 text-gray-500 bg-white text-[11px] font-medium whitespace-nowrap transition-all active:opacity-75"
             >
               <i data-lucide="file-text" style="width: 13px; height: 13px"></i>
               <span>Lưu nháp</span>
             </button>
           </div>
-          <div class="flex-1 flex items-center justify-center px-1.5 py-2">
+          <div id="tab-publish-wrap" class="flex-1 flex items-center justify-center px-1.5 py-2">
             <button
               type="button"
               onclick="publishWedding()"

@@ -91,13 +91,20 @@ Không gọi thẳng UI → DAL khi có logic nghiệp vụ.
 `STEP_PARTIALS` + thẻ mount, và `CX_STEPS` (`id` trùng `data-step`). `#step-nav` là cặp nút
 NỔI (`fixed`) ngoài `<form>` — đưa nó vào luồng là ăn mất một dòng ở mọi bước.
 
-**Vỏ trang** (`js/21-shell.js`): hàng logo/breadcrumb tự thu khi cuộn, phải nằm chung khối
-sticky `#setup-topbar` với thanh bước và thu bằng `grid-template-rows: 1fr→0fr`. Mỗi lần
-thu/mở phải khoá một nhịp, không thì scroll bị kẹp và lật qua lại vô tận. Thanh trên và
-navbar dưới đều là **thẻ nổi rộng bằng cột form** (`#setup-topcard` / `#nav-card`, bo tròn
-hai góc phía trong) — vỏ ngoài chỉ trong suốt, đừng trả nền về cho nó. Navbar có nút
-"Tùy chọn" (`#nav-more`) mở popover chứa Trợ lý AI + Giao diện; popover neo và kẹp theo
-`#nav-card` chứ không theo bề ngang màn hình.
+**Vỏ trang** (`js/21-shell.js`): hàng logo/breadcrumb nằm chung khối sticky `#setup-topbar`
+với thanh bước và luôn hiển thị. Thanh trên và navbar dưới đều là **thẻ nổi rộng bằng cột
+form** (`#setup-topcard` / `#nav-card`, bo tròn hai góc phía trong) — vỏ ngoài chỉ trong
+suốt, đừng trả nền về cho nó.
+
+Navbar dưới **fill động** (`cxNavReflow`): các mục khai ở `CX_NAV_ITEMS` đứng thẳng ở
+`#nav-slots` khi còn chỗ, hết chỗ mới lùi dần vào popover `#nav-more-pop` (mục cuối lùi
+trước); popover rỗng thì ẩn luôn nút "Tùy chọn" (`#nav-more-wrap`). Cấu hình `pin: true` nên
+không bao giờ lùi. Cùng MỘT phần tử dùng cho hai chỗ, **hình dạng do cha quyết định** (xem
+`.cx-navitem`) — đừng đổi class theo vị trí ở JS. Phép đo dựa vào bề ngang tối thiểu của
+hàng nav, nên nhãn phải `whitespace-nowrap` và cụm không tràn được phải có `min-width`.
+Mục khuất trong popover thì trạng thái đang mở + dấu * dội lên `#nav-more`
+(`_syncNavItemState` ở `js/04-nav-tabs.js`). Popover neo và kẹp theo `#nav-card` chứ không
+theo bề ngang màn hình.
 
 **Xem trực tiếp** (`js/22-live-preview.js`): từ **820px** trở lên (iPad dựng đứng cũng có),
 `#live-dock` là **dải cố định sát mép phải, NGOÀI vùng ứng dụng** — `<body>` chừa

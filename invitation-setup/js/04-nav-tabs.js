@@ -133,50 +133,41 @@ function _refreshPreviewQR() {
 
 // ============= BOTTOM NAV TABS =============
 
+// Mục nav (.cx-navitem) → tab nó đại diện. Chỗ đứng của chúng do cxNavReflow()
+// (js/21-shell.js) quyết định: đang ở navbar hay đã lùi vào popover "Tùy chọn".
+const _NAV_ITEM_TABS = {
+  "tab-config": "config",
+  "tab-guests": "guests",
+  "tab-theme": "theme",
+};
+
+let _activeTab = "edit";
+
+function _inNavPop(el) {
+  return !!el?.closest("#nav-more-pop");
+}
+
+/**
+ * Vẽ lại trạng thái đang mở + dấu * cho các mục nav. Mục nào khuất trong popover
+ * thì dội trạng thái lên nút "Tùy chọn" — popover đóng lại là không ai thấy.
+ * js/21-shell.js gọi lại sau mỗi lần xếp chỗ.
+ */
+function _syncNavItemState() {
+  let popActive = false;
+  Object.entries(_NAV_ITEM_TABS).forEach(([id, tab]) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const on = tab === _activeTab;
+    el.classList.toggle("is-active", on);
+    if (on && _inNavPop(el)) popActive = true;
+  });
+  document.getElementById("nav-more")?.classList.toggle("is-active", popActive);
+  _updateDirtyMarks();
+}
+
 function _setActiveTab(tabId) {
-  // Chỉ config có active state kiểu tab; draft/publish dùng dirty indicator riêng
-  const configBtn = document.getElementById("tab-config");
-  if (configBtn) {
-    if (tabId === "config") {
-      configBtn.classList.add("text-color-secondary", "border-color-secondary");
-      configBtn.classList.remove("text-gray-400", "border-transparent");
-    } else {
-      configBtn.classList.remove(
-        "text-color-secondary",
-        "border-color-secondary",
-      );
-      configBtn.classList.add("text-gray-400", "border-transparent");
-    }
-  }
-
-  // Giao diện là pill trong popover "Tùy chọn" (không có gạch chân như tab) → đánh
-  // dấu đang mở bằng .is-active, xem .cx-nav-pill trong styles/_setup.css. Nút
-  // "Tùy chọn" sáng theo, vì popover đóng thì không ai thấy pill bên trong.
-  document
-    .getElementById("tab-theme")
-    ?.classList.toggle("is-active", tabId === "theme");
-
-  const moreBtn = document.getElementById("nav-more");
-  if (moreBtn) {
-    moreBtn.classList.toggle("text-color-secondary", tabId === "theme");
-    moreBtn.classList.toggle("border-color-secondary", tabId === "theme");
-    moreBtn.classList.toggle("text-gray-400", tabId !== "theme");
-    moreBtn.classList.toggle("border-transparent", tabId !== "theme");
-  }
-
-  const guestsBtn = document.getElementById("tab-guests");
-  if (guestsBtn) {
-    if (tabId === "guests") {
-      guestsBtn.classList.add("text-color-secondary", "border-color-secondary");
-      guestsBtn.classList.remove("text-gray-400", "border-transparent");
-    } else {
-      guestsBtn.classList.remove(
-        "text-color-secondary",
-        "border-color-secondary",
-      );
-      guestsBtn.classList.add("text-gray-400", "border-transparent");
-    }
-  }
+  _activeTab = tabId;
+  _syncNavItemState();
 
   // Segmented switch: ẩn focus khi ở tab config/khách mời
   const editBtn = document.getElementById("switch-edit");
@@ -273,20 +264,22 @@ function _setDirty(dirty, tab) {
 // Dấu * trên các tab (giống Notepad) — CHỈ hiển thị với thiệp ĐÃ xuất bản mà đang có
 // thay đổi chưa lưu. Thiệp chưa xuất bản đã có autosave nên không cần.
 function _updateDirtyMarks() {
-  // id nút → tab nó đại diện. #nav-more dội lại dấu của Giao diện vì pill kia
-  // nằm trong popover, đóng lại là khuất.
   const map = {
     "switch-edit": "edit",
     "tab-config": "config",
     "tab-theme": "theme",
-    "nav-more": "theme",
   };
+  // Mục đang khuất trong popover thì dấu * của nó dội lên nút "Tùy chọn".
+  let popDirty = false;
   Object.entries(map).forEach(([id, tab]) => {
-    const star = document.querySelector(`#${id} .tab-dirty-star`);
-    if (star) {
-      star.classList.toggle("hidden", !(IS_PUBLISHED && _dirtyTabs.has(tab)));
-    }
+    const el = document.getElementById(id);
+    const on = IS_PUBLISHED && _dirtyTabs.has(tab);
+    el?.querySelector(".tab-dirty-star")?.classList.toggle("hidden", !on);
+    if (on && _inNavPop(el)) popDirty = true;
   });
+  document
+    .querySelector("#nav-more .tab-dirty-star")
+    ?.classList.toggle("hidden", !popDirty);
 }
 
 function togglePreview() {
