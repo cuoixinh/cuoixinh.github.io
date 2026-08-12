@@ -274,8 +274,15 @@ function _cxSyncBarFade() {
 
 function _cxRenderPanels() {
   const cur = _cxStepAt(_cxStepIndex);
+  // Block HIỆN đầu tiên mang thêm .is-first (nó nằm sát mép trên thẻ nội dung
+  // nên không kẻ vạch trên). Đánh dấu ở đây chứ không viết `:not(.hidden)`
+  // trong CSS: cssnano gộp các `:not()` thành selector luôn khớp.
+  let seen = false;
   document.querySelectorAll("#wedding-form [data-step]").forEach((el) => {
-    el.classList.toggle("hidden", el.dataset.step !== cur.id);
+    const on = el.dataset.step === cur.id;
+    el.classList.toggle("hidden", !on);
+    el.classList.toggle("is-first", on && !seen);
+    if (on) seen = true;
   });
 
   // Group đang tắt: vẫn vào được để bật lại, nhưng phần nhập làm mờ và khoá.

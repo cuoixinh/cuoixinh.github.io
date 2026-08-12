@@ -66,6 +66,9 @@ Không gọi thẳng UI → DAL khi có logic nghiệp vụ.
 - **Không ghép tên class từ chuỗi** (`` `bg-${c}` ``) — purge quét văn bản thô.
 - CSS thủ công để ở `styles/_*.css` **top-level, không bọc `@layer`** (bị purge). `@import`
   chỉ chạy khi nằm đầu file. `@keyframes` đặt tên có tiền tố `cx-`.
+- **Tránh `:not()` và `@apply hidden`** trong CSS thủ công: cssnano gộp/tráo đối số `:not()`
+  thành rule rác LUÔN KHỚP (bản build khác hẳn bản nguồn, soi `styles/build.css` mới thấy).
+  Cần loại trừ thì cho JS đặt một cờ class rồi nhắm theo cờ đó.
 - Giá trị tuỳ chỉnh: dùng **`px`**, bội số của **4**.
 
 ### Database (Supabase)
