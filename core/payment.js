@@ -928,7 +928,9 @@
 
       const modal = document.getElementById("paymentModal");
       if (modal) modal.style.display = "none";
-      document.body.style.overflow = "auto";
+      // Trả về rỗng để CSS của trang tự quyết — ép "auto" là mở khoá cuộn cho
+      // cả những trang cố tình không cho cuộn (app shell của invitation-setup).
+      document.body.style.overflow = "";
     },
 
     async process() {
