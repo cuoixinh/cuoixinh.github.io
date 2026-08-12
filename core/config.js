@@ -10,7 +10,34 @@ const USE_CACHE = false;
 // Bản thân file này KHÔNG mang `?v=` (nó là mỏ neo, phải đọc được version từ
 // nó trước đã) → trên Cloudflare phải có Cache Rule bypass `/core/config.js`,
 // nếu không đổi số ở đây cũng vô nghĩa.
-const CX_VERSION = "2026.08.12-01";
+const CX_VERSION = "2026.08.12-03";
+
+// Thẻ <link> CSS viết cứng trong HTML không tự mang `?v=` → dễ rơi vào cảnh
+// HTML/partial đã là bản mới mà CSS vẫn là bản cũ (trang không vỡ, chỉ sai bố
+// cục nên rất khó đoán). Nạp lại bản CÓ DẤU cho mọi stylesheet cùng origin,
+// chạy ngay khi file này chạy vì <head> lúc đó chắc chắn đã parse xong.
+// Chỉ cứu được CSS: <script> viết cứng đã chạy trước rồi, không đổi lại được.
+(function _cxStampStyles() {
+  document.querySelectorAll('link[rel~="stylesheet"][href]').forEach((link) => {
+    let url;
+    try {
+      url = new URL(link.getAttribute("href"), document.baseURI);
+    } catch {
+      return;
+    }
+    if (url.origin !== location.origin || url.searchParams.has("v")) return;
+    url.searchParams.set("v", CX_VERSION);
+
+    const next = link.cloneNode(false);
+    next.href = url.href;
+    // Chèn ngay sau thẻ cũ để giữ nguyên thứ tự đè nhau giữa các stylesheet, và
+    // chỉ gỡ thẻ cũ SAU khi bản có dấu tải xong — đổi thẳng `href` thì có một
+    // nhịp trang không còn CSS nào. Tải hỏng thì giữ bản cũ, đừng bỏ trắng.
+    next.addEventListener("load", () => link.remove(), { once: true });
+    next.addEventListener("error", () => next.remove(), { once: true });
+    link.after(next);
+  });
+})();
 
 const CONFIG = {
   version: CX_VERSION,

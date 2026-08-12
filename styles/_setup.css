@@ -878,8 +878,8 @@ svg.lucide {
    phép đo chỗ trống của js/21-shell.js dựa vào bề ngang tối thiểu này. */
 #nav-slots > .cx-navitem,
 #nav-more-wrap > .cx-navitem {
-  @apply flex flex-none flex-col items-center justify-center gap-1 px-3 py-3
-         text-[11px] font-medium text-gray-400;
+  @apply flex flex-none flex-col items-center justify-center gap-1 px-2 py-3
+         text-[11px] font-medium text-gray-400 sm:px-3;
 
   border-top: 2px solid transparent;
 }
@@ -949,7 +949,7 @@ svg.lucide {
 /* Cụm KHÔNG tràn được (switch + hai nút hành động): bề ngang tối thiểu để phép
    đo của js/21-shell.js không bóp bẹp chúng chỉ để nhét thêm một mục nav. */
 #tour-view-switch {
-  min-width: 108px;
+  min-width: 72px; /* điện thoại chỉ còn 2 icon, hẹp nữa mới đủ chỗ cho 2 nút kia */
 }
 
 @media (min-width: 640px) {

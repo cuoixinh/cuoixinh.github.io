@@ -129,7 +129,9 @@ partial/script chúng nạp.
 - `config.js` nạp ở **bước mồi** đầu `boot()`, không mang `?v=`; đừng thêm vào `SCRIPTS`
   (thành nạp hai lần). Cloudflare **phải** bypass cache `/core/config.js`.
 - `CONFIG` khai bằng `const` → binding lexical toàn cục, **không phải `window.CONFIG`**.
-- Thẻ `<script>`/`<link>` viết cứng trong HTML KHÔNG được đóng dấu — sửa xong phải Ctrl+F5.
+- `<link rel=stylesheet>` cùng origin được `config.js` nạp lại kèm `?v=` (bản có dấu tải
+  xong mới gỡ thẻ cũ) → đổi `CX_VERSION` là CSS cũng đi theo. Riêng `<script>` viết cứng
+  trong HTML thì không cứu được (đã chạy trước rồi) — sửa xong phải Ctrl+F5.
 
 ### Auth
 

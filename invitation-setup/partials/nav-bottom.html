@@ -26,7 +26,7 @@
                khác (xem @media trong styles/_setup.css) → bỏ luôn lề và gạch của
                vỏ. -->
           <div
-            class="flex-1 sm:flex-[2] pad:flex-1 flex items-center justify-center px-2 sm:px-3 pad:px-0 border-t-2 border-transparent pad:border-t-0"
+            class="flex-1 sm:flex-[2] pad:flex-1 flex items-center justify-center px-1 sm:px-3 pad:px-0 border-t-2 border-transparent pad:border-t-0"
           >
             <div id="tour-view-switch" class="flex w-full bg-gray-100 rounded-full p-0.5 gap-0.5">
               <button
@@ -137,23 +137,23 @@
 
           <!-- Cặp nút hành động tách khỏi dãy tab bằng một khe rõ ràng: sát nhau
                thì "Tùy chọn" trông như nằm trong cùng cụm với "Lưu nháp". -->
-          <div id="tab-draft-wrap" class="flex-1 flex items-center justify-center px-1.5 py-2 lg:ml-4">
+          <div id="tab-draft-wrap" class="flex-1 flex items-center justify-center px-1 sm:px-1.5 py-2 lg:ml-4">
             <button
               type="button"
               onclick="saveDraft()"
               id="tab-draft"
-              class="w-full flex items-center justify-center gap-1.5 h-9 rounded-full border border-gray-300 text-gray-500 bg-white text-[11px] font-medium whitespace-nowrap transition-all active:opacity-75"
+              class="w-full flex items-center justify-center gap-1.5 h-9 px-3 sm:px-4 rounded-full border border-gray-300 text-gray-500 bg-white text-[11px] font-medium whitespace-nowrap transition-all active:opacity-75"
             >
               <i data-lucide="file-text" style="width: 13px; height: 13px"></i>
               <span>Lưu nháp</span>
             </button>
           </div>
-          <div id="tab-publish-wrap" class="flex-1 flex items-center justify-center px-1.5 py-2">
+          <div id="tab-publish-wrap" class="flex-1 flex items-center justify-center px-1 sm:px-1.5 py-2">
             <button
               type="button"
               onclick="publishWedding()"
               id="tab-publish"
-              class="w-full flex items-center justify-center gap-1 h-9 px-1 rounded-full bg-rose-500 text-white text-[11px] font-medium whitespace-nowrap transition-all active:opacity-75"
+              class="w-full flex items-center justify-center gap-1.5 h-9 px-3 sm:px-4 rounded-full bg-rose-500 text-white text-[11px] font-medium whitespace-nowrap transition-all active:opacity-75"
             >
               <i data-lucide="send" style="width: 13px; height: 13px" class="shrink-0"></i>
               <span>Xuất bản</span>
