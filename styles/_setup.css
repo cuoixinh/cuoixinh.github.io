@@ -818,11 +818,30 @@ svg.lucide {
    là `my-4` của chính thẻ này — đổi lề thì phải đổi cả hai chỗ, nếu không thẻ
    thò xuống dưới navbar. */
 #setup-scroll {
-  @apply overflow-y-auto overscroll-contain rounded-3xl border border-gray-100
-         bg-white;
+  @apply overflow-y-auto overscroll-contain rounded-3xl bg-white;
 
   height: calc(100dvh - var(--cx-top-h, 96px) - var(--nav-h, 84px) - 32px);
   box-shadow: 0 4px 18px rgb(var(--scrim-rgb) / 0.07);
+}
+
+/* ── MỘT BLOCK NỘI DUNG TRONG #setup-scroll ────────────────────────────────
+   Thẻ nội dung ở giữa ĐÃ là một thẻ nổi rồi, nên block bên trong để PHẲNG (không
+   viền, không nền riêng) — thẻ lồng thẻ nhìn rối. Nhiều block hiện cùng lúc thì
+   ngăn nhau bằng một vạch mảnh: chỉ block nào có block HIỆN đứng trước mới vẽ
+   vạch, nên block đầu tiên không bao giờ dính vạch thừa (bước bị ẩn mang class
+   .hidden, không phải thuộc tính [hidden], nên `divide-y` của Tailwind đếm nhầm
+   — phải tự viết luật này). */
+.cx-block {
+  @apply pb-2;
+}
+
+#wedding-form > .cx-block:not(.hidden) ~ .cx-block:not(.hidden) {
+  @apply mt-2 border-t border-gray-100 pt-2;
+}
+
+/* Tiêu đề block: icon + tên mục, có vạch mảnh ngăn với phần nhập bên dưới. */
+.cx-block-head {
+  @apply border-b border-gray-100 px-5 py-4 sm:px-6;
 }
 
 /* Thanh bước cuộn ngang: vệt trắng mờ hai mép cho biết còn chip ngoài tầm nhìn.
