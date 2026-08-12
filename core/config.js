@@ -10,7 +10,7 @@ const USE_CACHE = false;
 // Bản thân file này KHÔNG mang `?v=` (nó là mỏ neo, phải đọc được version từ
 // nó trước đã) → trên Cloudflare phải có Cache Rule bypass `/core/config.js`,
 // nếu không đổi số ở đây cũng vô nghĩa.
-const CX_VERSION = "2026.08.12-09";
+const CX_VERSION = "2026.08.12-10";
 
 // Thẻ <link> CSS viết cứng trong HTML không tự mang `?v=` → dễ rơi vào cảnh
 // HTML/partial đã là bản mới mà CSS vẫn là bản cũ (trang không vỡ, chỉ sai bố
@@ -45,7 +45,8 @@ const CONFIG = {
   // Supabase
   supabase: {
     url: "https://lcobawmkywtxhpezndsh.supabase.co",
-    anonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxjb2Jhd21reXd0eGhwZXpuZHNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4OTA5ODMsImV4cCI6MjA5MTQ2Njk4M30.4BNmxnfixXdHOq0ovtaF_4wQZ9sap3IWbJNJK9H4Mg4",
+    anonKey:
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxjb2Jhd21reXd0eGhwZXpuZHNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4OTA5ODMsImV4cCI6MjA5MTQ2Njk4M30.4BNmxnfixXdHOq0ovtaF_4wQZ9sap3IWbJNJK9H4Mg4",
     edgeUrl:
       "https://lcobawmkywtxhpezndsh.supabase.co/functions/v1/wedding-admin",
     paymentUrl:
@@ -60,9 +61,15 @@ const CONFIG = {
 
   // Cloudflare Workers (null khi USE_CACHE = false)
   cloudflare: {
-    imageProxy:     USE_CACHE ? "https://wedding-image-proxy.cuoixinh-api.workers.dev" : null,
-    templatesCache: USE_CACHE ? "https://templates-cache.cuoixinh-api.workers.dev" : null,
-    cacheProxy:     USE_CACHE ? "https://wedding-cache-proxy.cuoixinh-api.workers.dev" : null,
+    imageProxy: USE_CACHE
+      ? "https://wedding-image-proxy.cuoixinh-api.workers.dev"
+      : null,
+    templatesCache: USE_CACHE
+      ? "https://templates-cache.cuoixinh-api.workers.dev"
+      : null,
+    cacheProxy: USE_CACHE
+      ? "https://wedding-cache-proxy.cuoixinh-api.workers.dev"
+      : null,
     purgeSecret: "9JMoLdvCWhD2W0CGJpsiq+7n/xESNgq6m91bm70cDkg=",
   },
 
