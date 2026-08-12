@@ -1,51 +1,92 @@
-// Vỏ trang thiết lập: hàng logo/breadcrumb tự thu khi cuộn xuống, và popover
-// "Tùy chọn" ở navbar dưới (Trợ lý AI + Giao diện).
+// Vỏ trang thiết lập: popover "Tùy chọn" ở navbar dưới và cơ chế FILL ĐỘNG —
+// mục nào còn chỗ thì đứng thẳng ở navbar, hết chỗ mới lùi vào popover.
 
-const _CX_TUCK = {
-  MIN_Y: 72, // dưới mức này luôn hiện — đầu trang không việc gì phải giấu
-  DELTA: 6, // rung vài px do đà cuộn thì bỏ qua, không đảo trạng thái
-  ROOM: 64, // phải còn ngần này chỗ cuộn phía dưới mới cho thu (xem _cxSetTucked)
-  SETTLE: 320, // > transition của .cx-topbar-row
-};
+// ===== FILL ĐỘNG CHO NAVBAR =====
 
-let _cxLastY = 0;
-let _cxTucked = false;
-let _cxTuckLock = false;
+// Thứ tự ưu tiên: đứng trước thì trụ lại navbar lâu hơn, mục cuối lùi trước.
+// `pin` = ghim cứng ở navbar, không bao giờ vào popover.
+const CX_NAV_ITEMS = [
+  { id: "tab-config", pin: true },
+  { id: "tab-guests" },
+  { id: "tab-theme" },
+  { id: "nav-ai-btn" },
+];
 
-function _cxSetTucked(on) {
-  if (on === _cxTucked) return;
-  _cxTucked = on;
-  document.getElementById("setup-header")?.classList.toggle("is-tucked", on);
-  // Thu/mở làm tài liệu ngắn/dài đi 48px → trình duyệt tự kẹp lại scrollY, và cú
-  // kẹp đó lại bắn một sự kiện scroll NGƯỢC CHIỀU, đủ để lật ngược trạng thái →
-  // lặp vô tận. Khoá một nhịp rồi lấy lại mốc sau khi layout đã ổn định.
-  _cxTuckLock = true;
-  setTimeout(() => {
-    _cxLastY = window.scrollY;
-    _cxTuckLock = false;
-  }, _CX_TUCK.SETTLE);
+/**
+ * Hàng nav còn vừa không. Các cụm trong hàng đều KHÔNG co dưới bề ngang nội dung
+ * (nhãn `whitespace-nowrap` + min-width ở styles/_setup.css) nên lúc chật, tổng
+ * bề ngang con vượt hẳn ra ngoài — dùng đúng dấu hiệu đó, không đo scrollWidth.
+ */
+function _cxNavFits(row) {
+  let sum = 0;
+  for (const el of row.children) sum += el.getBoundingClientRect().width;
+  return sum <= row.clientWidth + 1;
 }
 
-function _cxOnScroll() {
-  if (_cxTuckLock) return;
-  const y = window.scrollY;
-  const dy = y - _cxLastY;
-  if (Math.abs(dy) < _CX_TUCK.DELTA) return;
-  _cxLastY = y;
-  if (dy < 0 || y <= _CX_TUCK.MIN_Y) return void _cxSetTucked(false);
-  // Sát đáy trang thì thôi: thu lại là tài liệu ngắn hơn phần đã cuộn, trình
-  // duyệt kéo ngược về và người dùng thấy trang tự giật.
-  const room = document.documentElement.scrollHeight - window.innerHeight - y;
-  _cxSetTucked(room > _CX_TUCK.ROOM);
+function _cxNavToPop(el, pop) {
+  el.setAttribute("role", "menuitem");
+  pop.prepend(el); // bốc từ mục cuối nên chèn đầu mới giữ đúng thứ tự ưu tiên
 }
 
-function _cxInitTuck() {
-  if (!document.getElementById("setup-header")) return;
-  _cxLastY = window.scrollY;
-  window.addEventListener("scroll", _cxOnScroll, { passive: true });
+/**
+ * Xếp lại chỗ đứng cho các mục nav theo bề ngang hiện có. Tính lại TỪ ĐẦU (dồn
+ * hết về navbar rồi mới bốc dần vào popover) nên gọi bao nhiêu lần cũng ra cùng
+ * kết quả. Popover rỗng thì ẩn luôn nút "Tùy chọn".
+ */
+function cxNavReflow() {
+  const row = document.getElementById("nav-row");
+  const slots = document.getElementById("nav-slots");
+  const pop = document.getElementById("nav-more-pop");
+  const wrap = document.getElementById("nav-more-wrap");
+  if (!row || !slots || !pop || !wrap) return;
+
+  cxNavMore(false); // đang mở mà rút mục ra thì popover hoá rỗng giữa chừng
+
+  CX_NAV_ITEMS.forEach(({ id }) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.removeAttribute("role");
+    slots.appendChild(el);
+  });
+  wrap.classList.add("hidden");
+
+  const movable = CX_NAV_ITEMS.filter((it) => !it.pin);
+  for (let i = movable.length - 1; i >= 0 && !_cxNavFits(row); i--) {
+    const el = document.getElementById(movable[i].id);
+    if (!el) continue;
+    _cxNavToPop(el, pop);
+    // Hiện nút ngay: chính nó cũng chiếm chỗ, vòng sau phải đo cả phần đó.
+    wrap.classList.remove("hidden");
+  }
+
+  // Trạng thái đang mở / dấu * chưa lưu dội lên nút "Tùy chọn" khi mục bị khuất.
+  if (typeof _syncNavItemState === "function") _syncNavItemState();
+}
+window.cxNavReflow = cxNavReflow;
+
+function _cxInitReflow() {
+  const card = document.getElementById("nav-card");
+  if (!card) return;
+  cxNavReflow();
+
+  // Font muộn làm nhãn rộng ra → đo lại, nếu không navbar chật mà tưởng còn chỗ.
+  document.fonts?.ready.then(cxNavReflow);
+
+  // Bề ngang thẻ đổi cả khi bật/tắt dải xem trực tiếp chứ không riêng lúc xoay
+  // màn → theo dõi chính thẻ. Chỉ chạy khi bề ngang thật sự khác: reflow không
+  // đụng tới kích thước thẻ nên không có vòng lặp, nhưng chốt cho chắc.
+  let lastW = -1;
+  const onResize = () => {
+    const w = Math.round(card.getBoundingClientRect().width);
+    if (w === lastW) return;
+    lastW = w;
+    cxNavReflow();
+  };
+  if (window.ResizeObserver) new ResizeObserver(onResize).observe(card);
+  else window.addEventListener("resize", onResize, { passive: true });
 }
 
-// ===== POPOVER "THÊM" =====
+// ===== POPOVER "TÙY CHỌN" =====
 
 // Chừa mép màn hình khi thẻ phải dịch vào trong.
 const _CX_POP_EDGE = 8;
@@ -123,8 +164,8 @@ function _cxInitMore() {
 }
 
 function _cxInitShell() {
-  _cxInitTuck();
   _cxInitMore();
+  _cxInitReflow();
 }
 
 if (window.__cxOnReady) window.__cxOnReady(_cxInitShell);

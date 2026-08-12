@@ -798,28 +798,7 @@ svg.lucide {
   transition: transform 0.2s ease;
 }
 
-/* ===== Vỏ trang: header tự thu + ngăn kéo navbar (js/21-shell.js) ===== */
-
-/* Hàng logo/breadcrumb trong #setup-topbar. Cuộn xuống thì THU CHIỀU CAO về 0
-   (không phải translate) để thanh bước bên dưới trượt lên sát mép trên — dùng
-   grid-template-rows vì `height: auto` không chạy transition được. */
-.cx-topbar-row {
-  display: grid;
-  grid-template-rows: 1fr;
-  overflow: hidden;
-  transition:
-    grid-template-rows 0.26s cubic-bezier(0.4, 0, 0.2, 1),
-    opacity 0.2s ease;
-}
-
-.cx-topbar-row > * {
-  min-height: 0; /* bắt buộc: không có thì hàng con không chịu co lại */
-}
-
-.cx-topbar-row.is-tucked {
-  grid-template-rows: 0fr;
-  opacity: 0;
-}
+/* ===== Vỏ trang: thanh bước + ngăn kéo navbar (js/21-shell.js) ===== */
 
 /* Thanh bước cuộn ngang: vệt trắng mờ hai mép cho biết còn chip ngoài tầm nhìn.
    Vệt tắt đi khi đã chạm đầu/cuối — cờ .at-start/.at-end do js/20-steps.js đặt. */
@@ -880,31 +859,111 @@ svg.lucide {
   background: rgb(var(--white-rgb));
 }
 
-/* Một mục trong popover: ô icon bo góc + nhãn, cả hàng sáng lên khi rê chuột. */
-.cx-nav-pop-item {
-  @apply flex w-full items-center gap-2.5 rounded-2xl px-2 py-2
-         text-[13px] font-medium text-gray-700 transition-colors;
+/* ── MỤC NAV: MỘT PHẦN TỬ, HAI CHỖ ĐỨNG ──────────────────────────────────
+   Cùng một <button> lúc ở hàng tab (#nav-slots) lúc lùi vào popover
+   (#nav-more-pop) tuỳ chỗ trống — js/21-shell.js chỉ việc appendChild, HÌNH
+   DẠNG DO CHA QUYẾT ĐỊNH nên đừng đổi class theo vị trí ở JS.
+   Luật display phải giữ specificity ở mức id-cha + class, để cờ `hidden` trên
+   VỎ #nav-more-wrap vẫn ẩn được nút "Tùy chọn". */
+.cx-navitem {
+  @apply relative;
+
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease,
+    background-color 0.15s ease;
 }
 
-.cx-nav-pop-item:hover {
+/* Ở navbar: cột icon + nhãn, gạch trên khi đang mở. Nhãn KHÔNG xuống dòng —
+   phép đo chỗ trống của js/21-shell.js dựa vào bề ngang tối thiểu này. */
+#nav-slots > .cx-navitem,
+#nav-more-wrap > .cx-navitem {
+  @apply flex flex-none flex-col items-center justify-center gap-1 px-3 py-3
+         text-[11px] font-medium text-gray-400;
+
+  border-top: 2px solid transparent;
+}
+
+#nav-slots > .cx-navitem .cx-navitem-ico,
+#nav-more-wrap > .cx-navitem .cx-navitem-ico {
+  @apply flex items-center text-base;
+}
+
+#nav-slots > .cx-navitem .cx-navitem-label,
+#nav-more-wrap > .cx-navitem .cx-navitem-label {
+  @apply whitespace-nowrap;
+}
+
+/* Điện thoại chỉ còn icon. Viết bằng max-width chứ không `@apply hidden sm:…`:
+   @apply hidden nhân bản mọi selector khác có chứa .hidden thành rule rác (xem
+   styles/_ai-modal.css), mà cssnano còn đẩy `display:none` xuống SAU media
+   query nên nhãn tắt luôn ở mọi khổ. */
+@media (max-width: 639px) {
+  #nav-slots > .cx-navitem .cx-navitem-label,
+  #nav-more-wrap > .cx-navitem .cx-navitem-label {
+    display: none;
+  }
+}
+
+#nav-slots > .cx-navitem .tab-dirty-star,
+#nav-more-wrap > .cx-navitem .tab-dirty-star {
+  @apply absolute right-1.5 top-1;
+}
+
+#nav-slots > .cx-navitem.is-active,
+#nav-more-wrap > .cx-navitem.is-active {
+  color: rgb(var(--focus-ring-rgb));
+  border-top-color: rgb(var(--focus-ring-rgb));
+}
+
+/* Trong popover: hàng danh sách — ô icon bo góc + nhãn, sáng lên khi rê chuột. */
+#nav-more-pop > .cx-navitem {
+  @apply flex w-full items-center gap-2.5 rounded-2xl px-2 py-2
+         text-[13px] font-medium text-gray-700;
+}
+
+#nav-more-pop > .cx-navitem:hover {
   @apply bg-gray-50;
 }
 
-.cx-nav-pop-ico {
+#nav-more-pop > .cx-navitem .cx-navitem-ico {
   @apply flex h-8 w-8 shrink-0 items-center justify-center rounded-xl
-         bg-gray-100 text-gray-500;
+         bg-gray-100 text-[15px] text-gray-500;
 }
 
-/* Mục Giao diện khi panel của nó đang mở. */
-.cx-nav-pill.is-active,
-.cx-nav-pill.is-active:hover {
+#nav-more-pop > .cx-navitem .tab-dirty-star {
+  @apply ml-auto text-[14px];
+}
+
+#nav-more-pop > .cx-navitem.is-active,
+#nav-more-pop > .cx-navitem.is-active:hover {
   background: rgb(var(--surface-blossom-rgb));
   color: rgb(var(--focus-ring-rgb));
 }
 
-.cx-nav-pill.is-active .cx-nav-pop-ico {
+#nav-more-pop > .cx-navitem.is-active .cx-navitem-ico {
   background: rgb(var(--white-rgb));
   color: rgb(var(--focus-ring-rgb));
+}
+
+/* Cụm KHÔNG tràn được (switch + hai nút hành động): bề ngang tối thiểu để phép
+   đo của js/21-shell.js không bóp bẹp chúng chỉ để nhét thêm một mục nav. */
+#tour-view-switch {
+  min-width: 108px;
+}
+
+@media (min-width: 640px) {
+  #tour-view-switch {
+    min-width: 156px;
+  }
+
+  #tab-draft-wrap {
+    min-width: 128px;
+  }
+
+  #tab-publish-wrap {
+    min-width: 136px;
+  }
 }
 
 /* ── XEM TRỰC TIẾP: DẢI CỐ ĐỊNH SÁT MÉP PHẢI ───────────────────────────────
@@ -1111,6 +1170,7 @@ html.cx-rail-off {
   #tour-view-switch {
     padding: 0;
     gap: 0;
+    min-width: 96px; /* đã là một tab như bao tab khác, không cần rộng như pill */
     border-radius: 0;
     background: transparent;
   }
@@ -1132,11 +1192,5 @@ html.cx-rail-off {
   #switch-edit.is-active {
     color: rgb(var(--focus-ring-rgb));
     border-top-color: rgb(var(--focus-ring-rgb));
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .cx-topbar-row {
-    transition: none;
   }
 }
