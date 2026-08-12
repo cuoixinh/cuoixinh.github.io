@@ -140,32 +140,17 @@ function validateForm(formEl) {
   if (firstInvalid) {
     _expandSection(firstInvalid);
     setTimeout(() => {
-      let absTop = 0;
-      // Flatpickr ẩn input gốc (display:none) — traverse lên parent visible
+      // Flatpickr ẩn input gốc (display:none) — trèo lên parent còn hiện.
       let scrollEl = firstInvalid;
       while (scrollEl && getComputedStyle(scrollEl).display === 'none') {
         scrollEl = scrollEl.parentElement;
       }
-      let node = scrollEl || firstInvalid;
-      while (node) { absTop += node.offsetTop; node = node.offsetParent; }
-      const targetY = Math.max(0, absTop - 120);
-      const startY  = Math.max(
-        document.documentElement.scrollTop,
-        document.body.scrollTop,
-        window.pageYOffset || 0
-      );
-      const diff     = targetY - startY;
-      const duration = 450;
-      const t0       = performance.now();
-      function step(now) {
-        const p    = Math.min((now - t0) / duration, 1);
-        const ease = p < 0.5 ? 2 * p * p : -1 + (4 - 2 * p) * p;
-        const y    = startY + diff * ease;
-        document.documentElement.scrollTop = y;
-        document.body.scrollTop            = y;
-        if (p < 1) requestAnimationFrame(step);
-      }
-      requestAnimationFrame(step);
+      // scrollIntoView tự tìm KHUNG CUỘN gần nhất — trang thiết lập thiệp cuộn
+      // trong #setup-scroll chứ không cuộn cả trang, tính toạ độ tay là hỏng.
+      (scrollEl || firstInvalid).scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
       firstInvalid.focus({ preventScroll: true });
     }, 100);
     return false;

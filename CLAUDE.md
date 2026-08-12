@@ -91,26 +91,35 @@ Không gọi thẳng UI → DAL khi có logic nghiệp vụ.
 `STEP_PARTIALS` + thẻ mount, và `CX_STEPS` (`id` trùng `data-step`). `#step-nav` là cặp nút
 NỔI (`fixed`) ngoài `<form>` — đưa nó vào luồng là ăn mất một dòng ở mọi bước.
 
-**Vỏ trang** (`js/21-shell.js`): hàng logo/breadcrumb nằm chung khối sticky `#setup-topbar`
-với thanh bước và luôn hiển thị. Thanh trên và navbar dưới đều là **thẻ nổi rộng bằng cột
-form** (`#setup-topcard` / `#nav-card`, bo tròn hai góc phía trong) — vỏ ngoài chỉ trong
-suốt, đừng trả nền về cho nó.
+**Vỏ trang** (`js/21-shell.js`) là **app shell: trang KHÔNG cuộn**. Ba thẻ nổi cùng khổ
+(`max-w-4xl`) xếp dọc màn: thanh trên `#setup-topcard` · vùng nội dung `#setup-scroll` ·
+navbar `#nav-card` — vỏ ngoài của cả ba chỉ trong suốt, đừng trả nền về cho nó. Chỉ
+`#setup-scroll` cuộn, chiều cao = `100dvh − --cx-top-h − --nav-h − 8px` (hai biến do
+`_cxSyncTopHeight` và `_syncNavHeight` đo). Muốn đưa phần tử vào tầm nhìn thì
+`scrollIntoView` (tự tìm khung cuộn gần nhất) — **đừng dùng `window.scrollTo` /
+`documentElement.scrollTop`**, trang không cuộn nên vô tác dụng.
 
 Navbar dưới **fill động** (`cxNavReflow`): các mục khai ở `CX_NAV_ITEMS` đứng thẳng ở
 `#nav-slots` khi còn chỗ, hết chỗ mới lùi dần vào popover `#nav-more-pop` (mục cuối lùi
 trước); popover rỗng thì ẩn luôn nút "Tùy chọn" (`#nav-more-wrap`). Cấu hình `pin: true` nên
 không bao giờ lùi. Cùng MỘT phần tử dùng cho hai chỗ, **hình dạng do cha quyết định** (xem
-`.cx-navitem`) — đừng đổi class theo vị trí ở JS. Phép đo dựa vào bề ngang tối thiểu của
-hàng nav, nên nhãn phải `whitespace-nowrap` và cụm không tràn được phải có `min-width`.
-Mục khuất trong popover thì trạng thái đang mở + dấu * dội lên `#nav-more`
-(`_syncNavItemState` ở `js/04-nav-tabs.js`). Popover neo và kẹp theo `#nav-card` chứ không
-theo bề ngang màn hình.
+`.cx-navitem`) — đừng đổi class theo vị trí ở JS. Mục khuất trong popover thì trạng thái đang
+mở + dấu * dội lên `#nav-more` (`_syncNavItemState` ở `js/04-nav-tabs.js`); popover neo và
+kẹp theo `#nav-card` chứ không theo bề ngang màn hình.
+
+Từ `sm` trở lên **mọi ô trong navbar đều khổ CỐ ĐỊNH**, chỗ thừa dồn hết vào `ml-auto` của
+`#nav-actions` → dãy tab sát trái, "Lưu nháp"/"Xuất bản" sát phải; cho một ô `flex-1` là cả
+hàng lệch. Phép đo chỗ trống dựa vào bề ngang tối thiểu của hàng, nên nhãn phải
+`whitespace-nowrap` và ô nào cũng phải có khổ khai sẵn. Ẩn/hiện một nút trong navbar là đổi
+chỗ trống → gọi lại `cxNavReflow()`.
 
 **Xem trực tiếp** (`js/22-live-preview.js`): từ **820px** trở lên (iPad dựng đứng cũng có),
 `#live-dock` là **dải cố định sát mép phải, NGOÀI vùng ứng dụng** — `<body>` chừa
 `--cx-rail-w` nên thứ trong luồng tự hẹp lại, còn thứ `fixed` (navbar, `#step-nav`, các panel
-toàn màn, `.ai-fab`) phải tự khai `right: var(--cx-rail-w)`, thiếu là tràn đè lên thiệp. Dải
-CHỈ đi cùng tab Chỉnh sửa: tab khác đặt cờ `.cx-rail-off` (`_syncRail`) ép `--cx-rail-w` về 0
+toàn màn, `.ai-fab`) phải tự khai `right: var(--cx-rail-w)`, thiếu là tràn đè lên thiệp. Phần
+dựng dải — và cả app shell ở trên — **khoá trong cờ `.cx-setup`** trên `<html>` của riêng
+trang này: `build.css` dùng chung cho mọi trang, thiếu cờ là landing với my-invitations cũng
+bị chừa lề phải và cấm cuộn. Dải CHỈ đi cùng tab Chỉnh sửa: tab khác đặt cờ `.cx-rail-off` (`_syncRail`) ép `--cx-rail-w` về 0
 để panel chiếm trọn màn. Từ ngưỡng này cũng **không còn tab Xem trước** (nút ẩn,
 `switchTab("preview")` tự về `edit`). Cập nhật bằng cách **tải lại iframe**, hẹn giờ từ
 `_setDirty(true)` — mọi thay đổi đã đi qua đó nên đừng rải thêm listener, trừ ảnh (nằm ở
