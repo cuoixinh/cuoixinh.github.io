@@ -842,16 +842,9 @@ svg.lucide {
 }
 
 /* Ranh giới giữa hai block KHÔNG dựa vào vạch kẻ (mảnh quá, lại giống đường kẻ
-   lạc trong biểu mẫu) mà dựa vào chính THANH TIÊU ĐỀ có nền tô của block sau:
-   một khoảng trắng nghỉ rồi tới dải tô — mắt đọc ra ngay "hết khối này, sang
-   khối khác". Bước bị ẩn mang class .hidden chứ không phải thuộc tính [hidden]
-   nên `divide-y` của Tailwind đếm nhầm, luật này phải tự viết. */
-#wedding-form > .cx-block:not(.hidden) ~ .cx-block:not(.hidden) {
-  @apply mt-5;
-}
-
-/* Thanh tiêu đề block: icon + tên mục trên nền tô ấm, full-bleed hết bề ngang
-   thẻ. Block đầu tiên nằm sát mép trên thẻ nên dải tô ăn theo góc bo luôn. */
+   lạc trong biểu mẫu) mà dựa vào chính THANH TIÊU ĐỀ có nền tô: block này nối
+   thẳng vào block kia, chỗ giáp ranh là dải tô — mắt đọc ra ngay "hết khối này,
+   sang khối khác". Thanh tiêu đề: icon + tên mục, full-bleed hết bề ngang thẻ. */
 .cx-block-head {
   @apply px-5 py-4 sm:px-6;
 
@@ -860,7 +853,11 @@ svg.lucide {
   border-bottom: 1px solid rgb(var(--border-subtle-rgb));
 }
 
-#wedding-form > .cx-block:first-child > .cx-block-head {
+/* Block HIỆN đầu tiên nằm sát mép trên thẻ nên bỏ vạch trên, cho dải tô ăn theo
+   góc bo. Cờ .is-first do _cxRenderPanels() đặt — ĐỪNG viết bằng
+   `:not(.hidden)` trong CSS: cssnano gộp các `:not()` thành selector luôn khớp
+   (xem styles/_ai-modal.css), lúc đó block nào cũng bị đẩy/kẻ như nhau. */
+.cx-block.is-first > .cx-block-head {
   border-top: 0;
 }
 
