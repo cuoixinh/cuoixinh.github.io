@@ -800,6 +800,64 @@ svg.lucide {
 
 /* ===== Vỏ trang: thanh bước + ngăn kéo navbar (js/21-shell.js) ===== */
 
+/* ── APP SHELL: TRANG KHÔNG CUỘN, CHỈ VÙNG GIỮA CUỘN ───────────────────────
+   Ba thẻ nổi xếp dọc màn hình: thanh trên (#setup-topcard) · vùng nội dung
+   (#setup-scroll) · navbar (#nav-card) — cùng khổ, cùng kiểu bo góc. Trang tự
+   nó KHÔNG cuộn nên nội dung không bao giờ chui xuống dưới navbar; ai cần đưa
+   phần tử vào tầm nhìn thì dùng scrollIntoView (nó tự tìm khung cuộn gần nhất),
+   ĐỪNG đụng tới window.scrollTo/documentElement.scrollTop nữa.
+   Khoá trong .cx-setup vì styles/build.css dùng chung cho mọi trang. */
+.cx-setup,
+.cx-setup body {
+  height: 100dvh;
+  overflow: hidden;
+}
+
+/* Chiều cao chừa lại đúng phần giữa. --cx-top-h do _cxSyncTopHeight() đo (đã
+   gồm lề trên của thanh), --nav-h do _syncNavHeight() đo (đã gồm lề dưới), 32px
+   là `my-4` của chính thẻ này — đổi lề thì phải đổi cả hai chỗ, nếu không thẻ
+   thò xuống dưới navbar. */
+#setup-scroll {
+  @apply overflow-y-auto overscroll-contain rounded-3xl bg-white;
+
+  height: calc(100dvh - var(--cx-top-h, 96px) - var(--nav-h, 84px) - 32px);
+  box-shadow: 0 4px 18px rgb(var(--scrim-rgb) / 0.07);
+}
+
+/* ── MỘT BLOCK NỘI DUNG TRONG #setup-scroll ────────────────────────────────
+   Thẻ nội dung ở giữa ĐÃ là một thẻ nổi rồi, nên block bên trong để PHẲNG (không
+   viền, không nền riêng) — thẻ lồng thẻ nhìn rối. Nhiều block hiện cùng lúc thì
+   ngăn nhau bằng một vạch mảnh: chỉ block nào có block HIỆN đứng trước mới vẽ
+   vạch, nên block đầu tiên không bao giờ dính vạch thừa (bước bị ẩn mang class
+   .hidden, không phải thuộc tính [hidden], nên `divide-y` của Tailwind đếm nhầm
+   — phải tự viết luật này). */
+.cx-block {
+  @apply relative pb-6;
+}
+
+/* Ranh giới giữa hai block KHÔNG dựa vào vạch kẻ (mảnh quá, lại giống đường kẻ
+   lạc trong biểu mẫu) mà dựa vào chính THANH TIÊU ĐỀ có nền tô của block sau:
+   một khoảng trắng nghỉ rồi tới dải tô — mắt đọc ra ngay "hết khối này, sang
+   khối khác". Bước bị ẩn mang class .hidden chứ không phải thuộc tính [hidden]
+   nên `divide-y` của Tailwind đếm nhầm, luật này phải tự viết. */
+#wedding-form > .cx-block:not(.hidden) ~ .cx-block:not(.hidden) {
+  @apply mt-5;
+}
+
+/* Thanh tiêu đề block: icon + tên mục trên nền tô ấm, full-bleed hết bề ngang
+   thẻ. Block đầu tiên nằm sát mép trên thẻ nên dải tô ăn theo góc bo luôn. */
+.cx-block-head {
+  @apply px-5 py-4 sm:px-6;
+
+  background: rgb(var(--surface-tint-warm-rgb));
+  border-top: 1px solid rgb(var(--border-subtle-rgb));
+  border-bottom: 1px solid rgb(var(--border-subtle-rgb));
+}
+
+#wedding-form > .cx-block:first-child > .cx-block-head {
+  border-top: 0;
+}
+
 /* Thanh bước cuộn ngang: vệt trắng mờ hai mép cho biết còn chip ngoài tầm nhìn.
    Vệt tắt đi khi đã chạm đầu/cuối — cờ .at-start/.at-end do js/20-steps.js đặt. */
 .cx-stepbar-wrap {
@@ -946,23 +1004,39 @@ svg.lucide {
   color: rgb(var(--focus-ring-rgb));
 }
 
-/* Cụm KHÔNG tràn được (switch + hai nút hành động): bề ngang tối thiểu để phép
-   đo của js/21-shell.js không bóp bẹp chúng chỉ để nhét thêm một mục nav. */
+/* Điện thoại: chỉ hai icon, hẹp nữa mới đủ chỗ cho hai nút hành động. Đây là
+   bề ngang TỐI THIỂU mà phép đo của js/21-shell.js dựa vào. */
 #tour-view-switch {
-  min-width: 72px; /* điện thoại chỉ còn 2 icon, hẹp nữa mới đủ chỗ cho 2 nút kia */
+  min-width: 72px;
 }
 
+/* Từ sm trở lên MỌI ô trong navbar đều KHỔ CỐ ĐỊNH: dãy tab xếp sát từ trái,
+   chỗ thừa dồn hết vào `ml-auto` của #nav-actions nên hai nút hành động nằm sát
+   mép phải. Đừng cho ô nào `flex-1` — một ô co giãn là cả hàng lệch. */
 @media (min-width: 640px) {
-  #tour-view-switch {
-    min-width: 156px;
+  #switch-wrap {
+    width: 148px;
+  }
+
+  #nav-slots > .cx-navitem,
+  #nav-more-wrap > .cx-navitem {
+    width: 88px;
   }
 
   #tab-draft-wrap {
-    min-width: 128px;
+    width: 120px;
   }
 
   #tab-publish-wrap {
-    min-width: 136px;
+    width: 148px; /* đủ cho nhãn dài nhất: "Lưu & Xuất bản" khi thiệp đã lên */
+  }
+}
+
+/* pad+ (820px): switch rụng mất nút "Xem trước", chỉ còn một tab → thu về đúng
+   khổ của các tab khác cho thẳng hàng. */
+@media (min-width: 820px) {
+  #switch-wrap {
+    width: 88px;
   }
 }
 
@@ -971,14 +1045,18 @@ svg.lucide {
    nằm NGOÀI vùng ứng dụng: <body> chừa đúng --cx-rail-w bên phải nên mọi thứ
    trong luồng (kể cả #setup-topbar dính) tự hẹp lại. Thứ gì `position: fixed`
    thì padding không với tới → phải tự khai `right: var(--cx-rail-w)` (xem cuối
-   file). Hẹp hơn 820px dải biến mất, người dùng bấm "Xem trước" như cũ. */
+   file). Hẹp hơn 820px dải biến mất, người dùng bấm "Xem trước" như cũ.
+
+   MỌI thứ dựng dải phải nằm trong `.cx-setup` (cờ trên <html> của riêng trang
+   thiết lập): file này build chung vào styles/build.css nên `body { padding }`
+   không khoá lại sẽ chừa lề phải cho CẢ landing lẫn my-invitations. */
 
 :root {
   --cx-rail-w: 0px;
 }
 
 @media (min-width: 820px) {
-  :root {
+  .cx-setup {
     /* Máy cao gần hết màn (chừa chỗ cho thanh trạng thái dưới máy + đệm), rộng
        suy ra TỪ chiều cao (0.5117 = 393/768, tỉ lệ ảnh khung máy) rồi kẹp theo
        bề ngang để màn hẹp/siêu cao (iPad dựng đứng) không nuốt mất cột form. */
@@ -989,13 +1067,13 @@ svg.lucide {
     --cx-rail-w: calc(var(--cx-ph-w) + var(--cx-rail-pad));
   }
 
-  body {
+  .cx-setup body {
     padding-right: var(--cx-rail-w);
   }
 }
 
 @media (min-width: 1024px) {
-  :root {
+  .cx-setup {
     --cx-rail-pad: 64px;
   }
 }

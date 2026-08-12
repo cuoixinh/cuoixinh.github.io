@@ -1,5 +1,28 @@
-// Vỏ trang thiết lập: popover "Tùy chọn" ở navbar dưới và cơ chế FILL ĐỘNG —
-// mục nào còn chỗ thì đứng thẳng ở navbar, hết chỗ mới lùi vào popover.
+// Vỏ trang thiết lập: chiều cao thanh trên, popover "Tùy chọn" ở navbar dưới và
+// cơ chế FILL ĐỘNG — mục nào còn chỗ thì đứng thẳng ở navbar, hết chỗ mới lùi
+// vào popover.
+
+// ===== CHIỀU CAO THANH TRÊN =====
+
+// --cx-top-h = chiều cao thật của khối sticky trên cùng (đã gồm lề trên). Vùng
+// nội dung ở giữa trừ đúng phần này để không cuộn ra ngoài màn (xem #setup-scroll).
+function _cxSyncTopHeight() {
+  const bar = document.getElementById("setup-topbar");
+  if (!bar) return;
+  document.documentElement.style.setProperty(
+    "--cx-top-h",
+    `${bar.offsetHeight}px`,
+  );
+}
+
+function _cxInitTopHeight() {
+  const bar = document.getElementById("setup-topbar");
+  if (!bar) return;
+  _cxSyncTopHeight();
+  // Thanh bước xuống dòng / breadcrumb dài ra khi đổi khổ màn → đo lại.
+  if (window.ResizeObserver) new ResizeObserver(_cxSyncTopHeight).observe(bar);
+  else window.addEventListener("resize", _cxSyncTopHeight, { passive: true });
+}
 
 // ===== FILL ĐỘNG CHO NAVBAR =====
 
@@ -164,6 +187,7 @@ function _cxInitMore() {
 }
 
 function _cxInitShell() {
+  _cxInitTopHeight();
   _cxInitMore();
   _cxInitReflow();
 }

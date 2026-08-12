@@ -137,6 +137,8 @@ function _syncAdvancedSection() {
   if (draftWrap) draftWrap.classList.toggle("hidden", published);
   const draftTab = document.getElementById("tab-draft");
   if (draftTab) draftTab.classList.toggle("hidden", published);
+  // Ẩn/hiện nút này là đổi chỗ trống của navbar → xếp lại các mục nav.
+  window.cxNavReflow?.();
 
   // Thiệp đã xuất bản: nút chính đóng vai trò "lưu lại" → đổi nhãn "Lưu & Xuất bản"
   const publishLabel = document.querySelector("#tab-publish span");

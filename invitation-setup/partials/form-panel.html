@@ -1,14 +1,18 @@
 <!-- Form Panel (toggle with preview) -->
 <div id="form-panel">
-  <!-- Đệm đáy = chiều cao THẬT của navbar (--nav-h, do _syncNavHeight đo) + chỗ
-       cho cặp nút nổi #step-nav bên dưới: bước có nội dung ngắn vẫn xem hết được
-       phần cuối, không bị che.
-       scroll-mt chừa chỗ cho header + thanh bước (đều sticky) khi cxGoStep cuộn tới. -->
-  <div class="max-w-4xl mx-auto px-4 py-8 pb-[calc(var(--nav-h,60px)+84px)]">
+  <!-- Vùng nội dung là THẺ NỔI thứ ba, cùng khổ và cùng kiểu bo góc với thanh
+       trên (#setup-topcard) và navbar (#nav-card) — vỏ ngoài chỉ giữ lề, nền
+       nằm ở #setup-scroll. Trang KHÔNG cuộn (xem .cx-setup trong
+       styles/_setup.css): chỉ thẻ này cuộn, nên nội dung không bao giờ chui
+       xuống dưới navbar. Chiều cao do CSS tính từ --cx-top-h + --nav-h. -->
+  <div id="setup-main" class="px-2 sm:px-4">
+    <div id="setup-scroll" class="max-w-4xl mx-auto my-4">
+      <!-- Đệm đáy chừa chỗ cho cặp nút nổi #step-nav (nằm đè lên đáy thẻ). -->
+      <div class="pb-[84px]">
     <!-- Form -->
     <form
       id="wedding-form"
-      class="flex flex-col gap-6 scroll-mt-28"
+      class="flex flex-col gap-6 scroll-mt-4"
       autocomplete="on"
     >
       <input type="hidden" name="cover_image_url" />
@@ -87,6 +91,8 @@
 
       <span id="mount-step-footer" hidden></span>
     </form>
+      </div>
+    </div>
   </div>
 
   <!-- Cặp nút điều hướng NỔI trên navbar. `fixed` nên không chiếm một dòng nào
