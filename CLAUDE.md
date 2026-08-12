@@ -98,7 +98,9 @@ navbar `#nav-card` — vỏ ngoài của cả ba chỉ trong suốt, đừng tr�
 `_cxSyncTopHeight` và `_syncNavHeight` đo, 32px là `my-4` của chính thẻ — đổi lề phải đổi
 cả công thức). Muốn đưa phần tử vào tầm nhìn thì
 `scrollIntoView` (tự tìm khung cuộn gần nhất) — **đừng dùng `window.scrollTo` /
-`documentElement.scrollTop`**, trang không cuộn nên vô tác dụng.
+`documentElement.scrollTop`**, trang không cuộn nên vô tác dụng. Phần tử NGOÀI khung nội
+dung (chip ở thanh bước…) thì tự đặt `scrollLeft/scrollTop` cho đúng khung: `scrollIntoView`
+cuộn lây cả khung cha, đủ để đẩy thanh trên ra khỏi màn.
 
 Navbar dưới **fill động** (`cxNavReflow`): các mục khai ở `CX_NAV_ITEMS` đứng thẳng ở
 `#nav-slots` khi còn chỗ, hết chỗ mới lùi dần vào popover `#nav-more-pop` (mục cuối lùi

@@ -810,7 +810,13 @@ svg.lucide {
 .cx-setup,
 .cx-setup body {
   height: 100dvh;
+
+  /* `clip` chứ không chỉ `hidden`: `hidden` vẫn là KHUNG CUỘN, chỉ giấu thanh
+     cuộn — một cú scrollIntoView/scrollTop lỡ tay là cả trang trôi lên, thanh
+     trên biến mất mà không có cách nào kéo lại. `clip` thì không cuộn được nữa.
+     Khai cả hai để trình duyệt cũ còn nhận `hidden`. */
   overflow: hidden;
+  overflow: clip;
 }
 
 /* Chiều cao chừa lại đúng phần giữa. --cx-top-h do _cxSyncTopHeight() đo (đã

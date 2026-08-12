@@ -242,9 +242,19 @@ function cxRenderStepBar() {
   bar.innerHTML = CX_STEPS.map(_cxChipHTML).join("");
   if (window.lucide) lucide.createIcons();
 
-  // Kéo chip đang mở vào tầm nhìn — thanh cuộn ngang, bước 8 nằm ngoài màn hình.
+  // Kéo chip đang mở vào giữa thanh — thanh cuộn NGANG, bước 8 nằm ngoài màn.
+  // Tự đặt scrollLeft chứ không scrollIntoView: hàm kia còn cuộn DỌC mọi khung
+  // cha (kể cả khung nhìn) khi thấy chip chưa lọt hẳn, đủ để đẩy cả thanh trên
+  // ra khỏi màn.
   const active = bar.querySelector('[aria-selected="true"]');
-  active?.scrollIntoView({ block: "nearest", inline: "center", behavior: "smooth" });
+  if (active) {
+    const br = bar.getBoundingClientRect();
+    const ar = active.getBoundingClientRect();
+    bar.scrollTo({
+      left: bar.scrollLeft + (ar.left - br.left) - (br.width - ar.width) / 2,
+      behavior: "smooth",
+    });
+  }
 
   _cxSyncBarFade();
 }
@@ -335,13 +345,13 @@ function cxGoStep(id, opts = {}) {
   if (i < 0) return;
   _cxStepIndex = i;
   cxRenderSteps();
-  // Cuộn tới ĐẦU FORM chứ không tới #step-bar: thanh bước là sticky, đưa chính nó
-  // vào tầm nhìn thì trình duyệt tính theo chỗ nó đang dính, cuộn hụt. Form có
-  // scroll-mt-28 nên phần đầu bước không nằm dưới header + thanh bước.
+  // Đổi bước là xem từ đầu bước: đưa CHÍNH khung nội dung về đỉnh. Không dùng
+  // scrollIntoView trên form — nó cuộn thêm mọi khung cha, mà thanh trên nằm
+  // ngoài khung nội dung nên sẽ bị đẩy khuất.
   if (opts.scroll !== false) {
     document
-      .getElementById("wedding-form")
-      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+      .getElementById("setup-scroll")
+      ?.scrollTo({ top: 0, behavior: "smooth" });
   }
   // Bản xem trực tiếp bám theo bước — không tải lại, chỉ cuộn tới mục tương ứng.
   window.cxLiveFocus?.();
