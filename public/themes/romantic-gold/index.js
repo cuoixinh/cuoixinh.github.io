@@ -80,19 +80,21 @@ function cxPagerRefresh() {
     pages.forEach((_, i) => {
       const d = document.createElement("div");
       d.className =
-        "h-1.5 rounded-full bg-gold-200 cursor-pointer transition-all duration-300";
+        "h-px bg-gold-200 cursor-pointer transition-all duration-300";
       d.addEventListener("click", () => cxPagerGoTo(i));
       dots.appendChild(d);
     });
   }
+  // Trang đang mở = một vạch vàng dài; các trang khác là vạch ngắn nhạt.
   Array.from(dots.children).forEach((d, i) => {
-    d.classList.toggle("w-5", i === cur);
+    d.classList.toggle("w-6", i === cur);
     d.classList.toggle("bg-gold-400", i === cur);
-    d.classList.toggle("w-1.5", i !== cur);
+    d.classList.toggle("w-2", i !== cur);
     d.classList.toggle("bg-gold-200", i !== cur);
   });
 
-  if (num) num.textContent = `${cur + 1} / ${pages.length}`;
+  // Số trang kiểu folio sách: — 03 —
+  if (num) num.textContent = `— ${String(cur + 1).padStart(2, "0")} —`;
 
   const prev = document.getElementById("cx-nav-prev");
   const next = document.getElementById("cx-nav-next");
@@ -133,8 +135,8 @@ function cxPagerInit() {
   if (isPreviewMode() && !_isLiveSource) {
     const ui = document.getElementById("cx-pager-ui");
     if (ui) {
-      ui.classList.remove("pb-4");
-      ui.classList.add("pb-16");
+      ui.classList.remove("bottom-[24px]");
+      ui.classList.add("bottom-[76px]");
     }
   }
 
@@ -263,8 +265,8 @@ function renderTimeline(items, side, partyDate, ceremonyDate, ceremonyName) {
       .map(
         (item, i) => `
         <div class="relative pl-4 ${i === groupItems.length - 1 ? "pb-1" : "pb-5"} text-left">
-          <div class="absolute left-[-4px] top-1.5 w-[7px] h-[7px] rounded-full bg-[rgb(var(--timeline-dot-rgb))]"></div>
-          <div class="font-inter text-[10px] tracking-[0.18em] text-gold-400 mb-1">${escapeHtml(item.time || "")}</div>
+          <div class="absolute left-[-3px] top-2 w-[5px] h-[5px] rotate-45 bg-[rgb(var(--timeline-dot-rgb))]"></div>
+          <div class="font-cinzel text-[10px] tracking-[0.2em] text-gold-400 mb-1">${escapeHtml(item.time || "")}</div>
           <div class="font-cormorant text-[16px] text-charcoal leading-snug">${escapeHtml(item.title || "")}</div>
         </div>`,
       )
@@ -307,7 +309,7 @@ function renderGallery(galleryImages, focalPoints) {
       const shape =
         i % 5 === 0 ? "col-span-2 aspect-[16/10]" : "col-span-1 aspect-[3/4]";
       return `
-        <div data-i="${i}" class="${shape} w-full overflow-hidden rounded-xl border border-gold-200 cursor-pointer">
+        <div data-i="${i}" class="${shape} w-full overflow-hidden border border-gold-200 cursor-pointer">
           <img src="${src}" alt="" loading="lazy" class="w-full h-full object-cover"
                style="object-position:${pos}"${i === 0 ? ' id="gallery-first-image"' : ""} />
         </div>`;
@@ -365,8 +367,12 @@ function renderWedding(w) {
 
   // --- MỞ ĐẦU ---
   renderHero(w, false);
-  setText("monogram-groom", _initial(w.groom_name, "A"));
-  setText("monogram-bride", _initial(w.bride_name, "B"));
+  const mgG = _initial(w.groom_name, "A");
+  const mgB = _initial(w.bride_name, "B");
+  setText("monogram-groom", mgG);
+  setText("monogram-bride", mgB);
+  setText("footer-monogram-groom", mgG);
+  setText("footer-monogram-bride", mgB);
   if (w.ceremony_date) {
     const d = new Date(w.ceremony_date);
     setText(

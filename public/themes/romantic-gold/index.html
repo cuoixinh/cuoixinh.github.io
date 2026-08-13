@@ -8,10 +8,6 @@
     />
     <title>Cưới Xinh — Thiệp Cưới</title>
     <link rel="icon" type="image/png" href="../../../assets/icons/logo.png" />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -29,6 +25,8 @@
     <script src="../../../core/x-button.js"></script>
     <script src="../../../core/components/music-player.js"></script>
   </head>
+  <!-- Thiệp cố ý KHÔNG nạp Font Awesome: trang trí chỉ bằng đường kẻ và ký tự
+       (✦ ✓ ✕ ‹ ›) nên không phụ thuộc CDN icon nào. -->
   <body
     class="bg-sage-200 min-h-screen flex justify-center items-center p-0 md:py-5"
   >
@@ -43,7 +41,7 @@
       );
     </script>
 
-    <!-- ══ MÀN BÌA ══ Ảnh bìa bị xẻ đôi thành hai "cánh"; bấm Mở Thiệp thì hai
+    <!-- ══ MÀN BÌA ══ Ảnh bìa bị xẻ đôi thành hai "cánh"; bấm Mở thiệp thì hai
          cánh trượt ra hai bên để lộ thiệp bên dưới. Chữ nằm trên lớp gradient. -->
     <div
       id="cover-screen"
@@ -65,7 +63,7 @@
               alt=""
             />
             <div
-              class="absolute inset-0 bg-gradient-to-t from-sage-50 via-sage-50/45 to-sage-50/10"
+              class="absolute inset-0 bg-gradient-to-t from-sage-50 via-sage-50/55 to-sage-50/5"
             ></div>
           </div>
         </div>
@@ -82,7 +80,7 @@
               alt=""
             />
             <div
-              class="absolute inset-0 bg-gradient-to-t from-sage-50 via-sage-50/45 to-sage-50/10"
+              class="absolute inset-0 bg-gradient-to-t from-sage-50 via-sage-50/55 to-sage-50/5"
             ></div>
           </div>
         </div>
@@ -92,34 +90,49 @@
           class="absolute inset-y-0 left-1/2 -translate-x-1/2 w-px bg-gold-300/70 transition-opacity duration-300"
         ></div>
 
+        <!-- Khung viền in của màn bìa -->
+        <div
+          class="pointer-events-none absolute inset-4 z-20 border border-gold-300/70"
+        ></div>
+
         <!-- Chữ trên bìa -->
         <div
           id="cover-content"
-          class="absolute inset-0 z-30 flex flex-col items-center justify-end gap-5 px-10 pb-14 text-center transition-opacity duration-500"
+          class="absolute inset-0 z-30 flex flex-col items-center justify-end gap-6 px-12 pb-16 text-center transition-opacity duration-500"
         >
           <div
             class="font-cinzel text-[10px] tracking-[0.45em] uppercase text-gold-400"
           >
             Save the date
           </div>
-          <div class="font-allura text-[64px] leading-[0.9] text-charcoal">
-            <span id="cover-groom-name">----------</span>
-            <span class="text-gold-400 mx-1">&amp;</span>
-            <span id="cover-bride-name">----------</span>
+          <div class="flex flex-col items-center gap-0.5">
+            <span
+              class="font-allura text-[clamp(40px,12vw,58px)] leading-[1.05] text-charcoal"
+              id="cover-groom-name"
+              >----------</span
+            >
+            <span class="font-allura text-[26px] leading-none text-gold-400"
+              >&amp;</span
+            >
+            <span
+              class="font-allura text-[clamp(40px,12vw,58px)] leading-[1.05] text-charcoal"
+              id="cover-bride-name"
+              >----------</span
+            >
           </div>
           <div class="flex items-center gap-3 w-full max-w-[240px]">
             <div class="flex-1 h-px bg-gold-300"></div>
-            <i class="fas fa-ring text-gold-400 text-[10px]"></i>
+            <span class="text-gold-400 text-[9px]">✦</span>
             <div class="flex-1 h-px bg-gold-300"></div>
           </div>
-          <div class="flex flex-col gap-1">
+          <div class="flex flex-col gap-1.5">
             <div
               class="font-cormorant italic text-[15px] text-stone-custom-400"
             >
               Trân trọng kính mời
             </div>
             <div
-              class="font-allura text-[38px] leading-tight text-gold-400"
+              class="font-allura text-[36px] leading-tight text-gold-400"
               id="cover-guest-name"
             >
               ----------
@@ -128,19 +141,17 @@
           <x-button
             variant="bare"
             onclick="openInvitation()"
-            class="open-btn mt-2 px-9 py-3.5 border border-gold-300 bg-sage-50/70 font-cinzel text-[11px] tracking-[0.28em] uppercase text-charcoal active:scale-95 transition-transform duration-200 touch-manipulation [-webkit-tap-highlight-color:transparent]"
+            class="open-btn mt-1 px-10 py-3.5 border border-gold-300 bg-sage-50/75 font-cinzel text-[11px] tracking-[0.3em] uppercase text-charcoal active:scale-95 transition-transform duration-200 touch-manipulation [-webkit-tap-highlight-color:transparent]"
           >
-            <span class="pointer-events-none flex items-center gap-2.5">
-              <i class="fas fa-envelope-open-text text-gold-400 text-xs"></i>
-              Mở thiệp
-            </span>
+            Mở thiệp
           </x-button>
         </div>
       </div>
     </div>
 
     <!-- ══ THIỆP ══ Trang KHÔNG cuộn dọc: #cx-pages là dải lật ngang, mỗi mục là
-         một trang; trang nào dài thì tự cuộn dọc bên trong. -->
+         một trang; trang nào dài thì tự cuộn dọc bên trong. Khung viền in và số
+         trang nằm NGOÀI dải nên đứng yên khi lật, như bìa một cuốn sách. -->
     <div
       id="main-card"
       class="relative w-full max-w-[430px] md:max-w-[768px] h-[100dvh] cx-dvh md:h-[calc(100dvh-40px)] md:max-h-[932px] bg-sage-50 md:rounded-[32px] md:shadow-2xl overflow-hidden"
@@ -148,49 +159,71 @@
     >
       <div
         id="cx-pages"
-        class="flex h-full w-full snap-x snap-mandatory overflow-x-auto overscroll-x-contain scroll-smooth"
+        class="relative z-10 flex h-full w-full snap-x snap-mandatory overflow-x-auto overscroll-x-contain scroll-smooth"
       >
         <!-- ── Trang 1 · Mở đầu ── -->
         <section
           id="section-couple"
-          class="cx-page basis-full shrink-0 snap-start h-full overflow-y-auto flex flex-col px-8 pt-12 pb-24"
+          class="cx-page basis-full shrink-0 snap-start h-full overflow-y-auto flex flex-col px-11 pt-16 pb-24"
         >
           <div
-            class="w-full my-auto flex flex-col items-center gap-6 text-center"
+            class="w-full my-auto flex flex-col items-center gap-5 text-center"
           >
             <div
-              class="w-16 h-16 rounded-full border border-gold-300 flex items-center justify-center font-cinzel text-[13px] tracking-[0.1em] text-gold-400"
+              class="flex items-center gap-3 font-cinzel text-[12px] tracking-[0.3em] text-gold-400"
             >
+              <span class="w-8 h-px bg-gold-200"></span>
               <span id="monogram-groom">A</span>
-              <span class="mx-0.5 opacity-60">·</span>
+              <span class="text-[8px]">✦</span>
               <span id="monogram-bride">B</span>
+              <span class="w-8 h-px bg-gold-200"></span>
             </div>
-            <div class="font-allura text-[52px] leading-[0.95] text-charcoal">
-              <span id="couple-names-groom">----------</span>
-              <span class="text-gold-400 mx-1">&amp;</span>
-              <span id="couple-names-bride">----------</span>
+
+            <div class="flex flex-col items-center gap-0.5">
+              <span
+                class="font-allura text-[clamp(40px,12vw,58px)] leading-[1.05] text-charcoal"
+                id="couple-names-groom"
+                >----------</span
+              >
+              <span class="font-allura text-[26px] leading-none text-gold-400"
+                >&amp;</span
+              >
+              <span
+                class="font-allura text-[clamp(40px,12vw,58px)] leading-[1.05] text-charcoal"
+                id="couple-names-bride"
+                >----------</span
+              >
             </div>
+
+            <!-- Ảnh khung vòm, viền vàng kép -->
+            <div class="relative mt-1">
+              <div
+                class="absolute -inset-[9px] rounded-t-full rounded-b-sm border border-gold-200"
+              ></div>
+              <div
+                class="relative w-[212px] h-[272px] rounded-t-full rounded-b-sm overflow-hidden border border-gold-300 shadow-[0_18px_44px_rgb(var(--card-gold-400-rgb)/0.2)]"
+              >
+                <img
+                  src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%23f5f5f5'/%3E%3C/svg%3E"
+                  id="main-photo"
+                  alt=""
+                  class="w-full h-full object-cover"
+                />
+              </div>
+            </div>
+
             <div
-              class="relative w-[230px] h-[290px] rounded-[120px_120px_10px_10px] overflow-hidden border border-gold-200"
-            >
-              <img
-                src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%23f5f5f5'/%3E%3C/svg%3E"
-                id="main-photo"
-                alt=""
-                class="w-full h-full object-cover"
-              />
-            </div>
-            <div
-              class="font-cinzel text-[12px] tracking-[0.3em] uppercase text-gold-400"
+              class="mt-2 px-6 py-2 border-y border-gold-300 font-cinzel text-[13px] tracking-[0.28em] text-charcoal"
               id="hero-date"
             >
               -- · -- · ----
             </div>
+
             <div
-              class="mt-2 flex items-center gap-2 font-inter text-[10px] tracking-[0.18em] uppercase text-stone-custom-400"
+              class="flex items-center gap-2 font-cormorant italic text-[13px] text-stone-custom-400"
             >
-              Vuốt sang trái để đọc tiếp
-              <i class="fas fa-arrow-right-long text-gold-400"></i>
+              vuốt để mở trang sau
+              <span class="font-cinzel not-italic text-gold-400">›</span>
             </div>
           </div>
         </section>
@@ -198,50 +231,56 @@
         <!-- ── Trang 2 · Thư mời & lễ ── -->
         <section
           id="section-ceremony"
-          class="cx-page basis-full shrink-0 snap-start h-full overflow-y-auto flex flex-col px-8 pt-12 pb-24"
+          class="cx-page basis-full shrink-0 snap-start h-full overflow-y-auto flex flex-col px-11 pt-16 pb-24"
         >
           <div
-            class="w-full my-auto flex flex-col items-center gap-6 text-center"
+            class="w-full my-auto flex flex-col items-center gap-5 text-center"
           >
-            <div
-              class="font-cinzel text-[10px] tracking-[0.4em] uppercase text-gold-400"
-            >
-              Thư mời
+            <div class="flex items-center gap-3 w-full max-w-[250px]">
+              <div class="flex-1 h-px bg-gold-200"></div>
+              <span
+                class="font-cinzel text-[10px] tracking-[0.35em] uppercase text-gold-400"
+                >Thư mời</span
+              >
+              <div class="flex-1 h-px bg-gold-200"></div>
             </div>
+
             <div
-              class="font-cormorant italic text-[15px] text-stone-custom-400"
+              class="font-cormorant italic text-[15px] text-stone-custom-400 leading-relaxed"
             >
               Trân trọng kính mời quý khách đến dự
               <span id="ceremony-event-name" class="not-italic"
                 >Lễ Thành Hôn</span
               >
             </div>
-            <div class="flex items-center justify-center gap-3">
+
+            <div class="flex flex-col items-center gap-1">
               <span
-                class="font-cinzel text-[17px] tracking-[0.14em] text-charcoal"
+                class="font-cinzel text-[16px] tracking-[0.16em] text-charcoal"
                 id="invite-groom"
                 >----------</span
               >
-              <span class="font-allura text-[26px] text-gold-400">&amp;</span>
+              <span class="font-allura text-[22px] text-gold-400">&amp;</span>
               <span
-                class="font-cinzel text-[17px] tracking-[0.14em] text-charcoal"
+                class="font-cinzel text-[16px] tracking-[0.16em] text-charcoal"
                 id="invite-bride"
                 >----------</span
               >
             </div>
 
+            <!-- Ngày lễ: ngày lớn ở giữa, thứ/giờ bên trái -->
             <div
-              class="w-full max-w-[300px] border-y border-gold-200 py-5 flex items-stretch justify-center gap-6"
+              class="w-full max-w-[300px] border-y border-gold-300 py-5 flex items-stretch justify-center gap-5"
             >
-              <div class="flex flex-col items-center justify-center gap-1">
+              <div class="flex flex-col items-center justify-center gap-1 w-20">
                 <div
-                  class="font-inter text-[10px] tracking-[0.2em] uppercase text-stone-custom-400"
+                  class="font-cinzel text-[10px] tracking-[0.2em] uppercase text-stone-custom-400"
                   id="invite-weekday"
                 >
                   Chủ Nhật
                 </div>
                 <div
-                  class="font-cormorant text-[16px] text-stone-custom-400"
+                  class="font-cormorant text-[17px] text-charcoal"
                   id="invite-time"
                 >
                   --:--
@@ -250,13 +289,13 @@
               <div class="w-px bg-gold-200"></div>
               <div class="flex flex-col items-center justify-center gap-1">
                 <div
-                  class="font-cormorant text-[56px] leading-none text-gold-400"
+                  class="font-cormorant text-[62px] leading-[0.85] text-gold-400"
                   id="invite-day"
                 >
                   --
                 </div>
                 <div
-                  class="font-inter text-[10px] tracking-[0.2em] uppercase text-stone-custom-400"
+                  class="font-cinzel text-[10px] tracking-[0.2em] uppercase text-stone-custom-400"
                   id="invite-month-year"
                 >
                   Tháng -- · ----
@@ -273,74 +312,81 @@
 
             <div
               id="ceremony-location-wrap"
-              class="hidden flex items-center gap-1.5 justify-center"
+              class="hidden flex items-center gap-2 justify-center"
             >
-              <i class="fas fa-location-dot text-gold-400 text-[10px]"></i>
+              <span class="text-gold-400 text-[8px]">✦</span>
               <span
-                id="ceremony-location-text"
                 class="font-inter text-[11px] text-stone-custom-400"
+                id="ceremony-location-text"
               ></span>
             </div>
 
             <!-- Đếm ngược -->
-            <div id="countdown-container" class="flex items-start gap-5">
+            <div id="countdown-container" class="flex items-start gap-6 mt-1">
               <div class="flex flex-col items-center gap-1">
                 <span
-                  class="font-cormorant text-[26px] leading-none text-charcoal"
+                  class="font-cormorant text-[28px] leading-none text-charcoal"
                   id="countdown-days"
                   >--</span
                 >
                 <span
-                  class="font-inter text-[9px] tracking-[0.2em] uppercase text-stone-custom-400"
+                  class="font-cinzel text-[9px] tracking-[0.2em] uppercase text-stone-custom-400"
                   >Ngày</span
                 >
               </div>
               <div class="flex flex-col items-center gap-1">
                 <span
-                  class="font-cormorant text-[26px] leading-none text-charcoal"
+                  class="font-cormorant text-[28px] leading-none text-charcoal"
                   id="countdown-hours"
                   >--</span
                 >
                 <span
-                  class="font-inter text-[9px] tracking-[0.2em] uppercase text-stone-custom-400"
+                  class="font-cinzel text-[9px] tracking-[0.2em] uppercase text-stone-custom-400"
                   >Giờ</span
                 >
               </div>
               <div class="flex flex-col items-center gap-1">
                 <span
-                  class="font-cormorant text-[26px] leading-none text-charcoal"
+                  class="font-cormorant text-[28px] leading-none text-charcoal"
                   id="countdown-minutes"
                   >--</span
                 >
                 <span
-                  class="font-inter text-[9px] tracking-[0.2em] uppercase text-stone-custom-400"
+                  class="font-cinzel text-[9px] tracking-[0.2em] uppercase text-stone-custom-400"
                   >Phút</span
                 >
               </div>
             </div>
 
-            <div id="mini-calendar" class="w-full max-w-[320px]"></div>
+            <div id="mini-calendar" class="w-full max-w-[310px] mt-1"></div>
           </div>
         </section>
 
         <!-- ── Trang 3 · Gia đình ── -->
         <section
           id="section-family"
-          class="cx-page basis-full shrink-0 snap-start h-full overflow-y-auto flex flex-col px-8 pt-12 pb-24"
+          class="cx-page basis-full shrink-0 snap-start h-full overflow-y-auto flex flex-col px-11 pt-16 pb-24"
         >
           <div
             class="w-full my-auto flex flex-col items-center gap-6 text-center"
           >
-            <div
-              class="font-cinzel text-[10px] tracking-[0.4em] uppercase text-gold-400"
-            >
-              Gia đình
+            <div class="flex items-center gap-3 w-full max-w-[250px]">
+              <div class="flex-1 h-px bg-gold-200"></div>
+              <span
+                class="font-cinzel text-[10px] tracking-[0.35em] uppercase text-gold-400"
+                >Gia đình</span
+              >
+              <div class="flex-1 h-px bg-gold-200"></div>
             </div>
-            <div class="w-full flex flex-col gap-5">
-              <!-- Nhà trai -->
-              <div class="flex gap-4 items-center text-left">
+
+            <!-- Nhà trai -->
+            <div class="w-full flex gap-4 items-center text-left">
+              <div class="relative shrink-0 w-[36%]">
                 <div
-                  class="w-[38%] aspect-[3/4] rounded-[80px_80px_8px_8px] overflow-hidden shrink-0 border border-gold-200"
+                  class="absolute -inset-[7px] rounded-t-full rounded-b-sm border border-gold-200"
+                ></div>
+                <div
+                  class="relative aspect-[3/4] rounded-t-full rounded-b-sm overflow-hidden border border-gold-300"
                 >
                   <img
                     src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%23f5f5f5'/%3E%3C/svg%3E"
@@ -349,43 +395,50 @@
                     class="w-full h-full object-cover"
                   />
                 </div>
-                <div class="flex flex-col gap-1.5 min-w-0">
-                  <div
-                    class="font-inter text-[9px] tracking-[0.25em] uppercase text-gold-400"
-                  >
-                    Nhà trai
-                  </div>
-                  <div
-                    class="font-allura text-[30px] leading-tight text-charcoal"
-                    id="groom-name-label"
-                  >
-                    ----------
-                  </div>
-                  <div class="font-inter text-[12px] text-stone-custom-400">
-                    Ông <span id="groom-father">--------------------</span>
-                  </div>
-                  <div class="font-inter text-[12px] text-stone-custom-400">
-                    Bà <span id="groom-mother">--------------------</span>
-                  </div>
-                  <div
-                    class="font-cormorant italic text-[12px] text-stone-custom-400"
-                    id="groom-address"
-                  >
-                    ----------------------------------------
-                  </div>
+              </div>
+              <div class="flex flex-col gap-1 min-w-0">
+                <div
+                  class="font-cinzel text-[9px] tracking-[0.3em] uppercase text-gold-400"
+                >
+                  Nhà trai
+                </div>
+                <div
+                  class="font-allura text-[34px] leading-none text-charcoal mb-1"
+                  id="groom-name-label"
+                >
+                  ----------
+                </div>
+                <div class="font-cormorant text-[14px] text-stone-custom-400">
+                  Ông <span id="groom-father">--------------------</span>
+                </div>
+                <div class="font-cormorant text-[14px] text-stone-custom-400">
+                  Bà <span id="groom-mother">--------------------</span>
+                </div>
+                <div
+                  class="font-cormorant italic text-[12px] text-stone-custom-400 leading-snug"
+                  id="groom-address"
+                >
+                  ----------------------------------------
                 </div>
               </div>
+            </div>
 
-              <div class="flex items-center gap-3">
-                <div class="flex-1 h-px bg-gold-200"></div>
-                <i class="fas fa-heart text-gold-300 text-[9px]"></i>
-                <div class="flex-1 h-px bg-gold-200"></div>
-              </div>
+            <div class="flex items-center gap-3 w-full">
+              <div class="flex-1 h-px bg-gold-200"></div>
+              <span class="text-gold-400 text-[8px]">✦</span>
+              <div class="flex-1 h-px bg-gold-200"></div>
+            </div>
 
-              <!-- Nhà gái -->
-              <div class="flex gap-4 items-center text-right flex-row-reverse">
+            <!-- Nhà gái -->
+            <div
+              class="w-full flex flex-row-reverse gap-4 items-center text-right"
+            >
+              <div class="relative shrink-0 w-[36%]">
                 <div
-                  class="w-[38%] aspect-[3/4] rounded-[80px_80px_8px_8px] overflow-hidden shrink-0 border border-gold-200"
+                  class="absolute -inset-[7px] rounded-t-full rounded-b-sm border border-gold-200"
+                ></div>
+                <div
+                  class="relative aspect-[3/4] rounded-t-full rounded-b-sm overflow-hidden border border-gold-300"
                 >
                   <img
                     src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%23f5f5f5'/%3E%3C/svg%3E"
@@ -394,30 +447,30 @@
                     class="w-full h-full object-cover"
                   />
                 </div>
-                <div class="flex flex-col gap-1.5 min-w-0">
-                  <div
-                    class="font-inter text-[9px] tracking-[0.25em] uppercase text-gold-400"
-                  >
-                    Nhà gái
-                  </div>
-                  <div
-                    class="font-allura text-[30px] leading-tight text-charcoal"
-                    id="bride-name-label"
-                  >
-                    ----------
-                  </div>
-                  <div class="font-inter text-[12px] text-stone-custom-400">
-                    Ông <span id="bride-father">--------------------</span>
-                  </div>
-                  <div class="font-inter text-[12px] text-stone-custom-400">
-                    Bà <span id="bride-mother">--------------------</span>
-                  </div>
-                  <div
-                    class="font-cormorant italic text-[12px] text-stone-custom-400"
-                    id="bride-address"
-                  >
-                    ----------------------------------------
-                  </div>
+              </div>
+              <div class="flex flex-col gap-1 min-w-0">
+                <div
+                  class="font-cinzel text-[9px] tracking-[0.3em] uppercase text-gold-400"
+                >
+                  Nhà gái
+                </div>
+                <div
+                  class="font-allura text-[34px] leading-none text-charcoal mb-1"
+                  id="bride-name-label"
+                >
+                  ----------
+                </div>
+                <div class="font-cormorant text-[14px] text-stone-custom-400">
+                  Ông <span id="bride-father">--------------------</span>
+                </div>
+                <div class="font-cormorant text-[14px] text-stone-custom-400">
+                  Bà <span id="bride-mother">--------------------</span>
+                </div>
+                <div
+                  class="font-cormorant italic text-[12px] text-stone-custom-400 leading-snug"
+                  id="bride-address"
+                >
+                  ----------------------------------------
                 </div>
               </div>
             </div>
@@ -427,22 +480,32 @@
         <!-- ── Trang 4 · Tiệc ── -->
         <section
           id="section-party"
-          class="cx-page basis-full shrink-0 snap-start h-full overflow-y-auto flex flex-col px-8 pt-12 pb-24"
+          class="cx-page basis-full shrink-0 snap-start h-full overflow-y-auto flex flex-col px-11 pt-16 pb-24"
         >
           <div
             class="w-full my-auto flex flex-col items-center gap-6 text-center"
           >
-            <div
-              class="font-cinzel text-[10px] tracking-[0.4em] uppercase text-gold-400"
-              id="party-section-label"
-            >
-              Tiệc mừng
+            <!-- Nhãn này dài theo tên lễ (vd "Tiệc mừng Lễ Thành Hôn") nên để
+                 rộng hết trang, không kẹp max-width như các nhãn chương khác. -->
+            <div class="flex items-center gap-3 w-full">
+              <div class="flex-1 h-px bg-gold-200"></div>
+              <span
+                class="font-cinzel text-[10px] tracking-[0.35em] uppercase text-gold-400 text-center"
+                id="party-section-label"
+                >Tiệc mừng</span
+              >
+              <div class="flex-1 h-px bg-gold-200"></div>
             </div>
+
             <div
-              class="w-full max-w-[320px] border border-gold-200 rounded-2xl px-7 py-8 flex flex-col gap-4 bg-gold-100/50"
+              class="w-full max-w-[300px] border border-gold-300 px-7 py-9 flex flex-col gap-3 relative"
             >
+              <span
+                class="absolute -top-[7px] left-1/2 -translate-x-1/2 bg-inherit px-2 text-gold-400 text-[9px] leading-none"
+                >✦</span
+              >
               <div
-                class="font-cormorant text-[26px] text-charcoal"
+                class="font-cormorant text-[30px] leading-tight text-charcoal"
                 id="party-datetime"
               >
                 --:-- - --.--.----
@@ -453,18 +516,17 @@
               >
                 (----)
               </div>
-              <div class="flex items-center gap-2 justify-center">
-                <i class="fas fa-location-dot text-gold-400 text-[11px]"></i>
-                <div
-                  class="font-inter text-[12px] text-stone-custom-400"
-                  id="party-location"
-                >
-                  ------------------------
-                </div>
+              <div class="w-16 h-px bg-gold-200 mx-auto my-1"></div>
+              <div
+                class="font-inter text-[12px] text-stone-custom-400 leading-relaxed"
+                id="party-location"
+              >
+                ------------------------
               </div>
             </div>
+
             <div
-              class="font-cormorant italic text-[14px] text-stone-custom-400 leading-relaxed max-w-[300px]"
+              class="font-cormorant italic text-[15px] text-stone-custom-400 leading-relaxed max-w-[290px]"
             >
               Sự hiện diện của quý khách là niềm vinh hạnh của gia đình chúng
               tôi
@@ -475,29 +537,34 @@
         <!-- ── Trang 5 · Bản đồ ── -->
         <section
           id="section-map"
-          class="cx-page basis-full shrink-0 snap-start h-full overflow-y-auto flex flex-col px-8 pt-12 pb-24"
+          class="cx-page basis-full shrink-0 snap-start h-full overflow-y-auto flex flex-col px-11 pt-16 pb-24"
         >
           <div
             class="w-full my-auto flex flex-col items-center gap-5 text-center"
           >
-            <div
-              class="font-cinzel text-[10px] tracking-[0.4em] uppercase text-gold-400"
-            >
-              Địa điểm
+            <div class="flex items-center gap-3 w-full max-w-[250px]">
+              <div class="flex-1 h-px bg-gold-200"></div>
+              <span
+                class="font-cinzel text-[10px] tracking-[0.35em] uppercase text-gold-400"
+                >Địa điểm</span
+              >
+              <div class="flex-1 h-px bg-gold-200"></div>
             </div>
+
             <div
-              class="font-cormorant text-[18px] text-charcoal"
+              class="font-cormorant text-[19px] leading-snug text-charcoal max-w-[290px]"
               id="map-location-name"
             >
               ------------------------
             </div>
+
             <a
               id="map-link"
               href="#"
               target="_blank"
-              class="w-full max-w-[340px] block overflow-hidden rounded-2xl border border-gold-200 active:scale-[0.98] transition-transform"
+              class="w-full max-w-[320px] block overflow-hidden border border-gold-300 active:scale-[0.99] transition-transform"
             >
-              <div class="w-full h-56 relative overflow-hidden">
+              <div class="w-full h-60 relative overflow-hidden">
                 <iframe
                   id="map-thumbnail-iframe"
                   src=""
@@ -511,25 +578,25 @@
                   id="map-placeholder"
                   class="hidden absolute inset-0 flex flex-col items-center justify-center gap-2 bg-gold-100"
                 >
-                  <i class="fas fa-map-location-dot text-gold-300 text-2xl"></i>
+                  <span class="text-gold-300 text-lg">✦</span>
                   <span
-                    class="font-inter text-[10px] tracking-[0.2em] uppercase text-stone-custom-400"
+                    class="font-cinzel text-[10px] tracking-[0.25em] uppercase text-stone-custom-400"
                   >
                     Chưa có bản đồ
                   </span>
                 </div>
               </div>
               <div
-                class="flex items-center justify-between px-4 py-3 bg-gold-100"
+                class="flex items-center justify-between px-4 py-3 border-t border-gold-200 bg-gold-100"
               >
                 <span
-                  class="font-inter text-[10px] tracking-[0.2em] uppercase text-stone-custom-400"
+                  class="font-cinzel text-[10px] tracking-[0.25em] uppercase text-stone-custom-400"
                   >Chỉ đường</span
                 >
-                <span class="flex items-center gap-1.5 text-gold-400">
-                  <span class="font-inter text-[11px]">Mở Maps</span>
-                  <i class="fas fa-chevron-right text-[10px]"></i>
-                </span>
+                <span
+                  class="font-cormorant text-[14px] text-gold-400 flex items-center gap-1.5"
+                  >Mở Maps <span class="text-[13px]">›</span></span
+                >
               </div>
             </a>
           </div>
@@ -538,13 +605,16 @@
         <!-- ── Trang 6 · Lịch trình ── -->
         <section
           id="section-timeline"
-          class="cx-page hidden basis-full shrink-0 snap-start h-full overflow-y-auto flex flex-col px-8 pt-12 pb-24"
+          class="cx-page hidden basis-full shrink-0 snap-start h-full overflow-y-auto flex flex-col px-11 pt-16 pb-24"
         >
           <div class="w-full my-auto flex flex-col items-center gap-6">
-            <div
-              class="font-cinzel text-[10px] tracking-[0.4em] uppercase text-gold-400 text-center"
-            >
-              Lịch trình
+            <div class="flex items-center gap-3 w-full max-w-[250px]">
+              <div class="flex-1 h-px bg-gold-200"></div>
+              <span
+                class="font-cinzel text-[10px] tracking-[0.35em] uppercase text-gold-400"
+                >Lịch trình</span
+              >
+              <div class="flex-1 h-px bg-gold-200"></div>
             </div>
             <div id="timeline-list-render" class="w-full flex flex-col"></div>
           </div>
@@ -553,23 +623,26 @@
         <!-- ── Trang 7 · Chuyện tình yêu ── -->
         <section
           id="love-story"
-          class="cx-page basis-full shrink-0 snap-start h-full overflow-y-auto flex flex-col px-8 pt-12 pb-24"
+          class="cx-page basis-full shrink-0 snap-start h-full overflow-y-auto flex flex-col px-11 pt-16 pb-24"
         >
           <div class="w-full my-auto flex flex-col items-center gap-6">
-            <div
-              class="font-cinzel text-[10px] tracking-[0.4em] uppercase text-gold-400 text-center"
-            >
-              Chuyện chúng mình
+            <div class="flex items-center gap-3 w-full max-w-[250px]">
+              <div class="flex-1 h-px bg-gold-200"></div>
+              <span
+                class="font-cinzel text-[10px] tracking-[0.35em] uppercase text-gold-400"
+                >Chuyện chúng mình</span
+              >
+              <div class="flex-1 h-px bg-gold-200"></div>
             </div>
             <div
               id="story-quote"
-              class="font-cormorant italic text-[16px] text-stone-custom-400 leading-relaxed text-center max-w-[320px]"
+              class="font-cormorant italic text-[17px] text-stone-custom-400 leading-relaxed text-center max-w-[300px]"
             >
               "Một hành trình mới bắt đầu từ hôm nay"
             </div>
             <div
               id="love-story-list"
-              class="w-full flex flex-col border-l border-gold-200 ml-[5px]"
+              class="w-full flex flex-col border-l border-gold-200 ml-1"
             ></div>
           </div>
         </section>
@@ -577,40 +650,56 @@
         <!-- ── Trang 8 · Album ── -->
         <section
           id="section-photos"
-          class="cx-page basis-full shrink-0 snap-start h-full overflow-y-auto flex flex-col px-8 pt-12 pb-24"
+          class="cx-page basis-full shrink-0 snap-start h-full overflow-y-auto flex flex-col px-11 pt-16 pb-24"
         >
           <div class="w-full my-auto flex flex-col items-center gap-6">
-            <div
-              class="font-cinzel text-[10px] tracking-[0.4em] uppercase text-gold-400 text-center"
-            >
-              Album
+            <div class="flex items-center gap-3 w-full max-w-[250px]">
+              <div class="flex-1 h-px bg-gold-200"></div>
+              <span
+                class="font-cinzel text-[10px] tracking-[0.35em] uppercase text-gold-400"
+                >Album</span
+              >
+              <div class="flex-1 h-px bg-gold-200"></div>
             </div>
-            <div id="gallery-grid" class="w-full grid grid-cols-2 gap-3"></div>
+            <div
+              id="gallery-grid"
+              class="w-full grid grid-cols-2 gap-2.5"
+            ></div>
           </div>
         </section>
 
         <!-- ── Trang 9 · Mừng cưới ── -->
         <section
           id="section-gift"
-          class="cx-page basis-full shrink-0 snap-start h-full overflow-y-auto flex flex-col px-8 pt-12 pb-24"
+          class="cx-page basis-full shrink-0 snap-start h-full overflow-y-auto flex flex-col px-11 pt-16 pb-24"
         >
           <div
             class="w-full my-auto flex flex-col items-center gap-6 text-center"
           >
-            <div
-              class="font-cinzel text-[10px] tracking-[0.4em] uppercase text-gold-400"
-            >
-              Mừng cưới
+            <div class="flex items-center gap-3 w-full max-w-[250px]">
+              <div class="flex-1 h-px bg-gold-200"></div>
+              <span
+                class="font-cinzel text-[10px] tracking-[0.35em] uppercase text-gold-400"
+                >Mừng cưới</span
+              >
+              <div class="flex-1 h-px bg-gold-200"></div>
             </div>
-            <div class="grid grid-cols-2 gap-4 w-full max-w-[360px]">
+
+            <div class="grid grid-cols-2 gap-4 w-full">
               <!-- Chú rể -->
               <div class="flex flex-col gap-2 items-center">
-                <div class="font-inter text-[10px] text-stone-custom-400">
-                  Chú rể · <span id="groom-bank-label">----------</span>
+                <div
+                  class="font-cinzel text-[9px] tracking-[0.2em] uppercase text-gold-400"
+                >
+                  Chú rể
                 </div>
                 <div
-                  class="w-full max-w-[160px] p-2.5 bg-sage-50 border border-gold-200 rounded-xl"
+                  class="font-cormorant text-[16px] text-charcoal"
+                  id="groom-bank-label"
                 >
+                  ----------
+                </div>
+                <div class="w-full p-2 border border-gold-300 bg-white">
                   <img
                     src=""
                     id="groom-qr-img"
@@ -632,7 +721,7 @@
                     ------------
                   </div>
                   <div
-                    class="font-inter text-[11px] font-semibold text-stone-custom-400"
+                    class="font-inter text-[11px] text-stone-custom-400"
                     id="groom-bank-owner"
                   >
                     --------------------
@@ -641,20 +730,25 @@
                 <x-button
                   variant="bare"
                   onclick="saveQR('groom-qr-img')"
-                  class="gap-2 px-4 py-2 border border-gold-200 font-inter text-[11px] text-stone-custom-400 active:bg-gold-100 transition-colors"
+                  class="px-5 py-2 border border-gold-300 font-cinzel text-[9px] tracking-[0.2em] uppercase text-stone-custom-400 active:bg-gold-100 transition-colors"
                 >
-                  <i class="fas fa-download text-gold-400 text-[10px]"></i>
                   Lưu QR
                 </x-button>
               </div>
               <!-- Cô dâu -->
               <div class="flex flex-col gap-2 items-center">
-                <div class="font-inter text-[10px] text-stone-custom-400">
-                  Cô dâu · <span id="bride-bank-label">----------</span>
+                <div
+                  class="font-cinzel text-[9px] tracking-[0.2em] uppercase text-gold-400"
+                >
+                  Cô dâu
                 </div>
                 <div
-                  class="w-full max-w-[160px] p-2.5 bg-sage-50 border border-gold-200 rounded-xl"
+                  class="font-cormorant text-[16px] text-charcoal"
+                  id="bride-bank-label"
                 >
+                  ----------
+                </div>
+                <div class="w-full p-2 border border-gold-300 bg-white">
                   <img
                     src=""
                     id="bride-qr-img"
@@ -676,7 +770,7 @@
                     ------------
                   </div>
                   <div
-                    class="font-inter text-[11px] font-semibold text-stone-custom-400"
+                    class="font-inter text-[11px] text-stone-custom-400"
                     id="bride-bank-owner"
                   >
                     --------------------
@@ -685,9 +779,8 @@
                 <x-button
                   variant="bare"
                   onclick="saveQR('bride-qr-img')"
-                  class="gap-2 px-4 py-2 border border-gold-200 font-inter text-[11px] text-stone-custom-400 active:bg-gold-100 transition-colors"
+                  class="px-5 py-2 border border-gold-300 font-cinzel text-[9px] tracking-[0.2em] uppercase text-stone-custom-400 active:bg-gold-100 transition-colors"
                 >
-                  <i class="fas fa-download text-gold-400 text-[10px]"></i>
                   Lưu QR
                 </x-button>
               </div>
@@ -698,19 +791,24 @@
         <!-- ── Trang 10 · Cảm ơn & xác nhận tham dự ── -->
         <section
           id="section-footer"
-          class="cx-page basis-full shrink-0 snap-start h-full overflow-y-auto flex flex-col px-8 pt-12 pb-24"
+          class="cx-page basis-full shrink-0 snap-start h-full overflow-y-auto flex flex-col px-11 pt-16 pb-24"
         >
           <div
             class="w-full my-auto flex flex-col items-center gap-6 text-center"
           >
             <div
-              class="w-16 h-16 rounded-full border border-gold-300 flex items-center justify-center"
+              class="flex items-center gap-3 font-cinzel text-[13px] tracking-[0.3em] text-gold-400"
             >
-              <i class="fas fa-heart text-gold-400 text-base"></i>
+              <span class="w-8 h-px bg-gold-200"></span>
+              <span id="footer-monogram-groom">A</span>
+              <span class="text-[8px]">✦</span>
+              <span id="footer-monogram-bride">B</span>
+              <span class="w-8 h-px bg-gold-200"></span>
             </div>
+
             <div
               id="footer-text"
-              class="font-cormorant italic text-[16px] text-stone-custom-400 leading-relaxed max-w-[320px]"
+              class="font-cormorant italic text-[17px] text-stone-custom-400 leading-relaxed max-w-[300px]"
             >
               Cảm ơn bạn đã dành thời gian đến chung vui cùng chúng tôi
             </div>
@@ -718,7 +816,7 @@
             <!-- Xác nhận tham dự -->
             <div
               id="rsvp-section"
-              class="w-full max-w-[320px] flex-col gap-4"
+              class="w-full max-w-[300px] flex-col gap-4"
               style="display: none"
             >
               <div class="flex items-center gap-3">
@@ -738,11 +836,11 @@
                   variant="bare"
                   onclick="confirmAttend(true)"
                   id="btn-attend"
-                  class="flex-col gap-2 py-4 border border-gold-200 bg-gold-100/60 active:scale-95 transition-all duration-200"
+                  class="flex-col gap-1.5 py-4 border border-gold-300 active:scale-95 transition-all duration-200"
                 >
-                  <i class="fas fa-circle-check text-gold-400 text-xl"></i>
+                  <span class="text-gold-400 text-lg leading-none">✓</span>
                   <span
-                    class="font-cormorant italic text-[15px] text-stone-custom-400"
+                    class="font-cinzel text-[9px] tracking-[0.2em] uppercase text-stone-custom-400"
                     >Tham dự</span
                   >
                 </x-button>
@@ -750,13 +848,13 @@
                   variant="bare"
                   onclick="confirmAttend(false)"
                   id="btn-decline"
-                  class="flex-col gap-2 py-4 border border-gold-200 bg-gold-100/60 active:scale-95 transition-all duration-200"
+                  class="flex-col gap-1.5 py-4 border border-gold-200 active:scale-95 transition-all duration-200"
                 >
-                  <i
-                    class="fas fa-circle-xmark text-stone-custom-400 text-xl"
-                  ></i>
+                  <span class="text-stone-custom-400 text-lg leading-none"
+                    >✕</span
+                  >
                   <span
-                    class="font-cormorant italic text-[15px] text-stone-custom-400"
+                    class="font-cinzel text-[9px] tracking-[0.2em] uppercase text-stone-custom-400"
                     >Không tham dự</span
                   >
                 </x-button>
@@ -770,10 +868,22 @@
         </section>
       </div>
 
-      <!-- Điều hướng trang: chấm + số trang ở đáy, mũi tên hai bên (từ sm) -->
+      <!-- Khung viền in: nằm TRÊN dải trang nên đứng yên khi lật -->
+      <div
+        class="pointer-events-none absolute inset-4 z-20 border border-gold-300"
+      ></div>
+      <div
+        class="pointer-events-none absolute inset-[23px] z-20 border border-gold-200"
+      ></div>
+      <span
+        class="pointer-events-none absolute z-20 left-1/2 top-4 -translate-x-1/2 -translate-y-1/2 bg-inherit px-2.5 text-gold-400 text-[10px] leading-none"
+        >✦</span
+      >
+
+      <!-- Số trang kiểu sách + chấm trang -->
       <div
         id="cx-pager-ui"
-        class="pointer-events-none absolute inset-x-0 bottom-0 z-30 flex items-center justify-center gap-3 px-6 pb-4 pt-10 bg-gradient-to-t from-sage-50 via-sage-50/85 to-transparent"
+        class="pointer-events-none absolute inset-x-[24px] bottom-[24px] z-30 flex flex-col items-center gap-2 bg-inherit pb-3 pt-3"
       >
         <div
           id="cx-dots"
@@ -781,26 +891,27 @@
         ></div>
         <div
           id="cx-page-num"
-          class="font-inter text-[10px] tracking-[0.18em] text-stone-custom-400 tabular-nums"
+          class="font-cinzel text-[10px] tracking-[0.3em] text-stone-custom-400"
         >
-          1 / 1
+          — 01 —
         </div>
       </div>
+
       <x-button
         variant="bare"
         id="cx-nav-prev"
         onclick="cxPagerStep(-1)"
-        class="hidden sm:flex absolute left-2 top-1/2 -translate-y-1/2 z-30 w-9 h-9 border border-gold-200 bg-sage-50/80 disabled:opacity-0 transition-opacity"
+        class="hidden sm:flex absolute left-9 top-1/2 -translate-y-1/2 z-30 w-9 h-9 border border-gold-200 bg-inherit font-cormorant text-xl leading-none text-gold-400 disabled:opacity-0 transition-opacity"
       >
-        <i class="fas fa-chevron-left text-gold-400 text-xs"></i>
+        ‹
       </x-button>
       <x-button
         variant="bare"
         id="cx-nav-next"
         onclick="cxPagerStep(1)"
-        class="hidden sm:flex absolute right-2 top-1/2 -translate-y-1/2 z-30 w-9 h-9 border border-gold-200 bg-sage-50/80 disabled:opacity-0 transition-opacity"
+        class="hidden sm:flex absolute right-9 top-1/2 -translate-y-1/2 z-30 w-9 h-9 border border-gold-200 bg-inherit font-cormorant text-xl leading-none text-gold-400 disabled:opacity-0 transition-opacity"
       >
-        <i class="fas fa-chevron-right text-gold-400 text-xs"></i>
+        ›
       </x-button>
     </div>
 
@@ -812,9 +923,9 @@
       <x-button
         variant="bare"
         onclick="closeLightbox()"
-        class="absolute top-6 right-6 w-10 h-10 bg-white/10 z-10"
+        class="absolute top-6 right-6 w-10 h-10 bg-white/10 z-10 text-white text-lg leading-none"
       >
-        <i class="fas fa-times text-white text-lg"></i>
+        ✕
       </x-button>
       <div
         id="lb-counter"
@@ -825,22 +936,22 @@
           id="lb-img"
           src=""
           alt=""
-          class="max-w-full max-h-full object-contain rounded-xl transition-opacity duration-200"
+          class="max-w-full max-h-full object-contain transition-opacity duration-200"
         />
       </div>
       <x-button
         variant="bare"
         onclick="lightboxPrev()"
-        class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/10"
+        class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/10 font-cormorant text-2xl leading-none text-white"
       >
-        <i class="fas fa-chevron-left text-white"></i>
+        ‹
       </x-button>
       <x-button
         variant="bare"
         onclick="lightboxNext()"
-        class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/10"
+        class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/10 font-cormorant text-2xl leading-none text-white"
       >
-        <i class="fas fa-chevron-right text-white"></i>
+        ›
       </x-button>
     </div>
 
