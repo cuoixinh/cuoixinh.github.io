@@ -88,7 +88,7 @@ function createPlaceholderSVG(text = "Chưa có ảnh") {
         <circle cx="0" cy="4" r="12" fill="#f0f0f0"/>
         <circle cx="22" cy="-10" r="3" fill="#e0e0e0"/>
       </g>
-      <text x="200" y="250" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" fill="#c0c0c0" font-weight="300" letter-spacing="0.5">No Photo Available</text>
+      <text x="200" y="250" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" fill="#c0c0c0" font-weight="300" letter-spacing="0.5">${escapeHtml(text)}</text>
     </svg>
   `;
   return "data:image/svg+xml," + encodeURIComponent(svg);

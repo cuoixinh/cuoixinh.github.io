@@ -105,6 +105,12 @@ function applyThemeSampleContent(w, sample) {
 }
 
 async function loadPreviewData() {
+  // Ảnh mặc định khi theme CHƯA có bộ dữ liệu mẫu (assets/data-template/<theme>/):
+  // khung xám có chữ do core/utils.js dựng, dạng data: URI nên getImageUrl() giữ
+  // nguyên. ĐỪNG trỏ vào file ảnh trong repo — mẫu mới nào cũng sẽ ra ảnh vỡ.
+  const ph = (label) =>
+    typeof createPlaceholderSVG === "function" ? createPlaceholderSVG(label) : "";
+
   const w = {
     is_active: true,
 
@@ -121,17 +127,10 @@ async function loadPreviewData() {
     bride_address: "Tân Trường, Mao Điền, Hải Phòng",
 
     // --- Ảnh ---
-    cover_image_url: "../../../assets/images/example0.jpg",
-    groom_image_url: "../../../assets/images/chure.jpg",
-    bride_image_url: "../../../assets/images/codau.jpg",
-    gallery_images: [
-      "../../../assets/images/example3.jpg",
-      "../../../assets/images/example4.jpg",
-      "../../../assets/images/example5.jpg",
-      "../../../assets/images/example6.jpg",
-      "../../../assets/images/example7.jpg",
-      "../../../assets/images/example8.jpg",
-    ],
+    cover_image_url: ph("Ảnh bìa"),
+    groom_image_url: ph("Ảnh chú rể"),
+    bride_image_url: ph("Ảnh cô dâu"),
+    gallery_images: Array.from({ length: 6 }, (_, i) => ph(`Ảnh ${i + 1}`)),
     image_focal_points: {},
 
     // --- Lễ thành hôn ---
@@ -196,28 +195,28 @@ async function loadPreviewData() {
         title: "Lần đầu gặp nhau",
         content:
           "Chúng mình gặp nhau lần đầu tại một buổi tiệc của bạn chung. Ánh mắt đầu tiên đó mãi không quên.",
-        image_url: "../../../assets/images/example1.jpg",
+        image_url: ph("Ảnh kỷ niệm"),
       },
       {
         date: "08/2019",
         title: "Chính thức hẹn hò",
         content:
           'Sau nhiều lần cà phê, anh đã dũng cảm hỏi: "Em có muốn làm bạn gái anh không?"',
-        image_url: "../../../assets/images/example2.jpg",
+        image_url: ph("Ảnh kỷ niệm"),
       },
       {
         date: "12/2022",
         title: "Cầu hôn",
         content:
           "Dưới bầu trời đêm đầy sao tại Đà Lạt, anh quỳ xuống và trao cho em chiếc nhẫn nhỏ xinh cùng câu hỏi quan trọng nhất đời.",
-        image_url: "../../../assets/images/example3.jpg",
+        image_url: ph("Ảnh kỷ niệm"),
       },
       {
         date: "2025",
         title: "Về chung một nhà",
         content:
           "Hành trình mới bắt đầu — cùng nhau viết tiếp những trang đẹp nhất của cuộc đời.",
-        image_url: "../../../assets/images/example4.jpg",
+        image_url: ph("Ảnh kỷ niệm"),
       },
     ],
 
@@ -225,11 +224,11 @@ async function loadPreviewData() {
     groom_bank_name: "Vietcombank",
     groom_bank_number: "0123456789",
     groom_bank_owner: "DOAN QUANG VINH",
-    groom_qr_url: "../../../assets/images/qr-chu-re.png",
+    groom_qr_url: ph("QR chú rể"),
     bride_bank_name: "Techcombank",
     bride_bank_number: "0987654321",
     bride_bank_owner: "VUONG THI HAI YEN",
-    bride_qr_url: "../../../assets/images/qr-co-dau.png",
+    bride_qr_url: ph("QR cô dâu"),
 
     // --- RSVP ---
     rsvp_enabled: true,
