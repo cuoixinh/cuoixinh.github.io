@@ -8,6 +8,7 @@
    Các @import phải nằm ngay đầu file (xem styles/_base.css). */
 
 @import "./_base.css";
+@import "./_fonts.css";
 @import "./_common.css";
 
 /* Trình phát nhạc: bảng "Thành phần" ở invitation-setup dựng widget THẬT

@@ -122,24 +122,7 @@
   }
 }
 
-/* ── Font tự host ────────────────────────────────────────────────────────── */
-
-/* Đường dẫn tính từ styles/build.css và styles/themes.css (cùng nằm trong
-   styles/) nên ../assets/... vẫn đúng như common.css cũ. */
-
-@font-face {
-  font-family: "TheNautigal";
-  src: url("../assets/fonts/TheNautigal-Regular.ttf") format("truetype");
-  font-weight: normal;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: "KattyDiona";
-  src: url("../assets/fonts/katty-diona.woff2") format("woff2");
-  font-weight: normal;
-  font-style: normal;
-}
+/* Font tự host khai tập trung ở styles/_fonts.css. */
 
 /* Radial gradient for photo glow effect */
 

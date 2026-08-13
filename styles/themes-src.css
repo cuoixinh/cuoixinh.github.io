@@ -5,6 +5,7 @@
    Xem thứ tự @import trong styles/_base.css. */
 
 @import "./_base.css";
+@import "./_fonts.css";
 @import "./_common.css";
 @import "./_music-player.css";
 

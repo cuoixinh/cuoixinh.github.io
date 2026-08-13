@@ -66,6 +66,10 @@ Không gọi thẳng UI → DAL khi có logic nghiệp vụ.
 - **Không ghép tên class từ chuỗi** (`` `bg-${c}` ``) — purge quét văn bản thô.
 - CSS thủ công để ở `styles/_*.css` **top-level, không bọc `@layer`** (bị purge). `@import`
   chỉ chạy khi nằm đầu file. `@keyframes` đặt tên có tiền tố `cx-`.
+- **Font tự host khai TẬP TRUNG ở `styles/_fonts.css`** (vào cả hai bản build) — thêm font
+  chỉ bỏ file vào `assets/fonts/` rồi thêm một khối `@font-face`, tên họ = tên file viết hoa
+  đầu từ (`moon-light.woff2` → `MoonLight`). Khai thừa không tốn gì: trình duyệt chỉ tải font
+  được dùng tới.
 - **Tránh `:not()` và `@apply hidden`** trong CSS thủ công: cssnano gộp/tráo đối số `:not()`
   thành rule rác LUÔN KHỚP (bản build khác hẳn bản nguồn, soi `styles/build.css` mới thấy).
   Cần loại trừ thì cho JS đặt một cờ class rồi nhắm theo cờ đó.
@@ -194,6 +198,10 @@ GitHub Pages chạy Jekyll nên đường dẫn kiểu đó không được publ
   khoá được sửa text trực tiếp.
 - Luồng: `applyThemeSetting` → `renderWedding` → `applyTextOverrides` → `applyCustomBlocks`
   → `applyElements` (theme chỉ cần cung cấp `renderWedding`).
+- Chữ trang trí (chữ ký, chữ lồng) nên dùng **font tự host** khai ở `styles/_fonts.css`, và
+  **để ngoài `CX_THEME.selectors`**: bảng chọn font ở tab Giao diện chỉ có font Google, đổi
+  xong khách không quay lại được font tự host. Phần chữ ĐỌC (`.cx-h`/`.cx-t`) thì ngược lại —
+  đặt mặc định bằng font có trong bảng chọn để `preset` khai đúng sự thật.
 - Muốn dùng **utility Tailwind mới** (font/màu chưa có) thì mới phải đụng
   `tailwind.themes.config.js` + `styles/_colors.css` — cách tránh: viết CSS thuần trong
   `theme.css`.

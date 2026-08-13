@@ -1,0 +1,178 @@
+/* Bảng màu + CSS riêng của ROMANTIC GOLD — sage + vàng đồng.
+   CSS THUẦN, không qua Tailwind build (nạp bằng <link> sau styles/themes.css).
+
+   Ba lớp ngữ nghĩa .cx-h / .cx-t / .cx-a là thứ CX_THEME.selectors nhắm tới →
+   khách đổi font/màu ở tab Giao diện là cả thiệp đổi theo. Lớp .rg-* là phần
+   trang trí riêng của mẫu, KHÔNG đi theo thanh chỉnh (chữ trên ảnh poster phải
+   luôn sáng màu, không được đổi thành màu sẫm). */
+
+:root {
+  --cx-accent-rgb: 168 153 104; /* vàng đồng — ngày cưới, chấm mốc, icon */
+  --cx-on-accent-rgb: 255 255 255;
+  --cx-heading-rgb: 45 52 54; /* than chì */
+  --cx-body-rgb: 138 154 138; /* sage */
+  --cx-line-rgb: 209 216 209;
+  --cx-surface-rgb: 246 247 246;
+  --cx-cover-rgb: 246 247 246;
+  --cx-cover-mid-rgb: 232 235 232;
+
+  --rg-card-bg-rgb: 255 255 255; /* nền thân thiệp */
+  --rg-band-rgb: 246 247 246; /* dải nền xen kẽ giữa các mục */
+  --rg-gold-light-rgb: 232 220 200; /* vàng nhạt cho chữ trên ảnh */
+}
+
+body {
+  background-color: rgb(var(--cx-surface-rgb));
+}
+
+#main-card {
+  background-color: rgb(var(--rg-card-bg-rgb));
+}
+
+/* ── Ba lớp ngữ nghĩa ──────────────────────────────────────────────────────
+   .cx-h và .cx-t đặt CẢ font-family → đừng gắn lên thẻ <i> của Font Awesome,
+   icon sẽ mất glyph. Tô màu icon thì dùng .cx-ac / .cx-bd (chỉ có color, khai
+   ở styles/_common.css). */
+
+.cx-h {
+  font-family: "Cormorant Garamond", serif;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+.cx-t {
+  font-family: "Inter", sans-serif;
+  color: rgb(var(--cx-body-rgb));
+}
+
+.cx-a {
+  color: rgb(var(--cx-accent-rgb));
+}
+
+.cx-border {
+  border-color: rgb(var(--cx-line-rgb));
+}
+
+.cx-bg-line {
+  background-color: rgb(var(--cx-line-rgb));
+}
+
+.cx-bg-surface {
+  background-color: rgb(var(--cx-surface-rgb));
+}
+
+/* ── Chữ trang trí riêng của mẫu ───────────────────────────────────────────
+   Hai lớp này CỐ Ý không nằm trong CX_THEME.selectors: chúng là nét nhận dạng
+   của mẫu, không đi theo font khách chọn ở tab Giao diện (bảng chọn chỉ có font
+   Google, đổi xong không quay lại được font tự host).
+
+   Font tự host khai tập trung ở styles/_fonts.css (thêm font mới sửa file đó),
+   ở đây chỉ việc gọi tên họ. */
+
+/* Chữ viết tay: "We got married", tên cô dâu chú rể, "Thank You". */
+
+.rg-script {
+  font-family: "KattyDiona", cursive;
+}
+
+/* Serif tương phản cao (Didone): "Welcome to our wedding", chữ lồng tên viết
+   tắt, các con số lớn (ngày cưới, đếm ngược). */
+
+.rg-display {
+  font-family: "MoonLight", serif;
+}
+
+/* ── Màn bìa dạng poster ───────────────────────────────────────────────────
+   Ảnh tràn kín khung, chữ đè lên. Hai đầu tối lại để chữ trắng đọc được trên
+   ảnh sáng; đổi ảnh khác không phải chỉnh gì. */
+
+.rg-scrim {
+  background: linear-gradient(
+    180deg,
+    rgb(0 0 0 / 0.45) 0%,
+    rgb(0 0 0 / 0.1) 30%,
+    rgb(0 0 0 / 0.18) 60%,
+    rgb(0 0 0 / 0.6) 100%
+  );
+}
+
+.rg-on {
+  color: rgb(255 255 255);
+  text-shadow: 0 1px 12px rgb(0 0 0 / 0.35);
+}
+
+/* Chữ viết tay nét mảnh trên ảnh sáng dễ mất hút → bóng đậm hơn .rg-on. */
+
+.rg-gold {
+  color: rgb(var(--rg-gold-light-rgb));
+  text-shadow: 0 1px 10px rgb(0 0 0 / 0.55);
+}
+
+/* ── Thân thiệp ───────────────────────────────────────────────────────────
+   Các mục xen kẽ nền trắng / nền sage cho đỡ phẳng khi cuộn dài. */
+
+.rg-band {
+  background-color: rgb(var(--rg-band-rgb));
+}
+
+.rg-card {
+  border: 1px solid rgb(var(--cx-line-rgb));
+  border-radius: 16px;
+  background-color: rgb(255 255 255 / 0.7);
+  padding: 16px;
+}
+
+/* Tiêu đề mục: chữ hoa giãn nét, kèm hai vạch vàng hai bên. */
+
+/* Không khai font ở đây: thẻ tiêu đề mang sẵn .cx-h, để một nguồn font duy nhất
+   thì khách đổi font tiêu đề là các mục đổi theo. */
+
+.rg-title {
+  font-size: 22px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.rg-title::before,
+.rg-title::after {
+  content: "";
+  width: 36px;
+  height: 1px;
+  background: rgb(var(--cx-accent-rgb) / 0.6);
+}
+
+/* Vạch ngăn kèm hạt kim cương nhỏ ở giữa */
+
+.rg-rule {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.rg-rule::before,
+.rg-rule::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: rgb(var(--cx-line-rgb));
+}
+
+/* Chữ lồng tên viết tắt trong vòng tròn mảnh */
+
+.rg-monogram {
+  width: 92px;
+  height: 92px;
+  border: 1px solid rgb(var(--cx-accent-rgb) / 0.55);
+  border-radius: 9999px;
+}
+
+/* Ảnh đầu tiên của album chiếm cả hàng cho có nhịp */
+
+.rg-photo-wide {
+  grid-column: span 2;
+  aspect-ratio: 4 / 3;
+}

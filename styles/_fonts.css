@@ -1,0 +1,154 @@
+/* NƠI DUY NHẤT khai @font-face cho font tự host (assets/fonts/).
+   @import vào cả hai bản build nên mọi trang — thiệp lẫn ứng dụng — đều gọi được
+   font ở đây bằng đúng tên họ ghi bên dưới, không phải khai lại trong theme.css.
+
+   Thêm font mới:
+     1. Bỏ file .woff2 vào assets/fonts/
+     2. Thêm một khối @font-face ở đây, tên họ = tên file viết hoa đầu từ
+        (moon-light.woff2 → "MoonLight")
+     3. npm run build
+
+   Khai ở đây KHÔNG làm trang nặng thêm: trình duyệt chỉ tải font nào thực sự
+   được dùng tới.
+
+   Tất cả font dưới đây đã kiểm: hiển thị đủ dấu tiếng Việt. Hai lưu ý:
+     · GillaStone mất dấu khi viết HOA (NHÀ TRAI → NHA TRAI) — đừng dùng cho
+       nhãn in hoa.
+     · MadamGhea thiếu một số ký tự (dấu &…), phần thiếu rơi về serif hệ thống. */
+
+/* ── Chữ viết tay / thư pháp ─────────────────────────────────────────────── */
+
+@font-face {
+  font-family: "KattyDiona";
+  src: url("../assets/fonts/katty-diona.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "TheNautigal";
+  src: url("../assets/fonts/TheNautigal-Regular.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "PerfectBeloved";
+  src: url("../assets/fonts/perfect-beloved.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "FaugllinBalseyn";
+  src: url("../assets/fonts/faugllin-balseyn.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "BethanWhite";
+  src: url("../assets/fonts/bethanwhite.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "GillaStone";
+  src: url("../assets/fonts/gillastone.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "TheHamstter";
+  src: url("../assets/fonts/the-hamstter.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "OctetStream";
+  src: url("../assets/fonts/octet-stream.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ── Serif trang trí / tiêu đề ───────────────────────────────────────────── */
+
+@font-face {
+  font-family: "MoonLight";
+  src: url("../assets/fonts/moon-light.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "BelindaAvenue";
+  src: url("../assets/fonts/belinda-avenue.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Mallong";
+  src: url("../assets/fonts/mallong.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Signora";
+  src: url("../assets/fonts/signora.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "SoulNoteDisplay";
+  src: url("../assets/fonts/soul-note-display.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "MadamGhea";
+  src: url("../assets/fonts/madam-ghea.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "FzQellia";
+  src: url("../assets/fonts/Fz_Qellia_Fix.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ── Sans cho nội dung ───────────────────────────────────────────────────── */
+
+/* Trùng tên với font Google cùng tên trong bảng chọn ở tab Giao diện — cố ý:
+   khách chọn "Quicksand" thì bản tự host này phục vụ luôn, khỏi chờ mạng. */
+
+@font-face {
+  font-family: "Quicksand";
+  src: url("../assets/fonts/quicksand.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
