@@ -7,6 +7,41 @@
 
 /* Token màu (--primary, --text-*, --btn-*…) khai ở styles/_colors.css. */
 
+/* ── Bảng màu của THIỆP ──────────────────────────────────────────────────
+   Bộ biến duy nhất mà phần dùng chung (lịch nhỏ, dòng thời gian, màn bìa,
+   nút xác nhận tham dự…) vẽ theo. Mỗi theme ghi đè trong
+   public/themes/<theme>/theme.css — helper không được nhắc tên màu của một
+   theme cụ thể nữa. Giá trị dưới đây là mặc định (tông của basic-gold), theme
+   quên khai thì vẫn ra thiệp tử tế.
+   Viết dạng bộ ba RGB để còn dùng được alpha: rgb(var(--cx-accent-rgb)/0.2). */
+
+:root {
+  --cx-accent-rgb: var(--card-blush-300-rgb); /* nhấn: chấm mốc, ngày cưới, icon */
+  --cx-on-accent-rgb: var(--white-rgb); /* chữ nằm TRÊN nền nhấn */
+  --cx-heading-rgb: var(--card-stone-500-rgb);
+  --cx-body-rgb: var(--card-stone-400-rgb);
+  --cx-line-rgb: var(--card-blush-100-rgb); /* vạch dọc, viền mảnh */
+  --cx-surface-rgb: var(--card-cream-50-rgb); /* nền phụ của ô nhỏ */
+  --cx-cover-rgb: var(--card-cream-50-rgb); /* nền màn bìa: hai đầu dải */
+  --cx-cover-mid-rgb: var(--cover-bg-mid-rgb); /* …và điểm giữa */
+}
+
+/* Lớp NGỮ NGHĨA cho markup do helper dùng chung sinh ra (dòng thời gian, chuyện
+   tình yêu…): helper không biết theme đặt tên class là gì, nên dùng ba lớp này.
+   Theme khai chúng trong CX_THEME.selectors để thanh chỉnh màu với tới được. */
+
+.cx-hd {
+  color: rgb(var(--cx-heading-rgb));
+}
+
+.cx-bd {
+  color: rgb(var(--cx-body-rgb));
+}
+
+.cx-ac {
+  color: rgb(var(--cx-accent-rgb));
+}
+
 /* ── Nút hành động dùng chung ──────────────────────────────────────────── */
 
 .btn-pink {
@@ -244,13 +279,13 @@
 
   background: linear-gradient(
     90deg,
-    rgb(var(--neutral-warm-rgb)) 0%,
-    rgb(var(--neutral-warm-rgb)) 35%,
-    rgb(var(--card-blush-300-rgb)) 45%,
-    rgb(var(--card-blush-100-rgb)) 50%,
-    rgb(var(--card-blush-300-rgb)) 55%,
-    rgb(var(--neutral-warm-rgb)) 65%,
-    rgb(var(--neutral-warm-rgb)) 100%
+    rgb(var(--cx-body-rgb)) 0%,
+    rgb(var(--cx-body-rgb)) 35%,
+    rgb(var(--cx-accent-rgb)) 45%,
+    rgb(var(--cx-line-rgb)) 50%,
+    rgb(var(--cx-accent-rgb)) 55%,
+    rgb(var(--cx-body-rgb)) 65%,
+    rgb(var(--cx-body-rgb)) 100%
   );
   background-size: 200% auto;
   -webkit-background-clip: text;
@@ -264,9 +299,9 @@
   animation: coverFadeIn 0.8s ease-out;
   background: linear-gradient(
     135deg,
-    rgb(var(--card-cream-50-rgb)) 0%,
-    rgb(var(--cover-bg-mid-rgb)) 50%,
-    rgb(var(--card-cream-50-rgb)) 100%
+    rgb(var(--cx-cover-rgb)) 0%,
+    rgb(var(--cx-cover-mid-rgb)) 50%,
+    rgb(var(--cx-cover-rgb)) 100%
   );
 }
 
@@ -299,7 +334,7 @@
 /* Open button shimmer */
 
 .open-btn {
-  box-shadow: 0 4px 20px rgb(var(--card-blush-300-rgb) / 0.2);
+  box-shadow: 0 4px 20px rgb(var(--cx-accent-rgb) / 0.2);
 }
 
 .btn-shimmer {
@@ -344,14 +379,8 @@
   min-height: 100dvh;
 }
 
-/* Viết bằng attribute selector chứ KHÔNG phải `.relative.z-20`: `relative` đang
-   được @apply ở nơi khác trong cùng bản build nên Tailwind sẽ nhân bản selector
-   này cho từng rule đó. [class~="..."] khớp y hệt, cùng độ đặc hiệu. */
-
-#main-card [class~="relative"][class~="z-20"] {
-  min-height: calc(var(--vh, 1vh) * 100);
-  min-height: 100dvh;
-}
+/* Thiệp dựng một-thẻ-cao-bằng-màn (basic-gold) tự kéo vùng nội dung cho đủ
+   chiều cao trong theme.css của mình — layout đó không phải quy ước chung. */
 
 /* ── Scrollbar ───────────────────────────────────────────────────────────── */
 

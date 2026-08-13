@@ -163,17 +163,40 @@ partial/script chúng nạp.
 
 ### Theme thiệp mới (`public/themes/*`)
 
+**Một mẫu = ĐÚNG 3 file trong `public/themes/<tên>/` + một hàng `templates` trong DB.**
+Không sửa file dùng chung nào khác — chèn tên theme vào helper là làm hỏng quy ước này.
+
+**Bắt đầu bằng cách chép `public/themes/base-theme/`** — mẫu nền có ĐỦ mọi mục, không bán
+(không có hàng `templates`), mỗi mục là một khối gỡ rời được. Chức năng MỚI của sản phẩm
+(bình luận, sổ lưu bút…) thêm vào mẫu nền + helper dùng chung; mẫu đã phát hành không phải
+sửa gì vì không phải thiệp nào cũng cần. Tên thư mục **không được bắt đầu bằng `_`**:
+GitHub Pages chạy Jekyll nên đường dẫn kiểu đó không được publish.
+
+| File         | Vai trò                                                                   |
+| ------------ | ------------------------------------------------------------------------- |
+| `index.html` | Markup + thứ tự nạp script (`index.js` rồi `theme-boot.js` ở CUỐI)        |
+| `index.js`   | **Chỉ khai báo**: `window.CX_THEME` + `renderWedding` + phần đặc thù       |
+| `theme.css`  | Bảng màu `--cx-*` + CSS riêng. **CSS thuần**, nạp sau `styles/themes.css`  |
+
+- **`window.CX_THEME`** là bản khai — nguồn sự thật duy nhất về mẫu:
+  `preset` (font/màu gốc + `swatches` cho thanh chỉnh), `selectors` (class mà thanh chỉnh
+  font/màu nhắm tới), `reveal`, `focus` (id mục, chỉ khai cái khác mặc định), `onOpen`.
+  Trang Thiết lập đọc `preset` **qua iframe xem trước** của tab Giao diện.
+- `index.js` **bọc trong IIFE**, chỉ lộ `CX_THEME` + `renderWedding`: `const` cấp cao nhất của
+  script cổ điển là biến toàn cục. Không tự chạy gì — `core/helpers/theme-boot.js` (nạp SAU)
+  lo nạp dữ liệu, mở thiệp, hiệu ứng cuộn, viewport iOS; nó cũng cấp `cxEnabled`/`cxToggle`.
+- Màu dùng chung (lịch nhỏ, dòng thời gian, màn bìa, nút xác nhận tham dự) vẽ theo bộ biến
+  **`--cx-accent/heading/body/line/surface/on-accent/cover/cover-mid`** — mặc định ở
+  `styles/_common.css`, theme ghi đè trong `theme.css`. **Helper không được nhắc token của
+  một theme cụ thể.**
 - Có **`#main-card`**; container các mục là **flex-column** (để chèn khối văn bản xen giữa).
 - Bind dữ liệu qua **`setText(id, value)`** (`core/utils.js`) — `el.textContent =` sẽ không
   khoá được sửa text trực tiếp.
 - Luồng: `applyThemeSetting` → `renderWedding` → `applyTextOverrides` → `applyCustomBlocks`
   → `applyElements` (theme chỉ cần cung cấp `renderWedding`).
-- Dùng đúng bộ class font/màu mà `theme-setting-helper.js` nhắm; khác thì bổ sung vào
-  `*_SELECTORS` / `_CX_BOUND_SEL` trong file đó.
-- Đăng ký `THEME_PRESETS["<tên-theme>"]` trong `theme-setting-helper.js`; font/màu riêng vào
-  `theme.extend` của `tailwind.themes.config.js` rồi `npm run build:themes`.
-- Nạp `core/helpers/preview-focus-helper.js`, đặt `id` cho từng section và khai vào
-  `CX_FOCUS_SEL` — thiếu thì chỉ mất tính năng cuộn, thiệp vẫn chạy.
+- Muốn dùng **utility Tailwind mới** (font/màu chưa có) thì mới phải đụng
+  `tailwind.themes.config.js` + `styles/_colors.css` — cách tránh: viết CSS thuần trong
+  `theme.css`.
 - Nên có: text thuần (không lồng icon) ở phần cho phép sửa.
 
 ### Ảnh nền (tab "Ảnh nền" ở admin)

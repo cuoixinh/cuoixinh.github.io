@@ -1,6 +1,8 @@
 // ============================================================
 // CALENDAR-HELPER.JS - Mini calendar rendering
 // ============================================================
+// Màu lấy từ bộ biến --cx-* của thiệp (styles/_common.css, theme ghi đè trong
+// theme.css) — đừng gọi thẳng token của một theme cụ thể ở đây.
 
 const weddingDates = [
   { year: 2024, month: 10, day: 20 },
@@ -23,11 +25,11 @@ function renderMiniCalendar() {
 
   let html = `
     <div style="font-family:'Inter',sans-serif;">
-      <div style="text-align:center; font-size:14px; letter-spacing:2px; text-transform:uppercase; color:rgb(var(--card-sage-400-rgb)); font-weight:600; margin-bottom:12px;">
+      <div style="text-align:center; font-size:14px; letter-spacing:2px; text-transform:uppercase; color:rgb(var(--cx-heading-rgb)); font-weight:600; margin-bottom:12px;">
         Tháng ${month} · ${year}
       </div>
       <div style="display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-bottom:6px;">
-        ${dayNames.map((d) => `<div style="text-align:center; font-size:11px; color:rgb(var(--card-sage-300-rgb)); padding:4px 0;">${d}</div>`).join("")}
+        ${dayNames.map((d) => `<div style="text-align:center; font-size:11px; color:rgb(var(--cx-body-rgb)); padding:4px 0;">${d}</div>`).join("")}
       </div>
       <div style="display:grid; grid-template-columns:repeat(7,1fr); gap:4px;">
         ${Array(firstDay).fill("<div></div>").join("")}
@@ -42,8 +44,8 @@ function renderMiniCalendar() {
               font-size:12px;
               ${
                 isMarked
-                  ? "background:rgb(var(--card-gold-300-rgb)); color:white; font-weight:600; box-shadow:0 2px 8px var(--calendar-marked-glow);"
-                  : "color:rgb(var(--card-charcoal-rgb));"
+                  ? "background:rgb(var(--cx-accent-rgb)); color:rgb(var(--cx-on-accent-rgb)); font-weight:600; box-shadow:0 2px 8px rgb(var(--cx-accent-rgb)/0.4);"
+                  : "color:rgb(var(--cx-heading-rgb));"
               }
             ">${day}</div>
           </div>`;

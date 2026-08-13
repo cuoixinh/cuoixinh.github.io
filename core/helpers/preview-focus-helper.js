@@ -3,8 +3,9 @@
 // Thiệp thật không ai gửi gì nên file này nằm im.
 
 // Mỗi vai trò một danh sách ứng viên vì id không thống nhất giữa các theme —
-// lấy phần tử ĐẦU TIÊN có thật và đang hiện. Theme mới đặt id khác thì bổ sung
-// vào đây, không sửa ở nơi gọi.
+// lấy phần tử ĐẦU TIÊN có thật và đang hiện. Theme đặt id khác thì khai
+// CX_THEME.focus trong index.js của mình (được ưu tiên trước bảng dưới đây),
+// KHÔNG chèn thêm vào file này.
 const CX_FOCUS_SEL = {
   couple: [], // đầu thiệp — xử lý riêng, cuộn hẳn lên trên
   ceremony: ["#section-ceremony", "#mini-calendar", "#invite-day"],
@@ -28,8 +29,13 @@ const CX_FOCUS_SEL = {
 const CX_FOCUS_TRIES = 8;
 const CX_FOCUS_GAP = 120;
 
+function _cxFocusList(key) {
+  const own = (window.CX_THEME && window.CX_THEME.focus?.[key]) || [];
+  return own.concat(CX_FOCUS_SEL[key] || []);
+}
+
 function _cxFocusFind(key) {
-  for (const sel of CX_FOCUS_SEL[key] || []) {
+  for (const sel of _cxFocusList(key)) {
     const el = document.querySelector(sel);
     // offsetParent = null → mục đang tắt trong Thiết lập, đừng cuộn tới chỗ trống.
     if (el && el.offsetParent !== null) return el;

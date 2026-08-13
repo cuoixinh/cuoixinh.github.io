@@ -2,6 +2,12 @@
 // RENDER-HELPER.JS - Common rendering functions for all templates
 // ============================================================
 
+// Chấm mốc của hai dòng thời gian (chuyện tình yêu + lịch trình ngày cưới).
+// Màu lấy từ bộ biến --cx-* của thiệp (styles/_common.css), theme ghi đè trong
+// theme.css của mình.
+const CX_TL_DOT =
+  '<div class="absolute left-[-6px] top-[3px] w-[10px] h-[10px] rounded-full border-2 border-white bg-[rgb(var(--cx-accent-rgb))] shadow-[0_0_0_2px_rgb(var(--cx-accent-rgb))]"></div>';
+
 const WEEKDAYS = [
   "Chủ Nhật",
   "Thứ Hai",
@@ -203,14 +209,90 @@ function renderLoveStory(events) {
         : "";
       return `
     <div class="relative pl-[14px] ${pbClass} text-left">
-      <div class="absolute left-[-6px] top-[3px] w-[10px] h-[10px] rounded-full bg-[rgb(var(--timeline-dot-rgb))] border-2 border-white shadow-[0_0_0_2px_rgb(var(--timeline-dot-rgb))]"></div>
-      ${ev.date ? `<div class="text-[0.7rem] font-bold text-red-400 tracking-[0.06em] mb-0.5">${escapeHtml(ev.date)}</div>` : ""}
-      ${ev.title ? `<div class="text-[0.95rem] font-semibold text-stone-custom-500 font-cormorant mb-1">${escapeHtml(ev.title)}</div>` : ""}
-      ${ev.content ? `<div class="text-[0.82rem] text-stone-custom-500 leading-[1.65]${imgSrc ? " mb-2" : ""}">${escapeHtml(ev.content)}</div>` : ""}
+      ${CX_TL_DOT}
+      ${ev.date ? `<div class="text-[0.7rem] font-bold tracking-[0.06em] mb-0.5 cx-ac">${escapeHtml(ev.date)}</div>` : ""}
+      ${ev.title ? `<div class="text-[0.95rem] font-semibold font-cormorant mb-1 cx-hd">${escapeHtml(ev.title)}</div>` : ""}
+      ${ev.content ? `<div class="text-[0.82rem] leading-[1.65] cx-hd${imgSrc ? " mb-2" : ""}">${escapeHtml(ev.content)}</div>` : ""}
       ${imgSrc ? `<img src="${imgSrc}" alt=""${focalStyle} class="w-full max-w-[280px] rounded-[10px] object-cover aspect-video" loading="lazy" />` : ""}
     </div>`;
     })
     .join("");
+}
+
+/**
+ * Dòng thời gian ngày cưới. `side` = "groom" | "bride" — mục type "party" chỉ
+ * hiện cho nhà trai, "bride-party" chỉ hiện cho nhà gái, "ceremony" hiện cả hai.
+ * Vẽ vào #timeline-list-render, gom theo hai nhóm Tiệc Cưới / lễ chính.
+ */
+function renderTimeline(items, side, partyDate, ceremonyDate, ceremonyName) {
+  const list = document.getElementById("timeline-list-render");
+  if (!list) return;
+  list.innerHTML = "";
+  if (!Array.isArray(items) || items.length === 0) return;
+
+  const relevant = items.filter((item) => {
+    const t = item.type || "ceremony";
+    if (t === "ceremony") return true;
+    if (side === "groom" && t === "party") return true;
+    if (side === "bride" && t === "bride-party") return true;
+    return false;
+  });
+  if (relevant.length === 0) return;
+
+  const _sort = (arr) =>
+    [...arr].sort((a, b) =>
+      !a.time ? 1 : !b.time ? -1 : a.time.localeCompare(b.time),
+    );
+  const partyItems = _sort(
+    relevant.filter((i) => (i.type || "ceremony") !== "ceremony"),
+  );
+  const ceremonyItems = _sort(
+    relevant.filter((i) => (i.type || "ceremony") === "ceremony"),
+  );
+
+  const _fmtDate = (dateStr) => {
+    if (!dateStr) return "";
+    try {
+      return new Date(dateStr + "T00:00:00").toLocaleDateString("vi-VN", {
+        weekday: "short",
+        day: "numeric",
+        month: "numeric",
+        year: "numeric",
+      });
+    } catch (e) {
+      return dateStr;
+    }
+  };
+
+  function _renderGroup(label, dateStr, groupItems) {
+    if (!groupItems.length) return "";
+    const dateLabel = _fmtDate(dateStr);
+    const rows = groupItems
+      .map((item, i) => {
+        const pbClass = i === groupItems.length - 1 ? "pb-1" : "pb-4";
+        return `
+        <div class="relative pl-[14px] ${pbClass} text-left">
+          ${CX_TL_DOT}
+          <div class="text-[0.7rem] font-bold tracking-[0.06em] mb-0.5 cx-ac">${escapeHtml(item.time || "")}</div>
+          <div class="text-[0.95rem] font-cormorant leading-snug cx-hd">${escapeHtml(item.title || "")}</div>
+        </div>`;
+      })
+      .join("");
+    return `
+      <div class="mb-6 last:mb-0">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="text-[11px] uppercase tracking-widest font-inter cx-bd">${escapeHtml(label)}</span>
+          ${dateLabel ? `<span class="text-[10px] font-inter cx-bd">· ${escapeHtml(dateLabel)}</span>` : ""}
+        </div>
+        <div class="flex flex-col border-l-2 ml-[5px] border-[rgb(var(--cx-line-rgb))]">
+          ${rows}
+        </div>
+      </div>`;
+  }
+
+  list.innerHTML =
+    _renderGroup("Tiệc Cưới", partyDate, partyItems) +
+    _renderGroup(ceremonyName || "Lễ Thành Hôn", ceremonyDate, ceremonyItems);
 }
 
 // escapeHtml() dùng chung từ core/utils.js (nạp trước file này ở mọi trang).
@@ -345,6 +427,7 @@ window.renderCover = renderCover;
 window.renderHero = renderHero;
 window.renderStoryQuote = renderStoryQuote;
 window.renderLoveStory = renderLoveStory;
+window.renderTimeline = renderTimeline;
 window.setupMiniCalendar = setupMiniCalendar;
 window.setupMusic = setupMusic;
 window.renderMusicSummary = renderMusicSummary;

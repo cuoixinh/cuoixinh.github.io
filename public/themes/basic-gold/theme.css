@@ -1,0 +1,27 @@
+/* Bảng màu + CSS riêng của mẫu Basic Gold.
+   CSS THUẦN, không qua Tailwind build (nạp bằng <link> sau styles/themes.css)
+   → thêm mẫu mới không phải đụng tailwind.themes.config.js hay styles/_colors.css.
+
+   Bộ biến --cx-* là thứ phần dùng chung (lịch nhỏ, dòng thời gian, màn bìa, nút
+   xác nhận tham dự…) vẽ theo; mặc định khai ở styles/_common.css. */
+
+:root {
+  --cx-accent-rgb: 212 165 165; /* rose-pastel-300 */
+  --cx-on-accent-rgb: 255 255 255;
+  --cx-heading-rgb: 107 101 98; /* stone-custom-500 */
+  --cx-body-rgb: 120 113 108; /* stone-custom-400 */
+  --cx-line-rgb: 245 213 216; /* rose-pastel-100 */
+  --cx-surface-rgb: 255 251 247; /* cream-50 */
+  --cx-cover-rgb: 255 251 247; /* cream-50 */
+  --cx-cover-mid-rgb: 245 235 224; /* be ấm — điểm giữa dải nền màn bìa */
+}
+
+/* Thiệp là MỘT thẻ cao bằng màn hình → vùng nội dung phải cao ít nhất bấy nhiêu.
+   Viết bằng attribute selector chứ KHÔNG phải `.relative.z-20`: `relative` được
+   @apply ở nơi khác trong cùng bản build nên Tailwind sẽ nhân bản selector này
+   cho từng rule đó. [class~="..."] khớp y hệt, cùng độ đặc hiệu.
+   Dòng calc(var(--vh)) là fallback cho iOS cũ không hiểu dvh. */
+#main-card [class~="relative"][class~="z-20"] {
+  min-height: calc(var(--vh, 1vh) * 100);
+  min-height: 100dvh;
+}

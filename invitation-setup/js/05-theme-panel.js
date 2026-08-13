@@ -14,11 +14,43 @@ const THEME_DEFAULTS = {
   background_color: "#ffffff",
 };
 
-// Mặc định = font/màu GỐC của chính theme đang dùng (THEME_PRESETS trong
-// theme-setting-helper.js). Theme chưa khai báo thì rơi về THEME_DEFAULTS.
+// Mặc định = font/màu GỐC của chính theme đang dùng. Nguồn sự thật là bản khai
+// CX_THEME.preset trong public/themes/<theme>/index.js — đọc qua iframe xem
+// trước của tab này (cùng origin). Iframe nạp xong SAU khi tab mở nên lần đầu
+// còn rỗng: nhớ lại vào _themePresetCache, và _watchThemeFrame() dựng lại thanh
+// chỉnh khi giá trị về. Theme không khai thì rơi về THEME_DEFAULTS.
+let _themePresetCache = null;
+
+function _themePreset() {
+  const win = document.getElementById("theme-preview-iframe")?.contentWindow;
+  const preset = win && win.CX_THEME && win.CX_THEME.preset;
+  if (preset) _themePresetCache = preset;
+  return _themePresetCache;
+}
+
 function _themeDefaults() {
-  const preset = window.THEME_PRESETS && window.THEME_PRESETS[WEDDING_THEME];
-  return { ...THEME_DEFAULTS, ...(preset || {}) };
+  return { ...THEME_DEFAULTS, ...(_themePreset() || {}) };
+}
+
+// Gắn một lần: mỗi lần iframe nạp xong thì lấy preset rồi vẽ lại thanh chỉnh.
+// Ô nào người dùng đã đặt riêng vẫn giữ nguyên (_initThemePanel ưu tiên
+// _themeSetting), chỉ phần "mặc định của mẫu" được sửa cho đúng.
+let _themeFrameWatched = false;
+
+function _watchThemeFrame() {
+  if (_themeFrameWatched) return;
+  const iframe = document.getElementById("theme-preview-iframe");
+  if (!iframe) return;
+  _themeFrameWatched = true;
+  iframe.addEventListener("load", () => {
+    const before = _themePresetCache;
+    const preset = _themePreset();
+    if (!preset || preset === before) return;
+    // Coloris chỉ nhận swatches lúc khởi tạo → gọi lại để đổi bảng màu gợi ý.
+    if (typeof Coloris !== "undefined")
+      Coloris({ swatches: preset.swatches || [] });
+    _initThemePanel();
+  });
 }
 
 let _themePanelReady = false;
@@ -64,7 +96,7 @@ function _initColorPickers() {
   // được bảng chọn; phần còn lại của tab vẫn dùng bình thường.
   if (typeof Coloris === "undefined") return;
 
-  const preset = window.THEME_PRESETS && window.THEME_PRESETS[WEDDING_THEME];
+  const preset = _themePreset();
   Coloris({
     el: ".theme-color-input",
     themeMode: "light",
@@ -182,6 +214,7 @@ function _alignPickerToChip(chipEl) {
 }
 
 function _initThemePanel() {
+  _watchThemeFrame();
   const s = _themeSetting || {};
   const d = _themeDefaults();
 

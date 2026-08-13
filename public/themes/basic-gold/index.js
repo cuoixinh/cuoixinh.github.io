@@ -1,101 +1,77 @@
-// ============= TEMPLATE1 SPECIFIC CODE =============
-// Classic Romantic Wedding Template
+// ============= THEME: BASIC GOLD =============
+// Thiệp một thẻ cao bằng màn hình, tông hồng khói — mở bằng màn bìa.
+//
+// File này chỉ KHAI BÁO: bản khai CX_THEME + renderWedding + phần đặc thù
+// (carousel ảnh). Phần "chạy" (nạp dữ liệu, mở thiệp, hiệu ứng cuộn, viewport)
+// nằm ở core/helpers/theme-boot.js, nạp sau file này. Nhờ vậy trang Thiết lập
+// nạp lại file này chỉ để đọc CX_THEME mà không gây tác dụng phụ.
+//
+// Cả file bọc trong IIFE và chỉ lộ ra window.CX_THEME + window.renderWedding:
+// `const` ở cấp cao nhất của một script cổ điển là biến toàn cục, trùng tên với
+// biến của trang Thiết lập là vỡ cả trang đó.
 
-// Get slug and isGroom from URL
-const _weddingSlug = getSlugFromUrl();
+(function () {
+// Bản khai của theme — nguồn sự thật DUY NHẤT về font/màu gốc và về việc thiệp
+// dùng class nào, để helper dùng chung không phải biết tên theme.
+window.CX_THEME = {
+  id: "basic-gold",
+
+  // Font/màu GỐC: giá trị mặc định trên thanh chỉnh ở tab Giao diện và là điểm
+  // "Khôi phục mặc định".
+  preset: {
+    heading_font: "Playfair Display", // .font-playfair
+    body_font: "Inter", // .font-inter
+    heading_color: "#6b6562", // stone-custom-500
+    body_color: "#78716c", // stone-custom-400
+    accent_color: "#d4a5a5", // rose-pastel-300
+    background_color: "#fffbf7", // #main-card
+    // Màu gợi ý trong bảng chọn — lấy từ chính palette của theme
+    swatches: [
+      "#6b6562", // stone-custom-500
+      "#78716c", // stone-custom-400
+      "#44403c", // stone-custom-600
+      "#2d2d2d",
+      "#d4a5a5", // rose-pastel-300
+      "#e8b4b8", // rose-pastel-200
+      "#f5d5d8", // rose-pastel-100
+      "#fef0f2", // rose-pastel-50
+      "#fffbf7", // cream-50
+      "#fff5f0", // cream-100
+      "#ffe8e0", // cream-200
+      "#ffffff",
+    ],
+  },
+
+  // Class mà thanh chỉnh font/màu nhắm tới. Cố ý KHÔNG gồm .font-nautigal /
+  // .font-katty: tên cô dâu chú rể giữ nguyên nét chữ viết tay của mẫu.
+  // .cx-hd/.cx-bd/.cx-ac là markup do helper dùng chung sinh ra — giữ nguyên.
+  selectors: {
+    headingFont: ".font-playfair, .font-cormorant, .font-cinzel",
+    bodyFont: "body, .font-inter",
+    headingColor: ".cx-hd, .text-stone-custom-500",
+    bodyColor: ".cx-bd, .text-stone-custom-400",
+    accentColor: ".cx-ac, .text-rose-pastel-300, .text-rose-pastel-200",
+    background: "body, #main-card",
+  },
+
+  // Mục được gán hiệu ứng hiện dần khi cuộn tới.
+  reveal: [
+    ".invitation-content > *",
+    ".w-full.flex.flex-col.gap-8 > *",
+    ".flex.gap-4.items-start",
+    ".flex.flex-col.gap-4.border",
+    ".gallery-item",
+  ],
+
+  // Thiệp vừa hiện ra mới đo được bề ngang thật → dựng lại carousel.
+  onOpen: _carouselReinit,
+
+  // Không khai `focus`: id các mục trùng bảng mặc định của preview-focus-helper.
+};
+
 const _isGroom = isGroomSide();
 
 // ============= RENDER WEDDING DATA =============
-
-function _isEnabled(flag) {
-  return flag !== false && flag !== "false";
-}
-
-function _toggleEl(id, show) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  if (show) {
-    el.classList.remove("hidden");
-    if (el.style.display === "none") el.style.display = "";
-  } else {
-    el.classList.add("hidden");
-  }
-}
-
-function renderTimeline(items, side, partyDate, ceremonyDate, ceremonyName) {
-  const list = document.getElementById("timeline-list-render");
-  if (!list) return;
-  if (!Array.isArray(items) || items.length === 0) {
-    list.innerHTML = "";
-    return;
-  }
-
-  const relevant = items.filter((item) => {
-    const t = item.type || "ceremony";
-    if (t === "ceremony") return true;
-    if (side === "groom" && t === "party") return true;
-    if (side === "bride" && t === "bride-party") return true;
-    return false;
-  });
-  if (relevant.length === 0) {
-    list.innerHTML = "";
-    return;
-  }
-
-  const _sort = (arr) =>
-    [...arr].sort((a, b) =>
-      !a.time ? 1 : !b.time ? -1 : a.time.localeCompare(b.time),
-    );
-  const partyItems = _sort(
-    relevant.filter((i) => (i.type || "ceremony") !== "ceremony"),
-  );
-  const ceremonyItems = _sort(
-    relevant.filter((i) => (i.type || "ceremony") === "ceremony"),
-  );
-
-  function _fmtDate(dateStr) {
-    if (!dateStr) return "";
-    try {
-      const d = new Date(dateStr + "T00:00:00");
-      return d.toLocaleDateString("vi-VN", {
-        weekday: "short",
-        day: "numeric",
-        month: "numeric",
-        year: "numeric",
-      });
-    } catch (e) {
-      return dateStr;
-    }
-  }
-
-  function _renderGroup(label, dateStr, groupItems) {
-    if (!groupItems.length) return "";
-    const dateLabel = _fmtDate(dateStr);
-    const items = groupItems.map((item, i) => {
-      const pbClass = i === groupItems.length - 1 ? "pb-1" : "pb-4";
-      return `
-        <div class="relative pl-[14px] ${pbClass} text-left">
-          <div class="absolute left-[-6px] top-[3px] w-[10px] h-[10px] rounded-full bg-[rgb(var(--timeline-dot-rgb))] border-2 border-white shadow-[0_0_0_2px_rgb(var(--timeline-dot-rgb))]"></div>
-          <div class="text-[0.7rem] font-bold text-red-400 tracking-[0.06em] mb-0.5">${escapeHtml(item.time || "")}</div>
-          <div class="text-[0.95rem] font-cormorant text-stone-custom-500 leading-snug">${escapeHtml(item.title || "")}</div>
-        </div>`;
-    }).join("");
-    return `
-      <div class="mb-6 last:mb-0">
-        <div class="flex items-center gap-2 mb-3">
-          <span class="text-[11px] uppercase tracking-widest text-stone-custom-400 font-inter">${escapeHtml(label)}</span>
-          ${dateLabel ? `<span class="text-[10px] text-stone-custom-400 font-inter">· ${escapeHtml(dateLabel)}</span>` : ""}
-        </div>
-        <div class="flex flex-col border-l-2 border-[rgb(var(--surface-blossom-rgb))] ml-[5px]">
-          ${items}
-        </div>
-      </div>`;
-  }
-
-  list.innerHTML =
-    _renderGroup("Tiệc Cưới", partyDate, partyItems) +
-    _renderGroup(ceremonyName || "Lễ Thành Hôn", ceremonyDate, ceremonyItems);
-}
 
 function renderWedding(w) {
   if (!w || !w.is_active) return;
@@ -117,11 +93,11 @@ function renderWedding(w) {
   renderCoupleInfo(w);
 
   // --- SECTION: family ---
-  _toggleEl("section-family", _isEnabled(w.enable_family));
+  cxToggle("section-family", cxEnabled(w.enable_family));
 
   // --- CEREMONY / VU QUY ---
   // Bride + vu_quy_enabled → thay toàn bộ ceremony bằng vu quy
-  const isVuQuy = !_isGroom && _isEnabled(w.vu_quy_enabled);
+  const isVuQuy = !_isGroom && cxEnabled(w.vu_quy_enabled);
   const ceremonyName = isVuQuy
     ? "Lễ Vu Quy"
     : w.ceremony_name || "Lễ Thành Hôn";
@@ -141,7 +117,7 @@ function renderWedding(w) {
   renderCeremonyDate(w.ceremony_date, displayTime, w.ceremony_lunar);
   if (displayLoc) {
     setText("ceremony-location-text", displayLoc);
-    _toggleEl("ceremony-location-wrap", true);
+    cxToggle("ceremony-location-wrap", true);
   }
 
   // --- PARTY DATE ---
@@ -150,7 +126,7 @@ function renderWedding(w) {
   const partyLunar = w[`${side}_party_lunar`];
   const partyLocation = w[`${side}_party_location`];
   renderPartyDate(partyDate, partyTime, partyLunar, partyLocation, "full");
-  _toggleEl("section-party", _isEnabled(w.enable_party));
+  cxToggle("section-party", cxEnabled(w.enable_party));
 
   // --- MINI CALENDAR ---
   setupMiniCalendar(w.ceremony_date, partyDate);
@@ -158,7 +134,7 @@ function renderWedding(w) {
   // --- RSVP ---
   const rsvpSection = document.getElementById("rsvp-section");
   if (rsvpSection)
-    rsvpSection.style.display = _isEnabled(w.rsvp_enabled) ? "flex" : "none";
+    rsvpSection.style.display = cxEnabled(w.rsvp_enabled) ? "flex" : "none";
   if (w.rsvp_message) {
     const msgEl = document.getElementById("rsvp-custom-message");
     if (msgEl) {
@@ -168,56 +144,58 @@ function renderWedding(w) {
   }
 
   // --- TIMELINE ---
-  if (_isEnabled(w.enable_timeline)) {
+  if (cxEnabled(w.enable_timeline)) {
     renderTimeline(w.timeline, side, partyDate, w.ceremony_date, ceremonyName);
-    _toggleEl("section-timeline", true);
+    cxToggle("section-timeline", true);
   }
 
   // --- STORY QUOTE ---
   renderStoryQuote(w.story_quote);
 
   // --- LOVE STORY ---
-  if (_isEnabled(w.enable_love_story)) {
+  if (cxEnabled(w.enable_love_story)) {
     renderLoveStory(w.love_story);
   } else {
-    _toggleEl("love-story", false);
+    cxToggle("love-story", false);
   }
 
   // --- GALLERY ---
-  if (_isEnabled(w.enable_photos)) {
+  if (cxEnabled(w.enable_photos)) {
     renderCarouselGallery(
       w.gallery_images,
       w.image_focal_points?.gallery_images,
     );
   } else {
-    _toggleEl("section-photos", false);
+    cxToggle("section-photos", false);
   }
 
   // --- QR CODES ---
   renderQRCodes(w);
-  _toggleEl("section-gift", _isEnabled(w.enable_gift));
+  cxToggle("section-gift", cxEnabled(w.enable_gift));
 
   // --- MAP (party location) ---
   const partyMapUrl = w[`${side}_party_map_embed_url`];
-  const showMap = _isEnabled(w[`${side}_party_show_location`]);
+  const showMap = cxEnabled(w[`${side}_party_show_location`]);
   if (showMap) {
     renderMap(partyMapUrl, partyLocation);
     // Chưa có URL bản đồ → hiện minh họa dữ liệu trống thay cho iframe
     const hasMap = !!extractMapEmbedUrl(partyMapUrl);
-    _toggleEl("map-thumbnail-iframe", hasMap);
-    _toggleEl("map-placeholder", !hasMap);
+    cxToggle("map-thumbnail-iframe", hasMap);
+    cxToggle("map-placeholder", !hasMap);
     // Không có bản đồ thì vô hiệu hoá click "Mở Maps"
     const mapLink = document.getElementById("map-link");
     if (mapLink) mapLink.classList.toggle("pointer-events-none", !hasMap);
   }
-  _toggleEl("section-map", showMap);
+  cxToggle("section-map", showMap);
 
   // --- FOOTER ---
-  _toggleEl("section-footer", _isEnabled(w.enable_footer));
+  cxToggle("section-footer", cxEnabled(w.enable_footer));
   if (w.footer_text) setText("footer-text", w.footer_text);
 }
 
-// ============= CAROUSEL GALLERY (TEMPLATE1 SPECIFIC) =============
+window.renderWedding = renderWedding;
+
+// ============= CAROUSEL GALLERY (RIÊNG CỦA THEME NÀY) =============
 
 const carouselImages = [];
 const track = document.getElementById("carousel-track");
@@ -229,6 +207,7 @@ let isDragging = false;
 
 // Fix container height = tallest item (ảnh giữa to nhất)
 function fixHeight() {
+  if (!track || !container) return;
   const trackWidth = track.offsetWidth;
   const tallest = trackWidth * 0.36 * (4 / 3);
   container.style.height = tallest + "px";
@@ -274,6 +253,7 @@ function applyCarouselStyle(item, styleConfig) {
 }
 
 function updateCarousel() {
+  if (!track || !dotsContainer) return;
   const items = track.querySelectorAll(".carousel-item");
   const dots = dotsContainer.querySelectorAll("div");
 
@@ -289,7 +269,10 @@ function updateCarousel() {
   });
 
   dots.forEach((dot, i) => {
-    dot.style.background = i === current ? "rgb(var(--card-blush-300-rgb))" : "rgb(var(--card-blush-100-rgb))";
+    dot.style.background =
+      i === current
+        ? "rgb(var(--card-blush-300-rgb))"
+        : "rgb(var(--card-blush-100-rgb))";
     dot.style.width = i === current ? "16px" : "6px";
   });
 }
@@ -314,32 +297,9 @@ const handleSwipe = {
   },
 };
 
-// Add swipe event listeners
-track.addEventListener(
-  "touchstart",
-  (e) => handleSwipe.start(e.touches[0].clientX),
-  { passive: true },
-);
-track.addEventListener("touchend", (e) =>
-  handleSwipe.end(e.changedTouches[0].clientX),
-);
-track.addEventListener("mousedown", (e) => handleSwipe.start(e.clientX));
-track.addEventListener("mouseup", (e) => handleSwipe.end(e.clientX));
-track.addEventListener("mouseleave", () => (isDragging = false));
-
-// Carousel observer
-const carouselObserver = new IntersectionObserver(
-  (entries) =>
-    entries.forEach(
-      (entry) =>
-        entry.isIntersecting && carouselObserver.unobserve(entry.target),
-    ),
-  { threshold: 0.5 },
-);
-carouselObserver.observe(container);
-
 // Click carousel item to open lightbox
 function attachCarouselClickHandler() {
+  if (!track) return;
   track.querySelectorAll(".carousel-item").forEach((item, i) => {
     const clone = item.cloneNode(true);
     item.parentNode.replaceChild(clone, item);
@@ -351,8 +311,17 @@ function attachCarouselClickHandler() {
   });
 }
 
+// Dựng lại sau khi thiệp hiện ra (CX_THEME.onOpen) — lúc đó mới đo được bề ngang.
+function _carouselReinit() {
+  fixHeight();
+  updateCarousel();
+  setTimeout(attachCarouselClickHandler, 100);
+}
+
 // Render carousel gallery
 function renderCarouselGallery(galleryImages, focalPoints) {
+  if (!track || !dotsContainer) return;
+
   // Prepare images
   carouselImages.length = 0;
   if (!galleryImages?.length) {
@@ -399,95 +368,20 @@ function renderCarouselGallery(galleryImages, focalPoints) {
   setTimeout(attachCarouselClickHandler, 100);
 }
 
-// Init resize listener for carousel
-window.addEventListener("resize", fixHeight);
-
-// ============= LOAD WEDDING DATA =============
-
-loadWeddingData(_weddingSlug, renderWedding);
-
-// ============= PERSONALIZED GREETING =============
-
-// Store callback for carousel re-init
-const carouselReinitCallback = () => {
-  fixHeight();
-  updateCarousel();
-  setTimeout(attachCarouselClickHandler, 100);
-};
-
-// Override global openInvitation to include carousel re-init
-const originalOpenInvitation = window.openInvitation;
-window.openInvitation = function () {
-  originalOpenInvitation(carouselReinitCallback);
-};
-
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", () => {
-    setupPersonalizedGreeting(_weddingSlug, _isGroom, () => {
-      originalOpenInvitation(carouselReinitCallback);
-    });
-  });
-} else {
-  setupPersonalizedGreeting(_weddingSlug, _isGroom, () => {
-    originalOpenInvitation(carouselReinitCallback);
-  });
-}
-
-// ============= VIEWPORT FIX =============
-
-initViewportFix();
-
-// ============= SCROLL ANIMATIONS =============
-
-const revealObserver = new IntersectionObserver(
-  (entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add("visible");
-        revealObserver.unobserve(entry.target);
-      }
-    });
-  },
-  { threshold: 0.15 },
-);
-
-// Gán class reveal cho từng phần tử
-document
-  .querySelectorAll(
-    [
-      ".invitation-content > *",
-      ".w-full.flex.flex-col.gap-8 > *",
-      ".flex.gap-4.items-start",
-      ".flex.flex-col.gap-4.border",
-      ".gallery-item",
-    ].join(","),
-  )
-  .forEach((el, i) => {
-    const mod = i % 3;
-    if (mod === 0) el.classList.add("reveal", "from-bottom");
-    else if (mod === 1) el.classList.add("reveal", "from-left");
-    else el.classList.add("reveal", "from-right");
-
-    revealObserver.observe(el);
-  });
-
-// ============= IDLE PULSE FOR RSVP BUTTONS =============
-
-const btnAttend = document.getElementById("btn-attend");
-const btnDecline = document.getElementById("btn-decline");
-if (btnAttend) btnAttend.classList.add("btn-idle");
-if (btnDecline) btnDecline.classList.add("btn-idle");
-
-// ============= FIX iOS CHROME TOUCH =============
-
-const openBtn = document.querySelector(".open-btn");
-if (openBtn) {
-  openBtn.addEventListener(
-    "touchend",
-    function (e) {
-      e.preventDefault();
-      window.openInvitation();
-    },
-    { passive: false },
+// Vuốt + đo lại khi xoay máy. Bọc trong `if`: trang Thiết lập cũng nạp file này
+// (để đọc CX_THEME) nhưng không có markup thiệp.
+if (track) {
+  track.addEventListener(
+    "touchstart",
+    (e) => handleSwipe.start(e.touches[0].clientX),
+    { passive: true },
   );
+  track.addEventListener("touchend", (e) =>
+    handleSwipe.end(e.changedTouches[0].clientX),
+  );
+  track.addEventListener("mousedown", (e) => handleSwipe.start(e.clientX));
+  track.addEventListener("mouseup", (e) => handleSwipe.end(e.clientX));
+  track.addEventListener("mouseleave", () => (isDragging = false));
+  window.addEventListener("resize", fixHeight);
 }
+})();

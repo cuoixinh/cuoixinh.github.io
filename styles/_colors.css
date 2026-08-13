@@ -173,8 +173,8 @@
   --preview-page-bg-rgb: 255 250 247;
   --preview-heart-bg-rgb: 252 207 232;
   --preview-btn-to-rgb: 212 102 138;
-  --timeline-dot-rgb: 253 164 175;  /* chấm mốc dòng thời gian */
-  --cover-bg-mid-rgb: 245 235 224;  /* màn bìa thiệp */
+  --timeline-dot-rgb: 253 164 175;  /* chấm đầu dòng (bộ chọn giờ, gợi ý AI) */
+  --cover-bg-mid-rgb: 245 235 224;  /* nền màn bìa thiệp — mặc định của --cx-cover-mid-rgb */
   --neutral-warm-rgb: 168 162 158;  /* chữ shimmer, nút Từ chối */
 
   /* ============================================================
@@ -278,5 +278,4 @@
   --landing-cta-gradient: linear-gradient( 90deg, rgb(var(--action-primary-hover-rgb)), rgb(var(--action-accent-rgb)), rgb(var(--action-accent-light-rgb)), rgb(var(--action-accent-rgb)), rgb(var(--action-primary-hover-rgb)) );
   --landing-cta-shine: linear-gradient( 90deg, transparent, rgb(var(--white-rgb) / 0.7), transparent );
   --social-messenger-gradient: linear-gradient( 135deg, rgb(var(--social-messenger-from-rgb)), rgb(var(--social-messenger-to-rgb)) );
-  --calendar-marked-glow: rgb(var(--card-gold-300-rgb) / 0.4);
 }

@@ -22,6 +22,8 @@
          Đã gồm phần dùng chung của common.css cũ + bảng màu theme.
          Xem tailwind.themes.config.js + styles/themes-src.css. -->
     <link rel="stylesheet" href="../../../styles/themes.css" />
+    <!-- Bảng màu (--cx-*) + CSS riêng của mẫu này. CSS thuần, nạp SAU themes.css. -->
+    <link rel="stylesheet" href="theme.css" />
     <!-- CryptoJS for decryption -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <!-- Markup trình phát nhạc — nạp ở HEAD vì script nội tuyến ngay đầu <body>
@@ -573,7 +575,7 @@
               </div>
               <div
                 id="love-story-list"
-                class="flex flex-col border-l-2 border-[rgb(var(--surface-blossom-rgb))] ml-[5px]"
+                class="flex flex-col border-l-2 border-[rgb(var(--cx-line-rgb))] ml-[5px]"
               ></div>
             </section>
           </div>
@@ -877,7 +879,9 @@
     <!-- Cuộn tới mục đang chỉnh khi xem trực tiếp trong trang Thiết lập -->
     <script src="../../../core/helpers/preview-focus-helper.js"></script>
 
-    <!-- UI Layer -->
+    <!-- Bản khai của mẫu + renderWedding -->
     <script src="index.js"></script>
+    <!-- Khởi động: đọc CX_THEME rồi lo phần chạy chung. Phải nạp SAU index.js. -->
+    <script src="../../../core/helpers/theme-boot.js"></script>
   </body>
 </html>

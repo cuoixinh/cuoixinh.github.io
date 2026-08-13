@@ -12,11 +12,28 @@
 // 4. Nén ĐÚNG MỘT LẦN lúc ảnh vào state, qua ImageHelper.prepareImage() với
 //    ngưỡng SI_IMAGE_LIMITS (≤1920px, ≤1.5MB); lúc lưu chỉ ghi blob xuống đĩa.
 
-const SI_THEMES = [
-  { value: "romantic-gold", label: "Romantic Gold" },
-  { value: "vintage-forest", label: "Vintage Forest" },
-  { value: "basic-gold", label: "Basic Gold" },
-];
+// Danh sách mẫu lấy từ bảng `templates` (edge function public-templates) — thêm
+// mẫu mới chỉ cần một hàng trong DB, không sửa file này. Hỏng mạng thì để trống,
+// người dùng bấm lại tab là gọi lại.
+let SI_THEMES = [];
+
+async function siLoadThemes() {
+  if (SI_THEMES.length) return SI_THEMES;
+  try {
+    const res = await fetch(
+      `${CONFIG.supabase.edgeUrl}?resource=public-templates`,
+      { headers: { Authorization: `Bearer ${CONFIG.supabase.anonKey}` } },
+    );
+    if (!res.ok) return SI_THEMES;
+    const rows = await res.json();
+    SI_THEMES = (Array.isArray(rows) ? rows : [])
+      .filter((t) => t.theme)
+      .map((t) => ({ value: t.theme, label: t.name || t.theme }));
+  } catch (e) {
+    console.error("Không tải được danh sách mẫu:", e);
+  }
+  return SI_THEMES;
+}
 
 const SI_FOCAL_POINT_FIELDS = [
   "cover_image_url",
@@ -136,7 +153,7 @@ async function initSampleImagesPanel() {
     return;
   }
 
-  siPopulateThemeDropdown();
+  await siPopulateThemeDropdown();
 
   const savedHandle = await siIdbGetHandle().catch(() => null);
   if (!savedHandle) {
@@ -158,15 +175,18 @@ async function siRestoreLastTheme() {
   const select = document.getElementById("si-theme-select");
   if (!select || select.value) return;
   const last = localStorage.getItem(SI_LAST_THEME_KEY);
-  if (!last || !SI_THEMES.some((t) => t.value === last)) return;
+  const themes = await siLoadThemes();
+  if (!last || !themes.some((t) => t.value === last)) return;
   select.value = last;
   await onSampleImagesThemeChange();
 }
 
-function siPopulateThemeDropdown() {
+async function siPopulateThemeDropdown() {
   const select = document.getElementById("si-theme-select");
   if (select.dataset.populated) return;
-  SI_THEMES.forEach((t) => {
+  const themes = await siLoadThemes();
+  if (!themes.length || select.dataset.populated) return;
+  themes.forEach((t) => {
     const opt = document.createElement("option");
     opt.value = t.value;
     opt.textContent = t.label;

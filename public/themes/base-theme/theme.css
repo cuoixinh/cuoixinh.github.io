@@ -1,0 +1,63 @@
+/* Bảng màu + CSS riêng của MẪU NỀN.
+   CSS THUẦN, không qua Tailwind build (nạp bằng <link> sau styles/themes.css)
+   → dựng mẫu mới không phải đụng tailwind.themes.config.js hay styles/_colors.css.
+
+   Hai phần:
+     1. --cx-*  bộ biến mà phần DÙNG CHUNG vẽ theo (lịch nhỏ, dòng thời gian,
+        màn bìa, nút xác nhận tham dự). Mặc định ở styles/_common.css.
+     2. .cx-h / .cx-t / .cx-a  ba lớp ngữ nghĩa mà markup của MẪU dùng, và cũng
+        là thứ CX_THEME.selectors nhắm tới. Đổi tông cả thiệp = sửa mỗi file này. */
+
+:root {
+  --cx-accent-rgb: 176 141 87; /* nhấn: ngày cưới, chấm mốc, icon */
+  --cx-on-accent-rgb: 255 255 255; /* chữ nằm TRÊN nền nhấn */
+  --cx-heading-rgb: 63 58 56;
+  --cx-body-rgb: 122 115 110;
+  --cx-line-rgb: 230 220 200; /* vạch dọc, viền mảnh */
+  --cx-surface-rgb: 247 244 239; /* nền phụ của ô nhỏ */
+  --cx-cover-rgb: 253 252 250; /* nền màn bìa: hai đầu dải */
+  --cx-cover-mid-rgb: 242 236 225; /* …và điểm giữa */
+
+  --cx-card-bg-rgb: 253 252 250; /* nền thân thiệp */
+}
+
+body {
+  background-color: rgb(var(--cx-surface-rgb));
+}
+
+#main-card {
+  background-color: rgb(var(--cx-card-bg-rgb));
+}
+
+/* ── Ba lớp ngữ nghĩa của mẫu ──────────────────────────────────────────────
+   .cx-h và .cx-t đặt CẢ font-family → đừng gắn chúng lên thẻ <i> của Font
+   Awesome, icon sẽ mất glyph và hiện ô vuông. Muốn tô màu icon thì dùng
+   .cx-a (nhấn) hoặc .cx-hd/.cx-bd (chỉ có color, khai ở styles/_common.css). */
+
+.cx-h {
+  font-family: "Cormorant Garamond", serif;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+.cx-t {
+  font-family: "Inter", sans-serif;
+  color: rgb(var(--cx-body-rgb));
+}
+
+.cx-a {
+  color: rgb(var(--cx-accent-rgb));
+}
+
+/* Viền/nền phụ dùng lại đúng bảng màu trên, khỏi rải mã màu trong markup. */
+
+.cx-border {
+  border-color: rgb(var(--cx-line-rgb));
+}
+
+.cx-bg-line {
+  background-color: rgb(var(--cx-line-rgb));
+}
+
+.cx-bg-surface {
+  background-color: rgb(var(--cx-surface-rgb));
+}
