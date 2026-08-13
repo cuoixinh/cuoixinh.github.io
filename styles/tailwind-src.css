@@ -328,10 +328,18 @@ html.cx-landing {
    ngang hay dọc đều kín, không hở khoảng trống ở đầu/cuối như bố cục cũ.
    padding-top 64px = chiều cao navbar cố định (h-16). */
 
+/* Cao ĐÚNG một màn: svh = khung nhìn lúc thanh trình duyệt iPhone đang HIỆN,
+   nên hero không bao giờ tràn quá màn ở trạng thái vừa vào. Cố ý không dùng
+   dvh — dvh đổi theo lúc thanh ẩn/hiện, cuộn một cái là hero co giãn giật.
+   Hai dòng min-height trước là dự phòng cho trình duyệt cũ chưa hiểu svh.
+   padding-top 64px = chiều cao navbar cố định (h-16) nên nội dung nằm trọn
+   dưới navbar, còn hộp hero vẫn phủ kín màn. */
+
 #hero {
   @apply relative flex flex-col overflow-hidden;
   min-height: calc(var(--vh, 1vh) * 100);
   min-height: 100dvh;
+  min-height: 100svh;
   padding: 64px 16px 0;
   background: linear-gradient(
     160deg,
@@ -400,13 +408,13 @@ html.cx-landing {
 .hero-anim-5 { animation-delay: 0.7s; }
 
 /* Tấm thiệp. min-height (không phải height) nên nội dung dài hơn khung nhìn
-   thì thiệp giãn ra chứ không cắt chữ. 150px trừ đi = navbar + padding sân +
-   dòng "Xem mẫu thiệp". */
+   thì thiệp giãn ra chứ không cắt chữ. 152px trừ đi = navbar + padding sân +
+   dòng "Xem mẫu thiệp"; svh cho khớp với #hero. */
 
 .hero-invite {
   @apply relative mx-auto flex w-full flex-col overflow-hidden;
   max-width: 1120px;
-  min-height: clamp(460px, calc(100dvh - 152px), 760px);
+  min-height: clamp(360px, calc(100svh - 152px), 640px);
   padding: 12px;
   border-radius: 24px;
   background: rgb(var(--surface-tint-rgb));
@@ -1239,7 +1247,7 @@ html.cx-landing {
 
 #main-nav,
 #mobileMenu {
-  background: rgb(var(--surface-tint-warm-rgb));
+  background: rgb(var(--surface-tint-rgb));
 }
 #main-nav {
   transition: transform 0.3s ease;
@@ -1298,11 +1306,12 @@ html.cx-landing {
 #chatWidget {
   transition: opacity 0.25s ease, transform 0.25s ease;
 }
-#chatWidget.chat-widget-collapsed {
-  @apply pointer-events-none translate-x-4 opacity-0;
-}
-#chatPinTab {
-  @apply touch-none;
+
+/* Chưa cuộn tới ngưỡng thì bong bóng nằm im — js/chat-rotator.js gắn class này
+   ngay lúc nạp (trước khi vẽ) và gỡ ra khi khách cuộn xuống. */
+
+#chatWidget.is-away {
+  @apply pointer-events-none translate-y-3 opacity-0;
 }
 
 

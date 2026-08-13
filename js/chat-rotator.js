@@ -1,8 +1,17 @@
-// Widget hỗ trợ: xoay vòng câu chữ mỗi 3s, kèm hiệu ứng "đang gõ"
+// Widget hỗ trợ: LUÔN hiện, xoay vòng câu chữ mỗi 3s kèm hiệu ứng "đang gõ".
+// Không còn thu vào ghim ở mép phải — bấm X là tắt hẳn và nhớ luôn lựa chọn.
 (function initSupportRotator() {
   var msgEl = document.getElementById("supportMsg");
   var typingEl = document.querySelector("#supportCard .support-typing");
+  var widget = document.getElementById("chatWidget");
   if (!msgEl) return;
+
+  // Lần trước đã tắt → gỡ ngay, đừng để chớp lên một nhịp rồi mới biến mất.
+  var CHAT_HIDDEN_KEY = buildCacheKey("chat_hidden");
+  if (widget && getCache(CHAT_HIDDEN_KEY)) {
+    widget.remove();
+    return;
+  }
   var messages = [
     "Bạn cần tư vấn tạo thiệp?<br /><b>Nhắn cho mình nhé →</b>",
     "Có khó khăn gì không?<br /><b>Liên hệ chúng tôi →</b>",
@@ -33,20 +42,29 @@
     }, 650);
   }, 3000);
 
-  // Nút X: đóng thẻ hỗ trợ, thu vào pin tab ở mép phải (mọi kích thước
-  // màn hình) — vẫn mở lại được qua click/vuốt vào pin tab.
-  var closeBtn = document.getElementById("supportClose");
-  var widget = document.getElementById("chatWidget");
-  if (closeBtn) {
-    closeBtn.addEventListener("click", function (e) {
-      e.preventDefault();
-      e.stopPropagation();
-      clearInterval(rotTimer);
-      if (typeof window.__cxChatCollapse === "function") {
-        window.__cxChatCollapse();
-      } else if (widget) {
-        widget.style.display = "none";
-      }
-    });
+  // Nút X: tắt HẲN bong bóng hỗ trợ và nhớ lựa chọn đó (không có ghim ở
+  // mép phải để mở lại nữa) — xoá cache thì lần sau lại hiện.
+  //
+  // Bắt sự kiện ở DOCUMENT chứ không gắn thẳng vào #supportClose: <x-button>
+  // TỰ THAY THẾ mình bằng <button> thật lúc DOMContentLoaded, mà file này chạy
+  // ngay khi parse tới — gắn vào thẻ cũ thì listener biến mất cùng thẻ đó.
+  document.addEventListener("click", function (e) {
+    var btn = e.target.closest && e.target.closest("#supportClose");
+    if (!btn || !widget) return;
+    e.preventDefault();
+    e.stopPropagation();
+    clearInterval(rotTimer);
+    widget.remove();
+    setCache(CHAT_HIDDEN_KEY, true);
+  });
+
+  // Mới vào chưa hiện; cuộn quá nửa màn mới thả bong bóng ra.
+  widget.classList.add("is-away");
+  function _revealChat() {
+    if ((window.scrollY || 0) < window.innerHeight * 0.5) return;
+    widget.classList.remove("is-away");
+    window.removeEventListener("scroll", _revealChat);
   }
+  window.addEventListener("scroll", _revealChat, { passive: true });
+  _revealChat();
 })();

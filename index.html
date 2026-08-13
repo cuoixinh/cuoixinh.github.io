@@ -684,7 +684,9 @@
             ></div>
           </div>
         </a>
-        <x-button variant="outline" size="sm" icon-only id="supportClose" type="button" aria-label="Đóng thẻ hỗ trợ" class="absolute -top-2 -right-2 w-[22px] text-[rgb(var(--chat-action-icon-rgb))] z-[3] opacity-0 animate-bubbleIn-2 hover:scale-110">
+        <!-- w VÀ h phải đi cùng nhau: size="sm" cho h-8 w-8, đặt mỗi w-[22px]
+             thì nút thành hình bầu dục 22×32 chứ không tròn. -->
+        <x-button variant="outline" size="sm" icon-only id="supportClose" type="button" aria-label="Tắt hỗ trợ" class="absolute -top-2 -right-2 w-[22px] h-[22px] text-[rgb(var(--chat-action-icon-rgb))] z-[3] opacity-0 animate-bubbleIn-2 hover:scale-110">
           <i class="fas fa-times"></i>
         </x-button>
       </div>
@@ -704,20 +706,10 @@
       </a>
     </div>
 
-    <!-- Ghim gom các tính năng hỗ trợ nổi (Messenger, sau này thêm trợ lý AI…) — mọi màn hình -->
-    <x-button variant="ghost" size="lg" icon-only id="chatPinTab" type="button" aria-label="Mở các tính năng hỗ trợ" class="hidden fixed z-50 right-0 bottom-[calc(80px_+_env(safe-area-inset-bottom,0px))] justify-end">
-      <span
-        class="flex items-center justify-center w-[16px] h-[40px] rounded-l-[8px] border border-r-0 border-white/40 bg-[linear-gradient(155deg,rgb(var(--brand-accent-rgb)),rgb(var(--brand-primary-rgb)))] shadow-[0_8px_24px_rgb(var(--shadow-brand-rgb)/0.4)]"
-      >
-        <i id="chatPinIcon" class="fas fa-chevron-left text-white" style="font-size: 10px"></i>
-      </span>
-    </x-button>
-
     <script src="core/x-button.js"></script>
     <script src="core/cache-util.js"></script>
     <script src="js/chat-rotator.js"></script>
 
-    <script src="js/chat-pin.js"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.8" integrity="sha384-Tve8O+C6PBzsIMK/IRCwHbi8fyEzXIlIs6OfVBZHubplwYhaQF/4Mzxqgg+pp/oy" crossorigin="anonymous"></script>
     <script src="core/config.js"></script>
