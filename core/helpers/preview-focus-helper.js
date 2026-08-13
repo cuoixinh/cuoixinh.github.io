@@ -6,7 +6,7 @@
 // lấy phần tử ĐẦU TIÊN có thật và đang hiện. Theme mới đặt id khác thì bổ sung
 // vào đây, không sửa ở nơi gọi.
 const CX_FOCUS_SEL = {
-  couple: [], // đầu thiệp — xử lý riêng, cuộn hẳn lên trên
+  couple: ["#section-couple"], // theme không khai thì cuộn hẳn lên đầu trang
   ceremony: ["#section-ceremony", "#mini-calendar", "#invite-day"],
   family: ["#section-family", "#groom-photo", "#groom-father"],
   party: ["#section-party", "#party-location", "#party-day", "#section-map"],
@@ -47,11 +47,13 @@ function _cxFocusFlash(el) {
 }
 
 function _cxFocusScroll(key, tries) {
-  if (key === "couple") {
+  const el = _cxFocusFind(key);
+  // Đầu thiệp: theme nào có mục riêng thì cuộn tới nó (thiệp lật ngang không
+  // cuộn dọc nên window.scrollTo vô tác dụng), còn lại giữ cách cũ.
+  if (!el && key === "couple") {
     window.scrollTo({ top: 0, behavior: "smooth" });
     return;
   }
-  const el = _cxFocusFind(key);
   if (!el) {
     if (tries < CX_FOCUS_TRIES)
       setTimeout(() => _cxFocusScroll(key, tries + 1), CX_FOCUS_GAP);

@@ -1,0 +1,59 @@
+/* CSS riêng của thiệp Romantic Gold — chỉ chứa thứ Tailwind không làm được.
+   Mọi bố cục/màu/hiệu ứng khác viết bằng utility trong index.html + index.js.
+   File này KHÔNG qua Tailwind build nên không bị purge; core/config.js tự nối
+   ?v= vào nó khi đổi CX_VERSION. Nạp SAU styles/themes.css. */
+
+/* 1. Retune palette sang tông champagne + kem ấm.
+   Thiệp dùng các class có sẵn (.text-gold-400, .text-charcoal,
+   .text-stone-custom-400…) để tab Giao diện chỉnh được ngay, còn GIÁ TRỊ màu thì
+   đổi ở đây. Chỉ trang thiệp này nạp file nên basic-gold/vintage-forest không đổi. */
+:root {
+  --card-gold-100-rgb: 250 245 236; /* ivory ấm — nền phụ */
+  --card-gold-200-rgb: 236 220 190; /* champagne mờ — viền mảnh */
+  --card-gold-300-rgb: 220 192 138; /* champagne nhạt — nhấn phụ */
+  --card-gold-400-rgb: 193 154 82; /* champagne — nhấn chính */
+  --card-sage-50-rgb: 255 253 249; /* giấy ngà — nền thiệp */
+  --card-sage-100-rgb: 253 250 244;
+  --card-sage-200-rgb: 242 233 218;
+  --card-sage-300-rgb: 220 208 190;
+  --card-sage-400-rgb: 168 152 132;
+  --card-charcoal-rgb: 92 79 66; /* cocoa — chữ tiêu đề */
+  --card-stone-400-rgb: 138 122 104; /* cocoa nhạt — chữ nội dung */
+  /* Token dùng chung mà render-helper/calendar-helper ghi thẳng vào style inline */
+  --timeline-dot-rgb: 193 154 82;
+  --surface-blossom-rgb: 236 220 190;
+  --calendar-marked-glow: rgb(var(--card-gold-400-rgb) / 0.35);
+}
+
+/* 2. Giấu thanh cuộn của dải trang và của từng trang — thiệp lật bằng cử chỉ,
+   thanh cuộn ngang lộ ra sẽ phá cảm giác "trang sách". */
+#cx-pages,
+#cx-pages > * {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+#cx-pages::-webkit-scrollbar,
+#cx-pages > *::-webkit-scrollbar {
+  display: none;
+}
+
+/* 3. Khối văn bản khách tự thêm: node do theme-setting-helper sinh ra nên không
+   gắn class Tailwind vào được — phải cấp khổ một trang tại đây, nếu không nó bị
+   co lại thành một cột hẹp giữa hai trang. */
+#cx-pages > .cx-custom-block {
+  flex: 0 0 100%;
+  max-width: 100%;
+  scroll-snap-align: start;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 56px 32px 72px;
+}
+
+/* 4. Dự phòng cho trình duyệt chưa hỗ trợ dvh (Safari < 15.4). */
+@supports not (height: 100dvh) {
+  .cx-dvh {
+    height: 100vh;
+  }
+}

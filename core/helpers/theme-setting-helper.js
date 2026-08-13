@@ -72,6 +72,29 @@ const THEME_PRESETS = {
       "#ffffff",
     ],
   },
+  "romantic-gold": {
+    heading_font: "Cormorant Garamond", // .font-cormorant
+    body_font: "Inter", // .font-inter
+    heading_color: "#5c4f42", // .text-charcoal
+    body_color: "#8a7a68", // .text-stone-custom-400
+    accent_color: "#c19a52", // .text-gold-400
+    background_color: "#fffdf9", // #main-card
+    // Tông champagne + kem ấm; giá trị thật khai ở public/themes/romantic-gold/theme.css
+    swatches: [
+      "#5c4f42", // charcoal
+      "#8a7a68", // stone-custom-400
+      "#3b322a",
+      "#2d2d2d",
+      "#c19a52", // gold-400
+      "#dcc08a", // gold-300
+      "#ecdcbe", // gold-200
+      "#faf5ec", // gold-100
+      "#fffdf9", // sage-50
+      "#fdfaf4", // sage-100
+      "#f2e9da", // sage-200
+      "#ffffff",
+    ],
+  },
 };
 
 // Màu gợi ý cho picker
