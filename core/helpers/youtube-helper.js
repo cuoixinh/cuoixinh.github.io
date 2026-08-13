@@ -108,8 +108,19 @@ function initYouTubeMusic(musicUrl) {
 /**
  * Trình duyệt chặn tự phát khi trang chưa có tương tác nào → chờ tương tác đầu
  * tiên (chạm/bấm/cuộn/gõ phím) rồi mới phát. Người dùng đã tự bấm tắt thì thôi.
+ *
+ * Có cả `scroll` vì mẫu không dùng màn bìa (không có nút "Mở thiệp") thì hành
+ * động đầu tiên của khách thường là cuộn. Cuộn KHÔNG được tính là "user
+ * activation" nên có máy vẫn chặn — vì vậy vẫn nghe thêm chạm/bấm/gõ phím, và
+ * hàm tự vũ trang lại sau 1 giây nếu chưa phát được.
  */
-const _MUSIC_GESTURES = ["pointerdown", "touchstart", "keydown", "wheel"];
+const _MUSIC_GESTURES = [
+  "pointerdown",
+  "touchstart",
+  "keydown",
+  "wheel",
+  "scroll",
+];
 let _musicUserPaused = false;
 let _musicGestureArmed = false;
 

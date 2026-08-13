@@ -102,7 +102,8 @@
 /* Quay tròn khi đang phát. Gắn vào phần NỘI DUNG tròn, đừng gắn lên chính bong
    bóng — nó đang giữ cx-mp-pop, hai animation cùng đổi `transform` sẽ đè nhau. */
 
-.cx-mp.is-playing .cx-mp-spin {
+.cx-mp.is-playing .cx-mp-spin,
+.cx-mw.is-playing .cx-mp-spin {
   animation: cx-mp-spin 8s linear infinite;
 }
 
@@ -356,6 +357,21 @@
 
 .cx-mw-mini {
   aspect-ratio: 1;
+}
+
+/* Bản neo GÓC MÀN của hai mẫu gọn (build({chrome:"fixed-corner"})): theme lấy
+   ảnh làm chính thì thay thanh nhạc bằng một đĩa nhỏ ở góc trên phải.
+   Neo theo `top` chứ không `bottom` — thanh xem trước mẫu ở trang chủ chỉ đẩy
+   nút nhạc lên khi nó neo đáy (core/utils.js).
+   font-size là gốc quy đổi của mọi kích thước bên trong (.cx-mw viết bằng em). */
+
+.cx-mw-fixed {
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  z-index: 60;
+  width: 44px;
+  font-size: 9px;
 }
 
 .cx-mw-mini-btn {

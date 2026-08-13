@@ -945,37 +945,88 @@ function closeTimePicker() {
     window.location.href = "/invitation-setup/?id=" + uuid;
   }
 
-  var NAVBAR_H = 56;
+  // Thẻ nổi hình viên thuốc, cách mép dưới 4px. Hình dạng khai ở .cx-pnav*
+  // trong styles/_common.css — ở đây chỉ dựng khung và nối sự kiện.
+  var NAVBAR_H = 58; // chiều cao thẻ + khoảng hở, dùng để chừa chỗ cuối trang
+
+  // Ba mục: một nhãn trái · nút "Tạo ngay" ở giữa · một nhãn phải.
+  // `go` = đường dẫn nội bộ, `href` = mở tab mới; nút giữa chạy _chooseTheme
+  // (tạo bản nháp với mẫu đang xem rồi sang trang Thiết lập).
+  var PNAV_ITEMS = [
+    { id: "pnav-home", label: "Home", icon: "home", go: "/" },
+    // `aria` dài hơn nhãn hiện trên nút: chữ trên thanh phải ngắn cho vừa khổ
+    // máy hẹp, còn phần đọc màn hình / tooltip thì nói đủ ý.
+    {
+      id: "pnav-choose",
+      label: "Tạo ngay",
+      icon: "plus",
+      aria: "Tạo thiệp với mẫu này",
+      center: true,
+    },
+    { id: "pnav-others", label: "Mẫu khác", icon: "grid", go: "/theme-template/" },
+  ];
+
+  // Icon vẽ nét (không tô đặc) cho hợp với chữ mảnh của thanh.
+  var PNAV_ICONS = {
+    home: '<path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V21h13V9.5"/>',
+    plus: '<path d="M12 5v14"/><path d="M5 12h14"/>',
+    grid:
+      '<rect x="3" y="3" width="7.5" height="7.5" rx="1.5"/>' +
+      '<rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5"/>' +
+      '<rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5"/>' +
+      '<rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.5"/>',
+  };
+
+  function _pnavIcon(name) {
+    return (
+      '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"' +
+      ' viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"' +
+      ' stroke-linecap="round" stroke-linejoin="round">' +
+      (PNAV_ICONS[name] || "") +
+      "</svg>"
+    );
+  }
 
   var navbar = document.createElement("div");
   navbar.id = "preview-nav";
-  navbar.className = "fixed bottom-0 left-1/2 -translate-x-1/2 z-[9999] w-full max-w-[430px] md:max-w-[768px] flex items-center justify-end gap-2.5 px-4 py-2.5 bg-white/95 backdrop-blur border-t border-rose-100";
-  navbar.style.cssText = "padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));box-shadow:0 -4px 24px rgb(var(--action-bar-shadow-rgb)/0.10);";
+  navbar.className = "cx-pnav";
 
   navbar.innerHTML =
-    '<x-button variant="outline" size="sm" id="pnav-close" class="text-[rgb(var(--text-muted-rgb))] shrink-0">' +
-    '  <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>' +
-    '  Quay lại' +
-    '</x-button>' +
-    '<x-button size="sm" id="pnav-choose" style="background:linear-gradient(135deg,rgb(var(--gift-btn-from-rgb)),rgb(var(--gift-btn-to-rgb)));box-shadow:0 3px 10px rgb(var(--gift-btn-to-rgb)/0.3);" class="hover:opacity-90">' +
-    '  Dùng mẫu này' +
-    '  <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>' +
-    '</x-button>';
+    '<div class="cx-pnav-card">' +
+    PNAV_ITEMS.map(function (it) {
+      // Mục nào cũng icon + chữ. Riêng nút giữa: dấu cộng một mình không nói
+      // được là làm gì, mà đây là hành động chính của cả trang xem trước.
+      return (
+        '<x-button variant="bare" id="' + it.id + '"' +
+        ' class="cx-pnav-btn' + (it.center ? " cx-pnav-plus" : "") + '"' +
+        ' aria-label="' + (it.aria || it.label) + '" title="' + (it.aria || it.label) + '">' +
+        _pnavIcon(it.icon) + it.label +
+        "</x-button>"
+      );
+    }).join("") +
+    "</div>";
 
   function _mount() {
     document.body.appendChild(navbar);
-    document.body.style.paddingBottom = (navbar.offsetHeight || NAVBAR_H) + "px";
+    document.body.style.paddingBottom = NAVBAR_H + "px";
 
-    // Đẩy nút nhạc lên khỏi navbar — chỉ với theme còn dùng nút tròn neo ở đáy.
-    // basic-gold đã đổi sang thanh nhạc neo ở ĐỈNH: gán bottom vào đó sẽ vừa
-    // top vừa bottom → phần tử bị kéo giãn hết màn hình.
+    // Đẩy nút nhạc lên khỏi navbar — chỉ với theme dùng nút tròn neo ở ĐÁY.
+    // Theme neo nút nhạc ở đỉnh: gán bottom vào đó sẽ vừa top vừa bottom →
+    // phần tử bị kéo giãn hết màn hình.
     var musicBtn = document.getElementById("music-toggle");
     if (musicBtn && getComputedStyle(musicBtn).bottom !== "auto") {
-      musicBtn.style.bottom = ((navbar.offsetHeight || NAVBAR_H) + 8) + "px";
+      musicBtn.style.bottom = (NAVBAR_H + 8) + "px";
     }
 
-    document.getElementById("pnav-close").addEventListener("click", function () { history.back(); });
-    document.getElementById("pnav-choose").addEventListener("click", _chooseTheme);
+    PNAV_ITEMS.forEach(function (it) {
+      var el = document.getElementById(it.id);
+      if (!el) return;
+      el.addEventListener("click", function () {
+        if (it.center) return _chooseTheme();
+        if (it.href) return window.open(it.href, "_blank", "noopener");
+        window.location.href = it.go;
+      });
+    });
   }
 
   if (document.readyState === "loading") {

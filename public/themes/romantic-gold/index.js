@@ -87,9 +87,8 @@
     // --- Đếm ngược ---
     startCountdown(w.ceremony_date, w.ceremony_time);
 
-    // --- Gia đình ---
-    renderCoupleInfo(w);
-    cxToggle("section-family", cxEnabled(w.enable_family));
+    // Mẫu này KHÔNG có mục Gia đình (không markup, không gọi renderCoupleInfo)
+    // — công tắc enable_family bên Thiết lập vì thế không tác dụng gì ở đây.
 
     // --- Thư mời: nhà gái bật Vu Quy thì thay toàn bộ phần lễ ---
     const isVuQuy = !_isGroom && cxEnabled(w.vu_quy_enabled);
@@ -239,32 +238,88 @@
   }
 
   // ============= ALBUM ẢNH =============
-  // Lưới hai cột, ảnh ĐẦU chiếm cả hàng cho có nhịp. Ảnh bấm được để phóng to.
+  // Không phải một lưới phẳng: ảnh được rót lần lượt vào 3 khối bố cục
+  //   1. tràn viền (1 ảnh hết bề ngang thiệp, kèm một dòng chữ viết tay)
+  //   2. chồng lệch (2 ảnh so le)
+  //   3. lưới (phần còn lại)
+  // Ít ảnh thì khối nào không đủ ảnh sẽ tự ẩn, không để lại chỗ trống.
+
+  const RG_BAND_TEXT = "Forever &amp; Always";
+
+  /** Một ô ảnh bấm được để phóng to. `i` là vị trí trong lightboxImages. */
+  function _photo(url, fp, i, cls) {
+    const el = document.createElement("div");
+    el.className = cls;
+    el.innerHTML = `<img src="${url}" alt="" loading="lazy"
+      class="w-full h-full object-cover"
+      style="object-position:${fp?.x ?? 50}% ${fp?.y ?? 50}%">`;
+    el.addEventListener("click", () => openLightbox(i));
+    return el;
+  }
 
   function renderGallery(images, focalPoints) {
     const grid = document.getElementById("gallery-grid");
     if (!grid) return;
 
-    const urls = images?.length
-      ? images.map(getImageUrl)
-      : Array.from({ length: 5 }, (_, i) => createPlaceholderSVG(`Ảnh ${i + 1}`));
+    const list = images?.length
+      ? images.map((f) => ({ url: getImageUrl(f), fp: focalPoints?.[f] }))
+      : Array.from({ length: 8 }, (_, i) => ({
+          url: createPlaceholderSVG(`Ảnh ${i + 1}`),
+          fp: null,
+        }));
 
-    // Kho ảnh của lightbox dùng chung — phải khớp thứ tự với lưới.
+    // Kho ảnh của lightbox dùng chung — thứ tự phải khớp chỉ số truyền vào _photo.
     lightboxImages.length = 0;
-    lightboxImages.push(...urls);
+    lightboxImages.push(...list.map((p) => p.url));
 
+    let n = 0; // ảnh kế tiếp chưa dùng
+    const take = (k) => (n + k <= list.length ? list.slice(n, (n += k)) : null);
+    const show = (id, on) => cxToggle(id, on);
+
+    // 1. Một ảnh tràn hết bề ngang, chữ viết tay đè lên
+    const bandWrap = document.getElementById("gallery-band");
+    const band = take(1);
+    if (bandWrap && band) {
+      bandWrap.innerHTML = "";
+      const box = document.createElement("div");
+      box.className = "rg-band-photo";
+      box.appendChild(_photo(band[0].url, band[0].fp, n - 1, "rg-band-img"));
+      const cap = document.createElement("div");
+      cap.className = "rg-band-cap rg-on rg-script";
+      cap.innerHTML = RG_BAND_TEXT;
+      box.appendChild(cap);
+      bandWrap.appendChild(box);
+    }
+    show("gallery-band", !!(bandWrap && band));
+
+    // 2. Hai ảnh chồng lệch tầng
+    const stackWrap = document.getElementById("gallery-stack");
+    const stack = take(2);
+    if (stackWrap && stack) {
+      stackWrap.innerHTML = "";
+      const box = document.createElement("div");
+      box.className = "rg-stack";
+      const [a, b] = stack;
+      box.appendChild(_photo(a.url, a.fp, n - 2, "rg-stack-a"));
+      box.appendChild(_photo(b.url, b.fp, n - 1, "rg-stack-b"));
+      stackWrap.appendChild(box);
+    }
+    show("gallery-stack", !!(stackWrap && stack));
+
+    // 3. Phần còn lại xếp lưới, ảnh đầu chiếm cả hàng cho có nhịp
     grid.innerHTML = "";
-    urls.forEach((url, i) => {
-      const fp = focalPoints?.[images?.[i]];
-      const cell = document.createElement("div");
-      cell.className =
-        "rounded-xl overflow-hidden cursor-pointer shadow-sm " +
-        (i === 0 ? "rg-photo-wide" : "aspect-[3/4]");
-      cell.innerHTML = `<img src="${url}" alt="" loading="lazy"
-        class="w-full h-full object-cover"
-        style="object-position:${fp?.x ?? 50}% ${fp?.y ?? 50}%">`;
-      cell.addEventListener("click", () => openLightbox(i));
-      grid.appendChild(cell);
+    const rest = list.slice(n);
+    rest.forEach((p, k) => {
+      grid.appendChild(
+        _photo(
+          p.url,
+          p.fp,
+          n + k,
+          "rounded-xl overflow-hidden cursor-pointer shadow-sm " +
+            (k === 0 && rest.length % 2 === 1 ? "rg-photo-wide" : "aspect-[3/4]"),
+        ),
+      );
     });
+    grid.classList.toggle("hidden", rest.length === 0);
   }
 })();

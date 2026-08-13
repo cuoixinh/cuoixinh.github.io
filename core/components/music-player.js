@@ -256,14 +256,22 @@
 
   /**
    * Dựng trình phát nhạc.
-   * @param {{variant?:"bar"|"mini"|"card", chrome?:"fixed-top"|"inline",
+   * @param {{variant?:"bar"|"mini"|"card",
+   *          chrome?:"fixed-top"|"fixed-corner"|"inline",
    *          summary?:boolean, revealOnScroll?:number}} [opts]
    * @returns {HTMLElement}
+   *
+   * chrome:
+   *   fixed-top     thanh ngang neo đỉnh màn (chỉ đi với variant "bar")
+   *   fixed-corner  đĩa tròn neo góc trên phải, xoay khi phát — dành cho theme
+   *                 lấy ảnh làm chính, chỉ chừa một chấm nhỏ
+   *   inline (mặc định) nằm trong luồng, dùng cho widget thả lên thiệp
    */
   function build(opts) {
     const o = opts || {};
     const variant = o.variant || "bar";
     const fixed = o.chrome === "fixed-top";
+    const corner = o.chrome === "fixed-corner";
 
     const node = document.createElement("div");
     node.setAttribute("data-cx-music", "root");
@@ -271,9 +279,17 @@
     node.setAttribute("data-cx-empty-title", "Nhạc nền");
 
     if (variant === "mini" || variant === "card") {
-      // Hai mẫu gọn không có bản fixed-top: chúng sinh ra để thả lên thiệp.
+      // Hai mẫu gọn không có bản fixed-top (thanh ngang): chúng sinh ra để thả
+      // lên thiệp, hoặc neo góc màn qua chrome "fixed-corner".
       node.className = variant === "mini" ? "cx-mw cx-mw-mini" : "cx-mw cx-mw-card";
       node.innerHTML = variant === "mini" ? miniBody : cardBody;
+      if (corner) {
+        // id="music-toggle" để setupMusic() ẩn/hiện theo việc thiệp có nhạc hay
+        // chưa; cx-no-edit để runtime chỉnh chữ ở tab Giao diện bỏ qua nó.
+        node.id = "music-toggle";
+        node.classList.add("cx-mw-fixed", "cx-no-edit");
+        node.style.display = "none";
+      }
       return node;
     }
 

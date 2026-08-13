@@ -25,6 +25,9 @@
     <link rel="stylesheet" href="theme.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <script src="../../../core/x-button.js"></script>
+    <!-- Mẫu này tự vẽ nút nhạc, KHÔNG dựng thanh nhạc dùng chung — vẫn phải nạp
+         file này vì khách có thể tự thả trình phát lên thiệp ở tab Giao diện
+         (CX_ELEMENTS gọi CXMusicPlayer.build). -->
     <script src="../../../core/components/music-player.js"></script>
   </head>
 
@@ -35,12 +38,15 @@
        Dựng từ public/themes/base-theme/ — xem hướng dẫn ở đầu file đó. -->
 
   <body class="min-h-screen flex justify-center items-start md:py-5">
-    <!-- Thanh nhạc: phải là thẻ con ĐẦU TIÊN của body (bong bóng thu gọn dùng
-         position:fixed). Chỉ hiện sau khi cuộn nên poster mở đầu vẫn sạch. -->
+    <!-- ═══ Nhạc nền — đĩa tròn neo góc ═════════════════════════════════════
+         Ảnh chiếm hết màn nên thay thanh nhạc ngang bằng một đĩa nhỏ, xoay khi
+         đang phát. Vẫn là component dùng chung (mẫu "mini" + chrome
+         "fixed-corner") nên logic phát/dừng, ảnh bìa, ẩn khi thiệp chưa có nhạc
+         đều do core lo. Phải là thẻ con ĐẦU TIÊN của body như thanh nhạc. -->
     <div id="cx-music-mount"></div>
     <script>
       document.currentScript.previousElementSibling.replaceWith(
-        CXMusicPlayer.build({ variant: "bar", chrome: "fixed-top" }),
+        CXMusicPlayer.build({ variant: "mini", chrome: "fixed-corner" }),
       );
     </script>
 
@@ -136,49 +142,6 @@
           </div>
         </section>
 
-        <!-- ═══ MỤC: Gia đình (enable_family) ═════════════════════════════ -->
-        <section id="section-family" class="rg-band flex flex-col gap-8 px-8 py-14 text-center">
-          <h2 class="rg-title cx-h">Gia Đình</h2>
-
-          <div class="flex flex-col gap-10 sm:flex-row">
-            <!-- Nhà trai -->
-            <div class="flex-1 flex flex-col items-center gap-2">
-              <div class="w-36 h-36 rounded-full overflow-hidden shadow-lg ring-4 ring-white">
-                <img id="groom-photo" src="" alt="Chú Rể" class="w-full h-full object-cover" />
-              </div>
-              <div class="cx-t text-[10px] tracking-[4px] uppercase pt-2">Nhà Trai</div>
-              <div class="rg-script text-[34px] leading-none cx-h" id="groom-name-label">----------</div>
-              <div class="flex flex-col gap-0.5 pt-1">
-                <div class="cx-t text-[11px]">Con ông bà</div>
-                <div class="cx-a text-[13px]" id="groom-father">--------------------</div>
-                <div class="cx-a text-[13px]" id="groom-mother">--------------------</div>
-              </div>
-              <div class="cx-t text-[11px] leading-relaxed pt-1">
-                <i class="fas fa-map-marker-alt cx-ac mr-1 text-[10px]"></i>
-                <span id="groom-address">----------------------------------------</span>
-              </div>
-            </div>
-
-            <!-- Nhà gái -->
-            <div class="flex-1 flex flex-col items-center gap-2">
-              <div class="w-36 h-36 rounded-full overflow-hidden shadow-lg ring-4 ring-white">
-                <img id="bride-photo" src="" alt="Cô Dâu" class="w-full h-full object-cover" />
-              </div>
-              <div class="cx-t text-[10px] tracking-[4px] uppercase pt-2">Nhà Gái</div>
-              <div class="rg-script text-[34px] leading-none cx-h" id="bride-name-label">----------</div>
-              <div class="flex flex-col gap-0.5 pt-1">
-                <div class="cx-t text-[11px]">Con ông bà</div>
-                <div class="cx-a text-[13px]" id="bride-father">--------------------</div>
-                <div class="cx-a text-[13px]" id="bride-mother">--------------------</div>
-              </div>
-              <div class="cx-t text-[11px] leading-relaxed pt-1">
-                <i class="fas fa-map-marker-alt cx-ac mr-1 text-[10px]"></i>
-                <span id="bride-address">----------------------------------------</span>
-              </div>
-            </div>
-          </div>
-        </section>
-
         <!-- ═══ MỤC: Thư mời — lễ thành hôn / vu quy ══════════════════════ -->
         <section id="section-ceremony" class="flex flex-col gap-6 px-8 py-14 text-center">
           <div class="cx-t text-[10px] tracking-[4px] uppercase">
@@ -239,26 +202,27 @@
             <div class="text-[13px] tracking-[3px] uppercase shimmer-text">Xác nhận tham dự</div>
             <div id="rsvp-custom-message" class="hidden cx-h italic text-[14px] leading-relaxed"></div>
 
-            <div class="grid grid-cols-2 gap-4">
+            <!-- Hai nút nhỏ nằm cùng một hàng, icon và chữ trên một dòng. -->
+            <div class="flex items-center justify-center gap-3">
               <x-button
                 variant="bare"
                 onclick="confirmAttend(true)"
                 id="btn-attend"
-                class="flex-col gap-2 py-4 border cx-border bg-white/60 active:scale-95 transition-all"
+                class="gap-2 px-5 py-2.5 border cx-border bg-white/70 cx-t text-[13px] active:scale-95 transition-all"
               >
-                <i class="fas fa-check-circle cx-ac text-2xl"></i>
-                <span class="cx-h italic text-[15px]">Tham dự</span>
+                <!-- Icon dùng .cx-ac/.cx-bd (chỉ đổi màu): .cx-t đặt cả
+                     font-family nên sẽ đè font của Font Awesome → ô vuông. -->
+                <i class="fas fa-check cx-ac text-[11px]"></i>
+                Tham dự
               </x-button>
               <x-button
                 variant="bare"
                 onclick="confirmAttend(false)"
                 id="btn-decline"
-                class="flex-col gap-2 py-4 border cx-border bg-white/60 active:scale-95 transition-all"
+                class="gap-2 px-5 py-2.5 border cx-border bg-white/70 cx-t text-[13px] active:scale-95 transition-all"
               >
-                <!-- Icon dùng .cx-bd (chỉ đổi màu): .cx-t đặt cả font-family nên
-                     sẽ đè font của Font Awesome → icon thành ô vuông. -->
-                <i class="fas fa-times-circle cx-bd text-2xl"></i>
-                <span class="cx-h italic text-[15px]">Không tham dự</span>
+                <i class="fas fa-xmark cx-bd text-[11px]"></i>
+                Không tham dự
               </x-button>
             </div>
 
@@ -278,9 +242,21 @@
           <div id="love-story-list" class="flex flex-col border-l-2 cx-border ml-[5px]"></div>
         </section>
 
-        <!-- ═══ MỤC: Album ảnh (enable_photos) ════════════════════════════ -->
-        <section id="section-photos" class="flex flex-col gap-5 px-8 py-14 text-center">
+        <!-- ═══ MỤC: Album ảnh (enable_photos) ════════════════════════════
+             Mẫu này lấy ảnh làm chính nên album không phải một lưới phẳng mà là
+             chuỗi bố cục: ảnh tràn viền → hai ảnh chồng lệch → lưới phần còn
+             lại. renderGallery() trong index.js rót ảnh vào từng khối theo thứ
+             tự, thiếu ảnh thì khối nào không đủ sẽ tự ẩn. -->
+        <section id="section-photos" class="flex flex-col gap-8 px-8 py-14 text-center">
           <h2 class="rg-title cx-h">Khoảnh Khắc</h2>
+
+          <!-- Ảnh tràn hết bề ngang thiệp (-mx-8 để thoát lề của section) -->
+          <div id="gallery-band" class="hidden -mx-8"></div>
+
+          <!-- Hai ảnh chồng lệch tầng -->
+          <div id="gallery-stack" class="hidden"></div>
+
+          <!-- Phần ảnh còn lại -->
           <div id="gallery-grid" class="grid grid-cols-2 gap-3"></div>
         </section>
 

@@ -176,3 +176,68 @@ body {
   grid-column: span 2;
   aspect-ratio: 4 / 3;
 }
+
+/* ── Ghép ảnh ─────────────────────────────────────────────────────────────
+   Hai bố cục do renderGallery() trong index.js dựng. Ảnh nào cũng bấm được để
+   phóng to nên đều phải `cursor: pointer`. */
+
+/* 1. TRÀN VIỀN — một ảnh rộng hết thiệp, chữ viết tay đè lên giữa. */
+
+.rg-band-photo {
+  position: relative;
+  aspect-ratio: 3 / 2;
+  overflow: hidden;
+}
+
+.rg-band-img {
+  position: absolute;
+  inset: 0;
+  cursor: pointer;
+}
+
+/* Phủ tối nhẹ để chữ nổi lên; không bắt chuột để vẫn bấm được vào ảnh. */
+
+.rg-band-cap {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 46px;
+  line-height: 1;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    rgb(0 0 0 / 0.05),
+    rgb(0 0 0 / 0.3)
+  );
+}
+
+/* 2. CHỒNG LỆCH — ảnh lớn bên trái, ảnh nhỏ đè lên góc dưới phải. */
+
+.rg-stack {
+  position: relative;
+  padding-bottom: 44px;
+}
+
+.rg-stack-a {
+  width: 70%;
+  aspect-ratio: 3 / 4;
+  border-radius: 16px;
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: 0 10px 30px rgb(var(--cx-heading-rgb) / 0.12);
+}
+
+.rg-stack-b {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 52%;
+  aspect-ratio: 3 / 4;
+  border-radius: 16px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 5px solid rgb(var(--rg-card-bg-rgb));
+  box-shadow: 0 12px 28px rgb(var(--cx-heading-rgb) / 0.18);
+}

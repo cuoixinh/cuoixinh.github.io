@@ -42,11 +42,21 @@ function renderTemplateCards() {
             <p class="text-white font-playfair font-semibold text-base leading-snug truncate drop-shadow-sm">${t.name}</p>
             <p class="text-white/85 text-xs mt-0.5 line-clamp-2 leading-relaxed">${t.description || ""}</p>
             <div class="mt-3 flex gap-2" style="pointer-events:auto;">
-              <x-button onclick="event.stopPropagation(); openPreview('${t.id}')" style="background:rgb(var(--white-rgb)/0.85);color:rgb(var(--text-heading-rgb));border:1px solid rgb(var(--card-blush-300-rgb)/0.35);" class="flex-1">
+              <!-- variant="outline" là BẮT BUỘC, không phải cho đẹp: variant mặc
+                   định (fill) kèm class text-white, mà landing có luật ép
+                   text-white thành trắng kèm !important (xem tailwind-src.css,
+                   phần .cx-landing) — !important đè cả inline style nên chữ
+                   không nâu được.
+                   Nền TRẮNG ĐẶC: nút đè lên ảnh cưới, để trong mờ thì ảnh xuyên
+                   qua làm chữ chìm và mỗi thẻ ra một sắc nền khác. -->
+              <x-button variant="outline" onclick="event.stopPropagation(); openPreview('${t.id}')" style="background:rgb(var(--white-rgb));color:rgb(var(--text-body-rgb));border:1px solid rgb(var(--brand-primary-rgb)/0.45);box-shadow:0 4px 12px rgb(var(--scrim-rgb)/0.18);" class="flex-1">
                 <i class="fas fa-eye text-[11px]"></i>Xem demo
               </x-button>
-              <x-button onclick="event.stopPropagation(); createDraft('${t.id}')" style="pointer-events:auto;background:rgb(var(--brand-accent-rgb));" class="flex-1">
-                Dùng ngay<i class="fas fa-arrow-right text-[11px]"></i>
+              <!-- Cùng màu với nút "Tạo ngay" ở thanh xem trước mẫu
+                   (core/utils.js): hai chỗ này là CÙNG một hành động — tạo bản
+                   nháp từ mẫu đang xem. -->
+              <x-button onclick="event.stopPropagation(); createDraft('${t.id}')" style="pointer-events:auto;background:linear-gradient(135deg,rgb(var(--gift-btn-from-rgb)),rgb(var(--gift-btn-to-rgb)));box-shadow:0 4px 12px rgb(var(--gift-btn-to-rgb)/0.4);" class="flex-1">
+                <i class="fas fa-file-circle-plus text-[11px]"></i>Dùng ngay
               </x-button>
             </div>
           </div>

@@ -87,7 +87,10 @@
             <x-button size="sm" id="navLoginBtn" type="button" onclick="openLoginPopup()" style="background: rgb(var(--action-primary-rgb))" class="sm:text-sm sm:px-5 sm:py-2 hover:opacity-90">
               Đăng nhập
             </x-button>
-            <x-button variant="outline" icon-only onclick="toggleMobileMenu()" aria-label="Menu" class="md:hidden">
+            <!-- Nền ghi thẳng inline để đè lên hover:bg-rose-50 của variant
+                 outline: nút này chỉ hiện trên mobile, mà ở đó :hover dính lại
+                 sau khi chạm → bấm xong nền hồng đọng mãi. -->
+            <x-button variant="outline" icon-only onclick="toggleMobileMenu()" aria-label="Menu" class="md:hidden" style="background: rgb(var(--white-rgb))">
               <i id="navHamburgerIcon" class="fas fa-bars text-sm" style="color: rgb(var(--text-body-rgb))"></i>
             </x-button>
           </div>
