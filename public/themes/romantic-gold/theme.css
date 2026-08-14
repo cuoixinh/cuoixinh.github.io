@@ -161,24 +161,318 @@ body {
   background: rgb(var(--cx-line-rgb));
 }
 
-/* Chữ lồng tên viết tắt trong vòng tròn mảnh */
+/* Chữ lồng tên viết tắt trong vòng tròn mảnh.
+   Dùng min-width + aspect-ratio thay cho width/height cứng: chữ cái nào rộng
+   (W, M…) thì vòng tròn nở ra theo và vẫn TRÒN, thay vì chữ chạm vào viền. */
 
 .rg-monogram {
-  width: 92px;
-  height: 92px;
+  min-width: 92px;
+  aspect-ratio: 1;
+  padding: 0 18px;
   border: 1px solid rgb(var(--cx-accent-rgb) / 0.55);
   border-radius: 9999px;
 }
 
-/* Ảnh đầu tiên của album chiếm cả hàng cho có nhịp */
+/* 4. SO LE — phần ảnh còn lại. Dùng `columns` (không phải grid): ảnh cao thấp
+   khác nhau sẽ tự xếp khít vào hai cột, không bao giờ để lại ô trống dù số ảnh
+   chẵn hay lẻ. Đổi lại thứ tự đọc là dọc từng cột, chấp nhận được với album. */
 
-.rg-photo-wide {
-  grid-column: span 2;
-  aspect-ratio: 4 / 3;
+.rg-mosaic {
+  columns: 2;
+  column-gap: 10px;
+}
+
+.rg-mosaic > * {
+  margin-bottom: 10px;
+  border-radius: 16px;
+  overflow: hidden;
+  /* Không cho một ô bị cắt làm đôi giữa hai cột. */
+  break-inside: avoid;
+}
+
+/* ── Lịch trình kiểu ĐƯỜNG THỜI GIAN DỌC ──────────────────────────────────
+   Markup do _renderSchedule() ở index.js dựng. */
+
+.rg-sched-group + .rg-sched-group {
+  margin-top: 30px;
+}
+
+.rg-sched-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 8px;
+  padding-bottom: 6px;
+}
+
+/* Đường thời gian DỌC. Đường kẻ chạy qua TÂM huy hiệu (left = nửa bề ngang
+   huy hiệu); mốc đầu cắt phần kẻ phía trên, mốc cuối cắt phần phía dưới nên
+   đường bắt đầu và kết thúc đúng ở huy hiệu, không thò ra ngoài. */
+
+.rg-tl {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.rg-tl-item {
+  position: relative;
+  display: flex;
+  gap: 14px;
+  padding-bottom: 22px;
+}
+
+.rg-tl-item:last-child {
+  padding-bottom: 0;
+}
+
+.rg-tl-item::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 21px;
+  width: 1px;
+  background: rgb(var(--cx-line-rgb));
+}
+
+.rg-tl-item:first-child::before {
+  top: 21px;
+}
+
+.rg-tl-item:last-child::before {
+  bottom: calc(100% - 21px);
+}
+
+/* Huy hiệu đè lên đường kẻ: nền đặc màu thiệp mới che được nét kẻ chạy qua. */
+
+.rg-tl-badge {
+  position: relative;
+  z-index: 1;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 9999px;
+  border: 1px solid rgb(var(--cx-accent-rgb) / 0.45);
+  background: rgb(var(--cx-surface-rgb));
+  color: rgb(var(--cx-accent-rgb));
+  font-size: 15px;
+}
+
+.rg-tl-body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding-top: 3px;
+}
+
+.rg-tl-time {
+  font-size: 18px;
+  line-height: 1;
+  letter-spacing: 0.5px;
+}
+
+.rg-tl-title {
+  font-size: 15px;
+  line-height: 1.35;
+}
+
+/* ── Chuyển động ──────────────────────────────────────────────────────────
+   Thiệp cuộn dài mà đứng im thì khô, nhưng đây là thiệp cưới — mọi hiệu ứng
+   đều CHẬM và nhẹ, không có gì nảy/giật. Tên keyframes mang tiền tố cx- theo
+   quy ước dự án. Toàn bộ tắt hết ở cuối file khi máy bật "giảm chuyển động". */
+
+/* Ảnh poster phóng rất chậm (Ken Burns) — poster choán cả màn, đứng yên tuyệt
+   đối sẽ ra cảm giác ảnh chụp màn hình. */
+
+#section-hero #main-photo {
+  animation: cx-rg-zoom 28s ease-in-out infinite alternate;
+}
+
+@keyframes cx-rg-zoom {
+  from {
+    transform: scale(1);
+  }
+
+  to {
+    transform: scale(1.09);
+  }
+}
+
+/* Chữ trong poster hiện dần lên theo nhịp khi vừa mở thiệp. */
+
+.rg-hero-in > * {
+  animation: cx-rg-up 1s ease-out both;
+}
+
+.rg-hero-in > :nth-child(1) {
+  animation-delay: 0.2s;
+}
+
+.rg-hero-in > :nth-child(2) {
+  animation-delay: 0.45s;
+}
+
+.rg-hero-in > :nth-child(4) {
+  animation-delay: 0.7s;
+}
+
+.rg-hero-in > :nth-child(5) {
+  animation-delay: 0.95s;
+}
+
+.rg-hero-in > :nth-child(6),
+.rg-hero-in > :nth-child(7),
+.rg-hero-in > :nth-child(8) {
+  animation-delay: 1.15s;
+}
+
+@keyframes cx-rg-up {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Dòng chữ viết tay giữa poster đã dùng transform để canh tâm → chỉ cho mờ dần
+   hiện ra, đụng vào transform là nó văng khỏi chỗ. */
+
+.rg-hero-in > .rg-script {
+  animation: cx-rg-fade 1.6s ease-out 0.9s both;
+}
+
+@keyframes cx-rg-fade {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+/* Chữ lồng tên viết tắt bồng bềnh rất khẽ. */
+
+.rg-monogram {
+  animation: cx-rg-float 7s ease-in-out infinite;
+}
+
+@keyframes cx-rg-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-7px);
+  }
+}
+
+/* Ảnh phóng nhẹ khi rê chuột. Khoá trong (hover: hover) — máy cảm ứng giữ
+   nguyên trạng thái hover sau khi chạm, ảnh sẽ kẹt ở cỡ phóng to. */
+
+@media (hover: hover) {
+  .rg-mosaic > * img,
+  .rg-trio-a img,
+  .rg-trio-b img,
+  .rg-stack-a img,
+  .rg-stack-b img,
+  .rg-band-img,
+  .rg-cmix-a img,
+  .rg-cmix-b img {
+    transition: transform 0.7s ease;
+  }
+
+  .rg-mosaic > *:hover img,
+  .rg-trio-a:hover img,
+  .rg-trio-b:hover img,
+  .rg-stack-a:hover img,
+  .rg-stack-b:hover img,
+  .rg-band-photo:hover .rg-band-img,
+  .rg-cmix-a:hover img,
+  .rg-cmix-b:hover img {
+    transform: scale(1.06);
+  }
+}
+
+/* ── Ảnh minh hoạ trong các mục chữ ───────────────────────────────────────
+   Chân dung ở mục Thư mời bo vòm trên cho hợp với khung ảnh của mẫu; hai dải
+   ảnh ở mục Tiệc / Lịch trình khác tỉ lệ nhau để cuộn xuống không thấy lặp. */
+
+/* Mục Thư mời: hai chân dung SO LE, thẻ ngày cưới đè lên chỗ giao nhau —
+   bố cục kiểu poster thay cho hai ảnh đứng cạnh nhau ngay ngắn.
+   padding-bottom chừa chỗ cho thẻ ngày thò ra khỏi đáy ảnh. */
+
+.rg-cmix {
+  position: relative;
+  padding-bottom: 34px;
+}
+
+/* Hai ảnh CÙNG khổ — chú rể và cô dâu ngang vai nhau, chỉ khác vị trí so le.
+   Cả hai cùng có viền 5px (box-sizing: border-box nên viền ăn vào trong): ảnh
+   trên viền màu nền thiệp để tách lớp, ảnh dưới viền trong suốt cho bằng khổ. */
+
+.rg-cmix-a,
+.rg-cmix-b {
+  width: 56%;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border: 5px solid transparent;
+  border-radius: 18px;
+}
+
+.rg-cmix-a {
+  box-shadow: 0 12px 30px rgb(var(--cx-heading-rgb) / 0.16);
+}
+
+/* Ảnh thứ hai tụt xuống và đè lên ảnh đầu. */
+
+.rg-cmix-b {
+  position: absolute;
+  right: 0;
+  top: 30px;
+  border-color: rgb(var(--rg-card-bg-rgb));
+  box-shadow: 0 14px 30px rgb(var(--cx-heading-rgb) / 0.2);
+}
+
+.rg-cmix-date {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 20px;
+  border-radius: 9999px;
+  background: rgb(var(--rg-card-bg-rgb));
+  box-shadow: 0 10px 26px rgb(var(--cx-heading-rgb) / 0.18);
+}
+
+.rg-wide-photo {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+
+.rg-strip-photo {
+  width: 100%;
+  aspect-ratio: 21 / 9;
+  object-fit: cover;
+  border-radius: 16px;
 }
 
 /* ── Ghép ảnh ─────────────────────────────────────────────────────────────
-   Hai bố cục do renderGallery() trong index.js dựng. Ảnh nào cũng bấm được để
+   Bốn bố cục do renderGallery() trong index.js dựng. Ảnh nào cũng bấm được để
    phóng to nên đều phải `cursor: pointer`. */
 
 /* 1. TRÀN VIỀN — một ảnh rộng hết thiệp, chữ viết tay đè lên giữa. */
@@ -213,7 +507,30 @@ body {
   );
 }
 
-/* 2. CHỒNG LỆCH — ảnh lớn bên trái, ảnh nhỏ đè lên góc dưới phải. */
+/* 2. BỘ BA — một ảnh lớn chiếm cả hai hàng bên trái, hai ảnh nhỏ xếp dọc bên
+   phải. Tỉ lệ cột 1.6/1 cho ảnh lớn ra dáng ảnh chính. */
+
+.rg-trio {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  grid-template-rows: repeat(2, 1fr);
+  gap: 10px;
+  aspect-ratio: 4 / 3;
+}
+
+.rg-trio-a,
+.rg-trio-b {
+  overflow: hidden;
+  border-radius: 16px;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgb(var(--cx-heading-rgb) / 0.1);
+}
+
+.rg-trio-a {
+  grid-row: span 2;
+}
+
+/* 3. CHỒNG LỆCH — ảnh lớn bên trái, ảnh nhỏ đè lên góc dưới phải. */
 
 .rg-stack {
   position: relative;
@@ -240,4 +557,28 @@ body {
   cursor: pointer;
   border: 5px solid rgb(var(--rg-card-bg-rgb));
   box-shadow: 0 12px 28px rgb(var(--cx-heading-rgb) / 0.18);
+}
+
+/* ── Tôn trọng cài đặt "giảm chuyển động" của máy ─────────────────────────
+   Người dùng bật mục này thường vì chóng mặt/say chuyển động — thiệp cưới
+   không đáng để đánh đổi. Tắt sạch, giữ nguyên bố cục. */
+
+@media (prefers-reduced-motion: reduce) {
+  #section-hero #main-photo,
+  .rg-hero-in > *,
+  .rg-monogram {
+    animation: none;
+  }
+
+  .rg-mosaic > * img,
+  .rg-trio-a img,
+  .rg-trio-b img,
+  .rg-stack-a img,
+  .rg-stack-b img,
+  .rg-band-img,
+  .rg-cmix-a img,
+  .rg-cmix-b img {
+    transition: none;
+    transform: none;
+  }
 }

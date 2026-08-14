@@ -149,9 +149,19 @@ function isPreviewMode() {
   return window.location.search.includes("preview=true");
 }
 
+/**
+ * Chặn thao tác GHI khi đang xem thử: hiện toast rồi trả về true để nơi gọi
+ * `return` sớm. Thiệp THẬT thì trả về false ngay, không hiện gì.
+ */
 function showPreviewAlert() {
+  if (!isPreviewMode()) return false;
+
   const toast = document.createElement("div");
-  toast.className = "fixed top-5 left-1/2 -translate-x-1/2 z-[10000] px-6 py-3 rounded-lg text-sm text-white shadow-md animate-fade-in";
+  // Căn giữa bằng inset-x-0 + mx-auto, KHÔNG dùng -translate-x-1/2: keyframe
+  // fadeIn cũng đặt `transform` (translateY) nên nó ghi đè phần dời trái 50% —
+  // toast sẽ chạy từ mép phải rồi giật về giữa lúc animation kết thúc.
+  // max-w hẹp để câu dài xuống dòng thay vì kéo thành một dải chữ vắt ngang màn.
+  toast.className = "fixed top-5 inset-x-0 mx-auto w-max max-w-[240px] z-[10000] px-5 py-2.5 rounded-lg text-[13px] leading-snug text-center text-white shadow-md animate-fade-in";
   toast.style.background = "rgb(var(--card-blush-300-rgb)/0.95)";
   toast.textContent = "Chức năng này không khả dụng ở chế độ xem thử";
   document.body.appendChild(toast);
@@ -945,50 +955,63 @@ function closeTimePicker() {
     window.location.href = "/invitation-setup/?id=" + uuid;
   }
 
-  // Thẻ nổi hình viên thuốc, cách mép dưới 4px. Hình dạng khai ở .cx-pnav*
-  // trong styles/_common.css — ở đây chỉ dựng khung và nối sự kiện.
-  var NAVBAR_H = 58; // chiều cao thẻ + khoảng hở, dùng để chừa chỗ cuối trang
+  // Nút tròn nổi ở góc dưới phải; bấm thì bung ra một cụm nút xếp dọc phía
+  // trên, bấm lại thì thu về. Hình dạng khai ở .cx-pnav* trong
+  // styles/_common.css — ở đây chỉ dựng khung và nối sự kiện.
+  var NAVBAR_H = 72; // chỗ chừa cuối trang để nút không che phần cuối thiệp
 
-  // Ba mục: một nhãn trái · nút "Tạo ngay" ở giữa · một nhãn phải.
-  // `go` = đường dẫn nội bộ, `href` = mở tab mới; nút giữa chạy _chooseTheme
-  // (tạo bản nháp với mẫu đang xem rồi sang trang Thiết lập).
+  // Xếp từ trên xuống; việc CHÍNH đứng cuối, tức gần nút tròn (và gần ngón cái)
+  // nhất. `go` = đường dẫn nội bộ, `href` = mở tab mới, `run` = chạy hàm.
   var PNAV_ITEMS = [
     { id: "pnav-home", label: "Home", icon: "home", go: "/" },
-    // `aria` dài hơn nhãn hiện trên nút: chữ trên thanh phải ngắn cho vừa khổ
-    // máy hẹp, còn phần đọc màn hình / tooltip thì nói đủ ý.
+    { id: "pnav-others", label: "Mẫu khác", icon: "grid", go: "/theme-template/" },
+    // `aria` dài hơn nhãn: chữ trên nút phải ngắn cho vừa khổ máy hẹp, còn
+    // phần đọc màn hình / tooltip thì nói đủ ý.
     {
       id: "pnav-choose",
-      label: "Tạo ngay",
-      icon: "plus",
+      label: "Dùng mẫu này",
+      icon: "note",
       aria: "Tạo thiệp với mẫu này",
-      center: true,
+      primary: true,
     },
-    { id: "pnav-others", label: "Mẫu khác", icon: "grid", go: "/theme-template/" },
   ];
 
-  // Icon vẽ nét (không tô đặc) cho hợp với chữ mảnh của thanh.
+  // Hình học lấy NGUYÊN từ bộ icon lucide (house · layout-grid · square-pen ·
+  // ellipsis-vertical) rồi nhúng thẳng: trang thiệp không nạp thư viện lucide,
+  // kéo cả thư viện về chỉ vì bốn icon là không đáng — cùng cách landing đang
+  // làm với icon sparkles, và cùng cách alert.js giữ bảng _LUCIDE_PATHS.
+  // Đừng tự vẽ lại cho "gần giống": nét và bo góc của lucide đồng bộ với nhau,
+  // vẽ tay là lạc khỏi bộ.
   var PNAV_ICONS = {
-    home: '<path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V21h13V9.5"/>',
-    plus: '<path d="M12 5v14"/><path d="M5 12h14"/>',
+    home:
+      '<path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/>' +
+      '<path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
     grid:
-      '<rect x="3" y="3" width="7.5" height="7.5" rx="1.5"/>' +
-      '<rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5"/>' +
-      '<rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5"/>' +
-      '<rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.5"/>',
-    close: '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
-    // Ba chấm DỌC, phải TÔ ĐẶC nên tự khai svg riêng, không đi qua _pnavIcon
-    // (hàm đó dựng svg nét: fill none + stroke).
+      '<rect width="7" height="7" x="3" y="3" rx="1"/>' +
+      '<rect width="7" height="7" x="14" y="3" rx="1"/>' +
+      '<rect width="7" height="7" x="14" y="14" rx="1"/>' +
+      '<rect width="7" height="7" x="3" y="14" rx="1"/>',
+    // "sticky-note-check": GHÉP từ hai glyph lucide có thật — thân + góc gấp
+    // của `sticky-note`, cộng nét tick của `check` thu nhỏ đặt vào giữa tờ
+    // giấy. Nếu bộ lucide có sẵn glyph đúng tên này thì thay path vào đây,
+    // đừng giữ bản ghép.
+    note:
+      '<path d="M16 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11l5-5V5a2 2 0 0 0-2-2z"/>' +
+      '<path d="M15 21v-4a2 2 0 0 1 2-2h4"/>' +
+      '<path d="m8 11 2.4 2.4L15 8.8"/>',
+    // ellipsis-vertical: ba vòng tròn r=1 vẽ bằng NÉT 2px — chính nét dày làm
+    // chúng đặc lại thành chấm. Tô đặc (fill) sẽ ra ba chấm to hơn hẳn bản gốc.
     dots:
-      '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"' +
-      ' viewBox="0 0 24 24" fill="currentColor">' +
-      '<circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/>' +
-      '<circle cx="12" cy="19" r="1.7"/></svg>',
+      '<circle cx="12" cy="12" r="1"/>' +
+      '<circle cx="12" cy="5" r="1"/>' +
+      '<circle cx="12" cy="19" r="1"/>',
   };
 
-  function _pnavIcon(name) {
+  function _pnavIcon(name, size) {
     return (
-      '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"' +
-      ' viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"' +
+      '<svg xmlns="http://www.w3.org/2000/svg" width="' + (size || 15) +
+      '" height="' + (size || 15) + '"' +
+      ' viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"' +
       ' stroke-linecap="round" stroke-linejoin="round">' +
       (PNAV_ICONS[name] || "") +
       "</svg>"
@@ -999,28 +1022,24 @@ function closeTimePicker() {
   navbar.id = "preview-nav";
   navbar.className = "cx-pnav";
 
-  // Mới vào chỉ có nút ba chấm ở góc dưới phải; bấm mới bung thanh nút ra (thêm
-  // .is-open), bấm X thì thu lại. Cố ý KHÔNG nhớ trạng thái: mỗi lần mở thiệp là
-  // một lần xem mẫu, để thanh nút che thiệp ngay từ đầu là hỏng việc xem.
+  // Mới vào chỉ có nút tròn; bấm mới bung cụm nút (thêm .is-open). Cố ý KHÔNG
+  // nhớ trạng thái: mỗi lần mở thiệp là một lần xem mẫu, bung sẵn ra là che mất
+  // thứ khách đang muốn xem.
   navbar.innerHTML =
-    '<x-button variant="bare" id="pnav-toggle" class="cx-pnav-dots"' +
-    ' aria-label="Mở thanh tuỳ chọn">' + PNAV_ICONS.dots + "</x-button>" +
-    '<div class="cx-pnav-card">' +
+    '<div class="cx-pnav-menu">' +
     PNAV_ITEMS.map(function (it) {
-      // Mục nào cũng icon + chữ. Riêng nút giữa: dấu cộng một mình không nói
-      // được là làm gì, mà đây là hành động chính của cả trang xem trước.
       return (
         '<x-button variant="bare" id="' + it.id + '"' +
-        ' class="cx-pnav-btn' + (it.center ? " cx-pnav-plus" : "") + '"' +
-        ' aria-label="' + (it.aria || it.label) + '" title="' + (it.aria || it.label) + '">' +
-        _pnavIcon(it.icon) + it.label +
+        ' class="cx-pnav-item' + (it.primary ? " cx-pnav-primary" : "") + '"' +
+        ' aria-label="' + (it.aria || it.label) + '">' +
+        '<span class="cx-pnav-ico">' + _pnavIcon(it.icon) + "</span>" +
+        it.label +
         "</x-button>"
       );
     }).join("") +
-    '<x-button variant="bare" id="pnav-collapse" class="cx-pnav-btn cx-pnav-x"' +
-    ' aria-label="Thu gọn thanh tuỳ chọn" title="Thu gọn">' +
-    _pnavIcon("close") + "</x-button>" +
-    "</div>";
+    "</div>" +
+    '<x-button variant="bare" id="pnav-toggle" class="cx-pnav-fab"' +
+    ' aria-label="Mở bảng tuỳ chọn">' + _pnavIcon("dots", 20) + "</x-button>";
 
   function _mount() {
     document.body.appendChild(navbar);
@@ -1034,38 +1053,25 @@ function closeTimePicker() {
       musicBtn.style.bottom = (NAVBAR_H + 8) + "px";
     }
 
-    // Trang thiệp CÓ cuộn nên thanh địa chỉ trình duyệt ẩn/hiện được. Lúc đó
-    // khung bố cục (innerHeight) và khung NHÌN THẬT (visualViewport) lệch nhau,
-    // `position: fixed` bám theo khung bố cục → thanh nút bị bỏ lại, hở một
-    // khoảng dưới đáy. Dịch lên đúng phần chênh và tính lại mỗi lần khung nhìn
-    // đổi. (Trang Thiết lập không cần đoạn này vì nó khoá trang không cho cuộn.)
-    var vv = window.visualViewport;
-    if (vv) {
-      var syncBottom = function () {
-        var gap = window.innerHeight - (vv.height + vv.offsetTop);
-        navbar.style.transform = gap > 1 ? "translateY(" + -gap + "px)" : "";
-      };
-      vv.addEventListener("resize", syncBottom);
-      vv.addEventListener("scroll", syncBottom);
-      syncBottom();
-    }
-
+    // Nút tròn: bấm để bung / thu.
     document
       .getElementById("pnav-toggle")
-      .addEventListener("click", function () {
-        navbar.classList.add("is-open");
+      .addEventListener("click", function (e) {
+        e.stopPropagation();
+        navbar.classList.toggle("is-open");
       });
-    document
-      .getElementById("pnav-collapse")
-      .addEventListener("click", function () {
-        navbar.classList.remove("is-open");
-      });
+
+    // Bấm ra ngoài thì thu lại — cụm nút che mất thiệp, không nên bắt khách
+    // phải nhắm đúng nút tròn mới đóng được.
+    document.addEventListener("click", function (e) {
+      if (!navbar.contains(e.target)) navbar.classList.remove("is-open");
+    });
 
     PNAV_ITEMS.forEach(function (it) {
       var el = document.getElementById(it.id);
       if (!el) return;
       el.addEventListener("click", function () {
-        if (it.center) return _chooseTheme();
+        if (it.primary) return _chooseTheme();
         if (it.href) return window.open(it.href, "_blank", "noopener");
         window.location.href = it.go;
       });

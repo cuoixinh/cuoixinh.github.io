@@ -87,8 +87,11 @@
     // --- Đếm ngược ---
     startCountdown(w.ceremony_date, w.ceremony_time);
 
-    // Mẫu này KHÔNG có mục Gia đình (không markup, không gọi renderCoupleInfo)
-    // — công tắc enable_family bên Thiết lập vì thế không tác dụng gì ở đây.
+    // Mẫu này KHÔNG có mục Gia đình (không có tên bố mẹ, địa chỉ hai nhà) nên
+    // công tắc enable_family bên Thiết lập không tác dụng gì ở đây. Vẫn gọi
+    // renderCoupleInfo vì hai ẢNH chú rể / cô dâu được dùng ở mục Thư mời; các
+    // setText còn lại trong hàm đó không tìm thấy id nên tự bỏ qua.
+    renderCoupleInfo(w);
 
     // --- Thư mời: nhà gái bật Vu Quy thì thay toàn bộ phần lễ ---
     const isVuQuy = !_isGroom && cxEnabled(w.vu_quy_enabled);
@@ -139,8 +142,11 @@
     }
 
     // --- Lịch trình ngày cưới ---
+    // Dùng bản vẽ RIÊNG của mẫu (bảng giờ), không gọi renderTimeline() dùng
+    // chung — mẫu đó vẽ dòng dọc có chấm, đã dùng cho chuyện tình yêu ngay bên
+    // dưới rồi, hai mục liền nhau mà cùng một kiểu thì nhìn lặp.
     if (cxEnabled(w.enable_timeline)) {
-      renderTimeline(w.timeline, side, partyDate, w.ceremony_date, ceremonyName);
+      _renderSchedule(w.timeline, side, partyDate, w.ceremony_date, ceremonyName);
       cxToggle("section-timeline", true);
     }
 
@@ -151,9 +157,23 @@
       cxToggle("love-story", false);
     }
 
+    // --- Ảnh minh hoạ cho mục Tiệc / Lịch trình ---
+    // Mượn từ CUỐI danh sách album và cắt hẳn ra khỏi phần album vẽ, để không
+    // có tấm nào xuất hiện hai lần. Chỉ mượn khi album còn dư: ba khối bố cục
+    // đầu đã ăn 6 ảnh, giữ thêm 2 ảnh cho cụm so le mới đủ đẹp.
+    const album = Array.isArray(w.gallery_images)
+      ? w.gallery_images.slice()
+      : [];
+    const focals = w.image_focal_points?.gallery_images;
+    const partyPhoto = album.length > 8 ? album.pop() : null;
+    const timelinePhoto = album.length > 8 ? album.pop() : null;
+
+    _sectionPhoto("party-photo", partyPhoto, focals, "rg-wide-photo");
+    _sectionPhoto("timeline-photo", timelinePhoto, focals, "rg-strip-photo");
+
     // --- Album ảnh ---
     if (cxEnabled(w.enable_photos)) {
-      renderGallery(w.gallery_images, w.image_focal_points?.gallery_images);
+      renderGallery(album, focals);
     } else {
       cxToggle("section-photos", false);
     }
@@ -194,6 +214,112 @@
   function _initial(name) {
     const w = (name || "").trim().split(/\s+/).pop();
     return w ? w.charAt(0).toUpperCase() : "";
+  }
+
+  // ============= LỊCH TRÌNH KIỂU BẢNG GIỜ =============
+  // Giờ nằm cột trái bằng chữ số Didone, việc nằm cột phải, ngăn nhau bằng nét
+  // mảnh — khác hẳn dòng dọc có chấm mà helper dùng chung vẽ.
+  // Lọc mốc theo nhà trai/nhà gái giống hệt renderTimeline(): "ceremony" hiện
+  // cho cả hai, "party" chỉ nhà trai, "bride-party" chỉ nhà gái.
+
+  // Dữ liệu lịch trình chỉ có GIỜ + TÊN VIỆC, không có icon → suy ra từ từ khoá
+  // trong tên. Xét theo thứ tự, khớp trước thắng: "Lễ đón dâu" phải ra nhẫn chứ
+  // không ra người. Không khớp gì thì về đồng hồ.
+  const RG_TL_ICONS = [
+    [/vu quy|thành hôn|đón dâu|lễ |nhẫn/i, "fa-ring"],
+    [/bánh/i, "fa-cake-candles"],
+    [/tiệc|dùng bữa|nâng ly|khai/i, "fa-champagne-glasses"],
+    [/chụp|ảnh|lưu niệm/i, "fa-camera"],
+    [/trang điểm|chuẩn bị|trang trí/i, "fa-wand-magic-sparkles"],
+    [/văn nghệ|giao lưu|nhạc|hát/i, "fa-music"],
+    [/quà|check-?in|mừng/i, "fa-gift"],
+    [/cảm ơn|tiễn/i, "fa-heart"],
+    [/đón|khách/i, "fa-user-group"],
+  ];
+
+  function _tlIcon(title) {
+    const t = String(title || "");
+    for (const [re, cls] of RG_TL_ICONS) if (re.test(t)) return cls;
+    return "fa-clock";
+  }
+
+  function _renderSchedule(items, side, partyDate, ceremonyDate, ceremonyName) {
+    const list = document.getElementById("timeline-list-render");
+    if (!list) return;
+    list.innerHTML = "";
+    if (!Array.isArray(items) || items.length === 0) return;
+
+    const mine = items.filter((it) => {
+      const t = it.type || "ceremony";
+      if (t === "ceremony") return true;
+      return side === "groom" ? t === "party" : t === "bride-party";
+    });
+    if (!mine.length) return;
+
+    const byTime = (arr) =>
+      [...arr].sort((a, b) =>
+        !a.time ? 1 : !b.time ? -1 : a.time.localeCompare(b.time),
+      );
+    const party = byTime(mine.filter((i) => (i.type || "ceremony") !== "ceremony"));
+    const ceremony = byTime(mine.filter((i) => (i.type || "ceremony") === "ceremony"));
+
+    const fmtDate = (s) => {
+      if (!s) return "";
+      try {
+        return new Date(s + "T00:00:00").toLocaleDateString("vi-VN", {
+          weekday: "short",
+          day: "numeric",
+          month: "numeric",
+          year: "numeric",
+        });
+      } catch (e) {
+        return s;
+      }
+    };
+
+    const group = (label, dateStr, rows) => {
+      if (!rows.length) return "";
+      const date = fmtDate(dateStr);
+      return (
+        '<div class="rg-sched-group">' +
+        '<div class="rg-sched-head">' +
+        '<span class="cx-a text-[11px] tracking-[3px] uppercase">' +
+        escapeHtml(label) +
+        "</span>" +
+        (date
+          ? '<span class="cx-t text-[10px]">' + escapeHtml(date) + "</span>"
+          : "") +
+        "</div>" +
+        // Đường thời gian DỌC: đường kẻ chạy suốt, mỗi mốc là một huy hiệu tròn
+        // đè lên đường, chữ nằm bên phải. Không giới hạn số mốc, tên việc dài
+        // vẫn xuống dòng thoải mái.
+        '<div class="rg-tl">' +
+        rows
+          .map(
+            (it) =>
+              '<div class="rg-tl-item">' +
+              '<span class="rg-tl-badge"><i class="fas ' +
+              _tlIcon(it.title) +
+              '"></i></span>' +
+              '<span class="rg-tl-body">' +
+              '<span class="rg-tl-time cx-h cx-a">' +
+              escapeHtml(it.time || "--:--") +
+              "</span>" +
+              '<span class="rg-tl-title cx-h">' +
+              escapeHtml(it.title || "") +
+              "</span>" +
+              "</span>" +
+              "</div>",
+          )
+          .join("") +
+        "</div>" +
+        "</div>"
+      );
+    };
+
+    list.innerHTML =
+      group("Tiệc Cưới", partyDate, party) +
+      group(ceremonyName || "Lễ Thành Hôn", ceremonyDate, ceremony);
   }
 
   // ============= ĐẾM NGƯỢC TỚI NGÀY CƯỚI =============
@@ -238,13 +364,33 @@
   }
 
   // ============= ALBUM ẢNH =============
-  // Không phải một lưới phẳng: ảnh được rót lần lượt vào 3 khối bố cục
+  // Không phải một lưới phẳng: ảnh được rót lần lượt vào 4 khối bố cục
   //   1. tràn viền (1 ảnh hết bề ngang thiệp, kèm một dòng chữ viết tay)
-  //   2. chồng lệch (2 ảnh so le)
-  //   3. lưới (phần còn lại)
+  //   2. bộ ba (1 ảnh lớn + 2 ảnh nhỏ xếp dọc)
+  //   3. chồng lệch (2 ảnh so le)
+  //   4. lưới (phần còn lại, có xen một ô chữ)
   // Ít ảnh thì khối nào không đủ ảnh sẽ tự ẩn, không để lại chỗ trống.
 
   const RG_BAND_TEXT = "Forever &amp; Always";
+
+
+  /**
+   * Ảnh minh hoạ cho một mục (tiệc, lịch trình). KHÔNG bấm phóng to được: nó
+   * không nằm trong lightboxImages, cho bấm sẽ mở nhầm ảnh khác.
+   * Không có ảnh thì giấu cả khối, đừng để lại khung trống.
+   */
+  function _sectionPhoto(wrapId, file, focalPoints, cls) {
+    const wrap = document.getElementById(wrapId);
+    if (!wrap) return;
+    if (!file) {
+      cxToggle(wrapId, false);
+      return;
+    }
+    const fp = focalPoints?.[file];
+    wrap.innerHTML = `<img src="${getImageUrl(file)}" alt="" loading="lazy"
+      class="${cls}" style="object-position:${fp?.x ?? 50}% ${fp?.y ?? 50}%">`;
+    cxToggle(wrapId, true);
+  }
 
   /** Một ô ảnh bấm được để phóng to. `i` là vị trí trong lightboxImages. */
   function _photo(url, fp, i, cls) {
@@ -292,7 +438,21 @@
     }
     show("gallery-band", !!(bandWrap && band));
 
-    // 2. Hai ảnh chồng lệch tầng
+    // 2. Một ảnh lớn bên trái + hai ảnh nhỏ xếp dọc bên phải
+    const trioWrap = document.getElementById("gallery-trio");
+    const trio = take(3);
+    if (trioWrap && trio) {
+      trioWrap.innerHTML = "";
+      const box = document.createElement("div");
+      box.className = "rg-trio";
+      box.appendChild(_photo(trio[0].url, trio[0].fp, n - 3, "rg-trio-a"));
+      box.appendChild(_photo(trio[1].url, trio[1].fp, n - 2, "rg-trio-b"));
+      box.appendChild(_photo(trio[2].url, trio[2].fp, n - 1, "rg-trio-b"));
+      trioWrap.appendChild(box);
+    }
+    show("gallery-trio", !!(trioWrap && trio));
+
+    // 3. Hai ảnh chồng lệch tầng
     const stackWrap = document.getElementById("gallery-stack");
     const stack = take(2);
     if (stackWrap && stack) {
@@ -306,7 +466,15 @@
     }
     show("gallery-stack", !!(stackWrap && stack));
 
-    // 3. Phần còn lại xếp lưới, ảnh đầu chiếm cả hàng cho có nhịp
+    // 4. Phần còn lại xếp so le hai cột. Khổ ảnh xoay vòng theo 4 dáng để hai
+    // cột lệch nhau — cùng một tỉ lệ cho tất cả thì lại thành lưới phẳng.
+    const RG_SHAPES = [
+      "aspect-[3/4]",
+      "aspect-square",
+      "aspect-[4/5]",
+      "aspect-[5/6]",
+    ];
+
     grid.innerHTML = "";
     const rest = list.slice(n);
     rest.forEach((p, k) => {
@@ -315,8 +483,7 @@
           p.url,
           p.fp,
           n + k,
-          "rounded-xl overflow-hidden cursor-pointer shadow-sm " +
-            (k === 0 && rest.length % 2 === 1 ? "rg-photo-wide" : "aspect-[3/4]"),
+          "cursor-pointer shadow-sm " + RG_SHAPES[k % RG_SHAPES.length],
         ),
       );
     });

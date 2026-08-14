@@ -343,144 +343,120 @@
   }
 }
 
-/* ── Thanh nút ở trang XEM TRƯỚC mẫu thiệp ───────────────────────────────
+/* ── Nút nổi ở trang XEM TRƯỚC mẫu thiệp ─────────────────────────────────
    Do initPreviewNavbar() trong core/utils.js dựng khi mở /public/themes/* với
-   ?preview=true. Cùng lối với navbar trang Thiết lập (#nav-card): một THẺ NỔI
-   hình viên thuốc, rộng đúng bằng thiệp, cách mép dưới 4px.
-   Vỏ ngoài trong suốt và KHÔNG bắt chuột — hai bên thẻ vẫn là thiệp, bấm được. */
+   ?preview=true. Một nút tròn ở góc dưới phải; bấm thì bung cụm nút xếp dọc
+   phía trên. Cụm nút đặt TUYỆT ĐỐI phía trên nút tròn nên lúc đóng nó không
+   chiếm chỗ, và vẫn chuyển động mượt được (display:none thì mất animation). */
 
 .cx-pnav {
   position: fixed;
-  left: 0;
-  right: 0;
-  bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+  right: 12px;
+  bottom: 8px;
   z-index: 9999;
+}
+
+.cx-pnav-menu {
+  position: absolute;
+  right: 0;
+  bottom: 100%;
+  margin-bottom: 10px;
   display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  padding: 0 8px;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+/* Đóng: mờ + tụt xuống + không bắt chuột. Mở: về đúng chỗ, lần lượt từ dưới
+   lên (mục cuối — việc chính — hiện trước). */
+
+/* Selector hai lớp (.cx-pnav .cx-pnav-menu) là CỐ Ý: <x-button variant="bare">
+   mang sẵn class transition-all 150ms của Tailwind, cùng độ đặc hiệu nhưng nằm
+   sau trong bản build nên nó thắng — viết một lớp là thời lượng ở đây bị nuốt,
+   chuyển động thành giật cục. */
+
+.cx-pnav .cx-pnav-menu > * {
+  opacity: 0;
+  transform: translateY(12px) scale(0.94);
   pointer-events: none;
+  will-change: opacity, transform;
+  transition:
+    opacity 0.22s ease,
+    transform 0.28s cubic-bezier(0.34, 1.3, 0.64, 1);
 }
 
-/* Hai trạng thái: mặc định chỉ có nút ba chấm ở góc phải, thêm .is-open (do
-   core/utils.js gắn) thì đổi sang thanh nút.
-   Dùng cờ .is-open chứ không dùng :not() — cssnano gộp/tráo đối số :not() thành
-   rule luôn khớp, bản build khác hẳn bản nguồn. */
-
-.cx-pnav-card {
-  display: none;
-}
-
-.cx-pnav.is-open .cx-pnav-card {
-  display: flex;
-}
-
-.cx-pnav.is-open .cx-pnav-dots {
-  display: none;
-}
-
-.cx-pnav-dots {
+.cx-pnav.is-open .cx-pnav-menu > * {
+  opacity: 1;
+  transform: none;
   pointer-events: auto;
-  width: 44px;
-  height: 44px;
-  border: 1px solid rgb(var(--surface-blossom-rgb));
-  border-radius: 9999px;
-  color: rgb(var(--text-muted-rgb));
-  background: rgb(var(--white-rgb) / 0.9);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 4px 14px rgb(var(--scrim-rgb) / 0.12);
 }
 
-/* Cùng bộ màu với navbar trang Thiết lập (#nav-card): nền trắng, viền hồng
-   nhạt, bóng hắt lên. Nền 0.9 nên vẫn hé thấy thiệp phía sau — giữ
-   backdrop-filter để phần lộ ra là mảng mờ, không phải chữ/ảnh sắc nét. */
-
-.cx-pnav-card {
-  pointer-events: auto;
-  align-items: center;
-  gap: 2px;
-  /* Không khai width: thẻ là flex ITEM của .cx-pnav nên tự co vừa nội dung —
-     thanh chỉ dài bằng mấy cái nút, không kéo hết bề ngang màn. */
-  max-width: 100%;
-  margin: 0 auto;
-  padding: 5px;
-  border: 1px solid rgb(var(--surface-blossom-rgb));
-  border-radius: 9999px;
-  background: rgb(var(--white-rgb) / 0.9);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 -4px 18px rgb(var(--scrim-rgb) / 0.08);
+.cx-pnav.is-open .cx-pnav-menu > :nth-last-child(2) {
+  transition-delay: 0.05s;
 }
 
-/* Nhãn rộng theo chữ (không flex: 1) — có vậy thanh mới ngắn vừa đủ. */
+.cx-pnav.is-open .cx-pnav-menu > :nth-last-child(3) {
+  transition-delay: 0.1s;
+}
 
-.cx-pnav-btn {
-  flex: none;
-  gap: 6px;
-  height: 34px;
-  padding: 0 12px;
+/* Một mục = viên thuốc trắng, icon nằm trong đĩa tròn nhỏ bên trái. */
+
+.cx-pnav-item {
+  gap: 9px;
+  height: 42px;
+  padding: 0 18px;
   border: none;
   cursor: pointer;
   white-space: nowrap;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
   line-height: 1;
-  color: rgb(var(--text-muted-rgb));
-  background: none;
+  color: rgb(var(--action-primary-rgb));
+  /* Nền ĐẶC, không backdrop-filter: làm mờ nền trong lúc chạy animation buộc
+     trình duyệt vẽ lại vùng phía sau mỗi khung hình → giật trên máy yếu. */
+  background: rgb(var(--surface-tint-rgb));
+  box-shadow: 0 6px 20px rgb(var(--scrim-rgb) / 0.16);
 }
 
-.cx-pnav-btn:active {
-  background: rgb(var(--surface-blossom-rgb) / 0.5);
-}
+/* Việc CHÍNH tô nguyên viên thuốc, dùng ĐÚNG màu nút "Đăng nhập" ở landing
+   (--action-primary, màu đặc chứ không gradient) để hai nơi cùng một tông hồng.
+   Icon ăn theo `color` nên trắng cùng chữ, khỏi khai riêng. */
 
-/* Nút giữa: việc chính của trang xem trước nên để màu thương hiệu và NỔI hẳn.
-   Cố ý không để mỗi dấu cộng như mẫu tham khảo — "+" một mình không nói được
-   là dùng mẫu; kèm chữ thì khách không phải đoán. */
-
-.cx-pnav-plus {
-  flex: none;
-  gap: 6px;
-  height: 40px;
-  padding: 0 14px;
-  font-size: 12px;
-  font-weight: 600;
-  border-radius: 9999px;
+.cx-pnav-primary {
   color: rgb(var(--white-rgb));
-  background: linear-gradient(
-    135deg,
-    rgb(var(--gift-btn-from-rgb)),
-    rgb(var(--gift-btn-to-rgb))
-  );
-  box-shadow: 0 4px 12px rgb(var(--gift-btn-to-rgb) / 0.4);
+  font-weight: 600;
+  background: rgb(var(--action-primary-rgb));
+  box-shadow: 0 6px 20px rgb(var(--action-primary-rgb) / 0.35);
 }
 
-.cx-pnav-plus:active {
-  background: linear-gradient(
-    135deg,
-    rgb(var(--gift-btn-to-rgb)),
-    rgb(var(--gift-btn-to-rgb))
-  );
+/* Icon trần, không đĩa tròn bao quanh — lấy luôn màu chữ của nút để cả ba
+   mục đồng một tông. */
+
+.cx-pnav-ico {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: inherit;
 }
 
-/* Nút thu gọn: nhỏ, không nhãn, đứng cuối thanh — chỉ để trả về nút ba chấm. */
+/* Nút tròn — giữ icon ba chấm ở cả hai trạng thái, chỉ nhấn nhẹ bằng cách
+   thu lại một chút khi đang mở. */
 
-.cx-pnav-x {
-  flex: none;
-  width: 30px;
-  padding: 0;
-  color: rgb(var(--text-muted-rgb));
-  opacity: 0.7;
+.cx-pnav-fab {
+  width: 52px;
+  height: 52px;
+  cursor: pointer;
+  /* Nền TRẮNG như cụm nút, ba chấm mang màu thương hiệu. Viền mảnh để nút không
+     lẫn vào chỗ thiệp có nền sáng. */
+  border: 1px solid rgb(var(--surface-blossom-rgb));
+  color: rgb(var(--action-primary-rgb));
+  background: rgb(var(--surface-tint-rgb));
+  box-shadow: 0 8px 24px rgb(var(--scrim-rgb) / 0.18);
+  transition: transform 0.25s ease;
 }
 
-/* Màn hẹp: bốn nhãn hai bên co chữ lại để nút giữa vẫn đủ chỗ ghi rõ nghĩa. */
-
-@media (max-width: 400px) {
-  .cx-pnav-btn {
-    font-size: 11px;
-  }
-
-  .cx-pnav-plus {
-    padding: 0 11px;
-  }
+.cx-pnav.is-open .cx-pnav-fab {
+  transform: scale(0.92);
 }
 
 /* ── iOS / viewport ──────────────────────────────────────────────────────── */
