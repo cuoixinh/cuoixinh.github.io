@@ -975,6 +975,14 @@ function closeTimePicker() {
       '<rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5"/>' +
       '<rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5"/>' +
       '<rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.5"/>',
+    close: '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+    // Ba chấm DỌC, phải TÔ ĐẶC nên tự khai svg riêng, không đi qua _pnavIcon
+    // (hàm đó dựng svg nét: fill none + stroke).
+    dots:
+      '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"' +
+      ' viewBox="0 0 24 24" fill="currentColor">' +
+      '<circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/>' +
+      '<circle cx="12" cy="19" r="1.7"/></svg>',
   };
 
   function _pnavIcon(name) {
@@ -991,7 +999,12 @@ function closeTimePicker() {
   navbar.id = "preview-nav";
   navbar.className = "cx-pnav";
 
+  // Mới vào chỉ có nút ba chấm ở góc dưới phải; bấm mới bung thanh nút ra (thêm
+  // .is-open), bấm X thì thu lại. Cố ý KHÔNG nhớ trạng thái: mỗi lần mở thiệp là
+  // một lần xem mẫu, để thanh nút che thiệp ngay từ đầu là hỏng việc xem.
   navbar.innerHTML =
+    '<x-button variant="bare" id="pnav-toggle" class="cx-pnav-dots"' +
+    ' aria-label="Mở thanh tuỳ chọn">' + PNAV_ICONS.dots + "</x-button>" +
     '<div class="cx-pnav-card">' +
     PNAV_ITEMS.map(function (it) {
       // Mục nào cũng icon + chữ. Riêng nút giữa: dấu cộng một mình không nói
@@ -1004,6 +1017,9 @@ function closeTimePicker() {
         "</x-button>"
       );
     }).join("") +
+    '<x-button variant="bare" id="pnav-collapse" class="cx-pnav-btn cx-pnav-x"' +
+    ' aria-label="Thu gọn thanh tuỳ chọn" title="Thu gọn">' +
+    _pnavIcon("close") + "</x-button>" +
     "</div>";
 
   function _mount() {
@@ -1017,6 +1033,33 @@ function closeTimePicker() {
     if (musicBtn && getComputedStyle(musicBtn).bottom !== "auto") {
       musicBtn.style.bottom = (NAVBAR_H + 8) + "px";
     }
+
+    // Trang thiệp CÓ cuộn nên thanh địa chỉ trình duyệt ẩn/hiện được. Lúc đó
+    // khung bố cục (innerHeight) và khung NHÌN THẬT (visualViewport) lệch nhau,
+    // `position: fixed` bám theo khung bố cục → thanh nút bị bỏ lại, hở một
+    // khoảng dưới đáy. Dịch lên đúng phần chênh và tính lại mỗi lần khung nhìn
+    // đổi. (Trang Thiết lập không cần đoạn này vì nó khoá trang không cho cuộn.)
+    var vv = window.visualViewport;
+    if (vv) {
+      var syncBottom = function () {
+        var gap = window.innerHeight - (vv.height + vv.offsetTop);
+        navbar.style.transform = gap > 1 ? "translateY(" + -gap + "px)" : "";
+      };
+      vv.addEventListener("resize", syncBottom);
+      vv.addEventListener("scroll", syncBottom);
+      syncBottom();
+    }
+
+    document
+      .getElementById("pnav-toggle")
+      .addEventListener("click", function () {
+        navbar.classList.add("is-open");
+      });
+    document
+      .getElementById("pnav-collapse")
+      .addEventListener("click", function () {
+        navbar.classList.remove("is-open");
+      });
 
     PNAV_ITEMS.forEach(function (it) {
       var el = document.getElementById(it.id);
