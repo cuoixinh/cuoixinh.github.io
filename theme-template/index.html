@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="vi">
   <head>
     <meta charset="UTF-8" />
@@ -37,6 +37,10 @@
         --fg: rgb(var(--scrim-plum-rgb));
         --muted: rgb(var(--text-heading-rgb)/0.55);
         --border: rgb(var(--brand-accent-rgb)/0.25);
+        /* Chỗ thanh điều hướng dưới (mobile) chiếm — đã gồm khoảng hở 8px dưới
+           thẻ nổi và vùng an toàn của máy. Dùng cho lề đáy trang + vị trí nút
+           nổi, đổi chiều cao navbar là đổi ở đây. */
+        --tt-tabbar-h: calc(64px + env(safe-area-inset-bottom));
       }
 
       * {
@@ -45,7 +49,7 @@
       body {
         font-family: "Inter", sans-serif;
         color: var(--fg);
-        background: var(--bg);
+        background: rgb(var(--white-rgb));
       }
 
       /* ─── Shimmer ─── */
@@ -75,106 +79,280 @@
         animation: shimmer 1.4s infinite;
       }
 
-      /* ─── Nav ─── */
+      /* ─── Header dính: hàng nav (desktop) + ô tìm kiếm + dải danh mục ─── */
       .nav-scrolled {
         box-shadow: 0 1px 24px rgb(var(--shadow-brand-rgb)/0.1);
       }
 
-      /* ─── Dot grid overlay ─── */
-      .dot-bg::before {
-        content: "";
+      /* Ô tìm kiếm dạng viên thuốc */
+      .tt-search {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        height: 46px;
+        padding: 0 1.1rem;
+        border-radius: 999px;
+        background: rgb(var(--white-rgb));
+        border: 1px solid rgb(var(--brand-primary-rgb)/0.55);
+        box-shadow: 0 3px 14px -6px rgb(var(--shadow-brand-rgb)/0.28);
+        transition: box-shadow 0.2s ease, border-color 0.2s ease;
+      }
+      .tt-search:focus-within {
+        border-color: rgb(var(--brand-accent-rgb)/0.5);
+        box-shadow: 0 6px 22px -8px rgb(var(--shadow-brand-rgb)/0.38);
+      }
+      .tt-search input {
+        flex: 1;
+        min-width: 0;
+        border: 0;
+        outline: 0;
+        background: transparent;
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--fg);
+      }
+      .tt-search input::placeholder {
+        color: var(--muted);
+        font-weight: 500;
+      }
+
+      /* Nút lọc danh mục — đứng cạnh ô tìm kiếm, mở popover chọn danh mục */
+      .tt-filter-btn {
+        position: relative;
+        flex: none;
+        width: 46px;
+        height: 46px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+        background: rgb(var(--white-rgb));
+        border: 1px solid rgb(var(--brand-primary-rgb)/0.55);
+        box-shadow: 0 3px 14px -6px rgb(var(--shadow-brand-rgb)/0.28);
+        color: var(--fg);
+        transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+      }
+      .tt-filter-btn:hover {
+        border-color: rgb(var(--brand-accent-rgb)/0.45);
+      }
+      .tt-filter-btn.is-on {
+        background: rgb(var(--brand-primary-rgb)/0.25);
+        border-color: rgb(var(--brand-accent-rgb)/0.45);
+        color: var(--primary);
+      }
+      /* Chấm báo "đang lọc" — chỉ hiện khi danh mục khác Tất cả. */
+      .tt-filter-dot {
+        position: absolute;
+        top: 7px;
+        right: 7px;
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: var(--primary);
+        box-shadow: 0 0 0 2px rgb(var(--white-rgb));
+      }
+
+      .tt-fpop {
+        position: absolute;
+        right: 0;
+        top: calc(100% + 8px);
+        z-index: 60;
+        width: 232px;
+        padding: 6px;
+        border-radius: 20px;
+        background: rgb(var(--white-rgb));
+        border: 1px solid rgb(var(--brand-primary-rgb)/0.5);
+        box-shadow: 0 14px 34px -14px rgb(var(--shadow-brand-rgb)/0.45);
+      }
+      .tt-fitem {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        padding: 9px 12px;
+        border-radius: 14px;
+        font-size: 13.5px;
+        font-weight: 500;
+        line-height: 1.2;
+        color: var(--fg);
+        text-align: left;
+      }
+      .tt-fitem:hover {
+        background: rgb(var(--brand-primary-rgb)/0.18);
+      }
+      .tt-fitem.is-on {
+        background: rgb(var(--brand-primary-rgb)/0.28);
+        color: var(--primary);
+        font-weight: 600;
+      }
+      .tt-fitem svg {
+        flex: none;
+      }
+      .tt-fcheck {
+        margin-left: auto;
+      }
+
+      /* ─── Thẻ mẫu thiệp (không viền, ảnh bo tròn — thông tin nằm dưới ảnh) ─── */
+      .tt-card {
+        cursor: pointer;
+      }
+      .tt-media {
+        position: relative;
+        overflow: hidden;
+        border-radius: 16px;
+        aspect-ratio: 4 / 5;
+        background: rgb(var(--preview-bg-from-rgb));
+        transition: transform 0.2s ease;
+        /* Viền trong rất nhạt để mẫu nền sáng không "chảy" vào nền trắng. */
+        box-shadow: inset 0 0 0 1px rgb(var(--scrim-rgb)/0.07);
+      }
+      .tt-media img {
         position: absolute;
         inset: 0;
-        pointer-events: none;
-        background-image:
-          linear-gradient(rgb(var(--brand-accent-rgb)/0.07) 1px, transparent 1px),
-          linear-gradient(90deg, rgb(var(--brand-accent-rgb)/0.06) 1px, transparent 1px);
-        background-size: 32px 32px;
-        z-index: 0;
-      }
-
-      /* ─── Template card ─── */
-      .template-card {
-        position: relative;
-        cursor: pointer;
-        overflow: hidden;
-        border-radius: 10px;
-        background: white;
-        border: 1px solid rgb(var(--brand-primary-rgb)/0.4);
-        box-shadow:
-          0 2px 8px rgb(var(--shadow-brand-rgb)/0.05),
-          0 12px 32px -18px rgb(var(--preview-shadow-rgb)/0.18);
-        transition:
-          transform 0.26s ease,
-          box-shadow 0.26s ease,
-          border-color 0.26s ease;
-      }
-
-      .template-card:hover {
-        transform: translateY(-5px);
-        border-color: rgb(var(--brand-accent-rgb)/0.45);
-        box-shadow:
-          0 4px 16px rgb(var(--shadow-brand-rgb)/0.1),
-          0 24px 56px -24px rgb(var(--preview-shadow-rgb)/0.28);
-      }
-      .template-card:active {
-        transform: scale(0.985);
-      }
-
-      /* ─── Phone frame ─── */
-      .phone-frame {
-        position: relative;
-        margin: 0 auto;
-        max-width: 185px;
-        border-radius: 1rem;
-        border: 1.5px solid rgb(var(--brand-primary-rgb)/0.5);
-        background: white;
-        padding: 5px;
-        box-shadow:
-          0 20px 52px -28px rgb(var(--text-heading-rgb)/0.6),
-          0 4px 12px rgb(var(--brand-accent-rgb)/0.1);
-      }
-      @media (min-width: 640px) {
-        .phone-frame {
-          max-width: 205px;
-          border-radius: 1.1rem;
-        }
-      }
-
-      /* ─── Phone screen 14:29 ─── */
-      .phone-screen {
-        position: relative;
         width: 100%;
-        overflow: hidden;
-        border-radius: 0.72rem;
-        background: rgb(var(--preview-bg-from-rgb));
-        aspect-ratio: 14 / 29;
+        height: 100%;
+        object-fit: cover;
+        object-position: top;
+        transition: transform 0.45s ease;
       }
-      @media (min-width: 640px) {
-        .phone-screen {
-          border-radius: 0.8rem;
-        }
+      .tt-card:hover .tt-media img {
+        transform: scale(1.045);
+      }
+      .tt-card:active .tt-media {
+        transform: scale(0.99);
       }
 
-      /* ─── Hover overlay (desktop) ─── */
-      .card-hover-overlay {
+      .tt-badge {
+        position: absolute;
+        left: 12px;
+        top: 12px;
+        padding: 5px 10px;
+        border-radius: 999px;
+        background: rgb(var(--white-rgb));
+        color: var(--fg);
+        font-size: 11px;
+        font-weight: 600;
+        box-shadow: 0 2px 8px rgb(var(--scrim-rgb)/0.18);
+      }
+
+      .tt-fav {
+        position: absolute;
+        right: 10px;
+        top: 10px;
+        width: 34px;
+        height: 34px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: rgb(var(--white-rgb));
+        filter: drop-shadow(0 1px 3px rgb(var(--scrim-rgb)/0.45));
+        transition: transform 0.16s ease;
+      }
+      .tt-fav svg {
+        fill: rgb(var(--scrim-rgb)/0.35);
+        stroke: rgb(var(--white-rgb));
+        stroke-width: 2;
+      }
+      .tt-fav:active {
+        transform: scale(0.85);
+      }
+      .tt-fav.is-on svg {
+        fill: var(--primary);
+        stroke: rgb(var(--white-rgb));
+      }
+
+      /* Lớp phủ khi rê chuột (desktop) */
+      .tt-hover {
         position: absolute;
         inset: 0;
         display: none;
         align-items: center;
         justify-content: center;
-        background: rgb(var(--scrim-plum-rgb)/0.3);
-        backdrop-filter: blur(2px);
+        gap: 8px;
+        background: rgb(var(--scrim-plum-rgb)/0.28);
         opacity: 0;
         transition: opacity 0.2s;
       }
       @media (min-width: 640px) {
-        .card-hover-overlay {
+        .tt-hover {
           display: flex;
         }
       }
-      .template-card:hover .card-hover-overlay {
+      .tt-card:hover .tt-hover {
         opacity: 1;
+      }
+      .tt-hover span {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 7px 13px;
+        border-radius: 999px;
+        background: rgb(var(--white-rgb));
+        color: var(--primary);
+        font-size: 12px;
+        font-weight: 600;
+        box-shadow: 0 4px 16px rgb(var(--scrim-rgb)/0.2);
+      }
+
+      /* ─── Nút nổi giữa đáy ─── Chỉ có trên mobile: từ md trở lên nút "Bắt đầu
+         miễn phí" đã nằm sẵn ở thanh trên.
+         Căn giữa bằng left/right + margin auto, KHÔNG dùng translateX(-50%):
+         <x-button> mang sẵn `active:scale-[0.97]`, lúc bấm transform bị thay
+         nên nút sẽ nhảy sang phải. */
+      .tt-fab {
+        position: fixed;
+        left: 0;
+        right: 0;
+        width: fit-content;
+        margin-inline: auto;
+        bottom: calc(var(--tt-tabbar-h) + 12px);
+        z-index: 45;
+      }
+      @media (min-width: 768px) {
+        .tt-fab {
+          display: none;
+        }
+      }
+
+      /* Chừa chỗ cho thanh điều hướng dưới — thanh này chỉ có ở mobile. */
+      .tt-body {
+        padding-bottom: var(--tt-tabbar-h);
+      }
+      @media (min-width: 768px) {
+        .tt-body {
+          padding-bottom: 0;
+        }
+      }
+
+      /* ─── Thanh điều hướng dưới (mobile) ─── */
+      .tt-tab {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 3px;
+        padding: 4px 14px;
+        font-size: 10px;
+        font-weight: 500;
+        color: var(--muted);
+      }
+      .tt-tab.is-on {
+        color: var(--primary);
+        font-weight: 600;
+      }
+      .tt-tab-count {
+        position: absolute;
+        top: 0;
+        right: 8px;
+        min-width: 15px;
+        padding: 0 4px;
+        border-radius: 999px;
+        background: var(--primary);
+        color: rgb(var(--white-rgb));
+        font-size: 9px;
+        font-weight: 700;
+        line-height: 15px;
+        text-align: center;
       }
 
       /* ─── FAQ ─── */
@@ -203,13 +381,14 @@
   </head>
 
   <body class="min-h-screen flex flex-col">
-    <!-- ═══ HEADER NAV ═══ -->
+    <!-- ═══ HEADER DÍNH: nav (desktop) · tìm kiếm · danh mục ═══ -->
     <header
       id="main-header"
-      class="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-rose-pastel-200 transition-shadow"
+      class="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-rose-pastel-200 transition-shadow"
     >
-      <div class="max-w-6xl mx-auto px-5">
-        <div class="flex items-center justify-between h-16">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Hàng nav desktop -->
+        <div class="hidden md:flex items-center justify-between h-16">
           <a href="/" class="shrink-0">
             <img
               src="../assets/icons/logo.png"
@@ -218,7 +397,7 @@
             />
           </a>
 
-          <nav class="hidden md:flex items-center gap-7 text-sm font-medium flex-1 ml-9">
+          <nav class="flex items-center gap-7 text-sm font-medium flex-1 ml-9">
             <a
               href="/"
               class="hover:opacity-70 transition-opacity"
@@ -249,265 +428,130 @@
                 background: linear-gradient(135deg, rgb(var(--cta-accent-rgb)), rgb(var(--action-primary-rgb)));
                 box-shadow: 0 4px 14px rgb(var(--cta-accent-rgb)/0.35);
                 letter-spacing: 0.01em;
-              " class="hidden md:inline-flex hover:opacity-90">
+              " class="hover:opacity-90">
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>
               Bắt đầu miễn phí
             </x-button>
           </div>
         </div>
+
+        <!-- Hàng tìm kiếm (mobile kèm logo bên trái) -->
+        <div class="flex items-center gap-2.5 py-2.5 md:justify-center">
+          <a href="/" class="md:hidden shrink-0">
+            <img src="../assets/icons/logo.png" alt="Cưới Xinh" class="h-9 w-auto" />
+          </a>
+          <label class="tt-search flex-1 md:flex-none md:w-[440px]">
+            <svg
+              class="shrink-0"
+              style="color: var(--primary)"
+              xmlns="http://www.w3.org/2000/svg"
+              width="17"
+              height="17"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <path d="m21 21-4.3-4.3" />
+            </svg>
+            <input
+              id="tt-search-input"
+              type="search"
+              autocomplete="off"
+              placeholder="Tìm mẫu thiệp bạn thích"
+              aria-label="Tìm mẫu thiệp"
+            />
+          </label>
+
+          <!-- Lọc danh mục: một nút icon + popover, danh sách dựng từ dữ liệu -->
+          <div class="relative shrink-0">
+            <button
+              id="tt-filter-btn"
+              type="button"
+              class="tt-filter-btn"
+              aria-haspopup="true"
+              aria-expanded="false"
+              aria-label="Lọc theo danh mục"
+              onclick="toggleFilterPop(event)"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="19"
+                height="19"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M3 6h18" />
+                <path d="M7 12h10" />
+                <path d="M10 18h4" />
+              </svg>
+              <span id="tt-filter-dot" class="tt-filter-dot hidden"></span>
+            </button>
+            <div id="tt-filter-pop" class="tt-fpop hidden" role="menu"></div>
+          </div>
+        </div>
       </div>
     </header>
 
-    <!-- ═══ MOBILE BOTTOM NAV ═══ -->
-    <nav
-      class="fixed bottom-0 left-0 right-0 z-40 border-t md:hidden"
-      style="background: rgb(var(--white-rgb)); border-color: rgb(var(--brand-primary-rgb)/0.35)"
-    >
-      <div
-        class="flex items-center justify-around px-2 pt-1.5"
-        style="padding-bottom: calc(0.5rem + env(safe-area-inset-bottom))"
-      >
-        <a
-          href="/"
-          class="flex flex-col items-center gap-0.5 px-4 py-1 text-[11px] font-medium"
-          style="color: var(--muted)"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-            <polyline points="9 22 9 12 15 12 15 22" />
-          </svg>
-          Trang chủ
-        </a>
-        <a
-          href="/theme-template/"
-          class="flex flex-col items-center gap-0.5 px-4 py-1 text-[11px] font-semibold"
-          style="color: var(--primary)"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path
-              d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z"
-            />
-            <circle cx="13.5" cy="6.5" r=".5" fill="currentColor" />
-            <circle cx="17.5" cy="10.5" r=".5" fill="currentColor" />
-            <circle cx="6.5" cy="12.5" r=".5" fill="currentColor" />
-            <circle cx="8.5" cy="7.5" r=".5" fill="currentColor" />
-          </svg>
-          Mẫu thiệp
-        </a>
-      </div>
-    </nav>
-
     <!-- ═══ PAGE BODY ═══ -->
-    <div class="flex-1" style="padding-top: 64px; padding-bottom: 68px">
-      <!-- ─── HERO SECTION (centered) ─── -->
-      <section
-        class="dot-bg relative overflow-hidden pt-10 sm:pt-16 sm:pb-8"
-        style="background: var(--bg)"
-      >
-        <div class="relative z-10 max-w-3xl mx-auto px-4 sm:px-6 text-center">
-          <!-- Eyebrow — small caps, gold line -->
-          <div class="inline-flex items-center gap-3 mb-5">
-            <span
-              class="h-px w-8 sm:w-12"
-              style="background: var(--primary)"
-            ></span>
-            <span
-              class="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.22em]"
-              style="color: var(--primary)"
-              >Bộ sưu tập · Ra mắt <span id="hero-year"></span
-            ></span>
-            <span
-              class="h-px w-8 sm:w-12"
-              style="background: var(--primary)"
-            ></span>
+    <div class="flex-1 tt-body">
+      <!-- ─── LƯỚI MẪU THIỆP ─── -->
+      <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5 pb-10 sm:pt-7 sm:pb-14">
+        <div
+          id="template-gallery"
+          class="grid grid-cols-1 gap-7 sm:grid-cols-2 sm:gap-x-5 sm:gap-y-8 lg:grid-cols-3 xl:grid-cols-4"
+        >
+          <!-- Skeletons -->
+          <div>
+            <div class="skeleton" style="aspect-ratio: 4/5; border-radius: 16px"></div>
+            <div class="mt-3 space-y-2">
+              <div class="skeleton h-3.5 rounded w-2/3"></div>
+              <div class="skeleton h-2.5 rounded w-full"></div>
+              <div class="skeleton h-3 rounded w-1/3"></div>
+            </div>
           </div>
-
-          <!-- H1 — Playfair italic -->
-          <h1
-            class="font-playfair text-[2rem] sm:text-4xl lg:text-5xl font-semibold leading-[1.12] mb-4"
-            style="color: var(--primary)"
-          >
-            Mẫu thiệp cưới online<br class="hidden sm:block" />
-            <em class="not-italic" style="color: var(--fg)"
-              >xem trước khi tạo, ưng mới trả tiền</em
-            >
-          </h1>
-
-          <!-- Description -->
-          <p
-            class="text-[14px] sm:text-[15px] leading-7 max-w-xl mx-auto mb-8"
-            style="color: var(--muted)"
-          >
-            Mỗi mẫu thiệp được căn chỉnh kỹ từng chi tiết. Nhấn vào để
-            <strong style="color: var(--fg); font-weight: 600"
-              >xem trước</strong
-            >
-            — không cần đăng ký, không mất phí cho đến khi bạn thật sự
-            <strong style="color: var(--fg); font-weight: 600">ưng ý</strong>.
-          </p>
-
-          <!-- Inline stats strip -->
-          <div class="hidden sm:flex justify-center mb-2">
-            <div
-              class="inline-flex items-center rounded-2xl"
-              style="
-                background: rgb(var(--white-rgb)/0.75);
-                border: 1px solid rgb(var(--brand-primary-rgb)/0.35);
-                backdrop-filter: blur(8px);
-                box-shadow: 0 4px 20px -8px rgb(var(--brand-accent-rgb)/0.15);
-              "
-            >
-              <div class="px-5 sm:px-8 py-3">
-                <p
-                  id="stat-tpl-num"
-                  class="font-playfair text-2xl sm:text-3xl font-semibold"
-                  style="color: var(--primary)"
-                >
-                  —
-                </p>
-                <p
-                  class="text-[10px] sm:text-xs font-medium mt-0.5 uppercase tracking-wider"
-                  style="color: var(--muted)"
-                >
-                  mẫu thiệp
-                </p>
-              </div>
-              <div
-                class="h-8 w-px"
-                style="background: rgb(var(--brand-accent-rgb)/0.3)"
-              ></div>
-              <div class="px-5 sm:px-8 py-3">
-                <p
-                  id="stat-usage-num"
-                  class="font-playfair text-2xl sm:text-3xl font-semibold"
-                  style="color: var(--primary)"
-                >
-                  —
-                </p>
-                <p
-                  class="text-[10px] sm:text-xs font-medium mt-0.5 uppercase tracking-wider"
-                  style="color: var(--muted)"
-                >
-                  lượt tạo thiệp
-                </p>
-              </div>
-              <div
-                class="h-8 w-px"
-                style="background: rgb(var(--brand-accent-rgb)/0.3)"
-              ></div>
-              <div class="px-5 sm:px-8 py-3">
-                <p
-                  class="font-playfair text-2xl sm:text-3xl font-semibold"
-                  style="color: var(--primary)"
-                >
-                  ∞
-                </p>
-                <p
-                  class="text-[10px] sm:text-xs font-medium mt-0.5 uppercase tracking-wider"
-                  style="color: var(--muted)"
-                >
-                  đổi mẫu thoải mái
-                </p>
-              </div>
+          <div class="hidden sm:block">
+            <div class="skeleton" style="aspect-ratio: 4/5; border-radius: 16px"></div>
+            <div class="mt-3 space-y-2">
+              <div class="skeleton h-3.5 rounded w-2/3"></div>
+              <div class="skeleton h-2.5 rounded w-full"></div>
+              <div class="skeleton h-3 rounded w-1/3"></div>
+            </div>
+          </div>
+          <div class="hidden lg:block">
+            <div class="skeleton" style="aspect-ratio: 4/5; border-radius: 16px"></div>
+            <div class="mt-3 space-y-2">
+              <div class="skeleton h-3.5 rounded w-2/3"></div>
+              <div class="skeleton h-2.5 rounded w-full"></div>
+              <div class="skeleton h-3 rounded w-1/3"></div>
+            </div>
+          </div>
+          <div class="hidden xl:block">
+            <div class="skeleton" style="aspect-ratio: 4/5; border-radius: 16px"></div>
+            <div class="mt-3 space-y-2">
+              <div class="skeleton h-3.5 rounded w-2/3"></div>
+              <div class="skeleton h-2.5 rounded w-full"></div>
+              <div class="skeleton h-3 rounded w-1/3"></div>
             </div>
           </div>
         </div>
 
-        <!-- Decorative floral corners (line-art, no color) -->
-        <svg
-          class="pointer-events-none absolute top-0 left-0 w-40 sm:w-56 opacity-[0.07]"
-          viewBox="0 0 220 220"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M20 200 Q60 120 120 80 Q160 50 200 20"
-            stroke="rgb(var(--brand-accent-rgb))"
-            stroke-width="1"
-          />
-          <path
-            d="M10 180 Q50 130 100 100 Q140 76 180 30"
-            stroke="rgb(var(--brand-accent-rgb))"
-            stroke-width="0.8"
-          />
-          <circle cx="80" cy="140" r="18" stroke="rgb(var(--brand-accent-rgb))" stroke-width="0.8" />
-          <circle cx="80" cy="140" r="10" stroke="rgb(var(--brand-accent-rgb))" stroke-width="0.6" />
-          <path
-            d="M80 122 Q95 110 110 122"
-            stroke="rgb(var(--brand-accent-rgb))"
-            stroke-width="0.7"
-          />
-          <path
-            d="M60 148 Q48 158 52 172"
-            stroke="rgb(var(--brand-accent-rgb))"
-            stroke-width="0.7"
-          />
-          <path
-            d="M100 148 Q112 158 108 172"
-            stroke="rgb(var(--brand-accent-rgb))"
-            stroke-width="0.7"
-          />
-          <path
-            d="M140 60 Q155 50 150 35 Q145 50 130 55 Q145 52 140 60Z"
-            stroke="rgb(var(--brand-accent-rgb))"
-            stroke-width="0.7"
-          />
-          <path
-            d="M155 45 Q165 32 162 20 Q158 32 148 38"
-            stroke="rgb(var(--brand-accent-rgb))"
-            stroke-width="0.6"
-          />
-        </svg>
-        <svg
-          class="pointer-events-none absolute bottom-0 right-0 w-40 sm:w-56 opacity-[0.07]"
-          viewBox="0 0 220 220"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          style="transform: rotate(180deg)"
-        >
-          <path
-            d="M20 200 Q60 120 120 80 Q160 50 200 20"
-            stroke="rgb(var(--brand-accent-rgb))"
-            stroke-width="1"
-          />
-          <path
-            d="M10 180 Q50 130 100 100 Q140 76 180 30"
-            stroke="rgb(var(--brand-accent-rgb))"
-            stroke-width="0.8"
-          />
-          <circle cx="80" cy="140" r="18" stroke="rgb(var(--brand-accent-rgb))" stroke-width="0.8" />
-          <circle cx="80" cy="140" r="10" stroke="rgb(var(--brand-accent-rgb))" stroke-width="0.6" />
-          <path
-            d="M80 122 Q95 110 110 122"
-            stroke="rgb(var(--brand-accent-rgb))"
-            stroke-width="0.7"
-          />
-          <path
-            d="M140 60 Q155 50 150 35 Q145 50 130 55 Q145 52 140 60Z"
-            stroke="rgb(var(--brand-accent-rgb))"
-            stroke-width="0.7"
-          />
-        </svg>
+        <!-- Empty state -->
+        <div id="empty-state" class="hidden text-center py-20">
+          <p id="empty-title" class="font-playfair text-lg mb-2" style="color: var(--primary)">
+            Chưa có mẫu nào
+          </p>
+          <p id="empty-desc" class="text-sm" style="color: var(--muted)">
+            Bộ sưu tập sẽ sớm được cập nhật.
+          </p>
+        </div>
       </section>
 
       <!-- ─── FEATURE ROW (desktop only) ─── -->
@@ -749,79 +793,6 @@
           </div>
         </div>
       </div>
-
-      <!-- ─── GALLERY SECTION ─── -->
-      <section class="py-8 sm:py-12">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <!-- Section label -->
-          <div class="flex items-center gap-4 mb-6 sm:mb-8">
-            <span
-              class="h-px flex-1"
-              style="background: rgb(var(--brand-primary-rgb)/0.35)"
-            ></span>
-            <p
-              class="text-xs font-semibold uppercase tracking-[0.2em]"
-              style="color: var(--muted)"
-            >
-              Bộ sưu tập
-            </p>
-            <span
-              class="h-px flex-1"
-              style="background: rgb(var(--brand-primary-rgb)/0.35)"
-            ></span>
-          </div>
-
-          <!-- Grid -->
-          <div
-            id="template-gallery"
-            class="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4"
-          >
-            <!-- Skeletons -->
-            <div class="template-card">
-              <div class="skeleton" style="aspect-ratio: 9/16"></div>
-              <div class="p-3 sm:p-4 space-y-2">
-                <div class="skeleton h-3.5 rounded w-3/4"></div>
-                <div class="skeleton h-2.5 rounded w-full"></div>
-                <div class="skeleton h-2.5 rounded w-2/3"></div>
-              </div>
-            </div>
-            <div class="template-card">
-              <div class="skeleton" style="aspect-ratio: 9/16"></div>
-              <div class="p-3 sm:p-4 space-y-2">
-                <div class="skeleton h-3.5 rounded w-3/4"></div>
-                <div class="skeleton h-2.5 rounded w-full"></div>
-                <div class="skeleton h-2.5 rounded w-2/3"></div>
-              </div>
-            </div>
-            <div class="template-card hidden sm:block">
-              <div class="skeleton" style="aspect-ratio: 9/16"></div>
-              <div class="p-3 sm:p-4 space-y-2">
-                <div class="skeleton h-3.5 rounded w-3/4"></div>
-                <div class="skeleton h-2.5 rounded w-full"></div>
-                <div class="skeleton h-2.5 rounded w-2/3"></div>
-              </div>
-            </div>
-            <div class="template-card hidden lg:block">
-              <div class="skeleton" style="aspect-ratio: 9/16"></div>
-              <div class="p-3 sm:p-4 space-y-2">
-                <div class="skeleton h-3.5 rounded w-3/4"></div>
-                <div class="skeleton h-2.5 rounded w-full"></div>
-                <div class="skeleton h-2.5 rounded w-2/3"></div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Empty state -->
-          <div id="empty-state" class="hidden text-center py-20">
-            <p class="font-playfair text-lg mb-2" style="color: var(--primary)">
-              Chưa có mẫu nào
-            </p>
-            <p class="text-sm" style="color: var(--muted)">
-              Bộ sưu tập sẽ sớm được cập nhật.
-            </p>
-          </div>
-        </div>
-      </section>
 
       <!-- ─── CTA — full-bleed wine section ─── -->
       <section style="background: linear-gradient(135deg, rgb(var(--brand-accent-rgb)), rgb(var(--preview-btn-to-rgb)))">
@@ -1097,6 +1068,112 @@
       </section>
     </div>
 
+    <!-- ═══ NÚT NỔI GIỮA ĐÁY ═══ -->
+    <x-button id="tt-fab" class="tt-fab hover:opacity-90" onclick="startDraft()" style="
+        background: linear-gradient(135deg, rgb(var(--cta-accent-rgb)), rgb(var(--action-primary-rgb)));
+        color: rgb(var(--white-rgb));
+        box-shadow: 0 6px 22px rgb(var(--cta-accent-rgb)/0.4);
+      ">
+      Bắt đầu miễn phí
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>
+    </x-button>
+
+    <!-- ═══ THANH ĐIỀU HƯỚNG DƯỚI (mobile) ═══
+         Cùng kiểu với navbar trang Thiết lập: vỏ `fixed` mang nền trang để nội
+         dung cuộn không lộ ra dưới thẻ, bên trong là THẺ NỔI bo tròn cách mép
+         dưới 8px. Đổi chiều cao thì sửa --tt-tabbar-h. -->
+    <nav
+      class="fixed bottom-0 left-0 right-0 z-40 px-2 md:hidden"
+      style="
+        background: rgb(var(--white-rgb));
+        padding-bottom: calc(8px + env(safe-area-inset-bottom));
+      "
+    >
+      <div
+        class="max-w-4xl mx-auto flex items-center justify-around px-1.5 py-1.5 bg-white border border-rose-100 rounded-3xl shadow-[0_-4px_18px_rgb(var(--scrim-rgb)/0.08)]"
+      >
+        <a href="/" class="tt-tab">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+            <polyline points="9 22 9 12 15 12 15 22" />
+          </svg>
+          Trang chủ
+        </a>
+
+        <button id="tt-tab-all" type="button" class="tt-tab is-on" onclick="setFavOnly(false)">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path
+              d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z"
+            />
+            <circle cx="13.5" cy="6.5" r=".5" fill="currentColor" />
+            <circle cx="17.5" cy="10.5" r=".5" fill="currentColor" />
+            <circle cx="6.5" cy="12.5" r=".5" fill="currentColor" />
+            <circle cx="8.5" cy="7.5" r=".5" fill="currentColor" />
+          </svg>
+          Mẫu thiệp
+        </button>
+
+        <button id="tt-tab-fav" type="button" class="tt-tab" onclick="setFavOnly(true)">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path
+              d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"
+            />
+          </svg>
+          Yêu thích
+          <span id="tt-fav-count" class="tt-tab-count hidden">0</span>
+        </button>
+
+        <button id="tt-tab-acc" type="button" class="tt-tab" onclick="openAccount()">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <circle cx="12" cy="10" r="3" />
+            <path d="M7 20.7a8 8 0 0 1 10 0" />
+          </svg>
+          <span id="tt-acc-label">Tài khoản</span>
+        </button>
+      </div>
+    </nav>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.8" integrity="sha384-Tve8O+C6PBzsIMK/IRCwHbi8fyEzXIlIs6OfVBZHubplwYhaQF/4Mzxqgg+pp/oy" crossorigin="anonymous"></script>
     <script src="../core/x-button.js"></script>
     <script src="../core/cache-util.js"></script>
@@ -1148,12 +1225,24 @@
         });
       }
 
+      // Mục "Tài khoản" ở thanh dưới: có phiên thì sang trang quản lý thiệp,
+      // chưa có thì mở popup đăng nhập ngay tại chỗ.
+      function openAccount() {
+        if (window.CXAuth && CXAuth.isLoggedIn()) {
+          window.location.href = "/my-invitations/";
+          return;
+        }
+        openLoginPopup();
+      }
+
       // "Quản lý thiệp" luôn hiện; chỉ ẩn nút "Đăng nhập" khi đã có phiên.
       // Trạng thái phiên hỏi CXAuth (core/auth.js) — nguồn sự thật duy nhất.
       (function _initThemeAuth() {
         const loginBtn = document.getElementById("ttLoginBtn");
+        const accLabel = document.getElementById("tt-acc-label");
         const apply = (loggedIn) => {
           if (loginBtn) loginBtn.style.display = loggedIn ? "none" : "";
+          if (accLabel) accLabel.textContent = loggedIn ? "Thiệp của tôi" : "Tài khoản";
         };
         if (!window.CXAuth) return;
         apply(CXAuth.isLoggedIn()); // vẽ ngay, khỏi nhấp nháy
@@ -1163,16 +1252,83 @@
 
       /* ── SVG helpers ── */
       const SVG_EYE = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>`;
-      const SVG_USERS = `<svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/></svg>`;
-      const SVG_FLAME = `<svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>`;
+      const SVG_HEART = `<svg xmlns="http://www.w3.org/2000/svg" width="23" height="23" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>`;
+      const SVG_CHECK = `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>`;
 
-      const CAT_LABEL = {
-        popular: "PHỔ BIẾN",
-        new: "MỚI NHẤT",
-        premium: "CAO CẤP",
+      /* ── Danh mục: nhãn + icon cho dải lọc trên đầu trang ──
+         Khoá = giá trị cột `templates.category`; danh mục lạ vẫn hiện được với
+         nhãn thô + icon mặc định. */
+      const CAT_META = {
+        all: {
+          label: "Tất cả",
+          icon: `<path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/>`,
+        },
+        traditional: {
+          label: "Cổ điển",
+          icon: `<path d="M3 22h18"/><path d="M6 18v-7"/><path d="M18 18v-7"/><path d="M10 18v-7"/><path d="M14 18v-7"/><path d="M4 11 12 4l8 7"/>`,
+        },
+        modern: {
+          label: "Hiện đại",
+          icon: `<path d="M12 3v18"/><path d="M3 12h18"/><path d="M5.6 5.6l12.8 12.8"/><path d="M18.4 5.6 5.6 18.4"/>`,
+        },
+        vintage: {
+          label: "Vintage",
+          icon: `<path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>`,
+        },
+        romantic: {
+          label: "Lãng mạn",
+          icon: `<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>`,
+        },
+        minimal: {
+          label: "Tối giản",
+          icon: `<rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 12h8"/>`,
+        },
+        luxury: {
+          label: "Cao cấp",
+          icon: `<path d="M6 3h12l4 6-10 12L2 9Z"/><path d="M2 9h20"/><path d="m12 3-3 6 3 12 3-12-3-6"/>`,
+        },
+        _default: {
+          label: "Khác",
+          icon: `<circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><path d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z"/>`,
+        },
+      };
+      const catMeta = (key) => CAT_META[key] || CAT_META._default;
+      const catLabel = (key) =>
+        CAT_META[key] ? CAT_META[key].label : key || "Khác";
+
+      /* Nhãn tiếng Việt cho `templates.features` — khoá lạ thì bỏ qua. */
+      const FEATURE_LABEL = {
+        gallery: "Album ảnh",
+        map: "Bản đồ",
+        qrcode: "Mã QR",
+        rsvp: "Xác nhận dự",
+        countdown: "Đếm ngược",
+        music: "Nhạc nền",
+        comment: "Lời chúc",
+        guestbook: "Sổ lưu bút",
       };
 
+      /* ── Trạng thái lọc của lưới ── */
+      const FAV_KEY = "cx_fav_templates";
       let allTemplates = [];
+      let activeCat = "all";
+      let searchQuery = "";
+      let favOnly = false;
+      let favSet = new Set();
+
+      try {
+        favSet = new Set(JSON.parse(localStorage.getItem(FAV_KEY) || "[]"));
+      } catch (_) {}
+
+      // So khớp tìm kiếm bỏ dấu để gõ "co dien" vẫn ra "cổ điển".
+      const _norm = (s) =>
+        (s || "")
+          .toString()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .replace(/đ/gi, "d")
+          .toLowerCase()
+          .trim();
 
       async function fetchTemplates() {
         const base = CONFIG.supabase.url;
@@ -1201,80 +1357,167 @@
             description: t.description,
             previewUrl: t.preview_url,
             category: t.category,
-            isHot: t.is_hot || false,
-            usageCount: t.usage_count || 0,
+            tags: t.tags || [],
+            features: t.features || [],
             price: pr.price ?? 159000,
             originalPrice: pr.original_price ?? 199000,
           };
         });
       }
 
+      /* ── Lọc danh mục (nút icon cạnh ô tìm kiếm + popover) ── */
+      function renderFilterMenu() {
+        const pop = document.getElementById("tt-filter-pop");
+        const cats = [
+          "all",
+          ...Array.from(
+            new Set(allTemplates.map((t) => t.category).filter(Boolean)),
+          ),
+        ];
+        pop.innerHTML = cats
+          .map((c) => {
+            const m = catMeta(c);
+            const on = c === activeCat;
+            return `
+            <button type="button" role="menuitemradio" aria-checked="${on}"
+                    class="tt-fitem${on ? " is-on" : ""}" data-cat="${c}" onclick="setCat('${c}')">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                   stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${m.icon}</svg>
+              ${c === "all" ? m.label : catLabel(c)}
+              ${on ? `<span class="tt-fcheck" style="color:var(--primary)">${SVG_CHECK}</span>` : ""}
+            </button>`;
+          })
+          .join("");
+      }
+
+      function setCat(cat) {
+        activeCat = cat;
+        renderFilterMenu();
+        closeFilterPop();
+        const btn = document.getElementById("tt-filter-btn");
+        const dot = document.getElementById("tt-filter-dot");
+        btn.classList.toggle("is-on", cat !== "all");
+        dot.classList.toggle("hidden", cat === "all");
+        applyFilter();
+      }
+
+      function closeFilterPop() {
+        const pop = document.getElementById("tt-filter-pop");
+        pop.classList.add("hidden");
+        document
+          .getElementById("tt-filter-btn")
+          .setAttribute("aria-expanded", "false");
+      }
+
+      function toggleFilterPop(ev) {
+        ev.stopPropagation(); // để listener đóng-khi-bấm-ngoài không đóng lại ngay
+        const pop = document.getElementById("tt-filter-pop");
+        const open = pop.classList.toggle("hidden") === false;
+        document
+          .getElementById("tt-filter-btn")
+          .setAttribute("aria-expanded", open ? "true" : "false");
+      }
+
+      document.addEventListener("click", (e) => {
+        if (!e.target.closest("#tt-filter-pop, #tt-filter-btn")) closeFilterPop();
+      });
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeFilterPop();
+      });
+
+      /* ── Yêu thích (lưu ở máy khách, không cần đăng nhập) ── */
+      function saveFavs() {
+        try {
+          localStorage.setItem(FAV_KEY, JSON.stringify([...favSet]));
+        } catch (_) {}
+      }
+
+      function syncFavCount() {
+        const el = document.getElementById("tt-fav-count");
+        if (!el) return;
+        el.textContent = favSet.size;
+        el.classList.toggle("hidden", favSet.size === 0);
+      }
+
+      function toggleFav(ev, theme) {
+        ev.stopPropagation();
+        if (favSet.has(theme)) favSet.delete(theme);
+        else favSet.add(theme);
+        saveFavs();
+        syncFavCount();
+        const btn = ev.currentTarget;
+        btn.classList.toggle("is-on", favSet.has(theme));
+        btn.setAttribute("aria-pressed", favSet.has(theme) ? "true" : "false");
+        if (favOnly) applyFilter(); // đang xem danh sách yêu thích thì rút thẻ ra ngay
+      }
+
+      function setFavOnly(on) {
+        favOnly = on;
+        document.getElementById("tt-tab-fav").classList.toggle("is-on", on);
+        document.getElementById("tt-tab-all").classList.toggle("is-on", !on);
+        applyFilter();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+
+      /* ── Thẻ mẫu ── */
       function cardHTML(t) {
         const imgSrc = `/assets/images/templates/${t.theme}.jpg`;
-        const catLabel = CAT_LABEL[t.category] || "";
-
-        const catBadge = catLabel
-          ? `
-          <div class="absolute left-2 top-3 sm:left-2.5 sm:top-3.5 z-10">
-            <span class="text-[9px] font-bold tracking-[0.18em] uppercase px-2 py-0.5 rounded-sm"
-                  style="background:rgb(var(--brand-accent-rgb)/0.1);color:var(--primary);letter-spacing:0.18em">${catLabel}</span>
-          </div>`
-          : "";
-
-        const hotBadge = t.isHot
-          ? `
-          <div class="absolute right-2 top-2.5 sm:right-2.5 sm:top-3 z-10">
-            <span class="inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-[9px] font-bold text-white"
-                  style="background:var(--primary)">
-              <span style="display:flex;align-items:center;margin-right:1px">${SVG_FLAME}</span>HOT
-            </span>
-          </div>`
-          : "";
-
-        const usageHTML =
-          t.usageCount > 0
-            ? `
-          <div class="border-t pt-2 sm:pt-2.5 mt-0.5" style="border-color:rgb(var(--brand-accent-rgb)/0.1)">
-            <span class="inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-medium"
-                  style="color:var(--muted)">
-              <span style="display:flex;align-items:center">${SVG_USERS}</span>${t.usageCount} đôi đã dùng
-            </span>
-          </div>`
-            : "";
+        const isFav = favSet.has(t.theme);
+        const featTxt = (t.features || [])
+          .map((f) => FEATURE_LABEL[f])
+          .filter(Boolean)
+          .slice(0, 3)
+          .join(" · ");
 
         return `
-          <div class="template-card" data-id="${t.id}" onclick="openPreview('${t.previewUrl}')">
-            <div class="relative" style="aspect-ratio:9/16;overflow:hidden;background:rgb(var(--preview-bg-from-rgb))">
-              <img src="${imgSrc}" alt="${t.name}" loading="lazy" class="absolute inset-0 w-full h-full object-cover object-top" />
-              <div class="absolute inset-x-0 bottom-0 h-20"
-                   style="background:linear-gradient(to top,rgb(var(--scrim-plum-rgb)/0.45) 0%,transparent)"></div>
-              ${catBadge}
-              ${hotBadge}
-              <div class="card-hover-overlay">
-                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-semibold"
-                      style="background:rgb(var(--white-rgb));color:var(--primary);box-shadow:0 4px 16px rgb(var(--scrim-rgb)/0.2)">
-                  <span style="display:flex;align-items:center;color:var(--primary)">${SVG_EYE}</span>Xem chi tiết
+          <article class="tt-card" data-id="${t.id}" onclick="openPreview('${t.previewUrl}')">
+            <div class="tt-media">
+              <img src="${imgSrc}" alt="${t.name}" loading="lazy" />
+              ${t.category ? `<span class="tt-badge">${catLabel(t.category)}</span>` : ""}
+              <button type="button" class="tt-fav${isFav ? " is-on" : ""}" aria-pressed="${isFav}"
+                      aria-label="Lưu vào yêu thích" onclick="toggleFav(event,'${t.theme}')">${SVG_HEART}</button>
+              <div class="tt-hover">
+                <span>${SVG_EYE}Xem trước</span>
+              </div>
+            </div>
+
+            <div class="mt-3">
+              <div class="flex items-start justify-between gap-3">
+                <h3 class="text-[15px] font-semibold leading-snug truncate" style="color:var(--fg)">${t.name}</h3>
+                <span class="shrink-0 inline-flex items-center gap-1 text-[12px] font-medium" style="color:var(--muted)">
+                  ${SVG_CHECK}${(t.features || []).length} tính năng
                 </span>
               </div>
-            </div>
-            <div class="p-3 sm:p-4 space-y-2">
-              <div>
-                <p class="text-[13px] sm:text-sm font-semibold leading-snug truncate"
-                   style="color:var(--fg)">${t.name}</p>
-                <p class="mt-1 text-[11px] sm:text-xs leading-relaxed line-clamp-2"
-                   style="color:var(--muted)">${t.description || ""}</p>
-              </div>
-              ${usageHTML}
-              <div class="flex items-center gap-2 pt-0.5">
-                <span class="text-sm font-bold" style="color:var(--primary)">${t.price.toLocaleString("vi-VN")}₫</span>
-                ${t.originalPrice > t.price ? `<span class="text-[11px] line-through" style="color:var(--muted)">${t.originalPrice.toLocaleString("vi-VN")}₫</span>` : ""}
+              <p class="mt-0.5 text-[13px] leading-snug line-clamp-1" style="color:var(--muted)">${t.description || ""}</p>
+              ${featTxt ? `<p class="mt-0.5 text-[13px] leading-snug truncate" style="color:var(--muted)">${featTxt}</p>` : ""}
+              <div class="mt-1.5 flex items-baseline gap-2">
+                <span class="text-[15px] font-bold" style="color:var(--fg)">${t.price.toLocaleString("vi-VN")}₫</span>
+                ${t.originalPrice > t.price ? `<span class="text-[12px] line-through" style="color:var(--muted)">${t.originalPrice.toLocaleString("vi-VN")}₫</span>` : ""}
+                <span class="text-[13px]" style="color:var(--muted)">trọn đời</span>
+                <button type="button" class="ml-auto text-[13px] font-semibold underline underline-offset-2"
+                        style="color:var(--primary)" onclick="event.stopPropagation();startDraft('${t.theme}','${t.name}')">Dùng mẫu</button>
               </div>
             </div>
-          </div>`;
+          </article>`;
       }
 
       function openPreview(url) {
         window.open(url, "_blank");
+      }
+
+      /* ── Lọc + vẽ lưới ── */
+      function applyFilter() {
+        const q = _norm(searchQuery);
+        const list = allTemplates.filter((t) => {
+          if (favOnly && !favSet.has(t.theme)) return false;
+          if (activeCat !== "all" && t.category !== activeCat) return false;
+          if (!q) return true;
+          const hay = _norm(
+            [t.name, t.description, catLabel(t.category), (t.tags || []).join(" ")].join(" "),
+          );
+          return hay.includes(q);
+        });
+        renderGrid(list);
       }
 
       function renderGrid(templates) {
@@ -1283,20 +1526,29 @@
         if (!templates.length) {
           gallery.innerHTML = "";
           empty.classList.remove("hidden");
+          const filtering = favOnly || searchQuery || activeCat !== "all";
+          document.getElementById("empty-title").textContent = favOnly
+            ? "Chưa có mẫu yêu thích"
+            : filtering
+              ? "Không tìm thấy mẫu nào"
+              : "Chưa có mẫu nào";
+          document.getElementById("empty-desc").textContent = favOnly
+            ? "Nhấn hình trái tim trên mẫu bạn ưng để lưu lại."
+            : filtering
+              ? "Thử từ khoá khác hoặc chọn danh mục Tất cả."
+              : "Bộ sưu tập sẽ sớm được cập nhật.";
           return;
         }
         empty.classList.add("hidden");
         gallery.innerHTML = templates.map(cardHTML).join("");
-        const totalUsage = templates.reduce((s, t) => s + t.usageCount, 0);
-        document.getElementById("stat-tpl-num").textContent = templates.length;
-        document.getElementById("stat-usage-num").textContent =
-          totalUsage || "0";
       }
 
       (async () => {
         try {
           allTemplates = await fetchTemplates();
-          renderGrid(allTemplates);
+          renderFilterMenu();
+          syncFavCount();
+          applyFilter();
         } catch (err) {
           console.error(err);
           document.getElementById("template-gallery").innerHTML = `
@@ -1306,8 +1558,18 @@
         }
       })();
 
-      document.getElementById("hero-year").textContent =
-        new Date().getFullYear();
+      /* ── Ô tìm kiếm ── */
+      (function _initSearch() {
+        const input = document.getElementById("tt-search-input");
+        let timer = null;
+        input.addEventListener("input", () => {
+          clearTimeout(timer);
+          timer = setTimeout(() => {
+            searchQuery = input.value;
+            applyFilter();
+          }, 160);
+        });
+      })();
 
       /* ── Nav scroll ── */
       window.addEventListener(
