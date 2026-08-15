@@ -91,40 +91,18 @@ function applyCardTransform(card, offset) {
 //   ≥ 640px — như cũ: thẻ cao kịch khung rồi suy bề ngang theo dáng điện thoại,
 //     kẹp trần để hai thẻ kề bên vẫn ló mép (desktop không có chuyện thanh URL).
 // Trả về true khi khổ thật sự đổi — resize gọi lại setActiveCard theo đó.
+// Khổ thẻ do CSS quyết (biến --cx-ph-w ở .carousel-3d-stage). Ở đây chỉ ĐO lại
+// để applyCardTransform biết dịch thẻ kề bên bao nhiêu px. Trả về true khi khổ
+// thật sự đổi — gọi lại setActiveCard cho đúng vị trí.
 function sizeCarousel() {
-  const stage = document.getElementById("templateCarousel");
-  if (!stage) return false;
-  const h = stage.clientHeight;
-  const w = stage.clientWidth;
-  if (!h || !w) return false;
-
-  let cardW, cardH;
-  if (w < 640) {
-    cardW = Math.round(w * 0.8);
-    cardH = Math.round(h * 0.8);
-  } else {
-    const ASPECT = 0.64;
-    cardH = h;
-    cardW = Math.round(cardH * ASPECT);
-
-    const maxW = Math.min(w * 0.5, 580);
-    if (cardW > maxW) {
-      cardW = Math.round(maxW);
-      cardH = Math.round(cardW / ASPECT);
-    }
-    // Không bao giờ cao hơn khung: thẻ cao quá là mép trên/dưới (kể cả cụm nút
-    // trong lớp phủ) bị cắt mất.
-    if (cardH > h) {
-      cardH = h;
-      cardW = Math.round(cardH * ASPECT);
-    }
-  }
-
-  if (cardW === _cardW && cardH === _cardH) return false;
-  _cardW = cardW;
-  _cardH = cardH;
-  stage.style.setProperty("--cx-card-w", cardW + "px");
-  stage.style.setProperty("--cx-card-h", cardH + "px");
+  const card = document.querySelector(".carousel-3d-card");
+  if (!card) return false;
+  const r = card.getBoundingClientRect();
+  const w = Math.round(r.width);
+  const h = Math.round(r.height);
+  if (!w || !h || (w === _cardW && h === _cardH)) return false;
+  _cardW = w;
+  _cardH = h;
   return true;
 }
 

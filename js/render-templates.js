@@ -28,13 +28,12 @@ function renderTemplateCards() {
 
       return `
       <div class="carousel-3d-card" data-index="${index}">
-        <div class="art-template-card">
-          <div class="relative h-full overflow-hidden rounded-[16px]" style="background:rgb(var(--white-rgb));">
-            <div class="absolute inset-0 overflow-y-hidden">
-              ${imageContent}
-            </div>
-          </div>
-          <div class="art-template-overlay absolute bottom-0 left-0 right-0 pt-16 pb-4 px-4 rounded-b-[16px]"
+        <!-- Mockup điện thoại vẽ bằng CSS (.cx-mock ở styles/_common.css) —
+             không ảnh khung, không tai thỏ. Khổ + tỉ lệ do .carousel-3d-card. -->
+        <div class="cx-mock">
+          <div class="cx-mock-screen">
+            ${imageContent}
+          <div class="art-template-overlay absolute bottom-0 left-0 right-0 pt-16 pb-4 px-3"
             style="background:linear-gradient(to top, rgb(var(--landing-photo-overlay-rgb)/90%) 0%, rgb(var(--landing-photo-overlay-soft-rgb)/60%) 48%, transparent 100%);">
             <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 mb-2 text-[10px] font-semibold text-white" style="background:rgb(var(--white-rgb)/0.22);backdrop-filter:blur(4px);">
               <i data-icon="tag" class="text-[9px]"></i>${categoryLabel}
@@ -68,10 +67,9 @@ function renderTemplateCards() {
               </x-button>
             </div>
           </div>
+          </div>
         </div>
       </div>`;
     })
     .join("");
 }
-
-
