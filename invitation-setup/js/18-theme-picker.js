@@ -63,11 +63,17 @@ async function openThemePicker() {
           .join("")}
       </div>`;
 
-    // Auto scroll đến mẫu đang dùng
+    // Đưa mẫu đang dùng vào GIỮA khung. Tự đặt scrollTop chứ KHÔNG scrollIntoView:
+    // nó cuộn lây mọi khung cha (kể cả #setup-scroll nằm sau lưng popup), và hiệu
+    // ứng smooth chạy trong lúc danh sách còn đang dựng thì dừng lệch mất một hàng
+    // — nhìn ra như popup đang trỏ vào mẫu ngay SAU mẫu hiện tại.
+    // Đo bằng getBoundingClientRect: không phụ thuộc offsetParent của hàng.
     requestAnimationFrame(() => {
       const current = document.getElementById("theme-picker-current");
-      if (current)
-        current.scrollIntoView({ block: "center", behavior: "smooth" });
+      if (!current) return;
+      const box = sheet.body.getBoundingClientRect();
+      const row = current.getBoundingClientRect();
+      sheet.body.scrollTop += row.top - box.top - (box.height - row.height) / 2;
     });
   } catch {
     sheet.body.innerHTML = `<div class="text-center text-red-500 py-10 text-sm">Không thể tải danh sách mẫu. Vui lòng thử lại.</div>`;
@@ -102,11 +108,14 @@ function _updateHeaderThemeBadge(displayName) {
     .join(" ");
 }
 
-function _applyThemeChange(newTheme, displayName) {
+async function _applyThemeChange(newTheme, displayName) {
   if (newTheme === WEDDING_THEME) {
     closeThemePicker();
     return;
   }
+  // Đọc TRƯỚC _scheduleAutoSave: chính lệnh đó gọi _setDirty(true) và hạ cờ này
+  // xuống, đọc sau thì lần đổi mẫu nào cũng thành "khách đã sửa".
+  const wasDemoOnly = _demoFilled;
   WEDDING_THEME = newTheme;
   sessionStorage.setItem("draft_theme", newTheme);
   if (displayName) sessionStorage.setItem("draft_template_name", displayName);
@@ -114,13 +123,22 @@ function _applyThemeChange(newTheme, displayName) {
   // Mẫu mới chỉ nằm trong bộ nhớ tới khi bấm Lưu → đánh dấu chưa lưu để nút Lưu
   // sáng lên và QR "xem trên điện thoại" báo đúng là đang lệch với bản trên hệ thống.
   _scheduleAutoSave("theme");
+  closeThemePicker();
+  showToast("Đã đổi mẫu thiệp", "success");
+
+  // Form vẫn đang là dữ liệu mẫu (khách chưa gõ gì) → thay bằng dữ liệu mẫu của
+  // mẫu MỚI. Phải xong trước khi dựng lại bản xem trước, nếu không khung xem đọc
+  // nhằm nội dung của mẫu cũ.
+  if (wasDemoOnly) {
+    await _refillDemoForTheme(newTheme);
+    if (typeof cxLiveTouch === "function") cxLiveTouch();
+  }
+
   if (_isPreviewActive) {
     _savePreviewData();
     const iframe = document.getElementById("preview-iframe");
     if (iframe) iframe.src = _previewIframeSrc();
   }
-  closeThemePicker();
-  showToast("Đã đổi mẫu thiệp", "success");
 }
 window._applyThemeChange = _applyThemeChange;
 

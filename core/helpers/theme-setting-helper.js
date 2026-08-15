@@ -1506,6 +1506,12 @@ function _cxElEnsureStyle() {
     ".cx-el-pin-layer{position:fixed;inset:0;overflow:hidden;overflow:clip;" +
     "pointer-events:none;z-index:60}" +
     ".cx-el{position:absolute;transform:translate(-50%,-50%);pointer-events:auto}" +
+    // Widget TỰ CAO LÊN khi dùng (thanh nhạc vuốt xuống mở khối tóm tắt) phải neo
+    // CẠNH TRÊN: neo tâm thì mỗi lần mở là nửa phần cao thêm đội ngược lên trên,
+    // thanh nhảy chỗ ngay dưới ngón tay. Neo cạnh trên → y là mép trên, phần mở
+    // ra chỉ xuôi xuống dưới. Gắn ở _cxElNode theo việc widget có khối mở rộng
+    // hay không, không theo tên mẫu.
+    ".cx-el.cx-el-top{transform:translate(-50%,0)}" +
     // Chế độ chỉnh: cả widget là một mảng để kéo, ruột không bấm được.
     ".cx-el-edit{cursor:grab;touch-action:none}" +
     ".cx-el-edit>*{pointer-events:none}" +
@@ -1774,6 +1780,12 @@ function _cxElNode(t, edit) {
   if (!body) return null;
   node.appendChild(body);
   node._cxBody = body;
+
+  // Có khối mở rộng (thanh nhạc kéo xuống) → neo cạnh trên thay vì tâm. Dò theo
+  // MARKUP chứ không theo id mẫu: mẫu nào sau này có khối mở rộng cũng tự đúng.
+  if (body.querySelector('[data-cx-music="panel"]')) {
+    node.classList.add("cx-el-top");
+  }
 
   if (!edit) return node;
 

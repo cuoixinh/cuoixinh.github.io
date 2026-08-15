@@ -84,37 +84,48 @@ function applyCardTransform(card, offset) {
   }
 }
 
-// Tính kích thước card để thiệp active lấp đầy chiều cao khả dụng (to & rộng nhất),
-// giữ tỉ lệ dáng điện thoại; giới hạn bề rộng để card kề bên vẫn ló mép.
+// Khổ thẻ active. Hai lối tính khác hẳn nhau theo bề ngang khung:
+//   < 640px — mỗi chiều lấy 80% chiều TƯƠNG ỨNG của khung, bề ngang không suy ra
+//     từ chiều cao. Thanh URL của iPhone ẩn/hiện làm khung thấp đi thì thẻ chỉ
+//     thấp theo, không hẹp lại kéo nút trong lớp phủ tràn ra ngoài mép.
+//   ≥ 640px — như cũ: thẻ cao kịch khung rồi suy bề ngang theo dáng điện thoại,
+//     kẹp trần để hai thẻ kề bên vẫn ló mép (desktop không có chuyện thanh URL).
+// Trả về true khi khổ thật sự đổi — resize gọi lại setActiveCard theo đó.
 function sizeCarousel() {
   const stage = document.getElementById("templateCarousel");
-  if (!stage) return;
+  if (!stage) return false;
   const h = stage.clientHeight;
   const w = stage.clientWidth;
-  if (!h || !w) return;
+  if (!h || !w) return false;
 
-  // Desktop dùng tỉ lệ rộng hơn để thiệp to hơn hẳn mobile (chiều cao đã kịch trần)
-  const mobile = w < 640;
-  const ASPECT = mobile ? 0.52 : 0.64;
-  let cardH = h;
-  let cardW = Math.round(cardH * ASPECT);
-
-  const maxW = mobile ? w * 0.9 : Math.min(w * 0.5, 580);
-  if (cardW > maxW) {
-    cardW = Math.round(maxW);
-    cardH = Math.round(cardW / ASPECT);
-  }
-
-  // Không bao giờ cao hơn khung: thẻ cao quá là mép trên/dưới (kể cả cụm nút
-  // trong lớp phủ) bị cắt mất, ở điện thoại thấy rõ nhất.
-  if (cardH > h) {
+  let cardW, cardH;
+  if (w < 640) {
+    cardW = Math.round(w * 0.8);
+    cardH = Math.round(h * 0.8);
+  } else {
+    const ASPECT = 0.64;
     cardH = h;
     cardW = Math.round(cardH * ASPECT);
+
+    const maxW = Math.min(w * 0.5, 580);
+    if (cardW > maxW) {
+      cardW = Math.round(maxW);
+      cardH = Math.round(cardW / ASPECT);
+    }
+    // Không bao giờ cao hơn khung: thẻ cao quá là mép trên/dưới (kể cả cụm nút
+    // trong lớp phủ) bị cắt mất.
+    if (cardH > h) {
+      cardH = h;
+      cardW = Math.round(cardH * ASPECT);
+    }
   }
 
+  if (cardW === _cardW && cardH === _cardH) return false;
   _cardW = cardW;
+  _cardH = cardH;
   stage.style.setProperty("--cx-card-w", cardW + "px");
   stage.style.setProperty("--cx-card-h", cardH + "px");
+  return true;
 }
 
 function updateDots() {
@@ -181,15 +192,17 @@ function initCarousel3D() {
     if (e.key === "ArrowRight") scrollCarousel("next");
   });
 
-  // Resize → tính lại kích thước card + transform
+  // Resize → tính lại kích thước card + transform. iOS bắn `resize` mỗi lần ẩn/hiện
+  // thanh URL dù bố cục không đổi (khung đo bằng svh), nên chỉ dựng lại transform
+  // khi sizeCarousel() báo khổ thẻ thật sự đổi — nếu không thẻ giật một nhịp
+  // (transition bị tắt/bật) suốt lúc cuộn.
   let resizeTimer = null;
   window.addEventListener(
     "resize",
     () => {
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(() => {
-        sizeCarousel();
-        setActiveCard(carouselActiveIndex);
+        if (sizeCarousel()) setActiveCard(carouselActiveIndex);
       }, 120);
     },
     { passive: true },

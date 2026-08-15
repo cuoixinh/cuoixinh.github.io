@@ -74,6 +74,17 @@ function _watchLoginState() {
   window.CXAuth?.onChange((user) => _applyLoginState(!!user));
 }
 
+// Form đang mang dữ liệu mẫu của thiệp demo và khách CHƯA sửa gì. Còn cờ này thì
+// đổi mẫu sẽ nạp lại dữ liệu mẫu của mẫu mới (xem _refillDemoForTheme ở
+// js/13-data.js). _setDirty(true) hạ cờ — khách gõ một chữ là thôi tự đổi.
+// Khai ở đây vì _setDirty (04-nav-tabs.js) nạp trước 13-data.js.
+let _demoFilled = false;
+// Vừa đổ dữ liệu mẫu vào form, CHỜ chốt cờ. Không bật _demoFilled ngay được:
+// fillForm() kích listener autosave → _setDirty(true) → hạ cờ vừa bật (đó cũng là
+// lý do _showContent phải _setDirty(false) một nhịp sau). _cxCommitDemoFilled()
+// chốt lại khi mọi thứ đã lắng.
+let _demoPending = false;
+
 const DRAFT_LOCAL_KEY = buildCacheKey("draft", WEDDING_ID);
 
 function getLocalDraft() {

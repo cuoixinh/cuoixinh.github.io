@@ -5,6 +5,12 @@
 (function () {
   // Mẫu THANH NGANG: bìa · tên bài · lùi/phát/tới. Cả hàng là thanh tiến trình
   // (bấm để tua) nên nội dung bên trong phải `relative`.
+  //
+  // BẢNG MÀU: nền thanh + khối tóm tắt là --surface-tint-rgb (kem sáng), nên mọi
+  // thứ vẽ trên đó — chữ, icon, nút, vạch ngăn, dải tiến trình — lấy
+  // --text-body-rgb với độ mờ khác nhau. Đừng quay lại màu trắng: trên nền kem nó
+  // biến mất. Người dùng chọn màu riêng ở panel "Thành phần" thì .cx-tint-* trong
+  // styles/_music-player.css đè lên (đặc hiệu cao hơn nên luôn thắng).
   const barRow = `
     <div
       data-cx-music="progress"
@@ -12,7 +18,7 @@
     >
       <div
         data-cx-music="fill"
-        class="cx-mp-fill absolute inset-y-0 left-0 w-0 bg-white/40 pointer-events-none"
+        class="cx-mp-fill absolute inset-y-0 left-0 w-0 bg-[rgb(var(--text-body-rgb)/0.12)] pointer-events-none"
       ></div>
 
       <!-- Ảnh bìa: nốt nhạc là nền dự phòng, có thumbnail thì ảnh đè lên -->
@@ -31,7 +37,7 @@
       <div class="relative min-w-0 flex-1 overflow-hidden">
         <div
           data-cx-music="title"
-          class="cx-mp-title font-inter italic text-[13px] text-stone-600 leading-tight"
+          class="cx-mp-title font-inter italic text-[13px] text-[rgb(var(--text-body-rgb))] leading-tight"
         >
           Nhạc nền
         </div>
@@ -43,7 +49,7 @@
           type="button"
           data-cx-music="back"
           aria-label="Lùi 10 giây"
-          class="w-8 h-8 rounded-full bg-white/40 text-stone-600 flex items-center justify-center transition-transform active:scale-90"
+          class="w-8 h-8 rounded-full bg-[rgb(var(--text-body-rgb)/0.08)] text-[rgb(var(--text-body-rgb))] flex items-center justify-center transition-transform active:scale-90"
         >
           <i class="fas fa-backward text-[10px]"></i>
         </button>
@@ -51,7 +57,7 @@
           type="button"
           data-cx-music="toggle"
           aria-label="Phát hoặc tạm dừng nhạc nền"
-          class="w-8 h-8 rounded-full bg-white/80 text-stone-600 flex items-center justify-center shadow-sm transition-transform active:scale-90"
+          class="w-8 h-8 rounded-full bg-[rgb(var(--text-body-rgb)/0.16)] text-[rgb(var(--text-body-rgb))] flex items-center justify-center shadow-sm transition-transform active:scale-90"
         >
           <!-- Class ở đây là phần của theme (cỡ chữ); helper ghép thêm
                fa-play / fa-pause vào tuỳ trạng thái — và lọc bỏ bộ icon mặc
@@ -64,7 +70,7 @@
           type="button"
           data-cx-music="forward"
           aria-label="Tới 10 giây"
-          class="w-8 h-8 rounded-full bg-white/40 text-stone-600 flex items-center justify-center transition-transform active:scale-90"
+          class="w-8 h-8 rounded-full bg-[rgb(var(--text-body-rgb)/0.08)] text-[rgb(var(--text-body-rgb))] flex items-center justify-center transition-transform active:scale-90"
         >
           <i class="fas fa-forward text-[10px]"></i>
         </button>
@@ -85,13 +91,13 @@
         <img data-cx-summary="${photo}" alt="" class="w-full h-full object-cover" />
       </div>
       <div class="flex flex-col items-center gap-0.5 w-full">
-        <div class="font-inter text-[9px] uppercase tracking-[2px] text-stone-500">
+        <div class="font-inter text-[9px] uppercase tracking-[2px] text-[rgb(var(--text-body-rgb)/0.75)]">
           ${label}
         </div>
         <!-- Tên tiếng Việt hay dài → cho xuống 2 dòng thay vì cắt cụt -->
         <div
           data-cx-summary="${name}"
-          class="w-full text-center font-cormorant text-[17px] font-semibold leading-tight text-stone-700 line-clamp-2"
+          class="w-full text-center font-cormorant text-[17px] font-semibold leading-tight text-[rgb(var(--text-body-rgb))] line-clamp-2"
         ></div>
       </div>
     </div>`;
@@ -106,7 +112,7 @@
                (cột cao thấp khác nhau khi tên xuống 2 dòng). -->
           <div class="flex items-start gap-2">
             ${profile("Chú Rể", "groom-photo", "groom-name")}
-            <div class="mt-4 font-cormorant italic text-[22px] leading-none text-stone-500/80">
+            <div class="mt-4 font-cormorant italic text-[22px] leading-none text-[rgb(var(--text-body-rgb)/0.8)]">
               &amp;
             </div>
             ${profile("Cô Dâu", "bride-photo", "bride-name")}
@@ -114,9 +120,9 @@
 
           <!-- Vạch ngăn kèm hạt kim cương nhỏ, thay cho việc lồng thêm một hộp -->
           <div class="flex items-center gap-2">
-            <span class="flex-1 h-px bg-white/60"></span>
-            <span class="w-1.5 h-1.5 rotate-45 bg-white/80"></span>
-            <span class="flex-1 h-px bg-white/60"></span>
+            <span class="flex-1 h-px bg-[rgb(var(--text-body-rgb)/0.25)]"></span>
+            <span class="w-1.5 h-1.5 rotate-45 bg-[rgb(var(--text-body-rgb)/0.45)]"></span>
+            <span class="flex-1 h-px bg-[rgb(var(--text-body-rgb)/0.25)]"></span>
           </div>
 
           <!-- Lễ: tên lễ (nhãn) → ngày (nhân vật chính) → nơi tổ chức -->
@@ -126,7 +132,7 @@
             <div
               data-cx-summary-row
               data-cx-summary="event-name"
-              class="hidden font-inter text-[9px] uppercase tracking-[3px] text-stone-500"
+              class="hidden font-inter text-[9px] uppercase tracking-[3px] text-[rgb(var(--text-body-rgb)/0.75)]"
             ></div>
 
             <!-- Thứ · NGÀY · giờ trên một hàng, ngăn bằng gạch dọc mảnh. Gạch nằm
@@ -134,29 +140,29 @@
             <div class="flex items-center justify-center gap-2.5">
               <span
                 data-cx-summary-row
-                class="hidden flex items-center gap-2.5 font-inter text-[10px] uppercase tracking-[1px] text-stone-500"
+                class="hidden flex items-center gap-2.5 font-inter text-[10px] uppercase tracking-[1px] text-[rgb(var(--text-body-rgb)/0.75)]"
               >
                 <span data-cx-summary="event-weekday"></span>
-                <span class="w-px h-5 bg-white/70"></span>
+                <span class="w-px h-5 bg-[rgb(var(--text-body-rgb)/0.25)]"></span>
               </span>
               <span
                 data-cx-summary="event-date"
-                class="font-cormorant text-[22px] font-semibold leading-none tracking-wide text-stone-700"
+                class="font-cormorant text-[22px] font-semibold leading-none tracking-wide text-[rgb(var(--text-body-rgb))]"
               ></span>
               <span
                 data-cx-summary-row
-                class="hidden flex items-center gap-2.5 font-inter text-[10px] uppercase tracking-[1px] text-stone-500"
+                class="hidden flex items-center gap-2.5 font-inter text-[10px] uppercase tracking-[1px] text-[rgb(var(--text-body-rgb)/0.75)]"
               >
-                <span class="w-px h-5 bg-white/70"></span>
+                <span class="w-px h-5 bg-[rgb(var(--text-body-rgb)/0.25)]"></span>
                 <span data-cx-summary="event-time"></span>
               </span>
             </div>
 
             <div
               data-cx-summary-row
-              class="hidden flex items-start justify-center gap-1.5 max-w-[300px] font-inter text-[11px] leading-snug text-stone-600"
+              class="hidden flex items-start justify-center gap-1.5 max-w-[300px] font-inter text-[11px] leading-snug text-[rgb(var(--text-body-rgb)/0.9)]"
             >
-              <i class="fas fa-map-marker-alt mt-0.5 text-[9px] text-stone-500"></i>
+              <i class="fas fa-map-marker-alt mt-0.5 text-[9px] text-[rgb(var(--text-body-rgb)/0.75)]"></i>
               <span data-cx-summary="event-location" class="line-clamp-2"></span>
             </div>
           </div>
@@ -172,7 +178,7 @@
       aria-label="Vuốt xuống để xem tóm tắt thiệp, vuốt lên để thu gọn trình phát nhạc"
       class="cx-mp-handle w-full h-4 flex items-center justify-center cursor-grab active:cursor-grabbing"
     >
-      <span class="w-8 h-1 rounded-full bg-white/70"></span>
+      <span class="w-8 h-1 rounded-full bg-[rgb(var(--text-body-rgb))]"></span>
     </button>`;
 
   // Bong bóng: hiện khi đã thu gọn, kéo thả được, chạm = mở lại thanh.
@@ -318,8 +324,8 @@
     // tay nắm — kèm .cx-mp-swipe để khoá touch-action, nếu không cử chỉ bị nuốt
     // thành cuộn trang.
     const barCls = fixed
-      ? "cx-mp-bar mt-2 rounded-2xl overflow-hidden shadow-lg backdrop-blur-md bg-gradient-to-r from-rose-pastel-100/95 to-rose-pastel-200/95"
-      : "cx-mp-bar rounded-2xl overflow-hidden shadow-lg backdrop-blur-md bg-gradient-to-r from-rose-pastel-100/95 to-rose-pastel-200/95";
+      ? "cx-mp-bar mt-2 rounded-2xl overflow-hidden shadow-lg bg-[rgb(var(--surface-tint-rgb))]"
+      : "cx-mp-bar rounded-2xl overflow-hidden shadow-lg bg-[rgb(var(--surface-tint-rgb))]";
 
     node.innerHTML =
       '<div class="' +

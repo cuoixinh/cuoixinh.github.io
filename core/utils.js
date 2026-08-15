@@ -935,24 +935,15 @@ function closeTimePicker() {
     return w.charAt(0).toUpperCase() + w.slice(1);
   }).join(" ");
 
-  function _generateUUID() {
-    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
-      var r = (Math.random() * 16) | 0;
-      return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
-    });
-  }
-
+  // Tạo nháp — hoặc hỏi trước nếu khách còn thiệp làm dở. Dùng chung với nút
+  // "Dùng ngay" ở trang chủ qua core/helpers/draft-start.js; trang thiệp phải
+  // nạp file đó, thiếu là nút này không làm gì.
   function _chooseTheme() {
-    var uuid = _generateUUID();
-    setCache(buildCacheKey("draft", uuid), {
-      theme: themeName,
-      is_published: false,
-      _localOnly: true,
-    });
-    sessionStorage.setItem("draft_theme", themeName);
-    sessionStorage.setItem("draft_template_name", themeDisplay);
-    sessionStorage.setItem("show_tour", "1");
-    window.location.href = "/invitation-setup/?id=" + uuid;
+    if (typeof cxStartDraft !== "function") {
+      console.error("Thiếu core/helpers/draft-start.js");
+      return;
+    }
+    cxStartDraft(themeName, themeDisplay);
   }
 
   // Nút tròn nổi ở góc dưới phải; bấm thì bung ra một cụm nút xếp dọc phía

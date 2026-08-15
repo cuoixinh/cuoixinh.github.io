@@ -41,7 +41,11 @@ function renderTemplateCards() {
             </span>
             <p class="text-white font-playfair font-semibold text-base leading-snug truncate drop-shadow-sm">${t.name}</p>
             <p class="text-white/85 text-xs mt-0.5 line-clamp-2 leading-relaxed">${t.description || ""}</p>
-            <div class="mt-3 flex gap-2" style="pointer-events:auto;">
+            <!-- flex-wrap + nút cỡ sm ở điện thoại: bề ngang thẻ suy ra từ CHIỀU CAO
+                 khung (sizeCarousel) nên màn thấp là thẻ hẹp lại — hai nút
+                 whitespace-nowrap cỡ md không lọt và thò ra ngoài mép thẻ. Hẹp quá
+                 thì cho xuống dòng chứ không tràn. -->
+            <div class="mt-3 flex flex-wrap gap-2" style="pointer-events:auto;">
               <!-- variant="outline" là BẮT BUỘC, không phải cho đẹp: variant mặc
                    định (fill) kèm class text-white, mà landing có luật ép
                    text-white thành trắng kèm !important (xem tailwind-src.css,
@@ -49,13 +53,13 @@ function renderTemplateCards() {
                    không nâu được.
                    Nền TRẮNG ĐẶC: nút đè lên ảnh cưới, để trong mờ thì ảnh xuyên
                    qua làm chữ chìm và mỗi thẻ ra một sắc nền khác. -->
-              <x-button variant="outline" onclick="event.stopPropagation(); openPreview('${t.id}')" style="background:rgb(var(--white-rgb));color:rgb(var(--text-body-rgb));border:1px solid rgb(var(--brand-primary-rgb)/0.45);box-shadow:0 4px 12px rgb(var(--scrim-rgb)/0.18);" class="flex-1">
+              <x-button size="sm" variant="outline" onclick="event.stopPropagation(); openPreview('${t.id}')" style="background:rgb(var(--white-rgb));color:rgb(var(--text-body-rgb));border:1px solid rgb(var(--brand-primary-rgb)/0.45);box-shadow:0 4px 12px rgb(var(--scrim-rgb)/0.18);" class="flex-1 sm:h-10 sm:px-5 sm:text-sm">
                 <i class="fas fa-eye text-[11px]"></i>Xem demo
               </x-button>
               <!-- Cùng màu với nút "Tạo ngay" ở thanh xem trước mẫu
                    (core/utils.js): hai chỗ này là CÙNG một hành động — tạo bản
                    nháp từ mẫu đang xem. -->
-              <x-button onclick="event.stopPropagation(); createDraft('${t.id}')" style="pointer-events:auto;background:linear-gradient(135deg,rgb(var(--gift-btn-from-rgb)),rgb(var(--gift-btn-to-rgb)));box-shadow:0 4px 12px rgb(var(--gift-btn-to-rgb)/0.4);" class="flex-1">
+              <x-button size="sm" onclick="event.stopPropagation(); createDraft('${t.id}')" style="pointer-events:auto;background:linear-gradient(135deg,rgb(var(--gift-btn-from-rgb)),rgb(var(--gift-btn-to-rgb)));box-shadow:0 4px 12px rgb(var(--gift-btn-to-rgb)/0.4);" class="flex-1 sm:h-10 sm:px-5 sm:text-sm">
                 <i class="fas fa-file-circle-plus text-[11px]"></i>Dùng ngay
               </x-button>
             </div>

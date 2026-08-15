@@ -233,6 +233,10 @@ function _setDirty(dirty, tab) {
   _isDirty = dirty;
   if (dirty) {
     if (tab) _dirtyTabs.add(tab);
+    // Có thay đổi thật → form không còn là dữ liệu mẫu nguyên bản nữa, đổi mẫu từ
+    // giờ không được nạp đè lên. Riêng chính việc đổi mẫu thì _applyThemeChange
+    // đọc cờ TRƯỚC rồi bật lại sau khi nạp xong.
+    _demoFilled = false;
   } else {
     _dirtyTabs.clear();
     _refreshPreviewQR();

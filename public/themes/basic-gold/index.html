@@ -495,24 +495,17 @@
                   id="rsvp-custom-message"
                   class="hidden font-cormorant italic text-[14px] text-stone-custom-500 leading-relaxed"
                 ></div>
-                <div class="grid grid-cols-2 gap-4">
-                  <x-button variant="bare" onclick="confirmAttend(true)" id="btn-attend" class="flex-col gap-2 py-4 border border-rose-pastel-100 bg-white/50 active:scale-95 transition-all duration-200">
-                    <i
-                      class="fas fa-check-circle text-rose-pastel-300 text-2xl"
-                    ></i>
-                    <span
-                      class="font-cormorant italic text-[16px] text-stone-custom-500"
-                      >Tham dự</span
-                    >
+                <!-- Hai nút nhỏ nằm cùng một hàng, icon và chữ trên một dòng —
+                     cùng lối với romantic-gold. Icon dùng class CHỈ đổi màu:
+                     class đặt font-family sẽ đè font của Font Awesome → ô vuông. -->
+                <div class="flex items-center justify-center gap-3">
+                  <x-button variant="bare" onclick="confirmAttend(true)" id="btn-attend" class="gap-2 px-5 py-2.5 border border-rose-pastel-100 bg-white/50 font-cormorant italic text-[14px] text-stone-custom-500 active:scale-95 transition-all duration-200">
+                    <i class="fas fa-check text-rose-pastel-300 text-[11px]"></i>
+                    Tham dự
                   </x-button>
-                  <x-button variant="bare" onclick="confirmAttend(false)" id="btn-decline" class="flex-col gap-2 py-4 border border-rose-pastel-100 bg-white/50 active:scale-95 transition-all duration-200">
-                    <i
-                      class="fas fa-times-circle text-stone-custom-400 text-2xl"
-                    ></i>
-                    <span
-                      class="font-cormorant italic text-[16px] text-stone-custom-500"
-                      >Không tham dự</span
-                    >
+                  <x-button variant="bare" onclick="confirmAttend(false)" id="btn-decline" class="gap-2 px-5 py-2.5 border border-rose-pastel-100 bg-white/50 font-cormorant italic text-[14px] text-stone-custom-500 active:scale-95 transition-all duration-200">
+                    <i class="fas fa-times text-stone-custom-400 text-[11px]"></i>
+                    Không tham dự
                   </x-button>
                 </div>
                 <div
@@ -859,6 +852,7 @@
     <script src="../../../core/supabase.js"></script>
 
     <!-- Utils -->
+    <script src="../../../core/helpers/draft-start.js"></script>
     <script src="../../../core/utils.js"></script>
 
     <!-- Helper files -->

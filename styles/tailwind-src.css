@@ -700,10 +700,10 @@ html.cx-landing {
    vì thế phải khai riêng cho từng nửa (xem hai luật dưới). */
 .hero-cta-split {
   @apply relative inline-flex w-full items-stretch;
-  max-width: 320px;
-  border-radius: 16px;
+  max-width: 264px;
+  border-radius: 14px;
   background: rgb(var(--action-primary-rgb));
-  box-shadow: 0 12px 28px rgb(var(--action-primary-rgb) / 0.3);
+  box-shadow: 0 8px 20px rgb(var(--action-primary-rgb) / 0.28);
   transition: transform 0.2s ease;
 }
 .hero-cta-split:hover {
@@ -712,16 +712,16 @@ html.cx-landing {
 
 .hero-invite-cta {
   @apply inline-flex flex-1 items-center justify-center font-semibold text-white transition-colors;
-  padding: 16px 28px;
-  font-size: 16px;
-  border-radius: 16px 0 0 16px;
+  padding: 11px 20px;
+  font-size: 14px;
+  border-radius: 14px 0 0 14px;
   background: transparent;
 }
 .hero-cta-plus {
   @apply shrink-0;
-  width: 20px;
-  height: 20px;
-  margin-right: 10px;
+  width: 16px;
+  height: 16px;
+  margin-right: 8px;
 }
 
 .hero-invite-cta:hover {
@@ -733,8 +733,8 @@ html.cx-landing {
 
 .hero-cta-caret {
   @apply inline-flex shrink-0 cursor-pointer items-center justify-center border-none text-white transition-colors;
-  width: 52px;
-  border-radius: 0 16px 16px 0;
+  width: 40px;
+  border-radius: 0 14px 14px 0;
   background: transparent;
   border-left: 1px solid rgb(var(--white-rgb) / 0.28);
 }
@@ -743,8 +743,8 @@ html.cx-landing {
   background: rgb(var(--action-primary-hover-rgb));
 }
 .hero-cta-caret svg {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   transition: transform 0.2s ease;
 }
 .hero-cta-caret.is-open svg {
@@ -772,12 +772,12 @@ html.cx-landing {
 
 /* Đuôi nhọn chỉ xuống nút mũi tên đã mở nó — cùng lối vẽ với popover "Tùy chọn"
    ở navbar trang thiết lập (.cx-nav-pop): một ô vuông xoay 45°, chỉ để lại hai
-   cạnh dưới-phải nên phần giáp thẻ liền mạch. Nút mũi tên rộng 52px → tâm cách
-   mép phải 26px, trừ nửa ô 6px. */
+   cạnh dưới-phải nên phần giáp thẻ liền mạch. Nút mũi tên rộng 40px → tâm cách
+   mép phải 20px, trừ nửa ô 6px. */
 .hero-cta-menu::after {
   content: "";
   position: absolute;
-  right: 20px;
+  right: 14px;
   bottom: -7px;
   width: 12px;
   height: 12px;
@@ -973,8 +973,8 @@ html.cx-landing {
     padding-top: 20px;
   }
   .hero-invite-cta {
-    padding: 13px 32px;
-    font-size: 15px;
+    padding: 10px 22px;
+    font-size: 14px;
   }
   .hero-invite-props {
     margin-top: 18px;
@@ -1241,13 +1241,13 @@ html.cx-landing {
   display: flex;
 }
 
-/* Nền hồng nhạt trùng tông với gradient của #hero, không viền → ở đầu trang navbar
-   liền một khối với hero, cuộn xuống thì vẫn đủ đặc để đọc chữ. Bảng menu mobile
-   dùng chung màu này (xem #mobileMenu) cho khỏi lộ vệt ghép. */
+/* Navbar là THẺ NỔI bo góc (#main-nav-card) trên nền trong suốt, cùng kiểu với
+   navbar trang thiết lập — vỏ #main-nav chỉ giữ lề nên không được trả nền về cho
+   nó, nếu không mất luôn khoảng hở làm nên hình dạng thẻ. Bảng menu mobile là
+   một thẻ y hệt thả ngay dưới. */
 
-#main-nav,
 #mobileMenu {
-  background: rgb(var(--surface-tint-rgb));
+  background: rgb(var(--white-rgb));
 }
 #main-nav {
   transition: transform 0.3s ease;

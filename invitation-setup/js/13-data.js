@@ -70,13 +70,15 @@ async function loadData() {
     _isLocalDraft = true;
     if (!localData.theme)
       localData.theme = sessionStorage.getItem("draft_theme") || "basic-gold";
-    fillForm(localData);
+    fillForm(await _withDemoFill(localData));
     _showContent();
     await _idbRestoreAll();
+    _cxCommitDemoFilled();
     return;
   }
 
-  // Có thể đã có trong DB → thử fetch
+  // Có thể đã có trong DB → thử fetch. Có bản ghi thì lấy thẳng, KHÔNG đụng tới
+  // dữ liệu mẫu: thiệp đã vào DB nghĩa là khách đã làm việc trên nó.
   try {
     const data = await weddingBL.getWeddingById(WEDDING_ID);
     _isLocalDraft = false;
@@ -89,10 +91,205 @@ async function loadData() {
     // Không có trong DB và không có localStorage → draft hoàn toàn mới
     _isLocalDraft = true;
     WEDDING_THEME = sessionStorage.getItem("draft_theme") || "basic-gold";
-    fillForm({ theme: WEDDING_THEME, is_published: false });
+    fillForm(
+      await _withDemoFill({ theme: WEDDING_THEME, is_published: false }),
+    );
     _showContent();
     await _idbRestoreAll();
+    _cxCommitDemoFilled();
   }
+}
+
+// Chốt cờ "form đang là dữ liệu mẫu" sau khi mọi thứ đã lắng. Phải hoãn một nhịp:
+// fillForm() và _idbRestoreAll() còn kích _setDirty(true) — bật cờ sớm là bị chính
+// chúng hạ xuống, rồi đổi mẫu tưởng khách đã sửa nên không nạp lại gì.
+function _cxCommitDemoFilled() {
+  if (!_demoPending) return;
+  _demoPending = false;
+  setTimeout(() => {
+    _demoFilled = true;
+  }, 0);
+}
+
+// ============= FILL SẴN TỪ THIỆP DEMO =============
+//
+// Thiệp còn trắng (chưa có gì trong DB lẫn bản nháp) thì mượn phần KHÔNG mang
+// tính cá nhân của thiệp demo cho khách có cái để sửa. Chỉ chạy ở đây, chỉ đổ
+// vào FORM — không ghi thêm gì xuống localStorage; khách bấm Lưu thì nó theo
+// luồng lưu bình thường như mọi ô khác.
+//
+// DANH SÁCH TRẮNG chứ không phải danh sách đen: thêm cột vào bảng `weddings` sau
+// này sẽ KHÔNG tự lọt sang thiệp khách — muốn chép thêm phải khai ở đây.
+// Cố ý bỏ ngoài danh sách (là của cặp đôi demo, không phải của khách): tên +
+// cha mẹ, địa chỉ, mọi địa điểm và bản đồ, mọi ngày & giờ lễ/tiệc, tài khoản
+// ngân hàng, toàn bộ ảnh, và chuyện tình.
+// Ba khoá đầu data.json CHƯA khai nên hiện không lấy được gì; để sẵn đây, hôm nào
+// bộ dữ liệu mẫu bên admin có thì tự chảy sang, không phải sửa code. Riêng
+// theme_setting thiếu cũng chẳng sao: rỗng nghĩa là "dùng mặc định của mẫu", vốn
+// đã đúng bằng dáng bản demo.
+const DEMO_FILL_FIELDS = [
+  "theme_setting",
+  "share_message_template",
+  "ceremony_display_order",
+  // Câu chữ viết cho mọi đám cưới, không nhắc tên ai
+  "story_quote",
+  "rsvp_message",
+  "footer_text",
+  "ceremony_name",
+  "music_url",
+  // Mẫu bật/tắt mục nào thì thiệp mới ra đúng dáng đó
+  "rsvp_enabled",
+  "vu_quy_enabled",
+  "enable_family",
+  "enable_party",
+  "enable_photos",
+  "enable_timeline",
+  "enable_love_story",
+  "enable_music",
+  "enable_gift",
+  "enable_footer",
+];
+
+// Khoá KHÔNG tính là "khách đã nhập": định danh + trạng thái do hệ thống đặt.
+// Cờ boolean không cần kể tên ở đây — luật bên dưới đã bỏ qua cả họ.
+const _BLANK_IGNORE = new Set([
+  "id",
+  "theme",
+  "slug",
+  "user_id",
+  "created_at",
+  "expires_at",
+  "payment_status",
+]);
+
+function _isBlankWedding(data) {
+  if (!data) return true;
+  return !Object.keys(data).some((k) => {
+    if (_BLANK_IGNORE.has(k)) return false;
+    const v = data[k];
+    if (v === null || v === undefined || v === "") return false;
+    // Cờ bật/tắt (enable_*, rsvp_enabled, vu_quy_enabled…) đều có mặc định sẵn nên
+    // KHÔNG chứng minh được khách đã làm gì — chỉ nội dung mới tính. Phải bắt cả
+    // dạng CHUỖI: chúng là <input type="hidden" value="true"> trong #wedding-form,
+    // nên _doAutoSave lưu xuống nháp là "true"/"false" chứ không phải boolean —
+    // sót chỗ này thì mọi bản nháp đã autosave một lần đều bị coi là có nội dung.
+    if (typeof v === "boolean" || v === "true" || v === "false") return false;
+    if (Array.isArray(v)) return v.length > 0;
+    if (typeof v === "object") return Object.keys(v).length > 0;
+    return true;
+  });
+}
+
+// Đọc bộ dữ liệu mẫu của MỘT mẫu thiệp rồi lọc theo danh sách trắng. Trả null khi
+// không có gì để lấy. Hỏng ở bất kỳ khâu nào cũng chỉ mất phần fill sẵn — KHÔNG
+// được chặn đường vào trang thiết lập, nên bọc try và có hạn giờ.
+//
+// NGUỒN: assets/data-template/<theme>/data.json — cùng file mà bản xem thử của
+// theme đang đọc (public/themes/preview-data.js), do tab "Dữ liệu mẫu" bên admin
+// ghi ra. Chữ nghĩa nằm trong khoá `content`; ảnh và love_story nằm ở tầng ngoài
+// nên tự khắc không lọt vào đây.
+// Cố ý KHÔNG đi qua bảng `templates`/DB: `preview_url` chỉ là
+// "/public/themes/<theme>/?preview=true", không trỏ tới bản ghi thiệp nào cả.
+async function _fetchDemoFill(theme) {
+  if (!theme) return null;
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 4000);
+  try {
+    const res = await fetch(`../assets/data-template/${theme}/data.json`, {
+      signal: ctrl.signal,
+    });
+    if (!res.ok) return null;
+    const demo = (await res.json())?.content;
+    if (!demo) return null;
+
+    const fill = {};
+    for (const k of DEMO_FILL_FIELDS) {
+      const v = demo?.[k];
+      if (v !== null && v !== undefined && v !== "") fill[k] = v;
+    }
+
+    // Lịch trình: chỉ giữ giờ + tên hoạt động + nhóm. Lọc từng khoá thay vì bê
+    // nguyên object để dữ liệu lạ trong JSONB không đi cùng.
+    let tl = demo?.timeline;
+    if (typeof tl === "string") {
+      try {
+        tl = JSON.parse(tl);
+      } catch {
+        tl = null;
+      }
+    }
+    if (Array.isArray(tl) && tl.length) {
+      fill.timeline = tl.map((it) => ({
+        time: it.time || "",
+        title: it.title || "",
+        type: it.type || "ceremony",
+      }));
+    }
+
+    return Object.keys(fill).length ? fill : null;
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// Lúc NẠP TRANG: thiệp còn trắng thì trộn dữ liệu mẫu vào trước khi fillForm.
+async function _withDemoFill(data) {
+  if (!_isBlankWedding(data)) return data;
+  const fill = await _fetchDemoFill(data.theme);
+  if (!fill) return data;
+  _demoPending = true;
+
+  // data đứng SAU (theme + các cờ của chính thiệp này luôn thắng dữ liệu mẫu),
+  // nhưng phải BỎ các ô rỗng của nó trước: _doAutoSave ghi null cho mọi khoá
+  // `*_url`/`*_lunar` còn trống, mà `null` đứng sau sẽ xoá đúng ô vừa mượn được
+  // từ mẫu (rõ nhất là music_url). Ô rỗng không mang thông tin gì để mà thắng.
+  const kept = {};
+  for (const [k, v] of Object.entries(data)) {
+    if (v !== null && v !== undefined && v !== "") kept[k] = v;
+  }
+  return { ...fill, ...kept };
+}
+
+// Ô chữ do mẫu điền: đổi sang mẫu mới mà mẫu đó không khai trường nào thì phải
+// XOÁ, không để câu của mẫu cũ nằm lại. Cố ý KHÔNG có ở đây:
+//   theme_setting  thiếu thì giữ giao diện đang có, còn hơn trả về trắng
+//   enable_*       thiếu thì _initVisToggles giữ nguyên trạng thái đang hiện
+//   music_url      giá trị thật nằm ở #music-url-input (xem _doAutoSave), gán ""
+//                  qua fillForm không xoá được nó → đừng hứa hão, giữ bài cũ
+const DEMO_TEXT_FIELDS = [
+  "story_quote",
+  "rsvp_message",
+  "footer_text",
+  "share_message_template",
+  "ceremony_name",
+];
+
+// Đổi mẫu khi khách CHƯA sửa gì → nạp lại dữ liệu mẫu của mẫu mới. Cờ _demoFilled
+// do _setDirty(true) hạ xuống, nên chỉ chạy khi form vẫn đúng là dữ liệu mẫu.
+async function _refillDemoForTheme(theme) {
+  showLoading(true, "Đang lấy nội dung mẫu...");
+  const fill = await _fetchDemoFill(theme);
+  showLoading(false);
+  if (!fill) return;
+
+  const patch = { ...fill };
+  for (const k of DEMO_TEXT_FIELDS) {
+    if (patch[k] === undefined) patch[k] = "";
+  }
+  if (patch.timeline === undefined) patch.timeline = [];
+  // fillForm() kết thúc bằng `IS_PUBLISHED = !!data.is_published` — patch không
+  // khai thì cờ bị hạ xuống false. Hôm nay đường này không chạm thiệp đã xuất bản
+  // (thiệp đó lấy từ DB nên không bao giờ bật _demoFilled), nhưng để trống là gài
+  // mìn cho lần sau ai đó gọi lại hàm này.
+  patch.is_published = IS_PUBLISHED;
+
+  _demoPending = true;
+  fillForm(patch);
+  // Chốt lại cờ để lần đổi mẫu KẾ TIẾP vẫn được nạp — fillForm() vừa hạ nó xuống
+  // qua _setDirty(true). Giữ _isDirty = true vì đổi mẫu THẬT SỰ là chưa lưu.
+  _cxCommitDemoFilled();
 }
 
 function fillForm(data) {
@@ -118,10 +315,15 @@ function fillForm(data) {
     if (ts && typeof ts === "object") _themeSetting = ts;
   }
 
-  // Save slug + theme for generating links
+  // Mẫu thiệp phải gán NGOÀI nhánh `data.slug`: nháp vừa tạo từ nút "Dùng ngay"
+  // chưa có slug, để trong đó thì WEDDING_THEME kẹt ở mặc định "basic-gold" —
+  // bản xem trước, popup đổi mẫu, lúc lưu và trang thanh toán đều đi theo mẫu sai
+  // trong khi tên mẫu ở header (đọc sessionStorage) vẫn đúng nên rất khó nhận ra.
+  if (data.theme) WEDDING_THEME = data.theme;
+
+  // Save slug for generating links
   if (data.slug) {
     WEDDING_SLUG = data.slug;
-    if (data.theme) WEDDING_THEME = data.theme;
     // Điền slug vào input
     const slugInput = document.getElementById("slug-input");
     if (slugInput) slugInput.value = data.slug;

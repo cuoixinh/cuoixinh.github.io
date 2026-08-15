@@ -6,7 +6,10 @@ const TEMPLATES_API_URL = CONFIG.cloudflare.templatesCache
 
 let templates = [];
 let carouselActiveIndex = 0;
-let _cardW = 220; // chiều rộng card active hiện tại (px), cập nhật bởi sizeCarousel()
+// Khổ card active hiện tại (px) — sizeCarousel() cập nhật, applyCardTransform()
+// đọc _cardW để đặt card kề bên; _cardH chỉ để so sánh xem có gì đổi không.
+let _cardW = 220;
+let _cardH = 420;
 
 async function fetchTemplatesViaEdge() {
   const res = await fetch(`${CONFIG.supabase.edgeUrl}?resource=public-templates`, {

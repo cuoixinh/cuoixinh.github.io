@@ -46,10 +46,13 @@ function closeMobileMenu() {
   _setMobileMenuOpen(false);
 }
 
+// Nút chung ("Tạo thiệp ngay" ở hero, các mục tạo bằng AI/giọng nói): khách chưa
+// chọn mẫu nào, ta lấy đại mẫu đầu tiên. `chosen: false` để hộp thoại "đang có
+// thiệp viết dở" không bịa ra chuyện khách muốn chuyển sang mẫu đó.
 function goCreateDraft(e) {
   e.preventDefault();
   const first = templates.find((t) => t.status === "active");
-  if (first) createDraft(first.id);
+  if (first) createDraft(first.id, { chosen: false });
 }
 
 // Vào trang thiết lập rồi mở luôn bảng "Tạo nội dung bằng AI". Cờ đặt ở
