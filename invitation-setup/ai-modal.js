@@ -237,11 +237,12 @@ function openAiModal() {
   _setAiTone(_aiTone);
   if (typeof lucide !== "undefined") lucide.createIcons();
 
-  // Vào từ "Tạo với giọng nói" ở trang chủ → mở thẳng hộp thoại nói của ô
-  // thông tin cặp đôi. Cờ chỉ dùng một lần; máy không hỗ trợ nhận giọng nói thì
-  // bỏ qua, người dùng vẫn gõ tay được.
-  if (sessionStorage.getItem("open_ai_voice")) {
-    sessionStorage.removeItem("open_ai_voice");
+  // Vào từ "Tạo với giọng nói" ở trang chủ → mở thẳng hộp thoại nói của ô thông
+  // tin cặp đôi. Ý định dùng MỘT LẦN (xoá ngay) để lần sau khách tự mở bảng AI
+  // không bị hộp thoại nói bật lên theo. Máy không hỗ trợ nhận giọng nói thì bỏ
+  // qua, người dùng vẫn gõ tay được.
+  if (_aiOpenIntent === "voice") {
+    _aiOpenIntent = null;
     const target = document.getElementById("ai-info");
     if (target && window.speechSupported?.()) {
       setTimeout(
@@ -279,11 +280,26 @@ function closeAiModal() {
   _aiSheet = null;
 }
 
-// Vào từ nhãn "Tạo thiệp bằng AI" ở trang chủ (goCreateWithAi) → mở sẵn bảng
-// AI. Phải xoá cờ show_tour ở TOP-LEVEL, tức trước khi tour-setup.js chạy —
-// file đó đọc cờ ngay lúc nạp, xoá muộn hơn thì tour vẫn chạy đè lên bảng AI.
-if (sessionStorage.getItem("open_ai_modal")) {
-  sessionStorage.removeItem("open_ai_modal");
+// Vào từ "Tạo thiệp bằng AI" / "Tạo với giọng nói" ở trang chủ (js/auth-nav.js):
+// ý định nằm ở ?open=ai|voice. Đọc MỘT LẦN ở top-level rồi XOÁ khỏi thanh địa chỉ
+// ngay — F5, bookmark hay gửi link cho người khác đều không được mở lại bảng AI.
+// Cũng phải ở top-level vì tour-setup.js đọc show_tour ngay lúc nạp; xoá muộn hơn
+// là tour chạy đè lên bảng AI.
+let _aiOpenIntent = (function _readAiOpenIntent() {
+  const p = new URLSearchParams(location.search);
+  const v = p.get("open");
+  if (!v) return null;
+  p.delete("open");
+  const q = p.toString();
+  history.replaceState(
+    null,
+    "",
+    location.pathname + (q ? "?" + q : "") + location.hash,
+  );
+  return v;
+})();
+
+if (_aiOpenIntent === "ai" || _aiOpenIntent === "voice") {
   sessionStorage.removeItem("show_tour");
   window.__cxOnReady(openAiModal);
 }

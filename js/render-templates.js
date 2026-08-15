@@ -60,7 +60,11 @@ function renderTemplateCards() {
                    (core/utils.js): hai chỗ này là CÙNG một hành động — tạo bản
                    nháp từ mẫu đang xem. -->
               <x-button size="sm" onclick="event.stopPropagation(); createDraft('${t.id}')" style="pointer-events:auto;background:linear-gradient(135deg,rgb(var(--gift-btn-from-rgb)),rgb(var(--gift-btn-to-rgb)));box-shadow:0 4px 12px rgb(var(--gift-btn-to-rgb)/0.4);" class="flex-1 sm:h-10 sm:px-5 sm:text-sm">
-                <i class="fas fa-file-circle-plus text-[11px]"></i>Dùng ngay
+                <!-- Cùng icon với nút "Dùng mẫu này" ở navbar bản xem thử
+                     (PNAV_ICONS.note trong core/utils.js) — hai nút là CÙNG một
+                     hành động, đổi hình một bên thì phải đổi cả bên kia. Nhúng
+                     thẳng SVG: trang chủ không nạp lucide. -->
+                <svg class="shrink-0" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11l5-5V5a2 2 0 0 0-2-2z"/><path d="M15 21v-4a2 2 0 0 1 2-2h4"/><path d="m8 11 2.4 2.4L15 8.8"/></svg>Dùng ngay
               </x-button>
             </div>
           </div>

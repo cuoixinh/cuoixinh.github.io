@@ -39,11 +39,27 @@
     return null;
   }
 
-  function _go(id) {
-    window.location.href = "/invitation-setup/?id=" + id;
+  function _esc(s) {
+    return String(s).replace(/[&<>"]/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
+    });
   }
 
-  function _create(theme, displayName) {
+  // params: ý định mang sang trang thiết lập (vd {open:"voice"}), gắn vào URL chứ
+  // KHÔNG để sessionStorage — cờ ghi sẵn rồi khách huỷ ở hộp thoại là nó nằm lại,
+  // lần vào trang thiết lập sau (đường nào cũng được) tự bật bảng AI không rõ lý
+  // do. Đi theo URL thì không điều hướng = không có gì được ghi.
+  function _go(id, params) {
+    var q = new URLSearchParams({ id: id });
+    if (params) {
+      Object.keys(params).forEach(function (k) {
+        if (params[k] != null && params[k] !== "") q.set(k, params[k]);
+      });
+    }
+    window.location.href = "/invitation-setup/?" + q.toString();
+  }
+
+  function _create(theme, displayName, params) {
     var id = _uuid();
     setCache(buildCacheKey("draft", id), {
       theme: theme,
@@ -53,81 +69,57 @@
     sessionStorage.setItem("draft_theme", theme);
     sessionStorage.setItem("draft_template_name", displayName || _titleOf(theme));
     sessionStorage.setItem("show_tour", "1");
-    _go(id);
+    _go(id, params);
   }
 
   // chosen = khách vừa chỉ đích danh một mẫu ("Dùng ngay" ở thẻ mẫu, "Dùng mẫu
   // này" ở bản xem thử). false = vào từ nút chung như "Tạo thiệp ngay" ở hero,
   // lúc đó mẫu chỉ là mặc định do code chọn hộ → câu hỏi TUYỆT ĐỐI không được
   // nhắc tên mẫu sắp chuyển sang, vì khách có đòi chuyển đâu.
-  function _askThenStart(existing, theme, displayName, chosen) {
+  //
+  // Hỏi bằng base dialog dùng chung (showConfirm ở core/helpers/alert.js) chứ
+  // không tự dựng popup: nó đã lo tiêu đề canh trái + vạch ngăn + chân thẻ có
+  // nền, và tự vẽ bằng biến --cx nên chạy được cả ở trang thiệp (chỉ có
+  // themes.css). Trang nào gọi cxStartDraft cũng phải nạp alert.js.
+  function _askThenStart(existing, theme, displayName, chosen, params) {
     var oldTheme = existing.data.theme;
     var oldName = _titleOf(oldTheme);
     var newName = displayName || _titleOf(theme);
     var sameTheme = oldTheme === theme;
 
-    var overlay = document.createElement("div");
-    overlay.id = "cx-draft-conflict";
-    overlay.style.cssText =
-      "position:fixed;inset:0;z-index:99999;display:flex;align-items:center;" +
-      "justify-content:center;padding:16px;background:rgba(0,0,0,.45)";
+    // Tên mẫu in đậm → phải bật html:true ở showConfirm, nên tên phải tự escape:
+    // nó lấy từ danh sách mẫu / bản nháp, không phải hằng số trong code.
+    var oldB = "<b>" + _esc(oldName) + "</b>";
+    var newB = "<b>" + _esc(newName) + "</b>";
 
-    overlay.innerHTML =
-      '<div style="width:100%;max-width:380px;background:#fff;border-radius:16px;' +
-      'padding:24px;box-shadow:0 20px 50px rgba(0,0,0,.25);font-family:inherit;' +
-      'box-sizing:border-box">' +
-      '<h3 style="margin:0 0 6px;font-size:16px;font-weight:600;color:#1f2937;' +
-      'text-align:center">Bạn đang có thiệp chưa hoàn thành</h3>' +
-      '<p style="margin:0 0 18px;font-size:13px;line-height:1.5;color:#6b7280;' +
-      'text-align:center">' +
-      (!chosen
-        ? "Bạn có một thiệp mẫu <b style=\"color:#374151\">" +
-          oldName +
-          "</b> đang viết dở. Tiếp tục thiệp đó hay bắt đầu thiệp mới?"
-        : sameTheme
-          ? "Mẫu <b style=\"color:#374151\">" +
-            oldName +
-            "</b> đang làm dở. Bạn muốn tiếp tục hay làm lại từ đầu?"
-          : "Bạn đang làm dở mẫu <b style=\"color:#374151\">" +
-            oldName +
-            "</b>. Tiếp tục mẫu đó hay chuyển sang <b style=\"color:#374151\">" +
-            newName +
-            "</b>?") +
-      "</p>" +
-      '<div style="display:flex;justify-content:flex-end;gap:8px">' +
-      '<x-button variant="bare" id="cx-dc-new" style="height:36px;padding:0 16px;' +
-      "font-size:11px;font-weight:500;border:1px solid #e5e7eb;background:#fff;" +
-      'color:#374151">' +
-      (!chosen ? "Thiệp mới" : sameTheme ? "Làm lại" : "Dùng " + newName) +
-      "</x-button>" +
-      '<x-button variant="bare" id="cx-dc-continue" style="height:36px;' +
-      "padding:0 16px;font-size:11px;font-weight:500;border:none;color:#fff;" +
-      'background:rgb(var(--action-primary-rgb,225 29 72))">' +
-      (chosen ? "Tiếp tục mẫu cũ" : "Tiếp tục") +
-      "</x-button>" +
-      "</div></div>";
+    var message = !chosen
+      ? "Bạn có một thiệp mẫu " + oldB + " đang viết dở."
+      : sameTheme
+        ? "Mẫu " + oldB + " đang được chỉnh dở."
+        : "Bạn đang làm dở mẫu " + oldB + ".";
+    // MỘT xuống dòng thôi: #cx-alert-body để `white-space: pre-line`, "\n\n" sẽ ra
+    // hẳn một dòng trống giữa hai câu.
+    message +=
+      "\nTiếp tục thiệp đó, hay bắt đầu " +
+      (chosen && !sameTheme ? "với mẫu " + newB : "một thiệp mới") +
+      "?";
 
-    document.body.appendChild(overlay);
-
-    // Bấm ra ngoài = đóng, không chọn gì. Đây là ngã ba chỉ khách quyết được,
-    // đừng tự chọn hộ bằng cách coi việc đóng là "tạo mới".
-    overlay.addEventListener("click", function (e) {
-      if (e.target === overlay) overlay.remove();
-    });
-
-    // <x-button> tự thay mình bằng <button> thật lúc nạp → bắt sự kiện ở overlay
-    // thay vì gắn thẳng vào thẻ, khỏi phụ thuộc thời điểm thay thế.
-    overlay.addEventListener("click", function (e) {
-      var t = e.target.closest && e.target.closest("#cx-dc-continue, #cx-dc-new");
-      if (!t) return;
-      overlay.remove();
-      if (t.id === "cx-dc-continue") {
+    showConfirm("Thiệp đang viết dở", message, {
+      type: "info",
+      icon: "file-pen",
+      html: true,
+      confirmText: "Tiếp tục",
+      cancelText: chosen && !sameTheme ? "Dùng " + newName : "Thiệp mới",
+    }).then(function (r) {
+      // null = bấm ra ngoài / Esc → đóng suông, không đi đâu cả. Đây là ngã ba chỉ
+      // khách quyết được, đừng coi việc đóng là đã chọn "thiệp mới".
+      if (r === null) return;
+      if (r) {
         // Mẫu cũ: KHÔNG ghi đè draft_theme — bản nháp tự mang theme của nó.
         sessionStorage.setItem("draft_template_name", oldName);
-        _go(existing.id);
-      } else {
-        _create(theme, displayName);
+        return _go(existing.id, params);
       }
+      _create(theme, displayName, params);
     });
   }
 
@@ -135,11 +127,14 @@
   // header trang thiết lập; thiếu thì suy ra từ theme.
   // opts.chosen: khách có tự chọn mẫu này không (mặc định có). Nút chung kiểu
   // "Tạo thiệp ngay" ở hero phải truyền false — xem _askThenStart.
+  // opts.params: query gắn thêm vào URL trang thiết lập, vd { open: "voice" }.
   window.cxStartDraft = function (theme, displayName, opts) {
     if (!theme) return;
-    var chosen = !opts || opts.chosen !== false;
+    var o = opts || {};
+    var chosen = o.chosen !== false;
     var existing = _findDraft();
-    if (existing) return _askThenStart(existing, theme, displayName, chosen);
-    _create(theme, displayName);
+    if (existing)
+      return _askThenStart(existing, theme, displayName, chosen, o.params);
+    _create(theme, displayName, o.params);
   };
 })();

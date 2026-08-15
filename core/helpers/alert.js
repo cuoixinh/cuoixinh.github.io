@@ -19,6 +19,8 @@ const _LUCIDE_PATHS = {
   copy: '<rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>',
   "folder-open":
     '<path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"/>',
+  "file-pen":
+    '<path d="M12.5 22H18a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v9.5"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M13.378 15.626a1 1 0 1 0-3.004-3.004l-5.01 5.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z"/>',
   hourglass:
     '<path d="M5 22h14"/><path d="M5 2h14"/><path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"/><path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"/>',
 };
@@ -166,9 +168,12 @@ function showToast(msg, type = "default", icon = null) {
       box-shadow: 0 20px 60px rgb(var(--scrim-rgb)/.18);
       overflow: hidden; font-family: inherit;
     }
+    /* Tiêu đề canh TRÁI, ngăn với phần đọc bằng một vạch — cùng lối với chân thẻ
+       bên dưới, để hộp thoại chia rõ ba tầng: đề mục · nội dung · chỗ bấm. */
     #cx-alert-header {
       display: flex; align-items: center; gap: 10px;
-      padding: 18px 20px 14px;
+      padding: 16px 20px;
+      border-bottom: 1px solid rgb(var(--border-subtle-rgb));
     }
     #cx-alert-icon {
       width: 36px; height: 36px; border-radius: 50%;
@@ -177,14 +182,22 @@ function showToast(msg, type = "default", icon = null) {
     }
     #cx-alert-title { font-size: 15px; font-weight: 700; color: rgb(var(--text-title-rgb)); flex: 1; }
     #cx-alert-body {
-      padding: 0 20px 18px;
+      padding: 18px 20px;
       font-size: 13px; color: rgb(var(--text-secondary-rgb)); line-height: 1.7;
       white-space: pre-line; max-height: 50vh; overflow-y: auto;
     }
-    #cx-alert-footer { padding: 0 20px 18px; display: flex; gap: 10px; }
+    /* Nền riêng + vạch ngăn: tách hẳn phần đọc khỏi phần bấm. Chạy sát mép được
+       là nhờ #cx-alert-box có overflow:hidden ôm lấy bo góc. */
+    #cx-alert-footer {
+      padding: 12px 20px; display: flex; justify-content: flex-end; gap: 8px;
+      background: rgb(var(--surface-hover-rgb));
+      border-top: 1px solid rgb(var(--border-subtle-rgb));
+    }
+    /* Chỉ còn màu + con trỏ: KHỔ do size="sm" của <x-button> quyết (h-8 px-4
+       text-xs). Đặt lại padding/font-size ở đây là đè mất khổ chuẩn, hai nút trong
+       hộp thoại sẽ khác mọi nút khác trong app. */
     .cx-dlg-btn {
-      flex: 1; cursor: pointer; padding: 10px 16px; border-radius: 999px;
-      font-size: 13px; font-weight: 600; font-family: inherit; border: none;
+      cursor: pointer; font-family: inherit; border: none;
       transition: background .15s ease, border-color .15s ease;
     }
     .cx-dlg-cancel { background: rgb(var(--white-rgb)); color: rgb(var(--text-secondary-rgb)); border: 1px solid rgb(var(--border-field-rgb)); }
@@ -205,8 +218,8 @@ function showToast(msg, type = "default", icon = null) {
       </div>
       <div id="cx-alert-body"></div>
       <div id="cx-alert-footer">
-        <x-button variant="ghost" type="button" id="cx-alert-cancel" class="cx-dlg-btn cx-dlg-cancel"></x-button>
-        <x-button variant="ghost" type="button" id="cx-alert-ok" class="cx-dlg-btn cx-dlg-ok"></x-button>
+        <x-button variant="ghost" size="sm" type="button" id="cx-alert-cancel" class="cx-dlg-btn cx-dlg-cancel"></x-button>
+        <x-button variant="ghost" size="sm" type="button" id="cx-alert-ok" class="cx-dlg-btn cx-dlg-ok"></x-button>
       </div>
     </div>`;
   document.body.appendChild(backdrop);
@@ -215,13 +228,17 @@ function showToast(msg, type = "default", icon = null) {
   // mình bằng <button> thật, và khi file này chạy lúc trang đang parse thì việc
   // thay diễn ra tận DOMContentLoaded — listener gắn trước đó nằm lại trên phần
   // tử đã bị vứt, bấm Huỷ/Xác nhận không có gì xảy ra. Backdrop thì không bị thay.
+  // BỎ QUA (bấm nền, Esc) trả `null`, còn nút Huỷ trả `false` — hai việc khác
+  // nhau: "tôi chọn phương án B" khác "tôi chưa quyết gì cả". Cả hai đều falsy
+  // nên `if (await showConfirm(...))` cũ vẫn chạy y nguyên; nơi nào cần phân biệt
+  // thì so `=== null`.
   backdrop.addEventListener("click", (e) => {
-    if (e.target === backdrop) return _settleDialog(false);
+    if (e.target === backdrop) return _settleDialog(null);
     const btn = e.target.closest("#cx-alert-ok, #cx-alert-cancel");
     if (btn) _settleDialog(btn.id === "cx-alert-ok");
   });
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && backdrop.classList.contains("visible")) _settleDialog(false);
+    if (e.key === "Escape" && backdrop.classList.contains("visible")) _settleDialog(null);
   });
 })();
 
@@ -256,7 +273,13 @@ function showDialog(opts = {}) {
   icon.style.color = c.color;
   _setLucideIcon(icon, opts.icon || c.icon, 20, c.icon);
   document.getElementById("cx-alert-title").textContent = opts.title || "";
-  document.getElementById("cx-alert-body").textContent = opts.message || "";
+
+  // Mặc định textContent: message thường ghép dữ liệu người dùng vào (tên thư mục,
+  // mã khuyến mãi, tên mẫu…) nên đổ thẳng vào innerHTML là mở cửa XSS. Nơi nào cần
+  // in đậm/xuống dòng bằng thẻ thì bật html:true và TỰ escape phần biến.
+  const body = document.getElementById("cx-alert-body");
+  if (opts.html) body.innerHTML = opts.message || "";
+  else body.textContent = opts.message || "";
 
   const okBtn = document.getElementById("cx-alert-ok");
   const cancelBtn = document.getElementById("cx-alert-cancel");
@@ -283,6 +306,7 @@ function showConfirm(title, message, opts = {}) {
     confirm: true,
     okText: opts.confirmText,
     cancelText: opts.cancelText,
+    html: opts.html,
   });
 }
 

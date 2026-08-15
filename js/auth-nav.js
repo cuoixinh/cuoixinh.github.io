@@ -49,26 +49,27 @@ function closeMobileMenu() {
 // Nút chung ("Tạo thiệp ngay" ở hero, các mục tạo bằng AI/giọng nói): khách chưa
 // chọn mẫu nào, ta lấy đại mẫu đầu tiên. `chosen: false` để hộp thoại "đang có
 // thiệp viết dở" không bịa ra chuyện khách muốn chuyển sang mẫu đó.
-function goCreateDraft(e) {
+// params đi kèm sang trang thiết lập qua URL (xem goCreateWithAi).
+function goCreateDraft(e, params) {
   e.preventDefault();
   const first = templates.find((t) => t.status === "active");
-  if (first) createDraft(first.id, { chosen: false });
+  if (first) createDraft(first.id, { chosen: false, params });
 }
 
-// Vào trang thiết lập rồi mở luôn bảng "Tạo nội dung bằng AI". Cờ đặt ở
-// sessionStorage chứ không phải query string vì đường đi có thể vòng qua hộp
-// thoại "đã có thiệp nháp" — cờ vẫn còn khi người dùng chọn xong.
-// Bên đọc: invitation-setup/ai-modal.js.
+// Vào trang thiết lập rồi mở luôn bảng "Tạo nội dung bằng AI". Ý định đi bằng
+// QUERY STRING (?open=ai) chứ không phải sessionStorage: đường đi còn vòng qua
+// hộp thoại "đang có thiệp viết dở", mà cờ ghi trước rồi khách bấm huỷ là nó nằm
+// lại — lần sau vào trang thiết lập bằng đường bất kỳ, bảng AI tự bật lên không
+// rõ lý do. Đi theo URL thì không điều hướng = không có gì được ghi.
+// Bên đọc + tự xoá khỏi thanh địa chỉ: invitation-setup/ai-modal.js.
 function goCreateWithAi(e) {
-  sessionStorage.setItem("open_ai_modal", "1");
-  goCreateDraft(e);
+  goCreateDraft(e, { open: "ai" });
 }
 
 // Như trên nhưng mở luôn hộp thoại NÓI của ô "Thông tin cặp đôi" — người dùng
 // kể bằng miệng, AI dựng nội dung thiệp từ đó.
 function goCreateWithVoice(e) {
-  sessionStorage.setItem("open_ai_voice", "1");
-  goCreateWithAi(e);
+  goCreateDraft(e, { open: "voice" });
 }
 
 function initHeroImage() {
