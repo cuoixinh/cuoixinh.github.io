@@ -54,7 +54,7 @@ function renderTemplateCards() {
                    Nền TRẮNG ĐẶC: nút đè lên ảnh cưới, để trong mờ thì ảnh xuyên
                    qua làm chữ chìm và mỗi thẻ ra một sắc nền khác. -->
               <x-button size="sm" variant="outline" onclick="event.stopPropagation(); openPreview('${t.id}')" style="background:rgb(var(--white-rgb));color:rgb(var(--text-body-rgb));border:1px solid rgb(var(--brand-primary-rgb)/0.45);box-shadow:0 4px 12px rgb(var(--scrim-rgb)/0.18);" class="flex-1 sm:h-10 sm:px-5 sm:text-sm">
-                <i class="fas fa-eye text-[11px]"></i>Xem demo
+                <i class="fas fa-eye text-[11px]"></i>Xem trước
               </x-button>
               <!-- Cùng màu với nút "Tạo ngay" ở thanh xem trước mẫu
                    (core/utils.js): hai chỗ này là CÙNG một hành động — tạo bản

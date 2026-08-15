@@ -38,89 +38,12 @@
          tailwind.config.js + styles/tailwind-src.css. Phần dùng chung
          (common.css cũ) nay đã nằm trong chính build.css. -->
     <link rel="stylesheet" href="styles/build.css" />
-
   </head>
 
-  <body class="bg-white" style="color: rgb(var(--text-body-rgb))">
-    <!-- ===== NAV ===== -->
-    <!-- Thẻ NỔI bo góc như navbar trang thiết lập (#nav-card): vỏ `fixed` trong
-         suốt chỉ giữ lề, nền trắng + viền + bóng nằm ở thẻ bên trong. Tổng cao
-         đúng 64px (pt-2 + h-14) — bằng padding-top của #hero, đổi một bên phải
-         đổi bên kia. -->
-    <nav id="main-nav" class="fixed top-0 left-0 right-0 z-50 px-3 sm:px-5 pt-2">
-      <div
-        id="main-nav-card"
-        class="max-w-6xl mx-auto px-3 sm:px-4 rounded-3xl border border-rose-100 bg-white/90 backdrop-blur-md shadow-[0_6px_20px_rgb(var(--scrim-rgb)/0.08)]"
-      >
-        <div class="flex items-center justify-between h-14">
-          <a href="/" class="shrink-0">
-            <img
-              src="assets/icons/logo.png"
-              alt="Cưới Xinh"
-              class="h-9 sm:h-10 w-auto"
-            />
-          </a>
-          <div class="hidden md:flex items-center gap-7 text-sm font-medium flex-1 ml-8">
-            <a
-              href="/theme-template/"
-              class="hover:opacity-70 transition-opacity"
-              style="color: rgb(var(--text-body-rgb))"
-              >Mẫu thiệp</a
-            >
-            <a
-              href="#inside"
-              class="hover:opacity-70 transition-opacity"
-              style="color: rgb(var(--text-body-rgb))"
-              >Tính năng</a
-            >
-            <a
-              href="#steps"
-              class="hover:opacity-70 transition-opacity"
-              style="color: rgb(var(--text-body-rgb))"
-              >Cách dùng</a
-            >
-          </div>
-          <div class="flex items-center gap-2 sm:gap-3">
-            <a
-              id="navManageBtn"
-              href="/my-invitations/"
-              class="inline-flex items-center gap-1.5 rounded-full text-xs sm:text-sm font-medium px-3 sm:px-3.5 py-1.5 sm:py-2 transition-colors hover:bg-rose-pastel-100 whitespace-nowrap"
-              style="color: rgb(var(--text-body-rgb))"
-            >
-              <svg class="w-3.5 h-3.5 opacity-80" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="7" x="3" y="3" rx="1.5"/><rect width="7" height="7" x="14" y="3" rx="1.5"/><rect width="7" height="7" x="14" y="14" rx="1.5"/><rect width="7" height="7" x="3" y="14" rx="1.5"/></svg>
-              Quản lý thiệp
-            </a>
-            <x-button size="sm" id="navLoginBtn" type="button" onclick="openLoginPopup()" style="background: rgb(var(--action-primary-rgb))" class="sm:text-sm sm:px-5 sm:py-2 hover:opacity-90">
-              Đăng nhập
-            </x-button>
-            <!-- Nền ghi thẳng inline để đè lên hover:bg-rose-50 của variant
-                 outline: nút này chỉ hiện trên mobile, mà ở đó :hover dính lại
-                 sau khi chạm → bấm xong nền hồng đọng mãi. -->
-            <x-button variant="outline" icon-only onclick="toggleMobileMenu()" aria-label="Menu" class="md:hidden" style="background: rgb(var(--white-rgb))">
-              <i id="navHamburgerIcon" class="fas fa-bars text-sm" style="color: rgb(var(--text-body-rgb))"></i>
-            </x-button>
-          </div>
-        </div>
-      </div>
-    </nav>
-
-    <!-- Mobile Menu — cùng hình dạng thẻ nổi với #main-nav-card, thả ngay dưới
-         navbar (64px cao + 8px hở). -->
-    <div
-      id="mobileMenu"
-      class="hidden fixed top-[72px] left-3 right-3 z-40 max-w-6xl mx-auto rounded-3xl border border-rose-100 shadow-[0_10px_28px_rgb(var(--scrim-rgb)/0.12)] px-4 py-2 flex-col gap-1 md:hidden"
-    >
-      <a href="/theme-template/" onclick="closeMobileMenu()" class="flex items-center gap-2 py-3 border-b border-rose-pastel-100 hover:opacity-70 transition-opacity text-sm font-medium" style="color: rgb(var(--text-body-rgb))">
-        <i class="fas fa-layer-group text-xs w-4 opacity-60"></i> Mẫu thiệp
-      </a>
-      <a href="#inside" onclick="closeMobileMenu()" class="flex items-center gap-2 py-3 border-b border-rose-pastel-100 hover:opacity-70 transition-opacity text-sm font-medium" style="color: rgb(var(--text-body-rgb))">
-        <i class="fas fa-star text-xs w-4 opacity-60"></i> Tính năng
-      </a>
-      <a href="#steps" onclick="closeMobileMenu()" class="flex items-center gap-2 py-3 hover:opacity-70 transition-opacity text-sm font-medium" style="color: rgb(var(--text-body-rgb))">
-        <i class="fas fa-list-ol text-xs w-4 opacity-60"></i> Cách dùng
-      </a>
-    </div>
-
+  <body
+    class="bg-white pb-[72px] md:pb-0"
+    style="color: rgb(var(--text-body-rgb))"
+  >
     <!-- ===== HERO ===== -->
     <!-- Cả màn mở đầu là MỘT tấm thiệp giấy đặt trên nền ảnh cưới: nửa chữ +
          nửa ảnh mẫu thật. Ảnh (.hero-invite-photo) là phần co giãn — màn cao
@@ -158,7 +81,9 @@
                   stroke-linejoin="round"
                   aria-hidden="true"
                 >
-                  <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275Z" />
+                  <path
+                    d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275Z"
+                  />
                   <path d="M5 3v4" />
                   <path d="M19 17v4" />
                   <path d="M3 5h4" />
@@ -176,7 +101,10 @@
                 Cùng nhau viết tiếp hành trình yêu thương của chúng mình
               </p>
 
-              <div class="hero-invite-rule hero-anim hero-anim-2" aria-hidden="true">
+              <div
+                class="hero-invite-rule hero-anim hero-anim-2"
+                aria-hidden="true"
+              >
                 <span></span><i class="fas fa-heart"></i><span></span>
               </div>
               <!-- Sơ đồ các bước làm thiệp: vòng tròn icon nối bằng mũi tên,
@@ -187,19 +115,27 @@
                    con: vòng icon và nhãn. -->
               <ol class="hero-invite-steps hero-anim hero-anim-3">
                 <li>
-                  <span class="hero-step-orb" aria-hidden="true"><i class="fas fa-swatchbook"></i></span>
+                  <span class="hero-step-orb" aria-hidden="true"
+                    ><i class="fas fa-swatchbook"></i
+                  ></span>
                   <span class="hero-step-label">Chọn mẫu</span>
                 </li>
                 <li>
-                  <span class="hero-step-orb" aria-hidden="true"><i class="fas fa-images"></i></span>
+                  <span class="hero-step-orb" aria-hidden="true"
+                    ><i class="fas fa-images"></i
+                  ></span>
                   <span class="hero-step-label">Điền thông tin</span>
                 </li>
                 <li>
-                  <span class="hero-step-orb" aria-hidden="true"><i class="fas fa-paper-plane"></i></span>
+                  <span class="hero-step-orb" aria-hidden="true"
+                    ><i class="fas fa-paper-plane"></i
+                  ></span>
                   <span class="hero-step-label">Xuất bản</span>
                 </li>
                 <li>
-                  <span class="hero-step-orb" aria-hidden="true"><i class="fas fa-envelope-open-text"></i></span>
+                  <span class="hero-step-orb" aria-hidden="true"
+                    ><i class="fas fa-envelope-open-text"></i
+                  ></span>
                   <span class="hero-step-label">Gửi thiệp</span>
                 </li>
               </ol>
@@ -220,7 +156,16 @@
                   >
                     <!-- plus-circle của lucide, nhúng thẳng: trang chủ không nạp
                          lucide nên icon nào cũng viết SVG tại chỗ. -->
-                    <svg class="hero-cta-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <svg
+                      class="hero-cta-plus"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
                       <circle cx="12" cy="12" r="10" />
                       <path d="M8 12h8" />
                       <path d="M12 8v8" />
@@ -236,11 +181,18 @@
                     aria-controls="heroCtaMenu"
                     aria-label="Chọn cách tạo thiệp"
                   >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
                       <path d="m6 9 6 6 6-6" />
                     </svg>
                   </button>
-
                 </div>
                 <p class="hero-invite-terms">
                   Miễn phí dùng thử · Chỉ thanh toán khi bạn ưng ý
@@ -248,18 +200,24 @@
               </div>
 
               <p class="hero-invite-props hero-anim hero-anim-5">
-                <span>Đổi mẫu mọi lúc</span><span>Quản lý khách mời</span><span>Thiệp lưu vĩnh viễn</span>
+                <span>Đổi mẫu mọi lúc</span><span>Quản lý khách mời</span
+                ><span>Thiệp lưu vĩnh viễn</span>
               </p>
             </div>
           </div>
 
           <!-- Thiệp mẫu đang mở trên điện thoại — đúng cách khách sẽ nhận thiệp.
                js/auth-nav.js (initHeroImage) gán src và gắn click mở bản xem thử. -->
-          <div class="hero-invite-photo hero-anim hero-anim-3" id="hero-card-preview">
+          <div
+            class="hero-invite-photo hero-anim hero-anim-3"
+            id="hero-card-preview"
+          >
             <div class="hero-phone">
               <div class="hero-phone-screen">
                 <div id="hero-skeleton" class="card-skeleton absolute inset-0">
-                  <div class="card-skeleton-fallback"><i class="fas fa-heart"></i></div>
+                  <div class="card-skeleton-fallback">
+                    <i class="fas fa-heart"></i>
+                  </div>
                 </div>
                 <img id="hero-preview-img" alt="Mẫu thiệp cưới Cưới Xinh" />
               </div>
@@ -282,7 +240,11 @@
          mép dưới thẻ bị cắt, còn `100dvh` đổi theo lúc thanh ẩn/hiện — mà bề NGANG
          thẻ thiệp lại suy ra từ chiều cao khung (sizeCarousel), nên cuộn trên iPhone
          là thẻ co giãn liên tục. svh = khung nhìn lúc thanh đang hiện: cố định. -->
-    <section id="templates" class="bg-[rgb(var(--surface-section-rgb))] flex flex-col" style="min-height: 100vh; min-height: 100svh">
+    <section
+      id="templates"
+      class="bg-[rgb(var(--surface-section-rgb))] flex flex-col"
+      style="min-height: 100vh; min-height: 100svh"
+    >
       <div class="max-w-6xl mx-auto py-8 px-5 shrink-0">
         <h2
           class="font-playfair text-3xl md:text-4xl font-semibold text-center mb-2 text-[rgb(var(--text-heading-rgb))]"
@@ -299,58 +261,153 @@
           <div id="templateCarouselInner" class="carousel-3d-track"></div>
         </div>
 
-        <x-button variant="outline" icon-only id="carouselPrevBtn" onclick="scrollCarousel('prev')" aria-label="Thiệp trước" class="absolute left-3 sm:left-6 top-1/2 z-40 -translate-y-1/2 hidden lg:flex text-[rgb(var(--text-heading-rgb))] backdrop-blur-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgb(var(--brand-accent-rgb)/0.40)]">
+        <x-button
+          variant="outline"
+          icon-only
+          id="carouselPrevBtn"
+          onclick="scrollCarousel('prev')"
+          aria-label="Thiệp trước"
+          class="absolute left-3 sm:left-6 top-1/2 z-40 -translate-y-1/2 hidden lg:flex text-[rgb(var(--text-heading-rgb))] backdrop-blur-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgb(var(--brand-accent-rgb)/0.40)]"
+        >
           <i class="fas fa-chevron-left text-base"></i>
         </x-button>
-        <x-button variant="outline" icon-only id="carouselNextBtn" onclick="scrollCarousel('next')" aria-label="Thiệp tiếp theo" class="absolute right-3 sm:right-6 top-1/2 z-40 -translate-y-1/2 hidden lg:flex text-[rgb(var(--text-heading-rgb))] backdrop-blur-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgb(var(--brand-accent-rgb)/0.40)]">
+        <x-button
+          variant="outline"
+          icon-only
+          id="carouselNextBtn"
+          onclick="scrollCarousel('next')"
+          aria-label="Thiệp tiếp theo"
+          class="absolute right-3 sm:right-6 top-1/2 z-40 -translate-y-1/2 hidden lg:flex text-[rgb(var(--text-heading-rgb))] backdrop-blur-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgb(var(--brand-accent-rgb)/0.40)]"
+        >
           <i class="fas fa-chevron-right text-base"></i>
         </x-button>
 
         <div class="shrink-0 flex items-center justify-center gap-4 py-3">
-          <x-button variant="ghost" size="sm" icon-only onclick="scrollCarousel('prev')" aria-label="Thiệp trước" class="lg:hidden text-[rgb(var(--text-heading-rgb)/0.45)]">
+          <x-button
+            variant="ghost"
+            size="sm"
+            icon-only
+            onclick="scrollCarousel('prev')"
+            aria-label="Thiệp trước"
+            class="lg:hidden text-[rgb(var(--text-heading-rgb)/0.45)]"
+          >
             <i class="fas fa-arrow-left text-base"></i>
           </x-button>
           <div id="carouselDots" class="flex justify-center gap-1.5"></div>
-          <x-button variant="ghost" size="sm" icon-only onclick="scrollCarousel('next')" aria-label="Thiệp tiếp theo" class="lg:hidden text-[rgb(var(--text-heading-rgb)/0.45)]">
+          <x-button
+            variant="ghost"
+            size="sm"
+            icon-only
+            onclick="scrollCarousel('next')"
+            aria-label="Thiệp tiếp theo"
+            class="lg:hidden text-[rgb(var(--text-heading-rgb)/0.45)]"
+          >
             <i class="fas fa-arrow-right text-base"></i>
           </x-button>
         </div>
       </div>
-
     </section>
 
     <!-- ===== INSIDE THE INVITATION ===== -->
     <section id="inside" class="py-16 bg-white">
       <div class="max-w-6xl mx-auto px-5">
         <div class="flex flex-col md:flex-row items-center gap-14">
-
           <!-- Left: phone mockup (real iPhone frame, transparent screen) -->
           <div class="reveal shrink-0 hidden md:flex justify-center px-[50px]">
             <div class="relative w-[220px] h-[430px]">
-
               <!-- Wedding card content — visible through the transparent screen -->
-              <div class="absolute top-[1.5%] left-[5.1%] w-[89.8%] h-[96%] rounded-[22px] overflow-hidden flex flex-col" style="background:linear-gradient(160deg,rgb(var(--surface-tint-warm-rgb)),rgb(var(--surface-blossom-rgb)));">
-                <div class="flex-1 flex flex-col justify-center text-center px-3.5 pt-[22px] pb-3.5">
-                  <p class="font-vibes text-[23px] text-[rgb(var(--brand-primary-rgb))] mb-[5px] leading-[1.2]">Cưới Xinh</p>
-                  <div class="w-11 h-px mx-auto mb-[9px] bg-[rgb(var(--brand-primary-rgb)/0.5)]"></div>
-                  <p class="text-[7.5px] text-[rgb(var(--text-body-rgb))] opacity-65 tracking-[0.1em] uppercase">Trân trọng kính mời</p>
-                  <p class="font-playfair text-[13px] font-semibold text-[rgb(var(--text-heading-rgb))] mt-[7px] mb-[3px]">Nguyễn Văn An</p>
-                  <p class="text-[11px] text-[rgb(var(--brand-primary-rgb)/0.85)] my-[2px]">❤</p>
-                  <p class="font-playfair text-[13px] font-semibold text-[rgb(var(--text-heading-rgb))] mt-[3px] mb-[11px]">Trần Thị Bình</p>
-                  <div class="w-full h-[60px] rounded-[9px] flex items-center justify-center mb-[11px]" style="background:linear-gradient(135deg,rgb(var(--brand-primary-rgb)/0.22),rgb(var(--preview-heart-bg-rgb)/0.18));">
-                    <i class="fas fa-heart text-[19px] text-[rgb(var(--brand-primary-rgb)/0.7)]"></i>
+              <div
+                class="absolute top-[1.5%] left-[5.1%] w-[89.8%] h-[96%] rounded-[22px] overflow-hidden flex flex-col"
+                style="
+                  background: linear-gradient(
+                    160deg,
+                    rgb(var(--surface-tint-warm-rgb)),
+                    rgb(var(--surface-blossom-rgb))
+                  );
+                "
+              >
+                <div
+                  class="flex-1 flex flex-col justify-center text-center px-3.5 pt-[22px] pb-3.5"
+                >
+                  <p
+                    class="font-vibes text-[23px] text-[rgb(var(--brand-primary-rgb))] mb-[5px] leading-[1.2]"
+                  >
+                    Cưới Xinh
+                  </p>
+                  <div
+                    class="w-11 h-px mx-auto mb-[9px] bg-[rgb(var(--brand-primary-rgb)/0.5)]"
+                  ></div>
+                  <p
+                    class="text-[7.5px] text-[rgb(var(--text-body-rgb))] opacity-65 tracking-[0.1em] uppercase"
+                  >
+                    Trân trọng kính mời
+                  </p>
+                  <p
+                    class="font-playfair text-[13px] font-semibold text-[rgb(var(--text-heading-rgb))] mt-[7px] mb-[3px]"
+                  >
+                    Nguyễn Văn An
+                  </p>
+                  <p
+                    class="text-[11px] text-[rgb(var(--brand-primary-rgb)/0.85)] my-[2px]"
+                  >
+                    ❤
+                  </p>
+                  <p
+                    class="font-playfair text-[13px] font-semibold text-[rgb(var(--text-heading-rgb))] mt-[3px] mb-[11px]"
+                  >
+                    Trần Thị Bình
+                  </p>
+                  <div
+                    class="w-full h-[60px] rounded-[9px] flex items-center justify-center mb-[11px]"
+                    style="
+                      background: linear-gradient(
+                        135deg,
+                        rgb(var(--brand-primary-rgb) / 0.22),
+                        rgb(var(--preview-heart-bg-rgb) / 0.18)
+                      );
+                    "
+                  >
+                    <i
+                      class="fas fa-heart text-[19px] text-[rgb(var(--brand-primary-rgb)/0.7)]"
+                    ></i>
                   </div>
-                  <p class="text-[7.5px] text-[rgb(var(--text-body-rgb))] opacity-65 tracking-[0.04em]">Ngày 15 tháng 6 năm 2026</p>
-                  <p class="text-[7px] text-[rgb(var(--text-body-rgb))] opacity-50 mt-[3px]">Nhà hàng Hương Quê, Hà Nội</p>
+                  <p
+                    class="text-[7.5px] text-[rgb(var(--text-body-rgb))] opacity-65 tracking-[0.04em]"
+                  >
+                    Ngày 15 tháng 6 năm 2026
+                  </p>
+                  <p
+                    class="text-[7px] text-[rgb(var(--text-body-rgb))] opacity-50 mt-[3px]"
+                  >
+                    Nhà hàng Hương Quê, Hà Nội
+                  </p>
                   <div class="flex gap-[5px] mt-[13px]">
-                    <div class="h-1 rounded-[3px] bg-[rgb(var(--brand-primary-rgb)/0.4)]" style="flex:1"></div>
-                    <div class="h-1 rounded-[3px] bg-[rgb(var(--brand-primary-rgb)/0.25)]" style="flex:1.5"></div>
-                    <div class="h-1 rounded-[3px] bg-[rgb(var(--brand-primary-rgb)/0.15)]" style="flex:0.8"></div>
+                    <div
+                      class="h-1 rounded-[3px] bg-[rgb(var(--brand-primary-rgb)/0.4)]"
+                      style="flex: 1"
+                    ></div>
+                    <div
+                      class="h-1 rounded-[3px] bg-[rgb(var(--brand-primary-rgb)/0.25)]"
+                      style="flex: 1.5"
+                    ></div>
+                    <div
+                      class="h-1 rounded-[3px] bg-[rgb(var(--brand-primary-rgb)/0.15)]"
+                      style="flex: 0.8"
+                    ></div>
                   </div>
                   <div class="flex gap-[5px] mt-[5px]">
-                    <div class="h-1 rounded-[3px] bg-[rgb(var(--brand-primary-rgb)/0.2)]" style="flex:0.7"></div>
-                    <div class="h-1 rounded-[3px] bg-[rgb(var(--brand-primary-rgb)/0.3)]" style="flex:1.2"></div>
-                    <div class="h-1 rounded-[3px] bg-[rgb(var(--brand-primary-rgb)/0.2)]" style="flex:1"></div>
+                    <div
+                      class="h-1 rounded-[3px] bg-[rgb(var(--brand-primary-rgb)/0.2)]"
+                      style="flex: 0.7"
+                    ></div>
+                    <div
+                      class="h-1 rounded-[3px] bg-[rgb(var(--brand-primary-rgb)/0.3)]"
+                      style="flex: 1.2"
+                    ></div>
+                    <div
+                      class="h-1 rounded-[3px] bg-[rgb(var(--brand-primary-rgb)/0.2)]"
+                      style="flex: 1"
+                    ></div>
                   </div>
                 </div>
               </div>
@@ -364,27 +421,46 @@
               />
 
               <!-- Floating badge: music -->
-              <div class="absolute top-[68px] right-[-46px] z-20 bg-white rounded-xl px-[11px] py-2 whitespace-nowrap border border-[rgb(var(--brand-primary-rgb)/0.3)] shadow-[0_8px_20px_rgb(var(--shadow-brand-rgb)/0.18)]">
+              <div
+                class="absolute top-[68px] right-[-46px] z-20 bg-white rounded-xl px-[11px] py-2 whitespace-nowrap border border-[rgb(var(--brand-primary-rgb)/0.3)] shadow-[0_8px_20px_rgb(var(--shadow-brand-rgb)/0.18)]"
+              >
                 <div class="flex items-center gap-[6px]">
                   <span class="text-[14px]">🎵</span>
                   <div>
-                    <p class="text-[9px] font-bold text-[rgb(var(--text-heading-rgb))] leading-[1.3]">Nhạc nền</p>
-                    <p class="text-[7.5px] text-[rgb(var(--text-body-rgb))] opacity-70">Perfect — Ed Sheeran</p>
+                    <p
+                      class="text-[9px] font-bold text-[rgb(var(--text-heading-rgb))] leading-[1.3]"
+                    >
+                      Nhạc nền
+                    </p>
+                    <p
+                      class="text-[7.5px] text-[rgb(var(--text-body-rgb))] opacity-70"
+                    >
+                      Perfect — Ed Sheeran
+                    </p>
                   </div>
                 </div>
               </div>
 
               <!-- Floating badge: RSVP -->
-              <div class="absolute bottom-[90px] left-[-46px] z-20 bg-white rounded-xl px-[11px] py-2 whitespace-nowrap border border-[rgb(var(--brand-primary-rgb)/0.3)] shadow-[0_8px_20px_rgb(var(--shadow-brand-rgb)/0.18)]">
+              <div
+                class="absolute bottom-[90px] left-[-46px] z-20 bg-white rounded-xl px-[11px] py-2 whitespace-nowrap border border-[rgb(var(--brand-primary-rgb)/0.3)] shadow-[0_8px_20px_rgb(var(--shadow-brand-rgb)/0.18)]"
+              >
                 <div class="flex items-center gap-[6px]">
                   <span class="text-[14px]">👥</span>
                   <div>
-                    <p class="text-[9px] font-bold text-[rgb(var(--text-heading-rgb))] leading-[1.3]">128 xác nhận</p>
-                    <p class="text-[7.5px] text-[rgb(var(--text-body-rgb))] opacity-70">tham dự</p>
+                    <p
+                      class="text-[9px] font-bold text-[rgb(var(--text-heading-rgb))] leading-[1.3]"
+                    >
+                      128 xác nhận
+                    </p>
+                    <p
+                      class="text-[7.5px] text-[rgb(var(--text-body-rgb))] opacity-70"
+                    >
+                      tham dự
+                    </p>
                   </div>
                 </div>
               </div>
-
             </div>
           </div>
 
@@ -456,13 +532,25 @@
     </section>
 
     <!-- ===== TESTIMONIALS ===== -->
-    <section id="testimonials" class="py-16 bg-[rgb(var(--surface-section-rgb))]">
+    <section
+      id="testimonials"
+      class="py-16 bg-[rgb(var(--surface-section-rgb))]"
+    >
       <div class="max-w-6xl mx-auto px-5">
         <div class="mb-10 text-center reveal">
-          <h2 class="font-playfair text-3xl md:text-4xl font-semibold text-[rgb(var(--text-heading-rgb))]">Khách hàng nói gì?</h2>
-          <p class="mt-3 text-sm opacity-60 max-w-sm mx-auto">Hơn 500 cặp đôi đã tin tưởng tạo thiệp cưới với Cưới Xinh</p>
+          <h2
+            class="font-playfair text-3xl md:text-4xl font-semibold text-[rgb(var(--text-heading-rgb))]"
+          >
+            Khách hàng nói gì?
+          </h2>
+          <p class="mt-3 text-sm opacity-60 max-w-sm mx-auto">
+            Hơn 500 cặp đôi đã tin tưởng tạo thiệp cưới với Cưới Xinh
+          </p>
         </div>
-        <div id="testimonialsList" class="grid grid-cols-1 md:grid-cols-3 gap-5"></div>
+        <div
+          id="testimonialsList"
+          class="grid grid-cols-1 md:grid-cols-3 gap-5"
+        ></div>
       </div>
     </section>
 
@@ -470,38 +558,83 @@
     <section
       id="contact"
       class="py-24 relative overflow-hidden"
-      style="background: linear-gradient(150deg, rgb(var(--landing-dark-rgb)) 0%, rgb(var(--landing-cta-bg-mid-rgb)) 55%, rgb(var(--landing-dark-rgb)) 100%);"
+      style="
+        background: linear-gradient(
+          150deg,
+          rgb(var(--landing-dark-rgb)) 0%,
+          rgb(var(--landing-cta-bg-mid-rgb)) 55%,
+          rgb(var(--landing-dark-rgb)) 100%
+        );
+      "
     >
       <!-- Radial glow -->
-      <div class="absolute inset-0 pointer-events-none" style="background: radial-gradient(ellipse 65% 55% at 50% 50%, rgb(var(--landing-cta-btn-from-rgb)/0.08) 0%, transparent 70%);"></div>
+      <div
+        class="absolute inset-0 pointer-events-none"
+        style="
+          background: radial-gradient(
+            ellipse 65% 55% at 50% 50%,
+            rgb(var(--landing-cta-btn-from-rgb) / 0.08) 0%,
+            transparent 70%
+          );
+        "
+      ></div>
 
       <!-- Watermark chữ mờ -->
-      <div class="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden" aria-hidden="true">
-        <p style="font-family:'Great Vibes',cursive;font-size:clamp(5rem,18vw,11rem);color:rgb(var(--brand-primary-rgb)/0.055);white-space:nowrap;line-height:1;">Cưới Xinh</p>
+      <div
+        class="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden"
+        aria-hidden="true"
+      >
+        <p
+          style="
+            font-family: &quot;Great Vibes&quot;, cursive;
+            font-size: clamp(5rem, 18vw, 11rem);
+            color: rgb(var(--brand-primary-rgb) / 0.055);
+            white-space: nowrap;
+            line-height: 1;
+          "
+        >
+          Cưới Xinh
+        </p>
       </div>
 
       <div class="max-w-2xl mx-auto px-5 text-center relative z-10">
-        <p class="font-allura text-4xl mb-3" style="color:rgb(var(--brand-primary-rgb)/0.65);">Sẵn sàng chưa?</p>
+        <p
+          class="font-allura text-4xl mb-3"
+          style="color: rgb(var(--brand-primary-rgb) / 0.65)"
+        >
+          Sẵn sàng chưa?
+        </p>
         <h2
           class="font-playfair text-2xl md:text-3xl font-semibold leading-snug mb-4"
-          style="color:rgb(var(--landing-cta-heading-rgb)/0.95);"
+          style="color: rgb(var(--landing-cta-heading-rgb) / 0.95)"
         >
           Bắt đầu tạo thiệp cưới<br />hoàn toàn miễn phí
         </h2>
-        <p class="text-sm mb-10" style="color:rgb(var(--landing-cta-body-rgb)/0.5);">
+        <p
+          class="text-sm mb-10"
+          style="color: rgb(var(--landing-cta-body-rgb) / 0.5)"
+        >
           Chỉ thanh toán khi bạn thật sự ưng ý.
         </p>
         <a
           href="/invitation-setup/"
           onclick="goCreateDraft(event)"
           class="inline-block px-9 py-4 rounded-full text-base font-semibold transition-all hover:-translate-y-0.5 active:scale-95"
-          style="background: linear-gradient(135deg, rgb(var(--landing-cta-btn-from-rgb)), rgb(var(--landing-cta-btn-to-rgb))); color: rgb(var(--landing-dark-rgb)); box-shadow: 0 8px 28px rgb(var(--landing-cta-btn-from-rgb)/0.32);"
+          style="
+            background: linear-gradient(
+              135deg,
+              rgb(var(--landing-cta-btn-from-rgb)),
+              rgb(var(--landing-cta-btn-to-rgb))
+            );
+            color: rgb(var(--landing-dark-rgb));
+            box-shadow: 0 8px 28px rgb(var(--landing-cta-btn-from-rgb) / 0.32);
+          "
         >
           Tạo thiệp ngay <i class="fas fa-arrow-right ml-2 text-sm"></i>
         </a>
         <div
           class="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs mt-7"
-          style="color:rgb(var(--landing-cta-body-rgb)/0.38);"
+          style="color: rgb(var(--landing-cta-body-rgb) / 0.38)"
         >
           <span>Dùng thử miễn phí</span>
           <span>·</span>
@@ -513,7 +646,7 @@
         <!-- Contact -->
         <div
           class="flex flex-wrap items-center justify-center gap-5 mt-10 text-sm"
-          style="color:rgb(var(--landing-cta-note-rgb)/0.4);"
+          style="color: rgb(var(--landing-cta-note-rgb) / 0.4)"
         >
           <a
             href="mailto:admin@cuoixinh.com"
@@ -546,7 +679,9 @@
             </p>
           </div>
           <div>
-            <h4 class="font-semibold text-sm mb-4 text-[rgb(var(--text-heading-rgb))]">
+            <h4
+              class="font-semibold text-sm mb-4 text-[rgb(var(--text-heading-rgb))]"
+            >
               Điều hướng
             </h4>
             <ul class="space-y-2 text-sm opacity-60">
@@ -575,7 +710,11 @@
             </ul>
           </div>
           <div>
-            <h4 class="font-semibold text-sm mb-4 text-[rgb(var(--text-heading-rgb))]">Liên hệ</h4>
+            <h4
+              class="font-semibold text-sm mb-4 text-[rgb(var(--text-heading-rgb))]"
+            >
+              Liên hệ
+            </h4>
             <ul class="space-y-2 text-sm opacity-60">
               <li>
                 <i class="fas fa-envelope mr-2 text-xs"></i>admin@cuoixinh.com
@@ -619,7 +758,15 @@
            là markup sai và bấm X sẽ mở luôn Messenger.
            w VÀ h phải đi cùng nhau: size="sm" cho h-8 w-8, đặt mỗi w-[22px]
            thì nút thành hình bầu dục 22×32 chứ không tròn. -->
-      <x-button variant="outline" size="sm" icon-only id="supportClose" type="button" aria-label="Tắt hỗ trợ" class="absolute -top-1 -right-1 w-[22px] h-[22px] text-[rgb(var(--chat-action-icon-rgb))] z-[3] opacity-0 animate-bubbleIn-2 hover:scale-110">
+      <x-button
+        variant="outline"
+        size="sm"
+        icon-only
+        id="supportClose"
+        type="button"
+        aria-label="Tắt hỗ trợ"
+        class="absolute -top-1 -right-1 w-[22px] h-[22px] text-[rgb(var(--chat-action-icon-rgb))] z-[3] opacity-0 animate-bubbleIn-2 hover:scale-110"
+      >
         <i class="fas fa-times"></i>
       </x-button>
     </div>
@@ -628,10 +775,14 @@
     <script src="core/cache-util.js"></script>
     <script src="js/chat-rotator.js"></script>
 
-
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.8" integrity="sha384-Tve8O+C6PBzsIMK/IRCwHbi8fyEzXIlIs6OfVBZHubplwYhaQF/4Mzxqgg+pp/oy" crossorigin="anonymous"></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.8"
+      integrity="sha384-Tve8O+C6PBzsIMK/IRCwHbi8fyEzXIlIs6OfVBZHubplwYhaQF/4Mzxqgg+pp/oy"
+      crossorigin="anonymous"
+    ></script>
     <script src="core/config.js"></script>
     <script src="core/x-popover.js"></script>
+    <script src="core/helpers/account-menu.js"></script>
     <script src="core/helpers/alert.js"></script>
     <script src="core/auth-ui.js"></script>
     <script src="core/auth.js"></script>
@@ -653,6 +804,53 @@
     <script src="js/scroll-reveal.js"></script>
     <script src="core/payment.js"></script>
 
+    <!-- Navbar dùng chung: khai mảng mục một lần, component dựng cả thanh trên
+         (desktop) lẫn thanh tab dưới (mobile). Phải chạy TRƯỚC nav-autohide.js
+         vì nó tìm #main-nav. -->
+    <script src="core/components/navbar.js"></script>
+    <script>
+      CXNavbar.mount({
+        active: "home",
+        width: "6xl",
+        items: [
+          {
+            id: "home",
+            label: "Trang chủ",
+            icon: "home",
+            href: "/",
+            only: "tab",
+          },
+          {
+            id: "templates",
+            label: "Mẫu thiệp",
+            icon: "layers",
+            href: "/theme-template/",
+          },
+          {
+            id: "cart",
+            label: "Đã chọn",
+            icon: "cart",
+            href: "/my-invitations/",
+          },
+          {
+            id: "account",
+            label: "Tài khoản",
+            icon: "user",
+            onClick: "CXAccount.open(this)",
+            only: "tab",
+          },
+        ],
+        actions: [
+          {
+            id: "navLoginBtn",
+            label: "Đăng nhập",
+            onClick: "openLoginPopup()",
+            style: "background: rgb(var(--action-primary-rgb))",
+          },
+        ],
+      });
+    </script>
+
     <script src="js/hero-background.js"></script>
     <script src="js/nav-autohide.js"></script>
     <!-- Popover "cách tạo thiệp" của nút đôi ở hero (core/x-popover.js). Đặt ở
@@ -669,57 +867,87 @@
       width="264"
       offset="10"
     >
-                  <a
-                    href="/invitation-setup/"
-                    role="menuitem"
-                    onclick="goCreateDraft(event)"
-                    class="hero-cta-item"
-                  >
-                    <span class="hero-cta-item-ico">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M12 20h9" />
-                        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" />
-                      </svg>
-                    </span>
-                    <span>
-                      <span class="hero-cta-item-name">Tạo thủ công</span>
-                      <span class="hero-cta-item-desc">Tự điền từng mục theo ý bạn</span>
-                    </span>
-                  </a>
-                  <a
-                    href="/invitation-setup/"
-                    role="menuitem"
-                    onclick="goCreateWithAi(event)"
-                    class="hero-cta-item"
-                  >
-                    <span class="hero-cta-item-ico">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z" />
-                      </svg>
-                    </span>
-                    <span>
-                      <span class="hero-cta-item-name">Tạo với AI</span>
-                      <span class="hero-cta-item-desc">Điền sẵn nội dung từ vài thông tin</span>
-                    </span>
-                  </a>
-                  <a
-                    href="/invitation-setup/"
-                    role="menuitem"
-                    onclick="goCreateWithVoice(event)"
-                    class="hero-cta-item"
-                  >
-                    <span class="hero-cta-item-ico">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
-                        <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-                        <path d="M12 19v3" />
-                      </svg>
-                    </span>
-                    <span>
-                      <span class="hero-cta-item-name">Tạo với giọng nói</span>
-                      <span class="hero-cta-item-desc">Bạn kể tôi nghe và tạo thiệp cho bạn</span>
-                    </span>
-                  </a>
+      <a
+        href="/invitation-setup/"
+        role="menuitem"
+        onclick="goCreateDraft(event)"
+        class="hero-cta-item"
+      >
+        <span class="hero-cta-item-ico">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M12 20h9" />
+            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" />
+          </svg>
+        </span>
+        <span>
+          <span class="hero-cta-item-name">Tạo thủ công</span>
+          <span class="hero-cta-item-desc">Tự điền từng mục theo ý bạn</span>
+        </span>
+      </a>
+      <a
+        href="/invitation-setup/"
+        role="menuitem"
+        onclick="goCreateWithAi(event)"
+        class="hero-cta-item"
+      >
+        <span class="hero-cta-item-ico">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path
+              d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"
+            />
+          </svg>
+        </span>
+        <span>
+          <span class="hero-cta-item-name">Tạo với AI</span>
+          <span class="hero-cta-item-desc"
+            >Điền sẵn nội dung từ vài thông tin</span
+          >
+        </span>
+      </a>
+      <a
+        href="/invitation-setup/"
+        role="menuitem"
+        onclick="goCreateWithVoice(event)"
+        class="hero-cta-item"
+      >
+        <span class="hero-cta-item-ico">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+            <path d="M12 19v3" />
+          </svg>
+        </span>
+        <span>
+          <span class="hero-cta-item-name">Tạo với giọng nói</span>
+          <span class="hero-cta-item-desc"
+            >Bạn kể tôi nghe và tạo thiệp cho bạn</span
+          >
+        </span>
+      </a>
     </x-popover>
   </body>
 </html>

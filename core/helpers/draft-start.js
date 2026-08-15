@@ -137,4 +137,33 @@
       return _askThenStart(existing, theme, displayName, chosen, o.params);
     _create(theme, displayName, o.params);
   };
+
+  // Nút CHUNG kiểu "Tạo thiệp ngay" / "Tạo thiệp mới": khách chưa chỉ mẫu nào nên
+  // lấy mẫu đang bật đầu tiên rồi đi tiếp bằng cxStartDraft với chosen=false.
+  // Trang nào đã có sẵn danh sách mẫu (trang chủ) thì gọi thẳng cxStartDraft,
+  // khỏi hỏi lại server.
+  window.cxStartDefaultDraft = function (params) {
+    var base = CONFIG.supabase.url;
+    var key = CONFIG.supabase.anonKey;
+    return fetch(
+      base +
+        "/rest/v1/templates?select=template_name,display_name&is_active=eq.true&order=sort_order.asc&limit=1",
+      { headers: { apikey: key, Authorization: "Bearer " + key } },
+    )
+      .then(function (r) {
+        return r.json();
+      })
+      .then(function (rows) {
+        var t = rows && rows[0];
+        if (!t) throw new Error("Chưa có mẫu thiệp nào");
+        window.cxStartDraft(t.template_name, t.display_name, {
+          chosen: false,
+          params: params,
+        });
+      })
+      .catch(function (e) {
+        if (window.showToast) showToast(e.message || "Không tạo được thiệp", "error");
+        else window.location.href = "/theme-template/";
+      });
+  };
 })();

@@ -759,3 +759,211 @@ textarea::-webkit-scrollbar-thumb:hover {
   margin: 4px 8px;
   background: rgb(var(--surface-control-rgb));
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   THANH TAB DƯỚI (mobile) — dùng chung cho trang chủ và trang Mẫu thiệp.
+   Vỏ `.cx-tabbar` chỉ giữ lề và KHÔNG có nền: nội dung cuộn lộ ra quanh thẻ,
+   đúng kiểu thẻ nổi. Thẻ bo tròn bên trong cách mép dưới 8px, cùng lối với
+   navbar trang Thiết lập.
+   Trang nào dùng phải tự chừa lề đáy cho nội dung (chiều cao thanh + safe-area).
+   ══════════════════════════════════════════════════════════════════════════ */
+.cx-tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  /* ĐÚNG 8px, KHÔNG cộng env(safe-area-inset-bottom): trên điện thoại thanh
+     địa chỉ của trình duyệt hiện/ẩn khi cuộn làm inset đổi liên tục → thẻ bị
+     đội lên, hở một khoảng trống dưới đáy. */
+  padding: 0 8px 8px;
+  pointer-events: none; /* khoảng hở hai bên thẻ không chặn cuộn */
+}
+
+.cx-tabbar > * {
+  pointer-events: auto;
+}
+
+.cx-tabbar-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  max-width: 56rem;
+  margin: 0 auto;
+  padding: 6px;
+  border-radius: 24px;
+  background: rgb(var(--white-rgb));
+  border: 1px solid rgb(var(--brand-primary-rgb) / 0.45);
+  box-shadow: 0 -4px 18px rgb(var(--scrim-rgb) / 0.08);
+}
+
+.cx-tab {
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 4px 6px;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.2;
+  text-align: center;
+  color: rgb(var(--text-heading-rgb) / 0.55);
+  transition: color 0.18s ease;
+}
+
+.cx-tab.is-on {
+  color: rgb(var(--brand-accent-rgb));
+  font-weight: 600;
+}
+
+/* Số đếm trên một mục (vd. số mẫu đã thích) — JS chỉ việc bỏ/thêm .hidden. */
+.cx-tab-count {
+  position: absolute;
+  top: 0;
+  right: 50%;
+  margin-right: -22px;
+  min-width: 15px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: rgb(var(--brand-accent-rgb));
+  color: rgb(var(--white-rgb));
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 15px;
+  text-align: center;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   NAVBAR TRÊN (từ md) — cặp với .cx-tabbar ở dưới, cả hai do
+   core/components/navbar.js dựng từ CÙNG một mảng mục.
+   Vỏ .cx-navbar chỉ giữ lề (KHÔNG nền — nội dung cuộn lộ ra quanh thẻ), nền và
+   viền nằm ở .cx-navcard. Tổng cao 80px (12 + 64 + 4) — trang nào chừa chỗ cho
+   navbar phải dùng đúng số này.
+   ══════════════════════════════════════════════════════════════════════════ */
+.cx-navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  padding: 12px 0 4px;
+}
+
+.cx-navcard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+  padding: 0 24px;
+  border-radius: 24px;
+  background: rgb(var(--white-rgb) / 0.92);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgb(var(--brand-primary-rgb) / 0.45);
+  box-shadow: 0 6px 20px rgb(var(--scrim-rgb) / 0.08);
+}
+
+.cx-navlinks {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 20px;
+  margin-left: 32px;
+}
+
+.cx-navactions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cx-navlink {
+  display: inline-flex;
+  position: relative;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  color: rgb(var(--text-body-rgb));
+  transition:
+    color 0.18s ease,
+    opacity 0.18s ease;
+}
+
+.cx-navlink:hover {
+  opacity: 0.7;
+}
+
+.cx-navlink.is-on {
+  color: rgb(var(--brand-accent-rgb));
+  font-weight: 600;
+}
+
+.cx-navcount {
+  min-width: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: rgb(var(--brand-accent-rgb));
+  color: rgb(var(--white-rgb));
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+}
+
+/* Tab lọc kiểu segmented (my-invitations: Của tôi/Xuất bản/Nháp) — vỏ mang ĐÚNG
+   nền/viền/bo góc của thẻ navbar (.cx-navcard) và chữ dùng ĐÚNG bộ màu của
+   .cx-navlink, để menu và tab trong trang không lệch tông. Nền ô đang chọn do
+   class Tailwind trong trang đặt. */
+.cx-segbar {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 999px;
+  background: rgb(var(--white-rgb) / 0.92);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgb(var(--brand-primary-rgb) / 0.45);
+  box-shadow: 0 6px 20px rgb(var(--scrim-rgb) / 0.08);
+}
+
+.cx-segtab {
+  color: rgb(var(--text-body-rgb));
+  transition:
+    color 0.18s ease,
+    opacity 0.18s ease;
+}
+
+/* Rê chuột/giữ focus chỉ đổi MÀU CHỮ. Không đụng tới nền: mờ cả phần tử
+   (opacity) sẽ làm nhạt luôn nền hồng của tab đang chọn, trông như tab đổi nền. */
+.cx-segtab:hover {
+  color: rgb(var(--brand-accent-rgb));
+}
+
+/* Bấm xong không để lại viền/nền lạ; bàn phím vẫn thấy được nhờ vòng focus vẽ
+   bằng box-shadow (không đụng background). */
+.cx-segtab:focus {
+  outline: none;
+}
+
+.cx-segtab:focus-visible {
+  box-shadow: 0 0 0 2px rgb(var(--focus-ring-rgb) / 0.35);
+}
+
+.cx-segtab.is-on {
+  color: rgb(var(--brand-accent-rgb));
+  font-weight: 600;
+}
+
+/* Ô đếm nằm trong tab lọc ăn theo MÀU CHỮ của tab (khác navbar — ở đó ô đếm là
+   chip đặc màu nhấn). Nhắm qua .cx-segtab nên navbar không bị ảnh hưởng. */
+.cx-segtab .cx-navcount {
+  min-width: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 12px;
+  line-height: inherit;
+}

@@ -48,7 +48,7 @@
 **Thay đổi:**
 - Giữ horizontal scroll carousel, dữ liệu lấy từ DB như hiện tại
 - Cập nhật section header: **"Bộ sưu tập mẫu thiệp"** + subtext "Chọn thoải mái — đổi miễn phí"
-- Mỗi card: tên + mô tả (đã có từ DB), 2 nút `[Xem demo]` + `[Dùng mẫu này]`
+- Mỗi card: tên + mô tả (đã có từ DB), 2 nút `[Xem trước]` + `[Dùng mẫu này]`
 - Nút "Dùng mẫu này" → `createDraft(t.id)` (đã có sẵn trong `index.js`)
 - Bỏ badge hardcode "PHỔ BIẾN / MỚI" theo index → dùng `t.category` từ DB nếu có, hoặc bỏ hẳn
 

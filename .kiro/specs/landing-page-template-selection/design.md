@@ -332,7 +332,7 @@ function chooseFromModal() {
           <i class="fas fa-palette"></i>
         </div>
         <h3>Chọn mẫu thiệp</h3>
-        <p>Xem demo và chọn mẫu thiệp phù hợp với phong cách của bạn</p>
+        <p>Xem trước và chọn mẫu thiệp phù hợp với phong cách của bạn</p>
       </div>
 
       <!-- Step 2 -->

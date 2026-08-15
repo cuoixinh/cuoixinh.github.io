@@ -37,10 +37,14 @@
         --fg: rgb(var(--scrim-plum-rgb));
         --muted: rgb(var(--text-heading-rgb)/0.55);
         --border: rgb(var(--brand-accent-rgb)/0.25);
-        /* Chỗ thanh điều hướng dưới (mobile) chiếm — đã gồm khoảng hở 8px dưới
-           thẻ nổi và vùng an toàn của máy. Dùng cho lề đáy trang + vị trí nút
-           nổi, đổi chiều cao navbar là đổi ở đây. */
-        --tt-tabbar-h: calc(64px + env(safe-area-inset-bottom));
+        /* Chỗ thanh tab dưới (mobile) chiếm — đã gồm khoảng hở 8px dưới thẻ.
+           Dùng cho lề đáy trang + vị trí nút nổi, đổi chiều cao thanh là đổi ở
+           đây. Không cộng safe-area: xem chú thích ở .cx-tabbar. */
+        --tt-tabbar-h: 72px;
+        /* Nền nút "Bắt đầu miễn phí" (.tt-cta-btn) — dùng cho CẢ nút ở thanh
+           trên (desktop) lẫn nút nổi (mobile), đổi màu chỉ sửa hai dòng này. */
+        --tt-cta-from: 255 138 138;
+        --tt-cta-to: 217 213 130;
       }
 
       * {
@@ -62,7 +66,11 @@
         }
       }
       .skeleton {
-        background: linear-gradient(160deg, rgb(var(--preview-bg-from-rgb)), rgb(var(--preview-bg-to-rgb)));
+        background: linear-gradient(
+          160deg,
+          rgb(var(--preview-bg-from-rgb)),
+          rgb(var(--preview-bg-to-rgb))
+        );
         position: relative;
         overflow: hidden;
       }
@@ -73,15 +81,40 @@
         background: linear-gradient(
           90deg,
           transparent 30%,
-          rgb(var(--white-rgb)/0.55) 50%,
+          rgb(var(--white-rgb) / 0.55) 50%,
           transparent 70%
         );
         animation: shimmer 1.4s infinite;
       }
 
-      /* ─── Header dính: hàng nav (desktop) + ô tìm kiếm + dải danh mục ─── */
-      .nav-scrolled {
-        box-shadow: 0 1px 24px rgb(var(--shadow-brand-rgb)/0.1);
+      #tt-headcard {
+        box-shadow: 0 1px 3px rgb(var(--shadow-brand-rgb) / 0.05);
+      }
+
+      /* Header TỰ ẨN khi cuộn xuống — dùng đúng js/nav-autohide.js của trang chủ
+         (nav phải mang id #main-nav; CSS .nav-hidden nằm ở styles/tailwind-src.css).
+         Header `fixed` nên phần nội dung tự chừa chỗ bằng padding CỐ ĐỊNH, còn
+         thanh tìm kiếm dính ngay dưới nó thì bám --tt-head-h: header ẩn (html.nav-up)
+         là biến về 0 để thanh trượt lên sát mép. */
+      :root {
+        --tt-head-h: 0px;
+      }
+      @media (min-width: 768px) {
+        :root {
+          --tt-head-h: 80px;
+        }
+      }
+      html.nav-up {
+        --tt-head-h: 0px;
+      }
+      #tt-searchbar {
+        top: var(--tt-head-h);
+        transition:
+          top 0.3s ease,
+          box-shadow 0.2s ease;
+      }
+      #tt-searchbar.nav-scrolled {
+        box-shadow: 0 6px 22px -8px rgb(var(--shadow-brand-rgb) / 0.28);
       }
 
       /* Ô tìm kiếm dạng viên thuốc */
@@ -93,13 +126,15 @@
         padding: 0 1.1rem;
         border-radius: 999px;
         background: rgb(var(--white-rgb));
-        border: 1px solid rgb(var(--brand-primary-rgb)/0.55);
-        box-shadow: 0 3px 14px -6px rgb(var(--shadow-brand-rgb)/0.28);
-        transition: box-shadow 0.2s ease, border-color 0.2s ease;
+        border: 1px solid rgb(var(--brand-primary-rgb) / 0.55);
+        box-shadow: 0 3px 14px -6px rgb(var(--shadow-brand-rgb) / 0.28);
+        transition:
+          box-shadow 0.2s ease,
+          border-color 0.2s ease;
       }
       .tt-search:focus-within {
-        border-color: rgb(var(--brand-accent-rgb)/0.5);
-        box-shadow: 0 6px 22px -8px rgb(var(--shadow-brand-rgb)/0.38);
+        border-color: rgb(var(--brand-accent-rgb) / 0.5);
+        box-shadow: 0 6px 22px -8px rgb(var(--shadow-brand-rgb) / 0.38);
       }
       .tt-search input {
         flex: 1;
@@ -127,17 +162,20 @@
         justify-content: center;
         border-radius: 999px;
         background: rgb(var(--white-rgb));
-        border: 1px solid rgb(var(--brand-primary-rgb)/0.55);
-        box-shadow: 0 3px 14px -6px rgb(var(--shadow-brand-rgb)/0.28);
+        border: 1px solid rgb(var(--brand-primary-rgb) / 0.55);
+        box-shadow: 0 3px 14px -6px rgb(var(--shadow-brand-rgb) / 0.28);
         color: var(--fg);
-        transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+        transition:
+          background 0.18s ease,
+          border-color 0.18s ease,
+          color 0.18s ease;
       }
       .tt-filter-btn:hover {
-        border-color: rgb(var(--brand-accent-rgb)/0.45);
+        border-color: rgb(var(--brand-accent-rgb) / 0.45);
       }
       .tt-filter-btn.is-on {
-        background: rgb(var(--brand-primary-rgb)/0.25);
-        border-color: rgb(var(--brand-accent-rgb)/0.45);
+        background: rgb(var(--brand-primary-rgb) / 0.25);
+        border-color: rgb(var(--brand-accent-rgb) / 0.45);
         color: var(--primary);
       }
       /* Chấm báo "đang lọc" — chỉ hiện khi danh mục khác Tất cả. */
@@ -152,19 +190,36 @@
         box-shadow: 0 0 0 2px rgb(var(--white-rgb));
       }
 
-      /* ─── Thẻ mẫu thiệp (không viền, ảnh bo tròn — thông tin nằm dưới ảnh) ─── */
+      /* ─── Thẻ mẫu thiệp ─── Vỏ có viền + nền riêng để mỗi mẫu là một khối
+         tách bạch: ảnh mẫu nào cũng sáng màu, thả trần trên nền trắng thì hai
+         thẻ liền nhau dính vào nhau, không thấy đâu là ranh giới. */
       .tt-card {
-        cursor: pointer;
+        padding: 8px;
+        border-radius: 20px;
+        background: rgb(var(--white-rgb));
+        border: 1px solid rgb(var(--brand-primary-rgb) / 0.45);
+        box-shadow: 0 1px 3px rgb(var(--shadow-brand-rgb) / 0.06);
+        transition:
+          border-color 0.22s ease,
+          box-shadow 0.22s ease,
+          transform 0.22s ease;
+      }
+      .tt-card:hover {
+        transform: translateY(-3px);
+        border-color: rgb(var(--brand-accent-rgb) / 0.45);
+        box-shadow: 0 14px 30px -16px rgb(var(--preview-shadow-rgb) / 0.35);
+      }
+      .tt-card:active {
+        transform: translateY(0) scale(0.995);
       }
       .tt-media {
         position: relative;
         overflow: hidden;
-        border-radius: 16px;
+        border-radius: 14px;
         aspect-ratio: 4 / 5;
         background: rgb(var(--preview-bg-from-rgb));
-        transition: transform 0.2s ease;
-        /* Viền trong rất nhạt để mẫu nền sáng không "chảy" vào nền trắng. */
-        box-shadow: inset 0 0 0 1px rgb(var(--scrim-rgb)/0.07);
+        /* Viền trong rất nhạt để mẫu nền sáng không "chảy" vào nền thẻ. */
+        box-shadow: inset 0 0 0 1px rgb(var(--scrim-rgb) / 0.06);
       }
       .tt-media img {
         position: absolute;
@@ -178,9 +233,6 @@
       .tt-card:hover .tt-media img {
         transform: scale(1.045);
       }
-      .tt-card:active .tt-media {
-        transform: scale(0.99);
-      }
 
       .tt-badge {
         position: absolute;
@@ -192,11 +244,12 @@
         color: var(--fg);
         font-size: 11px;
         font-weight: 600;
-        box-shadow: 0 2px 8px rgb(var(--scrim-rgb)/0.18);
+        box-shadow: 0 2px 8px rgb(var(--scrim-rgb) / 0.18);
       }
 
       .tt-fav {
         position: absolute;
+        z-index: 2; /* trên .tt-hover — nếu không lớp phủ nuốt mất cú bấm */
         right: 10px;
         top: 10px;
         width: 34px;
@@ -205,11 +258,11 @@
         align-items: center;
         justify-content: center;
         color: rgb(var(--white-rgb));
-        filter: drop-shadow(0 1px 3px rgb(var(--scrim-rgb)/0.45));
+        filter: drop-shadow(0 1px 3px rgb(var(--scrim-rgb) / 0.45));
         transition: transform 0.16s ease;
       }
       .tt-fav svg {
-        fill: rgb(var(--scrim-rgb)/0.35);
+        fill: rgb(var(--scrim-rgb) / 0.35);
         stroke: rgb(var(--white-rgb));
         stroke-width: 2;
       }
@@ -221,37 +274,73 @@
         stroke: rgb(var(--white-rgb));
       }
 
-      /* Lớp phủ khi rê chuột (desktop) */
+      /* "Xem trước" — CHỖ DUY NHẤT mở bản xem thử; phần còn lại của thẻ không
+         bắt click nữa để nút tim bấm được. Mobile: nút nằm sẵn ở góc dưới ảnh.
+         Từ sm: cả lớp phủ mờ dần hiện ra khi rê chuột — dùng `visibility` chứ
+         không chỉ `opacity`, vì opacity 0 vẫn ăn click. */
       .tt-hover {
         position: absolute;
         inset: 0;
-        display: none;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        background: rgb(var(--scrim-plum-rgb)/0.28);
-        opacity: 0;
-        transition: opacity 0.2s;
+        display: flex;
+        align-items: flex-end;
+        justify-content: flex-start;
+        padding: 12px;
+        pointer-events: none;
       }
       @media (min-width: 640px) {
         .tt-hover {
-          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 0;
+          background: rgb(var(--scrim-plum-rgb) / 0.28);
+          opacity: 0;
+          visibility: hidden;
+          transition:
+            opacity 0.2s ease,
+            visibility 0.2s ease;
+        }
+        .tt-card:hover .tt-hover {
+          opacity: 1;
+          visibility: visible;
         }
       }
-      .tt-card:hover .tt-hover {
-        opacity: 1;
-      }
-      .tt-hover span {
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-        padding: 7px 13px;
-        border-radius: 999px;
+      /* variant="bare" → <x-button> chỉ giữ hình pill + khổ, không áp bảng màu
+         fill/brand (nếu không hover sẽ nhảy sang đỏ rose-600 của bảng đó).
+         Màu ở đây giữ NGUYÊN khi hover, chỉ đậm bóng thêm chút. */
+      .tt-preview-btn {
+        pointer-events: auto;
         background: rgb(var(--white-rgb));
         color: var(--primary);
-        font-size: 12px;
         font-weight: 600;
-        box-shadow: 0 4px 16px rgb(var(--scrim-rgb)/0.2);
+        white-space: nowrap;
+        box-shadow: 0 4px 16px rgb(var(--scrim-rgb) / 0.2);
+        transition: box-shadow 0.2s ease;
+      }
+      .tt-preview-btn:hover {
+        background: rgb(var(--white-rgb));
+        color: var(--primary);
+        box-shadow: 0 6px 20px rgb(var(--scrim-rgb) / 0.28);
+      }
+
+      /* Nút "Bắt đầu miễn phí" — MỘT style cho cả hai chỗ đứng: thẻ nổi giữa
+         đáy (mobile) và thanh trên (desktop). Khổ lấy từ size="md" của
+         <x-button> nên trùng nút "Đăng nhập" bên cạnh; ở đây chỉ lo phần màu. */
+      .tt-cta-btn {
+        background: linear-gradient(
+          135deg,
+          rgb(var(--tt-cta-from)),
+          rgb(var(--tt-cta-to))
+        );
+        color: rgb(var(--white-rgb));
+        letter-spacing: 0.01em;
+        box-shadow: 0 4px 16px -6px rgb(var(--tt-cta-from) / 0.7);
+        transition:
+          filter 0.2s ease,
+          box-shadow 0.2s ease;
+      }
+      .tt-cta-btn:hover {
+        filter: brightness(1.05);
+        box-shadow: 0 8px 22px -8px rgb(var(--tt-cta-from) / 0.8);
       }
 
       /* ─── Nút nổi giữa đáy ─── Chỉ có trên mobile: từ md trở lên nút "Bắt đầu
@@ -280,39 +369,9 @@
       }
       @media (min-width: 768px) {
         .tt-body {
+          padding-top: 80px;
           padding-bottom: 0;
         }
-      }
-
-      /* ─── Thanh điều hướng dưới (mobile) ─── */
-      .tt-tab {
-        position: relative;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 3px;
-        padding: 4px 14px;
-        font-size: 10px;
-        font-weight: 500;
-        color: var(--muted);
-      }
-      .tt-tab.is-on {
-        color: var(--primary);
-        font-weight: 600;
-      }
-      .tt-tab-count {
-        position: absolute;
-        top: 0;
-        right: 8px;
-        min-width: 15px;
-        padding: 0 4px;
-        border-radius: 999px;
-        background: var(--primary);
-        color: rgb(var(--white-rgb));
-        font-size: 9px;
-        font-weight: 700;
-        line-height: 15px;
-        text-align: center;
       }
 
       /* ─── FAQ ─── */
@@ -331,7 +390,7 @@
         transform: rotate(180deg);
       }
       .faq-item.open {
-        border-color: rgb(var(--brand-accent-rgb)/0.4) !important;
+        border-color: rgb(var(--brand-accent-rgb) / 0.4) !important;
       }
 
       html {
@@ -341,138 +400,105 @@
   </head>
 
   <body class="min-h-screen flex flex-col">
-    <!-- ═══ HEADER DÍNH: nav (desktop) · tìm kiếm · danh mục ═══ -->
-    <header
-      id="main-header"
-      class="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-rose-pastel-200 transition-shadow"
-    >
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <!-- Hàng nav desktop -->
-        <div class="hidden md:flex items-center justify-between h-16">
-          <a href="/" class="shrink-0">
-            <img
-              src="../assets/icons/logo.png"
-              alt="Cưới Xinh"
-              class="h-11 w-auto"
-            />
-          </a>
-
-          <nav class="flex items-center gap-7 text-sm font-medium flex-1 ml-9">
-            <a
-              href="/"
-              class="hover:opacity-70 transition-opacity"
-              style="color: rgb(var(--text-body-rgb))"
-              >Trang chủ</a
-            >
-            <a
-              href="/theme-template/"
-              class="hover:opacity-70 transition-opacity"
-              style="color: rgb(var(--text-body-rgb))"
-              >Mẫu thiệp</a
-            >
-          </nav>
-
-          <div class="flex items-center gap-2 sm:gap-3">
-            <a
-              id="ttManageBtn"
-              href="/my-invitations/"
-              class="inline-flex items-center gap-1.5 rounded-full text-xs sm:text-sm font-medium px-3 sm:px-3.5 py-1.5 sm:py-2 transition-colors hover:bg-rose-pastel-100 whitespace-nowrap"
-              style="color: rgb(var(--text-body-rgb))"
-              ><svg class="w-3.5 h-3.5 opacity-80" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="7" x="3" y="3" rx="1.5"/><rect width="7" height="7" x="14" y="3" rx="1.5"/><rect width="7" height="7" x="14" y="14" rx="1.5"/><rect width="7" height="7" x="3" y="14" rx="1.5"/></svg>
-              Quản lý thiệp</a
-            >
-            <x-button size="sm" id="ttLoginBtn" type="button" onclick="openLoginPopup()" style="background: rgb(var(--action-primary-rgb))" class="sm:text-sm sm:px-5 sm:py-2 hover:opacity-90">
-              Đăng nhập
-            </x-button>
-            <x-button onclick="startDraft()" style="
-                background: linear-gradient(135deg, rgb(var(--cta-accent-rgb)), rgb(var(--action-primary-rgb)));
-                box-shadow: 0 4px 14px rgb(var(--cta-accent-rgb)/0.35);
-                letter-spacing: 0.01em;
-              " class="hover:opacity-90">
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>
-              Bắt đầu miễn phí
-            </x-button>
-          </div>
-        </div>
-
-        <!-- Hàng tìm kiếm (mobile kèm logo bên trái) -->
-        <div class="flex items-center gap-2.5 py-2.5 md:justify-center">
-          <a href="/" class="md:hidden shrink-0">
-            <img src="../assets/icons/logo.png" alt="Cưới Xinh" class="h-9 w-auto" />
-          </a>
-          <label class="tt-search flex-1 md:flex-none md:w-[440px]">
-            <svg
-              class="shrink-0"
-              style="color: var(--primary)"
-              xmlns="http://www.w3.org/2000/svg"
-              width="17"
-              height="17"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <circle cx="11" cy="11" r="8" />
-              <path d="m21 21-4.3-4.3" />
-            </svg>
-            <input
-              id="tt-search-input"
-              type="search"
-              autocomplete="off"
-              placeholder="Tìm mẫu thiệp bạn thích"
-              aria-label="Tìm mẫu thiệp"
-            />
-          </label>
-
-          <!-- Lọc danh mục: một nút icon + popover, danh sách dựng từ dữ liệu -->
-          <div class="relative shrink-0">
-            <button
-              id="tt-filter-btn"
-              type="button"
-              class="tt-filter-btn"
-              aria-label="Lọc theo danh mục"
-            >
+    <!-- ═══ PAGE BODY ═══ -->
+    <div class="flex-1 tt-body">
+      <!-- ═══ THANH TÌM KIẾM ═══ Nằm trong phần NỘI DUNG (không thuộc header)
+         và DÍNH lên đầu khi cuộn — `top` bám --tt-head-h nên nó nằm ngay dưới
+         header và trượt lên sát mép khi header tự ẩn. Vỏ mang nền trang để lưới
+         thiệp cuộn qua không lộ ra sau; ô tìm kiếm không có khung bao, chỉ có
+         viền pill của chính nó. Lề ngoài trùng công thức của khu vực lưới. -->
+      <div
+        id="tt-searchbar"
+        class="sticky z-40 bg-white border-b border-rose-pastel-200 py-2.5 md:border-b-0 md:py-3 transition-shadow"
+      >
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div
+            id="tt-searchcard"
+            class="flex items-center gap-2.5 md:justify-end"
+          >
+            <a href="/" class="md:hidden shrink-0">
+              <img
+                src="../assets/icons/logo.png"
+                alt="Cưới Xinh"
+                class="h-9 w-auto"
+              />
+            </a>
+            <label class="tt-search flex-1 md:flex-none md:w-[440px]">
               <svg
+                class="shrink-0"
+                style="color: var(--primary)"
                 xmlns="http://www.w3.org/2000/svg"
-                width="19"
-                height="19"
+                width="17"
+                height="17"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
-                stroke-width="2"
+                stroke-width="2.5"
                 stroke-linecap="round"
                 stroke-linejoin="round"
               >
-                <path d="M21 3H3l7.5 8.5V19l3 2v-9.5z" />
+                <circle cx="11" cy="11" r="8" />
+                <path d="m21 21-4.3-4.3" />
               </svg>
-              <span id="tt-filter-dot" class="tt-filter-dot hidden"></span>
-            </button>
-            <x-popover
-              id="tt-filter-pop"
-              anchor="#tt-filter-btn"
-              placement="bottom"
-              align="end"
-              width="232"
-              arrow
-            ></x-popover>
+              <input
+                id="tt-search-input"
+                type="search"
+                autocomplete="off"
+                placeholder="Tìm mẫu thiệp bạn thích"
+                aria-label="Tìm mẫu thiệp"
+              />
+            </label>
+
+            <!-- Lọc danh mục: một nút icon + popover, danh sách dựng từ dữ liệu -->
+            <div class="relative shrink-0">
+              <button
+                id="tt-filter-btn"
+                type="button"
+                class="tt-filter-btn"
+                aria-label="Lọc theo danh mục"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="19"
+                  height="19"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M21 3H3l7.5 8.5V19l3 2v-9.5z" />
+                </svg>
+                <span id="tt-filter-dot" class="tt-filter-dot hidden"></span>
+              </button>
+              <x-popover
+                id="tt-filter-pop"
+                anchor="#tt-filter-btn"
+                placement="bottom"
+                align="end"
+                width="232"
+                arrow
+              ></x-popover>
+            </div>
           </div>
         </div>
       </div>
-    </header>
 
-    <!-- ═══ PAGE BODY ═══ -->
-    <div class="flex-1 tt-body">
       <!-- ─── LƯỚI MẪU THIỆP ─── -->
-      <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5 pb-10 sm:pt-7 sm:pb-14">
+      <section
+        class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5 pb-10 sm:pt-7 sm:pb-14"
+      >
         <div
           id="template-gallery"
-          class="grid grid-cols-1 gap-7 sm:grid-cols-2 sm:gap-x-5 sm:gap-y-8 lg:grid-cols-3 xl:grid-cols-4"
+          class="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4"
         >
           <!-- Skeletons -->
           <div>
-            <div class="skeleton" style="aspect-ratio: 4/5; border-radius: 16px"></div>
+            <div
+              class="skeleton"
+              style="aspect-ratio: 4/5; border-radius: 16px"
+            ></div>
             <div class="mt-3 space-y-2">
               <div class="skeleton h-3.5 rounded w-2/3"></div>
               <div class="skeleton h-2.5 rounded w-full"></div>
@@ -480,7 +506,10 @@
             </div>
           </div>
           <div class="hidden sm:block">
-            <div class="skeleton" style="aspect-ratio: 4/5; border-radius: 16px"></div>
+            <div
+              class="skeleton"
+              style="aspect-ratio: 4/5; border-radius: 16px"
+            ></div>
             <div class="mt-3 space-y-2">
               <div class="skeleton h-3.5 rounded w-2/3"></div>
               <div class="skeleton h-2.5 rounded w-full"></div>
@@ -488,7 +517,10 @@
             </div>
           </div>
           <div class="hidden lg:block">
-            <div class="skeleton" style="aspect-ratio: 4/5; border-radius: 16px"></div>
+            <div
+              class="skeleton"
+              style="aspect-ratio: 4/5; border-radius: 16px"
+            ></div>
             <div class="mt-3 space-y-2">
               <div class="skeleton h-3.5 rounded w-2/3"></div>
               <div class="skeleton h-2.5 rounded w-full"></div>
@@ -496,7 +528,10 @@
             </div>
           </div>
           <div class="hidden xl:block">
-            <div class="skeleton" style="aspect-ratio: 4/5; border-radius: 16px"></div>
+            <div
+              class="skeleton"
+              style="aspect-ratio: 4/5; border-radius: 16px"
+            ></div>
             <div class="mt-3 space-y-2">
               <div class="skeleton h-3.5 rounded w-2/3"></div>
               <div class="skeleton h-2.5 rounded w-full"></div>
@@ -507,7 +542,11 @@
 
         <!-- Empty state -->
         <div id="empty-state" class="hidden text-center py-20">
-          <p id="empty-title" class="font-playfair text-lg mb-2" style="color: var(--primary)">
+          <p
+            id="empty-title"
+            class="font-playfair text-lg mb-2"
+            style="color: var(--primary)"
+          >
             Chưa có mẫu nào
           </p>
           <p id="empty-desc" class="text-sm" style="color: var(--muted)">
@@ -520,8 +559,8 @@
       <div
         class="hidden sm:block border-y"
         style="
-          border-color: rgb(var(--brand-primary-rgb)/0.3);
-          background: rgb(var(--white-rgb)/0.6);
+          border-color: rgb(var(--brand-primary-rgb) / 0.3);
+          background: rgb(var(--white-rgb) / 0.6);
         "
       >
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
@@ -546,7 +585,7 @@
               <div class="flex items-center gap-2.5 mb-2">
                 <div
                   class="shrink-0 w-7 h-7 flex items-center justify-center rounded-full"
-                  style="background: rgb(var(--brand-accent-rgb)/0.1)"
+                  style="background: rgb(var(--brand-accent-rgb) / 0.1)"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -589,7 +628,7 @@
               style="
                 grid-row: span 3;
                 width: 1px;
-                background: rgb(var(--brand-primary-rgb)/0.45);
+                background: rgb(var(--brand-primary-rgb) / 0.45);
                 align-self: stretch;
               "
             ></div>
@@ -607,7 +646,7 @@
               <div class="flex items-center gap-2.5 mb-2">
                 <div
                   class="shrink-0 w-7 h-7 flex items-center justify-center rounded-full"
-                  style="background: rgb(var(--brand-accent-rgb)/0.1)"
+                  style="background: rgb(var(--brand-accent-rgb) / 0.1)"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -648,7 +687,7 @@
               style="
                 grid-row: span 3;
                 width: 1px;
-                background: rgb(var(--brand-primary-rgb)/0.45);
+                background: rgb(var(--brand-primary-rgb) / 0.45);
                 align-self: stretch;
               "
             ></div>
@@ -666,7 +705,7 @@
               <div class="flex items-center gap-2.5 mb-2">
                 <div
                   class="shrink-0 w-7 h-7 flex items-center justify-center rounded-full"
-                  style="background: rgb(var(--brand-accent-rgb)/0.1)"
+                  style="background: rgb(var(--brand-accent-rgb) / 0.1)"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -703,7 +742,7 @@
               style="
                 grid-row: span 3;
                 width: 1px;
-                background: rgb(var(--brand-primary-rgb)/0.45);
+                background: rgb(var(--brand-primary-rgb) / 0.45);
                 align-self: stretch;
               "
             ></div>
@@ -721,7 +760,7 @@
               <div class="flex items-center gap-2.5 mb-2">
                 <div
                   class="shrink-0 w-7 h-7 flex items-center justify-center rounded-full"
-                  style="background: rgb(var(--brand-accent-rgb)/0.1)"
+                  style="background: rgb(var(--brand-accent-rgb) / 0.1)"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -757,11 +796,19 @@
       </div>
 
       <!-- ─── CTA — full-bleed wine section ─── -->
-      <section style="background: linear-gradient(135deg, rgb(var(--brand-accent-rgb)), rgb(var(--preview-btn-to-rgb)))">
+      <section
+        style="
+          background: linear-gradient(
+            135deg,
+            rgb(var(--brand-accent-rgb)),
+            rgb(var(--preview-btn-to-rgb))
+          );
+        "
+      >
         <div class="max-w-3xl mx-auto px-4 sm:px-6 py-12 sm:py-16 text-center">
           <p
             class="text-[10px] sm:text-xs font-semibold uppercase tracking-[0.22em] mb-3"
-            style="color: rgb(var(--white-rgb)/0.55)"
+            style="color: rgb(var(--white-rgb) / 0.55)"
           >
             Miễn phí cho đến khi bạn sẵn sàng
           </p>
@@ -773,16 +820,21 @@
           </h2>
           <p
             class="text-sm sm:text-[15px] leading-relaxed mb-7"
-            style="color: rgb(var(--white-rgb)/0.65)"
+            style="color: rgb(var(--white-rgb) / 0.65)"
           >
             Tạo bản nháp không giới hạn thời gian. Khi đổi sang mẫu khác, ảnh và
             thông tin đám cưới vẫn giữ nguyên — không cần nhập lại.
           </p>
-          <x-button size="lg" onclick="startDraft()" style="
+          <x-button
+            size="lg"
+            onclick="startDraft()"
+            style="
               background: rgb(var(--white-rgb));
               color: rgb(var(--brand-accent-rgb));
-              box-shadow: 0 4px 20px rgb(var(--preview-shadow-rgb)/0.22);
-            " class="hover:opacity-90">
+              box-shadow: 0 4px 20px rgb(var(--preview-shadow-rgb) / 0.22);
+            "
+            class="hover:opacity-90"
+          >
             Xem mẫu và tạo thử
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -807,7 +859,7 @@
         class="py-10 sm:py-16"
         style="
           background: var(--bg);
-          border-top: 1px solid rgb(var(--brand-primary-rgb)/0.3);
+          border-top: 1px solid rgb(var(--brand-primary-rgb) / 0.3);
         "
         aria-labelledby="faq-heading"
       >
@@ -830,7 +882,7 @@
           <div class="space-y-2">
             <div
               class="faq-item border rounded-lg bg-white overflow-hidden"
-              style="border-color: rgb(var(--brand-primary-rgb)/0.35)"
+              style="border-color: rgb(var(--brand-primary-rgb) / 0.35)"
             >
               <button
                 type="button"
@@ -870,7 +922,7 @@
 
             <div
               class="faq-item border rounded-lg bg-white overflow-hidden"
-              style="border-color: rgb(var(--brand-primary-rgb)/0.35)"
+              style="border-color: rgb(var(--brand-primary-rgb) / 0.35)"
             >
               <button
                 type="button"
@@ -910,7 +962,7 @@
 
             <div
               class="faq-item border rounded-lg bg-white overflow-hidden"
-              style="border-color: rgb(var(--brand-primary-rgb)/0.35)"
+              style="border-color: rgb(var(--brand-primary-rgb) / 0.35)"
             >
               <button
                 type="button"
@@ -949,7 +1001,7 @@
 
             <div
               class="faq-item border rounded-lg bg-white overflow-hidden"
-              style="border-color: rgb(var(--brand-primary-rgb)/0.35)"
+              style="border-color: rgb(var(--brand-primary-rgb) / 0.35)"
             >
               <button
                 type="button"
@@ -989,7 +1041,7 @@
 
             <div
               class="faq-item border rounded-lg bg-white overflow-hidden"
-              style="border-color: rgb(var(--brand-primary-rgb)/0.35)"
+              style="border-color: rgb(var(--brand-primary-rgb) / 0.35)"
             >
               <button
                 type="button"
@@ -1031,148 +1083,100 @@
     </div>
 
     <!-- ═══ NÚT NỔI GIỮA ĐÁY ═══ -->
-    <x-button id="tt-fab" class="tt-fab hover:opacity-90" onclick="startDraft()" style="
-        background: linear-gradient(135deg, rgb(var(--cta-accent-rgb)), rgb(var(--action-primary-rgb)));
-        color: rgb(var(--white-rgb));
-        box-shadow: 0 6px 22px rgb(var(--cta-accent-rgb)/0.4);
-      ">
+    <x-button
+      id="tt-fab"
+      size="md"
+      class="tt-fab tt-cta-btn"
+      onclick="startDraft()"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path
+          d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"
+        />
+      </svg>
       Bắt đầu miễn phí
-      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>
     </x-button>
 
-    <!-- ═══ THANH ĐIỀU HƯỚNG DƯỚI (mobile) ═══
-         Cùng kiểu với navbar trang Thiết lập: vỏ `fixed` mang nền trang để nội
-         dung cuộn không lộ ra dưới thẻ, bên trong là THẺ NỔI bo tròn cách mép
-         dưới 8px. Đổi chiều cao thì sửa --tt-tabbar-h. -->
-    <nav
-      class="fixed bottom-0 left-0 right-0 z-40 px-2 md:hidden"
-      style="
-        background: rgb(var(--white-rgb));
-        padding-bottom: calc(8px + env(safe-area-inset-bottom));
-      "
-    >
-      <div
-        class="max-w-4xl mx-auto flex items-center justify-around px-1.5 py-1.5 bg-white border border-rose-100 rounded-3xl shadow-[0_-4px_18px_rgb(var(--scrim-rgb)/0.08)]"
-      >
-        <a href="/" class="tt-tab">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.8"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-            <polyline points="9 22 9 12 15 12 15 22" />
-          </svg>
-          Trang chủ
-        </a>
+    <script
+      src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.8"
+      integrity="sha384-Tve8O+C6PBzsIMK/IRCwHbi8fyEzXIlIs6OfVBZHubplwYhaQF/4Mzxqgg+pp/oy"
+      crossorigin="anonymous"
+    ></script>
+    <!-- Navbar dùng chung: khai mảng mục một lần, component dựng cả thanh trên
+         (desktop) lẫn thanh tab dưới (mobile). Phải chạy TRƯỚC nav-autohide.js
+         vì nó tìm #main-nav. -->
+    <script src="../core/components/navbar.js"></script>
+    <script>
+      CXNavbar.mount({
+        active: "templates",
+        width: "7xl",
+        items: [
+          { id: "home", label: "Trang chủ", icon: "home", href: "/" },
+          {
+            id: "templates",
+            label: "Mẫu thiệp",
+            icon: "layers",
+            onClick: "setFavOnly(false)",
+          },
+          {
+            id: "cart",
+            label: "Đã chọn",
+            icon: "cart",
+            href: "/my-invitations/",
+          },
+          {
+            id: "fav",
+            label: "Yêu thích",
+            icon: "heart",
+            onClick: "setFavOnly(true)",
+            count: true,
+          },
+          {
+            id: "account",
+            label: "Tài khoản",
+            icon: "user",
+            onClick: "CXAccount.open(this)",
+          },
+        ],
+        actions: [
+          {
+            label: "Bắt đầu miễn phí",
+            icon: "sparkles",
+            onClick: "startDraft()",
+            class: "tt-cta-btn",
+          },
+        ],
+      });
+    </script>
 
-        <button id="tt-tab-all" type="button" class="tt-tab is-on" onclick="setFavOnly(false)">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.8"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path
-              d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z"
-            />
-            <circle cx="13.5" cy="6.5" r=".5" fill="currentColor" />
-            <circle cx="17.5" cy="10.5" r=".5" fill="currentColor" />
-            <circle cx="6.5" cy="12.5" r=".5" fill="currentColor" />
-            <circle cx="8.5" cy="7.5" r=".5" fill="currentColor" />
-          </svg>
-          Mẫu thiệp
-        </button>
-
-        <button id="tt-tab-fav" type="button" class="tt-tab" onclick="setFavOnly(true)">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.8"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path
-              d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"
-            />
-          </svg>
-          Yêu thích
-          <span id="tt-fav-count" class="tt-tab-count hidden">0</span>
-        </button>
-
-        <button id="tt-tab-acc" type="button" class="tt-tab" onclick="openAccount()">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.8"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <circle cx="12" cy="12" r="10" />
-            <circle cx="12" cy="10" r="3" />
-            <path d="M7 20.7a8 8 0 0 1 10 0" />
-          </svg>
-          <span id="tt-acc-label">Tài khoản</span>
-        </button>
-      </div>
-    </nav>
-
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.8" integrity="sha384-Tve8O+C6PBzsIMK/IRCwHbi8fyEzXIlIs6OfVBZHubplwYhaQF/4Mzxqgg+pp/oy" crossorigin="anonymous"></script>
+    <script src="../js/nav-autohide.js"></script>
     <script src="../core/x-button.js"></script>
     <script src="../core/x-popover.js"></script>
+    <script src="../core/helpers/account-menu.js"></script>
     <script src="../core/cache-util.js"></script>
     <script src="../core/config.js"></script>
     <script src="../core/helpers/alert.js"></script>
+    <script src="../core/helpers/draft-start.js"></script>
     <script src="../core/auth-ui.js"></script>
     <script src="../core/auth.js"></script>
     <script>
-      /* ── Draft helpers ── */
-      function _generateUUID() {
-        return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
-          const r = (Math.random() * 16) | 0;
-          return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
-        });
-      }
-
-      function _doStartDraft(theme, name) {
-        const manage_id = _generateUUID();
-        const t = theme
-          ? allTemplates.find((x) => x.theme === theme)
-          : allTemplates[0];
-        setCache(buildCacheKey("draft", manage_id), {
-          theme: t ? t.theme : theme || "",
-          is_published: false,
-          _localOnly: true,
-        });
-        if (t) {
-          sessionStorage.setItem("draft_template_name", name || t.name);
-          sessionStorage.setItem("draft_theme", t.theme);
-        }
-        sessionStorage.setItem("show_tour", "1");
-        window.location.href = `/invitation-setup/?id=${manage_id}`;
-      }
-
+      /* ── Tạo nháp ── Dùng THẲNG core/helpers/draft-start.js như trang chủ:
+         nó lo cả việc hỏi khi đang có thiệp viết dở. Có theme = khách bấm "Dùng
+         mẫu" trên thẻ (chosen mặc định = true); không có = nút chung "Bắt đầu
+         miễn phí", để helper tự lấy mẫu đầu tiên. */
       function startDraft(theme, name) {
-        _doStartDraft(theme, name);
+        if (theme) cxStartDraft(theme, name);
+        else cxStartDefaultDraft();
       }
 
       /* ── Đăng nhập (popup tại chỗ, giống lúc Xuất bản thiệp) ── */
@@ -1188,35 +1192,12 @@
         });
       }
 
-      // Mục "Tài khoản" ở thanh dưới: có phiên thì sang trang quản lý thiệp,
-      // chưa có thì mở popup đăng nhập ngay tại chỗ.
-      function openAccount() {
-        if (window.CXAuth && CXAuth.isLoggedIn()) {
-          window.location.href = "/my-invitations/";
-          return;
-        }
-        openLoginPopup();
-      }
-
-      // "Quản lý thiệp" luôn hiện; chỉ ẩn nút "Đăng nhập" khi đã có phiên.
-      // Trạng thái phiên hỏi CXAuth (core/auth.js) — nguồn sự thật duy nhất.
-      (function _initThemeAuth() {
-        const loginBtn = document.getElementById("ttLoginBtn");
-        const accLabel = document.getElementById("tt-acc-label");
-        const apply = (loggedIn) => {
-          if (loginBtn) loginBtn.style.display = loggedIn ? "none" : "";
-          if (accLabel) accLabel.textContent = loggedIn ? "Thiệp của tôi" : "Tài khoản";
-        };
-        if (!window.CXAuth) return;
-        apply(CXAuth.isLoggedIn()); // vẽ ngay, khỏi nhấp nháy
-        CXAuth.onChange((user) => apply(!!user));
-        CXAuth.getUser().then((user) => apply(!!user));
-      })();
+      // Mục "Tài khoản" ở navbar do core/helpers/account-menu.js lo (một luật cho
+      // mọi trang): nhãn không đổi theo phiên, nội dung menu mới đổi.
 
       /* ── SVG helpers ── */
       const SVG_EYE = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>`;
       const SVG_HEART = `<svg xmlns="http://www.w3.org/2000/svg" width="23" height="23" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>`;
-      const SVG_CHECK = `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>`;
 
       /* ── Danh mục: nhãn + icon cho dải lọc trên đầu trang ──
          Khoá = giá trị cột `templates.category`; danh mục lạ vẫn hiện được với
@@ -1258,18 +1239,6 @@
       const catMeta = (key) => CAT_META[key] || CAT_META._default;
       const catLabel = (key) =>
         CAT_META[key] ? CAT_META[key].label : key || "Khác";
-
-      /* Nhãn tiếng Việt cho `templates.features` — khoá lạ thì bỏ qua. */
-      const FEATURE_LABEL = {
-        gallery: "Album ảnh",
-        map: "Bản đồ",
-        qrcode: "Mã QR",
-        rsvp: "Xác nhận dự",
-        countdown: "Đếm ngược",
-        music: "Nhạc nền",
-        comment: "Lời chúc",
-        guestbook: "Sổ lưu bút",
-      };
 
       /* ── Trạng thái lọc của lưới ── */
       const FAV_KEY = "cx_fav_templates";
@@ -1321,7 +1290,6 @@
             previewUrl: t.preview_url,
             category: t.category,
             tags: t.tags || [],
-            features: t.features || [],
             price: pr.price ?? 159000,
             originalPrice: pr.original_price ?? 199000,
           };
@@ -1372,10 +1340,7 @@
       }
 
       function syncFavCount() {
-        const el = document.getElementById("tt-fav-count");
-        if (!el) return;
-        el.textContent = favSet.size;
-        el.classList.toggle("hidden", favSet.size === 0);
+        CXNavbar.setCount("fav", favSet.size);
       }
 
       function toggleFav(ev, theme) {
@@ -1392,8 +1357,7 @@
 
       function setFavOnly(on) {
         favOnly = on;
-        document.getElementById("tt-tab-fav").classList.toggle("is-on", on);
-        document.getElementById("tt-tab-all").classList.toggle("is-on", !on);
+        CXNavbar.setActive(on ? "fav" : "templates");
         applyFilter();
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
@@ -1402,39 +1366,29 @@
       function cardHTML(t) {
         const imgSrc = `/assets/images/templates/${t.theme}.jpg`;
         const isFav = favSet.has(t.theme);
-        const featTxt = (t.features || [])
-          .map((f) => FEATURE_LABEL[f])
-          .filter(Boolean)
-          .slice(0, 3)
-          .join(" · ");
 
         return `
-          <article class="tt-card" data-id="${t.id}" onclick="openPreview('${t.previewUrl}')">
+          <article class="tt-card" data-id="${t.id}">
             <div class="tt-media">
               <img src="${imgSrc}" alt="${t.name}" loading="lazy" />
               ${t.category ? `<span class="tt-badge">${catLabel(t.category)}</span>` : ""}
               <button type="button" class="tt-fav${isFav ? " is-on" : ""}" aria-pressed="${isFav}"
                       aria-label="Lưu vào yêu thích" onclick="toggleFav(event,'${t.theme}')">${SVG_HEART}</button>
               <div class="tt-hover">
-                <span>${SVG_EYE}Xem trước</span>
+                <x-button size="sm" variant="bare" class="tt-preview-btn"
+                          onclick="openPreview('${t.previewUrl}')">${SVG_EYE}Xem trước</x-button>
               </div>
             </div>
 
-            <div class="mt-3">
-              <div class="flex items-start justify-between gap-3">
-                <h3 class="text-[15px] font-semibold leading-snug truncate" style="color:var(--fg)">${t.name}</h3>
-                <span class="shrink-0 inline-flex items-center gap-1 text-[12px] font-medium" style="color:var(--muted)">
-                  ${SVG_CHECK}${(t.features || []).length} tính năng
-                </span>
-              </div>
-              <p class="mt-0.5 text-[13px] leading-snug line-clamp-1" style="color:var(--muted)">${t.description || ""}</p>
-              ${featTxt ? `<p class="mt-0.5 text-[13px] leading-snug truncate" style="color:var(--muted)">${featTxt}</p>` : ""}
-              <div class="mt-1.5 flex items-baseline gap-2">
+            <div class="mt-3 px-1.5 pb-1">
+              <h3 class="text-[15px] font-semibold leading-snug truncate" style="color:var(--fg)">${t.name}</h3>
+              <p class="mt-0.5 text-[13px] leading-snug line-clamp-2 min-h-[2.75em]" style="color:var(--muted)">${t.description || ""}</p>
+              <div class="mt-2 flex items-center gap-2">
                 <span class="text-[15px] font-bold" style="color:var(--fg)">${t.price.toLocaleString("vi-VN")}₫</span>
                 ${t.originalPrice > t.price ? `<span class="text-[12px] line-through" style="color:var(--muted)">${t.originalPrice.toLocaleString("vi-VN")}₫</span>` : ""}
                 <span class="text-[13px]" style="color:var(--muted)">trọn đời</span>
-                <button type="button" class="ml-auto text-[13px] font-semibold underline underline-offset-2"
-                        style="color:var(--primary)" onclick="event.stopPropagation();startDraft('${t.theme}','${t.name}')">Dùng mẫu</button>
+                <x-button size="sm" variant="outline" tone="brand" class="ml-auto"
+                          onclick="event.stopPropagation();startDraft('${t.theme}','${t.name}')">Dùng mẫu</x-button>
               </div>
             </div>
           </article>`;
@@ -1452,7 +1406,12 @@
           if (activeCat !== "all" && t.category !== activeCat) return false;
           if (!q) return true;
           const hay = _norm(
-            [t.name, t.description, catLabel(t.category), (t.tags || []).join(" ")].join(" "),
+            [
+              t.name,
+              t.description,
+              catLabel(t.category),
+              (t.tags || []).join(" "),
+            ].join(" "),
           );
           return hay.includes(q);
         });
@@ -1515,7 +1474,7 @@
         "scroll",
         () => {
           document
-            .getElementById("main-header")
+            .getElementById("tt-searchbar")
             .classList.toggle("nav-scrolled", window.scrollY > 10);
         },
         { passive: true },

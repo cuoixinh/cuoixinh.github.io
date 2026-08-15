@@ -335,12 +335,16 @@ html.cx-landing {
    padding-top 64px = chiều cao navbar cố định (h-16) nên nội dung nằm trọn
    dưới navbar, còn hộp hero vẫn phủ kín màn. */
 
+/* Dưới md KHÔNG có navbar trên (menu nằm ở thanh tab dưới) nên không chừa 64px
+   ở đỉnh, nhưng phải trừ 72px thanh tab ở đáy — nếu không màn mở đầu cao hơn
+   khung nhìn đúng bằng chỗ thanh tab và trang tự cuộn một đoạn cụt. Từ md thì
+   ngược lại: chừa navbar, không có thanh tab (xem @media bên dưới). */
 #hero {
   @apply relative flex flex-col overflow-hidden;
-  min-height: calc(var(--vh, 1vh) * 100);
-  min-height: 100dvh;
-  min-height: 100svh;
-  padding: 64px 16px 0;
+  min-height: calc(var(--vh, 1vh) * 100 - 72px);
+  min-height: calc(100dvh - 72px);
+  min-height: calc(100svh - 72px);
+  padding: 12px 16px 0;
   background: linear-gradient(
     160deg,
     rgb(var(--surface-tint-rgb)) 0%,
@@ -891,7 +895,10 @@ html.cx-landing {
 
 @media (min-width: 768px) {
   #hero {
-    padding: 64px 20px 0;
+    min-height: calc(var(--vh, 1vh) * 100);
+    min-height: 100dvh;
+    min-height: 100svh;
+    padding: 80px 20px 0; /* = chiều cao .cx-navbar (12 + 64 + 4) */
   }
 }
 
@@ -1205,14 +1212,9 @@ html.cx-landing {
   display: flex;
 }
 
-/* Navbar là THẺ NỔI bo góc (#main-nav-card) trên nền trong suốt, cùng kiểu với
-   navbar trang thiết lập — vỏ #main-nav chỉ giữ lề nên không được trả nền về cho
-   nó, nếu không mất luôn khoảng hở làm nên hình dạng thẻ. Bảng menu mobile là
-   một thẻ y hệt thả ngay dưới. */
-
-#mobileMenu {
-  background: rgb(var(--white-rgb));
-}
+/* Navbar do core/components/navbar.js dựng (.cx-navbar/.cx-navcard ở
+   styles/_common.css). Ở đây chỉ còn phần tự ẩn khi cuộn — js/nav-autohide.js
+   gắn .nav-hidden lên #main-nav. */
 #main-nav {
   transition: transform 0.3s ease;
 }

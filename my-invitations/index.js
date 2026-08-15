@@ -27,7 +27,9 @@ const POST_LOGIN_REDIRECT_KEY = "post_login_redirect";
   window.history.replaceState(
     {},
     "",
-    window.location.pathname + (cleanQuery ? `?${cleanQuery}` : "") + window.location.hash,
+    window.location.pathname +
+      (cleanQuery ? `?${cleanQuery}` : "") +
+      window.location.hash,
   );
 })();
 
@@ -68,6 +70,9 @@ async function logout() {
   window.location.replace(window.location.pathname);
 }
 
+// Trang này có sẵn form hồ sơ và hàm logout riêng → nối vào menu tài khoản chung.
+window.CXAccount?.configure({ onProfile: openProfileModal, onLogout: logout });
+
 function openLoginPopup() {
   if (!window.AuthUI) return;
   AuthUI.openModal({
@@ -77,31 +82,10 @@ function openLoginPopup() {
   });
 }
 
+// Mục "Tài khoản" ở navbar giữ nguyên nhãn ở mọi trạng thái phiên (giống các
+// trang khác); trạng thái phiên thể hiện ở NỘI DUNG menu, nạp lúc mở.
 function updateAuthUI() {
-  const loginBtn = document.getElementById("navLoginBtn");
-  const menu = document.getElementById("user-menu");
-
-  if (!currentUser) {
-    if (loginBtn) loginBtn.style.display = "";
-    menu.classList.add("hidden");
-    closeUserDropdown();
-    return;
-  }
-
-  if (loginBtn) loginBtn.style.display = "none";
-  menu.classList.remove("hidden");
-
-  const meta = currentUser.user_metadata || {};
-  const name = meta.full_name || meta.name || "Người dùng";
-  document.getElementById("user-name").textContent = name;
-  document.getElementById("user-email").textContent = currentUser.email || "";
-
-  const avatar = document.getElementById("user-avatar");
-  if (meta.avatar_url) {
-    avatar.innerHTML = `<img src="${escAttr(meta.avatar_url)}" alt="" class="h-full w-full object-cover" />`;
-  } else {
-    avatar.textContent = name.trim().charAt(0).toUpperCase() || "?";
-  }
+  window.CXAccount?.close(); // phiên đổi → menu tài khoản đang mở không còn đúng
 }
 
 // ===== DỮ LIỆU =====
@@ -144,9 +128,12 @@ function themeName(theme) {
 // Tên hiển thị của mẫu ("Truyền thống 01"…) — thiếu thì thẻ rơi về tên slug hoá hoa.
 async function loadThemeNames() {
   try {
-    const res = await fetch(CONFIG.supabase.edgeUrl + "?resource=public-templates", {
-      headers: { Authorization: "Bearer " + CONFIG.supabase.anonKey },
-    });
+    const res = await fetch(
+      CONFIG.supabase.edgeUrl + "?resource=public-templates",
+      {
+        headers: { Authorization: "Bearer " + CONFIG.supabase.anonKey },
+      },
+    );
     if (!res.ok) return;
     const list = await res.json();
     if (!Array.isArray(list)) return;
@@ -267,8 +254,10 @@ function matchTab(c, tab) {
 
 // ===== RENDER =====
 
-const TAB_ACTIVE = ["bg-white", "text-gray-900", "shadow-sm"];
-const TAB_IDLE = ["text-gray-500", "hover:text-gray-800"];
+// Màu chữ do .cx-segtab (styles/_common.css) lo — ở đây chỉ còn nền + bóng của
+// ô đang chọn và cờ .is-on.
+const TAB_ACTIVE = ["bg-rose-pastel-100", "is-on"];
+const TAB_IDLE = [];
 
 function render() {
   // Đếm theo TOÀN bộ thẻ (không theo tab đang chọn) để con số không nhảy khi đổi tab.
@@ -303,12 +292,28 @@ function render() {
 }
 
 // Năm khối loại trừ nhau: lưới thẻ · khung xương · rỗng · chưa đăng nhập · lỗi tải.
+// Mỗi lúc chỉ được MỘT nút "Tạo thiệp mới": khối rỗng đã có nút riêng nên nút ở
+// đầu trang phải ẩn đi (khối "chưa đăng nhập" chỉ có nút Đăng nhập nên giữ).
 function setState(state, counts) {
-  document.getElementById("cards-grid").classList.toggle("hidden", state !== "grid");
-  document.getElementById("state-loading").classList.toggle("hidden", state !== "loading");
-  document.getElementById("state-empty").classList.toggle("hidden", state !== "empty");
-  document.getElementById("state-guest").classList.toggle("hidden", state !== "guest");
-  document.getElementById("state-error").classList.toggle("hidden", state !== "error");
+  document
+    .getElementById("btn-new-top")
+    ?.classList.toggle("hidden", state === "empty");
+
+  document
+    .getElementById("cards-grid")
+    .classList.toggle("hidden", state !== "grid");
+  document
+    .getElementById("state-loading")
+    .classList.toggle("hidden", state !== "loading");
+  document
+    .getElementById("state-empty")
+    .classList.toggle("hidden", state !== "empty");
+  document
+    .getElementById("state-guest")
+    .classList.toggle("hidden", state !== "guest");
+  document
+    .getElementById("state-error")
+    .classList.toggle("hidden", state !== "error");
 
   if (state !== "empty") return;
   // Rỗng vì lọc theo tab thì nói rõ, tránh hiểu nhầm là chưa có thiệp nào.
@@ -323,11 +328,13 @@ function setState(state, counts) {
     : "Chọn một mẫu thiệp rồi bắt đầu điền thông tin — chỉ mất vài phút.";
 }
 
-const BADGE = "inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[9px] font-semibold shadow-sm sm:px-2 sm:text-[10px]";
+const BADGE =
+  "inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[9px] font-semibold shadow-sm sm:px-2 sm:text-[10px]";
 
 function cardHTML(c, i) {
   const state = cardState(c);
-  const title = [c.groom, c.bride].filter(Boolean).join(" & ") || themeName(c.theme);
+  const title =
+    [c.groom, c.bride].filter(Boolean).join(" & ") || themeName(c.theme);
   const days = daysLeft(c);
 
   const statusBadge = c.published
@@ -336,8 +343,7 @@ function cardHTML(c, i) {
 
   let leftBadges = "";
   if (state === "trial" || state === "expired" || state === "published") {
-    leftBadges =
-      `<span class="${BADGE} bg-amber-500 text-white"><i class="fas fa-credit-card text-[9px]"></i>Chưa kích hoạt</span>`;
+    leftBadges = `<span class="${BADGE} bg-amber-500 text-white"><i class="fas fa-credit-card text-[9px]"></i>Chưa kích hoạt</span>`;
     if (state === "trial") {
       leftBadges += `<span class="${BADGE} bg-sky-500 text-white"><i class="fas fa-clock text-[9px]"></i><span class="sm:hidden">Còn ${days} ngày</span><span class="hidden sm:inline">Dùng thử · còn ${days} ngày</span></span>`;
     } else if (state === "expired") {
@@ -356,13 +362,11 @@ function cardHTML(c, i) {
         <img src="/assets/images/templates/${escAttr(c.theme)}.jpg" alt="${escAttr(title)}"
              loading="lazy" onerror="this.style.display='none'"
              class="h-full w-full object-cover object-top transition-transform duration-300 group-hover:scale-105" />
+        <!-- Hai cụm: trái = kích hoạt / hạn dùng thử, phải = trạng thái thiệp
+             (Nháp · Đã xuất bản). Mobile đã là 1 thẻ/hàng nên ảnh đủ rộng, hai
+             cụm không còn đè lên nhau như hồi lưới 2 cột. -->
         <div class="absolute left-1.5 top-1.5 flex flex-col items-start gap-1 sm:left-2 sm:top-2">${leftBadges}</div>
-        <!-- Ảnh thẻ chỉ rộng ~132px trên mobile, hai cụm badge đè lên nhau nếu cùng
-             hiện. Cụm trái chỉ có khi thiệp đã xuất bản — mà lúc đó nó đã nói thay
-             "Đã xuất bản" rồi, nên nhường chỗ. Thẻ nháp không có cụm trái nên badge
-             "Nháp" hiện ở mọi khổ: trên mobile khối ghi chú bên dưới bị ẩn, đây là
-             chỗ DUY NHẤT phân biệt nháp với đã xuất bản. -->
-        <div class="absolute right-1.5 top-1.5 sm:right-2 sm:top-2 ${leftBadges ? "hidden sm:block" : ""}">${statusBadge}</div>
+        <div class="absolute right-1.5 top-1.5 sm:right-2 sm:top-2">${statusBadge}</div>
       </div>
 
       <div class="flex flex-1 flex-col p-3 sm:p-4">
@@ -388,21 +392,23 @@ function cardHTML(c, i) {
     </div>`;
 }
 
+// Hiện ở MỌI khổ màn: đây là chỗ duy nhất nói rõ thiệp còn mấy ngày dùng thử /
+// đã hết hạn — ẩn trên mobile là khách không biết vì sao thiệp sắp đóng.
 function noteHTML(state, days) {
   if (state === "trial") {
-    return `<div class="mt-3 hidden gap-2 rounded-lg bg-sky-50 p-2.5 sm:flex text-[11px] leading-relaxed text-sky-800">
+    return `<div class="mt-3 flex gap-2 rounded-lg bg-sky-50 p-2.5 text-[11px] leading-relaxed text-sky-800">
       <i class="fas fa-clock mt-0.5 text-[11px] text-sky-500"></i>
       <span>Còn ${days} ngày dùng thử — thanh toán để giữ thiệp mở.</span>
     </div>`;
   }
   if (state === "expired") {
-    return `<div class="mt-3 hidden gap-2 rounded-lg bg-red-50 p-2.5 sm:flex text-[11px] leading-relaxed text-red-700">
+    return `<div class="mt-3 flex gap-2 rounded-lg bg-red-50 p-2.5 text-[11px] leading-relaxed text-red-700">
       <i class="fas fa-triangle-exclamation mt-0.5 text-[11px] text-red-500"></i>
       <span>Hết hạn dùng thử — kích hoạt để mở lại cho khách mời.</span>
     </div>`;
   }
   if (state === "draft") {
-    return `<div class="mt-3 hidden gap-2 rounded-lg bg-gray-50 p-2.5 sm:flex text-[11px] leading-relaxed text-gray-600">
+    return `<div class="mt-3 flex gap-2 rounded-lg bg-gray-50 p-2.5 text-[11px] leading-relaxed text-gray-600">
       <i class="fas fa-pen-nib mt-0.5 text-[11px] text-gray-400"></i>
       <span>Bản nháp — xuất bản để chia sẻ với khách mời.</span>
     </div>`;
@@ -410,17 +416,23 @@ function noteHTML(state, days) {
   return "";
 }
 
+// Icon lucide nhúng thẳng (trang dùng Font Awesome cho phần còn lại, nhưng bộ nút
+// này theo lucide như các trang khác). copyLink() đổi qua lại hai icon nên phải
+// thay CẢ NỘI DUNG nút, không đổi được bằng class như icon font.
+const ICON_COPY =
+  '<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>';
+const ICON_SETTINGS =
+  '<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>';
+const ICON_CHECK =
+  '<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
+
 // Hiện ở mọi khổ màn hình: đổi đường dẫn và sao chép link là hai việc chính của
 // thiệp đã xuất bản, ẩn trên mobile là mất hẳn lối vào.
 function slugRowHTML(c, i) {
   return `<div class="mt-3 flex items-center gap-0.5 rounded-lg bg-gray-50 px-2 py-1 sm:px-2.5">
       <span class="min-w-0 flex-1 truncate font-mono text-[11px] text-gray-600">/${esc(c.slug)}</span>
-      <x-button variant="ghost" tone="neutral" size="xs" icon-only onclick="openSlugModal(${i})" aria-label="Đổi đường dẫn">
-        <i class="fas fa-gear text-[11px]"></i>
-      </x-button>
-      <x-button variant="ghost" tone="neutral" size="xs" icon-only onclick="copyLink(${i}, this)" aria-label="Sao chép liên kết">
-        <i class="fas fa-copy text-[11px]"></i>
-      </x-button>
+      <x-button variant="ghost" tone="neutral" size="xs" icon-only onclick="openSlugModal(${i})" aria-label="Đổi đường dẫn">${ICON_SETTINGS}</x-button>
+      <x-button variant="ghost" tone="neutral" size="xs" icon-only onclick="copyLink(${i}, this)" aria-label="Sao chép liên kết">${ICON_COPY}</x-button>
     </div>`;
 }
 
@@ -444,7 +456,8 @@ function _actionBtn(icon, title, onclick, extra = "") {
 // được bằng cách bấm ảnh/tên — không ai đoán ra); khi cần "Kích hoạt" thì bỏ
 // "Chia sẻ", link vẫn sao chép được ở hàng đường dẫn ngay trên.
 function actionsHTML(c, i, state) {
-  const needsActivate = state === "trial" || state === "expired" || state === "published";
+  const needsActivate =
+    state === "trial" || state === "expired" || state === "published";
   const out = [];
   if (c.published && c.slug) {
     out.push(_actionBtn("fas fa-eye", "Xem thiệp", `viewCard(${i})`));
@@ -510,9 +523,8 @@ async function copyLink(i, btn) {
   const c = CARDS[i];
   if (!c?.slug) return;
   if (!(await _copyText(publicUrl(c)))) return;
-  const icon = btn.querySelector("i");
-  icon.className = "fas fa-check text-[11px]";
-  setTimeout(() => (icon.className = "fas fa-copy text-[11px]"), 2000);
+  btn.innerHTML = ICON_CHECK;
+  setTimeout(() => (btn.innerHTML = ICON_COPY), 2000);
   showToast("Đã sao chép liên kết thiệp", "success");
 }
 
@@ -539,7 +551,8 @@ function activateCard(i) {
 async function deleteCard(i) {
   const c = CARDS[i];
   if (!c) return;
-  const title = [c.groom, c.bride].filter(Boolean).join(" & ") || themeName(c.theme);
+  const title =
+    [c.groom, c.bride].filter(Boolean).join(" & ") || themeName(c.theme);
   const ok = await showConfirm(
     "Xoá thiệp?",
     `Thiệp “${title}” sẽ biến mất khỏi danh sách và khách mời không mở được nữa.`,
@@ -582,20 +595,23 @@ function _dropFromLocalOrders(manageId) {
 
 // ===== MODAL: đổi đường dẫn =====
 
-let _slugCardIndex = null;
-
+// Đổi đường dẫn thiệp: dùng THẲNG hộp thoại base (showPrompt ở
+// core/helpers/alert.js) thay vì modal riêng — cùng khung, cùng nút với mọi hộp
+// thoại khác trong app. `hint` chạy lại mỗi lần gõ để xem trước link.
 function openSlugModal(i) {
   const c = CARDS[i];
   if (!c) return;
-  _slugCardIndex = i;
-  _setInputValue("slug-input", c.slug || "");
-  _syncSlugPreview();
-  _openModal("slug-modal");
-}
 
-function closeSlugModal() {
-  _slugCardIndex = null;
-  _closeModal("slug-modal");
+  showPrompt("Đổi đường dẫn thiệp", {
+    message: "Khách mời sẽ mở thiệp bằng đường dẫn này.",
+    value: c.slug || "",
+    placeholder: "vd: lan-anh",
+    okText: "Lưu",
+    hint: (v) => `${window.location.origin}/${_normalizeSlug(v) || "..."}`,
+  }).then((raw) => {
+    if (raw === null) return; // huỷ / đóng
+    _saveSlug(c, raw);
+  });
 }
 
 // Preview phải là đường dẫn ĐÃ chuẩn hoá y như lúc lưu ("Lan Anh" → "lan-anh"),
@@ -608,26 +624,13 @@ function _normalizeSlug(raw) {
   }
 }
 
-function _syncSlugPreview() {
-  const val = _normalizeSlug(document.getElementById("slug-input").value);
-  document.getElementById("slug-preview").textContent =
-    `${window.location.origin}/${val || "..."}`;
-}
-
-async function _submitSlug(e) {
-  e.preventDefault();
-  const c = CARDS[_slugCardIndex];
-  if (!c) return;
-
-  const normalized = _normalizeSlug(document.getElementById("slug-input").value);
+async function _saveSlug(c, raw) {
+  const normalized = _normalizeSlug(raw);
   if (!normalized) {
     showToast("Đường dẫn phải có ít nhất một chữ cái hoặc chữ số", "error");
     return;
   }
-  if (normalized === c.slug) {
-    closeSlugModal();
-    return;
-  }
+  if (normalized === c.slug) return;
 
   showLoading(true, "Đang lưu đường dẫn...");
   try {
@@ -635,7 +638,6 @@ async function _submitSlug(e) {
     // đúng thứ đã lưu mà không phải tải lại danh sách.
     await weddingBL.updateWedding({ id: c.id, slug: normalized });
     c.slug = normalized;
-    closeSlugModal();
     render();
     showToast("Đã đổi đường dẫn thiệp", "success");
   } catch (e2) {
@@ -648,7 +650,6 @@ async function _submitSlug(e) {
 // ===== MODAL: thông tin cá nhân =====
 
 function openProfileModal() {
-  closeUserDropdown();
   if (!currentUser) return;
   const meta = currentUser.user_metadata || {};
   _setInputValue("profile-name", meta.full_name || meta.name || "");
@@ -720,7 +721,9 @@ function esc(s) {
   return String(s ?? "").replace(
     /[&<>"']/g,
     (ch) =>
-      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch],
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[
+        ch
+      ],
   );
 }
 
@@ -734,16 +737,6 @@ function formatDate(dateStr) {
   return d.toLocaleDateString("vi-VN");
 }
 
-function toggleUserDropdown() {
-  const hidden = document.getElementById("user-dropdown").classList.toggle("hidden");
-  document.getElementById("user-menu-btn")?.setAttribute("aria-expanded", String(!hidden));
-}
-
-function closeUserDropdown() {
-  document.getElementById("user-dropdown")?.classList.add("hidden");
-  document.getElementById("user-menu-btn")?.setAttribute("aria-expanded", "false");
-}
-
 // ===== GẮN SỰ KIỆN =====
 
 function bindEvents() {
@@ -754,18 +747,11 @@ function bindEvents() {
     });
   });
 
-  document.getElementById("user-menu-btn").addEventListener("click", (e) => {
-    e.stopPropagation();
-    toggleUserDropdown();
-  });
-  document.addEventListener("click", closeUserDropdown);
-
-  document.getElementById("profile-form").addEventListener("submit", _submitProfile);
-  document.getElementById("slug-form").addEventListener("submit", _submitSlug);
-  document.getElementById("slug-input").addEventListener("input", _syncSlugPreview);
-
+  document
+    .getElementById("profile-form")
+    .addEventListener("submit", _submitProfile);
   // Bấm ra ngoài để đóng modal
-  ["profile-modal", "slug-modal"].forEach((id) => {
+  ["profile-modal"].forEach((id) => {
     document.getElementById(id).addEventListener("click", function (e) {
       if (e.target === this) _closeModal(id);
     });
@@ -774,12 +760,10 @@ function bindEvents() {
   // Esc: đóng modal đang mở, không có modal nào thì đóng menu tài khoản.
   document.addEventListener("keydown", (e) => {
     if (e.key !== "Escape") return;
-    const open = ["slug-modal", "profile-modal"].find(
+    const open = ["profile-modal"].find(
       (id) => !document.getElementById(id).classList.contains("hidden"),
     );
-    if (open === "slug-modal") closeSlugModal();
-    else if (open) _closeModal(open);
-    else closeUserDropdown();
+    if (open) _closeModal(open);
   });
 }
 

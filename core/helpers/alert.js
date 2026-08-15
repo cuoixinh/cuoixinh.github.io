@@ -123,24 +123,36 @@ const _TOAST_TYPE_ICON = {
 // type quyết định màu + icon mặc định. icon (tuỳ chọn): tên icon lucide (vd "copy")
 // để đổi riêng icon mà vẫn giữ màu của type — tên có sẵn xem _LUCIDE_PATHS.
 function showToast(msg, type = "default", icon = null) {
-  const el    = document.getElementById("cx-toast");
+  const el = document.getElementById("cx-toast");
   const iconEl = document.getElementById("cx-toast-icon");
-  const text  = document.getElementById("cx-toast-msg");
+  const text = document.getElementById("cx-toast-msg");
   if (!el || !iconEl || !text) return;
 
   const cfg = {
-    success: { bg: "rgb(var(--state-success-bg-rgb))", color: "rgb(var(--state-success-text-rgb))" },
-    error:   { bg: "rgb(var(--state-error-bg-rgb))", color: "rgb(var(--state-error-text-rgb))" },
-    warning: { bg: "rgb(var(--state-warning-bg-rgb))", color: "rgb(var(--state-warning-text-rgb))" },
-    default: { bg: "rgb(var(--surface-control-rgb))", color: "rgb(var(--text-tertiary-rgb))" },
+    success: {
+      bg: "rgb(var(--state-success-bg-rgb))",
+      color: "rgb(var(--state-success-text-rgb))",
+    },
+    error: {
+      bg: "rgb(var(--state-error-bg-rgb))",
+      color: "rgb(var(--state-error-text-rgb))",
+    },
+    warning: {
+      bg: "rgb(var(--state-warning-bg-rgb))",
+      color: "rgb(var(--state-warning-text-rgb))",
+    },
+    default: {
+      bg: "rgb(var(--surface-control-rgb))",
+      color: "rgb(var(--text-tertiary-rgb))",
+    },
   };
 
-  const c        = cfg[type] || cfg.default;
+  const c = cfg[type] || cfg.default;
   const typeIcon = _TOAST_TYPE_ICON[type] || _TOAST_TYPE_ICON.default;
   iconEl.style.background = c.bg;
-  iconEl.style.color      = c.color;
+  iconEl.style.color = c.color;
   _setLucideIcon(iconEl, icon || typeIcon, 18, typeIcon);
-  text.innerHTML        = msg;
+  text.innerHTML = msg;
 
   el.classList.add("visible");
 
@@ -204,6 +216,19 @@ function showToast(msg, type = "default", icon = null) {
     .cx-dlg-cancel:hover { background: rgb(var(--surface-hover-rgb)); }
     .cx-dlg-ok { background: rgb(var(--action-primary-rgb)); color: rgb(var(--white-rgb)); }
     .cx-dlg-ok:hover { background: rgb(var(--action-primary-hover-rgb)); }
+    /* Ô nhập tuỳ chọn (showPrompt): nằm giữa phần đọc và chân thẻ. */
+    #cx-alert-field { padding: 0 20px 18px; }
+    .cx-dlg-input {
+      width: 100%; height: 40px; padding: 0 14px;
+      border: 1px solid rgb(var(--border-field-rgb)); border-radius: 12px;
+      font-family: inherit; font-size: 14px; color: rgb(var(--text-title-rgb));
+      outline: none; transition: border-color .15s ease, box-shadow .15s ease;
+    }
+    .cx-dlg-input:focus {
+      border-color: rgb(var(--focus-ring-rgb));
+      box-shadow: 0 0 0 3px rgb(var(--focus-ring-rgb)/0.18);
+    }
+    .cx-dlg-hint { margin-top: 8px; font-size: 12px; color: rgb(var(--text-tertiary-rgb)); word-break: break-all; }
     .cx-dlg-hidden { display: none !important; }
   `;
   document.head.appendChild(style);
@@ -217,6 +242,10 @@ function showToast(msg, type = "default", icon = null) {
         <div id="cx-alert-title"></div>
       </div>
       <div id="cx-alert-body"></div>
+      <div id="cx-alert-field" class="cx-dlg-hidden">
+        <input id="cx-alert-input" class="cx-dlg-input" type="text" autocomplete="off" />
+        <p id="cx-alert-hint" class="cx-dlg-hint"></p>
+      </div>
       <div id="cx-alert-footer">
         <x-button variant="ghost" size="sm" type="button" id="cx-alert-cancel" class="cx-dlg-btn cx-dlg-cancel"></x-button>
         <x-button variant="ghost" size="sm" type="button" id="cx-alert-ok" class="cx-dlg-btn cx-dlg-ok"></x-button>
@@ -238,7 +267,16 @@ function showToast(msg, type = "default", icon = null) {
     if (btn) _settleDialog(btn.id === "cx-alert-ok");
   });
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && backdrop.classList.contains("visible")) _settleDialog(null);
+    if (e.key === "Escape" && backdrop.classList.contains("visible"))
+      _settleDialog(null);
+  });
+
+  // Enter trong ô nhập = bấm nút chính (hộp thoại không có <form> để submit).
+  backdrop.querySelector("#cx-alert-input").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      _settleDialog(true);
+    }
   });
 })();
 
@@ -252,10 +290,26 @@ function _settleDialog(val) {
 }
 
 const _DLG_ICONS = {
-  error:   { icon: "x",              bg: "rgb(var(--state-error-bg-rgb))", color: "rgb(var(--state-error-text-rgb))" },
-  warning: { icon: "triangle-alert", bg: "rgb(var(--state-warning-bg-rgb))", color: "rgb(var(--state-warning-text-rgb))" },
-  info:    { icon: "info",           bg: "rgb(var(--state-info-bg-rgb))", color: "rgb(var(--state-info-text-rgb))" },
-  success: { icon: "check",          bg: "rgb(var(--state-success-bg-rgb))", color: "rgb(var(--state-success-text-rgb))" },
+  error: {
+    icon: "x",
+    bg: "rgb(var(--state-error-bg-rgb))",
+    color: "rgb(var(--state-error-text-rgb))",
+  },
+  warning: {
+    icon: "triangle-alert",
+    bg: "rgb(var(--state-warning-bg-rgb))",
+    color: "rgb(var(--state-warning-text-rgb))",
+  },
+  info: {
+    icon: "info",
+    bg: "rgb(var(--state-info-bg-rgb))",
+    color: "rgb(var(--state-info-text-rgb))",
+  },
+  success: {
+    icon: "check",
+    bg: "rgb(var(--state-success-bg-rgb))",
+    color: "rgb(var(--state-success-text-rgb))",
+  },
 };
 
 /**
@@ -265,7 +319,11 @@ const _DLG_ICONS = {
  */
 function showDialog(opts = {}) {
   // Nếu còn hộp thoại cũ chưa đóng → coi như huỷ trước khi mở cái mới.
-  if (_dialogResolve) { const r = _dialogResolve; _dialogResolve = null; r(false); }
+  if (_dialogResolve) {
+    const r = _dialogResolve;
+    _dialogResolve = null;
+    r(false);
+  }
 
   const c = _DLG_ICONS[opts.type] || _DLG_ICONS.error;
   const icon = document.getElementById("cx-alert-icon");
@@ -281,6 +339,24 @@ function showDialog(opts = {}) {
   if (opts.html) body.innerHTML = opts.message || "";
   else body.textContent = opts.message || "";
 
+  // Ô nhập chỉ có khi opts.input — dùng qua showPrompt(), xem bên dưới.
+  const field = document.getElementById("cx-alert-field");
+  const input = document.getElementById("cx-alert-input");
+  const hint = document.getElementById("cx-alert-hint");
+  field.classList.toggle("cx-dlg-hidden", !opts.input);
+  input.oninput = null;
+  if (opts.input) {
+    input.value = opts.input.value || "";
+    input.placeholder = opts.input.placeholder || "";
+    const sync = () => {
+      hint.textContent = opts.input.hint ? opts.input.hint(input.value) : "";
+    };
+    if (opts.input.hint) input.oninput = sync;
+    sync();
+    hint.classList.toggle("cx-dlg-hidden", !opts.input.hint);
+    setTimeout(() => input.focus(), 0); // hộp thoại vừa hiện mới focus được
+  }
+
   const okBtn = document.getElementById("cx-alert-ok");
   const cancelBtn = document.getElementById("cx-alert-cancel");
   okBtn.textContent = opts.okText || (opts.confirm ? "Xác nhận" : "Đã hiểu");
@@ -288,12 +364,38 @@ function showDialog(opts = {}) {
   cancelBtn.classList.toggle("cx-dlg-hidden", !opts.confirm); // alert → ẩn nút Huỷ
 
   document.getElementById("cx-alert-backdrop").classList.add("visible");
-  return new Promise((resolve) => { _dialogResolve = resolve; });
+  return new Promise((resolve) => {
+    _dialogResolve = resolve;
+  });
 }
 
 /** Alert 1 nút. message hỗ trợ xuống dòng; icon thay icon mặc định của type. */
 function showAlert(title, message, type = "error", icon = null) {
   return showDialog({ title, message, type, icon });
+}
+
+/**
+ * Hộp thoại có MỘT ô nhập → Promise<string|null> (null = huỷ/đóng).
+ * opts: { message, value, placeholder, hint(value)→string, okText, type, icon }.
+ * `hint` chạy lại mỗi lần gõ — dùng để xem trước kết quả (vd. đường dẫn thiệp).
+ */
+function showPrompt(title, opts = {}) {
+  return showDialog({
+    title,
+    message: opts.message,
+    type: opts.type || "info",
+    icon: opts.icon,
+    confirm: true,
+    okText: opts.okText || "Lưu",
+    cancelText: opts.cancelText,
+    input: {
+      value: opts.value,
+      placeholder: opts.placeholder,
+      hint: opts.hint,
+    },
+  }).then((ok) =>
+    ok ? document.getElementById("cx-alert-input").value : null,
+  );
 }
 
 /** Confirm 2 nút (Huỷ / Xác nhận) → Promise<boolean>. */

@@ -5,7 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Quản lý thiệp cưới - Cưới Xinh</title>
     <link rel="icon" type="image/png" href="../assets/icons/logo.png" />
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.8" integrity="sha384-Tve8O+C6PBzsIMK/IRCwHbi8fyEzXIlIs6OfVBZHubplwYhaQF/4Mzxqgg+pp/oy" crossorigin="anonymous"></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.8"
+      integrity="sha384-Tve8O+C6PBzsIMK/IRCwHbi8fyEzXIlIs6OfVBZHubplwYhaQF/4Mzxqgg+pp/oy"
+      crossorigin="anonymous"
+    ></script>
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
@@ -19,88 +23,17 @@
     <!-- Tailwind build local (npm run build:css) — xem tailwind.config.js. -->
     <link rel="stylesheet" href="../styles/build.css" />
   </head>
-  <body class="font-inter text-gray-800 bg-white min-h-screen">
-    <!-- ===== NAV ===== -->
-    <nav class="sticky top-0 z-40 bg-white/95 backdrop-blur-sm border-b border-gray-100">
-      <div class="mx-auto max-w-6xl px-4 sm:px-6">
-        <div class="flex h-14 items-center justify-between gap-4">
-          <a href="/" class="shrink-0">
-            <img src="../assets/icons/logo.png" alt="Cưới Xinh" class="h-8 w-auto" />
-          </a>
-
-          <div class="hidden md:flex items-center gap-1">
-            <span
-              class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[13px] font-semibold"
-              style="color: rgb(var(--action-primary-rgb))"
-              aria-current="page"
-            >
-              <i class="fas fa-table-cells-large text-[10px]"></i> Quản lý thiệp
-            </span>
-            <a
-              href="/theme-template/"
-              class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[13px] font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors"
-            >
-              <i class="fas fa-palette text-[10px]"></i> Mẫu thiệp
-            </a>
-          </div>
-
-          <div class="flex items-center gap-2">
-            <x-button id="navLoginBtn" size="sm" onclick="openLoginPopup()">
-              Đăng nhập
-            </x-button>
-
-            <!-- Menu tài khoản: gom "Thông tin cá nhân" + "Đăng xuất" (trang chỉ còn lưới thẻ). -->
-            <div id="user-menu" class="relative hidden">
-              <button
-                type="button"
-                id="user-menu-btn"
-                aria-haspopup="menu"
-                aria-expanded="false"
-                aria-label="Menu tài khoản"
-                class="flex items-center gap-1.5 rounded-full py-0.5 pl-0.5 pr-2 hover:bg-gray-50 transition-colors"
-              >
-                <span
-                  id="user-avatar"
-                  class="flex h-7 w-7 items-center justify-center overflow-hidden rounded-full text-[11px] font-semibold text-white"
-                  style="background: rgb(var(--action-primary-rgb))"
-                ></span>
-                <span id="user-name" class="hidden sm:block max-w-[120px] truncate text-[13px] font-medium text-gray-700"></span>
-                <i class="fas fa-chevron-down text-[10px] text-gray-400"></i>
-              </button>
-              <div
-                id="user-dropdown"
-                class="hidden absolute right-0 mt-2 w-56 overflow-hidden rounded-xl border border-gray-100 bg-white py-1 shadow-lg"
-              >
-                <div class="border-b border-gray-100 px-3.5 py-2">
-                  <p id="user-email" class="truncate text-xs text-gray-500"></p>
-                </div>
-                <button
-                  type="button"
-                  onclick="openProfileModal()"
-                  class="flex w-full items-center gap-2.5 px-3.5 py-2 text-left text-[13px] text-gray-700 hover:bg-gray-50"
-                >
-                  <i class="fas fa-user w-4 text-xs text-gray-400"></i> Thông tin cá nhân
-                </button>
-                <button
-                  type="button"
-                  onclick="logout()"
-                  class="flex w-full items-center gap-2.5 px-3.5 py-2 text-left text-[13px] text-gray-700 hover:bg-gray-50"
-                >
-                  <i class="fas fa-arrow-right-from-bracket w-4 text-xs text-gray-400"></i> Đăng xuất
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </nav>
-
+  <body
+    class="font-inter text-gray-800 bg-white min-h-screen pb-[72px] md:pb-0 md:pt-20"
+  >
     <!-- ===== NỘI DUNG ===== -->
     <main class="mx-auto max-w-6xl px-4 sm:px-6 py-6 sm:py-7">
       <div class="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div>
           <div class="flex items-center gap-2">
-            <h1 class="text-xl font-bold tracking-tight text-gray-900 sm:text-2xl">
+            <h1
+              class="text-xl font-bold tracking-tight text-gray-900 sm:text-2xl"
+            >
               Quản lý thiệp cưới
             </h1>
             <x-button
@@ -110,6 +43,7 @@
               icon-only
               onclick="showHelp()"
               aria-label="Trợ giúp"
+              class="!h-6 !w-6"
             >
               <i class="fas fa-question text-[10px]"></i>
             </x-button>
@@ -118,10 +52,13 @@
             Tạo, chỉnh sửa và chia sẻ thiệp cưới của bạn
           </p>
         </div>
+        <!-- Nút này ẩn khi danh sách rỗng: lúc đó khối "state-empty" đã có một
+             nút "Tạo thiệp mới" rồi (setState ở index.js bật/tắt). -->
         <x-button
+          id="btn-new-top"
           size="sm"
           icon="fas fa-plus"
-          onclick="window.location.href='/theme-template/'"
+          onclick="cxStartDefaultDraft()"
           style="background: rgb(var(--action-primary-rgb))"
           class="hover:opacity-90"
         >
@@ -131,27 +68,47 @@
 
       <!-- Bộ lọc: Của tôi / Xuất bản / Nháp. Không dùng <x-button> — đây là tab,
            không phải nút hành động (xem quy ước ở CLAUDE.md). -->
-      <div id="tabs" class="mb-5 inline-flex items-center gap-0.5 rounded-xl bg-gray-100 p-0.5">
-        <button type="button" data-tab="all" class="tab-btn inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[13px] font-medium transition-colors">
+      <div id="tabs" class="cx-segbar mb-5">
+        <button
+          type="button"
+          data-tab="all"
+          class="tab-btn cx-segtab inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[13px] font-medium"
+        >
           <i class="fas fa-table-cells-large text-[10px]"></i> Của tôi
-          <span data-count="all" class="hidden ml-0.5 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-rose-100 px-1 text-[10px] font-semibold text-rose-600"></span>
+          <span data-count="all" class="cx-navcount hidden ml-0.5"></span>
         </button>
-        <button type="button" data-tab="published" class="tab-btn inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[13px] font-medium transition-colors">
+        <button
+          type="button"
+          data-tab="published"
+          class="tab-btn cx-segtab inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[13px] font-medium"
+        >
           <i class="fas fa-wand-magic-sparkles text-[10px]"></i> Xuất bản
-          <span data-count="published" class="hidden ml-0.5 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-rose-100 px-1 text-[10px] font-semibold text-rose-600"></span>
+          <span data-count="published" class="cx-navcount hidden ml-0.5"></span>
         </button>
-        <button type="button" data-tab="draft" class="tab-btn inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[13px] font-medium transition-colors">
+        <button
+          type="button"
+          data-tab="draft"
+          class="tab-btn cx-segtab inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[13px] font-medium"
+        >
           <i class="fas fa-book-open text-[10px]"></i> Nháp
-          <span data-count="draft" class="hidden ml-0.5 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-rose-100 px-1 text-[10px] font-semibold text-rose-600"></span>
+          <span data-count="draft" class="cx-navcount hidden ml-0.5"></span>
         </button>
       </div>
 
-      <div id="cards-grid" class="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 xl:grid-cols-4"></div>
+      <div
+        id="cards-grid"
+        class="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 md:grid-cols-3 xl:grid-cols-4"
+      ></div>
 
       <!-- Khung xương lúc đang tải danh sách từ DB. Lặp 4 thẻ để lấp đủ một hàng
            lưới — một thẻ đơn độc trông như trang bị lỗi. -->
-      <div id="state-loading" class="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 xl:grid-cols-4">
-        <div class="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
+      <div
+        id="state-loading"
+        class="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 md:grid-cols-3 xl:grid-cols-4"
+      >
+        <div
+          class="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm"
+        >
           <div class="h-24 animate-pulse bg-gray-100 sm:h-28"></div>
           <div class="space-y-2.5 p-3 sm:p-4">
             <div class="h-4 w-1/2 animate-pulse rounded bg-gray-100"></div>
@@ -159,7 +116,9 @@
             <div class="h-8 w-full animate-pulse rounded-lg bg-gray-100"></div>
           </div>
         </div>
-        <div class="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
+        <div
+          class="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm"
+        >
           <div class="h-24 animate-pulse bg-gray-100 sm:h-28"></div>
           <div class="space-y-2.5 p-3 sm:p-4">
             <div class="h-4 w-1/2 animate-pulse rounded bg-gray-100"></div>
@@ -167,7 +126,9 @@
             <div class="h-8 w-full animate-pulse rounded-lg bg-gray-100"></div>
           </div>
         </div>
-        <div class="hidden overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm md:block">
+        <div
+          class="hidden overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm md:block"
+        >
           <div class="h-24 animate-pulse bg-gray-100 sm:h-28"></div>
           <div class="space-y-2.5 p-3 sm:p-4">
             <div class="h-4 w-1/2 animate-pulse rounded bg-gray-100"></div>
@@ -175,7 +136,9 @@
             <div class="h-8 w-full animate-pulse rounded-lg bg-gray-100"></div>
           </div>
         </div>
-        <div class="hidden overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm xl:block">
+        <div
+          class="hidden overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm xl:block"
+        >
           <div class="h-24 animate-pulse bg-gray-100 sm:h-28"></div>
           <div class="space-y-2.5 p-3 sm:p-4">
             <div class="h-4 w-1/2 animate-pulse rounded bg-gray-100"></div>
@@ -188,30 +151,46 @@
       <!-- Tải danh sách hỏng (mạng/API) — phải nói rõ, không được im lặng rơi về
            "Chưa có thiệp nào" vì người dùng sẽ tưởng mất thiệp. -->
       <div id="state-error" class="hidden py-12 text-center">
-        <div class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-red-50">
+        <div
+          class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-red-50"
+        >
           <i class="fas fa-triangle-exclamation text-xl text-red-300"></i>
         </div>
-        <p class="font-semibold text-gray-800">Không tải được danh sách thiệp</p>
+        <p class="font-semibold text-gray-800">
+          Không tải được danh sách thiệp
+        </p>
         <p class="mx-auto mt-1.5 max-w-sm text-[13px] text-gray-500">
           Có thể do mất kết nối. Thiệp của bạn vẫn còn nguyên — hãy thử lại.
         </p>
-        <x-button size="sm" icon="fas fa-rotate-right" onclick="loadCards()" class="mt-4">
+        <x-button
+          size="sm"
+          icon="fas fa-rotate-right"
+          onclick="loadCards()"
+          class="mt-4"
+        >
           Thử lại
         </x-button>
       </div>
 
       <div id="state-empty" class="hidden py-12 text-center">
-        <div class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-rose-50">
+        <div
+          class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-rose-50"
+        >
           <i class="fas fa-envelope-open-text text-xl text-rose-300"></i>
         </div>
-        <p id="empty-title" class="font-semibold text-gray-800">Chưa có thiệp nào</p>
-        <p id="empty-desc" class="mx-auto mt-1.5 max-w-sm text-[13px] text-gray-500">
+        <p id="empty-title" class="font-semibold text-gray-800">
+          Chưa có thiệp nào
+        </p>
+        <p
+          id="empty-desc"
+          class="mx-auto mt-1.5 max-w-sm text-[13px] text-gray-500"
+        >
           Chọn một mẫu thiệp rồi bắt đầu điền thông tin — chỉ mất vài phút.
         </p>
         <x-button
           size="sm"
           icon="fas fa-plus"
-          onclick="window.location.href='/theme-template/'"
+          onclick="cxStartDefaultDraft()"
           style="background: rgb(var(--action-primary-rgb))"
           class="mt-5 hover:opacity-90"
         >
@@ -220,14 +199,20 @@
       </div>
 
       <div id="state-guest" class="hidden py-12 text-center">
-        <div class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-rose-50">
+        <div
+          class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-rose-50"
+        >
           <i class="fas fa-user-lock text-xl text-rose-300"></i>
         </div>
-        <p class="font-semibold text-gray-800">Đăng nhập để xem thiệp của bạn</p>
+        <p class="font-semibold text-gray-800">
+          Đăng nhập để xem thiệp của bạn
+        </p>
         <p class="mx-auto mt-1.5 max-w-sm text-[13px] text-gray-500">
           Thiệp được lưu theo tài khoản, đăng nhập để quản lý trên mọi thiết bị.
         </p>
-        <x-button size="sm" onclick="openLoginPopup()" class="mt-4">Đăng nhập</x-button>
+        <x-button size="sm" onclick="openLoginPopup()" class="mt-4"
+          >Đăng nhập</x-button
+        >
       </div>
     </main>
 
@@ -237,60 +222,84 @@
       class="fixed inset-0 z-50 hidden items-center justify-center p-4"
       style="background: rgb(var(--scrim-rgb) / 0.5)"
     >
-      <div class="w-full max-w-sm overflow-hidden rounded-xl bg-white shadow-xl">
-        <div class="flex items-center justify-between border-b border-gray-100 px-5 py-3.5">
+      <div
+        class="w-full max-w-sm overflow-hidden rounded-xl bg-white shadow-xl"
+      >
+        <div
+          class="flex items-center justify-between border-b border-gray-100 px-5 py-3.5"
+        >
           <h3 class="text-sm font-semibold text-gray-900">Thông tin cá nhân</h3>
-          <x-button variant="ghost" tone="neutral" size="sm" icon-only onclick="closeProfileModal()">
+          <x-button
+            variant="ghost"
+            tone="neutral"
+            size="sm"
+            icon-only
+            onclick="closeProfileModal()"
+          >
             <i class="fas fa-times text-sm text-gray-400"></i>
           </x-button>
         </div>
         <form id="profile-form" class="p-5">
           <div class="mb-4">
-            <x-input id="profile-name" label="Họ và tên" placeholder="Nhập họ và tên"></x-input>
+            <x-input
+              id="profile-name"
+              label="Họ và tên"
+              placeholder="Nhập họ và tên"
+            ></x-input>
           </div>
           <div class="mb-4">
-            <x-input id="profile-email-input" type="email" label="Email" placeholder="Nhập email"></x-input>
+            <x-input
+              id="profile-email-input"
+              type="email"
+              label="Email"
+              placeholder="Nhập email"
+            ></x-input>
           </div>
           <div class="mb-5">
-            <x-input id="profile-phone" type="tel" label="Số điện thoại" placeholder="Nhập số điện thoại"></x-input>
+            <x-input
+              id="profile-phone"
+              type="tel"
+              label="Số điện thoại"
+              placeholder="Nhập số điện thoại"
+            ></x-input>
           </div>
           <x-button type="submit" full>Lưu thông tin</x-button>
         </form>
       </div>
     </div>
 
-    <!-- ===== MODAL: Đổi đường dẫn thiệp ===== -->
-    <div
-      id="slug-modal"
-      class="fixed inset-0 z-50 hidden items-center justify-center p-4"
-      style="background: rgb(var(--scrim-rgb) / 0.5)"
-    >
-      <div class="w-full max-w-sm overflow-hidden rounded-xl bg-white shadow-xl">
-        <div class="flex items-center justify-between border-b border-gray-100 px-5 py-3.5">
-          <h3 class="text-sm font-semibold text-gray-900">Đổi đường dẫn thiệp</h3>
-          <x-button variant="ghost" tone="neutral" size="sm" icon-only onclick="closeSlugModal()">
-            <i class="fas fa-times text-sm text-gray-400"></i>
-          </x-button>
-        </div>
-        <form id="slug-form" class="p-5">
-          <x-input
-            id="slug-input"
-            label="Đường dẫn"
-            placeholder="vd: lan-anh"
-          ></x-input>
-          <p class="mt-2 text-xs text-gray-500">
-            Khách mời sẽ mở thiệp qua
-            <span id="slug-preview" class="font-mono text-gray-700"></span>
-          </p>
-          <div class="mt-5 flex gap-2">
-            <x-button variant="outline" tone="neutral" full onclick="closeSlugModal()">Huỷ</x-button>
-            <x-button type="submit" full>Lưu</x-button>
-          </div>
-        </form>
-      </div>
-    </div>
-
     <script src="../core/x-button.js"></script>
+    <script src="../core/x-popover.js"></script>
+    <script src="../core/helpers/account-menu.js"></script>
+    <!-- Navbar dùng chung: khai mảng mục một lần, dựng cả thanh trên lẫn thanh tab dưới. -->
+    <script src="../core/components/navbar.js"></script>
+    <script>
+      CXNavbar.mount({
+        active: "cart",
+        width: "6xl",
+        items: [
+          { id: "home", label: "Trang chủ", icon: "home", href: "/" },
+          {
+            id: "templates",
+            label: "Mẫu thiệp",
+            icon: "layers",
+            href: "/theme-template/",
+          },
+          {
+            id: "cart",
+            label: "Đã chọn",
+            icon: "cart",
+            href: "/my-invitations/",
+          },
+          {
+            id: "account",
+            label: "Tài khoản",
+            icon: "user",
+            onClick: "CXAccount.open(this)",
+          },
+        ],
+      });
+    </script>
     <script src="../core/cache-util.js"></script>
     <script src="../core/config.js"></script>
     <script src="../core/helpers/alert.js"></script>
@@ -303,6 +312,8 @@
     <script src="../core/bl/wedding-bl.js"></script>
     <script src="../core/bl/image-bl.js"></script>
     <script src="../core/supabase.js"></script>
+    <!-- Tạo nháp + hỏi "thiệp đang viết dở" dùng chung với trang chủ. -->
+    <script src="../core/helpers/draft-start.js"></script>
     <script src="index.js"></script>
     <script src="../core/payment.js"></script>
   </body>

@@ -1,7 +1,7 @@
 // --- Steps list (#steps) ---
 
 const STEPS_DATA = [
-  { n: 1, icon: "fa-palette",        title: "Chọn mẫu thiệp",      desc: "Xem demo trực tiếp. Đổi mẫu thoải mái, miễn phí.",          last: false },
+  { n: 1, icon: "fa-palette",        title: "Chọn mẫu thiệp",      desc: "Xem trước trực tiếp. Đổi mẫu thoải mái, miễn phí.",          last: false },
   { n: 2, icon: "fa-pen-to-square",  title: "Điền thông tin",       desc: "Tên, ảnh, ngày cưới, câu chuyện tình yêu, nhạc nền...",    last: false },
   { n: 3, icon: "fa-eye",            title: "Xem trước & chia sẻ", desc: "Xem thiệp thật, gửi link cho người thân thử trước.",       last: false },
   { n: 4, icon: "fa-lock",           title: "Thanh toán một lần",   desc: "Ưng ý mới cần thanh toán. Một lần — dùng trọn đời.",       last: true  },

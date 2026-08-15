@@ -28,7 +28,7 @@ flowchart TD
         A --> TESTI[Testimonial\nkhách hàng nói gì]
         A --> CTA[CTA tối · liên hệ\nemail · SĐT]
         A --> LOGIN[Đăng nhập\n/ Đăng ký]:::cdcr
-        BROWSE --> DEMO[Xem demo\nthiệp thật]
+        BROWSE --> DEMO[Xem trước\nthiệp thật]
         BROWSE -. F-30 .-> FILTER[Lọc mẫu theo\nphong cách · màu]:::future
         DEMO --> B[Chọn mẫu\nvà tạo thiệp]:::cdcr
         HERO --> B

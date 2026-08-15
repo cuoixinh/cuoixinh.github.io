@@ -1,10 +1,14 @@
-// "Quản lý thiệp" luôn hiển thị (kể cả chưa đăng nhập — vì có thể có nháp/đơn trong
-// localStorage). Chỉ nút "Đăng nhập" mới ẩn/hiện theo phiên; đăng nhập mở popup tại chỗ.
+// "Đã chọn" luôn hiển thị (kể cả chưa đăng nhập — vì có thể có nháp/đơn trong
+// localStorage). Theo phiên chỉ có: nút "Đăng nhập" ở navbar ẩn đi, và mục
+// "Tài khoản" ở thanh tab dưới đổi nhãn thành "Thiệp của tôi".
 function updateNavAuthBtn() {
   const loggedIn = !!window.CXAuth?.isLoggedIn();
   const el = document.getElementById("navLoginBtn");
   if (el) el.style.display = loggedIn ? "none" : "";
+  const acc = document.getElementById("navAccLabel");
+  if (acc) acc.textContent = loggedIn ? "Thiệp của tôi" : "Tài khoản";
 }
+
 
 // Mở popup đăng nhập/tạo tài khoản ngay tại trang hiện tại (giống lúc Xuất bản thiệp).
 function openLoginPopup() {
@@ -28,23 +32,6 @@ function _initHomeAuth() {
 }
 
 document.addEventListener("DOMContentLoaded", _initHomeAuth);
-
-// Gom về một chỗ để hai lối vào (toggle/close) không lệch trạng thái icon.
-function _setMobileMenuOpen(open) {
-  const menu = document.getElementById("mobileMenu");
-  const icon = document.getElementById("navHamburgerIcon");
-  menu.classList.toggle("hidden", !open);
-  icon.className = open ? "fas fa-xmark text-base" : "fas fa-bars text-base";
-}
-
-function toggleMobileMenu() {
-  const menu = document.getElementById("mobileMenu");
-  _setMobileMenuOpen(menu.classList.contains("hidden"));
-}
-
-function closeMobileMenu() {
-  _setMobileMenuOpen(false);
-}
 
 // Nút chung ("Tạo thiệp ngay" ở hero, các mục tạo bằng AI/giọng nói): khách chưa
 // chọn mẫu nào, ta lấy đại mẫu đầu tiên. `chosen: false` để hộp thoại "đang có
