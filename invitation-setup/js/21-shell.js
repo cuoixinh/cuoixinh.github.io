@@ -111,84 +111,22 @@ function _cxInitReflow() {
 
 // ===== POPOVER "TÙY CHỌN" =====
 
-// Chừa mép màn hình khi thẻ phải dịch vào trong.
-const _CX_POP_EDGE = 8;
-
 /**
- * Đặt thẻ giữa tâm nút ⋯ rồi kẹp trong #nav-card (thẻ nền của navbar — hẹp hơn
- * màn hình), mũi tên vẫn chỉ đúng nút. Phải đo lại mỗi lần mở: navbar co giãn
- * theo bề ngang, và dưới sm nhãn "Tùy chọn" ẩn đi làm nút hẹp lại.
+ * Mở/đóng popover; không truyền gì là đảo trạng thái (dùng cho onclick).
+ * Thẻ là <x-popover> (core/x-popover.js) — nó tự lo định vị theo nút ⋯, mũi
+ * tên, đóng khi bấm ra ngoài / Esc / chọn một mục.
  */
-function _cxPlacePop(pop, btn) {
-  if (!btn) return;
-  const w = pop.offsetWidth;
-  const b = btn.getBoundingClientRect();
-  const center = b.left + b.width / 2; // toạ độ MÀN HÌNH
-  // `left` của thẻ tính trong lòng #nav-card (gốc toạ độ của nó), nên phải trừ
-  // đi mép trái thẻ nền — navbar không còn bám mép trái màn hình nữa.
-  const host = pop.offsetParent || document.getElementById("nav-card");
-  const hr = host?.getBoundingClientRect();
-  const x0 = hr?.left || 0;
-  const hw = hr?.width || window.innerWidth;
-  const left = Math.min(
-    Math.max(center - x0 - w / 2, _CX_POP_EDGE),
-    hw - w - _CX_POP_EDGE,
-  );
-  pop.style.left = left + "px";
-  // Mũi tên: px tính từ mép trái thẻ, chừa chỗ cho góc bo.
-  const tail = Math.min(Math.max(center - x0 - left, 20), w - 20);
-  pop.style.setProperty("--cx-pop-tail", tail + "px");
-}
-
-/** Mở/đóng popover; không truyền gì là đảo trạng thái (dùng cho onclick). */
 function cxNavMore(open) {
   const pop = document.getElementById("nav-more-pop");
-  const btn = document.getElementById("nav-more");
-  if (!pop) return;
-  const next = open === undefined ? pop.classList.contains("hidden") : open;
-  pop.classList.toggle("hidden", !next);
-  btn?.setAttribute("aria-expanded", String(next));
-  if (next) _cxPlacePop(pop, btn);
+  if (!pop?.toggle) return;
+  if (open === undefined) pop.toggle();
+  else if (open) pop.open();
+  else pop.close();
 }
 window.cxNavMore = cxNavMore;
 
-function _cxInitMore() {
-  const pop = document.getElementById("nav-more-pop");
-  const btn = document.getElementById("nav-more");
-  if (!pop || !btn) return;
-
-  // Chọn xong một mục thì đóng — popover che mất chính panel vừa mở.
-  pop.addEventListener("click", (e) => {
-    if (e.target.closest("button")) cxNavMore(false);
-  });
-
-  // Bấm ra ngoài / Esc. Nghe ở pha CAPTURE để đóng được cả khi click bị nút bên
-  // dưới nuốt mất.
-  document.addEventListener(
-    "click",
-    (e) => {
-      if (pop.classList.contains("hidden")) return;
-      if (e.target.closest("#nav-more-pop, #nav-more")) return;
-      cxNavMore(false);
-    },
-    true,
-  );
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") cxNavMore(false);
-  });
-
-  window.addEventListener(
-    "resize",
-    () => {
-      if (!pop.classList.contains("hidden")) _cxPlacePop(pop, btn);
-    },
-    { passive: true },
-  );
-}
-
 function _cxInitShell() {
   _cxInitTopHeight();
-  _cxInitMore();
   _cxInitReflow();
 }
 

@@ -1017,24 +1017,6 @@ svg.lucide {
   opacity: 0;
 }
 
-/* Popover "Tùy chọn" ở navbar dưới — thẻ nổi có đuôi nhọn chỉ xuống nút mở nó. */
-.cx-nav-pop::after {
-  content: "";
-  position: absolute;
-  /* Thẻ neo giữa navbar còn nút ⋯ thì lệch phải → js/21-shell.js đo tâm nút rồi
-     ghi --cx-pop-tail (px tính từ mép trái thẻ). */
-  left: var(--cx-pop-tail, 50%);
-  bottom: -7px;
-  margin-left: -6px;
-  width: 12px;
-  height: 12px;
-  transform: rotate(45deg);
-  border-right: 1px solid rgb(var(--border-field-rgb));
-  border-bottom: 1px solid rgb(var(--border-field-rgb));
-  border-bottom-right-radius: 3px;
-  background: rgb(var(--white-rgb));
-}
-
 /* ── MỤC NAV: MỘT PHẦN TỬ, HAI CHỖ ĐỨNG ──────────────────────────────────
    Cùng một <button> lúc ở hàng tab (#nav-slots) lúc lùi vào popover
    (#nav-more-pop) tuỳ chỗ trống — js/21-shell.js chỉ việc appendChild, HÌNH
@@ -1143,8 +1125,10 @@ svg.lucide {
          text-[13px] font-medium text-gray-700;
 }
 
+/* Cùng token nền hover với .x-pop-item (styles/_common.css) và .hero-cta-item —
+   ba chỗ này phải giống hệt nhau. */
 #nav-more-pop > .cx-navitem:hover {
-  @apply bg-gray-50;
+  background: rgb(var(--surface-hover-rgb));
 }
 
 #nav-more-pop > .cx-navitem .cx-navitem-ico {

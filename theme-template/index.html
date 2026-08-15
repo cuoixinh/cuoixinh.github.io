@@ -152,46 +152,6 @@
         box-shadow: 0 0 0 2px rgb(var(--white-rgb));
       }
 
-      .tt-fpop {
-        position: absolute;
-        right: 0;
-        top: calc(100% + 8px);
-        z-index: 60;
-        width: 232px;
-        padding: 6px;
-        border-radius: 20px;
-        background: rgb(var(--white-rgb));
-        border: 1px solid rgb(var(--brand-primary-rgb)/0.5);
-        box-shadow: 0 14px 34px -14px rgb(var(--shadow-brand-rgb)/0.45);
-      }
-      .tt-fitem {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        width: 100%;
-        padding: 9px 12px;
-        border-radius: 14px;
-        font-size: 13.5px;
-        font-weight: 500;
-        line-height: 1.2;
-        color: var(--fg);
-        text-align: left;
-      }
-      .tt-fitem:hover {
-        background: rgb(var(--brand-primary-rgb)/0.18);
-      }
-      .tt-fitem.is-on {
-        background: rgb(var(--brand-primary-rgb)/0.28);
-        color: var(--primary);
-        font-weight: 600;
-      }
-      .tt-fitem svg {
-        flex: none;
-      }
-      .tt-fcheck {
-        margin-left: auto;
-      }
-
       /* ─── Thẻ mẫu thiệp (không viền, ảnh bo tròn — thông tin nằm dưới ảnh) ─── */
       .tt-card {
         cursor: pointer;
@@ -472,10 +432,7 @@
               id="tt-filter-btn"
               type="button"
               class="tt-filter-btn"
-              aria-haspopup="true"
-              aria-expanded="false"
               aria-label="Lọc theo danh mục"
-              onclick="toggleFilterPop(event)"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -488,13 +445,18 @@
                 stroke-linecap="round"
                 stroke-linejoin="round"
               >
-                <path d="M3 6h18" />
-                <path d="M7 12h10" />
-                <path d="M10 18h4" />
+                <path d="M21 3H3l7.5 8.5V19l3 2v-9.5z" />
               </svg>
               <span id="tt-filter-dot" class="tt-filter-dot hidden"></span>
             </button>
-            <div id="tt-filter-pop" class="tt-fpop hidden" role="menu"></div>
+            <x-popover
+              id="tt-filter-pop"
+              anchor="#tt-filter-btn"
+              placement="bottom"
+              align="end"
+              width="232"
+              arrow
+            ></x-popover>
           </div>
         </div>
       </div>
@@ -1176,6 +1138,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.8" integrity="sha384-Tve8O+C6PBzsIMK/IRCwHbi8fyEzXIlIs6OfVBZHubplwYhaQF/4Mzxqgg+pp/oy" crossorigin="anonymous"></script>
     <script src="../core/x-button.js"></script>
+    <script src="../core/x-popover.js"></script>
     <script src="../core/cache-util.js"></script>
     <script src="../core/config.js"></script>
     <script src="../core/helpers/alert.js"></script>
@@ -1365,65 +1328,41 @@
         });
       }
 
-      /* ── Lọc danh mục (nút icon cạnh ô tìm kiếm + popover) ── */
+      /* ── Lọc danh mục (nút icon cạnh ô tìm kiếm + <x-popover>) ──
+         Popover lo phần vỏ: neo theo nút, mũi tên, đóng khi bấm ra ngoài / Esc /
+         chọn một mục. Ở đây chỉ nạp danh sách và cập nhật trạng thái nút. */
       function renderFilterMenu() {
-        const pop = document.getElementById("tt-filter-pop");
         const cats = [
           "all",
           ...Array.from(
             new Set(allTemplates.map((t) => t.category).filter(Boolean)),
           ),
         ];
-        pop.innerHTML = cats
-          .map((c) => {
+        document.getElementById("tt-filter-pop").setItems(
+          cats.map((c) => {
             const m = catMeta(c);
-            const on = c === activeCat;
-            return `
-            <button type="button" role="menuitemradio" aria-checked="${on}"
-                    class="tt-fitem${on ? " is-on" : ""}" data-cat="${c}" onclick="setCat('${c}')">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                   stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${m.icon}</svg>
-              ${c === "all" ? m.label : catLabel(c)}
-              ${on ? `<span class="tt-fcheck" style="color:var(--primary)">${SVG_CHECK}</span>` : ""}
-            </button>`;
-          })
-          .join("");
+            return {
+              label: c === "all" ? m.label : catLabel(c),
+              active: c === activeCat,
+              role: "menuitemradio",
+              icon: `<svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none"
+                          stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${m.icon}</svg>`,
+              onClick: () => setCat(c),
+            };
+          }),
+        );
       }
 
       function setCat(cat) {
         activeCat = cat;
         renderFilterMenu();
-        closeFilterPop();
         const btn = document.getElementById("tt-filter-btn");
-        const dot = document.getElementById("tt-filter-dot");
         btn.classList.toggle("is-on", cat !== "all");
-        dot.classList.toggle("hidden", cat === "all");
+        document
+          .getElementById("tt-filter-dot")
+          .classList.toggle("hidden", cat === "all");
         applyFilter();
       }
-
-      function closeFilterPop() {
-        const pop = document.getElementById("tt-filter-pop");
-        pop.classList.add("hidden");
-        document
-          .getElementById("tt-filter-btn")
-          .setAttribute("aria-expanded", "false");
-      }
-
-      function toggleFilterPop(ev) {
-        ev.stopPropagation(); // để listener đóng-khi-bấm-ngoài không đóng lại ngay
-        const pop = document.getElementById("tt-filter-pop");
-        const open = pop.classList.toggle("hidden") === false;
-        document
-          .getElementById("tt-filter-btn")
-          .setAttribute("aria-expanded", open ? "true" : "false");
-      }
-
-      document.addEventListener("click", (e) => {
-        if (!e.target.closest("#tt-filter-pop, #tt-filter-btn")) closeFilterPop();
-      });
-      document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape") closeFilterPop();
-      });
 
       /* ── Yêu thích (lưu ở máy khách, không cần đăng nhập) ── */
       function saveFavs() {

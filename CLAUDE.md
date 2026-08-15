@@ -247,6 +247,12 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
 ### Khác
 
 - **Web components `x-*`:** `[name=X]` khớp `<x-input>` chứ không phải `<input>` con.
+- **Thẻ nổi — luôn dùng `<x-popover>`** (`core/x-popover.js`, style `.x-pop*` ở
+  `styles/_common.css`): tự neo theo nút mở (`anchor`), tự lật khi thiếu chỗ, kẹp trong
+  `bound`, `arrow` để có mũi tên; đóng khi bấm ra ngoài / Esc / chọn một mục. Nạp danh
+  sách bằng `setItems()`, hoặc appendChild phần tử thật (navbar Thiết lập làm vậy). Thẻ
+  là `position: fixed` → cha có `transform/filter` sẽ kéo nó lệch. Nút mở đã có `onclick`
+  riêng thì component KHÔNG gắn thêm click.
 - **Dải segmented `.cx-seg`** (`styles/_common.css`): con trượt chạy theo hai biến `--n`
   (số nút) và `--i` (nút đang chọn), nút đang chọn thêm `.is-on` — JS chỉ đặt bấy nhiêu.
   Dùng cho vùng miền ở popup AI và các tab Nhà trai/Nhà gái.

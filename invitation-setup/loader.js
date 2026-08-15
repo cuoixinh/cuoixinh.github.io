@@ -43,6 +43,7 @@
   // lấy CONFIG.version, thêm vào đây nữa là nạp hai lần.
   const SCRIPTS = [
     "../core/x-button.js",
+    "../core/x-popover.js",
     "../core/cache-util.js",
     "../core/constant.js",
     "../core/auth-ui.js",

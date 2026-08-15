@@ -642,3 +642,120 @@ textarea::-webkit-scrollbar-thumb:hover {
     @apply transition-none;
   }
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   <x-popover> — thẻ nổi dùng chung (core/x-popover.js)
+   Hình dạng lấy từ popover "Tùy chọn" ở navbar trang Thiết lập. Thẻ tự đặt
+   `left/top` bằng JS nên phải là `fixed`: cha có transform/filter sẽ kéo nó
+   lệch — đặt popover ở chỗ không có cha như vậy.
+   ══════════════════════════════════════════════════════════════════════════ */
+.x-pop {
+  position: fixed;
+  z-index: 400;
+  display: none;
+  flex-direction: column;
+  gap: 2px;
+  width: 240px;
+  padding: 6px;
+  border-radius: 24px;
+  background: rgb(var(--white-rgb));
+  border: 1px solid rgb(var(--surface-control-rgb));
+  box-shadow:
+    0 20px 25px -5px rgb(var(--scrim-rgb) / 0.1),
+    0 8px 10px -6px rgb(var(--scrim-rgb) / 0.1);
+}
+
+.x-pop.is-open {
+  display: flex;
+}
+
+/* Mũi tên: ô vuông xoay 45° chỉ để lại hai cạnh viền quay ra ngoài. JS ghi
+   --x-pop-tail (px tính từ mép trái thẻ) để nó chỉ đúng tâm nút mở. */
+.x-pop.has-arrow::after {
+  content: "";
+  position: absolute;
+  left: var(--x-pop-tail, 50%);
+  margin-left: -6px;
+  width: 12px;
+  height: 12px;
+  transform: rotate(45deg);
+  background: inherit;
+}
+
+.x-pop.has-arrow.is-top::after {
+  bottom: -7px;
+  border-right: 1px solid rgb(var(--border-field-rgb));
+  border-bottom: 1px solid rgb(var(--border-field-rgb));
+  border-bottom-right-radius: 3px;
+}
+
+.x-pop.has-arrow.is-bottom::after {
+  top: -7px;
+  border-left: 1px solid rgb(var(--border-field-rgb));
+  border-top: 1px solid rgb(var(--border-field-rgb));
+  border-top-left-radius: 3px;
+}
+
+/* Hàng danh sách do setItems() dựng ra. Phần tử tự chèn vào popover thì tự lo
+   diện mạo (navbar Thiết lập giữ nguyên .cx-navitem của nó). */
+.x-pop-item {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  border-radius: 16px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.25;
+  text-align: left;
+  color: rgb(var(--text-strong-rgb));
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.x-pop-item:hover {
+  background: rgb(var(--surface-hover-rgb));
+}
+
+.x-pop-item:disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.x-pop-item.is-active,
+.x-pop-item.is-active:hover {
+  background: rgb(217 204 204 / 10%);
+  color: rgb(var(--focus-ring-rgb));
+}
+
+.x-pop-ico {
+  display: flex;
+  height: 32px;
+  width: 32px;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: rgb(var(--surface-control-rgb));
+  color: rgb(var(--text-tertiary-rgb));
+  font-size: 15px;
+}
+
+.x-pop-item.is-active .x-pop-ico {
+  background: rgb(var(--white-rgb));
+  color: rgb(var(--focus-ring-rgb));
+}
+
+.x-pop-check {
+  margin-left: auto;
+  flex: none;
+  color: rgb(var(--focus-ring-rgb));
+}
+
+.x-pop-sep {
+  height: 1px;
+  margin: 4px 8px;
+  background: rgb(var(--surface-control-rgb));
+}

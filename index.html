@@ -210,8 +210,8 @@
             <div class="hero-invite-foot">
               <div class="hero-invite-actions hero-anim hero-anim-4">
                 <!-- Nút đôi: phần chính đi thẳng vào trang thiết lập, phần mũi
-                     tên mở popover chọn cách tạo. Popover do js/hero-cta.js lo
-                     (mở/đóng, bấm ra ngoài, phím Esc). -->
+                     tên mở popover chọn cách tạo (#heroCtaMenu ở cuối body,
+                     xem chú thích tại đó). -->
                 <div class="hero-cta-split">
                   <a
                     href="/invitation-setup/"
@@ -235,66 +235,12 @@
                     aria-expanded="false"
                     aria-controls="heroCtaMenu"
                     aria-label="Chọn cách tạo thiệp"
-                    onclick="toggleHeroCtaMenu(event)"
                   >
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                       <path d="m6 9 6 6 6-6" />
                     </svg>
                   </button>
 
-                  <div id="heroCtaMenu" class="hero-cta-menu" role="menu" hidden>
-                    <a
-                      href="/invitation-setup/"
-                      role="menuitem"
-                      onclick="goCreateDraft(event)"
-                      class="hero-cta-item"
-                    >
-                      <span class="hero-cta-item-ico">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                          <path d="M12 20h9" />
-                          <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" />
-                        </svg>
-                      </span>
-                      <span>
-                        <span class="hero-cta-item-name">Tạo thủ công</span>
-                        <span class="hero-cta-item-desc">Tự điền từng mục theo ý bạn</span>
-                      </span>
-                    </a>
-                    <a
-                      href="/invitation-setup/"
-                      role="menuitem"
-                      onclick="goCreateWithAi(event)"
-                      class="hero-cta-item"
-                    >
-                      <span class="hero-cta-item-ico">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                          <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z" />
-                        </svg>
-                      </span>
-                      <span>
-                        <span class="hero-cta-item-name">Tạo với AI</span>
-                        <span class="hero-cta-item-desc">Điền sẵn nội dung từ vài thông tin</span>
-                      </span>
-                    </a>
-                    <a
-                      href="/invitation-setup/"
-                      role="menuitem"
-                      onclick="goCreateWithVoice(event)"
-                      class="hero-cta-item"
-                    >
-                      <span class="hero-cta-item-ico">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                          <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
-                          <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-                          <path d="M12 19v3" />
-                        </svg>
-                      </span>
-                      <span>
-                        <span class="hero-cta-item-name">Tạo với giọng nói</span>
-                        <span class="hero-cta-item-desc">Bạn kể tôi nghe và tạo thiệp cho bạn</span>
-                      </span>
-                    </a>
-                  </div>
                 </div>
                 <p class="hero-invite-terms">
                   Miễn phí dùng thử · Chỉ thanh toán khi bạn ưng ý
@@ -685,6 +631,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.8" integrity="sha384-Tve8O+C6PBzsIMK/IRCwHbi8fyEzXIlIs6OfVBZHubplwYhaQF/4Mzxqgg+pp/oy" crossorigin="anonymous"></script>
     <script src="core/config.js"></script>
+    <script src="core/x-popover.js"></script>
     <script src="core/helpers/alert.js"></script>
     <script src="core/auth-ui.js"></script>
     <script src="core/auth.js"></script>
@@ -708,5 +655,71 @@
 
     <script src="js/hero-background.js"></script>
     <script src="js/nav-autohide.js"></script>
+    <!-- Popover "cách tạo thiệp" của nút đôi ở hero (core/x-popover.js). Đặt ở
+         CUỐI BODY chứ không lồng trong .hero-cta-split: thẻ là position:fixed,
+         mà cụm nút có transform lúc hover còn .hero-anim chạy animation
+         transform — cha như vậy sẽ kéo thẻ lệch và .hero-invite còn cắt mất nó.
+         Các mục viết thẳng trong HTML (không setItems) để link vẫn nằm trong
+         trang cho bộ máy tìm kiếm. -->
+    <x-popover
+      id="heroCtaMenu"
+      anchor="#heroCtaMore"
+      placement="top"
+      align="end"
+      width="264"
+      offset="10"
+    >
+                  <a
+                    href="/invitation-setup/"
+                    role="menuitem"
+                    onclick="goCreateDraft(event)"
+                    class="hero-cta-item"
+                  >
+                    <span class="hero-cta-item-ico">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M12 20h9" />
+                        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                      </svg>
+                    </span>
+                    <span>
+                      <span class="hero-cta-item-name">Tạo thủ công</span>
+                      <span class="hero-cta-item-desc">Tự điền từng mục theo ý bạn</span>
+                    </span>
+                  </a>
+                  <a
+                    href="/invitation-setup/"
+                    role="menuitem"
+                    onclick="goCreateWithAi(event)"
+                    class="hero-cta-item"
+                  >
+                    <span class="hero-cta-item-ico">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z" />
+                      </svg>
+                    </span>
+                    <span>
+                      <span class="hero-cta-item-name">Tạo với AI</span>
+                      <span class="hero-cta-item-desc">Điền sẵn nội dung từ vài thông tin</span>
+                    </span>
+                  </a>
+                  <a
+                    href="/invitation-setup/"
+                    role="menuitem"
+                    onclick="goCreateWithVoice(event)"
+                    class="hero-cta-item"
+                  >
+                    <span class="hero-cta-item-ico">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+                        <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                        <path d="M12 19v3" />
+                      </svg>
+                    </span>
+                    <span>
+                      <span class="hero-cta-item-name">Tạo với giọng nói</span>
+                      <span class="hero-cta-item-desc">Bạn kể tôi nghe và tạo thiệp cho bạn</span>
+                    </span>
+                  </a>
+    </x-popover>
   </body>
 </html>
