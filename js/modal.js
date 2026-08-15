@@ -22,7 +22,7 @@ function showIframeError() {
   if (!modalBody) return;
   modalBody.innerHTML = `
     <div class="iframe-error" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
-      <i class="fas fa-exclamation-triangle"></i>
+      <i data-icon="triangle-alert"></i>
       <p class="text-lg font-semibold mb-2">Không thể tải preview</p>
       <x-button variant="outline" tone="neutral" onclick="closePreview()">Đóng</x-button>
     </div>

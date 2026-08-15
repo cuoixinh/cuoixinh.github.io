@@ -52,28 +52,10 @@ function setupMusicPlayer(root) {
   const thumbEls = $$("thumb");
   const handleEl = $("handle");
 
+  // TÊN icon lucide (core/helpers/icon.js), không phải class.
   const playIcon = root.dataset.cxPlayIcon || "";
   const pauseIcon = root.dataset.cxPauseIcon || "";
-  // Class theme đặt sẵn trên thẻ icon là phần CỦA THEME (cỡ chữ, canh chỉnh,
-  // position…) — nhớ lại để mỗi lần đổi play↔pause còn ghép vào, chứ ghi đè cả
-  // className thì theme không đặt được gì lên thẻ này.
-  const iconBase = new Map();
-  // Bỏ class thuộc bộ icon (fa-play/fa-pause…) markup đặt sẵn, không thì mỗi lần
-  // đổi trạng thái sẽ ghép chồng cả hai glyph.
-  const iconSet = new Set(
-    ((root.dataset.cxPlayIcon || "") + " " + (root.dataset.cxPauseIcon || ""))
-      .split(/\s+/)
-      .filter(Boolean),
-  );
-  iconEls.forEach((el) =>
-    iconBase.set(
-      el,
-      el.className
-        .split(/\s+/)
-        .filter((c) => c && !iconSet.has(c))
-        .join(" "),
-    ),
-  );
+  const iconSize = Number(root.dataset.cxIconSize) || 12;
   const seekStep = Number(root.dataset.cxSeek) || 10;
   const emptyTitle = root.dataset.cxEmptyTitle || "Nhạc nền";
 
@@ -194,11 +176,11 @@ function setupMusicPlayer(root) {
     const info = (e && e.detail) || {};
     root.classList.toggle("is-playing", !!info.playing);
     if (playIcon && pauseIcon) {
-      const state = info.playing ? pauseIcon : playIcon;
-      iconEls.forEach((el) => {
-        const cls = (iconBase.get(el) + " " + state).trim();
-        if (el.className !== cls) el.className = cls;
-      });
+      const svg = window.cxIcon
+        ? cxIcon(info.playing ? pauseIcon : playIcon, iconSize)
+        : "";
+      // Thay RUỘT thẻ bọc, không đụng class: class trên thẻ là phần của theme.
+      if (svg) iconEls.forEach((el) => (el.innerHTML = svg));
     }
     _renderInfo(info);
 

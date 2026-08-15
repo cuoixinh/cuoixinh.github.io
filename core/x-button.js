@@ -2,7 +2,8 @@
 // Hình dạng cố định: pill (rounded-full); khác nhau ở variant (độ đậm) + tone (màu).
 //
 //   <x-button variant="fill|outline|dashed|soft|ghost|overlay|bare" tone="brand|neutral|danger"
-//             size="xs|sm|md|lg" icon="fas fa-plus" icon-only full>Nhãn</x-button>
+//             size="xs|sm|md|lg" icon="plus" icon-only full>Nhãn</x-button>
+//   icon = tên icon lucide trong core/helpers/icon.js (vd "plus", "trash-2").
 //
 // Khi nạp, phần tử TỰ THAY THẾ mình bằng <button> thật (mọi attribute còn lại —
 // id, onclick, data-*, disabled… — chuyển sang nút đó). Nghĩa là DOM lúc chạy y
@@ -115,7 +116,9 @@ class XButton extends HTMLElement {
       .filter(Boolean)
       .join(" ");
 
-    if (icon) btn.insertAdjacentHTML("beforeend", `<i class="${icon}"></i>`);
+    // icon = TÊN icon lucide (core/helpers/icon.js). Chèn <i data-icon> để trang
+    // nào chưa nạp bảng icon lúc này thì lát nữa cxRenderIcons vẫn dựng được.
+    if (icon) btn.insertAdjacentHTML("beforeend", `<i data-icon="${icon}"></i>`);
     if (label != null) btn.appendChild(document.createTextNode(label));
     else while (this.firstChild) btn.appendChild(this.firstChild);
 

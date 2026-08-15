@@ -772,22 +772,22 @@ function siRenderSingleImage(fieldName) {
 
   if (entry.previewUrl) {
     const adjustBtn = isCrop
-      ? `<x-button variant="overlay" size="xs" icon-only type="button" onclick="siRecropSingle('${fieldName}')" title="Cắt lại ảnh" class="absolute bottom-1 right-1"><i class="fas fa-crop text-xs"></i></x-button>`
+      ? `<x-button variant="overlay" size="xs" icon-only type="button" onclick="siRecropSingle('${fieldName}')" title="Cắt lại ảnh" class="absolute bottom-1 right-1"><i data-icon="crop" class="text-xs"></i></x-button>`
       : isFocal
-        ? `<x-button variant="overlay" size="xs" icon-only type="button" onclick="siAdjustSingleFocal('${fieldName}')" title="Chỉnh điểm lấy nét" class="absolute bottom-1 right-1"><i class="fas fa-crosshairs text-xs"></i></x-button>`
+        ? `<x-button variant="overlay" size="xs" icon-only type="button" onclick="siAdjustSingleFocal('${fieldName}')" title="Chỉnh điểm lấy nét" class="absolute bottom-1 right-1"><i data-icon="crosshair" class="text-xs"></i></x-button>`
         : "";
     container.innerHTML = `
       <div class="relative ${sizeClass} rounded-xl overflow-hidden border border-rose-200 shadow-sm group bg-gray-100">
         <img src="${entry.previewUrl}" class="w-full h-full object-cover"${fpStyle} />
         ${adjustBtn}
         <x-button tone="danger" size="xs" icon-only type="button" onclick="siRemoveSingle('${fieldName}')" class="absolute top-1 right-1">
-          <i class="fas fa-times text-xs text-white"></i>
+          <i data-icon="x" class="text-xs text-white"></i>
         </x-button>
       </div>`;
   } else {
     container.innerHTML = `
       <x-button variant="outline" size="sm" type="button" onclick="document.getElementById('si-${fieldName}-file-input').click()">
-        <i class="fas fa-image text-xs"></i> Chọn ảnh
+        <i data-icon="image" class="text-xs"></i> Chọn ảnh
       </x-button>`;
   }
 }
@@ -884,10 +884,10 @@ function siRenderGallery() {
     div.innerHTML = `
       <img src="${item.previewUrl}" class="w-full h-full object-cover" style="object-position: ${item.focal.x}% ${item.focal.y}%" />
       <x-button variant="overlay" size="xs" icon-only type="button" onclick="siAdjustGalleryFocal(${idx})" title="Chỉnh điểm lấy nét" class="absolute bottom-1 right-1">
-        <i class="fas fa-crosshairs text-xs"></i>
+        <i data-icon="crosshair" class="text-xs"></i>
       </x-button>
       <x-button tone="danger" size="xs" icon-only type="button" onclick="siRemoveGalleryImage(${idx})" class="absolute top-1 right-1">
-        <i class="fas fa-times text-xs text-white"></i>
+        <i data-icon="x" class="text-xs text-white"></i>
       </x-button>
     `;
     container.appendChild(div);
@@ -903,7 +903,7 @@ function siRenderGallery() {
     btn.type = "button";
     btn.className =
       "mt-2 flex items-center gap-1.5 h-8 px-3 rounded-xl border border-dashed border-rose-300 text-xs text-rose-400 hover:border-rose-400 hover:text-rose-500 transition-colors cursor-pointer";
-    btn.innerHTML = `<i class="fas fa-image text-xs"></i> Thêm ảnh`;
+    btn.innerHTML = `<i data-icon="image" class="text-xs"></i> Thêm ảnh`;
     btn.onclick = () =>
       document.getElementById("si-gallery-file-input").click();
     container.insertAdjacentElement("afterend", btn);
@@ -972,7 +972,7 @@ function siRenderLoveStory() {
       <div class="flex items-center justify-between mb-1">
         <span id="si-ls-label-${idx}" class="text-xs font-medium text-rose-400">${escapeHtml(item.title) || `Mốc ${idx + 1}`}</span>
         <x-button variant="ghost" tone="danger" size="sm" type="button" onclick="siRemoveLoveStoryItem(${idx})">
-          <i class="fas fa-trash"></i> Xóa
+          <i data-icon="trash-2"></i> Xóa
         </x-button>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -993,14 +993,14 @@ function siRenderLoveStory() {
             ? `<div class="relative w-16 h-16 rounded-xl overflow-hidden border border-rose-200 flex-shrink-0">
                 <img src="${item.previewUrl}" class="w-full h-full object-cover"${fpStyle} />
                 <x-button variant="overlay" size="xs" icon-only type="button" onclick="siAdjustLoveStoryFocal(${idx})" title="Chỉnh điểm lấy nét" class="absolute bottom-0.5 right-0.5">
-                  <i class="fas fa-crosshairs" style="font-size:10px"></i>
+                  <i data-icon="crosshair" style="font-size:10px"></i>
                 </x-button>
                 <x-button variant="overlay" tone="danger" size="xs" icon-only type="button" onclick="siRemoveLoveStoryImage(${idx})" class="absolute top-0.5 right-0.5">
-                  <i class="fas fa-times" style="font-size:10px"></i>
+                  <i data-icon="x" style="font-size:10px"></i>
                 </x-button>
               </div>`
             : `<x-button variant="outline" size="sm" type="button" onclick="document.getElementById('si-ls-file-input-${idx}').click()">
-                <i class="fas fa-image"></i> Thêm ảnh
+                <i data-icon="image"></i> Thêm ảnh
               </x-button>`
         }
       </div>

@@ -41,15 +41,15 @@ function buildMobileQRWidget() {
   wrapper.className = "hidden lg:block fixed bottom-20 right-4 z-[60]";
   wrapper.innerHTML = `
     <div id="qr-mobile-card" class="w-[200px] bg-white rounded-2xl shadow-xl p-4 text-center relative">
-      <x-button variant="soft" tone="neutral" size="xs" icon-only id="qr-mobile-collapse" type="button" aria-label="Ẩn gợi ý QR" class="absolute top-2 right-2"><i class="fas fa-times text-[10px]"></i></x-button>
+      <x-button variant="soft" tone="neutral" size="xs" icon-only id="qr-mobile-collapse" type="button" aria-label="Ẩn gợi ý QR" class="absolute top-2 right-2"><i data-icon="x" class="text-[10px]"></i></x-button>
       <p class="font-inter text-xs font-semibold text-gray-800 mb-2">Xem trên điện thoại</p>
       <div
         id="qr-mobile-canvas"
         class="w-[150px] h-[150px] mx-auto bg-white rounded-xl border border-gray-100 flex items-center justify-center p-1.5"
-      ><i class="fas fa-spinner fa-spin text-gray-300 text-xl"></i></div>
+      ><i data-icon="loader-circle" class="animate-spin text-gray-300 text-xl"></i></div>
       <p id="qr-mobile-hint" class="font-inter text-[10px] text-gray-400 mt-2 leading-snug">Quét mã để mở nhanh trên di động</p>
     </div>
-    <x-button variant="outline" size="lg" icon-only id="qr-mobile-mini" type="button" aria-label="Xem QR mở thiệp trên mobile" class="hidden text-amber-600"><i class="fas fa-qrcode text-lg"></i></x-button>
+    <x-button variant="outline" size="lg" icon-only id="qr-mobile-mini" type="button" aria-label="Xem QR mở thiệp trên mobile" class="hidden text-amber-600"><i data-icon="qr-code" class="text-lg"></i></x-button>
   `;
   document.body.appendChild(wrapper);
 
@@ -85,7 +85,7 @@ function renderMobileQRUnavailable() {
   if (!qrContainer) return;
   qrContainer.innerHTML = `
     <div class="text-center px-2">
-      <i class="fas fa-cloud-arrow-up text-gray-300 text-xl mb-1.5"></i>
+      <i data-icon="cloud-upload" class="text-gray-300 text-xl mb-1.5"></i>
       <p class="font-inter text-[10px] text-gray-500 leading-snug">Xuất bản để xem trên điện thoại</p>
     </div>
   `;
@@ -125,7 +125,7 @@ async function renderMobileQR() {
     console.error("Lỗi tạo mã QR:", error);
     qrContainer.innerHTML = `
       <div class="text-center p-2">
-        <i class="fas fa-exclamation-triangle text-red-400 text-lg mb-1"></i>
+        <i data-icon="triangle-alert" class="text-red-400 text-lg mb-1"></i>
         <p class="font-inter text-[10px] text-gray-500">Không thể tạo mã QR</p>
       </div>
     `;

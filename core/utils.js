@@ -326,7 +326,7 @@ function openImageCropModal(file, callback, giftInfo) {
     <div class="px-4 pb-4 flex gap-2">
       <x-button variant="outline" tone="neutral" onclick="closeCropModal()" class="flex-1">Hủy</x-button>
       <x-button onclick="applyCrop()" class="flex-1">
-        <i class="fas fa-check mr-1"></i>Áp dụng
+        <i data-icon="check" class="mr-1"></i>Áp dụng
       </x-button>
     </div>
   `;
@@ -368,7 +368,7 @@ function openImageCropModal(file, callback, giftInfo) {
     img.onerror = () => {
       loading.innerHTML = `
         <div class="text-center">
-          <i class="fas fa-exclamation-circle text-4xl text-red-500 mb-3"></i>
+          <i data-icon="circle-alert" class="text-4xl text-red-500 mb-3"></i>
           <p class="text-sm text-red-600">Không thể tải ảnh</p>
         </div>
       `;

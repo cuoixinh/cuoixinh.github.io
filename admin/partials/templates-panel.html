@@ -10,16 +10,16 @@
       </h2>
       <div class="flex gap-2 flex-wrap">
         <x-button id="purge-cache-btn" onclick="purgeTemplatesCache()" title="Xóa cache Cloudflare" class="flex-1 sm:flex-none sm:px-6">
-          <i class="fas fa-sync"></i>
+          <i data-icon="refresh-cw"></i>
           <span class="hidden sm:inline">Xóa Cache</span>
         </x-button>
         <x-button id="scan-images-btn" onclick="startScanImages()" disabled title="Tick chọn template trong danh sách rồi bấm scan" class="flex-1 sm:flex-none sm:px-6">
-          <i class="fas fa-camera"></i>
+          <i data-icon="camera"></i>
           <span class="hidden sm:inline">Scan Image IFrame</span
           ><span class="sm:hidden">Scan</span>
         </x-button>
         <x-button onclick="openTemplateModal()" class="flex-1 sm:flex-none sm:px-6">
-          <i class="fas fa-plus"></i>
+          <i data-icon="plus"></i>
           <span class="hidden sm:inline">Thêm Template</span
           ><span class="sm:hidden">Thêm</span>
         </x-button>
@@ -98,7 +98,7 @@
           class="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-rose-300"
         />
         <p class="text-xs text-gray-500 mt-1">
-          <i class="fas fa-info-circle"></i> Tên file template trong thư mục
+          <i data-icon="info"></i> Tên file template trong thư mục
           public/themes/ (dùng làm ID duy nhất)
         </p>
       </div>
@@ -141,7 +141,7 @@
           readonly
         />
         <p class="text-xs text-gray-500 mt-1">
-          <i class="fas fa-info-circle"></i> Tự động:
+          <i data-icon="info"></i> Tự động:
           public/themes/{template_name}.html?preview=true
         </p>
       </div>
@@ -256,7 +256,7 @@
           class="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-rose-300"
         />
         <p class="text-xs text-gray-500 mt-1">
-          <i class="fas fa-info-circle"></i> Số nhỏ hiển thị trước
+          <i data-icon="info"></i> Số nhỏ hiển thị trước
         </p>
       </div>
 
@@ -291,7 +291,7 @@
   <div class="bg-white rounded-2xl p-6 w-full max-w-lg shadow-2xl">
     <div class="flex items-center justify-between mb-4">
       <h3 class="text-base font-semibold text-gray-800 flex items-center gap-2">
-        <i class="fas fa-camera text-violet-500"></i> Scan Image IFrame
+        <i data-icon="camera" class="text-violet-500"></i> Scan Image IFrame
       </h3>
       <x-button variant="ghost" tone="neutral" id="scan-close-btn" onclick="closeScanModal()" class="text-xl">&times;</x-button>
     </div>

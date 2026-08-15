@@ -181,11 +181,10 @@ function resumeMusicIfAllowed() {
  */
 function updateMusicIcon() {
   const musicIcon = document.getElementById("music-icon");
-  if (musicIcon) {
-    musicIcon.className = isYouTubePlaying
-      ? "fas fa-pause text-lg"
-      : "fas fa-music text-lg";
-  }
+  if (!musicIcon) return;
+  // Thẻ #music-icon là thẻ BỌC; icon vẽ bằng svg lucide (core/helpers/icon.js —
+  // mọi trang dùng helper này đều đã nạp bảng icon).
+  musicIcon.innerHTML = cxIcon(isYouTubePlaying ? "pause" : "music", 18);
 }
 
 // ── Thông tin bài đang phát (cho theme vẽ thanh nhạc kiểu app nghe nhạc) ────

@@ -19,6 +19,7 @@
   // core/config.js KHÔNG nằm ở đây: nó được nạp riêng ở bước mồi trong boot() để
   // lấy CONFIG.version, thêm vào đây nữa là nạp hai lần.
   const SCRIPTS = [
+    "../core/helpers/icon.js",
     "../core/x-button.js",
     "../core/auth.js", // nguồn duy nhất cho phiên đăng nhập (ai-dal đính JWT)
     "js/00-core.js",

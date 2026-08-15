@@ -10,10 +10,6 @@
       integrity="sha384-Tve8O+C6PBzsIMK/IRCwHbi8fyEzXIlIs6OfVBZHubplwYhaQF/4Mzxqgg+pp/oy"
       crossorigin="anonymous"
     ></script>
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -45,7 +41,7 @@
               aria-label="Trợ giúp"
               class="!h-6 !w-6"
             >
-              <i class="fas fa-question text-[10px]"></i>
+              <i data-icon="circle-help" class="text-[10px]"></i>
             </x-button>
           </div>
           <p class="mt-1 text-[13px] text-gray-500">
@@ -57,7 +53,7 @@
         <x-button
           id="btn-new-top"
           size="sm"
-          icon="fas fa-plus"
+          icon="plus"
           onclick="cxStartDefaultDraft()"
           style="background: rgb(var(--action-primary-rgb))"
           class="hover:opacity-90"
@@ -74,7 +70,7 @@
           data-tab="all"
           class="tab-btn cx-segtab inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[13px] font-medium"
         >
-          <i class="fas fa-table-cells-large text-[10px]"></i> Của tôi
+          <i data-icon="layout-grid" class="text-[10px]"></i> Của tôi
           <span data-count="all" class="cx-navcount hidden ml-0.5"></span>
         </button>
         <button
@@ -82,7 +78,7 @@
           data-tab="published"
           class="tab-btn cx-segtab inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[13px] font-medium"
         >
-          <i class="fas fa-wand-magic-sparkles text-[10px]"></i> Xuất bản
+          <i data-icon="wand-sparkles" class="text-[10px]"></i> Xuất bản
           <span data-count="published" class="cx-navcount hidden ml-0.5"></span>
         </button>
         <button
@@ -90,7 +86,7 @@
           data-tab="draft"
           class="tab-btn cx-segtab inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[13px] font-medium"
         >
-          <i class="fas fa-book-open text-[10px]"></i> Nháp
+          <i data-icon="book-open" class="text-[10px]"></i> Nháp
           <span data-count="draft" class="cx-navcount hidden ml-0.5"></span>
         </button>
       </div>
@@ -154,7 +150,7 @@
         <div
           class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-red-50"
         >
-          <i class="fas fa-triangle-exclamation text-xl text-red-300"></i>
+          <i data-icon="triangle-alert" class="text-xl text-red-300"></i>
         </div>
         <p class="font-semibold text-gray-800">
           Không tải được danh sách thiệp
@@ -164,7 +160,7 @@
         </p>
         <x-button
           size="sm"
-          icon="fas fa-rotate-right"
+          icon="refresh-cw"
           onclick="loadCards()"
           class="mt-4"
         >
@@ -176,7 +172,7 @@
         <div
           class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-rose-50"
         >
-          <i class="fas fa-envelope-open-text text-xl text-rose-300"></i>
+          <i data-icon="mail-open" class="text-xl text-rose-300"></i>
         </div>
         <p id="empty-title" class="font-semibold text-gray-800">
           Chưa có thiệp nào
@@ -189,7 +185,7 @@
         </p>
         <x-button
           size="sm"
-          icon="fas fa-plus"
+          icon="plus"
           onclick="cxStartDefaultDraft()"
           style="background: rgb(var(--action-primary-rgb))"
           class="mt-5 hover:opacity-90"
@@ -202,7 +198,7 @@
         <div
           class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-rose-50"
         >
-          <i class="fas fa-user-lock text-xl text-rose-300"></i>
+          <i data-icon="user-lock" class="text-xl text-rose-300"></i>
         </div>
         <p class="font-semibold text-gray-800">
           Đăng nhập để xem thiệp của bạn
@@ -236,7 +232,7 @@
             icon-only
             onclick="closeProfileModal()"
           >
-            <i class="fas fa-times text-sm text-gray-400"></i>
+            <i data-icon="x" class="text-sm text-gray-400"></i>
           </x-button>
         </div>
         <form id="profile-form" class="p-5">
@@ -268,6 +264,7 @@
       </div>
     </div>
 
+    <script src="../core/helpers/icon.js"></script>
     <script src="../core/x-button.js"></script>
     <script src="../core/x-popover.js"></script>
     <script src="../core/helpers/account-menu.js"></script>

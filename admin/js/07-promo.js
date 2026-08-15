@@ -44,7 +44,7 @@ async function promoPost(payload, btnId) {
   try {
     if (btn) {
       btn.disabled = true;
-      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang sinh...';
+      btn.innerHTML = '<i data-icon="loader-circle" class="animate-spin"></i> Đang sinh...';
     }
 
     const res = await fetch(`${EDGE_URL}?resource=promo-codes`, {
@@ -239,13 +239,13 @@ function renderPromoCodes() {
         ${
           c.max_uses == null
             ? ""
-            : `<x-button variant="ghost" tone="neutral" size="sm" icon-only icon="fas fa-plus"
+            : `<x-button variant="ghost" tone="neutral" size="sm" icon-only icon="plus"
                  onclick="promoAddUses('${c.id}')" label="Cộng thêm lượt"></x-button>`
         }
         <x-button variant="ghost" tone="neutral" size="sm" onclick="promoToggle('${c.id}', ${!c.is_active})">
           ${c.is_active ? "Tắt" : "Bật"}
         </x-button>
-        <x-button variant="ghost" tone="danger" size="sm" icon-only icon="fas fa-trash"
+        <x-button variant="ghost" tone="danger" size="sm" icon-only icon="trash-2"
           onclick="promoDelete('${c.id}', '${escapeHtml(c.code)}')" label="Xoá mã"></x-button>
       </td>
     </tr>`;

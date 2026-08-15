@@ -637,8 +637,24 @@ html.cx-landing {
   }
 }
 
+/* Icon trong vòng: ::before là đĩa trắng ĐƯỢC ĐỊNH VỊ nên vẽ đè lên nội dung
+   thường — icon svg phải tự nâng lên bằng position + z-index, nếu không nó nằm
+   khuất sau đĩa. Cỡ icon đi theo font-size của vòng (1em). */
+.hero-invite-steps li .hero-step-orb svg {
+  position: relative;
+  z-index: 1;
+}
+
 /* Đĩa trắng lọt trong vòng, chừa một khe hở như hình cắt giấy; nền đặc để mũi
    tên chạy khuất phía sau. */
+
+/* Icon trong vòng: ::before là đĩa trắng ĐƯỢC ĐỊNH VỊ nên vẽ đè lên nội dung
+   thường — icon svg phải tự nâng lên bằng position + z-index, nếu không nó nằm
+   khuất sau đĩa. Cỡ icon đi theo font-size của vòng (svg dựng ở 1em). */
+.hero-invite-steps li .hero-step-orb svg {
+  position: relative;
+  z-index: 1;
+}
 
 .hero-invite-steps li .hero-step-orb::before {
   content: "";

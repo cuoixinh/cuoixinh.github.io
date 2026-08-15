@@ -25,7 +25,7 @@
       <div
         class="relative shrink-0 w-8 h-8 rounded-lg overflow-hidden bg-gradient-to-br from-rose-pastel-200 to-rose-pastel-300 ring-1 ring-inset ring-white/40 flex items-center justify-center"
       >
-        <i class="cx-mp-note fas fa-music text-white text-[11px]"></i>
+        <i data-icon="music" class="cx-mp-note text-white text-[11px]"></i>
         <img
           data-cx-music="thumb"
           alt=""
@@ -51,7 +51,7 @@
           aria-label="Lùi 10 giây"
           class="w-8 h-8 rounded-full bg-[rgb(var(--text-body-rgb)/0.08)] text-[rgb(var(--text-body-rgb))] flex items-center justify-center transition-transform active:scale-90"
         >
-          <i class="fas fa-backward text-[10px]"></i>
+          <i data-icon="skip-back" class="text-[10px]"></i>
         </button>
         <button
           type="button"
@@ -59,12 +59,11 @@
           aria-label="Phát hoặc tạm dừng nhạc nền"
           class="w-8 h-8 rounded-full bg-[rgb(var(--text-body-rgb)/0.16)] text-[rgb(var(--text-body-rgb))] flex items-center justify-center shadow-sm transition-transform active:scale-90"
         >
-          <!-- Class ở đây là phần của theme (cỡ chữ); helper ghép thêm
-               fa-play / fa-pause vào tuỳ trạng thái — và lọc bỏ bộ icon mặc
-               định bên dưới để không chồng hai glyph. Đặt sẵn fa-play để lúc
-               CHƯA gắn logic (ô xem trước ở panel, widget đang chỉnh) nút vẫn
-               có hình chứ không rỗng trơ. -->
-          <i data-cx-music="icon" class="fas fa-play ml-px text-[11px]"></i>
+          <!-- Thẻ BỌC icon: helper thay phần bên trong bằng svg play/pause tuỳ
+               trạng thái (data-cx-play-icon/-pause-icon trên thẻ root là TÊN
+               icon lucide). Class ở đây là phần của theme (cỡ, canh chỉnh). Đặt
+               sẵn "play" để lúc chưa gắn logic nút vẫn có hình. -->
+          <i class="ml-px inline-flex" data-cx-music="icon">${cxIcon("play", 12)}</i>
         </button>
         <button
           type="button"
@@ -72,7 +71,7 @@
           aria-label="Tới 10 giây"
           class="w-8 h-8 rounded-full bg-[rgb(var(--text-body-rgb)/0.08)] text-[rgb(var(--text-body-rgb))] flex items-center justify-center transition-transform active:scale-90"
         >
-          <i class="fas fa-forward text-[10px]"></i>
+          <i data-icon="skip-forward" class="text-[10px]"></i>
         </button>
       </div>
     </div>`;
@@ -162,7 +161,7 @@
               data-cx-summary-row
               class="hidden flex items-start justify-center gap-1.5 max-w-[300px] font-inter text-[11px] leading-snug text-[rgb(var(--text-body-rgb)/0.9)]"
             >
-              <i class="fas fa-map-marker-alt mt-0.5 text-[9px] text-[rgb(var(--text-body-rgb)/0.75)]"></i>
+              <i data-icon="map-pin" class="mt-0.5 text-[9px] text-[rgb(var(--text-body-rgb)/0.75)]"></i>
               <span data-cx-summary="event-location" class="line-clamp-2"></span>
             </div>
           </div>
@@ -189,7 +188,7 @@
       aria-label="Mở lại thanh nhạc"
       class="cx-mp-bubble fixed right-3 top-24 w-9 h-9 rounded-full shadow-[0_8px_24px_rgb(var(--music-bubble-shadow-rgb)/0.4)] ring-2 ring-white/70 bg-gradient-to-br from-rose-pastel-200 to-rose-pastel-300 items-center justify-center cursor-grab active:cursor-grabbing"
     >
-      <i class="cx-mp-note fas fa-music text-white text-[10px]"></i>
+      <i data-icon="music" class="cx-mp-note text-white text-[10px]"></i>
       <!-- cx-mp-spin: quay tròn khi đang phát -->
       <img
         data-cx-music="thumb"
@@ -302,8 +301,8 @@
     // Mẫu thanh ngang. id="music-toggle" để setupMusic() ẩn/hiện (display
     // none/flex) → thẻ phải flex-col. Canh giữa bằng inset-x-0 + mx-auto, không
     // dùng translate (transform ở tổ tiên làm bong bóng `fixed` neo sai chỗ).
-    node.setAttribute("data-cx-play-icon", "fas fa-play ml-px");
-    node.setAttribute("data-cx-pause-icon", "fas fa-pause");
+    node.setAttribute("data-cx-play-icon", "play");
+    node.setAttribute("data-cx-pause-icon", "pause");
 
     const withSummary = o.summary != null ? o.summary : fixed || !!window.__cxMusicSummary;
 

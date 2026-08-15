@@ -14,7 +14,7 @@ async function purgeTemplatesCache() {
 
   try {
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang xóa...';
+    btn.innerHTML = '<i data-icon="loader-circle" class="animate-spin"></i> Đang xóa...';
 
     const response = await fetch(CONFIG.cloudflare.templatesCache + "/purge", {
       method: "POST",

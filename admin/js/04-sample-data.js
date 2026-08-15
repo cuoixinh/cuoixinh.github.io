@@ -18,7 +18,7 @@ const SI_TIMELINE_TYPES = [
 const SI_CONTENT_GROUPS = [
   {
     title: "Cô dâu & chú rể",
-    icon: "fa-heart",
+    icon: "heart",
     fields: [
       { name: "groom_name", label: "Tên chú rể", type: "text" },
       { name: "bride_name", label: "Tên cô dâu", type: "text" },
@@ -32,7 +32,7 @@ const SI_CONTENT_GROUPS = [
   },
   {
     title: "Lễ thành hôn",
-    icon: "fa-ring",
+    icon: "gem",
     fields: [
       { name: "ceremony_name", label: "Tên buổi lễ", type: "text" },
       { name: "ceremony_date", label: "Ngày", type: "date", lunar: "ceremony_lunar" },
@@ -44,7 +44,7 @@ const SI_CONTENT_GROUPS = [
   },
   {
     title: "Lễ vu quy",
-    icon: "fa-house-chimney",
+    icon: "house",
     fields: [
       { name: "vu_quy_enabled", label: "Hiện lễ vu quy", type: "switch" },
       { name: "vu_quy_time", label: "Giờ", type: "time" },
@@ -54,7 +54,7 @@ const SI_CONTENT_GROUPS = [
   },
   {
     title: "Tiệc nhà trai",
-    icon: "fa-champagne-glasses",
+    icon: "wine",
     sameLoc: "groom_party", // ô tích "Trùng địa điểm ..." — xem siRenderSameLocRow
     fields: [
       { name: "groom_party_date", label: "Ngày", type: "date", lunar: "groom_party_lunar" },
@@ -67,7 +67,7 @@ const SI_CONTENT_GROUPS = [
   },
   {
     title: "Tiệc nhà gái",
-    icon: "fa-champagne-glasses",
+    icon: "wine",
     sameLoc: "bride_party",
     fields: [
       { name: "bride_party_date", label: "Ngày", type: "date", lunar: "bride_party_lunar" },
@@ -80,7 +80,7 @@ const SI_CONTENT_GROUPS = [
   },
   {
     title: "Mừng cưới",
-    icon: "fa-qrcode",
+    icon: "qr-code",
     fields: [
       { name: "groom_bank_name", label: "Ngân hàng chú rể", type: "text" },
       { name: "groom_bank_number", label: "Số tài khoản chú rể", type: "text" },
@@ -92,7 +92,7 @@ const SI_CONTENT_GROUPS = [
   },
   {
     title: "Lời ngỏ & lời cảm ơn",
-    icon: "fa-feather",
+    icon: "feather",
     fields: [
       { name: "story_quote", label: "Lời ngỏ / slogan", type: "textarea", wide: true },
       { name: "rsvp_enabled", label: "Bật xác nhận tham dự", type: "switch" },
@@ -104,7 +104,7 @@ const SI_CONTENT_GROUPS = [
     // Khối riêng, kèm luôn công tắc bật/tắt — xếp giống thẻ "Nhạc nền" ở tab
     // Thiết lập của trang thiệp, nên enable_music KHÔNG nằm ở "Hiện / ẩn khối".
     title: "Nhạc nền",
-    icon: "fa-music",
+    icon: "music",
     fields: [
       { name: "enable_music", label: "Bật nhạc nền", type: "switch" },
       { name: "music_url", label: "Bài hát (YouTube)", type: "youtube", wide: true },
@@ -112,7 +112,7 @@ const SI_CONTENT_GROUPS = [
   },
   {
     title: "Hiện / ẩn khối",
-    icon: "fa-eye",
+    icon: "eye",
     fields: [
       { name: "enable_family", label: "Gia đình", type: "switch" },
       { name: "enable_party", label: "Tiệc cưới", type: "switch" },
@@ -307,7 +307,7 @@ function siRenderContentGroup(group, open) {
   return `
     <details class="border border-gray-200 rounded-xl" data-group="${escapeHtml(group.title)}" ${open ? "open" : ""}>
       <summary class="px-4 py-3 text-sm font-semibold text-gray-700 cursor-pointer select-none flex items-center gap-2">
-        <i class="fas ${group.icon} text-rose-300"></i> ${escapeHtml(group.title)}
+        <span class="text-rose-300">${cxIcon(group.icon, 15)}</span> ${escapeHtml(group.title)}
       </summary>
       <div class="px-4 pb-4">${body}</div>
     </details>`;
@@ -390,7 +390,7 @@ function siRenderMapField(field, value, wrapClass) {
   const action = locked
     ? `<span class="shrink-0 text-xs text-gray-400 italic">Theo ${escapeHtml(SI_SOURCE_LABEL[siPartySource(side)])}</span>`
     : `<x-button variant="ghost" size="sm" type="button" onclick="siOpenMapPicker('${side}')" class="shrink-0">
-          <i class="fas fa-map-location-dot"></i> Chọn trên bản đồ
+          <i data-icon="map-pinned"></i> Chọn trên bản đồ
         </x-button>`;
 
   return `
@@ -400,15 +400,15 @@ function siRenderMapField(field, value, wrapClass) {
         ${action}
       </div>
       <div id="${side}-map-display" class="flex items-center gap-2 mb-2 px-3 py-2 bg-rose-50 border border-rose-100 rounded-lg">
-        <i class="fas fa-location-dot text-rose-300 text-xs shrink-0"></i>
+        <i data-icon="map-pin" class="text-rose-300 text-xs shrink-0"></i>
         <span id="${side}-map-address"
           class="flex-1 min-w-0 truncate text-xs ${addr ? "text-gray-600" : "text-gray-400 italic"}"
           >${escapeHtml(addr || SI_MAP_NO_ADDRESS)}</span>
         <x-button variant="ghost" type="button" onclick="siCopyMapAddress('${side}')" title="Sao chép địa chỉ" class="${chipBtn}">
-          <i class="fas fa-copy"></i> Chép
+          <i data-icon="copy"></i> Chép
         </x-button>
         <x-button variant="ghost" type="button" onclick="siOpenMapsSearch('${side}')" title="Mở Google Maps với địa chỉ này" class="${chipBtn}">
-          <i class="fas fa-up-right-from-square"></i> Mở Maps
+          <i data-icon="external-link"></i> Mở Maps
         </x-button>
       </div>
       <textarea rows="2" id="${field.name}" name="${field.name}" data-si-content="${field.name}"
@@ -550,10 +550,10 @@ function siRenderYouTubeField(field, value, wrapClass) {
 
       <div id="music-selected-tag" class="hidden mt-2">
         <span class="inline-flex items-center gap-1.5 max-w-full px-2.5 py-1 rounded-full bg-rose-50 text-rose-600 border border-rose-100 text-xs">
-          <i class="fas fa-music shrink-0"></i>
+          <i data-icon="music" class="shrink-0"></i>
           <span id="music-selected-name" class="truncate"></span>
           <x-button variant="ghost" icon-only type="button" onclick="clearMusicSelection()" title="Gỡ bài hát" class="shrink-0">
-            <i class="fas fa-xmark"></i>
+            <i data-icon="x"></i>
           </x-button>
         </span>
       </div>
@@ -641,7 +641,7 @@ function siRenderTimeline() {
           ).join("")}
         </select>
         <x-button variant="ghost" tone="danger" icon-only type="button" onclick="siRemoveTimelineItem(${idx})" class="shrink-0">
-          <i class="fas fa-trash"></i>
+          <i data-icon="trash-2"></i>
         </x-button>
       </div>`,
     )

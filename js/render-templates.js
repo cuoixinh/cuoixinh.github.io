@@ -37,7 +37,7 @@ function renderTemplateCards() {
           <div class="art-template-overlay absolute bottom-0 left-0 right-0 pt-16 pb-4 px-4 rounded-b-[16px]"
             style="background:linear-gradient(to top, rgb(var(--landing-photo-overlay-rgb)/90%) 0%, rgb(var(--landing-photo-overlay-soft-rgb)/60%) 48%, transparent 100%);">
             <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 mb-2 text-[10px] font-semibold text-white" style="background:rgb(var(--white-rgb)/0.22);backdrop-filter:blur(4px);">
-              <i class="fas fa-tag text-[9px]"></i>${categoryLabel}
+              <i data-icon="tag" class="text-[9px]"></i>${categoryLabel}
             </span>
             <p class="text-white font-playfair font-semibold text-base leading-snug truncate drop-shadow-sm">${t.name}</p>
             <p class="text-white/85 text-xs mt-0.5 line-clamp-2 leading-relaxed">${t.description || ""}</p>
@@ -54,7 +54,7 @@ function renderTemplateCards() {
                    Nền TRẮNG ĐẶC: nút đè lên ảnh cưới, để trong mờ thì ảnh xuyên
                    qua làm chữ chìm và mỗi thẻ ra một sắc nền khác. -->
               <x-button size="sm" variant="outline" onclick="event.stopPropagation(); openPreview('${t.id}')" style="background:rgb(var(--white-rgb));color:rgb(var(--text-body-rgb));border:1px solid rgb(var(--brand-primary-rgb)/0.45);box-shadow:0 4px 12px rgb(var(--scrim-rgb)/0.18);" class="flex-1 sm:h-10 sm:px-5 sm:text-sm">
-                <i class="fas fa-eye text-[11px]"></i>Xem trước
+                <i data-icon="eye" class="text-[11px]"></i>Xem trước
               </x-button>
               <!-- Cùng màu với nút "Tạo ngay" ở thanh xem trước mẫu
                    (core/utils.js): hai chỗ này là CÙNG một hành động — tạo bản

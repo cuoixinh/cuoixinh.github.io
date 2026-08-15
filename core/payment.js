@@ -117,7 +117,7 @@
           <!-- Header -->
           <div class="text-center mb-1">
             <div class="w-14 h-14 rounded-full bg-gradient-to-br from-pink-300 to-pink-200 flex items-center justify-center mx-auto mb-3 shadow-lg shadow-pink-200/50">
-              <i class="fas fa-qrcode text-white text-xl"></i>
+              <i data-icon="qr-code" class="text-white text-xl"></i>
             </div>
             <h3 class="font-playfair text-xl font-bold mb-1" style="color:rgb(var(--text-body-rgb));">Quét mã thanh toán</h3>
             <p class="text-xs text-gray-400">Sử dụng app ngân hàng để quét mã QR</p>
@@ -137,7 +137,7 @@
           <div class="w-full p-4 rounded-2xl bg-gradient-to-br from-gray-50 to-white border border-gray-100 shadow-sm">
             <div class="flex items-center gap-3 mb-3 pb-3 border-b-2" style="border-color:rgb(var(--surface-brand-rgb));">
               <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background:rgb(var(--surface-brand-rgb));">
-                <i class="fas fa-university text-base" style="color:rgb(var(--brand-primary-rgb));"></i>
+                <i data-icon="landmark" class="text-base" style="color:rgb(var(--brand-primary-rgb));"></i>
               </div>
               <div class="text-left">
                 <p class="text-[11px] text-gray-400 uppercase tracking-wide font-semibold m-0">Thông tin chuyển khoản</p>
@@ -171,7 +171,7 @@
           <div class="w-full p-3.5 rounded-2xl border" style="background:rgb(var(--surface-brand-soft-rgb));border-color:rgb(var(--surface-brand-rgb));">
             <div class="flex items-center gap-2 mb-2">
               <div class="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0" style="background:rgb(var(--brand-primary-rgb));">
-                <i class="fas fa-mobile-alt text-white text-[11px]"></i>
+                <i data-icon="smartphone" class="text-white text-[11px]"></i>
               </div>
               <p class="text-xs font-semibold m-0" style="color:rgb(var(--text-body-rgb));">Hướng dẫn thanh toán</p>
             </div>
@@ -198,7 +198,7 @@
           <div id="payment-timeout" class="hidden w-full flex-col gap-2.5 p-4 rounded-2xl bg-gradient-to-br from-red-50 to-red-50/50 border-2 border-red-200">
             <div class="flex items-center gap-2.5">
               <div class="w-9 h-9 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
-                <i class="fas fa-exclamation-triangle text-red-600 text-sm"></i>
+                <i data-icon="triangle-alert" class="text-red-600 text-sm"></i>
               </div>
               <div class="text-left flex-1">
                 <p class="text-xs text-red-600 font-semibold m-0">Chưa nhận được xác nhận</p>
@@ -207,16 +207,16 @@
             </div>
             <div class="flex gap-2.5">
               <x-button variant="outline" size="sm" onclick="PaymentModal.retryCheck()" class="flex-1">
-                <i class="fas fa-sync-alt mr-2"></i>Kiểm tra lại
+                <i data-icon="refresh-cw" class="mr-2"></i>Kiểm tra lại
               </x-button>
               <x-button size="sm" onclick="PaymentModal.createNewPayment()" class="flex-1 from-pink-300 to-pink-200 hover:-translate-y-0.5">
-                <i class="fas fa-redo mr-2"></i>Tạo mã mới
+                <i data-icon="refresh-cw" class="mr-2"></i>Tạo mã mới
               </x-button>
             </div>
           </div>
 
           <x-button variant="outline" tone="neutral" size="sm" onclick="PaymentModal.cancelPayment()" class="mt-1">
-            <i class="fas fa-times mr-2"></i>Hủy thanh toán
+            <i data-icon="x" class="mr-2"></i>Hủy thanh toán
           </x-button>
         </div>
       `;
@@ -248,7 +248,7 @@
           qrcodeContainer.innerHTML = `
           <div style="text-align:center;padding:32px;">
             <div style="width:48px;height:48px;border-radius:9999px;background:rgb(var(--state-error-bg-rgb));display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
-              <i class="fas fa-exclamation-triangle" style="color:rgb(var(--state-error-text-rgb));font-size:20px;"></i>
+              <i data-icon="triangle-alert" style="color:rgb(var(--state-error-text-rgb));font-size:20px;"></i>
             </div>
             <p style="color:rgb(var(--state-error-text-rgb));font-size:14px;margin:0 0 8px;font-weight:600;">Không thể tạo mã QR</p>
             <p style="color:rgb(var(--text-tertiary-rgb));font-size:12px;margin:0;">Vui lòng sử dụng nút thanh toán bên dưới</p>
@@ -262,7 +262,7 @@
           qrcodeContainer.innerHTML = `
             <div style="text-align:center;padding:32px;">
               <div style="width:48px;height:48px;border-radius:9999px;background:rgb(var(--state-error-bg-rgb));display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
-                <i class="fas fa-times-circle" style="color:rgb(var(--state-error-text-rgb));font-size:20px;"></i>
+                <i data-icon="circle-x" style="color:rgb(var(--state-error-text-rgb));font-size:20px;"></i>
               </div>
               <p style="color:rgb(var(--state-error-text-rgb));font-size:14px;margin:0 0 8px;font-weight:600;">Lỗi tạo mã QR</p>
               <p style="color:rgb(var(--text-tertiary-rgb));font-size:12px;margin:0;">Vui lòng sử dụng nút thanh toán bên dưới</p>
@@ -574,7 +574,7 @@
         <div class="relative bg-white rounded-3xl max-w-[480px] w-full max-h-[90vh] shadow-2xl z-10 overflow-hidden">
           <div class="overflow-y-auto max-h-[90vh]">
           <x-button variant="outline" size="sm" icon-only onclick="PaymentModal.close()" class="absolute top-4 right-4 z-20">
-            <i class="fas fa-times text-gray-400 text-sm"></i>
+            <i data-icon="x" class="text-gray-400 text-sm"></i>
           </x-button>
 
           <!-- Step 1: Xác nhận đơn hàng -->
@@ -587,7 +587,7 @@
               <!-- Thông tin mẫu -->
               <div class="flex items-center gap-4 p-4 rounded-2xl border border-pink-200" style="background:rgb(var(--surface-brand-subtle-rgb));">
                 <div class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style="background:rgb(var(--brand-primary-rgb));">
-                  <i class="fas fa-envelope-open-text text-white text-lg"></i>
+                  <i data-icon="mail-open" class="text-white text-lg"></i>
                 </div>
                 <div>
                   <p class="font-semibold text-sm m-0" style="color:rgb(var(--text-body-rgb));" id="payment-template-name">-</p>
@@ -606,7 +606,7 @@
                   <p class="text-sm font-medium m-0" style="color:rgb(var(--text-body-rgb));" id="payment-user-name-display"></p>
                   <p class="text-xs text-gray-400 m-0" id="payment-user-email-display"></p>
                 </div>
-                <i class="fas fa-check-circle ml-auto" style="color:rgb(var(--brand-primary-rgb));"></i>
+                <i data-icon="circle-check" class="ml-auto" style="color:rgb(var(--brand-primary-rgb));"></i>
               </div>
 
               <!-- Form -->
@@ -657,10 +657,10 @@
               </div>
 
               <x-button onclick="PaymentModal.process()" style="background:rgb(var(--action-primary-rgb));" class="w-full hover:opacity-90">
-                <i class="fas fa-lock mr-2 text-xs"></i>Thanh toán ngay
+                <i data-icon="lock" class="mr-2 text-xs"></i>Thanh toán ngay
               </x-button>
               <p class="text-center text-xs text-gray-400 m-0">
-                <i class="fas fa-shield-alt mr-1"></i>Thanh toán an toàn & bảo mật
+                <i data-icon="shield-check" class="mr-1"></i>Thanh toán an toàn & bảo mật
               </p>
               <p id="payment-api-error" class="hidden text-xs text-red-500 text-center p-2 bg-red-50 rounded-lg m-0"></p>
             </div>
@@ -680,7 +680,7 @@
           <!-- Step 3: Success -->
           <div id="payment-step-3" class="hidden p-10 flex-col items-center gap-5 text-center">
             <div class="w-20 h-20 rounded-full bg-gradient-to-br from-pink-300 to-pink-200 flex items-center justify-center">
-              <i class="fas fa-check text-white text-3xl"></i>
+              <i data-icon="check" class="text-white text-3xl"></i>
             </div>
             <div>
               <h3 class="font-playfair text-2xl font-bold mb-2 m-0" style="color:rgb(var(--text-body-rgb));">Thanh toán thành công!</h3>
@@ -700,7 +700,7 @@
                 <input id="success-manage-link" readonly
                   class="flex-1 px-3 py-2 rounded-lg border border-gray-200 text-[11px] text-gray-600 bg-white outline-none min-w-0" />
                 <x-button size="sm" icon-only onclick="copyManageLink()" style="background:rgb(var(--action-primary-rgb));" class="flex-shrink-0">
-                  <i class="fas fa-copy"></i>
+                  <i data-icon="copy"></i>
                 </x-button>
               </div>
             </div>
@@ -710,7 +710,7 @@
               </x-button>
               <a id="success-manage-btn" href="#"
                 class="flex-1 py-3 rounded-full text-white font-semibold text-sm no-underline flex items-center justify-center gap-2" style="background:rgb(var(--action-primary-rgb));">
-                <i class="fas fa-edit text-xs"></i>Thiết lập ngay
+                <i data-icon="square-pen" class="text-xs"></i>Thiết lập ngay
               </a>
             </div>
           </div>
@@ -731,9 +731,9 @@
     if (!input) return;
     navigator.clipboard.writeText(input.value).then(() => {
       const btn = input.nextElementSibling;
-      btn.innerHTML = '<i class="fas fa-check"></i>';
+      btn.innerHTML = '<i data-icon="check"></i>';
       setTimeout(() => {
-        btn.innerHTML = '<i class="fas fa-copy"></i>';
+        btn.innerHTML = '<i data-icon="copy"></i>';
       }, 2000);
     });
   };

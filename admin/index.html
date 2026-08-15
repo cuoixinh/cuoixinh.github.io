@@ -6,10 +6,6 @@
     <title>Cưới Xinh — Quản trị</title>
     <link rel="icon" type="image/png" href="../assets/icons/logo.png" />
     <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
-    <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap"
       rel="stylesheet"
     />
@@ -18,7 +14,10 @@
     <link rel="stylesheet" href="../styles/build.css" />
     <!-- Leaflet: dùng cho picker chọn địa điểm ở tab "Dữ liệu mẫu"
          (core/helpers/maps-helper.js, chung với trang thiết lập thiệp) -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <link
       rel="stylesheet"
@@ -33,10 +32,19 @@
     <div class="max-w-7xl mx-auto">
       <div class="flex items-center justify-between mb-4 sm:mb-6 md:mb-8 px-2">
         <h1 class="text-2xl sm:text-3xl">
-          <x-button variant="ghost" type="button" onclick="switchTab('dashboard')" style="color: rgb(var(--focus-ring-rgb))" class="sm:text-base hover:opacity-80 align-middle">
+          <x-button
+            variant="ghost"
+            type="button"
+            onclick="switchTab('dashboard')"
+            style="color: rgb(var(--focus-ring-rgb))"
+            class="sm:text-base hover:opacity-80 align-middle"
+          >
             Trang chủ
           </x-button>
-          <span class="text-sm sm:text-base font-normal text-gray-300 mx-1 align-middle">/</span>
+          <span
+            class="text-sm sm:text-base font-normal text-gray-300 mx-1 align-middle"
+            >/</span
+          >
           <span
             id="breadcrumb-current"
             class="text-sm sm:text-base font-normal text-gray-400 align-middle"
@@ -44,7 +52,11 @@
           >
         </h1>
         <a href="/" class="shrink-0">
-          <img src="../assets/icons/logo.png" alt="Cưới Xinh" class="h-9 w-auto" />
+          <img
+            src="../assets/icons/logo.png"
+            alt="Cưới Xinh"
+            class="h-9 w-auto"
+          />
         </a>
       </div>
 
@@ -60,7 +72,11 @@
       <span id="mount-promo" hidden></span>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.8" integrity="sha384-Tve8O+C6PBzsIMK/IRCwHbi8fyEzXIlIs6OfVBZHubplwYhaQF/4Mzxqgg+pp/oy" crossorigin="anonymous"></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.8"
+      integrity="sha384-Tve8O+C6PBzsIMK/IRCwHbi8fyEzXIlIs6OfVBZHubplwYhaQF/4Mzxqgg+pp/oy"
+      crossorigin="anonymous"
+    ></script>
     <!-- Nạp partials/*.html vào các thẻ mount ở trên, rồi mới chèn script theo tab
          (js/00-core.js, 01-weddings.js, 02-templates.js). Xem loader.js. -->
     <script src="loader.js"></script>

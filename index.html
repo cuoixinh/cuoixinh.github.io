@@ -22,11 +22,6 @@
       content="https://cuoixinh.com/assets/icons/logo.png"
     />
     <meta name="twitter:card" content="summary_large_image" />
-
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -105,7 +100,7 @@
                 class="hero-invite-rule hero-anim hero-anim-2"
                 aria-hidden="true"
               >
-                <span></span><i class="fas fa-heart"></i><span></span>
+                <span></span><i data-icon="heart"></i><span></span>
               </div>
               <!-- Sơ đồ các bước làm thiệp: vòng tròn icon nối bằng mũi tên,
                    chữ nằm dưới. Số thứ tự và dòng "BƯỚC 0x" do CSS counter
@@ -116,25 +111,25 @@
               <ol class="hero-invite-steps hero-anim hero-anim-3">
                 <li>
                   <span class="hero-step-orb" aria-hidden="true"
-                    ><i class="fas fa-swatchbook"></i
+                    ><i data-icon="swatch-book"></i
                   ></span>
                   <span class="hero-step-label">Chọn mẫu</span>
                 </li>
                 <li>
                   <span class="hero-step-orb" aria-hidden="true"
-                    ><i class="fas fa-images"></i
+                    ><i data-icon="images"></i
                   ></span>
                   <span class="hero-step-label">Điền thông tin</span>
                 </li>
                 <li>
                   <span class="hero-step-orb" aria-hidden="true"
-                    ><i class="fas fa-paper-plane"></i
+                    ><i data-icon="send"></i
                   ></span>
                   <span class="hero-step-label">Xuất bản</span>
                 </li>
                 <li>
                   <span class="hero-step-orb" aria-hidden="true"
-                    ><i class="fas fa-envelope-open-text"></i
+                    ><i data-icon="mail-open"></i
                   ></span>
                   <span class="hero-step-label">Gửi thiệp</span>
                 </li>
@@ -216,7 +211,7 @@
               <div class="hero-phone-screen">
                 <div id="hero-skeleton" class="card-skeleton absolute inset-0">
                   <div class="card-skeleton-fallback">
-                    <i class="fas fa-heart"></i>
+                    <i data-icon="heart"></i>
                   </div>
                 </div>
                 <img id="hero-preview-img" alt="Mẫu thiệp cưới Cưới Xinh" />
@@ -230,7 +225,7 @@
         </article>
 
         <a href="#templates" class="hero-scroll hero-anim hero-anim-5">
-          Xem mẫu thiệp <i class="fas fa-chevron-down"></i>
+          Xem mẫu thiệp <i data-icon="chevron-down"></i>
         </a>
       </div>
     </section>
@@ -269,7 +264,7 @@
           aria-label="Thiệp trước"
           class="absolute left-3 sm:left-6 top-1/2 z-40 -translate-y-1/2 hidden lg:flex text-[rgb(var(--text-heading-rgb))] backdrop-blur-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgb(var(--brand-accent-rgb)/0.40)]"
         >
-          <i class="fas fa-chevron-left text-base"></i>
+          <i data-icon="chevron-left" class="text-base"></i>
         </x-button>
         <x-button
           variant="outline"
@@ -279,7 +274,7 @@
           aria-label="Thiệp tiếp theo"
           class="absolute right-3 sm:right-6 top-1/2 z-40 -translate-y-1/2 hidden lg:flex text-[rgb(var(--text-heading-rgb))] backdrop-blur-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgb(var(--brand-accent-rgb)/0.40)]"
         >
-          <i class="fas fa-chevron-right text-base"></i>
+          <i data-icon="chevron-right" class="text-base"></i>
         </x-button>
 
         <div class="shrink-0 flex items-center justify-center gap-4 py-3">
@@ -291,7 +286,7 @@
             aria-label="Thiệp trước"
             class="lg:hidden text-[rgb(var(--text-heading-rgb)/0.45)]"
           >
-            <i class="fas fa-arrow-left text-base"></i>
+            <i data-icon="arrow-left" class="text-base"></i>
           </x-button>
           <div id="carouselDots" class="flex justify-center gap-1.5"></div>
           <x-button
@@ -302,7 +297,7 @@
             aria-label="Thiệp tiếp theo"
             class="lg:hidden text-[rgb(var(--text-heading-rgb)/0.45)]"
           >
-            <i class="fas fa-arrow-right text-base"></i>
+            <i data-icon="arrow-right" class="text-base"></i>
           </x-button>
         </div>
       </div>
@@ -368,7 +363,8 @@
                     "
                   >
                     <i
-                      class="fas fa-heart text-[19px] text-[rgb(var(--brand-primary-rgb)/0.7)]"
+                      data-icon="heart"
+                      class="text-[19px] text-[rgb(var(--brand-primary-rgb)/0.7)]"
                     ></i>
                   </div>
                   <p
@@ -630,7 +626,7 @@
             box-shadow: 0 8px 28px rgb(var(--landing-cta-btn-from-rgb) / 0.32);
           "
         >
-          Tạo thiệp ngay <i class="fas fa-arrow-right ml-2 text-sm"></i>
+          Tạo thiệp ngay <i data-icon="arrow-right" class="ml-2 text-sm"></i>
         </a>
         <div
           class="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs mt-7"
@@ -652,13 +648,13 @@
             href="mailto:admin@cuoixinh.com"
             class="transition-opacity hover:opacity-75 flex items-center gap-1.5"
           >
-            <i class="fas fa-envelope text-xs"></i> admin@cuoixinh.com
+            <i data-icon="mail" class="text-xs"></i> admin@cuoixinh.com
           </a>
           <a
             href="tel:0348840032"
             class="transition-opacity hover:opacity-75 flex items-center gap-1.5"
           >
-            <i class="fas fa-phone text-xs"></i> 034.884.0032
+            <i data-icon="phone" class="text-xs"></i> 034.884.0032
           </a>
         </div>
       </div>
@@ -717,9 +713,11 @@
             </h4>
             <ul class="space-y-2 text-sm opacity-60">
               <li>
-                <i class="fas fa-envelope mr-2 text-xs"></i>admin@cuoixinh.com
+                <i data-icon="mail" class="mr-2 text-xs"></i>admin@cuoixinh.com
               </li>
-              <li><i class="fas fa-phone mr-2 text-xs"></i>034.884.0032</li>
+              <li>
+                <i data-icon="phone" class="mr-2 text-xs"></i>034.884.0032
+              </li>
             </ul>
           </div>
         </div>
@@ -752,7 +750,7 @@
         class="relative w-[52px] h-[52px] rounded-full flex items-center justify-center text-white text-2xl transition opacity-0 translate-y-4 scale-90 animate-bubbleIn shadow-[0_6px_20px_rgb(var(--landing-dark-rgb)/0.22)] hover:scale-[1.06] hover:shadow-[0_10px_26px_rgb(var(--landing-dark-rgb)/0.3)] bg-[image:var(--social-messenger-gradient)] before:content-[''] before:absolute before:inset-0 before:rounded-full before:bg-[image:var(--social-messenger-gradient)] before:-z-10 before:animate-bubblePulse motion-reduce:before:animate-none"
         aria-label="Chat hỗ trợ qua Messenger"
       >
-        <i class="fa-brands fa-facebook-messenger"></i>
+        <i data-icon="message-circle"></i>
       </a>
       <!-- Nút X là ANH EM của thẻ <a>, không lồng bên trong: <button> trong <a>
            là markup sai và bấm X sẽ mở luôn Messenger.
@@ -767,10 +765,11 @@
         aria-label="Tắt hỗ trợ"
         class="absolute -top-1 -right-1 w-[22px] h-[22px] text-[rgb(var(--chat-action-icon-rgb))] z-[3] opacity-0 animate-bubbleIn-2 hover:scale-110"
       >
-        <i class="fas fa-times"></i>
+        <i data-icon="x"></i>
       </x-button>
     </div>
 
+    <script src="core/helpers/icon.js"></script>
     <script src="core/x-button.js"></script>
     <script src="core/cache-util.js"></script>
     <script src="js/chat-rotator.js"></script>

@@ -338,19 +338,19 @@ function cardHTML(c, i) {
   const days = daysLeft(c);
 
   const statusBadge = c.published
-    ? `<span class="${BADGE} bg-emerald-500 text-white"><i class="fas fa-check text-[9px]"></i>Đã xuất bản</span>`
-    : `<span class="${BADGE} bg-white/90 text-gray-600"><i class="fas fa-pen-nib text-[9px]"></i>Nháp</span>`;
+    ? `<span class="${BADGE} bg-emerald-500 text-white"><i data-icon="check" class="text-[9px]"></i>Đã xuất bản</span>`
+    : `<span class="${BADGE} bg-white/90 text-gray-600"><i data-icon="pen-tool" class="text-[9px]"></i>Nháp</span>`;
 
   let leftBadges = "";
   if (state === "trial" || state === "expired" || state === "published") {
-    leftBadges = `<span class="${BADGE} bg-amber-500 text-white"><i class="fas fa-credit-card text-[9px]"></i>Chưa kích hoạt</span>`;
+    leftBadges = `<span class="${BADGE} bg-amber-500 text-white"><i data-icon="credit-card" class="text-[9px]"></i>Chưa kích hoạt</span>`;
     if (state === "trial") {
-      leftBadges += `<span class="${BADGE} bg-sky-500 text-white"><i class="fas fa-clock text-[9px]"></i><span class="sm:hidden">Còn ${days} ngày</span><span class="hidden sm:inline">Dùng thử · còn ${days} ngày</span></span>`;
+      leftBadges += `<span class="${BADGE} bg-sky-500 text-white"><i data-icon="clock" class="text-[9px]"></i><span class="sm:hidden">Còn ${days} ngày</span><span class="hidden sm:inline">Dùng thử · còn ${days} ngày</span></span>`;
     } else if (state === "expired") {
-      leftBadges += `<span class="${BADGE} bg-red-500 text-white"><i class="fas fa-clock text-[9px]"></i><span class="sm:hidden">Hết hạn</span><span class="hidden sm:inline">Hết hạn dùng thử</span></span>`;
+      leftBadges += `<span class="${BADGE} bg-red-500 text-white"><i data-icon="clock" class="text-[9px]"></i><span class="sm:hidden">Hết hạn</span><span class="hidden sm:inline">Hết hạn dùng thử</span></span>`;
     }
   } else if (state === "active") {
-    leftBadges = `<span class="${BADGE} bg-emerald-500 text-white"><i class="fas fa-circle-check text-[9px]"></i>Đã kích hoạt</span>`;
+    leftBadges = `<span class="${BADGE} bg-emerald-500 text-white"><i data-icon="circle-check" class="text-[9px]"></i>Đã kích hoạt</span>`;
   }
 
   const note = noteHTML(state, days);
@@ -373,7 +373,7 @@ function cardHTML(c, i) {
         <h3 class="cursor-pointer truncate text-[13px] font-bold text-gray-900 hover:opacity-80 sm:text-[15px]" onclick="openEditor(${i})">${esc(title)}</h3>
 
         <p class="mt-1 flex items-center gap-1.5 text-[11px] text-gray-500 sm:text-[12px]">
-          <i class="fas fa-palette text-[10px] text-gray-400"></i>
+          <i data-icon="palette" class="text-[10px] text-gray-400"></i>
           <span class="truncate">${esc(themeName(c.theme))}</span>
           <span class="text-gray-300">·</span>
           <span class="shrink-0">${formatDate(c.createdAt)}</span>
@@ -397,19 +397,19 @@ function cardHTML(c, i) {
 function noteHTML(state, days) {
   if (state === "trial") {
     return `<div class="mt-3 flex gap-2 rounded-lg bg-sky-50 p-2.5 text-[11px] leading-relaxed text-sky-800">
-      <i class="fas fa-clock mt-0.5 text-[11px] text-sky-500"></i>
+      <i data-icon="clock" class="mt-0.5 text-[11px] text-sky-500"></i>
       <span>Còn ${days} ngày dùng thử — thanh toán để giữ thiệp mở.</span>
     </div>`;
   }
   if (state === "expired") {
     return `<div class="mt-3 flex gap-2 rounded-lg bg-red-50 p-2.5 text-[11px] leading-relaxed text-red-700">
-      <i class="fas fa-triangle-exclamation mt-0.5 text-[11px] text-red-500"></i>
+      <i data-icon="triangle-alert" class="mt-0.5 text-[11px] text-red-500"></i>
       <span>Hết hạn dùng thử — kích hoạt để mở lại cho khách mời.</span>
     </div>`;
   }
   if (state === "draft") {
     return `<div class="mt-3 flex gap-2 rounded-lg bg-gray-50 p-2.5 text-[11px] leading-relaxed text-gray-600">
-      <i class="fas fa-pen-nib mt-0.5 text-[11px] text-gray-400"></i>
+      <i data-icon="pen-tool" class="mt-0.5 text-[11px] text-gray-400"></i>
       <span>Bản nháp — xuất bản để chia sẻ với khách mời.</span>
     </div>`;
   }
@@ -444,11 +444,13 @@ function slugRowHTML(c, i) {
 // `shrink-0` là bắt buộc: mặc định flex cho co, thiếu nó nút Xoá bị bóp còn 11px.
 const ACTION = "shrink-0";
 
+// `icon` = tên icon lucide (core/helpers/icon.js).
 function _actionBtn(icon, title, onclick, extra = "") {
   return (
     `<x-button variant="ghost" tone="neutral" size="xs" icon-only onclick="${onclick}"` +
     ` title="${escAttr(title)}" aria-label="${escAttr(title)}" class="${ACTION} ${extra}">` +
-    `<i class="${icon} text-[11px]"></i></x-button>`
+    cxIcon(icon, 13) +
+    `</x-button>`
   );
 }
 
@@ -460,18 +462,18 @@ function actionsHTML(c, i, state) {
     state === "trial" || state === "expired" || state === "published";
   const out = [];
   if (c.published && c.slug) {
-    out.push(_actionBtn("fas fa-eye", "Xem thiệp", `viewCard(${i})`));
+    out.push(_actionBtn("eye", "Xem thiệp", `viewCard(${i})`));
   }
-  out.push(_actionBtn("fas fa-pen", "Chỉnh sửa", `openEditor(${i})`));
+  out.push(_actionBtn("pencil", "Chỉnh sửa", `openEditor(${i})`));
   if (c.published && c.slug && !needsActivate) {
-    out.push(_actionBtn("fas fa-share-nodes", "Chia sẻ", `shareCard(${i})`));
+    out.push(_actionBtn("share-2", "Chia sẻ", `shareCard(${i})`));
   }
   if (needsActivate) {
     // Kích hoạt là việc cần chú ý nhất trên thẻ → tô cam. Dùng "!" vì class màu của
     // ghost/neutral cùng độ ưu tiên, không có "!" thì thứ tự trong file CSS quyết định.
     out.push(
       _actionBtn(
-        "fas fa-credit-card",
+        "credit-card",
         "Kích hoạt thiệp",
         `activateCard(${i})`,
         "!text-amber-600 hover:!bg-amber-50 hover:!text-amber-700",
@@ -481,7 +483,7 @@ function actionsHTML(c, i, state) {
   out.push(
     `<x-button variant="ghost" tone="danger" size="xs" icon-only onclick="deleteCard(${i})"` +
       ` title="Xoá thiệp" aria-label="Xoá thiệp" class="${ACTION}">` +
-      `<i class="fas fa-trash text-[11px]"></i></x-button>`,
+      `<i data-icon="trash-2" class="text-[11px]"></i></x-button>`,
   );
   return out.join("");
 }
