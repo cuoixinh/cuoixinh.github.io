@@ -1,37 +1,127 @@
 {
   "image_focal_points": {
-    "gallery_images": {},
+    "gallery_images": {
+      "gallery-01.webp": {
+        "x": 63,
+        "y": 27
+      },
+      "gallery-02.webp": {
+        "x": 51,
+        "y": 27
+      },
+      "gallery-03.webp": {
+        "x": 57,
+        "y": 13
+      },
+      "gallery-04.webp": {
+        "x": 60,
+        "y": 17
+      },
+      "gallery-05.webp": {
+        "x": 52,
+        "y": 27
+      },
+      "gallery-06.webp": {
+        "x": 50,
+        "y": 27
+      },
+      "gallery-07.webp": {
+        "x": 50,
+        "y": 28
+      },
+      "gallery-08.webp": {
+        "x": 50,
+        "y": 57
+      },
+      "gallery-09.webp": {
+        "x": 45,
+        "y": 15
+      },
+      "gallery-10.webp": {
+        "x": 47,
+        "y": 25
+      }
+    },
+    "cover_image_url": {
+      "x": 48,
+      "y": 41
+    },
     "groom_image_url": {
       "x": 56,
       "y": 15
+    },
+    "bride_image_url": {
+      "x": 67,
+      "y": 32
     }
   },
+  "cover_image_url": "cover.jpg",
   "groom_image_url": "groom.webp",
+  "bride_image_url": "bride.webp",
+  "groom_qr_url": "groom-qr.png",
+  "bride_qr_url": "bride-qr.png",
+  "gallery_images": [
+    "gallery-01.webp",
+    "gallery-02.webp",
+    "gallery-03.webp",
+    "gallery-04.webp",
+    "gallery-05.webp",
+    "gallery-06.webp",
+    "gallery-07.webp",
+    "gallery-08.webp",
+    "gallery-09.webp",
+    "gallery-10.webp"
+  ],
   "love_story": [
     {
       "date": "03/2021",
       "title": "Lần đầu gặp gỡ",
-      "content": "Chúng mình tình cờ gặp nhau tại một buổi workshop, ngay lập tức cảm nhận được sự đồng điệu trong tâm hồn."
+      "content": "Chúng mình tình cờ gặp nhau tại một buổi workshop, ngay lập tức cảm nhận được sự đồng điệu trong tâm hồn.",
+      "image_url": "love-story-01.webp",
+      "focal_point": {
+        "x": 45,
+        "y": 26
+      }
     },
     {
       "date": "06/2021",
       "title": "Những buổi hẹn hò đầu tiên",
-      "content": "Chúng mình bắt đầu những buổi hẹn hò cà phê, cùng nhau khám phá nhiều điều thú vị và xây dựng tình cảm."
+      "content": "Chúng mình bắt đầu những buổi hẹn hò cà phê, cùng nhau khám phá nhiều điều thú vị và xây dựng tình cảm.",
+      "image_url": "love-story-02.webp",
+      "focal_point": {
+        "x": 47,
+        "y": 28
+      }
     },
     {
       "date": "09/2021",
       "title": "Chính thức yêu nhau",
-      "content": "Sau nhiều tháng tìm hiểu, anh đã ngỏ lời và chúng mình chính thức trở thành một đôi."
+      "content": "Sau nhiều tháng tìm hiểu, anh đã ngỏ lời và chúng mình chính thức trở thành một đôi.",
+      "image_url": "love-story-03.webp",
+      "focal_point": {
+        "x": 54,
+        "y": 62
+      }
     },
     {
       "date": "05/2026",
       "title": "Lời cầu hôn",
-      "content": "Một buổi tối lãng mạn, anh đã bất ngờ cầu hôn và em đã hạnh phúc nói lời đồng ý."
+      "content": "Một buổi tối lãng mạn, anh đã bất ngờ cầu hôn và em đã hạnh phúc nói lời đồng ý.",
+      "image_url": "love-story-04.webp",
+      "focal_point": {
+        "x": 48,
+        "y": 42
+      }
     },
     {
       "date": "11/2026",
       "title": "Ngày về chung một nhà",
-      "content": "Sau hành trình yêu thương, chúng mình sẽ cùng nhau viết tiếp câu chuyện tình yêu vĩnh cửu."
+      "content": "Sau hành trình yêu thương, chúng mình sẽ cùng nhau viết tiếp câu chuyện tình yêu vĩnh cửu.",
+      "image_url": "love-story-05.webp",
+      "focal_point": {
+        "x": 83,
+        "y": 26
+      }
     }
   ],
   "content": {
@@ -127,5 +217,5 @@
       }
     ]
   },
-  "updated_at": "2026-08-16T15:51:25.322Z"
+  "updated_at": "2026-08-16T16:14:34.768Z"
 }
