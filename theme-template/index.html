@@ -1366,22 +1366,15 @@
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
 
-      /* ── Thẻ mẫu ── Ảnh TĨNH một khung ở assets/images/templates-static/,
-         chụp ở admin tab Templates: mẫu nào hợp màn bìa thì scan "Ảnh bìa",
-         hợp phần hero thì scan "Màn Hero" — cùng ra một tên file nên ở đây
-         không cần biết là kiểu nào. Bản dài assets/images/templates/ dành cho
-         ô tự cuộn ở trang chủ; mẫu chưa scan ảnh tĩnh thì onerror lùi tạm về
-         bản dài đó. */
+      /* ── Thẻ mẫu ── */
       function cardHTML(t) {
-        const imgSrc = `/assets/images/templates-static/${t.theme}.jpg`;
-        const imgFallback = `/assets/images/templates/${t.theme}.jpg`;
+        const imgSrc = `/assets/images/templates/${t.theme}.jpg`;
         const isFav = favSet.has(t.theme);
 
         return `
           <article class="tt-card" data-id="${t.id}">
             <div class="tt-media">
-              <img src="${imgSrc}" alt="${t.name}" loading="lazy"
-                   onerror="this.onerror=null;this.src='${imgFallback}'" />
+              <img src="${imgSrc}" alt="${t.name}" loading="lazy" />
               ${t.category ? `<span class="tt-badge">${catLabel(t.category)}</span>` : ""}
               <button type="button" class="tt-fav${isFav ? " is-on" : ""}" aria-pressed="${isFav}"
                       aria-label="Lưu vào yêu thích" onclick="toggleFav(event,'${t.theme}')">${SVG_HEART}</button>

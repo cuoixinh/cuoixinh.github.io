@@ -527,16 +527,14 @@
       }
     }
 
-    // Get order data from form
-    const name = document.getElementById("payment-name").value.trim();
-    const phone = document.getElementById("payment-phone").value.trim();
+    const buyer = _buyer() || { name: "", phone: "" };
     const templateName = document.getElementById(
       "payment-template-name",
     ).textContent;
 
     // Update success screen
-    document.getElementById("success-name").textContent = name;
-    document.getElementById("success-phone").textContent = phone;
+    document.getElementById("success-name").textContent = buyer.name;
+    document.getElementById("success-phone").textContent = buyer.phone;
     document.getElementById("success-template").textContent = templateName;
 
     const manageLink = manage_id
@@ -558,10 +556,7 @@
 
   // Task 5.11: Update localStorage order status
   function updateOrderStatus(manage_id, transaction_id, payment_time) {
-    const sessionUser = getCurrentUser();
-    const sessionEmail = sessionUser?.email || "";
-    const email = document.getElementById("payment-email").value.trim();
-    const storageKey = buildCacheKey("orders", sessionEmail || email || "guest");
+    const storageKey = buildCacheKey("orders", getCurrentUser()?.email || "guest");
 
     const orders = getCache(storageKey, []);
 
@@ -583,104 +578,98 @@
   }
 
   // Inject modal HTML vào body
-  function injectPaymentModal() {
-    if (document.getElementById("paymentModal")) return; // Đã có rồi
-    const el = document.createElement("div");
-    el.innerHTML = `
-      <div id="paymentModal" class="modal hidden fixed inset-0 z-[100] items-center justify-center p-4" style="display:none;">
-        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="PaymentModal.close()"></div>
-        <div class="relative bg-white rounded-3xl max-w-[480px] w-full max-h-[90vh] shadow-2xl z-10 overflow-hidden">
-          <div class="overflow-y-auto max-h-[90vh]">
-          <x-button variant="outline" size="sm" icon-only onclick="PaymentModal.close()" class="absolute top-4 right-4 z-20">
-            <i data-icon="x" class="text-gray-400 text-sm"></i>
-          </x-button>
-
-          <!-- Step 1: Xác nhận đơn hàng -->
+  // Ba bước của luồng thanh toán, KHÔNG kèm vỏ. Dùng cho cả hai chỗ đứng: hộp
+  // thoại (injectPaymentModal) và trang /checkout/ (PaymentModal.mount) — mọi
+  // hàm bên dưới tìm phần tử bằng id nên không cần biết mình đang ở vỏ nào.
+  function _stepsHTML() {
+    return `
+          <!-- Step 1: Xác nhận đơn hàng.
+               Bố cục: mẫu đang mua → người mua → mã giảm giá → bảng tiền → nút.
+               Mỗi khối là một hàng phẳng ngăn bằng đường kẻ, không lồng nhiều
+               lớp thẻ bo góc — màn này chỉ có một việc, đóng khung nhiều thứ
+               làm mất chỗ nhìn vào. -->
           <div id="payment-step-1">
-            <div class="p-6 border-b border-gray-100">
-              <h3 class="font-playfair text-2xl font-bold m-0" style="color:rgb(var(--text-body-rgb));">Xác nhận đơn hàng</h3>
-              <p class="text-sm text-gray-400 mt-1">Kiểm tra thông tin trước khi thanh toán</p>
+            <div class="px-6 pt-6 pb-4">
+              <h3 class="font-playfair text-2xl font-bold m-0" style="color:rgb(var(--text-heading-rgb));">Xác nhận đơn hàng</h3>
+              <p class="text-sm text-gray-400 mt-1 m-0">Kiểm tra thông tin trước khi thanh toán</p>
             </div>
-            <div class="p-6 flex flex-col gap-4">
-              <!-- Thông tin mẫu -->
-              <div class="flex items-center gap-4 p-4 rounded-2xl border border-pink-200" style="background:rgb(var(--surface-brand-subtle-rgb));">
-                <div class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style="background:rgb(var(--brand-primary-rgb));">
-                  <i data-icon="mail-open" class="text-white text-lg"></i>
-                </div>
-                <div>
-                  <p class="font-semibold text-sm m-0" style="color:rgb(var(--text-body-rgb));" id="payment-template-name">-</p>
-                  <p class="text-xs text-gray-400 m-0">Thiệp cưới online</p>
-                </div>
-                <div class="ml-auto text-right">
-                  <p id="payment-price" class="font-bold text-lg m-0" style="color:rgb(var(--text-body-rgb));">299.000đ</p>
-                  <p id="payment-original-price" class="text-xs text-gray-300 line-through m-0">499.000đ</p>
-                </div>
-              </div>
 
-              <!-- User info nếu đã đăng nhập -->
-              <div id="payment-user-info" class="hidden items-center gap-3 p-3 rounded-2xl" style="background:rgb(var(--surface-brand-subtle-rgb));">
-                <img id="payment-avatar" src="" alt="" class="w-10 h-10 rounded-full object-cover border-2" style="border-color:rgb(var(--brand-primary-rgb));" />
-                <div>
-                  <p class="text-sm font-medium m-0" style="color:rgb(var(--text-body-rgb));" id="payment-user-name-display"></p>
-                  <p class="text-xs text-gray-400 m-0" id="payment-user-email-display"></p>
-                </div>
-                <i data-icon="circle-check" class="ml-auto" style="color:rgb(var(--brand-primary-rgb));"></i>
+            <!-- Mẫu đang mua -->
+            <div class="mx-6 flex items-center gap-3 py-4 border-t border-gray-100">
+              <div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style="background:rgb(var(--surface-brand-rgb));">
+                <i data-icon="mail-open" class="text-lg" style="color:rgb(var(--brand-primary-rgb));"></i>
               </div>
-
-              <!-- Form -->
-              <div class="flex flex-col gap-3">
-                <div>
-                  <label class="text-xs font-medium text-gray-600 block mb-1">Họ và tên <span class="text-red-500">*</span></label>
-                  <input id="payment-name" type="text" placeholder="Nguyễn Văn A"
-                    class="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none box-border transition-colors focus:border-pink-300" />
-                  <p id="payment-name-err" class="hidden text-[11px] text-red-500 mt-1">Vui lòng nhập họ và tên</p>
-                </div>
-                <div>
-                  <label class="text-xs font-medium text-gray-600 block mb-1">Số điện thoại <span class="text-red-500">*</span></label>
-                  <input id="payment-phone" type="tel" placeholder="0912 345 678"
-                    class="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none box-border transition-colors focus:border-pink-300" />
-                  <p id="payment-phone-err" class="hidden text-[11px] text-red-500 mt-1">Vui lòng nhập số điện thoại</p>
-                </div>
-                <div>
-                  <label class="text-xs font-medium text-gray-600 block mb-1">Email
-                    <span id="payment-email-req" class="hidden text-red-500">*</span></label>
-                  <input id="payment-email" type="email" placeholder="email@example.com"
-                    class="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none box-border transition-colors focus:border-pink-300" />
-                  <p id="payment-email-err" class="hidden text-[11px] text-red-500 mt-1">Nhập email để dùng mã giảm giá</p>
-                </div>
+              <div class="min-w-0">
+                <p class="font-semibold text-sm m-0 truncate" style="color:rgb(var(--text-heading-rgb));" id="payment-template-name">-</p>
+                <p class="text-xs text-gray-400 m-0">Thiệp cưới online · dùng trọn đời</p>
               </div>
-
-              <!-- Promo Code -->
-              <div class="flex flex-col gap-1">
-                <div class="flex gap-2">
-                  <input id="promo-input" type="text" placeholder="Mã giảm giá"
-                    class="flex-1 px-3 py-2 rounded-xl border border-gray-200 text-sm outline-none uppercase tracking-wider focus:border-pink-300 transition-colors box-border" />
-                  <x-button onclick="applyPromo()" style="background:rgb(var(--surface-brand-rgb)); color:rgb(var(--text-body-rgb));">
-                    Áp dụng
-                  </x-button>
-                </div>
-                <p id="promo-msg" class="hidden text-xs px-1"></p>
+              <div class="ml-auto text-right shrink-0">
+                <p id="payment-original-price" class="text-xs text-gray-300 line-through m-0">499.000đ</p>
+                <p id="payment-price" class="font-bold text-lg m-0" style="color:rgb(var(--text-heading-rgb));">299.000đ</p>
               </div>
+            </div>
 
-              <!-- Tổng tiền -->
-              <div class="flex flex-col gap-1 py-3 border-t border-gray-100">
-                <div id="promo-discount-row" class="hidden flex items-center justify-between">
-                  <span class="text-sm text-green-500">Giảm giá</span>
-                  <span id="promo-discount-amount" class="text-sm font-medium text-green-500">-0đ</span>
+            <!-- Người mua = tài khoản đang đăng nhập, không nhập lại gì.
+                 Chưa đăng nhập thì #payment-login thế chỗ (xem _syncBuyer). -->
+            <div class="mx-6 py-4 border-t border-gray-100">
+              <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-400 m-0 mb-2">Người mua</p>
+              <div id="payment-user-info" class="hidden items-center gap-3">
+                <!-- Chữ cái đầu nằm sẵn dưới ảnh: tài khoản email thuần không
+                     có avatar, và link avatar Google cũng có lúc chết. -->
+                <span class="relative shrink-0 inline-flex items-center justify-center w-9 h-9 rounded-full overflow-hidden text-sm font-semibold"
+                  style="background:rgb(var(--surface-brand-rgb));color:rgb(var(--avatar-initial-rgb));">
+                  <span id="payment-avatar-ini"></span>
+                  <img id="payment-avatar" src="" alt="" class="absolute inset-0 w-full h-full object-cover" />
+                </span>
+                <div class="min-w-0">
+                  <p class="text-sm font-medium m-0 truncate" style="color:rgb(var(--text-heading-rgb));" id="payment-user-name-display"></p>
+                  <p class="text-xs text-gray-400 m-0 truncate" id="payment-user-email-display"></p>
                 </div>
-                <div class="flex items-center justify-between">
-                  <span class="text-sm text-gray-400">Tổng thanh toán</span>
-                  <span id="payment-total-price" class="font-bold text-xl" style="color:rgb(var(--text-body-rgb));">299.000đ</span>
-                </div>
+                <i data-icon="circle-check" class="ml-auto shrink-0" style="color:rgb(var(--brand-primary-rgb));"></i>
               </div>
+              <div id="payment-login" class="hidden flex-col items-start gap-2">
+                <p class="text-sm text-gray-500 m-0">Đăng nhập để thanh toán và quản lý thiệp của bạn.</p>
+                <x-button size="sm" onclick="PaymentModal.login()">Đăng nhập</x-button>
+              </div>
+            </div>
 
-              <x-button onclick="PaymentModal.process()" style="background:rgb(var(--action-primary-rgb));" class="w-full hover:opacity-90">
-                <i data-icon="lock" class="mr-2 text-xs"></i>Thanh toán ngay
-              </x-button>
-              <p class="text-center text-xs text-gray-400 m-0">
-                <i data-icon="shield-check" class="mr-1"></i>Thanh toán an toàn & bảo mật
-              </p>
+            <!-- Mã giảm giá -->
+            <div class="mx-6 py-4 border-t border-gray-100">
+              <div class="flex items-end gap-2">
+                <x-input
+                  id="promo-input"
+                  label="Mã giảm giá"
+                  placeholder="Nhập mã nếu có"
+                  uppercase
+                  class="flex-1 min-w-0"
+                ></x-input>
+                <x-button variant="outline" tone="neutral" onclick="applyPromo()">Áp dụng</x-button>
+              </div>
+              <p id="promo-msg" class="hidden text-xs mt-1.5 m-0"></p>
+            </div>
+
+            <!-- Tổng tiền -->
+            <div class="mx-6 py-4 border-t border-gray-100 flex flex-col gap-1.5">
+              <div id="promo-discount-row" class="hidden items-center justify-between">
+                <span class="text-sm text-emerald-600">Giảm giá</span>
+                <span id="promo-discount-amount" class="text-sm font-medium text-emerald-600">-0đ</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-gray-500">Tổng thanh toán</span>
+                <span id="payment-total-price" class="font-bold text-2xl" style="color:rgb(var(--brand-accent-rgb));">299.000đ</span>
+              </div>
+            </div>
+
+            <div class="p-6 pt-2 flex flex-col gap-2">
               <p id="payment-api-error" class="hidden text-xs text-red-500 text-center p-2 bg-red-50 rounded-lg m-0"></p>
+              <x-button id="payment-submit" size="lg" full icon="credit-card" onclick="PaymentModal.process()">
+                Thanh toán ngay
+              </x-button>
+              <!-- flex chứ không phải text-center: icon.js thay <i> bằng <svg>
+                   khối, để chảy theo dòng thì nó rớt về mép trái. -->
+              <p class="flex items-center justify-center gap-1.5 text-xs text-gray-400 m-0">
+                <i data-icon="shield-check"></i>Thanh toán an toàn &amp; bảo mật
+              </p>
             </div>
           </div>
 
@@ -732,6 +721,21 @@
               </a>
             </div>
           </div>
+    `;
+  }
+
+  function injectPaymentModal() {
+    if (document.getElementById("paymentModal")) return; // Đã có rồi
+    const el = document.createElement("div");
+    el.innerHTML = `
+      <div id="paymentModal" class="modal hidden fixed inset-0 z-[100] items-center justify-center p-4" style="display:none;">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="PaymentModal.close()"></div>
+        <div class="relative bg-white rounded-3xl max-w-[480px] w-full max-h-[90vh] shadow-2xl z-10 overflow-hidden">
+          <div class="overflow-y-auto max-h-[90vh]">
+          <x-button variant="outline" size="sm" icon-only onclick="PaymentModal.close()" class="absolute top-4 right-4 z-20">
+            <i data-icon="x" class="text-gray-400 text-sm"></i>
+          </x-button>
+          ${_stepsHTML()}
           </div>
         </div>
       </div>
@@ -789,7 +793,6 @@
         msg.textContent = data.error || "Mã không hợp lệ hoặc đã hết hạn";
         window._appliedPromo = null;
         document.getElementById("promo-discount-row").classList.add("hidden");
-        document.getElementById("payment-email-req")?.classList.add("hidden");
         _updateTotalWithPromo(null);
         return;
       }
@@ -797,7 +800,6 @@
       window._appliedPromo = data;
       // Có mã là email thành bắt buộc: backend cần danh tính để chặn một người
       // giữ nhiều lượt cùng lúc (xem cx_promo_reserve).
-      document.getElementById("payment-email-req")?.classList.remove("hidden");
       msg.className = "text-xs px-1 text-green-500";
       const basePrice = window._paymentPricing?.price || 0;
       msg.textContent =
@@ -834,9 +836,28 @@
   }
 
   // Public API
-  window.PaymentModal = {
-    open(templateName, theme, pricing = {}, existingManageId = null) {
-      injectPaymentModal();
+  // Dạng TRANG (/checkout/) thay vì hộp thoại: đóng thì rời trang chứ không ẩn đi.
+  let _pageMode = false;
+
+  /**
+   * URL trang thanh toán. Mọi nơi muốn đưa khách đi trả tiền đều đi qua đây —
+   * đổi đường dẫn hay tên tham số thì chỉ sửa một chỗ.
+   * { id, theme, name, price, original } — thiếu trường nào thì bỏ khỏi URL.
+   */
+  window.cxCheckoutUrl = function (opts) {
+    const q = new URLSearchParams();
+    ["id", "theme", "name", "price", "original"].forEach((k) => {
+      if (opts[k] !== undefined && opts[k] !== null && opts[k] !== "") {
+        q.set(k, String(opts[k]));
+      }
+    });
+    return `/checkout/?${q.toString()}`;
+  };
+
+  // Nạp dữ liệu + dọn form cho một lượt thanh toán. Chạy được ở cả hai vỏ vì
+  // markup (id các ô) là một.
+  function _initFlow(templateName, theme, pricing, existingManageId) {
+    {
       // Lưu theme và existingManageId
       window._paymentTheme = theme || "basic-gold";
       window._existingManageId = existingManageId || null;
@@ -849,7 +870,6 @@
       if (promoInput) promoInput.value = "";
       if (promoMsg) { promoMsg.textContent = ""; promoMsg.classList.add("hidden"); }
       if (discountRow) discountRow.classList.add("hidden");
-      document.getElementById("payment-email-req")?.classList.add("hidden");
 
       // Lưu pricing để dùng trong modal
       window._paymentPricing = pricing;
@@ -897,42 +917,60 @@
       if (totalPriceEl)
         totalPriceEl.textContent = `${price.toLocaleString("vi-VN")}đ`;
 
-      // Reset inputs
-      ["payment-name", "payment-phone", "payment-email"].forEach((id) => {
-        document.getElementById(id).value = "";
-        document.getElementById(id).style.borderColor = "rgb(var(--border-field-rgb))";
-      });
-      ["payment-name-err", "payment-phone-err", "payment-email-err"].forEach((id) => {
-        document.getElementById(id).style.display = "none";
-      });
       const apiErr = document.getElementById("payment-api-error");
       if (apiErr) apiErr.style.display = "none";
 
-      // Bind user info nếu đã đăng nhập
-      const user = getCurrentUser();
-      const userInfoEl = document.getElementById("payment-user-info");
-      if (user) {
-        const meta = user.user_metadata || {};
-        const name = meta.full_name || meta.name || "";
-        const email = user.email || "";
-        const phone = meta.phone || "";
-        const avatar = meta.avatar_url || meta.picture || "";
+      _syncBuyer();
+    }
+  }
 
-        userInfoEl.style.display = "flex";
-        document.getElementById("payment-avatar").src = avatar;
-        document.getElementById("payment-avatar").style.display = avatar
-          ? "block"
-          : "none";
-        document.getElementById("payment-user-name-display").textContent = name;
-        document.getElementById("payment-user-email-display").textContent =
-          email;
+  // Người mua lấy THẲNG từ tài khoản đang đăng nhập — màn này không nhập gì.
+  function _buyer() {
+    const user = getCurrentUser();
+    if (!user) return null;
+    const meta = user.user_metadata || {};
+    return {
+      name: meta.full_name || meta.name || user.email || "",
+      email: user.email || "",
+      phone: meta.phone || "",
+      avatar: meta.avatar_url || meta.picture || "",
+    };
+  }
 
-        if (name) document.getElementById("payment-name").value = name;
-        if (phone) document.getElementById("payment-phone").value = phone;
-        if (email) document.getElementById("payment-email").value = email;
-      } else {
-        userInfoEl.style.display = "none";
-      }
+  // Vẽ thẻ người mua, hoặc lời mời đăng nhập nếu chưa có phiên. Nút thanh toán
+  // tắt khi chưa đăng nhập: không có danh tính thì không dựng được đơn.
+  function _syncBuyer() {
+    const b = _buyer();
+    const info = document.getElementById("payment-user-info");
+    const login = document.getElementById("payment-login");
+    const payBtn = document.getElementById("payment-submit");
+
+    if (info) info.style.display = b ? "flex" : "none";
+    if (login) login.style.display = b ? "none" : "flex";
+    // Đặt bằng ATTRIBUTE, không phải thuộc tính .disabled: lúc này phần tử có
+    // thể còn là <x-button> chưa dựng (trang gọi mount() khi DOM đang parse) —
+    // nó chỉ bê attribute sang <button> thật, gán .disabled sẽ mất trắng.
+    if (payBtn) {
+      if (b) payBtn.removeAttribute("disabled");
+      else payBtn.setAttribute("disabled", "");
+    }
+    if (!b) return;
+
+    const avatarEl = document.getElementById("payment-avatar");
+    if (avatarEl) {
+      avatarEl.src = b.avatar;
+      avatarEl.style.display = b.avatar ? "block" : "none";
+    }
+    const iniEl = document.getElementById("payment-avatar-ini");
+    if (iniEl) iniEl.textContent = (b.name.trim()[0] || "?").toUpperCase();
+    document.getElementById("payment-user-name-display").textContent = b.name;
+    document.getElementById("payment-user-email-display").textContent = b.email;
+  }
+
+  window.PaymentModal = {
+    open(templateName, theme, pricing = {}, existingManageId = null) {
+      injectPaymentModal();
+      _initFlow(templateName, theme, pricing, existingManageId);
 
       // Show modal
       const modal = document.getElementById("paymentModal");
@@ -940,9 +978,36 @@
       document.body.style.overflow = "hidden";
     },
 
+    /**
+     * Dựng luồng thanh toán thành NỘI DUNG TRANG (dùng ở /checkout/index.html).
+     * root: selector hoặc phần tử chứa; opts: { templateName, theme, pricing, manageId }.
+     */
+    mount(root, opts = {}) {
+      _pageMode = true;
+      const host = typeof root === "string" ? document.querySelector(root) : root;
+      if (!host) return;
+      host.innerHTML = _stepsHTML();
+      // Markup chèn động → dựng icon cho phần vừa chèn (core/helpers/icon.js).
+      window.cxRenderIcons?.(host);
+      _initFlow(
+        opts.templateName,
+        opts.theme,
+        opts.pricing || {},
+        opts.manageId || null,
+      );
+    },
+
     close() {
       // Stop polling when modal is closed
       stopPolling();
+
+      // Dạng trang: "đóng" nghĩa là rời khỏi trang. Quay lại chỗ vừa bấm nếu
+      // có, không thì về danh sách thiệp — đừng để khách kẹt ở trang trống.
+      if (_pageMode) {
+        if (window.history.length > 1) window.history.back();
+        else window.location.href = "/my-invitations/";
+        return;
+      }
 
       const modal = document.getElementById("paymentModal");
       if (modal) modal.style.display = "none";
@@ -951,56 +1016,39 @@
       document.body.style.overflow = "";
     },
 
+    /** Chưa đăng nhập → mở đăng nhập ngay tại trang, xong thì vẽ lại thẻ mua. */
+    login() {
+      if (window.AuthUI) {
+        AuthUI.openModal({
+          title: "Đăng nhập",
+          subtitle: "Để thanh toán và quản lý thiệp cưới của bạn",
+          oauthRedirect: window.location.href,
+          onAuth: () => _syncBuyer(),
+        });
+        return;
+      }
+      window.location.href = `/my-invitations/?urlRedirect=${encodeURIComponent(window.location.href)}`;
+    },
+
     async process() {
-      const name = document.getElementById("payment-name").value.trim();
-      const phone = document.getElementById("payment-phone").value.trim();
-      const email = document.getElementById("payment-email").value.trim();
       const templateName = document.getElementById(
         "payment-template-name",
       ).textContent;
 
-      // Validate
-      let hasError = false;
-
-      const nameInput = document.getElementById("payment-name");
-      const nameErr = document.getElementById("payment-name-err");
-      if (!name) {
-        nameInput.style.borderColor = "rgb(var(--state-invalid-rgb))";
-        nameErr.style.display = "block";
-        hasError = true;
-      } else {
-        nameInput.style.borderColor = "rgb(var(--border-field-rgb))";
-        nameErr.style.display = "none";
+      // Không nhập gì ở màn này: người mua CHÍNH LÀ tài khoản đang đăng nhập.
+      const buyer = _buyer();
+      const apiErr = document.getElementById("payment-api-error");
+      if (!buyer) {
+        _syncBuyer();
+        if (apiErr) {
+          apiErr.textContent = "Vui lòng đăng nhập để thanh toán.";
+          apiErr.style.display = "block";
+        }
+        return;
       }
-
-      const phoneInput = document.getElementById("payment-phone");
-      const phoneErr = document.getElementById("payment-phone-err");
-      if (!phone) {
-        phoneInput.style.borderColor = "rgb(var(--state-invalid-rgb))";
-        phoneErr.style.display = "block";
-        hasError = true;
-      } else {
-        phoneInput.style.borderColor = "rgb(var(--border-field-rgb))";
-        phoneErr.style.display = "none";
-      }
-
-      // Email chỉ bắt buộc khi có áp mã giảm giá — backend cần danh tính (đăng
-      // nhập hoặc email) để chặn một người ôm nhiều lượt cùng lúc.
-      const emailInput = document.getElementById("payment-email");
-      const emailErr = document.getElementById("payment-email-err");
-      if (window._appliedPromo && !email && !getCurrentUser()) {
-        emailInput.style.borderColor = "rgb(var(--state-invalid-rgb))";
-        emailErr.style.display = "block";
-        hasError = true;
-      } else {
-        emailInput.style.borderColor = "rgb(var(--border-field-rgb))";
-        emailErr.style.display = "none";
-      }
-
-      if (hasError) return;
+      const { name, phone, email } = buyer;
 
       // Hide error message
-      const apiErr = document.getElementById("payment-api-error");
       if (apiErr) apiErr.style.display = "none";
 
       // Step 2: Show processing - reset về loading state trước khi show
@@ -1135,7 +1183,6 @@
             promoMsg.classList.remove("hidden");
           }
           document.getElementById("promo-discount-row")?.classList.add("hidden");
-          document.getElementById("payment-email-req")?.classList.add("hidden");
           _updateTotalWithPromo(null);
           return;
         }

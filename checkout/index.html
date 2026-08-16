@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Thanh toán - Cưới Xinh</title>
+    <!-- Trang đơn hàng: không cho công cụ tìm kiếm lập chỉ mục, URL luôn kèm
+         mã thiệp của một người cụ thể. -->
+    <meta name="robots" content="noindex" />
+    <link rel="icon" type="image/png" href="../assets/icons/logo.png" />
+    <script
+      src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.8"
+      integrity="sha384-Tve8O+C6PBzsIMK/IRCwHbi8fyEzXIlIs6OfVBZHubplwYhaQF/4Mzxqgg+pp/oy"
+      crossorigin="anonymous"
+    ></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../styles/build.css" />
+  </head>
+  <!-- Lề đáy chừa thanh tab (mobile), lề trên chừa thanh nav nổi (từ md) —
+       cùng công thức với my-invitations. -->
+  <body
+    class="font-inter text-gray-800 bg-gray-50 min-h-screen pb-[72px] md:pb-0 md:pt-20"
+  >
+    <main class="max-w-[560px] mx-auto px-4 py-6">
+      <button
+        type="button"
+        onclick="PaymentModal.close()"
+        class="mb-3 inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700"
+      >
+        <i data-icon="arrow-left" class="text-xs"></i>Quay lại
+      </button>
+
+      <div id="checkout-root" class="bg-white rounded-3xl shadow-sm overflow-hidden">
+        <!-- PaymentModal.mount() dựng ba bước vào đây. Chưa dựng xong thì đây
+             là chỗ báo lỗi thiếu tham số (xem script cuối trang). -->
+        <div class="p-10 text-center text-sm text-gray-400">Đang tải đơn hàng…</div>
+      </div>
+    </main>
+
+    <script src="../core/helpers/icon.js"></script>
+    <script src="../core/x-button.js"></script>
+    <script src="../core/x-input.js"></script>
+    <script src="../core/x-popover.js"></script>
+    <script src="../core/helpers/account-menu.js"></script>
+    <!-- Navbar dùng chung: khai mảng mục một lần, dựng cả thanh trên lẫn thanh
+         tab dưới. Mở ở mục "Đã chọn" — thanh toán là chặng nối tiếp của màn
+         quản lý thiệp, và "Quay lại" cũng trở về đó. -->
+    <script src="../core/components/navbar.js"></script>
+    <script>
+      CXNavbar.mount({
+        active: "cart",
+        width: "6xl",
+        items: [
+          { id: "home", label: "Trang chủ", icon: "home", href: "/" },
+          {
+            id: "templates",
+            label: "Mẫu thiệp",
+            icon: "layers",
+            href: "/theme-template/",
+          },
+          {
+            id: "cart",
+            label: "Đã chọn",
+            icon: "cart",
+            href: "/my-invitations/",
+          },
+          {
+            id: "account",
+            label: "Tài khoản",
+            icon: "user",
+            onClick: "CXAccount.open(this)",
+          },
+        ],
+      });
+      CXAccount.mountChip();
+    </script>
+    <script src="../core/cache-util.js"></script>
+    <script src="../core/config.js"></script>
+    <script src="../core/helpers/alert.js"></script>
+    <script src="../core/utils.js"></script>
+    <script src="../core/auth-ui.js"></script>
+    <script src="../core/auth.js"></script>
+    <!-- DAL/BL phải đứng TRƯỚC supabase.js: file đó dựng sẵn weddingDAL/weddingBL
+         ngay khi nạp, thiếu là "WeddingDAL is not defined". -->
+    <script src="../core/dal/wedding-dal.js"></script>
+    <script src="../core/dal/storage-dal.js"></script>
+    <script src="../core/bl/wedding-bl.js"></script>
+    <script src="../core/bl/image-bl.js"></script>
+    <script src="../core/supabase.js"></script>
+    <script src="../core/payment.js"></script>
+    <script>
+      // Đơn hàng đi bằng QUERY STRING, không phải sessionStorage: khách tải lại
+      // trang hay mở lại từ lịch sử vẫn ra đúng đơn đó.
+      //   id       manage_id của thiệp (bỏ trống = mua mẫu mới từ trang chủ)
+      //   theme    tên thư mục mẫu
+      //   name     tên hiển thị của mẫu
+      //   price / original  giá (đồng); thiếu thì payment.js dùng giá mặc định
+      (function initCheckout() {
+        const q = new URLSearchParams(location.search);
+        const theme = q.get("theme");
+        const name = q.get("name") || "Thiệp cưới";
+        if (!theme) {
+          document.getElementById("checkout-root").innerHTML =
+            '<div class="p-10 text-center"><p class="text-sm text-gray-500 m-0">' +
+            "Thiếu thông tin đơn hàng." +
+            '</p><a href="/my-invitations/" class="text-sm font-semibold underline">Về danh sách thiệp</a></div>';
+          return;
+        }
+        const pricing = {};
+        if (q.get("price")) pricing.price = Number(q.get("price"));
+        if (q.get("original")) pricing.originalPrice = Number(q.get("original"));
+
+        PaymentModal.mount("#checkout-root", {
+          templateName: name,
+          theme,
+          pricing,
+          manageId: q.get("id") || null,
+        });
+      })();
+    </script>
+  </body>
+</html>

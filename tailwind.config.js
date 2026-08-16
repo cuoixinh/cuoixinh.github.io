@@ -15,6 +15,7 @@ module.exports = {
     "./core/**/*.js",
     "./admin/**/*.{html,js}",
     "./my-invitations/**/*.{html,js}",
+    "./checkout/**/*.{html,js}",
     // invitation-setup nạp partials/*.html động qua loader.js → phải quét cả
     // thư mục partials, nếu không class trong đó bị purge mất.
     "./invitation-setup/**/*.{html,js}",

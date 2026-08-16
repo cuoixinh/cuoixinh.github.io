@@ -8,31 +8,7 @@
       <h2 class="text-base sm:text-lg font-semibold text-gray-800">
         Quản lý Templates
       </h2>
-      <div class="flex gap-2 flex-wrap items-center">
-        <!-- Chụp gì khi bấm Scan. HAI nhóm độc lập vì một lượt scan ra hai
-             ảnh khác chỗ: ảnh dài (images/templates) + một ảnh tĩnh
-             (images/templates-static). "Toàn trang" là checkbox — muốn chỉ
-             chụp lại ảnh tĩnh thì bỏ tick; ảnh bìa/hero loại trừ nhau nên là
-             radio. Value ghép thành ?mode=full,cover cho scan server
-             (scripts/server.js) — sửa value phải sửa cả bên đó. -->
-        <div class="flex items-center gap-3 text-sm text-gray-600 mr-1">
-          <label class="flex items-center gap-1.5 cursor-pointer">
-            <input type="checkbox" id="scan-mode-full" checked
-              class="w-3.5 h-3.5 accent-violet-500 cursor-pointer" />
-            Toàn trang
-          </label>
-          <span class="w-px h-4 bg-gray-200"></span>
-          <label class="flex items-center gap-1.5 cursor-pointer">
-            <input type="radio" name="scan-mode-still" value="cover" checked
-              class="w-3.5 h-3.5 accent-violet-500 cursor-pointer" />
-            Ảnh bìa
-          </label>
-          <label class="flex items-center gap-1.5 cursor-pointer">
-            <input type="radio" name="scan-mode-still" value="hero"
-              class="w-3.5 h-3.5 accent-violet-500 cursor-pointer" />
-            Màn Hero
-          </label>
-        </div>
+      <div class="flex gap-2 flex-wrap">
         <x-button id="purge-cache-btn" onclick="purgeTemplatesCache()" title="Xóa cache Cloudflare" class="flex-1 sm:flex-none sm:px-6">
           <i data-icon="refresh-cw"></i>
           <span class="hidden sm:inline">Xóa Cache</span>

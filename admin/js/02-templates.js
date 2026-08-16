@@ -407,19 +407,7 @@ function showScanServerHelp() {
 // templateNames (tuỳ chọn): mảng tên template cần scan — dùng khi gọi tự động
 // (vd sau khi lưu Ảnh mẫu cho 1 theme). Bỏ trống thì đọc từ checkbox đã tick
 // trong bảng Templates (hành vi cũ, gọi từ nút "Scan Image IFrame").
-// mode (tuỳ chọn): chuỗi chế độ ghép bằng dấu phẩy ("full", "full,cover"…).
-// Bỏ trống thì đọc từ thanh công cụ: checkbox "Toàn trang" + radio ảnh tĩnh —
-// một lượt scan ra được cả hai ảnh. Gọi từ tab khác (không có 2 ô đó) thì "full".
-function startScanImages(templateNames, mode) {
-  let scanMode = mode;
-  if (!scanMode) {
-    const box = document.getElementById("scan-mode-full");
-    const still = document.querySelector("input[name='scan-mode-still']:checked");
-    const list = [];
-    if (!box || box.checked) list.push("full");
-    if (still) list.push(still.value);
-    scanMode = list.join(",") || "full";
-  }
+function startScanImages(templateNames) {
   const selected =
     templateNames ||
     [...document.querySelectorAll("input[name='tpl-scan']:checked")].map((cb) => cb.value);
@@ -440,9 +428,7 @@ function startScanImages(templateNames, mode) {
 
   appendScanLog("⏳ Đang kết nối scan server...", "text-yellow-300");
 
-  const es = new EventSource(
-    `${SCAN_SERVER}/scan?templates=${encodeURIComponent(selected.join(","))}&mode=${scanMode}`,
-  );
+  const es = new EventSource(`${SCAN_SERVER}/scan?templates=${encodeURIComponent(selected.join(","))}`);
 
   es.onmessage = (e) => {
     const d = JSON.parse(e.data);

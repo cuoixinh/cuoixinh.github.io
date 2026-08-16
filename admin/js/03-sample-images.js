@@ -1400,10 +1400,8 @@ async function saveSampleImages({ scan = true } = {}) {
 
     // Ảnh demo vừa đổi → chụp lại thumbnail preview của template này (dùng
     // chung "Scan Image IFrame" ở tab Templates, xem 02-templates.js).
-    // "full" ghi rõ: đây là thumbnail toàn trang, không được ăn theo radio
-    // chọn chế độ mà admin có thể đang để ở "Màn bìa" bên tab Templates.
     if (scan && typeof startScanImages === "function") {
-      startScanImages([siCurrentTheme], "full");
+      startScanImages([siCurrentTheme]);
     }
   } catch (e) {
     console.error(e);

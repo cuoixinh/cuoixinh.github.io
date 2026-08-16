@@ -5,9 +5,11 @@
 function openPayment(templateId) {
   const template = templates.find((t) => t.id === templateId);
   if (!template) return;
-  PaymentModal.open(template.name, template.theme, {
+  window.location.href = cxCheckoutUrl({
+    theme: template.theme,
+    name: template.name,
     price: template.price,
-    originalPrice: template.originalPrice,
+    original: template.originalPrice,
   });
 }
 

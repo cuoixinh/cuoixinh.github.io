@@ -70,7 +70,11 @@ function _initAutoSave() {
 function openPaymentForDraft() {
   const templateName =
     sessionStorage.getItem("draft_template_name") || "Thiệp Cưới";
-  PaymentModal.open(templateName, WEDDING_THEME, {}, WEDDING_ID);
+  window.location.href = cxCheckoutUrl({
+    id: WEDDING_ID,
+    theme: WEDDING_THEME,
+    name: templateName,
+  });
 }
 
 // ============= ENCRYPTION/DECRYPTION FUNCTIONS =============

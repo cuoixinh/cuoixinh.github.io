@@ -547,10 +547,16 @@ async function _copyText(text) {
   }
 }
 
+// Sang TRANG thanh toán (/checkout/) chứ không mở hộp thoại: khách tải lại
+// trang, bấm lùi hay mở lại link vẫn ra đúng đơn.
 function activateCard(i) {
   const c = CARDS[i];
-  if (!c || !window.PaymentModal) return;
-  PaymentModal.open(themeName(c.theme), c.theme || "basic-gold", {}, c.id);
+  if (!c) return;
+  window.location.href = cxCheckoutUrl({
+    id: c.id,
+    theme: c.theme || "basic-gold",
+    name: themeName(c.theme),
+  });
 }
 
 // Xoá = ẩn thiệp (is_active = false) — API my-weddings chỉ trả thiệp is_active,
