@@ -1,12 +1,12 @@
 // "Đã chọn" luôn hiển thị (kể cả chưa đăng nhập — vì có thể có nháp/đơn trong
-// localStorage). Theo phiên chỉ có: nút "Đăng nhập" ở navbar ẩn đi, và mục
-// "Tài khoản" ở thanh tab dưới đổi nhãn thành "Thiệp của tôi".
+// localStorage). Theo phiên chỉ có thanh TRÊN đổi: nút "Đăng nhập" nhường chỗ
+// cho chip avatar + tên (CXAccount.mountChip). Thanh tab dưới giữ nguyên mục
+// "Tài khoản" ở mọi trạng thái.
 function updateNavAuthBtn() {
   const loggedIn = !!window.CXAuth?.isLoggedIn();
   const el = document.getElementById("navLoginBtn");
   if (el) el.style.display = loggedIn ? "none" : "";
-  const acc = document.getElementById("navAccLabel");
-  if (acc) acc.textContent = loggedIn ? "Thiệp của tôi" : "Tài khoản";
+  window.CXAccount?.syncChip();
 }
 
 
@@ -26,6 +26,7 @@ function openLoginPopup() {
 
 // ===== Trạng thái đăng nhập: hỏi CXAuth (core/auth.js), không tự cache =====
 function _initHomeAuth() {
+  window.CXAccount?.mountChip(); // navbar đã dựng xong ở lúc parse
   updateNavAuthBtn(); // vẽ ngay từ storage (sync) để nút không nhấp nháy
   window.CXAuth?.onChange(updateNavAuthBtn); // đăng nhập/đăng xuất, kể cả ở tab khác
   window.CXAuth?.getUser().then(updateNavAuthBtn); // chốt lại bằng phiên thật

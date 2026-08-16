@@ -323,8 +323,8 @@
       }
 
       /* Nút "Bắt đầu miễn phí" — MỘT style cho cả hai chỗ đứng: thẻ nổi giữa
-         đáy (mobile) và thanh trên (desktop). Khổ lấy từ size="md" của
-         <x-button> nên trùng nút "Đăng nhập" bên cạnh; ở đây chỉ lo phần màu. */
+         đáy (mobile) và thanh trên (desktop). Khổ do size của <x-button> quyết
+         (md ở nút nổi, sm ở thanh trên cho hợp hàng nav); ở đây chỉ lo màu. */
       .tt-cta-btn {
         background: linear-gradient(
           135deg,
@@ -798,11 +798,7 @@
       <!-- ─── CTA — full-bleed wine section ─── -->
       <section
         style="
-          background: linear-gradient(
-            135deg,
-            rgb(var(--brand-accent-rgb)),
-            rgb(var(--preview-btn-to-rgb))
-          );
+          background: #605a688a;
         "
       >
         <div class="max-w-3xl mx-auto px-4 sm:px-6 py-12 sm:py-16 text-center">
@@ -1153,6 +1149,7 @@
             label: "Bắt đầu miễn phí",
             icon: "sparkles",
             onClick: "startDraft()",
+            size: "sm",
             class: "tt-cta-btn",
           },
         ],
@@ -1164,6 +1161,12 @@
     <script src="../core/x-button.js"></script>
     <script src="../core/x-popover.js"></script>
     <script src="../core/helpers/account-menu.js"></script>
+    <script>
+      // Đã đăng nhập: chip avatar + tên thay mục "Tài khoản" ở THANH TRÊN
+      // (thanh tab dưới giữ nguyên). Phải nằm SAU account-menu.js; chip tự đợi
+      // DOM nên không cần chờ core/auth.js bên dưới.
+      CXAccount.mountChip();
+    </script>
     <script src="../core/cache-util.js"></script>
     <script src="../core/config.js"></script>
     <script src="../core/helpers/alert.js"></script>

@@ -62,7 +62,10 @@ async function createPaymentRequest(orderData: any, apiKey: string, clientId: st
   const requestData = {
     orderCode,
     amount: orderData.amount,
-    description: `TT Thiep Cuoi ${orderCode}`,
+    // PayOS chặn description quá 25 ký tự, orderCode đã chiếm 14 → tiền tố tối đa
+    // 11 ký tự. "TT Thiep " (9) + 14 = 23. Đổi tiền tố phải đếm lại, KHÔNG cắt
+    // chuỗi: description là nội dung chuyển khoản, mất số là mất căn cứ đối soát.
+    description: `TT Thiep ${orderCode}`,
     returnUrl: orderData.returnUrl,
     cancelUrl: orderData.cancelUrl,
   };

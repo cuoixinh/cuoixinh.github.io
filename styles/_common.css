@@ -878,6 +878,72 @@ textarea::-webkit-scrollbar-thumb:hover {
   gap: 12px;
 }
 
+/* Chip tài khoản ở thanh trên (core/helpers/account-menu.js dựng ra, chỉ hiện
+   khi đã đăng nhập). Tên bị kẹp 140px rồi cắt bằng "…" — tên dài từ Google
+   không được phép đẩy dãy mục bên trái co lại. */
+
+/* Không nền, và tên KHÔNG đổi màu khi hover — chỉ mũi tên đậm lên. Tên người
+   dùng là thông tin, không phải liên kết; nó nhấp nháy màu mỗi lần chuột lướt
+   qua thì thanh nav trông như đang có gì đó thay đổi. */
+.cx-accchip {
+  gap: 8px;
+  padding: 3px 4px;
+  background: none;
+  color: rgb(var(--text-heading-rgb));
+}
+
+/* x-popover đặt aria-expanded lên nút mở → mũi tên lật khi menu đang mở. */
+.cx-accchip-caret {
+  flex: none;
+  opacity: 0.5;
+  transition:
+    transform 0.18s ease,
+    opacity 0.18s ease;
+}
+
+.cx-accchip:hover .cx-accchip-caret,
+.cx-accchip[aria-expanded="true"] .cx-accchip-caret {
+  opacity: 1;
+}
+
+.cx-accchip[aria-expanded="true"] .cx-accchip-caret {
+  transform: rotate(180deg);
+}
+
+.cx-accchip-av {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 9999px;
+  overflow: hidden;
+  background: rgb(var(--white-rgb));
+  box-shadow: 0 0 0 1px rgb(var(--brand-primary-rgb) / 0.4);
+  color: rgb(var(--avatar-initial-rgb));
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.cx-accchip-av img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cx-accchip-name {
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+  font-weight: 500;
+}
+
 .cx-navlink {
   display: inline-flex;
   position: relative;

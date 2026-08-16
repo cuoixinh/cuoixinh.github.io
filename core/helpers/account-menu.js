@@ -5,6 +5,7 @@
 //
 //   <button onclick="CXAccount.open(this)">   ← navbar truyền chính nút vừa bấm
 //   CXAccount.configure({ onLogin, onProfile, onLogout })  ← trang ghi đè khi cần
+//   CXAccount.mountChip()  ← chip avatar + tên ở thanh trên, chỉ hiện khi đã đăng nhập
 //
 // Mặc định: onLogin gọi openLoginPopup() của trang (không có thì sang
 // /my-invitations/), onProfile gọi openProfileModal() nếu trang có, không thì
@@ -94,7 +95,73 @@ const CXAccount = (function () {
     document.getElementById("cx-account-pop")?.close();
   }
 
-  return { open, close, configure };
+  // ===== Chip "đang đăng nhập" ở thanh trên (desktop) =====
+  // Avatar + tên, bấm vào mở chính popover trên. Chỉ hiện khi có phiên nên trang
+  // vẫn phải tự ẩn nút "Đăng nhập" của mình — hai thứ chiếm cùng một chỗ.
+
+  const _esc = (s) =>
+    String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+
+  function _syncChip() {
+    const el = document.getElementById("cx-account-chip");
+    if (!el) return;
+    const u = window.CXAuth?.getUserSync?.();
+    el.style.display = u ? "" : "none";
+    // Chip và mục "Tài khoản" của THANH TRÊN chiếm cùng một vai trò → chỉ một
+    // cái hiện. Thanh tab dưới không đụng tới: ở mobile luôn là "Tài khoản".
+    document.querySelectorAll('#main-nav [data-nav="account"]').forEach((it) => {
+      it.style.display = u ? "none" : "";
+    });
+    if (!u) return;
+    const meta = u.user_metadata || {};
+    const name = meta.full_name || meta.name || (u.email || "").split("@")[0] || "Tài khoản";
+    const avatar = meta.avatar_url || meta.picture || "";
+    el.title = u.email || name;
+    // Chữ cái đầu nằm SẴN dưới ảnh: link avatar của Google/Facebook chết là
+    // chuyện thường, onerror gỡ ảnh đi thì lộ ngay chữ cái, không thành ô trống.
+    el.innerHTML =
+      `<span class="cx-accchip-av"><span>${_esc(name.trim().charAt(0).toUpperCase())}</span>` +
+      (avatar
+        ? `<img src="${_esc(avatar)}" alt="" referrerpolicy="no-referrer" onerror="this.remove()" />`
+        : "") +
+      `</span><span class="cx-accchip-name">${_esc(name)}</span>` +
+      // Mũi tên báo "bấm ra menu"; x-popover đặt aria-expanded lên chính nút này
+      // nên CSS lật được nó mà JS không phải theo dõi trạng thái mở.
+      `<svg class="cx-accchip-caret" xmlns="http://www.w3.org/2000/svg" width="14" height="14" ` +
+      `viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" ` +
+      `stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">` +
+      `<polyline points="6 9 12 15 18 9"/></svg>`;
+  }
+
+  let _chipBound = false;
+
+  /**
+   * Dựng chip vào vùng hành động của navbar. Gọi được ngay sau CXNavbar.mount()
+   * dù core/auth.js nạp sau — tự đợi DOM xong mới dựng, lúc đó CXAuth đã có.
+   */
+  function mountChip(container) {
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", () => mountChip(container), { once: true });
+      return;
+    }
+    const host = container || document.querySelector(".cx-navactions");
+    if (!host) return;
+    if (!document.getElementById("cx-account-chip")) {
+      // x-button tự thay mình bằng <button> ngay khi chèn → query lại sau đó.
+      host.insertAdjacentHTML(
+        "beforeend",
+        `<x-button variant="bare" id="cx-account-chip" class="cx-accchip" ` +
+          `onclick="CXAccount.open(this)" aria-label="Tài khoản"></x-button>`,
+      );
+    }
+    _syncChip();
+    if (_chipBound) return;
+    _chipBound = true;
+    window.CXAuth?.onChange(_syncChip);
+    window.CXAuth?.getUser?.().then(_syncChip); // chốt lại bằng phiên thật
+  }
+
+  return { open, close, configure, mountChip, syncChip: _syncChip };
 })();
 
 window.CXAccount = CXAccount;

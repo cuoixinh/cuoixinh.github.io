@@ -55,38 +55,6 @@
           <div class="hero-invite-copy">
             <!-- Phần trên: giới thiệu -->
             <div class="hero-invite-head">
-              <!-- Nhãn quảng bá tính năng AI, bấm được: tạo thiệp nháp rồi mở
-                   luôn bảng "Tạo nội dung bằng AI" ở trang thiết lập.
-                   Icon sparkles của lucide nhúng thẳng: trang chủ không nạp
-                   lucide, thêm cả thư viện chỉ vì một icon là không đáng. -->
-              <a
-                href="/invitation-setup/"
-                onclick="goCreateWithAi(event)"
-                class="hero-invite-ai hero-anim hero-anim-1"
-              >
-                <span class="hero-invite-ai-tag">Mới</span>
-                <svg
-                  class="lucide lucide-sparkles"
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                >
-                  <path
-                    d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275Z"
-                  />
-                  <path d="M5 3v4" />
-                  <path d="M19 17v4" />
-                  <path d="M3 5h4" />
-                  <path d="M17 19h4" />
-                </svg>
-                Tạo thiệp bằng AI
-              </a>
-
               <p class="hero-invite-eyebrow hero-anim hero-anim-1">
                 Thiệp cưới điện tử
               </p>
@@ -237,7 +205,7 @@
          là thẻ co giãn liên tục. svh = khung nhìn lúc thanh đang hiện: cố định. -->
     <section
       id="templates"
-      class="bg-[rgb(var(--surface-section-rgb))] flex flex-col"
+      class="flex flex-col"
       style="min-height: 100vh; min-height: 100svh"
     >
       <div class="max-w-6xl mx-auto py-8 px-5 shrink-0">
@@ -304,7 +272,7 @@
     </section>
 
     <!-- ===== INSIDE THE INVITATION ===== -->
-    <section id="inside" class="py-16 bg-white">
+    <section id="inside" class="py-16">
       <div class="max-w-6xl mx-auto px-5">
         <div class="flex flex-col md:flex-row items-center gap-14">
           <!-- Left: phone mockup (real iPhone frame, transparent screen) -->
@@ -481,14 +449,6 @@
     <section
       id="steps"
       class="py-16"
-      style="
-        background: linear-gradient(
-          160deg,
-          rgb(var(--surface-tint-rgb)) 0%,
-          rgb(var(--surface-tint-warm-rgb)) 50%,
-          rgb(var(--surface-tint-rgb)) 100%
-        );
-      "
     >
       <div class="max-w-5xl mx-auto px-5">
         <h2
@@ -505,7 +465,7 @@
     </section>
 
     <!-- ===== BENEFITS ===== -->
-    <section id="benefits" class="py-16 bg-white">
+    <section id="benefits" class="py-16">
       <div class="max-w-6xl mx-auto px-5">
         <div class="mb-10 text-center">
           <h2
@@ -530,7 +490,7 @@
     <!-- ===== TESTIMONIALS ===== -->
     <section
       id="testimonials"
-      class="py-16 bg-[rgb(var(--surface-section-rgb))]"
+      class="py-16"
     >
       <div class="max-w-6xl mx-auto px-5">
         <div class="mb-10 text-center reveal">
@@ -612,10 +572,10 @@
         >
           Chỉ thanh toán khi bạn thật sự ưng ý.
         </p>
-        <a
-          href="/invitation-setup/"
+        <x-button
+          variant="bare"
           onclick="goCreateDraft(event)"
-          class="inline-block px-9 py-4 rounded-full text-base font-semibold transition-all hover:-translate-y-0.5 active:scale-95"
+          class="px-9 py-4 gap-2 text-base font-semibold whitespace-nowrap hover:-translate-y-0.5"
           style="
             background: linear-gradient(
               135deg,
@@ -626,8 +586,8 @@
             box-shadow: 0 8px 28px rgb(var(--landing-cta-btn-from-rgb) / 0.32);
           "
         >
-          Tạo thiệp ngay <i data-icon="arrow-right" class="ml-2 text-sm"></i>
-        </a>
+          Tạo thiệp ngay <i data-icon="arrow-right" class="text-sm"></i>
+        </x-button>
         <div
           class="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs mt-7"
           style="color: rgb(var(--landing-cta-body-rgb) / 0.38)"
@@ -661,7 +621,9 @@
     </section>
 
     <!-- ===== FOOTER ===== -->
-    <footer class="bg-white border-t border-rose-pastel-200 py-10">
+    <footer
+      class="bg-white py-10"
+    >
       <div class="max-w-6xl mx-auto px-5">
         <div class="grid grid-cols-2 md:grid-cols-3 gap-6 mb-8">
           <div class="col-span-2 md:col-span-1">

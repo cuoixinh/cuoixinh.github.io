@@ -17,6 +17,23 @@
   let currentOrderId = null;
   // ============= PAYMENT FUNCTIONS (Task 5.2, 5.3, 5.5, 5.8) =============
 
+  // qrcodejs không trang nào nạp sẵn → tự lấy khi thật sự cần vẽ QR, chỉ một lần.
+  const QRCODEJS_CDN_URL =
+    "https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js";
+  let _qrLibPromise = null;
+  function _loadQRCodeLib() {
+    if (window.QRCode) return Promise.resolve();
+    if (_qrLibPromise) return _qrLibPromise;
+    _qrLibPromise = new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = QRCODEJS_CDN_URL;
+      script.onload = resolve;
+      script.onerror = () => reject(new Error("Không nạp được qrcodejs"));
+      document.head.appendChild(script);
+    });
+    return _qrLibPromise;
+  }
+
   // JWT của phiên đang đăng nhập (null nếu là khách) — backend dùng để ghi nhận
   // ai đã áp mã giảm giá; anon key thì ai cũng như ai.
   async function _authToken() {
@@ -222,8 +239,9 @@
       `;
 
     // Generate QR code from string using QRCode.js
-    setTimeout(() => {
+    setTimeout(async () => {
       try {
+        await _loadQRCodeLib();
         const qrcodeContainer = document.getElementById("qrcode-container");
         if (qrcodeContainer && window.QRCode) {
           // Clear container first to prevent size jump

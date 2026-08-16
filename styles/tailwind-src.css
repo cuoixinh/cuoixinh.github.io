@@ -345,12 +345,20 @@ html.cx-landing {
   min-height: calc(100dvh - 72px);
   min-height: calc(100svh - 72px);
   padding: 12px 16px 0;
-  background: linear-gradient(
-    160deg,
-    rgb(var(--surface-tint-rgb)) 0%,
-    rgb(var(--surface-tint-warm-rgb)) 50%,
-    rgb(var(--surface-tint-rgb)) 100%
-  );
+  /* Lớp trên: dải 200px ở ĐÁY kéo hero về đúng một màu tint phẳng trước khi
+     chạm #templates. Không có nó thì mép dưới còn vệt ấm của gradient chéo —
+     lệch nhẹ so với nền phẳng của mục kế nên hiện ra một đường mờ. */
+  background-image: linear-gradient(
+      to top,
+      rgb(var(--surface-tint-rgb)) 0,
+      rgb(var(--surface-tint-rgb) / 0) 200px
+    ),
+    linear-gradient(
+      160deg,
+      rgb(var(--surface-tint-rgb)) 0%,
+      rgb(var(--surface-tint-warm-rgb)) 50%,
+      rgb(var(--surface-tint-rgb)) 100%
+    );
 }
 
 /* Nền ảnh cưới ở màn mở đầu — ảnh WebP do tab "Ảnh nền" của admin chụp ra,
@@ -369,8 +377,10 @@ html.cx-landing {
   background-repeat: no-repeat;
   opacity: 0;
   transition: opacity 0.6s ease;
-  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 60%, transparent 100%);
-  mask-image: linear-gradient(to bottom, #000 0%, #000 60%, transparent 100%);
+  /* Ảnh phải tắt HẲN trước mép dưới (92%, không phải 100%) — tắt đúng ở mép thì
+     phần ảnh còn sót đọ với nền trơn của #templates thành một vệt ngăn cách. */
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 50%, transparent 92%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 50%, transparent 92%);
 }
 
 /* Chỉ hiện khi đã nạp được ảnh — tránh nháy một lớp trống lúc đang tải. Chữ
@@ -718,9 +728,8 @@ html.cx-landing {
    Popover chọn cách tạo KHÔNG nằm trong vỏ này — `transform` lúc hover sẽ kéo
    lệch thẻ fixed của nó (xem #heroCtaMenu ở cuối index.html). */
 .hero-cta-split {
-  @apply relative inline-flex w-full items-stretch;
-  max-width: 264px;
-  border-radius: 14px;
+  @apply relative inline-flex w-auto items-stretch;
+  border-radius: 9999px;
   background: rgb(var(--action-primary-rgb));
   box-shadow: 0 8px 20px rgb(var(--action-primary-rgb) / 0.28);
   transition: transform 0.2s ease;
@@ -730,7 +739,7 @@ html.cx-landing {
 }
 
 .hero-invite-cta {
-  @apply inline-flex flex-1 items-center justify-center font-semibold text-white transition-colors;
+  @apply inline-flex items-center justify-center font-semibold text-white transition-colors;
   padding: 11px 20px;
   font-size: 14px;
   border-radius: 14px 0 0 14px;
@@ -753,7 +762,7 @@ html.cx-landing {
 .hero-cta-caret {
   @apply inline-flex shrink-0 cursor-pointer items-center justify-center border-none text-white transition-colors;
   width: 40px;
-  border-radius: 0 14px 14px 0;
+  border-radius: 0 9999px 9999px 0;
   background: transparent;
   border-left: 1px solid rgb(var(--white-rgb) / 0.28);
 }
@@ -971,10 +980,6 @@ html.cx-landing {
   .hero-invite-actions {
     @apply items-start;
   }
-  /* Cột chữ căn trái → nút đôi thu về đúng bề ngang nội dung. */
-  .hero-cta-split {
-    @apply w-auto;
-  }
   .hero-invite-props {
     @apply justify-start;
   }
@@ -1139,6 +1144,67 @@ html.cx-landing {
   left: calc(50% + 40px);
   right: calc(-50% + 40px);
   border-top: 2px dashed rgb(var(--brand-primary-rgb) / 0.55);
+}
+
+/* ===== Mép nối giữa các mục của landing =====
+   Mỗi mục GIỮ NGUYÊN màu nền riêng; chỗ nối hoà bằng một dải 96px ở ĐỈNH mục,
+   mang màu của mục ĐỨNG TRƯỚC rồi tan dần. Dải nằm trong lớp background (là
+   `background-image` chồng lên `background-color`, không phải phần tử) nên
+   không đè lên chữ và không cần sửa markup.
+
+   Thứ tự màu hiện tại: hero tint → templates tint → inside trắng →
+   steps tint → benefits trắng → testimonials hồng → contact tối → footer trắng.
+   Đổi màu một mục thì phải đổi mốc màu ở dải của mục KẾ SAU nó.
+
+   Riêng #contact (CTA tối) CỐ Ý không hoà mép — nó đứng tách hẳn thành một khối
+   để chốt trang, nên hai mép trên/dưới cắt thẳng.
+
+   Luôn viết mốc "hết màu" bằng `rgb(... / 0)` chứ đừng dùng `transparent`:
+   transparent là đen trong suốt, nội suy ra dải xám bẩn. */
+
+#templates {
+  background: rgb(var(--surface-tint-rgb));
+}
+
+#inside {
+  background-color: rgb(var(--white-rgb));
+  background-image: linear-gradient(
+    to bottom,
+    rgb(var(--surface-tint-rgb)) 0,
+    rgb(var(--surface-tint-rgb) / 0) 96px
+  );
+}
+
+#steps {
+  background-image: linear-gradient(
+      to bottom,
+      rgb(var(--white-rgb)) 0,
+      rgb(var(--white-rgb) / 0) 96px
+    ),
+    linear-gradient(
+      160deg,
+      rgb(var(--surface-tint-rgb)) 0%,
+      rgb(var(--surface-tint-warm-rgb)) 50%,
+      rgb(var(--surface-tint-rgb)) 100%
+    );
+}
+
+#benefits {
+  background-color: rgb(var(--white-rgb));
+  background-image: linear-gradient(
+    to bottom,
+    rgb(var(--surface-tint-rgb)) 0,
+    rgb(var(--surface-tint-rgb) / 0) 96px
+  );
+}
+
+#testimonials {
+  background-color: rgb(var(--surface-section-rgb));
+  background-image: linear-gradient(
+    to bottom,
+    rgb(var(--white-rgb)) 0,
+    rgb(var(--white-rgb) / 0) 96px
+  );
 }
 
 /* Thẻ mẫu ở carousel = MOCKUP ĐIỆN THOẠI vẽ bằng CSS (.cx-mock ở

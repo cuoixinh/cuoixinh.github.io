@@ -105,8 +105,17 @@ async function captureAll(onProgress = console.log, selected = null) {
 
         await page.goto(url, { waitUntil: "networkidle2", timeout: 30000 });
 
-        // Hide preview navbar and reset body padding it added
-        await page.addStyleTag({ content: "#preview-nav{display:none!important}body{padding-bottom:0!important}" });
+        // Giấu những thứ chỉ có nghĩa khi thiệp đang chạy thật: thanh xem
+        // trước, và trình phát nhạc (nút tròn/thẻ nhạc NỔI theo màn hình — ảnh
+        // chụp fullPage sẽ đóng đinh nó vào giữa ảnh, mẫu nào cũng dính một nút
+        // play lơ lửng). #cx-music-mount là chỗ theme gắn, .cx-mw là gốc widget
+        // do core/components/music-player.js dựng ra.
+        await page.addStyleTag({
+          content:
+            "#preview-nav{display:none!important}" +
+            "body{padding-bottom:0!important}" +
+            "#cx-music-mount,.cx-mw{display:none!important}",
+        });
 
         // Wait for fonts and animations
         await new Promise((r) => setTimeout(r, 2500));

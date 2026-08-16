@@ -296,6 +296,9 @@
           },
         ],
       });
+      // Đã đăng nhập: chip avatar + tên thay mục "Tài khoản" ở THANH TRÊN
+      // (thanh tab dưới giữ nguyên). Tự đợi DOM nên gọi ở đây được.
+      CXAccount.mountChip();
     </script>
     <script src="../core/cache-util.js"></script>
     <script src="../core/config.js"></script>
