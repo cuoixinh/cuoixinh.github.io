@@ -280,6 +280,8 @@
 
     const node = document.createElement("div");
     node.setAttribute("data-cx-music", "root");
+    // Widget nổi theo màn hình → lọt vào MỌI ảnh scan mẫu thiệp (scripts/capture.js).
+    node.setAttribute("data-no-scan", "");
     node.setAttribute("data-cx-seek", "10");
     node.setAttribute("data-cx-empty-title", "Nhạc nền");
 

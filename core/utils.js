@@ -1012,6 +1012,9 @@ function closeTimePicker() {
   var navbar = document.createElement("div");
   navbar.id = "preview-nav";
   navbar.className = "cx-pnav";
+  // Chỉ có nghĩa khi người thật đang xem thử → bỏ khỏi ảnh scan mẫu thiệp
+  // (scripts/capture.js). Phần chừa chỗ ở đáy trang thì capture tự trả về 0.
+  navbar.setAttribute("data-no-scan", "");
 
   // Mới vào chỉ có nút tròn; bấm mới bung cụm nút (thêm .is-open). Cố ý KHÔNG
   // nhớ trạng thái: mỗi lần mở thiệp là một lần xem mẫu, bung sẵn ra là che mất

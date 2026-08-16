@@ -353,7 +353,7 @@ function cardHTML(c, i) {
     leftBadges = `<span class="${BADGE} bg-emerald-500 text-white"><i data-icon="circle-check" class="text-[9px]"></i>Đã kích hoạt</span>`;
   }
 
-  const note = noteHTML(state, days);
+  const note = noteHTML(state, days, i);
   const slugRow = c.slug ? slugRowHTML(c, i) : "";
 
   return `
@@ -394,11 +394,16 @@ function cardHTML(c, i) {
 
 // Hiện ở MỌI khổ màn: đây là chỗ duy nhất nói rõ thiệp còn mấy ngày dùng thử /
 // đã hết hạn — ẩn trên mobile là khách không biết vì sao thiệp sắp đóng.
-function noteHTML(state, days) {
+function noteHTML(state, days, i) {
   if (state === "trial") {
+    // "Thanh toán ngay" mở thẳng bảng thanh toán như nút "Kích hoạt thiệp" ở
+    // hàng nút dưới — câu này là chỗ khách đọc thấy hạn, đừng bắt họ đi tìm nút.
     return `<div class="mt-3 flex gap-2 rounded-lg bg-sky-50 p-2.5 text-[11px] leading-relaxed text-sky-800">
       <i data-icon="clock" class="mt-0.5 text-[11px] text-sky-500"></i>
-      <span>Còn ${days} ngày dùng thử — thanh toán để giữ thiệp mở.</span>
+      <span>Còn ${days} ngày dùng thử -
+        <button type="button" onclick="activateCard(${i})"
+          class="font-semibold underline underline-offset-2 hover:text-sky-900">Thanh toán</button>
+        để giữ thiệp mở.</span>
     </div>`;
   }
   if (state === "expired") {

@@ -216,7 +216,7 @@
         position: relative;
         overflow: hidden;
         border-radius: 14px;
-        aspect-ratio: 4 / 5;
+        aspect-ratio: 1 / 1;
         background: rgb(var(--preview-bg-from-rgb));
         /* Viền trong rất nhạt để mẫu nền sáng không "chảy" vào nền thẻ. */
         box-shadow: inset 0 0 0 1px rgb(var(--scrim-rgb) / 0.06);
@@ -1366,15 +1366,22 @@
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
 
-      /* ── Thẻ mẫu ── */
+      /* ── Thẻ mẫu ── Ảnh TĨNH một khung ở assets/images/templates-static/,
+         chụp ở admin tab Templates: mẫu nào hợp màn bìa thì scan "Ảnh bìa",
+         hợp phần hero thì scan "Màn Hero" — cùng ra một tên file nên ở đây
+         không cần biết là kiểu nào. Bản dài assets/images/templates/ dành cho
+         ô tự cuộn ở trang chủ; mẫu chưa scan ảnh tĩnh thì onerror lùi tạm về
+         bản dài đó. */
       function cardHTML(t) {
-        const imgSrc = `/assets/images/templates/${t.theme}.jpg`;
+        const imgSrc = `/assets/images/templates-static/${t.theme}.jpg`;
+        const imgFallback = `/assets/images/templates/${t.theme}.jpg`;
         const isFav = favSet.has(t.theme);
 
         return `
           <article class="tt-card" data-id="${t.id}">
             <div class="tt-media">
-              <img src="${imgSrc}" alt="${t.name}" loading="lazy" />
+              <img src="${imgSrc}" alt="${t.name}" loading="lazy"
+                   onerror="this.onerror=null;this.src='${imgFallback}'" />
               ${t.category ? `<span class="tt-badge">${catLabel(t.category)}</span>` : ""}
               <button type="button" class="tt-fav${isFav ? " is-on" : ""}" aria-pressed="${isFav}"
                       aria-label="Lưu vào yêu thích" onclick="toggleFav(event,'${t.theme}')">${SVG_HEART}</button>
@@ -1387,9 +1394,14 @@
             <div class="mt-3 px-1.5 pb-1">
               <h3 class="text-[15px] font-semibold leading-snug truncate" style="color:var(--fg)">${t.name}</h3>
               <p class="mt-0.5 text-[13px] leading-snug line-clamp-2 min-h-[2.75em]" style="color:var(--muted)">${t.description || ""}</p>
-              <div class="mt-2 flex items-center gap-2">
+              <!-- Giá gốc gạch ngang đứng RIÊNG một hàng trên giá bán. Hàng
+                   này luôn có mặt (mẫu không giảm giá thì rỗng) để mọi thẻ cùng
+                   chiều cao, lưới không so le. -->
+              <div class="mt-2 h-[18px] text-[12px] leading-[18px] line-through" style="color:var(--muted)">
+                ${t.originalPrice > t.price ? `${t.originalPrice.toLocaleString("vi-VN")}₫` : ""}
+              </div>
+              <div class="flex items-center gap-2">
                 <span class="text-[15px] font-bold" style="color:var(--fg)">${t.price.toLocaleString("vi-VN")}₫</span>
-                ${t.originalPrice > t.price ? `<span class="text-[12px] line-through" style="color:var(--muted)">${t.originalPrice.toLocaleString("vi-VN")}₫</span>` : ""}
                 <span class="text-[13px]" style="color:var(--muted)">trọn đời</span>
                 <x-button size="sm" variant="outline" tone="brand" class="ml-auto"
                           onclick="event.stopPropagation();startDraft('${t.theme}','${t.name}')">Dùng mẫu</x-button>

@@ -59,6 +59,13 @@
     // khai `focus`. Đặt id khác thì khai ở đây, ví dụ:
     //   focus: { photos: ["#my-gallery"] },
 
+    // Bỏ qua khi scan ảnh ở admin (scripts/capture.js). Hai mức, khai cái nào
+    // cũng được, không cần cả hai:
+    //   noScan       — bỏ hết, cho mẫu không bán/đang làm dở (mẫu nền dùng cái này)
+    //   noScanStatic — chỉ bỏ ảnh tĩnh vuông (cover/hero), vẫn có ảnh dài toàn
+    //                  trang; dùng khi mẫu chưa dựng bìa/hero cho khung vuông
+    noScan: true,
+
     // Chạy ngay sau khi thiệp hiện ra (đo được bề ngang thật) — mẫu nào phải
     // dựng lại carousel/đo đạc thì móc vào đây.
     onOpen: null,
