@@ -52,7 +52,13 @@ function startStaticServer() {
   });
 }
 
-// Chụp CẢ TRANG thiệp (dải dài) → assets/images/templates/<tên>.jpg.
+// Khổ ảnh mẫu: đúng TỈ LỆ 9:16 của thẻ mẫu ở trang mua thiệp (.tt-media) —
+// chụp lệch tỉ lệ là thẻ phải cắt bớt, thiệp trông bị bóp. Đổi số ở đây thì
+// phải đổi luôn aspect-ratio của .tt-media trong theme-template/index.html.
+const SHOT_W = 390;
+const SHOT_H = Math.round((SHOT_W * 16) / 9);
+
+// Chụp MÀN ĐẦU của thiệp (khổ 9:16) → assets/images/templates/<tên>.jpg.
 async function captureAll(onProgress = console.log, selected = null) {
   if (!fs.existsSync(OUT_DIR)) fs.mkdirSync(OUT_DIR, { recursive: true });
 
@@ -103,7 +109,13 @@ async function captureAll(onProgress = console.log, selected = null) {
 
       try {
         const page = await browser.newPage();
-        await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 2 });
+        // Khung nhìn ĐÚNG bằng khổ ảnh: mục nào cao 100dvh (màn bìa) cũng vừa
+        // khít một tấm, chụp xong không phải cắt lại.
+        await page.setViewport({
+          width: SHOT_W,
+          height: SHOT_H,
+          deviceScaleFactor: 2,
+        });
 
         await page.goto(url, { waitUntil: "networkidle2", timeout: 30000 });
 
@@ -148,7 +160,13 @@ async function captureAll(onProgress = console.log, selected = null) {
         });
         await new Promise((r) => setTimeout(r, 1000));
 
-        await page.screenshot({ path: outPath, type: "jpeg", quality: 90, fullPage: true });
+        // fullPage: false — chỉ lấy khung nhìn (một tấm 9:16 ở đầu thiệp).
+        await page.screenshot({
+          path: outPath,
+          type: "jpeg",
+          quality: 90,
+          clip: { x: 0, y: 0, width: SHOT_W, height: SHOT_H },
+        });
         await page.close();
 
         results.push({ name, path: outPath, ok: true });

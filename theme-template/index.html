@@ -45,6 +45,10 @@
            trên (desktop) lẫn nút nổi (mobile), đổi màu chỉ sửa hai dòng này. */
         --tt-cta-from: 255 138 138;
         --tt-cta-to: 217 213 130;
+        /* Màu riêng của hàng giá — đậm hơn hồng nhấn để con số nổi hẳn khỏi
+           tên/mô tả mẫu; badge "-x%" và giá gốc gạch ngang dùng lại cùng màu này
+           ở độ mờ thấp nên đổi một dòng là cả cụm giá đổi theo. */
+        --tt-price: 199 46 92;
       }
 
       * {
@@ -194,6 +198,8 @@
          tách bạch: ảnh mẫu nào cũng sáng màu, thả trần trên nền trắng thì hai
          thẻ liền nhau dính vào nhau, không thấy đâu là ranh giới. */
       .tt-card {
+        display: flex;
+        flex-direction: column;
         padding: 8px;
         border-radius: 20px;
         background: rgb(var(--white-rgb));
@@ -212,14 +218,124 @@
       .tt-card:active {
         transform: translateY(0) scale(0.995);
       }
+      /* Khung xem trước theo TỈ LỆ MÀN ĐIỆN THOẠI (9/16) — ảnh mẫu chụp từ máy
+         thật nên khổ vuông trước đây cắt mất 2/3 thiệp và nhìn như bị bóp. Đổi
+         tỉ lệ ở đây là đổi cả chiều cao thẻ, nhớ sửa luôn skeleton ở lưới. */
       .tt-media {
         position: relative;
         overflow: hidden;
         border-radius: 14px;
-        aspect-ratio: 1 / 1;
+        aspect-ratio: 9 / 16;
+        /* Trần chiều cao THẺ: ~70% màn hình. Ở màn rộng, cột lưới rộng ra là
+           ảnh 9:16 cao vọt lên, một thẻ chiếm gần trọn màn. Kẹp bằng MAX-WIDTH
+           (không phải max-height) để tỉ lệ 9:16 giữ nguyên, ảnh chỉ hẹp lại và
+           căn giữa thẻ. 190px là phần chữ + nút bên dưới ảnh. */
+        width: 100%;
+        max-width: calc((70vh - 190px) * 9 / 16);
+        max-width: calc((70svh - 190px) * 9 / 16);
+        margin-inline: auto;
         background: rgb(var(--preview-bg-from-rgb));
         /* Viền trong rất nhạt để mẫu nền sáng không "chảy" vào nền thẻ. */
         box-shadow: inset 0 0 0 1px rgb(var(--scrim-rgb) / 0.06);
+      }
+
+      /* Ô xám lúc chờ tải — phải cùng khổ với .tt-media, nếu không lưới nhảy
+         chiều cao khi dữ liệu về. */
+      .tt-skel-media {
+        aspect-ratio: 9 / 16;
+        border-radius: 16px;
+        width: 100%;
+        max-width: calc((70vh - 190px) * 9 / 16);
+        max-width: calc((70svh - 190px) * 9 / 16);
+        margin-inline: auto;
+      }
+
+      /* Hàng nhãn NGOÀI ảnh (trên khung xem trước): đè lên ảnh thì mỗi mẫu một
+         sắc nền, nhãn lúc đọc được lúc không. */
+      .tt-tagrow {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 4px 8px;
+      }
+      .tt-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 9px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 600;
+        line-height: 1.4;
+        white-space: nowrap;
+        color: var(--fg);
+        background: rgb(var(--brand-primary-rgb) / 0.1);
+      }
+      .tt-chip svg {
+        width: 11px;
+        height: 11px;
+        flex: none;
+      }
+      /* Bản nhỏ hơn, dùng cho nhãn "trọn đời" ở hàng giá — đứng cạnh con số nên
+         phải nhẹ hơn chip danh mục, không thì tranh chỗ với giá. */
+      .tt-chip-sm {
+        padding: 2px 8px;
+        font-size: 10px;
+        color: var(--muted);
+        background: rgb(var(--brand-primary-rgb) / 0.14);
+      }
+
+      /* ─── Cụm giá ───
+         `tabular-nums` cho mọi con số cùng bề ngang → giá các thẻ thẳng cột. */
+      .tt-price {
+        font-size: 17px;
+        font-weight: 700;
+        line-height: 1.1;
+        letter-spacing: -0.01em;
+        font-variant-numeric: tabular-nums;
+        color: rgb(var(--tt-price));
+      }
+      /* Ký hiệu đồng: chữ "đ" nâng lên như số mũ + gạch chân, kiểu các sàn TMĐT
+         Việt — nhẹ hơn ký tự ₫ vốn to ngang con số và lệch baseline ở Inter. */
+      .tt-cur {
+        font-size: 0.62em;
+        font-weight: 600;
+        vertical-align: super;
+        line-height: 0;
+        margin-left: 2px;
+        text-decoration: underline;
+        text-decoration-thickness: 0.08em;
+        text-underline-offset: 0.1em;
+      }
+      .tt-price-old {
+        font-size: 12px;
+        line-height: 16px;
+        font-variant-numeric: tabular-nums;
+        text-decoration: line-through;
+        text-decoration-color: rgb(var(--tt-price) / 0.5);
+        color: rgb(var(--tt-price) / 0.62);
+      }
+      /* Badge "-x%" đứng cạnh giá gốc; cao đúng 16px của hàng để lưới không so le. */
+      .tt-off {
+        display: inline-block;
+        margin-left: 6px;
+        padding: 0 6px;
+        border-radius: 999px;
+        font-size: 10px;
+        font-weight: 700;
+        line-height: 16px;
+        color: rgb(var(--tt-price));
+        background: rgb(var(--tt-price) / 0.1);
+      }
+
+      /* Nhãn "Hot" — chỉ hiện với mẫu có tag `hot`, đứng ngay sau chip danh mục. */
+      .tt-hot {
+        color: rgb(var(--white-rgb));
+        background: linear-gradient(
+          135deg,
+          rgb(var(--tt-cta-from)),
+          rgb(var(--tt-cta-to))
+        );
       }
       .tt-media img {
         position: absolute;
@@ -234,92 +350,114 @@
         transform: scale(1.045);
       }
 
-      .tt-badge {
-        position: absolute;
-        left: 12px;
-        top: 12px;
-        padding: 5px 10px;
-        border-radius: 999px;
-        background: rgb(var(--white-rgb));
-        color: var(--fg);
-        font-size: 11px;
-        font-weight: 600;
-        box-shadow: 0 2px 8px rgb(var(--scrim-rgb) / 0.18);
-      }
-
+      /* Nút yêu thích (ngôi sao) — đứng CUỐI hàng nhãn, không nằm trên ảnh nữa:
+         ảnh giờ là vùng bấm để xem trước, để nút trong đó thì phải chặn sự kiện
+         và trên mobile hay bấm nhầm. `margin-left: auto` đẩy nó sát mép phải. */
       .tt-fav {
-        position: absolute;
-        z-index: 2; /* trên .tt-hover — nếu không lớp phủ nuốt mất cú bấm */
-        right: 10px;
-        top: 10px;
-        width: 34px;
-        height: 34px;
+        margin-left: auto;
+        flex: none;
+        width: 28px;
+        height: 28px;
         display: flex;
         align-items: center;
         justify-content: center;
-        color: rgb(var(--white-rgb));
-        filter: drop-shadow(0 1px 3px rgb(var(--scrim-rgb) / 0.45));
-        transition: transform 0.16s ease;
+        color: var(--muted);
+        transition:
+          transform 0.16s ease,
+          color 0.16s ease;
       }
       .tt-fav svg {
-        fill: rgb(var(--scrim-rgb) / 0.35);
-        stroke: rgb(var(--white-rgb));
-        stroke-width: 2;
+        width: 19px;
+        height: 19px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1.8;
+      }
+      .tt-fav:hover {
+        color: var(--primary);
       }
       .tt-fav:active {
         transform: scale(0.85);
       }
+      .tt-fav.is-on {
+        color: rgb(var(--tt-cta-from));
+      }
       .tt-fav.is-on svg {
-        fill: var(--primary);
-        stroke: rgb(var(--white-rgb));
+        fill: currentColor;
       }
 
-      /* "Xem trước" — CHỖ DUY NHẤT mở bản xem thử; phần còn lại của thẻ không
-         bắt click nữa để nút tim bấm được. Mobile: nút nằm sẵn ở góc dưới ảnh.
-         Từ sm: cả lớp phủ mờ dần hiện ra khi rê chuột — dùng `visibility` chứ
-         không chỉ `opacity`, vì opacity 0 vẫn ăn click. */
-      .tt-hover {
-        position: absolute;
-        inset: 0;
+      /* Cặp nút ở chân thẻ — variant="bare" nên <x-button> chỉ giữ hình pill,
+         màu do đây quyết (đúng màu cặp nút cùng tên ở trang chủ).
+         LUÔN một hàng, kể cả thẻ hẹp ~150px ở lưới 2 cột: hai nút chia đôi
+         (`flex: 1 1 0` + `min-width: 0`) và co chữ/lề theo bề ngang THẺ bằng
+         clamp — không dùng breakpoint vì khổ thẻ do lưới quyết chứ không phải
+         bề ngang màn hình. Thẻ hẹp quá thì giấu icon, giữ lại chữ. */
+      .tt-cardbtns {
         display: flex;
-        align-items: flex-end;
-        justify-content: flex-start;
-        padding: 12px;
-        pointer-events: none;
+        gap: 6px;
+        container-type: inline-size;
       }
-      @media (min-width: 640px) {
-        .tt-hover {
-          align-items: center;
-          justify-content: center;
-          padding: 0;
-          background: rgb(var(--scrim-plum-rgb) / 0.28);
-          opacity: 0;
-          visibility: hidden;
-          transition:
-            opacity 0.2s ease,
-            visibility 0.2s ease;
-        }
-        .tt-card:hover .tt-hover {
-          opacity: 1;
-          visibility: visible;
+      .tt-cardbtns > * {
+        flex: 1 1 0;
+        min-width: 0;
+      }
+      .tt-cardbtns button {
+        width: 100%;
+        gap: 4px;
+        padding-inline: clamp(6px, 4cqw, 14px);
+        /* Sàn 10px là cỡ chữ ở lưới 2 cột trên điện thoại; thẻ rộng ra (máy
+           tính) thì chữ tự lớn dần tới 13px. */
+        font-size: clamp(10px, 3.6cqw, 13px);
+      }
+      @container (max-width: 170px) {
+        .tt-cardbtns svg {
+          display: none;
         }
       }
-      /* variant="bare" → <x-button> chỉ giữ hình pill + khổ, không áp bảng màu
-         fill/brand (nếu không hover sẽ nhảy sang đỏ rose-600 của bảng đó).
-         Màu ở đây giữ NGUYÊN khi hover, chỉ đậm bóng thêm chút. */
-      .tt-preview-btn {
-        pointer-events: auto;
+
+      .tt-btn-preview {
         background: rgb(var(--white-rgb));
         color: var(--primary);
         font-weight: 600;
         white-space: nowrap;
-        box-shadow: 0 4px 16px rgb(var(--scrim-rgb) / 0.2);
-        transition: box-shadow 0.2s ease;
+        border: 1px solid rgb(var(--brand-primary-rgb) / 0.75);
       }
-      .tt-preview-btn:hover {
-        background: rgb(var(--white-rgb));
-        color: var(--primary);
-        box-shadow: 0 6px 20px rgb(var(--scrim-rgb) / 0.28);
+      .tt-btn-preview:hover {
+        border-color: rgb(var(--brand-accent-rgb) / 0.6);
+        background: rgb(var(--brand-primary-rgb) / 0.12);
+      }
+      .tt-btn-use {
+        color: rgb(var(--white-rgb));
+        font-weight: 600;
+        white-space: nowrap;
+        background: linear-gradient(
+          135deg,
+          rgb(var(--gift-btn-from-rgb)),
+          rgb(var(--gift-btn-to-rgb))
+        );
+        box-shadow: 0 4px 12px rgb(var(--gift-btn-to-rgb) / 0.4);
+        transition: filter 0.18s ease;
+      }
+      .tt-btn-use:hover {
+        filter: brightness(1.05);
+      }
+
+      /* Bấm vào ảnh là mở bản xem thử — không còn nút nào trên ảnh. Lớp phủ chỉ
+         để báo "bấm được" khi rê chuột, KHÔNG bắt click: cú bấm do chính
+         .tt-media nhận. */
+      .tt-media {
+        cursor: pointer;
+      }
+      .tt-hover {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background: rgb(var(--scrim-plum-rgb) / 0.18);
+        opacity: 0;
+        transition: opacity 0.2s ease;
+      }
+      .tt-card:hover .tt-hover {
+        opacity: 1;
       }
 
       /* Nút "Bắt đầu miễn phí" — MỘT style cho cả hai chỗ đứng: thẻ nổi giữa
@@ -491,25 +629,19 @@
       >
         <div
           id="template-gallery"
-          class="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4"
+          class="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 xl:grid-cols-4"
         >
           <!-- Skeletons -->
           <div>
-            <div
-              class="skeleton"
-              style="aspect-ratio: 4/5; border-radius: 16px"
-            ></div>
+            <div class="skeleton tt-skel-media"></div>
             <div class="mt-3 space-y-2">
               <div class="skeleton h-3.5 rounded w-2/3"></div>
               <div class="skeleton h-2.5 rounded w-full"></div>
               <div class="skeleton h-3 rounded w-1/3"></div>
             </div>
           </div>
-          <div class="hidden sm:block">
-            <div
-              class="skeleton"
-              style="aspect-ratio: 4/5; border-radius: 16px"
-            ></div>
+          <div>
+            <div class="skeleton tt-skel-media"></div>
             <div class="mt-3 space-y-2">
               <div class="skeleton h-3.5 rounded w-2/3"></div>
               <div class="skeleton h-2.5 rounded w-full"></div>
@@ -517,10 +649,7 @@
             </div>
           </div>
           <div class="hidden lg:block">
-            <div
-              class="skeleton"
-              style="aspect-ratio: 4/5; border-radius: 16px"
-            ></div>
+            <div class="skeleton tt-skel-media"></div>
             <div class="mt-3 space-y-2">
               <div class="skeleton h-3.5 rounded w-2/3"></div>
               <div class="skeleton h-2.5 rounded w-full"></div>
@@ -528,10 +657,7 @@
             </div>
           </div>
           <div class="hidden xl:block">
-            <div
-              class="skeleton"
-              style="aspect-ratio: 4/5; border-radius: 16px"
-            ></div>
+            <div class="skeleton tt-skel-media"></div>
             <div class="mt-3 space-y-2">
               <div class="skeleton h-3.5 rounded w-2/3"></div>
               <div class="skeleton h-2.5 rounded w-full"></div>
@@ -1200,8 +1326,14 @@
       // mọi trang): nhãn không đổi theo phiên, nội dung menu mới đổi.
 
       /* ── SVG helpers ── */
-      const SVG_EYE = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>`;
-      const SVG_HEART = `<svg xmlns="http://www.w3.org/2000/svg" width="23" height="23" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>`;
+      const SVG_EYE = `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>`;
+      /* Cùng hình với nút "Dùng ngay" ở trang chủ và "Dùng mẫu này" ở navbar bản
+         xem thử (PNAV_ICONS.note trong core/utils.js) — đổi hình một chỗ thì
+         phải đổi cả ba, vì là cùng một hành động. */
+      const SVG_NOTE = `<svg class="shrink-0" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11l5-5V5a2 2 0 0 0-2-2z"/><path d="M15 21v-4a2 2 0 0 1 2-2h4"/><path d="m8 11 2.4 2.4L15 8.8"/></svg>`;
+      const SVG_STAR = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.12 2.12 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.12 2.12 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.12 2.12 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.12 2.12 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.12 2.12 0 0 0 1.597-1.16z"/></svg>`;
+      const SVG_TAG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/></svg>`;
+      const SVG_FLAME = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5"/></svg>`;
 
       /* ── Danh mục: nhãn + icon cho dải lọc trên đầu trang ──
          Khoá = giá trị cột `templates.category`; danh mục lạ vẫn hiện được với
@@ -1371,33 +1503,50 @@
         const imgSrc = `/assets/images/templates/${t.theme}.jpg`;
         const isFav = favSet.has(t.theme);
 
+        const isHot = (t.tags || []).some((x) => _norm(x) === "hot");
+
         return `
           <article class="tt-card" data-id="${t.id}">
-            <div class="tt-media">
-              <img src="${imgSrc}" alt="${t.name}" loading="lazy" />
-              ${t.category ? `<span class="tt-badge">${catLabel(t.category)}</span>` : ""}
+            <div class="tt-tagrow">
+              ${t.category ? `<span class="tt-chip">${SVG_TAG}${catLabel(t.category)}</span>` : ""}
+              ${isHot ? `<span class="tt-chip tt-hot">${SVG_FLAME}Hot</span>` : ""}
               <button type="button" class="tt-fav${isFav ? " is-on" : ""}" aria-pressed="${isFav}"
-                      aria-label="Lưu vào yêu thích" onclick="toggleFav(event,'${t.theme}')">${SVG_HEART}</button>
-              <div class="tt-hover">
-                <x-button size="sm" variant="bare" class="tt-preview-btn"
-                          onclick="openPreview('${t.previewUrl}')">${SVG_EYE}Xem trước</x-button>
-              </div>
+                      aria-label="Lưu vào yêu thích" onclick="toggleFav(event,'${t.theme}')">${SVG_STAR}</button>
+            </div>
+
+            <div class="tt-media" role="button" tabindex="0" aria-label="Xem trước ${t.name}"
+                 onclick="openPreview('${t.previewUrl}')"
+                 onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openPreview('${t.previewUrl}')}">
+              <img src="${imgSrc}" alt="${t.name}" loading="lazy" />
+              <div class="tt-hover"></div>
             </div>
 
             <div class="mt-3 px-1.5 pb-1">
               <h3 class="text-[15px] font-semibold leading-snug truncate" style="color:var(--fg)">${t.name}</h3>
               <p class="mt-0.5 text-[13px] leading-snug line-clamp-2 min-h-[2.75em]" style="color:var(--muted)">${t.description || ""}</p>
-              <!-- Giá gốc gạch ngang đứng RIÊNG một hàng trên giá bán. Hàng
-                   này luôn có mặt (mẫu không giảm giá thì rỗng) để mọi thẻ cùng
-                   chiều cao, lưới không so le. -->
-              <div class="mt-2 h-[18px] text-[12px] leading-[18px] line-through" style="color:var(--muted)">
-                ${t.originalPrice > t.price ? `${t.originalPrice.toLocaleString("vi-VN")}₫` : ""}
+              <!-- Hàng giá gốc + badge giảm LUÔN có mặt (mẫu không giảm giá thì
+                   rỗng) để mọi thẻ cùng chiều cao, lưới không so le. -->
+              <div class="mt-2 h-[16px]">
+                ${
+                  t.originalPrice > t.price
+                    ? `<span class="tt-price-old">${t.originalPrice.toLocaleString("vi-VN")}<span class="tt-cur">đ</span></span>`
+                    : ""
+                }
               </div>
-              <div class="flex items-center gap-2">
-                <span class="text-[15px] font-bold" style="color:var(--fg)">${t.price.toLocaleString("vi-VN")}₫</span>
-                <span class="text-[13px]" style="color:var(--muted)">trọn đời</span>
-                <x-button size="sm" variant="outline" tone="brand" class="ml-auto"
-                          onclick="event.stopPropagation();startDraft('${t.theme}','${t.name}')">Dùng mẫu</x-button>
+              <div class="mt-1.5 flex items-center justify-between gap-2">
+                <span class="tt-price">${t.price.toLocaleString("vi-VN")}<span class="tt-cur">đ</span></span>
+                <span class="tt-chip tt-chip-sm">trọn đời</span>
+              </div>
+
+              <!-- Đúng cặp nút của thẻ mẫu ở trang chủ (js/render-templates.js)
+                   — cùng nhãn, cùng icon, cùng màu vì là CÙNG hai hành động.
+                   flex-wrap: ở điện thoại lưới đi 2 cột nên thẻ chỉ rộng ~160px,
+                   hai nút không lọt một hàng thì xuống dòng chứ không tràn. -->
+              <div class="tt-cardbtns mt-3">
+                <x-button size="xs" variant="bare" class="tt-btn-preview"
+                          onclick="event.stopPropagation();openPreview('${t.previewUrl}')">${SVG_EYE}Xem trước</x-button>
+                <x-button size="xs" variant="bare" class="tt-btn-use"
+                          onclick="event.stopPropagation();startDraft('${t.theme}','${t.name}')">${SVG_NOTE}Dùng ngay</x-button>
               </div>
             </div>
           </article>`;
@@ -1440,7 +1589,7 @@
               ? "Không tìm thấy mẫu nào"
               : "Chưa có mẫu nào";
           document.getElementById("empty-desc").textContent = favOnly
-            ? "Nhấn hình trái tim trên mẫu bạn ưng để lưu lại."
+            ? "Nhấn hình ngôi sao trên mẫu bạn ưng để lưu lại."
             : filtering
               ? "Thử từ khoá khác hoặc chọn danh mục Tất cả."
               : "Bộ sưu tập sẽ sớm được cập nhật.";

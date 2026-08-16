@@ -1,7 +1,7 @@
 /** Cấu hình tập trung: API key, URL, ngưỡng ảnh… */
 
 // Set false khi test localhost để bypass Cloudflare cache → hit Supabase trực tiếp
-const USE_CACHE = false;
+const USE_CACHE = true;
 
 // ĐỔI GIÁ TRỊ NÀY MỖI LẦN DEPLOY. Hai loader (admin, invitation-setup) nối
 // `?v=<version>` vào mọi URL partial/script chúng nạp, nên đổi số ở đây là ép
@@ -10,7 +10,7 @@ const USE_CACHE = false;
 // Bản thân file này KHÔNG mang `?v=` (nó là mỏ neo, phải đọc được version từ
 // nó trước đã) → trên Cloudflare phải có Cache Rule bypass `/core/config.js`,
 // nếu không đổi số ở đây cũng vô nghĩa.
-const CX_VERSION = "2026.08.16-02";
+const CX_VERSION = "2026.08.16-03";
 
 // Thẻ <link> CSS viết cứng trong HTML không tự mang `?v=` → dễ rơi vào cảnh
 // HTML/partial đã là bản mới mà CSS vẫn là bản cũ (trang không vỡ, chỉ sai bố
