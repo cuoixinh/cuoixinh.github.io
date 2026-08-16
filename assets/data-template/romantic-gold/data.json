@@ -1,16 +1,11 @@
 {
   "image_focal_points": {
     "gallery_images": {},
-    "cover_image_url": {
-      "x": 43,
-      "y": 16
-    },
     "groom_image_url": {
       "x": 56,
       "y": 15
     }
   },
-  "cover_image_url": "cover.webp",
   "groom_image_url": "groom.webp",
   "love_story": [
     {
@@ -132,5 +127,5 @@
       }
     ]
   },
-  "updated_at": "2026-08-16T15:49:47.769Z"
+  "updated_at": "2026-08-16T15:51:25.322Z"
 }
