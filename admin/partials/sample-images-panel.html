@@ -255,14 +255,21 @@
         <div>
           <div class="flex items-center justify-between mb-3">
             <h3 class="text-sm font-semibold text-gray-700">Lịch trình</h3>
-            <span id="si-timeline-count" class="text-xs text-gray-400"
-              >0/10</span
-            >
+            <div class="flex items-center gap-2">
+              <span id="si-timeline-count" class="text-xs text-gray-400"
+                >0/10</span
+              >
+            </div>
           </div>
           <div id="si-timeline-list" class="space-y-2"></div>
-          <x-button variant="outline" size="sm" type="button" onclick="siAddTimelineItem()" class="mt-2">
-            <i data-icon="plus"></i> Thêm mốc lịch trình
-          </x-button>
+          <div class="flex gap-2 mt-2">
+            <x-button variant="outline" size="sm" type="button" onclick="siAddTimelineItem()">
+              <i data-icon="plus"></i> Thêm mốc
+            </x-button>
+            <x-button variant="outline" size="sm" tone="neutral" type="button" onclick="siAutoSortTimeline()" title="Sắp xếp theo thời gian">
+              <i data-icon="arrow-down-up"></i> Sắp xếp
+            </x-button>
+          </div>
         </div>
 
         <!-- Actions -->

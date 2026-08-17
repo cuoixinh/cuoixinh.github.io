@@ -162,7 +162,7 @@ QUY TẮC BẮT BUỘC:
 ĐẦU RA: MỘT MẢNG JSON PHẲNG các "block", không lồng nhau, không markdown, mỗi phần tử theo đúng 1 trong 4 dạng:
 - {"type":"field","key":"<tên trường>","value":"<giá trị>"}   // chỉ khi CÓ dữ liệu thật (trừ ngoại lệ mục 8, 9); không có thì bỏ qua, đừng tạo block rỗng
 - {"type":"love","date":"<MM/YYYY hoặc mô tả ngắn>","title":"<tiêu đề>","content":"<1-2 câu, BẮT BUỘC có>"}   // tối đa ${MAX_LOVE_ITEMS}
-- {"type":"timeline","time":"<HH:MM>","title":"<việc>","kind":"<ceremony|party>"}   // tối đa ${MAX_TIMELINE}; ceremony = nghi lễ, party = tiệc
+- {"type":"timeline","time":"<HH:MM>","title":"<việc>","kind":"<ceremony|party|bride-party>"}   // tối đa ${MAX_TIMELINE}; ceremony = nghi lễ, party = tiệc nhà trai, bride-party = tiệc nhà gái
 - {"type":"text","key":"story_quote","value":"<slogan theo mục 11>"}
 
 "key" hợp lệ cho block "field": groom_name, bride_name, ceremony_name, ceremony_date, ceremony_time, ceremony_location, vu_quy_enabled (value "true"/"false"), vu_quy_time, vu_quy_location, groom_father, groom_mother, groom_address, bride_father, bride_mother, bride_address, groom_party_date, groom_party_time, groom_party_location, bride_party_date, bride_party_time, bride_party_location, rsvp_message, footer_text, groom_bank_name, groom_bank_number, groom_bank_owner, bride_bank_name, bride_bank_number, bride_bank_owner.
@@ -190,13 +190,13 @@ QUY TẮC:
 7. Ngân hàng: *_bank_name trả MÃ VIẾT TẮT (VCB, TCB, MB, CTG, BIDV, ACB, VBA, STB, VPB, TPB); *_bank_number 9–12 chữ số; *_bank_owner là họ tên đầy đủ của chính người đó, IN HOA KHÔNG DẤU ("Đoàn Quang Vinh" → "DOAN QUANG VINH").
 8. Chuyện tình (block "love"): 4–5 mốc, năm TĂNG DẦN, kết ở năm cưới; mỗi mốc đủ date + title + content (1–2 câu cụ thể, giàu cảm xúc).
    • ${LOVE_VOICE_RULE}
-9. Lịch trình (block "timeline"): 6–8 mốc, kind="ceremony" cho nghi lễ, "party" cho tiệc.
+9. Lịch trình (block "timeline"): 6–8 mốc theo THỨ TỰ THỜI GIAN THỰC TẾ của đám cưới Việt Nam. PHẢI BAO GỒM cả 3 loại kind: "bride-party" (Tiệc nhà gái, chiều/tối hôm trước), "party" (Tiệc nhà trai, chiều/tối hôm trước hoặc sáng hôm sau), "ceremony" (Lễ Vu quy / Thành hôn, sáng hôm sau). Ví dụ thứ tự: 17:00 Tiệc nhà gái (bride-party) → 19:00 Tiệc nhà trai (party) → 08:00 ngày hôm sau Đón dâu (ceremony) → 09:30 Lễ thành hôn (ceremony).
 10. story_quote: 1 câu 12–24 chữ, KHÔNG tên riêng/ngày tháng/địa điểm, không dấu ngoặc kép. rsvp_message & footer_text: ấm áp, chân thành, đúng văn phong.
 
 ĐẦU RA: MỘT MẢNG JSON PHẲNG các "block", không lồng nhau, không markdown, mỗi phần tử theo đúng 1 trong 4 dạng:
 - {"type":"field","key":"<tên trường>","value":"<giá trị>"}
 - {"type":"love","date":"<MM/YYYY hoặc mô tả ngắn>","title":"<tiêu đề>","content":"<1-2 câu>"}
-- {"type":"timeline","time":"<HH:MM>","title":"<việc>","kind":"<ceremony|party>"}
+- {"type":"timeline","time":"<HH:MM>","title":"<việc>","kind":"<ceremony|party|bride-party>"}
 - {"type":"text","key":"story_quote","value":"<slogan theo mục 10>"}
 
 "key" phải xuất ĐỦ: groom_name, bride_name, ceremony_name, ceremony_date, ceremony_time, ceremony_location, vu_quy_enabled (value "true"), vu_quy_time, vu_quy_location, groom_father, groom_mother, groom_address, bride_father, bride_mother, bride_address, groom_party_date, groom_party_time, groom_party_location, bride_party_date, bride_party_time, bride_party_location, rsvp_message, footer_text, groom_bank_name, groom_bank_number, groom_bank_owner, bride_bank_name, bride_bank_number, bride_bank_owner.

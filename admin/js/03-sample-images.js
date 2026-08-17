@@ -9,8 +9,7 @@
 //    để không phải up lại → không sinh file trùng.
 // 2. Mọi thay đổi ghi bản nháp vào IndexedDB → F5 không mất ảnh đang nhập.
 // 3. "Lưu vào ổ đĩa" GHI ĐÈ toàn bộ ảnh trong thư mục.
-// 4. Nén ĐÚNG MỘT LẦN lúc ảnh vào state, qua ImageHelper.prepareImage() với
-//    ngưỡng SI_IMAGE_LIMITS (≤1920px, ≤1.5MB); lúc lưu chỉ ghi blob xuống đĩa.
+// 4. ẢNH MẪU LUÔN GIỮ NGUYÊN FULL CHẤT LƯỢNG — không qua nén/resize.
 
 // Danh sách mẫu lấy từ bảng `templates` (edge function public-templates) — thêm
 // mẫu mới chỉ cần một hàng trong DB, không sửa file này. Hỏng mạng thì để trống,
@@ -376,27 +375,13 @@ async function siReadAsMemoryFile(dirHandle, filename) {
   }
 }
 
-// Nén ngay lúc BIND (ảnh mẫu hay được chép tay vào thư mục, còn nguyên cỡ gốc) để
-// mọi blob trong siData đều đã đạt chuẩn và bước lưu chỉ việc ghi.
-// Ảnh đạt ngưỡng → giữ nguyên + ghi dấu vết file gốc (srcName/srcSize) cho
-// siIsUnchanged() bỏ qua lúc ghi; ảnh vừa nén → bỏ dấu vết vì bản trong RAM không
-// còn khớp đĩa. GIF/AVIF/BMP bị canRecompress() loại nên luôn giữ nguyên.
+// KHÔNG NÉN ẢNH MẪU — giữ nguyên full chất lượng.
+// Đọc file thẳng vào state, không đi qua ImageHelper.prepareImage().
 async function siBindImage(dirHandle, filename) {
   const raw = await siReadAsMemoryFile(dirHandle, filename);
   if (!raw) return null;
 
-  try {
-    const { file, compressed } = await ImageHelper.prepareImage(raw, SI_IMAGE_LIMITS);
-    if (compressed) {
-      siLoadCompressed.count++;
-      siLoadCompressed.savedBytes += raw.size - file.size;
-      return { blob: file, srcName: null, srcSize: 0 };
-    }
-  } catch (e) {
-    // Nén lỗi (ảnh > 50MB, file hỏng…) không được làm hỏng cả lần nạp.
-    console.warn("Không nén được ảnh, giữ nguyên bản gốc:", filename, e);
-  }
-
+  // Giữ nguyên ảnh gốc, không nén
   return { blob: raw, srcName: filename, srcSize: raw.size };
 }
 
@@ -810,9 +795,9 @@ async function siHandleSingleUpload(event, fieldName) {
   openFocalPointPicker(file, current, async (focal) => {
     showLoading(true, "Đang xử lý ảnh...");
     try {
-      const { file: processed } = await ImageHelper.prepareImage(file, SI_IMAGE_LIMITS);
+      // Giữ nguyên ảnh gốc, không nén
       siData.singleImages[fieldName] = {
-        blob: processed,
+        blob: file,
         focal,
         previewUrl: URL.createObjectURL(processed),
       };
@@ -837,23 +822,17 @@ function siAdjustSingleFocal(fieldName) {
   });
 }
 
-// Ảnh vừa cắt xong (QR) → vào state. Cắt lần đầu và cắt lại đều đi qua đây để
-// chỉ có MỘT chỗ quyết định ảnh được nén thế nào.
+// Ảnh vừa cắt xong (QR) → vào state.
+// KHÔNG NÉN — giữ nguyên full chất lượng.
 async function siStoreCropped(fieldName, blob) {
   if (!blob) return;
   const cropped = new File([blob], "cropped.png", { type: "image/png" });
-  // Đi qua prepareImage như mọi ảnh khác cho đồng nhất. Ảnh cắt ra đã 800x800
-  // nên hầu như luôn đạt ngưỡng → trả nguyên bản, không mã hoá lại.
-  let processed = cropped;
-  try {
-    processed = (await ImageHelper.prepareImage(cropped, SI_IMAGE_LIMITS)).file;
-  } catch (e) {
-    console.warn("Không nén được ảnh cắt, giữ nguyên bản gốc:", e);
-  }
+  
+  // Giữ nguyên ảnh gốc, không nén
   siData.singleImages[fieldName] = {
-    blob: processed,
+    blob: cropped,
     focal: { x: 50, y: 50 },
-    previewUrl: URL.createObjectURL(processed),
+    previewUrl: URL.createObjectURL(cropped),
   };
   siRenderSingleImage(fieldName);
   siMarkDirty(true);
@@ -871,6 +850,81 @@ function siRemoveSingle(fieldName) {
   siMarkDirty(true);
 }
 
+// ============= Undo/Redo cho thao tác kéo thả =============
+
+const siUndoStack = [];
+const siRedoStack = [];
+const SI_MAX_UNDO = 50;
+
+function siPushUndoState(type, data) {
+  siUndoStack.push({ type, data: JSON.parse(JSON.stringify(data)) });
+  if (siUndoStack.length > SI_MAX_UNDO) siUndoStack.shift();
+  siRedoStack.length = 0; // Clear redo khi có thao tác mới
+}
+
+function siUndo() {
+  if (!siUndoStack.length) return;
+  const state = siUndoStack.pop();
+  
+  // Lưu state hiện tại vào redo trước khi restore
+  if (state.type === 'gallery') {
+    siRedoStack.push({ type: 'gallery', data: JSON.parse(JSON.stringify(siData.gallery)) });
+    siData.gallery = state.data;
+    siRenderGallery();
+  } else if (state.type === 'loveStory') {
+    siRedoStack.push({ type: 'loveStory', data: JSON.parse(JSON.stringify(siData.loveStory)) });
+    siData.loveStory = state.data;
+    siRenderLoveStory();
+  } else if (state.type === 'timeline') {
+    siRedoStack.push({ type: 'timeline', data: JSON.parse(JSON.stringify(siData.content.timeline)) });
+    siData.content.timeline = state.data;
+    siRenderTimeline();
+  }
+  
+  siMarkDirty(true);
+  showToast("Đã hoàn tác", "default");
+}
+
+function siRedo() {
+  if (!siRedoStack.length) return;
+  const state = siRedoStack.pop();
+  
+  // Lưu state hiện tại vào undo trước khi restore
+  if (state.type === 'gallery') {
+    siUndoStack.push({ type: 'gallery', data: JSON.parse(JSON.stringify(siData.gallery)) });
+    siData.gallery = state.data;
+    siRenderGallery();
+  } else if (state.type === 'loveStory') {
+    siUndoStack.push({ type: 'loveStory', data: JSON.parse(JSON.stringify(siData.loveStory)) });
+    siData.loveStory = state.data;
+    siRenderLoveStory();
+  } else if (state.type === 'timeline') {
+    siUndoStack.push({ type: 'timeline', data: JSON.parse(JSON.stringify(siData.content.timeline)) });
+    siData.content.timeline = state.data;
+    siRenderTimeline();
+  }
+  
+  siMarkDirty(true);
+  showToast("Đã làm lại", "default");
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', (e) => {
+  if (!siData) return;
+  
+  // Ctrl+Z hoặc Cmd+Z
+  if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+    e.preventDefault();
+    siUndo();
+  }
+  
+  // Ctrl+Y hoặc Cmd+Shift+Z (redo)
+  if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
+    e.preventDefault();
+    siRedo();
+  }
+});
+
 // ============= Album ảnh (gallery) =============
 
 function siRenderGallery() {
@@ -880,13 +934,53 @@ function siRenderGallery() {
   siData.gallery.forEach((item, idx) => {
     const div = document.createElement("div");
     div.className =
-      "relative aspect-square rounded-xl overflow-hidden border border-rose-200 shadow-sm group bg-gray-100";
+      "relative aspect-square rounded-xl overflow-hidden border border-rose-200 shadow-sm group bg-gray-100 cursor-move";
+    div.draggable = true;
+    div.dataset.galleryIndex = idx;
+    
+    // Drag & Drop handlers
+    div.ondragstart = (e) => {
+      e.dataTransfer.effectAllowed = "move";
+      e.dataTransfer.setData("text/plain", idx);
+      div.classList.add("opacity-50");
+    };
+    div.ondragend = (e) => {
+      div.classList.remove("opacity-50");
+      // Xóa highlight khỏi tất cả
+      container.querySelectorAll("[data-gallery-index]").forEach(el => {
+        el.classList.remove("ring-2", "ring-rose-400", "scale-105");
+      });
+    };
+    div.ondragover = (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+    };
+    div.ondragenter = (e) => {
+      e.preventDefault();
+      if (div.dataset.galleryIndex !== e.dataTransfer.getData("text/plain")) {
+        div.classList.add("ring-2", "ring-rose-400", "scale-105");
+      }
+    };
+    div.ondragleave = (e) => {
+      div.classList.remove("ring-2", "ring-rose-400", "scale-105");
+    };
+    div.ondrop = (e) => {
+      e.preventDefault();
+      div.classList.remove("ring-2", "ring-rose-400", "scale-105");
+      const fromIdx = parseInt(e.dataTransfer.getData("text/plain"));
+      const toIdx = parseInt(div.dataset.galleryIndex);
+      if (fromIdx !== toIdx) {
+        siReorderGallery(fromIdx, toIdx);
+      }
+    };
+    
     div.innerHTML = `
-      <img src="${item.previewUrl}" class="w-full h-full object-cover" style="object-position: ${item.focal.x}% ${item.focal.y}%" />
-      <x-button variant="overlay" size="xs" icon-only type="button" onclick="siAdjustGalleryFocal(${idx})" title="Chỉnh điểm lấy nét" class="absolute bottom-1 right-1">
+      <img src="${item.previewUrl}" class="w-full h-full object-cover pointer-events-none" style="object-position: ${item.focal.x}% ${item.focal.y}%" />
+      <div class="absolute top-1 left-1 bg-black/50 text-white text-xs px-1.5 py-0.5 rounded pointer-events-none">${idx + 1}</div>
+      <x-button variant="overlay" size="xs" icon-only type="button" onclick="event.stopPropagation();siAdjustGalleryFocal(${idx})" title="Chỉnh điểm lấy nét" class="absolute bottom-1 right-1">
         <i data-icon="crosshair" class="text-xs"></i>
       </x-button>
-      <x-button tone="danger" size="xs" icon-only type="button" onclick="siRemoveGalleryImage(${idx})" class="absolute top-1 right-1">
+      <x-button tone="danger" size="xs" icon-only type="button" onclick="event.stopPropagation();siRemoveGalleryImage(${idx})" class="absolute top-1 right-1">
         <i data-icon="x" class="text-xs text-white"></i>
       </x-button>
     `;
@@ -908,6 +1002,20 @@ function siRenderGallery() {
       document.getElementById("si-gallery-file-input").click();
     container.insertAdjacentElement("afterend", btn);
   }
+  
+  // Render icons
+  if (typeof cxRenderIcons === "function") cxRenderIcons(container);
+}
+
+function siReorderGallery(fromIdx, toIdx) {
+  // Lưu state trước khi thay đổi
+  siPushUndoState('gallery', siData.gallery);
+  
+  const item = siData.gallery.splice(fromIdx, 1)[0];
+  siData.gallery.splice(toIdx, 0, item);
+  siRenderGallery();
+  siMarkDirty(true);
+  showToast("Đã thay đổi thứ tự ảnh", "success");
 }
 
 async function siHandleGalleryUpload(event) {
@@ -923,9 +1031,9 @@ async function siHandleGalleryUpload(event) {
   try {
     for (const file of files.slice(0, room)) {
       if (!file.type.startsWith("image/")) continue;
-      const { file: processed } = await ImageHelper.prepareImage(file, SI_IMAGE_LIMITS);
+      // Giữ nguyên ảnh gốc, không nén
       siData.gallery.push({
-        blob: processed,
+        blob: file,
         focal: { x: 50, y: 50 },
         previewUrl: URL.createObjectURL(processed),
       });
@@ -967,11 +1075,52 @@ function siRenderLoveStory() {
       ? ` style="object-position: ${item.focal.x}% ${item.focal.y}%"`
       : "";
     const div = document.createElement("div");
-    div.className = "p-4 border border-gray-200 rounded-xl space-y-2 bg-rose-50/40";
+    div.className = "p-4 border border-gray-200 rounded-xl space-y-2 bg-rose-50/40 cursor-move";
+    div.draggable = true;
+    div.dataset.loveStoryIndex = idx;
+    
+    // Drag & Drop handlers
+    div.ondragstart = (e) => {
+      e.dataTransfer.effectAllowed = "move";
+      e.dataTransfer.setData("text/plain", idx);
+      div.classList.add("opacity-50");
+    };
+    div.ondragend = (e) => {
+      div.classList.remove("opacity-50");
+      list.querySelectorAll("[data-love-story-index]").forEach(el => {
+        el.classList.remove("ring-2", "ring-rose-400", "scale-[1.02]");
+      });
+    };
+    div.ondragover = (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+    };
+    div.ondragenter = (e) => {
+      e.preventDefault();
+      if (div.dataset.loveStoryIndex !== e.dataTransfer.getData("text/plain")) {
+        div.classList.add("ring-2", "ring-rose-400", "scale-[1.02]");
+      }
+    };
+    div.ondragleave = (e) => {
+      div.classList.remove("ring-2", "ring-rose-400", "scale-[1.02]");
+    };
+    div.ondrop = (e) => {
+      e.preventDefault();
+      div.classList.remove("ring-2", "ring-rose-400", "scale-[1.02]");
+      const fromIdx = parseInt(e.dataTransfer.getData("text/plain"));
+      const toIdx = parseInt(div.dataset.loveStoryIndex);
+      if (fromIdx !== toIdx) {
+        siReorderLoveStory(fromIdx, toIdx);
+      }
+    };
+    
     div.innerHTML = `
       <div class="flex items-center justify-between mb-1">
-        <span id="si-ls-label-${idx}" class="text-xs font-medium text-rose-400">${escapeHtml(item.title) || `Mốc ${idx + 1}`}</span>
-        <x-button variant="ghost" tone="danger" size="sm" type="button" onclick="siRemoveLoveStoryItem(${idx})">
+        <div class="flex items-center gap-2">
+          <i data-icon="grip-vertical" class="text-gray-400 text-sm cursor-grab active:cursor-grabbing"></i>
+          <span id="si-ls-label-${idx}" class="text-xs font-medium text-rose-400">${escapeHtml(item.title) || `Mốc ${idx + 1}`}</span>
+        </div>
+        <x-button variant="ghost" tone="danger" size="sm" type="button" onclick="event.stopPropagation();siRemoveLoveStoryItem(${idx})">
           <i data-icon="trash-2"></i> Xóa
         </x-button>
       </div>
@@ -1010,6 +1159,20 @@ function siRenderLoveStory() {
 
   document.getElementById("si-love-story-count").textContent =
     `${siData.loveStory.length}/${SI_MAX_LOVE_STORY}`;
+  
+  // Render icons
+  if (typeof cxRenderIcons === "function") cxRenderIcons(list);
+}
+
+function siReorderLoveStory(fromIdx, toIdx) {
+  // Lưu state trước khi thay đổi
+  siPushUndoState('loveStory', siData.loveStory);
+  
+  const item = siData.loveStory.splice(fromIdx, 1)[0];
+  siData.loveStory.splice(toIdx, 0, item);
+  siRenderLoveStory();
+  siMarkDirty(true);
+  showToast("Đã thay đổi thứ tự mốc", "success");
 }
 
 function siAddLoveStoryItem() {
@@ -1048,8 +1211,8 @@ async function siHandleLoveStoryUpload(event, idx) {
   openFocalPointPicker(file, current, async (focal) => {
     showLoading(true, "Đang xử lý ảnh...");
     try {
-      const { file: processed } = await ImageHelper.prepareImage(file, SI_IMAGE_LIMITS);
-      siData.loveStory[idx].blob = processed;
+      // Giữ nguyên ảnh gốc, không nén
+      siData.loveStory[idx].blob = file;
       siData.loveStory[idx].focal = focal;
       siData.loveStory[idx].previewUrl = URL.createObjectURL(processed);
       siRenderLoveStory();

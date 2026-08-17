@@ -176,26 +176,6 @@
     "enable_footer": true,
     "timeline": [
       {
-        "time": "08:00",
-        "title": "Đón khách",
-        "type": "ceremony"
-      },
-      {
-        "time": "08:30",
-        "title": "Lễ Vu Quy tại tư gia nhà gái",
-        "type": "ceremony"
-      },
-      {
-        "time": "11:00",
-        "title": "Lễ Thành Hôn",
-        "type": "ceremony"
-      },
-      {
-        "time": "12:00",
-        "title": "Tiệc trưa",
-        "type": "party"
-      },
-      {
         "time": "15:00",
         "title": "Đón khách",
         "type": "party"
@@ -213,9 +193,29 @@
       {
         "time": "20:00",
         "title": "Giao lưu văn nghệ",
+        "type": "party"
+      },
+      {
+        "time": "08:00",
+        "title": "Đón khách",
+        "type": "ceremony"
+      },
+      {
+        "time": "08:30",
+        "title": "Lễ Vu Quy tại tư gia nhà gái",
+        "type": "ceremony"
+      },
+      {
+        "time": "11:00",
+        "title": "Lễ Thành Hôn",
+        "type": "ceremony"
+      },
+      {
+        "time": "12:00",
+        "title": "Dự tiệc",
         "type": "ceremony"
       }
     ]
   },
-  "updated_at": "2026-08-16T16:14:34.768Z"
+  "updated_at": "2026-08-17T15:46:40.471Z"
 }

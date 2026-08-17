@@ -8,9 +8,9 @@
 const SI_MAX_TIMELINE = 10;
 
 const SI_TIMELINE_TYPES = [
-  { value: "ceremony", label: "Lễ thành hôn" },
-  { value: "party", label: "Tiệc nhà trai" },
   { value: "bride-party", label: "Tiệc nhà gái" },
+  { value: "party", label: "Tiệc nhà trai" },
+  { value: "ceremony", label: "Lễ thành hôn" },
 ];
 
 // Mỗi field: name khớp ĐÚNG tên cột dữ liệu thiệp (xem preview-data.js) để
@@ -623,32 +623,134 @@ function siRenderTimeline() {
   if (!list || !siData?.content) return;
 
   const items = siData.content.timeline || [];
-  list.innerHTML = items
-    .map(
-      (item, idx) => `
-      <div class="flex flex-col sm:flex-row gap-2 sm:items-center">
-        <input type="time" value="${escapeHtml(item.time)}"
-          oninput="siSetTimelineField(${idx}, 'time', this.value)"
-          class="w-full sm:w-32 h-10 px-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-rose-300" />
-        <input type="text" value="${escapeHtml(item.title)}" placeholder="Ví dụ: Đón khách, chụp ảnh lưu niệm"
-          oninput="siSetTimelineField(${idx}, 'title', this.value)"
-          class="flex-1 h-10 px-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-rose-300" />
-        <select onchange="siSetTimelineField(${idx}, 'type', this.value)"
-          class="w-full sm:w-44 h-10 px-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-rose-300">
-          ${SI_TIMELINE_TYPES.map(
-            (t) =>
-              `<option value="${t.value}" ${t.value === item.type ? "selected" : ""}>${t.label}</option>`,
-          ).join("")}
-        </select>
-        <x-button variant="ghost" tone="danger" icon-only type="button" onclick="siRemoveTimelineItem(${idx})" class="shrink-0">
-          <i data-icon="trash-2"></i>
-        </x-button>
-      </div>`,
-    )
-    .join("");
+  list.innerHTML = "";
+  
+  items.forEach((item, idx) => {
+    const div = document.createElement("div");
+    div.className = "flex flex-col sm:flex-row gap-2 sm:items-center p-2 rounded-lg border border-transparent hover:border-gray-200 hover:bg-gray-50 cursor-move transition-all";
+    div.draggable = true;
+    div.dataset.timelineIndex = idx;
+    
+    // Drag & Drop handlers
+    div.ondragstart = (e) => {
+      e.dataTransfer.effectAllowed = "move";
+      e.dataTransfer.setData("text/plain", idx);
+      div.classList.add("opacity-50");
+    };
+    div.ondragend = (e) => {
+      div.classList.remove("opacity-50");
+      list.querySelectorAll("[data-timeline-index]").forEach(el => {
+        el.classList.remove("ring-2", "ring-rose-400", "bg-rose-50");
+      });
+    };
+    div.ondragover = (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+    };
+    div.ondragenter = (e) => {
+      e.preventDefault();
+      if (div.dataset.timelineIndex !== e.dataTransfer.getData("text/plain")) {
+        div.classList.add("ring-2", "ring-rose-400", "bg-rose-50");
+      }
+    };
+    div.ondragleave = (e) => {
+      div.classList.remove("ring-2", "ring-rose-400", "bg-rose-50");
+    };
+    div.ondrop = (e) => {
+      e.preventDefault();
+      div.classList.remove("ring-2", "ring-rose-400", "bg-rose-50");
+      const fromIdx = parseInt(e.dataTransfer.getData("text/plain"));
+      const toIdx = parseInt(div.dataset.timelineIndex);
+      if (fromIdx !== toIdx) {
+        siReorderTimeline(fromIdx, toIdx);
+      }
+    };
+    
+    div.innerHTML = `
+      <i data-icon="grip-vertical" class="text-gray-400 text-sm cursor-grab active:cursor-grabbing shrink-0"></i>
+      <input type="time" value="${escapeHtml(item.time)}"
+        oninput="event.stopPropagation();siSetTimelineField(${idx}, 'time', this.value)"
+        class="w-full sm:w-32 h-10 px-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-rose-300" />
+      <input type="text" value="${escapeHtml(item.title)}" placeholder="Ví dụ: Đón khách, chụp ảnh lưu niệm"
+        oninput="event.stopPropagation();siSetTimelineField(${idx}, 'title', this.value)"
+        class="flex-1 h-10 px-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-rose-300" />
+      <select onchange="event.stopPropagation();siSetTimelineField(${idx}, 'type', this.value)"
+        class="w-full sm:w-44 h-10 px-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-rose-300">
+        ${SI_TIMELINE_TYPES.map(
+          (t) =>
+            `<option value="${t.value}" ${t.value === item.type ? "selected" : ""}>${t.label}</option>`,
+        ).join("")}
+      </select>
+      <x-button variant="ghost" tone="danger" icon-only type="button" onclick="event.stopPropagation();siRemoveTimelineItem(${idx})" class="shrink-0">
+        <i data-icon="trash-2"></i>
+      </x-button>
+    `;
+    
+    list.appendChild(div);
+  });
 
   const count = document.getElementById("si-timeline-count");
   if (count) count.textContent = `${items.length}/${SI_MAX_TIMELINE}`;
+  
+  // Render icons
+  if (typeof cxRenderIcons === "function") cxRenderIcons(list);
+}
+
+function siReorderTimeline(fromIdx, toIdx) {
+  // Lưu state trước khi thay đổi (sử dụng siPushUndoState từ file 03)
+  if (typeof siPushUndoState === 'function') {
+    siPushUndoState('timeline', siData.content.timeline);
+  }
+  
+  const item = siData.content.timeline.splice(fromIdx, 1)[0];
+  siData.content.timeline.splice(toIdx, 0, item);
+  siRenderTimeline();
+  siMarkDirty(true);
+  showToast("Đã thay đổi thứ tự lịch trình", "success");
+}
+
+function siAutoSortTimeline() {
+  if (!siData?.content?.timeline?.length) {
+    showToast("Chưa có mốc nào để sắp xếp", "warning");
+    return;
+  }
+  
+  // Lưu state trước khi sort
+  if (typeof siPushUndoState === 'function') {
+    siPushUndoState('timeline', siData.content.timeline);
+  }
+  
+  // Thứ tự ưu tiên loại sự kiện (theo phong tục Việt Nam)
+  const typeOrder = {
+    'party': 1,        // Tiệc nhà trai
+    'bride-party': 2,  // Tiệc nhà gái
+    'ceremony': 3      // Lễ thành hôn
+  };
+  
+  // Parse time "HH:MM" thành số phút để so sánh
+  const parseTime = (timeStr) => {
+    if (!timeStr) return 0;
+    const [h, m] = timeStr.split(':').map(n => parseInt(n) || 0);
+    return h * 60 + m;
+  };
+  
+  // Sắp xếp theo: 1. Loại sự kiện (type), 2. Thời gian (time)
+  siData.content.timeline.sort((a, b) => {
+    const typeA = typeOrder[a.type] || 99;
+    const typeB = typeOrder[b.type] || 99;
+    
+    // Nếu cùng loại thì sắp xếp theo thời gian
+    if (typeA === typeB) {
+      return parseTime(a.time) - parseTime(b.time);
+    }
+    
+    // Khác loại thì sắp xếp theo thứ tự ưu tiên
+    return typeA - typeB;
+  });
+  
+  siRenderTimeline();
+  siMarkDirty(true);
+  showToast("Đã sắp xếp: Tiệc → Lễ (theo thời gian)", "success");
 }
 
 function siAddTimelineItem() {
@@ -657,7 +759,7 @@ function siAddTimelineItem() {
     showToast(`Tối đa ${SI_MAX_TIMELINE} mốc lịch trình`, "warning");
     return;
   }
-  siData.content.timeline.push({ time: "", title: "", type: "ceremony" });
+  siData.content.timeline.push({ time: "", title: "", type: "bride-party" });
   siRenderTimeline();
   siMarkDirty(true);
 }
