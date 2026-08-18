@@ -182,20 +182,25 @@ const QUOTE_LIST = [
   "Yêu là cho đi không cần đòi hỏi, là chia sẻ không cần tính toán.",
 ];
 
-function randomQuote() {
+// Bốc một câu mẫu trong QUOTE_LIST cho ô Slogan. Gọi từ nút "Tạo câu khác"
+// trong thanh công cụ của ô (x-undo.js) — btn là chính nút đó, để khoá + xoay icon.
+// Phủ skeleton 1s (như lúc gọi AI) rồi mới đổ câu mới, cho thấy rõ ô đang đổi.
+function randomQuote(btn) {
   const textarea = document.getElementById("story-quote-textarea");
   if (!textarea) return;
+  if (btn && btn.dataset.loading === "1") return; // đang chờ → bỏ qua bấm chồng
 
-  const randomIndex = Math.floor(Math.random() * QUOTE_LIST.length);
-  textarea.value = QUOTE_LIST[randomIndex];
-  // Gán .value bằng code không tự phát sự kiện → phát "input" để autosave lưu + x-input đồng bộ
-  textarea.dispatchEvent(new Event("input", { bubbles: true }));
-
-  // Add a little animation
-  textarea.classList.add("ring-4", "ring-purple-500/20");
+  const host = textarea.closest("x-textarea");
+  host?.setLoading(true);
+  if (btn) btn.dataset.loading = "1";
   setTimeout(() => {
-    textarea.classList.remove("ring-4", "ring-purple-500/20");
-  }, 500);
+    host?.setLoading(false);
+    if (btn) btn.dataset.loading = "0";
+    const randomIndex = Math.floor(Math.random() * QUOTE_LIST.length);
+    textarea.value = QUOTE_LIST[randomIndex];
+    // Gán .value bằng code không tự phát sự kiện → phát "input" để autosave lưu + x-input đồng bộ
+    textarea.dispatchEvent(new Event("input", { bubbles: true }));
+  }, 1000);
 }
 
 // ============= AI: TẠO NỘI DUNG THIỆP =============

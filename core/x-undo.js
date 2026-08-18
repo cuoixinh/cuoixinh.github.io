@@ -11,7 +11,7 @@
 // Gán .value bằng code mà muốn ghi vào lịch sử thì nhớ phát sự kiện 'input'.
 // mount mặc định là el.parentElement (đang static thì tự set relative).
 // Bố cục: bọc textarea trong khung .x-ta-frame (flex cột) mang viền giả; thanh
-// .x-ta-toolbar là hàng flex CUỐI trong khung [Tối ưu · Mic · Hoàn tác · Làm lại].
+// .x-ta-toolbar là hàng flex CUỐI trong khung [Tạo câu khác · Tối ưu · Mic · Hoàn tác · Làm lại].
 (function (global) {
   // Tiêm CSS 1 lần (component tự đủ style, nơi dùng không phải khai báo lại).
   if (!document.getElementById("x-ta-toolbar-style")) {
@@ -65,6 +65,12 @@
     `<path d="M21.174 6.813a2.82 2.82 0 0 0-3.986-3.987L3.842 16.175a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/>` +
     `<path d="M22 17h-4"/><path d="M4 5v4"/><path d="M6 7H2"/><path d="M9 2v2"/></svg>`;
 
+  // rotate-ccw (lucide) — nút "Tạo câu khác" (gợi ý nội dung mẫu).
+  const REFRESH_SVG =
+    `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" ` +
+    `stroke-width="2" stroke-linecap="round" stroke-linejoin="round">` +
+    `<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>`;
+
   function _btn(title, svg) {
     const b = document.createElement("button");
     b.type = "button";
@@ -109,6 +115,14 @@
       });
     }
 
+    // Nút "Tạo câu khác" (opt-in): chỉ hiện khi truyền opts.refresh (hàm). Đứng
+    // TRƯỚC nút Tối ưu. Bấm → gọi hàm với (target, chính nút).
+    let refreshBtn = null;
+    if (typeof opts.refresh === "function") {
+      refreshBtn = _btn(opts.refreshTitle || "Tạo câu khác", REFRESH_SVG);
+      refreshBtn.addEventListener("click", () => opts.refresh(target, refreshBtn));
+    }
+
     // Nút "Tối ưu bằng AI" (opt-in): chỉ hiện khi truyền opts.optimize (hàm).
     // Bấm → gọi hàm với (target, chính nút) để nơi dùng tự xử lý gọi AI + loading.
     let optBtn = null;
@@ -120,6 +134,7 @@
     const undoBtn = _btn(opts.undoTitle || "Hoàn tác", UNDO_SVG);
     const redoBtn = _btn(opts.redoTitle || "Làm lại", REDO_SVG);
     const parts = [];
+    if (refreshBtn) parts.push(refreshBtn);
     if (optBtn) parts.push(optBtn);
     if (micBtn) parts.push(micBtn);
     parts.push(undoBtn, redoBtn);

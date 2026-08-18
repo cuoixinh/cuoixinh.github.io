@@ -14,7 +14,18 @@
     "align-items:center;justify-content:center;width:1.5rem;height:1.5rem;border-radius:.375rem;" +
     "color:rgb(var(--text-idle-rgb));background:transparent;transition:color .15s ease,background .15s ease}" +
     "x-textarea .x-ta-clear:hover{color:rgb(var(--text-secondary-rgb));background:rgb(var(--surface-control-rgb))}" +
-    "x-textarea .x-ta-clear.show{display:inline-flex}";
+    "x-textarea .x-ta-clear.show{display:inline-flex}" +
+    // Skeleton phủ ĐÚNG hình chữ nhật của <textarea> lúc đang chờ (setLoading).
+    ".x-ta-skeleton{position:absolute;z-index:5;display:flex;flex-direction:column;" +
+    "gap:10px;padding:12px 14px;border-radius:8px;background:rgb(var(--white-rgb));overflow:hidden;" +
+    "box-sizing:border-box;pointer-events:none}" +
+    ".x-ta-skeleton span{height:11px;border-radius:6px;" +
+    "background:linear-gradient(90deg,rgb(var(--skeleton-base-rgb)) 25%,rgb(var(--skeleton-shine-rgb)) 37%,rgb(var(--skeleton-base-rgb)) 63%);" +
+    "background-size:400% 100%;animation:x-ta-sk 1.4s ease infinite}" +
+    ".x-ta-skeleton span:nth-child(3n+1){width:92%}" +
+    ".x-ta-skeleton span:nth-child(3n+2){width:78%}" +
+    ".x-ta-skeleton span:nth-child(3n){width:64%}" +
+    "@keyframes x-ta-sk{0%{background-position:100% 50%}100%{background-position:0 50%}}";
   document.head.appendChild(s);
 })();
 
@@ -226,7 +237,40 @@ class XTextarea extends HTMLElement {
       this.syncClearBtn = sync;
     }
   }
+
+  // Phủ skeleton lên ô trong lúc chờ (gọi AI, bốc câu mẫu…): el.setLoading(true/false).
+  setLoading(on) {
+    setTextareaLoading(this.querySelector("textarea"), on);
+  }
 }
+
+// Phủ/gỡ skeleton cho MỘT <textarea> bất kỳ (kể cả ô viết tay, không bọc x-textarea).
+// Dùng offset* so với gốc định vị nên chỉ che ô nhập, không đè nhãn/nút phía trên.
+function setTextareaLoading(ta, on) {
+  if (!ta) return;
+  if (!on) {
+    ta._xTaSkeleton?.remove();
+    ta._xTaSkeleton = null;
+    return;
+  }
+  if (ta._xTaSkeleton) return;
+  const host = ta.closest(".x-ta-wrap") || ta.parentElement;
+  if (!host) return;
+  if (getComputedStyle(host).position === "static") host.style.position = "relative";
+  const sk = document.createElement("div");
+  sk.className = "x-ta-skeleton";
+  // Số thanh skeleton = số dòng nhìn thấy (cao ô / line-height), thay vì đọc rows.
+  const lh = parseFloat(getComputedStyle(ta).lineHeight) || 20;
+  const rows = Math.max(3, Math.min(7, Math.floor((ta.clientHeight || lh * 4) / lh)));
+  sk.innerHTML = "<span></span>".repeat(rows);
+  sk.style.top = ta.offsetTop + "px";
+  sk.style.left = ta.offsetLeft + "px";
+  sk.style.width = ta.offsetWidth + "px";
+  sk.style.height = ta.offsetHeight + "px";
+  host.appendChild(sk);
+  ta._xTaSkeleton = sk;
+}
+window.setTextareaLoading = setTextareaLoading;
 
 customElements.define("x-date", XDate);
 customElements.define("x-time", XTime);

@@ -68,7 +68,6 @@
     });
     sessionStorage.setItem("draft_theme", theme);
     sessionStorage.setItem("draft_template_name", displayName || _titleOf(theme));
-    sessionStorage.setItem("show_tour", "1");
     _go(id, params);
   }
 

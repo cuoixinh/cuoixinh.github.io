@@ -11,44 +11,10 @@ function _setAiWandLoading(btn, on) {
   if (btn) btn.dataset.loading = on ? "1" : "0";
 }
 
-// CSS skeleton (tiêm 1 lần): các thanh xám shimmer phủ đúng vùng textarea khi gọi AI.
-(function () {
-  if (document.getElementById("x-ta-skeleton-style")) return;
-  const s = document.createElement("style");
-  s.id = "x-ta-skeleton-style";
-  s.textContent =
-    ".x-ta-skeleton{position:absolute;z-index:5;display:flex;flex-direction:column;" +
-    "gap:10px;padding:12px 14px;border-radius:8px;background:rgb(var(--white-rgb));overflow:hidden;" +
-    "box-sizing:border-box;pointer-events:none}" +
-    ".x-ta-skeleton span{height:11px;border-radius:6px;" +
-    "background:linear-gradient(90deg,rgb(var(--skeleton-base-rgb)) 25%,rgb(var(--skeleton-shine-rgb)) 37%,rgb(var(--skeleton-base-rgb)) 63%);" +
-    "background-size:400% 100%;animation:x-ta-sk 1.4s ease infinite}" +
-    ".x-ta-skeleton span:nth-child(3n+1){width:92%}" +
-    ".x-ta-skeleton span:nth-child(3n+2){width:78%}" +
-    ".x-ta-skeleton span:nth-child(3n){width:64%}" +
-    "@keyframes x-ta-sk{0%{background-position:100% 50%}100%{background-position:0 50%}}";
-  document.head.appendChild(s);
-})();
-
-// Phủ skeleton lên đúng hình chữ nhật của <textarea> trong lúc chờ AI. Dùng offset*
-// (so với gốc định vị) để chỉ che ô nhập, không đè label/nút phía trên (VD ô "câu mẫu").
-function _showTaSkeleton(ta) {
-  if (!ta) return null;
-  const host = ta.closest(".x-ta-wrap") || ta.parentElement;
-  if (!host) return null;
-  if (getComputedStyle(host).position === "static") host.style.position = "relative";
-  const sk = document.createElement("div");
-  sk.className = "x-ta-skeleton";
-  // Số thanh skeleton = số dòng nhìn thấy (cao ô / line-height), thay vì đọc rows.
-  const lh = parseFloat(getComputedStyle(ta).lineHeight) || 20;
-  const rows = Math.max(3, Math.min(7, Math.floor((ta.clientHeight || lh * 4) / lh)));
-  sk.innerHTML = "<span></span>".repeat(rows);
-  sk.style.top = ta.offsetTop + "px";
-  sk.style.left = ta.offsetLeft + "px";
-  sk.style.width = ta.offsetWidth + "px";
-  sk.style.height = ta.offsetHeight + "px";
-  host.appendChild(sk);
-  return sk;
+// Phủ/gỡ skeleton cho ô trong lúc chờ AI — dùng API dùng chung của x-controls.js
+// (chạy cả với <textarea> viết tay như ô "câu mẫu chia sẻ").
+function _taLoading(ta, on) {
+  window.setTextareaLoading?.(ta, on);
 }
 
 // Lõi dùng chung: đọc text hiện tại → gọi AI → ghi lại. getVal/setVal do nơi gọi cấp;
@@ -61,7 +27,7 @@ async function _runAiOptimize(btn, inputType, getVal, setVal, targetEl) {
     return;
   }
   _setAiWandLoading(btn, true);
-  const sk = _showTaSkeleton(targetEl);
+  _taLoading(targetEl, true);
   try {
     const out = await aiDAL.optimizeText({
       inputType,
@@ -80,7 +46,7 @@ async function _runAiOptimize(btn, inputType, getVal, setVal, targetEl) {
     showToast(e?.message || "Không tối ưu được", "error");
   } finally {
     _setAiWandLoading(btn, false);
-    sk?.remove();
+    _taLoading(targetEl, false);
   }
 }
 
@@ -115,9 +81,11 @@ const _AI_SPEECH_FIELDS = {
 };
 
 // Gắn cụm điều khiển AI (Tối ưu + Mic + Undo/Redo) vào MỘT <textarea> con thật.
-function _attachAiTextareaControls(target, inputType) {
+// extra: tuỳ chọn thêm cho attachUndoRedo (vd { refresh } để có nút "Tạo câu khác").
+function _attachAiTextareaControls(target, inputType, extra) {
   if (!target || !window.attachUndoRedo) return;
   window.attachUndoRedo(target, {
+    ...extra,
     speech: _AI_SPEECH_FIELDS[inputType],
     optimize: (t, btn) =>
       _runAiOptimize(
@@ -200,9 +168,11 @@ function optimizeTimelineTitle(idx, btn) {
 
 // Gắn cụm AI cho các ô TĨNH (đã là <x-textarea> sẵn) sau khi toàn bộ script đã nạp.
 window.__cxOnReady?.(function () {
+  // Ô Slogan có thêm nút "Tạo câu khác" (bốc câu mẫu trong QUOTE_LIST).
   _attachAiTextareaControls(
     document.querySelector('textarea[name="story_quote"]'),
     "slogan",
+    { refresh: (t, btn) => randomQuote(btn), refreshTitle: "Tạo câu khác" },
   );
   _attachAiTextareaControls(
     document.querySelector('textarea[name="rsvp_message"]'),

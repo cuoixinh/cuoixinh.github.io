@@ -283,8 +283,6 @@ function closeAiModal() {
 // Vào từ "Tạo thiệp bằng AI" / "Tạo với giọng nói" ở trang chủ (js/auth-nav.js):
 // ý định nằm ở ?open=ai|voice. Đọc MỘT LẦN ở top-level rồi XOÁ khỏi thanh địa chỉ
 // ngay — F5, bookmark hay gửi link cho người khác đều không được mở lại bảng AI.
-// Cũng phải ở top-level vì tour-setup.js đọc show_tour ngay lúc nạp; xoá muộn hơn
-// là tour chạy đè lên bảng AI.
 let _aiOpenIntent = (function _readAiOpenIntent() {
   const p = new URLSearchParams(location.search);
   const v = p.get("open");
@@ -300,7 +298,6 @@ let _aiOpenIntent = (function _readAiOpenIntent() {
 })();
 
 if (_aiOpenIntent === "ai" || _aiOpenIntent === "voice") {
-  sessionStorage.removeItem("show_tour");
   window.__cxOnReady(openAiModal);
 }
 
