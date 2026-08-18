@@ -25,3 +25,119 @@
   min-height: calc(var(--vh, 1vh) * 100);
   min-height: 100dvh;
 }
+
+/* ============= HERO: ẢNH TRÀN VIỀN + TAN DẦN ============= */
+/* Ảnh bìa phủ trọn bề ngang thẻ, đáy tan dần bằng mask (KHÔNG phủ gradient màu)
+   nên khách đổi màu nền thẻ vẫn khớp; chữ nằm ở đáy, chỗ ảnh đã tan hết. */
+
+.cx-hero {
+  /* Tràn ra ngoài lề px-8/py-8 của vùng nội dung để ảnh chạm mép thẻ. */
+  width: calc(100% + 64px);
+  margin: -32px -32px 0;
+  /* Cao trọn một màn — dòng calc(var(--vh)) là fallback cho iOS cũ chưa có dvh. */
+  min-height: calc(var(--vh, 1vh) * 100);
+  min-height: 100dvh;
+  flex-shrink: 0;
+  /* Dòng mở đầu bám mép trên, cụm tên dồn xuống đáy; ảnh phủ toàn bộ phía sau.
+     Padding trên chừa chỗ cho thanh nhạc fixed-top. */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding-top: 32px;
+  padding-bottom: 32px;
+  animation: cx-hero-in 1.2s ease-out both;
+}
+
+/* Dòng mở đầu nằm trên ảnh — trắng + bóng mềm để đọc được với mọi ảnh bìa. */
+.cx-hero-top {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: #fff;
+  text-shadow: 0 1px 12px rgb(0 0 0 / 0.35);
+}
+
+.cx-hero-rule {
+  width: 32px;
+  height: 1px;
+  background: rgb(255 255 255 / 0.7);
+}
+
+.cx-hero-media {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  /* Kéo quá đáy chữ một chút để dải tan kết thúc dưới tên cô dâu chú rể. */
+  bottom: -24px;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(
+    180deg,
+    #000 0%,
+    #000 58%,
+    rgb(0 0 0 / 0.55) 76%,
+    rgb(0 0 0 / 0.12) 88%,
+    transparent 97%
+  );
+  mask-image: linear-gradient(
+    180deg,
+    #000 0%,
+    #000 58%,
+    rgb(0 0 0 / 0.55) 76%,
+    rgb(0 0 0 / 0.12) 88%,
+    transparent 97%
+  );
+}
+
+/* Hai lớp ảnh chồng nhau: ảnh bìa nằm dưới, ảnh album nằm trên và hoà vào ảnh
+   bìa theo một dải chéo mềm — mask của riêng nó, độc lập với mask tan đáy ở
+   .cx-hero-media. */
+.cx-hero-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cx-hero-img-2 {
+  -webkit-mask-image: linear-gradient(
+    112deg,
+    transparent 30%,
+    rgb(0 0 0 / 0.5) 47%,
+    #000 62%
+  );
+  mask-image: linear-gradient(
+    112deg,
+    transparent 30%,
+    rgb(0 0 0 / 0.5) 47%,
+    #000 62%
+  );
+}
+
+/* Thẻ bo góc ở md → mép trên ảnh phải bo theo, không thì lòi ra ngoài góc. */
+@media (min-width: 768px) {
+  .cx-hero-media {
+    border-radius: 40px 40px 0 0;
+  }
+}
+
+@keyframes cx-hero-in {
+  from {
+    opacity: 0;
+    transform: scale(1.04);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cx-hero {
+    animation: none;
+  }
+}

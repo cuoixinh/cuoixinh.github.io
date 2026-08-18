@@ -85,7 +85,9 @@ function renderWedding(w) {
   renderCover(w);
 
   // --- HERO ---
-  renderHero(w, true);
+  // useRing=false: ảnh hero tràn viền, không có khung để vẽ viền trắng.
+  renderHero(w, false);
+  _renderHeroSecond(w);
 
   // --- COUPLE INFO ---
   setText("invite-groom", w.groom_name, "----------");
@@ -111,6 +113,10 @@ function renderWedding(w) {
     ceremonyTime: displayTime,
     ceremonyLocation: displayLoc,
   });
+
+  // Đỉnh hero: TÊN LỄ · NĂM (năm lấy từ ngày lễ, chưa có ngày thì chỉ tên lễ)
+  const cYear = (w.ceremony_date || "").slice(0, 4);
+  setText("hero-eyebrow", ceremonyName + (cYear ? " · " + cYear : ""));
 
   setText("ceremony-event-name", ceremonyName);
   setText("party-section-label", "Tiệc Mừng " + ceremonyName);
@@ -194,6 +200,22 @@ function renderWedding(w) {
 }
 
 window.renderWedding = renderWedding;
+
+// Lớp ảnh thứ hai của hero: ảnh đầu trong album, hoà vào ảnh bìa bằng mask chéo
+// (.cx-hero-img-2). Chưa bật/chưa có album thì ẩn hẳn, hero về một ảnh.
+function _renderHeroSecond(w) {
+  const el = document.getElementById("main-photo-2");
+  if (!el) return;
+  const file = cxEnabled(w.enable_photos) ? w.gallery_images?.[0] : null;
+  if (!file) {
+    el.style.display = "none";
+    return;
+  }
+  el.style.display = "";
+  el.src = getImageUrl(file);
+  const fp = w.image_focal_points?.gallery_images?.[file];
+  if (fp) el.style.objectPosition = fp.x + "% " + fp.y + "%";
+}
 
 // ============= CAROUSEL GALLERY (RIÊNG CỦA THEME NÀY) =============
 

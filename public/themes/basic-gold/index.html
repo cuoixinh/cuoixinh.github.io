@@ -160,48 +160,69 @@
       <div
         class="relative z-20 px-8 py-8 text-center flex flex-col items-center justify-center gap-8 min-h-screen md:min-h-[932px]"
       >
-        <!-- Save The Date Title -->
-        <h1
-          class="font-playfair text-[28px] font-normal text-stone-custom-500 leading-tight"
-        >
-          Save The Date
-        </h1>
-
-        <!-- Couple Names -->
-        <div
-          class="font-nautigal text-rose-pastel-300 leading-relaxed whitespace-nowrap overflow-x-auto max-w-full text-[clamp(24px,5vw,36px)]"
-        >
-          <span id="couple-names-groom">----------</span>
-          <span class="mx-2 sm:mx-4 text-[clamp(26px,5.5vw,38px)]">&</span>
-          <span id="couple-names-bride">----------</span>
-        </div>
-
-        <!-- Main Photo -->
-        <div class="relative w-[250px] h-[300px]">
-          <div
-            class="relative w-full h-full rounded-3xl overflow-hidden shadow-[0_20px_40px_rgb(var(--card-blush-300-rgb)/0.15)] ring-1 ring-white/80"
-          >
+        <!-- Hero: ảnh bìa TRÀN VIỀN thẻ, đáy tan dần vào nền thẻ (mask) rồi mới
+             tới tên cô dâu chú rể. Kéo ra khỏi lề px-8/py-8 của vùng nội dung
+             bằng lề âm; khổ + chiều cao ảnh khai ở .cx-hero trong theme.css. -->
+        <div class="cx-hero relative">
+          <div class="cx-hero-media">
             <img
               src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%23f5f5f5'/%3E%3Cg transform='translate(200, 170)'%3E%3Crect x='-35' y='-20' width='70' height='48' rx='5' fill='%23d0d0d0'/%3E%3Cpath d='M -16,-20 L -10,-28 L 10,-28 L 16,-20 Z' fill='%23d0d0d0'/%3E%3Ccircle cx='0' cy='4' r='18' fill='%23e0e0e0'/%3E%3Ccircle cx='0' cy='4' r='12' fill='%23f0f0f0'/%3E%3Ccircle cx='22' cy='-10' r='3' fill='%23e0e0e0'/%3E%3C/g%3E%3Ctext x='200' y='250' text-anchor='middle' font-family='Arial, sans-serif' font-size='18' fill='%23c0c0c0' font-weight='300' letter-spacing='0.5'%3ENo Photo Available%3C/text%3E%3C/svg%3E"
               id="main-photo"
               alt="Wedding Photo"
-              class="w-full h-full object-cover"
+              class="cx-hero-img"
             />
+            <!-- Ảnh thứ hai: lấy ảnh đầu trong album, hoà vào ảnh bìa theo một
+                 dải chéo mềm (mask). Không có album thì _renderHeroSecond() ẩn đi. -->
+            <img
+              src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%23f5f5f5'/%3E%3C/svg%3E"
+              id="main-photo-2"
+              alt=""
+              class="cx-hero-img cx-hero-img-2"
+            />
+          </div>
+
+          <!-- Đỉnh hero: tên lễ + năm, nằm ĐÈ lên ảnh nên tô trắng + đổ bóng.
+               Nội dung do renderWedding gán (theo Lễ Thành Hôn / Vu Quy). -->
+          <div class="cx-hero-top px-8">
+            <span class="cx-hero-rule"></span>
+            <span
+              id="hero-eyebrow"
+              class="font-inter text-[10px] tracking-[5px] uppercase"
+              >Lễ Thành Hôn</span
+            >
+            <span class="cx-hero-rule"></span>
+          </div>
+
+          <!-- Chữ nằm ở đáy hero, chỗ ảnh đã tan hết nên đọc rõ trên nền thẻ -->
+          <div
+            class="cx-hero-caption relative z-10 flex flex-col items-center gap-4 px-8"
+          >
+            <!-- Dòng dẫn — text thuần để khách sửa được ở tab Nội dung -->
             <div
-              class="absolute inset-0 bg-gradient-radial from-white/30 via-transparent to-transparent pointer-events-none"
-            ></div>
+              class="font-inter text-[10px] tracking-[5px] uppercase text-stone-custom-400"
+            >
+              Hẹn ngày chung đôi
+            </div>
+
+            <!-- Couple Names -->
+            <div
+              class="font-nautigal text-rose-pastel-300 leading-relaxed whitespace-nowrap overflow-x-auto max-w-full text-[clamp(24px,5vw,36px)]"
+            >
+              <span id="couple-names-groom">----------</span>
+              <span class="mx-2 sm:mx-4 text-[clamp(26px,5.5vw,38px)]">&</span>
+              <span id="couple-names-bride">----------</span>
+            </div>
+
+            <div
+              class="font-cormorant italic text-[15px] text-stone-custom-500 leading-relaxed max-w-[300px]"
+            >
+              Đi qua bao mùa nắng mưa, chỉ để gặp được nhau
+            </div>
           </div>
         </div>
 
         <!-- Wedding Date Section -->
         <div class="w-full flex flex-col gap-8">
-          <!-- Quote -->
-          <div
-            class="font-cormorant text-[14px] italic text-stone-custom-500 leading-relaxed px-8"
-          >
-            "Một hành trình mới bắt đầu từ hôm nay"
-          </div>
-
           <!-- Divider -->
           <div class="flex items-center gap-4">
             <div class="flex-1 h-px bg-rose-pastel-100"></div>

@@ -93,50 +93,52 @@
 
       <div
         id="cards-grid"
-        class="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 md:grid-cols-3 xl:grid-cols-4"
+        class="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3"
       ></div>
 
-      <!-- Khung xương lúc đang tải danh sách từ DB. Lặp 4 thẻ để lấp đủ một hàng
+      <!-- Khung xương lúc đang tải danh sách từ DB. Lặp 3 thẻ để lấp đủ một hàng
            lưới — một thẻ đơn độc trông như trang bị lỗi. -->
       <div
         id="state-loading"
-        class="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 md:grid-cols-3 xl:grid-cols-4"
+        class="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3"
       >
         <div
-          class="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm"
+          class="flex min-h-[200px] overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm"
         >
-          <div class="h-24 animate-pulse bg-gray-100 sm:h-28"></div>
-          <div class="space-y-2.5 p-3 sm:p-4">
+          <div class="flex w-2/5 shrink-0 items-center justify-center bg-gray-50 p-2 sm:p-3">
+            <div
+              class="aspect-[9/16] max-h-full w-full animate-pulse rounded-md bg-gray-100"
+            ></div>
+          </div>
+          <div class="min-w-0 flex-1 space-y-2.5 p-3 sm:p-4">
             <div class="h-4 w-1/2 animate-pulse rounded bg-gray-100"></div>
             <div class="h-3 w-2/3 animate-pulse rounded bg-gray-100"></div>
             <div class="h-8 w-full animate-pulse rounded-lg bg-gray-100"></div>
           </div>
         </div>
         <div
-          class="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm"
+          class="hidden sm:flex min-h-[200px] overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm"
         >
-          <div class="h-24 animate-pulse bg-gray-100 sm:h-28"></div>
-          <div class="space-y-2.5 p-3 sm:p-4">
+          <div class="flex w-2/5 shrink-0 items-center justify-center bg-gray-50 p-2 sm:p-3">
+            <div
+              class="aspect-[9/16] max-h-full w-full animate-pulse rounded-md bg-gray-100"
+            ></div>
+          </div>
+          <div class="min-w-0 flex-1 space-y-2.5 p-3 sm:p-4">
             <div class="h-4 w-1/2 animate-pulse rounded bg-gray-100"></div>
             <div class="h-3 w-2/3 animate-pulse rounded bg-gray-100"></div>
             <div class="h-8 w-full animate-pulse rounded-lg bg-gray-100"></div>
           </div>
         </div>
         <div
-          class="hidden overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm md:block"
+          class="hidden xl:flex min-h-[200px] overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm"
         >
-          <div class="h-24 animate-pulse bg-gray-100 sm:h-28"></div>
-          <div class="space-y-2.5 p-3 sm:p-4">
-            <div class="h-4 w-1/2 animate-pulse rounded bg-gray-100"></div>
-            <div class="h-3 w-2/3 animate-pulse rounded bg-gray-100"></div>
-            <div class="h-8 w-full animate-pulse rounded-lg bg-gray-100"></div>
+          <div class="flex w-2/5 shrink-0 items-center justify-center bg-gray-50 p-2 sm:p-3">
+            <div
+              class="aspect-[9/16] max-h-full w-full animate-pulse rounded-md bg-gray-100"
+            ></div>
           </div>
-        </div>
-        <div
-          class="hidden overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm xl:block"
-        >
-          <div class="h-24 animate-pulse bg-gray-100 sm:h-28"></div>
-          <div class="space-y-2.5 p-3 sm:p-4">
+          <div class="min-w-0 flex-1 space-y-2.5 p-3 sm:p-4">
             <div class="h-4 w-1/2 animate-pulse rounded bg-gray-100"></div>
             <div class="h-3 w-2/3 animate-pulse rounded bg-gray-100"></div>
             <div class="h-8 w-full animate-pulse rounded-lg bg-gray-100"></div>

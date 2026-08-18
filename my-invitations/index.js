@@ -343,7 +343,7 @@ function cardHTML(c, i) {
 
   const statusBadge = c.published
     ? `<span class="${BADGE} bg-emerald-500 text-white"><i data-icon="check" class="text-[9px]"></i>Đã xuất bản</span>`
-    : `<span class="${BADGE} bg-white/90 text-gray-600"><i data-icon="pen-tool" class="text-[9px]"></i>Nháp</span>`;
+    : `<span class="${BADGE} bg-gray-100 text-gray-600"><i data-icon="pen-tool" class="text-[9px]"></i>Nháp</span>`;
 
   let leftBadges = "";
   if (state === "trial" || state === "expired" || state === "published") {
@@ -361,19 +361,24 @@ function cardHTML(c, i) {
   const slugRow = c.slug ? slugRowHTML(c, i) : "";
 
   return `
-    <div class="group flex flex-col overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm transition-shadow hover:shadow-md">
-      <div class="relative h-24 cursor-pointer overflow-hidden bg-gray-50 sm:h-28" onclick="openEditor(${i})">
-        <img src="/assets/images/templates/${escAttr(c.theme)}.jpg" alt="${escAttr(title)}"
-             loading="lazy" onerror="this.style.display='none'"
-             class="h-full w-full object-cover object-top transition-transform duration-300 group-hover:scale-105" />
-        <!-- Hai cụm: trái = kích hoạt / hạn dùng thử, phải = trạng thái thiệp
-             (Nháp · Đã xuất bản). Mobile đã là 1 thẻ/hàng nên ảnh đủ rộng, hai
-             cụm không còn đè lên nhau như hồi lưới 2 cột. -->
-        <div class="absolute left-1.5 top-1.5 flex flex-col items-start gap-1 sm:left-2 sm:top-2">${leftBadges}</div>
-        <div class="absolute right-1.5 top-1.5 sm:right-2 sm:top-2">${statusBadge}</div>
+    <div class="group flex min-h-[200px] overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm transition-shadow hover:shadow-md">
+      <!-- Cột trái = 2/5 bề ngang thẻ. Bên trong là khung thiệp đúng tỉ lệ 9:16
+           (rộng bằng cột, cao suy ra từ đó) căn giữa trên nền nhạt — ảnh mẫu
+           780×1386 gần khớp tỉ lệ này nên gần như không bị cắt. Chiều cao thẻ do
+           cột phải quyết định; khung nào cao hơn cột thì max-h-full kẹp lại. -->
+      <div class="flex w-2/5 shrink-0 cursor-pointer items-center justify-center bg-gray-50 p-2 sm:p-3" onclick="openEditor(${i})">
+        <div class="aspect-[9/16] max-h-full w-full overflow-hidden rounded-md bg-white shadow-sm ring-1 ring-black/5 transition-transform duration-300 group-hover:scale-[1.04]">
+          <img src="/assets/images/templates/${escAttr(c.theme)}.jpg" alt="${escAttr(title)}"
+               loading="lazy" onerror="this.style.display='none'"
+               class="h-full w-full object-cover object-top" />
+        </div>
       </div>
 
-      <div class="flex flex-1 flex-col p-3 sm:p-4">
+      <div class="flex min-w-0 flex-1 flex-col p-3 sm:p-4">
+        <!-- Nhãn chuyển hẳn sang cột phải: cột trái chỉ còn 2/5 bề ngang, không
+             đủ chỗ cho một nhãn nguyên dòng. Xếp ngang, hết chỗ thì xuống dòng. -->
+        <div class="mb-1.5 flex flex-wrap items-center gap-1">${statusBadge}${leftBadges}</div>
+
         <h3 class="cursor-pointer truncate text-[13px] font-bold text-gray-900 hover:opacity-80 sm:text-[15px]" onclick="openEditor(${i})">${esc(title)}</h3>
 
         <p class="mt-1 flex items-center gap-1.5 text-[11px] text-gray-500 sm:text-[12px]">
@@ -385,11 +390,10 @@ function cardHTML(c, i) {
 
         ${note}
         ${slugRow}
-        <!-- Nêm co giãn: giữ tối thiểu 12px, phần dư đẩy hàng nút xuống đáy thẻ để
-             các thẻ cùng hàng thẳng chân nhau. -->
+        <!-- Nêm co giãn: phần dư đẩy hàng nút xuống đáy thẻ. -->
         <div class="mt-3 flex-1"></div>
 
-        <div class="flex items-center justify-around border-t border-gray-100 pt-1.5">
+        <div class="flex flex-wrap items-center justify-around gap-y-1 border-t border-gray-100 pt-1.5">
           ${actionsHTML(c, i, state)}
         </div>
       </div>
