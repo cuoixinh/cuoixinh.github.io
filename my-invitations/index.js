@@ -260,6 +260,10 @@ const TAB_ACTIVE = ["bg-rose-pastel-100", "is-on"];
 const TAB_IDLE = [];
 
 function render() {
+  // Trang này là nơi DUY NHẤT biết danh sách thiệp trên DB → ghi lại id để ô đếm
+  // "Đã chọn" ở navbar các trang khác hiện đúng số mà không phải gọi API.
+  window.CXCartCount?.remember(CARDS.map((c) => c.id));
+
   // Đếm theo TOÀN bộ thẻ (không theo tab đang chọn) để con số không nhảy khi đổi tab.
   const counts = {
     all: CARDS.length,

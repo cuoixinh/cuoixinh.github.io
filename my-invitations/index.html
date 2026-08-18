@@ -287,6 +287,7 @@
             label: "Đã chọn",
             icon: "cart",
             href: "/my-invitations/",
+            count: true,
           },
           {
             id: "account",
@@ -316,5 +317,7 @@
     <script src="../core/helpers/draft-start.js"></script>
     <script src="index.js"></script>
     <script src="../core/payment.js"></script>
+    <!-- Ô đếm của mục "Đã chọn" ở navbar (đọc cache, không gọi API). -->
+    <script src="../core/helpers/nav-cart-count.js"></script>
   </body>
 </html>

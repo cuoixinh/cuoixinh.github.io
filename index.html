@@ -795,6 +795,7 @@
             label: "Đã chọn",
             icon: "cart",
             href: "/my-invitations/",
+            count: true,
           },
           {
             id: "account",
@@ -913,5 +914,7 @@
         </span>
       </a>
     </x-popover>
+    <!-- Ô đếm của mục "Đã chọn" ở navbar (đọc cache, không gọi API). -->
+    <script src="core/helpers/nav-cart-count.js"></script>
   </body>
 </html>
