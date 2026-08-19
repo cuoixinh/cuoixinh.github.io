@@ -1,0 +1,619 @@
+/* Bảng màu + CSS riêng của VINTAGE FOREST — trắng & hồng phấn.
+   CSS THUẦN, không qua Tailwind build (nạp bằng <link> sau styles/themes.css).
+
+   Ba lớp ngữ nghĩa .cx-h / .cx-t / .cx-a là thứ CX_THEME.selectors nhắm tới →
+   khách đổi font/màu ở tab Giao diện là cả thiệp đổi theo. Lớp .vf-* là phần
+   trang trí riêng của mẫu, KHÔNG đi theo thanh chỉnh: chữ số poster phải luôn
+   là sans rất đậm và chữ trên ảnh phải luôn sáng màu. */
+
+:root {
+  --cx-accent-rgb: 243 168 184; /* hồng phấn — trái tim, nét cong, ngày cưới */
+  --cx-on-accent-rgb: 255 255 255;
+  --cx-heading-rgb: 26 26 26; /* đen than */
+  --cx-body-rgb: 122 122 122;
+  --cx-line-rgb: 246 214 221;
+  --cx-surface-rgb: 253 241 243;
+  --cx-cover-rgb: 255 255 255;
+  --cx-cover-mid-rgb: 253 241 243;
+
+  --vf-card-bg-rgb: 255 255 255; /* nền thân thiệp */
+  --vf-tint-rgb: 253 241 243; /* dải nền hồng nhạt xen kẽ giữa các mục */
+}
+
+body {
+  background-color: rgb(var(--vf-tint-rgb));
+}
+
+#main-card {
+  background-color: rgb(var(--vf-card-bg-rgb));
+}
+
+/* ── Ba lớp ngữ nghĩa ──────────────────────────────────────────────────────
+   .cx-h và .cx-t đặt CẢ font-family → đừng gắn lên thẻ <i> của Font Awesome,
+   icon sẽ mất glyph. Tô màu icon thì dùng .cx-ac / .cx-bd (chỉ có color, khai
+   ở styles/_common.css). */
+
+.cx-h {
+  font-family: "Playfair Display", serif;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+.cx-t {
+  font-family: "Be Vietnam Pro", sans-serif;
+  color: rgb(var(--cx-body-rgb));
+}
+
+.cx-a {
+  color: rgb(var(--cx-accent-rgb));
+}
+
+.cx-border {
+  border-color: rgb(var(--cx-line-rgb));
+}
+
+.cx-bg-line {
+  background-color: rgb(var(--cx-line-rgb));
+}
+
+.cx-bg-surface {
+  background-color: rgb(var(--cx-surface-rgb));
+}
+
+/* ── Chữ riêng của mẫu ─────────────────────────────────────────────────────
+   Hai lớp này CỐ Ý không nằm trong CX_THEME.selectors: chúng là nét nhận dạng
+   của mẫu, không đi theo font khách chọn ở tab Giao diện. */
+
+/* Chữ số cỡ lớn: ngày cưới ở poster, đếm ngược, giờ lễ. Sans rất đậm, nét
+   thẳng — chính là kiểu chữ số của bản thiết kế. */
+
+.vf-num {
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Chữ viết tay: tên đôi trên ảnh, "Thank You", chữ xen giữa album.
+   Font tự host khai tập trung ở styles/_fonts.css. */
+
+.vf-script {
+  font-family: "KattyDiona", cursive;
+}
+
+/* Chữ nằm TRÊN ảnh — luôn trắng, kèm bóng để đọc được trên mọi ảnh. */
+
+.vf-on {
+  color: rgb(255 255 255);
+  text-shadow: 0 1px 14px rgb(0 0 0 / 0.45);
+}
+
+/* ── Poster mở đầu ────────────────────────────────────────────────────────
+   Nửa trên là ảnh bo vòm, nửa dưới là nền trắng đặt ngày cưới cỡ lớn. */
+
+.vf-hero {
+  background-color: rgb(var(--vf-card-bg-rgb));
+}
+
+/* Chiều cao theo % màn để máy nào cũng còn đủ chỗ cho khối ngày + đếm ngược
+   bên dưới; bo vòm ở đáy bằng bán kính theo % (ngang/dọc khác nhau) nên vòm
+   giữ đúng độ cong dù ảnh rộng hẹp thế nào. */
+
+.vf-hero-photo {
+  position: relative;
+  width: 100%;
+  height: 50vh;
+  min-height: 280px;
+  max-height: 480px;
+  overflow: hidden;
+  border-radius: 0 0 46% 46% / 0 0 15% 15%;
+}
+
+.vf-hero-names {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 28px;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 10px;
+  font-size: 34px;
+  line-height: 1;
+  padding: 0 24px;
+  text-align: center;
+}
+
+.vf-amp {
+  font-size: 24px;
+  opacity: 0.85;
+}
+
+/* Nét cong trang trí vắt từ dưới ảnh xuống khối ngày. Không bắt chuột để
+   không nuốt cú chạm vào chữ nằm dưới nó. */
+
+.vf-curve {
+  position: absolute;
+  left: -26px;
+  top: 44vh;
+  width: 300px;
+  height: 320px;
+  opacity: 0.6;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Ngày cưới: hai dòng chữ số choán gần hết bề ngang, bó hoa nằm bên phải. */
+
+.vf-date {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.vf-date-num {
+  color: rgb(var(--cx-heading-rgb));
+  font-size: clamp(54px, 19vw, 78px);
+  line-height: 0.95;
+}
+
+.vf-bouquet {
+  flex: none;
+  width: 92px;
+  height: 115px;
+  margin-bottom: 6px;
+}
+
+.vf-save {
+  font-size: 26px;
+  line-height: 1.1;
+}
+
+/* Đếm ngược: bốn ô đều nhau, ô đầu đặt trên một trái tim màu nhấn. */
+
+.vf-cd {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  align-items: end;
+  gap: 6px;
+  max-width: 300px;
+}
+
+.vf-cd-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+}
+
+/* Trái tim nằm SAU chữ số (z-index thấp hơn), canh theo tâm ô. */
+
+.vf-heart {
+  position: absolute;
+  left: 50%;
+  top: -11px;
+  width: 58px;
+  height: 53px;
+  transform: translateX(-50%);
+  z-index: 0;
+}
+
+.vf-cd-num {
+  position: relative;
+  z-index: 1;
+  font-size: 26px;
+  line-height: 1.2;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+/* Chữ số nằm trên trái tim thì phải đổi sang màu chữ-trên-nền-nhấn. */
+
+.vf-cd-on {
+  color: rgb(var(--cx-on-accent-rgb));
+}
+
+.vf-cd-lb {
+  font-size: 10px;
+  font-style: italic;
+}
+
+/* ── Thân thiệp ───────────────────────────────────────────────────────────
+   Các mục xen kẽ nền trắng / nền hồng nhạt cho đỡ phẳng khi cuộn dài. */
+
+.vf-tint {
+  background-color: rgb(var(--vf-tint-rgb));
+}
+
+.vf-card {
+  border: 1px solid rgb(var(--cx-line-rgb));
+  border-radius: 16px;
+  background-color: rgb(255 255 255);
+  padding: 16px;
+}
+
+/* Tiêu đề mục: chữ hoa giãn nét, kèm hai vạch hồng hai bên.
+   Không khai font ở đây: thẻ tiêu đề mang sẵn .cx-h, để một nguồn font duy
+   nhất thì khách đổi font tiêu đề là các mục đổi theo. */
+
+.vf-title {
+  font-size: 22px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  line-height: 1.35;
+  /* Khối chữ thường, KHÔNG phải flex: tên mục dài phải tự xuống dòng, mà chữ
+     nằm thẳng trong một flex container thì không co lại được. */
+  display: block;
+  text-align: center;
+  /* Bù khoảng trắng letter-spacing thừa ra sau chữ cuối, nếu không dòng chữ
+     canh giữa sẽ hơi lệch sang trái. */
+  text-indent: 4px;
+}
+
+/* Gạch nằm DƯỚI chứ không kẹp hai bên: tên mục dài ("Chuyện Chúng Mình")
+   xuống hai dòng thì kiểu kẹp hai bên đẩy gạch phải tràn khỏi thiệp. */
+
+.vf-title::after {
+  content: "";
+  display: block;
+  width: 46px;
+  height: 1px;
+  margin: 12px auto 0;
+  background: rgb(var(--cx-accent-rgb));
+}
+
+.vf-rule {
+  height: 1px;
+  background: rgb(var(--cx-line-rgb));
+}
+
+/* Khối xác nhận tham dự: thẻ hồng nhạt bo góc lớn. */
+
+.vf-rsvp {
+  background-color: rgb(var(--vf-tint-rgb));
+  border-radius: 28px;
+  padding: 28px 20px;
+}
+
+/* ── Thư mời: hai chân dung so le ─────────────────────────────────────────
+   Thẻ ngày cưới đè lên chỗ giao nhau — bố cục kiểu poster thay cho hai ảnh
+   đứng cạnh nhau ngay ngắn. padding-bottom chừa chỗ cho thẻ ngày thò ra khỏi
+   đáy ảnh. */
+
+.vf-cmix {
+  position: relative;
+  padding-bottom: 34px;
+}
+
+/* Hai ảnh CÙNG khổ, chỉ khác vị trí so le. Cả hai cùng có viền 5px
+   (box-sizing: border-box nên viền ăn vào trong): ảnh dưới viền màu nền thiệp
+   để tách lớp, ảnh trên viền trong suốt cho bằng khổ. */
+
+.vf-cmix-a,
+.vf-cmix-b {
+  width: 56%;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border: 5px solid transparent;
+  border-radius: 20px;
+}
+
+.vf-cmix-a {
+  box-shadow: 0 12px 30px rgb(var(--cx-heading-rgb) / 0.14);
+}
+
+.vf-cmix-b {
+  position: absolute;
+  right: 0;
+  top: 30px;
+  border-color: rgb(var(--vf-card-bg-rgb));
+  box-shadow: 0 14px 30px rgb(var(--cx-heading-rgb) / 0.18);
+}
+
+.vf-cmix-date {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 20px;
+  border-radius: 9999px;
+  background: rgb(var(--vf-card-bg-rgb));
+  box-shadow: 0 10px 26px rgb(var(--cx-heading-rgb) / 0.16);
+}
+
+/* ── Chuyện chúng mình: văn xuôi + ảnh xen giữa ───────────────────────────
+   Markup do _renderStoryProse() ở index.js dựng. Ảnh ở đây KHÔNG bấm phóng to
+   được (không nằm trong lightboxImages) nên cố ý không có cursor: pointer. */
+
+.vf-para {
+  font-size: 13.5px;
+  line-height: 1.85;
+}
+
+/* Chữ cái đầu của đoạn MỞ mục — chỉ đoạn đầu, các đoạn sau chữ đều. */
+
+.vf-para-lead::first-letter {
+  float: left;
+  font-family: "Playfair Display", serif;
+  font-size: 46px;
+  line-height: 0.9;
+  padding: 4px 10px 0 0;
+  color: rgb(var(--cx-accent-rgb));
+}
+
+.vf-story-photo {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 20px;
+  box-shadow: 0 10px 26px rgb(var(--cx-heading-rgb) / 0.12);
+}
+
+/* ── Ảnh minh hoạ trong mục chữ ───────────────────────────────────────────*/
+
+.vf-wide-photo {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+
+/* ── Ghép ảnh ─────────────────────────────────────────────────────────────
+   Năm bố cục do renderGallery() trong index.js dựng, chia hai cụm kẹp lấy mục
+   Chuyện chúng mình. Ảnh nào cũng bấm được để phóng to nên đều phải
+   `cursor: pointer`. */
+
+/* 1. TRÀN VIỀN — một ảnh rộng hết thiệp, chữ viết tay đè lên giữa. */
+
+.vf-band-photo {
+  position: relative;
+  aspect-ratio: 3 / 2;
+  overflow: hidden;
+}
+
+.vf-band-img {
+  position: absolute;
+  inset: 0;
+  cursor: pointer;
+}
+
+/* Phủ tối nhẹ để chữ nổi lên; không bắt chuột để vẫn bấm được vào ảnh. */
+
+.vf-band-cap {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 46px;
+  line-height: 1;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgb(0 0 0 / 0.05), rgb(0 0 0 / 0.28));
+}
+
+/* 2. BỘ BA — một ảnh lớn chiếm cả hai hàng bên trái, hai ảnh nhỏ xếp dọc bên
+   phải. Tỉ lệ cột 1.6/1 cho ảnh lớn ra dáng ảnh chính. */
+
+.vf-trio {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  grid-template-rows: repeat(2, 1fr);
+  gap: 10px;
+  aspect-ratio: 4 / 3;
+}
+
+.vf-trio-a,
+.vf-trio-b {
+  overflow: hidden;
+  border-radius: 18px;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgb(var(--cx-heading-rgb) / 0.1);
+}
+
+.vf-trio-a {
+  grid-row: span 2;
+}
+
+/* 3. CHỒNG LỆCH — ảnh lớn bên trái, ảnh nhỏ đè lên góc dưới phải. */
+
+.vf-stack {
+  position: relative;
+  padding-bottom: 44px;
+}
+
+.vf-stack-a {
+  width: 70%;
+  aspect-ratio: 3 / 4;
+  border-radius: 18px;
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: 0 10px 30px rgb(var(--cx-heading-rgb) / 0.12);
+}
+
+.vf-stack-b {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 52%;
+  aspect-ratio: 3 / 4;
+  border-radius: 18px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 5px solid rgb(var(--vf-card-bg-rgb));
+  box-shadow: 0 12px 28px rgb(var(--cx-heading-rgb) / 0.18);
+}
+
+/* 4. DẢI BA — ba ảnh đứng đều nhau trên một hàng, ảnh giữa cao hơn một nhịp. */
+
+.vf-strip {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+
+.vf-strip-item {
+  aspect-ratio: 3 / 4;
+  border-radius: 14px;
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgb(var(--cx-heading-rgb) / 0.1);
+}
+
+.vf-strip-item:nth-child(2) {
+  aspect-ratio: 3 / 4.6;
+}
+
+/* 5. SO LE — phần ảnh còn lại. Dùng `columns` (không phải grid): ảnh cao thấp
+   khác nhau sẽ tự xếp khít vào hai cột, không bao giờ để lại ô trống dù số ảnh
+   chẵn hay lẻ. Đổi lại thứ tự đọc là dọc từng cột, chấp nhận được với album. */
+
+.vf-mosaic {
+  columns: 2;
+  column-gap: 10px;
+}
+
+.vf-mosaic > * {
+  margin-bottom: 10px;
+  border-radius: 18px;
+  overflow: hidden;
+  /* Không cho một ô bị cắt làm đôi giữa hai cột. */
+  break-inside: avoid;
+}
+
+/* ── Chuyển động ──────────────────────────────────────────────────────────
+   Thiệp cuộn dài mà đứng im thì khô, nhưng đây là thiệp cưới — mọi hiệu ứng
+   đều CHẬM và nhẹ. Tên keyframes mang tiền tố cx- theo quy ước dự án. Toàn bộ
+   tắt hết ở cuối file khi máy bật "giảm chuyển động". */
+
+.vf-hero-photo img {
+  animation: cx-vf-zoom 30s ease-in-out infinite alternate;
+}
+
+@keyframes cx-vf-zoom {
+  from {
+    transform: scale(1);
+  }
+
+  to {
+    transform: scale(1.08);
+  }
+}
+
+/* Từng khối chữ trong poster hiện dần lên theo nhịp khi vừa mở thiệp. */
+
+.vf-hero-in > * {
+  animation: cx-vf-up 1s ease-out both;
+}
+
+.vf-hero-in > :nth-child(1) {
+  animation-delay: 0.15s;
+}
+
+.vf-hero-in > :nth-child(2) {
+  animation-delay: 0.4s;
+}
+
+.vf-hero-in > :nth-child(3) {
+  animation-delay: 0.65s;
+}
+
+.vf-hero-in > :nth-child(4) {
+  animation-delay: 0.85s;
+}
+
+.vf-hero-in > :nth-child(5),
+.vf-hero-in > :nth-child(6) {
+  animation-delay: 1.05s;
+}
+
+@keyframes cx-vf-up {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Trái tim của ô "Ngày" đập rất khẽ. */
+
+.vf-heart {
+  animation: cx-vf-beat 3.2s ease-in-out infinite;
+  transform-origin: center;
+}
+
+@keyframes cx-vf-beat {
+  0%,
+  100% {
+    transform: translateX(-50%) scale(1);
+  }
+
+  50% {
+    transform: translateX(-50%) scale(1.07);
+  }
+}
+
+/* Ảnh phóng nhẹ khi rê chuột. Khoá trong (hover: hover) — máy cảm ứng giữ
+   nguyên trạng thái hover sau khi chạm, ảnh sẽ kẹt ở cỡ phóng to. */
+
+@media (hover: hover) {
+  .vf-mosaic > * img,
+  .vf-trio-a img,
+  .vf-trio-b img,
+  .vf-stack-a img,
+  .vf-stack-b img,
+  .vf-strip-item img,
+  .vf-band-img,
+  .vf-cmix-a img,
+  .vf-cmix-b img {
+    transition: transform 0.7s ease;
+  }
+
+  .vf-mosaic > *:hover img,
+  .vf-trio-a:hover img,
+  .vf-trio-b:hover img,
+  .vf-stack-a:hover img,
+  .vf-stack-b:hover img,
+  .vf-strip-item:hover img,
+  .vf-band-photo:hover .vf-band-img,
+  .vf-cmix-a:hover img,
+  .vf-cmix-b:hover img {
+    transform: scale(1.06);
+  }
+}
+
+/* ── Tôn trọng cài đặt "giảm chuyển động" của máy ─────────────────────────
+   Người dùng bật mục này thường vì chóng mặt/say chuyển động — thiệp cưới
+   không đáng để đánh đổi. Tắt sạch, giữ nguyên bố cục. */
+
+@media (prefers-reduced-motion: reduce) {
+  .vf-hero-photo img,
+  .vf-hero-in > * {
+    animation: none;
+  }
+
+  .vf-heart {
+    animation: none;
+    transform: translateX(-50%);
+  }
+
+  .vf-mosaic > * img,
+  .vf-trio-a img,
+  .vf-trio-b img,
+  .vf-stack-a img,
+  .vf-stack-b img,
+  .vf-strip-item img,
+  .vf-band-img,
+  .vf-cmix-a img,
+  .vf-cmix-b img {
+    transition: none;
+    transform: none;
+  }
+}
