@@ -134,8 +134,8 @@ async function captureAll(onProgress = console.log, selected = null) {
         // dựng ra nó (thanh xem thử ở core/utils.js, trình phát nhạc ở
         // core/components/music-player.js…) — file này không giữ danh sách
         // phần tử của bất kỳ mẫu nào.
-        // padding-bottom là chỗ thanh xem thử chừa ở đáy — giấu thanh rồi thì
-        // khoảng chừa đó thành dải trắng cuối ảnh, phải trả về 0.
+        // padding-bottom về 0 là phòng xa: mẫu nào tự chừa chỗ ở đáy cho thanh
+        // xem thử thì giấu thanh xong khoảng chừa đó thành dải trắng cuối ảnh.
         await page.addStyleTag({
           content:
             "body{padding-bottom:0!important}" +

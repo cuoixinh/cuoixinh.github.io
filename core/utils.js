@@ -949,7 +949,9 @@ function closeTimePicker() {
   // Nút tròn nổi ở góc dưới phải; bấm thì bung ra một cụm nút xếp dọc phía
   // trên, bấm lại thì thu về. Hình dạng khai ở .cx-pnav* trong
   // styles/_common.css — ở đây chỉ dựng khung và nối sự kiện.
-  var NAVBAR_H = 72; // chỗ chừa cuối trang để nút không che phần cuối thiệp
+  // Bề cao cụm nút, chỉ dùng để đẩy nút nhạc lên. Trang KHÔNG chừa chỗ ở đáy:
+  // thanh này nổi đè lên thiệp, thà thế còn hơn cắt một dải trống cuối mỗi mẫu.
+  var NAVBAR_H = 72;
 
   // Xếp từ trên xuống; việc CHÍNH đứng cuối, tức gần nút tròn (và gần ngón cái)
   // nhất. `go` = đường dẫn nội bộ, `href` = mở tab mới, `run` = chạy hàm.
@@ -1037,7 +1039,6 @@ function closeTimePicker() {
 
   function _mount() {
     document.body.appendChild(navbar);
-    document.body.style.paddingBottom = NAVBAR_H + "px";
 
     // Đẩy nút nhạc lên khỏi navbar — chỉ với theme dùng nút tròn neo ở ĐÁY.
     // Theme neo nút nhạc ở đỉnh: gán bottom vào đó sẽ vừa top vừa bottom →

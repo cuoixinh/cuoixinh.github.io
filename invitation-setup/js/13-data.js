@@ -122,7 +122,8 @@ function _cxCommitDemoFilled() {
 // này sẽ KHÔNG tự lọt sang thiệp khách — muốn chép thêm phải khai ở đây.
 // Cố ý bỏ ngoài danh sách (là của cặp đôi demo, không phải của khách): tên +
 // cha mẹ, địa chỉ, mọi địa điểm và bản đồ, mọi ngày & giờ lễ/tiệc, tài khoản
-// ngân hàng, toàn bộ ảnh, và chuyện tình.
+// ngân hàng, toàn bộ ảnh. Chuyện tình cũng vậy, TRỪ KHI bộ dữ liệu mẫu tự bật cờ
+// `demo_fill_love_story` (xem _fetchDemoFill).
 // Ba khoá đầu data.json CHƯA khai nên hiện không lấy được gì; để sẵn đây, hôm nào
 // bộ dữ liệu mẫu bên admin có thì tự chảy sang, không phải sửa code. Riêng
 // theme_setting thiếu cũng chẳng sao: rỗng nghĩa là "dùng mặc định của mẫu", vốn
@@ -199,7 +200,8 @@ async function _fetchDemoFill(theme) {
       signal: ctrl.signal,
     });
     if (!res.ok) return null;
-    const demo = (await res.json())?.content;
+    const json = await res.json();
+    const demo = json?.content;
     if (!demo) return null;
 
     const fill = {};
@@ -224,6 +226,30 @@ async function _fetchDemoFill(theme) {
         title: it.title || "",
         type: it.type || "ceremony",
       }));
+    }
+
+    // Chuyện tình: mặc định KHÔNG chép (là chuyện của cặp đôi demo), chỉ chép khi
+    // bộ dữ liệu mẫu tự bật cờ `demo_fill_love_story` — công tắc "Chép sẵn Chuyện
+    // tình yêu" ở tab Dữ liệu mẫu bên admin. Nằm ở TẦNG NGOÀI data.json (cạnh
+    // ảnh) chứ không trong `content`, nên phải đọc riêng. Bỏ ảnh: ảnh mẫu không
+    // theo thiệp khách.
+    if (demo.demo_fill_love_story === true) {
+      let ls = json?.love_story;
+      if (typeof ls === "string") {
+        try {
+          ls = JSON.parse(ls);
+        } catch {
+          ls = null;
+        }
+      }
+      if (Array.isArray(ls) && ls.length) {
+        fill.love_story = ls.map((it) => ({
+          date: it.date || "",
+          title: it.title || "",
+          content: it.content || "",
+          image_url: null,
+        }));
+      }
     }
 
     return Object.keys(fill).length ? fill : null;
@@ -279,6 +305,9 @@ async function _refillDemoForTheme(theme) {
     if (patch[k] === undefined) patch[k] = "";
   }
   if (patch.timeline === undefined) patch.timeline = [];
+  // Mẫu mới không bật cờ chép chuyện tình thì phải XOÁ, đừng để chuyện của mẫu cũ
+  // nằm lại.
+  if (patch.love_story === undefined) patch.love_story = [];
   // fillForm() kết thúc bằng `IS_PUBLISHED = !!data.is_published` — patch không
   // khai thì cờ bị hạ xuống false. Hôm nay đường này không chạm thiệp đã xuất bản
   // (thiệp đó lấy từ DB nên không bao giờ bật _demoFilled), nhưng để trống là gài

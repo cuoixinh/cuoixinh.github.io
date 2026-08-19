@@ -174,7 +174,8 @@
         "title": "Giao lưu cùng khách quý",
         "type": "party"
       }
-    ]
+    ],
+    "demo_fill_love_story": true
   },
   "updated_at": "2026-08-19T00:00:00.000Z"
 }

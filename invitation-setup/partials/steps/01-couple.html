@@ -10,52 +10,89 @@
     </div>
   </div>
   <div id="section-couple-body" class="p-6 space-y-6">
-    <!-- Tên cặp đôi -->
+    <!-- Mỗi bên một thẻ nền riêng (chú rể xanh · cô dâu tím nhạt) để khỏi nhầm ô của
+         ai với ai — tên, SĐT liên hệ và ảnh của cùng một người nằm chung một thẻ.
+         SĐT mới chỉ lưu xuống DB, chưa mẫu thiệp nào hiện ra. -->
     <div class="grid gap-4 sm:grid-cols-2">
-      <x-input
-        label="Tên chú rể (tên dùng trong lễ cưới)"
-        name="groom_name"
-        icon="mars"
-        required
-        placeholder="Ví dụ: Quang Vinh"
-      ></x-input>
-      <x-input
-        label="Tên cô dâu (tên dùng trong lễ cưới)"
-        name="bride_name"
-        icon="venus"
-        required
-        placeholder="Ví dụ: Hải Yến"
-      ></x-input>
-    </div>
-    <!-- Ảnh chú rể & cô dâu -->
-    <div class="grid grid-cols-2 gap-4">
-      <div class="space-y-3">
-        <p class="text-sm text-gray-700 flex items-center gap-1">
-          <i data-lucide="mars" class="text-color-secondary text-xs"></i>
-          Ảnh chú rể
-        </p>
-        <div id="groom-container" class="w-full"></div>
-        <input
-          type="file"
-          id="groom-file-input"
-          accept="image/jpeg,image/png,image/webp,image/gif,image/avif"
-          class="hidden"
-          onchange="handleImageUpload(event, 'groom_image_url')"
-        />
+      <!-- Chú rể -->
+      <div class="rounded-2xl border border-sky-100 bg-sky-50/40 overflow-hidden">
+        <div
+          class="px-5 py-3 bg-sky-50 border-b border-sky-100 flex items-center gap-2"
+        >
+          <i data-lucide="mars" class="w-4 h-4 text-sky-500"></i>
+          <span class="text-sm font-semibold text-gray-700">Chú rể</span>
+        </div>
+        <div class="p-5 space-y-4">
+          <x-input
+            label="Tên chú rể (tên dùng trong lễ cưới)"
+            name="groom_name"
+            icon="mars"
+            required
+            placeholder="Ví dụ: Quang Vinh"
+          ></x-input>
+          <x-input
+            label="SĐT chú rể"
+            name="groom_phone"
+            type="tel"
+            icon="phone"
+            placeholder="Ví dụ: 0912 345 678"
+          ></x-input>
+          <div class="space-y-3">
+            <p class="text-sm text-gray-700 flex items-center gap-1">
+              <i data-lucide="image" class="text-color-secondary text-xs"></i>
+              Ảnh chú rể
+            </p>
+            <div id="groom-container" class="w-full"></div>
+            <input
+              type="file"
+              id="groom-file-input"
+              accept="image/jpeg,image/png,image/webp,image/gif,image/avif"
+              class="hidden"
+              onchange="handleImageUpload(event, 'groom_image_url')"
+            />
+          </div>
+        </div>
       </div>
-      <div class="space-y-3">
-        <p class="text-sm text-gray-700 flex items-center gap-1">
-          <i data-lucide="venus" class="text-color-secondary text-xs"></i>
-          Ảnh cô dâu
-        </p>
-        <div id="bride-container" class="w-full"></div>
-        <input
-          type="file"
-          id="bride-file-input"
-          accept="image/jpeg,image/png,image/webp,image/gif,image/avif"
-          class="hidden"
-          onchange="handleImageUpload(event, 'bride_image_url')"
-        />
+      <!-- Cô dâu -->
+      <div
+        class="rounded-2xl border border-violet-100 bg-violet-50/30 overflow-hidden"
+      >
+        <div
+          class="px-5 py-3 bg-violet-50 border-b border-violet-100 flex items-center gap-2"
+        >
+          <i data-lucide="venus" class="w-4 h-4 text-violet-400"></i>
+          <span class="text-sm font-semibold text-gray-700">Cô dâu</span>
+        </div>
+        <div class="p-5 space-y-4">
+          <x-input
+            label="Tên cô dâu (tên dùng trong lễ cưới)"
+            name="bride_name"
+            icon="venus"
+            required
+            placeholder="Ví dụ: Hải Yến"
+          ></x-input>
+          <x-input
+            label="SĐT cô dâu"
+            name="bride_phone"
+            type="tel"
+            icon="phone"
+            placeholder="Ví dụ: 0987 654 321"
+          ></x-input>
+          <div class="space-y-3">
+            <p class="text-sm text-gray-700 flex items-center gap-1">
+              <i data-lucide="image" class="text-color-secondary text-xs"></i>
+              Ảnh cô dâu
+            </p>
+            <div id="bride-container" class="w-full"></div>
+            <input
+              type="file"
+              id="bride-file-input"
+              accept="image/jpeg,image/png,image/webp,image/gif,image/avif"
+              class="hidden"
+              onchange="handleImageUpload(event, 'bride_image_url')"
+            />
+          </div>
+        </div>
       </div>
     </div>
     <!-- Ảnh cặp đôi -->

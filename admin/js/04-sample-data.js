@@ -123,6 +123,21 @@ const SI_CONTENT_GROUPS = [
       { name: "enable_footer", label: "Lời cảm ơn", type: "switch" },
     ],
   },
+  {
+    title: "Khi khách dùng mẫu",
+    icon: "copy",
+    fields: [
+      // Chuyện tình là của cặp đôi demo nên mặc định KHÔNG chép sang thiệp
+      // khách (`off: true`). Mẫu nào viết chuyện tình chung chung, dùng làm dàn
+      // ý được thì bật lên — invitation-setup/js/13-data.js đọc cờ này.
+      {
+        name: "demo_fill_love_story",
+        label: "Chép sẵn Chuyện tình yêu",
+        type: "switch",
+        off: true,
+      },
+    ],
+  },
 ];
 
 const SI_CONTENT_FIELDS = SI_CONTENT_GROUPS.flatMap((g) => g.fields);
@@ -131,8 +146,9 @@ const SI_CONTENT_FIELD_BY_NAME = Object.fromEntries(
 );
 
 // Công tắc mặc định BẬT (khớp bộ preview đang hardcode ở preview-data.js).
+// Công tắc mặc định BẬT. Khai `off: true` ở field để nó mặc định tắt.
 const SI_CONTENT_DEFAULT_ON = SI_CONTENT_FIELDS.filter(
-  (f) => f.type === "switch",
+  (f) => f.type === "switch" && !f.off,
 ).map((f) => f.name);
 
 // ============= State =============

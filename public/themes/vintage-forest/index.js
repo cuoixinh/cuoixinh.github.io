@@ -40,7 +40,7 @@
 
     // Mẫu gom về ba lớp ngữ nghĩa (.cx-h · .cx-t · .cx-a, khai trong theme.css).
     // .cx-hd/.cx-bd/.cx-ac là markup do helper dùng chung sinh ra — giữ nguyên.
-    // Cố ý KHÔNG gồm .vf-num (chữ số poster phải luôn là sans rất đậm) và .vf-on
+    // Cố ý KHÔNG gồm .vf-num / .vf-date-* (kiểu chữ số là nét nhận dạng) và .vf-on
     // (chữ nằm TRÊN ảnh, đổi sang màu sẫm là chìm nghỉm).
     selectors: {
       headingFont: ".cx-h, .font-playfair",
@@ -131,11 +131,11 @@
     );
     cxToggle("section-party", cxEnabled(w.enable_party));
 
-    setupMiniCalendar(w.ceremony_date, partyDate);
-
     // Dòng địa danh cuối poster: nơi đãi tiệc là chỗ khách phải tới, không có
-    // thì lùi về nơi làm lễ.
-    setText("hero-place", _shortPlace(partyLocation || ceremonyLoc), "");
+    // thì lùi về nơi làm lễ. Trống thì giấu cả dòng, đừng để trơ mỗi icon.
+    const heroPlace = _shortPlace(partyLocation || ceremonyLoc);
+    setText("hero-place", heroPlace, "");
+    cxToggle("hero-place-wrap", !!heroPlace);
 
     // --- Xác nhận tham dự ---
     const rsvp = document.getElementById("rsvp-section");
@@ -155,14 +155,16 @@
       cxToggle("love-story", false);
     }
 
-    // --- Ảnh minh hoạ mở đầu mục Tiệc ---
-    // Mượn từ CUỐI danh sách album và cắt hẳn ra khỏi phần album vẽ, để không
-    // có tấm nào xuất hiện hai lần. Chỉ mượn khi album còn dư: 9 ảnh đầu đã đi
-    // vào bốn khối bố cục, phải còn dư mới đến lượt mục Tiệc.
+    // --- Ảnh cho các mục ngoài album ---
+    // Album tối đa 10 tấm nên không đủ để chia riêng: CHẤP NHẬN DÙNG LẠI ảnh,
+    // album vẫn vẽ đủ cả 10 tấm (không cắt tấm nào ra). Mỗi mục lấy một vị trí
+    // khác nhau cho đỡ trùng nhau; album rỗng thì lùi về ảnh bìa.
     const album = Array.isArray(w.gallery_images) ? w.gallery_images.slice() : [];
     const focals = w.image_focal_points?.gallery_images;
-    const partyPhoto = album.length > 9 ? album.pop() : null;
-    _sectionPhoto("party-photo", partyPhoto, focals, "vf-wide-photo");
+    const _pick = (i) => album[i] || w.cover_image_url;
+
+    _sectionPhoto("party-photo", _pick(album.length >> 1), focals, "vf-wide-photo");
+    _renderCalendar(w.ceremony_date, partyDate, _pick(album.length - 1), focals);
 
     // --- Album ảnh ---
     if (cxEnabled(w.enable_photos)) {
@@ -192,6 +194,28 @@
   }
 
   window.renderWedding = renderWedding;
+
+  // ============= HỘP MỪNG CƯỚI =============
+  // Mặc định ĐÓNG, bấm nút mới mở: thông tin chuyển khoản không nên đập vào mắt
+  // khách ngay khi cuộn tới. Gọi từ onclick trong index.html nên phải lộ ra
+  // window (index.js bọc trong IIFE).
+
+  // MỘT CHIỀU: mở rồi thì thôi, không có đường đóng lại (bóc phong bao ra rồi
+  // gấp lại là vô duyên) — muốn thấy lại phong bao thì tải lại trang.
+  // Hai việc xảy ra CÙNG LÚC (phong bao thu, hộp giãn) và phong bao KHÔNG bị gỡ
+  // khỏi DOM: chờ cái này xong mới chạy cái kia, hoặc ẩn thẻ giữa chừng, đều
+  // làm bố cục nhảy một nhịp.
+  function toggleGift() {
+    const box = document.getElementById("gift-box");
+    const env = document.getElementById("gift-env");
+    if (!box || !box.classList.contains("is-closed")) return;
+
+    env?.setAttribute("aria-expanded", "true");
+    env?.classList.add("is-opening");
+    box.classList.remove("is-closed");
+  }
+
+  window.cxToggleGift = toggleGift;
 
   // ============= POSTER MỞ ĐẦU =============
 
@@ -327,18 +351,87 @@
   }
 
   // ============= ALBUM ẢNH =============
-  // Không phải một lưới phẳng: ảnh được rót lần lượt vào 5 khối bố cục, chia
+  // Không phải một lưới phẳng: ảnh được rót lần lượt vào 3 khối bố cục, chia
   // hai cụm kẹp lấy mục Chuyện chúng mình.
-  //   Cụm 1  1. tràn viền (1 ảnh hết bề ngang thiệp, kèm một dòng chữ viết tay)
-  //          2. bộ ba (1 ảnh lớn + 2 ảnh nhỏ xếp dọc)
-  //          3. chồng lệch (2 ảnh so le)
-  //   Cụm 2  4. dải ba ảnh đứng
-  //          5. so le hai cột (phần còn lại)
-  // Chín ảnh đầu vào bốn khối cố định, phần dư dồn vào cụm so le → mẫu bày đẹp
-  // ở khoảng 15–20 ảnh. Ít ảnh thì khối nào không đủ ảnh sẽ tự ẩn, không để lại
-  // chỗ trống; cụm nào rỗng sạch thì ẩn cả mục.
+  //   Cụm 1  1. mở màn (1 ảnh NGANG tràn viền kèm chữ viết tay + hàng 3 ảnh nhỏ)
+  //          2. cặp lệch tầng (2 ảnh cạnh nhau, kèm một dòng chữ viết tay)
+  //   Cụm 2  3. phần còn lại — dáng chọn theo SỐ ẢNH dư (1 · 2 · 3 · 4 · ≥5)
+  // Sáu ảnh đầu vào hai khối của cụm 1, bao nhiêu còn lại dồn hết sang cụm 2 nên
+  // album 7–10 tấm vẫn ra bố cục tử tế. Khối nào không đủ ảnh thì tự ẩn; cụm 2
+  // hết ảnh thì ẩn cả mục, đừng để trơ mỗi dòng chữ xen giữa.
+
+  // ============= LỊCH THÁNG CƯỚI =============
+  // Mẫu tự vẽ thay cho calendar-helper.js (helper đó viết style nội tuyến nên
+  // theme.css không nắn được). Chỉ vẽ THÁNG LÀM LỄ: ngày lễ là ô đặc, ngày tiệc
+  // là ô viền và chỉ đánh dấu khi tiệc rơi vào đúng tháng đó.
+
+  const VF_WD = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"];
+
+  function _renderCalendar(ceremonyDate, partyDate, photoFile, focalPoints) {
+    const box = document.getElementById("vf-cal");
+    if (!box) return;
+
+    const d = ceremonyDate ? new Date(ceremonyDate) : null;
+    if (!d || isNaN(d.getTime())) {
+      cxToggle("vf-cal", false);
+      return;
+    }
+
+    const year = d.getFullYear();
+    const month = d.getMonth();
+    const first = new Date(year, month, 1).getDay();
+    const total = new Date(year, month + 1, 0).getDate();
+    const cerDay = d.getDate();
+
+    const p = partyDate ? new Date(partyDate) : null;
+    const parDay =
+      p &&
+      !isNaN(p.getTime()) &&
+      p.getFullYear() === year &&
+      p.getMonth() === month &&
+      p.getDate() !== cerDay
+        ? p.getDate()
+        : 0;
+
+    let cells = '<span class="vf-cal-c"></span>'.repeat(first);
+    for (let n = 1; n <= total; n++) {
+      const cls = ["vf-cal-d"];
+      if ((first + n - 1) % 7 === 0) cls.push("vf-cal-sun");
+      if (n === cerDay) cls.push("vf-cal-on");
+      else if (n === parDay) cls.push("vf-cal-alt");
+      cells += `<span class="vf-cal-c"><span class="${cls.join(" ")}">${n}</span></span>`;
+    }
+
+    const head = VF_WD.map(
+      (w, i) => `<span${i === 0 ? ' class="vf-cal-sun"' : ""}>${w}</span>`,
+    ).join("");
+
+    let note = `${WEEKDAYS[d.getDay()]}, ngày ${cerDay} tháng ${month + 1} năm ${year}`;
+    if (parDay) note += ` · Tiệc ngày ${parDay}`;
+
+    // Ảnh tràn viền trên đầu thẻ. Không mượn được ảnh thì bỏ hẳn khối, đừng để
+    // khung trống.
+    const fp = photoFile ? focalPoints?.[photoFile] : null;
+    const top = photoFile
+      ? `<div class="vf-cal-top"><img src="${getImageUrl(photoFile)}" alt=""
+          loading="lazy" style="object-position:${fp?.x ?? 50}% ${fp?.y ?? 50}%">
+          <svg class="vf-cal-wave" viewBox="0 0 390 40" preserveAspectRatio="none"
+            aria-hidden="true">
+            <path d="M0 40C96 38 176 8 258 6c54-1 94 8 132 16v18H0z"
+              fill="rgb(var(--vf-card-bg-rgb))" />
+          </svg></div>`
+      : "";
+
+    box.innerHTML = `
+      ${top}
+      <div class="cx-h vf-cal-mon">Tháng ${month + 1}</div>
+      <div class="vf-cal-grid vf-cal-hd cx-t">${head}</div>
+      <div class="vf-cal-grid">${cells}</div>
+      <div class="cx-t vf-cal-note">${note}</div>`;
+  }
 
   const VF_BAND_TEXT = "Forever &amp; Always";
+  const VF_STACK_TEXT = "you &amp; me &#9825;";
 
   /**
    * Ảnh minh hoạ cho một mục (tiệc). KHÔNG bấm phóng to được: nó không nằm
@@ -369,7 +462,7 @@
   }
 
   function renderGallery(images, focalPoints) {
-    const grid = document.getElementById("gallery-grid");
+    const grid = document.getElementById("gallery-rest");
     if (!grid) return;
 
     const list = images?.length
@@ -386,37 +479,39 @@
     let n = 0; // ảnh kế tiếp chưa dùng
     const take = (k) => (n + k <= list.length ? list.slice(n, (n += k)) : null);
 
-    // 1. Một ảnh tràn hết bề ngang, chữ viết tay đè lên
-    const bandWrap = document.getElementById("gallery-band");
-    const band = take(1);
-    if (bandWrap && band) {
-      bandWrap.innerHTML = "";
+    // 1. Ảnh NGANG tràn viền (chữ viết tay đè lên) + hàng ba ảnh nhỏ ngay dưới.
+    // Chỉ đủ ảnh ngang mà thiếu ba ảnh nhỏ thì vẫn dựng, hàng dưới tự bỏ.
+    const leadWrap = document.getElementById("gallery-lead");
+    const lead = take(1);
+    if (leadWrap && lead) {
+      leadWrap.innerHTML = "";
       const box = document.createElement("div");
-      box.className = "vf-band-photo";
-      box.appendChild(_photo(band[0].url, band[0].fp, n - 1, "vf-band-img"));
+      box.className = "vf-lead";
+
+      const big = document.createElement("div");
+      big.className = "vf-band-photo";
+      big.appendChild(_photo(lead[0].url, lead[0].fp, n - 1, "vf-band-img"));
       const cap = document.createElement("div");
       cap.className = "vf-band-cap vf-on vf-script";
       cap.innerHTML = VF_BAND_TEXT;
-      box.appendChild(cap);
-      bandWrap.appendChild(box);
-    }
-    cxToggle("gallery-band", !!(bandWrap && band));
+      big.appendChild(cap);
+      box.appendChild(big);
 
-    // 2. Một ảnh lớn bên trái + hai ảnh nhỏ xếp dọc bên phải
-    const trioWrap = document.getElementById("gallery-trio");
-    const trio = take(3);
-    if (trioWrap && trio) {
-      trioWrap.innerHTML = "";
-      const box = document.createElement("div");
-      box.className = "vf-trio";
-      box.appendChild(_photo(trio[0].url, trio[0].fp, n - 3, "vf-trio-a"));
-      box.appendChild(_photo(trio[1].url, trio[1].fp, n - 2, "vf-trio-b"));
-      box.appendChild(_photo(trio[2].url, trio[2].fp, n - 1, "vf-trio-b"));
-      trioWrap.appendChild(box);
+      const three = take(3);
+      if (three) {
+        const row = document.createElement("div");
+        row.className = "vf-lead-row";
+        three.forEach((p, k) =>
+          row.appendChild(_photo(p.url, p.fp, n - 3 + k, "vf-lead-i")),
+        );
+        box.appendChild(row);
+      }
+      leadWrap.appendChild(box);
     }
-    cxToggle("gallery-trio", !!(trioWrap && trio));
+    cxToggle("gallery-lead", !!(leadWrap && lead));
 
-    // 3. Hai ảnh chồng lệch tầng
+    // 2. Cặp ảnh đứng cạnh nhau; cột phải có một dòng chữ viết tay ở khoảng
+    // trống phía trên rồi mới tới ảnh.
     const stackWrap = document.getElementById("gallery-stack");
     const stack = take(2);
     if (stackWrap && stack) {
@@ -425,49 +520,43 @@
       box.className = "vf-stack";
       const [a, b] = stack;
       box.appendChild(_photo(a.url, a.fp, n - 2, "vf-stack-a"));
-      box.appendChild(_photo(b.url, b.fp, n - 1, "vf-stack-b"));
+
+      const right = document.createElement("div");
+      right.className = "vf-stack-r";
+      const cap = document.createElement("div");
+      cap.className = "vf-stack-cap vf-script cx-a";
+      cap.innerHTML = VF_STACK_TEXT;
+      right.appendChild(cap);
+      right.appendChild(_photo(b.url, b.fp, n - 1, "vf-stack-b"));
+      box.appendChild(right);
+
       stackWrap.appendChild(box);
     }
     cxToggle("gallery-stack", !!(stackWrap && stack));
 
-    // 4. Dải ba ảnh đứng đều nhau (mở đầu cụm 2)
-    const stripWrap = document.getElementById("gallery-strip");
-    const strip = take(3);
-    if (stripWrap && strip) {
-      stripWrap.innerHTML = "";
-      const box = document.createElement("div");
-      box.className = "vf-strip";
-      strip.forEach((p, k) =>
-        box.appendChild(_photo(p.url, p.fp, n - 3 + k, "vf-strip-item")),
-      );
-      stripWrap.appendChild(box);
-    }
-    cxToggle("gallery-strip", !!(stripWrap && strip));
-
-    // 5. Phần còn lại xếp so le hai cột. Khổ ảnh xoay vòng theo 4 dáng để hai
-    // cột lệch nhau — cùng một tỉ lệ cho tất cả thì lại thành lưới phẳng.
-    const VF_SHAPES = [
-      "aspect-[3/4]",
-      "aspect-square",
-      "aspect-[4/5]",
-      "aspect-[5/6]",
-    ];
-
-    grid.innerHTML = "";
+    // 3. Toàn bộ ảnh CÒN LẠI. Từ 2 đến 4 tấm thì bày kiểu ẢNH CHỒNG ẢNH: mỗi
+    // tấm một khổ, nghiêng mỗi tấm một chiều và gối lên nhau như ảnh rời rải
+    // trên bàn — vị trí khai sẵn trong theme.css theo số tấm (.vf-col-<số>).
+    // Một tấm thì để nằm ngang một mình, từ 5 tấm trở lên xếp so le hai cột
+    // (chồng chừng ấy ảnh là rối).
     const rest = list.slice(n);
-    rest.forEach((p, k) => {
-      grid.appendChild(
-        _photo(
-          p.url,
-          p.fp,
-          n + k,
-          "cursor-pointer shadow-sm " + VF_SHAPES[k % VF_SHAPES.length],
-        ),
-      );
-    });
-    grid.classList.toggle("hidden", rest.length === 0);
+    const REST_CLS =
+      rest.length >= 5
+        ? ["vf-mosaic", "vf-mosaic-i"]
+        : rest.length >= 2
+          ? ["vf-col vf-col-" + rest.length, "vf-col-i"]
+          : ["vf-set vf-set-1", "vf-set-i"];
 
-    // Cụm 2 chỉ còn phần chữ xen giữa thì ẩn hẳn, đừng để một mục trống.
-    cxToggle("section-photos-2", !!strip || rest.length > 0);
+    if (grid) {
+      grid.innerHTML = "";
+      grid.className = REST_CLS[0];
+      rest.forEach((p, k) =>
+        grid.appendChild(_photo(p.url, p.fp, n + k, REST_CLS[1])),
+      );
+    }
+
+    // Hết ảnh cho cụm 2 thì ẩn cả mục — còn mỗi phần chữ xen giữa là một mục
+    // trống trơn.
+    cxToggle("section-photos-2", rest.length > 0);
   }
 })();
