@@ -78,9 +78,11 @@ class XInput extends HTMLElement {
            ${oninputAttr ? `oninput="${oninputAttr}"` : ''}
            class="${_INPUT_CLS}${extraCls}" />`;
 
+    // readonly: không vẽ nút "x" — ô chỉ để xem (vd Preview URL tự sinh), cho
+    // xoá là mời người dùng làm hỏng giá trị mà họ không sửa lại được.
     const inputWrap = `<div class="relative${hasSuffix ? ' flex-1 min-w-0' : ''}">
       ${controlHtml}
-      <button type="button" class="${_CLEAR_CLS}" aria-label="Xoá">${_X_SVG}</button>
+      ${isReadonly ? '' : `<button type="button" class="${_CLEAR_CLS}" aria-label="Xoá">${_X_SVG}</button>`}
     </div>`;
 
     const _suffixCls = suffixPrimary
@@ -116,12 +118,12 @@ class XInput extends HTMLElement {
           }
         }
       }
-      clearBtn.classList.toggle('hidden', !control.value);
+      clearBtn?.classList.toggle('hidden', !control.value);
     };
 
     control.addEventListener('input', sync);
     control.addEventListener('change', sync);
-    clearBtn.addEventListener('click', () => {
+    clearBtn?.addEventListener('click', () => {
       control.value = '';
       control.focus();
       control.dispatchEvent(new Event('input', { bubbles: true }));

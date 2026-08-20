@@ -71,215 +71,175 @@
   </div>
 </div>
 
-<!-- Modal: Add/Edit Template -->
+<!-- Modal: Add/Edit Template
+     Ô nhập dùng <x-input>/<x-textarea> (core/x-input.js, core/x-controls.js —
+     cả hai phải nạp TRƯỚC js/02-templates.js, xem loader.js) nên id nằm ở thẻ
+     <input>/<textarea> bên trong, getElementById vẫn tra được như cũ. -->
 <div
   id="modal-template"
-  class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 overflow-y-auto p-4"
+  class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-3 sm:p-4"
 >
-  <div class="bg-white rounded-2xl p-4 sm:p-6 w-full max-w-2xl my-8">
-    <h3
-      class="text-base sm:text-lg font-semibold text-gray-800 mb-4"
-      id="template-modal-title"
-    >
-      Thêm Template
-    </h3>
-
-    <div
-      class="space-y-3 sm:space-y-4 max-h-[60vh] sm:max-h-[70vh] overflow-y-auto pr-2"
-    >
+  <div class="bg-white rounded-2xl w-full max-w-2xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden">
+    <!-- Header cố định -->
+    <div class="flex items-start justify-between gap-3 px-4 sm:px-6 py-4 border-b border-gray-100">
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1"
-          >Template Name (file) *</label
-        >
-        <input
-          id="template-name"
-          type="text"
-          placeholder="template1, template2..."
-          class="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-rose-300"
-        />
-        <p class="text-xs text-gray-500 mt-1">
-          <i data-icon="info"></i> Tên file template trong thư mục
-          public/themes/ (dùng làm ID duy nhất)
+        <h3 class="text-base sm:text-lg font-semibold text-gray-800" id="template-modal-title">
+          Thêm Template
+        </h3>
+        <p class="text-xs text-gray-500 mt-0.5">
+          Một mẫu = 3 file trong <code class="font-mono">public/themes/</code> + hàng dữ liệu này
         </p>
       </div>
-
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1"
-          >Tên hiển thị *</label
-        >
-        <input
-          id="template-display-name"
-          type="text"
-          placeholder="Classic Elegance"
-          class="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-rose-300"
-        />
-      </div>
-
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1"
-          >Mô tả</label
-        >
-        <textarea
-          id="template-description"
-          rows="2"
-          placeholder="Thiết kế sang trọng, cổ điển..."
-          class="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-rose-300"
-        ></textarea>
-      </div>
-
-      <div></div>
-
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1"
-          >Preview URL</label
-        >
-        <input
-          id="template-preview-url"
-          type="text"
-          placeholder="Tự động tạo từ Template Name"
-          class="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-rose-300 bg-gray-50"
-          readonly
-        />
-        <p class="text-xs text-gray-500 mt-1">
-          <i data-icon="info"></i> Tự động:
-          public/themes/{template_name}.html?preview=true
-        </p>
-      </div>
-
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-2"
-          >Features</label
-        >
-        <div class="grid grid-cols-2 gap-2">
-          <label
-            class="flex items-center gap-2 p-2 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
-          >
-            <input
-              type="checkbox"
-              value="gallery"
-              class="feature-checkbox w-4 h-4 text-rose-500 border-gray-300 rounded focus:ring-rose-500"
-            />
-            <span class="text-sm text-gray-700">Gallery</span>
-          </label>
-          <label
-            class="flex items-center gap-2 p-2 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
-          >
-            <input
-              type="checkbox"
-              value="map"
-              class="feature-checkbox w-4 h-4 text-rose-500 border-gray-300 rounded focus:ring-rose-500"
-            />
-            <span class="text-sm text-gray-700">Map</span>
-          </label>
-          <label
-            class="flex items-center gap-2 p-2 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
-          >
-            <input
-              type="checkbox"
-              value="qrcode"
-              class="feature-checkbox w-4 h-4 text-rose-500 border-gray-300 rounded focus:ring-rose-500"
-            />
-            <span class="text-sm text-gray-700">QR Code</span>
-          </label>
-          <label
-            class="flex items-center gap-2 p-2 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
-          >
-            <input
-              type="checkbox"
-              value="rsvp"
-              class="feature-checkbox w-4 h-4 text-rose-500 border-gray-300 rounded focus:ring-rose-500"
-            />
-            <span class="text-sm text-gray-700">RSVP</span>
-          </label>
-          <label
-            class="flex items-center gap-2 p-2 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
-          >
-            <input
-              type="checkbox"
-              value="countdown"
-              class="feature-checkbox w-4 h-4 text-rose-500 border-gray-300 rounded focus:ring-rose-500"
-            />
-            <span class="text-sm text-gray-700">Countdown</span>
-          </label>
-          <label
-            class="flex items-center gap-2 p-2 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
-          >
-            <input
-              type="checkbox"
-              value="music"
-              class="feature-checkbox w-4 h-4 text-rose-500 border-gray-300 rounded focus:ring-rose-500"
-            />
-            <span class="text-sm text-gray-700">Music</span>
-          </label>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-2 gap-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1"
-            >Danh mục</label
-          >
-          <select
-            id="template-category"
-            class="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-rose-300"
-          >
-            <option value="traditional">Traditional</option>
-            <option value="modern">Modern</option>
-            <option value="luxury">Luxury</option>
-            <option value="minimal">Minimal</option>
-          </select>
-        </div>
-
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1"
-            >Trạng thái</label
-          >
-          <select
-            id="template-status"
-            class="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-rose-300"
-          >
-            <option value="active">Active</option>
-            <option value="coming_soon">Coming Soon</option>
-            <option value="inactive">Inactive</option>
-          </select>
-        </div>
-      </div>
-
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1"
-          >Thứ tự hiển thị</label
-        >
-        <input
-          id="template-sort-order"
-          type="number"
-          value="0"
-          class="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-rose-300"
-        />
-        <p class="text-xs text-gray-500 mt-1">
-          <i data-icon="info"></i> Số nhỏ hiển thị trước
-        </p>
-      </div>
-
-      <div class="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
-        <input
-          id="template-is-active"
-          type="checkbox"
-          checked
-          class="w-4 h-4 text-rose-500 border-gray-300 rounded focus:ring-rose-500"
-        />
-        <label
-          for="template-is-active"
-          class="text-sm text-gray-700 font-medium"
-          >Kích hoạt template</label
-        >
-      </div>
+      <x-button
+        variant="ghost"
+        tone="neutral"
+        size="sm"
+        icon="x"
+        icon-only
+        aria-label="Đóng"
+        title="Đóng"
+        onclick="closeTemplateModal()"
+      ></x-button>
     </div>
 
-    <div class="flex gap-3 mt-6">
+    <!-- Thân cuộn -->
+    <div class="flex-1 overflow-y-auto px-4 sm:px-6 py-5 space-y-6">
+      <!-- Gửi Template Name + mô tả đang gõ sang AI, kèm 5 mẫu mới nhất làm ví
+           dụ (dựng prompt ở Edge Function, resource=template-ai) rồi điền hộ
+           cả form. Đặt trên đầu vì nó chạm tới mọi mục bên dưới. -->
+      <div class="flex items-center justify-between gap-3 flex-wrap rounded-xl bg-rose-50 px-4 py-3">
+        <p class="text-xs text-rose-900/70 max-w-sm">
+          Gõ vài chữ ý tưởng vào <strong>Mô tả</strong> (hoặc Template Name) rồi để AI điền hộ cả form.
+        </p>
+        <x-button
+          id="template-ai-btn"
+          variant="fill"
+          size="sm"
+          icon="wand-sparkles"
+          onclick="suggestTemplateMeta()"
+          title="AI điền cả form theo giọng văn của các mẫu đang bán"
+        >
+          Điền bằng AI
+        </x-button>
+      </div>
+
+      <!-- ── Nhận diện ── -->
+      <section class="space-y-3">
+        <h4 class="text-xs font-semibold uppercase tracking-wide text-gray-400">
+          Nhận diện
+        </h4>
+
+        <x-input
+          id="template-name"
+          label="Template Name (file)"
+          placeholder="romantic-gold"
+          mono
+          required
+        ></x-input>
+        <p class="text-xs text-gray-500 -mt-1.5 flex items-start gap-1.5">
+          <i data-icon="info" class="mt-0.5 shrink-0"></i>
+          <span>Tên thư mục trong <code class="font-mono">public/themes/</code>, cũng là ID duy nhất. Không đổi được sau khi mẫu đã bán.</span>
+        </p>
+
+        <x-input
+          id="template-preview-url"
+          label="Preview URL"
+          placeholder="Tự sinh từ Template Name"
+          readonly
+        ></x-input>
+      </section>
+
+      <!-- ── Hiển thị cho khách ── -->
+      <section class="space-y-3">
+        <h4 class="text-xs font-semibold uppercase tracking-wide text-gray-400">
+          Hiển thị cho khách
+        </h4>
+
+        <x-input
+          id="template-display-name"
+          label="Tên hiển thị"
+          placeholder="Romantic Gold"
+          required
+        ></x-input>
+
+        <x-textarea
+          id="template-description"
+          label="Mô tả"
+          height="72px"
+          maxlength="300"
+          placeholder="Xanh sage & vàng gold, lãng mạn và tinh tế"
+        ></x-textarea>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label for="template-category" class="block text-sm text-gray-700 mb-1.5">Danh mục</label>
+            <select
+              id="template-category"
+              class="w-full h-10 px-3 border border-gray-200 rounded-lg text-sm text-gray-800 bg-white outline-none focus:ring-2 focus:ring-rose-500/30 transition-all"
+            >
+              <option value="traditional">Traditional</option>
+              <option value="modern">Modern</option>
+              <option value="luxury">Luxury</option>
+              <option value="minimal">Minimal</option>
+              <option value="vintage">Vintage</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="template-sort-order" class="block text-sm text-gray-700 mb-1.5">Thứ tự hiển thị</label>
+            <input
+              id="template-sort-order"
+              type="number"
+              value="0"
+              class="w-full h-10 px-3 border border-gray-200 rounded-lg text-sm text-gray-800 bg-white outline-none focus:ring-2 focus:ring-rose-500/30 transition-all"
+            />
+            <p class="text-xs text-gray-500 mt-1">Số nhỏ lên trước</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Trạng thái ── -->
+      <section class="space-y-3">
+        <h4 class="text-xs font-semibold uppercase tracking-wide text-gray-400">
+          Trạng thái
+        </h4>
+
+        <div>
+          <label for="template-status" class="block text-sm text-gray-700 mb-1.5">Trạng thái bán</label>
+          <select
+            id="template-status"
+            class="w-full h-10 px-3 border border-gray-200 rounded-lg text-sm text-gray-800 bg-white outline-none focus:ring-2 focus:ring-rose-500/30 transition-all"
+          >
+            <option value="active">Active — đang bán</option>
+            <option value="coming_soon">Coming Soon — sắp ra mắt</option>
+            <option value="inactive">Inactive — ngừng bán</option>
+          </select>
+        </div>
+
+        <label
+          for="template-is-active"
+          class="flex items-start gap-3 p-3 bg-gray-50 rounded-xl cursor-pointer hover:bg-gray-100 transition-colors"
+        >
+          <input
+            id="template-is-active"
+            type="checkbox"
+            checked
+            class="mt-0.5 w-4 h-4 accent-rose-500 cursor-pointer"
+          />
+          <span>
+            <span class="block text-sm font-medium text-gray-700">Kích hoạt template</span>
+            <span class="block text-xs text-gray-500 mt-0.5">Bỏ tick là mẫu biến mất khỏi trang chọn thiệp, thiệp đã tạo vẫn chạy</span>
+          </span>
+        </label>
+      </section>
+    </div>
+
+    <!-- Footer cố định -->
+    <div class="flex gap-3 px-4 sm:px-6 py-4 border-t border-gray-100 bg-gray-50/60">
       <x-button variant="outline" tone="neutral" onclick="closeTemplateModal()" class="flex-1">
         Hủy
       </x-button>
-      <x-button onclick="saveTemplate()" class="flex-1">
+      <x-button icon="save" onclick="saveTemplate()" class="flex-1">
         Lưu
       </x-button>
     </div>

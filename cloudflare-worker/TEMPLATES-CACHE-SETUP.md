@@ -39,7 +39,6 @@ Response:
     "thumbnail": "assets/images/ZIN_3506.jpg",
     "previewUrl": "public/themes/template1.html?preview=true",
     "theme": "template1",
-    "features": ["gallery", "map", "qrcode", "rsvp"],
     "status": "active",
     "category": "traditional",
     "price": 299000,

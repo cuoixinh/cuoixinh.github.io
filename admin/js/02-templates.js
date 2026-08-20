@@ -159,14 +159,19 @@ function closeTemplateModal() {
   document.getElementById("modal-template").classList.remove("flex");
 }
 
+// Gán giá trị cho ô bọc trong <x-input>/<x-textarea>: nút "x" xoá nhanh của
+// chúng chỉ tự cập nhật khi người dùng gõ, gán bằng code phải gọi syncClearBtn.
+function setTemplateField(id, value) {
+  const el = document.getElementById(id);
+  el.value = value ?? "";
+  el.closest("x-input, x-textarea")?.syncClearBtn?.();
+}
+
 function clearTemplateForm() {
-  document.getElementById("template-name").value = "";
-  document.getElementById("template-display-name").value = "";
-  document.getElementById("template-description").value = "";
-  document.getElementById("template-preview-url").value = "";
-  document
-    .querySelectorAll(".feature-checkbox")
-    .forEach((cb) => (cb.checked = false));
+  setTemplateField("template-name", "");
+  setTemplateField("template-display-name", "");
+  setTemplateField("template-description", "");
+  setTemplateField("template-preview-url", "");
   document.getElementById("template-category").value = "traditional";
   document.getElementById("template-status").value = "active";
   document.getElementById("template-sort-order").value = "0";
@@ -177,16 +182,81 @@ function clearTemplateForm() {
 // file này chỉ chạy sau khi loader.js đã chèn xong partial templates-panel.html
 // nên #template-name đã tồn tại, và lúc đó DOMContentLoaded của trang thường
 // đã bắn xong từ lâu (script được loader chèn bằng createElement rất muộn).
+// Mỗi mẫu là một THƯ MỤC public/themes/<tên>/ (index.html + index.js +
+// theme.css) nên đường dẫn kết thúc bằng "/", không phải "<tên>.html".
+function templatePreviewUrl(templateName) {
+  const name = (templateName || "").trim();
+  return name ? `/public/themes/${name}/?preview=true` : null;
+}
+
 const templateNameInput = document.getElementById("template-name");
 const previewUrlInput = document.getElementById("template-preview-url");
 templateNameInput.addEventListener("input", (e) => {
-  const templateName = e.target.value.trim();
-  if (templateName) {
-    previewUrlInput.value = `public/themes/${templateName}.html?preview=true`;
-  } else {
-    previewUrlInput.value = "";
-  }
+  previewUrlInput.value = templatePreviewUrl(e.target.value) || "";
+  previewUrlInput.closest("x-input")?.syncClearBtn?.();
 });
+
+// Nhờ AI điền TRỌN form từ vài chữ ý tưởng. Chỉ gửi Template Name + mô tả thô
+// admin đang gõ; phần ví dụ (5 mẫu mới nhất) do Edge Function tự lấy từ DB và
+// ghép vào prompt — xem resource=template-ai ở wedding-admin.
+// Hai ngoại lệ không đè: Template Name đã gõ (là tên thư mục có thật) và, khi
+// đang SỬA mẫu cũ, nhóm thứ tự / trạng thái / kích hoạt.
+async function suggestTemplateMeta() {
+  const themeName = document.getElementById("template-name").value.trim();
+  const descEl = document.getElementById("template-description");
+  const hint = descEl.value.trim();
+
+  if (!themeName && !hint) {
+    showToast("Nhập Template Name hoặc vài chữ mô tả để AI có gì mà dựa vào", "error");
+    return;
+  }
+
+  const btn = document.getElementById("template-ai-btn");
+  btn.disabled = true;
+  descEl.closest("x-textarea")?.setLoading(true);
+
+  try {
+    const res = await fetch(`${EDGE_URL}?resource=template-ai`, {
+      method: "POST",
+      headers: adminHeaders({ "Content-Type": "application/json" }),
+      body: JSON.stringify({ template_name: themeName, description: hint }),
+    });
+
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || "Không gọi được AI");
+
+    // Ghi đè các ô chữ — admin bấm nút này là muốn bản gợi ý, chữ cũ đã nằm
+    // trong prompt nên ý không mất.
+    if (data.display_name) setTemplateField("template-display-name", data.display_name);
+    if (data.description) setTemplateField("template-description", data.description);
+    if (data.category) document.getElementById("template-category").value = data.category;
+
+    // template_name chỉ nhận khi ô đang trống: nó là tên thư mục
+    // public/themes/<tên>/ có thật, admin gõ rồi thì không được đổi.
+    if (!themeName && data.template_name) {
+      setTemplateField("template-name", data.template_name);
+      setTemplateField(
+        "template-preview-url",
+        templatePreviewUrl(data.template_name) || "",
+      );
+    }
+
+    // Phần cơ học chỉ áp khi đang THÊM mẫu mới — lúc sửa mẫu cũ, đè thứ tự /
+    // trạng thái là âm thầm bật lại một mẫu đã ngừng bán.
+    if (!editingTemplateId) {
+      document.getElementById("template-sort-order").value = data.sort_order ?? 0;
+      document.getElementById("template-status").value = data.status || "active";
+      document.getElementById("template-is-active").checked = data.is_active !== false;
+    }
+
+    showToast("AI đã điền xong, xem lại rồi Lưu", "success");
+  } catch (e) {
+    showToast(e.message, "error");
+  } finally {
+    descEl.closest("x-textarea")?.setLoading(false);
+    btn.disabled = false;
+  }
+}
 
 async function loadTemplateData(templateId) {
   try {
@@ -201,19 +271,10 @@ async function loadTemplateData(templateId) {
 
     const data = await res.json();
 
-    document.getElementById("template-name").value = data.template_name || "";
-    document.getElementById("template-display-name").value =
-      data.display_name || "";
-    document.getElementById("template-description").value =
-      data.description || "";
-    document.getElementById("template-preview-url").value =
-      data.preview_url || "";
-
-    // Set feature checkboxes
-    const features = data.features || [];
-    document.querySelectorAll(".feature-checkbox").forEach((cb) => {
-      cb.checked = features.includes(cb.value);
-    });
+    setTemplateField("template-name", data.template_name);
+    setTemplateField("template-display-name", data.display_name);
+    setTemplateField("template-description", data.description);
+    setTemplateField("template-preview-url", data.preview_url);
 
     document.getElementById("template-category").value =
       data.category || "traditional";
@@ -238,11 +299,6 @@ async function saveTemplate() {
     return;
   }
 
-  // Get features from checkboxes
-  const features = Array.from(
-    document.querySelectorAll(".feature-checkbox:checked"),
-  ).map((cb) => cb.value);
-
   const payload = {
     template_id: templateName, // Use template_name as template_id
     template_name: templateName,
@@ -250,9 +306,9 @@ async function saveTemplate() {
     description:
       document.getElementById("template-description").value.trim() || null,
     thumbnail_url: null,
-    preview_url:
-      document.getElementById("template-preview-url").value.trim() || null,
-    features: features,
+    // Suy thẳng từ template_name chứ không đọc ô hiển thị: ô đó chỉ để xem
+    // trước (readonly, có nút xoá của <x-input>) nên không đáng tin làm nguồn.
+    preview_url: templatePreviewUrl(templateName),
     category: document.getElementById("template-category").value,
     status: document.getElementById("template-status").value,
     sort_order:

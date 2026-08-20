@@ -92,7 +92,6 @@ export default {
           thumbnail: template.thumbnail_url,
           previewUrl: template.preview_url,
           theme: template.template_name,
-          features: template.features || [],
           status: template.status,
           category: template.category,
           price: templatePricing?.price || null,

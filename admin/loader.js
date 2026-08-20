@@ -38,6 +38,12 @@
     "../core/dal/ai-dal.js",
     "../invitation-setup/js/09-lunar.js",
     "js/01-weddings.js",
+    // Ô nhập của modal "Thêm Template" (<x-input>) và ô soạn mã HTML của tab
+    // "Ảnh nền" (<x-textarea>). Phải đứng TRƯỚC 02: 02-templates.js gắn
+    // listener vào #template-name ngay lúc nạp, id đó chỉ nằm ở <input> con
+    // sau khi <x-input> đã upgrade.
+    "../core/x-input.js",
+    "../core/x-controls.js",
     "js/02-templates.js",
     "js/03-sample-images.js",
     "js/04-sample-data.js",
@@ -48,9 +54,7 @@
     // Phải đứng SAU 03: dùng lại siIdbGet/siIdbPut + hằng SI_IDB_STORE của nó
     // để cất handle thư mục gốc (khác key, xem AX_IDB_KEY).
     "js/05-asset-images.js",
-    // Ô soạn mã HTML của tab "Ảnh nền": <x-textarea> + cụm nút Hoàn tác/Làm lại.
-    // Phải đứng TRƯỚC 06 để thẻ <x-textarea> đã upgrade khi nó gán giá trị.
-    "../core/x-controls.js",
+    // Cụm nút Hoàn tác/Làm lại của ô soạn mã HTML ở tab "Ảnh nền".
     "../core/x-undo.js",
     // Phải đứng SAU 03: dùng lại siIdbGet/siIdbPut + SI_IDB_STORE, và dùng CHUNG
     // handle thư mục assets/ với tab "Ảnh mẫu" (cùng key "assets-root").

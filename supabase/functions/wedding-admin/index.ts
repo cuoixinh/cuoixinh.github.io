@@ -1,5 +1,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { withAxiom } from '../_shared/axiom.ts'
+// Tầng gọi model dùng chung (Gemini → fallback Groq) cho resource=template-ai.
+import { generateWithFallback } from '../_shared/ai-provider.ts'
 
 // ── CORS ────────────────────────────────────────────────────────────────────
 // Allowlist origin thay cho '*'. Chỉ là vệ sinh — CORS ràng buộc trình duyệt,
@@ -291,6 +293,168 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
+  }
+
+
+  // ============= ĐIỀN MẪU THIỆP BẰNG AI (admin) =============
+  // Điền TRỌN form "Thêm Template": phần chữ (template_name, display_name,
+  // description, category) do AI viết, phần cơ học (sort_order, status,
+  // is_active) do server tính — không có lý do gì bắt model đoán. KHÔNG sinh
+  // file theme. Prompt kèm 5 mẫu mới nhất trong DB làm ví dụ để AI bắt đúng
+  // giọng văn + độ dài đang dùng.
+  if (resource === 'template-ai') {
+    if (!isAdmin) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401, headers: corsHeaders
+      })
+    }
+    if (method !== 'POST') {
+      return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+        status: 405, headers: corsHeaders
+      })
+    }
+
+    const body = await req.json().catch(() => ({}))
+    const clamp = (v: unknown, max: number) =>
+      String(v ?? '').replace(/\s+/g, ' ').trim().slice(0, max)
+
+    const themeName = clamp(body.template_name, 60)   // tên thư mục theme, có thể rỗng
+    const hint      = clamp(body.description, 500)    // ý tưởng thô admin gõ vào
+    if (!themeName && !hint) {
+      return new Response(JSON.stringify({ error: 'Cần tên mẫu hoặc mô tả để AI có gì mà dựa vào' }), {
+        status: 400, headers: corsHeaders
+      })
+    }
+
+    // Một lượt đọc cho cả ví dụ lẫn phần tính toán: 5 mẫu mới nhất làm ví dụ,
+    // toàn bộ template_name để tránh đặt trùng, sort_order lớn nhất để xếp cuối.
+    const [exRes, allRes] = await Promise.all([
+      supabase
+        .from('templates')
+        .select('template_name, display_name, description, category')
+        .order('created_at', { ascending: false })
+        .limit(5),
+      supabase.from('templates').select('template_name, sort_order'),
+    ])
+
+    const taken = new Set((allRes.data ?? []).map(t => t.template_name))
+    const nextSortOrder =
+      Math.max(0, ...(allRes.data ?? []).map(t => Number(t.sort_order) || 0)) + 1
+
+    const examples = (exRes.data ?? [])
+      .map((t, i) => [
+        `Ví dụ ${i + 1}:`,
+        `- template_name: ${t.template_name}`,
+        `- display_name: ${t.display_name}`,
+        `- description: ${t.description ?? ''}`,
+        `- category: ${t.category ?? ''}`,
+      ].join('\n'))
+      .join('\n\n') || '(chưa có mẫu nào trong hệ thống)'
+
+    // Chỉ nhờ AI đặt template_name khi admin CHƯA gõ: tên đó là tên thư mục
+    // public/themes/<tên>/ có thật trên đĩa, model không được phép đổi.
+    const needName = !themeName
+
+    const prompt = [
+      'Bạn đang đặt tên và viết mô tả cho một MẪU THIỆP CƯỚI online của nền tảng Cưới Xinh (tiếng Việt).',
+      '',
+      'Dưới đây là các mẫu đang bán, hãy học đúng giọng văn, độ dài và cách đặt tên của chúng:',
+      '',
+      examples,
+      '',
+      'Mẫu mới cần đặt tên:',
+      `- template_name (tên thư mục): ${themeName || '(chưa có — bạn hãy đề xuất)'}`,
+      `- Ý tưởng / mô tả thô của admin: ${hint || '(không có, hãy suy từ template_name)'}`,
+      '',
+      'Yêu cầu:',
+      '- display_name: 2–4 từ, viết hoa đầu từ, gợi phong cách & tông màu. Không trùng các ví dụ trên.',
+      ...(needName
+        ? ['- template_name: LUÔN LUÔN là chính display_name viết thường toàn bộ, bỏ dấu tiếng Việt, các từ nối với nhau bằng dấu GẠCH NGANG "-" (không phải gạch dưới "_"). Ví dụ display_name "Midnight Sage" → template_name "midnight-sage"; "Vintage Forest" → "vintage-forest". Chỉ gồm chữ thường a–z, số và gạch ngang; không khoảng trắng, không viết hoa, không bắt đầu bằng số hay gạch ngang.']
+        : []),
+      '- description: MỘT câu tiếng Việt 10–25 từ, tả tông màu + cảm xúc, không liệt kê tính năng (gallery, RSVP, QR…), không kết câu bằng dấu chấm than.',
+      '- category: chọn đúng MỘT trong: traditional, modern, luxury, minimal, vintage.',
+      '',
+      // display_name đứng TRƯỚC template_name: model sinh JSON theo đúng thứ tự
+      // khoá được nêu, mà template_name là bản kebab-case của display_name —
+      // đảo lại thì nó phải bịa slug trước khi có tên để rút gọn.
+      'Chỉ trả về JSON thuần, không kèm giải thích, đúng dạng:',
+      needName
+        ? '{"display_name":"...","template_name":"...","description":"...","category":"..."}'
+        : '{"display_name":"...","description":"...","category":"..."}',
+    ].join('\n')
+
+    const out = await generateWithFallback(
+      prompt,
+      {
+        gemini: { temperature: 1.0, responseMimeType: 'application/json' },
+        groq: { system: 'Bạn là copywriter tiếng Việt cho nền tảng thiệp cưới. Chỉ trả JSON thuần.', jsonMode: true },
+      },
+      log,
+      'template_meta',
+    )
+    if (!out) {
+      return new Response(JSON.stringify({ error: 'AI đang bận, thử lại sau ít phút' }), {
+        status: 503, headers: corsHeaders
+      })
+    }
+
+    // Model đôi khi bọc JSON trong ```json … ``` dù đã yêu cầu JSON thuần.
+    let parsed: Record<string, unknown>
+    try {
+      const raw = out.raw.trim().replace(/^```(?:json)?\s*/i, '').replace(/```$/, '')
+      parsed = JSON.parse(raw.slice(raw.indexOf('{'), raw.lastIndexOf('}') + 1))
+    } catch {
+      log.warn('ai.template_meta_parse_failed', { provider: out.provider })
+      return new Response(JSON.stringify({ error: 'AI trả về dữ liệu không đọc được, thử lại' }), {
+        status: 502, headers: corsHeaders
+      })
+    }
+
+    const VALID_CATEGORIES = ['traditional', 'modern', 'luxury', 'minimal', 'vintage']
+    const category = clamp(parsed.category, 20).toLowerCase()
+    const displayName = clamp(parsed.display_name, 60)
+
+    // "Tên hiển thị viết thường, nối bằng gạch ngang" — quy ước này ép ở ĐÂY chứ
+    // không chỉ nhờ prompt: model vẫn trả về chữ hoa/khoảng trắng/dấu tiếng Việt
+    // như thường. NFD tách dấu ra thành ký tự tổ hợp rồi xoá, riêng đ/Đ không có
+    // dạng tổ hợp nên phải thay tay.
+    // Mọi thứ không phải a–z/0–9 (khoảng trắng, gạch dưới, &, dấu câu) đều thành
+    // MỘT dấu gạch ngang — repo không có tên thư mục nào dùng "_".
+    const kebab = (s: string) =>
+      s.normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[đĐ]/g, 'd')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .slice(0, 40)
+        .replace(/-+$/, '')
+
+    // template_name đi thẳng vào cột UNIQUE template_id → phải sạch và không
+    // trùng, nếu không lệnh lưu sẽ 500 sau khi admin đã điền xong cả form.
+    // Model không theo quy ước thì rút thẳng từ display_name.
+    let suggestedName = ''
+    if (needName) {
+      const base = kebab(clamp(parsed.template_name, 40)) || kebab(displayName)
+      if (/^[a-z][a-z0-9-]*$/.test(base)) {
+        suggestedName = base
+        for (let i = 2; taken.has(suggestedName); i++) suggestedName = `${base}-${i}`
+      }
+    }
+
+    return new Response(JSON.stringify({
+      template_name: suggestedName,       // rỗng = giữ nguyên ô admin đang gõ
+      display_name: displayName,
+      description: clamp(parsed.description, 300),
+      category: VALID_CATEGORIES.includes(category) ? category : 'traditional',
+      // Phần cơ học, client chỉ áp khi đang THÊM mẫu mới.
+      sort_order: nextSortOrder,
+      status: 'active',
+      is_active: true,
+      provider: out.provider,
+    }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    })
   }
 
   // ============= MÃ GIẢM GIÁ (admin) =============
@@ -833,7 +997,6 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
         description: t.description,
         thumbnailUrl: t.thumbnail_url,
         previewUrl: t.preview_url,
-        features: t.features || [],
         status: t.status,
         category: t.category,
         price: pricingMap[t.template_name]?.price ?? 159000,

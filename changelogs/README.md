@@ -36,6 +36,7 @@ Làm trên **Supabase Dashboard → SQL Editor** (không cần CLI):
 | **RC1.8** | 2026-08-09 | Hạn mức lượt dùng mã giảm giá: bảng `promo_redemptions` (giữ chỗ 15' → chốt khi thanh toán xong), cột `promo_codes.note`/`batch_id`, hàm `cx_promo_reserve`/`redeem`/`release` | `RC1.8/promo_redemptions.sql` |
 | **RC1.9** | 2026-08-19 | Thêm cột `weddings.groom_phone` / `weddings.bride_phone` (text) — số điện thoại liên hệ nhập ở bước "Thông tin cặp đôi"                                    | `RC1.9/contact_phone.sql`     |
 | **RC1.10** | 2026-08-19 | Dọn dẹp tự động: cột `weddings.updated_at` + trigger, index quét, bật `pg_cron`/`pg_net` và lịch gọi Edge Function `cleanup-weddings` mỗi ngày | `RC1.10/cleanup_retention.sql` |
+| **RC1.11** | 2026-08-20 | Bỏ cột `templates.features` (text[]) — không trang nào đọc tới, mọi mẫu thiệp đều có đủ tính năng | `RC1.11/drop_template_features.sql` |
 
 ## Khi thêm phiên bản mới
 
