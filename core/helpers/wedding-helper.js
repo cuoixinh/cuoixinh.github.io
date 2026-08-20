@@ -98,6 +98,13 @@ function showLockedInvitation(info) {
       : "") +
     '<p style="margin:0;font-size:14px;line-height:1.6">Thiệp đã hết hạn dùng thử nên tạm ' +
     "thời chưa mở cho khách mời. Chủ thiệp cần kích hoạt để mở lại.</p>" +
+    // Lối ra duy nhất của màn phủ kín: không có nút này khách mời chỉ còn cách
+    // đóng tab (nút Back đưa về chính link thiệp → lại màn khoá).
+    '<a href="/" style="display:inline-flex;align-items:center;justify-content:center;' +
+    "margin-top:24px;padding:10px 24px;border-radius:999px;font-size:14px;font-weight:600;" +
+    "text-decoration:none;background:rgb(var(--cx-accent-rgb, 184 66 95));" +
+    'color:rgb(var(--cx-on-accent-rgb, 255 255 255))">' +
+    "Về trang chủ</a>" +
     "</div>";
 
   document.body.appendChild(box);

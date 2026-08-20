@@ -207,6 +207,38 @@ GitHub Pages chạy Jekyll nên đường dẫn kiểu đó không được publ
   `theme.css`.
 - Nên có: text thuần (không lồng icon) ở phần cho phép sửa.
 
+**Thứ tự tải ảnh — mọi thẻ `<img>` phải khai rõ.** Ảnh thiệp chỉ nhận src SAU khi API trả dữ
+liệu, nên trình duyệt không thấy chúng lúc quét HTML và không đoán được tấm nào quan trọng:
+không khai thì ảnh dưới đáy trang tranh băng thông với ảnh đang hiện trên màn. Quy ước:
+
+| Ảnh                                     | Khai                    |
+| --------------------------------------- | ----------------------- |
+| Ảnh của màn ĐẦU TIÊN khách thấy         | `fetchpriority="high"`  |
+| Ảnh trong `#main-card` của theme CÓ bìa | (không gì) — **KHÔNG lazy** |
+| Mọi ảnh còn lại                         | `loading="lazy"`        |
+
+- "Màn đầu tiên" tuỳ mẫu: theme có bìa thì là `#cover-bg-img`, theme không bìa (`#main-card`
+  không `display:none`) thì là `#main-photo`. Chỉ MỘT tấm được `high`.
+- Ảnh trong `#main-card` của theme có bìa **không được lazy**: `#main-card` là `display:none`
+  nên ảnh lazy chưa tải gì cả, bấm mở bìa mới bắt đầu tải → trống ảnh đúng lúc thiệp mở ra.
+  Ảnh eager vẫn tải bình thường dù cha `display:none`, đó là điều mình cần.
+- Ảnh lightbox (`#lb-img`) để yên: nó chỉ nhận src khi khách bấm.
+- **Không bao giờ để `src=""`.** Chuỗi rỗng phân giải thành URL TRANG HIỆN TẠI → trình duyệt
+  tải file HTML về, hiểu không nổi, vẽ icon vỡ kèm `alt` trong suốt lúc chờ dữ liệu. Đặt sẵn
+  ảnh 1x1 trong suốt (`data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7`)
+  làm src ban đầu. `<iframe src="">` của bản đồ thì để yên — nó có `#map-placeholder` lo phần
+  chờ.
+- **`renderCover`/`renderHero` phải gọi TRƯỚC `setupMusic`** trong `renderWedding`:
+  `setupMusic` kéo YouTube iframe API (script bên thứ ba) về ngay khi chạy, để nó đi trước là
+  ảnh màn đầu xếp hàng sau.
+
+Quy ước này nhắm vào MỘT thứ: bớt số request tranh nhau ở cửa sổ tới hạn. Thứ chỉ đổi *thứ
+tự* mà không bớt request (`preconnect`, `decoding`) đã thử rồi bỏ — chưa đo được lợi ích, mà
+`preconnect` còn dễ phản tác dụng vì socket nhàn rỗi bị đóng trước lúc dùng. Muốn thêm lại
+thì đo waterfall trước.
+
+`base-theme` đã dựng sẵn đúng bộ này — chép nó thì khỏi phải nhớ.
+
 ### Ảnh nền (tab "Ảnh nền" ở admin)
 
 Admin dán **mã HTML** → Run xem trong iframe → **chụp** thành WebP → ghi xuống đĩa (không có

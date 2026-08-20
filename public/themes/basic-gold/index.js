@@ -78,16 +78,19 @@ function renderWedding(w) {
 
   const side = _isGroom ? "groom" : "bride";
 
-  // --- MUSIC ---
-  setupMusic(w.music_url, w.enable_music);
-
   // --- COVER ---
+  // Khối dựng ảnh chạy TRƯỚC setupMusic: đây là chỗ ảnh của màn ĐẦU TIÊN nhận
+  // src, mà setupMusic kéo YouTube iframe API (script bên thứ ba) về ngay khi
+  // chạy — để nó đi trước là ảnh phải xếp hàng sau.
   renderCover(w);
 
   // --- HERO ---
   // useRing=false: ảnh hero tràn viền, không có khung để vẽ viền trắng.
   renderHero(w, false);
   _renderHeroSecond(w);
+
+  // --- MUSIC ---
+  setupMusic(w.music_url, w.enable_music);
 
   // --- COUPLE INFO ---
   setText("invite-groom", w.groom_name, "----------");

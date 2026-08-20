@@ -68,10 +68,15 @@
           id="section-hero"
           class="relative min-h-screen md:min-h-[932px] overflow-hidden"
         >
+          <!-- Ảnh DUY NHẤT nằm trong màn đầu, lại to nhất thiệp. src chỉ có sau
+               khi API trả dữ liệu nên preload scanner không thấy nó → phải nói rõ
+               ưu tiên, không thì trình duyệt xếp nó ngang mọi ảnh khác. Mọi ảnh
+               còn lại đều loading="lazy" để không tranh băng thông ở nhịp này. -->
           <img
             id="main-photo"
-            src=""
+            src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
             alt="Ảnh cưới"
+            fetchpriority="high"
             class="absolute inset-0 w-full h-full object-cover"
           />
           <!-- Hai đầu tối lại để chữ trắng đọc được trên mọi ảnh -->
@@ -248,16 +253,18 @@
             <div class="rg-cmix-a">
               <img
                 id="groom-photo"
-                src=""
+                src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
                 alt="Chú Rể"
+                loading="lazy"
                 class="w-full h-full object-cover"
               />
             </div>
             <div class="rg-cmix-b">
               <img
                 id="bride-photo"
-                src=""
+                src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
                 alt="Cô Dâu"
+                loading="lazy"
                 class="w-full h-full object-cover"
               />
             </div>
@@ -460,9 +467,10 @@
                 class="bg-white rounded-2xl p-3 shadow-md w-full max-w-[180px]"
               >
                 <img
-                  src=""
+                  src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
                   id="groom-qr-img"
                   alt="QR Chú Rể"
+                  loading="lazy"
                   class="w-full aspect-square object-cover"
                 />
               </div>
@@ -494,9 +502,10 @@
                 class="bg-white rounded-2xl p-3 shadow-md w-full max-w-[180px]"
               >
                 <img
-                  src=""
+                  src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
                   id="bride-qr-img"
                   alt="QR Cô Dâu"
+                  loading="lazy"
                   class="w-full aspect-square object-cover"
                 />
               </div>
@@ -605,7 +614,7 @@
       <div class="w-full h-full flex items-center justify-center px-[8px]">
         <img
           id="lb-img"
-          src=""
+          src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
           alt=""
           class="max-w-full max-h-full object-contain rounded-xl transition-opacity duration-200"
         />

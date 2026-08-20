@@ -79,16 +79,20 @@
 
     const side = _isGroom ? "groom" : "bride";
 
-    // --- Nhạc nền ---
-    setupMusic(w.music_url, w.enable_music);
-
     // --- Mở đầu: poster ngày cưới (mẫu này không có màn bìa) ---
+    // Khối dựng ảnh chạy TRƯỚC setupMusic: đây là chỗ ảnh của màn ĐẦU TIÊN nhận
+    // src, mà setupMusic kéo YouTube iframe API (script bên thứ ba) về ngay khi
+    // chạy — để nó đi trước là ảnh phải xếp hàng sau.
+
     renderHero(w, false);
     renderStoryQuote(w.story_quote);
     setText("hero-day", _dayMonth(w.ceremony_date), "--/--");
     setText("hero-year", _year(w.ceremony_date), "----");
     setText("footer-date", _dottedDate(w.ceremony_date), "----.--.--");
     startCountdown(w.ceremony_date, w.ceremony_time);
+
+    // --- Nhạc nền ---
+    setupMusic(w.music_url, w.enable_music);
 
     // --- Thư mời: nhà gái bật Vu Quy thì thay toàn bộ phần lễ ---
     const isVuQuy = !_isGroom && cxEnabled(w.vu_quy_enabled);

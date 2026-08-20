@@ -74,15 +74,18 @@
 
     const side = _isGroom ? "groom" : "bride";
 
-    // --- Nhạc nền ---
-    setupMusic(w.music_url, w.enable_music);
-
     // --- Mở đầu: poster tràn viền (mẫu này không có màn bìa) ---
+    // ĐỨNG ĐẦU hàm, trước setupMusic: đây là chỗ #main-photo nhận src, mà ảnh đó
+    // choán cả màn đầu tiên. setupMusic kéo YouTube iframe API (script bên thứ
+    // ba) về ngay khi chạy — để nó đi trước là tấm poster xếp hàng sau.
     renderHero(w, false);
     renderStoryQuote(w.story_quote);
     setText("hero-date", _posterDate(w.ceremony_date), "----.--.--");
     setText("monogram-groom", _initial(w.groom_name), "M");
     setText("monogram-bride", _initial(w.bride_name), "H");
+
+    // --- Nhạc nền ---
+    setupMusic(w.music_url, w.enable_music);
 
     // --- Đếm ngược ---
     startCountdown(w.ceremony_date, w.ceremony_time);

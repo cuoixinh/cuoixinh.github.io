@@ -79,15 +79,18 @@
 
     const side = _isGroom ? "groom" : "bride";
 
-    // --- Nhạc nền ---
-    setupMusic(w.music_url, w.enable_music);
-
     // --- Màn bìa ---
+    // Khối dựng ảnh chạy TRƯỚC setupMusic: đây là chỗ ảnh của màn ĐẦU TIÊN nhận
+    // src, mà setupMusic kéo YouTube iframe API (script bên thứ ba) về ngay khi
+    // chạy — để nó đi trước là ảnh phải xếp hàng sau.
     renderCover(w);
 
     // --- Mở đầu ---
     renderHero(w, false);
     renderStoryQuote(w.story_quote);
+
+    // --- Nhạc nền ---
+    setupMusic(w.music_url, w.enable_music);
 
     // --- Gia đình ---
     renderCoupleInfo(w);
