@@ -65,6 +65,8 @@
       theme: theme,
       is_published: false,
       _localOnly: true,
+      // Mốc dọn nháp bỏ quên (core/helpers/draft-retention.js).
+      _savedAt: Date.now(),
     });
     sessionStorage.setItem("draft_theme", theme);
     sessionStorage.setItem("draft_template_name", displayName || _titleOf(theme));

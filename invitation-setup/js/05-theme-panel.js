@@ -2105,6 +2105,9 @@ function _ensurePublishPopupAssets() {
     .ps-primary i{width:16px;height:16px}
     .ps-note{font-size:12px;line-height:1.5;color:#9b7d86;text-align:center;margin:8px 0 0;padding:0 8px}
     .ps-note b{color:#4a2c35;font-weight:600}
+    .ps-keep{font-size:12px;line-height:1.5;color:#9b7d86;text-align:center;margin:6px 0 0;padding:0 8px}
+    .ps-keep b{color:#b8425f;font-weight:600}
+    .ps-warn{color:#9a3412;background:#fff7ed;border:1px solid #fed7aa;border-radius:12px;padding:10px 12px}
     /* Nền ngà nhạt + viền mảnh (cùng bộ với thẻ link) thay vì chữ trơn: vẫn nhẹ hơn
        hẳn nút hồng phía trên, nhưng nhìn ra là NÚT chứ không phải dòng chữ phụ. */
     .ps-done{display:flex;align-items:center;justify-content:center;width:100%;height:40px;margin-top:8px;border-radius:12px;font-size:12px;font-weight:600;color:#7d5a64;background:#f7f0e8;border:1px solid #f0e4d4;transition:background .15s ease,color .15s ease}
@@ -2182,6 +2185,14 @@ function showPublishSuccessPopup() {
       linkRow("Thiệp nhà trai", "Ưu tiên lễ · tiệc nhà trai", groomUrl)
     : linkRow("Link thiệp cưới", "Gửi cho tất cả khách mời", generalUrl);
 
+  // Thiệp hết hạn dùng thử: xuất bản lại KHÔNG mở khoá (hạn giữ nguyên, edge
+  // function vẫn chặn link công khai) → phải nói thẳng ở đây, không thì chủ thiệp
+  // vừa bấm xuất bản xong lại thấy link chết mà không hiểu vì sao.
+  const keepHtml = IS_TRIAL_LOCKED
+    ? `<p class="ps-keep ps-warn">Thiệp đã <b>hết hạn dùng thử</b>: khách mời mở link chỉ thấy màn tạm khoá.
+       Kích hoạt để mở lại — để quá ${CONFIG.retention.unpaidDays} ngày thiệp sẽ tự động xoá.</p>`
+    : `<p class="ps-keep">Thiệp chưa thanh toán sẽ <b>tự động xoá sau ${CONFIG.retention.unpaidDays} ngày</b> kể từ khi hết hạn dùng thử.</p>`;
+
   const modal = document.createElement("div");
   modal.id = "publish-success-modal";
   modal.setAttribute("role", "dialog");
@@ -2202,6 +2213,9 @@ function showPublishSuccessPopup() {
 
         <x-button variant="bare" type="button" class="ps-primary" data-ps-guests><i data-lucide="users"></i>Quản lý khách mời<i data-lucide="arrow-right"></i></x-button>
         <p class="ps-note">Gửi link để mọi người chung vui và <b>gửi lời chúc</b>.</p>
+        <!-- Hạn dọn dẹp lấy ở CONFIG.retention. Để riêng một dòng (không gộp vào
+             .ps-note) vì .ps-note bị ẩn trên màn thấp, còn câu này phải luôn đọc được. -->
+        ${keepHtml}
 
         <x-button variant="bare" type="button" class="ps-done" data-ps-close>Hoàn tất</x-button>
       </div>
@@ -2289,6 +2303,8 @@ function _syncLocalOrder({ published = false } = {}) {
     groomName,
     brideName,
     status,
+    // Mốc để core/helpers/draft-retention.js biết đơn nháp này bỏ quên bao lâu rồi.
+    updatedAt: new Date().toISOString(),
   };
 
   if (idx >= 0) orders[idx] = order;

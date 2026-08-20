@@ -544,6 +544,7 @@ function fillForm(data) {
   initCeremonySection(data);
 
   IS_PUBLISHED = !!data.is_published;
+  IS_TRIAL_LOCKED = !!data.trial_locked;
   _syncAdvancedSection();
 
   if (typeof lucide !== "undefined") lucide.createIcons();
@@ -772,8 +773,20 @@ async function saveAll(overrides = {}, label = "Đang lưu...") {
       .getElementById("guests-iframe")
       ?.contentWindow?.setShareTemplate?.(payload.share_message_template ?? null);
 
+    // Nhắc luôn hạn dọn nháp (số ngày ở CONFIG.retention): khách lưu nháp rồi bỏ
+    // đó hàng tháng, không nói ở đây thì lúc thiệp biến mất họ tưởng bị mất dữ liệu.
+    // Nhánh "đã xuất bản" xét cả payload lẫn cờ: lần xuất bản ĐẦU, IS_PUBLISHED
+    // còn false mà payload đã mang is_published:true.
     if (_isLocalDraft && !IS_LOGIN) {
-      showToast("Đã lưu nháp vào thiết bị này", "success");
+      showToast(
+        `Đã lưu nháp vào thiết bị này — tự động xoá sau ${CONFIG.retention.localDraftDays} ngày`,
+        "success",
+      );
+    } else if (!payload.is_published && !IS_PUBLISHED) {
+      showToast(
+        `Đã lưu nháp — thiệp nháp tự động xoá sau ${CONFIG.retention.serverDraftDays} ngày nếu chưa xuất bản`,
+        "success",
+      );
     } else {
       showToast("Đã lưu thành công!", "success");
     }

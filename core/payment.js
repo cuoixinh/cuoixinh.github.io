@@ -517,7 +517,10 @@
 
       if (draftData) {
         // Có draft local → PATCH toàn bộ data lên DB + set is_published=true
-        const { _localOnly, ...fields } = draftData;
+        // Bỏ các khoá riêng của bản nháp local (_localOnly, _savedAt của
+        // draft-retention.js) — edge function không có cột tương ứng nên chúng chỉ
+        // bị loại kèm một dòng cảnh báo trong log.
+        const { _localOnly, _savedAt, ...fields } = draftData;
         window.weddingDAL.updateWedding({ id: manage_id, ...fields, is_published: true })
           .then(() => removeCache(draftKey))
           .catch(() => {});

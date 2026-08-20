@@ -343,11 +343,11 @@ function cardHTML(c, i) {
 
   const statusBadge = c.published
     ? `<span class="${BADGE} bg-emerald-500 text-white"><i data-icon="check" class="text-[9px]"></i>Đã xuất bản</span>`
-    : `<span class="${BADGE} bg-gray-100 text-gray-600"><i data-icon="pen-tool" class="text-[9px]"></i>Nháp</span>`;
+    : `<span class="${BADGE} bg-gray-100 text-gray-600" title="${escAttr(draftKeepText(c))}"><i data-icon="pen-tool" class="text-[9px]"></i>Nháp</span>`;
 
   let leftBadges = "";
   if (state === "trial" || state === "expired" || state === "published") {
-    leftBadges = `<span class="${BADGE} bg-amber-500 text-white"><i data-icon="credit-card" class="text-[9px]"></i>Chưa kích hoạt</span>`;
+    leftBadges = `<span class="${BADGE} bg-amber-500 text-white" title="${escAttr(UNPAID_KEEP_TEXT)}"><i data-icon="credit-card" class="text-[9px]"></i>Chưa kích hoạt</span>`;
     if (state === "trial") {
       leftBadges += `<span class="${BADGE} bg-sky-500 text-white"><i data-icon="clock" class="text-[9px]"></i><span class="sm:hidden">Còn ${days} ngày</span><span class="hidden sm:inline">Dùng thử · còn ${days} ngày</span></span>`;
     } else if (state === "expired") {
@@ -357,7 +357,7 @@ function cardHTML(c, i) {
     leftBadges = `<span class="${BADGE} bg-emerald-500 text-white"><i data-icon="circle-check" class="text-[9px]"></i>Đã kích hoạt</span>`;
   }
 
-  const note = noteHTML(state, days, i);
+  const note = noteHTML(c, state, days, i);
   const slugRow = c.slug ? slugRowHTML(c, i) : "";
 
   return `
@@ -400,9 +400,22 @@ function cardHTML(c, i) {
     </div>`;
 }
 
+// Câu nhắc hạn dọn dẹp tự động — số ngày lấy ở CONFIG.retention, không viết cứng.
+// Dùng cho cả tooltip của nhãn lẫn dòng chữ trong khối ghi chú, nên chỉ là TEXT
+// thuần (nhét vào title="" được).
+const UNPAID_KEEP_TEXT = `Thiệp chưa thanh toán sẽ tự động xoá sau ${CONFIG.retention.unpaidDays} ngày kể từ khi hết hạn dùng thử.`;
+
+// Nháp trên máy (chưa có bản ghi DB) và nháp đã lưu trên hệ thống có hạn riêng.
+function draftKeepText(c) {
+  return c.local
+    ? `Bản nháp này chỉ nằm trên trình duyệt máy này và sẽ tự động xoá sau ${CONFIG.retention.localDraftDays} ngày. Đăng nhập để lưu lên hệ thống.`
+    : `Thiệp nháp chưa xuất bản sẽ tự động xoá sau ${CONFIG.retention.serverDraftDays} ngày kể từ lần lưu gần nhất.`;
+}
+
 // Hiện ở MỌI khổ màn: đây là chỗ duy nhất nói rõ thiệp còn mấy ngày dùng thử /
-// đã hết hạn — ẩn trên mobile là khách không biết vì sao thiệp sắp đóng.
-function noteHTML(state, days, i) {
+// đã hết hạn / bao giờ bị dọn — ẩn trên mobile là khách không biết vì sao thiệp
+// sắp đóng.
+function noteHTML(c, state, days, i) {
   if (state === "trial") {
     // "Thanh toán ngay" mở thẳng bảng thanh toán như nút "Kích hoạt thiệp" ở
     // hàng nút dưới — câu này là chỗ khách đọc thấy hạn, đừng bắt họ đi tìm nút.
@@ -411,19 +424,20 @@ function noteHTML(state, days, i) {
       <span>Còn ${days} ngày dùng thử -
         <button type="button" onclick="activateCard(${i})"
           class="font-semibold underline underline-offset-2 hover:text-sky-900">Thanh toán</button>
-        để giữ thiệp mở.</span>
+        để giữ thiệp mở. ${esc(UNPAID_KEEP_TEXT)}</span>
     </div>`;
   }
-  if (state === "expired") {
+  if (state === "expired" || state === "published") {
     return `<div class="mt-3 flex gap-2 rounded-lg bg-red-50 p-2.5 text-[11px] leading-relaxed text-red-700">
       <i data-icon="triangle-alert" class="mt-0.5 text-[11px] text-red-500"></i>
-      <span>Hết hạn dùng thử — kích hoạt để mở lại cho khách mời.</span>
+      <span>${state === "expired" ? "Hết hạn dùng thử — kích hoạt để mở lại cho khách mời." : "Thiệp chưa kích hoạt — thanh toán để mở vĩnh viễn."}
+        ${esc(UNPAID_KEEP_TEXT)}</span>
     </div>`;
   }
   if (state === "draft") {
     return `<div class="mt-3 flex gap-2 rounded-lg bg-gray-50 p-2.5 text-[11px] leading-relaxed text-gray-600">
       <i data-icon="pen-tool" class="mt-0.5 text-[11px] text-gray-400"></i>
-      <span>Bản nháp — xuất bản để chia sẻ với khách mời.</span>
+      <span>Bản nháp — xuất bản để chia sẻ với khách mời. ${esc(draftKeepText(c))}</span>
     </div>`;
   }
   return "";

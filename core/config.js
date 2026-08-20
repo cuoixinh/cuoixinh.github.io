@@ -10,7 +10,7 @@ const USE_CACHE = true;
 // Bản thân file này KHÔNG mang `?v=` (nó là mỏ neo, phải đọc được version từ
 // nó trước đã) → trên Cloudflare phải có Cache Rule bypass `/core/config.js`,
 // nếu không đổi số ở đây cũng vô nghĩa.
-const CX_VERSION = "2026.08.19-54";
+const CX_VERSION = "2026.08.19-57";
 
 // Thẻ <link> CSS viết cứng trong HTML không tự mang `?v=` → dễ rơi vào cảnh
 // HTML/partial đã là bản mới mà CSS vẫn là bản cũ (trang không vỡ, chỉ sai bố
@@ -152,6 +152,18 @@ const CONFIG = {
         "image/svg+xml",
       ],
     },
+  },
+
+  // Dọn dẹp tự động: bao nhiêu NGÀY nữa thì thiệp/nháp bỏ đó bị xoá. Đây là nguồn
+  // sự thật cho mọi câu nhắc hiện cho khách (thẻ ở "Quản lý thiệp cưới", tooltip nút
+  // "Lưu nháp") — đổi số ở đây là đổi cả web, đừng viết cứng số ngày trong UI.
+  // Mốc đếm: thiệp chưa thanh toán tính từ lúc HẾT HẠN DÙNG THỬ (expires_at), nháp
+  // tính từ lần lưu cuối. Bên back-end, Edge Function `cleanup-weddings` giữ bản sao
+  // số ngày ở biến môi trường RETENTION_DAYS — đổi ở đây phải đổi cả bên đó.
+  retention: {
+    unpaidDays: 30, // đã xuất bản nhưng chưa thanh toán
+    serverDraftDays: 30, // nháp đã lưu trên hệ thống (đã đăng nhập)
+    localDraftDays: 30, // nháp chỉ nằm trong trình duyệt của máy này
   },
 
   // Love Story

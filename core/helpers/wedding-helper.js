@@ -45,11 +45,63 @@ async function loadWeddingData(weddingSlug, renderCallback) {
       applyElements(wedding.theme_setting);
     }
   } catch (error) {
+    // Hết hạn dùng thử: edge function trả 403 TRIAL_EXPIRED. Đây KHÔNG phải lỗi —
+    // hiện màn khoá thay vì đá về trang chủ, nếu không khách mời (và cả chủ thiệp)
+    // không hiểu vì sao link chết.
+    if (error && error.code === "TRIAL_EXPIRED") {
+      showLockedInvitation(error.info);
+      return;
+    }
     console.error("Lỗi load wedding data:", error);
     if (!isPreviewMode()) {
       window.location.href = "/";
     }
   }
+}
+
+// Màn "thiệp tạm khoá" phủ kín trang. Viết bằng inline style + biến --cx-* dùng
+// chung: trang thiệp chỉ nạp styles/themes.css nên không có utility Tailwind, mà
+// màn này phải hiện được trên MỌI theme.
+function showLockedInvitation(info) {
+  if (document.getElementById("cx-locked")) return;
+
+  const names = [info && info.groom_name, info && info.bride_name]
+    .filter(Boolean)
+    .join(" & ");
+  const esc = (s) =>
+    String(s).replace(
+      /[&<>"]/g,
+      (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c],
+    );
+
+  const box = document.createElement("div");
+  box.id = "cx-locked";
+  box.style.cssText =
+    "position:fixed;inset:0;z-index:2147483000;display:flex;align-items:center;" +
+    "justify-content:center;padding:24px;background:var(--cx-surface,#fffdfa);" +
+    "color:var(--cx-body,#6b5560);font-family:inherit;text-align:center";
+  box.innerHTML =
+    '<div style="max-width:360px">' +
+    '<div style="width:64px;height:64px;margin:0 auto 20px;border-radius:999px;' +
+    "display:flex;align-items:center;justify-content:center;" +
+    'background:color-mix(in srgb, var(--cx-accent,#b8425f) 12%, transparent)">' +
+    '<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" ' +
+    'stroke="var(--cx-accent,#b8425f)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' +
+    '<rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>' +
+    "</div>" +
+    '<h1 style="margin:0 0 8px;font-size:22px;line-height:1.3;font-weight:600;' +
+    'color:var(--cx-heading,#4a2c35)">Thiệp đang tạm khoá</h1>' +
+    (names
+      ? '<p style="margin:0 0 12px;font-size:15px;color:var(--cx-heading,#4a2c35)">' +
+        esc(names) +
+        "</p>"
+      : "") +
+    '<p style="margin:0;font-size:14px;line-height:1.6">Thiệp đã hết hạn dùng thử nên tạm ' +
+    "thời chưa mở cho khách mời. Chủ thiệp cần kích hoạt để mở lại.</p>" +
+    "</div>";
+
+  document.body.appendChild(box);
+  document.body.style.overflow = "hidden";
 }
 
 function setupPersonalizedGreeting(

@@ -269,6 +269,10 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   `{type:"preset", preset, parts}`, id thật của part là `<blockId>__<key>`. Cỡ chữ viết bằng
   `em` để phóng cả cụm cân đối.
 - **Sơ đồ Mermaid:** sửa sơ đồ thì đồng bộ luôn bảng roadmap + text mô tả bên dưới.
+- **Dọn dẹp tự động (XOÁ HẲN dữ liệu):** thiệp chưa thanh toán và nháp bỏ quên bị cron xoá
+  vĩnh viễn, thiệp hết hạn dùng thử bị khoá với khách mời. Số ngày ở `CONFIG.retention` **và**
+  biến `RETENTION_DAYS` của Edge Function — hai nơi, đổi phải đổi cả hai. Đụng tới `expires_at`,
+  hạn giữ dữ liệu hay màn khoá thì đọc `docs/cleanup-retention.md` trước.
 
 ## Phân quyền
 

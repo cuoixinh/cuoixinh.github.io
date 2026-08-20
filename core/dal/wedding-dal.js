@@ -30,8 +30,23 @@ class WeddingDAL {
       },
     });
 
+    // Lỗi có body JSON thì bê nguyên `code` ra ngoài: trang thiệp phân biệt "hết
+    // hạn dùng thử" (403 TRIAL_EXPIRED → hiện màn khoá) với lỗi thật (đá về trang
+    // chủ) bằng chính mã này.
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      let body = null;
+      try {
+        body = await response.json();
+      } catch (e) {
+        /* lỗi không kèm body JSON */
+      }
+      const err = new Error(
+        (body && body.error) || `HTTP ${response.status}: ${response.statusText}`,
+      );
+      err.status = response.status;
+      err.code = body && body.code;
+      err.info = body;
+      throw err;
     }
 
     const data = await response.json();

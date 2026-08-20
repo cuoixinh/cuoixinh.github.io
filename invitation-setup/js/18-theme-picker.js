@@ -158,6 +158,16 @@ function _syncAdvancedSection() {
   // Ẩn/hiện nút này là đổi chỗ trống của navbar → xếp lại các mục nav.
   window.cxNavReflow?.();
 
+  // Tooltip nút "Lưu nháp": nói rõ nháp nằm ở đâu và bao giờ bị dọn. Số ngày lấy
+  // ở CONFIG.retention, đừng viết cứng. Chưa đăng nhập thì nháp chỉ ở máy này.
+  if (draftTab) {
+    const keep = IS_LOGIN
+      ? `Lưu nháp — thiệp nháp chưa xuất bản sẽ tự động xoá sau ${CONFIG.retention.serverDraftDays} ngày kể từ lần lưu gần nhất`
+      : `Lưu nháp vào thiết bị này — nháp sẽ tự động xoá sau ${CONFIG.retention.localDraftDays} ngày. Đăng nhập để lưu lên hệ thống`;
+    draftTab.title = keep;
+    draftTab.setAttribute("aria-label", keep);
+  }
+
   // Thiệp đã xuất bản: nút chính đóng vai trò "lưu lại" → đổi nhãn "Lưu & Xuất bản"
   const publishLabel = document.querySelector("#tab-publish span");
   if (publishLabel) {

@@ -40,6 +40,12 @@ let IS_LOGIN = false;
 // panel khách mời) phải xét `IS_PUBLISHED && IS_LOGIN`.
 let IS_PUBLISHED = false;
 
+// Thiệp đã xuất bản nhưng hết hạn dùng thử và chưa thanh toán → khách mời mở link
+// chỉ thấy màn "tạm khoá" (edge function chặn ngay ở API). Cờ do server tính và
+// gửi kèm dữ liệu thiệp; chủ thiệp vẫn sửa và xuất bản bình thường, nên đây chỉ
+// dùng để NÓI CHO BIẾT, không khoá chức năng nào.
+let IS_TRIAL_LOCKED = false;
+
 // Gán cờ và vẽ lại UI phụ thuộc phiên NGAY khi giá trị đổi. Mọi lối cập nhật cờ
 // đều đi qua đây — trước kia có nhánh chỉ gán cờ mà quên vẽ lại, nên phát hiện
 // mất phiên rồi mà nút vẫn còn nhãn "Lưu & Xuất bản".
@@ -90,8 +96,14 @@ const DRAFT_LOCAL_KEY = buildCacheKey("draft", WEDDING_ID);
 function getLocalDraft() {
   return getCache(DRAFT_LOCAL_KEY);
 }
+// `_savedAt` là mốc để core/helpers/draft-retention.js dọn nháp bỏ quên — nháp
+// nằm ở localStorage nên server không với tới, không đóng dấu là không dọn được.
 function saveLocalDraft(data) {
-  setCache(DRAFT_LOCAL_KEY, { ...data, _localOnly: _isLocalDraft });
+  setCache(DRAFT_LOCAL_KEY, {
+    ...data,
+    _localOnly: _isLocalDraft,
+    _savedAt: Date.now(),
+  });
 }
 function clearLocalDraft() {
   removeCache(DRAFT_LOCAL_KEY);

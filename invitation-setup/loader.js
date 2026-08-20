@@ -45,6 +45,7 @@
     "../core/x-button.js",
     "../core/x-popover.js",
     "../core/cache-util.js",
+    "../core/helpers/draft-retention.js",
     "../core/constant.js",
     "../core/auth-ui.js",
     "../core/auth.js",

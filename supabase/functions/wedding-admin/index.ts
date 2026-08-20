@@ -600,7 +600,7 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
     // Kiểm tra id tồn tại và lấy data hiện tại
     const { data: existing, error: fetchError } = await supabase
       .from('weddings')
-      .select('cover_image_url, groom_image_url, bride_image_url, groom_qr_url, bride_qr_url, gallery_images, user_id, payment_status')
+      .select('cover_image_url, groom_image_url, bride_image_url, groom_qr_url, bride_qr_url, gallery_images, user_id, payment_status, is_published')
       .eq('id', id)
       .single()
 
@@ -766,9 +766,18 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
     // ---- End validate ----
 
     // Xuất bản = lên DÙNG THỬ 3 ngày: đặt expires_at = now + 3 ngày. Thanh toán
-    // thành công (payos-webhook) mới gán expires_at = null → mở vĩnh viễn. Guard:
-    // thiệp đã thanh toán rồi thì KHÔNG reset về dùng thử khi publish/lưu lại.
-    if (fields.is_published === true && existing.payment_status !== 'completed') {
+    // thành công (payos-webhook) mới gán expires_at = null → mở vĩnh viễn. Hai guard:
+    //   + thiệp đã thanh toán rồi thì KHÔNG reset về dùng thử khi publish/lưu lại;
+    //   + chỉ đặt ở lần CHUYỂN chưa xuất bản → xuất bản. Thiệp đã xuất bản thì nút
+    //     chính đổi nhãn thành "Lưu & Xuất bản" nhưng vẫn gọi publishWedding() nên
+    //     lần lưu nào cũng kèm is_published: true — không chặn thì mỗi lần bấm lưu
+    //     là hạn dùng thử lùi thêm 3 ngày (dùng thử vô hạn) và mốc dọn dẹp
+    //     "expires_at + 30 ngày" của cleanup-weddings không bao giờ tới.
+    if (
+      fields.is_published === true &&
+      existing.is_published !== true &&
+      existing.payment_status !== 'completed'
+    ) {
       const expiresAt = new Date()
       expiresAt.setDate(expiresAt.getDate() + 3)
       fields.expires_at = expiresAt.toISOString()
@@ -1028,7 +1037,11 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
     // cảm không bao giờ rời khỏi DB.
     const PUBLIC_WEDDING_COLUMNS = ['id', 'is_active', 'created_at', ...CUSTOMER_EDITABLE_FIELDS].join(', ')
 
-    let query = supabase.from('weddings').select(isAdmin ? '*' : PUBLIC_WEDDING_COLUMNS)
+    // expires_at + payment_status chỉ lấy để XÉT khoá ngay dưới đây, bị gỡ khỏi
+    // response trước khi trả về — không để dữ liệu thanh toán rời khỏi DB.
+    let query = supabase
+      .from('weddings')
+      .select(isAdmin ? '*' : `${PUBLIC_WEDDING_COLUMNS}, expires_at, payment_status`)
 
     if (slug) {
       query = query.eq('slug', slug)
@@ -1039,6 +1052,36 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
     const { data, error } = await query.single()
 
     if (error) return new Response(JSON.stringify({ error }), { status: 404, headers: corsHeaders })
+
+    // ── Hết hạn dùng thử = KHOÁ với khách mời ────────────────────────────────
+    // Chặn ở đây chứ không ở client: link thiệp là công khai, ẩn bằng JS thì ai
+    // xem source cũng lấy được dữ liệu. Chỉ chặn đường tra theo SLUG (đường công
+    // khai); tra theo id (UUID quản lý, chỉ chủ thiệp có) vẫn mở để trình chỉnh
+    // sửa nạp được thiệp — khách vẫn sửa và xuất bản bình thường, chỉ là xuất bản
+    // xong vẫn khoá cho tới khi thanh toán (thanh toán xong expires_at = null).
+    if (!isAdmin) {
+      const trialOver = !!data.expires_at && new Date(data.expires_at).getTime() < Date.now()
+      const locked = data.is_published && trialOver && data.payment_status !== 'completed'
+      delete data.expires_at
+      delete data.payment_status
+
+      if (locked && slug) {
+        log.info('wedding.trial_locked', { slug })
+        return new Response(JSON.stringify({
+          error: 'Thiệp đã hết hạn dùng thử',
+          code: 'TRIAL_EXPIRED',
+          groom_name: data.groom_name,
+          bride_name: data.bride_name,
+          theme: data.theme,
+        }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      }
+
+      // Đường tra theo id (chủ thiệp đang mở trình chỉnh sửa): không chặn, nhưng
+      // nói cho biết thiệp đang khoá với khách mời. Đây là TRẠNG THÁI, không phải
+      // dữ liệu thanh toán — thiếu nó chủ thiệp bấm xuất bản xong vẫn tưởng thiệp
+      // đang mở.
+      data.trial_locked = locked
+    }
 
     return new Response(JSON.stringify(data), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
