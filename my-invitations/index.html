@@ -62,6 +62,19 @@
         </x-button>
       </div>
 
+      <!-- Câu nhắc hạn dọn dẹp: ghim MỘT chỗ ở đầu trang thay vì lặp trên từng
+           thẻ. Chữ do index.js đổ vào (số ngày lấy ở CONFIG.retention). -->
+      <div
+        class="mb-4 flex items-start gap-1.5 rounded-lg bg-gray-50 px-3 py-2 text-[10px] leading-relaxed text-gray-500"
+      >
+        <i
+          data-icon="info"
+          data-size="12"
+          class="mt-0.5 shrink-0 text-gray-400"
+        ></i>
+        <span id="keep-note"></span>
+      </div>
+
       <!-- Bộ lọc: Của tôi / Xuất bản / Nháp. Không dùng <x-button> — đây là tab,
            không phải nút hành động (xem quy ước ở CLAUDE.md). -->
       <div id="tabs" class="cx-segbar mb-5">
@@ -105,7 +118,9 @@
         <div
           class="flex min-h-[200px] overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm"
         >
-          <div class="flex w-2/5 shrink-0 items-center justify-center bg-gray-50 p-2 sm:p-3">
+          <div
+            class="flex w-2/5 shrink-0 items-center justify-center bg-gray-50 p-2 sm:p-3"
+          >
             <div
               class="aspect-[9/16] max-h-full w-full animate-pulse rounded-md bg-gray-100"
             ></div>
@@ -119,7 +134,9 @@
         <div
           class="hidden sm:flex min-h-[200px] overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm"
         >
-          <div class="flex w-2/5 shrink-0 items-center justify-center bg-gray-50 p-2 sm:p-3">
+          <div
+            class="flex w-2/5 shrink-0 items-center justify-center bg-gray-50 p-2 sm:p-3"
+          >
             <div
               class="aspect-[9/16] max-h-full w-full animate-pulse rounded-md bg-gray-100"
             ></div>
@@ -133,7 +150,9 @@
         <div
           class="hidden xl:flex min-h-[200px] overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm"
         >
-          <div class="flex w-2/5 shrink-0 items-center justify-center bg-gray-50 p-2 sm:p-3">
+          <div
+            class="flex w-2/5 shrink-0 items-center justify-center bg-gray-50 p-2 sm:p-3"
+          >
             <div
               class="aspect-[9/16] max-h-full w-full animate-pulse rounded-md bg-gray-100"
             ></div>

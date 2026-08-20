@@ -10,7 +10,7 @@ const USE_CACHE = true;
 // Bản thân file này KHÔNG mang `?v=` (nó là mỏ neo, phải đọc được version từ
 // nó trước đã) → trên Cloudflare phải có Cache Rule bypass `/core/config.js`,
 // nếu không đổi số ở đây cũng vô nghĩa.
-const CX_VERSION = "2026.08.19-57";
+const CX_VERSION = "2026.08.20-58";
 
 // Thẻ <link> CSS viết cứng trong HTML không tự mang `?v=` → dễ rơi vào cảnh
 // HTML/partial đã là bản mới mà CSS vẫn là bản cũ (trang không vỡ, chỉ sai bố
@@ -160,6 +160,10 @@ const CONFIG = {
   // Mốc đếm: thiệp chưa thanh toán tính từ lúc HẾT HẠN DÙNG THỬ (expires_at), nháp
   // tính từ lần lưu cuối. Bên back-end, Edge Function `cleanup-weddings` giữ bản sao
   // số ngày ở biến môi trường RETENTION_DAYS — đổi ở đây phải đổi cả bên đó.
+  // Số ngày DÙNG THỬ khi xuất bản. Edge Function wedding-admin giữ bản sao con số
+  // này (đặt expires_at = now + 3 ngày) — đổi ở đây phải đổi cả bên đó.
+  trialDays: 3,
+
   retention: {
     unpaidDays: 30, // đã xuất bản nhưng chưa thanh toán
     serverDraftDays: 30, // nháp đã lưu trên hệ thống (đã đăng nhập)

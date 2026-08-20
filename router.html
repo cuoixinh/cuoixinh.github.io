@@ -46,13 +46,24 @@
           fetch(`${API_BASE}?slug=${slug}`, {
             headers: { Authorization: `Bearer ${ANON_KEY}` },
           })
-            .then((r) => (r.ok ? r.json() : null))
-            .then((data) => {
-              if (!data) {
+            // Đọc body cả khi lỗi: 403 TRIAL_EXPIRED cũng kèm theme, cần nó
+            // để biết đưa sang trang thiệp nào.
+            .then((r) =>
+              r
+                .json()
+                .then((d) => ({ ok: r.ok, data: d }))
+                .catch(() => ({ ok: r.ok, data: null })),
+            )
+            .then(({ ok, data }) => {
+              // Hết hạn dùng thử KHÔNG phải lỗi: vẫn đưa sang trang thiệp, ở đó
+              // wedding-helper hiện màn khoá. Đá về trang chủ thì khách mời (và
+              // cả chủ thiệp) không hiểu vì sao link chết.
+              const expired = !ok && data && data.code === "TRIAL_EXPIRED";
+              if (!data || (!ok && !expired)) {
                 window.location.replace("/");
                 return;
               }
-              if (data.is_published === false) {
+              if (!expired && data.is_published === false) {
                 const msg = document.getElementById("msg");
                 if (msg) {
                   msg.textContent = "💍 Thiệp chưa được xuất bản. Vui lòng liên hệ cô dâu chú rể để xem thiệp.";

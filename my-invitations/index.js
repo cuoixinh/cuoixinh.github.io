@@ -48,6 +48,7 @@ function _redirectAfterLogin(freshLogin) {
 
 async function initPage() {
   loadThemeNames();
+  document.getElementById("keep-note").textContent = UNPAID_KEEP_TEXT;
   // Lấy phiên TRƯỚC rồi mới đăng ký onChange: ngược lại lần đồng bộ đầu tiên bắn
   // luôn callback và trang tải danh sách hai lần.
   currentUser = await CXAuth.getUser();
@@ -241,9 +242,13 @@ function cardState(c) {
   return daysLeft(c) > 0 ? "trial" : "expired";
 }
 
+// Số ngày còn lại, LÀM TRÒN LÊN (còn vài giờ vẫn là "còn 1 ngày"). Kẹp trên bằng
+// CONFIG.trialDays: đồng hồ máy khách chạy chậm hơn máy chủ là hiệu số vượt quá
+// hạn dùng thử, hiện "còn 4 ngày" trong khi hạn chỉ có 3.
 function daysLeft(c) {
   if (!c.expiresAt) return 0;
-  return Math.ceil((new Date(c.expiresAt) - Date.now()) / DAY_MS);
+  const d = Math.ceil((new Date(c.expiresAt) - Date.now()) / DAY_MS);
+  return Math.max(0, Math.min(CONFIG.trialDays, d));
 }
 
 function matchTab(c, tab) {
@@ -333,7 +338,7 @@ function setState(state, counts) {
 }
 
 const BADGE =
-  "inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[9px] font-semibold shadow-sm sm:px-2 sm:text-[10px]";
+  "inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[8px] font-semibold shadow-sm sm:px-2";
 
 function cardHTML(c, i) {
   const state = cardState(c);
@@ -342,19 +347,19 @@ function cardHTML(c, i) {
   const days = daysLeft(c);
 
   const statusBadge = c.published
-    ? `<span class="${BADGE} bg-emerald-500 text-white"><i data-icon="check" class="text-[9px]"></i>Đã xuất bản</span>`
-    : `<span class="${BADGE} bg-gray-100 text-gray-600" title="${escAttr(draftKeepText(c))}"><i data-icon="pen-tool" class="text-[9px]"></i>Nháp</span>`;
+    ? `<span class="${BADGE} bg-emerald-500 text-white"><i data-icon="clipboard-check" data-size="12"></i>Đã xuất bản</span>`
+    : `<span class="${BADGE} bg-gray-100 text-gray-600" title="${escAttr(draftKeepText(c))}"><i data-icon="pen-tool" data-size="12"></i>Nháp</span>`;
 
   let leftBadges = "";
   if (state === "trial" || state === "expired" || state === "published") {
-    leftBadges = `<span class="${BADGE} bg-amber-500 text-white" title="${escAttr(UNPAID_KEEP_TEXT)}"><i data-icon="credit-card" class="text-[9px]"></i>Chưa kích hoạt</span>`;
+    leftBadges = `<span class="${BADGE} bg-amber-500 text-white" title="${escAttr(UNPAID_KEEP_TEXT)}"><i data-icon="credit-card" data-size="12"></i>Chưa kích hoạt</span>`;
     if (state === "trial") {
-      leftBadges += `<span class="${BADGE} bg-sky-500 text-white"><i data-icon="clock" class="text-[9px]"></i><span class="sm:hidden">Còn ${days} ngày</span><span class="hidden sm:inline">Dùng thử · còn ${days} ngày</span></span>`;
+      leftBadges += `<span class="${BADGE} bg-sky-500 text-white"><i data-icon="clock" data-size="12"></i><span class="sm:hidden">Còn ${days} ngày</span><span class="hidden sm:inline">Dùng thử · còn ${days} ngày</span></span>`;
     } else if (state === "expired") {
-      leftBadges += `<span class="${BADGE} bg-red-500 text-white"><i data-icon="clock" class="text-[9px]"></i><span class="sm:hidden">Hết hạn</span><span class="hidden sm:inline">Hết hạn dùng thử</span></span>`;
+      leftBadges += `<span class="${BADGE} bg-red-500 text-white"><i data-icon="clock" data-size="12"></i>Hết hạn</span>`;
     }
   } else if (state === "active") {
-    leftBadges = `<span class="${BADGE} bg-emerald-500 text-white"><i data-icon="circle-check" class="text-[9px]"></i>Đã kích hoạt</span>`;
+    leftBadges = `<span class="${BADGE} bg-emerald-500 text-white"><i data-icon="circle-check" data-size="12"></i>Đã kích hoạt</span>`;
   }
 
   const note = noteHTML(c, state, days, i);
@@ -381,19 +386,21 @@ function cardHTML(c, i) {
 
         <h3 class="cursor-pointer truncate text-[13px] font-bold text-gray-900 hover:opacity-80 sm:text-[15px]" onclick="openEditor(${i})">${esc(title)}</h3>
 
-        <p class="mt-1 flex items-center gap-1.5 text-[11px] text-gray-500 sm:text-[12px]">
-          <i data-icon="palette" class="text-[10px] text-gray-400"></i>
+        <p class="mt-1 flex items-center gap-1.5 text-[10px] text-gray-500">
+          <i data-icon="palette" data-size="12" class="text-gray-400"></i>
           <span class="truncate">${esc(themeName(c.theme))}</span>
           <span class="text-gray-300">·</span>
           <span class="shrink-0">${formatDate(c.createdAt)}</span>
         </p>
 
-        ${note}
-        ${slugRow}
-        <!-- Nêm co giãn: phần dư đẩy hàng nút xuống đáy thẻ. -->
+        <!-- Nêm co giãn: phần dư đẩy khối ghi chú + đường dẫn + hàng nút xuống đáy
+             thẻ, để tiêu đề luôn nằm sát phần đầu. -->
         <div class="mt-3 flex-1"></div>
 
-        <div class="flex flex-wrap items-center justify-around gap-y-1 border-t border-gray-100 pt-1.5">
+        ${note}
+        ${slugRow}
+
+        <div class="mt-2 flex flex-wrap items-center justify-around gap-y-1 border-t border-gray-100 pt-1.5">
           ${actionsHTML(c, i, state)}
         </div>
       </div>
@@ -401,8 +408,8 @@ function cardHTML(c, i) {
 }
 
 // Câu nhắc hạn dọn dẹp tự động — số ngày lấy ở CONFIG.retention, không viết cứng.
-// Dùng cho cả tooltip của nhãn lẫn dòng chữ trong khối ghi chú, nên chỉ là TEXT
-// thuần (nhét vào title="" được).
+// Dùng cho tooltip của nhãn lẫn dải ghim ở đầu trang, nên chỉ là TEXT thuần
+// (nhét vào title="" được).
 const UNPAID_KEEP_TEXT = `Thiệp chưa thanh toán sẽ tự động xoá sau ${CONFIG.retention.unpaidDays} ngày kể từ khi hết hạn dùng thử.`;
 
 // Nháp trên máy (chưa có bản ghi DB) và nháp đã lưu trên hệ thống có hạn riêng.
@@ -414,33 +421,61 @@ function draftKeepText(c) {
 
 // Hiện ở MỌI khổ màn: đây là chỗ duy nhất nói rõ thiệp còn mấy ngày dùng thử /
 // đã hết hạn / bao giờ bị dọn — ẩn trên mobile là khách không biết vì sao thiệp
-// sắp đóng.
+// sắp đóng. Mỗi Ý là MỘT khối riêng: khối trạng thái (việc cần làm bây giờ) và
+// khối hạn dọn dẹp (dữ liệu sẽ mất khi nào) — gộp một dòng thì không ai đọc hết.
+function _noteBox(tone, icon, inner) {
+  const T = {
+    sky: ["bg-sky-50 text-sky-800", "text-sky-500"],
+    red: ["bg-red-50 text-red-700", "text-red-500"],
+    gray: ["bg-gray-50 text-gray-600", "text-gray-400"],
+  }[tone];
+  return `<div class="flex gap-2 rounded-lg ${T[0]} p-2.5 text-[10px] leading-relaxed">
+      <i data-icon="${icon}" data-size="12" class="mt-0.5 ${T[1]}"></i>
+      <span>${inner}</span>
+    </div>`;
+}
+
 function noteHTML(c, state, days, i) {
+  const boxes = [];
   if (state === "trial") {
-    // "Thanh toán ngay" mở thẳng bảng thanh toán như nút "Kích hoạt thiệp" ở
-    // hàng nút dưới — câu này là chỗ khách đọc thấy hạn, đừng bắt họ đi tìm nút.
-    return `<div class="mt-3 flex gap-2 rounded-lg bg-sky-50 p-2.5 text-[11px] leading-relaxed text-sky-800">
-      <i data-icon="clock" class="mt-0.5 text-[11px] text-sky-500"></i>
-      <span>Còn ${days} ngày dùng thử -
+    // "Thanh toán" mở thẳng bảng thanh toán như nút "Kích hoạt thiệp" ở hàng nút
+    // dưới — câu này là chỗ khách đọc thấy hạn, đừng bắt họ đi tìm nút.
+    boxes.push(
+      _noteBox(
+        "sky",
+        "clock",
+        `Còn ${days} ngày dùng thử -
         <button type="button" onclick="activateCard(${i})"
           class="font-semibold underline underline-offset-2 hover:text-sky-900">Thanh toán</button>
-        để giữ thiệp mở. ${esc(UNPAID_KEEP_TEXT)}</span>
-    </div>`;
+        để giữ thiệp mở.`,
+      ),
+    );
+  } else if (state === "expired" || state === "published") {
+    // Động từ trong câu là LỐI VÀO thanh toán, không phải chữ suông — bấm vào mở
+    // đúng bảng như nút "Kích hoạt thiệp" ở hàng nút dưới.
+    const act = (label) =>
+      `<button type="button" onclick="activateCard(${i})"
+        class="font-semibold underline underline-offset-2 hover:text-red-900">${label}</button>`;
+    boxes.push(
+      _noteBox(
+        "red",
+        "triangle-alert",
+        state === "expired"
+          ? `Hết hạn dùng thử — ${act("kích hoạt")} để mở lại cho khách mời.`
+          : `Thiệp chưa kích hoạt — ${act("thanh toán")} để mở vĩnh viễn.`,
+      ),
+    );
+  } else if (state === "draft") {
+    boxes.push(
+      _noteBox(
+        "gray",
+        "pen-tool",
+        "Bản nháp — xuất bản để chia sẻ với khách mời.",
+      ),
+    );
   }
-  if (state === "expired" || state === "published") {
-    return `<div class="mt-3 flex gap-2 rounded-lg bg-red-50 p-2.5 text-[11px] leading-relaxed text-red-700">
-      <i data-icon="triangle-alert" class="mt-0.5 text-[11px] text-red-500"></i>
-      <span>${state === "expired" ? "Hết hạn dùng thử — kích hoạt để mở lại cho khách mời." : "Thiệp chưa kích hoạt — thanh toán để mở vĩnh viễn."}
-        ${esc(UNPAID_KEEP_TEXT)}</span>
-    </div>`;
-  }
-  if (state === "draft") {
-    return `<div class="mt-3 flex gap-2 rounded-lg bg-gray-50 p-2.5 text-[11px] leading-relaxed text-gray-600">
-      <i data-icon="pen-tool" class="mt-0.5 text-[11px] text-gray-400"></i>
-      <span>Bản nháp — xuất bản để chia sẻ với khách mời. ${esc(draftKeepText(c))}</span>
-    </div>`;
-  }
-  return "";
+  if (!boxes.length) return "";
+  return `<div class="mt-3 space-y-1.5">${boxes.join("")}</div>`;
 }
 
 // Icon lucide nhúng thẳng (trang dùng Font Awesome cho phần còn lại, nhưng bộ nút
@@ -456,8 +491,8 @@ const ICON_CHECK =
 // Hiện ở mọi khổ màn hình: đổi đường dẫn và sao chép link là hai việc chính của
 // thiệp đã xuất bản, ẩn trên mobile là mất hẳn lối vào.
 function slugRowHTML(c, i) {
-  return `<div class="mt-3 flex items-center gap-0.5 rounded-lg bg-gray-50 px-2 py-1 sm:px-2.5">
-      <span class="min-w-0 flex-1 truncate font-mono text-[11px] text-gray-600">/${esc(c.slug)}</span>
+  return `<div class="mt-1.5 flex items-center gap-0.5 rounded-lg bg-gray-50 px-2 py-1 sm:px-2.5">
+      <span class="min-w-0 flex-1 truncate font-mono text-[10px] text-gray-600">/${esc(c.slug)}</span>
       <x-button variant="ghost" tone="neutral" size="xs" icon-only onclick="openSlugModal(${i})" aria-label="Đổi đường dẫn">${ICON_SETTINGS}</x-button>
       <x-button variant="ghost" tone="neutral" size="xs" icon-only onclick="copyLink(${i}, this)" aria-label="Sao chép liên kết">${ICON_COPY}</x-button>
     </div>`;
@@ -723,7 +758,7 @@ function showHelp() {
   showAlert(
     "Quản lý thiệp cưới",
     "Mỗi thẻ là một tấm thiệp. Bấm vào ảnh hoặc tên để mở trình chỉnh sửa.\n" +
-      "Thiệp xuất bản được dùng thử 3 ngày; kích hoạt (thanh toán) để khách mời xem vĩnh viễn.\n" +
+      `Thiệp xuất bản được dùng thử ${CONFIG.trialDays} ngày; kích hoạt (thanh toán) để khách mời xem vĩnh viễn.\n` +
       "Nút bánh răng cạnh đường dẫn dùng để đổi link chia sẻ.",
     "info",
   );
