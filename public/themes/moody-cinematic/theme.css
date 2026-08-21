@@ -985,17 +985,41 @@ body {
   color: rgb(var(--cx-body-rgb));
 }
 
-/* ── Album: lưới khuôn hình ──────────────────────────────────────────────
-   Mỗi trang tối đa 6 khung; ảnh dư sang trang sau (renderGallery ở index.js). */
+/* ── Album: ảnh dọc ngang đan xen, chiếm hết chiều rộng ──────────────────
+   Mỗi hàng gồm một ảnh dọc và một ảnh ngang, tổng chiếm 100% chiều rộng. */
 
 .mc-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  display: flex;
+  flex-direction: column;
   gap: 10px;
+}
+
+/* Hàng ảnh: chứa một ảnh dọc + một ảnh ngang */
+.mc-grid-row {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+
+/* Ảnh dọc: chiếm 40% chiều rộng, tỉ lệ 3:4 */
+.mc-frame-portrait {
+  flex: 0 0 calc(40% - 5px);
+  aspect-ratio: 3 / 4;
+  cursor: pointer;
+  position: relative;
+}
+
+/* Ảnh ngang: chiếm 60% chiều rộng, tỉ lệ 4:3 */
+.mc-frame-landscape {
+  flex: 0 0 calc(60% - 5px);
+  aspect-ratio: 4 / 3;
+  cursor: pointer;
+  position: relative;
 }
 
 .mc-frame {
   cursor: pointer;
+  position: relative;
 }
 
 /* Số khuôn hình — nằm TRÊN thanh đen dưới, nên luôn là chữ sáng. */

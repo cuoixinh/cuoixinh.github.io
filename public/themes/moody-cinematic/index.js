@@ -527,9 +527,9 @@
     </article>`;
   }
 
-  // ============= ALBUM ẢNH — LƯỚI KHUÔN HÌNH (phần đặc thù của mẫu) =============
-  // Lưới 2 cột, mỗi khung đánh số như số khuôn hình. Lưới khai [data-cx-flow]
-  // nên ảnh dư tự sang trang sau, vừa đúng chỗ trống của trang.
+  // ============= ALBUM ẢNH — ẢNH DỌC NGANG ĐAN XEN (phần đặc thù của mẫu) =============
+  // Mỗi hàng chứa một ảnh dọc và một ảnh ngang, đan xen vị trí giữa các hàng.
+  // Tổng chiều rộng của mỗi hàng chiếm 100% màn hình.
   // Bấm một khung thì mở lightbox dùng chung — điều kiện duy nhất là đổ đúng
   // thứ tự ảnh vào lightboxImages rồi gọi openLightbox(i).
 
@@ -550,10 +550,14 @@
 
     // Ảnh nằm trong #main-card (đang display:none lúc chưa mở bìa) nên KHÔNG
     // đặt loading="lazy": ảnh lazy sẽ chỉ bắt đầu tải khi bìa mở ra.
-    const frame = (url, i) => {
+    const createFrame = (url, i, isPortrait) => {
       const fp = focalPoints?.[images?.[i]];
       const el = document.createElement("div");
-      el.className = "mc-frame mc-cine aspect-[16/9]";
+      // Ảnh dọc: 3:4, ảnh ngang: 4:3
+      const className = isPortrait 
+        ? "mc-frame mc-frame-portrait mc-cine" 
+        : "mc-frame mc-frame-landscape mc-cine";
+      el.className = className;
       el.innerHTML = `<img src="${url}" alt=""
         class="w-full h-full object-cover"
         style="object-position:${fp?.x ?? 50}% ${fp?.y ?? 50}%">
@@ -563,7 +567,30 @@
     };
 
     strip.innerHTML = "";
-    urls.forEach((url, i) => strip.appendChild(frame(url, i)));
+    
+    // Xếp ảnh thành từng hàng: mỗi hàng có 2 ảnh (1 dọc + 1 ngang)
+    // Đan xen vị trí: hàng chẵn (dọc-ngang), hàng lẻ (ngang-dọc)
+    for (let i = 0; i < urls.length; i += 2) {
+      const row = document.createElement("div");
+      row.className = "mc-grid-row";
+      
+      const rowIndex = Math.floor(i / 2);
+      const isEvenRow = rowIndex % 2 === 0;
+      
+      // Ảnh thứ nhất trong hàng
+      if (i < urls.length) {
+        const frame1 = createFrame(urls[i], i, isEvenRow);
+        row.appendChild(frame1);
+      }
+      
+      // Ảnh thứ hai trong hàng (nếu còn)
+      if (i + 1 < urls.length) {
+        const frame2 = createFrame(urls[i + 1], i + 1, !isEvenRow);
+        row.appendChild(frame2);
+      }
+      
+      strip.appendChild(row);
+    }
   }
 
   // ============= TỜ LỊCH: tháng lớn (trái) + lưới ngày (phải) =============
