@@ -1,0 +1,1003 @@
+/* Bảng màu + CSS riêng của MOODY CINEMATIC — nền SÁNG, chữ xám trầm, nhấn
+   xanh than. Chất điện ảnh nằm ở ẢNH: mọi ảnh lớn đều bị hai thanh đen kẹp
+   trên/dưới (giả tỉ lệ màn ảnh rộng) + chỉnh màu hơi trầm.
+   CSS THUẦN, nạp bằng <link> sau styles/themes.css.
+
+   Hai phần:
+     1. --cx-*  bộ biến mà phần DÙNG CHUNG vẽ theo (lịch nhỏ, dòng thời gian,
+        màn bìa, nút xác nhận tham dự). Mặc định ở styles/_common.css.
+     2. .cx-h / .cx-t / .cx-a  ba lớp ngữ nghĩa mà markup của mẫu dùng, cũng là
+        thứ CX_THEME.selectors nhắm tới. Đổi tông cả thiệp = sửa mỗi file này. */
+
+:root {
+  --cx-accent-rgb: 42 61 88; /* nhấn: xanh than sâu */
+  --cx-on-accent-rgb: 255 255 255; /* chữ nằm TRÊN nền nhấn */
+  --cx-heading-rgb: 30 37 46; /* xám trầm gần đen */
+  --cx-body-rgb: 106 115 128;
+  --cx-line-rgb: 219 223 230; /* vạch dọc, viền mảnh */
+  --cx-surface-rgb: 242 244 247; /* nền phụ của ô nhỏ */
+  --cx-cover-rgb: 248 249 251; /* nền màn bìa: hai đầu dải */
+  --cx-cover-mid-rgb: 232 235 240; /* …và điểm giữa */
+
+  --cx-card-bg-rgb: 255 255 255; /* nền thân thiệp */
+
+  /* Đen của thanh letterbox — CỐ ĐỊNH, cố ý không nằm trong bảng màu: khách
+     đổi màu ở tab Giao diện thì hai thanh này vẫn phải đen mới ra chất phim. */
+  --mc-bar-rgb: 12 14 18;
+}
+
+/* Thiệp là quyển sách lật ngang: trang KHÔNG cuộn dọc bao giờ, mọi cú vuốt dọc
+   đã được index.js đổi thành lật trang. */
+
+body {
+  background-color: rgb(var(--cx-surface-rgb));
+  overflow: hidden;
+}
+
+#main-card {
+  background-color: rgb(var(--cx-card-bg-rgb));
+}
+
+/* Trên màn rộng thiệp cao 932px, nhưng không được vượt khung nhìn: vượt là có
+   phần trang nằm ngoài màn mà không cách nào cuộn tới (cuộn dọc đã bị thu). */
+
+@media (min-width: 768px) {
+  #main-card {
+    height: min(932px, calc(100dvh - 40px));
+  }
+}
+
+/* ── Ba lớp ngữ nghĩa của mẫu ──────────────────────────────────────────────
+   .cx-h và .cx-t đặt CẢ font-family → đừng gắn chúng lên thẻ <i> của Font
+   Awesome, icon sẽ mất glyph và hiện ô vuông. Muốn tô màu icon thì dùng .cx-a
+   (nhấn) hoặc .cx-hd/.cx-bd (chỉ có color, khai ở styles/_common.css). */
+
+.cx-h {
+  font-family: "Prata", serif;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+.cx-t {
+  font-family: "Montserrat", sans-serif;
+  color: rgb(var(--cx-body-rgb));
+}
+
+.cx-a {
+  color: rgb(var(--cx-accent-rgb));
+}
+
+.cx-border {
+  border-color: rgb(var(--cx-line-rgb));
+}
+
+.cx-bg-line {
+  background-color: rgb(var(--cx-line-rgb));
+}
+
+.cx-bg-surface {
+  background-color: rgb(var(--cx-surface-rgb));
+}
+
+/* ── KHUNG ĐIỆN ẢNH ───────────────────────────────────────────────────────
+   Bọc ảnh trong .mc-cine: hai thanh đen kẹp trên/dưới để tấm ảnh trông như cắt
+   theo tỉ lệ màn ảnh rộng. Thanh nằm ĐÈ LÊN ảnh (không phải khoảng chừa) nên
+   đổi độ dày chỉ là đổi --mc-bar-h, ảnh không bị co.
+   Nền đen của khối là phòng xa: ảnh chưa về thì phần giữa cũng đen, không loé
+   một mảng trắng giữa hai thanh. */
+
+.mc-cine {
+  position: relative;
+  overflow: hidden;
+  background-color: rgb(var(--mc-bar-rgb));
+  --mc-bar-h: 9%;
+}
+
+.mc-cine::before,
+.mc-cine::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: var(--mc-bar-h);
+  background-color: rgb(var(--mc-bar-rgb));
+  z-index: 2;
+  pointer-events: none;
+}
+
+.mc-cine::before {
+  top: 0;
+}
+
+.mc-cine::after {
+  bottom: 0;
+}
+
+/* Chỉnh màu hơi trầm cho mọi ảnh trong khung — đây là thứ làm ảnh "điện ảnh"
+   hơn ảnh gốc, đi cùng hai thanh đen. */
+
+.mc-cine img {
+  filter: saturate(0.86) contrast(1.08) brightness(0.97);
+}
+
+/* Ảnh chân dung nhỏ (hai nhà): thanh mỏng hơn, ảnh đã hẹp sẵn. */
+
+.mc-cine-sm {
+  --mc-bar-h: 6%;
+}
+
+/* ── Vạch ngăn NÉT ĐỨT ─────────────────────────────────────────────────────
+   Mọi đường ngăn trong mẫu vẽ bằng hai gradient này thay cho border: gạch và
+   khoảng cách đặt được đúng ý (border dashed để trình duyệt tự chia, nhìn thô).
+   Vạch luôn ngắn hơn khối nó ngăn — kéo hết bề ngang trông như kẻ bảng. */
+
+:root {
+  --mc-dash-x: repeating-linear-gradient(
+    to right,
+    rgb(var(--cx-line-rgb)) 0 5px,
+    transparent 5px 11px
+  );
+  --mc-dash-y: repeating-linear-gradient(
+    to bottom,
+    rgb(var(--cx-line-rgb)) 0 4px,
+    transparent 4px 10px
+  );
+}
+
+/* ── Chi tiết chung ───────────────────────────────────────────────────────── */
+
+/* Nhãn nhỏ chữ hoa giãn rộng: dùng lại ở đầu mỗi mục. */
+
+.mc-eyebrow {
+  font-family: "Montserrat", sans-serif;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: rgb(var(--cx-accent-rgb));
+}
+
+/* Gạch ngang mảnh hai bên tiêu đề mục. */
+
+.mc-rule {
+  height: 1px;
+  flex: 1;
+  background: linear-gradient(
+    90deg,
+    rgb(var(--cx-line-rgb) / 0) 0%,
+    rgb(var(--cx-line-rgb)) 50%,
+    rgb(var(--cx-line-rgb) / 0) 100%
+  );
+}
+
+/* Ô nội dung nổi trên nền trắng: nền xám nhạt + viền tóc. */
+
+.mc-panel {
+  background-color: rgb(var(--cx-surface-rgb));
+  border: 1px solid rgb(var(--cx-line-rgb));
+}
+
+/* ── TỜ LỊCH: ảnh trích dẫn + tháng lớn/lưới ngày ─────────────────────────
+   Ảnh choán trọn bề ngang panel (panel tự overflow-hidden nên khỏi cần bù
+   margin âm), trích dẫn viết tay nằm ở góc trên bằng font script tự host
+   (đã nạp cho tên cặp đôi ở trang trước, dùng lại chứ không tải thêm). */
+
+/* Ảnh NGANG (không dựng đứng 4/5 như trước) — mục tiêu chính của khối lịch
+   là thấp, để cả trang (thẻ lịch + info tiệc + RSVP dồn chung MỘT trang sách)
+   khỏi bị _fitPage() thu nhỏ quá tay. */
+
+.mc-cal-shot {
+  aspect-ratio: 3 / 2;
+  --mc-bar-h: 0%;
+}
+
+/* Veil TỐI ở đỉnh ảnh, tan dần xuống — quote nằm trên nền sáng (trời, cây) nếu
+   không có veil sẽ chìm mất dù đã có text-shadow. Ảnh giờ thấp nên vùng tối
+   phải tan nhanh hơn (58%→46%), không thì phủ luôn nửa dưới ảnh. */
+
+.mc-cal-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(
+    to bottom,
+    rgb(var(--mc-bar-rgb) / 0.6) 0%,
+    rgb(var(--mc-bar-rgb) / 0.18) 26%,
+    rgb(var(--mc-bar-rgb) / 0) 46%
+  );
+  pointer-events: none;
+}
+
+.mc-cal-quote {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  z-index: 2;
+  padding: 14px 16px 0;
+  font-family: "TheNautigal", cursive;
+  font-size: 30px;
+  line-height: 1.16;
+  /* KHÔNG letter-spacing: font script các chữ dính liền nhau theo thiết kế,
+     giãn thêm là đứt nét. Cỡ chữ LỚN cố ý — measurement lấy từ .mc-ph-names
+     (chữ ký cùng font, 46px cho "Tên & Tên" ngắn); quote 3 dòng dài hơn nên hạ
+     xuống 30px vẫn phải to gần bằng để MỖI DÒNG tự chạm rìa ảnh, không co lại
+     thành một khối gọn giữa ảnh. */
+  color: rgb(var(--mc-on-photo));
+  text-shadow: 0 1px 12px rgb(var(--mc-bar-rgb) / 0.7);
+}
+
+/* Mỗi dòng lệch trái/phải khác nhau — mô phỏng nét tay viết nghiêng ngả, KHÔNG
+   phải xuống dòng tự nhiên của trình duyệt (nên tách hẳn div, không dùng <br>).
+   whitespace-nowrap để dòng không tự gãy giữa chừng ở khổ hẹp, làm mất so le. */
+.mc-cal-quote-ln {
+  white-space: nowrap;
+}
+
+.mc-cal-quote-ln:nth-child(2) {
+  margin-left: 20%;
+}
+
+.mc-cal-quote-ln:nth-child(3) {
+  margin-left: 6%;
+}
+
+.mc-cal-quote-by {
+  margin-top: 8px;
+  margin-left: 6%;
+  font-family: "Montserrat", sans-serif;
+  font-size: 9px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: rgb(var(--mc-on-photo) / 0.75);
+}
+
+/* Tháng lớn (trái) + lưới ngày (phải), trên nền trắng của panel. #mini-calendar
+   (mc-cal-panel) chỉ padding 8px (px-2 ở HTML) để lưới ngày CHIẾM GẦN HẾT bề
+   ngang thẻ — đừng nới lại padding ở đây, tăng padding thì lưới lại lọt thỏm
+   giữa viền trắng như bản trước. Vạch đứt dọc ngăn hai cột — cùng mô-típ
+   dashed dùng khắp trang, không phải border thô. Vạch ngang ở đỉnh tách khỏi
+   ảnh phía trên. */
+
+.mc-cal-panel {
+  position: relative;
+}
+
+.mc-cal-panel::before {
+  content: "";
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  top: 0;
+  height: 1px;
+  background-image: var(--mc-dash-x);
+}
+
+.mc-cal-grid-wrap {
+  display: flex;
+  width: 100%;
+}
+
+.mc-cal-month {
+  position: relative;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-right: 14px;
+}
+
+.mc-cal-month::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 4px;
+  bottom: 4px;
+  width: 1px;
+  background-image: var(--mc-dash-y);
+  opacity: 0.6;
+}
+
+.mc-cal-month > .cx-h {
+  font-size: 24px;
+  line-height: 1.1;
+}
+
+.mc-cal-year {
+  font-size: 9px;
+  letter-spacing: 2px;
+  opacity: 0.7;
+}
+
+.mc-cal-table {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+  padding-left: 14px;
+}
+
+.mc-cal-dow {
+  font-family: "Montserrat", sans-serif;
+  font-size: 9px;
+  letter-spacing: 1px;
+  color: rgb(var(--cx-body-rgb) / 0.7);
+  text-align: center;
+  padding-bottom: 6px;
+}
+
+.mc-cal-day {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 20px;
+  font-family: "Montserrat", sans-serif;
+  font-size: 11px;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+.mc-cal-day.is-marked {
+  border-radius: 999px;
+  background-color: rgb(var(--cx-accent-rgb));
+  color: rgb(var(--cx-on-accent-rgb));
+  font-weight: 600;
+}
+
+/* ── TRANG LỜI MỜI: một trang báo đọc dọc ─────────────────────────────────
+   Mở đầu + Thư mời + Gia đình chung một trang. Trang chỉ có BA nhịp: ảnh lớn
+   tràn mép (chữ mời + tên đôi đè lên đáy ảnh) → khối ngày giờ trên nền trắng →
+   dải tối tràn mép của khối gia đình. Hai khối tràn mép làm đối trọng đầu/đáy.
+
+   Ràng buộc: cả trang phải vừa MỘT màn điện thoại — _fitPage() sẽ thu nhỏ nếu
+   vượt, mà thu nhỏ thì chữ tụt xuống dưới ngưỡng đọc. Muốn thêm gì vào trang
+   thì phải bớt chiều cao chỗ khác, đừng hạ cỡ chữ. */
+
+.mc-ph-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* Khoảng cách phân TẦNG: 14px là nhịp giữa các khối, khối nào cần dính vào
+     nhau thì tự bù bằng margin âm. Đều tăm tắp là mất grouping. */
+  gap: 18px;
+  padding: 0 20px;
+  text-align: center;
+}
+
+/* Khối tràn mép: kéo ra sát hai bên trang, bù đúng padding của .mc-ph-page. */
+
+.mc-ph-bleed {
+  align-self: stretch;
+  margin-inline: -20px;
+}
+
+/* Măng sét: ba phần, tên tờ báo ở giữa, vạch đứt ngắn bên dưới. */
+
+.mc-ph-head {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  position: relative;
+  padding-bottom: 8px;
+  font-family: "Montserrat", sans-serif;
+  font-size: 8px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgb(var(--cx-body-rgb) / 0.8);
+}
+
+.mc-ph-head::after {
+  content: "";
+  position: absolute;
+  left: 22%;
+  right: 22%;
+  bottom: 0;
+  height: 1px;
+  background-image: var(--mc-dash-x);
+}
+
+.mc-ph-side {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.mc-ph-side:last-child {
+  text-align: right;
+}
+
+.mc-ph-name {
+  font-family: "Prata", serif;
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+/* Dòng dẫn trên ảnh: dính sát tấm ảnh (bù bớt gap của trang) để đọc như một
+   cụm với ảnh, không như một khối rời. */
+
+.mc-ph-invited {
+  margin-bottom: -4px;
+  font-size: 13px;
+  letter-spacing: 5px;
+  text-transform: uppercase;
+}
+
+/* ── ẢNH LỚN + CHỮ ĐÈ ─────────────────────────────────────────────────────
+   Dải ngang 16:9 tràn mép. max-height chặn ảnh nuốt trang ở khổ rộng (thiệp
+   768px trên desktop), nơi 16:9 tính ra cao hơn hẳn khổ điện thoại. */
+
+.mc-ph-shot {
+  aspect-ratio: 16 / 9;
+  max-height: min(34dvh, 300px);
+  /* Thanh đen mảnh hơn khung điện ảnh thường: khung 16:9 tự nó đã là tỉ lệ màn
+     ảnh rộng, thanh dày nữa là ăn vào mặt người. */
+  --mc-bar-h: 5%;
+}
+
+/* Trắng của chữ nằm trên ảnh — CỐ ĐỊNH như --mc-bar-rgb: khách đổi bảng màu
+   thì chữ đè ảnh vẫn phải là trắng mới đọc được. */
+
+:root {
+  --mc-on-photo: 255 255 255;
+}
+
+/* Lớp phủ tối để chữ luôn đọc được dù ảnh sáng hay tối. */
+
+.mc-ph-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(
+    to bottom,
+    rgb(var(--mc-bar-rgb) / 0) 18%,
+    rgb(var(--mc-bar-rgb) / 0.34) 48%,
+    rgb(var(--mc-bar-rgb) / 0.86) 100%
+  );
+  pointer-events: none;
+}
+
+.mc-ph-veil-flat {
+  background: rgb(var(--mc-bar-rgb) / 0.42);
+}
+
+/* Chữ đè ảnh: phải nổi trên cả hai thanh đen (z-index 2 của .mc-cine::after). */
+
+.mc-ph-cap {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 3;
+  padding: 0 20px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.mc-ph-sub {
+  font-family: "Montserrat", sans-serif;
+  font-size: 9px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: rgb(var(--mc-on-photo) / 0.82);
+}
+
+/* Chữ ký: font TỰ HOST (khai ở styles/_fonts.css), cố ý ĐỨNG NGOÀI
+   CX_THEME.selectors — bảng chọn font ở tab Giao diện chỉ có font Google, khách
+   đổi một lần là không quay lại được kiểu chữ này. Font script nhỏ hơn nhiều so
+   với chữ thường cùng cỡ nên phải đặt lớn hẳn. */
+
+.mc-ph-names {
+  font-family: "TheNautigal", cursive;
+  font-size: 46px;
+  line-height: 1.02;
+  color: rgb(var(--mc-on-photo));
+  text-shadow: 0 2px 18px rgb(var(--mc-bar-rgb) / 0.45);
+}
+
+.mc-ph-amp {
+  margin: 0 4px;
+  font-size: 34px;
+  color: rgb(var(--mc-on-photo) / 0.75);
+}
+
+/* ── KHỐI NGÀY: hàng ba ô kẹp giữa hai kẻ ngang, hai vạch dọc ngăn ô ─────── */
+
+.mc-ph-when {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  width: 100%;
+}
+
+.mc-ph-month {
+  font-size: 11px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+}
+
+.mc-ph-row {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  position: relative;
+  padding: 10px 0;
+}
+
+/* Pseudo của grid container phải absolute, nếu không nó thành một ô grid. */
+
+.mc-ph-row::before,
+.mc-ph-row::after {
+  content: "";
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  height: 1px;
+  background-image: var(--mc-dash-x);
+}
+
+.mc-ph-row::before {
+  top: 0;
+}
+
+.mc-ph-row::after {
+  bottom: 0;
+}
+
+/* Ô kéo cao bằng cả hàng để vạch dọc chạy gần trọn chiều cao số ngày, thay vì
+   chỉ cao bằng dòng chữ trong ô. */
+
+.mc-ph-cell {
+  position: relative;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mc-ph-cell:first-child {
+  padding-right: 12px;
+}
+
+.mc-ph-cell:last-child {
+  padding-left: 12px;
+}
+
+.mc-ph-cell:first-child::after,
+.mc-ph-cell:last-child::after {
+  content: "";
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  width: 1px;
+  background-image: var(--mc-dash-y);
+}
+
+.mc-ph-cell:first-child::after {
+  right: 0;
+}
+
+.mc-ph-cell:last-child::after {
+  left: 0;
+}
+
+.mc-ph-day {
+  font-size: 46px;
+  line-height: 1;
+}
+
+.mc-ph-lunar {
+  font-size: 10px;
+  letter-spacing: 1px;
+  opacity: 0.75;
+}
+
+/* Nơi làm lễ + lời nhắn: hai dòng thông tin, dính thành một cụm (gap nhỏ hơn
+   nhịp chung của trang) — điểm nhấn vẫn là tên đôi và số ngày. */
+
+.mc-ph-place {
+  margin-bottom: -6px;
+}
+
+.mc-ph-venue {
+  font-size: 10px;
+  letter-spacing: 2px;
+  line-height: 1.6;
+  text-transform: uppercase;
+}
+
+.mc-ph-note {
+  font-size: 11px;
+  line-height: 1.7;
+  font-style: italic;
+  opacity: 0.9;
+}
+
+/* ── DẢI GIA ĐÌNH: tràn mép, nền tối ─────────────────────────────────────
+   Hai nhà xếp thành hai cột ĐỐI XỨNG quanh một vạch đứt dọc: trục căn của cả
+   trang không bị lệch, và hai khối chồng nhau trước kia gộp thành một hàng. */
+
+.mc-ph-family {
+  position: relative;
+  overflow: hidden;
+  margin-top: 2px;
+  background-color: rgb(var(--mc-bar-rgb));
+  color: rgb(var(--mc-on-photo));
+  /* Lớp phủ để nhạt cho còn thấy ảnh nền, nên chữ phải tự lo phần tương phản:
+     bóng đổ mềm là thứ giữ chữ đọc được khi trúng mảng sáng của ảnh. */
+  text-shadow: 0 1px 10px rgb(var(--mc-bar-rgb) / 0.75);
+}
+
+.mc-ph-fam-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(0.7) contrast(1.05);
+}
+
+.mc-ph-fam-in {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 20px 20px;
+}
+
+.mc-ph-fam-title {
+  font-size: 13px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: rgb(var(--mc-on-photo));
+}
+
+.mc-ph-fam-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  width: 100%;
+  position: relative;
+}
+
+/* Vạch đứt dọc ngăn hai nhà — ngắn hơn cột để không thành kẻ bảng. */
+
+.mc-ph-fam-grid::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 4px;
+  bottom: 4px;
+  width: 1px;
+  background-image: var(--mc-dash-y);
+  opacity: 0.45;
+}
+
+.mc-ph-fam-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Nhãn "Nhà Trai/Nhà Gái": không dùng .mc-eyebrow ở đây — lớp đó tô màu nhấn,
+   trên nền tối sẽ chìm. */
+
+.mc-ph-fam-side {
+  font-family: "Montserrat", sans-serif;
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: rgb(var(--mc-on-photo) / 0.6);
+}
+
+.mc-ph-parent {
+  font-size: 12px;
+  line-height: 1.55;
+  color: rgb(var(--mc-on-photo));
+}
+
+/* Địa chỉ mỗi nhà: dòng phụ, cố ý nhỏ và mờ hơn tên bố mẹ. Vạch đứt ngắn phía
+   trên tách nó khỏi khối tên mà không cần thêm khoảng trống.
+   index.js ẩn hẳn ô này khi chưa nhập địa chỉ. */
+
+.mc-ph-addr {
+  position: relative;
+  margin-top: 8px;
+  padding-top: 8px;
+  font-size: 9px;
+  line-height: 1.5;
+  color: rgb(var(--mc-on-photo) / 0.66);
+}
+
+.mc-ph-addr::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 22px;
+  margin-left: -11px;
+  height: 1px;
+  background-image: var(--mc-dash-x);
+  opacity: 0.5;
+}
+
+/* ── QUYỂN SÁCH: cả thiệp là dải trang LẬT NGANG ──────────────────────────
+   #cx-pages là khung cuộn ngang duy nhất của thiệp; mỗi <section> con là một
+   trang rộng đúng khổ thiệp, cao đúng khổ thiệp, KHÔNG cuộn dọc. Nội dung mỗi
+   trang được setupBook() (index.js) bọc vào .mc-page-in rồi thu nhỏ nếu đo ra
+   cao hơn trang — đó là thứ bảo đảm "không trang nào dài hơn màn hình", nên
+   đổi padding ở đây phải để hàm đó chạy lại (nó đo bằng DOM thật).
+   ĐỪNG đặt thêm khung cuộn ngang nào bên trong trang: hai khung sẽ tranh nhau
+   cùng một cú vuốt. */
+
+.mc-pages {
+  display: flex;
+  height: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  overscroll-behavior: contain;
+  /* Cú vuốt DỌC được index.js đổi thành lật trang, nên trình duyệt không được
+     tự xử lý nó nữa. */
+  touch-action: pan-x;
+}
+
+.mc-pages::-webkit-scrollbar {
+  display: none;
+}
+
+.mc-page {
+  flex: 0 0 100%;
+  width: 100%;
+  height: 100%;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  /* Chừa chỗ cho thanh chỉ báo trang ở đáy. */
+  padding: 20px 0 56px;
+}
+
+/* Mục bị tắt: .hidden của themes.css nạp TRƯỚC file này nên cùng độ đặc hiệu
+   sẽ thua display:flex ở trên — phải nhắc lại ở đây. */
+
+.mc-page.hidden {
+  display: none;
+}
+
+/* KHÔNG đặt width:100% ở đây: mục có lề ngang riêng (mx-6 của ô Tiệc mừng)
+   sẽ thành 100% CỘNG lề → lệch sang phải và tràn mất một mảng. Để flex kéo
+   giãn, bề ngang tự trừ đúng phần lề. flex:none để nội dung cao hơn trang thì
+   bị _fitPage() thu nhỏ, chứ không bị flex bóp méo. */
+
+.mc-page-in {
+  flex: none;
+  transform-origin: center center;
+}
+
+/* Thanh chỉ báo + hai nút lật, nổi ở đáy khổ thiệp. */
+
+.mc-pager {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 14px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.mc-pager > * {
+  pointer-events: auto;
+}
+
+.mc-pager-btn {
+  width: 28px;
+  height: 28px;
+  font-size: 11px;
+  color: rgb(var(--cx-body-rgb));
+  background-color: rgb(var(--cx-surface-rgb) / 0.9);
+}
+
+.mc-pager-btn[disabled] {
+  opacity: 0.25;
+}
+
+/* ── Chuyện tình yêu: TRANG BÁO ───────────────────────────────────────────
+   Các mốc chảy liên tục trong #love-story-list ([data-cx-flow]); _flowPaginate()
+   ở index.js nhét đầy trang rồi mới đẩy phần dư sang trang kế. */
+
+/* Măng sét: kẻ đôi trên/dưới, chỉ có ở trang ĐẦU của mục. */
+
+.mc-masthead {
+  flex: none;
+  border-top: 4px double rgb(var(--cx-heading-rgb));
+  border-bottom: 4px double rgb(var(--cx-heading-rgb));
+  padding: 10px 0 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mc-masthead-title {
+  font-size: 26px;
+  line-height: 1.1;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.mc-masthead-sub {
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+/* Một mốc: dateline → tít → ảnh → chữ hai cột. */
+
+.mc-story-page {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+/* Nhiều mốc chung một trang thì ngăn nhau bằng vạch mảnh. Mốc bị đẩy sang trang
+   sau thành con ĐẦU của trang đó nên tự mất vạch — đúng ý. */
+
+.mc-story-page + .mc-story-page {
+  position: relative;
+  padding-top: 16px;
+}
+
+.mc-story-page + .mc-story-page::before {
+  content: "";
+  position: absolute;
+  left: 20%;
+  right: 20%;
+  top: 0;
+  height: 1px;
+  background-image: var(--mc-dash-x);
+}
+
+/* Dateline: chữ hoa nhỏ, gạch mảnh kéo hết phần dòng còn lại. */
+
+.mc-post-dateline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: "Montserrat", sans-serif;
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: rgb(var(--cx-accent-rgb));
+}
+
+.mc-post-dateline::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background-color: rgb(var(--cx-line-rgb));
+}
+
+.mc-post-title {
+  font-size: 19px;
+  line-height: 1.25;
+  margin: 8px 0;
+}
+
+.mc-post-figure {
+  flex: none;
+  margin: 2px 0 10px;
+}
+
+.mc-post-cap {
+  font-family: "Montserrat", sans-serif;
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  text-align: center;
+  margin-top: 6px;
+  color: rgb(var(--cx-body-rgb));
+}
+
+/* Hai cột chữ căn đều. Chiều cao CỐ ĐỊNH nên chữ dư tràn theo chiều NGANG
+   (thành cột thứ ba) — chỗ overflow:hidden này là thứ giữ trang không dài ra,
+   và cũng là dấu hiệu để hàm phân trang biết phải cắt. */
+
+.mc-post-body {
+  columns: 2;
+  column-gap: 14px;
+  column-rule: 1px solid rgb(var(--cx-line-rgb));
+  font-size: 11px;
+  line-height: 1.75;
+  text-align: justify;
+  hyphens: auto;
+  orphans: 2;
+  widows: 2;
+}
+
+/* Chữ hoa thả (drop cap) chỉ ở trang MỞ ĐẦU một mốc, không ở trang chữ tiếp. */
+
+.mc-story-page--first .mc-post-body::first-letter {
+  float: left;
+  font-family: "Prata", serif;
+  font-size: 32px;
+  line-height: 0.82;
+  padding: 2px 6px 0 0;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+/* Chỉ báo trang: số trang kiểu báo + hàng gạch, gạch đang xem thì dài và đậm. */
+
+.mc-book-dots {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.mc-book-dot {
+  width: 10px;
+  height: 2px;
+  background-color: rgb(var(--cx-line-rgb));
+  transition: width 0.25s ease, background-color 0.25s ease;
+}
+
+.mc-book-dot.is-on {
+  width: 20px;
+  background-color: rgb(var(--cx-accent-rgb));
+}
+
+.mc-book-no {
+  font-family: "Montserrat", sans-serif;
+  font-size: 9px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: rgb(var(--cx-body-rgb));
+}
+
+/* ── Album: lưới khuôn hình ──────────────────────────────────────────────
+   Mỗi trang tối đa 6 khung; ảnh dư sang trang sau (renderGallery ở index.js). */
+
+.mc-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.mc-frame {
+  cursor: pointer;
+}
+
+/* Số khuôn hình — nằm TRÊN thanh đen dưới, nên luôn là chữ sáng. */
+
+.mc-frame-no {
+  position: absolute;
+  left: 10px;
+  bottom: 6px;
+  z-index: 3;
+  font-family: "Montserrat", sans-serif;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: rgb(255 255 255 / 0.75);
+}
+
+/* Ảnh QR: nền trắng bắt buộc để máy quét đọc được, không tô theo bảng màu. */
+
+.mc-qr {
+  background-color: #fff;
+  border: 1px solid rgb(var(--cx-line-rgb));
+}

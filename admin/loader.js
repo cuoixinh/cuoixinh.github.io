@@ -11,6 +11,7 @@
     ["mount-asset-images", "partials/asset-images-panel.html"],
     ["mount-background", "partials/background-panel.html"],
     ["mount-promo", "partials/promo-panel.html"],
+    ["mount-fonts", "partials/fonts-panel.html"],
   ];
 
   // Thứ tự có phụ thuộc: config (CONFIG global) → core dùng chung (ADMIN_TOKEN,
@@ -60,6 +61,7 @@
     // handle thư mục assets/ với tab "Ảnh mẫu" (cùng key "assets-root").
     "js/06-background.js",
     "js/07-promo.js",
+    "js/08-fonts.js",
   ];
 
   function injectPartial(mountId, html) {

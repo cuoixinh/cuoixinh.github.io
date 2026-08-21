@@ -71,6 +71,29 @@ class GuestDAL {
     return this._get('wedding', { wedding_id: weddingId });
   }
 
+  // ── Xác nhận tham dự (CÔNG KHAI) ─────────────────────────────────────────
+
+  /**
+   * Khách mời tự xác nhận từ trang thiệp — KHÔNG đăng nhập, nên gửi anon key chứ
+   * không dùng _authHeaders(). Edge function khớp khách theo slug + tên + xưng hô
+   * trên link rồi chỉ ghi cột confirmed; trả { matched } để biết link có ứng với
+   * khách nào trong danh sách hay không.
+   */
+  async rsvpPublic({ slug, name, relationship, attending, message }) {
+    const res = await fetch(`${this._url}?action=rsvp`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: CONFIG.supabase.anonKey,
+        Authorization: `Bearer ${CONFIG.supabase.anonKey}`,
+      },
+      body: JSON.stringify({ slug, name, relationship, attending, message }),
+    });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.error || 'Lỗi máy chủ');
+    return json;
+  }
+
   // ── Writes ────────────────────────────────────────────────────────────────
 
   async insertOneGuest(weddingId, side, guest) {

@@ -243,6 +243,69 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
     return fail('action không hợp lệ cho PATCH')
   }
 
+  // ── POST công khai: khách mời tự xác nhận tham dự ────────────────────────
+  // KHÔNG cần đăng nhập — người gọi là khách cầm link cá nhân hoá. Chỉ CẬP NHẬT
+  // cột xác nhận của một hàng guests CÓ SẴN, khớp theo slug thiệp + tên hiển thị
+  // + xưng hô ghi trên link; không tạo, không xoá, không trả danh sách khách ra
+  // ngoài (chỉ trả matched true/false).
+  if (req.method === 'POST' && action === 'rsvp') {
+    const body = await req.json()
+    const slug = String(body.slug ?? '').trim()
+    const name = String(body.name ?? '').trim().slice(0, MAX_FIELD_LEN)
+    const relationship = String(body.relationship ?? '').trim().slice(0, MAX_REL_LEN)
+    const attending = body.attending === true || body.attending === 'true'
+    const message = String(body.message ?? '').trim().slice(0, 1000)
+
+    if (!slug || !name) return fail('Thiếu thông tin khách mời')
+
+    const { data: wedding } = await supabase
+      .from('weddings')
+      .select('id')
+      .eq('slug', slug)
+      .maybeSingle()
+
+    if (!wedding) return fail('Thiệp không tồn tại', 404)
+
+    const { data: rows, error: listErr } = await supabase
+      .from('guests')
+      .select('id, full_name, display_name, relationship')
+      .eq('wedding_id', wedding.id)
+      .order('created_at', { ascending: true })
+
+    if (listErr) return fail(listErr.message, 500)
+
+    // Link mang tên hiển thị (rơi về full_name khi khách không có tên hiển thị)
+    // nên phải so cả hai cột. Ưu tiên hàng khớp cả xưng hô — trùng tên trong một
+    // thiệp là chuyện thường, xưng hô mới tách được hai người.
+    const norm = (v: unknown) => String(v ?? '').trim().toLowerCase()
+    const sameName = (g: Record<string, unknown>) =>
+      norm(g.display_name) === norm(name) || norm(g.full_name) === norm(name)
+
+    const list = rows ?? []
+    const guest =
+      list.find(g => sameName(g) && norm(g.relationship) === norm(relationship)) ??
+      list.find(sameName)
+
+    // Không khớp khách nào (chủ thiệp đã xoá/đổi tên sau khi gửi link): không
+    // phải lỗi của khách → vẫn 200 để thiệp hiện lời cảm ơn, chỉ báo matched.
+    if (!guest) {
+      log.warn('guest.rsvp.nomatch', { slug })
+      return ok({ matched: false })
+    }
+
+    const patch: Record<string, unknown> = {
+      confirmed: attending ? 'Có tham dự' : 'Không tham dự',
+      confirmed_at: new Date().toISOString(),
+    }
+    if (message) patch.message = message
+
+    const { error: upErr } = await supabase.from('guests').update(patch).eq('id', guest.id)
+    if (upErr) return fail(upErr.message, 500)
+
+    log.info('guest.rsvp', { slug, attending })
+    return ok({ matched: true })
+  }
+
   // ── POST: thêm 1 khách hoặc import ──────────────────────────────────────
   if (req.method === 'POST') {
     const body = await req.json()

@@ -1,0 +1,181 @@
+{
+  "image_focal_points": {
+    "gallery_images": {
+      "gallery-01.webp": {
+        "x": 46,
+        "y": 25
+      },
+      "gallery-02.webp": {
+        "x": 53,
+        "y": 13
+      },
+      "gallery-03.webp": {
+        "x": 49,
+        "y": 24
+      },
+      "gallery-04.webp": {
+        "x": 63,
+        "y": 14
+      },
+      "gallery-05.webp": {
+        "x": 75,
+        "y": 25
+      },
+      "gallery-06.webp": {
+        "x": 50,
+        "y": 24
+      },
+      "gallery-07.webp": {
+        "x": 49,
+        "y": 24
+      },
+      "gallery-08.webp": {
+        "x": 59,
+        "y": 18
+      },
+      "gallery-09.webp": {
+        "x": 50,
+        "y": 61
+      },
+      "gallery-10.jpg": {
+        "x": 48,
+        "y": 32
+      }
+    },
+    "cover_image_url": {
+      "x": 51,
+      "y": 18
+    },
+    "groom_image_url": {
+      "x": 65,
+      "y": 14
+    },
+    "bride_image_url": {
+      "x": 40,
+      "y": 23
+    }
+  },
+  "cover_image_url": "cover.webp",
+  "groom_image_url": "groom.webp",
+  "bride_image_url": "bride.webp",
+  "groom_qr_url": "groom-qr.png",
+  "bride_qr_url": "bride-qr.png",
+  "gallery_images": [
+    "gallery-01.webp",
+    "gallery-02.webp",
+    "gallery-03.webp",
+    "gallery-04.webp",
+    "gallery-05.webp",
+    "gallery-06.webp",
+    "gallery-07.webp",
+    "gallery-08.webp",
+    "gallery-09.webp",
+    "gallery-10.jpg"
+  ],
+  "love_story": [
+    {
+      "title": "Ngày mình gặp nhau",
+      "content": "Vào một buổi chiều thu lãng mạn, chúng mình tình cờ gặp nhau tại quán cà phê quen thuộc. Ánh mắt chạm nhau, và từ đó, một câu chuyện tình yêu diệu kỳ đã bắt đầu. Chúng mình đã dành vô vàn buổi tối để cùng nhau khám phá phố phường, chia sẻ những câu chuyện và ước mơ. Mỗi khoảnh khắc bên nhau đều thật đáng nhớ và ý nghĩa.",
+      "image_url": "love-story-01.webp",
+      "focal_point": {
+        "x": 44,
+        "y": 26
+      }
+    },
+    {
+      "title": "Và mình chọn nhau",
+      "content": "Một chuyến đi biển đã gắn kết hai trái tim hơn bao giờ hết. Chúng mình nhận ra rằng, dù đi đâu hay làm gì, chỉ cần có nhau là đủ. Trong một buổi tối lãng mạn dưới ánh nến lung linh, anh đã quỳ gối và trao em chiếc nhẫn. Giây phút ấy, cả thế giới như ngừng lại, và em đã nói"
+    }
+  ],
+  "content": {
+    "groom_name": "Quang Vinh",
+    "bride_name": "Hải Yến",
+    "groom_father": "Đoàn Hữu Đức",
+    "groom_mother": "Nguyễn Thị Lan",
+    "groom_address": "Số 36, Đường Hoàng Cầu, Phường Ô Chợ Dừa, Quận Đống Đa, Hà Nội",
+    "bride_father": "Vũ Văn Hùng",
+    "bride_mother": "Trần Thị Mai",
+    "bride_address": "Số 8, Ngõ 12, Đường Lạch Tray, Phường Kênh Dương, Quận Lê Chân, Hải Phòng",
+    "ceremony_name": "Lễ Thành Hôn",
+    "ceremony_date": "2026-10-18",
+    "ceremony_time": "10:00",
+    "ceremony_lunar": "Tức ngày 9 tháng 9 năm Nhâm Dần",
+    "ceremony_location": "Trung Tâm Tiệc Cưới Star Galaxy, Hà Nội",
+    "vu_quy_enabled": true,
+    "vu_quy_time": "09:00",
+    "vu_quy_location": "Tư gia nhà gái",
+    "groom_party_date": "2026-10-18",
+    "groom_party_time": "18:00",
+    "groom_party_lunar": "Tức ngày 9 tháng 9 năm Nhâm Dần",
+    "groom_party_show_location": true,
+    "groom_party_location": "Trung Tâm Tiệc Cưới Star Galaxy, Hà Nội",
+    "bride_party_date": "2026-10-17",
+    "bride_party_time": "18:00",
+    "bride_party_lunar": "Tức ngày 8 tháng 9 năm Nhâm Dần",
+    "bride_party_show_location": true,
+    "bride_party_location": "Nhà Hàng Gia Viên, Hải Phòng",
+    "groom_bank_name": "VCB",
+    "groom_bank_number": "0011000888888",
+    "groom_bank_owner": "DOAN QUANG VINH",
+    "bride_bank_name": "MB",
+    "bride_bank_number": "88888888888",
+    "bride_bank_owner": "VU THI HAI YEN",
+    "story_quote": "Tình yêu là phép màu kỳ diệu nhất, biến hai cuộc đời thành một bản tình ca bất tận.",
+    "rsvp_enabled": true,
+    "rsvp_message": "Sự hiện diện và lời chúc phúc của quý vị là niềm vinh hạnh lớn nhất đối với chúng mình. Xin chân thành cảm ơn!",
+    "footer_text": "Hạnh phúc lớn nhất là khi hai trái tim đồng điệu tìm thấy nhau. Chúng mình mong được chia sẻ niềm vui này cùng tất cả mọi người.",
+    "music_url": "https://www.youtube.com/watch?v=JgTZvDbaTtg",
+    "enable_family": true,
+    "enable_party": true,
+    "enable_photos": true,
+    "enable_timeline": true,
+    "enable_love_story": true,
+    "enable_music": true,
+    "enable_gift": true,
+    "enable_footer": true,
+    "timeline": [
+      {
+        "time": "09:00",
+        "title": "Lễ Vu Quy tại tư gia nhà gái",
+        "type": "ceremony"
+      },
+      {
+        "time": "18:00",
+        "title": "Tiệc Cưới thân mật tại Hải Phòng",
+        "type": "party"
+      },
+      {
+        "time": "17:00",
+        "title": "Đón khách",
+        "type": "party"
+      },
+      {
+        "time": "10:00",
+        "title": "Lễ Thành Hôn tại Trung Tâm Tiệc Cưới",
+        "type": "ceremony"
+      },
+      {
+        "time": "18:00",
+        "title": "Tiệc Cưới chính thức tại Hà Nội",
+        "type": "party"
+      },
+      {
+        "time": "18:30",
+        "title": "Khai tiệc",
+        "type": "party"
+      },
+      {
+        "time": "19:00",
+        "title": "Nghi thức cắt bánh và nâng ly",
+        "type": "party"
+      },
+      {
+        "time": "19:30",
+        "title": "Giao lưu cùng khách quý",
+        "type": "party"
+      }
+    ],
+    "demo_fill_love_story": true
+  },
+  "updated_at": "2026-08-19T00:00:00.000Z"
+}

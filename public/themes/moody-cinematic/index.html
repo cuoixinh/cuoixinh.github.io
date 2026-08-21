@@ -1,0 +1,530 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <title>Cưới Xinh — Moody Cinematic</title>
+    <link rel="icon" type="image/png" href="../../../assets/icons/logo.png" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Prata&family=Montserrat:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../../../styles/themes.css" />
+    <!-- Bảng màu (--cx-*) + CSS riêng của mẫu. Nạp SAU themes.css. -->
+    <link rel="stylesheet" href="theme.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <!-- Markup trình phát nhạc — nạp ở HEAD vì script nội tuyến đầu <body> gọi
+         CXMusicPlayer.build() để dựng thanh nhạc. -->
+    <script src="../../../core/helpers/icon.js"></script>
+    <script src="../../../core/x-button.js"></script>
+    <script src="../../../core/components/music-player.js"></script>
+  </head>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       MẪU: MOODY CINEMATIC — hiện đại, nền SÁNG, chữ xám trầm, nhấn xanh than.
+       Chất điện ảnh dồn vào ẢNH: mọi ảnh lớn bọc trong .mc-cine → hai thanh
+       đen kẹp trên/dưới (giả tỉ lệ màn ảnh rộng) + màu hơi trầm. Cả thiệp đọc
+       như QUYỂN SÁCH: lật NGANG từng trang, mỗi trang vừa đúng một màn hình.
+
+       Ràng buộc không được phá:
+         · #main-card bọc các mục bằng ĐÚNG MỘT thẻ #cx-pages — dải cuộn NGANG,
+           mỗi <section> con TRỰC TIẾP là một TRANG cao trọn màn (trang gộp
+           nhiều mục thì bọc chúng lại và khai [data-cx-group]); đừng lồng thêm
+           khung cuộn nào vào trong trang, hai khung tranh nhau cùng một cú vuốt
+         · Chữ lấy từ dữ liệu phải đi qua setText(id, …) trong index.js
+         · Thanh nhạc phải là thẻ con ĐẦU TIÊN của <body>
+         · Màu lấy từ --cx-* / .cx-h / .cx-t / .cx-a, đừng viết mã màu thẳng
+         · Ảnh trong #main-card KHÔNG lazy: thẻ đang display:none nên ảnh lazy
+           chưa tải gì, bấm mở bìa mới bắt đầu tải → trống ảnh lúc thiệp mở ra
+       ══════════════════════════════════════════════════════════════════════ -->
+
+  <body class="min-h-screen flex justify-center items-start md:py-5">
+    <!-- ═══ Trình phát nhạc (enable_music) ═════════════════════════════════ -->
+    <div id="cx-music-mount"></div>
+    <script>
+      document.currentScript.previousElementSibling.replaceWith(
+        CXMusicPlayer.build({ variant: "bar", chrome: "fixed-top" }),
+      );
+    </script>
+
+    <!-- ═══ MỤC: Màn bìa ═══════════════════════════════════════════════════
+         Nền sáng, ảnh cưới nằm gọn trong một khung điện ảnh ở giữa màn. -->
+    <div
+      id="cover-screen"
+      class="fixed inset-0 z-50 flex justify-center items-center md:py-5"
+    >
+      <div
+        class="relative w-full max-w-[430px] min-h-screen md:min-h-[932px] overflow-hidden md:rounded-lg flex flex-col items-center justify-center gap-6 px-10 text-center"
+      >
+        <div class="mc-eyebrow">Trân trọng kính mời</div>
+
+        <!-- Tên khách mời: điền từ tham số ?name= đã mã hoá trên URL -->
+        <div class="cx-h text-[30px] leading-tight" id="cover-guest-name">----------</div>
+
+        <div class="flex items-center gap-3 w-full">
+          <div class="mc-rule"></div>
+          <div class="cx-t text-[10px] tracking-[2px] uppercase whitespace-nowrap">
+            đến dự lễ thành hôn của
+          </div>
+          <div class="mc-rule"></div>
+        </div>
+
+        <div class="mc-cine w-full aspect-[16/9]">
+          <img
+            id="cover-bg-img"
+            src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+            class="w-full h-full object-cover"
+            alt=""
+            fetchpriority="high"
+          />
+        </div>
+
+        <div class="cx-h text-[24px] leading-snug flex flex-col gap-1">
+          <span id="cover-groom-name">----------</span>
+          <span class="cx-a text-[12px] tracking-[6px] uppercase">and</span>
+          <span id="cover-bride-name">----------</span>
+        </div>
+
+        <x-button
+          variant="bare"
+          onclick="openInvitation()"
+          class="open-btn relative overflow-hidden px-10 py-4 rounded-none border cx-border cx-t text-[12px] tracking-[3px] uppercase active:scale-95 transition-transform touch-manipulation [-webkit-tap-highlight-color:transparent]"
+        >
+          <span class="relative z-10 pointer-events-none flex items-center gap-2">
+            <i class="fas fa-play cx-a text-[11px]"></i>
+            Mở Thiệp
+          </span>
+          <div class="btn-shimmer pointer-events-none"></div>
+        </x-button>
+      </div>
+    </div>
+
+    <!-- ═══ THÂN THIỆP — QUYỂN SÁCH LẬT NGANG ══════════════════════════════
+         #main-card + ĐÚNG MỘT thẻ con bọc mọi mục (#cx-pages, ở đây là dải
+         cuộn NGANG). Mỗi <section> con trực tiếp là MỘT TRANG cao trọn màn; setupBook()
+         trong index.js bọc nội dung từng trang lại và thu nhỏ nếu tràn, nên
+         không trang nào dài hơn màn hình. -->
+    <div
+      id="main-card"
+      class="relative w-full max-w-[430px] md:max-w-[768px] h-[100dvh] md:h-[932px] md:rounded-lg md:shadow-2xl overflow-hidden"
+      style="display: none"
+    >
+      <div id="cx-pages" class="mc-pages text-center">
+        <!-- ═══ TRANG: Lời mời (Mở đầu + Thư mời + Gia đình) ════════════════
+             Một TRANG BÁO đọc dọc, căn giữa, ba nhịp: măng sét + ảnh lớn TRÀN
+             MÉP (lời mời và tên đôi đè lên đáy ảnh) → khối ngày giờ trên nền
+             trắng → dải TỐI tràn mép của khối gia đình.
+             Trang này GIỮ các id của mục Thư mời (invite-*, ceremony-*) nên
+             KHÔNG được dựng lại mục Thư mời ở chỗ khác: id trùng thì chỉ một
+             chỗ nhận được dữ liệu.
+             #section-family vẫn là thẻ riêng để cxToggle(enable_family) tắt
+             được phần gia đình mà không đụng phần còn lại của trang. -->
+        <section id="section-hero" class="mc-ph-page">
+          <!-- Măng sét: ba phần, tên tờ báo ở giữa. Cả ba là chữ TĨNH — ô hai
+               bên hẹp nên mọi chuỗi lấy từ dữ liệu đều có ngày bị cắt cụt
+               thành dấu "…", đọc như lỗi render. Lịch âm nằm ở khối ngày. -->
+          <div class="mc-ph-head">
+            <span class="mc-ph-side"></span>
+            <span class="mc-ph-name">The Wedding Post</span>
+            <span class="mc-ph-side"></span>
+          </div>
+
+          <div class="cx-h mc-ph-invited">You're Invited</div>
+
+          <!-- Ảnh cặp đôi: TRÀN MÉP trang, lời mời + tên đôi đè lên đáy ảnh.
+               Đè chữ lên ảnh là chỗ tiết kiệm gần 100px chiều dọc — đủ để mọi
+               mục còn lại của trang khỏi phải co chữ xuống dưới ngưỡng đọc. -->
+          <div class="mc-cine mc-ph-shot mc-ph-bleed">
+            <img
+              id="main-photo"
+              src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+              alt="Ảnh cưới"
+              class="w-full h-full object-cover"
+            />
+            <div class="mc-ph-veil"></div>
+            <div class="mc-ph-cap">
+              <div class="mc-ph-sub">
+                Tới dự <span id="ceremony-event-name">Lễ Thành Hôn</span> của
+              </div>
+              <div class="mc-ph-names">
+                <span id="couple-names-groom">----------</span>
+                <span class="mc-ph-amp">&</span>
+                <span id="couple-names-bride">----------</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Khối ngày giờ: thứ | ngày (số lớn) | giờ, kẹp giữa hai kẻ ngang,
+               lịch âm chạy trọn bề ngang bên dưới. -->
+          <div class="mc-ph-when">
+            <div class="cx-h mc-ph-month" id="invite-month-year">Tháng -- · ----</div>
+            <div class="mc-ph-row">
+              <div class="mc-eyebrow mc-ph-cell" id="invite-weekday">------</div>
+              <div class="cx-h mc-ph-day" id="invite-day">--</div>
+              <div class="mc-eyebrow mc-ph-cell" id="invite-time">--:--</div>
+            </div>
+            <div class="cx-t mc-ph-lunar" id="invite-lunar">--------------------</div>
+          </div>
+
+          <!-- Nơi làm lễ — index.js gỡ .hidden khi có dữ liệu -->
+          <div id="ceremony-location-wrap" class="hidden mc-ph-place">
+            <span class="cx-h mc-ph-venue" id="ceremony-location-text"></span>
+          </div>
+
+          <!-- Lời nhắn (story_quote) -->
+          <div id="story-quote" class="cx-t mc-ph-note">
+            "Một hành trình mới bắt đầu từ hôm nay"
+          </div>
+
+          <!-- ═══ MỤC: Gia đình (enable_family) ═════════════════════════════
+               Dải TỐI tràn mép ở đáy trang, đối trọng với ảnh lớn ở đầu trang.
+               Ảnh (tấm đầu album) chỉ là nền: luôn có lớp phủ đen đè lên nên
+               chưa có album thì dải vẫn tối đều, không cần bố cục dự phòng. -->
+          <div id="section-family" class="mc-ph-family mc-ph-bleed">
+            <img
+              id="family-photo"
+              src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+              alt=""
+              class="mc-ph-fam-bg"
+            />
+            <div class="mc-ph-veil mc-ph-veil-flat"></div>
+            <div class="mc-ph-fam-in">
+              <div class="cx-h mc-ph-fam-title">Gia đình hai bên</div>
+              <div class="mc-ph-fam-grid">
+                <div class="mc-ph-fam-block">
+                  <div class="mc-ph-fam-side">Nhà Trai</div>
+                  <div class="cx-h mc-ph-parent" id="groom-father">----------</div>
+                  <div class="cx-h mc-ph-parent" id="groom-mother">----------</div>
+                  <div class="cx-t mc-ph-addr" id="groom-address"></div>
+                </div>
+                <div class="mc-ph-fam-block">
+                  <div class="mc-ph-fam-side">Nhà Gái</div>
+                  <div class="cx-h mc-ph-parent" id="bride-father">----------</div>
+                  <div class="cx-h mc-ph-parent" id="bride-mother">----------</div>
+                  <div class="cx-t mc-ph-addr" id="bride-address"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ═══ MỤC: Tiệc cưới (enable_party) ═══════════════════════════════
+             Cả trang gói NGẮN để đỡ bị _fitPage() thu nhỏ (trang này gộp thẻ
+             lịch + info tiệc + RSVP, cộng dồn dễ tràn cao hơn các trang khác).
+             Ảnh nằm NGANG (không phải 4/5 dựng đứng) cho thấp bớt; lưới ngày
+             padding tối thiểu (px-2 = 8px) để CHIẾM GẦN HẾT bề ngang thẻ thay
+             vì lọt thỏm giữa viền trắng. mc-cal-* trong theme.css. -->
+        <section id="section-party" class="mx-6 flex flex-col gap-3">
+          <div class="mc-panel overflow-hidden flex flex-col">
+            <div class="mc-cine mc-cal-shot">
+              <img
+                id="calendar-photo"
+                src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+                alt=""
+                class="w-full h-full object-cover"
+              />
+              <div class="mc-cal-veil"></div>
+              <!-- Trích dẫn TRANG TRÍ, fix cứng như măng sét — không phải dữ
+                   liệu thiệp, đừng bind qua setText. -->
+              <div class="mc-cal-quote">
+                <div class="mc-cal-quote-ln">“We forget all too soon</div>
+                <div class="mc-cal-quote-ln">the things we thought</div>
+                <div class="mc-cal-quote-ln">we could never forget.”</div>
+                <div class="mc-cal-quote-by">— Joan Didion</div>
+              </div>
+            </div>
+
+            <!-- Lịch nhỏ đánh dấu ngày lễ + ngày tiệc (calendar-helper.js) -->
+            <div id="mini-calendar" class="mc-cal-panel w-full px-2 py-3"></div>
+          </div>
+
+          <div class="flex flex-col gap-1 px-6">
+            <div id="party-section-label" class="mc-eyebrow">Tiệc Mừng Lễ Thành Hôn</div>
+
+            <div class="cx-h text-[20px]" id="party-datetime">--:-- - --.--.----</div>
+            <div class="cx-t text-[11px] opacity-80" id="party-lunar">(Ngày âm lịch)</div>
+
+            <div class="flex items-start gap-2 justify-center pt-1">
+              <i class="fas fa-map-marker-alt cx-a text-xs"></i>
+              <div class="cx-t text-[12px]" id="party-location">------------------------</div>
+            </div>
+          </div>
+
+          <!-- ═══ MỤC: Xác nhận tham dự (rsvp_enabled) ═════════════════════ -->
+          <div id="rsvp-section" class="flex flex-col gap-2 px-6" style="display: none">
+            <div class="text-[10px] tracking-[3px] uppercase shimmer-text">Xác nhận tham dự</div>
+            <div id="rsvp-custom-message" class="hidden cx-t text-[11px] leading-relaxed"></div>
+
+            <div class="grid grid-cols-2 gap-2">
+              <x-button
+                variant="bare"
+                onclick="confirmAttend(true)"
+                id="btn-attend"
+                class="flex-col gap-1 py-2.5 rounded-none border cx-border bg-white active:scale-95 transition-all"
+              >
+                <i class="fas fa-check cx-ac text-base"></i>
+                <span class="cx-t text-[10px] tracking-[2px] uppercase">Tham dự</span>
+              </x-button>
+              <x-button
+                variant="bare"
+                onclick="confirmAttend(false)"
+                id="btn-decline"
+                class="flex-col gap-1 py-2.5 rounded-none border cx-border bg-white active:scale-95 transition-all"
+              >
+                <!-- Icon dùng .cx-bd (CHỈ đổi màu), không dùng .cx-t: .cx-t đặt
+                     cả font-family nên sẽ đè font của Font Awesome → ô vuông. -->
+                <i class="fas fa-times cx-bd text-base"></i>
+                <span class="cx-t text-[10px] tracking-[2px] uppercase">Không tham dự</span>
+              </x-button>
+            </div>
+
+            <div id="attend-msg" class="cx-a text-[12px] hidden"></div>
+          </div>
+        </section>
+
+        <!-- ═══ MỤC: Lịch trình ngày cưới (enable_timeline) ═════════════════
+             renderTimeline() (render-helper.js) tự lọc mốc theo nhà trai/gái. -->
+        <section id="section-timeline" class="hidden flex flex-col gap-5 px-6">
+          <div class="flex items-center gap-3">
+            <div class="mc-rule"></div>
+            <h2 class="cx-h text-[17px] tracking-[3px] uppercase">Lịch Trình</h2>
+            <div class="mc-rule"></div>
+          </div>
+          <div id="timeline-list-render" class="flex flex-col"></div>
+        </section>
+
+        <!-- ═══ MỤC: Chuyện tình yêu (enable_love_story) ════════════════════
+             Bố cục TRANG BÁO LẬT NGANG: mục cao đúng một màn hình, mỗi mốc là
+             một trang vuốt ngang cao trọn dải — chữ dư tự cắt sang trang kế nên
+             không trang nào dài quá màn. Dựng trong renderStoryPost() ở
+             index.js; mẫu này KHÔNG dùng renderLoveStory() chung. -->
+        <section id="love-story" class="flex flex-col gap-4 px-6" style="display: none">
+          <div class="mc-masthead">
+            <div class="mc-eyebrow">The Wedding Post</div>
+            <h2 class="cx-h mc-masthead-title">Chuyện Tình Yêu</h2>
+            <div class="mc-masthead-sub cx-t">Ấn bản đặc biệt · Chuyện của chúng mình</div>
+          </div>
+          <div id="love-story-list" class="flex flex-col gap-4" data-cx-flow></div>
+        </section>
+
+        <!-- ═══ MỤC: Album ảnh (enable_photos) ══════════════════════════════
+             Lưới khuôn hình — dựng trong renderGallery() ở index.js, quá 6 ảnh
+             thì tự sang trang sau. -->
+        <section id="section-photos" class="flex flex-col gap-5">
+          <div class="flex items-center gap-3 px-6">
+            <div class="mc-rule"></div>
+            <h2 class="cx-h text-[17px] tracking-[3px] uppercase">Album Ảnh</h2>
+            <div class="mc-rule"></div>
+          </div>
+          <div id="gallery-grid" class="mc-grid px-6" data-cx-flow></div>
+        </section>
+
+        <!-- ═══ TRANG: Hộp mừng cưới + Địa điểm ═════════════════════════════
+             Hai mục ngắn đi chung MỘT trang. Trang nhóm khai [data-cx-group]:
+             index.js tự ẩn cả trang khi cả hai mục bên trong đều bị tắt. -->
+        <section data-cx-group class="flex flex-col gap-8">
+          <!-- ═══ MỤC: Hộp mừng cưới (enable_gift) ════════════════════════════ -->
+          <section id="section-gift" class="flex flex-col gap-6 px-6">
+            <div class="flex items-center gap-3">
+              <div class="mc-rule"></div>
+              <h2 class="cx-h text-[17px] tracking-[3px] uppercase">Hộp Mừng Cưới</h2>
+              <div class="mc-rule"></div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+              <!-- Chú rể -->
+              <div class="flex flex-col gap-2 items-center">
+                <div class="mc-eyebrow">Chú Rể</div>
+                <div class="cx-t text-[11px]" id="groom-bank-label">----------</div>
+                <!-- Nền QR phải TRẮNG để máy quét đọc được, không tô theo bảng màu -->
+                <div class="mc-qr p-3 w-full max-w-[180px]">
+                  <img
+                    src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+                    id="groom-qr-img"
+                    alt="QR Chú Rể"
+                    class="w-full aspect-square object-cover"
+                  />
+                </div>
+                <div class="cx-t text-[11px]" id="groom-bank-name">----------------</div>
+                <div class="cx-h text-[13px]" id="groom-bank-number">------------</div>
+                <div class="cx-h text-[12px]" id="groom-bank-owner">--------------------</div>
+                <x-button
+                  variant="bare"
+                  onclick="saveQR('groom-qr-img')"
+                  class="gap-2 px-4 py-2 rounded-none border cx-border cx-t text-[11px] tracking-[2px] uppercase"
+                >
+                  <i class="fas fa-download cx-a text-xs"></i>
+                  Lưu QR
+                </x-button>
+              </div>
+
+              <!-- Cô dâu -->
+              <div class="flex flex-col gap-2 items-center">
+                <div class="mc-eyebrow">Cô Dâu</div>
+                <div class="cx-t text-[11px]" id="bride-bank-label">----------</div>
+                <div class="mc-qr p-3 w-full max-w-[180px]">
+                  <img
+                    src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+                    id="bride-qr-img"
+                    alt="QR Cô Dâu"
+                    class="w-full aspect-square object-cover"
+                  />
+                </div>
+                <div class="cx-t text-[11px]" id="bride-bank-name">----------------</div>
+                <div class="cx-h text-[13px]" id="bride-bank-number">------------</div>
+                <div class="cx-h text-[12px]" id="bride-bank-owner">--------------------</div>
+                <x-button
+                  variant="bare"
+                  onclick="saveQR('bride-qr-img')"
+                  class="gap-2 px-4 py-2 rounded-none border cx-border cx-t text-[11px] tracking-[2px] uppercase"
+                >
+                  <i class="fas fa-download cx-a text-xs"></i>
+                  Lưu QR
+                </x-button>
+              </div>
+            </div>
+          </section>
+
+          <!-- ═══ MỤC: Bản đồ tới nơi đãi tiệc ═══════════════════════════════ -->
+          <section id="section-map" class="flex flex-col gap-4 px-6">
+            <div class="flex items-center gap-3">
+              <div class="mc-rule"></div>
+              <h2 class="cx-h text-[17px] tracking-[3px] uppercase">Địa Điểm</h2>
+              <div class="mc-rule"></div>
+            </div>
+            <div class="cx-h text-[15px]" id="map-location-name">------------------------</div>
+
+            <a
+              id="map-link"
+              href="#"
+              target="_blank"
+              class="w-full relative overflow-hidden border cx-border active:scale-[0.98] transition-transform block"
+            >
+              <div class="w-full h-32 relative overflow-hidden">
+                <iframe
+                  id="map-thumbnail-iframe"
+                  src=""
+                  width="100%"
+                  height="100%"
+                  class="border-0 pointer-events-none"
+                  loading="lazy"
+                  referrerpolicy="no-referrer-when-downgrade"
+                ></iframe>
+
+                <!-- Chưa có dữ liệu bản đồ → hiện minh hoạ thay cho iframe trắng -->
+                <div
+                  id="map-placeholder"
+                  class="hidden absolute inset-0 flex flex-col items-center justify-center gap-2 cx-bg-surface"
+                >
+                  <i class="fas fa-map-marked-alt cx-a text-2xl"></i>
+                  <span class="cx-t text-[10px] uppercase tracking-[3px]">Chưa có bản đồ</span>
+                </div>
+              </div>
+
+              <div class="flex items-center justify-between px-4 py-3 cx-bg-surface">
+                <div class="cx-t text-[10px] uppercase tracking-[3px]">Địa điểm tổ chức</div>
+                <div class="flex items-center gap-1 cx-a">
+                  <span class="text-[11px]">Mở Maps</span>
+                  <i class="fas fa-chevron-right text-xs"></i>
+                </div>
+              </div>
+            </a>
+          </section>
+        </section>
+
+        <!-- ═══ MỤC: Lời cảm ơn (enable_footer) ═════════════════════════════ -->
+        <section id="section-footer" class="flex flex-col items-center gap-5 px-8">
+          <div class="mc-rule w-full"></div>
+          <div id="footer-text" class="cx-t text-[13px] leading-relaxed">
+            Cảm ơn bạn đã dành thời gian đến chung vui cùng chúng tôi
+          </div>
+        </section>
+      </div>
+
+      <!-- Chỉ báo trang + hai nút lật. Nằm NGOÀI #cx-pages (không cuộn theo)
+           nhưng trong #main-card để bám đúng khổ thiệp. -->
+      <div id="cx-pager" class="mc-pager">
+        <x-button variant="bare" id="cx-prev" icon-only class="mc-pager-btn" aria-label="Trang trước">
+          <i class="fas fa-chevron-left"></i>
+        </x-button>
+        <div id="cx-dots" class="mc-book-dots"></div>
+        <div id="cx-page-no" class="mc-book-no">01 / 01</div>
+        <x-button variant="bare" id="cx-next" icon-only class="mc-pager-btn" aria-label="Trang sau">
+          <i class="fas fa-chevron-right"></i>
+        </x-button>
+      </div>
+    </div>
+
+    <!-- ═══ Phóng to ảnh (đi kèm mục Album ảnh) ════════════════════════════ -->
+    <div id="lightbox" class="fixed inset-0 z-[100] bg-black/95 hidden flex-col items-center justify-center">
+      <x-button variant="bare" onclick="closeLightbox()" class="absolute top-6 right-6 w-10 h-10 bg-white/10 z-10">
+        <i class="fas fa-times text-white text-lg"></i>
+      </x-button>
+      <div id="lb-counter" class="absolute top-6 left-6 text-white/60 text-sm font-inter"></div>
+      <div class="w-full h-full flex items-center justify-center px-[8px]">
+        <img id="lb-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" class="max-w-full max-h-full object-contain transition-opacity duration-200" />
+      </div>
+      <x-button variant="bare" onclick="lightboxPrev()" class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/10">
+        <i class="fas fa-chevron-left text-white"></i>
+      </x-button>
+      <x-button variant="bare" onclick="lightboxNext()" class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/10">
+        <i class="fas fa-chevron-right text-white"></i>
+      </x-button>
+    </div>
+
+    <!-- ═══ Thứ tự nạp script — GIỮ NGUYÊN khi chép sang mẫu mới ═══════════ -->
+    <script src="../preview-data.js"></script>
+    <script src="../../../core/cache-util.js"></script>
+    <script src="../../../core/config.js"></script>
+
+    <script
+      src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.8"
+      integrity="sha384-Tve8O+C6PBzsIMK/IRCwHbi8fyEzXIlIs6OfVBZHubplwYhaQF/4Mzxqgg+pp/oy"
+      crossorigin="anonymous"
+    ></script>
+
+    <!-- DAL → BL → khởi tạo instance -->
+    <script src="../../../core/dal/wedding-dal.js"></script>
+    <script src="../../../core/dal/guest-dal.js"></script>
+    <script src="../../../core/dal/storage-dal.js"></script>
+    <script src="../../../core/bl/wedding-bl.js"></script>
+    <script src="../../../core/bl/image-bl.js"></script>
+    <script src="../../../core/supabase.js"></script>
+    <script src="../../../core/helpers/alert.js"></script>
+    <script src="../../../core/helpers/draft-start.js"></script>
+    <script src="../../../core/utils.js"></script>
+
+    <!-- Helper dùng chung -->
+    <script src="../../../core/helpers/youtube-helper.js"></script>
+    <!-- Phải nạp SAU youtube-helper (nguồn phát nhạc) -->
+    <script src="../../../core/helpers/music-player-helper.js"></script>
+    <!-- element-color-enum + element-helper phải nạp TRƯỚC theme-setting-helper
+         (runtime thành phần ở đó đọc window.CX_ELEMENTS) -->
+    <script src="../../../core/helpers/element-color-enum.js"></script>
+    <script src="../../../core/helpers/element-helper.js"></script>
+    <script src="../../../core/helpers/lightbox-helper.js"></script>
+    <script src="../../../core/helpers/calendar-helper.js"></script>
+    <script src="../../../core/helpers/wedding-helper.js"></script>
+    <script src="../../../core/helpers/render-helper.js"></script>
+    <!-- text-preset-helper phải nạp TRƯỚC theme-setting-helper -->
+    <script src="../../../core/helpers/text-preset-helper.js"></script>
+    <script src="../../../core/helpers/theme-setting-helper.js"></script>
+    <script src="../../../core/helpers/qr-mobile-helper.js"></script>
+    <!-- Cuộn tới mục đang chỉnh khi xem trực tiếp ở trang Thiết lập -->
+    <script src="../../../core/helpers/preview-focus-helper.js"></script>
+
+    <!-- Bản khai của mẫu + renderWedding -->
+    <script src="index.js"></script>
+    <!-- Khởi động. Phải nạp SAU index.js. -->
+    <script src="../../../core/helpers/theme-boot.js"></script>
+  </body>
+</html>

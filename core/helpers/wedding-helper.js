@@ -139,6 +139,10 @@ function setupPersonalizedGreeting(
       return;
     }
 
+    // Khách của link này — confirmAttend() cần đúng cặp tên + xưng hô để tìm ra
+    // hàng tương ứng trong bảng khách mời.
+    window.CX_GUEST = { slug: weddingSlug, name, relationship };
+
     const coverGuestName = document.getElementById("cover-guest-name");
     if (coverGuestName) coverGuestName.textContent = name;
 
@@ -183,7 +187,11 @@ function openInvitation(callback) {
   }, 600);
 }
 
-function confirmAttend(attending) {
+// Xác nhận tham dự — DÙNG CHUNG cho mọi mẫu thiệp: theme chỉ cần có
+// #btn-attend / #btn-decline / #attend-msg rồi gọi confirmAttend(true|false).
+// Kết quả ghi vào bảng khách mời (cột confirmed) khi khách vào bằng link cá nhân
+// hoá; link chung không ứng với khách nào nên chỉ hiện lời cảm ơn.
+async function confirmAttend(attending, message) {
   if (showPreviewAlert()) return;
 
   const btnAttend = document.getElementById("btn-attend");
@@ -211,6 +219,32 @@ function confirmAttend(attending) {
   }
 
   msg.classList.remove("hidden");
+
+  await _saveRsvp(attending, message, msg);
+}
+
+// Gửi xác nhận lên server. Lỗi mạng thì báo ngay dưới hai nút — im lặng là chủ
+// thiệp mất một lượt phản hồi mà không ai biết.
+async function _saveRsvp(attending, message, msgEl) {
+  const g = window.CX_GUEST;
+  if (!g || !g.slug || !g.name || !window.guestDAL) return;
+
+  try {
+    await window.guestDAL.rsvpPublic({
+      slug: g.slug,
+      name: g.name,
+      relationship: g.relationship,
+      attending: !!attending,
+      message,
+    });
+  } catch (error) {
+    console.error("Lỗi lưu xác nhận tham dự:", error);
+    if (msgEl) {
+      msgEl.textContent =
+        "Chưa gửi được xác nhận, bạn thử lại giúp nhé (kiểm tra kết nối mạng).";
+      msgEl.classList.remove("hidden");
+    }
+  }
 }
 
 async function saveQR(id) {

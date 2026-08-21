@@ -56,28 +56,28 @@ export default {
         Authorization: `Bearer ${supabaseKey}`,
       };
 
-      // Fetch templates
-      const templatesResponse = await fetch(
-        `${supabaseUrl}/rest/v1/templates?is_active=eq.true&order=sort_order.asc&select=*`,
-        { headers },
-      );
+      // Fetch templates và pricing song song — cache miss trước đây gọi tuần
+      // tự nên mất gần gấp đôi thời gian, càng dễ dính lỗi/timeout tạm thời
+      // từ Supabase giữa hai lệnh gọi.
+      const [templatesResponse, pricingResponse] = await Promise.all([
+        fetch(
+          `${supabaseUrl}/rest/v1/templates?is_active=eq.true&order=sort_order.asc&select=*`,
+          { headers },
+        ),
+        fetch(
+          `${supabaseUrl}/rest/v1/template_pricing?is_active=eq.true&select=template_name,price,original_price,description`,
+          { headers },
+        ),
+      ]);
 
       if (!templatesResponse.ok) {
         throw new Error(`Templates fetch error: ${templatesResponse.status}`);
       }
-
-      const templates = await templatesResponse.json();
-
-      // Fetch pricing
-      const pricingResponse = await fetch(
-        `${supabaseUrl}/rest/v1/template_pricing?is_active=eq.true&select=template_name,price,original_price,description`,
-        { headers },
-      );
-
       if (!pricingResponse.ok) {
         throw new Error(`Pricing fetch error: ${pricingResponse.status}`);
       }
 
+      const templates = await templatesResponse.json();
       const pricing = await pricingResponse.json();
 
       // Merge pricing into templates

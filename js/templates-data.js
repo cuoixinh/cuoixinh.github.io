@@ -19,14 +19,24 @@ async function fetchTemplatesViaEdge() {
   return res.json();
 }
 
+async function fetchTemplatesOnce() {
+  if (TEMPLATES_API_URL) {
+    const response = await fetch(TEMPLATES_API_URL);
+    if (!response.ok) throw new Error("Failed to fetch templates");
+    return response.json();
+  }
+  return fetchTemplatesViaEdge();
+}
+
+// Cache miss ở Cloudflare Worker phải gọi Supabase, thỉnh thoảng chậm/lỗi
+// tạm thời → thử lại một lần trước khi báo lỗi cho người dùng.
 async function loadTemplates() {
   try {
-    if (TEMPLATES_API_URL) {
-      const response = await fetch(TEMPLATES_API_URL);
-      if (!response.ok) throw new Error("Failed to fetch templates");
-      templates = await response.json();
-    } else {
-      templates = await fetchTemplatesViaEdge();
+    try {
+      templates = await fetchTemplatesOnce();
+    } catch {
+      await new Promise((r) => setTimeout(r, 800));
+      templates = await fetchTemplatesOnce();
     }
     renderTemplateCards();
     initHeroImage();

@@ -1,0 +1,38 @@
+<!-- Tab Content: Font chữ -->
+<div id="content-fonts" class="hidden space-y-4">
+  <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+    <div class="p-3 sm:p-4 md:p-6 border-b border-gray-100">
+      <h2 class="text-base sm:text-lg font-semibold text-gray-800">Font chữ</h2>
+      <p class="text-xs text-gray-500 mt-1">
+        Gồm font tự host (<code class="text-[11px] bg-gray-100 px-1 py-0.5 rounded">styles/_fonts.css</code>)
+        và font Google tải qua CDN (bảng chọn font ở trang thiết lập thiệp). Gõ thử đoạn văn bản rồi
+        bấm vào thẻ font để copy tên font (dùng trong <code class="text-[11px] bg-gray-100 px-1 py-0.5 rounded">font-family</code>).
+      </p>
+    </div>
+
+    <div class="p-3 sm:p-4 md:p-6 border-b border-gray-100 flex flex-col sm:flex-row gap-3">
+      <input
+        id="fonts-preview-text"
+        type="text"
+        value="Trăm năm hạnh phúc"
+        placeholder="Nhập đoạn văn bản để xem thử…"
+        class="flex-1 px-3 py-2 rounded-lg border border-gray-200 text-sm outline-none focus:border-violet-400"
+      />
+      <div class="flex items-center gap-2 shrink-0">
+        <label class="text-xs text-gray-500 whitespace-nowrap">Cỡ chữ</label>
+        <input
+          id="fonts-preview-size"
+          type="range"
+          min="16"
+          max="56"
+          value="28"
+          class="w-32"
+        />
+        <span id="fonts-preview-size-label" class="text-xs text-gray-500 w-10">28px</span>
+      </div>
+    </div>
+
+    <div id="fonts-selfhosted" class="p-3 sm:p-4 md:p-6 border-b border-gray-100"></div>
+    <div id="fonts-google" class="p-3 sm:p-4 md:p-6"></div>
+  </div>
+</div>
