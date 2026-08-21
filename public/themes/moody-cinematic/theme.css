@@ -179,7 +179,8 @@ body {
 /* ── TỜ LỊCH: ảnh trích dẫn + tháng lớn/lưới ngày ─────────────────────────
    Ảnh choán trọn bề ngang panel (panel tự overflow-hidden nên khỏi cần bù
    margin âm), trích dẫn viết tay nằm ở góc trên bằng font script tự host
-   (đã nạp cho tên cặp đôi ở trang trước, dùng lại chứ không tải thêm). */
+   (BethanWhite, khai ở styles/_fonts.css, riêng cho quote — không dùng chung
+   với chữ ký tên cặp đôi ở trang trước). */
 
 /* Ảnh NGANG (không dựng đứng 4/5 như trước) — mục tiêu chính của khối lịch
    là thấp, để cả trang (thẻ lịch + info tiệc + RSVP dồn chung MỘT trang sách)
@@ -208,22 +209,18 @@ body {
 }
 
 .mc-cal-quote {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  z-index: 2;
-  padding: 14px 16px 0;
-  font-family: "TheNautigal", cursive;
-  font-size: 30px;
-  line-height: 1.16;
-  /* KHÔNG letter-spacing: font script các chữ dính liền nhau theo thiết kế,
-     giãn thêm là đứt nét. Cỡ chữ LỚN cố ý — measurement lấy từ .mc-ph-names
-     (chữ ký cùng font, 46px cho "Tên & Tên" ngắn); quote 3 dòng dài hơn nên hạ
-     xuống 30px vẫn phải to gần bằng để MỖI DÒNG tự chạm rìa ảnh, không co lại
-     thành một khối gọn giữa ảnh. */
-  color: rgb(var(--mc-on-photo));
-  text-shadow: 0 1px 12px rgb(var(--mc-bar-rgb) / 0.7);
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 12px;
+    z-index: 2;
+    padding: 14px 16px 0;
+    font-family: "BethanWhite";
+    font-size: 26px;
+    line-height: 1.1;
+    letter-spacing: 5px;
+    color: rgb(var(--mc-on-photo));
+    text-shadow: 0 1px 12px rgb(var(--mc-bar-rgb) / 0.7);
 }
 
 /* Mỗi dòng lệch trái/phải khác nhau — mô phỏng nét tay viết nghiêng ngả, KHÔNG
@@ -241,9 +238,16 @@ body {
   margin-left: 6%;
 }
 
+/* Máy màn hẹp (iPhone SE…): 52px + margin-left 20% tràn khỏi ảnh — hạ cỡ chữ,
+   margin % tự co theo nên không cần chỉnh gì thêm. */
+@media (max-width: 340px) {
+  .mc-cal-quote {
+    font-size: 26px;
+  }
+}
+
 .mc-cal-quote-by {
   margin-top: 8px;
-  margin-left: 6%;
   font-family: "Montserrat", sans-serif;
   font-size: 9px;
   letter-spacing: 3px;
@@ -824,13 +828,25 @@ body {
 /* Măng sét: kẻ đôi trên/dưới, chỉ có ở trang ĐẦU của mục. */
 
 .mc-masthead {
+  position: relative;
   flex: none;
   border-top: 4px double rgb(var(--cx-heading-rgb));
-  border-bottom: 4px double rgb(var(--cx-heading-rgb));
-  padding: 10px 0 8px;
+  padding: 10px 0 12px;
   display: flex;
   flex-direction: column;
   gap: 4px;
+}
+
+/* Ngăn măng sét với nội dung bằng nét đứt (mô-típ --mc-dash-x dùng khắp
+   trang) thay vì viền đôi cứng — viền đôi chỉ giữ lại ở TRÊN làm khung. */
+.mc-masthead::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background-image: var(--mc-dash-x);
 }
 
 .mc-masthead-title {
