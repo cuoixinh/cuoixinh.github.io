@@ -97,7 +97,7 @@
         <x-button
           variant="bare"
           onclick="openInvitation()"
-          class="open-btn relative overflow-hidden px-10 py-4 rounded-none border cx-border cx-t text-[12px] tracking-[3px] uppercase active:scale-95 transition-transform touch-manipulation [-webkit-tap-highlight-color:transparent]"
+          class="open-btn mc-soft-btn relative overflow-hidden px-10 py-4 border cx-border cx-t text-[12px] tracking-[3px] uppercase active:scale-95 transition-transform touch-manipulation [-webkit-tap-highlight-color:transparent]"
         >
           <span class="relative z-10 pointer-events-none flex items-center gap-2">
             <i class="fas fa-play cx-a text-[11px]"></i>
@@ -142,7 +142,10 @@
 
           <!-- Ảnh cặp đôi: TRÀN MÉP trang, lời mời + tên đôi đè lên đáy ảnh.
                Đè chữ lên ảnh là chỗ tiết kiệm gần 100px chiều dọc — đủ để mọi
-               mục còn lại của trang khỏi phải co chữ xuống dưới ngưỡng đọc. -->
+               mục còn lại của trang khỏi phải co chữ xuống dưới ngưỡng đọc.
+               Ảnh NUỐT phần cao còn thừa của trang (xem .mc-ph-shot) nên trang
+               này KHÔNG được có [data-cx-push]: auto-margin trục chính làm mọi
+               flex-grow trên cùng hàng về 0, chỗ thừa sẽ quay lại thành khe hở. -->
           <div class="mc-cine mc-ph-shot mc-ph-bleed">
             <img
               id="main-photo"
@@ -223,7 +226,7 @@
              Ảnh nằm NGANG (không phải 4/5 dựng đứng) cho thấp bớt; lưới ngày
              padding tối thiểu (px-2 = 8px) để CHIẾM GẦN HẾT bề ngang thẻ thay
              vì lọt thỏm giữa viền trắng. mc-cal-* trong theme.css. -->
-        <section id="section-party" class="mx-6 flex flex-col gap-3">
+        <section id="section-party" class="mc-party-page mx-6 flex flex-col gap-6">
           <div class="mc-panel overflow-hidden flex flex-col">
             <div class="mc-cine mc-cal-shot">
               <img
@@ -247,43 +250,48 @@
             <div id="mini-calendar" class="mc-cal-panel w-full px-2 py-3"></div>
           </div>
 
-          <div class="flex flex-col gap-1 px-6">
+          <!-- Ba tầng thông tin tiệc: nhãn mục · thời gian · địa điểm. Khoảng
+               cách GIỮA ba tầng phải rộng hơn khoảng cách trong từng tầng (giờ
+               với ngày âm sát nhau) thì mắt mới tách được mục. -->
+          <div class="flex flex-col gap-4 px-6">
             <div id="party-section-label" class="mc-eyebrow">Tiệc Mừng Lễ Thành Hôn</div>
 
-            <div class="cx-h text-[20px]" id="party-datetime">--:-- - --.--.----</div>
-            <div class="cx-t text-[11px] opacity-80" id="party-lunar">(Ngày âm lịch)</div>
+            <div class="flex flex-col gap-1.5">
+              <div class="cx-h text-[20px] leading-tight" id="party-datetime">--:-- - --.--.----</div>
+              <div class="cx-t text-[11px] opacity-80" id="party-lunar">(Ngày âm lịch)</div>
+            </div>
 
-            <div class="flex items-start gap-2 justify-center pt-1">
+            <div class="flex items-start gap-2 justify-center">
               <i class="fas fa-map-marker-alt cx-a text-xs"></i>
-              <div class="cx-t text-[12px]" id="party-location">------------------------</div>
+              <div class="cx-t text-[12px] leading-relaxed" id="party-location">------------------------</div>
             </div>
           </div>
 
           <!-- ═══ MỤC: Xác nhận tham dự (rsvp_enabled) ═════════════════════ -->
-          <div id="rsvp-section" class="flex flex-col gap-2 px-6" style="display: none">
+          <div id="rsvp-section" class="flex flex-col gap-3 px-6" style="display: none">
             <div class="text-[10px] tracking-[3px] uppercase shimmer-text">Xác nhận tham dự</div>
             <div id="rsvp-custom-message" class="hidden cx-t text-[11px] leading-relaxed"></div>
 
-            <div class="grid grid-cols-2 gap-2">
+            <div class="mc-rsvp grid grid-cols-2 gap-2">
               <x-button
                 variant="bare"
                 onclick="confirmAttend(true)"
                 id="btn-attend"
-                class="flex-col gap-1 py-2.5 rounded-none border cx-border bg-white active:scale-95 transition-all"
+                class="mc-rsvp-btn mc-rsvp-yes"
               >
-                <i class="fas fa-check cx-ac text-base"></i>
-                <span class="cx-t text-[10px] tracking-[2px] uppercase">Tham dự</span>
+                <span class="mc-rsvp-mark"><i class="fas fa-check"></i></span>
+                <span class="mc-rsvp-lb">Tham dự</span>
               </x-button>
               <x-button
                 variant="bare"
                 onclick="confirmAttend(false)"
                 id="btn-decline"
-                class="flex-col gap-1 py-2.5 rounded-none border cx-border bg-white active:scale-95 transition-all"
+                class="mc-rsvp-btn mc-rsvp-no"
               >
                 <!-- Icon dùng .cx-bd (CHỈ đổi màu), không dùng .cx-t: .cx-t đặt
                      cả font-family nên sẽ đè font của Font Awesome → ô vuông. -->
-                <i class="fas fa-times cx-bd text-base"></i>
-                <span class="cx-t text-[10px] tracking-[2px] uppercase">Không tham dự</span>
+                <span class="mc-rsvp-mark"><i class="fas fa-times"></i></span>
+                <span class="mc-rsvp-lb">Không tham dự</span>
               </x-button>
             </div>
 
@@ -293,44 +301,65 @@
 
         <!-- ═══ MỤC: Lịch trình ngày cưới (enable_timeline) ═════════════════
              renderTimeline() (render-helper.js) tự lọc mốc theo nhà trai/gái. -->
-        <section id="section-timeline" class="hidden flex flex-col gap-5 px-6">
+        <section id="section-timeline" class="hidden mc-tl-page flex flex-col gap-5 px-6">
           <div class="flex items-center gap-3">
             <div class="mc-rule"></div>
             <h2 class="cx-h text-[17px] tracking-[3px] uppercase">Lịch Trình</h2>
             <div class="mc-rule"></div>
           </div>
           <div id="timeline-list-render" class="flex flex-col"></div>
-        </section>
 
-        <!-- ═══ MỤC: Chuyện tình yêu (enable_love_story) ════════════════════
-             Bố cục TRANG BÁO LẬT NGANG: mục cao đúng một màn hình, mỗi mốc là
-             một trang vuốt ngang cao trọn dải — chữ dư tự cắt sang trang kế nên
-             không trang nào dài quá màn. Dựng trong renderStoryPost() ở
-             index.js; mẫu này KHÔNG dùng renderLoveStory() chung. -->
-        <section id="love-story" class="flex flex-col gap-4 px-6" style="display: none">
-          <div class="mc-masthead">
-            <div class="mc-eyebrow">The Wedding Post</div>
-            <h2 class="cx-h mc-masthead-title">Chuyện Tình Yêu</h2>
-            <div class="mc-masthead-sub cx-t">Ấn bản đặc biệt · Chuyện của chúng mình</div>
+          <!-- Ảnh lấp chỗ trống: khách khai ít mốc thì nửa dưới trang trống
+               trơn. _fillTimeline() (index.js) chỉ QUYẾT ĐỊNH bật/tắt; cao bao
+               nhiêu là việc của flex (.mc-tl-fill) — đừng đặt height ở đây. -->
+          <div id="timeline-fill" class="mc-tl-fill mc-cine hidden">
+            <img
+              id="timeline-fill-photo"
+              src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+              alt=""
+              class="w-full h-full object-cover"
+            />
           </div>
-          <div id="love-story-list" class="flex flex-col gap-4" data-cx-flow></div>
         </section>
 
-        <!-- ═══ MỤC: Album ảnh (enable_photos) ══════════════════════════════
-             Lưới khuôn hình — dựng trong renderGallery() ở index.js, quá 6 ảnh
-             thì tự sang trang sau. -->
-        <section id="section-photos" class="flex flex-col gap-5">
-          <div class="flex items-center gap-3 px-6">
-            <div class="mc-rule"></div>
-            <h2 class="cx-h text-[17px] tracking-[3px] uppercase">Album Ảnh</h2>
-            <div class="mc-rule"></div>
-          </div>
-          <div id="gallery-grid" class="mc-grid px-6" data-cx-flow></div>
+        <!-- ═══ TRANG: Chuyện tình yêu + Album ảnh ══════════════════════════
+             MỘT DÒNG CHẢY NỐI: hai mục đi chung một dòng, _streamPaginate()
+             (index.js) nhét đầy trang rồi mới đẩy phần dư sang trang kế — nên
+             Album bắt đầu ngay dưới mốc chuyện tình yêu cuối cùng, không mở
+             trang mới. Đơn vị cắt được là: mỗi con của [data-cx-flow] và mỗi
+             thẻ khai [data-cx-unit] (măng sét, tiêu đề Album).
+             [data-cx-group] để cả trang biến mất khi tắt cả hai mục. -->
+        <section data-cx-group class="flex flex-col gap-6">
+          <!-- ═══ MỤC: Chuyện tình yêu (enable_love_story) ══════════════════
+               Bố cục TRANG BÁO: mỗi mốc là một bài, chữ dư tự cắt sang trang
+               kế. Dựng trong renderStoryPost() ở index.js; mẫu này KHÔNG dùng
+               renderLoveStory() chung. -->
+          <section id="love-story" class="flex flex-col gap-4 px-6" style="display: none">
+            <div class="mc-masthead" data-cx-unit>
+              <div class="mc-eyebrow">The Wedding Post</div>
+              <h2 class="cx-h mc-masthead-title">Chuyện Tình Yêu</h2>
+              <div class="mc-masthead-sub cx-t">Ấn bản đặc biệt · Chuyện của chúng mình</div>
+            </div>
+            <div id="love-story-list" class="flex flex-col gap-4" data-cx-flow></div>
+          </section>
+
+          <!-- ═══ MỤC: Album ảnh (enable_photos) ════════════════════════════
+               Lưới khuôn hình — dựng trong renderGallery() ở index.js. -->
+          <section id="section-photos" class="flex flex-col gap-5">
+            <div class="flex items-center gap-3 px-6" data-cx-unit>
+              <div class="mc-rule"></div>
+              <h2 class="cx-h text-[17px] tracking-[3px] uppercase">Album Ảnh</h2>
+              <div class="mc-rule"></div>
+            </div>
+            <div id="gallery-grid" class="mc-grid px-6" data-cx-flow></div>
+          </section>
         </section>
 
-        <!-- ═══ TRANG: Hộp mừng cưới + Địa điểm ═════════════════════════════
-             Hai mục ngắn đi chung MỘT trang. Trang nhóm khai [data-cx-group]:
-             index.js tự ẩn cả trang khi cả hai mục bên trong đều bị tắt. -->
+        <!-- ═══ TRANG: Hộp mừng cưới + Địa điểm + Lời cảm ơn ════════════════
+             Ba mục ngắn đi chung MỘT trang, cũng là trang CUỐI của thiệp. Trang
+             nhóm khai [data-cx-group]: index.js tự ẩn cả trang khi mọi mục bên
+             trong đều bị tắt. [data-cx-push] ở mục Địa điểm đẩy bản đồ và lời
+             cảm ơn xuống đáy, Hộp mừng cưới bám mép trên. -->
         <section data-cx-group class="flex flex-col gap-8">
           <!-- ═══ MỤC: Hộp mừng cưới (enable_gift) ════════════════════════════ -->
           <section id="section-gift" class="flex flex-col gap-6 px-6">
@@ -360,7 +389,7 @@
                 <x-button
                   variant="bare"
                   onclick="saveQR('groom-qr-img')"
-                  class="gap-2 px-4 py-2 rounded-none border cx-border cx-t text-[11px] tracking-[2px] uppercase"
+                  class="mc-sharp gap-2 px-4 py-2 border cx-border cx-t text-[11px] tracking-[2px] uppercase"
                 >
                   <i class="fas fa-download cx-a text-xs"></i>
                   Lưu QR
@@ -385,7 +414,7 @@
                 <x-button
                   variant="bare"
                   onclick="saveQR('bride-qr-img')"
-                  class="gap-2 px-4 py-2 rounded-none border cx-border cx-t text-[11px] tracking-[2px] uppercase"
+                  class="mc-sharp gap-2 px-4 py-2 border cx-border cx-t text-[11px] tracking-[2px] uppercase"
                 >
                   <i class="fas fa-download cx-a text-xs"></i>
                   Lưu QR
@@ -395,7 +424,7 @@
           </section>
 
           <!-- ═══ MỤC: Bản đồ tới nơi đãi tiệc ═══════════════════════════════ -->
-          <section id="section-map" class="flex flex-col gap-4 px-6">
+          <section id="section-map" data-cx-push class="flex flex-col gap-4 px-6">
             <div class="flex items-center gap-3">
               <div class="mc-rule"></div>
               <h2 class="cx-h text-[17px] tracking-[3px] uppercase">Địa Điểm</h2>
@@ -407,7 +436,7 @@
               id="map-link"
               href="#"
               target="_blank"
-              class="w-full relative overflow-hidden border cx-border active:scale-[0.98] transition-transform block"
+              class="mc-soft w-full relative overflow-hidden border cx-border active:scale-[0.98] transition-transform block"
             >
               <div class="w-full h-32 relative overflow-hidden">
                 <iframe
@@ -439,14 +468,16 @@
               </div>
             </a>
           </section>
-        </section>
 
-        <!-- ═══ MỤC: Lời cảm ơn (enable_footer) ═════════════════════════════ -->
-        <section id="section-footer" class="flex flex-col items-center gap-5 px-8">
-          <div class="mc-rule w-full"></div>
-          <div id="footer-text" class="cx-t text-[13px] leading-relaxed">
-            Cảm ơn bạn đã dành thời gian đến chung vui cùng chúng tôi
-          </div>
+          <!-- ═══ MỤC: Lời cảm ơn (enable_footer) ══════════════════════════
+               Đi ngay dưới bản đồ, KHÔNG tách trang riêng — mục chỉ có hai
+               dòng, để riêng một trang thì gần như trang trắng. -->
+          <section id="section-footer" class="flex flex-col items-center gap-5 px-8">
+            <div class="mc-rule w-full"></div>
+            <div id="footer-text" class="cx-t text-[13px] leading-relaxed">
+              Cảm ơn bạn đã dành thời gian đến chung vui cùng chúng tôi
+            </div>
+          </section>
         </section>
       </div>
 
