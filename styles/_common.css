@@ -1119,3 +1119,68 @@ textarea::-webkit-scrollbar-thumb:hover {
   top: 20%;
   height: 16%;
 }
+
+/* ── KHUNG MÁY CHO BẢN XEM TRƯỚC TRÊN MÁY TÍNH ─────────────────────────────
+   Thiệp mở với ?preview=true trên màn từ 820px: theme-boot.js thay nội dung
+   trang bằng khung điện thoại, thiệp THẬT chạy trong iframe bên trong (cùng URL
+   + shell=0) ở đúng khổ 390px. Thân máy là assets/images/screen_ip.png
+   (393×768, vùng màn hình TRONG SUỐT) phủ LÊN iframe — đổi ảnh khác thì phải đo
+   lại cả tỉ lệ 0.5117 lẫn bộ inset của .cx-pshell-screen. */
+.cx-pshell-host,
+.cx-pshell-host body {
+  overflow: hidden;
+}
+
+.cx-pshell {
+  position: fixed;
+  inset: 0;
+  /* Nền của trang, phải nằm DƯỚI mấy thẻ nổi dựng sau (card QR z-60) — body lúc
+     này rỗng nên không cần trèo lên cao. */
+  z-index: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #eceff3;
+}
+
+.cx-pshell-phone {
+  --cx-pshell-h: min(94vh, calc(100vh - 32px));
+
+  position: relative;
+  width: calc(var(--cx-pshell-h) * 0.5117);
+  height: var(--cx-pshell-h);
+}
+
+.cx-pshell-frame {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  pointer-events: none; /* khung chỉ để nhìn — cú bấm phải xuống tới thiệp */
+  filter: drop-shadow(0 18px 34px rgb(0 0 0 / 0.3));
+}
+
+/* Đúng ô trong suốt của ảnh: x 26→362, y 22→744 trên khổ 393×768. */
+.cx-pshell-screen {
+  position: absolute;
+  top: 2.87%;
+  left: 6.62%;
+  width: 85.75%;
+  height: 94.13%;
+  overflow: hidden;
+  border-radius: 14% / 6.5%;
+  background: #fff;
+}
+
+/* Thiệp phải được DỰNG ở khổ máy thật (390px) rồi mới thu cho vừa ô màn hình:
+   cho iframe rộng đúng ~340px thì theme rơi vào bố cục của một máy hẹp hơn mọi
+   điện thoại đang bán. 837 = 390 ÷ tỉ lệ ô màn (337/723). --cx-scr-scale do
+   theme-boot.js đo (CSS không chia được px cho px). */
+.cx-pshell-view {
+  width: 390px;
+  height: 837px;
+  border: 0;
+  transform: scale(var(--cx-scr-scale, 1));
+  transform-origin: 0 0;
+}

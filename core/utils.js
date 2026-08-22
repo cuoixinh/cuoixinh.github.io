@@ -927,6 +927,10 @@ function closeTimePicker() {
   const params = new URLSearchParams(window.location.search);
   if (params.get("preview") !== "true") return;
   if (params.get("source") === "live") return;
+  // shell=0 → đang chạy TRONG khung điện thoại của bản xem trước (theme-boot.js).
+  // Navbar là thứ của trang xem mẫu, phải đứng NGOÀI thân máy chứ không đè lên
+  // thiệp; trang ngoài tự dựng bản của nó.
+  if (params.get("shell") === "0") return;
 
   // Lấy tên theme từ URL path: /public/themes/basic-gold/ → basic-gold
   const pathParts = window.location.pathname.replace(/\/$/, "").split("/").filter(Boolean);

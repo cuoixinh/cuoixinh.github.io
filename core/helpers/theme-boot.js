@@ -29,9 +29,59 @@ window.cxToggle = cxToggle;
 // Mục được gán hiệu ứng hiện dần khi cuộn tới, nếu theme không khai CX_THEME.reveal.
 const CX_REVEAL_DEFAULT = ["#main-card [id^='section-']", "#love-story"];
 
+// --- KHUNG MÁY CHO BẢN XEM TRƯỚC TRÊN MÁY TÍNH ---
+// Xem trước (?preview=true) trên màn rộng thì thiệp KHÔNG nở theo bề ngang màn:
+// trang tự biến thành khung điện thoại, thiệp thật chạy trong iframe cùng URL +
+// shell=0 ở đúng khổ 390px. Cờ shell=0 là thứ chặn đệ quy, đừng bỏ.
+// Ảnh thân máy dùng đường dẫn tương đối như mọi tài nguyên khác của theme
+// (trang thiệp luôn ở /public/themes/<tên>/). Style: .cx-pshell* ở _common.css.
+const CX_SHELL_MIN_W = 820;
+
+function _cxPreviewShell() {
+  // Nằm trong iframe = đang xem qua trang Thiết lập, nơi đã có khung máy riêng.
+  if (window.self !== window.top) return false;
+
+  const q = new URLSearchParams(location.search);
+  if (q.get("preview") !== "true" || q.get("shell") === "0") return false;
+  if (window.innerWidth < CX_SHELL_MIN_W) return false;
+
+  q.set("shell", "0");
+  const src = `${location.pathname}?${q}${location.hash}`;
+
+  const stage = document.createElement("div");
+  stage.className = "cx-pshell";
+  stage.innerHTML = `
+    <div class="cx-pshell-phone">
+      <div class="cx-pshell-screen">
+        <iframe class="cx-pshell-view" title="Xem trước thiệp"
+                allow="autoplay; encrypted-media" allowfullscreen></iframe>
+      </div>
+      <img src="../../../assets/images/screen_ip.png" alt="" class="cx-pshell-frame" />
+    </div>`;
+  stage.querySelector("iframe").src = src;
+
+  document.documentElement.classList.add("cx-pshell-host");
+  document.body.replaceChildren(stage);
+
+  // Ô màn hình là % của thân máy (px), thiệp lại dựng ở 390px cố định → tỉ lệ
+  // thu nhỏ phải đo bằng JS mỗi lần khổ máy đổi.
+  const phone = stage.querySelector(".cx-pshell-phone");
+  const screen = stage.querySelector(".cx-pshell-screen");
+  const measure = () => {
+    if (screen.offsetWidth > 0)
+      phone.style.setProperty("--cx-scr-scale", String(screen.offsetWidth / 390));
+  };
+  measure();
+  window.addEventListener("resize", measure, { passive: true });
+  return true;
+}
+
 (function () {
   const T = window.CX_THEME;
   if (!T || typeof window.renderWedding !== "function") return;
+
+  // Trang đã hoá thành khung máy → mọi việc còn lại do iframe bên trong lo.
+  if (_cxPreviewShell()) return;
 
   // --- NẠP DỮ LIỆU ---
   loadWeddingData(getSlugFromUrl(), window.renderWedding);

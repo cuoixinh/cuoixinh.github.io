@@ -55,9 +55,10 @@
       background: "body, #main-card",
     },
 
-    // Thiệp là dải trang lật NGANG, mỗi trang hiện trọn vẹn một lần → không
-    // dùng hiệu ứng trượt-khi-cuộn. Selector cố tình không khớp gì (theme-boot
-    // vẫn cần một danh sách khác rỗng để querySelectorAll).
+    // Hiệu ứng hiện dần do _markReveal() ở cuối file lo, không phải theme-boot:
+    // trang chia bằng cloneNode và nội dung về sau khi boot đã quét xong DOM thì
+    // bản quét một lần của theme-boot không với tới. Selector này cố tình không
+    // khớp gì (theme-boot vẫn cần một danh sách khác rỗng để querySelectorAll).
     reveal: ["#cx-no-reveal"],
 
     // Thư mời và Gia đình không còn là mục riêng — cả hai nằm trong trang
@@ -406,8 +407,50 @@
     _fitGallery();
     _reflowFlows();
     _fillTimeline();
-    Array.from(pages.children).forEach(_fitPage);
+    _markReveal();
     _syncPager();
+  }
+
+  // ── Hiện dần từng khối ──────────────────────────────────────────────────
+  // Dùng chung bộ .reveal/.from-*/.visible của styles/_common.css (đúng thứ các
+  // mẫu cuộn dọc đang dùng), nhưng TỰ theo dõi: theme-boot quét DOM đúng một lần
+  // lúc boot, trong khi các trang dồn nội dung được nhân bản và bài viết/ảnh chỉ
+  // có sau khi dữ liệu về — bản sao không ai theo dõi thì nằm lại ở opacity 0.
+  // Gọi lại được nhiều lần: khối đã hiện thì bỏ qua, observe trùng là no-op.
+  const REVEAL_DIRS = ["from-bottom", "from-left", "from-right"];
+
+  const _revealObs = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((e) => {
+        if (!e.isIntersecting) return;
+        e.target.classList.add("visible");
+        _revealObs.unobserve(e.target);
+      });
+    },
+    { threshold: 0.15 },
+  );
+
+  // Khối của một trang. Trang GỘP (data-cx-group) lồng thêm một lớp <section>
+  // cho từng mục — lấy sâu thêm một tầng, không thì cả mục Album chỉ là MỘT khối.
+  function _revealParts(inner) {
+    const out = [];
+    Array.from(inner.children).forEach((el) => {
+      if (el.tagName === "SECTION") out.push(...el.children);
+      else out.push(el);
+    });
+    return out;
+  }
+
+  function _markReveal() {
+    document
+      .querySelectorAll("#cx-pages > .mc-page > .mc-page-in")
+      .forEach((inner) => {
+        _revealParts(inner).forEach((el, i) => {
+          if (el.classList.contains("visible")) return;
+          el.classList.add("reveal", REVEAL_DIRS[i % 3]);
+          _revealObs.observe(el);
+        });
+      });
   }
 
   // Album: MỘT TRANG = ĐÚNG 4 HÀNG ẢNH, màn ngắn hay dài cũng vậy — chia đều
@@ -441,10 +484,8 @@
 
   // Trang Lịch trình khai ít mốc thì nửa dưới trống trơn — lấp bằng một khung
   // ảnh. Hàm này CHỈ quyết định có bật ảnh hay không; cao bao nhiêu là việc của
-  // flex (.mc-tl-fill nuốt phần thừa). Dưới ngưỡng này thì thôi: khung quá dẹt
-  // trông như lỗi bố cục chứ không ra ảnh — đổi số thì đổi cả min-height của
-  // .mc-tl-fill trong theme.css. Phải chạy TRƯỚC _fitPage(): nó đo trang bằng
-  // scrollHeight, thêm ảnh sau là trang bị thu nhỏ oan.
+  // flex (.mc-tl-fill nuốt phần thừa, và co lại nếu đo hụt). Dưới ngưỡng này thì
+  // thôi: khung quá dẹt trông như lỗi bố cục chứ không ra ảnh.
   const TL_FILL_MIN = 140;
   let _tlHasPhoto = false;
 
@@ -639,8 +680,8 @@
   }
 
   // Biến một <section> thành trang: class bố cục của section chuyển xuống thẻ
-  // TRONG (thứ được thu nhỏ), section chỉ còn vai trò khung trang. Giữ lại cờ
-  // .hidden để cxToggle() vẫn ẩn/hiện được mục.
+  // TRONG, section chỉ còn vai trò khung trang (mốc cuộn + khổ một màn). Giữ lại
+  // cờ .hidden để cxToggle() vẫn ẩn/hiện được mục.
   function _toPage(sec) {
     if (sec.classList.contains("mc-page")) return;
     const hidden = sec.classList.contains("hidden");
@@ -653,26 +694,6 @@
     while (sec.firstChild) inner.appendChild(sec.firstChild);
     sec.className = "mc-page" + (hidden ? " hidden" : "");
     sec.appendChild(inner);
-
-    // Ảnh về sau làm nội dung cao lên → đo lại. ResizeObserver an toàn ở đây
-    // vì phép thu nhỏ dùng transform, không đổi layout nên không tự kích lại.
-    if (window.ResizeObserver) {
-      new ResizeObserver(() => _fitPage(sec)).observe(inner);
-    }
-  }
-
-  // Thu nhỏ nội dung cho vừa chiều cao trang. Sàn 0.5: dưới mức đó chữ không
-  // còn đọc nổi, thà để tràn (khách còn phóng to được) hơn là thành vệt mờ.
-  function _fitPage(sec) {
-    const inner = sec.querySelector(":scope > .mc-page-in");
-    if (!inner || !sec.clientHeight) return;
-    const cs = getComputedStyle(sec);
-    const avail =
-      sec.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
-    const need = inner.scrollHeight;
-    if (!need || !avail) return;
-    const k = Math.max(0.5, Math.min(1, avail / need));
-    inner.style.transform = k < 0.999 ? "scale(" + k + ")" : "";
   }
 
   // ============= CHUYỆN TÌNH YÊU — TRANG BÁO (phần đặc thù của mẫu) =============

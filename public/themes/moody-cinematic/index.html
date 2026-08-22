@@ -226,7 +226,7 @@
              Ảnh nằm NGANG (không phải 4/5 dựng đứng) cho thấp bớt; lưới ngày
              padding tối thiểu (px-2 = 8px) để CHIẾM GẦN HẾT bề ngang thẻ thay
              vì lọt thỏm giữa viền trắng. mc-cal-* trong theme.css. -->
-        <section id="section-party" class="mc-party-page mx-6 flex flex-col gap-6">
+        <section id="section-party" class="mc-party-page flex flex-col gap-6">
           <div class="mc-panel overflow-hidden flex flex-col">
             <div class="mc-cine mc-cal-shot">
               <img
@@ -302,7 +302,7 @@
         <!-- ═══ MỤC: Lịch trình ngày cưới (enable_timeline) ═════════════════
              renderTimeline() (render-helper.js) tự lọc mốc theo nhà trai/gái. -->
         <section id="section-timeline" class="hidden mc-tl-page flex flex-col gap-5 px-6">
-          <div class="flex items-center gap-3">
+          <div class="mc-tl-head flex items-center gap-3">
             <div class="mc-rule"></div>
             <h2 class="cx-h text-[17px] tracking-[3px] uppercase">Lịch Trình</h2>
             <div class="mc-rule"></div>
@@ -344,14 +344,16 @@
           </section>
 
           <!-- ═══ MỤC: Album ảnh (enable_photos) ════════════════════════════
-               Lưới khuôn hình — dựng trong renderGallery() ở index.js. -->
+               Lưới khuôn hình — dựng trong renderGallery() ở index.js. Riêng lưới
+               ảnh TRÀN MÉP (không px-6 như các mục khác); tiêu đề mục vẫn giữ lề
+               để thẳng hàng với chữ ở những trang còn lại. -->
           <section id="section-photos" class="flex flex-col gap-5">
             <div class="flex items-center gap-3 px-6" data-cx-unit>
               <div class="mc-rule"></div>
               <h2 class="cx-h text-[17px] tracking-[3px] uppercase">Album Ảnh</h2>
               <div class="mc-rule"></div>
             </div>
-            <div id="gallery-grid" class="mc-grid px-6" data-cx-flow></div>
+            <div id="gallery-grid" class="mc-grid" data-cx-flow></div>
           </section>
         </section>
 

@@ -200,13 +200,19 @@ body {
   min-height: 100%;
 }
 
+/* Thẻ lịch TRÀN MÉP như ảnh lớn của trang Lời mời — viền hai bên bỏ đi, giữ lại
+   viền trên/dưới để thẻ vẫn tách khỏi nền. Chữ của trang không đi theo: mấy khối
+   dưới thẻ tự giữ lề bằng px-6 trong markup. */
+
 .mc-party-page > .mc-panel {
   flex: 1 1 auto;
   min-height: 0;
+  border-left: 0;
+  border-right: 0;
 }
 
 /* 5:3 chỉ là dáng XUẤT PHÁT; sàn min-height để màn ngắn không bóp ảnh thành
-   một vệt dẹt (dưới mức đó thà để _fitPage() thu nhỏ cả trang). */
+   một vệt dẹt (dưới mức đó thà để phần dưới trang bị cắt). */
 
 .mc-cal-shot {
   flex: 1 1 auto;
@@ -375,9 +381,9 @@ body {
    tràn mép (chữ mời + tên đôi đè lên đáy ảnh) → khối ngày giờ trên nền trắng →
    dải tối tràn mép của khối gia đình. Hai khối tràn mép làm đối trọng đầu/đáy.
 
-   Ràng buộc: cả trang phải vừa MỘT màn điện thoại — _fitPage() sẽ thu nhỏ nếu
-   vượt, mà thu nhỏ thì chữ tụt xuống dưới ngưỡng đọc. Muốn thêm gì vào trang
-   thì phải bớt chiều cao chỗ khác, đừng hạ cỡ chữ. */
+   Ràng buộc: cả trang phải vừa MỘT màn điện thoại. Trang KHÔNG cuộn dọc và
+   không còn phép thu nhỏ nào cứu — vượt khổ là phần dưới bị cắt thẳng. Muốn
+   thêm gì vào trang thì phải bớt chiều cao chỗ khác, đừng hạ cỡ chữ. */
 
 .mc-ph-page {
   display: flex;
@@ -460,8 +466,8 @@ body {
    những khoảng trắng giữa các khối. Ảnh object-cover nên cao lên là cắt thêm
    chứ không méo.
    16:9 chỉ còn là dáng XUẤT PHÁT (flex-basis tính từ nó); còn dư chỗ thì flex
-   grow kéo cao thêm, thiếu chỗ thì shrink hạ xuống tới sàn min-height rồi mới
-   để _fitPage() thu nhỏ cả trang. Đừng khai width ở đây: bề ngang do
+   grow kéo cao thêm, thiếu chỗ thì shrink hạ xuống tới sàn min-height — dưới
+   sàn thì phần dưới trang bị cắt. Đừng khai width ở đây: bề ngang do
    .mc-ph-bleed (align-self: stretch + margin âm) lo, đặt width:100% là hụt
    đúng phần padding của trang và ảnh lệch hẳn sang trái. */
 
@@ -771,9 +777,9 @@ body {
 /* ── QUYỂN SÁCH: cả thiệp là dải trang LẬT NGANG ──────────────────────────
    #cx-pages là khung cuộn ngang duy nhất của thiệp; mỗi <section> con là một
    trang rộng đúng khổ thiệp, cao đúng khổ thiệp, KHÔNG cuộn dọc. Nội dung mỗi
-   trang được setupBook() (index.js) bọc vào .mc-page-in rồi thu nhỏ nếu đo ra
-   cao hơn trang — đó là thứ bảo đảm "không trang nào dài hơn màn hình", nên
-   đổi padding ở đây phải để hàm đó chạy lại (nó đo bằng DOM thật).
+   trang được setupBook() (index.js) bọc vào .mc-page-in. Trang tràn khổ thì bị
+   CẮT chứ không thu nhỏ, cũng không cuộn dọc được (vuốt dọc đã là lật trang) —
+   giữ mỗi trang vừa một màn là việc của bố cục từng mục.
    ĐỪNG đặt thêm khung cuộn ngang nào bên trong trang: hai khung sẽ tranh nhau
    cùng một cú vuốt. */
 
@@ -804,11 +810,20 @@ body {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  /* Mọi trang bắt đầu từ ĐỈNH, cách mép trên 16px — trang nhiều nội dung và
-     trang ít nội dung do đó có cùng một đường khởi đầu, lật qua lại không bị
-     nhảy chữ. Đáy chừa chỗ cho thanh chỉ báo trang. */
+  /* Mọi trang bắt đầu từ ĐỈNH, cùng một đường khởi đầu nên lật qua lại không bị
+     nhảy chữ. 48px là để chữ không chui xuống dưới Dynamic Island / tai thỏ;
+     đáy chừa chỗ cho thanh chỉ báo trang. */
   justify-content: flex-start;
-  padding: 16px 0 56px;
+  padding: 48px 0 56px;
+}
+
+/* Trang Tiệc cưới là NGOẠI LỆ: nó mở đầu bằng ảnh thẻ lịch tràn mép, ảnh chui
+   dưới Dynamic Island là đúng ý đồ chứ không phải lỗi — chừa 48px ở đây chỉ tạo
+   một dải trống trên đầu. Nhắm bằng id: _toPage() chuyển class bố cục xuống
+   .mc-page-in, chỉ id còn ở lại trên thẻ trang. */
+
+#section-party {
+  padding-top: 0;
 }
 
 /* Mục bị tắt: .hidden của themes.css nạp TRƯỚC file này nên cùng độ đặc hiệu
@@ -818,16 +833,48 @@ body {
   display: none;
 }
 
-/* KHÔNG đặt width:100% ở đây: mục có lề ngang riêng (mx-6 của ô Tiệc mừng)
-   sẽ thành 100% CỘNG lề → lệch sang phải và tràn mất một mảng. Để flex kéo
+/* KHÔNG đặt width:100% ở đây: mục có lề ngang riêng sẽ thành 100% CỘNG lề →
+   lệch sang phải và tràn mất một mảng. Để flex kéo
    giãn, bề ngang tự trừ đúng phần lề. flex:none để nội dung cao hơn trang thì
-   bị _fitPage() thu nhỏ, chứ không bị flex bóp méo. */
+   tràn ra ngoài (rồi bị cắt), chứ không bị flex bóp méo. */
 
 .mc-page-in {
   flex: none;
-  /* Neo ở đỉnh: _fitPage() thu nhỏ bằng transform, gốc ở giữa thì trang bị co
-     sẽ tụt khỏi mốc 16px phía trên. */
-  transform-origin: top center;
+}
+
+/* Độ trễ theo THỨ TỰ KHỐI trong trang: cả trang vào khung nhìn cùng một lúc nên
+   nếu không lệch giờ thì mọi khối bật lên chung một nhịp, mất cảm giác "hiện
+   dần". Nhắm theo nth-child trong thẻ cha của chính khối đó, nhờ vậy trang gộp
+   (mỗi mục là một <section> con) cũng lệch giờ đúng như trang thường.
+   Bậc khai tới 8; khối thứ 9 trở đi vào cùng nhịp với khối 8.
+   .reveal/.from-* và phép chuyển động do _markReveal() gắn (xem styles/_common.css). */
+
+#cx-pages .reveal:nth-child(2) {
+  transition-delay: 120ms;
+}
+
+#cx-pages .reveal:nth-child(3) {
+  transition-delay: 240ms;
+}
+
+#cx-pages .reveal:nth-child(4) {
+  transition-delay: 360ms;
+}
+
+#cx-pages .reveal:nth-child(5) {
+  transition-delay: 480ms;
+}
+
+#cx-pages .reveal:nth-child(6) {
+  transition-delay: 600ms;
+}
+
+#cx-pages .reveal:nth-child(7) {
+  transition-delay: 720ms;
+}
+
+#cx-pages .reveal:nth-child(n + 8) {
+  transition-delay: 840ms;
 }
 
 /* ĐIỂM NGẮT DỌC của trang: phần tử mang [data-cx-push] cùng mọi thứ dưới nó bị
@@ -836,9 +883,9 @@ body {
    .mc-page-in (auto margin chỉ ăn chỗ trống của chính flex container đó).
 
    Chỉ trang nào khai mới bị kéo cao hết trang. Trang dồn nội dung
-   ([data-cx-flow]: chuyện tình yêu, album) cố ý KHÔNG khai: _flowPaginate() và
-   _fitPage() đều so scrollHeight với chiều cao trang, kéo cao là chúng tưởng
-   trang đã đầy và cắt sang trang mới ngay từ mục đầu tiên. */
+   ([data-cx-flow]: chuyện tình yêu, album) cố ý KHÔNG khai: _flowPaginate() so
+   scrollHeight với chiều cao trang, kéo cao là nó tưởng trang đã đầy và cắt
+   sang trang mới ngay từ mục đầu tiên. */
 
 .mc-page-in:has(> [data-cx-push]) {
   min-height: 100%;
@@ -1345,20 +1392,33 @@ body {
    ra một khung dẹt trông như lỗi bố cục. Tràn hai mép trang (bù px-6 của mục),
    thanh đen mỏng hơn ảnh lớn. */
 
+/* Ảnh lấp NUỐT đúng phần cao còn thừa của trang, và cũng là chỗ CHỊU sai số:
+   min-height 0 để nó co lại được khi phần mốc dài hơn dự tính (ảnh về muộn, chữ
+   xuống dòng thêm) — nếu không, trang sẽ đội cao hơn màn và ảnh tràn ra ngoài.
+   Ngưỡng "đủ đẹp mới bật" nằm ở TL_FILL_MIN trong index.js, không phải ở đây. */
+
 .mc-tl-fill {
   flex: 1 1 auto;
-  min-height: 140px;
+  min-height: 0;
   margin-inline: -24px;
   --mc-bar-h: 7%;
 }
 
-/* Trang chỉ kéo cao trọn khổ KHI ảnh lấp đang hiện: lúc ảnh còn ẩn,
-   _fillTimeline() phải đo được chiều cao THẬT của phần mốc mới biết còn thừa
-   bao nhiêu — kéo cao sẵn thì nó luôn đo ra "không còn chỗ" và ảnh không bao
-   giờ bật. */
+/* Phần chữ KHÔNG co: mọi sai số phải dồn vào ảnh lấp phía dưới. */
+
+.mc-tl-head,
+#timeline-list-render {
+  flex-shrink: 0;
+}
+
+/* Trang khoá ĐÚNG một màn KHI ảnh lấp đang hiện — khoá cả trần lẫn sàn: sàn để
+   ảnh có chỗ mà nở ra, trần để ảnh phải co lại thay vì đẩy trang dài quá màn.
+   Lúc ảnh còn ẩn thì không khoá: _fillTimeline() phải đo được chiều cao THẬT
+   của phần mốc mới biết còn thừa bao nhiêu, kéo cao sẵn thì nó luôn đo ra
+   "không còn chỗ" và ảnh không bao giờ bật. */
 
 .mc-tl-page:has(> .mc-tl-fill:not(.hidden)) {
-  min-height: 100%;
+  height: 100%;
 }
 
 /* Bo góc dùng chung — đặt class thẳng vào markup. Phải là CSS thuần chứ không
