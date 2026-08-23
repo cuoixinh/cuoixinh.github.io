@@ -1,4 +1,4 @@
-// ai-invitation — sinh nội dung thiệp cưới bằng AI (Gemini chính, Groq fallback).
+// ai-invitation — sinh nội dung thiệp cưới bằng AI (Gemini, xoay vòng nhiều key).
 //
 // Không bắt buộc đăng nhập: có JWT hợp lệ → rate-limit theo user/ngày (bảng
 // ai_usage), không có → theo IP/ngày (ai_usage_ip, hạn mức thấp hơn). Validate +
@@ -13,15 +13,37 @@ import { withAxiom, type Logger } from '../_shared/axiom.ts'
 import {
   GEMINI_BASE,
   GEMINI_MODEL,
+  ProviderError,
   REQ_TIMEOUT_MS,
-  callGroq,
   corsHeaders,
+  errFields,
   errMsg,
-  generateWithFallback,
+  generateWithGemini,
   getGeminiKeys,
   json,
+  readErrorDetail,
   withTimeout,
 } from '../_shared/ai-provider.ts'
+// Hợp đồng dữ liệu thiệp (whitelist field, nhãn văn phong, tầng validate output)
+// dùng chung với ai-chat — xem _shared/card-schema.ts.
+import {
+  LOVE_VOICE_RULE,
+  MAX_LOVE_ITEMS,
+  MAX_TEXT_LEN,
+  MAX_TIMELINE,
+  REGION_LABEL,
+  TONE_LABEL,
+  cleanBlock,
+  cleanBlocks,
+  objectToRawBlocks,
+  clampStr,
+  clampText,
+  pickRegion,
+  pickTone,
+  scrubLoveBlock,
+  stripCoupleNames,
+  weTermFor,
+} from '../_shared/card-schema.ts'
 
 // ── Cấu hình ────────────────────────────────────────────────────────────────
 
@@ -29,47 +51,11 @@ const DAILY_LIMIT      = 15      // số lần gọi AI tối đa / user đã đ
 const ANON_DAILY_LIMIT = 5       // số lần gọi AI tối đa / IP (khách chưa đăng nhập) / ngày
 const MAX_STORY_LOVE_LEN = 1500  // textarea "chuyện tình" (nguyên văn, khớp maxlength client)
 const MAX_INFO_LEN     = 2500    // textarea "thông tin cá nhân" (dump tự do)
-const MAX_LOVE_ITEMS   = 10     // khớp core/config.js → maxLoveStoryItems (cap cứng khi áp vào thiệp)
-const MAX_TIMELINE     = 10
-const MAX_TEXT_LEN     = 600     // giới hạn mỗi trường text AI trả về
 const MAX_OPTIMIZE_IN  = 800     // độ dài tối đa văn bản đầu vào cho nút "Tối ưu"
-
-// Whitelist field AI được phép điền + độ dài tối đa (an toàn, chống bơm khoá lạ).
-// KHÔNG có: ảnh, *_map_embed_url, music_url (AI không tự sinh được/không nên bịa).
-const FIELD_SPECS: Record<string, number> = {
-  groom_name: 60, bride_name: 60,
-  ceremony_name: 60, ceremony_date: 20, ceremony_time: 10, ceremony_location: 200,
-  vu_quy_time: 10, vu_quy_location: 200,
-  groom_father: 60, groom_mother: 60, groom_address: 200,
-  bride_father: 60, bride_mother: 60, bride_address: 200,
-  groom_party_date: 20, groom_party_time: 10, groom_party_location: 200,
-  bride_party_date: 20, bride_party_time: 10, bride_party_location: 200,
-  rsvp_message: 400, footer_text: 300,
-  groom_bank_name: 60, groom_bank_number: 40, groom_bank_owner: 60,
-  bride_bank_name: 60, bride_bank_number: 40, bride_bank_owner: 60,
-}
-const VALID_TONES      = ['romantic', 'traditional', 'humorous', 'poetic', 'modern', 'luxury', 'cute', 'vintage']
-
 
 // ── CORS ─────────────────────────────────────────────────────────────────────
 // Cho phép: origin nằm trong allowlist, hoặc bất kỳ localhost/127.0.0.1 (mọi cổng, để dev).
 // ── Chuẩn hoá input ──────────────────────────────────────────────────────────
-function clampStr(v: unknown, max: number): string {
-  return String(v ?? '').replace(/\s+/g, ' ').trim().slice(0, max)
-}
-
-// Giữ xuống dòng (giúp AI đọc info dạng gạch đầu dòng), chỉ gộp khoảng trắng ngang.
-function clampText(v: unknown, max: number): string {
-  return String(v ?? '')
-    .replace(/\r\n/g, '\n')
-    .replace(/[ \t]+/g, ' ')
-    .replace(/\n{3,}/g, '\n\n')
-    .trim()
-    .slice(0, max)
-}
-
-const VALID_REGIONS = ['bac', 'trung', 'nam']
-
 interface CardInput {
   tone: string
   story_love: string  // chuyện tình nguyên văn người dùng nhập (text liền mạch)
@@ -82,7 +68,7 @@ function sanitizeInput(raw: Record<string, unknown>): CardInput | null {
   const info = clampText(raw.info, MAX_INFO_LEN)
   if (!info) return null
 
-  const tone = VALID_TONES.includes(String(raw.tone)) ? String(raw.tone) : 'romantic'
+  const tone = pickTone(raw.tone)
 
   // Chuyện tình: text nguyên văn (giữ xuống dòng để AI đọc mạch kể). Backward-compat:
   // nếu client cũ còn gửi mảng "bullets" thì gộp lại thành text.
@@ -91,35 +77,12 @@ function sanitizeInput(raw: Record<string, unknown>): CardInput | null {
     : (Array.isArray(raw.bullets) ? (raw.bullets as unknown[]).join('\n') : '')
   const story_love = clampText(rawStory, MAX_STORY_LOVE_LEN)
 
-  const region = VALID_REGIONS.includes(String(raw.region)) ? String(raw.region) : ''
+  const region = pickRegion(raw.region)
 
   return { tone, story_love, info, region }
 }
 
 // ── Prompt ───────────────────────────────────────────────────────────────────
-const TONE_LABEL: Record<string, string> = {
-  romantic: 'lãng mạn, sâu lắng, giàu cảm xúc',
-  traditional: 'truyền thống, trang trọng, ấm áp',
-  humorous: 'nhẹ nhàng, dí dỏm, tươi vui',
-  poetic: 'thơ mộng, bay bổng, giàu hình ảnh và nhịp điệu',
-  modern: 'hiện đại, tối giản, tinh tế, câu chữ ngắn gọn',
-  luxury: 'sang trọng, lịch lãm, đẳng cấp, trau chuốt',
-  cute: 'dễ thương, đáng yêu, trẻ trung, tinh nghịch',
-  vintage: 'cổ điển, hoài niệm, nhẹ nhàng hoài cổ',
-}
-
-const REGION_LABEL: Record<string, string> = {
-  bac: 'miền Bắc (dùng "Lễ Thành Hôn"/"Lễ Vu Quy", cách xưng hô và văn phong kiểu Bắc)',
-  trung: 'miền Trung (văn phong, cách xưng hô kiểu Trung)',
-  nam: 'miền Nam (dùng "Lễ Tân Hôn"/"Lễ Vu Quy", cách xưng hô và văn phong kiểu Nam)',
-}
-
-// Xưng hô trong "Câu chuyện tình yêu" — dùng CHUNG cho mọi nhánh sinh chuyện
-// tình (thiệp thật, tối ưu từng mốc, dữ liệu mẫu). Chuyện tình là lời CHÍNH
-// cặp đôi tự kể; gọi tên riêng nghe như người ngoài kể chuyện về họ.
-const LOVE_VOICE_RULE =
-  'XƯNG HÔ (BẮT BUỘC): viết ở NGÔI THỨ NHẤT số nhiều — "chúng mình", "chúng tôi", "hai đứa", "tụi mình" (chọn ngôi hợp văn phong: trang trọng dùng "chúng tôi", gần gũi dùng "chúng mình"/"hai đứa"); khi nói riêng về một người thì dùng "anh"/"em". TUYỆT ĐỐI KHÔNG gọi cô dâu/chú rể bằng TÊN RIÊNG trong "title" lẫn "content", kể cả tên đã rút gọn. Viết "Chúng mình gặp nhau lần đầu…" chứ KHÔNG viết "Quang Vinh và Hải Yến gặp nhau…".'
-
 function buildPrompt(inp: CardInput): string {
   const storyLoveText = inp.story_love || '(không có)'
 
@@ -372,14 +335,6 @@ const GEN_CFG_LOVE = {
   maxOutputTokens: 16384,
 }
 
-// System message của Groq (fallback) theo từng tác vụ.
-const GROQ_SYS_INVITATION =
-  'Bạn trả về DUY NHẤT một object JSON hợp lệ, không markdown, gồm các khoá: story_quote (string), love_story (mảng {date,title,content}), timeline (mảng {time,title,type}), fields (object các trường thông tin thiệp; chỉ điền field người dùng cung cấp, không có thì ""). Tuân thủ mọi quy tắc trong phần hướng dẫn của người dùng.'
-const GROQ_SYS_TEXT =
-  'Bạn là trợ lý biên tập tiếng Việt. Chỉ trả về DUY NHẤT đoạn văn bản đã tối ưu, KHÔNG giải thích, KHÔNG markdown, KHÔNG bao ngoặc kép.'
-const GROQ_SYS_LOVE =
-  'Bạn trả về DUY NHẤT một object JSON hợp lệ dạng {"items":[{"date":"","title":"","content":""}, ...]}, không markdown. Tuân thủ mọi quy tắc trong phần hướng dẫn của người dùng.'
-
 // Parse + clamp danh sách mốc chuyện tình (chấp nhận mảng thẳng hoặc {items|love_story:[...]}).
 function cleanLoveItems(rawText: string): Array<{ date: string; title: string; content: string }> {
   let parsed: unknown
@@ -417,162 +372,8 @@ function cleanOptimizeOut(raw: string, max: number): string {
 }
 
 // ── Chuẩn hoá output (theo block) ────────────────────────────────────────────
-const VALID_TIMELINE_KIND = new Set(['ceremony', 'party', 'bride-party'])
-
-type CleanBlock =
-  | { type: 'text'; key: string; value: string }
-  | { type: 'field'; key: string; value: string | boolean }
-  | { type: 'love'; date: string; title: string; content: string }
-  | { type: 'timeline'; time: string; title: string; kind: string }
-
-// Validate + clamp MỘT block thô từ model → block sạch, hoặc null nếu bỏ.
-function cleanBlock(raw: any): CleanBlock | null {
-  if (!raw || typeof raw !== 'object') return null
-  const type = String(raw.type ?? '')
-
-  if (type === 'text') {
-    // Hiện chỉ dùng story_quote ở dạng text
-    if (String(raw.key ?? '') !== 'story_quote') return null
-    const value = clampStr(raw.value, MAX_TEXT_LEN)
-    return value ? { type: 'text', key: 'story_quote', value } : null
-  }
-
-  if (type === 'love') {
-    const date = clampStr(raw.date, 40)
-    const title = clampStr(raw.title, 120)
-    const content = clampStr(raw.content, MAX_TEXT_LEN)
-    // Chỉ cần có title là giữ lại. KHÔNG loại mốc chỉ vì thiếu content — thà hiện
-    // mốc với tiêu đề còn hơn mất trắng cả chuyện tình. Mốc rỗng hoàn toàn mới bỏ.
-    return title || content ? { type: 'love', date, title, content } : null
-  }
-
-  if (type === 'timeline') {
-    const title = clampStr(raw.title, 120)
-    if (!title) return null
-    const kind = String(raw.kind ?? '')
-    return {
-      type: 'timeline',
-      time: clampStr(raw.time, 20),
-      title,
-      kind: VALID_TIMELINE_KIND.has(kind) ? kind : 'ceremony',
-    }
-  }
-
-  if (type === 'field') {
-    const key = String(raw.key ?? '')
-    if (key === 'vu_quy_enabled') {
-      const v = raw.value
-      if (v === true || v === 'true') return { type: 'field', key, value: true }
-      if (v === false || v === 'false') return { type: 'field', key, value: false }
-      return null
-    }
-    const max = FIELD_SPECS[key]
-    if (!max) return null // ngoài whitelist → bỏ
-    let v = clampStr(raw.value, max)
-    if (!v) return null
-    if (key.endsWith('_date') && !/^\d{4}-\d{2}-\d{2}$/.test(v)) return null
-    if (key.endsWith('_time')) {
-      const m = v.match(/^(\d{1,2}):(\d{2})$/)
-      if (!m) return null
-      v = `${m[1].padStart(2, '0')}:${m[2]}`
-    }
-    return { type: 'field', key, value: v }
-  }
-
-  return null
-}
-
-// ── Lưới chặn tên riêng trong chuyện tình ───────────────────────────────────
-// Prompt đã cấm gọi tên (LOVE_VOICE_RULE) nhưng model vẫn có thể lỡ → chặn thêm ở
-// output: đổi tên đã biết thành đại từ. Chỉ động vào block "love"; lời mời / lời
-// cảm ơn vẫn được nhắc tên.
-const NAME_CHAR = '[\\p{L}\\p{M}\\d]'
-
-function escapeRe(s: string): string {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-}
-
-// Viết hoa lại nếu chỗ thay nằm đầu câu.
-function replaceWithPronoun(text: string, pattern: string, pronoun: string): string {
-  const re = new RegExp(`(?<!${NAME_CHAR})(?:${pattern})(?!${NAME_CHAR})`, 'giu')
-  return text.replace(re, (_m: string, ...args: unknown[]) => {
-    const offset = args[args.length - 2] as number
-    const whole = args[args.length - 1] as string
-    const before = whole.slice(0, offset).replace(/\s+$/, '')
-    const atStart = before === '' || /[.!?…:;"“”(]$/.test(before)
-    return atStart ? pronoun.charAt(0).toUpperCase() + pronoun.slice(1) : pronoun
-  })
-}
-
-function stripCoupleNames(text: string, groom: string, bride: string, weTerm: string): string {
-  if (!text) return text
-  let out = text
-  const g = groom.trim()
-  const b = bride.trim()
-
-  // "A và B" (hai chiều, kể cả nối bằng & hoặc dấu phẩy) → "chúng mình".
-  if (g && b) {
-    const join = '\\s*(?:và|&|,)\\s*'
-    out = replaceWithPronoun(out, `${escapeRe(g)}${join}${escapeRe(b)}`, weTerm)
-    out = replaceWithPronoun(out, `${escapeRe(b)}${join}${escapeRe(g)}`, weTerm)
-  }
-  if (g) out = replaceWithPronoun(out, escapeRe(g), 'anh')
-  if (b) out = replaceWithPronoun(out, escapeRe(b), 'em')
-  return out
-}
-
-// Văn phong trang trọng thì "chúng tôi", còn lại "chúng mình".
-function weTermFor(tone: string): string {
-  return tone === 'traditional' || tone === 'luxury' ? 'chúng tôi' : 'chúng mình'
-}
-
-function scrubLoveBlock(
-  b: CleanBlock,
-  names: { groom: string; bride: string },
-  weTerm: string,
-): CleanBlock {
-  if (b.type !== 'love' || (!names.groom && !names.bride)) return b
-  return {
-    ...b,
-    title: stripCoupleNames(b.title, names.groom, names.bride, weTerm),
-    content: stripCoupleNames(b.content, names.groom, names.bride, weTerm),
-  }
-}
-
-// Gom danh sách block sạch → cấu trúc cũ { story_quote, love_story, timeline, fields }
-function assembleBlocks(blocks: CleanBlock[]): Record<string, unknown> {
-  let story_quote = ''
-  const love_story: Array<{ date: string; title: string; content: string }> = []
-  const timeline: Array<{ time: string; title: string; type: string }> = []
-  const fields: Record<string, string | boolean> = {}
-
-  for (const b of blocks) {
-    if (b.type === 'text') story_quote = b.value
-    else if (b.type === 'love' && love_story.length < MAX_LOVE_ITEMS)
-      love_story.push({ date: b.date, title: b.title, content: b.content })
-    else if (b.type === 'timeline' && timeline.length < MAX_TIMELINE)
-      timeline.push({ time: b.time, title: b.title, type: b.kind })
-    else if (b.type === 'field') fields[b.key] = b.value
-  }
-  return { story_quote, love_story, timeline, fields }
-}
-
-// Gom object dạng cũ {story_quote, love_story, timeline, fields} (Groq trả về do
-// response_format=json_object) → mảng block thô để tái dùng cleanBlock/assembleBlocks.
-function objectToRawBlocks(obj: Record<string, any>): any[] {
-  const raw: any[] = []
-  if (obj.story_quote) raw.push({ type: 'text', key: 'story_quote', value: obj.story_quote })
-  for (const it of Array.isArray(obj.love_story) ? obj.love_story : [])
-    raw.push({ type: 'love', date: it?.date, title: it?.title, content: it?.content })
-  for (const it of Array.isArray(obj.timeline) ? obj.timeline : [])
-    raw.push({ type: 'timeline', time: it?.time, title: it?.title, kind: it?.kind ?? it?.type })
-  const f = obj.fields && typeof obj.fields === 'object' ? obj.fields : {}
-  for (const [key, value] of Object.entries(f)) raw.push({ type: 'field', key, value })
-  return raw
-}
-
 // Parse toàn bộ text (đường non-stream): chấp nhận CẢ mảng block (Gemini) LẪN
-// object {story_quote, love_story, timeline, fields} (Groq) → clean từng block → gom.
+// object {story_quote, love_story, timeline, fields} → clean từng block.
 function parseAndClamp(rawText: string, tone = 'romantic'): Record<string, unknown> {
   let parsed: unknown
   try {
@@ -586,16 +387,7 @@ function parseAndClamp(rawText: string, tone = 'romantic'): Record<string, unkno
   const rawBlocks = Array.isArray(parsed)
     ? (parsed as any[])
     : objectToRawBlocks(parsed as Record<string, any>)
-  const blocks = rawBlocks.map(cleanBlock).filter(Boolean) as CleanBlock[]
-
-  // Biết tên cô dâu/chú rể (chính AI vừa trả) → gỡ nốt tên lọt vào chuyện tình.
-  const fields = blocks.filter((b) => b.type === 'field') as Extract<CleanBlock, { type: 'field' }>[]
-  const names = {
-    groom: String(fields.find((f) => f.key === 'groom_name')?.value ?? ''),
-    bride: String(fields.find((f) => f.key === 'bride_name')?.value ?? ''),
-  }
-  const weTerm = weTermFor(tone)
-  return assembleBlocks(blocks.map((b) => scrubLoveBlock(b, names, weTerm)))
+  return cleanBlocks(rawBlocks, tone)
 }
 
 // Scanner tách các object top-level của một mảng JSON đang chảy dần (cho streaming).
@@ -719,11 +511,6 @@ async function enforceRateLimit(
   )
 }
 
-// Chuẩn hoá tone: chỉ nhận trong VALID_TONES, mặc định 'romantic'.
-function pickTone(v: unknown): string {
-  return VALID_TONES.includes(String(v)) ? String(v) : 'romantic'
-}
-
 // ── Streaming (block-by-block) ───────────────────────────────────────────────
 async function callGeminiStreamRaw(prompt: string, apiKey: string, signal: AbortSignal): Promise<Response> {
   const res = await fetch(
@@ -738,18 +525,20 @@ async function callGeminiStreamRaw(prompt: string, apiKey: string, signal: Abort
       }),
     },
   )
-  if (!res.ok || !res.body) throw new Error(`gemini stream ${res.status}`)
+  if (!res.ok) throw new ProviderError('gemini', res.status, await readErrorDetail(res))
+  if (!res.body) throw new ProviderError('gemini', res.status, 'stream không có body')
   return res
 }
 
 // Trả Response NDJSON: mỗi dòng {block} là 1 block SẠCH (đã validate/clamp server-side);
-// kết thúc bằng {meta:{done,provider}} hoặc {meta:{error}}. Fallback Groq nếu chưa emit block nào.
+// kết thúc bằng {meta:{done,provider}} hoặc {meta:{error}}. Chưa emit được block
+// nào thì thử lại MỘT lượt non-stream.
 function buildStreamResponse(
   prompt: string,
   geminiKeys: string[],
-  groqKey: string | undefined,
   origin: string | null,
   tone: string,
+  log: Logger,
 ): Response {
   const enc = new TextEncoder()
   const stream = new ReadableStream({
@@ -759,6 +548,9 @@ function buildStreamResponse(
       let provider = ''
       const scan: ScanState = { pos: 0, started: false }
       let acc = ''
+      // finishReason (MAX_TOKENS, SAFETY…) chỉ có trong gói SSE — bắt lại để biết
+      // vì sao mảng block đứt giữa chừng.
+      let finishReason = ''
       // Tên cặp đôi nhặt dần từ các block "field" để lọc tên khỏi chuyện tình.
       const names = { groom: '', bride: '' }
       const weTerm = weTermFor(tone)
@@ -786,7 +578,11 @@ function buildStreamResponse(
               if (!payload || payload === '[DONE]') continue
               try {
                 const j = JSON.parse(payload)
-                const chunk = j?.candidates?.[0]?.content?.parts?.[0]?.text ?? ''
+                const cand = j?.candidates?.[0]
+                if (cand?.finishReason) finishReason = String(cand.finishReason)
+                const chunk = (cand?.content?.parts ?? [])
+                  .map((p: { text?: string }) => p?.text ?? '')
+                  .join('')
                 if (chunk) {
                   acc += chunk
                   for (const raw of extractCompleteBlocks(acc, scan)) {
@@ -807,26 +603,50 @@ function buildStreamResponse(
           break // đã stream xong với key này
         } catch (e) {
           t.clear()
-          console.error('gemini stream failed:', e instanceof Error ? e.message : e)
+          log.warn('invitation.gemini_stream_failed', {
+            key_index: (startIdx + k) % geminiKeys.length,
+            keys_total: geminiKeys.length,
+            blocks_so_far: emitted,
+            finish_reason: finishReason || undefined,
+            ...errFields(e),
+          })
           if (emitted > 0) break // đã emit dở → không xoay key/không fallback
         }
       }
 
-      // Fallback Groq (non-stream) chỉ khi CHƯA emit được block nào
-      if (emitted === 0 && groqKey) {
-        try {
-          const text = await callGroq(prompt, groqKey, { system: GROQ_SYS_INVITATION, jsonMode: true })
-          const result = parseAndClamp(text, tone)
-          send({ full: result })
-          provider = 'groq'
-          emitted = 1
-        } catch (e) {
-          console.error('groq fallback failed:', e instanceof Error ? e.message : e)
+      // CHƯA emit được block nào → thử lại một lượt non-stream (xoay vòng key).
+      // Stream đứt sớm thường là trục trặc nhất thời, gọi lại là qua.
+      if (emitted === 0) {
+        const res = await generateWithGemini(prompt, { gemini: GEN_CFG_INVITATION }, log, 'invitation')
+        if (res) {
+          try {
+            send({ full: parseAndClamp(res.raw, tone) })
+            provider = res.provider
+            emitted = 1
+          } catch (e) {
+            log.warn('invitation.retry_parse_failed', errFields(e))
+          }
         }
       }
 
-      if (emitted === 0) send({ meta: { error: 'Dịch vụ AI đang bận, vui lòng thử lại sau ít phút.' } })
-      else send({ meta: { done: true, provider } })
+      if (emitted === 0) {
+        log.error('invitation.stream_failed', {
+          chars: acc.length,
+          finish_reason: finishReason || undefined,
+          keys_total: geminiKeys.length,
+        })
+        send({ meta: { error: 'Dịch vụ AI đang bận, vui lòng thử lại sau ít phút.' } })
+      } else {
+        log.info('invitation.stream_done', {
+          provider,
+          blocks: emitted,
+          chars: acc.length,
+          finish_reason: finishReason || undefined,
+        })
+        send({ meta: { done: true, provider } })
+      }
+
+      await log.flush()
       controller.close()
     },
   })
@@ -862,9 +682,9 @@ async function handleOptimize(
   const limited = await enforceRateLimit(req, admin, user, origin)
   if (limited) return limited
 
-  const res = await generateWithFallback(
+  const res = await generateWithGemini(
     buildOptimizePrompt(inputType, text, pickTone(body.tone)),
-    { gemini: GEN_CFG_TEXT, groq: { system: GROQ_SYS_TEXT } },
+    { gemini: GEN_CFG_TEXT },
     log,
     'optimize',
   )
@@ -904,9 +724,9 @@ async function handleLoveStory(
   if (limited) return limited
 
   const tone = pickTone(body.tone)
-  const res = await generateWithFallback(
+  const res = await generateWithGemini(
     buildLoveStoryPrompt(text, tone),
-    { gemini: GEN_CFG_LOVE, groq: { system: GROQ_SYS_LOVE, jsonMode: true } },
+    { gemini: GEN_CFG_LOVE },
     log,
     'love',
   )
@@ -945,12 +765,12 @@ async function handleSampleData(
   if (limited) return limited
 
   const tone = pickTone(body.tone)
-  const region = VALID_REGIONS.includes(String(body.region)) ? String(body.region) : ''
+  const region = pickRegion(body.region)
   const prompt = buildSamplePrompt(tone, region, clampText(body.hint, 500))
 
-  const res = await generateWithFallback(
+  const res = await generateWithGemini(
     prompt,
-    { gemini: GEN_CFG_SAMPLE, groq: { system: GROQ_SYS_INVITATION, jsonMode: true } },
+    { gemini: GEN_CFG_SAMPLE },
     log,
     'sample',
   )
@@ -1032,20 +852,20 @@ Deno.serve(withAxiom('ai-invitation', async (req, log) => {
 
   // 3.5) Streaming: client gửi { stream: true } và có key Gemini → trả NDJSON từng block.
   if (body.stream === true && getGeminiKeys().length) {
-    return buildStreamResponse(prompt, getGeminiKeys(), Deno.env.get('GROQ_API_KEY'), origin, input.tone)
+    return buildStreamResponse(prompt, getGeminiKeys(), origin, input.tone, log)
   }
 
-  // 4) Gọi AI non-stream qua hàm chung (Gemini → Groq fallback).
-  const res = await generateWithFallback(
+  // 4) Gọi AI non-stream qua hàm chung (Gemini, xoay vòng key).
+  const res = await generateWithGemini(
     prompt,
-    { gemini: GEN_CFG_INVITATION, groq: { system: GROQ_SYS_INVITATION, jsonMode: true } },
+    { gemini: GEN_CFG_INVITATION },
     log,
     'generate',
   )
   if (!res) {
     log.error('ai.all_providers_failed', {
       gemini_keys: getGeminiKeys().length,
-      has_groq: Boolean(Deno.env.get('GROQ_API_KEY')),
+
     })
     return json({ error: 'Dịch vụ AI đang bận, vui lòng thử lại sau ít phút.' }, 503, origin)
   }

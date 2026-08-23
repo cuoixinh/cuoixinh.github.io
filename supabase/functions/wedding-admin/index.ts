@@ -1,7 +1,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { withAxiom } from '../_shared/axiom.ts'
-// Tầng gọi model dùng chung (Gemini → fallback Groq) cho resource=template-ai.
-import { generateWithFallback } from '../_shared/ai-provider.ts'
+// Tầng gọi model dùng chung (Gemini, xoay vòng key) cho resource=template-ai.
+import { generateWithGemini } from '../_shared/ai-provider.ts'
 
 // ── CORS ────────────────────────────────────────────────────────────────────
 // Allowlist origin thay cho '*'. Chỉ là vệ sinh — CORS ràng buộc trình duyệt,
@@ -383,12 +383,9 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
         : '{"display_name":"...","description":"...","category":"..."}',
     ].join('\n')
 
-    const out = await generateWithFallback(
+    const out = await generateWithGemini(
       prompt,
-      {
-        gemini: { temperature: 1.0, responseMimeType: 'application/json' },
-        groq: { system: 'Bạn là copywriter tiếng Việt cho nền tảng thiệp cưới. Chỉ trả JSON thuần.', jsonMode: true },
-      },
+      { gemini: { temperature: 1.0, responseMimeType: 'application/json' } },
       log,
       'template_meta',
     )

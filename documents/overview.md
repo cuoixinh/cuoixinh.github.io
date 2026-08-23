@@ -179,7 +179,7 @@ Màn "Giao diện" trong editor: đổi **phông chữ** (heading/body), **bản
 
 ### AI gợi ý nội dung (F-07)
 
-Modal AI trong editor: nhập từ khóa → sinh nội dung thiệp (slogan, **câu chuyện tình yêu**, timeline…). Edge Function `ai-invitation` (Gemini key rotation + Groq fallback), có bảng `ai_usage` giới hạn lượt dùng.
+Modal AI trong editor: nhập từ khóa → sinh nội dung thiệp (slogan, **câu chuyện tình yêu**, timeline…). Edge Function `ai-invitation` (Gemini, xoay vòng nhiều key), có bảng `ai_usage` giới hạn lượt dùng.
 
 ### Focal Point
 

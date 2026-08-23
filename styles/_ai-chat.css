@@ -246,6 +246,71 @@
   }
 }
 
+/* ── Thiệp AI dựng xong ────────────────────────────────────────────────────── */
+
+/* Dòng chờ riêng cho lượt dựng thiệp: khách đã đọc xong câu trả lời mà phần
+   chuyện tình + lịch trình còn chảy về thêm cả chục giây. */
+.aichat-building {
+  @apply mr-auto flex items-center gap-2 rounded-[20px] px-4 py-2 text-xs;
+
+  color: rgb(var(--brand-accent-rgb));
+  background: rgb(var(--aichat-bot-bg-rgb));
+  border: 1px dashed rgb(var(--brand-primary-rgb));
+  animation: cx-aichat-pulse 1.4s infinite ease-in-out;
+}
+
+@keyframes cx-aichat-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Thẻ tóm tắt thiệp + nút sang trang thiết lập. Nằm trong .aichat-row nên tự dạt
+   trái theo bong bóng của trợ lý. */
+.aichat-card {
+  @apply flex max-w-[85%] flex-col gap-1 rounded-[20px] px-4 py-3;
+
+  background: rgb(var(--white-rgb));
+  border: 1px solid rgb(var(--brand-accent-rgb));
+  box-shadow: 0 6px 18px rgb(var(--shadow-brand-rgb) / 0.2);
+}
+
+.aichat-card-title {
+  @apply text-xs font-semibold;
+
+  color: rgb(var(--brand-accent-rgb));
+}
+
+.aichat-card-name {
+  @apply font-cormorant text-lg leading-tight;
+
+  color: rgb(var(--text-heading-rgb));
+}
+
+.aichat-card-meta {
+  @apply text-xs leading-snug;
+
+  color: rgb(var(--text-label-rgb));
+}
+
+.aichat-card x-button,
+.aichat-card button {
+  @apply mt-2;
+}
+
+/* Đã có thiệp mới hơn: giữ lại cho khách đọc, nhưng bấm vào là mang đúng thông
+   tin đã lỗi thời sang trang thiết lập nên nút bị khoá ở JS. */
+.aichat-card.is-stale {
+  @apply opacity-60;
+
+  border-color: rgb(var(--brand-primary-rgb));
+  box-shadow: none;
+}
+
 /* ── Câu hỏi gợi ý ─────────────────────────────────────────────────────────── */
 
 .aichat-suggests {

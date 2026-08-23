@@ -127,7 +127,7 @@ class AiDAL {
 
   /**
    * Sinh nội dung dạng STREAMING: server trả NDJSON, mỗi dòng một sự kiện —
-   * block: 1 block sạch; full: kết quả đầy đủ (fallback Groq);
+   * block: 1 block sạch; full: kết quả đầy đủ (đường non-stream);
    * meta: {done,provider} | {error}.
    */
   async generateInvitationStream(input, onEvent) {

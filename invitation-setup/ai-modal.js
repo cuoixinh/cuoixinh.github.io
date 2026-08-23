@@ -237,6 +237,12 @@ function openAiModal() {
   _setAiTone(_aiTone);
   if (typeof lucide !== "undefined") lucide.createIcons();
 
+  // Vào từ trợ lý chat ở trang chủ → nội dung đã dựng xong, mở thẳng xem trước.
+  if (_aiFromChat) {
+    _aiFromChat = false;
+    _restoreChatCard();
+  }
+
   // Vào từ "Tạo với giọng nói" ở trang chủ → mở thẳng hộp thoại nói của ô thông
   // tin cặp đôi. Ý định dùng MỘT LẦN (xoá ngay) để lần sau khách tự mở bảng AI
   // không bị hộp thoại nói bật lên theo. Máy không hỗ trợ nhận giọng nói thì bỏ
@@ -280,25 +286,56 @@ function closeAiModal() {
   _aiSheet = null;
 }
 
-// Vào từ "Tạo thiệp bằng AI" / "Tạo với giọng nói" ở trang chủ (js/auth-nav.js):
-// ý định nằm ở ?open=ai|voice. Đọc MỘT LẦN ở top-level rồi XOÁ khỏi thanh địa chỉ
-// ngay — F5, bookmark hay gửi link cho người khác đều không được mở lại bảng AI.
-let _aiOpenIntent = (function _readAiOpenIntent() {
+// Vào từ "Tạo thiệp bằng AI" / "Tạo với giọng nói" ở trang chủ (js/auth-nav.js)
+// hoặc từ trợ lý chat ở trang chủ: ý định nằm ở ?open=ai|voice và ?from=chat.
+// Đọc MỘT LẦN ở top-level rồi XOÁ khỏi thanh địa chỉ ngay — F5, bookmark hay gửi
+// link cho người khác đều không được mở lại bảng AI.
+let _aiOpenIntent = null;
+let _aiFromChat = false;
+(function _readAiOpenIntent() {
   const p = new URLSearchParams(location.search);
-  const v = p.get("open");
-  if (!v) return null;
+  const open = p.get("open");
+  const from = p.get("from");
+  if (!open && !from) return;
+  _aiOpenIntent = open;
+  _aiFromChat = from === "chat";
   p.delete("open");
+  p.delete("from");
   const q = p.toString();
   history.replaceState(
     null,
     "",
     location.pathname + (q ? "?" + q : "") + location.hash,
   );
-  return v;
 })();
 
 if (_aiOpenIntent === "ai" || _aiOpenIntent === "voice") {
   window.__cxOnReady(openAiModal);
+}
+
+// Thiệp do trợ lý chat ở trang chủ dựng sẵn — bàn giao qua localStorage vì nó là
+// cả một object vài KB. Bên ghi: js/ai-assistant.js.
+const AI_CHAT_CARD_KEY = buildCacheKey("chat_card");
+
+// Nội dung đã có sẵn nên bỏ qua bước form: mở thẳng màn xem trước để người dùng
+// soát/sửa rồi bấm "Áp dụng vào thiệp". Dùng MỘT LẦN (xoá ngay sau khi đọc) —
+// còn nằm lại thì lần sau tự mở bảng AI sẽ thấy thiệp của cuộc chat cũ.
+function _restoreChatCard() {
+  const card = getCache(AI_CHAT_CARD_KEY);
+  removeCache(AI_CHAT_CARD_KEY);
+  if (!card || typeof card !== "object") return false;
+  _aiResult = {
+    story_quote: card.story_quote || "",
+    love_story: Array.isArray(card.love_story) ? card.love_story : [],
+    timeline: Array.isArray(card.timeline) ? card.timeline : [],
+    fields: card.fields || {},
+  };
+  // Ô "Tạo lại" phía sau cần biết văn phong/vùng miền khách đã chọn trong chat.
+  if (card.tone) _setAiTone(card.tone);
+  if (card.region) _applyAiRegion(card.region);
+  _setAiView("preview");
+  _renderAiPreview(_aiResult);
+  return true;
 }
 
 // Gắn listener cho các control trong modal (phải gọi mỗi lần mở vì DOM dựng lại).
@@ -740,7 +777,7 @@ async function submitAiGenerate() {
         _mergeAiBlock(_aiResult, evt.block);
         _renderAiPreview(_aiResult);
       } else if (evt.full) {
-        // Fallback Groq: nhận kết quả đầy đủ 1 lần
+        // Đường non-stream: nhận kết quả đầy đủ 1 lần
         _aiResult = evt.full;
         gotAny = true;
         enterPreview();

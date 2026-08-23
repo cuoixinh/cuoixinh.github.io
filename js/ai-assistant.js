@@ -1,21 +1,28 @@
-// Trợ lý AI của trang chủ: bong bóng nổi góc phải + bảng chat tư vấn về dịch vụ.
+// Trợ lý AI của trang chủ: bong bóng nổi góc phải + bảng chat vừa tư vấn dịch vụ
+// vừa hỏi thông tin rồi DỰNG LUÔN nội dung thiệp cho khách.
 // Toàn bộ markup dựng ở đây (như core/payment.js) nên index.html chỉ cần một thẻ
 // <script>; style ở styles/_ai-chat.css.
 //
 // Lớp UI thuần: mọi thứ gọi model đi qua window.aiChatDAL (core/dal/ai-chat-dal.js)
-// → Edge Function ai-chat, nơi giữ tri thức sản phẩm và hạn mức.
+// → Edge Function ai-chat, nơi giữ tri thức sản phẩm, luật thu thập và hạn mức.
+//
+// Thiệp dựng xong đi sang trang thiết lập qua localStorage (CARD_KEY) chứ không
+// qua URL: nó là cả một object vài KB. Bên đọc: invitation-setup/ai-modal.js.
 
 (function () {
   const STORE_KEY = "cx_aichat_history"; // sessionStorage: giữ đoạn chat khi F5
-  const MAX_KEEP = 20; // số tin nhắn giữ lại (server chỉ đọc 12 tin cuối)
+  const KNOWN_KEY = "cx_aichat_known"; // sessionStorage: thông tin thiệp đã thu được
+  const CARD_KEY = buildCacheKey("chat_card"); // localStorage: bàn giao sang trang thiết lập
+  const MAX_KEEP = 20; // số tin nhắn giữ lại (server chỉ đọc 20 tin cuối)
   const MAX_LEN = 800; // khớp MAX_MSG_LEN của Edge Function
 
   const GREETING =
     "Chào bạn 👋 Mình là trợ lý của Cưới Xinh.\n" +
-    "Bạn muốn biết gì về thiệp cưới online — cách làm, giá, hay tính năng trong thiệp?";
+    "Bạn cứ hỏi mình về thiệp cưới online — hoặc bảo mình tạo thiệp, mình hỏi vài " +
+    "thông tin rồi dựng luôn cho bạn.";
 
   const SUGGESTS = [
-    "Làm thiệp mất bao lâu?",
+    "Mình muốn tạo thiệp cưới",
     "Giá bao nhiêu?",
     "Thiệp có những gì?",
     "Dùng thử được không?",
@@ -25,6 +32,10 @@
   // vẽ giờ dưới bong bóng, server bỏ qua. Lời chào KHÔNG nằm trong này — nó là
   // câu mở màn của giao diện, không phải một lượt hội thoại.
   let history = [];
+  // Thông tin thiệp gom được qua các lượt ({tone, region, fields}). Server trả về
+  // sau mỗi lượt và cần nhận lại ở lượt sau — lịch sử hội thoại chỉ mang lời nói,
+  // không mang dữ liệu, nên thiếu cái này là model hỏi lại từ đầu.
+  let known = null;
   let busy = false;
   let abort = null; // AbortController của lượt đang chạy (nút Làm mới huỷ nó)
   let els = null;
@@ -49,7 +60,7 @@
       <div class="aichat-head">
         <div class="min-w-0 flex-1">
           <p class="aichat-head-title flex gap-1">Trợ lý AI Cưới Xinh <i data-icon="sparkles-solid" data-size="24"></i></p>
-          <p class="aichat-head-sub">Hỏi gì về thiệp cưới cũng được</p>
+          <p class="aichat-head-sub">Hỏi đáp hoặc nhờ mình tạo thiệp</p>
         </div>
         <x-button variant="bare" icon-only id="aichatReset" type="button"
                   aria-label="Bắt đầu cuộc trò chuyện mới" title="Trò chuyện mới"
@@ -224,6 +235,110 @@
     typer = null;
   }
 
+  // ── Thiệp dựng xong ───────────────────────────────────────────────────────
+  // Model trả về nguyên bộ nội dung thiệp (cùng shape với kết quả của bảng "Tạo
+  // bằng AI" ở trang thiết lập). Ở đây chỉ vẽ thẻ tóm tắt + một nút; bấm nút là
+  // gửi bộ đó sang trang thiết lập rồi điều hướng.
+
+  // "2026-12-20" → "20/12/2026". Không đúng dạng thì trả nguyên văn.
+  function fmtDate(v) {
+    const m = String(v || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    return m ? m[3] + "/" + m[2] + "/" + m[1] : String(v || "");
+  }
+
+  // Địa điểm lễ thường là địa chỉ dài; thẻ tóm tắt chỉ cần thành phần đầu.
+  function shortPlace(v) {
+    return String(v || "").split(",")[0].trim();
+  }
+
+  function addBuilding() {
+    const el = document.createElement("div");
+    el.className = "aichat-building";
+    el.textContent = "Đang dựng nội dung thiệp…";
+    els.body.appendChild(el);
+    scrollToEnd();
+    return el;
+  }
+
+  // Thiệp mới ra thì thẻ cũ hết bấm được: nội dung của nó đã lỗi thời, bấm nhầm
+  // là mang sang trang thiết lập đúng thứ khách vừa bảo sửa.
+  function staleCards() {
+    els.body.querySelectorAll(".aichat-card").forEach((box) => {
+      box.classList.add("is-stale");
+      const btn = box.querySelector("button");
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = "Đã có bản mới hơn";
+      }
+    });
+  }
+
+  function addCardAction(row, card) {
+    if (!row) return;
+    staleCards();
+    const f = card.fields || {};
+    // Object thiệp treo thẳng lên phần tử, không serialize: nút bấm chỉ cần tìm
+    // ngược lên hàng chứa nó là có đủ dữ liệu.
+    row._cxCard = card;
+
+    const box = document.createElement("div");
+    box.className = "aichat-card";
+
+    const add = (cls, text) => {
+      if (!text) return;
+      const p = document.createElement("p");
+      p.className = cls;
+      p.textContent = text;
+      box.appendChild(p);
+    };
+
+    add("aichat-card-title", "✨ Thiệp đã sẵn sàng");
+    add("aichat-card-name", [f.groom_name, f.bride_name].filter(Boolean).join(" & "));
+    add(
+      "aichat-card-meta",
+      [f.ceremony_time, fmtDate(f.ceremony_date), shortPlace(f.ceremony_location)]
+        .filter(Boolean)
+        .join(" · "),
+    );
+    const nLove = (card.love_story || []).length;
+    const nTime = (card.timeline || []).length;
+    add(
+      "aichat-card-meta",
+      [nLove ? nLove + " mốc chuyện tình" : "", nTime ? nTime + " mốc lịch trình" : ""]
+        .filter(Boolean)
+        .join(" · "),
+    );
+
+    // <x-button> TỰ THAY mình bằng <button> thật lúc gắn vào DOM → bắt click bằng
+    // uỷ nhiệm ở els.body (xem init), đừng gắn listener vào thẻ sắp bị vứt đi.
+    const btn = document.createElement("x-button");
+    btn.setAttribute("variant", "fill");
+    btn.setAttribute("size", "sm");
+    btn.setAttribute("full", "");
+    btn.setAttribute("data-card-open", "");
+    btn.textContent = "Mở thiệp của tôi";
+    box.appendChild(btn);
+
+    row.appendChild(box);
+    scrollToEnd();
+  }
+
+  // Bàn giao: cất thiệp vào localStorage rồi đi đúng đường của nút "Tạo thiệp
+  // ngay" (còn nháp dở thì cxStartDraft tự hỏi tiếp cái cũ hay làm mới).
+  // `templates` khai bằng let ở js/templates-data.js → binding TOÀN CỤC chứ không
+  // phải window.templates; chưa nạp xong thì để cxStartDefaultDraft đi hỏi server.
+  function goToSetup(card) {
+    if (!card) return;
+    setCache(CARD_KEY, card);
+    const params = { open: "ai", from: "chat" };
+    const first =
+      typeof templates !== "undefined" && Array.isArray(templates)
+        ? templates.find((t) => t.status === "active")
+        : null;
+    if (first) window.cxStartDraft?.(first.theme, first.name, { chosen: false, params });
+    else window.cxStartDefaultDraft?.(params);
+  }
+
   // Chip gợi ý chỉ hữu ích lúc chưa biết hỏi gì → ẩn hẳn sau câu hỏi đầu tiên.
   function renderSuggests() {
     els.suggests.innerHTML = "";
@@ -252,12 +367,19 @@
       history = [];
     }
     if (!Array.isArray(history)) history = [];
+    try {
+      known = JSON.parse(sessionStorage.getItem(KNOWN_KEY) || "null");
+    } catch {
+      known = null;
+    }
   }
 
   function saveHistory() {
     history = history.slice(-MAX_KEEP);
     try {
       sessionStorage.setItem(STORE_KEY, JSON.stringify(history));
+      if (known) sessionStorage.setItem(KNOWN_KEY, JSON.stringify(known));
+      else sessionStorage.removeItem(KNOWN_KEY);
     } catch {
       /* hết chỗ / chặn cookie: chat vẫn chạy, chỉ không nhớ qua lần tải lại */
     }
@@ -266,9 +388,10 @@
   function paintHistory() {
     els.body.innerHTML = "";
     addBubble("bot", GREETING);
-    history.forEach((m) =>
-      addBubble(m.role === "user" ? "user" : "bot", m.content, m.at),
-    );
+    history.forEach((m) => {
+      const bubble = addBubble(m.role === "user" ? "user" : "bot", m.content, m.at);
+      if (m.card) addCardAction(bubble.parentElement, m.card);
+    });
     renderSuggests();
   }
 
@@ -278,8 +401,10 @@
     abort?.abort();
     typeStop();
     history = [];
+    known = null;
     try {
       sessionStorage.removeItem(STORE_KEY);
+      sessionStorage.removeItem(KNOWN_KEY);
     } catch {
       /* chặn cookie: bộ nhớ trong phiên đã sạch là đủ */
     }
@@ -394,13 +519,13 @@
 
     const typing = addTyping();
     let bubble = null;
+    let building = null;
     abort = new AbortController();
     const mine = abort; // giữ lại để biết lượt này có bị Làm mới cắt ngang không
 
     try {
-      const answer = await window.aiChatDAL.ask(
-        history,
-        (partial) => {
+      const res = await window.aiChatDAL.ask(history, known, {
+        onDelta: (partial) => {
           // Mảnh chữ đầu tiên tới nơi → thay ba chấm bằng bong bóng thật.
           if (!bubble) {
             typing.remove();
@@ -409,22 +534,41 @@
           }
           typeFeed(partial);
         },
-        mine.signal,
-      );
+        // Model nói xong câu rồi mới dựng thiệp: chỗ này chờ lâu hơn hẳn một câu
+        // trả lời thường nên đổi ba chấm thành dòng báo cho khách yên tâm.
+        onPhase: (phase) => {
+          if (phase !== "card" || building) return;
+          typing.remove();
+          building = addBuilding();
+        },
+        signal: mine.signal,
+      });
 
       typing.remove();
+      building?.remove();
       if (!bubble) {
         bubble = addBubble("bot", "");
         typeStart(bubble);
       }
-      await typeFinish(answer);
+      await typeFinish(res.text);
       // Nút Làm mới bấm trong lúc đang gõ nốt: màn đã sạch, đừng nhét câu trả
       // lời của cuộc cũ vào lịch sử cuộc mới.
       if (mine.signal.aborted) return;
-      history.push({ role: "assistant", content: answer, at: Date.now() });
+
+      if (res.known) known = res.known;
+      const entry = { role: "assistant", content: res.text, at: Date.now() };
+      if (res.card) {
+        // Chỉ giữ thiệp MỚI NHẤT: thẻ cũ đã hết bấm được, mà mỗi thiệp là vài KB
+        // nằm trong sessionStorage.
+        history.forEach((m) => delete m.card);
+        entry.card = res.card;
+      }
+      history.push(entry);
       saveHistory();
+      if (res.card) addCardAction(bubble.parentElement, res.card);
     } catch (e) {
       typing.remove();
+      building?.remove();
       typeStop();
       // Bị nút Làm mới cắt ngang: màn đã sạch rồi, đừng vẽ gì thêm lên đó.
       if (mine.signal.aborted) return;
@@ -510,6 +654,10 @@
     els.panel.addEventListener("click", (e) => {
       if (e.target.closest("#aichatClose")) close();
       else if (e.target.closest("#aichatReset")) clearChat();
+    });
+    els.body.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-card-open]");
+      if (btn && !btn.disabled) goToSetup(btn.closest(".aichat-row")?._cxCard);
     });
     els.send.addEventListener("click", () => ask(els.input.value));
     els.input.addEventListener("input", () => {

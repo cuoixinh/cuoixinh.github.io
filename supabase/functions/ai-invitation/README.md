@@ -20,14 +20,14 @@ AI được prompt trả về **MẢNG JSON phẳng các "block"** (không lồn
 
 Client gửi `{ "stream": true }`. Edge Function đọc SSE của Gemini (`streamGenerateContent?alt=sse`), **tách + validate/clamp từng block ở server** rồi trả **NDJSON** — mỗi dòng một sự kiện:
 - `{"block": {...}}` — một block đã sạch.
-- `{"full": {...}}` — kết quả đầy đủ (khi phải fallback Groq non-stream).
+- `{"full": {...}}` — kết quả đầy đủ (khi phải lui về đường non-stream).
 - `{"meta": {"done": true, "provider": "gemini"}}` hoặc `{"meta": {"error": "..."}}` — dòng cuối.
 
-Bảo mật vẫn nguyên (clamp/whitelist ở server). Fallback Groq chỉ chạy nếu Gemini lỗi **trước** block đầu tiên. Nếu client không gửi `stream`, dùng đường non-stream cũ trả `{ data, provider }` (UI tự fallback sang đường này khi stream lỗi).
+Bảo mật vẫn nguyên (clamp/whitelist ở server). Lượt gọi lại non-stream chỉ chạy nếu Gemini lỗi **trước** block đầu tiên. Nếu client không gửi `stream`, dùng đường non-stream cũ trả `{ data, provider }` (UI tự fallback sang đường này khi stream lỗi).
 
-- **AI chính:** Google Gemini `gemini-2.5-flash` (nhiều key xoay vòng)
-- **Fallback:** Groq `llama-3.3-70b-versatile`
-- **Chi phí:** $0 (dùng free tier của cả hai)
+- **AI:** Google Gemini `gemini-2.5-flash` (nhiều key xoay vòng) — nhà cung cấp DUY NHẤT
+- **Chi phí:** $0 (dùng free tier)
+- ⚠️ Không có nhà cung cấp dự phòng: hết quota Gemini là tính năng ngừng tới khi quota hồi. Cách nới trần duy nhất là thêm key Gemini (xem [mục 4](#4-set-secrets)).
 
 ---
 
@@ -44,7 +44,7 @@ Bảo mật vẫn nguyên (clamp/whitelist ở server). Fallback Groq chỉ ch�
         │  • validate + clamp input/output
         │  • CORS allowlist, timeout 25s
         ▼
-[Gemini key1 → key2 → … → Groq]   (key chỉ nằm trong secret, KHÔNG lộ ra client)
+[Gemini key1 → key2 → …]          (key chỉ nằm trong secret, KHÔNG lộ ra client)
         │
         ▼  JSON hợp lệ
 [applyAiResult()]  bind slogan / love_story / timeline vào form + autosave
@@ -62,10 +62,6 @@ Bảo mật vẫn nguyên (clamp/whitelist ở server). Fallback Groq chỉ ch�
 3. Lặp lại với nhiều tài khoản Google để có **nhiều key xoay vòng** (tăng hạn mức).
 
 > Free tier Gemini 2.5 Flash: ~15 req/phút, ~1.500 req/ngày **mỗi key**.
-
-### Groq (fallback)
-1. Vào https://console.groq.com/keys
-2. Đăng nhập → **Create API Key** → copy.
 
 ---
 
@@ -97,12 +93,16 @@ alter table public.ai_usage enable row level security;
 
 ```bash
 supabase secrets set GEMINI_API_KEYS="AIza_key1;AIza_key2;AIza_key3"
-supabase secrets set GROQ_API_KEY="gsk_xxxxxxxx"
 ```
 
-- `GEMINI_API_KEYS` — danh sách key Gemini, ngăn cách bằng `;`. Thêm key mới lúc nào cũng được, chỉ cần chạy lại lệnh trên.
-- `GEMINI_API_KEY` — (tùy chọn) nếu chỉ có 1 key, có thể set biến này thay cho `GEMINI_API_KEYS`. Code gộp cả hai.
-- `GROQ_API_KEY` — key fallback.
+- `GEMINI_API_KEYS` — danh sách key Gemini, ngăn cách bằng `;`.
+- `GEMINI_API_KEY` — (tùy chọn) nếu chỉ có 1 key, có thể set biến này thay cho `GEMINI_API_KEYS`.
+- `GEMINI_API_KEY_<hậu tố>` — mỗi key một secret riêng (`GEMINI_API_KEY_1`, `GEMINI_API_KEY_2`…).
+
+Cả ba dạng được gộp lại rồi loại trùng, nên dùng lẫn nhau thoải mái. **Thêm key thì dùng dạng thứ ba:**
+Dashboard chỉ lưu digest, không cho đọc lại giá trị cũ — muốn nối thêm vào `GEMINI_API_KEYS` là phải gõ lại
+cả chuỗi (lấy key cũ ở [aistudio.google.com/apikey](https://aistudio.google.com/apikey)), còn thêm một secret
+mới thì không đụng gì tới các key đang chạy. Bỏ một key hỏng cũng chỉ là xoá đúng secret đó.
 
 > `SUPABASE_URL` và `SUPABASE_SERVICE_ROLE_KEY` là biến hệ thống, Supabase tự cung cấp — **không cần set**.
 
@@ -172,9 +172,8 @@ Sửa trong `supabase/functions/ai-invitation/index.ts` (nhớ deploy lại sau 
 | `MAX_LOVE_ITEMS` | 8 | Số mốc chuyện tình tối đa |
 | `MAX_TIMELINE` | 10 | Số mốc lịch trình tối đa |
 | `MAX_INFO_LEN` | 2500 | Độ dài tối đa ô "thông tin cá nhân" |
-| `FIELD_SPECS` | (whitelist) | Danh sách field AI được điền + độ dài mỗi field. Thêm/bớt field ở đây, `RESPONSE_SCHEMA.fields` và prompt |
+| `FIELD_SPECS` | (whitelist) | Ở `_shared/card-schema.ts` — danh sách field AI được điền + độ dài mỗi field, **dùng chung với `ai-chat`**. Thêm/bớt field thì sửa ở đó, rồi khớp lại prompt của cả hai function |
 | `GEMINI_MODEL` | gemini-2.5-flash | Model Gemini |
-| `GROQ_MODEL` | llama-3.3-70b-versatile | Model Groq |
 | `ALLOWED_ORIGINS` | (danh sách) | CORS — thêm domain nếu deploy nơi khác |
 
 Sửa văn phong / cấu trúc nội dung: hàm `buildPrompt()` và `RESPONSE_SCHEMA`.
@@ -189,7 +188,7 @@ Sửa văn phong / cấu trúc nội dung: hàm `buildPrompt()` và `RESPONSE_SC
 |---|---|
 | `401` khi gọi function | Quên deploy `--no-verify-jwt` (gateway chặn trước khi vào hàm) → deploy lại kèm cờ đó |
 | `429 Bạn đã dùng hết ... lượt` | Chạm `DAILY_LIMIT` (user) hoặc `ANON_DAILY_LIMIT` (IP). Đăng nhập để thêm lượt, đợi hôm sau, hoặc tăng hằng số |
-| `503 Dịch vụ AI đang bận` | Tất cả key Gemini lỗi/hết quota **và** Groq cũng lỗi. Kiểm tra key, thêm key Gemini mới |
+| `503 Dịch vụ AI đang bận` | Tất cả key Gemini lỗi/hết quota. Xem log Axiom (`ai.invitation_failed`) để biết `provider_status` + `provider_detail`; hết quota ngày thì phải chờ reset (nửa đêm giờ Thái Bình Dương) hoặc thêm key mới |
 | `502 AI trả về không hợp lệ` | Model trả JSON hỏng — thử lại; hiếm gặp vì Gemini dùng responseSchema |
 | Nội dung không đổi sau khi Áp dụng | Kiểm tra Console lỗi JS; đảm bảo `ai-dal.js` được nạp trong `index.html` |
 | Xem log server | `supabase functions logs ai-invitation` |
@@ -198,6 +197,7 @@ Sửa văn phong / cấu trúc nội dung: hàm `buildPrompt()` và `RESPONSE_SC
 
 ## 9. Danh sách file liên quan
 
+- `supabase/functions/_shared/card-schema.ts` — hợp đồng dữ liệu thiệp (whitelist field, nhãn văn phong, luật xưng hô, tầng validate output) dùng chung với `ai-chat`
 - `supabase/functions/ai-invitation/index.ts` — Edge Function
 - `changelogs/RC1.1/ai_usage.sql` — bảng rate-limit theo user (changelog RC1.1)
 - `changelogs/RC1.2/ai_usage_ip.sql` — bảng rate-limit theo IP (changelog RC1.2)
