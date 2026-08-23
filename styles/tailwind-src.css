@@ -18,6 +18,7 @@
 @import "./_progress.css";
 @import "./_setup.css";
 @import "./_ai-modal.css";
+@import "./_ai-chat.css";
 
 @keyframes heroFadeUp {
   from {

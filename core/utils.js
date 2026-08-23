@@ -1002,15 +1002,25 @@ function closeTimePicker() {
     _chooseTheme(theme, display);
   }
 
-  // Việc CHÍNH đứng cuối, tức gần ngón cái nhất. `go` = đường dẫn nội bộ.
+  // Ba ô vuông ở đáy bảng: icon trên, nhãn dưới, mỗi ô một tông pastel riêng.
+  // `go` = đường dẫn nội bộ; ô `primary` tạo nháp bằng mẫu ĐANG XEM.
   const SUG_ACTS = [
-    { id: "sug-home", label: "Về trang chủ", icon: "home", go: "/" },
+    { id: "sug-home", label: "Trang chủ", icon: "home", cls: "is-home", go: "/" },
     {
       id: "sug-use",
-      label: "Dùng ngay mẫu này",
+      label: "Tạo thiệp",
       icon: "note",
+      cls: "is-use",
       aria: "Tạo thiệp với mẫu này",
       primary: true,
+    },
+    {
+      id: "sug-all",
+      label: "Kho mẫu",
+      icon: "grid",
+      cls: "is-all",
+      aria: "Xem tất cả mẫu thiệp",
+      go: "/theme-template/",
     },
   ];
 
@@ -1029,6 +1039,12 @@ function closeTimePicker() {
       '<path d="M16 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11l5-5V5a2 2 0 0 0-2-2z"/>' +
       '<path d="M15 21v-4a2 2 0 0 1 2-2h4"/>' +
       '<path d="m8 11 2.4 2.4L15 8.8"/>',
+    // layout-grid: ô "Xem tất cả" — bốn ô vuông, đúng nghĩa lưới mẫu.
+    grid:
+      '<rect width="7" height="7" x="3" y="3" rx="1"/>' +
+      '<rect width="7" height="7" x="14" y="3" rx="1"/>' +
+      '<rect width="7" height="7" x="14" y="14" rx="1"/>' +
+      '<rect width="7" height="7" x="3" y="14" rx="1"/>',
     // eye: nút "Xem thử" trên từng thẻ mẫu — cặp đôi của eye-off bên dưới.
     eye:
       '<path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/>' +
@@ -1081,12 +1097,12 @@ function closeTimePicker() {
     '<div class="cx-sug-acts">' +
     SUG_ACTS.map(function (it) {
       return (
-        '<x-button variant="bare" id="' + it.id + '"' +
-        ' class="cx-sug-btn' + (it.primary ? " cx-sug-primary" : "") + '"' +
+        '<div class="cx-sug-tile ' + it.cls + '" id="' + it.id + '"' +
+        ' role="button" tabindex="0"' +
         ' aria-label="' + (it.aria || it.label) + '">' +
-        '<span class="cx-sug-ico">' + _sugIcon(it.icon) + "</span>" +
-        it.label +
-        "</x-button>"
+        '<span class="cx-sug-ico">' + _sugIcon(it.icon, 22) + "</span>" +
+        '<span class="cx-sug-tile-lb">' + it.label + "</span>" +
+        "</div>"
       );
     }).join("") +
     "</div>";
@@ -1329,9 +1345,17 @@ function closeTimePicker() {
     SUG_ACTS.forEach(function (it) {
       const el = document.getElementById(it.id);
       if (!el) return;
-      el.addEventListener("click", function () {
+      function _run() {
         if (it.primary) return _use();
         _go(it.go);
+      }
+      el.addEventListener("click", _run);
+      // <div role="button"> không tự nghe bàn phím như <button>.
+      el.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          _run();
+        }
       });
     });
 

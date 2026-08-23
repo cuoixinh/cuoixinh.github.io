@@ -362,7 +362,8 @@
   flex-direction: column;
   justify-content: flex-end;
   gap: 10px;
-  padding: 12px 12px calc(14px + env(safe-area-inset-bottom));
+  /* Lề đáy CỐ ĐỊNH, không cộng env(safe-area-inset-bottom) — xem .cx-tabbar. */
+  padding: 12px 12px 14px;
   /* Dải tối RẤT nhạt ở nửa dưới: đủ để thẻ trắng không chìm vào thiệp nền sáng,
      chưa đủ để che mất thiệp. Không backdrop-filter — làm mờ vùng phía sau buộc
      trình duyệt vẽ lại mỗi khung hình, giật trên máy yếu. */
@@ -575,7 +576,7 @@
   line-height: 1.35;
   color: rgb(var(--text-muted-rgb));
   display: -webkit-box;
-  -webkit-line-clamp: 4;
+  -webkit-line-clamp: 6;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -619,42 +620,66 @@
   flex: 0 0 auto;
 }
 
-/* Hai nút hành động cũng NỔI (không có bảng nào đỡ) nên nền phải đặc và có
-   bóng, đặt trên thiệp nền sáng hay tối đều đọc được. */
+/* ── Ba ô hành động ở đáy bảng ─────────────────────────────────────────────
+   Ô VUÔNG bo góc lớn, icon trên nhãn dưới, mỗi ô một tông pastel (kiểu ô ứng
+   dụng trên màn hình chính điện thoại) — không phải nút pill. Ba cột đều nhau
+   bằng grid: nhãn dài ngắn khác nhau nhưng ô phải bằng nhau.
+   Là <div role="button"> nên chuột lẫn bàn phím đều do JS nối (utils.js). */
 
 .cx-sug-acts {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: 8px;
 }
 
-.cx-sug-btn {
-  flex: 1 1 0;
-  gap: 7px;
-  height: 40px;
-  padding: 0 14px;
-  border: none;
+.cx-sug-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 0;
+  min-height: 76px;
+  padding: 12px 8px;
   cursor: pointer;
-  white-space: nowrap;
-  font-size: 13px;
-  font-weight: 500;
-  line-height: 1;
-  color: rgb(var(--action-primary-rgb));
-  background: rgb(var(--white-rgb));
-  box-shadow: 0 6px 18px rgb(var(--scrim-rgb) / 0.22);
+  border-radius: 16px;
+  box-shadow: 0 6px 18px rgb(var(--scrim-rgb) / 0.18);
+  transition: transform 0.18s ease;
 }
 
-/* Việc CHÍNH tô nguyên viên thuốc, dùng ĐÚNG màu nút "Đăng nhập" ở landing
-   (--action-primary, màu đặc chứ không gradient) để hai nơi cùng một tông hồng.
-   Icon ăn theo `color` nên trắng cùng chữ, khỏi khai riêng. */
+.cx-sug-tile:active {
+  transform: scale(0.96);
+}
 
-.cx-sug-primary {
-  /* Chiếm gấp đôi nút phụ trên cùng một hàng — hai nút bằng nhau thì việc chính
-     không còn là việc chính nữa. */
-  flex: 2 1 0;
+/* Nhãn cắt một dòng: ô hẹp mà chữ xuống dòng là ba ô lệch cao nhau. */
+
+.cx-sug-tile-lb {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
   font-weight: 600;
-  color: rgb(var(--white-rgb));
-  background: rgb(var(--action-primary-rgb));
-  box-shadow: 0 6px 20px rgb(var(--action-primary-rgb) / 0.45);
+  line-height: 1;
+  letter-spacing: 0.2px;
+  color: rgb(var(--text-title-rgb));
+}
+
+/* Icon ăn theo `color` của ô nên chỉ cần đặt màu ở đây. */
+
+.cx-sug-tile.is-home {
+  color: rgb(var(--sug-home-fg-rgb));
+  background: rgb(var(--sug-home-bg-rgb));
+}
+
+.cx-sug-tile.is-use {
+  color: rgb(var(--sug-use-fg-rgb));
+  background: rgb(var(--sug-use-bg-rgb));
+}
+
+.cx-sug-tile.is-all {
+  color: rgb(var(--sug-all-fg-rgb));
+  background: rgb(var(--sug-all-bg-rgb));
 }
 
 .cx-sug-ico {
@@ -666,12 +691,11 @@
 
 /* ── iOS / viewport ──────────────────────────────────────────────────────── */
 
-/* iOS Safe Area */
+/* iOS Safe Area — chỉ chừa lề TRÊN (tai thỏ). Lề dưới xem .cx-tabbar. */
 
 #cover-screen > div,
 #main-card {
   padding-top: env(safe-area-inset-top);
-  padding-bottom: env(safe-area-inset-bottom);
 }
 
 /* Dynamic viewport height — tránh bị che bởi browser navbar iOS.
@@ -978,9 +1002,10 @@ textarea::-webkit-scrollbar-thumb:hover {
   right: 0;
   bottom: 0;
   z-index: 40;
-  /* ĐÚNG 8px, KHÔNG cộng env(safe-area-inset-bottom): trên điện thoại thanh
-     địa chỉ của trình duyệt hiện/ẩn khi cuộn làm inset đổi liên tục → thẻ bị
-     đội lên, hở một khoảng trống dưới đáy. */
+  /* ĐÚNG 8px. QUY ƯỚC TOÀN PROJECT: KHÔNG dùng env(safe-area-inset-bottom) ở
+     bất cứ đâu — trên điện thoại thanh địa chỉ của trình duyệt hiện/ẩn khi cuộn
+     làm inset đổi liên tục → thứ neo đáy bị đội lên, treo lơ lửng trên một
+     khoảng trống. Lề trên (safe-area-inset-top) và hai bên thì vẫn dùng. */
   padding: 0 8px 8px;
   pointer-events: none; /* khoảng hở hai bên thẻ không chặn cuộn */
 }

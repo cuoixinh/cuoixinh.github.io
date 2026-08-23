@@ -14,6 +14,7 @@ VERIFY=(
   wedding-admin      # admin/js/00-core.js: adminHeaders() luôn kèm anon key
   payment-handler    # core/payment.js
   ai-invitation      # core/dal/ai-dal.js: token user hoặc anon key
+  ai-chat            # core/dal/ai-chat-dal.js: token user hoặc anon key
 )
 
 # Tự xác thực trong code, gọi được khi không có Authorization.

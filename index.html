@@ -701,7 +701,7 @@
          đúng khổ bong bóng (w-fit) để X neo vào mép bong bóng chứ không mép màn. -->
     <div
       id="chatWidget"
-      class="fixed z-50 w-fit right-[calc(24px_+_env(safe-area-inset-right,0px))] bottom-[calc(88px_+_env(safe-area-inset-bottom,0px))]"
+      class="fixed z-50 w-fit right-[calc(24px_+_env(safe-area-inset-right,0px))] bottom-[88px]"
       aria-label="Liên hệ nhanh"
     >
       <a
@@ -917,5 +917,10 @@
     </x-popover>
     <!-- Ô đếm của mục "Đã chọn" ở navbar (đọc cache, không gọi API). -->
     <script src="core/helpers/nav-cart-count.js"></script>
+
+    <!-- Trợ lý AI (bong bóng góc phải, dưới bong bóng Messenger). Tự dựng markup
+         nên chỉ cần hai file này; phải nạp SAU core/config.js + core/auth.js. -->
+    <script src="core/dal/ai-chat-dal.js"></script>
+    <script src="js/ai-assistant.js"></script>
   </body>
 </html>

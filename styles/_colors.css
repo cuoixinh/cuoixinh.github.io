@@ -63,6 +63,14 @@
   --surface-blossom-rgb: 252 231 243;
   --surface-blossom-strong-rgb: 251 207 232;
 
+  /* Ba ô hành động ở lớp đề xuất mẫu (bản xem thử): nền pastel + icon cùng tông */
+  --sug-home-bg-rgb: 238 240 253;
+  --sug-home-fg-rgb: 99 91 202;
+  --sug-use-bg-rgb: 253 231 240;
+  --sug-use-fg-rgb: 221 63 116;
+  --sug-all-bg-rgb: 253 236 228;
+  --sug-all-fg-rgb: 232 116 86;
+
   --border-field-rgb: 229 231 235;
   --border-subtle-rgb: 238 240 242;
   --divider-rgb: 209 213 219;  /* gạch ngăn, thumb thanh cuộn */
@@ -139,6 +147,13 @@
   --ai-card-bg-rgb: 252 252 253;
   --ai-suggest-to-rgb: 255 228 233;
   --ai-icon-muted-rgb: 203 208 214;
+
+  /* Trợ lý AI ở trang chủ (styles/_ai-chat.css) — tông chàm/lavender riêng,
+     KHÔNG dùng lại tím→hồng ở trên: chat là khối đứng lâu trên màn, tím
+     gradient nhìn chói và tranh chỗ với sắc hồng của landing. */
+  --aichat-bar-rgb: 77 77 171; /* thanh tiêu đề + thanh nhập */
+  --aichat-bot-bg-rgb: 242 242 246; /* bong bóng trợ lý */
+  --aichat-user-bg-rgb: 223 223 245; /* bong bóng khách */
 
   /* ============================================================
      8. TRÌNH PHÁT NHẠC
