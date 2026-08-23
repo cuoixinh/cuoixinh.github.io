@@ -32,6 +32,8 @@ import {
 } from '../_shared/ai-provider.ts'
 import {
   FIELD_KEYS_TEXT,
+  VALID_REGIONS,
+  VALID_TONES,
   cleanCardObject,
   pickRegion,
   pickTone,
@@ -84,8 +86,8 @@ const CHAT_SCHEMA = {
   properties: {
     type: { type: 'string', enum: ['chat', 'card'] },
     text: { type: 'string', description: 'Lời nói với khách, tiếng Việt, KHÔNG markdown' },
-    tone: { type: 'string' },
-    region: { type: 'string' },
+    tone: { type: 'string', enum: VALID_TONES },
+    region: { type: 'string', enum: ['', ...VALID_REGIONS] },
     fields: {
       type: 'array',
       description:
@@ -293,29 +295,23 @@ function sanitizeKnown(raw: unknown): KnownCard | null {
 // ── Prompt ──────────────────────────────────────────────────────────────────
 
 const OUTPUT_FORMAT = `
-ĐỊNH DẠNG TRẢ LỜI (BẮT BUỘC): trả về DUY NHẤT một object JSON hợp lệ, không markdown,
-không một chữ nào nằm ngoài JSON. Đúng một trong hai dạng:
+ĐỊNH DẠNG TRẢ LỜI: một object JSON duy nhất, đúng MỘT trong hai dạng.
 
-- Còn đang trao đổi (kể cả khi đang hỏi thông tin để tạo thiệp):
-  {"type":"chat","text":"<lời nói với khách>","tone":"<nếu biết>","region":"<nếu biết>","fields":[{"key":"groom_name","value":"Quang Vinh"}, …mọi thông tin đã thu được tới lúc này]}
-
+- Đang trao đổi (kể cả khi đang hỏi thông tin để tạo thiệp):
+  {"type":"chat","text":"<lời nói với khách>","tone":"<nếu biết>","region":"<nếu biết>","fields":[{"key":"groom_name","value":"Quang Vinh"}, …mọi thứ đã thu được tới lúc này]}
 - Đã đủ mục bắt buộc VÀ khách đã đồng ý tạo:
   {"type":"card","text":"<lời nói với khách>","tone":"…","region":"…","story_quote":"…","love_story":[{"date":"…","title":"…","content":"…"}],"timeline":[{"time":"HH:MM","title":"…","type":"ceremony|party|bride-party"}],"fields":[{"key":"…","value":"…"}, …]}
 
-⚠️ LUẬT QUAN TRỌNG NHẤT — trả "type":"card" nghĩa là BẠN PHẢI TỰ VIẾT RA trọn bộ nội
-dung thiệp ngay trong chính lượt đó: "fields" đầy đủ mọi thông tin đã thu được,
-"story_quote", "love_story" (nếu khách có kể chuyện tình), "timeline". Câu "text" chỉ là
-lời nhắn cho khách, NÓ KHÔNG TẠO RA THIỆP. Trả {"type":"card","text":"thiệp của bạn đây"}
-mà thiếu dữ liệu là hỏng hoàn toàn: khách bấm vào chỉ thấy thiệp trống. Chưa sẵn sàng viết
-đủ thì cứ trả "type":"chat" và hỏi tiếp.
+⚠️ LUẬT QUAN TRỌNG NHẤT: trả "type":"card" nghĩa là BẠN PHẢI TỰ VIẾT RA trọn bộ nội dung
+thiệp ngay trong lượt đó — "fields" đầy đủ mọi thông tin đã thu, "story_quote", "love_story"
+(nếu khách có kể chuyện tình), "timeline". Câu "text" chỉ là lời nhắn, NÓ KHÔNG TẠO RA
+THIỆP: {"type":"card","text":"thiệp của bạn đây"} mà thiếu dữ liệu thì khách bấm vào chỉ
+thấy thiệp trống. Chưa viết đủ được thì cứ trả "type":"chat" và hỏi tiếp.
 
-"text" LUÔN phải có ở cả hai dạng — đó là câu DUY NHẤT khách đọc được. Viết như đang
-nhắn tin cho khách: KHÔNG nhắc tới JSON, KHÔNG đọc tên field, KHÔNG mô tả cấu trúc dữ liệu.
-"fields" LUÔN phải có, kể cả ở dạng "chat" (chưa thu được gì thì để []). Nó là DANH SÁCH
-cặp {"key","value"} và CHỈ chứa mục khách thực sự đã cho — mục chưa hỏi tới hoặc khách đã
-bảo bỏ qua thì KHÔNG có mặt trong danh sách, đừng thêm vào cho đủ bộ.
-"tone" là một trong: romantic, traditional, humorous, poetic, modern, luxury, cute, vintage.
-"region" là một trong: bac, trung, nam (không rõ thì để "").
+"text" LUÔN phải có ở cả hai dạng — đó là câu DUY NHẤT khách đọc được. Viết như đang nhắn
+tin: KHÔNG nhắc JSON, KHÔNG đọc tên field, KHÔNG mô tả cấu trúc dữ liệu.
+"fields" LUÔN phải có (chưa thu được gì thì []) và CHỈ chứa mục khách thực sự đã cho — mục
+chưa hỏi tới hoặc khách đã bảo bỏ qua thì KHÔNG có mặt, đừng thêm vào cho đủ bộ.
 `.trim()
 
 // Hội thoại nhét vào MỘT prompt (provider nào cũng nhận được) và bọc trong dấu
