@@ -148,12 +148,13 @@
   --ai-suggest-to-rgb: 255 228 233;
   --ai-icon-muted-rgb: 203 208 214;
 
-  /* Trợ lý AI ở trang chủ (styles/_ai-chat.css) — tông chàm/lavender riêng,
-     KHÔNG dùng lại tím→hồng ở trên: chat là khối đứng lâu trên màn, tím
-     gradient nhìn chói và tranh chỗ với sắc hồng của landing. */
-  --aichat-bar-rgb: 77 77 171; /* thanh tiêu đề + thanh nhập */
-  --aichat-bot-bg-rgb: 242 242 246; /* bong bóng trợ lý */
-  --aichat-user-bg-rgb: 223 223 245; /* bong bóng khách */
+  /* Trợ lý AI ở trang chủ (styles/_ai-chat.css) — cùng tông tấm thiệp giấy ở
+     màn mở đầu (.hero-invite-copy): nền kem, nét hồng, chữ hồng đậm. Phần còn
+     lại của bảng lấy thẳng --brand-* / --surface-tint-* nên chỉ ba biến riêng
+     cho nét nhấn và hai bong bóng. */
+  --aichat-bar-rgb: 236 130 158; /* nét nhấn: tiêu đề, viền, chấm chờ */
+  --aichat-bot-bg-rgb: 255 255 255; /* bong bóng trợ lý — giấy trắng */
+  --aichat-user-bg-rgb: 255 228 236; /* bong bóng khách — hồng phấn */
 
   /* ============================================================
      8. TRÌNH PHÁT NHẠC

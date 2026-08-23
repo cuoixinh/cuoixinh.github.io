@@ -47,9 +47,8 @@
     panel.setAttribute("aria-label", "Trợ lý AI Cưới Xinh");
     panel.innerHTML = `
       <div class="aichat-head">
-        <span class="aichat-head-icon"><i data-lucide="sparkles" style="width:18px;height:18px"></i></span>
         <div class="min-w-0 flex-1">
-          <p class="aichat-head-title">Trợ lý AI</p>
+          <p class="aichat-head-title flex gap-1">Trợ lý AI Cưới Xinh <i data-icon="sparkles-solid" data-size="24"></i></p>
           <p class="aichat-head-sub">Hỏi gì về thiệp cưới cũng được</p>
         </div>
         <x-button variant="bare" icon-only id="aichatReset" type="button"
@@ -64,15 +63,21 @@
       </div>
       <div class="aichat-body" id="aichatBody"></div>
       <div class="aichat-suggests" id="aichatSuggests"></div>
-      <p class="aichat-note">Trợ lý có thể trả lời chưa chính xác — cần chắc chắn, bạn gọi 034.884.0032 nhé.</p>
       <div class="aichat-foot">
-        <textarea id="aichatInput" class="aichat-input" rows="1" maxlength="${MAX_LEN}"
-                  placeholder="Nhập câu hỏi của bạn…"
-                  aria-label="Câu hỏi cho trợ lý"></textarea>
-        <x-button variant="bare" icon-only id="aichatSend" type="button"
-                  aria-label="Gửi" class="aichat-send">
-          <i data-lucide="send" style="width:18px;height:18px"></i>
-        </x-button>
+        <div class="aichat-composer">
+          <textarea id="aichatInput" class="aichat-input" rows="1" maxlength="${MAX_LEN}"
+                    placeholder="Nhập câu hỏi của bạn…"
+                    aria-label="Câu hỏi cho trợ lý"></textarea>
+          <x-button variant="bare" icon-only id="aichatMic" type="button"
+                    aria-label="Nhập bằng giọng nói" title="Nhập bằng giọng nói"
+                    aria-pressed="false" class="aichat-mic">
+            <i data-lucide="mic" style="width:18px;height:18px"></i>
+          </x-button>
+          <x-button variant="bare" icon-only id="aichatSend" type="button"
+                    aria-label="Gửi" class="aichat-send">
+            <i data-lucide="send" style="width:18px;height:18px"></i>
+          </x-button>
+        </div>
       </div>`;
 
     // Append TRƯỚC khi truy vấn: <x-button> tự thay mình bằng <button> thật ngay
@@ -80,6 +85,7 @@
     document.body.append(fab, panel);
     window.lucide?.createIcons({ root: fab });
     window.lucide?.createIcons({ root: panel });
+    window.cxRenderIcons?.(panel);
 
     els = {
       fab,
@@ -87,6 +93,7 @@
       body: panel.querySelector("#aichatBody"),
       suggests: panel.querySelector("#aichatSuggests"),
       input: panel.querySelector("#aichatInput"),
+      mic: panel.querySelector("#aichatMic"),
       send: panel.querySelector("#aichatSend"),
       reset: panel.querySelector("#aichatReset"),
     };
@@ -145,6 +152,78 @@
     els.body.scrollTop = els.body.scrollHeight;
   }
 
+  // ── Chữ chạy đều ──────────────────────────────────────────────────────────
+  // Server nhả chữ theo cụm to nhỏ thất thường (một tiếng, rồi cả đoạn) — dán
+  // thẳng vào bong bóng là nhìn giật cục. Bộ đệm này giữ chữ lại rồi rót ra
+  // theo khung hình, tốc độ bám theo phần còn tồn nên không bao giờ tụt lại xa.
+
+  const TYPE_DRAIN_MS = 260; // ngần này là xả hết chỗ đang tồn
+  const TYPE_MIN_CPS = 40; // tốc độ sàn: chữ về nhỏ giọt cũng không rề rà
+
+  let typer = null;
+
+  function typeStart(bubble) {
+    typer = { bubble, target: "", n: 0, last: 0, raf: 0, resolve: null };
+  }
+
+  // partial = TOÀN BỘ câu tính tới lúc này (DAL cộng dồn sẵn), không phải mảnh mới.
+  function typeFeed(partial) {
+    if (!typer) return;
+    typer.target = partial;
+    if (!typer.raf) {
+      typer.last = performance.now();
+      typer.raf = requestAnimationFrame(typeStep);
+    }
+  }
+
+  function typeStep(now) {
+    const t = typer;
+    if (!t) return;
+    // Tab bị ẩn rồi quay lại: dt tính ra cả giây — kẹp lại kẻo nhả một cục.
+    const dt = Math.min(now - t.last, 120);
+    t.last = now;
+    const left = t.target.length - t.n;
+    if (left > 0) {
+      const cps = Math.max(TYPE_MIN_CPS, (left * 1000) / TYPE_DRAIN_MS);
+      t.n = Math.min(t.target.length, t.n + Math.max(1, Math.round((cps * dt) / 1000)));
+      t.bubble.textContent = t.target.slice(0, t.n);
+      scrollToEnd();
+    }
+    if (t.n < t.target.length) t.raf = requestAnimationFrame(typeStep);
+    else {
+      t.raf = 0;
+      t.resolve?.(); // chỉ có khi typeFinish đang đợi gõ nốt
+    }
+  }
+
+  // Chốt bằng bản đầy đủ của server rồi đợi gõ hết — có đợi thì lượt sau mới
+  // không chen vào giữa lúc câu này còn đang chạy.
+  function typeFinish(text) {
+    const t = typer;
+    if (!t) return Promise.resolve();
+    t.target = text;
+    if (t.n >= text.length) {
+      t.bubble.textContent = text;
+      typeStop();
+      return Promise.resolve();
+    }
+    return new Promise((done) => {
+      t.resolve = () => {
+        typeStop();
+        done();
+      };
+      if (!t.raf) {
+        t.last = performance.now();
+        t.raf = requestAnimationFrame(typeStep);
+      }
+    });
+  }
+
+  function typeStop() {
+    if (typer?.raf) cancelAnimationFrame(typer.raf);
+    typer = null;
+  }
+
   // Chip gợi ý chỉ hữu ích lúc chưa biết hỏi gì → ẩn hẳn sau câu hỏi đầu tiên.
   function renderSuggests() {
     els.suggests.innerHTML = "";
@@ -197,6 +276,7 @@
   // để nó chạy tiếp thì câu trả lời của cuộc cũ sẽ rơi vào cuộc mới.
   function clearChat() {
     abort?.abort();
+    typeStop();
     history = [];
     try {
       sessionStorage.removeItem(STORE_KEY);
@@ -206,9 +286,92 @@
     paintHistory();
     els.input.value = "";
     autoGrow();
+    syncSend();
     // Chỉ lấy con trỏ trên máy tính: ở điện thoại, focus là bật bàn phím lên
     // giữa lúc khách chỉ muốn dọn màn hình.
     if (window.matchMedia("(min-width: 521px)").matches) els.input.focus();
+  }
+
+  // ── Nhập bằng giọng nói ───────────────────────────────────────────────────
+  // Web Speech API (Chrome/Edge/Safari có, Firefox không) — nhận dạng chạy ở
+  // phía trình duyệt nên không tốn hạn mức của Edge Function. Không hỗ trợ thì
+  // GIẤU HẲN nút, đừng để một nút bấm vào chẳng có gì xảy ra.
+
+  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let rec = null;
+  let recOn = false;
+  let recBase = ""; // phần chữ đã có trong ô trước khi bấm nói
+
+  function setMicState(on) {
+    recOn = on;
+    els.mic.classList.toggle("is-rec", on);
+    els.mic.setAttribute("aria-pressed", String(on));
+    els.mic.setAttribute(
+      "aria-label",
+      on ? "Dừng nhập giọng nói" : "Nhập bằng giọng nói",
+    );
+  }
+
+  function initMic() {
+    if (!SpeechRec) {
+      els.mic.hidden = true;
+      return;
+    }
+    els.mic.addEventListener("click", toggleMic);
+  }
+
+  function toggleMic() {
+    if (recOn) {
+      rec.stop(); // stop giữ lại câu đang nghe dở, khác abort là vứt đi
+      return;
+    }
+
+    if (!rec) {
+      rec = new SpeechRec();
+      rec.lang = "vi-VN";
+      rec.interimResults = true; // chữ hiện dần để khách biết máy đang nghe
+      rec.continuous = false; // ngưng nói một nhịp là tự chốt câu
+
+      // Mỗi lần bắn ra là TOÀN BỘ câu tính từ lúc bấm, nên ghi đè chứ không nối
+      // thêm — nối thêm sẽ ra chữ lặp mỗi khi bản tạm được sửa lại.
+      rec.onresult = (e) => {
+        let text = "";
+        for (let i = 0; i < e.results.length; i++) text += e.results[i][0].transcript;
+        els.input.value = (recBase + text).slice(0, MAX_LEN);
+        autoGrow();
+        syncSend();
+      };
+
+      rec.onend = () => setMicState(false);
+
+      rec.onerror = (e) => {
+        setMicState(false);
+        // Im lặng quá lâu hoặc tự mình dừng: không phải lỗi để báo cho khách.
+        if (e.error === "no-speech" || e.error === "aborted") return;
+        addBubble(
+          "error",
+          e.error === "not-allowed" || e.error === "service-not-allowed"
+            ? "Trình duyệt chưa cho phép dùng micro. Bạn bật quyền micro cho trang này rồi thử lại nhé."
+            : "Chưa nghe được, bạn thử lại hoặc gõ câu hỏi giúp mình nhé.",
+        );
+      };
+    }
+
+    // Nói tiếp vào phần đang gõ dở, chừa khoảng trắng cho khỏi dính chữ.
+    recBase = els.input.value.trim();
+    if (recBase) recBase += " ";
+    try {
+      rec.start();
+      setMicState(true);
+    } catch {
+      /* start() lúc đang chạy thì ném lỗi — coi như không bấm gì */
+    }
+  }
+
+  // Dừng ngang: vứt câu đang nghe dở (gửi đi rồi thì nó không còn chỗ để rơi vào).
+  function stopMic() {
+    if (recOn) rec?.abort();
+    setMicState(false);
   }
 
   // ── Hỏi ───────────────────────────────────────────────────────────────────
@@ -218,9 +381,11 @@
     if (!text || busy) return;
 
     busy = true;
-    els.send.disabled = true;
+    stopMic(); // đang gửi thì câu nói dở không còn ô nào để rơi vào
+    els.mic.disabled = true;
     els.input.value = "";
     autoGrow();
+    syncSend();
 
     addBubble("user", text);
     history.push({ role: "user", content: text, at: Date.now() });
@@ -240,20 +405,27 @@
           if (!bubble) {
             typing.remove();
             bubble = addBubble("bot", "");
+            typeStart(bubble);
           }
-          bubble.textContent = partial;
-          scrollToEnd();
+          typeFeed(partial);
         },
         mine.signal,
       );
 
       typing.remove();
-      if (!bubble) bubble = addBubble("bot", "");
-      bubble.textContent = answer;
+      if (!bubble) {
+        bubble = addBubble("bot", "");
+        typeStart(bubble);
+      }
+      await typeFinish(answer);
+      // Nút Làm mới bấm trong lúc đang gõ nốt: màn đã sạch, đừng nhét câu trả
+      // lời của cuộc cũ vào lịch sử cuộc mới.
+      if (mine.signal.aborted) return;
       history.push({ role: "assistant", content: answer, at: Date.now() });
       saveHistory();
     } catch (e) {
       typing.remove();
+      typeStop();
       // Bị nút Làm mới cắt ngang: màn đã sạch rồi, đừng vẽ gì thêm lên đó.
       if (mine.signal.aborted) return;
       bubble?.remove();
@@ -264,7 +436,8 @@
       saveHistory();
     } finally {
       busy = false;
-      els.send.disabled = false;
+      els.mic.disabled = false;
+      syncSend();
       if (abort === mine) abort = null;
       scrollToEnd();
     }
@@ -279,11 +452,13 @@
     // Bỏ cờ ở khung hình sau để trình duyệt kịp thấy trạng thái đầu → có
     // transition thay vì hiện bụp một cái.
     requestAnimationFrame(() => els.panel.classList.remove("is-opening"));
+    autoGrow(); // đo được chiều cao ô nhập từ lúc này, khi bảng đã hiện
     if (window.matchMedia("(min-width: 521px)").matches) els.input.focus();
     scrollToEnd();
   }
 
   function close() {
+    stopMic();
     els.panel.classList.add("is-closing");
     document.documentElement.classList.remove("aichat-open");
     setTimeout(() => {
@@ -292,10 +467,31 @@
     }, 200);
   }
 
-  // Ô nhập cao dần theo nội dung, tối đa max-h-24 do CSS chặn.
+  // Ô nhập cao dần theo nội dung, tối đa max-h-24 do CSS chặn. scrollHeight KHÔNG
+  // tính viền còn box-sizing:border-box thì có, nên phải cộng bù — thiếu là ô lúc
+  // nào cũng hụt đúng bề dày viền và trình duyệt vẽ thanh cuộn dù chưa gõ gì.
+  // Chỉ khi chạm trần mới trả cuộn lại cho ô (CSS để overflow-y: hidden).
   function autoGrow() {
-    els.input.style.height = "auto";
-    els.input.style.height = els.input.scrollHeight + "px";
+    const el = els.input;
+    // Bảng đang ẩn thì mọi phép đo ra 0 — đo lúc đó là ép ô về chiều cao 0, chỉ
+    // còn trơ padding. Trả ô về chiều cao tự nhiên của rows=1 rồi thôi.
+    if (!el.offsetParent) {
+      el.style.height = "";
+      return;
+    }
+    const cs = getComputedStyle(el);
+    const border =
+      parseFloat(cs.borderTopWidth) + parseFloat(cs.borderBottomWidth);
+    el.style.height = "auto";
+    const want = el.scrollHeight + border;
+    el.style.height = want + "px";
+    el.style.overflowY = want > parseFloat(cs.maxHeight) ? "auto" : "hidden";
+  }
+
+  // Nút Gửi chỉ sáng khi có chữ để gửi và không phải đang chờ câu trả lời. Gọi
+  // sau MỌI chỗ đổi nội dung ô nhập (gõ, nói, xoá đoạn chat, vừa gửi xong).
+  function syncSend() {
+    els.send.disabled = busy || !els.input.value.trim();
   }
 
   // ── Khởi động ─────────────────────────────────────────────────────────────
@@ -305,6 +501,8 @@
     build();
     loadHistory();
     paintHistory();
+    initMic();
+    syncSend();
 
     els.fab.addEventListener("click", open);
     // Hai nút trên thanh tiêu đề là <x-button> — chúng TỰ THAY mình bằng
@@ -314,7 +512,10 @@
       else if (e.target.closest("#aichatReset")) clearChat();
     });
     els.send.addEventListener("click", () => ask(els.input.value));
-    els.input.addEventListener("input", autoGrow);
+    els.input.addEventListener("input", () => {
+      autoGrow();
+      syncSend();
+    });
     els.input.addEventListener("keydown", (e) => {
       // Enter gửi, Shift+Enter xuống dòng (thói quen của mọi khung chat).
       if (e.key === "Enter" && !e.shiftKey) {

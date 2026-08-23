@@ -1,6 +1,10 @@
 /* Trợ lý AI ở TRANG CHỦ — bong bóng nổi + bảng chat. Partial của
    styles/tailwind-src.css → styles/build.css. Logic ở js/ai-assistant.js.
 
+   Bảng dựng theo lối tấm thiệp giấy ở màn mở đầu (.hero-invite-copy trong
+   tailwind-src.css): nền kem, nét ngăn ĐỨT màu hồng, tiêu đề Cormorant hồng
+   đậm. Đổi tông ở đây thì ngó lại hero cho khớp.
+
    Bong bóng đứng ngay DƯỚI bong bóng Messenger (#chatWidget, bottom 88px) nên
    hai thứ chồng nhau khi đổi vị trí một trong hai — sửa `bottom` ở đây thì ngó
    lại markup #chatWidget trong index.html.
@@ -16,15 +20,15 @@
   bottom: calc(24px + env(safe-area-inset-bottom, 0px));
   background: linear-gradient(
     135deg,
-    rgb(var(--aichat-bar-rgb)),
-    rgb(var(--ai-gradient-from-rgb))
+    rgb(var(--brand-accent-light-rgb)),
+    rgb(var(--action-primary-rgb))
   );
-  box-shadow: 0 6px 20px rgb(var(--ai-glow-rgb) / 0.36);
+  box-shadow: 0 6px 20px rgb(var(--shadow-brand-rgb) / 0.36);
 }
 
 .aichat-fab:hover {
   transform: scale(1.06);
-  box-shadow: 0 10px 26px rgb(var(--ai-glow-strong-rgb) / 0.42);
+  box-shadow: 0 10px 26px rgb(var(--shadow-brand-rgb) / 0.45);
 }
 
 /* Vòng sáng lan ra để mắt bắt được bong bóng giữa nền ảnh cưới nhiều chi tiết. */
@@ -62,7 +66,7 @@
 /* ── Bảng chat ─────────────────────────────────────────────────────────────── */
 
 .aichat-panel {
-  @apply fixed z-[60] flex flex-col overflow-hidden rounded-3xl bg-white;
+  @apply fixed z-[60] flex flex-col overflow-hidden rounded-3xl;
   @apply origin-bottom-right transition duration-200;
 
   right: calc(24px + env(safe-area-inset-right, 0px));
@@ -70,8 +74,9 @@
   width: 380px;
   /* Cao theo màn nhưng không bao giờ chạm mép trên; 560px là ngưỡng dễ đọc. */
   height: min(560px, calc(100dvh - 120px));
-  border: 1px solid rgb(var(--border-subtle-rgb));
-  box-shadow: 0 24px 60px rgb(var(--scrim-slate-rgb) / 0.22);
+  background: rgb(var(--surface-tint-rgb));
+  border: 1px solid rgb(var(--brand-primary-rgb) / 0.45);
+  box-shadow: 0 24px 60px rgb(var(--shadow-brand-rgb) / 0.24);
 }
 
 /* Đóng: vẫn trong DOM (giữ nguyên đoạn chat) nhưng không bắt chuột. */
@@ -97,43 +102,58 @@
     bottom: 0;
     width: 100%;
     height: 100dvh;
+    border: 0;
     @apply rounded-b-none;
   }
 }
 
-.aichat-head {
-  @apply flex shrink-0 items-center gap-3 px-4 py-3 text-white;
+/* Thanh tiêu đề không phải dải màu đặc: nền kem như mặt giấy, ngăn với khung
+   tin nhắn bằng NÉT ĐỨT — cùng lối "xé rời" của .hero-invite-foot. */
 
-  background: rgb(var(--aichat-bar-rgb));
+.aichat-head {
+  @apply flex shrink-0 items-center gap-3 px-4 py-3;
+
+  background: linear-gradient(
+    160deg,
+    rgb(var(--surface-tint-rgb)) 0%,
+    rgb(var(--surface-tint-warm-rgb)) 100%
+  );
+  border-bottom: 1px dashed rgb(var(--brand-primary-rgb) / 0.7);
 }
 
+/* Đĩa trắng viền hồng đựng icon — cùng kiểu vòng tròn các bước ở hero. */
 .aichat-head-icon {
   @apply flex h-9 w-9 shrink-0 items-center justify-center rounded-full;
 
-  background: rgb(var(--white-rgb) / 0.18);
+  color: rgb(var(--brand-accent-rgb));
+  background: rgb(var(--white-rgb));
+  border: 1px solid rgb(var(--brand-primary-rgb));
+  box-shadow: 0 2px 8px rgb(var(--shadow-brand-rgb) / 0.16);
 }
 
 .aichat-head-title {
-  @apply text-sm font-semibold leading-tight;
+  @apply font-cormorant text-base font-semibold uppercase leading-tight;
+
+  color: rgb(var(--brand-accent-rgb));
 }
 
 .aichat-head-sub {
-  @apply text-[11px] leading-tight;
+  @apply font-cormorant text-[13px] italic leading-tight;
 
-  color: rgb(var(--white-rgb) / 0.75);
+  color: rgb(var(--text-body-rgb));
 }
 
-/* Nút tròn mờ trên thanh tiêu đề (làm mới, đóng). */
+/* Nút tròn trên thanh tiêu đề (làm mới, đóng). */
 .aichat-head-btn {
   @apply flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition;
 
-  color: rgb(var(--white-rgb) / 0.85);
-  background: rgb(var(--white-rgb) / 0.12);
+  color: rgb(var(--brand-accent-rgb));
+  background: rgb(var(--brand-primary-rgb) / 0.22);
 }
 
 .aichat-head-btn:hover {
   color: rgb(var(--white-rgb));
-  background: rgb(var(--white-rgb) / 0.24);
+  background: rgb(var(--brand-accent-rgb));
 }
 
 .aichat-head-btn:disabled {
@@ -143,7 +163,7 @@
 /* ── Khung tin nhắn ────────────────────────────────────────────────────────── */
 
 .aichat-body {
-  @apply flex-1 space-y-3 overflow-y-auto bg-white p-4;
+  @apply flex-1 space-y-3 overflow-y-auto bg-transparent p-4;
 }
 
 /* Một lượt = bong bóng + giờ, xếp dọc và dạt về phía người nói. */
@@ -162,22 +182,24 @@
 .aichat-time {
   @apply px-1 text-[11px];
 
-  color: rgb(var(--text-idle-rgb));
+  color: rgb(var(--text-label-rgb));
 }
 
 .aichat-msg {
   @apply max-w-[85%] whitespace-pre-wrap break-words rounded-[20px] px-4 py-2.5 text-sm leading-relaxed;
 
-  color: rgb(var(--text-strong-rgb));
+  color: rgb(var(--text-heading-rgb));
 }
 
 .aichat-msg-bot {
   background: rgb(var(--aichat-bot-bg-rgb));
+  border: 1px solid rgb(var(--brand-primary-rgb) / 0.45);
   border-bottom-left-radius: 8px;
 }
 
 .aichat-msg-user {
   background: rgb(var(--aichat-user-bg-rgb));
+  border: 1px solid rgb(var(--brand-primary-rgb) / 0.55);
   border-bottom-right-radius: 8px;
 }
 
@@ -192,13 +214,14 @@
   @apply mr-auto flex items-center gap-1 rounded-[20px] px-4 py-3.5;
 
   background: rgb(var(--aichat-bot-bg-rgb));
+  border: 1px solid rgb(var(--brand-primary-rgb) / 0.45);
   border-bottom-left-radius: 8px;
 }
 
 .aichat-typing i {
   @apply block h-1.5 w-1.5 rounded-full;
 
-  background: rgb(var(--aichat-bar-rgb) / 0.55);
+  background: rgb(var(--aichat-bar-rgb) / 0.75);
   animation: aichatBlink 1.2s infinite ease-in-out;
 }
 
@@ -226,63 +249,141 @@
 /* ── Câu hỏi gợi ý ─────────────────────────────────────────────────────────── */
 
 .aichat-suggests {
-  @apply flex shrink-0 flex-wrap gap-2 bg-white px-4 pb-2;
+  @apply flex shrink-0 flex-wrap gap-2 bg-transparent px-4 pb-2;
 }
 
 .aichat-chip {
   @apply cursor-pointer rounded-full px-3 py-1.5 text-xs transition;
 
-  background: rgb(var(--ai-chip-bg-rgb));
-  border: 1px solid rgb(var(--ai-chip-border-rgb));
-  color: rgb(var(--ai-chip-text-rgb));
+  background: rgb(var(--white-rgb));
+  border: 1px solid rgb(var(--brand-primary-rgb));
+  color: rgb(var(--brand-accent-rgb));
 }
 
 .aichat-chip:hover {
-  background: rgb(var(--ai-chip-bg-hover-rgb));
+  background: rgb(var(--surface-brand-rgb));
+  border-color: rgb(var(--brand-accent-rgb));
 }
 
 .aichat-note {
-  @apply bg-white px-4 pb-2 text-center text-[11px];
+  @apply bg-transparent px-4 pb-2 text-center font-cormorant text-xs italic;
 
-  color: rgb(var(--text-idle-rgb));
+  color: rgb(var(--text-label-rgb));
 }
 
 /* ── Ô nhập ────────────────────────────────────────────────────────────────── */
-/* Cả chân bảng là một khối chàm bo góc, trong lòng là ô nhập trắng hình viên
-   thuốc + nút gửi tròn — theo mẫu thiết kế được duyệt. */
+/* Chân bảng ngăn với khung tin nhắn bằng NÉT ĐỨT. Trong lòng nó, ô nhập và hai
+   nút (micro, gửi) nằm chung MỘT khung: viền/nền là của .aichat-composer, còn
+   <textarea> bỏ hết viền lẫn nền nên nhìn ra một ô liền khối. Vì viền thuộc thẻ
+   bọc nên trạng thái focus phải dội lên bằng :focus-within.
+   Chiều cao khớp nhau: textarea nghỉ = 20px dòng + 16px padding = 36px = khổ
+   hai nút, cộng 4px padding trên/dưới của khung là 44px. */
 
 .aichat-foot {
-  @apply flex shrink-0 items-end gap-2 rounded-t-3xl p-3;
+  @apply shrink-0 p-3;
 
-  background: rgb(var(--aichat-bar-rgb));
+  background: rgb(var(--surface-tint-warm-rgb));
+  border-top: 1px dashed rgb(var(--brand-primary-rgb) / 0.7);
   padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
 }
 
-.aichat-input {
-  @apply max-h-24 flex-1 resize-none rounded-full bg-white px-4 py-2.5 text-sm outline-none;
+.aichat-composer {
+  @apply flex items-end gap-1;
 
-  color: rgb(var(--text-strong-rgb));
-  border: 1px solid transparent;
+  padding: 4px 4px 4px 12px;
+  border-radius: 12px;
+  background: rgb(var(--white-rgb));
+  border: 1px solid rgb(var(--brand-primary-rgb) / 0.6);
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.aichat-composer:focus-within {
+  border-color: rgb(var(--brand-accent-rgb));
+  box-shadow: 0 0 0 3px rgb(var(--brand-primary-rgb) / 0.3);
+}
+
+.aichat-input {
+  @apply max-h-24 flex-1 resize-none border-0 bg-transparent text-sm outline-none;
+
+  padding: 8px 0;
+  color: rgb(var(--text-heading-rgb));
+  /* Mặc định KHÔNG cuộn: chiều cao đã do autoGrow() bám theo nội dung, để
+     `auto` thì lệch một hai pixel là trình duyệt vẽ luôn thanh cuộn dù ô rỗng.
+     Chạm trần max-h-24 thì chính autoGrow() mở cuộn trở lại. */
+  overflow-y: hidden;
 }
 
 .aichat-input::placeholder {
   color: rgb(var(--text-placeholder-rgb));
 }
 
-.aichat-input:focus {
-  border-color: rgb(var(--white-rgb) / 0.6);
+/* Nút micro (nhập bằng giọng nói) — việc phụ nên để trơn, chỉ còn cái icon nằm
+   trong khung. Đang nghe thì đảo sang nền hồng đặc kèm vòng sáng lan ra; vòng
+   vẽ bằng box-shadow chứ không phải ::before z-index âm, vì nền đặc của thẻ bọc
+   sẽ che mất lớp nằm dưới. */
+
+.aichat-mic {
+  @apply flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition;
+
+  color: rgb(var(--brand-accent-rgb));
+  background: transparent;
 }
+
+.aichat-mic:hover {
+  background: rgb(var(--brand-primary-rgb) / 0.22);
+}
+
+.aichat-mic.is-rec {
+  @apply text-white;
+
+  background: rgb(var(--action-primary-rgb));
+  animation: aichatMicRing 1.6s ease-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aichat-mic.is-rec {
+    animation: none;
+  }
+}
+
+@keyframes aichatMicRing {
+  0% {
+    box-shadow: 0 0 0 0 rgb(var(--action-primary-rgb) / 0.45);
+  }
+  100% {
+    box-shadow: 0 0 0 10px rgb(var(--action-primary-rgb) / 0);
+  }
+}
+
+.aichat-mic:disabled {
+  @apply pointer-events-none opacity-40;
+}
+
+/* Luật :disabled đặt SAU :hover để thắng khi cùng độ đặc hiệu — cố ý không
+   viết :hover:not(:disabled), cssnano tráo đối số :not() thành rule luôn khớp. */
 
 .aichat-send {
-  @apply flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white transition;
+  @apply flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white transition;
 
-  background: rgb(var(--white-rgb) / 0.18);
+  background: rgb(var(--action-primary-rgb));
 }
 
-.aichat-send:hover:not(:disabled) {
-  background: rgb(var(--white-rgb) / 0.3);
+.aichat-send:hover {
+  background: rgb(var(--action-primary-hover-rgb));
 }
 
 .aichat-send:disabled {
   @apply cursor-not-allowed opacity-40;
+
+  background: rgb(var(--action-primary-rgb));
+}
+
+/* Máy bay giấy của lucide không cân trong khung 24×24: trọng tâm tam giác lệch
+   lên trên–bên phải, vào nút TRÒN là thấy ngay "không nằm giữa". Đẩy lại xuống
+   trái 1px cho cân mắt (hình vẫn nguyên khổ 18px). */
+
+.aichat-send svg {
+  transform: translate(-1px, 1px);
 }

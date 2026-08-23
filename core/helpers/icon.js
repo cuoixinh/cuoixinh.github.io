@@ -13,7 +13,14 @@
 // Thêm icon: dán phần bên trong <svg> vào CX_ICONS, khổ gốc 24×24 để khớp nét
 // với lucide. Kích thước mặc định 16px, màu theo currentColor.
 
-const CX_ICONS = {};
+const CX_ICONS = {
+  // Hai ngôi sao bốn cánh ĐẶC (một to một nhỏ). lucide chỉ có bản vẽ nét
+  // (sparkles) nên hình này phải tự dựng; fill/stroke khai ngay trên <path> để
+  // đè thuộc tính fill="none" stroke="currentColor" mà cxIcon() đặt ở thẻ <svg>.
+  "sparkles-solid":
+    '<path fill="currentColor" stroke="none" d="M9.5 5C9.5 12.2 11.3 14 18.5 14C11.3 14 9.5 15.8 9.5 23C9.5 15.8 7.7 14 .5 14C7.7 14 9.5 12.2 9.5 5Z"/>' +
+    '<path fill="currentColor" stroke="none" d="M18 1C18 5 19 6 23 6C19 6 18 7 18 11C18 7 17 6 13 6C17 6 18 5 18 1Z"/>',
+};
 
 const _CX_ICON_DEFAULT_SIZE = 16;
 
