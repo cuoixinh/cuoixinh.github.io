@@ -55,6 +55,11 @@
     // Mục được gán hiệu ứng hiện dần khi cuộn tới.
     reveal: ["#main-card section"],
 
+    // Mốc bung bảng đề xuất mẫu khác ở bản xem thử (?preview=true): cuộn tới
+    // mục này là bảng trượt lên. Mặc định của core/utils.js cũng là hộp mừng
+    // cưới, khai ra đây để mỗi mẫu tự chọn được chỗ hợp với bố cục của mình.
+    suggest: "#section-gift",
+
     // id các mục trùng bảng mặc định của preview-focus-helper.js nên không cần
     // khai `focus`. Đặt id khác thì khai ở đây, ví dụ:
     //   focus: { photos: ["#my-gallery"] },

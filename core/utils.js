@@ -921,160 +921,444 @@ function closeTimePicker() {
   });
 })();
 
-// ============= PREVIEW NAVBAR =============
-// Khi navigate thẳng qua URL ?preview=true (từ trang chủ), hiển thị bottom navbar
-(function initPreviewNavbar() {
+// ============= LỚP ĐỀ XUẤT Ở BẢN XEM THỬ =============
+// Mở /public/themes/* với ?preview=true: cuộn tới mục mà mẫu khai ở
+// CX_THEME.suggest thì các thẻ mẫu khác NỔI LÊN TRÊN thiệp (kiểu màn đề xuất
+// cuối video của YouTube) — vuốt ngang để xem, dưới là hai việc (Về trang chủ ·
+// Dùng ngay mẫu này), góc trên phải là nút Ẩn. Hình dạng khai ở .cx-sug* trong
+// styles/_common.css; ở đây chỉ dựng khung, chọn mốc bung và nối sự kiện.
+(function initPreviewSuggest() {
   const params = new URLSearchParams(window.location.search);
+
+  // CHỈ chạy ở bản xem thử mẫu thiệp, không phải thiệp thật.
   if (params.get("preview") !== "true") return;
+
+  // `source=live` = khung Xem trực tiếp của trang Thiết lập (04-nav-tabs.js):
+  // khách đang soạn thiệp CỦA MÌNH, gợi ý đổi mẫu ở đó là lạc chỗ.
   if (params.get("source") === "live") return;
-  // shell=0 → đang chạy TRONG khung điện thoại của bản xem trước (theme-boot.js).
-  // Navbar là thứ của trang xem mẫu, phải đứng NGOÀI thân máy chứ không đè lên
-  // thiệp; trang ngoài tự dựng bản của nó.
-  if (params.get("shell") === "0") return;
+
+  // shell=0 + nằm trong iframe → đang chạy TRONG khung điện thoại của bản xem
+  // trước trên máy tính. Đây mới là trang có cuộn nên bảng dựng ở đây, nhưng mọi
+  // cú điều hướng phải nhờ trang ngoài làm — đổi URL của iframe thì khách kẹt
+  // lại bên trong thân máy.
+  const IN_SHELL = params.get("shell") === "0" && window.self !== window.top;
+
+  // Nằm trong iframe của người khác (bản xem trước ở admin, hộp chọn mẫu…) mà
+  // KHÔNG phải khung máy của mình → chỉ là ô xem hình, đừng chen gợi ý vào.
+  if (window.self !== window.top && !IN_SHELL) return;
+
+  // Trang khung máy (cùng điều kiện với _cxPreviewShell ở theme-boot.js): không
+  // có gì để cuộn, chỉ đứng nghe lệnh của iframe bên trong.
+  const IS_SHELL_HOST =
+    params.get("shell") !== "0" &&
+    window.self === window.top &&
+    window.innerWidth >= 820;
 
   // Lấy tên theme từ URL path: /public/themes/basic-gold/ → basic-gold
   const pathParts = window.location.pathname.replace(/\/$/, "").split("/").filter(Boolean);
   const themeName = pathParts[pathParts.length - 1] || "basic-gold";
-  const themeDisplay = themeName.split("-").map(function (w) {
-    return w.charAt(0).toUpperCase() + w.slice(1);
-  }).join(" ");
+
+  function _display(slug) {
+    return String(slug || "").split("-").map(function (w) {
+      return w.charAt(0).toUpperCase() + w.slice(1);
+    }).join(" ");
+  }
+
+  const themeDisplay = _display(themeName);
 
   // Tạo nháp — hoặc hỏi trước nếu khách còn thiệp làm dở. Dùng chung với nút
   // "Dùng ngay" ở trang chủ qua core/helpers/draft-start.js; trang thiệp phải
   // nạp file đó, thiếu là nút này không làm gì.
-  function _chooseTheme() {
+  function _chooseTheme(theme, display) {
     if (typeof cxStartDraft !== "function") {
       console.error("Thiếu core/helpers/draft-start.js");
       return;
     }
-    cxStartDraft(themeName, themeDisplay);
+    const slug = theme || themeName;
+    cxStartDraft(slug, display || _display(slug));
   }
 
-  // Nút tròn nổi ở góc dưới phải; bấm thì bung ra một cụm nút xếp dọc phía
-  // trên, bấm lại thì thu về. Hình dạng khai ở .cx-pnav* trong
-  // styles/_common.css — ở đây chỉ dựng khung và nối sự kiện.
-  // Bề cao cụm nút, chỉ dùng để đẩy nút nhạc lên. Trang KHÔNG chừa chỗ ở đáy:
-  // thanh này nổi đè lên thiệp, thà thế còn hơn cắt một dải trống cuối mỗi mẫu.
-  var NAVBAR_H = 72;
+  if (IS_SHELL_HOST) {
+    window.addEventListener("message", function (e) {
+      const d = e.data || {};
+      if (d.type === "cx-sug-go" && typeof d.url === "string") window.location.href = d.url;
+      else if (d.type === "cx-sug-use") _chooseTheme(d.theme, d.display);
+    });
+    return;
+  }
 
-  // Xếp từ trên xuống; việc CHÍNH đứng cuối, tức gần nút tròn (và gần ngón cái)
-  // nhất. `go` = đường dẫn nội bộ, `href` = mở tab mới, `run` = chạy hàm.
-  var PNAV_ITEMS = [
-    { id: "pnav-home", label: "Home", icon: "home", go: "/" },
-    { id: "pnav-others", label: "Mẫu khác", icon: "grid", go: "/theme-template/" },
-    // `aria` dài hơn nhãn: chữ trên nút phải ngắn cho vừa khổ máy hẹp, còn
-    // phần đọc màn hình / tooltip thì nói đủ ý.
+  function _go(url) {
+    if (IN_SHELL) return parent.postMessage({ type: "cx-sug-go", url: url }, "*");
+    window.location.href = url;
+  }
+
+  function _use(theme, display) {
+    if (IN_SHELL) {
+      return parent.postMessage(
+        { type: "cx-sug-use", theme: theme, display: display },
+        "*"
+      );
+    }
+    _chooseTheme(theme, display);
+  }
+
+  // Việc CHÍNH đứng cuối, tức gần ngón cái nhất. `go` = đường dẫn nội bộ.
+  const SUG_ACTS = [
+    { id: "sug-home", label: "Về trang chủ", icon: "home", go: "/" },
     {
-      id: "pnav-choose",
-      label: "Dùng mẫu này",
+      id: "sug-use",
+      label: "Dùng ngay mẫu này",
       icon: "note",
       aria: "Tạo thiệp với mẫu này",
       primary: true,
     },
   ];
 
-  // Hình học lấy NGUYÊN từ bộ icon lucide (house · layout-grid · square-pen ·
-  // ellipsis-vertical) rồi nhúng thẳng: trang thiệp không nạp thư viện lucide,
-  // kéo cả thư viện về chỉ vì bốn icon là không đáng — cùng cách landing đang
-  // làm với icon sparkles, và cùng cách alert.js giữ bảng _LUCIDE_PATHS.
-  // Đừng tự vẽ lại cho "gần giống": nét và bo góc của lucide đồng bộ với nhau,
-  // vẽ tay là lạc khỏi bộ.
-  var PNAV_ICONS = {
+  // Hình học lấy NGUYÊN từ bộ icon lucide (house · square-pen · x)
+  // rồi nhúng thẳng: trang thiệp không nạp thư viện lucide, kéo cả thư viện về
+  // chỉ vì ba icon là không đáng — cùng cách landing đang làm với icon sparkles,
+  // và cùng cách alert.js giữ bảng _LUCIDE_PATHS. Đừng tự vẽ lại cho "gần giống":
+  // nét và bo góc của lucide đồng bộ với nhau, vẽ tay là lạc khỏi bộ.
+  const SUG_ICONS = {
     home:
       '<path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/>' +
       '<path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
-    grid:
-      '<rect width="7" height="7" x="3" y="3" rx="1"/>' +
-      '<rect width="7" height="7" x="14" y="3" rx="1"/>' +
-      '<rect width="7" height="7" x="14" y="14" rx="1"/>' +
-      '<rect width="7" height="7" x="3" y="14" rx="1"/>',
-    // "sticky-note-check": GHÉP từ hai glyph lucide có thật — thân + góc gấp
-    // của `sticky-note`, cộng nét tick của `check` thu nhỏ đặt vào giữa tờ
-    // giấy. Nếu bộ lucide có sẵn glyph đúng tên này thì thay path vào đây,
-    // đừng giữ bản ghép.
+    // "sticky-note-check": GHÉP từ hai glyph lucide có thật — thân + góc gấp của
+    // `sticky-note`, cộng nét tick của `check` thu nhỏ đặt vào giữa tờ giấy.
     note:
       '<path d="M16 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11l5-5V5a2 2 0 0 0-2-2z"/>' +
       '<path d="M15 21v-4a2 2 0 0 1 2-2h4"/>' +
       '<path d="m8 11 2.4 2.4L15 8.8"/>',
-    // ellipsis-vertical: ba vòng tròn r=1 vẽ bằng NÉT 2px — chính nét dày làm
-    // chúng đặc lại thành chấm. Tô đặc (fill) sẽ ra ba chấm to hơn hẳn bản gốc.
-    dots:
-      '<circle cx="12" cy="12" r="1"/>' +
-      '<circle cx="12" cy="5" r="1"/>' +
-      '<circle cx="12" cy="19" r="1"/>',
+    // eye: nút "Xem thử" trên từng thẻ mẫu — cặp đôi của eye-off bên dưới.
+    eye:
+      '<path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/>' +
+      '<circle cx="12" cy="12" r="3"/>',
+    // eye-off: nút "Ẩn" ở góc trên phải, đúng glyph YouTube dùng cho việc tắt
+    // màn đề xuất.
+    hide:
+      '<path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"/>' +
+      '<path d="M14.084 14.158a3 3 0 0 1-4.242-4.242"/>' +
+      '<path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"/>' +
+      '<path d="m2 2 20 20"/>',
   };
 
-  function _pnavIcon(name, size) {
+  function _sugIcon(name, size) {
     return (
       '<svg xmlns="http://www.w3.org/2000/svg" width="' + (size || 15) +
       '" height="' + (size || 15) + '"' +
       ' viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"' +
       ' stroke-linecap="round" stroke-linejoin="round">' +
-      (PNAV_ICONS[name] || "") +
+      (SUG_ICONS[name] || "") +
       "</svg>"
     );
   }
 
-  var navbar = document.createElement("div");
-  navbar.id = "preview-nav";
-  navbar.className = "cx-pnav";
-  // Chỉ có nghĩa khi người thật đang xem thử → bỏ khỏi ảnh scan mẫu thiệp
-  // (scripts/capture.js). Phần chừa chỗ ở đáy trang thì capture tự trả về 0.
-  navbar.setAttribute("data-no-scan", "");
+  function _esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
+    });
+  }
 
-  // Mới vào chỉ có nút tròn; bấm mới bung cụm nút (thêm .is-open). Cố ý KHÔNG
-  // nhớ trạng thái: mỗi lần mở thiệp là một lần xem mẫu, bung sẵn ra là che mất
-  // thứ khách đang muốn xem.
-  navbar.innerHTML =
-    '<div class="cx-pnav-menu">' +
-    PNAV_ITEMS.map(function (it) {
+  const panel = document.createElement("div");
+  panel.id = "preview-suggest";
+  panel.className = "cx-sug";
+  // Chỉ có nghĩa khi người thật đang xem thử → bỏ khỏi ảnh scan mẫu thiệp
+  // (scripts/capture.js).
+  panel.setAttribute("data-no-scan", "");
+  panel.innerHTML =
+    '<div class="cx-sug-bar">' +
+    // Tiêu đề chỉ hiện khi đã có thẻ — tải hỏng mà vẫn còn dòng chữ trống trơn
+    // thì trông như thiệp lỗi. Nút Ẩn thì luôn có, đẩy sang phải bằng margin
+    // nên tiêu đề vắng mặt cũng không kéo nó về giữa.
+    '<span class="cx-sug-title" id="sug-title" style="display:none">' +
+    "Các mẫu bạn có thể sẽ thích</span>" +
+    '<button type="button" id="sug-close" class="cx-sug-hide"' +
+    ' aria-label="Ẩn gợi ý mẫu thiệp">' +
+    _sugIcon("hide", 14) + "Ẩn</button>" +
+    "</div>" +
+    '<div class="cx-sug-row" id="sug-row"></div>' +
+    '<div class="cx-sug-dots" id="sug-dots"></div>' +
+    '<div class="cx-sug-acts">' +
+    SUG_ACTS.map(function (it) {
       return (
         '<x-button variant="bare" id="' + it.id + '"' +
-        ' class="cx-pnav-item' + (it.primary ? " cx-pnav-primary" : "") + '"' +
+        ' class="cx-sug-btn' + (it.primary ? " cx-sug-primary" : "") + '"' +
         ' aria-label="' + (it.aria || it.label) + '">' +
-        '<span class="cx-pnav-ico">' + _pnavIcon(it.icon) + "</span>" +
+        '<span class="cx-sug-ico">' + _sugIcon(it.icon) + "</span>" +
         it.label +
         "</x-button>"
       );
     }).join("") +
-    "</div>" +
-    '<x-button variant="bare" id="pnav-toggle" class="cx-pnav-fab"' +
-    ' aria-label="Mở bảng tuỳ chọn">' + _pnavIcon("dots", 20) + "</x-button>";
+    "</div>";
 
-  function _mount() {
-    document.body.appendChild(navbar);
+  // --- DANH SÁCH MẪU KHÁC ---
+  // Nạp một lần, đúng lần lớp phủ bung ra đầu tiên: khách chưa xem tới đó thì
+  // request này không tranh băng thông với ảnh thiệp.
+  let loaded = false;
 
-    // Đẩy nút nhạc lên khỏi navbar — chỉ với theme dùng nút tròn neo ở ĐÁY.
-    // Theme neo nút nhạc ở đỉnh: gán bottom vào đó sẽ vừa top vừa bottom →
-    // phần tử bị kéo giãn hết màn hình.
-    var musicBtn = document.getElementById("music-toggle");
-    if (musicBtn && getComputedStyle(musicBtn).bottom !== "auto") {
-      musicBtn.style.bottom = (NAVBAR_H + 8) + "px";
+  function _loadThemes() {
+    if (loaded) return;
+    loaded = true;
+
+    // Cùng nguồn với trang chủ (js/templates-data.js): Worker cache nếu có,
+    // không thì Edge Function `public-templates`. KHÔNG gọi thẳng REST của
+    // Supabase — mọi truy vấn bảng đều phải đi qua Edge Function.
+    const cacheUrl = CONFIG.cloudflare && CONFIG.cloudflare.templatesCache;
+    const req = cacheUrl
+      ? fetch(cacheUrl + "/")
+      : fetch(CONFIG.supabase.edgeUrl + "?resource=public-templates", {
+          headers: { Authorization: "Bearer " + CONFIG.supabase.anonKey },
+        });
+
+    req
+      .then(function (r) {
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        return r.json();
+      })
+      .then(function (rows) {
+        const all = (rows || [])
+          .map(function (t) {
+            return {
+              theme: t.theme,
+              name: t.name,
+              desc: t.description,
+              cat: t.category,
+              url: t.previewUrl,
+            };
+          })
+          .filter(function (t) { return t.theme; });
+
+        // Gợi ý theo THỂ LOẠI của mẫu đang xem, lấy hết chứ không cắt bớt:
+        // khách vào xem một mẫu vintage thì thứ đáng gợi ý là các mẫu vintage
+        // còn lại. Mẫu đang xem không nằm trong danh sách (nó ở ngay đây rồi).
+        const cur = all.filter(function (t) { return t.theme === themeName; })[0];
+        const rest = all.filter(function (t) { return t.theme !== themeName; });
+        const same = cur && cur.cat
+          ? rest.filter(function (t) { return t.cat === cur.cat; })
+          : [];
+
+        // Thể loại chỉ có mỗi mẫu đang xem thì thà gợi ý mẫu khác thể loại còn
+        // hơn không gợi ý gì.
+        _renderThemes(same.length ? same : rest);
+      })
+      .catch(function () {
+        // Mất mạng thì chỉ mất dãy thẻ, hai nút hành động vẫn dùng được — cho
+        // phép thử lại ở lần bung sau.
+        loaded = false;
+      });
+  }
+
+  // Hai việc làm được với MỘT mẫu trong dãy, bày ngay trên thẻ: xem thử mẫu đó
+  // (giống bấm cả thẻ) và tạo nháp bằng mẫu đó luôn — khách ưng ngay tấm ảnh
+  // thì khỏi phải mở mẫu ra mới bấm được "Dùng ngay" ở đáy.
+  const SUG_CARD_ACTS = [
+    { act: "view", label: "Xem thử", icon: "eye" },
+    { act: "use", label: "Dùng mẫu", icon: "note", primary: true },
+  ];
+
+  // Thẻ dùng ẢNH CHỤP SẴN của mẫu (/assets/images/templates/*.jpg) — cùng bộ
+  // ảnh với lưới mẫu ở trang chủ và /theme-template.
+  function _renderThemes(list) {
+    const row = document.getElementById("sug-row");
+    if (!row) return;
+    row.innerHTML = list
+      .map(function (t) {
+        const url = t.url || "/public/themes/" + t.theme + "/?preview=true";
+        const name = t.name || t.theme;
+        return (
+          '<div class="cx-sug-card" role="button" tabindex="0"' +
+          ' data-url="' + _esc(url) + '"' +
+          ' data-theme="' + _esc(t.theme) + '"' +
+          ' data-name="' + _esc(name) + '"' +
+          ' aria-label="Xem mẫu ' + _esc(name) + '">' +
+          '<img src="/assets/images/templates/' + _esc(t.theme) + '.jpg"' +
+          ' alt="" loading="lazy" />' +
+          '<div class="cx-sug-info">' +
+          '<p class="cx-sug-name">' + _esc(name) + "</p>" +
+          '<p class="cx-sug-desc">' + _esc(t.desc || "") + "</p>" +
+          '<div class="cx-sug-mini flex-col">' +
+          SUG_CARD_ACTS.map(function (a) {
+            return (
+              '<x-button variant="bare" data-act="' + a.act + '"' +
+              ' class="cx-sug-mini-btn' + (a.primary ? " is-primary" : "") + '"' +
+              ' aria-label="' + _esc(a.label + " " + name) + '">' +
+              '<span class="cx-sug-ico">' + _sugIcon(a.icon, 12) + "</span>" +
+              a.label +
+              "</x-button>"
+            );
+          }).join("") +
+          "</div>" +
+          "</div>" +
+          "</div>"
+        );
+      })
+      .join("");
+
+    const title = document.getElementById("sug-title");
+    if (title) title.style.display = list.length ? "" : "none";
+
+    const cards = Array.from(row.querySelectorAll(".cx-sug-card"));
+    cards.forEach(function (card) {
+      card.addEventListener("click", function () { _go(card.dataset.url); });
+      // Cả thẻ là một nút → nút con phải chặn nổi bọt, không thì bấm "Dùng mẫu"
+      // vừa tạo nháp vừa điều hướng sang trang xem thử.
+      card.querySelectorAll("[data-act]").forEach(function (btn) {
+        btn.addEventListener("click", function (e) {
+          e.stopPropagation();
+          if (btn.dataset.act === "use") _use(card.dataset.theme, card.dataset.name);
+          else _go(card.dataset.url);
+        });
+      });
+      card.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          _go(card.dataset.url);
+        }
+      });
+    });
+
+    _buildDots(row, cards);
+  }
+
+  // Chấm dưới dãy thẻ: một chấm một thẻ, bấm thì cuộn tới thẻ đó. Chỉ số thẻ
+  // đang xem suy ra bằng cách so `offsetLeft` với vị trí cuộn — chắc chắn hơn
+  // là chia cho bề ngang thẻ, vì thẻ đầu/cuối còn có padding của dãy.
+  // Một thẻ thì không cần chấm nào.
+  function _buildDots(row, cards) {
+    const dots = document.getElementById("sug-dots");
+    if (!dots) return;
+
+    if (cards.length < 2) {
+      dots.innerHTML = "";
+      dots.style.display = "none";
+      return;
+    }
+    dots.style.display = "";
+    dots.innerHTML = cards
+      .map(function (_, i) {
+        return (
+          '<button type="button" class="cx-sug-dot' + (i ? "" : " is-on") + '"' +
+          ' aria-label="Mẫu thứ ' + (i + 1) + '"></button>'
+        );
+      })
+      .join("");
+
+    const items = Array.from(dots.children);
+
+    function _sync() {
+      let best = 0;
+      let min = Infinity;
+      cards.forEach(function (c, i) {
+        const d = Math.abs(c.offsetLeft - row.scrollLeft);
+        if (d < min) {
+          min = d;
+          best = i;
+        }
+      });
+      items.forEach(function (d, i) {
+        d.classList.toggle("is-on", i === best);
+      });
     }
 
-    // Nút tròn: bấm để bung / thu.
-    document
-      .getElementById("pnav-toggle")
-      .addEventListener("click", function (e) {
-        e.stopPropagation();
-        navbar.classList.toggle("is-open");
+    row.addEventListener("scroll", _sync, { passive: true });
+    items.forEach(function (d, i) {
+      d.addEventListener("click", function () {
+        row.scrollTo({ left: cards[i].offsetLeft, behavior: "smooth" });
       });
+    });
+  }
 
-    // Bấm ra ngoài thì thu lại — cụm nút che mất thiệp, không nên bắt khách
-    // phải nhắm đúng nút tròn mới đóng được.
-    document.addEventListener("click", function (e) {
-      if (!navbar.contains(e.target)) navbar.classList.remove("is-open");
+  // --- MỐC BUNG BẢNG ---
+  // Mỗi mẫu tự khai `CX_THEME.suggest` = selector của mục mà bảng phải bung ra
+  // khi khách cuộn tới. Mặc định là hộp mừng cưới — mục gần cuối thiệp ở mọi
+  // mẫu hiện có. Bung rồi thì ĐỨNG YÊN: chỉ nút X mới đóng, cuộn ngược lên
+  // không thu lại (khách đang cân nhắc mẫu khác, giật bảng đi là mất mạch).
+  const SUG_ANCHOR = "#section-gift";
+  let dismissed = false;
+
+  function _open() {
+    if (dismissed || panel.classList.contains("is-open")) return;
+    panel.classList.add("is-open");
+    _loadThemes();
+  }
+
+  function _close() {
+    panel.classList.remove("is-open");
+  }
+
+  // Mốc dự phòng khi mục được khai KHÔNG có thật hoặc bị tắt (enable_gift =
+  // false): lấy mục hiển thị cuối cùng, để bảng vẫn có lúc xuất hiện.
+  function _lastSection() {
+    const host = document.getElementById("main-card") || document.body;
+    return Array.from(host.querySelectorAll("section"))
+      .filter(function (el) {
+        return el.offsetParent !== null && el.offsetHeight > 0;
+      })
+      .pop();
+  }
+
+  let watched = null;
+  let watcher = null;
+
+  function _watch(el) {
+    if (!el || el === watched || !("IntersectionObserver" in window)) return;
+    if (watcher) watcher.disconnect();
+    watched = el;
+    watcher = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        watcher.disconnect();
+        _open();
+      });
+    });
+    watcher.observe(el);
+  }
+
+  function _hidden(el) {
+    return !el || el.offsetParent === null || el.offsetHeight === 0;
+  }
+
+  function _mount() {
+    document.body.appendChild(panel);
+
+    document.getElementById("sug-close").addEventListener("click", function () {
+      dismissed = true;
+      _close();
     });
 
-    PNAV_ITEMS.forEach(function (it) {
-      var el = document.getElementById(it.id);
+    SUG_ACTS.forEach(function (it) {
+      const el = document.getElementById(it.id);
       if (!el) return;
       el.addEventListener("click", function () {
-        if (it.primary) return _chooseTheme();
-        if (it.href) return window.open(it.href, "_blank", "noopener");
-        window.location.href = it.go;
+        if (it.primary) return _use();
+        _go(it.go);
       });
     });
+
+    // Markup của mục có sẵn từ đầu nên bám được ngay; mục bị `display:none` cũng
+    // bám được — IntersectionObserver chỉ báo khi nó hiện ra và lọt vào tầm
+    // nhìn, đúng thứ mình cần.
+    const T = window.CX_THEME || {};
+    _watch(document.querySelector(T.suggest || SUG_ANCHOR));
+
+    // Mục được khai có thể bị TẮT theo dữ liệu thiệp (enable_gift = false) —
+    // chỉ sau khi API trả dữ liệu mới biết. Lúc đó chuyển sang mốc dự phòng,
+    // nếu không thì bảng chẳng bao giờ bung.
+    setTimeout(function () {
+      if (!panel.classList.contains("is-open") && _hidden(watched)) {
+        _watch(_lastSection());
+      }
+    }, 2500);
+
+    // Mở/đóng bằng tay — để thử nhanh trong console, và cho mẫu nào muốn tự
+    // quyết định lúc nào là đúng lúc.
+    window.cxSuggest = {
+      show: function () {
+        dismissed = false;
+        _open();
+      },
+      hide: _close,
+    };
   }
 
   if (document.readyState === "loading") {

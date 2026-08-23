@@ -65,11 +65,17 @@ function _cxPreviewShell() {
 
   // Ô màn hình là % của thân máy (px), thiệp lại dựng ở 390px cố định → tỉ lệ
   // thu nhỏ phải đo bằng JS mỗi lần khổ máy đổi.
+  // Chiều cao iframe cũng phải đo, không để số cứng trong CSS: tỉ lệ ô màn của
+  // ảnh thân máy không trùng khít 390×837, lệch bao nhiêu là hở bấy nhiêu ở mép
+  // trên/dưới. Lấy đúng chiều cao ô rồi chia ngược cho tỉ lệ thu là khít.
   const phone = stage.querySelector(".cx-pshell-phone");
   const screen = stage.querySelector(".cx-pshell-screen");
+  const view = stage.querySelector(".cx-pshell-view");
   const measure = () => {
-    if (screen.offsetWidth > 0)
-      phone.style.setProperty("--cx-scr-scale", String(screen.offsetWidth / 390));
+    if (screen.offsetWidth <= 0) return;
+    const scale = screen.offsetWidth / 390;
+    phone.style.setProperty("--cx-scr-scale", String(scale));
+    view.style.height = screen.offsetHeight / scale + "px";
   };
   measure();
   window.addEventListener("resize", measure, { passive: true });
@@ -82,6 +88,17 @@ function _cxPreviewShell() {
 
   // Trang đã hoá thành khung máy → mọi việc còn lại do iframe bên trong lo.
   if (_cxPreviewShell()) return;
+
+  // Đang chạy TRONG khung máy đó (shell=0 + nằm trong iframe): cắm cờ để
+  // themes.css giấu thanh cuộn. Thanh cuộn cổ điển của Chrome/Windows ăn ~15px
+  // trong 390px bề ngang iframe → thiệp co lại, chừa một dải trống bên phải
+  // ngay trong lòng thân máy.
+  if (
+    new URLSearchParams(location.search).get("shell") === "0" &&
+    window.self !== window.top
+  ) {
+    document.documentElement.classList.add("cx-shell-view");
+  }
 
   // --- NẠP DỮ LIỆU ---
   loadWeddingData(getSlugFromUrl(), window.renderWedding);

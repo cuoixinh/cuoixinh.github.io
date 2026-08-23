@@ -184,7 +184,9 @@ GitHub Pages chạy Jekyll nên đường dẫn kiểu đó không được publ
 
 - **`window.CX_THEME`** là bản khai — nguồn sự thật duy nhất về mẫu:
   `preset` (font/màu gốc + `swatches` cho thanh chỉnh), `selectors` (class mà thanh chỉnh
-  font/màu nhắm tới), `reveal`, `focus` (id mục, chỉ khai cái khác mặc định), `onOpen`.
+  font/màu nhắm tới), `reveal`, `focus` (id mục, chỉ khai cái khác mặc định), `suggest`
+  (selector mục mà bảng đề xuất mẫu khác bung ra ở bản xem thử — mặc định
+  `#section-gift`), `onOpen`.
   Trang Thiết lập đọc `preset` **qua iframe xem trước** của tab Giao diện.
 - `index.js` **bọc trong IIFE**, chỉ lộ `CX_THEME` + `renderWedding`: `const` cấp cao nhất của
   script cổ điển là biến toàn cục. Không tự chạy gì — `core/helpers/theme-boot.js` (nạp SAU)

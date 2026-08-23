@@ -1130,60 +1130,6 @@ body {
   gap: 12px;
 }
 
-/* ── Số liên hệ ở cuối thiệp ───────────────────────────────────────────────
-   Một ô bấm-để-gọi, cùng ngôn ngữ với ô bản đồ ngay trên nó: nền xám nhạt,
-   viền tóc, bo góc chung. Nhãn "Liên hệ chú rể/cô dâu" và chính con số do
-   index.js đổ vào theo bên phát thiệp. */
-
-.mc-contact {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 16px;
-  border: 1px solid rgb(var(--cx-line-rgb));
-  border-radius: var(--mc-r);
-  background-color: rgb(var(--cx-surface-rgb));
-  transition: border-color 0.25s ease;
-}
-
-.mc-contact.hidden {
-  display: none; /* .hidden của themes.css nạp TRƯỚC file này nên phải nhắc lại */
-}
-
-.mc-contact i {
-  font-size: 11px;
-}
-
-.mc-contact-in {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 1px;
-  line-height: 1.2;
-}
-
-.mc-contact-lb {
-  font-family: "Montserrat", sans-serif;
-  font-size: 8px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: rgb(var(--cx-body-rgb));
-}
-
-/* Con số là thứ khách cần đọc nhanh nhất trong ô — để nguyên cỡ này, đừng hạ
-   theo nhịp chữ nhỏ của trang cuối. */
-
-.mc-contact-no {
-  font-size: 14px;
-  letter-spacing: 1px;
-}
-
-@media (hover: hover) {
-  .mc-contact:hover {
-    border-color: rgb(var(--cx-accent-rgb) / 0.45);
-  }
-}
-
 /* Thanh chỉ báo + hai nút lật, nổi ở đáy khổ thiệp. */
 
 .mc-pager {

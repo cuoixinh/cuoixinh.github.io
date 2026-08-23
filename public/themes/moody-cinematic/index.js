@@ -61,6 +61,11 @@
     // khớp gì (theme-boot vẫn cần một danh sách khác rỗng để querySelectorAll).
     reveal: ["#cx-no-reveal"],
 
+    // Mốc bung bảng đề xuất mẫu khác ở bản xem thử (?preview=true): cuộn tới
+    // mục này là bảng trượt lên. Mặc định của core/utils.js cũng là hộp mừng
+    // cưới, khai ra đây để mỗi mẫu tự chọn được chỗ hợp với bố cục của mình.
+    suggest: "#section-gift",
+
     // Thư mời và Gia đình không còn là mục riêng — cả hai nằm trong trang
     // #section-hero, nên phải chỉ lại cho khung xem trực tiếp biết cuộn tới đâu.
     focus: {
@@ -233,32 +238,12 @@
 
     // --- Lời cảm ơn ---
     if (w.footer_text) setText("footer-text", w.footer_text);
-    renderContactPhone(w);
     cxToggle("section-footer", cxEnabled(w.enable_footer));
 
     // Các mục vừa bật/tắt và các trang vừa sinh thêm → dựng lại dải trang.
     // Khách bấm mở bìa trước khi dữ liệu về thì onOpen đã chạy rồi, nên phép
     // đo phải chạy lại ở đây chứ không chỉ ở onOpen.
     refreshBook();
-  }
-
-  // Số liên hệ ở cuối thiệp — CHỈ của bên phát thiệp: thiệp nhà trai hiện số
-  // chú rể, thiệp nhà gái hiện số cô dâu. Khách mời của một nhà không cần (và
-  // không nên) thấy số của nhà bên kia.
-  // Bấm vào là gọi luôn (tel:). Chưa nhập số thì ẩn hẳn khối — để trống sẽ ra
-  // một cái nút rỗng không bấm được.
-  function renderContactPhone(w) {
-    const phone = (_isGroom ? w.groom_phone : w.bride_phone)?.trim();
-    const link = document.getElementById("contact-phone");
-    if (!link) return;
-
-    link.classList.toggle("hidden", !phone);
-    if (!phone) return;
-
-    setText("contact-phone-label", _isGroom ? "Liên hệ chú rể" : "Liên hệ cô dâu");
-    setText("contact-phone-text", phone);
-    // Số người dùng gõ có thể có khoảng trắng/dấu chấm — tel: chỉ chịu chữ số.
-    link.href = "tel:" + phone.replace(/[^\d+]/g, "");
   }
 
   window.renderWedding = renderWedding;

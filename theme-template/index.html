@@ -328,15 +328,6 @@
         background: rgb(var(--tt-price) / 0.1);
       }
 
-      /* Nhãn "Hot" — chỉ hiện với mẫu có tag `hot`, đứng ngay sau chip danh mục. */
-      .tt-hot {
-        color: rgb(var(--white-rgb));
-        background: linear-gradient(
-          135deg,
-          rgb(var(--tt-cta-from)),
-          rgb(var(--tt-cta-to))
-        );
-      }
       .tt-media img {
         position: absolute;
         inset: 0;
@@ -1334,7 +1325,6 @@
       const SVG_NOTE = `<svg class="shrink-0" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11l5-5V5a2 2 0 0 0-2-2z"/><path d="M15 21v-4a2 2 0 0 1 2-2h4"/><path d="m8 11 2.4 2.4L15 8.8"/></svg>`;
       const SVG_STAR = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.12 2.12 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.12 2.12 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.12 2.12 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.12 2.12 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.12 2.12 0 0 0 1.597-1.16z"/></svg>`;
       const SVG_TAG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/></svg>`;
-      const SVG_FLAME = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5"/></svg>`;
 
       /* ── Danh mục: nhãn + icon cho dải lọc trên đầu trang ──
          Khoá = giá trị cột `templates.category`; danh mục lạ vẫn hiện được với
@@ -1399,38 +1389,26 @@
           .toLowerCase()
           .trim();
 
+      /* Danh sách mẫu + giá lấy qua Edge Function `public-templates` (đã ghép
+         sẵn template_pricing và trả camelCase). KHÔNG gọi thẳng REST của
+         Supabase. */
       async function fetchTemplates() {
-        const base = CONFIG.supabase.url;
-        const key = CONFIG.supabase.anonKey;
-        const h = { apikey: key, Authorization: `Bearer ${key}` };
-        const [tRes, pRes] = await Promise.all([
-          fetch(
-            `${base}/rest/v1/templates?select=*&is_active=eq.true&order=sort_order.asc`,
-            { headers: h },
-          ),
-          fetch(`${base}/rest/v1/template_pricing?select=*&is_active=eq.true`, {
-            headers: h,
-          }),
-        ]);
-        const tData = await tRes.json();
-        const pData = await pRes.json();
-        const pricingMap = Object.fromEntries(
-          (pData || []).map((p) => [p.template_name, p]),
+        const res = await fetch(
+          `${CONFIG.supabase.edgeUrl}?resource=public-templates`,
+          { headers: { Authorization: `Bearer ${CONFIG.supabase.anonKey}` } },
         );
-        return (tData || []).map((t) => {
-          const pr = pricingMap[t.template_name] || {};
-          return {
-            id: t.template_id,
-            name: t.display_name,
-            theme: t.template_name,
-            description: t.description,
-            previewUrl: t.preview_url,
-            category: t.category,
-            tags: t.tags || [],
-            price: pr.price ?? 159000,
-            originalPrice: pr.original_price ?? 199000,
-          };
-        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const rows = await res.json();
+        return (rows || []).map((t) => ({
+          id: t.id,
+          name: t.name,
+          theme: t.theme,
+          description: t.description,
+          previewUrl: t.previewUrl,
+          category: t.category,
+          price: t.price ?? 159000,
+          originalPrice: t.originalPrice ?? 199000,
+        }));
       }
 
       /* ── Lọc danh mục (nút icon cạnh ô tìm kiếm + <x-popover>) ──
@@ -1504,13 +1482,10 @@
         const imgSrc = `/assets/images/templates/${t.theme}.jpg`;
         const isFav = favSet.has(t.theme);
 
-        const isHot = (t.tags || []).some((x) => _norm(x) === "hot");
-
         return `
           <article class="tt-card" data-id="${t.id}">
             <div class="tt-tagrow">
               ${t.category ? `<span class="tt-chip">${SVG_TAG}${catLabel(t.category)}</span>` : ""}
-              ${isHot ? `<span class="tt-chip tt-hot">${SVG_FLAME}Hot</span>` : ""}
               <button type="button" class="tt-fav${isFav ? " is-on" : ""}" aria-pressed="${isFav}"
                       aria-label="Lưu vào yêu thích" onclick="toggleFav(event,'${t.theme}')">${SVG_STAR}</button>
             </div>
@@ -1569,7 +1544,6 @@
               t.name,
               t.description,
               catLabel(t.category),
-              (t.tags || []).join(" "),
             ].join(" "),
           );
           return hay.includes(q);

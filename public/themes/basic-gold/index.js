@@ -63,6 +63,11 @@ window.CX_THEME = {
     ".gallery-item",
   ],
 
+  // Mốc bung bảng đề xuất mẫu khác ở bản xem thử (?preview=true): cuộn tới mục
+  // này là bảng trượt lên. Mặc định của core/utils.js cũng là hộp mừng cưới,
+  // khai ra đây để mỗi mẫu tự chọn được chỗ hợp với bố cục của mình.
+  suggest: "#section-gift",
+
   // Thiệp vừa hiện ra mới đo được bề ngang thật → dựng lại carousel.
   onOpen: _carouselReinit,
 

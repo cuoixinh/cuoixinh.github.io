@@ -37,6 +37,7 @@ Làm trên **Supabase Dashboard → SQL Editor** (không cần CLI):
 | **RC1.9** | 2026-08-19 | Thêm cột `weddings.groom_phone` / `weddings.bride_phone` (text) — số điện thoại liên hệ nhập ở bước "Thông tin cặp đôi"                                    | `RC1.9/contact_phone.sql`     |
 | **RC1.10** | 2026-08-19 | Dọn dẹp tự động: cột `weddings.updated_at` + trigger, index quét, bật `pg_cron`/`pg_net` và lịch gọi Edge Function `cleanup-weddings` mỗi ngày | `RC1.10/cleanup_retention.sql` |
 | **RC1.11** | 2026-08-20 | Bỏ cột `templates.features` (text[]) — không trang nào đọc tới, mọi mẫu thiệp đều có đủ tính năng | `RC1.11/drop_template_features.sql` |
+| **RC1.12** | 2026-08-23 | Bỏ cột `templates.tags` (text[]) — admin không có ô nhập nên mẫu mới luôn null, lưới mẫu đã thôi lọc/tìm theo tag | `RC1.12/drop_template_tags.sql` |
 
 ## Khi thêm phiên bản mới
 

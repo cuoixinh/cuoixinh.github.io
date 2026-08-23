@@ -343,68 +343,295 @@
   }
 }
 
-/* ── Nút nổi ở trang XEM TRƯỚC mẫu thiệp ─────────────────────────────────
-   Do initPreviewNavbar() trong core/utils.js dựng khi mở /public/themes/* với
-   ?preview=true. Một nút tròn ở góc dưới phải; bấm thì bung cụm nút xếp dọc
-   phía trên. Cụm nút đặt TUYỆT ĐỐI phía trên nút tròn nên lúc đóng nó không
-   chiếm chỗ, và vẫn chuyển động mượt được (display:none thì mất animation). */
+/* ── Lớp ĐỀ XUẤT ở trang XEM TRƯỚC mẫu thiệp ─────────────────────────────
+   Do initPreviewSuggest() trong core/utils.js dựng khi mở /public/themes/* với
+   ?preview=true. Cuộn tới mục mà mẫu khai ở CX_THEME.suggest thì các thẻ NỔI
+   LÊN TRÊN thiệp — kiểu màn đề xuất cuối video của YouTube, không phải một
+   bảng đặc chiếm chỗ ở đáy màn.
 
-.cx-pnav {
+   Bản thân lớp phủ KHÔNG bắt chuột (chỉ có dải mờ cho chữ đọc được); chỉ thẻ,
+   nút Ẩn và hai nút hành động mới bắt — nhờ vậy khách vẫn cuộn tiếp, vẫn bấm
+   được thứ trong thiệp nằm ngoài các thẻ. Đóng thì trả về trong suốt chứ không
+   display:none, để giữ chuyển động. */
+
+.cx-sug {
   position: fixed;
-  right: 12px;
-  bottom: 8px;
+  inset: 0;
   z-index: 9999;
-}
-
-.cx-pnav-menu {
-  position: absolute;
-  right: 0;
-  bottom: 100%;
-  margin-bottom: 10px;
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  justify-content: flex-end;
   gap: 10px;
-}
-
-/* Đóng: mờ + tụt xuống + không bắt chuột. Mở: về đúng chỗ, lần lượt từ dưới
-   lên (mục cuối — việc chính — hiện trước). */
-
-/* Selector hai lớp (.cx-pnav .cx-pnav-menu) là CỐ Ý: <x-button variant="bare">
-   mang sẵn class transition-all 150ms của Tailwind, cùng độ đặc hiệu nhưng nằm
-   sau trong bản build nên nó thắng — viết một lớp là thời lượng ở đây bị nuốt,
-   chuyển động thành giật cục. */
-
-.cx-pnav .cx-pnav-menu > * {
+  padding: 12px 12px calc(14px + env(safe-area-inset-bottom));
+  /* Dải tối RẤT nhạt ở nửa dưới: đủ để thẻ trắng không chìm vào thiệp nền sáng,
+     chưa đủ để che mất thiệp. Không backdrop-filter — làm mờ vùng phía sau buộc
+     trình duyệt vẽ lại mỗi khung hình, giật trên máy yếu. */
+  background: linear-gradient(
+    to top,
+    rgb(var(--scrim-rgb) / 0.34) 0%,
+    rgb(var(--scrim-rgb) / 0.16) 42%,
+    transparent 72%
+  );
   opacity: 0;
-  transform: translateY(12px) scale(0.94);
   pointer-events: none;
-  will-change: opacity, transform;
-  transition:
-    opacity 0.22s ease,
-    transform 0.28s cubic-bezier(0.34, 1.3, 0.64, 1);
+  will-change: opacity;
+  transition: opacity 0.3s ease;
 }
 
-.cx-pnav.is-open .cx-pnav-menu > * {
+.cx-sug.is-open {
   opacity: 1;
-  transform: none;
+}
+
+/* Con của lớp phủ mới là thứ bắt chuột. .is-open để lúc đóng không có nút vô
+   hình nào nằm chắn trên thiệp. */
+
+.cx-sug.is-open .cx-sug-bar,
+.cx-sug.is-open .cx-sug-row,
+.cx-sug.is-open .cx-sug-dots,
+.cx-sug.is-open .cx-sug-acts {
   pointer-events: auto;
 }
 
-.cx-pnav.is-open .cx-pnav-menu > :nth-last-child(2) {
-  transition-delay: 0.05s;
+/* Hàng đầu: tiêu đề bên trái, nút Ẩn bên phải. */
+
+.cx-sug-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 2px;
 }
 
-.cx-pnav.is-open .cx-pnav-menu > :nth-last-child(3) {
-  transition-delay: 0.1s;
+/* Tiêu đề dãy thẻ — chữ trắng nổi thẳng trên thiệp (không có nền đỡ) nên phải
+   có bóng, thiệp nền sáng hay tối đều đọc được. */
+
+.cx-sug-title {
+  min-width: 0;
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: rgb(var(--white-rgb));
+  text-shadow: 0 1px 6px rgb(var(--scrim-rgb) / 0.75);
 }
 
-/* Một mục = viên thuốc trắng, icon nằm trong đĩa tròn nhỏ bên trái. */
+/* Nút Ẩn — viên thuốc nhỏ, luôn nằm sát mép phải kể cả khi tiêu đề bị ẩn. */
 
-.cx-pnav-item {
+.cx-sug-hide {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  padding: 6px 12px;
+  border: none;
+  cursor: pointer;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+  color: rgb(var(--white-rgb));
+  background: rgb(var(--scrim-rgb) / 0.55);
+}
+
+/* Dãy thẻ: vuốt ngang, dừng đúng mép mỗi thẻ. Ẩn thanh cuộn nhưng KHÔNG khoá
+   cuộn — trên máy tính đó là cách duy nhất đi hết danh sách. */
+
+.cx-sug-row {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+
+.cx-sug-row::-webkit-scrollbar {
+  display: none;
+}
+
+/* Chấm chỉ vị trí dưới dãy thẻ — một chấm một thẻ, chấm đang xem kéo dài thành
+   viên thuốc. Cũng là nút bấm để nhảy tới thẻ đó. */
+
+.cx-sug-dots {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.cx-sug-dot {
+  width: 6px;
+  height: 6px;
+  padding: 0;
+  border: none;
+  cursor: pointer;
+  border-radius: 999px;
+  background: rgb(var(--white-rgb) / 0.55);
+  box-shadow: 0 1px 4px rgb(var(--scrim-rgb) / 0.5);
+  transition:
+    width 0.24s ease,
+    background 0.24s ease;
+}
+
+.cx-sug-dot.is-on {
+  width: 16px;
+  background: rgb(var(--white-rgb));
+}
+
+/* Một thẻ = khổ gần VUÔNG (cao hơn rộng một chút): ảnh chụp sẵn của mẫu
+   (/assets/images/templates/*.jpg, cùng bộ ảnh với lưới mẫu ở trang chủ) cắt
+   khổ DỌC 9:16 (dáng màn điện thoại) đầy cột trái, tên + mô tả ở cột phải.
+   Cả thẻ là MỘT nút.
+   Thẻ trôi lên khi lớp phủ mở, lệch nhịp nhau cho ra dáng "rơi vào chỗ". */
+
+.cx-sug-card {
+  display: flex;
+  align-items: stretch;
   gap: 9px;
-  height: 42px;
-  padding: 0 18px;
+  flex: 0 0 auto;
+  width: 230px;
+  height: 216px;
+  padding: 0px;
+  cursor: pointer;
+  scroll-snap-align: start;
+  border-radius: 12px;
+  background: rgb(var(--white-rgb));
+  opacity: 0;
+  transform: translateY(14px) scale(0.96);
+  transition:
+    opacity 0.26s ease,
+    transform 0.34s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.cx-sug.is-open .cx-sug-card {
+  opacity: 1;
+  transform: none;
+}
+
+.cx-sug.is-open .cx-sug-card:nth-child(2) {
+  transition-delay: 0.06s;
+}
+
+.cx-sug.is-open .cx-sug-card:nth-child(3) {
+  transition-delay: 0.12s;
+}
+
+.cx-sug.is-open .cx-sug-card:nth-child(4) {
+  transition-delay: 0.18s;
+}
+
+/* Ảnh gốc là ảnh chụp MÀN HÌNH DỌC của thiệp nên giữ nguyên dáng dọc: cao
+   trọn cột trái, bề ngang tự suy ra từ tỉ lệ 9:16. `top center` giữ lại phần
+   đầu thiệp — chỗ có tên cô dâu chú rể, nhận ra mẫu nhanh nhất. */
+
+.cx-sug-card img {
+  display: block;
+  flex: 0 0 auto;
+  height: 100%;
+  width: auto;
+  aspect-ratio: 9 / 16;
+  object-fit: cover;
+  object-position: top center;
+  border-radius: 12px 0px 0px 12px;
+  background: rgb(var(--surface-blossom-rgb));
+}
+
+/* Cột chữ cao trọn thẻ, xếp DỌC: tên → mô tả → hàng nút. Mô tả là phần co
+   giãn (min-height: 0 để nó chịu co, không thì line-clamp vẫn đẩy tràn thẻ),
+   hàng nút bám đáy bằng margin-top: auto. */
+
+.cx-sug-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1 1 auto;
+  align-self: stretch;
+  overflow: hidden;
+  padding: 12px 12px 12px 0;
+}
+
+/* Cả hai khối chữ đều cắt dòng: thẻ khoá chiều cao cho cả dãy bằng nhau, tên
+   hay mô tả dài là tràn ra ngoài. */
+
+.cx-sug-name {
+  flex: 0 0 auto;
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.25;
+  color: rgb(var(--text-heading-rgb));
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.cx-sug-desc {
+  flex: 0 1 auto;
+  min-height: 0;
+  margin-top: 4px;
+  font-size: 10.5px;
+  line-height: 1.35;
+  color: rgb(var(--text-muted-rgb));
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ── Hai nút nhỏ trong lòng THẺ mẫu ────────────────────────────────────────
+   Xem thử · Dùng mẫu. Cả thẻ vốn đã bấm được (= xem thử) nên hàng này chỉ là
+   lối tắt: cỡ nhỏ hẳn so với .cx-sug-btn ở đáy bảng để không tranh mắt với
+   việc chính. Hình pill do <x-button variant="bare"> lo, ở đây chỉ màu + khổ. */
+
+.cx-sug-mini {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 4px;
+  margin-top: auto;
+  padding-top: 8px;
+}
+
+.cx-sug-mini-btn {
+  gap: 4px;
+  height: 24px;
+  padding: 0 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  font-size: 10.5px;
+  font-weight: 600;
+  line-height: 1;
+  border: 1px solid rgb(var(--border-field-rgb));
+  color: rgb(var(--text-heading-rgb));
+  background: rgb(var(--white-rgb));
+}
+
+.cx-sug-mini-btn.is-primary {
+  border-color: transparent;
+  color: rgb(var(--white-rgb));
+  background: rgb(var(--action-primary-rgb));
+}
+
+/* Icon 12px trong nút 24px — bó sát chữ, không cho co giãn theo nhãn dài. */
+
+.cx-sug-mini-btn .cx-sug-ico {
+  flex: 0 0 auto;
+}
+
+/* Hai nút hành động cũng NỔI (không có bảng nào đỡ) nên nền phải đặc và có
+   bóng, đặt trên thiệp nền sáng hay tối đều đọc được. */
+
+.cx-sug-acts {
+  display: flex;
+  gap: 8px;
+}
+
+.cx-sug-btn {
+  flex: 1 1 0;
+  gap: 7px;
+  height: 40px;
+  padding: 0 14px;
   border: none;
   cursor: pointer;
   white-space: nowrap;
@@ -412,51 +639,29 @@
   font-weight: 500;
   line-height: 1;
   color: rgb(var(--action-primary-rgb));
-  /* Nền ĐẶC, không backdrop-filter: làm mờ nền trong lúc chạy animation buộc
-     trình duyệt vẽ lại vùng phía sau mỗi khung hình → giật trên máy yếu. */
-  background: rgb(var(--surface-tint-rgb));
-  box-shadow: 0 6px 20px rgb(var(--scrim-rgb) / 0.16);
+  background: rgb(var(--white-rgb));
+  box-shadow: 0 6px 18px rgb(var(--scrim-rgb) / 0.22);
 }
 
 /* Việc CHÍNH tô nguyên viên thuốc, dùng ĐÚNG màu nút "Đăng nhập" ở landing
    (--action-primary, màu đặc chứ không gradient) để hai nơi cùng một tông hồng.
    Icon ăn theo `color` nên trắng cùng chữ, khỏi khai riêng. */
 
-.cx-pnav-primary {
-  color: rgb(var(--white-rgb));
+.cx-sug-primary {
+  /* Chiếm gấp đôi nút phụ trên cùng một hàng — hai nút bằng nhau thì việc chính
+     không còn là việc chính nữa. */
+  flex: 2 1 0;
   font-weight: 600;
+  color: rgb(var(--white-rgb));
   background: rgb(var(--action-primary-rgb));
-  box-shadow: 0 6px 20px rgb(var(--action-primary-rgb) / 0.35);
+  box-shadow: 0 6px 20px rgb(var(--action-primary-rgb) / 0.45);
 }
 
-/* Icon trần, không đĩa tròn bao quanh — lấy luôn màu chữ của nút để cả ba
-   mục đồng một tông. */
-
-.cx-pnav-ico {
+.cx-sug-ico {
   display: flex;
   align-items: center;
   justify-content: center;
   color: inherit;
-}
-
-/* Nút tròn — giữ icon ba chấm ở cả hai trạng thái, chỉ nhấn nhẹ bằng cách
-   thu lại một chút khi đang mở. */
-
-.cx-pnav-fab {
-  width: 52px;
-  height: 52px;
-  cursor: pointer;
-  /* Nền TRẮNG như cụm nút, ba chấm mang màu thương hiệu. Viền mảnh để nút không
-     lẫn vào chỗ thiệp có nền sáng. */
-  border: 1px solid rgb(var(--surface-blossom-rgb));
-  color: rgb(var(--action-primary-rgb));
-  background: rgb(var(--surface-tint-rgb));
-  box-shadow: 0 8px 24px rgb(var(--scrim-rgb) / 0.18);
-  transition: transform 0.25s ease;
-}
-
-.cx-pnav.is-open .cx-pnav-fab {
-  transform: scale(0.92);
 }
 
 /* ── iOS / viewport ──────────────────────────────────────────────────────── */
@@ -1164,10 +1369,10 @@ textarea::-webkit-scrollbar-thumb:hover {
 /* Đúng ô trong suốt của ảnh: x 15→368, y 12→773 trên khổ 383×785. */
 .cx-pshell-screen {
   position: absolute;
-  top: 1.53%;
+  top: 1.30%;
   left: 3.92%;
   width: 92.17%;
-  height: 96.94%;
+  height: 97.94%;
   overflow: hidden;
   border-radius: 14.73% / 6.83%;
   background: #fff;
@@ -1178,9 +1383,25 @@ textarea::-webkit-scrollbar-thumb:hover {
    điện thoại đang bán. 837 = 390 ÷ tỉ lệ ô màn (337/723). --cx-scr-scale do
    theme-boot.js đo (CSS không chia được px cho px). */
 .cx-pshell-view {
-  width: 390px;
+  width: 391px;
+  /* Chỉ là số tạm cho nhịp vẽ đầu tiên — theme-boot.js đo lại ngay theo chiều
+     cao thật của ô màn hình. */
   height: 837px;
   border: 0;
   transform: scale(var(--cx-scr-scale, 1));
   transform-origin: 0 0;
+}
+
+/* Cờ do theme-boot.js cắm lên <html> của thiệp khi nó chạy TRONG khung máy.
+   Thanh cuộn cổ điển (Chrome/Windows) ăn ~15px trong 390px bề ngang iframe →
+   thiệp co lại, chừa một dải trống sát mép phải trong lòng thân máy. Điện
+   thoại thật không có thanh cuộn nên giấu đi mới đúng thứ đang muốn xem trước;
+   lăn chuột và vuốt vẫn cuộn bình thường. */
+
+.cx-shell-view {
+  scrollbar-width: none;
+}
+
+.cx-shell-view::-webkit-scrollbar {
+  display: none;
 }
