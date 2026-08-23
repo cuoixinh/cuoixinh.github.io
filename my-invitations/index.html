@@ -41,7 +41,7 @@
               aria-label="Trợ giúp"
               class="!h-6 !w-6"
             >
-              <i data-icon="circle-help" class="text-[10px]"></i>
+              <i data-lucide="circle-help" class="text-[10px]" style="width:16px;height:16px"></i>
             </x-button>
           </div>
           <p class="mt-1 text-[13px] text-gray-500">
@@ -68,10 +68,8 @@
         class="mb-4 flex items-start gap-1.5 rounded-lg bg-gray-50 px-3 py-2 text-[10px] leading-relaxed text-gray-500"
       >
         <i
-          data-icon="info"
-          data-size="12"
-          class="mt-0.5 shrink-0 text-gray-400"
-        ></i>
+          data-lucide="info"
+          class="mt-0.5 shrink-0 text-gray-400" style="width:12px;height:12px"></i>
         <span id="keep-note"></span>
       </div>
 
@@ -83,7 +81,7 @@
           data-tab="all"
           class="tab-btn cx-segtab inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[13px] font-medium"
         >
-          <i data-icon="layout-grid" class="text-[10px]"></i> Của tôi
+          <i data-lucide="layout-grid" class="text-[10px]" style="width:16px;height:16px"></i> Của tôi
           <span data-count="all" class="cx-navcount hidden ml-0.5"></span>
         </button>
         <button
@@ -91,7 +89,7 @@
           data-tab="published"
           class="tab-btn cx-segtab inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[13px] font-medium"
         >
-          <i data-icon="wand-sparkles" class="text-[10px]"></i> Xuất bản
+          <i data-lucide="wand-sparkles" class="text-[10px]" style="width:16px;height:16px"></i> Xuất bản
           <span data-count="published" class="cx-navcount hidden ml-0.5"></span>
         </button>
         <button
@@ -99,7 +97,7 @@
           data-tab="draft"
           class="tab-btn cx-segtab inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[13px] font-medium"
         >
-          <i data-icon="book-open" class="text-[10px]"></i> Nháp
+          <i data-lucide="book-open" class="text-[10px]" style="width:16px;height:16px"></i> Nháp
           <span data-count="draft" class="cx-navcount hidden ml-0.5"></span>
         </button>
       </div>
@@ -171,7 +169,7 @@
         <div
           class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-red-50"
         >
-          <i data-icon="triangle-alert" class="text-xl text-red-300"></i>
+          <i data-lucide="triangle-alert" class="text-xl text-red-300" style="width:16px;height:16px"></i>
         </div>
         <p class="font-semibold text-gray-800">
           Không tải được danh sách thiệp
@@ -193,7 +191,7 @@
         <div
           class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-rose-50"
         >
-          <i data-icon="mail-open" class="text-xl text-rose-300"></i>
+          <i data-lucide="mail-open" class="text-xl text-rose-300" style="width:16px;height:16px"></i>
         </div>
         <p id="empty-title" class="font-semibold text-gray-800">
           Chưa có thiệp nào
@@ -219,7 +217,7 @@
         <div
           class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-rose-50"
         >
-          <i data-icon="user-lock" class="text-xl text-rose-300"></i>
+          <i data-lucide="user-lock" class="text-xl text-rose-300" style="width:16px;height:16px"></i>
         </div>
         <p class="font-semibold text-gray-800">
           Đăng nhập để xem thiệp của bạn
@@ -253,7 +251,7 @@
             icon-only
             onclick="closeProfileModal()"
           >
-            <i data-icon="x" class="text-sm text-gray-400"></i>
+            <i data-lucide="x" class="text-sm text-gray-400" style="width:16px;height:16px"></i>
           </x-button>
         </div>
         <form id="profile-form" class="p-5">
@@ -285,7 +283,12 @@
       </div>
     </div>
 
-    <script src="../core/helpers/icon.js"></script>
+    <script src="https://unpkg.com/lucide@1.26.0/dist/umd/lucide.min.js" integrity="sha384-8/6sFI5UzGbr1Dgef7WSZvE4UemcVc/jyaQNsM+MilmnHQ9sce/pRv86XXj5Cg5m" crossorigin="anonymous"></script>
+    <!-- lucide UMD không tự chạy: quét [data-lucide] một lượt khi DOM sẵn sàng.
+         Markup chèn động sau đó phải tự gọi lucide.createIcons({ root }) tại chỗ chèn. -->
+    <script>
+      document.addEventListener("DOMContentLoaded", () => window.lucide?.createIcons());
+    </script>
     <script src="../core/x-button.js"></script>
     <script src="../core/x-popover.js"></script>
     <script src="../core/helpers/account-menu.js"></script>

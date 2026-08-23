@@ -3,7 +3,7 @@
 //
 //   <x-button variant="fill|outline|dashed|soft|ghost|overlay|bare" tone="brand|neutral|danger"
 //             size="xs|sm|md|lg" icon="plus" icon-only full>Nhãn</x-button>
-//   icon = tên icon lucide trong core/helpers/icon.js (vd "plus", "trash-2").
+//   icon = tên icon lucide (vd "plus", "trash-2"), vẽ bằng thư viện lucide.
 //
 // Khi nạp, phần tử TỰ THAY THẾ mình bằng <button> thật (mọi attribute còn lại —
 // id, onclick, data-*, disabled… — chuyển sang nút đó). Nghĩa là DOM lúc chạy y
@@ -116,13 +116,14 @@ class XButton extends HTMLElement {
       .filter(Boolean)
       .join(" ");
 
-    // icon = TÊN icon lucide (core/helpers/icon.js). Chèn <i data-icon> để trang
-    // nào chưa nạp bảng icon lúc này thì lát nữa cxRenderIcons vẫn dựng được.
-    if (icon) btn.insertAdjacentHTML("beforeend", `<i data-icon="${icon}"></i>`);
+    // icon = TÊN icon lucide. lucide.createIcons() không tự quét lại nên phải
+    // dựng ngay cho thẻ vừa chèn, không đợi lượt quét chung của trang.
+    if (icon) btn.insertAdjacentHTML("beforeend", `<i data-lucide="${icon}" style="width:16px;height:16px"></i>`);
     if (label != null) btn.appendChild(document.createTextNode(label));
     else while (this.firstChild) btn.appendChild(this.firstChild);
 
     this.replaceWith(btn);
+    if (icon) window.lucide?.createIcons({ root: btn });
   }
 }
 

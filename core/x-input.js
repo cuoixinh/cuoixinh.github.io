@@ -136,7 +136,7 @@ class XInput extends HTMLElement {
 
     // Re-run lucide for label icon & suffix icon
     if ((labelIcon || suffixIcon) && window.lucide) {
-      lucide.createIcons({ nodes: [this] });
+      lucide.createIcons({ root: this });
     }
   }
 }

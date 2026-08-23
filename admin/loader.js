@@ -20,7 +20,6 @@
   // core/config.js KHÔNG nằm ở đây: nó được nạp riêng ở bước mồi trong boot() để
   // lấy CONFIG.version, thêm vào đây nữa là nạp hai lần.
   const SCRIPTS = [
-    "../core/helpers/icon.js",
     "../core/x-button.js",
     "../core/auth.js", // nguồn duy nhất cho phiên đăng nhập (ai-dal đính JWT)
     "js/00-core.js",
@@ -116,6 +115,10 @@
     PARTIALS.forEach(([mountId], i) => injectPartial(mountId, htmls[i]));
 
     await loadScripts(SCRIPTS.map(withVersion));
+
+    // Partial vừa chèn xong mới có [data-lucide] để quét; lucide nạp ở <head>
+    // của index.html nên chắc chắn đã sẵn sàng ở đây.
+    if (window.lucide) window.lucide.createIcons();
 
     // Khôi phục tab từ URL hash CHỈ SAU KHI mọi script theo tab đã nạp xong —
     // xem restoreTabFromHash() trong 00-core.js.

@@ -68,7 +68,7 @@
                 class="hero-invite-rule hero-anim hero-anim-2"
                 aria-hidden="true"
               >
-                <span></span><i data-icon="heart"></i><span></span>
+                <span></span><i data-lucide="heart" style="width:16px;height:16px"></i><span></span>
               </div>
               <!-- Sơ đồ các bước làm thiệp: vòng tròn icon nối bằng mũi tên,
                    chữ nằm dưới. Số thứ tự và dòng "BƯỚC 0x" do CSS counter
@@ -79,25 +79,25 @@
               <ol class="hero-invite-steps hero-anim hero-anim-3">
                 <li>
                   <span class="hero-step-orb" aria-hidden="true"
-                    ><i data-icon="swatch-book"></i
+                    ><i data-lucide="swatch-book" style="width:16px;height:16px"></i
                   ></span>
                   <span class="hero-step-label">Chọn mẫu</span>
                 </li>
                 <li>
                   <span class="hero-step-orb" aria-hidden="true"
-                    ><i data-icon="images"></i
+                    ><i data-lucide="images" style="width:16px;height:16px"></i
                   ></span>
                   <span class="hero-step-label">Điền thông tin</span>
                 </li>
                 <li>
                   <span class="hero-step-orb" aria-hidden="true"
-                    ><i data-icon="send"></i
+                    ><i data-lucide="send" style="width:16px;height:16px"></i
                   ></span>
                   <span class="hero-step-label">Xuất bản</span>
                 </li>
                 <li>
                   <span class="hero-step-orb" aria-hidden="true"
-                    ><i data-icon="mail-open"></i
+                    ><i data-lucide="mail-open" style="width:16px;height:16px"></i
                   ></span>
                   <span class="hero-step-label">Gửi thiệp</span>
                 </li>
@@ -179,7 +179,7 @@
               <div class="hero-phone-screen">
                 <div id="hero-skeleton" class="card-skeleton absolute inset-0">
                   <div class="card-skeleton-fallback">
-                    <i data-icon="heart"></i>
+                    <i data-lucide="heart" style="width:16px;height:16px"></i>
                   </div>
                 </div>
                 <img id="hero-preview-img" alt="Mẫu thiệp cưới Cưới Xinh" />
@@ -193,7 +193,7 @@
         </article>
 
         <a href="#templates" class="hero-scroll hero-anim hero-anim-5">
-          Xem mẫu thiệp <i data-icon="chevron-down"></i>
+          Xem mẫu thiệp <i data-lucide="chevron-down" style="width:16px;height:16px"></i>
         </a>
       </div>
     </section>
@@ -232,7 +232,7 @@
           aria-label="Thiệp trước"
           class="absolute left-3 sm:left-6 top-1/2 z-40 -translate-y-1/2 hidden lg:flex text-[rgb(var(--text-heading-rgb))] backdrop-blur-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgb(var(--brand-accent-rgb)/0.40)]"
         >
-          <i data-icon="chevron-left" class="text-base"></i>
+          <i data-lucide="chevron-left" class="text-base" style="width:16px;height:16px"></i>
         </x-button>
         <x-button
           variant="outline"
@@ -242,7 +242,7 @@
           aria-label="Thiệp tiếp theo"
           class="absolute right-3 sm:right-6 top-1/2 z-40 -translate-y-1/2 hidden lg:flex text-[rgb(var(--text-heading-rgb))] backdrop-blur-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgb(var(--brand-accent-rgb)/0.40)]"
         >
-          <i data-icon="chevron-right" class="text-base"></i>
+          <i data-lucide="chevron-right" class="text-base" style="width:16px;height:16px"></i>
         </x-button>
 
         <div class="shrink-0 flex items-center justify-center gap-4 py-3">
@@ -254,7 +254,7 @@
             aria-label="Thiệp trước"
             class="lg:hidden text-[rgb(var(--text-heading-rgb)/0.45)]"
           >
-            <i data-icon="arrow-left" class="text-base"></i>
+            <i data-lucide="arrow-left" class="text-base" style="width:16px;height:16px"></i>
           </x-button>
           <div id="carouselDots" class="flex justify-center gap-1.5"></div>
           <x-button
@@ -265,7 +265,7 @@
             aria-label="Thiệp tiếp theo"
             class="lg:hidden text-[rgb(var(--text-heading-rgb)/0.45)]"
           >
-            <i data-icon="arrow-right" class="text-base"></i>
+            <i data-lucide="arrow-right" class="text-base" style="width:16px;height:16px"></i>
           </x-button>
         </div>
       </div>
@@ -331,9 +331,8 @@
                     "
                   >
                     <i
-                      data-icon="heart"
-                      class="text-[19px] text-[rgb(var(--brand-primary-rgb)/0.7)]"
-                    ></i>
+                      data-lucide="heart"
+                      class="text-[19px] text-[rgb(var(--brand-primary-rgb)/0.7)]" style="width:16px;height:16px"></i>
                   </div>
                   <p
                     class="text-[7.5px] text-[rgb(var(--text-body-rgb))] opacity-65 tracking-[0.04em]"
@@ -586,7 +585,7 @@
             box-shadow: 0 8px 28px rgb(var(--landing-cta-btn-from-rgb) / 0.32);
           "
         >
-          Tạo thiệp ngay <i data-icon="arrow-right" class="text-sm"></i>
+          Tạo thiệp ngay <i data-lucide="arrow-right" class="text-sm" style="width:16px;height:16px"></i>
         </x-button>
         <div
           class="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs mt-7"
@@ -608,13 +607,13 @@
             href="mailto:admin@cuoixinh.com"
             class="transition-opacity hover:opacity-75 flex items-center gap-1.5"
           >
-            <i data-icon="mail" class="text-xs"></i> admin@cuoixinh.com
+            <i data-lucide="mail" class="text-xs" style="width:16px;height:16px"></i> admin@cuoixinh.com
           </a>
           <a
             href="tel:0348840032"
             class="transition-opacity hover:opacity-75 flex items-center gap-1.5"
           >
-            <i data-icon="phone" class="text-xs"></i> 034.884.0032
+            <i data-lucide="phone" class="text-xs" style="width:16px;height:16px"></i> 034.884.0032
           </a>
         </div>
       </div>
@@ -675,10 +674,10 @@
             </h4>
             <ul class="space-y-2 text-sm opacity-60">
               <li>
-                <i data-icon="mail" class="mr-2 text-xs"></i>admin@cuoixinh.com
+                <i data-lucide="mail" class="mr-2 text-xs" style="width:16px;height:16px"></i>admin@cuoixinh.com
               </li>
               <li>
-                <i data-icon="phone" class="mr-2 text-xs"></i>034.884.0032
+                <i data-lucide="phone" class="mr-2 text-xs" style="width:16px;height:16px"></i>034.884.0032
               </li>
             </ul>
           </div>
@@ -713,7 +712,7 @@
         class="select-none relative w-[52px] h-[52px] rounded-full flex items-center justify-center text-white text-2xl transition opacity-0 translate-y-4 scale-90 animate-bubbleIn shadow-[0_6px_20px_rgb(var(--landing-dark-rgb)/0.22)] hover:scale-[1.06] hover:shadow-[0_10px_26px_rgb(var(--landing-dark-rgb)/0.3)] bg-[image:var(--social-messenger-gradient)] before:content-[''] before:absolute before:inset-0 before:rounded-full before:bg-[image:var(--social-messenger-gradient)] before:-z-10 before:animate-bubblePulse motion-reduce:before:animate-none"
         aria-label="Chat hỗ trợ qua Messenger"
       >
-        <i data-icon="message-circle"></i>
+        <i data-lucide="message-circle" style="width:16px;height:16px"></i>
       </a>
       <!-- Nút X là ANH EM của thẻ <a>, không lồng bên trong: <button> trong <a>
            là markup sai và bấm X sẽ mở luôn Messenger.
@@ -728,11 +727,16 @@
         aria-label="Tắt hỗ trợ"
         class="absolute -top-1 -right-1 w-[22px] h-[22px] text-[rgb(var(--chat-action-icon-rgb))] z-[3] opacity-0 animate-bubbleIn-2 hover:scale-110"
       >
-        <i data-icon="x"></i>
+        <i data-lucide="x" style="width:16px;height:16px"></i>
       </x-button>
     </div>
 
-    <script src="core/helpers/icon.js"></script>
+    <script src="https://unpkg.com/lucide@1.26.0/dist/umd/lucide.min.js" integrity="sha384-8/6sFI5UzGbr1Dgef7WSZvE4UemcVc/jyaQNsM+MilmnHQ9sce/pRv86XXj5Cg5m" crossorigin="anonymous"></script>
+    <!-- lucide UMD không tự chạy: quét [data-lucide] một lượt khi DOM sẵn sàng.
+         Markup chèn động sau đó phải tự gọi lucide.createIcons({ root }) tại chỗ chèn. -->
+    <script>
+      document.addEventListener("DOMContentLoaded", () => window.lucide?.createIcons());
+    </script>
     <script src="core/x-button.js"></script>
     <!-- Hộp thoại thanh toán (core/payment.js) dùng <x-input> cho ô mã giảm giá. -->
     <script src="core/x-input.js"></script>

@@ -304,6 +304,7 @@ function siRenderContentForm() {
   host.innerHTML = SI_CONTENT_GROUPS.map((g, i) =>
     siRenderContentGroup(g, opened.size ? opened.has(g.title) : i === 0),
   ).join("");
+  window.lucide?.createIcons({ root: host });
   // Ô nhạc vừa bị vẽ lại → gắn lại listener + dựng lại tag/preview.
   siYtBind();
 }
@@ -323,7 +324,7 @@ function siRenderContentGroup(group, open) {
   return `
     <details class="border border-gray-200 rounded-xl" data-group="${escapeHtml(group.title)}" ${open ? "open" : ""}>
       <summary class="px-4 py-3 text-sm font-semibold text-gray-700 cursor-pointer select-none flex items-center gap-2">
-        <span class="text-rose-300">${cxIcon(group.icon, 15)}</span> ${escapeHtml(group.title)}
+        <span class="text-rose-300"><i data-lucide="${group.icon}" style="width:15px;height:15px"></i></span> ${escapeHtml(group.title)}
       </summary>
       <div class="px-4 pb-4">${body}</div>
     </details>`;
@@ -406,7 +407,7 @@ function siRenderMapField(field, value, wrapClass) {
   const action = locked
     ? `<span class="shrink-0 text-xs text-gray-400 italic">Theo ${escapeHtml(SI_SOURCE_LABEL[siPartySource(side)])}</span>`
     : `<x-button variant="ghost" size="sm" type="button" onclick="siOpenMapPicker('${side}')" class="shrink-0">
-          <i data-icon="map-pinned"></i> Chọn trên bản đồ
+          <i data-lucide="map-pinned" style="width:16px;height:16px"></i> Chọn trên bản đồ
         </x-button>`;
 
   return `
@@ -416,15 +417,15 @@ function siRenderMapField(field, value, wrapClass) {
         ${action}
       </div>
       <div id="${side}-map-display" class="flex items-center gap-2 mb-2 px-3 py-2 bg-rose-50 border border-rose-100 rounded-lg">
-        <i data-icon="map-pin" class="text-rose-300 text-xs shrink-0"></i>
+        <i data-lucide="map-pin" class="text-rose-300 text-xs shrink-0" style="width:16px;height:16px"></i>
         <span id="${side}-map-address"
           class="flex-1 min-w-0 truncate text-xs ${addr ? "text-gray-600" : "text-gray-400 italic"}"
           >${escapeHtml(addr || SI_MAP_NO_ADDRESS)}</span>
         <x-button variant="ghost" type="button" onclick="siCopyMapAddress('${side}')" title="Sao chép địa chỉ" class="${chipBtn}">
-          <i data-icon="copy"></i> Chép
+          <i data-lucide="copy" style="width:16px;height:16px"></i> Chép
         </x-button>
         <x-button variant="ghost" type="button" onclick="siOpenMapsSearch('${side}')" title="Mở Google Maps với địa chỉ này" class="${chipBtn}">
-          <i data-icon="external-link"></i> Mở Maps
+          <i data-lucide="external-link" style="width:16px;height:16px"></i> Mở Maps
         </x-button>
       </div>
       <textarea rows="2" id="${field.name}" name="${field.name}" data-si-content="${field.name}"
@@ -566,10 +567,10 @@ function siRenderYouTubeField(field, value, wrapClass) {
 
       <div id="music-selected-tag" class="hidden mt-2">
         <span class="inline-flex items-center gap-1.5 max-w-full px-2.5 py-1 rounded-full bg-rose-50 text-rose-600 border border-rose-100 text-xs">
-          <i data-icon="music" class="shrink-0"></i>
+          <i data-lucide="music" class="shrink-0" style="width:16px;height:16px"></i>
           <span id="music-selected-name" class="truncate"></span>
           <x-button variant="ghost" icon-only type="button" onclick="clearMusicSelection()" title="Gỡ bài hát" class="shrink-0">
-            <i data-icon="x"></i>
+            <i data-lucide="x" style="width:16px;height:16px"></i>
           </x-button>
         </span>
       </div>
@@ -683,7 +684,7 @@ function siRenderTimeline() {
     };
     
     div.innerHTML = `
-      <i data-icon="grip-vertical" class="text-gray-400 text-sm cursor-grab active:cursor-grabbing shrink-0"></i>
+      <i data-lucide="grip-vertical" class="text-gray-400 text-sm cursor-grab active:cursor-grabbing shrink-0" style="width:16px;height:16px"></i>
       <input type="time" value="${escapeHtml(item.time)}"
         oninput="event.stopPropagation();siSetTimelineField(${idx}, 'time', this.value)"
         class="w-full sm:w-32 h-10 px-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-rose-300" />
@@ -698,7 +699,7 @@ function siRenderTimeline() {
         ).join("")}
       </select>
       <x-button variant="ghost" tone="danger" icon-only type="button" onclick="event.stopPropagation();siRemoveTimelineItem(${idx})" class="shrink-0">
-        <i data-icon="trash-2"></i>
+        <i data-lucide="trash-2" style="width:16px;height:16px"></i>
       </x-button>
     `;
     
@@ -709,7 +710,7 @@ function siRenderTimeline() {
   if (count) count.textContent = `${items.length}/${SI_MAX_TIMELINE}`;
   
   // Render icons
-  if (typeof cxRenderIcons === "function") cxRenderIcons(list);
+  window.lucide?.createIcons({ root: list });
 }
 
 function siReorderTimeline(fromIdx, toIdx) {

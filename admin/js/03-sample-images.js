@@ -757,24 +757,25 @@ function siRenderSingleImage(fieldName) {
 
   if (entry.previewUrl) {
     const adjustBtn = isCrop
-      ? `<x-button variant="overlay" size="xs" icon-only type="button" onclick="siRecropSingle('${fieldName}')" title="Cắt lại ảnh" class="absolute bottom-1 right-1"><i data-icon="crop" class="text-xs"></i></x-button>`
+      ? `<x-button variant="overlay" size="xs" icon-only type="button" onclick="siRecropSingle('${fieldName}')" title="Cắt lại ảnh" class="absolute bottom-1 right-1"><i data-lucide="crop" class="text-xs" style="width:16px;height:16px"></i></x-button>`
       : isFocal
-        ? `<x-button variant="overlay" size="xs" icon-only type="button" onclick="siAdjustSingleFocal('${fieldName}')" title="Chỉnh điểm lấy nét" class="absolute bottom-1 right-1"><i data-icon="crosshair" class="text-xs"></i></x-button>`
+        ? `<x-button variant="overlay" size="xs" icon-only type="button" onclick="siAdjustSingleFocal('${fieldName}')" title="Chỉnh điểm lấy nét" class="absolute bottom-1 right-1"><i data-lucide="crosshair" class="text-xs" style="width:16px;height:16px"></i></x-button>`
         : "";
     container.innerHTML = `
       <div class="relative ${sizeClass} rounded-xl overflow-hidden border border-rose-200 shadow-sm group bg-gray-100">
         <img src="${entry.previewUrl}" class="w-full h-full object-cover"${fpStyle} />
         ${adjustBtn}
         <x-button tone="danger" size="xs" icon-only type="button" onclick="siRemoveSingle('${fieldName}')" class="absolute top-1 right-1">
-          <i data-icon="x" class="text-xs text-white"></i>
+          <i data-lucide="x" class="text-xs text-white" style="width:16px;height:16px"></i>
         </x-button>
       </div>`;
   } else {
     container.innerHTML = `
       <x-button variant="outline" size="sm" type="button" onclick="document.getElementById('si-${fieldName}-file-input').click()">
-        <i data-icon="image" class="text-xs"></i> Chọn ảnh
+        <i data-lucide="image" class="text-xs" style="width:16px;height:16px"></i> Chọn ảnh
       </x-button>`;
   }
+  window.lucide?.createIcons({ root: container });
 }
 
 async function siHandleSingleUpload(event, fieldName) {
@@ -978,10 +979,10 @@ function siRenderGallery() {
       <img src="${item.previewUrl}" class="w-full h-full object-cover pointer-events-none" style="object-position: ${item.focal.x}% ${item.focal.y}%" />
       <div class="absolute top-1 left-1 bg-black/50 text-white text-xs px-1.5 py-0.5 rounded pointer-events-none">${idx + 1}</div>
       <x-button variant="overlay" size="xs" icon-only type="button" onclick="event.stopPropagation();siAdjustGalleryFocal(${idx})" title="Chỉnh điểm lấy nét" class="absolute bottom-1 right-1">
-        <i data-icon="crosshair" class="text-xs"></i>
+        <i data-lucide="crosshair" class="text-xs" style="width:16px;height:16px"></i>
       </x-button>
       <x-button tone="danger" size="xs" icon-only type="button" onclick="event.stopPropagation();siRemoveGalleryImage(${idx})" class="absolute top-1 right-1">
-        <i data-icon="x" class="text-xs text-white"></i>
+        <i data-lucide="x" class="text-xs text-white" style="width:16px;height:16px"></i>
       </x-button>
     `;
     container.appendChild(div);
@@ -997,14 +998,14 @@ function siRenderGallery() {
     btn.type = "button";
     btn.className =
       "mt-2 flex items-center gap-1.5 h-8 px-3 rounded-xl border border-dashed border-rose-300 text-xs text-rose-400 hover:border-rose-400 hover:text-rose-500 transition-colors cursor-pointer";
-    btn.innerHTML = `<i data-icon="image" class="text-xs"></i> Thêm ảnh`;
+    btn.innerHTML = `<i data-lucide="image" class="text-xs" style="width:16px;height:16px"></i> Thêm ảnh`;
     btn.onclick = () =>
       document.getElementById("si-gallery-file-input").click();
     container.insertAdjacentElement("afterend", btn);
   }
   
   // Render icons
-  if (typeof cxRenderIcons === "function") cxRenderIcons(container);
+  window.lucide?.createIcons({ root: container });
 }
 
 function siReorderGallery(fromIdx, toIdx) {
@@ -1117,11 +1118,11 @@ function siRenderLoveStory() {
     div.innerHTML = `
       <div class="flex items-center justify-between mb-1">
         <div class="flex items-center gap-2">
-          <i data-icon="grip-vertical" class="text-gray-400 text-sm cursor-grab active:cursor-grabbing"></i>
+          <i data-lucide="grip-vertical" class="text-gray-400 text-sm cursor-grab active:cursor-grabbing" style="width:16px;height:16px"></i>
           <span id="si-ls-label-${idx}" class="text-xs font-medium text-rose-400">${escapeHtml(item.title) || `Mốc ${idx + 1}`}</span>
         </div>
         <x-button variant="ghost" tone="danger" size="sm" type="button" onclick="event.stopPropagation();siRemoveLoveStoryItem(${idx})">
-          <i data-icon="trash-2"></i> Xóa
+          <i data-lucide="trash-2" style="width:16px;height:16px"></i> Xóa
         </x-button>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -1142,14 +1143,14 @@ function siRenderLoveStory() {
             ? `<div class="relative w-16 h-16 rounded-xl overflow-hidden border border-rose-200 flex-shrink-0">
                 <img src="${item.previewUrl}" class="w-full h-full object-cover"${fpStyle} />
                 <x-button variant="overlay" size="xs" icon-only type="button" onclick="siAdjustLoveStoryFocal(${idx})" title="Chỉnh điểm lấy nét" class="absolute bottom-0.5 right-0.5">
-                  <i data-icon="crosshair" style="font-size:10px"></i>
+                  <i data-lucide="crosshair" style="width:16px;height:16px;font-size:10px"></i>
                 </x-button>
                 <x-button variant="overlay" tone="danger" size="xs" icon-only type="button" onclick="siRemoveLoveStoryImage(${idx})" class="absolute top-0.5 right-0.5">
-                  <i data-icon="x" style="font-size:10px"></i>
+                  <i data-lucide="x" style="width:16px;height:16px;font-size:10px"></i>
                 </x-button>
               </div>`
             : `<x-button variant="outline" size="sm" type="button" onclick="document.getElementById('si-ls-file-input-${idx}').click()">
-                <i data-icon="image"></i> Thêm ảnh
+                <i data-lucide="image" style="width:16px;height:16px"></i> Thêm ảnh
               </x-button>`
         }
       </div>
@@ -1161,7 +1162,7 @@ function siRenderLoveStory() {
     `${siData.loveStory.length}/${SI_MAX_LOVE_STORY}`;
   
   // Render icons
-  if (typeof cxRenderIcons === "function") cxRenderIcons(list);
+  window.lucide?.createIcons({ root: list });
 }
 
 function siReorderLoveStory(fromIdx, toIdx) {

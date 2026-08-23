@@ -310,6 +310,7 @@ function openImageCropModal(file, callback, giftInfo) {
       </div>
     </div>
   `;
+  window.lucide?.createIcons({ root: sheet.footer });
 
   // Đổ thông tin ngân hàng (textContent để an toàn với input người dùng)
   if (giftInfo) {
@@ -326,7 +327,7 @@ function openImageCropModal(file, callback, giftInfo) {
     <div class="px-4 pb-4 flex gap-2">
       <x-button variant="outline" tone="neutral" onclick="closeCropModal()" class="flex-1">Hủy</x-button>
       <x-button onclick="applyCrop()" class="flex-1">
-        <i data-icon="check" class="mr-1"></i>Áp dụng
+        <i data-lucide="check" class="mr-1" style="width:16px;height:16px"></i>Áp dụng
       </x-button>
     </div>
   `;
@@ -368,10 +369,11 @@ function openImageCropModal(file, callback, giftInfo) {
     img.onerror = () => {
       loading.innerHTML = `
         <div class="text-center">
-          <i data-icon="circle-alert" class="text-4xl text-red-500 mb-3"></i>
+          <i data-lucide="circle-alert" class="text-4xl text-red-500 mb-3" style="width:16px;height:16px"></i>
           <p class="text-sm text-red-600">Không thể tải ảnh</p>
         </div>
       `;
+      window.lucide?.createIcons({ root: loading });
     };
 
     img.src = e.target.result;
@@ -1009,7 +1011,7 @@ function closeTimePicker() {
     {
       id: "sug-use",
       label: "Tạo thiệp",
-      icon: "note",
+      icon: "navigation",
       cls: "is-use",
       aria: "Tạo thiệp với mẫu này",
       primary: true,
@@ -1024,21 +1026,15 @@ function closeTimePicker() {
     },
   ];
 
-  // Hình học lấy NGUYÊN từ bộ icon lucide (house · square-pen · x)
-  // rồi nhúng thẳng: trang thiệp không nạp thư viện lucide, kéo cả thư viện về
-  // chỉ vì ba icon là không đáng — cùng cách landing đang làm với icon sparkles,
-  // và cùng cách alert.js giữ bảng _LUCIDE_PATHS. Đừng tự vẽ lại cho "gần giống":
-  // nét và bo góc của lucide đồng bộ với nhau, vẽ tay là lạc khỏi bộ.
+  // Hình học lấy NGUYÊN từ bộ icon lucide, khoá = tên icon. Nhúng thẳng để
+  // markup ở đây là chuỗi svg dùng được ngay, không phải chờ một lượt
+  // createIcons. Đừng tự vẽ lại cho "gần giống": nét và bo góc của lucide đồng
+  // bộ với nhau, vẽ tay là lạc khỏi bộ.
   const SUG_ICONS = {
     home:
       '<path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/>' +
       '<path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
-    // "sticky-note-check": GHÉP từ hai glyph lucide có thật — thân + góc gấp của
-    // `sticky-note`, cộng nét tick của `check` thu nhỏ đặt vào giữa tờ giấy.
-    note:
-      '<path d="M16 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11l5-5V5a2 2 0 0 0-2-2z"/>' +
-      '<path d="M15 21v-4a2 2 0 0 1 2-2h4"/>' +
-      '<path d="m8 11 2.4 2.4L15 8.8"/>',
+    navigation: '<polygon points="3 11 22 2 13 21 11 13 3 11"/>',
     // layout-grid: ô "Xem tất cả" — bốn ô vuông, đúng nghĩa lưới mẫu.
     grid:
       '<rect width="7" height="7" x="3" y="3" rx="1"/>' +
@@ -1169,7 +1165,7 @@ function closeTimePicker() {
   // thì khỏi phải mở mẫu ra mới bấm được "Dùng ngay" ở đáy.
   const SUG_CARD_ACTS = [
     { act: "view", label: "Xem thử", icon: "eye" },
-    { act: "use", label: "Dùng mẫu", icon: "note", primary: true },
+    { act: "use", label: "Dùng mẫu", icon: "navigation", primary: true },
   ];
 
   // Thẻ dùng ẢNH CHỤP SẴN của mẫu (/assets/images/templates/*.jpg) — cùng bộ

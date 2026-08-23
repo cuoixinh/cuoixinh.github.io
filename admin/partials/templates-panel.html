@@ -10,16 +10,16 @@
       </h2>
       <div class="flex gap-2 flex-wrap">
         <x-button id="purge-cache-btn" onclick="purgeTemplatesCache()" title="Xóa cache Cloudflare" class="flex-1 sm:flex-none sm:px-6">
-          <i data-icon="refresh-cw"></i>
+          <i data-lucide="refresh-cw" style="width:16px;height:16px"></i>
           <span class="hidden sm:inline">Xóa Cache</span>
         </x-button>
         <x-button id="scan-images-btn" onclick="startScanImages()" disabled title="Tick chọn template trong danh sách rồi bấm scan" class="flex-1 sm:flex-none sm:px-6">
-          <i data-icon="camera"></i>
+          <i data-lucide="camera" style="width:16px;height:16px"></i>
           <span class="hidden sm:inline">Scan Image IFrame</span
           ><span class="sm:hidden">Scan</span>
         </x-button>
         <x-button onclick="openTemplateModal()" class="flex-1 sm:flex-none sm:px-6">
-          <i data-icon="plus"></i>
+          <i data-lucide="plus" style="width:16px;height:16px"></i>
           <span class="hidden sm:inline">Thêm Template</span
           ><span class="sm:hidden">Thêm</span>
         </x-button>
@@ -137,7 +137,7 @@
           required
         ></x-input>
         <p class="text-xs text-gray-500 -mt-1.5 flex items-start gap-1.5">
-          <i data-icon="info" class="mt-0.5 shrink-0"></i>
+          <i data-lucide="info" class="mt-0.5 shrink-0" style="width:16px;height:16px"></i>
           <span>Tên thư mục trong <code class="font-mono">public/themes/</code>, cũng là ID duy nhất. Không đổi được sau khi mẫu đã bán.</span>
         </p>
 
@@ -251,7 +251,7 @@
   <div class="bg-white rounded-2xl p-6 w-full max-w-lg shadow-2xl">
     <div class="flex items-center justify-between mb-4">
       <h3 class="text-base font-semibold text-gray-800 flex items-center gap-2">
-        <i data-icon="camera" class="text-violet-500"></i> Scan Image IFrame
+        <i data-lucide="camera" class="text-violet-500" style="width:16px;height:16px"></i> Scan Image IFrame
       </h3>
       <x-button variant="ghost" tone="neutral" id="scan-close-btn" onclick="closeScanModal()" class="text-xl">&times;</x-button>
     </div>

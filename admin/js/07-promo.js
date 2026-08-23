@@ -44,7 +44,8 @@ async function promoPost(payload, btnId) {
   try {
     if (btn) {
       btn.disabled = true;
-      btn.innerHTML = '<i data-icon="loader-circle" class="animate-spin"></i> Đang sinh...';
+      btn.innerHTML = '<i data-lucide="loader-circle" class="animate-spin" style="width:16px;height:16px"></i> Đang sinh...';
+      window.lucide?.createIcons({ root: btn });
     }
 
     const res = await fetch(`${EDGE_URL}?resource=promo-codes`, {

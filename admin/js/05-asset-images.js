@@ -498,21 +498,22 @@ function axBuildCard(item, opts) {
       class="absolute bottom-14 left-1.5 ${
         focalMoved ? "" : "opacity-0 group-hover:opacity-100"
       }">
-      <i data-icon="crosshair" class="text-xs"></i>
+      <i data-lucide="crosshair" class="text-xs" style="width:16px;height:16px"></i>
     </x-button>
     <div class="absolute top-1.5 right-1.5 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
       ${
         opts.pending
           ? ""
           : `<x-button variant="overlay" size="xs" icon-only type="button" data-act="copy" title="Copy đường dẫn">
-               <i data-icon="link" class="text-xs"></i>
+               <i data-lucide="link" class="text-xs" style="width:16px;height:16px"></i>
              </x-button>`
       }
       <x-button variant="overlay" tone="danger" size="xs" icon-only type="button" data-act="remove" title="${opts.pending ? "Bỏ ảnh này" : "Xoá ảnh"}">
-        <i data-icon="x" class="text-xs"></i>
+        <i data-lucide="x" class="text-xs" style="width:16px;height:16px"></i>
       </x-button>
     </div>
   `;
+  window.lucide?.createIcons({ root: card });
   return card;
 }
 

@@ -268,7 +268,7 @@ push**. HTML chỉ là bản vẽ trung gian, chỉ giữ nháp trong `localStor
 Mọi nút hành động viết bằng `<x-button>` (`core/x-button.js`), **không viết `<button>` tay**.
 Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `ghost` · `overlay` ·
 `bare`) × `tone` (`brand` · `neutral` · `danger`) × `size` (`xs` · `sm` · `md` · `lg`), thêm
-`icon-only`, `full`, `icon="fas fa-…"`, `label="…"`.
+`icon-only`, `full`, `icon="<tên icon lucide>"`, `label="…"`.
 
 - Khi nạp, phần tử **tự thay mình bằng `<button>` thật** và bê hết attribute sang → DOM lúc
   chạy y như viết tay. Không khai `type` thì mặc định `type="button"`; nút submit phải ghi rõ.
@@ -280,6 +280,17 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
 
 ### Khác
 
+- **Icon — thư viện lucide nạp từ CDN** (`unpkg.com/lucide@1.26.0`, pin + `integrity`; mọi
+  trang có icon đều phải khai thẻ script này). Viết `<i data-lucide="tên"></i>`, tên lấy
+  nguyên của lucide nên **không phải khai báo trước** — sai tên thì thẻ `<i>` nằm nguyên,
+  kèm cảnh báo ở console. **lucide KHÔNG tự quét lại**: mọi chỗ chèn markup động phải gọi
+  `window.lucide?.createIcons({ root: <thẻ vừa chèn> })` ngay tại chỗ, thiếu là mất icon.
+  Cỡ icon: `svg.lucide` trong `build.css` ép `1em` (ăn theo `font-size` của cha, đó là cách
+  `invitation-setup` dùng); muốn cỡ CỐ ĐỊNH thì phải là **inline style**
+  (`style="width:16px;height:16px"`) — thuộc tính `width`/`height` thua quy tắc CSS kia.
+  Hình lucide KHÔNG có (glyph ghép tay…) thì bỏ vào `CX_ICONS` ở
+  `core/helpers/icon.js` rồi dùng `<i data-icon="tên">` — bảng đang RỖNG và chưa
+  trang nào nạp file đó, thêm icon đầu tiên là phải thêm cả thẻ `<script>`.
 - **Web components `x-*`:** `[name=X]` khớp `<x-input>` chứ không phải `<input>` con.
 - **Thẻ nổi — luôn dùng `<x-popover>`** (`core/x-popover.js`, style `.x-pop*` ở
   `styles/_common.css`): tự neo theo nút mở (`anchor`), tự lật khi thiếu chỗ, kẹp trong

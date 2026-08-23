@@ -14,7 +14,8 @@ async function purgeTemplatesCache() {
 
   try {
     btn.disabled = true;
-    btn.innerHTML = '<i data-icon="loader-circle" class="animate-spin"></i> Đang xóa...';
+    btn.innerHTML = '<i data-lucide="loader-circle" class="animate-spin" style="width:16px;height:16px"></i> Đang xóa...';
+    window.lucide?.createIcons({ root: btn });
 
     const response = await fetch(CONFIG.cloudflare.templatesCache + "/purge", {
       method: "POST",

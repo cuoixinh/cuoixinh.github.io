@@ -37,11 +37,12 @@ function renderTestimonials() {
         </div>
       </div>
       <div style="display:flex;gap:2px;margin-bottom:12px;">
-        ${`<span style="color:rgb(var(--accent-amber-rgb));fill:currentColor">${cxIcon("star", 11)}</span>`.repeat(t.rating)}
+        ${`<span style="color:rgb(var(--accent-amber-rgb));fill:currentColor"><i data-lucide="star" style="width:11px;height:11px"></i></span>`.repeat(t.rating)}
       </div>
       <p style="font-size:14px;line-height:1.65;opacity:0.7;">"${t.text}"</p>
     </div>
   `).join("");
+  window.lucide?.createIcons({ root: el });
   setupRevealObserver();
 }
 

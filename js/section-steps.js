@@ -16,13 +16,14 @@ function renderSteps() {
   <div class="relative w-16 h-16 mx-auto mb-5">
     <span class="absolute -top-1 -right-2 text-5xl font-black leading-none select-none pointer-events-none" style="color:rgb(var(--brand-primary-rgb)/0.22);">${s.n}</span>
     <div class="w-16 h-16 rounded-2xl flex items-center justify-center" style="background:linear-gradient(135deg,rgb(var(--surface-blossom-rgb)),rgb(var(--surface-blossom-strong-rgb)));box-shadow:0 4px 18px rgb(var(--action-accent-light-rgb)/0.18);">
-      <span style="color:rgb(var(--landing-step-icon-rgb));">${cxIcon(s.icon, 22)}</span>
+      <span style="color:rgb(var(--landing-step-icon-rgb));"><i data-lucide="${s.icon}" style="width:22px;height:22px"></i></span>
     </div>
   </div>
   <div class="inline-flex items-center mb-3 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-widest uppercase" style="background:rgb(var(--brand-primary-rgb)/0.18);color:rgb(var(--brand-accent-rgb));">Bước ${s.n}</div>
   <h3 class="font-playfair font-semibold mb-2 text-[rgb(var(--text-heading-rgb))]">${s.title}</h3>
   <p class="text-sm opacity-60 leading-relaxed">${s.desc}</p>
 </div>`).join("");
+  window.lucide?.createIcons({ root: el });
   setupRevealObserver();
 }
 

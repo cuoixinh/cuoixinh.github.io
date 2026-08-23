@@ -64,12 +64,13 @@ function renderBenefits() {
     return `<div class="group reveal${delay}${rel} min-w-[82%] snap-start sm:min-w-0 rounded-[10px] border p-5 sm:p-6 transition-all duration-300 hover:-translate-y-1 ${shadow}" style="border-color:rgb(var(--brand-primary-rgb)/0.35);background:rgb(var(--white-rgb)/0.9);">
   ${featuredBadge}
   <div class="mb-4 flex h-10 w-10 items-center justify-center rounded-[8px] border ${b.iconCls} transition-transform duration-300 group-hover:-rotate-3 group-hover:scale-105">
-    ${cxIcon(b.icon, 18)}
+    <i data-lucide="${b.icon}" style="width:18px;height:18px"></i>
   </div>
   <h3 class="font-semibold text-[15px] mb-1.5 text-[rgb(var(--text-heading-rgb))]">${b.title}</h3>
   <p class="text-sm leading-relaxed opacity-60">${b.desc}</p>
 </div>`;
   }).join("");
+  window.lucide?.createIcons({ root: el });
   setupRevealObserver();
   startBenefitsAutoScroll(el);
 }

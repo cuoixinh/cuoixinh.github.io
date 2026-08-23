@@ -25,7 +25,7 @@
       <div
         class="relative shrink-0 w-8 h-8 rounded-lg overflow-hidden bg-gradient-to-br from-rose-pastel-200 to-rose-pastel-300 ring-1 ring-inset ring-white/40 flex items-center justify-center"
       >
-        <i data-icon="music" class="cx-mp-note text-white text-[11px]"></i>
+        <i data-lucide="music" class="cx-mp-note text-white text-[11px]" style="width:16px;height:16px"></i>
         <img
           data-cx-music="thumb"
           alt=""
@@ -51,7 +51,7 @@
           aria-label="Lùi 10 giây"
           class="w-8 h-8 rounded-full bg-[rgb(var(--text-body-rgb)/0.08)] text-[rgb(var(--text-body-rgb))] flex items-center justify-center transition-transform active:scale-90"
         >
-          <i data-icon="skip-back" class="text-[10px]"></i>
+          <i data-lucide="skip-back" class="text-[10px]" style="width:16px;height:16px"></i>
         </button>
         <button
           type="button"
@@ -63,7 +63,7 @@
                trạng thái (data-cx-play-icon/-pause-icon trên thẻ root là TÊN
                icon lucide). Class ở đây là phần của theme (cỡ, canh chỉnh). Đặt
                sẵn "play" để lúc chưa gắn logic nút vẫn có hình. -->
-          <i class="ml-px inline-flex" data-cx-music="icon">${cxIcon("play", 12)}</i>
+          <i class="ml-px inline-flex" data-cx-music="icon"><i data-lucide="play" style="width:12px;height:12px"></i></i>
         </button>
         <button
           type="button"
@@ -71,7 +71,7 @@
           aria-label="Tới 10 giây"
           class="w-8 h-8 rounded-full bg-[rgb(var(--text-body-rgb)/0.08)] text-[rgb(var(--text-body-rgb))] flex items-center justify-center transition-transform active:scale-90"
         >
-          <i data-icon="skip-forward" class="text-[10px]"></i>
+          <i data-lucide="skip-forward" class="text-[10px]" style="width:16px;height:16px"></i>
         </button>
       </div>
     </div>`;
@@ -161,7 +161,7 @@
               data-cx-summary-row
               class="hidden flex items-start justify-center gap-1.5 max-w-[300px] font-inter text-[11px] leading-snug text-[rgb(var(--text-body-rgb)/0.9)]"
             >
-              <i data-icon="map-pin" class="mt-0.5 text-[9px] text-[rgb(var(--text-body-rgb)/0.75)]"></i>
+              <i data-lucide="map-pin" class="mt-0.5 text-[9px] text-[rgb(var(--text-body-rgb)/0.75)]" style="width:16px;height:16px"></i>
               <span data-cx-summary="event-location" class="line-clamp-2"></span>
             </div>
           </div>
@@ -188,7 +188,7 @@
       aria-label="Mở lại thanh nhạc"
       class="cx-mp-bubble fixed right-3 top-24 w-9 h-9 rounded-full shadow-[0_8px_24px_rgb(var(--music-bubble-shadow-rgb)/0.4)] ring-2 ring-white/70 bg-gradient-to-br from-rose-pastel-200 to-rose-pastel-300 items-center justify-center cursor-grab active:cursor-grabbing"
     >
-      <i data-icon="music" class="cx-mp-note text-white text-[10px]"></i>
+      <i data-lucide="music" class="cx-mp-note text-white text-[10px]" style="width:16px;height:16px"></i>
       <!-- cx-mp-spin: quay tròn khi đang phát -->
       <img
         data-cx-music="thumb"
@@ -290,6 +290,7 @@
       // lên thiệp, hoặc neo góc màn qua chrome "fixed-corner".
       node.className = variant === "mini" ? "cx-mw cx-mw-mini" : "cx-mw cx-mw-card";
       node.innerHTML = variant === "mini" ? miniBody : cardBody;
+      window.lucide?.createIcons({ root: node });
       if (corner) {
         // id="music-toggle" để setupMusic() ẩn/hiện theo việc thiệp có nhạc hay
         // chưa; cx-no-edit để runtime chỉnh chữ ở tab Giao diện bỏ qua nó.
@@ -339,6 +340,8 @@
       (withSummary ? summaryPanel + handle : "") +
       "</div>" +
       (fixed ? bubble : "");
+    // Thẻ chưa gắn vào trang nên lượt quét chung không thấy: dựng icon tại chỗ.
+    window.lucide?.createIcons({ root: node });
 
     return node;
   }

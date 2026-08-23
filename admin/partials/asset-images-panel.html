@@ -25,7 +25,7 @@
       id="ax-unsupported-banner"
       class="hidden m-4 sm:m-6 p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700 flex items-start gap-2"
     >
-      <i data-icon="triangle-alert" class="mt-0.5"></i>
+      <i data-lucide="triangle-alert" class="mt-0.5" style="width:16px;height:16px"></i>
       <span>
         Trình duyệt hiện tại không hỗ trợ File System Access API. Tính năng này
         chỉ chạy được trên Chrome hoặc Edge (desktop) đang mở trang qua
@@ -104,10 +104,10 @@
           </div>
           <div class="flex items-center gap-2 shrink-0">
             <x-button variant="outline" tone="neutral" size="sm" type="button" onclick="axCopyAllPaths()">
-              <i data-icon="list"></i> Copy tất cả đường dẫn
+              <i data-lucide="list" style="width:16px;height:16px"></i> Copy tất cả đường dẫn
             </x-button>
             <x-button variant="outline" tone="neutral" size="sm" type="button" onclick="axLoadFiles()">
-              <i data-icon="refresh-cw"></i> Tải lại
+              <i data-lucide="refresh-cw" style="width:16px;height:16px"></i> Tải lại
             </x-button>
           </div>
         </div>
@@ -117,7 +117,7 @@
           id="ax-dropzone"
           class="flex flex-col items-center justify-center gap-2 p-6 border-2 border-dashed border-gray-300 rounded-xl text-center cursor-pointer hover:border-rose-300 hover:bg-rose-50/40 transition-colors"
         >
-          <i data-icon="cloud-upload" class="text-2xl text-rose-300"></i>
+          <i data-lucide="cloud-upload" class="text-2xl text-rose-300" style="width:16px;height:16px"></i>
           <div class="text-sm font-medium text-gray-700">
             Kéo thả ảnh vào đây hoặc bấm để chọn nhiều file
           </div>
@@ -153,7 +153,7 @@
             class="hidden text-xs text-amber-600 sm:order-last"
           ></span>
           <x-button type="button" id="ax-save-btn" onclick="axSaveChanges()" disabled class="flex-1 sm:flex-none opacity-50">
-            <i data-icon="save"></i> Lưu vào thư mục
+            <i data-lucide="save" style="width:16px;height:16px"></i> Lưu vào thư mục
           </x-button>
         </div>
       </div>

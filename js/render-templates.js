@@ -36,7 +36,7 @@ function renderTemplateCards() {
           <div class="art-template-overlay absolute bottom-0 left-0 right-0 pt-16 pb-4 px-3"
             style="background:linear-gradient(to top, rgb(var(--landing-photo-overlay-rgb)/90%) 0%, rgb(var(--landing-photo-overlay-soft-rgb)/60%) 48%, transparent 100%);">
             <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 mb-2 text-[10px] font-semibold text-white" style="background:rgb(var(--white-rgb)/0.22);backdrop-filter:blur(4px);">
-              <i data-icon="tag" class="text-[9px]"></i>${categoryLabel}
+              <i data-lucide="tag" class="text-[9px]" style="width:16px;height:16px"></i>${categoryLabel}
             </span>
             <p class="text-white font-playfair font-semibold text-base leading-snug truncate drop-shadow-sm">${t.name}</p>
             <p class="text-white/85 text-xs mt-0.5 line-clamp-2 leading-relaxed">${t.description || ""}</p>
@@ -53,17 +53,16 @@ function renderTemplateCards() {
                    Nền TRẮNG ĐẶC: nút đè lên ảnh cưới, để trong mờ thì ảnh xuyên
                    qua làm chữ chìm và mỗi thẻ ra một sắc nền khác. -->
               <x-button size="sm" variant="outline" onclick="event.stopPropagation(); openPreview('${t.id}')" style="background:rgb(var(--white-rgb));color:rgb(var(--text-body-rgb));border:1px solid rgb(var(--brand-primary-rgb)/0.45);box-shadow:0 4px 12px rgb(var(--scrim-rgb)/0.18);" class="flex-1 sm:h-10 sm:px-5 sm:text-sm">
-                <i data-icon="eye" class="text-[11px]"></i>Xem trước
+                <i data-lucide="eye" class="text-[11px]" style="width:16px;height:16px"></i>Xem trước
               </x-button>
               <!-- Cùng màu với nút "Tạo ngay" ở thanh xem trước mẫu
                    (core/utils.js): hai chỗ này là CÙNG một hành động — tạo bản
                    nháp từ mẫu đang xem. -->
               <x-button size="sm" onclick="event.stopPropagation(); createDraft('${t.id}')" style="pointer-events:auto;background:linear-gradient(135deg,rgb(var(--gift-btn-from-rgb)),rgb(var(--gift-btn-to-rgb)));box-shadow:0 4px 12px rgb(var(--gift-btn-to-rgb)/0.4);" class="flex-1 sm:h-10 sm:px-5 sm:text-sm">
                 <!-- Cùng icon với nút "Dùng mẫu này" ở navbar bản xem thử
-                     (PNAV_ICONS.note trong core/utils.js) — hai nút là CÙNG một
-                     hành động, đổi hình một bên thì phải đổi cả bên kia. Nhúng
-                     thẳng SVG: trang chủ không nạp lucide. -->
-                <svg class="shrink-0" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11l5-5V5a2 2 0 0 0-2-2z"/><path d="M15 21v-4a2 2 0 0 1 2-2h4"/><path d="m8 11 2.4 2.4L15 8.8"/></svg>Dùng ngay
+                     (SUG_ICONS.navigation trong core/utils.js) — hai nút là CÙNG
+                     một hành động, đổi hình một bên thì phải đổi cả bên kia. -->
+                <i data-lucide="navigation" class="shrink-0" style="width:13px;height:13px"></i>Dùng ngay
               </x-button>
             </div>
           </div>
@@ -72,4 +71,5 @@ function renderTemplateCards() {
       </div>`;
     })
     .join("");
+  window.lucide?.createIcons({ root: inner });
 }

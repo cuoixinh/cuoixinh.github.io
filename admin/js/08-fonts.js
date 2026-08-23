@@ -214,7 +214,7 @@ function renderFontsSection(hostId, title, groups) {
         .join("")}
     </div>`;
 
-  if (typeof cxRenderIcons === "function") cxRenderIcons(host);
+  window.lucide?.createIcons({ root: host });
   applyFontsPreview();
 }
 
@@ -235,7 +235,7 @@ function renderExtraFontsSection(extraGroups) {
         .join("")}
     </div>`;
 
-  if (typeof cxRenderIcons === "function") cxRenderIcons(host);
+  window.lucide?.createIcons({ root: host });
   applyFontsPreview();
 }
 
@@ -249,7 +249,7 @@ function renderFontCard(fontName, subLabel = "") {
     >
       <div class="flex items-center justify-between mb-2 gap-2">
         <span class="text-xs font-medium text-gray-500 truncate" title="${safe}">${safe}</span>
-        <i data-icon="copy" data-size="14" class="shrink-0 text-gray-300 group-hover:text-violet-400"></i>
+        <i data-lucide="copy" class="shrink-0 text-gray-300 group-hover:text-violet-400" style="width:14px;height:14px"></i>
       </div>
       <div
         class="font-preview-sample text-gray-800 truncate"

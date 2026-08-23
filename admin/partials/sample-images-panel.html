@@ -23,7 +23,7 @@
       id="si-unsupported-banner"
       class="hidden m-4 sm:m-6 p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700 flex items-start gap-2"
     >
-      <i data-icon="triangle-alert" class="mt-0.5"></i>
+      <i data-lucide="triangle-alert" class="mt-0.5" style="width:16px;height:16px"></i>
       <span>
         Trình duyệt hiện tại không hỗ trợ File System Access API. Tính năng
         này chỉ chạy được trên Chrome hoặc Edge (desktop) đang mở trang qua
@@ -70,7 +70,7 @@
           id="si-draft-banner"
           class="hidden flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800"
         >
-          <i data-icon="history" class="mt-0.5"></i>
+          <i data-lucide="history" class="mt-0.5" style="width:16px;height:16px"></i>
           <span id="si-draft-banner-text" class="flex-1 min-w-0"></span>
           <x-button variant="outline" type="button" onclick="siDiscardDraft()" class="shrink-0">
             Bỏ nháp
@@ -81,7 +81,7 @@
         <div class="p-4 bg-rose-50/60 border border-rose-200 rounded-xl space-y-3">
           <div class="flex flex-col sm:flex-row sm:items-center gap-2">
             <h3 class="flex-1 text-sm font-semibold text-gray-700">
-              <i data-icon="wand-sparkles" class="text-rose-400 mr-1"></i>
+              <i data-lucide="wand-sparkles" class="text-rose-400 mr-1" style="width:16px;height:16px"></i>
               Nhờ AI sinh dữ liệu mẫu
             </h3>
             <select
@@ -120,7 +120,7 @@
             class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm resize-y bg-white focus:outline-none focus:border-rose-300"
           ></textarea>
           <x-button type="button" id="si-ai-generate-btn" onclick="siGenerateSampleDataWithAI()" class="w-full sm:w-auto">
-            <i data-icon="wand-sparkles"></i> Sinh dữ liệu bằng AI
+            <i data-lucide="wand-sparkles" style="width:16px;height:16px"></i> Sinh dữ liệu bằng AI
           </x-button>
         </div>
 
@@ -247,7 +247,7 @@
           </div>
           <div id="si-love-story-list" class="space-y-4"></div>
           <x-button variant="outline" size="sm" type="button" onclick="siAddLoveStoryItem()" class="mt-2">
-            <i data-icon="plus"></i> Thêm mốc
+            <i data-lucide="plus" style="width:16px;height:16px"></i> Thêm mốc
           </x-button>
         </div>
 
@@ -264,10 +264,10 @@
           <div id="si-timeline-list" class="space-y-2"></div>
           <div class="flex gap-2 mt-2">
             <x-button variant="outline" size="sm" type="button" onclick="siAddTimelineItem()">
-              <i data-icon="plus"></i> Thêm mốc
+              <i data-lucide="plus" style="width:16px;height:16px"></i> Thêm mốc
             </x-button>
             <x-button variant="outline" size="sm" tone="neutral" type="button" onclick="siAutoSortTimeline()" title="Sắp xếp theo thời gian">
-              <i data-icon="arrow-down-up"></i> Sắp xếp
+              <i data-lucide="arrow-down-up" style="width:16px;height:16px"></i> Sắp xếp
             </x-button>
           </div>
         </div>
@@ -280,10 +280,10 @@
             ● Có thay đổi chưa lưu vào ổ đĩa
           </span>
           <x-button variant="outline" tone="neutral" type="button" onclick="siPreviewTheme()" class="flex-1 sm:flex-none">
-            <i data-icon="eye"></i> Xem thử
+            <i data-lucide="eye" style="width:16px;height:16px"></i> Xem thử
           </x-button>
           <x-button type="button" id="si-save-btn" onclick="saveSampleImages()" class="flex-1 sm:flex-none">
-            <i data-icon="save"></i> Lưu vào ổ đĩa
+            <i data-lucide="save" style="width:16px;height:16px"></i> Lưu vào ổ đĩa
           </x-button>
         </div>
       </div>

@@ -14,13 +14,14 @@ function renderFeatures() {
   if (!el) return;
   el.innerHTML = FEATURES_DATA.map(
     (f, i) => `<div class="feature-row reveal reveal-delay-${(i % 3) + 1}">
-  <div class="feature-icon" style="color:rgb(var(--brand-primary-rgb));">${cxIcon(f.icon, 15)}</div>
+  <div class="feature-icon" style="color:rgb(var(--brand-primary-rgb));"><i data-lucide="${f.icon}" style="width:15px;height:15px"></i></div>
   <div>
     <p class="font-semibold text-sm mb-0.5 text-[rgb(var(--text-heading-rgb))]">${f.title}</p>
     <p class="text-sm opacity-60 leading-relaxed">${f.desc}</p>
   </div>
 </div>`,
   ).join("");
+  window.lucide?.createIcons({ root: el });
   setupRevealObserver();
 }
 

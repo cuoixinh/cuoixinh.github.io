@@ -52,7 +52,7 @@ function setupMusicPlayer(root) {
   const thumbEls = $$("thumb");
   const handleEl = $("handle");
 
-  // TÊN icon lucide (core/helpers/icon.js), không phải class.
+  // TÊN icon lucide, không phải class.
   const playIcon = root.dataset.cxPlayIcon || "";
   const pauseIcon = root.dataset.cxPauseIcon || "";
   const iconSize = Number(root.dataset.cxIconSize) || 12;
@@ -176,11 +176,14 @@ function setupMusicPlayer(root) {
     const info = (e && e.detail) || {};
     root.classList.toggle("is-playing", !!info.playing);
     if (playIcon && pauseIcon) {
-      const svg = window.cxIcon
-        ? cxIcon(info.playing ? pauseIcon : playIcon, iconSize)
-        : "";
+      const tag = `<i data-lucide="${
+        info.playing ? pauseIcon : playIcon
+      }" style="width:${iconSize}px;height:${iconSize}px"></i>`;
       // Thay RUỘT thẻ bọc, không đụng class: class trên thẻ là phần của theme.
-      if (svg) iconEls.forEach((el) => (el.innerHTML = svg));
+      iconEls.forEach((el) => {
+        el.innerHTML = tag;
+        window.lucide?.createIcons({ root: el });
+      });
     }
     _renderInfo(info);
 

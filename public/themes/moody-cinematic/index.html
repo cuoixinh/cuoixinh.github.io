@@ -24,7 +24,12 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <!-- Markup trình phát nhạc — nạp ở HEAD vì script nội tuyến đầu <body> gọi
          CXMusicPlayer.build() để dựng thanh nhạc. -->
-    <script src="../../../core/helpers/icon.js"></script>
+    <script src="https://unpkg.com/lucide@1.26.0/dist/umd/lucide.min.js" integrity="sha384-8/6sFI5UzGbr1Dgef7WSZvE4UemcVc/jyaQNsM+MilmnHQ9sce/pRv86XXj5Cg5m" crossorigin="anonymous"></script>
+    <!-- lucide UMD không tự chạy: quét [data-lucide] một lượt khi DOM sẵn sàng.
+         Markup chèn động sau đó phải tự gọi lucide.createIcons({ root }) tại chỗ chèn. -->
+    <script>
+      document.addEventListener("DOMContentLoaded", () => window.lucide?.createIcons());
+    </script>
     <script src="../../../core/x-button.js"></script>
     <script src="../../../core/components/music-player.js"></script>
   </head>

@@ -1,52 +1,18 @@
 /** Thông báo dùng chung: showToast, showLoading. Tự dựng DOM, không cần HTML tĩnh. */
 
 // ─── Icon lucide ────────────────────────────────────────────────────────────
-// Nhúng thẳng path thay vì gọi lucide.createIcons(): file này dùng chung cho cả
-// landing, account, theme-template và admin — 4 trang KHÔNG nạp thư viện lucide.
-// Path lấy từ lucide-static 1.28.0; thêm icon mới thì copy phần trong <svg>.
-const _LUCIDE_PATHS = {
-  check: '<path d="M20 6 9 17l-5-5"/>',
-  x: '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
-  "triangle-alert":
-    '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/>',
-  info: '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>',
-  sparkles:
-    '<path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"/><path d="M20 2v4"/><path d="M22 4h-4"/><circle cx="4" cy="20" r="2"/>',
-  "trash-2":
-    '<path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
-  clipboard:
-    '<rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>',
-  copy: '<rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>',
-  "folder-open":
-    '<path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"/>',
-  "file-pen":
-    '<path d="M12.5 22H18a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v9.5"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M13.378 15.626a1 1 0 1 0-3.004-3.004l-5.01 5.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z"/>',
-  hourglass:
-    '<path d="M5 22h14"/><path d="M5 2h14"/><path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"/><path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"/>',
-};
+// Icon do thư viện lucide (CDN) dựng; mọi trang nạp file này đều đã có nó.
 
-// Trả về markup svg của icon lucide, hoặc null nếu chưa nhúng path tên đó.
-function _lucideSvg(name, size) {
-  const inner = _LUCIDE_PATHS[name];
-  if (!inner) return null;
-  return (
-    `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" ` +
-    `viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" ` +
-    `stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${inner}</svg>`
-  );
-}
-
-// Đặt icon lucide vào 1 ô tròn. Tên ngoài bộ nhúng sẵn → mượn thư viện lucide
-// nếu trang có nạp; không có nữa thì rơi về icon dự phòng cho khỏi trống ô.
+// Đặt icon lucide vào 1 ô tròn. stroke-width 2.5 cho nét dày hơn mặc định của
+// thư viện. Tên lạ thì lucide bỏ qua thẻ <i> → rơi về icon dự phòng cho khỏi trống ô.
 function _setLucideIcon(el, name, size, fallback) {
-  const svg = _lucideSvg(name, size);
-  if (svg) {
-    el.innerHTML = svg;
-  } else if (typeof lucide !== "undefined") {
-    el.innerHTML = `<i data-lucide="${name}" style="width:${size}px;height:${size}px"></i>`;
-    lucide.createIcons({ nodes: [el] });
-  } else {
-    el.innerHTML = _lucideSvg(fallback, size) || "";
+  const tag = (n) =>
+    `<i data-lucide="${n}" stroke-width="2.5" style="width:${size}px;height:${size}px"></i>`;
+  el.innerHTML = tag(name);
+  window.lucide?.createIcons({ root: el });
+  if (fallback && fallback !== name && !el.querySelector("svg")) {
+    el.innerHTML = tag(fallback);
+    window.lucide?.createIcons({ root: el });
   }
 }
 
@@ -121,7 +87,7 @@ const _TOAST_TYPE_ICON = {
 };
 
 // type quyết định màu + icon mặc định. icon (tuỳ chọn): tên icon lucide (vd "copy")
-// để đổi riêng icon mà vẫn giữ màu của type — tên có sẵn xem _LUCIDE_PATHS.
+// để đổi riêng icon mà vẫn giữ màu của type — tên nào cũng được, miễn có ở lucide.
 function showToast(msg, type = "default", icon = null) {
   const el = document.getElementById("cx-toast");
   const iconEl = document.getElementById("cx-toast-icon");

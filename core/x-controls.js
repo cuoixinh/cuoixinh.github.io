@@ -70,7 +70,7 @@ class XDate extends HTMLElement {
     this.innerHTML =
       (bare ? "" : _labelHtml(inputId, icon, label, !!required)) +
       `<input type="date" name="${name}" id="${inputId}" ${required} class="${inputClass}" />`;
-    if (!bare && icon && window.lucide) lucide.createIcons({ nodes: [this] });
+    if (!bare && icon && window.lucide) lucide.createIcons({ root: this });
     // Nếu được gắn SAU khi trang đã init xong (VD dựng động trong modal), tự khởi
     // tạo flatpickr bằng cấu hình CHUNG để mọi control ngày đồng nhất.
     if (
@@ -97,7 +97,7 @@ class XTime extends HTMLElement {
       _labelHtml(inputId, icon, label, this.hasAttribute("required")) +
       `<input type="text" name="${name}" id="${inputId}" data-timepicker readonly
          placeholder="${placeholder}" class="${_TIME_CLS}" />`;
-    if (icon && window.lucide) lucide.createIcons({ nodes: [this] });
+    if (icon && window.lucide) lucide.createIcons({ root: this });
   }
 }
 
@@ -217,7 +217,7 @@ class XTextarea extends HTMLElement {
          ${noClear ? "" : `<button type="button" class="x-ta-clear" aria-label="Xoá nội dung">${_X_TA_CLEAR_SVG}</button>`}
        </div>`;
 
-    if (!bare && icon && window.lucide) lucide.createIcons({ nodes: [this] });
+    if (!bare && icon && window.lucide) lucide.createIcons({ root: this });
 
     const ta = this.querySelector("textarea");
     const clearBtn = this.querySelector(".x-ta-clear");

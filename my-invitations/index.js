@@ -294,6 +294,7 @@ function render() {
     if (matchTab(c, ACTIVE_TAB)) list.push(cardHTML(c, i));
   });
   grid.innerHTML = list.join("");
+  window.lucide?.createIcons({ root: grid });
 
   if (list.length) setState("grid");
   else if (!currentUser && !CARDS.length) setState("guest");
@@ -347,19 +348,19 @@ function cardHTML(c, i) {
   const days = daysLeft(c);
 
   const statusBadge = c.published
-    ? `<span class="${BADGE} bg-emerald-500 text-white"><i data-icon="clipboard-check" data-size="12"></i>Đã xuất bản</span>`
-    : `<span class="${BADGE} bg-gray-100 text-gray-600" title="${escAttr(draftKeepText(c))}"><i data-icon="pen-tool" data-size="12"></i>Nháp</span>`;
+    ? `<span class="${BADGE} bg-emerald-500 text-white"><i data-lucide="clipboard-check" style="width:12px;height:12px"></i>Đã xuất bản</span>`
+    : `<span class="${BADGE} bg-gray-100 text-gray-600" title="${escAttr(draftKeepText(c))}"><i data-lucide="pen-tool" style="width:12px;height:12px"></i>Nháp</span>`;
 
   let leftBadges = "";
   if (state === "trial" || state === "expired" || state === "published") {
-    leftBadges = `<span class="${BADGE} bg-amber-500 text-white" title="${escAttr(UNPAID_KEEP_TEXT)}"><i data-icon="credit-card" data-size="12"></i>Chưa kích hoạt</span>`;
+    leftBadges = `<span class="${BADGE} bg-amber-500 text-white" title="${escAttr(UNPAID_KEEP_TEXT)}"><i data-lucide="credit-card" style="width:12px;height:12px"></i>Chưa kích hoạt</span>`;
     if (state === "trial") {
-      leftBadges += `<span class="${BADGE} bg-sky-500 text-white"><i data-icon="clock" data-size="12"></i><span class="sm:hidden">Còn ${days} ngày</span><span class="hidden sm:inline">Dùng thử · còn ${days} ngày</span></span>`;
+      leftBadges += `<span class="${BADGE} bg-sky-500 text-white"><i data-lucide="clock" style="width:12px;height:12px"></i><span class="sm:hidden">Còn ${days} ngày</span><span class="hidden sm:inline">Dùng thử · còn ${days} ngày</span></span>`;
     } else if (state === "expired") {
-      leftBadges += `<span class="${BADGE} bg-red-500 text-white"><i data-icon="clock" data-size="12"></i>Hết hạn</span>`;
+      leftBadges += `<span class="${BADGE} bg-red-500 text-white"><i data-lucide="clock" style="width:12px;height:12px"></i>Hết hạn</span>`;
     }
   } else if (state === "active") {
-    leftBadges = `<span class="${BADGE} bg-emerald-500 text-white"><i data-icon="circle-check" data-size="12"></i>Đã kích hoạt</span>`;
+    leftBadges = `<span class="${BADGE} bg-emerald-500 text-white"><i data-lucide="circle-check" style="width:12px;height:12px"></i>Đã kích hoạt</span>`;
   }
 
   const note = noteHTML(c, state, days, i);
@@ -387,7 +388,7 @@ function cardHTML(c, i) {
         <h3 class="cursor-pointer truncate text-[13px] font-bold text-gray-900 hover:opacity-80 sm:text-[15px]" onclick="openEditor(${i})">${esc(title)}</h3>
 
         <p class="mt-1 flex items-center gap-1.5 text-[10px] text-gray-500">
-          <i data-icon="palette" data-size="12" class="text-gray-400"></i>
+          <i data-lucide="palette" class="text-gray-400" style="width:12px;height:12px"></i>
           <span class="truncate">${esc(themeName(c.theme))}</span>
           <span class="text-gray-300">·</span>
           <span class="shrink-0">${formatDate(c.createdAt)}</span>
@@ -430,7 +431,7 @@ function _noteBox(tone, icon, inner) {
     gray: ["bg-gray-50 text-gray-600", "text-gray-400"],
   }[tone];
   return `<div class="flex gap-2 rounded-lg ${T[0]} p-2.5 text-[10px] leading-relaxed">
-      <i data-icon="${icon}" data-size="12" class="mt-0.5 ${T[1]}"></i>
+      <i data-lucide="${icon}" class="mt-0.5 ${T[1]}" style="width:12px;height:12px"></i>
       <span>${inner}</span>
     </div>`;
 }
@@ -506,12 +507,12 @@ function slugRowHTML(c, i) {
 // `shrink-0` là bắt buộc: mặc định flex cho co, thiếu nó nút Xoá bị bóp còn 11px.
 const ACTION = "shrink-0";
 
-// `icon` = tên icon lucide (core/helpers/icon.js).
+// `icon` = tên icon lucide.
 function _actionBtn(icon, title, onclick, extra = "") {
   return (
     `<x-button variant="ghost" tone="neutral" size="xs" icon-only onclick="${onclick}"` +
     ` title="${escAttr(title)}" aria-label="${escAttr(title)}" class="${ACTION} ${extra}">` +
-    cxIcon(icon, 13) +
+    `<i data-lucide="${icon}" style="width:13px;height:13px"></i>` +
     `</x-button>`
   );
 }
@@ -545,7 +546,7 @@ function actionsHTML(c, i, state) {
   out.push(
     `<x-button variant="ghost" tone="danger" size="xs" icon-only onclick="deleteCard(${i})"` +
       ` title="Xoá thiệp" aria-label="Xoá thiệp" class="${ACTION}">` +
-      `<i data-icon="trash-2" class="text-[11px]"></i></x-button>`,
+      `<i data-lucide="trash-2" class="text-[11px]" style="width:16px;height:16px"></i></x-button>`,
   );
   return out.join("");
 }

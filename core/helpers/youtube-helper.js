@@ -182,9 +182,12 @@ function resumeMusicIfAllowed() {
 function updateMusicIcon() {
   const musicIcon = document.getElementById("music-icon");
   if (!musicIcon) return;
-  // Thẻ #music-icon là thẻ BỌC; icon vẽ bằng svg lucide (core/helpers/icon.js —
-  // mọi trang dùng helper này đều đã nạp bảng icon).
-  musicIcon.innerHTML = cxIcon(isYouTubePlaying ? "pause" : "music", 18);
+  // Thẻ #music-icon là thẻ BỌC; icon do lucide dựng, phải gọi createIcons lại
+  // sau mỗi lần thay ruột vì thư viện chỉ quét khi được gọi.
+  musicIcon.innerHTML = `<i data-lucide="${
+    isYouTubePlaying ? "pause" : "music"
+  }" style="width:18px;height:18px"></i>`;
+  window.lucide?.createIcons({ root: musicIcon });
 }
 
 // ── Thông tin bài đang phát (cho theme vẽ thanh nhạc kiểu app nghe nhạc) ────

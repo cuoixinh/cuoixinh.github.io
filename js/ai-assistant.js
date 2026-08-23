@@ -37,7 +37,7 @@
     fab.id = "aichatFab";
     fab.className = "aichat-fab";
     fab.setAttribute("aria-label", "Mở trợ lý AI");
-    fab.innerHTML = '<i data-icon="wand-sparkles" data-size="22"></i>';
+    fab.innerHTML = '<i data-lucide="wand-sparkles" style="width:22px;height:22px"></i>';
 
     const panel = document.createElement("div");
     panel.id = "aichatPanel";
@@ -47,7 +47,7 @@
     panel.setAttribute("aria-label", "Trợ lý AI Cưới Xinh");
     panel.innerHTML = `
       <div class="aichat-head">
-        <span class="aichat-head-icon"><i data-icon="sparkles" data-size="18"></i></span>
+        <span class="aichat-head-icon"><i data-lucide="sparkles" style="width:18px;height:18px"></i></span>
         <div class="min-w-0 flex-1">
           <p class="aichat-head-title">Trợ lý AI</p>
           <p class="aichat-head-sub">Hỏi gì về thiệp cưới cũng được</p>
@@ -55,11 +55,11 @@
         <x-button variant="bare" icon-only id="aichatReset" type="button"
                   aria-label="Bắt đầu cuộc trò chuyện mới" title="Trò chuyện mới"
                   class="aichat-head-btn">
-          <i data-icon="refresh-cw" data-size="16"></i>
+          <i data-lucide="rotate-ccw" style="width:16px;height:16px"></i>
         </x-button>
         <x-button variant="bare" icon-only id="aichatClose" type="button"
                   aria-label="Đóng trợ lý" class="aichat-head-btn">
-          <i data-icon="x" data-size="18"></i>
+          <i data-lucide="x" style="width:18px;height:18px"></i>
         </x-button>
       </div>
       <div class="aichat-body" id="aichatBody"></div>
@@ -71,13 +71,15 @@
                   aria-label="Câu hỏi cho trợ lý"></textarea>
         <x-button variant="bare" icon-only id="aichatSend" type="button"
                   aria-label="Gửi" class="aichat-send">
-          <i data-icon="send" data-size="18"></i>
+          <i data-lucide="send" style="width:18px;height:18px"></i>
         </x-button>
       </div>`;
 
     // Append TRƯỚC khi truy vấn: <x-button> tự thay mình bằng <button> thật ngay
     // lúc được gắn vào DOM, tra cứu sớm hơn là bắt được thẻ sắp bị vứt đi.
     document.body.append(fab, panel);
+    window.lucide?.createIcons({ root: fab });
+    window.lucide?.createIcons({ root: panel });
 
     els = {
       fab,
