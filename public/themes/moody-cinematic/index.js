@@ -233,12 +233,32 @@
 
     // --- Lời cảm ơn ---
     if (w.footer_text) setText("footer-text", w.footer_text);
+    renderContactPhone(w);
     cxToggle("section-footer", cxEnabled(w.enable_footer));
 
     // Các mục vừa bật/tắt và các trang vừa sinh thêm → dựng lại dải trang.
     // Khách bấm mở bìa trước khi dữ liệu về thì onOpen đã chạy rồi, nên phép
     // đo phải chạy lại ở đây chứ không chỉ ở onOpen.
     refreshBook();
+  }
+
+  // Số liên hệ ở cuối thiệp — CHỈ của bên phát thiệp: thiệp nhà trai hiện số
+  // chú rể, thiệp nhà gái hiện số cô dâu. Khách mời của một nhà không cần (và
+  // không nên) thấy số của nhà bên kia.
+  // Bấm vào là gọi luôn (tel:). Chưa nhập số thì ẩn hẳn khối — để trống sẽ ra
+  // một cái nút rỗng không bấm được.
+  function renderContactPhone(w) {
+    const phone = (_isGroom ? w.groom_phone : w.bride_phone)?.trim();
+    const link = document.getElementById("contact-phone");
+    if (!link) return;
+
+    link.classList.toggle("hidden", !phone);
+    if (!phone) return;
+
+    setText("contact-phone-label", _isGroom ? "Liên hệ chú rể" : "Liên hệ cô dâu");
+    setText("contact-phone-text", phone);
+    // Số người dùng gõ có thể có khoảng trắng/dấu chấm — tel: chỉ chịu chữ số.
+    link.href = "tel:" + phone.replace(/[^\d+]/g, "");
   }
 
   window.renderWedding = renderWedding;
@@ -255,6 +275,10 @@
 
   const FLIP_MS = 420; // khoá lật trang: một cú lăn = một trang
   const SWIPE_PX = 40; // ngưỡng vuốt dọc mới tính là lật trang
+
+  // Quãng đường của cú kéo vừa rồi — dùng để tách "bấm xem ảnh" khỏi "kéo lật
+  // trang": kéo trúng một khung album rồi nhả thì KHÔNG mở lightbox.
+  let _dragPx = 0;
 
   // setupBook() gán vào đây để refreshBook() dùng lại đúng phép đo đó.
   let _syncPager = () => {};
@@ -346,20 +370,52 @@
         sx = e.touches[0].clientX;
         sy = e.touches[0].clientY;
         si = index();
+        _dragPx = 0;
       },
       { passive: true },
     );
-    pages.addEventListener("touchend", (e) => {
+    // Nhấc ngón / nhả chuột: chốt hướng và lật. Dùng chung cho cả hai nguồn.
+    const endSwipe = (x, y) => {
       if (Date.now() < lockUntil) return;
-      const t = e.changedTouches[0];
-      const dx = t.clientX - sx;
-      const dy = t.clientY - sy;
+      const dx = x - sx;
+      const dy = y - sy;
       const vertical = Math.abs(dy) > Math.abs(dx);
       const d = vertical ? dy : dx;
       if (Math.abs(d) < SWIPE_PX) return;
       lockUntil = Date.now() + FLIP_MS;
       // Kéo lên / kéo sang trái đều là sang trang sau.
       goTo(si + (d < 0 ? 1 : -1));
+    };
+
+    pages.addEventListener("touchend", (e) => {
+      const t = e.changedTouches[0];
+      _dragPx = Math.max(Math.abs(t.clientX - sx), Math.abs(t.clientY - sy));
+      endSwipe(t.clientX, t.clientY);
+    });
+
+    // --- Chuột: kéo thả cũng lật trang ---
+    // Máy tính không sinh sự kiện touch nào, mà bản xem trước ở trang Thiết lập
+    // lại chạy bằng chuột — thiếu nhánh này thì trên đó chỉ lăn chuột mới lật
+    // được. Bắt ở #cx-pages nên kéo trúng ảnh, chữ hay khoảng trống đều như nhau.
+    let dragging = false;
+    pages.addEventListener("mousedown", (e) => {
+      if (e.button !== 0) return;
+      sx = e.clientX;
+      sy = e.clientY;
+      si = index();
+      dragging = true;
+      _dragPx = 0;
+    });
+    pages.addEventListener("mousemove", (e) => {
+      if (!dragging) return;
+      _dragPx = Math.max(_dragPx, Math.abs(e.clientX - sx), Math.abs(e.clientY - sy));
+    });
+    // Nghe ở window: nhả chuột ngoài khổ thiệp vẫn phải chốt, nếu không cú kéo
+    // kế tiếp bắt đầu với dragging còn treo.
+    window.addEventListener("mouseup", (e) => {
+      if (!dragging) return;
+      dragging = false;
+      endSwipe(e.clientX, e.clientY);
     });
 
     // --- Bàn phím + hai nút lật ---
@@ -406,6 +462,7 @@
     _syncGroupPages();
     _fitGallery();
     _reflowFlows();
+    _fillGalleryTail();
     _fillTimeline();
     _markReveal();
     _syncPager();
@@ -482,6 +539,35 @@
     if (h > 0) grid.style.setProperty("--mc-row-h", Math.floor(h) + "px");
   }
 
+  // Hàng ảnh CUỐI của album nuốt trọn phần cao còn thừa của trang nó nằm: số
+  // ảnh hiếm khi chia chẵn cho lưới nên trang cuối gần như luôn hụt vài hàng,
+  // để nguyên là một mảng trắng ở đáy. Phải chạy SAU _reflowFlows() — chỉ khi
+  // đã dồn trang xong mới biết hàng cuối rơi vào trang nào và trang đó còn
+  // trống bao nhiêu.
+  function _fillGalleryTail() {
+    const rows = document.querySelectorAll("#cx-pages .mc-grid-row");
+    const last = rows[rows.length - 1];
+    const page = last?.closest("section.mc-page");
+    const inner = page?.querySelector(":scope > .mc-page-in");
+    if (!inner || !page.clientHeight) return;
+
+    const cs = getComputedStyle(page);
+    const avail =
+      page.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+    const free = avail - inner.scrollHeight;
+    if (free < 8) return; // gần khít rồi, kéo thêm chỉ tổ lệch nhịp lưới
+
+    last.style.height = last.offsetHeight + free + "px";
+    last.dataset.cxGrow = "1";
+  }
+
+  function _resetGalleryTail() {
+    document.querySelectorAll("#cx-pages .mc-grid-row[data-cx-grow]").forEach((r) => {
+      r.style.height = "";
+      delete r.dataset.cxGrow;
+    });
+  }
+
   // Trang Lịch trình khai ít mốc thì nửa dưới trống trơn — lấp bằng một khung
   // ảnh. Hàm này CHỈ quyết định có bật ảnh hay không; cao bao nhiêu là việc của
   // flex (.mc-tl-fill nuốt phần thừa, và co lại nếu đo hụt). Dưới ngưỡng này thì
@@ -539,6 +625,10 @@
   const CX_UNIT_SEL = "[data-cx-unit], [data-cx-flow] > *";
 
   function _reflowFlows() {
+    // Trả hàng ảnh cuối về chiều cao chuẩn TRƯỚC khi đo: để nguyên phần đã kéo
+    // giãn ở lượt trước thì lượt này tưởng trang đã đầy và cắt sai chỗ.
+    _resetGalleryTail();
+
     const done = new Set();
     document.querySelectorAll("#cx-pages [data-cx-flow]").forEach((host) => {
       const page = host.closest("section.mc-page");
@@ -569,6 +659,17 @@
     inner
       .querySelectorAll(".mc-stream-off")
       .forEach((el) => el.classList.remove("mc-stream-off"));
+
+    // Trả bài đã cắt chữ (_splitStory) về nguyên văn: xoá mẩu đầu (bản sao) rồi
+    // đổ lại toàn văn vào bài gốc. Phải làm SAU vòng gom ở trên — mẩu đầu có thể
+    // nằm trên chính trang lùi vừa gỡ và được gom về đây.
+    inner.querySelectorAll("[data-cx-frag]").forEach((el) => el.remove());
+    inner.querySelectorAll(".mc-story-cont").forEach((el) => {
+      el.classList.remove("mc-story-cont");
+    });
+    inner.querySelectorAll(".mc-post-body").forEach((b) => {
+      if (b._cxFull != null) b.textContent = b._cxFull;
+    });
 
     return inner;
   }
@@ -603,8 +704,15 @@
     let curInner = inner;
     let after = page;
     let guard = 0;
+    // Bài vừa bị ĐẨY NỐT sang trang mới ở lượt trước mà cắt chữ không thành —
+    // gặp lại chính nó là dừng, nếu không mỗi lượt lại đẩy nó sang một trang
+    // rỗng mới mãi không thôi.
+    let stuck = null;
 
-    while (curInner.scrollHeight > avail && rest.length > 1 && guard++ < 50) {
+    while (curInner.scrollHeight > avail && guard++ < 50) {
+      // Chỉ còn một đơn vị: đi tiếp chỉ có nghĩa khi nó là bài CẮT CHỮ được.
+      if (rest.length <= 1 && !_storyBody(rest[0])) break;
+
       const sec = document.createElement("section");
       sec.className = "mc-page";
       sec.dataset.cxSpill = "stream";
@@ -613,35 +721,123 @@
       sec.appendChild(si);
       after.after(sec);
 
-      // Lùi dần đơn vị CUỐI sang trang mới cho tới khi trang này vừa khít.
       const clones = new Map();
       const moved = [];
-      while (curInner.scrollHeight > avail && rest.length > 1) {
-        const el = rest.pop();
+      const push = (el) => {
         // Thẻ bọc đang chứa nó — ở trang gốc là thẻ thật, ở trang lùi là bản
         // sao; rỗng ruột thì phải ẩn ngay, gap của flex vẫn ăn chỗ như thường.
+        // Nhớ lại thẻ bọc đó: phần đầu bài cắt ra sẽ quay về đúng chỗ này.
         const from = el.parentElement;
+        el._cxFrom = from;
         _streamMove(el, inner, si, clones);
         _streamHideEmpty(from, curInner);
         moved.unshift(el);
-      }
+      };
+
+      // Lùi dần đơn vị CUỐI sang trang mới cho tới khi trang này vừa khít.
+      while (curInner.scrollHeight > avail && rest.length > 1) push(rest.pop());
 
       // Tiêu đề ([data-cx-unit]) KHÔNG được đứng lẻ ở cuối trang: nội dung ngay
       // dưới nó vừa lùi đi thì nó phải lùi theo, nếu không "Album Ảnh" nằm cuối
       // trang này mà ảnh lại ở trang bên. Lặp vì có thể hai tiêu đề liền nhau
       // (mục trước hết nội dung, mục sau chỉ còn tiêu đề).
       while (rest.length > 1 && rest[rest.length - 1].hasAttribute("data-cx-unit")) {
-        const el = rest.pop();
-        const from = el.parentElement;
-        _streamMove(el, inner, si, clones);
-        _streamHideEmpty(from, curInner);
-        moved.unshift(el);
+        push(rest.pop());
+      }
+
+      // Một bài DÀI HƠN CẢ TRANG thì hai vòng trên không đụng tới nó (luôn chừa
+      // lại đơn vị cuối). Đẩy nốt sang trang mới rồi cắt chữ ngay bên dưới —
+      // không có bước này thì bài dài bị cắt cụt ở đáy trang.
+      if (curInner.scrollHeight > avail && rest.length === 1) {
+        if (rest[0] === stuck) {
+          sec.remove();
+          break;
+        }
+        stuck = rest[0];
+        push(rest.pop());
+      }
+
+      // Kéo phần đầu bài vừa lùi quay lại lấp cho đầy trang này.
+      if (_splitStory(moved[0], curInner, avail)) stuck = null;
+
+      // Không lùi được gì (trang lùi rỗng) thì thôi, nếu không sinh trang trắng.
+      if (!si.querySelector(CX_UNIT_SEL)) {
+        sec.remove();
+        break;
       }
 
       curInner = si;
       after = sec;
       rest = moved;
     }
+  }
+
+  // ── Cắt CHỮ giữa bài (chuyện tình yêu) ──────────────────────────────────
+  // Đơn vị dồn trang nhỏ nhất vốn là CẢ một bài, nên bài không vừa chỗ còn lại
+  // sẽ nhảy nguyên sang trang sau và để trống nửa trang. Mục chuyện tình yêu
+  // đọc như trang báo nên phải kín chữ: giữ lại trên trang trước nhiều chữ nhất
+  // còn vừa, phần sau đọc tiếp ở trang kế.
+  // Bài quá ngắn thì thôi — cắt ra hai mẩu vụn còn xấu hơn một khoảng trống.
+
+  const STORY_MIN_WORDS = 25;
+
+  function _storyBody(el) {
+    return el?.classList?.contains("mc-story-page")
+      ? el.querySelector(":scope > .mc-post-body")
+      : null;
+  }
+
+  // `tail` là bài VỪA LÙI sang trang mới. Trả về true nếu cắt được: phần đầu
+  // (bản sao, có dateline/tít/ảnh) quay về trang trước, phần đuôi ở lại bài gốc
+  // và giấu dateline/tít/ảnh đi — đọc tiếp như một cột báo tràn trang.
+  function _splitStory(tail, curInner, avail) {
+    const body = _storyBody(tail);
+    const from = tail?._cxFrom;
+    if (!body || !from) return false;
+
+    // Chụp lại nguyên văn lần đầu chạm tới — CHỈ để _streamReset() trả bài về
+    // như cũ. Phép cắt luôn đi từ phần chữ CÒN LẠI (body.textContent), không
+    // phải từ bản chụp: bài dài trải ba trang thì lượt cắt thứ hai mà đọc bản
+    // chụp sẽ chép lại cả phần đã nằm ở trang đầu.
+    if (body._cxFull == null) body._cxFull = body.textContent;
+    const words = body.textContent.split(/\s+/).filter(Boolean);
+    if (words.length < STORY_MIN_WORDS * 2) return false;
+
+    const head = tail.cloneNode(true);
+    head.dataset.cxFrag = "1";
+    head.removeAttribute("id");
+    head.querySelectorAll("[id]").forEach((n) => n.removeAttribute("id"));
+    const headBody = head.querySelector(".mc-post-body");
+    from.appendChild(head);
+    _streamHideEmpty(from, curInner); // thẻ bọc vừa bị ẩn vì rỗng → bật lại
+
+    // Nhị phân theo SỐ CHỮ: nhiều nhất mà trang vẫn chưa tràn. Đo bằng DOM thật
+    // nên không phải đoán chiều cao dòng, cỡ chữ hay chỗ xuống dòng.
+    let lo = STORY_MIN_WORDS;
+    let hi = words.length - STORY_MIN_WORDS;
+    let best = 0;
+    while (lo <= hi) {
+      const mid = (lo + hi) >> 1;
+      headBody.textContent = words.slice(0, mid).join(" ");
+      if (curInner.scrollHeight <= avail) {
+        best = mid;
+        lo = mid + 1;
+      } else {
+        hi = mid - 1;
+      }
+    }
+
+    // Chỗ trống không đủ cho cả phần đầu bài → trả trang về nguyên trạng.
+    if (!best) {
+      head.remove();
+      _streamHideEmpty(from, curInner);
+      return false;
+    }
+
+    headBody.textContent = words.slice(0, best).join(" ");
+    body.textContent = words.slice(best).join(" ");
+    tail.classList.add("mc-story-cont");
+    return true;
   }
 
   // Chuyển một đơn vị sang trang lùi, dựng lại đúng chuỗi thẻ bọc của nó (mục
@@ -742,11 +938,23 @@
   }
 
   // ============= ALBUM ẢNH — ẢNH DỌC NGANG ĐAN XEN (phần đặc thù của mẫu) =============
-  // Mỗi hàng chứa một khung hẹp và một khung rộng, đan xen vị trí giữa các hàng.
-  // Tổng chiều rộng của mỗi hàng chiếm 100% màn hình; chiều cao hàng do
-  // _fitGallery() đặt để một trang luôn vừa đúng 4 hàng.
+  // Bố cục CỐ ĐỊNH, không tính theo số ảnh: mỗi hàng hai khung hẹp–rộng, bề
+  // ngang đảo chiều giữa các hàng (hai hàng giống hệt nhau đứng cạnh trông như
+  // bảng biểu). Ảnh đổ vào lần lượt cho tới hết; hàng cuối lẻ một ảnh thì ảnh
+  // đó tự kéo rộng hết hàng. Chiều cao hàng do _fitGallery() đặt để một trang
+  // vừa đúng GALLERY_ROWS hàng.
   // Bấm một khung thì mở lightbox dùng chung — điều kiện duy nhất là đổ đúng
   // thứ tự ảnh vào lightboxImages rồi gọi openLightbox(i).
+
+  // Bề ngang hai khung của từng hàng, lặp lại từ đầu khi hết mẫu.
+  const ALBUM_ROWS = [
+    [40, 60],
+    [60, 40],
+  ];
+
+  // Ô chữ chiếm chỗ ĐẦU của hàng này (đếm từ 0, tính trên cả album) — hàng thứ
+  // ba của trang đầu. Đặt -1 là album không có ô chữ.
+  const ALBUM_CAP_ROW = 2;
 
   function renderGallery(images, focalPoints) {
     const strip = document.getElementById("gallery-grid");
@@ -777,29 +985,28 @@
         class="w-full h-full object-cover"
         style="object-position:${fp?.x ?? 50}% ${fp?.y ?? 50}%">
         <div class="mc-frame-no">${String(i + 1).padStart(2, "0")}</div>`;
-      el.addEventListener("click", () => openLightbox(i));
+      // Kéo qua khung để lật trang thì thôi, đừng mở ảnh — chỉ cú bấm ĐỨNG YÊN
+      // mới là ý định xem ảnh.
+      el.addEventListener("click", () => {
+        if (_dragPx > 6) return;
+        openLightbox(i);
+      });
       return el;
     };
 
+    // Đổ ảnh vào mẫu hàng cố định cho tới khi hết ảnh. Ô chữ chiếm một chỗ như
+    // một tấm ảnh nên hàng mang nó chỉ còn một ảnh.
     strip.innerHTML = "";
-    _albumRows(urls.length).forEach((row, r) => {
+    let at = 0;
+    for (let r = 0; at < urls.length; r++) {
+      const cols = ALBUM_ROWS[r % ALBUM_ROWS.length];
       const el = document.createElement("div");
       el.className = "mc-grid-row";
-      el.style.setProperty("--s", row.span);
 
-      // Đan xen bề ngang giữa các hàng hai ảnh: hàng chẵn hẹp-rộng, hàng lẻ
-      // rộng-hẹp — hai hàng giống hệt nhau đứng cạnh trông như bảng biểu.
-      // Hàng có ô chữ không đảo: ô chữ phải luôn nằm bên TRÁI.
-      const cols =
-        row.capAt === undefined && row.cols.length === 2 && r % 2 === 1
-          ? [...row.cols].reverse()
-          : row.cols;
-
-      let at = row.from;
       cols.forEach((grow, k) => {
-        // Ô chữ — chữ TRANG TRÍ fix cứng như trích dẫn ở tờ lịch, không phải
-        // dữ liệu thiệp. Nó KHÔNG tiêu thụ ảnh nên `at` không tăng ở đây.
-        if (k === row.capAt) {
+        // Ô chữ — chữ TRANG TRÍ fix cứng như trích dẫn ở tờ lịch, không phải dữ
+        // liệu thiệp. Luôn nằm bên TRÁI hàng và KHÔNG tiêu thụ ảnh.
+        if (r === ALBUM_CAP_ROW && k === 0) {
           const cap = document.createElement("div");
           cap.className = "mc-cap-cell";
           cap.style.flex = grow + " 1 0";
@@ -808,89 +1015,15 @@
           el.appendChild(cap);
           return;
         }
+        // Hàng cuối lẻ một ảnh: bỏ ô còn lại, ảnh kia tự kéo rộng hết hàng.
+        if (at >= urls.length) return;
         el.appendChild(createFrame(urls[at], at, grow));
         at++;
       });
+
       strip.appendChild(el);
-    });
+    }
   }
-
-  // Chia n ảnh thành các hàng sao cho MỌI trang đều kín: trang cao đúng
-  // GALLERY_ROWS đơn vị, hàng thường cao 1 đơn vị và chứa 2 ảnh, nên n chia hết
-  // cho 8 là vừa khít. Phần dư (1..7 ảnh) không đủ lấp 4 hàng đôi → xếp lại
-  // thành khung to/nhỏ theo bảng dưới, tổng chiều cao vẫn đúng 4 đơn vị.
-  // Trả về [{ from, span, cols, capAt }]: from = chỉ số ảnh đầu hàng, span =
-  // chiều cao tính bằng đơn vị hàng, cols = tỉ lệ bề ngang từng ô trong hàng,
-  // capAt = vị trí ô CHỮ trong hàng (chỉ một hàng trong cả album có).
-  const ALBUM_TAIL = {
-    1: [[4, [100]]],
-    2: [[2, [100]], [2, [100]]],
-    3: [[2, [100]], [2, [40, 60]]],
-    4: [[2, [40, 60]], [2, [60, 40]]],
-    5: [[2, [100]], [1, [40, 60]], [1, [60, 40]]],
-    6: [[1, [40, 60]], [1, [60, 40]], [2, [40, 60]]],
-    7: [[1, [34, 33, 33]], [1, [40, 60]], [2, [60, 40]]],
-  };
-
-  function _albumRows(n) {
-    if (!n) return [];
-
-    // Ô chữ chiếm HẲN một ô như một tấm ảnh, nên xếp bố cục cho n + 1 ô rồi
-    // mới lấy một ô ra làm chỗ đặt chữ — có vậy trang mới còn kín.
-    const slots = n + 1;
-    const perPage = GALLERY_ROWS * 2; // 4 hàng đôi
-    const rows = [];
-    let i = 0;
-
-    // Phần chia chẵn: hàng đôi bình thường.
-    const full = slots - (slots % perPage);
-    for (; i < full; i += 2) rows.push({ from: i, span: 1, cols: [40, 60] });
-
-    // Phần dư: bố cục riêng cho vừa đúng một trang.
-    (ALBUM_TAIL[slots % perPage] || []).forEach(([span, cols]) => {
-      rows.push({ from: i, span, cols });
-      i += cols.length;
-    });
-
-    _albumPutCap(rows);
-
-    // Đánh lại chỉ số ảnh: ô chữ không tiêu thụ ảnh nên mọi hàng SAU nó đều lùi
-    // một nhịp.
-    let at = 0;
-    rows.forEach((row) => {
-      row.from = at;
-      at += row.cols.length - (row.capAt === undefined ? 0 : 1);
-    });
-
-    return rows;
-  }
-
-  // Ô chữ nằm bên TRÁI hàng giữa của trang ĐÔNG ẢNH NHẤT — trang thưa ảnh vốn
-  // đã có khung to chiếm chỗ, đặt chữ vào đó là bố cục vụn. Ưu tiên hàng còn ít
-  // nhất hai ô để hàng đó vẫn còn một tấm ảnh đứng cạnh chữ.
-  function _albumPutCap(rows) {
-    // Cắt rows thành từng trang: cộng span cho tới khi đủ một trang.
-    const pages = [];
-    let cur = [];
-    let h = 0;
-    rows.forEach((row) => {
-      cur.push(row);
-      h += row.span;
-      if (h >= GALLERY_ROWS) {
-        pages.push(cur);
-        cur = [];
-        h = 0;
-      }
-    });
-    if (cur.length) pages.push(cur);
-
-    const best = pages.reduce((a, b) => (_albumCount(b) > _albumCount(a) ? b : a));
-    const pick = best.filter((r) => r.cols.length > 1);
-    const from = pick.length ? pick : best;
-    from[Math.floor(from.length / 2)].capAt = 0;
-  }
-
-  const _albumCount = (page) => page.reduce((a, r) => a + r.cols.length, 0);
 
   // ============= TỜ LỊCH: tháng lớn (trái) + lưới ngày (phải) =============
   // Ghi đè window.renderMiniCalendar của calendar-helper.js (nạp TRƯỚC file

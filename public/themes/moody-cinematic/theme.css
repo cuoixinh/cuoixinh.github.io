@@ -194,10 +194,17 @@ body {
    ảnh giãn ra. Vì vậy trang này KHÔNG được có [data-cx-push] (auto-margin trục
    chính triệt tiêu mọi flex-grow cùng hàng) — chỗ thừa đã có nơi để đổ vào rồi.
    min-height: 0 là bắt buộc: mặc định min-height:auto của flex item không cho
-   thẻ lịch co xuống dưới chiều cao nội dung, màn ngắn là tràn. */
+   thẻ lịch co xuống dưới chiều cao nội dung, màn ngắn là tràn.
+
+   Trang này CHÍNH LÀ .mc-page-in (section đổi tên qua _toPage()). Phải dùng
+   height (không phải min-height): min-height chỉ là SÀN, nội dung đòi cao hơn
+   thì khối cứ phình theo mà không co gì cả — ảnh theo aspect-ratio giữ nguyên
+   cỡ, phần dư bị .mc-page (overflow:hidden) cắt trộm chứ ảnh không hề nhỏ lại.
+   height khoá cứng đúng bằng trang thì flex bên trong (.mc-panel/.mc-cal-shot)
+   mới có "chỗ thiếu" thật để co theo. */
 
 .mc-party-page {
-  min-height: 100%;
+  height: 100%;
 }
 
 /* Thẻ lịch TRÀN MÉP như ảnh lớn của trang Lời mời — viền hai bên bỏ đi, giữ lại
@@ -219,6 +226,27 @@ body {
   aspect-ratio: 5 / 3;
   min-height: 120px;
   --mc-bar-h: 0%;
+}
+
+/* Màn thấp hơn iPhone 16 (iPhone 13, SE…) hụt vài chục px là sàn 120px ở trên
+   không co nổi nữa, phần dưới trang bị cắt. Hạ sàn theo ba nấc để ảnh chịu
+   phần thiếu hụt đó thay vì trang tràn khỏi màn. */
+@media (max-height: 820px) {
+  .mc-cal-shot {
+    min-height: 90px;
+  }
+}
+
+@media (max-height: 700px) {
+  .mc-cal-shot {
+    min-height: 60px;
+  }
+}
+
+@media (max-height: 600px) {
+  .mc-cal-shot {
+    min-height: 40px;
+  }
 }
 
 /* Veil TỐI ở đỉnh ảnh, tan dần xuống — quote nằm trên nền sáng (trời, cây) nếu
@@ -389,9 +417,14 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  /* Trang luôn cao trọn khổ thiệp: chỗ thừa (màn dài như 15 Pro Max) phải có
-     nơi để đổ vào, và nơi đó là tấm ảnh lớn — xem .mc-ph-shot. */
-  min-height: 100%;
+  /* Trang luôn cao ĐÚNG khổ thiệp — height chứ không phải min-height: đây
+     CHÍNH LÀ .mc-page-in (section đổi tên qua _toPage()); min-height chỉ là
+     sàn nên nội dung đòi cao hơn thì khối cứ phình theo, ảnh (theo
+     aspect-ratio) giữ nguyên cỡ và phần dư bị .mc-page (overflow:hidden) cắt
+     trộm chứ không hề co lại. height khoá cứng thì flex bên trong
+     (.mc-ph-shot) mới có "chỗ thiếu" thật để co. Chỗ thừa (màn dài như 15 Pro
+     Max) vẫn có nơi để đổ vào — xem .mc-ph-shot. */
+  height: 100%;
   /* Khoảng cách phân TẦNG: 14px là nhịp giữa các khối, khối nào cần dính vào
      nhau thì tự bù bằng margin âm. Đều tăm tắp là mất grouping. */
   gap: 18px;
@@ -478,6 +511,43 @@ body {
   /* Thanh đen mảnh hơn khung điện ảnh thường: khung 16:9 tự nó đã là tỉ lệ màn
      ảnh rộng, thanh dày nữa là ăn vào mặt người. */
   --mc-bar-h: 5%;
+}
+
+/* Cùng lý do với .mc-cal-shot: màn thấp hơn iPhone 16 thì sàn 150px đội trang
+   cao hơn khung nhìn, phần dưới (khối gia đình) bị cắt. Hạ sàn để ảnh co nhỏ
+   lại thay vì tràn — chữ đè ảnh (.mc-ph-cap) vẫn đọc được ở mức này. */
+@media (max-height: 820px) {
+  .mc-ph-shot {
+    min-height: 110px;
+  }
+}
+
+@media (max-height: 700px) {
+  .mc-ph-shot {
+    min-height: 80px;
+  }
+}
+
+/* Nấc cuối: dưới 71px chữ đè ảnh (.mc-ph-cap ~71px tính cả padding) mới thật
+   sự bị cắt, nên co thêm gọn khối chữ cùng lúc hạ sàn — không thì tên đôi
+   chui lên trên khỏi ảnh, bị .mc-cine (overflow:hidden) nuốt mất chữ. */
+@media (max-height: 600px) {
+  .mc-ph-shot {
+    min-height: 60px;
+  }
+
+  .mc-ph-cap {
+    gap: 0;
+    padding-bottom: 10px;
+  }
+
+  .mc-ph-names {
+    font-size: 26px;
+  }
+
+  .mc-ph-sub {
+    font-size: 8px;
+  }
 }
 
 /* Trắng của chữ nằm trên ảnh — CỐ ĐỊNH như --mc-bar-rgb: khách đổi bảng màu
@@ -801,6 +871,21 @@ body {
   display: none;
 }
 
+/* Vuốt/kéo ở BẤT KỲ chỗ nào trong thiệp đều phải lật trang. Hai thứ mặc định
+   của trình duyệt nuốt mất cú kéo nếu nó bắt đầu trên ảnh hoặc trên chữ:
+   kéo-thả ảnh (ghost image) và bôi đen chữ. Tắt cả hai. */
+
+.mc-pages img {
+  -webkit-user-drag: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.mc-pages {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
 .mc-page {
   flex: 0 0 100%;
   width: 100%;
@@ -814,7 +899,7 @@ body {
      nhảy chữ. 48px là để chữ không chui xuống dưới Dynamic Island / tai thỏ;
      đáy chừa chỗ cho thanh chỉ báo trang. */
   justify-content: flex-start;
-  padding: 48px 0 56px;
+  padding: 16px 0 56px;
 }
 
 /* Trang Tiệc cưới là NGOẠI LỆ: nó mở đầu bằng ảnh thẻ lịch tràn mép, ảnh chui
@@ -885,14 +970,218 @@ body {
    Chỉ trang nào khai mới bị kéo cao hết trang. Trang dồn nội dung
    ([data-cx-flow]: chuyện tình yêu, album) cố ý KHÔNG khai: _flowPaginate() so
    scrollHeight với chiều cao trang, kéo cao là nó tưởng trang đã đầy và cắt
-   sang trang mới ngay từ mục đầu tiên. */
+   sang trang mới ngay từ mục đầu tiên.
+
+   height chứ không phải min-height — trang khai push không có ai dồn giúp nên
+   phải tự khoá TRẦN. padding-bottom 56px của .mc-page chỉ CHỪA chỗ cho thanh chỉ
+   báo trang, nó không chặn được gì: nội dung cao hơn khung vẫn tràn qua vùng
+   padding và chỉ bị cắt ở mép .mc-page, tức là đè lên .mc-pager. Khoá trần thì
+   flex bên trong mới co lại. */
 
 .mc-page-in:has(> [data-cx-push]) {
-  min-height: 100%;
+  height: 100%;
 }
 
 [data-cx-push] {
   margin-top: auto;
+}
+
+/* ── TRANG CUỐI: Hộp mừng cưới + Địa điểm + Lời cảm ơn ────────────────────
+   Trang này KHÔNG dồn nội dung và KHÔNG khai [data-cx-push] (auto-margin sẽ
+   nuốt sạch chỗ trống, flex-grow thành vô nghĩa) nên phải tự khoá trần ở đây.
+   Khoá xong thì phần co giãn bên dưới mới có "chỗ thiếu" thật để co. */
+
+.mc-page-in:has(> #section-gift) {
+  height: 100%;
+}
+
+/* Mục Hộp mừng cưới KHÔNG co (flex: none) — ô QR phải giữ hình vuông nên chiều
+   cao của nó do bề ngang quyết định, để flex bóp dọc là hộp méo ngay. Chỗ thiếu
+   trên màn ngắn lấy từ hai nguồn khác: cỡ chữ (bảng dưới) và trần bề ngang của
+   ô QR. Bản đồ thì co giãn được — nó thế chỗ [data-cx-push] cũ, hút phần thừa
+   xuống đáy trang. min-height: 0 là bắt buộc ở phần co: mặc định min-height:auto
+   của flex item không cho con co xuống dưới chiều cao nội dung. */
+
+#section-gift {
+  flex: none;
+}
+
+#section-map {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* Ô QR LUÔN VUÔNG, mọi khổ màn: aspect-ratio giữ hình, bề ngang là thứ duy nhất
+   điều khiển cỡ. Nền trắng giữ nguyên (máy quét cần), ảnh phủ trọn ô.
+   Màn càng ngắn thì hạ trần bề ngang — ô nhỏ lại theo cả hai chiều mà vẫn vuông,
+   khác hẳn việc để flex bóp một chiều. Trần đặt ở đây thắng max-w-[180px] của
+   markup nhờ có #section-gift đứng trước. */
+
+.mc-qr {
+  aspect-ratio: 1;
+}
+
+#section-gift .mc-qr img {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 1;
+  object-fit: contain;
+}
+
+@media (max-height: 820px) {
+  #section-gift .mc-qr {
+    max-width: 140px;
+  }
+}
+
+@media (max-height: 700px) {
+  #section-gift .mc-qr {
+    max-width: 112px;
+  }
+}
+
+@media (max-height: 600px) {
+  #section-gift .mc-qr {
+    max-width: 88px;
+  }
+}
+
+/* Khung bản đồ: bỏ h-32 cố định của markup, để nó nuốt phần cao còn lại của
+   mục. Sàn 72px để màn cực ngắn không bóp thành một vệt. Thanh "Mở Maps" bên
+   dưới giữ nguyên cỡ. */
+
+#map-link {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+#map-link > div:first-child {
+  flex: 1 1 auto;
+  height: auto;
+  min-height: 72px;
+}
+
+/* ── Cỡ chữ riêng của trang cuối ───────────────────────────────────────────
+   Trang này gánh BA mục mà không có tấm ảnh lớn nào để nhả chỗ như các trang
+   khác, nên chữ phải nhỏ hơn nhịp chung của thiệp. Ghi đè các utility text-[…]
+   trong markup — mọi luật dưới đây đều bắt đầu bằng id nên luôn thắng.
+   Sửa cỡ ở ĐÂY chứ đừng đổi class trong markup: mấy cỡ đó là nhịp chung, các
+   trang khác vẫn đang dùng. */
+
+.mc-page-in:has(> #section-gift) {
+  gap: 20px;
+}
+
+#section-gift {
+  gap: 14px;
+}
+
+#section-gift h2,
+#section-map h2 {
+  font-size: 15px;
+}
+
+#section-gift .mc-eyebrow {
+  font-size: 9px;
+  letter-spacing: 3px;
+}
+
+#section-gift > .grid {
+  gap: 12px;
+}
+
+#section-gift > .grid > div {
+  gap: 4px;
+}
+
+#groom-bank-label,
+#bride-bank-label,
+#groom-bank-name,
+#bride-bank-name,
+#groom-bank-owner,
+#bride-bank-owner {
+  font-size: 10px;
+}
+
+#groom-bank-number,
+#bride-bank-number {
+  font-size: 12px;
+}
+
+/* Nút "Lưu QR": chữ nhỏ đi thì đệm cũng phải bớt, không thì nút to hơn nhãn. */
+
+#section-gift x-button,
+#section-gift button {
+  font-size: 10px;
+  padding: 6px 12px;
+}
+
+#map-location-name {
+  font-size: 13px;
+}
+
+#footer-text {
+  font-size: 11px;
+}
+
+#section-footer {
+  gap: 12px;
+}
+
+/* ── Số liên hệ ở cuối thiệp ───────────────────────────────────────────────
+   Một ô bấm-để-gọi, cùng ngôn ngữ với ô bản đồ ngay trên nó: nền xám nhạt,
+   viền tóc, bo góc chung. Nhãn "Liên hệ chú rể/cô dâu" và chính con số do
+   index.js đổ vào theo bên phát thiệp. */
+
+.mc-contact {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  border: 1px solid rgb(var(--cx-line-rgb));
+  border-radius: var(--mc-r);
+  background-color: rgb(var(--cx-surface-rgb));
+  transition: border-color 0.25s ease;
+}
+
+.mc-contact.hidden {
+  display: none; /* .hidden của themes.css nạp TRƯỚC file này nên phải nhắc lại */
+}
+
+.mc-contact i {
+  font-size: 11px;
+}
+
+.mc-contact-in {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  line-height: 1.2;
+}
+
+.mc-contact-lb {
+  font-family: "Montserrat", sans-serif;
+  font-size: 8px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgb(var(--cx-body-rgb));
+}
+
+/* Con số là thứ khách cần đọc nhanh nhất trong ô — để nguyên cỡ này, đừng hạ
+   theo nhịp chữ nhỏ của trang cuối. */
+
+.mc-contact-no {
+  font-size: 14px;
+  letter-spacing: 1px;
+}
+
+@media (hover: hover) {
+  .mc-contact:hover {
+    border-color: rgb(var(--cx-accent-rgb) / 0.45);
+  }
 }
 
 /* Thanh chỉ báo + hai nút lật, nổi ở đáy khổ thiệp. */
@@ -979,18 +1268,9 @@ body {
 
 .mc-story-page + .mc-story-page {
   position: relative;
-  padding-top: 16px;
 }
 
-.mc-story-page + .mc-story-page::before {
-  content: "";
-  position: absolute;
-  left: 20%;
-  right: 20%;
-  top: 0;
-  height: 1px;
-  background-image: var(--mc-dash-x);
-}
+
 
 /* Dateline: chữ hoa nhỏ, gạch mảnh kéo hết phần dòng còn lại. */
 
@@ -1055,6 +1335,28 @@ body {
   color: rgb(var(--cx-heading-rgb));
 }
 
+/* ĐUÔI bài bị cắt sang trang sau (_splitStory gắn cờ này): dateline, tít và ảnh
+   đã nằm ở phần đầu bên trang trước — nhắc lại là đọc như một bài khác. Chỉ
+   giấu chứ không xoá: lượt dồn trang sau phải trả bài về nguyên trạng được. */
+
+.mc-story-cont > .mc-post-dateline,
+.mc-story-cont > .mc-post-title,
+.mc-story-cont > .mc-post-figure {
+  display: none;
+}
+
+/* …và không có chữ hoa thả: bài đang đọc dở, không phải mở đầu. Cùng độ đặc
+   hiệu với luật --first ở trên nên phải đứng SAU mới thắng. */
+
+.mc-story-cont .mc-post-body::first-letter {
+  float: none;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  padding: 0;
+  color: inherit;
+}
+
 /* Chỉ báo trang: số trang kiểu báo + hàng gạch, gạch đang xem thì dài và đậm. */
 
 .mc-book-dots {
@@ -1084,10 +1386,11 @@ body {
 }
 
 /* ── Album: khung to nhỏ đan xen, chiếm hết chiều rộng ───────────────────
-   Bố cục do _albumRows() (index.js) tính: bề ngang từng khung đặt bằng
-   flex-grow inline, chiều cao hàng tính bằng ĐƠN VỊ hàng (--s).
+   Bố cục CỐ ĐỊNH (ALBUM_ROWS ở index.js): mọi hàng đều hai khung và cao đúng
+   một --mc-row-h, chỉ bề ngang là đảo chiều giữa các hàng — đặt bằng flex-grow
+   inline lúc dựng khung.
 
-   Một trang cao đúng 4 đơn vị và --mc-row-h là chiều cao MỘT đơn vị, do
+   Một trang cao đúng 4 hàng và --mc-row-h là chiều cao MỘT hàng, do
    _fitGallery() chia ra — nên màn ngắn hay dài, một trang album vẫn kín. Giá
    trị --mc-row-h dưới đây chỉ là dự phòng cho lúc chưa đo được (thiệp chưa mở,
    khung chưa có kích thước thật). */
@@ -1100,14 +1403,11 @@ body {
   --mc-grid-gap: 10px;
 }
 
-/* Hàng ảnh: cao --s đơn vị, cộng thêm phần khe mà nó nuốt khi span nhiều đơn vị */
-
 .mc-grid-row {
   display: flex;
   gap: var(--mc-grid-gap);
   width: 100%;
-  --s: 1;
-  height: calc(var(--mc-row-h) * var(--s) + var(--mc-grid-gap) * (var(--s) - 1));
+  height: var(--mc-row-h);
 }
 
 .mc-frame {
@@ -1117,9 +1417,9 @@ body {
   position: relative;
 }
 
-/* Ô chữ chen vào GIỮA một hàng ảnh (xem _albumPutCap): là một ô như mọi ô
-   khác trong hàng nên cao đúng chiều cao hàng, lưới vẫn kín trang. Chữ viết
-   tay tự host, cùng bút pháp với tên cặp đôi ở trang đầu. */
+/* Ô chữ chiếm chỗ ĐẦU của một hàng (ALBUM_CAP_ROW ở index.js): là một ô như
+   mọi ô khác trong hàng nên cao đúng chiều cao hàng, lưới vẫn kín trang. Chữ
+   viết tay tự host, cùng bút pháp với tên cặp đôi ở trang đầu. */
 
 .mc-cap-cell {
   display: flex;

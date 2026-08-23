@@ -56,7 +56,7 @@ function _cxPreviewShell() {
         <iframe class="cx-pshell-view" title="Xem trước thiệp"
                 allow="autoplay; encrypted-media" allowfullscreen></iframe>
       </div>
-      <img src="../../../assets/images/screen_ip.png" alt="" class="cx-pshell-frame" />
+      <img src="../../../assets/images/iphone_mockup.svg" alt="" class="cx-pshell-frame" />
     </div>`;
   stage.querySelector("iframe").src = src;
 

@@ -133,6 +133,7 @@
     "enable_music": true,
     "enable_gift": true,
     "enable_footer": true,
+    "groom_phone": "0978123456",
     "timeline": [
       {
         "time": "09:00",

@@ -360,8 +360,9 @@
         <!-- ═══ TRANG: Hộp mừng cưới + Địa điểm + Lời cảm ơn ════════════════
              Ba mục ngắn đi chung MỘT trang, cũng là trang CUỐI của thiệp. Trang
              nhóm khai [data-cx-group]: index.js tự ẩn cả trang khi mọi mục bên
-             trong đều bị tắt. [data-cx-push] ở mục Địa điểm đẩy bản đồ và lời
-             cảm ơn xuống đáy, Hộp mừng cưới bám mép trên. -->
+             trong đều bị tắt. Trang KHÔNG được khai [data-cx-push]: ô QR và ô
+             bản đồ co giãn bằng flex (xem theme.css), mà auto-margin của push
+             nuốt sạch chỗ trống nên flex-grow sẽ vô tác dụng. -->
         <section data-cx-group class="flex flex-col gap-8">
           <!-- ═══ MỤC: Hộp mừng cưới (enable_gift) ════════════════════════════ -->
           <section id="section-gift" class="flex flex-col gap-6 px-6">
@@ -426,7 +427,7 @@
           </section>
 
           <!-- ═══ MỤC: Bản đồ tới nơi đãi tiệc ═══════════════════════════════ -->
-          <section id="section-map" data-cx-push class="flex flex-col gap-4 px-6">
+          <section id="section-map" class="flex flex-col gap-4 px-6">
             <div class="flex items-center gap-3">
               <div class="mc-rule"></div>
               <h2 class="cx-h text-[17px] tracking-[3px] uppercase">Địa Điểm</h2>
@@ -475,10 +476,20 @@
                Đi ngay dưới bản đồ, KHÔNG tách trang riêng — mục chỉ có hai
                dòng, để riêng một trang thì gần như trang trắng. -->
           <section id="section-footer" class="flex flex-col items-center gap-5 px-8">
-            <div class="mc-rule w-full"></div>
             <div id="footer-text" class="cx-t text-[13px] leading-relaxed">
               Cảm ơn bạn đã dành thời gian đến chung vui cùng chúng tôi
             </div>
+
+            <!-- Số điện thoại liên hệ — CHỈ của bên phát thiệp: thiệp nhà trai
+                 hiện số chú rể, thiệp nhà gái hiện số cô dâu (index.js chọn
+                 theo isGroomSide()). Chưa nhập số thì index.js ẩn cả khối. -->
+            <a id="contact-phone" class="mc-contact hidden" href="#">
+              <i class="fas fa-phone cx-a"></i>
+              <span class="mc-contact-in">
+                <span class="mc-contact-lb" id="contact-phone-label">Liên hệ</span>
+                <span class="cx-h mc-contact-no" id="contact-phone-text"></span>
+              </span>
+            </a>
           </section>
         </section>
       </div>

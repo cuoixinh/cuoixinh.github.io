@@ -1012,27 +1012,27 @@ html.cx-landing {
     );
   }
   /* Khung máy: ảnh có phần màn hình trong suốt nên thiệp đặt dưới lọt qua.
-     Toạ độ ô màn hình lấy đúng theo ảnh 393x768 (viền trái/phải 5.1%), giống
+     Toạ độ ô màn hình lấy đúng theo ảnh 383x785 (viền trái/phải 3.92%), giống
      mục "Bên trong tấm thiệp". */
   .hero-phone {
     @apply relative shrink-0;
     width: auto;
     height: 100%;
     max-width: 100%;
-    aspect-ratio: 393 / 768;
+    aspect-ratio: 383 / 785;
     filter: drop-shadow(0 20px 36px rgb(var(--shadow-card-rgb) / 0.34));
   }
   .hero-phone-frame {
     @apply pointer-events-none absolute inset-0 z-[2] block;
-    background: url("../assets/images/screen_ip.png") center / contain no-repeat;
+    background: url("../assets/images/iphone_mockup.svg") center / contain no-repeat;
   }
   .hero-phone-screen {
     @apply absolute overflow-hidden;
-    top: 1.5%;
-    left: 5.1%;
-    width: 89.8%;
-    height: 96%;
-    border-radius: 11% / 5.3%;
+    top: 1.53%;
+    left: 3.92%;
+    width: 92.17%;
+    height: 96.94%;
+    border-radius: 14.73% / 6.83%;
     background: rgb(var(--white-rgb));
   }
 }

@@ -1297,10 +1297,10 @@ svg.lucide {
 @media (min-width: 820px) {
   .cx-setup {
     /* Máy cao gần hết màn (chừa chỗ cho thanh trạng thái dưới máy + đệm), rộng
-       suy ra TỪ chiều cao (0.5117 = 393/768, tỉ lệ ảnh khung máy) rồi kẹp theo
+       suy ra TỪ chiều cao (0.4879 = 383/785, tỉ lệ ảnh khung máy) rồi kẹp theo
        bề ngang để màn hẹp/siêu cao (iPad dựng đứng) không nuốt mất cột form. */
     --cx-ph-h: min(78vh, calc(100vh - 128px));
-    --cx-ph-w: min(30vw, calc(var(--cx-ph-h) * 0.5117));
+    --cx-ph-w: min(30vw, calc(var(--cx-ph-h) * 0.4879));
     /* Lề hai bên máy — hẹp lại ở khổ tablet để trả thêm chỗ cho cột form. */
     --cx-rail-pad: 40px;
     --cx-rail-w: calc(var(--cx-ph-w) + var(--cx-rail-pad));
@@ -1405,13 +1405,13 @@ html.cx-rail-off {
   }
 }
 
-/* Thân máy = ảnh assets/images/screen_ip.png (393×768, vùng màn hình TRONG SUỐT)
+/* Thân máy = ảnh assets/images/iphone_mockup.svg (383×785, vùng màn hình TRONG SUỐT)
    phủ LÊN iframe. Đổi ảnh khác thì phải đo lại vùng trong suốt đó rồi sửa cả tỉ
    lệ ở --cx-ph-w lẫn bộ inset của .cx-phone-screen bên dưới. */
 .cx-phone {
   position: relative;
   width: var(--cx-ph-w);
-  height: calc(var(--cx-ph-w) / 0.5117);
+  height: calc(var(--cx-ph-w) / 0.4879);
   margin: 0 auto;
 }
 
@@ -1425,15 +1425,15 @@ html.cx-rail-off {
   filter: drop-shadow(0 18px 34px rgb(var(--shadow-panel-rgb) / 0.3));
 }
 
-/* Đúng ô trong suốt của ảnh: x 26→362, y 22→744 trên khổ 393×768. */
+/* Đúng ô trong suốt của ảnh: x 15→368, y 12→773 trên khổ 383×785. */
 .cx-phone-screen {
   position: absolute;
-  top: 2.87%;
-  left: 6.62%;
-  width: 85.75%;
-  height: 94.13%;
+  top: 1.53%;
+  left: 3.92%;
+  width: 92.17%;
+  height: 96.94%;
   overflow: hidden;
-  border-radius: 14% / 6.5%; /* bo góc màn, viền của ảnh phủ lên phần dư */
+  border-radius: 14.73% / 6.83%; /* bo góc màn, viền của ảnh phủ lên phần dư */
   background: rgb(var(--white-rgb));
 }
 
