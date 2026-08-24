@@ -698,13 +698,15 @@
   padding-top: env(safe-area-inset-top);
 }
 
-/* Dynamic viewport height — tránh bị che bởi browser navbar iOS.
-   Dòng calc(var(--vh)) là fallback cho iOS cũ không hỗ trợ dvh; dòng 100dvh
-   ngay sau đó ghi đè khi trình duyệt hiểu dvh. */
+/* Màn bìa cao trọn một khung nhìn, đo bằng svh — khung nhìn lúc thanh địa chỉ
+   của trình duyệt di động ĐANG HIỆN, tức một hằng số. KHÔNG dùng dvh: dvh đổi
+   giá trị theo từng nhịp thanh địa chỉ ẩn/hiện lúc vuốt, mà màn bìa lại thường
+   có ảnh nền phủ kín — ảnh phải dựng lại từng khung hình, nhìn ra giật.
+   Dòng calc(var(--vh)) là fallback cho trình duyệt cũ chưa hiểu svh. */
 
 #cover-screen > div {
   min-height: calc(var(--vh, 1vh) * 100);
-  min-height: 100dvh;
+  min-height: 100svh;
 }
 
 /* Thiệp dựng một-thẻ-cao-bằng-màn (basic-gold) tự kéo vùng nội dung cho đủ

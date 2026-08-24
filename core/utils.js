@@ -179,9 +179,16 @@ function showPreviewAlert() {
 
 /**
  * Fix viewport height for iOS (avoid browser navbar)
+ *
+ * Chỉ là fallback cho trình duyệt chưa hiểu svh/dvh. Đo lại theo BỀ NGANG chứ
+ * không theo mọi lần resize: trình duyệt di động bắn resize mỗi nhịp thanh địa
+ * chỉ ẩn/hiện lúc vuốt, đo lại ở đó là các khối cao-một-màn co giãn theo → giật.
  */
+let _vhWidth = 0;
+
 function setVH() {
   const vh = window.innerHeight * 0.01;
+  _vhWidth = window.innerWidth;
   document.documentElement.style.setProperty("--vh", `${vh}px`);
 }
 
@@ -190,7 +197,9 @@ function setVH() {
  */
 function initViewportFix() {
   setVH();
-  window.addEventListener("resize", setVH);
+  window.addEventListener("resize", () => {
+    if (window.innerWidth !== _vhWidth) setVH();
+  });
 }
 
 // ============= URL HELPERS =============

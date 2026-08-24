@@ -43,7 +43,7 @@
        (ảnh tràn viền, chữ đè lên ảnh); thân thiệp cuộn dài theo từng mục.
        Dựng từ public/themes/base-theme/ — xem hướng dẫn ở đầu file đó. -->
 
-  <body class="min-h-screen flex justify-center items-start md:py-5">
+  <body class="min-h-svh flex justify-center items-start md:py-5">
     <!-- ═══ Nhạc nền — đĩa tròn neo góc ═════════════════════════════════════
          Ảnh chiếm hết màn nên thay thanh nhạc ngang bằng một đĩa nhỏ, xoay khi
          đang phát. Vẫn là component dùng chung (mẫu "mini" + chrome
@@ -62,7 +62,7 @@
          vì thế không làm gì (nó cần cả hai thẻ) — đúng ý đồ. -->
     <div
       id="main-card"
-      class="relative w-full max-w-[430px] md:max-w-[768px] min-h-screen md:min-h-[932px] md:rounded-[40px] md:shadow-2xl overflow-hidden"
+      class="relative w-full max-w-[430px] md:max-w-[768px] min-h-svh md:min-h-[932px] md:rounded-[40px] md:shadow-2xl overflow-hidden"
     >
       <div class="flex flex-col">
         <!-- ═══ MỤC: Mở đầu — POSTER ══════════════════════════════════════
@@ -71,7 +71,7 @@
              tự chọn ở tab Giao diện, đổi sang màu sẫm là chữ chìm vào ảnh. -->
         <section
           id="section-hero"
-          class="relative min-h-screen md:min-h-[932px] overflow-hidden"
+          class="relative min-h-svh md:min-h-[932px] overflow-hidden"
         >
           <!-- Ảnh DUY NHẤT nằm trong màn đầu, lại to nhất thiệp. src chỉ có sau
                khi API trả dữ liệu nên preload scanner không thấy nó → phải nói rõ
@@ -90,7 +90,7 @@
           <!-- .rg-hero-in: từng dòng chữ trong poster hiện dần lên theo nhịp
                (độ trễ khai trong theme.css). -->
           <div
-            class="rg-hero-in relative z-10 min-h-screen md:min-h-[932px] flex flex-col items-center gap-5 px-8 py-12 text-center"
+            class="rg-hero-in relative z-10 min-h-svh md:min-h-[932px] flex flex-col items-center gap-5 px-8 py-12 text-center"
           >
             <!-- Lời ngỏ (story_quote) -->
             <div
