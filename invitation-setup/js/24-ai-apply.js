@@ -277,11 +277,25 @@ window.cxApplyAiCard = cxApplyAiCard;
 // Object vài KB nên đi qua localStorage chứ không qua URL. Bên ghi: js/ai-assistant.js.
 // Đọc MỘT LẦN rồi xoá — còn nằm lại thì lần mở thiệp sau bị đổ đè nội dung của
 // cuộc chat cũ.
+//
+// Lấy ra lúc trang sẵn sàng nhưng ĐỔ VÀO thì để _showContent() gọi: loadData()
+// chạy sau đó và fillForm() ghi đè cả form, đổ sớm là mất trắng nội dung AI.
 const CX_CHAT_CARD_KEY = buildCacheKey("chat_card");
+
+let _cxPendingAiCard = null;
 
 window.__cxOnReady(() => {
   const card = getCache(CX_CHAT_CARD_KEY);
   removeCache(CX_CHAT_CARD_KEY);
-  if (!card || typeof card !== "object") return;
-  cxApplyAiCard(card);
+  if (card && typeof card === "object") _cxPendingAiCard = card;
 });
+
+// Đổ thiệp AI đang chờ (nếu có) vào form. Trả về true khi thực sự có đổ —
+// 13-data.js dựa vào đó để không coi form là dữ liệu mẫu nữa.
+window.__cxApplyPendingAiCard = function () {
+  const card = _cxPendingAiCard;
+  _cxPendingAiCard = null;
+  if (!card) return false;
+  cxApplyAiCard(card);
+  return true;
+};

@@ -8,6 +8,9 @@ function _showContent() {
   document.getElementById("skeleton-loader")?.classList.add("hidden");
   document.getElementById("actual-content")?.classList.remove("hidden");
   _updateHeaderThemeBadge();
+  // Thiệp AI dựng ở trang chủ: đổ vào NGAY ĐÂY — sau fillForm (nó vừa ghi đè cả
+  // form) và trước switchTab (tab Xem trước dựng iframe từ dữ liệu form).
+  const aiApplied = window.__cxApplyPendingAiCard?.() === true;
   const params = new URLSearchParams(window.location.search);
   const savedTab = params.get("tab");
   // Không có ?tab (hoặc ?tab=edit) vẫn phải đánh dấu "Chỉnh sửa" đang mở — panel
@@ -22,6 +25,14 @@ function _showContent() {
   if (typeof cxLiveRefresh === "function") cxLiveRefresh();
   // Reset dirty sau khi fill form xong — tránh false positive từ fillForm()
   setTimeout(() => _setDirty(false), 0);
+
+  // Nội dung AI là dữ liệu THẬT của khách, không phải dữ liệu mẫu: hạ _demoPending
+  // để đổi mẫu không nạp đè lại bản mẫu, và bật dirty lại sau nhịp reset ở trên
+  // để nó được lưu xuống nháp.
+  if (aiApplied) {
+    _demoPending = false;
+    setTimeout(_scheduleAutoSave, 0);
+  }
 
   // Nếu được redirect về sau khi đăng nhập để xuất bản → auto trigger
   if (params.get("pendingPublish") === "1") {

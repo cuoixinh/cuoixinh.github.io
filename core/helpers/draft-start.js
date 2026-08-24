@@ -59,8 +59,8 @@
     window.location.href = "/invitation-setup/?" + q.toString();
   }
 
-  function _create(theme, displayName, params) {
-    var id = _uuid();
+  function _create(theme, displayName, params, id) {
+    id = id || _uuid();
     setCache(buildCacheKey("draft", id), {
       theme: theme,
       is_published: false,
@@ -71,6 +71,7 @@
     sessionStorage.setItem("draft_theme", theme);
     sessionStorage.setItem("draft_template_name", displayName || _titleOf(theme));
     _go(id, params);
+    return id;
   }
 
   // chosen = khách vừa chỉ đích danh một mẫu ("Dùng ngay" ở thẻ mẫu, "Dùng mẫu
@@ -129,15 +130,36 @@
   // opts.chosen: khách có tự chọn mẫu này không (mặc định có). Nút chung kiểu
   // "Tạo thiệp ngay" ở hero phải truyền false — xem _askThenStart.
   // opts.params: query gắn thêm vào URL trang thiết lập, vd { tab: "theme" }.
+  // opts.id: đi vào ĐÚNG nháp mang mã này (khung chat AI gắn cuộc trò chuyện với
+  //   một nháp cố định). Có mã là không hỏi "thiệp đang viết dở" nữa — khách đã
+  //   chỉ đích danh thiệp nào rồi; nháp đã tồn tại thì đi thẳng vào, TUYỆT ĐỐI
+  //   không tạo đè lên (đè là mất nội dung của lần vào trước).
+  // Trả về mã nháp sẽ mở, hoặc undefined khi còn phải hỏi khách.
   window.cxStartDraft = function (theme, displayName, opts) {
     if (!theme) return;
     var o = opts || {};
     var chosen = o.chosen !== false;
+
+    if (o.id) {
+      var kept = getCache(buildCacheKey("draft", o.id));
+      if (!kept) return _create(theme, displayName, o.params, o.id);
+      // Nháp cũ tự mang theme của nó → không ghi đè draft_theme.
+      sessionStorage.setItem(
+        "draft_template_name",
+        _titleOf(kept.theme || theme),
+      );
+      _go(o.id, o.params);
+      return o.id;
+    }
+
     var existing = _findDraft();
     if (existing)
       return _askThenStart(existing, theme, displayName, chosen, o.params);
-    _create(theme, displayName, o.params);
+    return _create(theme, displayName, o.params);
   };
+
+  // Sinh mã nháp để bên gọi giữ trước (khung chat AI cần nhớ mã qua nhiều lần bấm).
+  window.cxNewDraftId = _uuid;
 
   // Nút CHUNG kiểu "Tạo thiệp ngay" / "Tạo thiệp mới": khách chưa chỉ mẫu nào nên
   // lấy mẫu đang bật đầu tiên rồi đi tiếp bằng cxStartDraft với chosen=false.
@@ -145,7 +167,7 @@
   // khỏi hỏi lại server.
   // Danh sách mẫu đi qua Edge Function `public-templates` — không gọi thẳng
   // REST của Supabase. Hàng đầu tiên đã là mẫu có sort_order nhỏ nhất.
-  window.cxStartDefaultDraft = function (params) {
+  window.cxStartDefaultDraft = function (params, opts) {
     return fetch(CONFIG.supabase.edgeUrl + "?resource=public-templates", {
       headers: { Authorization: "Bearer " + CONFIG.supabase.anonKey },
     })
@@ -159,6 +181,7 @@
         window.cxStartDraft(t.theme, t.name, {
           chosen: false,
           params: params,
+          id: opts && opts.id,
         });
       })
       .catch(function (e) {

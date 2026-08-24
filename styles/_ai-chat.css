@@ -111,11 +111,21 @@
      điện thoại bảng phủ kín màn nên không phải né gì cả. */
   .cx-setup .aichat-panel {
     right: 0;
-    bottom: 0;
+    /* Bàn phím ảo thu nhỏ VÙNG NHÌN THẤY nhưng không đổi layout viewport, nên
+       100dvh cao hơn chỗ còn trống → chân bảng chui xuống dưới bàn phím. Hai
+       biến do _syncViewport() trong js/ai-assistant.js đo từ visualViewport;
+       không có bàn phím thì rơi về giá trị dự phòng. */
+    bottom: var(--aichat-vb, 0px);
     width: 100%;
-    height: 100dvh;
+    height: var(--aichat-vh, 100dvh);
     border: 0;
     @apply rounded-b-none;
+  }
+
+  /* Bàn phím bung ra thì màn chỉ còn vài dòng — giấu hàng gợi ý cho khung tin
+     nhắn thở. Cờ .aichat-kb do _syncViewport() đặt. */
+  .aichat-kb .aichat-suggests {
+    display: none;
   }
 }
 

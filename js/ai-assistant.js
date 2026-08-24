@@ -16,6 +16,7 @@
   const STORE_KEY = "cx_aichat_history"; // sessionStorage: giữ đoạn chat khi F5
   const KNOWN_KEY = "cx_aichat_known"; // sessionStorage: thông tin thiệp đã thu được
   const CARD_KEY = buildCacheKey("chat_card"); // localStorage: bàn giao sang trang thiết lập
+  const DRAFT_KEY = "cx_aichat_draft"; // sessionStorage: nháp gắn với cuộc chat này
   const MAX_KEEP = 20; // số tin nhắn giữ lại (server chỉ đọc 20 tin cuối)
   const MAX_LEN = 800; // khớp MAX_MSG_LEN của Edge Function
 
@@ -416,7 +417,7 @@
     btn.setAttribute("size", "sm");
     btn.setAttribute("full", "");
     btn.setAttribute("data-card-open", "");
-    btn.textContent = inSetup() ? "Áp dụng vào thiệp" : "Mở thiệp của tôi";
+    btn.textContent = inSetup() ? "Áp dụng vào thiệp" : "Xem thiệp";
     box.appendChild(btn);
 
     row.appendChild(box);
@@ -425,6 +426,24 @@
 
   // Trang Thiết lập nạp js/24-ai-apply.js nên có hàm này; trang chủ thì không.
   const inSetup = () => typeof window.cxApplyAiCard === "function";
+
+  // Mã nháp gắn với cuộc chat này, sinh ở lần bấm đầu rồi giữ nguyên: bấm "Xem
+  // thiệp" lần nữa — mở lại khung chat, hay dựng lại thiệp sau khi sửa — phải rơi
+  // vào chính thiệp đó chứ không đẻ thêm nháp mới mỗi lần bấm. Bấm ở trang Thiết
+  // lập thì applyHere ghi đè mã này bằng thiệp đang mở.
+  function chatDraftId() {
+    try {
+      let id = sessionStorage.getItem(DRAFT_KEY);
+      if (!id && window.cxNewDraftId) {
+        id = window.cxNewDraftId();
+        sessionStorage.setItem(DRAFT_KEY, id);
+      }
+      return id || undefined;
+    } catch {
+      // Chặn cookie: không nhớ được mã thì để cxStartDraft tự sinh như trước.
+      return undefined;
+    }
+  }
 
   // Đang ở trang Thiết lập: đổ thẳng vào thiệp đang mở. Hỏi trước vì thao tác này
   // GHI ĐÈ nội dung sẵn có.
@@ -436,24 +455,39 @@
         "Nội dung đang có trong thiệp sẽ bị ghi đè bằng bản AI vừa dựng.",
         { confirmText: "Áp dụng" },
       ));
-    if (ok) window.cxApplyAiCard(card);
+    if (!ok) return;
+    window.cxApplyAiCard(card);
+    // Cuộc chat gắn luôn với thiệp vừa nhận nội dung: quay về trang chủ bấm lại
+    // thì phải mở đúng thiệp này chứ không phải nháp của lần chat trước.
+    try {
+      if (typeof WEDDING_ID !== "undefined" && WEDDING_ID)
+        sessionStorage.setItem(DRAFT_KEY, WEDDING_ID);
+    } catch {
+      /* chặn cookie: bỏ qua, chỉ mất phần ghi nhớ */
+    }
   }
 
   // Trang chủ: cất thiệp vào localStorage rồi đi đúng đường của nút "Tạo thiệp
-  // ngay" (còn nháp dở thì cxStartDraft tự hỏi tiếp cái cũ hay làm mới).
+  // ngay", nhưng vào ĐÚNG nháp của cuộc chat này và mở thẳng tab Xem trước.
   // `templates` khai bằng let ở js/templates-data.js → binding TOÀN CỤC chứ không
   // phải window.templates; chưa nạp xong thì để cxStartDefaultDraft đi hỏi server.
   function useCard(card) {
     if (!card) return;
     if (inSetup()) return void applyHere(card);
     setCache(CARD_KEY, card);
-    const params = {};
+    const params = { tab: "preview" };
+    const id = chatDraftId();
     const first =
       typeof templates !== "undefined" && Array.isArray(templates)
         ? templates.find((t) => t.status === "active")
         : null;
-    if (first) window.cxStartDraft?.(first.theme, first.name, { chosen: false, params });
-    else window.cxStartDefaultDraft?.(params);
+    if (first)
+      window.cxStartDraft?.(first.theme, first.name, {
+        chosen: false,
+        id,
+        params,
+      });
+    else window.cxStartDefaultDraft?.(params, { id });
   }
 
   // Chip gợi ý chỉ hữu ích lúc chưa biết hỏi gì → ẩn hẳn sau câu hỏi đầu tiên.
@@ -522,6 +556,8 @@
     try {
       sessionStorage.removeItem(STORE_KEY);
       sessionStorage.removeItem(KNOWN_KEY);
+      // Cuộc mới = thiệp mới: bỏ liên kết với nháp của cuộc vừa xoá.
+      sessionStorage.removeItem(DRAFT_KEY);
     } catch {
       /* chặn cookie: bộ nhớ trong phiên đã sạch là đủ */
     }
@@ -715,6 +751,7 @@
     requestAnimationFrame(() => els.panel.classList.remove("is-opening"));
     autoGrow(); // đo được chiều cao ô nhập từ lúc này, khi bảng đã hiện
     if (window.matchMedia("(min-width: 521px)").matches) els.input.focus();
+    syncViewport();
     scrollToEnd();
   }
 
@@ -725,7 +762,32 @@
     setTimeout(() => {
       els.panel.hidden = true;
       els.panel.classList.remove("is-closing");
+      syncViewport();
     }, 200);
+  }
+
+  // Trên điện thoại bảng phủ kín màn bằng 100dvh — nhưng dvh là LAYOUT viewport,
+  // bàn phím ảo không làm nó nhỏ đi: chân bảng (ô nhập) nằm dưới bàn phím, và
+  // iOS còn đẩy cả trang lên nên bảng trông như bị lệch. visualViewport là thứ
+  // duy nhất biết chỗ thật sự còn trống → đo rồi phát ra --aichat-vh (chiều cao)
+  // và --aichat-vb (khoảng hở tính từ đáy layout viewport) cho styles/_ai-chat.css.
+  function syncViewport() {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const root = document.documentElement;
+    if (els.panel.hidden) {
+      root.style.removeProperty("--aichat-vh");
+      root.style.removeProperty("--aichat-vb");
+      root.classList.remove("aichat-kb");
+      return;
+    }
+    const layout = root.clientHeight;
+    const gap = Math.max(0, Math.round(layout - vv.height - vv.offsetTop));
+    root.style.setProperty("--aichat-vh", Math.round(vv.height) + "px");
+    root.style.setProperty("--aichat-vb", gap + "px");
+    // Hở hơn 120px so với màn = bàn phím đang bung (thanh địa chỉ co giãn chỉ
+    // vài chục px nên không dính nhầm).
+    root.classList.toggle("aichat-kb", layout - vv.height > 120);
   }
 
   // Ô nhập cao dần theo nội dung, tối đa max-h-24 do CSS chặn. scrollHeight KHÔNG
@@ -790,6 +852,20 @@
     });
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape" && !els.panel.hidden) close();
+    });
+
+    // Bàn phím bung/thu là một sự kiện resize của visualViewport; scroll bắt
+    // luôn lúc iOS đẩy trang lên sau khi con trỏ vào ô nhập.
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener("resize", syncViewport);
+      window.visualViewport.addEventListener("scroll", syncViewport);
+    }
+    // Bảng vừa co lại vì bàn phím → tin nhắn cuối bị đẩy khuất, kéo về cuối.
+    els.input.addEventListener("focus", () => {
+      setTimeout(() => {
+        syncViewport();
+        scrollToEnd();
+      }, 300);
     });
   }
 

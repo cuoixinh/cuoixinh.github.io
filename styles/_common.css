@@ -796,9 +796,11 @@ textarea::-webkit-scrollbar-thumb:hover {
   background: rgb(var(--text-idle-rgb));
 }
 
-/* iOS Safari: prevent auto-zoom on input focus (triggered when font-size < 16px).
-   Only applies on iOS (-webkit-touch-callout is iOS-specific).
-   font-size: 16px is the minimum to suppress Safari's zoom behavior.         */
+/* iOS Safari tự phóng to trang khi con trỏ vào ô có cỡ chữ dưới 16px. Luật này
+   là lưới đỡ CUỐI: nó thua độ đặc hiệu của utility text-sm/text-xs mà hầu hết ô
+   trong dự án đang mang, nên thứ thật sự chặn zoom là `maximum-scale=1.0` ở thẻ
+   <meta name="viewport"> của từng trang — trang mới phải khai đủ.
+   -webkit-touch-callout chỉ khớp iOS/iPadOS. */
 
 @supports (-webkit-touch-callout: none) {
   input,
