@@ -698,15 +698,21 @@
   padding-top: env(safe-area-inset-top);
 }
 
-/* Màn bìa cao trọn một khung nhìn, đo bằng svh — khung nhìn lúc thanh địa chỉ
-   của trình duyệt di động ĐANG HIỆN, tức một hằng số. KHÔNG dùng dvh: dvh đổi
-   giá trị theo từng nhịp thanh địa chỉ ẩn/hiện lúc vuốt, mà màn bìa lại thường
-   có ảnh nền phủ kín — ảnh phải dựng lại từng khung hình, nhìn ra giật.
-   Dòng calc(var(--vh)) là fallback cho trình duyệt cũ chưa hiểu svh. */
+/* Cao trọn MỘT khung nhìn. Hai dòng, dòng sau thắng khi hiểu được:
+   - `--vh` là px do initViewportFix() (core/utils.js) đo sẵn — thứ DUY NHẤT
+     đứng yên trên Chrome/trình duyệt in-app iOS, nơi việc ẩn/hiện thanh công cụ
+     resize cả webview nên svh/lvh/dvh đều trôi theo và khối cao-một-màn phình
+     ra giữa lúc vuốt (ảnh phủ kín bên trong giật theo từng khung hình).
+   - Chưa có JS thì lùi về `1svh` (Safari 15.4+/Chrome 108+), rồi `1vh` cho máy cũ. */
+
+.cx-screen-h {
+  min-height: calc(var(--vh, 1vh) * 100);
+  min-height: calc(var(--vh, 1svh) * 100);
+}
 
 #cover-screen > div {
   min-height: calc(var(--vh, 1vh) * 100);
-  min-height: 100svh;
+  min-height: calc(var(--vh, 1svh) * 100);
 }
 
 /* Thiệp dựng một-thẻ-cao-bằng-màn (basic-gold) tự kéo vùng nội dung cho đủ

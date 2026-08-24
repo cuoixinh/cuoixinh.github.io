@@ -178,18 +178,40 @@ function showPreviewAlert() {
 // ============= VIEWPORT HELPERS =============
 
 /**
- * Fix viewport height for iOS (avoid browser navbar)
+ * Khoá chiều cao "một màn" thành px, ghi vào --vh (1% khung nhìn).
  *
- * Chỉ là fallback cho trình duyệt chưa hiểu svh/dvh. Đo lại theo BỀ NGANG chứ
- * không theo mọi lần resize: trình duyệt di động bắn resize mỗi nhịp thanh địa
- * chỉ ẩn/hiện lúc vuốt, đo lại ở đó là các khối cao-một-màn co giãn theo → giật.
+ * Không dùng được đơn vị viewport của CSS cho việc này: Chrome/trình duyệt
+ * in-app trên iOS ẩn/hiện thanh công cụ bằng cách RESIZE cả webview, nên với
+ * trang web đó là một lần đổi khổ cửa sổ thật — svh/lvh/dvh đều tính lại theo,
+ * khối cao-một-màn cao dần lúc vuốt và ảnh phủ trong đó giật theo từng khung.
+ * Chỉ px đo sẵn mới đứng yên.
+ *
+ * Lấy giá trị NHỎ NHẤT thấy được ở mỗi bề ngang — tức lúc thanh công cụ đang
+ * hiện đủ, đúng bằng svh — nên chiều cao chỉ có thể co lại một lần rồi ổn định,
+ * không bao giờ phình ra giữa lúc vuốt. Đổi bề ngang (xoay máy) thì đo lại từ đầu.
  */
 let _vhWidth = 0;
+let _vhPx = 0;
 
 function setVH() {
-  const vh = window.innerHeight * 0.01;
-  _vhWidth = window.innerWidth;
-  document.documentElement.style.setProperty("--vh", `${vh}px`);
+  const doc = document.documentElement;
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  // Trong iframe (khung xem trước ở trang Thiết lập) khổ do trang cha đặt và
+  // không có thanh công cụ nào ẩn/hiện → mọi thay đổi chiều cao đều là thật.
+  if (window.self !== window.top) {
+    doc.style.setProperty("--vh", `${h * 0.01}px`);
+    return;
+  }
+  if (w !== _vhWidth) {
+    _vhWidth = w;
+    _vhPx = h;
+  } else if (h < _vhPx) {
+    _vhPx = h;
+  } else {
+    return;
+  }
+  doc.style.setProperty("--vh", `${_vhPx * 0.01}px`);
 }
 
 /**
@@ -197,9 +219,7 @@ function setVH() {
  */
 function initViewportFix() {
   setVH();
-  window.addEventListener("resize", () => {
-    if (window.innerWidth !== _vhWidth) setVH();
-  });
+  window.addEventListener("resize", setVH, { passive: true });
 }
 
 // ============= URL HELPERS =============

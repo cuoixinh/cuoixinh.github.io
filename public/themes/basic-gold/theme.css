@@ -20,11 +20,10 @@
    Viết bằng attribute selector chứ KHÔNG phải `.relative.z-20`: `relative` được
    @apply ở nơi khác trong cùng bản build nên Tailwind sẽ nhân bản selector này
    cho từng rule đó. [class~="..."] khớp y hệt, cùng độ đặc hiệu.
-   Đơn vị là svh chứ KHÔNG phải dvh — xem chú thích ở .cx-hero.
-   Dòng calc(var(--vh)) là fallback cho trình duyệt cũ chưa hiểu svh. */
+   Chiều cao một màn lấy từ `--vh` (px do JS đo) — xem chú thích ở .cx-hero. */
 #main-card [class~="relative"][class~="z-20"] {
   min-height: calc(var(--vh, 1vh) * 100);
-  min-height: 100svh;
+  min-height: calc(var(--vh, 1svh) * 100);
 }
 
 /* ============= HERO: ẢNH TRÀN VIỀN + TAN DẦN ============= */
@@ -35,14 +34,15 @@
   /* Tràn ra ngoài lề px-8/py-8 của vùng nội dung để ảnh chạm mép thẻ. */
   width: calc(100% + 64px);
   margin: -32px -32px 0;
-  /* Cao trọn một màn, đo bằng svh (khung nhìn lúc thanh địa chỉ ĐANG HIỆN).
-     KHÔNG dùng dvh: hero nằm trong luồng cuộn, mà dvh đổi giá trị theo từng
-     nhịp thanh địa chỉ của trình duyệt di động ẩn/hiện lúc vuốt → hero cao dần
-     → ảnh object-fit:cover dựng lại từng khung hình, nhìn ra giật. svh là hằng
-     số nên chữ ở đáy hero cũng không bao giờ bị thanh địa chỉ che.
-     Dòng calc(var(--vh)) là fallback cho trình duyệt cũ chưa hiểu svh. */
+  /* Cao trọn một màn, đo bằng `--vh`: px mà initViewportFix() (core/utils.js)
+     đo sẵn, KHÔNG phải đơn vị viewport của CSS. Hero nằm trong luồng cuộn, mà
+     trên Chrome/trình duyệt in-app iOS việc ẩn/hiện thanh công cụ resize cả
+     webview → svh/lvh/dvh đều trôi theo, hero cao dần lúc vuốt và ảnh
+     object-fit:cover phải dựng lại từng khung hình, nhìn ra giật.
+     Chưa có JS thì lùi về 1svh (khung nhìn lúc thanh công cụ đang hiện, nên chữ
+     ở đáy hero không bị che), rồi 1vh cho máy quá cũ. */
   min-height: calc(var(--vh, 1vh) * 100);
-  min-height: 100svh;
+  min-height: calc(var(--vh, 1svh) * 100);
   flex-shrink: 0;
   /* Dòng mở đầu bám mép trên, cụm tên dồn xuống đáy; ảnh phủ toàn bộ phía sau.
      Padding trên chừa chỗ cho thanh nhạc fixed-top. */
