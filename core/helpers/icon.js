@@ -1,9 +1,9 @@
 // Icon RIÊNG — chỗ để những hình lucide không có (glyph ghép tay, logo nhỏ…).
 // Icon thường thì dùng thẳng lucide: <i data-lucide="heart"></i>.
 //
-// ⚠️ HIỆN CHƯA TRANG NÀO NẠP FILE NÀY (CX_ICONS đang rỗng). Thêm icon đầu tiên
-// thì phải thêm <script src=".../core/helpers/icon.js"></script> vào những trang
-// dùng nó, nếu không thẻ <i data-icon> nằm im không báo lỗi gì.
+// ⚠️ Trang nào dùng <i data-icon> phải TỰ NẠP file này (index.html qua thẻ
+// <script>, invitation-setup qua SCRIPTS trong loader.js), thiếu là thẻ <i> nằm
+// im không báo lỗi gì.
 //
 //   HTML tĩnh:  <i data-icon="tên"></i>
 //               <i data-icon="tên" data-size="20" class="text-rose-500"></i>

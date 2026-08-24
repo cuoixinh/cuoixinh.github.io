@@ -24,11 +24,23 @@
     rgb(var(--action-primary-rgb))
   );
   box-shadow: 0 6px 20px rgb(var(--shadow-brand-rgb) / 0.36);
+  /* Kéo được bằng ngón tay: nhường sự kiện chạm cho pointermove, không thì
+     trình duyệt hiểu là cuộn trang và huỷ luôn cú kéo. */
+  touch-action: none;
+  cursor: grab;
 }
 
 .aichat-fab:hover {
   transform: scale(1.06);
   box-shadow: 0 10px 26px rgb(var(--shadow-brand-rgb) / 0.45);
+}
+
+/* Đang kéo: bỏ transition để bong bóng bám sát ngón tay, bỏ luôn phóng to của
+   :hover (con trỏ vẫn nằm trên nút suốt lúc kéo). */
+.aichat-fab.is-dragging {
+  cursor: grabbing;
+  transform: none;
+  transition: none;
 }
 
 /* Vòng sáng lan ra để mắt bắt được bong bóng giữa nền ảnh cưới nhiều chi tiết. */
@@ -80,10 +92,13 @@
 }
 
 /* Trang Thiết lập (cờ .cx-setup trên <html>): dải "xem trực tiếp" chiếm mép phải
-   và navbar chiếm mép dưới, nên bong bóng lẫn bảng chat phải lùi vào theo hai
-   biến đó — thiếu là đè lên thiệp xem trước và lên hàng nút. */
-.cx-setup .aichat-fab,
+   và navbar chiếm mép dưới, nên bảng chat phải lùi vào theo hai biến đó — thiếu là
+   đè lên thiệp xem trước và lên hàng nút. Trang này không có bong bóng: lối vào là
+   nút "Trợ lý AI" trên navbar (xem js/ai-assistant.js), bấm được ở MỌI tab —
+   z-index phải vượt các panel tab (fixed inset-0 z-[200]) và cả navbar (z-[300]),
+   nếu không mở ở tab Cấu hình/Giao diện/Khách mời là bảng nằm khuất bên dưới. */
 .cx-setup .aichat-panel {
+  z-index: 350;
   right: calc(24px + var(--cx-rail-w, 0px) + env(safe-area-inset-right, 0px));
   bottom: calc(16px + var(--nav-h, 0px) + env(safe-area-inset-bottom, 0px));
 }

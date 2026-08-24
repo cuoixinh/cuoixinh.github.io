@@ -281,6 +281,7 @@ async function handleLoveStoryImage(idx, input) {
     showLoading(false);
   }
   renderLoveStoryList();
+  _imagesChanged();
 }
 
 async function adjustLoveStoryFocalPoint(idx) {
@@ -298,6 +299,7 @@ async function adjustLoveStoryFocalPoint(idx) {
   _loveStoryItems[idx].focal_point = focal;
   _syncLoveStoryHidden();
   renderLoveStoryList();
+  _imagesChanged();
   showToast("Đã cập nhật điểm lấy nét", "success");
 }
 
@@ -308,6 +310,7 @@ function removeLoveStoryImage(idx) {
   _syncLoveStoryHidden();
   _idbSaveLoveStoryImages();
   renderLoveStoryList();
+  _imagesChanged();
 }
 
 function addLoveStoryItem() {

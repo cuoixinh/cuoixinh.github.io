@@ -52,7 +52,10 @@ function _cxLiveReload(frame) {
   } catch (e) {
     y = 0;
   }
-  frame.src = _previewIframeSrc();
+  // shell=0: theme-boot.js cắm cờ .cx-shell-view giấu thanh cuộn. Thanh cuộn cổ
+  // điển (Chrome/Windows) ăn ~15px trong 390px bề ngang iframe → thiệp co lại,
+  // chừa một dải trắng sát mép phải ngay trong lòng thân máy.
+  frame.src = _previewIframeSrc("&shell=0");
   if (!key && !y) return;
   frame.addEventListener("load", function once() {
     frame.removeEventListener("load", once);
@@ -99,13 +102,18 @@ function cxLiveTouch() {
 // Thiệp dựng ở khổ 390px (máy thật) nên phải thu lại cho vừa ô màn hình — CSS
 // không chia được px cho px, đành đo bằng JS. Xem .cx-phone-view.
 // Bề rộng dải là thuần CSS (--cx-rail-w), không đo ở đây.
+// Chiều cao iframe cũng phải đo, không để số cứng trong CSS: tỉ lệ ô màn của ảnh
+// thân máy không trùng khít 390×837, lệch bao nhiêu là hở trắng bấy nhiêu ở mép
+// dưới. Bề ngang cho dư 1px để phép làm tròn không chừa sợi trắng sát mép phải.
 function _cxLiveMeasure() {
   const scr = document.querySelector("#live-dock .cx-phone-screen");
-  if (scr?.offsetWidth > 0) {
-    document.documentElement.style.setProperty(
-      "--cx-scr-scale",
-      String(scr.offsetWidth / 390),
-    );
+  if (!(scr?.offsetWidth > 0)) return;
+  const scale = scr.offsetWidth / 390;
+  document.documentElement.style.setProperty("--cx-scr-scale", String(scale));
+  const view = document.getElementById("live-preview-iframe");
+  if (view) {
+    view.style.width = "391px";
+    view.style.height = scr.offsetHeight / scale + "px";
   }
 }
 

@@ -52,7 +52,7 @@
     fab.id = "aichatFab";
     fab.className = "aichat-fab";
     fab.setAttribute("aria-label", "Mở trợ lý AI");
-    fab.innerHTML = '<i data-lucide="wand-sparkles" style="width:22px;height:22px"></i>';
+    fab.innerHTML = '<i data-icon="sparkles-solid" data-size="22"></i>';
 
     const panel = document.createElement("div");
     panel.id = "aichatPanel";
@@ -95,11 +95,15 @@
         </div>
       </div>`;
 
+    // Trang Thiết lập có lối vào riêng ở navbar (#tab-ai) nên KHÔNG thả bong bóng:
+    // mép phải là dải xem trực tiếp, mép dưới là navbar, đặt vào đâu cũng vướng.
     // Append TRƯỚC khi truy vấn: <x-button> tự thay mình bằng <button> thật ngay
     // lúc được gắn vào DOM, tra cứu sớm hơn là bắt được thẻ sắp bị vứt đi.
-    document.body.append(fab, panel);
+    if (inSetup()) document.body.append(panel);
+    else document.body.append(fab, panel);
     window.lucide?.createIcons({ root: fab });
     window.lucide?.createIcons({ root: panel });
+    window.cxRenderIcons?.(fab);
     window.cxRenderIcons?.(panel);
 
     els = {
@@ -112,6 +116,126 @@
       send: panel.querySelector("#aichatSend"),
       reset: panel.querySelector("#aichatReset"),
     };
+  }
+
+  // ── Kéo thả bong bóng ─────────────────────────────────────────────────────
+  // Bong bóng đứng ở góc phải-dưới nên hay che mất nút của trang; khách kéo được
+  // đi chỗ khác. Vị trí lưu theo TỈ LỆ khoảng trống (localStorage) để xoay máy
+  // hay đổi cỡ màn vẫn nằm trong tầm nhìn; chưa kéo lần nào thì để CSS đặt góc
+  // mặc định (đừng ghi left/top sẵn, sẽ mất phần né dải xem trước ở .cx-setup).
+
+  const POS_KEY = "cx_aichat_fab_pos";
+  const DRAG_SLOP = 5; // px: chưa quá ngưỡng này vẫn tính là một cú bấm mở bảng
+
+  const clamp = (v, lo, hi) => Math.min(Math.max(v, lo), hi);
+
+  // Vùng thả hợp lệ, đã trừ dải "xem trực tiếp" (mép phải) và navbar (mép dưới)
+  // của trang Thiết lập — hai biến đó chỉ có giá trị khi <html> mang .cx-setup.
+  function fabBounds() {
+    const cs = getComputedStyle(document.documentElement);
+    const rail = parseFloat(cs.getPropertyValue("--cx-rail-w")) || 0;
+    const nav = parseFloat(cs.getPropertyValue("--nav-h")) || 0;
+    const w = els.fab.offsetWidth;
+    const h = els.fab.offsetHeight;
+    return {
+      minX: 8,
+      minY: 8,
+      maxX: Math.max(8, window.innerWidth - rail - w - 8),
+      maxY: Math.max(8, window.innerHeight - nav - h - 8),
+    };
+  }
+
+  function placeFab(x, y) {
+    els.fab.style.left = x + "px";
+    els.fab.style.top = y + "px";
+    els.fab.style.right = "auto";
+    els.fab.style.bottom = "auto";
+  }
+
+  function savePos(x, y) {
+    const b = fabBounds();
+    const fx = b.maxX > b.minX ? (x - b.minX) / (b.maxX - b.minX) : 0;
+    const fy = b.maxY > b.minY ? (y - b.minY) / (b.maxY - b.minY) : 0;
+    try {
+      localStorage.setItem(POS_KEY, JSON.stringify({ fx, fy }));
+    } catch {}
+  }
+
+  // Đặt lại bong bóng theo tỉ lệ đã lưu. Gọi cả lúc khởi động lẫn khi màn đổi cỡ.
+  function restorePos() {
+    let p = null;
+    try {
+      p = JSON.parse(localStorage.getItem(POS_KEY) || "null");
+    } catch {}
+    if (!p || typeof p.fx !== "number" || typeof p.fy !== "number") return;
+    const b = fabBounds();
+    placeFab(
+      clamp(b.minX + p.fx * (b.maxX - b.minX), b.minX, b.maxX),
+      clamp(b.minY + p.fy * (b.maxY - b.minY), b.minY, b.maxY),
+    );
+  }
+
+  function initDrag() {
+    const fab = els.fab;
+    let pid = null;
+    let sx = 0;
+    let sy = 0;
+    let ox = 0;
+    let oy = 0;
+    let x = 0;
+    let y = 0;
+    let moved = false;
+
+    fab.addEventListener("pointerdown", (e) => {
+      if (e.button > 0) return;
+      pid = e.pointerId;
+      const r = fab.getBoundingClientRect();
+      sx = e.clientX;
+      sy = e.clientY;
+      ox = x = r.left;
+      oy = y = r.top;
+      moved = false;
+      fab.setPointerCapture(pid);
+    });
+
+    fab.addEventListener("pointermove", (e) => {
+      if (e.pointerId !== pid) return;
+      const dx = e.clientX - sx;
+      const dy = e.clientY - sy;
+      if (!moved) {
+        if (Math.hypot(dx, dy) < DRAG_SLOP) return;
+        moved = true;
+        fab.classList.add("is-dragging");
+      }
+      const b = fabBounds();
+      x = clamp(ox + dx, b.minX, b.maxX);
+      y = clamp(oy + dy, b.minY, b.maxY);
+      placeFab(x, y);
+    });
+
+    const end = (e) => {
+      if (e.pointerId !== pid) return;
+      if (fab.hasPointerCapture(pid)) fab.releasePointerCapture(pid);
+      pid = null;
+      if (!moved) return;
+      fab.classList.remove("is-dragging");
+      savePos(x, y);
+    };
+    fab.addEventListener("pointerup", end);
+    fab.addEventListener("pointercancel", end);
+
+    // Thả tay xong trình duyệt vẫn bắn `click` → chặn để bảng không bung ngay
+    // chỗ vừa kéo tới. Listener này phải đăng ký TRƯỚC listener mở bảng: cùng
+    // một phần tử thì thứ tự gọi là thứ tự đăng ký, cờ capture không đổi được.
+    fab.addEventListener("click", (e) => {
+      if (!moved) return;
+      moved = false;
+      e.preventDefault();
+      e.stopImmediatePropagation();
+    });
+
+    window.addEventListener("resize", restorePos);
+    restorePos();
   }
 
   // ── Markdown nhẹ ──────────────────────────────────────────────────────────
@@ -827,7 +951,11 @@
     initMic();
     syncSend();
 
-    els.fab.addEventListener("click", open);
+    // Không có bong bóng ở trang Thiết lập thì cũng không có gì để kéo/bấm.
+    if (!inSetup()) {
+      initDrag(); // phải đứng trước: nó chặn cú click sinh ra sau khi thả tay
+      els.fab.addEventListener("click", open);
+    }
     // Hai nút trên thanh tiêu đề là <x-button> — chúng TỰ THAY mình bằng
     // <button> thật, nên bắt sự kiện ở panel thay vì gắn vào thẻ đã biến mất.
     els.panel.addEventListener("click", (e) => {

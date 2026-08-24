@@ -289,8 +289,8 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   `invitation-setup` dùng); muốn cỡ CỐ ĐỊNH thì phải là **inline style**
   (`style="width:16px;height:16px"`) — thuộc tính `width`/`height` thua quy tắc CSS kia.
   Hình lucide KHÔNG có (glyph ghép tay…) thì bỏ vào `CX_ICONS` ở
-  `core/helpers/icon.js` rồi dùng `<i data-icon="tên">` — bảng đang RỖNG và chưa
-  trang nào nạp file đó, thêm icon đầu tiên là phải thêm cả thẻ `<script>`.
+  `core/helpers/icon.js` rồi dùng `<i data-icon="tên">` — file này KHÔNG tự có ở mọi
+  trang, trang mới dùng tới phải tự nạp (thẻ `<script>`, hoặc `SCRIPTS` ở loader).
 - **Web components `x-*`:** `[name=X]` khớp `<x-input>` chứ không phải `<input>` con.
 - **Thẻ nổi — luôn dùng `<x-popover>`** (`core/x-popover.js`, style `.x-pop*` ở
   `styles/_common.css`): tự neo theo nút mở (`anchor`), tự lật khi thiếu chỗ, kẹp trong

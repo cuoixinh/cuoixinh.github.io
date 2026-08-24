@@ -122,6 +122,20 @@
           >
         </button>
 
+        <!-- Trợ lý AI: khung chat do js/ai-assistant.js dựng (window.cxOpenAiChat).
+             Ở trang này nó KHÔNG thả bong bóng nổi, lối vào duy nhất là nút đây. -->
+        <button
+          type="button"
+          onclick="window.cxOpenAiChat?.()"
+          id="tab-ai"
+          class="cx-navitem"
+        >
+          <span class="cx-navitem-ico">
+            <i data-icon="sparkles-solid" data-size="24"></i>
+          </span>
+          <span class="cx-navitem-label">Trợ lý AI</span>
+        </button>
+
         <!-- data-cx-new: đánh dấu mục còn mới — chữ trong thuộc tính chính là
              nhãn huy hiệu (xem .cx-navitem[data-cx-new] ở styles/_setup.css).
              Bỏ thuộc tính là huy hiệu biến mất, không phải sửa gì thêm. -->

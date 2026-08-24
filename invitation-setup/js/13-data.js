@@ -783,7 +783,7 @@ async function saveAll(overrides = {}, label = "Đang lưu...") {
     // còn false mà payload đã mang is_published:true.
     if (_isLocalDraft && !IS_LOGIN) {
       showToast(
-        `Đã lưu nháp vào thiết bị này — tự động xoá sau ${CONFIG.retention.localDraftDays} ngày`,
+        `Đã lưu nháp vào thiết bị này`,
         "success",
       );
     } else if (!payload.is_published && !IS_PUBLISHED) {

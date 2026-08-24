@@ -288,6 +288,14 @@ const pendingUploads = {
   galleryImages: [], // [File, File, ...]
 };
 
+// Ảnh chỉ vào pendingUploads SAU khi qua picker điểm lấy nét + nén (bất đồng bộ),
+// còn xoá ảnh / chỉnh lại focal thì không sinh event nào — listener input/change
+// của autosave luôn chạy sớm hơn hoặc không chạy. Mọi thao tác ảnh phải tự gọi
+// hàm này, thiếu là mất dấu "chưa lưu" và khung xem trực tiếp vẫn dựng ảnh cũ.
+function _imagesChanged() {
+  _scheduleAutoSave("edit");
+}
+
 // Focal point (% x, % y) cho từng ảnh — quyết định object-position khi hiển thị ở các tỉ lệ khác nhau
 const FOCAL_POINT_FIELDS = [
   "cover_image_url",
@@ -373,6 +381,7 @@ async function handleImageUpload(event, fieldName) {
           _idbSaveSingle(fieldName, processedFile);
           _idbDelete(`${WEDDING_ID}_sf_${fieldName}`);
           renderSingleImageUpload(fieldName);
+          _imagesChanged();
           showToast("Đã chọn ảnh (chưa lưu)", "success");
         } catch (error) {
           console.error("Error processing image:", error);
@@ -397,6 +406,7 @@ async function handleImageUpload(event, fieldName) {
 
       // Render UI
       renderSingleImageUpload(fieldName);
+      _imagesChanged();
 
       showToast("Đã chọn ảnh (chưa lưu)", "success");
     } catch (error) {
@@ -450,6 +460,7 @@ function adjustSingleImageFocalPoint(fieldName) {
       } else {
         _idbSaveFocal(fieldName);
       }
+      _imagesChanged();
       showToast("Đã cập nhật điểm lấy nét", "success");
     },
     _qrGiftInfo(fieldName),
@@ -477,6 +488,7 @@ async function _storeCroppedImage(fieldName, blob, origName) {
   // Crop đã "nướng" khung hình vào ảnh → không cần focal point nữa
   pendingFocalPoints[fieldName] = { x: 50, y: 50 };
   renderSingleImageUpload(fieldName);
+  _imagesChanged();
   showToast("Đã cắt ảnh (chưa lưu)", "success");
 }
 
@@ -557,7 +569,10 @@ async function handleGalleryUpload(event) {
   }
 
   renderGalleryGrid();
-  if (added > 0) showToast(`Đã chọn ${added} ảnh (chưa lưu)`, "success");
+  if (added > 0) {
+    _imagesChanged();
+    showToast(`Đã chọn ${added} ảnh (chưa lưu)`, "success");
+  }
   if (errors.length > 0) showToast(`${errors.length} ảnh lỗi`, "warning");
 }
 
@@ -572,6 +587,7 @@ function adjustGalleryFocalPoint(globalIndex, source) {
     setGalleryFocalPoint(key, focal);
     if (key instanceof File) _idbUpdateGalleryFocal(key);
     else _idbSaveGalleryFocal(key);
+    _imagesChanged();
     showToast("Đã cập nhật điểm lấy nét", "success");
   });
 }

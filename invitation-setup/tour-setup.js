@@ -1,4 +1,4 @@
-// Gợi ý bong bóng chat AI ở trang thiết lập: vào trang, đợi 2s là hiện.
+// Gợi ý nút trợ lý AI trên navbar trang thiết lập: vào trang, đợi 2s là hiện.
 // Chỉ hiện MỘT LẦN cho mỗi máy (cờ ai_hint_seen trong localStorage).
 // Phụ thuộc: showTour() trong core/helpers/guide-helper.js
 
@@ -6,11 +6,11 @@
   const AI_HINT_KEY = buildCacheKey("ai_hint_seen");
   if (getCache(AI_HINT_KEY)) return;
 
-  const CARD_SEL = "#aichatFab";
+  const CARD_SEL = "#tab-ai";
   const WAIT_MS = 30000; // quá lâu vẫn chưa thấy thẻ → thôi, KHÔNG đánh dấu đã xem
 
-  // Bong bóng do js/ai-assistant.js dựng sau khi nạp xong, nên điều kiện đủ là:
-  // phần tử có trong DOM VÀ đang thực sự hiển thị.
+  // Nút nằm trong partial nav-bottom.html (loader chèn muộn) và có thể đang khuất
+  // trong popover "Tùy chọn", nên điều kiện đủ là: có trong DOM VÀ đang hiển thị.
   const cardReady = () => {
     const card = document.querySelector(CARD_SEL);
     return !!card && card.offsetParent !== null;
@@ -32,7 +32,7 @@
     );
   }
 
-  // Mốc 2s tính từ lúc bong bóng hiện được, chứ không phải từ lúc nạp script —
+  // Mốc 2s tính từ lúc nút hiện được, chứ không phải từ lúc nạp script —
   // nạp xong trang vẫn còn skeleton thì chưa có gì để spotlight.
   const t0 = Date.now();
   const iv = setInterval(() => {

@@ -32,6 +32,7 @@ const CX_NAV_ITEMS = [
   { id: "tab-config", pin: true },
   { id: "tab-guests" },
   { id: "tab-theme" },
+  { id: "tab-ai" },
 ];
 
 /**
