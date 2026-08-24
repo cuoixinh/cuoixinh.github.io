@@ -118,19 +118,33 @@
     };
   }
 
-  // ── Kéo thả bong bóng ─────────────────────────────────────────────────────
-  // Bong bóng đứng ở góc phải-dưới nên hay che mất nút của trang; khách kéo được
-  // đi chỗ khác. Vị trí lưu theo TỈ LỆ khoảng trống (localStorage) để xoay máy
-  // hay đổi cỡ màn vẫn nằm trong tầm nhìn; chưa kéo lần nào thì để CSS đặt góc
-  // mặc định (đừng ghi left/top sẵn, sẽ mất phần né dải xem trước ở .cx-setup).
+  // ── Kéo thả ───────────────────────────────────────────────────────────────
+  // Cả bong bóng lẫn bảng chat đều kéo đi chỗ khác được: bong bóng hay che nút
+  // của trang, còn bảng thì che đúng phần khách đang chỉnh. Bảng kéo bằng THANH
+  // TIÊU ĐỀ (kéo cả thân sẽ nuốt mất thao tác bôi đen / cuộn đoạn chat).
+  // Vị trí lưu theo TỈ LỆ khoảng trống (localStorage) để xoay máy hay đổi cỡ màn
+  // vẫn nằm trong tầm nhìn; chưa kéo lần nào thì để CSS đặt góc mặc định (đừng
+  // ghi left/top sẵn, sẽ mất phần né dải xem trước ở .cx-setup).
 
   const POS_KEY = "cx_aichat_fab_pos";
   const DRAG_SLOP = 5; // px: chưa quá ngưỡng này vẫn tính là một cú bấm mở bảng
+  const PANEL_GAP = 8; // khoảng hở giữa bảng và cột form ở trang Thiết lập
 
   const clamp = (v, lo, hi) => Math.min(Math.max(v, lo), hi);
 
-  // Vùng thả hợp lệ, đã trừ dải "xem trực tiếp" (mép phải) và navbar (mép dưới)
-  // của trang Thiết lập — hai biến đó chỉ có giá trị khi <html> mang .cx-setup.
+  // Khoá riêng cho từng trang: chỗ vừa tay ở trang chủ (góc phải) không phải chỗ
+  // vừa tay ở trang Thiết lập (cạnh cột form).
+  const panelPosKey = () =>
+    "cx_aichat_panel_pos" + (inSetup() ? "_setup" : "_home");
+
+  // Dưới 521px bảng phủ kín màn (xem styles/_ai-chat.css) → không kéo, không đặt
+  // toạ độ, mọi thứ để CSS lo.
+  const panelFloating = () =>
+    window.matchMedia("(min-width: 521px)").matches;
+
+  // Vùng thả hợp lệ của bong bóng, đã trừ dải "xem trực tiếp" (mép phải) và
+  // navbar (mép dưới) của trang Thiết lập — hai biến đó chỉ có giá trị khi
+  // <html> mang .cx-setup.
   function fabBounds() {
     const cs = getComputedStyle(document.documentElement);
     const rail = parseFloat(cs.getPropertyValue("--cx-rail-w")) || 0;
@@ -145,38 +159,100 @@
     };
   }
 
-  function placeFab(x, y) {
-    els.fab.style.left = x + "px";
-    els.fab.style.top = y + "px";
-    els.fab.style.right = "auto";
-    els.fab.style.bottom = "auto";
+  // Bảng chat thì CHỈ kẹp trong khung nhìn: nó nằm trên cả dải xem trước lẫn
+  // navbar (z-index 350) nên kéo đè lên chúng là chuyện khách cố ý.
+  function panelBounds() {
+    const w = els.panel.offsetWidth;
+    const h = els.panel.offsetHeight;
+    return {
+      minX: 8,
+      minY: 8,
+      maxX: Math.max(8, window.innerWidth - w - 8),
+      maxY: Math.max(8, window.innerHeight - h - 8),
+    };
   }
 
-  function savePos(x, y) {
-    const b = fabBounds();
+  function place(el, x, y) {
+    el.style.left = x + "px";
+    el.style.top = y + "px";
+    el.style.right = "auto";
+    el.style.bottom = "auto";
+  }
+
+  // Trả thẻ về đúng chỗ CSS đặt (dùng khi bảng chuyển sang khổ phủ kín màn).
+  function clearPlace(el) {
+    el.style.removeProperty("left");
+    el.style.removeProperty("top");
+    el.style.removeProperty("right");
+    el.style.removeProperty("bottom");
+  }
+
+  function savePos(key, b, x, y) {
     const fx = b.maxX > b.minX ? (x - b.minX) / (b.maxX - b.minX) : 0;
     const fy = b.maxY > b.minY ? (y - b.minY) / (b.maxY - b.minY) : 0;
     try {
-      localStorage.setItem(POS_KEY, JSON.stringify({ fx, fy }));
+      localStorage.setItem(key, JSON.stringify({ fx, fy }));
     } catch {}
+  }
+
+  // Vị trí đã lưu, quy về pixel của khung nhìn hiện tại. null = chưa kéo lần nào.
+  function loadPos(key, b) {
+    let p = null;
+    try {
+      p = JSON.parse(localStorage.getItem(key) || "null");
+    } catch {}
+    if (!p || typeof p.fx !== "number" || typeof p.fy !== "number") return null;
+    return {
+      x: clamp(b.minX + p.fx * (b.maxX - b.minX), b.minX, b.maxX),
+      y: clamp(b.minY + p.fy * (b.maxY - b.minY), b.minY, b.maxY),
+    };
   }
 
   // Đặt lại bong bóng theo tỉ lệ đã lưu. Gọi cả lúc khởi động lẫn khi màn đổi cỡ.
-  function restorePos() {
-    let p = null;
-    try {
-      p = JSON.parse(localStorage.getItem(POS_KEY) || "null");
-    } catch {}
-    if (!p || typeof p.fx !== "number" || typeof p.fy !== "number") return;
+  function restoreFabPos() {
     const b = fabBounds();
-    placeFab(
-      clamp(b.minX + p.fx * (b.maxX - b.minX), b.minX, b.maxX),
-      clamp(b.minY + p.fy * (b.maxY - b.minY), b.minY, b.maxY),
-    );
+    const p = loadPos(POS_KEY, b);
+    if (p) place(els.fab, p.x, p.y);
   }
 
-  function initDrag() {
-    const fab = els.fab;
+  // Chỗ mặc định của bảng ở trang Thiết lập: nằm ngay bên PHẢI cột form, cách
+  // đúng PANEL_GAP, đáy ngang với đáy cột (trên navbar). Mở từ tab khác thì cột
+  // form đang display:none (đo ra 0) → lấy #nav-card, thẻ nổi cùng khổ max-w-4xl
+  // luôn nhìn thấy. Trang chủ không có mốc nào → để CSS giữ góc phải-dưới.
+  function panelDefaultPos() {
+    if (!inSetup()) return null;
+    const col = ["#setup-scroll", "#nav-card"]
+      .map((sel) => document.querySelector(sel))
+      .find((el) => el && el.getBoundingClientRect().width > 0);
+    if (!col) return null;
+    const nav =
+      parseFloat(
+        getComputedStyle(document.documentElement).getPropertyValue("--nav-h"),
+      ) || 0;
+    const b = panelBounds();
+    return {
+      x: clamp(col.getBoundingClientRect().right + PANEL_GAP, b.minX, b.maxX),
+      y: clamp(
+        window.innerHeight - nav - 16 - els.panel.offsetHeight,
+        b.minY,
+        b.maxY,
+      ),
+    };
+  }
+
+  // Đặt bảng vào chỗ khách đã kéo, chưa kéo thì chỗ mặc định. Phải gọi khi bảng
+  // ĐANG HIỆN (thẻ ẩn thì mọi phép đo ra 0).
+  function syncPanelPos() {
+    if (!panelFloating()) return void clearPlace(els.panel);
+    const b = panelBounds();
+    const p = loadPos(panelPosKey(), b) || panelDefaultPos();
+    if (p) place(els.panel, p.x, p.y);
+    else clearPlace(els.panel);
+  }
+
+  // Kéo `el` bằng `handle` (mặc định là chính nó). `ignore` là selector của các
+  // control trong handle không được tính là chỗ bắt kéo (nút đóng, làm mới…).
+  function initDrag(el, { handle = el, bounds, onEnd, enabled, ignore } = {}) {
     let pid = null;
     let sx = 0;
     let sy = 0;
@@ -186,56 +262,57 @@
     let y = 0;
     let moved = false;
 
-    fab.addEventListener("pointerdown", (e) => {
+    handle.addEventListener("pointerdown", (e) => {
       if (e.button > 0) return;
+      if (enabled && !enabled()) return;
+      if (ignore && e.target.closest(ignore)) return;
       pid = e.pointerId;
-      const r = fab.getBoundingClientRect();
+      const r = el.getBoundingClientRect();
       sx = e.clientX;
       sy = e.clientY;
       ox = x = r.left;
       oy = y = r.top;
       moved = false;
-      fab.setPointerCapture(pid);
+      handle.setPointerCapture(pid);
     });
 
-    fab.addEventListener("pointermove", (e) => {
+    handle.addEventListener("pointermove", (e) => {
       if (e.pointerId !== pid) return;
       const dx = e.clientX - sx;
       const dy = e.clientY - sy;
       if (!moved) {
         if (Math.hypot(dx, dy) < DRAG_SLOP) return;
         moved = true;
-        fab.classList.add("is-dragging");
+        el.classList.add("is-dragging");
       }
-      const b = fabBounds();
+      const b = bounds();
       x = clamp(ox + dx, b.minX, b.maxX);
       y = clamp(oy + dy, b.minY, b.maxY);
-      placeFab(x, y);
+      place(el, x, y);
     });
 
     const end = (e) => {
       if (e.pointerId !== pid) return;
-      if (fab.hasPointerCapture(pid)) fab.releasePointerCapture(pid);
+      if (handle.hasPointerCapture(pid)) handle.releasePointerCapture(pid);
       pid = null;
       if (!moved) return;
-      fab.classList.remove("is-dragging");
-      savePos(x, y);
+      el.classList.remove("is-dragging");
+      onEnd?.(bounds(), x, y);
     };
-    fab.addEventListener("pointerup", end);
-    fab.addEventListener("pointercancel", end);
+    handle.addEventListener("pointerup", end);
+    handle.addEventListener("pointercancel", end);
 
     // Thả tay xong trình duyệt vẫn bắn `click` → chặn để bảng không bung ngay
-    // chỗ vừa kéo tới. Listener này phải đăng ký TRƯỚC listener mở bảng: cùng
-    // một phần tử thì thứ tự gọi là thứ tự đăng ký, cờ capture không đổi được.
-    fab.addEventListener("click", (e) => {
+    // chỗ vừa kéo tới (bong bóng), hay để cú thả trúng nút Đóng không đóng bảng.
+    // Listener này phải đăng ký TRƯỚC listener mở bảng: cùng một phần tử thì thứ
+    // tự gọi là thứ tự đăng ký, cờ capture không đổi được.
+    handle.addEventListener("click", (e) => {
       if (!moved) return;
       moved = false;
       e.preventDefault();
+      e.stopPropagation();
       e.stopImmediatePropagation();
     });
-
-    window.addEventListener("resize", restorePos);
-    restorePos();
   }
 
   // ── Markdown nhẹ ──────────────────────────────────────────────────────────
@@ -868,6 +945,9 @@
 
   function open() {
     els.panel.hidden = false;
+    // Đặt chỗ NGAY khi thẻ vừa hiện (còn ẩn thì mọi phép đo ra 0) và trước khung
+    // hình đầu tiên, không thì bảng bay từ góc phải sang.
+    syncPanelPos();
     els.panel.classList.add("is-opening");
     document.documentElement.classList.add("aichat-open");
     // Bỏ cờ ở khung hình sau để trình duyệt kịp thấy trạng thái đầu → có
@@ -953,9 +1033,30 @@
 
     // Không có bong bóng ở trang Thiết lập thì cũng không có gì để kéo/bấm.
     if (!inSetup()) {
-      initDrag(); // phải đứng trước: nó chặn cú click sinh ra sau khi thả tay
+      // Phải đứng trước: nó chặn cú click sinh ra sau khi thả tay.
+      initDrag(els.fab, {
+        bounds: fabBounds,
+        onEnd: (b, x, y) => savePos(POS_KEY, b, x, y),
+      });
+      window.addEventListener("resize", restoreFabPos);
+      restoreFabPos();
       els.fab.addEventListener("click", open);
     }
+
+    // Bảng kéo bằng thanh tiêu đề; hai nút trên đó vẫn phải bấm được.
+    initDrag(els.panel, {
+      handle: els.panel.querySelector(".aichat-head"),
+      bounds: panelBounds,
+      enabled: panelFloating,
+      ignore: "button, x-button, a",
+      onEnd: (b, x, y) => savePos(panelPosKey(), b, x, y),
+    });
+    // Đổi cỡ màn: vị trí lưu theo tỉ lệ nên phải tính lại, và qua/về ngưỡng
+    // 521px là đổi hẳn cách đặt (phủ kín màn ↔ thẻ nổi).
+    window.addEventListener("resize", () => {
+      if (!els.panel.hidden) syncPanelPos();
+    });
+
     // Hai nút trên thanh tiêu đề là <x-button> — chúng TỰ THAY mình bằng
     // <button> thật, nên bắt sự kiện ở panel thay vì gắn vào thẻ đã biến mất.
     els.panel.addEventListener("click", (e) => {

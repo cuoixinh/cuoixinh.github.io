@@ -96,11 +96,23 @@
    đè lên thiệp xem trước và lên hàng nút. Trang này không có bong bóng: lối vào là
    nút "Trợ lý AI" trên navbar (xem js/ai-assistant.js), bấm được ở MỌI tab —
    z-index phải vượt các panel tab (fixed inset-0 z-[200]) và cả navbar (z-[300]),
-   nếu không mở ở tab Cấu hình/Giao diện/Khách mời là bảng nằm khuất bên dưới. */
+   nếu không mở ở tab Cấu hình/Giao diện/Khách mời là bảng nằm khuất bên dưới.
+   Chỗ đứng thật do syncPanelPos() ghi đè lúc mở (sát cạnh phải cột form); mấy
+   dòng dưới là chỗ dự phòng khi chưa đo được cột nào. */
 .cx-setup .aichat-panel {
   z-index: 350;
   right: calc(24px + var(--cx-rail-w, 0px) + env(safe-area-inset-right, 0px));
   bottom: calc(16px + var(--nav-h, 0px) + env(safe-area-inset-bottom, 0px));
+}
+
+/* Đang kéo bảng: bỏ transition để nó bám sát con trỏ. Toạ độ do
+   js/ai-assistant.js ghi thẳng vào style (left/top + right/bottom: auto). */
+.aichat-panel.is-dragging {
+  transition: none;
+}
+
+.aichat-panel.is-dragging .aichat-head {
+  cursor: grabbing;
 }
 
 /* Đóng: vẫn trong DOM (giữ nguyên đoạn chat) nhưng không bắt chuột. */
@@ -137,6 +149,12 @@
     @apply rounded-b-none;
   }
 
+  /* Phủ kín màn thì không có chỗ mà kéo. */
+  .aichat-head {
+    touch-action: auto;
+    cursor: default;
+  }
+
   /* Bàn phím bung ra thì màn chỉ còn vài dòng — giấu hàng gợi ý cho khung tin
      nhắn thở. Cờ .aichat-kb do _syncViewport() đặt. */
   .aichat-kb .aichat-suggests {
@@ -145,10 +163,16 @@
 }
 
 /* Thanh tiêu đề không phải dải màu đặc: nền kem như mặt giấy, ngăn với khung
-   tin nhắn bằng NÉT ĐỨT — cùng lối "xé rời" của .hero-invite-foot. */
+   tin nhắn bằng NÉT ĐỨT — cùng lối "xé rời" của .hero-invite-foot.
+   Đây cũng là TAY CẦM để kéo cả bảng đi (js/ai-assistant.js): nhường sự kiện
+   chạm cho pointermove, không thì trình duyệt hiểu là cuộn trang. Dưới 521px
+   bảng phủ kín màn nên không kéo được — con trỏ trả về mặc định ở media query. */
 
 .aichat-head {
-  @apply flex shrink-0 items-center gap-3 px-4 py-3;
+  @apply flex shrink-0 select-none items-center gap-3 px-4 py-3;
+
+  touch-action: none;
+  cursor: grab;
 
   background: linear-gradient(
     160deg,
