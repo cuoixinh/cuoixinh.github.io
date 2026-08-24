@@ -17,7 +17,6 @@
 @import "./_music-player.css";
 @import "./_progress.css";
 @import "./_setup.css";
-@import "./_ai-modal.css";
 @import "./_ai-chat.css";
 
 @keyframes heroFadeUp {
@@ -73,7 +72,7 @@
   color: rgb(var(--text-body-rgb)) !important;
 }
 /* Dùng [class~="..."] thay cho .text-gray-500…: các lớp này đang được @apply
-   trong _setup.css & _ai-modal.css nên viết dạng dấu chấm sẽ bị Tailwind nhân bản
+   trong _setup.css nên viết dạng dấu chấm sẽ bị Tailwind nhân bản
    rule ra cho TỪNG component có @apply đó. */
 .cx-landing [class~="text-gray-50"],
 .cx-landing [class~="text-gray-100"],
@@ -625,8 +624,8 @@ html.cx-landing {
   transform: translate(-1px, calc(-50% + 1px)) rotate(45deg);
 }
 
-/* content:none (không phải display:none) — cssnano gộp nhầm rule display
-   với `#ai-history:not(.hidden)` ở _ai-modal.css thành selector hỏng. */
+/* content:none, KHÔNG dùng display:none — cssnano gộp rule display với một
+   `:not()` ở file khác thành selector hỏng (xem ghi chú CSS ở CLAUDE.md). */
 
 .hero-invite-steps li:last-child::after,
 .hero-invite-steps li:last-child::before {

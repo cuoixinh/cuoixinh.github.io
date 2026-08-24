@@ -45,7 +45,7 @@
     });
   }
 
-  // params: ý định mang sang trang thiết lập (vd {open:"voice"}), gắn vào URL chứ
+  // params: ý định mang sang trang thiết lập (vd {tab:"theme"}), gắn vào URL chứ
   // KHÔNG để sessionStorage — cờ ghi sẵn rồi khách huỷ ở hộp thoại là nó nằm lại,
   // lần vào trang thiết lập sau (đường nào cũng được) tự bật bảng AI không rõ lý
   // do. Đi theo URL thì không điều hướng = không có gì được ghi.
@@ -128,7 +128,7 @@
   // header trang thiết lập; thiếu thì suy ra từ theme.
   // opts.chosen: khách có tự chọn mẫu này không (mặc định có). Nút chung kiểu
   // "Tạo thiệp ngay" ở hero phải truyền false — xem _askThenStart.
-  // opts.params: query gắn thêm vào URL trang thiết lập, vd { open: "voice" }.
+  // opts.params: query gắn thêm vào URL trang thiết lập, vd { tab: "theme" }.
   window.cxStartDraft = function (theme, displayName, opts) {
     if (!theme) return;
     var o = opts || {};

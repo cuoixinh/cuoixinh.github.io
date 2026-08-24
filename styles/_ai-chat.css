@@ -79,6 +79,15 @@
   box-shadow: 0 24px 60px rgb(var(--shadow-brand-rgb) / 0.24);
 }
 
+/* Trang Thiết lập (cờ .cx-setup trên <html>): dải "xem trực tiếp" chiếm mép phải
+   và navbar chiếm mép dưới, nên bong bóng lẫn bảng chat phải lùi vào theo hai
+   biến đó — thiếu là đè lên thiệp xem trước và lên hàng nút. */
+.cx-setup .aichat-fab,
+.cx-setup .aichat-panel {
+  right: calc(24px + var(--cx-rail-w, 0px) + env(safe-area-inset-right, 0px));
+  bottom: calc(16px + var(--nav-h, 0px) + env(safe-area-inset-bottom, 0px));
+}
+
 /* Đóng: vẫn trong DOM (giữ nguyên đoạn chat) nhưng không bắt chuột. */
 .aichat-panel[hidden] {
   display: none;
@@ -97,7 +106,10 @@
     overflow: hidden;
   }
 
-  .aichat-panel {
+  .aichat-panel,
+  /* Thắng lại luật .cx-setup ở trên (specificity cao hơn media query) — trên
+     điện thoại bảng phủ kín màn nên không phải né gì cả. */
+  .cx-setup .aichat-panel {
     right: 0;
     bottom: 0;
     width: 100%;

@@ -2,7 +2,7 @@
    styles/tailwind-src.css → styles/build.css.
    Component của mình (.cx-*, .color-chip) viết bằng @apply; override DOM của thư
    viện ngoài (#clr-picker của Coloris, .flatpickr-*) giữ CSS THUẦN.
-   Style modal AI: xem styles/_ai-modal.css. */
+   Style khung chat AI: xem styles/_ai-chat.css. */
 
 /* Chiều cao thật của thanh dưới (hàng chính + tay nắm + phần hé của ngăn kéo,
    và cả ngăn kéo khi mở). _syncNavHeight() đo lại qua ResizeObserver; đây chỉ
@@ -971,7 +971,7 @@ svg.lucide {
 /* Block HIỆN đầu tiên nằm sát mép trên thẻ nên bỏ vạch trên, cho dải tô ăn theo
    góc bo. Cờ .is-first do _cxRenderPanels() đặt — ĐỪNG viết bằng
    `:not(.hidden)` trong CSS: cssnano gộp các `:not()` thành selector luôn khớp
-   (xem styles/_ai-modal.css), lúc đó block nào cũng bị đẩy/kẻ như nhau. */
+   (xem ghi chú CSS ở CLAUDE.md), lúc đó block nào cũng bị đẩy/kẻ như nhau. */
 .cx-block.is-first > .cx-block-head {
   border-top: 0;
 }
@@ -1064,7 +1064,7 @@ svg.lucide {
 
 /* Điện thoại chỉ còn icon. Viết bằng max-width chứ không `@apply hidden sm:…`:
    @apply hidden nhân bản mọi selector khác có chứa .hidden thành rule rác (xem
-   styles/_ai-modal.css), mà cssnano còn đẩy `display:none` xuống SAU media
+   ghi chú CSS ở CLAUDE.md), mà cssnano còn đẩy `display:none` xuống SAU media
    query nên nhãn tắt luôn ở mọi khổ. */
 @media (max-width: 639px) {
   #nav-slots > .cx-navitem .cx-navitem-label,
@@ -1460,11 +1460,6 @@ html.cx-rail-off {
   #theme-panel,
   #guests-panel {
     right: var(--cx-rail-w);
-  }
-
-  /* Chỗ đứng cho nhịp đầu, trước khi _positionAiFab() ghi `left` thật. */
-  .ai-fab {
-    right: calc(var(--cx-rail-w) + 16px);
   }
 }
 

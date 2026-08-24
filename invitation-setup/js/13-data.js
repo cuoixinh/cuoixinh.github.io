@@ -7,13 +7,6 @@
 function _showContent() {
   document.getElementById("skeleton-loader")?.classList.add("hidden");
   document.getElementById("actual-content")?.classList.remove("hidden");
-  // Content thật đã hiện → show thẻ AI (đang ẩn lúc skeleton) và đặt lại vị trí
-  // cho khớp form (lúc này #wedding-form mới có kích thước thật).
-  const fab = document.querySelector(".ai-fab");
-  if (fab) {
-    fab.classList.remove("hidden-boot");
-    if (typeof _positionAiFab === "function") _positionAiFab();
-  }
   _updateHeaderThemeBadge();
   const params = new URLSearchParams(window.location.search);
   const savedTab = params.get("tab");

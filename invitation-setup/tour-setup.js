@@ -1,4 +1,4 @@
-// Gợi ý thẻ "Tạo thiệp với AI" ở trang thiết lập thiệp: vào trang, đợi 2s là hiện.
+// Gợi ý bong bóng chat AI ở trang thiết lập: vào trang, đợi 2s là hiện.
 // Chỉ hiện MỘT LẦN cho mỗi máy (cờ ai_hint_seen trong localStorage).
 // Phụ thuộc: showTour() trong core/helpers/guide-helper.js
 
@@ -6,33 +6,34 @@
   const AI_HINT_KEY = buildCacheKey("ai_hint_seen");
   if (getCache(AI_HINT_KEY)) return;
 
-  const CARD_SEL = ".ai-fab:not(.is-gone) .ai-card";
+  const CARD_SEL = "#aichatFab";
   const WAIT_MS = 30000; // quá lâu vẫn chưa thấy thẻ → thôi, KHÔNG đánh dấu đã xem
 
-  // Thẻ AI ẩn suốt lúc skeleton (.hidden-boot) và chỉ hiện ở màn chỉnh sửa,
-  // nên điều kiện đủ là: phần tử có trong DOM VÀ đang thực sự hiển thị.
+  // Bong bóng do js/ai-assistant.js dựng sau khi nạp xong, nên điều kiện đủ là:
+  // phần tử có trong DOM VÀ đang thực sự hiển thị.
   const cardReady = () => {
     const card = document.querySelector(CARD_SEL);
     return !!card && card.offsetParent !== null;
   };
 
   function showAiHint() {
-    // Vào thẳng bằng ?open=ai/voice thì bảng AI đang mở — đừng chồng tour lên.
-    if (!cardReady() || document.getElementById("ai-form")) return;
+    // Bảng chat đang mở thì đừng chồng tour lên.
+    const panel = document.getElementById("aichatPanel");
+    if (!cardReady() || (panel && !panel.hidden)) return;
     showTour(
       [
         {
           selector: CARD_SEL,
-          title: "Tạo thiệp với AI",
-          desc: "Chỉ vài dòng thông tin, AI sẽ tự hoàn thiện nội dung cả tấm thiệp. Bấm “Thử ngay” để bắt đầu nhé!",
+          title: "Trợ lý AI",
+          desc: "Kể vài dòng về đám cưới, trợ lý sẽ hỏi thêm rồi điền luôn nội dung vào thiệp cho bạn.",
         },
       ],
       { storageKey: AI_HINT_KEY, dismissOnTargetClick: true },
     );
   }
 
-  // Mốc 2s tính từ lúc thẻ hiện được (hết skeleton), chứ không phải từ lúc nạp
-  // script — nạp xong trang vẫn còn skeleton thì chưa có gì để spotlight.
+  // Mốc 2s tính từ lúc bong bóng hiện được, chứ không phải từ lúc nạp script —
+  // nạp xong trang vẫn còn skeleton thì chưa có gì để spotlight.
   const t0 = Date.now();
   const iv = setInterval(() => {
     if (cardReady()) {

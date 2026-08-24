@@ -44,20 +44,18 @@ function goCreateDraft(e, params) {
   if (first) createDraft(first.id, { chosen: false, params });
 }
 
-// Vào trang thiết lập rồi mở luôn bảng "Tạo nội dung bằng AI". Ý định đi bằng
-// QUERY STRING (?open=ai) chứ không phải sessionStorage: đường đi còn vòng qua
-// hộp thoại "đang có thiệp viết dở", mà cờ ghi trước rồi khách bấm huỷ là nó nằm
-// lại — lần sau vào trang thiết lập bằng đường bất kỳ, bảng AI tự bật lên không
-// rõ lý do. Đi theo URL thì không điều hướng = không có gì được ghi.
-// Bên đọc + tự xoá khỏi thanh địa chỉ: invitation-setup/ai-modal.js.
+// Hai lối vào "để AI làm giúp" giờ mở thẳng khung chat NGAY TẠI trang chủ
+// (js/ai-assistant.js) chứ không điều hướng đi đâu: trợ lý hỏi đủ thông tin rồi
+// mới dựng thiệp, nên chưa cần tạo nháp lúc bấm.
 function goCreateWithAi(e) {
-  goCreateDraft(e, { open: "ai" });
+  e?.preventDefault?.();
+  window.cxOpenAiChat?.();
 }
 
-// Như trên nhưng mở luôn hộp thoại NÓI của ô "Thông tin cặp đôi" — người dùng
-// kể bằng miệng, AI dựng nội dung thiệp từ đó.
+// Như trên nhưng bật luôn micro của khung chat — khách kể bằng miệng.
 function goCreateWithVoice(e) {
-  goCreateDraft(e, { open: "voice" });
+  e?.preventDefault?.();
+  window.cxOpenAiChat?.({ mic: true });
 }
 
 function initHeroImage() {

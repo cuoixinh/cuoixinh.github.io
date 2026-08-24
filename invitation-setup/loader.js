@@ -17,7 +17,6 @@
     ["mount-guests-panel", "partials/guests-panel.html"],
     ["mount-nav-bottom", "partials/nav-bottom.html"],
     ["mount-import-modal", "partials/import-modal.html"],
-    ["mount-ai-card", "partials/ai-card.html"],
   ];
 
   // Từng bước của form nội dung, mỗi bước một file trong partials/steps/.
@@ -103,7 +102,12 @@
     // Sau 04 (dùng _savePreviewData/_previewIframeSrc và cờ _isPreviewActive).
     "js/22-live-preview.js",
     "js/23-pull-refresh.js",
-    "ai-modal.js",
+    // Sau các file dựng form: cần _loveStoryItems/_timelineItems/BANK_LIST.
+    "js/24-ai-apply.js",
+    // Khung chat AI dùng chung với trang chủ; thấy window.cxApplyAiCard thì đổ
+    // thẳng vào thiệp đang mở thay vì dựng nháp mới.
+    "../core/dal/ai-chat-dal.js",
+    "../js/ai-assistant.js",
     "tour-setup.js",
   ];
 

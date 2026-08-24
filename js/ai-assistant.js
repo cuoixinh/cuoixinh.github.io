@@ -6,8 +6,10 @@
 // Lớp UI thuần: mọi thứ gọi model đi qua window.aiChatDAL (core/dal/ai-chat-dal.js)
 // → Edge Function ai-chat, nơi giữ tri thức sản phẩm, luật thu thập và hạn mức.
 //
-// Thiệp dựng xong đi sang trang thiết lập qua localStorage (CARD_KEY) chứ không
-// qua URL: nó là cả một object vài KB. Bên đọc: invitation-setup/ai-modal.js.
+// Dùng ở HAI nơi. Trang chủ: thiệp dựng xong đi sang trang thiết lập qua
+// localStorage (CARD_KEY) chứ không qua URL vì nó là object vài KB — bên đọc là
+// invitation-setup/js/24-ai-apply.js. Trang Thiết lập: đã có thiệp đang mở nên gọi
+// thẳng window.cxApplyAiCard, không dựng nháp mới.
 
 (function () {
   const STORE_KEY = "cx_aichat_history"; // sessionStorage: giữ đoạn chat khi F5
@@ -316,21 +318,38 @@
     btn.setAttribute("size", "sm");
     btn.setAttribute("full", "");
     btn.setAttribute("data-card-open", "");
-    btn.textContent = "Mở thiệp của tôi";
+    btn.textContent = inSetup() ? "Áp dụng vào thiệp" : "Mở thiệp của tôi";
     box.appendChild(btn);
 
     row.appendChild(box);
     scrollToEnd();
   }
 
-  // Bàn giao: cất thiệp vào localStorage rồi đi đúng đường của nút "Tạo thiệp
+  // Trang Thiết lập nạp js/24-ai-apply.js nên có hàm này; trang chủ thì không.
+  const inSetup = () => typeof window.cxApplyAiCard === "function";
+
+  // Đang ở trang Thiết lập: đổ thẳng vào thiệp đang mở. Hỏi trước vì thao tác này
+  // GHI ĐÈ nội dung sẵn có.
+  async function applyHere(card) {
+    const ok =
+      typeof showConfirm !== "function" ||
+      (await showConfirm(
+        "Áp dụng nội dung AI?",
+        "Nội dung đang có trong thiệp sẽ bị ghi đè bằng bản AI vừa dựng.",
+        { confirmText: "Áp dụng" },
+      ));
+    if (ok) window.cxApplyAiCard(card);
+  }
+
+  // Trang chủ: cất thiệp vào localStorage rồi đi đúng đường của nút "Tạo thiệp
   // ngay" (còn nháp dở thì cxStartDraft tự hỏi tiếp cái cũ hay làm mới).
   // `templates` khai bằng let ở js/templates-data.js → binding TOÀN CỤC chứ không
   // phải window.templates; chưa nạp xong thì để cxStartDefaultDraft đi hỏi server.
-  function goToSetup(card) {
+  function useCard(card) {
     if (!card) return;
+    if (inSetup()) return void applyHere(card);
     setCache(CARD_KEY, card);
-    const params = { open: "ai", from: "chat" };
+    const params = {};
     const first =
       typeof templates !== "undefined" && Array.isArray(templates)
         ? templates.find((t) => t.status === "active")
@@ -657,7 +676,7 @@
     });
     els.body.addEventListener("click", (e) => {
       const btn = e.target.closest("[data-card-open]");
-      if (btn && !btn.disabled) goToSetup(btn.closest(".aichat-row")?._cxCard);
+      if (btn && !btn.disabled) useCard(btn.closest(".aichat-row")?._cxCard);
     });
     els.send.addEventListener("click", () => ask(els.input.value));
     els.input.addEventListener("input", () => {
@@ -676,9 +695,19 @@
     });
   }
 
-  if (document.readyState === "loading") {
+  // Mở khung chat từ nơi khác (menu "Tạo thiệp ngay" ở trang chủ, ?open=ai).
+  // `mic` = bật luôn micro, thay cho luồng "nói cho AI nghe" trước đây.
+  window.cxOpenAiChat = function (opt) {
+    open();
+    // Nút micro ẩn khi trình duyệt không hỗ trợ SpeechRecognition — lúc đó bỏ qua,
+    // khách vẫn gõ được như thường. toggleMic chỉ bật vì bảng vừa mở, chưa nghe gì.
+    if (opt && opt.mic && !els.mic.hidden) toggleMic();
+  };
+
+  // Trang Thiết lập nạp file này ĐỘNG qua loader.js (DOMContentLoaded đã bắn từ
+  // lâu) nên phải đi qua __cxOnReady; trang chủ không có hàm đó → hai nhánh sau.
+  if (typeof window.__cxOnReady === "function") window.__cxOnReady(init);
+  else if (document.readyState === "loading")
     document.addEventListener("DOMContentLoaded", init, { once: true });
-  } else {
-    init();
-  }
+  else init();
 })();

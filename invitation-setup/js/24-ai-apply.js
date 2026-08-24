@@ -272,3 +272,16 @@ function _resolveBankName(codeOrName) {
 }
 
 window.cxApplyAiCard = cxApplyAiCard;
+
+// ── Thiệp bàn giao từ khung chat ở TRANG CHỦ ────────────────────────────────
+// Object vài KB nên đi qua localStorage chứ không qua URL. Bên ghi: js/ai-assistant.js.
+// Đọc MỘT LẦN rồi xoá — còn nằm lại thì lần mở thiệp sau bị đổ đè nội dung của
+// cuộc chat cũ.
+const CX_CHAT_CARD_KEY = buildCacheKey("chat_card");
+
+window.__cxOnReady(() => {
+  const card = getCache(CX_CHAT_CARD_KEY);
+  removeCache(CX_CHAT_CARD_KEY);
+  if (!card || typeof card !== "object") return;
+  cxApplyAiCard(card);
+});

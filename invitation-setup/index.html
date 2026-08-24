@@ -51,7 +51,7 @@
       href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css" integrity="sha384-RkASv+6KfBMW9eknReJIJ6b3UnjKOKC5bOUaNgIY778NFbQ8MtWq9Lr/khUgqtTt" crossorigin="anonymous"
     />
     <!-- Tailwind build local (npm run build:css) — gộp cả 3 file CSS cũ của trang
-         (_common.css, _ai-modal.css, _setup.css). PHẢI đứng sau CSS của
+         (_common.css, _ai-chat.css, _setup.css). PHẢI đứng sau CSS của
          Coloris/Flatpickr ở trên vì có các rule đè lên chúng. -->
     <link rel="stylesheet" href="../styles/build.css" />
   </head>
@@ -111,13 +111,12 @@
       <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
       <!-- Nạp partials/*.html vào các thẻ mount ở trên, rồi mới chèn script app
-           (core/*, index.js, ai-modal.js, tour-setup.js). Xem loader.js. -->
+           (core/*, index.js, tour-setup.js). Xem loader.js. -->
       <script src="loader.js"></script>
     </div>
     <!-- End Actual Content -->
 
     <span id="mount-import-modal" hidden></span>
 
-    <span id="mount-ai-card" hidden></span>
   </body>
 </html>

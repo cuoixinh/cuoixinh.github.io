@@ -203,9 +203,6 @@ function randomQuote(btn) {
   }, 1000);
 }
 
-// ============= AI: TẠO NỘI DUNG THIỆP =============
-// (Đã tách sang ai-modal.js + styles/_ai-modal.css để index.js gọn hơn.)
-
 // ============= TIME INPUT VALIDATION =============
 
 function handleTimeInput(event) {
