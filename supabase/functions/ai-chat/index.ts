@@ -87,7 +87,13 @@ const CHAT_SCHEMA = {
     type: { type: 'string', enum: ['chat', 'card'] },
     text: { type: 'string', description: 'Lời nói với khách, tiếng Việt, KHÔNG markdown' },
     tone: { type: 'string', enum: VALID_TONES },
-    region: { type: 'string', enum: ['', ...VALID_REGIONS] },
+    // Gemini từ chối enum có giá trị RỖNG (INVALID_ARGUMENT). Chưa biết vùng miền
+    // thì bỏ hẳn trường này — nó không nằm trong `required`, và pickRegion trả ''.
+    region: {
+      type: 'string',
+      enum: VALID_REGIONS,
+      description: 'Chỉ nêu khi đã biết; chưa biết thì BỎ HẲN trường này, đừng để chuỗi rỗng.',
+    },
     fields: {
       type: 'array',
       description:
@@ -298,7 +304,7 @@ const OUTPUT_FORMAT = `
 ĐỊNH DẠNG TRẢ LỜI: một object JSON duy nhất, đúng MỘT trong hai dạng.
 
 - Đang trao đổi (kể cả khi đang hỏi thông tin để tạo thiệp):
-  {"type":"chat","text":"<lời nói với khách>","tone":"<nếu biết>","region":"<nếu biết>","fields":[{"key":"groom_name","value":"Quang Vinh"}, …mọi thứ đã thu được tới lúc này]}
+  {"type":"chat","text":"<lời nói với khách>","tone":"<nếu biết, chưa biết thì bỏ hẳn khoá này>","region":"<bac|trung|nam, chưa biết thì bỏ hẳn khoá này>","fields":[{"key":"groom_name","value":"Quang Vinh"}, …mọi thứ đã thu được tới lúc này]}
 - Đã đủ mục bắt buộc VÀ khách đã đồng ý tạo:
   {"type":"card","text":"<lời nói với khách>","tone":"…","region":"…","story_quote":"…","love_story":[{"date":"…","title":"…","content":"…"}],"timeline":[{"time":"HH:MM","title":"…","type":"ceremony|party|bride-party"}],"fields":[{"key":"…","value":"…"}, …]}
 
