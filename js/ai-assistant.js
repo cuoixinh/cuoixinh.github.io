@@ -1,5 +1,6 @@
-// Trợ lý AI của trang chủ: bong bóng nổi góc phải + bảng chat vừa tư vấn dịch vụ
-// vừa hỏi thông tin rồi DỰNG LUÔN nội dung thiệp cho khách.
+// Trợ lý AI: bong bóng nổi góc phải + bảng chat vừa tư vấn dịch vụ vừa hỏi thông
+// tin rồi DỰNG LUÔN nội dung thiệp. Dùng ở trang chủ và trang Thiết lập (ở đó
+// 24-ai-apply.js đổ kết quả thẳng vào form).
 // Toàn bộ markup dựng ở đây (như core/payment.js) nên index.html chỉ cần một thẻ
 // <script>; style ở styles/_ai-chat.css.
 //

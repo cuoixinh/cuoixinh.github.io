@@ -1,5 +1,5 @@
 /**
- * AiChatDAL — gọi Edge Function ai-chat (Trợ lý AI ở trang chủ). Không bắt buộc
+ * AiChatDAL — gọi Edge Function ai-chat (Trợ lý AI). Không bắt buộc
  * đăng nhập: đã đăng nhập thì đính JWT (hạn mức theo user), chưa thì server tính
  * theo IP. Server trả NDJSON để chữ chạy dần.
  */

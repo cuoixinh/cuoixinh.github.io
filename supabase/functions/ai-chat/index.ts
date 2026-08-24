@@ -1,5 +1,5 @@
-// ai-chat — Trợ lý AI ở trang chủ: vừa tư vấn về dịch vụ, vừa hỏi thông tin rồi
-// DỰNG LUÔN nội dung thiệp cho khách.
+// ai-chat — Trợ lý AI dùng chung cho trang chủ và trang Thiết lập: vừa tư vấn về
+// dịch vụ, vừa hỏi thông tin rồi DỰNG LUÔN nội dung thiệp cho khách.
 //
 // Chỉ có kỹ thuật ở đây; DỮ KIỆN + LUẬT trả lời nằm trong knowledge.ts, hợp đồng
 // dữ liệu thiệp nằm trong _shared/card-schema.ts. Danh sách mẫu và GIÁ không viết
@@ -100,9 +100,8 @@ const CHAT_SCHEMA = {
     fields: {
       type: 'array',
       description:
-        'CHỈ liệt kê những mục có dữ liệu THẬT từ khách. Mục khách chưa nói hoặc đã bảo ' +
-        'bỏ qua thì KHÔNG đưa vào danh sách — tuyệt đối không bịa cho đủ. ' +
-        'Khoá hợp lệ: ' + FIELD_KEYS_TEXT,
+        'CHỈ những mục có dữ liệu THẬT từ khách; mục chưa nói hoặc đã bảo bỏ qua thì ' +
+        'không đưa vào. Khoá hợp lệ: ' + FIELD_KEYS_TEXT,
       items: {
         type: 'object',
         properties: {
@@ -127,8 +126,8 @@ const CHAT_SCHEMA = {
     timeline: {
       type: 'array',
       description:
-        'Lịch trình ngày cưới, theo thứ tự thời gian. Chỉ dựng từ mốc khách đã cho, ' +
-        'nhưng đã biết giờ lễ thì PHẢI có ít nhất mốc lễ chính; không bịa mốc khách chưa nhắc.',
+        'Lịch trình ngày cưới theo thứ tự thời gian, chỉ dựng từ mốc khách đã cho; ' +
+        'biết giờ lễ thì PHẢI có ít nhất mốc lễ chính.',
       items: {
         type: 'object',
         properties: {
@@ -142,8 +141,8 @@ const CHAT_SCHEMA = {
     story_quote: {
       type: 'string',
       description:
-        'Lời ngỏ của cặp đôi: ĐÚNG MỘT CÂU, 12–24 chữ, tối đa 2 vế, giàu chất thơ. ' +
-        'KHÔNG chứa tên riêng, ngày tháng, địa điểm; KHÔNG dấu ngoặc kép; KHÔNG lời mời.',
+        'Lời ngỏ của cặp đôi: ĐÚNG MỘT CÂU 12–24 chữ, giàu chất thơ; không tên riêng, ' +
+        'ngày tháng, địa điểm, dấu ngoặc kép hay lời mời.',
     },
   },
   required: ['type', 'text', 'fields'],
@@ -305,22 +304,19 @@ function sanitizeKnown(raw: unknown): KnownCard | null {
 
 const OUTPUT_FORMAT = `
 ĐỊNH DẠNG TRẢ LỜI: một object JSON duy nhất, đúng MỘT trong hai dạng.
+- "type":"chat" — còn đang trao đổi, kể cả khi đang hỏi thông tin để tạo thiệp.
+- "type":"card" — đã đủ mục bắt buộc VÀ khách đã xác nhận bảng chốt; lượt đó phải kèm story_quote,
+  love_story (nếu khách có kể chuyện tình) và timeline.
 
-- Đang trao đổi (kể cả khi đang hỏi thông tin để tạo thiệp):
-  {"type":"chat","text":"<lời nói với khách>","tone":"<nếu biết, chưa biết thì bỏ hẳn khoá này>","region":"<bac|trung|nam, chưa biết thì bỏ hẳn khoá này>","fields":[{"key":"groom_name","value":"Quang Vinh"}, …mọi thứ đã thu được tới lúc này]}
-- Đã đủ mục bắt buộc VÀ khách đã đồng ý tạo:
-  {"type":"card","text":"<lời nói với khách>","tone":"…","region":"…","story_quote":"…","love_story":[{"date":"…","title":"…","content":"…"}],"timeline":[{"time":"HH:MM","title":"…","type":"ceremony|party|bride-party"}],"fields":[{"key":"…","value":"…"}, …]}
+⚠️ LUẬT QUAN TRỌNG NHẤT: trả "card" nghĩa là BẠN PHẢI TỰ VIẾT RA trọn bộ nội dung thiệp
+ngay trong lượt đó. Câu "text" chỉ là lời nhắn, NÓ KHÔNG TẠO RA THIỆP — nói "thiệp của bạn
+đây" mà thiếu dữ liệu thì khách bấm vào chỉ thấy thiệp trống. Chưa viết đủ được thì cứ trả
+"chat" và hỏi tiếp.
 
-⚠️ LUẬT QUAN TRỌNG NHẤT: trả "type":"card" nghĩa là BẠN PHẢI TỰ VIẾT RA trọn bộ nội dung
-thiệp ngay trong lượt đó — "fields" đầy đủ mọi thông tin đã thu, "story_quote", "love_story"
-(nếu khách có kể chuyện tình), "timeline". Câu "text" chỉ là lời nhắn, NÓ KHÔNG TẠO RA
-THIỆP: {"type":"card","text":"thiệp của bạn đây"} mà thiếu dữ liệu thì khách bấm vào chỉ
-thấy thiệp trống. Chưa viết đủ được thì cứ trả "type":"chat" và hỏi tiếp.
-
-"text" LUÔN phải có ở cả hai dạng — đó là câu DUY NHẤT khách đọc được. Viết như đang nhắn
-tin: KHÔNG nhắc JSON, KHÔNG đọc tên field, KHÔNG mô tả cấu trúc dữ liệu.
-"fields" LUÔN phải có (chưa thu được gì thì []) và CHỈ chứa mục khách thực sự đã cho — mục
-chưa hỏi tới hoặc khách đã bảo bỏ qua thì KHÔNG có mặt, đừng thêm vào cho đủ bộ.
+"text" LUÔN phải có ở cả hai dạng — đó là câu DUY NHẤT khách đọc được; viết như đang nhắn
+tin, KHÔNG nhắc JSON, không đọc tên field, không mô tả cấu trúc dữ liệu.
+"fields" LUÔN phải có (chưa thu được gì thì []); "tone"/"region" chỉ nêu khi đã biết, chưa
+biết thì bỏ hẳn khoá đó.
 `.trim()
 
 // Hội thoại nhét vào MỘT prompt (provider nào cũng nhận được) và bọc trong dấu
