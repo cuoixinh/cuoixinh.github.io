@@ -221,6 +221,50 @@
   border-bottom-left-radius: 8px;
 }
 
+/* ── Bong bóng dựng từ markdown ────────────────────────────────────────────── */
+/* Trợ lý được phép trả lời có **đậm**, gạch đầu dòng và danh sách đánh số;
+   js/ai-assistant.js dựng chúng thành thẻ khối. Nội dung không còn là text
+   thuần nên phải bỏ whitespace-pre-wrap, nếu không mỗi lần xuống dòng trong
+   nguồn lại thành một dòng trống thừa giữa các khối. */
+
+.aichat-md {
+  @apply whitespace-normal;
+}
+
+.aichat-md > * + * {
+  @apply mt-2;
+}
+
+/* Preflight của Tailwind gỡ hết chấm đầu dòng và thụt lề của ul/ol → phải khai lại. */
+.aichat-md ul,
+.aichat-md ol {
+  @apply space-y-1 pl-5;
+}
+
+.aichat-md ul {
+  @apply list-disc;
+}
+
+.aichat-md ol {
+  @apply list-decimal;
+}
+
+.aichat-md li::marker {
+  color: rgb(var(--brand-accent-rgb));
+}
+
+.aichat-md strong {
+  @apply font-semibold;
+
+  color: rgb(var(--brand-accent-rgb));
+}
+
+.aichat-md code {
+  @apply rounded px-1 py-0.5 text-[13px];
+
+  background: rgb(var(--brand-primary-rgb) / 0.28);
+}
+
 /* Ba chấm lúc chờ câu trả lời — cùng khổ với bong bóng trả lời để không giật. */
 .aichat-typing {
   @apply mr-auto flex items-center gap-1 rounded-[20px] px-4 py-3.5;

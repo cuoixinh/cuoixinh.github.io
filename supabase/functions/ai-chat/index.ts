@@ -85,7 +85,10 @@ const CHAT_SCHEMA = {
   ],
   properties: {
     type: { type: 'string', enum: ['chat', 'card'] },
-    text: { type: 'string', description: 'Lời nói với khách, tiếng Việt, KHÔNG markdown' },
+    text: {
+      type: 'string',
+      description: 'Lời nói với khách, tiếng Việt. Dùng markdown khi cần cho dễ đọc.',
+    },
     tone: { type: 'string', enum: VALID_TONES },
     // Gemini từ chối enum có giá trị RỖNG (INVALID_ARGUMENT). Chưa biết vùng miền
     // thì bỏ hẳn trường này — nó không nằm trong `required`, và pickRegion trả ''.
@@ -358,15 +361,18 @@ ${transcript}
 Trợ lý:`
 }
 
-// Bỏ markdown model hay lỡ chèn + nhãn "Trợ lý:" thừa, rồi clamp.
+// Dọn nhãn "Trợ lý:" và thứ model lỡ chèn thừa, rồi clamp. GIỮ LẠI markdown nhẹ
+// (**đậm**, "- ", "1.") — client tự render lấy, xem js/ai-assistant.js. Chỉ gạt hai
+// thứ bong bóng chat không dựng nổi: khối code và tiêu đề "#".
 function cleanAnswer(raw: string): string {
   return String(raw ?? '')
     .replace(/^\s*```[a-zA-Z]*\s*/, '')
     .replace(/\s*```\s*$/, '')
     .replace(/^\s*Trợ lý\s*:\s*/i, '')
-    .replace(/\*\*(.+?)\*\*/g, '$1')
-    .replace(/^#{1,6}\s+/gm, '')
-    .replace(/^\s*[-*]\s+/gm, '• ')
+    .replace(/^[ \t]*#{1,6}[ \t]+/gm, '')
+    // Gạch đầu dòng về MỘT dạng "- ". Phải có khoảng trắng ngay sau dấu thì
+    // "**đậm**" đứng đầu dòng mới không bị ăn nhầm.
+    .replace(/^([ \t]*)[*•][ \t]+/gm, '$1- ')
     .trim()
     .slice(0, MAX_ANSWER_LEN)
 }

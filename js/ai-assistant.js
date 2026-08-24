@@ -112,9 +112,105 @@
     };
   }
 
+  // ── Markdown nhẹ ──────────────────────────────────────────────────────────
+  // Câu trả lời do model sinh ra nên TUYỆT ĐỐI không cắm thẳng vào innerHTML:
+  // thoát HTML trước, rồi tự dựng lại đúng bốn thứ prompt cho phép (xem
+  // CHAT_RULES trong supabase/functions/ai-chat/knowledge.ts) — **đậm**, `mã`,
+  // gạch đầu dòng "- ", danh sách "1.". Ký hiệu khác giữ nguyên văn.
+
+  const esc = (s) =>
+    String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+  // Nhấn mạnh TRONG MỘT DÒNG. Tách theo `mã` trước để dấu sao nằm trong đoạn mã
+  // còn nguyên; mọi mẫu đều cấm ký tự xuống dòng nên không nuốt lây dòng dưới.
+  function mdInline(s) {
+    return s
+      .split(/(`[^`\n]+`)/)
+      .map((seg) =>
+        seg.length > 2 && seg.startsWith("`") && seg.endsWith("`")
+          ? "<code>" + seg.slice(1, -1) + "</code>"
+          : seg
+              .replace(/\*\*([^*\n]+)\*\*/g, "<strong>$1</strong>")
+              .replace(/(^|[\s(])[*_]([^*_\n]+)[*_]/g, "$1<em>$2</em>"),
+      )
+      .join("");
+  }
+
+  const RE_BULLET = /^[ \t]*[-*•][ \t]+(.*)$/;
+  const RE_ORDER = /^[ \t]*(\d{1,2})[.)][ \t]+(.*)$/;
+
+  // Trả về HTML đã an toàn: khối <p>/<ul>/<ol>, xuống dòng lẻ thành <br>.
+  function mdToHtml(src) {
+    const lines = esc(src).replace(/\r\n?/g, "\n").split("\n");
+    let html = "";
+    let list = ""; // "ul" | "ol" | "" (chưa mở danh sách nào)
+    let para = [];
+
+    const flushPara = () => {
+      if (!para.length) return;
+      html += "<p>" + mdInline(para.join("\n")).replace(/\n/g, "<br>") + "</p>";
+      para = [];
+    };
+    const closeList = () => {
+      if (list) html += "</" + list + ">";
+      list = "";
+    };
+    // Danh sách đánh số không bắt đầu từ 1 (nhắc lại mục còn thiếu: "2.", "4.")
+    // thì phải khai `start`, không thì trình duyệt đánh lại từ 1.
+    const openList = (kind, start) => {
+      if (list === kind) return;
+      closeList();
+      list = kind;
+      html +=
+        kind === "ol" && start !== 1
+          ? '<ol start="' + start + '">'
+          : "<" + kind + ">";
+    };
+
+    for (const line of lines) {
+      if (!line.trim()) {
+        flushPara();
+        closeList();
+        continue;
+      }
+      const bullet = line.match(RE_BULLET);
+      const order = bullet ? null : line.match(RE_ORDER);
+      if (bullet) {
+        flushPara();
+        openList("ul", 1);
+        html += "<li>" + mdInline(bullet[1]) + "</li>";
+      } else if (order) {
+        flushPara();
+        openList("ol", Number(order[1]));
+        html += "<li>" + mdInline(order[2]) + "</li>";
+      } else {
+        closeList();
+        para.push(line);
+      }
+    }
+    flushPara();
+    closeList();
+    return html;
+  }
+
+  // Bản đang gõ dở: bỏ cụm ký hiệu vừa gõ ra ở CUỐI rồi tự khép cặp còn hở, để
+  // chữ hiện lên là đậm sẵn thay vì nhấp nháy mấy dấu sao rồi mới đậm.
+  function mdPartial(s) {
+    let t = s.replace(/[*_`]+$/, "");
+    if ((t.match(/`/g) || []).length % 2) t += "`";
+    if ((t.match(/\*\*/g) || []).length % 2) t += "**";
+    return t;
+  }
+
   // ── Bong bóng tin nhắn ────────────────────────────────────────────────────
-  // Dùng textContent chứ không innerHTML: câu trả lời do model sinh ra, không
-  // được phép thành HTML. Xuống dòng đã có `whitespace-pre-wrap` lo.
+
+  // Chỉ bong bóng của TRỢ LÝ đi qua markdown (cờ .aichat-md); lời khách và báo
+  // lỗi dùng textContent — chữ khách gõ không việc gì phải diễn giải.
+  function paintBubble(bubble, text, partial) {
+    if (bubble.classList.contains("aichat-md"))
+      bubble.innerHTML = mdToHtml(partial ? mdPartial(text) : text);
+    else bubble.textContent = text;
+  }
 
   function timeLabel(at) {
     return new Date(at || Date.now()).toLocaleTimeString("vi-VN", {
@@ -135,8 +231,8 @@
         ? "aichat-msg-user"
         : role === "error"
           ? "aichat-msg-error"
-          : "aichat-msg-bot");
-    bubble.textContent = text;
+          : "aichat-msg-bot aichat-md");
+    paintBubble(bubble, text, false);
     row.appendChild(bubble);
 
     // Báo lỗi không phải một lượt hội thoại nên không đóng dấu giờ.
@@ -199,7 +295,7 @@
     if (left > 0) {
       const cps = Math.max(TYPE_MIN_CPS, (left * 1000) / TYPE_DRAIN_MS);
       t.n = Math.min(t.target.length, t.n + Math.max(1, Math.round((cps * dt) / 1000)));
-      t.bubble.textContent = t.target.slice(0, t.n);
+      paintBubble(t.bubble, t.target.slice(0, t.n), true);
       scrollToEnd();
     }
     if (t.n < t.target.length) t.raf = requestAnimationFrame(typeStep);
@@ -216,12 +312,13 @@
     if (!t) return Promise.resolve();
     t.target = text;
     if (t.n >= text.length) {
-      t.bubble.textContent = text;
+      paintBubble(t.bubble, text, false);
       typeStop();
       return Promise.resolve();
     }
     return new Promise((done) => {
       t.resolve = () => {
+        paintBubble(t.bubble, text, false); // gõ xong: vẽ lại bản đầy đủ
         typeStop();
         done();
       };
