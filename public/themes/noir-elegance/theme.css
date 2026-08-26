@@ -349,102 +349,163 @@ body {
   filter: saturate(1) brightness(1);
 }
 
-/* ── Ảnh vòm dưới lịch ───────────────────────────────────────────────────
-   Ô cửa vòm: nửa trên bo tròn hẳn, nửa dưới bo nhẹ; viền vàng mảnh cách ảnh
-   một vành giấy để trông mềm chứ không bị đóng khung cứng. */
+/* ── Ảnh ngang dưới lịch ─────────────────────────────────────────────────
+   Khung viền ĐÔI: vành giấy bọc ngoài ảnh, một đường vàng mảnh lùi vào trong,
+   cộng bốn nét góc nhô ra — kiểu khung ảnh đặt bàn. */
 
-.ne-arch {
-  width: 200px;
-  aspect-ratio: 3 / 4;
-  padding: 4px;
-  border: 1px solid rgb(var(--cx-accent-rgb) / 0.4);
-  border-radius: 100px 100px 16px 16px;
-  overflow: hidden;
-}
-
-.ne-arch img {
-  border-radius: 96px 96px 12px 12px;
-}
-
-/* Nét cong mềm đặt dưới ảnh vòm */
-
-.ne-swirl {
-  width: 160px;
-  stroke: rgb(var(--cx-accent-rgb) / 0.5);
-  stroke-width: 1;
-  stroke-linecap: round;
-  fill: none;
-}
-
-.ne-swirl circle {
-  fill: rgb(var(--cx-accent-rgb) / 0.5);
-  stroke: none;
-}
-
-/* ── Thẻ cột mốc chuyện tình yêu ─────────────────────────────────────────
-   Kiểu phiếu giới thiệu phim: ảnh trên cùng, tiêu đề serif to, mốc thời gian
-   nhấc lên như số mũ, ghi chú nhỏ nép bên phải, hai dòng thông tin rồi đoạn kể.
-   Markup do renderLoveStory() trong index.js sinh ra. */
-
-.ne-story {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 12px;
-  text-align: left;
-  border: 1px solid rgb(var(--cx-accent-rgb) / 0.28);
-  border-radius: 12px;
-  background: rgb(var(--cx-surface-rgb) / 0.45);
-}
-
-.ne-story-photo {
+.ne-plate {
   width: 100%;
-  aspect-ratio: 4 / 3;
+  max-width: 320px;
+  margin: 0 auto;
+}
+
+.ne-plate-frame {
+  position: relative;
+  aspect-ratio: 3 / 2;
+  padding: 8px;
+  border: 1px solid rgb(var(--cx-accent-rgb) / 0.5);
+  border-radius: 4px;
+  background: rgb(var(--cx-card-bg-rgb));
+}
+
+.ne-plate-frame::after {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border: 1px solid rgb(var(--cx-accent-rgb) / 0.28);
+  border-radius: 2px;
+  pointer-events: none;
+}
+
+.ne-plate-frame img {
+  border-radius: 2px;
+}
+
+/* Nét góc: chỉ vẽ hai cạnh của một ô vuông nhỏ, nhô ra ngoài khung */
+
+.ne-plate-corner {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+}
+
+.ne-plate-corner-tl {
+  top: -5px;
+  left: -5px;
+  border-top: 1px solid rgb(var(--cx-accent-rgb));
+  border-left: 1px solid rgb(var(--cx-accent-rgb));
+}
+
+.ne-plate-corner-tr {
+  top: -5px;
+  right: -5px;
+  border-top: 1px solid rgb(var(--cx-accent-rgb));
+  border-right: 1px solid rgb(var(--cx-accent-rgb));
+}
+
+.ne-plate-corner-bl {
+  bottom: -5px;
+  left: -5px;
+  border-bottom: 1px solid rgb(var(--cx-accent-rgb));
+  border-left: 1px solid rgb(var(--cx-accent-rgb));
+}
+
+.ne-plate-corner-br {
+  right: -5px;
+  bottom: -5px;
+  border-right: 1px solid rgb(var(--cx-accent-rgb));
+  border-bottom: 1px solid rgb(var(--cx-accent-rgb));
+}
+
+/* ── Chuyện tình yêu: bố cục tạp chí ─────────────────────────────────────
+   Ảnh lớn, khối chữ đè lên mép dưới ảnh rồi lệch sang một bên (so le theo mốc),
+   số chương to mờ nằm sau tiêu đề. Markup do renderLoveStory() ở index.js sinh. */
+
+.ne-mag {
+  position: relative;
+  text-align: left;
+}
+
+.ne-mag-photo {
+  width: 88%;
+  aspect-ratio: 3 / 4;
   overflow: hidden;
-  border-radius: 8px;
+  border-radius: 4px;
 }
 
-/* Tiêu đề và ghi chú nằm cùng hàng, ghi chú chỉ chiếm một cột hẹp bên phải */
-
-.ne-story-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
+.ne-mag-right .ne-mag-photo {
+  margin-right: auto;
 }
 
-.ne-story-title {
-  font-size: 26px;
-  line-height: 1.15;
+.ne-mag-left .ne-mag-photo {
+  margin-left: auto;
 }
 
-.ne-story-sup {
-  font-size: 11px;
-  margin-left: 4px;
-  vertical-align: super;
-  white-space: nowrap;
+/* Khối chữ: nhô lên đè mép dưới ảnh, thò ra phía đối diện với ảnh */
+
+.ne-mag-body {
+  position: relative;
+  width: 84%;
+  margin-top: -56px;
+  padding: 16px;
+  /* Nền ĐỤC hẳn: khối chữ nằm đè lên ảnh, hở một chút là chữ dính vào hình */
+  background: rgb(var(--cx-card-bg-rgb));
+  border-top: 1px solid rgb(var(--cx-accent-rgb) / 0.5);
+  box-shadow: 0 -6px 20px rgb(58 50 42 / 0.06);
 }
 
-.ne-story-note {
-  width: 104px;
-  flex: none;
+.ne-mag-right .ne-mag-body {
+  margin-left: auto;
+}
+
+/* Số chương to, mờ, nép ở góc trên khối chữ — chất trang tạp chí */
+
+.ne-mag-no {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  font-family: "Cormorant Garamond", serif;
+  font-size: 44px;
+  line-height: 1;
+  color: rgb(var(--cx-accent-rgb) / 0.32);
+  pointer-events: none;
+}
+
+/* Chừa chỗ cho số chương ở góc phải */
+
+.ne-mag-kicker,
+.ne-mag-title {
+  padding-right: 52px;
+}
+
+.ne-mag-kicker {
+  font-family: "Montserrat", sans-serif;
   font-size: 9px;
-  line-height: 1.35;
-  text-align: right;
+  font-weight: 400;
+  letter-spacing: 3px;
+  text-transform: uppercase;
 }
 
-.ne-story-meta {
-  font-size: 11px;
-  line-height: 1.6;
+.ne-mag-title {
+  margin-top: 6px;
+  font-size: 28px;
+  line-height: 1.1;
 }
 
-.ne-story-meta b {
-  font-weight: 600;
-  color: rgb(var(--cx-heading-rgb));
-}
-
-.ne-story-body {
+.ne-mag-text {
+  margin-top: 10px;
   font-size: 12px;
-  font-weight: 500;
-  line-height: 1.65;
+  line-height: 1.75;
+  text-align: justify;
+}
+
+/* Chữ cái đầu thả xuống hai dòng — dấu hiệu rõ nhất của trang tạp chí */
+
+.ne-mag-text::first-letter {
+  float: left;
+  margin: 4px 8px 0 0;
+  font-family: "Cormorant Garamond", serif;
+  font-size: 40px;
+  line-height: 0.85;
+  color: rgb(var(--cx-accent-rgb));
 }

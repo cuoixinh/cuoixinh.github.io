@@ -266,17 +266,19 @@
           <!-- Lịch nhỏ đánh dấu ngày lễ + ngày tiệc (calendar-helper.js) -->
           <div id="mini-calendar" class="w-full mt-2"></div>
 
-          <!-- Ảnh vòm ngăn giữa lịch và ô xác nhận tham dự: bo tròn nửa trên
-               như ô cửa vòm, viền vàng mảnh, kèm nét cong mềm phía dưới. -->
-          <div class="flex flex-col items-center gap-3 mt-4">
-            <div class="ne-arch">
+          <!-- Ảnh ngang ngăn giữa lịch và ô xác nhận tham dự: khung viền đôi
+               (vành ngoài + đường trong lùi 5px) với bốn nét góc, dưới cùng là
+               một dòng nhãn nhỏ. -->
+          <figure class="ne-plate mt-6">
+            <div class="ne-plate-frame">
               <img id="party-photo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" class="w-full h-full object-cover" />
+              <span class="ne-plate-corner ne-plate-corner-tl" aria-hidden="true"></span>
+              <span class="ne-plate-corner ne-plate-corner-tr" aria-hidden="true"></span>
+              <span class="ne-plate-corner ne-plate-corner-bl" aria-hidden="true"></span>
+              <span class="ne-plate-corner ne-plate-corner-br" aria-hidden="true"></span>
             </div>
-            <svg class="ne-swirl" viewBox="0 0 200 24" fill="none" aria-hidden="true">
-              <path d="M8 12c26-16 52 16 78 0s52-16 78 0" />
-              <circle cx="100" cy="12" r="2" />
-            </svg>
-          </div>
+            <figcaption class="ne-eyebrow !text-[9px] mt-5">Hẹn gặp bạn tại tiệc cưới</figcaption>
+          </figure>
 
           <!-- ═══ MỤC: Xác nhận tham dự (rsvp_enabled) ═════════════════════ -->
           <div id="rsvp-section" class="flex flex-col gap-4 mt-4" style="display: none">
@@ -324,13 +326,13 @@
         </section>
 
         <!-- ═══ MỤC: Chuyện tình yêu (enable_love_story) ════════════════
-             Mỗi cột mốc là một THẺ kiểu phiếu phim: ảnh ở trên, tiêu đề chữ
-             serif kèm mốc thời gian nhỏ nhấc lên, ghi chú ở góc phải, rồi hai
-             dòng thông tin và đoạn kể. Markup do renderLoveStory() trong
-             index.js sinh ra (không dùng bản dòng thời gian của helper chung). -->
+             Bố cục tạp chí: ảnh lớn, khối chữ đè lên mép dưới ảnh và lệch
+             trái/phải xen kẽ, số chương to mờ nằm sau. Markup do
+             renderLoveStory() trong index.js sinh ra (không dùng bản dòng thời
+             gian của helper chung). -->
         <section id="love-story" class="flex flex-col gap-5" style="display: none">
           <h2 class="ne-title">Chuyện Tình Yêu</h2>
-          <div id="love-story-list" class="flex flex-col gap-5"></div>
+          <div id="love-story-list" class="flex flex-col gap-10"></div>
         </section>
 
         <!-- ═══ MỤC: Hộp mừng cưới (enable_gift) ════════════════════════════ -->

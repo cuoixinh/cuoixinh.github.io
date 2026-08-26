@@ -360,10 +360,9 @@
   })();
 
   // ============= CHUYỆN TÌNH YÊU (phần đặc thù của mẫu) =============
-  // Không dùng bản dòng thời gian của render-helper.js: mỗi cột mốc ở đây là
-  // một THẺ kiểu phiếu giới thiệu phim — ảnh ở trên, tiêu đề serif kèm mốc thời
-  // gian nhấc lên như số mũ, ghi chú nhỏ ở góc phải, rồi hai dòng thông tin và
-  // đoạn kể. escapeHtml() cho mọi chữ lấy từ dữ liệu (core/utils.js).
+  // Bố cục TẠP CHÍ, không dùng bản dòng thời gian của render-helper.js: ảnh lớn
+  // ở trên, khối chữ đè lên mép dưới ảnh và lệch trái/phải xen kẽ, số chương to
+  // mờ nằm sau tiêu đề. Chữ lấy từ dữ liệu đều qua escapeHtml() (core/utils.js).
 
   function renderLoveStory(events) {
     const section = document.getElementById("love-story");
@@ -376,31 +375,34 @@
     }
     section.style.display = "flex";
 
-    const total = String(events.length).padStart(2, "0");
     list.innerHTML = events
       .map((ev, i) => {
         const no = String(i + 1).padStart(2, "0");
         const img = ev.image_url ? getImageUrl(ev.image_url) : "";
         const fp = ev.focal_point;
+        // Lệch phải ở mốc chẵn, lệch trái ở mốc lẻ — nhịp so le của trang tạp chí.
+        const side = i % 2 === 0 ? "ne-mag-right" : "ne-mag-left";
         return `
-      <article class="ne-story">
+      <article class="ne-mag ${side}">
         ${
           img
-            ? `<div class="ne-story-photo"><img src="${img}" alt=""
+            ? `<div class="ne-mag-photo"><img src="${img}" alt=""
                  class="w-full h-full object-cover"
                  style="object-position:${fp?.x ?? 50}% ${fp?.y ?? 50}%"></div>`
             : ""
         }
-        <div class="ne-story-head">
-          <h3 class="ne-story-title cx-h">${escapeHtml(ev.title || "Cột mốc " + no)}<sup
-            class="ne-story-sup cx-a">${escapeHtml(ev.date || "")}</sup></h3>
-          <div class="ne-story-note cx-t">Kể lại bởi: Cô dâu &amp; Chú rể</div>
+        <div class="ne-mag-body">
+          <span class="ne-mag-no" aria-hidden="true">${no}</span>
+          <div class="ne-mag-kicker cx-a">Chương ${no}${
+            ev.date ? " · " + escapeHtml(ev.date) : ""
+          }</div>
+          <h3 class="ne-mag-title cx-h">${escapeHtml(ev.title || "Cột mốc " + no)}</h3>
+          ${
+            ev.content
+              ? `<p class="ne-mag-text cx-t">${escapeHtml(ev.content)}</p>`
+              : ""
+          }
         </div>
-        <div class="ne-story-meta cx-t">
-          <div><b>Thời điểm:</b> ${escapeHtml(ev.date || "Đang cập nhật")}</div>
-          <div><b>Chương:</b> ${no} / ${total}</div>
-        </div>
-        ${ev.content ? `<p class="ne-story-body cx-t">${escapeHtml(ev.content)}</p>` : ""}
       </article>`;
       })
       .join("");
