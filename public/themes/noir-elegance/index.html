@@ -216,51 +216,6 @@
           </x-button>
         </section>
 
-        <!-- ═══ MỤC: Gia đình (enable_family) ═══════════════════════════════ -->
-        <section id="section-family" class="flex flex-col gap-8">
-          <h2 class="ne-title">Gia đình</h2>
-
-          <div class="flex flex-col gap-8 sm:flex-row">
-            <!-- Nhà trai -->
-            <div class="flex-1 flex flex-col items-center gap-3">
-              <div class="ne-portrait">
-                <img id="groom-photo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Chú Rể" class="w-full h-full object-cover" />
-              </div>
-              <div class="ne-eyebrow">Nhà Trai</div>
-              <div class="cx-h text-[19px]" id="groom-name-label">----------</div>
-              <div class="flex flex-col gap-0.5">
-                <div class="cx-t text-[11px]">Ông bà</div>
-                <div class="cx-a text-[13px]" id="groom-father">--------------------</div>
-                <div class="cx-a text-[13px]" id="groom-mother">--------------------</div>
-              </div>
-              <div class="cx-t text-[11px] leading-relaxed">
-                <i class="fas fa-map-marker-alt cx-a mr-1 text-[10px]"></i>
-                <span id="groom-address">----------------------------------------</span>
-              </div>
-            </div>
-
-            <div class="ne-rule sm:hidden"></div>
-
-            <!-- Nhà gái -->
-            <div class="flex-1 flex flex-col items-center gap-3">
-              <div class="ne-portrait">
-                <img id="bride-photo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Cô Dâu" class="w-full h-full object-cover" />
-              </div>
-              <div class="ne-eyebrow">Nhà Gái</div>
-              <div class="cx-h text-[19px]" id="bride-name-label">----------</div>
-              <div class="flex flex-col gap-0.5">
-                <div class="cx-t text-[11px]">Ông bà</div>
-                <div class="cx-a text-[13px]" id="bride-father">--------------------</div>
-                <div class="cx-a text-[13px]" id="bride-mother">--------------------</div>
-              </div>
-              <div class="cx-t text-[11px] leading-relaxed">
-                <i class="fas fa-map-marker-alt cx-a mr-1 text-[10px]"></i>
-                <span id="bride-address">----------------------------------------</span>
-              </div>
-            </div>
-          </div>
-        </section>
-
         <!-- ═══ MỤC: Thư mời — lễ thành hôn / vu quy ════════════════════════ -->
         <section id="section-ceremony" class="ne-frame flex flex-col gap-5 px-5 py-8">
           <div class="ne-eyebrow">
@@ -311,6 +266,18 @@
           <!-- Lịch nhỏ đánh dấu ngày lễ + ngày tiệc (calendar-helper.js) -->
           <div id="mini-calendar" class="w-full mt-2"></div>
 
+          <!-- Ảnh vòm ngăn giữa lịch và ô xác nhận tham dự: bo tròn nửa trên
+               như ô cửa vòm, viền vàng mảnh, kèm nét cong mềm phía dưới. -->
+          <div class="flex flex-col items-center gap-3 mt-4">
+            <div class="ne-arch">
+              <img id="party-photo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" class="w-full h-full object-cover" />
+            </div>
+            <svg class="ne-swirl" viewBox="0 0 200 24" fill="none" aria-hidden="true">
+              <path d="M8 12c26-16 52 16 78 0s52-16 78 0" />
+              <circle cx="100" cy="12" r="2" />
+            </svg>
+          </div>
+
           <!-- ═══ MỤC: Xác nhận tham dự (rsvp_enabled) ═════════════════════ -->
           <div id="rsvp-section" class="flex flex-col gap-4 mt-4" style="display: none">
             <div class="text-[12px] tracking-[3px] uppercase shimmer-text">Xác nhận tham dự</div>
@@ -349,17 +316,21 @@
           <div id="timeline-list-render" class="flex flex-col"></div>
         </section>
 
-        <!-- ═══ MỤC: Chuyện tình yêu (enable_love_story) ════════════════════ -->
-        <section id="love-story" class="flex flex-col gap-4" style="display: none">
-          <h2 class="ne-title">Chuyện Tình Yêu</h2>
-          <div id="love-story-list" class="flex flex-col border-l cx-border ml-[5px]"></div>
-        </section>
-
         <!-- ═══ MỤC: Album ảnh (enable_photos) ══════════════════════════════
              Lưới ảnh cao thấp so le + phóng to — renderGallery ở index.js. -->
         <section id="section-photos" class="flex flex-col gap-4">
           <h2 class="ne-title">Album Ảnh</h2>
           <div id="gallery-grid" class="ne-masonry"></div>
+        </section>
+
+        <!-- ═══ MỤC: Chuyện tình yêu (enable_love_story) ════════════════
+             Mỗi cột mốc là một THẺ kiểu phiếu phim: ảnh ở trên, tiêu đề chữ
+             serif kèm mốc thời gian nhỏ nhấc lên, ghi chú ở góc phải, rồi hai
+             dòng thông tin và đoạn kể. Markup do renderLoveStory() trong
+             index.js sinh ra (không dùng bản dòng thời gian của helper chung). -->
+        <section id="love-story" class="flex flex-col gap-5" style="display: none">
+          <h2 class="ne-title">Chuyện Tình Yêu</h2>
+          <div id="love-story-list" class="flex flex-col gap-5"></div>
         </section>
 
         <!-- ═══ MỤC: Hộp mừng cưới (enable_gift) ════════════════════════════ -->

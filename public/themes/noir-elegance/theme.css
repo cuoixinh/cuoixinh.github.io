@@ -288,21 +288,6 @@ body {
   background: rgb(var(--cx-accent-rgb));
 }
 
-/* ── Ô ảnh chân dung của mục Gia đình ───────────────────────────────────── */
-
-.ne-portrait {
-  width: 128px;
-  height: 128px;
-  border-radius: 999px;
-  overflow: hidden;
-  border: 1px solid rgb(var(--cx-accent-rgb) / 0.45);
-  padding: 4px;
-}
-
-.ne-portrait img {
-  border-radius: 999px;
-}
-
 /* ── Nút của mẫu ─────────────────────────────────────────────────────────
    Bo góc khai ở đây chứ không dùng rounded-* của Tailwind: <x-button> luôn
    kèm rounded-full, mà utility đó đứng sau trong bản build. */
@@ -362,4 +347,104 @@ body {
 .ne-cell:active img {
   transform: scale(1.03);
   filter: saturate(1) brightness(1);
+}
+
+/* ── Ảnh vòm dưới lịch ───────────────────────────────────────────────────
+   Ô cửa vòm: nửa trên bo tròn hẳn, nửa dưới bo nhẹ; viền vàng mảnh cách ảnh
+   một vành giấy để trông mềm chứ không bị đóng khung cứng. */
+
+.ne-arch {
+  width: 200px;
+  aspect-ratio: 3 / 4;
+  padding: 4px;
+  border: 1px solid rgb(var(--cx-accent-rgb) / 0.4);
+  border-radius: 100px 100px 16px 16px;
+  overflow: hidden;
+}
+
+.ne-arch img {
+  border-radius: 96px 96px 12px 12px;
+}
+
+/* Nét cong mềm đặt dưới ảnh vòm */
+
+.ne-swirl {
+  width: 160px;
+  stroke: rgb(var(--cx-accent-rgb) / 0.5);
+  stroke-width: 1;
+  stroke-linecap: round;
+  fill: none;
+}
+
+.ne-swirl circle {
+  fill: rgb(var(--cx-accent-rgb) / 0.5);
+  stroke: none;
+}
+
+/* ── Thẻ cột mốc chuyện tình yêu ─────────────────────────────────────────
+   Kiểu phiếu giới thiệu phim: ảnh trên cùng, tiêu đề serif to, mốc thời gian
+   nhấc lên như số mũ, ghi chú nhỏ nép bên phải, hai dòng thông tin rồi đoạn kể.
+   Markup do renderLoveStory() trong index.js sinh ra. */
+
+.ne-story {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  text-align: left;
+  border: 1px solid rgb(var(--cx-accent-rgb) / 0.28);
+  border-radius: 12px;
+  background: rgb(var(--cx-surface-rgb) / 0.45);
+}
+
+.ne-story-photo {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+/* Tiêu đề và ghi chú nằm cùng hàng, ghi chú chỉ chiếm một cột hẹp bên phải */
+
+.ne-story-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.ne-story-title {
+  font-size: 26px;
+  line-height: 1.15;
+}
+
+.ne-story-sup {
+  font-size: 11px;
+  margin-left: 4px;
+  vertical-align: super;
+  white-space: nowrap;
+}
+
+.ne-story-note {
+  width: 104px;
+  flex: none;
+  font-size: 9px;
+  line-height: 1.35;
+  text-align: right;
+}
+
+.ne-story-meta {
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.ne-story-meta b {
+  font-weight: 600;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+.ne-story-body {
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.65;
 }

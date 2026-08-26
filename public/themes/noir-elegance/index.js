@@ -119,9 +119,9 @@
     // --- Nhạc nền ---
     setupMusic(w.music_url, w.enable_music);
 
-    // --- Gia đình ---
-    renderCoupleInfo(w);
-    cxToggle("section-family", cxEnabled(w.enable_family));
+    // Mẫu này KHÔNG có mục Gia đình: bố cục đi thẳng từ màn ảnh mở đầu sang
+    // thư mời. Bước "Gia đình" bên trang Thiết lập vẫn nhập được nhưng thiệp
+    // không hiển thị — cố ý, đừng gọi renderCoupleInfo() lại.
 
     // --- Thư mời: nhà gái bật Vu Quy thì thay toàn bộ phần lễ ---
     const isVuQuy = !_isGroom && cxEnabled(w.vu_quy_enabled);
@@ -177,6 +177,14 @@
     // Lịch nhỏ đánh dấu ngày lễ + ngày tiệc
     setupMiniCalendar(w.ceremony_date, partyDate);
 
+    // Ảnh vòm ngăn giữa lịch và ô xác nhận tham dự: lấy tấm THỨ HAI của album
+    // (tấm đầu đã chạy ở màn mở đầu), không có thì lùi về ảnh bìa.
+    const archKey = w.gallery_images?.[1] || w.gallery_images?.[0] || w.cover_image_url;
+    if (archKey) {
+      setAttr("party-photo", "src", getImageUrl(archKey));
+      applyFocalPoint("party-photo", w.image_focal_points?.gallery_images?.[archKey]);
+    }
+
     // --- Xác nhận tham dự ---
     const rsvp = document.getElementById("rsvp-section");
     if (rsvp) rsvp.style.display = cxEnabled(w.rsvp_enabled) ? "flex" : "none";
@@ -194,20 +202,20 @@
       cxToggle("section-timeline", true);
     }
 
-    // --- Chuyện tình yêu ---
-    const hasStory = cxEnabled(w.enable_love_story);
-    if (hasStory) {
-      renderLoveStory(w.love_story);
-    } else {
-      cxToggle("love-story", false);
-    }
-
     // --- Album ảnh ---
     const hasPhotos = cxEnabled(w.enable_photos);
     if (hasPhotos) {
       renderGallery(w.gallery_images, w.image_focal_points?.gallery_images);
     } else {
       cxToggle("section-photos", false);
+    }
+
+    // --- Chuyện tình yêu ---
+    const hasStory = cxEnabled(w.enable_love_story);
+    if (hasStory) {
+      renderLoveStory(w.love_story);
+    } else {
+      cxToggle("love-story", false);
     }
 
     // Hai lối tắt trên thanh nhãn chỉ có nghĩa khi mục đích đến còn bật.
@@ -345,6 +353,53 @@
       { passive: true },
     );
   })();
+
+  // ============= CHUYỆN TÌNH YÊU (phần đặc thù của mẫu) =============
+  // Không dùng bản dòng thời gian của render-helper.js: mỗi cột mốc ở đây là
+  // một THẺ kiểu phiếu giới thiệu phim — ảnh ở trên, tiêu đề serif kèm mốc thời
+  // gian nhấc lên như số mũ, ghi chú nhỏ ở góc phải, rồi hai dòng thông tin và
+  // đoạn kể. escapeHtml() cho mọi chữ lấy từ dữ liệu (core/utils.js).
+
+  function renderLoveStory(events) {
+    const section = document.getElementById("love-story");
+    const list = document.getElementById("love-story-list");
+    if (!section || !list) return;
+
+    if (!Array.isArray(events) || events.length === 0) {
+      section.style.display = "none";
+      return;
+    }
+    section.style.display = "flex";
+
+    const total = String(events.length).padStart(2, "0");
+    list.innerHTML = events
+      .map((ev, i) => {
+        const no = String(i + 1).padStart(2, "0");
+        const img = ev.image_url ? getImageUrl(ev.image_url) : "";
+        const fp = ev.focal_point;
+        return `
+      <article class="ne-story">
+        ${
+          img
+            ? `<div class="ne-story-photo"><img src="${img}" alt=""
+                 class="w-full h-full object-cover"
+                 style="object-position:${fp?.x ?? 50}% ${fp?.y ?? 50}%"></div>`
+            : ""
+        }
+        <div class="ne-story-head">
+          <h3 class="ne-story-title cx-h">${escapeHtml(ev.title || "Cột mốc " + no)}<sup
+            class="ne-story-sup cx-a">${escapeHtml(ev.date || "")}</sup></h3>
+          <div class="ne-story-note cx-t">Kể lại bởi: Cô dâu &amp; Chú rể</div>
+        </div>
+        <div class="ne-story-meta cx-t">
+          <div><b>Thời điểm:</b> ${escapeHtml(ev.date || "Đang cập nhật")}</div>
+          <div><b>Chương:</b> ${no} / ${total}</div>
+        </div>
+        ${ev.content ? `<p class="ne-story-body cx-t">${escapeHtml(ev.content)}</p>` : ""}
+      </article>`;
+      })
+      .join("");
+  }
 
   // ============= ALBUM ẢNH =============
   // Hai cột kiểu masonry (.ne-masonry dùng CSS column) — ô cao thấp xen kẽ mà
