@@ -441,12 +441,17 @@ body {
   margin-left: auto;
 }
 
-/* Khối chữ: nhô lên đè mép dưới ảnh, thò ra phía đối diện với ảnh */
+/* Khối chữ: thò ra phía đối diện với ảnh. Lề âm CHỈ đặt khi mốc có ảnh
+   (.ne-mag-photo đứng ngay trước) — mốc không ảnh mà vẫn kéo lên thì khối chữ
+   đè lên mốc phía trên. */
+
+.ne-mag-photo + .ne-mag-body {
+  margin-top: -56px;
+}
 
 .ne-mag-body {
   position: relative;
   width: 84%;
-  margin-top: -56px;
   padding: 16px;
   /* Nền ĐỤC hẳn: khối chữ nằm đè lên ảnh, hở một chút là chữ dính vào hình */
   background: rgb(var(--cx-card-bg-rgb));
