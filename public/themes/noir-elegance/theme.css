@@ -1,0 +1,365 @@
+/* Bảng màu + CSS riêng của NOIR ELEGANCE — nền TRẮNG BE nhạt, nhấn vàng
+   champagne trầm, chữ thư pháp cho phần cảm xúc. Nét nhận dạng: mọi khối đóng
+   khung bằng ĐƯỜNG VÀNG MẢNH (.ne-frame/.ne-hairline) thay cho bóng đổ, và màn
+   mở đầu là một tấm ảnh CHIẾM TRỌN màn hình với chữ đặt trên dải kem mờ.
+   CSS THUẦN, nạp bằng <link> sau styles/themes.css.
+
+   Hai phần:
+     1. --cx-*  bộ biến mà phần DÙNG CHUNG vẽ theo (lịch nhỏ, dòng thời gian,
+        màn bìa, nút xác nhận tham dự). Mặc định ở styles/_common.css.
+     2. .cx-h / .cx-t / .cx-a  ba lớp ngữ nghĩa mà markup của mẫu dùng, cũng là
+        thứ CX_THEME.selectors nhắm tới. Đổi tông cả thiệp = sửa mỗi file này.
+        Các lớp .ne-* bên dưới là trang trí riêng của mẫu. */
+
+:root {
+  --cx-accent-rgb: 176 141 87; /* nhấn: vàng champagne trầm */
+  --cx-on-accent-rgb: 255 255 255; /* chữ nằm TRÊN nền nhấn */
+  --cx-heading-rgb: 58 50 42; /* nâu đen ấm */
+  --cx-body-rgb: 133 123 111;
+  --cx-line-rgb: 224 213 197; /* vạch dọc, viền mảnh: be đậm */
+  --cx-surface-rgb: 244 238 229; /* nền phụ của ô nhỏ */
+  --cx-cover-rgb: 250 246 240; /* nền màn bìa: hai đầu dải */
+  --cx-cover-mid-rgb: 240 232 221; /* …và điểm giữa */
+
+  --cx-card-bg-rgb: 253 251 247; /* nền thân thiệp */
+}
+
+body {
+  background-color: rgb(var(--cx-surface-rgb));
+}
+
+#main-card {
+  background-color: rgb(var(--cx-card-bg-rgb));
+}
+
+/* ── Ba lớp ngữ nghĩa của mẫu ──────────────────────────────────────────────
+   .cx-h và .cx-t đặt CẢ font-family → đừng gắn chúng lên thẻ <i> của Font
+   Awesome, icon sẽ mất glyph và hiện ô vuông. Muốn tô màu icon thì dùng
+   .cx-a (nhấn) hoặc .cx-hd/.cx-bd (chỉ có color, khai ở styles/_common.css). */
+
+.cx-h {
+  font-family: "Cormorant Garamond", serif;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+.cx-t {
+  font-family: "Montserrat", sans-serif;
+  font-weight: 300;
+  color: rgb(var(--cx-body-rgb));
+}
+
+.cx-a {
+  color: rgb(var(--cx-accent-rgb));
+}
+
+.cx-border {
+  border-color: rgb(var(--cx-line-rgb));
+}
+
+.cx-bg-line {
+  background-color: rgb(var(--cx-line-rgb));
+}
+
+.cx-bg-surface {
+  background-color: rgb(var(--cx-surface-rgb));
+}
+
+/* ── Chữ thư pháp ─────────────────────────────────────────────────────────
+   Font TỰ HOST (khai ở styles/_fonts.css), cố ý ĐỨNG NGOÀI CX_THEME.selectors:
+   bảng chọn font ở tab Giao diện chỉ liệt kê font Google, khách đổi rồi sẽ
+   không quay lại được font này. */
+
+.ne-script {
+  font-family: "TheNautigal", cursive;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+/* ── Nhãn chữ hoa giãn rộng — nét nhận dạng của mẫu ────────────────────── */
+
+.ne-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-family: "Montserrat", sans-serif;
+  font-weight: 300;
+  font-size: 10px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: rgb(var(--cx-heading-rgb) / 0.8);
+}
+
+/* Ba nhãn ở đầu mục Mở đầu chia đều một hàng: nhãn trái canh trái, giữa canh
+   giữa, phải canh phải. Phải khai ở đây chứ không dùng justify-* của Tailwind —
+   <x-button variant="bare"> đã mang sẵn justify-center và utility đó đứng sau
+   trong bản build. */
+
+.ne-nav {
+  justify-content: center;
+  letter-spacing: 3px;
+}
+
+.ne-nav-l {
+  justify-content: flex-start;
+  letter-spacing: 3px;
+}
+
+.ne-nav-r {
+  justify-content: flex-end;
+}
+
+.ne-title {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 20px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+/* Gạch ngang mảnh, mờ dần hai đầu — dùng thay cho đường kẻ đặc */
+
+.ne-rule {
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgb(var(--cx-accent-rgb) / 0.55),
+    transparent
+  );
+}
+
+/* ── Khung viền vàng mảnh ────────────────────────────────────────────────── */
+
+.ne-hairline {
+  border: 1px solid rgb(var(--cx-accent-rgb) / 0.35);
+}
+
+.ne-frame {
+  border: 1px solid rgb(var(--cx-accent-rgb) / 0.35);
+  border-radius: 20px;
+  background: rgb(var(--cx-surface-rgb) / 0.45);
+}
+
+/* Khung đôi của màn bìa: một đường ngoài, một đường trong lùi vào 8px */
+
+.ne-cover-frame {
+  border: 1px solid rgb(var(--cx-accent-rgb) / 0.45);
+  border-radius: 20px;
+}
+
+.ne-cover-frame::after {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  border: 1px solid rgb(var(--cx-accent-rgb) / 0.22);
+  border-radius: 12px;
+}
+
+/* ── Hoạ tiết màn bìa ────────────────────────────────────────────────────
+   Màn bìa là tấm thiệp GIẤY, không có ảnh: chất trang trí đến từ hai vệt màu
+   đào loang ở hai góc chéo và vài nét cong mảnh vẽ bằng SVG. */
+
+.ne-wash {
+  position: absolute;
+  width: 340px;
+  height: 340px;
+  pointer-events: none;
+}
+
+.ne-wash-top {
+  top: -150px;
+  right: -120px;
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgb(244 197 152 / 0.55) 0%,
+    rgb(247 216 186 / 0.32) 45%,
+    transparent 70%
+  );
+}
+
+.ne-wash-bottom {
+  bottom: -160px;
+  left: -130px;
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgb(240 208 170 / 0.5) 0%,
+    rgb(246 226 205 / 0.3) 45%,
+    transparent 70%
+  );
+}
+
+.ne-curve {
+  position: absolute;
+  left: 50%;
+  width: 260px;
+  transform: translateX(-50%);
+  stroke: rgb(var(--cx-accent-rgb) / 0.55);
+  stroke-width: 1;
+  stroke-linecap: round;
+  fill: none;
+  pointer-events: none;
+}
+
+.ne-curve circle {
+  fill: rgb(var(--cx-accent-rgb) / 0.55);
+  stroke: none;
+}
+
+.ne-curve-top {
+  top: 40px;
+}
+
+.ne-curve-bottom {
+  bottom: 40px;
+}
+
+/* Tên cặp đôi ở màn bìa: chữ viết tay MẠ VÀNG (dải màu cắt theo hình chữ).
+   Cố ý ĐỨNG NGOÀI CX_THEME.selectors như .ne-script — vừa là font tự host,
+   vừa là chữ tô bằng background nên đổi màu ở tab Giao diện sẽ không ăn. */
+
+.ne-name {
+  font-family: "GillaStone", cursive;
+  background: linear-gradient(
+    100deg,
+    #a67c2e 0%,
+    #e6c887 42%,
+    #c79c46 62%,
+    #a67c2e 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ── Màn mở đầu: ảnh chiếm TRỌN màn hình ─────────────────────────────────
+   Mục #section-hero phá lề của thân thiệp (âm lề, xem index.html) để ảnh chạm
+   sát bốn mép. Chữ đặt trên hai dải kem mờ dần ở đầu và chân màn — nhờ vậy đọc
+   được trên mọi tấm ảnh mà không phải phủ tối cả ảnh. */
+
+.ne-hero-top {
+  background: linear-gradient(
+    180deg,
+    rgb(var(--cx-cover-rgb) / 0.92) 0%,
+    rgb(var(--cx-cover-rgb) / 0.7) 55%,
+    transparent 100%
+  );
+}
+
+.ne-hero-bottom {
+  background: linear-gradient(
+    0deg,
+    rgb(var(--cx-cover-rgb) / 0.96) 0%,
+    rgb(var(--cx-cover-rgb) / 0.88) 45%,
+    rgb(var(--cx-cover-rgb) / 0.6) 75%,
+    transparent 100%
+  );
+}
+
+/* ── Mũi tên tròn của carousel ảnh (đè lên hai mép khung ảnh) ───────────── */
+
+.ne-arrow {
+  width: 44px;
+  height: 44px;
+  /* Nút nằm ĐÈ lên ảnh sáng tối bất kỳ → viền đậm + quầng tối mảnh cho nổi */
+  border: 1px solid rgb(var(--cx-accent-rgb) / 0.85);
+  background: rgb(var(--cx-cover-rgb) / 0.88);
+  box-shadow: 0 2px 12px rgb(58 50 42 / 0.25);
+  backdrop-filter: blur(4px);
+}
+
+.ne-arrow:active {
+  background: rgb(var(--cx-cover-rgb) / 0.95);
+}
+
+/* Chấm chỉ vị trí ảnh đang xem */
+
+.ne-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 999px;
+  background: rgb(var(--cx-accent-rgb) / 0.3);
+  transition: all 0.3s ease;
+}
+
+.ne-dot.is-on {
+  width: 16px;
+  background: rgb(var(--cx-accent-rgb));
+}
+
+/* ── Ô ảnh chân dung của mục Gia đình ───────────────────────────────────── */
+
+.ne-portrait {
+  width: 128px;
+  height: 128px;
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid rgb(var(--cx-accent-rgb) / 0.45);
+  padding: 4px;
+}
+
+.ne-portrait img {
+  border-radius: 999px;
+}
+
+/* ── Nút của mẫu ─────────────────────────────────────────────────────────
+   Bo góc khai ở đây chứ không dùng rounded-* của Tailwind: <x-button> luôn
+   kèm rounded-full, mà utility đó đứng sau trong bản build. */
+
+.ne-btn {
+  border: 1px solid rgb(var(--cx-accent-rgb) / 0.55);
+  color: rgb(var(--cx-heading-rgb));
+  font-family: "Montserrat", sans-serif;
+  font-weight: 300;
+  background: rgb(var(--cx-accent-rgb) / 0.06);
+}
+
+.ne-choice {
+  border: 1px solid rgb(var(--cx-accent-rgb) / 0.35);
+  border-radius: 12px;
+  background: rgb(var(--cx-surface-rgb) / 0.7);
+}
+
+/* Mã QR phải nằm trên nền TRẮNG mới quét được — chỗ duy nhất trong thiệp
+   không theo tông tối. */
+
+.ne-qr {
+  width: 100%;
+  max-width: 152px;
+  padding: 8px;
+  border-radius: 12px;
+  background: #fff;
+}
+
+/* Album hai cột kiểu masonry: ô cao thấp xen kẽ mà không chừa khoảng trống
+   như grid (grid kéo cả hàng cao bằng ô cao nhất). */
+
+.ne-masonry {
+  column-count: 2;
+  column-gap: 8px;
+}
+
+.ne-masonry > * {
+  break-inside: avoid;
+  margin-bottom: 8px;
+}
+
+/* Ô ảnh trong album: viền vàng mảnh + hơi trầm màu, rê/chạm thì sáng lên */
+
+.ne-cell {
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgb(var(--cx-accent-rgb) / 0.25);
+  cursor: pointer;
+}
+
+.ne-cell img {
+  filter: saturate(0.92) brightness(0.98);
+  transition: transform 0.5s ease, filter 0.5s ease;
+}
+
+.ne-cell:active img {
+  transform: scale(1.03);
+  filter: saturate(1) brightness(1);
+}

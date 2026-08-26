@@ -25,6 +25,7 @@ const FONT_SCAN_PAGES = [
   ["../public/themes/base-theme/index.html", "Theme: base-theme"],
   ["../public/themes/basic-gold/index.html", "Theme: basic-gold"],
   ["../public/themes/moody-cinematic/index.html", "Theme: moody-cinematic"],
+  ["../public/themes/noir-elegance/index.html", "Theme: noir-elegance"],
   ["../public/themes/romantic-gold/index.html", "Theme: romantic-gold"],
   ["../public/themes/vintage-forest/index.html", "Theme: vintage-forest"],
 ];
