@@ -37,12 +37,32 @@ const CX_REVEAL_DEFAULT = ["#main-card [id^='section-']", "#love-story"];
 // (trang thiệp luôn ở /public/themes/<tên>/). Style: .cx-pshell* ở _common.css.
 const CX_SHELL_MIN_W = 820;
 
+// Cạnh ngắn của MÁY (screen), mốc loại điện thoại ra: máy tính bảng nhỏ nhất
+// cũng 768px, điện thoại to nhất mới ~440px.
+const CX_SHELL_MIN_DEV_W = 700;
+
+// Khổ máy — KHÔNG dùng mỗi window.innerWidth để quyết định có dựng khung hay
+// không: Safari iOS dựng trang bằng viewport mặc định ~980px khi tab chưa hiện
+// (mở nền, prerender lúc gõ/dán vào thanh địa chỉ), tải lại mới ra 390px. Đo
+// trúng nhịp đó là điện thoại lĩnh nguyên khung máy cho tới khi refresh.
+// screen.* là khổ THIẾT BỊ nên không dính lỗi thời điểm đó; lấy cạnh ngắn để
+// xoay ngang hay dọc đều ra cùng một con số.
+function _cxDeviceMinW() {
+  const s = window.screen || {};
+  const w = s.width || 0;
+  const h = s.height || 0;
+  return w && h ? Math.min(w, h) : 0;
+}
+
 function _cxPreviewShell() {
   // Nằm trong iframe = đang xem qua trang Thiết lập, nơi đã có khung máy riêng.
   if (window.self !== window.top) return false;
 
   const q = new URLSearchParams(location.search);
   if (q.get("preview") !== "true" || q.get("shell") === "0") return false;
+
+  const dev = _cxDeviceMinW();
+  if (dev && dev < CX_SHELL_MIN_DEV_W) return false;
   if (window.innerWidth < CX_SHELL_MIN_W) return false;
 
   q.set("shell", "0");
