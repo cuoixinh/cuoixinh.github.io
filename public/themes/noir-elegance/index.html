@@ -55,37 +55,68 @@
       );
     </script>
 
-    <!-- ═══ MỤC: Màn bìa ═══════════════════════════════════════════════════ -->
+    <!-- ═══ MỤC: Màn bìa — TẤM THIỆP GIẤY, chỉ có chữ ══════════════════
+         Không dùng ảnh: nền là giấy kem với hai vệt màu đào loang và vài nét
+         cong mảnh vẽ bằng SVG. Tên cặp đôi là chữ viết tay mạ vàng — nét nhận
+         dạng của mẫu. -->
     <div
       id="cover-screen"
       class="fixed inset-0 z-50 flex justify-center items-center md:py-5"
     >
       <div
-        class="relative w-full max-w-[430px] cx-screen-h md:min-h-[932px] overflow-hidden md:rounded-[40px] flex flex-col items-center justify-center gap-7 px-10 text-center"
+        class="relative w-full max-w-[430px] cx-screen-h md:min-h-[932px] overflow-hidden md:rounded-[40px] flex flex-col items-center justify-center gap-6 px-8 text-center"
       >
-        <div class="absolute inset-0">
-          <img id="cover-bg-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" class="w-full h-full object-cover opacity-70" alt="" fetchpriority="high" />
-          <!-- Lớp phủ tối dần từ hai đầu: giữ chất noir và cứu chữ khi ảnh sáng -->
-          <div class="ne-cover-veil absolute inset-0"></div>
-        </div>
+        <!-- Hai vệt màu đào loang ở góc trên và góc dưới -->
+        <div class="ne-wash ne-wash-top"></div>
+        <div class="ne-wash ne-wash-bottom"></div>
+
+        <!-- Nét cong mảnh thay cho hoa: một nét ở đầu, một nét ở chân thiệp -->
+        <svg class="ne-curve ne-curve-top" viewBox="0 0 320 90" fill="none" aria-hidden="true">
+          <path d="M10 62C60 18 120 8 160 40c40 32 100 22 150-30" />
+          <path d="M40 74C84 42 128 36 160 58c32 22 84 14 124-22" opacity=".55" />
+          <circle cx="160" cy="46" r="3" />
+        </svg>
+        <svg class="ne-curve ne-curve-bottom" viewBox="0 0 320 90" fill="none" aria-hidden="true">
+          <path d="M10 28C60 72 120 82 160 50c40-32 100-22 150 30" />
+          <path d="M40 16C84 48 128 54 160 32c32-22 84-14 124 22" opacity=".55" />
+          <circle cx="160" cy="44" r="3" />
+        </svg>
 
         <!-- Khung vàng mảnh chạy sát mép màn bìa -->
         <div class="ne-cover-frame absolute inset-4 pointer-events-none"></div>
 
-        <div class="relative z-10 flex flex-col items-center gap-7 w-full">
-          <div class="ne-eyebrow">Trân trọng kính mời</div>
+        <div class="relative z-10 flex flex-col items-center gap-5 w-full">
+          <div class="ne-eyebrow">The Wedding Of</div>
 
-          <!-- Tên khách mời: điền từ tham số ?name= đã mã hoá trên URL -->
-          <div class="cx-h text-[32px] leading-tight" id="cover-guest-name">----------</div>
+          <div class="ne-name text-[54px] leading-[1.1]" id="cover-groom-name">----------</div>
 
-          <div class="ne-rule"></div>
+          <!-- Gạch — AND — gạch -->
+          <div class="flex items-center justify-center gap-3 w-full max-w-[280px]">
+            <span class="flex-1 h-px cx-bg-line"></span>
+            <span class="ne-eyebrow !text-[9px]">And</span>
+            <span class="flex-1 h-px cx-bg-line"></span>
+          </div>
 
-          <div class="cx-t text-[12px] tracking-[1px]">đến dự lễ thành hôn của</div>
+          <div class="ne-name text-[54px] leading-[1.1]" id="cover-bride-name">----------</div>
 
-          <div class="ne-script text-[46px] leading-[1.15]">
-            <span id="cover-groom-name">----------</span>
-            <span class="cx-a">&amp;</span>
-            <span id="cover-bride-name">----------</span>
+          <!-- Nơi đãi tiệc + ngày, đặt thấp như dòng chân thiệp giấy -->
+          <div class="flex flex-col items-center gap-1 mt-4">
+            <div class="cx-h text-[15px] font-semibold tracking-[1px] uppercase" id="cover-venue">
+              ------------------------
+            </div>
+            <div class="cx-t text-[10px] tracking-[1px] uppercase leading-relaxed" id="cover-address">
+              ----------------------------------------
+            </div>
+            <div class="cx-h text-[26px] mt-1" id="cover-date">--/--/----</div>
+          </div>
+
+          <div class="ne-rule mt-2"></div>
+
+          <!-- Tên khách mời: chỉ hiện khi mở bằng link riêng (?name=), index.js
+               bật lên sau khi giải mã xong -->
+          <div id="cover-guest-wrap" class="hidden flex-col items-center gap-1">
+            <div class="ne-eyebrow !text-[9px]">Trân trọng kính mời</div>
+            <div class="cx-h text-[22px] leading-tight" id="cover-guest-name">----------</div>
           </div>
 
           <x-button
@@ -121,7 +152,7 @@
           <div id="hero-viewport" class="absolute inset-0">
             <div id="hero-track" class="flex h-full">
               <div class="w-full h-full shrink-0">
-                <img id="main-photo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Ảnh cưới" class="w-full h-full object-cover" />
+                <img id="main-photo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Ảnh cưới" class="w-full h-full object-cover" fetchpriority="high" />
               </div>
             </div>
           </div>

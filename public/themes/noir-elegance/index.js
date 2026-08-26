@@ -80,6 +80,13 @@
   const _greetOriginal = window.setupPersonalizedGreeting;
   window.setupPersonalizedGreeting = function (slug, isGroom) {
     _greetOriginal(slug, isGroom, () => {});
+    // Không phải link riêng thì màn bìa sạch như tấm thiệp giấy, khỏi để lại
+    // dãy gạch ngang chỗ tên khách.
+    const wrap = document.getElementById("cover-guest-wrap");
+    if (wrap && window.CX_GUEST) {
+      wrap.classList.remove("hidden");
+      wrap.classList.add("flex");
+    }
   };
 
   // Khung "xem trực tiếp" ở trang Thiết lập xin cuộn tới mục đang chỉnh — mục
@@ -156,6 +163,16 @@
     // chỉ), như dòng địa danh trên poster. Chưa có địa chỉ thì giữ chữ mặc định.
     const place = _placeLabel(partyLocation);
     if (place) setText("hero-place", place);
+
+    // Dòng chân màn bìa: tên nơi đãi tiệc (đoạn ĐẦU của địa chỉ) trên một dòng,
+    // phần địa chỉ còn lại ở dòng dưới, rồi tới ngày tiệc dạng d/m/yyyy.
+    const [venue, ...rest] = String(partyLocation || "").split(",");
+    if (venue.trim()) setText("cover-venue", venue.trim());
+    cxToggle("cover-address", rest.length > 0);
+    if (rest.length) setText("cover-address", rest.join(",").trim());
+    const d = partyDate ? new Date(partyDate) : null;
+    if (d && !isNaN(d))
+      setText("cover-date", `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`);
 
     // Lịch nhỏ đánh dấu ngày lễ + ngày tiệc
     setupMiniCalendar(w.ceremony_date, partyDate);

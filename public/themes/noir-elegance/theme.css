@@ -141,7 +141,7 @@ body {
   background: rgb(var(--cx-surface-rgb) / 0.45);
 }
 
-/* Khung đôi của màn bìa: một đường ngoài, một đường trong lùi vào 6px */
+/* Khung đôi của màn bìa: một đường ngoài, một đường trong lùi vào 8px */
 
 .ne-cover-frame {
   border: 1px solid rgb(var(--cx-accent-rgb) / 0.45);
@@ -156,15 +156,81 @@ body {
   border-radius: 12px;
 }
 
-/* Ảnh bìa tối tới đâu thì lớp phủ kem này vẫn giữ được chữ nâu đọc rõ */
+/* ── Hoạ tiết màn bìa ────────────────────────────────────────────────────
+   Màn bìa là tấm thiệp GIẤY, không có ảnh: chất trang trí đến từ hai vệt màu
+   đào loang ở hai góc chéo và vài nét cong mảnh vẽ bằng SVG. */
 
-.ne-cover-veil {
+.ne-wash {
+  position: absolute;
+  width: 340px;
+  height: 340px;
+  pointer-events: none;
+}
+
+.ne-wash-top {
+  top: -150px;
+  right: -120px;
   background: radial-gradient(
-    120% 80% at 50% 45%,
-    rgb(var(--cx-cover-rgb) / 0.55) 0%,
-    rgb(var(--cx-cover-rgb) / 0.86) 65%,
-    rgb(var(--cx-cover-rgb) / 0.96) 100%
+    circle at 50% 50%,
+    rgb(244 197 152 / 0.55) 0%,
+    rgb(247 216 186 / 0.32) 45%,
+    transparent 70%
   );
+}
+
+.ne-wash-bottom {
+  bottom: -160px;
+  left: -130px;
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgb(240 208 170 / 0.5) 0%,
+    rgb(246 226 205 / 0.3) 45%,
+    transparent 70%
+  );
+}
+
+.ne-curve {
+  position: absolute;
+  left: 50%;
+  width: 260px;
+  transform: translateX(-50%);
+  stroke: rgb(var(--cx-accent-rgb) / 0.55);
+  stroke-width: 1;
+  stroke-linecap: round;
+  fill: none;
+  pointer-events: none;
+}
+
+.ne-curve circle {
+  fill: rgb(var(--cx-accent-rgb) / 0.55);
+  stroke: none;
+}
+
+.ne-curve-top {
+  top: 40px;
+}
+
+.ne-curve-bottom {
+  bottom: 40px;
+}
+
+/* Tên cặp đôi ở màn bìa: chữ viết tay MẠ VÀNG (dải màu cắt theo hình chữ).
+   Cố ý ĐỨNG NGOÀI CX_THEME.selectors như .ne-script — vừa là font tự host,
+   vừa là chữ tô bằng background nên đổi màu ở tab Giao diện sẽ không ăn. */
+
+.ne-name {
+  font-family: "GillaStone", cursive;
+  background: linear-gradient(
+    100deg,
+    #a67c2e 0%,
+    #e6c887 42%,
+    #c79c46 62%,
+    #a67c2e 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
 }
 
 /* ── Màn mở đầu: ảnh chiếm TRỌN màn hình ─────────────────────────────────
@@ -196,8 +262,10 @@ body {
 .ne-arrow {
   width: 44px;
   height: 44px;
-  border: 1px solid rgb(var(--cx-accent-rgb) / 0.7);
-  background: rgb(var(--cx-cover-rgb) / 0.8);
+  /* Nút nằm ĐÈ lên ảnh sáng tối bất kỳ → viền đậm + quầng tối mảnh cho nổi */
+  border: 1px solid rgb(var(--cx-accent-rgb) / 0.85);
+  background: rgb(var(--cx-cover-rgb) / 0.88);
+  box-shadow: 0 2px 12px rgb(58 50 42 / 0.25);
   backdrop-filter: blur(4px);
 }
 
