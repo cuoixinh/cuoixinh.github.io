@@ -455,6 +455,7 @@ function showScanServerHelp() {
     appendScanLog(" ");
     appendScanLog("Mở terminal ở thư mục dự án và chạy:", "text-yellow-300");
     appendScanLog("    cd scripts && npm run server", "text-white font-bold");
+    appendScanLog("Lần đầu chạy thì cài trước: cd scripts && npm install", "text-gray-300");
     appendScanLog(" ");
     appendScanLog("Bật xong thì bấm \"Huỷ\" rồi Lưu lại để có cả ảnh thumbnail.", "text-gray-300");
     appendScanLog("Hoặc \"Vẫn lưu, bỏ scan\" để ghi dữ liệu ngay, thumbnail giữ ảnh cũ.", "text-gray-300");
@@ -515,8 +516,14 @@ function startScanImages(templateNames) {
     }
   };
 
+  // Nói ĐÚNG câu lệnh mà showScanServerHelp() nói — hai chỗ lệch nhau thì người
+  // dùng gõ nhầm rồi tưởng server hỏng. scripts/ có package.json RIÊNG (puppeteer
+  // nằm ở đó, không phải node_modules gốc) nên lần đầu phải cài trước.
   es.onerror = () => {
-    appendScanLog("❌ Không kết nối được scan server. Chạy: node scripts/server.js", "text-red-400");
+    appendScanLog("❌ Không kết nối được scan server ở " + SCAN_SERVER, "text-red-400");
+    appendScanLog("Mở terminal ở thư mục dự án và chạy:", "text-yellow-300");
+    appendScanLog("    cd scripts && npm run server", "text-white font-bold");
+    appendScanLog("Lần đầu chạy thì cài trước: cd scripts && npm install", "text-gray-300");
     document.getElementById("scan-close-btn").style.cssText = "";
     es.close();
   };

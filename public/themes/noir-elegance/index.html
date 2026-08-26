@@ -47,11 +47,13 @@
        ══════════════════════════════════════════════════════════════════════ -->
 
   <body class="cx-screen-h flex justify-center items-start md:py-5">
-    <!-- ═══ Trình phát nhạc (enable_music) ═════════════════════════════════ -->
+    <!-- ═══ Trình phát nhạc (enable_music) ═════════════════════════════════
+         Mẫu ĐĨA TRÒN NHỎ neo góc trên phải (variant mini + chrome fixed-corner)
+         thay cho thanh ngang: mẫu này lấy ảnh làm chính, chừa một chấm là đủ. -->
     <div id="cx-music-mount"></div>
     <script>
       document.currentScript.previousElementSibling.replaceWith(
-        CXMusicPlayer.build({ variant: "bar", chrome: "fixed-top" }),
+        CXMusicPlayer.build({ variant: "mini", chrome: "fixed-corner" }),
       );
     </script>
 
@@ -197,23 +199,6 @@
             </div>
             <div class="ne-script cx-a text-[22px] leading-none">Presents</div>
           </div>
-
-          <x-button
-            variant="bare"
-            id="hero-prev"
-            onclick="neSlide(-1)"
-            class="ne-arrow absolute left-4 top-1/2 -translate-y-1/2"
-          >
-            <i class="fas fa-chevron-left cx-a text-sm"></i>
-          </x-button>
-          <x-button
-            variant="bare"
-            id="hero-next"
-            onclick="neSlide(1)"
-            class="ne-arrow absolute right-4 top-1/2 -translate-y-1/2"
-          >
-            <i class="fas fa-chevron-right cx-a text-sm"></i>
-          </x-button>
         </section>
 
         <!-- ═══ MỤC: Thư mời — lễ thành hôn / vu quy ════════════════════════ -->
@@ -263,21 +248,32 @@
             <div class="cx-t text-[13px]" id="party-location">------------------------</div>
           </div>
 
-          <!-- Lịch nhỏ đánh dấu ngày lễ + ngày tiệc (calendar-helper.js) -->
-          <div id="mini-calendar" class="w-full mt-2"></div>
-
-          <!-- Ảnh ngang ngăn giữa lịch và ô xác nhận tham dự: khung viền đôi
-               (vành ngoài + đường trong lùi 5px) với bốn nét góc, dưới cùng là
-               một dòng nhãn nhỏ. -->
-          <figure class="ne-plate mt-6">
-            <div class="ne-plate-frame">
+          <!-- Cuốn lịch treo tường: ảnh ở TRÊN với mép dưới lượn vòm, dưới là
+               tờ lịch (số tháng lớn + lưới ngày) do renderMiniCalendar() bản
+               ghi đè trong index.js vẽ vào #mini-calendar. Ảnh giữ nguyên id
+               #party-photo của khung ảnh cũ nên index.js không phải đổi. -->
+          <figure class="ne-cal mt-6">
+            <div class="ne-cal-photo">
               <img id="party-photo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" class="w-full h-full object-cover" />
-              <span class="ne-plate-corner ne-plate-corner-tl" aria-hidden="true"></span>
-              <span class="ne-plate-corner ne-plate-corner-tr" aria-hidden="true"></span>
-              <span class="ne-plate-corner ne-plate-corner-bl" aria-hidden="true"></span>
-              <span class="ne-plate-corner ne-plate-corner-br" aria-hidden="true"></span>
+              <!-- Vòm nền cắt vào chân ảnh, nối liền xuống tờ lịch. Vẽ bằng
+                   đường bezier (không phải bo góc bầu dục) để hai vai gần như
+                   phẳng rồi mới vồng lên ở giữa — đúng dáng của mẫu. Kéo giãn
+                   theo bề ngang nhờ preserveAspectRatio="none".
+                   Đường viền vàng là ĐÚNG đường cong đó DỜI XUỐNG 4.2 đơn vị để
+                   nằm trong lòng tờ lịch, cách ranh giới ảnh 8px: khung cao 76px
+                   trên 40 đơn vị viewBox → 1 đơn vị = 1.9px, đổi chiều cao khung
+                   thì phải tính lại số này. Nét phải khai non-scaling-stroke,
+                   không thì phép giãn lệch trục làm nét dày mỏng không đều. -->
+              <svg class="ne-cal-arch" viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true">
+                <path class="ne-cal-arch-fill" d="M0,40 L0,22 C22,22 28,0 50,0 C72,0 78,22 100,22 L100,40 Z" />
+                <path
+                  class="ne-cal-arch-line"
+                  d="M0,26.2 C22,26.2 28,4.2 50,4.2 C72,4.2 78,26.2 100,26.2"
+                  vector-effect="non-scaling-stroke"
+                />
+              </svg>
             </div>
-            <figcaption class="ne-eyebrow !text-[9px] mt-5">Hẹn gặp bạn tại tiệc cưới</figcaption>
+            <div id="mini-calendar" class="ne-cal-sheet"></div>
           </figure>
 
           <!-- ═══ MỤC: Xác nhận tham dự (rsvp_enabled) ═════════════════════ -->
@@ -319,10 +315,12 @@
         </section>
 
         <!-- ═══ MỤC: Album ảnh (enable_photos) ══════════════════════════════
-             Lưới ảnh cao thấp so le + phóng to — renderGallery ở index.js. -->
+             Bố cục GHÉP MẢNG kiểu poster ảnh cưới: một tấm ngang trải hết bề
+             ngang, rồi tấm nhỏ + ngày cưới viết tay + tấm dọc cao, dưới cùng là
+             tấm lớn kèm tấm nhỏ. Markup do renderGallery() ở index.js sinh. -->
         <section id="section-photos" class="flex flex-col gap-4">
           <h2 class="ne-title">Album Ảnh</h2>
-          <div id="gallery-grid" class="ne-masonry"></div>
+          <div id="gallery-grid" class="ne-mos-wrap"></div>
         </section>
 
         <!-- ═══ MỤC: Chuyện tình yêu (enable_love_story) ════════════════
@@ -339,7 +337,26 @@
         <section id="section-gift" class="flex flex-col gap-6">
           <h2 class="ne-title">Hộp Mừng Cưới</h2>
 
-          <div class="grid grid-cols-2 gap-3">
+          <!-- Hộp quà: chạm mới mở ra hai mã QR. Bóng đổ là thẻ RIÊNG nằm
+               ngoài phần dịch chuyển nên hộp nhấc lên mà bóng vẫn ở đáy. -->
+          <div id="gift-box" class="flex flex-col items-center gap-3">
+            <x-button
+              variant="bare"
+              onclick="neOpenGift()"
+              class="ne-gift"
+              aria-label="Mở mã QR mừng cưới"
+            >
+              <span class="ne-gift-shadow" aria-hidden="true"></span>
+              <img
+                src="../../../assets/gifts/minimalism_brown.webp"
+                alt="Hộp quà mừng cưới"
+                class="ne-gift-img"
+              />
+            </x-button>
+            <div class="ne-eyebrow !text-[9px]">Chạm để mở</div>
+          </div>
+
+          <div id="gift-qr" class="hidden grid grid-cols-2 gap-3">
             <!-- Chú rể -->
             <div class="ne-frame flex flex-col gap-2 items-center px-3 py-5">
               <div class="ne-eyebrow !text-[9px]">Chú Rể</div>

@@ -182,8 +182,8 @@
     // Lịch nhỏ đánh dấu ngày lễ + ngày tiệc
     setupMiniCalendar(w.ceremony_date, partyDate);
 
-    // Ảnh vòm ngăn giữa lịch và ô xác nhận tham dự: lấy tấm THỨ HAI của album
-    // (tấm đầu đã chạy ở màn mở đầu), không có thì lùi về ảnh bìa.
+    // Ảnh trên đầu cuốn lịch: lấy tấm THỨ HAI của album (tấm đầu đã chạy ở màn
+    // mở đầu), không có thì lùi về ảnh bìa.
     const archKey = w.gallery_images?.[1] || w.gallery_images?.[0] || w.cover_image_url;
     if (archKey) {
       setAttr("party-photo", "src", getImageUrl(archKey));
@@ -208,9 +208,15 @@
     }
 
     // --- Album ảnh ---
+    // Ngày tiệc tách làm ba dòng cho ô chữ viết tay giữa mảng ảnh.
     const hasPhotos = cxEnabled(w.enable_photos);
     if (hasPhotos) {
-      renderGallery(w.gallery_images, w.image_focal_points?.gallery_images);
+      const gd = partyDate ? new Date(partyDate) : null;
+      const dateParts =
+        gd && !isNaN(gd)
+          ? [`${gd.getDate()}.`, `Tháng ${gd.getMonth() + 1}`, String(gd.getFullYear())]
+          : null;
+      renderGallery(w.gallery_images, w.image_focal_points?.gallery_images, dateParts);
     } else {
       cxToggle("section-photos", false);
     }
@@ -295,10 +301,8 @@
     _slideCount = 1 + extras.length;
     _slideIdx = 0;
 
-    // Một ảnh thì giấu mũi tên và hàng chấm, khung ảnh đứng yên như tấm poster.
+    // Một ảnh thì giấu hàng chấm, khung ảnh đứng yên như tấm poster.
     const many = _slideCount > 1;
-    cxToggle("hero-prev", many);
-    cxToggle("hero-next", many);
 
     const dots = document.getElementById("hero-dots");
     if (dots) {
@@ -323,22 +327,46 @@
       .forEach((d, k) => d.classList.toggle("is-on", k === _slideIdx));
   }
 
-  // onclick trong HTML gọi thẳng → phải nằm ở window.
-  window.neSlide = (step) => _goSlide(_slideIdx + step);
-
   window.neJump = (id) => {
     document
       .getElementById(id)
       ?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  // Vuốt ngang để đổi ảnh (chỉ tính khi vuốt ngang rõ hơn dọc, để không cướp
-  // thao tác cuộn trang).
+  // Mở hộp quà: giấu hộp, bung hai mã QR. Một chiều — mở rồi thôi, không có
+  // nút đóng lại (khách đang định chuyển khoản thì đừng bắt bấm thêm lần nữa).
+  window.neOpenGift = () => {
+    const box = document.getElementById("gift-box");
+    const qr = document.getElementById("gift-qr");
+    if (!box || !qr) return;
+    box.classList.add("hidden");
+    qr.classList.remove("hidden");
+    qr.classList.add("ne-gift-open");
+  };
+
+  // Vuốt ngang để đổi ảnh. Gắn trên CẢ mục mở đầu (kể cả hai dải kem mờ ở đầu
+  // và chân màn) chứ không riêng khung ảnh, để chỗ nào trong màn cũng vuốt
+  // được. Chỉ tính khi vuốt ngang rõ hơn dọc, để không cướp thao tác cuộn trang.
   (function _bindSwipe() {
-    const view = document.getElementById("hero-viewport");
+    const view = document.getElementById("section-hero");
     if (!view) return;
     let x0 = 0;
     let y0 = 0;
+    let swiped = false;
+
+    // Vuốt bắt đầu trên hai lối tắt ở dải trên vẫn sinh click lúc nhấc tay →
+    // nuốt cú click ngay sau một lần vuốt để không nhảy mục ngoài ý muốn.
+    view.addEventListener(
+      "click",
+      (e) => {
+        if (!swiped) return;
+        swiped = false;
+        e.stopPropagation();
+        e.preventDefault();
+      },
+      true,
+    );
+
     view.addEventListener(
       "touchstart",
       (e) => {
@@ -352,8 +380,10 @@
       (e) => {
         const dx = e.changedTouches[0].clientX - x0;
         const dy = e.changedTouches[0].clientY - y0;
-        if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy))
-          _goSlide(_slideIdx + (dx < 0 ? 1 : -1));
+        if (Math.abs(dx) <= 40 || Math.abs(dx) <= Math.abs(dy)) return;
+        _goSlide(_slideIdx + (dx < 0 ? 1 : -1));
+        swiped = true;
+        setTimeout(() => (swiped = false), 400);
       },
       { passive: true },
     );
@@ -408,22 +438,35 @@
       .join("");
   }
 
-  // ============= ALBUM ẢNH =============
-  // Hai cột kiểu masonry (.ne-masonry dùng CSS column) — ô cao thấp xen kẽ mà
-  // không để lại khoảng trống như lưới grid. Ảnh xếp theo CỘT: ô 1,2,3 nằm cột
-  // trái rồi mới sang cột phải, thứ tự trong lightbox vẫn giữ nguyên chỉ số ô.
-  // Class viết nguyên chuỗi (không ghép từ biến) để Tailwind không purge mất.
+  // ============= ALBUM ẢNH: GHÉP MẢNG KIỂU POSTER =============
+  // Mỗi KHỐI gồm 5 tấm xếp theo đúng bố cục poster ảnh cưới:
+  //
+  //   ┌─────────── a ───────────┐
+  //   ├──── b ────┬─ ngày ─┬────┤
+  //   ├─────── d ─────────┤  c  │
+  //   │                   ├─────┤
+  //   └───────────────────┴──e──┘
+  //
+  // Dựng bằng flex LỒNG NHAU chứ không phải grid: c và d không có tỉ lệ khai
+  // sẵn mà giãn theo chiều cao cột bên cạnh, thứ mà grid với hàng auto không
+  // bảo đảm được (hàng bị co về 0). Ô nào thiếu ảnh thì bỏ hẳn thẻ bọc — album
+  // ít hơn 5 tấm vẫn ra bố cục cân, không để lỗ.
+  //
+  // Chỉ số trong lightbox = chỉ số ẢNH GỐC, không phải thứ tự trong DOM.
 
-  function renderGallery(images, focalPoints) {
+  // Vị trí trong khối theo chỉ số ảnh: 0→a 1→b 2→c 3→d 4→e.
+  const MOS_SLOTS = ["a", "b", "c", "d", "e"];
+
+  function renderGallery(images, focalPoints, dateParts) {
     const grid = document.getElementById("gallery-grid");
     if (!grid) return;
 
     // Ảnh nằm trong #main-card (đang display:none lúc chưa mở bìa) nên KHÔNG
     // đặt loading="lazy": ảnh lazy sẽ chỉ bắt đầu tải khi bìa mở ra.
-    // Chưa có ảnh → 4 ô minh hoạ, để khách hình dung bố cục lúc đang soạn.
+    // Chưa có ảnh → 5 ô minh hoạ, để khách hình dung bố cục lúc đang soạn.
     const urls = images?.length
       ? images.map(getImageUrl)
-      : Array(4)
+      : Array(5)
           .fill(null)
           .map(() => createPlaceholderSVG("Chưa có ảnh"));
 
@@ -432,16 +475,121 @@
     lightboxImages.push(...urls);
 
     grid.innerHTML = "";
-    urls.forEach((url, i) => {
-      const fp = focalPoints?.[images?.[i]];
-      const cell = document.createElement("div");
-      cell.className =
-        "ne-cell " + (i % 3 === 1 ? "aspect-square" : "aspect-[3/4]");
-      cell.innerHTML = `<img src="${url}" alt=""
-        class="w-full h-full object-cover"
-        style="object-position:${fp?.x ?? 50}% ${fp?.y ?? 50}%">`;
-      cell.addEventListener("click", () => openLightbox(i));
-      grid.appendChild(cell);
-    });
+
+    for (let start = 0; start < urls.length; start += 5) {
+      const block = document.createElement("div");
+      block.className = "ne-mos";
+
+      // Ô ảnh của một vị trí, chưa có ảnh thì trả null để bên dưới bỏ qua.
+      const cellAt = (offset) => {
+        const i = start + offset;
+        if (i >= urls.length) return null;
+        const fp = focalPoints?.[images?.[i]];
+        const cell = document.createElement("div");
+        cell.className = `ne-cell ne-mos-${MOS_SLOTS[offset]}`;
+        cell.innerHTML = `<img src="${urls[i]}" alt=""
+          class="w-full h-full object-cover"
+          style="object-position:${fp?.x ?? 50}% ${fp?.y ?? 50}%">`;
+        cell.addEventListener("click", () => openLightbox(i));
+        return cell;
+      };
+
+      const a = cellAt(0);
+      const b = cellAt(1);
+      const c = cellAt(2);
+      const d = cellAt(3);
+      const e = cellAt(4);
+
+      if (a) block.appendChild(a);
+
+      const mid = document.createElement("div");
+      mid.className = "ne-mos-mid";
+
+      if (b || d) {
+        const left = document.createElement("div");
+        left.className = "ne-mos-left";
+        if (b) {
+          const top = document.createElement("div");
+          top.className = "ne-mos-top";
+          top.appendChild(b);
+          // Ngày cưới viết tay, chỉ đặt ở KHỐI ĐẦU: lặp lại ở mọi khối thì
+          // thành hoạ tiết chứ không còn là điểm nhấn.
+          if (start === 0 && dateParts?.length) {
+            const t = document.createElement("div");
+            t.className = "ne-mos-date ne-script";
+            t.innerHTML = dateParts
+              .map((p) => `<span>${escapeHtml(p)}</span>`)
+              .join("");
+            top.appendChild(t);
+          }
+          left.appendChild(top);
+        }
+        if (d) left.appendChild(d);
+        mid.appendChild(left);
+      }
+
+      if (c || e) {
+        const right = document.createElement("div");
+        right.className = "ne-mos-right";
+        if (c) right.appendChild(c);
+        if (e) right.appendChild(e);
+        mid.appendChild(right);
+      }
+
+      if (mid.childElementCount) block.appendChild(mid);
+      grid.appendChild(block);
+    }
   }
+
+  // ============= TỜ LỊCH TREO TƯỜNG (phần đặc thù của mẫu) =============
+  // Ghi đè window.renderMiniCalendar của calendar-helper.js (nạp TRƯỚC file
+  // này) thay vì sửa file dùng chung — helper vẫn nguyên cho mẫu khác, còn
+  // setupMiniCalendar() ở render-helper.js gọi qua biến toàn cục nên tự nhặt
+  // đúng bản này. Ngày đánh dấu lấy từ window.weddingDates (helper gốc set).
+  //
+  // Tuần bắt đầu từ THỨ HAI, cột Chủ nhật đứng cuối và tô màu nhấn — đúng kiểu
+  // lịch treo tường, khác quy ước CN-đứng-đầu của helper gốc.
+
+  function renderWallCalendar() {
+    const container = document.getElementById("mini-calendar");
+    if (!container || !window.weddingDates?.length) return;
+
+    const { year, month } = window.weddingDates[0];
+    const marked = window.weddingDates
+      .filter((d) => d.year === year && d.month === month)
+      .map((d) => d.day);
+
+    const dayNames = ["Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7", "CN"];
+    // getDay() trả 0 = CN → dời về hệ thứ-2-đầu-tuần.
+    const firstDay = (new Date(year, month - 1, 1).getDay() + 6) % 7;
+    const daysInMonth = new Date(year, month, 0).getDate();
+
+    const dow = dayNames
+      .map((d, i) => `<div class="ne-cal-dow${i === 6 ? " is-sun" : ""}">${d}</div>`)
+      .join("");
+    const blanks = Array(firstDay).fill(`<div class="ne-cal-day is-blank"></div>`).join("");
+    const cells = Array.from({ length: daysInMonth }, (_, i) => {
+      const day = i + 1;
+      const sun = (firstDay + i) % 7 === 6 ? " is-sun" : "";
+      const on = marked.includes(day) ? " is-marked" : "";
+      return `<div class="ne-cal-day${sun}${on}"><span>${day}</span></div>`;
+    }).join("");
+
+    container.innerHTML = `
+      <div class="ne-cal-head">
+        <div class="ne-cal-no cx-a">${String(month).padStart(2, "0")}</div>
+        <div class="ne-cal-label">
+          <span class="ne-cal-name">Tháng ${month}</span>
+          <span class="ne-cal-sep" aria-hidden="true"></span>
+          <span class="ne-cal-name">${year}</span>
+        </div>
+      </div>
+      <div class="ne-cal-grid">${dow}${blanks}${cells}</div>`;
+  }
+
+  window.renderMiniCalendar = renderWallCalendar;
+
+  // Helper gốc tự vẽ một lần lúc nạp (bằng ngày mặc định) — vẽ lại ngay bằng
+  // bản của mẫu để không lóe markup của helper trước khi có dữ liệu thật.
+  renderWallCalendar();
 })();

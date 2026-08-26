@@ -247,30 +247,18 @@ body {
   );
 }
 
+/* Chân dải phải là ĐÚNG nền thân thiệp và đục hoàn toàn: lệch màu hay lệch độ
+   mờ ở đây thành một vạch ngang chạy hết bề ngang, trông như đường viền ngăn
+   mục mở đầu với mục bên dưới. */
+
 .ne-hero-bottom {
   background: linear-gradient(
     0deg,
-    rgb(var(--cx-cover-rgb) / 0.96) 0%,
-    rgb(var(--cx-cover-rgb) / 0.88) 45%,
-    rgb(var(--cx-cover-rgb) / 0.6) 75%,
+    rgb(var(--cx-card-bg-rgb)) 0%,
+    rgb(var(--cx-card-bg-rgb) / 0.88) 45%,
+    rgb(var(--cx-card-bg-rgb) / 0.6) 75%,
     transparent 100%
   );
-}
-
-/* ── Mũi tên tròn của carousel ảnh (đè lên hai mép khung ảnh) ───────────── */
-
-.ne-arrow {
-  width: 44px;
-  height: 44px;
-  /* Nút nằm ĐÈ lên ảnh sáng tối bất kỳ → viền đậm + quầng tối mảnh cho nổi */
-  border: 1px solid rgb(var(--cx-accent-rgb) / 0.85);
-  background: rgb(var(--cx-cover-rgb) / 0.88);
-  box-shadow: 0 2px 12px rgb(58 50 42 / 0.25);
-  backdrop-filter: blur(4px);
-}
-
-.ne-arrow:active {
-  background: rgb(var(--cx-cover-rgb) / 0.95);
 }
 
 /* Chấm chỉ vị trí ảnh đang xem */
@@ -317,18 +305,170 @@ body {
   background: #fff;
 }
 
-/* Album hai cột kiểu masonry: ô cao thấp xen kẽ mà không chừa khoảng trống
-   như grid (grid kéo cả hàng cao bằng ô cao nhất). */
+/* ── Hộp quà: chạm để mở QR ──────────────────────────────────────────────
+   Bóng đổ là thẻ RIÊNG (.ne-gift-shadow) đứng ngoài phần dịch chuyển, nên khi
+   hộp nhấc lên bóng vẫn nằm nguyên ở đáy và chỉ co lại — thu bóng theo hộp thì
+   mất hẳn cảm giác nhấc lên khỏi mặt phẳng. */
 
-.ne-masonry {
-  column-count: 2;
-  column-gap: 8px;
+.ne-gift {
+  position: relative;
+  display: block;
+  width: 100%;
+  max-width: 190px;
+  /* Chừa chỗ cho bóng bên dưới ảnh */
+  padding-bottom: 16px;
+  background: none;
+  border: 0;
+  cursor: pointer;
 }
 
-.ne-masonry > * {
-  break-inside: avoid;
-  margin-bottom: 8px;
+.ne-gift-img {
+  display: block;
+  width: 100%;
+  /* Nảy nhẹ ở cuối: hộp quà nhấc lên trông có sức nặng hơn là trượt đều */
+  transition: transform 0.4s cubic-bezier(0.34, 1.35, 0.64, 1);
 }
+
+.ne-gift-shadow {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  width: 58%;
+  height: 12px;
+  border-radius: 9999px;
+  background: rgb(var(--cx-heading-rgb) / 0.28);
+  filter: blur(6px);
+  transition: width 0.4s ease, opacity 0.4s ease;
+}
+
+.ne-gift:hover .ne-gift-img,
+.ne-gift:focus-visible .ne-gift-img {
+  transform: translateY(-14px);
+}
+
+.ne-gift:hover .ne-gift-shadow,
+.ne-gift:focus-visible .ne-gift-shadow {
+  width: 46%;
+  opacity: 0.65;
+}
+
+/* Cảm ứng không có hover: chạm cũng cho thấy hộp nhấc lên trước khi QR hiện */
+
+.ne-gift:active .ne-gift-img {
+  transform: translateY(-6px);
+}
+
+/* Hai mã QR hiện ra sau khi mở hộp */
+
+.ne-gift-open {
+  animation: cx-ne-gift-in 0.45s ease both;
+}
+
+@keyframes cx-ne-gift-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ── Album: mảng ảnh ghép kiểu poster ────────────────────────────────────
+   Flex LỒNG NHAU. Chiều cao mỗi khối do CỘT TRÁI quyết định (.ne-mos-b tỉ lệ
+   4/3 + .ne-mos-d tỉ lệ 5/6); cột phải kéo giãn cho bằng, .ne-mos-c ăn hết chỗ
+   còn lại phía trên .ne-mos-e. */
+
+.ne-mos-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ne-mos {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ne-mos-mid {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.ne-mos-left {
+  flex: 1.62;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ne-mos-right {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ne-mos-top {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+
+/* Hai ô mang tỉ lệ — chân chống của cả khối */
+
+.ne-mos-a {
+  aspect-ratio: 16 / 10;
+}
+
+.ne-mos-b {
+  flex: 1.5;
+  min-width: 0;
+  aspect-ratio: 4 / 3;
+}
+
+.ne-mos-e {
+  aspect-ratio: 4 / 3;
+}
+
+/* Ô lớn bên trái: mang tỉ lệ nên chính nó ĐẶT chiều cao cho cả khối. Phải là
+   flex-basis auto — cho basis 0 thì chiều cao giả định về 0, cột trái co lại
+   bằng đúng hàng trên và ô này biến mất. */
+
+.ne-mos-d {
+  flex: 1 1 auto;
+  aspect-ratio: 5 / 6;
+}
+
+/* Ô dọc cao bên phải: ăn hết chỗ còn lại phía trên .ne-mos-e để hai cột bằng
+   chân nhau — ĐỪNG gán aspect-ratio cho nó. */
+
+.ne-mos-c {
+  flex: 1 1 0;
+  min-height: 0;
+}
+
+/* Ngày cưới viết tay chen giữa mảng ảnh, mỗi phần một dòng */
+
+.ne-mos-date {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  font-size: 19px;
+  line-height: 1.15;
+  color: rgb(var(--cx-heading-rgb));
+}
+
 
 /* Ô ảnh trong album: viền vàng mảnh + hơi trầm màu, rê/chạm thì sáng lên */
 
@@ -349,72 +489,153 @@ body {
   filter: saturate(1) brightness(1);
 }
 
-/* ── Ảnh ngang dưới lịch ─────────────────────────────────────────────────
-   Khung viền ĐÔI: vành giấy bọc ngoài ảnh, một đường vàng mảnh lùi vào trong,
-   cộng bốn nét góc nhô ra — kiểu khung ảnh đặt bàn. */
+/* ── Cuốn lịch treo tường ────────────────────────────────────────────────
+   Ảnh ở trên, một VÒM nền cắt vào chân ảnh rồi nối liền xuống tờ lịch bên
+   dưới. Markup: khung tĩnh ở index.html, phần đầu tháng + lưới ngày do
+   renderMiniCalendar() bản ghi đè ở index.js sinh vào .ne-cal-sheet. */
 
-.ne-plate {
+.ne-cal {
   width: 100%;
-  max-width: 320px;
+  max-width: 340px;
   margin: 0 auto;
-}
-
-.ne-plate-frame {
-  position: relative;
-  aspect-ratio: 3 / 2;
-  padding: 8px;
-  border: 1px solid rgb(var(--cx-accent-rgb) / 0.5);
-  border-radius: 4px;
+  border: 1px solid rgb(var(--cx-accent-rgb) / 0.35);
+  border-radius: 16px;
+  overflow: hidden;
   background: rgb(var(--cx-card-bg-rgb));
 }
 
-.ne-plate-frame::after {
-  content: "";
+.ne-cal-photo {
+  position: relative;
+  aspect-ratio: 4 / 3;
+}
+
+/* Vòm cắt chân ảnh: hai vai gần phẳng rồi vồng cao ở giữa. Hình do đường
+   bezier trong <svg> ở index.html quyết định, ở đây chỉ định vị và tô màu —
+   màu phải ĐÚNG nền thân thiệp, lệch một chút là lộ vệt ngang. */
+
+.ne-cal-arch {
   position: absolute;
-  inset: 4px;
-  border: 1px solid rgb(var(--cx-accent-rgb) / 0.28);
-  border-radius: 2px;
-  pointer-events: none;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  width: 100%;
+  height: 76px;
+  display: block;
 }
 
-.ne-plate-frame img {
-  border-radius: 2px;
+.ne-cal-arch-fill {
+  fill: rgb(var(--cx-card-bg-rgb));
 }
 
-/* Nét góc: chỉ vẽ hai cạnh của một ô vuông nhỏ, nhô ra ngoài khung */
-
-.ne-plate-corner {
-  position: absolute;
-  width: 14px;
-  height: 14px;
+.ne-cal-arch-line {
+  fill: none;
+  stroke: rgb(var(--cx-accent-rgb) / 0.55);
+  stroke-width: 1;
 }
 
-.ne-plate-corner-tl {
-  top: -5px;
-  left: -5px;
-  border-top: 1px solid rgb(var(--cx-accent-rgb));
-  border-left: 1px solid rgb(var(--cx-accent-rgb));
+.ne-cal-sheet {
+  position: relative;
+  padding: 0 12px 16px;
 }
 
-.ne-plate-corner-tr {
-  top: -5px;
-  right: -5px;
-  border-top: 1px solid rgb(var(--cx-accent-rgb));
-  border-right: 1px solid rgb(var(--cx-accent-rgb));
+/* Đầu tháng: số tháng LỚN, dưới là viên thuốc "Tháng n · năm" */
+
+.ne-cal-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  /* Kéo lên cho số tháng nằm gọn trong lòng vòm, như tờ lịch mẫu */
+  margin-top: -30px;
 }
 
-.ne-plate-corner-bl {
-  bottom: -5px;
-  left: -5px;
-  border-bottom: 1px solid rgb(var(--cx-accent-rgb));
-  border-left: 1px solid rgb(var(--cx-accent-rgb));
+.ne-cal-no {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 44px;
+  font-weight: 600;
+  line-height: 1;
 }
 
-.ne-plate-corner-br {
-  right: -5px;
-  bottom: -5px;
-  border-right: 1px solid rgb(var(--cx-accent-rgb));
-  border-bottom: 1px solid rgb(var(--cx-accent-rgb));
+/* Tháng · năm: một viên thuốc nền nhấn, chữ dùng màu chữ-trên-nền-nhấn */
+
+.ne-cal-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 18px;
+  border-radius: 9999px;
+  background: rgb(var(--cx-accent-rgb));
+}
+
+.ne-cal-name {
+  font-family: "Montserrat", sans-serif;
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgb(var(--cx-on-accent-rgb));
+}
+
+/* Vạch ngăn tháng với năm */
+
+.ne-cal-sep {
+  width: 1px;
+  height: 12px;
+  background: rgb(var(--cx-on-accent-rgb) / 0.5);
+}
+/* Lưới ngày: hàng tên thứ nằm luôn trong lưới nên các cột thẳng hàng tuyệt đối */
+
+.ne-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  margin-top: 14px;
+  border-top: 1px solid rgb(var(--cx-line-rgb));
+  padding-top: 10px;
+}
+
+.ne-cal-dow {
+  font-family: "Montserrat", sans-serif;
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  color: rgb(var(--cx-body-rgb));
+  padding-bottom: 8px;
+  text-align: center;
+}
+
+.ne-cal-dow.is-sun,
+.ne-cal-day.is-sun span {
+  color: rgb(var(--cx-accent-rgb));
+}
+
+.ne-cal-day {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 34px;
+}
+
+.ne-cal-day span {
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-family: "Montserrat", sans-serif;
+  font-size: 11px;
+  font-weight: 300;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+/* Ngày cưới: chấm tròn nền nhấn, đè lên cả màu Chủ nhật */
+
+.ne-cal-day.is-marked span,
+.ne-cal-day.is-sun.is-marked span {
+  background: rgb(var(--cx-accent-rgb));
+  color: rgb(var(--cx-on-accent-rgb));
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgb(var(--cx-accent-rgb) / 0.4);
 }
 
 /* ── Chuyện tình yêu: bố cục tạp chí ─────────────────────────────────────
