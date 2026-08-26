@@ -1,7 +1,7 @@
-/* Bảng màu + CSS riêng của NOIR ELEGANCE — nền ĐEN, nhấn vàng champagne, chữ
-   thư pháp cho phần cảm xúc. Nét nhận dạng: mọi khối đóng khung bằng ĐƯỜNG
-   VÀNG MẢNH (.ne-frame/.ne-hairline) thay cho bóng đổ — nền tối nên bóng đổ
-   không nhìn thấy gì.
+/* Bảng màu + CSS riêng của NOIR ELEGANCE — nền TRẮNG BE nhạt, nhấn vàng
+   champagne trầm, chữ thư pháp cho phần cảm xúc. Nét nhận dạng: mọi khối đóng
+   khung bằng ĐƯỜNG VÀNG MẢNH (.ne-frame/.ne-hairline) thay cho bóng đổ, và màn
+   mở đầu là một tấm ảnh CHIẾM TRỌN màn hình với chữ đặt trên dải kem mờ.
    CSS THUẦN, nạp bằng <link> sau styles/themes.css.
 
    Hai phần:
@@ -12,20 +12,20 @@
         Các lớp .ne-* bên dưới là trang trí riêng của mẫu. */
 
 :root {
-  --cx-accent-rgb: 201 169 110; /* nhấn: vàng champagne */
-  --cx-on-accent-rgb: 12 12 14; /* chữ nằm TRÊN nền nhấn — nền vàng thì chữ đen */
-  --cx-heading-rgb: 242 236 226; /* kem sáng */
-  --cx-body-rgb: 165 157 146;
-  --cx-line-rgb: 104 86 55; /* vạch dọc, viền mảnh: vàng trầm */
-  --cx-surface-rgb: 24 23 26; /* nền phụ của ô nhỏ */
-  --cx-cover-rgb: 8 8 10; /* nền màn bìa: hai đầu dải */
-  --cx-cover-mid-rgb: 22 20 22; /* …và điểm giữa */
+  --cx-accent-rgb: 176 141 87; /* nhấn: vàng champagne trầm */
+  --cx-on-accent-rgb: 255 255 255; /* chữ nằm TRÊN nền nhấn */
+  --cx-heading-rgb: 58 50 42; /* nâu đen ấm */
+  --cx-body-rgb: 133 123 111;
+  --cx-line-rgb: 224 213 197; /* vạch dọc, viền mảnh: be đậm */
+  --cx-surface-rgb: 244 238 229; /* nền phụ của ô nhỏ */
+  --cx-cover-rgb: 250 246 240; /* nền màn bìa: hai đầu dải */
+  --cx-cover-mid-rgb: 240 232 221; /* …và điểm giữa */
 
-  --cx-card-bg-rgb: 12 12 14; /* nền thân thiệp */
+  --cx-card-bg-rgb: 253 251 247; /* nền thân thiệp */
 }
 
 body {
-  background-color: rgb(var(--cx-cover-rgb));
+  background-color: rgb(var(--cx-surface-rgb));
 }
 
 #main-card {
@@ -86,7 +86,7 @@ body {
   font-size: 10px;
   letter-spacing: 4px;
   text-transform: uppercase;
-  color: rgb(var(--cx-heading-rgb) / 0.75);
+  color: rgb(var(--cx-heading-rgb) / 0.8);
 }
 
 /* Ba nhãn ở đầu mục Mở đầu chia đều một hàng: nhãn trái canh trái, giữa canh
@@ -96,6 +96,11 @@ body {
 
 .ne-nav {
   justify-content: center;
+  letter-spacing: 3px;
+}
+
+.ne-nav-l {
+  justify-content: flex-start;
   letter-spacing: 3px;
 }
 
@@ -133,7 +138,7 @@ body {
 .ne-frame {
   border: 1px solid rgb(var(--cx-accent-rgb) / 0.35);
   border-radius: 20px;
-  background: rgb(var(--cx-surface-rgb) / 0.55);
+  background: rgb(var(--cx-surface-rgb) / 0.45);
 }
 
 /* Khung đôi của màn bìa: một đường ngoài, một đường trong lùi vào 6px */
@@ -151,14 +156,38 @@ body {
   border-radius: 12px;
 }
 
-/* Ảnh bìa sáng tới đâu thì lớp phủ này vẫn giữ được chất noir cho chữ */
+/* Ảnh bìa tối tới đâu thì lớp phủ kem này vẫn giữ được chữ nâu đọc rõ */
 
 .ne-cover-veil {
   background: radial-gradient(
     120% 80% at 50% 45%,
-    rgb(var(--cx-cover-rgb) / 0.25) 0%,
-    rgb(var(--cx-cover-rgb) / 0.82) 70%,
-    rgb(var(--cx-cover-rgb) / 0.95) 100%
+    rgb(var(--cx-cover-rgb) / 0.55) 0%,
+    rgb(var(--cx-cover-rgb) / 0.86) 65%,
+    rgb(var(--cx-cover-rgb) / 0.96) 100%
+  );
+}
+
+/* ── Màn mở đầu: ảnh chiếm TRỌN màn hình ─────────────────────────────────
+   Mục #section-hero phá lề của thân thiệp (âm lề, xem index.html) để ảnh chạm
+   sát bốn mép. Chữ đặt trên hai dải kem mờ dần ở đầu và chân màn — nhờ vậy đọc
+   được trên mọi tấm ảnh mà không phải phủ tối cả ảnh. */
+
+.ne-hero-top {
+  background: linear-gradient(
+    180deg,
+    rgb(var(--cx-cover-rgb) / 0.92) 0%,
+    rgb(var(--cx-cover-rgb) / 0.7) 55%,
+    transparent 100%
+  );
+}
+
+.ne-hero-bottom {
+  background: linear-gradient(
+    0deg,
+    rgb(var(--cx-cover-rgb) / 0.96) 0%,
+    rgb(var(--cx-cover-rgb) / 0.88) 45%,
+    rgb(var(--cx-cover-rgb) / 0.6) 75%,
+    transparent 100%
   );
 }
 
@@ -167,13 +196,13 @@ body {
 .ne-arrow {
   width: 44px;
   height: 44px;
-  border: 1px solid rgb(var(--cx-accent-rgb) / 0.6);
-  background: rgb(var(--cx-cover-rgb) / 0.75);
+  border: 1px solid rgb(var(--cx-accent-rgb) / 0.7);
+  background: rgb(var(--cx-cover-rgb) / 0.8);
   backdrop-filter: blur(4px);
 }
 
 .ne-arrow:active {
-  background: rgb(var(--cx-cover-rgb) / 0.9);
+  background: rgb(var(--cx-cover-rgb) / 0.95);
 }
 
 /* Chấm chỉ vị trí ảnh đang xem */
@@ -211,7 +240,7 @@ body {
    kèm rounded-full, mà utility đó đứng sau trong bản build. */
 
 .ne-btn {
-  border: 1px solid rgb(var(--cx-accent-rgb) / 0.5);
+  border: 1px solid rgb(var(--cx-accent-rgb) / 0.55);
   color: rgb(var(--cx-heading-rgb));
   font-family: "Montserrat", sans-serif;
   font-weight: 300;
@@ -221,7 +250,7 @@ body {
 .ne-choice {
   border: 1px solid rgb(var(--cx-accent-rgb) / 0.35);
   border-radius: 12px;
-  background: rgb(var(--cx-surface-rgb) / 0.6);
+  background: rgb(var(--cx-surface-rgb) / 0.7);
 }
 
 /* Mã QR phải nằm trên nền TRẮNG mới quét được — chỗ duy nhất trong thiệp
@@ -258,7 +287,7 @@ body {
 }
 
 .ne-cell img {
-  filter: saturate(0.85) brightness(0.92);
+  filter: saturate(0.92) brightness(0.98);
   transition: transform 0.5s ease, filter 0.5s ease;
 }
 

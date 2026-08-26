@@ -64,7 +64,7 @@
         class="relative w-full max-w-[430px] cx-screen-h md:min-h-[932px] overflow-hidden md:rounded-[40px] flex flex-col items-center justify-center gap-7 px-10 text-center"
       >
         <div class="absolute inset-0">
-          <img id="cover-bg-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" class="w-full h-full object-cover opacity-45" alt="" fetchpriority="high" />
+          <img id="cover-bg-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" class="w-full h-full object-cover opacity-70" alt="" fetchpriority="high" />
           <!-- Lớp phủ tối dần từ hai đầu: giữ chất noir và cứu chữ khi ảnh sáng -->
           <div class="ne-cover-veil absolute inset-0"></div>
         </div>
@@ -110,73 +110,55 @@
       style="display: none"
     >
       <div class="flex flex-col gap-14 px-5 py-10 text-center">
-        <!-- ═══ MỤC: Mở đầu — khung ảnh kiểu poster phim ════════════════════
+        <!-- ═══ MỤC: Mở đầu — ẢNH CHIẾM TRỌN MÀN HÌNH ════════════════════
+             Âm lề (-mx-5 -mt-10) để ảnh chạm sát bốn mép: thân thiệp có lề
+             px-5 py-10, đổi lề đó thì phải đổi cả hai số này.
              Ba nhãn trên cùng: nơi đãi tiệc · lối tắt sang Chuyện tình yêu ·
              lối tắt sang Album. index.js ẩn hai lối tắt khi mục tương ứng tắt. -->
-        <section id="section-hero" class="ne-frame flex flex-col gap-6 px-4 py-5">
-          <div class="grid grid-cols-3 items-center gap-1">
-            <div id="hero-place" class="ne-eyebrow !text-[9px] text-left truncate">Save The Date</div>
-            <x-button
-              variant="bare"
-              id="hero-link-story"
-              onclick="neJump('love-story')"
-              class="ne-eyebrow !text-[9px] ne-nav w-full"
-            >
-              Love Story
-            </x-button>
-            <x-button
-              variant="bare"
-              id="hero-link-album"
-              onclick="neJump('section-photos')"
-              class="ne-eyebrow !text-[9px] ne-nav ne-nav-r w-full"
-            >
-              Album
-            </x-button>
-          </div>
-
-          <!-- Sân khấu ảnh: nền là chính tấm đang xem nhưng nhoè, hai mũi tên
-               tròn đè lên mép trái/phải. #hero-track do index.js dựng thêm ảnh,
-               ô đầu tiên (#main-photo) là ảnh bìa nên viết sẵn ở đây. -->
-          <div class="relative">
-            <div class="absolute -inset-3 overflow-hidden rounded-[24px]">
-              <img id="hero-blur" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" class="w-full h-full object-cover scale-125 blur-2xl opacity-40" />
-            </div>
-
-            <div id="hero-viewport" class="relative overflow-hidden rounded-[12px] ne-hairline">
-              <div id="hero-track" class="flex">
-                <div class="w-full shrink-0 aspect-[3/4]">
-                  <img id="main-photo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Ảnh cưới" class="w-full h-full object-cover" />
-                </div>
+        <section id="section-hero" class="relative -mx-5 -mt-10 cx-screen-h overflow-hidden">
+          <!-- Ảnh: một ô một tấm, trượt ngang bằng % (xem index.js). Ô đầu tiên
+               là ảnh bìa (#main-photo) nên viết sẵn ở đây. -->
+          <div id="hero-viewport" class="absolute inset-0">
+            <div id="hero-track" class="flex h-full">
+              <div class="w-full h-full shrink-0">
+                <img id="main-photo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Ảnh cưới" class="w-full h-full object-cover" />
               </div>
             </div>
-
-            <x-button
-              variant="bare"
-              id="hero-prev"
-              onclick="neSlide(-1)"
-              class="ne-arrow absolute left-0 -translate-x-1/2 top-1/2 -translate-y-1/2"
-            >
-              <i class="fas fa-chevron-left cx-a text-sm"></i>
-            </x-button>
-            <x-button
-              variant="bare"
-              id="hero-next"
-              onclick="neSlide(1)"
-              class="ne-arrow absolute right-0 translate-x-1/2 top-1/2 -translate-y-1/2"
-            >
-              <i class="fas fa-chevron-right cx-a text-sm"></i>
-            </x-button>
           </div>
 
-          <div id="hero-dots" class="flex items-center justify-center gap-1.5"></div>
-
-          <!-- Câu slogan (story_quote) — chữ viết tay, đúng chất tấm poster -->
-          <div id="story-quote" class="ne-script text-[26px] leading-[1.35] px-2 opacity-90">
-            Love is not about how many days we have been together, it is about how
-            much we love each other every day
+          <!-- Dải kem mờ ở đầu màn: chỗ đặt ba nhãn -->
+          <div class="ne-hero-top absolute inset-x-0 top-0 px-5 pt-6 pb-10">
+            <div class="grid grid-cols-3 items-center gap-1">
+              <div id="hero-place" class="ne-eyebrow !text-[9px] ne-nav-l truncate">Save The Date</div>
+              <x-button
+                variant="bare"
+                id="hero-link-story"
+                onclick="neJump('love-story')"
+                class="ne-eyebrow !text-[9px] ne-nav w-full"
+              >
+                Love Story
+              </x-button>
+              <x-button
+                variant="bare"
+                id="hero-link-album"
+                onclick="neJump('section-photos')"
+                class="ne-eyebrow !text-[9px] ne-nav ne-nav-r w-full"
+              >
+                Album
+              </x-button>
+            </div>
           </div>
 
-          <div class="flex flex-col items-center gap-2">
+          <!-- Dải kem mờ ở chân màn: câu slogan + tên cặp đôi -->
+          <div class="ne-hero-bottom absolute inset-x-0 bottom-0 flex flex-col items-center gap-4 px-6 pt-16 pb-10">
+            <div id="hero-dots" class="flex items-center justify-center gap-1.5"></div>
+
+            <!-- Câu slogan (story_quote) — chữ viết tay, đúng chất tấm poster -->
+            <div id="story-quote" class="ne-script text-[26px] leading-[1.35]">
+              Love is not about how many days we have been together, it is about how
+              much we love each other every day
+            </div>
+
             <div class="ne-eyebrow flex items-center justify-center gap-2 flex-wrap">
               <span id="couple-names-groom">----------</span>
               <span class="cx-a">&amp;</span>
@@ -184,6 +166,23 @@
             </div>
             <div class="ne-script cx-a text-[22px] leading-none">Presents</div>
           </div>
+
+          <x-button
+            variant="bare"
+            id="hero-prev"
+            onclick="neSlide(-1)"
+            class="ne-arrow absolute left-4 top-1/2 -translate-y-1/2"
+          >
+            <i class="fas fa-chevron-left cx-a text-sm"></i>
+          </x-button>
+          <x-button
+            variant="bare"
+            id="hero-next"
+            onclick="neSlide(1)"
+            class="ne-arrow absolute right-4 top-1/2 -translate-y-1/2"
+          >
+            <i class="fas fa-chevron-right cx-a text-sm"></i>
+          </x-button>
         </section>
 
         <!-- ═══ MỤC: Gia đình (enable_family) ═══════════════════════════════ -->

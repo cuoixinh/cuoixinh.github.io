@@ -1,7 +1,7 @@
 // ============= THEME: NOIR ELEGANCE =============
-// Nền ĐEN, viền vàng champagne mảnh, chữ thư pháp. Đủ mọi mục như mẫu nền; nét
-// riêng nằm ở mục Mở đầu: một khung ảnh kiểu poster phim — thanh nhãn ba mục,
-// ảnh chạy carousel với mũi tên tròn đè hai mép, nền là chính tấm ảnh đó nhoè đi.
+// Nền TRẮNG BE nhạt, viền vàng champagne mảnh, chữ thư pháp. Đủ mọi mục như mẫu
+// nền; nét riêng nằm ở mục Mở đầu: một tấm ảnh CHIẾM TRỌN màn hình chạy
+// carousel, chữ đặt trên hai dải kem mờ ở đầu và chân màn.
 //
 // File này chỉ KHAI BÁO: window.CX_THEME + renderWedding + phần đặc thù của mẫu
 // (carousel mở đầu + album). Phần "chạy" nằm ở core/helpers/theme-boot.js, nạp sau.
@@ -19,22 +19,22 @@
     preset: {
       heading_font: "Cormorant Garamond",
       body_font: "Montserrat",
-      heading_color: "#f2ece2", // kem sáng trên nền đen
-      body_color: "#a59d92",
-      accent_color: "#c9a96e", // vàng champagne
-      background_color: "#0c0c0e",
-      // Màu gợi ý — các nấc đen/xám và vàng champagne của chính mẫu.
+      heading_color: "#3a322a", // nâu đen ấm
+      body_color: "#857b6f",
+      accent_color: "#b08d57", // vàng champagne trầm
+      background_color: "#fdfbf7",
+      // Màu gợi ý — các nấc be/kem và vàng champagne của chính mẫu.
       swatches: [
-        "#08080a",
-        "#0c0c0e",
-        "#18171a",
-        "#2a2830",
-        "#685637",
-        "#a8894f",
-        "#c9a96e",
-        "#dcc9a0",
-        "#a59d92",
-        "#f2ece2",
+        "#3a322a",
+        "#5c5145",
+        "#857b6f",
+        "#b0a698",
+        "#b08d57",
+        "#c9b48c",
+        "#e0d5c5",
+        "#f4eee5",
+        "#faf6f0",
+        "#fdfbf7",
         "#ffffff",
       ],
     },
@@ -69,6 +69,26 @@
   };
 
   const _isGroom = isGroomSide();
+
+  // ============= LUÔN HIỆN MÀN BÌA =============
+  // Mặc định của wedding-helper.js là mở thẳng thiệp khi KHÔNG phải link riêng
+  // của khách (bản xem thử, xem demo, ai đó mở link trần) — mẫu này thì màn bìa
+  // chính là tấm poster nên phải thấy nó trong mọi trường hợp. Bọc hàm chào
+  // riêng lại: vẫn điền tên khách + bật ô xác nhận tham dự như cũ, chỉ bỏ phần
+  // TỰ MỞ. Bọc ở đây được vì index.js nạp sau wedding-helper.js và trước
+  // theme-boot.js (nơi gọi hàm này).
+  const _greetOriginal = window.setupPersonalizedGreeting;
+  window.setupPersonalizedGreeting = function (slug, isGroom) {
+    _greetOriginal(slug, isGroom, () => {});
+  };
+
+  // Khung "xem trực tiếp" ở trang Thiết lập xin cuộn tới mục đang chỉnh — mục
+  // đó nằm sau màn bìa, nên nhận tin là mở thiệp ra rồi mới để helper cuộn.
+  window.addEventListener("message", (e) => {
+    if (e.data?.type !== "cx-focus") return;
+    const cover = document.getElementById("cover-screen");
+    if (cover && cover.style.display !== "none") window.openInvitation();
+  });
 
   // ============= ĐỔ DỮ LIỆU LÊN THIỆP =============
   // Gọi theo đúng thứ tự các mục trong index.html.
@@ -211,9 +231,9 @@
   }
 
   // ============= CAROUSEL MỞ ĐẦU (phần đặc thù của mẫu) =============
-  // Ô đầu tiên là ảnh bìa (#main-photo, đã có sẵn trong HTML), các ô sau lấy từ
-  // album. Trượt bằng % bề ngang nên không cần đo đạc — khỏi móc vào onOpen.
-  // Nền nhoè phía sau dùng lại ĐÚNG ảnh đang xem: đọc src của ô hiện tại.
+  // Ảnh chiếm trọn màn: ô đầu tiên là ảnh bìa (#main-photo, đã có sẵn trong
+  // HTML), các ô sau lấy từ album. Trượt bằng % bề ngang nên không cần đo đạc —
+  // khỏi móc vào onOpen.
 
   let _slideIdx = 0;
   let _slideCount = 1;
@@ -233,7 +253,7 @@
       const fp = w.image_focal_points?.gallery_images?.[key];
       const cell = document.createElement("div");
       cell.dataset.neSlide = "1";
-      cell.className = "w-full shrink-0 aspect-[3/4]";
+      cell.className = "w-full h-full shrink-0";
       // KHÔNG lazy: cả khối nằm trong #main-card đang display:none, ảnh lazy sẽ
       // chỉ bắt đầu tải khi khách bấm mở bìa — đúng lúc cần thấy ảnh nhất.
       cell.innerHTML = `<img src="${getImageUrl(key)}" alt=""
@@ -267,11 +287,6 @@
     _slideIdx = ((i % _slideCount) + _slideCount) % _slideCount; // cuộn vòng
     track.style.transform = `translateX(-${_slideIdx * 100}%)`;
     track.style.transition = "transform .5s ease";
-
-    // Nền nhoè bám theo ảnh đang xem.
-    const img = track.children[_slideIdx]?.querySelector("img");
-    const blur = document.getElementById("hero-blur");
-    if (img && blur) blur.src = img.src;
 
     document
       .querySelectorAll("#hero-dots .ne-dot")
