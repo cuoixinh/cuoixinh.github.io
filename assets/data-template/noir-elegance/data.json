@@ -104,13 +104,33 @@
       }
     },
     {
-      "date": "CUối năm 2023",
+      "date": "Tết 2024",
+      "title": "Về ra mắt hai bên",
+      "content": "Cái Tết đầu tiên hai đứa cùng về thăm nhà nhau. Mâm cơm sum vầy, những câu chuyện của bố mẹ và ánh mắt ấm áp của người thân khiến chúng mình hiểu rằng hai gia đình đã thành một.",
+      "image_url": "love-story-05.webp",
+      "focal_point": {
+        "x": 50,
+        "y": 30
+      }
+    },
+    {
+      "date": "Cuối năm 2023",
       "title": "Lời cầu hôn ngọt ngào",
-      "content": "Trong một buổi tối lãng mạn dưới ánh nến lung linh, anh đã quỳ gối và trao em chiếc nhẫn. Giây phút ấy, cả thế giới như ngừng lại, và em đã nói",
+      "content": "Trong một buổi tối lãng mạn dưới ánh nến lung linh, anh đã quỳ gối và trao em chiếc nhẫn. Giây phút ấy cả thế giới như ngừng lại, và em đã nói \"Em đồng ý\".",
       "image_url": "love-story-04.webp",
       "focal_point": {
         "x": 49,
         "y": 30
+      }
+    },
+    {
+      "date": "Xuân 2026",
+      "title": "Ngày chụp ảnh cưới",
+      "content": "Một ngày nắng đẹp bên bờ biển, chúng mình mặc lên bộ áo cưới đầu tiên. Gió, tiếng sóng và tiếng cười — tất cả đều được giữ lại trong những khung hình mà bạn sắp thấy ở album này.",
+      "image_url": "love-story-06.webp",
+      "focal_point": {
+        "x": 50,
+        "y": 35
       }
     }
   ],
@@ -149,10 +169,10 @@
     "bride_bank_owner": "VU THI HAI YEN",
     "story_quote": "Tình yêu là phép màu kỳ diệu nhất, biến hai cuộc đời thành một bản tình ca bất tận.",
     "rsvp_enabled": true,
-    "rsvp_message": "Sự hiện diện và lời chúc phúc của quý vị là niềm vinh hạnh lớn nhất đối với chúng mình. Xin chân thành cảm ơn!",
-    "footer_text": "Hạnh phúc lớn nhất là khi hai trái tim đồng điệu tìm thấy nhau. Chúng mình mong được chia sẻ niềm vui này cùng tất cả mọi người.",
+    "rsvp_message": "Sự hiện diện của quý vị là niềm vinh hạnh lớn nhất đối với chúng mình. Xin vui lòng phản hồi trước ngày 10/10/2026 để chúng mình chuẩn bị chỗ ngồi chu đáo nhất.",
+    "footer_text": "Cảm ơn bạn đã cùng chúng mình đi qua từng trang của câu chuyện này. Hẹn gặp bạn trong ngày vui sắp tới!",
     "music_url": "https://www.youtube.com/watch?v=JgTZvDbaTtg",
-    "enable_family": true,
+    "enable_family": false,
     "enable_party": true,
     "enable_photos": true,
     "enable_timeline": true,
@@ -200,8 +220,18 @@
         "time": "19:30",
         "title": "Giao lưu cùng khách quý",
         "type": "party"
+      },
+      {
+        "time": "20:00",
+        "title": "Tiệc trà và chụp ảnh cùng gia đình",
+        "type": "party"
+      },
+      {
+        "time": "21:00",
+        "title": "Tiễn khách và kết thúc buổi tiệc",
+        "type": "party"
       }
     ]
   },
-  "updated_at": "2026-08-02T04:39:22.191Z"
+  "updated_at": "2026-08-26T10:36:50Z"
 }

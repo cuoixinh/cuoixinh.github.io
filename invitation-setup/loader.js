@@ -106,6 +106,9 @@
     "js/23-pull-refresh.js",
     // Sau các file dựng form: cần _loveStoryItems/_timelineItems/BANK_LIST.
     "js/24-ai-apply.js",
+    // Đọc CX_THEME của mẫu đang chọn (bước nào mẫu không có). Sau 20-steps:
+    // chỉ phát sự kiện, không ai gọi lúc nạp.
+    "js/25-theme-decl.js",
     // Khung chat AI dùng chung với trang chủ; thấy window.cxApplyAiCard thì đổ
     // thẳng vào thiệp đang mở thay vì dựng nháp mới.
     "../core/dal/ai-chat-dal.js",

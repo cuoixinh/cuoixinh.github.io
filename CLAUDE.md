@@ -95,7 +95,10 @@ Không gọi thẳng UI → DAL khi có logic nghiệp vụ.
 **Form đi theo BƯỚC** (`js/20-steps.js`): mỗi group là một bước, chỉ bước đang mở bỏ
 `.hidden` — ô của bước khác vẫn trong DOM nên `FormData`/autosave không đổi. Chỉ ô
 `[required]` mới CHẶN "Tiếp theo". **Thêm một bước phải sửa 3 chỗ**: file trong `steps/`,
-`STEP_PARTIALS` + thẻ mount, và `CX_STEPS` (`id` trùng `data-step`). `#step-nav` là cặp nút
+`STEP_PARTIALS` + thẻ mount, và `CX_STEPS` (`id` trùng `data-step`). Mẫu thiệp bỏ hẳn
+một mục thì khai `CX_THEME.skipSteps` (vd `["family"]`) — `js/25-theme-decl.js` nạp
+`index.js` của mẫu trong iframe rỗng để đọc bản khai rồi phát `cx-theme-decl`, thanh bước
+tự vẽ lại; **đừng dựng danh sách tên mẫu trong trang Thiết lập**. `#step-nav` là cặp nút
 NỔI (`fixed`) ngoài `<form>` — đưa nó vào luồng là ăn mất một dòng ở mọi bước.
 
 **Vỏ trang** (`js/21-shell.js`) là **app shell: trang KHÔNG cuộn**. Ba thẻ nổi cùng khổ
@@ -186,7 +189,8 @@ GitHub Pages chạy Jekyll nên đường dẫn kiểu đó không được publ
   `preset` (font/màu gốc + `swatches` cho thanh chỉnh), `selectors` (class mà thanh chỉnh
   font/màu nhắm tới), `reveal`, `focus` (id mục, chỉ khai cái khác mặc định), `suggest`
   (selector mục mà bảng đề xuất mẫu khác bung ra ở bản xem thử — mặc định
-  `#section-gift`), `onOpen`.
+  `#section-gift`), `skipSteps` (bước mà trang Thiết lập KHÔNG hiện vì mẫu không vẽ mục
+  đó — id trùng `CX_STEPS`), `onOpen`.
   Trang Thiết lập đọc `preset` **qua iframe xem trước** của tab Giao diện.
 - `index.js` **bọc trong IIFE**, chỉ lộ `CX_THEME` + `renderWedding`: `const` cấp cao nhất của
   script cổ điển là biến toàn cục. Không tự chạy gì — `core/helpers/theme-boot.js` (nạp SAU)
