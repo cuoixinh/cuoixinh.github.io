@@ -148,13 +148,29 @@ const CX_STEPS = [
 // ===== TRẠNG THÁI =====
 
 let _cxStepIndex = 0;
+// id của bước đang mở — cần để tìm lại đúng bước khi DANH SÁCH bước đổi (mẫu
+// mới bỏ/khôi phục một bước), vì lúc đó chỉ số cũ trỏ sang bước khác.
+let _cxStepId = null;
+
+/**
+ * Các bước THỰC SỰ hiện ra. Mẫu thiệp có thể bỏ hẳn một mục (vd Noir Elegance
+ * không có phần Gia đình) bằng CX_THEME.skipSteps trong index.js của nó —
+ * js/25-theme-decl.js đọc bản khai đó và phát "cx-theme-decl" để vẽ lại.
+ * Chưa đọc xong thì hiện đủ bước, không bỏ oan bước nào.
+ */
+function _cxSteps() {
+  const skip = window.cxThemeDecl?.().skipSteps;
+  if (!Array.isArray(skip) || !skip.length) return CX_STEPS;
+  return CX_STEPS.filter((s) => !skip.includes(s.id));
+}
 
 function _cxStepAt(i) {
-  return CX_STEPS[Math.min(Math.max(i, 0), CX_STEPS.length - 1)];
+  const steps = _cxSteps();
+  return steps[Math.min(Math.max(i, 0), steps.length - 1)];
 }
 
 function cxStepIndexOf(id) {
-  return CX_STEPS.findIndex((s) => s.id === id);
+  return _cxSteps().findIndex((s) => s.id === id);
 }
 
 /** Group tắt công tắc → không tính vào tiến độ, chip làm mờ. */
@@ -239,7 +255,8 @@ function cxRenderStepBar() {
   const bar = document.getElementById("step-bar");
   if (!bar) return;
 
-  const states = CX_STEPS.map(_cxStepState);
+  const steps = _cxSteps();
+  const states = steps.map(_cxStepState);
   const sig = states.join("|") + "@" + _cxStepIndex;
   if (sig === _cxBarSig) {
     // Không vẽ lại chip, nhưng vẫn phải chấm lại vệt mờ + hai nút cuộn: lần vẽ
@@ -249,7 +266,7 @@ function cxRenderStepBar() {
   }
   _cxBarSig = sig;
 
-  bar.innerHTML = CX_STEPS.map(_cxChipHTML).join("");
+  bar.innerHTML = steps.map(_cxChipHTML).join("");
   if (window.lucide) lucide.createIcons();
 
   // Kéo chip đang mở vào giữa thanh — thanh cuộn NGANG, bước 8 nằm ngoài màn.
@@ -321,8 +338,9 @@ function _cxRenderPanels() {
 }
 
 function _cxRenderNav() {
+  const steps = _cxSteps();
   const first = _cxStepIndex === 0;
-  const last = _cxStepIndex === CX_STEPS.length - 1;
+  const last = _cxStepIndex === steps.length - 1;
 
   // Bước đầu không có gì để lùi → VÔ HIỆU chứ không giấu: cụm giữ nguyên bề
   // ngang nên nút "Tiếp" không nhảy chỗ khi qua bước 2.
@@ -343,17 +361,17 @@ function _cxRenderNav() {
       : "Tiếp";
 
   const count = document.getElementById("step-count");
-  if (count) count.textContent = `${_cxStepIndex + 1}/${CX_STEPS.length}`;
+  if (count) count.textContent = `${_cxStepIndex + 1}/${steps.length}`;
 
   // Tiến độ tổng chuyển thành tooltip: chip đã nói đủ vị trí lẫn trạng thái, để
   // thêm một dòng chữ nữa chỉ tốn chiều cao thanh.
   const next = document.getElementById("step-next");
   if (next) {
-    const todo = CX_STEPS.filter((s) =>
+    const todo = steps.filter((s) =>
       ["empty", "partial"].includes(_cxStepState(s)),
     ).length;
     next.title =
-      `Bước ${_cxStepIndex + 1}/${CX_STEPS.length}` +
+      `Bước ${_cxStepIndex + 1}/${steps.length}` +
       (todo ? ` · còn ${todo} mục chưa đủ` : " · đã điền đủ");
   }
 }
@@ -379,6 +397,7 @@ function cxGoStep(id, opts = {}) {
   const i = typeof id === "number" ? id : cxStepIndexOf(id);
   if (i < 0) return;
   _cxStepIndex = i;
+  _cxStepId = _cxStepAt(i)?.id || null;
   cxRenderSteps();
   // Đổi bước là xem từ đầu bước: đưa CHÍNH khung nội dung về đỉnh. Không dùng
   // scrollIntoView trên form — nó cuộn thêm mọi khung cha, mà thanh trên nằm
@@ -416,7 +435,7 @@ function cxStepNext() {
     }
   }
 
-  if (_cxStepIndex >= CX_STEPS.length - 1) {
+  if (_cxStepIndex >= _cxSteps().length - 1) {
     // Desktop không còn tab Xem trước (thiệp nằm sẵn cạnh form) → điền xong thì
     // việc tiếp theo là Cấu hình. URL mang ?tab=config nên tải lại vẫn đúng chỗ.
     switchTab(window.cxLiveWide?.() ? "config" : "preview");
@@ -443,6 +462,17 @@ function _cxInitSteps() {
   const form = document.getElementById("wedding-form");
   form?.addEventListener("input", cxRefreshStepStatus);
   form?.addEventListener("change", cxRefreshStepStatus);
+
+  // Bản khai của mẫu về sau khi thanh bước đã dựng → vẽ lại. Bước đang mở nằm
+  // trong nhóm bị bỏ (hoặc chỉ số rơi ra ngoài mảng mới) thì lùi về bước đầu.
+  document.addEventListener("cx-theme-decl", () => {
+    // Bám theo ID chứ không theo chỉ số: bỏ một bước là mọi bước sau đó tụt một
+    // ô. Bước đang mở vừa bị bỏ thì quay về bước đầu.
+    const i = _cxStepId ? cxStepIndexOf(_cxStepId) : -1;
+    _cxStepIndex = i < 0 ? 0 : i;
+    _cxBarSig = null; // ép vẽ lại: danh sách bước đổi mà trạng thái có thể không
+    cxRenderSteps();
+  });
 
   cxGoStep(0, { scroll: false });
 }

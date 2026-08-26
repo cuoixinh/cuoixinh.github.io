@@ -61,6 +61,11 @@
     // Mốc bung bảng đề xuất mẫu khác ở bản xem thử (?preview=true).
     suggest: "#section-gift",
 
+    // Bước mà trang Thiết lập KHÔNG hiện cho mẫu này (id trùng CX_STEPS ở
+    // invitation-setup/js/20-steps.js): mẫu không vẽ mục Gia đình nên cũng
+    // đừng bắt khách nhập.
+    skipSteps: ["family"],
+
     // id các mục trùng bảng mặc định của preview-focus-helper.js → không cần
     // khai `focus`.
 

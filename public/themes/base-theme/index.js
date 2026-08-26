@@ -60,6 +60,13 @@
     // cưới, khai ra đây để mỗi mẫu tự chọn được chỗ hợp với bố cục của mình.
     suggest: "#section-gift",
 
+    // Bước mà trang Thiết lập không hiện cho mẫu này — id trùng CX_STEPS ở
+    // invitation-setup/js/20-steps.js (couple · ceremony · family · party ·
+    // photos · timeline · love_story · rsvp · gift · footer). Mẫu nền có đủ mục
+    // nên không bỏ bước nào; mẫu bỏ hẳn một mục thì khai ở đây, ví dụ:
+    //   skipSteps: ["family"],
+    skipSteps: [],
+
     // id các mục trùng bảng mặc định của preview-focus-helper.js nên không cần
     // khai `focus`. Đặt id khác thì khai ở đây, ví dụ:
     //   focus: { photos: ["#my-gallery"] },

@@ -354,6 +354,10 @@ function fillForm(data) {
   // trong khi tên mẫu ở header (đọc sessionStorage) vẫn đúng nên rất khó nhận ra.
   if (data.theme) WEDDING_THEME = data.theme;
 
+  // Mẫu có thể bỏ bớt bước (CX_THEME.skipSteps) → đọc lại bản khai theo mẫu vừa
+  // biết, thanh bước tự vẽ lại khi có kết quả.
+  window.cxThemeDeclLoad?.(WEDDING_THEME);
+
   // Save slug for generating links
   if (data.slug) {
     WEDDING_SLUG = data.slug;

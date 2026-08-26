@@ -118,6 +118,8 @@ async function _applyThemeChange(newTheme, displayName) {
   const wasDemoOnly = _demoFilled;
   WEDDING_THEME = newTheme;
   sessionStorage.setItem("draft_theme", newTheme);
+  // Mẫu mới có thể bỏ/khôi phục một bước nào đó (CX_THEME.skipSteps).
+  window.cxThemeDeclLoad?.(newTheme);
   if (displayName) sessionStorage.setItem("draft_template_name", displayName);
   _updateHeaderThemeBadge(displayName);
   // Mẫu mới chỉ nằm trong bộ nhớ tới khi bấm Lưu → đánh dấu chưa lưu để nút Lưu
