@@ -73,7 +73,7 @@ body {
    Font tự host khai tập trung ở styles/_fonts.css — ở đây chỉ gọi tên họ. */
 
 .rb-script {
-  font-family: "TheNautigal", cursive;
+  font-family: "PerfectBeloved", cursive;
   color: rgb(var(--cx-heading-rgb));
   line-height: 1.05;
 }
