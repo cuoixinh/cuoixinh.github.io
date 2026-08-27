@@ -12,21 +12,8 @@ module.exports = {
   ],
   theme: {
     extend: {
-      fontFamily: {
-        // Basic Gold + Vintage Forest
-        playfair: ["Playfair Display", "serif"],
-        vibes: ["Great Vibes", "cursive"],
-        cinzel: ["Cinzel", "serif"],
-        nautigal: ["TheNautigal", "cursive"],
-        katty: ["KattyDiona", "cursive"],
-        octet: ["OctetStream", "sans-serif"],
-        // Romantic Gold
-        allura: ["Allura", "cursive"],
-        "cinzel-deco": ["Cinzel Decorative", "cursive"],
-        // Common
-        cormorant: ["Cormorant Garamond", "serif"],
-        inter: ["Inter", "sans-serif"],
-      },
+      // Bảng font dùng chung — thêm/sửa font ở tailwind.fonts.js, đừng khai lẻ ở đây.
+      fontFamily: require("./tailwind.fonts.js"),
       // Mọi giá trị màu lấy từ styles/_colors.css (mục "PALETTE THIỆP").
       // Dạng `rgb(var(--token-rgb) / <alpha-value>)` để giữ modifier alpha
       // (text-vintage-brown/70, to-sage-50/90…).

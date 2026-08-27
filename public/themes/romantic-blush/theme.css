@@ -153,13 +153,252 @@ body {
   box-shadow: 0 10px 30px rgb(var(--cx-heading-rgb) / 0.12);
 }
 
-/* Ô ảnh trong album. */
+/* ── Album ảnh ─────────────────────────────────────────────────────────────
+   CẢ album nằm trên MỘT tấm nền trắng (.rb-album) chạy hết bề ngang thiệp; bên
+   trong là các trang do renderGallery ở index.js dựng, xếp NGANG, MỌI TRANG CAO
+   BẰNG NHAU.
+   Ràng buộc dễ vấp: chuỗi cha–con phải có CHIỀU CAO XÁC ĐỊNH suốt — dải có
+   height, trang height:100%, ô ảnh chia chỗ bằng flex-basis/grid-row kèm
+   min-height:0. Dùng % chiều cao trên khối cha cao auto là ô rơi về khổ nội
+   dung và trang vỡ. */
 
-.rb-cell {
-  border-radius: 18px;
+.rb-album {
+  display: flex;
+  /* Dải NGANG cao cố định: khách vuốt sang để xem, trang vẫn cuộn dọc bình
+     thường. Mỗi trang dừng đúng giữa khi vuốt (scroll-snap). */
+  height: min(72dvh, 460px);
+  align-items: stretch;
+  gap: 14px;
+  padding: 12px 14px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  background-color: #fff;
+  box-shadow:
+    0 10px 22px rgb(var(--cx-heading-rgb) / 0.13),
+    0 2px 4px rgb(var(--cx-heading-rgb) / 0.07);
+}
+
+.rb-album::-webkit-scrollbar {
+  display: none;
+}
+
+/* Một trang album. */
+
+.rb-page,
+.rb-page-bleed {
+  position: relative;
+  flex: none;
+  width: min(78vw, 320px);
+  height: 100%;
   overflow: hidden;
+  scroll-snap-align: center;
+}
+
+.rb-page {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+}
+
+.rb-shot {
+  overflow: hidden;
+  min-height: 0;
   cursor: pointer;
-  box-shadow: 0 4px 14px rgb(var(--cx-heading-rgb) / 0.08);
+  background-color: rgb(var(--cx-surface-rgb));
+}
+
+/* Trang A: ảnh phủ kín trang, thẻ trắng đè lên. */
+
+.rb-page-bleed > .rb-shot {
+  width: 100%;
+  height: 100%;
+}
+
+/* Chia chỗ theo chiều dọc trong trang giấy trắng. Phần dư ở đáy là LỀ TRẮNG cố
+   ý, đúng như trang phải của mẫu tham chiếu. */
+
+.rb-page > .rb-shot {
+  flex: 0 0 32%;
+}
+
+.rb-page > .rb-page-pair {
+  flex: 0 0 60%;
+  min-height: 0;
+}
+
+.rb-page > .rb-split-grid {
+  flex: 0 0 56%;
+  min-height: 0;
+}
+
+.rb-page > .rb-band {
+  flex: 1 0 30%;
+  min-height: 0;
+}
+
+/* Trang B: ảnh đứng bên trái cao hết khối, cột phải là ảnh thấp hơn rồi tới cụm
+   chữ lấp đúng khoảng trắng hụt. */
+
+.rb-page-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 100%;
+  gap: 8px;
+}
+
+.rb-page-pair > .rb-shot {
+  height: 100%;
+}
+
+.rb-pair-side {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 0;
+}
+
+.rb-pair-side > .rb-shot {
+  flex: 0 0 72%;
+}
+
+/* Trang C: ảnh đứng cao bên trái, hai ảnh vuông xếp chồng bên phải. */
+
+.rb-split-grid {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 8px;
+}
+
+.rb-split-grid > .rb-shot {
+  height: 100%;
+}
+
+.rb-shot-tall {
+  grid-row: 1 / span 2;
+}
+
+/* Trang C: dải ảnh ngang có chữ đè lên. */
+
+.rb-band {
+  position: relative;
+}
+
+.rb-band > .rb-shot {
+  width: 100%;
+  height: 100%;
+}
+
+.rb-band-line {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 10px;
+  font-family: "BethanWhite", cursive;
+  font-style: italic;
+  font-size: 24px;
+  line-height: 1.05;
+  color: #fff;
+  text-shadow: 0 2px 10px rgb(0 0 0 / 0.45);
+}
+
+/* Thẻ trắng của trang A: chừa nhiều chỗ bên TRÁI, sát mép phải, nằm ở nửa dưới
+   — đúng vị trí thẻ "When soul fall in love" của mẫu. */
+
+.rb-quote-card {
+  position: absolute;
+  right: 10px;
+  bottom: 10%;
+  left: 24%;
+  padding: 8px 8px 11px;
+  background-color: #fff;
+  box-shadow: 0 6px 18px rgb(var(--cx-heading-rgb) / 0.22);
+}
+
+.rb-card-shot {
+  aspect-ratio: 4 / 3;
+}
+
+/* Hai dòng chữ viết tay trong thẻ: dòng dưới có cụm nhỏ hơn đi kèm. */
+
+.rb-card-lead,
+.rb-card-tail {
+  font-family: "BethanWhite", cursive;
+  font-style: italic;
+  font-size: 21px;
+  line-height: 1.05;
+  color: rgb(var(--cx-accent-rgb));
+}
+
+.rb-card-lead {
+  margin-top: 8px;
+}
+
+.rb-card-em {
+  margin-left: 4px;
+  font-size: 16px;
+  opacity: 0.9;
+}
+
+/* Mấy dòng chữ xám li ti khép lại thẻ. */
+
+.rb-card-sub {
+  margin-top: 7px;
+  font-size: 8px;
+  line-height: 1.55;
+  color: rgb(var(--cx-body-rgb) / 0.85);
+}
+
+/* Cụm chữ viết tay canh phải, lấp khoảng trắng dưới ảnh bên phải. */
+
+.rb-album-script {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: flex-end;
+  min-height: 0;
+  text-align: right;
+  font-family: "BethanWhite", cursive;
+  font-style: italic;
+  font-size: 19px;
+  line-height: 0.8;
+  color: rgb(var(--cx-accent-rgb));
+}
+
+/* Dòng cuối nhỏ hơn hẳn, như chữ ký khép lại cụm. */
+
+.rb-album-script .rb-script-last {
+  font-size: 13px;
+  opacity: 0.9;
+}
+
+/* Chấm chỉ số khung hình dưới album (rbSetupAlbumDots dựng). */
+
+.rb-dots {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  margin-top: -6px;
+}
+
+.rb-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background-color: rgb(var(--cx-line-rgb));
+  transition:
+    width 0.25s ease,
+    background-color 0.25s ease;
+}
+
+.rb-dot.is-on {
+  width: 18px;
+  background-color: rgb(var(--cx-accent-rgb));
 }
 
 /* .rb-chip đặt display:flex mà theme.css nạp SAU themes.css → phải tự thắng lại
@@ -167,4 +406,378 @@ body {
 
 .rb-chip.hidden {
   display: none;
+}
+
+/* ── Khung ảnh cha mẹ kiểu polaroid ────────────────────────────────────── */
+
+.rb-polaroid {
+  width: 100%;
+  padding: 8px;
+  background-color: #fff;
+  border-radius: 4px;
+  box-shadow: 0 6px 18px rgb(var(--cx-heading-rgb) / 0.14);
+}
+
+.rb-polaroid-l {
+  transform: rotate(-3deg);
+}
+
+.rb-polaroid-r {
+  transform: rotate(3deg);
+}
+
+/* Ảnh dựng đứng, cắt giữa — khổ cố định để hai khung luôn bằng nhau. */
+
+.rb-polaroid-img {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  background-color: rgb(var(--cx-surface-rgb));
+}
+
+/* ── Lịch 2 tờ (markup do index.js sinh ra) ────────────────────────────────
+   Hai tờ hẹp hơn khung: tờ tháng kế tiếp dán sát mép PHẢI, tờ tháng cưới sát
+   mép TRÁI — chồng nhau ở giữa nên tờ sau vẫn lộ gần nửa lưới ngày. Đổi bề
+   ngang tờ (--rb-cal-w) là đổi luôn phần hở. */
+
+.rb-cal {
+  --rb-cal-w: 68%;
+  position: relative;
+  margin: 14px 0 6px;
+  /* Tờ sau nằm absolute nên không cộng vào chiều cao: chừa chỗ cho phần dịch
+     xuống (22px) + tháng nhiều hơn một hàng (26px/hàng). */
+  padding-bottom: 48px;
+}
+
+.rb-cal-sheet {
+  width: var(--rb-cal-w);
+  background-color: #fff;
+  border-radius: 3px;
+  padding: 12px 10px 8px;
+  box-shadow:
+    0 14px 30px rgb(var(--cx-heading-rgb) / 0.16),
+    0 2px 6px rgb(var(--cx-heading-rgb) / 0.08);
+}
+
+.rb-cal-back {
+  position: absolute;
+  right: 0;
+  top: 22px;
+  /* Ngược chiều kim đồng hồ: mép trên bên phải hếch lên, như ảnh mẫu. */
+  transform: rotate(-6deg);
+}
+
+/* Tờ tháng cưới để THẲNG, chỉ tờ sau xoay — giống ảnh mẫu. */
+
+.rb-cal-front {
+  position: relative;
+  z-index: 1;
+}
+
+.rb-cal-orn {
+  display: block;
+  width: 96px;
+  height: 18px;
+  margin: 0 auto;
+  color: rgb(var(--cx-accent-rgb));
+}
+
+.rb-cal-title {
+  margin: 10px 0 12px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+.rb-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.rb-cal-dow {
+  margin-bottom: 6px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgb(var(--cx-line-rgb));
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-align: center;
+  color: rgb(var(--cx-accent-rgb));
+}
+
+.rb-cal-day {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 26px;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+/* Ngày của tháng bên cạnh — vẫn hiện cho lưới đủ hàng như lịch in. */
+
+.rb-cal-day.is-out {
+  opacity: 0.26;
+}
+
+/* Ngày cưới / ngày tiệc: chấm tròn màu nhấn vẽ bằng ::before nên số vẫn nằm
+   trên (z-index âm chỉ lùi trong chính tờ lịch, không xuyên qua nền giấy). */
+
+.rb-cal-day.is-on {
+  font-weight: 600;
+  color: rgb(var(--cx-on-accent-rgb));
+}
+
+.rb-cal-day.is-on::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  width: 24px;
+  height: 24px;
+  border-radius: 9999px;
+  background-color: rgb(var(--cx-accent-rgb));
+  box-shadow: 0 2px 8px rgb(var(--cx-accent-rgb) / 0.4);
+}
+
+/* ── Nhãn tiêu đề mục có nền bo tròn ("Trân trọng kính mời dự…", "Tiệc Mừng…")
+   Nằm giữa mục dù mục là flex-column stretch → tự canh bằng align-self. */
+
+.rb-label {
+  align-self: center;
+  max-width: 100%;
+  padding: 8px 22px;
+  border-radius: 9999px;
+  line-height: 1.9;
+  background-color: rgb(var(--cx-accent-rgb) / 0.12);
+  border: 1px solid rgb(var(--cx-accent-rgb) / 0.22);
+}
+
+/* ── Nút xác nhận tham dự: bóng đổ xuống sát chân nút như vật đặt trên mặt ── */
+
+.rb-sit {
+  background-color: #fff;
+  box-shadow:
+    0 6px 10px -5px rgb(var(--cx-heading-rgb) / 0.45),
+    0 2px 4px -2px rgb(var(--cx-heading-rgb) / 0.22);
+}
+
+.rb-sit:active {
+  box-shadow: 0 2px 5px -3px rgb(var(--cx-heading-rgb) / 0.45);
+}
+
+/* ── Hàng ngày giờ ở mục mở đầu ────────────────────────────────────────────
+   Ghim font Merriweather, CỐ Ý không theo bảng chọn font ở tab Giao diện.
+   Phải thắng .cx-h/.cx-t do theme-setting-helper sinh ra (có !important) nên
+   cần cả !important lẫn độ ưu tiên cao hơn — nhắm qua thẻ cha. */
+
+.rb-hero-date .cx-h,
+.rb-hero-date .cx-t {
+  font-family: "Merriweather", serif !important;
+}
+
+/* ── Chuyện tình yêu: mỗi mẩu chuyện một tờ giấy ───────────────────────────
+   Giấy thủ công: bốn mép deckle (răng cưa biên độ 1–3px, không phải xé toạc),
+   nền kem có vân giấy + bóng ấm ở đáy, góc TRÁI TRÊN gấp cong lên.
+   Vài ràng buộc dễ vấp:
+     · clip-path CẮT cả box-shadow lẫn con bên trong → bóng vẽ bằng
+       filter: drop-shadow, còn cây bút và mảnh góc gấp phải nằm NGOÀI .rb-paper.
+     · Đổi --rb-curl thì phải đổi hai điểm đầu của clip-path cho khớp. */
+
+.rb-paper-wrap {
+  --rb-curl: 26px;
+  position: relative;
+}
+
+.rb-paper {
+  position: relative;
+  padding: 34px 24px 30px 28px;
+  color: rgb(var(--cx-heading-rgb));
+  background-color: #fffcf7;
+  /* Vân giấy: hai lớp sọc rất mờ đan chéo + quầng sáng trên, quầng ấm dưới. */
+  background-image:
+    radial-gradient(
+      120% 80% at 50% 0%,
+      rgb(255 255 255 / 0.9),
+      rgb(255 255 255 / 0) 62%
+    ),
+    radial-gradient(
+      130% 110% at 50% 108%,
+      rgb(var(--cx-accent-rgb) / 0.09),
+      rgb(255 255 255 / 0) 60%
+    ),
+    repeating-linear-gradient(
+      96deg,
+      rgb(var(--cx-heading-rgb) / 0.028) 0 1px,
+      transparent 1px 7px
+    ),
+    repeating-linear-gradient(
+      6deg,
+      rgb(var(--cx-heading-rgb) / 0.022) 0 1px,
+      transparent 1px 9px
+    );
+  filter: drop-shadow(0 14px 20px rgb(var(--cx-heading-rgb) / 0.18))
+    drop-shadow(0 3px 4px rgb(var(--cx-heading-rgb) / 0.12));
+  clip-path: polygon(
+    0 var(--rb-curl),
+    var(--rb-curl) 0,
+    34% 1.8px,
+    42% 0.9px,
+    50% 1.6px,
+    58% 3px,
+    66% 2px,
+    74% 1.6px,
+    82% 2.6px,
+    90% 2.7px,
+    98% 0.2px,
+    calc(100% - 3px) 8%,
+    calc(100% - 0.6px) 20%,
+    calc(100% - 0.6px) 32%,
+    calc(100% - 3px) 44%,
+    calc(100% - 0.2px) 56%,
+    calc(100% - 1.2px) 68%,
+    calc(100% - 0.1px) 80%,
+    calc(100% - 0.2px) 92%,
+    94% calc(100% - 2px),
+    86% calc(100% - 2.8px),
+    78% calc(100% - 2.4px),
+    70% calc(100% - 2.2px),
+    62% calc(100% - 0.2px),
+    54% calc(100% - 1.9px),
+    46% calc(100% - 1.5px),
+    38% calc(100% - 0.6px),
+    30% calc(100% - 2.7px),
+    22% calc(100% - 0.2px),
+    14% calc(100% - 2.4px),
+    6% calc(100% - 0.4px),
+    0.1px 92%,
+    2.1px 80%,
+    2.2px 68%,
+    2.6px 56%,
+    2.5px 44%,
+    2.5px 32%,
+    2.2px 20%
+  );
+}
+
+/* Mảnh giấy gấp cong lên ở góc trái trên: tam giác lật ngược, tối dần về phía
+   nếp gấp, bóng đổ xuống dưới-phải cho ra khối. */
+
+.rb-paper-wrap::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  width: var(--rb-curl);
+  height: var(--rb-curl);
+  clip-path: polygon(0 0, 100% 0, 0 100%);
+  border-bottom-right-radius: 12px;
+  background: linear-gradient(135deg, #ffffff 0%, #fdf5ec 46%, #e6d8ca 100%);
+  /* box-shadow bị chính clip-path cắt mất → bóng phải vẽ bằng filter. */
+  filter: drop-shadow(2px 3px 5px rgb(var(--cx-heading-rgb) / 0.3));
+  transform: rotate(-4deg) translate(-1px, -1px);
+}
+
+/* Cây bút máy: MỘT cây cho cả mục, neo trong #love-story-list, chỉ hiện lúc
+   đang viết. index.js đặt vị trí bằng transform; transform-origin nằm ngay đầu
+   ngòi (toạ độ 2,11 của viewBox 160x22 → ~1px,5.2px ở khổ 78px) nên translate
+   chính là toạ độ đầu ngòi trong khung. */
+
+.rb-pen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 78px;
+  height: auto;
+  transform-origin: 1px 5.2px;
+  opacity: 0;
+  transition:
+    transform 0.12s linear,
+    opacity 0.35s ease;
+  filter: drop-shadow(0 3px 5px rgb(var(--cx-heading-rgb) / 0.3));
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* ── Từng dòng chữ trong tờ giấy ─────────────────────────────────────────── */
+
+.rb-story-date,
+.rb-story-title,
+.rb-story-text {
+  font-family: "BethanWhite", cursive;
+  font-style: italic;
+  font-weight: 400;
+}
+
+/* Ngày: nhỏ, có gạch chân ngắn màu nhấn cho ra dáng đề ngày trên thư tay. */
+
+.rb-story-date {
+  font-size: 19px;
+  letter-spacing: 0.04em;
+  opacity: 0.85;
+}
+
+.rb-story-date::after {
+  content: "";
+  display: block;
+  width: 34px;
+  height: 1px;
+  margin: 6px 0 10px;
+  background-color: rgb(var(--cx-accent-rgb) / 0.55);
+}
+
+.rb-story-title {
+  font-size: 29px;
+  line-height: 1.25;
+}
+
+.rb-story-text {
+  font-size: 26px;
+  line-height: 1;
+  opacity: 0.92;
+}
+
+/* Ảnh trên trang giấy: chiếm trọn bề ngang tờ giấy, chỉ đổ bóng. */
+
+.rb-story-photo {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  margin: 14px 0 4px;
+  box-shadow: 0 8px 18px rgb(var(--cx-heading-rgb) / 0.22);
+}
+
+/* Ghim font viết tay: theme-setting-helper bơm font khách chọn kèm !important
+   nên phải nhắm qua thẻ cha để thắng độ ưu tiên. BethanWhite là font tự host,
+   khai ở styles/_fonts.css. */
+
+.rb-paper .cx-hd,
+.rb-paper .cx-ac {
+  font-family: "BethanWhite", cursive !important;
+  font-style: italic;
+}
+
+/* Chữ hiện dần từng ký tự như đang được viết (index.js gắn .is-inked). */
+
+.rb-ink {
+  opacity: 0;
+}
+
+.rb-ink.is-inked {
+  opacity: 1;
+  animation: cx-rb-ink 0.22s ease-out both;
+}
+
+@keyframes cx-rb-ink {
+  from {
+    opacity: 0;
+    filter: blur(2px);
+  }
+  to {
+    opacity: 1;
+    filter: none;
+  }
 }

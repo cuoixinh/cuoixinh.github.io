@@ -29,17 +29,8 @@ module.exports = {
         // @media của dải trong styles/_setup.css.
         pad: "820px",
       },
-      fontFamily: {
-        playfair: ["Playfair Display", "serif"],
-        vibes: ["Great Vibes", "cursive"],
-        cormorant: ["Cormorant Garamond", "serif"],
-        // Trình phát nhạc dùng chung (core/components/music-player.js) mượn
-        // font của basic-gold cho khối tóm tắt — khai ở đây để bản xem trước
-        // trong panel "Thành phần" không rơi về font mặc định.
-        cinzel: ["Cinzel", "serif"],
-        inter: ["Inter", "sans-serif"],
-        allura: ["Allura", "cursive"],
-      },
+      // Bảng font dùng chung — thêm/sửa font ở tailwind.fonts.js, đừng khai lẻ ở đây.
+      fontFamily: require("./tailwind.fonts.js"),
       // Mọi giá trị màu lấy từ styles/_colors.css. Dạng
       // `rgb(var(--token-rgb) / <alpha-value>)` để modifier alpha (bg-primary/50)
       // vẫn chạy — nhét thẳng var() đặc là mất tính năng đó.
