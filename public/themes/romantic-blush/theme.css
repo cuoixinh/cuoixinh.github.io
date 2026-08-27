@@ -1,0 +1,205 @@
+/* Bảng màu + CSS riêng của ROMANTIC BLUSH — hồng phấn · kem trắng · nâu espresso.
+   CSS THUẦN, không qua Tailwind build (nạp bằng <link> sau styles/themes.css)
+   → dựng mẫu không phải đụng tailwind.themes.config.js hay styles/_colors.css.
+
+   Ba phần:
+     1. --cx-*  bộ biến mà phần DÙNG CHUNG vẽ theo (lịch nhỏ, dòng thời gian,
+        màn bìa, nút xác nhận tham dự). Mặc định ở styles/_common.css.
+     2. .cx-h / .cx-t / .cx-a  ba lớp ngữ nghĩa mà markup của mẫu dùng, cũng là
+        thứ CX_THEME.selectors nhắm tới → đổi tông cả thiệp = sửa mỗi file này.
+     3. .rb-*  phần trang trí riêng (hoa góc, chữ thư pháp, chip điều hướng) —
+        CỐ Ý không đi theo thanh chỉnh font/màu ở tab Giao diện. */
+
+:root {
+  --cx-accent-rgb: 201 138 142; /* hồng rose — ngày cưới, chấm mốc, icon */
+  --cx-on-accent-rgb: 255 255 255; /* chữ nằm TRÊN nền nhấn */
+  --cx-heading-rgb: 74 50 41; /* nâu espresso */
+  --cx-body-rgb: 138 111 100; /* nâu sữa nhạt */
+  --cx-line-rgb: 240 213 211; /* vạch dọc, viền mảnh */
+  --cx-surface-rgb: 251 244 240; /* nền phụ của ô nhỏ */
+  --cx-cover-rgb: 253 248 245; /* nền màn bìa: hai đầu dải */
+  --cx-cover-mid-rgb: 246 229 225; /* …và điểm giữa */
+
+  --rb-card-bg-rgb: 253 248 245; /* nền thân thiệp */
+  --rb-blush-rgb: 232 188 187; /* hồng phấn đậm hơn line một nấc */
+
+  /* Hoa góc vẽ bằng SVG nội tuyến — màu để ở đây cho gọn một chỗ. */
+  --rb-rose-1: #f4d6d5;
+  --rb-rose-2: #eec3c2;
+  --rb-rose-3: #d79b9c;
+  --rb-leaf: #cbd6c2;
+  --rb-leaf-2: #b3c3a8;
+  --rb-cream: #fbf1e6;
+  --rb-gold: #d9b98a;
+}
+
+html {
+  scroll-behavior: smooth; /* chip điều hướng ở mục mở đầu nhảy tới từng mục */
+}
+
+body {
+  background-color: rgb(var(--cx-surface-rgb));
+}
+
+#main-card {
+  background-color: rgb(var(--rb-card-bg-rgb));
+}
+
+/* ── Ba lớp ngữ nghĩa ──────────────────────────────────────────────────────
+   .cx-h và .cx-t đặt CẢ font-family → đừng gắn lên thẻ <i> của Font Awesome,
+   icon sẽ mất glyph và hiện ô vuông. Tô màu icon thì dùng .cx-a (nhấn) hoặc
+   .cx-hd/.cx-bd (chỉ có color, khai ở styles/_common.css). */
+
+.cx-h {
+  font-family: "Cormorant Garamond", serif;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+.cx-t {
+  font-family: "Quicksand", sans-serif;
+  color: rgb(var(--cx-body-rgb));
+}
+
+.cx-a {
+  color: rgb(var(--cx-accent-rgb));
+}
+
+.cx-border {
+  border-color: rgb(var(--cx-line-rgb));
+}
+
+.cx-bg-line {
+  background-color: rgb(var(--cx-line-rgb));
+}
+
+.cx-bg-surface {
+  background-color: rgb(var(--cx-surface-rgb));
+}
+
+/* ── Chữ thư pháp ──────────────────────────────────────────────────────────
+   Nét nhận dạng của mẫu (tên cô dâu chú rể, câu slogan). CỐ Ý nằm ngoài
+   CX_THEME.selectors: bảng chọn font ở tab Giao diện chỉ có font Google, đổi
+   xong khách không quay lại được font tự host.
+   Font tự host khai tập trung ở styles/_fonts.css — ở đây chỉ gọi tên họ. */
+
+.rb-script {
+  font-family: "TheNautigal", cursive;
+  color: rgb(var(--cx-heading-rgb));
+  line-height: 1.05;
+}
+
+/* Chữ in hoa dàn thưa: "THE WEDDING OF", tên nơi tổ chức, nhãn chip, tiêu đề
+   mục. CỐ Ý không đặt font/màu — luôn đi kèm .cx-t (nội dung) hoặc .cx-h (tiêu
+   đề) để chữ vẫn theo font/màu khách chọn ở tab Giao diện. */
+
+.rb-caps {
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+
+/* ── Hoa góc ───────────────────────────────────────────────────────────────
+   Một cụm SVG dùng lại ở màn bìa và mục mở đầu, lật 180° cho góc đối diện.
+   pointer-events:none để không nuốt cú chạm vào nút bên dưới. */
+
+.rb-floral {
+  position: absolute;
+  width: 56%;
+  max-width: 210px;
+  height: auto;
+  pointer-events: none;
+  user-select: none;
+}
+
+.rb-floral-tl {
+  top: -22px;
+  left: -38px;
+  transform: rotate(-8deg);
+}
+
+.rb-floral-br {
+  bottom: -20px;
+  right: -40px;
+  transform: rotate(172deg);
+}
+
+/* ── Đường phân cách có hạt ngọc giữa ──────────────────────────────────── */
+
+.rb-rule {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.rb-rule::before,
+.rb-rule::after {
+  content: "";
+  flex: 1;
+  max-width: 90px;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgb(var(--cx-line-rgb)),
+    transparent
+  );
+}
+
+/* ── Chip điều hướng nhanh (Lịch trình · Album · Bản đồ · Quà) ──────────── */
+
+.rb-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.rb-chip-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 9999px;
+  background-color: rgb(var(--cx-surface-rgb));
+  border: 1px solid rgb(var(--cx-line-rgb));
+  color: rgb(var(--cx-accent-rgb));
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.rb-chip:active .rb-chip-icon {
+  transform: scale(0.92);
+}
+
+.rb-chip:hover .rb-chip-icon {
+  box-shadow: 0 4px 14px rgb(var(--cx-accent-rgb) / 0.22);
+}
+
+/* ── Khối ảnh mở đầu ───────────────────────────────────────────────────── */
+
+.rb-photo {
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgb(var(--cx-heading-rgb) / 0.12);
+}
+
+/* Ô ảnh trong album. */
+
+.rb-cell {
+  border-radius: 18px;
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgb(var(--cx-heading-rgb) / 0.08);
+}
+
+/* .rb-chip đặt display:flex mà theme.css nạp SAU themes.css → phải tự thắng lại
+   .hidden của Tailwind, không thì cxToggle() ẩn chip không ăn. */
+
+.rb-chip.hidden {
+  display: none;
+}
