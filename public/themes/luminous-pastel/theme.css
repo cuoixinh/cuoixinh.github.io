@@ -1,0 +1,469 @@
+/* Bảng màu + CSS riêng của LUMINOUS PASTEL — ivory ngả hồng · dusty pink ·
+   champagne nhạt.
+   CSS THUẦN, không qua Tailwind build (nạp bằng <link> sau styles/themes.css)
+   → dựng mẫu không phải đụng tailwind.themes.config.js hay styles/_colors.css.
+
+   Ba phần:
+     1. --cx-*  bộ biến mà phần DÙNG CHUNG vẽ theo (lịch nhỏ, dòng thời gian,
+        màn bìa, nút xác nhận tham dự). Mặc định ở styles/_common.css.
+     2. .cx-h / .cx-t / .cx-a  ba lớp ngữ nghĩa mà markup của mẫu dùng, cũng là
+        thứ CX_THEME.selectors nhắm tới → đổi tông cả thiệp = sửa mỗi file này.
+     3. .lp-*  phần riêng của mẫu (sương sáng, thẻ kính mờ, album coverflow) —
+        chữ thư pháp và chữ viết tay CỐ Ý không đi theo bảng chọn font.
+
+   Tông chung: tương phản THẤP, highlight sáng nhưng không cháy, bóng đổ rất
+   mềm. Muốn đậm hơn thì tăng --cx-heading-rgb chứ đừng thêm bóng đen. */
+
+:root {
+  --cx-accent-rgb: 201 180 143; /* champagne rất nhạt — chỉ dùng làm điểm nhấn */
+  --cx-on-accent-rgb: 255 255 255; /* chữ nằm TRÊN nền nhấn */
+  --cx-heading-rgb: 95 86 84; /* xám khói trung tính */
+  --cx-body-rgb: 147 138 136; /* xám nhạt */
+  --cx-line-rgb: 233 219 217; /* vạch dọc, viền mảnh — xám ngả hồng */
+  --cx-surface-rgb: 243 235 233; /* nền phụ của ô nhỏ */
+  --cx-cover-rgb: 249 243 241; /* nền màn bìa: hai đầu dải */
+  --cx-cover-mid-rgb: 242 228 225; /* …và điểm giữa */
+
+  --lp-card-bg-rgb: 249 243 241; /* nền thân thiệp — ivory ngả hồng, MỘT màu phẳng */
+  --lp-blush-rgb: 220 174 168; /* dusty pink: chữ viết tay, viền, quầng sáng */
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: rgb(var(--cx-surface-rgb));
+}
+
+/* Nền thân thiệp: MỘT màu phẳng (ivory ngả hồng). Cố ý không gradient — pha
+   nhiều quầng màu vào nền là thiệp loang lổ, tông hồng phải đến từ chữ, viền và
+   quầng sáng quanh ảnh chứ không từ nền. */
+
+#main-card {
+  background-color: rgb(var(--lp-card-bg-rgb));
+}
+
+/* ── Ba lớp ngữ nghĩa ──────────────────────────────────────────────────────
+   .cx-h và .cx-t đặt CẢ font-family → đừng gắn lên thẻ <i> của Font Awesome,
+   icon sẽ mất glyph và hiện ô vuông. Tô màu icon thì dùng .cx-a (nhấn) hoặc
+   .cx-hd/.cx-bd (chỉ có color, khai ở styles/_common.css). */
+
+.cx-h {
+  font-family: "Cormorant Garamond", serif;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+.cx-t {
+  font-family: "Quicksand", sans-serif;
+  color: rgb(var(--cx-body-rgb));
+}
+
+.cx-a {
+  color: rgb(var(--cx-accent-rgb));
+}
+
+.cx-border {
+  border-color: rgb(var(--cx-line-rgb));
+}
+
+.cx-bg-line {
+  background-color: rgb(var(--cx-line-rgb));
+}
+
+.cx-bg-surface {
+  background-color: rgb(var(--cx-surface-rgb));
+}
+
+/* ── Chữ thư pháp + chữ viết tay ───────────────────────────────────────────
+   Nét nhận dạng của mẫu. CỐ Ý nằm ngoài CX_THEME.selectors: bảng chọn font ở
+   tab Giao diện chỉ có font Google, đổi xong khách không quay lại được font tự
+   host. Font tự host khai tập trung ở styles/_fonts.css — ở đây chỉ gọi tên. */
+
+.lp-script {
+  font-family: "Signora", cursive;
+  color: rgb(var(--cx-heading-rgb));
+  line-height: 1.05;
+}
+
+/* Chữ viết tay màu blush: câu slogan, chú thích ảnh trong album. */
+
+.lp-hand {
+  font-family: "BethanWhite", cursive;
+  font-style: italic;
+  color: rgb(var(--lp-blush-rgb));
+}
+
+/* Chữ in hoa dàn thưa. CỐ Ý không đặt font/màu — luôn đi kèm .cx-t hoặc .cx-h
+   để chữ vẫn theo font/màu khách chọn ở tab Giao diện. */
+
+.lp-caps {
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+}
+
+/* Tiêu đề mục: chữ hoa nhỏ, hai bên là vạch sáng mảnh tãi dần ra. */
+
+.lp-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-family: "Cormorant Garamond", serif;
+  font-size: 13px;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+.lp-title::before,
+.lp-title::after {
+  content: "";
+  flex: 1;
+  max-width: 70px;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgb(var(--lp-blush-rgb) / 0.85),
+    transparent
+  );
+}
+
+/* ── Lớp sương trên màn bìa ────────────────────────────────────────────────
+   Phủ lên ảnh bìa: sáng ở giữa, ivory ở hai đầu → tương phản thấp, chữ vẫn đọc
+   rõ mà ảnh không bị che hẳn. */
+
+.lp-mist {
+  position: absolute;
+  inset: 0;
+  /* MỘT màu (nền thiệp), chỉ khác độ mờ: đặc ở hai đầu cho chữ đọc rõ, loãng ở
+     giữa để còn thấy ảnh. Không pha thêm màu thứ hai vào đây. */
+  background: linear-gradient(
+    180deg,
+    rgb(var(--lp-card-bg-rgb) / 0.92) 0%,
+    rgb(var(--lp-card-bg-rgb) / 0.55) 34%,
+    rgb(var(--lp-card-bg-rgb) / 0.62) 62%,
+    rgb(var(--lp-card-bg-rgb) / 0.95) 100%
+  );
+  pointer-events: none;
+}
+
+/* ── Thẻ kính mờ ───────────────────────────────────────────────────────────
+   Khối nội dung chuẩn của mẫu: trắng trong, viền sáng mảnh, bóng rất mềm.
+   backdrop-filter chỉ là lớp phụ — máy không hỗ trợ vẫn ra thẻ trắng đục đúng
+   tông, không cần dự phòng riêng. */
+
+.lp-glass {
+  border-radius: 26px;
+  /* Trắng ngả hồng, không phải trắng thuần: thẻ nằm trên nền blush nên trắng
+     tinh sẽ cắt hẳn khỏi nền, mất cảm giác một lớp sương phủ lên. */
+  background-color: rgb(253 246 245 / 0.62);
+  border: 1px solid rgb(255 255 255 / 0.75);
+  box-shadow:
+    0 18px 34px -22px rgb(var(--cx-heading-rgb) / 0.32),
+    0 2px 8px -4px rgb(var(--lp-blush-rgb) / 0.45),
+    inset 0 1px 0 rgb(255 255 255 / 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* Thẻ Thư mời sáng thêm một quầng champagne rất nhạt từ đáy — mục quan trọng
+   nhất. Giữ ở mức mờ này: đậm hơn là cả thẻ ngả vàng, lệch tông lạnh của mẫu. */
+
+.lp-bloom {
+  background-image: radial-gradient(
+    120% 70% at 50% 115%,
+    rgb(var(--cx-accent-rgb) / 0.16),
+    transparent 70%
+  );
+}
+
+/* Viên kính mờ ở hàng ngày giờ. */
+
+.lp-pill {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-height: 62px;
+  padding: 10px 6px;
+  border-radius: 18px;
+}
+
+/* Nút bấm nền kính (xác nhận tham dự, lưu QR). */
+
+.lp-choice {
+  border-radius: 9999px;
+  background-color: rgb(255 255 255 / 0.72);
+  border: 1px solid rgb(var(--cx-line-rgb));
+  box-shadow: 0 8px 16px -12px rgb(var(--cx-heading-rgb) / 0.5);
+}
+
+.lp-choice:active {
+  box-shadow: none;
+}
+
+/* ── Ảnh cưới ở mục mở đầu ────────────────────────────────────────────────
+   Bo mềm, quầng blush toả ra ngoài mép; tên cô dâu chú rể nằm
+   trên dải sáng mờ dần ở đáy ảnh. */
+
+.lp-hero-photo {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  border-radius: 130px 130px 26px 26px;
+  overflow: hidden;
+  box-shadow:
+    0 26px 44px -28px rgb(var(--cx-heading-rgb) / 0.45),
+    0 0 0 8px rgb(255 255 255 / 0.5),
+    0 0 52px 14px rgb(var(--lp-blush-rgb) / 0.38);
+}
+
+.lp-hero-fade {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 46%;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgb(var(--lp-card-bg-rgb) / 0.75) 52%,
+    rgb(var(--lp-card-bg-rgb) / 0.96)
+  );
+  pointer-events: none;
+}
+
+.lp-hero-names {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 16px;
+}
+
+/* ── Ảnh tròn có vòng sáng (mục Gia đình) ─────────────────────────────────
+   Vòng gradient champagne → blush → xanh xám, ảnh nằm trong nền trắng chừa một
+   khe mảnh cho vòng lộ ra. */
+
+.lp-halo {
+  position: relative;
+  width: 116px;
+  height: 116px;
+  padding: 5px;
+  border-radius: 9999px;
+  background:
+    linear-gradient(#fff, #fff) padding-box,
+    conic-gradient(
+        from 210deg,
+        rgb(var(--lp-blush-rgb) / 0.3),
+        rgb(var(--lp-blush-rgb) / 0.95),
+        rgb(var(--lp-blush-rgb) / 0.3)
+      )
+      border-box;
+  border: 2px solid transparent;
+  box-shadow: 0 0 26px 4px rgb(var(--lp-blush-rgb) / 0.28);
+}
+
+/* ── Album ảnh: dải coverflow ─────────────────────────────────────────────
+   Ảnh xếp ngang, mỗi tấm dừng đúng giữa khi vuốt. index.js đặt biến --lp-off
+   cho từng tấm (0 = đang ở giữa dải, 1 = cách một khổ ảnh) và CSS dưới đây quy
+   ra mức thu nhỏ / mờ / nhạt.
+   Lề hai đầu tính bằng calc để tấm ĐẦU và tấm CUỐI cũng canh giữa được — đổi
+   --lp-slide-w thì lề tự theo. */
+
+.lp-flow {
+  --lp-slide-w: min(66vw, 250px);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 26px max(16px, calc(50% - var(--lp-slide-w) / 2));
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+
+.lp-flow::-webkit-scrollbar {
+  display: none;
+}
+
+.lp-slide {
+  --lp-off: 1;
+  flex: none;
+  width: var(--lp-slide-w);
+  scroll-snap-align: center;
+  cursor: pointer;
+  /* calc theo --lp-off: ở giữa dải thì to, rõ; ra xa thì nhỏ, mờ, nhạt. */
+  transform: scale(calc(1 - 0.14 * var(--lp-off)));
+  opacity: calc(1 - 0.4 * var(--lp-off));
+  filter: blur(calc(1.4px * var(--lp-off)));
+  transition:
+    transform 0.28s ease-out,
+    opacity 0.28s ease-out,
+    filter 0.28s ease-out;
+}
+
+.lp-slide-img {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  border-radius: 22px;
+  overflow: hidden;
+  background-color: rgb(var(--cx-surface-rgb));
+  box-shadow:
+    0 22px 36px -24px rgb(var(--cx-heading-rgb) / 0.5),
+    0 0 0 6px rgb(255 255 255 / 0.6),
+    0 0 34px 8px rgb(var(--lp-blush-rgb) / 0.4);
+}
+
+/* Chú thích viết tay: chỉ hiện ở tấm đang ở giữa, khỏi rối dải ảnh. */
+
+.lp-slide-cap {
+  margin-top: 14px;
+  font-size: 20px;
+  line-height: 1.1;
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.28s ease-out;
+}
+
+.lp-slide.is-mid .lp-slide-cap {
+  opacity: 1;
+}
+
+/* Chấm chỉ số ảnh dưới album (lpSetupDots dựng). */
+
+.lp-dots {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+}
+
+.lp-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background-color: rgb(var(--cx-line-rgb));
+  transition:
+    width 0.25s ease,
+    background-color 0.25s ease;
+}
+
+.lp-dot.is-on {
+  width: 18px;
+  background-color: rgb(var(--lp-blush-rgb));
+}
+
+/* ── Chuyện tình yêu: thẻ kính mờ treo trên một sợi sáng ──────────────────
+   Sợi sáng chạy dọc MÉP TRÁI của mục, mỗi mẩu chuyện là một chấm quầng nằm
+   ĐÚNG trên sợi rồi tới thẻ. Thẻ so le thụt vào/ra một nhịp cho đỡ đều đều;
+   màu chấm luân phiên champagne ↔ blush.
+   Sợi cố ý không đặt ở GIỮA mục: thẻ rộng gần hết bề ngang nên sẽ che mất. */
+
+.lp-thread {
+  position: relative;
+  padding-left: 26px;
+}
+
+.lp-thread::before {
+  content: "";
+  position: absolute;
+  top: 10px;
+  bottom: 10px;
+  left: 5px;
+  width: 1px;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgb(var(--lp-blush-rgb) / 0.75) 12%,
+    rgb(var(--lp-blush-rgb) / 0.75) 88%,
+    transparent
+  );
+}
+
+.lp-story {
+  position: relative;
+}
+
+/* Thẻ chẵn thụt vào thêm một nhịp — chỉ để dãy thẻ không thẳng đơ. */
+
+.lp-story.is-right {
+  margin-left: 14px;
+}
+
+/* Chấm mốc: tâm chấm nằm trên sợi (sợi ở left:5px của .lp-thread, thẻ đã lùi
+   26px nên chấm phải lùi ngược 26px về trước). */
+
+.lp-story-dot {
+  position: absolute;
+  top: 22px;
+  left: -25px;
+  width: 9px;
+  height: 9px;
+  border-radius: 9999px;
+  background-color: rgb(var(--cx-accent-rgb));
+  box-shadow:
+    0 0 0 4px rgb(255 255 255 / 0.75),
+    0 0 14px 3px rgb(var(--cx-accent-rgb) / 0.55);
+}
+
+.lp-story.is-right .lp-story-dot {
+  left: -39px;
+  background-color: rgb(var(--lp-blush-rgb));
+  box-shadow:
+    0 0 0 4px rgb(255 255 255 / 0.75),
+    0 0 14px 3px rgb(var(--lp-blush-rgb) / 0.55);
+}
+
+.lp-story-card {
+  padding: 16px 18px;
+}
+
+.lp-story-date {
+  font-family: "BethanWhite", cursive;
+  font-style: italic;
+  font-size: 19px;
+  line-height: 1;
+  margin-bottom: 6px;
+}
+
+.lp-story-title {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.3;
+  margin-bottom: 4px;
+}
+
+.lp-story-text {
+  font-family: "Quicksand", sans-serif;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.lp-story-photo {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 16px;
+  margin-top: 12px;
+  box-shadow: 0 14px 24px -18px rgb(var(--cx-heading-rgb) / 0.55);
+}
+
+/* Máy tắt hiệu ứng chuyển động: bỏ phần thu nhỏ/mờ của coverflow, giữ đúng một
+   dải ảnh phẳng. */
+
+@media (prefers-reduced-motion: reduce) {
+  .lp-slide {
+    transform: none;
+    opacity: 1;
+    filter: none;
+    transition: none;
+  }
+
+  .lp-slide-cap {
+    opacity: 1;
+  }
+}
