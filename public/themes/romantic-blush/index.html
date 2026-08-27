@@ -37,9 +37,9 @@
   </head>
 
   <!-- ROMANTIC BLUSH — hồng phấn · kem trắng · nâu espresso.
-       Nét riêng: hoa hồng phấn vẽ bằng SVG ôm hai góc chéo của màn bìa lẫn mục
-       mở đầu; mục mở đầu xếp theo lối thiệp in (tên thư pháp → hàng ngày giờ →
-       nơi tổ chức → hàng chip nhảy nhanh tới từng mục → ảnh cưới).
+       Nét riêng: mục mở đầu xếp theo lối thiệp in (tên thư pháp → hàng ngày giờ
+       → nơi tổ chức → hàng chip nhảy nhanh tới từng mục → ảnh cưới); toàn thiệp
+       không dùng hình trang trí, chỉ có chữ và khoảng trắng.
        Dựng từ public/themes/base-theme/ — xem hướng dẫn ở đầu file đó. -->
 
   <body class="cx-screen-h flex justify-center items-start md:py-5">
@@ -52,108 +52,6 @@
         CXMusicPlayer.build({ variant: "bar", chrome: "fixed-top" }),
       );
     </script>
-
-    <!-- ═══ Hoa góc — kho hình dùng lại ═════════════════════════════════════
-         Một cụm hoa duy nhất (#rb-bouquet), đặt hai lần ở mỗi màn: góc trên
-         trái và góc dưới phải (lật 180°). Màu lấy từ biến --rb-* trong
-         theme.css nên đổi tông chỉ sửa một chỗ.
-         SVG này KHÔNG vẽ gì (width/height = 0), chỉ chứa định nghĩa. -->
-    <svg width="0" height="0" aria-hidden="true" focusable="false" style="position: absolute">
-      <defs>
-        <!-- Chiếc lá gốc: mũi hướng sang phải, cuống ở gốc toạ độ. Mọi tán lá
-             đều là <use> của hình này với rotate/scale khác nhau. -->
-        <path id="rb-leaf" d="M0 0 C 14 -17 40 -21 58 -9 C 40 8 14 12 0 0 Z" />
-
-        <!-- Hoa hồng: vành cánh là các đĩa tròn quanh rìa, nhuỵ là mấy đĩa
-             nhỏ dần lệch tâm — trông như bông hồng vẽ màu nước mà chỉ tốn vài
-             hình cơ bản. Bán kính ngoài 24 nên `scale` ở nơi dùng = cỡ thật/24. -->
-        <g id="rb-rose">
-          <g fill="var(--rb-rose-1)">
-            <circle cx="-18" cy="-14" r="11" />
-            <circle cx="5" cy="-22" r="11" />
-            <circle cx="22" cy="-7" r="11" />
-            <circle cx="17" cy="16" r="11" />
-            <circle cx="-7" cy="22" r="11" />
-            <circle cx="-22" cy="7" r="11" />
-          </g>
-          <circle r="22" fill="var(--rb-rose-2)" />
-          <circle cx="-2" cy="2" r="15" fill="var(--rb-rose-1)" />
-          <circle cx="-3" cy="3" r="9.5" fill="var(--rb-rose-2)" />
-          <circle cx="-3" cy="3" r="4.6" fill="var(--rb-rose-3)" />
-          <path
-            d="M-21 4 A21 21 0 0 1 14 -15"
-            fill="none"
-            stroke="var(--rb-rose-3)"
-            stroke-width="1.4"
-            stroke-linecap="round"
-            opacity=".55"
-          />
-          <path
-            d="M-13 9 A14 14 0 0 1 9 -8"
-            fill="none"
-            stroke="var(--rb-rose-3)"
-            stroke-width="1.2"
-            stroke-linecap="round"
-            opacity=".5"
-          />
-        </g>
-
-        <!-- Nụ nhỏ chen giữa các tán lá. -->
-        <g id="rb-bud">
-          <circle r="7.5" fill="var(--rb-rose-1)" />
-          <path
-            d="M-7 2 A7 7 0 0 1 6 -3"
-            fill="none"
-            stroke="var(--rb-rose-3)"
-            stroke-width="1.4"
-            stroke-linecap="round"
-          />
-        </g>
-
-        <!-- Hoa nhỏ 5 cánh màu kem, rắc cho cụm bớt đặc. -->
-        <g id="rb-blossom">
-          <g fill="var(--rb-cream)">
-            <circle cx="0" cy="-7" r="5.2" />
-            <circle cx="6.7" cy="-2.2" r="5.2" />
-            <circle cx="4.1" cy="5.7" r="5.2" />
-            <circle cx="-4.1" cy="5.7" r="5.2" />
-            <circle cx="-6.7" cy="-2.2" r="5.2" />
-          </g>
-          <circle r="2.6" fill="var(--rb-gold)" />
-        </g>
-
-        <!-- Cụm hoa hoàn chỉnh. Tán lá toả từ quanh điểm (120, 96); hai bông
-             lớn đè lên trên, nụ và hoa kem viền ngoài. -->
-        <symbol id="rb-bouquet" viewBox="0 0 240 180">
-          <g fill="var(--rb-leaf)">
-            <use href="#rb-leaf" transform="translate(116 94) rotate(196)" />
-            <use href="#rb-leaf" transform="translate(114 100) rotate(158) scale(.86)" />
-            <use href="#rb-leaf" transform="translate(120 88) rotate(214) scale(.78)" />
-            <use href="#rb-leaf" transform="translate(128 90) rotate(-22)" />
-            <use href="#rb-leaf" transform="translate(132 100) rotate(24) scale(.9)" />
-            <use href="#rb-leaf" transform="translate(126 82) rotate(-58) scale(.8)" />
-          </g>
-          <g fill="var(--rb-leaf-2)">
-            <use href="#rb-leaf" transform="translate(122 106) rotate(74) scale(.72)" />
-            <use href="#rb-leaf" transform="translate(150 86) rotate(-44) scale(.82)" />
-            <use href="#rb-leaf" transform="translate(96 92) rotate(180) scale(.7)" />
-            <use href="#rb-leaf" transform="translate(160 98) rotate(12) scale(.68)" />
-          </g>
-
-          <use href="#rb-blossom" transform="translate(186 78) scale(1.1)" />
-          <use href="#rb-blossom" transform="translate(200 96) scale(.85)" />
-          <use href="#rb-blossom" transform="translate(72 82) scale(.9)" />
-
-          <use href="#rb-bud" transform="translate(174 104)" />
-          <use href="#rb-bud" transform="translate(84 106) scale(.85)" />
-          <use href="#rb-bud" transform="translate(152 118) scale(.8)" />
-
-          <use href="#rb-rose" transform="translate(114 98) scale(1.06)" />
-          <use href="#rb-rose" transform="translate(156 84) scale(.74)" />
-          <use href="#rb-rose" transform="translate(90 108) scale(.56)" />
-        </symbol>
-      </defs>
-    </svg>
 
     <!-- ═══ MỤC: Màn bìa ═══════════════════════════════════════════════════
          Khách bấm "Mở thiệp" thì openInvitation() ẩn màn này và hiện #main-card.
@@ -169,11 +67,7 @@
           <img id="cover-bg-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" class="w-full h-full object-cover opacity-25" alt="" fetchpriority="high" />
         </div>
 
-        <svg class="rb-floral rb-floral-tl" viewBox="0 0 240 180"><use href="#rb-bouquet" /></svg>
-        <svg class="rb-floral rb-floral-br" viewBox="0 0 240 180"><use href="#rb-bouquet" /></svg>
-
-        <div class="relative z-10 flex flex-col items-center gap-7 w-full">
-          <div class="cx-t rb-caps text-[11px]">Trân trọng kính mời</div>
+        <div class="cx-t rb-caps text-[11px]">Trân trọng kính mời</div>
 
           <!-- Tên khách mời: điền từ tham số ?name= đã mã hoá trên URL -->
           <div class="rb-script text-[46px] leading-tight" id="cover-guest-name">----------</div>
@@ -197,7 +91,6 @@
             </span>
             <div class="btn-shimmer pointer-events-none"></div>
           </x-button>
-        </div>
       </div>
     </div>
 
@@ -212,91 +105,82 @@
     >
       <div class="flex flex-col gap-14 pb-14 text-center">
         <!-- ═══ MỤC: Mở đầu ════════════════════════════════════════════════
-             Dựng theo lối thiệp in: hoa ôm hai góc chéo, tên thư pháp, hàng
-             ngày giờ chia ba ô, nơi tổ chức, rồi hàng chip nhảy nhanh. -->
-        <section id="section-hero" class="relative overflow-hidden px-7 pt-12 pb-2 flex flex-col items-center gap-6">
-          <svg class="rb-floral rb-floral-tl" viewBox="0 0 240 180"><use href="#rb-bouquet" /></svg>
+             Dựng theo lối thiệp in: tên thư pháp, hàng ngày giờ chia ba ô, nơi
+             tổ chức, rồi hàng chip nhảy nhanh tới từng mục. -->
+        <section id="section-hero" class="px-7 pt-12 pb-2 flex flex-col items-center gap-6">
+          <div class="cx-t rb-caps text-[10px]">The Wedding Of</div>
 
-          <div class="relative z-10 flex flex-col items-center gap-6 w-full">
-            <div class="cx-t rb-caps text-[10px]">The Wedding Of</div>
+          <div class="rb-script text-[64px] flex flex-col items-center gap-1">
+            <span id="couple-names-groom">----------</span>
+            <span class="cx-a text-[30px] leading-none">&</span>
+            <span id="couple-names-bride">----------</span>
+          </div>
 
-            <div class="rb-script text-[64px] flex flex-col items-center gap-1">
-              <span id="couple-names-groom">----------</span>
-              <span class="cx-a text-[30px] leading-none">&</span>
-              <span id="couple-names-bride">----------</span>
+          <div class="rb-rule">
+            <i class="fas fa-leaf cx-a text-[11px]"></i>
+          </div>
+
+          <!-- Hàng ngày giờ: thứ · ngày lớn + tháng.năm · giờ -->
+          <div class="w-full flex items-stretch justify-center gap-4">
+            <div class="flex-1 flex items-center justify-center">
+              <span class="cx-t rb-caps text-[11px]" id="hero-weekday">------</span>
             </div>
-
-            <div class="rb-rule">
-              <i class="fas fa-leaf cx-a text-[11px]"></i>
+            <div class="w-px cx-bg-line"></div>
+            <div class="flex flex-col items-center gap-0.5 px-1">
+              <span class="cx-h text-[42px] font-semibold leading-none" id="hero-day">--</span>
+              <span class="cx-t text-[11px] tracking-[1px]" id="hero-month-year">--.----</span>
             </div>
-
-            <!-- Hàng ngày giờ: thứ · ngày lớn + tháng.năm · giờ -->
-            <div class="w-full flex items-stretch justify-center gap-4">
-              <div class="flex-1 flex items-center justify-center">
-                <span class="cx-t rb-caps text-[11px]" id="hero-weekday">------</span>
-              </div>
-              <div class="w-px cx-bg-line"></div>
-              <div class="flex flex-col items-center gap-0.5 px-1">
-                <span class="cx-h text-[42px] font-semibold leading-none" id="hero-day">--</span>
-                <span class="cx-t text-[11px] tracking-[1px]" id="hero-month-year">--.----</span>
-              </div>
-              <div class="w-px cx-bg-line"></div>
-              <div class="flex-1 flex items-center justify-center">
-                <span class="cx-t rb-caps text-[11px]" id="hero-time">--.--</span>
-              </div>
+            <div class="w-px cx-bg-line"></div>
+            <div class="flex-1 flex items-center justify-center">
+              <span class="cx-t rb-caps text-[11px]" id="hero-time">--.--</span>
             </div>
+          </div>
 
-            <!-- Nơi tổ chức: tách tên riêng ra khỏi địa chỉ ở index.js -->
-            <div class="flex flex-col items-center gap-1.5">
-              <div class="cx-h rb-caps text-[13px] font-semibold" id="hero-venue-name">
-                ------------
-              </div>
-              <div class="cx-t text-[11px] leading-relaxed max-w-[260px]" id="hero-venue-address">
-                ------------------------
-              </div>
+          <!-- Nơi tổ chức: tách tên riêng ra khỏi địa chỉ ở index.js -->
+          <div class="flex flex-col items-center gap-1.5">
+            <div class="cx-h rb-caps text-[13px] font-semibold" id="hero-venue-name">
+              ------------
             </div>
+            <div class="cx-t text-[11px] leading-relaxed max-w-[260px]" id="hero-venue-address">
+              ------------------------
+            </div>
+          </div>
 
-            <!-- Chip nhảy nhanh tới từng mục. Mục nào bị tắt trong Thiết lập thì
-                 index.js ẩn luôn chip tương ứng. -->
-            <div id="hero-quicknav" class="w-full flex items-start justify-center gap-2 pt-2">
-              <a href="#section-timeline" class="rb-chip" id="quicknav-timeline">
-                <span class="rb-chip-icon"><i class="fas fa-calendar-days text-[15px]"></i></span>
-                <span class="cx-t rb-caps text-[8px]">Lịch trình</span>
-              </a>
-              <a href="#section-photos" class="rb-chip" id="quicknav-photos">
-                <span class="rb-chip-icon"><i class="fas fa-images text-[15px]"></i></span>
-                <span class="cx-t rb-caps text-[8px]">Album ảnh</span>
-              </a>
-              <a href="#section-map" class="rb-chip" id="quicknav-map">
-                <span class="rb-chip-icon"><i class="fas fa-location-dot text-[15px]"></i></span>
-                <span class="cx-t rb-caps text-[8px]">Bản đồ</span>
-              </a>
-              <a href="#section-gift" class="rb-chip" id="quicknav-gift">
-                <span class="rb-chip-icon"><i class="fas fa-gift text-[15px]"></i></span>
-                <span class="cx-t rb-caps text-[8px]">Quà</span>
-              </a>
-            </div>
+          <!-- Chip nhảy nhanh tới từng mục. Mục nào bị tắt trong Thiết lập thì
+               index.js ẩn luôn chip tương ứng. -->
+          <div id="hero-quicknav" class="w-full flex items-start justify-center gap-2 pt-2">
+            <a href="#section-timeline" class="rb-chip" id="quicknav-timeline">
+              <span class="rb-chip-icon"><i class="fas fa-calendar-days text-[15px]"></i></span>
+              <span class="cx-t rb-caps text-[8px]">Lịch trình</span>
+            </a>
+            <a href="#section-photos" class="rb-chip" id="quicknav-photos">
+              <span class="rb-chip-icon"><i class="fas fa-images text-[15px]"></i></span>
+              <span class="cx-t rb-caps text-[8px]">Album ảnh</span>
+            </a>
+            <a href="#section-map" class="rb-chip" id="quicknav-map">
+              <span class="rb-chip-icon"><i class="fas fa-location-dot text-[15px]"></i></span>
+              <span class="cx-t rb-caps text-[8px]">Bản đồ</span>
+            </a>
+            <a href="#section-gift" class="rb-chip" id="quicknav-gift">
+              <span class="rb-chip-icon"><i class="fas fa-gift text-[15px]"></i></span>
+              <span class="cx-t rb-caps text-[8px]">Quà</span>
+            </a>
+          </div>
 
-            <!-- Ảnh cưới, cụm hoa thứ hai ôm góc dưới-phải của khung ảnh (đặt
-                 NGOÀI .rb-photo vì thẻ đó overflow:hidden sẽ cắt mất hoa).
-                 Ảnh nằm trong #main-card (display:none) nên KHÔNG lazy; tấm được
-                 ưu tiên là #cover-bg-img của màn bìa. -->
-            <div class="relative w-full mt-2">
-              <div class="rb-photo w-full aspect-[4/3]">
-                <img
-                  id="main-photo"
-                  src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
-                  alt="Ảnh cưới"
-                  class="w-full h-full object-cover"
-                />
-              </div>
-              <svg class="rb-floral rb-floral-br" viewBox="0 0 240 180"><use href="#rb-bouquet" /></svg>
-            </div>
+          <!-- Ảnh cưới. Nằm trong #main-card (display:none) nên KHÔNG lazy;
+               tấm được ưu tiên là #cover-bg-img của màn bìa. -->
+          <div class="rb-photo w-full aspect-[4/3] mt-2">
+            <img
+              id="main-photo"
+              src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+              alt="Ảnh cưới"
+              class="w-full h-full object-cover"
+            />
+          </div>
 
-            <!-- Câu slogan (story_quote) -->
-            <div id="story-quote" class="rb-script text-[30px] leading-tight px-6 max-w-[320px] mx-auto">
-              Love Story
-            </div>
+          <!-- Câu slogan (story_quote) -->
+          <div id="story-quote" class="rb-script text-[30px] leading-tight px-6 max-w-[320px] mx-auto">
+            Love Story
           </div>
         </section>
 
@@ -533,14 +417,10 @@
         </section>
 
         <!-- ═══ MỤC: Lời cảm ơn (enable_footer) ═════════════════════════════ -->
-        <section id="section-footer" class="relative px-7 pt-4 pb-24 flex flex-col items-center gap-4 overflow-hidden">
-          <svg class="rb-floral rb-floral-br" viewBox="0 0 240 180"><use href="#rb-bouquet" /></svg>
-
-          <div class="relative z-10 flex flex-col items-center gap-3">
-            <div class="rb-script text-[46px]">Thank You</div>
-            <div id="footer-text" class="cx-t text-[13px] leading-relaxed px-4 max-w-[290px]">
-              Cảm ơn bạn đã dành thời gian đến chung vui cùng chúng tôi
-            </div>
+        <section id="section-footer" class="px-7 pt-4 pb-16 flex flex-col items-center gap-4">
+          <div class="rb-script text-[46px]">Thank You</div>
+          <div id="footer-text" class="cx-t text-[13px] leading-relaxed px-4 max-w-[290px]">
+            Cảm ơn bạn đã dành thời gian đến chung vui cùng chúng tôi
           </div>
         </section>
       </div>

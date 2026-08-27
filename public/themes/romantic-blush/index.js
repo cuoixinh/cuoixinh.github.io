@@ -1,7 +1,7 @@
 // ============= THEME: ROMANTIC BLUSH =============
-// Hồng phấn · kem trắng · nâu espresso. Nét riêng: cụm hoa hồng phấn vẽ bằng
-// SVG ôm hai góc chéo của màn bìa lẫn mục mở đầu; mục mở đầu xếp theo lối thiệp
-// in (tên thư pháp → hàng ngày giờ → nơi tổ chức → hàng chip nhảy nhanh → ảnh).
+// Hồng phấn · kem trắng · nâu espresso. Nét riêng: mục mở đầu xếp theo lối thiệp
+// in (tên thư pháp → hàng ngày giờ → nơi tổ chức → hàng chip nhảy nhanh → ảnh);
+// toàn thiệp không dùng hình trang trí, chỉ có chữ và khoảng trắng.
 //
 // File này chỉ KHAI BÁO: window.CX_THEME + renderWedding + phần đặc thù của mẫu
 // (hàng ngày giờ ở mục mở đầu, chip nhảy nhanh, lưới ảnh). Phần "chạy" nằm ở

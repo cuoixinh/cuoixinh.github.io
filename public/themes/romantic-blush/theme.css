@@ -7,8 +7,8 @@
         màn bìa, nút xác nhận tham dự). Mặc định ở styles/_common.css.
      2. .cx-h / .cx-t / .cx-a  ba lớp ngữ nghĩa mà markup của mẫu dùng, cũng là
         thứ CX_THEME.selectors nhắm tới → đổi tông cả thiệp = sửa mỗi file này.
-     3. .rb-*  phần trang trí riêng (hoa góc, chữ thư pháp, chip điều hướng) —
-        CỐ Ý không đi theo thanh chỉnh font/màu ở tab Giao diện. */
+     3. .rb-*  phần riêng của mẫu (chữ thư pháp, chip điều hướng, khung ảnh) —
+        chữ thư pháp CỐ Ý không đi theo bảng chọn font ở tab Giao diện. */
 
 :root {
   --cx-accent-rgb: 201 138 142; /* hồng rose — ngày cưới, chấm mốc, icon */
@@ -21,16 +21,6 @@
   --cx-cover-mid-rgb: 246 229 225; /* …và điểm giữa */
 
   --rb-card-bg-rgb: 253 248 245; /* nền thân thiệp */
-  --rb-blush-rgb: 232 188 187; /* hồng phấn đậm hơn line một nấc */
-
-  /* Hoa góc vẽ bằng SVG nội tuyến — màu để ở đây cho gọn một chỗ. */
-  --rb-rose-1: #f4d6d5;
-  --rb-rose-2: #eec3c2;
-  --rb-rose-3: #d79b9c;
-  --rb-leaf: #cbd6c2;
-  --rb-leaf-2: #b3c3a8;
-  --rb-cream: #fbf1e6;
-  --rb-gold: #d9b98a;
 }
 
 html {
@@ -95,31 +85,6 @@ body {
 .rb-caps {
   letter-spacing: 0.24em;
   text-transform: uppercase;
-}
-
-/* ── Hoa góc ───────────────────────────────────────────────────────────────
-   Một cụm SVG dùng lại ở màn bìa và mục mở đầu, lật 180° cho góc đối diện.
-   pointer-events:none để không nuốt cú chạm vào nút bên dưới. */
-
-.rb-floral {
-  position: absolute;
-  width: 56%;
-  max-width: 210px;
-  height: auto;
-  pointer-events: none;
-  user-select: none;
-}
-
-.rb-floral-tl {
-  top: -22px;
-  left: -38px;
-  transform: rotate(-8deg);
-}
-
-.rb-floral-br {
-  bottom: -20px;
-  right: -40px;
-  transform: rotate(172deg);
 }
 
 /* ── Đường phân cách có hạt ngọc giữa ──────────────────────────────────── */
