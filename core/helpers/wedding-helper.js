@@ -78,21 +78,22 @@ function showLockedInvitation(info) {
   box.id = "cx-locked";
   box.style.cssText =
     "position:fixed;inset:0;z-index:2147483000;display:flex;align-items:center;" +
-    "justify-content:center;padding:24px;background:var(--cx-surface,#fffdfa);" +
-    "color:var(--cx-body,#6b5560);font-family:inherit;text-align:center";
+    "justify-content:center;padding:24px;background:rgb(var(--cx-surface-rgb, 255 253 250));" +
+    "color:rgb(var(--cx-body-rgb, 107 85 96));font-family:inherit;text-align:center";
   box.innerHTML =
     '<div style="max-width:360px">' +
     '<div style="width:64px;height:64px;margin:0 auto 20px;border-radius:999px;' +
     "display:flex;align-items:center;justify-content:center;" +
-    'background:color-mix(in srgb, var(--cx-accent,#b8425f) 12%, transparent)">' +
+    'background:rgb(var(--cx-accent-rgb, 184 66 95) / 0.12)">' +
     '<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" ' +
-    'stroke="var(--cx-accent,#b8425f)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' +
+    'stroke="rgb(var(--cx-accent-rgb, 184 66 95))" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' +
     '<rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>' +
     "</div>" +
     '<h1 style="margin:0 0 8px;font-size:22px;line-height:1.3;font-weight:600;' +
-    'color:var(--cx-heading,#4a2c35)">Thiệp đang tạm khoá</h1>' +
+    'color:rgb(var(--cx-heading-rgb, 74 44 53))">Thiệp đang tạm khoá</h1>' +
     (names
-      ? '<p style="margin:0 0 12px;font-size:15px;color:var(--cx-heading,#4a2c35)">' +
+      ? '<p style="margin:0 0 12px;font-size:15px;' +
+        'color:rgb(var(--cx-heading-rgb, 74 44 53))">' +
         esc(names) +
         "</p>"
       : "") +

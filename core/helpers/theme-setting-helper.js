@@ -153,6 +153,10 @@ const CX_PALETTE_MUSIC = (get) => [
   `--music-widget-bg: rgb(${get("panel")} / 0.95)`,
   `--music-widget-chip: rgb(${get("body")} / 0.12)`,
   `--music-widget-fill: rgb(${get("accent")} / 0.32)`,
+  `--music-bar-fg-rgb: ${get("body")}`,
+  `--music-bar-bg-rgb: ${get("surface")}`,
+  `--music-art-from-rgb: ${get("accent_soft")}`,
+  `--music-art-to-rgb: ${get("accent")}`,
 ];
 
 // Trả về rule `:root { … }` cho bộ màu, hoặc "" nếu không có bộ nào hợp lệ.
@@ -170,7 +174,7 @@ function _cxPaletteRule(palette) {
 
   // Chỉ suy ra bảng màu nút nhạc khi bộ có ĐỦ những ô nó cần; thiếu một ô mà
   // vẫn dựng thì nút nhạc ra màu nửa cũ nửa mới.
-  const need = ["heading", "body", "accent", "accent_soft", "shadow", "panel"];
+  const need = ["heading", "body", "accent", "accent_soft", "shadow", "panel", "surface"];
   if (need.every((k) => rgbOf[k])) decls.push(...CX_PALETTE_MUSIC((k) => rgbOf[k]));
 
   return `:root { ${decls.join("; ")}; }`;

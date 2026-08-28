@@ -9,5 +9,15 @@
 @import "./_common.css";
 @import "./_music-player.css";
 
+/* Ô ảnh bìa bài hát của thanh nhạc (core/components/music-player.js) — nền dự
+   phòng khi chưa có thumbnail. `rose-pastel` ở hai bản build là hai màu khác
+   nhau nên mặc định khai riêng từng bản; nhờ vậy bộ màu của THIỆP nhuộm được ô
+   này mà trang ứng dụng giữ nguyên. */
+
+:root {
+  --music-art-from-rgb: var(--card-blush-200-rgb);
+  --music-art-to-rgb: var(--card-blush-300-rgb);
+}
+
 @tailwind components;
 @tailwind utilities;
