@@ -19,6 +19,7 @@
   --cx-band-rgb: 254 240 242; /* rose-pastel-50 — nền chờ của bản đồ */
   --cx-cover-rgb: 255 251 247; /* cream-50 */
   --cx-cover-mid-rgb: 245 235 224; /* be ấm — điểm giữa dải nền màn bìa */
+  --cx-cover-veil-rgb: 255 232 224; /* điểm giữa lớp phủ trên ẢNH bìa */
   --cx-on-image-rgb: 255 255 255; /* chữ nằm trên ảnh bìa */
   --cx-scrim-rgb: 0 0 0; /* bóng chữ trên ảnh */
 }

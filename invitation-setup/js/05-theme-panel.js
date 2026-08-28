@@ -28,8 +28,19 @@ function _themePreset() {
   return _themePresetCache;
 }
 
+// Giá trị hiện trên 4 ô màu khi khách chưa tự đặt gì. Thứ tự đè: mặc định
+// chung ← preset của mẫu ← bộ màu đang chọn (bộ màu là thứ mới nhất khách chọn
+// nên nó thắng).
 function _themeDefaults() {
-  return { ...THEME_DEFAULTS, ...(_themePreset() || {}) };
+  const d = { ...THEME_DEFAULTS, ...(_themePreset() || {}) };
+  const p = _currentPalette();
+  if (p) {
+    if (p.heading) d.heading_color = p.heading;
+    if (p.body) d.body_color = p.body;
+    if (p.accent) d.accent_color = p.accent;
+    if (p.card_bg) d.background_color = p.card_bg;
+  }
+  return d;
 }
 
 // Gắn một lần: mỗi lần iframe nạp xong thì lấy preset rồi vẽ lại thanh chỉnh.
@@ -66,6 +77,78 @@ function _fillFontCombo(el, types) {
   if (window.loadThemeFont)
     items.forEach((it) => window.loadThemeFont(it.value));
 }
+
+// ── BỘ MÀU ─────────────────────────────────────────────────────────────────
+// Một bộ = cả bảng màu thiệp (chữ + nền + vạch kẻ + màn bìa + hoạ tiết), lưu ở
+// theme_setting.palette. Danh mục ở core/helpers/card-palette-helper.js; runtime
+// áp bằng cách đổ vào token --cx-* (theme-setting-helper.js).
+//
+// Mục đầu để value RỖNG = "Mặc định" → xoá `palette`, thiệp về đúng màu gốc của
+// mẫu (đã khai sẵn ở :root của theme.css nên không phải áp gì).
+const PALETTE_DEFAULT_LABEL = "Mặc định";
+
+function _fillPaletteCombo() {
+  const el = document.getElementById("theme-palette");
+  if (!el || !el.setOptions || !window.CX_PALETTES) return;
+  el.setOptions([
+    { value: "", label: PALETTE_DEFAULT_LABEL, colors: _themePaletteDots() },
+    ...window.CX_PALETTES.map((p) => ({
+      value: p.id,
+      label: p.name,
+      colors: window.cxPaletteDots(p),
+    })),
+  ]);
+}
+
+// Chấm màu cho mục "Mặc định" — lấy từ chính bản khai của mẫu đang mở
+// (CX_THEME.palette), để khách thấy ngay mình đang rời khỏi tông nào.
+function _themePaletteDots() {
+  const p = _themeCardPalette();
+  return p ? window.cxPaletteDots(p) : [];
+}
+
+// Bảng màu GỐC của mẫu, đọc qua iframe xem trước như cách _themePreset() làm.
+function _themeCardPalette() {
+  const win = document.getElementById("theme-preview-iframe")?.contentWindow;
+  const p = win && win.CX_THEME && win.CX_THEME.palette;
+  if (p) _themeCardPaletteCache = p;
+  return _themeCardPaletteCache;
+}
+
+let _themeCardPaletteCache = null;
+
+// Bộ màu đang chọn (đã lưu) — dùng làm mặc định cho 4 ô màu bên dưới.
+function _currentPalette() {
+  const p = _themeSetting.palette;
+  return p && typeof p === "object" ? p : null;
+}
+
+function onCardPaletteChange() {
+  const el = document.getElementById("theme-palette");
+  const id = el ? el.value : "";
+  const val = id ? window.cxPaletteValue(id) : null;
+
+  if (val) _themeSetting.palette = val;
+  else delete _themeSetting.palette;
+
+  // Bộ màu đổi thì "màu mặc định" của 4 ô cũng đổi theo. Ô nào khách đã tự đặt
+  // thì giữ nguyên — chọn bộ không được xoá thứ khách cố ý chỉnh.
+  const d = _themeDefaults();
+  THEME_COLOR_FIELDS.forEach(({ id: fid, key }) => {
+    if (!_themeColorTouched.has(key) && !_themeSetting[key]) _chipValue(fid, d[key]);
+  });
+
+  _setDirty(true, "theme");
+  const iframe = document.getElementById("theme-preview-iframe");
+  if (iframe?.contentWindow?.applyThemeSetting) {
+    iframe.contentWindow.applyThemeSetting(_themeSetting);
+  }
+}
+
+window.onCardPaletteChange = onCardPaletteChange;
+
+// Ô màu nào khách ĐÃ tự bấm. Xem chú thích ở onThemeSettingChange().
+const _themeColorTouched = new Set();
 
 // 4 ô màu của thanh chỉnh: id phần tử ↔ khoá trong theme_setting
 const THEME_COLOR_FIELDS = [
@@ -128,10 +211,13 @@ function _initColorPickers() {
     picker.appendChild(done);
   }
 
-  THEME_COLOR_FIELDS.forEach(({ id }) => {
+  THEME_COLOR_FIELDS.forEach(({ id, key }) => {
     const el = document.getElementById(id);
     if (!el) return;
-    el.addEventListener("input", () => onThemeSettingChange());
+    el.addEventListener("input", () => {
+      _themeColorTouched.add(key);
+      onThemeSettingChange();
+    });
     el.addEventListener("click", () => {
       _openChip = el;
       _alignPickerToChip(el);
@@ -231,6 +317,10 @@ function _initThemePanel() {
     _themePanelReady = true;
   }
 
+  _fillPaletteCombo();
+  const pal = document.getElementById("theme-palette");
+  if (pal) pal.value = _currentPalette()?.id || "";
+
   // <x-combobox>.value tự đồng bộ nhãn khi gán (kể cả lúc nạp thiệp / reset).
   const hf = document.getElementById("theme-heading-font");
   const bf = document.getElementById("theme-body-font");
@@ -256,28 +346,29 @@ function onThemeSettingChange() {
 
   // Giữ lại ghi đè từng dòng + khối văn bản + hoạ tiết — nếu không sẽ bị xoá
   // khi dựng lại object.
-  const overrides = _themeSetting.text_overrides;
-  const blocks = _themeSetting.custom_blocks;
-  const decors = _themeSetting.decorations;
-  const elements = _themeSetting.elements;
-  const musicSeeded = _themeSetting.music_seeded;
+  const keep = _themeSetting;
 
   _themeSetting = {
     heading_font: hf ? hf.value : "",
     body_font: bf ? bf.value : "",
   };
+  // Ô màu chỉ ghi xuống khi khách THỰC SỰ bấm vào nó (hoặc thiệp cũ đã lưu sẵn).
+  // Ghi cả 4 ô mỗi lần hàm này chạy — kể cả khi khách chỉ đổi phông chữ — sẽ
+  // giết bộ màu: `background_color` áp !important lên `body, #main-card` nên ép
+  // nền trang và thân thiệp về CÙNG một màu, mất hẳn hai tông của bộ.
   THEME_COLOR_FIELDS.forEach(({ id, key }) => {
-    _themeSetting[key] = _chipValue(id);
+    if (_themeColorTouched.has(key) || keep[key]) _themeSetting[key] = _chipValue(id);
   });
-  if (overrides && Object.keys(overrides).length)
-    _themeSetting.text_overrides = overrides;
-  if (Array.isArray(blocks) && blocks.length)
-    _themeSetting.custom_blocks = blocks;
-  if (Array.isArray(decors) && decors.length)
-    _themeSetting.decorations = decors;
-  if (Array.isArray(elements) && elements.length)
-    _themeSetting.elements = elements;
-  if (musicSeeded) _themeSetting.music_seeded = true;
+  if (keep.palette) _themeSetting.palette = keep.palette;
+  if (keep.text_overrides && Object.keys(keep.text_overrides).length)
+    _themeSetting.text_overrides = keep.text_overrides;
+  if (Array.isArray(keep.custom_blocks) && keep.custom_blocks.length)
+    _themeSetting.custom_blocks = keep.custom_blocks;
+  if (Array.isArray(keep.decorations) && keep.decorations.length)
+    _themeSetting.decorations = keep.decorations;
+  if (Array.isArray(keep.elements) && keep.elements.length)
+    _themeSetting.elements = keep.elements;
+  if (keep.music_seeded) _themeSetting.music_seeded = true;
 
   _setDirty(true, "theme");
 
@@ -290,6 +381,7 @@ function onThemeSettingChange() {
 
 function resetThemeSetting() {
   _themeSetting = {};
+  _themeColorTouched.clear();
   _initThemePanel();
   _setDirty(true, "theme");
 

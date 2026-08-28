@@ -263,7 +263,7 @@ body {
     font-size: 26px;
     line-height: 1.1;
     letter-spacing: 5px;
-    color: rgb(var(--mc-on-photo));
+    color: rgb(var(--cx-on-image-rgb));
     text-shadow: 0 1px 12px rgb(var(--cx-deco-rgb) / 0.7);
 }
 
@@ -296,7 +296,7 @@ body {
   font-size: 9px;
   letter-spacing: 3px;
   text-transform: uppercase;
-  color: rgb(var(--mc-on-photo) / 0.75);
+  color: rgb(var(--cx-on-image-rgb) / 0.75);
 }
 
 /* Tháng lớn (trái) + lưới ngày (phải), trên nền trắng của panel. #mini-calendar
@@ -536,13 +536,6 @@ body {
   }
 }
 
-/* Trắng của chữ nằm trên ảnh — CỐ ĐỊNH như --cx-deco-rgb: khách đổi bảng màu
-   thì chữ đè ảnh vẫn phải là trắng mới đọc được. */
-
-:root {
-  --mc-on-photo: 255 255 255;
-}
-
 /* Lớp phủ tối để chữ luôn đọc được dù ảnh sáng hay tối. */
 
 .mc-ph-veil {
@@ -581,7 +574,7 @@ body {
   font-size: 9px;
   letter-spacing: 3px;
   text-transform: uppercase;
-  color: rgb(var(--mc-on-photo) / 0.82);
+  color: rgb(var(--cx-on-image-rgb) / 0.82);
 }
 
 /* Chữ ký: font TỰ HOST (khai ở styles/_fonts.css), cố ý ĐỨNG NGOÀI
@@ -594,14 +587,14 @@ body {
   font-family: "TheHamstter", cursive;
   font-size: 36px;
   line-height: 1.12;
-  color: rgb(var(--mc-on-photo));
+  color: rgb(var(--cx-on-image-rgb));
   text-shadow: 0 2px 18px rgb(var(--cx-deco-rgb) / 0.45);
 }
 
 .mc-ph-amp {
   margin: 0 6px;
   font-size: 26px;
-  color: rgb(var(--mc-on-photo) / 0.75);
+  color: rgb(var(--cx-on-image-rgb) / 0.75);
 }
 
 /* ── KHỐI NGÀY: hàng ba ô kẹp giữa hai kẻ ngang, hai vạch dọc ngăn ô ─────── */
@@ -728,7 +721,7 @@ body {
   overflow: hidden;
   margin-top: 2px;
   background-color: rgb(var(--cx-deco-rgb));
-  color: rgb(var(--mc-on-photo));
+  color: rgb(var(--cx-on-image-rgb));
   /* Lớp phủ để nhạt cho còn thấy ảnh nền, nên chữ phải tự lo phần tương phản:
      bóng đổ mềm là thứ giữ chữ đọc được khi trúng mảng sáng của ảnh. */
   text-shadow: 0 1px 10px rgb(var(--cx-deco-rgb) / 0.75);
@@ -757,7 +750,7 @@ body {
   font-size: 13px;
   letter-spacing: 4px;
   text-transform: uppercase;
-  color: rgb(var(--mc-on-photo));
+  color: rgb(var(--cx-on-image-rgb));
 }
 
 .mc-ph-fam-grid {
@@ -796,13 +789,13 @@ body {
   font-weight: 500;
   letter-spacing: 3px;
   text-transform: uppercase;
-  color: rgb(var(--mc-on-photo) / 0.6);
+  color: rgb(var(--cx-on-image-rgb) / 0.6);
 }
 
 .mc-ph-parent {
   font-size: 12px;
   line-height: 1.55;
-  color: rgb(var(--mc-on-photo));
+  color: rgb(var(--cx-on-image-rgb));
 }
 
 /* Địa chỉ mỗi nhà: dòng phụ, cố ý nhỏ và mờ hơn tên bố mẹ. Vạch đứt ngắn phía
@@ -815,7 +808,7 @@ body {
   padding-top: 8px;
   font-size: 9px;
   line-height: 1.5;
-  color: rgb(var(--mc-on-photo) / 0.66);
+  color: rgb(var(--cx-on-image-rgb) / 0.66);
 }
 
 .mc-ph-addr::before {

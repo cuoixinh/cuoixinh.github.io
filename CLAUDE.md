@@ -192,13 +192,27 @@ GitHub Pages chạy Jekyll nên đường dẫn kiểu đó không được publ
   `#section-gift`), `skipSteps` (bước mà trang Thiết lập KHÔNG hiện vì mẫu không vẽ mục
   đó — id trùng `CX_STEPS`), `onOpen`.
   Trang Thiết lập đọc `preset` **qua iframe xem trước** của tab Giao diện.
+- **`CX_THEME.palette`** khai đúng những giá trị `:root` của `theme.css` dưới dạng hex —
+  bản khai máy đọc được để trang Thiết lập hiện mục "Mặc định". Hai nơi lệch nhau thì
+  bảng chọn hiện sai màu mà trang vẫn chạy, rất khó thấy → **`npm run check:palette`**
+  đối chiếu, `-- --write` sinh lại. Sửa màu mẫu thì sửa `theme.css` rồi chạy lệnh này.
 - `index.js` **bọc trong IIFE**, chỉ lộ `CX_THEME` + `renderWedding`: `const` cấp cao nhất của
   script cổ điển là biến toàn cục. Không tự chạy gì — `core/helpers/theme-boot.js` (nạp SAU)
   lo nạp dữ liệu, mở thiệp, hiệu ứng cuộn, viewport iOS; nó cũng cấp `cxEnabled`/`cxToggle`.
-- Màu dùng chung (lịch nhỏ, dòng thời gian, màn bìa, nút xác nhận tham dự) vẽ theo bộ biến
-  **`--cx-accent/heading/body/line/surface/on-accent/cover/cover-mid`** — mặc định ở
-  `styles/_common.css`, theme ghi đè trong `theme.css`. **Helper không được nhắc token của
-  một theme cụ thể.**
+- **MỌI màu đi qua bộ token `--cx-*-rgb`** (mặc định ở `styles/_common.css`, mẫu ghi đè
+  trong `theme.css`). Chữ: `heading` · `body` · `accent` · `accent-soft` · `on-accent` ·
+  `on-image` · `on-lightbox`. Nền: `card-bg` · `page-bg` · `surface` · `band` · `panel` ·
+  `panel-warm` · `cover` · `cover-mid` · `cover-veil` · `lightbox-bg`. Đường/bóng: `line` · `shadow` ·
+  `scrim`. Trang trí: `deco` · `deco-soft` · `deco-2` · `deco-2-soft` ·
+  `shine-from/mid/to`. Markup dùng lớp ngữ nghĩa tương ứng (`.cx-h` `.cx-t` `.cx-a`
+  `.cx-a-soft` `.cx-border` `.cx-bg-line/surface/band/panel` `.cx-on-image` `.cx-lightbox`…).
+  **Hard-code một mã màu = chỗ đó nằm ngoài bộ màu**, khách đổi tông sẽ thấy một mảng lạc
+  lõng. Ngoại lệ: `mask-image` giữ `#000` (chỉ dùng kênh alpha) và `--cx-qr-bg-rgb` (máy
+  quét cần nền sáng).
+- Trong `_common.css`, **`.cx-a` phải đứng SAU `.cx-h`/`.cx-t`**: mẫu gắn cả `cx-h cx-a`
+  lên một thẻ (tiêu đề tô màu nhấn), cùng độ đặc hiệu nên rule dưới thắng. `theme.css`
+  của mẫu **chỉ khai `font-family`** cho `.cx-h`/`.cx-t`, khai thêm `color` là đè mất.
+- **Helper không được nhắc token của một theme cụ thể.**
 - Có **`#main-card`**; container các mục là **flex-column** (để chèn khối văn bản xen giữa).
 - Bind dữ liệu qua **`setText(id, value)`** (`core/utils.js`) — `el.textContent =` sẽ không
   khoá được sửa text trực tiếp.
@@ -313,6 +327,17 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   `element-color-enum.js` (nạp TRƯỚC `element-helper.js`), số ô tối đa `EL_COLOR_SLOTS` phải
   có sẵn bấy nhiêu hàng chip trong `theme-panel.html` (Coloris chỉ bọc được input đã có
   trong DOM). `pin: true` → widget ghim theo màn hình, khi đó `y` là % chiều cao KHUNG NHÌN.
+- **Bộ màu thiệp (`theme_setting.palette`):** danh mục ở `core/helpers/card-palette-helper.js`
+  (**chỉ trang Thiết lập nạp** — thiệp lưu sẵn màu nên không cần danh mục), áp ở
+  `applyThemeSetting` bằng cách đổ vào `:root { --cx-*-rgb }`, bảng chọn ở
+  `05-theme-panel.js`. Lưu trong `theme_setting` nên **không cần changelog DB**. Thêm bộ
+  mới phải qua **`npm run check:palette-contrast`** (nền sáng + đủ tương phản chữ/nền);
+  `id` đã phát hành thì đừng đổi. Nút nhạc dùng bảng `--music-*` riêng nên
+  `_cxPaletteRule` suy thêm bảng đó từ bộ màu — chỉ khi CÓ bộ, để thiệp không chọn bộ giữ
+  nguyên hình thức cũ.
+- **Ô màu lẻ ở tab Giao diện chỉ ghi xuống khi khách THỰC SỰ bấm** (`_themeColorTouched`).
+  Ghi cả 4 ô mỗi lần `onThemeSettingChange()` chạy sẽ giết bộ màu: `background_color` áp
+  `!important` lên `body, #main-card` nên ép nền trang và thân thiệp về cùng một màu.
 - **Mẫu văn bản (preset):** danh mục + CSS ở `core/helpers/text-preset-helper.js` (nạp TRƯỚC
   `theme-setting-helper.js`), thêm mẫu chỉ sửa file đó. Lưu trong `custom_blocks` dạng
   `{type:"preset", preset, parts}`, id thật của part là `<blockId>__<key>`. Cỡ chữ viết bằng

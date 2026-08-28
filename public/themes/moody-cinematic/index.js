@@ -16,6 +16,40 @@
 
     // Font/màu GỐC: giá trị mặc định trên thanh chỉnh ở tab Giao diện, cũng là
     // điểm "Khôi phục mặc định". Trang Thiết lập đọc qua iframe xem trước.
+    // Bộ màu MẶC ĐỊNH của mẫu — bản khai máy đọc được của đúng những giá trị
+    // :root trong theme.css (nguồn sự thật). Trang Thiết lập đọc nó để hiện mục
+    // "Mặc định"; theme_setting.palette ghi đè lên trên lúc chạy.
+    // Sinh lại bằng: node scripts/check-theme-palette.mjs --write
+    palette: {
+      heading: "#1e252e",
+      body: "#6a7380",
+      accent: "#2a3d58",
+      accent_soft: "#e8b4b8",
+      on_accent: "#ffffff",
+      on_image: "#ffffff",
+      on_lightbox: "#ffffff",
+      card_bg: "#ffffff",
+      page_bg: "#f2f4f7",
+      surface: "#f2f4f7",
+      band: "#fff5f0",
+      panel: "#ffffff",
+      panel_warm: "#ffffff",
+      cover: "#f8f9fb",
+      cover_mid: "#e8ebf0",
+      cover_veil: "#e8ebf0",
+      lightbox_bg: "#000000",
+      line: "#dbdfe6",
+      shadow: "#000000",
+      scrim: "#000000",
+      deco: "#0c0e12",
+      deco_soft: "#f5d5d8",
+      deco_2: "#0c0e12",
+      deco_2_soft: "#f5d5d8",
+      shine_from: "#d4a5a5",
+      shine_mid: "#e8b4b8",
+      shine_to: "#f5d5d8",
+    },
+
     preset: {
       heading_font: "Prata",
       body_font: "Montserrat",

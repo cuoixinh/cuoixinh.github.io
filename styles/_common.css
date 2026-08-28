@@ -39,6 +39,7 @@
   --cx-page-bg-rgb: var(--cx-surface-rgb); /* nền TRANG, ngoài thân thiệp */
   --cx-cover-rgb: var(--card-cream-50-rgb); /* nền màn bìa: hai đầu dải */
   --cx-cover-mid-rgb: var(--cover-bg-mid-rgb); /* …và điểm giữa */
+  --cx-cover-veil-rgb: var(--cx-cover-mid-rgb); /* màn phủ ẢNH bìa: điểm giữa */
   --cx-lightbox-bg-rgb: 0 0 0; /* nền khung xem ảnh toàn màn */
   /* Nền sau mã QR. CỐ TÌNH đứng ngoài bộ màu: máy quét cần nền sáng, tô theo
      tông thiệp là có bộ làm khách không chuyển khoản được. */
@@ -52,6 +53,10 @@
   /* — Trang trí — */
   --cx-deco-rgb: var(--card-blush-300-rgb); /* hoạ tiết, quầng sáng */
   --cx-deco-soft-rgb: var(--card-blush-100-rgb); /* …nấc nhạt */
+  /* Quầng trang trí THỨ HAI — mẫu nào có hai quầng khác sắc nhau thì khai
+     riêng (noir-elegance), còn lại đi theo quầng thứ nhất. */
+  --cx-deco-2-rgb: var(--cx-deco-rgb);
+  --cx-deco-2-soft-rgb: var(--cx-deco-soft-rgb);
   --cx-shine-from-rgb: var(--card-blush-300-rgb); /* dải chuyển màu trang trí */
   --cx-shine-mid-rgb: var(--card-blush-200-rgb);
   --cx-shine-to-rgb: var(--card-blush-100-rgb);

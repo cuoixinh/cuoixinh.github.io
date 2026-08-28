@@ -13,6 +13,40 @@
   window.CX_THEME = {
     id: "romantic-gold",
 
+    // Bộ màu MẶC ĐỊNH của mẫu — bản khai máy đọc được của đúng những giá trị
+    // :root trong theme.css (nguồn sự thật). Trang Thiết lập đọc nó để hiện mục
+    // "Mặc định"; theme_setting.palette ghi đè lên trên lúc chạy.
+    // Sinh lại bằng: node scripts/check-theme-palette.mjs --write
+    palette: {
+      heading: "#2d3436",
+      body: "#8a9a8a",
+      accent: "#a89968",
+      accent_soft: "#e8dcc8",
+      on_accent: "#ffffff",
+      on_image: "#ffffff",
+      on_lightbox: "#ffffff",
+      card_bg: "#ffffff",
+      page_bg: "#f6f7f6",
+      surface: "#f6f7f6",
+      band: "#f6f7f6",
+      panel: "#ffffff",
+      panel_warm: "#ffffff",
+      cover: "#f6f7f6",
+      cover_mid: "#e8ebe8",
+      cover_veil: "#e8ebe8",
+      lightbox_bg: "#000000",
+      line: "#d1d8d1",
+      shadow: "#000000",
+      scrim: "#000000",
+      deco: "#000000",
+      deco_soft: "#f5d5d8",
+      deco_2: "#000000",
+      deco_2_soft: "#f5d5d8",
+      shine_from: "#d4a5a5",
+      shine_mid: "#e8b4b8",
+      shine_to: "#f5d5d8",
+    },
+
     preset: {
       heading_font: "Cormorant Garamond",
       body_font: "Inter",

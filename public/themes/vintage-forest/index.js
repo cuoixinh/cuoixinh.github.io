@@ -16,6 +16,40 @@
   window.CX_THEME = {
     id: "vintage-forest",
 
+    // Bộ màu MẶC ĐỊNH của mẫu — bản khai máy đọc được của đúng những giá trị
+    // :root trong theme.css (nguồn sự thật). Trang Thiết lập đọc nó để hiện mục
+    // "Mặc định"; theme_setting.palette ghi đè lên trên lúc chạy.
+    // Sinh lại bằng: node scripts/check-theme-palette.mjs --write
+    palette: {
+      heading: "#1a1a1a",
+      body: "#7a7a7a",
+      accent: "#f3a8b8",
+      accent_soft: "#e8b4b8",
+      on_accent: "#ffffff",
+      on_image: "#ffffff",
+      on_lightbox: "#ffffff",
+      card_bg: "#ffffff",
+      page_bg: "#fdf1f3",
+      surface: "#fdf1f3",
+      band: "#fdf1f3",
+      panel: "#ffffff",
+      panel_warm: "#fffdfa",
+      cover: "#ffffff",
+      cover_mid: "#fdf1f3",
+      cover_veil: "#fdf1f3",
+      lightbox_bg: "#000000",
+      line: "#f6d6dd",
+      shadow: "#000000",
+      scrim: "#000000",
+      deco: "#be2c34",
+      deco_soft: "#f5d5d8",
+      deco_2: "#be2c34",
+      deco_2_soft: "#f5d5d8",
+      shine_from: "#d4a5a5",
+      shine_mid: "#e8b4b8",
+      shine_to: "#f5d5d8",
+    },
+
     preset: {
       heading_font: "Playfair Display",
       body_font: "Be Vietnam Pro",

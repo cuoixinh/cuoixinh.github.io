@@ -14,6 +14,40 @@
   window.CX_THEME = {
     id: "luminous-pastel",
 
+    // Bộ màu MẶC ĐỊNH của mẫu — bản khai máy đọc được của đúng những giá trị
+    // :root trong theme.css (nguồn sự thật). Trang Thiết lập đọc nó để hiện mục
+    // "Mặc định"; theme_setting.palette ghi đè lên trên lúc chạy.
+    // Sinh lại bằng: node scripts/check-theme-palette.mjs --write
+    palette: {
+      heading: "#5f5654",
+      body: "#938a88",
+      accent: "#c9b48f",
+      accent_soft: "#e8b4b8",
+      on_accent: "#ffffff",
+      on_image: "#ffffff",
+      on_lightbox: "#ffffff",
+      card_bg: "#f9f3f1",
+      page_bg: "#f3ebe9",
+      surface: "#f3ebe9",
+      band: "#fff5f0",
+      panel: "#ffffff",
+      panel_warm: "#ffffff",
+      cover: "#f9f3f1",
+      cover_mid: "#f2e4e1",
+      cover_veil: "#f2e4e1",
+      lightbox_bg: "#000000",
+      line: "#e9dbd9",
+      shadow: "#000000",
+      scrim: "#000000",
+      deco: "#dcaea8",
+      deco_soft: "#f5d5d8",
+      deco_2: "#dcaea8",
+      deco_2_soft: "#f5d5d8",
+      shine_from: "#d4a5a5",
+      shine_mid: "#e8b4b8",
+      shine_to: "#f5d5d8",
+    },
+
     preset: {
       heading_font: "Cormorant Garamond",
       body_font: "Quicksand",

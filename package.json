@@ -8,7 +8,9 @@
     "build:themes": "tailwindcss -c ./tailwind.themes.config.js -i ./styles/themes-src.css -o ./styles/themes.css --minify",
     "watch:css": "tailwindcss -c ./tailwind.config.js -i ./styles/tailwind-src.css -o ./styles/build.css --watch",
     "watch:themes": "tailwindcss -c ./tailwind.themes.config.js -i ./styles/themes-src.css -o ./styles/themes.css --watch",
-    "deploy:functions": "bash scripts/deploy-functions.sh"
+    "deploy:functions": "bash scripts/deploy-functions.sh",
+    "check:palette": "node scripts/check-theme-palette.mjs",
+    "check:palette-contrast": "node scripts/check-palette-contrast.mjs"
   },
   "devDependencies": {
     "tailwindcss": "3.4.17"
