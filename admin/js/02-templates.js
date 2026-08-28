@@ -27,13 +27,24 @@ async function purgeTemplatesCache() {
 
     const result = await response.json();
 
-    if (response.ok && result.success) {
-      alert(
-        "✅ Đã xóa cache thành công!\n\nTemplates mới sẽ được load trong lần truy cập tiếp theo.",
-      );
-    } else {
+    if (!response.ok || !result.success) {
       alert("❌ Lỗi: " + (result.error || "Không thể xóa cache"));
+      return;
     }
+
+    // Báo đúng số key xoá được, đừng nói suông "thành công": worker vẫn trả
+    // success khi không xoá được gì (Cache API riêng từng colo, và trên
+    // *.workers.dev thì nó không lưu gì cả) — nuốt con số này đi là lần sau
+    // cache cũ lại bị đổ oan cho nút bấm.
+    const n = result.deletedCount ?? 0;
+    alert(
+      (n > 0
+        ? `✅ Đã xóa ${n} bản cache ở edge.`
+        : "ℹ️ Edge không có bản cache nào để xóa (bình thường với *.workers.dev).") +
+        "\n\nCache trên trình duyệt khách KHÔNG xóa từ xa được — đổi template sẽ" +
+        " tự lan tới mọi khách trong vòng 5 phút. Muốn thấy ngay trên máy này thì" +
+        " Ctrl+F5 (hoặc tick Disable cache trong DevTools).",
+    );
   } catch (error) {
     alert("❌ Lỗi kết nối: " + error.message);
   } finally {
