@@ -101,7 +101,11 @@ export default {
       const templates = await templatesResponse.json();
       const pricing = await pricingResponse.json();
 
-      // Merge pricing into templates
+      // Shape phải KHỚP TỪNG FIELD với Edge Function `public-templates`
+      // (`supabase/functions/wedding-admin`): hai nguồn thay thế nhau được là
+      // nhờ chỗ này, lệch một tên field thì trang chỉ vỡ đúng lúc worker hỏng.
+      // Giá mặc định cũng lấy theo bên đó — `null` làm `price.toLocaleString()`
+      // ở bên gọi ném lỗi.
       const templatesWithPricing = templates.map((template) => {
         const templatePricing = pricing.find(
           (p) => p.template_name === template.template_name,
@@ -109,14 +113,14 @@ export default {
         return {
           id: template.template_id,
           name: template.display_name,
-          description: template.description,
-          thumbnail: template.thumbnail_url,
-          previewUrl: template.preview_url,
           theme: template.template_name,
+          description: template.description,
+          thumbnailUrl: template.thumbnail_url,
+          previewUrl: template.preview_url,
           status: template.status,
           category: template.category,
-          price: templatePricing?.price || null,
-          originalPrice: templatePricing?.original_price || null,
+          price: templatePricing?.price ?? 159000,
+          originalPrice: templatePricing?.original_price ?? 199000,
         };
       });
 

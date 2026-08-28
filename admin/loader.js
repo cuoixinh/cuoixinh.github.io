@@ -36,6 +36,7 @@
     // formatLunarDate (tự tính ngày âm từ ngày dương) — cả hai đều thuần
     // logic, không bind DOM của trang nào.
     "../core/dal/ai-dal.js",
+    "../core/dal/templates-dal.js",
     "../invitation-setup/js/09-lunar.js",
     "js/01-weddings.js",
     // Ô nhập của modal "Thêm Template" (<x-input>) và ô soạn mã HTML của tab

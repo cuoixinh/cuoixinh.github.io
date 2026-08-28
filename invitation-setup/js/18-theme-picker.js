@@ -21,14 +21,7 @@ async function openThemePicker() {
   sheet.body.innerHTML = `<div class="flex items-center justify-center py-10 text-gray-400 text-sm">Đang tải...</div>`;
 
   try {
-    const res = await fetch(
-      `${CONFIG.supabase.edgeUrl}?resource=public-templates`,
-      {
-        headers: { Authorization: `Bearer ${CONFIG.supabase.anonKey}` },
-      },
-    );
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const rows = await res.json();
+    const rows = await templatesDAL.list();
 
     sheet.body.innerHTML = `
       <div class="flex flex-col divide-y divide-gray-100">

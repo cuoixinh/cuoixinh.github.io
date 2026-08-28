@@ -6,28 +6,47 @@ const CATEGORY_LABELS = {
   premium: "CAO CẤP",
 };
 
-function renderTemplateCards() {
-  const inner = document.getElementById("templateCarouselInner");
-  if (!inner) return;
+// Số thẻ giữ trong DOM mỗi bên thẻ đang xem → tối đa 5 thẻ tồn tại, dù danh
+// sách có bao nhiêu mẫu. Không có cửa sổ này thì 100 mẫu = 100 thẻ, 2.300 node,
+// 100 ảnh tải cùng lúc và setActiveCard phải đụng cả trăm thẻ mỗi lần vuốt.
+// Nới ra thì mượt hơn khi vuốt nhanh nhưng tải thêm ảnh — 2 là đủ để thẻ kề bên
+// (offset ±1) luôn có sẵn ảnh trước khi trượt vào.
+const CARD_WINDOW = 2;
 
-  inner.innerHTML = templates
-    .map((t, index) => {
-      const isActive = t.status === "active";
+// Chỉ số mẫu cần có mặt trong DOM khi `active` đang mở, theo đúng thứ tự trái →
+// phải. Danh sách ngắn hơn cửa sổ thì tự gộp trùng, không dựng thẻ thừa.
+function cardWindowIndices(active) {
+  const n = templates.length;
+  const out = [];
+  const seen = new Set();
+  for (let d = -CARD_WINDOW; d <= CARD_WINDOW; d++) {
+    const i = ((active + d) % n + n) % n;
+    if (seen.has(i)) continue;
+    seen.add(i);
+    out.push(i);
+  }
+  return out;
+}
 
-      const imageContent = isActive
-        ? `<img
-             src="/assets/images/templates/${t.theme}.jpg"
-             alt="${t.name}"
-             loading="lazy"
-             style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;object-position:top center;pointer-events:none;"
-           />`
-        : "";
+// Ruột một thẻ. Tách khỏi vỏ `.carousel-3d-card` vì vỏ được TÁI DÙNG: cuộn
+// carousel chỉ thay ruột chứ không dựng lại phần tử.
+function templateCardBody(t) {
+  const isActive = t.status === "active";
 
-      const categoryLabel =
-        t.category === "premium" ? "Thiệp cao cấp" : "Thiệp miễn phí";
+  // KHÔNG `loading="lazy"`: chỉ 5 thẻ nằm trong DOM và thẻ ở ±2 nằm ngoài tầm
+  // nhìn, lazy sẽ hoãn tải tới đúng lúc nó trượt vào → chớp một nhịp trống ảnh.
+  const imageContent = isActive
+    ? `<img
+         src="/assets/images/templates/${t.theme}.jpg"
+         alt="${t.name}"
+         style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;object-position:top center;pointer-events:none;"
+       />`
+    : "";
 
-      return `
-      <div class="carousel-3d-card" data-index="${index}">
+  const categoryLabel =
+    t.category === "premium" ? "Thiệp cao cấp" : "Thiệp miễn phí";
+
+  return `
         <!-- Mockup điện thoại vẽ bằng CSS (.cx-mock ở styles/_common.css) —
              không ảnh khung, không tai thỏ. Khổ + tỉ lệ do .carousel-3d-card. -->
         <div class="cx-mock">
@@ -67,9 +86,47 @@ function renderTemplateCards() {
             </div>
           </div>
           </div>
-        </div>
-      </div>`;
-    })
+        </div>`;
+}
+
+// Đổ mẫu thứ `index` vào một vỏ thẻ có sẵn. `data-index` là chỉ số MẪU (không
+// phải vị trí trong DOM) — click handler và setActiveCard đều đọc nó.
+function fillCard(card, index) {
+  const t = templates[index];
+  if (!t) return;
+  card.dataset.index = index;
+  card.innerHTML = templateCardBody(t);
+  window.lucide?.createIcons({ root: card });
+}
+
+// Gán mẫu cho thẻ nhưng HOÃN dựng ruột sang frame sau. Thẻ vừa tái dùng luôn
+// đứng ở offset ±2 (opacity 0) nên chưa ai nhìn thấy, mà innerHTML + upgrade
+// <x-button> + lucide là phần nặng nhất của một lần cuộn — để nó chắn nhịp đầu
+// là animation trượt thẻ mất luôn khúc mở đầu.
+function assignCard(card, index) {
+  card.dataset.index = index;
+  requestAnimationFrame(() => {
+    // Vuốt nhanh liên tiếp có thể gán lại thẻ này cho mẫu khác trước khi tới
+    // lượt dựng — lúc đó bản dựng này đã lỗi thời, bỏ đi.
+    if (Number(card.dataset.index) !== index) return;
+    fillCard(card, index);
+  });
+}
+
+function renderTemplateCards() {
+  const inner = document.getElementById("templateCarouselInner");
+  if (!inner) return;
+  if (!templates.length) {
+    inner.innerHTML = "";
+    return;
+  }
+
+  if (carouselActiveIndex >= templates.length) carouselActiveIndex = 0;
+  const want = cardWindowIndices(carouselActiveIndex);
+  inner.innerHTML = want
+    .map(() => '<div class="carousel-3d-card"></div>')
     .join("");
-  window.lucide?.createIcons({ root: inner });
+  inner.querySelectorAll(".carousel-3d-card").forEach((card, i) => {
+    fillCard(card, want[i]);
+  });
 }

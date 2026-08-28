@@ -9,7 +9,7 @@ const sb = window.supabaseClient;
 let currentUser = null;
 let CARDS = [];
 let ACTIVE_TAB = "all";
-// theme (template_name) → tên hiển thị, nạp một lần từ ?resource=public-templates.
+// theme (template_name) → tên hiển thị, nạp một lần qua templatesDAL.
 let THEME_NAMES = {};
 
 const POST_LOGIN_REDIRECT_KEY = "post_login_redirect";
@@ -129,15 +129,8 @@ function themeName(theme) {
 // Tên hiển thị của mẫu ("Truyền thống 01"…) — thiếu thì thẻ rơi về tên slug hoá hoa.
 async function loadThemeNames() {
   try {
-    const res = await fetch(
-      CONFIG.supabase.edgeUrl + "?resource=public-templates",
-      {
-        headers: { Authorization: "Bearer " + CONFIG.supabase.anonKey },
-      },
-    );
-    if (!res.ok) return;
-    const list = await res.json();
-    if (!Array.isArray(list)) return;
+    const list = await templatesDAL.list();
+    if (!list.length) return;
     THEME_NAMES = Object.fromEntries(list.map((t) => [t.theme, t.name]));
     if (CARDS.length) render();
   } catch (e) {

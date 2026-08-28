@@ -165,16 +165,10 @@
   // lấy mẫu đang bật đầu tiên rồi đi tiếp bằng cxStartDraft với chosen=false.
   // Trang nào đã có sẵn danh sách mẫu (trang chủ) thì gọi thẳng cxStartDraft,
   // khỏi hỏi lại server.
-  // Danh sách mẫu đi qua Edge Function `public-templates` — không gọi thẳng
-  // REST của Supabase. Hàng đầu tiên đã là mẫu có sort_order nhỏ nhất.
+  // Hàng đầu tiên đã là mẫu có sort_order nhỏ nhất.
   window.cxStartDefaultDraft = function (params, opts) {
-    return fetch(CONFIG.supabase.edgeUrl + "?resource=public-templates", {
-      headers: { Authorization: "Bearer " + CONFIG.supabase.anonKey },
-    })
-      .then(function (r) {
-        if (!r.ok) throw new Error("HTTP " + r.status);
-        return r.json();
-      })
+    return window.templatesDAL
+      .list()
       .then(function (rows) {
         var t = rows && rows[0];
         if (!t) throw new Error("Chưa có mẫu thiệp nào");
