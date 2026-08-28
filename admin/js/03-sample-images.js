@@ -11,21 +11,18 @@
 // 3. "Lưu vào ổ đĩa" GHI ĐÈ toàn bộ ảnh trong thư mục.
 // 4. ẢNH MẪU LUÔN GIỮ NGUYÊN FULL CHẤT LƯỢNG — không qua nén/resize.
 
-// Danh sách mẫu lấy từ bảng `templates` (edge function public-templates) — thêm
-// mẫu mới chỉ cần một hàng trong DB, không sửa file này. Hỏng mạng thì để trống,
-// người dùng bấm lại tab là gọi lại.
+// Danh sách mẫu lấy qua templatesDAL (Worker cache, hỏng thì rơi về Edge) —
+// thêm mẫu mới chỉ cần một hàng trong DB, không sửa file này. Hỏng mạng thì để
+// trống, người dùng bấm lại tab là gọi lại.
+// Đi qua cache nên mẫu VỪA thêm ở tab Templates có thể chưa hiện ngay ở đây;
+// bấm "Xóa cache" bên tab đó, hoặc chờ hết TTL phía trình duyệt (5 phút).
 let SI_THEMES = [];
 
 async function siLoadThemes() {
   if (SI_THEMES.length) return SI_THEMES;
   try {
-    const res = await fetch(
-      `${CONFIG.supabase.edgeUrl}?resource=public-templates`,
-      { headers: { Authorization: `Bearer ${CONFIG.supabase.anonKey}` } },
-    );
-    if (!res.ok) return SI_THEMES;
-    const rows = await res.json();
-    SI_THEMES = (Array.isArray(rows) ? rows : [])
+    const rows = await templatesDAL.list();
+    SI_THEMES = rows
       .filter((t) => t.theme)
       .map((t) => ({ value: t.theme, label: t.name || t.theme }));
   } catch (e) {

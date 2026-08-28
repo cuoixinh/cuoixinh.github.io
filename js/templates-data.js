@@ -1,42 +1,11 @@
 // Landing Page JavaScript
 
-const TEMPLATES_API_URL = CONFIG.cloudflare.templatesCache
-  ? CONFIG.cloudflare.templatesCache + "/"
-  : null;
-
 let templates = [];
 let carouselActiveIndex = 0;
 // Khổ card active hiện tại (px) — sizeCarousel() cập nhật, applyCardTransform()
 // đọc _cardW để đặt card kề bên; _cardH chỉ để so sánh xem có gì đổi không.
 let _cardW = 220;
 let _cardH = 420;
-
-async function fetchTemplatesViaEdge() {
-  const res = await fetch(`${CONFIG.supabase.edgeUrl}?resource=public-templates`, {
-    headers: { Authorization: `Bearer ${CONFIG.supabase.anonKey}` },
-  });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.json();
-}
-
-async function fetchTemplatesViaCache() {
-  const res = await fetch(TEMPLATES_API_URL);
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.json();
-}
-
-// Hai NGUỒN khác nhau cho cùng danh sách: Worker (có cache, nhanh) rồi Edge
-// Function. Worker hỏng — Supabase chập chờn, worker lỗi, hoặc *.workers.dev bị
-// chặn ở phía khách — thì gọi lại chính nó cũng hỏng y vậy, phải đổi nguồn.
-async function fetchTemplates() {
-  if (!TEMPLATES_API_URL) return fetchTemplatesViaEdge();
-  try {
-    return await fetchTemplatesViaCache();
-  } catch (err) {
-    console.warn("Templates cache lỗi, chuyển sang Edge Function:", err);
-    return fetchTemplatesViaEdge();
-  }
-}
 
 // Ba hàm này nằm ở file nạp SAU file này (render-templates.js, auth-nav.js,
 // page-setup.js…). Fetch có thể resolve ngay giữa hai thẻ <script> nên phải đợi
@@ -80,7 +49,9 @@ function retryLoadTemplates() {
 
 async function loadTemplates() {
   try {
-    templates = await fetchTemplates();
+    // Nguồn + fallback nằm ở core/dal/templates-dal.js, dùng chung với mọi trang.
+    templatesDAL.invalidate();
+    templates = await templatesDAL.list();
   } catch (error) {
     // Chỉ bắt lỗi TẢI dữ liệu — lỗi khi dựng giao diện phải nổi lên console
     // chứ không được báo thành "không tải được mẫu".

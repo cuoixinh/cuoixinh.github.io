@@ -36,6 +36,10 @@ async function purgeTemplatesCache() {
     // success khi không xoá được gì (Cache API riêng từng colo, và trên
     // *.workers.dev thì nó không lưu gì cả) — nuốt con số này đi là lần sau
     // cache cũ lại bị đổ oan cho nút bấm.
+    // Purge chỉ dọn phía edge; bản nhớ trong RAM và HTTP cache của chính máy
+    // này vẫn là bản cũ → ép lấy lại luôn, không admin sửa xong vẫn thấy cũ.
+    window.templatesDAL?.refresh().catch(() => {});
+
     const n = result.deletedCount ?? 0;
     alert(
       (n > 0

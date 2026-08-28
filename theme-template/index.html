@@ -1294,6 +1294,7 @@
       CXAccount.mountChip();
     </script>
     <script src="../core/cache-util.js"></script>
+    <script src="../core/dal/templates-dal.js"></script>
     <script src="../core/config.js"></script>
     <script src="../core/helpers/alert.js"></script>
     <script src="../core/helpers/draft-start.js"></script>
@@ -1399,17 +1400,11 @@
           .toLowerCase()
           .trim();
 
-      /* Danh sách mẫu + giá lấy qua Edge Function `public-templates` (đã ghép
-         sẵn template_pricing và trả camelCase). KHÔNG gọi thẳng REST của
-         Supabase. */
+      /* Danh sách mẫu + giá lấy qua core/dal/templates-dal.js (Worker cache,
+         hỏng thì tự rơi về Edge Function). */
       async function fetchTemplates() {
-        const res = await fetch(
-          `${CONFIG.supabase.edgeUrl}?resource=public-templates`,
-          { headers: { Authorization: `Bearer ${CONFIG.supabase.anonKey}` } },
-        );
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const rows = await res.json();
-        return (rows || []).map((t) => ({
+        const rows = await templatesDAL.list();
+        return rows.map((t) => ({
           id: t.id,
           name: t.name,
           theme: t.theme,

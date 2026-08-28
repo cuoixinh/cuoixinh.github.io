@@ -1141,21 +1141,8 @@ function closeTimePicker() {
     if (loaded) return;
     loaded = true;
 
-    // Cùng nguồn với trang chủ (js/templates-data.js): Worker cache nếu có,
-    // không thì Edge Function `public-templates`. KHÔNG gọi thẳng REST của
-    // Supabase — mọi truy vấn bảng đều phải đi qua Edge Function.
-    const cacheUrl = CONFIG.cloudflare && CONFIG.cloudflare.templatesCache;
-    const req = cacheUrl
-      ? fetch(cacheUrl + "/")
-      : fetch(CONFIG.supabase.edgeUrl + "?resource=public-templates", {
-          headers: { Authorization: "Bearer " + CONFIG.supabase.anonKey },
-        });
-
-    req
-      .then(function (r) {
-        if (!r.ok) throw new Error("HTTP " + r.status);
-        return r.json();
-      })
+    window.templatesDAL
+      .list()
       .then(function (rows) {
         const all = (rows || [])
           .map(function (t) {

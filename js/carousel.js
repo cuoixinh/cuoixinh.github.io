@@ -23,22 +23,53 @@ function normalizeOffset(raw, count) {
   return o;
 }
 
+// Chỉ có ~5 thẻ trong DOM (xem CARD_WINDOW ở render-templates.js) và chúng được
+// TÁI DÙNG: thẻ nào rơi ra khỏi cửa sổ thì nhận nội dung của mẫu vừa lọt vào,
+// nên số thẻ phải đụng mỗi lần cuộn là hằng số, không phụ thuộc số mẫu.
 function setActiveCard(index) {
-  const cards = document.querySelectorAll(".carousel-3d-card");
+  const inner = document.getElementById("templateCarouselInner");
+  const count = templates.length;
+  if (!inner || !count) return;
+
+  const cards = Array.from(inner.querySelectorAll(".carousel-3d-card"));
   if (!cards.length) return;
-  const count = cards.length;
+
   const prevActive = carouselActiveIndex;
   carouselActiveIndex = ((index % count) + count) % count;
 
-  cards.forEach((card, i) => {
-    const prevOffset = normalizeOffset(i - prevActive, count);
+  // Mẫu cần có mặt sau bước này; thẻ đang giữ mẫu ngoài danh sách là thẻ rảnh.
+  const want = cardWindowIndices(carouselActiveIndex);
+  const wanted = new Set(want);
+  const held = new Set();
+  const spare = [];
+  for (const card of cards) {
+    const i = Number(card.dataset.index);
+    if (wanted.has(i) && !held.has(i)) held.add(i);
+    else spare.push(card);
+  }
+
+  // Thẻ vừa đổi nội dung phải nhảy thẳng tới chỗ mới thay vì bay ngang màn hình:
+  // nó đang đứng ở phía đối diện với chỗ nó vừa được gán.
+  const recycled = new Set();
+  const missing = want.filter((i) => !held.has(i));
+  missing.forEach((i, k) => {
+    const card = spare[k];
+    if (!card) return;
+    assignCard(card, i);
+    recycled.add(card);
+  });
+
+  for (const card of cards) {
+    const i = Number(card.dataset.index);
     const newOffset = normalizeOffset(i - carouselActiveIndex, count);
+    const prevOffset = normalizeOffset(i - prevActive, count);
     const prevHidden = Math.abs(prevOffset) > 1;
     const newHidden = Math.abs(newOffset) > 1;
 
     // Card đi vào/ra khỏi vùng nhìn thấy (±1) → snap tại chỗ, không bay ngang qua
     // màn hình (tránh cảm giác xoáy vòng khi nhiều thẻ di chuyển cùng lúc)
-    const jumping = prevHidden !== newHidden || (prevHidden && newHidden);
+    const jumping =
+      recycled.has(card) || prevHidden !== newHidden || (prevHidden && newHidden);
     if (jumping) {
       card.style.transition = "none";
       applyCardTransform(card, newOffset);
@@ -47,7 +78,7 @@ function setActiveCard(index) {
     } else {
       applyCardTransform(card, newOffset);
     }
-  });
+  }
 
   updateDots();
   resetImageScroll();
@@ -106,9 +137,24 @@ function sizeCarousel() {
   return true;
 }
 
+// Quá số này thì dãy chấm dài hơn bề ngang màn và không bấm trúng cái nào —
+// đổi sang bộ đếm "3 / 100", điều hướng để cho hai nút mũi tên và vuốt lo.
+const MAX_DOTS = 10;
+
 function updateDots() {
   const container = document.getElementById("carouselDots");
   if (!container) return;
+
+  if (templates.length > MAX_DOTS) {
+    const label = `${carouselActiveIndex + 1} / ${templates.length}`;
+    // Chỉ thay phần chữ khi khung đã dựng: updateDots chạy mỗi lần cuộn.
+    const counter = container.querySelector("[data-carousel-counter]");
+    if (counter) counter.textContent = label;
+    else
+      container.innerHTML = `<span data-carousel-counter class="text-xs font-semibold tabular-nums" style="color:rgb(var(--text-body-rgb)/0.65)">${label}</span>`;
+    return;
+  }
+
   container.innerHTML = templates
     .map(
       (_, i) => `

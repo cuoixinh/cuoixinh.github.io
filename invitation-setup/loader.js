@@ -49,6 +49,7 @@
     "../core/auth-ui.js",
     "../core/auth.js",
     "../core/utils.js",
+    "../core/dal/templates-dal.js",
     "../core/dal/wedding-dal.js",
     "../core/dal/storage-dal.js",
     "../core/dal/guest-dal.js",
