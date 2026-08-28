@@ -11,9 +11,27 @@
   --cx-heading-rgb: 107 101 98; /* stone-custom-500 */
   --cx-body-rgb: 120 113 108; /* stone-custom-400 */
   --cx-line-rgb: 245 213 216; /* rose-pastel-100 */
+  --cx-accent-soft-rgb: 232 180 184; /* rose-pastel-200 — nấc nhấn nhạt */
   --cx-surface-rgb: 255 251 247; /* cream-50 */
+  --cx-page-bg-rgb: 255 255 255; /* nền trang: trắng, không ngả kem như surface */
+  --cx-card-bg-rgb: 255 255 255; /* nền thân thiệp */
+  --cx-panel-rgb: 255 255 255; /* thẻ con, nút nền giấy */
+  --cx-band-rgb: 254 240 242; /* rose-pastel-50 — nền chờ của bản đồ */
   --cx-cover-rgb: 255 251 247; /* cream-50 */
   --cx-cover-mid-rgb: 245 235 224; /* be ấm — điểm giữa dải nền màn bìa */
+  --cx-cover-veil-rgb: 255 232 224; /* điểm giữa lớp phủ trên ẢNH bìa */
+  --cx-on-image-rgb: 255 255 255; /* chữ nằm trên ảnh bìa */
+  --cx-scrim-rgb: 0 0 0; /* bóng chữ trên ảnh */
+}
+
+/* Nền trang và nền thân thiệp đi qua token như mọi mẫu khác. */
+
+body {
+  background-color: rgb(var(--cx-page-bg-rgb));
+}
+
+#main-card {
+  background-color: rgb(var(--cx-card-bg-rgb));
 }
 
 /* Thiệp là MỘT thẻ cao bằng màn hình → vùng nội dung phải cao ít nhất bấy nhiêu.
@@ -62,14 +80,14 @@
   align-items: center;
   justify-content: center;
   gap: 12px;
-  color: #fff;
+  color: rgb(var(--cx-on-image-rgb));
   text-shadow: 0 1px 12px rgb(0 0 0 / 0.35);
 }
 
 .cx-hero-rule {
   width: 32px;
   height: 1px;
-  background: rgb(255 255 255 / 0.7);
+  background: rgb(var(--cx-panel-rgb) / 0.7);
 }
 
 .cx-hero-media {

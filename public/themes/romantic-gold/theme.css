@@ -16,17 +16,21 @@
   --cx-cover-rgb: 246 247 246;
   --cx-cover-mid-rgb: 232 235 232;
 
-  --rg-card-bg-rgb: 255 255 255; /* nền thân thiệp */
-  --rg-band-rgb: 246 247 246; /* dải nền xen kẽ giữa các mục */
-  --rg-gold-light-rgb: 232 220 200; /* vàng nhạt cho chữ trên ảnh */
+  --cx-card-bg-rgb: 255 255 255; /* nền thân thiệp */
+  --cx-band-rgb: 246 247 246; /* dải nền xen kẽ giữa các mục */
+  --cx-panel-rgb: 255 255 255; /* thẻ con nổi trên nền */
+  --cx-accent-soft-rgb: 232 220 200; /* vàng nhạt — chữ trên ảnh */
+  --cx-on-image-rgb: 255 255 255; /* chữ nằm trên ảnh poster */
+  --cx-scrim-rgb: 0 0 0; /* lớp phủ + bóng chữ trên ảnh */
+  --cx-deco-rgb: 0 0 0; /* nền mờ của nút phóng ảnh */
 }
 
 body {
-  background-color: rgb(var(--cx-surface-rgb));
+  background-color: rgb(var(--cx-page-bg-rgb));
 }
 
 #main-card {
-  background-color: rgb(var(--rg-card-bg-rgb));
+  background-color: rgb(var(--cx-card-bg-rgb));
 }
 
 /* ── Ba lớp ngữ nghĩa ──────────────────────────────────────────────────────
@@ -36,28 +40,10 @@ body {
 
 .cx-h {
   font-family: "Cormorant Garamond", serif;
-  color: rgb(var(--cx-heading-rgb));
 }
 
 .cx-t {
   font-family: "Inter", sans-serif;
-  color: rgb(var(--cx-body-rgb));
-}
-
-.cx-a {
-  color: rgb(var(--cx-accent-rgb));
-}
-
-.cx-border {
-  border-color: rgb(var(--cx-line-rgb));
-}
-
-.cx-bg-line {
-  background-color: rgb(var(--cx-line-rgb));
-}
-
-.cx-bg-surface {
-  background-color: rgb(var(--cx-surface-rgb));
 }
 
 /* ── Chữ trang trí riêng của mẫu ───────────────────────────────────────────
@@ -88,36 +74,36 @@ body {
 .rg-scrim {
   background: linear-gradient(
     180deg,
-    rgb(0 0 0 / 0.45) 0%,
-    rgb(0 0 0 / 0.1) 30%,
-    rgb(0 0 0 / 0.18) 60%,
-    rgb(0 0 0 / 0.6) 100%
+    rgb(var(--cx-scrim-rgb) / 0.45) 0%,
+    rgb(var(--cx-scrim-rgb) / 0.1) 30%,
+    rgb(var(--cx-scrim-rgb) / 0.18) 60%,
+    rgb(var(--cx-scrim-rgb) / 0.6) 100%
   );
 }
 
 .rg-on {
-  color: rgb(255 255 255);
-  text-shadow: 0 1px 12px rgb(0 0 0 / 0.35);
+  color: rgb(var(--cx-on-image-rgb));
+  text-shadow: 0 1px 12px rgb(var(--cx-scrim-rgb) / 0.35);
 }
 
 /* Chữ viết tay nét mảnh trên ảnh sáng dễ mất hút → bóng đậm hơn .rg-on. */
 
 .rg-gold {
-  color: rgb(var(--rg-gold-light-rgb));
-  text-shadow: 0 1px 10px rgb(0 0 0 / 0.55);
+  color: rgb(var(--cx-accent-soft-rgb));
+  text-shadow: 0 1px 10px rgb(var(--cx-scrim-rgb) / 0.55);
 }
 
 /* ── Thân thiệp ───────────────────────────────────────────────────────────
    Các mục xen kẽ nền trắng / nền sage cho đỡ phẳng khi cuộn dài. */
 
 .rg-band {
-  background-color: rgb(var(--rg-band-rgb));
+  background-color: rgb(var(--cx-band-rgb));
 }
 
 .rg-card {
   border: 1px solid rgb(var(--cx-line-rgb));
   border-radius: 16px;
-  background-color: rgb(255 255 255 / 0.7);
+  background-color: rgb(var(--cx-panel-rgb) / 0.7);
   padding: 16px;
 }
 
@@ -439,7 +425,7 @@ body {
   position: absolute;
   right: 0;
   top: 30px;
-  border-color: rgb(var(--rg-card-bg-rgb));
+  border-color: rgb(var(--cx-card-bg-rgb));
   box-shadow: 0 14px 30px rgb(var(--cx-heading-rgb) / 0.2);
 }
 
@@ -454,7 +440,7 @@ body {
   gap: 2px;
   padding: 10px 20px;
   border-radius: 9999px;
-  background: rgb(var(--rg-card-bg-rgb));
+  background: rgb(var(--cx-card-bg-rgb));
   box-shadow: 0 10px 26px rgb(var(--cx-heading-rgb) / 0.18);
 }
 
@@ -502,8 +488,8 @@ body {
   pointer-events: none;
   background: linear-gradient(
     180deg,
-    rgb(0 0 0 / 0.05),
-    rgb(0 0 0 / 0.3)
+    rgb(var(--cx-deco-rgb) / 0.05),
+    rgb(var(--cx-deco-rgb) / 0.3)
   );
 }
 
@@ -555,7 +541,7 @@ body {
   border-radius: 16px;
   overflow: hidden;
   cursor: pointer;
-  border: 5px solid rgb(var(--rg-card-bg-rgb));
+  border: 5px solid rgb(var(--cx-card-bg-rgb));
   box-shadow: 0 12px 28px rgb(var(--cx-heading-rgb) / 0.18);
 }
 

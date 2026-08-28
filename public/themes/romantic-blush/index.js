@@ -14,6 +14,40 @@
   window.CX_THEME = {
     id: "romantic-blush",
 
+    // Bộ màu MẶC ĐỊNH của mẫu — bản khai máy đọc được của đúng những giá trị
+    // :root trong theme.css (nguồn sự thật). Trang Thiết lập đọc nó để hiện mục
+    // "Mặc định"; theme_setting.palette ghi đè lên trên lúc chạy.
+    // Sinh lại bằng: node scripts/check-theme-palette.mjs --write
+    palette: {
+      heading: "#4a3229",
+      body: "#8a6f64",
+      accent: "#c98a8e",
+      accent_soft: "#e8b4b8",
+      on_accent: "#ffffff",
+      on_image: "#ffffff",
+      on_lightbox: "#ffffff",
+      card_bg: "#fdf8f5",
+      page_bg: "#fbf4f0",
+      surface: "#fbf4f0",
+      band: "#fff5f0",
+      panel: "#ffffff",
+      panel_warm: "#fffcf7",
+      cover: "#fdf8f5",
+      cover_mid: "#f6e5e1",
+      cover_veil: "#f6e5e1",
+      lightbox_bg: "#000000",
+      line: "#f0d5d3",
+      shadow: "#000000",
+      scrim: "#000000",
+      deco: "#d4a5a5",
+      deco_soft: "#f5d5d8",
+      deco_2: "#d4a5a5",
+      deco_2_soft: "#f5d5d8",
+      shine_from: "#ffffff",
+      shine_mid: "#fdf5ec",
+      shine_to: "#e6d8ca",
+    },
+
     preset: {
       heading_font: "Cormorant Garamond",
       body_font: "Quicksand",

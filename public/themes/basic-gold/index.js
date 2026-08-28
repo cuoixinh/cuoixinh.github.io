@@ -18,6 +18,40 @@ window.CX_THEME = {
 
   // Font/màu GỐC: giá trị mặc định trên thanh chỉnh ở tab Giao diện và là điểm
   // "Khôi phục mặc định".
+    // Bộ màu MẶC ĐỊNH của mẫu — bản khai máy đọc được của đúng những giá trị
+    // :root trong theme.css (nguồn sự thật). Trang Thiết lập đọc nó để hiện mục
+    // "Mặc định"; theme_setting.palette ghi đè lên trên lúc chạy.
+    // Sinh lại bằng: node scripts/check-theme-palette.mjs --write
+    palette: {
+      heading: "#6b6562",
+      body: "#78716c",
+      accent: "#d4a5a5",
+      accent_soft: "#e8b4b8",
+      on_accent: "#ffffff",
+      on_image: "#ffffff",
+      on_lightbox: "#ffffff",
+      card_bg: "#ffffff",
+      page_bg: "#ffffff",
+      surface: "#fffbf7",
+      band: "#fef0f2",
+      panel: "#ffffff",
+      panel_warm: "#ffffff",
+      cover: "#fffbf7",
+      cover_mid: "#f5ebe0",
+      cover_veil: "#ffe8e0",
+      lightbox_bg: "#000000",
+      line: "#f5d5d8",
+      shadow: "#000000",
+      scrim: "#000000",
+      deco: "#d4a5a5",
+      deco_soft: "#f5d5d8",
+      deco_2: "#d4a5a5",
+      deco_2_soft: "#f5d5d8",
+      shine_from: "#d4a5a5",
+      shine_mid: "#e8b4b8",
+      shine_to: "#f5d5d8",
+    },
+
   preset: {
     heading_font: "Playfair Display", // .font-playfair
     body_font: "Inter", // .font-inter
@@ -48,9 +82,9 @@ window.CX_THEME = {
   selectors: {
     headingFont: ".font-playfair, .font-cormorant, .font-cinzel",
     bodyFont: "body, .font-inter",
-    headingColor: ".cx-hd, .text-stone-custom-500",
-    bodyColor: ".cx-bd, .text-stone-custom-400",
-    accentColor: ".cx-ac, .text-rose-pastel-300, .text-rose-pastel-200",
+    headingColor: ".cx-h, .cx-hd",
+    bodyColor: ".cx-t, .cx-bd",
+    accentColor: ".cx-a, .cx-a-soft, .cx-ac",
     background: "body, #main-card",
   },
 
@@ -253,7 +287,7 @@ const CAROUSEL_STYLES = {
     opacity: "1",
     transform: "none",
     zIndex: "10",
-    boxShadow: "0 20px 40px rgb(var(--card-blush-300-rgb)/0.3)",
+    boxShadow: "0 20px 40px rgb(var(--cx-accent-rgb)/0.3)",
     visibility: "visible",
   },
   side: {
@@ -262,7 +296,7 @@ const CAROUSEL_STYLES = {
     opacity: "0.55",
     transform: "none",
     zIndex: "5",
-    boxShadow: "0 4px 12px rgb(var(--card-blush-300-rgb)/0.1)",
+    boxShadow: "0 4px 12px rgb(var(--cx-accent-rgb)/0.1)",
     visibility: "visible",
   },
   hidden: {
@@ -301,8 +335,8 @@ function updateCarousel() {
   dots.forEach((dot, i) => {
     dot.style.background =
       i === current
-        ? "rgb(var(--card-blush-300-rgb))"
-        : "rgb(var(--card-blush-100-rgb))";
+        ? "rgb(var(--cx-accent-rgb))"
+        : "rgb(var(--cx-line-rgb))";
     dot.style.width = i === current ? "16px" : "6px";
   });
 }

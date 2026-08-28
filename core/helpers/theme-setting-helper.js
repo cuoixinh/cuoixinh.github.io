@@ -70,6 +70,116 @@ const THEME_ACCENT_COLORS = [
   "#9caf88",
 ];
 
+// ── BỘ MÀU (theme_setting.palette) ─────────────────────────────────────────
+// Một bộ màu = cả bảng màu của thiệp. Áp bằng cách đổ vào token --cx-*-rgb ở
+// :root — mọi mẫu trong public/themes/* đều vẽ theo bộ token đó (khai mặc định
+// ở styles/_common.css) nên một lần chọn là đổi toàn thiệp, không phải rải
+// selector cho từng mục.
+//
+// Danh mục các bộ nằm ở core/helpers/card-palette-helper.js và CHỈ trang Thiết
+// lập nạp: thiệp lưu nguyên 9 màu đã chọn nên trang thiệp dựng lại được mà
+// không cần danh mục.
+//
+// Ô màu lẻ (heading_color, body_color…) vẫn ghi đè lên trên bằng !important:
+// chọn bộ trước, chỉnh tay sau.
+// Khoá của một bộ màu ↔ token CSS mà thiệp vẽ theo. Đây là DANH SÁCH ĐẦY ĐỦ:
+// mỗi vai trò màu trong thiệp có đúng một khoá, nên bộ màu với tới được mọi chỗ.
+//
+// KHÔNG có `qr_bg`: nền sau mã QR phải sáng để máy quét đọc được, cố tình đứng
+// ngoài bộ màu (xem --cx-qr-bg-rgb ở styles/_common.css).
+const CX_PALETTE_TOKENS = {
+  // — Chữ —
+  heading: "--cx-heading-rgb",
+  body: "--cx-body-rgb",
+  accent: "--cx-accent-rgb",
+  accent_soft: "--cx-accent-soft-rgb",
+  on_accent: "--cx-on-accent-rgb",
+  on_image: "--cx-on-image-rgb",
+  on_lightbox: "--cx-on-lightbox-rgb",
+
+  // — Nền —
+  card_bg: "--cx-card-bg-rgb",
+  page_bg: "--cx-page-bg-rgb",
+  surface: "--cx-surface-rgb",
+  band: "--cx-band-rgb",
+  panel: "--cx-panel-rgb",
+  panel_warm: "--cx-panel-warm-rgb",
+  cover: "--cx-cover-rgb",
+  cover_mid: "--cx-cover-mid-rgb",
+  cover_veil: "--cx-cover-veil-rgb",
+  lightbox_bg: "--cx-lightbox-bg-rgb",
+
+  // — Đường & bóng —
+  line: "--cx-line-rgb",
+  shadow: "--cx-shadow-rgb",
+  scrim: "--cx-scrim-rgb",
+
+  // — Trang trí —
+  deco: "--cx-deco-rgb",
+  deco_soft: "--cx-deco-soft-rgb",
+  deco_2: "--cx-deco-2-rgb",
+  deco_2_soft: "--cx-deco-2-soft-rgb",
+  shine_from: "--cx-shine-from-rgb",
+  shine_mid: "--cx-shine-mid-rgb",
+  shine_to: "--cx-shine-to-rgb",
+};
+
+const CX_PALETTE_KEYS = Object.keys(CX_PALETTE_TOKENS);
+
+// Token viết dạng bộ ba "r g b" (không phải mã hex) để chỗ dùng còn chèn được
+// alpha: rgb(var(--cx-accent-rgb) / 0.2). Trả "" nếu chuỗi không phải hex.
+function _cxHexToRgbTriplet(hex) {
+  if (typeof hex !== "string") return "";
+  let h = hex.trim().replace(/^#/, "");
+  if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+  if (!/^[0-9a-fA-F]{6}$/.test(h)) return "";
+  return `${parseInt(h.slice(0, 2), 16)} ${parseInt(h.slice(2, 4), 16)} ${parseInt(h.slice(4, 6), 16)}`;
+}
+
+// Trình phát nhạc là component DÙNG CHUNG, có bảng màu riêng (--music-* khai ở
+// styles/_colors.css) nên không tự đi theo token của thiệp. Không đổi thẳng bảng
+// đó: nó còn dùng ở trang Thiết lập, mà thiệp KHÔNG chọn bộ màu thì phải giữ
+// nguyên hình thức cũ. Thay vào đó, chỉ khi CÓ bộ màu thì suy ra bảng của nút
+// nhạc từ chính bộ đó — nút nhạc mới không còn là mảng lạc tông trên thiệp.
+const CX_PALETTE_MUSIC = (get) => [
+  `--music-widget-fg-rgb: ${get("heading")}`,
+  `--music-widget-dim-rgb: ${get("body")}`,
+  `--music-widget-chip-rgb: ${get("body")}`,
+  `--music-widget-accent-rgb: ${get("accent")}`,
+  `--music-bubble-from-rgb: ${get("accent_soft")}`,
+  `--music-bubble-to-rgb: ${get("accent")}`,
+  `--music-shadow-rgb: ${get("shadow")}`,
+  `--music-bubble-shadow-rgb: ${get("shadow")}`,
+  `--music-widget-bg: rgb(${get("panel")} / 0.95)`,
+  `--music-widget-chip: rgb(${get("body")} / 0.12)`,
+  `--music-widget-fill: rgb(${get("accent")} / 0.32)`,
+  `--music-bar-fg-rgb: ${get("body")}`,
+  `--music-bar-bg-rgb: ${get("surface")}`,
+  `--music-art-from-rgb: ${get("accent_soft")}`,
+  `--music-art-to-rgb: ${get("accent")}`,
+];
+
+// Trả về rule `:root { … }` cho bộ màu, hoặc "" nếu không có bộ nào hợp lệ.
+// Khoá thiếu thì bỏ qua để token của mẫu vẫn giữ nguyên — bộ màu khuyết một ô
+// không được phép làm hỏng cả thiệp.
+function _cxPaletteRule(palette) {
+  if (!palette || typeof palette !== "object") return "";
+  const rgbOf = {};
+  CX_PALETTE_KEYS.forEach((k) => {
+    const rgb = _cxHexToRgbTriplet(palette[k]);
+    if (rgb) rgbOf[k] = rgb;
+  });
+  const decls = Object.keys(rgbOf).map((k) => `${CX_PALETTE_TOKENS[k]}: ${rgbOf[k]}`);
+  if (!decls.length) return "";
+
+  // Chỉ suy ra bảng màu nút nhạc khi bộ có ĐỦ những ô nó cần; thiếu một ô mà
+  // vẫn dựng thì nút nhạc ra màu nửa cũ nửa mới.
+  const need = ["heading", "body", "accent", "accent_soft", "shadow", "panel", "surface"];
+  if (need.every((k) => rgbOf[k])) decls.push(...CX_PALETTE_MUSIC((k) => rgbOf[k]));
+
+  return `:root { ${decls.join("; ")}; }`;
+}
+
 // Các class font/màu mà thiệp đang dùng → ghi đè khi có theme_setting.
 // Tiêu đề = chữ lớn đậm; Nội dung = chữ đọc thường; Nhấn = icon/hoa văn/viền.
 // Theme dùng class khác thì khai CX_THEME.selectors trong index.js của mình —
@@ -2347,6 +2457,12 @@ function applyThemeSetting(setting) {
 
   const rules = [];
 
+  // Bộ màu đứng ĐẦU: nó chỉ đổi token, còn các rule dưới đây đổi thẳng
+  // color/background-color kèm !important nên luôn thắng — chọn bộ trước, chỉnh
+  // tay từng ô sau.
+  const paletteRule = _cxPaletteRule(setting.palette);
+  if (paletteRule) rules.push(paletteRule);
+
   if (setting.heading_font) {
     _loadGoogleFont(setting.heading_font);
     rules.push(
@@ -2465,6 +2581,8 @@ function applyThemeSetting(setting) {
 // Export ra global (các theme dùng qua <script>, không có module system)
 if (typeof window !== "undefined") {
   window.THEME_FONTS = THEME_FONTS;
+  window.CX_PALETTE_KEYS = CX_PALETTE_KEYS;
+  window.CX_PALETTE_TOKENS = CX_PALETTE_TOKENS;
   window.loadThemeFont = _loadGoogleFont; // để bảng chọn nạp trước font cho preview
   window.THEME_HEADING_COLORS = THEME_HEADING_COLORS;
   window.THEME_BODY_COLORS = THEME_BODY_COLORS;

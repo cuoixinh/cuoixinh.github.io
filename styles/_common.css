@@ -8,38 +8,177 @@
 /* Token màu (--primary, --text-*, --btn-*…) khai ở styles/_colors.css. */
 
 /* ── Bảng màu của THIỆP ──────────────────────────────────────────────────
-   Bộ biến duy nhất mà phần dùng chung (lịch nhỏ, dòng thời gian, màn bìa,
-   nút xác nhận tham dự…) vẽ theo. Mỗi theme ghi đè trong
-   public/themes/<theme>/theme.css — helper không được nhắc tên màu của một
-   theme cụ thể nữa. Giá trị dưới đây là mặc định (tông của basic-gold), theme
-   quên khai thì vẫn ra thiệp tử tế.
-   Viết dạng bộ ba RGB để còn dùng được alpha: rgb(var(--cx-accent-rgb)/0.2). */
+   Bộ token DUY NHẤT mà mọi mẫu trong public/themes/* và phần dùng chung (lịch
+   nhỏ, dòng thời gian, màn bìa, nút xác nhận tham dự…) vẽ theo. Mỗi mẫu ghi đè
+   trong theme.css của mình; giá trị dưới đây chỉ là lưới an toàn (tông
+   basic-gold) cho mẫu quên khai.
+
+   Đây cũng là thứ BỘ MÀU (theme_setting.palette) thay giá trị — đổi token là
+   đổi cả thiệp, nên MÀU NÀO CŨNG PHẢI ĐI QUA ĐÂY. Hard-code một mã màu trong
+   theme.css hay trong markup = chỗ đó nằm ngoài bộ màu, khách đổi tông sẽ thấy
+   một mảng lạc lõng.
+
+   Viết dạng bộ ba RGB để còn chèn được alpha: rgb(var(--cx-accent-rgb) / 0.2). */
 
 :root {
+  /* — Chữ — */
+  --cx-heading-rgb: var(--card-stone-500-rgb); /* tiêu đề, tên cô dâu chú rể */
+  --cx-body-rgb: var(--card-stone-400-rgb); /* chữ đọc */
   --cx-accent-rgb: var(--card-blush-300-rgb); /* nhấn: chấm mốc, ngày cưới, icon */
+  --cx-accent-soft-rgb: var(--card-blush-200-rgb); /* nấc nhấn nhạt hơn */
   --cx-on-accent-rgb: var(--white-rgb); /* chữ nằm TRÊN nền nhấn */
-  --cx-heading-rgb: var(--card-stone-500-rgb);
-  --cx-body-rgb: var(--card-stone-400-rgb);
-  --cx-line-rgb: var(--card-blush-100-rgb); /* vạch dọc, viền mảnh */
-  --cx-surface-rgb: var(--card-cream-50-rgb); /* nền phụ của ô nhỏ */
+  --cx-on-image-rgb: var(--white-rgb); /* chữ nằm TRÊN ảnh cưới */
+  --cx-on-lightbox-rgb: 255 255 255; /* chữ/nút trong khung xem ảnh */
+
+  /* — Nền — */
+  --cx-card-bg-rgb: var(--white-rgb); /* thân thiệp (#main-card) */
+  --cx-surface-rgb: var(--card-cream-50-rgb); /* nền trang + ô phụ */
+  --cx-band-rgb: var(--card-cream-100-rgb); /* dải nền xen kẽ giữa các mục */
+  --cx-panel-rgb: var(--white-rgb); /* thẻ con, nút nền giấy */
+  --cx-panel-warm-rgb: var(--cx-panel-rgb); /* …bản ngả ngà (giấy thư, polaroid) */
+  --cx-page-bg-rgb: var(--cx-surface-rgb); /* nền TRANG, ngoài thân thiệp */
   --cx-cover-rgb: var(--card-cream-50-rgb); /* nền màn bìa: hai đầu dải */
   --cx-cover-mid-rgb: var(--cover-bg-mid-rgb); /* …và điểm giữa */
+  --cx-cover-veil-rgb: var(--cx-cover-mid-rgb); /* màn phủ ẢNH bìa: điểm giữa */
+  --cx-lightbox-bg-rgb: 0 0 0; /* nền khung xem ảnh toàn màn */
+  /* Nền sau mã QR. CỐ TÌNH đứng ngoài bộ màu: máy quét cần nền sáng, tô theo
+     tông thiệp là có bộ làm khách không chuyển khoản được. */
+  --cx-qr-bg-rgb: 255 255 255;
+
+  /* — Đường & bóng — */
+  --cx-line-rgb: var(--card-blush-100-rgb); /* vạch dọc, viền mảnh */
+  --cx-shadow-rgb: 0 0 0; /* bóng đổ */
+  --cx-scrim-rgb: 0 0 0; /* lớp phủ trên ảnh để chữ đọc được */
+
+  /* — Trang trí — */
+  --cx-deco-rgb: var(--card-blush-300-rgb); /* hoạ tiết, quầng sáng */
+  --cx-deco-soft-rgb: var(--card-blush-100-rgb); /* …nấc nhạt */
+  /* Quầng trang trí THỨ HAI — mẫu nào có hai quầng khác sắc nhau thì khai
+     riêng (noir-elegance), còn lại đi theo quầng thứ nhất. */
+  --cx-deco-2-rgb: var(--cx-deco-rgb);
+  --cx-deco-2-soft-rgb: var(--cx-deco-soft-rgb);
+  --cx-shine-from-rgb: var(--card-blush-300-rgb); /* dải chuyển màu trang trí */
+  --cx-shine-mid-rgb: var(--card-blush-200-rgb);
+  --cx-shine-to-rgb: var(--card-blush-100-rgb);
 }
 
-/* Lớp NGỮ NGHĨA cho markup do helper dùng chung sinh ra (dòng thời gian, chuyện
-   tình yêu…): helper không biết theme đặt tên class là gì, nên dùng ba lớp này.
-   Theme khai chúng trong CX_THEME.selectors để thanh chỉnh màu với tới được. */
+/* ── Lớp ngữ nghĩa của THIỆP ─────────────────────────────────────────────
+   Mọi màu trong markup của mẫu đi qua một trong các lớp này, không viết mã màu
+   thẳng vào class Tailwind nữa.
 
+   `.cx-h`/`.cx-t`/`.cx-a` là bộ mà từng mẫu dùng; `.cx-hd`/`.cx-bd`/`.cx-ac` là
+   bộ mà helper dùng chung sinh ra (dòng thời gian, chuyện tình yêu) — helper
+   không biết mẫu đặt tên gì nên phải có tên riêng. Hai bộ cùng màu, gộp chung
+   một rule.
+
+   THỨ TỰ CÓ Ý NGHĨA: nhấn đứng SAU tiêu đề/nội dung. Mẫu gắn cả `cx-h cx-a`
+   lên một thẻ (tiêu đề tô màu nhấn) — cùng độ đặc hiệu nên rule dưới thắng.
+   Đảo thứ tự là tiêu đề nuốt mất màu nhấn.
+
+   theme.css của mẫu CHỈ còn khai font-family cho .cx-h/.cx-t — không khai màu,
+   nếu không sẽ đè lại đúng cái vừa nói ở trên. */
+
+.cx-h,
 .cx-hd {
   color: rgb(var(--cx-heading-rgb));
 }
 
+.cx-t,
 .cx-bd {
   color: rgb(var(--cx-body-rgb));
 }
 
+.cx-a,
 .cx-ac {
   color: rgb(var(--cx-accent-rgb));
+}
+
+.cx-a-soft {
+  color: rgb(var(--cx-accent-soft-rgb));
+}
+
+/* Chữ đè lên ảnh cưới — luôn phải tương phản với .cx-scrim, xem card-palette-helper.js */
+
+.cx-on-image {
+  color: rgb(var(--cx-on-image-rgb));
+}
+
+.cx-on-lightbox {
+  color: rgb(var(--cx-on-lightbox-rgb));
+}
+
+/* Số thứ tự ảnh — mờ hơn để không tranh chỗ với ảnh. */
+
+.cx-on-lightbox-60 {
+  color: rgb(var(--cx-on-lightbox-rgb) / 0.6);
+}
+
+.cx-border {
+  border-color: rgb(var(--cx-line-rgb));
+}
+
+.cx-bg-line {
+  background-color: rgb(var(--cx-line-rgb));
+}
+
+.cx-bg-a-soft {
+  background-color: rgb(var(--cx-accent-soft-rgb));
+}
+
+.cx-border-a-soft {
+  border-color: rgb(var(--cx-accent-soft-rgb));
+}
+
+.cx-bg-surface {
+  background-color: rgb(var(--cx-surface-rgb));
+}
+
+.cx-bg-band {
+  background-color: rgb(var(--cx-band-rgb));
+}
+
+.cx-bg-panel {
+  background-color: rgb(var(--cx-panel-rgb));
+}
+
+/* Nền giấy TRONG SUỐT một phần (nút xác nhận tham dự, thanh bản đồ, nút mở
+   thiệp): trước đây viết `bg-white/70` nên nằm ngoài bộ màu. Chỉ khai đúng các
+   nấc mẫu đang dùng — cần nấc mới thì thêm một dòng ở đây. */
+
+.cx-bg-panel-80 {
+  background-color: rgb(var(--cx-panel-rgb) / 0.8);
+}
+
+.cx-bg-panel-70 {
+  background-color: rgb(var(--cx-panel-rgb) / 0.7);
+}
+
+.cx-bg-panel-60 {
+  background-color: rgb(var(--cx-panel-rgb) / 0.6);
+}
+
+.cx-bg-panel-50 {
+  background-color: rgb(var(--cx-panel-rgb) / 0.5);
+}
+
+.cx-bg-deco {
+  background-color: rgb(var(--cx-deco-rgb));
+}
+
+/* Khung trắng bọc mã QR — xem chú thích ở --cx-qr-bg-rgb. */
+
+.cx-bg-qr {
+  background-color: rgb(var(--cx-qr-bg-rgb));
+}
+
+.cx-lightbox {
+  background-color: rgb(var(--cx-lightbox-bg-rgb) / 0.95);
+}
+
+/* Nút mờ nằm trên ảnh trong khung xem ảnh. */
+
+.cx-lightbox-btn {
+  background-color: rgb(var(--cx-on-lightbox-rgb) / 0.1);
 }
 
 /* ── Nút hành động dùng chung ──────────────────────────────────────────── */

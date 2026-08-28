@@ -20,7 +20,14 @@
   --cx-cover-rgb: 253 248 245; /* nền màn bìa: hai đầu dải */
   --cx-cover-mid-rgb: 246 229 225; /* …và điểm giữa */
 
-  --rb-card-bg-rgb: 253 248 245; /* nền thân thiệp */
+  --cx-card-bg-rgb: 253 248 245; /* nền thân thiệp */
+  --cx-panel-rgb: 255 255 255; /* thẻ con: album, lịch, polaroid, sơ đồ chỗ */
+  --cx-panel-warm-rgb: 255 252 247; /* giấy thư — ngà hơn thẻ con một chút */
+  --cx-on-image-rgb: 255 255 255; /* chữ nằm trên ảnh */
+  --cx-scrim-rgb: 0 0 0; /* bóng chữ trên ảnh */
+  --cx-shine-from-rgb: 255 255 255; /* mép phong bì: trắng → kem → nâu nhạt */
+  --cx-shine-mid-rgb: 253 245 236;
+  --cx-shine-to-rgb: 230 216 202;
 }
 
 html {
@@ -28,11 +35,11 @@ html {
 }
 
 body {
-  background-color: rgb(var(--cx-surface-rgb));
+  background-color: rgb(var(--cx-page-bg-rgb));
 }
 
 #main-card {
-  background-color: rgb(var(--rb-card-bg-rgb));
+  background-color: rgb(var(--cx-card-bg-rgb));
 }
 
 /* ── Ba lớp ngữ nghĩa ──────────────────────────────────────────────────────
@@ -42,28 +49,10 @@ body {
 
 .cx-h {
   font-family: "Cormorant Garamond", serif;
-  color: rgb(var(--cx-heading-rgb));
 }
 
 .cx-t {
   font-family: "Quicksand", sans-serif;
-  color: rgb(var(--cx-body-rgb));
-}
-
-.cx-a {
-  color: rgb(var(--cx-accent-rgb));
-}
-
-.cx-border {
-  border-color: rgb(var(--cx-line-rgb));
-}
-
-.cx-bg-line {
-  background-color: rgb(var(--cx-line-rgb));
-}
-
-.cx-bg-surface {
-  background-color: rgb(var(--cx-surface-rgb));
 }
 
 /* ── Chữ thư pháp ──────────────────────────────────────────────────────────
@@ -208,10 +197,10 @@ body {
   z-index: -1;
   background: linear-gradient(
     180deg,
-    rgb(var(--rb-card-bg-rgb) / 0.94) 0%,
-    rgb(var(--rb-card-bg-rgb) / 0.72) 38%,
-    rgb(var(--rb-card-bg-rgb) / 0.8) 66%,
-    rgb(var(--rb-card-bg-rgb) / 1) 100%
+    rgb(var(--cx-card-bg-rgb) / 0.94) 0%,
+    rgb(var(--cx-card-bg-rgb) / 0.72) 38%,
+    rgb(var(--cx-card-bg-rgb) / 0.8) 66%,
+    rgb(var(--cx-card-bg-rgb) / 1) 100%
   );
 }
 
@@ -228,25 +217,25 @@ body {
 
 /* ── Dải nền nhoè hai đầu (thay cho đường kẻ ngăn mục) ─────────────────────
    Mục chạy hết bề ngang, nền tự tan dần ở mép trên và mép dưới nên hai mục giao
-   nhau mềm, không cần border. Màu khai bằng --rb-band-rgb (+ --rb-band-a nếu
+   nhau mềm, không cần border. Màu khai bằng --cx-band-rgb (+ --rb-band-a nếu
    muốn nhạt) ở từng mục — phải là bộ số RGB rời để còn đặt alpha 0 cho hai đầu;
    dùng từ khoá "transparent" ở đây sẽ chuyển màu qua xám đen. */
 
 .rb-band-fade {
-  --rb-band-rgb: var(--cx-surface-rgb);
+  --cx-band-rgb: var(--cx-surface-rgb);
   --rb-band-a: 1;
 
   background-image: linear-gradient(
     180deg,
-    rgb(var(--rb-band-rgb) / 0) 0%,
-    rgb(var(--rb-band-rgb) / var(--rb-band-a)) 15%,
-    rgb(var(--rb-band-rgb) / var(--rb-band-a)) 85%,
-    rgb(var(--rb-band-rgb) / 0) 100%
+    rgb(var(--cx-band-rgb) / 0) 0%,
+    rgb(var(--cx-band-rgb) / var(--rb-band-a)) 15%,
+    rgb(var(--cx-band-rgb) / var(--rb-band-a)) 85%,
+    rgb(var(--cx-band-rgb) / 0) 100%
   );
 }
 
 #section-party {
-  --rb-band-rgb: 255 255 255;
+  --cx-band-rgb: 255 255 255;
   --rb-band-a: 0.55;
 }
 
@@ -272,7 +261,7 @@ body {
   scroll-snap-type: x mandatory;
   overscroll-behavior-x: contain;
   scrollbar-width: none;
-  background-color: #fff;
+  background-color: rgb(var(--cx-panel-rgb));
   box-shadow:
     0 10px 22px rgb(var(--cx-heading-rgb) / 0.13),
     0 2px 4px rgb(var(--cx-heading-rgb) / 0.07);
@@ -399,8 +388,8 @@ body {
   font-style: italic;
   font-size: 24px;
   line-height: 1.05;
-  color: #fff;
-  text-shadow: 0 2px 10px rgb(0 0 0 / 0.45);
+  color: rgb(var(--cx-on-image-rgb));
+  text-shadow: 0 2px 10px rgb(var(--cx-scrim-rgb) / 0.45);
 }
 
 /* Thẻ trắng của trang A: chừa nhiều chỗ bên TRÁI, sát mép phải, nằm ở nửa dưới
@@ -412,7 +401,7 @@ body {
   bottom: 10%;
   left: 24%;
   padding: 8px 8px 11px;
-  background-color: #fff;
+  background-color: rgb(var(--cx-panel-rgb));
   box-shadow: 0 6px 18px rgb(var(--cx-heading-rgb) / 0.22);
 }
 
@@ -510,7 +499,7 @@ body {
 .rb-polaroid {
   width: 100%;
   padding: 8px;
-  background-color: #fff;
+  background-color: rgb(var(--cx-panel-rgb));
   border-radius: 4px;
   box-shadow: 0 6px 18px rgb(var(--cx-heading-rgb) / 0.14);
 }
@@ -548,7 +537,7 @@ body {
 
 .rb-cal-sheet {
   width: var(--rb-cal-w);
-  background-color: #fff;
+  background-color: rgb(var(--cx-panel-rgb));
   border-radius: 3px;
   padding: 12px 10px 8px;
   box-shadow:
@@ -654,7 +643,7 @@ body {
 /* ── Nút xác nhận tham dự: bóng đổ xuống sát chân nút như vật đặt trên mặt ── */
 
 .rb-sit {
-  background-color: #fff;
+  background-color: rgb(var(--cx-panel-rgb));
   box-shadow:
     0 6px 10px -5px rgb(var(--cx-heading-rgb) / 0.45),
     0 2px 4px -2px rgb(var(--cx-heading-rgb) / 0.22);
@@ -691,18 +680,18 @@ body {
   position: relative;
   padding: 34px 24px 30px 28px;
   color: rgb(var(--cx-heading-rgb));
-  background-color: #fffcf7;
+  background-color: rgb(var(--cx-panel-warm-rgb));
   /* Vân giấy: hai lớp sọc rất mờ đan chéo + quầng sáng trên, quầng ấm dưới. */
   background-image:
     radial-gradient(
       120% 80% at 50% 0%,
-      rgb(255 255 255 / 0.9),
-      rgb(255 255 255 / 0) 62%
+      rgb(var(--cx-panel-rgb) / 0.9),
+      rgb(var(--cx-panel-rgb) / 0) 62%
     ),
     radial-gradient(
       130% 110% at 50% 108%,
       rgb(var(--cx-accent-rgb) / 0.09),
-      rgb(255 255 255 / 0) 60%
+      rgb(var(--cx-panel-rgb) / 0) 60%
     ),
     repeating-linear-gradient(
       96deg,
@@ -771,7 +760,12 @@ body {
   height: var(--rb-curl);
   clip-path: polygon(0 0, 100% 0, 0 100%);
   border-bottom-right-radius: 12px;
-  background: linear-gradient(135deg, #ffffff 0%, #fdf5ec 46%, #e6d8ca 100%);
+  background: linear-gradient(
+    135deg,
+    rgb(var(--cx-shine-from-rgb)) 0%,
+    rgb(var(--cx-shine-mid-rgb)) 46%,
+    rgb(var(--cx-shine-to-rgb)) 100%
+  );
   /* box-shadow bị chính clip-path cắt mất → bóng phải vẽ bằng filter. */
   filter: drop-shadow(2px 3px 5px rgb(var(--cx-heading-rgb) / 0.3));
   transform: rotate(-4deg) translate(-1px, -1px);

@@ -163,6 +163,30 @@
 
             <!-- Nhóm chỉnh chung (phông + màu toàn thiệp) — ẩn khi mở bảng chỉnh 1 dòng -->
             <div id="theme-main-controls" class="space-y-3 md:space-y-6">
+              <!-- Bộ màu: đổi CẢ bảng màu thiệp (chữ, nền, vạch kẻ, màn bìa,
+                   hoạ tiết) trong một lần chọn. Bốn ô màu bên dưới vẫn chỉnh
+                   tay đè lên trên được — chọn bộ trước, tinh chỉnh sau. -->
+              <div class="md:space-y-2.5">
+                <p
+                  class="hidden md:block text-[11px] font-semibold uppercase tracking-[0.08em] text-gray-400"
+                >
+                  Bộ màu
+                </p>
+                <div class="flex items-center gap-2 md:w-full">
+                  <label
+                    for="theme-palette"
+                    class="text-[12px] text-gray-500 shrink-0 whitespace-nowrap md:text-[12.5px] md:w-16 md:text-right"
+                    >Bộ màu</label
+                  >
+                  <x-combobox
+                    id="theme-palette"
+                    preview-swatch
+                    onchange="onCardPaletteChange()"
+                    class="flex-1 min-w-0"
+                  ></x-combobox>
+                </div>
+              </div>
+
               <!-- Phông chữ -->
               <div class="md:space-y-2.5">
                 <p

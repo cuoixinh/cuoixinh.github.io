@@ -73,6 +73,9 @@
     "../core/helpers/element-helper.js",
     "../core/helpers/text-preset-helper.js",
     "../core/helpers/theme-setting-helper.js",
+    // Danh mục bộ màu — phải SAU theme-setting-helper (đọc CX_PALETTE_KEYS ở đó).
+    // Trang thiệp KHÔNG nạp file này: thiệp lưu sẵn màu nên không cần danh mục.
+    "../core/helpers/card-palette-helper.js",
     "../core/x-input.js",
     "../core/x-controls.js",
     "../core/x-speech.js",

@@ -20,12 +20,26 @@
   --cx-surface-rgb: 244 238 229; /* nền phụ của ô nhỏ */
   --cx-cover-rgb: 250 246 240; /* nền màn bìa: hai đầu dải */
   --cx-cover-mid-rgb: 240 232 221; /* …và điểm giữa */
+  --cx-panel-rgb: 255 255 255; /* thẻ con nổi trên nền be */
+  --cx-shadow-rgb: 58 50 42; /* bóng đổ — nâu đen ấm, không phải đen thuần */
+
+  /* Quầng sáng ấm ở hai góc thiệp. Hai quầng KHÁC sắc nhau một chút (quầng
+     dưới ngả vàng hơn) nên tách hai cặp, gộp lại là mất độ sâu. */
+  --cx-deco-rgb: 244 197 152;
+  --cx-deco-soft-rgb: 247 216 186;
+  --cx-deco-2-rgb: 240 208 170;
+  --cx-deco-2-soft-rgb: 246 226 205;
+
+  /* Dải ánh kim của tên cô dâu chú rể (.ne-name). */
+  --cx-shine-from-rgb: 166 124 46;
+  --cx-shine-mid-rgb: 230 200 135;
+  --cx-shine-to-rgb: 199 156 70;
 
   --cx-card-bg-rgb: 253 251 247; /* nền thân thiệp */
 }
 
 body {
-  background-color: rgb(var(--cx-surface-rgb));
+  background-color: rgb(var(--cx-page-bg-rgb));
 }
 
 #main-card {
@@ -39,29 +53,11 @@ body {
 
 .cx-h {
   font-family: "Cormorant Garamond", serif;
-  color: rgb(var(--cx-heading-rgb));
 }
 
 .cx-t {
   font-family: "Montserrat", sans-serif;
   font-weight: 300;
-  color: rgb(var(--cx-body-rgb));
-}
-
-.cx-a {
-  color: rgb(var(--cx-accent-rgb));
-}
-
-.cx-border {
-  border-color: rgb(var(--cx-line-rgb));
-}
-
-.cx-bg-line {
-  background-color: rgb(var(--cx-line-rgb));
-}
-
-.cx-bg-surface {
-  background-color: rgb(var(--cx-surface-rgb));
 }
 
 /* ── Chữ thư pháp ─────────────────────────────────────────────────────────
@@ -172,8 +168,8 @@ body {
   right: -120px;
   background: radial-gradient(
     circle at 50% 50%,
-    rgb(244 197 152 / 0.55) 0%,
-    rgb(247 216 186 / 0.32) 45%,
+    rgb(var(--cx-deco-rgb) / 0.55) 0%,
+    rgb(var(--cx-deco-soft-rgb) / 0.32) 45%,
     transparent 70%
   );
 }
@@ -183,8 +179,8 @@ body {
   left: -130px;
   background: radial-gradient(
     circle at 50% 50%,
-    rgb(240 208 170 / 0.5) 0%,
-    rgb(246 226 205 / 0.3) 45%,
+    rgb(var(--cx-deco-2-rgb) / 0.5) 0%,
+    rgb(var(--cx-deco-2-soft-rgb) / 0.3) 45%,
     transparent 70%
   );
 }
@@ -222,10 +218,10 @@ body {
   font-family: "GillaStone", cursive;
   background: linear-gradient(
     100deg,
-    #a67c2e 0%,
-    #e6c887 42%,
-    #c79c46 62%,
-    #a67c2e 100%
+    rgb(var(--cx-shine-from-rgb)) 0%,
+    rgb(var(--cx-shine-mid-rgb)) 42%,
+    rgb(var(--cx-shine-to-rgb)) 62%,
+    rgb(var(--cx-shine-from-rgb)) 100%
   );
   -webkit-background-clip: text;
   background-clip: text;
@@ -302,7 +298,7 @@ body {
   max-width: 152px;
   padding: 8px;
   border-radius: 12px;
-  background: #fff;
+  background: rgb(var(--cx-qr-bg-rgb));
 }
 
 /* ── Hộp quà: chạm để mở QR ──────────────────────────────────────────────
@@ -468,7 +464,6 @@ body {
   line-height: 1.15;
   color: rgb(var(--cx-heading-rgb));
 }
-
 
 /* Ô ảnh trong album: viền vàng mảnh + hơi trầm màu, rê/chạm thì sáng lên */
 
@@ -677,7 +672,7 @@ body {
   /* Nền ĐỤC hẳn: khối chữ nằm đè lên ảnh, hở một chút là chữ dính vào hình */
   background: rgb(var(--cx-card-bg-rgb));
   border-top: 1px solid rgb(var(--cx-accent-rgb) / 0.5);
-  box-shadow: 0 -6px 20px rgb(58 50 42 / 0.06);
+  box-shadow: 0 -6px 20px rgb(var(--cx-shadow-rgb) / 0.06);
 }
 
 .ne-mag-right .ne-mag-body {

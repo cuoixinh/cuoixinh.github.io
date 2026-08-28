@@ -15,6 +15,40 @@
 
     // Font/màu GỐC: giá trị mặc định trên thanh chỉnh ở tab Giao diện, cũng là
     // điểm "Khôi phục mặc định". Trang Thiết lập đọc qua iframe xem trước.
+    // Bộ màu MẶC ĐỊNH của mẫu — bản khai máy đọc được của đúng những giá trị
+    // :root trong theme.css (nguồn sự thật). Trang Thiết lập đọc nó để hiện mục
+    // "Mặc định"; theme_setting.palette ghi đè lên trên lúc chạy.
+    // Sinh lại bằng: node scripts/check-theme-palette.mjs --write
+    palette: {
+      heading: "#3f3a38",
+      body: "#7a736e",
+      accent: "#b08d57",
+      accent_soft: "#e8b4b8",
+      on_accent: "#ffffff",
+      on_image: "#ffffff",
+      on_lightbox: "#ffffff",
+      card_bg: "#fdfcfa",
+      page_bg: "#f7f4ef",
+      surface: "#f7f4ef",
+      band: "#fff5f0",
+      panel: "#ffffff",
+      panel_warm: "#ffffff",
+      cover: "#fdfcfa",
+      cover_mid: "#f2ece1",
+      cover_veil: "#f2ece1",
+      lightbox_bg: "#000000",
+      line: "#e6dcc8",
+      shadow: "#000000",
+      scrim: "#000000",
+      deco: "#d4a5a5",
+      deco_soft: "#f5d5d8",
+      deco_2: "#d4a5a5",
+      deco_2_soft: "#f5d5d8",
+      shine_from: "#d4a5a5",
+      shine_mid: "#e8b4b8",
+      shine_to: "#f5d5d8",
+    },
+
     preset: {
       heading_font: "Cormorant Garamond",
       body_font: "Inter",

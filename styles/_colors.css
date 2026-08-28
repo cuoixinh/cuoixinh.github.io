@@ -160,6 +160,12 @@
      8. TRÌNH PHÁT NHẠC
      ============================================================ */
 
+  /* Thanh nhạc ngang (biến thể "bar"): markup ở core/components/music-player.js
+     dùng hai biến này. Tách khỏi --text-body-rgb/--surface-tint-rgb để bộ màu của
+     THIỆP còn nhuộm được thanh nhạc mà không đụng tới bảng màu ứng dụng. */
+  --music-bar-fg-rgb: var(--text-body-rgb);
+  --music-bar-bg-rgb: var(--surface-tint-rgb);
+
   --music-widget-fg-rgb: 74 65 66;
   --music-widget-dim-rgb: 138 123 125;
   --music-widget-chip-rgb: 140 115 118;
