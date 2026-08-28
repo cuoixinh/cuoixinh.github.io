@@ -401,7 +401,7 @@
                 variant="bare"
                 onclick="confirmAttend(true)"
                 id="btn-attend"
-                class="gap-2 px-5 py-2.5 border cx-border bg-white cx-t text-[13px] active:scale-95 transition-all"
+                class="gap-2 px-5 py-2.5 border cx-border cx-bg-panel cx-t text-[13px] active:scale-95 transition-all"
               >
                 <!-- Icon dùng .cx-ac/.cx-bd (chỉ đổi màu): .cx-t đặt cả
                      font-family nên sẽ đè font của Font Awesome → ô vuông. -->
@@ -412,7 +412,7 @@
                 variant="bare"
                 onclick="confirmAttend(false)"
                 id="btn-decline"
-                class="gap-2 px-5 py-2.5 border cx-border bg-white cx-t text-[13px] active:scale-95 transition-all"
+                class="gap-2 px-5 py-2.5 border cx-border cx-bg-panel cx-t text-[13px] active:scale-95 transition-all"
               >
                 <i class="fas fa-xmark cx-bd text-[11px]"></i>
                 Không tham dự
@@ -471,7 +471,7 @@
                   <div class="cx-t text-[11px]">
                     Chú Rể · <span id="groom-bank-label">----------</span>
                   </div>
-                  <div class="bg-white rounded-2xl p-3 shadow-md w-full max-w-[180px]">
+                  <div class="cx-bg-qr rounded-2xl p-3 shadow-md w-full max-w-[180px]">
                     <img
                       src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
                       id="groom-qr-img"
@@ -492,7 +492,7 @@
                   <x-button
                     variant="bare"
                     onclick="saveQR('groom-qr-img')"
-                    class="gap-2 px-4 py-2 border cx-border bg-white cx-t text-[12px]"
+                    class="gap-2 px-4 py-2 border cx-border cx-bg-panel cx-t text-[12px]"
                   >
                     <i class="fas fa-download cx-ac text-xs"></i>
                     Lưu QR
@@ -504,7 +504,7 @@
                   <div class="cx-t text-[11px]">
                     Cô Dâu · <span id="bride-bank-label">----------</span>
                   </div>
-                  <div class="bg-white rounded-2xl p-3 shadow-md w-full max-w-[180px]">
+                  <div class="cx-bg-qr rounded-2xl p-3 shadow-md w-full max-w-[180px]">
                     <img
                       src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
                       id="bride-qr-img"
@@ -525,7 +525,7 @@
                   <x-button
                     variant="bare"
                     onclick="saveQR('bride-qr-img')"
-                    class="gap-2 px-4 py-2 border cx-border bg-white cx-t text-[12px]"
+                    class="gap-2 px-4 py-2 border cx-border cx-bg-panel cx-t text-[12px]"
                   >
                     <i class="fas fa-download cx-ac text-xs"></i>
                     Lưu QR
@@ -574,7 +574,7 @@
               </div>
             </div>
 
-            <div class="flex items-center justify-between px-4 py-3 bg-white/80">
+            <div class="flex items-center justify-between px-4 py-3 cx-bg-panel-80">
               <div class="cx-t text-[10px] uppercase tracking-[2px]">
                 Địa điểm tổ chức
               </div>
@@ -607,18 +607,18 @@
     <!-- ═══ Phóng to ảnh ═══════════════════════════════════════════════════ -->
     <div
       id="lightbox"
-      class="fixed inset-0 z-[100] bg-black/95 hidden flex-col items-center justify-center"
+      class="fixed inset-0 z-[100] cx-lightbox hidden flex-col items-center justify-center"
     >
       <x-button
         variant="bare"
         onclick="closeLightbox()"
-        class="absolute top-6 right-6 w-10 h-10 bg-white/10 z-10"
+        class="absolute top-6 right-6 w-10 h-10 cx-lightbox-btn z-10"
       >
-        <i class="fas fa-times text-white text-lg"></i>
+        <i class="fas fa-times cx-on-lightbox text-lg"></i>
       </x-button>
       <div
         id="lb-counter"
-        class="absolute top-6 left-6 text-white/60 text-sm font-inter"
+        class="absolute top-6 left-6 cx-on-lightbox-60 text-sm font-inter"
       ></div>
       <div class="w-full h-full flex items-center justify-center px-[8px]">
         <img
@@ -631,16 +631,16 @@
       <x-button
         variant="bare"
         onclick="lightboxPrev()"
-        class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/10"
+        class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 cx-lightbox-btn"
       >
-        <i class="fas fa-chevron-left text-white"></i>
+        <i class="fas fa-chevron-left cx-on-lightbox"></i>
       </x-button>
       <x-button
         variant="bare"
         onclick="lightboxNext()"
-        class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/10"
+        class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 cx-lightbox-btn"
       >
-        <i class="fas fa-chevron-right text-white"></i>
+        <i class="fas fa-chevron-right cx-on-lightbox"></i>
       </x-button>
     </div>
 

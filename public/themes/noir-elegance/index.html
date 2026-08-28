@@ -452,19 +452,19 @@
     </div>
 
     <!-- ═══ Phóng to ảnh (đi kèm mục Album ảnh) ════════════════════════════ -->
-    <div id="lightbox" class="fixed inset-0 z-[100] bg-black/95 hidden flex-col items-center justify-center">
-      <x-button variant="bare" onclick="closeLightbox()" class="absolute top-6 right-6 w-10 h-10 bg-white/10 z-10">
-        <i class="fas fa-times text-white text-lg"></i>
+    <div id="lightbox" class="fixed inset-0 z-[100] cx-lightbox hidden flex-col items-center justify-center">
+      <x-button variant="bare" onclick="closeLightbox()" class="absolute top-6 right-6 w-10 h-10 cx-lightbox-btn z-10">
+        <i class="fas fa-times cx-on-lightbox text-lg"></i>
       </x-button>
-      <div id="lb-counter" class="absolute top-6 left-6 text-white/60 text-sm"></div>
+      <div id="lb-counter" class="absolute top-6 left-6 cx-on-lightbox-60 text-sm"></div>
       <div class="w-full h-full flex items-center justify-center px-[8px]">
         <img id="lb-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" class="max-w-full max-h-full object-contain rounded-xl transition-opacity duration-200" />
       </div>
-      <x-button variant="bare" onclick="lightboxPrev()" class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/10">
-        <i class="fas fa-chevron-left text-white"></i>
+      <x-button variant="bare" onclick="lightboxPrev()" class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 cx-lightbox-btn">
+        <i class="fas fa-chevron-left cx-on-lightbox"></i>
       </x-button>
-      <x-button variant="bare" onclick="lightboxNext()" class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/10">
-        <i class="fas fa-chevron-right text-white"></i>
+      <x-button variant="bare" onclick="lightboxNext()" class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 cx-lightbox-btn">
+        <i class="fas fa-chevron-right cx-on-lightbox"></i>
       </x-button>
     </div>
 

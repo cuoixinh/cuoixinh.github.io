@@ -22,7 +22,7 @@
 }
 
 body {
-  background-color: rgb(var(--cx-surface-rgb));
+  background-color: rgb(var(--cx-page-bg-rgb));
 }
 
 #main-card {
@@ -36,28 +36,8 @@ body {
 
 .cx-h {
   font-family: "Cormorant Garamond", serif;
-  color: rgb(var(--cx-heading-rgb));
 }
 
 .cx-t {
   font-family: "Inter", sans-serif;
-  color: rgb(var(--cx-body-rgb));
-}
-
-.cx-a {
-  color: rgb(var(--cx-accent-rgb));
-}
-
-/* Viền/nền phụ dùng lại đúng bảng màu trên, khỏi rải mã màu trong markup. */
-
-.cx-border {
-  border-color: rgb(var(--cx-line-rgb));
-}
-
-.cx-bg-line {
-  background-color: rgb(var(--cx-line-rgb));
-}
-
-.cx-bg-surface {
-  background-color: rgb(var(--cx-surface-rgb));
 }

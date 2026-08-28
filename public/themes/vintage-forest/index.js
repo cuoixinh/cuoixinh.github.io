@@ -427,7 +427,7 @@
           <svg class="vf-cal-wave" viewBox="0 0 390 40" preserveAspectRatio="none"
             aria-hidden="true">
             <path d="M0 40C96 38 176 8 258 6c54-1 94 8 132 16v18H0z"
-              fill="rgb(var(--vf-card-bg-rgb))" />
+              fill="rgb(var(--cx-card-bg-rgb))" />
           </svg></div>`
       : "";
 

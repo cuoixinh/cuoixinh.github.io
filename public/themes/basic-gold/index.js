@@ -48,9 +48,9 @@ window.CX_THEME = {
   selectors: {
     headingFont: ".font-playfair, .font-cormorant, .font-cinzel",
     bodyFont: "body, .font-inter",
-    headingColor: ".cx-hd, .text-stone-custom-500",
-    bodyColor: ".cx-bd, .text-stone-custom-400",
-    accentColor: ".cx-ac, .text-rose-pastel-300, .text-rose-pastel-200",
+    headingColor: ".cx-h, .cx-hd",
+    bodyColor: ".cx-t, .cx-bd",
+    accentColor: ".cx-a, .cx-a-soft, .cx-ac",
     background: "body, #main-card",
   },
 

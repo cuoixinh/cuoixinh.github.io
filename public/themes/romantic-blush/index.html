@@ -97,7 +97,7 @@
         <x-button
           variant="bare"
           onclick="openInvitation()"
-          class="open-btn relative overflow-hidden px-10 py-4 border cx-border cx-t text-[14px] bg-white/60 active:scale-95 transition-transform touch-manipulation [-webkit-tap-highlight-color:transparent]"
+          class="open-btn relative overflow-hidden px-10 py-4 border cx-border cx-t text-[14px] cx-bg-panel-60 active:scale-95 transition-transform touch-manipulation [-webkit-tap-highlight-color:transparent]"
         >
           <span
             class="relative z-10 pointer-events-none flex items-center gap-2"
@@ -498,7 +498,7 @@
                 Chú Rể · <span id="groom-bank-label">----------</span>
               </div>
               <div
-                class="bg-white rounded-2xl p-3 shadow-md w-full max-w-[180px]"
+                class="cx-bg-qr rounded-2xl p-3 shadow-md w-full max-w-[180px]"
               >
                 <img
                   src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
@@ -532,7 +532,7 @@
                 Cô Dâu · <span id="bride-bank-label">----------</span>
               </div>
               <div
-                class="bg-white rounded-2xl p-3 shadow-md w-full max-w-[180px]"
+                class="cx-bg-qr rounded-2xl p-3 shadow-md w-full max-w-[180px]"
               >
                 <img
                   src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
@@ -597,7 +597,7 @@
             </div>
 
             <div
-              class="flex items-center justify-between px-4 py-3 bg-white/70"
+              class="flex items-center justify-between px-4 py-3 cx-bg-panel-70"
             >
               <div class="cx-t rb-caps text-[9px]">Địa điểm tổ chức</div>
               <div class="flex items-center gap-1 cx-a">
@@ -627,18 +627,18 @@
     <!-- ═══ Phóng to ảnh (đi kèm mục Album ảnh) ════════════════════════════ -->
     <div
       id="lightbox"
-      class="fixed inset-0 z-[100] bg-black/95 hidden flex-col items-center justify-center"
+      class="fixed inset-0 z-[100] cx-lightbox hidden flex-col items-center justify-center"
     >
       <x-button
         variant="bare"
         onclick="closeLightbox()"
-        class="absolute top-6 right-6 w-10 h-10 bg-white/10 z-10"
+        class="absolute top-6 right-6 w-10 h-10 cx-lightbox-btn z-10"
       >
-        <i class="fas fa-times text-white text-lg"></i>
+        <i class="fas fa-times cx-on-lightbox text-lg"></i>
       </x-button>
       <div
         id="lb-counter"
-        class="absolute top-6 left-6 text-white/60 text-sm font-inter"
+        class="absolute top-6 left-6 cx-on-lightbox-60 text-sm font-inter"
       ></div>
       <div class="w-full h-full flex items-center justify-center px-[8px]">
         <img
@@ -651,16 +651,16 @@
       <x-button
         variant="bare"
         onclick="lightboxPrev()"
-        class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/10"
+        class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 cx-lightbox-btn"
       >
-        <i class="fas fa-chevron-left text-white"></i>
+        <i class="fas fa-chevron-left cx-on-lightbox"></i>
       </x-button>
       <x-button
         variant="bare"
         onclick="lightboxNext()"
-        class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/10"
+        class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 cx-lightbox-btn"
       >
-        <i class="fas fa-chevron-right text-white"></i>
+        <i class="fas fa-chevron-right cx-on-lightbox"></i>
       </x-button>
     </div>
 

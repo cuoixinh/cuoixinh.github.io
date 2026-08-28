@@ -30,14 +30,18 @@
 
   /* Đen của thanh letterbox — CỐ ĐỊNH, cố ý không nằm trong bảng màu: khách
      đổi màu ở tab Giao diện thì hai thanh này vẫn phải đen mới ra chất phim. */
-  --mc-bar-rgb: 12 14 18;
+  --cx-deco-rgb: 12 14 18;
+
+  /* Trắng của thẻ QR, vệt sáng quét ngang và số khung ảnh. */
+  --cx-panel-rgb: 255 255 255;
+  --cx-on-image-rgb: 255 255 255;
 }
 
 /* Thiệp là quyển sách lật ngang: trang KHÔNG cuộn dọc bao giờ, mọi cú vuốt dọc
    đã được index.js đổi thành lật trang. */
 
 body {
-  background-color: rgb(var(--cx-surface-rgb));
+  background-color: rgb(var(--cx-page-bg-rgb));
   overflow: hidden;
 }
 
@@ -61,28 +65,10 @@ body {
 
 .cx-h {
   font-family: "Prata", serif;
-  color: rgb(var(--cx-heading-rgb));
 }
 
 .cx-t {
   font-family: "Montserrat", sans-serif;
-  color: rgb(var(--cx-body-rgb));
-}
-
-.cx-a {
-  color: rgb(var(--cx-accent-rgb));
-}
-
-.cx-border {
-  border-color: rgb(var(--cx-line-rgb));
-}
-
-.cx-bg-line {
-  background-color: rgb(var(--cx-line-rgb));
-}
-
-.cx-bg-surface {
-  background-color: rgb(var(--cx-surface-rgb));
 }
 
 /* ── KHUNG ĐIỆN ẢNH ───────────────────────────────────────────────────────
@@ -95,7 +81,7 @@ body {
 .mc-cine {
   position: relative;
   overflow: hidden;
-  background-color: rgb(var(--mc-bar-rgb));
+  background-color: rgb(var(--cx-deco-rgb));
   --mc-bar-h: 9%;
 }
 
@@ -106,7 +92,7 @@ body {
   left: 0;
   right: 0;
   height: var(--mc-bar-h);
-  background-color: rgb(var(--mc-bar-rgb));
+  background-color: rgb(var(--cx-deco-rgb));
   z-index: 2;
   pointer-events: none;
 }
@@ -259,9 +245,9 @@ body {
   z-index: 1;
   background: linear-gradient(
     to bottom,
-    rgb(var(--mc-bar-rgb) / 0.6) 0%,
-    rgb(var(--mc-bar-rgb) / 0.18) 26%,
-    rgb(var(--mc-bar-rgb) / 0) 46%
+    rgb(var(--cx-deco-rgb) / 0.6) 0%,
+    rgb(var(--cx-deco-rgb) / 0.18) 26%,
+    rgb(var(--cx-deco-rgb) / 0) 46%
   );
   pointer-events: none;
 }
@@ -278,7 +264,7 @@ body {
     line-height: 1.1;
     letter-spacing: 5px;
     color: rgb(var(--mc-on-photo));
-    text-shadow: 0 1px 12px rgb(var(--mc-bar-rgb) / 0.7);
+    text-shadow: 0 1px 12px rgb(var(--cx-deco-rgb) / 0.7);
 }
 
 /* Mỗi dòng lệch trái/phải khác nhau — mô phỏng nét tay viết nghiêng ngả, KHÔNG
@@ -550,7 +536,7 @@ body {
   }
 }
 
-/* Trắng của chữ nằm trên ảnh — CỐ ĐỊNH như --mc-bar-rgb: khách đổi bảng màu
+/* Trắng của chữ nằm trên ảnh — CỐ ĐỊNH như --cx-deco-rgb: khách đổi bảng màu
    thì chữ đè ảnh vẫn phải là trắng mới đọc được. */
 
 :root {
@@ -565,15 +551,15 @@ body {
   z-index: 1;
   background: linear-gradient(
     to bottom,
-    rgb(var(--mc-bar-rgb) / 0) 18%,
-    rgb(var(--mc-bar-rgb) / 0.34) 48%,
-    rgb(var(--mc-bar-rgb) / 0.86) 100%
+    rgb(var(--cx-deco-rgb) / 0) 18%,
+    rgb(var(--cx-deco-rgb) / 0.34) 48%,
+    rgb(var(--cx-deco-rgb) / 0.86) 100%
   );
   pointer-events: none;
 }
 
 .mc-ph-veil-flat {
-  background: rgb(var(--mc-bar-rgb) / 0.42);
+  background: rgb(var(--cx-deco-rgb) / 0.42);
 }
 
 /* Chữ đè ảnh: phải nổi trên cả hai thanh đen (z-index 2 của .mc-cine::after). */
@@ -609,7 +595,7 @@ body {
   font-size: 36px;
   line-height: 1.12;
   color: rgb(var(--mc-on-photo));
-  text-shadow: 0 2px 18px rgb(var(--mc-bar-rgb) / 0.45);
+  text-shadow: 0 2px 18px rgb(var(--cx-deco-rgb) / 0.45);
 }
 
 .mc-ph-amp {
@@ -741,11 +727,11 @@ body {
   position: relative;
   overflow: hidden;
   margin-top: 2px;
-  background-color: rgb(var(--mc-bar-rgb));
+  background-color: rgb(var(--cx-deco-rgb));
   color: rgb(var(--mc-on-photo));
   /* Lớp phủ để nhạt cho còn thấy ảnh nền, nên chữ phải tự lo phần tương phản:
      bóng đổ mềm là thứ giữ chữ đọc được khi trúng mảng sáng của ảnh. */
-  text-shadow: 0 1px 10px rgb(var(--mc-bar-rgb) / 0.75);
+  text-shadow: 0 1px 10px rgb(var(--cx-deco-rgb) / 0.75);
 }
 
 .mc-ph-fam-bg {
@@ -1216,8 +1202,6 @@ body {
   position: relative;
 }
 
-
-
 /* Dateline: chữ hoa nhỏ, gạch mảnh kéo hết phần dòng còn lại. */
 
 .mc-post-dateline {
@@ -1404,13 +1388,13 @@ body {
   font-family: "Montserrat", sans-serif;
   font-size: 10px;
   letter-spacing: 2px;
-  color: rgb(255 255 255 / 0.75);
+  color: rgb(var(--cx-on-image-rgb) / 0.75);
 }
 
 /* Ảnh QR: nền trắng bắt buộc để máy quét đọc được, không tô theo bảng màu. */
 
 .mc-qr {
-  background-color: #fff;
+  background-color: rgb(var(--cx-qr-bg-rgb));
   border: 1px solid rgb(var(--cx-line-rgb));
   border-radius: var(--mc-r);
 }
@@ -1435,7 +1419,7 @@ body {
   background:
     linear-gradient(
       180deg,
-      rgb(255 255 255) 0%,
+      rgb(var(--cx-panel-rgb)) 0%,
       rgb(var(--cx-surface-rgb) / 0.55) 100%
     );
   transition:
@@ -1466,9 +1450,9 @@ body {
   pointer-events: none;
   background: linear-gradient(
     115deg,
-    rgb(255 255 255 / 0) 35%,
-    rgb(255 255 255 / 0.55) 50%,
-    rgb(255 255 255 / 0) 65%
+    rgb(var(--cx-panel-rgb) / 0) 35%,
+    rgb(var(--cx-panel-rgb) / 0.55) 50%,
+    rgb(var(--cx-panel-rgb) / 0) 65%
   );
   transform: translateX(-120%);
 }

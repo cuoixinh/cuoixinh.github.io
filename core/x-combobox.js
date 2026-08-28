@@ -1,14 +1,22 @@
 // <x-combobox> — dropdown chọn 1 giá trị, thay cho <select> gốc: nút bấm mở danh
 // sách tuỳ biến, TỰ LẬT LÊN khi thiếu chỗ bên dưới, render được mỗi dòng bằng
 // đúng font của nó.
-//   el.setOptions([{ value, label }])  nạp danh sách
+//   el.setOptions([{ value, label, colors }])  nạp danh sách
 //   el.value                           đọc / gán (tự cập nhật nhãn + mục chọn)
 //   bắn sự kiện "change" (bubbles) khi người dùng chọn → dùng được onchange=""
-// Thuộc tính: preview-font (render mỗi dòng bằng font = value), placeholder.
+// Thuộc tính: preview-font (render mỗi dòng bằng font = value), preview-swatch
+// (hiện dãy chấm màu lấy từ `colors` của từng mục), placeholder.
 
 (function () {
   const s = document.createElement("style");
-  s.textContent = "x-combobox{display:block}";
+  s.textContent =
+    "x-combobox{display:block}" +
+    // Dãy chấm màu của preview-swatch: gộp sát nhau thành một dải nhỏ để nhận ra
+    // bộ màu mà không chiếm chỗ của nhãn.
+    ".x-cb-sw{display:inline-flex;flex:none;align-items:center;vertical-align:middle}" +
+    ".x-cb-sw i{display:block;width:10px;height:10px;border-radius:9999px;" +
+    "box-shadow:0 0 0 1px rgb(0 0 0/0.12) inset;margin-right:-3px}" +
+    ".x-cb-sw i:last-child{margin-right:0}";
   document.head.appendChild(s);
 })();
 
@@ -22,8 +30,21 @@ const _XCB_LIST_CLS =
   "border border-gray-200 rounded-xl shadow-lg overflow-y-auto overscroll-contain";
 
 const _XCB_OPT_CLS =
-  "x-cb-opt block w-full text-left px-2 py-2 rounded-lg text-sm text-gray-700 " +
-  "truncate cursor-pointer hover:bg-rose-50";
+  "x-cb-opt flex w-full items-center gap-2 text-left px-2 py-2 rounded-lg text-sm " +
+  "text-gray-700 cursor-pointer hover:bg-rose-50";
+
+// Dãy chấm màu của một mục (preview-swatch). Màu đặt bằng style chứ không ghép
+// vào chuỗi HTML — danh sách có thể đến từ dữ liệu, đừng mở đường cho markup lạ.
+function _xcbSwatch(colors) {
+  const wrap = document.createElement("span");
+  wrap.className = "x-cb-sw";
+  colors.slice(0, 5).forEach((c) => {
+    const dot = document.createElement("i");
+    dot.style.background = c;
+    wrap.appendChild(dot);
+  });
+  return wrap;
+}
 
 const _XCB_CHEV =
   '<svg class="x-cb-chev w-4 h-4 shrink-0 text-gray-400 transition-transform" ' +
@@ -38,6 +59,7 @@ class XCombobox extends HTMLElement {
 
     this._value = this.getAttribute("value") || "";
     this._previewFont = this.hasAttribute("preview-font");
+    this._previewSwatch = this.hasAttribute("preview-swatch");
     this._placeholder = this.getAttribute("placeholder") || "Chọn...";
     this._options = [];
     this._isOpen = false;
@@ -45,7 +67,8 @@ class XCombobox extends HTMLElement {
     this.innerHTML =
       '<div class="relative">' +
       `<button type="button" class="${_XCB_BTN_CLS}" aria-haspopup="listbox">` +
-      '<span class="x-cb-label truncate"></span>' +
+      '<span class="x-cb-cur flex items-center gap-2 min-w-0">' +
+      '<span class="x-cb-label truncate"></span></span>' +
       _XCB_CHEV +
       "</button>" +
       `<div class="${_XCB_LIST_CLS}" role="listbox"></div>` +
@@ -85,7 +108,12 @@ class XCombobox extends HTMLElement {
       o.className = _XCB_OPT_CLS;
       o.setAttribute("role", "option");
       o.dataset.value = it.value;
-      o.textContent = it.label;
+      if (this._previewSwatch && Array.isArray(it.colors) && it.colors.length)
+        o.appendChild(_xcbSwatch(it.colors));
+      const txt = document.createElement("span");
+      txt.className = "truncate";
+      txt.textContent = it.label;
+      o.appendChild(txt);
       if (this._previewFont) o.style.fontFamily = `'${it.value}', sans-serif`;
       o.addEventListener("click", () => this._pick(it.value));
       this._list.appendChild(o);
@@ -107,6 +135,14 @@ class XCombobox extends HTMLElement {
     this._label.style.fontFamily =
       this._previewFont && hasVal ? `'${this._value}', sans-serif` : "";
     this._label.classList.toggle("text-gray-400", !hasVal);
+
+    // Chấm màu của mục đang chọn, hiện ngay trên nút bấm.
+    const cur = this.querySelector(".x-cb-cur");
+    if (cur) {
+      cur.querySelector(".x-cb-sw")?.remove();
+      if (this._previewSwatch && Array.isArray(opt?.colors) && opt.colors.length)
+        cur.insertBefore(_xcbSwatch(opt.colors), this._label);
+    }
 
     if (this._list) {
       this._list.querySelectorAll(".x-cb-opt").forEach((o) => {

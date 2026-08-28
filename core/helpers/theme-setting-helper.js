@@ -70,6 +70,65 @@ const THEME_ACCENT_COLORS = [
   "#9caf88",
 ];
 
+// ── BỘ MÀU (theme_setting.palette) ─────────────────────────────────────────
+// Một bộ màu = cả bảng màu của thiệp. Áp bằng cách đổ vào token --cx-*-rgb ở
+// :root — mọi mẫu trong public/themes/* đều vẽ theo bộ token đó (khai mặc định
+// ở styles/_common.css) nên một lần chọn là đổi toàn thiệp, không phải rải
+// selector cho từng mục.
+//
+// Danh mục các bộ nằm ở core/helpers/card-palette-helper.js và CHỈ trang Thiết
+// lập nạp: thiệp lưu nguyên 9 màu đã chọn nên trang thiệp dựng lại được mà
+// không cần danh mục.
+//
+// Ô màu lẻ (heading_color, body_color…) vẫn ghi đè lên trên bằng !important:
+// chọn bộ trước, chỉnh tay sau.
+const CX_PALETTE_KEYS = [
+  "heading",
+  "body",
+  "accent",
+  "on_accent",
+  "line",
+  "surface",
+  "card_bg",
+  "cover",
+  "cover_mid",
+];
+
+const CX_PALETTE_TOKENS = {
+  heading: "--cx-heading-rgb",
+  body: "--cx-body-rgb",
+  accent: "--cx-accent-rgb",
+  on_accent: "--cx-on-accent-rgb",
+  line: "--cx-line-rgb",
+  surface: "--cx-surface-rgb",
+  card_bg: "--cx-card-bg-rgb",
+  cover: "--cx-cover-rgb",
+  cover_mid: "--cx-cover-mid-rgb",
+};
+
+// Token viết dạng bộ ba "r g b" (không phải mã hex) để chỗ dùng còn chèn được
+// alpha: rgb(var(--cx-accent-rgb) / 0.2). Trả "" nếu chuỗi không phải hex.
+function _cxHexToRgbTriplet(hex) {
+  if (typeof hex !== "string") return "";
+  let h = hex.trim().replace(/^#/, "");
+  if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+  if (!/^[0-9a-fA-F]{6}$/.test(h)) return "";
+  return `${parseInt(h.slice(0, 2), 16)} ${parseInt(h.slice(2, 4), 16)} ${parseInt(h.slice(4, 6), 16)}`;
+}
+
+// Trả về rule `:root { … }` cho bộ màu, hoặc "" nếu không có bộ nào hợp lệ.
+// Khoá thiếu thì bỏ qua để token của mẫu vẫn giữ nguyên — bộ màu khuyết một ô
+// không được phép làm hỏng cả thiệp.
+function _cxPaletteRule(palette) {
+  if (!palette || typeof palette !== "object") return "";
+  const decls = [];
+  CX_PALETTE_KEYS.forEach((k) => {
+    const rgb = _cxHexToRgbTriplet(palette[k]);
+    if (rgb) decls.push(`${CX_PALETTE_TOKENS[k]}: ${rgb}`);
+  });
+  return decls.length ? `:root { ${decls.join("; ")}; }` : "";
+}
+
 // Các class font/màu mà thiệp đang dùng → ghi đè khi có theme_setting.
 // Tiêu đề = chữ lớn đậm; Nội dung = chữ đọc thường; Nhấn = icon/hoa văn/viền.
 // Theme dùng class khác thì khai CX_THEME.selectors trong index.js của mình —
@@ -2347,6 +2406,12 @@ function applyThemeSetting(setting) {
 
   const rules = [];
 
+  // Bộ màu đứng ĐẦU: nó chỉ đổi token, còn các rule dưới đây đổi thẳng
+  // color/background-color kèm !important nên luôn thắng — chọn bộ trước, chỉnh
+  // tay từng ô sau.
+  const paletteRule = _cxPaletteRule(setting.palette);
+  if (paletteRule) rules.push(paletteRule);
+
   if (setting.heading_font) {
     _loadGoogleFont(setting.heading_font);
     rules.push(
@@ -2465,6 +2530,8 @@ function applyThemeSetting(setting) {
 // Export ra global (các theme dùng qua <script>, không có module system)
 if (typeof window !== "undefined") {
   window.THEME_FONTS = THEME_FONTS;
+  window.CX_PALETTE_KEYS = CX_PALETTE_KEYS;
+  window.CX_PALETTE_TOKENS = CX_PALETTE_TOKENS;
   window.loadThemeFont = _loadGoogleFont; // để bảng chọn nạp trước font cho preview
   window.THEME_HEADING_COLORS = THEME_HEADING_COLORS;
   window.THEME_BODY_COLORS = THEME_BODY_COLORS;
