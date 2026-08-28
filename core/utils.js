@@ -193,6 +193,28 @@ function showPreviewAlert() {
 let _vhWidth = 0;
 let _vhPx = 0;
 
+/**
+ * Đo `100svh` ra px bằng một thẻ dò rồi bỏ đi. Trả 0 nếu trình duyệt chưa hiểu
+ * svh (lúc đó nơi gọi lùi về `innerHeight`).
+ *
+ * Cần thứ này vì `innerHeight` NGAY LÚC TRANG MỞ không chắc là khung nhìn lúc
+ * thanh công cụ đang hiện: mở thiệp từ trang chủ là chuyển trang sau khi đã
+ * cuộn, mà Chrome/Safari di động giữ nguyên trạng thái thanh ĐANG ẨN sang trang
+ * mới → đo được khung CAO (lvh) rồi khoá luôn vào --vh. `svh` không phụ thuộc
+ * trạng thái đó, nên lấy min(innerHeight, svh) là ra ngay con số đúng.
+ */
+function _measureSvh() {
+  if (!window.CSS?.supports?.("height", "100svh")) return 0;
+  const probe = document.createElement("div");
+  probe.style.cssText =
+    "position:fixed;top:0;left:0;width:0;height:100svh;visibility:hidden;pointer-events:none;";
+  const host = document.body || document.documentElement;
+  host.appendChild(probe);
+  const h = probe.getBoundingClientRect().height;
+  probe.remove();
+  return h;
+}
+
 function setVH() {
   const doc = document.documentElement;
   const w = window.innerWidth;
@@ -204,8 +226,12 @@ function setVH() {
     return;
   }
   if (w !== _vhWidth) {
+    // Chỉ đo svh ở nhánh này (lần đầu + xoay máy): thanh công cụ ẩn/hiện không
+    // đổi svh, mà resize thì bắn liên tục lúc vuốt — đo mỗi nhịp là ép layout
+    // đúng lúc cần mượt nhất.
     _vhWidth = w;
-    _vhPx = h;
+    const svh = _measureSvh();
+    _vhPx = svh ? Math.min(h, svh) : h;
   } else if (h < _vhPx) {
     _vhPx = h;
   } else {
