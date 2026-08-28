@@ -1,5 +1,26 @@
-// Cloudflare Worker to cache templates with pricing from Supabase
-// Cache for 7 days since new templates are rarely added
+// Cloudflare Worker: gom danh sách templates + pricing từ Supabase thành MỘT
+// response JSON, có cache ở edge và endpoint POST /purge cho admin.
+//
+// HAI TTL KHÁC NHAU, cố ý (xem withClientCache): bản lưu ở edge sống lâu vì
+// admin purge được, còn bản trả về trình duyệt phải ngắn — cache trên máy khách
+// không có cách nào xoá từ xa, TTL dài là thay đổi template không tới được
+// khách đã ghé trang cho tới khi hết hạn.
+
+// Bản lưu ở edge: dài, vì purge được. Bản trả về browser: ngắn, vì không.
+const EDGE_TTL = 604800; // 7 ngày
+const CLIENT_TTL = 300; // 5 phút — cũng là độ trễ tối đa khi đổi template
+
+// Đóng lại response cho phía khách với TTL ngắn. Phải gọi ở CẢ hai nhánh (cache
+// hit lẫn miss): bản nằm trong cache mang sẵn TTL dài, trả thẳng ra là browser
+// giữ lại 7 ngày đúng như cũ.
+function withClientCache(response, corsHeaders) {
+  const headers = new Headers(response.headers);
+  headers.set("Cache-Control", `public, max-age=${CLIENT_TTL}`);
+  headers.delete("CDN-Cache-Control");
+  headers.delete("Cloudflare-CDN-Cache-Control");
+  for (const [k, v] of Object.entries(corsHeaders)) headers.set(k, v);
+  return new Response(response.body, { status: response.status, headers });
+}
 
 export default {
   async fetch(request, env) {
@@ -38,7 +59,7 @@ export default {
 
       if (response) {
         console.log("Cache hit for templates with pricing");
-        return response;
+        return withClientCache(response, corsHeaders);
       }
 
       console.log("Cache miss, fetching from Supabase");
@@ -99,21 +120,20 @@ export default {
         };
       });
 
-      // Create response with cache headers
+      // Bản dành cho edge — TTL của Cache API lấy từ chính header này.
       response = new Response(JSON.stringify(templatesWithPricing), {
         headers: {
           ...corsHeaders,
           "Content-Type": "application/json",
-          "Cache-Control": "public, max-age=604800", // 7 days
-          "CDN-Cache-Control": "public, max-age=604800",
-          "Cloudflare-CDN-Cache-Control": "public, max-age=604800",
+          "Cache-Control": `public, max-age=${EDGE_TTL}`,
+          "CDN-Cache-Control": `public, max-age=${EDGE_TTL}`,
+          "Cloudflare-CDN-Cache-Control": `public, max-age=${EDGE_TTL}`,
         },
       });
 
-      // Store in cache
       await cache.put(cacheKey, response.clone());
 
-      return response;
+      return withClientCache(response, corsHeaders);
     } catch (error) {
       console.error("Templates cache error:", error);
       return new Response(JSON.stringify({ error: error.message }), {
@@ -124,7 +144,11 @@ export default {
   },
 };
 
-// Handle cache purge
+// Xoá bản lưu ở edge. Hai giới hạn cố hữu, admin phải biết để không truy nhầm:
+// Cache API là RIÊNG TỪNG COLO nên chỉ xoá được ở colo nhận request này, và nó
+// hoàn toàn không chạm tới cache trên trình duyệt khách (chỗ đó chờ CLIENT_TTL).
+// Trên deployment *.workers.dev thì Cache API còn không lưu gì, deletedCount sẽ
+// luôn là 0 — đó là bình thường, không phải lỗi.
 async function handlePurge(request, env, corsHeaders) {
   try {
     // Verify secret
