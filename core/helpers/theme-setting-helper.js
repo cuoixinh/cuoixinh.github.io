@@ -44,32 +44,6 @@ const THEME_FONTS = [
   { name: "Lexend", type: "body" },
 ];
 
-// Màu gợi ý cho picker
-const THEME_HEADING_COLORS = [
-  "#2d2d2d",
-  "#4a3f35",
-  "#3b4a3f",
-  "#5c4033",
-  "#1f2937",
-  "#7a4b52",
-];
-const THEME_BODY_COLORS = [
-  "#78716c",
-  "#57534e",
-  "#6b6562",
-  "#4a4a4a",
-  "#5a5148",
-  "#44403c",
-];
-const THEME_ACCENT_COLORS = [
-  "#c0a062",
-  "#b98a3c",
-  "#7fa38a",
-  "#d4a5a5",
-  "#a8763e",
-  "#9caf88",
-];
-
 // ── BỘ MÀU (theme_setting.palette) ─────────────────────────────────────────
 // Một bộ màu = cả bảng màu của thiệp. Áp bằng cách đổ vào token --cx-*-rgb ở
 // :root — mọi mẫu trong public/themes/* đều vẽ theo bộ token đó (khai mặc định
@@ -80,8 +54,6 @@ const THEME_ACCENT_COLORS = [
 // lập nạp: thiệp lưu nguyên 9 màu đã chọn nên trang thiệp dựng lại được mà
 // không cần danh mục.
 //
-// Ô màu lẻ (heading_color, body_color…) vẫn ghi đè lên trên bằng !important:
-// chọn bộ trước, chỉnh tay sau.
 // Khoá của một bộ màu ↔ token CSS mà thiệp vẽ theo. Đây là DANH SÁCH ĐẦY ĐỦ:
 // mỗi vai trò màu trong thiệp có đúng một khoá, nên bộ màu với tới được mọi chỗ.
 //
@@ -307,30 +279,6 @@ function _cxPaletteRule(palette) {
   if (need.every((k) => rgbOf[k])) decls.push(...CX_PALETTE_MUSIC((k) => rgbOf[k]));
 
   return `:root { ${decls.join("; ")}; }`;
-}
-
-// Các class font/màu mà thiệp đang dùng → ghi đè khi có theme_setting.
-// Tiêu đề = chữ lớn đậm; Nội dung = chữ đọc thường; Nhấn = icon/hoa văn/viền.
-// Theme dùng class khác thì khai CX_THEME.selectors trong index.js của mình —
-// KHÔNG chèn thêm class của theme mới vào bảng dưới đây.
-// .cx-hd/.cx-bd/.cx-ac là lớp ngữ nghĩa của markup do helper dùng chung sinh ra
-// (dòng thời gian, chuyện tình yêu) — mọi theme nên giữ chúng trong bảng của mình.
-const CX_DEFAULT_SELECTORS = {
-  headingFont: ".font-cormorant, .font-playfair, .font-cinzel, .font-prata",
-  bodyFont: "body, .font-inter",
-  headingColor: ".cx-hd, .text-charcoal, .text-stone-custom-500",
-  bodyColor: ".cx-bd, .text-stone-custom-400",
-  accentColor: ".cx-ac, .text-rose-pastel-300, .text-rose-pastel-200",
-  // Nền thiệp: body (khung ngoài) + thẻ chính của thiệp.
-  background: "body, #main-card",
-};
-
-// Bản khai của theme đang mở (public/themes/<theme>/index.js đặt window.CX_THEME).
-// Hàm này luôn chạy TRONG cửa sổ của thiệp — trang Thiết lập gọi qua
-// iframe.contentWindow.applyThemeSetting nên vẫn thấy đúng bản khai.
-function _cxSel(key) {
-  const t = window.CX_THEME;
-  return (t && t.selectors && t.selectors[key]) || CX_DEFAULT_SELECTORS[key];
 }
 
 let _loadedFonts = new Set();
@@ -2586,49 +2534,10 @@ function applyThemeSetting(setting) {
 
   const rules = [];
 
-  // Bộ màu đứng ĐẦU: nó chỉ đổi token, còn các rule dưới đây đổi thẳng
-  // color/background-color kèm !important nên luôn thắng — chọn bộ trước, chỉnh
-  // tay từng ô sau.
+  // Bộ màu chỉ đổi token --cx-* ở :root nên mọi rule bên dưới (ghi đè từng dòng
+  // chữ, khối văn bản…) vẫn thắng: chọn bộ trước, chỉnh riêng từng chỗ sau.
   const paletteRule = _cxPaletteRule(setting.palette);
   if (paletteRule) rules.push(paletteRule);
-
-  if (setting.heading_font) {
-    _loadGoogleFont(setting.heading_font);
-    rules.push(
-      `${_cxSel("headingFont")} { font-family: '${setting.heading_font}', serif !important; }`,
-    );
-  }
-
-  if (setting.body_font) {
-    _loadGoogleFont(setting.body_font);
-    rules.push(
-      `${_cxSel("bodyFont")} { font-family: '${setting.body_font}', sans-serif !important; }`,
-    );
-  }
-
-  if (setting.heading_color) {
-    rules.push(
-      `${_cxSel("headingColor")} { color: ${setting.heading_color} !important; }`,
-    );
-  }
-
-  if (setting.body_color) {
-    rules.push(
-      `${_cxSel("bodyColor")} { color: ${setting.body_color} !important; }`,
-    );
-  }
-
-  if (setting.accent_color) {
-    rules.push(
-      `${_cxSel("accentColor")} { color: ${setting.accent_color} !important; }`,
-    );
-  }
-
-  if (setting.background_color) {
-    rules.push(
-      `${_cxSel("background")} { background-color: ${setting.background_color} !important; }`,
-    );
-  }
 
   // ── Ghi đè chi tiết TỪNG DÒNG chữ ─────────────────────────────────────────
   // setting.text_overrides = { "<selector>": { font, size, color, weight, italic, align } }
@@ -2714,9 +2623,6 @@ if (typeof window !== "undefined") {
   window.CX_PALETTE_TOKENS = CX_PALETTE_TOKENS;
   window.cxPaletteAtStrength = cxPaletteAtStrength;
   window.loadThemeFont = _loadGoogleFont; // để bảng chọn nạp trước font cho preview
-  window.THEME_HEADING_COLORS = THEME_HEADING_COLORS;
-  window.THEME_BODY_COLORS = THEME_BODY_COLORS;
-  window.THEME_ACCENT_COLORS = THEME_ACCENT_COLORS;
   window.applyThemeSetting = applyThemeSetting;
   window.applyTextOverrides = applyTextOverrides;
   window.applyCustomBlocks = applyCustomBlocks;

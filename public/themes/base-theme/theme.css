@@ -5,8 +5,8 @@
    Hai phần:
      1. --cx-*  bộ biến mà phần DÙNG CHUNG vẽ theo (lịch nhỏ, dòng thời gian,
         màn bìa, nút xác nhận tham dự). Mặc định ở styles/_common.css.
-     2. .cx-h / .cx-t / .cx-a  ba lớp ngữ nghĩa mà markup của MẪU dùng, và cũng
-        là thứ CX_THEME.selectors nhắm tới. Đổi tông cả thiệp = sửa mỗi file này. */
+     2. .cx-h / .cx-t / .cx-a  ba lớp ngữ nghĩa mà markup của MẪU dùng; màu của
+        chúng đi theo bộ token ở trên. Đổi tông cả thiệp = sửa mỗi file này. */
 
 :root {
   --cx-accent-rgb: 176 141 87; /* nhấn: ngày cưới, chấm mốc, icon */

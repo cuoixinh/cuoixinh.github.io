@@ -6,10 +6,9 @@
    Ba phần:
      1. --cx-*  bộ biến mà phần DÙNG CHUNG vẽ theo (lịch nhỏ, dòng thời gian,
         màn bìa, nút xác nhận tham dự). Mặc định ở styles/_common.css.
-     2. .cx-h / .cx-t / .cx-a  ba lớp ngữ nghĩa mà markup của mẫu dùng, cũng là
-        thứ CX_THEME.selectors nhắm tới → đổi tông cả thiệp = sửa mỗi file này.
-     3. .lp-*  phần riêng của mẫu (sương sáng, thẻ kính mờ, album coverflow) —
-        chữ thư pháp và chữ viết tay CỐ Ý không đi theo bảng chọn font.
+     2. .cx-h / .cx-t / .cx-a  ba lớp ngữ nghĩa mà markup của mẫu dùng; màu
+        của chúng đi theo bộ token ở trên → đổi tông cả thiệp = sửa mỗi file này.
+     3. .lp-*  phần riêng của mẫu (sương sáng, thẻ kính mờ, album coverflow).
 
    Tông chung: tương phản THẤP, highlight sáng nhưng không cháy, bóng đổ rất
    mềm. Muốn đậm hơn thì tăng --cx-heading-rgb chứ đừng thêm bóng đen. */
@@ -60,9 +59,9 @@ body {
 }
 
 /* ── Chữ thư pháp + chữ viết tay ───────────────────────────────────────────
-   Nét nhận dạng của mẫu. CỐ Ý nằm ngoài CX_THEME.selectors: bảng chọn font ở
-   tab Giao diện chỉ có font Google, đổi xong khách không quay lại được font tự
-   host. Font tự host khai tập trung ở styles/_fonts.css — ở đây chỉ gọi tên. */
+   Nét nhận dạng của mẫu, cố định — khách muốn khác thì bấm thẳng vào dòng chữ
+   đó trên thiệp mà chỉnh riêng. Font tự host khai tập trung ở styles/_fonts.css
+   — ở đây chỉ gọi tên. */
 
 .lp-script {
   font-family: "Signora", cursive;

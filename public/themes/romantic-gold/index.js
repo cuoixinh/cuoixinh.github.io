@@ -47,40 +47,21 @@
       shine_to: "#f5d5d8",
     },
 
-    preset: {
-      heading_font: "Cormorant Garamond",
-      body_font: "Inter",
-      heading_color: "#2d3436", // than chì
-      body_color: "#8a9a8a", // sage-400
-      accent_color: "#a89968", // gold-400
-      background_color: "#ffffff", // #main-card
-      swatches: [
-        "#2d3436",
-        "#4a5250",
-        "#8a9a8a", // sage-400
-        "#b4bfb4", // sage-300
-        "#a89968", // gold-400
-        "#c9b896", // gold-300
-        "#e8dcc8", // gold-200
-        "#f5f0e8", // gold-100
-        "#f6f7f6", // sage-50
-        "#e8ebe8", // sage-100
-        "#ffffff",
-      ],
-    },
-
-    // Mẫu gom về ba lớp ngữ nghĩa (.cx-h · .cx-t · .cx-a, khai trong theme.css).
-    // .cx-hd/.cx-bd/.cx-ac là markup do helper dùng chung sinh ra — giữ nguyên.
-    // Cố ý KHÔNG gồm .rg-on/.rg-gold: đó là chữ nằm TRÊN ảnh poster, đổi sang
-    // màu sẫm là chìm nghỉm vào ảnh.
-    selectors: {
-      headingFont: ".cx-h, .font-cormorant",
-      bodyFont: "body, .cx-t, .font-inter",
-      headingColor: ".cx-h, .cx-hd",
-      bodyColor: ".cx-t, .cx-bd",
-      accentColor: ".cx-a, .cx-ac",
-      background: "body, #main-card",
-    },
+    // Màu GỢI Ý trong bộ chọn màu (khách bấm vào một phần tử trên thiệp rồi
+    // chỉnh riêng) — lấy từ chính bảng màu của mẫu.
+    swatches: [
+      "#2d3436",
+      "#4a5250",
+      "#8a9a8a", // sage-400
+      "#b4bfb4", // sage-300
+      "#a89968", // gold-400
+      "#c9b896", // gold-300
+      "#e8dcc8", // gold-200
+      "#f5f0e8", // gold-100
+      "#f6f7f6", // sage-50
+      "#e8ebe8", // sage-100
+      "#ffffff",
+    ],
 
     // Poster mở đầu KHÔNG hiện dần: nó choán cả màn ngay khi vào, cho trượt vào
     // thì khách thấy một khoảng trống trước đã.
@@ -414,7 +395,6 @@
   // Ít ảnh thì khối nào không đủ ảnh sẽ tự ẩn, không để lại chỗ trống.
 
   const RG_BAND_TEXT = "Forever &amp; Always";
-
 
   /**
    * Ảnh minh hoạ cho một mục (tiệc, lịch trình). KHÔNG bấm phóng to được: nó

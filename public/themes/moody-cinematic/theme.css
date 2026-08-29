@@ -6,8 +6,8 @@
    Hai phần:
      1. --cx-*  bộ biến mà phần DÙNG CHUNG vẽ theo (lịch nhỏ, dòng thời gian,
         màn bìa, nút xác nhận tham dự). Mặc định ở styles/_common.css.
-     2. .cx-h / .cx-t / .cx-a  ba lớp ngữ nghĩa mà markup của mẫu dùng, cũng là
-        thứ CX_THEME.selectors nhắm tới. Đổi tông cả thiệp = sửa mỗi file này. */
+     2. .cx-h / .cx-t / .cx-a  ba lớp ngữ nghĩa mà markup của mẫu dùng; màu của
+        chúng đi theo bộ token ở trên. Đổi tông cả thiệp = sửa mỗi file này. */
 
 :root {
   --cx-accent-rgb: 42 61 88; /* nhấn: xanh than sâu */
@@ -577,11 +577,10 @@ body {
   color: rgb(var(--cx-on-image-rgb) / 0.82);
 }
 
-/* Chữ ký: font TỰ HOST (khai ở styles/_fonts.css), cố ý ĐỨNG NGOÀI
-   CX_THEME.selectors — bảng chọn font ở tab Giao diện chỉ có font Google, khách
-   đổi một lần là không quay lại được kiểu chữ này. TheHamstter thân chữ dày và
-   cao hơn hẳn font thư pháp mảnh nên cỡ đặt thấp hơn mà nhìn vẫn lớn tương
-   đương; đổi font ở đây là phải chỉnh lại cả cỡ. */
+/* Chữ ký: font TỰ HOST (khai ở styles/_fonts.css), cố định — đây là nét nhận
+   dạng của mẫu. TheHamstter thân chữ dày và cao hơn hẳn font thư pháp mảnh nên
+   cỡ đặt thấp hơn mà nhìn vẫn lớn tương đương; đổi font ở đây là phải chỉnh lại
+   cả cỡ. */
 
 .mc-ph-names {
   font-family: "TheHamstter", cursive;

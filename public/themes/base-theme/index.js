@@ -49,42 +49,21 @@
       shine_to: "#f5d5d8",
     },
 
-    preset: {
-      heading_font: "Cormorant Garamond",
-      body_font: "Inter",
-      heading_color: "#3f3a38",
-      body_color: "#7a736e",
-      accent_color: "#b08d57",
-      background_color: "#fdfcfa",
-      // Màu gợi ý trong bảng chọn — lấy từ chính bảng màu của mẫu.
-      swatches: [
-        "#3f3a38",
-        "#5c5450",
-        "#7a736e",
-        "#2d2d2d",
-        "#b08d57",
-        "#c9b896",
-        "#e6dcc8",
-        "#f2ece1",
-        "#fdfcfa",
-        "#f7f4ef",
-        "#ffffff",
-      ],
-    },
-
-    // Class mà thanh chỉnh font/màu nhắm tới. Mẫu này gom về ba lớp ngữ nghĩa
-    // (.cx-h tiêu đề · .cx-t nội dung · .cx-a nhấn, khai trong theme.css) nên
-    // đổi cả thiệp chỉ bằng ba dòng.
-    // .cx-hd/.cx-bd/.cx-ac là markup do helper dùng chung sinh ra (dòng thời
-    // gian, chuyện tình yêu) — GIỮ NGUYÊN khi chép sang mẫu mới.
-    selectors: {
-      headingFont: ".cx-h, .font-cormorant",
-      bodyFont: "body, .cx-t, .font-inter",
-      headingColor: ".cx-h, .cx-hd",
-      bodyColor: ".cx-t, .cx-bd",
-      accentColor: ".cx-a, .cx-ac",
-      background: "body, #main-card",
-    },
+    // Màu GỢI Ý trong bộ chọn màu (khách bấm vào một phần tử trên thiệp rồi
+    // chỉnh riêng) — lấy từ chính bảng màu của mẫu.
+    swatches: [
+      "#3f3a38",
+      "#5c5450",
+      "#7a736e",
+      "#2d2d2d",
+      "#b08d57",
+      "#c9b896",
+      "#e6dcc8",
+      "#f2ece1",
+      "#fdfcfa",
+      "#f7f4ef",
+      "#ffffff",
+    ],
 
     // Mục được gán hiệu ứng hiện dần khi cuộn tới.
     reveal: ["#main-card section"],

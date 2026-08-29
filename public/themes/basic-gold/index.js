@@ -52,41 +52,22 @@ window.CX_THEME = {
       shine_to: "#f5d5d8",
     },
 
-  preset: {
-    heading_font: "Playfair Display", // .font-playfair
-    body_font: "Inter", // .font-inter
-    heading_color: "#6b6562", // stone-custom-500
-    body_color: "#78716c", // stone-custom-400
-    accent_color: "#d4a5a5", // rose-pastel-300
-    background_color: "#fffbf7", // #main-card
-    // Màu gợi ý trong bảng chọn — lấy từ chính palette của theme
-    swatches: [
-      "#6b6562", // stone-custom-500
-      "#78716c", // stone-custom-400
-      "#44403c", // stone-custom-600
-      "#2d2d2d",
-      "#d4a5a5", // rose-pastel-300
-      "#e8b4b8", // rose-pastel-200
-      "#f5d5d8", // rose-pastel-100
-      "#fef0f2", // rose-pastel-50
-      "#fffbf7", // cream-50
-      "#fff5f0", // cream-100
-      "#ffe8e0", // cream-200
-      "#ffffff",
-    ],
-  },
-
-  // Class mà thanh chỉnh font/màu nhắm tới. Cố ý KHÔNG gồm .font-nautigal /
-  // .font-katty: tên cô dâu chú rể giữ nguyên nét chữ viết tay của mẫu.
-  // .cx-hd/.cx-bd/.cx-ac là markup do helper dùng chung sinh ra — giữ nguyên.
-  selectors: {
-    headingFont: ".font-playfair, .font-cormorant, .font-cinzel",
-    bodyFont: "body, .font-inter",
-    headingColor: ".cx-h, .cx-hd",
-    bodyColor: ".cx-t, .cx-bd",
-    accentColor: ".cx-a, .cx-a-soft, .cx-ac",
-    background: "body, #main-card",
-  },
+  // Màu GỢI Ý trong bộ chọn màu (khách bấm vào một phần tử trên thiệp rồi
+  // chỉnh riêng) — lấy từ chính bảng màu của mẫu.
+  swatches: [
+    "#6b6562", // stone-custom-500
+    "#78716c", // stone-custom-400
+    "#44403c", // stone-custom-600
+    "#2d2d2d",
+    "#d4a5a5", // rose-pastel-300
+    "#e8b4b8", // rose-pastel-200
+    "#f5d5d8", // rose-pastel-100
+    "#fef0f2", // rose-pastel-50
+    "#fffbf7", // cream-50
+    "#fff5f0", // cream-100
+    "#ffe8e0", // cream-200
+    "#ffffff",
+  ],
 
   // Mục được gán hiệu ứng hiện dần khi cuộn tới.
   reveal: [
