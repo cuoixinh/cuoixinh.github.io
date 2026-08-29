@@ -125,6 +125,21 @@ function _cxHexToRgbTriplet(hex) {
 // này ra chạy lại để quét cả dải 0–100 → đừng đổi hai dòng mốc.
 const CX_STRENGTH_K = { min: 0.7, mid: 1, max: 1.6 };
 
+// Nền của thiệp cưới toàn tông rất nhạt, có ô đúng bằng #ffffff. Nhân khoảng
+// cách tới trắng của CHÍNH NÓ thì mấy ô này gần như đứng yên (trắng tinh thì
+// đứng yên tuyệt đối) → kéo thanh mà nền không nhúc nhích. Nên nhóm nền được
+// ĐẨY THÊM theo hướng tông của bộ: cộng, không nhân, nên chênh lệch giữa các
+// lớp nền giữ nguyên, cả nhóm cùng ăn màu đậm dần.
+const CX_PALETTE_BG = [
+  "card_bg", "page_bg", "surface", "band",
+  "panel", "panel_warm", "cover", "cover_mid", "cover_veil",
+];
+
+// Chữ SÁNG nằm trên nền tối (on_accent/on_image/on_lightbox) cũng gần trắng
+// nhưng CỐ Ý không nằm trong nhóm trên: nhuộm chúng đậm lên là ăn mất tương
+// phản với chính lớp nền tối đỡ chúng.
+const CX_BG_TINT = 0.55; // đẩy bao nhiêu phần tông nền cho mỗi nấc hệ số
+
 // [khoá bị làm đậm, những màu nó phải đọc được cùng, ngưỡng tương phản].
 // Khoá luôn là vế TỐI của cặp nên làm đậm thêm là tăng tương phản.
 const CX_PALETTE_GUARD = [
@@ -182,11 +197,36 @@ function _cxRound(c) {
   return c.map((v) => Math.max(0, Math.min(255, Math.round(v))));
 }
 
-function _cxDeepen(c, k) {
+// Hướng tông nền của bộ: khoảng cách tới trắng của ô nền ĂN MÀU nhất. Suy ra từ
+// chính bộ màu chứ không đọc một khoá cố định — bộ nào thiếu ô vẫn chạy.
+function _cxTintVector(rgb) {
+  let best = [0, 0, 0];
+  let bestD = 0;
+  CX_PALETTE_BG.forEach((key) => {
+    const c = rgb[key];
+    if (!c) return;
+    const d = c.map((v) => 255 - v);
+    const m = Math.max(d[0], d[1], d[2]);
+    if (m > bestD) {
+      bestD = m;
+      best = d;
+    }
+  });
+  return best;
+}
+
+// `tint` chỉ truyền cho nhóm nền (xem CX_PALETTE_BG); khoá khác để trống.
+function _cxDeepen(c, k, tint) {
   // NHẠT đi: mọi màu cùng pha về phía trắng. Màu tối mà kéo ngược theo trục đen
   // (v/k) sẽ đội trần 255 ở kênh mạnh nhất → tông lệch hẳn sang loè loẹt.
   if (k <= 1) return _cxRound(c.map((v) => 255 - (255 - v) * k));
-  // ĐẬM lên: màu sáng rời xa màu trắng, màu tối lún sâu về phía đen.
+  // ĐẬM lên: nền ăn thêm tông của bộ; màu sáng khác rời xa màu trắng; màu tối
+  // lún sâu về phía đen.
+  if (tint) {
+    return _cxRound(
+      c.map((v, i) => 255 - ((255 - v) * k + (k - 1) * tint[i] * CX_BG_TINT)),
+    );
+  }
   return _cxRound(
     _cxLum(c) >= 0.5 ? c.map((v) => 255 - (255 - v) * k) : c.map((v) => v / k),
   );
@@ -218,10 +258,16 @@ function cxPaletteAtStrength(palette, strength) {
   if (!Number.isFinite(s) || Math.round(s) === 50) return palette;
   const k = _cxStrengthK(s);
 
-  const rgb = {};
+  const src = {};
   CX_PALETTE_KEYS.forEach((key) => {
     const c = _cxHexRgb(palette[key]);
-    if (c) rgb[key] = _cxDeepen(c, k);
+    if (c) src[key] = c;
+  });
+  const tint = _cxTintVector(src);
+
+  const rgb = {};
+  Object.keys(src).forEach((key) => {
+    rgb[key] = _cxDeepen(src[key], k, CX_PALETTE_BG.includes(key) ? tint : null);
   });
   CX_PALETTE_GUARD.forEach(([key, vs, min]) => {
     const others = vs.map((o) => rgb[o]).filter(Boolean);
