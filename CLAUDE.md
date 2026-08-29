@@ -186,12 +186,11 @@ GitHub Pages chạy Jekyll nên đường dẫn kiểu đó không được publ
 | `theme.css`  | Bảng màu `--cx-*` + CSS riêng. **CSS thuần**, nạp sau `styles/themes.css`  |
 
 - **`window.CX_THEME`** là bản khai — nguồn sự thật duy nhất về mẫu:
-  `preset` (font/màu gốc + `swatches` cho thanh chỉnh), `selectors` (class mà thanh chỉnh
-  font/màu nhắm tới), `reveal`, `focus` (id mục, chỉ khai cái khác mặc định), `suggest`
-  (selector mục mà bảng đề xuất mẫu khác bung ra ở bản xem thử — mặc định
-  `#section-gift`), `skipSteps` (bước mà trang Thiết lập KHÔNG hiện vì mẫu không vẽ mục
-  đó — id trùng `CX_STEPS`), `onOpen`.
-  Trang Thiết lập đọc `preset` **qua iframe xem trước** của tab Giao diện.
+  `swatches` (màu gợi ý trong bộ chọn màu), `reveal`, `focus` (id mục, chỉ khai cái khác
+  mặc định), `suggest` (selector mục mà bảng đề xuất mẫu khác bung ra ở bản xem thử —
+  mặc định `#section-gift`), `skipSteps` (bước mà trang Thiết lập KHÔNG hiện vì mẫu không
+  vẽ mục đó — id trùng `CX_STEPS`), `onOpen`.
+  Trang Thiết lập đọc `swatches` và `palette` **qua iframe xem trước** của tab Giao diện.
 - **`CX_THEME.palette`** khai đúng những giá trị `:root` của `theme.css` dưới dạng hex —
   bản khai máy đọc được để trang Thiết lập hiện mục "Mặc định". Hai nơi lệch nhau thì
   bảng chọn hiện sai màu mà trang vẫn chạy, rất khó thấy → **`npm run check:palette`**
@@ -218,10 +217,9 @@ GitHub Pages chạy Jekyll nên đường dẫn kiểu đó không được publ
   khoá được sửa text trực tiếp.
 - Luồng: `applyThemeSetting` → `renderWedding` → `applyTextOverrides` → `applyCustomBlocks`
   → `applyElements` (theme chỉ cần cung cấp `renderWedding`).
-- Chữ trang trí (chữ ký, chữ lồng) nên dùng **font tự host** khai ở `styles/_fonts.css`, và
-  **để ngoài `CX_THEME.selectors`**: bảng chọn font ở tab Giao diện chỉ có font Google, đổi
-  xong khách không quay lại được font tự host. Phần chữ ĐỌC (`.cx-h`/`.cx-t`) thì ngược lại —
-  đặt mặc định bằng font có trong bảng chọn để `preset` khai đúng sự thật.
+- Chữ trang trí (chữ ký, chữ lồng) nên dùng **font tự host** khai ở `styles/_fonts.css`.
+  Font là nét nhận dạng của mẫu nên KHÔNG có control nào đổi font toàn thiệp — khách muốn
+  khác thì bấm thẳng vào dòng chữ đó trên thiệp mà chỉnh riêng.
 - Muốn dùng **utility Tailwind mới** (font/màu chưa có) thì mới phải đụng
   `tailwind.themes.config.js` + `styles/_colors.css` — cách tránh: viết CSS thuần trong
   `theme.css`.
@@ -327,6 +325,10 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   `element-color-enum.js` (nạp TRƯỚC `element-helper.js`), số ô tối đa `EL_COLOR_SLOTS` phải
   có sẵn bấy nhiêu hàng chip trong `theme-panel.html` (Coloris chỉ bọc được input đã có
   trong DOM). `pin: true` → widget ghim theo màn hình, khi đó `y` là % chiều cao KHUNG NHÌN.
+- **Chỉnh giao diện có ĐÚNG hai mức, không có mức ở giữa:** bộ màu (đổi cả thiệp) và
+  chỉnh riêng một phần tử (bấm vào chính nó trên thiệp). Cố ý KHÔNG có control "font/màu
+  tiêu đề–nội dung–nhấn–nền" cho toàn thiệp: nó chồng `!important` lên mọi thứ, và
+  `background_color` ép nền trang lẫn thân thiệp về cùng một màu nên giết luôn bộ màu.
 - **Bộ màu thiệp (`theme_setting.palette`):** danh mục ở `core/helpers/card-palette-helper.js`
   (**chỉ trang Thiết lập nạp** — thiệp lưu sẵn màu nên không cần danh mục), áp ở
   `applyThemeSetting` bằng cách đổ vào `:root { --cx-*-rgb }`, bảng chọn ở
@@ -335,9 +337,14 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   `id` đã phát hành thì đừng đổi. Nút nhạc dùng bảng `--music-*` riêng nên
   `_cxPaletteRule` suy thêm bảng đó từ bộ màu — chỉ khi CÓ bộ, để thiệp không chọn bộ giữ
   nguyên hình thức cũ.
-- **Ô màu lẻ ở tab Giao diện chỉ ghi xuống khi khách THỰC SỰ bấm** (`_themeColorTouched`).
-  Ghi cả 4 ô mỗi lần `onThemeSettingChange()` chạy sẽ giết bộ màu: `background_color` áp
-  `!important` lên `body, #main-card` nên ép nền trang và thân thiệp về cùng một màu.
+- **`palette.strength` (thanh "Độ đậm", 0–100):** mức **50 = đúng bộ đã khai** và
+  `cxPaletteAtStrength()` trả về NGUYÊN object — đó là lý do thiệp cũ giữ y màu, nên đừng
+  lưu `strength` khi đang ở 50. Kéo lên thì màu sáng rời xa trắng còn màu tối lún về đen;
+  kéo xuống thì mọi màu cùng pha về trắng (kéo màu tối ngược trục đen sẽ đội trần 255 ở
+  kênh mạnh nhất → lệch tông). Nhạt quá thì chữ mất tương phản nên có **chốt WCAG** chỉ
+  biết làm ĐẬM THÊM (`CX_PALETTE_GUARD`) — vì vậy mức 50 trở lên chốt không đụng gì.
+  `check:palette-contrast` cắt thẳng đoạn `[strength-math]` trong `theme-setting-helper.js`
+  ra quét cả 21 mức: đổi phép tính thì đừng đổi tên hai dòng mốc đó.
 - **Mẫu văn bản (preset):** danh mục + CSS ở `core/helpers/text-preset-helper.js` (nạp TRƯỚC
   `theme-setting-helper.js`), thêm mẫu chỉ sửa file đó. Lưu trong `custom_blocks` dạng
   `{type:"preset", preset, parts}`, id thật của part là `<blockId>__<key>`. Cỡ chữ viết bằng

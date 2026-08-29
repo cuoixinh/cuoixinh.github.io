@@ -170,14 +170,17 @@ function cxPaletteValue(id) {
   return out;
 }
 
-// Bốn chấm màu hiện trên dropdown — đủ nhận ra bộ mà không rối.
-function cxPaletteDots(p) {
-  return p ? [p.heading, p.accent, p.line, p.card_bg] : [];
+// Màu của giọt màu trên dropdown. Lấy `band` — dải nền xen kẽ là mảng nền ĂN
+// MÀU rõ nhất của bộ (card_bg gần như trắng ở mọi bộ nên không phân biệt nổi).
+// Một màu thôi: giọt màu chỉ để nhận ra TÔNG, còn xem thật thì đã có khung xem
+// trước ngay bên cạnh.
+function cxPaletteSwatch(p) {
+  return (p && (p.band || p.surface || p.card_bg)) || "";
 }
 
 if (typeof window !== "undefined") {
   window.CX_PALETTES = CX_PALETTES;
   window.cxPaletteById = cxPaletteById;
   window.cxPaletteValue = cxPaletteValue;
-  window.cxPaletteDots = cxPaletteDots;
+  window.cxPaletteSwatch = cxPaletteSwatch;
 }

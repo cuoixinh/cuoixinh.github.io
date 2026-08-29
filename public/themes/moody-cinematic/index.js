@@ -50,44 +50,21 @@
       shine_to: "#f5d5d8",
     },
 
-    preset: {
-      heading_font: "Prata",
-      body_font: "Montserrat",
-      heading_color: "#1e252e", // xám trầm
-      body_color: "#6a7380",
-      accent_color: "#2a3d58", // xanh than sâu
-      background_color: "#ffffff",
-      // Màu gợi ý — lấy từ chính bảng màu của mẫu: các nấc xám trung tính và
-      // xanh than, không có màu rực để giữ tông trầm.
-      swatches: [
-        "#1e252e",
-        "#3a434f",
-        "#6a7380",
-        "#9aa3ad",
-        "#2a3d58",
-        "#3f5273",
-        "#7c8ca3",
-        "#dbdfe6",
-        "#f2f4f7",
-        "#f8f9fb",
-        "#ffffff",
-      ],
-    },
-
-    // Class mà thanh chỉnh font/màu nhắm tới. Mẫu gom về ba lớp ngữ nghĩa
-    // (.cx-h tiêu đề · .cx-t nội dung · .cx-a nhấn, khai trong theme.css).
-    // .cx-hd/.cx-bd/.cx-ac là markup do helper dùng chung sinh ra (dòng thời
-    // gian, chuyện tình yêu) — GIỮ NGUYÊN.
-    // .mc-eyebrow cố ý ĐỨNG NGOÀI: nhãn chữ hoa giãn rộng là nét nhận dạng của
-    // mẫu, đổi màu theo nhấn thì vẫn hợp, nhưng đổi font thì mất chất.
-    selectors: {
-      headingFont: ".cx-h",
-      bodyFont: "body, .cx-t",
-      headingColor: ".cx-h, .cx-hd",
-      bodyColor: ".cx-t, .cx-bd",
-      accentColor: ".cx-a, .cx-ac, .mc-eyebrow",
-      background: "body, #main-card",
-    },
+    // Màu GỢI Ý trong bộ chọn màu (khách bấm vào một phần tử trên thiệp rồi
+    // chỉnh riêng) — lấy từ chính bảng màu của mẫu.
+    swatches: [
+      "#1e252e",
+      "#3a434f",
+      "#6a7380",
+      "#9aa3ad",
+      "#2a3d58",
+      "#3f5273",
+      "#7c8ca3",
+      "#dbdfe6",
+      "#f2f4f7",
+      "#f8f9fb",
+      "#ffffff",
+    ],
 
     // Hiệu ứng hiện dần do _markReveal() ở cuối file lo, không phải theme-boot:
     // trang chia bằng cloneNode và nội dung về sau khi boot đã quét xong DOM thì

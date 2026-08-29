@@ -46,6 +46,12 @@
   border: 0;
 }
 
+/* Tắt: giữ nguyên chỗ để hàng không nhảy, chỉ mờ đi và không bắt được chuột.
+   Cờ class do JS đặt (input[disabled] nằm trong, không nhắm ngược lên được). */
+.cx-prog.is-off {
+  @apply pointer-events-none opacity-40;
+}
+
 /* Input trong suốt nên vòng focus phải vẽ ở khối bọc */
 .cx-prog:focus-within {
   @apply ring-2 ring-rose-200 ring-offset-2;

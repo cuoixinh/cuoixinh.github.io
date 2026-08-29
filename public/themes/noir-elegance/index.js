@@ -50,44 +50,21 @@
       shine_to: "#c79c46",
     },
 
-    preset: {
-      heading_font: "Cormorant Garamond",
-      body_font: "Montserrat",
-      heading_color: "#3a322a", // nâu đen ấm
-      body_color: "#857b6f",
-      accent_color: "#b08d57", // vàng champagne trầm
-      background_color: "#fdfbf7",
-      // Màu gợi ý — các nấc be/kem và vàng champagne của chính mẫu.
-      swatches: [
-        "#3a322a",
-        "#5c5145",
-        "#857b6f",
-        "#b0a698",
-        "#b08d57",
-        "#c9b48c",
-        "#e0d5c5",
-        "#f4eee5",
-        "#faf6f0",
-        "#fdfbf7",
-        "#ffffff",
-      ],
-    },
-
-    // Class mà thanh chỉnh font/màu nhắm tới. Mẫu gom về ba lớp ngữ nghĩa
-    // (.cx-h tiêu đề · .cx-t nội dung · .cx-a nhấn, khai trong theme.css).
-    // .cx-hd/.cx-bd/.cx-ac là markup do helper dùng chung sinh ra (dòng thời
-    // gian, chuyện tình yêu) — GIỮ NGUYÊN.
-    // .ne-title/.ne-eyebrow đi theo tiêu đề (đổi màu/font vẫn hợp tông), còn
-    // .ne-script cố ý ĐỨNG NGOÀI: đó là font tự host, bảng chọn font chỉ có
-    // font Google nên khách đổi rồi sẽ không quay lại được.
-    selectors: {
-      headingFont: ".cx-h, .ne-title",
-      bodyFont: "body, .cx-t, .ne-eyebrow",
-      headingColor: ".cx-h, .cx-hd, .ne-title, .ne-script",
-      bodyColor: ".cx-t, .cx-bd, .ne-eyebrow",
-      accentColor: ".cx-a, .cx-ac",
-      background: "body, #main-card",
-    },
+    // Màu GỢI Ý trong bộ chọn màu (khách bấm vào một phần tử trên thiệp rồi
+    // chỉnh riêng) — lấy từ chính bảng màu của mẫu.
+    swatches: [
+      "#3a322a",
+      "#5c5145",
+      "#857b6f",
+      "#b0a698",
+      "#b08d57",
+      "#c9b48c",
+      "#e0d5c5",
+      "#f4eee5",
+      "#faf6f0",
+      "#fdfbf7",
+      "#ffffff",
+    ],
 
     // Mục được gán hiệu ứng hiện dần khi cuộn tới.
     reveal: ["#main-card section"],
