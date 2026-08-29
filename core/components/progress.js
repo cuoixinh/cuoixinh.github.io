@@ -14,6 +14,23 @@
     return Math.min(1, Math.max(0, (val - min) / (max - min))) * 100;
   }
 
+  // Ô bấm của input phải TRÙNG KHÍT thanh track nhìn thấy. Nhãn số nằm bên
+  // trái đẩy track thụt vào ~60px; input trùm cả viên thuốc thì chỗ ngón tay
+  // đặt và giá trị nhận được lệch nhau tới 16 điểm — đó là cảm giác "phải chạm
+  // đúng điểm". Đo bằng JS chứ không viết số cứng: nhãn số rộng hẹp theo nội
+  // dung và theo lớp utility của từng chỗ dùng.
+  function layout(input) {
+    const wrap = input && input.closest && input.closest(".cx-prog");
+    const track = wrap && wrap.querySelector(".cx-prog-track");
+    if (!track || !wrap.clientWidth) return;
+    const lead = track.offsetLeft;
+    wrap.style.setProperty("--cx-prog-lead", lead + "px");
+    wrap.style.setProperty(
+      "--cx-prog-tail",
+      Math.max(0, wrap.clientWidth - lead - track.offsetWidth) + "px",
+    );
+  }
+
   // Đổi value/min/max bằng code không bắn sự kiện 'input' → phải gọi tay.
   function paint(input) {
     const wrap = input && input.closest && input.closest(".cx-prog");
@@ -41,9 +58,13 @@
       wrap.appendChild(input);
       input.classList.add("cx-prog-input");
       input.addEventListener("input", () => paint(input));
+      // Khổ đổi mà không resize cửa sổ (mở panel, đổi nhãn số) → tự đo lại.
+      if (window.ResizeObserver)
+        new ResizeObserver(() => layout(input)).observe(wrap);
     }
     if (opts && opts.format) wrap.__cxProgFormat = opts.format;
     paint(input);
+    layout(input);
     return wrap;
   }
 

@@ -350,8 +350,14 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   `cxPaletteAtStrength()` trả về NGUYÊN object — đó là lý do thiệp cũ giữ y màu, nên đừng
   lưu `strength` khi đang ở 50. Kéo lên thì màu sáng rời xa trắng còn màu tối lún về đen;
   kéo xuống thì mọi màu cùng pha về trắng (kéo màu tối ngược trục đen sẽ đội trần 255 ở
-  kênh mạnh nhất → lệch tông). Nhạt quá thì chữ mất tương phản nên có **chốt WCAG** chỉ
-  biết làm ĐẬM THÊM (`CX_PALETTE_GUARD`) — vì vậy mức 50 trở lên chốt không đụng gì.
+  kênh mạnh nhất → lệch tông). **Nhóm nền (`CX_PALETTE_BG`) đi đường riêng:** nền thiệp
+  cưới toàn tông rất nhạt, có ô đúng `#ffffff`, nhân khoảng cách tới trắng của chính nó thì
+  chúng đứng yên — nên nhóm này được CỘNG thêm một đoạn theo hướng tông của bộ
+  (`_cxTintVector`), cộng chứ không nhân nên chênh lệch giữa các lớp nền giữ nguyên. Chữ
+  sáng nằm trên nền tối (`on_accent`/`on_image`/`on_lightbox`) cũng gần trắng nhưng CỐ Ý
+  đứng ngoài nhóm đó — nhuộm chúng đậm lên là ăn mất tương phản. Nhạt quá thì chữ mất
+  tương phản nên có **chốt WCAG** chỉ biết làm ĐẬM THÊM (`CX_PALETTE_GUARD`) — vì vậy mức
+  50 trở lên chốt không đụng gì.
   `check:palette-contrast` cắt thẳng đoạn `[strength-math]` trong `theme-setting-helper.js`
   ra quét cả 21 mức: đổi phép tính thì đừng đổi tên hai dòng mốc đó.
 - **Mẫu văn bản (preset):** danh mục + CSS ở `core/helpers/text-preset-helper.js` (nạp TRƯỚC
