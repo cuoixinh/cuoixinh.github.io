@@ -185,6 +185,31 @@
                     class="flex-1 min-w-0"
                   ></x-combobox>
                 </div>
+
+                <!-- Độ đậm của bộ màu: 50% = đúng bộ như danh mục khai, kéo lên
+                     là cả thiệp đậm tông hơn. Tắt khi đang ở "Mặc định" — lúc đó
+                     màu là của chính mẫu chứ không phải của bộ. -->
+                <div class="flex items-center gap-2 md:w-full mt-2 md:mt-0">
+                  <label
+                    for="theme-palette-strength"
+                    class="text-[12px] text-gray-500 shrink-0 whitespace-nowrap md:text-[12.5px] md:w-16 md:text-right"
+                    >Độ đậm</label
+                  >
+                  <!-- CXProgress (core/components/progress.js) bọc input này
+                       thành thanh viên thuốc và tự hiện số % — _syncPaletteStrength(). -->
+                  <input
+                    id="theme-palette-strength"
+                    type="range"
+                    min="0"
+                    max="100"
+                    step="5"
+                    value="50"
+                    oninput="onPaletteStrengthInput()"
+                    onchange="onPaletteStrengthCommit()"
+                    class="flex-1 min-w-0"
+                    aria-label="Độ đậm của bộ màu"
+                  />
+                </div>
               </div>
 
               <!-- Phông chữ -->

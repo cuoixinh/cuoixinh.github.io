@@ -335,6 +335,14 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   `id` đã phát hành thì đừng đổi. Nút nhạc dùng bảng `--music-*` riêng nên
   `_cxPaletteRule` suy thêm bảng đó từ bộ màu — chỉ khi CÓ bộ, để thiệp không chọn bộ giữ
   nguyên hình thức cũ.
+- **`palette.strength` (thanh "Độ đậm", 0–100):** mức **50 = đúng bộ đã khai** và
+  `cxPaletteAtStrength()` trả về NGUYÊN object — đó là lý do thiệp cũ giữ y màu, nên đừng
+  lưu `strength` khi đang ở 50. Kéo lên thì màu sáng rời xa trắng còn màu tối lún về đen;
+  kéo xuống thì mọi màu cùng pha về trắng (kéo màu tối ngược trục đen sẽ đội trần 255 ở
+  kênh mạnh nhất → lệch tông). Nhạt quá thì chữ mất tương phản nên có **chốt WCAG** chỉ
+  biết làm ĐẬM THÊM (`CX_PALETTE_GUARD`) — vì vậy mức 50 trở lên chốt không đụng gì.
+  `check:palette-contrast` cắt thẳng đoạn `[strength-math]` trong `theme-setting-helper.js`
+  ra quét cả 21 mức: đổi phép tính thì đừng đổi tên hai dòng mốc đó.
 - **Ô màu lẻ ở tab Giao diện chỉ ghi xuống khi khách THỰC SỰ bấm** (`_themeColorTouched`).
   Ghi cả 4 ô mỗi lần `onThemeSettingChange()` chạy sẽ giết bộ màu: `background_color` áp
   `!important` lên `body, #main-card` nên ép nền trang và thân thiệp về cùng một màu.

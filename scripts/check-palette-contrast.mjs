@@ -1,4 +1,5 @@
-// Kiểm tương phản của danh mục bộ màu (core/helpers/card-palette-helper.js).
+// Kiểm tương phản của danh mục bộ màu (core/helpers/card-palette-helper.js) —
+// ở MỌI mức "Độ đậm" mà thanh kéo cho phép, không chỉ mức mặc định.
 //
 //   node scripts/check-palette-contrast.mjs
 //
@@ -8,6 +9,10 @@
 //
 // Ngưỡng theo WCAG 2.1: 4.5:1 cho chữ thường, 7:1 (AAA) cho tiêu đề vì tiêu đề
 // thiệp hay dùng font serif nét mảnh, 3:1 cho phần đồ hoạ (icon, vạch nhấn).
+//
+// Phép tính độ đậm KHÔNG chép lại ở đây: cắt thẳng đoạn [strength-math] trong
+// core/helpers/theme-setting-helper.js ra chạy, để thứ được kiểm đúng là thứ
+// chạy thật trên thiệp.
 
 import fs from "node:fs";
 import path from "node:path";
@@ -20,6 +25,20 @@ const src = fs.readFileSync(
 const body = src.slice(src.indexOf("const CX_PALETTES = ["),
                        src.indexOf("\n];", src.indexOf("const CX_PALETTES = [")) + 3);
 const PALETTES = new Function(body + " return CX_PALETTES;")();
+
+const helper = fs.readFileSync(
+  path.join(ROOT, "core/helpers/theme-setting-helper.js"), "utf8");
+const KEYS = [...helper
+  .match(/const CX_PALETTE_TOKENS = \{([\s\S]*?)\n\};/)[1]
+  .matchAll(/(\w+):\s*"--/g)].map((m) => m[1]);
+const math = helper.slice(helper.indexOf("const CX_STRENGTH_K = {"),
+                          helper.indexOf("// [/strength-math]"));
+const { cxPaletteAtStrength } = new Function(
+  `const CX_PALETTE_KEYS = ${JSON.stringify(KEYS)};\n${math}\n` +
+  "return { cxPaletteAtStrength };")();
+
+// Thanh kéo bước 5 → quét đúng những mức khách bấm tới được.
+const STRENGTHS = Array.from({ length: 21 }, (_, i) => i * 5);
 
 const rgb = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
 const lum = (h) => {
@@ -48,30 +67,49 @@ const PAIRS = [
 const LIGHT = ["card_bg", "page_bg", "surface", "panel"];
 const MIN_LIGHT_LUM = 0.7;
 
-let bad = 0;
-for (const p of PALETTES) {
+function check(p, at) {
   const errs = [];
   for (const [a, b, min, what] of PAIRS) {
     if (!p[a] || !p[b]) { errs.push(`thiếu khoá ${!p[a] ? a : b}`); continue; }
     const r = ratio(p[a], p[b]);
-    if (r < min) errs.push(`${what}: ${r.toFixed(2)}:1 < ${min}:1  (${a} ${p[a]} / ${b} ${p[b]})`);
+    if (r < min)
+      errs.push(`${at}% ${what}: ${r.toFixed(2)}:1 < ${min}:1  (${a} ${p[a]} / ${b} ${p[b]})`);
   }
   for (const k of LIGHT) {
     if (p[k] && lum(p[k]) < MIN_LIGHT_LUM)
-      errs.push(`${k} không đủ sáng: độ sáng ${lum(p[k]).toFixed(2)} < ${MIN_LIGHT_LUM}  (${p[k]})`);
+      errs.push(`${at}% ${k} không đủ sáng: độ sáng ${lum(p[k]).toFixed(2)} < ${MIN_LIGHT_LUM}  (${p[k]})`);
   }
   if (p.scrim && lum(p.scrim) > 0.2)
-    errs.push(`scrim phải TỐI: độ sáng ${lum(p.scrim).toFixed(2)} > 0.2  (${p.scrim})`);
+    errs.push(`${at}% scrim phải TỐI: độ sáng ${lum(p.scrim).toFixed(2)} > 0.2  (${p.scrim})`);
+  return errs;
+}
+
+let bad = 0;
+for (const p of PALETTES) {
+  const errs = [];
+  // "Sát ngưỡng nhất" = tỉ lệ chia cho chính ngưỡng của cặp đó — mỗi cặp một
+  // ngưỡng khác nhau nên so thẳng con số tuyệt đối là đọc nhầm.
+  let worst = { slack: Infinity, r: 0, min: 0, at: 50, what: "" };
+  for (const at of STRENGTHS) {
+    const q = cxPaletteAtStrength(p, at);
+    errs.push(...check(q, at));
+    for (const [a, b, min, what] of PAIRS) {
+      const r = ratio(q[a], q[b]);
+      if (r / min < worst.slack) worst = { slack: r / min, r, min, at, what };
+    }
+  }
 
   if (errs.length) {
     console.log(`✗ ${p.id} — ${p.name}`);
     errs.forEach((e) => console.log(`    ${e}`));
     bad++;
   } else {
-    const w = Math.min(...PAIRS.map(([a, b]) => ratio(p[a], p[b])));
-    console.log(`✓ ${p.id.padEnd(16)} ${p.name.padEnd(18)} cặp yếu nhất ${w.toFixed(2)}:1`);
+    console.log(`✓ ${p.id.padEnd(16)} ${p.name.padEnd(18)} ` +
+      `sát ngưỡng nhất ${worst.r.toFixed(2)}/${worst.min}:1 ` +
+      `— ${worst.what}, mức đậm ${worst.at}%`);
   }
 }
-console.log(bad ? `\n==> ${bad}/${PALETTES.length} bộ trượt ngưỡng`
-                : `\n==> ${PALETTES.length} bộ đều đạt`);
+console.log(bad
+  ? `\n==> ${bad}/${PALETTES.length} bộ trượt ngưỡng`
+  : `\n==> ${PALETTES.length} bộ đều đạt, cả ${STRENGTHS.length} mức đậm`);
 process.exit(bad ? 1 : 0);
