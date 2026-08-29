@@ -33,7 +33,7 @@ function _themePreset() {
 // nên nó thắng).
 function _themeDefaults() {
   const d = { ...THEME_DEFAULTS, ...(_themePreset() || {}) };
-  const p = _currentPalette();
+  const p = _resolvedPalette();
   if (p) {
     if (p.heading) d.heading_color = p.heading;
     if (p.body) d.body_color = p.body;
@@ -91,20 +91,20 @@ function _fillPaletteCombo() {
   const el = document.getElementById("theme-palette");
   if (!el || !el.setOptions || !window.CX_PALETTES) return;
   el.setOptions([
-    { value: "", label: PALETTE_DEFAULT_LABEL, colors: _themePaletteDots() },
+    { value: "", label: PALETTE_DEFAULT_LABEL, swatch: _themePaletteSwatch() },
     ...window.CX_PALETTES.map((p) => ({
       value: p.id,
       label: p.name,
-      colors: window.cxPaletteDots(p),
+      swatch: window.cxPaletteSwatch(p),
     })),
   ]);
 }
 
-// Chấm màu cho mục "Mặc định" — lấy từ chính bản khai của mẫu đang mở
+// Giọt màu cho mục "Mặc định" — lấy từ chính bản khai của mẫu đang mở
 // (CX_THEME.palette), để khách thấy ngay mình đang rời khỏi tông nào.
-function _themePaletteDots() {
+function _themePaletteSwatch() {
   const p = _themeCardPalette();
-  return p ? window.cxPaletteDots(p) : [];
+  return p ? window.cxPaletteSwatch(p) : "";
 }
 
 // Bảng màu GỐC của mẫu, đọc qua iframe xem trước như cách _themePreset() làm.
@@ -123,29 +123,95 @@ function _currentPalette() {
   return p && typeof p === "object" ? p : null;
 }
 
+// Bộ màu đã áp ĐỘ ĐẬM — đây mới là màu thiệp thật sự hiện ra. Phép tính nằm ở
+// theme-setting-helper.js để trang thiệp và trang Thiết lập dùng chung đúng một
+// công thức, không có chuyện xem trước một đằng lưu ra một nẻo.
+function _resolvedPalette() {
+  const p = _currentPalette();
+  if (!p) return null;
+  return window.cxPaletteAtStrength
+    ? window.cxPaletteAtStrength(p, p.strength)
+    : p;
+}
+
+// Mức 50 = đúng bộ màu như danh mục khai. Không lưu `strength` khi ở mức này để
+// thiệp cũ và thiệp mới chọn bộ vẫn ra cùng một JSON.
+const PALETTE_STRENGTH_DEFAULT = 50;
+
+function _paletteStrength() {
+  const v = Number(_currentPalette()?.strength);
+  return Number.isFinite(v)
+    ? Math.max(0, Math.min(100, Math.round(v)))
+    : PALETTE_STRENGTH_DEFAULT;
+}
+
+// Thanh kéo chỉ có nghĩa khi ĐANG chọn một bộ: "Mặc định" là màu gốc của mẫu,
+// làm đậm nó lên là sửa mẫu chứ không phải chỉnh bộ màu.
+function _syncPaletteStrength() {
+  const el = document.getElementById("theme-palette-strength");
+  if (!el) return;
+  const on = !!_currentPalette();
+  el.value = _paletteStrength();
+  el.disabled = !on;
+  window.CXProgress?.attach(el)?.classList.toggle("is-off", !on);
+}
+
+// Bộ màu (hoặc độ đậm) đổi thì "màu mặc định" của 4 ô cũng đổi theo. Ô nào
+// khách đã tự đặt thì giữ nguyên — chọn bộ không được xoá thứ khách cố ý chỉnh.
+function _syncPaletteChips() {
+  const d = _themeDefaults();
+  THEME_COLOR_FIELDS.forEach(({ id, key }) => {
+    if (!_themeColorTouched.has(key) && !_themeSetting[key]) _chipValue(id, d[key]);
+  });
+}
+
+function _applyThemeToFrame() {
+  const iframe = document.getElementById("theme-preview-iframe");
+  iframe?.contentWindow?.applyThemeSetting?.(_themeSetting);
+}
+
 function onCardPaletteChange() {
   const el = document.getElementById("theme-palette");
   const id = el ? el.value : "";
   const val = id ? window.cxPaletteValue(id) : null;
 
-  if (val) _themeSetting.palette = val;
-  else delete _themeSetting.palette;
-
-  // Bộ màu đổi thì "màu mặc định" của 4 ô cũng đổi theo. Ô nào khách đã tự đặt
-  // thì giữ nguyên — chọn bộ không được xoá thứ khách cố ý chỉnh.
-  const d = _themeDefaults();
-  THEME_COLOR_FIELDS.forEach(({ id: fid, key }) => {
-    if (!_themeColorTouched.has(key) && !_themeSetting[key]) _chipValue(fid, d[key]);
-  });
-
-  _setDirty(true, "theme");
-  const iframe = document.getElementById("theme-preview-iframe");
-  if (iframe?.contentWindow?.applyThemeSetting) {
-    iframe.contentWindow.applyThemeSetting(_themeSetting);
+  // Đổi bộ thì GIỮ độ đậm đang kéo: khách hay so vài bộ ở cùng một mức đậm.
+  const strength = _paletteStrength();
+  if (val) {
+    if (strength !== PALETTE_STRENGTH_DEFAULT) val.strength = strength;
+    _themeSetting.palette = val;
+  } else {
+    delete _themeSetting.palette;
   }
+
+  _syncPaletteStrength();
+  _syncPaletteChips();
+  _setDirty(true, "theme");
+  _applyThemeToFrame();
 }
 
 window.onCardPaletteChange = onCardPaletteChange;
+
+// Kéo: áp ngay vào khung xem trước (rẻ — chỉ ghi lại một thẻ <style>). Đánh dấu
+// "chưa lưu" để tới lúc thả tay, đừng hẹn lại bộ đếm tải lại khung ở mỗi nhịp.
+function onPaletteStrengthInput() {
+  const el = document.getElementById("theme-palette-strength");
+  const p = _currentPalette();
+  if (!el || !p) return;
+  const v = Number(el.value);
+  if (v === PALETTE_STRENGTH_DEFAULT) delete p.strength;
+  else p.strength = v;
+  _syncPaletteChips();
+  _applyThemeToFrame();
+}
+
+window.onPaletteStrengthInput = onPaletteStrengthInput;
+
+function onPaletteStrengthCommit() {
+  if (_currentPalette()) _setDirty(true, "theme");
+}
+
+window.onPaletteStrengthCommit = onPaletteStrengthCommit;
 
 // Ô màu nào khách ĐÃ tự bấm. Xem chú thích ở onThemeSettingChange().
 const _themeColorTouched = new Set();
@@ -320,6 +386,7 @@ function _initThemePanel() {
   _fillPaletteCombo();
   const pal = document.getElementById("theme-palette");
   if (pal) pal.value = _currentPalette()?.id || "";
+  _syncPaletteStrength();
 
   // <x-combobox>.value tự đồng bộ nhãn khi gán (kể cả lúc nạp thiệp / reset).
   const hf = document.getElementById("theme-heading-font");

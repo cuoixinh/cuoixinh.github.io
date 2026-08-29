@@ -136,6 +136,134 @@ function _cxHexToRgbTriplet(hex) {
   return `${parseInt(h.slice(0, 2), 16)} ${parseInt(h.slice(2, 4), 16)} ${parseInt(h.slice(4, 6), 16)}`;
 }
 
+// ── ĐỘ ĐẬM của bộ màu (palette.strength) ───────────────────────────────────
+// Thanh kéo 0–100, MẶC ĐỊNH 50 = đúng bộ màu đã khai (không đụng gì). Kéo lên
+// thiệp đậm tông hơn, kéo xuống nhạt đi. Chỉ đổi ĐỘ SÂU của màu chứ giữ nguyên
+// tỉ lệ giữa ba kênh, nên tông không lệch.
+//
+// Màu SÁNG (nền, chữ trên ảnh) đo theo khoảng cách tới TRẮNG, màu TỐI (chữ,
+// vạch kẻ, lớp phủ ảnh) đo theo khoảng cách tới ĐEN — cùng một hệ số, hai chiều
+// ngược nhau, nên "đậm hơn" ở đâu cũng ra đậm hơn.
+//
+// Kéo XUỐNG làm chữ nhạt dần → có CHỐT TƯƠNG PHẢN: màu chữ chỉ được nhạt tới
+// ngưỡng WCAG rồi dừng. Chốt chỉ biết làm ĐẬM THÊM nên ở mức 50 và mọi mức trên
+// 50 nó không đụng gì — bộ nào trong danh mục cũng đã đạt ngưỡng sẵn.
+//
+// [strength-math] scripts/check-palette-contrast.mjs cắt đúng đoạn giữa hai mốc
+// này ra chạy lại để quét cả dải 0–100 → đừng đổi hai dòng mốc.
+const CX_STRENGTH_K = { min: 0.7, mid: 1, max: 1.6 };
+
+// [khoá bị làm đậm, những màu nó phải đọc được cùng, ngưỡng tương phản].
+// Khoá luôn là vế TỐI của cặp nên làm đậm thêm là tăng tương phản.
+const CX_PALETTE_GUARD = [
+  ["heading", ["card_bg", "panel", "band"], 7],
+  ["body", ["card_bg", "panel", "band"], 4.5],
+  ["accent", ["card_bg", "panel", "band"], 3],
+  ["accent", ["on_accent"], 4.5],
+  ["scrim", ["on_image"], 4.5],
+];
+
+function _cxHexRgb(hex) {
+  if (typeof hex !== "string") return null;
+  let h = hex.trim().replace(/^#/, "");
+  if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+  if (!/^[0-9a-fA-F]{6}$/.test(h)) return null;
+  return [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16));
+}
+
+function _cxRgbHex(c) {
+  return (
+    "#" +
+    c
+      .map((v) =>
+        Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, "0"),
+      )
+      .join("")
+  );
+}
+
+function _cxLum(c) {
+  const [r, g, b] = c.map((v) => {
+    const x = v / 255;
+    return x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+function _cxContrast(a, b) {
+  const [x, y] = [_cxLum(a), _cxLum(b)].sort((m, n) => n - m);
+  return (x + 0.05) / (y + 0.05);
+}
+
+function _cxStrengthK(strength) {
+  const s = Math.max(0, Math.min(100, Number(strength)));
+  const { min, mid, max } = CX_STRENGTH_K;
+  return s < 50
+    ? min + ((mid - min) * s) / 50
+    : mid + ((max - mid) * (s - 50)) / 50;
+}
+
+// Làm tròn NGAY, không để dành tới lúc ghi ra hex: chốt tương phản bên dưới phải
+// cân đúng con số cuối cùng, cân trên số thực rồi mới làm tròn là trượt ngưỡng
+// một chút — đủ để hỏng đúng cái ngưỡng vừa cân.
+function _cxRound(c) {
+  return c.map((v) => Math.max(0, Math.min(255, Math.round(v))));
+}
+
+function _cxDeepen(c, k) {
+  // NHẠT đi: mọi màu cùng pha về phía trắng. Màu tối mà kéo ngược theo trục đen
+  // (v/k) sẽ đội trần 255 ở kênh mạnh nhất → tông lệch hẳn sang loè loẹt.
+  if (k <= 1) return _cxRound(c.map((v) => 255 - (255 - v) * k));
+  // ĐẬM lên: màu sáng rời xa màu trắng, màu tối lún sâu về phía đen.
+  return _cxRound(
+    _cxLum(c) >= 0.5 ? c.map((v) => 255 - (255 - v) * k) : c.map((v) => v / k),
+  );
+}
+
+// Làm đậm `c` (nhân đều ba kênh nên giữ nguyên tông) tới khi đủ tương phản với
+// MỌI màu trong `vs`. Đã đủ thì trả nguyên; đen kịt vẫn không đủ thì cũng trả
+// nguyên — thà giữ màu còn hơn bôi đen một ô vì ràng buộc bất khả thi.
+function _cxGuard(c, vs, min) {
+  const at = (t) => _cxRound(c.map((v) => v * t));
+  const ok = (x) => vs.every((o) => _cxContrast(x, o) >= min);
+  if (ok(c) || !ok([0, 0, 0])) return c;
+  let lo = 0; // tối nhất, chắc chắn đạt
+  let hi = 1; // chính nó, chắc chắn chưa đạt
+  for (let i = 0; i < 24; i++) {
+    const t = (lo + hi) / 2;
+    if (ok(at(t))) lo = t;
+    else hi = t;
+  }
+  return at(lo);
+}
+
+// Bộ màu sau khi áp độ đậm. Mức 50 (hoặc không khai) → trả về NGUYÊN bộ ban
+// đầu, không đụng một byte nào: đó là điều kiện để thiệp đã lưu giữ đúng màu cũ.
+function cxPaletteAtStrength(palette, strength) {
+  if (!palette || typeof palette !== "object") return palette;
+  if (strength == null) return palette;
+  const s = Number(strength);
+  if (!Number.isFinite(s) || Math.round(s) === 50) return palette;
+  const k = _cxStrengthK(s);
+
+  const rgb = {};
+  CX_PALETTE_KEYS.forEach((key) => {
+    const c = _cxHexRgb(palette[key]);
+    if (c) rgb[key] = _cxDeepen(c, k);
+  });
+  CX_PALETTE_GUARD.forEach(([key, vs, min]) => {
+    const others = vs.map((o) => rgb[o]).filter(Boolean);
+    if (rgb[key] && others.length) rgb[key] = _cxGuard(rgb[key], others, min);
+  });
+
+  const out = { ...palette };
+  Object.keys(rgb).forEach((key) => {
+    out[key] = _cxRgbHex(rgb[key]);
+  });
+  return out;
+}
+// [/strength-math]
+
 // Trình phát nhạc là component DÙNG CHUNG, có bảng màu riêng (--music-* khai ở
 // styles/_colors.css) nên không tự đi theo token của thiệp. Không đổi thẳng bảng
 // đó: nó còn dùng ở trang Thiết lập, mà thiệp KHÔNG chọn bộ màu thì phải giữ
@@ -164,9 +292,10 @@ const CX_PALETTE_MUSIC = (get) => [
 // không được phép làm hỏng cả thiệp.
 function _cxPaletteRule(palette) {
   if (!palette || typeof palette !== "object") return "";
+  const p = cxPaletteAtStrength(palette, palette.strength);
   const rgbOf = {};
   CX_PALETTE_KEYS.forEach((k) => {
-    const rgb = _cxHexToRgbTriplet(palette[k]);
+    const rgb = _cxHexToRgbTriplet(p[k]);
     if (rgb) rgbOf[k] = rgb;
   });
   const decls = Object.keys(rgbOf).map((k) => `${CX_PALETTE_TOKENS[k]}: ${rgbOf[k]}`);
@@ -2583,6 +2712,7 @@ if (typeof window !== "undefined") {
   window.THEME_FONTS = THEME_FONTS;
   window.CX_PALETTE_KEYS = CX_PALETTE_KEYS;
   window.CX_PALETTE_TOKENS = CX_PALETTE_TOKENS;
+  window.cxPaletteAtStrength = cxPaletteAtStrength;
   window.loadThemeFont = _loadGoogleFont; // để bảng chọn nạp trước font cho preview
   window.THEME_HEADING_COLORS = THEME_HEADING_COLORS;
   window.THEME_BODY_COLORS = THEME_BODY_COLORS;

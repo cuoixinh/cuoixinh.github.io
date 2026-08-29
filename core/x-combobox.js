@@ -1,22 +1,19 @@
 // <x-combobox> — dropdown chọn 1 giá trị, thay cho <select> gốc: nút bấm mở danh
 // sách tuỳ biến, TỰ LẬT LÊN khi thiếu chỗ bên dưới, render được mỗi dòng bằng
 // đúng font của nó.
-//   el.setOptions([{ value, label, colors }])  nạp danh sách
+//   el.setOptions([{ value, label, swatch }])  nạp danh sách
 //   el.value                           đọc / gán (tự cập nhật nhãn + mục chọn)
 //   bắn sự kiện "change" (bubbles) khi người dùng chọn → dùng được onchange=""
 // Thuộc tính: preview-font (render mỗi dòng bằng font = value), preview-swatch
-// (hiện dãy chấm màu lấy từ `colors` của từng mục), placeholder.
+// (hiện một giọt màu lấy từ `swatch` của từng mục — mã hex), placeholder.
 
 (function () {
   const s = document.createElement("style");
   s.textContent =
     "x-combobox{display:block}" +
-    // Dãy chấm màu của preview-swatch: gộp sát nhau thành một dải nhỏ để nhận ra
-    // bộ màu mà không chiếm chỗ của nhãn.
-    ".x-cb-sw{display:inline-flex;flex:none;align-items:center;vertical-align:middle}" +
-    ".x-cb-sw i{display:block;width:10px;height:10px;border-radius:9999px;" +
-    "box-shadow:0 0 0 1px rgb(0 0 0/0.12) inset;margin-right:-3px}" +
-    ".x-cb-sw i:last-child{margin-right:0}";
+    // Giọt màu của preview-swatch: một hình nhỏ đứng trước nhãn, không chiếm
+    // chỗ của chữ.
+    ".x-cb-sw{display:inline-flex;flex:none;align-items:center;vertical-align:middle}";
   document.head.appendChild(s);
 })();
 
@@ -33,16 +30,41 @@ const _XCB_OPT_CLS =
   "x-cb-opt flex w-full items-center gap-2 text-left px-2 py-2 rounded-lg text-sm " +
   "text-gray-700 cursor-pointer hover:bg-rose-50";
 
-// Dãy chấm màu của một mục (preview-swatch). Màu đặt bằng style chứ không ghép
-// vào chuỗi HTML — danh sách có thể đến từ dữ liệu, đừng mở đường cho markup lạ.
-function _xcbSwatch(colors) {
+// Giọt màu của một mục (preview-swatch): MỘT hình, tô đúng màu mà mục đó khai.
+// Nét viền suy ra từ chính màu tô (tối đi 45%) chứ không phải màu thứ hai — nền
+// thiệp toàn tông sáng, không có nét thì giọt màu chìm hẳn vào nền trắng của
+// dropdown. Markup SVG là chuỗi TĨNH, màu đi qua setAttribute — danh sách có thể
+// đến từ dữ liệu, đừng mở đường cho markup lạ.
+const _XCB_DROP =
+  '<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" ' +
+  'stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">' +
+  '<path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 ' +
+  '6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"></path></svg>';
+
+function _xcbHex(c) {
+  const m = /^#([0-9a-fA-F]{6})$/.exec(String(c || "").trim());
+  return m ? m[1] : "";
+}
+
+function _xcbShade(hex, t) {
+  const n = parseInt(hex, 16);
+  return (
+    "#" +
+    [(n >> 16) & 255, (n >> 8) & 255, n & 255]
+      .map((v) => Math.round(v * (1 - t)).toString(16).padStart(2, "0"))
+      .join("")
+  );
+}
+
+function _xcbSwatch(color) {
+  const hex = _xcbHex(color);
+  if (!hex) return null;
   const wrap = document.createElement("span");
   wrap.className = "x-cb-sw";
-  colors.slice(0, 5).forEach((c) => {
-    const dot = document.createElement("i");
-    dot.style.background = c;
-    wrap.appendChild(dot);
-  });
+  wrap.innerHTML = _XCB_DROP;
+  const svg = wrap.firstChild;
+  svg.setAttribute("fill", "#" + hex);
+  svg.setAttribute("stroke", _xcbShade(hex, 0.45));
   return wrap;
 }
 
@@ -108,8 +130,8 @@ class XCombobox extends HTMLElement {
       o.className = _XCB_OPT_CLS;
       o.setAttribute("role", "option");
       o.dataset.value = it.value;
-      if (this._previewSwatch && Array.isArray(it.colors) && it.colors.length)
-        o.appendChild(_xcbSwatch(it.colors));
+      const sw = this._previewSwatch ? _xcbSwatch(it.swatch) : null;
+      if (sw) o.appendChild(sw);
       const txt = document.createElement("span");
       txt.className = "truncate";
       txt.textContent = it.label;
@@ -136,12 +158,12 @@ class XCombobox extends HTMLElement {
       this._previewFont && hasVal ? `'${this._value}', sans-serif` : "";
     this._label.classList.toggle("text-gray-400", !hasVal);
 
-    // Chấm màu của mục đang chọn, hiện ngay trên nút bấm.
+    // Giọt màu của mục đang chọn, hiện ngay trên nút bấm.
     const cur = this.querySelector(".x-cb-cur");
     if (cur) {
       cur.querySelector(".x-cb-sw")?.remove();
-      if (this._previewSwatch && Array.isArray(opt?.colors) && opt.colors.length)
-        cur.insertBefore(_xcbSwatch(opt.colors), this._label);
+      const sw = this._previewSwatch ? _xcbSwatch(opt?.swatch) : null;
+      if (sw) cur.insertBefore(sw, this._label);
     }
 
     if (this._list) {
