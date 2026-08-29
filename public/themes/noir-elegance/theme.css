@@ -7,8 +7,8 @@
    Hai phần:
      1. --cx-*  bộ biến mà phần DÙNG CHUNG vẽ theo (lịch nhỏ, dòng thời gian,
         màn bìa, nút xác nhận tham dự). Mặc định ở styles/_common.css.
-     2. .cx-h / .cx-t / .cx-a  ba lớp ngữ nghĩa mà markup của mẫu dùng, cũng là
-        thứ CX_THEME.selectors nhắm tới. Đổi tông cả thiệp = sửa mỗi file này.
+     2. .cx-h / .cx-t / .cx-a  ba lớp ngữ nghĩa mà markup của mẫu dùng; màu của
+        chúng đi theo bộ token ở trên. Đổi tông cả thiệp = sửa mỗi file này.
         Các lớp .ne-* bên dưới là trang trí riêng của mẫu. */
 
 :root {
@@ -61,9 +61,8 @@ body {
 }
 
 /* ── Chữ thư pháp ─────────────────────────────────────────────────────────
-   Font TỰ HOST (khai ở styles/_fonts.css), cố ý ĐỨNG NGOÀI CX_THEME.selectors:
-   bảng chọn font ở tab Giao diện chỉ liệt kê font Google, khách đổi rồi sẽ
-   không quay lại được font này. */
+   Font TỰ HOST (khai ở styles/_fonts.css), cố định — đây là nét nhận dạng của
+   mẫu; khách muốn khác thì bấm thẳng vào dòng chữ đó mà chỉnh riêng. */
 
 .ne-script {
   font-family: "TheNautigal", cursive;
@@ -211,8 +210,8 @@ body {
 }
 
 /* Tên cặp đôi ở màn bìa: chữ viết tay MẠ VÀNG (dải màu cắt theo hình chữ).
-   Cố ý ĐỨNG NGOÀI CX_THEME.selectors như .ne-script — vừa là font tự host,
-   vừa là chữ tô bằng background nên đổi màu ở tab Giao diện sẽ không ăn. */
+   Chữ tô bằng background chứ không phải `color`, nên chỉnh màu cho riêng dòng
+   này sẽ không ăn — muốn đổi thì sửa dải màu ngay dưới đây. */
 
 .ne-name {
   font-family: "GillaStone", cursive;

@@ -48,41 +48,20 @@
       shine_to: "#f5d5d8",
     },
 
-    preset: {
-      heading_font: "Cormorant Garamond",
-      body_font: "Quicksand",
-      heading_color: "#5f5654", // xám khói trung tính, tương phản thấp
-      body_color: "#938a88", // xám nhạt
-      accent_color: "#c9b48f", // champagne rất nhạt
-      background_color: "#f9f3f1", // ivory ngả hồng — nền #main-card
-      swatches: [
-        "#5f5654",
-        "#7a706e",
-        "#938a88",
-        "#413a39",
-        "#c9b48f",
-        "#dcaea8", // dusty pink
-        "#e9dbd9",
-        "#f3ebe9",
-        "#f9f3f1",
-        "#ffffff",
-      ],
-    },
-
-    // Mẫu gom về ba lớp ngữ nghĩa (.cx-h · .cx-t · .cx-a, khai trong theme.css).
-    // .cx-hd/.cx-bd/.cx-ac là markup do helper dùng chung sinh ra (dòng thời
-    // gian) — GIỮ NGUYÊN khi chép sang mẫu mới.
-    // .lp-script (tên cô dâu chú rể) đi theo MÀU tiêu đề nhưng KHÔNG theo font:
-    // bảng chọn font chỉ có font Google, đổi xong khách không quay lại được font
-    // thư pháp tự host.
-    selectors: {
-      headingFont: ".cx-h, .font-cormorant",
-      bodyFont: "body, .cx-t, .font-inter",
-      headingColor: ".cx-h, .cx-hd, .lp-script",
-      bodyColor: ".cx-t, .cx-bd",
-      accentColor: ".cx-a, .cx-ac",
-      background: "body, #main-card",
-    },
+    // Màu GỢI Ý trong bộ chọn màu (khách bấm vào một phần tử trên thiệp rồi
+    // chỉnh riêng) — lấy từ chính bảng màu của mẫu.
+    swatches: [
+      "#5f5654",
+      "#7a706e",
+      "#938a88",
+      "#413a39",
+      "#c9b48f",
+      "#dcaea8", // dusty pink
+      "#e9dbd9",
+      "#f3ebe9",
+      "#f9f3f1",
+      "#ffffff",
+    ],
 
     // Mục mở đầu KHÔNG hiện dần: nó là thứ khách thấy ngay khi bìa mở ra.
     reveal: ["#main-card section:not(#section-hero)"],

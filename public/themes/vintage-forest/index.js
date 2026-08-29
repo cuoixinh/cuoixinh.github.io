@@ -50,40 +50,21 @@
       shine_to: "#f5d5d8",
     },
 
-    preset: {
-      heading_font: "Playfair Display",
-      body_font: "Be Vietnam Pro",
-      heading_color: "#1a1a1a", // đen than
-      body_color: "#7a7a7a",
-      accent_color: "#f3a8b8", // hồng phấn
-      background_color: "#ffffff", // #main-card
-      swatches: [
-        "#1a1a1a",
-        "#3f3f3f",
-        "#7a7a7a",
-        "#a8a8a8",
-        "#f3a8b8",
-        "#f7c9d3",
-        "#fbdde3",
-        "#fdf1f3",
-        "#e8b4a0",
-        "#9db08a",
-        "#ffffff",
-      ],
-    },
-
-    // Mẫu gom về ba lớp ngữ nghĩa (.cx-h · .cx-t · .cx-a, khai trong theme.css).
-    // .cx-hd/.cx-bd/.cx-ac là markup do helper dùng chung sinh ra — giữ nguyên.
-    // Cố ý KHÔNG gồm .vf-num / .vf-date-* (kiểu chữ số là nét nhận dạng) và .vf-on
-    // (chữ nằm TRÊN ảnh, đổi sang màu sẫm là chìm nghỉm).
-    selectors: {
-      headingFont: ".cx-h, .font-playfair",
-      bodyFont: "body, .cx-t",
-      headingColor: ".cx-h, .cx-hd",
-      bodyColor: ".cx-t, .cx-bd",
-      accentColor: ".cx-a, .cx-ac",
-      background: "body, #main-card",
-    },
+    // Màu GỢI Ý trong bộ chọn màu (khách bấm vào một phần tử trên thiệp rồi
+    // chỉnh riêng) — lấy từ chính bảng màu của mẫu.
+    swatches: [
+      "#1a1a1a",
+      "#3f3f3f",
+      "#7a7a7a",
+      "#a8a8a8",
+      "#f3a8b8",
+      "#f7c9d3",
+      "#fbdde3",
+      "#fdf1f3",
+      "#e8b4a0",
+      "#9db08a",
+      "#ffffff",
+    ],
 
     // Poster mở đầu KHÔNG hiện dần: nó choán cả màn ngay khi vào, cho trượt vào
     // thì khách thấy một khoảng trống trước đã.

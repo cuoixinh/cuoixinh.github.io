@@ -58,7 +58,7 @@
             <button
               type="button"
               onclick="resetThemeSetting()"
-              title="Khôi phục phông chữ và màu về mặc định của thiệp"
+              title="Bỏ hết tuỳ chỉnh, đưa thiệp về mặc định của mẫu"
               class="cx-le-clear"
             >
               <i data-lucide="rotate-ccw" class="w-4 h-4"></i
@@ -161,11 +161,12 @@
               </x-button>
             </div>
 
-            <!-- Nhóm chỉnh chung (phông + màu toàn thiệp) — ẩn khi mở bảng chỉnh 1 dòng -->
+            <!-- Nhóm chỉnh chung của cả thiệp — ẩn khi mở bảng chỉnh 1 dòng -->
             <div id="theme-main-controls" class="space-y-3 md:space-y-6">
               <!-- Bộ màu: đổi CẢ bảng màu thiệp (chữ, nền, vạch kẻ, màn bìa,
-                   hoạ tiết) trong một lần chọn. Bốn ô màu bên dưới vẫn chỉnh
-                   tay đè lên trên được — chọn bộ trước, tinh chỉnh sau. -->
+                   hoạ tiết) trong một lần chọn. Đây là chỗ chỉnh màu DUY NHẤT ở
+                   mức toàn thiệp — muốn khác đi thì bấm thẳng vào phần tử trên
+                   thiệp mà chỉnh riêng. -->
               <div class="md:space-y-2.5">
                 <p
                   class="hidden md:block text-[11px] font-semibold uppercase tracking-[0.08em] text-gray-400"
@@ -211,124 +212,6 @@
                   />
                 </div>
               </div>
-
-              <!-- Phông chữ -->
-              <div class="md:space-y-2.5">
-                <p
-                  class="hidden md:block text-[11px] font-semibold uppercase tracking-[0.08em] text-gray-400"
-                >
-                  Phông chữ
-                </p>
-                <!-- mobile: 2 selector cạnh nhau; md+: xếp dọc trong cột -->
-                <div
-                  class="flex items-center gap-2 md:flex-col md:items-stretch md:gap-4"
-                >
-                  <div class="flex items-center gap-2 flex-1 min-w-0 md:w-full">
-                    <label
-                      for="theme-heading-font"
-                      class="text-[12px] text-gray-500 shrink-0 whitespace-nowrap md:text-[12.5px] md:w-16 md:text-right"
-                      >Tiêu đề</label
-                    >
-                    <x-combobox
-                      id="theme-heading-font"
-                      preview-font
-                      onchange="onThemeSettingChange()"
-                      class="flex-1 min-w-0"
-                    ></x-combobox>
-                  </div>
-                  <div class="flex items-center gap-2 flex-1 min-w-0 md:w-full">
-                    <label
-                      for="theme-body-font"
-                      class="text-[12px] text-gray-500 shrink-0 whitespace-nowrap md:text-[12.5px] md:w-16 md:text-right"
-                      >Nội dung</label
-                    >
-                    <x-combobox
-                      id="theme-body-font"
-                      preview-font
-                      onchange="onThemeSettingChange()"
-                      class="flex-1 min-w-0"
-                    ></x-combobox>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Màu: mỗi phần 1 chip chọn màu tự do -->
-              <div class="md:space-y-3">
-                <p
-                  class="hidden md:block text-[11px] font-semibold uppercase tracking-[0.08em] text-gray-400"
-                >
-                  Màu sắc
-                </p>
-                <!-- Mỗi màu là một thẻ card (chip tròn + tên), lưới 4 cột. Thẻ là
-                     <label for> nên bấm chỗ nào trong thẻ cũng mở bảng chọn màu. -->
-                <div class="cx-color-grid">
-                  <label
-                    for="theme-heading-color"
-                    class="cx-color-card"
-                    title="Màu tiêu đề — tên, tiêu đề mục"
-                  >
-                    <span class="color-chip">
-                      <input
-                        type="text"
-                        inputmode="none"
-                        id="theme-heading-color"
-                        class="theme-color-input"
-                        aria-label="Chọn màu tiêu đề"
-                      />
-                    </span>
-                    <span class="cx-color-txt">Tiêu đề</span>
-                  </label>
-                  <label
-                    for="theme-body-color"
-                    class="cx-color-card"
-                    title="Màu nội dung — lời mời, ngày giờ, địa chỉ"
-                  >
-                    <span class="color-chip">
-                      <input
-                        type="text"
-                        inputmode="none"
-                        id="theme-body-color"
-                        class="theme-color-input"
-                        aria-label="Chọn màu nội dung"
-                      />
-                    </span>
-                    <span class="cx-color-txt">Nội dung</span>
-                  </label>
-                  <label
-                    for="theme-accent-color"
-                    class="cx-color-card"
-                    title="Màu nhấn — icon, hoa văn, viền trang trí"
-                  >
-                    <span class="color-chip">
-                      <input
-                        type="text"
-                        inputmode="none"
-                        id="theme-accent-color"
-                        class="theme-color-input"
-                        aria-label="Chọn màu nhấn"
-                      />
-                    </span>
-                    <span class="cx-color-txt">Nhãn</span>
-                  </label>
-                  <label
-                    for="theme-background-color"
-                    class="cx-color-card"
-                    title="Màu nền thiệp"
-                  >
-                    <span class="color-chip">
-                      <input
-                        type="text"
-                        inputmode="none"
-                        id="theme-background-color"
-                        class="theme-color-input"
-                        aria-label="Chọn màu nền"
-                      />
-                    </span>
-                    <span class="cx-color-txt">Nền</span>
-                  </label>
-                </div>
-              </div>
-              <!-- /section Màu sắc -->
 
               <!-- Thêm vào thiệp: thẻ card (tròn màu + tên) xếp lưới 3 cột;
                    thêm chức năng mới = thêm 1 thẻ, lưới tự xuống dòng -->
@@ -376,7 +259,7 @@
               </div>
 
               <!-- Khôi phục — DESKTOP: button đầy đủ, nằm dưới cùng bảng chỉnh chung -->
-              <x-button variant="outline" size="lg" type="button" onclick="resetThemeSetting()" title="Khôi phục phông chữ và màu về mặc định của thiệp" class="hidden md:flex w-full focus-visible:ring-2 focus-visible:ring-rose-200 focus-visible:ring-offset-2">
+              <x-button variant="outline" size="lg" type="button" onclick="resetThemeSetting()" title="Bỏ hết tuỳ chỉnh, đưa thiệp về mặc định của mẫu" class="hidden md:flex w-full focus-visible:ring-2 focus-visible:ring-rose-200 focus-visible:ring-offset-2">
                 <i data-lucide="rotate-ccw" class="!w-[16px] !h-[16px]"></i>
                 <span>Khôi phục mặc định</span>
               </x-button>

@@ -5,10 +5,9 @@
    Ba phần:
      1. --cx-*  bộ biến mà phần DÙNG CHUNG vẽ theo (lịch nhỏ, dòng thời gian,
         màn bìa, nút xác nhận tham dự). Mặc định ở styles/_common.css.
-     2. .cx-h / .cx-t / .cx-a  ba lớp ngữ nghĩa mà markup của mẫu dùng, cũng là
-        thứ CX_THEME.selectors nhắm tới → đổi tông cả thiệp = sửa mỗi file này.
-     3. .rb-*  phần riêng của mẫu (chữ thư pháp, chip điều hướng, khung ảnh) —
-        chữ thư pháp CỐ Ý không đi theo bảng chọn font ở tab Giao diện. */
+     2. .cx-h / .cx-t / .cx-a  ba lớp ngữ nghĩa mà markup của mẫu dùng; màu
+        của chúng đi theo bộ token ở trên → đổi tông cả thiệp = sửa mỗi file này.
+     3. .rb-*  phần riêng của mẫu (chữ thư pháp, chip điều hướng, khung ảnh). */
 
 :root {
   --cx-accent-rgb: 201 138 142; /* hồng rose — ngày cưới, chấm mốc, icon */
@@ -56,9 +55,8 @@ body {
 }
 
 /* ── Chữ thư pháp ──────────────────────────────────────────────────────────
-   Nét nhận dạng của mẫu (tên cô dâu chú rể, câu slogan). CỐ Ý nằm ngoài
-   CX_THEME.selectors: bảng chọn font ở tab Giao diện chỉ có font Google, đổi
-   xong khách không quay lại được font tự host.
+   Nét nhận dạng của mẫu (tên cô dâu chú rể, câu slogan), cố định — khách muốn
+   khác thì bấm thẳng vào dòng chữ đó trên thiệp mà chỉnh riêng.
    Font tự host khai tập trung ở styles/_fonts.css — ở đây chỉ gọi tên họ. */
 
 .rb-script {
@@ -654,13 +652,13 @@ body {
 }
 
 /* ── Hàng ngày giờ ở mục mở đầu ────────────────────────────────────────────
-   Ghim font Merriweather, CỐ Ý không theo bảng chọn font ở tab Giao diện.
-   Phải thắng .cx-h/.cx-t do theme-setting-helper sinh ra (có !important) nên
-   cần cả !important lẫn độ ưu tiên cao hơn — nhắm qua thẻ cha. */
+   Ghim font Merriweather: nét nhận dạng của mẫu. Nhắm qua thẻ cha để thắng
+   .cx-h/.cx-t chung; khách muốn khác thì bấm thẳng vào dòng đó mà chỉnh riêng
+   (ghi đè từng dòng nhắm theo #id nên vẫn thắng rule này). */
 
 .rb-hero-date .cx-h,
 .rb-hero-date .cx-t {
-  font-family: "Merriweather", serif !important;
+  font-family: "Merriweather", serif;
 }
 
 /* ── Chuyện tình yêu: mỗi mẩu chuyện một tờ giấy ───────────────────────────

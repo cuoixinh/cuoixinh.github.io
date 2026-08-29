@@ -1,10 +1,9 @@
 /* Bảng màu + CSS riêng của ROMANTIC GOLD — sage + vàng đồng.
    CSS THUẦN, không qua Tailwind build (nạp bằng <link> sau styles/themes.css).
 
-   Ba lớp ngữ nghĩa .cx-h / .cx-t / .cx-a là thứ CX_THEME.selectors nhắm tới →
-   khách đổi font/màu ở tab Giao diện là cả thiệp đổi theo. Lớp .rg-* là phần
-   trang trí riêng của mẫu, KHÔNG đi theo thanh chỉnh (chữ trên ảnh poster phải
-   luôn sáng màu, không được đổi thành màu sẫm). */
+   Ba lớp ngữ nghĩa .cx-h / .cx-t / .cx-a lấy màu từ bộ token --cx-* → khách đổi
+   bộ màu là cả thiệp đổi theo. Lớp .rg-* là phần trang trí riêng của mẫu, tô
+   màu cố định (chữ trên ảnh poster phải luôn sáng, không được ngả sẫm). */
 
 :root {
   --cx-accent-rgb: 168 153 104; /* vàng đồng — ngày cưới, chấm mốc, icon */
@@ -47,9 +46,8 @@ body {
 }
 
 /* ── Chữ trang trí riêng của mẫu ───────────────────────────────────────────
-   Hai lớp này CỐ Ý không nằm trong CX_THEME.selectors: chúng là nét nhận dạng
-   của mẫu, không đi theo font khách chọn ở tab Giao diện (bảng chọn chỉ có font
-   Google, đổi xong không quay lại được font tự host).
+   Hai lớp này cố định: chúng là nét nhận dạng của mẫu. Khách muốn khác thì bấm
+   thẳng vào dòng chữ đó trên thiệp mà chỉnh riêng.
 
    Font tự host khai tập trung ở styles/_fonts.css (thêm font mới sửa file đó),
    ở đây chỉ việc gọi tên họ. */

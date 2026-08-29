@@ -1,10 +1,9 @@
 /* Bảng màu + CSS riêng của VINTAGE FOREST — trắng & hồng phấn.
    CSS THUẦN, không qua Tailwind build (nạp bằng <link> sau styles/themes.css).
 
-   Ba lớp ngữ nghĩa .cx-h / .cx-t / .cx-a là thứ CX_THEME.selectors nhắm tới →
-   khách đổi font/màu ở tab Giao diện là cả thiệp đổi theo. Lớp .vf-* là phần
-   trang trí riêng của mẫu, KHÔNG đi theo thanh chỉnh: chữ số poster phải luôn
-   là sans rất đậm và chữ trên ảnh phải luôn sáng màu. */
+   Ba lớp ngữ nghĩa .cx-h / .cx-t / .cx-a lấy màu từ bộ token --cx-* → khách đổi
+   bộ màu là cả thiệp đổi theo. Lớp .vf-* là phần trang trí riêng của mẫu và cố
+   định: chữ số poster phải luôn là sans rất đậm, chữ trên ảnh phải luôn sáng. */
 
 :root {
   --cx-accent-rgb: 243 168 184; /* hồng phấn — trái tim, nét cong, ngày cưới */
@@ -48,8 +47,8 @@ body {
 }
 
 /* ── Chữ riêng của mẫu ─────────────────────────────────────────────────────
-   Hai lớp này CỐ Ý không nằm trong CX_THEME.selectors: chúng là nét nhận dạng
-   của mẫu, không đi theo font khách chọn ở tab Giao diện. */
+   Hai lớp này cố định: chúng là nét nhận dạng của mẫu. Khách muốn khác thì bấm
+   thẳng vào dòng chữ đó trên thiệp mà chỉnh riêng. */
 
 /* Chữ số cỡ lớn: ngày cưới ở poster, đếm ngược, giờ lễ. Sans rất đậm, nét
    thẳng — chính là kiểu chữ số của bản thiết kế. */
@@ -175,8 +174,8 @@ body {
   background-color: rgb(var(--cx-accent-rgb));
 }
 
-/* "Save the date": chữ viết tay cỡ lớn — nét trang trí của poster, cố ý KHÔNG
-   đi theo bảng chọn font ở tab Giao diện (bảng đó chỉ có font Google). */
+/* "Save the date": chữ viết tay cỡ lớn — nét trang trí của poster, font cố
+   định; khách muốn khác thì bấm thẳng vào dòng đó mà chỉnh riêng. */
 
 .vf-save {
   font-size: 38px;

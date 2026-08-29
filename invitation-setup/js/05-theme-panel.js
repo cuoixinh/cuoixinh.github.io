@@ -1,52 +1,28 @@
-// Màn Giao diện: phông chữ, bảng màu (Coloris) và câu mẫu chia sẻ.
+// Màn Giao diện: bộ màu thiệp, chỉnh riêng từng phần tử (Coloris) và câu
+// mẫu chia sẻ.
 //
 // Tách từ index.js (dòng 816–1384 bản gốc). Thứ tự nạp khai báo ở loader.js.
 
 // ============= THEME (GIAO DIỆN) PANEL =============
 
-// Giá trị mặc định hiển thị trên control khi thiệp chưa cấu hình riêng
-const THEME_DEFAULTS = {
-  heading_font: "Playfair Display",
-  body_font: "Be Vietnam Pro",
-  heading_color: "#2d2d2d",
-  body_color: "#78716c",
-  accent_color: "#c0a062",
-  background_color: "#ffffff",
-};
 
-// Mặc định = font/màu GỐC của chính theme đang dùng. Nguồn sự thật là bản khai
-// CX_THEME.preset trong public/themes/<theme>/index.js — đọc qua iframe xem
-// trước của tab này (cùng origin). Iframe nạp xong SAU khi tab mở nên lần đầu
-// còn rỗng: nhớ lại vào _themePresetCache, và _watchThemeFrame() dựng lại thanh
-// chỉnh khi giá trị về. Theme không khai thì rơi về THEME_DEFAULTS.
-let _themePresetCache = null;
-
-function _themePreset() {
-  const win = document.getElementById("theme-preview-iframe")?.contentWindow;
-  const preset = win && win.CX_THEME && win.CX_THEME.preset;
-  if (preset) _themePresetCache = preset;
-  return _themePresetCache;
-}
-
-// Giá trị hiện trên 4 ô màu khi khách chưa tự đặt gì. Thứ tự đè: mặc định
-// chung ← preset của mẫu ← bộ màu đang chọn (bộ màu là thứ mới nhất khách chọn
-// nên nó thắng).
-function _themeDefaults() {
-  const d = { ...THEME_DEFAULTS, ...(_themePreset() || {}) };
-  const p = _resolvedPalette();
-  if (p) {
-    if (p.heading) d.heading_color = p.heading;
-    if (p.body) d.body_color = p.body;
-    if (p.accent) d.accent_color = p.accent;
-    if (p.card_bg) d.background_color = p.card_bg;
-  }
-  return d;
-}
-
-// Gắn một lần: mỗi lần iframe nạp xong thì lấy preset rồi vẽ lại thanh chỉnh.
 // Ô nào người dùng đã đặt riêng vẫn giữ nguyên (_initThemePanel ưu tiên
 // _themeSetting), chỉ phần "mặc định của mẫu" được sửa cho đúng.
 let _themeFrameWatched = false;
+
+// Bảng màu GỢI Ý trong bộ chọn màu (Coloris) — mỗi mẫu tự khai
+// `CX_THEME.swatches` để khách chỉnh riêng một phần tử thì thấy ngay tông của
+// mẫu mình đang dùng. Đọc qua iframe xem trước (cùng origin), mà iframe nạp xong
+// SAU khi tab mở nên lần đầu còn rỗng: nhớ vào cache, rồi _watchThemeFrame()
+// dựng lại khi giá trị về.
+let _themeSwatchCache = null;
+
+function _themeSwatches() {
+  const win = document.getElementById("theme-preview-iframe")?.contentWindow;
+  const sw = win && win.CX_THEME && win.CX_THEME.swatches;
+  if (sw) _themeSwatchCache = sw;
+  return _themeSwatchCache;
+}
 
 function _watchThemeFrame() {
   if (_themeFrameWatched) return;
@@ -54,12 +30,11 @@ function _watchThemeFrame() {
   if (!iframe) return;
   _themeFrameWatched = true;
   iframe.addEventListener("load", () => {
-    const before = _themePresetCache;
-    const preset = _themePreset();
-    if (!preset || preset === before) return;
+    const before = _themeSwatchCache;
+    const sw = _themeSwatches();
+    if (!sw || sw === before) return;
     // Coloris chỉ nhận swatches lúc khởi tạo → gọi lại để đổi bảng màu gợi ý.
-    if (typeof Coloris !== "undefined")
-      Coloris({ swatches: preset.swatches || [] });
+    if (typeof Coloris !== "undefined") Coloris({ swatches: sw });
     _initThemePanel();
   });
 }
@@ -107,7 +82,7 @@ function _themePaletteSwatch() {
   return p ? window.cxPaletteSwatch(p) : "";
 }
 
-// Bảng màu GỐC của mẫu, đọc qua iframe xem trước như cách _themePreset() làm.
+// Bảng màu GỐC của mẫu, đọc qua iframe xem trước như cách _themeSwatches() làm.
 function _themeCardPalette() {
   const win = document.getElementById("theme-preview-iframe")?.contentWindow;
   const p = win && win.CX_THEME && win.CX_THEME.palette;
@@ -117,21 +92,10 @@ function _themeCardPalette() {
 
 let _themeCardPaletteCache = null;
 
-// Bộ màu đang chọn (đã lưu) — dùng làm mặc định cho 4 ô màu bên dưới.
+// Bộ màu đang chọn (đã lưu).
 function _currentPalette() {
   const p = _themeSetting.palette;
   return p && typeof p === "object" ? p : null;
-}
-
-// Bộ màu đã áp ĐỘ ĐẬM — đây mới là màu thiệp thật sự hiện ra. Phép tính nằm ở
-// theme-setting-helper.js để trang thiệp và trang Thiết lập dùng chung đúng một
-// công thức, không có chuyện xem trước một đằng lưu ra một nẻo.
-function _resolvedPalette() {
-  const p = _currentPalette();
-  if (!p) return null;
-  return window.cxPaletteAtStrength
-    ? window.cxPaletteAtStrength(p, p.strength)
-    : p;
 }
 
 // Mức 50 = đúng bộ màu như danh mục khai. Không lưu `strength` khi ở mức này để
@@ -156,15 +120,6 @@ function _syncPaletteStrength() {
   window.CXProgress?.attach(el)?.classList.toggle("is-off", !on);
 }
 
-// Bộ màu (hoặc độ đậm) đổi thì "màu mặc định" của 4 ô cũng đổi theo. Ô nào
-// khách đã tự đặt thì giữ nguyên — chọn bộ không được xoá thứ khách cố ý chỉnh.
-function _syncPaletteChips() {
-  const d = _themeDefaults();
-  THEME_COLOR_FIELDS.forEach(({ id, key }) => {
-    if (!_themeColorTouched.has(key) && !_themeSetting[key]) _chipValue(id, d[key]);
-  });
-}
-
 function _applyThemeToFrame() {
   const iframe = document.getElementById("theme-preview-iframe");
   iframe?.contentWindow?.applyThemeSetting?.(_themeSetting);
@@ -185,7 +140,6 @@ function onCardPaletteChange() {
   }
 
   _syncPaletteStrength();
-  _syncPaletteChips();
   _setDirty(true, "theme");
   _applyThemeToFrame();
 }
@@ -201,7 +155,6 @@ function onPaletteStrengthInput() {
   const v = Number(el.value);
   if (v === PALETTE_STRENGTH_DEFAULT) delete p.strength;
   else p.strength = v;
-  _syncPaletteChips();
   _applyThemeToFrame();
 }
 
@@ -213,39 +166,11 @@ function onPaletteStrengthCommit() {
 
 window.onPaletteStrengthCommit = onPaletteStrengthCommit;
 
-// Ô màu nào khách ĐÃ tự bấm. Xem chú thích ở onThemeSettingChange().
-const _themeColorTouched = new Set();
-
-// 4 ô màu của thanh chỉnh: id phần tử ↔ khoá trong theme_setting
-const THEME_COLOR_FIELDS = [
-  { id: "theme-heading-color", key: "heading_color" },
-  { id: "theme-body-color", key: "body_color" },
-  { id: "theme-accent-color", key: "accent_color" },
-  { id: "theme-background-color", key: "background_color" },
-];
-
-// Giá trị nằm ở input.value; ô màu tròn là .clr-field bọc ngoài, Coloris tô
-// nó bằng inline style `color`. Set thẳng cả hai để khỏi phải bắn event
-// (bắn event sẽ chạy qua handler và đánh dấu "chưa lưu" oan).
-function _chipValue(id, val) {
-  const el = document.getElementById(id);
-  if (!el) return "";
-  if (val !== undefined) {
-    el.value = val;
-    const field = el.parentNode;
-    if (field && field.classList.contains("clr-field")) {
-      field.style.color = val;
-    }
-  }
-  return el.value || "";
-}
-
 function _initColorPickers() {
   // Thư viện nạp từ CDN — hỏng mạng thì chip vẫn giữ giá trị, chỉ không mở
   // được bảng chọn; phần còn lại của tab vẫn dùng bình thường.
   if (typeof Coloris === "undefined") return;
 
-  const preset = _themePreset();
   Coloris({
     el: ".theme-color-input",
     themeMode: "light",
@@ -255,7 +180,7 @@ function _initColorPickers() {
     focusInput: false,
     selectInput: false,
     margin: 16, // mặc định 2px, sát chip quá
-    swatches: (preset && preset.swatches) || [],
+    swatches: _themeSwatches() || [],
   });
 
   // Fork @melloware/coloris không có option closeButton → tự chèn nút "Xong"
@@ -276,19 +201,6 @@ function _initColorPickers() {
     done.addEventListener("click", () => window.Coloris?.close());
     picker.appendChild(done);
   }
-
-  THEME_COLOR_FIELDS.forEach(({ id, key }) => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.addEventListener("input", () => {
-      _themeColorTouched.add(key);
-      onThemeSettingChange();
-    });
-    el.addEventListener("click", () => {
-      _openChip = el;
-      _alignPickerToChip(el);
-    });
-  });
 
   // Chip màu của bảng chỉnh CHI TIẾT 1 dòng (dùng chung Coloris qua .theme-color-input).
   // Ô thứ hai chỉ dùng khi bật chuyển màu — nó là màu CUỐI của dải.
@@ -367,32 +279,17 @@ function _alignPickerToChip(chipEl) {
 
 function _initThemePanel() {
   _watchThemeFrame();
-  const s = _themeSetting || {};
-  const d = _themeDefaults();
-
-  // Đổ màu vào chip TRƯỚC khi khởi tạo Coloris: lúc bọc .clr-field, Coloris
-  // lấy luôn input.value làm màu hiển thị của ô tròn.
-  THEME_COLOR_FIELDS.forEach(({ id, key }) => {
-    _chipValue(id, s[key] || d[key]);
-  });
 
   if (!_themePanelReady) {
-    _fillFontCombo(document.getElementById("theme-heading-font"), ["heading"]);
-    _fillFontCombo(document.getElementById("theme-body-font"), ["body"]);
     _initColorPickers();
     _themePanelReady = true;
   }
 
+  // <x-combobox>.value tự đồng bộ nhãn khi gán (kể cả lúc nạp thiệp / reset).
   _fillPaletteCombo();
   const pal = document.getElementById("theme-palette");
   if (pal) pal.value = _currentPalette()?.id || "";
   _syncPaletteStrength();
-
-  // <x-combobox>.value tự đồng bộ nhãn khi gán (kể cả lúc nạp thiệp / reset).
-  const hf = document.getElementById("theme-heading-font");
-  const bf = document.getElementById("theme-body-font");
-  if (hf) hf.value = s.heading_font || d.heading_font;
-  if (bf) bf.value = s.body_font || d.body_font;
 
   // Mở tab Giao diện → về nhóm chỉnh chung, đóng bảng chỉnh 1 dòng / thêm văn
   // bản / trang trí
@@ -407,48 +304,11 @@ function _initThemePanel() {
   if (window.lucide) lucide.createIcons();
 }
 
-function onThemeSettingChange() {
-  const hf = document.getElementById("theme-heading-font");
-  const bf = document.getElementById("theme-body-font");
-
-  // Giữ lại ghi đè từng dòng + khối văn bản + hoạ tiết — nếu không sẽ bị xoá
-  // khi dựng lại object.
-  const keep = _themeSetting;
-
-  _themeSetting = {
-    heading_font: hf ? hf.value : "",
-    body_font: bf ? bf.value : "",
-  };
-  // Ô màu chỉ ghi xuống khi khách THỰC SỰ bấm vào nó (hoặc thiệp cũ đã lưu sẵn).
-  // Ghi cả 4 ô mỗi lần hàm này chạy — kể cả khi khách chỉ đổi phông chữ — sẽ
-  // giết bộ màu: `background_color` áp !important lên `body, #main-card` nên ép
-  // nền trang và thân thiệp về CÙNG một màu, mất hẳn hai tông của bộ.
-  THEME_COLOR_FIELDS.forEach(({ id, key }) => {
-    if (_themeColorTouched.has(key) || keep[key]) _themeSetting[key] = _chipValue(id);
-  });
-  if (keep.palette) _themeSetting.palette = keep.palette;
-  if (keep.text_overrides && Object.keys(keep.text_overrides).length)
-    _themeSetting.text_overrides = keep.text_overrides;
-  if (Array.isArray(keep.custom_blocks) && keep.custom_blocks.length)
-    _themeSetting.custom_blocks = keep.custom_blocks;
-  if (Array.isArray(keep.decorations) && keep.decorations.length)
-    _themeSetting.decorations = keep.decorations;
-  if (Array.isArray(keep.elements) && keep.elements.length)
-    _themeSetting.elements = keep.elements;
-  if (keep.music_seeded) _themeSetting.music_seeded = true;
-
-  _setDirty(true, "theme");
-
-  // Áp dụng ngay vào iframe preview trong tab giao diện
-  const iframe = document.getElementById("theme-preview-iframe");
-  if (iframe?.contentWindow?.applyThemeSetting) {
-    iframe.contentWindow.applyThemeSetting(_themeSetting);
-  }
-}
-
+// Bỏ HẾT tuỳ chỉnh của thiệp: bộ màu, chỉnh riêng từng dòng chữ, khối văn bản,
+// hoạ tiết, thành phần. Nạp lại iframe là cách chắc chắn nhất để gỡ mọi thứ đã
+// bơm vào — không phải gỡ ngược từng loại một.
 function resetThemeSetting() {
   _themeSetting = {};
-  _themeColorTouched.clear();
   _initThemePanel();
   _setDirty(true, "theme");
 
@@ -460,7 +320,6 @@ function resetThemeSetting() {
   }
 }
 
-window.onThemeSettingChange = onThemeSettingChange;
 window.resetThemeSetting = resetThemeSetting;
 
 // ── CHỈNH CHI TIẾT TỪNG DÒNG CHỮ ───────────────────────────────────────────
