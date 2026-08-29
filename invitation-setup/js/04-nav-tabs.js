@@ -343,6 +343,8 @@ function switchTab(tab) {
     formPanel.classList.add("hidden");
     previewPanel.classList.remove("hidden");
     configPanel.classList.add("hidden");
+    // Panel vừa bỏ .hidden nên tới đây mới đo được khổ thật của khung máy.
+    window.cxPreviewFit?.();
   } else if (tab === "config") {
     _isPreviewActive = false;
     formPanel.classList.add("hidden");

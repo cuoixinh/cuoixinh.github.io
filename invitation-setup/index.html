@@ -71,22 +71,30 @@
         id="preview-panel"
         class="hidden fixed inset-0 bottom-[var(--nav-h)] z-[200] bg-[rgb(var(--surface-tint-rgb))] flex flex-col overflow-hidden"
       >
-        <!-- Thiệp nằm trong THẺ NỔI cùng khổ/cùng bo góc với các tab khác; vỏ
-             chỉ giữ lề 8px quanh thẻ. -->
-        <div class="flex-1 min-h-0 px-2 sm:px-4 pt-2 pb-2">
-          <div
-            class="h-full max-w-4xl mx-auto overflow-hidden bg-white border border-gray-100 rounded-3xl shadow-[0_4px_18px_rgb(var(--scrim-rgb)/0.07)]"
-          >
-            <!-- allow="autoplay": trình phát nhạc là iframe youtube.com lồng bên
-                 trong (khác origin) nên phải được uỷ quyền qua TỪNG lớp iframe,
-                 thiếu là nhạc nền không tự phát dù đã chọn bài. -->
-            <iframe
-              id="preview-iframe"
-              src=""
-              class="w-full h-full border-0"
-              allow="autoplay; encrypted-media"
-              allowfullscreen
-            ></iframe>
+        <!-- Thiệp LUÔN chạy trong khung điện thoại, kể cả khi đang xem trên
+             điện thoại thật: thiệp là sản phẩm để gửi cho khách xem trên máy,
+             nên bản xem trước phải cho thấy đúng khổ đó. Khung thu cho vừa cả
+             chiều cao lẫn bề ngang — xem .cx-preview-stage ở styles/_setup.css. -->
+        <div id="cx-preview-stage" class="cx-preview-stage">
+          <div class="cx-phone">
+            <div class="cx-phone-screen">
+              <!-- allow="autoplay": trình phát nhạc là iframe youtube.com lồng bên
+                   trong (khác origin) nên phải được uỷ quyền qua TỪNG lớp iframe,
+                   thiếu là nhạc nền không tự phát dù đã chọn bài. -->
+              <iframe
+                id="preview-iframe"
+                src=""
+                class="cx-phone-view"
+                allow="autoplay; encrypted-media"
+                allowfullscreen
+              ></iframe>
+            </div>
+            <!-- Vỏ máy nằm ĐÈ lên iframe (vùng màn hình của ảnh là trong suốt). -->
+            <img
+              src="../assets/images/iphone_mockup.svg"
+              alt=""
+              class="cx-phone-frame"
+            />
           </div>
         </div>
       </div>
