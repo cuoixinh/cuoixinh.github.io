@@ -99,35 +99,82 @@ function cxLiveTouch() {
   _cxLiveTimer = setTimeout(cxLiveRefresh, CX_LIVE_DELAY);
 }
 
+// ── ĐO KHUNG ĐIỆN THOẠI ────────────────────────────────────────────────────
+// Hai chỗ dùng khung máy: dải xem trực tiếp (từ 820px) và tab Xem trước (mọi
+// khổ màn). Cùng markup .cx-phone nên dùng chung phép đo dưới đây; biến đặt
+// NGAY TRÊN từng .cx-phone chứ không phải :root — hai khung có thể cùng tồn tại
+// trong DOM, ghi lên biến chung là kéo lệch cái còn lại.
+const CX_PHONE_RATIO = 0.4879; // 383/785 — tỉ lệ ảnh thân máy
+
 // Thiệp dựng ở khổ 390px (máy thật) nên phải thu lại cho vừa ô màn hình — CSS
 // không chia được px cho px, đành đo bằng JS. Xem .cx-phone-view.
-// Bề rộng dải là thuần CSS (--cx-rail-w), không đo ở đây.
 // Chiều cao iframe cũng phải đo, không để số cứng trong CSS: tỉ lệ ô màn của ảnh
 // thân máy không trùng khít 390×837, lệch bao nhiêu là hở trắng bấy nhiêu ở mép
 // dưới. Bề ngang cho dư 1px để phép làm tròn không chừa sợi trắng sát mép phải.
-function _cxLiveMeasure() {
-  const scr = document.querySelector("#live-dock .cx-phone-screen");
+function _cxPhoneScreen(phone) {
+  const scr = phone?.querySelector(".cx-phone-screen");
   if (!(scr?.offsetWidth > 0)) return;
   const scale = scr.offsetWidth / 390;
-  document.documentElement.style.setProperty("--cx-scr-scale", String(scale));
-  const view = document.getElementById("live-preview-iframe");
+  phone.style.setProperty("--cx-scr-scale", String(scale));
+  const view = phone.querySelector(".cx-phone-view");
   if (view) {
     view.style.width = "391px";
     view.style.height = scr.offsetHeight / scale + "px";
   }
 }
 
+// Khổ máy tối đa: quá số này thì ô màn rộng hơn 390px, tức là thiệp bị PHÓNG TO
+// hơn máy thật — bản xem trước hết còn nói đúng thứ khách sẽ thấy trên điện
+// thoại. 0.9217 là bề rộng ô màn so với thân máy (xem .cx-phone-screen).
+const CX_PHONE_MAX_W = 390 / 0.9217;
+
+// Thu cả thân máy cho vừa khoảng trống (kiểu `contain`): bề rộng suy từ chiều
+// cao, rồi kẹp lại theo bề ngang để máy hẹp/cao vẫn không tràn. Dải xem trực
+// tiếp KHÔNG gọi hàm này — bề rộng của nó là thuần CSS (--cx-ph-w theo --cx-rail-w).
+//
+// Đo theo Ô NỘI DUNG: clientWidth/Height đã tính cả padding, lấy thẳng là máy
+// nuốt luôn phần lề và dính sát mép trên/dưới.
+function _cxPhoneFit(stage) {
+  const phone = stage?.querySelector(".cx-phone");
+  if (!phone) return;
+  const cs = getComputedStyle(stage);
+  const boxW =
+    stage.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+  const boxH =
+    stage.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+  const w = Math.min(boxW, boxH * CX_PHONE_RATIO, CX_PHONE_MAX_W);
+  if (!(w > 0)) return; // đang ẩn → để nguyên, lúc hiện ResizeObserver gọi lại
+  phone.style.setProperty("--cx-ph-w", w + "px");
+  _cxPhoneScreen(phone);
+}
+
+// Tab Xem trước. Panel đang ẩn thì khổ bằng 0, nên switchTab() gọi lại sau khi
+// bỏ .hidden; ResizeObserver lo phần xoay máy / đổi khổ.
+function cxPreviewFit() {
+  _cxPhoneFit(document.getElementById("cx-preview-stage"));
+}
+
+function _cxLiveMeasure() {
+  _cxPhoneScreen(document.querySelector("#live-dock .cx-phone"));
+}
+
 function _cxInitLive() {
   _cxLiveMeasure();
+  cxPreviewFit();
 
   if (window.ResizeObserver) {
     const dock = document.getElementById("live-dock");
     if (dock) new ResizeObserver(_cxLiveMeasure).observe(dock);
+    // Khổ vùng xem trước đổi cả khi KHÔNG resize cửa sổ (mở/đóng panel, thanh
+    // địa chỉ trên di động trượt lên xuống) → phải theo dõi chính nó.
+    const stage = document.getElementById("cx-preview-stage");
+    if (stage) new ResizeObserver(cxPreviewFit).observe(stage);
   }
   window.addEventListener(
     "resize",
     () => {
       _cxLiveMeasure();
+      cxPreviewFit();
       // Nhãn nút bước cuối đổi theo khổ màn ("Xem trước" ↔ "Cấu hình").
       window.cxRefreshStepStatus?.();
       // Vừa vượt ngưỡng CX_LIVE_MIN_W → dải mới hiện, chưa có gì trong đó.
@@ -139,6 +186,7 @@ function _cxInitLive() {
 }
 
 window.cxLiveWide = _cxLiveWide; // switchTab() hỏi để chặn tab Xem trước ở desktop
+window.cxPreviewFit = cxPreviewFit;
 window.cxLiveRefresh = cxLiveRefresh;
 window.cxLiveTouch = cxLiveTouch;
 window.cxLiveFocus = cxLiveFocus;

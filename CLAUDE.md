@@ -140,6 +140,15 @@ bị chừa lề phải và cấm cuộn. Dải CHỈ đi cùng tab Chỉnh sử
 máy thật** rồi thu bằng `--cx-scr-scale`. Cuộn tới mục đang chỉnh: gửi `{type:"cx-focus", key}`
 (key = `data-step`), `core/helpers/preview-focus-helper.js` trong thiệp lo phần còn lại.
 
+**Khung điện thoại `.cx-phone`** dùng ở HAI chỗ: dải xem trực tiếp và tab Xem trước
+(`#cx-preview-stage`, mọi khổ màn — kể cả đang xem trên điện thoại thật). Vì hai khung cùng
+nằm trong DOM, `--cx-ph-w`/`--cx-scr-scale` đặt **trên từng `.cx-phone`**, đừng đẩy lên
+`:root`. Bề rộng dải là thuần CSS; còn tab Xem trước phải đo bằng JS (`cxPreviewFit`) theo
+**ô nội dung** của khung chứa — `clientWidth/Height` tính cả padding, lấy thẳng là máy dính
+sát mép. Máy có trần `CX_PHONE_MAX_W`: quá đó ô màn rộng hơn 390px, tức thiệp bị phóng to
+hơn máy thật. Panel đang ẩn thì khổ bằng 0 nên `switchTab("preview")` phải gọi lại
+`cxPreviewFit()` **sau khi** bỏ `.hidden`.
+
 ### Phiên bản & cache (GitHub Pages sau Cloudflare)
 
 GitHub Pages ép `Cache-Control: max-age=600` và không đọc `_headers`. Chống bản cũ bằng

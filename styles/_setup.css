@@ -1405,6 +1405,24 @@ html.cx-rail-off {
   }
 }
 
+/* Tab Xem trước: thiệp LUÔN chạy trong khung điện thoại, kể cả trên máy cầm tay.
+   Khung thu cho vừa khoảng trống theo kiểu `contain` — bề rộng do
+   js/22-live-preview.js đo (min(rộng ô, cao ô × tỉ lệ)) vì CSS không chia được
+   px cho px. Công thức dưới đây chỉ là giá trị cho NHỊP VẼ ĐẦU, JS đo xong sẽ
+   ghi đè bằng inline style; thiếu nó thì --cx-ph-w không tồn tại ở khổ < 820px
+   (biến đó khai trong media query của dải xem trực tiếp) → máy hiện sai khổ một
+   nhịp rồi mới nhảy về đúng. */
+.cx-preview-stage {
+  @apply flex min-h-0 flex-1 items-center justify-center px-2 py-2 sm:px-4;
+
+  --cx-ph-w: min(100%, calc((100dvh - var(--nav-h, 64px) - 16px) * 0.4879), 423px);
+}
+
+/* Khổ máy đã tính cho vừa rồi — đừng cho flex bóp thêm lần nữa. */
+.cx-preview-stage .cx-phone {
+  flex: none;
+}
+
 /* Thân máy = ảnh assets/images/iphone_mockup.svg (383×785, vùng màn hình TRONG SUỐT)
    phủ LÊN iframe. Đổi ảnh khác thì phải đo lại vùng trong suốt đó rồi sửa cả tỉ
    lệ ở --cx-ph-w lẫn bộ inset của .cx-phone-screen bên dưới. */
