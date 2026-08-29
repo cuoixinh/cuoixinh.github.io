@@ -26,22 +26,38 @@
   transition: width 0.08s linear;
 }
 
-/* Input thật: trong suốt, phủ kín cả khối để bấm đâu cũng tua được */
+/* Input thật: trong suốt, nằm ĐÚNG trên thanh track.
+   Ngang: phải trùng khít track, không trùm cả viên thuốc — nhãn số bên trái đẩy
+   track thụt vào ~60px, trùm cả thì chỗ ngón tay đặt và giá trị nhận được lệch
+   nhau tới 16 điểm. Hai biến do core/components/progress.js đo.
+   Dọc: vẫn full viên thuốc (40px) chứ không co về 24px của track — vùng chạm
+   càng cao càng dễ bắt.
+   touch-action: none — thanh kéo nằm trong vùng cuộn (bảng chỉnh ở trang Thiết
+   lập), thiếu dòng này thì cú vuốt ngang bị vùng cuộn giành mất. */
 .cx-prog-input {
-  @apply absolute inset-0 m-0 h-full w-full cursor-pointer appearance-none
-         bg-transparent opacity-0;
+  @apply absolute m-0 cursor-pointer appearance-none bg-transparent opacity-0;
+
+  top: 0;
+  bottom: 0;
+  left: var(--cx-prog-lead, 0px);
+  right: var(--cx-prog-tail, 0px);
+  touch-action: none;
 }
 
-/* Thumb rộng 24px cho dễ bắt bằng ngón tay (vẫn vô hình vì input opacity-0) */
+/* Thumb HẸP (vô hình vì input opacity-0). Không phải để dễ bắt — bấm chỗ nào
+   trên input range trình duyệt cũng nhảy tới đó rồi kéo tiếp, không cần trúng
+   thumb. Bề ngang thumb chỉ quyết định phép quy đổi vị trí → giá trị: trình
+   duyệt chừa nửa thumb ở mỗi đầu, để 24px là hai đầu thanh lệch ±12px so với
+   chỗ ngón tay đặt. Để 1px thì mép phần đã tô nằm đúng dưới ngón tay. */
 .cx-prog-input::-webkit-slider-thumb {
   @apply appearance-none;
 
-  width: 24px;
+  width: 1px;
   height: 24px;
 }
 
 .cx-prog-input::-moz-range-thumb {
-  width: 24px;
+  width: 1px;
   height: 24px;
   border: 0;
 }
