@@ -76,8 +76,30 @@ class TemplatesDAL {
     const res = await fetch(url, init);
     if (!res.ok) throw new Error("HTTP " + res.status);
     const rows = await res.json();
-    return Array.isArray(rows) ? rows : [];
+    return this._normalize(Array.isArray(rows) ? rows : []);
+  }
+
+  /**
+   * Ép hai nguồn về cùng một shape. Bên gọi vẽ giá bằng `price.toLocaleString()`
+   * nên `null` là ném lỗi giữa lúc dựng danh sách — cả bảng chọn mẫu chết chứ
+   * không phải thiếu mỗi con số. Worker cũ (chưa deploy bản mới) còn trả
+   * `thumbnail` và `price: null`, mà worker deploy độc lập với web nên đừng tin
+   * nó đang chạy bản nào.
+   */
+  _normalize(rows) {
+    return rows.map((t) => ({
+      ...t,
+      thumbnailUrl: t.thumbnailUrl ?? t.thumbnail ?? null,
+      price: t.price ?? TemplatesDAL.DEFAULT_PRICE,
+      originalPrice: t.originalPrice ?? TemplatesDAL.DEFAULT_ORIGINAL_PRICE,
+    }));
   }
 }
+
+// Giá mặc định khi một mẫu chưa có hàng trong `template_pricing`. Nguồn sự thật
+// là Edge Function `public-templates`; ở đây chỉ là lưới an toàn cho nguồn nào
+// trả thiếu — đổi bên đó thì đổi cả hai chỗ.
+TemplatesDAL.DEFAULT_PRICE = 159000;
+TemplatesDAL.DEFAULT_ORIGINAL_PRICE = 199000;
 
 window.templatesDAL = new TemplatesDAL();
