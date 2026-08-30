@@ -44,11 +44,9 @@
   touch-action: none;
 }
 
-/* Thumb HẸP (vô hình vì input opacity-0). Không phải để dễ bắt — bấm chỗ nào
-   trên input range trình duyệt cũng nhảy tới đó rồi kéo tiếp, không cần trúng
-   thumb. Bề ngang thumb chỉ quyết định phép quy đổi vị trí → giá trị: trình
-   duyệt chừa nửa thumb ở mỗi đầu, để 24px là hai đầu thanh lệch ±12px so với
-   chỗ ngón tay đặt. Để 1px thì mép phần đã tô nằm đúng dưới ngón tay. */
+/* Thumb hẹp, vô hình (input opacity-0). Chuột/chạm đã do progress.js tự cầm
+   (pointer capture) nên bề ngang thumb không còn ảnh hưởng gì tới phép quy đổi
+   vị trí → giá trị; để hẹp cho khỏi ai tưởng nó là vùng phải bấm trúng. */
 .cx-prog-input::-webkit-slider-thumb {
   @apply appearance-none;
 

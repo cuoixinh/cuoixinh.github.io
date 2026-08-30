@@ -43,6 +43,69 @@
       );
   }
 
+  // Giá trị ứng với một điểm trên màn: quy đổi theo THANH TRACK nhìn thấy rồi
+  // bắt về đúng nấc `step`.
+  function valueAt(input, clientX) {
+    const wrap = input.closest(".cx-prog");
+    const track = wrap && wrap.querySelector(".cx-prog-track");
+    if (!track) return null;
+    const r = track.getBoundingClientRect();
+    if (!r.width) return null;
+    const min = Number(input.min || 0);
+    const max = Number(input.max ?? 100);
+    const step = Number(input.step) > 0 ? Number(input.step) : 1;
+    const t = Math.min(1, Math.max(0, (clientX - r.left) / r.width));
+    const v = min + t * (max - min);
+    return Math.min(max, Math.max(min, Math.round(v / step) * step));
+  }
+
+  // TỰ cầm cú kéo thay vì trông vào hành vi sẵn có của <input type=range>.
+  // Lý do: ngón tay thật không đi ngang tuyệt đối, luôn rung lên xuống; hễ nó
+  // lệch ra khỏi ô cao 40px của input là trình duyệt bỏ luôn cú kéo — chạm thì
+  // ăn mà kéo thì thanh đứng im. setPointerCapture giữ mọi cú di chuyển về đúng
+  // input, kéo ra giữa màn hình vẫn bám.
+  //
+  // Bàn phím (mũi tên) vẫn để native lo: nó tự bắn input/change như thường.
+  function bindDrag(input) {
+    let on = false;
+    const apply = (e) => {
+      const v = valueAt(input, e.clientX);
+      if (v == null || String(v) === input.value) return;
+      input.value = String(v);
+      paint(input);
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+    };
+    input.addEventListener("pointerdown", (e) => {
+      if (e.button != null && e.button !== 0) return;
+      on = true;
+      // Chặn hành vi kéo sẵn có để hai bên không cùng đặt giá trị; focus phải
+      // gọi tay vì preventDefault lấy mất.
+      e.preventDefault();
+      input.focus({ preventScroll: true }); // preventScroll: đừng giật khung cuộn
+      try {
+        input.setPointerCapture(e.pointerId);
+      } catch (err) {
+        /* trình duyệt không cho bắt thì vẫn chạy được nhờ listener bên dưới */
+      }
+      apply(e);
+    });
+    input.addEventListener("pointermove", (e) => {
+      if (on) apply(e);
+    });
+    const end = (e) => {
+      if (!on) return;
+      on = false;
+      try {
+        input.releasePointerCapture(e.pointerId);
+      } catch (err) {
+        /* đã nhả rồi */
+      }
+      input.dispatchEvent(new Event("change", { bubbles: true }));
+    };
+    input.addEventListener("pointerup", end);
+    input.addEventListener("pointercancel", end);
+  }
+
   // Gọi lại nhiều lần vô hại: đã bọc rồi thì chỉ cập nhật format và vẽ lại.
   // opts.format(value) → chuỗi hiện trong ô số bên trái.
   function attach(input, opts) {
@@ -58,6 +121,7 @@
       wrap.appendChild(input);
       input.classList.add("cx-prog-input");
       input.addEventListener("input", () => paint(input));
+      bindDrag(input);
       // Khổ đổi mà không resize cửa sổ (mở panel, đổi nhãn số) → tự đo lại.
       if (window.ResizeObserver)
         new ResizeObserver(() => layout(input)).observe(wrap);
