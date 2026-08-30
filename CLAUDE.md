@@ -364,6 +364,13 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   `theme-setting-helper.js`), thêm mẫu chỉ sửa file đó. Lưu trong `custom_blocks` dạng
   `{type:"preset", preset, parts}`, id thật của part là `<blockId>__<key>`. Cỡ chữ viết bằng
   `em` để phóng cả cụm cân đối.
+- **Khối cao "một màn" — luôn qua `--vh`, đừng dùng `dvh`/`svh` trần.**
+  `core/helpers/vh-lock.js` (tự chạy khi nạp) khoá chiều cao một màn thành px: Chrome di
+  động ẩn thanh URL bằng cách RESIZE webview nên với trang web đó là đổi khổ cửa sổ thật,
+  `dvh`/`svh` đều tính lại theo và khối phình dần lúc vuốt. Viết
+  `min-height: calc(var(--vh, 1vh) * 100)` rồi `calc(var(--vh, 1svh) * 100)` — thêm một
+  dòng `100svh` trần sau đó là đè mất `--vh`. Trang mới cần thì tự thêm thẻ script (thiệp
+  và trang chủ đã có); thiếu thì lùi về `1svh`, đúng khổ nhưng kém ổn định.
 - **Sơ đồ Mermaid:** sửa sơ đồ thì đồng bộ luôn bảng roadmap + text mô tả bên dưới.
 - **Dọn dẹp tự động (XOÁ HẲN dữ liệu):** thiệp chưa thanh toán và nháp bỏ quên bị cron xoá
   vĩnh viễn, thiệp hết hạn dùng thử bị khoá với khách mời. Số ngày ở `CONFIG.retention` **và**

@@ -351,9 +351,13 @@ html.cx-landing {
    ngược lại: chừa navbar, không có thanh tab (xem @media bên dưới). */
 #hero {
   @apply relative flex flex-col overflow-hidden;
+  /* --vh = px do core/helpers/vh-lock.js khoá sẵn, KHÔNG phải đơn vị khung
+     nhìn của CSS: Chrome di động ẩn thanh URL bằng cách resize webview nên
+     dvh/svh đều tính lại theo, hero phình dần lúc vuốt. `1svh` chỉ là dự phòng
+     cho lúc script chưa chạy. Đừng thêm dòng `100dvh`/`100svh` trần sau đây —
+     nó đè mất --vh. */
   min-height: calc(var(--vh, 1vh) * 100 - 72px);
-  min-height: calc(100dvh - 72px);
-  min-height: calc(100svh - 72px);
+  min-height: calc(var(--vh, 1svh) * 100 - 72px);
   padding: 12px 16px 0;
   /* Lớp trên: dải 200px ở ĐÁY kéo hero về đúng một màu tint phẳng trước khi
      chạm #templates. Không có nó thì mép dưới còn vệt ấm của gradient chéo —
@@ -438,7 +442,8 @@ html.cx-landing {
 .hero-invite {
   @apply relative mx-auto flex w-full flex-col overflow-hidden;
   max-width: 1120px;
-  min-height: clamp(360px, calc(100svh - 152px), 640px);
+  min-height: clamp(360px, calc(var(--vh, 1vh) * 100 - 152px), 640px);
+  min-height: clamp(360px, calc(var(--vh, 1svh) * 100 - 152px), 640px);
   padding: 12px;
   border-radius: 24px;
   background: rgb(var(--surface-tint-rgb));
@@ -931,8 +936,7 @@ html.cx-landing {
 @media (min-width: 768px) {
   #hero {
     min-height: calc(var(--vh, 1vh) * 100);
-    min-height: 100dvh;
-    min-height: 100svh;
+    min-height: calc(var(--vh, 1svh) * 100);
     padding: 80px 20px 0; /* = chiều cao .cx-navbar (12 + 64 + 4) */
   }
 }
@@ -945,7 +949,8 @@ html.cx-landing {
 @media (min-width: 1024px) {
   .hero-invite {
     @apply flex-row items-stretch;
-    min-height: clamp(420px, calc(100dvh - 152px), 560px);
+    min-height: clamp(420px, calc(var(--vh, 1vh) * 100 - 152px), 560px);
+    min-height: clamp(420px, calc(var(--vh, 1svh) * 100 - 152px), 560px);
   }
   .hero-invite-copy {
     @apply items-start justify-center text-left;
@@ -1220,14 +1225,14 @@ html.cx-landing {
 /* Thẻ mẫu ở carousel = MOCKUP ĐIỆN THOẠI vẽ bằng CSS (.cx-mock ở
    styles/_common.css — không dùng ảnh khung, không có dynamic island).
    Tỉ lệ thân máy 393/768 = 0.5117.
-   Khổ máy tính từ BỀ NGANG khung nhìn và 100svh — KHÔNG suy từ chiều cao thật
+   Khổ máy tính từ BỀ NGANG khung nhìn và --vh — KHÔNG suy từ chiều cao thật
    của khung: trên iPhone thanh URL ẩn/hiện lúc cuộn làm chiều cao đổi liên tục,
-   thẻ sẽ phình co theo. svh là khung nhìn lúc thanh đang hiện nên đứng yên.
+   thẻ sẽ phình co theo. --vh là px khoá sẵn nên đứng yên.
    220px trừ đi = tiêu đề mục + hàng chấm bên dưới. */
 .carousel-3d-stage {
   @apply relative min-h-0 w-full overflow-visible;
 
-  --cx-ph-w: min(72vw, 300px, calc((100svh - 220px) * 0.5117));
+  --cx-ph-w: min(72vw, 300px, calc((var(--vh, 1svh) * 100 - 220px) * 0.5117));
 }
 .carousel-3d-track {
   @apply absolute inset-0;
