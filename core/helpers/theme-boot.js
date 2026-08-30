@@ -143,7 +143,8 @@ function _cxPreviewShell() {
   }
 
   // --- VIEWPORT iOS ---
-  initViewportFix();
+  // core/helpers/vh-lock.js tự khoá --vh khi nạp; index.html của mẫu phải có
+  // thẻ script của nó, thiếu thì CSS lùi về `1svh` (đúng màu, chỉ kém ổn định).
 
   // --- HIỆU ỨNG CUỘN ---
   const revealObserver = new IntersectionObserver(

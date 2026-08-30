@@ -36,6 +36,12 @@
          tailwind.config.js + styles/tailwind-src.css. Phần dùng chung
          (common.css cũ) nay đã nằm trong chính build.css. -->
     <link rel="stylesheet" href="styles/build.css" />
+
+    <!-- Khoá --vh (px của "một màn") TRƯỚC nhịp vẽ đầu: #hero và #templates cao
+         theo biến này, đặt cuối <body> thì hero vẽ bằng giá trị dự phòng rồi mới
+         nhảy sang px — thấy rõ khi quay lại trang chủ từ thiệp lúc thanh URL
+         đang ẩn. File nhỏ, cùng origin nên đổi lại bằng một nhịp chặn là đáng. -->
+    <script src="core/helpers/vh-lock.js"></script>
   </head>
 
   <body
@@ -202,14 +208,15 @@
     </section>
 
     <!-- ===== TEMPLATE GALLERY ===== -->
-    <!-- svh chứ không vh/dvh, cùng lý do với #hero: `100vh` tính cả thanh URL nên
-         mép dưới thẻ bị cắt, còn `100dvh` đổi theo lúc thanh ẩn/hiện — mà bề NGANG
-         thẻ thiệp lại suy ra từ chiều cao khung (sizeCarousel), nên cuộn trên iPhone
-         là thẻ co giãn liên tục. svh = khung nhìn lúc thanh đang hiện: cố định. -->
+    <!-- --vh chứ không vh/dvh, cùng lý do với #hero: `100vh` tính cả thanh URL
+         nên mép dưới thẻ bị cắt, còn `100dvh` đổi theo lúc thanh ẩn/hiện — mà bề
+         NGANG thẻ thiệp lại suy ra từ chiều cao khung (sizeCarousel), nên cuộn
+         trên iPhone là thẻ co giãn liên tục. --vh là px do vh-lock.js khoá sẵn
+         nên đứng yên; `1svh` là dự phòng lúc script chưa chạy. -->
     <section
       id="templates"
       class="flex flex-col"
-      style="min-height: 100vh; min-height: 100svh"
+      style="min-height: calc(var(--vh, 1vh) * 100); min-height: calc(var(--vh, 1svh) * 100)"
     >
       <div class="max-w-6xl mx-auto py-8 px-5 shrink-0">
         <h2
