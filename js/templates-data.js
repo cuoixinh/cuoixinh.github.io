@@ -2,10 +2,12 @@
 
 let templates = [];
 let carouselActiveIndex = 0;
-// Khổ card active hiện tại (px) — sizeCarousel() cập nhật, applyCardTransform()
-// đọc _cardW để đặt card kề bên; _cardH chỉ để so sánh xem có gì đổi không.
-let _cardW = 220;
-let _cardH = 420;
+// Khổ card active hiện tại (px) + cấu hình vòng xoay đang dùng — sizeCarousel()
+// cập nhật, applyCardTransform() đọc _cardW để đặt thẻ phụ; _cardH/_ringKey chỉ
+// để so sánh xem có gì đổi không.
+let _cardW = 200;
+let _cardH = 410;
+let _ringKey = "";
 
 // Ba hàm này nằm ở file nạp SAU file này (render-templates.js, auth-nav.js,
 // page-setup.js…). Fetch có thể resolve ngay giữa hai thẻ <script> nên phải đợi

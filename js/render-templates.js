@@ -6,12 +6,13 @@ const CATEGORY_LABELS = {
   premium: "CAO CẤP",
 };
 
-// Số thẻ giữ trong DOM mỗi bên thẻ đang xem → tối đa 5 thẻ tồn tại, dù danh
+// Số thẻ giữ trong DOM mỗi bên thẻ đang xem → tối đa 7 thẻ tồn tại, dù danh
 // sách có bao nhiêu mẫu. Không có cửa sổ này thì 100 mẫu = 100 thẻ, 2.300 node,
 // 100 ảnh tải cùng lúc và setActiveCard phải đụng cả trăm thẻ mỗi lần vuốt.
-// Nới ra thì mượt hơn khi vuốt nhanh nhưng tải thêm ảnh — 2 là đủ để thẻ kề bên
-// (offset ±1) luôn có sẵn ảnh trước khi trượt vào.
-const CARD_WINDOW = 2;
+// Phải LỚN HƠN `--cx-side` lớn nhất (3 ở máy tính, xem styles/tailwind-src.css):
+// thẻ ở bậc ngoài cùng đứng sẵn trong DOM, trong suốt, để lúc trượt vào là đã
+// có ảnh — không có bậc dự phòng đó thì mỗi lần vuốt lộ một khoảng trống.
+const CARD_WINDOW = 3;
 
 // Chỉ số mẫu cần có mặt trong DOM khi `active` đang mở, theo đúng thứ tự trái →
 // phải. Danh sách ngắn hơn cửa sổ thì tự gộp trùng, không dựng thẻ thừa.
@@ -33,8 +34,9 @@ function cardWindowIndices(active) {
 function templateCardBody(t) {
   const isActive = t.status === "active";
 
-  // KHÔNG `loading="lazy"`: chỉ 5 thẻ nằm trong DOM và thẻ ở ±2 nằm ngoài tầm
-  // nhìn, lazy sẽ hoãn tải tới đúng lúc nó trượt vào → chớp một nhịp trống ảnh.
+  // KHÔNG `loading="lazy"`: chỉ 7 thẻ nằm trong DOM và thẻ ở bậc ngoài cùng nằm
+  // ngoài tầm nhìn, lazy sẽ hoãn tải tới đúng lúc nó trượt vào → chớp một nhịp
+  // trống ảnh.
   const imageContent = isActive
     ? `<img
          src="/assets/images/templates/${t.theme}.jpg"
@@ -47,23 +49,27 @@ function templateCardBody(t) {
     t.category === "premium" ? "Thiệp cao cấp" : "Thiệp miễn phí";
 
   return `
-        <!-- Mockup điện thoại vẽ bằng CSS (.cx-mock ở styles/_common.css) —
-             không ảnh khung, không tai thỏ. Khổ + tỉ lệ do .carousel-3d-card. -->
-        <div class="cx-mock">
-          <div class="cx-mock-screen">
-            ${imageContent}
+        <!-- Ảnh thiệp bo góc, KHÔNG khung điện thoại (.cx-tcard ở
+             styles/tailwind-src.css). Khổ + tỉ lệ do .carousel-3d-card. -->
+        <div class="cx-tcard">
+          ${imageContent}
+          <!-- Lớp phủ chỉ có MỘT việc: giữ chữ trắng đọc được trên ảnh cưới bất kỳ
+               (ảnh sáng, ảnh váy trắng…). Lấy đen mờ chứ không phải xám của bảng
+               màu — xám 132 dù kéo 100% vẫn không đủ tương phản với chữ trắng.
+               Chặng 46% phải còn đen: tên mẫu nằm ngay quãng đó, nhạt sớm hơn là
+               chữ chìm vào ảnh. -->
           <div class="art-template-overlay absolute bottom-0 left-0 right-0 pt-16 pb-4 px-3"
-            style="background:linear-gradient(to top, rgb(var(--landing-photo-overlay-rgb)/90%) 0%, rgb(var(--landing-photo-overlay-soft-rgb)/60%) 48%, transparent 100%);">
+            style="background:linear-gradient(to top, rgb(var(--scrim-rgb)/68%) 0%, rgb(var(--scrim-rgb)/50%) 46%, rgb(var(--landing-photo-overlay-rgb)/28%) 74%, transparent 100%);">
             <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 mb-2 text-[10px] font-semibold text-white" style="background:rgb(var(--white-rgb)/0.22);backdrop-filter:blur(4px);">
               <i data-lucide="tag" class="text-[9px]" style="width:16px;height:16px"></i>${categoryLabel}
             </span>
             <p class="text-white font-playfair font-semibold text-base leading-snug truncate drop-shadow-sm">${t.name}</p>
             <p class="text-white/85 text-xs mt-0.5 line-clamp-2 leading-relaxed">${t.description || ""}</p>
-            <!-- flex-wrap + nút cỡ sm ở điện thoại: bề ngang thẻ suy ra từ CHIỀU CAO
-                 khung (sizeCarousel) nên màn thấp là thẻ hẹp lại — hai nút
-                 whitespace-nowrap cỡ md không lọt và thò ra ngoài mép thẻ. Hẹp quá
-                 thì cho xuống dòng chứ không tràn. -->
-            <div class="mt-3 flex flex-wrap gap-2" style="pointer-events:auto;">
+            <!-- Xếp DỌC ở điện thoại: thẻ phải hẹp lại để bốn thẻ phụ còn chỗ ló
+                 ra, mà hai nút whitespace-nowrap thì không lọt một hàng. Để
+                 flex-wrap thì hàng gãy hay không tuỳ độ dài tên nút — xếp dọc
+                 hẳn mới ra cùng một hình ở mọi mẫu. -->
+            <div class="mt-3 flex flex-col sm:flex-row gap-2" style="pointer-events:auto;">
               <!-- variant="outline" là BẮT BUỘC, không phải cho đẹp: variant mặc
                    định (fill) kèm class text-white, mà landing có luật ép
                    text-white thành trắng kèm !important (xem tailwind-src.css,
@@ -85,7 +91,6 @@ function templateCardBody(t) {
               </x-button>
             </div>
           </div>
-          </div>
         </div>`;
 }
 
@@ -100,7 +105,7 @@ function fillCard(card, index) {
 }
 
 // Gán mẫu cho thẻ nhưng HOÃN dựng ruột sang frame sau. Thẻ vừa tái dùng luôn
-// đứng ở offset ±2 (opacity 0) nên chưa ai nhìn thấy, mà innerHTML + upgrade
+// đứng ở bậc ngoài cùng (opacity 0) nên chưa ai nhìn thấy, mà innerHTML + upgrade
 // <x-button> + lucide là phần nặng nhất của một lần cuộn — để nó chắn nhịp đầu
 // là animation trượt thẻ mất luôn khúc mở đầu.
 function assignCard(card, index) {

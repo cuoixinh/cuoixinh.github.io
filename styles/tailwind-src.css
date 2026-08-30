@@ -1222,39 +1222,79 @@ html.cx-landing {
   );
 }
 
-/* Thẻ mẫu ở carousel = MOCKUP ĐIỆN THOẠI vẽ bằng CSS (.cx-mock ở
-   styles/_common.css — không dùng ảnh khung, không có dynamic island).
-   Tỉ lệ thân máy 393/768 = 0.5117.
-   Khổ máy tính từ BỀ NGANG khung nhìn và --vh — KHÔNG suy từ chiều cao thật
-   của khung: trên iPhone thanh URL ẩn/hiện lúc cuộn làm chiều cao đổi liên tục,
-   thẻ sẽ phình co theo. --vh là px khoá sẵn nên đứng yên.
-   220px trừ đi = tiêu đề mục + hàng chấm bên dưới. */
+/* ══ CAROUSEL 3D "VÒNG XOAY" Ở TRANG CHỦ ═══════════════════════════════════
+   Thẻ mẫu = ẢNH CHỤP THIỆP bo góc, KHÔNG vẽ khung điện thoại — chỉ mượn TỈ LỆ
+   thân máy của assets/images/iphone_mockup.svg (383/785 = 0.4879, cùng dáng với
+   bản xem trước) để ảnh chụp không bị méo so với lúc xem thật.
+   Khổ thẻ tính từ BỀ NGANG khung nhìn và --vh — KHÔNG suy từ chiều cao thật của
+   khung: trên iPhone thanh URL ẩn/hiện lúc cuộn làm chiều cao đổi liên tục, thẻ
+   sẽ phình co theo. --vh là px khoá sẵn nên đứng yên.
+   200px trừ đi = tiêu đề mục + hàng chấm bên dưới.
+   52vw nghe thì hẹp nhưng là TRẦN THẬT ở điện thoại: thẻ dáng máy rất cao, rộng
+   hơn nữa là mép thẻ chính đã chạm mép màn và bốn thẻ phụ nằm khuất hẳn sau nó
+   (bị màn cắt chứ không phải bị đè) — nới số này thì chỉ còn thấy 3 thẻ. */
 .carousel-3d-stage {
   @apply relative min-h-0 w-full overflow-visible;
 
-  --cx-ph-w: min(72vw, 300px, calc((var(--vh, 1svh) * 100 - 220px) * 0.5117));
+  --cx-ph-ar: 0.4879;
+  --cx-ph-w: min(52vw, 300px, calc((var(--vh, 1svh) * 100 - 200px) * 0.4879));
+  /* Số thẻ PHỤ mỗi bên thẻ đang mở → điện thoại hiện tối đa 5 thẻ (1 chính + 4
+     phụ), máy tính 7. Đừng vượt CARD_WINDOW ở js/render-templates.js — quá đó
+     thì thẻ chưa có mặt trong DOM. */
+  --cx-side: 2;
+  /* Độ xoè ngang của vòng xoay, nhân vào quãng dịch của mọi thẻ phụ. Màn rộng
+     thì thẻ vẫn bị chiều cao khung ghìm khổ, không xoè thêm là cả vòng xoay co
+     cụm một cục giữa màn. */
+  --cx-ring-spread: 1;
 }
+
+@media (min-width: 1024px) {
+  .carousel-3d-stage {
+    --cx-ph-w: min(52vw, 360px, calc((var(--vh, 1svh) * 100 - 200px) * 0.4879));
+    --cx-side: 3;
+    --cx-ring-spread: 1.4;
+  }
+}
+
+/* perspective đặt ở ĐÂY chứ không ở .carousel-3d-stage: nó chỉ ăn xuống CON
+   TRỰC TIẾP, mà con của stage là track. Tính theo bề ngang thẻ nên độ "sâu" của
+   vòng xoay giống nhau ở mọi khổ màn. */
 .carousel-3d-track {
   @apply absolute inset-0;
+  perspective: calc(var(--cx-ph-w) * 2.8);
 }
+
 .carousel-3d-card {
   @apply absolute left-1/2 top-1/2 cursor-pointer will-change-transform;
   width: var(--cx-ph-w);
-  height: calc(var(--cx-ph-w) / 0.5117);
+  height: calc(var(--cx-ph-w) / var(--cx-ph-ar));
   margin-left: calc(var(--cx-ph-w) / -2);
-  margin-top: calc(var(--cx-ph-w) / 0.5117 / -2);
+  margin-top: calc(var(--cx-ph-w) / var(--cx-ph-ar) / -2);
+  /* Nhịp xoay dài hơn nhịp mờ: thẻ phải XOAY thấy rõ rồi mới lặn, nếu mờ trước
+     thì cú vuốt chỉ còn là một cái chớp. */
   transition:
-    transform 0.65s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-    opacity 0.45s;
+    transform 0.62s cubic-bezier(0.22, 0.61, 0.36, 1),
+    opacity 0.42s ease;
 }
 .carousel-3d-card.is-active {
   @apply cursor-default;
 }
-/* Thẻ đang mở nổi hẳn lên khỏi hai thẻ kề bên. */
-.carousel-3d-card.is-active .cx-mock {
-  box-shadow:
-    inset 0 0 0 1px rgb(var(--white-rgb) / 0.14),
-    0 22px 44px -14px rgb(var(--shadow-card-rgb) / 0.45);
+
+/* Ruột thẻ: ảnh thiệp bo góc. Bo theo % để thẻ khổ nào cũng cân — thẻ phụ bị
+   thu nhỏ bằng phối cảnh chứ không đổi khổ CSS nên tỉ lệ bo giữ nguyên. */
+.cx-tcard {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 9% / 4.4%;
+  background: rgb(var(--white-rgb));
+  box-shadow: 0 12px 26px -12px rgb(var(--shadow-card-rgb) / 0.4);
+}
+
+/* Thẻ đang mở nổi hẳn lên khỏi mấy thẻ phía sau. */
+.carousel-3d-card.is-active .cx-tcard {
+  box-shadow: 0 26px 50px -16px rgb(var(--shadow-card-rgb) / 0.5);
 }
 
 /* Khung xương lúc chờ dữ liệu vẫn giữ hình thẻ cũ. */
