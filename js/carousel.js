@@ -23,7 +23,36 @@ function normalizeOffset(raw, count) {
   return o;
 }
 
-// Chỉ có ~5 thẻ trong DOM (xem CARD_WINDOW ở render-templates.js) và chúng được
+// Hình học vòng xoay. Thẻ phụ thứ k (tính từ thẻ đang mở) lùi ra xa tâm, lùi
+// về sau và xoay quanh trục dọc thêm một bậc — phối cảnh ở .carousel-3d-track
+// lo phần thu nhỏ, nên KHÔNG scale bằng tay (scale thủ công đá nhau với phối
+// cảnh, thẻ trông bẹt).
+// Bậc dịch ngang nhỏ hơn bậc đầu: càng ra xa thẻ càng dồn lại, đúng như mắt
+// nhìn một vòng tròn quay. Mọi số nhân với BỀ NGANG thẻ nên đổi khổ màn không
+// phải chỉnh lại; riêng quãng ngang còn nhân thêm `--cx-ring-spread` của CSS.
+const RING_X0 = 0.52; // dịch ngang thẻ phụ đầu tiên (× bề ngang thẻ)
+const RING_X1 = 0.36; // cộng thêm mỗi bậc ra xa
+const RING_Z0 = 0.28; // lùi về sau ở bậc đầu
+const RING_Z1 = 0.4; // lùi thêm mỗi bậc
+const RING_ROT0 = 34; // độ xoay quanh trục dọc ở bậc đầu
+const RING_ROT1 = 10; // xoay thêm mỗi bậc
+const RING_FADE = 0.2; // mờ thêm mỗi bậc
+
+// Cấu hình vòng xoay do CSS quyết (xem .carousel-3d-stage) nên chỉ cần sửa một
+// chỗ khi đổi theo khổ màn. Đọc lại mỗi lần cuộn thì rẻ hơn là nghe matchMedia
+// cho hai con số. `el` là phần tử BẤT KỲ trong sân khấu — hai biến này kế thừa
+// xuống nên khỏi phải tìm lại đúng thẻ stage.
+function carouselRing(el) {
+  const st = getComputedStyle(el);
+  const side = parseInt(st.getPropertyValue("--cx-side"));
+  const spread = parseFloat(st.getPropertyValue("--cx-ring-spread"));
+  return {
+    side: Number.isFinite(side) ? Math.max(1, Math.min(CARD_WINDOW, side)) : 2,
+    spread: Number.isFinite(spread) ? spread : 1,
+  };
+}
+
+// Chỉ có ~7 thẻ trong DOM (xem CARD_WINDOW ở render-templates.js) và chúng được
 // TÁI DÙNG: thẻ nào rơi ra khỏi cửa sổ thì nhận nội dung của mẫu vừa lọt vào,
 // nên số thẻ phải đụng mỗi lần cuộn là hằng số, không phụ thuộc số mẫu.
 function setActiveCard(index) {
@@ -36,6 +65,7 @@ function setActiveCard(index) {
 
   const prevActive = carouselActiveIndex;
   carouselActiveIndex = ((index % count) + count) % count;
+  const ring = carouselRing(inner);
 
   // Mẫu cần có mặt sau bước này; thẻ đang giữ mẫu ngoài danh sách là thẻ rảnh.
   const want = cardWindowIndices(carouselActiveIndex);
@@ -55,7 +85,7 @@ function setActiveCard(index) {
   missing.forEach((i, k) => {
     const card = spare[k];
     if (!card) return;
-    assignCard(card, i);
+    fillCard(card, i);
     recycled.add(card);
   });
 
@@ -63,77 +93,66 @@ function setActiveCard(index) {
     const i = Number(card.dataset.index);
     const newOffset = normalizeOffset(i - carouselActiveIndex, count);
     const prevOffset = normalizeOffset(i - prevActive, count);
-    const prevHidden = Math.abs(prevOffset) > 1;
-    const newHidden = Math.abs(newOffset) > 1;
+    const prevHidden = Math.abs(prevOffset) > ring.side;
+    const newHidden = Math.abs(newOffset) > ring.side;
 
-    // Card đi vào/ra khỏi vùng nhìn thấy (±1) → snap tại chỗ, không bay ngang qua
+    // Card đi vào/ra khỏi vùng nhìn thấy → snap tại chỗ, không bay ngang qua
     // màn hình (tránh cảm giác xoáy vòng khi nhiều thẻ di chuyển cùng lúc)
     const jumping =
       recycled.has(card) || prevHidden !== newHidden || (prevHidden && newHidden);
     if (jumping) {
       card.style.transition = "none";
-      applyCardTransform(card, newOffset);
+      applyCardTransform(card, newOffset, ring);
       card.offsetHeight; // force reflow
       card.style.transition = "";
     } else {
-      applyCardTransform(card, newOffset);
+      applyCardTransform(card, newOffset, ring);
     }
   }
 
   updateDots();
+  updateTemplateMeta();
   resetImageScroll();
 }
 
-function applyCardTransform(card, offset) {
+// Thẻ ngoài tầm nhìn đứng ở bậc `side + 1` (đã trong suốt) chứ không bay đi xa:
+// lúc nó được tái dùng và trượt vào, quãng đường phải khớp với các thẻ khác.
+function applyCardTransform(card, offset, ring) {
   const abs = Math.abs(offset);
+  const dir = Math.sign(offset);
+  const hidden = abs > ring.side;
+  const step = hidden ? ring.side + 1 : abs;
 
-  if (abs > 1) {
-    const dir = offset > 0 ? 1 : -1;
-    card.style.transform = `translateX(${dir * _cardW * 1.8}px) scale(0.5)`;
-    card.style.opacity = "0";
-    card.style.zIndex = "1";
-    card.style.pointerEvents = "none";
-    card.classList.remove("is-active");
-    return;
-  }
+  const tx =
+    dir * _cardW * ring.spread * (step ? RING_X0 + RING_X1 * (step - 1) : 0);
+  const tz = -_cardW * (step ? RING_Z0 + RING_Z1 * (step - 1) : 0);
+  const rot = dir * (step ? RING_ROT0 + RING_ROT1 * (step - 1) : 0);
 
-  if (offset === 0) {
-    card.style.transform = "translateX(0px) scale(1)";
-    card.style.opacity = "1";
-    card.style.zIndex = "20";
-    card.style.pointerEvents = "auto";
-    card.classList.add("is-active");
-  } else {
-    // Card kề bên chỉ ló ra ở mép — tỉ lệ theo bề rộng card để luôn cân đối
-    const tx = _cardW * 0.8;
-    const dir = offset > 0 ? 1 : -1;
-    card.style.transform = `translateX(${dir * tx}px) scale(0.85)`;
-    card.style.opacity = "0.4";
-    card.style.zIndex = "19";
-    card.style.pointerEvents = "auto";
-    card.classList.remove("is-active");
-  }
+  card.style.transform = `translate3d(${tx}px, 0, ${tz}px) rotateY(${rot}deg)`;
+  card.style.opacity = hidden ? "0" : String(Math.max(0, 1 - RING_FADE * step));
+  // Thẻ gần tâm phải đè lên thẻ xa hơn, không thì thẻ sau ló ra trước thẻ trước.
+  card.style.zIndex = String(20 - step);
+  card.style.pointerEvents = hidden ? "none" : "auto";
+  card.classList.toggle("is-active", offset === 0);
 }
 
-// Khổ thẻ active. Hai lối tính khác hẳn nhau theo bề ngang khung:
-//   < 640px — mỗi chiều lấy 80% chiều TƯƠNG ỨNG của khung, bề ngang không suy ra
-//     từ chiều cao. Thanh URL của iPhone ẩn/hiện làm khung thấp đi thì thẻ chỉ
-//     thấp theo, không hẹp lại kéo nút trong lớp phủ tràn ra ngoài mép.
-//   ≥ 640px — như cũ: thẻ cao kịch khung rồi suy bề ngang theo dáng điện thoại,
-//     kẹp trần để hai thẻ kề bên vẫn ló mép (desktop không có chuyện thanh URL).
-// Trả về true khi khổ thật sự đổi — resize gọi lại setActiveCard theo đó.
-// Khổ thẻ do CSS quyết (biến --cx-ph-w ở .carousel-3d-stage). Ở đây chỉ ĐO lại
-// để applyCardTransform biết dịch thẻ kề bên bao nhiêu px. Trả về true khi khổ
-// thật sự đổi — gọi lại setActiveCard cho đúng vị trí.
+// Khổ thẻ do CSS quyết (`--cx-ph-w` ở .carousel-3d-stage), số thẻ phụ cũng vậy
+// (`--cx-side`). Ở đây chỉ ĐO lại để applyCardTransform biết dịch thẻ bao nhiêu
+// px. Đo bằng offsetWidth/Height chứ KHÔNG phải getBoundingClientRect: thẻ đang
+// mang transform 3D nên hộp bao đã bị xoay/thu, lấy số đó là khổ teo dần sau mỗi
+// lần resize. Trả về true khi có gì đổi — resize gọi lại setActiveCard theo đó.
 function sizeCarousel() {
   const card = document.querySelector(".carousel-3d-card");
   if (!card) return false;
-  const r = card.getBoundingClientRect();
-  const w = Math.round(r.width);
-  const h = Math.round(r.height);
-  if (!w || !h || (w === _cardW && h === _cardH)) return false;
+  const w = card.offsetWidth;
+  const h = card.offsetHeight;
+  const ring = carouselRing(card);
+  const key = ring.side + ":" + ring.spread;
+  if (!w || !h) return false;
+  if (w === _cardW && h === _cardH && key === _ringKey) return false;
   _cardW = w;
   _cardH = h;
+  _ringKey = key;
   return true;
 }
 
@@ -170,42 +189,40 @@ function initCarousel3D() {
   const stage = document.getElementById("templateCarousel");
   if (!stage) return;
 
-  // Intercept clicks on non-active cards (capture phase → fires before inner button handlers)
+  // Bấm thẻ phụ → đưa nó vào giữa; bấm thẻ đang mở → xem trước. Thẻ giờ chỉ có
+  // ảnh, không còn nút bên trong, nên bấm vào thiệp phải làm được việc gì đó.
   const track = document.getElementById("templateCarouselInner");
   if (track) {
-    track.addEventListener(
-      "click",
-      (e) => {
-        const card = e.target.closest(".carousel-3d-card");
-        if (!card) return;
-        const idx = parseInt(card.dataset.index);
-        if (idx !== carouselActiveIndex) {
-          e.preventDefault();
-          e.stopImmediatePropagation();
-          setActiveCard(idx);
-        }
-      },
-      true,
-    );
+    track.addEventListener("click", (e) => {
+      const card = e.target.closest(".carousel-3d-card");
+      if (!card) return;
+      const idx = parseInt(card.dataset.index);
+      if (idx === carouselActiveIndex) previewActiveTemplate();
+      else setActiveCard(idx);
+    });
   }
 
-  // Touch / swipe
+  // Vuốt ngang để xoay vòng. KHÔNG xét thời gian vuốt: thẻ cao gần hết màn nên
+  // người ta hay kéo chậm, tính giờ là cú vuốt thong thả rơi vào hư không. Bù
+  // lại phải so với quãng dọc — vuốt chéo là đang cuộn trang, đổi thiệp lúc đó
+  // là cướp cử chỉ của người dùng.
   let touchStartX = 0,
-    touchStartTime = 0;
+    touchStartY = 0;
   stage.addEventListener(
     "touchstart",
     (e) => {
       touchStartX = e.touches[0].clientX;
-      touchStartTime = Date.now();
+      touchStartY = e.touches[0].clientY;
     },
     { passive: true },
   );
   stage.addEventListener(
     "touchend",
     (e) => {
-      const delta = e.changedTouches[0].clientX - touchStartX;
-      if (Math.abs(delta) > 40 && Date.now() - touchStartTime < 400)
-        scrollCarousel(delta < 0 ? "next" : "prev");
+      const dx = e.changedTouches[0].clientX - touchStartX;
+      const dy = e.changedTouches[0].clientY - touchStartY;
+      if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy) * 1.2) return;
+      scrollCarousel(dx < 0 ? "next" : "prev");
     },
     { passive: true },
   );

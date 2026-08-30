@@ -15,7 +15,7 @@ function startImageScroll() {
     _imgScrollRafId = requestAnimationFrame(tick);
     const activeCard = document.querySelector(".carousel-3d-card.is-active");
     if (!activeCard) return;
-    const img = activeCard.querySelector(".cx-mock-screen img[src]");
+    const img = activeCard.querySelector(".cx-tcard img[src]");
     if (!img) return;
 
     _imgScrollPos += IMG_SCROLL_STEP * _imgScrollDir;
@@ -34,7 +34,7 @@ function resetImageScroll() {
   _imgScrollDir = 1;
   const activeCard = document.querySelector(".carousel-3d-card.is-active");
   if (activeCard) {
-    const img = activeCard.querySelector(".cx-mock-screen img[src]");
+    const img = activeCard.querySelector(".cx-tcard img[src]");
     if (img) img.style.objectPosition = "center 0%";
   }
 }

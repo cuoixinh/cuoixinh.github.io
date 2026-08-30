@@ -1,17 +1,12 @@
 // ============= RENDER TEMPLATE CARDS =============
 
-const CATEGORY_LABELS = {
-  popular: "PHỔ BIẾN",
-  new: "MỚI",
-  premium: "CAO CẤP",
-};
-
-// Số thẻ giữ trong DOM mỗi bên thẻ đang xem → tối đa 5 thẻ tồn tại, dù danh
+// Số thẻ giữ trong DOM mỗi bên thẻ đang xem → tối đa 7 thẻ tồn tại, dù danh
 // sách có bao nhiêu mẫu. Không có cửa sổ này thì 100 mẫu = 100 thẻ, 2.300 node,
 // 100 ảnh tải cùng lúc và setActiveCard phải đụng cả trăm thẻ mỗi lần vuốt.
-// Nới ra thì mượt hơn khi vuốt nhanh nhưng tải thêm ảnh — 2 là đủ để thẻ kề bên
-// (offset ±1) luôn có sẵn ảnh trước khi trượt vào.
-const CARD_WINDOW = 2;
+// Phải LỚN HƠN `--cx-side` lớn nhất (3 ở máy tính, xem styles/tailwind-src.css):
+// thẻ ở bậc ngoài cùng đứng sẵn trong DOM, trong suốt, để lúc trượt vào là đã
+// có ảnh — không có bậc dự phòng đó thì mỗi lần vuốt lộ một khoảng trống.
+const CARD_WINDOW = 3;
 
 // Chỉ số mẫu cần có mặt trong DOM khi `active` đang mở, theo đúng thứ tự trái →
 // phải. Danh sách ngắn hơn cửa sổ thì tự gộp trùng, không dựng thẻ thừa.
@@ -28,65 +23,58 @@ function cardWindowIndices(active) {
   return out;
 }
 
-// Ruột một thẻ. Tách khỏi vỏ `.carousel-3d-card` vì vỏ được TÁI DÙNG: cuộn
-// carousel chỉ thay ruột chứ không dựng lại phần tử.
+// Ruột một thẻ = ĐÚNG một tấm ảnh. Tên mẫu, mô tả và hai nút nằm ở
+// #templateMeta ngoài thiệp (xem updateTemplateMeta). Tách khỏi vỏ
+// `.carousel-3d-card` vì vỏ được TÁI DÙNG: cuộn carousel chỉ thay ruột chứ
+// không dựng lại phần tử.
 function templateCardBody(t) {
-  const isActive = t.status === "active";
+  // Mẫu chưa bật thì không có ảnh chụp — để thẻ trắng còn hơn ảnh vỡ.
+  if (t.status !== "active") return "";
 
-  // KHÔNG `loading="lazy"`: chỉ 5 thẻ nằm trong DOM và thẻ ở ±2 nằm ngoài tầm
-  // nhìn, lazy sẽ hoãn tải tới đúng lúc nó trượt vào → chớp một nhịp trống ảnh.
-  const imageContent = isActive
-    ? `<img
-         src="/assets/images/templates/${t.theme}.jpg"
-         alt="${t.name}"
-         style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;object-position:top center;pointer-events:none;"
-       />`
-    : "";
+  // KHÔNG `loading="lazy"`: chỉ 7 thẻ nằm trong DOM và thẻ ở bậc ngoài cùng nằm
+  // ngoài tầm nhìn, lazy sẽ hoãn tải tới đúng lúc nó trượt vào → chớp một nhịp
+  // trống ảnh.
+  return `<img
+      src="/assets/images/templates/${t.theme}.jpg"
+      alt="${t.name}"
+      style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;object-position:top center;pointer-events:none;"
+    />`;
+}
 
-  const categoryLabel =
+// Đổ tên mẫu / mô tả / loại của thẻ đang mở vào khối #templateMeta. Hai nút
+// dùng chung cho mọi mẫu nên chỉ cần đọc `carouselActiveIndex` lúc bấm, không
+// phải gắn lại handler.
+function updateTemplateMeta() {
+  const box = document.getElementById("templateMeta");
+  const t = templates[carouselActiveIndex];
+  if (!box || !t) return;
+
+  // Vô hình cho tới lần đổ đầu tiên: lúc chưa tải xong (hoặc tải hỏng) thì hai
+  // nút trơ ra dưới một cái tên rỗng. `invisible` chứ không phải `hidden` —
+  // khối vẫn giữ chỗ nên bố cục không nhảy khi dữ liệu về.
+  box.classList.remove("invisible");
+
+  box.querySelector("[data-cat-label]").textContent =
     t.category === "premium" ? "Thiệp cao cấp" : "Thiệp miễn phí";
+  document.getElementById("tplMetaName").textContent = t.name;
+  document.getElementById("tplMetaDesc").textContent = t.description || "";
 
-  return `
-        <!-- Mockup điện thoại vẽ bằng CSS (.cx-mock ở styles/_common.css) —
-             không ảnh khung, không tai thỏ. Khổ + tỉ lệ do .carousel-3d-card. -->
-        <div class="cx-mock">
-          <div class="cx-mock-screen">
-            ${imageContent}
-          <div class="art-template-overlay absolute bottom-0 left-0 right-0 pt-16 pb-4 px-3"
-            style="background:linear-gradient(to top, rgb(var(--landing-photo-overlay-rgb)/90%) 0%, rgb(var(--landing-photo-overlay-soft-rgb)/60%) 48%, transparent 100%);">
-            <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 mb-2 text-[10px] font-semibold text-white" style="background:rgb(var(--white-rgb)/0.22);backdrop-filter:blur(4px);">
-              <i data-lucide="tag" class="text-[9px]" style="width:16px;height:16px"></i>${categoryLabel}
-            </span>
-            <p class="text-white font-playfair font-semibold text-base leading-snug truncate drop-shadow-sm">${t.name}</p>
-            <p class="text-white/85 text-xs mt-0.5 line-clamp-2 leading-relaxed">${t.description || ""}</p>
-            <!-- flex-wrap + nút cỡ sm ở điện thoại: bề ngang thẻ suy ra từ CHIỀU CAO
-                 khung (sizeCarousel) nên màn thấp là thẻ hẹp lại — hai nút
-                 whitespace-nowrap cỡ md không lọt và thò ra ngoài mép thẻ. Hẹp quá
-                 thì cho xuống dòng chứ không tràn. -->
-            <div class="mt-3 flex flex-wrap gap-2" style="pointer-events:auto;">
-              <!-- variant="outline" là BẮT BUỘC, không phải cho đẹp: variant mặc
-                   định (fill) kèm class text-white, mà landing có luật ép
-                   text-white thành trắng kèm !important (xem tailwind-src.css,
-                   phần .cx-landing) — !important đè cả inline style nên chữ
-                   không nâu được.
-                   Nền TRẮNG ĐẶC: nút đè lên ảnh cưới, để trong mờ thì ảnh xuyên
-                   qua làm chữ chìm và mỗi thẻ ra một sắc nền khác. -->
-              <x-button size="sm" variant="outline" onclick="event.stopPropagation(); openPreview('${t.id}')" style="background:rgb(var(--white-rgb));color:rgb(var(--text-body-rgb));border:1px solid rgb(var(--brand-primary-rgb)/0.45);box-shadow:0 4px 12px rgb(var(--scrim-rgb)/0.18);" class="flex-1 sm:h-10 sm:px-5 sm:text-sm">
-                <i data-lucide="eye" class="text-[11px]" style="width:16px;height:16px"></i>Xem trước
-              </x-button>
-              <!-- Cùng màu với nút "Tạo ngay" ở thanh xem trước mẫu
-                   (core/utils.js): hai chỗ này là CÙNG một hành động — tạo bản
-                   nháp từ mẫu đang xem. -->
-              <x-button size="sm" onclick="event.stopPropagation(); createDraft('${t.id}')" style="pointer-events:auto;background:linear-gradient(135deg,rgb(var(--gift-btn-from-rgb)),rgb(var(--gift-btn-to-rgb)));box-shadow:0 4px 12px rgb(var(--gift-btn-to-rgb)/0.4);" class="flex-1 sm:h-10 sm:px-5 sm:text-sm">
-                <!-- Cùng icon với nút "Dùng mẫu này" ở navbar bản xem thử
-                     (SUG_ICONS.navigation trong core/utils.js) — hai nút là CÙNG
-                     một hành động, đổi hình một bên thì phải đổi cả bên kia. -->
-                <i data-lucide="navigation" class="shrink-0" style="width:13px;height:13px"></i>Dùng ngay
-              </x-button>
-            </div>
-          </div>
-          </div>
-        </div>`;
+  // Gỡ rồi gắn lại class mới chạy lại được animation; reflow ở giữa là bắt
+  // buộc, không có nó trình duyệt gộp hai lần đổi thành không có gì đổi.
+  const text = box.querySelector(".cx-tplmeta-text");
+  text.classList.remove("is-swap");
+  void text.offsetWidth;
+  text.classList.add("is-swap");
+}
+
+function previewActiveTemplate() {
+  const t = templates[carouselActiveIndex];
+  if (t) openPreview(t.id);
+}
+
+function useActiveTemplate() {
+  const t = templates[carouselActiveIndex];
+  if (t) createDraft(t.id);
 }
 
 // Đổ mẫu thứ `index` vào một vỏ thẻ có sẵn. `data-index` là chỉ số MẪU (không
@@ -95,22 +83,7 @@ function fillCard(card, index) {
   const t = templates[index];
   if (!t) return;
   card.dataset.index = index;
-  card.innerHTML = templateCardBody(t);
-  window.lucide?.createIcons({ root: card });
-}
-
-// Gán mẫu cho thẻ nhưng HOÃN dựng ruột sang frame sau. Thẻ vừa tái dùng luôn
-// đứng ở offset ±2 (opacity 0) nên chưa ai nhìn thấy, mà innerHTML + upgrade
-// <x-button> + lucide là phần nặng nhất của một lần cuộn — để nó chắn nhịp đầu
-// là animation trượt thẻ mất luôn khúc mở đầu.
-function assignCard(card, index) {
-  card.dataset.index = index;
-  requestAnimationFrame(() => {
-    // Vuốt nhanh liên tiếp có thể gán lại thẻ này cho mẫu khác trước khi tới
-    // lượt dựng — lúc đó bản dựng này đã lỗi thời, bỏ đi.
-    if (Number(card.dataset.index) !== index) return;
-    fillCard(card, index);
-  });
+  card.innerHTML = `<div class="cx-tcard">${templateCardBody(t)}</div>`;
 }
 
 function renderTemplateCards() {
