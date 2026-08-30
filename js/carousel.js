@@ -85,7 +85,7 @@ function setActiveCard(index) {
   missing.forEach((i, k) => {
     const card = spare[k];
     if (!card) return;
-    assignCard(card, i);
+    fillCard(card, i);
     recycled.add(card);
   });
 
@@ -111,6 +111,7 @@ function setActiveCard(index) {
   }
 
   updateDots();
+  updateTemplateMeta();
   resetImageScroll();
 }
 
@@ -188,23 +189,17 @@ function initCarousel3D() {
   const stage = document.getElementById("templateCarousel");
   if (!stage) return;
 
-  // Intercept clicks on non-active cards (capture phase → fires before inner button handlers)
+  // Bấm thẻ phụ → đưa nó vào giữa; bấm thẻ đang mở → xem trước. Thẻ giờ chỉ có
+  // ảnh, không còn nút bên trong, nên bấm vào thiệp phải làm được việc gì đó.
   const track = document.getElementById("templateCarouselInner");
   if (track) {
-    track.addEventListener(
-      "click",
-      (e) => {
-        const card = e.target.closest(".carousel-3d-card");
-        if (!card) return;
-        const idx = parseInt(card.dataset.index);
-        if (idx !== carouselActiveIndex) {
-          e.preventDefault();
-          e.stopImmediatePropagation();
-          setActiveCard(idx);
-        }
-      },
-      true,
-    );
+    track.addEventListener("click", (e) => {
+      const card = e.target.closest(".carousel-3d-card");
+      if (!card) return;
+      const idx = parseInt(card.dataset.index);
+      if (idx === carouselActiveIndex) previewActiveTemplate();
+      else setActiveCard(idx);
+    });
   }
 
   // Vuốt ngang để xoay vòng. KHÔNG xét thời gian vuốt: thẻ cao gần hết màn nên

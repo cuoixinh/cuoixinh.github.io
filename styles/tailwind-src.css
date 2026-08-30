@@ -1179,6 +1179,16 @@ html.cx-landing {
 
 #templates {
   background: rgb(var(--surface-tint-rgb));
+  /* Thanh tab dưới (.cx-tabbar) là `fixed` và chỉ hiện dưới md; mục này cao
+     đúng MỘT MÀN nên đáy nó nằm ngay dưới thanh — không chừa thì hai nút ở
+     #templateMeta bị che hẳn. 65px = chiều cao thẻ tab + 8px lề của nó. */
+  padding-bottom: 65px;
+}
+
+@media (min-width: 768px) {
+  #templates {
+    padding-bottom: 0;
+  }
 }
 
 #inside {
@@ -1229,7 +1239,15 @@ html.cx-landing {
    Khổ thẻ tính từ BỀ NGANG khung nhìn và --vh — KHÔNG suy từ chiều cao thật của
    khung: trên iPhone thanh URL ẩn/hiện lúc cuộn làm chiều cao đổi liên tục, thẻ
    sẽ phình co theo. --vh là px khoá sẵn nên đứng yên.
-   200px trừ đi = tiêu đề mục + hàng chấm bên dưới.
+   `--cx-chrome-h` là toàn bộ chiều cao của mục KHÔNG phải thiệp: tiêu đề + hàng
+   chấm + khối #templateMeta, cộng thanh tab dưới ở khổ hẹp. Khối meta xếp DỌC ở
+   khổ hẹp và gom về MỘT HÀNG từ lg nên ba mức khác nhau — đổi bố cục khối meta
+   thì phải đo lại — và đo ở màn HẸP NHẤT: dòng phụ đề dưới tiêu đề mục xuống
+   hai dòng ở đó, thiếu chỗ là thẻ tràn khỏi sân khấu (stage để overflow visible)
+   và đè lên khối meta. Sàn 120px để màn rất thấp (điện thoại xoay ngang) ra thẻ
+   bé chứ không ra số ÂM: min() âm là khai không hợp lệ, thẻ mất luôn khổ. Sàn
+   để THẤP đúng bằng mức chống vỡ — sàn cao thì ở màn thấp nó thắng cả phép tính
+   theo chiều cao, thẻ lại tràn ra ngoài sân khấu.
    52vw nghe thì hẹp nhưng là TRẦN THẬT ở điện thoại: thẻ dáng máy rất cao, rộng
    hơn nữa là mép thẻ chính đã chạm mép màn và bốn thẻ phụ nằm khuất hẳn sau nó
    (bị màn cắt chứ không phải bị đè) — nới số này thì chỉ còn thấy 3 thẻ. */
@@ -1237,7 +1255,11 @@ html.cx-landing {
   @apply relative min-h-0 w-full overflow-visible;
 
   --cx-ph-ar: 0.4879;
-  --cx-ph-w: min(52vw, 300px, calc((var(--vh, 1svh) * 100 - 200px) * 0.4879));
+  --cx-chrome-h: 415px;
+  --cx-ph-w: max(
+    60px,
+    min(52vw, 300px, calc((var(--vh, 1svh) * 100 - var(--cx-chrome-h)) * 0.4879))
+  );
   /* Số thẻ PHỤ mỗi bên thẻ đang mở → điện thoại hiện tối đa 5 thẻ (1 chính + 4
      phụ), máy tính 7. Đừng vượt CARD_WINDOW ở js/render-templates.js — quá đó
      thì thẻ chưa có mặt trong DOM. */
@@ -1248,9 +1270,24 @@ html.cx-landing {
   --cx-ring-spread: 1;
 }
 
+/* Từ md không còn thanh tab dưới. */
+@media (min-width: 768px) {
+  .carousel-3d-stage {
+    --cx-chrome-h: 350px;
+  }
+}
+
 @media (min-width: 1024px) {
   .carousel-3d-stage {
-    --cx-ph-w: min(52vw, 360px, calc((var(--vh, 1svh) * 100 - 200px) * 0.4879));
+    --cx-chrome-h: 290px;
+    --cx-ph-w: max(
+      60px,
+      min(
+        52vw,
+        360px,
+        calc((var(--vh, 1svh) * 100 - var(--cx-chrome-h)) * 0.4879)
+      )
+    );
     --cx-side: 3;
     --cx-ring-spread: 1.4;
   }
@@ -1304,12 +1341,86 @@ html.cx-landing {
   transition: box-shadow 0.5s;
   box-shadow: 0 2px 12px rgb(var(--card-blush-300-rgb) / 0.1);
 }
-.art-template-overlay {
-  @apply pointer-events-none opacity-0;
-  transition: opacity 0.45s ease;
+
+/* ── KHỐI TÊN MẪU + NÚT (#templateMeta), NGOÀI thiệp ───────────────────────
+   Xếp dọc ở khổ hẹp; từ lg gom thành một hàng để chừa chiều cao cho thẻ. Khổ
+   ngang giữ hẹp (max-w-2xl) dù vòng xoay rộng hơn: nới ra thì cụm chữ trôi sang
+   tận dưới mấy thẻ phụ mờ, không còn dính với thẻ đang mở ở giữa. */
+.cx-tplmeta {
+  @apply mx-auto flex w-full max-w-md flex-col items-center gap-2 text-center;
 }
-.carousel-3d-card.is-active .art-template-overlay {
-  @apply pointer-events-auto opacity-100;
+
+@media (min-width: 1024px) {
+  .cx-tplmeta {
+    @apply max-w-2xl flex-row items-center justify-between gap-6 text-left;
+  }
+}
+
+/* Cụm chữ giữ chiều cao CỐ ĐỊNH: tên và mô tả dài ngắn tuỳ mẫu, để nó co giãn
+   thì cả vòng xoay nhấp lên xuống mỗi lần cuộn. */
+.cx-tplmeta-text {
+  @apply min-h-[64px] w-full;
+}
+
+/* Chữ lấy màu tiêu đề chứ KHÔNG lấy --brand-primary (255 183 202): hồng chủ đạo
+   đứng trên nền kem của mục này gần như không đọc ra — nó là màu NỀN, không phải
+   màu chữ. Sắc hồng để cho nền chip lo. */
+.cx-tplmeta-badge {
+  @apply inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px]
+    font-semibold uppercase tracking-wide;
+  color: rgb(var(--text-heading-rgb));
+  background: rgb(var(--brand-primary-rgb) / 0.32);
+}
+
+.cx-tplmeta-name {
+  @apply mt-1 truncate text-lg font-semibold leading-snug;
+  color: rgb(var(--text-heading-rgb));
+}
+
+.cx-tplmeta-desc {
+  @apply line-clamp-2 text-xs leading-relaxed;
+  color: rgb(var(--text-body-rgb) / 0.85);
+}
+
+.cx-tplmeta-actions {
+  @apply flex w-full shrink-0 gap-2 lg:w-auto;
+}
+
+/* Màn thấp mà HẸP (điện thoại đời nhỏ): thiệp dáng máy cao gấp đôi bề ngang nên
+   mỗi px nhường cho chữ là thiệp hụt hai px. Nén tiêu đề mục và cắt mô tả còn
+   một dòng để thẻ còn ra hình; --cx-chrome-h phải tăng THEO phần nén, nếu không
+   thẻ vẫn tính theo khổ cũ và tràn xuống đè khối meta.
+   Chặn ở 1023px vì từ lg khối meta đã nằm gọn một hàng — màn rộng-mà-thấp
+   (netbook) mà ăn thêm khối nén này thì thẻ bé đi vô cớ. */
+@media (max-height: 720px) and (max-width: 1023px) {
+  .carousel-3d-stage {
+    --cx-chrome-h: 400px;
+  }
+
+  .cx-tplhead {
+    @apply py-5;
+  }
+
+  .cx-tplmeta-text {
+    @apply min-h-[48px];
+  }
+
+  .cx-tplmeta-desc {
+    -webkit-line-clamp: 1;
+  }
+}
+
+/* Chữ đổi ngay lúc bấm còn thẻ thì bay 0.62s — cho cụm chữ nhoè vào một nhịp
+   ngắn để hai thứ không lệch pha. Chạy lại bằng cách gỡ/gắn class ở JS. */
+@keyframes cx-meta-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+
+.cx-tplmeta-text.is-swap {
+  animation: cx-meta-in 0.35s ease both;
 }
 .carousel-dot {
   @apply h-2 cursor-pointer rounded-full border-none;
