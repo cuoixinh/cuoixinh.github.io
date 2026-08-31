@@ -1248,42 +1248,65 @@ html.cx-landing {
    bé chứ không ra số ÂM: min() âm là khai không hợp lệ, thẻ mất luôn khổ. Sàn
    để THẤP đúng bằng mức chống vỡ — sàn cao thì ở màn thấp nó thắng cả phép tính
    theo chiều cao, thẻ lại tràn ra ngoài sân khấu.
-   52vw nghe thì hẹp nhưng là TRẦN THẬT ở điện thoại: thẻ dáng máy rất cao, rộng
-   hơn nữa là mép thẻ chính đã chạm mép màn và bốn thẻ phụ nằm khuất hẳn sau nó
-   (bị màn cắt chứ không phải bị đè) — nới số này thì chỉ còn thấy 3 thẻ. */
+   Trần 58vw đi CẶP với --cx-ring-spread ở khổ hẹp: thẻ dáng máy rất cao nên
+   rộng thêm một chút là mép thẻ chính đã sát mép màn và bốn thẻ phụ nằm khuất
+   hẳn sau nó (bị màn CẮT chứ không phải bị đè). Nới trần thì phải hạ spread
+   theo — và ngược lại — nếu không chỉ còn thấy 3 thẻ. */
 .carousel-3d-stage {
   @apply relative min-h-0 w-full overflow-visible;
 
   --cx-ph-ar: 0.4879;
-  --cx-chrome-h: 415px;
+  --cx-chrome-h: 375px;
+  /* Khai HAI LẦN như #hero: dòng đầu dự phòng cho trình duyệt chưa hiểu svh —
+     `min()` mà chứa một đơn vị lạ thì hỏng CẢ khai báo, thẻ mất luôn khổ. */
   --cx-ph-w: max(
     60px,
-    min(52vw, 300px, calc((var(--vh, 1svh) * 100 - var(--cx-chrome-h)) * 0.4879))
+    min(58vw, 300px, calc((var(--vh, 1vh) * 100 - var(--cx-chrome-h)) * 0.4879))
+  );
+  --cx-ph-w: max(
+    60px,
+    min(58vw, 300px, calc((var(--vh, 1svh) * 100 - var(--cx-chrome-h)) * 0.4879))
   );
   /* Số thẻ PHỤ mỗi bên thẻ đang mở → điện thoại hiện tối đa 5 thẻ (1 chính + 4
      phụ), máy tính 7. Đừng vượt CARD_WINDOW ở js/render-templates.js — quá đó
      thì thẻ chưa có mặt trong DOM. */
   --cx-side: 2;
-  /* Độ xoè ngang của vòng xoay, nhân vào quãng dịch của mọi thẻ phụ. Màn rộng
-     thì thẻ vẫn bị chiều cao khung ghìm khổ, không xoè thêm là cả vòng xoay co
-     cụm một cục giữa màn. */
-  --cx-ring-spread: 1;
+  /* Độ xoè ngang của vòng xoay, nhân vào quãng dịch của mọi thẻ phụ.
+     Ở điện thoại xoè HẸP LẠI (0.82) chứ không phải để 1: thẻ chính đã chiếm gần
+     hết bề ngang màn nên thẻ phụ phải nép ra sau nó, xoè đúng 1 là chúng bị mép
+     màn cắt mất phần ló. Màn rộng thì ngược lại — thẻ vẫn bị chiều cao khung
+     ghìm khổ, không xoè thêm là cả vòng xoay co cụm một cục giữa màn. */
+  --cx-ring-spread: 0.82;
+}
+
+@media (min-width: 640px) {
+  .carousel-3d-stage {
+    --cx-ring-spread: 1;
+  }
 }
 
 /* Từ md không còn thanh tab dưới. */
 @media (min-width: 768px) {
   .carousel-3d-stage {
-    --cx-chrome-h: 350px;
+    --cx-chrome-h: 322px;
   }
 }
 
 @media (min-width: 1024px) {
   .carousel-3d-stage {
-    --cx-chrome-h: 290px;
+    --cx-chrome-h: 262px;
     --cx-ph-w: max(
       60px,
       min(
-        52vw,
+        58vw,
+        360px,
+        calc((var(--vh, 1vh) * 100 - var(--cx-chrome-h)) * 0.4879)
+      )
+    );
+    --cx-ph-w: max(
+      60px,
+      min(
+        58vw,
         360px,
         calc((var(--vh, 1svh) * 100 - var(--cx-chrome-h)) * 0.4879)
       )
@@ -1342,6 +1365,14 @@ html.cx-landing {
   box-shadow: 0 2px 12px rgb(var(--card-blush-300-rgb) / 0.1);
 }
 
+/* Lề dọc của khối tiêu đề mục nằm Ở ĐÂY chứ không phải một utility `py-*` trên
+   thẻ: khối @media bên dưới nén nó ở màn thấp, mà utility và class này cùng độ
+   đặc hiệu — utility do Tailwind sinh ra sau nên sẽ thắng và phần nén thành vô
+   nghĩa. */
+.cx-tplhead {
+  @apply py-6;
+}
+
 /* ── KHỐI TÊN MẪU + NÚT (#templateMeta), NGOÀI thiệp ───────────────────────
    Xếp dọc ở khổ hẹp; từ lg gom thành một hàng để chừa chiều cao cho thẻ. Khổ
    ngang giữ hẹp (max-w-2xl) dù vòng xoay rộng hơn: nới ra thì cụm chữ trôi sang
@@ -1394,11 +1425,11 @@ html.cx-landing {
    (netbook) mà ăn thêm khối nén này thì thẻ bé đi vô cớ. */
 @media (max-height: 720px) and (max-width: 1023px) {
   .carousel-3d-stage {
-    --cx-chrome-h: 400px;
+    --cx-chrome-h: 345px;
   }
 
   .cx-tplhead {
-    @apply py-5;
+    @apply py-3;
   }
 
   .cx-tplmeta-text {
