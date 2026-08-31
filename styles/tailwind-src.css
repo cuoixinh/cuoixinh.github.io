@@ -1386,8 +1386,10 @@ html.cx-landing {
   display: none;
 }
 
+/* Cột dọc: ảnh, tên, mô tả, hai nút. Khổ cố định để tên mẫu dài ngắn không kéo
+   thẻ to nhỏ theo, và đủ rộng cho hai nút nằm trọn một hàng ngang của thẻ. */
 .cx-popcard {
-  @apply flex w-[132px] shrink-0 cursor-pointer flex-col gap-2 border-none bg-transparent p-0 text-left sm:w-[150px] lg:w-[168px];
+  @apply flex w-[164px] shrink-0 flex-col text-left sm:w-[176px] lg:w-[188px];
   scroll-snap-align: start;
 }
 
@@ -1399,12 +1401,6 @@ html.cx-landing {
   border-radius: 9% / 4.4%;
   background: rgb(var(--white-rgb));
   box-shadow: 0 10px 24px -12px rgb(var(--shadow-card-rgb) / 0.38);
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
-}
-
-.cx-popcard:hover .cx-popcard-frame {
-  transform: translateY(-4px);
-  box-shadow: 0 18px 34px -14px rgb(var(--shadow-card-rgb) / 0.45);
 }
 
 .cx-popcard-frame img {
@@ -1412,9 +1408,24 @@ html.cx-landing {
   object-position: top center;
 }
 
+/* line-clamp chứ không truncate: thẻ chỉ rộng ~170px nên cắt một dòng là mất
+   gần hết tên mẫu. min-h giữ chỗ đủ hai dòng để mô tả các thẻ thẳng hàng nhau. */
 .cx-popcard-name {
-  @apply block truncate px-0.5 text-xs font-medium;
+  @apply mt-2 line-clamp-2 min-h-[38px] px-0.5 text-sm font-semibold leading-snug;
   color: rgb(var(--text-heading-rgb));
+}
+
+/* Chiều cao TỐI THIỂU cố định: mô tả dài ngắn tuỳ mẫu, để nó co giãn thì hai
+   nút của các thẻ trong dải lệch hàng nhau. */
+.cx-popcard-desc {
+  @apply mt-0.5 line-clamp-2 min-h-[32px] px-0.5 text-xs leading-relaxed;
+  color: rgb(var(--text-body-rgb) / 0.85);
+}
+
+/* mt-auto dính hai nút xuống đáy thẻ — mô tả một dòng hay hai dòng thì hàng nút
+   vẫn thẳng nhau suốt dải. */
+.cx-popcard-actions {
+  @apply mt-auto flex flex-col gap-1.5 pt-2;
 }
 
 /* Khung xương lúc chờ dữ liệu vẫn giữ hình thẻ cũ. */
