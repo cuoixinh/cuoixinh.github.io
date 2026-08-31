@@ -189,16 +189,17 @@ function initCarousel3D() {
   const stage = document.getElementById("templateCarousel");
   if (!stage) return;
 
-  // Bấm thẻ phụ → đưa nó vào giữa; bấm thẻ đang mở → xem trước. Thẻ giờ chỉ có
-  // ảnh, không còn nút bên trong, nên bấm vào thiệp phải làm được việc gì đó.
+  // Bấm thẻ phụ → đưa nó vào giữa. Thẻ ĐANG MỞ cố ý không nhận click: xem trước
+  // chỉ mở từ nút "Xem trước" ở khối dưới. Vuốt trên điện thoại rất dễ kết thúc
+  // bằng một cú click, mà mở nhầm cả trang xem trước thì phải thoát ra mới cuộn
+  // tiếp được.
   const track = document.getElementById("templateCarouselInner");
   if (track) {
     track.addEventListener("click", (e) => {
       const card = e.target.closest(".carousel-3d-card");
       if (!card) return;
       const idx = parseInt(card.dataset.index);
-      if (idx === carouselActiveIndex) previewActiveTemplate();
-      else setActiveCard(idx);
+      if (idx !== carouselActiveIndex) setActiveCard(idx);
     });
   }
 
