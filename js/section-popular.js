@@ -4,43 +4,44 @@
 // templates-dal.js) — không có tiêu chí phổ biến riêng nào trong DB.
 const POPULAR_COUNT = 10;
 
-// Một thẻ = ĐÚNG cụm của mục Mẫu thiệp: thiệp ở trên, dưới là thẻ nổi
-// .cx-metacard với tên + mô tả bên trái và hai nút bên phải. Ảnh là ảnh chụp CẢ
-// trang thiệp nên chỗ nào cũng đã có chữ của chính mẫu đó — mọi thứ phải nằm
-// NGOÀI ảnh.
-// Chỉ hai nút bắt sự kiện, bấm vào ảnh không làm gì: có nút rõ ràng rồi thì cả
-// thẻ bấm được chỉ tổ bấm nhầm lúc vuốt.
+// Một thẻ = ĐÚNG thẻ mẫu của /theme-template (.tt-card, style ở
+// styles/tailwind-src.css): ảnh bấm để xem trước, tên, mô tả, cụm giá rồi hai
+// nút. Bỏ hai thứ gắn riêng với trang kia — nút sao yêu thích (kéo theo bộ đếm
+// "Yêu thích" ở navbar) và hàng chip danh mục (nhãn nằm trong bảng CAT_META của
+// riêng trang đó).
+// Hàng giá gốc LUÔN có mặt (mẫu không giảm giá thì rỗng) để mọi thẻ cùng chiều
+// cao, dải không so le.
 function popularCard(t) {
+  const off =
+    t.originalPrice > t.price
+      ? `<span class="tt-price-old">${t.originalPrice.toLocaleString("vi-VN")}<span class="tt-cur">đ</span></span>`
+      : "";
+
   return `
-    <article class="cx-popcard">
-      <span class="cx-popcard-frame">
+    <article class="tt-card cx-popcard">
+      <div class="tt-media" role="button" tabindex="0" aria-label="Xem trước ${t.name}"
+           onclick="openPreview('${t.id}')"
+           onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openPreview('${t.id}')}">
         <img src="/assets/images/templates/${t.theme}.jpg" alt="${t.name}" loading="lazy" />
-      </span>
-      <div class="cx-metacard">
-        <div class="cx-metacard-text">
-          <h3 class="cx-metacard-name font-playfair">${t.name}</h3>
-          <p class="cx-metacard-desc">${t.description || ""}</p>
+        <div class="tt-hover"></div>
+      </div>
+
+      <div class="mt-3 px-1.5 pb-1">
+        <h3 class="text-[15px] font-semibold leading-snug truncate" style="color:rgb(var(--scrim-plum-rgb))">${t.name}</h3>
+        <p class="mt-0.5 text-[13px] leading-snug line-clamp-2 min-h-[2.75em]" style="color:rgb(var(--text-heading-rgb)/0.55)">${t.description || ""}</p>
+        <div class="mt-2 h-[16px]">${off}</div>
+        <div class="mt-1.5 flex items-center justify-between gap-2">
+          <span class="tt-price">${t.price.toLocaleString("vi-VN")}<span class="tt-cur">đ</span></span>
+          <span class="tt-chip tt-chip-sm">trọn đời</span>
         </div>
-        <div class="cx-metacard-actions">
-          <x-button
-            variant="outline"
-            tone="brand"
-            size="sm"
-            full
-            onclick="openPreview('${t.id}')"
-          >
-            <i data-lucide="eye" style="width:16px;height:16px"></i>Xem trước
-          </x-button>
-          <!-- Cùng màu và cùng icon với nút "Dùng ngay" ở mục Mẫu thiệp — cùng
-               một hành động, đổi một bên thì phải đổi cả bên kia. -->
-          <x-button
-            size="sm"
-            full
-            onclick="createDraft('${t.id}')"
-            style="background:linear-gradient(135deg,rgb(var(--gift-btn-from-rgb)),rgb(var(--gift-btn-to-rgb)));box-shadow:0 4px 12px rgb(var(--gift-btn-to-rgb)/0.4);"
-          >
-            <i data-lucide="navigation" class="shrink-0" style="width:13px;height:13px"></i>Dùng ngay
-          </x-button>
+
+        <!-- Đúng cặp nút của thẻ ở /theme-template — cùng nhãn, cùng icon, cùng
+             màu vì là CÙNG hai hành động. -->
+        <div class="tt-cardbtns mt-3">
+          <x-button size="xs" variant="bare" class="tt-btn-preview"
+                    onclick="event.stopPropagation();openPreview('${t.id}')"><i data-lucide="eye" style="width:13px;height:13px"></i>Xem trước</x-button>
+          <x-button size="xs" variant="bare" class="tt-btn-use"
+                    onclick="event.stopPropagation();createDraft('${t.id}')"><i data-lucide="navigation" class="shrink-0" style="width:13px;height:13px"></i>Dùng ngay</x-button>
         </div>
       </div>
     </article>`;
