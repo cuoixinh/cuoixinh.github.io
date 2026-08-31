@@ -132,7 +132,6 @@ function applyCardTransform(card, offset, ring) {
   card.style.opacity = hidden ? "0" : String(Math.max(0, 1 - RING_FADE * step));
   // Thẻ gần tâm phải đè lên thẻ xa hơn, không thì thẻ sau ló ra trước thẻ trước.
   card.style.zIndex = String(20 - step);
-  card.style.pointerEvents = hidden ? "none" : "auto";
   card.classList.toggle("is-active", offset === 0);
 }
 
@@ -185,23 +184,13 @@ function updateDots() {
     .join("");
 }
 
+// Vòng xoay KHÔNG nhận click — kể cả bấm thẻ phụ. Vuốt trên điện thoại rất dễ
+// kết thúc bằng một cú click, nên mọi hành động gắn vào thiệp đều thành ra bấm
+// nhầm. Đổi thiệp: vuốt, hai nút mũi tên hoặc hàng chấm; xem trước: nút ở khối
+// dưới.
 function initCarousel3D() {
   const stage = document.getElementById("templateCarousel");
   if (!stage) return;
-
-  // Bấm thẻ phụ → đưa nó vào giữa. Thẻ ĐANG MỞ cố ý không nhận click: xem trước
-  // chỉ mở từ nút "Xem trước" ở khối dưới. Vuốt trên điện thoại rất dễ kết thúc
-  // bằng một cú click, mà mở nhầm cả trang xem trước thì phải thoát ra mới cuộn
-  // tiếp được.
-  const track = document.getElementById("templateCarouselInner");
-  if (track) {
-    track.addEventListener("click", (e) => {
-      const card = e.target.closest(".carousel-3d-card");
-      if (!card) return;
-      const idx = parseInt(card.dataset.index);
-      if (idx !== carouselActiveIndex) setActiveCard(idx);
-    });
-  }
 
   // Vuốt ngang để xoay vòng. KHÔNG xét thời gian vuốt: thẻ cao gần hết màn nên
   // người ta hay kéo chậm, tính giờ là cú vuốt thong thả rơi vào hư không. Bù

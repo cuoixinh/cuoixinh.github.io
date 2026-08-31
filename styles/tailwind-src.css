@@ -1324,8 +1324,11 @@ html.cx-landing {
   perspective: calc(var(--cx-ph-w) * 2.8);
 }
 
+/* pointer-events: none để cú bấm KHÔNG bao giờ dừng ở thiệp — vòng xoay chỉ
+   nhận cử chỉ vuốt, mà listener vuốt nằm ở sân khấu nên thẻ trong suốt với
+   con trỏ là đúng thứ cần. */
 .carousel-3d-card {
-  @apply absolute left-1/2 top-1/2 cursor-pointer will-change-transform;
+  @apply pointer-events-none absolute left-1/2 top-1/2 will-change-transform;
   width: var(--cx-ph-w);
   height: calc(var(--cx-ph-w) / var(--cx-ph-ar));
   margin-left: calc(var(--cx-ph-w) / -2);
@@ -1336,10 +1339,6 @@ html.cx-landing {
     transform 0.62s cubic-bezier(0.22, 0.61, 0.36, 1),
     opacity 0.42s ease;
 }
-.carousel-3d-card.is-active {
-  @apply cursor-default;
-}
-
 /* Ruột thẻ: ảnh thiệp bo góc. Bo theo % để thẻ khổ nào cũng cân — thẻ phụ bị
    thu nhỏ bằng phối cảnh chứ không đổi khổ CSS nên tỉ lệ bo giữ nguyên. */
 .cx-tcard {
