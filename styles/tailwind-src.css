@@ -1256,7 +1256,7 @@ html.cx-landing {
   @apply relative min-h-0 w-full overflow-visible;
 
   --cx-ph-ar: 0.4879;
-  --cx-chrome-h: 375px;
+  --cx-chrome-h: 359px;
   /* Khai HAI LẦN như #hero: dòng đầu dự phòng cho trình duyệt chưa hiểu svh —
      `min()` mà chứa một đơn vị lạ thì hỏng CẢ khai báo, thẻ mất luôn khổ. */
   --cx-ph-w: max(
@@ -1288,13 +1288,13 @@ html.cx-landing {
 /* Từ md không còn thanh tab dưới. */
 @media (min-width: 768px) {
   .carousel-3d-stage {
-    --cx-chrome-h: 322px;
+    --cx-chrome-h: 306px;
   }
 }
 
 @media (min-width: 1024px) {
   .carousel-3d-stage {
-    --cx-chrome-h: 262px;
+    --cx-chrome-h: 254px;
     --cx-ph-w: max(
       60px,
       min(
@@ -1374,47 +1374,65 @@ html.cx-landing {
 }
 
 /* ── KHỐI TÊN MẪU + NÚT (#templateMeta), NGOÀI thiệp ───────────────────────
-   Xếp dọc ở khổ hẹp; từ lg gom thành một hàng để chừa chiều cao cho thẻ. Khổ
-   ngang giữ hẹp (max-w-2xl) dù vòng xoay rộng hơn: nới ra thì cụm chữ trôi sang
-   tận dưới mấy thẻ phụ mờ, không còn dính với thẻ đang mở ở giữa. */
+   Một thẻ nổi: chữ bên trái, hai nút bên phải. Khổ ngang giữ hẹp dù vòng xoay
+   rộng hơn — nới ra thì thẻ này trôi sang tận dưới mấy thẻ phụ mờ, không còn
+   dính với thẻ đang mở ở giữa. */
 .cx-tplmeta {
-  @apply mx-auto flex w-full max-w-md flex-col items-center gap-2 text-center;
+  @apply mx-auto w-full max-w-md;
 }
 
 @media (min-width: 1024px) {
   .cx-tplmeta {
-    @apply max-w-2xl flex-row items-center justify-between gap-6 text-left;
+    @apply max-w-2xl;
   }
 }
 
-/* Cụm chữ giữ chiều cao CỐ ĐỊNH: tên và mô tả dài ngắn tuỳ mẫu, để nó co giãn
-   thì cả vòng xoay nhấp lên xuống mỗi lần cuộn. */
-.cx-tplmeta-text {
-  @apply min-h-[64px] w-full;
+.cx-tplmeta-card {
+  @apply flex items-center gap-3 rounded-2xl p-3;
+  background: rgb(var(--white-rgb));
+  border: 1px solid rgb(var(--brand-primary-rgb) / 0.22);
+  box-shadow:
+    0 2px 6px -2px rgb(var(--shadow-card-rgb) / 0.14),
+    0 16px 36px -14px rgb(var(--shadow-card-rgb) / 0.4);
 }
 
-/* Chữ lấy màu tiêu đề chứ KHÔNG lấy --brand-primary (255 183 202): hồng chủ đạo
-   đứng trên nền kem của mục này gần như không đọc ra — nó là màu NỀN, không phải
-   màu chữ. Sắc hồng để cho nền chip lo. */
-.cx-tplmeta-badge {
-  @apply inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px]
-    font-semibold uppercase tracking-wide;
-  color: rgb(var(--text-heading-rgb));
-  background: rgb(var(--brand-primary-rgb) / 0.32);
+/* min-w-0 là BẮT BUỘC, không phải cho đẹp: ô flex mặc định không hẹp hơn nội
+   dung của nó, thiếu nó thì truncate/line-clamp không bao giờ cắt mà cột chữ
+   phình ra đẩy hai nút tràn khỏi thẻ.
+   Chiều cao TỐI THIỂU cố định vì tên và mô tả dài ngắn tuỳ mẫu — để nó co giãn
+   thì cả vòng xoay nhấp lên xuống mỗi lần cuộn. */
+.cx-tplmeta-text {
+  @apply min-h-[52px] min-w-0 flex-1 text-left;
 }
 
 .cx-tplmeta-name {
-  @apply mt-1 truncate text-lg font-semibold leading-snug;
+  @apply truncate text-lg font-semibold leading-snug;
   color: rgb(var(--text-heading-rgb));
 }
 
 .cx-tplmeta-desc {
-  @apply line-clamp-2 text-xs leading-relaxed;
+  @apply mt-0.5 line-clamp-2 text-xs leading-relaxed;
   color: rgb(var(--text-body-rgb) / 0.85);
 }
 
+/* Hai nút xếp DỌC ở khổ hẹp: xếp ngang thì cột nút ăn hơn nửa bề ngang thẻ,
+   phần chữ còn lại hẹp tới mức tên mẫu nào cũng bị cắt. Khổ cột cố định để
+   tên mẫu dài ngắn không kéo hai nút to nhỏ theo. */
 .cx-tplmeta-actions {
-  @apply flex w-full shrink-0 gap-2 lg:w-auto;
+  @apply flex w-[124px] shrink-0 flex-col gap-2 lg:w-auto lg:flex-row;
+}
+
+/* Chữ đổi ngay lúc bấm còn thẻ thì bay 0.62s — cho cụm chữ nhoè vào một nhịp
+   ngắn để hai thứ không lệch pha. Chạy lại bằng cách gỡ/gắn class ở JS. */
+@keyframes cx-meta-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+
+.cx-tplmeta-text.is-swap {
+  animation: cx-meta-in 0.35s ease both;
 }
 
 /* Màn thấp mà HẸP (điện thoại đời nhỏ): thiệp dáng máy cao gấp đôi bề ngang nên
@@ -1425,7 +1443,7 @@ html.cx-landing {
    (netbook) mà ăn thêm khối nén này thì thẻ bé đi vô cớ. */
 @media (max-height: 720px) and (max-width: 1023px) {
   .carousel-3d-stage {
-    --cx-chrome-h: 345px;
+    --cx-chrome-h: 336px;
   }
 
   .cx-tplhead {
@@ -1433,7 +1451,7 @@ html.cx-landing {
   }
 
   .cx-tplmeta-text {
-    @apply min-h-[48px];
+    @apply min-h-[40px];
   }
 
   .cx-tplmeta-desc {

@@ -41,9 +41,9 @@ function templateCardBody(t) {
     />`;
 }
 
-// Đổ tên mẫu / mô tả / loại của thẻ đang mở vào khối #templateMeta. Hai nút
-// dùng chung cho mọi mẫu nên chỉ cần đọc `carouselActiveIndex` lúc bấm, không
-// phải gắn lại handler.
+// Đổ tên mẫu + mô tả của thẻ đang mở vào khối #templateMeta. Hai nút dùng chung
+// cho mọi mẫu nên chỉ cần đọc `carouselActiveIndex` lúc bấm, không phải gắn lại
+// handler.
 function updateTemplateMeta() {
   const box = document.getElementById("templateMeta");
   const t = templates[carouselActiveIndex];
@@ -54,8 +54,6 @@ function updateTemplateMeta() {
   // khối vẫn giữ chỗ nên bố cục không nhảy khi dữ liệu về.
   box.classList.remove("invisible");
 
-  box.querySelector("[data-cat-label]").textContent =
-    t.category === "premium" ? "Thiệp cao cấp" : "Thiệp miễn phí";
   document.getElementById("tplMetaName").textContent = t.name;
   document.getElementById("tplMetaDesc").textContent = t.description || "";
 

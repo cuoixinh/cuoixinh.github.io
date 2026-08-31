@@ -264,40 +264,48 @@
              Đứng TRÊN hàng chấm chứ không phải dưới: nút trợ lý AI (.aichat-fab)
              neo góc phải đáy màn, để nút ở hàng cuối là hai thứ chồng mép nhau.
              Hàng chấm hẹp và nằm giữa màn nên không đụng. -->
-        <div id="templateMeta" class="cx-tplmeta invisible shrink-0 px-5 pb-3">
-          <div class="cx-tplmeta-text">
-            <span id="tplMetaCat" class="cx-tplmeta-badge">
-              <i data-lucide="tag" style="width:12px;height:12px"></i>
-              <span data-cat-label></span>
-            </span>
-            <h3 id="tplMetaName" class="cx-tplmeta-name font-playfair"></h3>
-            <p id="tplMetaDesc" class="cx-tplmeta-desc"></p>
-          </div>
-          <div class="cx-tplmeta-actions">
-            <x-button
-              variant="outline"
-              tone="brand"
-              size="sm"
-              onclick="previewActiveTemplate()"
-              class="flex-1 lg:flex-none sm:h-10 sm:px-5 sm:text-sm"
-            >
-              <i data-lucide="eye" style="width:16px;height:16px"></i>Xem trước
-            </x-button>
-            <!-- Cùng màu với nút "Tạo ngay" ở thanh xem trước mẫu (core/utils.js):
-                 hai chỗ này là CÙNG một hành động — tạo bản nháp từ mẫu đang xem. -->
-            <x-button
-              size="sm"
-              onclick="useActiveTemplate()"
-              style="background:linear-gradient(135deg,rgb(var(--gift-btn-from-rgb)),rgb(var(--gift-btn-to-rgb)));box-shadow:0 4px 12px rgb(var(--gift-btn-to-rgb)/0.4);"
-              class="flex-1 lg:flex-none sm:h-10 sm:px-5 sm:text-sm"
-            >
-              <!-- Cùng icon với nút "Dùng mẫu này" ở navbar bản xem thử
-                   (SUG_ICONS.navigation trong core/utils.js) — hai nút là CÙNG một
-                   hành động, đổi hình một bên thì phải đổi cả bên kia. -->
-              <i data-lucide="navigation" class="shrink-0" style="width:13px;height:13px"></i>Dùng ngay
-            </x-button>
+        <!-- Tên mẫu + mô tả (trái) và hai nút (phải) của thẻ ĐANG MỞ, trong một
+             thẻ nổi NGOÀI thiệp. Ảnh thẻ là ảnh chụp CẢ trang thiệp nên chỗ nào
+             cũng đã có chữ của chính mẫu đó — đặt đè lên là hai lớp chữ chồng
+             nhau. Nội dung do updateTemplateMeta() (js/render-templates.js) đổ
+             vào mỗi lần cuộn; khổ khối này nằm trong phần trừ của --cx-chrome-h,
+             đổi bố cục ở đây thì sửa cả công thức đó.
+             Đứng TRÊN hàng chấm chứ không phải dưới: nút trợ lý AI (.aichat-fab)
+             neo góc phải đáy màn, để nút ở hàng cuối là hai thứ chồng mép nhau.
+             Hàng chấm hẹp và nằm giữa màn nên không đụng. -->
+        <div id="templateMeta" class="cx-tplmeta invisible shrink-0 px-4 pb-3">
+          <div class="cx-tplmeta-card">
+            <div class="cx-tplmeta-text">
+              <h3 id="tplMetaName" class="cx-tplmeta-name font-playfair"></h3>
+              <p id="tplMetaDesc" class="cx-tplmeta-desc"></p>
+            </div>
+            <div class="cx-tplmeta-actions">
+              <x-button
+                variant="outline"
+                tone="brand"
+                size="sm"
+                onclick="previewActiveTemplate()"
+                class="lg:h-10 lg:px-5 lg:text-sm"
+              >
+                <i data-lucide="eye" style="width:16px;height:16px"></i>Xem trước
+              </x-button>
+              <!-- Cùng màu với nút "Tạo ngay" ở thanh xem trước mẫu (core/utils.js):
+                   hai chỗ này là CÙNG một hành động — tạo bản nháp từ mẫu đang xem. -->
+              <x-button
+                size="sm"
+                onclick="useActiveTemplate()"
+                style="background:linear-gradient(135deg,rgb(var(--gift-btn-from-rgb)),rgb(var(--gift-btn-to-rgb)));box-shadow:0 4px 12px rgb(var(--gift-btn-to-rgb)/0.4);"
+                class="lg:h-10 lg:px-5 lg:text-sm"
+              >
+                <!-- Cùng icon với nút "Dùng mẫu này" ở navbar bản xem thử
+                     (SUG_ICONS.navigation trong core/utils.js) — hai nút là CÙNG một
+                     hành động, đổi hình một bên thì phải đổi cả bên kia. -->
+                <i data-lucide="navigation" class="shrink-0" style="width:13px;height:13px"></i>Dùng ngay
+              </x-button>
+            </div>
           </div>
         </div>
+
         <div class="shrink-0 flex items-center justify-center gap-4 py-1.5">
           <x-button
             variant="ghost"
