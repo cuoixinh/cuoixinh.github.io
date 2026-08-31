@@ -1386,21 +1386,24 @@ html.cx-landing {
   display: none;
 }
 
-/* Cột dọc: ảnh, tên, mô tả, hai nút. Khổ cố định để tên mẫu dài ngắn không kéo
-   thẻ to nhỏ theo, và đủ rộng cho hai nút nằm trọn một hàng ngang của thẻ. */
+/* Một thẻ của dải = ĐÚNG cụm của mục Mẫu thiệp: thiệp ở trên, thẻ nổi
+   .cx-metacard ở dưới. Khổ cố định để tên mẫu dài ngắn không kéo thẻ to nhỏ
+   theo, và đủ rộng cho cột chữ + cột nút nằm cạnh nhau. */
 .cx-popcard {
-  @apply flex w-[164px] shrink-0 flex-col text-left sm:w-[176px] lg:w-[188px];
+  @apply flex w-[min(84vw,340px)] shrink-0 flex-col gap-3 sm:w-[340px] lg:w-[360px];
   scroll-snap-align: start;
 }
 
-/* Cùng dáng máy và cùng lối bo góc với thẻ ở vòng xoay (.cx-tcard) — tỉ lệ lấy
-   từ --cx-ph-ar ở :root nên hai chỗ không bao giờ lệch nhau. */
+/* Thiệp hẹp hơn thẻ: cột nút bên dưới cần bề ngang, mà cho ảnh rộng bằng cả thẻ
+   thì nó cao gấp đôi và dải dài ngoằng. Cùng dáng máy, cùng lối bo góc và cùng
+   bóng với thẻ đang mở ở vòng xoay — tỉ lệ lấy từ --cx-ph-ar ở :root nên hai
+   chỗ không bao giờ lệch nhau. */
 .cx-popcard-frame {
-  @apply relative block w-full overflow-hidden;
+  @apply relative mx-auto block w-[200px] overflow-hidden lg:w-[216px];
   aspect-ratio: var(--cx-ph-ar);
   border-radius: 9% / 4.4%;
   background: rgb(var(--white-rgb));
-  box-shadow: 0 10px 24px -12px rgb(var(--shadow-card-rgb) / 0.38);
+  box-shadow: 0 26px 50px -16px rgb(var(--shadow-card-rgb) / 0.5);
 }
 
 .cx-popcard-frame img {
@@ -1408,24 +1411,19 @@ html.cx-landing {
   object-position: top center;
 }
 
-/* line-clamp chứ không truncate: thẻ chỉ rộng ~170px nên cắt một dòng là mất
-   gần hết tên mẫu. min-h giữ chỗ đủ hai dòng để mô tả các thẻ thẳng hàng nhau. */
-.cx-popcard-name {
-  @apply mt-2 line-clamp-2 min-h-[38px] px-0.5 text-sm font-semibold leading-snug;
-  color: rgb(var(--text-heading-rgb));
+/* 116px là khổ NHỎ NHẤT còn chứa trọn nhãn "Xem trước" ở cỡ nút sm — hẹp hơn
+   là chữ trong nút bị cắt. */
+.cx-popcard .cx-metacard-actions {
+  @apply w-[116px];
 }
 
-/* Chiều cao TỐI THIỂU cố định: mô tả dài ngắn tuỳ mẫu, để nó co giãn thì hai
-   nút của các thẻ trong dải lệch hàng nhau. */
-.cx-popcard-desc {
-  @apply mt-0.5 line-clamp-2 min-h-[32px] px-0.5 text-xs leading-relaxed;
-  color: rgb(var(--text-body-rgb) / 0.85);
+.cx-popcard .cx-metacard-text {
+  @apply min-h-[44px];
 }
 
-/* mt-auto dính hai nút xuống đáy thẻ — mô tả một dòng hay hai dòng thì hàng nút
-   vẫn thẳng nhau suốt dải. */
-.cx-popcard-actions {
-  @apply mt-auto flex flex-col gap-1.5 pt-2;
+/* Tên mẫu ở đây ngắn chỗ hơn khối dưới vòng xoay nên cho nhỏ một bậc. */
+.cx-popcard .cx-metacard-name {
+  @apply text-base;
 }
 
 /* Khung xương lúc chờ dữ liệu vẫn giữ hình thẻ cũ. */
@@ -1444,21 +1442,12 @@ html.cx-landing {
   @apply py-6;
 }
 
-/* ── KHỐI TÊN MẪU + NÚT (#templateMeta), NGOÀI thiệp ───────────────────────
-   Một thẻ nổi: chữ bên trái, hai nút bên phải. Khổ ngang giữ hẹp dù vòng xoay
-   rộng hơn — nới ra thì thẻ này trôi sang tận dưới mấy thẻ phụ mờ, không còn
-   dính với thẻ đang mở ở giữa. */
-.cx-tplmeta {
-  @apply mx-auto w-full max-w-md;
-}
-
-@media (min-width: 1024px) {
-  .cx-tplmeta {
-    @apply max-w-2xl;
-  }
-}
-
-.cx-tplmeta-card {
+/* ── THẺ NỔI "TÊN MẪU + HAI NÚT" ───────────────────────────────────────────
+   Chữ bên trái, hai nút bên phải. Dùng ở HAI chỗ: khối dưới vòng xoay
+   (#templateMeta) và từng thẻ của dải "Mẫu phổ biến" — để hình thức hai nơi
+   không bao giờ lệch nhau thì mọi thứ chung nằm ở đây, chỗ dùng chỉ ghi đè
+   khổ cột nút và chiều cao tối thiểu của cột chữ. */
+.cx-metacard {
   @apply flex items-center gap-3 rounded-2xl p-3;
   background: rgb(var(--white-rgb));
   border: 1px solid rgb(var(--brand-primary-rgb) / 0.22);
@@ -1469,28 +1458,52 @@ html.cx-landing {
 
 /* min-w-0 là BẮT BUỘC, không phải cho đẹp: ô flex mặc định không hẹp hơn nội
    dung của nó, thiếu nó thì truncate/line-clamp không bao giờ cắt mà cột chữ
-   phình ra đẩy hai nút tràn khỏi thẻ.
-   Chiều cao TỐI THIỂU cố định vì tên và mô tả dài ngắn tuỳ mẫu — để nó co giãn
-   thì cả vòng xoay nhấp lên xuống mỗi lần cuộn. */
-.cx-tplmeta-text {
-  @apply min-h-[52px] min-w-0 flex-1 text-left;
+   phình ra đẩy hai nút tràn khỏi thẻ. */
+.cx-metacard-text {
+  @apply min-w-0 flex-1 text-left;
 }
 
-.cx-tplmeta-name {
+.cx-metacard-name {
   @apply truncate text-lg font-semibold leading-snug;
   color: rgb(var(--text-heading-rgb));
 }
 
-.cx-tplmeta-desc {
+.cx-metacard-desc {
   @apply mt-0.5 line-clamp-2 text-xs leading-relaxed;
   color: rgb(var(--text-body-rgb) / 0.85);
 }
 
-/* Hai nút xếp DỌC ở khổ hẹp: xếp ngang thì cột nút ăn hơn nửa bề ngang thẻ,
-   phần chữ còn lại hẹp tới mức tên mẫu nào cũng bị cắt. Khổ cột cố định để
+/* Hai nút xếp DỌC: xếp ngang thì cột nút ăn hơn nửa bề ngang thẻ, phần chữ còn
+   lại hẹp tới mức tên mẫu nào cũng bị cắt. Khổ cột do chỗ dùng đặt, cố định để
    tên mẫu dài ngắn không kéo hai nút to nhỏ theo. */
-.cx-tplmeta-actions {
-  @apply flex w-[124px] shrink-0 flex-col gap-2 lg:w-auto lg:flex-row;
+.cx-metacard-actions {
+  @apply flex shrink-0 flex-col gap-2;
+}
+
+/* ── Khối dưới vòng xoay (#templateMeta) ───────────────────────────────────
+   Khổ ngang giữ hẹp dù vòng xoay rộng hơn — nới ra thì thẻ này trôi sang tận
+   dưới mấy thẻ phụ mờ, không còn dính với thẻ đang mở ở giữa. */
+.cx-tplmeta {
+  @apply mx-auto w-full max-w-md;
+}
+
+.cx-tplmeta .cx-metacard-text {
+  @apply min-h-[52px];
+}
+
+.cx-tplmeta .cx-metacard-actions {
+  @apply w-[124px];
+}
+
+/* Chỉ ở đây mới có chỗ cho hai nút nằm ngang. */
+@media (min-width: 1024px) {
+  .cx-tplmeta {
+    @apply max-w-2xl;
+  }
+
+  .cx-tplmeta .cx-metacard-actions {
+    @apply w-auto flex-row;
+  }
 }
 
 /* Chữ đổi ngay lúc bấm còn thẻ thì bay 0.62s — cho cụm chữ nhoè vào một nhịp
@@ -1502,7 +1515,7 @@ html.cx-landing {
   }
 }
 
-.cx-tplmeta-text.is-swap {
+.cx-metacard-text.is-swap {
   animation: cx-meta-in 0.35s ease both;
 }
 
@@ -1521,27 +1534,15 @@ html.cx-landing {
     @apply py-3;
   }
 
-  .cx-tplmeta-text {
+  .cx-tplmeta .cx-metacard-text {
     @apply min-h-[40px];
   }
 
-  .cx-tplmeta-desc {
+  .cx-metacard-desc {
     -webkit-line-clamp: 1;
   }
 }
 
-/* Chữ đổi ngay lúc bấm còn thẻ thì bay 0.62s — cho cụm chữ nhoè vào một nhịp
-   ngắn để hai thứ không lệch pha. Chạy lại bằng cách gỡ/gắn class ở JS. */
-@keyframes cx-meta-in {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-}
-
-.cx-tplmeta-text.is-swap {
-  animation: cx-meta-in 0.35s ease both;
-}
 .carousel-dot {
   @apply h-2 cursor-pointer rounded-full border-none;
   transition: all 0.3s ease;

@@ -59,7 +59,7 @@ function updateTemplateMeta() {
 
   // Gỡ rồi gắn lại class mới chạy lại được animation; reflow ở giữa là bắt
   // buộc, không có nó trình duyệt gộp hai lần đổi thành không có gì đổi.
-  const text = box.querySelector(".cx-tplmeta-text");
+  const text = box.querySelector(".cx-metacard-text");
   text.classList.remove("is-swap");
   void text.offsetWidth;
   text.classList.add("is-swap");

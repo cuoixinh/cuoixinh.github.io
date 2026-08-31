@@ -4,10 +4,10 @@
 // templates-dal.js) — không có tiêu chí phổ biến riêng nào trong DB.
 const POPULAR_COUNT = 10;
 
-// Một thẻ: ảnh thiệp bo góc rồi tên + mô tả + hai nút, tất cả Ở NGOÀI ảnh —
-// cùng bộ thông tin với thẻ đang mở ở mục Mẫu thiệp. Ảnh là ảnh chụp CẢ trang
-// thiệp nên chỗ nào cũng đã có chữ của chính mẫu đó, đặt gì đè lên là hai lớp
-// chữ chồng nhau.
+// Một thẻ = ĐÚNG cụm của mục Mẫu thiệp: thiệp ở trên, dưới là thẻ nổi
+// .cx-metacard với tên + mô tả bên trái và hai nút bên phải. Ảnh là ảnh chụp CẢ
+// trang thiệp nên chỗ nào cũng đã có chữ của chính mẫu đó — mọi thứ phải nằm
+// NGOÀI ảnh.
 // Chỉ hai nút bắt sự kiện, bấm vào ảnh không làm gì: có nút rõ ràng rồi thì cả
 // thẻ bấm được chỉ tổ bấm nhầm lúc vuốt.
 function popularCard(t) {
@@ -16,28 +16,32 @@ function popularCard(t) {
       <span class="cx-popcard-frame">
         <img src="/assets/images/templates/${t.theme}.jpg" alt="${t.name}" loading="lazy" />
       </span>
-      <h3 class="cx-popcard-name">${t.name}</h3>
-      <p class="cx-popcard-desc">${t.description || ""}</p>
-      <div class="cx-popcard-actions">
-        <x-button
-          variant="outline"
-          tone="brand"
-          size="sm"
-          full
-          onclick="openPreview('${t.id}')"
-        >
-          <i data-lucide="eye" style="width:14px;height:14px"></i>Xem trước
-        </x-button>
-        <!-- Cùng màu và cùng icon với nút "Dùng ngay" ở mục Mẫu thiệp — cùng một
-             hành động, đổi một bên thì phải đổi cả bên kia. -->
-        <x-button
-          size="sm"
-          full
-          onclick="createDraft('${t.id}')"
-          style="background:linear-gradient(135deg,rgb(var(--gift-btn-from-rgb)),rgb(var(--gift-btn-to-rgb)));box-shadow:0 4px 12px rgb(var(--gift-btn-to-rgb)/0.4);"
-        >
-          <i data-lucide="navigation" class="shrink-0" style="width:12px;height:12px"></i>Dùng ngay
-        </x-button>
+      <div class="cx-metacard">
+        <div class="cx-metacard-text">
+          <h3 class="cx-metacard-name font-playfair">${t.name}</h3>
+          <p class="cx-metacard-desc">${t.description || ""}</p>
+        </div>
+        <div class="cx-metacard-actions">
+          <x-button
+            variant="outline"
+            tone="brand"
+            size="sm"
+            full
+            onclick="openPreview('${t.id}')"
+          >
+            <i data-lucide="eye" style="width:16px;height:16px"></i>Xem trước
+          </x-button>
+          <!-- Cùng màu và cùng icon với nút "Dùng ngay" ở mục Mẫu thiệp — cùng
+               một hành động, đổi một bên thì phải đổi cả bên kia. -->
+          <x-button
+            size="sm"
+            full
+            onclick="createDraft('${t.id}')"
+            style="background:linear-gradient(135deg,rgb(var(--gift-btn-from-rgb)),rgb(var(--gift-btn-to-rgb)));box-shadow:0 4px 12px rgb(var(--gift-btn-to-rgb)/0.4);"
+          >
+            <i data-lucide="navigation" class="shrink-0" style="width:13px;height:13px"></i>Dùng ngay
+          </x-button>
+        </div>
       </div>
     </article>`;
 }
