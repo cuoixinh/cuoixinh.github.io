@@ -27,6 +27,11 @@
 :root {
   --music-art-from-rgb: var(--surface-blossom-rgb);
   --music-art-to-rgb: var(--surface-blossom-strong-rgb);
+
+  /* Tỉ lệ thân máy của assets/images/iphone_mockup.svg (383/785) — mọi thẻ mẫu
+     thiệp ở trang chủ dựng theo dáng này để ảnh chụp không méo so với bản xem
+     trước. Dùng ở cả .carousel-3d-card lẫn .cx-popcard-frame. */
+  --cx-ph-ar: 0.4879;
 }
 
 @keyframes heroFadeUp {
@@ -1191,6 +1196,12 @@ html.cx-landing {
   }
 }
 
+/* Cùng nền với #templates để hai mục về mẫu thiệp đọc như một mảng liền, và để
+   dải chuyển sang trắng ở đầu #inside vẫn đúng. */
+#popular {
+  background: rgb(var(--surface-tint-rgb));
+}
+
 #inside {
   background-color: rgb(var(--white-rgb));
   background-image: linear-gradient(
@@ -1255,7 +1266,6 @@ html.cx-landing {
 .carousel-3d-stage {
   @apply relative min-h-0 w-full overflow-visible;
 
-  --cx-ph-ar: 0.4879;
   --cx-chrome-h: 359px;
   /* Khai HAI LẦN như #hero: dòng đầu dự phòng cho trình duyệt chưa hiểu svh —
      `min()` mà chứa một đơn vị lạ thì hỏng CẢ khai báo, thẻ mất luôn khổ. */
@@ -1354,6 +1364,57 @@ html.cx-landing {
 /* Thẻ đang mở nổi hẳn lên khỏi mấy thẻ phía sau. */
 .carousel-3d-card.is-active .cx-tcard {
   box-shadow: 0 26px 50px -16px rgb(var(--shadow-card-rgb) / 0.5);
+}
+
+/* ══ DẢI "MẪU PHỔ BIẾN" ════════════════════════════════════════════════════
+   Danh sách cuộn NGANG bằng cuộn thật của trình duyệt, không phải vòng xoay 3D:
+   cuộn native tự huỷ cú click khi ngón tay đã trượt, nên ở đây bấm vào thẻ để
+   xem trước là an toàn — khác mục Mẫu thiệp, nơi cú vuốt do JS bắt nên mọi
+   click đều thành bấm nhầm.
+   Giấu thanh cuộn: dải chỉ cao hơn thẻ vài px nên thanh cuộn ngang của Chrome/
+   Windows ăn mất một khoảng ngay dưới ảnh, trông như thẻ bị cắt chân. */
+.cx-poprow {
+  @apply flex gap-4 overflow-x-auto px-5 pb-2 pt-1;
+  scroll-snap-type: x mandatory;
+  /* Bằng padding hai bên, nếu không thẻ snap tới sẽ dính sát mép dải. */
+  scroll-padding: 0 20px;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.cx-poprow::-webkit-scrollbar {
+  display: none;
+}
+
+.cx-popcard {
+  @apply flex w-[132px] shrink-0 cursor-pointer flex-col gap-2 border-none bg-transparent p-0 text-left sm:w-[150px] lg:w-[168px];
+  scroll-snap-align: start;
+}
+
+/* Cùng dáng máy và cùng lối bo góc với thẻ ở vòng xoay (.cx-tcard) — tỉ lệ lấy
+   từ --cx-ph-ar ở :root nên hai chỗ không bao giờ lệch nhau. */
+.cx-popcard-frame {
+  @apply relative block w-full overflow-hidden;
+  aspect-ratio: var(--cx-ph-ar);
+  border-radius: 9% / 4.4%;
+  background: rgb(var(--white-rgb));
+  box-shadow: 0 10px 24px -12px rgb(var(--shadow-card-rgb) / 0.38);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.cx-popcard:hover .cx-popcard-frame {
+  transform: translateY(-4px);
+  box-shadow: 0 18px 34px -14px rgb(var(--shadow-card-rgb) / 0.45);
+}
+
+.cx-popcard-frame img {
+  @apply absolute inset-0 h-full w-full object-cover;
+  object-position: top center;
+}
+
+.cx-popcard-name {
+  @apply block truncate px-0.5 text-xs font-medium;
+  color: rgb(var(--text-heading-rgb));
 }
 
 /* Khung xương lúc chờ dữ liệu vẫn giữ hình thẻ cũ. */

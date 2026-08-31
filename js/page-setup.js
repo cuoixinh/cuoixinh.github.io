@@ -66,5 +66,6 @@ function initializePage() {
   setupScrollAnimations();
   initCarousel3D();
   startImageScroll();
+  renderPopularTemplates();
 }
 

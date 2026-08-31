@@ -333,6 +333,51 @@
       </div>
     </section>
 
+    <!-- ===== POPULAR TEMPLATES ===== -->
+    <!-- Dải ngang 10 mẫu đầu danh sách. Cùng hình thẻ với mục Mẫu thiệp nhưng
+         KHÔNG phải vòng xoay 3D: đây là danh sách cuộn ngang bằng cuộn thật của
+         trình duyệt, nội dung do js/section-popular.js đổ vào. -->
+    <!-- `hidden` sẵn từ HTML: tải danh sách mẫu hỏng thì renderPopularTemplates()
+         không bao giờ chạy, để mặc là mục hiện ra với tiêu đề và một dải rỗng. -->
+    <section id="popular" class="pt-4 pb-12" hidden>
+      <div class="max-w-6xl mx-auto px-5 pb-4">
+        <h2
+          class="font-playfair text-2xl md:text-3xl font-semibold text-center mb-1 text-[rgb(var(--text-heading-rgb))]"
+        >
+          Mẫu phổ biến
+        </h2>
+        <p class="text-center text-sm opacity-60">
+          Vuốt ngang để xem những mẫu được chọn nhiều nhất
+        </p>
+      </div>
+
+      <!-- Hai nút mũi tên CHỈ từ lg: ở đó phần lớn là chuột, mà chuột thường
+           không cuộn ngang được nên mấy thẻ cuối dải sẽ không bao giờ tới được.
+           Màn cảm ứng vuốt thẳng trên dải. -->
+      <div class="relative mx-auto max-w-6xl">
+        <div id="popularRow" class="cx-poprow"></div>
+
+        <x-button
+          variant="outline"
+          icon-only
+          onclick="scrollPopular(-1)"
+          aria-label="Mẫu trước"
+          class="absolute left-1 top-1/2 z-10 hidden -translate-y-1/2 backdrop-blur-md lg:flex text-[rgb(var(--text-heading-rgb))]"
+        >
+          <i data-lucide="chevron-left" style="width:16px;height:16px"></i>
+        </x-button>
+        <x-button
+          variant="outline"
+          icon-only
+          onclick="scrollPopular(1)"
+          aria-label="Mẫu tiếp theo"
+          class="absolute right-1 top-1/2 z-10 hidden -translate-y-1/2 backdrop-blur-md lg:flex text-[rgb(var(--text-heading-rgb))]"
+        >
+          <i data-lucide="chevron-right" style="width:16px;height:16px"></i>
+        </x-button>
+      </div>
+    </section>
+
     <!-- ===== INSIDE THE INVITATION ===== -->
     <section id="inside" class="py-16">
       <div class="max-w-6xl mx-auto px-5">
@@ -830,6 +875,7 @@
     <script src="js/page-setup.js"></script>
     <script src="js/render-templates.js"></script>
     <script src="js/image-scroll.js"></script>
+    <script src="js/section-popular.js"></script>
     <script src="js/section-features.js"></script>
     <script src="js/section-steps.js"></script>
     <script src="js/section-benefits.js"></script>
