@@ -37,73 +37,42 @@ document.addEventListener("DOMContentLoaded", _initHomeAuth);
 // Nút chung ("Tạo thiệp ngay" ở hero, các mục tạo bằng AI/giọng nói): khách chưa
 // chọn mẫu nào, ta lấy đại mẫu đầu tiên. `chosen: false` để hộp thoại "đang có
 // thiệp viết dở" không bịa ra chuyện khách muốn chuyển sang mẫu đó.
-// params đi kèm sang trang thiết lập qua URL (xem goCreateWithAi).
+// params đi kèm sang trang thiết lập qua URL.
 function goCreateDraft(e, params) {
   e.preventDefault();
   const first = templates.find((t) => t.status === "active");
   if (first) createDraft(first.id, { chosen: false, params });
 }
 
-// Hai lối vào "để AI làm giúp" giờ mở thẳng khung chat NGAY TẠI trang chủ
-// (js/ai-assistant.js) chứ không điều hướng đi đâu: trợ lý hỏi đủ thông tin rồi
-// mới dựng thiệp, nên chưa cần tạo nháp lúc bấm.
-function goCreateWithAi(e) {
-  e?.preventDefault?.();
-  window.cxOpenAiChat?.();
-}
+// Ba thẻ mẫu thiệp ở màn mở đầu. Thẻ giữa mang .is-lead nên nhô cao hơn hai
+// thẻ bên — dáng này là chủ ý, đừng đổi sang cả ba bằng nhau.
+// Không có mẫu nào bật thì để #heroPicks rỗng: một hàng thẻ hỏng khó hiểu hơn
+// là không có hàng nào.
+const HERO_PICK_COUNT = 3;
 
-// Như trên nhưng bật luôn micro của khung chat — khách kể bằng miệng.
-function goCreateWithVoice(e) {
-  e?.preventDefault?.();
-  window.cxOpenAiChat?.({ mic: true });
-}
+function initHeroPicks() {
+  const row = document.getElementById("heroPicks");
+  if (!row) return;
 
-function initHeroImage() {
-  const first = templates.find((t) => t.status === "active");
-  if (!first) return;
-  const img = document.getElementById("hero-preview-img");
-  const skeleton = document.getElementById("hero-skeleton");
-  const card = document.getElementById("hero-card-preview");
-  if (img) {
-    // Ảnh ẩn cho tới khi tải xong: mạng chậm / lỗi thì chỉ thấy skeleton,
-    // không thấy icon "ảnh hỏng" của trình duyệt.
-    img.onload = () => {
-      img.style.opacity = "1";
-      if (skeleton) skeleton.style.display = "none";
-    };
-    img.onerror = () => {
-      img.style.display = "none";
-      if (skeleton) skeleton.classList.add("is-error");
-    };
-    // Ô xem trước chỉ hiện từ 1024px (.hero-invite-photo) → khổ hẹp đừng tải
-    // ảnh mẫu, chờ tới khi màn đủ rộng mới nạp.
-    const wide = window.matchMedia("(min-width: 1024px)");
-    const loadPreview = () => {
-      img.src = `/assets/images/templates/${first.theme}.jpg`;
-    };
-    if (wide.matches) {
-      loadPreview();
-    } else {
-      wide.addEventListener("change", function once(ev) {
-        if (!ev.matches) return;
-        wide.removeEventListener("change", once);
-        loadPreview();
-      });
-    }
-  }
-  // Ảnh mẫu ở hero là <div> nên phải tự cấp vai trò + phím Enter/Space,
-  // không thì bàn phím không tới được bản xem thử.
-  if (card) {
-    const open = () => { window.location.href = first.previewUrl; };
-    card.setAttribute("role", "link");
-    card.setAttribute("tabindex", "0");
-    card.addEventListener("click", open);
-    card.addEventListener("keydown", (ev) => {
-      if (ev.key === "Enter" || ev.key === " ") {
-        ev.preventDefault();
-        open();
-      }
-    });
-  }
-}
+  const list = templates
+    .filter((t) => t.status === "active")
+    .slice(0, HERO_PICK_COUNT);
+  if (!list.length) return;
 
+  // Thẻ giữa của hàng thật (hàng 2 thẻ thì không có thẻ nào nhô lên).
+  const lead = list.length === HERO_PICK_COUNT ? 1 : -1;
+
+  // KHÔNG `loading="lazy"`: ba tấm này nằm ngay màn đầu, hoãn tải là lộ ba ô
+  // trống đúng lúc khách vừa vào trang.
+  row.innerHTML = list
+    .map(
+      (t, i) => `
+    <a class="hero-pick${i === lead ? " is-lead" : ""}" href="${t.previewUrl}"
+       aria-label="Xem thử mẫu ${t.name}">
+      <img src="/assets/images/templates/${t.theme}.jpg" alt="${t.name}" />
+      <span class="hero-pick-veil"></span>
+      <span class="hero-pick-name">${t.name}</span>
+    </a>`,
+    )
+    .join("");
+}

@@ -1,9 +1,8 @@
 /* Trợ lý AI ở TRANG CHỦ — bong bóng nổi + bảng chat. Partial của
    styles/tailwind-src.css → styles/build.css. Logic ở js/ai-assistant.js.
 
-   Bảng dựng theo lối tấm thiệp giấy ở màn mở đầu (.hero-invite-copy trong
-   tailwind-src.css): nền kem, nét ngăn ĐỨT màu hồng, tiêu đề Cormorant hồng
-   đậm. Đổi tông ở đây thì ngó lại hero cho khớp.
+   Bảng dựng theo lối tấm thiệp giấy: nền kem, nét ngăn ĐỨT màu hồng, tiêu đề
+   Cormorant hồng đậm.
 
    Bong bóng đứng ngay DƯỚI bong bóng Messenger (#chatWidget, bottom 88px) nên
    hai thứ chồng nhau khi đổi vị trí một trong hai — sửa `bottom` ở đây thì ngó
@@ -163,7 +162,7 @@
 }
 
 /* Thanh tiêu đề không phải dải màu đặc: nền kem như mặt giấy, ngăn với khung
-   tin nhắn bằng NÉT ĐỨT — cùng lối "xé rời" của .hero-invite-foot.
+   tin nhắn bằng NÉT ĐỨT — lối "xé rời" của phiếu hồi đáp trên thiệp giấy.
    Đây cũng là TAY CẦM để kéo cả bảng đi (js/ai-assistant.js): nhường sự kiện
    chạm cho pointermove, không thì trình duyệt hiểu là cuộn trang. Dưới 521px
    bảng phủ kín màn nên không kéo được — con trỏ trả về mặc định ở media query. */

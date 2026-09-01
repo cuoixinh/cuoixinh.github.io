@@ -1125,8 +1125,8 @@ svg.lucide {
          text-[13px] font-medium text-gray-700;
 }
 
-/* Cùng token nền hover với .x-pop-item (styles/_common.css) và .hero-cta-item —
-   ba chỗ này phải giống hệt nhau. */
+/* Cùng token nền hover với .x-pop-item (styles/_common.css) — hai chỗ này phải
+   giống hệt nhau. */
 #nav-more-pop > .cx-navitem:hover {
   background: rgb(var(--surface-hover-rgb));
 }

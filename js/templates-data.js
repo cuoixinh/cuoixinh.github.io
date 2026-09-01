@@ -15,7 +15,7 @@ let _ringKey = "";
 function renderTemplatesWhenReady() {
   const run = () => {
     renderTemplateCards();
-    initHeroImage();
+    initHeroPicks();
     initializePage();
   };
   if (document.readyState === "loading") {
