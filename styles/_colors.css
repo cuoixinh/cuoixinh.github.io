@@ -122,6 +122,11 @@
   --scrim-plum-rgb: 45 25 41;
   --shadow-brand-rgb: 200 100 130;
   --shadow-card-rgb: 88 45 54;
+
+  /* Cụm giá của thẻ mẫu thiệp (.tt-price/.tt-price-old/.tt-off) — đậm hơn hồng
+     nhấn để con số nổi hẳn khỏi tên/mô tả mẫu; giá gạch ngang và badge "-x%"
+     dùng lại cùng màu này ở độ mờ thấp nên đổi một dòng là cả cụm đổi theo. */
+  --tt-price: 199 46 92;
   --shadow-panel-rgb: 61 24 34;
   --preview-shadow-rgb: 114 41 54;
   --music-shadow-rgb: 90 60 65;

@@ -48,10 +48,6 @@
            trên (desktop) lẫn nút nổi (mobile), đổi màu chỉ sửa hai dòng này. */
         --tt-cta-from: 255 138 138;
         --tt-cta-to: 217 213 130;
-        /* Màu riêng của hàng giá — đậm hơn hồng nhấn để con số nổi hẳn khỏi
-           tên/mô tả mẫu; badge "-x%" và giá gốc gạch ngang dùng lại cùng màu này
-           ở độ mờ thấp nên đổi một dòng là cả cụm giá đổi theo. */
-        --tt-price: 199 46 92;
       }
 
       * {
@@ -197,51 +193,6 @@
         box-shadow: 0 0 0 2px rgb(var(--white-rgb));
       }
 
-      /* ─── Thẻ mẫu thiệp ─── Vỏ có viền + nền riêng để mỗi mẫu là một khối
-         tách bạch: ảnh mẫu nào cũng sáng màu, thả trần trên nền trắng thì hai
-         thẻ liền nhau dính vào nhau, không thấy đâu là ranh giới. */
-      .tt-card {
-        display: flex;
-        flex-direction: column;
-        padding: 8px;
-        border-radius: 20px;
-        background: rgb(var(--white-rgb));
-        border: 1px solid rgb(var(--brand-primary-rgb) / 0.45);
-        box-shadow: 0 1px 3px rgb(var(--shadow-brand-rgb) / 0.06);
-        transition:
-          border-color 0.22s ease,
-          box-shadow 0.22s ease,
-          transform 0.22s ease;
-      }
-      .tt-card:hover {
-        transform: translateY(-3px);
-        border-color: rgb(var(--brand-accent-rgb) / 0.45);
-        box-shadow: 0 14px 30px -16px rgb(var(--preview-shadow-rgb) / 0.35);
-      }
-      .tt-card:active {
-        transform: translateY(0) scale(0.995);
-      }
-      /* Khung xem trước theo TỈ LỆ MÀN ĐIỆN THOẠI (9/16) — ảnh mẫu chụp từ máy
-         thật nên khổ vuông trước đây cắt mất 2/3 thiệp và nhìn như bị bóp. Đổi
-         tỉ lệ ở đây là đổi cả chiều cao thẻ, nhớ sửa luôn skeleton ở lưới. */
-      .tt-media {
-        position: relative;
-        overflow: hidden;
-        border-radius: 14px;
-        aspect-ratio: 9 / 16;
-        /* Trần chiều cao THẺ: ~70% màn hình. Ở màn rộng, cột lưới rộng ra là
-           ảnh 9:16 cao vọt lên, một thẻ chiếm gần trọn màn. Kẹp bằng MAX-WIDTH
-           (không phải max-height) để tỉ lệ 9:16 giữ nguyên, ảnh chỉ hẹp lại và
-           căn giữa thẻ. 190px là phần chữ + nút bên dưới ảnh. */
-        width: 100%;
-        max-width: calc((70vh - 190px) * 9 / 16);
-        max-width: calc((70svh - 190px) * 9 / 16);
-        margin-inline: auto;
-        background: rgb(var(--preview-bg-from-rgb));
-        /* Viền trong rất nhạt để mẫu nền sáng không "chảy" vào nền thẻ. */
-        box-shadow: inset 0 0 0 1px rgb(var(--scrim-rgb) / 0.06);
-      }
-
       /* Ô xám lúc chờ tải — phải cùng khổ với .tt-media, nếu không lưới nhảy
          chiều cao khi dữ liệu về. */
       .tt-skel-media {
@@ -251,97 +202,6 @@
         max-width: calc((70vh - 190px) * 9 / 16);
         max-width: calc((70svh - 190px) * 9 / 16);
         margin-inline: auto;
-      }
-
-      /* Hàng nhãn NGOÀI ảnh (trên khung xem trước): đè lên ảnh thì mỗi mẫu một
-         sắc nền, nhãn lúc đọc được lúc không. */
-      .tt-tagrow {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        padding: 4px 4px 8px;
-      }
-      .tt-chip {
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-        padding: 4px 9px;
-        border-radius: 999px;
-        font-size: 11px;
-        font-weight: 600;
-        line-height: 1.4;
-        white-space: nowrap;
-        color: var(--fg);
-        background: rgb(var(--brand-primary-rgb) / 0.1);
-      }
-      .tt-chip svg {
-        width: 11px;
-        height: 11px;
-        flex: none;
-      }
-      /* Bản nhỏ hơn, dùng cho nhãn "trọn đời" ở hàng giá — đứng cạnh con số nên
-         phải nhẹ hơn chip danh mục, không thì tranh chỗ với giá. */
-      .tt-chip-sm {
-        padding: 2px 8px;
-        font-size: 10px;
-        color: var(--muted);
-        background: rgb(var(--brand-primary-rgb) / 0.14);
-      }
-
-      /* ─── Cụm giá ───
-         `tabular-nums` cho mọi con số cùng bề ngang → giá các thẻ thẳng cột. */
-      .tt-price {
-        font-size: 17px;
-        font-weight: 700;
-        line-height: 1.1;
-        letter-spacing: -0.01em;
-        font-variant-numeric: tabular-nums;
-        color: rgb(var(--tt-price));
-      }
-      /* Ký hiệu đồng: chữ "đ" nâng lên như số mũ + gạch chân, kiểu các sàn TMĐT
-         Việt — nhẹ hơn ký tự ₫ vốn to ngang con số và lệch baseline ở Inter. */
-      .tt-cur {
-        font-size: 0.62em;
-        font-weight: 600;
-        vertical-align: super;
-        line-height: 0;
-        margin-left: 2px;
-        text-decoration: underline;
-        text-decoration-thickness: 0.08em;
-        text-underline-offset: 0.1em;
-      }
-      .tt-price-old {
-        font-size: 12px;
-        line-height: 16px;
-        font-variant-numeric: tabular-nums;
-        text-decoration: line-through;
-        text-decoration-color: rgb(var(--tt-price) / 0.5);
-        color: rgb(var(--tt-price) / 0.62);
-      }
-      /* Badge "-x%" đứng cạnh giá gốc; cao đúng 16px của hàng để lưới không so le. */
-      .tt-off {
-        display: inline-block;
-        margin-left: 6px;
-        padding: 0 6px;
-        border-radius: 999px;
-        font-size: 10px;
-        font-weight: 700;
-        line-height: 16px;
-        color: rgb(var(--tt-price));
-        background: rgb(var(--tt-price) / 0.1);
-      }
-
-      .tt-media img {
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        object-position: top;
-        transition: transform 0.45s ease;
-      }
-      .tt-card:hover .tt-media img {
-        transform: scale(1.045);
       }
 
       /* Nút yêu thích (ngôi sao) — đứng CUỐI hàng nhãn, không nằm trên ảnh nữa:
@@ -378,80 +238,6 @@
       }
       .tt-fav.is-on svg {
         fill: currentColor;
-      }
-
-      /* Cặp nút ở chân thẻ — variant="bare" nên <x-button> chỉ giữ hình pill,
-         màu do đây quyết (đúng màu cặp nút cùng tên ở trang chủ).
-         LUÔN một hàng, kể cả thẻ hẹp ~150px ở lưới 2 cột: hai nút chia đôi
-         (`flex: 1 1 0` + `min-width: 0`) và co chữ/lề theo bề ngang THẺ bằng
-         clamp — không dùng breakpoint vì khổ thẻ do lưới quyết chứ không phải
-         bề ngang màn hình. Thẻ hẹp quá thì giấu icon, giữ lại chữ. */
-      .tt-cardbtns {
-        display: flex;
-        gap: 6px;
-        container-type: inline-size;
-      }
-      .tt-cardbtns > * {
-        flex: 1 1 0;
-        min-width: 0;
-      }
-      .tt-cardbtns button {
-        width: 100%;
-        gap: 4px;
-        padding-inline: clamp(6px, 4cqw, 14px);
-        /* Sàn 10px là cỡ chữ ở lưới 2 cột trên điện thoại; thẻ rộng ra (máy
-           tính) thì chữ tự lớn dần tới 13px. */
-        font-size: clamp(10px, 3.6cqw, 13px);
-      }
-      @container (max-width: 170px) {
-        .tt-cardbtns svg {
-          display: none;
-        }
-      }
-
-      .tt-btn-preview {
-        background: rgb(var(--white-rgb));
-        color: var(--primary);
-        font-weight: 600;
-        white-space: nowrap;
-        border: 1px solid rgb(var(--brand-primary-rgb) / 0.75);
-      }
-      .tt-btn-preview:hover {
-        border-color: rgb(var(--brand-accent-rgb) / 0.6);
-        background: rgb(var(--brand-primary-rgb) / 0.12);
-      }
-      .tt-btn-use {
-        color: rgb(var(--white-rgb));
-        font-weight: 600;
-        white-space: nowrap;
-        background: linear-gradient(
-          135deg,
-          rgb(var(--gift-btn-from-rgb)),
-          rgb(var(--gift-btn-to-rgb))
-        );
-        box-shadow: 0 4px 12px rgb(var(--gift-btn-to-rgb) / 0.4);
-        transition: filter 0.18s ease;
-      }
-      .tt-btn-use:hover {
-        filter: brightness(1.05);
-      }
-
-      /* Bấm vào ảnh là mở bản xem thử — không còn nút nào trên ảnh. Lớp phủ chỉ
-         để báo "bấm được" khi rê chuột, KHÔNG bắt click: cú bấm do chính
-         .tt-media nhận. */
-      .tt-media {
-        cursor: pointer;
-      }
-      .tt-hover {
-        position: absolute;
-        inset: 0;
-        pointer-events: none;
-        background: rgb(var(--scrim-plum-rgb) / 0.18);
-        opacity: 0;
-        transition: opacity 0.2s ease;
-      }
-      .tt-card:hover .tt-hover {
-        opacity: 1;
       }
 
       /* Nút "Bắt đầu miễn phí" — MỘT style cho cả hai chỗ đứng: thẻ nổi giữa
