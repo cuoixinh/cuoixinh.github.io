@@ -463,13 +463,21 @@ html.cx-landing {
 .hero-picks {
   @apply flex items-end justify-center;
   gap: 12px;
+  /* Thẻ dựng theo TỈ LỆ THÂN MÁY iPhone (--cx-ph-ar, cùng token với
+     .carousel-3d-card) nên rất cao — khống chế bằng CHIỀU CAO rồi để
+     aspect-ratio suy ra bề ngang. Đo theo --vh chứ không theo bề ngang: chỗ
+     chật của cụm thẻ là chiều DỌC, lấy vw thì màn thấp là cụm thẻ đội cả tiêu
+     đề ra khỏi khung nhìn. */
+  --cx-pick-h: clamp(132px, calc(var(--vh, 1vh) * 27), 268px);
+  --cx-pick-h: clamp(132px, calc(var(--vh, 1svh) * 27), 268px);
 }
 
 .hero-pick {
   @apply relative block overflow-hidden;
-  width: clamp(84px, 24vw, 112px);
-  aspect-ratio: 3 / 4;
-  border-radius: 16px;
+  height: calc(var(--cx-pick-h) * 0.82);
+  aspect-ratio: var(--cx-ph-ar);
+  /* Bo góc theo % như .carousel-3d-card — giữ đúng dáng góc thân máy ở mọi khổ. */
+  border-radius: 9% / 4.4%;
   border: 1px solid rgb(var(--white-rgb) / 0.4);
   box-shadow: 0 12px 32px rgb(var(--landing-dark-rgb) / 0.45);
   transition:
@@ -478,8 +486,7 @@ html.cx-landing {
 }
 
 .hero-pick.is-lead {
-  width: clamp(104px, 30vw, 140px);
-  aspect-ratio: 3 / 4.4;
+  height: var(--cx-pick-h);
   z-index: 2;
 }
 
@@ -499,16 +506,21 @@ html.cx-landing {
   @apply pointer-events-none absolute inset-0;
   background: linear-gradient(
     to top,
-    rgb(var(--landing-dark-rgb) / 0.82) 0%,
-    rgb(var(--landing-dark-rgb) / 0.12) 52%,
+    rgb(var(--landing-dark-rgb) / 0.86) 0%,
+    rgb(var(--landing-dark-rgb) / 0.52) 24%,
+    rgb(var(--landing-dark-rgb) / 0.1) 48%,
     rgb(var(--landing-dark-rgb) / 0) 100%
   );
 }
 
+/* Thẻ theo tỉ lệ thân máy nên hẹp — cho tên XUỐNG DÒNG (tối đa 2) thay vì cắt
+   bằng "…": tên mẫu hai chữ như "Romantic Gold" cắt mất nửa sau thì thẻ chẳng
+   còn nói lên điều gì. */
 .hero-pick-name {
-  @apply pointer-events-none absolute inset-x-0 bottom-0 truncate text-center font-playfair font-semibold;
+  @apply pointer-events-none absolute inset-x-0 bottom-0 line-clamp-2 text-center font-playfair font-semibold;
   padding: 0 8px 8px;
   font-size: 12px;
+  line-height: 1.25;
   color: rgb(var(--white-rgb));
 }
 
@@ -589,6 +601,19 @@ html.cx-landing {
   outline-offset: 3px;
 }
 
+/* Máy hẹp (360px trở xuống): lề trong 20px của nút làm tổng bề ngang vượt chỗ
+   trống, nút thứ hai rơi xuống dòng dưới rồi chui vào thanh tab. Thu lề + khe. */
+
+@media (max-width: 380px) {
+  .hero-actions {
+    gap: 8px;
+  }
+  .hero-btn {
+    padding: 0 16px;
+    font-size: 13px;
+  }
+}
+
 @media (min-width: 768px) {
   /* Từ md không còn thanh tab dưới → lề đáy trả về mức thường. */
   .hero-stage {
@@ -607,12 +632,6 @@ html.cx-landing {
   }
   .hero-picks {
     gap: 16px;
-  }
-  .hero-pick {
-    width: clamp(112px, 14vw, 136px);
-  }
-  .hero-pick.is-lead {
-    width: clamp(140px, 17vw, 172px);
   }
   .hero-lead {
     margin-top: 20px;
@@ -666,12 +685,26 @@ html.cx-landing {
   }
 }
 
-/* MÀN THẤP (laptop 13", điện thoại xoay ngang): ba thẻ mẫu là chỗ ngốn chiều
-   cao nhiều nhất — thu chúng lại để cụm tiêu đề và hai nút vẫn nằm trong một
-   khung nhìn. Nhắm theo CHIỀU CAO nên phải đặt SAU mọi media theo bề ngang ở
+/* MÀN THẤP (laptop 13", điện thoại nhỏ, máy xoay ngang): thẻ mẫu theo tỉ lệ
+   thân máy nên rất cao, hai cụm chữ dồn sát nhau — thu cả cụm lại và kéo chỗ
+   ảnh tan vào nền lên theo, không thì dòng tiêu đề nằm đè lên phần ảnh chưa
+   tan hết. Nhắm theo CHIỀU CAO nên phải đặt SAU mọi media theo bề ngang ở
    trên, nếu không các con số của chúng đè lại. */
 
-@media (max-height: 700px) {
+@media (max-height: 780px) {
+  .hero-bg {
+    -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 30%, transparent 44%);
+    mask-image: linear-gradient(to bottom, #000 0%, #000 30%, transparent 44%);
+  }
+  .hero-veil {
+    background-image: linear-gradient(
+      to bottom,
+      rgb(var(--surface-tint-rgb) / 0.42) 0%,
+      rgb(var(--surface-tint-rgb) / 0.3) 20%,
+      rgb(var(--surface-tint-rgb) / 0.5) 34%,
+      rgb(var(--surface-tint-rgb) / 0) 46%
+    );
+  }
   .hero-stage {
     padding-top: 24px;
     gap: 16px;
@@ -679,18 +712,16 @@ html.cx-landing {
   .hero-top {
     gap: 12px;
   }
+  .hero-picks {
+    --cx-pick-h: clamp(120px, calc(var(--vh, 1vh) * 24), 200px);
+    --cx-pick-h: clamp(120px, calc(var(--vh, 1svh) * 24), 200px);
+  }
   .hero-badge {
     width: 44px;
     height: 44px;
   }
   .hero-picks-label {
     font-size: 22px;
-  }
-  .hero-pick {
-    width: clamp(68px, 8vw, 92px);
-  }
-  .hero-pick.is-lead {
-    width: clamp(84px, 10vw, 112px);
   }
   .hero-title {
     font-size: clamp(28px, 4.6vw, 52px);
