@@ -1,8 +1,10 @@
 // Nav tự ẩn/hiện theo hướng & tốc độ cuộn (navbar trong suốt nên không có hiệu ứng nền).
 // Dùng chung cho trang chủ và trang Mẫu thiệp: nav phải mang id #main-nav.
 // Trang có màn mở đầu TRÀN VIỀN khai `data-nav-hide-over` trên khối đó (xem
-// #hero ở index.html): chừng nào còn cuộn trong khối, nav ẩn hẳn để thẻ pill
-// trắng không cắt ngang ảnh nền; ra khỏi khối mới trả về luật cuộn thường.
+// #hero ở index.html): chừng nào còn cuộn trong khối, CẢ HAI thanh đều ẩn để
+// không thứ gì cắt ngang ảnh nền — navbar trên (desktop) và thanh tab dưới
+// (mobile, thứ duy nhất nhìn thấy ở khổ hẹp). Ra khỏi khối thì navbar trên trả
+// về luật cuộn thường, còn thanh tab hiện lại và ở yên đó.
 // Ngoài class .nav-hidden trên nav, trạng thái ẩn còn được dội lên <html> bằng
 // class .nav-up — trang nào có thẻ dính ngay dưới nav thì bám vào đó mà kéo `top`
 // theo (xem #tt-searchbar ở theme-template).
@@ -11,6 +13,7 @@
   if (!nav) return;
 
   const hideOver = document.querySelector("[data-nav-hide-over]");
+  const tabbar = hideOver ? document.querySelector(".cx-tabbar") : null;
 
   const TOP_THRESHOLD = 80; // gần đầu trang -> luôn hiện navbar
   const MOVE_DEADZONE = 6; // bỏ qua rung lắc/cuộn cực nhẹ
@@ -19,6 +22,12 @@
   const setHidden = (hidden) => {
     nav.classList.toggle("nav-hidden", hidden);
     document.documentElement.classList.toggle("nav-up", hidden);
+  };
+
+  // Thanh tab đi theo RIÊNG vị trí khối tràn viền, không theo hướng cuộn: ngoài
+  // khối nó là điều hướng duy nhất của mobile, ẩn theo cú vuốt là khách mất lối.
+  const setTabHidden = (hidden) => {
+    tabbar?.classList.toggle("nav-hidden", hidden);
   };
 
   let lastY = window.scrollY;
@@ -35,7 +44,11 @@
       const deltaT = Math.max(currentT - lastT, 1);
       const speed = Math.abs(deltaY) / deltaT; // px/ms
 
-      if (hideOver && currentY < hideOver.offsetHeight - TOP_THRESHOLD) {
+      const overHide =
+        !!hideOver && currentY < hideOver.offsetHeight - TOP_THRESHOLD;
+      setTabHidden(overHide);
+
+      if (overHide) {
         // Còn trong khối tràn viền: ẩn bất kể hướng cuộn.
         setHidden(true);
       } else if (currentY <= TOP_THRESHOLD) {
@@ -61,7 +74,10 @@
   // Vào trang giữa khối tràn viền thì phải ẩn NGAY, không đợi lần cuộn đầu.
   // Script này là thẻ <script> cổ điển chạy lúc parse nên class kịp có mặt
   // trước nhịp vẽ đầu — không thấy cảnh navbar trắng nháy lên rồi biến mất.
-  if (hideOver) setHidden(true);
+  if (hideOver) {
+    setHidden(true);
+    setTabHidden(true);
+  }
 
   window.addEventListener("scroll", onScroll, { passive: true });
 })();
