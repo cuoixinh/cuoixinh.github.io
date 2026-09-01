@@ -328,9 +328,14 @@ html.cx-landing {
 /* ═══════════ Từ styles/index.css (trang chủ) ═══════════ */
 
 /* ── Màn mở đầu ──────────────────────────────────────────────────────────
-   TRÀN VIỀN: ảnh cưới phủ kín cả bốn mép, chữ trắng đè thẳng lên ảnh. Bốn lớp
-   xếp chồng theo z-index: .hero-bg (ảnh) → .hero-scrim (phủ tối) →
-   .hero-mist (sương) → .hero-stage (chữ).
+   TRÀN VIỀN, chia hai tầng theo CHIỀU DỌC: ảnh cưới chiếm nửa trên rồi tan
+   dần (mask ở .hero-bg) để lộ nền phẳng của #hero ở nửa dưới. Nhờ vậy cụm
+   tiêu đề nằm trên MỘT MÀU trắng ấm và để được chữ màu đậm, còn cụm thẻ mẫu
+   ở trên vẫn nổi trên ảnh. Ba lớp theo z-index: .hero-bg (ảnh) →
+   .hero-veil (sương trắng) → .hero-stage (chữ).
+
+   Nền dùng ĐÚNG --surface-tint-rgb của #templates nên mép nối giữa hai mục
+   không lộ đường ngăn — đổi nền một bên thì phải đổi cả bên kia.
 
    Cố ý KHÔNG chừa chỗ cho navbar ở đỉnh: navbar ẩn hẳn chừng nào còn cuộn
    trong khối này (js/nav-autohide.js đọc `data-nav-hide-over` trên #hero).
@@ -346,81 +351,51 @@ html.cx-landing {
      nó đè mất --vh. */
   min-height: calc(var(--vh, 1vh) * 100);
   min-height: calc(var(--vh, 1svh) * 100);
-  /* Nền dự phòng khi chưa nạp được ảnh (manifest lỗi, mạng hỏng): vẫn ra một
-     màn tối để chữ trắng đọc được, chứ không phải khoảng trắng. */
-  background-image: linear-gradient(
-    160deg,
-    rgb(var(--landing-dark-rgb)) 0%,
-    rgb(var(--scrim-plum-rgb)) 55%,
-    rgb(var(--landing-dark-rgb)) 100%
-  );
+  background: rgb(var(--surface-tint-rgb));
 }
 
 /* Ảnh nền — WebP do tab "Ảnh nền" của admin chụp ra, đường dẫn do
    js/hero-background.js gán vào --hero-bg-url. Chưa có nền thì biến rỗng → lớp
-   này trong suốt và gradient dự phòng của #hero lộ ra. */
+   này trong suốt và hero còn lại một màn trắng phẳng. */
 
 .hero-bg {
   @apply pointer-events-none absolute inset-0;
   z-index: 0;
   background-image: var(--hero-bg-url);
   background-size: cover;
-  background-position: center;
+  background-position: center top;
   background-repeat: no-repeat;
   opacity: 0;
   transition: opacity 0.6s ease;
+  /* Ảnh CHỈ chiếm nửa trên: tắt HẲN thành trong suốt TRƯỚC dòng tiêu đề, để nửa
+     dưới là đúng một màu nền phẳng của #hero. Mốc 55% là chỗ cụm .hero-bottom
+     bắt đầu ở khổ hẹp nhất (máy tính 900px cao) — hai cụm chữ đổi chiều cao thì
+     phải đo lại mốc này, ảnh còn sót sau đó là chữ đậm mất nền phẳng.
+     #000 là mốc ĐỘ ĐỤC của mask, không phải màu giao diện. */
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 40%, transparent 55%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 40%, transparent 55%);
 }
 
 /* Chỉ hiện khi đã nạp được ảnh — tránh nháy một lớp trống lúc đang tải. Ảnh để
-   ĐẶC (không mờ như bản cũ): việc làm dịu ảnh giờ do .hero-scrim lo. */
+   ĐẶC (không mờ như bản cũ): việc làm dịu ảnh giờ do .hero-veil lo. */
 
 .hero-bg.is-on {
   opacity: 1;
 }
 
-/* Lớp phủ tối — thứ DUY NHẤT giữ cho chữ trắng đọc được trên ảnh nền, mà ảnh
-   nền mặc định lại là collage ảnh cưới rất sáng. Bốn gradient: đậm ở ĐÁY (cụm
-   tiêu đề), thêm một nhánh từ TRÁI vì cụm chữ căn trái, vừa ở ĐỈNH cho huy
-   hiệu và ba thẻ mẫu, cuối cùng một lớp phẳng dìu cả khối xuống một nấc.
-   Thay ảnh nền thì phải soi lại bốn con số này. */
+/* Sương trắng phủ lên ảnh. Ảnh nền mặc định là collage nhiều mảnh sáng-tối xen
+   kẽ; không có lớp này thì chữ "Mẫu thiệp nổi bật" và viền ba thẻ chìm vào các
+   mảng tối của ảnh. Đậm dần xuống dưới cho ăn khớp với chỗ ảnh tan vào nền. */
 
-.hero-scrim {
+.hero-veil {
   @apply pointer-events-none absolute inset-0;
   z-index: 1;
-  background-image:
-    linear-gradient(
-      to top,
-      rgb(var(--landing-dark-rgb) / 0.92) 0%,
-      rgb(var(--landing-dark-rgb) / 0.55) 28%,
-      rgb(var(--landing-dark-rgb) / 0) 64%
-    ),
-    linear-gradient(
-      to right,
-      rgb(var(--landing-dark-rgb) / 0.72) 0%,
-      rgb(var(--landing-dark-rgb) / 0) 60%
-    ),
-    linear-gradient(
-      to bottom,
-      rgb(var(--landing-dark-rgb) / 0.66) 0%,
-      rgb(var(--landing-dark-rgb) / 0) 42%
-    ),
-    linear-gradient(
-      rgb(var(--landing-dark-rgb) / 0.32),
-      rgb(var(--landing-dark-rgb) / 0.32)
-    );
-}
-
-/* Sương trắng bốc lên từ mép dưới. Cố ý lệch sang PHẢI (62%): cụm tiêu đề nằm
-   ở đáy-trái, kéo sương qua đó là ăn mất tương phản của chữ trắng. */
-
-.hero-mist {
-  @apply pointer-events-none absolute inset-0;
-  z-index: 1;
-  background: radial-gradient(
-    68% 42% at 62% 104%,
-    rgb(var(--white-rgb) / 0.22) 0%,
-    rgb(var(--white-rgb) / 0.08) 45%,
-    rgb(var(--white-rgb) / 0) 100%
+  background-image: linear-gradient(
+    to bottom,
+    rgb(var(--surface-tint-rgb) / 0.42) 0%,
+    rgb(var(--surface-tint-rgb) / 0.3) 26%,
+    rgb(var(--surface-tint-rgb) / 0.5) 44%,
+    rgb(var(--surface-tint-rgb) / 0) 58%
   );
 }
 
@@ -459,9 +434,9 @@ html.cx-landing {
   width: 56px;
   height: 56px;
   padding: 8px;
-  background: rgb(var(--white-rgb) / 0.16);
-  border: 1px solid rgb(var(--white-rgb) / 0.4);
-  backdrop-filter: blur(8px);
+  background: rgb(var(--white-rgb) / 0.9);
+  border: 1px solid rgb(var(--white-rgb));
+  box-shadow: 0 6px 20px rgb(var(--shadow-brand-rgb) / 0.18);
 }
 
 .hero-badge img {
@@ -475,8 +450,10 @@ html.cx-landing {
   @apply font-great-vibes;
   font-size: 26px;
   line-height: 1.2;
-  color: rgb(var(--white-rgb) / 0.92);
-  text-shadow: 0 2px 12px rgb(var(--landing-dark-rgb) / 0.5);
+  color: rgb(var(--text-heading-rgb));
+  /* Quầng trắng thay cho bóng đổ: chữ đậm nằm trên ảnh, chỗ ảnh tối thì nét
+     chữ mảnh của font script dễ dính vào nền. */
+  text-shadow: 0 1px 12px rgb(var(--white-rgb));
 }
 
 /* Ba thẻ mẫu thiệp (js/auth-nav.js → initHeroPicks). Thẻ giữa mang .is-lead nên
@@ -552,8 +529,7 @@ html.cx-landing {
   font-size: clamp(32px, 6.4vw, 76px);
   line-height: 1.04;
   letter-spacing: -0.01em;
-  color: rgb(var(--white-rgb));
-  text-shadow: 0 4px 24px rgb(var(--landing-dark-rgb) / 0.55);
+  color: rgb(var(--landing-dark-rgb));
 }
 
 .hero-lead {
@@ -561,7 +537,7 @@ html.cx-landing {
   max-width: 520px;
   font-size: 14px;
   line-height: 1.7;
-  color: rgb(var(--white-rgb) / 0.84);
+  color: rgb(var(--text-caption-rgb));
 }
 
 .hero-actions {
@@ -597,12 +573,13 @@ html.cx-landing {
 }
 
 .hero-btn.is-ghost {
-  border: 1px solid rgb(var(--white-rgb) / 0.55);
-  color: rgb(var(--white-rgb));
+  border: 1px solid rgb(var(--landing-dark-rgb) / 0.3);
+  color: rgb(var(--landing-dark-rgb));
 }
 
 .hero-btn.is-ghost:hover {
-  background: rgb(var(--white-rgb) / 0.14);
+  background: rgb(var(--landing-dark-rgb) / 0.06);
+  border-color: rgb(var(--landing-dark-rgb) / 0.5);
 }
 
 .hero-btn:focus-visible,
@@ -666,6 +643,26 @@ html.cx-landing {
     height: 52px;
     padding: 0 32px;
     font-size: 15px;
+  }
+}
+
+/* MÀN CAO (iPad dựng đứng, màn hình xoay dọc): hai cụm chữ bị đẩy xa nhau nên
+   chỗ ảnh tan vào nền phải lùi xuống theo, không thì giữa hero hở một mảng
+   trắng trống. Nhắm theo CHIỀU CAO nên đặt SAU mọi media theo bề ngang. */
+
+@media (min-height: 950px) {
+  .hero-bg {
+    -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 52%, transparent 68%);
+    mask-image: linear-gradient(to bottom, #000 0%, #000 52%, transparent 68%);
+  }
+  .hero-veil {
+    background-image: linear-gradient(
+      to bottom,
+      rgb(var(--surface-tint-rgb) / 0.42) 0%,
+      rgb(var(--surface-tint-rgb) / 0.3) 30%,
+      rgb(var(--surface-tint-rgb) / 0.5) 56%,
+      rgb(var(--surface-tint-rgb) / 0) 70%
+    );
   }
 }
 

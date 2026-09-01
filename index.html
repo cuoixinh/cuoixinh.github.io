@@ -49,24 +49,23 @@
     style="color: rgb(var(--text-body-rgb))"
   >
     <!-- ===== HERO ===== -->
-    <!-- Màn mở đầu TRÀN VIỀN: ảnh cưới phủ kín cả bốn mép, chữ trắng đè thẳng
-         lên ảnh — không còn tấm thiệp giấy ở giữa như bản cũ. Hai cụm nội dung
-         xếp trên/dưới trong .hero-stage: cụm trên căn giữa (huy hiệu + ba thẻ
-         mẫu), cụm dưới căn trái (tiêu đề + nút). Chi tiết đo đạc ở
+    <!-- Màn mở đầu TRÀN VIỀN: ảnh cưới chiếm NỬA TRÊN rồi tan dần thành nền
+         trắng phẳng ở nửa dưới — không còn tấm thiệp giấy ở giữa như bản cũ.
+         Hai cụm nội dung xếp trên/dưới trong .hero-stage: cụm trên căn giữa nằm
+         trên ảnh (huy hiệu + ba thẻ mẫu), cụm dưới căn trái nằm trên nền trắng
+         (tiêu đề + nút) nên chữ để màu ĐẬM. Chi tiết đo đạc ở
          styles/tailwind-src.css.
          data-nav-hide-over: js/nav-autohide.js đọc thuộc tính này để ẩn hẳn
          navbar chừng nào còn cuộn trong khối — thẻ pill trắng cắt ngang ảnh
          nền tràn viền. -->
     <section id="hero" data-nav-hide-over>
       <!-- Nền ảnh cưới (WebP do tab "Ảnh nền" của admin chụp) — js/hero-background.js
-           gán vào --hero-bg-url. Chưa có nền thì lớp này trong suốt và #hero
-           giữ gradient dự phòng. -->
+           gán vào --hero-bg-url. Chưa có nền thì lớp này trong suốt và hero
+           còn lại một màn trắng phẳng. -->
       <div id="hero-bg" class="hero-bg" aria-hidden="true"></div>
-      <!-- Lớp phủ tối: thứ DUY NHẤT giữ cho chữ trắng đọc được trên ảnh nền
-           sáng. Sửa ảnh nền thì phải soi lại lớp này. -->
-      <div class="hero-scrim" aria-hidden="true"></div>
-      <!-- Sương trắng bốc lên từ mép dưới, lệch sang phải để tránh cụm chữ. -->
-      <div class="hero-mist" aria-hidden="true"></div>
+      <!-- Sương trắng phủ lên ảnh: ảnh nền là collage nhiều mảnh sáng-tối xen
+           kẽ, chữ màu đậm đặt thẳng lên đó rất khó đọc. -->
+      <div class="hero-veil" aria-hidden="true"></div>
 
       <div class="hero-stage">
         <!-- Cụm trên: huy hiệu thương hiệu + ba mẫu thiệp nổi bật -->
