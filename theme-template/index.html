@@ -199,8 +199,8 @@
         aspect-ratio: 9 / 16;
         border-radius: 16px;
         width: 100%;
-        max-width: calc((70vh - 190px) * 9 / 16);
-        max-width: calc((70svh - 190px) * 9 / 16);
+        max-width: calc((var(--vh, 1vh) * 70 - 190px) * 9 / 16);
+        max-width: calc((var(--vh, 1svh) * 70 - 190px) * 9 / 16);
         margin-inline: auto;
       }
 
@@ -1017,6 +1017,9 @@
     <!-- Navbar dùng chung: khai mảng mục một lần, component dựng cả thanh trên
          (desktop) lẫn thanh tab dưới (mobile). Phải chạy TRƯỚC nav-autohide.js
          vì nó tìm #main-nav. -->
+    <!-- Khoá "một màn" thành px cho --vh: .tt-media kẹp khổ ảnh theo đó, thiếu
+         script này là thẻ đổi khổ mỗi lần Chrome ẩn/hiện thanh URL. -->
+    <script src="../core/helpers/vh-lock.js"></script>
     <script src="../core/components/navbar.js"></script>
     <script>
       CXNavbar.mount({
