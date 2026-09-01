@@ -45,165 +45,65 @@
   </head>
 
   <body
-    class="bg-white pb-[72px] md:pb-0"
+    class="bg-white"
     style="color: rgb(var(--text-body-rgb))"
   >
     <!-- ===== HERO ===== -->
-    <!-- Cả màn mở đầu là MỘT tấm thiệp giấy đặt trên nền ảnh cưới: nửa chữ +
-         nửa ảnh mẫu thật. Ảnh (.hero-invite-photo) là phần co giãn — màn cao
-         thì ảnh cao thêm, màn thấp thì ảnh ngắn lại, nên không bao giờ hở
-         khoảng trống ở đầu/cuối. Chi tiết đo đạc ở styles/tailwind-src.css. -->
-    <section id="hero">
+    <!-- Màn mở đầu TRÀN VIỀN: ảnh cưới chiếm NỬA TRÊN rồi tan dần thành nền
+         trắng phẳng ở nửa dưới — không còn tấm thiệp giấy ở giữa như bản cũ.
+         Hai cụm nội dung xếp trên/dưới trong .hero-stage: cụm trên căn giữa nằm
+         trên ảnh (huy hiệu + ba thẻ mẫu), cụm dưới căn trái nằm trên nền trắng
+         (tiêu đề + nút) nên chữ để màu ĐẬM. Chi tiết đo đạc ở
+         styles/tailwind-src.css.
+         data-nav-hide-over: js/nav-autohide.js đọc thuộc tính này để ẩn hẳn
+         navbar chừng nào còn cuộn trong khối — thẻ pill trắng cắt ngang ảnh
+         nền tràn viền. -->
+    <section id="hero" data-nav-hide-over>
       <!-- Nền ảnh cưới (WebP do tab "Ảnh nền" của admin chụp) — js/hero-background.js
-           gán vào --hero-bg-url. Chưa có nền thì lớp này trong suốt. -->
+           gán vào --hero-bg-url. Chưa có nền thì lớp này trong suốt và hero
+           còn lại một màn trắng phẳng. -->
       <div id="hero-bg" class="hero-bg" aria-hidden="true"></div>
+      <!-- Sương trắng phủ lên ảnh: ảnh nền là collage nhiều mảnh sáng-tối xen
+           kẽ, chữ màu đậm đặt thẳng lên đó rất khó đọc. -->
       <div class="hero-veil" aria-hidden="true"></div>
 
       <div class="hero-stage">
-        <article class="hero-invite">
-          <div class="hero-invite-copy">
-            <!-- Phần trên: giới thiệu -->
-            <div class="hero-invite-head">
-              <p class="hero-invite-eyebrow hero-anim hero-anim-1">
-                Thiệp cưới điện tử
-              </p>
-              <h1 class="hero-invite-name hero-anim hero-anim-2">Cưới Xinh</h1>
+        <!-- Cụm trên: huy hiệu thương hiệu + ba mẫu thiệp nổi bật -->
+        <div class="hero-top">
+          <span class="hero-badge hero-anim hero-anim-1">
+            <img src="assets/icons/logo.png" alt="Cưới Xinh" />
+          </span>
 
-              <p class="hero-invite-sub hero-anim hero-anim-2">
-                Cùng nhau viết tiếp hành trình yêu thương của chúng mình
-              </p>
+          <p class="hero-picks-label hero-anim hero-anim-2">Mẫu thiệp nổi bật</p>
 
-              <div
-                class="hero-invite-rule hero-anim hero-anim-2"
-                aria-hidden="true"
-              >
-                <span></span><i data-lucide="heart" style="width:16px;height:16px"></i><span></span>
-              </div>
-              <!-- Sơ đồ các bước làm thiệp: vòng tròn icon nối bằng mũi tên,
-                   chữ nằm dưới. Số thứ tự và dòng "BƯỚC 0x" do CSS counter
-                   sinh ra nên thêm/bớt <li> là đủ (chỉ cần cấp thêm màu ở
-                   .hero-invite-steps li:nth-child trong tailwind-src.css);
-                   lưới auto-fit tự chia lại cột. Mỗi bước cần đúng 2 phần tử
-                   con: vòng icon và nhãn. -->
-              <ol class="hero-invite-steps hero-anim hero-anim-3">
-                <li>
-                  <span class="hero-step-orb" aria-hidden="true"
-                    ><i data-lucide="swatch-book" style="width:16px;height:16px"></i
-                  ></span>
-                  <span class="hero-step-label">Chọn mẫu</span>
-                </li>
-                <li>
-                  <span class="hero-step-orb" aria-hidden="true"
-                    ><i data-lucide="images" style="width:16px;height:16px"></i
-                  ></span>
-                  <span class="hero-step-label">Điền thông tin</span>
-                </li>
-                <li>
-                  <span class="hero-step-orb" aria-hidden="true"
-                    ><i data-lucide="send" style="width:16px;height:16px"></i
-                  ></span>
-                  <span class="hero-step-label">Xuất bản</span>
-                </li>
-                <li>
-                  <span class="hero-step-orb" aria-hidden="true"
-                    ><i data-lucide="mail-open" style="width:16px;height:16px"></i
-                  ></span>
-                  <span class="hero-step-label">Gửi thiệp</span>
-                </li>
-              </ol>
-            </div>
+          <!-- js/auth-nav.js (initHeroPicks) đổ ba thẻ vào đây sau khi
+               templates-dal trả dữ liệu. Thẻ giữa mang .is-lead nên nhô cao hơn. -->
+          <div id="heroPicks" class="hero-picks hero-anim hero-anim-3"></div>
+        </div>
 
-            <!-- Phần dưới: chỗ hành động, ngăn với phần trên bằng nét đứt như
-                 phiếu hồi đáp rời của thiệp giấy. -->
-            <div class="hero-invite-foot">
-              <div class="hero-invite-actions hero-anim hero-anim-4">
-                <!-- Nút đôi: phần chính đi thẳng vào trang thiết lập, phần mũi
-                     tên mở popover chọn cách tạo (#heroCtaMenu ở cuối body,
-                     xem chú thích tại đó). -->
-                <div class="hero-cta-split">
-                  <a
-                    href="/invitation-setup/"
-                    onclick="goCreateDraft(event)"
-                    class="hero-invite-cta"
-                  >
-                    <!-- plus-circle của lucide, nhúng thẳng: trang chủ không nạp
-                         lucide nên icon nào cũng viết SVG tại chỗ. -->
-                    <svg
-                      class="hero-cta-plus"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      aria-hidden="true"
-                    >
-                      <circle cx="12" cy="12" r="10" />
-                      <path d="M8 12h8" />
-                      <path d="M12 8v8" />
-                    </svg>
-                    Tạo thiệp ngay
-                  </a>
-                  <button
-                    type="button"
-                    id="heroCtaMore"
-                    class="hero-cta-caret"
-                    aria-haspopup="true"
-                    aria-expanded="false"
-                    aria-controls="heroCtaMenu"
-                    aria-label="Chọn cách tạo thiệp"
-                  >
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2.5"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      aria-hidden="true"
-                    >
-                      <path d="m6 9 6 6 6-6" />
-                    </svg>
-                  </button>
-                </div>
-                <p class="hero-invite-terms">
-                  Miễn phí dùng thử · Chỉ thanh toán khi bạn ưng ý
-                </p>
-              </div>
+        <!-- Cụm dưới: lời chào + hai lối đi chính -->
+        <div class="hero-bottom">
+          <h1 class="hero-title hero-anim hero-anim-3">
+            Thiệp Cưới Online<br />Cho Ngày Trọng Đại
+          </h1>
 
-              <p class="hero-invite-props hero-anim hero-anim-5">
-                <span>Đổi mẫu mọi lúc</span><span>Quản lý khách mời</span
-                ><span>Thiệp lưu vĩnh viễn</span>
-              </p>
-            </div>
+          <p class="hero-lead hero-anim hero-anim-4">
+            Chọn mẫu, điền thông tin, xuất bản — thiệp cưới của bạn sẵn sàng chỉ
+            trong vài phút. Miễn phí dùng thử, chỉ thanh toán khi bạn thật sự ưng ý.
+          </p>
+
+          <div class="hero-actions hero-anim hero-anim-5">
+            <!-- <a> chứ không <x-button>: x-button tự thay mình bằng <button>
+                 thật nên không mang được href. -->
+            <a
+              href="/invitation-setup/"
+              onclick="goCreateDraft(event)"
+              class="hero-btn is-primary"
+              >Tạo thiệp ngay</a
+            >
+            <a href="/theme-template/" class="hero-btn is-ghost">Xem mẫu thiệp</a>
           </div>
-
-          <!-- Thiệp mẫu đang mở trên điện thoại — đúng cách khách sẽ nhận thiệp.
-               js/auth-nav.js (initHeroImage) gán src và gắn click mở bản xem thử. -->
-          <div
-            class="hero-invite-photo hero-anim hero-anim-3"
-            id="hero-card-preview"
-          >
-            <div class="hero-phone">
-              <div class="hero-phone-screen">
-                <div id="hero-skeleton" class="card-skeleton absolute inset-0">
-                  <div class="card-skeleton-fallback">
-                    <i data-lucide="heart" style="width:16px;height:16px"></i>
-                  </div>
-                </div>
-                <img id="hero-preview-img" alt="Mẫu thiệp cưới Cưới Xinh" />
-              </div>
-              <!-- Khung máy (assets/images/iphone_mockup.svg) nạp bằng CSS và chỉ
-                   khai từ 1024px → khổ hẹp không tải ảnh này. -->
-              <span class="hero-phone-frame" aria-hidden="true"></span>
-            </div>
-            <span class="hero-invite-peek">Xem thử mẫu này</span>
-          </div>
-        </article>
-
-        <a href="#templates" class="hero-scroll hero-anim hero-anim-5">
-          Xem mẫu thiệp <i data-lucide="chevron-down" style="width:16px;height:16px"></i>
-        </a>
+        </div>
       </div>
     </section>
 
@@ -727,8 +627,10 @@
     </section>
 
     <!-- ===== FOOTER ===== -->
+    <!-- pb-[72px] chừa chỗ cho thanh tab dưới (mobile) — chỉ khối CUỐI trang
+         cần, để ở <body> thì #hero không tràn được tới mép dưới màn. -->
     <footer
-      class="bg-white py-10"
+      class="bg-white py-10 pb-[72px] md:pb-10"
     >
       <div class="max-w-6xl mx-auto px-5">
         <div class="grid grid-cols-2 md:grid-cols-3 gap-6 mb-8">
@@ -868,8 +770,6 @@
     <script src="core/helpers/draft-start.js"></script>
     <script src="js/modal.js"></script>
     <script src="js/auth-nav.js"></script>
-    <!-- Sau auth-nav.js: các mục trong popover gọi goCreateDraft/goCreateWithAi. -->
-    <script src="js/hero-cta.js"></script>
     <script src="js/home-payment.js"></script>
     <script src="js/carousel.js"></script>
     <script src="js/page-setup.js"></script>
@@ -933,102 +833,6 @@
 
     <script src="js/hero-background.js"></script>
     <script src="js/nav-autohide.js"></script>
-    <!-- Popover "cách tạo thiệp" của nút đôi ở hero (core/x-popover.js). Đặt ở
-         CUỐI BODY chứ không lồng trong .hero-cta-split: thẻ là position:fixed,
-         mà cụm nút có transform lúc hover còn .hero-anim chạy animation
-         transform — cha như vậy sẽ kéo thẻ lệch và .hero-invite còn cắt mất nó.
-         Các mục viết thẳng trong HTML (không setItems) để link vẫn nằm trong
-         trang cho bộ máy tìm kiếm. -->
-    <x-popover
-      id="heroCtaMenu"
-      anchor="#heroCtaMore"
-      placement="top"
-      align="end"
-      width="264"
-      offset="10"
-    >
-      <a
-        href="/invitation-setup/"
-        role="menuitem"
-        onclick="goCreateDraft(event)"
-        class="hero-cta-item"
-      >
-        <span class="hero-cta-item-ico">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-hidden="true"
-          >
-            <path d="M12 20h9" />
-            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" />
-          </svg>
-        </span>
-        <span>
-          <span class="hero-cta-item-name">Tạo thủ công</span>
-          <span class="hero-cta-item-desc">Tự điền từng mục theo ý bạn</span>
-        </span>
-      </a>
-      <a
-        href="/invitation-setup/"
-        role="menuitem"
-        onclick="goCreateWithAi(event)"
-        class="hero-cta-item"
-      >
-        <span class="hero-cta-item-ico">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-hidden="true"
-          >
-            <path
-              d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"
-            />
-          </svg>
-        </span>
-        <span>
-          <span class="hero-cta-item-name">Tạo với AI</span>
-          <span class="hero-cta-item-desc"
-            >Trò chuyện, trợ lý dựng nội dung cho bạn</span
-          >
-        </span>
-      </a>
-      <a
-        href="/invitation-setup/"
-        role="menuitem"
-        onclick="goCreateWithVoice(event)"
-        class="hero-cta-item"
-      >
-        <span class="hero-cta-item-ico">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-hidden="true"
-          >
-            <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
-            <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-            <path d="M12 19v3" />
-          </svg>
-        </span>
-        <span>
-          <span class="hero-cta-item-name">Tạo với giọng nói</span>
-          <span class="hero-cta-item-desc"
-            >Bạn kể tôi nghe và tạo thiệp cho bạn</span
-          >
-        </span>
-      </a>
-    </x-popover>
     <!-- Ô đếm của mục "Đã chọn" ở navbar (đọc cache, không gọi API). -->
     <script src="core/helpers/nav-cart-count.js"></script>
 
