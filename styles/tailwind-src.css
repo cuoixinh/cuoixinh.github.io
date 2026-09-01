@@ -1436,10 +1436,15 @@ html.cx-landing {
   /* Trần chiều cao THẺ: ~70% màn hình. Ở màn rộng, cột lưới rộng ra là
      ảnh 9:16 cao vọt lên, một thẻ chiếm gần trọn màn. Kẹp bằng MAX-WIDTH
      (không phải max-height) để tỉ lệ 9:16 giữ nguyên, ảnh chỉ hẹp lại và
-     căn giữa thẻ. 190px là phần chữ + nút bên dưới ảnh. */
+     căn giữa thẻ. 190px là phần chữ + nút bên dưới ảnh.
+     Trần này đi qua --vh (px do core/helpers/vh-lock.js khoá) chứ KHÔNG phải
+     svh trần: Chrome di động ẩn thanh URL bằng cách RESIZE webview nên svh
+     cũng tính lại, thẻ đổi khổ ngay giữa lúc người ta đang cuộn. `1svh` chỉ là
+     dự phòng cho lúc script chưa chạy — trang nào dùng thẻ này phải nạp
+     vh-lock.js. */
   width: 100%;
-  max-width: calc((70vh - 190px) * 9 / 16);
-  max-width: calc((70svh - 190px) * 9 / 16);
+  max-width: calc((var(--vh, 1vh) * 70 - 190px) * 9 / 16);
+  max-width: calc((var(--vh, 1svh) * 70 - 190px) * 9 / 16);
   margin-inline: auto;
   background: rgb(var(--preview-bg-from-rgb));
   /* Viền trong rất nhạt để mẫu nền sáng không "chảy" vào nền thẻ. */
