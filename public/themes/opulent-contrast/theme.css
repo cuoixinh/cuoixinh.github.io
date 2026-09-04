@@ -1,0 +1,407 @@
+/* Bảng màu + CSS riêng của OPULENT CONTRAST — thiệp NỀN ĐEN, chữ ngà, đường
+   viền vàng đồng mảnh. Nét nhận dạng: khung vàng KÉP + hai vệt chéo ở góc bao
+   quanh cả tấm thiệp, ảnh tràn viền chạy dưới khung, và chữ hoa Didone khổ lớn
+   cắt ngang mép ảnh (.oc-cut). CSS THUẦN, nạp bằng <link> sau styles/themes.css.
+
+   Ba phần: 1) --cx-* bộ biến phần DÙNG CHUNG vẽ theo · 2) .cx-h/.cx-t/.cx-a ba
+   lớp ngữ nghĩa của markup · 3) .oc-* trang trí riêng của mẫu. */
+
+:root {
+  /* — Chữ — */
+  --cx-heading-rgb: 245 241 232; /* ngà: tên, tiêu đề */
+  --cx-body-rgb: 168 160 146; /* xám ấm: chữ đọc */
+  --cx-accent-rgb: 198 161 91; /* nhấn: vàng đồng */
+  --cx-accent-soft-rgb: 138 116 67; /* nấc nhấn trầm hơn */
+  --cx-on-accent-rgb: 15 13 11; /* chữ nằm TRÊN nền vàng → phải là đen */
+  --cx-on-image-rgb: 255 255 255;
+  --cx-on-lightbox-rgb: 245 241 232;
+
+  /* — Nền — Cả bộ đều tối; chênh lệch giữa các lớp cố tình rất nhỏ để mảng đen
+     liền một khối, chỉ đường vàng mới tách khối. */
+  --cx-card-bg-rgb: 14 13 12; /* nền thân thiệp */
+  --cx-page-bg-rgb: 5 5 5; /* nền trang, ngoài thân thiệp */
+  --cx-surface-rgb: 23 21 18;
+  --cx-band-rgb: 28 25 21;
+  --cx-panel-rgb: 26 23 20;
+  --cx-panel-warm-rgb: 34 29 23;
+  --cx-cover-rgb: 8 8 7; /* nền màn bìa: hai đầu dải */
+  --cx-cover-mid-rgb: 26 23 18; /* …và điểm giữa */
+  --cx-cover-veil-rgb: 8 8 7;
+  --cx-lightbox-bg-rgb: 0 0 0;
+
+  /* — Đường & bóng — */
+  --cx-line-rgb: 92 76 46; /* vàng đã trầm xuống: mọi vạch mảnh */
+  --cx-shadow-rgb: 0 0 0;
+  --cx-scrim-rgb: 0 0 0;
+
+  /* — Trang trí — */
+  --cx-deco-rgb: 198 161 91;
+  --cx-deco-soft-rgb: 107 85 46;
+  --cx-deco-2-rgb: 224 201 138;
+  --cx-deco-2-soft-rgb: 125 101 52;
+  --cx-shine-from-rgb: 138 106 47; /* dải ánh kim của .oc-shine */
+  --cx-shine-mid-rgb: 240 219 166;
+  --cx-shine-to-rgb: 185 143 66;
+
+  /* Thanh nhạc + widget nhạc đi theo bảng --music-* riêng, mặc định là tông kem
+     sáng nên trên nền đen sẽ chói. Ghi đè đúng bằng công thức mà bộ màu suy ra
+     (CX_PALETTE_MUSIC ở theme-setting-helper.js) để thiệp không chọn bộ màu vẫn
+     khớp với thiệp có chọn. */
+  --music-bar-fg-rgb: var(--cx-body-rgb);
+  --music-bar-bg-rgb: var(--cx-surface-rgb);
+  --music-widget-fg-rgb: var(--cx-heading-rgb);
+  --music-widget-dim-rgb: var(--cx-body-rgb);
+  --music-widget-chip-rgb: var(--cx-body-rgb);
+  --music-widget-accent-rgb: var(--cx-accent-rgb);
+  --music-bubble-from-rgb: var(--cx-accent-soft-rgb);
+  --music-bubble-to-rgb: var(--cx-accent-rgb);
+  --music-shadow-rgb: var(--cx-shadow-rgb);
+  --music-bubble-shadow-rgb: var(--cx-shadow-rgb);
+  --music-widget-bg: rgb(var(--cx-panel-rgb) / 0.95);
+  --music-widget-chip: rgb(var(--cx-body-rgb) / 0.12);
+  --music-widget-fill: rgb(var(--cx-accent-rgb) / 0.32);
+  --music-art-from-rgb: var(--cx-accent-soft-rgb);
+  --music-art-to-rgb: var(--cx-accent-rgb);
+
+  /* Khoảng lùi của khung vàng so với mép thiệp. Đổi số này là đổi cả khung bìa
+     lẫn hai đường ray chạy dọc thân thiệp — hai chỗ phải trùng nhau. */
+  --oc-inset: 20px;
+  --oc-inset-2: 28px;
+}
+
+body {
+  background-color: rgb(var(--cx-page-bg-rgb));
+}
+
+#main-card {
+  background-color: rgb(var(--cx-card-bg-rgb));
+}
+
+/* ── Ba lớp ngữ nghĩa của mẫu ──────────────────────────────────────────────
+   .cx-h và .cx-t đặt CẢ font-family → đừng gắn chúng lên thẻ <i> của Font
+   Awesome, icon sẽ mất glyph. Tô màu icon thì dùng .cx-a / .cx-hd / .cx-bd. */
+
+.cx-h {
+  font-family: "Playfair Display", serif;
+}
+
+.cx-t {
+  font-family: "Montserrat", sans-serif;
+  font-weight: 300;
+  letter-spacing: 0.02em;
+}
+
+/* ── Khung vàng — nét nhận dạng của mẫu ──────────────────────────────────
+   Một thẻ .oc-frame phủ kín cha (cha phải `relative` + `overflow-hidden`):
+   ::before là nét ngoài, ::after là nét trong, hai <span> con là vệt chéo cắt
+   qua góc. Không bắt chuột nên đặt chồng lên nội dung cũng vô hại. */
+
+.oc-frame {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.oc-frame::before,
+.oc-frame::after {
+  content: "";
+  position: absolute;
+  border: 1px solid rgb(var(--cx-accent-rgb) / 0.75);
+}
+
+.oc-frame::before {
+  inset: var(--oc-inset);
+}
+
+.oc-frame::after {
+  inset: var(--oc-inset-2);
+  border-color: rgb(var(--cx-accent-rgb) / 0.3);
+}
+
+/* Vệt chéo: một đường dài quay 38°, neo ra ngoài mép nên hai đầu luôn bị cắt —
+   đó là dáng của tấm poster gốc. */
+
+.oc-diag {
+  position: absolute;
+  width: 1px;
+  height: 320px;
+  background: linear-gradient(
+    180deg,
+    rgb(var(--cx-accent-rgb) / 0) 0%,
+    rgb(var(--cx-accent-rgb) / 0.8) 40%,
+    rgb(var(--cx-accent-rgb) / 0.8) 60%,
+    rgb(var(--cx-accent-rgb) / 0) 100%
+  );
+}
+
+.oc-diag-tl {
+  top: -80px;
+  left: 48px;
+  transform: rotate(38deg);
+}
+
+.oc-diag-br {
+  bottom: -80px;
+  right: 48px;
+  transform: rotate(38deg);
+}
+
+/* ── Màn bìa ────────────────────────────────────────────────────────────
+   Cao ĐÚNG một khung nhìn (height, không chỉ min-height như .cx-screen-h): ô
+   ảnh giữa là `flex-1` nên chỉ co được khi thẻ cha có chiều cao XÁC ĐỊNH —
+   thiếu thì ảnh giữ nguyên tỉ lệ gốc và đẩy hai dải chữ ra ngoài màn.
+   Nhắm `#cover-screen > .oc-cover` để thắng rule min-height ở styles/_common.css. */
+
+#cover-screen > .oc-cover {
+  height: calc(var(--vh, 1vh) * 100);
+  height: calc(var(--vh, 1svh) * 100);
+}
+
+/* Trên màn rộng thiệp cao 932px nhưng không được vượt khung nhìn — #cover-screen
+   đã chừa 20px trên/dưới (md:py-5). */
+
+@media (min-width: 768px) {
+  #cover-screen > .oc-cover {
+    min-height: 0;
+    height: min(932px, calc(100dvh - 40px));
+  }
+}
+
+/* ── Hai đường ray dọc thân thiệp ────────────────────────────────────────
+   Khung của màn bìa chạy tiếp xuống thân thiệp thành hai vạch dọc suốt chiều
+   cao — ảnh tràn viền cố tình chui BÊN DƯỚI chúng, giống tấm poster gốc. */
+
+#main-card::before,
+#main-card::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 10;
+  width: 1px;
+  background-color: rgb(var(--cx-accent-rgb) / 0.45);
+  pointer-events: none;
+}
+
+#main-card::before {
+  left: var(--oc-inset);
+}
+
+#main-card::after {
+  right: var(--oc-inset);
+}
+
+/* ── Chữ ────────────────────────────────────────────────────────────────── */
+
+/* Chữ viết tay: font tự host, không chờ mạng. Chỉ dùng cho câu tiếng Anh trang
+   trí ("We're getting married!", "Thank You"). */
+
+.oc-script {
+  font-family: "TheNautigal", cursive;
+  line-height: 1;
+}
+
+/* Chữ hoa Didone khổ lớn — "SAVE THE DATE" và tên mục. */
+
+.oc-display {
+  font-family: "Playfair Display", serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  line-height: 0.95;
+}
+
+/* Nhãn nhỏ in hoa, giãn chữ rộng: chú thích của mọi mục. */
+
+.oc-eyebrow {
+  font-family: "Montserrat", sans-serif;
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+}
+
+/* Chữ ánh kim: dùng cho con số ngày cưới và monogram. */
+
+.oc-shine {
+  background: linear-gradient(
+    100deg,
+    rgb(var(--cx-shine-from-rgb)) 0%,
+    rgb(var(--cx-shine-mid-rgb)) 45%,
+    rgb(var(--cx-shine-to-rgb)) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ── Đầu mục ────────────────────────────────────────────────────────────── */
+
+/* Vạch mảnh nhạt dần hai đầu, viên kim cương ở giữa. Dùng cả ở đầu mục lẫn
+   chỗ cần ngăn khối. */
+
+.oc-hair {
+  position: relative;
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    rgb(var(--cx-accent-rgb) / 0) 0%,
+    rgb(var(--cx-accent-rgb) / 0.7) 50%,
+    rgb(var(--cx-accent-rgb) / 0) 100%
+  );
+}
+
+.oc-hair::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 4px;
+  height: 4px;
+  background-color: rgb(var(--cx-accent-rgb));
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+/* ── Khối viền kép ──────────────────────────────────────────────────────── */
+
+/* Ô nội dung đóng khung bằng hai nét vàng lồng nhau (thư mời, tiệc cưới). */
+
+.oc-box {
+  position: relative;
+  border: 1px solid rgb(var(--cx-line-rgb));
+  background-color: rgb(var(--cx-panel-rgb));
+}
+
+.oc-box::before {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border: 1px solid rgb(var(--cx-accent-rgb) / 0.28);
+  pointer-events: none;
+}
+
+/* ── Ảnh ────────────────────────────────────────────────────────────────── */
+
+/* Màn phủ đen từ đáy ảnh lên, để chữ ngà đặt đè lên ảnh vẫn đọc được. */
+
+.oc-veil {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgb(var(--cx-scrim-rgb) / 0) 45%,
+    rgb(var(--cx-scrim-rgb) / 0.72) 100%
+  );
+  pointer-events: none;
+}
+
+/* Chữ khổ lớn cắt ngang mép dưới của ảnh — nửa trên nằm trên ảnh, nửa dưới rơi
+   xuống dải đen. Giá trị âm phải khớp với cỡ chữ, đổi cỡ thì đổi cả hai. */
+
+.oc-cut {
+  margin-top: -24px;
+}
+
+/* Chân dung nhà trai/nhà gái: khung vòm, có một nét vàng lệch ra sau làm bóng. */
+
+.oc-portrait {
+  position: relative;
+  border-radius: 999px 999px 4px 4px;
+  overflow: hidden;
+
+  /* renderCoupleInfo() gọi setImageWithRing() nên THẺ CHA nhận `ring-white/80`.
+     Trắng thì chói trên nền đen — đổi vòng sáng đó về vàng trầm. */
+  --tw-ring-color: rgb(var(--cx-line-rgb));
+}
+
+.oc-portrait-frame {
+  position: absolute;
+  inset: 8px -8px -8px 8px;
+  border: 1px solid rgb(var(--cx-accent-rgb) / 0.5);
+  border-radius: 999px 999px 4px 4px;
+  pointer-events: none;
+}
+
+/* ── Album ảnh ──────────────────────────────────────────────────────────── */
+
+/* Dải ảnh cuộn ngang có điểm dừng. Thanh cuộn giấu đi vì đã có số đếm dẫn đường. */
+
+.oc-strip {
+  position: relative; /* mốc cho offsetLeft mà _syncGalleryCounter() đo */
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.oc-strip::-webkit-scrollbar {
+  display: none;
+}
+
+.oc-shot {
+  position: relative;
+  flex: 0 0 auto;
+  width: 216px;
+  aspect-ratio: 3 / 4;
+  scroll-snap-align: center;
+  overflow: hidden;
+  cursor: pointer;
+  background-color: rgb(var(--cx-surface-rgb));
+}
+
+.oc-shot img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Nét vàng lùi vào trong ảnh — cùng ngôn ngữ với khung ngoài của thiệp. */
+
+.oc-shot::after {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  border: 1px solid rgb(var(--cx-on-image-rgb) / 0.35);
+  pointer-events: none;
+}
+
+.oc-shot-no {
+  position: absolute;
+  left: 16px;
+  bottom: 12px;
+  z-index: 2;
+  font-family: "Playfair Display", serif;
+  font-size: 20px;
+  color: rgb(var(--cx-on-image-rgb));
+  text-shadow: 0 1px 6px rgb(var(--cx-scrim-rgb) / 0.6);
+}
+
+/* ── Nút ────────────────────────────────────────────────────────────────── */
+
+/* <x-button variant="bare"> đem theo rounded-full; mẫu này cạnh vuông nên mọi
+   nút phải mang thêm class này (đứng sau trong bảng nạp nên thắng). */
+
+.oc-btn {
+  border-radius: 0;
+}
+
+/* Nút xác nhận tham dự đang chọn: nền vàng đặc, chữ đen. */
+
+#btn-attend.btn-selected,
+#btn-decline.btn-selected {
+  background-color: rgb(var(--cx-accent-rgb));
+  border-color: rgb(var(--cx-accent-rgb));
+}
+
+/* ── Chỉnh phần DÙNG CHUNG cho nền tối ───────────────────────────────────
+   Chấm mốc của dòng thời gian (CX_TL_DOT ở render-helper.js) viền trắng cứng —
+   trên nền đen thành một vòng sáng lạc lõng. Trả nó về đúng màu nền thiệp. */
+
+#timeline-list-render .border-white,
+#love-story-list .border-white {
+  border-color: rgb(var(--cx-card-bg-rgb));
+}
