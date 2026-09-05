@@ -25,6 +25,22 @@
 }
 
 @media (max-width: 767px) {
+  /* Đang bám tay khi vuốt tay nắm: chạy theo biến px do JS ghi, tắt hiệu ứng
+     trượt cho khỏi chạy sau ngón. */
+  #theme-controls.cx-ctrl-slide {
+    transform: translateY(var(--cx-ctrl-off, 0px));
+    transition: none;
+  }
+
+  /* Vuốt xuống hết cỡ = thu gọn, chỉ chừa lại vạch kéo. 28px phải khớp CTRL_PEEK
+     trong invitation-setup/js/05-theme-panel.js. Tính theo % nên tự đúng khi bảng
+     đổi chiều cao, không phải đo lại. */
+  #theme-controls.cx-ctrl-collapsed {
+    transform: translateY(calc(100% - 28px));
+  }
+
+  /* Khai SAU hai cái trên (cùng độ đặc hiệu) để lúc đang kéo thứ gì trên thiệp
+     thì việc dọn thanh chỉnh đi luôn thắng. */
   #theme-controls.cx-ctrl-away {
     transform: translateY(100%);
     opacity: 0;
