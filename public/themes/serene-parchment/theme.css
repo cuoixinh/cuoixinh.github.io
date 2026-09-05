@@ -195,6 +195,11 @@ body {
 #cover-screen > .sp-cover {
   height: calc(var(--vh, 1vh) * 100);
   height: calc(var(--vh, 1svh) * 100);
+  /* Lề phải khai ở ĐÂY chứ không phải bằng class Tailwind trên thẻ: _common.css
+     có `#cover-screen > div { padding-top: env(safe-area-inset-top) }` — độ đặc
+     hiệu (1,0,1) cao hơn `.pt-16` (0,1,0) nên sẽ đè mất, đầu chữ "Thiệp mời"
+     bị cắt cụt ở mép trên. Cộng thêm safe-area để tai thỏ không che. */
+  padding: calc(64px + env(safe-area-inset-top)) 36px 36px;
 }
 
 @media (min-width: 768px) {
@@ -204,34 +209,15 @@ body {
   }
 }
 
-/* Ảnh cưới ở nửa dưới màn bìa loang dần vào giấy, để tấm ảnh trông như được in
-   thẳng lên tờ thư chứ không phải dán đè lên. Nhoè bằng MASK chứ không phải một
-   lớp phủ màu: nền màn bìa là dải chuyển màu 135°, phủ màu phẳng lên trên là lộ
-   ngay một vệt ngang chỗ giáp. Mask chỉ dùng kênh alpha nên #000 ở đây không
-   phải màu nằm ngoài bộ token. */
-
-.sp-cover-photo {
-  -webkit-mask-image: linear-gradient(
-    180deg,
-    rgb(0 0 0 / 0) 0px,
-    rgb(0 0 0 / 0.5) 56px,
-    rgb(0 0 0) 132px
-  );
-  mask-image: linear-gradient(
-    180deg,
-    rgb(0 0 0 / 0) 0px,
-    rgb(0 0 0 / 0.5) 56px,
-    rgb(0 0 0) 132px
-  );
-}
-
 /* ── Con dấu sáp (nút mở thiệp) ────────────────────────────────────────────
    Bán kính bốn góc lệch nhau cho giống giọt sáp bị ép, không tròn như nút.
    Đè lên rounded-full mà variant="bare" của <x-button> mang sẵn. */
 
 .sp-seal {
-  width: 88px;
-  height: 88px;
+  /* Đủ rộng cho hai chữ "Mở thiệp" nằm gọn trong vòng khắc — chữ lồng hai ký
+     tự thì 88px là vừa, cả chữ thì chạm vòng. */
+  width: 96px;
+  height: 96px;
   border-radius: 47% 53% 52% 48% / 51% 47% 53% 49%;
   background:
     radial-gradient(
@@ -259,54 +245,99 @@ body {
 }
 
 /* ── Mép giấy xé ───────────────────────────────────────────────────────────
-   Dải giấy đè lên ảnh ở màn Mở đầu. Các đỉnh cao thấp so le tạo vết xé; cắt
-   bằng clip-path nên không cần ảnh nền, và giấy vẫn nhận được nền loang. */
+   Mép trên tờ ghi chú ở màn Mở đầu. Muốn ra VẾT XÉ chứ không phải răng cưa của
+   con tem thì hai thứ phải cùng lệch: biên độ (chỗ 3px, chỗ 20px — gom thành
+   vài chỗ "cắn" sâu xen giữa những đoạn nông) VÀ khoảng cách các đỉnh (1,5%
+   đến 4,5%, có cả đoạn gần bằng nhau tạo mặt phẳng). Đều đặn ở một trong hai
+   là mắt nhận ra ngay hoa văn lặp.
+
+   Cắt bằng clip-path nên không cần ảnh nền — nhớ rằng nó cắt cả box-shadow,
+   bóng phải để ở .sp-pin. */
 
 .sp-torn {
   clip-path: polygon(
-    0% 13px,
-    3% 6px,
-    6% 12px,
-    9% 5px,
-    12% 11px,
-    15% 6px,
-    18% 13px,
-    21% 8px,
-    24% 4px,
-    27% 12px,
-    30% 7px,
-    33% 13px,
-    36% 6px,
-    39% 11px,
-    42% 5px,
-    45% 12px,
-    48% 8px,
-    51% 14px,
-    54% 6px,
+    0% 9px,
+    2% 5px,
+    3.5% 6px,
+    6% 14px,
+    7.5% 11px,
+    11% 13px,
+    13% 4px,
+    14.5% 5px,
+    19% 8px,
+    21% 18px,
+    22.5% 15px,
+    26% 17px,
+    28% 7px,
+    31% 9px,
+    33.5% 3px,
+    38% 6px,
+    40% 16px,
+    41.5% 13px,
+    45% 15px,
+    48% 6px,
+    50% 8px,
+    53% 4px,
     57% 11px,
-    60% 7px,
-    63% 13px,
-    66% 5px,
-    69% 12px,
-    72% 8px,
-    75% 14px,
-    78% 6px,
-    81% 11px,
-    84% 7px,
-    87% 13px,
-    90% 5px,
-    93% 12px,
-    96% 7px,
-    100% 12px,
+    59% 20px,
+    60.5% 17px,
+    64% 19px,
+    67% 8px,
+    69% 10px,
+    72% 5px,
+    76% 7px,
+    78% 17px,
+    79.5% 14px,
+    83% 16px,
+    86% 6px,
+    88% 9px,
+    91% 4px,
+    95% 8px,
+    97% 13px,
+    100% 10px,
     100% 100%,
     0% 100%
   );
 }
 
-/* Nền giấy cho dải đè lên ảnh — cùng màu thân thiệp nên chỗ nối liền mạch. */
+/* Nền giấy cho tờ ghi chú — cùng màu thân thiệp nên chỗ nối liền mạch. Dải sáng
+   mỏng ở đỉnh là lớp sợi giấy lộ ra khi xé: giấy thật bao giờ cũng bợt màu dọc
+   theo vết xé. */
 
 .sp-sheet {
   background-color: rgb(var(--cx-card-bg-rgb));
+  background-image: linear-gradient(
+    180deg,
+    rgb(var(--cx-panel-rgb)) 0,
+    rgb(var(--cx-panel-rgb) / 0) 26px
+  );
+}
+
+/* ── Hạt nhám của giấy ─────────────────────────────────────────────────────
+   Lớp phủ hạt sinh bằng feTurbulence nhúng thẳng vào CSS dạng data: URI (không
+   thêm file, không thêm request). feColorMatrix bóp RGB về 0 và chỉ giữ kênh
+   alpha của nhiễu → hạt là những chấm đen mờ đậm nhạt khác nhau, làm sẫm ngẫu
+   nhiên đúng màu giấy đang có bên dưới. Đây là dùng #000 theo kiểu KÊNH ALPHA
+   giống mask-image, không phải một màu nằm ngoài bộ token.
+
+   z-index: -1 để hạt nằm dưới chữ (chữ vẫn sắc nét) nhưng trên nền giấy;
+   isolation ép thẻ tự tạo ngữ cảnh chồng lớp, nếu không lớp âm này tụt xuống
+   dưới cả nền của thẻ cha. */
+
+.sp-grain {
+  position: relative;
+  isolation: isolate;
+}
+
+.sp-grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.1;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23g)'/%3E%3C/svg%3E");
+  background-size: 160px 160px;
 }
 
 /* Ảnh cưới ở màn Mở đầu sáng tối tuỳ tấm; tối nhẹ phần đỉnh để dòng chữ tay
@@ -319,6 +350,17 @@ body {
     rgb(var(--cx-scrim-rgb) / 0.18) 55%,
     rgb(var(--cx-scrim-rgb) / 0) 100%
   );
+}
+
+/* Thẻ BỌC của tờ ghi chú ghim trên ảnh ở màn Mở đầu. Bóng đổ phải nằm ở đây
+   bằng filter: drop-shadow chứ không phải box-shadow của chính tờ giấy:
+   clip-path của .sp-torn cắt luôn cả box-shadow, tờ giấy sẽ dẹt lép trên nền
+   ảnh. drop-shadow bám theo hình đã cắt nên mép xé cũng có bóng. Mẩu băng dính
+   phải nằm NGOÀI thẻ bị cắt, tức là con của thẻ bọc này. */
+
+.sp-pin {
+  filter: drop-shadow(0 10px 18px rgb(var(--cx-shadow-rgb) / 0.35));
+  transform: rotate(-0.8deg);
 }
 
 /* Khối cao trọn một màn (Mở đầu). Xem chú thích ở .cx-screen-h — luôn qua --vh,
@@ -392,17 +434,25 @@ body {
   transform: rotate(-2deg);
 }
 
+.sp-tape-br {
+  bottom: -8px;
+  right: -12px;
+  transform: rotate(-28deg);
+}
+
 /* ── Dấu bưu điện ──────────────────────────────────────────────────────────
    Vòng tròn mực đỏ đóng lệch ở góc thẻ tiệc, in ngày tổ chức. Mực dấu bao giờ
    cũng ăn không đều nên để opacity dưới 1. */
 
 .sp-postmark {
+  --sp-pm: 76px;
+
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 76px;
-  height: 76px;
+  width: var(--sp-pm);
+  height: var(--sp-pm);
   border: 2px solid rgb(var(--cx-deco-2-rgb) / 0.55);
   border-radius: 50%;
   color: rgb(var(--cx-deco-2-rgb) / 0.72);
