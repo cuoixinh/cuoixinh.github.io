@@ -740,14 +740,44 @@ input.flatpickr-input[readonly] {
 }
 
 .cx-sheet-fade {
-  @apply pointer-events-none absolute inset-x-0 bottom-0 block h-10
-         transition-opacity duration-150;
+  @apply pointer-events-none absolute inset-x-0 bottom-0 flex h-10 items-end
+         justify-center pb-1 text-gray-400 transition-opacity duration-150;
 
+  /* svg.lucide ăn theo font-size của cha (xem build.css) → cỡ mũi tên đặt ở đây. */
+  font-size: 16px;
   background: linear-gradient(
     to top,
     rgb(var(--white-rgb)) 15%,
     rgb(var(--white-rgb) / 0)
   );
+}
+
+/* Nhấp nhô nhẹ rồi nghỉ: đủ để mắt bắt được là còn nội dung phía dưới, không
+   nhảy liên hồi thành ra sốt ruột. */
+.cx-sheet-fade svg {
+  animation: cx-sheet-nudge 2s ease-in-out infinite;
+}
+
+@keyframes cx-sheet-nudge {
+  0%,
+  55%,
+  100% {
+    transform: translateY(0);
+  }
+
+  70% {
+    transform: translateY(3px);
+  }
+
+  85% {
+    transform: translateY(1px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cx-sheet-fade svg {
+    animation: none;
+  }
 }
 
 .cx-sheet-fade.is-end {

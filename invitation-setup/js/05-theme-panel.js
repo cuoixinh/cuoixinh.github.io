@@ -295,13 +295,16 @@ function _initThemePanel() {
   _syncPaletteStrength();
 
   // Mở tab Giao diện → về nhóm chỉnh chung, đóng bảng chỉnh 1 dòng / thêm văn
-  // bản / trang trí
+  // bản / trang trí. Phải tự bật lại nhóm chỉnh chung: closeLineEditor() thoát
+  // sớm khi bảng chỉnh dòng đang đóng, nên rời tab lúc đang mở một bảng con là
+  // quay lại thấy bảng trống.
   document.getElementById("theme-addtext-panel")?.classList.add("hidden");
   document.getElementById("theme-decor-panel")?.classList.add("hidden");
   document.getElementById("theme-elements-panel")?.classList.add("hidden");
   document.getElementById("theme-gift-panel")?.classList.add("hidden");
   _hideElementEditor();
   closeLineEditor();
+  document.getElementById("theme-main-controls")?.classList.remove("hidden");
   _initEditHint();
 
   // Icon (reset) trong thanh chỉnh

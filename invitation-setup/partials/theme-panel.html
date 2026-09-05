@@ -6,7 +6,7 @@
   <!-- Cụm preview + controls: mobile xếp dọc full; md+ xếp ngang full-width để
        iframe đủ rộng cho thiệp nở tới max (768px). Controls là card ~1/4 nằm
        NGOÀI bên phải, cách preview đúng thanh kéo (16px). -->
-  <div class="flex-1 min-h-0 w-full flex flex-col md:flex-row md:p-4">
+  <div class="relative flex-1 min-h-0 w-full flex flex-col md:flex-row md:p-4">
     <!-- Preview thiệp (cập nhật trực tiếp khi chỉnh) -->
     <iframe
       id="theme-preview-iframe"
@@ -31,10 +31,14 @@
     </div>
 
     <!-- Thanh chỉnh giao diện: mobile = thanh dưới full (như navbar); md+ = card
-             ~1/4 bên phải, kéo rộng được theo --theme-ctrl-w (styles/_setup.css) -->
+             ~1/4 bên phải, kéo rộng được theo --theme-ctrl-w (styles/_setup.css).
+             Ở mobile thanh này NỔI (absolute) đè lên thiệp chứ không chiếm chỗ
+             trong luồng: iframe cao trọn khung nên thiệp giữ đúng tỉ lệ điện
+             thoại, không bị bóp lùn theo chiều cao thanh chỉnh. Từ md+ trả về
+             static để nằm cạnh preview như cột phải. -->
     <div
       id="theme-controls"
-      class="shrink-0 bg-white border-t border-gray-200 shadow-[0_-4px_16px_rgb(var(--scrim-rgb)/0.12)] md:overflow-y-auto md:rounded-3xl md:border md:border-gray-100 md:shadow-[0_4px_18px_rgb(var(--scrim-rgb)/0.07)]"
+      class="absolute inset-x-0 bottom-0 z-10 md:static md:z-auto shrink-0 bg-white border-t border-gray-200 shadow-[0_-4px_16px_rgb(var(--scrim-rgb)/0.12)] md:overflow-y-auto md:rounded-3xl md:border md:border-gray-100 md:shadow-[0_4px_18px_rgb(var(--scrim-rgb)/0.07)]"
     >
       <!-- Đầu bảng + vùng cuộn DÙNG CHUNG cho mọi bảng (chung, chỉnh chữ, thêm
            văn bản, trang trí, thành phần, điều chỉnh): nhờ vậy bảng nào cũng cao
@@ -625,7 +629,11 @@
           </div>
           <!-- /nội dung padding controls -->
         </div>
-        <span class="cx-sheet-fade" aria-hidden="true"></span>
+        <!-- Dải mờ + mũi tên nhấp nhô báo "còn nội dung phía dưới"; cả cụm tắt
+             khi đã cuộn tới đáy (.is-end) và ở md+ (cột chỉnh tự cuộn). -->
+        <span class="cx-sheet-fade" aria-hidden="true">
+          <i data-lucide="chevrons-down"></i>
+        </span>
       </div>
       <!-- /vùng cuộn chung -->
     </div>
