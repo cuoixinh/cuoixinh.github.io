@@ -71,6 +71,8 @@
     "../core/components/progress.js",
     "../core/helpers/element-color-enum.js",
     "../core/helpers/element-helper.js",
+    // Danh mục mẫu hộp mừng cưới cho bảng chọn ở tab Giao diện.
+    "../core/helpers/gift-box-helper.js",
     "../core/helpers/text-preset-helper.js",
     "../core/helpers/theme-setting-helper.js",
     // Danh mục bộ màu — phải SAU theme-setting-helper (đọc CX_PALETTE_KEYS ở đó).

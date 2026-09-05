@@ -294,11 +294,14 @@
           <div id="gallery-grid" class="grid grid-cols-2 gap-3"></div>
         </section>
 
-        <!-- ═══ MỤC: Hộp mừng cưới (enable_gift) ════════════════════════════ -->
+        <!-- ═══ MỤC: Hộp mừng cưới (enable_gift) ════════════════════════════
+             data-cx-gift="qr" = khối bị hộp quà che (khách chạm hộp mới thấy);
+             mẫu nào có hộp/phong bao riêng thì đánh thêm data-cx-gift="box" lên
+             thẻ mở nó — core/helpers/gift-box-helper.js đọc hai dấu này. -->
         <section id="section-gift" class="flex flex-col gap-6">
           <h2 class="cx-h text-[20px] tracking-[3px] uppercase">Hộp Mừng Cưới</h2>
 
-          <div class="grid grid-cols-2 gap-4">
+          <div data-cx-gift="qr" class="grid grid-cols-2 gap-4">
             <!-- Chú rể -->
             <div class="flex flex-col gap-2 items-center">
               <div class="cx-t text-[11px]">Chú Rể · <span id="groom-bank-label">----------</span></div>
@@ -446,6 +449,7 @@
     <!-- text-preset-helper phải nạp TRƯỚC theme-setting-helper -->
     <script src="../../../core/helpers/text-preset-helper.js"></script>
     <script src="../../../core/helpers/theme-setting-helper.js"></script>
+    <script src="../../../core/helpers/gift-box-helper.js"></script>
     <script src="../../../core/helpers/qr-mobile-helper.js"></script>
     <!-- Cuộn tới mục đang chỉnh khi xem trực tiếp ở trang Thiết lập -->
     <script src="../../../core/helpers/preview-focus-helper.js"></script>

@@ -233,6 +233,8 @@ GitHub Pages chạy Jekyll nên đường dẫn kiểu đó không được publ
   `tailwind.themes.config.js` + `styles/_colors.css` — cách tránh: viết CSS thuần trong
   `theme.css`.
 - Nên có: text thuần (không lồng icon) ở phần cho phép sửa.
+- Mục Hộp mừng cưới: khối chứa mã QR đánh dấu `data-cx-gift="qr"`, hộp/phong bao riêng
+  của mẫu (nếu có) đánh dấu `data-cx-gift="box"` — xem mục "Hộp mừng cưới" ở dưới.
 
 **Thứ tự tải ảnh — mọi thẻ `<img>` phải khai rõ.** Ảnh thiệp chỉ nhận src SAU khi API trả dữ
 liệu, nên trình duyệt không thấy chúng lúc quét HTML và không đoán được tấm nào quan trọng:
@@ -360,6 +362,14 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   50 trở lên chốt không đụng gì.
   `check:palette-contrast` cắt thẳng đoạn `[strength-math]` trong `theme-setting-helper.js`
   ra quét cả 21 mức: đổi phép tính thì đừng đổi tên hai dòng mốc đó.
+- **Hộp mừng cưới:** danh mục mẫu + runtime ở `core/helpers/gift-box-helper.js`, bảng chọn
+  ở `05-theme-panel.js`. Lưu ở `theme_setting.gift_box` (rỗng = mặc định của mẫu, `"none"` =
+  bỏ hộp, còn lại là id mẫu) nên **không cần changelog DB**; thêm mẫu = bỏ ảnh nền trong
+  suốt vào `assets/gifts/` rồi thêm một mục vào danh mục, **id đã phát hành thì đừng đổi**.
+  Helper đọc `data-cx-gift` của mẫu thiệp: che khối `"qr"`, còn hộp `"box"` sẵn có của mẫu
+  thì mở bằng chính cú bấm mà mẫu chờ (không đoán class trạng thái). Mẫu quên đánh dấu thì
+  helper dò khối chứa `#groom-qr-img`. Đổi chế độ là đổi cấu trúc mục → trang Thiết lập nạp
+  lại khung xem trước chứ không áp nóng.
 - **Mẫu văn bản (preset):** danh mục + CSS ở `core/helpers/text-preset-helper.js` (nạp TRƯỚC
   `theme-setting-helper.js`), thêm mẫu chỉ sửa file đó. Lưu trong `custom_blocks` dạng
   `{type:"preset", preset, parts}`, id thật của part là `<blockId>__<key>`. Cỡ chữ viết bằng

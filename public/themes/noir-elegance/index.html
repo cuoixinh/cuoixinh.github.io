@@ -339,7 +339,7 @@
 
           <!-- Hộp quà: chạm mới mở ra hai mã QR. Bóng đổ là thẻ RIÊNG nằm
                ngoài phần dịch chuyển nên hộp nhấc lên mà bóng vẫn ở đáy. -->
-          <div id="gift-box" class="flex flex-col items-center gap-3">
+          <div data-cx-gift="box" id="gift-box" class="flex flex-col items-center gap-3">
             <x-button
               variant="bare"
               onclick="neOpenGift()"
@@ -356,7 +356,7 @@
             <div class="ne-eyebrow !text-[9px]">Chạm để mở</div>
           </div>
 
-          <div id="gift-qr" class="hidden grid grid-cols-2 gap-3">
+          <div data-cx-gift="qr" id="gift-qr" class="hidden grid grid-cols-2 gap-3">
             <!-- Chú rể -->
             <div class="ne-frame flex flex-col gap-2 items-center px-3 py-5">
               <div class="ne-eyebrow !text-[9px]">Chú Rể</div>
@@ -506,6 +506,7 @@
     <!-- text-preset-helper phải nạp TRƯỚC theme-setting-helper -->
     <script src="../../../core/helpers/text-preset-helper.js"></script>
     <script src="../../../core/helpers/theme-setting-helper.js"></script>
+    <script src="../../../core/helpers/gift-box-helper.js"></script>
     <script src="../../../core/helpers/qr-mobile-helper.js"></script>
     <!-- Cuộn tới mục đang chỉnh khi xem trực tiếp ở trang Thiết lập -->
     <script src="../../../core/helpers/preview-focus-helper.js"></script>

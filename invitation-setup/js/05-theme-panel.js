@@ -296,6 +296,7 @@ function _initThemePanel() {
   document.getElementById("theme-addtext-panel")?.classList.add("hidden");
   document.getElementById("theme-decor-panel")?.classList.add("hidden");
   document.getElementById("theme-elements-panel")?.classList.add("hidden");
+  document.getElementById("theme-gift-panel")?.classList.add("hidden");
   _hideElementEditor();
   closeLineEditor();
   _initEditHint();
@@ -305,19 +306,15 @@ function _initThemePanel() {
 }
 
 // Bỏ HẾT tuỳ chỉnh của thiệp: bộ màu, chỉnh riêng từng dòng chữ, khối văn bản,
-// hoạ tiết, thành phần. Nạp lại iframe là cách chắc chắn nhất để gỡ mọi thứ đã
+// hoạ tiết, thành phần, hộp mừng cưới. Nạp lại iframe là cách chắc chắn nhất để gỡ mọi thứ đã
 // bơm vào — không phải gỡ ngược từng loại một.
 function resetThemeSetting() {
   _themeSetting = {};
   _initThemePanel();
   _setDirty(true, "theme");
 
-  const iframe = document.getElementById("theme-preview-iframe");
-  if (iframe && iframe.src) {
-    // Reload iframe để xoá hết override, quay về mặc định của theme
-    _savePreviewData();
-    iframe.src = iframe.src;
-  }
+  // Reload iframe để xoá hết override, quay về mặc định của theme
+  _reloadThemeFrame();
 }
 
 window.resetThemeSetting = resetThemeSetting;
@@ -429,6 +426,7 @@ function openAddTextPanel() {
   document.getElementById("theme-main-controls")?.classList.add("hidden");
   document.getElementById("theme-edit-hint")?.classList.add("hidden");
   document.getElementById("theme-elements-panel")?.classList.add("hidden");
+  document.getElementById("theme-gift-panel")?.classList.add("hidden");
   _hideElementEditor();
   document.getElementById("theme-addtext-panel")?.classList.remove("hidden");
   _resetCtrlScroll();
@@ -651,6 +649,7 @@ function openDecorPanel() {
   document.getElementById("theme-main-controls")?.classList.add("hidden");
   document.getElementById("theme-edit-hint")?.classList.add("hidden");
   document.getElementById("theme-elements-panel")?.classList.add("hidden");
+  document.getElementById("theme-gift-panel")?.classList.add("hidden");
   _hideElementEditor();
   document.getElementById("theme-decor-panel")?.classList.remove("hidden");
   _resetCtrlScroll();
@@ -745,6 +744,7 @@ function openElementsPanel() {
   document.getElementById("theme-line-editor")?.classList.add("hidden");
   document.getElementById("theme-addtext-panel")?.classList.add("hidden");
   document.getElementById("theme-decor-panel")?.classList.add("hidden");
+  document.getElementById("theme-gift-panel")?.classList.add("hidden");
   _hideElementEditor();
   document.getElementById("theme-main-controls")?.classList.add("hidden");
   document.getElementById("theme-edit-hint")?.classList.add("hidden");
@@ -916,6 +916,136 @@ function _addElement(elementId, variantId, x, y) {
   }, 150);
 }
 
+// ─── Hộp mừng cưới: chọn kiểu che phần mã QR ────────────────────────────────
+// Một lưới gồm hai ô cố định — "Mặc định" (không lưu gì, mẫu tự lo phần này) và
+// "Không hộp" — rồi tới từng mẫu hộp trong window.CX_GIFT_BOXES
+// (core/helpers/gift-box-helper.js) nên thêm mẫu không phải sửa file này.
+// Lưu ở _themeSetting.gift_box. Đổi chế độ là đổi CẤU TRÚC mục (giấu/thả lại
+// khối QR) chứ không phải màu mè, nên nạp lại khung xem trước thay vì áp nóng.
+
+function openGiftPanel() {
+  document.getElementById("theme-line-editor")?.classList.add("hidden");
+  document.getElementById("theme-addtext-panel")?.classList.add("hidden");
+  document.getElementById("theme-decor-panel")?.classList.add("hidden");
+  document.getElementById("theme-elements-panel")?.classList.add("hidden");
+  _hideElementEditor();
+  document.getElementById("theme-main-controls")?.classList.add("hidden");
+  document.getElementById("theme-edit-hint")?.classList.add("hidden");
+  document.getElementById("theme-gift-panel")?.classList.remove("hidden");
+  _resetCtrlScroll();
+  _renderGiftPalette();
+  if (window.lucide) lucide.createIcons();
+}
+window.openGiftPanel = openGiftPanel;
+
+function closeGiftPanel() {
+  document.getElementById("theme-gift-panel")?.classList.add("hidden");
+  document.getElementById("theme-main-controls")?.classList.remove("hidden");
+  _resetCtrlScroll();
+  _initEditHint();
+}
+window.closeGiftPanel = closeGiftPanel;
+
+// `id` chính là giá trị lưu: rỗng = mặc định của mẫu, "none" = bỏ hộp.
+const GIFT_FIXED = [
+  {
+    id: "",
+    name: "Mặc định",
+    icon: "sparkles",
+    desc: "Giữ nguyên như mẫu thiệp",
+  },
+  {
+    id: "none",
+    name: "Không hộp",
+    icon: "qr-code",
+    desc: "Hiện thẳng mã QR, không che",
+  },
+];
+
+function _giftBoxId() {
+  const v = _themeSetting.gift_box;
+  return typeof v === "string" ? v : "";
+}
+
+function _giftTile(id, title) {
+  const btn = document.createElement("button");
+  btn.type = "button";
+  // cx-pal-item-pick: ô này BẤM để chọn chứ không kéo như hoạ tiết/thành phần.
+  btn.className = "cx-pal-item cx-pal-item-pick";
+  btn.dataset.giftId = id;
+  btn.title = title;
+  btn.addEventListener("click", () => pickGiftBox(id));
+  return btn;
+}
+
+function _renderGiftPalette() {
+  const grid = document.getElementById("cx-gift-palette");
+  if (!grid) return;
+  if (grid.dataset.rendered !== "1") {
+    grid.textContent = "";
+    GIFT_FIXED.forEach((o) => {
+      const btn = _giftTile(o.id, o.name + " — " + o.desc);
+      const ico = document.createElement("span");
+      ico.className = "cx-pal-ico";
+      const i = document.createElement("i");
+      i.setAttribute("data-lucide", o.icon);
+      ico.appendChild(i);
+      const cap = document.createElement("span");
+      cap.className = "cx-pal-txt";
+      cap.textContent = o.name;
+      btn.append(ico, cap);
+      grid.appendChild(btn);
+    });
+    (window.CX_GIFT_BOXES || []).forEach((b) => {
+      const btn = _giftTile(b.id, b.name + (b.desc ? " — " + b.desc : ""));
+      btn.classList.add("cx-pal-item-img");
+      const img = document.createElement("img");
+      img.src = b.src;
+      img.alt = b.name;
+      img.loading = "lazy";
+      btn.appendChild(img);
+      grid.appendChild(btn);
+    });
+    grid.dataset.rendered = "1";
+  }
+  _syncGiftTiles();
+}
+
+function _syncGiftTiles() {
+  const cur = _giftBoxId();
+  document
+    .querySelectorAll("#cx-gift-palette .cx-pal-item")
+    .forEach((b) => b.classList.toggle("is-on", (b.dataset.giftId || "") === cur));
+}
+
+function pickGiftBox(id) {
+  if (id) _themeSetting.gift_box = id;
+  else delete _themeSetting.gift_box;
+  _syncGiftTiles();
+  _setDirty(true, "theme");
+  _reloadThemeFrame("gift");
+}
+window.pickGiftBox = pickGiftBox;
+
+// Nạp lại khung xem trước rồi cuộn tới mục vừa đổi. Đợi thêm một nhịp vẽ: lúc
+// 'load' bắn, thiệp vẫn đang dựng nội dung nên chưa có gì để cuộn tới.
+function _reloadThemeFrame(focusKey) {
+  const iframe = document.getElementById("theme-preview-iframe");
+  if (!iframe || !iframe.src) return;
+  _savePreviewData();
+  if (focusKey)
+    iframe.addEventListener("load", function once() {
+      iframe.removeEventListener("load", once);
+      requestAnimationFrame(() =>
+        iframe.contentWindow?.postMessage(
+          { type: "cx-focus", key: focusKey },
+          "*",
+        ),
+      );
+    });
+  iframe.src = iframe.src;
+}
+
 // ─── Điều chỉnh THÀNH PHẦN đang chọn ────────────────────────────────────────
 // Runtime gửi 'cx-element-pick' khi vừa thả hoặc bấm vào thành phần trên thiệp
 // (giống 'cx-text-pick' của chữ). Mẫu và kích thước là phần chung cho mọi thành
@@ -942,6 +1072,7 @@ function openElementEditor(msg) {
   document.getElementById("theme-addtext-panel")?.classList.add("hidden");
   document.getElementById("theme-decor-panel")?.classList.add("hidden");
   document.getElementById("theme-elements-panel")?.classList.add("hidden");
+  document.getElementById("theme-gift-panel")?.classList.add("hidden");
   document.getElementById("theme-main-controls")?.classList.add("hidden");
   document.getElementById("theme-edit-hint")?.classList.add("hidden");
   document.getElementById("theme-element-editor")?.classList.remove("hidden");
@@ -1131,6 +1262,7 @@ function _openLineEditor(msg) {
   document.getElementById("theme-decor-panel")?.classList.add("hidden");
   document.getElementById("theme-edit-hint")?.classList.add("hidden");
   document.getElementById("theme-elements-panel")?.classList.add("hidden");
+  document.getElementById("theme-gift-panel")?.classList.add("hidden");
   _hideElementEditor();
   document.getElementById("theme-line-editor")?.classList.remove("hidden");
   _resetCtrlScroll();
@@ -1734,6 +1866,7 @@ function _updateSheetFade(body) {
 // Thêm bảng mới → thêm một dòng ở đây, khỏi đụng vào các hàm mở/đóng bảng.
 const CTRL_HEADS = [
   ["theme-element-editor", "cx-head-element-editor"],
+  ["theme-gift-panel", "cx-head-gift"],
   ["theme-elements-panel", "cx-head-elements"],
   ["theme-decor-panel", "cx-head-decor"],
   ["theme-addtext-panel", "cx-head-addtext"],

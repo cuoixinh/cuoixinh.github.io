@@ -483,7 +483,7 @@ input.flatpickr-input[readonly] {
   @apply w-auto px-2.5 text-[12px];
 }
 
-/* Ô mẫu ĐANG DÙNG trong bảng điều chỉnh thành phần */
+/* Ô mẫu ĐANG DÙNG (bảng điều chỉnh thành phần, bảng hộp mừng cưới) */
 .cx-pal-item.is-on {
   @apply border-rose-400 bg-[color:rgb(var(--setup-invalid-soft-rgb))];
 
@@ -539,7 +539,7 @@ input.flatpickr-input[readonly] {
 /* Thẻ chức năng "Thêm vào thiệp": card viền mảnh, tròn màu pastel + tên bên
    dưới. Mỗi thẻ tự chọn màu tròn bằng một lớp .cx-add-ico-* (viết trọn tên). */
 .cx-add-grid {
-  @apply grid grid-cols-3 gap-2 md:gap-3;
+  @apply grid grid-cols-2 gap-2 md:gap-3;
 }
 
 .cx-add-card {
@@ -579,6 +579,10 @@ input.flatpickr-input[readonly] {
 
 .cx-add-ico-green {
   @apply bg-emerald-50 text-emerald-500;
+}
+
+.cx-add-ico-amber {
+  @apply bg-amber-50 text-amber-500;
 }
 
 .cx-add-txt {
@@ -690,6 +694,12 @@ input.flatpickr-input[readonly] {
     0 8px,
     8px -8px,
     -8px 0;
+}
+
+/* Ô BẤM để chọn (hộp mừng cưới) — không kéo-thả nên đổi con trỏ cho đúng việc.
+   Phải đứng SAU .cx-pal-item: cùng độ đặc hiệu, rule dưới thắng. */
+.cx-pal-item-pick {
+  @apply cursor-pointer;
 }
 
 .cx-pal-item-img img {
