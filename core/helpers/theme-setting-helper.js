@@ -2528,6 +2528,57 @@ function _cxBlurCards(what) {
   if (what === "all" && _cxElActiveId) _cxElSetActive(null);
 }
 
+// Đang kéo thứ gì trên thiệp thì báo trang cha để nó dọn thanh chỉnh đi: ở mobile
+// thanh đó nổi đè lên đáy thiệp, kéo xuống dưới là mất dấu chỗ mình đang thả.
+// Bắt ở document pha CAPTURE, một chỗ cho cả năm thao tác kéo (khối văn bản, hoạ
+// tiết, thành phần và hai tay nắm xoay/phóng): chúng đều setPointerCapture, mà
+// capture chỉ đổi ĐÍCH của sự kiện chứ vẫn cho nó đi qua document. Nhờ vậy tin
+// "thả tay rồi" không phụ thuộc handler nào nhớ dọn — không có đường nào làm
+// thanh chỉnh kẹt ở trạng thái ẩn.
+if (typeof window !== "undefined" && window.top !== window) {
+  // Chạm để CHỌN cũng sinh pointermove lắt nhắt → phải rời chỗ quá ngần này mới
+  // tính là kéo, không thì mỗi lần bấm chọn thanh chỉnh lại chớp một cái.
+  const SLOP = 6;
+  let from = null; // điểm bấm xuống; null = cú bấm này không kéo được gì
+  let busy = false;
+
+  const tell = (on) => {
+    busy = on;
+    try {
+      parent.postMessage({ type: "cx-drag-busy", on }, "*");
+    } catch (e) {}
+  };
+
+  document.addEventListener(
+    "pointerdown",
+    (e) => {
+      // Tay nắm nằm TRONG chính hoạ tiết/thành phần (.cx-decor-h, .cx-el-h) nên
+      // hai selector kia đã phủ; .cx-cb-drag là tay nắm đổi chỗ khối văn bản.
+      const hit =
+        _isEditMode() && e.target?.closest?.(".cx-decor, .cx-el, .cx-cb-drag");
+      from = hit ? { x: e.clientX, y: e.clientY } : null;
+    },
+    true,
+  );
+
+  document.addEventListener(
+    "pointermove",
+    (e) => {
+      if (busy || !from) return;
+      if (Math.hypot(e.clientX - from.x, e.clientY - from.y) < SLOP) return;
+      tell(true);
+    },
+    true,
+  );
+
+  const drop = () => {
+    from = null;
+    if (busy) tell(false);
+  };
+  document.addEventListener("pointerup", drop, true);
+  document.addEventListener("pointercancel", drop, true);
+}
+
 // Trong iframe chỉnh (edit=1): nhận lệnh "thêm khối" từ trang cha.
 if (typeof window !== "undefined" && window.top !== window) {
   window.addEventListener("message", (ev) => {

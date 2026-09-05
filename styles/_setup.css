@@ -11,6 +11,33 @@
   --nav-h: 84px;
 }
 
+/* Kéo hoạ tiết / thành phần / khối văn bản trên thiệp thì thanh chỉnh trượt xuống
+   nhường chỗ, thả tay ra là trở lại (JS gắn class, xem cx-drag-busy ở
+   core/helpers/theme-setting-helper.js). CHỈ mobile: từ md+ thanh này là cột phải
+   nằm trong luồng, giấu nó đi thì iframe nở ra → thiệp đổi khổ ngay giữa lúc kéo,
+   mà toạ độ đang tính theo khổ đo lúc bấm xuống nên hoạ tiết sẽ nhảy chỗ; với lại
+   ở đó thanh không hề che thiệp. Chiều cao kéo tay nắm nằm ở max-height của
+   .cx-sheet-body nên transition transform ở đây không giẫm lên nó. */
+#theme-controls {
+  transition:
+    transform 0.16s ease,
+    opacity 0.16s ease;
+}
+
+@media (max-width: 767px) {
+  #theme-controls.cx-ctrl-away {
+    transform: translateY(100%);
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #theme-controls {
+    transition: none;
+  }
+}
+
 /* Cột chỉnh giao diện (#theme-controls) trên desktop — mọi thứ ở đây chỉ áp dụng
    từ md (>=768px). Rộng mặc định 1/4 cụm, kéo được: JS ghi --theme-ctrl-w (px),
    min/max kẹp ở đây. Đặt trong media query để inline var không ảnh hưởng mobile. */
