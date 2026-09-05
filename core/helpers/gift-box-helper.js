@@ -60,6 +60,19 @@
     return native.querySelector('button, [onclick], [role="button"]');
   }
 
+  // Đã bấm hộp gốc của mẫu chưa? Mẫu mở hộp MỘT CHIỀU nên đây là thứ duy nhất
+  // không tự trả về nguyên trạng được — trang Thiết lập phải nạp lại khung xem
+  // trước (xem listener ở cuối file).
+  let nativeOpened = false;
+
+  function openNative(native) {
+    const btn = opener(native);
+    if (!btn) return false;
+    btn.click();
+    nativeOpened = true;
+    return true;
+  }
+
   // Giấu tạm phần của mẫu: nhớ lại display cũ để trả về nguyên trạng lúc mở hộp.
   function veil(el) {
     if (!el || el.dataset.cxGbVeil) return;
@@ -96,11 +109,10 @@
       () => {
         wrap.style.display = "none";
         parts.forEach(unveil);
-        const nb = opener(native);
         // Mẫu có hộp riêng thì để hiệu ứng bung của nó chạy; mẫu không có thì
         // dùng hiệu ứng chung, không phần QR sẽ hiện đánh bụp một cái.
-        if (nb) nb.click();
-        else parts.forEach((el) => el.classList.add("cx-gb-in"));
+        if (!openNative(native))
+          parts.forEach((el) => el.classList.add("cx-gb-in"));
       },
       reduced() ? 0 : OPEN_MS,
     );
@@ -149,7 +161,7 @@
     const native = sec.querySelector('[data-cx-gift="box"]');
     if (mode === "none") {
       // Bỏ hộp: mở sẵn hộp của mẫu (nếu có) rồi giấu nó đi, còn lại mã QR.
-      opener(native)?.click();
+      openNative(native);
       veil(native);
       return;
     }
@@ -165,4 +177,19 @@
   window.CX_GIFT_BOXES = BOXES;
   window.cxGiftBox = boxOf;
   window.applyGiftBox = applyGiftBox;
+
+  // Trong khung xem trước của trang Thiết lập: đổi chế độ áp NGAY, không nạp lại
+  // cả khung (bảng chọn bên trang cha phải đứng yên để còn thử mẫu khác).
+  if (window.top === window) return;
+  window.addEventListener("message", (ev) => {
+    if (ev.source !== window.parent) return;
+    const d = ev.data;
+    if (!d || d.type !== "cx-gift-box") return;
+    // Về "Mặc định" sau khi đã bấm hộp gốc của mẫu là thứ duy nhất không lùi
+    // được — nhờ trang cha nạp lại. Không tự reload: file này chạy cả trên thiệp
+    // công khai, tự điều hướng là việc của trang, không phải của helper.
+    if (!d.value && nativeOpened)
+      window.parent.postMessage({ type: "cx-gift-reload" }, "*");
+    else applyGiftBox({ gift_box: d.value });
+  });
 })();

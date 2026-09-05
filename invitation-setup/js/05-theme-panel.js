@@ -32,7 +32,10 @@ function _watchThemeFrame() {
   iframe.addEventListener("load", () => {
     const before = _themeSwatchCache;
     const sw = _themeSwatches();
-    if (!sw || sw === before) return;
+    // So theo GIÁ TRỊ: mỗi lần nạp lại iframe sinh một mảng mới, so theo tham
+    // chiếu thì lần nạp nào cũng thành "đổi bảng màu" → dựng lại bảng chỉnh và
+    // đóng mất bảng con đang mở (Hộp mừng cưới…).
+    if (!sw || JSON.stringify(sw) === JSON.stringify(before)) return;
     // Coloris chỉ nhận swatches lúc khởi tạo → gọi lại để đổi bảng màu gợi ý.
     if (typeof Coloris !== "undefined") Coloris({ swatches: sw });
     _initThemePanel();
@@ -370,6 +373,10 @@ window.addEventListener("message", (ev) => {
     openElementEditor(d);
   } else if (d.type === "cx-element-close") {
     closeElementEditor();
+  } else if (d.type === "cx-gift-reload") {
+    // Hộp gốc của mẫu đã bị bấm mở, muốn về "Mặc định" thì chỉ còn cách dựng lại
+    // thiệp từ đầu (core/helpers/gift-box-helper.js).
+    _reloadThemeFrame("gift");
   } else if (d.type === "cx-text-size") {
     // Vừa chụm 2 ngón trên khối văn bản trong thiệp → cỡ chữ mới.
     _setTextSizeFromCard(d.selector, d.size);
@@ -920,8 +927,8 @@ function _addElement(elementId, variantId, x, y) {
 // Một lưới gồm hai ô cố định — "Mặc định" (không lưu gì, mẫu tự lo phần này) và
 // "Không hộp" — rồi tới từng mẫu hộp trong window.CX_GIFT_BOXES
 // (core/helpers/gift-box-helper.js) nên thêm mẫu không phải sửa file này.
-// Lưu ở _themeSetting.gift_box. Đổi chế độ là đổi CẤU TRÚC mục (giấu/thả lại
-// khối QR) chứ không phải màu mè, nên nạp lại khung xem trước thay vì áp nóng.
+// Lưu ở _themeSetting.gift_box, áp thẳng vào khung xem trước bằng postMessage
+// như hoạ tiết/thành phần — bảng chọn nhờ vậy đứng yên để còn so mẫu này mẫu kia.
 
 function openGiftPanel() {
   document.getElementById("theme-line-editor")?.classList.add("hidden");
@@ -1023,7 +1030,14 @@ function pickGiftBox(id) {
   else delete _themeSetting.gift_box;
   _syncGiftTiles();
   _setDirty(true, "theme");
-  _reloadThemeFrame("gift");
+
+  // Áp thẳng vào khung xem trước rồi cuộn tới mục — KHÔNG nạp lại: nạp lại là
+  // bảng chọn đóng mất (xem _watchThemeFrame) mà khách còn đang so mẫu. Lưu dữ
+  // liệu trước, phòng khi runtime xin nạp lại bằng 'cx-gift-reload'.
+  _savePreviewData();
+  const win = _lineIframe()?.contentWindow;
+  win?.postMessage({ type: "cx-gift-box", value: id || "" }, "*");
+  win?.postMessage({ type: "cx-focus", key: "gift" }, "*");
 }
 window.pickGiftBox = pickGiftBox;
 
