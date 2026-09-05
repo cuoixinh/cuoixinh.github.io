@@ -977,13 +977,25 @@ function _giftBoxId() {
   return typeof v === "string" ? v : "";
 }
 
-function _giftTile(id, title) {
+// Ô nào cũng gồm khung xem trước co giãn + MỘT dòng tên (nhãn cắt ngắn, không
+// xuống dòng) — nhờ vậy ô ảnh và ô icon luôn vuông và cao bằng nhau, kể cả khi
+// cột chỉnh bị kéo hẹp. `fill` = phần tử đặt vào khung xem trước.
+function _giftTile(id, name, title, fill) {
   const btn = document.createElement("button");
   btn.type = "button";
   // cx-pal-item-pick: ô này BẤM để chọn chứ không kéo như hoạ tiết/thành phần.
-  btn.className = "cx-pal-item cx-pal-item-pick";
+  btn.className = "cx-pal-item cx-pal-item-prev cx-pal-item-pick";
   btn.dataset.giftId = id;
   btn.title = title;
+
+  const prev = document.createElement("span");
+  prev.className = "cx-pal-prev cx-gift-prev";
+  prev.appendChild(fill);
+  const cap = document.createElement("span");
+  cap.className = "cx-pal-txt";
+  cap.textContent = name;
+  btn.append(prev, cap);
+
   btn.addEventListener("click", () => pickGiftBox(id));
   return btn;
 }
@@ -994,26 +1006,24 @@ function _renderGiftPalette() {
   if (grid.dataset.rendered !== "1") {
     grid.textContent = "";
     GIFT_FIXED.forEach((o) => {
-      const btn = _giftTile(o.id, o.name + " — " + o.desc);
-      const ico = document.createElement("span");
-      ico.className = "cx-pal-ico";
       const i = document.createElement("i");
       i.setAttribute("data-lucide", o.icon);
-      ico.appendChild(i);
-      const cap = document.createElement("span");
-      cap.className = "cx-pal-txt";
-      cap.textContent = o.name;
-      btn.append(ico, cap);
-      grid.appendChild(btn);
+      grid.appendChild(_giftTile(o.id, o.name, o.name + " — " + o.desc, i));
     });
     (window.CX_GIFT_BOXES || []).forEach((b) => {
-      const btn = _giftTile(b.id, b.name + (b.desc ? " — " + b.desc : ""));
-      btn.classList.add("cx-pal-item-img");
       const img = document.createElement("img");
       img.src = b.src;
       img.alt = b.name;
       img.loading = "lazy";
-      btn.appendChild(img);
+      const btn = _giftTile(
+        b.id,
+        b.name,
+        b.name + (b.desc ? " — " + b.desc : ""),
+        img,
+      );
+      // Nền ca-rô cho thấy phần trong suốt của ảnh hộp — chỉ ở khung xem trước,
+      // để dòng tên bên dưới vẫn nằm trên nền trắng.
+      btn.querySelector(".cx-gift-prev")?.classList.add("cx-gift-prev-img");
       grid.appendChild(btn);
     });
     grid.dataset.rendered = "1";
@@ -1060,7 +1070,9 @@ function _reloadThemeFrame(focusKey) {
         ),
       );
     });
-  iframe.src = iframe.src;
+  // Dựng lại src thay vì gán lại src cũ: đổi mẫu thiệp xong cũng đi qua đây
+  // (resetThemeSetting), lúc đó URL cũ vẫn trỏ vào mẫu trước.
+  iframe.src = _previewIframeSrc("&edit=1");
 }
 
 // ─── Điều chỉnh THÀNH PHẦN đang chọn ────────────────────────────────────────
