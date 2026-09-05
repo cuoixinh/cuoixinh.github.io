@@ -30,6 +30,8 @@ function _watchThemeFrame() {
   if (!iframe) return;
   _themeFrameWatched = true;
   iframe.addEventListener("load", () => {
+    // Nạp lại giữa lúc đang kéo thì pointerup của thiệp không bao giờ tới nữa.
+    _setCtrlAway(false);
     const before = _themeSwatchCache;
     const sw = _themeSwatches();
     // So theo GIÁ TRỊ: mỗi lần nạp lại iframe sinh một mảng mới, so theo tham
@@ -282,6 +284,7 @@ function _alignPickerToChip(chipEl) {
 
 function _initThemePanel() {
   _watchThemeFrame();
+  _setCtrlAway(false);
 
   if (!_themePanelReady) {
     _initColorPickers();
@@ -340,6 +343,15 @@ let _lineTextOnly = true; // phần tử chỉ chứa text thuần? → mới ch
 let _lineBlockId = null; // đang chỉnh KHỐI văn bản tự thêm? (id khối) → nội dung
 let _lineBlockList = false; // khối đó là danh sách? → mỗi dòng 1 mục
 
+// Tạm dọn thanh chỉnh khỏi tầm nhìn trong lúc kéo. Gọi cả khi khung xem trước nạp
+// lại và khi dựng lại bảng: nạp lại giữa lúc kéo thì pointerup không bao giờ tới,
+// đây là chốt chặn để thanh chỉnh không kẹt ở trạng thái ẩn.
+function _setCtrlAway(on) {
+  document
+    .getElementById("theme-controls")
+    ?.classList.toggle("cx-ctrl-away", on);
+}
+
 // Nhận tín hiệu click text từ iframe tab Giao diện (đúng nguồn mới nhận).
 window.addEventListener("message", (ev) => {
   const d = ev.data;
@@ -376,6 +388,10 @@ window.addEventListener("message", (ev) => {
     openElementEditor(d);
   } else if (d.type === "cx-element-close") {
     closeElementEditor();
+  } else if (d.type === "cx-drag-busy") {
+    // Đang kéo hoạ tiết/thành phần/khối văn bản trên thiệp → thanh chỉnh lui đi
+    // cho thấy chỗ đang thả (chỉ có tác dụng ở mobile, xem .cx-ctrl-away).
+    _setCtrlAway(!!d.on);
   } else if (d.type === "cx-gift-reload") {
     // Hộp gốc của mẫu đã bị bấm mở, muốn về "Mặc định" thì chỉ còn cách dựng lại
     // thiệp từ đầu (core/helpers/gift-box-helper.js).
