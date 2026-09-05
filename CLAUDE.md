@@ -368,8 +368,9 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   suốt vào `assets/gifts/` rồi thêm một mục vào danh mục, **id đã phát hành thì đừng đổi**.
   Helper đọc `data-cx-gift` của mẫu thiệp: che khối `"qr"`, còn hộp `"box"` sẵn có của mẫu
   thì mở bằng chính cú bấm mà mẫu chờ (không đoán class trạng thái). Mẫu quên đánh dấu thì
-  helper dò khối chứa `#groom-qr-img`. Đổi chế độ là đổi cấu trúc mục → trang Thiết lập nạp
-  lại khung xem trước chứ không áp nóng.
+  helper dò khối chứa `#groom-qr-img`. Đổi chế độ áp thẳng qua `postMessage` (bảng chọn phải
+  đứng yên để so mẫu); riêng lượt về "Mặc định" SAU khi hộp gốc của mẫu đã bị bấm mở thì
+  runtime xin trang cha nạp lại khung xem trước — mẫu mở hộp một chiều, không có đường lùi.
 - **Mẫu văn bản (preset):** danh mục + CSS ở `core/helpers/text-preset-helper.js` (nạp TRƯỚC
   `theme-setting-helper.js`), thêm mẫu chỉ sửa file đó. Lưu trong `custom_blocks` dạng
   `{type:"preset", preset, parts}`, id thật của part là `<blockId>__<key>`. Cỡ chữ viết bằng
