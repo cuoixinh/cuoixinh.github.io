@@ -291,6 +291,11 @@ if (window.location.search.includes("preview=true")) {
             if (typeof applyCustomBlocks === "function") {
               applyCustomBlocks(data.theme_setting);
             }
+            // Hộp quà che phần mã QR — trước hoạ tiết/thành phần vì nó đổi chiều
+            // cao thiệp, hai thứ kia đặt theo % (xem core/helpers/wedding-helper.js).
+            if (typeof applyGiftBox === "function") {
+              applyGiftBox(data.theme_setting);
+            }
             if (typeof applyDecorations === "function") {
               applyDecorations(data.theme_setting);
             }

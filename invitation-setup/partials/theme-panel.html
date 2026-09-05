@@ -117,6 +117,17 @@
               ><span>Thành phần</span>
             </button>
           </div>
+          <div id="cx-head-gift" class="hidden cx-le-head">
+            <button
+              type="button"
+              onclick="closeGiftPanel()"
+              class="cx-le-back"
+              aria-label="Quay lại"
+            >
+              <i data-lucide="arrow-left" class="w-4 h-4"></i
+              ><span>Hộp mừng cưới</span>
+            </button>
+          </div>
           <div id="cx-head-element-editor" class="hidden cx-le-head">
             <button
               type="button"
@@ -254,6 +265,17 @@
                       <i data-lucide="blocks"></i>
                     </span>
                     <span class="cx-add-txt">Thành phần</span>
+                  </button>
+                  <button
+                    type="button"
+                    onclick="openGiftPanel()"
+                    title="Chọn hộp quà che phần mã QR mừng cưới"
+                    class="cx-add-card"
+                  >
+                    <span class="cx-add-ico cx-add-ico-amber">
+                      <i data-lucide="gift"></i>
+                    </span>
+                    <span class="cx-add-txt">Hộp mừng cưới</span>
                   </button>
                 </div>
               </div>
@@ -484,6 +506,22 @@
               <div id="cx-elements-palette" class="cx-pal-grid"></div>
             </div>
             <!-- /theme-elements-panel -->
+
+            <!-- Bảng HỘP MỪNG CƯỚI: chọn kiểu che phần mã QR — "Mặc định" (mẫu tự
+                 lo), "Không hộp" (hiện thẳng QR) hoặc một mẫu hộp. Danh mục ở
+                 core/helpers/gift-box-helper.js nên thêm mẫu không phải sửa HTML
+                 này. Bấm là đổi ngay: khung xem trước nạp lại rồi cuộn tới mục. -->
+            <div
+              id="theme-gift-panel"
+              class="hidden space-y-3 md:space-y-4"
+            >
+              <p class="text-[12px] text-gray-500">
+                Chọn kiểu hộp che phần chuyển khoản — khách chạm vào hộp mới thấy
+                mã QR.
+              </p>
+              <div id="cx-gift-palette" class="cx-pal-grid"></div>
+            </div>
+            <!-- /theme-gift-panel -->
 
             <!-- Bảng ĐIỀU CHỈNH THÀNH PHẦN: mở khi vừa thả hoặc bấm vào thành phần
                  trên thiệp. Mẫu / kích thước là phần chung; các tuỳ chọn riêng dựng

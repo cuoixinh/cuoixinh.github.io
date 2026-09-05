@@ -444,6 +444,7 @@
                  xem theme.css), thẻ trong mới là nội dung — tách hai tầng vì
                  phần tử co phải có đúng MỘT con và con đó phải overflow:hidden. -->
             <div
+              data-cx-gift="box"
               id="gift-env"
               class="vf-env-shell"
               role="button"
@@ -464,7 +465,7 @@
               </div>
             </div>
 
-            <div id="gift-box" class="vf-gift is-closed">
+            <div data-cx-gift="qr" id="gift-box" class="vf-gift is-closed">
               <div class="grid grid-cols-2 gap-4">
                 <!-- Chú rể -->
                 <div class="flex flex-col gap-2 items-center">
@@ -680,6 +681,7 @@
     <!-- text-preset-helper phải nạp TRƯỚC theme-setting-helper -->
     <script src="../../../core/helpers/text-preset-helper.js"></script>
     <script src="../../../core/helpers/theme-setting-helper.js"></script>
+    <script src="../../../core/helpers/gift-box-helper.js"></script>
     <script src="../../../core/helpers/qr-mobile-helper.js"></script>
     <script src="../../../core/helpers/preview-focus-helper.js"></script>
 

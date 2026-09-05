@@ -35,6 +35,11 @@ async function loadWeddingData(weddingSlug, renderCallback) {
     if (typeof applyCustomBlocks === "function") {
       applyCustomBlocks(wedding.theme_setting);
     }
+    // Hộp quà che phần mã QR (theme_setting.gift_box) — trước hoạ tiết và thành
+    // phần vì nó giấu bớt phần thân thiệp, hai thứ kia đặt theo % chiều cao.
+    if (typeof applyGiftBox === "function") {
+      applyGiftBox(wedding.theme_setting);
+    }
     // Hoa / hoạ tiết trang trí thả theo toạ độ
     if (typeof applyDecorations === "function") {
       applyDecorations(wedding.theme_setting);
