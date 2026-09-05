@@ -109,7 +109,13 @@ async function _applyThemeChange(newTheme, displayName) {
   // Đọc TRƯỚC _scheduleAutoSave: chính lệnh đó gọi _setDirty(true) và hạ cờ này
   // xuống, đọc sau thì lần đổi mẫu nào cũng thành "khách đã sửa".
   const wasDemoOnly = _demoFilled;
+  const hadThemeSetting = Object.keys(_themeSetting || {}).length > 0;
   WEDDING_THEME = newTheme;
+  // Tuỳ chỉnh giao diện bám vào DOM của mẫu CŨ (selector chỉnh chữ, toạ độ hoạ
+  // tiết/thành phần, hộp mừng cưới) nên mang sang mẫu mới là sai chỗ hoặc mất
+  // tác dụng → bỏ hết như bấm "Khôi phục mặc định". Gọi SAU khi đổi
+  // WEDDING_THEME để khung xem trước dựng lại theo mẫu mới.
+  resetThemeSetting();
   sessionStorage.setItem("draft_theme", newTheme);
   // Mẫu mới có thể bỏ/khôi phục một bước nào đó (CX_THEME.skipSteps).
   window.cxThemeDeclLoad?.(newTheme);
@@ -119,7 +125,12 @@ async function _applyThemeChange(newTheme, displayName) {
   // sáng lên và QR "xem trên điện thoại" báo đúng là đang lệch với bản trên hệ thống.
   _scheduleAutoSave("theme");
   closeThemePicker();
-  showToast("Đã đổi mẫu thiệp", "success");
+  showToast(
+    hadThemeSetting
+      ? "Đã đổi mẫu thiệp — tuỳ chỉnh giao diện đã về mặc định"
+      : "Đã đổi mẫu thiệp",
+    "success",
+  );
 
   // Form vẫn đang là dữ liệu mẫu (khách chưa gõ gì) → thay bằng dữ liệu mẫu của
   // mẫu MỚI. Phải xong trước khi dựng lại bản xem trước, nếu không khung xem đọc
