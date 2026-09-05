@@ -4,7 +4,7 @@
 // chữ hoa Didone khổ lớn cắt ngang mép ảnh.
 //
 // File này chỉ KHAI BÁO: window.CX_THEME + renderWedding + phần đặc thù của mẫu
-// (dải ảnh cuộn ngang). Phần "chạy" nằm ở core/helpers/theme-boot.js, nạp sau.
+// (hàng tên một dòng + dải ảnh cuộn ngang). Phần "chạy" nằm ở core/helpers/theme-boot.js, nạp sau.
 //
 // Bọc trong IIFE, chỉ lộ CX_THEME + renderWedding: `const` cấp cao nhất của
 // script cổ điển là biến toàn cục, trùng tên với trang khác là vỡ trang đó.
@@ -76,9 +76,13 @@
     // id các mục trùng bảng mặc định của preview-focus-helper.js → không cần
     // khai `focus`.
 
-    // Số đếm của dải ảnh đo theo bề ngang thật, mà lúc renderGallery chạy thì
-    // #main-card còn display:none (bề ngang = 0) → đo lại khi thiệp mở ra.
-    onOpen: () => _syncGalleryCounter(),
+    // Cả số đếm dải ảnh lẫn hàng tên đều đo theo bề ngang THẬT, mà lúc
+    // renderWedding chạy thì #main-card còn display:none (bề ngang = 0) → đo
+    // lại khi thiệp mở ra.
+    onOpen: () => {
+      _syncGalleryCounter();
+      _fitAllNames();
+    },
   };
 
   const _isGroom = isGroomSide();
@@ -143,7 +147,9 @@
 
     // --- Mở đầu ---
     renderHero(w, false);
-    renderStoryQuote(w.story_quote);
+    // Đặt thẳng thay vì renderStoryQuote(): câu này viết bằng chữ viết tay đè
+    // lên ảnh, cặp ngoặc kép helper thêm vào chỉ làm rối nét.
+    if (w.story_quote) setText("story-quote", w.story_quote);
 
     // --- Nhạc nền ---
     setupMusic(w.music_url, w.enable_music);
@@ -258,9 +264,41 @@
     // --- Lời cảm ơn ---
     if (w.footer_text) setText("footer-text", w.footer_text);
     cxToggle("section-footer", cxEnabled(w.enable_footer));
+
+    // Tên vừa đổ xong → co hàng tên cho vừa một dòng. Màn bìa đo được ngay;
+    // hàng trong thân thiệp phải đợi onOpen (lúc này #main-card còn ẩn).
+    _fitAllNames();
   }
 
   window.renderWedding = renderWedding;
+
+  // ============= HÀNG TÊN CÔ DÂU – CHÚ RỂ =============
+  // Ba chỗ in tên thành cặp (màn bìa, mở đầu, thư mời) đều phải nằm trên MỘT
+  // dòng. Tên dài quá khổ thì thu cả hàng bằng --oc-fit (transform) thay vì
+  // giảm font-size — giảm cỡ chữ sẽ đè lên phần khách tự chỉnh trên thiệp.
+  // Markup: .oc-names (khung, cắt tràn) > .oc-names-in (mang phép thu).
+
+  function _fitNames(row) {
+    const inner = row.firstElementChild;
+    if (!inner) return;
+
+    inner.style.setProperty("--oc-fit", "1");
+    const avail = row.clientWidth;
+    if (!avail) return; // khối còn ẩn, chưa đo được
+
+    // Đo khi chưa thu (vừa đặt lại tỉ lệ 1) nên rect là bề ngang THẬT của chữ.
+    const need = inner.getBoundingClientRect().width;
+    if (need > avail) inner.style.setProperty("--oc-fit", String(avail / need));
+  }
+
+  function _fitAllNames() {
+    document.querySelectorAll(".oc-names").forEach(_fitNames);
+  }
+
+  // Đo sau khi font đã về (Playfair tải xong là bề ngang chữ đổi hẳn) và mỗi
+  // lần khổ màn đổi.
+  document.fonts?.ready.then(_fitAllNames);
+  window.addEventListener("resize", _fitAllNames, { passive: true });
 
   // ============= ALBUM ẢNH (phần đặc thù của mẫu) =============
   // Dải ảnh CUỘN NGANG có điểm dừng, mỗi tấm mang số thứ tự; số đếm bên dưới

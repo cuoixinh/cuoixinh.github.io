@@ -34,11 +34,10 @@
 
   <!-- ══════════════════════════════════════════════════════════════════════
        OPULENT CONTRAST — thiệp nền ĐEN, chữ ngà, đường vàng đồng mảnh.
-       Nét riêng: cả tấm thiệp nằm trong một KHUNG VÀNG KÉP có hai vệt chéo cắt
-       góc (.oc-frame); khung ấy chạy tiếp xuống thân thiệp thành hai đường ray
-       dọc (#main-card::before/::after) mà ẢNH TRÀN VIỀN cố tình chui bên dưới.
-       Chữ hoa Didone khổ lớn cắt ngang mép ảnh, chữ viết tay tiếng Anh làm nhãn
-       cho từng mục.
+       Nét riêng: MÀN BÌA là một tấm poster nằm trong KHUNG VÀNG KÉP có hai vệt
+       chéo cắt góc (.oc-frame), chữ hoa Didone khổ lớn cắt ngang mép ảnh. Thân
+       thiệp KHÔNG có khung — mở ra là một màn ảnh cưới trọn vẹn, rồi tới các mục
+       chỉ ngăn nhau bằng nền đậm nhạt và vạch vàng mảnh.
 
        Ràng buộc không được phá:
          · #main-card có ĐÚNG MỘT thẻ con bọc các mục, và thẻ đó là flex-column
@@ -47,6 +46,7 @@
          · Màu lấy từ --cx-* / .cx-h / .cx-t / .cx-a, đừng viết mã màu thẳng
          · Nút nào cũng phải mang .oc-btn — <x-button variant="bare"> đem theo
            rounded-full, mẫu này cạnh vuông
+         · Nhãn mục là chữ tiếng Việt; chữ ký tiếng Anh CHỈ có ở màn bìa
        ══════════════════════════════════════════════════════════════════════ -->
 
   <body class="cx-screen-h flex justify-center items-start md:py-5">
@@ -117,10 +117,12 @@
 
           <div class="oc-hair w-full max-w-[120px]"></div>
 
-          <div class="cx-h text-[26px] leading-tight flex items-baseline justify-center gap-3">
-            <span id="cover-groom-name">----------</span>
-            <span class="oc-script cx-a text-[28px]">&amp;</span>
-            <span id="cover-bride-name">----------</span>
+          <div class="oc-names cx-h text-[26px] leading-tight">
+            <span class="oc-names-in">
+              <span id="cover-groom-name">----------</span>
+              <span class="oc-script cx-a text-[28px]">&amp;</span>
+              <span id="cover-bride-name">----------</span>
+            </span>
           </div>
 
           <div class="flex flex-col items-center gap-1.5">
@@ -147,61 +149,63 @@
 
     <!-- ═══ THÂN THIỆP ═════════════════════════════════════════════════════
          #main-card + ĐÚNG MỘT thẻ con flex-column bọc mọi mục. Mục tự lo lề
-         ngang (px-9) để chữ đứng trong hai đường ray vàng; ảnh và bản đồ để
-         tràn hết bề ngang, cố ý chạy dưới ray. -->
+         ngang (px-9); ảnh và bản đồ để tràn hết bề ngang. -->
     <div
       id="main-card"
       class="relative w-full max-w-[430px] md:max-w-[520px] cx-screen-h md:min-h-[932px] md:shadow-2xl overflow-hidden"
       style="display: none"
     >
       <div class="flex flex-col">
-        <!-- Nét ngang khép khung ở hai đầu thiệp, thẳng hàng với hai ray dọc -->
-        <span class="h-px mx-5 shrink-0 bg-[rgb(var(--cx-accent-rgb)/0.45)]"></span>
+        <!-- ═══ MỤC: Mở đầu — MỘT MÀN trọn vẹn ═════════════════════════════
+             Ảnh cưới phủ kín đúng một khung nhìn (.oc-hero cao theo --vh): câu
+             slogan bằng chữ viết tay ở đỉnh, tên và ngày ở đáy. Mở thiệp ra là
+             thấy trọn tấm ảnh, không có mảng đen nào chen vào. -->
+        <section id="section-hero" class="oc-hero relative w-full overflow-hidden">
+          <!-- KHÔNG loading="lazy": #main-card là display:none cho tới khi bấm
+               mở bìa, ảnh lazy sẽ chưa tải gì. -->
+          <img
+            id="main-photo"
+            src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+            alt="Ảnh cưới"
+            class="absolute inset-0 w-full h-full object-cover"
+          />
+          <div class="oc-hero-veil"></div>
 
-        <!-- ═══ MỤC: Mở đầu (tên cặp đôi + ảnh cưới + slogan) ═══════════════ -->
-        <section id="section-hero" class="flex flex-col">
-          <div class="flex flex-col items-center gap-4 px-9 pt-14 pb-8 text-center">
-            <div class="oc-script cx-a text-[36px]">The wedding of</div>
-
-            <div class="cx-h text-[32px] leading-[1.2] flex flex-col items-center">
-              <span id="couple-names-groom">----------</span>
-              <span class="oc-script cx-a text-[26px] py-1">and</span>
-              <span id="couple-names-bride">----------</span>
+          <div
+            class="relative h-full flex flex-col items-center justify-between gap-6 px-9 py-16 text-center"
+          >
+            <!-- Câu slogan (story_quote) -->
+            <div
+              id="story-quote"
+              class="oc-script oc-hero-quote oc-on-photo cx-on-image text-[29px] leading-[1.35] max-w-[310px]"
+            >
+              Một hành trình mới bắt đầu từ hôm nay
             </div>
-          </div>
 
-          <!-- Ảnh cưới tràn viền. KHÔNG loading="lazy": #main-card là
-               display:none cho tới khi bấm mở bìa, ảnh lazy sẽ chưa tải gì. -->
-          <div class="relative w-full aspect-[4/5]">
-            <img
-              id="main-photo"
-              src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
-              alt="Ảnh cưới"
-              class="w-full h-full object-cover"
-            />
-            <div class="oc-veil"></div>
-            <!-- Ngày cưới đặt đè lên mép ảnh — chỗ màn bìa để "SAVE THE DATE" -->
-            <div class="absolute inset-x-0 bottom-0 px-9 pb-5 text-center">
-              <div class="oc-display cx-on-image text-[28px] tracking-[6px]" id="hero-date">
+            <div class="flex flex-col items-center gap-4 w-full">
+              <div class="oc-names oc-on-photo cx-h cx-on-image text-[30px] leading-tight">
+                <span class="oc-names-in">
+                  <span id="couple-names-groom">----------</span>
+                  <span class="oc-script cx-a text-[28px]">&amp;</span>
+                  <span id="couple-names-bride">----------</span>
+                </span>
+              </div>
+
+              <div class="oc-hair w-full max-w-[120px]"></div>
+
+              <div class="oc-display oc-on-photo cx-on-image text-[21px] tracking-[8px]" id="hero-date">
                 --.--.----
               </div>
-            </div>
-          </div>
-
-          <!-- Câu slogan (story_quote) -->
-          <div class="px-10 pt-9 pb-2 text-center">
-            <div id="story-quote" class="cx-h italic text-[15px] leading-relaxed">
-              "Một hành trình mới bắt đầu từ hôm nay"
             </div>
           </div>
         </section>
 
         <!-- ═══ MỤC: Gia đình (enable_family) ═══════════════════════════════ -->
         <section id="section-family" class="flex flex-col gap-7 px-9 py-14">
-          <div class="flex flex-col items-center gap-1.5">
-            <div class="oc-script cx-a text-[30px]">Our Families</div>
+          <div class="flex flex-col items-center gap-3">
+            <span class="oc-crest"></span>
             <h2 class="oc-display cx-h text-[16px] tracking-[5px]">Gia Đình</h2>
-            <div class="oc-hair w-full max-w-[140px] mt-1"></div>
+            <div class="oc-hair w-full max-w-[140px]"></div>
           </div>
 
           <!-- Vạch dọc ở giữa thay cho khoảng trắng: hai nhà là hai cột đối xứng -->
@@ -265,10 +269,10 @@
         <!-- ═══ MỤC: Thư mời — lễ thành hôn / vu quy ════════════════════════
              Nhà gái bật Vu Quy thì index.js thay tên lễ + giờ + nơi tổ chức. -->
         <section id="section-ceremony" class="flex flex-col gap-6 px-9 py-14 cx-bg-band">
-          <div class="flex flex-col items-center gap-1.5">
-            <div class="oc-script cx-a text-[30px]">The Invitation</div>
+          <div class="flex flex-col items-center gap-3">
+            <span class="oc-crest"></span>
             <h2 class="oc-display cx-h text-[16px] tracking-[5px]">Thư Mời</h2>
-            <div class="oc-hair w-full max-w-[140px] mt-1"></div>
+            <div class="oc-hair w-full max-w-[140px]"></div>
           </div>
 
           <div class="flex flex-col items-center gap-1.5">
@@ -276,10 +280,12 @@
             <div class="oc-eyebrow cx-a" id="ceremony-event-name">Lễ Thành Hôn</div>
           </div>
 
-          <div class="cx-h text-[24px] leading-tight flex flex-col items-center">
-            <span id="invite-groom">----------</span>
-            <span class="oc-script cx-a text-[24px] py-0.5">and</span>
-            <span id="invite-bride">----------</span>
+          <div class="oc-names cx-h text-[24px] leading-tight">
+            <span class="oc-names-in">
+              <span id="invite-groom">----------</span>
+              <span class="oc-script cx-a text-[26px]">&amp;</span>
+              <span id="invite-bride">----------</span>
+            </span>
           </div>
 
           <div class="oc-box px-6 py-7 flex flex-col items-center gap-2 text-center">
@@ -305,15 +311,15 @@
 
         <!-- ═══ MỤC: Tiệc cưới (enable_party) ═══════════════════════════════ -->
         <section id="section-party" class="flex flex-col gap-6 px-9 py-14">
-          <div class="flex flex-col items-center gap-1.5">
-            <div class="oc-script cx-a text-[30px]">The Reception</div>
+          <div class="flex flex-col items-center gap-3">
+            <span class="oc-crest"></span>
             <h2
               class="oc-display cx-h text-[16px] tracking-[4px] text-center"
               id="party-section-label"
             >
               Tiệc Mừng Lễ Thành Hôn
             </h2>
-            <div class="oc-hair w-full max-w-[140px] mt-1"></div>
+            <div class="oc-hair w-full max-w-[140px]"></div>
           </div>
 
           <div class="oc-box px-6 py-7 flex flex-col items-center gap-3 text-center">
@@ -340,10 +346,10 @@
           class="flex flex-col gap-5 px-9 py-14 cx-bg-band text-center"
           style="display: none"
         >
-          <div class="flex flex-col items-center gap-1.5">
-            <div class="oc-script cx-a text-[30px]">Will you join us?</div>
+          <div class="flex flex-col items-center gap-3">
+            <span class="oc-crest"></span>
             <h2 class="oc-display cx-h text-[16px] tracking-[4px]">Xác Nhận Tham Dự</h2>
-            <div class="oc-hair w-full max-w-[140px] mt-1"></div>
+            <div class="oc-hair w-full max-w-[140px]"></div>
           </div>
 
           <div id="rsvp-custom-message" class="hidden cx-h italic text-[13px] leading-relaxed"></div>
@@ -377,10 +383,10 @@
         <!-- ═══ MỤC: Lịch trình ngày cưới (enable_timeline) ═════════════════
              renderTimeline() (render-helper.js) tự lọc mốc theo nhà trai/gái. -->
         <section id="section-timeline" class="hidden flex flex-col gap-6 px-9 py-14">
-          <div class="flex flex-col items-center gap-1.5">
-            <div class="oc-script cx-a text-[30px]">The Big Day</div>
+          <div class="flex flex-col items-center gap-3">
+            <span class="oc-crest"></span>
             <h2 class="oc-display cx-h text-[16px] tracking-[5px]">Lịch Trình</h2>
-            <div class="oc-hair w-full max-w-[140px] mt-1"></div>
+            <div class="oc-hair w-full max-w-[140px]"></div>
           </div>
           <div id="timeline-list-render" class="flex flex-col"></div>
         </section>
@@ -391,10 +397,10 @@
           class="flex flex-col gap-6 px-9 py-14 cx-bg-band"
           style="display: none"
         >
-          <div class="flex flex-col items-center gap-1.5">
-            <div class="oc-script cx-a text-[30px]">Our Story</div>
+          <div class="flex flex-col items-center gap-3">
+            <span class="oc-crest"></span>
             <h2 class="oc-display cx-h text-[16px] tracking-[5px]">Chuyện Tình Yêu</h2>
-            <div class="oc-hair w-full max-w-[140px] mt-1"></div>
+            <div class="oc-hair w-full max-w-[140px]"></div>
           </div>
           <div id="love-story-list" class="flex flex-col border-l cx-border ml-[5px]"></div>
         </section>
@@ -403,10 +409,10 @@
              Dải ảnh CUỘN NGANG có điểm dừng + số đếm, thay cho lưới hai cột.
              Markup do renderGallery() trong index.js dựng. -->
         <section id="section-photos" class="flex flex-col gap-6 py-14">
-          <div class="flex flex-col items-center gap-1.5 px-9">
-            <div class="oc-script cx-a text-[30px]">Sweet Moments</div>
+          <div class="flex flex-col items-center gap-3 px-9">
+            <span class="oc-crest"></span>
             <h2 class="oc-display cx-h text-[16px] tracking-[5px]">Album Ảnh</h2>
-            <div class="oc-hair w-full max-w-[140px] mt-1"></div>
+            <div class="oc-hair w-full max-w-[140px]"></div>
           </div>
 
           <div id="gallery-strip" class="oc-strip px-9"></div>
@@ -421,10 +427,10 @@
         <!-- ═══ MỤC: Hộp mừng cưới (enable_gift) ════════════════════════════
              Hai hàng ngang (mẫu nền xếp hai cột) để số tài khoản đủ chỗ đọc. -->
         <section id="section-gift" class="flex flex-col gap-6 px-9 py-14 cx-bg-band">
-          <div class="flex flex-col items-center gap-1.5">
-            <div class="oc-script cx-a text-[30px]">With Love</div>
+          <div class="flex flex-col items-center gap-3">
+            <span class="oc-crest"></span>
             <h2 class="oc-display cx-h text-[16px] tracking-[5px]">Hộp Mừng Cưới</h2>
-            <div class="oc-hair w-full max-w-[140px] mt-1"></div>
+            <div class="oc-hair w-full max-w-[140px]"></div>
           </div>
 
           <!-- Chú rể -->
@@ -488,10 +494,10 @@
 
         <!-- ═══ MỤC: Bản đồ tới nơi đãi tiệc ════════════════════════════════ -->
         <section id="section-map" class="flex flex-col gap-5 py-14">
-          <div class="flex flex-col items-center gap-1.5 px-9">
-            <div class="oc-script cx-a text-[30px]">Find Us</div>
+          <div class="flex flex-col items-center gap-3 px-9">
+            <span class="oc-crest"></span>
             <h2 class="oc-display cx-h text-[16px] tracking-[5px]">Địa Điểm</h2>
-            <div class="oc-hair w-full max-w-[140px] mt-1"></div>
+            <div class="oc-hair w-full max-w-[140px]"></div>
           </div>
 
           <div class="cx-h text-[15px] text-center px-9" id="map-location-name">
@@ -537,7 +543,7 @@
 
         <!-- ═══ MỤC: Lời cảm ơn (enable_footer) ═════════════════════════════ -->
         <section id="section-footer" class="flex flex-col items-center gap-4 px-10 pt-12 pb-16 text-center">
-          <div class="oc-script cx-a text-[46px]">Thank You</div>
+          <div class="oc-script cx-a text-[46px]">Cảm ơn</div>
           <div id="footer-text" class="cx-h italic text-[14px] leading-relaxed">
             Cảm ơn bạn đã dành thời gian đến chung vui cùng chúng tôi
           </div>
@@ -547,8 +553,6 @@
           </div>
           <div class="oc-eyebrow cx-t" id="footer-date">--.--.----</div>
         </section>
-
-        <span class="h-px mx-5 shrink-0 bg-[rgb(var(--cx-accent-rgb)/0.45)]"></span>
       </div>
     </div>
 
