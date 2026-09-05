@@ -117,10 +117,12 @@
 
           <div class="oc-hair w-full max-w-[120px]"></div>
 
-          <div class="cx-h text-[26px] leading-tight flex items-baseline justify-center gap-3">
-            <span id="cover-groom-name">----------</span>
-            <span class="oc-script cx-a text-[28px]">&amp;</span>
-            <span id="cover-bride-name">----------</span>
+          <div class="oc-names cx-h text-[26px] leading-tight">
+            <span class="oc-names-in">
+              <span id="cover-groom-name">----------</span>
+              <span class="oc-script cx-a text-[28px]">&amp;</span>
+              <span id="cover-bride-name">----------</span>
+            </span>
           </div>
 
           <div class="flex flex-col items-center gap-1.5">
@@ -155,9 +157,9 @@
     >
       <div class="flex flex-col">
         <!-- ═══ MỤC: Mở đầu — MỘT MÀN trọn vẹn ═════════════════════════════
-             Ảnh cưới phủ kín đúng một khung nhìn (.oc-hero cao theo --vh), tên
-             và ngày đặt đè lên đáy ảnh. Mở thiệp ra là thấy trọn tấm ảnh, không
-             có mảng đen nào chen vào. -->
+             Ảnh cưới phủ kín đúng một khung nhìn (.oc-hero cao theo --vh): câu
+             slogan bằng chữ viết tay ở đỉnh, tên và ngày ở đáy. Mở thiệp ra là
+             thấy trọn tấm ảnh, không có mảng đen nào chen vào. -->
         <section id="section-hero" class="oc-hero relative w-full overflow-hidden">
           <!-- KHÔNG loading="lazy": #main-card là display:none cho tới khi bấm
                mở bìa, ảnh lazy sẽ chưa tải gì. -->
@@ -170,27 +172,31 @@
           <div class="oc-hero-veil"></div>
 
           <div
-            class="relative h-full flex flex-col items-center justify-end gap-4 px-9 pb-16 text-center"
+            class="relative h-full flex flex-col items-center justify-between gap-6 px-9 py-16 text-center"
           >
-            <div class="cx-h cx-on-image text-[36px] leading-[1.15] flex flex-col items-center">
-              <span id="couple-names-groom">----------</span>
-              <span class="oc-script cx-a text-[30px] py-0.5">&amp;</span>
-              <span id="couple-names-bride">----------</span>
+            <!-- Câu slogan (story_quote) -->
+            <div
+              id="story-quote"
+              class="oc-script oc-hero-quote oc-on-photo cx-on-image text-[29px] leading-[1.35] max-w-[310px]"
+            >
+              Một hành trình mới bắt đầu từ hôm nay
             </div>
 
-            <div class="oc-hair w-full max-w-[120px]"></div>
+            <div class="flex flex-col items-center gap-4 w-full">
+              <div class="oc-names oc-on-photo cx-h cx-on-image text-[30px] leading-tight">
+                <span class="oc-names-in">
+                  <span id="couple-names-groom">----------</span>
+                  <span class="oc-script cx-a text-[28px]">&amp;</span>
+                  <span id="couple-names-bride">----------</span>
+                </span>
+              </div>
 
-            <div class="oc-display cx-on-image text-[21px] tracking-[8px]" id="hero-date">
-              --.--.----
+              <div class="oc-hair w-full max-w-[120px]"></div>
+
+              <div class="oc-display oc-on-photo cx-on-image text-[21px] tracking-[8px]" id="hero-date">
+                --.--.----
+              </div>
             </div>
-          </div>
-        </section>
-
-        <!-- ═══ MỤC: Câu slogan (story_quote) ═══════════════════════════════ -->
-        <section id="section-quote" class="flex flex-col items-center gap-4 px-10 py-14 text-center">
-          <span class="oc-crest"></span>
-          <div id="story-quote" class="cx-h italic text-[16px] leading-relaxed">
-            "Một hành trình mới bắt đầu từ hôm nay"
           </div>
         </section>
 
@@ -274,10 +280,12 @@
             <div class="oc-eyebrow cx-a" id="ceremony-event-name">Lễ Thành Hôn</div>
           </div>
 
-          <div class="cx-h text-[24px] leading-tight flex flex-col items-center">
-            <span id="invite-groom">----------</span>
-            <span class="oc-script cx-a text-[24px] py-0.5">&amp;</span>
-            <span id="invite-bride">----------</span>
+          <div class="oc-names cx-h text-[24px] leading-tight">
+            <span class="oc-names-in">
+              <span id="invite-groom">----------</span>
+              <span class="oc-script cx-a text-[26px]">&amp;</span>
+              <span id="invite-bride">----------</span>
+            </span>
           </div>
 
           <div class="oc-box px-6 py-7 flex flex-col items-center gap-2 text-center">

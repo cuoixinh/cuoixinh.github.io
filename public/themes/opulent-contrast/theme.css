@@ -224,20 +224,69 @@ body {
   height: calc(var(--vh, 1svh) * 100);
 }
 
-/* Phủ tối hai đầu ảnh: đáy đậm cho tên và ngày đọc được, đỉnh nhạt hơn để
-   thanh nhạc nổi trên nền ảnh sáng. */
+/* Phủ tối hai đầu ảnh cho chữ ngà đọc được: đỉnh đỡ câu slogan, đáy đỡ tên và
+   ngày (đậm hơn vì chữ ở đó to và quan trọng hơn). */
 
 .oc-hero-veil {
   position: absolute;
   inset: 0;
   background: linear-gradient(
     180deg,
-    rgb(var(--cx-scrim-rgb) / 0.55) 0%,
-    rgb(var(--cx-scrim-rgb) / 0.08) 28%,
+    rgb(var(--cx-scrim-rgb) / 0.7) 0%,
+    rgb(var(--cx-scrim-rgb) / 0.24) 22%,
+    rgb(var(--cx-scrim-rgb) / 0.08) 40%,
     rgb(var(--cx-scrim-rgb) / 0.4) 64%,
     rgb(var(--cx-scrim-rgb) / 0.92) 100%
   );
   pointer-events: none;
+}
+
+/* Chữ đặt đè lên ảnh cưới: bóng mờ rất nhẹ để nét mảnh (chữ viết tay, chữ
+   giãn rộng) không chìm vào vùng ảnh sáng. */
+
+.oc-on-photo {
+  text-shadow: 0 2px 14px rgb(var(--cx-scrim-rgb) / 0.65);
+}
+
+/* Câu slogan ở đỉnh màn Mở đầu — chia dòng cho đều, tránh dòng cuối trơ một từ. */
+
+.oc-hero-quote {
+  text-wrap: balance;
+}
+
+/* ── Hàng tên cô dâu – chú rể ────────────────────────────────────────────
+   LUÔN nằm trên MỘT dòng, ở cả ba chỗ dùng tới (màn bìa, mở đầu, thư mời).
+   Tên dài quá khổ thì _fitNames() trong index.js đặt --oc-fit để thu cả hàng
+   bằng transform — cố ý không đụng font-size, để khách chỉnh cỡ chữ trực tiếp
+   trên thiệp vẫn ăn. */
+
+/* Khung: rộng bằng cha (thiếu width thì trong cột `items-center` nó co theo
+   nội dung và phép đo không phát hiện tràn) và CẮT phần thừa — chữ chưa thu
+   vẫn là overflow thật, để lọt ra ngoài thì #main-card thành khung cuộn ngang
+   và scrollIntoView của preview-focus-helper kéo cả thiệp lệch sang bên. */
+
+.oc-names {
+  display: flex;
+  width: 100%;
+  /* min-width mặc định của một flex item là min-content — chữ nowrap bên trong
+     sẽ ÉP CẢ MỤC nở rộng hơn thiệp, dù đã cắt tràn ở đây. */
+  min-width: 0;
+  align-items: baseline;
+  justify-content: center;
+  overflow: hidden;
+  overflow: clip;
+}
+
+/* Lớp trong mang phép thu — thu ở đây chứ không ở khung, nếu không chữ bị cắt
+   theo khổ CHƯA thu. */
+
+.oc-names-in {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 12px;
+  white-space: nowrap;
+  transform: scale(var(--oc-fit, 1));
+  transform-origin: center center;
 }
 
 /* ── Đầu mục ────────────────────────────────────────────────────────────── */
