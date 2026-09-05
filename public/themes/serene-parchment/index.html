@@ -41,9 +41,9 @@
          · Toàn thiệp canh TRÁI như trang thư, không dàn giữa
          · Tiêu đề mục là chữ viết tay + một nét kẻ chạy hết dòng
          · Mục "Thư mời" viết trên GIẤY KẺ DÒNG thật, có chữ cái đầu thư to
-         · Màn bìa: nửa trên là giấy, nửa dưới là ảnh cưới; con dấu sáp đỏ
-           nằm vắt qua chỗ giáp nhau chính là nút mở thiệp
-         · Mở đầu: ảnh tràn một màn, dải giấy có MÉP XÉ đè lên đáy ảnh
+         · Màn bìa: tấm ảnh cưới dán băng dính giữa trang thư, con dấu sáp đỏ
+           đóng chồng lên góc ảnh chính là nút mở thiệp
+         · Mở đầu: ảnh tràn một màn, một tờ ghi chú MÉP XÉ ghim nổi lên trên
          · Ảnh dán bằng băng dính giấy; album là ảnh in có khung, hơi nghiêng
          · Hộp mừng cưới là hai chiếc phong bì; xác nhận tham dự là phiếu
            hồi âm nét đứt có ô đánh dấu
@@ -67,9 +67,10 @@
     </script>
 
     <!-- ═══ MỤC: Màn bìa ═══════════════════════════════════════════════════
-         Trang bìa của lá thư: mặt giấy ở trên, ảnh cưới in loang ở dưới, con
-         dấu sáp vắt qua đường giáp. Chiều cao XÁC ĐỊNH (.sp-cover ở theme.css)
-         để phần ảnh co lại vừa đúng một khung nhìn. -->
+         Trang thư có TẤM ẢNH DÁN bằng băng dính ở giữa, con dấu sáp đóng chồng
+         lên góc ảnh chính là nút mở thiệp. Chiều cao XÁC ĐỊNH (.sp-cover ở
+         theme.css) vì ô ảnh là flex-1 — chỉ co được khi cha có chiều cao thật;
+         nhờ vậy tên khách mời dài mấy dòng cũng chỉ làm ảnh nhỏ lại. -->
     <div
       id="cover-screen"
       class="fixed inset-0 z-50 flex justify-center items-center md:py-5"
@@ -77,68 +78,71 @@
       <div
         class="sp-cover relative w-full max-w-[430px] overflow-hidden md:rounded-[40px] flex flex-col text-left"
       >
-        <!-- Mặt giấy: đầu thư trên cùng, cặp tên căn giữa phần còn lại (khối
-             giữa để flex-1 nên có hay không có tên khách đều cân), lời nhắc nằm
-             sát con dấu ở đáy. -->
-        <div class="relative z-10 flex-1 flex flex-col px-9 pt-12 pb-6">
-          <div class="flex flex-col gap-2 shrink-0">
-            <div class="sp-hand cx-a text-[27px]">Thiệp mời</div>
-            <div class="w-14 h-px cx-bg-line"></div>
-          </div>
-
-          <div class="flex-1 flex flex-col justify-center gap-6 py-6">
-            <!-- Tên khách mời: chỉ hiện với link riêng của khách (index.js) -->
-            <div id="cover-guest-wrap" class="hidden flex-col gap-2">
-              <div class="cx-t text-[10px] tracking-[3px] uppercase">Kính gửi</div>
-              <div
-                class="sp-hand cx-h text-[26px] leading-[1.15] border-b cx-border pb-2"
-                id="cover-guest-name"
-              >
-                ----------
-              </div>
-            </div>
-
-            <div class="flex flex-col gap-3">
-              <div class="cx-t text-[12px]">Mời bạn đến chung vui cùng</div>
-              <div class="sp-names cx-h text-[28px] leading-tight">
-                <span class="sp-names-in">
-                  <span id="cover-groom-name">----------</span>
-                  <span class="sp-hand cx-a text-[22px]">&amp;</span>
-                  <span id="cover-bride-name">----------</span>
-                </span>
-              </div>
-              <div class="sp-note cx-a text-[18px] tracking-[2px]" id="cover-date">
-                --.--.----
-              </div>
-            </div>
-          </div>
-
-          <div class="sp-note cx-t text-[16px] shrink-0">Chạm con dấu để mở thư nhé</div>
+        <!-- Đầu thư -->
+        <div class="flex flex-col gap-2 shrink-0">
+          <div class="sp-hand cx-a text-[27px]">Thiệp mời</div>
+          <div class="w-14 h-px cx-bg-line"></div>
         </div>
 
-        <!-- Ảnh cưới in lên nửa dưới; mép trên nhoè dần vào giấy bằng mask nên
-             không có đường nối nào lộ ra dù nền bìa là dải chuyển màu. -->
-        <div class="relative basis-[44%] min-h-[200px]">
-          <img
-            id="cover-bg-img"
-            src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
-            class="sp-cover-photo w-full h-full object-cover"
-            alt=""
-            fetchpriority="high"
-          />
+        <!-- Ảnh cưới dán lên giấy: khung giấy trắng, hai mẩu băng dính chéo
+             góc, con dấu sáp đè lên góc dưới.
 
-          <x-button
-            variant="bare"
-            onclick="openInvitation()"
-            class="open-btn sp-seal absolute right-8 top-0 z-10 -translate-y-1/2 touch-manipulation [-webkit-tap-highlight-color:transparent]"
-          >
-            <span class="sp-seal-ring pointer-events-none"></span>
-            <span
-              class="sp-hand sp-on-seal relative pointer-events-none text-[17px] leading-none"
-              id="seal-monogram"
-              >V &amp; Y</span
+             Khổ ảnh CỐ ĐỊNH theo tỉ lệ 5:7 chứ không kéo cho đầy chỗ trống —
+             không có tên khách mời thì ảnh sẽ dài ngoẵng, khác hẳn lúc có tên.
+             Chỗ thừa dồn về hai đầu (items-center); còn khi tên khách dài mấy
+             dòng thì max-h-full cho ảnh thấp xuống thay vì tràn ra ngoài. -->
+        <div class="flex-1 min-h-0 flex items-center py-7">
+          <div class="sp-photo sp-tilt-l w-full aspect-[5/7] max-h-full">
+            <span class="sp-tape sp-tape-tl"></span>
+            <span class="sp-tape sp-tape-br"></span>
+            <img
+              id="cover-bg-img"
+              src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+              class="w-full h-full object-cover"
+              alt=""
+              fetchpriority="high"
+            />
+
+            <x-button
+              variant="bare"
+              onclick="openInvitation()"
+              class="open-btn sp-seal absolute -bottom-6 -right-5 z-10 touch-manipulation [-webkit-tap-highlight-color:transparent]"
             >
-          </x-button>
+              <span class="sp-seal-ring pointer-events-none"></span>
+              <span
+                class="sp-hand sp-on-seal relative pointer-events-none text-[15px] leading-none"
+                >Mở thiệp</span
+              >
+            </x-button>
+          </div>
+        </div>
+
+        <!-- Chân thư -->
+        <div class="flex flex-col gap-3 shrink-0">
+          <!-- Tên khách mời: chỉ hiện với link riêng của khách (index.js) -->
+          <div id="cover-guest-wrap" class="hidden flex-col gap-1 pb-2">
+            <div class="cx-t text-[10px] tracking-[3px] uppercase">Kính gửi</div>
+            <div class="sp-hand cx-h text-[24px] leading-[1.15]" id="cover-guest-name">
+              ----------
+            </div>
+          </div>
+
+          <div class="sp-names cx-h text-[27px] leading-tight">
+            <span class="sp-names-in">
+              <span id="cover-groom-name">----------</span>
+              <span class="sp-hand cx-a text-[21px]">&amp;</span>
+              <span id="cover-bride-name">----------</span>
+            </span>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <span class="sp-note cx-a text-[17px] tracking-[2px]" id="cover-date">
+              --.--.----
+            </span>
+            <span class="flex-1 h-px cx-bg-line"></span>
+          </div>
+
+          <div class="sp-note cx-t text-[15px]">Chạm con dấu để mở thiệp nhé</div>
         </div>
       </div>
     </div>
@@ -154,7 +158,10 @@
     >
       <div class="flex flex-col gap-14 px-7 pb-16 text-left">
         <!-- ═══ MỤC: Mở đầu (ảnh cưới + lời mở thư) ═════════════════════════
-             Cao trọn một màn: ảnh tràn viền, dải giấy MÉP XÉ đè lên đáy ảnh. -->
+             Cao trọn một màn: ảnh tràn viền, một TỜ GHI CHÚ mép xé ghim nổi lên
+             trên ảnh (không phải dải chạy hết bề ngang) — bóng đổ phải để ở thẻ
+             BỌC bằng filter: drop-shadow, vì clip-path của mép xé cắt luôn cả
+             box-shadow của chính thẻ đó. .sp-grain phủ lớp hạt cho giấy nhám. -->
         <section id="section-hero" class="sp-screen relative -mx-7 flex flex-col justify-end overflow-hidden">
           <!-- KHÔNG loading="lazy": #main-card là display:none cho tới khi bấm
                mở thiệp, ảnh lazy sẽ chưa tải gì cả và thiệp mở ra là ô trống. -->
@@ -176,23 +183,26 @@
             </div>
           </div>
 
-          <div class="sp-torn sp-sheet relative z-10 flex flex-col gap-3 px-7 pt-11 pb-12">
-            <div class="sp-note cx-a text-[18px]">Chúng mình muốn nói với bạn rằng…</div>
+          <div class="sp-pin relative z-10 mx-6 mb-12">
+            <div class="sp-torn sp-sheet sp-grain flex flex-col gap-3 px-6 pt-11 pb-8">
+              <div class="sp-note cx-a text-[18px]">Chúng mình muốn nói với bạn rằng…</div>
 
-            <!-- Câu slogan (story_quote) — nét chữ tay to nhất thiệp -->
-            <div id="story-quote" class="sp-hand cx-h text-[22px]">
-              Một hành trình mới bắt đầu từ hôm nay
+              <!-- Câu slogan (story_quote) — nét chữ tay to nhất thiệp -->
+              <div id="story-quote" class="sp-hand cx-h text-[21px]">
+                Một hành trình mới bắt đầu từ hôm nay
+              </div>
+
+              <div class="w-12 h-px cx-bg-line my-1"></div>
+
+              <div class="sp-names cx-h text-[25px] leading-tight">
+                <span class="sp-names-in">
+                  <span id="couple-names-groom">----------</span>
+                  <span class="sp-hand cx-a text-[20px]">&amp;</span>
+                  <span id="couple-names-bride">----------</span>
+                </span>
+              </div>
             </div>
-
-            <div class="w-12 h-px cx-bg-line my-1"></div>
-
-            <div class="sp-names cx-h text-[26px] leading-tight">
-              <span class="sp-names-in">
-                <span id="couple-names-groom">----------</span>
-                <span class="sp-hand cx-a text-[21px]">&amp;</span>
-                <span id="couple-names-bride">----------</span>
-              </span>
-            </div>
+            <span class="sp-tape sp-tape-tc"></span>
           </div>
         </section>
 

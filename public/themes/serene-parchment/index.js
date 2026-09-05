@@ -1,7 +1,7 @@
 // ============= THEME: SERENE PARCHMENT =============
 // Thiệp đọc như một LÁ THƯ TAY trên giấy ngà: chữ canh trái, tiêu đề mục viết
 // tay, mục "Thư mời" nằm trên giấy kẻ dòng thật, con dấu sáp đỏ thay nút mở
-// thiệp, ảnh dán bằng băng dính giấy.
+// thiệp, ảnh dán bằng băng dính giấy, mép giấy xé ở màn Mở đầu.
 //
 // File này chỉ KHAI BÁO: window.CX_THEME + renderWedding + phần đặc thù của mẫu
 // (cặp tên một dòng, album ảnh in, dấu bưu điện). Phần "chạy" nằm ở
@@ -112,13 +112,6 @@
 
   // ============= TIỆN ÍCH RIÊNG =============
 
-  // Chữ cái đầu của TÊN RIÊNG (từ cuối) — dựng chữ lồng khắc trên con dấu sáp.
-  function _initial(name) {
-    const parts = String(name || "").trim().split(/\s+/);
-    const last = parts[parts.length - 1] || "";
-    return last.charAt(0).toUpperCase();
-  }
-
   // "2026-10-18" → "18.10.2026". Chuỗi rỗng khi chưa có ngày để nơi gọi tự
   // quyết định phần giữ chỗ.
   function _fmtDMY(dateStr) {
@@ -166,11 +159,6 @@
     // src, mà setupMusic kéo YouTube iframe API (script bên thứ ba) về ngay khi
     // chạy — để nó đi trước là ảnh phải xếp hàng sau.
     renderCover(w);
-    setText(
-      "seal-monogram",
-      `${_initial(w.groom_name)} & ${_initial(w.bride_name)}`,
-      "V & Y",
-    );
     setText("cover-date", _fmtDMY(w.ceremony_date), "--.--.----");
 
     // --- Mở đầu ---
@@ -232,7 +220,7 @@
       partyLocation,
       "full",
     );
-    _renderPostmark(partyDate);
+    _renderPostmark("stamp", partyDate);
     cxToggle("section-party", cxEnabled(w.enable_party));
 
     // Lịch nhỏ đánh dấu ngày lễ + ngày tiệc
@@ -298,15 +286,17 @@
   window.renderWedding = renderWedding;
 
   // ============= DẤU BƯU ĐIỆN (phần đặc thù của mẫu) =============
-  // Vòng mực đỏ đóng lệch trên thẻ tiệc, in đúng ngày đãi tiệc của nhà đang xem.
+  // Vòng mực đỏ đóng lệch, in ngày tháng. Dùng ở hai chỗ với hai mốc khác nhau
+  // (bìa: ngày cưới · thẻ tiệc: ngày đãi tiệc của nhà đang xem) nên nhận tiền
+  // tố id thay vì viết cứng.
 
-  function _renderPostmark(dateStr) {
+  function _renderPostmark(prefix, dateStr) {
     const d = dateStr ? new Date(dateStr) : null;
     if (!d || isNaN(d)) return;
-    setText("stamp-weekday", WEEKDAYS[d.getDay()]);
-    setText("stamp-day", d.getDate());
+    setText(`${prefix}-weekday`, WEEKDAYS[d.getDay()]);
+    setText(`${prefix}-day`, d.getDate());
     setText(
-      "stamp-month-year",
+      `${prefix}-month-year`,
       `${String(d.getMonth() + 1).padStart(2, "0")}.${d.getFullYear()}`,
     );
   }
