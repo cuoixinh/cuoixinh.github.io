@@ -1,7 +1,8 @@
 /* Bảng màu + CSS riêng của OPULENT CONTRAST — thiệp NỀN ĐEN, chữ ngà, đường
-   viền vàng đồng mảnh. Nét nhận dạng: khung vàng KÉP + hai vệt chéo ở góc bao
-   quanh cả tấm thiệp, ảnh tràn viền chạy dưới khung, và chữ hoa Didone khổ lớn
-   cắt ngang mép ảnh (.oc-cut). CSS THUẦN, nạp bằng <link> sau styles/themes.css.
+   vàng đồng mảnh. Nét nhận dạng: MÀN BÌA là tấm poster trong khung vàng KÉP có
+   hai vệt chéo cắt góc (.oc-frame), chữ hoa Didone khổ lớn cắt ngang mép ảnh
+   (.oc-cut); thân thiệp mở ra bằng một màn ảnh cưới trọn vẹn (.oc-hero).
+   CSS THUẦN, nạp bằng <link> sau styles/themes.css.
 
    Ba phần: 1) --cx-* bộ biến phần DÙNG CHUNG vẽ theo · 2) .cx-h/.cx-t/.cx-a ba
    lớp ngữ nghĩa của markup · 3) .oc-* trang trí riêng của mẫu. */
@@ -63,8 +64,8 @@
   --music-art-from-rgb: var(--cx-accent-soft-rgb);
   --music-art-to-rgb: var(--cx-accent-rgb);
 
-  /* Khoảng lùi của khung vàng so với mép thiệp. Đổi số này là đổi cả khung bìa
-     lẫn hai đường ray chạy dọc thân thiệp — hai chỗ phải trùng nhau. */
+  /* Khoảng lùi của hai nét khung vàng so với mép MÀN BÌA (.oc-frame). Thân
+     thiệp cố ý không có khung — các mục ngăn nhau bằng nền đậm nhạt. */
   --oc-inset: 20px;
   --oc-inset-2: 28px;
 }
@@ -169,30 +170,6 @@ body {
   }
 }
 
-/* ── Hai đường ray dọc thân thiệp ────────────────────────────────────────
-   Khung của màn bìa chạy tiếp xuống thân thiệp thành hai vạch dọc suốt chiều
-   cao — ảnh tràn viền cố tình chui BÊN DƯỚI chúng, giống tấm poster gốc. */
-
-#main-card::before,
-#main-card::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  z-index: 10;
-  width: 1px;
-  background-color: rgb(var(--cx-accent-rgb) / 0.45);
-  pointer-events: none;
-}
-
-#main-card::before {
-  left: var(--oc-inset);
-}
-
-#main-card::after {
-  right: var(--oc-inset);
-}
-
 /* ── Chữ ────────────────────────────────────────────────────────────────── */
 
 /* Chữ viết tay: font tự host, không chờ mạng. Chỉ dùng cho câu tiếng Anh trang
@@ -236,6 +213,33 @@ body {
   color: transparent;
 }
 
+/* ── Mục Mở đầu ─────────────────────────────────────────────────────────
+   Cao ĐÚNG một khung nhìn để mở thiệp ra là thấy trọn tấm ảnh cưới. Đi qua
+   --vh (px do core/helpers/vh-lock.js đo) chứ không dùng dvh/svh trần: Chrome
+   di động ẩn thanh URL bằng cách resize webview nên dvh/svh trôi theo, khối
+   phình dần lúc vuốt. */
+
+.oc-hero {
+  height: calc(var(--vh, 1vh) * 100);
+  height: calc(var(--vh, 1svh) * 100);
+}
+
+/* Phủ tối hai đầu ảnh: đáy đậm cho tên và ngày đọc được, đỉnh nhạt hơn để
+   thanh nhạc nổi trên nền ảnh sáng. */
+
+.oc-hero-veil {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgb(var(--cx-scrim-rgb) / 0.55) 0%,
+    rgb(var(--cx-scrim-rgb) / 0.08) 28%,
+    rgb(var(--cx-scrim-rgb) / 0.4) 64%,
+    rgb(var(--cx-scrim-rgb) / 0.92) 100%
+  );
+  pointer-events: none;
+}
+
 /* ── Đầu mục ────────────────────────────────────────────────────────────── */
 
 /* Vạch mảnh nhạt dần hai đầu, viên kim cương ở giữa. Dùng cả ở đầu mục lẫn
@@ -262,6 +266,17 @@ body {
   height: 4px;
   background-color: rgb(var(--cx-accent-rgb));
   transform: translate(-50%, -50%) rotate(45deg);
+}
+
+/* Dấu mở đầu mục — thay cho dòng chữ ký trang trí. Kim cương RỖNG, khác với
+   kim cương đặc giữa .oc-hair ở dưới tiêu đề. */
+
+.oc-crest {
+  display: block;
+  width: 8px;
+  height: 8px;
+  border: 1px solid rgb(var(--cx-accent-rgb));
+  transform: rotate(45deg);
 }
 
 /* ── Khối viền kép ──────────────────────────────────────────────────────── */
