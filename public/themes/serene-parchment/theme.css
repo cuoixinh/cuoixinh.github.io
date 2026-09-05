@@ -1,0 +1,527 @@
+/* Bảng màu + CSS riêng của SERENE PARCHMENT — thiệp mang dáng một LÁ THƯ TAY
+   viết trên giấy ngà: chữ viết tay, dòng kẻ thật để chữ ngồi lên, băng dính dán
+   ảnh, con dấu sáp đỏ thay nút mở thiệp, mép giấy xé ở màn Mở đầu.
+   CSS THUẦN, nạp bằng <link> sau styles/themes.css.
+
+   Ba phần: 1) --cx-* bộ biến phần DÙNG CHUNG vẽ theo · 2) .cx-h/.cx-t/.cx-a ba
+   lớp ngữ nghĩa của markup · 3) .sp-* trang trí riêng của mẫu. */
+
+:root {
+  /* — Chữ — */
+  --cx-heading-rgb: 58 53 43; /* mực nâu đen: tên, tiêu đề */
+  --cx-body-rgb: 115 107 93; /* mực đã nhạt: chữ đọc */
+  --cx-accent-rgb: 100 113 78; /* nhấn: xanh ô liu trầm */
+  --cx-accent-soft-rgb: 152 166 127; /* nấc nhấn nhạt hơn */
+  --cx-on-accent-rgb: 251 248 241; /* chữ nằm TRÊN nền nhấn và trên con dấu sáp */
+  --cx-on-image-rgb: 255 255 255;
+  --cx-on-lightbox-rgb: 247 242 231;
+
+  /* — Nền — Cả bộ là các sắc giấy: chênh nhau rất ít để thiệp đọc như MỘT tờ
+     giấy liền, phần chuyển mục nhờ dòng kẻ và tiêu đề viết tay chứ không nhờ
+     mảng màu. */
+  --cx-card-bg-rgb: 250 246 237; /* nền thân thiệp: giấy ngà */
+  --cx-page-bg-rgb: 234 226 210; /* nền trang, ngoài thân thiệp */
+  --cx-surface-rgb: 242 235 220;
+  --cx-band-rgb: 241 233 217; /* dải giấy sẫm hơn một nấc */
+  --cx-panel-rgb: 253 251 245; /* giấy mới, dùng cho ô nổi trên nền */
+  --cx-panel-warm-rgb: 246 239 224;
+  --cx-cover-rgb: 248 243 232; /* nền màn bìa: hai đầu dải */
+  --cx-cover-mid-rgb: 235 226 206; /* …và điểm giữa */
+  --cx-cover-veil-rgb: 248 243 232;
+  --cx-lightbox-bg-rgb: 33 31 26; /* nền xem ảnh: nâu rất tối, không phải đen */
+
+  /* — Đường & bóng — */
+  --cx-line-rgb: 221 210 186; /* dòng kẻ, vạch mảnh, viền ô */
+  --cx-shadow-rgb: 74 65 50; /* bóng nâu ấm, hợp với giấy hơn bóng đen */
+  --cx-scrim-rgb: 42 36 25; /* màn phủ trên ảnh */
+
+  /* — Trang trí — */
+  --cx-deco-rgb: 100 113 78;
+  --cx-deco-soft-rgb: 185 195 164; /* băng dính, chấm mốc nhạt */
+  --cx-deco-2-rgb: 164 85 63; /* ĐỎ SÁP: chỉ dùng cho con dấu và dấu bưu điện */
+  --cx-deco-2-soft-rgb: 217 168 147;
+  --cx-shine-from-rgb: 230 220 196;
+  --cx-shine-mid-rgb: 255 253 246;
+  --cx-shine-to-rgb: 230 220 196;
+
+  /* Thanh nhạc + widget nhạc đi theo bảng --music-* riêng. Ghi đè đúng bằng
+     công thức mà bộ màu suy ra (CX_PALETTE_MUSIC ở theme-setting-helper.js) để
+     thiệp không chọn bộ màu vẫn khớp với thiệp có chọn. */
+  --music-bar-fg-rgb: var(--cx-body-rgb);
+  --music-bar-bg-rgb: var(--cx-surface-rgb);
+  --music-widget-fg-rgb: var(--cx-heading-rgb);
+  --music-widget-dim-rgb: var(--cx-body-rgb);
+  --music-widget-chip-rgb: var(--cx-body-rgb);
+  --music-widget-accent-rgb: var(--cx-accent-rgb);
+  --music-bubble-from-rgb: var(--cx-accent-soft-rgb);
+  --music-bubble-to-rgb: var(--cx-accent-rgb);
+  --music-shadow-rgb: var(--cx-shadow-rgb);
+  --music-bubble-shadow-rgb: var(--cx-shadow-rgb);
+  --music-widget-bg: rgb(var(--cx-panel-rgb) / 0.95);
+  --music-widget-chip: rgb(var(--cx-body-rgb) / 0.12);
+  --music-widget-fill: rgb(var(--cx-accent-rgb) / 0.32);
+  --music-art-from-rgb: var(--cx-accent-soft-rgb);
+  --music-art-to-rgb: var(--cx-accent-rgb);
+
+  /* Bước dòng kẻ của giấy viết (.sp-rule). Chữ trong khối phải để
+     line-height ĐÚNG bằng biến này thì mới ngồi lên dòng. */
+  --sp-lh: 30px;
+}
+
+body {
+  background-color: rgb(var(--cx-page-bg-rgb));
+}
+
+/* Nền giấy: màu nền + hai vệt loang rất nhạt cho đỡ phẳng như màn hình. */
+
+#main-card {
+  background-color: rgb(var(--cx-card-bg-rgb));
+  background-image:
+    radial-gradient(
+      ellipse 60% 30% at 12% 6%,
+      rgb(var(--cx-line-rgb) / 0.3) 0%,
+      transparent 100%
+    ),
+    radial-gradient(
+      ellipse 55% 25% at 88% 62%,
+      rgb(var(--cx-line-rgb) / 0.26) 0%,
+      transparent 100%
+    );
+}
+
+/* ── Ba lớp ngữ nghĩa của mẫu ──────────────────────────────────────────────
+   .cx-h và .cx-t đặt CẢ font-family → đừng gắn chúng lên thẻ <i> của Font
+   Awesome, icon sẽ mất glyph. Tô màu icon thì dùng .cx-a / .cx-hd / .cx-bd. */
+
+.cx-h {
+  font-family: "EB Garamond", serif;
+}
+
+.cx-t {
+  font-family: "Nunito Sans", sans-serif;
+  font-weight: 300;
+}
+
+/* ── Hai nét chữ tay của mẫu ───────────────────────────────────────────────
+   .sp-hand nét to, thoáng — lời chào, tiêu đề mục, chữ ký cuối thư.
+   .sp-note nét nhỏ, đều — ghi chú bên lề, chú thích ảnh, dòng "T.B.".
+   Cả hai đậm hơn thân chữ một nấc vì nét viết tay mảnh, để màu .cx-t sẽ mờ. */
+
+.sp-hand {
+  font-family: "OctetStream", cursive;
+  font-weight: normal;
+  line-height: 1.25;
+}
+
+.sp-note {
+  font-family: "FaugllinBalseyn", cursive;
+  font-weight: normal;
+}
+
+/* ── Giấy có dòng kẻ ───────────────────────────────────────────────────────
+   Dòng kẻ vẽ ở ĐÁY mỗi băng cao --sp-lh, chữ có cùng line-height nên chân chữ
+   nằm đúng trên nét kẻ. Khối này KHÔNG được có padding trên/dưới — padding sẽ
+   đẩy chữ xuống mà không đẩy nét kẻ; muốn chừa lề thì cho thẻ cha. */
+
+.sp-rule {
+  line-height: var(--sp-lh);
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent calc(var(--sp-lh) - 1px),
+    rgb(var(--cx-line-rgb) / 0.75) calc(var(--sp-lh) - 1px),
+    rgb(var(--cx-line-rgb) / 0.75) var(--sp-lh)
+  );
+}
+
+/* Chữ cái đầu thư viết to như thư viết tay thật. */
+
+.sp-drop::first-letter {
+  float: left;
+  margin-right: 6px;
+  font-family: "EB Garamond", serif;
+  font-size: 56px;
+  line-height: 48px;
+  color: rgb(var(--cx-accent-rgb));
+}
+
+/* ── Tiêu đề mục ───────────────────────────────────────────────────────────
+   Chữ tay canh TRÁI + một nét kẻ chạy hết phần còn lại của dòng, như đầu đề
+   trong một lá thư. Cố ý không dùng chữ hoa dàn giữa như mẫu nền. */
+
+.sp-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sp-head-line {
+  flex: 1;
+  height: 1px;
+  background-color: rgb(var(--cx-line-rgb));
+}
+
+/* ── Cặp tên LUÔN nằm trên một dòng ────────────────────────────────────────
+   Khung .sp-names đo bề ngang thật rồi thu .sp-names-in bằng transform (xem
+   _fitNames ở index.js). Dùng transform chứ không phải font-size vì scale không
+   bắt trình duyệt bố cục lại — chữ không bao giờ nhảy sang dòng hai giữa chừng.
+   min-width: 0 là bắt buộc: mặc định min-width của một flex item là min-content,
+   tên dài sẽ nong rộng cả mục thay vì bị cắt. */
+
+.sp-names {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  align-items: baseline;
+  overflow: hidden;
+  overflow: clip;
+}
+
+.sp-names-in {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 10px;
+  white-space: nowrap;
+  transform: scale(var(--sp-fit, 1));
+  transform-origin: left center;
+}
+
+/* ── MÀN BÌA ───────────────────────────────────────────────────────────────
+   Chiều cao XÁC ĐỊNH (không phải min-height): phần giấy co lại được, nếu chỉ
+   đặt min-height thì khối ảnh bên dưới nở theo tỉ lệ ảnh gốc và màn bìa tràn
+   quá một khung nhìn. Độ đặc hiệu (1,1,0) thắng #cover-screen > div ở
+   _common.css (1,0,1). */
+
+#cover-screen > .sp-cover {
+  height: calc(var(--vh, 1vh) * 100);
+  height: calc(var(--vh, 1svh) * 100);
+}
+
+@media (min-width: 768px) {
+  #cover-screen > .sp-cover {
+    min-height: 0;
+    height: min(932px, calc(100dvh - 40px));
+  }
+}
+
+/* Ảnh cưới ở nửa dưới màn bìa loang dần vào giấy, để tấm ảnh trông như được in
+   thẳng lên tờ thư chứ không phải dán đè lên. Nhoè bằng MASK chứ không phải một
+   lớp phủ màu: nền màn bìa là dải chuyển màu 135°, phủ màu phẳng lên trên là lộ
+   ngay một vệt ngang chỗ giáp. Mask chỉ dùng kênh alpha nên #000 ở đây không
+   phải màu nằm ngoài bộ token. */
+
+.sp-cover-photo {
+  -webkit-mask-image: linear-gradient(
+    180deg,
+    rgb(0 0 0 / 0) 0px,
+    rgb(0 0 0 / 0.5) 56px,
+    rgb(0 0 0) 132px
+  );
+  mask-image: linear-gradient(
+    180deg,
+    rgb(0 0 0 / 0) 0px,
+    rgb(0 0 0 / 0.5) 56px,
+    rgb(0 0 0) 132px
+  );
+}
+
+/* ── Con dấu sáp (nút mở thiệp) ────────────────────────────────────────────
+   Bán kính bốn góc lệch nhau cho giống giọt sáp bị ép, không tròn như nút.
+   Đè lên rounded-full mà variant="bare" của <x-button> mang sẵn. */
+
+.sp-seal {
+  width: 88px;
+  height: 88px;
+  border-radius: 47% 53% 52% 48% / 51% 47% 53% 49%;
+  background:
+    radial-gradient(
+      circle at 34% 30%,
+      rgb(var(--cx-deco-2-soft-rgb) / 0.85) 0%,
+      transparent 55%
+    ),
+    rgb(var(--cx-deco-2-rgb));
+  box-shadow:
+    0 4px 12px rgb(var(--cx-shadow-rgb) / 0.28),
+    inset 0 -2px 6px rgb(var(--cx-shadow-rgb) / 0.35);
+}
+
+.sp-seal-ring {
+  position: absolute;
+  inset: 10px;
+  border: 1px solid rgb(var(--cx-on-accent-rgb) / 0.45);
+  border-radius: 50%;
+}
+
+/* Chữ lồng khắc trên mặt sáp — đi theo màu "chữ trên nền nhấn" của bộ màu. */
+
+.sp-on-seal {
+  color: rgb(var(--cx-on-accent-rgb));
+}
+
+/* ── Mép giấy xé ───────────────────────────────────────────────────────────
+   Dải giấy đè lên ảnh ở màn Mở đầu. Các đỉnh cao thấp so le tạo vết xé; cắt
+   bằng clip-path nên không cần ảnh nền, và giấy vẫn nhận được nền loang. */
+
+.sp-torn {
+  clip-path: polygon(
+    0% 13px,
+    3% 6px,
+    6% 12px,
+    9% 5px,
+    12% 11px,
+    15% 6px,
+    18% 13px,
+    21% 8px,
+    24% 4px,
+    27% 12px,
+    30% 7px,
+    33% 13px,
+    36% 6px,
+    39% 11px,
+    42% 5px,
+    45% 12px,
+    48% 8px,
+    51% 14px,
+    54% 6px,
+    57% 11px,
+    60% 7px,
+    63% 13px,
+    66% 5px,
+    69% 12px,
+    72% 8px,
+    75% 14px,
+    78% 6px,
+    81% 11px,
+    84% 7px,
+    87% 13px,
+    90% 5px,
+    93% 12px,
+    96% 7px,
+    100% 12px,
+    100% 100%,
+    0% 100%
+  );
+}
+
+/* Nền giấy cho dải đè lên ảnh — cùng màu thân thiệp nên chỗ nối liền mạch. */
+
+.sp-sheet {
+  background-color: rgb(var(--cx-card-bg-rgb));
+}
+
+/* Ảnh cưới ở màn Mở đầu sáng tối tuỳ tấm; tối nhẹ phần đỉnh để dòng chữ tay
+   trên đó luôn đọc được. */
+
+.sp-hero-top {
+  background: linear-gradient(
+    180deg,
+    rgb(var(--cx-scrim-rgb) / 0.5) 0%,
+    rgb(var(--cx-scrim-rgb) / 0.18) 55%,
+    rgb(var(--cx-scrim-rgb) / 0) 100%
+  );
+}
+
+/* Khối cao trọn một màn (Mở đầu). Xem chú thích ở .cx-screen-h — luôn qua --vh,
+   dvh/svh trần sẽ phình dần khi Chrome di động ẩn thanh URL. */
+
+.sp-screen {
+  height: calc(var(--vh, 1vh) * 100);
+  height: calc(var(--vh, 1svh) * 100);
+}
+
+/* Chữ đặt trên ảnh cưới: bóng mềm để đọc được cả khi rơi vào vùng ảnh sáng. */
+
+.sp-on-photo {
+  text-shadow: 0 2px 12px rgb(var(--cx-scrim-rgb) / 0.55);
+}
+
+/* ── Ảnh dán trên giấy ─────────────────────────────────────────────────────
+   Khung ảnh kiểu ảnh in: viền giấy trắng dày, bóng đổ thấp, hơi nghiêng. */
+
+.sp-photo {
+  position: relative;
+  background-color: rgb(var(--cx-panel-rgb));
+  padding: 8px;
+  box-shadow: 0 4px 14px rgb(var(--cx-shadow-rgb) / 0.16);
+  /* setImageWithRing() gắn ring-1 ring-white/80 lên thẻ CHA của ảnh — trắng
+     tinh sẽ nổi lên trên giấy ngà, kéo về đúng màu khung. */
+  --tw-ring-color: rgb(var(--cx-panel-rgb));
+}
+
+/* Ảnh polaroid ở album: chừa mép dưới rộng cho dòng chú thích viết tay. */
+
+.sp-polaroid {
+  padding: 8px 8px 32px;
+}
+
+.sp-tilt-l {
+  transform: rotate(-1.6deg);
+}
+
+.sp-tilt-r {
+  transform: rotate(1.4deg);
+}
+
+/* Băng dính giấy washi giữ ảnh — trong mờ nên vẫn thấy ảnh bên dưới. */
+
+.sp-tape {
+  position: absolute;
+  z-index: 1;
+  width: 64px;
+  height: 20px;
+  background-color: rgb(var(--cx-deco-soft-rgb) / 0.62);
+  box-shadow: 0 1px 3px rgb(var(--cx-shadow-rgb) / 0.14);
+}
+
+.sp-tape-tl {
+  top: -8px;
+  left: -12px;
+  transform: rotate(-28deg);
+}
+
+.sp-tape-tr {
+  top: -8px;
+  right: -12px;
+  transform: rotate(26deg);
+}
+
+.sp-tape-tc {
+  top: -10px;
+  left: 50%;
+  margin-left: -32px;
+  transform: rotate(-2deg);
+}
+
+/* ── Dấu bưu điện ──────────────────────────────────────────────────────────
+   Vòng tròn mực đỏ đóng lệch ở góc thẻ tiệc, in ngày tổ chức. Mực dấu bao giờ
+   cũng ăn không đều nên để opacity dưới 1. */
+
+.sp-postmark {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 76px;
+  height: 76px;
+  border: 2px solid rgb(var(--cx-deco-2-rgb) / 0.55);
+  border-radius: 50%;
+  color: rgb(var(--cx-deco-2-rgb) / 0.72);
+  transform: rotate(-11deg);
+}
+
+.sp-postmark-in {
+  border-top: 1px solid rgb(var(--cx-deco-2-rgb) / 0.45);
+  border-bottom: 1px solid rgb(var(--cx-deco-2-rgb) / 0.45);
+  padding: 2px 0;
+}
+
+/* ── Ô giấy có viền ────────────────────────────────────────────────────────
+   Thẻ tiệc, phiếu hồi âm, ô mừng cưới đều là một mảnh giấy khác đặt lên thư. */
+
+.sp-card {
+  position: relative;
+  background-color: rgb(var(--cx-panel-rgb));
+  border: 1px solid rgb(var(--cx-line-rgb));
+  box-shadow: 0 2px 10px rgb(var(--cx-shadow-rgb) / 0.1);
+}
+
+/* Phiếu hồi âm xé rời: nét đứt chạy quanh như đường răng cưa của phiếu thật. */
+
+.sp-slip {
+  border: 1px dashed rgb(var(--cx-accent-soft-rgb));
+  background-color: rgb(var(--cx-panel-warm-rgb));
+}
+
+/* Ô vuông đánh dấu ở phiếu hồi âm. Dấu tick trong suốt cho tới khi khách chọn:
+   confirmAttend() gắn .btn-selected lên chính nút, không cần JS riêng của mẫu. */
+
+.sp-tick {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex: none;
+  border: 1px solid rgb(var(--cx-body-rgb) / 0.55);
+  background-color: rgb(var(--cx-panel-rgb));
+  color: transparent;
+}
+
+.btn-selected .sp-tick {
+  border-color: rgb(var(--cx-accent-rgb));
+  color: rgb(var(--cx-accent-rgb));
+}
+
+/* ── Nút ───────────────────────────────────────────────────────────────────
+   Giấy không có góc bo tròn: đè rounded-full mà variant="bare" mang sẵn. */
+
+.sp-btn {
+  border-radius: 2px;
+}
+
+/* Nút hồi âm xếp nội dung sát trái. Không dùng được justify-start của Tailwind:
+   variant="bare" đã mang sẵn justify-center, hai utility cùng độ đặc hiệu nên
+   cái nào đứng sau trong themes.css thắng — và đó là justify-center. */
+
+.sp-btn-l {
+  justify-content: flex-start;
+}
+
+/* ── Phong bì đựng mã QR ───────────────────────────────────────────────────
+   Nắp phong bì là hai nét chéo từ hai góc trên CHÚC XUỐNG gặp nhau ở giữa, vẽ
+   bằng gradient nên không cần ảnh. Mỗi nửa là một lớp nền rộng 50%; hướng
+   gradient phải VUÔNG GÓC với nét muốn vẽ (dải màu nằm ngang trục), nên nửa
+   trái là `to top right` và nửa phải là `to top left` — đảo hai hướng này thì
+   nắp lộn ngược thành mái nhà. */
+
+.sp-envelope {
+  position: relative;
+}
+
+.sp-envelope::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 46px;
+  background-image:
+    linear-gradient(
+      to top right,
+      transparent calc(50% - 1px),
+      rgb(var(--cx-line-rgb)) calc(50% - 1px),
+      rgb(var(--cx-line-rgb)) calc(50% + 1px),
+      transparent calc(50% + 1px)
+    ),
+    linear-gradient(
+      to top left,
+      transparent calc(50% - 1px),
+      rgb(var(--cx-line-rgb)) calc(50% - 1px),
+      rgb(var(--cx-line-rgb)) calc(50% + 1px),
+      transparent calc(50% + 1px)
+    );
+  background-size:
+    50% 100%,
+    50% 100%;
+  background-position:
+    left top,
+    right top;
+  background-repeat: no-repeat;
+  pointer-events: none;
+}
+
+/* ── Chấm mốc của helper dùng chung ────────────────────────────────────────
+   CX_TL_DOT (dòng thời gian, chuyện tình yêu) có vòng trắng cứng bao quanh cho
+   nền sáng; giấy ngà không phải màu trắng nên phải kéo về đúng nền của mẫu. */
+
+#timeline-list-render .border-white,
+#love-story-list .border-white {
+  border-color: rgb(var(--cx-card-bg-rgb));
+}
+
+/* Ảnh kể chuyện cũng do helper dựng, mặc định bo góc mềm — kéo về đúng kiểu
+   ảnh in dán trên giấy như phần còn lại của mẫu. */
+
+#love-story-list img {
+  border: 8px solid rgb(var(--cx-panel-rgb));
+  border-radius: 0;
+  box-shadow: 0 4px 14px rgb(var(--cx-shadow-rgb) / 0.16);
+}
