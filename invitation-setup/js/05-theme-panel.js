@@ -285,6 +285,7 @@ function _alignPickerToChip(chipEl) {
 function _initThemePanel() {
   _watchThemeFrame();
   _setCtrlAway(false);
+  _setCtrlCollapsed(false);
 
   if (!_themePanelReady) {
     _initColorPickers();
@@ -350,6 +351,23 @@ function _setCtrlAway(on) {
   document
     .getElementById("theme-controls")
     ?.classList.toggle("cx-ctrl-away", on);
+}
+
+// Vuốt tay nắm XUỐNG là cất hẳn thanh chỉnh đi, chỉ chừa lại vạch kéo để kéo lên.
+// CTRL_PEEK phải khớp 28px trong .cx-ctrl-collapsed (styles/_setup.css).
+const CTRL_PEEK = 28;
+const CTRL_HIDE_AT = 64; // tụt quá ngần này lúc buông tay mới tính là muốn thu gọn
+let _ctrlCollapsed = false;
+
+// Trạng thái NGHỈ dùng class: translateY tính theo % nên tự đúng khi bảng đổi
+// chiều cao hay máy xoay ngang. Biến --cx-ctrl-off chỉ dùng lúc còn bám tay.
+function _setCtrlCollapsed(on) {
+  _ctrlCollapsed = !!on;
+  const ctrl = document.getElementById("theme-controls");
+  if (!ctrl) return;
+  ctrl.classList.remove("cx-ctrl-slide");
+  ctrl.style.removeProperty("--cx-ctrl-off");
+  ctrl.classList.toggle("cx-ctrl-collapsed", _ctrlCollapsed);
 }
 
 // Nhận tín hiệu click text từ iframe tab Giao diện (đúng nguồn mới nhận).
@@ -593,6 +611,11 @@ function _palDragMove(ev) {
     }
     if (Math.hypot(ev.clientX - d.x0, ev.clientY - d.y0) < PAL_DRAG_MIN) return;
     d.out = true;
+    // Đã nhấc hẳn ô mẫu ra khỏi bảng → dọn thanh chỉnh đi cho thấy chỗ đang thả.
+    // An toàn vì _inThemeControls chỉ được hỏi trong nhánh !d.out này, còn lúc
+    // thả thì _palDragEnd xét theo rect của IFRAME — ở mobile thanh chỉnh nổi
+    // absolute nên iframe vốn đã cao trọn khung, ẩn nó rect không đổi.
+    _setCtrlAway(true);
     // Bóng mờ = BẢN SAO của chính ô mẫu đang kéo (mờ 50%) cho dễ nhận ra.
     d.ghost = d.btn.cloneNode(true);
     d.ghost.removeAttribute("id");
@@ -630,6 +653,7 @@ function _palDragMove(ev) {
 function _palDragEnd(ev) {
   const d = _palDrag;
   _palDrag = null;
+  _setCtrlAway(false);
   if (!d) return;
   d.ghost?.remove();
   if (d.iframe) d.iframe.style.pointerEvents = ""; // khôi phục tương tác iframe
@@ -1918,12 +1942,18 @@ const CTRL_HEADS = [
   ["theme-line-editor", "cx-head-line"],
 ];
 
+let _lastCtrlHead = null;
+
 function _syncCtrlHead() {
   const open = CTRL_HEADS.find(
     ([panelId]) =>
       !document.getElementById(panelId)?.classList.contains("hidden"),
   );
   const active = open ? open[1] : "cx-head-main";
+  // Đổi sang bảng chỉnh khác trong lúc panel đang thu gọn thì bung ra: bấm một
+  // dòng chữ trên thiệp mà bảng chỉnh nằm khuất thì trông như chẳng có gì xảy ra.
+  if (_lastCtrlHead !== null && _lastCtrlHead !== active) _setCtrlCollapsed(false);
+  _lastCtrlHead = active;
   CTRL_HEADS.forEach(([, headId]) =>
     document.getElementById(headId)?.classList.toggle("hidden", headId !== active),
   );
@@ -1971,6 +2001,19 @@ function _initSheet(bodyId, handleId) {
   };
   setH(cur);
 
+  // Cả ba mức nằm trên MỘT trục ảo v để cử chỉ liền một mạch:
+  //   v < 0  → thu gọn, đẩy panel xuống -v px (chiều cao giữ nguyên mức thấp)
+  //   v ≥ 0  → chiều cao = SHEET_MIN + v
+  const ctrl = document.getElementById("theme-controls");
+  // Quãng đẩy xuống tối đa = vừa đủ chừa lại vạch kéo. Đo LÚC CẦN, sau khi khung
+  // đã hạ về mức thấp, chứ không phải lúc bấm xuống (khi đó panel còn đang cao).
+  const hideDist = () => {
+    if (drag.hide == null)
+      drag.hide = Math.max(0, (ctrl ? ctrl.offsetHeight : 0) - CTRL_PEEK);
+    return drag.hide;
+  };
+  const slide = (px) => ctrl?.style.setProperty("--cx-ctrl-off", px + "px");
+
   let drag = null;
   const grip = handle.querySelector(".cx-sheet-grip");
   handle.addEventListener("pointerdown", (e) => {
@@ -1986,23 +2029,57 @@ function _initSheet(bodyId, handleId) {
     // Chốt mức cao NGAY LÚC BẮT ĐẦU: đang kéo thì scrollHeight đổi theo chiều
     // cao khung, tính lại giữa chừng sẽ ra trần nhảy nhót.
     drag = { y0: e.clientY, h0: cur, max: _sheetMax(body), moved: false };
-    body.classList.add("is-dragging"); // tắt hiệu ứng trượt, bám tay tức thì
+    // Đang thu gọn thì đổi từ class sang biến px mà KHÔNG nhảy chỗ: 100% của
+    // translateY chính là offsetHeight nên hai cách ra cùng một vị trí.
+    if (_ctrlCollapsed) drag.hide = Math.max(0, (ctrl?.offsetHeight || 0) - CTRL_PEEK);
+    drag.v = drag.v0 = _ctrlCollapsed ? -drag.hide : cur - SHEET_MIN;
+    ctrl?.classList.remove("cx-ctrl-collapsed");
+    slide(Math.max(0, -drag.v0));
+    ctrl?.classList.add("cx-ctrl-slide"); // tắt hiệu ứng trượt, bám tay tức thì
+    body.classList.add("is-dragging");
   });
   handle.addEventListener("pointermove", (e) => {
     if (!drag) return;
     const dy = e.clientY - drag.y0;
     if (!drag.moved && Math.abs(dy) < SHEET_DRAG_MIN) return;
     drag.moved = true;
-    setH(drag.h0 - dy, drag.max); // kéo lên (dy âm) = cao lên
+    let v = Math.min(drag.v0 - dy, drag.max - SHEET_MIN); // kéo lên (dy âm) = cao lên
+    if (v < 0) {
+      setH(SHEET_MIN, drag.max);
+      v = Math.max(v, -hideDist());
+      slide(Math.round(-v));
+    } else {
+      slide(0);
+      setH(SHEET_MIN + v, drag.max);
+    }
+    drag.v = v;
   });
   const end = () => {
     if (!drag) return;
     body.classList.remove("is-dragging");
-    // Luôn về đúng MỘT TRONG HAI mức. Vuốt: trượt về mức gần chỗ buông tay hơn.
-    // Chạm không vuốt: nhảy sang mức còn lại.
     const max = drag.max;
-    if (drag.moved) setH(cur > (SHEET_MIN + max) / 2 ? max : SHEET_MIN, max);
-    else setH(drag.h0 >= max - 4 ? SHEET_MIN : max, max);
+    if (!drag.moved) {
+      // Chạm không vuốt: đang thu gọn thì bung ra, còn lại nhảy sang mức kia.
+      if (_ctrlCollapsed) _setCtrlCollapsed(false);
+      else {
+        _setCtrlCollapsed(false);
+        setH(drag.h0 >= max - 4 ? SHEET_MIN : max, max);
+      }
+    } else if (drag.v < 0) {
+      // Tụt xuống dưới mức thấp. Ngưỡng tính theo QUÃNG ĐÃ ĐI kể từ trạng thái
+      // lúc bắt đầu, không theo vị trí tuyệt đối: đo theo đáy thì lúc đang thu
+      // gọn phải kéo lên gần hết chiều cao panel mới bung được.
+      const thuGọn =
+        drag.v0 < 0
+          ? drag.v - drag.v0 < CTRL_HIDE_AT // đang gọn: kéo lên chưa đủ xa
+          : -drag.v >= CTRL_HIDE_AT; // đang mở: tụt xuống đủ sâu
+      _setCtrlCollapsed(thuGọn);
+      if (!thuGọn) setH(SHEET_MIN, max);
+    } else {
+      // Vẫn trong khoảng hai mức: trượt về mức gần chỗ buông tay hơn.
+      _setCtrlCollapsed(false);
+      setH(cur > (SHEET_MIN + max) / 2 ? max : SHEET_MIN, max);
+    }
     drag = null;
   };
   handle.addEventListener("pointerup", end);
