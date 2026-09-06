@@ -459,43 +459,124 @@ html.cx-landing {
   text-shadow: 0 1px 12px rgb(var(--white-rgb));
 }
 
-/* Ba thẻ mẫu thiệp (js/auth-nav.js → initHeroPicks). Thẻ giữa mang .is-lead nên
-   rộng và cao hơn một nấc; hàng căn theo mép DƯỚI để phần chênh lệch nhô lên ở
-   phía trên. */
+/* Ba thẻ mẫu thiệp (js/auth-nav.js → initHeroPicks) xếp thành NAN QUẠT: thẻ
+   giữa (.is-lead) đứng thẳng, cao hơn một nấc và đè lên hai thẻ bên; hai thẻ
+   bên nghiêng ra ngoài quanh mép DƯỚI nên cả hàng vẫn đứng trên một đường chân
+   duy nhất. Thẻ CHỈ có ảnh chụp mẫu — ảnh đã mang sẵn chữ của chính mẫu đó nên
+   in thêm tên mẫu lên là hai lớp chữ chồng nhau; tên chỉ còn ở `aria-label`.
+   Nan quạt cần đủ ba thẻ, nên js đặt cờ `.is-fan` khi hàng đầy — hàng thiếu thẻ
+   giữ dáng đứng thẳng cách đều. */
 
 .hero-picks {
-  @apply flex items-end justify-center;
+  @apply relative flex items-end justify-center;
   gap: 12px;
   /* Thẻ dựng theo TỈ LỆ THÂN MÁY iPhone (--cx-ph-ar, cùng token với
      .carousel-3d-card) nên rất cao — khống chế bằng CHIỀU CAO rồi để
      aspect-ratio suy ra bề ngang. Đo theo --vh chứ không theo bề ngang: chỗ
      chật của cụm thẻ là chiều DỌC, lấy vw thì màn thấp là cụm thẻ đội cả tiêu
      đề ra khỏi khung nhìn. */
-  --cx-pick-h: clamp(132px, calc(var(--vh, 1vh) * 27), 268px);
-  --cx-pick-h: clamp(132px, calc(var(--vh, 1svh) * 27), 268px);
+  --cx-pick-h: clamp(140px, calc(var(--vh, 1vh) * 30), 296px);
+  --cx-pick-h: clamp(140px, calc(var(--vh, 1svh) * 30), 296px);
+  /* Bề ngang hai thẻ bên thúc vào dưới thẻ giữa. */
+  --cx-pick-lap: 16px;
 }
 
+/* Quầng sáng sau cụm thẻ: ảnh nền là collage nhiều mảng sáng-tối, thiếu lớp này
+   thì viền trắng của thẻ dính vào ảnh ở những chỗ nền đang sáng. Là ::before của
+   hàng nên luôn vẽ TRƯỚC các thẻ — đừng thêm z-index cho nó. */
+
+.hero-picks::before {
+  content: "";
+  @apply pointer-events-none absolute left-1/2 top-1/2;
+  width: 132%;
+  height: 148%;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(
+    closest-side ellipse,
+    rgb(var(--white-rgb) / 0.44) 0%,
+    rgb(var(--white-rgb) / 0.18) 54%,
+    rgb(var(--white-rgb) / 0) 100%
+  );
+}
+
+.hero-picks.is-fan {
+  gap: 0;
+}
+.hero-picks.is-fan .hero-pick:first-child {
+  --cx-pick-rot: -7deg;
+  margin-right: calc(var(--cx-pick-lap) * -1);
+}
+.hero-picks.is-fan .hero-pick:last-child {
+  --cx-pick-rot: 7deg;
+  margin-left: calc(var(--cx-pick-lap) * -1);
+}
+
+/* Góc nghiêng đi qua biến vì cả hover lẫn hiệu ứng xuất hiện đều ghi đè
+   `transform` — quên nhắc lại `rotate(var(--cx-pick-rot))` là thẻ bật thẳng. */
+
 .hero-pick {
+  --cx-pick-rot: 0deg;
   @apply relative block overflow-hidden;
+  z-index: 1;
   height: calc(var(--cx-pick-h) * 0.82);
   aspect-ratio: var(--cx-ph-ar);
   /* Bo góc theo % như .carousel-3d-card — giữ đúng dáng góc thân máy ở mọi khổ. */
   border-radius: 9% / 4.4%;
-  border: 1px solid rgb(var(--white-rgb) / 0.4);
-  box-shadow: 0 12px 32px rgb(var(--landing-dark-rgb) / 0.45);
+  /* Viền trắng là VÒNG box-shadow chứ không phải `border`: vòng nằm ngoài hộp
+     nên bo theo đúng bán kính %, còn border thì ăn vào ảnh. Sợi tối ngay sau nó
+     là để chính viền trắng còn thấy được khi mảng ảnh nền phía sau đang sáng.
+     Hai lớp cuối là bóng gần (tạo mép) + bóng xa (nhấc thẻ khỏi nền). */
+  box-shadow:
+    0 0 0 4px rgb(var(--white-rgb) / 0.92),
+    0 0 0 5px rgb(var(--landing-dark-rgb) / 0.08),
+    0 4px 10px rgb(var(--landing-dark-rgb) / 0.18),
+    0 20px 44px rgb(var(--landing-dark-rgb) / 0.32);
+  transform: rotate(var(--cx-pick-rot));
+  transform-origin: bottom center;
   transition:
-    transform 0.25s ease,
-    box-shadow 0.25s ease;
+    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.35s ease;
+  animation: cx-hero-pick-in 0.62s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+/* Thẻ do js chèn vào sau khi có dữ liệu nên hiệu ứng chạy đúng lúc hàng hiện ra. */
+.hero-pick:nth-child(1) { animation-delay: 0.05s; }
+.hero-pick:nth-child(2) { animation-delay: 0.14s; }
+.hero-pick:nth-child(3) { animation-delay: 0.23s; }
+
+@keyframes cx-hero-pick-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.94) rotate(var(--cx-pick-rot));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1) rotate(var(--cx-pick-rot));
+  }
 }
 
 .hero-pick.is-lead {
   height: var(--cx-pick-h);
   z-index: 2;
+  box-shadow:
+    0 0 0 4px rgb(var(--white-rgb)),
+    0 0 0 5px rgb(var(--landing-dark-rgb) / 0.08),
+    0 6px 14px rgb(var(--landing-dark-rgb) / 0.2),
+    0 28px 56px rgb(var(--landing-dark-rgb) / 0.38);
 }
 
+/* Rê chuột thì thẻ nhấc lên và gần như thẳng lại — đủ để thấy nó bấm được mà
+   không làm xô cả nan quạt. */
+
 .hero-pick:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 16px 40px rgb(var(--landing-dark-rgb) / 0.55);
+  z-index: 3;
+  transform: translateY(-12px) scale(1.04)
+    rotate(calc(var(--cx-pick-rot) * 0.35));
+  box-shadow:
+    0 0 0 4px rgb(var(--white-rgb)),
+    0 0 0 5px rgb(var(--landing-dark-rgb) / 0.1),
+    0 8px 18px rgb(var(--landing-dark-rgb) / 0.24),
+    0 32px 64px rgb(var(--landing-dark-rgb) / 0.44);
 }
 
 /* Ảnh chụp mẫu cao gấp nhiều lần ô: neo mép TRÊN để luôn thấy phần bìa thiệp. */
@@ -505,31 +586,18 @@ html.cx-landing {
   object-position: center top;
 }
 
-.hero-pick-veil {
+/* Vệt sáng chéo — ảnh chụp mẫu nào cũng phẳng lì, thiếu vệt này ba thẻ trông
+   như ba hình dán chứ không phải ba màn hình. */
+
+.hero-pick::after {
+  content: "";
   @apply pointer-events-none absolute inset-0;
   background: linear-gradient(
-    to top,
-    rgb(var(--landing-dark-rgb) / 0.86) 0%,
-    rgb(var(--landing-dark-rgb) / 0.52) 24%,
-    rgb(var(--landing-dark-rgb) / 0.1) 48%,
-    rgb(var(--landing-dark-rgb) / 0) 100%
+    116deg,
+    rgb(var(--white-rgb) / 0.16) 0%,
+    rgb(var(--white-rgb) / 0.04) 18%,
+    rgb(var(--white-rgb) / 0) 36%
   );
-}
-
-/* Thẻ theo tỉ lệ thân máy nên hẹp — cho tên XUỐNG DÒNG (tối đa 2) thay vì cắt
-   bằng "…": tên mẫu hai chữ như "Romantic Gold" cắt mất nửa sau thì thẻ chẳng
-   còn nói lên điều gì. */
-.hero-pick-name {
-  @apply pointer-events-none absolute inset-x-0 bottom-0 line-clamp-2 text-center font-playfair font-semibold;
-  padding: 0 8px 8px;
-  font-size: 12px;
-  line-height: 1.25;
-  color: rgb(var(--white-rgb));
-}
-
-.hero-pick.is-lead .hero-pick-name {
-  padding-bottom: 12px;
-  font-size: 14px;
 }
 
 .hero-bottom {
@@ -634,6 +702,7 @@ html.cx-landing {
   }
   .hero-picks {
     gap: 16px;
+    --cx-pick-lap: 20px;
   }
   .hero-lead {
     margin-top: 20px;
@@ -653,12 +722,6 @@ html.cx-landing {
   }
   .hero-picks-label {
     font-size: 34px;
-  }
-  .hero-pick-name {
-    font-size: 13px;
-  }
-  .hero-pick.is-lead .hero-pick-name {
-    font-size: 16px;
   }
   .hero-btn {
     height: 52px;
@@ -715,8 +778,8 @@ html.cx-landing {
     gap: 12px;
   }
   .hero-picks {
-    --cx-pick-h: clamp(120px, calc(var(--vh, 1vh) * 24), 200px);
-    --cx-pick-h: clamp(120px, calc(var(--vh, 1svh) * 24), 200px);
+    --cx-pick-h: clamp(128px, calc(var(--vh, 1vh) * 28), 240px);
+    --cx-pick-h: clamp(128px, calc(var(--vh, 1svh) * 28), 240px);
   }
   .hero-badge {
     width: 44px;
@@ -743,6 +806,7 @@ html.cx-landing {
     opacity: 1;
   }
   .hero-pick {
+    animation: none;
     transition: none;
   }
 }
