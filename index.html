@@ -51,14 +51,13 @@
     <!-- ===== HERO ===== -->
     <!-- Màn mở đầu TRÀN VIỀN: ảnh cưới chiếm NỬA TRÊN rồi tan dần thành nền
          trắng phẳng ở nửa dưới — không còn tấm thiệp giấy ở giữa như bản cũ.
-         Hai cụm nội dung xếp trên/dưới trong .hero-stage: cụm trên căn giữa nằm
-         trên ảnh (huy hiệu + ba thẻ mẫu), cụm dưới căn trái nằm trên nền trắng
-         (tiêu đề + nút) nên chữ để màu ĐẬM. Chi tiết đo đạc ở
+         Hai cụm nội dung xếp trên/dưới trong .hero-stage: cụm trên nằm trên ảnh
+         (logo góc trái + ba thẻ mẫu căn giữa), cụm dưới căn trái nằm trên nền
+         trắng (tiêu đề + nút) nên chữ để màu ĐẬM. Chi tiết đo đạc ở
          styles/tailwind-src.css.
-         data-nav-hide-over: js/nav-autohide.js đọc thuộc tính này để ẩn hẳn
-         navbar chừng nào còn cuộn trong khối — thẻ pill trắng cắt ngang ảnh
-         nền tràn viền. -->
-    <section id="hero" data-nav-hide-over>
+         Navbar hiện ở MỌI vị trí cuộn (trang này không nạp js/nav-autohide.js)
+         nên .hero-stage phải tự chừa chỗ cho nó — xem lề của .hero-stage. -->
+    <section id="hero">
       <!-- Nền ảnh cưới (WebP do tab "Ảnh nền" của admin chụp) — js/hero-background.js
            gán vào --hero-bg-url. Chưa có nền thì lớp này trong suốt và hero
            còn lại một màn trắng phẳng. -->
@@ -68,11 +67,13 @@
       <div class="hero-veil" aria-hidden="true"></div>
 
       <div class="hero-stage">
-        <!-- Cụm trên: huy hiệu thương hiệu + ba mẫu thiệp nổi bật -->
+        <!-- Cụm trên: logo + ba mẫu thiệp nổi bật -->
         <div class="hero-top">
-          <span class="hero-badge hero-anim hero-anim-1">
+          <!-- Logo trần (không đĩa nền), neo góc TRÁI. Chỉ hiện ở khổ hẹp: từ md
+               navbar trên đã mang logo ở đúng góc đó. -->
+          <a href="/" class="hero-badge hero-anim hero-anim-1" aria-label="Cưới Xinh">
             <img src="assets/icons/logo.png" alt="Cưới Xinh" />
-          </span>
+          </a>
 
           <p class="hero-picks-label hero-anim hero-anim-2">Mẫu thiệp nổi bật</p>
 
@@ -709,7 +710,7 @@
          đúng khổ bong bóng (w-fit) để X neo vào mép bong bóng chứ không mép màn. -->
     <div
       id="chatWidget"
-      class="fixed z-50 w-fit right-[calc(24px_+_env(safe-area-inset-right,0px))] bottom-[88px]"
+      class="fixed z-50 w-fit right-[calc(24px_+_env(safe-area-inset-right,0px))] bottom-[152px] md:bottom-[88px]"
       aria-label="Liên hệ nhanh"
     >
       <a
@@ -832,7 +833,6 @@
     </script>
 
     <script src="js/hero-background.js"></script>
-    <script src="js/nav-autohide.js"></script>
     <!-- Ô đếm của mục "Đã chọn" ở navbar (đọc cache, không gọi API). -->
     <script src="core/helpers/nav-cart-count.js"></script>
 

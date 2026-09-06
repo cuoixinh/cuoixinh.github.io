@@ -337,10 +337,9 @@ html.cx-landing {
    Nền dùng ĐÚNG --surface-tint-rgb của #templates nên mép nối giữa hai mục
    không lộ đường ngăn — đổi nền một bên thì phải đổi cả bên kia.
 
-   Cố ý KHÔNG chừa chỗ cho navbar ở đỉnh: navbar ẩn hẳn chừng nào còn cuộn
-   trong khối này (js/nav-autohide.js đọc `data-nav-hide-over` trên #hero).
-   Thanh tab dưới ở mobile thì vẫn nổi trên ảnh — .hero-stage tự chừa lề đáy
-   cho nó, đừng bù bằng cách thu chiều cao #hero lại. */
+   Navbar hiện ở MỌI vị trí cuộn (trang chủ không nạp js/nav-autohide.js), nên
+   CẢ HAI thanh đều nổi trên ảnh: navbar trên từ md, thanh tab dưới ở mobile.
+   .hero-stage tự chừa lề cho chúng — đừng bù bằng cách thu chiều cao #hero. */
 
 #hero {
   @apply relative flex flex-col overflow-hidden;
@@ -401,16 +400,19 @@ html.cx-landing {
 
 /* Hai cụm nội dung: .hero-top căn giữa ở trên, .hero-bottom bị `margin-top:auto`
    đẩy xuống sát đáy — chỗ trống thừa của màn cao dồn hết vào khe giữa hai cụm.
-   Lề đáy 96px KHÔNG phải để chừa thanh tab dưới (js/nav-autohide.js giấu luôn
-   thanh đó chừng nào còn cuộn trong khối này) mà để chừa HAI BONG BÓNG NỔI ở
-   góc phải: trợ lý AI (.aichat-fab, bottom 24px) và Messenger (#chatWidget,
-   bottom 88px). Khổ hẹp thì cụm nút chạy gần hết bề ngang nên hạ số này xuống
-   là bong bóng đè lên nút. Từ md màn đủ rộng, hai thứ không chạm nhau. */
+   Lề ĐÁY khác nhau hẳn giữa hai khổ. Khổ hẹp 152px vì cụm nút chạy gần hết bề
+   ngang, phải qua mặt cả thanh tab dưới (.cx-tabbar, ~64px kể cả lề) LẪN bong
+   bóng trợ lý AI đứng ngay trên nó (.aichat-fab, bottom 88px + cao 52px = mép
+   trên ở 140px). Từ md không còn thanh tab, bong bóng lùi về bottom 24px và cụm
+   nút chỉ chiếm nửa trái màn nên 48px là đủ.
+   Lề ĐỈNH thì ngược lại: khổ hẹp không có navbar trên nên chỉ cần 32px, từ md
+   phải chừa đủ 80px của .cx-navbar (12 + 64 + 4) — đổi khổ navbar là phải đổi
+   cả hai số md/lg dưới. */
 
 .hero-stage {
   @apply relative z-[2] mx-auto flex w-full flex-1 flex-col;
   max-width: 1200px;
-  padding: 32px 20px 96px;
+  padding: 32px 20px 152px;
   gap: 24px;
 }
 
@@ -429,21 +431,23 @@ html.cx-landing {
   gap: 16px;
 }
 
-/* Huy hiệu tròn kính mờ đựng logo — đây là dấu hiệu thương hiệu DUY NHẤT ở màn
-   mở đầu, vì navbar (và logo trong đó) đang bị ẩn. */
+/* Logo trần ở góc TRÁI của hero — không đĩa nền, chỉ một quầng trắng bám theo
+   nét chữ (cùng lối với text-shadow của .hero-picks-label) để đọc được trên
+   những mảng tối của ảnh collage. `align-self` kéo riêng nó về trái, cả cụm
+   .hero-top vẫn căn giữa.
+   CHỈ sống ở khổ hẹp: từ md navbar trên (luôn hiện) đã mang logo ở đúng góc
+   này, hai logo chồng góc là thừa — xem media md ở dưới. */
 
 .hero-badge {
-  @apply inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full;
-  width: 56px;
-  height: 56px;
-  padding: 8px;
-  background: rgb(var(--white-rgb) / 0.9);
-  border: 1px solid rgb(var(--white-rgb));
-  box-shadow: 0 6px 20px rgb(var(--shadow-brand-rgb) / 0.18);
+  @apply inline-flex shrink-0 items-center self-start;
+  height: 48px;
+  filter:
+    drop-shadow(0 0 6px rgb(var(--white-rgb)))
+    drop-shadow(0 2px 10px rgb(var(--white-rgb) / 0.85));
 }
 
 .hero-badge img {
-  @apply h-full w-full object-contain;
+  @apply h-full w-auto object-contain;
 }
 
 /* Great Vibes nạp qua thẻ <link> Google Fonts ở đầu index.html — bỏ thẻ đó là
@@ -687,15 +691,14 @@ html.cx-landing {
 
 @media (min-width: 768px) {
   .hero-stage {
-    padding: 48px 32px 48px;
+    padding: 96px 32px 48px;
     gap: 32px;
   }
   .hero-top {
     gap: 20px;
   }
   .hero-badge {
-    width: 64px;
-    height: 64px;
+    display: none;
   }
   .hero-picks-label {
     font-size: 30px;
@@ -718,7 +721,7 @@ html.cx-landing {
 
 @media (min-width: 1024px) {
   .hero-stage {
-    padding: 64px 40px 64px;
+    padding: 96px 40px 64px;
   }
   .hero-picks-label {
     font-size: 34px;
@@ -770,8 +773,10 @@ html.cx-landing {
       rgb(var(--surface-tint-rgb) / 0) 44%
     );
   }
+  /* KHÔNG đụng padding-top ở đây: khối này bắt cả laptop 13" (rộng ≥ md) mà ở
+     đó đỉnh hero còn phải chừa navbar 80px. Chỗ nén cho máy ngắn-và-hẹp nằm ở
+     khối max-width bên dưới. */
   .hero-stage {
-    padding-top: 24px;
     gap: 16px;
   }
   .hero-top {
@@ -782,8 +787,7 @@ html.cx-landing {
     --cx-pick-h: clamp(128px, calc(var(--vh, 1svh) * 28), 240px);
   }
   .hero-badge {
-    width: 44px;
-    height: 44px;
+    height: 36px;
   }
   .hero-picks-label {
     font-size: 22px;
@@ -797,6 +801,21 @@ html.cx-landing {
   }
   .hero-actions {
     margin-top: 20px;
+  }
+}
+
+/* Máy vừa NGẮN vừa HẸP (360x640 và họ hàng): ở khổ này cụm nút phải đứng trên
+   CẢ thanh tab dưới lẫn bong bóng trợ lý AI, tức lề đáy 152px — không thu thẻ
+   mẫu lại nữa thì hero cao hơn khung nhìn, cụm nút trôi xuống dưới và bong bóng
+   đè lên nút "Xem mẫu thiệp". Phải đứng SAU khối max-height ở trên. */
+
+@media (max-height: 780px) and (max-width: 767px) {
+  .hero-stage {
+    padding-top: 16px;
+  }
+  .hero-picks {
+    --cx-pick-h: clamp(112px, calc(var(--vh, 1vh) * 22), 176px);
+    --cx-pick-h: clamp(112px, calc(var(--vh, 1svh) * 22), 176px);
   }
 }
 
@@ -1418,16 +1437,6 @@ html.cx-landing {
 }
 #main-nav.nav-hidden {
   @apply -translate-y-full;
-}
-
-/* Thanh tab dưới (mobile) chỉ ẩn khi đang ở khối tràn viền — dưới md nó là thứ
-   DUY NHẤT cắt ngang ảnh nền, vì navbar trên không hiện ở khổ này. Trượt hết cả
-   8px lề của .cx-tabbar để không hở một mẩu thẻ ở mép dưới. */
-.cx-tabbar {
-  transition: transform 0.3s ease;
-}
-.cx-tabbar.nav-hidden {
-  transform: translateY(calc(100% + 8px));
 }
 
 .reveal {
