@@ -70,46 +70,38 @@
         <!-- Cụm trên: ba bước làm thiệp. Markup TĨNH (không chờ API như bản thẻ
              mẫu thiệp cũ) nên vẽ ngay từ nhịp đầu. Bản đầy đủ 4 bước ở mục "Cách
              hoạt động" phía dưới (js/section-steps.js) — sửa lời ở đây thì ngó
-             lại bên đó cho khớp. -->
+             lại bên đó cho khớp.
+             `has-line` = bước CÓ đường chấm nối sang bước kế (mọi bước trừ bước
+             cuối) — cờ đặt sẵn ở markup vì CSS thủ công của dự án tránh :not().
+             Thẻ <i> KHÔNG khai width/height: cỡ icon ăn theo font-size của
+             .hero-step-badge nên tự lớn dần theo khổ màn. -->
         <div class="hero-top">
           <p class="hero-kicker hero-anim hero-anim-1">Ba bước là xong</p>
 
           <ol class="hero-steps hero-anim hero-anim-2">
-            <li class="hero-step">
-              <span class="hero-step-icon">
-                <i data-lucide="palette" style="width: 18px; height: 18px"></i>
+            <li class="hero-step has-line">
+              <span class="hero-step-badge">
+                <i data-lucide="palette"></i>
+                <b class="hero-step-n">1</b>
               </span>
-              <span class="hero-step-body">
-                <span class="hero-step-head">
-                  <b class="hero-step-n">01</b>
-                  <span class="hero-step-title">Chọn mẫu</span>
-                </span>
-                <span class="hero-step-desc">Xem trước thật, đổi thoải mái</span>
+              <p class="hero-step-label">Bước 1</p>
+              <p class="hero-step-desc">Chọn mẫu thiệp bạn thích</p>
+            </li>
+            <li class="hero-step has-line">
+              <span class="hero-step-badge">
+                <i data-lucide="square-pen"></i>
+                <b class="hero-step-n">2</b>
               </span>
+              <p class="hero-step-label">Bước 2</p>
+              <p class="hero-step-desc">Điền tên, ảnh, ngày cưới</p>
             </li>
             <li class="hero-step">
-              <span class="hero-step-icon">
-                <i data-lucide="square-pen" style="width: 18px; height: 18px"></i>
+              <span class="hero-step-badge">
+                <i data-lucide="send"></i>
+                <b class="hero-step-n">3</b>
               </span>
-              <span class="hero-step-body">
-                <span class="hero-step-head">
-                  <b class="hero-step-n">02</b>
-                  <span class="hero-step-title">Điền thông tin</span>
-                </span>
-                <span class="hero-step-desc">Tên, ảnh, ngày cưới, nhạc nền</span>
-              </span>
-            </li>
-            <li class="hero-step">
-              <span class="hero-step-icon">
-                <i data-lucide="send" style="width: 18px; height: 18px"></i>
-              </span>
-              <span class="hero-step-body">
-                <span class="hero-step-head">
-                  <b class="hero-step-n">03</b>
-                  <span class="hero-step-title">Xuất bản</span>
-                </span>
-                <span class="hero-step-desc">Gửi link mời cho người thân</span>
-              </span>
+              <p class="hero-step-label">Bước 3</p>
+              <p class="hero-step-desc">Xuất bản và gửi link mời</p>
             </li>
           </ol>
         </div>

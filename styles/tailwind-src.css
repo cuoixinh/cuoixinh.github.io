@@ -435,11 +435,11 @@ html.cx-landing {
 .hero-anim-5 { animation-delay: 0.7s; }
 
 /* Neo lên ĐỈNH màn (chỗ trống thừa dồn vào khe giữa hai cụm, xem .hero-bottom)
-   và căn TRÁI cùng một mép với cụm tiêu đề — cả màn mở đầu là một cột trái duy
-   nhất. Không có logo ở đây: navbar đã mang sẵn logo và hiện suốt. */
+   và căn GIỮA theo bề ngang — cụm tiêu đề bên dưới vẫn căn trái, đúng bố cục
+   của bản thiết kế. Không có logo ở đây: navbar đã mang sẵn logo và hiện suốt. */
 
 .hero-top {
-  @apply flex flex-col items-start;
+  @apply flex flex-col items-center text-center;
   gap: 16px;
 }
 
@@ -456,69 +456,96 @@ html.cx-landing {
   text-shadow: 0 1px 12px rgb(var(--white-rgb));
 }
 
-/* Ba bước làm thiệp — thẻ kính mờ nổi trên ảnh nền. Đổi HƯỚNG theo khổ màn chứ
-   không đổi markup: khổ hẹp xếp DỌC (icon trái, chữ phải) vì ba thẻ nằm ngang
-   không đủ chỗ cho một dòng mô tả; từ md xếp NGANG, mỗi thẻ thành cột.
-   Nền trắng gần đặc chứ KHÔNG backdrop-filter: làm mờ vùng phía sau buộc trình
-   duyệt vẽ lại mỗi khung hình, giật trên máy yếu (cùng lý do với .cx-tabbar).
-   Ảnh nền là collage nhiều mảng sáng-tối nên hạ độ đục xuống là chữ 11px chìm. */
+/* Ba bước làm thiệp — MỘT thẻ trắng chứa ba cột: huy hiệu tròn (chip số ở góc
+   dưới phải) + nhãn "BƯỚC n" + một dòng mô tả, giữa các bước là đường chấm nối.
+   Thẻ để gần ĐẶC chứ không kính mờ: ảnh nền là collage nhiều mảng sáng-tối, hạ
+   độ đục xuống là chữ nhỏ chìm mất. KHÔNG backdrop-filter — làm mờ vùng phía
+   sau buộc trình duyệt vẽ lại mỗi khung hình, giật trên máy yếu (cùng lý do với
+   .cx-tabbar).
+   Ba cột luôn đứng NGANG ở mọi khổ: xếp dọc là mất đúng thứ nó muốn nói — một
+   luồng ba bước nối tiếp nhau. */
 
 .hero-steps {
-  @apply flex w-full list-none flex-col;
-  gap: 8px;
-  /* Khổ hẹp thẻ chạy hết bề ngang thì dòng mô tả dài lê thê — chặn lại cho
-     bằng cỡ cụm tiêu đề bên dưới. */
-  max-width: 340px;
+  @apply mx-auto flex w-full list-none;
+  /* Hai biến này là gốc của mọi phép đo trong khối: đổi khổ màn chỉ cần đổi
+     chúng, mốc của đường chấm nối tự theo. */
+  --cx-badge: 52px;
+  --cx-step-gap: 8px;
+  gap: var(--cx-step-gap);
+  max-width: 680px;
+  padding: 20px 14px 18px;
+  border-radius: 24px;
+  background: rgb(var(--white-rgb) / 0.96);
+  border: 1px solid rgb(var(--brand-primary-rgb) / 0.34);
+  box-shadow: 0 14px 40px rgb(var(--shadow-brand-rgb) / 0.18);
 }
 
 .hero-step {
-  @apply flex items-center;
-  gap: 12px;
-  padding: 10px 14px;
-  border-radius: 16px;
-  background: rgb(var(--white-rgb) / 0.92);
-  /* Nét hồng nhạt chứ không phải nét trắng: thẻ hay rơi đúng mảng sáng của ảnh
-     nền, nét trắng ở đó biến mất và thẻ mất hẳn đường bao. */
-  border: 1px solid rgb(var(--brand-primary-rgb) / 0.38);
-  box-shadow: 0 8px 24px rgb(var(--shadow-brand-rgb) / 0.16);
+  @apply relative flex flex-1 flex-col items-center;
+  gap: 10px;
 }
 
-/* Ô icon dùng đúng bộ màu của .step-card ở mục "Cách hoạt động" (section-steps.js)
-   để hai chỗ nói về cùng một luồng thì trông cùng một hệ. */
+/* Đường chấm nối sang bước kế. Cờ `.has-line` đặt sẵn ở markup chứ KHÔNG dùng
+   `:not(:last-child)` — cssnano tráo đối số :not() thành rule luôn khớp.
+   Mốc trái/phải theo cùng lối với .step-connector ở mục "Cách hoạt động": từ
+   mép huy hiệu của cột này sang mép huy hiệu của cột kế, nên nửa cột (50%) trừ
+   đi nửa huy hiệu. */
 
-.hero-step-icon {
-  @apply inline-flex shrink-0 items-center justify-center;
-  width: 38px;
-  height: 38px;
-  border-radius: 12px;
+.hero-step.has-line::after {
+  content: "";
+  @apply pointer-events-none absolute;
+  top: calc(var(--cx-badge) / 2 - 2px);
+  left: calc(50% + var(--cx-badge) / 2 + 8px);
+  right: calc(var(--cx-badge) / 2 + 8px - var(--cx-step-gap) - 50%);
+  height: 4px;
+  background-image: radial-gradient(
+    circle,
+    rgb(var(--brand-primary-rgb)) 2px,
+    rgb(var(--brand-primary-rgb) / 0) 2.5px
+  );
+  background-size: 11px 4px;
+  background-repeat: repeat-x;
+  background-position: center;
+}
+
+/* `font-size` ở đây ĐIỀU KHIỂN cỡ icon: build.css ép `svg.lucide` về 1em, nên
+   thẻ <i> trong markup không khai width/height. */
+
+.hero-step-badge {
+  @apply relative inline-flex shrink-0 items-center justify-center rounded-full;
+  width: var(--cx-badge);
+  height: var(--cx-badge);
+  font-size: 22px;
+  color: rgb(var(--white-rgb));
   background: linear-gradient(
     135deg,
-    rgb(var(--surface-blossom-rgb)),
-    rgb(var(--surface-blossom-strong-rgb))
+    rgb(var(--brand-accent-light-rgb)),
+    rgb(var(--action-primary-rgb))
   );
-  color: rgb(var(--landing-step-icon-rgb));
-}
-
-.hero-step-body {
-  @apply flex min-w-0 flex-col;
-  gap: 2px;
-}
-
-.hero-step-head {
-  @apply flex items-baseline;
-  gap: 6px;
+  /* Vòng sáng mảnh thay cho viền: huy hiệu tách khỏi nền thẻ mà không thành
+     một nét cứng. Nới rộng thêm là chạm vào đường chấm nối. */
+  box-shadow:
+    0 0 0 5px rgb(var(--brand-primary-rgb) / 0.26),
+    0 8px 20px rgb(var(--shadow-brand-rgb) / 0.3);
 }
 
 .hero-step-n {
-  @apply font-playfair font-semibold;
-  font-size: 12px;
-  letter-spacing: 0.04em;
-  color: rgb(var(--brand-accent-rgb));
+  @apply absolute inline-flex items-center justify-center rounded-full font-bold;
+  right: -4px;
+  bottom: -4px;
+  width: 20px;
+  height: 20px;
+  font-size: 11px;
+  line-height: 1;
+  color: rgb(var(--white-rgb));
+  background: rgb(var(--action-primary-rgb));
+  border: 2px solid rgb(var(--white-rgb));
 }
 
-.hero-step-title {
-  @apply font-playfair font-semibold;
-  font-size: 15px;
+.hero-step-label {
+  @apply font-bold uppercase;
+  font-size: 11px;
+  letter-spacing: 0.08em;
   line-height: 1.2;
   color: rgb(var(--text-heading-rgb));
 }
@@ -625,29 +652,30 @@ html.cx-landing {
   .hero-kicker {
     font-size: 30px;
   }
-  /* Đủ chỗ cho ba thẻ đứng cạnh nhau: hàng ngang, mỗi thẻ dựng dọc. Bề ngang
-     thẻ khai CỐ ĐỊNH để ba thẻ bằng nhau bất kể lời dài ngắn. */
   .hero-steps {
-    @apply w-auto flex-row;
-    gap: 16px;
-    max-width: none;
+    --cx-badge: 72px;
+    --cx-step-gap: 16px;
+    padding: 28px 24px 24px;
+    border-radius: 28px;
   }
   .hero-step {
-    @apply flex-col items-start;
-    gap: 10px;
-    width: 200px;
-    padding: 16px;
-    border-radius: 20px;
+    gap: 12px;
   }
-  .hero-step-icon {
-    width: 42px;
-    height: 42px;
+  .hero-step-badge {
+    font-size: 27px;
   }
-  .hero-step-title {
-    font-size: 16px;
+  .hero-step-n {
+    right: -3px;
+    bottom: -3px;
+    width: 26px;
+    height: 26px;
+    font-size: 13px;
+  }
+  .hero-step-label {
+    font-size: 13px;
   }
   .hero-step-desc {
-    font-size: 12px;
+    font-size: 13px;
   }
   .hero-lead {
     margin-top: 20px;
@@ -668,9 +696,18 @@ html.cx-landing {
   .hero-kicker {
     font-size: 34px;
   }
-  .hero-step {
-    width: 224px;
-    padding: 18px;
+  .hero-steps {
+    --cx-badge: 84px;
+    padding: 32px 28px 28px;
+  }
+  .hero-step-badge {
+    font-size: 31px;
+  }
+  .hero-step-label {
+    font-size: 14px;
+  }
+  .hero-step-desc {
+    font-size: 14px;
   }
   .hero-btn {
     height: 52px;
@@ -726,10 +763,14 @@ html.cx-landing {
     gap: 12px;
   }
   .hero-steps {
-    gap: 8px;
+    --cx-badge: 60px;
+    padding: 16px 18px 14px;
   }
   .hero-step {
-    padding: 12px;
+    gap: 8px;
+  }
+  .hero-step-badge {
+    font-size: 24px;
   }
   .hero-kicker {
     font-size: 22px;
@@ -743,6 +784,29 @@ html.cx-landing {
   }
   .hero-actions {
     margin-top: 20px;
+  }
+}
+
+/* MÁY RẤT HẸP (≤380px): ba cột chia nhau chưa tới 90px nên huy hiệu phải nhỏ
+   hơn mọi ngưỡng khác, không thì vòng sáng hai bên chạm nhau và đường chấm nối
+   chỉ còn đúng một chấm. Đặt SAU khối theo CHIỀU CAO ở trên vì phải thắng con
+   số 60px của khối đó trên máy vừa hẹp vừa thấp. */
+
+@media (max-width: 380px) {
+  .hero-steps {
+    --cx-badge: 46px;
+    --cx-step-gap: 6px;
+    padding: 16px 10px 14px;
+  }
+  .hero-step-badge {
+    font-size: 20px;
+  }
+  .hero-step-n {
+    right: -3px;
+    bottom: -3px;
+    width: 18px;
+    height: 18px;
+    font-size: 10px;
   }
 }
 
