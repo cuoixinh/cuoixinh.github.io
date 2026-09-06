@@ -9,13 +9,12 @@ let _cardW = 200;
 let _cardH = 410;
 let _ringKey = "";
 
-// Ba hàm này nằm ở file nạp SAU file này (render-templates.js, auth-nav.js,
-// page-setup.js…). Fetch có thể resolve ngay giữa hai thẻ <script> nên phải đợi
-// DOM sẵn sàng mới gọi, không thì ReferenceError.
+// Hai hàm này nằm ở file nạp SAU file này (render-templates.js, page-setup.js…).
+// Fetch có thể resolve ngay giữa hai thẻ <script> nên phải đợi DOM sẵn sàng mới
+// gọi, không thì ReferenceError.
 function renderTemplatesWhenReady() {
   const run = () => {
     renderTemplateCards();
-    initHeroPicks();
     initializePage();
   };
   if (document.readyState === "loading") {

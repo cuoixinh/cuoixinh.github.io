@@ -434,37 +434,19 @@ html.cx-landing {
 .hero-anim-4 { animation-delay: 0.55s; }
 .hero-anim-5 { animation-delay: 0.7s; }
 
-/* `flex-1` + căn giữa: ba thẻ nay thấp hơn hẳn dáng thân máy cũ nên chỗ trống
-   thừa của màn cao dồn hết xuống khe giữa hai cụm, để lại một mảng ảnh trống
-   giữa thẻ và tiêu đề. Cho cụm trên nuốt chỗ thừa rồi tự căn giữa thì cả cụm
-   luôn nằm quanh chỗ ảnh tan vào nền, đúng như bản thiết kế. */
+/* Neo lên ĐỈNH màn (chỗ trống thừa dồn vào khe giữa hai cụm, xem .hero-bottom)
+   và căn TRÁI cùng một mép với cụm tiêu đề — cả màn mở đầu là một cột trái duy
+   nhất. Không có logo ở đây: navbar đã mang sẵn logo và hiện suốt. */
 
 .hero-top {
-  @apply flex flex-1 flex-col items-center justify-center;
+  @apply flex flex-col items-start;
   gap: 16px;
-}
-
-/* Huy hiệu tròn kính mờ đựng logo — đây là dấu hiệu thương hiệu DUY NHẤT ở màn
-   mở đầu, vì navbar (và logo trong đó) đang bị ẩn. */
-
-.hero-badge {
-  @apply inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full;
-  width: 56px;
-  height: 56px;
-  padding: 8px;
-  background: rgb(var(--white-rgb) / 0.9);
-  border: 1px solid rgb(var(--white-rgb));
-  box-shadow: 0 6px 20px rgb(var(--shadow-brand-rgb) / 0.18);
-}
-
-.hero-badge img {
-  @apply h-full w-full object-contain;
 }
 
 /* Great Vibes nạp qua thẻ <link> Google Fonts ở đầu index.html — bỏ thẻ đó là
    dòng này rơi về font dự phòng. */
 
-.hero-picks-label {
+.hero-kicker {
   @apply font-great-vibes;
   font-size: 26px;
   line-height: 1.2;
@@ -474,82 +456,77 @@ html.cx-landing {
   text-shadow: 0 1px 12px rgb(var(--white-rgb));
 }
 
-/* Ba thẻ mẫu thiệp (js/auth-nav.js → initHeroPicks). Ô chữ nhật NẰM NGANG bo
-   góc tròn, thẻ giữa mang .is-lead nên rộng và cao hơn một nấc; hàng căn theo
-   TRỤC GIỮA nên phần chênh lệch của thẻ giữa nhô đều ra cả trên lẫn dưới. */
+/* Ba bước làm thiệp — thẻ kính mờ nổi trên ảnh nền. Đổi HƯỚNG theo khổ màn chứ
+   không đổi markup: khổ hẹp xếp DỌC (icon trái, chữ phải) vì ba thẻ nằm ngang
+   không đủ chỗ cho một dòng mô tả; từ md xếp NGANG, mỗi thẻ thành cột.
+   Nền trắng gần đặc chứ KHÔNG backdrop-filter: làm mờ vùng phía sau buộc trình
+   duyệt vẽ lại mỗi khung hình, giật trên máy yếu (cùng lý do với .cx-tabbar).
+   Ảnh nền là collage nhiều mảng sáng-tối nên hạ độ đục xuống là chữ 11px chìm. */
 
-.hero-picks {
-  @apply flex items-center justify-center;
+.hero-steps {
+  @apply flex w-full list-none flex-col;
+  gap: 8px;
+  /* Khổ hẹp thẻ chạy hết bề ngang thì dòng mô tả dài lê thê — chặn lại cho
+     bằng cỡ cụm tiêu đề bên dưới. */
+  max-width: 340px;
+}
+
+.hero-step {
+  @apply flex items-center;
   gap: 12px;
-  /* MỌI khổ của ba thẻ suy ra từ biến này (= bề ngang thẻ giữa): cả hàng rộng
-     ~2.36 lần nó. Thẻ nằm ngang nên chỗ chật đổi theo khổ màn — màn hẹp thiếu
-     bề NGANG, màn thấp thiếu chiều DỌC — lấy min() của hai phép đo thì một công
-     thức lo được cả hai. --vh là px do vh-lock.js khoá sẵn (`1svh` là dự phòng
-     lúc script chưa chạy), đừng đổi sang dvh: Chrome di động resize webview lúc
-     ẩn thanh URL nên thẻ co giãn liên tục trong lúc vuốt. */
-  --cx-pick-w: min(clamp(104px, 33vw, 300px), calc(var(--vh, 1vh) * 28));
-  --cx-pick-w: min(clamp(104px, 33vw, 300px), calc(var(--vh, 1svh) * 28));
+  padding: 10px 14px;
+  border-radius: 16px;
+  background: rgb(var(--white-rgb) / 0.92);
+  /* Nét hồng nhạt chứ không phải nét trắng: thẻ hay rơi đúng mảng sáng của ảnh
+     nền, nét trắng ở đó biến mất và thẻ mất hẳn đường bao. */
+  border: 1px solid rgb(var(--brand-primary-rgb) / 0.38);
+  box-shadow: 0 8px 24px rgb(var(--shadow-brand-rgb) / 0.16);
 }
 
-/* --cx-pick-cw = bề ngang của CHÍNH thẻ này: bo góc ăn theo nó nên góc giữ đúng
-   độ cong ở cả thẻ bên lẫn thẻ giữa. Thẻ bên gần vuông hơn thẻ giữa một chút,
-   đúng dáng của bản thiết kế. */
+/* Ô icon dùng đúng bộ màu của .step-card ở mục "Cách hoạt động" (section-steps.js)
+   để hai chỗ nói về cùng một luồng thì trông cùng một hệ. */
 
-.hero-pick {
-  @apply relative block overflow-hidden;
-  --cx-pick-cw: calc(var(--cx-pick-w) * 0.68);
-  width: var(--cx-pick-cw);
-  aspect-ratio: 11 / 10;
-  border-radius: calc(var(--cx-pick-cw) * 0.14);
-  border: 1px solid rgb(var(--white-rgb) / 0.4);
-  box-shadow: 0 12px 32px rgb(var(--landing-dark-rgb) / 0.45);
-  transition:
-    transform 0.25s ease,
-    box-shadow 0.25s ease;
-}
-
-.hero-pick.is-lead {
-  --cx-pick-cw: var(--cx-pick-w);
-  aspect-ratio: 5 / 4;
-  z-index: 2;
-}
-
-.hero-pick:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 16px 40px rgb(var(--landing-dark-rgb) / 0.55);
-}
-
-/* Ảnh chụp mẫu cao gấp nhiều lần ô: neo mép TRÊN để luôn thấy phần bìa thiệp. */
-
-.hero-pick img {
-  @apply absolute inset-0 h-full w-full object-cover;
-  object-position: center top;
-}
-
-.hero-pick-veil {
-  @apply pointer-events-none absolute inset-0;
+.hero-step-icon {
+  @apply inline-flex shrink-0 items-center justify-center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
   background: linear-gradient(
-    to top,
-    rgb(var(--landing-dark-rgb) / 0.86) 0%,
-    rgb(var(--landing-dark-rgb) / 0.52) 24%,
-    rgb(var(--landing-dark-rgb) / 0.1) 48%,
-    rgb(var(--landing-dark-rgb) / 0) 100%
+    135deg,
+    rgb(var(--surface-blossom-rgb)),
+    rgb(var(--surface-blossom-strong-rgb))
   );
+  color: rgb(var(--landing-step-icon-rgb));
 }
 
-/* Cho tên XUỐNG DÒNG (tối đa 2) thay vì cắt bằng "…": tên mẫu hai chữ như
-   "Romantic Gold" cắt mất nửa sau thì thẻ chẳng còn nói lên điều gì. */
-.hero-pick-name {
-  @apply pointer-events-none absolute inset-x-0 bottom-0 line-clamp-2 text-center font-playfair font-semibold;
-  padding: 0 8px 8px;
+.hero-step-body {
+  @apply flex min-w-0 flex-col;
+  gap: 2px;
+}
+
+.hero-step-head {
+  @apply flex items-baseline;
+  gap: 6px;
+}
+
+.hero-step-n {
+  @apply font-playfair font-semibold;
   font-size: 12px;
-  line-height: 1.25;
-  color: rgb(var(--white-rgb));
+  letter-spacing: 0.04em;
+  color: rgb(var(--brand-accent-rgb));
 }
 
-.hero-pick.is-lead .hero-pick-name {
-  padding-bottom: 12px;
-  font-size: 14px;
+.hero-step-title {
+  @apply font-playfair font-semibold;
+  font-size: 15px;
+  line-height: 1.2;
+  color: rgb(var(--text-heading-rgb));
+}
+
+.hero-step-desc {
+  font-size: 11px;
+  line-height: 1.45;
+  color: rgb(var(--text-caption-rgb));
 }
 
 .hero-bottom {
@@ -617,9 +594,7 @@ html.cx-landing {
   border-color: rgb(var(--landing-dark-rgb) / 0.5);
 }
 
-.hero-btn:focus-visible,
-.hero-pick:focus-visible,
-.hero-badge:focus-visible {
+.hero-btn:focus-visible {
   outline: 2px solid rgb(var(--focus-ring-rgb));
   outline-offset: 3px;
 }
@@ -647,21 +622,32 @@ html.cx-landing {
   .hero-top {
     gap: 20px;
   }
-  .hero-badge {
-    width: 64px;
-    height: 64px;
-  }
-  .hero-picks-label {
+  .hero-kicker {
     font-size: 30px;
   }
-  .hero-picks {
+  /* Đủ chỗ cho ba thẻ đứng cạnh nhau: hàng ngang, mỗi thẻ dựng dọc. Bề ngang
+     thẻ khai CỐ ĐỊNH để ba thẻ bằng nhau bất kể lời dài ngắn. */
+  .hero-steps {
+    @apply w-auto flex-row;
     gap: 16px;
+    max-width: none;
   }
-  .hero-pick-name {
-    font-size: 14px;
+  .hero-step {
+    @apply flex-col items-start;
+    gap: 10px;
+    width: 200px;
+    padding: 16px;
+    border-radius: 20px;
   }
-  .hero-pick.is-lead .hero-pick-name {
-    font-size: 17px;
+  .hero-step-icon {
+    width: 42px;
+    height: 42px;
+  }
+  .hero-step-title {
+    font-size: 16px;
+  }
+  .hero-step-desc {
+    font-size: 12px;
   }
   .hero-lead {
     margin-top: 20px;
@@ -679,14 +665,12 @@ html.cx-landing {
   .hero-stage {
     padding: 32px 40px 64px;
   }
-  .hero-picks-label {
+  .hero-kicker {
     font-size: 34px;
   }
-  .hero-pick-name {
-    font-size: 15px;
-  }
-  .hero-pick.is-lead .hero-pick-name {
-    font-size: 20px;
+  .hero-step {
+    width: 224px;
+    padding: 18px;
   }
   .hero-btn {
     height: 52px;
@@ -741,15 +725,13 @@ html.cx-landing {
   .hero-top {
     gap: 12px;
   }
-  .hero-picks {
-    --cx-pick-w: min(clamp(96px, 30vw, 240px), calc(var(--vh, 1vh) * 30));
-    --cx-pick-w: min(clamp(96px, 30vw, 240px), calc(var(--vh, 1svh) * 30));
+  .hero-steps {
+    gap: 8px;
   }
-  .hero-badge {
-    width: 44px;
-    height: 44px;
+  .hero-step {
+    padding: 12px;
   }
-  .hero-picks-label {
+  .hero-kicker {
     font-size: 22px;
   }
   .hero-title {
@@ -768,9 +750,6 @@ html.cx-landing {
   .hero-anim {
     animation: none;
     opacity: 1;
-  }
-  .hero-pick {
-    transition: none;
   }
 }
 

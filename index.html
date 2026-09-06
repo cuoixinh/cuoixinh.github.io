@@ -51,9 +51,9 @@
     <!-- ===== HERO ===== -->
     <!-- Màn mở đầu TRÀN VIỀN: ảnh cưới chiếm NỬA TRÊN rồi tan dần thành nền
          trắng phẳng ở nửa dưới — không còn tấm thiệp giấy ở giữa như bản cũ.
-         Hai cụm nội dung xếp trên/dưới trong .hero-stage: cụm trên căn giữa nằm
-         trên ảnh (huy hiệu + ba thẻ mẫu), cụm dưới căn trái nằm trên nền trắng
-         (tiêu đề + nút) nên chữ để màu ĐẬM. Chi tiết đo đạc ở
+         Hai cụm nội dung xếp trên/dưới trong .hero-stage, CÙNG căn trái theo
+         một mép: cụm trên nằm trên ảnh (ba bước làm thiệp), cụm dưới nằm trên
+         nền trắng (tiêu đề + nút) nên chữ để màu ĐẬM. Chi tiết đo đạc ở
          styles/tailwind-src.css.
          Navbar nổi trên khối này chứ không ẩn đi — #hero tự chừa lề đỉnh cho
          thanh trên, .hero-stage chừa lề đáy cho thanh tab dưới. -->
@@ -67,17 +67,51 @@
       <div class="hero-veil" aria-hidden="true"></div>
 
       <div class="hero-stage">
-        <!-- Cụm trên: huy hiệu thương hiệu + ba mẫu thiệp nổi bật -->
+        <!-- Cụm trên: ba bước làm thiệp. Markup TĨNH (không chờ API như bản thẻ
+             mẫu thiệp cũ) nên vẽ ngay từ nhịp đầu. Bản đầy đủ 4 bước ở mục "Cách
+             hoạt động" phía dưới (js/section-steps.js) — sửa lời ở đây thì ngó
+             lại bên đó cho khớp. -->
         <div class="hero-top">
-          <span class="hero-badge hero-anim hero-anim-1">
-            <img src="assets/icons/logo.png" alt="Cưới Xinh" />
-          </span>
+          <p class="hero-kicker hero-anim hero-anim-1">Ba bước là xong</p>
 
-          <p class="hero-picks-label hero-anim hero-anim-2">Mẫu thiệp nổi bật</p>
-
-          <!-- js/auth-nav.js (initHeroPicks) đổ ba thẻ vào đây sau khi
-               templates-dal trả dữ liệu. Thẻ giữa mang .is-lead nên nhô cao hơn. -->
-          <div id="heroPicks" class="hero-picks hero-anim hero-anim-3"></div>
+          <ol class="hero-steps hero-anim hero-anim-2">
+            <li class="hero-step">
+              <span class="hero-step-icon">
+                <i data-lucide="palette" style="width: 18px; height: 18px"></i>
+              </span>
+              <span class="hero-step-body">
+                <span class="hero-step-head">
+                  <b class="hero-step-n">01</b>
+                  <span class="hero-step-title">Chọn mẫu</span>
+                </span>
+                <span class="hero-step-desc">Xem trước thật, đổi thoải mái</span>
+              </span>
+            </li>
+            <li class="hero-step">
+              <span class="hero-step-icon">
+                <i data-lucide="square-pen" style="width: 18px; height: 18px"></i>
+              </span>
+              <span class="hero-step-body">
+                <span class="hero-step-head">
+                  <b class="hero-step-n">02</b>
+                  <span class="hero-step-title">Điền thông tin</span>
+                </span>
+                <span class="hero-step-desc">Tên, ảnh, ngày cưới, nhạc nền</span>
+              </span>
+            </li>
+            <li class="hero-step">
+              <span class="hero-step-icon">
+                <i data-lucide="send" style="width: 18px; height: 18px"></i>
+              </span>
+              <span class="hero-step-body">
+                <span class="hero-step-head">
+                  <b class="hero-step-n">03</b>
+                  <span class="hero-step-title">Xuất bản</span>
+                </span>
+                <span class="hero-step-desc">Gửi link mời cho người thân</span>
+              </span>
+            </li>
+          </ol>
         </div>
 
         <!-- Cụm dưới: lời chào + hai lối đi chính -->
