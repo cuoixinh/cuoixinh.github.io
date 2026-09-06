@@ -450,34 +450,30 @@ html.cx-landing {
 }
 
 /* Ba ô ảnh cưới ở màn mở đầu (markup TĨNH trong index.html — không phải danh
-   sách mẫu thiệp, không có js nào đổ dữ liệu vào) xếp thành NAN QUẠT: ô giữa
-   (.is-lead) đứng thẳng, to hơn một nấc và đè lên hai ô bên; hai ô bên nghiêng
-   ra ngoài quanh mép DƯỚI nên cả hàng vẫn đứng trên một đường chân duy nhất.
+   sách mẫu thiệp, không có js nào đổ dữ liệu vào): một HÀNG PHẲNG, ô nào cũng
+   đứng thẳng, không nghiêng và không chồng mép. Ô giữa (.is-lead) to hơn một
+   nấc, cả hàng căn theo TÂM nên nó nhô đều lên trên và xuống dưới.
    Đổi ảnh = thay ba file trong assets/images/hero/, không phải sửa file này. */
 
 .hero-picks {
-  @apply relative flex items-end justify-center;
+  @apply relative flex items-center justify-center;
   /* Ô VUÔNG nên chỗ chật đổi chiều so với thẻ dáng điện thoại trước đây: ba ô
-     nằm ngang ăn 2.48 lần cạnh ô giữa (1 + 2 × 0.82 − 2 × 0.08 chồng mép), khổ
+     nằm ngang ăn 2.80 lần cạnh ô giữa (1 + 2 × 0.82 ô bên + 2 × 0.08 khe), khổ
      hẹp là BỀ NGANG quyết định; màn thấp thì lại là chiều cao. Lấy `min` của cả
-     hai rồi chốt trần.
-     Số chia 2.62 = 2.48 khổ hàng + phần THÒ RA mà layout không giữ chỗ: hai ô
-     bên xoay 7deg nên rộng thêm ~5.7% mỗi bên, cộng vòng viền trắng 4px. Sửa tỉ
-     lệ ô bên, độ chồng mép hay góc nghiêng thì phải tính lại số này, không thì
-     ô ngoài cùng lấn ra ngoài lề .hero-stage (48px = lề ngang 2 x 20px của
-     .hero-stage ở khổ hẹp + 8px hai vòng viền). */
+     hai rồi chốt trần — sửa tỉ lệ ô bên hay khe thì phải tính lại số 2.80, nếu
+     không ô ngoài cùng lấn ra ngoài lề .hero-stage (48px = lề ngang 2 x 20px
+     của .hero-stage ở khổ hẹp + 8px hai vòng viền trắng). */
   --cx-pick-h: min(
-    calc((100vw - 48px) / 2.62),
+    calc((100vw - 48px) / 2.8),
     calc(var(--vh, 1vh) * 27),
     232px
   );
   --cx-pick-h: min(
-    calc((100vw - 48px) / 2.62),
+    calc((100vw - 48px) / 2.8),
     calc(var(--vh, 1svh) * 27),
     232px
   );
-  /* Bề ngang hai ô bên thúc vào dưới ô giữa. */
-  --cx-pick-lap: calc(var(--cx-pick-h) * 0.08);
+  gap: calc(var(--cx-pick-h) * 0.08);
 }
 
 /* Quầng sáng sau cụm thẻ: ảnh nền là collage nhiều mảng sáng-tối, thiếu lớp này
@@ -498,20 +494,7 @@ html.cx-landing {
   );
 }
 
-.hero-pick:first-child {
-  --cx-pick-rot: -7deg;
-  margin-right: calc(var(--cx-pick-lap) * -1);
-}
-.hero-pick:last-child {
-  --cx-pick-rot: 7deg;
-  margin-left: calc(var(--cx-pick-lap) * -1);
-}
-
-/* Góc nghiêng đi qua biến vì cả hover lẫn hiệu ứng xuất hiện đều ghi đè
-   `transform` — quên nhắc lại `rotate(var(--cx-pick-rot))` là thẻ bật thẳng. */
-
 .hero-pick {
-  --cx-pick-rot: 0deg;
   @apply relative block overflow-hidden;
   z-index: 1;
   height: calc(var(--cx-pick-h) * 0.82);
@@ -527,15 +510,13 @@ html.cx-landing {
     0 0 0 5px rgb(var(--landing-dark-rgb) / 0.08),
     0 4px 10px rgb(var(--landing-dark-rgb) / 0.18),
     0 20px 44px rgb(var(--landing-dark-rgb) / 0.32);
-  transform: rotate(var(--cx-pick-rot));
-  transform-origin: bottom center;
   transition:
     transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
     box-shadow 0.35s ease;
   animation: cx-hero-pick-in 0.62s cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
 
-/* Thẻ do js chèn vào sau khi có dữ liệu nên hiệu ứng chạy đúng lúc hàng hiện ra. */
+/* Ba ô hiện ra so le từ trái sang. */
 .hero-pick:nth-child(1) { animation-delay: 0.05s; }
 .hero-pick:nth-child(2) { animation-delay: 0.14s; }
 .hero-pick:nth-child(3) { animation-delay: 0.23s; }
@@ -543,11 +524,11 @@ html.cx-landing {
 @keyframes cx-hero-pick-in {
   from {
     opacity: 0;
-    transform: translateY(20px) scale(0.94) rotate(var(--cx-pick-rot));
+    transform: translateY(20px) scale(0.94);
   }
   to {
     opacity: 1;
-    transform: translateY(0) scale(1) rotate(var(--cx-pick-rot));
+    transform: translateY(0) scale(1);
   }
 }
 
@@ -561,13 +542,11 @@ html.cx-landing {
     0 28px 56px rgb(var(--landing-dark-rgb) / 0.38);
 }
 
-/* Rê chuột thì thẻ nhấc lên và gần như thẳng lại — đủ để thấy nó bấm được mà
-   không làm xô cả nan quạt. */
+/* Rê chuột thì ô nhấc lên một nhịp — đủ để cụm ảnh không đứng chết. */
 
 .hero-pick:hover {
   z-index: 3;
-  transform: translateY(-12px) scale(1.04)
-    rotate(calc(var(--cx-pick-rot) * 0.35));
+  transform: translateY(-12px) scale(1.04);
   box-shadow:
     0 0 0 4px rgb(var(--white-rgb)),
     0 0 0 5px rgb(var(--landing-dark-rgb) / 0.1),
