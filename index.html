@@ -55,10 +55,9 @@
          trên ảnh (huy hiệu + ba thẻ mẫu), cụm dưới căn trái nằm trên nền trắng
          (tiêu đề + nút) nên chữ để màu ĐẬM. Chi tiết đo đạc ở
          styles/tailwind-src.css.
-         data-nav-hide-over: js/nav-autohide.js đọc thuộc tính này để ẩn hẳn
-         navbar chừng nào còn cuộn trong khối — thẻ pill trắng cắt ngang ảnh
-         nền tràn viền. -->
-    <section id="hero" data-nav-hide-over>
+         Navbar nổi trên khối này chứ không ẩn đi — #hero tự chừa lề đỉnh cho
+         thanh trên, .hero-stage chừa lề đáy cho thanh tab dưới. -->
+    <section id="hero">
       <!-- Nền ảnh cưới (WebP do tab "Ảnh nền" của admin chụp) — js/hero-background.js
            gán vào --hero-bg-url. Chưa có nền thì lớp này trong suốt và hero
            còn lại một màn trắng phẳng. -->
@@ -784,8 +783,8 @@
     <script src="core/payment.js"></script>
 
     <!-- Navbar dùng chung: khai mảng mục một lần, component dựng cả thanh trên
-         (desktop) lẫn thanh tab dưới (mobile). Phải chạy TRƯỚC nav-autohide.js
-         vì nó tìm #main-nav. -->
+         (desktop) lẫn thanh tab dưới (mobile). Trang chủ KHÔNG nạp
+         js/nav-autohide.js: cả hai thanh hiện suốt, kể cả trên màn mở đầu. -->
     <script src="core/components/navbar.js"></script>
     <script>
       CXNavbar.mount({
@@ -832,7 +831,6 @@
     </script>
 
     <script src="js/hero-background.js"></script>
-    <script src="js/nav-autohide.js"></script>
     <!-- Ô đếm của mục "Đã chọn" ở navbar (đọc cache, không gọi API). -->
     <script src="core/helpers/nav-cart-count.js"></script>
 
