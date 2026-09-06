@@ -343,6 +343,14 @@ html.cx-landing {
 
 #hero {
   @apply relative flex flex-col overflow-hidden;
+  /* MỐC TAN của ảnh nền, tính bằng % chiều cao hero nhưng khai KHÔNG ĐƠN VỊ vì
+     dùng ở hai chỗ khác kiểu: chặn cuối của mask (`* 1%`) và mốc neo đáy cụm
+     ảnh (`* var(--vh)`, xem .hero-top). Đổi mốc thì đổi ĐÚNG biến này, hai chỗ
+     kia tự đi theo — viết cứng lại một trong hai là cụm ảnh trôi khỏi mép ảnh.
+     Hai media theo chiều cao ở cuối mục hero đặt lại biến này. */
+  --cx-hero-fade: 55;
+  /* Lề đỉnh của .hero-stage, cũng là số trừ trong công thức neo của .hero-top. */
+  --cx-stage-pt: 32px;
   /* --vh = px do core/helpers/vh-lock.js khoá sẵn, KHÔNG phải đơn vị khung
      nhìn của CSS: Chrome di động ẩn thanh URL bằng cách resize webview nên
      dvh/svh đều tính lại theo, hero phình dần lúc vuốt. `1svh` chỉ là dự phòng
@@ -371,8 +379,18 @@ html.cx-landing {
      .hero-bottom bắt đầu ở khổ hẹp nhất (máy tính 900px cao) — ảnh còn sót sau
      đó là chữ đậm mất nền phẳng, nên chỉ được nới mốc ĐẦU để dải dài ra, đừng
      đẩy mốc cuối xuống. #000 là mốc ĐỘ ĐỤC của mask, không phải màu giao diện. */
-  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 28%, transparent 55%);
-  mask-image: linear-gradient(to bottom, #000 0%, #000 28%, transparent 55%);
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    #000 0%,
+    #000 28%,
+    transparent calc(var(--cx-hero-fade) * 1%)
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    #000 0%,
+    #000 28%,
+    transparent calc(var(--cx-hero-fade) * 1%)
+  );
 }
 
 /* Chỉ hiện khi đã nạp được ảnh — tránh nháy một lớp trống lúc đang tải. Ảnh để
@@ -412,8 +430,8 @@ html.cx-landing {
 .hero-stage {
   @apply relative z-[2] mx-auto flex w-full flex-1 flex-col;
   max-width: 1200px;
-  padding: 32px 20px 152px;
-  gap: 24px;
+  padding: var(--cx-stage-pt) 20px 152px;
+  gap: 16px;
 }
 
 .hero-anim {
@@ -426,9 +444,21 @@ html.cx-landing {
 .hero-anim-4 { animation-delay: 0.55s; }
 .hero-anim-5 { animation-delay: 0.7s; }
 
+/* Đáy cụm ảnh dừng đúng 16px TRÊN mốc ảnh nền tan vào nền phẳng — quá mốc là
+   ba ô nằm trên nền trắng trơn, còn để cao hơn thì hở một mảng ảnh trống giữa
+   ô và chỗ giao. `min-height` (không phải `height`) để cụm tự cao thêm nếu nội
+   dung vượt; `margin-top:auto` ở .hero-picks dán ba ô xuống đáy khoảng đó, logo
+   vẫn nằm nguyên trên cùng. */
+
 .hero-top {
   @apply flex flex-col items-center;
   gap: 16px;
+  min-height: calc(
+    var(--vh, 1vh) * var(--cx-hero-fade) - var(--cx-stage-pt) - 16px
+  );
+  min-height: calc(
+    var(--vh, 1svh) * var(--cx-hero-fade) - var(--cx-stage-pt) - 16px
+  );
 }
 
 /* Logo trần ở góc TRÁI của hero — không đĩa nền, chỉ một quầng trắng bám theo
@@ -457,6 +487,7 @@ html.cx-landing {
 
 .hero-picks {
   @apply relative flex items-center justify-center;
+  margin-top: auto;
   /* Ô VUÔNG nên chỗ chật đổi chiều so với thẻ dáng điện thoại trước đây: ba ô
      nằm ngang ăn 2.80 lần cạnh ô giữa (1 + 2 × 0.82 ô bên + 2 × 0.08 khe), khổ
      hẹp là BỀ NGANG quyết định; màn thấp thì lại là chiều cao. Lấy `min` của cả
@@ -466,11 +497,13 @@ html.cx-landing {
   --cx-pick-h: min(
     calc((100vw - 48px) / 2.8),
     calc(var(--vh, 1vh) * 27),
+    calc(var(--vh, 1vh) * var(--cx-hero-fade) - var(--cx-stage-pt) - 16px),
     232px
   );
   --cx-pick-h: min(
     calc((100vw - 48px) / 2.8),
     calc(var(--vh, 1svh) * 27),
+    calc(var(--vh, 1svh) * var(--cx-hero-fade) - var(--cx-stage-pt) - 16px),
     232px
   );
   gap: calc(var(--cx-pick-h) * 0.08);
@@ -660,9 +693,12 @@ html.cx-landing {
 }
 
 @media (min-width: 768px) {
+  #hero {
+    --cx-stage-pt: 96px;
+  }
   .hero-stage {
-    padding: 96px 32px 48px;
-    gap: 32px;
+    padding: var(--cx-stage-pt) 32px 32px;
+    gap: 24px;
   }
   .hero-top {
     gap: 20px;
@@ -684,7 +720,7 @@ html.cx-landing {
 
 @media (min-width: 1024px) {
   .hero-stage {
-    padding: 96px 40px 64px;
+    padding: var(--cx-stage-pt) 40px 48px;
   }
   .hero-btn {
     height: 52px;
@@ -693,22 +729,48 @@ html.cx-landing {
   }
 }
 
-/* MÀN CAO (iPad dựng đứng, màn hình xoay dọc): hai cụm chữ bị đẩy xa nhau nên
-   chỗ ảnh tan vào nền phải lùi xuống theo, không thì giữa hero hở một mảng
-   trắng trống. Nhắm theo CHIỀU CAO nên đặt SAU mọi media theo bề ngang. */
+/* MÀN VỪA CAO VỪA RỘNG (1280x800, 1536x864): tiêu đề ăn theo bề NGANG nên ở đây
+   nó cao nhất, mà chỗ dành cho nó là phần dưới mốc tan — để mốc ở 55 là cụm chữ
+   không đủ chỗ, hero phình quá một màn và cụm ảnh trôi khỏi mép ảnh. Dải chiều
+   cao 781–880 không đụng hai khối max-height/min-height ở dưới. */
+
+@media (min-width: 768px) and (min-height: 781px) and (max-height: 880px) {
+  #hero {
+    --cx-hero-fade: 49;
+  }
+}
+
+/* MÀN CAO (iPad dựng đứng, màn hình xoay dọc): nới mốc tan xuống một nhịp cho
+   ảnh nền không hụt so với màn. Đừng nới quá tay: cụm ảnh bám theo mốc này nên
+   mốc càng thấp thì phần dưới càng ít chỗ, và màn CAO MÀ RỘNG (1280x1024,
+   1920x1080) là chỗ chật nhất — 58 là mức lớn nhất còn vừa ở mọi khổ đã thử.
+   Nhắm theo CHIỀU CAO nên đặt SAU mọi media theo bề ngang. */
 
 @media (min-height: 950px) {
+  #hero {
+    --cx-hero-fade: 58;
+  }
   .hero-bg {
-    -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 38%, transparent 68%);
-    mask-image: linear-gradient(to bottom, #000 0%, #000 38%, transparent 68%);
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      #000 0%,
+      #000 32%,
+      transparent calc(var(--cx-hero-fade) * 1%)
+    );
+    mask-image: linear-gradient(
+      to bottom,
+      #000 0%,
+      #000 32%,
+      transparent calc(var(--cx-hero-fade) * 1%)
+    );
   }
   .hero-veil {
     background-image: linear-gradient(
       to bottom,
       rgb(var(--surface-tint-rgb) / 0.4) 0%,
-      rgb(var(--surface-tint-rgb) / 0.28) 26%,
-      rgb(var(--surface-tint-rgb) / 0.42) 50%,
-      rgb(var(--surface-tint-rgb) / 0) 68%
+      rgb(var(--surface-tint-rgb) / 0.28) 22%,
+      rgb(var(--surface-tint-rgb) / 0.42) 43%,
+      rgb(var(--surface-tint-rgb) / 0) 58%
     );
   }
 }
@@ -720,9 +782,22 @@ html.cx-landing {
    SAU mọi media theo bề ngang ở trên, nếu không các con số của chúng đè lại. */
 
 @media (max-height: 780px) {
+  #hero {
+    --cx-hero-fade: 44;
+  }
   .hero-bg {
-    -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 18%, transparent 44%);
-    mask-image: linear-gradient(to bottom, #000 0%, #000 18%, transparent 44%);
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      #000 0%,
+      #000 18%,
+      transparent calc(var(--cx-hero-fade) * 1%)
+    );
+    mask-image: linear-gradient(
+      to bottom,
+      #000 0%,
+      #000 18%,
+      transparent calc(var(--cx-hero-fade) * 1%)
+    );
   }
   .hero-veil {
     background-image: linear-gradient(
@@ -763,8 +838,8 @@ html.cx-landing {
    "Xem mẫu thiệp"). Phải đứng SAU khối max-height ở trên. */
 
 @media (max-height: 780px) and (max-width: 767px) {
-  .hero-stage {
-    padding-top: 16px;
+  #hero {
+    --cx-stage-pt: 16px;
   }
 }
 
