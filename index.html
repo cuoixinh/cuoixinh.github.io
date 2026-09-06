@@ -52,7 +52,7 @@
     <!-- Màn mở đầu TRÀN VIỀN: ảnh cưới chiếm NỬA TRÊN rồi tan dần thành nền
          trắng phẳng ở nửa dưới — không còn tấm thiệp giấy ở giữa như bản cũ.
          Hai cụm nội dung xếp trên/dưới trong .hero-stage: cụm trên nằm trên ảnh
-         (logo góc trái + ba thẻ mẫu căn giữa), cụm dưới căn trái nằm trên nền
+         (logo góc trái + ba ô ảnh căn giữa), cụm dưới căn trái nằm trên nền
          trắng (tiêu đề + nút) nên chữ để màu ĐẬM. Chi tiết đo đạc ở
          styles/tailwind-src.css.
          Navbar hiện ở MỌI vị trí cuộn (trang này không nạp js/nav-autohide.js)
@@ -67,7 +67,7 @@
       <div class="hero-veil" aria-hidden="true"></div>
 
       <div class="hero-stage">
-        <!-- Cụm trên: logo + ba mẫu thiệp nổi bật -->
+        <!-- Cụm trên: logo + ba ô ảnh cưới -->
         <div class="hero-top">
           <!-- Logo trần (không đĩa nền), neo góc TRÁI. Chỉ hiện ở khổ hẹp: từ md
                navbar trên đã mang logo ở đúng góc đó. -->
@@ -75,11 +75,22 @@
             <img src="assets/icons/logo.png" alt="Cưới Xinh" />
           </a>
 
-          <p class="hero-picks-label hero-anim hero-anim-2">Mẫu thiệp nổi bật</p>
-
-          <!-- js/auth-nav.js (initHeroPicks) đổ ba thẻ vào đây sau khi
-               templates-dal trả dữ liệu. Thẻ giữa mang .is-lead nên nhô cao hơn. -->
-          <div id="heroPicks" class="hero-picks hero-anim hero-anim-3"></div>
+          <!-- Ba ô ảnh TRANG TRÍ, không phải danh sách mẫu thiệp: markup tĩnh,
+               đổi ảnh là thay ba file trong assets/images/hero/ (ô vuông, ~640px
+               là đủ). Ô giữa mang .is-lead nên to hơn hai ô bên.
+               `alt=""` + aria-hidden: ảnh không mang thông tin nào mà phần chữ
+               ngay dưới chưa nói. -->
+          <div class="hero-picks hero-anim hero-anim-2" aria-hidden="true">
+            <span class="hero-pick">
+              <img src="assets/images/hero/couple-1.webp" alt="" />
+            </span>
+            <span class="hero-pick is-lead">
+              <img src="assets/images/hero/couple-2.webp" alt="" />
+            </span>
+            <span class="hero-pick">
+              <img src="assets/images/hero/couple-3.webp" alt="" />
+            </span>
+          </div>
         </div>
 
         <!-- Cụm dưới: lời chào + hai lối đi chính -->
