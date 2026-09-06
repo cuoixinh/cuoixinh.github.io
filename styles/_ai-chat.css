@@ -4,9 +4,9 @@
    Bảng dựng theo lối tấm thiệp giấy: nền kem, nét ngăn ĐỨT màu hồng, tiêu đề
    Cormorant hồng đậm.
 
-   Bong bóng đứng ngay DƯỚI bong bóng Messenger (#chatWidget, bottom 88px) nên
-   hai thứ chồng nhau khi đổi vị trí một trong hai — sửa `bottom` ở đây thì ngó
-   lại markup #chatWidget trong index.html.
+   Bong bóng đứng ngay DƯỚI bong bóng Messenger (#chatWidget: bottom 88px từ md,
+   152px ở khổ hẹp) nên hai thứ chồng nhau khi đổi vị trí một trong hai — sửa
+   `bottom` ở đây thì ngó lại markup #chatWidget trong index.html.
    Bảng màu --aichat-* khai ở styles/_colors.css. */
 
 /* ── Bong bóng mở ──────────────────────────────────────────────────────────── */
@@ -27,6 +27,18 @@
      trình duyệt hiểu là cuộn trang và huỷ luôn cú kéo. */
   touch-action: none;
   cursor: grab;
+}
+
+/* Khổ hẹp có thanh tab dưới (.cx-tabbar, cao ~64px kể cả lề) chạy suốt đáy màn
+   và LUÔN hiện — để nguyên bottom 24px là bong bóng nằm đè lên một mục của
+   thanh. Cả cụm nhích lên đúng 64px: bong bóng AI 24 → 88, Messenger
+   (#chatWidget ở index.html) 88 → 152, giữ nguyên khoảng cách giữa hai cái.
+   Từ md thanh tab biến mất nên trả về chỗ cũ. */
+
+@media (max-width: 767px) {
+  .aichat-fab {
+    bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+  }
 }
 
 .aichat-fab:hover {

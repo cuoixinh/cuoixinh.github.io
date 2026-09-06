@@ -43,36 +43,3 @@ function goCreateDraft(e, params) {
   const first = templates.find((t) => t.status === "active");
   if (first) createDraft(first.id, { chosen: false, params });
 }
-
-// Ba thẻ mẫu thiệp ở màn mở đầu. Thẻ giữa mang .is-lead nên nhô cao hơn hai
-// thẻ bên — dáng này là chủ ý, đừng đổi sang cả ba bằng nhau.
-// Không có mẫu nào bật thì để #heroPicks rỗng: một hàng thẻ hỏng khó hiểu hơn
-// là không có hàng nào.
-const HERO_PICK_COUNT = 3;
-
-function initHeroPicks() {
-  const row = document.getElementById("heroPicks");
-  if (!row) return;
-
-  const list = templates
-    .filter((t) => t.status === "active")
-    .slice(0, HERO_PICK_COUNT);
-  if (!list.length) return;
-
-  // Thẻ giữa của hàng thật (hàng 2 thẻ thì không có thẻ nào nhô lên).
-  const lead = list.length === HERO_PICK_COUNT ? 1 : -1;
-
-  // KHÔNG `loading="lazy"`: ba tấm này nằm ngay màn đầu, hoãn tải là lộ ba ô
-  // trống đúng lúc khách vừa vào trang.
-  row.innerHTML = list
-    .map(
-      (t, i) => `
-    <a class="hero-pick${i === lead ? " is-lead" : ""}" href="${t.previewUrl}"
-       aria-label="Xem thử mẫu ${t.name}">
-      <img src="/assets/images/templates/${t.theme}.jpg" alt="${t.name}" />
-      <span class="hero-pick-veil"></span>
-      <span class="hero-pick-name">${t.name}</span>
-    </a>`,
-    )
-    .join("");
-}

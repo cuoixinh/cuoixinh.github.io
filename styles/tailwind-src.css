@@ -337,13 +337,20 @@ html.cx-landing {
    Nền dùng ĐÚNG --surface-tint-rgb của #templates nên mép nối giữa hai mục
    không lộ đường ngăn — đổi nền một bên thì phải đổi cả bên kia.
 
-   Cố ý KHÔNG chừa chỗ cho navbar ở đỉnh: navbar ẩn hẳn chừng nào còn cuộn
-   trong khối này (js/nav-autohide.js đọc `data-nav-hide-over` trên #hero).
-   Thanh tab dưới ở mobile thì vẫn nổi trên ảnh — .hero-stage tự chừa lề đáy
-   cho nó, đừng bù bằng cách thu chiều cao #hero lại. */
+   Navbar hiện ở MỌI vị trí cuộn (trang chủ không nạp js/nav-autohide.js), nên
+   CẢ HAI thanh đều nổi trên ảnh: navbar trên từ md, thanh tab dưới ở mobile.
+   .hero-stage tự chừa lề cho chúng — đừng bù bằng cách thu chiều cao #hero. */
 
 #hero {
   @apply relative flex flex-col overflow-hidden;
+  /* MỐC TAN của ảnh nền, tính bằng % chiều cao hero nhưng khai KHÔNG ĐƠN VỊ vì
+     dùng ở hai chỗ khác kiểu: chặn cuối của mask (`* 1%`) và mốc neo đáy cụm
+     ảnh (`* var(--vh)`, xem .hero-top). Đổi mốc thì đổi ĐÚNG biến này, hai chỗ
+     kia tự đi theo — viết cứng lại một trong hai là cụm ảnh trôi khỏi mép ảnh.
+     Hai media theo chiều cao ở cuối mục hero đặt lại biến này. */
+  --cx-hero-fade: 55;
+  /* Lề đỉnh của .hero-stage, cũng là số trừ trong công thức neo của .hero-top. */
+  --cx-stage-pt: 32px;
   /* --vh = px do core/helpers/vh-lock.js khoá sẵn, KHÔNG phải đơn vị khung
      nhìn của CSS: Chrome di động ẩn thanh URL bằng cách resize webview nên
      dvh/svh đều tính lại theo, hero phình dần lúc vuốt. `1svh` chỉ là dự phòng
@@ -372,8 +379,18 @@ html.cx-landing {
      .hero-bottom bắt đầu ở khổ hẹp nhất (máy tính 900px cao) — ảnh còn sót sau
      đó là chữ đậm mất nền phẳng, nên chỉ được nới mốc ĐẦU để dải dài ra, đừng
      đẩy mốc cuối xuống. #000 là mốc ĐỘ ĐỤC của mask, không phải màu giao diện. */
-  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 28%, transparent 55%);
-  mask-image: linear-gradient(to bottom, #000 0%, #000 28%, transparent 55%);
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    #000 0%,
+    #000 28%,
+    transparent calc(var(--cx-hero-fade) * 1%)
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    #000 0%,
+    #000 28%,
+    transparent calc(var(--cx-hero-fade) * 1%)
+  );
 }
 
 /* Chỉ hiện khi đã nạp được ảnh — tránh nháy một lớp trống lúc đang tải. Ảnh để
@@ -401,17 +418,20 @@ html.cx-landing {
 
 /* Hai cụm nội dung: .hero-top căn giữa ở trên, .hero-bottom bị `margin-top:auto`
    đẩy xuống sát đáy — chỗ trống thừa của màn cao dồn hết vào khe giữa hai cụm.
-   Lề đáy 96px KHÔNG phải để chừa thanh tab dưới (js/nav-autohide.js giấu luôn
-   thanh đó chừng nào còn cuộn trong khối này) mà để chừa HAI BONG BÓNG NỔI ở
-   góc phải: trợ lý AI (.aichat-fab, bottom 24px) và Messenger (#chatWidget,
-   bottom 88px). Khổ hẹp thì cụm nút chạy gần hết bề ngang nên hạ số này xuống
-   là bong bóng đè lên nút. Từ md màn đủ rộng, hai thứ không chạm nhau. */
+   Lề ĐÁY khác nhau hẳn giữa hai khổ. Khổ hẹp 152px vì cụm nút chạy gần hết bề
+   ngang, phải qua mặt cả thanh tab dưới (.cx-tabbar, ~64px kể cả lề) LẪN bong
+   bóng trợ lý AI đứng ngay trên nó (.aichat-fab, bottom 88px + cao 52px = mép
+   trên ở 140px). Từ md không còn thanh tab, bong bóng lùi về bottom 24px và cụm
+   nút chỉ chiếm nửa trái màn nên 48px là đủ.
+   Lề ĐỈNH thì ngược lại: khổ hẹp không có navbar trên nên chỉ cần 32px, từ md
+   phải chừa đủ 80px của .cx-navbar (12 + 64 + 4) — đổi khổ navbar là phải đổi
+   cả hai số md/lg dưới. */
 
 .hero-stage {
   @apply relative z-[2] mx-auto flex w-full flex-1 flex-col;
   max-width: 1200px;
-  padding: 32px 20px 96px;
-  gap: 24px;
+  padding: var(--cx-stage-pt) 20px 152px;
+  gap: 16px;
 }
 
 .hero-anim {
@@ -424,112 +444,168 @@ html.cx-landing {
 .hero-anim-4 { animation-delay: 0.55s; }
 .hero-anim-5 { animation-delay: 0.7s; }
 
+/* Đáy cụm ảnh dừng đúng 16px TRÊN mốc ảnh nền tan vào nền phẳng — quá mốc là
+   ba ô nằm trên nền trắng trơn, còn để cao hơn thì hở một mảng ảnh trống giữa
+   ô và chỗ giao. `min-height` (không phải `height`) để cụm tự cao thêm nếu nội
+   dung vượt; `margin-top:auto` ở .hero-picks dán ba ô xuống đáy khoảng đó, logo
+   vẫn nằm nguyên trên cùng. */
+
 .hero-top {
   @apply flex flex-col items-center;
   gap: 16px;
+  min-height: calc(
+    var(--vh, 1vh) * var(--cx-hero-fade) - var(--cx-stage-pt) - 16px
+  );
+  min-height: calc(
+    var(--vh, 1svh) * var(--cx-hero-fade) - var(--cx-stage-pt) - 16px
+  );
 }
 
-/* Huy hiệu tròn kính mờ đựng logo — đây là dấu hiệu thương hiệu DUY NHẤT ở màn
-   mở đầu, vì navbar (và logo trong đó) đang bị ẩn. */
+/* Logo trần ở góc TRÁI của hero — không đĩa nền, chỉ một quầng trắng bám theo
+   nét chữ để đọc được trên những mảng tối của ảnh collage. `align-self` kéo riêng nó về trái, cả cụm
+   .hero-top vẫn căn giữa.
+   CHỈ sống ở khổ hẹp: từ md navbar trên (luôn hiện) đã mang logo ở đúng góc
+   này, hai logo chồng góc là thừa — xem media md ở dưới. */
 
 .hero-badge {
-  @apply inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full;
-  width: 56px;
-  height: 56px;
-  padding: 8px;
-  background: rgb(var(--white-rgb) / 0.9);
-  border: 1px solid rgb(var(--white-rgb));
-  box-shadow: 0 6px 20px rgb(var(--shadow-brand-rgb) / 0.18);
+  @apply inline-flex shrink-0 items-center self-start;
+  height: 48px;
+  filter:
+    drop-shadow(0 0 6px rgb(var(--white-rgb)))
+    drop-shadow(0 2px 10px rgb(var(--white-rgb) / 0.85));
 }
 
 .hero-badge img {
-  @apply h-full w-full object-contain;
+  @apply h-full w-auto object-contain;
 }
 
-/* Great Vibes nạp qua thẻ <link> Google Fonts ở đầu index.html — bỏ thẻ đó là
-   dòng này rơi về font dự phòng. */
-
-.hero-picks-label {
-  @apply font-great-vibes;
-  font-size: 26px;
-  line-height: 1.2;
-  color: rgb(var(--text-heading-rgb));
-  /* Quầng trắng thay cho bóng đổ: chữ đậm nằm trên ảnh, chỗ ảnh tối thì nét
-     chữ mảnh của font script dễ dính vào nền. */
-  text-shadow: 0 1px 12px rgb(var(--white-rgb));
-}
-
-/* Ba thẻ mẫu thiệp (js/auth-nav.js → initHeroPicks). Thẻ giữa mang .is-lead nên
-   rộng và cao hơn một nấc; hàng căn theo mép DƯỚI để phần chênh lệch nhô lên ở
-   phía trên. */
+/* Ba ô ảnh cưới ở màn mở đầu (markup TĨNH trong index.html — không phải danh
+   sách mẫu thiệp, không có js nào đổ dữ liệu vào): một HÀNG PHẲNG, ô nào cũng
+   đứng thẳng, không nghiêng và không chồng mép. Ô giữa (.is-lead) to hơn một
+   nấc, cả hàng căn theo TÂM nên nó nhô đều lên trên và xuống dưới.
+   Đổi ảnh = thay ba file trong assets/images/hero/, không phải sửa file này. */
 
 .hero-picks {
-  @apply flex items-end justify-center;
-  gap: 12px;
-  /* Thẻ dựng theo TỈ LỆ THÂN MÁY iPhone (--cx-ph-ar, cùng token với
-     .carousel-3d-card) nên rất cao — khống chế bằng CHIỀU CAO rồi để
-     aspect-ratio suy ra bề ngang. Đo theo --vh chứ không theo bề ngang: chỗ
-     chật của cụm thẻ là chiều DỌC, lấy vw thì màn thấp là cụm thẻ đội cả tiêu
-     đề ra khỏi khung nhìn. */
-  --cx-pick-h: clamp(132px, calc(var(--vh, 1vh) * 27), 268px);
-  --cx-pick-h: clamp(132px, calc(var(--vh, 1svh) * 27), 268px);
+  @apply relative flex items-center justify-center;
+  margin-top: auto;
+  /* Ô VUÔNG nên chỗ chật đổi chiều so với thẻ dáng điện thoại trước đây: ba ô
+     nằm ngang ăn 2.80 lần cạnh ô giữa (1 + 2 × 0.82 ô bên + 2 × 0.08 khe), khổ
+     hẹp là BỀ NGANG quyết định; màn thấp thì lại là chiều cao. Lấy `min` của cả
+     hai rồi chốt trần — sửa tỉ lệ ô bên hay khe thì phải tính lại số 2.80, nếu
+     không ô ngoài cùng lấn ra ngoài lề .hero-stage (48px = lề ngang 2 x 20px
+     của .hero-stage ở khổ hẹp + 8px hai vòng viền trắng). */
+  --cx-pick-h: min(
+    calc((100vw - 48px) / 2.8),
+    calc(var(--vh, 1vh) * 27),
+    calc(var(--vh, 1vh) * var(--cx-hero-fade) - var(--cx-stage-pt) - 16px),
+    232px
+  );
+  --cx-pick-h: min(
+    calc((100vw - 48px) / 2.8),
+    calc(var(--vh, 1svh) * 27),
+    calc(var(--vh, 1svh) * var(--cx-hero-fade) - var(--cx-stage-pt) - 16px),
+    232px
+  );
+  gap: calc(var(--cx-pick-h) * 0.08);
+}
+
+/* Quầng sáng sau cụm thẻ: ảnh nền là collage nhiều mảng sáng-tối, thiếu lớp này
+   thì viền trắng của thẻ dính vào ảnh ở những chỗ nền đang sáng. Là ::before của
+   hàng nên luôn vẽ TRƯỚC các thẻ — đừng thêm z-index cho nó. */
+
+.hero-picks::before {
+  content: "";
+  @apply pointer-events-none absolute left-1/2 top-1/2;
+  width: 132%;
+  height: 148%;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(
+    closest-side ellipse,
+    rgb(var(--white-rgb) / 0.44) 0%,
+    rgb(var(--white-rgb) / 0.18) 54%,
+    rgb(var(--white-rgb) / 0) 100%
+  );
 }
 
 .hero-pick {
   @apply relative block overflow-hidden;
+  z-index: 1;
   height: calc(var(--cx-pick-h) * 0.82);
-  aspect-ratio: var(--cx-ph-ar);
-  /* Bo góc theo % như .carousel-3d-card — giữ đúng dáng góc thân máy ở mọi khổ. */
-  border-radius: 9% / 4.4%;
-  border: 1px solid rgb(var(--white-rgb) / 0.4);
-  box-shadow: 0 12px 32px rgb(var(--landing-dark-rgb) / 0.45);
+  aspect-ratio: 1;
+  /* Bo góc theo % cạnh nên độ tròn không đổi khi ô co giãn. */
+  border-radius: 14%;
+  /* Viền trắng là VÒNG box-shadow chứ không phải `border`: vòng nằm ngoài hộp
+     nên bo theo đúng bán kính %, còn border thì ăn vào ảnh. Sợi tối ngay sau nó
+     là để chính viền trắng còn thấy được khi mảng ảnh nền phía sau đang sáng.
+     Hai lớp cuối là bóng gần (tạo mép) + bóng xa (nhấc thẻ khỏi nền). */
+  box-shadow:
+    0 0 0 4px rgb(var(--white-rgb) / 0.92),
+    0 0 0 5px rgb(var(--landing-dark-rgb) / 0.08),
+    0 4px 10px rgb(var(--landing-dark-rgb) / 0.18),
+    0 20px 44px rgb(var(--landing-dark-rgb) / 0.32);
   transition:
-    transform 0.25s ease,
-    box-shadow 0.25s ease;
+    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.35s ease;
+  animation: cx-hero-pick-in 0.62s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+/* Ba ô hiện ra so le từ trái sang. */
+.hero-pick:nth-child(1) { animation-delay: 0.05s; }
+.hero-pick:nth-child(2) { animation-delay: 0.14s; }
+.hero-pick:nth-child(3) { animation-delay: 0.23s; }
+
+@keyframes cx-hero-pick-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .hero-pick.is-lead {
   height: var(--cx-pick-h);
   z-index: 2;
+  box-shadow:
+    0 0 0 4px rgb(var(--white-rgb)),
+    0 0 0 5px rgb(var(--landing-dark-rgb) / 0.08),
+    0 6px 14px rgb(var(--landing-dark-rgb) / 0.2),
+    0 28px 56px rgb(var(--landing-dark-rgb) / 0.38);
 }
+
+/* Rê chuột thì ô nhấc lên một nhịp — đủ để cụm ảnh không đứng chết. */
 
 .hero-pick:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 16px 40px rgb(var(--landing-dark-rgb) / 0.55);
+  z-index: 3;
+  transform: translateY(-12px) scale(1.04);
+  box-shadow:
+    0 0 0 4px rgb(var(--white-rgb)),
+    0 0 0 5px rgb(var(--landing-dark-rgb) / 0.1),
+    0 8px 18px rgb(var(--landing-dark-rgb) / 0.24),
+    0 32px 64px rgb(var(--landing-dark-rgb) / 0.44);
 }
 
-/* Ảnh chụp mẫu cao gấp nhiều lần ô: neo mép TRÊN để luôn thấy phần bìa thiệp. */
+/* Ảnh trong assets/images/hero/ đã cắt sẵn vuông nên không bị xén gì. Neo hơi
+   lệch LÊN để ảnh dọc thay vào sau này vẫn giữ được mặt người. */
 
 .hero-pick img {
   @apply absolute inset-0 h-full w-full object-cover;
-  object-position: center top;
+  object-position: center 35%;
 }
 
-.hero-pick-veil {
+/* Vệt sáng chéo — thiếu nó ba ô trông phẳng lì như ba hình dán. */
+
+.hero-pick::after {
+  content: "";
   @apply pointer-events-none absolute inset-0;
   background: linear-gradient(
-    to top,
-    rgb(var(--landing-dark-rgb) / 0.86) 0%,
-    rgb(var(--landing-dark-rgb) / 0.52) 24%,
-    rgb(var(--landing-dark-rgb) / 0.1) 48%,
-    rgb(var(--landing-dark-rgb) / 0) 100%
+    116deg,
+    rgb(var(--white-rgb) / 0.16) 0%,
+    rgb(var(--white-rgb) / 0.04) 18%,
+    rgb(var(--white-rgb) / 0) 36%
   );
-}
-
-/* Thẻ theo tỉ lệ thân máy nên hẹp — cho tên XUỐNG DÒNG (tối đa 2) thay vì cắt
-   bằng "…": tên mẫu hai chữ như "Romantic Gold" cắt mất nửa sau thì thẻ chẳng
-   còn nói lên điều gì. */
-.hero-pick-name {
-  @apply pointer-events-none absolute inset-x-0 bottom-0 line-clamp-2 text-center font-playfair font-semibold;
-  padding: 0 8px 8px;
-  font-size: 12px;
-  line-height: 1.25;
-  color: rgb(var(--white-rgb));
-}
-
-.hero-pick.is-lead .hero-pick-name {
-  padding-bottom: 12px;
-  font-size: 14px;
 }
 
 .hero-bottom {
@@ -598,7 +674,6 @@ html.cx-landing {
 }
 
 .hero-btn:focus-visible,
-.hero-pick:focus-visible,
 .hero-badge:focus-visible {
   outline: 2px solid rgb(var(--focus-ring-rgb));
   outline-offset: 3px;
@@ -618,22 +693,18 @@ html.cx-landing {
 }
 
 @media (min-width: 768px) {
+  #hero {
+    --cx-stage-pt: 96px;
+  }
   .hero-stage {
-    padding: 48px 32px 48px;
-    gap: 32px;
+    padding: var(--cx-stage-pt) 32px 32px;
+    gap: 24px;
   }
   .hero-top {
     gap: 20px;
   }
   .hero-badge {
-    width: 64px;
-    height: 64px;
-  }
-  .hero-picks-label {
-    font-size: 30px;
-  }
-  .hero-picks {
-    gap: 16px;
+    display: none;
   }
   .hero-lead {
     margin-top: 20px;
@@ -649,16 +720,7 @@ html.cx-landing {
 
 @media (min-width: 1024px) {
   .hero-stage {
-    padding: 64px 40px 64px;
-  }
-  .hero-picks-label {
-    font-size: 34px;
-  }
-  .hero-pick-name {
-    font-size: 13px;
-  }
-  .hero-pick.is-lead .hero-pick-name {
-    font-size: 16px;
+    padding: var(--cx-stage-pt) 40px 48px;
   }
   .hero-btn {
     height: 52px;
@@ -667,36 +729,75 @@ html.cx-landing {
   }
 }
 
-/* MÀN CAO (iPad dựng đứng, màn hình xoay dọc): hai cụm chữ bị đẩy xa nhau nên
-   chỗ ảnh tan vào nền phải lùi xuống theo, không thì giữa hero hở một mảng
-   trắng trống. Nhắm theo CHIỀU CAO nên đặt SAU mọi media theo bề ngang. */
+/* MÀN VỪA CAO VỪA RỘNG (1280x800, 1536x864): tiêu đề ăn theo bề NGANG nên ở đây
+   nó cao nhất, mà chỗ dành cho nó là phần dưới mốc tan — để mốc ở 55 là cụm chữ
+   không đủ chỗ, hero phình quá một màn và cụm ảnh trôi khỏi mép ảnh. Dải chiều
+   cao 781–880 không đụng hai khối max-height/min-height ở dưới. */
+
+@media (min-width: 768px) and (min-height: 781px) and (max-height: 880px) {
+  #hero {
+    --cx-hero-fade: 49;
+  }
+}
+
+/* MÀN CAO (iPad dựng đứng, màn hình xoay dọc): nới mốc tan xuống một nhịp cho
+   ảnh nền không hụt so với màn. Đừng nới quá tay: cụm ảnh bám theo mốc này nên
+   mốc càng thấp thì phần dưới càng ít chỗ, và màn CAO MÀ RỘNG (1280x1024,
+   1920x1080) là chỗ chật nhất — 58 là mức lớn nhất còn vừa ở mọi khổ đã thử.
+   Nhắm theo CHIỀU CAO nên đặt SAU mọi media theo bề ngang. */
 
 @media (min-height: 950px) {
+  #hero {
+    --cx-hero-fade: 58;
+  }
   .hero-bg {
-    -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 38%, transparent 68%);
-    mask-image: linear-gradient(to bottom, #000 0%, #000 38%, transparent 68%);
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      #000 0%,
+      #000 32%,
+      transparent calc(var(--cx-hero-fade) * 1%)
+    );
+    mask-image: linear-gradient(
+      to bottom,
+      #000 0%,
+      #000 32%,
+      transparent calc(var(--cx-hero-fade) * 1%)
+    );
   }
   .hero-veil {
     background-image: linear-gradient(
       to bottom,
       rgb(var(--surface-tint-rgb) / 0.4) 0%,
-      rgb(var(--surface-tint-rgb) / 0.28) 26%,
-      rgb(var(--surface-tint-rgb) / 0.42) 50%,
-      rgb(var(--surface-tint-rgb) / 0) 68%
+      rgb(var(--surface-tint-rgb) / 0.28) 22%,
+      rgb(var(--surface-tint-rgb) / 0.42) 43%,
+      rgb(var(--surface-tint-rgb) / 0) 58%
     );
   }
 }
 
-/* MÀN THẤP (laptop 13", điện thoại nhỏ, máy xoay ngang): thẻ mẫu theo tỉ lệ
-   thân máy nên rất cao, hai cụm chữ dồn sát nhau — thu cả cụm lại và kéo chỗ
-   ảnh tan vào nền lên theo, không thì dòng tiêu đề nằm đè lên phần ảnh chưa
-   tan hết. Nhắm theo CHIỀU CAO nên phải đặt SAU mọi media theo bề ngang ở
-   trên, nếu không các con số của chúng đè lại. */
+/* MÀN THẤP (laptop 13", điện thoại nhỏ, máy xoay ngang): hai cụm nội dung dồn
+   sát nhau — thu cả cụm lại và kéo chỗ ảnh tan vào nền lên theo, không thì dòng
+   tiêu đề nằm đè lên phần ảnh chưa tan hết. Khổ ba ô ảnh KHÔNG cần đụng: `min`
+   ở .hero-picks đã có sẵn vế theo chiều cao. Nhắm theo CHIỀU CAO nên phải đặt
+   SAU mọi media theo bề ngang ở trên, nếu không các con số của chúng đè lại. */
 
 @media (max-height: 780px) {
+  #hero {
+    --cx-hero-fade: 44;
+  }
   .hero-bg {
-    -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 18%, transparent 44%);
-    mask-image: linear-gradient(to bottom, #000 0%, #000 18%, transparent 44%);
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      #000 0%,
+      #000 18%,
+      transparent calc(var(--cx-hero-fade) * 1%)
+    );
+    mask-image: linear-gradient(
+      to bottom,
+      #000 0%,
+      #000 18%,
+      transparent calc(var(--cx-hero-fade) * 1%)
+    );
   }
   .hero-veil {
     background-image: linear-gradient(
@@ -707,23 +808,17 @@ html.cx-landing {
       rgb(var(--surface-tint-rgb) / 0) 44%
     );
   }
+  /* KHÔNG đụng padding-top ở đây: khối này bắt cả laptop 13" (rộng ≥ md) mà ở
+     đó đỉnh hero còn phải chừa navbar 80px. Chỗ nén cho máy ngắn-và-hẹp nằm ở
+     khối max-width bên dưới. */
   .hero-stage {
-    padding-top: 24px;
     gap: 16px;
   }
   .hero-top {
     gap: 12px;
   }
-  .hero-picks {
-    --cx-pick-h: clamp(120px, calc(var(--vh, 1vh) * 24), 200px);
-    --cx-pick-h: clamp(120px, calc(var(--vh, 1svh) * 24), 200px);
-  }
   .hero-badge {
-    width: 44px;
-    height: 44px;
-  }
-  .hero-picks-label {
-    font-size: 22px;
+    height: 36px;
   }
   .hero-title {
     font-size: clamp(28px, 4.6vw, 52px);
@@ -737,12 +832,24 @@ html.cx-landing {
   }
 }
 
+/* Máy vừa NGẮN vừa HẸP (360x640 và họ hàng): ở khổ này cụm nút phải đứng trên
+   CẢ thanh tab dưới lẫn bong bóng trợ lý AI, tức lề đáy 152px — thu nốt lề đỉnh
+   để hero không cao hơn khung nhìn (cụm nút trôi xuống là bong bóng đè lên nút
+   "Xem mẫu thiệp"). Phải đứng SAU khối max-height ở trên. */
+
+@media (max-height: 780px) and (max-width: 767px) {
+  #hero {
+    --cx-stage-pt: 16px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .hero-anim {
     animation: none;
     opacity: 1;
   }
   .hero-pick {
+    animation: none;
     transition: none;
   }
 }
@@ -1354,16 +1461,6 @@ html.cx-landing {
 }
 #main-nav.nav-hidden {
   @apply -translate-y-full;
-}
-
-/* Thanh tab dưới (mobile) chỉ ẩn khi đang ở khối tràn viền — dưới md nó là thứ
-   DUY NHẤT cắt ngang ảnh nền, vì navbar trên không hiện ở khổ này. Trượt hết cả
-   8px lề của .cx-tabbar để không hở một mẩu thẻ ở mép dưới. */
-.cx-tabbar {
-  transition: transform 0.3s ease;
-}
-.cx-tabbar.nav-hidden {
-  transform: translateY(calc(100% + 8px));
 }
 
 .reveal {
