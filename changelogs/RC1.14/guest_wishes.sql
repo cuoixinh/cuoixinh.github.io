@@ -4,7 +4,7 @@
 -- Lý do:  Khách mời cầm link cá nhân hoá gửi lời chúc ngay trên thiệp; thiệp
 --         hiện danh sách lời chúc cuộn dần.
 -- Thay đổi:
---   1. guests.wishes (jsonb)         — mảng tối đa 3 lời chúc của chính khách đó,
+--   1. guests.wishes (jsonb)         — mảng lời chúc của chính khách đó,
 --                                      mỗi phần tử { id, text, at }.
 --   2. weddings.enable_wishes (bool) — công tắc bật/tắt mục ở trang Thiết lập.
 -- Cách chạy: Supabase Dashboard → SQL Editor → dán cả file → Run. Idempotent.
@@ -14,22 +14,13 @@ alter table public.guests
   add column if not exists wishes jsonb not null default '[]'::jsonb;
 
 comment on column public.guests.wishes is
-  'Lời chúc khách gửi trên thiệp: mảng { id, text, at }, tối đa 3 phần tử';
+  'Lời chúc khách gửi trên thiệp: mảng { id, text, at }';
 
--- Ràng buộc số lượng đặt luôn ở DB: Edge Function là nơi duy nhất ghi cột này,
--- nhưng một lỗi ở đó không được phép làm phình vô hạn một hàng jsonb.
--- NOT VALID: chỉ soi hàng ghi mới, không quét lại toàn bảng khi chạy changelog.
-do $$
-begin
-  if not exists (
-    select 1 from pg_constraint where conname = 'guests_wishes_max3'
-  ) then
-    alter table public.guests
-      add constraint guests_wishes_max3
-      check (jsonb_typeof(wishes) = 'array' and jsonb_array_length(wishes) <= 3)
-      not valid;
-  end if;
-end $$;
+-- Hạn mức số lời chúc mỗi khách do Edge Function guest-handler giữ
+-- (MAX_WISHES_PER_GUEST), KHÔNG đặt check constraint ở DB: đổi hạn mức thì chỉ
+-- sửa một chỗ, và bản ghi cũ vượt mức không làm kẹt mọi UPDATE lên hàng đó.
+-- Bản chạy thử trước đó có thể đã tạo ràng buộc này — gỡ cho đồng nhất.
+alter table public.guests drop constraint if exists guests_wishes_max3;
 
 alter table public.weddings
   add column if not exists enable_wishes boolean default true;

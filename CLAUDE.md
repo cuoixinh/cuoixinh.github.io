@@ -372,8 +372,8 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   đứng yên để so mẫu); riêng lượt về "Mặc định" SAU khi hộp gốc của mẫu đã bị bấm mở thì
   runtime xin trang cha nạp lại khung xem trước — mẫu mở hộp một chiều, không có đường lùi.
 - **Lời chúc khách mời:** helper dùng chung `core/helpers/wishes-helper.js` (mọi mẫu thiệp
-  nạp), lưu ở `guests.wishes` (jsonb, tối đa 3 mỗi khách), công tắc `weddings.enable_wishes`
-  nằm trong bước RSVP của trang Thiết lập. Mẫu khai `#cx-wishes-list` để chọn chỗ đặt mục;
+  nạp), lưu ở `guests.wishes` (jsonb; hạn mức 3 lời chúc/khách do Edge Function giữ, KHÔNG
+  ràng buộc ở DB), công tắc `weddings.enable_wishes` nằm trong bước RSVP của trang Thiết lập. Mẫu khai `#cx-wishes-list` để chọn chỗ đặt mục;
   **không khai thì helper tự chèn một mục vào cuối thân thiệp** — nhờ vậy mẫu đã phát hành
   không phải sửa. Cổng chặn "chỉ khách được mời" nằm ở Edge Function `guest-handler`
   (`action=wish` khớp một hàng `guests` theo slug + tên + xưng hô): tham số `name`/

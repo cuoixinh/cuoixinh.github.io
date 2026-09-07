@@ -39,7 +39,7 @@ Làm trên **Supabase Dashboard → SQL Editor** (không cần CLI):
 | **RC1.11** | 2026-08-20 | Bỏ cột `templates.features` (text[]) — không trang nào đọc tới, mọi mẫu thiệp đều có đủ tính năng | `RC1.11/drop_template_features.sql` |
 | **RC1.12** | 2026-08-23 | Bỏ cột `templates.tags` (text[]) — admin không có ô nhập nên mẫu mới luôn null, lưới mẫu đã thôi lọc/tìm theo tag | `RC1.12/drop_template_tags.sql` |
 | **RC1.13** | 2026-08-23 | Thêm bảng `ai_chat_usage` (hạn mức riêng cho "Trợ lý AI" ở trang chủ, khoá theo `u:<user_id>` hoặc `ip:<địa chỉ>`) | `RC1.13/ai_chat_usage.sql` |
-| **RC1.14** | 2026-09-07 | Lời chúc khách mời: cột `guests.wishes` (jsonb, tối đa 3 lời chúc mỗi khách) + cột `weddings.enable_wishes` bật/tắt mục | `RC1.14/guest_wishes.sql` |
+| **RC1.14** | 2026-09-07 | Lời chúc khách mời: cột `guests.wishes` (jsonb) + cột `weddings.enable_wishes` bật/tắt mục (hạn mức 3 lời chúc/khách do Edge Function giữ) | `RC1.14/guest_wishes.sql` |
 
 ## Khi thêm phiên bản mới
 
