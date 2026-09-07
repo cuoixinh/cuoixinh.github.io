@@ -373,11 +373,14 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   runtime xin trang cha nạp lại khung xem trước — mẫu mở hộp một chiều, không có đường lùi.
 - **Lời chúc khách mời:** helper dùng chung `core/helpers/wishes-helper.js` (mọi mẫu thiệp
   nạp), lưu ở `guests.wishes` (jsonb; hạn mức 3 lời chúc/khách do Edge Function giữ, KHÔNG
-  ràng buộc ở DB), công tắc `weddings.enable_wishes` nằm trong bước RSVP của trang Thiết lập. Mẫu khai `#cx-wishes-list` để chọn chỗ đặt mục;
-  **không khai thì helper tự chèn một mục vào cuối thân thiệp** — nhờ vậy mẫu đã phát hành
-  không phải sửa. Dải lời chúc TRONG SUỐT, cao 1/3 màn (qua `--vh`) và rộng 2/3: chạy một
-  lượt từ mép dưới lên hết danh sách rồi nghỉ `CX_WISH_REPLAY_MS` mới chiếu lại, quãng đường
-  đo bằng px trong `_cxWishStartRoll` (`translateY(%)` tính theo thẻ track chứ không theo khung). Cổng chặn "chỉ khách được mời" nằm ở Edge Function `guest-handler`
+  ràng buộc ở DB), công tắc `weddings.enable_wishes` nằm trong bước RSVP của trang Thiết lập.
+  **mẫu thiệp không phải khai markup gì cả**: helper tự dựng một DẢI NỔI ghim đáy khung nhìn,
+  đè lên thiệp — danh sách lời chúc trôi lên ở trên (trong suốt, cao 1/3 màn qua `--vh`, rộng
+  2/3, dồn mép trái để chừa chỗ cho nút nhạc/hộp quà của mẫu), ô "Gửi lời chúc" ở dưới. Dải
+  chạy một lượt từ mép dưới lên hết danh sách rồi nghỉ `CX_WISH_REPLAY_MS` mới chiếu lại;
+  quãng đường đo bằng px trong `_cxWishStartRoll` (`translateY(%)` tính theo thẻ track chứ
+  không theo khung) và đo lại qua `ResizeObserver` vì lúc dựng `#main-card` còn `display:none`.
+  Cổng chặn "chỉ khách được mời" nằm ở Edge Function `guest-handler`
   (`action=wish` khớp một hàng `guests` theo slug + tên + xưng hô): tham số `name`/
   `relationship` trên link mã hoá bằng khoá nằm trong bundle client nên **giải mã được ở
   client KHÔNG chứng minh gì** — đừng dời phép kiểm tra đó lên trang. Danh sách lời chúc ai

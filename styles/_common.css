@@ -1615,17 +1615,48 @@ textarea::-webkit-scrollbar-thumb:hover {
    LỜI CHÚC CỦA KHÁCH MỜI (core/helpers/wishes-helper.js)
    Dùng trên TRANG THIỆP nên viết CSS thuần + màu qua token --cx-*-rgb: mẫu
    thiệp chỉ nạp styles/themes.css, không có utility của trang ứng dụng.
-   Ba phần: mục danh sách tự cuộn (.cx-wish-*), thanh ghim đáy (.cx-wdock*) và
-   ô nhập dạng bottom-sheet (.cx-wsheet*).
+   Một DẢI NỔI ghim đáy khung nhìn, đè lên thiệp: danh sách lời chúc trôi lên
+   (.cx-wfeed) rồi tới ô "Gửi lời chúc" (.cx-wdock-card). Ô nhập mở ra
+   bottom-sheet (.cx-wsheet*).
    ══════════════════════════════════════════════════════════════════════════ */
 
-/* Khung danh sách: dải trong suốt cao 1/3 màn, rộng 2/3 thân thiệp, lời chúc
-   trôi từ dưới lên rồi lặp lại. Hai dải mờ trên/dưới cho chữ tan dần thay vì bị
-   cắt ngang. Chiều cao đi qua --vh (vh-lock.js) chứ không dùng dvh/svh trần. */
-.cx-wish-viewport {
-  position: relative;
+/* Dưới lightbox (z 100) và trên thanh nhạc (z 60). KHÔNG dùng
+   env(safe-area-inset-bottom) — quy ước toàn project, xem .cx-tabbar. */
+.cx-wdock {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 70;
+  padding: 0 12px 12px;
+  pointer-events: none;
+  transform: translateY(24px);
+  opacity: 0;
+  transition:
+    transform 0.35s ease,
+    opacity 0.35s ease;
+}
+
+.cx-wdock.is-on {
+  transform: none;
+  opacity: 1;
+}
+
+/* Cột dồn về mép TRÁI, rộng 2/3 — phần còn lại để trống cho nút của mẫu thiệp
+   (nhạc, hộp quà) không bị dải che. */
+.cx-wdock-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   width: 66.6667%;
-  margin: 0 auto;
+  max-width: 420px;
+}
+
+/* Khung danh sách: trong suốt, cao 1/3 màn, lời chúc trôi từ dưới lên rồi lặp
+   lại. Hai dải mờ trên/dưới cho chữ tan dần thay vì bị cắt ngang. Chiều cao đi
+   qua --vh (vh-lock.js) chứ không dùng dvh/svh trần. */
+.cx-wfeed {
+  position: relative;
   height: calc(var(--vh, 1vh) * 33);
   height: calc(var(--vh, 1svh) * 33);
   overflow: hidden;
@@ -1633,14 +1664,14 @@ textarea::-webkit-scrollbar-thumb:hover {
     to bottom,
     transparent 0,
     #000 18%,
-    #000 82%,
+    #000 88%,
     transparent 100%
   );
   mask-image: linear-gradient(
     to bottom,
     transparent 0,
     #000 18%,
-    #000 82%,
+    #000 88%,
     transparent 100%
   );
 }
@@ -1652,7 +1683,8 @@ textarea::-webkit-scrollbar-thumb:hover {
 .cx-wish-track {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  align-items: flex-start;
+  gap: 8px;
   will-change: transform;
 }
 
@@ -1661,8 +1693,8 @@ textarea::-webkit-scrollbar-thumb:hover {
 }
 
 /* Chạm/rê vào là dừng để đọc cho kịp. */
-.cx-wish-viewport:hover .cx-wish-track.is-rolling,
-.cx-wish-viewport:active .cx-wish-track.is-rolling,
+.cx-wfeed:hover .cx-wish-track.is-rolling,
+.cx-wfeed:active .cx-wish-track.is-rolling,
 .cx-wish-track.is-paused {
   animation-play-state: paused;
 }
@@ -1677,71 +1709,42 @@ textarea::-webkit-scrollbar-thumb:hover {
   }
 }
 
-/* Không nền, không viền: cả dải phải trong suốt để lời chúc nổi thẳng trên nền thiệp. */
+/* Bong bóng co theo nội dung, tên và lời chúc nằm chung một dòng chảy. */
 .cx-wish-item {
-  padding: 0 4px;
-  text-align: center;
-}
-
-.cx-wish-item-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: center;
-  gap: 8px;
-  margin-bottom: 4px;
+  max-width: 100%;
+  padding: 8px 14px;
+  border-radius: 16px;
+  font-size: 13px;
+  line-height: 1.5;
+  text-align: left;
+  word-break: break-word;
+  pointer-events: auto;
+  background: rgb(var(--cx-panel-rgb) / 0.82);
+  border: 1px solid rgb(var(--cx-line-rgb) / 0.5);
 }
 
 .cx-wish-name {
-  font-size: 14px;
   font-weight: 600;
 }
 
-.cx-wish-rel {
-  font-size: 11px;
-  opacity: 0.7;
+.cx-wish-name::after {
+  content: ":";
+  margin-right: 4px;
 }
 
-.cx-wish-text {
-  font-size: 14px;
-  line-height: 1.6;
-  white-space: pre-wrap;
-  word-break: break-word;
-  text-align: center;
-}
-
-.cx-wish-empty {
-  padding: 24px 16px;
-  font-size: 14px;
-  font-style: italic;
+/* Dòng thay chỗ ô nhập khi khách vào bằng link chung (không gửi được). */
+.cx-wdock-note {
+  padding: 0 8px;
+  font-size: 12px;
+  line-height: 1.5;
   opacity: 0.75;
-}
-
-/* ── Thanh ghim đáy khung nhìn ───────────────────────────────────────────── */
-/* Dưới lightbox (z 100) và trên thanh nhạc (z 60). KHÔNG dùng
-   env(safe-area-inset-bottom) — quy ước toàn project, xem .cx-tabbar. */
-.cx-wdock {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 70;
-  padding: 0 12px 12px;
-  pointer-events: none;
-  transform: translateY(120%);
-  transition: transform 0.35s ease;
-}
-
-.cx-wdock.is-on {
-  transform: none;
 }
 
 .cx-wdock-card {
   display: flex;
   align-items: center;
   gap: 12px;
-  max-width: 420px;
-  margin: 0 auto;
-  padding: 8px 8px 8px 20px;
+  padding: 6px 6px 6px 18px;
   border-radius: 999px;
   pointer-events: auto;
   cursor: pointer;
@@ -1753,7 +1756,7 @@ textarea::-webkit-scrollbar-thumb:hover {
 .cx-wdock-hint {
   flex: 1;
   min-width: 0;
-  font-size: 14px;
+  font-size: 13px;
   text-align: left;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1766,16 +1769,17 @@ textarea::-webkit-scrollbar-thumb:hover {
   align-items: center;
   justify-content: center;
   flex: none;
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border-radius: 999px;
   background: rgb(var(--cx-accent-rgb));
   color: rgb(var(--cx-on-accent-rgb));
 }
 
-/* Chỗ trống ở đáy thân thiệp cho thanh ghim, do JS chèn khi dựng thanh. */
+/* Chỗ trống ở đáy thân thiệp cho ô nhập, do JS chèn khi dựng dải. Chỉ cần bằng
+   ô nhập: phần danh sách phía trên trong suốt nên để nó đè lên thiệp là đúng. */
 .cx-wdock-spacer {
-  height: 76px;
+  height: 72px;
 }
 
 /* ── Ô nhập lời chúc (bottom-sheet) ──────────────────────────────────────── */
@@ -1875,10 +1879,11 @@ textarea::-webkit-scrollbar-thumb:hover {
 
 @media (prefers-reduced-motion: reduce) {
   /* Không trôi nữa thì phải cuộn tay được, nếu không danh sách dài bị cắt cụt. */
-  .cx-wish-viewport {
+  .cx-wfeed {
     overflow-y: auto;
     -webkit-mask-image: none;
     mask-image: none;
+    pointer-events: auto;
   }
 
   .cx-wish-track.is-rolling {
