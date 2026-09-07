@@ -254,6 +254,7 @@ async function loadPreviewData() {
     enable_music: true,
     enable_gift: true,
     enable_footer: true,
+    enable_wishes: true,
   };
 
   const theme = currentThemeName();
@@ -265,6 +266,9 @@ async function loadPreviewData() {
 
   if (typeof renderWedding === "function") {
     renderWedding(w);
+    // Lời chúc: bản xem thử dựng dải + ô nhập bằng dữ liệu mẫu để chủ thiệp gõ
+    // thử; initWishes tự chặn nút Gửi khi đang ở chế độ xem thử.
+    if (typeof initWishes === "function") initWishes(w);
   } else {
     console.error("renderWedding function not found");
   }
@@ -301,6 +305,9 @@ if (window.location.search.includes("preview=true")) {
             }
             if (typeof applyElements === "function") {
               applyElements(data.theme_setting);
+            }
+            if (typeof initWishes === "function") {
+              initWishes(data);
             }
             return;
           }

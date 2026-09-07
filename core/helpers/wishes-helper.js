@@ -9,11 +9,31 @@
 const CX_WISH_MAX = 3;
 const CX_WISH_MAX_LEN = 500;
 
-// Số lời chúc tối thiểu để danh sách bắt đầu trôi — ít hơn thì trôi trông như lỗi.
-const CX_WISH_ROLL_MIN = 4;
+// Tốc độ trôi (px/giây) — danh sách dài ngắn đều đi cùng nhịp đọc.
+const CX_WISH_SPEED = 32;
 
-// Giây cho MỘT lời chúc đi hết khung: giữ tốc độ đọc như nhau dù danh sách dài ngắn.
-const CX_WISH_ROLL_SEC = 6;
+// Nghỉ bao lâu sau khi lời chúc cuối rời khỏi khung rồi chiếu lại từ đầu (ms).
+const CX_WISH_REPLAY_MS = 5000;
+
+// Ô nhập cao tối đa mấy dòng khi bung ra — quá đó thì cuộn trong chính ô.
+const CX_WISH_INPUT_ROWS = 2;
+
+// Cuộn qua bao nhiêu phần màn hình thì dải mới hiện ra (fade). Màn bìa và màn
+// mở đầu phải sạch, dải chỉ xuất hiện khi khách đã bắt đầu đọc thiệp.
+const CX_WISH_SHOW_AT = 0.6;
+
+// Ba nút màu của dải. Thứ tự ưu tiên: khách chỉnh ở tab Giao diện
+// (theme_setting.wishes) > mẫu khai (CX_THEME.wishes) > token chung của thiệp.
+// Mỗi khoá ứng với một biến CSS trên .cx-wdock (xem styles/_common.css).
+// Độ mờ nền bong bóng mặc định (%) — trùng --cx-wish-bubble-a ở _common.css và
+// bước 5 của thanh trượt ở tab Giao diện.
+const CX_WISH_OPACITY = 80;
+
+const CX_WISH_COLORS = {
+  bubble: { varName: "--cx-wish-bubble-rgb", from: "--cx-panel-rgb" },
+  text: { varName: "--cx-wish-text-rgb", from: "--cx-body-rgb" },
+  accent: { varName: "--cx-wish-accent-rgb", from: "--cx-accent-rgb" },
+};
 
 const CX_WISH_DEMO = [
   { id: "d1", name: "Anh Minh", relationship: "Bạn thân", text: "Chúc hai bạn trăm năm hạnh phúc, đầu bạc răng long!" },
@@ -26,9 +46,91 @@ let _cxWishItems = [];
 let _cxWishRemaining = CX_WISH_MAX;
 let _cxWishDemo = false;
 
+// Vòng chiếu hiện tại — phải dọn trước khi vẽ lại, nếu không lượt cũ vẫn hẹn giờ
+// khởi động lại một thẻ track đã bị gỡ khỏi DOM.
+let _cxWishReplayTimer = null;
+let _cxWishResizeTimer = null;
+
 function _cxWishReduceMotion() {
   return window.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true;
 }
+
+// ── Màu của dải ─────────────────────────────────────────────────────────────
+
+function _cxWishRootVar(name) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
+// "#a89968" → "168 153 104". Token viết dạng bộ ba để chỗ dùng còn chèn được
+// alpha: rgb(var(--cx-wish-bubble-rgb) / 0.82).
+function _cxWishTriplet(hex) {
+  if (typeof hex !== "string") return "";
+  let h = hex.trim().replace(/^#/, "");
+  if (h.length === 3) h = h.split("").map((c) => c + c).join("");
+  if (!/^[0-9a-f]{6}$/i.test(h)) return "";
+  return [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16)).join(" ");
+}
+
+// Màu chữ trên nút Gửi: suy từ chính màu nhấn để khách chọn tông sáng vẫn đọc
+// được, thay vì luôn dùng --cx-on-accent-rgb của mẫu.
+function _cxWishOnAccent(triplet) {
+  const [r, g, b] = triplet.split(/\s+/).map(Number);
+  if ([r, g, b].some((v) => !Number.isFinite(v))) return "";
+  return (r * 299 + g * 587 + b * 114) / 1000 > 150 ? "28 28 28" : "255 255 255";
+}
+
+/**
+ * Màu MẶC ĐỊNH của dải trên thiệp này (mẫu khai gì, hoặc token chung nếu không
+ * khai) — trang Thiết lập hỏi giá trị này để đổ vào ô màu lúc chưa chỉnh gì.
+ */
+function cxWishBaseColors() {
+  const decl = (window.CX_THEME && window.CX_THEME.wishes) || {};
+  const out = {};
+  Object.entries(CX_WISH_COLORS).forEach(([key, def]) => {
+    out[key] = _cxWishTriplet(decl[key]) || _cxWishRootVar(def.from);
+  });
+  out.opacity = Number.isFinite(decl.opacity) ? decl.opacity : CX_WISH_OPACITY;
+  return out;
+}
+
+/**
+ * Áp bảng màu lên dải. `wishes` là phần khách chỉnh (theme_setting.wishes) —
+ * khoá nào không có thì rơi về bản khai của mẫu rồi tới token chung.
+ */
+function applyWishStyle(wishes) {
+  const dock = document.getElementById("cx-wish-dock");
+  if (!dock) return;
+
+  const base = cxWishBaseColors();
+  const user = wishes || {};
+
+  Object.entries(CX_WISH_COLORS).forEach(([key, def]) => {
+    const val = _cxWishTriplet(user[key]) || base[key];
+    if (val) dock.style.setProperty(def.varName, val);
+    if (key === "accent" && val) {
+      dock.style.setProperty("--cx-wish-on-accent-rgb", _cxWishOnAccent(val));
+    }
+  });
+
+  const op = Number.isFinite(user.opacity) ? user.opacity : base.opacity;
+  dock.style.setProperty("--cx-wish-bubble-a", String(Math.min(100, Math.max(0, op)) / 100));
+}
+
+// theme_setting có thể là chuỗi JSON (dữ liệu lấy thẳng từ form ở bản xem thử).
+function _cxWishSetting(wedding) {
+  let st = wedding && wedding.theme_setting;
+  if (typeof st === "string") {
+    try {
+      st = JSON.parse(st);
+    } catch (e) {
+      st = null;
+    }
+  }
+  return (st && typeof st === "object" && st.wishes) || null;
+}
+
+window.cxWishBaseColors = cxWishBaseColors;
+window.applyWishStyle = applyWishStyle;
 
 // Thẻ con flex-column bọc các mục của thân thiệp (quy ước: #main-card có ĐÚNG một).
 function _cxWishHost() {
@@ -36,96 +138,130 @@ function _cxWishHost() {
   return card?.firstElementChild ?? card ?? null;
 }
 
-// Mục danh sách: mẫu tự khai #cx-wishes-list thì tôn trọng chỗ mẫu đặt, không thì
-// chèn ngay trước mục "Lời cảm ơn" (hoặc cuối thân thiệp) cho mẫu cũ.
-function _cxWishMount() {
-  const declared = document.getElementById("cx-wishes-list");
-  if (declared) return declared;
-
-  const host = _cxWishHost();
-  if (!host) return null;
-
-  // Lề ngang: mẫu đặt padding ở CHÍNH thẻ bọc (base-theme) hay ở từng mục
-  // (romantic-gold) là tuỳ mẫu — hỏi thẻ bọc rồi mới tự chừa, chèn cứng `px-6`
-  // là mẫu kia thành lề đôi.
-  const hostPad = parseFloat(getComputedStyle(host).paddingLeft) || 0;
-
-  const section = document.createElement("section");
-  section.id = "section-wishes";
-  section.className =
-    "flex flex-col gap-4 text-center" + (hostPad < 8 ? " px-6 py-8" : "");
-  section.innerHTML =
-    '<h2 class="cx-h text-[20px] tracking-[3px] uppercase">Lời Chúc</h2>' +
-    '<div id="cx-wishes-list"></div>';
-
-  const footer = document.getElementById("section-footer");
-  if (footer && footer.parentElement === host) host.insertBefore(section, footer);
-  else host.appendChild(section);
-
-  return section.querySelector("#cx-wishes-list");
-}
-
 function _cxWishItemHtml(w) {
-  const rel = w.relationship
-    ? `<span class="cx-wish-rel cx-t">${escapeHtml(w.relationship)}</span>`
-    : "";
   return (
-    '<div class="cx-wish-item">' +
-    '<div class="cx-wish-item-head">' +
-    `<span class="cx-wish-name cx-h cx-a">${escapeHtml(w.name || "Khách mời")}</span>${rel}` +
-    "</div>" +
-    `<div class="cx-wish-text cx-t">${escapeHtml(w.text)}</div>` +
+    '<div class="cx-wish-item cx-t">' +
+    `<span class="cx-wish-name">${escapeHtml(w.name || "Khách mời")}</span>` +
+    `<span class="cx-wish-text">${escapeHtml(w.text)}</span>` +
     "</div>"
   );
 }
 
-// Vẽ lại cả danh sách. Danh sách trôi được nhân đôi để vòng lặp không thấy mối
-// nối — nên MỌI thứ đọc số lượng thật phải nhìn _cxWishItems, đừng đếm thẻ DOM.
 function _cxWishRender() {
   const mount = document.getElementById("cx-wishes-list");
   if (!mount) return;
 
+  clearTimeout(_cxWishReplayTimer);
+  _cxWishReplayTimer = null;
+
   if (_cxWishItems.length === 0) {
-    mount.innerHTML =
-      '<div class="cx-wish-empty cx-t">Chưa có lời chúc nào — hãy là người đầu tiên nhé.</div>';
+    mount.innerHTML = "";
+    mount.hidden = true;
+    return;
+  }
+  mount.hidden = false;
+
+  mount.innerHTML =
+    '<div class="cx-wish-track">' +
+    _cxWishItems.map(_cxWishItemHtml).join("") +
+    "</div>";
+
+  _cxWishStartRoll();
+}
+
+// Một lượt chiếu: danh sách vào từ mép DƯỚI khung, đi lên cho tới khi lời chúc
+// cuối khuất hẳn, nghỉ CX_WISH_REPLAY_MS rồi chạy lại từ đầu. Quãng đường phải đo
+// bằng px (chiều cao khung + chiều cao danh sách) vì `translateY(%)` tính theo
+// chính thẻ track — hai thứ có kích thước khác nhau.
+function _cxWishStartRoll() {
+  const view = document.getElementById("cx-wishes-list");
+  const track = view?.querySelector(".cx-wish-track");
+  if (!view || !track || _cxWishReduceMotion()) return;
+
+  const viewH = view.clientHeight;
+  const trackH = track.scrollHeight;
+
+  // Thiệp có bìa thì #main-card còn display:none lúc này → khung đo ra 0. Chờ
+  // tới khi nó có kích thước thật rồi mới đo lại, nếu không dải nằm im cả buổi.
+  if (!viewH || !trackH) {
+    if (!window.ResizeObserver) return;
+    const ro = new ResizeObserver(() => {
+      if (view.clientHeight && track.scrollHeight) {
+        ro.disconnect();
+        _cxWishStartRoll();
+      }
+    });
+    ro.observe(view);
     return;
   }
 
-  const rolling = _cxWishItems.length >= CX_WISH_ROLL_MIN && !_cxWishReduceMotion();
-  const html = _cxWishItems.map(_cxWishItemHtml).join("");
+  track.style.setProperty("--cx-wish-from", `${viewH}px`);
+  track.style.setProperty("--cx-wish-to", `${-trackH}px`);
+  track.style.setProperty("--cx-wish-dur", `${(viewH + trackH) / CX_WISH_SPEED}s`);
 
-  mount.innerHTML =
-    '<div class="cx-wish-viewport">' +
-    `<div class="cx-wish-track${rolling ? " is-rolling" : ""}" ` +
-    `style="--cx-wish-dur:${_cxWishItems.length * CX_WISH_ROLL_SEC}s">` +
-    (rolling ? html + html : html) +
-    "</div></div>";
+  // Gỡ rồi gắn lại .is-rolling để lượt sau chạy lại từ khung hình đầu; đọc
+  // offsetHeight ở giữa để trình duyệt chốt trạng thái, không gộp hai thao tác.
+  track.classList.remove("is-rolling");
+  void track.offsetHeight;
+  track.classList.add("is-rolling");
+
+  track.addEventListener(
+    "animationend",
+    () => {
+      clearTimeout(_cxWishReplayTimer);
+      _cxWishReplayTimer = setTimeout(() => {
+        // Danh sách có thể đã được vẽ lại (khách vừa gửi lời chúc) — thẻ track
+        // rời DOM thì bỏ lượt này, lượt mới do _cxWishRender lo.
+        if (track.isConnected) _cxWishStartRoll();
+      }, CX_WISH_REPLAY_MS);
+    },
+    { once: true },
+  );
 }
+
+// Xoay máy / đổi khổ màn là đổi chiều cao khung → phải đo và chiếu lại từ đầu.
+window.addEventListener("resize", () => {
+  if (!document.getElementById("cx-wishes-list")) return;
+  clearTimeout(_cxWishResizeTimer);
+  _cxWishResizeTimer = setTimeout(_cxWishStartRoll, 200);
+});
 
 function _cxWishSetDockText() {
   const hint = document.getElementById("cx-wdock-hint");
   if (!hint) return;
+  // Ngắn gọn: pill co theo dòng này, câu dài là nó chiếm hết bề ngang cột.
   hint.textContent =
-    _cxWishRemaining > 0
-      ? "Gửi lời chúc tới cô dâu chú rể…"
-      : `Bạn đã gửi đủ ${CX_WISH_MAX} lời chúc, cảm ơn bạn!`;
+    _cxWishRemaining > 0 ? "Gửi lời chúc…" : "Cảm ơn lời chúc của bạn!";
 }
 
-function _cxWishBuildDock() {
+// Dải nổi ghim đáy khung nhìn: danh sách lời chúc trôi lên ở trên, ô "Gửi lời
+// chúc" ở dưới — cùng một khối, đè lên thiệp chứ không nằm trong thân thiệp.
+// Ai cũng đọc được danh sách; ô nhập chỉ dựng cho khách cầm link cá nhân hoá
+// (hoặc bản xem thử), người còn lại thấy một dòng giải thích thay chỗ đó.
+function _cxWishBuildDock(canWrite) {
   if (document.getElementById("cx-wish-dock")) return;
 
   const dock = document.createElement("div");
   dock.id = "cx-wish-dock";
   dock.className = "cx-wdock";
   dock.innerHTML =
-    '<div class="cx-wdock-card" id="cx-wdock-open">' +
-    '<span class="cx-wdock-hint cx-t" id="cx-wdock-hint"></span>' +
-    '<span class="cx-wdock-btn"><i data-lucide="send" style="width:18px;height:18px"></i></span>' +
+    '<div class="cx-wdock-inner">' +
+    '<div class="cx-wfeed" id="cx-wishes-list" hidden></div>' +
+    (canWrite
+      ? '<div class="cx-wdock-card cx-t" id="cx-wdock-open">' +
+        '<span class="cx-wdock-hint" id="cx-wdock-hint"></span>' +
+        `<textarea class="cx-wdock-text" id="cx-wdock-text" rows="1" maxlength="${CX_WISH_MAX_LEN}" ` +
+        'placeholder="Viết lời chúc…"></textarea>' +
+        '<button type="button" class="cx-wdock-btn" id="cx-wdock-send" aria-label="Gửi lời chúc">' +
+        '<i data-lucide="send" style="width:18px;height:18px"></i></button>' +
+        '<div class="cx-wdock-msg" id="cx-wdock-msg" hidden></div>' +
+        "</div>"
+      : '<div class="cx-wdock-note cx-t">Chỉ khách mời nhận thiệp riêng mới gửi được lời chúc.</div>') +
     "</div>";
   document.body.appendChild(dock);
 
-  // Thanh nổi đè lên cuối thiệp — chừa đúng chiều cao nó ở đáy thân thiệp, nếu
-  // không mục cuối (lời cảm ơn) bị che mất một đoạn.
+  // Dải đè lên cuối thiệp — chừa đúng chiều cao nó ở đáy thân thiệp, nếu không
+  // mục cuối (lời cảm ơn) bị che mất một đoạn.
   const host = _cxWishHost();
   if (host && !document.getElementById("cx-wdock-spacer")) {
     const spacer = document.createElement("div");
@@ -134,78 +270,127 @@ function _cxWishBuildDock() {
     host.appendChild(spacer);
   }
 
-  // lucide không tự quét lại phần chèn động.
-  window.lucide?.createIcons({ root: dock });
+  if (canWrite) {
+    // lucide không tự quét lại phần chèn động.
+    window.lucide?.createIcons({ root: dock });
+    _cxWishSetDockText();
 
-  _cxWishSetDockText();
-  document.getElementById("cx-wdock-open").addEventListener("click", _cxWishOpenSheet);
+    const card = document.getElementById("cx-wdock-open");
+    const input = document.getElementById("cx-wdock-text");
+    const send = document.getElementById("cx-wdock-send");
 
-  // Thiệp có bìa thì thân thiệp còn display:none — thanh chỉ trượt lên sau khi
-  // khách mở bìa, nếu không nó nằm chình ình trên ảnh bìa.
-  const card = document.getElementById("main-card");
-  const show = () => dock.classList.add("is-on");
-
-  if (!card || card.style.display !== "none") {
-    requestAnimationFrame(show);
-    return;
+    card.addEventListener("click", _cxWishExpand);
+    input.addEventListener("input", () => _cxWishAutoGrow(input));
+    input.addEventListener("keydown", (e) => {
+      // Enter gửi luôn (như ô chat), Shift+Enter mới xuống dòng.
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        _cxWishSend();
+      } else if (e.key === "Escape") {
+        _cxWishCollapse();
+      }
+    });
+    // Nút Gửi nằm TRONG thẻ nên cú bấm cũng chạy _cxWishExpand — chặn lại, nếu
+    // không lượt bấm đầu tiên chỉ bung ô ra chứ không gửi.
+    send.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (card.classList.contains("is-open")) _cxWishSend();
+      else _cxWishExpand();
+    });
   }
-  const mo = new MutationObserver(() => {
-    if (card.style.display !== "none") {
-      mo.disconnect();
-      show();
-    }
-  });
-  mo.observe(card, { attributes: true, attributeFilter: ["style"] });
+
+  _cxWishWatchReveal(dock);
 }
 
-function _cxWishCloseSheet() {
-  document.getElementById("cx-wish-sheet")?.remove();
+// Dải chỉ hiện khi khách ĐÃ mở bìa VÀ đã cuộn qua màn mở đầu — màn bìa và màn
+// hero phải sạch. Cuộn ngược lên đầu thì mờ đi trở lại (chuyển động ở .cx-wdock).
+function _cxWishWatchReveal(dock) {
+  const card = document.getElementById("main-card");
+
+  const sync = () => {
+    // Trang Thiết lập đang mở bảng chỉnh màu thì giữ dải hiện, khỏi phải cuộn.
+    if (dock.classList.contains("is-peek")) return;
+    const opened = !card || card.style.display !== "none";
+    const scrolled = window.scrollY >= window.innerHeight * CX_WISH_SHOW_AT;
+    dock.classList.toggle("is-on", opened && scrolled);
+  };
+
+  window.addEventListener("scroll", sync, { passive: true });
+  window.addEventListener("resize", sync, { passive: true });
+
+  // Bìa mở ra không kèm sự kiện cuộn nào — theo dõi luôn thẻ thân thiệp.
+  if (card) {
+    new MutationObserver(sync).observe(card, {
+      attributes: true,
+      attributeFilter: ["style"],
+    });
+  }
+  sync();
 }
 
-function _cxWishOpenSheet() {
-  if (document.getElementById("cx-wish-sheet")) return;
+// Ô nhập bung TẠI CHỖ: pill nhỏ co theo nội dung, bấm vào thì trải hết bề ngang
+// cột và đổi dòng gợi ý thành ô gõ cao tối đa hai dòng. Không mở panel riêng —
+// khách vẫn thấy thiệp và danh sách lời chúc phía trên.
+
+function _cxWishInputEl() {
+  return document.getElementById("cx-wdock-text");
+}
+
+// Cao theo nội dung, chặn ở CX_WISH_INPUT_ROWS dòng rồi mới cho cuộn trong ô.
+// Trần phải là BỘI SỐ của line-height (ô không có padding dọc — xem
+// .cx-wdock-text), nếu không dòng trên cùng lòi ra một nửa lúc cuộn.
+function _cxWishAutoGrow(input) {
+  const line = parseFloat(getComputedStyle(input).lineHeight) || 20;
+  input.style.height = "auto";
+  input.style.height =
+    Math.min(input.scrollHeight, line * CX_WISH_INPUT_ROWS) + "px";
+}
+
+function _cxWishCollapse() {
+  const card = document.getElementById("cx-wdock-open");
+  if (!card) return;
+  card.classList.remove("is-open");
+  const input = _cxWishInputEl();
+  if (input) {
+    input.value = "";
+    input.style.height = "";
+  }
+  _cxWishSetDockMsg("");
+  document.removeEventListener("pointerdown", _cxWishOutside, true);
+}
+
+function _cxWishOutside(e) {
+  const card = document.getElementById("cx-wdock-open");
+  if (card && !card.contains(e.target)) _cxWishCollapse();
+}
+
+function _cxWishExpand() {
+  const card = document.getElementById("cx-wdock-open");
+  if (!card || card.classList.contains("is-open")) return;
   if (_cxWishRemaining <= 0) return;
 
-  const sheet = document.createElement("div");
-  sheet.id = "cx-wish-sheet";
-  sheet.className = "cx-wsheet";
-  sheet.innerHTML =
-    '<div class="cx-wsheet-card" id="cx-wsheet-card">' +
-    '<div class="cx-wsheet-head">' +
-    '<span class="cx-wsheet-title cx-h">Gửi lời chúc</span>' +
-    '<span class="cx-wsheet-count cx-t" id="cx-wsheet-left">' +
-    `Còn ${_cxWishRemaining}/${CX_WISH_MAX} lượt</span>` +
-    "</div>" +
-    `<textarea class="cx-wsheet-input cx-t" id="cx-wsheet-text" maxlength="${CX_WISH_MAX_LEN}" ` +
-    'placeholder="Chúc hai bạn trăm năm hạnh phúc…"></textarea>' +
-    '<div class="cx-wsheet-foot">' +
-    `<span class="cx-wsheet-count cx-t" id="cx-wsheet-count">0/${CX_WISH_MAX_LEN}</span>` +
-    '<button type="button" class="cx-wsheet-send" id="cx-wsheet-send" disabled>Gửi</button>' +
-    "</div>" +
-    '<div class="cx-wsheet-msg cx-a hidden" id="cx-wsheet-msg"></div>' +
-    "</div>";
-  document.body.appendChild(sheet);
+  card.classList.add("is-open");
+  const input = _cxWishInputEl();
+  input?.focus();
+  if (input) _cxWishAutoGrow(input);
 
-  // Bấm ra ngoài thẻ để đóng.
-  sheet.addEventListener("click", (e) => {
-    if (e.target === sheet) _cxWishCloseSheet();
-  });
-
-  const input = document.getElementById("cx-wsheet-text");
-  const count = document.getElementById("cx-wsheet-count");
-  const send = document.getElementById("cx-wsheet-send");
-
-  input.addEventListener("input", () => {
-    count.textContent = `${input.value.length}/${CX_WISH_MAX_LEN}`;
-    send.disabled = input.value.trim().length === 0;
-  });
-  send.addEventListener("click", () => _cxWishSend(input, send));
-  input.focus();
+  // Bấm ra ngoài thì thu lại. Dùng pointerdown ở pha capture để bắt được cả cú
+  // chạm rơi vào iframe/canvas của mẫu thiệp.
+  document.addEventListener("pointerdown", _cxWishOutside, true);
 }
 
-async function _cxWishSend(input, sendBtn) {
-  const msg = document.getElementById("cx-wsheet-msg");
-  const text = input.value.trim();
+// Câu báo lỗi nằm ngay dưới ô nhập; chuỗi rỗng là gỡ đi.
+function _cxWishSetDockMsg(text) {
+  const el = document.getElementById("cx-wdock-msg");
+  if (!el) return;
+  el.textContent = text || "";
+  el.hidden = !text;
+}
+
+async function _cxWishSend() {
+  const input = _cxWishInputEl();
+  const btn = document.getElementById("cx-wdock-send");
+  const text = (input?.value || "").trim();
   if (!text) return;
 
   if (_cxWishDemo) {
@@ -216,8 +401,8 @@ async function _cxWishSend(input, sendBtn) {
   const g = window.CX_GUEST;
   if (!g || !window.guestDAL) return;
 
-  sendBtn.disabled = true;
-  sendBtn.textContent = "Đang gửi…";
+  if (btn) btn.disabled = true;
+  _cxWishSetDockMsg("");
 
   try {
     const res = await window.guestDAL.sendWishPublic({
@@ -230,18 +415,17 @@ async function _cxWishSend(input, sendBtn) {
     _cxWishItems.unshift(res.wish);
     _cxWishRemaining = res.remaining;
     _cxWishRender();
+    _cxWishCollapse();
     _cxWishSetDockText();
-    _cxWishCloseSheet();
   } catch (error) {
     // Câu chữ từ Edge Function đã hợp cảnh (403 chưa được mời, 409 hết lượt) nên
     // hiện thẳng; im lặng là khách gõ lại lần nữa mà vẫn không hiểu vì sao trượt.
     console.error("Lỗi gửi lời chúc:", error);
-    if (msg) {
-      msg.textContent = error?.message || "Chưa gửi được lời chúc, bạn thử lại giúp nhé.";
-      msg.classList.remove("hidden");
-    }
-    sendBtn.disabled = false;
-    sendBtn.textContent = "Gửi";
+    _cxWishSetDockMsg(
+      error?.message || "Chưa gửi được lời chúc, bạn thử lại giúp nhé.",
+    );
+  } finally {
+    if (btn) btn.disabled = false;
   }
 }
 
@@ -252,23 +436,28 @@ async function _cxWishSend(input, sendBtn) {
 async function initWishes(wedding) {
   try {
     if (!cxEnabled(wedding?.enable_wishes)) {
-      document.getElementById("section-wishes")?.classList.add("hidden");
       document.getElementById("cx-wish-dock")?.remove();
       document.getElementById("cx-wdock-spacer")?.remove();
       return;
     }
-    if (!_cxWishMount()) return;
 
     // Xem trước (?preview=true hoặc iframe trang Thiết lập): chưa có dữ liệu thật,
-    // dựng vài lời chúc mẫu để chủ thiệp thấy đúng bố cục.
+    // dựng vài lời chúc mẫu để chủ thiệp thấy đúng bố cục. Ô nhập vẫn dựng, nút
+    // Gửi dừng ở showPreviewAlert.
     _cxWishDemo = isPreviewMode();
 
     if (_cxWishDemo) {
+      _cxWishBuildDock(true);
+      applyWishStyle(_cxWishSetting(wedding));
       _cxWishItems = CX_WISH_DEMO.slice();
       _cxWishRender();
-      _cxWishBuildDock();
       return;
     }
+
+    // Dựng vỏ trước rồi mới nạp: mount của danh sách nằm trong chính dải nổi.
+    const guest = window.CX_GUEST;
+    _cxWishBuildDock(!!guest);
+    applyWishStyle(_cxWishSetting(wedding));
 
     const slug = getSlugFromUrl();
     if (slug && window.guestDAL) {
@@ -276,28 +465,42 @@ async function initWishes(wedding) {
     }
     _cxWishRender();
 
-    // Không có link cá nhân hoá thì chỉ được đọc: nói rõ lý do thay vì im lặng
-    // giấu thanh nhập, khách tưởng thiệp lỗi.
-    if (!window.CX_GUEST) {
-      const mount = document.getElementById("cx-wishes-list");
-      const note = document.createElement("div");
-      note.className = "cx-wish-empty cx-t";
-      note.textContent = "Chỉ khách mời nhận thiệp riêng mới gửi được lời chúc.";
-      mount?.appendChild(note);
-      return;
-    }
+    if (!guest) return;
 
     // Đã gửi bao nhiêu lượt: đếm ngay trên danh sách vừa tải (server vẫn là nơi
     // chốt, đây chỉ để hiện đúng số lượt còn lại).
     const mine = _cxWishItems.filter(
-      (w) => (w.name || "").trim().toLowerCase() === window.CX_GUEST.name.trim().toLowerCase(),
+      (w) => (w.name || "").trim().toLowerCase() === guest.name.trim().toLowerCase(),
     ).length;
     _cxWishRemaining = Math.max(0, CX_WISH_MAX - mine);
-
-    _cxWishBuildDock();
+    _cxWishSetDockText();
   } catch (error) {
     console.error("Lỗi dựng mục lời chúc:", error);
   }
 }
 
 window.initWishes = initWishes;
+
+// Trong khung xem trước của trang Thiết lập: đổi màu áp NGAY, không nạp lại cả
+// khung (bảng chỉnh bên trang cha phải đứng yên để còn kéo thử màu). Trang cha
+// cũng hỏi màu mặc định của mẫu qua 'cx-wish-base-get' để đổ vào ô màu.
+if (window.top !== window) {
+  window.addEventListener("message", (ev) => {
+    if (ev.source !== window.parent) return;
+    const d = ev.data;
+    if (!d) return;
+    if (d.type === "cx-wish-style") applyWishStyle(d.value);
+    if (d.type === "cx-wish-peek") {
+      const dock = document.getElementById("cx-wish-dock");
+      dock?.classList.toggle("is-peek", !!d.on);
+      dock?.classList.toggle("is-on", !!d.on || dock.classList.contains("is-on"));
+      if (!d.on) window.dispatchEvent(new Event("scroll"));
+    }
+    if (d.type === "cx-wish-base-get") {
+      window.parent.postMessage(
+        { type: "cx-wish-base", value: cxWishBaseColors() },
+        "*",
+      );
+    }
+  });
+}

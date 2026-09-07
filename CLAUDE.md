@@ -373,9 +373,26 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   runtime xin trang cha nạp lại khung xem trước — mẫu mở hộp một chiều, không có đường lùi.
 - **Lời chúc khách mời:** helper dùng chung `core/helpers/wishes-helper.js` (mọi mẫu thiệp
   nạp), lưu ở `guests.wishes` (jsonb; hạn mức 3 lời chúc/khách do Edge Function giữ, KHÔNG
-  ràng buộc ở DB), công tắc `weddings.enable_wishes` nằm trong bước RSVP của trang Thiết lập. Mẫu khai `#cx-wishes-list` để chọn chỗ đặt mục;
-  **không khai thì helper tự chèn một mục vào cuối thân thiệp** — nhờ vậy mẫu đã phát hành
-  không phải sửa. Cổng chặn "chỉ khách được mời" nằm ở Edge Function `guest-handler`
+  ràng buộc ở DB), công tắc `weddings.enable_wishes` nằm trong bước RSVP của trang Thiết lập.
+  **mẫu thiệp không phải khai markup gì cả**: helper tự dựng một DẢI NỔI ghim đáy khung nhìn,
+  đè lên thiệp — danh sách lời chúc trôi lên ở trên (trong suốt, cao 1/3 màn qua `--vh`, rộng
+  2/3, dồn mép trái để chừa chỗ cho nút nhạc/hộp quà của mẫu), ô "Gửi lời chúc" ở dưới — pill
+  NHỎ co theo dòng gợi ý, bấm vào mới trải hết bề ngang cột và bung ô gõ cao tối đa
+  `CX_WISH_INPUT_ROWS` dòng, không mở panel riêng (lề dọc của ô gõ phải là `margin`: padding
+  của textarea nằm trong vùng cuộn nên gõ quá hai dòng là dòng trên bị cắt ngang thân chữ). Dải
+  chạy một lượt từ mép dưới lên hết danh sách rồi nghỉ `CX_WISH_REPLAY_MS` mới chiếu lại;
+  quãng đường đo bằng px trong `_cxWishStartRoll` (`translateY(%)` tính theo thẻ track chứ
+  không theo khung) và đo lại qua `ResizeObserver` vì lúc dựng `#main-card` còn `display:none`.
+  Dải **không hiện ở màn bìa lẫn màn mở đầu** — chỉ mờ hiện khi khách đã mở bìa VÀ cuộn quá
+  `CX_WISH_SHOW_AT` màn hình. Màu đi qua bộ token riêng `--cx-wish-*` trên `.cx-wdock`:
+  mặc định ăn theo token chung của thiệp (`panel`/`body`/`accent`), mẫu ghi đè bằng
+  **`CX_THEME.wishes`** (`bubble`/`text`/`accent`/`opacity`, khai khi mặc định không hợp tông
+  — ví dụ mẫu nền tối), khách ghi đè tiếp ở tab Giao diện → `theme_setting.wishes` (**không
+  cần changelog DB**). Bảng chỉnh ở `05-theme-panel.js`, áp thẳng qua `postMessage`
+  (`cx-wish-style`) như hộp quà; nó hỏi màu mặc định bằng `cx-wish-base-get` chứ không đoán
+  (mặc định còn phụ thuộc bộ màu đang chọn), và ghim dải hiện sẵn bằng `cx-wish-peek` trong
+  lúc chỉnh.
+  Cổng chặn "chỉ khách được mời" nằm ở Edge Function `guest-handler`
   (`action=wish` khớp một hàng `guests` theo slug + tên + xưng hô): tham số `name`/
   `relationship` trên link mã hoá bằng khoá nằm trong bundle client nên **giải mã được ở
   client KHÔNG chứng minh gì** — đừng dời phép kiểm tra đó lên trang. Danh sách lời chúc ai
