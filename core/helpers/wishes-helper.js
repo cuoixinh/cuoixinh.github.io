@@ -117,7 +117,20 @@ function _cxWishStartRoll() {
 
   const viewH = view.clientHeight;
   const trackH = track.scrollHeight;
-  if (!viewH || !trackH) return;
+
+  // Thiệp có bìa thì #main-card còn display:none lúc này → khung đo ra 0. Chờ
+  // tới khi nó có kích thước thật rồi mới đo lại, nếu không dải nằm im cả buổi.
+  if (!viewH || !trackH) {
+    if (!window.ResizeObserver) return;
+    const ro = new ResizeObserver(() => {
+      if (view.clientHeight && track.scrollHeight) {
+        ro.disconnect();
+        _cxWishStartRoll();
+      }
+    });
+    ro.observe(view);
+    return;
+  }
 
   track.style.setProperty("--cx-wish-from", `${viewH}px`);
   track.style.setProperty("--cx-wish-to", `${-trackH}px`);
