@@ -153,11 +153,11 @@
   --ai-suggest-to-rgb: 255 228 233;
   --ai-icon-muted-rgb: 203 208 214;
 
-  /* Trợ lý AI ở trang chủ (styles/_ai-chat.css) — lối thiệp giấy: nền kem, nét
+  /* Trợ lý XuXi ở trang chủ (styles/_ai-chat.css) — lối thiệp giấy: nền kem, nét
      hồng, chữ hồng đậm. Phần còn lại của bảng lấy thẳng --brand-* /
      --surface-tint-* nên chỉ ba biến riêng cho nét nhấn và hai bong bóng. */
   --aichat-bar-rgb: 236 130 158; /* nét nhấn: tiêu đề, viền, chấm chờ */
-  --aichat-bot-bg-rgb: 255 255 255; /* bong bóng trợ lý — giấy trắng */
+  --aichat-bot-bg-rgb: 255 255 255; /* bong bóng XuXi — giấy trắng */
   --aichat-user-bg-rgb: 255 228 236; /* bong bóng khách — hồng phấn */
 
   /* ============================================================

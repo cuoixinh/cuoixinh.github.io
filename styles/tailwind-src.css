@@ -420,7 +420,7 @@ html.cx-landing {
    đẩy xuống sát đáy — chỗ trống thừa của màn cao dồn hết vào khe giữa hai cụm.
    Lề ĐÁY khác nhau hẳn giữa hai khổ. Khổ hẹp 152px vì cụm nút chạy gần hết bề
    ngang, phải qua mặt cả thanh tab dưới (.cx-tabbar, ~64px kể cả lề) LẪN bong
-   bóng trợ lý AI đứng ngay trên nó (.aichat-fab, bottom 88px + cao 52px = mép
+   bóng Trợ lý XuXi đứng ngay trên nó (.aichat-fab, bottom 88px + cao 52px = mép
    trên ở 140px). Từ md không còn thanh tab, bong bóng lùi về bottom 24px và cụm
    nút chỉ chiếm nửa trái màn nên 48px là đủ.
    Lề ĐỈNH thì ngược lại: khổ hẹp không có navbar trên nên chỉ cần 32px, từ md
@@ -833,7 +833,7 @@ html.cx-landing {
 }
 
 /* Máy vừa NGẮN vừa HẸP (360x640 và họ hàng): ở khổ này cụm nút phải đứng trên
-   CẢ thanh tab dưới lẫn bong bóng trợ lý AI, tức lề đáy 152px — thu nốt lề đỉnh
+   CẢ thanh tab dưới lẫn bong bóng Trợ lý XuXi, tức lề đáy 152px — thu nốt lề đỉnh
    để hero không cao hơn khung nhìn (cụm nút trôi xuống là bong bóng đè lên nút
    "Xem mẫu thiệp"). Phải đứng SAU khối max-height ở trên. */
 

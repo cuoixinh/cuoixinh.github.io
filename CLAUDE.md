@@ -82,6 +82,11 @@ Không gọi thẳng UI → DAL khi có logic nghiệp vụ.
 - **Không sửa DB qua MCP.** Mọi thay đổi schema → script SQL **idempotent** trong
   `changelogs/RCx.y/` (minor cho thay đổi thường, major cho breaking + baseline mới),
   cập nhật bảng phiên bản ở `changelogs/README.md`, người dùng tự chạy ở Dashboard.
+- **Deploy Edge Function: `npm run deploy:functions -- <tên>`** (không tên = tất cả).
+  Đừng bày `npx supabase functions deploy` trần: repo không có `supabase/config.toml`
+  nên cờ `verify_jwt` phải truyền tay, mà nguồn sự thật của cờ đó là hai danh sách trong
+  `scripts/deploy-functions.sh` — thiếu `--no-verify-jwt` là gateway chặn function trước
+  khi vào code. Thêm function mới thì thêm tên vào đúng một danh sách.
 
 ### `invitation-setup` — trang nạp DOM động
 

@@ -251,7 +251,9 @@
 }
 
 .btn-ai[data-loading="1"] svg,
-.btn-ai-icon[data-loading="1"] svg {
+.btn-ai-icon[data-loading="1"] svg,
+.btn-ai[data-loading="1"] img,
+.btn-ai-icon[data-loading="1"] img {
   animation: cx-wand-spin 0.9s linear infinite;
 }
 

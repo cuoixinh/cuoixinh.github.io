@@ -1,5 +1,5 @@
 /**
- * AiChatDAL — gọi Edge Function ai-chat (Trợ lý AI). Không bắt buộc
+ * AiChatDAL — gọi Edge Function ai-chat (Trợ lý XuXi). Không bắt buộc
  * đăng nhập: đã đăng nhập thì đính JWT (hạn mức theo user), chưa thì server tính
  * theo IP. Server trả NDJSON để chữ chạy dần.
  */
@@ -19,7 +19,7 @@ class AiChatDAL {
   }
 
   /**
-   * Hỏi trợ lý. `messages` là cả đoạn hội thoại [{role:"user"|"assistant", content}],
+   * Hỏi XuXi. `messages` là cả đoạn hội thoại [{role:"user"|"assistant", content}],
    * tin cuối phải là của khách; server tự cắt bớt lượt cũ. `card` là thông tin thiệp
    * đã thu được ở các lượt trước (server nhắc lại cho model để nó khỏi hỏi lại).
    *
@@ -49,7 +49,7 @@ class AiChatDAL {
 
     if (!res.ok || !res.body) {
       const j = await res.json().catch(() => ({}));
-      throw new Error(j.error || "Trợ lý đang bận, bạn thử lại sau ít phút nhé.");
+      throw new Error(j.error || "XuXi đang bận, bạn thử lại sau ít phút nhé.");
     }
 
     const reader = res.body.getReader();
@@ -94,7 +94,7 @@ class AiChatDAL {
     if (buf.trim()) handle(buf.trim());
 
     const text = (final || shown).trim();
-    if (!text) throw new Error("Trợ lý chưa trả lời được, bạn hỏi lại giúp mình nhé.");
+    if (!text) throw new Error("XuXi chưa trả lời được, bạn hỏi lại giúp mình nhé.");
     return { text, known: finalKnown, card: finalCard };
   }
 }

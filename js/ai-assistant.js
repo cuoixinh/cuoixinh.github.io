@@ -1,4 +1,4 @@
-// Trợ lý AI: bong bóng nổi góc phải + bảng chat vừa tư vấn dịch vụ vừa hỏi thông
+// Trợ lý XuXi: bong bóng nổi góc phải + bảng chat vừa tư vấn dịch vụ vừa hỏi thông
 // tin rồi DỰNG LUÔN nội dung thiệp. Dùng ở trang chủ và trang Thiết lập (ở đó
 // 24-ai-apply.js đổ kết quả thẳng vào form).
 // Toàn bộ markup dựng ở đây (như core/payment.js) nên index.html chỉ cần một thẻ
@@ -21,7 +21,7 @@
   const MAX_LEN = 800; // khớp MAX_MSG_LEN của Edge Function
 
   const GREETING =
-    "Chào bạn 👋 Mình là trợ lý của Cưới Xinh.\n" +
+    "Chào bạn 👋 Mình là XuXi, trợ lý của Cưới Xinh.\n" +
     "Bạn cứ hỏi mình về thiệp cưới online — hoặc bảo mình tạo thiệp, mình hỏi vài " +
     "thông tin rồi dựng luôn cho bạn.";
 
@@ -51,19 +51,19 @@
     fab.type = "button";
     fab.id = "aichatFab";
     fab.className = "aichat-fab";
-    fab.setAttribute("aria-label", "Mở trợ lý AI");
-    fab.innerHTML = '<i data-icon="sparkles-solid" data-size="22"></i>';
+    fab.setAttribute("aria-label", "Mở Trợ lý XuXi");
+    fab.innerHTML = '<i data-icon="xuxi" data-size="40"></i>';
 
     const panel = document.createElement("div");
     panel.id = "aichatPanel";
     panel.className = "aichat-panel";
     panel.hidden = true;
     panel.setAttribute("role", "dialog");
-    panel.setAttribute("aria-label", "Trợ lý AI Cưới Xinh");
+    panel.setAttribute("aria-label", "Trợ lý XuXi của Cưới Xinh");
     panel.innerHTML = `
       <div class="aichat-head">
         <div class="min-w-0 flex-1">
-          <p class="aichat-head-title flex gap-1">Trợ lý AI Cưới Xinh <i data-icon="sparkles-solid" data-size="24"></i></p>
+          <p class="aichat-head-title flex gap-1">Trợ lý XuXi của Cưới Xinh <i data-icon="xuxi" data-size="24"></i></p>
           <p class="aichat-head-sub">Hỏi đáp hoặc nhờ mình tạo thiệp</p>
         </div>
         <x-button variant="bare" icon-only id="aichatReset" type="button"
@@ -72,7 +72,7 @@
           <i data-lucide="rotate-ccw" style="width:16px;height:16px"></i>
         </x-button>
         <x-button variant="bare" icon-only id="aichatClose" type="button"
-                  aria-label="Đóng trợ lý" class="aichat-head-btn">
+                  aria-label="Đóng Trợ lý XuXi" class="aichat-head-btn">
           <i data-lucide="x" style="width:18px;height:18px"></i>
         </x-button>
       </div>
@@ -82,7 +82,7 @@
         <div class="aichat-composer">
           <textarea id="aichatInput" class="aichat-input" rows="1" maxlength="${MAX_LEN}"
                     placeholder="Nhập câu hỏi của bạn…"
-                    aria-label="Câu hỏi cho trợ lý"></textarea>
+                    aria-label="Câu hỏi cho XuXi"></textarea>
           <x-button variant="bare" icon-only id="aichatMic" type="button"
                     aria-label="Nhập bằng giọng nói" title="Nhập bằng giọng nói"
                     aria-pressed="false" class="aichat-mic">
@@ -652,8 +652,8 @@
     const ok =
       typeof showConfirm !== "function" ||
       (await showConfirm(
-        "Áp dụng nội dung AI?",
-        "Nội dung đang có trong thiệp sẽ bị ghi đè bằng bản AI vừa dựng.",
+        "Áp dụng nội dung XuXi vừa dựng?",
+        "Nội dung đang có trong thiệp sẽ bị ghi đè bằng bản XuXi vừa dựng.",
         { confirmText: "Áp dụng" },
       ));
     if (!ok) return;
@@ -927,7 +927,7 @@
       // Bị nút Làm mới cắt ngang: màn đã sạch rồi, đừng vẽ gì thêm lên đó.
       if (mine.signal.aborted) return;
       bubble?.remove();
-      addBubble("error", e?.message || "Trợ lý đang bận, bạn thử lại sau ít phút nhé.");
+      addBubble("error", e?.message || "XuXi đang bận, bạn thử lại sau ít phút nhé.");
       // Câu hỏi lỗi không được nằm lại trong lịch sử: lần hỏi sau sẽ gửi kèm một
       // lượt "khách hỏi" chưa có lời đáp, model dễ trả lời lệch.
       history.pop();

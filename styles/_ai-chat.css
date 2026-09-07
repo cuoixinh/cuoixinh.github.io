@@ -1,4 +1,4 @@
-/* Trợ lý AI ở TRANG CHỦ — bong bóng nổi + bảng chat. Partial của
+/* Trợ lý XuXi ở TRANG CHỦ — bong bóng nổi + bảng chat. Partial của
    styles/tailwind-src.css → styles/build.css. Logic ở js/ai-assistant.js.
 
    Bảng dựng theo lối tấm thiệp giấy: nền kem, nét ngăn ĐỨT màu hồng, tiêu đề
@@ -17,11 +17,11 @@
 
   right: calc(24px + env(safe-area-inset-right, 0px));
   bottom: calc(24px + env(safe-area-inset-bottom, 0px));
-  background: linear-gradient(
-    135deg,
-    rgb(var(--brand-accent-light-rgb)),
-    rgb(var(--action-primary-rgb))
-  );
+  /* Nền SÁNG chứ không phải gradient hồng: bên trong là linh vật XuXi tông hồng
+     nhạt, đặt lên nền hồng đậm là chìm hẳn. Vòng sáng ::before mới lấy gradient
+     (xem --aichat-fab-glow ngay dưới). */
+  background: rgb(var(--white-rgb));
+  border: 1px solid rgb(var(--action-primary-rgb) / 0.25);
   box-shadow: 0 6px 20px rgb(var(--shadow-brand-rgb) / 0.36);
   /* Kéo được bằng ngón tay: nhường sự kiện chạm cho pointermove, không thì
      trình duyệt hiểu là cuộn trang và huỷ luôn cú kéo. */
@@ -54,12 +54,18 @@
   transition: none;
 }
 
-/* Vòng sáng lan ra để mắt bắt được bong bóng giữa nền ảnh cưới nhiều chi tiết. */
+/* Vòng sáng lan ra để mắt bắt được bong bóng giữa nền ảnh cưới nhiều chi tiết.
+   Khai gradient riêng chứ không `inherit`: nền bong bóng nay là màu trắng, thừa
+   kế thì vòng sáng trắng trên nền sáng = không thấy gì. */
 .aichat-fab::before {
   content: "";
   @apply absolute inset-0 -z-10 rounded-full;
 
-  background: inherit;
+  background: linear-gradient(
+    135deg,
+    rgb(var(--brand-accent-light-rgb)),
+    rgb(var(--action-primary-rgb))
+  );
   animation: aichatPulse 2.4s ease-out infinite;
 }
 
@@ -105,7 +111,7 @@
 /* Trang Thiết lập (cờ .cx-setup trên <html>): dải "xem trực tiếp" chiếm mép phải
    và navbar chiếm mép dưới, nên bảng chat phải lùi vào theo hai biến đó — thiếu là
    đè lên thiệp xem trước và lên hàng nút. Trang này không có bong bóng: lối vào là
-   nút "Trợ lý AI" trên navbar (xem js/ai-assistant.js), bấm được ở MỌI tab —
+   nút "Trợ lý XuXi" trên navbar (xem js/ai-assistant.js), bấm được ở MỌI tab —
    z-index phải vượt các panel tab (fixed inset-0 z-[200]) và cả navbar (z-[300]),
    nếu không mở ở tab Cấu hình/Giao diện/Khách mời là bảng nằm khuất bên dưới.
    Chỗ đứng thật do syncPanelPos() ghi đè lúc mở (sát cạnh phải cột form); mấy
@@ -282,7 +288,7 @@
 }
 
 /* ── Bong bóng dựng từ markdown ────────────────────────────────────────────── */
-/* Trợ lý được phép trả lời có **đậm**, gạch đầu dòng và danh sách đánh số;
+/* XuXi được phép trả lời có **đậm**, gạch đầu dòng và danh sách đánh số;
    js/ai-assistant.js dựng chúng thành thẻ khối. Nội dung không còn là text
    thuần nên phải bỏ whitespace-pre-wrap, nếu không mỗi lần xuống dòng trong
    nguồn lại thành một dòng trống thừa giữa các khối. */
@@ -386,7 +392,7 @@
 }
 
 /* Thẻ tóm tắt thiệp + nút sang trang thiết lập. Nằm trong .aichat-row nên tự dạt
-   trái theo bong bóng của trợ lý. */
+   trái theo bong bóng của XuXi. */
 .aichat-card {
   @apply flex max-w-[85%] flex-col gap-1 rounded-[20px] px-4 py-3;
 

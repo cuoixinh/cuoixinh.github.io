@@ -1,4 +1,4 @@
-// Gợi ý nút trợ lý AI trên navbar trang thiết lập: vào trang, đợi 2s là hiện.
+// Gợi ý nút Trợ lý XuXi trên navbar trang thiết lập: vào trang, đợi 2s là hiện.
 // Chỉ hiện MỘT LẦN cho mỗi máy (cờ ai_hint_seen trong localStorage).
 // Phụ thuộc: showTour() trong core/helpers/guide-helper.js
 
@@ -24,8 +24,8 @@
       [
         {
           selector: CARD_SEL,
-          title: "Trợ lý AI",
-          desc: "Kể vài dòng về đám cưới, trợ lý sẽ hỏi thêm rồi điền luôn nội dung vào thiệp cho bạn.",
+          title: "Trợ lý XuXi",
+          desc: "Kể vài dòng về đám cưới, XuXi sẽ hỏi thêm rồi điền luôn nội dung vào thiệp cho bạn.",
         },
       ],
       { storageKey: AI_HINT_KEY, dismissOnTargetClick: true },

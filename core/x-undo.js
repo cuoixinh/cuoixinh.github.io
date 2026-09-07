@@ -39,7 +39,7 @@
       ".x-ta-toolbar-btn svg{width:14px;height:14px}" +
       // Nút "Tối ưu" (AI) khi đang gọi: khoá + icon quay.
       ".x-ta-toolbar-btn[data-loading='1']{pointer-events:none;opacity:.5}" +
-      ".x-ta-toolbar-btn[data-loading='1'] svg{animation:x-ta-toolbar-spin .9s linear infinite}" +
+      ".x-ta-toolbar-btn[data-loading='1'] svg,.x-ta-toolbar-btn[data-loading='1'] img{animation:x-ta-toolbar-spin .9s linear infinite}" +
       "@keyframes x-ta-toolbar-spin{to{transform:rotate(360deg)}}";
     document.head.appendChild(s);
   }
@@ -57,13 +57,12 @@
     `stroke-width="2" stroke-linecap="round" stroke-linejoin="round">` +
     `<path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>` +
     `<path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>`;
-  // pencil-sparkles (lucide) — nút "Tối ưu bằng AI".
-  const PENCIL_SVG =
-    `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" ` +
-    `stroke-width="2" stroke-linecap="round" stroke-linejoin="round">` +
-    `<path d="M10 3H8"/><path d="m15.007 5.008 3.987 3.986"/><path d="M20 15v4"/>` +
-    `<path d="M21.174 6.813a2.82 2.82 0 0 0-3.986-3.987L3.842 16.175a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/>` +
-    `<path d="M22 17h-4"/><path d="M4 5v4"/><path d="M6 7H2"/><path d="M9 2v2"/></svg>`;
+  // Logo XuXi — nhãn hình của MỌI chức năng AI, ở đây là nút "Tối ưu bằng AI".
+  // Viết thẳng <img> chứ không gọi cxIcon(): component này chạy ở cả trang không
+  // nạp core/helpers/icon.js. Đường dẫn tuyệt đối vì dùng ở nhiều mức thư mục.
+  const AI_IMG =
+    `<img src="/assets/icons/XuXi.webp" alt="" aria-hidden="true" ` +
+    `style="width:18px;height:18px;object-fit:contain" />`;
 
   // rotate-ccw (lucide) — nút "Tạo câu khác" (gợi ý nội dung mẫu).
   const REFRESH_SVG =
@@ -127,7 +126,7 @@
     // Bấm → gọi hàm với (target, chính nút) để nơi dùng tự xử lý gọi AI + loading.
     let optBtn = null;
     if (typeof opts.optimize === "function") {
-      optBtn = _btn(opts.optimizeTitle || "Tối ưu bằng AI", PENCIL_SVG);
+      optBtn = _btn(opts.optimizeTitle || "Tối ưu bằng AI", AI_IMG);
       optBtn.addEventListener("click", () => opts.optimize(target, optBtn));
     }
 

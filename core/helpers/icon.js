@@ -22,10 +22,29 @@ const CX_ICONS = {
     '<path fill="currentColor" stroke="none" d="M18 1C18 5 19 6 23 6C19 6 18 7 18 11C18 7 17 6 13 6C17 6 18 5 18 1Z"/>',
 };
 
+// Icon là ẢNH thay vì glyph — dùng cho logo. KHÔNG ăn `currentColor` nên chỉ đặt
+// ở chỗ muốn giữ nguyên nhận diện. Đường dẫn TUYỆT ĐỐI vì cùng một icon được gọi
+// từ nhiều mức thư mục (trang chủ, invitation-setup/, admin/).
+//   xuxi — logo trợ lý XuXi, nhãn hình của MỌI chức năng AI trong sản phẩm.
+const CX_ICON_IMAGES = {
+  xuxi: "/assets/icons/XuXi.webp",
+};
+
 const _CX_ICON_DEFAULT_SIZE = 16;
 
-/** Chuỗi <svg> của một icon. Tên lạ → chuỗi rỗng (không vẽ ô trống lạ mắt). */
+/** Chuỗi <svg> (hoặc <img> với icon ảnh) của một icon. Tên lạ → chuỗi rỗng. */
 function cxIcon(name, size, cls) {
+  const src = CX_ICON_IMAGES[name];
+  if (src) {
+    const s = size || _CX_ICON_DEFAULT_SIZE;
+    // Khổ đặt bằng inline style: quy tắc CSS thắng thuộc tính width/height, mà
+    // nhiều trang có sẵn luật cỡ icon — chỉ inline style mới giữ đúng cỡ.
+    return (
+      `<img src="${src}" alt="" aria-hidden="true" ` +
+      `style="width:${s}px;height:${s}px;object-fit:contain;flex-shrink:0"` +
+      `${cls ? ` class="${cls}"` : ""} />`
+    );
+  }
   const inner = CX_ICONS[name];
   if (!inner) return "";
   const s = size || _CX_ICON_DEFAULT_SIZE;
@@ -66,7 +85,8 @@ window.cxRenderIcons = cxRenderIcons;
 // phải nhớ gọi cxRenderIcons ở từng chỗ chèn. Bảng rỗng thì bỏ hẳn observer:
 // theo dõi cả cây DOM để không dựng gì là phí — có icon đầu tiên là tự bật lại.
 function _cxWatchIcons() {
-  if (!Object.keys(CX_ICONS).length) return;
+  if (!Object.keys(CX_ICONS).length && !Object.keys(CX_ICON_IMAGES).length)
+    return;
   cxRenderIcons();
   new MutationObserver((list) => {
     for (const m of list) {

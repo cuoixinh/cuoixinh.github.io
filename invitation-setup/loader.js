@@ -59,7 +59,7 @@
     "../core/bl/guest-bl.js",
     "../core/supabase.js",
     "../core/payment.js",
-    // Icon riêng (<i data-icon="…">): nút "Trợ lý AI" ở navbar và tiêu đề bảng chat.
+    // Icon riêng (<i data-icon="…">): nút "Trợ lý XuXi" ở navbar và tiêu đề bảng chat.
     "../core/helpers/icon.js",
     "../core/helpers/maps-helper.js",
     "../core/helpers/alert.js",

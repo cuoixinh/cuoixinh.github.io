@@ -115,11 +115,12 @@
           id="template-ai-btn"
           variant="fill"
           size="sm"
-          icon="wand-sparkles"
           onclick="suggestTemplateMeta()"
           title="AI điền cả form theo giọng văn của các mẫu đang bán"
         >
-          Điền bằng AI
+          <!-- Không dùng thuộc tính icon= của <x-button>: nó chỉ nhận tên icon
+               lucide, còn logo XuXi là ảnh (core/helpers/icon.js). -->
+          <i data-icon="xuxi" data-size="20"></i> Điền bằng AI
         </x-button>
       </div>
 

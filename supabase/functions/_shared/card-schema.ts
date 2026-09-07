@@ -1,5 +1,5 @@
 // Hợp đồng DỮ LIỆU của một tấm thiệp do AI sinh ra — dùng chung cho ai-invitation
-// (bảng "Tạo bằng AI" ở trang thiết lập) và ai-chat (trợ lý ở trang chủ).
+// (bảng "Tạo bằng AI" ở trang thiết lập) và ai-chat (Trợ lý XuXi).
 //
 // Chứa: whitelist field + độ dài, nhãn văn phong/vùng miền, luật xưng hô cho
 // chuyện tình, và toàn bộ tầng validate/clamp output. Prompt của từng tính năng
@@ -53,7 +53,7 @@ export const REGION_LABEL: Record<string, string> = {
 }
 
 // Xưng hô trong "Câu chuyện tình yêu" — dùng CHUNG cho mọi nhánh sinh chuyện
-// tình (thiệp thật, tối ưu từng mốc, dữ liệu mẫu, trợ lý chat). Chuyện tình là
+// tình (thiệp thật, tối ưu từng mốc, dữ liệu mẫu, XuXi chat). Chuyện tình là
 // lời CHÍNH cặp đôi tự kể; gọi tên riêng nghe như người ngoài kể chuyện về họ.
 export const LOVE_VOICE_RULE =
   'XƯNG HÔ (BẮT BUỘC): viết ở NGÔI THỨ NHẤT số nhiều — "chúng mình", "chúng tôi", "hai đứa", "tụi mình" (chọn ngôi hợp văn phong: trang trọng dùng "chúng tôi", gần gũi dùng "chúng mình"/"hai đứa"); khi nói riêng về một người thì dùng "anh"/"em". TUYỆT ĐỐI KHÔNG gọi cô dâu/chú rể bằng TÊN RIÊNG trong "title" lẫn "content", kể cả tên đã rút gọn. Viết "Chúng mình gặp nhau lần đầu…" chứ KHÔNG viết "Quang Vinh và Hải Yến gặp nhau…".'

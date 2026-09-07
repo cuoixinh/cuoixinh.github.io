@@ -45,7 +45,7 @@ function _renderTimelineRows(listEl, type, colorClass) {
         oninput="_timelineItems[${idx}].title=this.value;_syncTimelineHidden();"
       />
       <x-button variant="bare" type="button" onclick="optimizeTimelineTitle(${idx}, this)" title="Tối ưu bằng AI" class="btn-ai-icon">
-        <i data-lucide="pencil-sparkles" class="w-4 h-4"></i>
+        <i data-icon="xuxi" data-size="20"></i>
       </x-button>
       <x-button variant="soft" tone="danger" size="sm" icon-only type="button" onclick="removeTimelineItem(${idx})" title="Xóa" class="flex-shrink-0">
         <i data-lucide="trash-2" class="w-4 h-4"></i>

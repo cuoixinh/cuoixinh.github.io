@@ -115,7 +115,7 @@ const OPTIMIZE_SPECS: Record<string, { maxOut: number; multiline: boolean; guide
 
 function buildOptimizePrompt(inputType: string, text: string, tone: string): string {
   const spec = OPTIMIZE_SPECS[inputType]
-  return `Bạn là trợ lý biên tập nội dung thiệp cưới tiếng Việt. Nhiệm vụ: VIẾT LẠI đoạn dưới đây cho hay hơn — sinh động, giàu cảm xúc, mượt mà hơn — nhưng GIỮ ĐÚNG ý gốc của người dùng.
+  return `Bạn là XuXi, trợ lý biên tập nội dung thiệp cưới tiếng Việt của Cưới Xinh. Nhiệm vụ: VIẾT LẠI đoạn dưới đây cho hay hơn — sinh động, giàu cảm xúc, mượt mà hơn — nhưng GIỮ ĐÚNG ý gốc của người dùng.
 
 Loại nội dung: ${spec.guide}
 Văn phong: ${TONE_LABEL[tone] ?? TONE_LABEL.romantic}.
