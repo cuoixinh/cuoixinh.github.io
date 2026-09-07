@@ -1616,8 +1616,8 @@ textarea::-webkit-scrollbar-thumb:hover {
    Dùng trên TRANG THIỆP nên viết CSS thuần + màu qua token --cx-*-rgb: mẫu
    thiệp chỉ nạp styles/themes.css, không có utility của trang ứng dụng.
    Một DẢI NỔI ghim đáy khung nhìn, đè lên thiệp: danh sách lời chúc trôi lên
-   (.cx-wfeed) rồi tới ô "Gửi lời chúc" (.cx-wdock-card). Ô nhập mở ra
-   bottom-sheet (.cx-wsheet*).
+   (.cx-wfeed) rồi tới ô "Gửi lời chúc" (.cx-wdock-card) — pill nhỏ, bấm vào thì
+   bung tại chỗ thành ô gõ chứ không mở panel riêng.
    ══════════════════════════════════════════════════════════════════════════ */
 
 /* Dưới lightbox (z 100) và trên thanh nhạc (z 60). KHÔNG dùng
@@ -1750,29 +1750,71 @@ textarea::-webkit-scrollbar-thumb:hover {
   opacity: 0.75;
 }
 
+/* Ô nhập: mặc định là pill NHỎ co theo dòng gợi ý, bấm vào (.is-open) mới trải
+   hết bề ngang cột và đổi sang ô gõ. Trong suốt cùng độ mờ với bong bóng. */
 .cx-wdock-card {
   display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 6px 6px 6px 18px;
-  border-radius: 999px;
+  align-items: flex-end;
+  align-self: flex-start;
+  gap: 8px;
+  max-width: 100%;
+  padding: 6px 6px 6px 16px;
+  border-radius: 20px;
   pointer-events: auto;
-  cursor: pointer;
+  cursor: text;
   color: rgb(var(--cx-wish-text-rgb));
-  background: rgb(var(--cx-wish-bubble-rgb));
+  background: rgb(var(--cx-wish-bubble-rgb) / var(--cx-wish-bubble-a));
   border: 1px solid rgb(var(--cx-wish-text-rgb) / 0.15);
-  box-shadow: 0 8px 28px rgb(var(--cx-shadow-rgb) / 0.18);
+  box-shadow: 0 8px 28px rgb(var(--cx-shadow-rgb) / 0.14);
+  transition: align-self 0s;
+}
+
+.cx-wdock-card.is-open {
+  align-self: stretch;
+  flex-wrap: wrap;
 }
 
 .cx-wdock-hint {
-  flex: 1;
   min-width: 0;
+  padding: 8px 0;
   font-size: 13px;
+  line-height: 1.5;
   text-align: left;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   opacity: 0.8;
+}
+
+.cx-wdock-card.is-open .cx-wdock-hint {
+  display: none;
+}
+
+/* Cao theo nội dung, JS chặn ở hai dòng (CX_WISH_INPUT_ROWS). Lề dọc phải là
+   `margin`, KHÔNG phải `padding`: padding của textarea nằm trong vùng cuộn nên
+   khi gõ quá hai dòng, dòng trên cùng bị cắt ngang thân chữ. */
+.cx-wdock-text {
+  display: none;
+  flex: 1;
+  min-width: 0;
+  margin: 8px 0;
+  padding: 0;
+  border: 0;
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.5;
+  color: inherit;
+  background: none;
+  resize: none;
+  overflow-y: auto;
+}
+
+.cx-wdock-text:focus {
+  outline: none;
+}
+
+.cx-wdock-card.is-open .cx-wdock-text {
+  display: block;
 }
 
 .cx-wdock-btn {
@@ -1787,105 +1829,23 @@ textarea::-webkit-scrollbar-thumb:hover {
   color: rgb(var(--cx-wish-on-accent-rgb));
 }
 
+.cx-wdock-btn[disabled] {
+  opacity: 0.5;
+}
+
+/* Báo lỗi gửi — chiếm trọn một hàng dưới ô gõ (thẻ đang flex-wrap). */
+.cx-wdock-msg {
+  flex-basis: 100%;
+  padding: 0 4px 6px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: rgb(var(--cx-wish-accent-rgb));
+}
+
 /* Chỗ trống ở đáy thân thiệp cho ô nhập, do JS chèn khi dựng dải. Chỉ cần bằng
    ô nhập: phần danh sách phía trên trong suốt nên để nó đè lên thiệp là đúng. */
 .cx-wdock-spacer {
   height: 72px;
-}
-
-/* ── Ô nhập lời chúc (bottom-sheet) ──────────────────────────────────────── */
-.cx-wsheet {
-  position: fixed;
-  inset: 0;
-  z-index: 120;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  padding: 12px;
-  background: rgb(var(--cx-scrim-rgb) / 0.5);
-}
-
-.cx-wsheet-card {
-  width: 100%;
-  max-width: 420px;
-  padding: 20px;
-  border-radius: 24px;
-  background: rgb(var(--cx-card-bg-rgb));
-  border: 1px solid rgb(var(--cx-line-rgb));
-  box-shadow: 0 12px 40px rgb(var(--cx-shadow-rgb) / 0.24);
-  animation: cx-wsheet-up 0.28s ease both;
-}
-
-@keyframes cx-wsheet-up {
-  from {
-    opacity: 0;
-    transform: translateY(24px);
-  }
-}
-
-.cx-wsheet-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 12px;
-}
-
-.cx-wsheet-title {
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.cx-wsheet-input {
-  display: block;
-  width: 100%;
-  min-height: 112px;
-  padding: 12px 16px;
-  border-radius: 16px;
-  font: inherit;
-  font-size: 15px;
-  line-height: 1.6;
-  resize: none;
-  color: inherit;
-  background: rgb(var(--cx-surface-rgb));
-  border: 1px solid rgb(var(--cx-line-rgb));
-}
-
-.cx-wsheet-input:focus {
-  outline: none;
-  border-color: rgb(var(--cx-accent-rgb));
-}
-
-.cx-wsheet-foot {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-top: 12px;
-}
-
-.cx-wsheet-count {
-  font-size: 12px;
-  opacity: 0.7;
-}
-
-.cx-wsheet-send {
-  padding: 10px 24px;
-  border-radius: 999px;
-  font-size: 14px;
-  font-weight: 600;
-  background: rgb(var(--cx-accent-rgb));
-  color: rgb(var(--cx-on-accent-rgb));
-}
-
-.cx-wsheet-send[disabled] {
-  opacity: 0.5;
-}
-
-.cx-wsheet-msg {
-  margin-top: 12px;
-  font-size: 13px;
-  line-height: 1.5;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1903,9 +1863,5 @@ textarea::-webkit-scrollbar-thumb:hover {
 
   .cx-wdock {
     transition: none;
-  }
-
-  .cx-wsheet-card {
-    animation: none;
   }
 }

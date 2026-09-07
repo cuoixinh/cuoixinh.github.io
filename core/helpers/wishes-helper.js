@@ -15,6 +15,9 @@ const CX_WISH_SPEED = 32;
 // Nghỉ bao lâu sau khi lời chúc cuối rời khỏi khung rồi chiếu lại từ đầu (ms).
 const CX_WISH_REPLAY_MS = 5000;
 
+// Ô nhập cao tối đa mấy dòng khi bung ra — quá đó thì cuộn trong chính ô.
+const CX_WISH_INPUT_ROWS = 2;
+
 // Cuộn qua bao nhiêu phần màn hình thì dải mới hiện ra (fade). Màn bìa và màn
 // mở đầu phải sạch, dải chỉ xuất hiện khi khách đã bắt đầu đọc thiệp.
 const CX_WISH_SHOW_AT = 0.6;
@@ -226,10 +229,9 @@ window.addEventListener("resize", () => {
 function _cxWishSetDockText() {
   const hint = document.getElementById("cx-wdock-hint");
   if (!hint) return;
+  // Ngắn gọn: pill co theo dòng này, câu dài là nó chiếm hết bề ngang cột.
   hint.textContent =
-    _cxWishRemaining > 0
-      ? "Gửi lời chúc tới cô dâu chú rể…"
-      : `Bạn đã gửi đủ ${CX_WISH_MAX} lời chúc, cảm ơn bạn!`;
+    _cxWishRemaining > 0 ? "Gửi lời chúc…" : "Cảm ơn lời chúc của bạn!";
 }
 
 // Dải nổi ghim đáy khung nhìn: danh sách lời chúc trôi lên ở trên, ô "Gửi lời
@@ -246,9 +248,13 @@ function _cxWishBuildDock(canWrite) {
     '<div class="cx-wdock-inner">' +
     '<div class="cx-wfeed" id="cx-wishes-list" hidden></div>' +
     (canWrite
-      ? '<div class="cx-wdock-card" id="cx-wdock-open">' +
-        '<span class="cx-wdock-hint cx-t" id="cx-wdock-hint"></span>' +
-        '<span class="cx-wdock-btn"><i data-lucide="send" style="width:18px;height:18px"></i></span>' +
+      ? '<div class="cx-wdock-card cx-t" id="cx-wdock-open">' +
+        '<span class="cx-wdock-hint" id="cx-wdock-hint"></span>' +
+        `<textarea class="cx-wdock-text" id="cx-wdock-text" rows="1" maxlength="${CX_WISH_MAX_LEN}" ` +
+        'placeholder="Viết lời chúc…"></textarea>' +
+        '<button type="button" class="cx-wdock-btn" id="cx-wdock-send" aria-label="Gửi lời chúc">' +
+        '<i data-lucide="send" style="width:18px;height:18px"></i></button>' +
+        '<div class="cx-wdock-msg" id="cx-wdock-msg" hidden></div>' +
         "</div>"
       : '<div class="cx-wdock-note cx-t">Chỉ khách mời nhận thiệp riêng mới gửi được lời chúc.</div>') +
     "</div>";
@@ -268,9 +274,29 @@ function _cxWishBuildDock(canWrite) {
     // lucide không tự quét lại phần chèn động.
     window.lucide?.createIcons({ root: dock });
     _cxWishSetDockText();
-    document
-      .getElementById("cx-wdock-open")
-      .addEventListener("click", _cxWishOpenSheet);
+
+    const card = document.getElementById("cx-wdock-open");
+    const input = document.getElementById("cx-wdock-text");
+    const send = document.getElementById("cx-wdock-send");
+
+    card.addEventListener("click", _cxWishExpand);
+    input.addEventListener("input", () => _cxWishAutoGrow(input));
+    input.addEventListener("keydown", (e) => {
+      // Enter gửi luôn (như ô chat), Shift+Enter mới xuống dòng.
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        _cxWishSend();
+      } else if (e.key === "Escape") {
+        _cxWishCollapse();
+      }
+    });
+    // Nút Gửi nằm TRONG thẻ nên cú bấm cũng chạy _cxWishExpand — chặn lại, nếu
+    // không lượt bấm đầu tiên chỉ bung ô ra chứ không gửi.
+    send.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (card.classList.contains("is-open")) _cxWishSend();
+      else _cxWishExpand();
+    });
   }
 
   _cxWishWatchReveal(dock);
@@ -302,54 +328,69 @@ function _cxWishWatchReveal(dock) {
   sync();
 }
 
-function _cxWishCloseSheet() {
-  document.getElementById("cx-wish-sheet")?.remove();
+// Ô nhập bung TẠI CHỖ: pill nhỏ co theo nội dung, bấm vào thì trải hết bề ngang
+// cột và đổi dòng gợi ý thành ô gõ cao tối đa hai dòng. Không mở panel riêng —
+// khách vẫn thấy thiệp và danh sách lời chúc phía trên.
+
+function _cxWishInputEl() {
+  return document.getElementById("cx-wdock-text");
 }
 
-function _cxWishOpenSheet() {
-  if (document.getElementById("cx-wish-sheet")) return;
+// Cao theo nội dung, chặn ở CX_WISH_INPUT_ROWS dòng rồi mới cho cuộn trong ô.
+// Trần phải là BỘI SỐ của line-height (ô không có padding dọc — xem
+// .cx-wdock-text), nếu không dòng trên cùng lòi ra một nửa lúc cuộn.
+function _cxWishAutoGrow(input) {
+  const line = parseFloat(getComputedStyle(input).lineHeight) || 20;
+  input.style.height = "auto";
+  input.style.height =
+    Math.min(input.scrollHeight, line * CX_WISH_INPUT_ROWS) + "px";
+}
+
+function _cxWishCollapse() {
+  const card = document.getElementById("cx-wdock-open");
+  if (!card) return;
+  card.classList.remove("is-open");
+  const input = _cxWishInputEl();
+  if (input) {
+    input.value = "";
+    input.style.height = "";
+  }
+  _cxWishSetDockMsg("");
+  document.removeEventListener("pointerdown", _cxWishOutside, true);
+}
+
+function _cxWishOutside(e) {
+  const card = document.getElementById("cx-wdock-open");
+  if (card && !card.contains(e.target)) _cxWishCollapse();
+}
+
+function _cxWishExpand() {
+  const card = document.getElementById("cx-wdock-open");
+  if (!card || card.classList.contains("is-open")) return;
   if (_cxWishRemaining <= 0) return;
 
-  const sheet = document.createElement("div");
-  sheet.id = "cx-wish-sheet";
-  sheet.className = "cx-wsheet";
-  sheet.innerHTML =
-    '<div class="cx-wsheet-card" id="cx-wsheet-card">' +
-    '<div class="cx-wsheet-head">' +
-    '<span class="cx-wsheet-title cx-h">Gửi lời chúc</span>' +
-    '<span class="cx-wsheet-count cx-t" id="cx-wsheet-left">' +
-    `Còn ${_cxWishRemaining}/${CX_WISH_MAX} lượt</span>` +
-    "</div>" +
-    `<textarea class="cx-wsheet-input cx-t" id="cx-wsheet-text" maxlength="${CX_WISH_MAX_LEN}" ` +
-    'placeholder="Chúc hai bạn trăm năm hạnh phúc…"></textarea>' +
-    '<div class="cx-wsheet-foot">' +
-    `<span class="cx-wsheet-count cx-t" id="cx-wsheet-count">0/${CX_WISH_MAX_LEN}</span>` +
-    '<button type="button" class="cx-wsheet-send" id="cx-wsheet-send" disabled>Gửi</button>' +
-    "</div>" +
-    '<div class="cx-wsheet-msg cx-a hidden" id="cx-wsheet-msg"></div>' +
-    "</div>";
-  document.body.appendChild(sheet);
+  card.classList.add("is-open");
+  const input = _cxWishInputEl();
+  input?.focus();
+  if (input) _cxWishAutoGrow(input);
 
-  // Bấm ra ngoài thẻ để đóng.
-  sheet.addEventListener("click", (e) => {
-    if (e.target === sheet) _cxWishCloseSheet();
-  });
-
-  const input = document.getElementById("cx-wsheet-text");
-  const count = document.getElementById("cx-wsheet-count");
-  const send = document.getElementById("cx-wsheet-send");
-
-  input.addEventListener("input", () => {
-    count.textContent = `${input.value.length}/${CX_WISH_MAX_LEN}`;
-    send.disabled = input.value.trim().length === 0;
-  });
-  send.addEventListener("click", () => _cxWishSend(input, send));
-  input.focus();
+  // Bấm ra ngoài thì thu lại. Dùng pointerdown ở pha capture để bắt được cả cú
+  // chạm rơi vào iframe/canvas của mẫu thiệp.
+  document.addEventListener("pointerdown", _cxWishOutside, true);
 }
 
-async function _cxWishSend(input, sendBtn) {
-  const msg = document.getElementById("cx-wsheet-msg");
-  const text = input.value.trim();
+// Câu báo lỗi nằm ngay dưới ô nhập; chuỗi rỗng là gỡ đi.
+function _cxWishSetDockMsg(text) {
+  const el = document.getElementById("cx-wdock-msg");
+  if (!el) return;
+  el.textContent = text || "";
+  el.hidden = !text;
+}
+
+async function _cxWishSend() {
+  const input = _cxWishInputEl();
+  const btn = document.getElementById("cx-wdock-send");
+  const text = (input?.value || "").trim();
   if (!text) return;
 
   if (_cxWishDemo) {
@@ -360,8 +401,8 @@ async function _cxWishSend(input, sendBtn) {
   const g = window.CX_GUEST;
   if (!g || !window.guestDAL) return;
 
-  sendBtn.disabled = true;
-  sendBtn.textContent = "Đang gửi…";
+  if (btn) btn.disabled = true;
+  _cxWishSetDockMsg("");
 
   try {
     const res = await window.guestDAL.sendWishPublic({
@@ -374,18 +415,17 @@ async function _cxWishSend(input, sendBtn) {
     _cxWishItems.unshift(res.wish);
     _cxWishRemaining = res.remaining;
     _cxWishRender();
+    _cxWishCollapse();
     _cxWishSetDockText();
-    _cxWishCloseSheet();
   } catch (error) {
     // Câu chữ từ Edge Function đã hợp cảnh (403 chưa được mời, 409 hết lượt) nên
     // hiện thẳng; im lặng là khách gõ lại lần nữa mà vẫn không hiểu vì sao trượt.
     console.error("Lỗi gửi lời chúc:", error);
-    if (msg) {
-      msg.textContent = error?.message || "Chưa gửi được lời chúc, bạn thử lại giúp nhé.";
-      msg.classList.remove("hidden");
-    }
-    sendBtn.disabled = false;
-    sendBtn.textContent = "Gửi";
+    _cxWishSetDockMsg(
+      error?.message || "Chưa gửi được lời chúc, bạn thử lại giúp nhé.",
+    );
+  } finally {
+    if (btn) btn.disabled = false;
   }
 }
 

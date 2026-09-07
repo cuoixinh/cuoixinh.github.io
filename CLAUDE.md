@@ -376,7 +376,10 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   ràng buộc ở DB), công tắc `weddings.enable_wishes` nằm trong bước RSVP của trang Thiết lập.
   **mẫu thiệp không phải khai markup gì cả**: helper tự dựng một DẢI NỔI ghim đáy khung nhìn,
   đè lên thiệp — danh sách lời chúc trôi lên ở trên (trong suốt, cao 1/3 màn qua `--vh`, rộng
-  2/3, dồn mép trái để chừa chỗ cho nút nhạc/hộp quà của mẫu), ô "Gửi lời chúc" ở dưới. Dải
+  2/3, dồn mép trái để chừa chỗ cho nút nhạc/hộp quà của mẫu), ô "Gửi lời chúc" ở dưới — pill
+  NHỎ co theo dòng gợi ý, bấm vào mới trải hết bề ngang cột và bung ô gõ cao tối đa
+  `CX_WISH_INPUT_ROWS` dòng, không mở panel riêng (lề dọc của ô gõ phải là `margin`: padding
+  của textarea nằm trong vùng cuộn nên gõ quá hai dòng là dòng trên bị cắt ngang thân chữ). Dải
   chạy một lượt từ mép dưới lên hết danh sách rồi nghỉ `CX_WISH_REPLAY_MS` mới chiếu lại;
   quãng đường đo bằng px trong `_cxWishStartRoll` (`translateY(%)` tính theo thẻ track chứ
   không theo khung) và đo lại qua `ResizeObserver` vì lúc dựng `#main-card` còn `display:none`.
