@@ -1610,3 +1610,274 @@ textarea::-webkit-scrollbar-thumb:hover {
     animation: none;
   }
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   LỜI CHÚC CỦA KHÁCH MỜI (core/helpers/wishes-helper.js)
+   Dùng trên TRANG THIỆP nên viết CSS thuần + màu qua token --cx-*-rgb: mẫu
+   thiệp chỉ nạp styles/themes.css, không có utility của trang ứng dụng.
+   Ba phần: mục danh sách tự cuộn (.cx-wish-*), thanh ghim đáy (.cx-wdock*) và
+   ô nhập dạng bottom-sheet (.cx-wsheet*).
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* Khung danh sách: cao cố định, nội dung bên trong tự trôi lên. Hai dải mờ
+   trên/dưới cho chữ tan dần thay vì bị cắt ngang. */
+.cx-wish-viewport {
+  position: relative;
+  max-height: 320px;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 32px,
+    #000 calc(100% - 32px),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 32px,
+    #000 calc(100% - 32px),
+    transparent 100%
+  );
+}
+
+/* Đủ nhiều lời chúc mới trôi: JS gắn .is-rolling và nhân đôi danh sách, nên
+   dịch đúng 50% là quay về đúng chỗ cũ, không thấy mối nối. Thời lượng do JS
+   đặt qua --cx-wish-dur (dài theo số lời chúc để tốc độ luôn như nhau). */
+.cx-wish-track {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cx-wish-track.is-rolling {
+  animation: cx-wish-roll var(--cx-wish-dur, 40s) linear infinite;
+}
+
+/* Chạm/rê vào là dừng để đọc cho kịp. */
+.cx-wish-viewport:hover .cx-wish-track.is-rolling,
+.cx-wish-viewport:active .cx-wish-track.is-rolling,
+.cx-wish-track.is-paused {
+  animation-play-state: paused;
+}
+
+@keyframes cx-wish-roll {
+  to {
+    transform: translateY(-50%);
+  }
+}
+
+.cx-wish-item {
+  padding: 12px 16px;
+  border-radius: 16px;
+  text-align: left;
+  background: rgb(var(--cx-panel-rgb) / 0.6);
+  border: 1px solid rgb(var(--cx-line-rgb) / 0.6);
+}
+
+.cx-wish-item-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.cx-wish-name {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.cx-wish-rel {
+  font-size: 11px;
+  opacity: 0.7;
+}
+
+.cx-wish-text {
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.cx-wish-empty {
+  padding: 24px 16px;
+  font-size: 14px;
+  font-style: italic;
+  opacity: 0.75;
+}
+
+/* ── Thanh ghim đáy khung nhìn ───────────────────────────────────────────── */
+/* Dưới lightbox (z 100) và trên thanh nhạc (z 60). KHÔNG dùng
+   env(safe-area-inset-bottom) — quy ước toàn project, xem .cx-tabbar. */
+.cx-wdock {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 70;
+  padding: 0 12px 12px;
+  pointer-events: none;
+  transform: translateY(120%);
+  transition: transform 0.35s ease;
+}
+
+.cx-wdock.is-on {
+  transform: none;
+}
+
+.cx-wdock-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 8px 8px 8px 20px;
+  border-radius: 999px;
+  pointer-events: auto;
+  cursor: pointer;
+  background: rgb(var(--cx-panel-rgb) / 0.96);
+  border: 1px solid rgb(var(--cx-line-rgb));
+  box-shadow: 0 8px 28px rgb(var(--cx-shadow-rgb) / 0.18);
+}
+
+.cx-wdock-hint {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  opacity: 0.8;
+}
+
+.cx-wdock-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  background: rgb(var(--cx-accent-rgb));
+  color: rgb(var(--cx-on-accent-rgb));
+}
+
+/* Chỗ trống ở đáy thân thiệp cho thanh ghim, do JS chèn khi dựng thanh. */
+.cx-wdock-spacer {
+  height: 76px;
+}
+
+/* ── Ô nhập lời chúc (bottom-sheet) ──────────────────────────────────────── */
+.cx-wsheet {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 12px;
+  background: rgb(var(--cx-scrim-rgb) / 0.5);
+}
+
+.cx-wsheet-card {
+  width: 100%;
+  max-width: 420px;
+  padding: 20px;
+  border-radius: 24px;
+  background: rgb(var(--cx-card-bg-rgb));
+  border: 1px solid rgb(var(--cx-line-rgb));
+  box-shadow: 0 12px 40px rgb(var(--cx-shadow-rgb) / 0.24);
+  animation: cx-wsheet-up 0.28s ease both;
+}
+
+@keyframes cx-wsheet-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+}
+
+.cx-wsheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.cx-wsheet-title {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.cx-wsheet-input {
+  display: block;
+  width: 100%;
+  min-height: 112px;
+  padding: 12px 16px;
+  border-radius: 16px;
+  font: inherit;
+  font-size: 15px;
+  line-height: 1.6;
+  resize: none;
+  color: inherit;
+  background: rgb(var(--cx-surface-rgb));
+  border: 1px solid rgb(var(--cx-line-rgb));
+}
+
+.cx-wsheet-input:focus {
+  outline: none;
+  border-color: rgb(var(--cx-accent-rgb));
+}
+
+.cx-wsheet-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.cx-wsheet-count {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.cx-wsheet-send {
+  padding: 10px 24px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
+  background: rgb(var(--cx-accent-rgb));
+  color: rgb(var(--cx-on-accent-rgb));
+}
+
+.cx-wsheet-send[disabled] {
+  opacity: 0.5;
+}
+
+.cx-wsheet-msg {
+  margin-top: 12px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Không trôi nữa thì phải cuộn tay được, nếu không danh sách dài bị cắt cụt. */
+  .cx-wish-viewport {
+    overflow-y: auto;
+  }
+
+  .cx-wish-track.is-rolling {
+    animation: none;
+  }
+
+  .cx-wdock {
+    transition: none;
+  }
+
+  .cx-wsheet-card {
+    animation: none;
+  }
+}

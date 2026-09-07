@@ -14,6 +14,7 @@ const SECTION_VIS_FIELDS = {
   music: "enable_music",
   rsvp: "rsvp_enabled",
   gift: "enable_gift",
+  wishes: "enable_wishes",
   footer: "enable_footer",
 };
 

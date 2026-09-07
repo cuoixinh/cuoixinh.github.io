@@ -31,6 +31,9 @@ function buildCors(origin: string | null) {
 }
 
 const MAX_PER_SIDE = 100
+const MAX_WISHES_PER_GUEST = 3
+const MAX_WISH_LEN = 500
+const MAX_WISHES_RETURNED = 200
 const MAX_FIELD_LEN = 200
 const MAX_REL_LEN = 100
 const BATCH_SIZE = 50
@@ -43,6 +46,58 @@ function sanitizeGuest(raw: Record<string, unknown>, wedding_id: string, side: s
     display_name: String(raw.display_name ?? '').trim().slice(0, MAX_FIELD_LEN),
     relationship: String(raw.relationship ?? '').trim().slice(0, MAX_REL_LEN),
   }
+}
+
+// ── Khớp khách theo link cá nhân hoá ─────────────────────────────────────────
+// CỔNG CHẶN THẬT của mọi thao tác công khai (rsvp, gửi lời chúc): tham số
+// name/relationship trên link mã hoá bằng khoá nằm trong bundle client nên ai
+// cũng tự tạo được cặp "giải mã hợp lệ" — chỉ việc có mặt trong bảng guests của
+// đúng thiệp mới chứng minh người gọi là khách được mời.
+// Link mang tên hiển thị (rơi về full_name khi khách không có tên hiển thị) nên
+// phải so cả hai cột; ưu tiên hàng khớp cả xưng hô — trùng tên trong một thiệp
+// là chuyện thường, xưng hô mới tách được hai người.
+async function findGuestByLink(
+  supabase: ReturnType<typeof createClient>,
+  wedding_id: string,
+  name: string,
+  relationship: string,
+  columns = 'id, full_name, display_name, relationship',
+) {
+  const { data: rows, error } = await supabase
+    .from('guests')
+    .select(columns)
+    .eq('wedding_id', wedding_id)
+    .order('created_at', { ascending: true })
+
+  if (error) return { error: error.message, guest: null }
+
+  const norm = (v: unknown) => String(v ?? '').trim().toLowerCase()
+  const sameName = (g: Record<string, unknown>) =>
+    norm(g.display_name) === norm(name) || norm(g.full_name) === norm(name)
+
+  const list = (rows ?? []) as Record<string, unknown>[]
+  const guest =
+    list.find(g => sameName(g) && norm(g.relationship) === norm(relationship)) ??
+    list.find(sameName) ??
+    null
+
+  return { error: null, guest }
+}
+
+// Lời chúc đã lưu → mảng sạch. Hàng cũ có cột null hoặc dữ liệu hỏng thì coi
+// như chưa có lời chúc nào, đừng để một hàng lỗi chặn khách gửi.
+function readWishes(raw: unknown): { id: string; text: string; at: string }[] {
+  if (!Array.isArray(raw)) return []
+  return raw
+    .filter(w => w && typeof w === 'object' && typeof (w as { text?: unknown }).text === 'string')
+    .map(w => {
+      const o = w as Record<string, unknown>
+      return {
+        id: String(o.id ?? crypto.randomUUID()),
+        text: String(o.text).slice(0, MAX_WISH_LEN),
+        at: String(o.at ?? ''),
+      }
+    })
 }
 
 Deno.serve(withAxiom('guest-handler', async (req, log) => {
@@ -136,6 +191,43 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
     if (weddingIds.length > 1) return fail('Yêu cầu không hợp lệ', 400)
 
     return await denyIfNotOwner(weddingIds[0])
+  }
+
+  // ── GET công khai: danh sách lời chúc của một thiệp ──────────────────────
+  // Ai mở link thiệp cũng đọc được (bảng lời chúc vốn để mọi khách cùng xem),
+  // nên KHÔNG qua denyIfNotOwner. Chỉ trả tên hiển thị + xưng hô + nội dung —
+  // không có full_name, link, hay trạng thái xác nhận tham dự.
+  if (req.method === 'GET' && action === 'wishes-list') {
+    const slug = String(url.searchParams.get('slug') ?? '').trim()
+    if (!slug) return fail('Thiếu slug')
+
+    const { data: wedding } = await supabase
+      .from('weddings')
+      .select('id')
+      .eq('slug', slug)
+      .maybeSingle()
+
+    if (!wedding) return fail('Thiệp không tồn tại', 404)
+
+    const { data: rows, error } = await supabase
+      .from('guests')
+      .select('display_name, full_name, relationship, wishes')
+      .eq('wedding_id', wedding.id)
+
+    if (error) return fail(error.message, 500)
+
+    const items: { id: string; name: string; relationship: string; text: string; at: string }[] = []
+    for (const g of rows ?? []) {
+      const name = String(g.display_name || g.full_name || '').trim()
+      for (const w of readWishes(g.wishes)) {
+        items.push({ id: w.id, name, relationship: String(g.relationship ?? ''), text: w.text, at: w.at })
+      }
+    }
+
+    // Mới nhất trước. Lời chúc cũ chưa có `at` xuống cuối thay vì làm hỏng thứ tự.
+    items.sort((a, b) => (b.at || '').localeCompare(a.at || ''))
+
+    return ok(items.slice(0, MAX_WISHES_RETURNED))
   }
 
   // ── GET: đọc guests hoặc thông tin thiệp ─────────────────────────────────
@@ -240,7 +332,90 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
       return ok({ updated: updates.length })
     }
 
+    // Chủ thiệp xoá một lời chúc khỏi hàng guests (khách gửi rồi không tự xoá được)
+    if (action === 'delete-wish') {
+      const { guest_id, wish_id } = body
+      if (!guest_id || !wish_id) return fail('Thiếu guest_id hoặc wish_id')
+
+      const denied = await denyIfNotOwnerOfGuests([guest_id])
+      if (denied) return denied
+
+      const { data: row, error: readErr } = await supabase
+        .from('guests')
+        .select('wishes')
+        .eq('id', guest_id)
+        .maybeSingle()
+
+      if (readErr) return fail(readErr.message, 500)
+      if (!row) return fail('Không tìm thấy khách mời', 404)
+
+      const kept = readWishes(row.wishes).filter(w => w.id !== String(wish_id))
+
+      const { error } = await supabase.from('guests').update({ wishes: kept }).eq('id', guest_id)
+      if (error) return fail(error.message, 500)
+      return ok({ wishes: kept })
+    }
+
     return fail('action không hợp lệ cho PATCH')
+  }
+
+  // ── POST công khai: khách mời gửi lời chúc ───────────────────────────────
+  // KHÔNG cần đăng nhập, nhưng KHÔNG mở cho người lạ: phải khớp một hàng guests
+  // có sẵn của đúng thiệp (xem findGuestByLink) — không khớp là 403, khác với
+  // rsvp vốn trả 200 { matched:false } cho êm. Mỗi khách tối đa
+  // MAX_WISHES_PER_GUEST lời chúc; gửi rồi không sửa/xoá được (chỉ chủ thiệp xoá).
+  if (req.method === 'POST' && action === 'wish') {
+    const body = await req.json()
+    const slug = String(body.slug ?? '').trim()
+    const name = String(body.name ?? '').trim().slice(0, MAX_FIELD_LEN)
+    const relationship = String(body.relationship ?? '').trim().slice(0, MAX_REL_LEN)
+    const text = String(body.text ?? '').trim().slice(0, MAX_WISH_LEN)
+
+    if (!slug || !name) return fail('Thiếu thông tin khách mời')
+    if (!text) return fail('Lời chúc không được để trống')
+
+    const { data: wedding } = await supabase
+      .from('weddings')
+      .select('id, enable_wishes')
+      .eq('slug', slug)
+      .maybeSingle()
+
+    if (!wedding) return fail('Thiệp không tồn tại', 404)
+    if (wedding.enable_wishes === false) return fail('Thiệp này đang tắt phần lời chúc', 403)
+
+    const { error: listErr, guest } = await findGuestByLink(
+      supabase, wedding.id, name, relationship,
+      'id, full_name, display_name, relationship, wishes'
+    )
+    if (listErr) return fail(listErr, 500)
+
+    if (!guest) {
+      log.warn('guest.wish.denied', { slug })
+      return fail('Chỉ khách mời có thiệp riêng mới gửi được lời chúc', 403)
+    }
+
+    const wishes = readWishes(guest.wishes)
+    if (wishes.length >= MAX_WISHES_PER_GUEST) {
+      return fail(`Bạn đã gửi tối đa ${MAX_WISHES_PER_GUEST} lời chúc rồi`, 409)
+    }
+
+    const wish = { id: crypto.randomUUID(), text, at: new Date().toISOString() }
+    const { error: upErr } = await supabase
+      .from('guests')
+      .update({ wishes: [...wishes, wish] })
+      .eq('id', guest.id)
+
+    if (upErr) return fail(upErr.message, 500)
+
+    log.info('guest.wish', { slug })
+    return ok({
+      wish: {
+        ...wish,
+        name: String(guest.display_name || guest.full_name || '').trim(),
+        relationship: String(guest.relationship ?? ''),
+      },
+      remaining: MAX_WISHES_PER_GUEST - wishes.length - 1,
+    }, 201)
   }
 
   // ── POST công khai: khách mời tự xác nhận tham dự ────────────────────────
@@ -266,25 +441,10 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
 
     if (!wedding) return fail('Thiệp không tồn tại', 404)
 
-    const { data: rows, error: listErr } = await supabase
-      .from('guests')
-      .select('id, full_name, display_name, relationship')
-      .eq('wedding_id', wedding.id)
-      .order('created_at', { ascending: true })
-
-    if (listErr) return fail(listErr.message, 500)
-
-    // Link mang tên hiển thị (rơi về full_name khi khách không có tên hiển thị)
-    // nên phải so cả hai cột. Ưu tiên hàng khớp cả xưng hô — trùng tên trong một
-    // thiệp là chuyện thường, xưng hô mới tách được hai người.
-    const norm = (v: unknown) => String(v ?? '').trim().toLowerCase()
-    const sameName = (g: Record<string, unknown>) =>
-      norm(g.display_name) === norm(name) || norm(g.full_name) === norm(name)
-
-    const list = rows ?? []
-    const guest =
-      list.find(g => sameName(g) && norm(g.relationship) === norm(relationship)) ??
-      list.find(sameName)
+    const { error: listErr, guest } = await findGuestByLink(
+      supabase, wedding.id, name, relationship
+    )
+    if (listErr) return fail(listErr, 500)
 
     // Không khớp khách nào (chủ thiệp đã xoá/đổi tên sau khi gửi link): không
     // phải lỗi của khách → vẫn 200 để thiệp hiện lời cảm ơn, chỉ báo matched.

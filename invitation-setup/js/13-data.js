@@ -153,6 +153,7 @@ const DEMO_FILL_FIELDS = [
   "enable_music",
   "enable_gift",
   "enable_footer",
+  "enable_wishes",
 ];
 
 // Khoá KHÔNG tính là "khách đã nhập": định danh + trạng thái do hệ thống đặt.

@@ -29,5 +29,26 @@
         placeholder="Ví dụ: Sự có mặt của bạn là món quà ý nghĩa nhất với chúng mình."
       ></x-textarea>
     </div>
+
+    <!-- Lời chúc đi cùng bước RSVP (không phải một bước riêng): cùng là chuyện
+         khách mời phản hồi trên thiệp. Công tắc khai ở SECTION_VIS_FIELDS
+         (js/03-form-sections.js) → ghi vào ô ẩn #enable_wishes của form. -->
+    <div class="pt-2 border-t border-gray-100">
+      <div class="flex items-center justify-between gap-4">
+        <div class="flex items-center gap-2">
+          <i data-lucide="message-square-heart" class="text-[18px] text-color-secondary"></i>
+          <p class="text-sm text-gray-700">Cho khách mời gửi lời chúc</p>
+        </div>
+        <x-switch
+          key="wishes"
+          onclick="toggleSectionVis('wishes', event)"
+        ></x-switch>
+      </div>
+      <p class="mt-2 text-xs text-gray-500">
+        Thiệp hiện mục Lời chúc và một ô viết ghim ở đáy màn hình. Chỉ khách mời
+        nhận thiệp riêng mới gửi được (tối đa 3 lời chúc mỗi người); ai mở thiệp
+        cũng đọc được danh sách.
+      </p>
+    </div>
   </div>
 </div>

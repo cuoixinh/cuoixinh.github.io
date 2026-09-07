@@ -88,6 +88,7 @@ const CUSTOMER_EDITABLE_FIELDS = new Set([
   // Toggle hiển thị mục
   'enable_family', 'enable_party', 'enable_photos', 'enable_timeline',
   'enable_love_story', 'enable_music', 'enable_gift', 'enable_footer',
+  'enable_wishes',
 ])
 
 // ── Bảo mật: chống tráo ảnh (đặc biệt QR mừng cưới) ─────────────────────────
