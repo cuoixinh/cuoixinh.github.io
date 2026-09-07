@@ -376,22 +376,21 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   ràng buộc ở DB), công tắc `weddings.enable_wishes` nằm trong bước RSVP của trang Thiết lập.
   **mẫu thiệp không phải khai markup gì cả**: helper tự dựng một DẢI NỔI ghim đáy khung nhìn,
   đè lên thiệp — danh sách lời chúc trôi lên ở trên (trong suốt, cao 1/3 màn qua `--vh`, rộng
-  2/3, dồn mép trái để chừa chỗ cho nút nhạc/hộp quà của mẫu), ô "Gửi lời chúc" ở dưới — pill
-  NHỎ co theo dòng gợi ý, bấm vào mới trải hết bề ngang cột và bung ô gõ cao tối đa
-  `CX_WISH_INPUT_ROWS` dòng, không mở panel riêng (lề dọc của ô gõ phải là `margin`: padding
-  của textarea nằm trong vùng cuộn nên gõ quá hai dòng là dòng trên bị cắt ngang thân chữ). Dải
+  2/3, dồn mép trái để chừa chỗ cho nút nhạc/hộp quà của mẫu), ô "Gửi lời chúc" ở dưới — thẻ
+  kính mờ dài hết CỘT đó, lề 8px quanh như navbar, bấm vào là dòng gợi ý đổi thành ô gõ cao tối đa
+  `CX_WISH_INPUT_ROWS` dòng ngay tại chỗ, không mở panel riêng (lề dọc của ô gõ phải là `margin`:
+  padding của textarea nằm trong vùng cuộn nên gõ quá hai dòng là dòng trên bị cắt ngang thân
+  chữ). Dải
   chạy một lượt từ mép dưới lên hết danh sách rồi nghỉ `CX_WISH_REPLAY_MS` mới chiếu lại;
   quãng đường đo bằng px trong `_cxWishStartRoll` (`translateY(%)` tính theo thẻ track chứ
   không theo khung) và đo lại qua `ResizeObserver` vì lúc dựng `#main-card` còn `display:none`.
   Dải **không hiện ở màn bìa lẫn màn mở đầu** — chỉ mờ hiện khi khách đã mở bìa VÀ cuộn quá
   `CX_WISH_SHOW_AT` màn hình. Màu đi qua bộ token riêng `--cx-wish-*` trên `.cx-wdock`:
   mặc định ăn theo token chung của thiệp (`panel`/`body`/`accent`), mẫu ghi đè bằng
-  **`CX_THEME.wishes`** (`bubble`/`text`/`accent`/`opacity`, khai khi mặc định không hợp tông
-  — ví dụ mẫu nền tối), khách ghi đè tiếp ở tab Giao diện → `theme_setting.wishes` (**không
-  cần changelog DB**). Bảng chỉnh ở `05-theme-panel.js`, áp thẳng qua `postMessage`
-  (`cx-wish-style`) như hộp quà; nó hỏi màu mặc định bằng `cx-wish-base-get` chứ không đoán
-  (mặc định còn phụ thuộc bộ màu đang chọn), và ghim dải hiện sẵn bằng `cx-wish-peek` trong
-  lúc chỉnh.
+  **`CX_THEME.wishes`** (`text` chữ · `accent` tên khách · `bubble` nền · `btn` nút gửi
+  — riêng `bubble` thêm `bubble_to` là nền bong bóng đổ màu — và `opacity`; `btn` không khai
+  thì rơi về `accent`; khai khi mặc định không hợp tông — ví dụ mẫu nền tối). Màu dải là
+  phần CỐ ĐỊNH của mẫu: khách KHÔNG chỉnh được, tab Giao diện không có mục nào cho nó.
   Cổng chặn "chỉ khách được mời" nằm ở Edge Function `guest-handler`
   (`action=wish` khớp một hàng `guests` theo slug + tên + xưng hô): tham số `name`/
   `relationship` trên link mã hoá bằng khoá nằm trong bundle client nên **giải mã được ở

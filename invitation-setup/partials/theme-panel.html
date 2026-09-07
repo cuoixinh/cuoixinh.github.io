@@ -118,7 +118,7 @@
               aria-label="Quay lại"
             >
               <i data-lucide="arrow-left" class="w-4 h-4"></i
-              ><span>Thành phần</span>
+              ><span>Thẻ nhạc</span>
             </button>
           </div>
           <div id="cx-head-gift" class="hidden cx-le-head">
@@ -130,25 +130,6 @@
             >
               <i data-lucide="arrow-left" class="w-4 h-4"></i
               ><span>Hộp mừng cưới</span>
-            </button>
-          </div>
-          <div id="cx-head-wishes" class="hidden cx-le-head">
-            <button
-              type="button"
-              onclick="closeWishesPanel()"
-              class="cx-le-back"
-              aria-label="Quay lại"
-            >
-              <i data-lucide="arrow-left" class="w-4 h-4"></i
-              ><span>Lời chúc</span>
-            </button>
-            <button
-              type="button"
-              onclick="resetWishStyle()"
-              class="cx-le-clear"
-            >
-              <i data-lucide="rotate-ccw" class="w-4 h-4"></i
-              ><span>Mặc định</span>
             </button>
           </div>
           <div id="cx-head-element-editor" class="hidden cx-le-head">
@@ -177,23 +158,7 @@
           <div
             class="w-full max-w-4xl mx-auto px-4 pb-3 md:px-5 md:py-5"
           >
-            <!-- Gợi ý: click chữ trên thiệp để chỉnh riêng (dismissible, nhớ localStorage) -->
-            <div
-              id="theme-edit-hint"
-              class="hidden flex items-start gap-2 rounded-lg bg-rose-50 border border-rose-100 px-3 py-2 mt-2 mb-3"
-            >
-              <i
-                data-lucide="mouse-pointer-click"
-                class="w-4 h-4 text-rose-400 shrink-0 mt-0.5"
-              ></i>
-              <p class="flex-1 text-[12px] leading-snug text-gray-600">
-                <b class="font-semibold text-gray-700">Mẹo:</b> Nhấp vào bất kỳ dòng
-                chữ nào trên thiệp để chỉnh riêng phông, cỡ, màu…
-              </p>
-              <x-button variant="ghost" tone="neutral" icon-only type="button" onclick="dismissEditHint()" aria-label="Đóng gợi ý" class="shrink-0">
-                <i data-lucide="x" class="w-3.5 h-3.5"></i>
-              </x-button>
-            </div>
+            
 
             <!-- Nhóm chỉnh chung của cả thiệp — ẩn khi mở bảng chỉnh 1 dòng -->
             <div id="theme-main-controls" class="space-y-3 md:space-y-6">
@@ -222,9 +187,14 @@
                 </div>
 
                 <!-- Độ đậm của bộ màu: 50% = đúng bộ như danh mục khai, kéo lên
-                     là cả thiệp đậm tông hơn. Tắt khi đang ở "Mặc định" — lúc đó
-                     màu là của chính mẫu chứ không phải của bộ. -->
-                <div class="flex items-center gap-2 md:w-full mt-2 md:mt-0">
+                     là cả thiệp đậm tông hơn. ẨN HẲN khi đang ở "Mặc định" — lúc
+                     đó màu là của chính mẫu chứ không phải của bộ, để lại thanh
+                     kéo mờ mờ chỉ tổ khiến khách tưởng mình bấm hỏng
+                     (_syncPaletteStrength() ở js/05-theme-panel.js). -->
+                <div
+                  id="theme-palette-strength-row"
+                  class="hidden flex items-center gap-2 md:w-full mt-2 md:mt-0"
+                >
                   <label
                     for="theme-palette-strength"
                     class="text-[12px] text-gray-500 shrink-0 whitespace-nowrap md:text-[12.5px] md:w-16 md:text-right"
@@ -281,13 +251,13 @@
                   <button
                     type="button"
                     onclick="openElementsPanel()"
-                    title="Thả thành phần (trình phát nhạc…) lên thiệp"
+                    title="Thả thẻ nhạc lên thiệp"
                     class="cx-add-card"
                   >
                     <span class="cx-add-ico cx-add-ico-green">
-                      <i data-lucide="blocks"></i>
+                      <i data-lucide="music"></i>
                     </span>
-                    <span class="cx-add-txt">Thành phần</span>
+                    <span class="cx-add-txt">Thẻ nhạc</span>
                   </button>
                   <button
                     type="button"
@@ -299,17 +269,6 @@
                       <i data-lucide="gift"></i>
                     </span>
                     <span class="cx-add-txt">Hộp mừng cưới</span>
-                  </button>
-                  <button
-                    type="button"
-                    onclick="openWishesPanel()"
-                    title="Đổi màu dải lời chúc nổi ở đáy thiệp"
-                    class="cx-add-card"
-                  >
-                    <span class="cx-add-ico cx-add-ico-rose">
-                      <i data-lucide="message-square-heart"></i>
-                    </span>
-                    <span class="cx-add-txt">Lời chúc</span>
                   </button>
                 </div>
               </div>
@@ -527,7 +486,7 @@
             </div>
             <!-- /theme-decor-panel -->
 
-            <!-- Bảng THÀNH PHẦN: kéo thành phần (trình phát nhạc…) thả vào chỗ bất kỳ
+            <!-- Bảng THẺ NHẠC: bấm ô mẫu để dùng ngay, hoặc kéo thả vào chỗ bất kỳ
                  trên thiệp, lưu theo toạ độ như hoạ tiết. Danh mục nạp từ
                  window.CX_ELEMENTS nên thêm thành phần mới không phải sửa HTML này. -->
             <div
@@ -535,7 +494,8 @@
               class="hidden space-y-3 md:space-y-4"
             >
               <p class="text-[12px] text-gray-500">
-                Kéo mẫu ra khỏi bảng và thả lên thiệp để đặt vào vị trí mong muốn.
+                Bấm vào mẫu để đổi ngay, bấm mẫu khác để so tiếp — hoặc kéo mẫu ra
+                khỏi bảng và thả lên thiệp để đặt vào đúng vị trí mong muốn.
               </p>
               <div id="cx-elements-palette" class="cx-pal-grid"></div>
             </div>
@@ -556,74 +516,6 @@
               <div id="cx-gift-palette" class="cx-pal-grid"></div>
             </div>
             <!-- /theme-gift-panel -->
-
-            <!-- Bảng MÀU CỦA DẢI LỜI CHÚC. Mặc định lấy theo token chung của
-                 thiệp, mẫu ghi đè bằng CX_THEME.wishes; ba ô dưới đây là phần
-                 khách chỉnh, lưu ở theme_setting.wishes nên không cần changelog
-                 DB. Ô màu phải có sẵn trong DOM — Coloris chỉ bọc được input đã
-                 tồn tại. -->
-            <div
-              id="theme-wishes-panel"
-              class="hidden space-y-3 md:space-y-4"
-            >
-              <p class="text-[12px] text-gray-500">
-                Dải lời chúc nổi ở đáy thiệp — khách mời gửi lời chúc và mọi
-                người cùng đọc. Đổi màu cho hợp tông thiệp của bạn.
-              </p>
-              <div class="cx-color-grid">
-                <label for="cx-wish-color-bubble" class="cx-color-card">
-                  <span class="color-chip">
-                    <input
-                      type="text"
-                      inputmode="none"
-                      id="cx-wish-color-bubble"
-                      class="theme-color-input"
-                    />
-                  </span>
-                  <span class="cx-color-txt">Nền bong bóng</span>
-                </label>
-                <label for="cx-wish-color-text" class="cx-color-card">
-                  <span class="color-chip">
-                    <input
-                      type="text"
-                      inputmode="none"
-                      id="cx-wish-color-text"
-                      class="theme-color-input"
-                    />
-                  </span>
-                  <span class="cx-color-txt">Chữ lời chúc</span>
-                </label>
-                <label for="cx-wish-color-accent" class="cx-color-card">
-                  <span class="color-chip">
-                    <input
-                      type="text"
-                      inputmode="none"
-                      id="cx-wish-color-accent"
-                      class="theme-color-input"
-                    />
-                  </span>
-                  <span class="cx-color-txt">Tên &amp; nút gửi</span>
-                </label>
-              </div>
-              <div class="cx-le-row">
-                <label class="cx-le-label" for="cx-wish-opacity">Độ mờ nền</label>
-                <!-- CXProgress (core/components/progress.js) bọc input này thành
-                     thanh viên thuốc và tự hiện số %. -->
-                <input
-                  id="cx-wish-opacity"
-                  type="range"
-                  min="0"
-                  max="100"
-                  step="5"
-                  value="80"
-                  oninput="onWishOpacityInput()"
-                  onchange="onWishOpacityCommit()"
-                  class="flex-1 min-w-0"
-                  aria-label="Độ mờ nền bong bóng lời chúc"
-                />
-              </div>
-            </div>
-            <!-- /theme-wishes-panel -->
 
             <!-- Bảng ĐIỀU CHỈNH THÀNH PHẦN: mở khi vừa thả hoặc bấm vào thành phần
                  trên thiệp. Mẫu / kích thước là phần chung; các tuỳ chọn riêng dựng

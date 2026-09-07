@@ -22,17 +22,37 @@ const CX_WISH_INPUT_ROWS = 2;
 // mở đầu phải sạch, dải chỉ xuất hiện khi khách đã bắt đầu đọc thiệp.
 const CX_WISH_SHOW_AT = 0.6;
 
-// Ba nút màu của dải. Thứ tự ưu tiên: khách chỉnh ở tab Giao diện
-// (theme_setting.wishes) > mẫu khai (CX_THEME.wishes) > token chung của thiệp.
-// Mỗi khoá ứng với một biến CSS trên .cx-wdock (xem styles/_common.css).
-// Độ mờ nền bong bóng mặc định (%) — trùng --cx-wish-bubble-a ở _common.css và
-// bước 5 của thanh trượt ở tab Giao diện.
+// Bốn ô màu của dải, FIX CỨNG theo từng mẫu: mẫu khai gì (CX_THEME.wishes) thì
+// lấy nấy, không khai thì rơi về token chung của thiệp. Mỗi khoá ứng với một
+// biến CSS trên .cx-wdock (xem styles/_common.css).
+// Độ mờ nền bong bóng mặc định (%) — trùng --cx-wish-bubble-a ở _common.css.
 const CX_WISH_OPACITY = 80;
 
+// varName2 = chặng CUỐI khi ô đó đổ màu (khoá "<tên>_to"); có nó thì dải mang
+// thêm cờ .cx-wg-<tên> để CSS đổi sang linear-gradient (styles/_common.css).
+// CHỈ nền bong bóng có chặng cuối: chữ đổ màu phải cắt nền theo hình chữ (cỡ chữ
+// của dải đọc rất mệt), còn nút gửi thì không có nền để mà đổ.
+// alias = khoá CŨ, hồi nút gửi còn dùng chung màu với tên khách: mẫu chỉ khai
+// "accent" thì nút gửi rơi về đó, giữ nguyên hình thức cũ.
 const CX_WISH_COLORS = {
-  bubble: { varName: "--cx-wish-bubble-rgb", from: "--cx-panel-rgb" },
-  text: { varName: "--cx-wish-text-rgb", from: "--cx-body-rgb" },
-  accent: { varName: "--cx-wish-accent-rgb", from: "--cx-accent-rgb" },
+  text: {
+    varName: "--cx-wish-text-rgb",
+    from: "--cx-body-rgb",
+  },
+  accent: {
+    varName: "--cx-wish-accent-rgb",
+    from: "--cx-accent-rgb",
+  },
+  bubble: {
+    varName: "--cx-wish-bubble-rgb",
+    varName2: "--cx-wish-bubble-2-rgb",
+    from: "--cx-panel-rgb",
+  },
+  btn: {
+    varName: "--cx-wish-btn-rgb",
+    from: "--cx-accent-rgb",
+    alias: "accent",
+  },
 };
 
 const CX_WISH_DEMO = [
@@ -71,66 +91,36 @@ function _cxWishTriplet(hex) {
   return [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16)).join(" ");
 }
 
-// Màu chữ trên nút Gửi: suy từ chính màu nhấn để khách chọn tông sáng vẫn đọc
-// được, thay vì luôn dùng --cx-on-accent-rgb của mẫu.
-function _cxWishOnAccent(triplet) {
-  const [r, g, b] = triplet.split(/\s+/).map(Number);
-  if ([r, g, b].some((v) => !Number.isFinite(v))) return "";
-  return (r * 299 + g * 587 + b * 114) / 1000 > 150 ? "28 28 28" : "255 255 255";
-}
-
 /**
- * Màu MẶC ĐỊNH của dải trên thiệp này (mẫu khai gì, hoặc token chung nếu không
- * khai) — trang Thiết lập hỏi giá trị này để đổ vào ô màu lúc chưa chỉnh gì.
+ * Áp bảng màu của MẪU lên dải. Màu là phần cố định của mẫu thiệp — khách không
+ * chỉnh được — nên chỉ đọc CX_THEME.wishes, khoá nào mẫu không khai thì token
+ * chung của thiệp lo (xem .cx-wdock ở styles/_common.css).
  */
-function cxWishBaseColors() {
-  const decl = (window.CX_THEME && window.CX_THEME.wishes) || {};
-  const out = {};
-  Object.entries(CX_WISH_COLORS).forEach(([key, def]) => {
-    out[key] = _cxWishTriplet(decl[key]) || _cxWishRootVar(def.from);
-  });
-  out.opacity = Number.isFinite(decl.opacity) ? decl.opacity : CX_WISH_OPACITY;
-  return out;
-}
-
-/**
- * Áp bảng màu lên dải. `wishes` là phần khách chỉnh (theme_setting.wishes) —
- * khoá nào không có thì rơi về bản khai của mẫu rồi tới token chung.
- */
-function applyWishStyle(wishes) {
+function applyWishStyle() {
   const dock = document.getElementById("cx-wish-dock");
   if (!dock) return;
 
-  const base = cxWishBaseColors();
-  const user = wishes || {};
+  const decl = (window.CX_THEME && window.CX_THEME.wishes) || {};
 
   Object.entries(CX_WISH_COLORS).forEach(([key, def]) => {
-    const val = _cxWishTriplet(user[key]) || base[key];
+    const alias = def.alias;
+    const val =
+      _cxWishTriplet(decl[key]) ||
+      (alias && _cxWishTriplet(decl[alias])) ||
+      _cxWishRootVar(def.from);
     if (val) dock.style.setProperty(def.varName, val);
-    if (key === "accent" && val) {
-      dock.style.setProperty("--cx-wish-on-accent-rgb", _cxWishOnAccent(val));
-    }
+    if (!def.varName2) return;
+    const to =
+      _cxWishTriplet(decl[key + "_to"]) ||
+      (alias && _cxWishTriplet(decl[alias + "_to"])) ||
+      "";
+    if (to) dock.style.setProperty(def.varName2, to);
+    dock.classList.toggle("cx-wg-" + key, !!to);
   });
 
-  const op = Number.isFinite(user.opacity) ? user.opacity : base.opacity;
+  const op = Number.isFinite(decl.opacity) ? decl.opacity : CX_WISH_OPACITY;
   dock.style.setProperty("--cx-wish-bubble-a", String(Math.min(100, Math.max(0, op)) / 100));
 }
-
-// theme_setting có thể là chuỗi JSON (dữ liệu lấy thẳng từ form ở bản xem thử).
-function _cxWishSetting(wedding) {
-  let st = wedding && wedding.theme_setting;
-  if (typeof st === "string") {
-    try {
-      st = JSON.parse(st);
-    } catch (e) {
-      st = null;
-    }
-  }
-  return (st && typeof st === "object" && st.wishes) || null;
-}
-
-window.cxWishBaseColors = cxWishBaseColors;
-window.applyWishStyle = applyWishStyle;
 
 // Thẻ con flex-column bọc các mục của thân thiệp (quy ước: #main-card có ĐÚNG một).
 function _cxWishHost() {
@@ -236,6 +226,8 @@ function _cxWishSetDockText() {
 
 // Dải nổi ghim đáy khung nhìn: danh sách lời chúc trôi lên ở trên, ô "Gửi lời
 // chúc" ở dưới — cùng một khối, đè lên thiệp chứ không nằm trong thân thiệp.
+// Ô nhập không có nền riêng, nó nổi lên nhờ màn tối phủ từ đáy (.cx-wdock::before,
+// styles/_common.css) — màn đó CỐ Ý luôn tối, không đi theo bộ màu của dải.
 // Ai cũng đọc được danh sách; ô nhập chỉ dựng cho khách cầm link cá nhân hoá
 // (hoặc bản xem thử), người còn lại thấy một dòng giải thích thay chỗ đó.
 function _cxWishBuildDock(canWrite) {
@@ -253,7 +245,11 @@ function _cxWishBuildDock(canWrite) {
         `<textarea class="cx-wdock-text" id="cx-wdock-text" rows="1" maxlength="${CX_WISH_MAX_LEN}" ` +
         'placeholder="Viết lời chúc…"></textarea>' +
         '<button type="button" class="cx-wdock-btn" id="cx-wdock-send" aria-label="Gửi lời chúc">' +
-        '<i data-lucide="send" style="width:18px;height:18px"></i></button>' +
+        // Hai icon dựng sẵn, CSS chọn cái nào hiện theo .is-open của thẻ (xem
+        // styles/_common.css): lucide không quét lại nên đừng đổi icon bằng JS.
+        '<span class="cx-wdock-ico-idle"><i data-lucide="message-square-text" style="width:16px;height:16px"></i></span>' +
+        '<span class="cx-wdock-ico-send"><i data-lucide="send" style="width:16px;height:16px"></i></span>' +
+        "</button>" +
         '<div class="cx-wdock-msg" id="cx-wdock-msg" hidden></div>' +
         "</div>"
       : '<div class="cx-wdock-note cx-t">Chỉ khách mời nhận thiệp riêng mới gửi được lời chúc.</div>') +
@@ -308,8 +304,6 @@ function _cxWishWatchReveal(dock) {
   const card = document.getElementById("main-card");
 
   const sync = () => {
-    // Trang Thiết lập đang mở bảng chỉnh màu thì giữ dải hiện, khỏi phải cuộn.
-    if (dock.classList.contains("is-peek")) return;
     const opened = !card || card.style.display !== "none";
     const scrolled = window.scrollY >= window.innerHeight * CX_WISH_SHOW_AT;
     dock.classList.toggle("is-on", opened && scrolled);
@@ -448,7 +442,7 @@ async function initWishes(wedding) {
 
     if (_cxWishDemo) {
       _cxWishBuildDock(true);
-      applyWishStyle(_cxWishSetting(wedding));
+      applyWishStyle();
       _cxWishItems = CX_WISH_DEMO.slice();
       _cxWishRender();
       return;
@@ -457,7 +451,7 @@ async function initWishes(wedding) {
     // Dựng vỏ trước rồi mới nạp: mount của danh sách nằm trong chính dải nổi.
     const guest = window.CX_GUEST;
     _cxWishBuildDock(!!guest);
-    applyWishStyle(_cxWishSetting(wedding));
+    applyWishStyle();
 
     const slug = getSlugFromUrl();
     if (slug && window.guestDAL) {
@@ -480,27 +474,3 @@ async function initWishes(wedding) {
 }
 
 window.initWishes = initWishes;
-
-// Trong khung xem trước của trang Thiết lập: đổi màu áp NGAY, không nạp lại cả
-// khung (bảng chỉnh bên trang cha phải đứng yên để còn kéo thử màu). Trang cha
-// cũng hỏi màu mặc định của mẫu qua 'cx-wish-base-get' để đổ vào ô màu.
-if (window.top !== window) {
-  window.addEventListener("message", (ev) => {
-    if (ev.source !== window.parent) return;
-    const d = ev.data;
-    if (!d) return;
-    if (d.type === "cx-wish-style") applyWishStyle(d.value);
-    if (d.type === "cx-wish-peek") {
-      const dock = document.getElementById("cx-wish-dock");
-      dock?.classList.toggle("is-peek", !!d.on);
-      dock?.classList.toggle("is-on", !!d.on || dock.classList.contains("is-on"));
-      if (!d.on) window.dispatchEvent(new Event("scroll"));
-    }
-    if (d.type === "cx-wish-base-get") {
-      window.parent.postMessage(
-        { type: "cx-wish-base", value: cxWishBaseColors() },
-        "*",
-      );
-    }
-  });
-}

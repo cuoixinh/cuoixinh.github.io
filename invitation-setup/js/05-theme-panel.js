@@ -115,7 +115,7 @@ function _paletteStrength() {
 }
 
 // Thanh kéo chỉ có nghĩa khi ĐANG chọn một bộ: "Mặc định" là màu gốc của mẫu,
-// làm đậm nó lên là sửa mẫu chứ không phải chỉnh bộ màu.
+// làm đậm nó lên là sửa mẫu chứ không phải chỉnh bộ màu → giấu cả hàng đi.
 function _syncPaletteStrength() {
   const el = document.getElementById("theme-palette-strength");
   if (!el) return;
@@ -123,6 +123,9 @@ function _syncPaletteStrength() {
   el.value = _paletteStrength();
   el.disabled = !on;
   window.CXProgress?.attach(el)?.classList.toggle("is-off", !on);
+  document
+    .getElementById("theme-palette-strength-row")
+    ?.classList.toggle("hidden", !on);
 }
 
 function _applyThemeToFrame() {
@@ -306,7 +309,6 @@ function _initThemePanel() {
   document.getElementById("theme-decor-panel")?.classList.add("hidden");
   document.getElementById("theme-elements-panel")?.classList.add("hidden");
   document.getElementById("theme-gift-panel")?.classList.add("hidden");
-  document.getElementById("theme-wishes-panel")?.classList.add("hidden");
   _hideElementEditor();
   closeLineEditor();
   document.getElementById("theme-main-controls")?.classList.remove("hidden");
@@ -404,17 +406,20 @@ window.addEventListener("message", (ev) => {
     _setDirty(true, "theme");
     _syncElWidthFromCard();
   } else if (d.type === "cx-element-pick") {
-    openElementEditor(d);
+    // Vừa BẤM ô mẫu (không kéo) → bỏ qua đúng tin này, giữ nguyên bảng chọn để
+    // bấm thử mẫu khác. Kéo thả thì vẫn nhảy thẳng sang phần điều chỉnh.
+    if (_elTapPending) {
+      _elTapPending = false;
+      clearTimeout(_elTapTimer);
+    } else {
+      openElementEditor(d);
+    }
   } else if (d.type === "cx-element-close") {
     closeElementEditor();
   } else if (d.type === "cx-drag-busy") {
     // Đang kéo hoạ tiết/thành phần/khối văn bản trên thiệp → thanh chỉnh lui đi
     // cho thấy chỗ đang thả (chỉ có tác dụng ở mobile, xem .cx-ctrl-away).
     _setCtrlAway(!!d.on);
-  } else if (d.type === "cx-wish-base") {
-    // Khung xem trước trả lời màu MẶC ĐỊNH của dải lời chúc trên mẫu này.
-    _wishBase = d.value || null;
-    _syncWishControls();
   } else if (d.type === "cx-gift-reload") {
     // Hộp gốc của mẫu đã bị bấm mở, muốn về "Mặc định" thì chỉ còn cách dựng lại
     // thiệp từ đầu (core/helpers/gift-box-helper.js).
@@ -476,7 +481,6 @@ function openAddTextPanel() {
   document.getElementById("theme-edit-hint")?.classList.add("hidden");
   document.getElementById("theme-elements-panel")?.classList.add("hidden");
   document.getElementById("theme-gift-panel")?.classList.add("hidden");
-  document.getElementById("theme-wishes-panel")?.classList.add("hidden");
   _hideElementEditor();
   document.getElementById("theme-addtext-panel")?.classList.remove("hidden");
   _resetCtrlScroll();
@@ -550,10 +554,11 @@ function closeAddTextPanel() {
 window.closeAddTextPanel = closeAddTextPanel;
 
 // ─── Kéo mẫu từ bảng chọn ra thiệp (dùng chung cho Văn bản / Trang trí / Thành phần) ──
-// Quy tắc: CHỈ kéo mới thêm được — bấm tại chỗ không làm gì; và phải kéo RA KHỎI
-// bảng chọn rồi nhả TRÊN thiệp mới tính là thả. Còn ở trong bảng thì cử chỉ kéo
-// dùng để cuộn danh sách (ô mẫu đặt touch-action:none nên trình duyệt không tự
-// cuộn giúp). Mỗi bảng chỉ khai báo 3 việc riêng: over / cancel / drop.
+// Quy tắc: phải kéo RA KHỎI bảng chọn rồi nhả TRÊN thiệp mới tính là thả. Còn ở
+// trong bảng thì cử chỉ kéo dùng để cuộn danh sách (ô mẫu đặt touch-action:none
+// nên trình duyệt không tự cuộn giúp). Bấm tại chỗ mặc định KHÔNG làm gì — bảng
+// nào muốn nhận cú bấm thì khai `onTap` (Thẻ nhạc dùng để đổi mẫu tại chỗ).
+// Mỗi bảng chỉ khai báo việc riêng: over / cancel / drop / tap.
 const PAL_DRAG_MIN = 6; // px, dưới ngưỡng này coi như chưa kéo
 
 let _palDrag = null;
@@ -664,9 +669,15 @@ function _palDragEnd(ev) {
   d.ghost?.remove();
   if (d.iframe) d.iframe.style.pointerEvents = ""; // khôi phục tương tác iframe
   const iframe = d.iframe || _lineIframe();
-  // Nhả tay trong bảng chọn (bấm tại chỗ, hoặc kéo rồi quay lại) → KHÔNG thêm gì,
-  // chỉ dọn dấu vết. Chỉ nhả TRÊN thiệp mới tính là thả.
+  // Nhả tay trong bảng chọn (bấm tại chỗ, hoặc kéo rồi quay lại) → chỉ dọn dấu
+  // vết. Chỉ nhả TRÊN thiệp mới tính là thả. Riêng cú BẤM (chưa từng rời ô mẫu
+  // quá ngưỡng) thì gọi onTap nếu bảng có khai — kéo để cuộn danh sách đi qua
+  // đúng nhánh này nên phải đo lại quãng đường, không thể chỉ xét !d.out.
   if (!d.out || !d.over || !iframe) {
+    const x = ev && ev.clientX != null ? ev.clientX : d.x0;
+    const y = ev && ev.clientY != null ? ev.clientY : d.y0;
+    if (!d.out && Math.hypot(x - d.x0, y - d.y0) < PAL_DRAG_MIN)
+      d.hooks.onTap?.();
     d.hooks.onCancel?.(iframe);
     return;
   }
@@ -706,7 +717,6 @@ function openDecorPanel() {
   document.getElementById("theme-edit-hint")?.classList.add("hidden");
   document.getElementById("theme-elements-panel")?.classList.add("hidden");
   document.getElementById("theme-gift-panel")?.classList.add("hidden");
-  document.getElementById("theme-wishes-panel")?.classList.add("hidden");
   _hideElementEditor();
   document.getElementById("theme-decor-panel")?.classList.remove("hidden");
   _resetCtrlScroll();
@@ -795,14 +805,15 @@ function _addDecor(src, x, y) {
 // ─── Thành phần: bảng chọn thành phần thả lên thiệp ─────────────────────────
 // Danh mục lấy từ window.CX_ELEMENTS (core/helpers/element-helper.js) nên thêm
 // thành phần mới không phải sửa gì ở đây. Kéo ô mẫu ra khỏi bảng rồi thả lên
-// thiệp → đặt đúng chỗ thả (bấm tại chỗ không thêm gì). Thả xong đóng bảng luôn.
+// thiệp → đặt đúng chỗ thả, xong đóng bảng và chuyển sang phần điều chỉnh. Bấm ô
+// mẫu → dùng luôn mẫu đó (đổi mẫu tại chỗ nếu thiệp đã có) nhưng Ở LẠI bảng chọn,
+// vì bấm là để so mẫu — muốn chỉnh thì bấm vào chính widget trên thiệp.
 
 function openElementsPanel() {
   document.getElementById("theme-line-editor")?.classList.add("hidden");
   document.getElementById("theme-addtext-panel")?.classList.add("hidden");
   document.getElementById("theme-decor-panel")?.classList.add("hidden");
   document.getElementById("theme-gift-panel")?.classList.add("hidden");
-  document.getElementById("theme-wishes-panel")?.classList.add("hidden");
   _hideElementEditor();
   document.getElementById("theme-main-controls")?.classList.add("hidden");
   document.getElementById("theme-edit-hint")?.classList.add("hidden");
@@ -926,7 +937,7 @@ function _renderElementsPalette() {
         " · " +
         v.name +
         (v.desc ? " — " + v.desc : "") +
-        " (kéo vào thiệp để thêm)";
+        " (bấm để dùng, hoặc kéo vào thiệp để đặt đúng chỗ)";
       btn.appendChild(_elPreview(def, v));
       const cap = document.createElement("span");
       cap.className = "cx-pal-txt";
@@ -945,9 +956,14 @@ function _renderElementsPalette() {
 }
 
 // Kéo thành phần TỪ bảng chọn THẢ vào thiệp — y hệt hoạ tiết, thả ở đâu đặt ở đó.
+// Bấm ô mẫu (không kéo) cũng ăn: gọi cùng đường nhưng KHÔNG kèm toạ độ, runtime
+// hiểu là "dùng mẫu này" — thiệp đã có thì đổi mẫu và giữ nguyên chỗ đứng, chưa
+// có thì đặt vào đầu khung đang xem (xem _cxElAdd ở theme-setting-helper.js).
+// Khác kéo thả ở chỗ bảng chọn ĐỨNG YÊN sau cú bấm, để bấm tiếp mẫu khác mà so.
 function startElementDrag(e, elementId, variantId) {
   _startPalDrag(e, {
     onDrop: (iframe, x, y) => _addElement(elementId, variantId, x, y),
+    onTap: () => _addElement(elementId, variantId),
   });
 }
 window.startElementDrag = startElementDrag;
@@ -955,13 +971,30 @@ window.startElementDrag = startElementDrag;
 // Không đánh dấu chưa-lưu ở đây: thả trúng thành phần thiệp ĐÃ có thì runtime chỉ
 // chọn nó lên chứ không sửa gì. Có thay đổi thật thì runtime tự gửi
 // 'cx-elements-changed' và dấu * bật lên theo.
+//
+// KHÔNG toạ độ = bấm ô mẫu: áp mẫu rồi Ở LẠI bảng chọn để bấm thử mẫu khác. Runtime
+// vẫn gửi 'cx-element-pick' như thường (nó không biết mình tới từ đâu) nên chặn
+// đúng MỘT tin đó ở trang cha, xem _elTapPending.
+let _elTapPending = false; // đang chờ nuốt tin pick của cú bấm ô mẫu
+let _elTapTimer = null;
+
 function _addElement(elementId, variantId, x, y) {
-  closeElementsPanel();
+  const tap = x == null || y == null;
+  if (tap) {
+    _elTapPending = true;
+    clearTimeout(_elTapTimer);
+    // Chốt chặn: nhỡ tin pick không tới thì cờ phải tự rơi, không thì cú bấm vào
+    // widget trên thiệp sau đó lại bị nuốt mất.
+    _elTapTimer = setTimeout(() => (_elTapPending = false), 800);
+  } else {
+    closeElementsPanel();
+  }
   // Thả xong runtime gửi 'cx-element-pick' → bảng tự chuyển sang phần điều chỉnh.
   _lineIframe()?.contentWindow?.postMessage(
     { type: "cx-add-element", element: elementId, variant: variantId, x, y },
     "*",
   );
+  if (tap) return;
   // Nhỡ tin pick thì người dùng phải bấm lại vào widget mới chỉnh được — hỏi lại
   // một nhịp cho chắc (runtime đã chọn sẵn thì chỉ việc gửi lại trạng thái).
   setTimeout(() => {
@@ -972,130 +1005,6 @@ function _addElement(elementId, variantId, x, y) {
       "*",
     );
   }, 150);
-}
-
-// ─── Lời chúc: màu của dải nổi ở đáy thiệp ──────────────────────────────────
-// Ba ô màu + độ mờ, lưu ở _themeSetting.wishes (không cần changelog DB). Ô nào
-// khách chưa chỉnh thì hiện màu MẶC ĐỊNH của mẫu — hỏi thẳng khung xem trước
-// (cx-wish-base-get) chứ không đoán, vì mặc định còn phụ thuộc bộ màu đang chọn.
-// Đổi màu áp NGAY bằng postMessage: nạp lại khung là bảng chỉnh đóng mất.
-
-const WISH_COLOR_KEYS = ["bubble", "text", "accent"];
-
-let _wishBase = null;
-
-function _wishSetting() {
-  if (!_themeSetting.wishes || typeof _themeSetting.wishes !== "object") {
-    _themeSetting.wishes = {};
-  }
-  return _themeSetting.wishes;
-}
-
-function _wishFrameWin() {
-  return _lineIframe()?.contentWindow || null;
-}
-
-function _askWishBase() {
-  _wishFrameWin()?.postMessage({ type: "cx-wish-base-get" }, "*");
-}
-
-// "168 153 104" → "#a89968" (ô màu Coloris chỉ nhận hex).
-function _wishTripletToHex(v) {
-  const p = String(v || "").trim().split(/\s+/).map(Number);
-  if (p.length !== 3 || p.some((n) => !Number.isFinite(n))) return "";
-  return "#" + p.map((n) => Math.max(0, Math.min(255, n)).toString(16).padStart(2, "0")).join("");
-}
-
-function _syncWishControls() {
-  const cur = _wishSetting();
-  WISH_COLOR_KEYS.forEach((k) => {
-    const val = cur[k] || _wishTripletToHex(_wishBase && _wishBase[k]) || "#ffffff";
-    _chipValueRaw("cx-wish-color-" + k, val);
-  });
-
-  const slider = document.getElementById("cx-wish-opacity");
-  if (slider) {
-    const base = Number.isFinite(_wishBase && _wishBase.opacity) ? _wishBase.opacity : 80;
-    slider.value = String(Number.isFinite(cur.opacity) ? cur.opacity : base);
-    window.CXProgress?.paint(slider);
-  }
-}
-
-function openWishesPanel() {
-  document.getElementById("theme-line-editor")?.classList.add("hidden");
-  document.getElementById("theme-addtext-panel")?.classList.add("hidden");
-  document.getElementById("theme-decor-panel")?.classList.add("hidden");
-  document.getElementById("theme-elements-panel")?.classList.add("hidden");
-  document.getElementById("theme-gift-panel")?.classList.add("hidden");
-  document.getElementById("theme-wishes-panel")?.classList.add("hidden");
-  _hideElementEditor();
-  document.getElementById("theme-main-controls")?.classList.add("hidden");
-  document.getElementById("theme-edit-hint")?.classList.add("hidden");
-  document.getElementById("theme-wishes-panel")?.classList.remove("hidden");
-  _resetCtrlScroll();
-  _askWishBase();
-  _syncWishControls();
-  // Dải chỉ hiện sau khi khách cuộn qua màn mở đầu — trong lúc chỉnh thì ghim nó
-  // hiện sẵn, không bắt người dùng cuộn khung xem trước.
-  _wishFrameWin()?.postMessage({ type: "cx-wish-peek", on: true }, "*");
-  if (window.lucide) lucide.createIcons();
-}
-window.openWishesPanel = openWishesPanel;
-
-function closeWishesPanel() {
-  _wishFrameWin()?.postMessage({ type: "cx-wish-peek", on: false }, "*");
-  document.getElementById("theme-wishes-panel")?.classList.add("hidden");
-  document.getElementById("theme-main-controls")?.classList.remove("hidden");
-  _resetCtrlScroll();
-  _initEditHint();
-}
-window.closeWishesPanel = closeWishesPanel;
-
-// Coloris bắn 'input' liên tục khi kéo trong bảng màu → áp live, chỉ chốt lưu
-// khi 'change' (giống chip màu của bảng chỉnh chi tiết một dòng chữ).
-function _onWishColor(key, value, commit) {
-  const cur = _wishSetting();
-  if (value) cur[key] = value;
-  else delete cur[key];
-  _wishFrameWin()?.postMessage({ type: "cx-wish-style", value: cur }, "*");
-  if (commit) {
-    _setDirty(true, "theme");
-    _savePreviewData();
-  }
-}
-
-function onWishOpacityInput() {
-  const el = document.getElementById("cx-wish-opacity");
-  if (!el) return;
-  _wishSetting().opacity = Number(el.value);
-  _wishFrameWin()?.postMessage({ type: "cx-wish-style", value: _wishSetting() }, "*");
-}
-window.onWishOpacityInput = onWishOpacityInput;
-
-function onWishOpacityCommit() {
-  _setDirty(true, "theme");
-  _savePreviewData();
-}
-window.onWishOpacityCommit = onWishOpacityCommit;
-
-// Bỏ hết phần khách chỉnh, trả dải về đúng màu mẫu khai.
-function resetWishStyle() {
-  delete _themeSetting.wishes;
-  _wishFrameWin()?.postMessage({ type: "cx-wish-style", value: null }, "*");
-  _syncWishControls();
-  _setDirty(true, "theme");
-  _savePreviewData();
-}
-window.resetWishStyle = resetWishStyle;
-
-function _initWishControls() {
-  window.CXProgress?.attach(document.getElementById("cx-wish-opacity"));
-  WISH_COLOR_KEYS.forEach((k) => {
-    const el = document.getElementById("cx-wish-color-" + k);
-    if (!el) return;
-    el.addEventListener("input", () => _onWishColor(k, el.value, false));
-    el.addEventListener("change", () => _onWishColor(k, el.value, true));
-  });
 }
 
 // ─── Hộp mừng cưới: chọn kiểu che phần mã QR ────────────────────────────────
@@ -1122,8 +1031,7 @@ window.openGiftPanel = openGiftPanel;
 
 function closeGiftPanel() {
   document.getElementById("theme-gift-panel")?.classList.add("hidden");
-  document.getElementById("theme-wishes-panel")?.classList.add("hidden");
-  document.getElementById("theme-main-controls")?.classList.remove("hidden");
+  document.getElementById("theme-main-control/uss")?.classList.remove("hidden");
   _resetCtrlScroll();
   _initEditHint();
 }
@@ -1275,7 +1183,6 @@ function openElementEditor(msg) {
   document.getElementById("theme-decor-panel")?.classList.add("hidden");
   document.getElementById("theme-elements-panel")?.classList.add("hidden");
   document.getElementById("theme-gift-panel")?.classList.add("hidden");
-  document.getElementById("theme-wishes-panel")?.classList.add("hidden");
   document.getElementById("theme-main-controls")?.classList.add("hidden");
   document.getElementById("theme-edit-hint")?.classList.add("hidden");
   document.getElementById("theme-element-editor")?.classList.remove("hidden");
@@ -1466,7 +1373,6 @@ function _openLineEditor(msg) {
   document.getElementById("theme-edit-hint")?.classList.add("hidden");
   document.getElementById("theme-elements-panel")?.classList.add("hidden");
   document.getElementById("theme-gift-panel")?.classList.add("hidden");
-  document.getElementById("theme-wishes-panel")?.classList.add("hidden");
   _hideElementEditor();
   document.getElementById("theme-line-editor")?.classList.remove("hidden");
   _resetCtrlScroll();
@@ -2070,7 +1976,6 @@ function _updateSheetFade(body) {
 // Thêm bảng mới → thêm một dòng ở đây, khỏi đụng vào các hàm mở/đóng bảng.
 const CTRL_HEADS = [
   ["theme-element-editor", "cx-head-element-editor"],
-  ["theme-wishes-panel", "cx-head-wishes"],
   ["theme-gift-panel", "cx-head-gift"],
   ["theme-elements-panel", "cx-head-elements"],
   ["theme-decor-panel", "cx-head-decor"],
@@ -2233,7 +2138,6 @@ function _initSheet(bodyId, handleId) {
 
 function _initThemePanelObservers() {
   _initElWidthSlider();
-  _initWishControls();
   _initThemeResize();
   _initElPreviewResize();
   _initSheet("cx-ctrl-scroll", "cx-ctrl-handle");

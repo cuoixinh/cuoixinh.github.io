@@ -580,15 +580,17 @@ input.flatpickr-input[readonly] {
 }
 
 /* Thẻ chức năng "Thêm vào thiệp": card viền mảnh, tròn màu pastel + tên bên
-   dưới. Mỗi thẻ tự chọn màu tròn bằng một lớp .cx-add-ico-* (viết trọn tên). */
+   dưới. Mỗi thẻ tự chọn màu tròn bằng một lớp .cx-add-ico-* (viết trọn tên).
+   Lưới 3 cột và ô dẹt: cả cụm này chỉ là chỗ MỞ các bảng khác, nó mà chiếm nửa
+   bảng chỉnh thì phần nội dung bên dưới (bộ màu, độ đậm…) phải cuộn mới thấy. */
 .cx-add-grid {
-  @apply grid grid-cols-2 gap-2 md:gap-3;
+  @apply grid grid-cols-3 gap-1.5 md:gap-2;
 }
 
 .cx-add-card {
-  @apply flex flex-col items-center justify-center gap-2 rounded-2xl border
-         border-gray-200 bg-white px-2 py-3 text-center shadow-sm
-         transition-all duration-150 md:gap-2.5 md:py-4;
+  @apply flex flex-col items-center justify-center gap-1.5 rounded-xl border
+         border-gray-200 bg-white px-1 py-2 text-center shadow-sm
+         transition-all duration-150 md:gap-2 md:py-2.5;
 }
 
 .cx-add-card:hover {
@@ -604,12 +606,12 @@ input.flatpickr-input[readonly] {
 }
 
 .cx-add-ico {
-  @apply inline-flex h-10 w-10 flex-none items-center justify-center
-         rounded-full md:h-11 md:w-11;
+  @apply inline-flex h-8 w-8 flex-none items-center justify-center
+         rounded-full md:h-9 md:w-9;
 }
 
 .cx-add-ico svg {
-  @apply h-[18px] w-[18px] md:h-5 md:w-5;
+  @apply h-4 w-4 md:h-[18px] md:w-[18px];
 }
 
 .cx-add-ico-blue {
@@ -628,8 +630,10 @@ input.flatpickr-input[readonly] {
   @apply bg-amber-50 text-amber-500;
 }
 
+/* Ô hẹp (3 cột) nên nhãn dài như "Hộp mừng cưới" được xuống dòng thoải mái —
+   ép một dòng là chữ tràn ra ngoài viền khi cột chỉnh kéo hẹp hết cỡ. */
 .cx-add-txt {
-  @apply text-[12px] font-medium leading-4 text-gray-700 md:text-[12.5px];
+  @apply text-[11px] font-medium leading-[1.2] text-gray-700 md:text-[11.5px];
 }
 
 /* Bảng chọn mẫu (Văn bản · Trang trí · Thành phần) — DÙNG CHUNG một lưới 4 ô
@@ -1318,6 +1322,16 @@ svg.lucide {
   white-space: nowrap;
 }
 
+/* Khổ icon của cụm switch phải nhắm bằng ID: `svg.lucide` trong build.css ép
+   1em (0,1,1) nên utility `w-3`/`w-4` trên thẻ <i> (0,1,0) thua, icon rơi về
+   đúng cỡ CHỮ của nút — 11px, nhỏ hơn hẳn 16px của các tab bên cạnh. 12px cho
+   bằng nút "Xem trước" (nút đó khai style inline nên vẫn ăn). */
+#switch-edit i,
+#switch-edit svg {
+  width: 12px;
+  height: 12px;
+}
+
 /* Từ sm trở lên MỌI ô trong navbar đều KHỔ CỐ ĐỊNH: dãy tab xếp sát từ trái,
    chỗ thừa dồn hết vào `ml-auto` của #nav-actions nên hai nút hành động nằm sát
    mép phải. Đừng cho ô nào `flex-1` — một ô co giãn là cả hàng lệch. */
@@ -1618,8 +1632,20 @@ html.cx-rail-off {
       background-color 0.15s ease;
   }
 
+  /* Icon cũng phải bằng icon các tab khác (16px của .cx-navitem-ico) — cùng
+     hàng mà một cái nhỏ hơn một nấc thì nhìn ra ngay. */
+  #switch-edit i,
+  #switch-edit svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* Hover y hệt .cx-navitem (nền xám rất nhạt + chữ đậm lên một nấc): ở khổ này
+     "Chỉnh sửa" là MỘT TAB ngang hàng các tab khác, hover khác màu là tự nhận
+     mình đặc biệt. Đổi màu hover của tab thì sửa cả hai chỗ. */
   #switch-edit:hover {
-    background: rgb(var(--surface-brand-soft-rgb));
+    background: rgb(217 204 204 / 6%);
+    color: rgb(var(--text-tertiary-rgb));
   }
 
   #switch-edit.is-active,

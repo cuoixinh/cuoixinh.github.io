@@ -1624,19 +1624,35 @@ textarea::-webkit-scrollbar-thumb:hover {
    env(safe-area-inset-bottom) — quy ước toàn project, xem .cx-tabbar. */
 .cx-wdock {
   /* Bảng màu riêng của dải: mặc định ăn theo token chung của thiệp, mẫu ghi đè
-     bằng CX_THEME.wishes và khách ghi đè tiếp ở tab Giao diện — cả hai đi qua
-     applyWishStyle() (core/helpers/wishes-helper.js) đặt lại đúng mấy biến này. */
+     bằng CX_THEME.wishes — applyWishStyle() (core/helpers/wishes-helper.js)
+     đặt lại đúng mấy biến này. Khách KHÔNG chỉnh được, màu là của mẫu. */
   --cx-wish-bubble-rgb: var(--cx-panel-rgb);
   --cx-wish-bubble-a: 0.8;
   --cx-wish-text-rgb: var(--cx-body-rgb);
   --cx-wish-accent-rgb: var(--cx-accent-rgb);
-  --cx-wish-on-accent-rgb: var(--cx-on-accent-rgb);
+  /* Nút Gửi tách khỏi tên khách, mặc định rơi về chính màu tên. Nút không có
+     nền nên đây là màu của chính cái bút. */
+  --cx-wish-btn-rgb: var(--cx-wish-accent-rgb);
+  /* Chặng CUỐI khi nền bong bóng đổ màu — chỉ có giá trị khi applyWishStyle()
+     gắn kèm cờ .cx-wg-bubble, nên mặc định để trùng chặng đầu là đủ an toàn. */
+  --cx-wish-bubble-2-rgb: var(--cx-wish-bubble-rgb);
+  /* Tấm kính của ô nhập: CỐ Ý không ăn theo bộ màu của dải — ô này ngồi trên
+     màn tối ở đáy, thứ trôi bên dưới lại đủ mọi màu, chỉ một tấm đen mỏng là chỗ
+     nào cũng đọc được. Mẫu muốn đậm/nhạt hơn thì chỉnh --cx-wish-field-a. */
+  --cx-wish-field-rgb: 0 0 0;
+  --cx-wish-field-a: 0.2;
+  /* Màn tối phủ từ đáy lên (::before) — LUÔN tối bất kể bộ màu, vì nó là thứ
+     duy nhất tách ô nhập (đã bỏ hết nền) khỏi ảnh thiệp trôi bên dưới. Chữ nằm
+     trên màn này phải ăn theo --cx-wish-on-fade-rgb, không phải màu chữ của dải. */
+  --cx-wish-fade-rgb: 0 0 0;
+  --cx-wish-fade-a: 0.35;
+  --cx-wish-on-fade-rgb: 255 255 255;
   position: fixed;
   left: 0;
   right: 0;
   bottom: 0;
   z-index: 70;
-  padding: 0 12px 12px;
+  padding: 0 8px 8px;
   pointer-events: none;
   transform: translateY(24px);
   opacity: 0;
@@ -1650,9 +1666,26 @@ textarea::-webkit-scrollbar-thumb:hover {
   opacity: 1;
 }
 
-/* Cột dồn về mép TRÁI, rộng 2/3 — phần còn lại để trống cho nút của mẫu thiệp
-   (nhạc, hộp quà) không bị dải che. */
+/* Đậm nhất ở đáy rồi tan hết trước khi chạm mép trên của dải, nên phần danh
+   sách lời chúc gần như không bị tối đi. Nằm dưới nội dung (.cx-wdock-inner
+   z-index 1) và KHÔNG bắt chạm — dải vốn pointer-events: none. */
+.cx-wdock::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgb(var(--cx-wish-fade-rgb) / var(--cx-wish-fade-a)) 0,
+    rgb(var(--cx-wish-fade-rgb) / calc(var(--cx-wish-fade-a) * 0.4)) 20%,
+    rgb(var(--cx-wish-fade-rgb) / 0) 50%
+  );
+}
+
+/* Cột dồn về mép TRÁI, rộng 2/3 — cả danh sách lẫn ô nhập đều nằm trong khổ này,
+   phần bên phải để trống cho nút của mẫu thiệp (nhạc, hộp quà) không bị che. */
 .cx-wdock-inner {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -1747,36 +1780,42 @@ textarea::-webkit-scrollbar-thumb:hover {
   padding: 0 8px;
   font-size: 12px;
   line-height: 1.5;
+  color: rgb(var(--cx-wish-on-fade-rgb));
   opacity: 0.75;
 }
 
-/* Ô nhập: mặc định là pill NHỎ co theo dòng gợi ý, bấm vào (.is-open) mới trải
-   hết bề ngang cột và đổi sang ô gõ. Trong suốt cùng độ mờ với bong bóng. */
+/* Ô nhập: thẻ nổi dài hết CỘT (.cx-wdock-inner, 2/3 màn), bấm vào (.is-open) thì
+   dòng gợi ý đổi thành ô gõ ngay tại chỗ. Nền là một tấm kính
+   mờ nhạt (30%) chứ không phải màu của dải — xem --cx-wish-field-* ở trên; chữ đi
+   theo màn tối bên dưới. Giữ THẤP: cao ngang một hàng nút, đừng độn padding. */
 .cx-wdock-card {
   display: flex;
   align-items: flex-end;
-  align-self: flex-start;
-  gap: 8px;
-  max-width: 100%;
-  padding: 6px 6px 6px 16px;
-  border-radius: 20px;
+  gap: 4px;
+  padding: 1px 3px 1px 12px;
+  border-radius: 999px;
   pointer-events: auto;
   cursor: text;
-  color: rgb(var(--cx-wish-text-rgb));
-  background: rgb(var(--cx-wish-bubble-rgb) / var(--cx-wish-bubble-a));
-  border: 1px solid rgb(var(--cx-wish-text-rgb) / 0.15);
-  box-shadow: 0 8px 28px rgb(var(--cx-shadow-rgb) / 0.14);
+  color: rgb(var(--cx-wish-on-fade-rgb));
+  background: rgb(var(--cx-wish-field-rgb) / var(--cx-wish-field-a));
+  /* Viền lấy màu CHỮ chứ không lấy màu nền: nền tối mờ nằm trên ảnh tối thì
+     không thấy mép thẻ đâu cả. */
+  border: 1px solid rgb(var(--cx-wish-on-fade-rgb) / 0.18);
+  /* Nhoè phần thiệp trôi phía sau cho chữ trong ô luôn tách khỏi nền. Trình
+     duyệt không đỡ thì vẫn còn tấm kính 30% ở trên, không hỏng gì. */
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
   transition: align-self 0s;
 }
 
 .cx-wdock-card.is-open {
-  align-self: stretch;
   flex-wrap: wrap;
 }
 
 .cx-wdock-hint {
   min-width: 0;
-  padding: 8px 0;
+  flex: 1;
+  padding: 5px 0;
   font-size: 13px;
   line-height: 1.5;
   text-align: left;
@@ -1797,7 +1836,7 @@ textarea::-webkit-scrollbar-thumb:hover {
   display: none;
   flex: 1;
   min-width: 0;
-  margin: 8px 0;
+  margin: 5px 0;
   padding: 0;
   border: 0;
   font: inherit;
@@ -1817,16 +1856,37 @@ textarea::-webkit-scrollbar-thumb:hover {
   display: block;
 }
 
+/* Chỉ còn CÁI BÚT, không đĩa nền: ô nhập đã là một tấm kính rồi, thêm một khoanh
+   màu đặc nữa là nặng cả dải. Khổ 36px giữ nguyên để đủ tầm chạm. */
 .cx-wdock-btn {
   display: flex;
   align-items: center;
   justify-content: center;
   flex: none;
-  width: 36px;
-  height: 36px;
+  width: 28px;
+  height: 28px;
   border-radius: 999px;
-  background: rgb(var(--cx-wish-accent-rgb));
-  color: rgb(var(--cx-wish-on-accent-rgb));
+  background: none;
+  color: rgb(var(--cx-wish-btn-rgb));
+}
+
+/* Chưa bấm vào ô thì nút mang icon "viết lời chúc"; bung ô ra (.is-open) mới
+   thành cánh diều Gửi. Cả hai icon nằm sẵn trong nút, chỉ ẩn/hiện bằng CSS —
+   lucide không tự quét lại nên đổi icon bằng JS là mất hình. */
+.cx-wdock-ico-idle,
+.cx-wdock-ico-send {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cx-wdock-ico-send,
+.cx-wdock-card.is-open .cx-wdock-ico-idle {
+  display: none;
+}
+
+.cx-wdock-card.is-open .cx-wdock-ico-send {
+  display: flex;
 }
 
 .cx-wdock-btn[disabled] {
@@ -1839,13 +1899,26 @@ textarea::-webkit-scrollbar-thumb:hover {
   padding: 0 4px 6px;
   font-size: 12px;
   line-height: 1.45;
-  color: rgb(var(--cx-wish-accent-rgb));
+  color: rgb(var(--cx-wish-on-fade-rgb));
+}
+
+/* ── Chuyển màu (gradient) cho nền bong bóng ─────────────────────────────────
+   Cờ .cx-wg-bubble do applyWishStyle() gắn khi mẫu khai "bubble_to". CHỈ ô này
+   đổ màu được: chữ đổ màu phải cắt nền theo hình chữ (ở cỡ chữ của dải thì đọc
+   rất mệt), còn nút gửi thì đã bỏ nền. Khai SAU các luật nền ở trên để đè được
+   `background` viết dạng rút gọn. */
+.cx-wdock.cx-wg-bubble .cx-wish-item {
+  background-image: linear-gradient(
+    135deg,
+    rgb(var(--cx-wish-bubble-rgb) / var(--cx-wish-bubble-a)),
+    rgb(var(--cx-wish-bubble-2-rgb) / var(--cx-wish-bubble-a))
+  );
 }
 
 /* Chỗ trống ở đáy thân thiệp cho ô nhập, do JS chèn khi dựng dải. Chỉ cần bằng
    ô nhập: phần danh sách phía trên trong suốt nên để nó đè lên thiệp là đúng. */
 .cx-wdock-spacer {
-  height: 72px;
+  height: 56px;
 }
 
 @media (prefers-reduced-motion: reduce) {
