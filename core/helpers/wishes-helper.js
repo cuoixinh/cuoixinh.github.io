@@ -9,11 +9,11 @@
 const CX_WISH_MAX = 3;
 const CX_WISH_MAX_LEN = 500;
 
-// Số lời chúc tối thiểu để danh sách bắt đầu trôi — ít hơn thì trôi trông như lỗi.
-const CX_WISH_ROLL_MIN = 4;
+// Tốc độ trôi (px/giây) — danh sách dài ngắn đều đi cùng nhịp đọc.
+const CX_WISH_SPEED = 32;
 
-// Giây cho MỘT lời chúc đi hết khung: giữ tốc độ đọc như nhau dù danh sách dài ngắn.
-const CX_WISH_ROLL_SEC = 6;
+// Nghỉ bao lâu sau khi lời chúc cuối rời khỏi khung rồi chiếu lại từ đầu (ms).
+const CX_WISH_REPLAY_MS = 5000;
 
 const CX_WISH_DEMO = [
   { id: "d1", name: "Anh Minh", relationship: "Bạn thân", text: "Chúc hai bạn trăm năm hạnh phúc, đầu bạc răng long!" },
@@ -25,6 +25,11 @@ const CX_WISH_DEMO = [
 let _cxWishItems = [];
 let _cxWishRemaining = CX_WISH_MAX;
 let _cxWishDemo = false;
+
+// Vòng chiếu hiện tại — phải dọn trước khi vẽ lại, nếu không lượt cũ vẫn hẹn giờ
+// khởi động lại một thẻ track đã bị gỡ khỏi DOM.
+let _cxWishReplayTimer = null;
+let _cxWishResizeTimer = null;
 
 function _cxWishReduceMotion() {
   return window.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true;
@@ -79,11 +84,12 @@ function _cxWishItemHtml(w) {
   );
 }
 
-// Vẽ lại cả danh sách. Danh sách trôi được nhân đôi để vòng lặp không thấy mối
-// nối — nên MỌI thứ đọc số lượng thật phải nhìn _cxWishItems, đừng đếm thẻ DOM.
 function _cxWishRender() {
   const mount = document.getElementById("cx-wishes-list");
   if (!mount) return;
+
+  clearTimeout(_cxWishReplayTimer);
+  _cxWishReplayTimer = null;
 
   if (_cxWishItems.length === 0) {
     mount.innerHTML =
@@ -91,16 +97,58 @@ function _cxWishRender() {
     return;
   }
 
-  const rolling = _cxWishItems.length >= CX_WISH_ROLL_MIN && !_cxWishReduceMotion();
-  const html = _cxWishItems.map(_cxWishItemHtml).join("");
-
   mount.innerHTML =
     '<div class="cx-wish-viewport">' +
-    `<div class="cx-wish-track${rolling ? " is-rolling" : ""}" ` +
-    `style="--cx-wish-dur:${_cxWishItems.length * CX_WISH_ROLL_SEC}s">` +
-    (rolling ? html + html : html) +
+    '<div class="cx-wish-track">' +
+    _cxWishItems.map(_cxWishItemHtml).join("") +
     "</div></div>";
+
+  _cxWishStartRoll();
 }
+
+// Một lượt chiếu: danh sách vào từ mép DƯỚI khung, đi lên cho tới khi lời chúc
+// cuối khuất hẳn, nghỉ CX_WISH_REPLAY_MS rồi chạy lại từ đầu. Quãng đường phải đo
+// bằng px (chiều cao khung + chiều cao danh sách) vì `translateY(%)` tính theo
+// chính thẻ track — hai thứ có kích thước khác nhau.
+function _cxWishStartRoll() {
+  const view = document.querySelector(".cx-wish-viewport");
+  const track = view?.querySelector(".cx-wish-track");
+  if (!view || !track || _cxWishReduceMotion()) return;
+
+  const viewH = view.clientHeight;
+  const trackH = track.scrollHeight;
+  if (!viewH || !trackH) return;
+
+  track.style.setProperty("--cx-wish-from", `${viewH}px`);
+  track.style.setProperty("--cx-wish-to", `${-trackH}px`);
+  track.style.setProperty("--cx-wish-dur", `${(viewH + trackH) / CX_WISH_SPEED}s`);
+
+  // Gỡ rồi gắn lại .is-rolling để lượt sau chạy lại từ khung hình đầu; đọc
+  // offsetHeight ở giữa để trình duyệt chốt trạng thái, không gộp hai thao tác.
+  track.classList.remove("is-rolling");
+  void track.offsetHeight;
+  track.classList.add("is-rolling");
+
+  track.addEventListener(
+    "animationend",
+    () => {
+      clearTimeout(_cxWishReplayTimer);
+      _cxWishReplayTimer = setTimeout(() => {
+        // Danh sách có thể đã được vẽ lại (khách vừa gửi lời chúc) — thẻ track
+        // rời DOM thì bỏ lượt này, lượt mới do _cxWishRender lo.
+        if (track.isConnected) _cxWishStartRoll();
+      }, CX_WISH_REPLAY_MS);
+    },
+    { once: true },
+  );
+}
+
+// Xoay máy / đổi khổ màn là đổi chiều cao khung → phải đo và chiếu lại từ đầu.
+window.addEventListener("resize", () => {
+  if (!document.querySelector(".cx-wish-viewport")) return;
+  clearTimeout(_cxWishResizeTimer);
+  _cxWishResizeTimer = setTimeout(_cxWishStartRoll, 200);
+});
 
 function _cxWishSetDockText() {
   const hint = document.getElementById("cx-wdock-hint");
