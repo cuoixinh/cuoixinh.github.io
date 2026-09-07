@@ -380,6 +380,15 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   chạy một lượt từ mép dưới lên hết danh sách rồi nghỉ `CX_WISH_REPLAY_MS` mới chiếu lại;
   quãng đường đo bằng px trong `_cxWishStartRoll` (`translateY(%)` tính theo thẻ track chứ
   không theo khung) và đo lại qua `ResizeObserver` vì lúc dựng `#main-card` còn `display:none`.
+  Dải **không hiện ở màn bìa lẫn màn mở đầu** — chỉ mờ hiện khi khách đã mở bìa VÀ cuộn quá
+  `CX_WISH_SHOW_AT` màn hình. Màu đi qua bộ token riêng `--cx-wish-*` trên `.cx-wdock`:
+  mặc định ăn theo token chung của thiệp (`panel`/`body`/`accent`), mẫu ghi đè bằng
+  **`CX_THEME.wishes`** (`bubble`/`text`/`accent`/`opacity`, khai khi mặc định không hợp tông
+  — ví dụ mẫu nền tối), khách ghi đè tiếp ở tab Giao diện → `theme_setting.wishes` (**không
+  cần changelog DB**). Bảng chỉnh ở `05-theme-panel.js`, áp thẳng qua `postMessage`
+  (`cx-wish-style`) như hộp quà; nó hỏi màu mặc định bằng `cx-wish-base-get` chứ không đoán
+  (mặc định còn phụ thuộc bộ màu đang chọn), và ghim dải hiện sẵn bằng `cx-wish-peek` trong
+  lúc chỉnh.
   Cổng chặn "chỉ khách được mời" nằm ở Edge Function `guest-handler`
   (`action=wish` khớp một hàng `guests` theo slug + tên + xưng hô): tham số `name`/
   `relationship` trên link mã hoá bằng khoá nằm trong bundle client nên **giải mã được ở

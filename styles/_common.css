@@ -1623,6 +1623,14 @@ textarea::-webkit-scrollbar-thumb:hover {
 /* Dưới lightbox (z 100) và trên thanh nhạc (z 60). KHÔNG dùng
    env(safe-area-inset-bottom) — quy ước toàn project, xem .cx-tabbar. */
 .cx-wdock {
+  /* Bảng màu riêng của dải: mặc định ăn theo token chung của thiệp, mẫu ghi đè
+     bằng CX_THEME.wishes và khách ghi đè tiếp ở tab Giao diện — cả hai đi qua
+     applyWishStyle() (core/helpers/wishes-helper.js) đặt lại đúng mấy biến này. */
+  --cx-wish-bubble-rgb: var(--cx-panel-rgb);
+  --cx-wish-bubble-a: 0.8;
+  --cx-wish-text-rgb: var(--cx-body-rgb);
+  --cx-wish-accent-rgb: var(--cx-accent-rgb);
+  --cx-wish-on-accent-rgb: var(--cx-on-accent-rgb);
   position: fixed;
   left: 0;
   right: 0;
@@ -1719,12 +1727,14 @@ textarea::-webkit-scrollbar-thumb:hover {
   text-align: left;
   word-break: break-word;
   pointer-events: auto;
-  background: rgb(var(--cx-panel-rgb) / 0.82);
-  border: 1px solid rgb(var(--cx-line-rgb) / 0.5);
+  color: rgb(var(--cx-wish-text-rgb));
+  background: rgb(var(--cx-wish-bubble-rgb) / var(--cx-wish-bubble-a));
+  border: 1px solid rgb(var(--cx-wish-text-rgb) / 0.12);
 }
 
 .cx-wish-name {
   font-weight: 600;
+  color: rgb(var(--cx-wish-accent-rgb));
 }
 
 .cx-wish-name::after {
@@ -1748,8 +1758,9 @@ textarea::-webkit-scrollbar-thumb:hover {
   border-radius: 999px;
   pointer-events: auto;
   cursor: pointer;
-  background: rgb(var(--cx-panel-rgb) / 0.96);
-  border: 1px solid rgb(var(--cx-line-rgb));
+  color: rgb(var(--cx-wish-text-rgb));
+  background: rgb(var(--cx-wish-bubble-rgb));
+  border: 1px solid rgb(var(--cx-wish-text-rgb) / 0.15);
   box-shadow: 0 8px 28px rgb(var(--cx-shadow-rgb) / 0.18);
 }
 
@@ -1772,8 +1783,8 @@ textarea::-webkit-scrollbar-thumb:hover {
   width: 36px;
   height: 36px;
   border-radius: 999px;
-  background: rgb(var(--cx-accent-rgb));
-  color: rgb(var(--cx-on-accent-rgb));
+  background: rgb(var(--cx-wish-accent-rgb));
+  color: rgb(var(--cx-wish-on-accent-rgb));
 }
 
 /* Chỗ trống ở đáy thân thiệp cho ô nhập, do JS chèn khi dựng dải. Chỉ cần bằng

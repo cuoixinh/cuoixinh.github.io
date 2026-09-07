@@ -15,6 +15,23 @@ const CX_WISH_SPEED = 32;
 // Nghỉ bao lâu sau khi lời chúc cuối rời khỏi khung rồi chiếu lại từ đầu (ms).
 const CX_WISH_REPLAY_MS = 5000;
 
+// Cuộn qua bao nhiêu phần màn hình thì dải mới hiện ra (fade). Màn bìa và màn
+// mở đầu phải sạch, dải chỉ xuất hiện khi khách đã bắt đầu đọc thiệp.
+const CX_WISH_SHOW_AT = 0.6;
+
+// Ba nút màu của dải. Thứ tự ưu tiên: khách chỉnh ở tab Giao diện
+// (theme_setting.wishes) > mẫu khai (CX_THEME.wishes) > token chung của thiệp.
+// Mỗi khoá ứng với một biến CSS trên .cx-wdock (xem styles/_common.css).
+// Độ mờ nền bong bóng mặc định (%) — trùng --cx-wish-bubble-a ở _common.css và
+// bước 5 của thanh trượt ở tab Giao diện.
+const CX_WISH_OPACITY = 80;
+
+const CX_WISH_COLORS = {
+  bubble: { varName: "--cx-wish-bubble-rgb", from: "--cx-panel-rgb" },
+  text: { varName: "--cx-wish-text-rgb", from: "--cx-body-rgb" },
+  accent: { varName: "--cx-wish-accent-rgb", from: "--cx-accent-rgb" },
+};
+
 const CX_WISH_DEMO = [
   { id: "d1", name: "Anh Minh", relationship: "Bạn thân", text: "Chúc hai bạn trăm năm hạnh phúc, đầu bạc răng long!" },
   { id: "d2", name: "Chị Lan", relationship: "Đồng nghiệp", text: "Chúc mừng hạnh phúc hai em nhé, sớm có tin vui!" },
@@ -35,6 +52,83 @@ function _cxWishReduceMotion() {
   return window.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true;
 }
 
+// ── Màu của dải ─────────────────────────────────────────────────────────────
+
+function _cxWishRootVar(name) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
+// "#a89968" → "168 153 104". Token viết dạng bộ ba để chỗ dùng còn chèn được
+// alpha: rgb(var(--cx-wish-bubble-rgb) / 0.82).
+function _cxWishTriplet(hex) {
+  if (typeof hex !== "string") return "";
+  let h = hex.trim().replace(/^#/, "");
+  if (h.length === 3) h = h.split("").map((c) => c + c).join("");
+  if (!/^[0-9a-f]{6}$/i.test(h)) return "";
+  return [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16)).join(" ");
+}
+
+// Màu chữ trên nút Gửi: suy từ chính màu nhấn để khách chọn tông sáng vẫn đọc
+// được, thay vì luôn dùng --cx-on-accent-rgb của mẫu.
+function _cxWishOnAccent(triplet) {
+  const [r, g, b] = triplet.split(/\s+/).map(Number);
+  if ([r, g, b].some((v) => !Number.isFinite(v))) return "";
+  return (r * 299 + g * 587 + b * 114) / 1000 > 150 ? "28 28 28" : "255 255 255";
+}
+
+/**
+ * Màu MẶC ĐỊNH của dải trên thiệp này (mẫu khai gì, hoặc token chung nếu không
+ * khai) — trang Thiết lập hỏi giá trị này để đổ vào ô màu lúc chưa chỉnh gì.
+ */
+function cxWishBaseColors() {
+  const decl = (window.CX_THEME && window.CX_THEME.wishes) || {};
+  const out = {};
+  Object.entries(CX_WISH_COLORS).forEach(([key, def]) => {
+    out[key] = _cxWishTriplet(decl[key]) || _cxWishRootVar(def.from);
+  });
+  out.opacity = Number.isFinite(decl.opacity) ? decl.opacity : CX_WISH_OPACITY;
+  return out;
+}
+
+/**
+ * Áp bảng màu lên dải. `wishes` là phần khách chỉnh (theme_setting.wishes) —
+ * khoá nào không có thì rơi về bản khai của mẫu rồi tới token chung.
+ */
+function applyWishStyle(wishes) {
+  const dock = document.getElementById("cx-wish-dock");
+  if (!dock) return;
+
+  const base = cxWishBaseColors();
+  const user = wishes || {};
+
+  Object.entries(CX_WISH_COLORS).forEach(([key, def]) => {
+    const val = _cxWishTriplet(user[key]) || base[key];
+    if (val) dock.style.setProperty(def.varName, val);
+    if (key === "accent" && val) {
+      dock.style.setProperty("--cx-wish-on-accent-rgb", _cxWishOnAccent(val));
+    }
+  });
+
+  const op = Number.isFinite(user.opacity) ? user.opacity : base.opacity;
+  dock.style.setProperty("--cx-wish-bubble-a", String(Math.min(100, Math.max(0, op)) / 100));
+}
+
+// theme_setting có thể là chuỗi JSON (dữ liệu lấy thẳng từ form ở bản xem thử).
+function _cxWishSetting(wedding) {
+  let st = wedding && wedding.theme_setting;
+  if (typeof st === "string") {
+    try {
+      st = JSON.parse(st);
+    } catch (e) {
+      st = null;
+    }
+  }
+  return (st && typeof st === "object" && st.wishes) || null;
+}
+
+window.cxWishBaseColors = cxWishBaseColors;
+window.applyWishStyle = applyWishStyle;
+
 // Thẻ con flex-column bọc các mục của thân thiệp (quy ước: #main-card có ĐÚNG một).
 function _cxWishHost() {
   const card = document.getElementById("main-card");
@@ -44,7 +138,7 @@ function _cxWishHost() {
 function _cxWishItemHtml(w) {
   return (
     '<div class="cx-wish-item cx-t">' +
-    `<span class="cx-wish-name cx-a">${escapeHtml(w.name || "Khách mời")}</span>` +
+    `<span class="cx-wish-name">${escapeHtml(w.name || "Khách mời")}</span>` +
     `<span class="cx-wish-text">${escapeHtml(w.text)}</span>` +
     "</div>"
   );
@@ -179,22 +273,33 @@ function _cxWishBuildDock(canWrite) {
       .addEventListener("click", _cxWishOpenSheet);
   }
 
-  // Thiệp có bìa thì thân thiệp còn display:none — dải chỉ trượt lên sau khi
-  // khách mở bìa, nếu không nó nằm chình ình trên ảnh bìa.
-  const card = document.getElementById("main-card");
-  const show = () => dock.classList.add("is-on");
+  _cxWishWatchReveal(dock);
+}
 
-  if (!card || card.style.display !== "none") {
-    requestAnimationFrame(show);
-    return;
+// Dải chỉ hiện khi khách ĐÃ mở bìa VÀ đã cuộn qua màn mở đầu — màn bìa và màn
+// hero phải sạch. Cuộn ngược lên đầu thì mờ đi trở lại (chuyển động ở .cx-wdock).
+function _cxWishWatchReveal(dock) {
+  const card = document.getElementById("main-card");
+
+  const sync = () => {
+    // Trang Thiết lập đang mở bảng chỉnh màu thì giữ dải hiện, khỏi phải cuộn.
+    if (dock.classList.contains("is-peek")) return;
+    const opened = !card || card.style.display !== "none";
+    const scrolled = window.scrollY >= window.innerHeight * CX_WISH_SHOW_AT;
+    dock.classList.toggle("is-on", opened && scrolled);
+  };
+
+  window.addEventListener("scroll", sync, { passive: true });
+  window.addEventListener("resize", sync, { passive: true });
+
+  // Bìa mở ra không kèm sự kiện cuộn nào — theo dõi luôn thẻ thân thiệp.
+  if (card) {
+    new MutationObserver(sync).observe(card, {
+      attributes: true,
+      attributeFilter: ["style"],
+    });
   }
-  const mo = new MutationObserver(() => {
-    if (card.style.display !== "none") {
-      mo.disconnect();
-      show();
-    }
-  });
-  mo.observe(card, { attributes: true, attributeFilter: ["style"] });
+  sync();
 }
 
 function _cxWishCloseSheet() {
@@ -303,6 +408,7 @@ async function initWishes(wedding) {
 
     if (_cxWishDemo) {
       _cxWishBuildDock(true);
+      applyWishStyle(_cxWishSetting(wedding));
       _cxWishItems = CX_WISH_DEMO.slice();
       _cxWishRender();
       return;
@@ -311,6 +417,7 @@ async function initWishes(wedding) {
     // Dựng vỏ trước rồi mới nạp: mount của danh sách nằm trong chính dải nổi.
     const guest = window.CX_GUEST;
     _cxWishBuildDock(!!guest);
+    applyWishStyle(_cxWishSetting(wedding));
 
     const slug = getSlugFromUrl();
     if (slug && window.guestDAL) {
@@ -333,3 +440,27 @@ async function initWishes(wedding) {
 }
 
 window.initWishes = initWishes;
+
+// Trong khung xem trước của trang Thiết lập: đổi màu áp NGAY, không nạp lại cả
+// khung (bảng chỉnh bên trang cha phải đứng yên để còn kéo thử màu). Trang cha
+// cũng hỏi màu mặc định của mẫu qua 'cx-wish-base-get' để đổ vào ô màu.
+if (window.top !== window) {
+  window.addEventListener("message", (ev) => {
+    if (ev.source !== window.parent) return;
+    const d = ev.data;
+    if (!d) return;
+    if (d.type === "cx-wish-style") applyWishStyle(d.value);
+    if (d.type === "cx-wish-peek") {
+      const dock = document.getElementById("cx-wish-dock");
+      dock?.classList.toggle("is-peek", !!d.on);
+      dock?.classList.toggle("is-on", !!d.on || dock.classList.contains("is-on"));
+      if (!d.on) window.dispatchEvent(new Event("scroll"));
+    }
+    if (d.type === "cx-wish-base-get") {
+      window.parent.postMessage(
+        { type: "cx-wish-base", value: cxWishBaseColors() },
+        "*",
+      );
+    }
+  });
+}

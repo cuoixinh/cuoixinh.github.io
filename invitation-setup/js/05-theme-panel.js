@@ -306,6 +306,7 @@ function _initThemePanel() {
   document.getElementById("theme-decor-panel")?.classList.add("hidden");
   document.getElementById("theme-elements-panel")?.classList.add("hidden");
   document.getElementById("theme-gift-panel")?.classList.add("hidden");
+  document.getElementById("theme-wishes-panel")?.classList.add("hidden");
   _hideElementEditor();
   closeLineEditor();
   document.getElementById("theme-main-controls")?.classList.remove("hidden");
@@ -410,6 +411,10 @@ window.addEventListener("message", (ev) => {
     // Đang kéo hoạ tiết/thành phần/khối văn bản trên thiệp → thanh chỉnh lui đi
     // cho thấy chỗ đang thả (chỉ có tác dụng ở mobile, xem .cx-ctrl-away).
     _setCtrlAway(!!d.on);
+  } else if (d.type === "cx-wish-base") {
+    // Khung xem trước trả lời màu MẶC ĐỊNH của dải lời chúc trên mẫu này.
+    _wishBase = d.value || null;
+    _syncWishControls();
   } else if (d.type === "cx-gift-reload") {
     // Hộp gốc của mẫu đã bị bấm mở, muốn về "Mặc định" thì chỉ còn cách dựng lại
     // thiệp từ đầu (core/helpers/gift-box-helper.js).
@@ -471,6 +476,7 @@ function openAddTextPanel() {
   document.getElementById("theme-edit-hint")?.classList.add("hidden");
   document.getElementById("theme-elements-panel")?.classList.add("hidden");
   document.getElementById("theme-gift-panel")?.classList.add("hidden");
+  document.getElementById("theme-wishes-panel")?.classList.add("hidden");
   _hideElementEditor();
   document.getElementById("theme-addtext-panel")?.classList.remove("hidden");
   _resetCtrlScroll();
@@ -700,6 +706,7 @@ function openDecorPanel() {
   document.getElementById("theme-edit-hint")?.classList.add("hidden");
   document.getElementById("theme-elements-panel")?.classList.add("hidden");
   document.getElementById("theme-gift-panel")?.classList.add("hidden");
+  document.getElementById("theme-wishes-panel")?.classList.add("hidden");
   _hideElementEditor();
   document.getElementById("theme-decor-panel")?.classList.remove("hidden");
   _resetCtrlScroll();
@@ -795,6 +802,7 @@ function openElementsPanel() {
   document.getElementById("theme-addtext-panel")?.classList.add("hidden");
   document.getElementById("theme-decor-panel")?.classList.add("hidden");
   document.getElementById("theme-gift-panel")?.classList.add("hidden");
+  document.getElementById("theme-wishes-panel")?.classList.add("hidden");
   _hideElementEditor();
   document.getElementById("theme-main-controls")?.classList.add("hidden");
   document.getElementById("theme-edit-hint")?.classList.add("hidden");
@@ -966,6 +974,130 @@ function _addElement(elementId, variantId, x, y) {
   }, 150);
 }
 
+// ─── Lời chúc: màu của dải nổi ở đáy thiệp ──────────────────────────────────
+// Ba ô màu + độ mờ, lưu ở _themeSetting.wishes (không cần changelog DB). Ô nào
+// khách chưa chỉnh thì hiện màu MẶC ĐỊNH của mẫu — hỏi thẳng khung xem trước
+// (cx-wish-base-get) chứ không đoán, vì mặc định còn phụ thuộc bộ màu đang chọn.
+// Đổi màu áp NGAY bằng postMessage: nạp lại khung là bảng chỉnh đóng mất.
+
+const WISH_COLOR_KEYS = ["bubble", "text", "accent"];
+
+let _wishBase = null;
+
+function _wishSetting() {
+  if (!_themeSetting.wishes || typeof _themeSetting.wishes !== "object") {
+    _themeSetting.wishes = {};
+  }
+  return _themeSetting.wishes;
+}
+
+function _wishFrameWin() {
+  return _lineIframe()?.contentWindow || null;
+}
+
+function _askWishBase() {
+  _wishFrameWin()?.postMessage({ type: "cx-wish-base-get" }, "*");
+}
+
+// "168 153 104" → "#a89968" (ô màu Coloris chỉ nhận hex).
+function _wishTripletToHex(v) {
+  const p = String(v || "").trim().split(/\s+/).map(Number);
+  if (p.length !== 3 || p.some((n) => !Number.isFinite(n))) return "";
+  return "#" + p.map((n) => Math.max(0, Math.min(255, n)).toString(16).padStart(2, "0")).join("");
+}
+
+function _syncWishControls() {
+  const cur = _wishSetting();
+  WISH_COLOR_KEYS.forEach((k) => {
+    const val = cur[k] || _wishTripletToHex(_wishBase && _wishBase[k]) || "#ffffff";
+    _chipValueRaw("cx-wish-color-" + k, val);
+  });
+
+  const slider = document.getElementById("cx-wish-opacity");
+  if (slider) {
+    const base = Number.isFinite(_wishBase && _wishBase.opacity) ? _wishBase.opacity : 80;
+    slider.value = String(Number.isFinite(cur.opacity) ? cur.opacity : base);
+    window.CXProgress?.paint(slider);
+  }
+}
+
+function openWishesPanel() {
+  document.getElementById("theme-line-editor")?.classList.add("hidden");
+  document.getElementById("theme-addtext-panel")?.classList.add("hidden");
+  document.getElementById("theme-decor-panel")?.classList.add("hidden");
+  document.getElementById("theme-elements-panel")?.classList.add("hidden");
+  document.getElementById("theme-gift-panel")?.classList.add("hidden");
+  document.getElementById("theme-wishes-panel")?.classList.add("hidden");
+  _hideElementEditor();
+  document.getElementById("theme-main-controls")?.classList.add("hidden");
+  document.getElementById("theme-edit-hint")?.classList.add("hidden");
+  document.getElementById("theme-wishes-panel")?.classList.remove("hidden");
+  _resetCtrlScroll();
+  _askWishBase();
+  _syncWishControls();
+  // Dải chỉ hiện sau khi khách cuộn qua màn mở đầu — trong lúc chỉnh thì ghim nó
+  // hiện sẵn, không bắt người dùng cuộn khung xem trước.
+  _wishFrameWin()?.postMessage({ type: "cx-wish-peek", on: true }, "*");
+  if (window.lucide) lucide.createIcons();
+}
+window.openWishesPanel = openWishesPanel;
+
+function closeWishesPanel() {
+  _wishFrameWin()?.postMessage({ type: "cx-wish-peek", on: false }, "*");
+  document.getElementById("theme-wishes-panel")?.classList.add("hidden");
+  document.getElementById("theme-main-controls")?.classList.remove("hidden");
+  _resetCtrlScroll();
+  _initEditHint();
+}
+window.closeWishesPanel = closeWishesPanel;
+
+// Coloris bắn 'input' liên tục khi kéo trong bảng màu → áp live, chỉ chốt lưu
+// khi 'change' (giống chip màu của bảng chỉnh chi tiết một dòng chữ).
+function _onWishColor(key, value, commit) {
+  const cur = _wishSetting();
+  if (value) cur[key] = value;
+  else delete cur[key];
+  _wishFrameWin()?.postMessage({ type: "cx-wish-style", value: cur }, "*");
+  if (commit) {
+    _setDirty(true, "theme");
+    _savePreviewData();
+  }
+}
+
+function onWishOpacityInput() {
+  const el = document.getElementById("cx-wish-opacity");
+  if (!el) return;
+  _wishSetting().opacity = Number(el.value);
+  _wishFrameWin()?.postMessage({ type: "cx-wish-style", value: _wishSetting() }, "*");
+}
+window.onWishOpacityInput = onWishOpacityInput;
+
+function onWishOpacityCommit() {
+  _setDirty(true, "theme");
+  _savePreviewData();
+}
+window.onWishOpacityCommit = onWishOpacityCommit;
+
+// Bỏ hết phần khách chỉnh, trả dải về đúng màu mẫu khai.
+function resetWishStyle() {
+  delete _themeSetting.wishes;
+  _wishFrameWin()?.postMessage({ type: "cx-wish-style", value: null }, "*");
+  _syncWishControls();
+  _setDirty(true, "theme");
+  _savePreviewData();
+}
+window.resetWishStyle = resetWishStyle;
+
+function _initWishControls() {
+  window.CXProgress?.attach(document.getElementById("cx-wish-opacity"));
+  WISH_COLOR_KEYS.forEach((k) => {
+    const el = document.getElementById("cx-wish-color-" + k);
+    if (!el) return;
+    el.addEventListener("input", () => _onWishColor(k, el.value, false));
+    el.addEventListener("change", () => _onWishColor(k, el.value, true));
+  });
+}
+
 // ─── Hộp mừng cưới: chọn kiểu che phần mã QR ────────────────────────────────
 // Một lưới gồm hai ô cố định — "Mặc định" (không lưu gì, mẫu tự lo phần này) và
 // "Không hộp" — rồi tới từng mẫu hộp trong window.CX_GIFT_BOXES
@@ -990,6 +1122,7 @@ window.openGiftPanel = openGiftPanel;
 
 function closeGiftPanel() {
   document.getElementById("theme-gift-panel")?.classList.add("hidden");
+  document.getElementById("theme-wishes-panel")?.classList.add("hidden");
   document.getElementById("theme-main-controls")?.classList.remove("hidden");
   _resetCtrlScroll();
   _initEditHint();
@@ -1142,6 +1275,7 @@ function openElementEditor(msg) {
   document.getElementById("theme-decor-panel")?.classList.add("hidden");
   document.getElementById("theme-elements-panel")?.classList.add("hidden");
   document.getElementById("theme-gift-panel")?.classList.add("hidden");
+  document.getElementById("theme-wishes-panel")?.classList.add("hidden");
   document.getElementById("theme-main-controls")?.classList.add("hidden");
   document.getElementById("theme-edit-hint")?.classList.add("hidden");
   document.getElementById("theme-element-editor")?.classList.remove("hidden");
@@ -1332,6 +1466,7 @@ function _openLineEditor(msg) {
   document.getElementById("theme-edit-hint")?.classList.add("hidden");
   document.getElementById("theme-elements-panel")?.classList.add("hidden");
   document.getElementById("theme-gift-panel")?.classList.add("hidden");
+  document.getElementById("theme-wishes-panel")?.classList.add("hidden");
   _hideElementEditor();
   document.getElementById("theme-line-editor")?.classList.remove("hidden");
   _resetCtrlScroll();
@@ -1935,6 +2070,7 @@ function _updateSheetFade(body) {
 // Thêm bảng mới → thêm một dòng ở đây, khỏi đụng vào các hàm mở/đóng bảng.
 const CTRL_HEADS = [
   ["theme-element-editor", "cx-head-element-editor"],
+  ["theme-wishes-panel", "cx-head-wishes"],
   ["theme-gift-panel", "cx-head-gift"],
   ["theme-elements-panel", "cx-head-elements"],
   ["theme-decor-panel", "cx-head-decor"],
@@ -2097,6 +2233,7 @@ function _initSheet(bodyId, handleId) {
 
 function _initThemePanelObservers() {
   _initElWidthSlider();
+  _initWishControls();
   _initThemeResize();
   _initElPreviewResize();
   _initSheet("cx-ctrl-scroll", "cx-ctrl-handle");
