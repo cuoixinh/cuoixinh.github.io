@@ -49,6 +49,11 @@ async function loadWeddingData(weddingSlug, renderCallback) {
     if (typeof applyElements === "function") {
       applyElements(wedding.theme_setting);
     }
+    // Lời chúc khách mời — sau cùng vì nó tự chèn một mục vào cuối thân thiệp,
+    // và thanh ghim đáy phải nằm trên mọi thứ vừa dựng ở trên.
+    if (typeof initWishes === "function") {
+      initWishes(wedding);
+    }
   } catch (error) {
     // Hết hạn dùng thử: edge function trả 403 TRIAL_EXPIRED. Đây KHÔNG phải lỗi —
     // hiện màn khoá thay vì đá về trang chủ, nếu không khách mời (và cả chủ thiệp)

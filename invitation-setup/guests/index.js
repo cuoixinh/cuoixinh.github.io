@@ -23,6 +23,7 @@ document.addEventListener("click", (e) => {
   if (action === "copy" && link)         { e.stopPropagation(); copyGuestLink(link); }
   if (action === "share" && guestId)     { e.stopPropagation(); _openShareModal(guestId, side); }
   if (action === "menu" && guestId)      { e.stopPropagation(); _openRowMenu(btn, guestId, side); }
+  if (action === "wishes" && guestId)    { e.stopPropagation(); _openWishesModal(guestId, side); }
 });
 
 function goBack() {
@@ -104,7 +105,7 @@ function exportGuestList(side) {
   const guests = _allGuests[side];
   if (!guests || guests.length === 0) { showToast("Chưa có khách mời để xuất", "warning"); return; }
 
-  const headers = ["Họ và tên", "Tên hiển thị", "Xưng hô", "Link cá nhân", "Đã xem", "Xác nhận", "Lời chúc"];
+  const headers = ["Họ và tên", "Tên hiển thị", "Xưng hô", "Link cá nhân", "Đã xem", "Xác nhận", "Lời nhắn xác nhận", "Lời chúc"];
   const rows = guests.map(g => [
     g.full_name    || "",
     g.display_name || "",
@@ -112,7 +113,9 @@ function exportGuestList(side) {
     g.link         || "",
     g.viewed ? "Đã xem" : "Chưa xem",
     g.confirmed    || "",
-    g.wish         || "",
+    g.message      || "",
+    // Nhiều lời chúc gộp vào một ô, ngăn bằng dòng trống cho dễ đọc trong Excel.
+    _guestWishes(g).map(w => w.text).join("\n\n"),
   ]);
 
   const ws = _XLSX.utils.aoa_to_sheet([headers, ...rows]);
@@ -128,9 +131,9 @@ function exportGuestList(side) {
       right: { style: "thin", color: { rgb: "D1D5DB" } },
     },
   };
-  ["A1","B1","C1","D1","E1","F1","G1"].forEach(ref => { if (ws[ref]) ws[ref].s = headerStyle; });
+  ["A1","B1","C1","D1","E1","F1","G1","H1"].forEach(ref => { if (ws[ref]) ws[ref].s = headerStyle; });
 
-  ws["!cols"] = [{ wch: 22 }, { wch: 18 }, { wch: 10 }, { wch: 55 }, { wch: 12 }, { wch: 16 }, { wch: 30 }];
+  ws["!cols"] = [{ wch: 22 }, { wch: 18 }, { wch: 10 }, { wch: 55 }, { wch: 12 }, { wch: 16 }, { wch: 30 }, { wch: 40 }];
   ws["!rows"] = [{ hpt: 22 }];
 
   const sideLabel = side === "groom" ? "nha-trai" : "nha-gai";
@@ -306,6 +309,7 @@ const _GUEST_THEAD = `
             <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 w-20 min-w-[80px]">Xưng hô</th>
             <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 w-24 min-w-[96px]">Trạng thái</th>
             <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 w-24 min-w-[96px]">Xác nhận</th>
+            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 w-20 min-w-[80px]">Lời chúc</th>
             <th class="sticky right-0 bg-gray-50 py-2 px-3 border-l border-gray-100 text-center text-xs font-medium text-gray-500 w-24 min-w-[96px]">Action</th>
           </tr>
         </thead>`;
@@ -330,7 +334,7 @@ function _renderGuestSkeleton(side) {
   container.innerHTML = `
     <div class="rounded-lg border border-gray-200 overflow-hidden">
       <div class="overflow-x-auto">
-        <table class="w-full min-w-[660px]">
+        <table class="w-full min-w-[740px]">
           ${_GUEST_THEAD}
           <tbody>${row.repeat(4)}</tbody>
         </table>
@@ -389,7 +393,7 @@ function _renderGuestList(side) {
     container.innerHTML = `
     <div class="rounded-lg border border-gray-200 overflow-hidden">
       <div class="overflow-x-auto">
-        <table class="w-full min-w-[660px]">
+        <table class="w-full min-w-[740px]">
           ${thead}
         </table>
       </div>
@@ -426,6 +430,14 @@ function _renderGuestList(side) {
       <td class="px-3 py-2.5 text-xs whitespace-nowrap">
         ${g.confirmed
           ? `<span class="${g.confirmed.includes("Có") ? "text-green-600" : "text-red-500"}">${escapeHtml(g.confirmed)}</span>`
+          : `<span class="text-gray-400">—</span>`}
+      </td>
+      <td class="px-3 py-2.5 text-xs whitespace-nowrap">
+        ${_guestNoteCount(g)
+          ? `<x-button variant="soft" tone="neutral" size="xs" type="button" data-guest-id="${escapeHtml(g.id)}" data-side="${side}" data-action="wishes" title="Xem lời chúc">
+               <i data-lucide="message-square-heart" style="width:12px;height:12px"></i>
+               <span>${_guestNoteCount(g)}</span>
+             </x-button>`
           : `<span class="text-gray-400">—</span>`}
       </td>
       <td class="sticky right-0 bg-white py-2 px-3 border-l border-gray-100 text-center">
@@ -465,7 +477,7 @@ function _renderGuestList(side) {
 
   container.innerHTML = `
     <div class="overflow-x-auto rounded-lg border border-gray-200">
-      <table class="w-full min-w-[660px]">
+      <table class="w-full min-w-[740px]">
         ${thead}
         <tbody>${rows}</tbody>
       </table>
@@ -523,6 +535,108 @@ function _ensureRowMenu() {
     if (!_rowMenu.contains(e.target)) _closeRowMenu();
   });
   return _rowMenu;
+}
+
+// ─── Lời chúc của khách ───────────────────────────────────────────────────────
+// Khách gửi lời chúc trên thiệp (guests.wishes) — gửi rồi không tự sửa/xoá được,
+// chỉ chủ thiệp xoá ở đây. Gộp luôn lời nhắn kèm xác nhận tham dự (guests.message)
+// vì với chủ thiệp cả hai đều là "khách nói gì".
+
+function _guestWishes(g) {
+  return Array.isArray(g?.wishes) ? g.wishes.filter(w => w && w.text) : [];
+}
+
+/** Số việc khách đã viết = lời chúc + lời nhắn kèm RSVP (nếu có). */
+function _guestNoteCount(g) {
+  return _guestWishes(g).length + (g?.message ? 1 : 0);
+}
+
+function _fmtWishTime(at) {
+  if (!at) return "";
+  const d = new Date(at);
+  return isNaN(d) ? "" : d.toLocaleString("vi-VN", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit", year: "numeric" });
+}
+
+function _openWishesModal(guestId, side) {
+  const guest = _allGuests[side]?.find(g => g.id === guestId);
+  if (!guest) return;
+
+  document.getElementById("wishes-modal")?.remove();
+
+  const modal = document.createElement("div");
+  modal.id = "wishes-modal";
+  modal.className = "fixed inset-0 z-[9999] bg-black/40 flex items-center justify-center p-4";
+  modal.innerHTML = `
+    <div class="bg-white rounded-2xl w-full max-w-md max-h-[80vh] flex flex-col overflow-hidden shadow-2xl">
+      <div class="px-5 py-4 flex items-center justify-between border-b border-gray-100">
+        <div>
+          <h3 class="text-base font-semibold text-gray-800">Lời chúc của khách</h3>
+          <p class="text-xs text-gray-400">${escapeHtml(guest.display_name || guest.full_name)}</p>
+        </div>
+        <x-button variant="ghost" tone="neutral" size="sm" icon-only type="button" id="wishes-modal-close">
+          <i data-lucide="x" style="width:18px;height:18px"></i>
+        </x-button>
+      </div>
+      <div id="wishes-modal-body" class="flex-1 overflow-y-auto p-5 space-y-3"></div>
+    </div>`;
+  document.body.appendChild(modal);
+
+  modal.addEventListener("click", (e) => { if (e.target === modal) modal.remove(); });
+  document.getElementById("wishes-modal-close").onclick = () => modal.remove();
+
+  _renderWishesModalBody(guest, side);
+}
+
+function _renderWishesModalBody(guest, side) {
+  const body = document.getElementById("wishes-modal-body");
+  if (!body) return;
+
+  const rsvpNote = guest.message
+    ? `<div class="rounded-xl border border-gray-200 bg-gray-50 p-3">
+         <p class="text-[11px] text-gray-400 mb-1">Lời nhắn kèm xác nhận tham dự</p>
+         <p class="text-sm text-gray-700 whitespace-pre-wrap break-words">${escapeHtml(guest.message)}</p>
+       </div>`
+    : "";
+
+  const wishes = _guestWishes(guest);
+  const items = wishes.map(w => `
+    <div class="rounded-xl border border-gray-200 p-3">
+      <div class="flex items-start justify-between gap-3">
+        <p class="text-sm text-gray-700 whitespace-pre-wrap break-words flex-1">${escapeHtml(w.text)}</p>
+        <x-button variant="ghost" tone="danger" size="xs" icon-only type="button"
+          data-wish-id="${escapeHtml(w.id)}" title="Xoá lời chúc này">
+          <i data-lucide="trash-2" style="width:13px;height:13px"></i>
+        </x-button>
+      </div>
+      <p class="text-[11px] text-gray-400 mt-1.5">${escapeHtml(_fmtWishTime(w.at))}</p>
+    </div>`).join("");
+
+  body.innerHTML =
+    rsvpNote +
+    (items || `<p class="text-sm text-gray-400 text-center py-6">Khách chưa gửi lời chúc nào.</p>`);
+
+  // lucide không tự quét lại phần chèn động.
+  lucide.createIcons({ root: body });
+
+  body.querySelectorAll("[data-wish-id]").forEach(btn => {
+    btn.onclick = () => _deleteWish(guest, side, btn.dataset.wishId);
+  });
+}
+
+async function _deleteWish(guest, side, wishId) {
+  if (!confirm("Xoá lời chúc này? Thao tác không hoàn tác được.")) return;
+
+  try {
+    const res = await guestDAL.deleteWish(guest.id, wishId);
+    // Cập nhật bản ghi trong bộ nhớ theo danh sách server trả về, rồi vẽ lại cả
+    // modal lẫn bảng (badge đếm nằm ở cột "Lời chúc").
+    guest.wishes = res?.wishes ?? _guestWishes(guest).filter(w => w.id !== wishId);
+    _renderWishesModalBody(guest, side);
+    _renderGuestList(side);
+    showToast("Đã xoá lời chúc", "success");
+  } catch (err) {
+    showToast("Xoá thất bại: " + err.message, "error");
+  }
 }
 
 function _openRowMenu(triggerEl, guestId, side) {

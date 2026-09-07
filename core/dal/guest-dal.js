@@ -94,6 +94,45 @@ class GuestDAL {
     return json;
   }
 
+  // ── Lời chúc (CÔNG KHAI) ─────────────────────────────────────────────────
+
+  /**
+   * Danh sách lời chúc của một thiệp — ai mở link cũng đọc được, nên gửi anon
+   * key thay vì JWT. Edge function chỉ trả tên hiển thị + xưng hô + nội dung.
+   */
+  async listWishesPublic(slug) {
+    const qs = new URLSearchParams({ action: 'wishes-list', slug });
+    const res = await fetch(`${this._url}?${qs}`, {
+      headers: {
+        apikey: CONFIG.supabase.anonKey,
+        Authorization: `Bearer ${CONFIG.supabase.anonKey}`,
+      },
+    });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.error || 'Lỗi máy chủ');
+    return json;
+  }
+
+  /**
+   * Khách mời gửi lời chúc từ trang thiệp. Edge function khớp khách theo
+   * slug + tên + xưng hô trên link rồi mới ghi — không khớp là 403, quá số lượt
+   * là 409; ném Error mang đúng câu để UI hiện thẳng cho khách.
+   */
+  async sendWishPublic({ slug, name, relationship, text }) {
+    const res = await fetch(`${this._url}?action=wish`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: CONFIG.supabase.anonKey,
+        Authorization: `Bearer ${CONFIG.supabase.anonKey}`,
+      },
+      body: JSON.stringify({ slug, name, relationship, text }),
+    });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.error || 'Lỗi máy chủ');
+    return json;
+  }
+
   // ── Writes ────────────────────────────────────────────────────────────────
 
   async insertOneGuest(weddingId, side, guest) {
@@ -111,6 +150,11 @@ class GuestDAL {
 
   async updateGuest(id, fields) {
     return this._patch('update-guest', { id, ...fields });
+  }
+
+  /** Chủ thiệp xoá một lời chúc của khách (khách gửi rồi không tự xoá được). */
+  async deleteWish(guestId, wishId) {
+    return this._patch('delete-wish', { guest_id: guestId, wish_id: wishId });
   }
 
   async deleteGuestsByIds(ids) {

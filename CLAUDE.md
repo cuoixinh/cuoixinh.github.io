@@ -371,6 +371,16 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   helper dò khối chứa `#groom-qr-img`. Đổi chế độ áp thẳng qua `postMessage` (bảng chọn phải
   đứng yên để so mẫu); riêng lượt về "Mặc định" SAU khi hộp gốc của mẫu đã bị bấm mở thì
   runtime xin trang cha nạp lại khung xem trước — mẫu mở hộp một chiều, không có đường lùi.
+- **Lời chúc khách mời:** helper dùng chung `core/helpers/wishes-helper.js` (mọi mẫu thiệp
+  nạp), lưu ở `guests.wishes` (jsonb; hạn mức 3 lời chúc/khách do Edge Function giữ, KHÔNG
+  ràng buộc ở DB), công tắc `weddings.enable_wishes` nằm trong bước RSVP của trang Thiết lập. Mẫu khai `#cx-wishes-list` để chọn chỗ đặt mục;
+  **không khai thì helper tự chèn một mục vào cuối thân thiệp** — nhờ vậy mẫu đã phát hành
+  không phải sửa. Cổng chặn "chỉ khách được mời" nằm ở Edge Function `guest-handler`
+  (`action=wish` khớp một hàng `guests` theo slug + tên + xưng hô): tham số `name`/
+  `relationship` trên link mã hoá bằng khoá nằm trong bundle client nên **giải mã được ở
+  client KHÔNG chứng minh gì** — đừng dời phép kiểm tra đó lên trang. Danh sách lời chúc ai
+  mở link cũng đọc được (`action=wishes-list`); khách gửi rồi không sửa/xoá, chỉ chủ thiệp
+  xoá ở tab Khách mời.
 - **Mẫu văn bản (preset):** danh mục + CSS ở `core/helpers/text-preset-helper.js` (nạp TRƯỚC
   `theme-setting-helper.js`), thêm mẫu chỉ sửa file đó. Lưu trong `custom_blocks` dạng
   `{type:"preset", preset, parts}`, id thật của part là `<blockId>__<key>`. Cỡ chữ viết bằng
