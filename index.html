@@ -715,42 +715,6 @@
 
     <!-- Modal Thanh Toán - được inject bởi payment.js -->
 
-    <!-- ===== FLOATING SUPPORT WIDGET (Messenger) ===== -->
-    <!-- Chỉ còn bong bóng tròn trơn + nút X ở góc trên phải của nó. Vỏ `fixed` đã là
-         gốc toạ độ cho nút X nên không cần bọc thêm lớp `relative`; khổ vỏ bằng
-         đúng khổ bong bóng (w-fit) để X neo vào mép bong bóng chứ không mép màn. -->
-    <div
-      id="chatWidget"
-      class="fixed z-50 w-fit right-[calc(24px_+_env(safe-area-inset-right,0px))] bottom-[152px] md:bottom-[88px]"
-      aria-label="Liên hệ nhanh"
-    >
-      <a
-        id="messengerChatBtn"
-        href="https://m.me/61591515875537"
-        target="_blank"
-        rel="noopener"
-        draggable="false"
-        class="select-none relative w-[52px] h-[52px] rounded-full flex items-center justify-center text-white text-2xl transition opacity-0 translate-y-4 scale-90 animate-bubbleIn shadow-[0_6px_20px_rgb(var(--landing-dark-rgb)/0.22)] hover:scale-[1.06] hover:shadow-[0_10px_26px_rgb(var(--landing-dark-rgb)/0.3)] bg-[image:var(--social-messenger-gradient)] before:content-[''] before:absolute before:inset-0 before:rounded-full before:bg-[image:var(--social-messenger-gradient)] before:-z-10 before:animate-bubblePulse motion-reduce:before:animate-none"
-        aria-label="Chat hỗ trợ qua Messenger"
-      >
-        <i data-lucide="message-circle" style="width:16px;height:16px"></i>
-      </a>
-      <!-- Nút X là ANH EM của thẻ <a>, không lồng bên trong: <button> trong <a>
-           là markup sai và bấm X sẽ mở luôn Messenger.
-           w VÀ h phải đi cùng nhau: size="sm" cho h-8 w-8, đặt mỗi w-[22px]
-           thì nút thành hình bầu dục 22×32 chứ không tròn. -->
-      <x-button
-        variant="outline"
-        size="sm"
-        icon-only
-        id="supportClose"
-        type="button"
-        aria-label="Tắt hỗ trợ"
-        class="absolute -top-1 -right-1 w-[22px] h-[22px] text-[rgb(var(--chat-action-icon-rgb))] z-[3] opacity-0 animate-bubbleIn-2 hover:scale-110"
-      >
-        <i data-lucide="x" style="width:16px;height:16px"></i>
-      </x-button>
-    </div>
 
     <script src="https://unpkg.com/lucide@1.26.0/dist/umd/lucide.min.js" integrity="sha384-8/6sFI5UzGbr1Dgef7WSZvE4UemcVc/jyaQNsM+MilmnHQ9sce/pRv86XXj5Cg5m" crossorigin="anonymous"></script>
     <!-- lucide UMD không tự chạy: quét [data-lucide] một lượt khi DOM sẵn sàng.
@@ -764,7 +728,6 @@
     <script src="core/x-input.js"></script>
     <script src="core/cache-util.js"></script>
     <script src="core/dal/templates-dal.js"></script>
-    <script src="js/chat-rotator.js"></script>
 
     <script
       src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.8"

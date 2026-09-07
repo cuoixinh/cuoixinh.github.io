@@ -224,7 +224,6 @@
   /* Bong bóng chat hỗ trợ */
   --chat-typing-dot-rgb: 249 168 196;
   --chat-message-text-rgb: 107 74 85;
-  --chat-action-icon-rgb: 176 138 149;
   --chat-online-dot-rgb: 34 197 94;
 
   /* Nút quà tặng / thanh hành động nổi */
@@ -296,5 +295,4 @@
   --music-widget-fill: rgb(var(--card-blush-300-rgb) / 0.32);
   --landing-cta-gradient: linear-gradient( 90deg, rgb(var(--action-primary-hover-rgb)), rgb(var(--action-accent-rgb)), rgb(var(--action-accent-light-rgb)), rgb(var(--action-accent-rgb)), rgb(var(--action-primary-hover-rgb)) );
   --landing-cta-shine: linear-gradient( 90deg, transparent, rgb(var(--white-rgb) / 0.7), transparent );
-  --social-messenger-gradient: linear-gradient( 135deg, rgb(var(--social-messenger-from-rgb)), rgb(var(--social-messenger-to-rgb)) );
 }

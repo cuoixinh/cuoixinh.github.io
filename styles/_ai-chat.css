@@ -4,9 +4,10 @@
    Bảng dựng theo lối tấm thiệp giấy: nền kem, nét ngăn ĐỨT màu hồng, tiêu đề
    Cormorant hồng đậm.
 
-   Bong bóng đứng ngay DƯỚI bong bóng Messenger (#chatWidget: bottom 88px từ md,
-   152px ở khổ hẹp) nên hai thứ chồng nhau khi đổi vị trí một trong hai — sửa
-   `bottom` ở đây thì ngó lại markup #chatWidget trong index.html.
+   Đây là bong bóng nổi DUY NHẤT của trang chủ; lối liên hệ người thật nằm trong
+   dải điều hướng của chính bảng chat (NAV_LINKS ở js/ai-assistant.js). Đổi
+   `bottom` thì ngó lại lề đáy của .hero-bottom trong tailwind-src.css — nó tính
+   theo mép trên bong bóng để cụm nút hero không bị đè.
    Bảng màu --aichat-* khai ở styles/_colors.css. */
 
 /* ── Bong bóng mở ──────────────────────────────────────────────────────────── */
@@ -31,9 +32,8 @@
 
 /* Khổ hẹp có thanh tab dưới (.cx-tabbar, cao ~64px kể cả lề) chạy suốt đáy màn
    và LUÔN hiện — để nguyên bottom 24px là bong bóng nằm đè lên một mục của
-   thanh. Cả cụm nhích lên đúng 64px: bong bóng AI 24 → 88, Messenger
-   (#chatWidget ở index.html) 88 → 152, giữ nguyên khoảng cách giữa hai cái.
-   Từ md thanh tab biến mất nên trả về chỗ cũ. */
+   thanh. Nhích lên đúng 64px: 24 → 88. Từ md thanh tab biến mất nên trả về chỗ
+   cũ. */
 
 @media (max-width: 767px) {
   .aichat-fab {
@@ -172,9 +172,10 @@
     cursor: default;
   }
 
-  /* Bàn phím bung ra thì màn chỉ còn vài dòng — giấu hàng gợi ý cho khung tin
-     nhắn thở. Cờ .aichat-kb do _syncViewport() đặt. */
-  .aichat-kb .aichat-suggests {
+  /* Bàn phím bung ra thì màn chỉ còn vài dòng — giấu hàng gợi ý lẫn dải điều
+     hướng cho khung tin nhắn thở. Cờ .aichat-kb do _syncViewport() đặt. */
+  .aichat-kb .aichat-suggests,
+  .aichat-kb .aichat-nav {
     display: none;
   }
 }
@@ -449,6 +450,29 @@
 
 .aichat-chip:hover {
   background: rgb(var(--surface-brand-rgb));
+  border-color: rgb(var(--brand-accent-rgb));
+}
+
+/* Dải điều hướng (js/ai-assistant.js: NAV_LINKS) — nằm dưới chip gợi ý, KHÔNG
+   ẩn đi sau câu hỏi đầu: từ khi bỏ bong bóng Messenger ở trang chủ, đây là lối
+   duy nhất nhắn được cho người thật. Nền đặc hơn chip gợi ý để mắt tách được
+   hai nhóm: chip gợi ý là câu hỏi, chip này là đường đi. */
+
+.aichat-nav {
+  @apply flex shrink-0 flex-wrap gap-2 bg-transparent px-4 pb-2;
+}
+
+.aichat-navchip {
+  @apply inline-flex cursor-pointer items-center gap-1.5 rounded-full px-3 py-1.5
+         text-xs no-underline transition;
+
+  background: rgb(var(--surface-brand-rgb));
+  border: 1px solid rgb(var(--brand-primary-rgb) / 0.55);
+  color: rgb(var(--brand-accent-rgb));
+}
+
+.aichat-navchip:hover {
+  background: rgb(var(--brand-primary-rgb) / 0.35);
   border-color: rgb(var(--brand-accent-rgb));
 }
 

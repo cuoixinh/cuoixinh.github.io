@@ -25,11 +25,27 @@
     "Bạn cứ hỏi mình về thiệp cưới online — hoặc bảo mình tạo thiệp, mình hỏi vài " +
     "thông tin rồi dựng luôn cho bạn.";
 
-  const SUGGESTS = [
+   const SUGGESTS = [
     "Mình muốn tạo thiệp cưới",
-    "Giá bao nhiêu?",
-    "Thiệp có những gì?",
-    "Dùng thử được không?",
+    "Giá thiệp là bao nhiêu vậy?",
+    "Thiệp cưới có những gì?",
+    "Thiệp có dùng thử được không?",
+  ];
+
+  // Lối đi nhanh trong khung chat — thay cho bong bóng Messenger đã bỏ ở trang
+  // chủ, nên dải này KHÔNG ẩn sau câu hỏi đầu như chip gợi ý.
+  // Nhãn và đích đều CỐ ĐỊNH ở đây: XuXi không biết danh sách này, cũng không
+  // được phép tự sinh link — bộ dựng markdown ở dưới cố ý không có thẻ <a>, và
+  // lời khách thì đi thẳng vào prompt nên để model nhả URL là mở đường cho link
+  // giả mạo lẫn link 404 do nó bịa ra.
+  // `external` = mở tab mới.
+  const NAV_LINKS = [
+    {
+      label: "Nhắn Messenger",
+      icon: "message-circle",
+      href: "https://m.me/61591515875537",
+      external: true,
+    },
   ];
 
   // Lịch sử gửi lên server: [{role:"user"|"assistant", content, at}]. `at` chỉ để
@@ -78,6 +94,7 @@
       </div>
       <div class="aichat-body" id="aichatBody"></div>
       <div class="aichat-suggests" id="aichatSuggests"></div>
+      <div class="aichat-nav" id="aichatNav"></div>
       <div class="aichat-foot">
         <div class="aichat-composer">
           <textarea id="aichatInput" class="aichat-input" rows="1" maxlength="${MAX_LEN}"
@@ -111,6 +128,7 @@
       panel,
       body: panel.querySelector("#aichatBody"),
       suggests: panel.querySelector("#aichatSuggests"),
+      nav: panel.querySelector("#aichatNav"),
       input: panel.querySelector("#aichatInput"),
       mic: panel.querySelector("#aichatMic"),
       send: panel.querySelector("#aichatSend"),
@@ -709,6 +727,28 @@
     });
   }
 
+  // Dải điều hướng: dựng MỘT LẦN lúc mở bảng, không đụng gì tới đoạn hội thoại.
+  function renderNav() {
+    if (!els.nav || els.nav.childElementCount) return;
+    NAV_LINKS.forEach((item) => {
+      const chip = document.createElement("a");
+      chip.className = "aichat-navchip";
+      chip.href = item.href;
+      if (item.external) {
+        chip.target = "_blank";
+        chip.rel = "noopener";
+      }
+      chip.innerHTML =
+        '<i data-lucide="' +
+        item.icon +
+        '" style="width:14px;height:14px"></i><span></span>';
+      chip.querySelector("span").textContent = item.label;
+      els.nav.appendChild(chip);
+    });
+    // lucide không tự quét lại markup chèn động.
+    window.lucide?.createIcons({ root: els.nav });
+  }
+
   // ── Lịch sử ───────────────────────────────────────────────────────────────
 
   function loadHistory() {
@@ -945,6 +985,7 @@
 
   function open() {
     els.panel.hidden = false;
+    renderNav();
     // Đặt chỗ NGAY khi thẻ vừa hiện (còn ẩn thì mọi phép đo ra 0) và trước khung
     // hình đầu tiên, không thì bảng bay từ góc phải sang.
     syncPanelPos();

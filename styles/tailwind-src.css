@@ -1510,23 +1510,4 @@ html.cx-landing {
   @apply flex;
 }
 
-#chatWidget {
-  transition: opacity 0.25s ease, transform 0.25s ease;
-  /* Kéo bằng ngón tay (js/chat-rotator.js) nên phải chặn cuộn trên chính bong
-     bóng, không thì chạm vào là trang cuộn theo. */
-  touch-action: none;
-  cursor: grab;
-}
-#chatWidget:active {
-  cursor: grabbing;
-}
-
-/* Chưa cuộn tới ngưỡng thì bong bóng nằm im — js/chat-rotator.js gắn class này
-   ngay lúc nạp (trước khi vẽ) và gỡ ra khi khách cuộn xuống. */
-
-#chatWidget.is-away {
-  @apply pointer-events-none translate-y-3 opacity-0;
-}
-
-
 @tailwind utilities;
