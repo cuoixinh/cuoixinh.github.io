@@ -1561,12 +1561,16 @@ html.cx-rail-off {
 }
 
 /* Đúng ô trong suốt của ảnh: x 15→368, y 12→773 trên khổ 383×785. */
+/* Ô màn xếp DỌC: chrome (core/helpers/phone-chrome.js) · khung thiệp
+   (.cx-pviewport) · dải trắng đáy (.cx-ppad) — bộ .cx-pchrome* ở _common.css. */
 .cx-phone-screen {
   position: absolute;
   top: 1.53%;
   left: 3.92%;
   width: 92.17%;
   height: 96.94%;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
   border-radius: 14.73% / 6.83%; /* bo góc màn, viền của ảnh phủ lên phần dư */
   background: rgb(var(--white-rgb));

@@ -54,6 +54,21 @@ function _cxDeviceMinW() {
   return w && h ? Math.min(w, h) : 0;
 }
 
+// Tên mẫu suy từ đường dẫn: /public/themes/romantic-gold/ → "Romantic Gold".
+// Chỉ là bản tạm cho nhịp vẽ đầu; tên thật lấy từ bảng `templates` ngay sau đó.
+function _cxThemeSlug() {
+  const parts = location.pathname.split("/").filter(Boolean);
+  const last = parts[parts.length - 1] || "";
+  return (/\.html?$/.test(last) ? parts[parts.length - 2] : last) || "";
+}
+
+function _cxThemeTitle(slug) {
+  return String(slug || "")
+    .split("-")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+}
+
 function _cxPreviewShell() {
   // Nằm trong iframe = đang xem qua trang Thiết lập, nơi đã có khung máy riêng.
   if (window.self !== window.top) return false;
@@ -68,13 +83,20 @@ function _cxPreviewShell() {
   q.set("shell", "0");
   const src = `${location.pathname}?${q}${location.hash}`;
 
+  const slug = _cxThemeSlug();
+  const opts = _cxShellOpts(slug);
   const stage = document.createElement("div");
   stage.className = "cx-pshell";
   stage.innerHTML = `
     <div class="cx-pshell-phone">
       <div class="cx-pshell-screen">
-        <iframe class="cx-pshell-view" title="Xem trước thiệp"
-                allow="autoplay; encrypted-media" allowfullscreen></iframe>
+        ${window.CXPhoneChrome ? window.CXPhoneChrome.html(opts) : ""}
+        <div class="cx-pviewport">
+          <iframe class="cx-pshell-view" title="Xem trước thiệp"
+                  allow="autoplay; encrypted-media" allowfullscreen></iframe>
+        </div>
+        <!-- Dải trắng đáy: giữ thiệp khỏi chạm góc bo của thân máy. -->
+        <div class="cx-ppad"></div>
       </div>
       <img src="../../../assets/images/iphone_mockup.svg" alt="" class="cx-pshell-frame" />
     </div>`;
@@ -83,23 +105,76 @@ function _cxPreviewShell() {
   document.documentElement.classList.add("cx-pshell-host");
   document.body.replaceChildren(stage);
 
+  window.CXPhoneChrome?.wire(stage.querySelector(".cx-pchrome"), opts);
+  _cxShellName(slug);
+
   // Ô màn hình là % của thân máy (px), thiệp lại dựng ở 390px cố định → tỉ lệ
   // thu nhỏ phải đo bằng JS mỗi lần khổ máy đổi.
-  // Chiều cao iframe cũng phải đo, không để số cứng trong CSS: tỉ lệ ô màn của
-  // ảnh thân máy không trùng khít 390×837, lệch bao nhiêu là hở bấy nhiêu ở mép
-  // trên/dưới. Lấy đúng chiều cao ô rồi chia ngược cho tỉ lệ thu là khít.
+  // Chiều cao iframe cũng phải đo, không để số cứng trong CSS: chrome và dải
+  // trắng đáy ăn mất một phần ô màn, lệch bao nhiêu là hở bấy nhiêu ở mép dưới.
+  // Lấy đúng chiều cao phần CÒN LẠI rồi chia ngược cho tỉ lệ thu là khít.
   const phone = stage.querySelector(".cx-pshell-phone");
   const screen = stage.querySelector(".cx-pshell-screen");
+  const port = stage.querySelector(".cx-pviewport");
   const view = stage.querySelector(".cx-pshell-view");
   const measure = () => {
     if (screen.offsetWidth <= 0) return;
     const scale = screen.offsetWidth / 390;
+    // Đặt tỉ lệ TRƯỚC rồi mới đo: chrome khai khổ theo chính biến này, đọc
+    // chiều cao ngay sau đó là trình duyệt đã tính lại xong bố cục.
     phone.style.setProperty("--cx-scr-scale", String(scale));
-    view.style.height = screen.offsetHeight / scale + "px";
+    view.style.height = port.offsetHeight / scale + "px";
   };
   measure();
   window.addEventListener("resize", measure, { passive: true });
   return true;
+}
+
+// Khai báo chrome của khung máy: quay lại (về kho mẫu nếu mở thẳng bằng link)
+// và một mục menu duy nhất — chọn luôn mẫu đang xem.
+//
+// `source=live` = thiệp CỦA KHÁCH mở từ trang Thiết lập ("Mở tab mới"), không
+// phải mẫu đang chào bán → menu rỗng, mời chọn mẫu ở đó là lạc chỗ.
+function _cxShellOpts(slug) {
+  const own = new URLSearchParams(location.search).get("source") === "live";
+  return {
+    title: _cxThemeTitle(slug),
+    back: () => {
+      if (history.length > 1) history.back();
+      else location.href = "/theme-template/";
+    },
+    items: own
+      ? []
+      : [
+          {
+            label: "Chọn mẫu này",
+            icon: "navigation",
+            // Cùng đường tạo nháp với nút "Dùng mẫu" ở bảng đề xuất: hỏi trước nếu
+            // khách còn thiệp làm dở (core/helpers/draft-start.js).
+            onClick: () => {
+              if (typeof cxStartDraft !== "function") {
+                console.error("Thiếu core/helpers/draft-start.js");
+                return;
+              }
+              const el = document.querySelector(".cx-pchrome-name");
+              cxStartDraft(slug, (el && el.textContent) || _cxThemeTitle(slug));
+            },
+          },
+        ],
+  };
+}
+
+// Tên thật của mẫu nằm ở bảng `templates` (tên thư mục chỉ là slug). Hỏng thì
+// giữ nguyên tên suy từ slug — không có gì để báo cho khách ở đây.
+function _cxShellName(slug) {
+  if (!window.templatesDAL) return;
+  window.templatesDAL
+    .list()
+    .then((rows) => {
+      const row = (rows || []).filter((t) => t.theme === slug)[0];
+      if (row && row.name) window.CXPhoneChrome?.setTitle(row.name);
+    })
+    .catch(() => {});
 }
 
 (function () {

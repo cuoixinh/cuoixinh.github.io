@@ -115,12 +115,74 @@ function _cxPhoneScreen(phone) {
   const scr = phone?.querySelector(".cx-phone-screen");
   if (!(scr?.offsetWidth > 0)) return;
   const scale = scr.offsetWidth / 390;
+  // Đặt tỉ lệ TRƯỚC rồi mới đo: chrome khai khổ theo chính biến này, đọc chiều
+  // cao ngay sau đó là trình duyệt đã tính lại xong bố cục.
   phone.style.setProperty("--cx-scr-scale", String(scale));
   const view = phone.querySelector(".cx-phone-view");
+  // Chỉ phần CÒN LẠI của ô màn mới là chỗ của thiệp — chrome và dải trắng đáy
+  // ăn mất một khúc, đo cả ô là thiệp thò xuống dưới thân máy.
+  const port = phone.querySelector(".cx-pviewport") || scr;
   if (view) {
     view.style.width = "391px";
-    view.style.height = scr.offsetHeight / scale + "px";
+    view.style.height = port.offsetHeight / scale + "px";
   }
+}
+
+// ── CHROME ĐIỆN THOẠI ──────────────────────────────────────────────────────
+// Cùng bộ với khung xem thử mẫu trên máy tính (core/helpers/phone-chrome.js).
+
+/** Tên mẫu đang dùng — cùng nguồn với huy hiệu ở thanh trên (js/18-theme-picker.js). */
+function _cxPhoneTitle() {
+  const badge = document
+    .getElementById("header-theme-name")
+    ?.textContent?.trim();
+  return (
+    badge ||
+    sessionStorage.getItem("draft_template_name") ||
+    (typeof WEDDING_THEME === "string" && WEDDING_THEME
+      ? WEDDING_THEME.split("-")
+          .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+          .join(" ")
+      : "") ||
+    "Thiệp cưới"
+  );
+}
+
+function _cxPreviewReload() {
+  const frame = document.getElementById("preview-iframe");
+  if (!frame) return;
+  _savePreviewData();
+  frame.src = _previewIframeSrc();
+}
+
+// Menu ba chấm ở đây KHÔNG có "Chọn mẫu này" như bản xem thử — khách đang chỉnh
+// thiệp của mình rồi — mà là hai việc với chính khung đang nhìn. Mũi tên quay
+// lại không khai việc gì: trang Thiết lập không có chỗ nào để quay về, nhưng bỏ
+// nó đi thì thanh tiêu đề lệch hẳn so với máy thật.
+function _cxChromeOpts(reload) {
+  return {
+    title: _cxPhoneTitle(),
+    items: [
+      { label: "Tải lại", icon: "refresh", onClick: reload },
+      {
+        label: "Mở tab mới",
+        icon: "external",
+        onClick: () => {
+          _savePreviewData();
+          window.open(_previewIframeSrc(), "_blank", "noopener");
+        },
+      },
+    ],
+  };
+}
+
+function _cxMountChrome() {
+  const C = window.CXPhoneChrome;
+  if (!C) return;
+  const live = document.querySelector("#live-dock .cx-phone-screen");
+  if (live) C.mount(live, _cxChromeOpts(cxLiveRefresh));
+  const preview = document.querySelector("#cx-preview-stage .cx-phone-screen");
+  if (preview) C.mount(preview, _cxChromeOpts(_cxPreviewReload));
 }
 
 // Khổ máy tối đa: quá số này thì ô màn rộng hơn 390px, tức là thiệp bị PHÓNG TO
@@ -139,9 +201,13 @@ function _cxPhoneFit(stage) {
   if (!phone) return;
   const cs = getComputedStyle(stage);
   const boxW =
-    stage.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    stage.clientWidth -
+    parseFloat(cs.paddingLeft) -
+    parseFloat(cs.paddingRight);
   const boxH =
-    stage.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+    stage.clientHeight -
+    parseFloat(cs.paddingTop) -
+    parseFloat(cs.paddingBottom);
   const w = Math.min(boxW, boxH * CX_PHONE_RATIO, CX_PHONE_MAX_W);
   if (!(w > 0)) return; // đang ẩn → để nguyên, lúc hiện ResizeObserver gọi lại
   phone.style.setProperty("--cx-ph-w", w + "px");
@@ -159,6 +225,8 @@ function _cxLiveMeasure() {
 }
 
 function _cxInitLive() {
+  // Chèn chrome TRƯỚC phép đo: nó ăn một khúc chiều cao ô màn.
+  _cxMountChrome();
   _cxLiveMeasure();
   cxPreviewFit();
 

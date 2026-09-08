@@ -67,6 +67,9 @@
     "../core/helpers/validate.js",
     "../core/helpers/guide-helper.js",
     "../core/helpers/tooltip.js",
+    // Chrome giả lập điện thoại cho hai khung máy (dải Xem trực tiếp + tab Xem
+    // trước) — phải trước js/22-live-preview.js, nơi gắn nó vào khung.
+    "../core/helpers/phone-chrome.js",
     "../core/components/music-player.js",
     "../core/components/progress.js",
     "../core/helpers/element-color-enum.js",
