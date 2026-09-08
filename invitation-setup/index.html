@@ -77,17 +77,23 @@
              chiều cao lẫn bề ngang — xem .cx-preview-stage ở styles/_setup.css. -->
         <div id="cx-preview-stage" class="cx-preview-stage">
           <div class="cx-phone">
+            <!-- Chrome (thanh trạng thái + thanh tiêu đề) do
+                 core/helpers/phone-chrome.js chèn vào đầu ô màn lúc chạy. -->
             <div class="cx-phone-screen">
-              <!-- allow="autoplay": trình phát nhạc là iframe youtube.com lồng bên
-                   trong (khác origin) nên phải được uỷ quyền qua TỪNG lớp iframe,
-                   thiếu là nhạc nền không tự phát dù đã chọn bài. -->
-              <iframe
-                id="preview-iframe"
-                src=""
-                class="cx-phone-view"
-                allow="autoplay; encrypted-media"
-                allowfullscreen
-              ></iframe>
+              <div class="cx-pviewport">
+                <!-- allow="autoplay": trình phát nhạc là iframe youtube.com lồng
+                     bên trong (khác origin) nên phải được uỷ quyền qua TỪNG lớp
+                     iframe, thiếu là nhạc nền không tự phát dù đã chọn bài. -->
+                <iframe
+                  id="preview-iframe"
+                  src=""
+                  class="cx-phone-view"
+                  allow="autoplay; encrypted-media"
+                  allowfullscreen
+                ></iframe>
+              </div>
+              <!-- Dải trắng đáy: giữ thiệp khỏi chạm góc bo của thân máy. -->
+              <div class="cx-ppad"></div>
             </div>
             <!-- Vỏ máy nằm ĐÈ lên iframe (vùng màn hình của ảnh là trong suốt). -->
             <img

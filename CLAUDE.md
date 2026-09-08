@@ -154,6 +154,13 @@ sát mép. Máy có trần `CX_PHONE_MAX_W`: quá đó ô màn rộng hơn 390px
 hơn máy thật. Panel đang ẩn thì khổ bằng 0 nên `switchTab("preview")` phải gọi lại
 `cxPreviewFit()` **sau khi** bỏ `.hidden`.
 
+**Chrome giả lập điện thoại (`core/helpers/phone-chrome.js`)** — thanh trạng thái + thanh
+tiêu đề (quay lại · tên · menu ba chấm) — dùng chung cho CẢ khung ở đây lẫn khung xem thử
+mẫu trên máy tính (`theme-boot.js`), mỗi nơi tự khai `title`/`back`/`items`; không khai
+`back`/`items` thì nút đó thành ô chỉ để nhìn. Ô màn phải là **flex-column**: chrome ·
+`.cx-pviewport` (khung thiệp) · `.cx-ppad` (dải trắng đáy, chừa thiệp khỏi vùng bo góc) —
+chiều cao iframe đo theo `.cx-pviewport` chứ không theo cả ô màn.
+
 ### Phiên bản & cache (GitHub Pages sau Cloudflare)
 
 GitHub Pages ép `Cache-Control: max-age=600` và không đọc `_headers`. Chống bản cũ bằng

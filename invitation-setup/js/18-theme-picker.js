@@ -85,20 +85,19 @@ function _updateHeaderThemeBadge(displayName) {
     thumb.src = `../assets/images/templates/${WEDDING_THEME}.jpg`;
     thumb.style.display = "";
   }
+  const name =
+    displayName ||
+    sessionStorage.getItem("draft_template_name") ||
+    WEDDING_THEME.split("-")
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(" ");
+
+  // Thanh tiêu đề của hai khung điện thoại cũng mang tên mẫu — đổi mẫu mà quên
+  // chỗ này là khung còn khoe tên mẫu cũ.
+  window.CXPhoneChrome?.setTitle(name);
+
   const el = document.getElementById("header-theme-name");
-  if (!el) return;
-  if (displayName) {
-    el.textContent = displayName;
-    return;
-  }
-  const stored = sessionStorage.getItem("draft_template_name");
-  if (stored) {
-    el.textContent = stored;
-    return;
-  }
-  el.textContent = WEDDING_THEME.split("-")
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-    .join(" ");
+  if (el) el.textContent = name;
 }
 
 async function _applyThemeChange(newTheme, displayName) {
