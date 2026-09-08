@@ -1623,10 +1623,12 @@ textarea::-webkit-scrollbar-thumb:hover {
   background: #fff;
 }
 
-/* Dải trắng đáy — chừa thiệp ra khỏi vùng bo góc dưới của thân máy. */
+/* Dải trắng đáy — chừa thiệp ra khỏi vùng bo góc dưới của thân máy. Bo góc ăn
+   khoảng 6.83% chiều cao ô màn (~34px của máy thật) nên dải phải cao bấy nhiêu,
+   thấp hơn là góc thiệp vẫn bị cắt. Cùng khổ với vạch Home của iPhone. */
 .cx-pshell-pad {
   flex: none;
-  height: calc(16px * var(--cx-pu));
+  height: calc(34px * var(--cx-pu));
   background: #fff;
 }
 
