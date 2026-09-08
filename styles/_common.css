@@ -1456,15 +1456,177 @@ textarea::-webkit-scrollbar-thumb:hover {
   filter: drop-shadow(0 18px 34px rgb(0 0 0 / 0.3));
 }
 
-/* Đúng ô trong suốt của ảnh: x 15→368, y 12→773 trên khổ 383×785. */
+/* Đúng ô trong suốt của ảnh: x 15→368, y 12→773 trên khổ 383×785.
+   Ô màn xếp DỌC: chrome (thanh trạng thái + thanh tiêu đề) · khung thiệp · dải
+   trắng đáy. Chỉ khung thiệp co giãn, hai đầu kia khổ cố định. */
 .cx-pshell-screen {
+  /* Khổ của chrome khai theo px của MÁY THẬT (390) rồi nhân tỉ lệ thu, nhờ vậy
+     thanh trên thu phóng đúng nhịp với thiệp bên trong. */
+  --cx-pu: var(--cx-scr-scale, 1);
+
   position: absolute;
   top: 1.30%;
   left: 3.92%;
   width: 92.17%;
   height: 97.94%;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
   border-radius: 14.73% / 6.83%;
+  background: #fff;
+}
+
+/* Chrome giả lập trình duyệt trên máy — markup do theme-boot.js dựng. Màu ở đây
+   cố ý viết cứng: đây là vỏ THIẾT BỊ, không phải một phần thiệp, nên nó không đi
+   theo bộ màu (--cx-*) mà khách chọn. */
+.cx-pshell-chrome {
+  position: relative;
+  z-index: 1;
+  flex: none;
+  background: #fff;
+  color: #1c1c1e;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  user-select: none;
+}
+
+.cx-pshell-status {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: calc(50px * var(--cx-pu));
+  padding: calc(6px * var(--cx-pu)) calc(22px * var(--cx-pu)) 0;
+  font-size: calc(15px * var(--cx-pu));
+  font-weight: 600;
+  letter-spacing: calc(0.2px * var(--cx-pu));
+}
+
+/* Ảnh thân máy không vẽ tai thỏ — đảo động vẽ ở đây. */
+.cx-pshell-island {
+  position: absolute;
+  top: calc(9px * var(--cx-pu));
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(112px * var(--cx-pu));
+  height: calc(32px * var(--cx-pu));
+  border-radius: 999px;
+  background: #000;
+}
+
+.cx-pshell-sys {
+  display: flex;
+  align-items: center;
+  gap: calc(5px * var(--cx-pu));
+}
+
+.cx-pshell-sys svg {
+  display: block;
+  height: calc(13px * var(--cx-pu));
+  width: auto;
+}
+
+.cx-pshell-bar {
+  display: flex;
+  align-items: center;
+  gap: calc(6px * var(--cx-pu));
+  height: calc(44px * var(--cx-pu));
+  padding: 0 calc(8px * var(--cx-pu));
+  border-bottom: 1px solid #e5e5ea;
+}
+
+/* Tên mẫu chiếm hết chỗ giữa hai nút và cắt bằng dấu ba chấm — tên dài không
+   được phép đẩy nút "Tùy chọn" ra khỏi màn. */
+.cx-pshell-name {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+  font-size: calc(16px * var(--cx-pu));
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cx-pshell-nbtn {
+  flex: none;
+  width: calc(32px * var(--cx-pu));
+  height: calc(32px * var(--cx-pu));
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #1c1c1e;
+  cursor: pointer;
+}
+
+.cx-pshell-nbtn:hover {
+  background: rgb(0 0 0 / 0.06);
+}
+
+.cx-pshell-nbtn svg {
+  width: calc(21px * var(--cx-pu));
+  height: calc(21px * var(--cx-pu));
+}
+
+/* Menu của nút ba chấm. Neo trong lòng ô màn (cha có position) nên không cần
+   x-popover — trang thiệp không nạp component đó. */
+.cx-pshell-pop {
+  position: absolute;
+  z-index: 2;
+  top: calc(88px * var(--cx-pu));
+  right: calc(10px * var(--cx-pu));
+  min-width: calc(168px * var(--cx-pu));
+  padding: calc(4px * var(--cx-pu));
+  border: 1px solid #e5e5ea;
+  border-radius: calc(12px * var(--cx-pu));
+  background: #fff;
+  box-shadow: 0 calc(10px * var(--cx-pu)) calc(28px * var(--cx-pu)) rgb(0 0 0 / 0.18);
+}
+
+.cx-pshell-pop[hidden] {
+  display: none;
+}
+
+.cx-pshell-pop-item {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: calc(9px * var(--cx-pu));
+  width: 100%;
+  padding: calc(9px * var(--cx-pu)) calc(12px * var(--cx-pu));
+  border: 0;
+  border-radius: calc(9px * var(--cx-pu));
+  background: transparent;
+  color: #1c1c1e;
+  font: inherit;
+  font-size: calc(14px * var(--cx-pu));
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+}
+
+.cx-pshell-pop-item:hover {
+  background: #f2f2f7;
+}
+
+.cx-pshell-pop-item svg {
+  flex: none;
+  width: calc(16px * var(--cx-pu));
+  height: calc(16px * var(--cx-pu));
+}
+
+/* Khung chạy thiệp: phần còn lại của ô màn. */
+.cx-pshell-viewport {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  background: #fff;
+}
+
+/* Dải trắng đáy — chừa thiệp ra khỏi vùng bo góc dưới của thân máy. */
+.cx-pshell-pad {
+  flex: none;
+  height: calc(16px * var(--cx-pu));
   background: #fff;
 }
 
