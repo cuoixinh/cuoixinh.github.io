@@ -398,17 +398,10 @@ function bgFocalLabel(focal) {
   return focal ? `🎯 ${focal.x}/${focal.y}` : "chưa đặt — dùng mặc định (giữa, sát mép trên)";
 }
 
-/**
- * Mask của màn mở đầu ở một chiều cao màn hình cụ thể. Ba mốc dưới đây phải
- * khớp với .hero-bg trong styles/tailwind-src.css (kể cả hai media theo chiều
- * cao) — lệch thì khung xem trước hứa một đằng, trang thật ra một nẻo.
- */
-function bgHeroMask(frameH) {
-  const [solid, fade] = frameH >= 950 ? [32, 58] : frameH <= 780 ? [18, 44] : [28, 55];
-  return `linear-gradient(to bottom, #000 0%, #000 ${solid}%, transparent ${fade}%)`;
-}
-
-const bgFrameDefs = () => BG_FRAMES.map((f) => ({ ...f, mask: bgHeroMask(f.h) }));
+/* Không mask: .hero-bg ở styles/tailwind-src.css trải KÍN màn mở đầu, nên khung
+   xem trước cũng để nguyên cả ảnh. Đổi .hero-bg thành dải một phần màn thì phải
+   dựng lại mask ở đây, không thì xem trước hứa một đằng trang thật ra một nẻo. */
+const bgFrameDefs = () => BG_FRAMES.map((f) => ({ ...f }));
 
 /**
  * Vẽ dãy khung xem trước cho ảnh đang chờ lưu: mỗi khung mô phỏng màn mở đầu ở

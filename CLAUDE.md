@@ -322,12 +322,9 @@ push**.
   `bgHeroMask()` phải khớp `.hero-bg` ở `styles/tailwind-src.css` (kể cả hai media theo chiều
   cao), lệch là xem trước hứa một đằng trang thật ra một nẻo.
 - Trùng tên là **ghi đè** (có hỏi lại) — khác tab "Ảnh mẫu" vốn tự đánh số.
-- **Ba ô ảnh trang trí của màn mở đầu** đi đường riêng ở cuối tab: KHÔNG phải danh sách,
-  đúng ba file tên cố định `pick-1…3.webp` trong `assets/background/thumbnail_started/`
-  nên `index.html` viết thẳng `src`, chọn ảnh mới chỉ là ghi đè. `manifest.json` của thư
-  mục này chỉ mang **điểm nhìn** theo ĐÚNG thứ tự ba ô (`picks: [{file, focal}]`) — trang
-  đọc theo chỉ số rồi đặt vào `object-position`, không khai thì giữ `center 35%` của
-  `.hero-pick img`.
+- **Ba ô ảnh trang trí** (khối cuối tab, ghi ra `pick-1…3.webp` trong
+  `assets/background/thumbnail_started/`) hiện KHÔNG còn chỗ nào đọc: màn mở đầu của
+  trang chủ đã bỏ ba ô này. Tab vẫn ghi được file nhưng trang chủ không đổi gì.
 
 ### Nút bấm — luôn dùng `<x-button>`
 

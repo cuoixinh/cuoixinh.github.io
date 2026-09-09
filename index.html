@@ -49,71 +49,86 @@
     style="color: rgb(var(--text-body-rgb))"
   >
     <!-- ===== HERO ===== -->
-    <!-- Màn mở đầu TRÀN VIỀN: ảnh cưới chiếm NỬA TRÊN rồi tan dần thành nền
-         trắng phẳng ở nửa dưới — không còn tấm thiệp giấy ở giữa như bản cũ.
-         Hai cụm nội dung xếp trên/dưới trong .hero-stage: cụm trên nằm trên ảnh
-         (logo góc trái + ba ô ảnh căn giữa), cụm dưới căn trái nằm trên nền
-         trắng (tiêu đề + nút) nên chữ để màu ĐẬM. Chi tiết đo đạc ở
-         styles/tailwind-src.css.
+    <!-- Màn mở đầu: MỘT ảnh cưới tràn kín, phủ tối, mang hai cụm chữ xếp dọc mà
+         cả hai đều nằm gọn trong một màn — cụm trên là tiêu đề + ô hỏi XuXi, cụm
+         dưới nói về cách XuXi dựng thiệp, khách không phải cuộn mới thấy.
+         Mốc chia ở --cx-hero-img (styles/tailwind-src.css). Ba lớp theo z-index:
+         .hero-bg (ảnh) → .hero-veil (phủ tối) → .hero-stage (chữ).
          Navbar hiện ở MỌI vị trí cuộn (trang này không nạp js/nav-autohide.js)
          nên .hero-stage phải tự chừa chỗ cho nó — xem lề của .hero-stage. -->
     <section id="hero">
       <!-- Nền ảnh cưới (WebP do tab "Ảnh nền" của admin chụp) — js/hero-background.js
            gán vào --hero-bg-url. Chưa có nền thì lớp này trong suốt và hero
-           còn lại một màn trắng phẳng. -->
+           còn lại nền tối phẳng của #hero. -->
       <div id="hero-bg" class="hero-bg" aria-hidden="true"></div>
-      <!-- Sương trắng phủ lên ảnh: ảnh nền là collage nhiều mảnh sáng-tối xen
-           kẽ, chữ màu đậm đặt thẳng lên đó rất khó đọc. -->
+      <!-- Phủ tối: đậm ở đỉnh (chữ + navbar) và ở đáy (khối chữ dưới), nhạt ở
+           khúc giữa để còn nhìn rõ ảnh. -->
       <div class="hero-veil" aria-hidden="true"></div>
 
       <div class="hero-stage">
-        <!-- Cụm trên: logo + ba ô ảnh cưới -->
-        <div class="hero-top">
-          <!-- Logo trần (không đĩa nền), neo góc TRÁI. Chỉ hiện ở khổ hẹp: từ md
-               navbar trên đã mang logo ở đúng góc đó. -->
-          <a href="/" class="hero-badge hero-anim hero-anim-1" aria-label="Cưới Xinh">
-            <img src="assets/icons/logo.png" alt="Cưới Xinh" />
-          </a>
+        <!-- Logo trần (không đĩa nền), neo góc TRÁI. Chỉ hiện ở khổ hẹp: từ md
+             navbar trên đã mang logo ở đúng góc đó. -->
+        <a href="/" class="hero-badge hero-anim hero-anim-1" aria-label="Cưới Xinh">
+          <img src="assets/icons/logo.png" alt="Cưới Xinh" />
+        </a>
 
-          <!-- Ba ô ảnh TRANG TRÍ, không phải danh sách mẫu thiệp: tên file cố
-               định (pick-1..3), tab "Ảnh nền" của admin ghi đè đúng ba file đó;
-               js/hero-background.js chỉ đọc thêm điểm nhìn từ manifest cùng thư
-               mục. Ô giữa mang .is-lead nên to hơn hai ô bên.
-               `alt=""` + aria-hidden: ảnh không mang thông tin nào mà phần chữ
-               ngay dưới chưa nói. -->
-          <div class="hero-picks hero-anim hero-anim-2" aria-hidden="true">
-            <span class="hero-pick">
-              <img src="assets/background/thumbnail_started/pick-1.webp" alt="" />
-            </span>
-            <span class="hero-pick is-lead">
-              <img src="assets/background/thumbnail_started/pick-2.webp" alt="" />
-            </span>
-            <span class="hero-pick">
-              <img src="assets/background/thumbnail_started/pick-3.webp" alt="" />
-            </span>
-          </div>
-        </div>
+        <!-- Cụm chữ: nằm ở khoảng trên màn, căn giữa. -->
+        <div class="hero-head">
+          <h1 class="hero-title hero-anim hero-anim-2">
+            Cưới Xinh · Thiệp cưới online
+          </h1>
 
-        <!-- Cụm dưới: lời chào + hai lối đi chính -->
-        <div class="hero-bottom">
-          <h1 class="hero-invite-name hero-anim hero-anim-2">Cưới Xinh</h1>
+          <!-- Ô hỏi Trợ lý XuXi: gõ rồi Enter/bấm mũi tên là mở khung chat và
+               hỏi luôn (cxHeroAsk ở js/page-setup.js). Bỏ trống thì chỉ mở
+               khung. Là <form> để Enter trên bàn phím ảo cũng gửi được. -->
+          <form
+            class="hero-ask hero-anim hero-anim-3"
+            onsubmit="cxHeroAsk(event)"
+          >
+            <!-- Logo XuXi (ảnh, không phải glyph lucide) — core/helpers/icon.js
+                 thay thẻ này bằng <img>, khổ do data-size quyết định. -->
+            <i class="hero-ask-ico" data-icon="xuxi" data-size="26"></i>
+            <input
+              id="hero-ask-input"
+              class="hero-ask-input"
+              type="text"
+              autocomplete="off"
+              placeholder="Hỏi bất cứ điều gì"
+              aria-label="Hỏi trợ lý XuXi"
+            />
+            <x-button
+              type="submit"
+              variant="bare"
+              icon-only
+              icon="arrow-right"
+              class="hero-ask-go"
+              aria-label="Gửi câu hỏi cho XuXi"
+            ></x-button>
+          </form>
 
-          <p class="hero-lead hero-anim hero-anim-4">
-            Chọn mẫu, điền thông tin, xuất bản — thiệp cưới của bạn sẵn sàng chỉ
-            trong vài phút. Miễn phí dùng thử, chỉ thanh toán khi bạn thật sự ưng ý.
-          </p>
-
-          <div class="hero-actions hero-anim hero-anim-5">
-            <!-- <a> chứ không <x-button>: x-button tự thay mình bằng <button>
-                 thật nên không mang được href. -->
+          <!-- Lối tạo thiệp thẳng, cho khách không muốn hỏi han gì. -->
+          <p class="hero-note hero-anim hero-anim-4">
+            Miễn phí dùng thử · hoặc
             <a
               href="/invitation-setup/"
               onclick="goCreateDraft(event)"
-              class="hero-btn is-primary"
-              >Tạo thiệp ngay</a
+              class="hero-note-link"
+              >tạo thiệp ngay</a
             >
-            <a href="/theme-template/" class="hero-btn is-ghost">Xem mẫu thiệp</a>
-          </div>
+          </p>
+        </div>
+
+        <!-- Khối chữ ở nửa dưới màn — vẫn nằm trên ảnh, vẫn thấy được ngay ở
+             màn đầu, không phải cuộn. -->
+        <div class="hero-about">
+          <h2 class="hero-about-title hero-anim hero-anim-4">
+            Bạn kể, XuXi viết
+          </h2>
+          <p class="hero-about-text hero-anim hero-anim-5">
+            Mỗi đám cưới là một câu chuyện riêng. Bạn kể cho XuXi nghe câu
+            chuyện của mình, còn lại — mẫu thiệp, lời mời, từng khách được gọi
+            đúng tên — cứ để trợ lý AI lo.
+          </p>
         </div>
       </div>
     </section>

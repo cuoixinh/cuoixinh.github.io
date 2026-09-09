@@ -1139,13 +1139,15 @@
     });
   }
 
-  // Mở khung chat từ nơi khác (menu "Tạo thiệp ngay" ở trang chủ, ?open=ai).
+  // Mở khung chat từ nơi khác (ô hỏi ở màn mở đầu trang chủ, ?open=ai).
   // `mic` = bật luôn micro, thay cho luồng "nói cho AI nghe" trước đây.
+  // `ask` = câu hỏi gửi luôn khi vừa mở (khách đã gõ ở ô ngoài, đừng bắt gõ lại).
   window.cxOpenAiChat = function (opt) {
     open();
     // Nút micro ẩn khi trình duyệt không hỗ trợ SpeechRecognition — lúc đó bỏ qua,
     // khách vẫn gõ được như thường. toggleMic chỉ bật vì bảng vừa mở, chưa nghe gì.
     if (opt && opt.mic && !els.mic.hidden) toggleMic();
+    if (opt && opt.ask) ask(opt.ask);
   };
 
   // Trang Thiết lập nạp file này ĐỘNG qua loader.js (DOMContentLoaded đã bắn từ

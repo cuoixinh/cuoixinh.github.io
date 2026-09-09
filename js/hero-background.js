@@ -1,8 +1,5 @@
-// Màn mở đầu trang chủ (#hero): ảnh NỀN (khối đầu) và điểm nhìn của BA Ô ẢNH
-// trang trí (khối cuối file). Cả hai đều là file tĩnh do tab "Ảnh nền" của trang
-// quản trị ghi ra, danh sách/điểm nhìn đọc từ manifest.json của từng thư mục.
-//
-// --- Ảnh nền ---
+// Ảnh nền của màn mở đầu trang chủ (#hero) — file WebP tĩnh do tab "Ảnh nền"
+// của trang quản trị ghi ra, danh sách và điểm nhìn đọc từ manifest.json.
 //
 // Ảnh là file WebP tĩnh trong assets/background/started/, do admin tải lên.
 // GitHub Pages không cho liệt kê thư mục qua HTTP nên danh sách chỉ đọc được từ
@@ -15,12 +12,12 @@
 //
 // Điểm nhìn (focal point) — khai trong manifest ở khoá `focal` của mỗi bộ, đơn
 // vị % của ẢNH, hai dạng đều nhận: dùng chung `{x,y}` hoặc theo biến thể
-// `{desktop:{x,y}, mobile:{x,y}}`. Hero chỉ để lộ nửa TRÊN của lớp nền (mask ở
-// .hero-bg) nên ảnh `cover` hay cắt mất mặt cô dâu chú rể; focal nói rõ chỗ
-// phải giữ lại. Không khai thì giữ nguyên `center top` của CSS.
+// `{desktop:{x,y}, mobile:{x,y}}`. Ảnh phủ kín hero bằng `cover` nên khổ nào
+// cũng cắt bớt một chiều, dễ mất mặt cô dâu chú rể; focal nói rõ chỗ phải giữ
+// lại. Không khai thì giữ nguyên `center center` của CSS.
 //
-// Không có manifest / thư mục rỗng / lỗi mạng → im lặng bỏ qua, hero giữ nguyên
-// gradient sẵn có (xem .hero-bg trong styles/tailwind-src.css).
+// Không có manifest / thư mục rỗng / lỗi mạng → im lặng bỏ qua, hero còn lại
+// nền tối phẳng của #hero (xem styles/tailwind-src.css).
 
 (function () {
   const MANIFEST_URL = "/assets/background/started/manifest.json";
@@ -54,7 +51,7 @@
 
     layer.style.setProperty("--hero-bg-url", `url("${BASE_URL}/${file}")`);
     // Đặt thẳng lên style của lớp để khỏi phải build lại CSS; rỗng thì gỡ ra
-    // cho quy tắc `center top` trong .hero-bg trở lại.
+    // cho quy tắc `center center` trong .hero-bg trở lại.
     layer.style.backgroundPosition = focalPos(useKey);
     layer.classList.add("is-on");
   }
@@ -78,31 +75,5 @@
     })
     .catch(() => {
       /* chưa có nền — giữ gradient mặc định của hero */
-    });
-})();
-
-// Điểm nhìn của BA Ô ẢNH trong màn mở đầu (.hero-pick img). Ba file có tên cố
-// định nên src viết thẳng trong index.html; chỉ điểm nhìn là dữ liệu, khai ở
-// manifest.json cùng thư mục dưới dạng [{ file, focal:{x,y} }] theo ĐÚNG thứ tự
-// ba ô. Không khai / thiếu file → giữ `object-position` mặc định của CSS.
-(function () {
-  const MANIFEST_URL = "/assets/background/thumbnail_started/manifest.json";
-
-  const imgs = document.querySelectorAll(".hero-picks .hero-pick img");
-  if (!imgs.length) return;
-
-  fetch(MANIFEST_URL, { cache: "no-cache" })
-    .then((r) => (r.ok ? r.json() : null))
-    .then((m) => {
-      const list = m?.picks;
-      if (!Array.isArray(list)) return;
-      imgs.forEach((img, i) => {
-        const f = list[i]?.focal;
-        const ok = (n) => typeof n === "number" && n >= 0 && n <= 100;
-        if (f && ok(f.x) && ok(f.y)) img.style.objectPosition = `${f.x}% ${f.y}%`;
-      });
-    })
-    .catch(() => {
-      /* chưa có manifest — giữ neo mặc định của .hero-pick img */
     });
 })();
