@@ -545,8 +545,8 @@ html.cx-landing {
   box-shadow:
     0 0 0 4px rgb(var(--white-rgb) / 0.92),
     0 0 0 5px rgb(var(--landing-dark-rgb) / 0.08),
-    0 4px 10px rgb(var(--landing-dark-rgb) / 0.18),
-    0 20px 44px rgb(var(--landing-dark-rgb) / 0.32);
+    0 2px 6px rgb(var(--landing-dark-rgb) / 0.1),
+    0 10px 22px rgb(var(--landing-dark-rgb) / 0.16);
   transition:
     transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
     box-shadow 0.35s ease;
@@ -572,11 +572,6 @@ html.cx-landing {
 .hero-pick.is-lead {
   height: var(--cx-pick-h);
   z-index: 2;
-  box-shadow:
-    0 0 0 4px rgb(var(--white-rgb)),
-    0 0 0 5px rgb(var(--landing-dark-rgb) / 0.08),
-    0 6px 14px rgb(var(--landing-dark-rgb) / 0.2),
-    0 28px 56px rgb(var(--landing-dark-rgb) / 0.38);
 }
 
 /* Rê chuột thì ô nhấc lên một nhịp — đủ để cụm ảnh không đứng chết. */
@@ -587,8 +582,8 @@ html.cx-landing {
   box-shadow:
     0 0 0 4px rgb(var(--white-rgb)),
     0 0 0 5px rgb(var(--landing-dark-rgb) / 0.1),
-    0 8px 18px rgb(var(--landing-dark-rgb) / 0.24),
-    0 32px 64px rgb(var(--landing-dark-rgb) / 0.44);
+    0 5px 12px rgb(var(--landing-dark-rgb) / 0.14),
+    0 18px 36px rgb(var(--landing-dark-rgb) / 0.24);
 }
 
 /* Ô vuông nên ảnh không vuông sẽ bị xén: neo hơi lệch LÊN cho giữ được mặt
@@ -613,23 +608,30 @@ html.cx-landing {
   );
 }
 
+/* z-index 2: bóng xa của .hero-pick (0 20px 44px) đổ TRÙM xuống vùng ngay dưới
+   ba ô ảnh, tức đúng chỗ dòng tên. Không nâng cụm chữ lên trên thì bóng phủ đè
+   lên nét chữ — thấy rõ nhất với nét mảnh của Allura ở màu nhạt. */
+
 .hero-bottom {
-  @apply flex flex-col items-start text-left;
+  @apply relative flex flex-col items-start text-left;
+  z-index: 2;
   margin-top: auto;
   max-width: 640px;
 }
 
-/* Trần 56px chứ không lớn hơn: .hero-bottom rộng tối đa 640px, mà "Thiệp Cưới
-   Online" ở cỡ 76px đã ăn hết chừng ấy bề ngang nên dòng chữ chạm mép cột và
-   trông quá khổ so với phần còn lại. 56px để dòng dài nhất còn dư chỗ thở. */
+/* Tên thương hiệu — dòng chữ lớn nhất màn mở đầu. Allura là chữ viết tay nên
+   thân chữ nhỏ hơn hẳn so với cùng font-size của một serif: cỡ phải nhảy lên
+   ~86px mới cân được cụm chữ bên dưới. line-height 1.2 để đuôi nét dưới (g, y)
+   không bị dòng sau cắt ngang. */
 
-.hero-title {
-  @apply font-playfair;
-  font-weight: 500;
-  font-size: clamp(32px, 5.2vw, 56px);
-  line-height: 1.04;
-  letter-spacing: -0.01em;
-  color: rgb(var(--landing-dark-rgb));
+.hero-invite-name {
+  @apply font-allura;
+  font-weight: 400;
+  font-size: clamp(52px, 9vw, 86px);
+  line-height: 1;
+  margin-top: 24px;
+  letter-spacing: 0;
+  color: rgb(var(--brand-primary-rgb));
 }
 
 .hero-lead {
@@ -829,8 +831,8 @@ html.cx-landing {
   .hero-badge {
     height: 36px;
   }
-  .hero-title {
-    font-size: clamp(28px, 4.6vw, 52px);
+  .hero-invite-name {
+    font-size: clamp(46px, 8vw, 76px);
   }
   .hero-lead {
     margin-top: 12px;
@@ -949,7 +951,7 @@ html.cx-landing {
   /* `flex: 1` để cụm trên NUỐT hết chỗ thừa: không có nó thì chỗ thừa rơi vào
      khe giữa hai cụm (.hero-bottom đẩy xuống đáy bằng margin-top:auto) và ba ô
      ảnh treo lơ lửng cách tiêu đề một quãng. Có nó thì .hero-picks (cũng
-     margin-top:auto) dán xuống đáy cụm trên, tức đứng ngay trên .hero-title,
+     margin-top:auto) dán xuống đáy cụm trên, tức đứng ngay trên .hero-invite-name,
      cách đúng một khe 16px của .hero-stage. min-height vẫn giữ vai trò sàn cho
      màn cao — ở đó chỗ thừa bằng 0 nên hai cách cho cùng kết quả. */
   .hero-top {
