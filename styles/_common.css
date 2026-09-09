@@ -1926,7 +1926,7 @@ button.cx-pchrome-btn:hover {
   pointer-events: auto;
   color: rgb(var(--cx-wish-text-rgb));
   background: rgb(var(--cx-wish-bubble-rgb) / var(--cx-wish-bubble-a));
-  border: 1px solid rgb(var(--cx-wish-accent-rgb) / 0.16);
+  border: 1px solid rgb(var(--cx-wish-accent-rgb) / 0.2);
   box-shadow:
     0 1px 2px rgb(0 0 0 / 0.05),
     0 6px 18px rgb(0 0 0 / 0.08);
@@ -1986,7 +1986,7 @@ button.cx-pchrome-btn:hover {
   /* Viền lấy màu NHẤN của mẫu: mặt giấy của ô nhập có thể trùng hệt màu thân
      thiệp, viền là thứ duy nhất vẽ ra mép thẻ — và nó cũng buộc ô nhập vào bảng
      màu của mẫu thay vì nổi lên như một mảng xám lạc lõng. */
-  border: 1px solid rgb(var(--cx-wish-accent-rgb) / 0.28);
+  border: 1px solid rgb(var(--cx-wish-accent-rgb) / 0.4);
   box-shadow:
     0 1px 2px rgb(0 0 0 / 0.06),
     0 8px 24px rgb(0 0 0 / 0.12);
