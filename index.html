@@ -37,7 +37,7 @@
          (common.css cũ) nay đã nằm trong chính build.css. -->
     <link rel="stylesheet" href="styles/build.css" />
 
-    <!-- Khoá --vh (px của "một màn") TRƯỚC nhịp vẽ đầu: #hero và #templates cao.
+    <!-- Khoá --vh (px của "một màn") TRƯỚC nhịp vẽ đầu: #hero cao
          theo biến này, đặt cuối <body> thì hero vẽ bằng giá trị dự phòng rồi mới
          nhảy sang px — thấy rõ khi quay lại trang chủ từ thiệp lúc thanh URL
          đang ẩn. File nhỏ, cùng origin nên đổi lại bằng một nhịp chặn là đáng. -->
@@ -134,17 +134,12 @@
     </section>
 
     <!-- ===== TEMPLATE GALLERY ===== -->
-    <!-- --vh chứ không vh/dvh, cùng lý do với #hero: `100vh` tính cả thanh URL
-         nên mép dưới thẻ bị cắt, còn `100dvh` đổi theo lúc thanh ẩn/hiện — mà bề
-         NGANG thẻ thiệp lại suy ra từ chiều cao khung (sizeCarousel), nên cuộn
-         trên iPhone là thẻ co giãn liên tục. --vh là px do vh-lock.js khoá sẵn
-         nên đứng yên; `1svh` là dự phòng lúc script chưa chạy. -->
-    <section
-      id="templates"
-      class="flex flex-col"
-      style="min-height: calc(var(--vh, 1vh) * 100); min-height: calc(var(--vh, 1svh) * 100)"
-    >
-      <div class="cx-tplhead max-w-6xl mx-auto px-5 shrink-0">
+    <!-- Dải ngang toàn bộ mẫu thiệp: cuộn ngang bằng cuộn thật của trình duyệt,
+         nội dung do js/section-templates.js đổ vào. -->
+    <!-- `hidden` sẵn từ HTML: tải danh sách mẫu hỏng thì renderTemplateCards()
+         không bao giờ chạy, để mặc là mục hiện ra với tiêu đề và một dải rỗng. -->
+    <section id="templates" class="pt-8 pb-12" hidden>
+      <div class="max-w-6xl mx-auto px-5 pb-4">
         <h2
           class="font-playfair text-3xl md:text-4xl font-semibold text-center mb-2 text-[rgb(var(--text-heading-rgb))]"
         >
@@ -155,138 +150,16 @@
         </p>
       </div>
 
-      <div class="relative flex-1 flex flex-col overflow-hidden min-h-0">
-        <div id="templateCarousel" class="carousel-3d-stage flex-1">
-          <div id="templateCarouselInner" class="carousel-3d-track"></div>
-        </div>
-
-        <x-button
-          variant="outline"
-          icon-only
-          id="carouselPrevBtn"
-          onclick="scrollCarousel('prev')"
-          aria-label="Thiệp trước"
-          class="absolute left-3 sm:left-6 top-1/2 z-40 -translate-y-1/2 hidden lg:flex text-[rgb(var(--text-heading-rgb))] backdrop-blur-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgb(var(--brand-accent-rgb)/0.40)]"
-        >
-          <i data-lucide="chevron-left" class="text-base" style="width:16px;height:16px"></i>
-        </x-button>
-        <x-button
-          variant="outline"
-          icon-only
-          id="carouselNextBtn"
-          onclick="scrollCarousel('next')"
-          aria-label="Thiệp tiếp theo"
-          class="absolute right-3 sm:right-6 top-1/2 z-40 -translate-y-1/2 hidden lg:flex text-[rgb(var(--text-heading-rgb))] backdrop-blur-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgb(var(--brand-accent-rgb)/0.40)]"
-        >
-          <i data-lucide="chevron-right" class="text-base" style="width:16px;height:16px"></i>
-        </x-button>
-
-        <!-- Tên mẫu + mô tả + hai nút của thẻ ĐANG MỞ, nằm NGOÀI thiệp. Ảnh thẻ
-             là ảnh chụp CẢ trang thiệp nên chỗ nào cũng đã có chữ của chính mẫu
-             đó — đặt đè lên là hai lớp chữ chồng nhau. Nội dung do
-             updateTemplateMeta() (js/render-templates.js) đổ vào mỗi lần cuộn;
-             khổ khối này nằm trong phần trừ của --cx-chrome-h, đổi bố cục ở đây
-             thì sửa cả công thức đó.
-             Đứng TRÊN hàng chấm chứ không phải dưới: nút Trợ lý XuXi (.aichat-fab)
-             neo góc phải đáy màn, để nút ở hàng cuối là hai thứ chồng mép nhau.
-             Hàng chấm hẹp và nằm giữa màn nên không đụng. -->
-        <!-- Tên mẫu + mô tả (trái) và hai nút (phải) của thẻ ĐANG MỞ, trong một
-             thẻ nổi NGOÀI thiệp. Ảnh thẻ là ảnh chụp CẢ trang thiệp nên chỗ nào
-             cũng đã có chữ của chính mẫu đó — đặt đè lên là hai lớp chữ chồng
-             nhau. Nội dung do updateTemplateMeta() (js/render-templates.js) đổ
-             vào mỗi lần cuộn; khổ khối này nằm trong phần trừ của --cx-chrome-h,
-             đổi bố cục ở đây thì sửa cả công thức đó.
-             Đứng TRÊN hàng chấm chứ không phải dưới: nút Trợ lý XuXi (.aichat-fab)
-             neo góc phải đáy màn, để nút ở hàng cuối là hai thứ chồng mép nhau.
-             Hàng chấm hẹp và nằm giữa màn nên không đụng. -->
-        <div id="templateMeta" class="cx-tplmeta invisible shrink-0 px-4 pb-3">
-          <div class="cx-metacard">
-            <div class="cx-metacard-text">
-              <h3 id="tplMetaName" class="cx-metacard-name font-playfair"></h3>
-              <p id="tplMetaDesc" class="cx-metacard-desc"></p>
-            </div>
-            <div class="cx-metacard-actions">
-              <x-button
-                variant="outline"
-                tone="brand"
-                size="sm"
-                onclick="previewActiveTemplate()"
-                class="lg:h-10 lg:px-5 lg:text-sm"
-              >
-                <i data-lucide="eye" style="width:16px;height:16px"></i>Xem trước
-              </x-button>
-              <!-- Cùng màu với nút "Tạo ngay" ở thanh xem trước mẫu (core/utils.js):
-                   hai chỗ này là CÙNG một hành động — tạo bản nháp từ mẫu đang xem. -->
-              <x-button
-                size="sm"
-                onclick="useActiveTemplate()"
-                style="background:linear-gradient(135deg,rgb(var(--gift-btn-from-rgb)),rgb(var(--gift-btn-to-rgb)));box-shadow:0 4px 12px rgb(var(--gift-btn-to-rgb)/0.4);"
-                class="lg:h-10 lg:px-5 lg:text-sm"
-              >
-                <!-- Cùng icon với nút "Dùng mẫu này" ở navbar bản xem thử
-                     (SUG_ICONS.navigation trong core/utils.js) — hai nút là CÙNG một
-                     hành động, đổi hình một bên thì phải đổi cả bên kia. -->
-                <i data-lucide="navigation" class="shrink-0" style="width:13px;height:13px"></i>Dùng ngay
-              </x-button>
-            </div>
-          </div>
-        </div>
-
-        <div class="shrink-0 flex items-center justify-center gap-4 py-1.5">
-          <x-button
-            variant="ghost"
-            size="sm"
-            icon-only
-            onclick="scrollCarousel('prev')"
-            aria-label="Thiệp trước"
-            class="lg:hidden text-[rgb(var(--text-heading-rgb)/0.45)]"
-          >
-            <i data-lucide="arrow-left" class="text-base" style="width:16px;height:16px"></i>
-          </x-button>
-          <div id="carouselDots" class="flex justify-center gap-1.5"></div>
-          <x-button
-            variant="ghost"
-            size="sm"
-            icon-only
-            onclick="scrollCarousel('next')"
-            aria-label="Thiệp tiếp theo"
-            class="lg:hidden text-[rgb(var(--text-heading-rgb)/0.45)]"
-          >
-            <i data-lucide="arrow-right" class="text-base" style="width:16px;height:16px"></i>
-          </x-button>
-        </div>
-
-      </div>
-    </section>
-
-    <!-- ===== POPULAR TEMPLATES ===== -->
-    <!-- Dải ngang 10 mẫu đầu danh sách. Cùng hình thẻ với mục Mẫu thiệp nhưng
-         KHÔNG phải vòng xoay 3D: đây là danh sách cuộn ngang bằng cuộn thật của
-         trình duyệt, nội dung do js/section-popular.js đổ vào. -->
-    <!-- `hidden` sẵn từ HTML: tải danh sách mẫu hỏng thì renderPopularTemplates()
-         không bao giờ chạy, để mặc là mục hiện ra với tiêu đề và một dải rỗng. -->
-    <section id="popular" class="pt-4 pb-12" hidden>
-      <div class="max-w-6xl mx-auto px-5 pb-4">
-        <h2
-          class="font-playfair text-2xl md:text-3xl font-semibold text-center mb-1 text-[rgb(var(--text-heading-rgb))]"
-        >
-          Mẫu phổ biến
-        </h2>
-        <p class="text-center text-sm opacity-60">
-          Vuốt ngang để xem những mẫu được chọn nhiều nhất
-        </p>
-      </div>
-
       <!-- Hai nút mũi tên CHỈ từ lg: ở đó phần lớn là chuột, mà chuột thường
            không cuộn ngang được nên mấy thẻ cuối dải sẽ không bao giờ tới được.
            Màn cảm ứng vuốt thẳng trên dải. -->
       <div class="relative mx-auto max-w-6xl">
-        <div id="popularRow" class="cx-poprow"></div>
+        <div id="templatesRow" class="cx-tplrow"></div>
 
         <x-button
           variant="outline"
           icon-only
-          onclick="scrollPopular(-1)"
+          onclick="scrollTemplates(-1)"
           aria-label="Mẫu trước"
           class="absolute left-1 top-1/2 z-10 hidden -translate-y-1/2 backdrop-blur-md lg:flex text-[rgb(var(--text-heading-rgb))]"
         >
@@ -295,7 +168,7 @@
         <x-button
           variant="outline"
           icon-only
-          onclick="scrollPopular(1)"
+          onclick="scrollTemplates(1)"
           aria-label="Mẫu tiếp theo"
           class="absolute right-1 top-1/2 z-10 hidden -translate-y-1/2 backdrop-blur-md lg:flex text-[rgb(var(--text-heading-rgb))]"
         >
@@ -760,11 +633,8 @@
     <script src="js/modal.js"></script>
     <script src="js/auth-nav.js"></script>
     <script src="js/home-payment.js"></script>
-    <script src="js/carousel.js"></script>
     <script src="js/page-setup.js"></script>
-    <script src="js/render-templates.js"></script>
-    <script src="js/image-scroll.js"></script>
-    <script src="js/section-popular.js"></script>
+    <script src="js/section-templates.js"></script>
     <script src="js/section-features.js"></script>
     <script src="js/section-steps.js"></script>
     <script src="js/section-benefits.js"></script>
