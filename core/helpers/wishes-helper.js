@@ -34,7 +34,7 @@ const CX_WISH_SHOW_AT = 0.6;
 // lấy nấy, không khai thì rơi về token chung của thiệp. Mỗi khoá ứng với một
 // biến CSS trên .cx-wdock (xem styles/_common.css).
 // Độ mờ nền bong bóng mặc định (%) — trùng --cx-wish-bubble-a ở _common.css.
-const CX_WISH_OPACITY = 80;
+const CX_WISH_OPACITY = 94;
 
 // varName2 = chặng CUỐI khi ô đó đổ màu (khoá "<tên>_to"); có nó thì dải mang
 // thêm cờ .cx-wg-<tên> để CSS đổi sang linear-gradient (styles/_common.css).
@@ -254,8 +254,8 @@ function _cxWishSyncSend(input) {
 
 // Dải nổi ghim đáy khung nhìn: danh sách lời chúc trôi lên ở trên, ô "Gửi lời
 // chúc" ở dưới — cùng một khối, đè lên thiệp chứ không nằm trong thân thiệp.
-// Ô nhập không có nền riêng, nó nổi lên nhờ màn tối phủ từ đáy (.cx-wdock::before,
-// styles/_common.css) — màn đó CỐ Ý luôn tối, không đi theo bộ màu của dải.
+// Bong bóng và ô nhập dùng CHUNG mặt giấy của mẫu (nền `panel`, chữ `body`), tách
+// khỏi thiệp bằng viền màu nhấn + bóng đổ chứ không bằng tấm kính xám.
 // Ai cũng đọc được danh sách; ô nhập chỉ dựng cho khách cầm link cá nhân hoá
 // (hoặc bản xem thử), người còn lại thấy một dòng giải thích thay chỗ đó.
 function _cxWishBuildDock(canWrite) {
