@@ -30,7 +30,7 @@ const CX_WISH_SENT_MS = 2600;
 // mở đầu phải sạch, dải chỉ xuất hiện khi khách đã bắt đầu đọc thiệp.
 const CX_WISH_SHOW_AT = 0.6;
 
-// Bốn ô màu của dải, FIX CỨNG theo từng mẫu: mẫu khai gì (CX_THEME.wishes) thì
+// Năm ô màu của dải, FIX CỨNG theo từng mẫu: mẫu khai gì (CX_THEME.wishes) thì
 // lấy nấy, không khai thì rơi về token chung của thiệp. Mỗi khoá ứng với một
 // biến CSS trên .cx-wdock (xem styles/_common.css).
 // Độ mờ nền bong bóng mặc định (%) — trùng --cx-wish-bubble-a ở _common.css.
@@ -60,6 +60,9 @@ const CX_WISH_COLORS = {
     varName: "--cx-wish-btn-rgb",
     from: "--cx-accent-rgb",
     alias: "accent",
+  },
+  fade: {
+    varName: "--cx-wish-fade-rgb",
   },
 };
 
@@ -116,7 +119,9 @@ function applyWishStyle() {
     const val =
       _cxWishTriplet(decl[key]) ||
       (alias && _cxWishTriplet(decl[alias])) ||
-      _cxWishRootVar(def.from);
+      // Không khai `from` = giá trị mặc định nằm thẳng trong CSS (màn tối), ở
+      // đây không có gì để đọc ra cả.
+      (def.from && _cxWishRootVar(def.from));
     if (val) dock.style.setProperty(def.varName, val);
     if (!def.varName2) return;
     const to =

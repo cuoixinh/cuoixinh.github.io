@@ -69,8 +69,9 @@
     // ĐÂY LÀ NƠI DUY NHẤT quyết định màu của dải — khách không chỉnh được. Khai
     // khi màu mặc định (ăn theo token chung của thiệp: panel / body / accent)
     // không hợp tông của mẫu, ví dụ mẫu nền tối; khoá nào không khai thì rơi về
-    // token chung. Thêm "bubble_to" là nền bong bóng đổ màu (gradient).
-    //   wishes: { bubble: "#ffffff", text: "#7a736e", accent: "#b08d57", btn: "#b08d57", opacity: 80 },
+    // token chung. Thêm "bubble_to" là nền bong bóng đổ màu (gradient); "fade"
+    // là màn phủ neo dải xuống mép dưới (mặc định ăn theo nền TRANG của mẫu).
+    //   wishes: { bubble: "#ffffff", text: "#7a736e", accent: "#b08d57", btn: "#b08d57", fade: "#1a1714", opacity: 94 },
     wishes: {},
 
     // Mục được gán hiệu ứng hiện dần khi cuộn tới.

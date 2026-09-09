@@ -1822,6 +1822,14 @@ button.cx-pchrome-btn:hover {
      nền xám đè lên tông pastel của thiệp là ra một mảng đục. */
   --cx-wish-field-rgb: var(--cx-wish-bubble-rgb);
   --cx-wish-field-a: 0.96;
+  /* Màn TỐI phủ từ đáy lên (::before) — neo dải xuống mép dưới để ô nhập và
+     bong bóng khỏi lửng lơ giữa thiệp. Cố ý tối ở mọi mẫu: thứ trôi bên dưới đủ
+     mọi màu, chỉ một vệt tối mỏng là chỗ nào cũng ra được chiều sâu. Khác bản
+     cũ ở chỗ ô nhập KHÔNG còn ăn màu từ đây nữa (nó có mặt giấy riêng), nên màn
+     này chỉ còn việc tạo nền — nhạt hơn và tan sớm hơn. Mẫu đổi bằng
+     CX_THEME.wishes.fade. */
+  --cx-wish-fade-rgb: 0 0 0;
+  --cx-wish-fade-a: 0.32;
   position: fixed;
   left: 0;
   right: 0;
@@ -1839,6 +1847,21 @@ button.cx-pchrome-btn:hover {
 .cx-wdock.is-on {
   transform: none;
   opacity: 1;
+}
+
+/* Đậm nhất ở đáy rồi tan hết trước khi chạm mép trên của dải, nên phần danh
+   sách lời chúc gần như không bị phủ. Nằm dưới nội dung (.cx-wdock-inner
+   z-index 1) và KHÔNG bắt chạm — dải vốn pointer-events: none. */
+.cx-wdock::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgb(var(--cx-wish-fade-rgb) / var(--cx-wish-fade-a)) 0,
+    rgb(var(--cx-wish-fade-rgb) / calc(var(--cx-wish-fade-a) * 0.45)) 24%,
+    rgb(var(--cx-wish-fade-rgb) / 0) 58%
+  );
 }
 
 /* Cột dồn về mép TRÁI, rộng 2/3 — cả danh sách lẫn ô nhập đều nằm trong khổ này,

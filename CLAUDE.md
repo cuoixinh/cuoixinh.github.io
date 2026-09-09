@@ -398,10 +398,12 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   không theo khung) và đo lại qua `ResizeObserver` vì lúc dựng `#main-card` còn `display:none`.
   Dải **không hiện ở màn bìa lẫn màn mở đầu** — chỉ mờ hiện khi khách đã mở bìa VÀ cuộn quá
   `CX_WISH_SHOW_AT` màn hình. Màu đi qua bộ token riêng `--cx-wish-*` trên `.cx-wdock`:
-  mặc định ăn theo token chung của thiệp (`panel`/`body`/`accent`), mẫu ghi đè bằng
-  **`CX_THEME.wishes`** (`text` chữ · `accent` tên khách · `bubble` nền · `btn` nút gửi
-  — riêng `bubble` thêm `bubble_to` là nền bong bóng đổ màu — và `opacity`; `btn` không khai
-  thì rơi về `accent`; khai khi mặc định không hợp tông — ví dụ mẫu nền tối). Màu dải là
+  mặc định ăn theo token chung của thiệp (`panel`/`body`/`accent`/`page-bg`), mẫu ghi đè bằng
+  **`CX_THEME.wishes`** (`text` chữ · `accent` tên khách · `bubble` nền bong bóng · `btn` nút
+  gửi · `fade` màn phủ neo dải xuống mép dưới — riêng `bubble` thêm `bubble_to` là nền đổ màu
+  — và `opacity`; `btn` không khai thì rơi về `accent`; khai khi mặc định không hợp tông —
+  ví dụ mẫu nền tối). Bong bóng và ô nhập dùng CHUNG mặt giấy (`panel` + `body`), tách khỏi
+  thiệp bằng viền màu nhấn + bóng đổ chứ không bằng tấm kính xám. Màu dải là
   phần CỐ ĐỊNH của mẫu: khách KHÔNG chỉnh được, tab Giao diện không có mục nào cho nó.
   Cổng chặn "chỉ khách được mời" nằm ở Edge Function `guest-handler`
   (`action=wish` khớp một hàng `guests` theo slug + tên + xưng hô): tham số `name`/
