@@ -293,7 +293,7 @@ function _cxWishBuildDock(canWrite) {
     '<span class="cx-wdock-tool-ico cx-wdock-tool-ico-off"><i data-lucide="eye" style="width:15px;height:15px"></i></span>' +
     "</button>" +
     '<button type="button" class="cx-wdock-tool" id="cx-wish-more" aria-label="Xem tất cả lời chúc">' +
-    '<i data-lucide="list" style="width:15px;height:15px"></i>' +
+    '<i data-lucide="maximize" style="width:15px;height:15px"></i>' +
     "</button>" +
     "</div>" +
     (canWrite
