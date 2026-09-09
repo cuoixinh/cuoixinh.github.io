@@ -1,2 +1,5 @@
 node_modules/
 scripts/node_modules/
+
+# Đường dẫn repo public trên máy này + version của lần deploy gần nhất
+deploy-public.config.json

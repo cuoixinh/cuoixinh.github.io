@@ -176,6 +176,25 @@ partial/script chúng nạp.
   xong mới gỡ thẻ cũ) → đổi `CX_VERSION` là CSS cũng đi theo. Riêng `<script>` viết cứng
   trong HTML thì không cứu được (đã chạy trước rồi) — sửa xong phải Ctrl+F5.
 
+### Triển khai (repo này private → repo public chạy Pages)
+
+`npm run deploy:public` (hoặc double-click `deploy.bat`) copy bản chạy được sang thư mục
+repo public trên máy, người dùng tự commit & push ở đó. Đường dẫn đích nhớ trong
+`deploy-public.config.json` (gitignored).
+
+- `INCLUDE` trong `scripts/deploy-public.mjs` là **danh sách CHO PHÉP**: thứ gì không khai
+  thì KHÔNG ra bản public. **Thêm thư mục/trang mới ở gốc phải khai vào `INCLUDE`**, nếu
+  không production thiếu file. Thư mục đã khai (`core/`, `js/`, `public/`, `assets/`,
+  `invitation-setup/`…) thì file mới bên trong tự theo.
+- **`admin/` KHÔNG lên public** — chạy local từ repo này. Kéo theo: `CONFIG.cloudflare
+  .purgeSecret` bị `REDACT` thay bằng `null` khi copy (chỉ admin dùng). Chức năng nào của
+  trang public cần một giá trị trong `REDACT` thì phải gỡ mục đó ra.
+- Script CHẶN deploy khi quét thấy secret (service_role, `sbp_`, JWT role khác `anon`…), và
+  CẢNH BÁO khi `CX_VERSION` trùng lần trước, CSS build cũ hơn nguồn, hay HTML trỏ tới file
+  không nằm trong bản public.
+- Thư mục đích được đồng bộ theo kiểu gương: file thừa bị xoá, trừ `TARGET_KEEP`
+  (`.git`, `.github`, `.gitignore`, `LICENSE`, `README.md`, `.nojekyll`).
+
 ### Auth
 
 - **`core/auth.js` (`window.CXAuth`) là nguồn sự thật DUY NHẤT.** Không tự parse
