@@ -1799,7 +1799,8 @@ button.cx-pchrome-btn:hover {
 
 /* Dưới lightbox (z 100) và trên thanh nhạc (z 60). KHÔNG dùng
    env(safe-area-inset-bottom) — quy ước toàn project, xem .cx-tabbar. */
-.cx-wdock {
+.cx-wdock,
+.cx-wall {
   /* Bảng màu riêng của dải: mặc định ăn theo token chung của thiệp, mẫu ghi đè
      bằng CX_THEME.wishes — applyWishStyle() (core/helpers/wishes-helper.js)
      đặt lại đúng mấy biến này. Khách KHÔNG chỉnh được, màu là của mẫu.
@@ -1822,14 +1823,17 @@ button.cx-pchrome-btn:hover {
      nền xám đè lên tông pastel của thiệp là ra một mảng đục. */
   --cx-wish-field-rgb: var(--cx-wish-bubble-rgb);
   --cx-wish-field-a: 0.96;
-  /* Màn TỐI phủ từ đáy lên (::before) — neo dải xuống mép dưới để ô nhập và
-     bong bóng khỏi lửng lơ giữa thiệp. Cố ý tối ở mọi mẫu: thứ trôi bên dưới đủ
-     mọi màu, chỉ một vệt tối mỏng là chỗ nào cũng ra được chiều sâu. Khác bản
-     cũ ở chỗ ô nhập KHÔNG còn ăn màu từ đây nữa (nó có mặt giấy riêng), nên màn
-     này chỉ còn việc tạo nền — nhạt hơn và tan sớm hơn. Mẫu đổi bằng
+  /* Màn TỐI ở ĐÁY dải (::before) — neo hàng nút + ô nhập xuống mép dưới. Cố ý
+     tối ở mọi mẫu: thứ trôi bên dưới đủ mọi màu, chỉ một vệt tối mỏng là chỗ
+     nào cũng ra được chiều sâu. Nó KHÔNG với tới danh sách lời chúc, và ô nhập
+     cũng không ăn màu từ đây (đã có mặt giấy riêng). Mẫu đổi bằng
      CX_THEME.wishes.fade. */
   --cx-wish-fade-rgb: 0 0 0;
   --cx-wish-fade-a: 0.32;
+}
+
+/* Dải nổi: ghim đáy khung nhìn, KHÔNG bắt chạm (từng phần con tự bật lại). */
+.cx-wdock {
   position: fixed;
   left: 0;
   right: 0;
@@ -1849,18 +1853,22 @@ button.cx-pchrome-btn:hover {
   opacity: 1;
 }
 
-/* Đậm nhất ở đáy rồi tan hết trước khi chạm mép trên của dải, nên phần danh
-   sách lời chúc gần như không bị phủ. Nằm dưới nội dung (.cx-wdock-inner
-   z-index 1) và KHÔNG bắt chạm — dải vốn pointer-events: none. */
+/* CHỈ một dải ở ĐÁY, cao vừa đủ ôm hàng nút + ô nhập rồi tan hết — phần danh
+   sách lời chúc phía trên không được phủ gì cả, bong bóng tự có nền riêng.
+   Nằm dưới nội dung (.cx-wdock-inner z-index 1) và KHÔNG bắt chạm — dải vốn
+   pointer-events: none. */
 .cx-wdock::before {
   content: "";
   position: absolute;
-  inset: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 140px;
   background: linear-gradient(
     to top,
     rgb(var(--cx-wish-fade-rgb) / var(--cx-wish-fade-a)) 0,
-    rgb(var(--cx-wish-fade-rgb) / calc(var(--cx-wish-fade-a) * 0.45)) 24%,
-    rgb(var(--cx-wish-fade-rgb) / 0) 58%
+    rgb(var(--cx-wish-fade-rgb) / calc(var(--cx-wish-fade-a) * 0.4)) 40%,
+    rgb(var(--cx-wish-fade-rgb) / 0) 100%
   );
 }
 
@@ -1986,6 +1994,65 @@ button.cx-pchrome-btn:hover {
   box-shadow: 0 4px 14px rgb(0 0 0 / 0.08);
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
+}
+
+/* Hàng nút nhỏ giữa danh sách và ô nhập: ẩn/hiện dải đang trôi và mở bảng xem
+   tất cả. Chỉ icon, không chữ — hàng này nằm đè lên thiệp nên mỗi px là một px
+   thiệp bị che. Ẩn cả hàng khi chưa có lời chúc nào. */
+.cx-wdock-tools {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cx-wdock-tools[hidden] {
+  display: none;
+}
+
+.cx-wdock-tool {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border-radius: 999px;
+  pointer-events: auto;
+  cursor: pointer;
+  color: rgb(var(--cx-wish-accent-rgb));
+  background: rgb(var(--cx-wish-field-rgb) / var(--cx-wish-field-a));
+  border: 1px solid rgb(var(--cx-wish-accent-rgb) / 0.4);
+  box-shadow: 0 2px 10px rgb(0 0 0 / 0.12);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+/* Hai icon dựng sẵn trong nút ẩn/hiện, CSS chọn cái nào hiện theo cờ trên dải:
+   lucide không quét lại nên đừng đổi icon bằng JS. */
+.cx-wdock-tool-ico {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cx-wdock-tool-ico-off,
+.cx-wdock.is-wfeed-off .cx-wdock-tool-ico-on {
+  display: none;
+}
+
+.cx-wdock.is-wfeed-off .cx-wdock-tool-ico-off {
+  display: flex;
+}
+
+/* Tắt dải trôi: giấu luôn khung danh sách, hàng nút và ô nhập ở lại. Trạng thái
+   này CỐ Ý không lưu — tải lại trang là dải hiện lại. */
+.cx-wdock.is-wfeed-off .cx-wfeed {
+  display: none;
 }
 
 /* Ô nhập: thẻ nổi dài hết CỘT (.cx-wdock-inner, 2/3 màn). Lúc nghỉ là một viên
@@ -2231,10 +2298,125 @@ button.cx-pchrome-btn:hover {
   );
 }
 
-/* Chỗ trống ở đáy thân thiệp cho ô nhập, do JS chèn khi dựng dải. Chỉ cần bằng
-   ô nhập: phần danh sách phía trên trong suốt nên để nó đè lên thiệp là đúng. */
+/* Bảng "Xem tất cả lời chúc": tấm trượt lên từ đáy, đọc trọn danh sách thay vì
+   đợi dải trôi. Nằm NGOÀI .cx-wdock (dải có transform lúc ẩn, để trong đó là
+   bảng bị kéo lệch theo) nên phải tự mang bộ token — xem selector gộp ở đầu mục.
+   Dưới lightbox (z 100), trên dải (z 70). */
+.cx-wall {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.cx-wall[hidden] {
+  display: none;
+}
+
+.cx-wall-veil {
+  position: absolute;
+  inset: 0;
+  background: rgb(var(--cx-wish-fade-rgb) / 0.5);
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+}
+
+.cx-wall-sheet {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 480px;
+  max-height: 76%;
+  border-radius: 20px 20px 0 0;
+  color: rgb(var(--cx-wish-text-rgb));
+  background: rgb(var(--cx-wish-field-rgb));
+  border: 1px solid rgb(var(--cx-wish-accent-rgb) / 0.4);
+  border-bottom: 0;
+  box-shadow: 0 -8px 32px rgb(0 0 0 / 0.24);
+  animation: cx-wall-up 0.24s ease both;
+}
+
+@keyframes cx-wall-up {
+  from {
+    transform: translateY(16px);
+    opacity: 0;
+  }
+
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+.cx-wall-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+  padding: 14px 12px 12px 20px;
+  border-bottom: 1px solid rgb(var(--cx-wish-accent-rgb) / 0.16);
+}
+
+.cx-wall-title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgb(var(--cx-wish-accent-rgb));
+}
+
+.cx-wall-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  margin-left: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  color: rgb(var(--cx-wish-text-rgb));
+  background: rgb(var(--cx-wish-accent-rgb) / 0.12);
+}
+
+.cx-wall-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 4px 20px 24px;
+}
+
+/* Trong bảng thì mặt giấy đã là nền rồi, bong bóng nữa là giấy chồng giấy —
+   mỗi lời chúc chỉ còn một hàng ngăn bằng vạch mảnh. */
+.cx-wall-item {
+  padding: 14px 0;
+  font-size: 13px;
+  line-height: 1.55;
+  word-break: break-word;
+  border-bottom: 1px solid rgb(var(--cx-wish-accent-rgb) / 0.12);
+}
+
+.cx-wall-item:last-child {
+  border-bottom: 0;
+}
+
+.cx-wall-empty {
+  padding: 28px 0;
+  font-size: 13px;
+  text-align: center;
+  opacity: 0.7;
+}
+
+/* Chỗ trống ở đáy thân thiệp cho hàng nút + ô nhập, do JS chèn khi dựng dải.
+   Chỉ cần bằng hai thứ đó: phần danh sách phía trên trong suốt nên để nó đè lên
+   thiệp là đúng. */
 .cx-wdock-spacer {
-  height: 64px;
+  height: 104px;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -2252,5 +2434,9 @@ button.cx-pchrome-btn:hover {
 
   .cx-wdock {
     transition: none;
+  }
+
+  .cx-wall-sheet {
+    animation: none;
   }
 }

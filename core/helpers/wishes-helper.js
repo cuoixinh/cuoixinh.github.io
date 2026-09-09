@@ -13,7 +13,7 @@ const CX_WISH_MAX_LEN = 500;
 const CX_WISH_SPEED = 32;
 
 // Nghỉ bao lâu sau khi lời chúc cuối rời khỏi khung rồi chiếu lại từ đầu (ms).
-const CX_WISH_REPLAY_MS = 5000;
+const CX_WISH_REPLAY_MS = 3000;
 
 // Ô nhập cao tối đa mấy dòng khi bung ra — quá đó thì cuộn trong chính ô.
 const CX_WISH_INPUT_ROWS = 3;
@@ -77,6 +77,10 @@ let _cxWishItems = [];
 let _cxWishRemaining = CX_WISH_MAX;
 let _cxWishDemo = false;
 
+// Khách tự tắt dải trôi. CỐ Ý chỉ nằm trong bộ nhớ: tải lại trang là dải hiện
+// lại, khách không phải nhớ mình đã tắt ở thiệp nào.
+let _cxWishFeedOff = false;
+
 // Vòng chiếu hiện tại — phải dọn trước khi vẽ lại, nếu không lượt cũ vẫn hẹn giờ
 // khởi động lại một thẻ track đã bị gỡ khỏi DOM.
 let _cxWishReplayTimer = null;
@@ -111,6 +115,8 @@ function _cxWishTriplet(hex) {
 function applyWishStyle() {
   const dock = document.getElementById("cx-wish-dock");
   if (!dock) return;
+  // Bảng "Xem tất cả" nằm ngoài dải nên không thừa hưởng token — đặt cho cả hai.
+  const targets = [dock, document.getElementById("cx-wish-all")].filter(Boolean);
 
   const decl = (window.CX_THEME && window.CX_THEME.wishes) || {};
 
@@ -122,18 +128,21 @@ function applyWishStyle() {
       // Không khai `from` = giá trị mặc định nằm thẳng trong CSS (màn tối), ở
       // đây không có gì để đọc ra cả.
       (def.from && _cxWishRootVar(def.from));
-    if (val) dock.style.setProperty(def.varName, val);
+    if (val) targets.forEach((t) => t.style.setProperty(def.varName, val));
     if (!def.varName2) return;
     const to =
       _cxWishTriplet(decl[key + "_to"]) ||
       (alias && _cxWishTriplet(decl[alias + "_to"])) ||
       "";
-    if (to) dock.style.setProperty(def.varName2, to);
-    dock.classList.toggle("cx-wg-" + key, !!to);
+    targets.forEach((t) => {
+      if (to) t.style.setProperty(def.varName2, to);
+      t.classList.toggle("cx-wg-" + key, !!to);
+    });
   });
 
   const op = Number.isFinite(decl.opacity) ? decl.opacity : CX_WISH_OPACITY;
-  dock.style.setProperty("--cx-wish-bubble-a", String(Math.min(100, Math.max(0, op)) / 100));
+  const a = String(Math.min(100, Math.max(0, op)) / 100);
+  targets.forEach((t) => t.style.setProperty("--cx-wish-bubble-a", a));
 }
 
 // Thẻ con flex-column bọc các mục của thân thiệp (quy ước: #main-card có ĐÚNG một).
@@ -157,6 +166,9 @@ function _cxWishRender() {
 
   clearTimeout(_cxWishReplayTimer);
   _cxWishReplayTimer = null;
+
+  const tools = document.getElementById("cx-wdock-tools");
+  if (tools) tools.hidden = _cxWishItems.length === 0;
 
   if (_cxWishItems.length === 0) {
     mount.innerHTML = "";
@@ -272,6 +284,18 @@ function _cxWishBuildDock(canWrite) {
   dock.innerHTML =
     '<div class="cx-wdock-inner">' +
     '<div class="cx-wfeed" id="cx-wishes-list" hidden></div>' +
+    // Hàng nút chỉ có icon: tắt/bật dải trôi và mở bảng đọc trọn danh sách.
+    // Hai icon của nút tắt dựng sẵn cả hai, CSS chọn theo cờ .is-wfeed-off trên
+    // dải — lucide không quét lại nên đừng đổi icon bằng JS.
+    '<div class="cx-wdock-tools" id="cx-wdock-tools" hidden>' +
+    '<button type="button" class="cx-wdock-tool" id="cx-wish-hide" aria-label="Ẩn lời chúc đang trôi">' +
+    '<span class="cx-wdock-tool-ico cx-wdock-tool-ico-on"><i data-lucide="eye-off" style="width:15px;height:15px"></i></span>' +
+    '<span class="cx-wdock-tool-ico cx-wdock-tool-ico-off"><i data-lucide="eye" style="width:15px;height:15px"></i></span>' +
+    "</button>" +
+    '<button type="button" class="cx-wdock-tool" id="cx-wish-more" aria-label="Xem tất cả lời chúc">' +
+    '<i data-lucide="list" style="width:15px;height:15px"></i>' +
+    "</button>" +
+    "</div>" +
     (canWrite
       ? '<div class="cx-wdock-card cx-t" id="cx-wdock-open">' +
         '<div class="cx-wdock-row">' +
@@ -298,6 +322,7 @@ function _cxWishBuildDock(canWrite) {
       : '<div class="cx-wdock-note cx-t">Chỉ khách mời nhận thiệp riêng mới gửi được lời chúc.</div>') +
     "</div>";
   document.body.appendChild(dock);
+  _cxWishBuildAllSheet();
 
   // Dải đè lên cuối thiệp — chừa đúng chiều cao nó ở đáy thân thiệp, nếu không
   // mục cuối (lời cảm ơn) bị che mất một đoạn.
@@ -309,9 +334,13 @@ function _cxWishBuildDock(canWrite) {
     host.appendChild(spacer);
   }
 
+  document.getElementById("cx-wish-hide")?.addEventListener("click", _cxWishToggleFeed);
+  document.getElementById("cx-wish-more")?.addEventListener("click", _cxWishOpenAll);
+
+  // lucide không tự quét lại phần chèn động.
+  window.lucide?.createIcons({ root: dock });
+
   if (canWrite) {
-    // lucide không tự quét lại phần chèn động.
-    window.lucide?.createIcons({ root: dock });
     _cxWishSetDockText();
 
     const card = document.getElementById("cx-wdock-open");
@@ -343,6 +372,87 @@ function _cxWishBuildDock(canWrite) {
   }
 
   _cxWishWatchReveal(dock);
+}
+
+// Tắt/bật dải trôi. Chỉ đổi cờ trên dải (CSS lo phần giấu khung + đổi icon);
+// bật lại thì đo và chiếu lại từ đầu vì lúc giấu khung không có kích thước.
+function _cxWishToggleFeed() {
+  const dock = document.getElementById("cx-wish-dock");
+  if (!dock) return;
+  _cxWishFeedOff = !_cxWishFeedOff;
+  dock.classList.toggle("is-wfeed-off", _cxWishFeedOff);
+  document
+    .getElementById("cx-wish-hide")
+    ?.setAttribute(
+      "aria-label",
+      _cxWishFeedOff ? "Hiện lời chúc đang trôi" : "Ẩn lời chúc đang trôi",
+    );
+  if (!_cxWishFeedOff) _cxWishStartRoll();
+}
+
+// ── Bảng "Xem tất cả lời chúc" ──────────────────────────────────────────────
+
+// Dựng một lần cùng lúc với dải (ẩn sẵn) để applyWishStyle() kịp đổ token màu
+// vào — bảng nằm ngoài .cx-wdock nên không thừa hưởng được.
+function _cxWishBuildAllSheet() {
+  if (document.getElementById("cx-wish-all")) return;
+
+  const wrap = document.createElement("div");
+  wrap.id = "cx-wish-all";
+  wrap.className = "cx-wall";
+  wrap.hidden = true;
+  wrap.innerHTML =
+    '<div class="cx-wall-veil" id="cx-wish-all-veil"></div>' +
+    '<div class="cx-wall-sheet" role="dialog" aria-modal="true" aria-label="Tất cả lời chúc">' +
+    '<div class="cx-wall-head">' +
+    '<span class="cx-wall-title" id="cx-wish-all-title">Lời chúc</span>' +
+    '<button type="button" class="cx-wall-close" id="cx-wish-all-close" aria-label="Đóng">' +
+    '<i data-lucide="x" style="width:16px;height:16px"></i>' +
+    "</button>" +
+    "</div>" +
+    '<div class="cx-wall-body" id="cx-wish-all-body"></div>' +
+    "</div>";
+  document.body.appendChild(wrap);
+  // Bảng nằm ngoài dải nên lượt quét icon của dải không với tới đây.
+  window.lucide?.createIcons({ root: wrap });
+
+  document.getElementById("cx-wish-all-close")?.addEventListener("click", _cxWishCloseAll);
+  document.getElementById("cx-wish-all-veil")?.addEventListener("click", _cxWishCloseAll);
+}
+
+function _cxWishAllItemHtml(w) {
+  return (
+    '<div class="cx-wall-item cx-t">' +
+    `<span class="cx-wish-name">${escapeHtml(w.name || "Khách mời")}</span>` +
+    `<span class="cx-wish-text">${escapeHtml(w.text)}</span>` +
+    "</div>"
+  );
+}
+
+function _cxWishAllKey(e) {
+  if (e.key === "Escape") _cxWishCloseAll();
+}
+
+// Nạp lại nội dung mỗi lần mở: danh sách đổi sau mỗi lượt khách gửi.
+function _cxWishOpenAll() {
+  const wrap = document.getElementById("cx-wish-all");
+  const body = document.getElementById("cx-wish-all-body");
+  if (!wrap || !body) return;
+
+  body.innerHTML = _cxWishItems.length
+    ? _cxWishItems.map(_cxWishAllItemHtml).join("")
+    : '<div class="cx-wall-empty cx-t">Chưa có lời chúc nào.</div>';
+  const title = document.getElementById("cx-wish-all-title");
+  if (title) title.textContent = `Lời chúc · ${_cxWishItems.length}`;
+
+  wrap.hidden = false;
+  document.addEventListener("keydown", _cxWishAllKey);
+}
+
+function _cxWishCloseAll() {
+  const wrap = document.getElementById("cx-wish-all");
+  if (wrap) wrap.hidden = true;
+  document.removeEventListener("keydown", _cxWishAllKey);
 }
 
 // Dải chỉ hiện khi khách ĐÃ mở bìa VÀ đã cuộn qua màn mở đầu — màn bìa và màn
