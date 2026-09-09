@@ -1,12 +1,23 @@
 {
   "path": "/assets/background/started",
-  "updated_at": "2026-08-08T10:09:49.906Z",
+  "updated_at": "2026-09-09T15:24:40.625Z",
   "backgrounds": [
     {
-      "name": "bg-hero",
-      "updated_at": "2026-08-08T10:09:49.892Z",
+      "name": "bg-hero-desktop",
+      "updated_at": "2026-09-09T15:19:24.141Z",
       "variants": {
-        "desktop": "bg-hero-desktop.webp"
+        "desktop": "bg-hero-desktop-desktop.webp",
+        "mobile": "bg-hero-desktop-mobile.webp"
+      },
+      "focal": {
+        "desktop": {
+          "x": 50,
+          "y": 60
+        },
+        "mobile": {
+          "x": 48,
+          "y": 88
+        }
       }
     }
   ]

@@ -1,17 +1,9 @@
-// ============= TAB "Ảnh nền": dán HTML, xem trước, chụp thành ảnh =============
+// ============= TAB "Ảnh nền": tải ảnh lên + chọn điểm nhìn =============
 // Nền là file ảnh tĩnh trong repo, KHÔNG phải dữ liệu trong DB → ghi xong phải
 // commit & push mới lên production.
 //
-// Luồng: admin tự dán mã HTML → bấm Run xem trong iframe → "Chụp thành ảnh nền"
-// ra WebP → ghi xuống đĩa. HTML chỉ là bản vẽ trung gian, không lưu lại và không
-// bao giờ chèn vào DOM của trang.
-//
-// NGUYÊN TẮC: iframe thấy gì thì ảnh chụp phải ra đúng thế. Hai việc để giữ được
-// điều đó, vì <foreignObject> không chạy JS và không tải được file ngoài:
-//  - Chụp DOM SAU KHI script chạy (bgSnapshotFrame) chứ không chụp mã gốc.
-//  - Tự dò MỌI tài nguyên mã tham chiếu rồi nhúng vào (bgInlineAssets), không dựa
-//    vào danh sách ảnh đã chọn — bảng "Đường dẫn ảnh" chỉ là tiện ích chép đường
-//    dẫn, bỏ trống vẫn chụp bình thường.
+// Luồng: chọn ảnh từ máy → nén thành WebP → xem trước ở nhiều khổ màn → đặt
+// điểm nhìn → ghi xuống đĩa + cập nhật manifest.
 //
 // Quy ước:
 // 1. Một "nền" = MỘT BỘ nhiều biến thể khổ màn hình (desktop + mobile), tên file
@@ -21,7 +13,9 @@
 // 2. Trùng tên là GHI ĐÈ (có hỏi lại). Khác tab "Ảnh mẫu" — bên đó tự đánh số để
 //    không bao giờ ghi đè.
 // 3. manifest.json là NƠI DUY NHẤT web đọc được danh sách nền (GitHub Pages
-//    không cho liệt kê thư mục qua HTTP).
+//    không cho liệt kê thư mục qua HTTP). Điểm nhìn cũng nằm trong đó, ở khoá
+//    `focal` của mỗi bộ, tách theo biến thể — js/hero-background.js đọc ra rồi
+//    đặt thành background-position.
 //
 // Thêm chỗ dùng nền mới về sau: thêm MỘT mục vào BG_SLOTS, không sửa gì khác.
 
@@ -38,23 +32,31 @@ const BG_SLOTS = [
   },
 ];
 
+// Khổ màn dùng để xem trước điểm nhìn. Chiều cao là chiều cao KHUNG NHÌN vì màn
+// mở đầu cao đúng một màn (--vh) — nhờ vậy khung ở đây khớp với trang thật.
+const BG_FRAMES = [
+  { label: "Điện thoại", w: 390, h: 844 },
+  { label: "Máy tính bảng", w: 820, h: 1180 },
+  { label: 'Laptop 13"', w: 1440, h: 800 },
+  { label: "Màn rộng", w: 1920, h: 1080 },
+];
+
 // Dùng CHUNG handle thư mục assets/ với tab "Ảnh mẫu" (cùng key, cùng store):
 // admin kết nối một lần là cả hai tab dùng được. siIdbGet/siIdbPut khai ở
 // 03-sample-images.js, SI_IDB_STORE cũng vậy — file này luôn nạp sau.
 const BG_IDB_KEY = "assets-root";
 const BG_MANIFEST_NAME = "manifest.json";
 const BG_MAX_MB = 1.2; // trần dung lượng ảnh nền ghi ra đĩa
-const BG_CAPTURE_QUALITY = 0.9;
-const BG_HTML_LS_KEY = "bg_html_draft"; // mã đang soạn, giữ qua F5
-const BG_SETTLE_MS = 400; // chờ JS trong mã dựng xong DOM trước khi chụp
+const BG_WEBP_QUALITY = 0.9;
+// Nền chỉ hiện ở khổ nền nên không cần lớn hơn cạnh dài nhất của biến thể.
+const BG_MAX_SIDE = 1920;
+// Ảnh đặt tay vào thư mục (chưa qua tab này) vẫn phải hiện ra để sửa điểm nhìn.
+const BG_EXT_RE = /\.(webp|png|jpe?g|avif)$/i;
 
 let bgRootHandle = null; // thư mục assets/
 let bgDirHandle = null; // thư mục đích của slot đang chọn
-let bgItems = []; // nền đã có: [{ name, updated_at, variants: {key: filename} }]
-let bgPhotos = []; // bảng tra đường dẫn: [{ path, w, h }] — KHÔNG liên quan tới việc chụp
-let bgPendingBlob = null; // ảnh đã chụp, chưa lưu
-let bgPreviewUrl = ""; // blob: URL của ảnh xem trước (phải revoke khi thay)
-let bgRenderedSrc = null; // mã đang thực sự chạy trong iframe, để biết có phải Run lại không
+let bgItems = []; // nền đã có: [{ name, updated_at, variants: {key: file}, focal: {key: {x,y}} }]
+let bgPending = null; // ảnh đang chờ lưu: { blob, w, h, focal, url }
 
 // ============= Init tab =============
 
@@ -66,6 +68,7 @@ async function initBackgroundPanel() {
   }
 
   bgPopulateSlotDropdown();
+  bgInitDropZone();
 
   const savedHandle = await siIdbGet(SI_IDB_STORE, BG_IDB_KEY).catch(() => null);
   if (!savedHandle) {
@@ -170,15 +173,41 @@ async function connectBackgroundRootFolder() {
   }
 }
 
+/** Mọi thư mục đích tab này ghi ra — dùng để nhận ra thư mục gốc chọn nhầm. */
+const bgAllFolders = () => [...BG_SLOTS.map((s) => s.folder), HP_FOLDER];
+
+/**
+ * Đoạn đường dẫn còn phải đi TỪ thư mục đã kết nối tới thư mục đích, hoặc
+ * `null` nếu đích nằm NGOÀI thư mục đã kết nối (không đi ngược lên được).
+ * Người dùng hay chọn thẳng một thư mục con (assets/background/started) thay vì
+ * assets/: nối đủ đường dẫn vào đó là đẻ ra started/background/started. Cắt
+ * phần đã nằm trong tên thư mục gốc lo được ca đó, nhưng đích KHÁC
+ * (thumbnail_started) thì không tài nào với tới — phải báo, đừng tạo bừa.
+ */
+function bgSlotParts(slot) {
+  const parts = slot.folder.split("/");
+  const root = bgRootHandle?.name || "";
+  const i = parts.lastIndexOf(root);
+  if (i >= 0) return parts.slice(i + 1);
+  const insideAnother = bgAllFolders().some((f) => f.split("/").includes(root));
+  return insideAnother ? null : parts;
+}
+
+/** Câu nhắc khi thư mục gốc đang chọn không với tới được thư mục đích. */
+function bgUnreachableMsg(slot) {
+  return `Thư mục đang kết nối (${bgRootHandle?.name}/) không chứa ${slot.folder}/ — hãy bấm "Đổi thư mục" và chọn đúng assets/`;
+}
+
 /**
  * Mở (tạo nếu chưa có) thư mục đích của slot. Đường dẫn NHIỀU CẤP nên đi lần
  * lượt từng đoạn — getDirectoryHandle chỉ nhận một cấp mỗi lần.
  * `create: false` để chỉ xem, không tự tạo thư mục rỗng khi mới mở tab.
  */
 async function bgOpenSlotDir(slot, { create = false } = {}) {
-  if (!bgRootHandle) return null;
+  const parts = bgRootHandle && bgSlotParts(slot);
+  if (!parts) return null;
   let dir = bgRootHandle;
-  for (const part of slot.folder.split("/")) {
+  for (const part of parts) {
     dir = await dir.getDirectoryHandle(part, { create }).catch(() => null);
     if (!dir) return null;
   }
@@ -200,518 +229,253 @@ async function onBackgroundSlotChange() {
     vSelect.appendChild(opt);
   });
 
-  bgInitEditor();
   onBackgroundVariantChange();
   bgClearPreview();
 
   bgDirHandle = await bgOpenSlotDir(slot);
   await bgLoadExisting();
+  // Ba ô ảnh trang trí không theo slot nào, nhưng cùng cần thư mục gốc đã kết
+  // nối — nạp ở đây là chỗ duy nhất chắc chắn đã có handle.
+  await loadHeroPicks();
 }
 
 function onBackgroundVariantChange() {
   const v = bgVariant();
-  document.getElementById("bg-variant-note").textContent = `Khổ ${v.w}×${v.h}px`;
+  document.getElementById("bg-variant-note").textContent =
+    `Khổ tham chiếu ${v.w}×${v.h}px — ảnh giữ nguyên tỉ lệ gốc, điểm nhìn lo phần cắt`;
   bgUpdateFilenameHint();
-  // Đổi khổ thì khung xem trước phải đo lại, không thì vẫn đang theo khổ cũ.
-  bgFitPreview();
+  bgRenderFrames();
 }
 
 function bgUpdateFilenameHint() {
   const base = bgSlugify(document.getElementById("bg-name-input")?.value || "");
   const hint = document.getElementById("bg-filename-hint");
   if (!hint) return;
+  // Hiện ĐƯỜNG DẪN THẬT tính từ thư mục đã kết nối — chọn nhầm thư mục con là
+  // thấy ngay ở đây, không phải đi tìm file lạc.
+  const parts = bgSlotParts(bgSlot());
+  if (!parts) {
+    hint.textContent = bgUnreachableMsg(bgSlot());
+    return;
+  }
+  const dir = [bgRootHandle?.name, ...parts].filter(Boolean).join("/");
   hint.textContent = base
-    ? `Ghi ra: ${bgSlot().folder}/${base}-${bgVariant().key}.webp`
+    ? `Ghi ra: ${dir}/${base}-${bgVariant().key}.webp`
     : "Chỉ dùng chữ thường, số và dấu gạch ngang.";
 }
 
-// ============= Bảng tra đường dẫn ảnh =============
-// Thuần tiện ích: chép đường dẫn để dán vào mã. KHÔNG dính gì tới bước chụp —
-// mã trỏ ảnh nào thì lúc chụp dò đúng ảnh đó, kể cả khi bảng này rỗng.
+// ============= Chọn ảnh + nén =============
 
-/**
- * Chọn ảnh CÓ SẴN trong assets/ để lấy đường dẫn WEB (/assets/…) — đó mới là thứ
- * dùng được trong HTML, chạy cả ở local lẫn GitHub Pages. resolve() trả null
- * nghĩa là file nằm ngoài thư mục đã kết nối → không suy ra được đường dẫn web.
- */
-async function bgPickPhotos() {
-  if (!bgRootHandle) {
-    showToast("Hãy kết nối thư mục assets/ trước", "error");
+function bgInitDropZone() {
+  const drop = document.getElementById("bg-drop");
+  if (!drop || drop.dataset.cxReady) return;
+  drop.dataset.cxReady = "1";
+
+  const stop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+  ["dragenter", "dragover"].forEach((ev) =>
+    drop.addEventListener(ev, (e) => {
+      stop(e);
+      drop.classList.add("border-rose-400", "bg-rose-50/60");
+    }),
+  );
+  ["dragleave", "drop"].forEach((ev) =>
+    drop.addEventListener(ev, (e) => {
+      stop(e);
+      drop.classList.remove("border-rose-400", "bg-rose-50/60");
+    }),
+  );
+  drop.addEventListener("drop", (e) => bgPickFile(e.dataTransfer?.files?.[0]));
+}
+
+/** Nhận ảnh từ ô chọn file hoặc kéo thả, nén rồi hiện phần xem trước. */
+async function bgPickFile(file) {
+  if (!file) return;
+  if (!file.type.startsWith("image/")) {
+    showToast("File này không phải ảnh", "error");
     return;
   }
+
   try {
-    const handles = await window.showOpenFilePicker({
-      id: "cx-assets-root",
-      multiple: true,
-      types: [
-        {
-          description: "Ảnh",
-          accept: { "image/*": [".webp", ".jpg", ".jpeg", ".png", ".avif", ".gif", ".svg"] },
-        },
-      ],
-    });
+    const out = await bgToWebp(file);
+    bgClearPreview();
+    bgPending = { ...out, focal: null, url: URL.createObjectURL(out.blob) };
 
-    let outside = 0;
-    for (const handle of handles) {
-      const segs = await bgRootHandle.resolve(handle);
-      if (!segs) {
-        outside++;
-        continue;
-      }
-      const path = "/assets/" + segs.join("/");
-      if (bgPhotos.some((p) => p.path === path)) continue;
+    document.getElementById("bg-preview").src = bgPending.url;
+    document.getElementById("bg-preview-meta").textContent =
+      `— ${out.w}×${out.h} · ${bgFormatSize(out.blob.size)}` +
+      (out.quality < BG_WEBP_QUALITY ? ` · nén mạnh (q${out.quality.toFixed(1)})` : "");
+    document.getElementById("bg-preview-wrap").classList.remove("hidden");
 
-      const dim = await bgImageSize(path);
-      bgPhotos.push({ path, w: dim.w, h: dim.h });
-    }
+    // Tên gợi ý từ tên file gốc, vẫn sửa được trước khi lưu.
+    const nameInput = document.getElementById("bg-name-input");
+    if (!nameInput.value) nameInput.value = bgSlugify(file.name.replace(/\.[^.]+$/, ""));
 
-    if (outside) {
-      showToast(
-        `${outside} ảnh nằm ngoài thư mục assets/ nên bỏ qua — hãy copy ảnh vào assets/ trước`,
-        "error",
-      );
-    }
-    bgRenderPhotos();
-  } catch (e) {
-    if (e.name !== "AbortError") {
-      console.error(e);
-      showToast("Lỗi chọn ảnh: " + e.message, "error");
-    }
-  }
-}
-
-/** Kích thước thật của ảnh, đọc qua HTTP. Lỗi thì trả 0 (vẫn hiện được đường dẫn). */
-function bgImageSize(path) {
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.onload = () => resolve({ w: img.naturalWidth, h: img.naturalHeight });
-    img.onerror = () => resolve({ w: 0, h: 0 });
-    img.src = path;
-  });
-}
-
-function bgRemovePhoto(path) {
-  bgPhotos = bgPhotos.filter((p) => p.path !== path);
-  bgRenderPhotos();
-}
-
-async function bgCopyPath(text, label) {
-  try {
-    await navigator.clipboard.writeText(text);
-    showToast(`Đã chép ${label}`, "success");
-  } catch {
-    showToast("Trình duyệt chặn chép tự động — hãy bôi đen rồi Ctrl+C", "error");
-  }
-}
-
-function bgCopyAllPaths() {
-  if (!bgPhotos.length) return;
-  bgCopyPath(bgPhotos.map((p) => p.path).join("\n"), `${bgPhotos.length} đường dẫn`);
-}
-
-function bgRenderPhotos() {
-  const list = document.getElementById("bg-photo-list");
-  const empty = document.getElementById("bg-photo-empty");
-  const count = document.getElementById("bg-photo-count");
-
-  list.innerHTML = "";
-  empty.classList.toggle("hidden", bgPhotos.length > 0);
-  count.textContent = bgPhotos.length ? `— ${bgPhotos.length} ảnh` : "";
-  document
-    .getElementById("bg-copy-all-btn")
-    .classList.toggle("hidden", bgPhotos.length === 0);
-
-  bgPhotos.forEach((p) => {
-    const el = document.createElement("div");
-    el.className = "flex items-center gap-2 rounded-lg border border-gray-200 p-1.5";
-    el.innerHTML = `
-      <div class="w-10 h-10 shrink-0 rounded bg-[rgb(var(--checkerboard-rgb))] overflow-hidden">
-        <img src="${escapeHtml(p.path)}" alt="" class="w-full h-full object-cover" loading="lazy" />
-      </div>
-      <div class="min-w-0 flex-1">
-        <div class="text-[11px] font-mono text-gray-700 truncate" title="${escapeHtml(p.path)}">
-          ${escapeHtml(p.path)}
-        </div>
-        <div class="flex items-center gap-2 mt-0.5">
-          <span class="text-[10px] text-gray-400">${p.w}×${p.h}</span>
-          <x-button variant="ghost" size="sm" type="button" data-act="copy" class="underline">Chép</x-button>
-          <x-button variant="ghost" tone="neutral" size="sm" type="button" data-act="del" class="underline">Bỏ</x-button>
-        </div>
-      </div>`;
-    el.querySelector('[data-act="copy"]').onclick = () => bgCopyPath(p.path, "đường dẫn");
-    el.querySelector('[data-act="del"]').onclick = () => bgRemovePhoto(p.path);
-    list.appendChild(el);
-  });
-}
-
-// ============= Soạn mã + xem trước bằng iframe =============
-
-/** Ô soạn mã của <x-textarea>. Gọi sau khi component đã upgrade (loader nạp trước). */
-function bgHtmlBox() {
-  return document.querySelector("#bg-editor-wrap textarea#bg-html-source");
-}
-
-/**
- * Gắn cụm Hoàn tác/Làm lại + khôi phục bản nháp. Gọi mỗi lần mở tab; attachUndoRedo
- * tự bỏ qua lần gọi thứ hai trên cùng ô nên không nhân đôi thanh công cụ.
- */
-function bgInitEditor() {
-  const box = bgHtmlBox();
-  if (!box || box.dataset.cxReady) return;
-  box.dataset.cxReady = "1";
-
-  box.value = localStorage.getItem(BG_HTML_LS_KEY) || "";
-  box.addEventListener("input", () => {
-    localStorage.setItem(BG_HTML_LS_KEY, box.value);
-  });
-  if (window.attachUndoRedo) attachUndoRedo(box, { max: 100 });
-  if (box.value) bgRunPreview();
-}
-
-/**
- * Đo lại khung xem trước: iframe luôn ở kích thước THẬT của khổ rồi thu nhỏ bằng
- * transform, nhờ vậy mã bên trong không phải biết gì về việc đang bị thu nhỏ.
- * Tách riêng khỏi bgRunPreview để lúc kéo cửa sổ chỉ chỉnh tỉ lệ, không nạp lại
- * nội dung (đỡ nháy).
- */
-function bgFitPreview() {
-  const frame = document.getElementById("bg-iframe");
-  const boxEl = document.getElementById("bg-iframe-box");
-  if (!frame || !boxEl) return;
-
-  const v = bgVariant();
-  const scale = Math.min(1, (boxEl.clientWidth || v.w) / v.w);
-
-  frame.style.width = v.w + "px";
-  frame.style.height = v.h + "px";
-  frame.style.transform = `scale(${scale})`;
-  boxEl.style.height = Math.round(v.h * scale) + "px";
-  document.getElementById("bg-preview-scale").textContent =
-    `${v.w}×${v.h} · thu ${Math.round(scale * 100)}%`;
-}
-
-/**
- * Đổ mã đang soạn vào iframe và chờ nó ổn định. JS trong mã CHẠY THẬT ở đây
- * (iframe không sandbox), nên đợi thêm một nhịp cho script kịp dựng xong DOM.
- * Đường dẫn trong srcdoc giải theo URL trang admin, đúng bằng cách bgUrlToDataUrl
- * giải lúc chụp.
- */
-async function bgRunPreview() {
-  const box = bgHtmlBox();
-  const frame = document.getElementById("bg-iframe");
-  if (!box || !frame) return;
-
-  bgFitPreview();
-  const loaded = new Promise((resolve) => {
-    frame.addEventListener("load", resolve, { once: true });
-  });
-  frame.srcdoc = box.value;
-  bgRenderedSrc = box.value;
-
-  await loaded;
-  await bgSettleFrame(frame);
-}
-
-/**
- * Chờ khung vẽ xong: font đã nạp, đã qua 2 nhịp vẽ, cộng một khoảng nhỏ cho JS
- * chạy trong setTimeout/animation. Không có cách nào biết chắc "script đã xong",
- * nên đây là ước lượng — mã có hiệu ứng dài thì bấm Run xem rồi hẵng chụp.
- */
-async function bgSettleFrame(frame) {
-  const win = frame.contentWindow;
-  try {
-    if (win?.document?.fonts?.ready) await win.document.fonts.ready;
-  } catch {
-    /* khác origin hoặc chưa sẵn sàng — bỏ qua, vẫn còn nhịp chờ bên dưới */
-  }
-  await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
-  await new Promise((r) => setTimeout(r, BG_SETTLE_MS));
-}
-
-/**
- * Ảnh chụp lấy DOM SAU KHI script chạy, không phải mã gốc — đó là cách giữ được
- * "khung xem thấy gì thì ảnh ra thế" trong khi <foreignObject> vốn không chạy JS.
- *
- * <canvas> phải xử lý riêng: nội dung của nó là pixel, outerHTML không mang theo,
- * nên đổi thành <img> data URI. Canvas bị nhiễm bẩn (vẽ ảnh khác origin) thì
- * toDataURL ném lỗi → bỏ qua, để nguyên thẻ rỗng còn hơn hỏng cả ảnh.
- */
-function bgSnapshotFrame(frame) {
-  const doc = frame.contentDocument;
-  if (!doc?.documentElement) throw new Error("không đọc được nội dung khung xem trước");
-
-  const clone = doc.documentElement.cloneNode(true);
-  const live = doc.querySelectorAll("canvas");
-  const copies = clone.querySelectorAll("canvas"); // clone sâu → cùng thứ tự với live
-  copies.forEach((node, i) => {
-    try {
-      const img = doc.createElement("img");
-      img.setAttribute("src", live[i].toDataURL());
-      img.setAttribute("style", node.getAttribute("style") || "");
-      if (node.getAttribute("class")) img.setAttribute("class", node.getAttribute("class"));
-      node.replaceWith(img);
-    } catch {
-      /* canvas nhiễm bẩn — giữ nguyên thẻ, phần đó sẽ trống trong ảnh */
-    }
-  });
-  return clone.outerHTML;
-}
-
-// Kéo cửa sổ → chỉ đo lại tỉ lệ, không nạp lại nội dung.
-window.addEventListener("resize", bgFitPreview);
-
-// ============= Chụp thành ảnh =============
-
-async function captureBackground() {
-  const box = bgHtmlBox();
-  const btn = document.getElementById("bg-capture-btn");
-  const status = document.getElementById("bg-capture-status");
-  if (!box || !box.value.trim()) {
-    showToast("Chưa có mã HTML nào để chụp", "error");
-    return;
-  }
-  const v = bgVariant();
-
-  btn.dataset.loading = "1";
-  status.textContent = "Đang chụp…";
-  try {
-    // Sửa mã xong mà quên bấm Run thì tự chạy lại — nếu không sẽ chụp bản cũ.
-    const frame = document.getElementById("bg-iframe");
-    if (box.value !== bgRenderedSrc) {
-      status.textContent = "Đang chạy lại mã…";
-      await bgRunPreview();
-      status.textContent = "Đang chụp…";
-    }
-
-    const html = bgSanitizeHtml(bgSnapshotFrame(frame));
-    if (!html) throw new Error("chưa có nội dung");
-
-    const { file, failed } = await bgCaptureHtml(html, v.w, v.h);
-    bgSetPreview(file);
-    status.textContent = `Xong — ${Math.round(file.size / 1024)}KB`;
-    // Không im lặng nuốt: ảnh tải không nổi thì nó THIẾU trong file, dù iframe
-    // có thể vẫn hiện (vd ảnh khác origin bị CORS chặn đọc).
-    if (failed.length) {
-      showToast(
-        `Chụp xong nhưng ${failed.length} tài nguyên không nhúng được nên bị thiếu: ` +
-          failed.slice(0, 3).join(", ") +
-          (failed.length > 3 ? "…" : ""),
-        "warning",
-      );
-    }
-    document.getElementById("bg-preview-wrap").scrollIntoView({ behavior: "smooth", block: "nearest" });
+    bgUpdateFilenameHint();
+    bgRenderPendingFocal();
+    bgRenderFrames();
   } catch (e) {
     console.error(e);
-    status.textContent = "";
-    showToast("Không chụp được: " + e.message, "error");
-  } finally {
-    btn.dataset.loading = "";
+    showToast("Không đọc được ảnh: " + e.message, "error");
   }
 }
 
 /**
- * Dọn ảnh chụp DOM trước khi đưa vào <foreignObject>.
- *
- * Chạy trên BẢN CHỤP (script đã chạy xong rồi) chứ không phải mã gốc, nên việc gỡ
- * <script>/`on*` ở đây không làm mất gì: kết quả của chúng đã nằm sẵn trong DOM,
- * còn <foreignObject> thì vốn không chạy JS. Gỡ đi cho bản serialize gọn và chắc.
- * KHÔNG đụng tới tham chiếu ảnh/font — đó là phần phải giữ y nguyên.
+ * Thu nhỏ về đúng khổ cần rồi mã hoá WebP, hạ chất lượng dần cho tới khi lọt
+ * trần dung lượng. GIỮ NGUYÊN TỈ LỆ gốc — phần cắt là việc của background-size
+ * cover trên trang, và điểm nhìn quyết định cắt bên nào.
  */
-function bgSanitizeHtml(raw) {
-  return String(raw || "")
-    .replace(/<script[\s\S]*?<\/script>/gi, "")
-    .replace(/<iframe[\s\S]*?<\/iframe>/gi, "")
-    .replace(/<object[\s\S]*?<\/object>/gi, "")
-    .replace(/<embed\b[^>]*>/gi, "")
-    .replace(/<\/?form\b[^>]*>/gi, "")
-    .replace(/\son\w+\s*=\s*"[^"]*"/gi, "")
-    .replace(/\son\w+\s*=\s*'[^']*'/gi, "")
-    .replace(/javascript:/gi, "")
-    .trim();
-}
-
-/**
- * Dò MỌI tài nguyên mã đang trỏ tới rồi nhúng thành data: URI.
- *
- * Đây là chỗ giữ lời hứa "iframe thấy gì thì ảnh chụp ra thế": không dựa vào danh
- * sách ảnh đã chọn mà đọc thẳng từ mã, nên mã trỏ ảnh nào cũng chụp được.
- * `data:` và `#…` (gradient/filter nội bộ của SVG) bỏ qua — đã tự chứa sẵn.
- *
- * Trả { html, failed } — `failed` là các đường dẫn tải không nổi, để báo cho admin
- * biết ảnh nào sẽ thiếu thay vì lặng lẽ ra ảnh trống.
- */
-async function bgInlineAssets(html) {
-  const failed = [];
-  let out = await bgInlineStylesheets(html, failed);
-
-  const urls = new Set();
-  const push = (u) => {
-    const url = String(u || "").trim().replace(/^['"]|['"]$/g, "");
-    if (url && !url.startsWith("data:") && !url.startsWith("#")) urls.add(url);
-  };
-
-  for (const m of out.matchAll(/\s(?:src|poster|xlink:href)\s*=\s*("[^"]*"|'[^']*')/gi)) {
-    push(m[1].slice(1, -1));
-  }
-  for (const m of out.matchAll(/url\(\s*([^)]+?)\s*\)/gi)) push(m[1]);
-
-  for (const url of urls) {
-    const dataUrl = await bgUrlToDataUrl(url);
-    if (dataUrl) out = out.split(url).join(dataUrl);
-    else failed.push(url);
-  }
-  return { html: out, failed };
-}
-
-/**
- * Đổi <link rel="stylesheet"> thành <style> nội dung thật. Phải chạy TRƯỚC bước dò
- * `url()` vì CSS ngoài thường trỏ thêm ảnh — nhúng sau thì sót.
- * Lưu ý: `url()` tương đối bên trong CSS đó được giải theo trang admin chứ không
- * theo vị trí file CSS, nên nên dùng đường dẫn tuyệt đối trong CSS ngoài.
- */
-async function bgInlineStylesheets(html, failed) {
-  let out = html;
-  for (const [tag] of html.matchAll(/<link\b[^>]*>/gi)) {
-    if (!/rel\s*=\s*["']?stylesheet/i.test(tag)) continue;
-    const m = tag.match(/href\s*=\s*("[^"]*"|'[^']*')/i);
-    if (!m) continue;
-
-    const url = m[1].slice(1, -1);
-    const css = await bgUrlToText(url);
-    if (css === null) failed.push(url);
-    out = out.split(tag).join(css === null ? "" : `<style>${css}</style>`);
-  }
-  return out;
-}
-
-/** Như bgUrlToDataUrl nhưng lấy văn bản (dùng cho CSS). null nếu tải hụt. */
-async function bgUrlToText(url) {
-  try {
-    const res = await fetch(new URL(url, location.href).href, { cache: "force-cache" });
-    return res.ok ? await res.text() : null;
-  } catch {
-    return null;
-  }
-}
-
-/**
- * Tải một tài nguyên rồi đổi sang data: URI. Giải đường dẫn theo CHÍNH trang admin
- * (giống hệt cách iframe srcdoc giải), nên đường dẫn tương đối hay tuyệt đối đều
- * ra cùng một file ở cả hai nơi. Ảnh khác origin mà chặn CORS thì trả null.
- */
-async function bgUrlToDataUrl(url) {
-  try {
-    const abs = new URL(url, location.href).href;
-    const res = await fetch(abs, { cache: "force-cache" });
-    if (!res.ok) return null;
-    const blob = await res.blob();
-    return await new Promise((resolve) => {
-      const fr = new FileReader();
-      fr.onload = () => resolve(fr.result);
-      fr.onerror = () => resolve(null);
-      fr.readAsDataURL(blob);
-    });
-  } catch {
-    return null;
-  }
-}
-
-/**
- * Chụp HTML thành ảnh WebP đúng khổ w×h. Trả { file, failed }.
- *
- * Đi qua <foreignObject> trong SVG: đây là cách DUY NHẤT dựng HTML thành bitmap
- * mà không cần thư viện ngoài. Ba ràng buộc phải tôn trọng, sai là ra ảnh trắng:
- *  - Tài nguyên phải NHÚNG thành data: URI. SVG nạp qua <img> là hộp cát không
- *    tải được file ngoài, để nguyên /assets/… là mất ảnh.
- *  - Nội dung phải là XML hợp lệ → chuẩn hoá qua DOMParser + XMLSerializer, vì
- *    HTML viết tay thường thiếu thẻ đóng.
- *  - Dùng data: URI cho chính file SVG (không phải blob:) để canvas không bị
- *    đánh dấu nhiễm bẩn, nếu không toBlob() sẽ ném lỗi bảo mật.
- *
- * Giới hạn của <foreignObject> (không có cách vòng): font tải từ mạng,
- * backdrop-filter và mix-blend-mode không dựng được.
- */
-async function bgCaptureHtml(html, w, h) {
-  const { html: inlined, failed } = await bgInlineAssets(html);
-
-  const doc = new DOMParser().parseFromString(inlined, "text/html");
-  doc.documentElement.setAttribute("xmlns", "http://www.w3.org/1999/xhtml");
-  // Ép khung đúng khổ: mã không đặt kích thước (hoặc đặt lệch) thì ảnh ra bị viền
-  // trắng hoặc cắt cụt. Ép ở đây nên mã tự viết không cần nhớ quy tắc này.
-  doc.documentElement.setAttribute("style", `width:${w}px;height:${h}px;margin:0;overflow:hidden`);
-  if (doc.body) {
-    doc.body.setAttribute(
-      "style",
-      `${doc.body.getAttribute("style") || ""};width:${w}px;height:${h}px;margin:0;overflow:hidden`,
-    );
-  }
-  const xhtml = new XMLSerializer().serializeToString(doc.documentElement);
-
-  const svg =
-    `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">` +
-    `<foreignObject x="0" y="0" width="${w}" height="${h}">${xhtml}</foreignObject></svg>`;
-
-  const img = new Image();
-  img.width = w;
-  img.height = h;
-  img.src = "data:image/svg+xml;charset=utf-8;base64," + bgB64Utf8(svg);
-  try {
-    await img.decode();
-  } catch (e) {
-    throw new Error("không dựng được HTML thành ảnh — nhiều khả năng mã sai cú pháp");
-  }
+async function bgToWebp(
+  file,
+  { maxSide = BG_MAX_SIDE, minSide = 0, quality: q0 = BG_WEBP_QUALITY } = {},
+) {
+  const bmp = await createImageBitmap(file);
+  // maxSide chặn cạnh DÀI; minSide kéo cạnh NGẮN lên cho ô cắt vuông không bị
+  // nhoè — ô vuông chỉ ăn phần cạnh ngắn nên chặn theo cạnh dài là thiếu pixel.
+  let scale = Math.min(1, maxSide / Math.max(bmp.width, bmp.height));
+  if (minSide) scale = Math.max(scale, Math.min(1, minSide / Math.min(bmp.width, bmp.height)));
+  const w = Math.round(bmp.width * scale);
+  const h = Math.round(bmp.height * scale);
 
   const canvas = document.createElement("canvas");
   canvas.width = w;
   canvas.height = h;
   const ctx = canvas.getContext("2d");
-  // Nền trắng: HTML trong suốt mà WebP giữ alpha thì hero sẽ nhìn thủng xuống dưới.
-  ctx.fillStyle = "#ffffff";
-  ctx.fillRect(0, 0, w, h);
-  ctx.drawImage(img, 0, 0, w, h);
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(bmp, 0, 0, w, h);
+  bmp.close?.();
 
-  const blob = await new Promise((resolve) =>
-    canvas.toBlob(resolve, "image/webp", BG_CAPTURE_QUALITY),
-  );
-  if (!blob) throw new Error("trình duyệt không mã hoá được WebP");
+  const encode = (q) =>
+    new Promise((resolve, reject) =>
+      canvas.toBlob(
+        (b) => (b ? resolve(b) : reject(new Error("không mã hoá được WebP"))),
+        "image/webp",
+        q,
+      ),
+    );
 
-  // Nén thêm CHỈ KHI vượt trần — ảnh nhẹ giữ nguyên chất lượng vừa chụp.
-  const { file } = await ImageHelper.compressIfNeeded(
-    new File([blob], "bg.webp", { type: "image/webp" }),
-    { maxWidth: w, maxHeight: h, maxSizeMB: BG_MAX_MB },
-  );
-  return { file, failed };
-}
-
-/** btoa() chỉ nhận latin1 — HTML có tiếng Việt nên phải qua UTF-8 trước. */
-function bgB64Utf8(str) {
-  const bytes = new TextEncoder().encode(str);
-  let bin = "";
-  const CHUNK = 0x8000; // tránh tràn stack khi spread mảng lớn
-  for (let i = 0; i < bytes.length; i += CHUNK) {
-    bin += String.fromCharCode.apply(null, bytes.subarray(i, i + CHUNK));
+  let quality = q0;
+  let blob = await encode(quality);
+  while (blob.size > BG_MAX_MB * 1024 * 1024 && quality > 0.4) {
+    quality = Math.round((quality - 0.1) * 10) / 10;
+    blob = await encode(quality);
   }
-  return btoa(bin);
+  return { blob, w, h, quality };
 }
 
-function bgSetPreview(blob) {
-  bgPendingBlob = blob;
-  if (bgPreviewUrl) URL.revokeObjectURL(bgPreviewUrl);
-  bgPreviewUrl = URL.createObjectURL(blob);
-  document.getElementById("bg-preview").src = bgPreviewUrl;
-  document.getElementById("bg-preview-wrap").classList.remove("hidden");
-  bgUpdateFilenameHint();
+function bgFormatSize(bytes) {
+  return bytes >= 1024 * 1024
+    ? (bytes / 1024 / 1024).toFixed(2) + " MB"
+    : Math.round(bytes / 1024) + " KB";
 }
 
-/** Bỏ ảnh đã chụp. KHÔNG đụng ô soạn mã — sửa tiếp rồi chụp lại là chuyện thường. */
+/** Bỏ ảnh đang chờ lưu. */
 function bgClearPreview() {
-  bgPendingBlob = null;
-  if (bgPreviewUrl) {
-    URL.revokeObjectURL(bgPreviewUrl);
-    bgPreviewUrl = "";
-  }
-  document.getElementById("bg-preview-wrap").classList.add("hidden");
-  document.getElementById("bg-capture-status").textContent = "";
+  if (bgPending?.url) URL.revokeObjectURL(bgPending.url);
+  bgPending = null;
+  const wrap = document.getElementById("bg-preview-wrap");
+  if (wrap) wrap.classList.add("hidden");
+  bgRenderFrames();
+}
+
+// ============= Điểm nhìn =============
+//
+// Điểm nhìn = toạ độ % TRÊN ẢNH của chỗ quan trọng nhất; trang đặt thẳng vào
+// background-position. Chưa đặt thì trang giữ `center top` của CSS, nên khung
+// xem trước ở đây cũng lấy mốc đó làm mặc định.
+
+const BG_FALLBACK_FOCAL = { x: 50, y: 0 };
+
+/** Giá trị background-position của một điểm nhìn (null = mặc định của CSS). */
+function bgFocalPos(focal) {
+  const f = focal || BG_FALLBACK_FOCAL;
+  return `${f.x}% ${f.y}%`;
+}
+
+function bgFocalLabel(focal) {
+  return focal ? `🎯 ${focal.x}/${focal.y}` : "chưa đặt — dùng mặc định (giữa, sát mép trên)";
+}
+
+/**
+ * Mask của màn mở đầu ở một chiều cao màn hình cụ thể. Ba mốc dưới đây phải
+ * khớp với .hero-bg trong styles/tailwind-src.css (kể cả hai media theo chiều
+ * cao) — lệch thì khung xem trước hứa một đằng, trang thật ra một nẻo.
+ */
+function bgHeroMask(frameH) {
+  const [solid, fade] = frameH >= 950 ? [32, 58] : frameH <= 780 ? [18, 44] : [28, 55];
+  return `linear-gradient(to bottom, #000 0%, #000 ${solid}%, transparent ${fade}%)`;
+}
+
+const bgFrameDefs = () => BG_FRAMES.map((f) => ({ ...f, mask: bgHeroMask(f.h) }));
+
+/**
+ * Vẽ dãy khung xem trước cho ảnh đang chờ lưu: mỗi khung mô phỏng màn mở đầu ở
+ * một khổ màn, nên thấy ngay điểm nhìn cắt mất gì ở khổ nào.
+ */
+function bgRenderFrames() {
+  const box = document.getElementById("bg-frames");
+  if (!box) return;
+  box.innerHTML = "";
+  if (!bgPending) return;
+
+  const pos = bgFocalPos(bgPending.focal);
+  bgFrameDefs().forEach((f) => {
+    const cell = document.createElement("div");
+    cell.innerHTML = `
+      <div class="rounded-lg overflow-hidden border border-gray-200 bg-[rgb(var(--surface-tint-rgb))]"
+           style="aspect-ratio:${f.w}/${f.h}">
+        <div class="w-full h-full" style="
+          background-image:url('${bgPending.url}');
+          background-size:cover;background-repeat:no-repeat;background-position:${pos};
+          -webkit-mask-image:${f.mask};mask-image:${f.mask};"></div>
+      </div>
+      <p class="text-[11px] text-gray-500 text-center mt-1">${escapeHtml(f.label)}</p>`;
+    box.appendChild(cell);
+  });
+}
+
+function bgRenderPendingFocal() {
+  const el = document.getElementById("bg-pending-focal");
+  if (el) el.textContent = bgFocalLabel(bgPending?.focal);
+}
+
+/** Chỉnh điểm nhìn cho ảnh CHƯA lưu — lưu xong mới ghi vào manifest. */
+function bgEditPendingFocal() {
+  if (!bgPending) return;
+  openFocalPointPicker(
+    bgPending.url,
+    bgPending.focal || BG_FALLBACK_FOCAL,
+    (focal) => {
+      bgPending.focal = focal;
+      bgRenderPendingFocal();
+      bgRenderFrames();
+    },
+    null,
+    bgFrameDefs(),
+  );
+}
+
+/** Chỉnh điểm nhìn của một biến thể ĐÃ lưu; áp vào manifest ngay khi bấm Áp dụng. */
+function bgEditFocal(name, variantKey) {
+  const item = bgItems.find((x) => x.name === name);
+  if (!item?.variants[variantKey]) return;
+  const slot = bgSlot();
+  const src = `/assets/${slot.folder}/${item.variants[variantKey]}`;
+
+  openFocalPointPicker(
+    src,
+    item.focal?.[variantKey] || BG_FALLBACK_FOCAL,
+    async (focal) => {
+      item.focal = { ...(item.focal || {}), [variantKey]: focal };
+      await bgSyncManifest();
+      bgRenderList();
+      showToast(`Đã đặt điểm nhìn ${variantKey}: ${focal.x}/${focal.y}`, "success");
+    },
+    null,
+    bgFrameDefs(),
+  );
 }
 
 // ============= Lưu xuống thư mục =============
@@ -729,8 +493,8 @@ function bgSlugify(raw) {
 }
 
 async function saveBackground() {
-  if (!bgPendingBlob) {
-    showToast("Chưa có ảnh nền nào để lưu", "error");
+  if (!bgPending) {
+    showToast("Chưa chọn ảnh nào để lưu", "error");
     return;
   }
   const base = bgSlugify(document.getElementById("bg-name-input").value);
@@ -742,15 +506,17 @@ async function saveBackground() {
   const slot = bgSlot();
   const variant = bgVariant();
   const filename = `${base}-${variant.key}.webp`;
+  const focal = bgPending.focal;
 
   try {
+    if (!bgSlotParts(slot)) throw new Error(bgUnreachableMsg(slot));
     bgDirHandle = await bgOpenSlotDir(slot, { create: true });
     if (!bgDirHandle) throw new Error("không mở được thư mục " + slot.folder);
 
     if (await bgFileExists(bgDirHandle, filename)) {
       const ok = await showConfirm(
         "Ghi đè file?",
-        `${slot.folder}/${filename} đã có. Ghi đè bằng ảnh vừa tạo?`,
+        `${slot.folder}/${filename} đã có. Ghi đè bằng ảnh vừa chọn?`,
         { confirmText: "Ghi đè" },
       );
       if (!ok) return;
@@ -758,11 +524,18 @@ async function saveBackground() {
 
     const fh = await bgDirHandle.getFileHandle(filename, { create: true });
     const writable = await fh.createWritable();
-    await writable.write(bgPendingBlob);
+    await writable.write(bgPending.blob);
     await writable.close();
 
     await bgLoadExisting();
+    // Điểm nhìn vừa chọn thuộc về file vừa ghi — gắn vào bộ tương ứng SAU khi
+    // quét lại thư mục, không thì lượt sync sẽ ghi đè bằng giá trị cũ.
+    if (focal) {
+      const item = bgItems.find((x) => x.name === base);
+      if (item) item.focal = { ...(item.focal || {}), [variant.key]: focal };
+    }
     await bgSyncManifest();
+    bgRenderList();
     bgClearPreview();
     showToast(`Đã lưu ${filename}`, "success");
   } catch (e) {
@@ -784,12 +557,11 @@ async function bgFileExists(dirHandle, filename) {
 
 /** Gom file trong thư mục thành các BỘ theo tên gốc (bỏ hậu tố -<biến thể>). */
 async function bgLoadExisting() {
-  const list = document.getElementById("bg-list");
   const empty = document.getElementById("bg-empty");
   bgItems = [];
-  list.innerHTML = "";
 
   if (!bgDirHandle) {
+    document.getElementById("bg-list").innerHTML = "";
     empty.classList.remove("hidden");
     empty.textContent = "Thư mục chưa tồn tại — lưu nền đầu tiên là tự tạo.";
     document.getElementById("bg-active-note").textContent = "";
@@ -798,23 +570,52 @@ async function bgLoadExisting() {
 
   const slot = bgSlot();
   const keys = slot.variants.map((v) => v.key);
+  const focals = await bgReadFocal();
   const byName = new Map();
 
   for await (const entry of bgDirHandle.values()) {
-    if (entry.kind !== "file" || !entry.name.endsWith(".webp")) continue;
-    const m = entry.name.match(new RegExp(`^(.+)-(${keys.join("|")})\\.webp$`));
+    if (entry.kind !== "file" || !BG_EXT_RE.test(entry.name)) continue;
+    const m = entry.name.match(new RegExp(`^(.+)-(${keys.join("|")})\\.[a-z0-9]+$`, "i"));
     if (!m) continue;
     const [, name, key] = m;
     const file = await entry.getFile();
-    const item = byName.get(name) || { name, updated_at: 0, variants: {} };
-    item.variants[key] = entry.name;
+    const item = byName.get(name) || {
+      name,
+      updated_at: 0,
+      variants: {},
+      focal: focals[name] || null,
+    };
+    item.variants[key.toLowerCase()] = entry.name;
     // updated_at của BỘ = lần sửa gần nhất trong các biến thể của nó.
     item.updated_at = Math.max(item.updated_at, file.lastModified);
     byName.set(name, item);
   }
 
   bgItems = [...byName.values()].sort((a, b) => b.updated_at - a.updated_at);
+  bgRenderList();
+}
 
+function bgRenderList() {
+  const list = document.getElementById("bg-list");
+  const empty = document.getElementById("bg-empty");
+  const slot = bgSlot();
+
+  // Bắt click ở CẢ lưới, không gắn từng nút: <x-button> tự thay mình bằng
+  // <button> lúc được chèn vào trang, nên listener gắn trước đó rơi mất theo
+  // thẻ cũ.
+  if (!list.dataset.cxReady) {
+    list.dataset.cxReady = "1";
+    list.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-focal],[data-act='del']");
+      const card = btn?.closest("[data-bg-name]");
+      if (!btn || !card) return;
+      const name = card.dataset.bgName;
+      if (btn.hasAttribute("data-focal")) bgEditFocal(name, btn.getAttribute("data-focal"));
+      else deleteBackground(name);
+    });
+  }
+
+  list.innerHTML = "";
   empty.classList.toggle("hidden", bgItems.length > 0);
   empty.textContent = "Thư mục chưa có nền nào.";
   document.getElementById("bg-active-note").textContent = bgItems.length
@@ -828,12 +629,31 @@ function bgCard(item, slot) {
   const missing = slot.variants.filter((v) => !item.variants[v.key]);
   const el = document.createElement("div");
   el.className = "rounded-xl border border-gray-200 overflow-hidden";
+  el.dataset.bgName = item.name;
   // Ảnh đại diện: ưu tiên biến thể đầu tiên của slot (desktop), thiếu thì lấy tạm cái có.
-  const thumb = item.variants[slot.variants[0].key] || Object.values(item.variants)[0];
+  const thumbKey = item.variants[slot.variants[0].key]
+    ? slot.variants[0].key
+    : Object.keys(item.variants)[0];
+  const thumb = item.variants[thumbKey];
+
+  const focalRows = Object.keys(item.variants)
+    .map((key) => {
+      const f = item.focal?.[key];
+      return `
+        <div class="flex items-center justify-between gap-2 text-[11px] text-gray-500">
+          <span class="truncate">${escapeHtml(key)} — ${f ? `🎯 ${f.x}/${f.y}` : "chưa đặt"}</span>
+          <x-button variant="ghost" size="sm" type="button" data-focal="${escapeHtml(key)}" class="underline shrink-0">
+            Điểm nhìn
+          </x-button>
+        </div>`;
+    })
+    .join("");
+
   el.innerHTML = `
     <div class="aspect-video bg-[rgb(var(--checkerboard-rgb))]">
       <img src="/assets/${slot.folder}/${thumb}" alt=""
-           class="w-full h-full object-cover" loading="lazy" />
+           class="w-full h-full object-cover" loading="lazy"
+           style="object-position:${bgFocalPos(item.focal?.[thumbKey])}" />
     </div>
     <div class="p-2.5">
       <div class="text-xs font-medium text-gray-800 truncate">${escapeHtml(item.name)}</div>
@@ -841,9 +661,9 @@ function bgCard(item, slot) {
         ${Object.keys(item.variants).join(" · ")}
         ${missing.length ? `<span class="text-amber-600">— thiếu ${missing.map((v) => v.key).join(", ")}</span>` : ""}
       </div>
-      <x-button variant="ghost" tone="danger" size="sm" type="button" class="mt-2 underline">Xoá</x-button>
+      <div class="mt-1.5 space-y-1">${focalRows}</div>
+      <x-button variant="ghost" tone="danger" size="sm" type="button" data-act="del" class="mt-2 underline">Xoá</x-button>
     </div>`;
-  el.querySelector("button").onclick = () => deleteBackground(item.name);
   return el;
 }
 
@@ -872,9 +692,25 @@ async function deleteBackground(name) {
 
 // ============= manifest.json =============
 
+/** Điểm nhìn đang khai trong manifest, gom theo tên bộ ({} nếu chưa có file). */
+async function bgReadFocal() {
+  try {
+    const fh = await bgDirHandle.getFileHandle(BG_MANIFEST_NAME, { create: false });
+    const json = JSON.parse(await (await fh.getFile()).text());
+    const out = {};
+    (json.backgrounds || []).forEach((b) => {
+      if (b?.name && b.focal) out[b.name] = b.focal;
+    });
+    return out;
+  } catch {
+    return {};
+  }
+}
+
 /**
  * Ghi lại manifest.json — NƠI DUY NHẤT web đọc được danh sách nền.
- * Gọi SAU bgLoadExisting() để lấy đúng danh sách vừa quét.
+ * Gọi SAU bgLoadExisting() để lấy đúng danh sách vừa quét: danh sách file dựng
+ * lại từ thư mục, còn điểm nhìn chỉ có trong manifest nên đi theo bgItems.focal.
  */
 async function bgSyncManifest() {
   if (!bgDirHandle) return;
@@ -888,6 +724,7 @@ async function bgSyncManifest() {
       name: item.name,
       updated_at: new Date(item.updated_at).toISOString(),
       variants: item.variants,
+      ...(item.focal && Object.keys(item.focal).length ? { focal: item.focal } : {}),
     })),
   };
 
@@ -899,5 +736,217 @@ async function bgSyncManifest() {
   } catch (e) {
     console.error("Không ghi được manifest.json:", e);
     showToast("Đã lưu file nhưng không ghi được manifest.json — xem console", "warning");
+  }
+}
+
+// ============= Ba ô ảnh trang trí của màn mở đầu =============
+//
+// Khác phần trên ở chỗ đây KHÔNG phải danh sách: đúng ba ô, tên file cố định
+// (pick-1..3.webp) nên index.html viết thẳng src, chọn ảnh mới chỉ là ghi đè.
+// manifest.json trong thư mục này chỉ để mang ĐIỂM NHÌN của từng ô, xếp theo
+// đúng thứ tự ba ô — js/hero-background.js đọc ra rồi đặt vào object-position.
+// Ô hiển thị VUÔNG nên ảnh không vuông sẽ bị xén, điểm nhìn quyết định xén bên
+// nào; chưa đặt thì trang giữ `center 35%` của .hero-pick img.
+
+const HP_FOLDER = "background/thumbnail_started";
+const HP_LABELS = ["Ô trái", "Ô giữa (to hơn)", "Ô phải"];
+// Ô hiển thị VUÔNG, cạnh tối đa 232px → cần ~700px cho màn 3x, và số đo phải
+// tính theo cạnh NGẮN của ảnh vì ô vuông cắt bỏ phần thừa của cạnh dài.
+const HP_MIN_SIDE = 720;
+const HP_MAX_SIDE = 1440; // trần cạnh dài, cho ảnh rất dài không phình file
+const HP_QUALITY = 0.92;
+const HP_FALLBACK_FOCAL = { x: 50, y: 35 };
+
+// [{ file, url, blob, focal, onDisk }] — blob khác null nghĩa là đang chờ lưu.
+let bgHeroPicks = [];
+
+const hpSlot = () => ({ folder: HP_FOLDER });
+
+function hpBlank(i) {
+  return { file: `pick-${i + 1}.webp`, url: null, blob: null, focal: null, onDisk: false };
+}
+
+/** Đọc ba file + điểm nhìn từ thư mục (bỏ qua êm nếu thư mục chưa tồn tại). */
+async function loadHeroPicks() {
+  // Mọi url ở đây đều là objectURL (đọc từ đĩa hoặc blob đang chờ lưu).
+  bgHeroPicks.forEach((p) => p.url && URL.revokeObjectURL(p.url));
+  bgHeroPicks = HP_LABELS.map((_, i) => hpBlank(i));
+
+  const dir = await bgOpenSlotDir(hpSlot());
+  if (dir) {
+    const focals = await hpReadFocal(dir);
+    for (const p of bgHeroPicks) {
+      const fh = await dir.getFileHandle(p.file, { create: false }).catch(() => null);
+      if (!fh) continue;
+      p.onDisk = true;
+      // Đọc từ đĩa chứ không lấy URL của trang: file vừa ghi đè hay còn nằm
+      // trong cache HTTP, hiện lại ảnh cũ thì tưởng lưu hỏng.
+      p.url = URL.createObjectURL(await fh.getFile());
+      p.focal = focals[p.file] || null;
+    }
+  }
+  renderHeroPicks();
+}
+
+async function hpReadFocal(dir) {
+  try {
+    const fh = await dir.getFileHandle(BG_MANIFEST_NAME, { create: false });
+    const json = JSON.parse(await (await fh.getFile()).text());
+    const out = {};
+    (json.picks || []).forEach((p) => {
+      if (p?.file && p.focal) out[p.file] = p.focal;
+    });
+    return out;
+  } catch {
+    return {};
+  }
+}
+
+function renderHeroPicks() {
+  const grid = document.getElementById("bg-pick-grid");
+  if (!grid) return;
+
+  // Một listener cho cả lưới: <x-button> tự thay mình bằng <button> lúc chèn
+  // nên listener gắn từng nút sẽ rơi mất theo thẻ cũ.
+  if (!grid.dataset.cxReady) {
+    grid.dataset.cxReady = "1";
+    grid.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-hp-act]");
+      if (btn) heroPickEditFocal(+btn.closest("[data-hp]").dataset.hp);
+    });
+    grid.addEventListener("change", (e) => {
+      const input = e.target.closest("input[type='file']");
+      if (!input) return;
+      heroPickChoose(+input.closest("[data-hp]").dataset.hp, input.files[0]);
+      input.value = "";
+    });
+  }
+
+  grid.innerHTML = bgHeroPicks
+    .map((p, i) => {
+      const state = p.blob
+        ? '<span class="text-rose-600">● chưa lưu</span>'
+        : p.onDisk
+          ? "đã có trong thư mục"
+          : '<span class="text-amber-600">chưa có ảnh</span>';
+      const focal = p.focal ? `🎯 ${p.focal.x}/${p.focal.y}` : "điểm nhìn mặc định";
+      const thumb = p.url
+        ? `<img src="${p.url}" alt="" class="w-full h-full object-cover"
+               style="object-position:${bgFocalPos(p.focal || HP_FALLBACK_FOCAL)}" />`
+        : '<div class="w-full h-full grid place-items-center text-xs text-gray-400">Chưa có ảnh</div>';
+      return `
+        <div class="rounded-xl border border-gray-200 overflow-hidden" data-hp="${i}">
+          <div class="aspect-square bg-[rgb(var(--checkerboard-rgb))]">${thumb}</div>
+          <div class="p-2.5">
+            <div class="text-xs font-medium text-gray-800">${escapeHtml(HP_LABELS[i])}</div>
+            <div class="text-[11px] text-gray-500 mt-0.5">${state} · ${focal}</div>
+            <div class="flex flex-wrap items-center gap-2 mt-2">
+              <label class="cursor-pointer rounded-full border border-gray-200 px-3 py-1 text-[11px] text-gray-700 hover:border-rose-300 hover:bg-rose-50/40">
+                Chọn ảnh
+                <input type="file" accept="image/*" class="hidden" />
+              </label>
+              <x-button variant="ghost" size="sm" type="button" data-hp-act="focal" class="underline"
+                        ${p.url ? "" : "disabled"}>Điểm nhìn</x-button>
+            </div>
+          </div>
+        </div>`;
+    })
+    .join("");
+
+  const status = document.getElementById("bg-pick-status");
+  if (status) {
+    const parts = bgSlotParts(hpSlot());
+    const dir = parts ? [bgRootHandle?.name, ...parts].filter(Boolean).join("/") : "";
+    const dirty = bgHeroPicks.filter((p) => p.blob).length;
+    status.textContent = !parts
+      ? bgUnreachableMsg(hpSlot())
+      : dirty
+        ? `${dirty} ô đang chờ lưu → ${dir}/`
+        : `Ghi ra: ${dir}/pick-1…3.webp`;
+  }
+}
+
+/** Nhận ảnh cho một ô, nén rồi giữ trong bộ nhớ cho tới khi bấm Lưu. */
+async function heroPickChoose(i, file) {
+  if (!file) return;
+  if (!file.type.startsWith("image/")) {
+    showToast("File này không phải ảnh", "error");
+    return;
+  }
+  try {
+    const out = await bgToWebp(file, {
+      maxSide: HP_MAX_SIDE,
+      minSide: HP_MIN_SIDE,
+      quality: HP_QUALITY,
+    });
+    const p = bgHeroPicks[i];
+    if (p.url) URL.revokeObjectURL(p.url);
+    p.blob = out.blob;
+    p.url = URL.createObjectURL(out.blob);
+    renderHeroPicks();
+  } catch (e) {
+    console.error(e);
+    showToast("Không đọc được ảnh: " + e.message, "error");
+  }
+}
+
+/** Điểm nhìn của ô: xem trước bằng dãy tỉ lệ mặc định (có sẵn ô vuông). */
+function heroPickEditFocal(i) {
+  const p = bgHeroPicks[i];
+  if (!p?.url) return;
+  openFocalPointPicker(p.url, p.focal || HP_FALLBACK_FOCAL, (focal) => {
+    p.focal = focal;
+    renderHeroPicks();
+  });
+}
+
+/** Ghi các ô vừa đổi xuống đĩa rồi ghi lại manifest (điểm nhìn của cả ba ô). */
+async function saveHeroPicks() {
+  if (!bgRootHandle) {
+    showToast("Chưa kết nối thư mục assets/", "error");
+    return;
+  }
+  try {
+    if (!bgSlotParts(hpSlot())) throw new Error(bgUnreachableMsg(hpSlot()));
+    const dir = await bgOpenSlotDir(hpSlot(), { create: true });
+    if (!dir) throw new Error("không mở được thư mục " + HP_FOLDER);
+
+    let written = 0;
+    for (const p of bgHeroPicks) {
+      if (!p.blob) continue;
+      const fh = await dir.getFileHandle(p.file, { create: true });
+      const writable = await fh.createWritable();
+      await writable.write(p.blob);
+      await writable.close();
+      p.onDisk = true;
+      written++;
+    }
+    await hpSyncManifest(dir);
+    await loadHeroPicks();
+    showToast(written ? `Đã lưu ${written} ô ảnh` : "Đã cập nhật điểm nhìn", "success");
+  } catch (e) {
+    console.error(e);
+    showToast("Không ghi được file: " + e.message, "error");
+  }
+}
+
+async function hpSyncManifest(dir) {
+  const json = {
+    path: `/assets/${HP_FOLDER}`,
+    updated_at: new Date().toISOString(),
+    // Đúng thứ tự ba ô — trang đọc theo chỉ số, không theo tên.
+    picks: bgHeroPicks.map((p) => ({
+      file: p.file,
+      ...(p.focal ? { focal: p.focal } : {}),
+    })),
+  };
+  try {
+    const fh = await dir.getFileHandle(BG_MANIFEST_NAME, { create: true });
+    const writable = await fh.createWritable();
+    await writable.write(JSON.stringify(json, null, 2));
+    await writable.close();
+  } catch (e) {
+    console.error("Không ghi được manifest.json của ba ô ảnh:", e);
+    showToast("Đã lưu ảnh nhưng không ghi được manifest.json — xem console", "warning");
   }
 }

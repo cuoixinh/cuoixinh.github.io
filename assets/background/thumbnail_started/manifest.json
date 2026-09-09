@@ -1,0 +1,19 @@
+{
+  "path": "/assets/background/thumbnail_started",
+  "updated_at": "2026-09-09T15:53:53.349Z",
+  "picks": [
+    {
+      "file": "pick-1.webp"
+    },
+    {
+      "file": "pick-2.webp"
+    },
+    {
+      "file": "pick-3.webp",
+      "focal": {
+        "x": 76,
+        "y": 100
+      }
+    }
+  ]
+}

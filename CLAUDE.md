@@ -282,25 +282,33 @@ thì đo waterfall trước.
 
 ### Ảnh nền (tab "Ảnh nền" ở admin)
 
-Admin dán **mã HTML** → Run xem trong iframe → **chụp** thành WebP → ghi xuống đĩa (không có
-AI ở đây). Nền là **file tĩnh trong repo**, không phải dữ liệu DB → ghi xong **phải commit &
-push**. HTML chỉ là bản vẽ trung gian, chỉ giữ nháp trong `localStorage`.
+Admin **chọn ảnh từ máy** (hoặc kéo thả) → nén thành WebP → đặt **điểm nhìn** → ghi xuống
+đĩa. Nền là **file tĩnh trong repo**, không phải dữ liệu DB → ghi xong **phải commit &
+push**.
 
 - Một nền = **một BỘ** nhiều biến thể khổ màn hình; web lấy bộ mới nhất rồi mới chọn biến
   thể, nên không bao giờ lệch desktop một nền mobile một nền.
 - `manifest.json` là **nơi duy nhất** web đọc được danh sách nền → mọi thao tác ghi/xoá phải
   gọi `bgSyncManifest()`. Thêm chỗ dùng nền mới: thêm một mục vào `BG_SLOTS`.
-- **Bất biến: iframe thấy gì thì ảnh chụp ra đúng thế.** `bgSnapshotFrame()` chụp DOM *sau
-  khi script chạy*, `bgInlineAssets()` nhúng tài nguyên thành `data:` URI, `bgSanitizeHtml()`
-  chỉ chạy trên bản chụp. Không có cách biết chắc script đã xong → chờ `fonts.ready` + vài
-  nhịp vẽ; mã có hiệu ứng dài thì Run cho ổn định rồi hẵng chụp.
-- ⚠️ Iframe **cố ý không khai `sandbox`** → **mã trong khung chạm được trang admin (kể cả
-  `ADMIN_TOKEN`)**. Chỉ dán mã do chính mình viết.
-- Chụp bằng `<foreignObject>`, sai một trong ba là ra ảnh trắng: tài nguyên phải là `data:`
-  URI, HTML phải chuẩn hoá qua `DOMParser` + `XMLSerializer`, file SVG phải là `data:` chứ
-  không phải `blob:`. Không dựng được: **font tải từ mạng, `backdrop-filter`,
-  `mix-blend-mode`**.
+- **Điểm nhìn** nằm ở khoá `focal` của mỗi bộ trong manifest, tách theo biến thể
+  (`{desktop:{x,y}}`, đơn vị % của ẢNH); `js/hero-background.js` đọc ra rồi đặt thẳng vào
+  `background-position`. Không khai thì giữ `center top` của `.hero-bg`. Danh sách file dựng
+  lại từ thư mục mỗi lần sync, còn điểm nhìn CHỈ có trong manifest → `bgSyncManifest()` ghi
+  theo `bgItems[].focal` (nạp lúc quét thư mục), đừng dựng lại `bgItems` mà bỏ trường đó.
+- Ảnh **giữ nguyên tỉ lệ gốc**, chỉ thu cạnh dài về `BG_MAX_SIDE` rồi hạ chất lượng WebP cho
+  lọt `BG_MAX_MB` — phần cắt là việc của `background-size: cover`, điểm nhìn quyết định cắt
+  bên nào. Cắt sẵn theo khổ biến thể là làm điểm nhìn thành vô nghĩa.
+- Bảng chọn điểm nhìn dùng chung `openFocalPointPicker()` (`core/utils.js`); tham số `frames`
+  thay dãy 3 tỉ lệ mặc định bằng khung mô phỏng màn mở đầu ở nhiều khổ màn. Mốc mask trong
+  `bgHeroMask()` phải khớp `.hero-bg` ở `styles/tailwind-src.css` (kể cả hai media theo chiều
+  cao), lệch là xem trước hứa một đằng trang thật ra một nẻo.
 - Trùng tên là **ghi đè** (có hỏi lại) — khác tab "Ảnh mẫu" vốn tự đánh số.
+- **Ba ô ảnh trang trí của màn mở đầu** đi đường riêng ở cuối tab: KHÔNG phải danh sách,
+  đúng ba file tên cố định `pick-1…3.webp` trong `assets/background/thumbnail_started/`
+  nên `index.html` viết thẳng `src`, chọn ảnh mới chỉ là ghi đè. `manifest.json` của thư
+  mục này chỉ mang **điểm nhìn** theo ĐÚNG thứ tự ba ô (`picks: [{file, focal}]`) — trang
+  đọc theo chỉ số rồi đặt vào `object-position`, không khai thì giữ `center 35%` của
+  `.hero-pick img`.
 
 ### Nút bấm — luôn dùng `<x-button>`
 

@@ -75,20 +75,21 @@
             <img src="assets/icons/logo.png" alt="Cưới Xinh" />
           </a>
 
-          <!-- Ba ô ảnh TRANG TRÍ, không phải danh sách mẫu thiệp: markup tĩnh,
-               đổi ảnh là thay ba file trong assets/images/hero/ (ô vuông, ~640px
-               là đủ). Ô giữa mang .is-lead nên to hơn hai ô bên.
+          <!-- Ba ô ảnh TRANG TRÍ, không phải danh sách mẫu thiệp: tên file cố
+               định (pick-1..3), tab "Ảnh nền" của admin ghi đè đúng ba file đó;
+               js/hero-background.js chỉ đọc thêm điểm nhìn từ manifest cùng thư
+               mục. Ô giữa mang .is-lead nên to hơn hai ô bên.
                `alt=""` + aria-hidden: ảnh không mang thông tin nào mà phần chữ
                ngay dưới chưa nói. -->
           <div class="hero-picks hero-anim hero-anim-2" aria-hidden="true">
             <span class="hero-pick">
-              <img src="assets/images/hero/couple-1.webp" alt="" />
+              <img src="assets/background/thumbnail_started/pick-1.webp" alt="" />
             </span>
             <span class="hero-pick is-lead">
-              <img src="assets/images/hero/couple-2.webp" alt="" />
+              <img src="assets/background/thumbnail_started/pick-2.webp" alt="" />
             </span>
             <span class="hero-pick">
-              <img src="assets/images/hero/couple-3.webp" alt="" />
+              <img src="assets/background/thumbnail_started/pick-3.webp" alt="" />
             </span>
           </div>
         </div>

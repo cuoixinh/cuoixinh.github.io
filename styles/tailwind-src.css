@@ -418,11 +418,14 @@ html.cx-landing {
 
 /* Hai cụm nội dung: .hero-top căn giữa ở trên, .hero-bottom bị `margin-top:auto`
    đẩy xuống sát đáy — chỗ trống thừa của màn cao dồn hết vào khe giữa hai cụm.
-   Lề ĐÁY khác nhau hẳn giữa hai khổ. Khổ hẹp 152px vì cụm nút chạy gần hết bề
-   ngang, phải qua mặt cả thanh tab dưới (.cx-tabbar, ~64px kể cả lề) LẪN bong
-   bóng Trợ lý XuXi đứng ngay trên nó (.aichat-fab, bottom 88px + cao 52px = mép
-   trên ở 140px). Từ md không còn thanh tab, bong bóng lùi về bottom 24px và cụm
-   nút chỉ chiếm nửa trái màn nên 48px là đủ.
+   Lề ĐÁY khác nhau hẳn giữa hai khổ. Khổ hẹp 80px = thanh tab dưới (.cx-tabbar,
+   ~64px kể cả lề) + 16px thở. Cụm nút KHÔNG né lên trên bong bóng Trợ lý XuXi
+   (.aichat-fab, bottom 88px cao 52px) mà đứng CẠNH nó: hai nút chỉ rộng ~292px
+   (390px màn) / ~257px (dưới 380px, cỡ chữ và lề trong đã thu lại) tính từ lề
+   trái 20px, còn bong bóng bắt đầu ở mép phải trừ 76px — chạm nhau chỉ khi thêm
+   chữ vào nhãn nút hoặc nới lề trong, lúc đó phải tính lại chỗ này. Từ md không
+   còn thanh tab, bong bóng lùi về bottom 24px và cụm nút chỉ chiếm nửa trái màn
+   nên 48px là đủ.
    Lề ĐỈNH thì ngược lại: khổ hẹp không có navbar trên nên chỉ cần 32px, từ md
    phải chừa đủ 80px của .cx-navbar (12 + 64 + 4) — đổi khổ navbar là phải đổi
    cả hai số md/lg dưới. */
@@ -430,7 +433,7 @@ html.cx-landing {
 .hero-stage {
   @apply relative z-[2] mx-auto flex w-full flex-1 flex-col;
   max-width: 1200px;
-  padding: var(--cx-stage-pt) 20px 152px;
+  padding: var(--cx-stage-pt) 20px 80px;
   gap: 16px;
 }
 
@@ -483,7 +486,8 @@ html.cx-landing {
    sách mẫu thiệp, không có js nào đổ dữ liệu vào): một HÀNG PHẲNG, ô nào cũng
    đứng thẳng, không nghiêng và không chồng mép. Ô giữa (.is-lead) to hơn một
    nấc, cả hàng căn theo TÂM nên nó nhô đều lên trên và xuống dưới.
-   Đổi ảnh = thay ba file trong assets/images/hero/, không phải sửa file này. */
+   Đổi ảnh = thay ba file trong assets/background/thumbnail_started/ (tab "Ảnh nền"
+   của admin), không phải sửa file này. */
 
 .hero-picks {
   @apply relative flex items-center justify-center;
@@ -587,8 +591,9 @@ html.cx-landing {
     0 32px 64px rgb(var(--landing-dark-rgb) / 0.44);
 }
 
-/* Ảnh trong assets/images/hero/ đã cắt sẵn vuông nên không bị xén gì. Neo hơi
-   lệch LÊN để ảnh dọc thay vào sau này vẫn giữ được mặt người. */
+/* Ô vuông nên ảnh không vuông sẽ bị xén: neo hơi lệch LÊN cho giữ được mặt
+   người. Điểm nhìn khai trong manifest của thư mục ảnh sẽ ĐÈ dòng này (đặt
+   inline bởi js/hero-background.js). */
 
 .hero-pick img {
   @apply absolute inset-0 h-full w-full object-cover;
@@ -614,10 +619,14 @@ html.cx-landing {
   max-width: 640px;
 }
 
+/* Trần 56px chứ không lớn hơn: .hero-bottom rộng tối đa 640px, mà "Thiệp Cưới
+   Online" ở cỡ 76px đã ăn hết chừng ấy bề ngang nên dòng chữ chạm mép cột và
+   trông quá khổ so với phần còn lại. 56px để dòng dài nhất còn dư chỗ thở. */
+
 .hero-title {
   @apply font-playfair;
   font-weight: 500;
-  font-size: clamp(32px, 6.4vw, 76px);
+  font-size: clamp(32px, 5.2vw, 56px);
   line-height: 1.04;
   letter-spacing: -0.01em;
   color: rgb(var(--landing-dark-rgb));
@@ -832,14 +841,137 @@ html.cx-landing {
   }
 }
 
-/* Máy vừa NGẮN vừa HẸP (360x640 và họ hàng): ở khổ này cụm nút phải đứng trên
-   CẢ thanh tab dưới lẫn bong bóng Trợ lý XuXi, tức lề đáy 152px — thu nốt lề đỉnh
-   để hero không cao hơn khung nhìn (cụm nút trôi xuống là bong bóng đè lên nút
-   "Xem mẫu thiệp"). Phải đứng SAU khối max-height ở trên. */
+/* Máy vừa NGẮN vừa HẸP (360x640 và họ hàng): mọi thứ dồn lại nên thu nốt lề đỉnh
+   để hero không cao hơn khung nhìn (cụm nút trôi xuống là bong bóng Trợ lý XuXi
+   đè lên nút "Xem mẫu thiệp"). Phải đứng SAU khối max-height ở trên. */
 
 @media (max-height: 780px) and (max-width: 767px) {
   #hero {
     --cx-stage-pt: 16px;
+  }
+}
+
+/* MÁY TÍNH / TABLET (rộng mà đủ cao): cùng cách tính với khối điện thoại ngay
+   dưới — ảnh nền xuống sâu nhất có thể, ba ô ảnh dán ngay trên tiêu đề.
+   Chỗ phải chừa 360px = cụm chữ ~300px (tiêu đề 2 dòng cỡ tối đa 56px + đoạn
+   mô tả + cụm nút) + lề đáy 48px của .hero-stage ở lg, trừ đi phần lề đỉnh và
+   khe đã nằm sẵn trong công thức min-height của .hero-top. Ở md lề đáy nhỏ hơn
+   (32px) nên số này dư ra 16px — cố ý, thà thừa còn hơn tiêu đề đè lên ảnh.
+   Đứng SAU cả hai khối media theo chiều cao ở trên (chúng đặt --cx-hero-fade và
+   vẽ lại mask theo %) thì mới không bị đè. */
+
+@media (min-width: 768px) and (min-height: 781px) {
+  #hero {
+    --cx-hero-fade-y: calc(var(--vh, 1vh) * 100 - 360px);
+  }
+  .hero-bg {
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      #000 0%,
+      #000 42%,
+      transparent var(--cx-hero-fade-y)
+    );
+    mask-image: linear-gradient(
+      to bottom,
+      #000 0%,
+      #000 42%,
+      transparent var(--cx-hero-fade-y)
+    );
+  }
+  .hero-veil {
+    background-image: linear-gradient(
+      to bottom,
+      rgb(var(--surface-tint-rgb) / 0.4) 0%,
+      rgb(var(--surface-tint-rgb) / 0.28) 24%,
+      rgb(var(--surface-tint-rgb) / 0.42) 46%,
+      rgb(var(--surface-tint-rgb) / 0) var(--cx-hero-fade-y)
+    );
+  }
+  /* `flex: 1` để chỗ thừa dồn vào cụm TRÊN, ba ô ảnh dán xuống đáy cụm đó chứ
+     không treo giữa màn — xem giải thích ở khối điện thoại. */
+  .hero-top {
+    flex: 1;
+    min-height: calc(var(--cx-hero-fade-y) - var(--cx-stage-pt) - 16px);
+  }
+  .hero-picks {
+    --cx-pick-h: min(
+      calc((100vw - 48px) / 2.8),
+      calc(var(--vh, 1vh) * 27),
+      calc(var(--cx-hero-fade-y) - var(--cx-stage-pt) - 16px),
+      232px
+    );
+  }
+}
+
+/* ĐIỆN THOẠI THƯỜNG (hẹp mà đủ cao): ảnh nền xuống SÂU NHẤT có thể để thấy được
+   nhiều nền hơn, cụm ba ô ảnh bám theo mốc đó nên tụt xuống theo.
+
+   Ở đây mốc tan khai bằng ĐỘ DÀI (--cx-hero-fade-y) chứ không phải % như các
+   khổ khác: chỗ trống bên dưới là một cụm chữ cao gần như CỐ ĐỊNH (~235px) cộng
+   lề đáy 80px, nên tính theo % thì màn 781px và màn 932px đòi hai con số khác
+   hẳn nhau — một số duy nhất hoặc là hụt ở máy cao, hoặc là tràn ở máy thấp.
+   Lấy thẳng "chiều cao màn trừ 315px chỗ phải chừa": ảnh xuống sâu nhất có thể
+   mà chữ vẫn đủ chỗ, và chỗ thừa luôn bằng 0 nên ba ô ảnh dính ngay trên tiêu
+   đề. Sửa cỡ chữ/lề của .hero-bottom là phải sửa số 315px này.
+   Ba nơi vốn ăn theo --cx-hero-fade đều phải đổi sang biến mới, nếu không mốc
+   mask một đằng cụm ảnh một nẻo.
+   Dải TAN cũng ngắn lại (42% thay vì 28%): mốc cuối đã xuống sâu, giữ dải dài
+   như cũ thì ảnh mờ gần hết đoạn giữa — thứ mình muốn là nhìn rõ ảnh lâu hơn
+   rồi mới tan nhanh. Đứng SAU mọi media theo chiều cao để không bị chúng đè. */
+
+@media (min-height: 781px) and (max-width: 767px) {
+  #hero {
+    --cx-hero-fade-y: calc(var(--vh, 1vh) * 100 - 315px);
+  }
+  .hero-bg {
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      #000 0%,
+      #000 42%,
+      transparent var(--cx-hero-fade-y)
+    );
+    mask-image: linear-gradient(
+      to bottom,
+      #000 0%,
+      #000 42%,
+      transparent var(--cx-hero-fade-y)
+    );
+  }
+  .hero-veil {
+    background-image: linear-gradient(
+      to bottom,
+      rgb(var(--surface-tint-rgb) / 0.4) 0%,
+      rgb(var(--surface-tint-rgb) / 0.28) 24%,
+      rgb(var(--surface-tint-rgb) / 0.42) 46%,
+      rgb(var(--surface-tint-rgb) / 0) var(--cx-hero-fade-y)
+    );
+  }
+  /* `flex: 1` để cụm trên NUỐT hết chỗ thừa: không có nó thì chỗ thừa rơi vào
+     khe giữa hai cụm (.hero-bottom đẩy xuống đáy bằng margin-top:auto) và ba ô
+     ảnh treo lơ lửng cách tiêu đề một quãng. Có nó thì .hero-picks (cũng
+     margin-top:auto) dán xuống đáy cụm trên, tức đứng ngay trên .hero-title,
+     cách đúng một khe 16px của .hero-stage. min-height vẫn giữ vai trò sàn cho
+     màn cao — ở đó chỗ thừa bằng 0 nên hai cách cho cùng kết quả. */
+  .hero-top {
+    flex: 1;
+    min-height: calc(var(--cx-hero-fade-y) - var(--cx-stage-pt) - 16px);
+  }
+  .hero-picks {
+    --cx-pick-h: min(
+      calc((100vw - 48px) / 2.8),
+      calc(var(--vh, 1vh) * 27),
+      calc(var(--cx-hero-fade-y) - var(--cx-stage-pt) - 16px),
+      232px
+    );
+  }
+  /* Cụm chữ thu lại đúng bằng bản dành cho máy ngắn — mỗi px lấy được ở đây là
+     một px ảnh nền hiện thêm ra. */
+  .hero-lead {
+    margin-top: 12px;
+    font-size: 13px;
+  }
+  .hero-actions {
+    margin-top: 20px;
   }
 }
 

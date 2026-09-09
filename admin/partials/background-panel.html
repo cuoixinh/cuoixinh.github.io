@@ -1,11 +1,10 @@
-<!-- Tab Content: Ảnh nền (tự viết HTML rồi chụp) -->
+<!-- Tab Content: Ảnh nền (tải ảnh lên + chọn điểm nhìn) -->
 <div id="content-background" class="hidden">
   <div class="bg-white rounded-2xl shadow-lg overflow-hidden p-4 sm:p-6">
     <h2 class="text-lg sm:text-xl font-semibold text-gray-800 mb-1">Ảnh nền</h2>
     <p class="text-sm text-gray-500 mb-5">
-      Dán mã HTML của bạn vào, bấm Run để xem, rồi chụp lại thành ảnh nền ghi vào
-      <code>assets/background/…</code>. Nút "Lấy đường dẫn ảnh" chỉ để chép nhanh đường dẫn
-      của ảnh có sẵn trong <code>assets/</code> vào mã.
+      Chọn ảnh từ máy, đặt điểm nhìn rồi lưu vào <code>assets/background/…</code>. Ảnh được
+      nén lại thành WebP. Nền là file trong repo nên lưu xong phải <b>commit &amp; push</b>.
     </p>
 
     <!-- Trình duyệt không có File System Access API (Safari, Firefox) -->
@@ -54,120 +53,82 @@
           </div>
         </div>
 
-        <!-- Bảng tra đường dẫn: chỉ để chép vào mã, KHÔNG ảnh hưởng tới việc chụp -->
-        <div class="mb-5">
-          <div class="flex items-center justify-between mb-1">
-            <label class="block text-xs font-medium text-gray-600">
-              Đường dẫn ảnh
-              <span id="bg-photo-count" class="font-normal text-gray-400"></span>
-            </label>
-            <div class="flex items-center gap-3">
-              <x-button variant="ghost" tone="neutral" size="sm" id="bg-copy-all-btn" type="button" onclick="bgCopyAllPaths()" class="hidden underline">
-                Chép tất cả
-              </x-button>
-              <x-button variant="ghost" size="sm" type="button" onclick="bgPickPhotos()" class="underline">
-                Lấy đường dẫn ảnh
-              </x-button>
-            </div>
-          </div>
-          <div id="bg-photo-list" class="grid grid-cols-2 lg:grid-cols-3 gap-2"></div>
-          <p id="bg-photo-empty" class="text-xs text-gray-500 mt-1">
-            Chọn ảnh trong <code>assets/</code> để lấy đường dẫn dùng được trên web. Không bắt
-            buộc — mã của bạn trỏ thẳng đường dẫn nào thì lúc chụp vẫn lấy đúng ảnh đó.
-          </p>
-        </div>
-
-        <!-- Soạn mã: dán HTML → Run xem trong iframe → ưng thì chụp thành ảnh -->
-        <div id="bg-editor-wrap" class="mb-6">
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <div>
-              <div class="flex items-center justify-between mb-1">
-                <label class="block text-xs font-medium text-gray-600">
-                  Mã HTML
-                  <span class="font-normal text-gray-400">— dán mã của bạn vào đây</span>
-                </label>
-                <x-button tone="neutral" size="sm" type="button" onclick="bgRunPreview()">
-                  ▶ Run
-                </x-button>
-              </div>
-              <x-textarea
-                id="bg-html-source"
-                bare
-                no-clear
-                height="420px"
-                input-class="w-full px-3 py-2 border border-gray-200 rounded-lg text-[11px] font-mono leading-relaxed text-gray-800 bg-white outline-none focus:ring-2 focus:ring-rose-500/30 resize-none"
-              ></x-textarea>
-            </div>
-
-            <div>
-              <div class="flex items-center justify-between mb-1">
-                <span class="block text-xs font-medium text-gray-600">Xem trước</span>
-                <span id="bg-preview-scale" class="text-[11px] text-gray-400"></span>
-              </div>
-              <!-- Khung bám tỉ lệ khổ đang chọn; iframe bên trong render ở kích thước
-                   THẬT rồi thu nhỏ bằng transform để không phải chỉnh lại CSS trong mã. -->
-              <div
-                id="bg-iframe-box"
-                class="rounded-xl border border-gray-200 overflow-hidden bg-[rgb(var(--checkerboard-rgb))] relative"
-              >
-                <!-- CỐ Ý không khai `sandbox`: cần JS chạy được VÀ trang này đọc lại được
-                     contentDocument để chụp. Cặp cờ tối thiểu làm được việc đó là
-                     allow-scripts + allow-same-origin, mà cặp đó vốn đã tương đương không
-                     sandbox (trình duyệt còn cảnh báo là "escape its sandboxing") — nên khai
-                     vào chỉ là lời hứa cách ly giả. Hệ quả: mã trong khung này chạm được
-                     trang admin, chỉ dán mã do chính mình viết. -->
-                <iframe
-                  id="bg-iframe"
-                  title="Xem trước thiết kế"
-                  class="block border-0 origin-top-left"
-                ></iframe>
-              </div>
-              <p class="text-xs text-gray-500 mt-1">
-                JS trong mã có chạy. Lúc chụp lấy đúng trạng thái khung này sau khi script đã
-                chạy xong — thấy sao được vậy. Xem lại ảnh cuối ở dưới trước khi lưu.
-              </p>
-            </div>
-          </div>
-
-          <div class="flex flex-wrap items-center gap-3 mt-3">
-            <x-button id="bg-capture-btn" type="button" onclick="captureBackground()">
-              Chụp thành ảnh nền
-            </x-button>
-            <span id="bg-capture-status" class="text-xs text-gray-500"></span>
-          </div>
-        </div>
-
-        <!-- Ảnh đã chụp + lưu -->
-        <div id="bg-preview-wrap" class="hidden mb-6">
-          <div class="text-xs font-medium text-gray-600 mb-1">
-            Ảnh nền đã chụp
-            <span class="font-normal text-gray-400">— đây đúng là file sẽ được lưu</span>
-          </div>
-          <!-- Chặn chiều cao: nền mobile là khổ dọc 1080×1920, để h-auto thì
-               khung xem trước cao gấp đôi màn hình. -->
-          <div
-            class="rounded-xl border border-gray-200 overflow-hidden bg-[rgb(var(--checkerboard-rgb))] flex justify-center"
+        <!-- Tải ảnh lên -->
+        <div class="mb-6">
+          <label
+            id="bg-drop"
+            for="bg-file-input"
+            class="flex flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-gray-300 p-6 text-center cursor-pointer hover:border-rose-300 hover:bg-rose-50/40 transition-colors"
           >
-            <img
-              id="bg-preview"
-              alt="Xem trước ảnh nền"
-              class="max-h-[420px] w-auto max-w-full object-contain block"
-            />
-          </div>
-          <div class="flex flex-wrap items-end gap-3 mt-3">
-            <div class="flex-1 min-w-[220px]">
-              <label class="block text-xs font-medium text-gray-600 mb-1">Tên nền</label>
-              <input
-                id="bg-name-input"
-                type="text"
-                placeholder="vd: hoa-hong-pastel"
-                class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
-              />
-              <p id="bg-filename-hint" class="text-xs text-gray-500 mt-1"></p>
+            <i data-lucide="image-up" class="text-gray-400" style="width:28px;height:28px"></i>
+            <div class="text-sm font-medium text-gray-700">Chọn ảnh hoặc kéo thả vào đây</div>
+            <div class="text-xs text-gray-500">
+              JPG, PNG, WebP — ảnh lớn sẽ tự thu nhỏ và nén lại
             </div>
-            <x-button id="bg-save-btn" type="button" onclick="saveBackground()">
-              Lưu vào thư mục
-            </x-button>
+          </label>
+          <input
+            id="bg-file-input"
+            type="file"
+            accept="image/*"
+            class="hidden"
+            onchange="bgPickFile(this.files[0]); this.value = '';"
+          />
+
+          <!-- Ảnh vừa chọn: xem trước ở mọi khung hình + đặt tên + lưu -->
+          <div id="bg-preview-wrap" class="hidden mt-4">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div>
+                <div class="text-xs font-medium text-gray-600 mb-1">
+                  Ảnh sẽ lưu
+                  <span id="bg-preview-meta" class="font-normal text-gray-400"></span>
+                </div>
+                <div
+                  class="rounded-xl border border-gray-200 overflow-hidden bg-[rgb(var(--checkerboard-rgb))] flex justify-center"
+                >
+                  <img
+                    id="bg-preview"
+                    alt="Xem trước ảnh nền"
+                    class="max-h-[300px] w-auto max-w-full object-contain block"
+                  />
+                </div>
+                <div class="flex flex-wrap items-center gap-2 mt-2">
+                  <x-button variant="outline" tone="neutral" size="sm" type="button" onclick="bgEditPendingFocal()">
+                    Điểm nhìn
+                  </x-button>
+                  <span id="bg-pending-focal" class="text-xs text-gray-500"></span>
+                </div>
+              </div>
+
+              <div>
+                <div class="text-xs font-medium text-gray-600 mb-1">
+                  Xem trước trên các khung hình
+                </div>
+                <div id="bg-frames" class="grid grid-cols-4 gap-2"></div>
+                <p class="text-xs text-gray-500 mt-1">
+                  Khung mô phỏng đúng màn mở đầu: ảnh phủ kín rồi tan dần xuống nền.
+                </p>
+              </div>
+            </div>
+
+            <div class="flex flex-wrap items-end gap-3 mt-3">
+              <div class="flex-1 min-w-[220px]">
+                <label class="block text-xs font-medium text-gray-600 mb-1">Tên nền</label>
+                <input
+                  id="bg-name-input"
+                  type="text"
+                  placeholder="vd: hoa-hong-pastel"
+                  oninput="bgUpdateFilenameHint()"
+                  class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+                />
+                <p id="bg-filename-hint" class="text-xs text-gray-500 mt-1"></p>
+              </div>
+              <x-button variant="outline" tone="neutral" type="button" onclick="bgClearPreview()">
+                Bỏ ảnh
+              </x-button>
+              <x-button id="bg-save-btn" type="button" onclick="saveBackground()">
+                Lưu vào thư mục
+              </x-button>
+            </div>
           </div>
         </div>
 
@@ -177,10 +138,27 @@
             <div class="text-sm font-medium text-gray-800">Nền đã có</div>
             <span id="bg-active-note" class="text-xs text-gray-500"></span>
           </div>
-          <div id="bg-list" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3"></div>
+          <div id="bg-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
           <p id="bg-empty" class="hidden text-sm text-gray-500">
             Thư mục chưa có nền nào.
           </p>
+        </div>
+
+        <!-- Ba ô ảnh trang trí của màn mở đầu (tên file cố định pick-1..3) -->
+        <div class="mt-8 pt-6 border-t border-gray-200">
+          <div class="text-sm font-medium text-gray-800">Ba ô ảnh ở màn mở đầu</div>
+          <p class="text-xs text-gray-500 mt-0.5 mb-3">
+            Ba ô vuông nằm ngay trên tiêu đề trang chủ (ô giữa to hơn hai ô bên). Lưu vào
+            <code>assets/background/thumbnail_started/</code> với tên cố định
+            <code>pick-1…3.webp</code> — chọn ảnh mới là ghi đè đúng ô đó.
+          </p>
+          <div id="bg-pick-grid" class="grid grid-cols-1 sm:grid-cols-3 gap-3"></div>
+          <div class="flex flex-wrap items-center gap-3 mt-3">
+            <x-button id="bg-pick-save-btn" type="button" onclick="saveHeroPicks()">
+              Lưu ba ô ảnh
+            </x-button>
+            <span id="bg-pick-status" class="text-xs text-gray-500"></span>
+          </div>
         </div>
       </div>
     </div>

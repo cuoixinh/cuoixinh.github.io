@@ -520,8 +520,13 @@ function applyCrop() {
 /**
  * Mở bảng chọn điểm lấy nét: kéo điểm trên ảnh, xem trước ở 3 tỉ lệ thường gặp
  * (1:1, 16:9, 9:16). callback nhận {x, y} theo %.
+ *
+ * `frames` thay dãy 3 tỉ lệ mặc định bằng danh sách khung do nơi gọi khai —
+ * `[{ label, w, h, mask }]`, `mask` là giá trị mask-image CSS (bỏ trống thì
+ * không che). Dùng khi ảnh có một chỗ dùng cụ thể và cần xem đúng chỗ đó ở mọi
+ * khổ màn (tab "Ảnh nền" của admin).
  */
-function openFocalPointPicker(imageSource, currentFocal, callback, giftInfo) {
+function openFocalPointPicker(imageSource, currentFocal, callback, giftInfo, frames) {
   const focal = {
     x: currentFocal?.x ?? 50,
     y: currentFocal?.y ?? 50,
@@ -559,6 +564,30 @@ function openFocalPointPicker(imageSource, currentFocal, callback, giftInfo) {
               <div id="focal-gift-owner" class="text-[12px] text-[rgb(var(--text-heading-rgb))] font-semibold truncate max-w-[240px]">--------------------</div>
             </div>
           </div>
+        </div>
+      </div>`
+    : frames?.length
+    ? `
+      <div class="flex-shrink-0">
+        <p class="text-xs font-semibold text-gray-500 mb-2">Xem trước trên các khung hình</p>
+        <div class="grid grid-cols-4 gap-3">
+          ${frames
+            .map(
+              (f) => `
+            <div>
+              <div class="rounded-lg overflow-hidden border border-gray-200 bg-[rgb(var(--surface-tint-rgb))]"
+                   style="aspect-ratio:${f.w}/${f.h}">
+                <div data-focal-frame class="w-full h-full"
+                     style="background-size:cover;background-repeat:no-repeat;${
+                       f.mask
+                         ? `-webkit-mask-image:${f.mask};mask-image:${f.mask};`
+                         : ""
+                     }"></div>
+              </div>
+              <p class="text-[11px] text-gray-500 text-center mt-1">${f.label}</p>
+            </div>`,
+            )
+            .join("")}
         </div>
       </div>`
     : `
@@ -644,6 +673,9 @@ function openFocalPointPicker(imageSource, currentFocal, callback, giftInfo) {
     document.getElementById("focal-preview-9-16"),
   ];
   const qrPreview = document.getElementById("focal-preview-qr");
+  // Khung do nơi gọi khai: nền là background-image (không phải <img>) để dùng
+  // được mask giống chỗ ảnh sẽ hiện thật.
+  const frameEls = [...sheet.body.querySelectorAll("[data-focal-frame]")];
 
   // Returns the rendered image bounds within the wrap (accounting for object-contain letterboxing)
   function getImageBounds() {
@@ -679,6 +711,9 @@ function openFocalPointPicker(imageSource, currentFocal, callback, giftInfo) {
       if (p) p.style.objectPosition = `${focal.x}% ${focal.y}%`;
     });
     if (qrPreview) qrPreview.style.objectPosition = `${focal.x}% ${focal.y}%`;
+    frameEls.forEach((el) => {
+      el.style.backgroundPosition = `${focal.x}% ${focal.y}%`;
+    });
   }
 
   function setFromPointer(e) {
@@ -713,6 +748,7 @@ function openFocalPointPicker(imageSource, currentFocal, callback, giftInfo) {
     img.src = src;
     previews.forEach((p) => { if (p) p.src = src; });
     if (qrPreview) qrPreview.src = src;
+    frameEls.forEach((el) => { el.style.backgroundImage = `url("${src}")`; });
     // Wait for natural dimensions before positioning marker
     if (img.complete && img.naturalWidth) {
       applyToUI();
