@@ -8,7 +8,7 @@ Ngôn ngữ làm việc: **tiếng Việt**.
 > để ở comment cạnh code). Thay đổi thường chỉ sửa câu đang sai, không thêm mục mới.
 
 **Stack:** Vanilla JS + Tailwind (build CLI) · Supabase (Postgres/Storage/Edge Functions) ·
-PayOS · GitHub Pages + Cloudflare Workers.
+PayOS · Cloudflare Pages + Workers.
 
 ## Chạy local
 
@@ -161,11 +161,12 @@ mẫu trên máy tính (`theme-boot.js`), mỗi nơi tự khai `title`/`back`/`i
 `.cx-pviewport` (khung thiệp) · `.cx-ppad` (dải trắng đáy, chừa thiệp khỏi vùng bo góc) —
 chiều cao iframe đo theo `.cx-pviewport` chứ không theo cả ô màn.
 
-### Phiên bản & cache (GitHub Pages sau Cloudflare)
+### Phiên bản & cache
 
-GitHub Pages ép `Cache-Control: max-age=600` và không đọc `_headers`. Chống bản cũ bằng
-**`CX_VERSION` trong `core/config.js`**: hai `loader.js` nối `?v=<version>` vào mọi URL
-partial/script chúng nạp.
+Host tĩnh sau Cloudflare, HTML cache 10 phút. Chống bản cũ bằng **`CX_VERSION` trong
+`core/config.js`**: hai `loader.js` nối `?v=<version>` vào mọi URL partial/script chúng nạp.
+(`_headers` chỉ có tác dụng sau khi đã chuyển hẳn sang Cloudflare Pages — xem
+`docs/deploy-cloudflare-pages.md` §13.)
 
 - **Deploy là đổi `CX_VERSION`**, nếu không người dùng có thể nhận bản TRỘN — partial mới
   đi với script cũ là trang vỡ, không phải chỉ trông cũ.
@@ -176,24 +177,28 @@ partial/script chúng nạp.
   xong mới gỡ thẻ cũ) → đổi `CX_VERSION` là CSS cũng đi theo. Riêng `<script>` viết cứng
   trong HTML thì không cứu được (đã chạy trước rồi) — sửa xong phải Ctrl+F5.
 
-### Triển khai (repo này private → repo public chạy Pages)
+### Triển khai (repo private → Cloudflare Pages)
 
-`npm run deploy:public` (hoặc double-click `deploy.bat`) copy bản chạy được sang thư mục
-repo public trên máy, người dùng tự commit & push ở đó. Đường dẫn đích nhớ trong
-`deploy-public.config.json` (gitignored).
+Cloudflare Pages build từ repo private và **chỉ publish thư mục `dist/`**, do
+`scripts/deploy-public.mjs --dist --minify` dựng ra. Đụng tới deploy thì đọc
+`docs/deploy-cloudflare-pages.md` trước.
 
-- `INCLUDE` trong `scripts/deploy-public.mjs` là **danh sách CHO PHÉP**: thứ gì không khai
-  thì KHÔNG ra bản public. **Thêm thư mục/trang mới ở gốc phải khai vào `INCLUDE`**, nếu
-  không production thiếu file. Thư mục đã khai (`core/`, `js/`, `public/`, `assets/`,
-  `invitation-setup/`…) thì file mới bên trong tự theo.
-- **`admin/` KHÔNG lên public** — chạy local từ repo này. Kéo theo: `CONFIG.cloudflare
-  .purgeSecret` bị `REDACT` thay bằng `null` khi copy (chỉ admin dùng). Chức năng nào của
-  trang public cần một giá trị trong `REDACT` thì phải gỡ mục đó ra.
-- Script CHẶN deploy khi quét thấy secret (service_role, `sbp_`, JWT role khác `anon`…), và
-  CẢNH BÁO khi `CX_VERSION` trùng lần trước, CSS build cũ hơn nguồn, hay HTML trỏ tới file
-  không nằm trong bản public.
-- Thư mục đích được đồng bộ theo kiểu gương: file thừa bị xoá, trừ `TARGET_KEEP`
-  (`.git`, `.github`, `.gitignore`, `LICENSE`, `README.md`, `.nojekyll`).
+- `INCLUDE` trong script là **danh sách CHO PHÉP**: thứ gì không khai thì KHÔNG ra web.
+  **Thêm thư mục/trang mới ở gốc phải khai vào `INCLUDE`**, nếu không production thiếu file.
+  Thư mục đã khai (`core/`, `js/`, `public/`, `assets/`…) thì file mới bên trong tự theo.
+- Cái giữ `changelogs/`, `supabase/`, `admin/` khỏi web là **output directory = `dist`**,
+  KHÔNG phải quyền private của repo. Trỏ output về gốc repo là lộ sạch.
+- **`admin/` chỉ chạy local** (`localhost` — Edge Function đã cho phép mọi cổng localhost).
+  Kéo theo: `CONFIG.cloudflare.purgeSecret` bị `REDACT` thay bằng `null` trong bản publish.
+  Chức năng nào của trang public cần một giá trị trong `REDACT` thì phải gỡ mục đó ra.
+- Rút gọn (JS qua terser + gỡ comment HTML) **không bao giờ bật `mangle`**: classic script
+  chia sẻ biến toàn cục giữa các file, đổi tên trong một file là gãy ở file khác và chỉ lộ
+  lúc chạy.
+- Script CHẶN build khi quét thấy secret (service_role, `sbp_`, JWT role khác `anon`…), khi
+  `REDACT` không khớp, hoặc khi thiếu TTY mà không có `--yes` (nếu không sẽ publish thư mục
+  rỗng). CẢNH BÁO khi CSS build cũ hơn nguồn hay HTML trỏ tới file ngoài bản publish.
+- Bỏ `--dist` thì script quay về chế độ copy sang một repo khác trên máy (`npm run
+  deploy:public` / `deploy.bat`) — giữ làm đường lùi về GitHub Pages.
 
 ### Auth
 

@@ -5,7 +5,11 @@
  * không bao giờ ra repo public — quên khai file mới chỉ làm thiếu file (thấy ngay),
  * chứ không làm lộ key.
  *
- * Chạy: npm run deploy:public [-- --dry-run --yes --build --target=<đường dẫn>]
+ * Hai chế độ:
+ *   --dist   → xuất ra <repo>/dist cho Cloudflare Pages build (xem docs/deploy-cloudflare-pages.md)
+ *   mặc định → copy sang một thư mục repo khác trên máy để tự commit & push
+ *
+ * Cờ: --dry-run · --yes · --build (chạy npm run build trước) · --minify · --target=<đường dẫn>
  */
 
 import fs from "node:fs";
@@ -153,8 +157,12 @@ const valueOf = (f) => {
 };
 const OPT = {
   dryRun: has("--dry-run"),
-  yes: has("--yes") || has("-y"),
+  // --dist tự bật: nó ghi vào thư mục build của chính repo, không có gì để lỡ tay đè.
+  // Quan trọng cho CI: stdin không phải TTY nên câu hỏi y/N sẽ tự trả lời rỗng.
+  yes: has("--yes") || has("-y") || has("--dist"),
   build: has("--build"),
+  dist: has("--dist"),
+  minify: has("--minify"),
   target: valueOf("--target"),
 };
 
@@ -225,6 +233,106 @@ function sourceBytes(rel) {
   }
   bytesCache.set(rel, buf);
   return buf;
+}
+
+/**
+ * Bỏ comment HTML (20% dung lượng HTML của repo này), giữ nguyên phần còn lại.
+ * KHÔNG dùng regex trần: quét tuần tự từ trái sang, ở mỗi bước xem `<!--` hay một
+ * khối raw-text đến trước rồi mới xử lý — vì repo có cả `<!--` nằm trong `<script>`
+ * lẫn comment chứa chữ `<style>`, làm sai thứ tự là cắt nhầm giữa thân file.
+ * Conditional comment (`<!--[if`) giữ nguyên.
+ */
+function stripHtmlComments(src) {
+  const RAW = /<(script|style|pre|textarea)\b[^>]*>/i;
+  let out = "";
+  let i = 0;
+  while (i < src.length) {
+    const rest = src.slice(i);
+    const c = rest.indexOf("<!--");
+    const m = rest.match(RAW);
+    const r = m ? m.index : -1;
+
+    if (c === -1 && r === -1) {
+      out += rest;
+      break;
+    }
+    // Khối raw-text đến trước → chép nguyên cả khối, không soi bên trong.
+    if (c === -1 || (r !== -1 && r < c)) {
+      const close = new RegExp(`</${m[1]}\\s*>`, "i");
+      const after = rest.slice(r + m[0].length);
+      const e = after.match(close);
+      const end = e ? r + m[0].length + e.index + e[0].length : rest.length;
+      out += rest.slice(0, end);
+      i += end;
+      continue;
+    }
+    // Comment đến trước.
+    out += rest.slice(0, c);
+    if (rest.startsWith("<!--[", c)) {
+      out += "<!--[";
+      i += c + 5;
+      continue;
+    }
+    const e = rest.indexOf("-->", c + 4);
+    if (e === -1) {
+      out += rest.slice(c);
+      break;
+    }
+    i += e + 3;
+  }
+  // Dòng chỉ còn khoảng trắng sau khi gỡ comment thì bỏ luôn.
+  return out.replace(/^[ \t]+$\n?/gm, "");
+}
+
+/**
+ * Rút gọn JS cho bản publish: bỏ comment + khoảng trắng, GIỮ NGUYÊN mọi tên.
+ * Không bật `mangle`: các file ở đây là classic script chia sẻ biến toàn cục
+ * (`CONFIG`, `CX_THEME`, `renderWedding`, `__cxOnReady`…), file này khai file kia
+ * gọi — đổi tên trong phạm vi một file là gãy ở file khác, mà chỉ lộ lúc chạy.
+ * Nạp terser bằng dynamic import để khi không dùng --minify thì script chạy chay.
+ */
+async function minifyAll(files) {
+  const mod = await import("terser");
+  const minify = mod.minify ?? mod.default?.minify;
+  if (!minify) fail("Không nạp được terser. Chạy `npm install` rồi thử lại.");
+
+  const targets = files.filter((r) => r.endsWith(".js"));
+  let before = 0;
+  let after = 0;
+  let html = 0;
+
+  for (const rel of files.filter((r) => r.endsWith(".html"))) {
+    const src = sourceBytes(rel).toString("utf8");
+    const out = stripHtmlComments(src);
+    html += Buffer.byteLength(src) - Buffer.byteLength(out);
+    bytesCache.set(rel, Buffer.from(out, "utf8"));
+  }
+
+  // Chạy theo lô để không mở 115 tác vụ parse cùng lúc.
+  const POOL = 8;
+  for (let i = 0; i < targets.length; i += POOL) {
+    await Promise.all(
+      targets.slice(i, i + POOL).map(async (rel) => {
+        const src = sourceBytes(rel).toString("utf8");
+        let out;
+        try {
+          out = await minify(src, {
+            compress: false,
+            mangle: false,
+            format: { comments: false },
+            sourceMap: false,
+          });
+        } catch (e) {
+          fail(`terser không parse được ${rel}: ${e?.message || e}`);
+        }
+        if (typeof out.code !== "string") fail(`terser trả về rỗng cho ${rel}`);
+        before += Buffer.byteLength(src);
+        after += Buffer.byteLength(out.code);
+        bytesCache.set(rel, Buffer.from(out.code, "utf8"));
+      }),
+    );
+  }
+  return { count: targets.length, before, after, html };
 }
 
 /* ------------------------------------------------------------ các phép kiểm */
@@ -399,6 +507,14 @@ function pruneEmptyDirs(targetDir, relDir) {
 /* --------------------------------------------------------------------- main */
 
 async function resolveTarget(cfg) {
+  // Chế độ CI của Cloudflare Pages: xuất ra <repo>/dist rồi Pages publish thư mục
+  // đó. Đây là ngoại lệ DUY NHẤT của chốt "đích không được nằm trong repo".
+  if (OPT.dist) {
+    const dir = path.join(ROOT, "dist");
+    fs.mkdirSync(dir, { recursive: true });
+    return dir;
+  }
+
   let target = OPT.target || cfg.target;
   if (!target) {
     console.log(
@@ -442,6 +558,9 @@ async function main() {
 
   const files = collect();
   const version = readVersion();
+
+  // Rút gọn TRƯỚC khi quét: quét phải soi đúng nội dung sẽ ghi ra đĩa.
+  const min = OPT.minify ? await minifyAll(files) : null;
 
   // Quét secret TRƯỚC mọi thứ khác — đây là phép chặn, không phải cảnh báo.
   const secrets = scanSecrets(files);
@@ -494,6 +613,15 @@ async function main() {
     `  ${C.green(`+${plan.add.length} thêm`)}   ${C.cyan(`~${plan.update.length} ghi đè`)}   ${C.red(`-${plan.remove.length} xoá ở đích`)}`,
   );
 
+  if (min) {
+    const cut = ((1 - min.after / min.before) * 100).toFixed(0);
+    console.log(
+      `  ${C.bold("Rút gọn")}: ${min.count} file JS · ${human(min.before)} → ${human(min.after)} (-${cut}%)` +
+        `  ·  HTML bỏ ${human(min.html)} comment` +
+        C.dim("\n           (giữ nguyên tên hàm/biến — xem docs/deploy-cloudflare-pages.md §7)"),
+    );
+  }
+
   if (REDACT.length) {
     console.log(`\n  ${C.bold("Che khi copy")}`);
     for (const r of REDACT)
@@ -532,6 +660,11 @@ async function main() {
     return;
   }
   if (!OPT.yes) {
+    // Không có TTY (chạy trong CI/pipe) thì câu hỏi tự trả lời rỗng → sẽ "huỷ"
+    // mà vẫn exit 0, tức publish một thư mục trống. Dừng hẳn cho dễ thấy.
+    if (!process.stdin.isTTY) {
+      fail("Không có bàn phím để hỏi xác nhận. Thêm cờ --yes (hoặc dùng --dist).");
+    }
     const a = await ask(`\n${C.bold("Ghi vào thư mục đích? [y/N] ")}`);
     if (!/^y(es)?$/i.test(a)) {
       console.log(C.dim("Đã huỷ.\n"));
@@ -540,16 +673,24 @@ async function main() {
   }
 
   applyPlan(plan, target);
-  cfg.target = target;
-  cfg.lastVersion = version;
-  cfg.lastDeployAt = new Date().toISOString();
-  saveConfig(cfg);
+  // Chế độ --dist không ghi nhớ gì: máy build của CI là thư mục dùng một lần, và
+  // ghi vào đây sẽ đè mất đường dẫn repo public mà chế độ copy đang dùng.
+  if (!OPT.dist) {
+    cfg.target = target;
+    cfg.lastVersion = version;
+    cfg.lastDeployAt = new Date().toISOString();
+    saveConfig(cfg);
+  }
 
   console.log(
     C.green(
       `\n✔ Xong. Ghi ${plan.add.length + plan.update.length} file, xoá ${plan.remove.length} file.`,
     ),
   );
+  if (OPT.dist) {
+    console.log(C.dim("\n  Thư mục dist/ sẵn sàng cho Cloudflare Pages.\n"));
+    return;
+  }
   console.log("\n  Đẩy lên GitHub:\n");
   console.log(C.dim(`    git -C "${target}" add -A`));
   console.log(C.dim(`    git -C "${target}" commit -m "deploy ${version ?? ""}"`));

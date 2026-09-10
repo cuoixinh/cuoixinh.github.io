@@ -12,9 +12,9 @@
 
       // Routing rules. "account" là đường dẫn CŨ của trang quản lý thiệp — giữ lại
       // để link đã chia sẻ không chết; /my-invitations/ là thư mục thật nên không
-      // cần khai ở đây (GitHub Pages phục vụ thẳng).
+      // cần khai ở đây (host phục vụ thẳng). Trang nào chỉ chạy local thì KHÔNG
+      // khai route — xem docs/deploy-cloudflare-pages.md §6.
       const routes = {
-        admin: "/admin/",
         manage: "/invitation-setup/",
         account: "/my-invitations/",
         customer: "/invitation-setup/",
