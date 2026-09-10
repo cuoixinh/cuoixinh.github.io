@@ -109,12 +109,20 @@ function _cxWishTriplet(hex) {
 
 // ── Cặp màu tương phản tự tính ──────────────────────────────────────────────
 // Bong bóng lời chúc TRÔI ĐÈ lên thân thiệp, mà thiệp cưới gần như luôn nền rất
-// nhạt: lấy đúng mặt giấy của thiệp (`panel` + `body`) thì cả dải chìm vào nền,
-// chữ nhỏ đang chạy lại càng khó đọc. Nên mặc định là LẬT TÔNG so với thiệp —
-// nền sáng thì bong bóng mực đậm chữ sáng, nền tối thì ngược lại — rồi ép cho
-// đủ tương phản. Mẫu khai CX_THEME.wishes vẫn thắng (xem _cxWishAutoColors).
-const CX_WISH_TEXT_CR = 8; // chữ lời chúc: nhỏ và đang trôi, cần hơn mức AA
+// nhạt: lấy đúng mặt giấy của thiệp (`panel` + `body`) thì cả dải chìm vào nền.
+// Nên mặc định là LẬT ĐỘ SÁNG so với thiệp — nền sáng thì bong bóng đậm, nền tối
+// thì bong bóng nhạt — nhưng ĐI THEO ĐÚNG SẮC MÀU NHẤN của mẫu: mọi màu ở đây
+// dựng bằng HSL từ hue của `--cx-accent-rgb`, KHÔNG pha với đen/trắng. Thiệp tông
+// trắng + nhấn hồng thì ra bong bóng hồng đậm, không bao giờ ra một mảng đen.
+// Mẫu khai CX_THEME.wishes vẫn thắng (xem _cxWishAutoColors).
+const CX_WISH_TEXT_CR = 5.5; // chữ lời chúc: trên mức AA (4.5) một quãng
 const CX_WISH_NAME_CR = 4.5; // tên khách: đậm hơn, mức AA là đủ
+
+// Trần/sàn độ sáng khi ép tương phản. Sàn CỐ Ý không xuống thấp: dưới mức này
+// mọi sắc màu đều tiến về một mảng gần đen — đúng thứ phải tránh. Kèm sàn độ bão
+// hoà ở dưới, màu đậm nhất vẫn ra "đỏ trầm / xanh rêu", không ra đen.
+const CX_WISH_L_MIN = 0.26;
+const CX_WISH_L_MAX = 0.94;
 
 // "168 153 104" hoặc "#a89968" → [168,153,104]; sai định dạng → null.
 function _cxWishRgb(v) {
@@ -141,26 +149,55 @@ function _cxWishCR(a, b) {
   return (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
 }
 
-function _cxWishMix(a, b, t) {
-  return a.map((v, i) => v + (b[i] - v) * t);
+// [r,g,b] → [h(0..1), s, l]. Màu xám (s = 0) không có hue: trả h = null để chỗ
+// dùng biết mà mượn hue khác — mẫu nào nhấn bằng xám thì lấy hue của nền thiệp.
+function _cxWishHsl([r, g, b]) {
+  const R = r / 255, G = g / 255, B = b / 255;
+  const max = Math.max(R, G, B), min = Math.min(R, G, B);
+  const l = (max + min) / 2;
+  const d = max - min;
+  if (!d) return [null, 0, l];
+  const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+  let h;
+  if (max === R) h = ((G - B) / d + (G < B ? 6 : 0)) / 6;
+  else if (max === G) h = ((B - R) / d + 2) / 6;
+  else h = ((R - G) / d + 4) / 6;
+  return [h, s, l];
 }
 
-// Kéo `color` về phía trắng hoặc đen (chọn phía ngược với nền) cho tới khi đạt
-// mức tương phản cần. Đi từng nấc nhỏ để màu giữ được tông của mẫu lâu nhất.
-function _cxWishFit(color, on, min) {
-  const toward = _cxWishLum(on) > 0.5 ? [0, 0, 0] : [255, 255, 255];
-  let c = color;
-  for (let i = 0; i < 24 && _cxWishCR(c, on) < min; i++) {
-    c = _cxWishMix(c, toward, 0.08);
+function _cxWishFromHsl([h, s, l]) {
+  const L = Math.min(1, Math.max(0, l));
+  const S = Math.min(1, Math.max(0, s));
+  if (h == null || !S) return [L * 255, L * 255, L * 255];
+  const q = L < 0.5 ? L * (1 + S) : L + S - L * S;
+  const p = 2 * L - q;
+  const f = (t) => {
+    let x = (t + 1) % 1;
+    if (x < 1 / 6) return p + (q - p) * 6 * x;
+    if (x < 1 / 2) return q;
+    if (x < 2 / 3) return p + (q - p) * (2 / 3 - x) * 6;
+    return p;
+  };
+  return [f(h + 1 / 3), f(h), f(h - 1 / 3)].map((v) => v * 255);
+}
+
+// Ép tương phản bằng cách ĐỔI ĐỘ SÁNG, giữ nguyên hue và độ bão hoà — nên màu
+// nhạt đi hay đậm lên vẫn là màu đó, không bợt ra xám.
+function _cxWishFitL(hsl, on, min) {
+  const step = _cxWishLum(on) > 0.5 ? -0.03 : 0.03; // nền sáng thì kéo tối đi
+  let out = hsl.slice();
+  for (let i = 0; i < 40 && _cxWishCR(_cxWishFromHsl(out), on) < min; i++) {
+    const l = out[2] + step;
+    if (l < CX_WISH_L_MIN || l > CX_WISH_L_MAX) break;
+    out[2] = l;
   }
-  return c;
+  return out;
 }
 
 /**
- * Bảng màu mặc định MỚI của dải: lật tông so với thân thiệp, pha từ chính màu
- * tiêu đề / màu nhấn của mẫu nên vẫn ra tông của mẫu chứ không phải một mảng
- * đen trắng vô danh. Trả về null khi mẫu đã tự khai mặt giấy (bubble/text/
- * accent/btn) — lúc đó giữ nguyên bản khai của mẫu, không tự tính gì thêm.
+ * Bảng màu mặc định của dải: lật độ sáng so với thân thiệp nhưng giữ đúng sắc
+ * màu nhấn của mẫu. Trả về null khi mẫu đã tự khai mặt giấy (bubble/text/accent/
+ * btn) — lúc đó giữ nguyên bản khai của mẫu, không tự tính gì thêm.
  */
 function _cxWishAutoColors(decl) {
   if (["bubble", "text", "accent", "btn"].some((k) => _cxWishTriplet(decl[k]))) {
@@ -172,28 +209,57 @@ function _cxWishAutoColors(decl) {
   if (!bg) return null;
 
   const accent = _cxWishRgb(_cxWishRootVar("--cx-accent-rgb")) || [190, 90, 118];
-  const heading = _cxWishRgb(_cxWishRootVar("--cx-heading-rgb")) || accent;
+  const [ha, sa] = _cxWishHsl(accent);
+  // Mẫu nhấn bằng xám/đen: mượn hue của nền thiệp, hết nữa thì hồng của thương hiệu.
+  const hue = ha ?? _cxWishHsl(bg)[0] ?? 0.95;
+  // Nhấn nhợt quá thì màu đậm lên trông vẫn xám → nâng sàn độ bão hoà.
+  const sat = Math.min(0.72, Math.max(0.4, sa || 0.5));
   const lightCard = _cxWishLum(bg) > 0.45;
 
-  // Mặt giấy của dải: nền thiệp sáng → mực đậm pha từ màu tiêu đề; nền tối →
-  // giấy sáng pha từ chính nền thiệp (giữ sắc ấm/lạnh của mẫu).
-  const bubble = lightCard
-    ? _cxWishMix(heading, [14, 11, 16], 0.74)
-    : _cxWishMix(bg, [255, 255, 255], 0.9);
-  const text = _cxWishFit(
-    lightCard ? _cxWishMix(bg, [255, 255, 255], 0.72) : _cxWishMix(heading, [12, 10, 14], 0.6),
-    bubble,
+  // Chốt màu CHỮ trước (vẫn nhuốm hue của mẫu, không phải trắng/đen trơn) rồi
+  // mới dịch độ sáng của MẶT GIẤY cho tới khi đủ tương phản với chữ. Làm ngược
+  // lại — cố định độ sáng mặt giấy — thì hue vàng/be sáng sẵn sẽ không bao giờ
+  // đủ tối, chữ nhạt trên nền be là hỏng.
+  const text = lightCard
+    ? [hue, Math.min(sat, 0.35), 0.96]
+    : [hue, Math.min(sat, 0.55), 0.22];
+  const textRgb = _cxWishFromHsl(text);
+  // Màu càng tối càng trông nhạt màu → nâng độ bão hoà cho mặt giấy đậm, nếu
+  // không bong bóng ra một mảng nâu/xám thay vì đúng sắc của mẫu.
+  const bubble = _cxWishFitL(
+    lightCard
+      ? [hue, Math.min(0.82, sat + 0.24), 0.52]
+      : [hue, Math.min(sat, 0.45), 0.78],
+    textRgb,
     CX_WISH_TEXT_CR,
   );
-  const name = _cxWishFit(accent, bubble, CX_WISH_NAME_CR);
+  const bubbleRgb = _cxWishFromHsl(bubble);
+  // Tên khách: chính màu nhấn, chỉ chỉnh sáng cho nổi trên mặt giấy.
+  const name = _cxWishFitL(
+    lightCard ? [hue, Math.min(0.85, sat + 0.15), 0.86] : [hue, sat, 0.36],
+    bubbleRgb,
+    CX_WISH_NAME_CR,
+  );
+  const nameRgb = _cxWishFromHsl(name);
   return {
-    bubble: _cxWishStr(bubble),
-    text: _cxWishStr(text),
-    accent: _cxWishStr(name),
-    btn: _cxWishStr(name),
-    // Nút Gửi có nền đặc bằng chính màu tên → chữ trên nút phải theo độ sáng
-    // của màu đó, không dùng lại `on_accent` của thiệp được nữa.
-    on_btn: _cxWishLum(name) > 0.5 ? "26 22 28" : "255 255 255",
+    bubble: _cxWishStr(bubbleRgb),
+    text: _cxWishStr(textRgb),
+    accent: _cxWishStr(nameRgb),
+    btn: _cxWishStr(nameRgb),
+    // Nút Gửi có nền đặc bằng chính màu tên → chữ trên nút cũng cùng hue, chỉ
+    // ngược sáng.
+    on_btn: _cxWishStr(
+      _cxWishFromHsl(
+        _cxWishFitL(
+          _cxWishLum(nameRgb) > 0.5 ? [hue, sat, 0.18] : [hue, sat * 0.5, 0.95],
+          nameRgb,
+          CX_WISH_NAME_CR,
+        ),
+      ),
+    ),
+    // Vệt phủ neo dải xuống mép dưới: cũng là màu của mẫu (đậm hơn mặt giấy một
+    // quãng) chứ không phải đen trơn.
+    fade: _cxWishStr(_cxWishFromHsl([hue, Math.min(0.7, sat + 0.2), 0.22])),
   };
 }
 

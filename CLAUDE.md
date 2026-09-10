@@ -425,12 +425,15 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   mẫu ghi đè bằng **`CX_THEME.wishes`** (`text` chữ · `accent` tên khách · `bubble` nền bong
   bóng · `btn` nút gửi · `fade` màn phủ neo dải xuống mép dưới — riêng `bubble` thêm
   `bubble_to` là nền đổ màu — và `opacity`; `btn` không khai thì rơi về `accent`).
-  **Mẫu không khai thì `_cxWishAutoColors()` tự tính một cặp LẬT TÔNG so với thân thiệp**
-  (`--cx-card-bg-rgb`): thiệp nền sáng → bong bóng mực đậm pha từ màu tiêu đề, chữ gần trắng;
-  thiệp nền tối → ngược lại. Mực pha từ token của mẫu nên vẫn ra tông mẫu, rồi ép cho đủ
-  tương phản (`CX_WISH_TEXT_CR`/`CX_WISH_NAME_CR`) — lời chúc đang TRÔI ĐÈ lên thiệp, lấy
-  đúng mặt giấy `panel` của mẫu là chìm nghỉm. Mẫu chỉ cần khai MỘT trong
-  `bubble`/`text`/`accent`/`btn` là phép tự tính tắt hẳn, mẫu tự lo cả bốn. Bong bóng, ô nhập
+  **Mẫu không khai thì `_cxWishAutoColors()` tự tính**: lấy hue của `--cx-accent-rgb` rồi
+  dựng CẢ BỘ bằng HSL — thiệp nền sáng (`--cx-card-bg-rgb`) → bong bóng là chính sắc đó ở
+  mức đậm (thiệp trắng + nhấn hồng ra bong bóng đỏ trầm), chữ nhạt cùng hue; nền tối →
+  ngược lại. **KHÔNG pha với đen/trắng bao giờ**: ép tương phản chỉ được đổi ĐỘ SÁNG, kẹp
+  trong `CX_WISH_L_MIN`/`CX_WISH_L_MAX` và có sàn độ bão hoà, nên màu đậm nhất vẫn là "đỏ
+  trầm / xanh rêu" chứ không ra một mảng đen. Ngưỡng `CX_WISH_TEXT_CR` (chữ) và
+  `CX_WISH_NAME_CR` (tên khách) — lời chúc TRÔI ĐÈ lên thiệp, lấy đúng mặt giấy `panel` của
+  mẫu là chìm nghỉm. Mẫu chỉ cần khai MỘT trong `bubble`/`text`/`accent`/`btn` là phép tự
+  tính tắt hẳn, mẫu tự lo cả bốn. Bong bóng, ô nhập
   và bảng "Xem tất cả" dùng CHUNG mặt giấy đó. Màu dải là
   phần CỐ ĐỊNH của mẫu: khách KHÔNG chỉnh được, tab Giao diện không có mục nào cho nó.
   Cổng chặn "chỉ khách được mời" nằm ở Edge Function `guest-handler`

@@ -67,9 +67,10 @@
 
     // Màu của DẢI LỜI CHÚC nổi ở đáy khung nhìn (core/helpers/wishes-helper.js).
     // ĐÂY LÀ NƠI DUY NHẤT quyết định màu của dải — khách không chỉnh được. Không
-    // khai thì helper tự tính một cặp LẬT TÔNG so với thân thiệp (nền sáng →
-    // bong bóng mực đậm chữ sáng) rồi ép cho đủ tương phản; khai MỘT trong
-    // bubble/text/accent/btn là tắt hẳn phép tự tính, mẫu phải tự lo cả bốn.
+    // khai thì helper tự dựng bộ màu từ hue của màu nhấn: nền thiệp sáng → bong
+    // bóng chính sắc đó ở mức đậm + chữ nhạt (không bao giờ pha đen/trắng), nền
+    // tối thì ngược lại; khai MỘT trong bubble/text/accent/btn là tắt hẳn phép
+    // tự tính, mẫu phải tự lo cả bốn.
     // Thêm "bubble_to" là nền bong bóng đổ màu (gradient); "fade" là màn phủ neo
     // dải xuống mép dưới (mặc định là vệt tối, không đụng tới phép tự tính).
     //   wishes: { bubble: "#ffffff", text: "#7a736e", accent: "#b08d57", btn: "#b08d57", fade: "#1a1714", opacity: 94 },
