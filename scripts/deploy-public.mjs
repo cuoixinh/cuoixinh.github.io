@@ -143,14 +143,26 @@ function human(bytes) {
 
 const sha1 = (buf) => crypto.createHash("sha1").update(buf).digest("hex");
 
+/**
+ * Hỏi một câu ở terminal. KHÔNG được gọi khi không có TTY: stdin đóng thì callback
+ * của readline không bao giờ chạy, promise treo, Node hết việc và thoát code 0 —
+ * build "xanh" mà chẳng ghi gì. Chặn bằng requireTty() trước mỗi chỗ gọi.
+ */
 function ask(question) {
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
   });
-  return new Promise((res) =>
-    rl.question(question, (a) => (rl.close(), res(a.trim()))),
-  );
+  return new Promise((res) => {
+    rl.question(question, (a) => (rl.close(), res(a.trim())));
+    rl.on("close", () => res(""));
+  });
+}
+
+function requireTty(what) {
+  if (!process.stdin.isTTY) {
+    fail(`Không có bàn phím để hỏi ${what}.\n  Trên CI hãy dùng: node scripts/deploy-public.mjs --dist --minify --yes`);
+  }
 }
 
 /* ------------------------------------------------------------------- tham số */
@@ -531,6 +543,7 @@ async function resolveTarget(cfg) {
           "\nVí dụ: D:\\cuoixinh-public\n",
       ),
     );
+    requireTty("thư mục đích");
     target = await ask("Thư mục repo public: ");
     if (!target) fail("Không có thư mục đích.");
   }
@@ -668,11 +681,7 @@ async function main() {
     return;
   }
   if (!OPT.yes) {
-    // Không có TTY (chạy trong CI/pipe) thì câu hỏi tự trả lời rỗng → sẽ "huỷ"
-    // mà vẫn exit 0, tức publish một thư mục trống. Dừng hẳn cho dễ thấy.
-    if (!process.stdin.isTTY) {
-      fail("Không có bàn phím để hỏi xác nhận. Thêm cờ --yes (hoặc dùng --dist).");
-    }
+    requireTty("xác nhận ghi");
     const a = await ask(`\n${C.bold("Ghi vào thư mục đích? [y/N] ")}`);
     if (!/^y(es)?$/i.test(a)) {
       console.log(C.dim("Đã huỷ.\n"));
