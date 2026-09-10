@@ -2356,18 +2356,9 @@ async function publishWedding() {
 // Popup mừng "Thiệp đã sẵn sàng", cá nhân hoá bằng tên cô dâu/chú rể. Tự dựng
 // DOM + style riêng (scoped, nạp lần đầu qua _ensurePublishPopupAssets).
 function _ensurePublishPopupAssets() {
-  if (!document.getElementById("ps-fonts")) {
-    const l = document.createElement("link");
-    l.id = "ps-fonts";
-    l.rel = "stylesheet";
-    // display=block (không phải swap): Italianno có thân chữ nhỏ hơn hẳn font
-    // cursive dự phòng, swap sẽ vẽ bằng font hệ thống rồi tráo, nhìn như chữ tự
-    // thu nhỏ lại.
-    l.href =
-      "https://fonts.googleapis.com/css2?family=Italianno&family=Playfair+Display:wght@600;700&display=block";
-    document.head.appendChild(l);
-  }
   if (document.getElementById("ps-style")) return;
+  // Cố ý KHÔNG nạp Google Fonts: popup dùng đúng font của trang (Inter) để chữ
+  // chúc mừng đọc được ngay, không phải chờ font chữ nghệ thuật tải xong.
   const s = document.createElement("style");
   s.id = "ps-style";
   s.textContent = `
@@ -2377,61 +2368,59 @@ function _ensurePublishPopupAssets() {
     /* 92dvh chứ không chỉ 92vh: trên iOS/Android, vh tính theo viewport lúc thanh
        công cụ trình duyệt ĐANG ẨN, nên 92vh vẫn có thể cao hơn phần nhìn thấy thật
        và popup bị cắt. Trình duyệt cũ không hiểu dvh sẽ bỏ qua dòng sau, còn 92vh. */
-    .ps-card{width:100%;max-width:384px;max-height:92vh;max-height:92dvh;overflow-y:auto;background:#fffdfa;border-radius:28px;box-shadow:0 24px 64px -16px rgba(74,44,53,.45);animation:ps-in .5s cubic-bezier(.22,.9,.3,1) both}
+    .ps-card{width:100%;max-width:400px;max-height:92vh;max-height:92dvh;overflow-y:auto;background:#fff;border-radius:24px;box-shadow:0 24px 64px -16px rgba(74,44,53,.45);animation:ps-in .45s cubic-bezier(.22,.9,.3,1) both}
     @keyframes ps-in{from{opacity:0;transform:translateY(16px) scale(.98)}to{opacity:1;transform:none}}
-    .ps-head{position:relative;text-align:center;padding:32px 28px 0px}
+    /* Dải hồng mảnh trên đỉnh thẻ: đủ để nhận ra "xong việc" mà không cần
+       nguyên mảng nền màu như banner. */
+    .ps-head{position:relative;text-align:center;padding:26px 24px 0;border-top:3px solid transparent;background:linear-gradient(#fff,#fff) padding-box,linear-gradient(90deg,#fb7185,#f9a8d4) border-box;border-radius:24px 24px 0 0}
     .ps-x{position:absolute;top:12px;right:12px;width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;border-radius:999px;color:#b39aa1;background:transparent;transition:color .15s ease,background .15s ease}
     .ps-x:hover{color:#4a2c35;background:#f5ece8}
-    /* Kẻ nhũ + hình thoi: mô-típ ấn loát trên thiệp in — điểm nhấn DUY NHẤT của popup */
-    .ps-orn{display:flex;align-items:center;justify-content:center;gap:12px}
-    .ps-orn i{display:block;height:1px;width:48px;transform-origin:center;animation:ps-rule .6s .08s cubic-bezier(.22,.9,.3,1) both}
-    .ps-orn i:first-child{background:linear-gradient(90deg,transparent,#c2a15a)}
-    .ps-orn i:last-child{background:linear-gradient(90deg,#c2a15a,transparent)}
-    .ps-orn b{width:8px;height:8px;border-radius:1px;background:#c2a15a;transform:rotate(45deg)}
-    @keyframes ps-rule{from{opacity:0;transform:scaleX(0)}to{opacity:1;transform:none}}
-    /* line-height rộng: Italianno có nét bay cao + đuôi chữ dài, bó sát là dấu "ú/ừ"
-       đè lên kẻ nhũ và chữ "g" trong "mừng" chạm dòng dưới */
-    .ps-congrats{font-family:'Italianno',cursive;font-size:64px;line-height:1.25;color:#b8425f;margin:4px 0 0;animation:ps-rise .5s .16s cubic-bezier(.22,.9,.3,1) both}
+    .ps-badge{width:52px;height:52px;border-radius:999px;margin:0 auto;display:flex;align-items:center;justify-content:center;color:#fff;background:linear-gradient(135deg,#fb7185,#e11d48);box-shadow:0 10px 22px -8px rgba(225,29,72,.65);animation:ps-pop .45s .08s cubic-bezier(.22,1.3,.45,1) both}
+    @keyframes ps-pop{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
+    /* Chữ chúc mừng: font của trang, cỡ nhỏ — ưu tiên ĐỌC ĐƯỢC ngay thay vì
+       chữ thư pháp cỡ lớn. */
+    .ps-congrats{font-size:18px;font-weight:700;line-height:1.3;letter-spacing:-.01em;color:#4a2c35;margin:14px 0 0;animation:ps-rise .45s .14s cubic-bezier(.22,.9,.3,1) both}
     @keyframes ps-rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-    .ps-title{font-size:12px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:#9b7d86}
-    .ps-couple{font-family:'Playfair Display',serif;font-size:16px;color:#4a2c35;margin-top:8px;display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center}
-    .ps-sub{font-size:12px;color:#9b7d86;margin:8px 0 0}
-    .ps-body{padding:0 24px 20px}
-    .ps-eyebrow{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#c2a15a;margin:16px 4px 8px}
+    .ps-sub{font-size:13px;line-height:1.5;color:#9b7d86;margin:6px 0 0}
+    .ps-couple{margin-top:12px;display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;font-size:13px;font-weight:600;color:#4a2c35;background:#fff5f7;border:1px solid #ffe0e8;border-radius:999px;padding:6px 14px}
+    .ps-body{padding:0 20px 20px}
+    .ps-eyebrow{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#c2a15a;margin:18px 2px 8px}
     .ps-eyebrow::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,#ecdfc4,transparent)}
-    .ps-link{border:1px solid #f0e4d4;background:#fffaf4;border-radius:16px;padding:12px}
+    .ps-link{border:1px solid #f1e6ea;background:#fff;border-radius:14px;padding:12px;transition:border-color .15s ease,box-shadow .15s ease}
+    .ps-link:hover{border-color:#ffd9e1;box-shadow:0 6px 16px -10px rgba(74,44,53,.4)}
     .ps-link+.ps-link{margin-top:8px}
     .ps-link-top{display:flex;align-items:center;gap:12px}
     .ps-link-text{flex:1;min-width:0}
-    .ps-link-label{font-size:16px;font-weight:600;line-height:1.2;color:#4a2c35}
-    .ps-link-sub{font-size:12px;line-height:1.3;color:#9b7d86;margin-top:2px}
+    .ps-link-label{font-size:14px;font-weight:600;line-height:1.2;color:#4a2c35}
+    .ps-link-sub{font-size:11px;line-height:1.3;color:#9b7d86;margin-top:2px}
     /* 1 dòng + cắt đuôi: link nhà trai có thêm ?isGroom=true nên xuống 2 dòng,
        làm hai thẻ lệch nhau và cao thêm. Link đầy đủ vẫn nằm ở nút Sao chép. */
-    .ps-url{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;line-height:1.3;color:#9b7d86;margin-top:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .ps-acts{display:flex;gap:8px;flex-shrink:0}
-    .ps-soft{width:36px;height:36px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #ffd9e1;color:#e11d48;background:#fff;transition:background .15s ease,border-color .15s ease}
+    .ps-url{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;line-height:1.3;color:#9b7d86;margin-top:8px;padding:6px 8px;border-radius:8px;background:#faf6f7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .ps-acts{display:flex;gap:6px;flex-shrink:0}
+    .ps-soft{width:34px;height:34px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #ffd9e1;color:#e11d48;background:#fff;transition:background .15s ease,border-color .15s ease}
     .ps-soft:hover{background:#fff1f4;border-color:#ffc4d2}
     .ps-soft i{width:16px;height:16px}
     /* margin-top thay cho eyebrow đã bỏ: nút này mở sang việc KHÁC (khách mời),
        dính sát thẻ link cuối thì đọc như vẫn thuộc mục "Chia sẻ thiệp". */
-    .ps-primary{width:100%;height:48px;margin-top:20px;border-radius:16px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:16px;font-weight:600;color:#fff;background:#e11d48;border:none;transition:background .15s ease}
-    .ps-primary:hover{background:#c81742}
+    .ps-primary{width:100%;height:46px;margin-top:18px;border-radius:14px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:15px;font-weight:600;color:#fff;background:#e11d48;border:none;transition:background .15s ease,transform .15s ease}
+    .ps-primary:hover{background:#c81742;transform:translateY(-1px)}
     .ps-primary i{width:16px;height:16px}
     .ps-note{font-size:12px;line-height:1.5;color:#9b7d86;text-align:center;margin:8px 0 0;padding:0 8px}
     .ps-note b{color:#4a2c35;font-weight:600}
-    .ps-keep{font-size:12px;line-height:1.5;color:#9b7d86;text-align:center;margin:6px 0 0;padding:0 8px}
+    .ps-keep{font-size:11px;line-height:1.5;color:#9b7d86;text-align:center;margin:8px 0 0;padding:8px 10px;border-radius:10px;background:#faf6f7}
     .ps-keep b{color:#b8425f;font-weight:600}
-    .ps-warn{color:#9a3412;background:#fff7ed;border:1px solid #fed7aa;border-radius:12px;padding:10px 12px}
+    .ps-warn{color:#9a3412;background:#fff7ed;border:1px solid #fed7aa}
+    .ps-warn b{color:#9a3412}
     /* Nền ngà nhạt + viền mảnh (cùng bộ với thẻ link) thay vì chữ trơn: vẫn nhẹ hơn
        hẳn nút hồng phía trên, nhưng nhìn ra là NÚT chứ không phải dòng chữ phụ. */
-    .ps-done{display:flex;align-items:center;justify-content:center;width:100%;height:40px;margin-top:8px;border-radius:12px;font-size:12px;font-weight:600;color:#7d5a64;background:#f7f0e8;border:1px solid #f0e4d4;transition:background .15s ease,color .15s ease}
+    .ps-done{display:flex;align-items:center;justify-content:center;width:100%;height:40px;margin-top:8px;border-radius:12px;font-size:13px;font-weight:600;color:#7d5a64;background:#f7f0e8;border:1px solid #f0e4d4;transition:background .15s ease,color .15s ease}
     .ps-done:hover{background:#f1e7db;color:#4a2c35}
     /* Màn thấp (iPhone SE… và mọi máy khi thanh công cụ trình duyệt đang hiện):
-       bóp tiếp phần trang trí để KHÔNG phải cuộn — bỏ dòng chú thích, hạ cỡ chữ
-       "Chúc mừng" và lề trên. Máy cao vẫn giữ nguyên thiết kế đầy đủ. */
+       bóp phần trang trí để KHÔNG phải cuộn. Máy cao giữ nguyên thiết kế đầy đủ. */
     @media (max-height:640px){
-      .ps-head{padding-top:20px}
-      .ps-congrats{font-size:52px}
+      .ps-head{padding-top:18px}
+      .ps-badge{width:44px;height:44px}
+      .ps-congrats{font-size:17px;margin-top:10px}
       .ps-note{display:none}
       .ps-eyebrow{margin-top:12px}
     }
@@ -2441,8 +2430,9 @@ function _ensurePublishPopupAssets() {
       #publish-success-modal{padding:8px}
       .ps-card{max-height:96dvh}
       .ps-url{display:none}
+      .ps-sub{display:none}
     }
-    @media (prefers-reduced-motion:reduce){.ps-card,.ps-congrats,.ps-orn i{animation:none}}`;
+    @media (prefers-reduced-motion:reduce){.ps-card,.ps-congrats,.ps-badge{animation:none}}`;
   document.head.appendChild(s);
 }
 
@@ -2470,11 +2460,12 @@ function showPublishSuccessPopup() {
   const HEART = (fill, size) =>
     `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="${fill}"><path d="M12 21s-6.7-4.3-9.4-7C.9 12.3.5 10.5 1 8.9A4.5 4.5 0 0 1 8.5 6.9l.5.5.5-.5a4.5 4.5 0 0 1 7.5 2c.5 1.6.1 3.4-1.6 5.1C18.7 16.7 12 21 12 21z"/></svg>`;
 
-  // Có đủ tên → hàng "Chú rể ♥ Cô dâu"; thiếu → câu dẫn nhẹ nhàng.
+  // Có đủ tên → chip "Chú rể ♥ Cô dâu" dưới dòng chúc mừng; thiếu thì bỏ chip,
+  // dòng phụ ở trên đã nói đủ ý.
   const coupleHtml =
     groom && bride
-      ? `<div class="ps-couple">${esc(groom)} ${HEART("#fb7185", 13)} ${esc(bride)}</div>`
-      : `<p class="ps-sub">Giờ bạn có thể trao thiệp đến những người thương yêu</p>`;
+      ? `<div class="ps-couple">${esc(groom)} ${HEART("#fb7185", 12)} ${esc(bride)}</div>`
+      : "";
 
   // Nhãn + 2 nút CÙNG một hàng (nút chỉ còn icon, có title/aria-label): xếp dọc
   // nhãn → mô tả → link → 2 nút full-width tốn ~170px mỗi thẻ, hai thẻ là popup
@@ -2516,9 +2507,9 @@ function showPublishSuccessPopup() {
     <div class="ps-card">
       <div class="ps-head">
         <x-button variant="bare" type="button" data-ps-close class="ps-x" aria-label="Đóng"><i data-lucide="x" style="width:18px;height:18px"></i></x-button>
-        <div class="ps-orn" aria-hidden="true"><i></i><b></b><i></i></div>
-        <div class="ps-congrats">Chúc mừng</div>
-        <div class="ps-title" id="ps-title">Thiệp cưới đã sẵn sàng</div>
+        <div class="ps-badge" aria-hidden="true"><i data-lucide="check" style="width:26px;height:26px"></i></div>
+        <h2 class="ps-congrats" id="ps-title">Chúc mừng, thiệp đã sẵn sàng!</h2>
+        <p class="ps-sub">Giờ bạn có thể trao thiệp đến những người thương yêu</p>
         ${coupleHtml}
       </div>
       <div class="ps-body">

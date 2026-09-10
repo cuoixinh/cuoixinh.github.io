@@ -127,112 +127,105 @@
   // Task 5.3: Display QR code
   function displayQRCode(qrDataString, paymentInfo, orderId) {
     const step2 = document.getElementById("payment-step-2");
+    // Vỏ bước 2 mặc định là khối "đang xử lý" (p-12, canh giữa). Màn QR tự lo
+    // padding bên trong nên phải trả vỏ về không lề, không thì thừa gần 100px.
+    step2.className = "flex w-full flex-col items-center";
 
-    // Update QR code display
+    // Màn QR: một việc duy nhất — quét & trả tiền. Số tiền + mã QR ở trên
+    // cùng, thông tin chuyển khoản thủ công là các HÀNG có nút sao chép (gõ tay
+    // số tài khoản/nội dung trên điện thoại rất dễ sai), hướng dẫn gấp trong
+    // <details> để không đẩy QR ra khỏi màn.
     step2.innerHTML = `
-        <div class="flex flex-col items-center gap-2 p-6 text-center">
-          <!-- Header -->
-          <div class="text-center mb-1">
-            <div class="w-14 h-14 rounded-full bg-gradient-to-br from-pink-300 to-pink-200 flex items-center justify-center mx-auto mb-3 shadow-lg shadow-pink-200/50">
-              <i data-lucide="qr-code" class="text-white text-xl" style="width:16px;height:16px"></i>
-            </div>
-            <h3 class="font-playfair text-xl font-bold mb-1" style="color:rgb(var(--text-body-rgb));">Quét mã thanh toán</h3>
-            <p class="text-xs text-gray-400">Sử dụng app ngân hàng để quét mã QR</p>
+        <div class="flex w-full flex-col gap-4 p-5 sm:p-6">
+          <div class="text-center">
+            <h3 class="font-playfair text-xl font-bold m-0" style="color:rgb(var(--text-heading-rgb));">Quét mã để thanh toán</h3>
+            <p class="text-xs text-gray-400 mt-1 m-0">Mở app ngân hàng, chọn quét QR</p>
           </div>
 
-          <!-- QR Code with decorative border -->
-          <div class="from-pink-50 m-[8px] relative rounded-2xl to-white" style="border-color:rgb(var(--surface-brand-rgb));">
-            <div class="absolute -top-2 -left-2 w-5 h-5 border-t-[3px] border-l-[3px] rounded-tl" style="border-color:rgb(var(--brand-primary-rgb));"></div>
-            <div class="absolute -top-2 -right-2 w-5 h-5 border-t-[3px] border-r-[3px] rounded-tr" style="border-color:rgb(var(--brand-primary-rgb));"></div>
-            <div class="absolute -bottom-2 -left-2 w-5 h-5 border-b-[3px] border-l-[3px] rounded-bl" style="border-color:rgb(var(--brand-primary-rgb));"></div>
-            <div class="absolute -bottom-2 -right-2 w-5 h-5 border-b-[3px] border-r-[3px] rounded-br" style="border-color:rgb(var(--brand-primary-rgb));"></div>
-            
-            <div id="qrcode-container" class="w-[220px] h-[220px] min-w-[220px] min-h-[220px] flex items-center justify-center bg-white rounded-xl p-2"></div>
+          <!-- Số tiền: con số khách cần đối chiếu trước khi bấm xác nhận -->
+          <div class="mx-auto flex items-baseline gap-2 rounded-full px-4 py-1.5" style="background:rgb(var(--surface-brand-rgb));">
+            <span class="text-[11px] font-medium" style="color:rgb(var(--text-body-rgb));">Số tiền</span>
+            <span class="text-lg font-bold" style="color:rgb(var(--brand-accent-rgb));">${paymentInfo.amount.toLocaleString("vi-VN")}đ</span>
           </div>
 
-          <!-- Payment Info Card -->
-          <div class="w-full p-4 rounded-2xl bg-gradient-to-br from-gray-50 to-white border border-gray-100 shadow-sm">
-            <div class="flex items-center gap-3 mb-3 pb-3 border-b-2" style="border-color:rgb(var(--surface-brand-rgb));">
-              <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background:rgb(var(--surface-brand-rgb));">
-                <i data-lucide="landmark" class="text-base" style="width:16px;height:16px;color:rgb(var(--brand-primary-rgb));"></i>
-              </div>
-              <div class="text-left">
-                <p class="text-[11px] text-gray-400 uppercase tracking-wide font-semibold m-0">Thông tin chuyển khoản</p>
-                <p class="text-sm font-semibold m-0" style="color:rgb(var(--text-body-rgb));">${paymentInfo.amount.toLocaleString("vi-VN")}đ</p>
-              </div>
-            </div>
-            
-            <div class="flex flex-col gap-2 mb-2">
-              <div class="text-left">
-                <p class="text-[11px] text-gray-400 mb-1 font-medium">Ngân hàng</p>
-                <p class="text-xs text-gray-700 font-semibold m-0">${paymentInfo.bank_name}</p>
-              </div>
-              <div class="text-left">
-                <p class="text-[11px] text-gray-400 mb-1 font-medium">Chủ tài khoản</p>
-                <p class="text-xs text-gray-700 font-semibold m-0">${paymentInfo.account_name}</p>
-              </div>
-            </div>
-            
-            <div class="text-left mb-2">
-              <p class="text-[11px] text-gray-400 mb-1 font-medium">Số tài khoản</p>
-              <p class="text-sm text-gray-700 font-semibold font-mono m-0">${paymentInfo.account_number}</p>
-            </div>
-            
-            <div class="p-3 rounded-xl border border-dashed text-left" style="background:rgb(var(--surface-brand-subtle-rgb));border-color:rgb(var(--brand-primary-rgb));">
-              <p class="text-[11px] text-gray-400 mb-1 font-medium">Nội dung chuyển khoản</p>
-              <p class="text-xs font-bold break-all m-0" style="color:rgb(var(--text-body-rgb));">${paymentInfo.content}</p>
-            </div>
+          <!-- Mã QR: viền góc thay cho khung kín, để mắt rơi vào giữa ô -->
+          <div class="relative mx-auto rounded-2xl bg-white p-2">
+            <div class="absolute -top-1 -left-1 w-5 h-5 border-t-[3px] border-l-[3px] rounded-tl" style="border-color:rgb(var(--brand-primary-rgb));"></div>
+            <div class="absolute -top-1 -right-1 w-5 h-5 border-t-[3px] border-r-[3px] rounded-tr" style="border-color:rgb(var(--brand-primary-rgb));"></div>
+            <div class="absolute -bottom-1 -left-1 w-5 h-5 border-b-[3px] border-l-[3px] rounded-bl" style="border-color:rgb(var(--brand-primary-rgb));"></div>
+            <div class="absolute -bottom-1 -right-1 w-5 h-5 border-b-[3px] border-r-[3px] rounded-br" style="border-color:rgb(var(--brand-primary-rgb));"></div>
+            <div id="qrcode-container" class="w-[220px] h-[220px] min-w-[220px] min-h-[220px] flex items-center justify-center bg-white rounded-xl"></div>
           </div>
 
-          <!-- Instructions -->
-          <div class="w-full p-3.5 rounded-2xl border" style="background:rgb(var(--surface-brand-soft-rgb));border-color:rgb(var(--surface-brand-rgb));">
-            <div class="flex items-center gap-2 mb-2">
-              <div class="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0" style="background:rgb(var(--brand-primary-rgb));">
-                <i data-lucide="smartphone" class="text-white text-[11px]" style="width:16px;height:16px"></i>
-              </div>
-              <p class="text-xs font-semibold m-0" style="color:rgb(var(--text-body-rgb));">Hướng dẫn thanh toán</p>
+          <!-- Trạng thái chờ: một hàng mảnh, KHÔNG phải khối lớn — máy đang chờ,
+               không có gì để khách làm ở đây. -->
+          <div class="flex items-center justify-center gap-2 text-xs">
+            <span class="w-4 h-4 border-2 rounded-full animate-spin" style="border-color:rgb(var(--surface-brand-rgb));border-top-color:rgb(var(--brand-primary-rgb));"></span>
+            <span class="font-medium" style="color:rgb(var(--text-body-rgb));">Đang chờ thanh toán</span>
+            <span id="payment-timer" class="font-mono text-gray-400">--:--</span>
+          </div>
+
+          <!-- Chuyển khoản thủ công: mỗi dòng một trường, trường phải gõ lại thì
+               có nút sao chép ngay cạnh. -->
+          <div class="w-full rounded-2xl border border-gray-100 overflow-hidden">
+            <p class="px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-gray-400 m-0 bg-gray-50">Hoặc chuyển khoản thủ công</p>
+            <div class="flex items-center gap-3 px-4 py-2.5 border-t border-gray-100">
+              <span class="text-xs text-gray-400 w-24 shrink-0">Ngân hàng</span>
+              <span class="text-xs font-semibold flex-1 min-w-0 break-words" style="color:rgb(var(--text-heading-rgb));">${paymentInfo.bank_name}</span>
             </div>
-            <ol class="m-0 pl-6 text-xs text-gray-600 leading-relaxed text-left">
+            <div class="flex items-center gap-3 px-4 py-2.5 border-t border-gray-100">
+              <span class="text-xs text-gray-400 w-24 shrink-0">Chủ tài khoản</span>
+              <span class="text-xs font-semibold flex-1 min-w-0 break-words" style="color:rgb(var(--text-heading-rgb));">${paymentInfo.account_name}</span>
+            </div>
+            <div class="flex items-center gap-3 px-4 py-2.5 border-t border-gray-100">
+              <span class="text-xs text-gray-400 w-24 shrink-0">Số tài khoản</span>
+              <span class="text-xs font-mono font-semibold flex-1 min-w-0 break-all" style="color:rgb(var(--text-heading-rgb));">${paymentInfo.account_number}</span>
+              <x-button variant="ghost" tone="neutral" size="xs" icon-only onclick="PaymentModal.copyField(this)" data-copy="${paymentInfo.account_number}" aria-label="Sao chép số tài khoản"><i data-lucide="copy" style="width:14px;height:14px"></i></x-button>
+            </div>
+            <div class="flex items-center gap-3 px-4 py-2.5 border-t border-gray-100">
+              <span class="text-xs text-gray-400 w-24 shrink-0">Nội dung</span>
+              <span class="text-xs font-mono font-semibold flex-1 min-w-0 break-all" style="color:rgb(var(--text-heading-rgb));">${paymentInfo.content}</span>
+              <x-button variant="ghost" tone="neutral" size="xs" icon-only onclick="PaymentModal.copyField(this)" data-copy="${paymentInfo.content}" aria-label="Sao chép nội dung chuyển khoản"><i data-lucide="copy" style="width:14px;height:14px"></i></x-button>
+            </div>
+            <p class="px-4 py-2.5 text-[11px] leading-relaxed text-gray-400 m-0 border-t border-gray-100">Giữ nguyên <b class="font-semibold" style="color:rgb(var(--text-heading-rgb));">nội dung chuyển khoản</b> để hệ thống nhận đúng đơn của bạn.</p>
+          </div>
+
+          <details class="w-full rounded-2xl border border-gray-100 px-4 py-3">
+            <summary class="flex cursor-pointer list-none [&::-webkit-details-marker]:hidden items-center gap-2 text-xs font-semibold" style="color:rgb(var(--text-body-rgb));">
+              <i data-lucide="circle-help" style="width:14px;height:14px"></i>Hướng dẫn thanh toán
+            </summary>
+            <ol class="mt-2 mb-0 pl-5 text-xs text-gray-500 leading-relaxed text-left">
               <li>Mở ứng dụng ngân hàng của bạn</li>
               <li>Chọn chức năng quét mã QR</li>
               <li>Quét mã QR bên trên</li>
               <li>Kiểm tra thông tin và xác nhận thanh toán</li>
             </ol>
-          </div>
+          </details>
 
-          <!-- Status -->
-          <div class="flex flex-col items-center gap-2 mt-1">
-            <div class="w-11 h-11 rounded-full bg-gradient-to-br from-pink-100 to-pink-50 flex items-center justify-center shadow-lg shadow-pink-200/30">
-              <div class="w-5 h-5 border-[3px] rounded-full animate-spin" style="border-color:rgb(var(--surface-brand-rgb));border-top-color:rgb(var(--brand-primary-rgb));"></div>
-            </div>
-            <div class="text-center">
-              <p class="text-xs font-semibold m-0" style="color:rgb(var(--text-body-rgb));">Đang chờ thanh toán...</p>
-              <p id="payment-timer" class="text-[11px] text-gray-400 mt-1 font-mono">00:00</p>
-            </div>
-          </div>
-
-          <!-- Timeout UI (hidden initially) -->
-          <div id="payment-timeout" class="hidden w-full flex-col gap-2.5 p-4 rounded-2xl bg-gradient-to-br from-red-50 to-red-50/50 border-2 border-red-200">
+          <!-- Khối báo hết giờ / lỗi (ẩn lúc đầu). showTimeoutUI, showPaymentFailedUI
+               và showPollingErrorUI sửa hai thẻ <p> bên trong theo thứ tự → giữ
+               nguyên đúng hai thẻ p cùng cha. -->
+          <div id="payment-timeout" class="hidden w-full flex-col gap-2.5 p-4 rounded-2xl border" style="background:rgb(var(--state-error-tint-rgb));border-color:rgb(var(--state-error-bg-rgb));">
             <div class="flex items-center gap-2.5">
-              <div class="w-9 h-9 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
-                <i data-lucide="triangle-alert" class="text-red-600 text-sm" style="width:16px;height:16px"></i>
+              <div class="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style="background:rgb(var(--state-error-bg-rgb));">
+                <i data-lucide="triangle-alert" style="width:18px;height:18px;color:rgb(var(--state-error-text-rgb));"></i>
               </div>
               <div class="text-left flex-1">
-                <p class="text-xs text-red-600 font-semibold m-0">Chưa nhận được xác nhận</p>
+                <p class="text-xs font-semibold m-0" style="color:rgb(var(--state-error-text-rgb));">Chưa nhận được xác nhận</p>
                 <p class="text-[11px] text-gray-600 mt-1 m-0">Nếu đã thanh toán, vui lòng kiểm tra lại</p>
               </div>
             </div>
             <div class="flex gap-2.5">
-              <x-button variant="outline" size="sm" onclick="PaymentModal.retryCheck()" class="flex-1">
+              <x-button variant="outline" tone="neutral" size="sm" onclick="PaymentModal.retryCheck()" class="flex-1">
                 <i data-lucide="refresh-cw" class="mr-2" style="width:16px;height:16px"></i>Kiểm tra lại
               </x-button>
-              <x-button size="sm" onclick="PaymentModal.createNewPayment()" class="flex-1 from-pink-300 to-pink-200 hover:-translate-y-0.5">
-                <i data-lucide="refresh-cw" class="mr-2" style="width:16px;height:16px"></i>Tạo mã mới
+              <x-button size="sm" onclick="PaymentModal.createNewPayment()" class="flex-1">
+                <i data-lucide="qr-code" class="mr-2" style="width:16px;height:16px"></i>Tạo mã mới
               </x-button>
             </div>
           </div>
 
-          <x-button variant="outline" tone="neutral" size="sm" onclick="PaymentModal.cancelPayment()" class="mt-1">
+          <x-button variant="ghost" tone="neutral" size="sm" onclick="PaymentModal.cancelPayment()" class="mx-auto">
             <i data-lucide="x" class="mr-2" style="width:16px;height:16px"></i>Hủy thanh toán
           </x-button>
         </div>
@@ -445,12 +438,17 @@
     const timerEl = document.getElementById("payment-timer");
     if (!timerEl) return;
 
+    // Đếm NGƯỢC về 0: con số khách cần biết là "còn bao lâu nữa thì hết hiệu
+    // lực", không phải "đã chờ bao lâu". Hết giờ thì startPolling gọi showTimeoutUI.
     const updateTimer = () => {
       if (!pollingStartTime) return;
-      const elapsed = Math.floor((Date.now() - pollingStartTime) / 1000);
-      const minutes = Math.floor(elapsed / 60);
-      const seconds = elapsed % 60;
-      timerEl.textContent = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+      const left = Math.max(
+        0,
+        Math.ceil((POLLING_TIMEOUT - (Date.now() - pollingStartTime)) / 1000),
+      );
+      const minutes = Math.floor(left / 60);
+      const seconds = left % 60;
+      timerEl.textContent = `còn ${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
     };
 
     updateTimer();
@@ -540,8 +538,12 @@
 
     // Update success screen
     document.getElementById("success-name").textContent = buyer.name;
-    document.getElementById("success-phone").textContent = buyer.phone;
     document.getElementById("success-template").textContent = templateName;
+    // Hồ sơ tài khoản có thể không có số điện thoại → giấu cả hàng thay vì để
+    // một dòng nhãn trống.
+    const phoneRow = document.getElementById("success-phone-row");
+    document.getElementById("success-phone").textContent = buyer.phone;
+    if (phoneRow) phoneRow.style.display = buyer.phone ? "flex" : "none";
 
     const manageLink = manage_id
       ? window.location.origin + "/invitation-setup/?id=" + manage_id
@@ -557,7 +559,11 @@
 
     // Show success screen
     document.getElementById("payment-step-2").style.display = "none";
-    document.getElementById("payment-step-3").style.display = "flex";
+    const step3 = document.getElementById("payment-step-3");
+    step3.style.display = "flex";
+    // Đơn 0đ đi thẳng từ bước 1 sang đây; icon của bước 3 đã dựng lúc mount,
+    // nhưng gọi lại cho chắc khi markup vừa bị thay ở luồng khác.
+    window.lucide?.createIcons({ root: step3 });
   }
 
   // Task 5.11: Update localStorage order status
@@ -612,6 +618,8 @@
               <div class="ml-auto text-right shrink-0">
                 <p id="payment-original-price" class="text-xs text-gray-300 line-through m-0">499.000đ</p>
                 <p id="payment-price" class="font-bold text-lg m-0" style="color:rgb(var(--text-heading-rgb));">299.000đ</p>
+                <!-- Mức tiết kiệm: chỉ hiện khi giá gốc CAO HƠN giá bán (xem _initFlow) -->
+                <span id="payment-save" class="hidden mt-1 rounded-full px-2 py-0.5 text-[10px] font-semibold" style="background:rgb(var(--state-success-bg-rgb));color:rgb(var(--state-success-text-rgb));"></span>
               </div>
             </div>
 
@@ -679,51 +687,70 @@
             </div>
           </div>
 
-          <!-- Step 2: Processing -->
+          <!-- Step 2: Processing (bị displayQRCode thay bằng màn QR khi có mã) -->
           <div id="payment-step-2" class="hidden p-12 flex-col items-center gap-6 text-center">
             <div class="w-16 h-16 rounded-full flex items-center justify-center" style="background:rgb(var(--surface-brand-rgb));">
-              <div class="w-8 h-8 border-4 border-pink-100 rounded-full animate-spin" style="border-top-color:rgb(var(--brand-primary-rgb));"></div>
+              <div class="w-8 h-8 border-4 rounded-full animate-spin" style="border-color:rgb(var(--surface-brand-rgb));border-top-color:rgb(var(--brand-primary-rgb));"></div>
             </div>
             <div>
-              <p class="font-semibold m-0" style="color:rgb(var(--text-body-rgb));">Đang xử lý thanh toán...</p>
-              <p class="text-sm text-gray-400 mt-1">Vui lòng không đóng cửa sổ này</p>
+              <p class="font-semibold m-0" style="color:rgb(var(--text-heading-rgb));">Đang tạo đơn thanh toán…</p>
+              <p class="text-sm text-gray-400 mt-1 m-0">Vui lòng không đóng cửa sổ này</p>
             </div>
           </div>
 
-          <!-- Step 3: Success -->
-          <div id="payment-step-3" class="hidden p-10 flex-col items-center gap-5 text-center">
-            <div class="w-20 h-20 rounded-full bg-gradient-to-br from-pink-300 to-pink-200 flex items-center justify-center">
-              <i data-lucide="check" class="text-white text-3xl" style="width:16px;height:16px"></i>
+          <!-- Step 3: Thanh toán xong.
+               Thứ tự: báo xong → VIỆC TIẾP THEO (link thiết lập thiệp) → thông
+               tin đơn để đối chiếu. Link thiết lập là thứ khách cần ngay, nên nó
+               đứng trên chứ không nằm dưới bảng thông tin đơn. -->
+          <div id="payment-step-3" class="hidden p-6 sm:p-8 flex-col items-center gap-5 text-center">
+            <div class="w-16 h-16 rounded-full flex items-center justify-center text-white" style="background:linear-gradient(135deg,rgb(var(--brand-accent-light-rgb)),rgb(var(--action-primary-rgb)));box-shadow:0 12px 24px -10px rgb(var(--action-primary-rgb) / .7);">
+              <i data-lucide="check" style="width:30px;height:30px"></i>
             </div>
             <div>
-              <h3 class="font-playfair text-2xl font-bold mb-2 m-0" style="color:rgb(var(--text-body-rgb));">Thanh toán thành công!</h3>
-              <p class="text-sm text-gray-600 leading-relaxed m-0">Nhấn vào link bên dưới để bắt đầu nhập thông tin thiệp cưới của bạn.</p>
+              <h3 class="font-playfair text-2xl font-bold m-0" style="color:rgb(var(--text-heading-rgb));">Thanh toán thành công!</h3>
+              <p class="text-sm text-gray-500 leading-relaxed mt-1.5 m-0">Thiệp cưới đã là của bạn — bắt đầu nhập thông tin ngay nhé.</p>
             </div>
-            <div class="w-full p-4 rounded-2xl bg-gray-50 text-left">
-              <p class="text-xs text-gray-400 mb-2 font-medium uppercase tracking-wide">Thông tin đơn hàng</p>
-              <p class="text-sm font-medium m-0" style="color:rgb(var(--text-body-rgb));" id="success-name"></p>
-              <p class="text-xs text-gray-400 mt-1 m-0" id="success-phone"></p>
-              <p class="text-xs text-gray-400 mt-2 m-0">Mẫu: <span id="success-template" class="font-medium" style="color:rgb(var(--text-body-rgb));"></span></p>
-            </div>
+
             <!-- Link setup thiệp -->
-            <div id="success-manage-block" class="w-full p-4 rounded-2xl border border-dashed text-left" style="border-color:rgb(var(--brand-primary-rgb));background:rgb(var(--surface-brand-subtle-rgb));">
-              <p class="text-xs text-gray-400 mb-2 font-medium">🎉 Link thiết lập thiệp cưới của bạn</p>
-              <p class="text-[11px] text-gray-400 mb-3 leading-relaxed">Dùng link này để nhập thông tin cô dâu, chú rể và tùy chỉnh thiệp.</p>
+            <div id="success-manage-block" class="w-full p-4 rounded-2xl border text-left" style="border-color:rgb(var(--brand-primary-rgb));background:rgb(var(--surface-brand-subtle-rgb));">
+              <p class="flex items-center gap-1.5 text-xs font-semibold m-0 mb-1" style="color:rgb(var(--text-heading-rgb));">
+                <i data-lucide="link" style="width:14px;height:14px"></i>Link thiết lập thiệp cưới
+              </p>
+              <p class="text-[11px] text-gray-400 mb-2.5 m-0 leading-relaxed">Lưu lại link này để quay lại chỉnh sửa thiệp bất cứ lúc nào.</p>
               <div class="flex gap-2 items-center">
                 <input id="success-manage-link" readonly
-                  class="flex-1 px-3 py-2 rounded-lg border border-gray-200 text-[11px] text-gray-600 bg-white outline-none min-w-0" />
-                <x-button size="sm" icon-only onclick="copyManageLink()" style="background:rgb(var(--action-primary-rgb));" class="flex-shrink-0">
+                  class="flex-1 px-3 py-2 rounded-lg border border-gray-200 text-[11px] font-mono text-gray-600 bg-white outline-none min-w-0" />
+                <x-button size="sm" icon-only onclick="copyManageLink()" class="flex-shrink-0" aria-label="Sao chép link thiết lập">
                   <i data-lucide="copy" style="width:16px;height:16px"></i>
                 </x-button>
               </div>
             </div>
+
+            <div class="w-full rounded-2xl border border-gray-100 overflow-hidden text-left">
+              <p class="px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-gray-400 m-0 bg-gray-50">Thông tin đơn hàng</p>
+              <div class="flex items-center gap-3 px-4 py-2.5 border-t border-gray-100">
+                <span class="text-xs text-gray-400 w-20 shrink-0">Mẫu thiệp</span>
+                <span id="success-template" class="text-xs font-semibold flex-1 min-w-0 break-words" style="color:rgb(var(--text-heading-rgb));"></span>
+              </div>
+              <div class="flex items-center gap-3 px-4 py-2.5 border-t border-gray-100">
+                <span class="text-xs text-gray-400 w-20 shrink-0">Người mua</span>
+                <span id="success-name" class="text-xs font-semibold flex-1 min-w-0 break-words" style="color:rgb(var(--text-heading-rgb));"></span>
+              </div>
+              <!-- Số điện thoại lấy từ hồ sơ tài khoản, có thể trống → ẩn hàng
+                   này khi rỗng (xem showSuccessScreen). -->
+              <div id="success-phone-row" class="flex items-center gap-3 px-4 py-2.5 border-t border-gray-100">
+                <span class="text-xs text-gray-400 w-20 shrink-0">Điện thoại</span>
+                <span id="success-phone" class="text-xs font-semibold flex-1 min-w-0 break-words" style="color:rgb(var(--text-heading-rgb));"></span>
+              </div>
+            </div>
+
             <div class="flex gap-3 w-full">
-              <x-button variant="outline" size="lg" onclick="PaymentModal.close()" style="border-color:rgb(var(--brand-primary-rgb));color:rgb(var(--text-body-rgb));" class="flex-1">
+              <x-button variant="outline" tone="neutral" size="lg" onclick="PaymentModal.close()" class="flex-1">
                 Đóng
               </x-button>
               <a id="success-manage-btn" href="#"
                 class="flex-1 py-3 rounded-full text-white font-semibold text-sm no-underline flex items-center justify-center gap-2" style="background:rgb(var(--action-primary-rgb));">
-                <i data-lucide="square-pen" class="text-xs" style="width:16px;height:16px"></i>Thiết lập ngay
+                <i data-lucide="square-pen" style="width:16px;height:16px"></i>Thiết lập ngay
               </a>
             </div>
           </div>
@@ -916,13 +943,21 @@
       const totalPriceEl = document.getElementById("payment-total-price");
 
       if (priceEl) priceEl.textContent = `${price.toLocaleString("vi-VN")}đ`;
+      const saveEl = document.getElementById("payment-save");
+      const hasDiscount = originalPrice && originalPrice > price;
       if (originalPriceEl) {
-        if (originalPrice && originalPrice > price) {
+        if (hasDiscount) {
           originalPriceEl.textContent = `${originalPrice.toLocaleString("vi-VN")}đ`;
           originalPriceEl.style.display = "block";
         } else {
           originalPriceEl.style.display = "none";
         }
+      }
+      if (saveEl) {
+        saveEl.textContent = hasDiscount
+          ? `Tiết kiệm ${(originalPrice - price).toLocaleString("vi-VN")}đ`
+          : "";
+        saveEl.style.display = hasDiscount ? "inline-block" : "none";
       }
       if (totalPriceEl)
         totalPriceEl.textContent = `${price.toLocaleString("vi-VN")}đ`;
@@ -1063,13 +1098,15 @@
 
       // Step 2: Show processing - reset về loading state trước khi show
       const step2El = document.getElementById("payment-step-2");
+      // displayQRCode đã đổi class của vỏ → đặt lại đúng vỏ "đang xử lý".
+      step2El.className = "p-12 flex flex-col items-center gap-6 text-center";
       step2El.innerHTML = `
         <div class="w-16 h-16 rounded-full flex items-center justify-center" style="background:rgb(var(--surface-brand-rgb));">
-          <div class="w-8 h-8 border-4 border-pink-100 rounded-full animate-spin" style="border-top-color:rgb(var(--brand-primary-rgb));"></div>
+          <div class="w-8 h-8 border-4 rounded-full animate-spin" style="border-color:rgb(var(--surface-brand-rgb));border-top-color:rgb(var(--brand-primary-rgb));"></div>
         </div>
         <div>
-          <p class="font-semibold m-0" style="color:rgb(var(--text-body-rgb));">Đang xử lý thanh toán...</p>
-          <p class="text-sm text-gray-400 mt-1">Vui lòng không đóng cửa sổ này</p>
+          <p class="font-semibold m-0" style="color:rgb(var(--text-heading-rgb));">Đang tạo đơn thanh toán…</p>
+          <p class="text-sm text-gray-400 mt-1 m-0">Vui lòng không đóng cửa sổ này</p>
         </div>
       `;
       document.getElementById("payment-step-1").style.display = "none";
@@ -1275,6 +1312,26 @@
       // Clear timeout UI
       const timeoutEl = document.getElementById("payment-timeout");
       if (timeoutEl) timeoutEl.style.display = "none";
+    },
+
+    /**
+     * Sao chép nội dung ở data-copy của chính nút bấm (số tài khoản, nội dung
+     * chuyển khoản). Đổi icon thành dấu tick 2 giây thay vì toast: hàm này chạy
+     * ở cả hộp thoại lẫn trang /checkout/, không phải nơi nào cũng có showToast.
+     */
+    copyField(btn) {
+      const text = btn?.getAttribute("data-copy");
+      if (!text) return;
+      navigator.clipboard?.writeText(text).then(() => {
+        const icon = btn.querySelector("i, svg");
+        if (!icon) return;
+        btn.innerHTML = '<i data-lucide="check" style="width:14px;height:14px"></i>';
+        window.lucide?.createIcons({ root: btn });
+        setTimeout(() => {
+          btn.innerHTML = '<i data-lucide="copy" style="width:14px;height:14px"></i>';
+          window.lucide?.createIcons({ root: btn });
+        }, 2000);
+      });
     },
 
     // Cancel payment
