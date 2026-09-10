@@ -95,10 +95,20 @@ export function withAxiom(source: string, handler: Handler): (req: Request) => P
     const url = new URL(req.url)
     const started = Date.now()
 
+    // Đính SẴN mấy tham số định danh vào MỌI dòng log của request, không chỉ
+    // 'request.start': một dòng 'request.failed' đứng lẻ mà không nói đang hỏi
+    // slug/resource nào thì không tái lập được lỗi. `id` là UUID quản lý thiệp
+    // (bí mật của chủ thiệp) nên chỉ giữ 8 ký tự đầu, đủ để dò ngược trong DB.
+    const q = (k: string) => url.searchParams.get(k) || undefined
+    const rawId = q('id')
     const log = createLogger(source, {
       request_id: requestId,
       method: req.method,
       path: url.pathname,
+      resource: q('resource'),
+      action: q('action'),
+      slug: q('slug'),
+      id_prefix: rawId ? rawId.slice(0, 8) : undefined,
     })
 
     // Preflight không cần log ồn ào
@@ -106,10 +116,7 @@ export function withAxiom(source: string, handler: Handler): (req: Request) => P
       return handler(req, log)
     }
 
-    log.info('request.start', {
-      resource: url.searchParams.get('resource') ?? undefined,
-      action: url.searchParams.get('action') ?? undefined,
-    })
+    log.info('request.start')
 
     try {
       const res = await handler(req, log)
