@@ -273,6 +273,11 @@ GitHub Pages chạy Jekyll nên đường dẫn kiểu đó không được publ
   `tailwind.themes.config.js` + `styles/_colors.css` — cách tránh: viết CSS thuần trong
   `theme.css`.
 - Nên có: text thuần (không lồng icon) ở phần cho phép sửa.
+- **Mẫu mới phải thêm một `<url>` vào `sitemap.xml`** — bản mẫu (URL không có
+  `?slug=`) là hàng đang bán nên cần lên tìm kiếm. Ngược lại, thiệp THẬT dùng chung URL
+  đó nhưng có `?slug=`: đoạn script nhỏ đầu `<head>` của mẫu tự gắn
+  `<meta name="robots" content="noindex">` khi thấy tham số này. Chép `base-theme` là có
+  sẵn đoạn đó — đừng gỡ, gỡ là thiệp khách (tên, địa chỉ, SĐT, QR ngân hàng) lên Google.
 - Mục Hộp mừng cưới: khối chứa mã QR đánh dấu `data-cx-gift="qr"`, hộp/phong bao riêng
   của mẫu (nếu có) đánh dấu `data-cx-gift="box"` — xem mục "Hộp mừng cưới" ở dưới.
 

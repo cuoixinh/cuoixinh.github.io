@@ -1,10 +1,44 @@
+# Bản MẪU của các mẫu thiệp thì hoan nghênh lập chỉ mục — đó là hàng đang bán.
+# Thiệp THẬT của khách nằm cùng URL nhưng có ?slug=, và bị chặn bằng thẻ
+# <meta name="robots" content="noindex"> do index.html của mẫu tự đặt lúc chạy.
+#
+# CỐ Ý không "Disallow: /*?slug=": Disallow cấm bot TẢI trang, mà không tải thì nó
+# không đọc được thẻ noindex — rốt cuộc URL vẫn có thể xuất hiện trong kết quả tìm
+# kiếm. Muốn chắc chắn biến mất thì phải để bot vào đọc rồi thấy noindex.
+#
+# Link khách gửi cho quan khách (cuoixinh.com/<slug>) trả HTTP 404 nên không bao
+# giờ được lập chỉ mục — không cần khai gì thêm ở đây.
+
 User-agent: *
 Allow: /
+Disallow: /public/themes/base-theme/
 
 User-agent: Facebot
 Allow: /
 
 User-agent: facebookexternalhit
 Allow: /
+
+# Crawler gom dữ liệu huấn luyện AI — chặn toàn bộ, kể cả bản mẫu.
+# KHÔNG ảnh hưởng thứ hạng tìm kiếm: không cái nào trong đây là Googlebot/Bingbot.
+# Riêng ChatGPT-User và Claude-User là lượt truy cập do NGƯỜI DÙNG yêu cầu ("mở
+# giúp link này") — bỏ hai dòng đó ra nếu muốn khách nhờ AI xem thiệp hộ.
+User-agent: GPTBot
+User-agent: OAI-SearchBot
+User-agent: ChatGPT-User
+User-agent: ClaudeBot
+User-agent: Claude-User
+User-agent: anthropic-ai
+User-agent: CCBot
+User-agent: Google-Extended
+User-agent: PerplexityBot
+User-agent: Bytespider
+User-agent: Amazonbot
+User-agent: Applebot-Extended
+User-agent: meta-externalagent
+User-agent: Diffbot
+User-agent: Omgilibot
+User-agent: ImagesiftBot
+Disallow: /
 
 Sitemap: https://cuoixinh.com/sitemap.xml

@@ -32,6 +32,7 @@ const INCLUDE = [
   "404.html",
   "router.html",
   "robots.txt",
+  "sitemap.xml",
   // CNAME: chỉ GitHub Pages đọc để giữ custom domain. Cloudflare bỏ qua nó, nên
   // sau khi chuyển xong thì file này biến mất khỏi repo — vì vậy khai OPTIONAL.
   "CNAME",

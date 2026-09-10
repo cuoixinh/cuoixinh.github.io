@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Chỉ khai trang chủ + các mẫu thiệp đang bán. KHÔNG khai thiệp thật, trang cần
+     đăng nhập (/invitation-setup/, /my-invitations/, /checkout/) hay base-theme.
+     Thêm mẫu mới thì thêm một <url> ở đây. -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://cuoixinh.com/</loc>
+    <lastmod>2026-09-10</lastmod>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://cuoixinh.com/public/themes/basic-gold/</loc>
+    <lastmod>2026-09-10</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://cuoixinh.com/public/themes/luminous-pastel/</loc>
+    <lastmod>2026-09-10</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://cuoixinh.com/public/themes/moody-cinematic/</loc>
+    <lastmod>2026-09-10</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://cuoixinh.com/public/themes/noir-elegance/</loc>
+    <lastmod>2026-09-10</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://cuoixinh.com/public/themes/opulent-contrast/</loc>
+    <lastmod>2026-09-10</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://cuoixinh.com/public/themes/romantic-blush/</loc>
+    <lastmod>2026-09-10</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://cuoixinh.com/public/themes/romantic-gold/</loc>
+    <lastmod>2026-09-10</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://cuoixinh.com/public/themes/serene-parchment/</loc>
+    <lastmod>2026-09-10</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://cuoixinh.com/public/themes/vintage-forest/</loc>
+    <lastmod>2026-09-10</lastmod>
+    <priority>0.8</priority>
+  </url>
+</urlset>

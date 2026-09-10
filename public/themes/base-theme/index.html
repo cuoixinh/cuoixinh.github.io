@@ -7,6 +7,20 @@
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
     />
     <title>Cưới Xinh — Mẫu nền</title>
+    <!-- Thiệp THẬT (URL có ?slug=) KHÔNG được lên kết quả tìm kiếm: nó mang tên,
+         địa chỉ, số điện thoại và QR tài khoản của khách. Bản MẪU (không có slug)
+         thì vẫn cho lập chỉ mục vì đó là hàng đang bán. Phải xét lúc chạy: hai bản
+         dùng CHUNG một URL, khác nhau đúng tham số này — đặt meta tĩnh vào file là
+         chặn nhầm cả bản mẫu. -->
+    <script>
+      (function () {
+        if (!new URLSearchParams(location.search).has("slug")) return;
+        const m = document.createElement("meta");
+        m.name = "robots";
+        m.content = "noindex,nofollow";
+        document.head.appendChild(m);
+      })();
+    </script>
     <link rel="icon" type="image/png" href="../../../assets/icons/logo.png" />
     <link
       rel="stylesheet"
