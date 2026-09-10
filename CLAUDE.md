@@ -193,9 +193,11 @@ deploy thì đọc `docs/deploy-cloudflare-pages.md` trước.
 - **`admin/` chỉ chạy local** (`localhost` — Edge Function đã cho phép mọi cổng localhost).
   Kéo theo: `CONFIG.cloudflare.purgeSecret` bị `REDACT` thay bằng `null` trong bản publish.
   Chức năng nào của trang public cần một giá trị trong `REDACT` thì phải gỡ mục đó ra.
-- Rút gọn (JS qua terser + gỡ comment HTML) **không bao giờ bật `mangle`**: classic script
-  chia sẻ biến toàn cục giữa các file, đổi tên trong một file là gãy ở file khác và chỉ lộ
-  lúc chạy.
+- Rút gọn (JS qua terser + gỡ comment HTML) đổi tên biến **trong phạm vi hàm**, nhưng hai cờ
+  `toplevel` của `compress`/`mangle` **không bao giờ được bật**: classic script chia sẻ biến
+  toàn cục giữa các file, tên còn bị gọi từ chuỗi HTML và xuyên iframe — terser chỉ nhìn được
+  một file mỗi lần nên đổi tên top-level là gãy ở chỗ khác, build vẫn xanh. Muốn giấu cả tên
+  hàm thì phải gộp file vào MỘT scope trước (bundle), xem `docs/deploy-cloudflare-pages.md` §7.
 - Script CHẶN build khi quét thấy secret (service_role, `sbp_`, JWT role khác `anon`…), khi
   `REDACT` không khớp, hoặc khi thiếu TTY mà không có `--yes` (nếu không sẽ publish thư mục
   rỗng). CẢNH BÁO khi CSS build cũ hơn nguồn hay HTML trỏ tới file ngoài bản publish.

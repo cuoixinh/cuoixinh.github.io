@@ -145,10 +145,27 @@ biến "chỉ được mất comment + khoảng trắng", đừng kiểm bằng 
 Comment JS **nằm trong thẻ `<script>` của file HTML thì vẫn lên web** — chỉ file `.js` rời
 mới đi qua terser. `router.html` và `404.html` là hai chỗ có nhiều nhất.
 
-**Cố ý không bật `mangle`.** Các file ở đây là classic script chia sẻ biến toàn cục
-(`CONFIG`, `CX_THEME`, `renderWedding`, `__cxOnReady`, `cxNavReflow`…): file này khai, file
-kia gọi. Trình rút gọn chỉ nhìn được một file mỗi lần nên đổi tên là gãy ở file khác, mà lỗi
-chỉ lộ lúc chạy trên production. Đừng thêm `mangle` để lấy thêm vài KB.
+**Mangle: bật trong hàm, CẤM ở top-level.** Cấu hình là `compress: { toplevel: false }` +
+`mangle: { toplevel: false }` — biến cục bộ thành `e, t, i`, còn tên top-level giữ nguyên.
+
+Hai cờ `toplevel` đó không được bật, vì các file ở đây là classic script chia sẻ biến toàn
+cục (`CONFIG`, `CX_THEME`, `renderWedding`, `__cxOnReady`, `cxNavReflow`…) mà terser chỉ
+nhìn được MỘT file mỗi lần. Ba mối nối nó không thể thấy:
+
+- Handler viết thẳng trong HTML (`onclick="_applyThemeChange(…)"`) và `new Function` dựng từ
+  attribute ở `core/x-controls.js`.
+- Gọi xuyên iframe: trang Thiết lập gọi `applyThemeSetting`/`setShareTemplate` trên window
+  của trang thiệp (`05-theme-panel.js`, `13-data.js`).
+- `25-theme-decl.js` nạp `public/themes/<mẫu>/index.js` trong iframe rỗng để đọc `CX_THEME`.
+
+Bật toplevel là đổi tên ở một file trong khi chỗ dùng giữ tên cũ, hoặc xoá hàm vì tưởng
+không ai gọi — cả hai chỉ lộ lúc chạy trên production, build vẫn báo thành công.
+
+**Muốn tên hàm cũng thành `a, b, c`** (kiểu bundle của các trang lớn) thì không có cờ nào
+làm được: phải thêm bước GỘP script của từng trang vào một file trước rồi mới mangle
+toplevel, kèm danh sách `reserved` sinh tự động cho ba mối nối trên. Mọi trang hiện đều kết
+thúc bằng thẻ script local nên gộp được mà không đảo thứ tự với thư viện CDN. Đây là việc
+riêng, chưa làm.
 
 Dùng `terser` (JS thuần) chứ không phải esbuild: esbuild tải binary theo nền tảng, mà
 `package-lock.json` sinh trên Windows dễ làm `npm ci` trên máy build Linux vấp.
@@ -227,7 +244,7 @@ Giữ chế độ này để còn đường quay lại GitHub Pages nếu Cloudf
 | Deploy xanh nhưng web không đổi              | `name` trong `wrangler.jsonc` lệch tên project → đẩy sang worker khác       |
 | Web vẫn là bản cũ                            | Chưa đổi `CX_VERSION`; hoặc Cache Rule `/core/config.js` bị xoá             |
 | CSS sai bố cục sau deploy                    | Quên `npm run build` — nhưng CI luôn chạy nên chỉ xảy ra ở chế độ copy      |
-| Trang lỗi JS chỉ trên production             | Xem có ai bật `mangle` trong `minifyAll()` không (mục 7)                    |
+| Trang lỗi JS chỉ trên production             | Xem có ai bật cờ `toplevel` trong `minifyAll()` không (mục 7)               |
 | Publish ra thư mục trống                     | Build command thiếu `--dist`/`--yes`                                       |
 
 **Rollback:** Pages → Deployments → chọn bản cũ → Rollback. Không cần revert commit.

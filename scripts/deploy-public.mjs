@@ -305,10 +305,16 @@ function stripHtmlComments(src) {
 }
 
 /**
- * Rút gọn JS cho bản publish: bỏ comment + khoảng trắng, GIỮ NGUYÊN mọi tên.
- * Không bật `mangle`: các file ở đây là classic script chia sẻ biến toàn cục
- * (`CONFIG`, `CX_THEME`, `renderWedding`, `__cxOnReady`…), file này khai file kia
- * gọi — đổi tên trong phạm vi một file là gãy ở file khác, mà chỉ lộ lúc chạy.
+ * Rút gọn JS cho bản publish: bỏ comment, nén cú pháp, đổi tên biến CỤC BỘ.
+ *
+ * Hai cờ `toplevel` phải LUÔN là false. Các file ở đây là classic script chia sẻ
+ * biến toàn cục (`CONFIG`, `CX_THEME`, `renderWedding`, `__cxOnReady`…): file này
+ * khai, file kia gọi; tên còn bị gọi từ chuỗi HTML (`onclick="…"`), từ `new Function`
+ * ở core/x-controls.js, và xuyên iframe (`contentWindow.applyThemeSetting`). terser
+ * rút gọn TỪNG FILE nên không thấy các mối nối đó — bật toplevel là đổi tên ở một
+ * file trong khi chỗ dùng vẫn giữ tên cũ, hoặc xoá hàm vì tưởng không ai gọi. Cả hai
+ * chỉ gãy lúc chạy, build vẫn xanh. Muốn đổi được tên top-level thì phải gộp file vào
+ * MỘT scope trước (bundle), không phải bật thêm cờ.
  * Nạp terser bằng dynamic import để khi không dùng --minify thì script chạy chay.
  */
 async function minifyAll(files) {
@@ -337,8 +343,8 @@ async function minifyAll(files) {
         let out;
         try {
           out = await minify(src, {
-            compress: false,
-            mangle: false,
+            compress: { toplevel: false },
+            mangle: { toplevel: false },
             format: { comments: false },
             sourceMap: false,
           });
