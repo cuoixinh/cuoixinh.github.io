@@ -421,13 +421,17 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   quãng đường đo bằng px trong `_cxWishStartRoll` (`translateY(%)` tính theo thẻ track chứ
   không theo khung) và đo lại qua `ResizeObserver` vì lúc dựng `#main-card` còn `display:none`.
   Dải **không hiện ở màn bìa lẫn màn mở đầu** — chỉ mờ hiện khi khách đã mở bìa VÀ cuộn quá
-  `CX_WISH_SHOW_AT` màn hình. Màu đi qua bộ token riêng `--cx-wish-*` trên `.cx-wdock`:
-  mặc định ăn theo token chung của thiệp (`panel`/`body`/`accent`/`page-bg`), mẫu ghi đè bằng
-  **`CX_THEME.wishes`** (`text` chữ · `accent` tên khách · `bubble` nền bong bóng · `btn` nút
-  gửi · `fade` màn phủ neo dải xuống mép dưới — riêng `bubble` thêm `bubble_to` là nền đổ màu
-  — và `opacity`; `btn` không khai thì rơi về `accent`; khai khi mặc định không hợp tông —
-  ví dụ mẫu nền tối). Bong bóng và ô nhập dùng CHUNG mặt giấy (`panel` + `body`), tách khỏi
-  thiệp bằng viền màu nhấn + bóng đổ chứ không bằng tấm kính xám. Màu dải là
+  `CX_WISH_SHOW_AT` màn hình. Màu đi qua bộ token riêng `--cx-wish-*` trên `.cx-wdock`,
+  mẫu ghi đè bằng **`CX_THEME.wishes`** (`text` chữ · `accent` tên khách · `bubble` nền bong
+  bóng · `btn` nút gửi · `fade` màn phủ neo dải xuống mép dưới — riêng `bubble` thêm
+  `bubble_to` là nền đổ màu — và `opacity`; `btn` không khai thì rơi về `accent`).
+  **Mẫu không khai thì `_cxWishAutoColors()` tự tính một cặp LẬT TÔNG so với thân thiệp**
+  (`--cx-card-bg-rgb`): thiệp nền sáng → bong bóng mực đậm pha từ màu tiêu đề, chữ gần trắng;
+  thiệp nền tối → ngược lại. Mực pha từ token của mẫu nên vẫn ra tông mẫu, rồi ép cho đủ
+  tương phản (`CX_WISH_TEXT_CR`/`CX_WISH_NAME_CR`) — lời chúc đang TRÔI ĐÈ lên thiệp, lấy
+  đúng mặt giấy `panel` của mẫu là chìm nghỉm. Mẫu chỉ cần khai MỘT trong
+  `bubble`/`text`/`accent`/`btn` là phép tự tính tắt hẳn, mẫu tự lo cả bốn. Bong bóng, ô nhập
+  và bảng "Xem tất cả" dùng CHUNG mặt giấy đó. Màu dải là
   phần CỐ ĐỊNH của mẫu: khách KHÔNG chỉnh được, tab Giao diện không có mục nào cho nó.
   Cổng chặn "chỉ khách được mời" nằm ở Edge Function `guest-handler`
   (`action=wish` khớp một hàng `guests` theo slug + tên + xưng hô): tham số `name`/

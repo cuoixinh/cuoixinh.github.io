@@ -107,6 +107,96 @@ function _cxWishTriplet(hex) {
   return [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16)).join(" ");
 }
 
+// ── Cặp màu tương phản tự tính ──────────────────────────────────────────────
+// Bong bóng lời chúc TRÔI ĐÈ lên thân thiệp, mà thiệp cưới gần như luôn nền rất
+// nhạt: lấy đúng mặt giấy của thiệp (`panel` + `body`) thì cả dải chìm vào nền,
+// chữ nhỏ đang chạy lại càng khó đọc. Nên mặc định là LẬT TÔNG so với thiệp —
+// nền sáng thì bong bóng mực đậm chữ sáng, nền tối thì ngược lại — rồi ép cho
+// đủ tương phản. Mẫu khai CX_THEME.wishes vẫn thắng (xem _cxWishAutoColors).
+const CX_WISH_TEXT_CR = 8; // chữ lời chúc: nhỏ và đang trôi, cần hơn mức AA
+const CX_WISH_NAME_CR = 4.5; // tên khách: đậm hơn, mức AA là đủ
+
+// "168 153 104" hoặc "#a89968" → [168,153,104]; sai định dạng → null.
+function _cxWishRgb(v) {
+  const t = _cxWishTriplet(v) || (typeof v === "string" ? v.trim() : "");
+  const p = t.split(/[\s,/]+/).slice(0, 3).map(Number);
+  return p.length === 3 && p.every(Number.isFinite) ? p : null;
+}
+
+function _cxWishStr(c) {
+  return c.map((n) => Math.round(Math.min(255, Math.max(0, n)))).join(" ");
+}
+
+function _cxWishLum(c) {
+  const f = c.map((v) => {
+    const x = v / 255;
+    return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4);
+  });
+  return 0.2126 * f[0] + 0.7152 * f[1] + 0.0722 * f[2];
+}
+
+function _cxWishCR(a, b) {
+  const l1 = _cxWishLum(a);
+  const l2 = _cxWishLum(b);
+  return (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
+}
+
+function _cxWishMix(a, b, t) {
+  return a.map((v, i) => v + (b[i] - v) * t);
+}
+
+// Kéo `color` về phía trắng hoặc đen (chọn phía ngược với nền) cho tới khi đạt
+// mức tương phản cần. Đi từng nấc nhỏ để màu giữ được tông của mẫu lâu nhất.
+function _cxWishFit(color, on, min) {
+  const toward = _cxWishLum(on) > 0.5 ? [0, 0, 0] : [255, 255, 255];
+  let c = color;
+  for (let i = 0; i < 24 && _cxWishCR(c, on) < min; i++) {
+    c = _cxWishMix(c, toward, 0.08);
+  }
+  return c;
+}
+
+/**
+ * Bảng màu mặc định MỚI của dải: lật tông so với thân thiệp, pha từ chính màu
+ * tiêu đề / màu nhấn của mẫu nên vẫn ra tông của mẫu chứ không phải một mảng
+ * đen trắng vô danh. Trả về null khi mẫu đã tự khai mặt giấy (bubble/text/
+ * accent/btn) — lúc đó giữ nguyên bản khai của mẫu, không tự tính gì thêm.
+ */
+function _cxWishAutoColors(decl) {
+  if (["bubble", "text", "accent", "btn"].some((k) => _cxWishTriplet(decl[k]))) {
+    return null;
+  }
+  const bg =
+    _cxWishRgb(_cxWishRootVar("--cx-card-bg-rgb")) ||
+    _cxWishRgb(_cxWishRootVar("--cx-page-bg-rgb"));
+  if (!bg) return null;
+
+  const accent = _cxWishRgb(_cxWishRootVar("--cx-accent-rgb")) || [190, 90, 118];
+  const heading = _cxWishRgb(_cxWishRootVar("--cx-heading-rgb")) || accent;
+  const lightCard = _cxWishLum(bg) > 0.45;
+
+  // Mặt giấy của dải: nền thiệp sáng → mực đậm pha từ màu tiêu đề; nền tối →
+  // giấy sáng pha từ chính nền thiệp (giữ sắc ấm/lạnh của mẫu).
+  const bubble = lightCard
+    ? _cxWishMix(heading, [14, 11, 16], 0.74)
+    : _cxWishMix(bg, [255, 255, 255], 0.9);
+  const text = _cxWishFit(
+    lightCard ? _cxWishMix(bg, [255, 255, 255], 0.72) : _cxWishMix(heading, [12, 10, 14], 0.6),
+    bubble,
+    CX_WISH_TEXT_CR,
+  );
+  const name = _cxWishFit(accent, bubble, CX_WISH_NAME_CR);
+  return {
+    bubble: _cxWishStr(bubble),
+    text: _cxWishStr(text),
+    accent: _cxWishStr(name),
+    btn: _cxWishStr(name),
+    // Nút Gửi có nền đặc bằng chính màu tên → chữ trên nút phải theo độ sáng
+    // của màu đó, không dùng lại `on_accent` của thiệp được nữa.
+    on_btn: _cxWishLum(name) > 0.5 ? "26 22 28" : "255 255 255",
+  };
+}
+
 /**
  * Áp bảng màu của MẪU lên dải. Màu là phần cố định của mẫu thiệp — khách không
  * chỉnh được — nên chỉ đọc CX_THEME.wishes, khoá nào mẫu không khai thì token
@@ -119,12 +209,17 @@ function applyWishStyle() {
   const targets = [dock, document.getElementById("cx-wish-all")].filter(Boolean);
 
   const decl = (window.CX_THEME && window.CX_THEME.wishes) || {};
+  const auto = _cxWishAutoColors(decl) || {};
+  if (auto.on_btn) {
+    targets.forEach((t) => t.style.setProperty("--cx-wish-on-btn-rgb", auto.on_btn));
+  }
 
   Object.entries(CX_WISH_COLORS).forEach(([key, def]) => {
     const alias = def.alias;
     const val =
       _cxWishTriplet(decl[key]) ||
       (alias && _cxWishTriplet(decl[alias])) ||
+      auto[key] ||
       // Không khai `from` = giá trị mặc định nằm thẳng trong CSS (màn tối), ở
       // đây không có gì để đọc ra cả.
       (def.from && _cxWishRootVar(def.from));
