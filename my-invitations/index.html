@@ -46,6 +46,22 @@
             >
               <i data-lucide="circle-help" class="text-[10px]" style="width:16px;height:16px"></i>
             </x-button>
+            <!-- Danh sách thiệp được cache ở localStorage vài phút (xem
+                 listMyWeddings) — nút này là đường ép lấy bản mới ngay, cho lần
+                 vừa sửa thiệp ở thiết bị khác hoặc vừa thanh toán xong. -->
+            <x-button
+              id="btn-refresh"
+              variant="ghost"
+              tone="neutral"
+              size="xs"
+              icon-only
+              onclick="refreshCards()"
+              title="Tải lại danh sách"
+              aria-label="Tải lại danh sách"
+              class="!h-6 !w-6"
+            >
+              <i data-lucide="refresh-cw" class="text-[10px]" style="width:16px;height:16px"></i>
+            </x-button>
           </div>
           <p class="mt-1 text-[13px] text-gray-500">
             Tạo, chỉnh sửa và chia sẻ thiệp cưới của bạn

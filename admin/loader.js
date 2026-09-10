@@ -39,6 +39,9 @@
     // formatLunarDate (tự tính ngày âm từ ngày dương) — cả hai đều thuần
     // logic, không bind DOM của trang nào.
     "../core/dal/ai-dal.js",
+    // templates-dal.js cache danh sách mẫu ở localStorage → cần cache-util.js
+    // đứng TRƯỚC nó (buildCacheKey/getCache/setCache).
+    "../core/cache-util.js",
     "../core/dal/templates-dal.js",
     "../invitation-setup/js/09-lunar.js",
     "js/01-weddings.js",

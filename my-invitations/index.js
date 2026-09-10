@@ -1,6 +1,7 @@
 // Màn "Quản lý thiệp cưới": lưới thẻ thiệp của người dùng (Của tôi / Xuất bản / Nháp).
-// Nguồn dữ liệu: API ?resource=my-weddings (khi đã đăng nhập) gộp với đơn trong
-// localStorage (khách chưa đăng nhập vẫn thấy nháp đã tạo trên máy này).
+// Nguồn dữ liệu: weddingDAL.listMyWeddings() (khi đã đăng nhập — có cache
+// localStorage, xem core/dal/wedding-dal.js) gộp với đơn trong localStorage
+// (khách chưa đăng nhập vẫn thấy nháp đã tạo trên máy này).
 
 // Client dùng chung do core/supabase.js dựng (chính là AuthUI.supabase) — khai lại
 // ở đây là trùng tên biến toàn cục, cả trang chết ngay khi nạp.
@@ -67,6 +68,9 @@ async function initPage() {
 }
 
 async function logout() {
+  // Danh sách thiệp là dữ liệu riêng của tài khoản — đăng xuất là phải xoá khỏi
+  // máy, nhất là máy dùng chung.
+  weddingDAL.invalidateMyWeddings();
   await sb.auth.signOut();
   window.location.replace(window.location.pathname);
 }
@@ -138,23 +142,6 @@ async function loadThemeNames() {
   }
 }
 
-// Ném lỗi khi không lấy được danh sách — người gọi phải phân biệt "không có thiệp"
-// với "hỏng mạng", nuốt lỗi thành [] là báo sai cho người dùng là mất thiệp.
-async function fetchMyWeddings() {
-  const token = await CXAuth.accessToken();
-  if (!token) throw new Error("Phiên đăng nhập đã hết hạn");
-
-  const res = await fetch(CONFIG.supabase.edgeUrl + "?resource=my-weddings", {
-    headers: {
-      apikey: CONFIG.supabase.anonKey,
-      Authorization: "Bearer " + token,
-    },
-  });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const data = await res.json();
-  return Array.isArray(data) ? data : [];
-}
-
 // Đơn trong localStorage không có expires_at → expiresAt = undefined nghĩa là
 // "không rõ hạn dùng thử", thẻ chỉ hiện trạng thái chứ không đếm ngày.
 // local = chỉ tồn tại trên máy này (chưa có bản ghi DB) → xoá thẻ không gọi API.
@@ -190,7 +177,8 @@ function _cardFromWedding(w) {
 // được phép ghi CARDS, nếu không kết quả cũ về sau sẽ đè lên kết quả mới.
 let _loadSeq = 0;
 
-async function loadCards() {
+// force = bỏ qua cache localStorage, hỏi thẳng server (nút "Tải lại").
+async function loadCards(force) {
   const seq = ++_loadSeq;
   _absorbGuestOrders();
   const local = getCache(_ordersKey(), []).filter((o) => o.manage_id);
@@ -201,10 +189,13 @@ async function loadCards() {
     return;
   }
 
-  setState("loading");
+  // Có cache thì danh sách hiện ra ngay trong nhịp này → bật khung xương chỉ để
+  // nó chớp một cái rồi tắt, nhìn như trang giật.
+  if (force || !weddingDAL.readMyWeddingsCache(currentUser.email))
+    setState("loading");
   let weddings;
   try {
-    weddings = await fetchMyWeddings();
+    weddings = await weddingDAL.listMyWeddings(currentUser.email, { force });
   } catch (e) {
     if (seq !== _loadSeq) return;
     setState("error");
@@ -221,6 +212,20 @@ async function loadCards() {
     (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0),
   );
   render();
+}
+
+// Nút "Tải lại": vứt cache rồi hỏi lại server. Xoá cache TRƯỚC khi gọi để tab
+// khác cũng nhận được bản mới.
+async function refreshCards() {
+  if (!currentUser) return loadCards();
+  weddingDAL.invalidateMyWeddings();
+  const btn = document.getElementById("btn-refresh");
+  btn?.classList.add("animate-spin");
+  try {
+    await loadCards(true);
+  } finally {
+    btn?.classList.remove("animate-spin");
+  }
 }
 
 // ===== TRẠNG THÁI THẺ =====
@@ -804,6 +809,13 @@ function formatDate(dateStr) {
 // ===== GẮN SỰ KIỆN =====
 
 function bindEvents() {
+  // Tab khác vừa tạo/sửa/xoá thiệp → DAL xoá key cache; danh sách đang mở ở tab
+  // này phải nạp lại, không thì hai tab hiện hai bản khác nhau.
+  window.addEventListener("storage", (e) => {
+    if (e.key && e.key.startsWith(buildCacheKey("myweddings")) && !e.newValue)
+      loadCards();
+  });
+
   document.querySelectorAll(".tab-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
       ACTIVE_TAB = btn.dataset.tab;

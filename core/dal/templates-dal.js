@@ -9,7 +9,19 @@
  *
  * KHÔNG gọi thẳng REST của Supabase, và đừng chép lại luồng fallback này ở chỗ
  * khác — mọi trang đều đi qua đây.
+ *
+ * BA tầng nhớ, xa dần: RAM (đời trang) → localStorage (TPL_TTL_MS) → mạng.
  */
+
+// Hạn dùng bản cache localStorage. Dài hơn hẳn max-age=300 mà worker trả về —
+// đúng phần lợi so với HTTP cache: khách ghé lại sau nửa tiếng vẫn không tốn
+// request nào. Đổi mẫu ở admin (không kèm deploy) thì đây là độ trễ tối đa;
+// còn THÊM mẫu mới bao giờ cũng kèm deploy → CX_VERSION đổi → cache tự chết.
+const TPL_TTL_MS = 30 * 60 * 1000;
+
+// Cần core/cache-util.js nạp TRƯỚC file này (mọi trang đều đã vậy). CONFIG thì
+// KHÔNG: config.js nạp SAU file này ở nhiều trang, nên chỉ được đọc CONFIG
+// trong thân hàm, đừng bao giờ đọc lúc dựng object.
 class TemplatesDAL {
   constructor() {
     // Nhớ trong RAM cho cả vòng đời trang: một trang có thể hỏi danh sách ở
@@ -18,9 +30,45 @@ class TemplatesDAL {
     this._promise = null;
   }
 
+  // ===== Cache localStorage =====
+
+  _cacheKey() {
+    return buildCacheKey("templates");
+  }
+
+  /** Bản cache còn hiệu lực, hoặc null (chưa có / hết hạn / khác bản phát hành). */
+  _readCache() {
+    const box = getCache(this._cacheKey());
+    if (!box || !Array.isArray(box.data) || !box.data.length) return null;
+    if (box.v !== CONFIG.version) return null;
+    if (Date.now() - (box.ts || 0) > TPL_TTL_MS) return null;
+    return box.data;
+  }
+
+  // KHÔNG cache danh sách rỗng: nguồn lỗi mà trả [] thì cả web mất sạch mẫu
+  // thiệp suốt nửa tiếng, mà nhìn vào chỉ thấy "chưa có mẫu nào".
+  _writeCache(rows) {
+    if (!Array.isArray(rows) || !rows.length) return;
+    setCache(this._cacheKey(), {
+      v: CONFIG.version,
+      ts: Date.now(),
+      data: rows,
+    });
+  }
+
+  /** Vứt bản cache localStorage (RAM vẫn giữ — dùng invalidate() cho phần đó). */
+  invalidateCache() {
+    removeCache(this._cacheKey());
+  }
+
   /** Danh sách mẫu đang bật, đã sắp theo `sort_order`. */
   list() {
     if (!this._promise) {
+      const cached = this._readCache();
+      // Trả bằng promise đã xong: bên gọi luôn nhận cùng một kiểu, khỏi phải
+      // biết lần này lấy ở đâu.
+      if (cached) return (this._promise = Promise.resolve(cached));
+
       this._promise = this._fetch().catch((err) => {
         // Hỏng thì quên đi để lần gọi sau thử lại — mất mạng tạm thời không nên
         // làm cả trang chết danh sách mẫu cho tới khi F5.
@@ -43,6 +91,7 @@ class TemplatesDAL {
    */
   refresh() {
     this.invalidate();
+    this.invalidateCache();
     this._promise = this._fetch(true).catch((err) => {
       this._promise = null;
       throw err;
@@ -50,7 +99,15 @@ class TemplatesDAL {
     return this._promise;
   }
 
+  // Ghi cache ở ĐÂY, sau khi đã _normalize: mọi đường lấy dữ liệu (worker, edge,
+  // refresh) đều chụm về một chỗ, không sót nhánh nào.
   async _fetch(fresh) {
+    const rows = await this._fetchRemote(fresh);
+    this._writeCache(rows);
+    return rows;
+  }
+
+  async _fetchRemote(fresh) {
     const cacheUrl = CONFIG.cloudflare?.templatesCache;
     if (!cacheUrl) return this._viaEdge(fresh);
     try {

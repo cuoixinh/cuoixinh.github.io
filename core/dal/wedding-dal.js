@@ -1,10 +1,80 @@
 /** DAL — Wedding: chỉ truy vấn database, không có logic nghiệp vụ. */
 
+// Hạn dùng của bản cache danh sách thiệp trong localStorage (xem listMyWeddings).
+// Đây là chốt chặn cuối cho thay đổi xảy ra Ở NƠI KHÁC (thiết bị khác, webhook
+// thanh toán, cron dọn hết hạn); thay đổi từ chính máy này đã tự dọn cache ngay.
+const MY_LIST_TTL_MS = 5 * 60 * 1000;
+
+// Cần core/cache-util.js (buildCacheKey/getCache/setCache/removeCache/listCacheKeys)
+// nạp TRƯỚC file này — mọi trang dùng WeddingDAL đều đã nạp.
 class WeddingDAL {
   constructor(config) {
     this.edgeUrl = config.supabase.edgeUrl;
     this.anonKey = config.supabase.anonKey;
     this.workerUrl = config.cloudflare.cacheProxy;
+    // Đóng dấu bản phát hành lên cache: đổi CX_VERSION (mỗi lần deploy) là mọi
+    // bản cache cũ hết hiệu lực, khỏi lo cấu trúc hàng thiệp đổi mà máy khách
+    // còn giữ bản cũ.
+    this.version = config.version;
+  }
+
+  // ===== Cache danh sách thiệp của người dùng =====
+
+  _myListKey(email) {
+    return buildCacheKey("myweddings", email || "guest");
+  }
+
+  /** Bản cache còn hiệu lực, hoặc null (chưa có / hết hạn / khác bản phát hành). */
+  readMyWeddingsCache(email) {
+    const box = getCache(this._myListKey(email));
+    if (!box || !Array.isArray(box.data)) return null;
+    if (box.v !== this.version) return null;
+    if (Date.now() - (box.ts || 0) > MY_LIST_TTL_MS) return null;
+    return box.data;
+  }
+
+  /**
+   * Vứt cache danh sách của MỌI tài khoản trên máy này. Gọi sau mỗi lệnh GHI
+   * thiệp — không thì trang "Quản lý thiệp cưới" còn hiện bản trước khi sửa.
+   * XOÁ key (không ghi đè) nên tab khác đang mở nhận được qua sự kiện `storage`.
+   */
+  invalidateMyWeddings() {
+    const prefix = buildCacheKey("myweddings");
+    listCacheKeys((k) => k.indexOf(prefix) === 0).forEach(removeCache);
+  }
+
+  /**
+   * Danh sách thiệp của chính người dùng đang đăng nhập, ưu tiên bản cache trong
+   * localStorage để bớt một lượt gọi Edge Function mỗi lần mở trang;
+   * `force` bỏ qua cache (nút "Tải lại").
+   * Ném lỗi khi không lấy được — người gọi phải phân biệt "không có thiệp" với
+   * "hỏng mạng", nuốt lỗi thành [] là báo sai cho người dùng là mất thiệp.
+   */
+  async listMyWeddings(email, { force = false } = {}) {
+    if (!force) {
+      const cached = this.readMyWeddingsCache(email);
+      if (cached) return cached;
+    }
+
+    const token = (await window.CXAuth?.accessToken()) ?? null;
+    if (!token) throw new Error("Phiên đăng nhập đã hết hạn");
+
+    const response = await fetch(`${this.edgeUrl}?resource=my-weddings`, {
+      headers: {
+        apikey: this.anonKey,
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+    const data = await response.json();
+    const list = Array.isArray(data) ? data : [];
+    setCache(this._myListKey(email), {
+      v: this.version,
+      ts: Date.now(),
+      data: list,
+    });
+    return list;
   }
 
   /**
@@ -103,6 +173,7 @@ class WeddingDAL {
       throw this._httpError(response, errorData);
     }
 
+    this.invalidateMyWeddings();
     return await response.json();
   }
 
@@ -118,6 +189,7 @@ class WeddingDAL {
       throw new Error(errorData.error || `HTTP ${response.status}`);
     }
 
+    this.invalidateMyWeddings();
     return await response.json();
   }
 
@@ -134,6 +206,7 @@ class WeddingDAL {
       const err = await response.json().catch(() => ({}));
       throw new Error(err.error || `HTTP ${response.status}`);
     }
+    this.invalidateMyWeddings();
     return await response.json();
   }
 
@@ -156,6 +229,8 @@ class WeddingDAL {
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
+
+    this.invalidateMyWeddings();
   }
 
   /** Liệt kê toàn bộ thiệp (chỉ admin). */
