@@ -209,9 +209,18 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
           .from('templates')
           .select('*')
           .eq('id', id)
-          .single()
+          .maybeSingle()
 
-        if (error) return new Response(JSON.stringify({ error }), { status: 404, headers: corsHeaders })
+        if (error) {
+          log.error('template.query_failed', { code: error.code, message: error.message })
+          return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: corsHeaders })
+        }
+
+        if (!data) {
+          return new Response(JSON.stringify({ error: 'Không tìm thấy mẫu', code: 'NOT_FOUND' }), {
+            status: 404, headers: corsHeaders
+          })
+        }
  
         return new Response(JSON.stringify(data), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -1210,9 +1219,25 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
       query = query.eq('id', id)
     }
 
-    const { data, error } = await query.single()
+    // maybeSingle: không có hàng là chuyện BÌNH THƯỜNG (slug gõ sai, thiệp nháp đã
+    // bị cron dọn, bot quét đường dẫn lạ — 404.html đẩy mọi path lạ vào đây dưới
+    // dạng ?slug=). Dùng .single() thì trường hợp đó lẫn với lỗi DB thật vì cả hai
+    // cùng ra 404 kèm PGRST116, không lần được nguyên nhân.
+    const { data, error } = await query.maybeSingle()
 
-    if (error) return new Response(JSON.stringify({ error }), { status: 404, headers: corsHeaders })
+    if (error) {
+      log.error('wedding.query_failed', { code: error.code, message: error.message })
+      return new Response(JSON.stringify({ error: error.message, code: 'QUERY_FAILED' }), {
+        status: 500, headers: corsHeaders
+      })
+    }
+
+    if (!data) {
+      log.warn('wedding.not_found', { by: slug ? 'slug' : 'id' })
+      return new Response(JSON.stringify({ error: 'Không tìm thấy thiệp', code: 'NOT_FOUND' }), {
+        status: 404, headers: corsHeaders
+      })
+    }
 
     // ── Hết hạn dùng thử = KHOÁ với khách mời ────────────────────────────────
     // Chặn ở đây chứ không ở client: link thiệp là công khai, ẩn bằng JS thì ai

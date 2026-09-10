@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { withAxiom } from "../_shared/axiom.ts";
+import { withAxiom, type Logger } from "../_shared/axiom.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -171,7 +171,7 @@ serve(withAxiom("payment-handler", async (req, log) => {
     );
 
     if (req.method === "POST" && path.endsWith("/create-payment")) {
-      return await handleCreatePayment(req, supabaseClient);
+      return await handleCreatePayment(req, supabaseClient, log);
     } else if (req.method === "GET" && path.endsWith("/check-payment-status")) {
       return await handleCheckPaymentStatus(req, supabaseClient);
     } else if (path.endsWith("/webhook")) {
@@ -199,7 +199,7 @@ serve(withAxiom("payment-handler", async (req, log) => {
   }
 }));
 
-async function handleCreatePayment(req: Request, supabaseClient: any) {
+async function handleCreatePayment(req: Request, supabaseClient: any, log: Logger) {
   // Đơn đang giữ lượt mã giảm giá. Khai ngoài try để catch cuối cùng nhả được
   // lượt: hỏng ở bất kỳ bước nào sau khi trừ lượt thì khách còn chưa nhìn thấy
   // mã QR, không thể tính là đã dùng mã. (Bỏ ngang SAU khi có QR thì mất lượt —
@@ -216,8 +216,20 @@ async function handleCreatePayment(req: Request, supabaseClient: any) {
     const body = await req.json();
     const { manage_id, customer_name, customer_phone, customer_email, template_name, theme, promo_code } = body;
 
-    if (!manage_id || !customer_name || !customer_phone || !template_name) {
-      return new Response(JSON.stringify({ error: "Missing required fields: manage_id, customer_name, customer_phone, template_name" }), {
+    // customer_phone KHÔNG bắt buộc: màn thanh toán lấy người mua thẳng từ tài
+    // khoản đang đăng nhập, mà cả hai đường đăng nhập (OTP email, Google) đều
+    // không có số điện thoại → bắt buộc là chặn đúng mọi đơn. Số này chỉ ghi vào
+    // payload của payment_logs, PayOS không dùng tới.
+    const missing = { manage_id, customer_name, template_name };
+    const missingKeys = Object.keys(missing).filter((k) => !missing[k as keyof typeof missing]);
+
+    if (missingKeys.length) {
+      // Log ĐÍCH DANH field thiếu: câu 400 chung chung không cho biết client hỏng ở đâu.
+      log.warn("payment.missing_fields", { missing: missingKeys, has_phone: !!customer_phone });
+      return new Response(JSON.stringify({
+        error: `Thiếu thông tin bắt buộc: ${missingKeys.join(", ")}`,
+        missing: missingKeys,
+      }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
