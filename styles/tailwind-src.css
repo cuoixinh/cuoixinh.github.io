@@ -226,7 +226,9 @@ html.cx-landing {
    Ba lớp theo z-index: .hero-bg (ảnh) → .hero-veil (phủ tối) → .hero-stage.
 
    Ảnh và lớp phủ trải HẾT hero — không còn dải nền phẳng ở nửa dưới, nên độ
-   đọc của cụm dưới hoàn toàn do .hero-veil giữ. Làm nhạt lớp phủ là mất chữ.
+   đọc của cụm dưới do .hero-veil VÀ bóng chữ (.hero-head/.hero-about) cùng
+   giữ: hạ lớp phủ thêm nữa thì phải tăng bóng chữ theo, không thì mất chữ ở
+   những ảnh nền sáng.
 
    Mép nối với #templates (nền sáng) thì CẮT THẲNG — đó là chủ ý của kiểu này,
    đừng thêm dải tan xuống nền trắng.
@@ -281,20 +283,20 @@ html.cx-landing {
 }
 
 /* Phủ tối cả màn ảnh: đậm ở ĐỈNH (chữ trắng + navbar phải đọc được), nhạt nhất
-   ở khoảng giữa — khe hở duy nhất để còn thấy ảnh — rồi đậm dần xuống đáy, nơi
-   khối chữ giới thiệu nằm. Chỉ có lớp này giữ độ đọc cho cụm dưới:
-   ảnh nền là ảnh khách tự thay, sáng tối gì cũng có, nên đừng hạ mấy con số ở
-   nửa dưới xuống. */
+   ở khoảng giữa — khoảng để ngắm ảnh — rồi đậm dần xuống đáy, nơi khối chữ giới
+   thiệu nằm. Cố ý để NHẸ tay cho thấy rõ ảnh nền; phần độ đọc còn thiếu do bóng
+   chữ bù (xem .hero-head/.hero-about). Ảnh nền là ảnh khách tự thay, sáng tối gì
+   cũng có — hạ tiếp mấy con số này thì phải tăng bóng chữ theo. */
 
 .hero-veil {
   z-index: 1;
   background-image: linear-gradient(
     to bottom,
-    rgb(var(--landing-dark-rgb) / 0.86) 0%,
-    rgb(var(--landing-dark-rgb) / 0.6) 24%,
-    rgb(var(--landing-dark-rgb) / 0.38) 44%,
-    rgb(var(--landing-dark-rgb) / 0.62) 66%,
-    rgb(var(--landing-dark-rgb) / 0.82) 100%
+    rgb(var(--landing-dark-rgb) / 0.66) 0%,
+    rgb(var(--landing-dark-rgb) / 0.4) 24%,
+    rgb(var(--landing-dark-rgb) / 0.18) 44%,
+    rgb(var(--landing-dark-rgb) / 0.42) 66%,
+    rgb(var(--landing-dark-rgb) / 0.62) 100%
   );
 }
 
@@ -341,6 +343,12 @@ html.cx-landing {
 .hero-head {
   @apply flex flex-col items-center justify-center text-center;
   max-width: 720px;
+  /* Cùng vai trò với bóng chữ ở .hero-about: lớp phủ để nhẹ nên chữ nhỏ (nhãn
+     thương hiệu, dòng chú thích dưới ô hỏi) phải tự tách khỏi ảnh. Ô hỏi có nền
+     kính mờ riêng nên không ăn theo bóng này — bóng chỉ dính vào chữ. */
+  text-shadow:
+    0 1px 3px rgb(var(--landing-dark-rgb) / 0.55),
+    0 2px 16px rgb(var(--landing-dark-rgb) / 0.75);
   min-height: calc(
     var(--vh, 1vh) * var(--cx-hero-img) - var(--cx-stage-pt)
   );
@@ -368,6 +376,9 @@ html.cx-landing {
 
 .hero-ask {
   @apply flex items-center rounded-full;
+  /* Nền kính mờ của chính ô này đã tách nó khỏi ảnh — để chữ ăn thêm bóng của
+     .hero-head là nhoè. */
+  text-shadow: none;
   width: min(100%, 460px);
   margin-top: 28px;
   height: 58px;
@@ -449,7 +460,9 @@ html.cx-landing {
 .hero-about {
   @apply flex flex-1 flex-col items-center justify-center text-center;
   padding-top: 32px;
-  text-shadow: 0 2px 14px rgb(var(--landing-dark-rgb) / 0.6);
+  text-shadow:
+    0 1px 3px rgb(var(--landing-dark-rgb) / 0.55),
+    0 2px 16px rgb(var(--landing-dark-rgb) / 0.75);
 }
 
 /* Playfair semibold cho khớp tiêu đề của các mục còn lại ở trang chủ (Mẫu
@@ -688,6 +701,30 @@ html.cx-landing {
 .cx-tplcard {
   @apply w-[min(62vw,232px)] shrink-0 sm:w-[240px] lg:w-[248px];
   scroll-snap-align: start;
+}
+
+/* Hàng chấm dưới dải: MỘT chấm cho MỘT khung nhìn của dải (js/section-templates.js
+   dựng). Chấm đang mở dài ra thành viên thuốc thay vì chỉ đổi màu — ở khổ này
+   chênh lệch màu thôi thì nhìn lướt không thấy. */
+.cx-tpldots {
+  @apply flex items-center justify-center gap-1.5 pt-4;
+}
+
+.cx-tpldot {
+  @apply h-1.5 w-1.5 cursor-pointer rounded-full border-none p-0;
+  background: rgb(var(--text-heading-rgb) / 0.2);
+  transition:
+    width 0.3s ease,
+    background-color 0.3s ease;
+}
+
+.cx-tpldot:hover {
+  background: rgb(var(--text-heading-rgb) / 0.35);
+}
+
+.cx-tpldot.is-on {
+  @apply w-5;
+  background: rgb(var(--brand-primary-rgb));
 }
 
 /* ══ THẺ MẪU THIỆP (.tt-card) ══════════════════════════════════════════════
