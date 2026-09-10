@@ -27,12 +27,14 @@ const CONFIG_FILE = path.join(ROOT, "deploy-public.config.json");
 // Mọi thứ trang web thật sự tải. Kết thúc bằng "/" = cả thư mục (file mới bên
 // trong tự được lấy); còn lại là một file cụ thể.
 const INCLUDE = [
-  // Trang gốc + routing của GitHub Pages
+  // Trang gốc + routing
   "index.html",
   "404.html",
   "router.html",
-  "CNAME",
   "robots.txt",
+  // CNAME: chỉ GitHub Pages đọc để giữ custom domain. Cloudflare bỏ qua nó, nên
+  // sau khi chuyển xong thì file này biến mất khỏi repo — vì vậy khai OPTIONAL.
+  "CNAME",
   // Các trang con
   "checkout/",
   "theme-template/",
@@ -49,6 +51,10 @@ const INCLUDE = [
   // Ảnh (trừ EXCLUDE bên dưới)
   "assets/",
 ];
+
+// Mục trong INCLUDE được phép KHÔNG tồn tại. Mọi mục khác mà thiếu là dừng build
+// — đó là cách bắt lỗi xoá/đổi tên file mà quên sửa INCLUDE.
+const OPTIONAL = new Set(["CNAME"]);
 
 // Loại trừ nằm BÊN TRONG một mục INCLUDE ở trên.
 const EXCLUDE = [
@@ -207,8 +213,10 @@ function collect() {
         fail(`INCLUDE trỏ vào thư mục không có: ${dir}`);
       walk(dir, out);
     } else {
-      if (!fs.existsSync(path.join(ROOT, entry)))
+      if (!fs.existsSync(path.join(ROOT, entry))) {
+        if (OPTIONAL.has(entry)) continue;
         fail(`INCLUDE trỏ vào file không có: ${entry}`);
+      }
       out.push(entry);
     }
   }

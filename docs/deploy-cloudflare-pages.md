@@ -34,26 +34,44 @@ xoá sạch tác dụng của toàn bộ file này.
 
 ## 3. Cấu hình trên Cloudflare
 
-Workers & Pages → Create → Pages → Connect to Git → chọn repo private.
+Dùng **Workers Builds** (Workers & Pages → Create → Workers → Connect to Git). Cloudflare
+đang gộp Pages vào Workers: Pages cũ vẫn chạy nhưng tính năng mới chỉ về Workers, nên dự án
+mới đi thẳng Workers.
 
-| Mục               | Giá trị                                                            |
-| ----------------- | ------------------------------------------------------------------ |
-| Framework preset  | None                                                                |
-| Build command     | `npm ci && npm run build && node scripts/deploy-public.mjs --dist --minify --yes` |
-| Output directory  | `dist`                                                              |
-| Production branch | `cuoixinh.github.io`                                                |
+| Mục                          | Giá trị                                                                           |
+| ---------------------------- | --------------------------------------------------------------------------------- |
+| Project name                 | `cuoixinh-github-io` — **phải trùng `name` trong `wrangler.jsonc`**                |
+| Build command                | `npm ci && npm run build && node scripts/deploy-public.mjs --dist --minify --yes`  |
+| Deploy command               | `npx wrangler deploy`                                                              |
+| Path                         | `/`                                                                                |
+| Builds for non-production branches | **bỏ tick** (xem §13)                                                        |
 
-Node lấy theo `.node-version` ở gốc repo (đang là `22`).
+Không có ô "Output directory" như Pages — thư mục publish khai trong `wrangler.jsonc` ở gốc
+repo (`assets.directory = "./dist"`).
 
-Không cần biến môi trường nào: mọi khoá phía client nằm sẵn trong `core/config.js`, còn khoá
-phía server ở Supabase Edge Function chứ không đi qua bước build.
+**`not_found_handling: "404-page"` trong `wrangler.jsonc` là bắt buộc.** Workers mặc định
+trả 404 rỗng cho path không khớp file nào, mà clean URL của web dựa hết vào việc host phục
+vụ `404.html` (nó chuyển sang `router.html` để tra slug). Bỏ dòng đó là **mọi link thiệp
+`/<slug>` đã phát cho khách đều chết** — mà trang chủ vẫn chạy nên rất dễ tưởng là ổn.
+Sau khi deploy phải thử ngay một slug thật.
+
+Node lấy theo `.node-version` ở gốc repo (đang là `22`). Không cần biến môi trường nào: khoá
+phía client nằm sẵn trong `core/config.js`, khoá phía server ở Supabase Edge Function chứ
+không đi qua bước build.
+
+`wrangler.jsonc` ở gốc **không liên quan** tới `cloudflare-worker/wrangler*.toml` — ba worker
+proxy/cache đó vẫn deploy tay từ thư mục riêng.
+
+Giới hạn gói Free giống hệt Pages: static asset request miễn phí không giới hạn, 20.000
+file, 25 MiB mỗi file (đang dùng 402 file, file to nhất 1,5 MB).
 
 ## 4. Thứ tự chuyển đổi (không được đảo)
 
-1. Dựng project Pages, deploy thử, **test kỹ trên `<project>.pages.dev`** — lúc này
-   `cuoixinh.com` vẫn chạy GitHub Pages, chưa đụng gì.
-2. Pages project → Custom domains → thêm `cuoixinh.com`. Zone đã ở Cloudflare nên DNS tự đổi,
-   không phải chờ propagation.
+1. Dựng project, deploy thử, **test kỹ trên `<project>.workers.dev`** — lúc này
+   `cuoixinh.com` vẫn chạy GitHub Pages, chưa đụng gì. Bắt buộc thử: một **slug thiệp thật**
+   (kiểm `not_found_handling`), trang Thiết lập, luồng thanh toán, và `/admin` phải ra 404.
+2. Worker → Settings → Domains & Routes → thêm `cuoixinh.com`. Zone đã ở Cloudflare nên DNS
+   tự đổi, không phải chờ propagation.
 3. Xác nhận web chạy đúng ở domain thật.
 4. **Rồi mới** đổi repo sang Private trên GitHub, và tắt GitHub Pages
    (Settings → Pages → Source: None).
@@ -187,6 +205,8 @@ Giữ chế độ này để còn đường quay lại GitHub Pages nếu Cloudf
 | Build fail ở `npm ci`                        | `package-lock.json` lệch `package.json` — commit cả hai                     |
 | Build fail, log có "✖ Phát hiện thứ giống secret" | Đúng như tên gọi. Gỡ giá trị đó ra, hoặc thêm vào `REDACT`             |
 | Build xanh nhưng web trắng / thiếu file      | Thư mục mới chưa khai vào `INCLUDE`                                        |
+| Trang chủ chạy nhưng **mọi link `/<slug>` ra 404** | Thiếu `not_found_handling: "404-page"` trong `wrangler.jsonc` (§3)    |
+| Deploy xanh nhưng web không đổi              | `name` trong `wrangler.jsonc` lệch tên project → đẩy sang worker khác       |
 | Web vẫn là bản cũ                            | Chưa đổi `CX_VERSION`; hoặc Cache Rule `/core/config.js` bị xoá             |
 | CSS sai bố cục sau deploy                    | Quên `npm run build` — nhưng CI luôn chạy nên chỉ xảy ra ở chế độ copy      |
 | Trang lỗi JS chỉ trên production             | Xem có ai bật `mangle` trong `minifyAll()` không (mục 7)                    |
@@ -196,11 +216,11 @@ Giữ chế độ này để còn đường quay lại GitHub Pages nếu Cloudf
 
 ## 13. Việc tuỳ chọn sau khi chuyển xong
 
-- **Tắt preview deployment** (Settings → Builds → Preview branches → None). Mỗi branch khác
-  production sinh một `*.pages.dev` mà ai có link đều mở được — repo private nhưng preview
-  thì không.
-- **Redirect `<project>.pages.dev` về `cuoixinh.com`** bằng Redirect Rule; domain đó không
-  xoá được.
+- **Tắt build cho branch không phải production** (bỏ tick "Builds for non-production
+  branches"). Mỗi branch khác sinh một bản preview có URL công khai — repo private nhưng
+  preview thì không.
+- **Tắt `<project>.workers.dev`** sau khi custom domain chạy ổn: thêm `"workers_dev": false`
+  vào `wrangler.jsonc`. Đừng tắt sớm — còn cần nó để test ở §4 bước 1.
 - **Đổi `purgeSecret`.** Nó từng nằm trong `core/config.js` công khai trên GitHub Pages nên
   coi như đã lộ. Đổi ở Cloudflare + `core/config.js`; từ nay `REDACT` giữ nó khỏi bản publish.
 - **Thêm `_headers`.** Pages đọc file này, GitHub Pages thì không — đây là cách gỡ hẳn ràng

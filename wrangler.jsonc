@@ -1,0 +1,25 @@
+// Cấu hình cho Cloudflare Workers Builds — chỉ phục vụ file tĩnh, KHÔNG có mã
+// worker (không khai "main"). Thư mục `dist/` do
+// `node scripts/deploy-public.mjs --dist --minify --yes` sinh ra ở bước build.
+// Xem docs/deploy-cloudflare-pages.md.
+//
+// KHÔNG nhầm với cloudflare-worker/wrangler*.toml — đó là 3 worker proxy/cache
+// riêng, deploy tay từ thư mục đó.
+{
+  // Phải trùng "Project name" đã đặt trên dashboard, lệch là deploy sang worker khác.
+  "name": "cuoixinh-github-io",
+  "compatibility_date": "2026-09-10",
+
+  "assets": {
+    "directory": "./dist",
+
+    // BẮT BUỘC. Clean URL của web dựa vào việc host trả 404.html cho path không
+    // khớp file nào: 404.html chuyển sang router.html để tra slug rồi mới đưa
+    // đến trang thiệp. Bỏ dòng này là mọi link /<slug> đã phát cho khách đều
+    // chết — Workers mặc định trả 404 rỗng.
+    "not_found_handling": "404-page"
+
+    // html_handling để mặc định "auto-trailing-slash" — đúng cho /invitation-setup/,
+    // /my-invitations/… vốn là thư mục có index.html.
+  }
+}

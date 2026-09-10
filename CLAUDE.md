@@ -179,15 +179,17 @@ Host tĩnh sau Cloudflare, HTML cache 10 phút. Chống bản cũ bằng **`CX_V
 
 ### Triển khai (repo private → Cloudflare Pages)
 
-Cloudflare Pages build từ repo private và **chỉ publish thư mục `dist/`**, do
-`scripts/deploy-public.mjs --dist --minify` dựng ra. Đụng tới deploy thì đọc
-`docs/deploy-cloudflare-pages.md` trước.
+Cloudflare Workers Builds build từ repo private và **chỉ publish thư mục `dist/`** (khai ở
+`wrangler.jsonc` gốc), do `scripts/deploy-public.mjs --dist --minify` dựng ra. Đụng tới
+deploy thì đọc `docs/deploy-cloudflare-pages.md` trước.
 
 - `INCLUDE` trong script là **danh sách CHO PHÉP**: thứ gì không khai thì KHÔNG ra web.
   **Thêm thư mục/trang mới ở gốc phải khai vào `INCLUDE`**, nếu không production thiếu file.
   Thư mục đã khai (`core/`, `js/`, `public/`, `assets/`…) thì file mới bên trong tự theo.
-- Cái giữ `changelogs/`, `supabase/`, `admin/` khỏi web là **output directory = `dist`**,
-  KHÔNG phải quyền private của repo. Trỏ output về gốc repo là lộ sạch.
+- Cái giữ `changelogs/`, `supabase/`, `admin/` khỏi web là **`assets.directory = "./dist"`**,
+  KHÔNG phải quyền private của repo. Trỏ nó về gốc repo là lộ sạch.
+- `wrangler.jsonc` phải giữ **`not_found_handling: "404-page"`**: clean URL dựa vào host trả
+  `404.html` cho path lạ, bỏ đi là mọi link thiệp `/<slug>` chết trong khi trang chủ vẫn chạy.
 - **`admin/` chỉ chạy local** (`localhost` — Edge Function đã cho phép mọi cổng localhost).
   Kéo theo: `CONFIG.cloudflare.purgeSecret` bị `REDACT` thay bằng `null` trong bản publish.
   Chức năng nào của trang public cần một giá trị trong `REDACT` thì phải gỡ mục đó ra.
