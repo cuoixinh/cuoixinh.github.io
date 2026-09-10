@@ -9,12 +9,21 @@ class ImageBL {
     this.storage = storageDAL;
   }
 
+  /** 24 ký tự ngẫu nhiên — đủ để không đoán ra và không trùng. */
+  static randomId() {
+    const b = new Uint8Array(15);
+    crypto.getRandomValues(b);
+    return Array.from(b, (x) => x.toString(36).padStart(2, "0")).join("").slice(0, 24);
+  }
+
+  // Tên file KHÔNG được chứa wedding_id: ai liệt kê được bucket sẽ suy ra id rồi
+  // tra tiếp hồ sơ thiệp qua Edge Function. Định danh duy nhất là chuỗi ngẫu
+  // nhiên đủ dài — nơi giữ liên hệ file ↔ thiệp là các cột *_url của hàng DB
+  // (wedding-admin và cleanup-weddings đều đọc từ đó, không bóc tên file).
+  // `weddingId` giữ trong chữ ký vì nơi gọi vẫn truyền vào và để đổi ý còn dễ.
   async uploadSingleImage(weddingId, fieldName, file) {
-    // Generate filename
     const extension = file.name.split(".").pop();
-    const timestamp = Date.now();
-    const random = Math.random().toString(36).substring(7);
-    const filename = `${weddingId}-${fieldName}-${timestamp}-${random}.${extension}`;
+    const filename = `${fieldName}-${ImageBL.randomId()}.${extension}`;
 
     // Upload to storage
     return await this.storage.uploadFile(filename, file);

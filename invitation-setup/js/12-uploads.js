@@ -11,9 +11,15 @@ async function uploadSingleImage(fieldName, file) {
   return await imageBL.uploadSingleImage(WEDDING_ID, fieldName, file);
 }
 
+// Chưa đăng nhập thì KHÔNG đẩy lên storage: từ RC1.15 bucket chỉ nhận
+// `authenticated`, gọi lúc này chỉ tổ ăn một loạt lỗi 403 rồi hiện toast đỏ.
+// Nháp của khách chưa đăng nhập nằm trọn trong IndexedDB (_idbRestoreAll), nên
+// ảnh vẫn còn nguyên và sẽ được đẩy lên ở lần lưu đầu tiên SAU khi đăng nhập.
 async function uploadAllPendingImages() {
   const uploadedFilenames = {};
   const errors = [];
+
+  if (!IS_LOGIN) return { uploadedFilenames, errors };
 
   // Upload single images
   for (const [fieldName, file] of Object.entries(pendingUploads.singleImages)) {

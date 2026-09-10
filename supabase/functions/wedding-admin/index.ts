@@ -1203,15 +1203,16 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
     // Chỉ admin mới nhận đủ field. Người dùng thường (kể cả chủ thiệp) nhận
     // allowlist các field cần để render/chỉnh thiệp — KHÔNG kèm dữ liệu thanh toán
     // (payment_status, payment_order_id, transaction_id, payment_time,
-    // payment_amount, expires_at) và user_id. Lọc ngay tại truy vấn để dữ liệu nhạy
-    // cảm không bao giờ rời khỏi DB.
+    // payment_amount, expires_at). Lọc ngay tại truy vấn để dữ liệu nhạy cảm không
+    // bao giờ rời khỏi DB. user_id lấy về CHỈ để xét quyền ở dưới rồi xoá khỏi
+    // response, y như expires_at/payment_status.
     const PUBLIC_WEDDING_COLUMNS = ['id', 'is_active', 'created_at', ...CUSTOMER_EDITABLE_FIELDS].join(', ')
 
     // expires_at + payment_status chỉ lấy để XÉT khoá ngay dưới đây, bị gỡ khỏi
     // response trước khi trả về — không để dữ liệu thanh toán rời khỏi DB.
     let query = supabase
       .from('weddings')
-      .select(isAdmin ? '*' : `${PUBLIC_WEDDING_COLUMNS}, expires_at, payment_status`)
+      .select(isAdmin ? '*' : `${PUBLIC_WEDDING_COLUMNS}, expires_at, payment_status, user_id`)
 
     if (slug) {
       query = query.eq('slug', slug)
@@ -1239,11 +1240,31 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
       })
     }
 
+    // ── Tra theo id thì phải là CHỦ THIỆP ────────────────────────────────────
+    // Trước đây đường này mở cho mọi người vì coi UUID là bí mật ("chỉ chủ thiệp
+    // có"). Giả định đó đã sai: tên file trong bucket wedding-images từng mang
+    // wedding_id, mà ai cũng liệt kê được bucket bằng anon key — xem
+    // changelogs/RC1.15. Từ nay id chỉ là ĐỊNH DANH, không phải quyền; đường tra
+    // công khai duy nhất là ?slug=.
+    if (!isAdmin) {
+      if (id) {
+        const uid = await getUserId()
+        if (!uid || uid !== data.user_id) {
+          log.warn('wedding.id_forbidden', { authed: !!uid })
+          return new Response(JSON.stringify({
+            error: 'Bạn không có quyền xem thiệp này',
+            code: 'FORBIDDEN',
+          }), { status: 403, headers: corsHeaders })
+        }
+      }
+      delete data.user_id
+    }
+
     // ── Hết hạn dùng thử = KHOÁ với khách mời ────────────────────────────────
     // Chặn ở đây chứ không ở client: link thiệp là công khai, ẩn bằng JS thì ai
     // xem source cũng lấy được dữ liệu. Chỉ chặn đường tra theo SLUG (đường công
-    // khai); tra theo id (UUID quản lý, chỉ chủ thiệp có) vẫn mở để trình chỉnh
-    // sửa nạp được thiệp — khách vẫn sửa và xuất bản bình thường, chỉ là xuất bản
+    // khai); tra theo id — đã xác thực là chủ thiệp ở trên — vẫn mở để trình chỉnh
+    // sửa nạp được thiệp: khách vẫn sửa và xuất bản bình thường, chỉ là xuất bản
     // xong vẫn khoá cho tới khi thanh toán (thanh toán xong expires_at = null).
     if (!isAdmin) {
       const trialOver = !!data.expires_at && new Date(data.expires_at).getTime() < Date.now()

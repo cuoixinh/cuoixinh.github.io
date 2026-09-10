@@ -34,8 +34,8 @@ let _isLocalDraft = false;
 // bản, và tự cập nhật theo mọi biến động phiên nhờ _watchLoginState().
 let IS_LOGIN = false;
 
-// IS_PUBLISHED là cờ ĐỌC TỪ DỮ LIỆU, KHÔNG phải quyền: getWeddingById dùng ANON
-// KEY nên người đã đăng xuất vẫn đọc được, và bản nháp trong cache cũng giữ cờ đó.
+// IS_PUBLISHED là cờ ĐỌC TỪ DỮ LIỆU, KHÔNG phải quyền: bản nháp trong cache cũng
+// giữ cờ đó, và nó nói thiệp đã xuất bản hay chưa chứ không nói ai đang xem.
 // Nút/chức năng thực chất cần đăng nhập (nhãn "Lưu & Xuất bản", ẩn "Lưu nháp",
 // panel khách mời) phải xét `IS_PUBLISHED && IS_LOGIN`.
 let IS_PUBLISHED = false;

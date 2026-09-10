@@ -10,7 +10,7 @@ const USE_CACHE = true;
 // Bản thân file này KHÔNG mang `?v=` (nó là mỏ neo, phải đọc được version từ
 // nó trước đã) → trên Cloudflare phải có Cache Rule bypass `/core/config.js`,
 // nếu không đổi số ở đây cũng vô nghĩa.
-const CX_VERSION = "2026.09.10-3";
+const CX_VERSION = "2026.09.10-4";
 
 // Thẻ <link> CSS viết cứng trong HTML không tự mang `?v=` → dễ rơi vào cảnh
 // HTML/partial đã là bản mới mà CSS vẫn là bản cũ (trang không vỡ, chỉ sai bố
@@ -75,7 +75,13 @@ const CONFIG = {
     purgeSecret: "9JMoLdvCWhD2W0CGJpsiq+7n/xESNgq6m91bm70cDkg=",
   },
 
-  // Encryption & Security
+  // KHÔNG PHẢI BẢO MẬT. Khoá này đi kèm bundle nên ai mở F12 cũng đọc được, và
+  // AES ở đây chỉ để tham số name/relationship trên link khách mời trông không
+  // lộ liễu — giải mã được ở client KHÔNG chứng minh người gửi là khách mời.
+  // Cổng thật nằm ở Edge Function guest-handler (khớp một hàng `guests` theo
+  // slug + tên + xưng hô); đừng bao giờ dời phép kiểm tra đó lên trang.
+  // Đổi giá trị này là MỌI link đã phát cho khách mời giải mã hỏng — chỉ đổi khi
+  // chấp nhận điều đó, và phải làm thành một việc riêng.
   security: {
     encryptionKey: "dqvinh",
   },

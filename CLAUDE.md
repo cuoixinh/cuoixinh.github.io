@@ -204,6 +204,26 @@ deploy thì đọc `docs/deploy-cloudflare-pages.md` trước.
 - Bỏ `--dist` thì script quay về chế độ copy sang một repo khác trên máy (`npm run
   deploy:public` / `deploy.bat`) — giữ làm đường lùi về GitHub Pages.
 
+### Kho ảnh (Supabase Storage)
+
+Mọi ảnh khách tải lên nằm CHUNG một bucket **`wedding-images`** (`core/dal/storage-dal.js`),
+bucket để **public** — thiệp hiển thị ảnh qua `/object/public/...`, đường này KHÔNG đi qua
+RLS nên khách mời không đăng nhập vẫn xem được.
+
+- **Tên file không được chứa `wedding_id`** (hay bất cứ định danh nào tra ngược ra thiệp).
+  Ai liệt kê được bucket sẽ suy ra id rồi lấy tiếp hồ sơ qua Edge Function — đúng lỗ hổng
+  `changelogs/RC1.15` vá. Liên hệ file ↔ thiệp giữ ở các cột `*_url` của hàng DB;
+  `wedding-admin` (`deleted_images`) và `cleanup-weddings` đều đọc từ đó.
+- **Policy trên `storage.objects` chỉ cấp `select`/`insert` cho `authenticated`.** Không cấp
+  `delete`/`update` cho ai: xoá ảnh là việc của Edge Function bằng service_role (bỏ qua RLS),
+  và nó kiểm ảnh có thuộc đúng thiệp không trước khi xoá. Thêm policy cho `anon` là mở lại
+  đường liệt kê toàn bộ kho.
+- Kéo theo: **chưa đăng nhập thì KHÔNG upload** (`invitation-setup/js/12-uploads.js` chặn
+  sẵn). Nháp của khách chưa đăng nhập — kể cả ảnh — nằm trong IndexedDB, đẩy lên ở lần lưu
+  đầu tiên sau khi đăng nhập.
+- **Tra thiệp theo `?id=` phải là chủ thiệp** (`getWeddingById` gửi token người dùng). `id`
+  là ĐỊNH DANH, không phải quyền; đường công khai duy nhất là `?slug=`.
+
 ### Auth
 
 - **`core/auth.js` (`window.CXAuth`) là nguồn sự thật DUY NHẤT.** Không tự parse

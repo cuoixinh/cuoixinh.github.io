@@ -58,14 +58,12 @@ class WeddingDAL {
     return data;
   }
 
+  // PHẢI gửi token người dùng: từ RC1.15 server chỉ trả thiệp theo id cho chính
+  // chủ thiệp (xem wedding-admin). Gửi anon key trần là ăn 403.
   async getWeddingById(id) {
     const response = await fetch(
       `${this.edgeUrl}?id=${encodeURIComponent(id)}`,
-      {
-        headers: {
-          Authorization: `Bearer ${this.anonKey}`,
-        },
-      },
+      { headers: await this._authHeaders() },
     );
 
     if (!response.ok) {
