@@ -65,18 +65,34 @@ proxy/cache đó vẫn deploy tay từ thư mục riêng.
 Giới hạn gói Free giống hệt Pages: static asset request miễn phí không giới hạn, 20.000
 file, 25 MiB mỗi file (đang dùng 402 file, file to nhất 1,5 MB).
 
-## 4. Thứ tự chuyển đổi (không được đảo)
+## 4. Thứ tự chuyển đổi
 
-1. Dựng project, deploy thử, **test kỹ trên `<project>.workers.dev`** — lúc này
-   `cuoixinh.com` vẫn chạy GitHub Pages, chưa đụng gì. Bắt buộc thử: một **slug thiệp thật**
-   (kiểm `not_found_handling`), trang Thiết lập, luồng thanh toán, và `/admin` phải ra 404.
-2. Worker → Settings → Domains & Routes → thêm `cuoixinh.com`. Zone đã ở Cloudflare nên DNS
-   tự đổi, không phải chờ propagation.
-3. Xác nhận web chạy đúng ở domain thật.
-4. **Rồi mới** đổi repo sang Private trên GitHub, và tắt GitHub Pages
-   (Settings → Pages → Source: None).
+**Đổi repo sang Private là tắt web ngay** (gói free không cho GitHub Pages build từ repo
+private), nên nếu còn đang chạy GitHub Pages thì để bước đó CUỐI CÙNG. Lần chuyển này repo
+đã private trước, chấp nhận web tắt trong lúc dựng.
 
-Đảo bước 4 lên trước là web chết ngay: gói free không cho GitHub Pages build từ repo private.
+1. **`git push`.** Cloudflare build từ `origin`, không phải từ máy bạn. Chưa push thì nó
+   dựng bản cũ — triệu chứng rất khó đoán (xem §12).
+2. Dựng project theo §3, chờ build + deploy xong.
+3. **Xoá bản ghi DNS cũ của apex.** Cloudflare từ chối gắn custom domain khi tên đó đã có
+   bản ghi (*"already has externally managed DNS records"*). Zone → DNS → Records, xoá đúng
+   các bản ghi `A`/`AAAA`/`CNAME` có Name = `cuoixinh.com` (dải GitHub Pages
+   `185.199.10x.153`).
+   **GIỮ NGUYÊN `MX` và `TXT`** — zone này chạy Cloudflare Email Routing
+   (`route1..3.mx.cloudflare.net` + SPF); xoá là mất email của domain, mà Cloudflare không
+   hỏi lại.
+4. Worker → Settings → Domains & Routes → thêm `cuoixinh.com`. Zone cùng tài khoản nên nó
+   tự tạo bản ghi và cấp SSL, không phải chờ propagation. Muốn `www` chạy thì làm y hệt
+   (xoá bản ghi cũ rồi thêm domain thứ hai), hoặc đặt Redirect Rule về apex.
+5. Kiểm trên `cuoixinh.com` theo thứ tự này — mỗi mục bắt một lỗi khác nhau:
+   trang chủ · **một slug thiệp thật** (kiểm `not_found_handling`) · trang Thiết lập lưu
+   nháp được (CORS + Edge Function) · `/admin` phải ra **404** · Ctrl+F5 xem CSS/ảnh đủ.
+
+**Đừng test trên `<project>.workers.dev`.** Origin đó không nằm trong `ALLOWED_ORIGINS` của
+`wedding-admin`/`guest-handler` nên mọi lệnh gọi API bị CORS chặn: trang chủ hiện ra bình
+thường còn thiệp và trang Thiết lập thì hỏng, rất dễ tưởng nhầm là lỗi deploy. Muốn dùng
+workers.dev để test thì phải thêm origin đó vào hai Edge Function rồi
+`npm run deploy:functions`.
 
 ## 5. Bản publish gồm gì
 
@@ -202,6 +218,8 @@ Giữ chế độ này để còn đường quay lại GitHub Pages nếu Cloudf
 
 | Hiện tượng                                   | Nguyên nhân thường gặp                                                    |
 | -------------------------------------------- | -------------------------------------------------------------------------- |
+| Log hỏi "Thư mục repo public:" rồi Success mà không có `dist/` | **Chưa push** — Cloudflare đang chạy bản script cũ chưa có `--dist` |
+| `Asset too large … node_modules/workerd 146 MiB` | **Chưa push `wrangler.jsonc`** — wrangler tự tạo config với `directory: "."` rồi gom cả repo |
 | Build fail ở `npm ci`                        | `package-lock.json` lệch `package.json` — commit cả hai                     |
 | Build fail, log có "✖ Phát hiện thứ giống secret" | Đúng như tên gọi. Gỡ giá trị đó ra, hoặc thêm vào `REDACT`             |
 | Build xanh nhưng web trắng / thiếu file      | Thư mục mới chưa khai vào `INCLUDE`                                        |
