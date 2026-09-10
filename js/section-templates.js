@@ -1,8 +1,8 @@
-// ============= MỤC "MẪU PHỔ BIẾN" =============
+// ============= MỤC "MẪU THIỆP" =============
 
-// Dải ngang lấy N mẫu ĐẦU danh sách (`templates` đã sắp theo `sort_order` ở
-// templates-dal.js) — không có tiêu chí phổ biến riêng nào trong DB.
-const POPULAR_COUNT = 10;
+// Dải ngang toàn bộ mẫu đang bán (`templates` đã sắp theo `sort_order` ở
+// templates-dal.js). Cuộn ngang bằng cuộn thật của trình duyệt: cuộn native tự
+// huỷ cú click khi ngón tay đã trượt nên bấm vào thẻ để xem trước là an toàn.
 
 // Một thẻ = ĐÚNG thẻ mẫu của /theme-template (.tt-card, style ở
 // styles/tailwind-src.css): ảnh bấm để xem trước, tên, mô tả, cụm giá rồi hai
@@ -11,14 +11,14 @@ const POPULAR_COUNT = 10;
 // riêng trang đó).
 // Hàng giá gốc LUÔN có mặt (mẫu không giảm giá thì rỗng) để mọi thẻ cùng chiều
 // cao, dải không so le.
-function popularCard(t) {
+function templateCard(t) {
   const off =
     t.originalPrice > t.price
       ? `<span class="tt-price-old">${t.originalPrice.toLocaleString("vi-VN")}<span class="tt-cur">đ</span></span>`
       : "";
 
   return `
-    <article class="tt-card cx-popcard">
+    <article class="tt-card cx-tplcard">
       <div class="tt-media" role="button" tabindex="0" aria-label="Xem trước ${t.name}"
            onclick="openPreview('${t.id}')"
            onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openPreview('${t.id}')}">
@@ -49,22 +49,21 @@ function popularCard(t) {
 
 // Cuộn gần trọn một khung nhìn của dải, chừa lại một thẻ làm mốc để mắt bắt
 // được mình vừa đi tới đâu.
-function scrollPopular(dir) {
-  const row = document.getElementById("popularRow");
+function scrollTemplates(dir) {
+  const row = document.getElementById("templatesRow");
   if (!row) return;
   row.scrollBy({ left: dir * row.clientWidth * 0.8, behavior: "smooth" });
 }
 
-function renderPopularTemplates() {
-  const row = document.getElementById("popularRow");
-  const section = document.getElementById("popular");
+function renderTemplateCards() {
+  const row = document.getElementById("templatesRow");
+  const section = document.getElementById("templates");
   if (!row || !section) return;
 
-  const list = templates.slice(0, POPULAR_COUNT);
   // Tải hỏng thì giấu cả mục: một tiêu đề với dải rỗng bên dưới khó hiểu hơn là
   // không có mục nào.
-  section.hidden = !list.length;
-  row.innerHTML = list.map(popularCard).join("");
+  section.hidden = !templates.length;
+  row.innerHTML = templates.map(templateCard).join("");
   // lucide KHÔNG tự quét lại markup chèn động — thiếu dòng này là mất icon.
   window.lucide?.createIcons({ root: row });
 }

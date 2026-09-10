@@ -27,11 +27,6 @@
 :root {
   --music-art-from-rgb: var(--surface-blossom-rgb);
   --music-art-to-rgb: var(--surface-blossom-strong-rgb);
-
-  /* Tỉ lệ thân máy của assets/images/iphone_mockup.svg (383/785) — mọi thẻ mẫu
-     thiệp ở trang chủ dựng theo dáng này để ảnh chụp không méo so với bản xem
-     trước. Dùng ở cả .carousel-3d-card lẫn .cx-popcard-frame. */
-  --cx-ph-ar: 0.4879;
 }
 
 @keyframes heroFadeUp {
@@ -127,110 +122,6 @@ html.cx-landing {
   -webkit-text-fill-color: transparent;
   background-clip: text;
   filter: drop-shadow(0 2px 4px rgb(var(--action-accent-rgb) / 0.2));
-}
-
-/* Carousel Navigation Buttons */
-.carousel-nav-btn {
-  @apply absolute top-1/2 -translate-y-1/2 z-10 flex h-12 w-12 cursor-pointer
-    items-center justify-center rounded-full bg-white/95 backdrop-blur-sm;
-  color: rgb(var(--landing-text-dark-rgb));
-  border: 2px solid rgb(var(--surface-blossom-strong-rgb) / 0.5);
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 6px rgb(var(--scrim-rgb) / 0.1);
-}
-.carousel-nav-btn:hover {
-  @apply -translate-y-1/2 scale-110 border-pink-200 bg-pink-200;
-  color: rgb(var(--landing-text-dark-rgb));
-  box-shadow: 0 10px 20px rgb(var(--surface-blossom-strong-rgb) / 0.4);
-}
-.carousel-nav-btn:active {
-  @apply -translate-y-1/2 scale-95;
-}
-.carousel-nav-btn i {
-  @apply text-xl;
-}
-.carousel-prev-btn {
-  @apply left-4;
-}
-.carousel-next-btn {
-  @apply right-4;
-}
-@media (max-width: 640px) {
-  .carousel-nav-btn {
-    @apply h-10 w-10;
-  }
-  .carousel-nav-btn i {
-    @apply text-base;
-  }
-}
-
-/* Carousel Cards */
-.template-card-carousel {
-  @apply flex-none overflow-hidden rounded-xl bg-white;
-  width: 280px;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 6px rgb(var(--scrim-rgb) / 0.1);
-  border: 1px solid rgb(var(--surface-blossom-strong-rgb) / 0.3);
-}
-@media (min-width: 768px) {
-  .template-card-carousel {
-    width: 320px;
-  }
-}
-.template-card-carousel:hover {
-  @apply border-pink-200;
-  box-shadow: 0 8px 12px rgb(var(--scrim-rgb) / 0.15);
-}
-@media (max-width: 768px) {
-  .template-card-carousel {
-    width: 260px;
-  }
-}
-
-.template-thumbnail-carousel {
-  @apply relative overflow-hidden;
-  aspect-ratio: 3/4;
-}
-.template-thumbnail-carousel img {
-  @apply block h-full w-full object-cover transition-none;
-}
-.template-overlay-carousel {
-  @apply absolute inset-0 flex items-center justify-center bg-black/30
-    opacity-0 transition-opacity duration-300;
-}
-.template-thumbnail-carousel:hover .template-overlay-carousel {
-  @apply opacity-100;
-}
-
-.btn-preview-carousel {
-  @apply inline-flex cursor-pointer items-center rounded-full border-none
-    bg-white px-6 py-3 font-semibold;
-  color: rgb(var(--text-body-rgb));
-  transition: all 0.3s ease;
-}
-.btn-preview-carousel:hover {
-  @apply bg-pink-200;
-  color: rgb(var(--brand-primary-rgb));
-}
-
-.template-info-carousel {
-  @apply p-4;
-}
-.template-info-carousel p {
-  @apply line-clamp-2 leading-normal;
-  min-height: 3em; /* 2 dòng * line-height 1.5 */
-  max-height: 3em;
-}
-
-.btn-choose-carousel {
-  @apply w-full cursor-pointer rounded-full border-none px-4 py-2 text-sm
-    font-semibold text-white;
-  background-color: rgb(var(--brand-primary-rgb));
-  transition: all 0.3s ease;
-}
-.btn-choose-carousel:hover {
-  background-color: rgb(var(--brand-primary-strong-rgb));
-  box-shadow: 0 4px 8px rgb(var(--brand-primary-rgb) / 0.4);
 }
 
 .template-features-wrapper {
@@ -731,22 +622,6 @@ html.cx-landing {
 
 #templates {
   background: rgb(var(--surface-tint-rgb));
-  /* Thanh tab dưới (.cx-tabbar) là `fixed` và chỉ hiện dưới md; mục này cao
-     đúng MỘT MÀN nên đáy nó nằm ngay dưới thanh — không chừa thì hai nút ở
-     #templateMeta bị che hẳn. 65px = chiều cao thẻ tab + 8px lề của nó. */
-  padding-bottom: 65px;
-}
-
-@media (min-width: 768px) {
-  #templates {
-    padding-bottom: 0;
-  }
-}
-
-/* Cùng nền với #templates để hai mục về mẫu thiệp đọc như một mảng liền, và để
-   dải chuyển sang trắng ở đầu #inside vẫn đúng. */
-#popular {
-  background: rgb(var(--surface-tint-rgb));
 }
 
 #inside {
@@ -790,137 +665,12 @@ html.cx-landing {
   );
 }
 
-/* ══ CAROUSEL 3D "VÒNG XOAY" Ở TRANG CHỦ ═══════════════════════════════════
-   Thẻ mẫu = ẢNH CHỤP THIỆP bo góc, KHÔNG vẽ khung điện thoại — chỉ mượn TỈ LỆ
-   thân máy của assets/images/iphone_mockup.svg (383/785 = 0.4879, cùng dáng với
-   bản xem trước) để ảnh chụp không bị méo so với lúc xem thật.
-   Khổ thẻ tính từ BỀ NGANG khung nhìn và --vh — KHÔNG suy từ chiều cao thật của
-   khung: trên iPhone thanh URL ẩn/hiện lúc cuộn làm chiều cao đổi liên tục, thẻ
-   sẽ phình co theo. --vh là px khoá sẵn nên đứng yên.
-   `--cx-chrome-h` là toàn bộ chiều cao của mục KHÔNG phải thiệp: tiêu đề + hàng
-   chấm + khối #templateMeta, cộng thanh tab dưới ở khổ hẹp. Khối meta xếp DỌC ở
-   khổ hẹp và gom về MỘT HÀNG từ lg nên ba mức khác nhau — đổi bố cục khối meta
-   thì phải đo lại — và đo ở màn HẸP NHẤT: dòng phụ đề dưới tiêu đề mục xuống
-   hai dòng ở đó, thiếu chỗ là thẻ tràn khỏi sân khấu (stage để overflow visible)
-   và đè lên khối meta. Sàn 120px để màn rất thấp (điện thoại xoay ngang) ra thẻ
-   bé chứ không ra số ÂM: min() âm là khai không hợp lệ, thẻ mất luôn khổ. Sàn
-   để THẤP đúng bằng mức chống vỡ — sàn cao thì ở màn thấp nó thắng cả phép tính
-   theo chiều cao, thẻ lại tràn ra ngoài sân khấu.
-   Trần 58vw đi CẶP với --cx-ring-spread ở khổ hẹp: thẻ dáng máy rất cao nên
-   rộng thêm một chút là mép thẻ chính đã sát mép màn và bốn thẻ phụ nằm khuất
-   hẳn sau nó (bị màn CẮT chứ không phải bị đè). Nới trần thì phải hạ spread
-   theo — và ngược lại — nếu không chỉ còn thấy 3 thẻ. */
-.carousel-3d-stage {
-  @apply relative min-h-0 w-full overflow-visible;
-
-  --cx-chrome-h: 359px;
-  /* Khai HAI LẦN như #hero: dòng đầu dự phòng cho trình duyệt chưa hiểu svh —
-     `min()` mà chứa một đơn vị lạ thì hỏng CẢ khai báo, thẻ mất luôn khổ. */
-  --cx-ph-w: max(
-    60px,
-    min(58vw, 300px, calc((var(--vh, 1vh) * 100 - var(--cx-chrome-h)) * 0.4879))
-  );
-  --cx-ph-w: max(
-    60px,
-    min(58vw, 300px, calc((var(--vh, 1svh) * 100 - var(--cx-chrome-h)) * 0.4879))
-  );
-  /* Số thẻ PHỤ mỗi bên thẻ đang mở → điện thoại hiện tối đa 5 thẻ (1 chính + 4
-     phụ), máy tính 7. Đừng vượt CARD_WINDOW ở js/render-templates.js — quá đó
-     thì thẻ chưa có mặt trong DOM. */
-  --cx-side: 2;
-  /* Độ xoè ngang của vòng xoay, nhân vào quãng dịch của mọi thẻ phụ.
-     Ở điện thoại xoè HẸP LẠI (0.82) chứ không phải để 1: thẻ chính đã chiếm gần
-     hết bề ngang màn nên thẻ phụ phải nép ra sau nó, xoè đúng 1 là chúng bị mép
-     màn cắt mất phần ló. Màn rộng thì ngược lại — thẻ vẫn bị chiều cao khung
-     ghìm khổ, không xoè thêm là cả vòng xoay co cụm một cục giữa màn. */
-  --cx-ring-spread: 0.82;
-}
-
-@media (min-width: 640px) {
-  .carousel-3d-stage {
-    --cx-ring-spread: 1;
-  }
-}
-
-/* Từ md không còn thanh tab dưới. */
-@media (min-width: 768px) {
-  .carousel-3d-stage {
-    --cx-chrome-h: 306px;
-  }
-}
-
-@media (min-width: 1024px) {
-  .carousel-3d-stage {
-    --cx-chrome-h: 254px;
-    --cx-ph-w: max(
-      60px,
-      min(
-        58vw,
-        360px,
-        calc((var(--vh, 1vh) * 100 - var(--cx-chrome-h)) * 0.4879)
-      )
-    );
-    --cx-ph-w: max(
-      60px,
-      min(
-        58vw,
-        360px,
-        calc((var(--vh, 1svh) * 100 - var(--cx-chrome-h)) * 0.4879)
-      )
-    );
-    --cx-side: 3;
-    --cx-ring-spread: 1.4;
-  }
-}
-
-/* perspective đặt ở ĐÂY chứ không ở .carousel-3d-stage: nó chỉ ăn xuống CON
-   TRỰC TIẾP, mà con của stage là track. Tính theo bề ngang thẻ nên độ "sâu" của
-   vòng xoay giống nhau ở mọi khổ màn. */
-.carousel-3d-track {
-  @apply absolute inset-0;
-  perspective: calc(var(--cx-ph-w) * 2.8);
-}
-
-/* pointer-events: none để cú bấm KHÔNG bao giờ dừng ở thiệp — vòng xoay chỉ
-   nhận cử chỉ vuốt, mà listener vuốt nằm ở sân khấu nên thẻ trong suốt với
-   con trỏ là đúng thứ cần. */
-.carousel-3d-card {
-  @apply pointer-events-none absolute left-1/2 top-1/2 will-change-transform;
-  width: var(--cx-ph-w);
-  height: calc(var(--cx-ph-w) / var(--cx-ph-ar));
-  margin-left: calc(var(--cx-ph-w) / -2);
-  margin-top: calc(var(--cx-ph-w) / var(--cx-ph-ar) / -2);
-  /* Nhịp xoay dài hơn nhịp mờ: thẻ phải XOAY thấy rõ rồi mới lặn, nếu mờ trước
-     thì cú vuốt chỉ còn là một cái chớp. */
-  transition:
-    transform 0.62s cubic-bezier(0.22, 0.61, 0.36, 1),
-    opacity 0.42s ease;
-}
-/* Ruột thẻ: ảnh thiệp bo góc. Bo theo % để thẻ khổ nào cũng cân — thẻ phụ bị
-   thu nhỏ bằng phối cảnh chứ không đổi khổ CSS nên tỉ lệ bo giữ nguyên. */
-.cx-tcard {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  border-radius: 9% / 4.4%;
-  background: rgb(var(--white-rgb));
-  box-shadow: 0 12px 26px -12px rgb(var(--shadow-card-rgb) / 0.4);
-}
-
-/* Thẻ đang mở nổi hẳn lên khỏi mấy thẻ phía sau. */
-.carousel-3d-card.is-active .cx-tcard {
-  box-shadow: 0 26px 50px -16px rgb(var(--shadow-card-rgb) / 0.5);
-}
-
-/* ══ DẢI "MẪU PHỔ BIẾN" ════════════════════════════════════════════════════
-   Danh sách cuộn NGANG bằng cuộn thật của trình duyệt, không phải vòng xoay 3D:
-   cuộn native tự huỷ cú click khi ngón tay đã trượt, nên ở đây bấm vào thẻ để
-   xem trước là an toàn — khác mục Mẫu thiệp, nơi cú vuốt do JS bắt nên mọi
-   click đều thành bấm nhầm.
+/* ══ DẢI "MẪU THIỆP" Ở TRANG CHỦ ══════════════════════════════════════════
+   Danh sách cuộn NGANG bằng cuộn thật của trình duyệt: cuộn native tự huỷ cú
+   click khi ngón tay đã trượt, nên bấm vào thẻ để xem trước là an toàn.
    Giấu thanh cuộn: dải chỉ cao hơn thẻ vài px nên thanh cuộn ngang của Chrome/
    Windows ăn mất một khoảng ngay dưới ảnh, trông như thẻ bị cắt chân. */
-.cx-poprow {
+.cx-tplrow {
   @apply flex gap-4 overflow-x-auto px-5 pb-2 pt-1;
   scroll-snap-type: x mandatory;
   /* Bằng padding hai bên, nếu không thẻ snap tới sẽ dính sát mép dải. */
@@ -929,20 +679,20 @@ html.cx-landing {
   -webkit-overflow-scrolling: touch;
 }
 
-.cx-poprow::-webkit-scrollbar {
+.cx-tplrow::-webkit-scrollbar {
   display: none;
 }
 
 /* Một thẻ của dải = ĐÚNG thẻ .tt-card của /theme-template, chỉ thêm khổ cố định
    và điểm dừng khi cuộn. Không có tagrow nên ảnh sát mép trên của vỏ thẻ. */
-.cx-popcard {
+.cx-tplcard {
   @apply w-[min(62vw,232px)] shrink-0 sm:w-[240px] lg:w-[248px];
   scroll-snap-align: start;
 }
 
 /* ══ THẺ MẪU THIỆP (.tt-card) ══════════════════════════════════════════════
-   Dùng ở HAI chỗ: lưới mẫu ở /theme-template và dải "Mẫu phổ biến" ở trang chủ
-   (js/section-popular.js). Nằm ở đây chứ không phải trong <style> của
+   Dùng ở HAI chỗ: lưới mẫu ở /theme-template và dải "Mẫu thiệp" ở trang chủ
+   (js/section-templates.js). Nằm ở đây chứ không phải trong <style> của
    theme-template để hai nơi không bao giờ lệch nhau — sửa hình thức thẻ là sửa
    một chỗ.
    Biến màu cục bộ của theme-template (--fg/--muted/--primary) đã thay bằng
@@ -1169,124 +919,6 @@ html.cx-landing {
     bg-white/85 p-2;
   transition: box-shadow 0.5s;
   box-shadow: 0 2px 12px rgb(var(--card-blush-300-rgb) / 0.1);
-}
-
-/* Lề dọc của khối tiêu đề mục nằm Ở ĐÂY chứ không phải một utility `py-*` trên
-   thẻ: khối @media bên dưới nén nó ở màn thấp, mà utility và class này cùng độ
-   đặc hiệu — utility do Tailwind sinh ra sau nên sẽ thắng và phần nén thành vô
-   nghĩa. */
-.cx-tplhead {
-  @apply py-6;
-}
-
-/* ── THẺ NỔI "TÊN MẪU + HAI NÚT" ───────────────────────────────────────────
-   Chữ bên trái, hai nút bên phải. Dùng ở HAI chỗ: khối dưới vòng xoay
-   (#templateMeta) và từng thẻ của dải "Mẫu phổ biến" — để hình thức hai nơi
-   không bao giờ lệch nhau thì mọi thứ chung nằm ở đây, chỗ dùng chỉ ghi đè
-   khổ cột nút và chiều cao tối thiểu của cột chữ. */
-.cx-metacard {
-  @apply flex items-center gap-3 rounded-2xl p-3;
-  background: rgb(var(--white-rgb));
-  border: 1px solid rgb(var(--brand-primary-rgb) / 0.22);
-  box-shadow:
-    0 2px 6px -2px rgb(var(--shadow-card-rgb) / 0.14),
-    0 16px 36px -14px rgb(var(--shadow-card-rgb) / 0.4);
-}
-
-/* min-w-0 là BẮT BUỘC, không phải cho đẹp: ô flex mặc định không hẹp hơn nội
-   dung của nó, thiếu nó thì truncate/line-clamp không bao giờ cắt mà cột chữ
-   phình ra đẩy hai nút tràn khỏi thẻ. */
-.cx-metacard-text {
-  @apply min-w-0 flex-1 text-left;
-}
-
-.cx-metacard-name {
-  @apply truncate text-lg font-semibold leading-snug;
-  color: rgb(var(--text-heading-rgb));
-}
-
-.cx-metacard-desc {
-  @apply mt-0.5 line-clamp-2 text-xs leading-relaxed;
-  color: rgb(var(--text-body-rgb) / 0.85);
-}
-
-/* Hai nút xếp DỌC: xếp ngang thì cột nút ăn hơn nửa bề ngang thẻ, phần chữ còn
-   lại hẹp tới mức tên mẫu nào cũng bị cắt. Khổ cột do chỗ dùng đặt, cố định để
-   tên mẫu dài ngắn không kéo hai nút to nhỏ theo. */
-.cx-metacard-actions {
-  @apply flex shrink-0 flex-col gap-2;
-}
-
-/* ── Khối dưới vòng xoay (#templateMeta) ───────────────────────────────────
-   Khổ ngang giữ hẹp dù vòng xoay rộng hơn — nới ra thì thẻ này trôi sang tận
-   dưới mấy thẻ phụ mờ, không còn dính với thẻ đang mở ở giữa. */
-.cx-tplmeta {
-  @apply mx-auto w-full max-w-md;
-}
-
-.cx-tplmeta .cx-metacard-text {
-  @apply min-h-[52px];
-}
-
-.cx-tplmeta .cx-metacard-actions {
-  @apply w-[124px];
-}
-
-/* Chỉ ở đây mới có chỗ cho hai nút nằm ngang. */
-@media (min-width: 1024px) {
-  .cx-tplmeta {
-    @apply max-w-2xl;
-  }
-
-  .cx-tplmeta .cx-metacard-actions {
-    @apply w-auto flex-row;
-  }
-}
-
-/* Chữ đổi ngay lúc bấm còn thẻ thì bay 0.62s — cho cụm chữ nhoè vào một nhịp
-   ngắn để hai thứ không lệch pha. Chạy lại bằng cách gỡ/gắn class ở JS. */
-@keyframes cx-meta-in {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-}
-
-.cx-metacard-text.is-swap {
-  animation: cx-meta-in 0.35s ease both;
-}
-
-/* Màn thấp mà HẸP (điện thoại đời nhỏ): thiệp dáng máy cao gấp đôi bề ngang nên
-   mỗi px nhường cho chữ là thiệp hụt hai px. Nén tiêu đề mục và cắt mô tả còn
-   một dòng để thẻ còn ra hình; --cx-chrome-h phải tăng THEO phần nén, nếu không
-   thẻ vẫn tính theo khổ cũ và tràn xuống đè khối meta.
-   Chặn ở 1023px vì từ lg khối meta đã nằm gọn một hàng — màn rộng-mà-thấp
-   (netbook) mà ăn thêm khối nén này thì thẻ bé đi vô cớ. */
-@media (max-height: 720px) and (max-width: 1023px) {
-  .carousel-3d-stage {
-    --cx-chrome-h: 336px;
-  }
-
-  .cx-tplhead {
-    @apply py-3;
-  }
-
-  .cx-tplmeta .cx-metacard-text {
-    @apply min-h-[40px];
-  }
-
-  .cx-metacard-desc {
-    -webkit-line-clamp: 1;
-  }
-}
-
-.carousel-dot {
-  @apply h-2 cursor-pointer rounded-full border-none;
-  transition: all 0.3s ease;
-}
-#carouselPrevBtn,
-#carouselNextBtn {
-  @apply z-30;
 }
 
 /* Navbar do core/components/navbar.js dựng (.cx-navbar/.cx-navcard ở

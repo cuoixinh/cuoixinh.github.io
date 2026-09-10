@@ -77,8 +77,6 @@ function initializePage() {
   setupModalListeners();
   setupSmoothScroll();
   setupScrollAnimations();
-  initCarousel3D();
-  startImageScroll();
-  renderPopularTemplates();
+  renderTemplateCards();
 }
 
