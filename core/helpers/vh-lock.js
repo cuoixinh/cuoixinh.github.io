@@ -7,9 +7,10 @@
 // khối cao-một-màn cao dần lúc vuốt và ảnh phủ trong đó giật theo từng khung.
 // Chỉ px đo sẵn mới đứng yên.
 //
-// Lấy giá trị NHỎ NHẤT thấy được ở mỗi bề ngang — tức lúc thanh công cụ đang
-// hiện đủ, đúng bằng svh — nên chiều cao chỉ có thể co lại một lần rồi ổn định,
-// không bao giờ phình ra giữa lúc vuốt. Đổi bề ngang (xoay máy) thì đo lại từ đầu.
+// Đo MỘT LẦN lúc vào trang (đúng bằng svh, tức khung lúc thanh công cụ hiện đủ)
+// rồi giữ nguyên; chỉ đổi bề ngang (xoay máy) mới đo lại từ đầu. Bàn phím ảo là
+// lý do phải chốt cứng như vậy: Android resize webview khi bàn phím bung, đo lại
+// lúc đó là khoá vào một con số hụt cả trăm px, đóng bàn phím rồi khối vẫn thấp.
 //
 // CÁCH DÙNG trong CSS — luôn kèm đơn vị dự phòng cho lúc script chưa chạy:
 //   min-height: calc(var(--vh, 1vh) * 100);   /* trình duyệt chưa hiểu svh */
@@ -20,6 +21,24 @@
 (function () {
   let vhWidth = 0;
   let vhPx = 0;
+  // Đã có số đo từ svh cho bề ngang này chưa. Có rồi thì con số là chuẩn, đừng
+  // để nhánh co dưới đây đụng vào nữa.
+  let vhFromSvh = false;
+
+  // Bàn phím ảo đang bung (Android resize webview, kéo theo cả `innerHeight`
+  // lẫn `svh`) — mọi số đo lúc này đều hụt, bỏ qua hết. Đóng bàn phím sẽ có
+  // thêm một nhịp resize nữa để đo lại nếu cần.
+  function isTyping() {
+    const el = document.activeElement;
+    if (!el) return false;
+    const tag = el.tagName;
+    return (
+      tag === "INPUT" ||
+      tag === "TEXTAREA" ||
+      tag === "SELECT" ||
+      el.isContentEditable
+    );
+  }
 
   // Đo `100svh` ra px bằng một thẻ dò rồi bỏ đi. Trả 0 nếu trình duyệt chưa
   // hiểu svh (lúc đó nơi gọi lùi về `innerHeight`).
@@ -51,14 +70,20 @@
       doc.style.setProperty("--vh", `${h * 0.01}px`);
       return;
     }
+    if (vhPx && isTyping()) return;
     if (w !== vhWidth) {
       // Chỉ đo svh ở nhánh này (lần đầu + xoay máy): thanh công cụ ẩn/hiện không
       // đổi svh, mà resize thì bắn liên tục lúc vuốt — đo mỗi nhịp là ép layout
       // đúng lúc cần mượt nhất.
       vhWidth = w;
       const svh = measureSvh();
+      vhFromSvh = !!svh;
       vhPx = svh ? Math.min(h, svh) : h;
-    } else if (h < vhPx) {
+    } else if (!vhFromSvh && h < vhPx) {
+      // Chỉ trình duyệt KHÔNG hiểu svh mới tới đây: số đo đầu là `innerHeight`,
+      // có thể dính lúc thanh công cụ đang ẩn nên phải co xuống một lần cho
+      // đúng. Có svh rồi thì con số đã chuẩn từ đầu — co thêm là ăn phải bàn
+      // phím ảo hay thanh công cụ nửa vời.
       vhPx = h;
     } else {
       return;
