@@ -54,7 +54,9 @@ async function loadTemplates() {
     whenReady(showTemplatesError);
     return;
   }
-  whenReady(initializePage);
+  // Bọc trong hàm mũi tên chứ KHÔNG truyền thẳng `initializePage`: nó khai ở
+  // page-setup.js (nạp sau file này) nên đọc tên lúc này là ReferenceError.
+  whenReady(() => initializePage());
 }
 
 loadTemplates();

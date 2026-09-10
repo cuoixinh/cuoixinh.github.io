@@ -175,6 +175,18 @@
           <i data-lucide="chevron-right" style="width:16px;height:16px"></i>
         </x-button>
       </div>
+
+      <!-- Hàng chấm chỉ vị trí trong dải — MỘT chấm cho MỘT khung nhìn của dải
+           chứ không phải một chấm một mẫu (mẫu nhiều thì hàng chấm dài hơn cả
+           dải). js/section-templates.js dựng và đồng bộ theo cuộn.
+           Nằm NGOÀI khung `relative` của dải: hai nút mũi tên canh theo giữa
+           khung đó, thêm hàng chấm vào trong là chúng tụt xuống theo. -->
+      <div
+        id="templatesDots"
+        class="cx-tpldots"
+        role="tablist"
+        aria-label="Trang của dải mẫu thiệp"
+      ></div>
     </section>
 
     <!-- ===== INSIDE THE INVITATION ===== -->
