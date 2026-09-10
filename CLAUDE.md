@@ -426,14 +426,16 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   bóng · `btn` nút gửi · `fade` màn phủ neo dải xuống mép dưới — riêng `bubble` thêm
   `bubble_to` là nền đổ màu — và `opacity`; `btn` không khai thì rơi về `accent`).
   **Mẫu không khai thì `_cxWishAutoColors()` tự tính**: lấy hue của `--cx-accent-rgb` rồi
-  dựng CẢ BỘ bằng HSL — thiệp nền sáng (`--cx-card-bg-rgb`) → bong bóng là chính sắc đó ở
-  mức đậm (thiệp trắng + nhấn hồng ra bong bóng đỏ trầm), chữ nhạt cùng hue; nền tối →
-  ngược lại. **KHÔNG pha với đen/trắng bao giờ**: ép tương phản chỉ được đổi ĐỘ SÁNG, kẹp
-  trong `CX_WISH_L_MIN`/`CX_WISH_L_MAX` và có sàn độ bão hoà, nên màu đậm nhất vẫn là "đỏ
-  trầm / xanh rêu" chứ không ra một mảng đen. Ngưỡng `CX_WISH_TEXT_CR` (chữ) và
-  `CX_WISH_NAME_CR` (tên khách) — lời chúc TRÔI ĐÈ lên thiệp, lấy đúng mặt giấy `panel` của
-  mẫu là chìm nghỉm. Mẫu chỉ cần khai MỘT trong `bubble`/`text`/`accent`/`btn` là phép tự
-  tính tắt hẳn, mẫu tự lo cả bốn. Bong bóng, ô nhập
+  dựng CẢ BỘ bằng HSL — **KHÔNG pha với đen/trắng bao giờ**, ép tương phản chỉ được đổi ĐỘ
+  SÁNG (kẹp trong `CX_WISH_L_MIN`/`CX_WISH_L_MAX`). Bong bóng là **lớp kính màu nhạt**: sắc
+  của mẫu ở mức nhạt phủ lên thiệp với `CX_WISH_OPACITY` (50%), chữ và tên khách là chính
+  sắc đó nhưng đậm — mọi phép đo tương phản chạy trên màu ĐÃ CHỒNG (`_cxWishOver`), không
+  phải màu gốc. Ngưỡng `CX_WISH_TEXT_CR` (chữ) / `CX_WISH_NAME_CR` (tên khách); mặt giấy
+  còn bị ép tách khỏi nền thiệp một quãng, không thì lớp 50% tan hết vào thiệp. Mẫu nền TỐI
+  là ngoại lệ: chồng 50% lên nền gần đen thì màu rơi vào khoảng giữa, không đủ tương phản
+  với cả chữ đậm lẫn chữ nhạt → ở đó độ mờ tự nâng lên 0.82. Ô nhập đặc hơn bong bóng
+  (`CX_WISH_FIELD_A`) vì chữ đang gõ phải sắc. Mẫu chỉ cần khai MỘT trong
+  `bubble`/`text`/`accent`/`btn` là phép tự tính tắt hẳn, mẫu tự lo cả bốn. Bong bóng, ô nhập
   và bảng "Xem tất cả" dùng CHUNG mặt giấy đó. Màu dải là
   phần CỐ ĐỊNH của mẫu: khách KHÔNG chỉnh được, tab Giao diện không có mục nào cho nó.
   Cổng chặn "chỉ khách được mời" nằm ở Edge Function `guest-handler`

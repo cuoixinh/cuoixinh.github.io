@@ -1801,13 +1801,14 @@ button.cx-pchrome-btn:hover {
    env(safe-area-inset-bottom) — quy ước toàn project, xem .cx-tabbar. */
 .cx-wdock,
 .cx-wall {
-  /* Bảng màu riêng của dải: mặc định ăn theo token chung của thiệp, mẫu ghi đè
-     bằng CX_THEME.wishes — applyWishStyle() (core/helpers/wishes-helper.js)
-     đặt lại đúng mấy biến này. Khách KHÔNG chỉnh được, màu là của mẫu.
-     CẢ dải (bong bóng lẫn ô nhập) dùng CHUNG một mặt giấy: nền `panel` + chữ
-     `body` là cặp đã cân tương phản sẵn ở mọi mẫu, sáng lẫn tối. */
+  /* Bảng màu riêng của dải: applyWishStyle() (core/helpers/wishes-helper.js)
+     đặt lại đúng mấy biến này — tự tính từ sắc màu nhấn của mẫu, hoặc lấy
+     CX_THEME.wishes nếu mẫu có khai. Khách KHÔNG chỉnh được, màu là của mẫu.
+     Mấy giá trị dưới đây chỉ là bản dự phòng khi helper chưa chạy. Bong bóng để
+     TRONG (alpha 0.5) cho lộ thiệp phía sau, nên chữ phải đậm cùng sắc chứ
+     không phải chữ sáng trên nền đặc. */
   --cx-wish-bubble-rgb: var(--cx-panel-rgb);
-  --cx-wish-bubble-a: 0.94;
+  --cx-wish-bubble-a: 0.5;
   --cx-wish-text-rgb: var(--cx-body-rgb);
   --cx-wish-accent-rgb: var(--cx-accent-rgb);
   /* Nút Gửi tách khỏi tên khách, mặc định rơi về chính màu tên; nút có nền đặc
@@ -1817,12 +1818,11 @@ button.cx-pchrome-btn:hover {
   /* Chặng CUỐI khi nền bong bóng đổ màu — chỉ có giá trị khi applyWishStyle()
      gắn kèm cờ .cx-wg-bubble, nên mặc định để trùng chặng đầu là đủ an toàn. */
   --cx-wish-bubble-2-rgb: var(--cx-wish-bubble-rgb);
-  /* Ô nhập là CÙNG mặt giấy với bong bóng, chỉ đặc hơn một chút vì chữ khách gõ
-     vào đó phải sắc. Mặt giấy trùng màu thân thiệp (trắng trên trắng) vẫn tách
-     ra được nhờ viền màu nhấn + bóng đổ ở dưới — KHÔNG độn thêm tấm kính xám,
-     nền xám đè lên tông pastel của thiệp là ra một mảng đục. */
+  /* Ô nhập là CÙNG mặt giấy với bong bóng, chỉ đặc hơn vì chữ khách gõ vào đó
+     phải sắc và nó đứng yên một chỗ. KHÔNG độn thêm tấm kính xám, nền xám đè lên
+     tông pastel của thiệp là ra một mảng đục. */
   --cx-wish-field-rgb: var(--cx-wish-bubble-rgb);
-  --cx-wish-field-a: 0.96;
+  --cx-wish-field-a: 0.72;
   /* Màn TỐI ở ĐÁY dải (::before) — neo hàng nút + ô nhập xuống mép dưới. Cố ý
      tối ở mọi mẫu: thứ trôi bên dưới đủ mọi màu, chỉ một vệt tối mỏng là chỗ
      nào cũng ra được chiều sâu. Nó KHÔNG với tới danh sách lời chúc, và ô nhập
