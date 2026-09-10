@@ -10,6 +10,12 @@
   "name": "cuoixinh-github-io",
   "compatibility_date": "2026-09-10",
 
+  // Tắt <project>.workers.dev — web chỉ vào bằng cuoixinh.com / www.cuoixinh.com.
+  // Bật lại (true) nếu cần một đường vào tạm lúc custom domain có sự cố; nhưng nhớ
+  // origin workers.dev KHÔNG nằm trong ALLOWED_ORIGINS của Edge Function nên mọi
+  // lệnh gọi API sẽ bị CORS chặn, chỉ xem được trang tĩnh.
+  "workers_dev": false,
+
   "assets": {
     "directory": "./dist",
 
