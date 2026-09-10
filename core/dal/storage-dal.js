@@ -22,30 +22,11 @@ class StorageDAL {
     return filename;
   }
 
-  async deleteFile(filename) {
-    const { error } = await this.supabase.storage
-      .from(this.bucket)
-      .remove([filename]);
-
-    if (error) {
-      throw new Error(`Delete failed: ${error.message}`);
-    }
-  }
-
-  async deleteFiles(filenames) {
-    const results = [];
-
-    for (const filename of filenames) {
-      try {
-        await this.deleteFile(filename);
-        results.push({ filename, success: true });
-      } catch (error) {
-        results.push({ filename, success: false, error: error.message });
-      }
-    }
-
-    return results;
-  }
+  // CỐ Ý KHÔNG có deleteFile/deleteFiles ở đây. Role `authenticated` chỉ được
+  // `select`/`insert` trên storage.objects (changelogs/RC1.15) nên trình duyệt
+  // không xoá được file — và đó là điều mình muốn: xoá ảnh đi qua Edge Function
+  // `wedding-admin` (payload `deleted_images`), nơi service_role kiểm ảnh có
+  // thuộc đúng thiệp rồi mới xoá. Thêm hàm xoá ở đây là mở lại đường ghi thẳng.
 
   getPublicUrl(filename) {
     if (!filename) return "";

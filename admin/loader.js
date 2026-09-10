@@ -15,7 +15,7 @@
   ];
 
   // Thứ tự có phụ thuộc: config (CONFIG global) → core dùng chung (ADMIN_TOKEN,
-  // supabaseClient, switchTab) → helper xử lý ảnh + utils (focal point & crop
+  // switchTab) → helper xử lý ảnh + utils (focal point & crop
   // ảnh) → logic riêng từng tab.
   // core/config.js KHÔNG nằm ở đây: nó được nạp riêng ở bước mồi trong boot() để
   // lấy CONFIG.version, thêm vào đây nữa là nạp hai lần.

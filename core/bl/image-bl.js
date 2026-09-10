@@ -53,23 +53,6 @@ class ImageBL {
     return { filenames, errors };
   }
 
-  async deleteImages(filenames) {
-    if (!filenames || filenames.length === 0) {
-      return [];
-    }
-
-    // Filter out full URLs (only delete filenames)
-    const filenamesToDelete = filenames.filter(
-      (f) => f && !f.startsWith("http://") && !f.startsWith("https://"),
-    );
-
-    if (filenamesToDelete.length === 0) {
-      return [];
-    }
-
-    return await this.storage.deleteFiles(filenamesToDelete);
-  }
-
   generateUUID() {
     return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(
       /[xy]/g,

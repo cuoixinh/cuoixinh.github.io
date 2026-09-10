@@ -1,14 +1,15 @@
 // ============= CORE: config, auth token, tab switching =============
 // File này phải nạp đầu tiên (sau core/config.js) — các file theo tab
 // (01-weddings.js, 02-templates.js) đều dùng EDGE_URL/ANON_KEY/ADMIN_TOKEN/
-// supabaseClient/switchTab khai báo ở đây.
+// switchTab khai báo ở đây.
+//
+// KHÔNG tạo supabase client ở đây: admin đọc/ghi qua Edge Function bằng
+// `adminHeaders()`, một client trần chỉ mở lại đường gọi thẳng PostgREST.
 
 const EDGE_URL = CONFIG.supabase.edgeUrl;
 const ANON_KEY = CONFIG.supabase.anonKey;
-const SUPABASE_URL = CONFIG.supabase.url;
 const DOMAIN = window.location.origin;
 
-const supabaseClient = supabase.createClient(SUPABASE_URL, ANON_KEY);
 
 let ADMIN_TOKEN = sessionStorage.getItem("admin_token");
 if (!ADMIN_TOKEN) {

@@ -77,6 +77,13 @@ Không gọi thẳng UI → DAL khi có logic nghiệp vụ.
 
 ### Database (Supabase)
 
+- **Trình duyệt KHÔNG bao giờ gọi thẳng PostgREST (`/rest/v1/`).** Mọi đọc/ghi dữ liệu
+  đi qua Edge Function; role `anon` và `authenticated` không còn quyền trên bảng nào
+  (changelogs/RC1.16), nên thêm một lệnh gọi thẳng là nhận mảng rỗng chứ không phải lỗi —
+  im lặng, rất khó thấy. Ngoại lệ đúng hai chỗ, đều KHÔNG phải SQL: `/auth/v1/` (đăng
+  nhập, qua `core/auth.js`) và upload ảnh lên Storage (`core/dal/storage-dal.js`).
+  Worker ở `cloudflare-worker/` cũng theo luật này — chúng cache lại phản hồi của Edge
+  Function, không tự truy vấn bảng.
 - **MCP chỉ để ĐỌC** (project `lcobawmkywtxhpezndsh`). Dùng `list_tables`/`execute_sql` để
   biết schema thật — changelogs là lịch sử, không phải nguồn sự thật.
 - **Không sửa DB qua MCP.** Mọi thay đổi schema → script SQL **idempotent** trong

@@ -62,67 +62,36 @@ export default {
         return withClientCache(response, corsHeaders);
       }
 
-      console.log("Cache miss, fetching from Supabase");
+      console.log("Cache miss, fetching qua Edge Function");
 
-      // Fetch from Supabase
-      const supabaseUrl = env.SUPABASE_URL;
+      // Đi qua Edge Function chứ KHÔNG gọi thẳng /rest/v1: mọi truy cập dữ liệu
+      // đều phải qua một chốt kiểm duy nhất, nhờ vậy `templates` và
+      // `template_pricing` KHÔNG cần cấp quyền đọc cho role `anon` — anon key
+      // nằm công khai trong core/config.js nên quyền đọc thẳng bảng là quyền
+      // của bất kỳ ai (xem changelogs/RC1.16).
+      //
+      // Edge Function `public-templates` đã gom templates + pricing và trả về
+      // ĐÚNG shape mà bên gọi cần, nên worker chỉ còn việc cache lại. Đổi shape
+      // thì sửa ở Edge Function, chỗ này không dựng lại field nào nữa.
+      const edgeUrl = env.EDGE_URL;
       const supabaseKey = env.SUPABASE_ANON_KEY;
 
-      if (!supabaseUrl || !supabaseKey) {
-        throw new Error("Missing Supabase credentials");
+      if (!edgeUrl || !supabaseKey) {
+        throw new Error("Missing EDGE_URL / SUPABASE_ANON_KEY");
       }
 
-      const headers = {
-        apikey: supabaseKey,
-        Authorization: `Bearer ${supabaseKey}`,
-      };
-
-      // Fetch templates và pricing song song — cache miss trước đây gọi tuần
-      // tự nên mất gần gấp đôi thời gian, càng dễ dính lỗi/timeout tạm thời
-      // từ Supabase giữa hai lệnh gọi.
-      const [templatesResponse, pricingResponse] = await Promise.all([
-        fetch(
-          `${supabaseUrl}/rest/v1/templates?is_active=eq.true&order=sort_order.asc&select=*`,
-          { headers },
-        ),
-        fetch(
-          `${supabaseUrl}/rest/v1/template_pricing?is_active=eq.true&select=template_name,price,original_price,description`,
-          { headers },
-        ),
-      ]);
-
-      if (!templatesResponse.ok) {
-        throw new Error(`Templates fetch error: ${templatesResponse.status}`);
-      }
-      if (!pricingResponse.ok) {
-        throw new Error(`Pricing fetch error: ${pricingResponse.status}`);
-      }
-
-      const templates = await templatesResponse.json();
-      const pricing = await pricingResponse.json();
-
-      // Shape phải KHỚP TỪNG FIELD với Edge Function `public-templates`
-      // (`supabase/functions/wedding-admin`): hai nguồn thay thế nhau được là
-      // nhờ chỗ này, lệch một tên field thì trang chỉ vỡ đúng lúc worker hỏng.
-      // Giá mặc định cũng lấy theo bên đó — `null` làm `price.toLocaleString()`
-      // ở bên gọi ném lỗi.
-      const templatesWithPricing = templates.map((template) => {
-        const templatePricing = pricing.find(
-          (p) => p.template_name === template.template_name,
-        );
-        return {
-          id: template.template_id,
-          name: template.display_name,
-          theme: template.template_name,
-          description: template.description,
-          thumbnailUrl: template.thumbnail_url,
-          previewUrl: template.preview_url,
-          status: template.status,
-          category: template.category,
-          price: templatePricing?.price ?? 159000,
-          originalPrice: templatePricing?.original_price ?? 199000,
-        };
+      const upstream = await fetch(`${edgeUrl}?resource=public-templates`, {
+        headers: {
+          apikey: supabaseKey,
+          Authorization: `Bearer ${supabaseKey}`,
+        },
       });
+
+      if (!upstream.ok) {
+        throw new Error(`Templates fetch error: ${upstream.status}`);
+      }
+
+      const templatesWithPricing = await upstream.json();
 
       // Bản dành cho edge — TTL của Cache API lấy từ chính header này.
       response = new Response(JSON.stringify(templatesWithPricing), {

@@ -6,6 +6,13 @@ compatibility_date = "2024-01-01"
 name = "templates-cache"
 route = { pattern = "templates.cuoixinh-api.workers.dev", zone_name = "cuoixinh-api.workers.dev" }
 
-# Environment variables (set via wrangler secret put)
-# SUPABASE_URL
-# SUPABASE_ANON_KEY
+# Biến môi trường (đặt bằng: wrangler secret put <TÊN> --config wrangler-templates.toml)
+#
+# EDGE_URL          — https://<project>.supabase.co/functions/v1/wedding-admin
+#                     Worker gọi `?resource=public-templates` chứ KHÔNG gọi /rest/v1:
+#                     role `anon` không còn quyền đọc thẳng bảng templates
+#                     (changelogs/RC1.16). Thiếu biến này là worker trả 500.
+# SUPABASE_ANON_KEY — vẫn cần, gateway của Edge Function đòi apikey.
+# PURGE_SECRET      — cho endpoint POST /purge.
+#
+# SUPABASE_URL không còn dùng tới — xoá được sau khi deploy bản mới.
