@@ -656,28 +656,6 @@
               </div>
             </div>
 
-            <!-- Mã giảm giá: gấp lại sau một dòng chữ. Đa số khách không có mã,
-                 mà ô nhập trống to bằng nút chính thì gieo đúng ý "chắc mình
-                 đang mua hớ" rồi bỏ đi tìm mã. -->
-            <div class="mx-6 py-4 border-t border-gray-100">
-              <button type="button" id="promo-toggle" onclick="cxPromoOpen()"
-                class="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700">
-                <i data-lucide="tag" style="width:16px;height:16px"></i>Có mã giảm giá?
-              </button>
-              <div id="promo-box" style="display:none;">
-                <!-- Nút "Áp dụng" dùng suffix của x-input: dính liền ô nhập nên
-                     không đọc thành một hành động ngang cơ nút thanh toán. -->
-                <x-input
-                  id="promo-input"
-                  placeholder="Nhập mã giảm giá"
-                  uppercase
-                  suffix-btn-label="Áp dụng"
-                  suffix-btn-action="applyPromo()"
-                ></x-input>
-                <p id="promo-msg" class="hidden text-xs mt-1.5 m-0"></p>
-              </div>
-            </div>
-
             <!-- Bảng tiền: nơi DUY NHẤT cộng trừ. Hai hàng giảm giá dùng
                  style.display chứ không phải class "hidden" — hàng là flex, mà
                  gỡ "hidden" chỉ trả về display:block nên hai đầu hàng dồn hết
@@ -691,9 +669,30 @@
                 <span class="text-sm" style="color:rgb(var(--state-success-text-rgb));">Ưu đãi ra mắt</span>
                 <span id="payment-sale-amount" class="text-sm font-medium" style="color:rgb(var(--state-success-text-rgb));">-0đ</span>
               </div>
-              <div id="promo-discount-row" class="flex items-center justify-between" style="display:none;">
-                <span id="promo-discount-label" class="text-sm" style="color:rgb(var(--state-success-text-rgb));">Mã giảm giá</span>
-                <span id="promo-discount-amount" class="text-sm font-medium" style="color:rgb(var(--state-success-text-rgb));">-0đ</span>
+              <!-- Mã giảm giá là MỘT HÀNG của bảng tiền, không phải khối riêng:
+                   hàng vừa là nút mở ô nhập, vừa là chỗ báo kết quả — mã giảm
+                   nằm đúng chỗ nó tác động. Chưa dùng thì hàng ghi lời mời,
+                   dùng rồi thì ghi mã + mức giảm. -->
+              <button type="button" id="promo-row" onclick="cxPromoOpen()" class="flex w-full items-center justify-between gap-2 text-left">
+                <span class="flex items-center gap-1.5 text-sm text-gray-500">
+                  <i data-lucide="tag" class="shrink-0" style="width:14px;height:14px"></i><span id="promo-row-label">Nhập mã giảm giá</span>
+                </span>
+                <span class="flex items-center gap-0.5 shrink-0">
+                  <span id="promo-discount-amount" class="hidden text-sm font-medium" style="color:rgb(var(--state-success-text-rgb));">-0đ</span>
+                  <i data-lucide="chevron-right" class="text-gray-400 shrink-0" style="width:14px;height:14px"></i>
+                </span>
+              </button>
+              <div id="promo-box" style="display:none;">
+                <!-- Nút "Áp dụng" dùng suffix của x-input: dính liền ô nhập nên
+                     không đọc thành một hành động ngang cơ nút thanh toán. -->
+                <x-input
+                  id="promo-input"
+                  placeholder="Nhập mã giảm giá"
+                  uppercase
+                  suffix-btn-label="Áp dụng"
+                  suffix-btn-action="applyPromo()"
+                ></x-input>
+                <p id="promo-msg" class="hidden text-xs mt-1.5 m-0"></p>
               </div>
             </div>
 
@@ -716,24 +715,39 @@
                  nhau bằng display:none, con cháu "fixed" cũng biến mất theo nên
                  không cần đồng bộ ẩn/hiện thêm chỗ nào. -->
             <div id="payment-paybar" class="p-6 pt-4 flex flex-col gap-2 border-t border-gray-100">
-              <div class="flex items-center justify-between">
-                <span class="text-sm text-gray-500">Tổng thanh toán</span>
-                <span id="payment-total-price" class="font-bold text-2xl" style="color:rgb(var(--brand-accent-rgb));">299.000đ</span>
-              </div>
               <p id="payment-api-error" class="hidden text-xs text-red-500 text-center p-2 bg-red-50 rounded-lg m-0"></p>
+              <!-- Mức tiết kiệm ở ngay giây quyết định; ẩn khi bằng 0 (xem _syncSaving). -->
+              <p id="payment-saving" class="hidden text-center text-xs font-semibold m-0" style="color:rgb(var(--state-success-text-rgb));"></p>
               <!-- Nền gradient đè lên bg-rose-500 của fill/brand: cùng một màu
                    hành động của site (--action-primary-rgb), chỉ chuyển sang hồng
                    nhấn ở đầu kia nên nút hoà vào bảng màu của trang thay vì là
                    mảng đặc duy nhất. Cùng công thức với icon màn thành công. -->
-              <x-button id="payment-submit" size="lg" full icon="credit-card" onclick="PaymentModal.process()"
+              <!-- Số tiền nằm TRÊN nút chứ không ở một hàng riêng phía trên:
+                   bớt một dòng của dải ghim, và con số đứng đúng điểm bấm. Bảng
+                   tiền ở trên vẫn là chỗ duy nhất cộng trừ, đây chỉ là con số
+                   chốt. Icon đặt trong span (không dùng thuộc tính icon=) vì
+                   x-button chèn icon thành con ĐẦU TIÊN, ngoài hàng flex này. -->
+              <x-button id="payment-submit" size="lg" full onclick="PaymentModal.process()"
                 style="background:linear-gradient(135deg,rgb(var(--brand-accent-rgb)),rgb(var(--action-primary-rgb)));">
-                Thanh toán ngay
+                <span class="flex w-full items-center justify-between gap-3">
+                  <span class="flex items-center gap-2">
+                    <i data-lucide="credit-card" class="shrink-0" style="width:16px;height:16px"></i>Thanh toán ngay
+                  </span>
+                  <span id="payment-total-price">299.000đ</span>
+                </span>
               </x-button>
               <!-- Nói trước điều sắp xảy ra: khách do dự vì không biết bấm xong
                    thì rơi vào đâu. flex chứ không phải text-center: icon.js thay
                    <i> bằng <svg> khối, để chảy theo dòng thì nó rớt về mép trái. -->
               <p class="flex items-center justify-center gap-1.5 text-xs text-gray-500 m-0">
                 <i data-lucide="qr-code" class="shrink-0" style="width:14px;height:14px"></i>Bấm xong sẽ hiện mã QR để quét
+              </p>
+              <!-- Cùng câu chữ với hộp đăng nhập (core/auth-ui.js). Chưa có
+                   trang điều khoản nên để chữ thường, không dựng link chết. -->
+              <p class="text-center text-[11px] text-gray-400 leading-relaxed m-0">
+                Tiếp tục đồng nghĩa bạn đồng ý với
+                <span class="text-color-secondary font-medium">Điều khoản</span> &amp;
+                <span class="text-color-secondary font-medium">Chính sách bảo mật</span> của Cưới Xinh.
               </p>
             </div>
           </div>
@@ -850,14 +864,37 @@
 
   // ============= PROMO CODE =============
 
+  // Hàng mã giảm giá trong bảng tiền. code=null là trả hàng về lời mời ban đầu.
+  function _setPromoRow(code, discount) {
+    const label = document.getElementById("promo-row-label");
+    const amount = document.getElementById("promo-discount-amount");
+    if (label) label.textContent = code ? `Mã ${code}` : "Nhập mã giảm giá";
+    if (amount) {
+      amount.textContent = `-${(discount || 0).toLocaleString("vi-VN")}đ`;
+      amount.classList.toggle("hidden", !code);
+    }
+  }
+
+  // Tổng tiết kiệm = phần hạ so với giá gốc + mức giảm của mã. Bằng 0 thì ẩn
+  // hẳn dòng, không hiện "Tiết kiệm 0đ".
+  function _syncSaving() {
+    const el = document.getElementById("payment-saving");
+    if (!el) return;
+    const pricing = window._paymentPricing || {};
+    const price = pricing.price || 0;
+    const original = pricing.originalPrice || 0;
+    const saved =
+      Math.max(0, original - price) + _discountOf(window._appliedPromo, price);
+    el.textContent = `Tổng tiết kiệm ${saved.toLocaleString("vi-VN")}đ`;
+    el.classList.toggle("hidden", saved <= 0);
+  }
+
   // Bung ô nhập mã (một chiều — đã mở thì để mở, khách vừa gõ dở mà nó tự gấp
-  // lại là mất chữ). Nút mở ẩn đi để không còn hai thứ nói cùng một việc.
+  // lại là mất chữ). Hàng mã ở lại vì nó còn là chỗ báo kết quả.
   window.cxPromoOpen = function () {
     const box = document.getElementById("promo-box");
-    const toggle = document.getElementById("promo-toggle");
     if (!box) return;
     box.style.display = "block";
-    if (toggle) toggle.style.display = "none";
     document.getElementById("promo-input")?.focus();
   };
 
@@ -891,7 +928,7 @@
         msg.className = "text-xs px-1 text-red-500";
         msg.textContent = data.error || "Mã không hợp lệ hoặc đã hết hạn";
         window._appliedPromo = null;
-        document.getElementById("promo-discount-row").style.display = "none";
+        _setPromoRow(null, 0);
         _updateTotalWithPromo(null);
         return;
       }
@@ -905,10 +942,8 @@
         _discountOf(data, basePrice) >= basePrice && basePrice > 0
           ? "Áp dụng thành công — thiệp này miễn phí!"
           : "Áp dụng thành công!";
-      // Ghi thẳng mã vào nhãn: bảng tiền tự nói vì đâu mà rẻ đi.
-      const label = document.getElementById("promo-discount-label");
-      if (label) label.textContent = `Mã ${code}`;
-      document.getElementById("promo-discount-row").style.display = "flex";
+      // Ghi thẳng mã vào hàng: bảng tiền tự nói vì đâu mà rẻ đi.
+      _setPromoRow(code, _discountOf(data, basePrice));
       _updateTotalWithPromo(data);
     } catch (e) {
       msg.className = "text-xs px-1 text-red-500";
@@ -932,9 +967,8 @@
     const total = basePrice - discount;
     const totalEl = document.getElementById("payment-total-price");
     if (totalEl) totalEl.textContent = `${total.toLocaleString("vi-VN")}đ`;
-    const discountEl = document.getElementById("promo-discount-amount");
-    if (discountEl) discountEl.textContent = `-${discount.toLocaleString("vi-VN")}đ`;
     window._discountedTotal = total;
+    _syncSaving();
   }
 
   // Public API
@@ -950,6 +984,20 @@
     if (!bar) return;
     bar.className =
       "cx-paybar-pin flex flex-col gap-2 md:p-6 md:pt-4 md:border-t md:border-gray-100";
+
+    // Lề đáy của trang ĐO theo dải thật thay vì một số viết cứng: dòng điều
+    // khoản xuống dòng ở màn hẹp, hay thêm bớt một dòng trong dải, là chiều cao
+    // đổi — số cứng thì phần cuối nội dung bị dải che mất. Class pb-* trên
+    // <body> chỉ còn là bản dự phòng cho lúc chưa đo xong.
+    const narrow = window.matchMedia("(max-width: 767px)");
+    const syncPad = () => {
+      document.body.style.paddingBottom = narrow.matches
+        ? `${bar.offsetHeight + 16}px`
+        : "";
+    };
+    new ResizeObserver(syncPad).observe(bar);
+    narrow.addEventListener("change", syncPad);
+    syncPad();
   }
 
   /**
@@ -979,19 +1027,21 @@
       // Reset promo UI — gấp ô mã lại như lúc mới vào.
       const promoInput = document.getElementById("promo-input");
       const promoMsg = document.getElementById("promo-msg");
-      const discountRow = document.getElementById("promo-discount-row");
       const promoBox = document.getElementById("promo-box");
-      const promoToggle = document.getElementById("promo-toggle");
-      const promoLabel = document.getElementById("promo-discount-label");
       if (promoInput) promoInput.value = "";
       if (promoMsg) { promoMsg.textContent = ""; promoMsg.classList.add("hidden"); }
-      if (discountRow) discountRow.style.display = "none";
-      if (promoLabel) promoLabel.textContent = "Mã giảm giá";
       if (promoBox) promoBox.style.display = "none";
-      if (promoToggle) promoToggle.style.display = "flex";
+      _setPromoRow(null, 0);
 
-      // Lưu pricing để dùng trong modal
-      window._paymentPricing = pricing;
+      // Chốt giá MỘT LẦN rồi dùng lại ở mọi chỗ (bảng tiền, tổng, dòng tiết
+      // kiệm). Nơi gọi có thể không truyền originalPrice; để mỗi chỗ tự rơi về
+      // mặc định là hai chỗ hiểu khác nhau — dòng tiết kiệm sẽ báo 0 trong khi
+      // bảng tiền vẫn hiện mức ưu đãi.
+      window._paymentPricing = {
+        ...pricing,
+        price: pricing.price || 299000,
+        originalPrice: pricing.originalPrice || 499000,
+      };
 
       // Lưu order pending ngay khi mở modal (nếu chưa có)
       const sessionUser = getCurrentUser();
@@ -1019,8 +1069,7 @@
 
       // Bảng tiền. Không có ưu đãi thì hàng "Giá gốc" mang thẳng giá bán và
       // hàng ưu đãi ẩn đi — bảng vẫn cộng đúng, không phải bịa ra mức giảm.
-      const price = pricing.price || 299000;
-      const originalPrice = pricing.originalPrice || 499000;
+      const { price, originalPrice } = window._paymentPricing;
       const hasDiscount = originalPrice && originalPrice > price;
       const baseEl = document.getElementById("payment-base-price");
       const saleRow = document.getElementById("payment-sale-row");
@@ -1034,6 +1083,7 @@
         saleEl.textContent = `-${(originalPrice - price).toLocaleString("vi-VN")}đ`;
       if (totalPriceEl)
         totalPriceEl.textContent = `${price.toLocaleString("vi-VN")}đ`;
+      _syncSaving();
 
       const apiErr = document.getElementById("payment-api-error");
       if (apiErr) apiErr.style.display = "none";
@@ -1362,8 +1412,7 @@
             promoMsg.textContent = error.message;
             promoMsg.classList.remove("hidden");
           }
-          const dRow = document.getElementById("promo-discount-row");
-          if (dRow) dRow.style.display = "none";
+          _setPromoRow(null, 0);
           _updateTotalWithPromo(null);
           return;
         }
