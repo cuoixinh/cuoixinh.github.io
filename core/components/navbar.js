@@ -4,6 +4,9 @@
 //
 //   CXNavbar.mount({ active: "home", width: "6xl", items: [...], actions: [...] })
 //
+// tabbar: false → chỉ dựng thanh trên. Dùng cho luồng MỘT CHIỀU (thanh toán):
+// dải đáy ở đó dành cho nút hành động, để thêm tab là mời khách rời luồng.
+//
 // Mục: { id, label, icon, href | onClick, count, only: "top"|"tab" }
 //   href → thẻ <a>, không có href → <button> (dùng onClick).
 //   count → kèm ô số đếm (ẩn sẵn); only → chỉ hiện ở một trong hai thanh.
@@ -94,12 +97,13 @@ const CXNavbar = (function () {
       `${cfg.actionsHTML || ""}</div>` +
       `</div></div></nav>`;
 
+    document.body.insertAdjacentHTML("afterbegin", top);
+
+    if (cfg.tabbar === false) return;
     const bar =
       `<nav class="cx-tabbar md:hidden"><div class="cx-tabbar-card">` +
       items.map((i) => itemHTML(i, cfg.active, "tab")).join("") +
       `</div></nav>`;
-
-    document.body.insertAdjacentHTML("afterbegin", top);
     document.body.insertAdjacentHTML("beforeend", bar);
   }
 
