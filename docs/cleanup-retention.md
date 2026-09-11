@@ -74,15 +74,15 @@ Số ngày khai ở `CONFIG.retention` (`core/config.js`) — nguồn sự thậ
 
 ## 5. Các mảnh và file
 
-| Mảnh                | File                                                                             | Việc                                                                              |
-| ------------------- | -------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
-| Schema + lịch       | `changelogs/RC1.10/cleanup_retention.sql`                                        | cột `updated_at` + trigger, 2 partial index, bật `pg_cron`/`pg_net`, `cron.schedule` |
-| Quét & xoá          | `supabase/functions/cleanup-weddings/index.ts`                                   | 2 câu quét, xoá ảnh Storage rồi xoá hàng                                          |
-| Khoá thiệp          | `supabase/functions/wedding-admin/index.ts` (GET một thiệp)                      | slug + hết hạn → 403 `TRIAL_EXPIRED`; theo id → kèm cờ `trial_locked`             |
-| Lộ mã lỗi           | `core/dal/wedding-dal.js` → `getWeddingBySlug`                                   | đọc body lỗi, gắn `err.code`                                                      |
-| Màn khoá            | `core/helpers/wedding-helper.js` → `showLockedInvitation`                        | overlay phủ kín trang thiệp                                                       |
-| Dọn nháp máy khách  | `core/helpers/draft-retention.js`                                                | quét localStorage lúc nạp trang                                                   |
-| Câu chữ cho khách   | `my-invitations/index.js`, `invitation-setup/js/05-theme-panel.js`, `13-data.js`, `18-theme-picker.js` | nhãn, tooltip, toast, popup xuất bản                                              |
+| Mảnh               | File                                                                                                   | Việc                                                                                 |
+| --------------------| --------------------------------------------------------------------------------------------------------| --------------------------------------------------------------------------------------|
+| Schema + lịch      | `changelogs/RC1_010_cleanup_retention.sql`                                                             | cột `updated_at` + trigger, 2 partial index, bật `pg_cron`/`pg_net`, `cron.schedule` |
+| Quét & xoá         | `supabase/functions/cleanup-weddings/index.ts`                                                         | 2 câu quét, xoá ảnh Storage rồi xoá hàng                                             |
+| Khoá thiệp         | `supabase/functions/wedding-admin/index.ts` (GET một thiệp)                                            | slug + hết hạn → 403 `TRIAL_EXPIRED`; theo id → kèm cờ `trial_locked`                |
+| Lộ mã lỗi          | `core/dal/wedding-dal.js` → `getWeddingBySlug`                                                         | đọc body lỗi, gắn `err.code`                                                         |
+| Màn khoá           | `core/helpers/wedding-helper.js` → `showLockedInvitation`                                              | overlay phủ kín trang thiệp                                                          |
+| Dọn nháp máy khách | `core/helpers/draft-retention.js`                                                                      | quét localStorage lúc nạp trang                                                      |
+| Câu chữ cho khách  | `my-invitations/index.js`, `invitation-setup/js/05-theme-panel.js`, `13-data.js`, `18-theme-picker.js` | nhãn, tooltip, toast, popup xuất bản                                                 |
 
 ## 6. Server: `cleanup-weddings`
 

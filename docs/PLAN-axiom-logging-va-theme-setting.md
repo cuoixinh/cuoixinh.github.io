@@ -80,7 +80,7 @@ supabase secrets set AXIOM_TOKEN=xaat-xxxx AXIOM_DATASET=cuoixinh-backend
 
 ### Database
 Thêm cột JSON `theme_setting` vào bảng `weddings`. Theo quy ước repo, thay đổi DB
-được ghi thành changelog có phiên bản: **`changelogs/RC1.3/theme_setting.sql`**
+được ghi thành changelog có phiên bản: **`changelogs/RC1_003_theme_setting.sql`**
 (idempotent, `add column if not exists`) và cập nhật bảng lịch sử trong
 `changelogs/README.md`. Áp dụng bằng cách dán vào Supabase → SQL Editor → Run.
 
@@ -131,7 +131,7 @@ Include `theme-setting-helper.js` trong 3 theme (`romantic-gold`, `vintage-fores
 - `wedding-admin` POST: thêm `theme_setting` vào whitelist insert (để tạo mới cũng nhận được — tuy nhiên luồng chính vẫn set qua PATCH).
 
 ### Việc cần làm
-- [x] Changelog DB `changelogs/RC1.3/theme_setting.sql` + cập nhật `changelogs/README.md` (áp dụng thủ công trên Supabase).
+- [x] Changelog DB `changelogs/RC1_003_theme_setting.sql` + cập nhật `changelogs/README.md` (áp dụng thủ công trên Supabase).
 - [x] `core/helpers/theme-setting-helper.js`.
 - [x] Hook vào `wedding-helper.js` + `preview-data.js`.
 - [x] Include helper trong 3 theme + trình soạn.

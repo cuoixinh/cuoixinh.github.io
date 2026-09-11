@@ -1,0 +1,31 @@
+// Cấu hình STAGING cho Cloudflare Workers Builds — song sinh với wrangler.jsonc.
+// Cùng repo, cùng lệnh build, khác branch (`staging-cuoixinh.github.io`) và khác tên worker.
+//
+// Workers Builds mặc định đọc `wrangler.jsonc` ở gốc, nên dự án staging phải khai
+// Deploy command có cờ -c:
+//     npx wrangler deploy -c wrangler.staging.jsonc
+//
+// Môi trường mà web trỏ tới KHÔNG khai ở đây mà do BUILD quyết định: Build command
+// của dự án staging phải có `--env=staging`, khi đó deploy-public.mjs nối
+// core/config.staging.js vào cuối core/config.js. Thiếu cờ đó thì bản staging chạy
+// bằng cấu hình PRODUCTION — trang vẫn lên, vẫn xanh, mà mọi thao tác ghi vào DB
+// thật. Xem docs/staging-environment.md.
+{
+  // Phải trùng "Project name" của dự án staging trên dashboard.
+  "name": "cuoixinh-staging",
+  "compatibility_date": "2026-09-10",
+
+  // Chỉ vào bằng staging.cuoixinh.com, nơi đã có Cloudflare Access chắn trước.
+  // Bật workers.dev là mở một cửa sau KHÔNG qua Access.
+  "workers_dev": false,
+
+  "assets": {
+    "directory": "./dist",
+
+    // BẮT BUỘC, y như production: clean URL dựa vào việc host trả 404.html cho
+    // path không khớp file nào. Thiếu dòng này thì trang chủ vẫn chạy nhưng mọi
+    // link thiệp /<slug> chết — mà staging tồn tại chính là để bắt loại lỗi này,
+    // nên cấu hình hai bên phải giống nhau.
+    "not_found_handling": "404-page"
+  }
+}

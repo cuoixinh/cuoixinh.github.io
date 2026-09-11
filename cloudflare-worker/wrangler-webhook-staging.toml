@@ -1,0 +1,31 @@
+# Bản STAGING của payos-webhook-proxy — CÙNG mã nguồn với wrangler-webhook.toml,
+# khác nhau ở tên worker và hai biến trỏ về Supabase staging.
+#
+# Vì sao là worker riêng chứ không định tuyến trong một worker: PayOS khai webhook
+# theo TỪNG kênh thanh toán, mỗi kênh có bộ Client ID / API Key / Checksum Key
+# riêng. Staging dùng kênh thứ hai và trỏ webhook của kênh đó về đây, nên worker
+# production không phải sửa và không phải deploy lại.
+#
+# Deploy:
+#   wrangler deploy --config wrangler-webhook-staging.toml
+#
+# ⚠ Trong PayOS, khai webhook này cho ĐÚNG kênh thứ hai. Gắn nhầm vào kênh chính
+#   là toàn bộ đơn production bắn sang DB staging và không đơn nào hoàn tất.
+
+name = "payos-webhook-proxy-staging"
+main = "payos-webhook-proxy.js"
+compatibility_date = "2024-01-01"
+
+# Đích staging. Thiếu hai biến này thì worker rơi về production (giá trị mặc định
+# trong payos-webhook-proxy.js) — nên KHÔNG được để trống ở đây.
+[vars]
+SUPABASE_FUNCTION_URL = "https://gmtnoxdwoumbtdmqmisk.supabase.co/functions/v1/payos-webhook"
+
+# Anon key của project staging. Không phải bí mật (xem core/config.js) nên để
+# thẳng ở đây được, giống cách bản production đang viết cứng trong mã.
+SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdtdG5veGR3b3VtYnRkbXFtaXNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkxMjI3MDQsImV4cCI6MjEwNDY5ODcwNH0.2KoGkOvdjgsnAQ3He1DHjJUi8AV8ETv2D-SclITZxEM"
+
+# ── Log về Axiom ─────────────────────────────────────────────────────────────
+# Nên dùng DATASET RIÊNG với production, để log của môi trường thử không lẫn vào
+# log thật lúc truy sự cố.
+# [vars] AXIOM_DATASET = "..."   ·   wrangler secret put AXIOM_TOKEN --config wrangler-webhook-staging.toml

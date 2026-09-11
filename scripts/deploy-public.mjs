@@ -10,6 +10,8 @@
  *   mặc định → copy sang một thư mục repo khác trên máy để tự commit & push
  *
  * Cờ: --dry-run · --yes · --build (chạy npm run build trước) · --minify · --target=<đường dẫn>
+ *     --env=<tên> → dựng bản cho môi trường khác production bằng cách NỐI
+ *       `core/config.<tên>.js` vào cuối `core/config.js` (xem ENV_OVERRIDE).
  */
 
 import fs from "node:fs";
@@ -61,7 +63,27 @@ const OPTIONAL = new Set(["CNAME"]);
 const EXCLUDE = [
   "assets/temp_img/", // ~153MB ảnh gốc, không trang nào tham chiếu
   "assets/data-template/README.md", // ghi chú nội bộ
+  // Các file khác biệt môi trường: chúng được NỐI vào core/config.js khi có
+  // --env, không bao giờ ra web thành file riêng (ra riêng thì không ai nạp,
+  // chỉ tổ lộ URL của môi trường khác).
+  "core/config.staging.js",
 ];
+
+/**
+ * --env=<tên> → nối `core/config.<tên>.js` vào cuối `core/config.js`.
+ *
+ * Cách này để MÃ NGUỒN KHÔNG phải rẽ nhánh theo môi trường: `core/config.js`
+ * chỉ có giá trị production, file override chỉ khai những khoá khác đi. Lúc chạy
+ * vẫn đúng MỘT file `core/config.js` nên 13 trang HTML và hai loader không phải
+ * khai thêm thẻ <script> nào — quan trọng vì mẫu thiệp mới chép từ base-theme sẽ
+ * tự đúng, khỏi phải nhớ.
+ *
+ * REDACT chạy TRƯỚC bước nối, nên purgeSecret của production vẫn bị che.
+ */
+const ENV_OVERRIDE = {
+  file: "core/config.js",
+  overrideFor: (env) => `core/config.${env}.js`,
+};
 
 // Không bao giờ đi vào các thư mục này, dù nằm ở đâu.
 const SKIP_DIRS = new Set([".git", "node_modules", ".wrangler", ".temp"]);
@@ -105,6 +127,10 @@ const SECRET_PATTERNS = [
   [/service_role/i, "chuỗi service_role của Supabase"],
   [/SUPABASE_SERVICE_ROLE_KEY/, "tên biến service role key"],
   [/\bsbp_[0-9a-f]{40}\b/i, "Supabase access token (sbp_…)"],
+  // Khoá Supabase định dạng MỚI. `sb_secret_…` tương đương service_role cũ, mà
+  // nó KHÔNG phải JWT nên phép soi `role` ở dưới không bắt được — phải chặn
+  // bằng tiền tố. (`sb_publishable_…` thì công khai, không chặn.)
+  [/\bsb_secret_[A-Za-z0-9_-]{10,}\b/, "Supabase secret key (sb_secret_…)"],
   [
     /\b(ghp|gho|ghs)_[A-Za-z0-9]{20,}\b|\bgithub_pat_[A-Za-z0-9_]{20,}\b/,
     "GitHub token",
@@ -183,6 +209,7 @@ const OPT = {
   dist: has("--dist"),
   minify: has("--minify"),
   target: valueOf("--target"),
+  env: valueOf("--env"),
 };
 
 /* ----------------------------------------------------------------- cấu hình */
@@ -252,6 +279,21 @@ function sourceBytes(rel) {
     }
     buf = Buffer.from(txt.replace(r.find, r.replace), "utf8");
   }
+
+  // Nối phần khác biệt môi trường. Chạy SAU REDACT để purgeSecret của production
+  // vẫn bị che trong bản staging.
+  if (OPT.env && rel === ENV_OVERRIDE.file) {
+    const over = ENV_OVERRIDE.overrideFor(OPT.env);
+    const abs = path.join(ROOT, over);
+    if (!fs.existsSync(abs)) {
+      fail(
+        `--env=${OPT.env} nhưng không có ${over}.\n` +
+          `  Tạo file đó (chỉ khai khoá KHÁC production), hoặc bỏ cờ --env.`,
+      );
+    }
+    buf = Buffer.concat([buf, Buffer.from("\n", "utf8"), fs.readFileSync(abs)]);
+  }
+
   bytesCache.set(rel, buf);
   return buf;
 }
@@ -647,6 +689,13 @@ async function main() {
       `  ${C.bold("Rút gọn")}: ${min.count} file JS · ${human(min.before)} → ${human(min.after)} (-${cut}%)` +
         `  ·  HTML bỏ ${human(min.html)} comment` +
         C.dim("\n           (giữ nguyên tên hàm/biến — xem docs/deploy-cloudflare-pages.md §7)"),
+    );
+  }
+
+  if (OPT.env) {
+    console.log(
+      `\n  ${C.bold("Môi trường")}: ${OPT.env}` +
+        C.dim(`  (nối ${ENV_OVERRIDE.overrideFor(OPT.env)} vào cuối ${ENV_OVERRIDE.file})`),
     );
   }
 

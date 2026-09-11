@@ -1,13 +1,18 @@
 #!/usr/bin/env bash
-# Deploy Edge Function lên Supabase.
-#   npm run deploy:functions                     → tất cả
-#   npm run deploy:functions -- ai-chat           → chỉ ai-chat
-#   npm run deploy:functions -- ai-chat ai-invitation wedding-admin
+# Deploy Edge Function lên Supabase. MÔI TRƯỜNG chọn bằng cờ, KHÔNG phải biến môi
+# trường — cú pháp `VAR=x lệnh` chỉ chạy ở bash, gõ trên PowerShell là lỗi cú pháp
+# và rất dễ tưởng mình đang đẩy lên staging trong khi thật ra đang đẩy production.
 #
-# Cần đăng nhập trước một lần: npx supabase login. Nếu biến môi trường
-# SUPABASE_ACCESS_TOKEN đang giữ token cũ (bị từ chối là legacy) thì nó ĐÈ lên
-# phiên đã login — chạy `SUPABASE_ACCESS_TOKEN= npm run deploy:functions ...`
-# để vô hiệu nó.
+#   npm run deploy:functions:staging              → staging, tất cả function
+#   npm run deploy:functions                      → production, tất cả function
+#   npm run deploy:functions:all                  → CẢ HAI (staging trước)
+#   npm run deploy:functions:staging -- ai-chat   → chỉ một vài function
+#
+# Cũng nhận --ref=<ref> cho project khác, và vẫn đọc SUPABASE_PROJECT_REF nếu có.
+#
+# Mã nguồn hai môi trường là MỘT, khác nhau ở secrets của từng project — nên sửa
+# Edge Function xong phải deploy CẢ HAI, không thì hai bên chạy hai bản khác nhau
+# mà không có gì báo. Đó là lý do có `:all`.
 #
 # Repo không có supabase/config.toml nên cờ verify_jwt phải truyền tay:
 # function nào có thể bị gọi mà KHÔNG kèm header Authorization thì phải
@@ -15,7 +20,32 @@
 # đây là nguồn sự thật của cờ đó — thêm function mới thì thêm vào đúng một bên.
 set -euo pipefail
 
-PROJECT_REF="lcobawmkywtxhpezndsh"
+PROD_REF="lcobawmkywtxhpezndsh"
+STAGING_REF="gmtnoxdwoumbtdmqmisk"
+
+# Tách cờ môi trường ra khỏi danh sách tên function.
+REFS=()
+ARGS=()
+for a in "$@"; do
+  case "$a" in
+    --staging) REFS+=("$STAGING_REF") ;;
+    --prod|--production) REFS+=("$PROD_REF") ;;
+    --all) REFS+=("$STAGING_REF" "$PROD_REF") ;;
+    --ref=*) REFS+=("${a#--ref=}") ;;
+    -*) echo "✗ Cờ lạ: $a" >&2; exit 1 ;;
+    *) ARGS+=("$a") ;;
+  esac
+done
+[ ${#REFS[@]} -eq 0 ] && REFS=("${SUPABASE_PROJECT_REF:-$PROD_REF}")
+set -- "${ARGS[@]+${ARGS[@]}}"
+
+# SUPABASE_ACCESS_TOKEN (nếu có) ĐÈ lên phiên `npx supabase login`. Token cũ kiểu
+# legacy bị từ chối 401 ở tận bước deploy, thông báo không hề nhắc tới biến này.
+# Thử trước một lệnh nhẹ; hỏng thì bỏ biến đi rồi chạy tiếp bằng phiên đã login.
+if [ -n "${SUPABASE_ACCESS_TOKEN:-}" ] && ! npx supabase projects list >/dev/null 2>&1; then
+  echo "⚠ SUPABASE_ACCESS_TOKEN bị từ chối — bỏ qua nó, dùng phiên 'npx supabase login'."
+  unset SUPABASE_ACCESS_TOKEN
+fi
 
 # Cổng gateway kiểm JWT — client luôn gửi Bearer <anon key>.
 VERIFY=(
@@ -53,14 +83,22 @@ else
   TARGETS=("${VERIFY[@]}" "${NO_VERIFY[@]}")
 fi
 
-for fn in "${TARGETS[@]}"; do
-  if in_list "$fn" "${NO_VERIFY[@]}"; then
-    echo "▶ $fn (--no-verify-jwt)"
-    npx supabase functions deploy "$fn" --project-ref "$PROJECT_REF" --no-verify-jwt
-  else
-    echo "▶ $fn"
-    npx supabase functions deploy "$fn" --project-ref "$PROJECT_REF"
-  fi
+for PROJECT_REF in "${REFS[@]}"; do
+  case "$PROJECT_REF" in
+    "$PROD_REF")    echo "▶ Project: $PROJECT_REF  (PRODUCTION)" ;;
+    "$STAGING_REF") echo "▶ Project: $PROJECT_REF  (staging)" ;;
+    *)              echo "▶ Project: $PROJECT_REF" ;;
+  esac
+
+  for fn in "${TARGETS[@]}"; do
+    if in_list "$fn" "${NO_VERIFY[@]}"; then
+      echo "▶ $fn (--no-verify-jwt)"
+      npx supabase functions deploy "$fn" --project-ref "$PROJECT_REF" --no-verify-jwt
+    else
+      echo "▶ $fn"
+      npx supabase functions deploy "$fn" --project-ref "$PROJECT_REF"
+    fi
+  done
 done
 
-echo "✅ Deploy xong: ${TARGETS[*]}"
+echo "✅ Deploy xong: ${TARGETS[*]}  →  ${REFS[*]}"

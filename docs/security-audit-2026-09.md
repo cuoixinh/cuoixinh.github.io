@@ -37,7 +37,7 @@ Nguy hiểm nằm ở mắt xích thứ hai: lấy `wedding_id` từ tên file r
 Thời điểm phát hiện, 15 thiệp trong kho đều là dữ liệu thử của chủ dự án, chưa có khách thật.
 
 **Đã vá:**
-1. `changelogs/RC1.15/storage_list_policy.sql` — gỡ mọi policy cũ của bucket, chỉ cấp
+1. `changelogs/RC1_015_storage_list_policy.sql` — gỡ mọi policy cũ của bucket, chỉ cấp
    `select`/`insert` cho `authenticated`. Phải làm bằng **Dashboard → Storage → Policies**:
    `storage.objects` thuộc sở hữu của `supabase_storage_admin` nên SQL Editor (vai `postgres`)
    không tạo/xoá policy được, mà `set role supabase_storage_admin` cũng bị chặn.

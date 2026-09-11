@@ -1,9 +1,15 @@
 // Cloudflare Worker - PayOS Webhook Proxy v2
 // Always returns success for PayOS verification, forwards real webhooks to Supabase
+//
+// MỘT file, deploy thành HAI worker (xem wrangler-webhook.toml và
+// wrangler-webhook-staging.toml): mỗi kênh thanh toán của PayOS khai webhook
+// riêng, nên staging có instance riêng thay vì định tuyến trong code.
+// Đích lấy từ biến môi trường, MẶC ĐỊNH là production đúng bằng giá trị đang
+// chạy — nhờ vậy thêm staging không cần deploy lại bản production.
 
-const SUPABASE_FUNCTION_URL =
+const DEFAULT_FUNCTION_URL =
   "https://lcobawmkywtxhpezndsh.supabase.co/functions/v1/payos-webhook";
-const SUPABASE_ANON_KEY =
+const DEFAULT_ANON_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxjb2Jhd21reXd0eGhwZXpuZHNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4OTA5ODMsImV4cCI6MjA5MTQ2Njk4M30.4BNmxnfixXdHOq0ovtaF_4wQZ9sap3IWbJNJK9H4Mg4";
 
 /**
@@ -45,6 +51,9 @@ function axiomLog(env, ctx, level, message, fields = {}) {
 
 export default {
   async fetch(request, env, ctx) {
+    const SUPABASE_FUNCTION_URL = env.SUPABASE_FUNCTION_URL || DEFAULT_FUNCTION_URL;
+    const SUPABASE_ANON_KEY = env.SUPABASE_ANON_KEY || DEFAULT_ANON_KEY;
+
     const corsHeaders = {
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "GET, POST, OPTIONS",

@@ -6,3 +6,6 @@ dist/
 
 # Đường dẫn repo public trên máy này + version của lần deploy gần nhất
 deploy-public.config.json
+
+# File SQL gộp do scripts/merge-changelogs.mjs sinh ra
+changelogs/*.final.sql

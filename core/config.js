@@ -39,8 +39,13 @@ const CX_VERSION = "2026.09.11-1";
   });
 })();
 
+// Giá trị của MÔI TRƯỜNG PRODUCTION. File này KHÔNG rẽ nhánh theo môi trường:
+// bản staging do build dựng ra bằng cách nối thêm `core/config.staging.js` vào
+// cuối file này (node scripts/deploy-public.mjs --dist --env=staging), file đó chỉ
+// khai những khoá KHÁC production. Xem docs/staging-environment.md.
 const CONFIG = {
   version: CX_VERSION,
+  env: "production",
 
   // Supabase
   supabase: {

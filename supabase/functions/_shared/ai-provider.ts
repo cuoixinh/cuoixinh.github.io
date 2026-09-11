@@ -17,6 +17,7 @@ export const REQ_TIMEOUT_MS = 25000 // timeout mỗi lần gọi provider
 
 const ALLOWED_ORIGINS = [
   'https://cuoixinh.com',
+  'https://staging.cuoixinh.com',
   'https://www.cuoixinh.com',
   'https://cuoixinh.github.io',
   'http://localhost:5500',

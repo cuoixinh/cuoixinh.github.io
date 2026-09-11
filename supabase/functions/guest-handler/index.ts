@@ -6,6 +6,7 @@ import { withAxiom } from '../_shared/axiom.ts'
 // buộc trình duyệt — lớp bảo vệ thật là kiểm tra chủ sở hữu thiệp bên dưới.
 const ALLOWED_ORIGINS = [
   'https://cuoixinh.com',
+  'https://staging.cuoixinh.com',
   'https://www.cuoixinh.com',
   'https://cuoixinh.github.io',
   'http://localhost:5500',

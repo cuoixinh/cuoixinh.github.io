@@ -8,6 +8,7 @@ import { generateWithGemini } from '../_shared/ai-provider.ts'
 // curl/script bỏ qua; lớp bảo vệ thật là kiểm tra quyền theo user_id ở PATCH/POST.
 const ALLOWED_ORIGINS = [
   'https://cuoixinh.com',
+  'https://staging.cuoixinh.com',
   'https://www.cuoixinh.com',
   'https://cuoixinh.github.io',
   'http://localhost:5500',

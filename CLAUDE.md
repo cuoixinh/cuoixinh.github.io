@@ -87,9 +87,13 @@ Không gọi thẳng UI → DAL khi có logic nghiệp vụ.
 - **MCP chỉ để ĐỌC** (project `lcobawmkywtxhpezndsh`). Dùng `list_tables`/`execute_sql` để
   biết schema thật — changelogs là lịch sử, không phải nguồn sự thật.
 - **Không sửa DB qua MCP.** Mọi thay đổi schema → script SQL **idempotent** trong
-  `changelogs/RCx.y/` (minor cho thay đổi thường, major cho breaking + baseline mới),
+  `changelogs/RC<major>_<số 3 chữ số>_<tên>.sql` (số đó để sort chữ ra đúng thứ tự
+  chạy; minor cho thay đổi thường, major cho breaking + baseline mới),
   cập nhật bảng phiên bản ở `changelogs/README.md`, người dùng tự chạy ở Dashboard.
-- **Deploy Edge Function: `npm run deploy:functions -- <tên>`** (không tên = tất cả).
+- **Deploy Edge Function — môi trường chọn bằng CỜ:** `npm run deploy:functions:staging`,
+  `npm run deploy:functions` (production), `npm run deploy:functions:all` (cả hai, staging
+  trước). Thêm `-- <tên>` để chỉ đẩy vài function. Đừng bày cú pháp `VAR=x npm run …`: nó
+  chỉ chạy ở bash, gõ trên PowerShell là lỗi cú pháp mà rất dễ tưởng đã đẩy lên staging.
   Đừng bày `npx supabase functions deploy` trần: repo không có `supabase/config.toml`
   nên cờ `verify_jwt` phải truyền tay, mà nguồn sự thật của cờ đó là hai danh sách trong
   `scripts/deploy-functions.sh` — thiếu `--no-verify-jwt` là gateway chặn function trước
@@ -183,6 +187,32 @@ Host tĩnh sau Cloudflare, HTML cache 10 phút. Chống bản cũ bằng **`CX_V
 - `<link rel=stylesheet>` cùng origin được `config.js` nạp lại kèm `?v=` (bản có dấu tải
   xong mới gỡ thẻ cũ) → đổi `CX_VERSION` là CSS cũng đi theo. Riêng `<script>` viết cứng
   trong HTML thì không cứu được (đã chạy trước rồi) — sửa xong phải Ctrl+F5.
+
+### Môi trường
+
+**Hai môi trường, cùng một mã nguồn:** `cuoixinh.com` (production) và
+`staging.cuoixinh.com` (staging, có Cloudflare Access chắn trước). Mỗi bên một project
+Supabase riêng và một kênh thanh toán PayOS riêng. Đụng tới staging thì đọc
+`docs/staging-environment.md` trước.
+
+- **Trong mã KHÔNG có chỗ nào rẽ nhánh theo môi trường.** `core/config.js` chỉ chứa giá trị
+  production; bản staging do BUILD dựng ra bằng cách nối `core/config.staging.js` vào cuối
+  (`--env=staging`), file đó chỉ khai những khoá KHÁC đi. Lúc chạy vẫn đúng MỘT file
+  `core/config.js`, nên 13 trang HTML và hai loader không phải khai thêm thẻ `<script>` —
+  mẫu thiệp mới chép từ `base-theme` tự đúng.
+- Thêm môi trường nữa thì thêm `core/config.<tên>.js` **và** khai vào `EXCLUDE` của
+  `scripts/deploy-public.mjs` — không khai là file đó ra web thành file riêng, chẳng ai nạp
+  mà lại lộ URL môi trường khác.
+- **Sửa Edge Function xong phải deploy CẢ HAI project** (`npm run deploy:functions:all`),
+  không thì hai môi trường chạy hai bản khác nhau mà không có gì báo.
+- **Thứ tự khi một thay đổi đụng nhiều tầng:** SQL → Edge Function → web, làm trọn trên
+  staging trước, rồi lặp lại y hệt trên production. Sai thứ tự là khách gặp lỗi thật.
+- Thêm miền mới phải khai vào **BA** danh sách `ALLOWED_ORIGINS` (`_shared/ai-provider.ts`,
+  `wedding-admin`, `guest-handler`) — sót một chỗ thì lỗi hiện ra dưới dạng CORS ở đúng
+  một tính năng.
+- Staging **không dùng worker cache** (`cloudflare.*` = `null`, các DAL tự lùi về Supabase).
+  Mọi thứ còn lại dựng GIỐNG HỆT production, kể cả cron `cleanup-weddings` — đánh đổi là thiệp
+  test chưa thanh toán/nháp bỏ quên sẽ bị xoá vĩnh viễn đúng như thật.
 
 ### Triển khai (repo private → Cloudflare Pages)
 

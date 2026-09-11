@@ -105,6 +105,11 @@ create extension if not exists pg_net;
 
 -- ============ 4. Lịch chạy hằng ngày ============
 -- 20:00 UTC = 03:00 giờ VN — giờ chết, không đụng lúc khách đang sửa thiệp.
+-- ⚠ CHẠY TRÊN STAGING thì phải sửa `url :=` bên dưới sang ref của project staging —
+--   dòng đó trỏ CỨNG vào production, để nguyên là cron staging đi xoá dữ liệu THẬT.
+--   Vault secret `cleanup_token` cũng phải là ADMIN_SECRET_TOKEN của chính project đó.
+--   Xem docs/staging-environment.md §6.
+--
 -- cron.schedule ghi đè job trùng tên nên chạy lại file này không tạo job thứ hai.
 -- Chỉ TỐN 1 lượt Edge Function mỗi ngày (~30/tháng trên hạn mức 500k).
 
