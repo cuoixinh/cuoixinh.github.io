@@ -3,6 +3,9 @@
   <head>
     <meta charset="utf-8" />
     <title>Cưới Xinh</title>
+    <!-- Nạp TRƯỚC script dưới: trang này không qua loader nào nên phải tự lấy
+         CONFIG. Đường dẫn tuyệt đối vì router chạy ở path bất kỳ (/<slug>). -->
+    <script src="/core/config.js"></script>
     <script>
       // Router hỗ trợ clean URLs cho tất cả pages
       const path = window.location.pathname
@@ -32,15 +35,19 @@
 
         if (!slug) {
           window.location.replace("/");
+        }
+        // config.js tải hỏng thì không có CONFIG, mà cả nhánh dưới sống nhờ nó:
+        // thiếu chốt này thì MỌI link thiệp chết trắng thay vì lùi về trang chủ.
+        else if (typeof CONFIG === "undefined") {
+          window.location.replace("/");
         } else {
-          // Fetch wedding data to get theme
-          const WORKER_URL =
-            "https://wedding-cache-proxy.cuoixinh-api.workers.dev";
-          const SUPABASE_EDGE_URL =
-            "https://lcobawmkywtxhpezndsh.supabase.co/functions/v1/wedding-admin";
-          const ANON_KEY =
-            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxjb2Jhd21reXd0eGhwZXpuZHNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4OTA5ODMsImV4cCI6MjA5MTQ2Njk4M30.4BNmxnfixXdHOq0ovtaF_4wQZ9sap3IWbJNJK9H4Mg4";
-          const API_BASE = WORKER_URL || SUPABASE_EDGE_URL;
+          // Lấy đích từ CONFIG, KHÔNG viết cứng: bản staging do build nối
+          // core/config.staging.js vào cuối config.js, viết cứng ở đây là
+          // staging đọc dữ liệu của production mà không có gì báo.
+          // Worker cache là đường nhanh; thiếu nó (staging) thì gọi thẳng Edge.
+          const API_BASE =
+            CONFIG.cloudflare.cacheProxy || CONFIG.supabase.edgeUrl;
+          const ANON_KEY = CONFIG.supabase.anonKey;
           const extra = params.get("search") || "";
 
           fetch(`${API_BASE}?slug=${slug}`, {
