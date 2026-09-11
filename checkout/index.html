@@ -7,6 +7,10 @@
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
     <title>Thanh toán - Cưới Xinh</title>
+    <!-- iOS Safari tự biến email/số điện thoại trong trang thành link: ở màn
+         này là email người mua, bấm nhầm một cái là văng sang app Mail đúng
+         lúc sắp trả tiền. -->
+    <meta name="format-detection" content="telephone=no,email=no,address=no" />
     <!-- Trang đơn hàng: không cho công cụ tìm kiếm lập chỉ mục, URL luôn kèm
          mã thiệp của một người cụ thể. -->
     <meta name="robots" content="noindex" />
@@ -24,10 +28,13 @@
     />
     <link rel="stylesheet" href="../styles/build.css" />
   </head>
-  <!-- Lề đáy chừa thanh tab (mobile), lề trên chừa thanh nav nổi (từ md) —
-       cùng công thức với my-invitations. -->
+  <!-- Lề đáy chừa DẢI TRẢ TIỀN ghim đáy màn ở khổ điện thoại (#payment-paybar,
+       xem .cx-paybar-pin). Số ở đây chỉ là bản dự phòng cho lúc trang chưa dựng
+       xong: _pinPaybar đo chiều cao dải thật rồi đặt đè lên. Từ md dải nằm
+       trong luồng nên không cần chừa.
+       Lề trên chừa thanh nav nổi (từ md), cùng công thức với my-invitations. -->
   <body
-    class="font-inter text-gray-800 bg-gray-50 min-h-screen pb-[72px] md:pb-0 md:pt-20"
+    class="font-inter text-gray-800 bg-gray-50 min-h-screen pb-[192px] md:pb-0 md:pt-20"
   >
     <main class="max-w-[560px] mx-auto px-4 py-6">
       <button
@@ -55,14 +62,17 @@
     <script src="../core/x-input.js"></script>
     <script src="../core/x-popover.js"></script>
     <script src="../core/helpers/account-menu.js"></script>
-    <!-- Navbar dùng chung: khai mảng mục một lần, dựng cả thanh trên lẫn thanh
-         tab dưới. Mở ở mục "Đã chọn" — thanh toán là chặng nối tiếp của màn
-         quản lý thiệp, và "Quay lại" cũng trở về đó. -->
+    <!-- Navbar dùng chung, nhưng KHÔNG dựng thanh tab dưới (tabbar: false):
+         thanh toán là luồng một chiều, dải đáy dành cho nút trả tiền và bốn
+         mục điều hướng ở đó chỉ mời khách rời luồng. Thanh trên (từ md) vẫn
+         giữ, mở ở mục "Đã chọn" — thanh toán là chặng nối tiếp của màn quản lý
+         thiệp, và "Quay lại" cũng trở về đó. -->
     <script src="../core/components/navbar.js"></script>
     <script>
       CXNavbar.mount({
         active: "cart",
         width: "6xl",
+        tabbar: false,
         items: [
           { id: "home", label: "Trang chủ", icon: "home", href: "/" },
           {
