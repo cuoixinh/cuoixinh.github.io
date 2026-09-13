@@ -10,12 +10,16 @@ const EDGE_URL = CONFIG.supabase.edgeUrl;
 const ANON_KEY = CONFIG.supabase.anonKey;
 const DOMAIN = window.location.origin;
 
+// Mỗi môi trường một `ADMIN_SECRET_TOKEN` riêng nên key phải kèm tên môi trường:
+// dùng chung một key là đổi môi trường xong gửi token của bên kia, nhận 401 mà
+// không có gì hỏi lại. Môi trường do admin/loader.js chọn.
+const ADMIN_TOKEN_KEY = "admin_token:" + CONFIG.env;
 
-let ADMIN_TOKEN = sessionStorage.getItem("admin_token");
+let ADMIN_TOKEN = sessionStorage.getItem(ADMIN_TOKEN_KEY);
 if (!ADMIN_TOKEN) {
-  ADMIN_TOKEN = prompt("Nhập mã quản trị:");
+  ADMIN_TOKEN = prompt("Nhập mã quản trị (" + CONFIG.env + "):");
   if (ADMIN_TOKEN) {
-    sessionStorage.setItem("admin_token", ADMIN_TOKEN);
+    sessionStorage.setItem(ADMIN_TOKEN_KEY, ADMIN_TOKEN);
   } else {
     document.body.innerHTML =
       '<p style="text-align:center;margin-top:40px;color:rgb(var(--text-disabled-rgb))">Không có quyền truy cập</p>';
@@ -64,9 +68,12 @@ const TAB_BREADCRUMB_LABELS = {
 
 function switchTab(tabName, pushState = true) {
   TAB_NAMES.forEach((name) => {
-    document.getElementById(`content-${name}`).classList.toggle("hidden", name !== tabName);
+    document
+      .getElementById(`content-${name}`)
+      .classList.toggle("hidden", name !== tabName);
   });
-  document.getElementById("breadcrumb-current").textContent = TAB_BREADCRUMB_LABELS[tabName];
+  document.getElementById("breadcrumb-current").textContent =
+    TAB_BREADCRUMB_LABELS[tabName];
 
   if (pushState) history.replaceState(null, "", `#${tabName}`);
 

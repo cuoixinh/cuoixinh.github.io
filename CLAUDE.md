@@ -57,10 +57,10 @@ Không gọi thẳng UI → DAL khi có logic nghiệp vụ.
   **sửa CSS xong phải `npm run build` và commit cả file build**.
 - **Hai bản build riêng, không gộp được** (cùng tên màu nhưng khác giá trị):
 
-  | Build    | Config                      | Nguồn → Kết quả                  | Trang dùng                                                                  |
-  | -------- | --------------------------- | -------------------------------- | --------------------------------------------------------------------------- |
+  | Build    | Config                      | Nguồn → Kết quả                  | Trang dùng                                                                   |
+  | -------- | --------------------------- | -------------------------------- | ---------------------------------------------------------------------------- |
   | Ứng dụng | `tailwind.config.js`        | `tailwind-src.css` → `build.css` | `index`, `admin/`, `invitation-setup/`, `my-invitations/`, `theme-template/` |
-  | Thiệp    | `tailwind.themes.config.js` | `themes-src.css` → `themes.css`  | `public/themes/*`                                                           |
+  | Thiệp    | `tailwind.themes.config.js` | `themes-src.css` → `themes.css`  | `public/themes/*`                                                            |
 
 - Thêm thư mục/trang mới → **thêm vào `content`** của config tương ứng, không thì bị purge.
 - **Không ghép tên class từ chuỗi** (`` `bg-${c}` ``) — purge quét văn bản thô.
@@ -87,8 +87,9 @@ Không gọi thẳng UI → DAL khi có logic nghiệp vụ.
 - **MCP chỉ để ĐỌC** (project `lcobawmkywtxhpezndsh`). Dùng `list_tables`/`execute_sql` để
   biết schema thật — changelogs là lịch sử, không phải nguồn sự thật.
 - **Không sửa DB qua MCP.** Mọi thay đổi schema → script SQL **idempotent** trong
-  `changelogs/RC<major>_<số 3 chữ số>_<tên>.sql` (số đó để sort chữ ra đúng thứ tự
-  chạy; minor cho thay đổi thường, major cho breaking + baseline mới),
+  `changelogs/RC<major>/RC<major>_<số 3 chữ số>_<tên>.sql` (mỗi dòng major một thư mục; số
+  đó để sort chữ ra đúng thứ tự chạy; minor cho thay đổi thường, major cho breaking +
+  baseline mới),
   cập nhật bảng phiên bản ở `changelogs/README.md`, người dùng tự chạy ở Dashboard.
 - **Deploy Edge Function — môi trường chọn bằng CỜ:** `npm run deploy:functions:staging`,
   `npm run deploy:functions` (production), `npm run deploy:functions:all` (cả hai, staging
@@ -199,10 +200,15 @@ Supabase riêng và một kênh thanh toán PayOS riêng. Đụng tới staging 
   production; bản staging do BUILD dựng ra bằng cách nối `core/config.staging.js` vào cuối
   (`--env=staging`), file đó chỉ khai những khoá KHÁC đi. Lúc chạy vẫn đúng MỘT file
   `core/config.js`, nên 13 trang HTML và hai loader không phải khai thêm thẻ `<script>` —
-  mẫu thiệp mới chép từ `base-theme` tự đúng.
+  mẫu thiệp mới chép từ `base-theme` tự đúng. Ngoại lệ DUY NHẤT là `admin/loader.js`:
+  trang admin không đi qua build nên tự nối file override lúc chạy theo dải chọn môi
+  trường ở header (lưu ở `localStorage.admin_env`, đổi là tải lại trang). Được phép vì
+  `admin/` chỉ chạy local — đừng bê cách đó sang trang ra web.
 - Thêm môi trường nữa thì thêm `core/config.<tên>.js` **và** khai vào `EXCLUDE` của
   `scripts/deploy-public.mjs` — không khai là file đó ra web thành file riêng, chẳng ai nạp
-  mà lại lộ URL môi trường khác.
+  mà lại lộ URL môi trường khác — **và** thêm một mục vào `ENVS` của `admin/loader.js`.
+  Mỗi môi trường một `ADMIN_SECRET_TOKEN` riêng nên mã quản trị cất theo key
+  `admin_token:<env>`.
 - **Sửa Edge Function xong phải deploy CẢ HAI project** (`npm run deploy:functions:all`),
   không thì hai môi trường chạy hai bản khác nhau mà không có gì báo.
 - **Thứ tự khi một thay đổi đụng nhiều tầng:** SQL → Edge Function → web, làm trọn trên
@@ -239,7 +245,7 @@ deploy thì đọc `docs/deploy-cloudflare-pages.md` trước.
   `REDACT` không khớp, hoặc khi thiếu TTY mà không có `--yes` (nếu không sẽ publish thư mục
   rỗng). CẢNH BÁO khi CSS build cũ hơn nguồn hay HTML trỏ tới file ngoài bản publish.
 - Bỏ `--dist` thì script quay về chế độ copy sang một repo khác trên máy (`npm run
-  deploy:public` / `deploy.bat`) — giữ làm đường lùi về GitHub Pages.
+deploy:public` / `deploy.bat`) — giữ làm đường lùi về GitHub Pages.
 
 ### Kho ảnh (Supabase Storage)
 
@@ -288,8 +294,8 @@ GitHub Pages chạy Jekyll nên đường dẫn kiểu đó không được publ
 | File         | Vai trò                                                                   |
 | ------------ | ------------------------------------------------------------------------- |
 | `index.html` | Markup + thứ tự nạp script (`index.js` rồi `theme-boot.js` ở CUỐI)        |
-| `index.js`   | **Chỉ khai báo**: `window.CX_THEME` + `renderWedding` + phần đặc thù       |
-| `theme.css`  | Bảng màu `--cx-*` + CSS riêng. **CSS thuần**, nạp sau `styles/themes.css`  |
+| `index.js`   | **Chỉ khai báo**: `window.CX_THEME` + `renderWedding` + phần đặc thù      |
+| `theme.css`  | Bảng màu `--cx-*` + CSS riêng. **CSS thuần**, nạp sau `styles/themes.css` |
 
 - **`window.CX_THEME`** là bản khai — nguồn sự thật duy nhất về mẫu:
   `swatches` (màu gợi ý trong bộ chọn màu), `reveal`, `focus` (id mục, chỉ khai cái khác
@@ -342,11 +348,11 @@ GitHub Pages chạy Jekyll nên đường dẫn kiểu đó không được publ
 liệu, nên trình duyệt không thấy chúng lúc quét HTML và không đoán được tấm nào quan trọng:
 không khai thì ảnh dưới đáy trang tranh băng thông với ảnh đang hiện trên màn. Quy ước:
 
-| Ảnh                                     | Khai                    |
-| --------------------------------------- | ----------------------- |
-| Ảnh của màn ĐẦU TIÊN khách thấy         | `fetchpriority="high"`  |
+| Ảnh                                     | Khai                        |
+| --------------------------------------- | --------------------------- |
+| Ảnh của màn ĐẦU TIÊN khách thấy         | `fetchpriority="high"`      |
 | Ảnh trong `#main-card` của theme CÓ bìa | (không gì) — **KHÔNG lazy** |
-| Mọi ảnh còn lại                         | `loading="lazy"`        |
+| Mọi ảnh còn lại                         | `loading="lazy"`            |
 
 - "Màn đầu tiên" tuỳ mẫu: theme có bìa thì là `#cover-bg-img`, theme không bìa (`#main-card`
   không `display:none`) thì là `#main-photo`. Chỉ MỘT tấm được `high`.
@@ -363,8 +369,8 @@ không khai thì ảnh dưới đáy trang tranh băng thông với ảnh đang 
   `setupMusic` kéo YouTube iframe API (script bên thứ ba) về ngay khi chạy, để nó đi trước là
   ảnh màn đầu xếp hàng sau.
 
-Quy ước này nhắm vào MỘT thứ: bớt số request tranh nhau ở cửa sổ tới hạn. Thứ chỉ đổi *thứ
-tự* mà không bớt request (`preconnect`, `decoding`) đã thử rồi bỏ — chưa đo được lợi ích, mà
+Quy ước này nhắm vào MỘT thứ: bớt số request tranh nhau ở cửa sổ tới hạn. Thứ chỉ đổi _thứ
+tự_ mà không bớt request (`preconnect`, `decoding`) đã thử rồi bỏ — chưa đo được lợi ích, mà
 `preconnect` còn dễ phản tác dụng vì socket nhàn rỗi bị đóng trước lúc dùng. Muốn thêm lại
 thì đo waterfall trước.
 

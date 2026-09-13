@@ -76,7 +76,7 @@ Số ngày khai ở `CONFIG.retention` (`core/config.js`) — nguồn sự thậ
 
 | Mảnh               | File                                                                                                   | Việc                                                                                 |
 | --------------------| --------------------------------------------------------------------------------------------------------| --------------------------------------------------------------------------------------|
-| Schema + lịch      | `changelogs/RC1_010_cleanup_retention.sql`                                                             | cột `updated_at` + trigger, 2 partial index, bật `pg_cron`/`pg_net`, `cron.schedule` |
+| Schema + lịch      | `changelogs/RC1/RC1_010_cleanup_retention.sql`                                                             | cột `updated_at` + trigger, 2 partial index, bật `pg_cron`/`pg_net`, `cron.schedule` |
 | Quét & xoá         | `supabase/functions/cleanup-weddings/index.ts`                                                         | 2 câu quét, xoá ảnh Storage rồi xoá hàng                                             |
 | Khoá thiệp         | `supabase/functions/wedding-admin/index.ts` (GET một thiệp)                                            | slug + hết hạn → 403 `TRIAL_EXPIRED`; theo id → kèm cờ `trial_locked`                |
 | Lộ mã lỗi          | `core/dal/wedding-dal.js` → `getWeddingBySlug`                                                         | đọc body lỗi, gắn `err.code`                                                         |
