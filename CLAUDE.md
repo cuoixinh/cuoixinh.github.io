@@ -283,6 +283,9 @@ RLS nên khách mời không đăng nhập vẫn xem được.
 ### Theme thiệp mới (`public/themes/*`)
 
 **Một mẫu = ĐÚNG 3 file trong `public/themes/<tên>/` + một hàng `templates` trong DB.**
+Hàng đó KHÔNG ghi thẳng vào DB: tab "Templates" của admin sinh một file changelog
+`.sql` (Thêm/Sửa/Xoá đều vậy) rồi mình tự chạy trên cả hai project — dữ liệu mẫu phải
+giống nhau ở staging lẫn production, mà một lần ghi qua Edge Function chỉ trúng một bên.
 Không sửa file dùng chung nào khác — chèn tên theme vào helper là làm hỏng quy ước này.
 
 **Bắt đầu bằng cách chép `public/themes/base-theme/`** — mẫu nền có ĐỦ mọi mục, không bán

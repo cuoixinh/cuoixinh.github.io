@@ -9,20 +9,77 @@
         Quản lý Templates
       </h2>
       <div class="flex gap-2 flex-wrap">
-        <x-button id="purge-cache-btn" onclick="purgeTemplatesCache()" title="Xóa cache Cloudflare" class="flex-1 sm:flex-none sm:px-6">
-          <i data-lucide="refresh-cw" style="width:16px;height:16px"></i>
+        <x-button
+          id="purge-cache-btn"
+          onclick="purgeTemplatesCache()"
+          title="Xóa cache Cloudflare"
+          class="flex-1 sm:flex-none sm:px-6"
+        >
+          <i data-lucide="refresh-cw" style="width: 16px; height: 16px"></i>
           <span class="hidden sm:inline">Xóa Cache</span>
         </x-button>
-        <x-button id="scan-images-btn" onclick="startScanImages()" disabled title="Tick chọn template trong danh sách rồi bấm scan" class="flex-1 sm:flex-none sm:px-6">
-          <i data-lucide="camera" style="width:16px;height:16px"></i>
+        <x-button
+          id="scan-images-btn"
+          onclick="startScanImages()"
+          disabled
+          title="Tick chọn template trong danh sách rồi bấm scan"
+          class="flex-1 sm:flex-none sm:px-6"
+        >
+          <i data-lucide="camera" style="width: 16px; height: 16px"></i>
           <span class="hidden sm:inline">Scan Image IFrame</span
           ><span class="sm:hidden">Scan</span>
         </x-button>
-        <x-button onclick="openTemplateModal()" class="flex-1 sm:flex-none sm:px-6">
-          <i data-lucide="plus" style="width:16px;height:16px"></i>
+        <x-button
+          onclick="openTemplateModal()"
+          class="flex-1 sm:flex-none sm:px-6"
+        >
+          <i data-lucide="plus" style="width: 16px; height: 16px"></i>
           <span class="hidden sm:inline">Thêm Template</span
           ><span class="sm:hidden">Thêm</span>
         </x-button>
+      </div>
+    </div>
+
+    <!-- Ghi CHANGELOG thay vì ghi thẳng DB: Thêm/Sửa/Xoá mẫu đều sinh một file
+         .sql trong changelogs/RC*/ để chạy tay trên CẢ hai môi trường. Cần File
+         System Access API (Chrome/Edge) — xem tplInitChangelog() ở 02-templates.js. -->
+    <div
+      class="px-3 sm:px-4 md:px-6 py-3 border-b border-gray-100 bg-amber-50/60"
+    >
+      <p id="tpl-cl-unsupported" class="hidden text-xs text-amber-800">
+        Trình duyệt này không ghi được file xuống đĩa (cần Chrome hoặc Edge).
+        Thêm/Sửa/Xoá mẫu sẽ không dùng được.
+      </p>
+      <div id="tpl-cl-body" class="flex flex-wrap items-center gap-x-4 gap-y-2">
+        <div class="min-w-0">
+          <p class="text-xs font-medium text-gray-700">
+            Thư mục <code class="font-mono">changelogs/</code>
+          </p>
+          <p id="tpl-cl-status" class="text-xs text-gray-500 mt-0.5">
+            Chưa kết nối
+          </p>
+        </div>
+        <x-button
+          id="tpl-cl-connect-btn"
+          size="sm"
+          variant="outline"
+          tone="neutral"
+          data-mode="pick"
+          onclick="connectChangelogFolder()"
+        >
+          Chọn thư mục
+        </x-button>
+        <label class="flex items-center gap-2 text-xs text-gray-700">
+          Ghi vào
+          <select
+            id="tpl-cl-rc"
+            onchange="tplRefreshNextFile()"
+            class="rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-xs"
+          >
+            <option value="">—</option>
+          </select>
+        </label>
+        <p id="tpl-cl-next" class="text-xs text-gray-500 font-mono"></p>
       </div>
     </div>
 
@@ -32,9 +89,17 @@
         <thead>
           <tr class="border-b border-gray-200">
             <th class="py-3 px-4 w-10 text-left">
-              <input type="checkbox" id="tpl-scan-all"
+              <input
+                type="checkbox"
+                id="tpl-scan-all"
                 class="w-3.5 h-3.5 accent-violet-500 cursor-pointer"
-                onchange="document.querySelectorAll('input[name=tpl-scan]').forEach(cb=>cb.checked=this.checked);updateScanBtn()" />
+                onchange="
+                  document
+                    .querySelectorAll('input[name=tpl-scan]')
+                    .forEach((cb) => (cb.checked = this.checked));
+                  updateScanBtn();
+                "
+              />
             </th>
             <th class="text-left py-3 px-4 text-sm font-medium text-gray-700">
               Tên hiển thị
@@ -79,15 +144,23 @@
   id="modal-template"
   class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-3 sm:p-4"
 >
-  <div class="bg-white rounded-2xl w-full max-w-2xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden">
+  <div
+    class="bg-white rounded-2xl w-full max-w-2xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden"
+  >
     <!-- Header cố định -->
-    <div class="flex items-start justify-between gap-3 px-4 sm:px-6 py-4 border-b border-gray-100">
+    <div
+      class="flex items-start justify-between gap-3 px-4 sm:px-6 py-4 border-b border-gray-100"
+    >
       <div>
-        <h3 class="text-base sm:text-lg font-semibold text-gray-800" id="template-modal-title">
+        <h3
+          class="text-base sm:text-lg font-semibold text-gray-800"
+          id="template-modal-title"
+        >
           Thêm Template
         </h3>
         <p class="text-xs text-gray-500 mt-0.5">
-          Một mẫu = 3 file trong <code class="font-mono">public/themes/</code> + hàng dữ liệu này
+          Một mẫu = 3 file trong <code class="font-mono">public/themes/</code> +
+          hàng dữ liệu này
         </p>
       </div>
       <x-button
@@ -107,9 +180,12 @@
       <!-- Gửi Template Name + mô tả đang gõ sang AI, kèm 5 mẫu mới nhất làm ví
            dụ (dựng prompt ở Edge Function, resource=template-ai) rồi điền hộ
            cả form. Đặt trên đầu vì nó chạm tới mọi mục bên dưới. -->
-      <div class="flex items-center justify-between gap-3 flex-wrap rounded-xl bg-rose-50 px-4 py-3">
+      <div
+        class="flex items-center justify-between gap-3 flex-wrap rounded-xl bg-rose-50 px-4 py-3"
+      >
         <p class="text-xs text-rose-900/70 max-w-sm">
-          Gõ vài chữ ý tưởng vào <strong>Mô tả</strong> (hoặc Template Name) rồi để AI điền hộ cả form.
+          Gõ vài chữ ý tưởng vào <strong>Mô tả</strong> (hoặc Template Name) rồi
+          để AI điền hộ cả form.
         </p>
         <x-button
           id="template-ai-btn"
@@ -138,8 +214,15 @@
           required
         ></x-input>
         <p class="text-xs text-gray-500 -mt-1.5 flex items-start gap-1.5">
-          <i data-lucide="info" class="mt-0.5 shrink-0" style="width:16px;height:16px"></i>
-          <span>Tên thư mục trong <code class="font-mono">public/themes/</code>, cũng là ID duy nhất. Không đổi được sau khi mẫu đã bán.</span>
+          <i
+            data-lucide="info"
+            class="mt-0.5 shrink-0"
+            style="width: 16px; height: 16px"
+          ></i>
+          <span
+            >Tên thư mục trong <code class="font-mono">public/themes/</code>,
+            cũng là ID duy nhất. Không đổi được sau khi mẫu đã bán.</span
+          >
         </p>
 
         <x-input
@@ -173,7 +256,11 @@
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label for="template-category" class="block text-sm text-gray-700 mb-1.5">Danh mục</label>
+            <label
+              for="template-category"
+              class="block text-sm text-gray-700 mb-1.5"
+              >Danh mục</label
+            >
             <select
               id="template-category"
               class="w-full h-10 px-3 border border-gray-200 rounded-lg text-sm text-gray-800 bg-white outline-none focus:ring-2 focus:ring-rose-500/30 transition-all"
@@ -187,7 +274,11 @@
           </div>
 
           <div>
-            <label for="template-sort-order" class="block text-sm text-gray-700 mb-1.5">Thứ tự hiển thị</label>
+            <label
+              for="template-sort-order"
+              class="block text-sm text-gray-700 mb-1.5"
+              >Thứ tự hiển thị</label
+            >
             <input
               id="template-sort-order"
               type="number"
@@ -206,7 +297,11 @@
         </h4>
 
         <div>
-          <label for="template-status" class="block text-sm text-gray-700 mb-1.5">Trạng thái bán</label>
+          <label
+            for="template-status"
+            class="block text-sm text-gray-700 mb-1.5"
+            >Trạng thái bán</label
+          >
           <select
             id="template-status"
             class="w-full h-10 px-3 border border-gray-200 rounded-lg text-sm text-gray-800 bg-white outline-none focus:ring-2 focus:ring-rose-500/30 transition-all"
@@ -228,16 +323,28 @@
             class="mt-0.5 w-4 h-4 accent-rose-500 cursor-pointer"
           />
           <span>
-            <span class="block text-sm font-medium text-gray-700">Kích hoạt template</span>
-            <span class="block text-xs text-gray-500 mt-0.5">Bỏ tick là mẫu biến mất khỏi trang chọn thiệp, thiệp đã tạo vẫn chạy</span>
+            <span class="block text-sm font-medium text-gray-700"
+              >Kích hoạt template</span
+            >
+            <span class="block text-xs text-gray-500 mt-0.5"
+              >Bỏ tick là mẫu biến mất khỏi trang chọn thiệp, thiệp đã tạo vẫn
+              chạy</span
+            >
           </span>
         </label>
       </section>
     </div>
 
     <!-- Footer cố định -->
-    <div class="flex gap-3 px-4 sm:px-6 py-4 border-t border-gray-100 bg-gray-50/60">
-      <x-button variant="outline" tone="neutral" onclick="closeTemplateModal()" class="flex-1">
+    <div
+      class="flex gap-3 px-4 sm:px-6 py-4 border-t border-gray-100 bg-gray-50/60"
+    >
+      <x-button
+        variant="outline"
+        tone="neutral"
+        onclick="closeTemplateModal()"
+        class="flex-1"
+      >
         Hủy
       </x-button>
       <x-button icon="save" onclick="saveTemplate()" class="flex-1">
@@ -248,27 +355,62 @@
 </div>
 
 <!-- Modal: Scan Log -->
-<div id="modal-scan" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4">
+<div
+  id="modal-scan"
+  class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4"
+>
   <div class="bg-white rounded-2xl p-6 w-full max-w-lg shadow-2xl">
     <div class="flex items-center justify-between mb-4">
       <h3 class="text-base font-semibold text-gray-800 flex items-center gap-2">
-        <i data-lucide="camera" class="text-violet-500" style="width:16px;height:16px"></i> Scan Image IFrame
+        <i
+          data-lucide="camera"
+          class="text-violet-500"
+          style="width: 16px; height: 16px"
+        ></i>
+        Scan Image IFrame
       </h3>
-      <x-button variant="ghost" tone="neutral" id="scan-close-btn" onclick="closeScanModal()" class="text-xl">&times;</x-button>
+      <x-button
+        variant="ghost"
+        tone="neutral"
+        id="scan-close-btn"
+        onclick="closeScanModal()"
+        class="text-xl"
+        >&times;</x-button
+      >
     </div>
-    <div id="scan-log"
-      class="bg-gray-950 text-green-400 font-mono text-xs rounded-xl p-3 h-56 overflow-y-auto space-y-0.5 mb-4"></div>
+    <div
+      id="scan-log"
+      class="bg-gray-950 text-green-400 font-mono text-xs rounded-xl p-3 h-56 overflow-y-auto space-y-0.5 mb-4"
+    ></div>
     <div id="scan-done-bar" class="hidden mb-4 flex items-center gap-3">
       <div class="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-        <div id="scan-progress-fill" class="h-full bg-violet-500 transition-all duration-500" style="width:0%"></div>
+        <div
+          id="scan-progress-fill"
+          class="h-full bg-violet-500 transition-all duration-500"
+          style="width: 0%"
+        ></div>
       </div>
-      <span id="scan-done-label" class="text-xs text-gray-500 whitespace-nowrap"></span>
+      <span
+        id="scan-done-label"
+        class="text-xs text-gray-500 whitespace-nowrap"
+      ></span>
     </div>
     <!-- "Vẫn lưu" chỉ hiện ở nhánh báo scan server chưa bật (showScanServerHelp),
          lúc scan chạy bình thường thì ẩn. -->
     <div class="flex justify-end gap-2">
-      <x-button id="scan-continue-btn" onclick="scanHelpContinue()" class="hidden">Vẫn lưu, bỏ scan</x-button>
-      <x-button variant="outline" tone="neutral" id="scan-dismiss-btn" onclick="closeScanModal()">Đóng</x-button>
+      <x-button
+        id="scan-continue-btn"
+        onclick="scanHelpContinue()"
+        class="hidden"
+        >Vẫn lưu, bỏ scan</x-button
+      >
+      <x-button
+        variant="outline"
+        tone="neutral"
+        id="scan-dismiss-btn"
+        onclick="closeScanModal()"
+        >Đóng</x-button
+      >
     </div>
   </div>
 </div>

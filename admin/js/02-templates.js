@@ -1,5 +1,8 @@
 // ============= TAB: Templates =============
 let editingTemplateId = null;
+// `template_id` của hàng đang sửa — khoá WHERE của câu lệnh update trong
+// changelog. Phải giữ riêng vì form cho đổi Template Name, tức đổi luôn khoá.
+let editingTemplateKey = null;
 
 async function purgeTemplatesCache() {
   const btn = document.getElementById("purge-cache-btn");
@@ -14,7 +17,8 @@ async function purgeTemplatesCache() {
 
   try {
     btn.disabled = true;
-    btn.innerHTML = '<i data-lucide="loader-circle" class="animate-spin" style="width:16px;height:16px"></i> Đang xóa...';
+    btn.innerHTML =
+      '<i data-lucide="loader-circle" class="animate-spin" style="width:16px;height:16px"></i> Đang xóa...';
     window.lucide?.createIcons({ root: btn });
 
     const response = await fetch(CONFIG.cloudflare.templatesCache + "/purge", {
@@ -58,13 +62,14 @@ async function purgeTemplatesCache() {
 }
 
 async function loadTemplates() {
+  // Khối "Thư mục changelogs/" ở đầu tab — dựng lại mỗi lần vào tab, giống các
+  // tab ảnh: quyền thư mục có thể đã bị thu hồi từ lần trước.
+  tplInitChangelog();
+
   try {
-    const res = await fetch(
-      `${EDGE_URL}?resource=templates`,
-      {
-        headers: adminHeaders(),
-      },
-    );
+    const res = await fetch(`${EDGE_URL}?resource=templates`, {
+      headers: adminHeaders(),
+    });
 
     if (!res.ok) {
       const error = await res.json();
@@ -124,7 +129,9 @@ function renderTemplates(templates) {
 }
 
 function updateScanBtn() {
-  const checked = document.querySelectorAll("input[name='tpl-scan']:checked").length;
+  const checked = document.querySelectorAll(
+    "input[name='tpl-scan']:checked",
+  ).length;
   const btn = document.getElementById("scan-images-btn");
   if (btn) btn.disabled = checked === 0;
 
@@ -152,6 +159,7 @@ function getStatusColor(status) {
 
 function openTemplateModal(templateId = null) {
   editingTemplateId = templateId;
+  editingTemplateKey = null; // nhánh sửa gán lại trong loadTemplateData()
 
   if (templateId) {
     // Edit mode - load template data
@@ -171,6 +179,7 @@ function openTemplateModal(templateId = null) {
 
 function closeTemplateModal() {
   editingTemplateId = null;
+  editingTemplateKey = null;
   document.getElementById("modal-template").classList.add("hidden");
   document.getElementById("modal-template").classList.remove("flex");
 }
@@ -223,7 +232,10 @@ async function suggestTemplateMeta() {
   const hint = descEl.value.trim();
 
   if (!themeName && !hint) {
-    showToast("Nhập Template Name hoặc vài chữ mô tả để AI có gì mà dựa vào", "error");
+    showToast(
+      "Nhập Template Name hoặc vài chữ mô tả để AI có gì mà dựa vào",
+      "error",
+    );
     return;
   }
 
@@ -243,13 +255,17 @@ async function suggestTemplateMeta() {
 
     // Ghi đè các ô chữ — admin bấm nút này là muốn bản gợi ý, chữ cũ đã nằm
     // trong prompt nên ý không mất.
-    if (data.display_name) setTemplateField("template-display-name", data.display_name);
-    if (data.description) setTemplateField("template-description", data.description);
-    if (data.category) document.getElementById("template-category").value = data.category;
+    if (data.display_name)
+      setTemplateField("template-display-name", data.display_name);
+    if (data.description)
+      setTemplateField("template-description", data.description);
+    if (data.category)
+      document.getElementById("template-category").value = data.category;
 
     // template_name chỉ nhận khi ô đang trống: nó là tên thư mục
     // public/themes/<tên>/ có thật, admin gõ rồi thì không được đổi.
     if (!themeName && data.template_name) {
+      editingTemplateKey = data.template_id;
       setTemplateField("template-name", data.template_name);
       setTemplateField(
         "template-preview-url",
@@ -260,9 +276,12 @@ async function suggestTemplateMeta() {
     // Phần cơ học chỉ áp khi đang THÊM mẫu mới — lúc sửa mẫu cũ, đè thứ tự /
     // trạng thái là âm thầm bật lại một mẫu đã ngừng bán.
     if (!editingTemplateId) {
-      document.getElementById("template-sort-order").value = data.sort_order ?? 0;
-      document.getElementById("template-status").value = data.status || "active";
-      document.getElementById("template-is-active").checked = data.is_active !== false;
+      document.getElementById("template-sort-order").value =
+        data.sort_order ?? 0;
+      document.getElementById("template-status").value =
+        data.status || "active";
+      document.getElementById("template-is-active").checked =
+        data.is_active !== false;
     }
 
     showToast("AI đã điền xong, xem lại rồi Lưu", "success");
@@ -276,12 +295,9 @@ async function suggestTemplateMeta() {
 
 async function loadTemplateData(templateId) {
   try {
-    const res = await fetch(
-      `${EDGE_URL}?resource=templates&id=${templateId}`,
-      {
-        headers: adminHeaders(),
-      },
-    );
+    const res = await fetch(`${EDGE_URL}?resource=templates&id=${templateId}`, {
+      headers: adminHeaders(),
+    });
 
     if (!res.ok) throw new Error("Lỗi tải template");
 
@@ -332,49 +348,20 @@ async function saveTemplate() {
     is_active: document.getElementById("template-is-active").checked,
   };
 
-  try {
-    let res;
-    if (editingTemplateId) {
-      // Update existing template
-      res = await fetch(`${EDGE_URL}?resource=templates`, {
-        method: "PATCH",
-        headers: adminHeaders({ "Content-Type": "application/json" }),
-        body: JSON.stringify({ id: editingTemplateId, ...payload }),
-      });
-    } else {
-      // Insert new template
-      res = await fetch(`${EDGE_URL}?resource=templates`, {
-        method: "POST",
-        headers: adminHeaders({ "Content-Type": "application/json" }),
-        body: JSON.stringify(payload),
-      });
-    }
+  // Không ghi thẳng vào DB: sinh changelog để chạy trên cả hai môi trường.
+  const file = await tplWriteChangelog(
+    editingTemplateId ? "update" : "insert",
+    payload,
+    editingTemplateKey,
+  );
+  if (!file) return;
 
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(error.error || "Lỗi lưu template");
-    }
-
-    alert(
-      editingTemplateId
-        ? "✅ Đã cập nhật template thành công!"
-        : "✅ Đã thêm template thành công!",
-    );
-
-    closeTemplateModal();
-    loadTemplates();
-
-    // Suggest purging cache
-    if (
-      confirm(
-        "Bạn có muốn xóa cache Cloudflare để cập nhật templates mới không?",
-      )
-    ) {
-      purgeTemplatesCache();
-    }
-  } catch (e) {
-    alert("❌ Lỗi: " + e.message);
-  }
+  closeTemplateModal();
+  alert(
+    `✅ Đã tạo changelog: ${file}\n\nDanh sách bên dưới đọc từ DB nên chưa đổi.` +
+      ` Chạy file này ở Supabase → SQL Editor trên CẢ HAI project (staging trước,` +
+      ` rồi production), xong nhớ commit file vào repo.`,
+  );
 }
 
 async function editTemplate(templateId) {
@@ -382,50 +369,26 @@ async function editTemplate(templateId) {
 }
 
 async function deleteTemplate(templateId, displayName) {
+  // `templateId` là uuid của hàng, còn changelog khớp theo `template_id` — tra
+  // ngược trong danh sách vừa render.
+  const row = (window.adminTemplates || []).find((t) => t.id === templateId);
+  if (!row)
+    return alert("Không tìm thấy mẫu trong danh sách, hãy tải lại tab.");
+
   if (
     !confirm(
-      `Bạn có chắc muốn xóa template "${displayName}"?\n\nThao tác này không thể hoàn tác!`,
+      `Tạo changelog XOÁ mẫu "${displayName}"?\n\nFile .sql sẽ được ghi vào changelogs/ — mẫu chỉ thực sự mất sau khi bạn chạy file đó trên Supabase.`,
     )
   )
     return;
 
-  try {
-    const res = await fetch(
-      `${EDGE_URL}?resource=templates&id=${templateId}`,
-      {
-        method: "DELETE",
-        headers: adminHeaders(),
-      },
-    );
+  const file = await tplWriteChangelog("delete", null, row.template_id);
+  if (!file) return;
 
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(error.error || "Lỗi xóa template");
-    }
-
-    alert("✅ Đã xóa template thành công!");
-    loadTemplates();
-
-    // Suggest purging cache
-    if (
-      confirm(
-        "Bạn có muốn xóa cache Cloudflare để cập nhật danh sách templates không?",
-      )
-    ) {
-      purgeTemplatesCache();
-    }
-  } catch (e) {
-    alert("❌ Lỗi xóa template: " + e.message);
-  }
+  alert(
+    `✅ Đã tạo changelog: ${file}\n\nChạy trên CẢ HAI project (staging trước, rồi production).`,
+  );
 }
-
-// ============= SCAN IMAGE IFRAME =============
-const SCAN_SERVER = "http://127.0.0.1:3001";
-
-// Có giá trị khi modal đang ở nhánh "scan server chưa bật" và luồng lưu đang
-// chờ người dùng quyết định. Đóng modal lúc đó = huỷ, chứ không phải chỉ tắt
-// cửa sổ — nếu không luồng lưu sẽ treo mãi.
-let scanHelpResolve = null;
 
 function settleScanHelp(goOn) {
   if (!scanHelpResolve) return;
@@ -470,10 +433,19 @@ function showScanServerHelp() {
     appendScanLog(" ");
     appendScanLog("Mở terminal ở thư mục dự án và chạy:", "text-yellow-300");
     appendScanLog("    cd scripts && npm run server", "text-white font-bold");
-    appendScanLog("Lần đầu chạy thì cài trước: cd scripts && npm install", "text-gray-300");
+    appendScanLog(
+      "Lần đầu chạy thì cài trước: cd scripts && npm install",
+      "text-gray-300",
+    );
     appendScanLog(" ");
-    appendScanLog("Bật xong thì bấm \"Huỷ\" rồi Lưu lại để có cả ảnh thumbnail.", "text-gray-300");
-    appendScanLog("Hoặc \"Vẫn lưu, bỏ scan\" để ghi dữ liệu ngay, thumbnail giữ ảnh cũ.", "text-gray-300");
+    appendScanLog(
+      'Bật xong thì bấm "Huỷ" rồi Lưu lại để có cả ảnh thumbnail.',
+      "text-gray-300",
+    );
+    appendScanLog(
+      'Hoặc "Vẫn lưu, bỏ scan" để ghi dữ liệu ngay, thumbnail giữ ảnh cũ.',
+      "text-gray-300",
+    );
   });
 }
 
@@ -483,7 +455,9 @@ function showScanServerHelp() {
 function startScanImages(templateNames) {
   const selected =
     templateNames ||
-    [...document.querySelectorAll("input[name='tpl-scan']:checked")].map((cb) => cb.value);
+    [...document.querySelectorAll("input[name='tpl-scan']:checked")].map(
+      (cb) => cb.value,
+    );
   if (!selected.length) {
     alert("Hãy tick chọn ít nhất một template trong danh sách.");
     return;
@@ -494,24 +468,30 @@ function startScanImages(templateNames) {
   m.classList.add("flex");
   document.getElementById("scan-log").innerHTML = "";
   document.getElementById("scan-done-bar").classList.add("hidden");
-  document.getElementById("scan-close-btn").style.cssText = "pointer-events:none;opacity:0.4";
+  document.getElementById("scan-close-btn").style.cssText =
+    "pointer-events:none;opacity:0.4";
   // Modal dùng chung với showScanServerHelp() — dọn lại footer về dạng scan.
   document.getElementById("scan-continue-btn").classList.add("hidden");
   document.getElementById("scan-dismiss-btn").textContent = "Đóng";
 
   appendScanLog("⏳ Đang kết nối scan server...", "text-yellow-300");
 
-  const es = new EventSource(`${SCAN_SERVER}/scan?templates=${encodeURIComponent(selected.join(","))}`);
+  const es = new EventSource(
+    `${SCAN_SERVER}/scan?templates=${encodeURIComponent(selected.join(","))}`,
+  );
 
   es.onmessage = (e) => {
     const d = JSON.parse(e.data);
     if (d.type === "start") {
       appendScanLog(d.message, "text-yellow-300");
     } else if (d.type === "progress") {
-      const cls = d.message.startsWith("✅") ? "text-green-400"
-                : d.message.startsWith("❌") ? "text-red-400"
-                : d.message.startsWith("⚠️") ? "text-yellow-300"
-                : "text-gray-300";
+      const cls = d.message.startsWith("✅")
+        ? "text-green-400"
+        : d.message.startsWith("❌")
+          ? "text-red-400"
+          : d.message.startsWith("⚠️")
+            ? "text-yellow-300"
+            : "text-gray-300";
       appendScanLog(d.message, cls);
     } else if (d.type === "done") {
       appendScanLog(d.message, "text-green-300 font-bold");
@@ -519,7 +499,9 @@ function startScanImages(templateNames) {
       const rs = (d.results || []).filter((r) => !r.skipped);
       const ok = rs.filter((r) => r.ok).length;
       const total = rs.length;
-      document.getElementById("scan-progress-fill").style.width = total ? `${(ok / total) * 100}%` : "100%";
+      document.getElementById("scan-progress-fill").style.width = total
+        ? `${(ok / total) * 100}%`
+        : "100%";
       document.getElementById("scan-done-label").textContent = `${ok}/${total}`;
       document.getElementById("scan-done-bar").classList.remove("hidden");
       document.getElementById("scan-close-btn").style.cssText = "";
@@ -535,10 +517,16 @@ function startScanImages(templateNames) {
   // dùng gõ nhầm rồi tưởng server hỏng. scripts/ có package.json RIÊNG (puppeteer
   // nằm ở đó, không phải node_modules gốc) nên lần đầu phải cài trước.
   es.onerror = () => {
-    appendScanLog("❌ Không kết nối được scan server ở " + SCAN_SERVER, "text-red-400");
+    appendScanLog(
+      "❌ Không kết nối được scan server ở " + SCAN_SERVER,
+      "text-red-400",
+    );
     appendScanLog("Mở terminal ở thư mục dự án và chạy:", "text-yellow-300");
     appendScanLog("    cd scripts && npm run server", "text-white font-bold");
-    appendScanLog("Lần đầu chạy thì cài trước: cd scripts && npm install", "text-gray-300");
+    appendScanLog(
+      "Lần đầu chạy thì cài trước: cd scripts && npm install",
+      "text-gray-300",
+    );
     document.getElementById("scan-close-btn").style.cssText = "";
     es.close();
   };
@@ -551,4 +539,307 @@ function appendScanLog(msg, cls = "text-green-400") {
   line.textContent = msg;
   log.appendChild(line);
   log.scrollTop = log.scrollHeight;
+}
+
+// ============= Ghi changelog (thay cho ghi thẳng DB) =============
+// Thêm/Sửa/Xoá mẫu KHÔNG đụng tới DB nữa: mỗi thao tác sinh một file .sql trong
+// changelogs/RC*/ để chạy tay trên CẢ staging lẫn production — hai môi trường là
+// hai project Supabase, ghi thẳng qua Edge Function chỉ trúng một bên.
+// Ghi đĩa bằng File System Access API, dùng chung store IndexedDB với các tab ảnh
+// (siIdbGet/siIdbPut + SI_IDB_STORE khai ở 03-sample-images.js — nạp SAU file này,
+// nên chỉ được gọi lúc chạy, đừng dùng ở cấp cao nhất).
+const TPL_IDB_KEY = "changelogs-root";
+const TPL_RC_RE = /^RC\d+$/i;
+
+let tplClRoot = null; // thư mục changelogs/ (hoặc chính một thư mục RC*)
+let tplClFolders = []; // tên các thư mục RC* quét được
+
+async function tplInitChangelog() {
+  if (!("showDirectoryPicker" in window)) {
+    document.getElementById("tpl-cl-unsupported").classList.remove("hidden");
+    document.getElementById("tpl-cl-body").classList.add("hidden");
+    return;
+  }
+
+  const saved = await siIdbGet(SI_IDB_STORE, TPL_IDB_KEY).catch(() => null);
+  if (!saved) {
+    tplClSetStatus("disconnected");
+    return;
+  }
+
+  tplClRoot = saved;
+  const perm = await saved
+    .queryPermission({ mode: "readwrite" })
+    .catch(() => "denied");
+  tplClSetStatus(perm === "granted" ? "connected" : "needs-reauth", saved.name);
+  if (perm === "granted") await tplScanRcFolders();
+}
+
+function tplClSetStatus(state, folderName = "") {
+  const statusEl = document.getElementById("tpl-cl-status");
+  const btn = document.getElementById("tpl-cl-connect-btn");
+
+  if (state === "connected") {
+    statusEl.textContent = `✅ Đã kết nối — ${folderName}/`;
+    statusEl.className = "text-xs text-green-600 mt-0.5";
+    btn.textContent = "Đổi thư mục";
+    btn.dataset.mode = "pick";
+  } else if (state === "needs-reauth") {
+    statusEl.textContent = "⚠️ Cần cấp lại quyền truy cập thư mục";
+    statusEl.className = "text-xs text-amber-600 mt-0.5";
+    btn.textContent = "Cấp lại quyền";
+    btn.dataset.mode = "regrant";
+  } else {
+    statusEl.textContent = "Chưa kết nối — chọn thư mục changelogs/ của repo";
+    statusEl.className = "text-xs text-gray-500 mt-0.5";
+    btn.textContent = "Chọn thư mục";
+    btn.dataset.mode = "pick";
+  }
+}
+
+async function connectChangelogFolder() {
+  const btn = document.getElementById("tpl-cl-connect-btn");
+  try {
+    if (btn.dataset.mode === "regrant" && tplClRoot) {
+      const perm = await tplClRoot.requestPermission({ mode: "readwrite" });
+      if (perm !== "granted")
+        return showToast("Chưa cấp quyền thư mục", "error");
+      tplClSetStatus("connected", tplClRoot.name);
+      await tplScanRcFolders();
+      return;
+    }
+
+    const handle = await window.showDirectoryPicker({
+      id: "cx-changelogs-root",
+      mode: "readwrite",
+    });
+    const perm = await handle.requestPermission({ mode: "readwrite" });
+    if (perm !== "granted") return showToast("Chưa cấp quyền thư mục", "error");
+
+    tplClRoot = handle;
+    await siIdbPut(SI_IDB_STORE, TPL_IDB_KEY, handle);
+    tplClSetStatus("connected", handle.name);
+    await tplScanRcFolders();
+  } catch (e) {
+    if (e.name !== "AbortError") {
+      console.error(e);
+      showToast("Lỗi chọn thư mục: " + e.message, "error");
+    }
+  }
+}
+
+/** Danh sách RC lấy từ THƯ MỤC THẬT, không khai cứng — thêm RC2/ là tự hiện. */
+async function tplScanRcFolders() {
+  const sel = document.getElementById("tpl-cl-rc");
+  tplClFolders = [];
+
+  try {
+    for await (const [name, h] of tplClRoot.entries()) {
+      if (h.kind === "directory" && TPL_RC_RE.test(name))
+        tplClFolders.push(name);
+    }
+  } catch (e) {
+    console.error(e);
+  }
+
+  // Chọn thẳng changelogs/RC1 thay vì changelogs/ cũng chạy được: coi chính nó
+  // là thư mục đích thay vì bắt chọn lại.
+  if (!tplClFolders.length && TPL_RC_RE.test(tplClRoot.name)) {
+    tplClFolders = [tplClRoot.name];
+  }
+  tplClFolders.sort(
+    (a, b) => parseInt(a.slice(2), 10) - parseInt(b.slice(2), 10),
+  );
+
+  const prev = sel.value;
+  sel.innerHTML = tplClFolders.length
+    ? tplClFolders.map((f) => `<option value="${f}">${f}/</option>`).join("")
+    : '<option value="">(không có thư mục RC nào)</option>';
+  // Mặc định là RC mới nhất — nơi changelog kế tiếp thuộc về.
+  sel.value = tplClFolders.includes(prev) ? prev : tplClFolders.at(-1) || "";
+
+  await tplRefreshNextFile();
+}
+
+/** Handle của thư mục RC đang chọn trong dropdown. */
+async function tplClDir() {
+  const name = document.getElementById("tpl-cl-rc").value;
+  if (!tplClRoot || !name) return null;
+  if (tplClRoot.name === name) return tplClRoot;
+  return tplClRoot
+    .getDirectoryHandle(name, { create: false })
+    .catch(() => null);
+}
+
+/** Số thứ tự kế tiếp = số lớn nhất đang có + 1 (không lấp chỗ trống đã xoá). */
+async function tplNextSeq(dir, prefix) {
+  const re = new RegExp(`^${prefix}_(\\d{3})_`, "i");
+  let max = -1;
+  for await (const name of dir.keys()) {
+    const m = name.match(re);
+    if (m) max = Math.max(max, parseInt(m[1], 10));
+  }
+  return max + 1;
+}
+
+async function tplRefreshNextFile() {
+  const out = document.getElementById("tpl-cl-next");
+  const dir = await tplClDir();
+  if (!dir) return (out.textContent = "");
+  const prefix = dir.name;
+  const seq = String(await tplNextSeq(dir, prefix)).padStart(3, "0");
+  out.textContent = `File kế tiếp: ${prefix}_${seq}_…sql`;
+}
+
+/** Chuỗi SQL an toàn; rỗng/không có → `null` (không phải chuỗi rỗng). */
+const tplQ = (v) =>
+  v === null || v === undefined || v === ""
+    ? "null"
+    : "'" + String(v).split("'").join("''") + "'";
+
+const tplSlug = (s) =>
+  String(s)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+
+const TPL_COLS = [
+  "template_id",
+  "template_name",
+  "display_name",
+  "description",
+  "thumbnail_url",
+  "preview_url",
+  "category",
+  "status",
+  "sort_order",
+  "is_active",
+];
+
+/**
+ * Câu lệnh cho một thao tác. Tất cả đều IDEMPOTENT (chạy lại không lỗi):
+ * insert dùng `on conflict do update`, update/delete khớp theo `template_id`.
+ */
+function tplSqlBody(action, p, oldKey) {
+  if (action === "delete") {
+    return `delete from public.templates\n where template_id = ${tplQ(oldKey)};`;
+  }
+
+  const val = (c) =>
+    c === "sort_order"
+      ? String(p[c] ?? 0)
+      : c === "is_active"
+        ? String(!!p[c])
+        : tplQ(p[c]);
+
+  if (action === "insert") {
+    const sets = TPL_COLS.filter((c) => c !== "template_id")
+      .map((c) => `       ${c} = excluded.${c}`)
+      .join(",\n");
+    return (
+      `insert into public.templates (${TPL_COLS.join(", ")})\n` +
+      `values (${TPL_COLS.map(val).join(", ")})\n` +
+      `on conflict (template_id) do update\n   set\n${sets},\n       updated_at = now();`
+    );
+  }
+
+  const sets = TPL_COLS.map((c) => `       ${c} = ${val(c)}`).join(",\n");
+  return `update public.templates\n   set\n${sets},\n       updated_at = now()\n where template_id = ${tplQ(oldKey)};`;
+}
+
+/**
+ * Sinh file changelog cho một thao tác với bảng `templates` rồi ghi xuống đĩa.
+ * Trả về tên file, hoặc null nếu không ghi được (đã báo lỗi cho người dùng).
+ */
+async function tplWriteChangelog(action, payload, oldKey) {
+  const dir = await tplClDir();
+  if (!dir) {
+    alert(
+      "Chưa kết nối thư mục changelogs/ — bấm “Chọn thư mục” ở đầu tab Templates rồi thử lại.",
+    );
+    return null;
+  }
+
+  const prefix = dir.name; // RC1, RC2…
+  const seqNum = await tplNextSeq(dir, prefix);
+  const seq = String(seqNum).padStart(3, "0");
+  const version = `${prefix}.${seqNum}`;
+  const key = action === "delete" ? oldKey : payload.template_id;
+  const verb = { insert: "add", update: "update", delete: "delete" }[action];
+  const filename = `${prefix}_${seq}_${verb}_template_${tplSlug(key)}.sql`;
+
+  const title = {
+    insert: `Thêm mẫu thiệp \`${key}\``,
+    update: `Cập nhật mẫu thiệp \`${oldKey}\``,
+    delete: `Xoá mẫu thiệp \`${oldKey}\``,
+  }[action];
+  const today = new Date().toISOString().slice(0, 10);
+
+  const sql =
+    `-- ============================================================\n` +
+    `-- CHANGELOG ${version}  —  ${title.replace(/`/g, "")}\n` +
+    `-- Ngày: ${today}\n` +
+    `-- ------------------------------------------------------------\n` +
+    `-- Sinh tự động từ tab "Templates" của admin. Mẫu thiệp là dữ liệu phải có\n` +
+    `-- GIỐNG NHAU ở cả staging lẫn production nên đi bằng changelog, không ghi\n` +
+    `-- thẳng vào một project.\n` +
+    (action === "delete"
+      ? `--\n-- ⚠️ XOÁ DỮ LIỆU. Hàng template_pricing (nếu có) KHÔNG bị xoá theo.\n`
+      : "") +
+    `--\n-- Cách chạy: dán vào Supabase → SQL Editor → Run (idempotent, chạy lại an toàn).\n` +
+    `--            Chạy trên CẢ HAI project: staging trước, rồi production.\n` +
+    `-- ============================================================\n\n` +
+    tplSqlBody(action, payload, oldKey) +
+    `\n`;
+
+  try {
+    const fh = await dir.getFileHandle(filename, { create: true });
+    const w = await fh.createWritable();
+    await w.write(sql);
+    await w.close();
+  } catch (e) {
+    console.error(e);
+    alert("❌ Không ghi được file changelog: " + e.message);
+    return null;
+  }
+
+  await tplAppendReadmeRow(version, today, title, `${prefix}/${filename}`);
+  await tplRefreshNextFile();
+  return filename;
+}
+
+/**
+ * Thêm một dòng vào bảng "Lịch sử phiên bản" của changelogs/README.md — quy ước
+ * của repo là mỗi changelog phải có một dòng ở đó. Chỉ chạy khi thư mục đã kết
+ * nối là changelogs/ (chọn thẳng RC1/ thì không thấy README, bỏ qua và nhắc).
+ */
+async function tplAppendReadmeRow(version, date, title, fileRel) {
+  const fh = await tplClRoot
+    .getFileHandle("README.md", { create: false })
+    .catch(() => null);
+  if (!fh) return false;
+
+  try {
+    const text = await (await fh.getFile()).text();
+    const lines = text.split("\n");
+    // Chèn ngay sau dòng bảng CUỐI CÙNG để không lọt xuống mục bên dưới.
+    let last = -1;
+    lines.forEach((l, i) => {
+      if (l.startsWith("| **RC")) last = i;
+    });
+    if (last < 0) return false;
+
+    lines.splice(
+      last + 1,
+      0,
+      `| **${version}** | ${date} | ${title} | \`${fileRel}\` |`,
+    );
+    const w = await fh.createWritable();
+    await w.write(lines.join("\n"));
+    await w.close();
+    return true;
+  } catch (e) {
+    console.error(e);
+    return false;
+  }
 }
