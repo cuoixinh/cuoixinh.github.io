@@ -46,9 +46,51 @@
       </button>
 
       <div id="checkout-root" class="bg-white rounded-3xl shadow-sm overflow-hidden">
-        <!-- PaymentModal.mount() dựng ba bước vào đây. Chưa dựng xong thì đây
-             là chỗ báo lỗi thiếu tham số (xem script cuối trang). -->
-        <div class="p-10 text-center text-sm text-gray-400">Đang tải đơn hàng…</div>
+        <!-- PaymentModal.mount() dựng ba bước vào đây, ghi đè cả khối này. Chưa
+             dựng xong thì đây là khung xương của bước 1 (mount() nằm ở CUỐI
+             trang, sau một dãy script chặn) và cũng là chỗ báo lỗi thiếu tham
+             số — xem script cuối trang. Khổ từng mảng bám theo markup thật ở
+             _stepsHTML (core/payment.js): đổi bố cục bước 1 thì sửa cả đây. -->
+        <div class="animate-pulse">
+          <!-- Tiêu đề "Xác nhận đơn hàng" -->
+          <div class="px-6 pt-5 pb-3">
+            <div class="h-6 w-48 rounded bg-gray-100"></div>
+          </div>
+          <!-- Hàng mẫu đang mua: ảnh 44x56 + tên + mô tả -->
+          <div class="mx-6 flex items-center gap-3 border-t border-gray-100 py-4">
+            <div class="h-14 w-11 shrink-0 rounded-lg bg-gray-100"></div>
+            <div class="min-w-0 flex-1 space-y-2">
+              <div class="h-4 w-2/5 rounded bg-gray-100"></div>
+              <div class="h-3 w-3/5 rounded bg-gray-100"></div>
+            </div>
+          </div>
+          <!-- Khối "Người mua": nhãn + avatar tròn 36 + tên/email -->
+          <div class="mx-6 border-t border-gray-100 py-4">
+            <div class="mb-3 h-3 w-20 rounded bg-gray-100"></div>
+            <div class="flex items-center gap-3">
+              <div class="h-9 w-9 shrink-0 rounded-full bg-gray-100"></div>
+              <div class="min-w-0 flex-1 space-y-2">
+                <div class="h-3.5 w-1/3 rounded bg-gray-100"></div>
+                <div class="h-3 w-1/2 rounded bg-gray-100"></div>
+              </div>
+            </div>
+          </div>
+          <!-- Bảng tiền: giá gốc + hàng mã giảm giá -->
+          <div class="mx-6 flex flex-col gap-3 border-t border-gray-100 py-4">
+            <div class="flex items-center justify-between">
+              <div class="h-3.5 w-16 rounded bg-gray-100"></div>
+              <div class="h-3.5 w-20 rounded bg-gray-100"></div>
+            </div>
+            <div class="flex items-center justify-between">
+              <div class="h-3.5 w-32 rounded bg-gray-100"></div>
+              <div class="h-3.5 w-4 rounded bg-gray-100"></div>
+            </div>
+          </div>
+          <!-- Dải trả tiền: nút lớn full -->
+          <div class="border-t border-gray-100 p-6 pt-4">
+            <div class="h-12 w-full rounded-full bg-gray-100"></div>
+          </div>
+        </div>
       </div>
     </main>
 

@@ -1024,6 +1024,18 @@ textarea::-webkit-scrollbar-thumb:hover {
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
+   <x-button> — nút dùng chung (core/x-button.js)
+   Thẻ chưa dựng thì ẩn: script nạp ở CUỐI body nên trước đó trình duyệt đã vẽ
+   <x-button> thành chữ trần một nhịp — nút trông như vỡ, thấy rõ nhất ở màn
+   đang tải. core/x-button.js cũng chèn đúng rule này lúc chạy, nhưng lúc đó thì
+   muộn rồi; khai ở đây là có hiệu lực ngay từ lần vẽ đầu vì CSS nằm trong
+   <head>. Đổi luật thì đổi CẢ HAI chỗ.
+   ══════════════════════════════════════════════════════════════════════════ */
+x-button {
+  visibility: hidden;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
    <x-popover> — thẻ nổi dùng chung (core/x-popover.js)
    Hình dạng lấy từ popover "Tùy chọn" ở navbar trang Thiết lập. Thẻ tự đặt
    `left/top` bằng JS nên phải là `fixed`: cha có transform/filter sẽ kéo nó

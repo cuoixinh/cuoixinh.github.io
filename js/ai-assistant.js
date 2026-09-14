@@ -79,7 +79,7 @@
     panel.innerHTML = `
       <div class="aichat-head">
         <div class="min-w-0 flex-1">
-          <p class="aichat-head-title flex gap-1">Trợ lý XuXi của Cưới Xinh <i data-icon="xuxi" data-size="24"></i></p>
+          <p class="aichat-head-title flex gap-1 items-center">Trợ lý XuXi của Cưới Xinh <i data-icon="xuxi" data-size="24"></i></p>
           <p class="aichat-head-sub">Hỏi đáp hoặc nhờ mình tạo thiệp</p>
         </div>
         <x-button variant="bare" icon-only id="aichatReset" type="button"

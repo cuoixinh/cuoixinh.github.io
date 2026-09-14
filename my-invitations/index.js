@@ -313,14 +313,19 @@ function render() {
 // Năm khối loại trừ nhau: lưới thẻ · khung xương · rỗng · chưa đăng nhập · lỗi tải.
 // Mỗi lúc chỉ được MỘT nút "Tạo thiệp mới": khối rỗng đã có nút riêng nên nút ở
 // đầu trang phải ẩn đi (khối "chưa đăng nhập" chỉ có nút Đăng nhập nên giữ).
-// Lúc đang tải, nút đầu trang nhường chỗ cho khung xương của chính nó.
+// Lúc đang tải, CẢ MÀN là khung xương: nút đầu trang, dòng nhắc hạn và thanh
+// tab đều nhường chỗ cho bản khung xương của chính chúng rồi cùng lật một lượt
+// khi dữ liệu về — lật lẻ tẻ thì trang giật mấy nhịp liền.
 function setState(state, counts) {
-  document
-    .getElementById("btn-new-top")
-    ?.classList.toggle("hidden", state === "empty" || state === "loading");
-  document
-    .getElementById("btn-new-top-sk")
-    ?.classList.toggle("hidden", state !== "loading");
+  const loading = state === "loading";
+  const pair = (realId, skelId, hideReal) => {
+    document.getElementById(realId)?.classList.toggle("hidden", hideReal);
+    document.getElementById(skelId)?.classList.toggle("hidden", !loading);
+  };
+
+  pair("btn-new-top", "btn-new-top-sk", loading || state === "empty");
+  pair("keep-note", "keep-note-sk", loading);
+  pair("tabs", "tabs-sk", loading);
 
   document
     .getElementById("cards-grid")

@@ -21,13 +21,6 @@
     />
     <!-- Tailwind build local (npm run build:css) — xem tailwind.config.js. -->
     <link rel="stylesheet" href="../styles/build.css" />
-    <!-- x-button.js nạp ở cuối body nên trước đó mọi <x-button> chỉ là chữ trần:
-         khai lại luật ẩn ngay trong <head> để không chớp một nhịp nút vỡ. -->
-    <style>
-      x-button {
-        visibility: hidden;
-      }
-    </style>
   </head>
   <body
     class="font-inter text-gray-800 bg-white min-h-screen pb-[72px] md:pb-0 md:pt-20"
@@ -98,19 +91,48 @@
       </div>
 
       <!-- Câu nhắc hạn dọn dẹp: ghim MỘT chỗ ở đầu trang thay vì lặp trên từng
-           thẻ. Chữ do index.js đổ vào (số ngày lấy ở CONFIG.retention). -->
+           thẻ. Chữ do index.js đổ vào (số ngày lấy ở CONFIG.retention) nên lúc
+           đang tải chỗ này trống — #keep-note-sk đứng thay. Chỉ phần CHỮ đổi,
+           cái hộp xám và icon đứng yên nên không có cú nhảy bố cục. -->
       <div
         class="mb-4 flex items-start gap-1.5 rounded-lg bg-gray-50 px-3 py-2 text-[10px] leading-relaxed text-gray-500"
       >
         <i
           data-lucide="info"
           class="mt-0.5 shrink-0 text-gray-400" style="width:12px;height:12px"></i>
-        <span id="keep-note"></span>
+        <span id="keep-note-sk" class="flex h-4 min-w-0 flex-1 items-center">
+          <span
+            class="h-2.5 w-full max-w-[280px] animate-pulse rounded bg-gray-200"
+          ></span>
+        </span>
+        <span id="keep-note" class="hidden"></span>
+      </div>
+
+      <!-- Khung xương thanh tab. Ô đang chọn do render() tô (TAB_ACTIVE), nên
+           trước khi có dữ liệu thanh này là ba ô trơn không ô nào sáng — trông
+           như trang lỗi. Mỗi ô là BẢN SAO của tab thật (đúng class, đúng nhãn,
+           chữ trong suốt + nền xám) để khổ trùng khít, đổi tab thì sửa cả đây. -->
+      <div id="tabs-sk" class="cx-segbar mb-5" aria-hidden="true">
+        <div
+          class="cx-segtab inline-flex animate-pulse items-center gap-1.5 rounded-full bg-gray-100 px-3.5 py-1.5 text-[13px] font-medium text-transparent"
+        >
+          <span class="inline-block" style="width:16px;height:16px"></span> Của tôi
+        </div>
+        <div
+          class="cx-segtab inline-flex animate-pulse items-center gap-1.5 rounded-full bg-gray-100 px-3.5 py-1.5 text-[13px] font-medium text-transparent"
+        >
+          <span class="inline-block" style="width:16px;height:16px"></span> Xuất bản
+        </div>
+        <div
+          class="cx-segtab inline-flex animate-pulse items-center gap-1.5 rounded-full bg-gray-100 px-3.5 py-1.5 text-[13px] font-medium text-transparent"
+        >
+          <span class="inline-block" style="width:16px;height:16px"></span> Nháp
+        </div>
       </div>
 
       <!-- Bộ lọc: Của tôi / Xuất bản / Nháp. Không dùng <x-button> — đây là tab,
            không phải nút hành động (xem quy ước ở CLAUDE.md). -->
-      <div id="tabs" class="cx-segbar mb-5">
+      <div id="tabs" class="cx-segbar mb-5 hidden">
         <button
           type="button"
           data-tab="all"
