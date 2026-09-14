@@ -13,8 +13,8 @@
 // cao, dải không so le.
 function templateCard(t) {
   const off =
-    t.originalPrice > t.price
-      ? `<span class="tt-price-old">${t.originalPrice.toLocaleString("vi-VN")}<span class="tt-cur">đ</span></span>`
+    Number.isFinite(t.price) && t.originalPrice > t.price
+      ? `<span class="tt-price-old">${cxPriceHtml(t.originalPrice)}</span>`
       : "";
 
   return `
@@ -31,7 +31,7 @@ function templateCard(t) {
         <p class="mt-0.5 text-[13px] leading-snug line-clamp-2 min-h-[2.75em]" style="color:rgb(var(--text-heading-rgb)/0.55)">${t.description || ""}</p>
         <div class="mt-2 h-[16px]">${off}</div>
         <div class="mt-1.5 flex items-center justify-between gap-2">
-          <span class="tt-price">${t.price.toLocaleString("vi-VN")}<span class="tt-cur">đ</span></span>
+          <span class="tt-price">${cxPriceHtml(t.price)}</span>
           <span class="tt-chip tt-chip-sm">trọn đời</span>
         </div>
 

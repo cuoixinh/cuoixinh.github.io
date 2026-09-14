@@ -4,6 +4,20 @@ let editingTemplateId = null;
 // changelog. Phải giữ riêng vì form cho đổi Template Name, tức đổi luôn khoá.
 let editingTemplateKey = null;
 
+// Giá đồng hạng: điền sẵn cho mẫu MỚI và là thứ nút "Giá mặc định" đổ vào form.
+// Đây KHÔNG phải lưới an toàn ở core/dal/templates-dal.js (giá web hiện khi mẫu
+// chưa có hàng `template_pricing`) — đổi giá bán chung thì cân nhắc cả bên đó.
+const TPL_DEFAULT_PRICE = 109000;
+const TPL_DEFAULT_ORIGINAL_PRICE = 139000;
+
+/** Nút "Giá mặc định" — đa số mẫu đồng giá nên khỏi gõ lại hai con số. */
+function fillDefaultPrice() {
+  document.getElementById("template-price").value = String(TPL_DEFAULT_PRICE);
+  document.getElementById("template-original-price").value = String(
+    TPL_DEFAULT_ORIGINAL_PRICE,
+  );
+}
+
 async function purgeTemplatesCache() {
   const btn = document.getElementById("purge-cache-btn");
   const originalHTML = btn.innerHTML;
@@ -201,6 +215,10 @@ function clearTemplateForm() {
   document.getElementById("template-status").value = "active";
   document.getElementById("template-sort-order").value = "0";
   document.getElementById("template-is-active").checked = true;
+  // Mẫu mới mở sẵn giá đồng hạng, admin chỉ sửa khi mẫu này khác giá.
+  fillDefaultPrice();
+  document.getElementById("template-price-hint").textContent =
+    "Bỏ trống ô Giá bán thì changelog không đụng tới giá, mẫu rơi về giá mặc định của web.";
 }
 
 // Auto-fill preview URL khi đổi template name. Không dùng DOMContentLoaded:
@@ -314,6 +332,14 @@ async function loadTemplateData(templateId) {
     document.getElementById("template-sort-order").value = data.sort_order || 0;
     document.getElementById("template-is-active").checked =
       data.is_active !== false;
+
+    // Giá để TRỐNG khi sửa: resource=templates chỉ trả hàng `templates`, không
+    // kèm `template_pricing`, nên điền sẵn một con số ở đây là đoán mò rồi ghi
+    // đè giá thật. Trống = changelog bỏ qua phần giá.
+    document.getElementById("template-price").value = "";
+    document.getElementById("template-original-price").value = "";
+    document.getElementById("template-price-hint").textContent =
+      "Bỏ trống = giữ nguyên giá hiện tại. Chỉ điền khi muốn ĐỔI giá mẫu này.";
   } catch (e) {
     alert("Lỗi tải dữ liệu template: " + e.message);
     closeTemplateModal();
@@ -347,6 +373,39 @@ async function saveTemplate() {
       parseInt(document.getElementById("template-sort-order").value) || 0,
     is_active: document.getElementById("template-is-active").checked,
   };
+
+  // Giá đi vào bảng KHÁC (`template_pricing`) nên gói riêng, không nhét vào
+  // payload của `templates`. null = admin để trống = changelog không đụng giá.
+  const priceRaw = document.getElementById("template-price").value.trim();
+  const origRaw = document
+    .getElementById("template-original-price")
+    .value.trim();
+  const price = priceRaw === "" ? null : parseInt(priceRaw, 10);
+  const originalPrice = origRaw === "" ? null : parseInt(origRaw, 10);
+
+  if (priceRaw !== "" && (!Number.isFinite(price) || price < 0)) {
+    alert("Giá bán phải là số không âm");
+    return;
+  }
+  if (
+    origRaw !== "" &&
+    (!Number.isFinite(originalPrice) || originalPrice < 0)
+  ) {
+    alert("Giá gốc phải là số không âm");
+    return;
+  }
+  if (price === null && originalPrice !== null) {
+    alert("Có Giá gốc thì phải điền Giá bán (giá khách thực trả)");
+    return;
+  }
+  // Giá gốc là giá GẠCH NGANG, thấp hơn giá bán là hiện ra một khuyến mãi âm.
+  if (price !== null && originalPrice !== null && originalPrice < price) {
+    alert("Giá gốc phải lớn hơn hoặc bằng Giá bán");
+    return;
+  }
+
+  payload.pricing =
+    price === null ? null : { price, original_price: originalPrice };
 
   // Không ghi thẳng vào DB: sinh changelog để chạy trên cả hai môi trường.
   const file = await tplWriteChangelog(
@@ -732,19 +791,52 @@ function tplSqlBody(action, p, oldKey) {
         ? String(!!p[c])
         : tplQ(p[c]);
 
+  let sql;
   if (action === "insert") {
     const sets = TPL_COLS.filter((c) => c !== "template_id")
       .map((c) => `       ${c} = excluded.${c}`)
       .join(",\n");
-    return (
+    sql =
       `insert into public.templates (${TPL_COLS.join(", ")})\n` +
       `values (${TPL_COLS.map(val).join(", ")})\n` +
-      `on conflict (template_id) do update\n   set\n${sets},\n       updated_at = now();`
-    );
+      `on conflict (template_id) do update\n   set\n${sets},\n       updated_at = now();`;
+  } else {
+    const sets = TPL_COLS.map((c) => `       ${c} = ${val(c)}`).join(",\n");
+    sql = `update public.templates\n   set\n${sets},\n       updated_at = now()\n where template_id = ${tplQ(oldKey)};`;
   }
 
-  const sets = TPL_COLS.map((c) => `       ${c} = ${val(c)}`).join(",\n");
-  return `update public.templates\n   set\n${sets},\n       updated_at = now()\n where template_id = ${tplQ(oldKey)};`;
+  return sql + tplPricingSql(p);
+}
+
+/**
+ * Câu upsert giá. Giá ở bảng RIÊNG `template_pricing`, khớp theo `template_name`
+ * (không phải `template_id`) — mẫu đổi tên thư mục thì hàng giá cũ nằm lại dưới
+ * tên cũ, phải sửa tay. Không nhập giá → chuỗi rỗng, changelog không đụng giá.
+ */
+function tplPricingSql(p) {
+  if (!p?.pricing) return "";
+
+  const name = tplQ(p.template_name);
+  const price = String(p.pricing.price);
+  const orig =
+    p.pricing.original_price === null
+      ? "null"
+      : String(p.pricing.original_price);
+  const desc = tplQ(
+    `${p.display_name} — ${Number(p.pricing.price).toLocaleString("vi-VN")}đ`,
+  );
+
+  return (
+    `\n\n-- Giá bán (bảng riêng, khớp theo template_name)\n` +
+    `insert into public.template_pricing (template_name, price, original_price, description, is_active)\n` +
+    `values (${name}, ${price}, ${orig}, ${desc}, true)\n` +
+    `on conflict (template_name) do update\n   set\n` +
+    `       price          = excluded.price,\n` +
+    `       original_price = excluded.original_price,\n` +
+    `       description    = excluded.description,\n` +
+    `       is_active      = true,\n` +
+    `       updated_at     = now();`
+  );
 }
 
 /**
@@ -785,7 +877,9 @@ async function tplWriteChangelog(action, payload, oldKey) {
     `-- thẳng vào một project.\n` +
     (action === "delete"
       ? `--\n-- ⚠️ XOÁ DỮ LIỆU. Hàng template_pricing (nếu có) KHÔNG bị xoá theo.\n`
-      : "") +
+      : payload?.pricing
+        ? `--\n-- Gồm cả giá bán (bảng template_pricing).\n`
+        : "") +
     `--\n-- Cách chạy: dán vào Supabase → SQL Editor → Run (idempotent, chạy lại an toàn).\n` +
     `--            Chạy trên CẢ HAI project: staging trước, rồi production.\n` +
     `-- ============================================================\n\n` +

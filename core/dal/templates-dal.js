@@ -137,26 +137,30 @@ class TemplatesDAL {
   }
 
   /**
-   * Ép hai nguồn về cùng một shape. Bên gọi vẽ giá bằng `price.toLocaleString()`
-   * nên `null` là ném lỗi giữa lúc dựng danh sách — cả bảng chọn mẫu chết chứ
-   * không phải thiếu mỗi con số. Worker cũ (chưa deploy bản mới) còn trả
-   * `thumbnail` và `price: null`, mà worker deploy độc lập với web nên đừng tin
+   * Ép hai nguồn về cùng một shape. Giá giữ NGUYÊN `null` khi nguồn không có —
+   * mã không được bịa một con số dự phòng: mẫu thiếu hàng `template_pricing`
+   * mà vẫn hiện giá là khách bấm mua theo giá không có thật. Bên gọi vẽ bằng
+   * `cxPriceHtml()` nên `null` chỉ thành chữ "Liên hệ". Worker cũ (chưa deploy
+   * bản mới) còn trả `thumbnail`, mà worker deploy độc lập với web nên đừng tin
    * nó đang chạy bản nào.
    */
   _normalize(rows) {
     return rows.map((t) => ({
       ...t,
       thumbnailUrl: t.thumbnailUrl ?? t.thumbnail ?? null,
-      price: t.price ?? TemplatesDAL.DEFAULT_PRICE,
-      originalPrice: t.originalPrice ?? TemplatesDAL.DEFAULT_ORIGINAL_PRICE,
+      price: Number.isFinite(t.price) ? t.price : null,
+      originalPrice: Number.isFinite(t.originalPrice) ? t.originalPrice : null,
     }));
   }
 }
 
-// Giá mặc định khi một mẫu chưa có hàng trong `template_pricing`. Nguồn sự thật
-// là Edge Function `public-templates`; ở đây chỉ là lưới an toàn cho nguồn nào
-// trả thiếu — đổi bên đó thì đổi cả hai chỗ.
-TemplatesDAL.DEFAULT_PRICE = 159000;
-TemplatesDAL.DEFAULT_ORIGINAL_PRICE = 199000;
+/**
+ * Cụm giá của thẻ mẫu (trang chủ và /theme-template dùng chung markup `.tt-*`).
+ * Không có giá thì hiện "Liên hệ", không hiện 0đ.
+ */
+window.cxPriceHtml = (v) =>
+  Number.isFinite(v)
+    ? `${Number(v).toLocaleString("vi-VN")}<span class="tt-cur">đ</span>`
+    : "Liên hệ";
 
 window.templatesDAL = new TemplatesDAL();

@@ -290,6 +290,80 @@
         </div>
       </section>
 
+      <!-- ── Giá bán ── -->
+      <!-- Giá nằm ở bảng RIÊNG `template_pricing` (khoá `template_name`), nên
+           changelog sinh ra hai câu lệnh: một cho `templates`, một cho bảng này.
+           Để trống cả hai ô = không đụng tới giá (mẫu chưa có hàng thì web rơi
+           về giá mặc định ở templates-dal.js). Nút "Giá mặc định" điền lại mức
+           đồng hạng khai ở 02-templates.js. -->
+      <section class="space-y-3">
+        <div class="flex items-center justify-between gap-3">
+          <h4
+            class="text-xs font-semibold uppercase tracking-wide text-gray-400"
+          >
+            Giá bán
+          </h4>
+          <x-button
+            variant="soft"
+            size="xs"
+            icon="wand-sparkles"
+            onclick="fillDefaultPrice()"
+            title="Điền giá đồng hạng đang áp cho hầu hết mẫu"
+          >
+            Giá mặc định
+          </x-button>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label
+              for="template-price"
+              class="block text-sm text-gray-700 mb-1.5"
+              >Giá bán (VND)</label
+            >
+            <input
+              id="template-price"
+              type="number"
+              min="0"
+              step="1000"
+              placeholder="109000"
+              class="w-full h-10 px-3 border border-gray-200 rounded-lg text-sm text-gray-800 bg-white outline-none focus:ring-2 focus:ring-rose-500/30 transition-all"
+            />
+            <p class="text-xs text-gray-500 mt-1">Giá khách thực trả</p>
+          </div>
+
+          <div>
+            <label
+              for="template-original-price"
+              class="block text-sm text-gray-700 mb-1.5"
+              >Giá gốc (VND)</label
+            >
+            <input
+              id="template-original-price"
+              type="number"
+              min="0"
+              step="1000"
+              placeholder="139000"
+              class="w-full h-10 px-3 border border-gray-200 rounded-lg text-sm text-gray-800 bg-white outline-none focus:ring-2 focus:ring-rose-500/30 transition-all"
+            />
+            <p class="text-xs text-gray-500 mt-1">
+              Giá gạch ngang, để trống nếu không khuyến mãi
+            </p>
+          </div>
+        </div>
+
+        <p class="text-xs text-gray-500 flex items-start gap-1.5">
+          <i
+            data-lucide="info"
+            class="mt-0.5 shrink-0"
+            style="width: 16px; height: 16px"
+          ></i>
+          <span id="template-price-hint"
+            >Bỏ trống ô Giá bán thì changelog không đụng tới giá của mẫu.</span
+          >
+        </p>
+      </section>
+
       <!-- ── Trạng thái ── -->
       <section class="space-y-3">
         <h4 class="text-xs font-semibold uppercase tracking-wide text-gray-400">

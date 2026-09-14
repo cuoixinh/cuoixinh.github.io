@@ -1200,8 +1200,8 @@
           description: t.description,
           previewUrl: t.previewUrl,
           category: t.category,
-          price: t.price ?? 159000,
-          originalPrice: t.originalPrice ?? 199000,
+          price: t.price,
+          originalPrice: t.originalPrice,
         }));
       }
 
@@ -1298,13 +1298,13 @@
                    rỗng) để mọi thẻ cùng chiều cao, lưới không so le. -->
               <div class="mt-2 h-[16px]">
                 ${
-                  t.originalPrice > t.price
-                    ? `<span class="tt-price-old">${t.originalPrice.toLocaleString("vi-VN")}<span class="tt-cur">đ</span></span>`
+                  Number.isFinite(t.price) && t.originalPrice > t.price
+                    ? `<span class="tt-price-old">${cxPriceHtml(t.originalPrice)}</span>`
                     : ""
                 }
               </div>
               <div class="mt-1.5 flex items-center justify-between gap-2">
-                <span class="tt-price">${t.price.toLocaleString("vi-VN")}<span class="tt-cur">đ</span></span>
+                <span class="tt-price">${cxPriceHtml(t.price)}</span>
                 <span class="tt-chip tt-chip-sm">trọn đời</span>
               </div>
 
