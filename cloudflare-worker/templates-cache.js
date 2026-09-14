@@ -68,7 +68,7 @@ export default {
       // đều phải qua một chốt kiểm duy nhất, nhờ vậy `templates` và
       // `template_pricing` KHÔNG cần cấp quyền đọc cho role `anon` — anon key
       // nằm công khai trong core/config.js nên quyền đọc thẳng bảng là quyền
-      // của bất kỳ ai (xem changelogs/RC1.16).
+      // của bất kỳ ai (xem changelogs/RC01/schema/dqvinh_008_grants.sql).
       //
       // Edge Function `public-templates` đã gom templates + pricing và trả về
       // ĐÚNG shape mà bên gọi cần, nên worker chỉ còn việc cache lại. Đổi shape

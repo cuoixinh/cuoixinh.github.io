@@ -602,16 +602,23 @@ function appendScanLog(msg, cls = "text-green-400") {
 
 // ============= Ghi changelog (thay cho ghi thẳng DB) =============
 // Thêm/Sửa/Xoá mẫu KHÔNG đụng tới DB nữa: mỗi thao tác sinh một file .sql trong
-// changelogs/RC*/ để chạy tay trên CẢ staging lẫn production — hai môi trường là
+// changelogs/RC01/data/ để chạy tay trên CẢ staging lẫn production — hai môi trường là
 // hai project Supabase, ghi thẳng qua Edge Function chỉ trúng một bên.
 // Ghi đĩa bằng File System Access API, dùng chung store IndexedDB với các tab ảnh
 // (siIdbGet/siIdbPut + SI_IDB_STORE khai ở 03-sample-images.js — nạp SAU file này,
 // nên chỉ được gọi lúc chạy, đừng dùng ở cấp cao nhất).
 const TPL_IDB_KEY = "changelogs-root";
+// Ba thư mục của changelogs/ (xem changelogs/README.md). Mẫu thiệp là DỮ LIỆU
+// nên changelog sinh ra ở đây mặc định rơi vào data/.
+const TPL_DIRS = ["schema", "data", "manual"];
+// Tiền tố cố định của mọi file changelog, không lấy theo tên thư mục.
+const TPL_PREFIX = "dqvinh";
+// Dòng phiên bản bọc ngoài ba thư mục kia: changelogs/RC01/{schema,data,manual}.
 const TPL_RC_RE = /^RC\d+$/i;
 
-let tplClRoot = null; // thư mục changelogs/ (hoặc chính một thư mục RC*)
-let tplClFolders = []; // tên các thư mục RC* quét được
+let tplClRoot = null; // thư mục người dùng đã chọn (changelogs/ hay RC01/)
+let tplClBase = null; // thư mục RC chứa schema/ data/ manual/ — nơi thực sự ghi
+let tplClFolders = []; // nhóm quét được trong tplClBase
 
 async function tplInitChangelog() {
   if (!("showDirectoryPicker" in window)) {
@@ -687,51 +694,79 @@ async function connectChangelogFolder() {
   }
 }
 
-/** Danh sách RC lấy từ THƯ MỤC THẬT, không khai cứng — thêm RC2/ là tự hiện. */
+/**
+ * Tìm thư mục RC đang dùng rồi liệt kê ba nhóm bên trong. Lấy từ THƯ MỤC THẬT,
+ * không khai cứng — thêm RC02/ là tự nhảy sang, vì dòng phiên bản mới luôn là
+ * nơi changelog kế tiếp thuộc về.
+ *
+ * Nhận cả hai kiểu chọn: chọn `changelogs/` (tự đi vào RC mới nhất) hoặc chọn
+ * thẳng `changelogs/RC01/`.
+ */
 async function tplScanRcFolders() {
   const sel = document.getElementById("tpl-cl-rc");
   tplClFolders = [];
+  tplClBase = null;
 
   try {
-    for await (const [name, h] of tplClRoot.entries()) {
-      if (h.kind === "directory" && TPL_RC_RE.test(name))
-        tplClFolders.push(name);
+    // Chọn thẳng một thư mục RC → chính nó là base.
+    if (TPL_RC_RE.test(tplClRoot.name)) {
+      tplClBase = tplClRoot;
+    } else {
+      // Chọn changelogs/ → lấy RC có số LỚN NHẤT.
+      const rcs = [];
+      for await (const [name, h] of tplClRoot.entries()) {
+        if (h.kind === "directory" && TPL_RC_RE.test(name)) rcs.push(name);
+      }
+      rcs.sort((a, b) => parseInt(a.slice(2), 10) - parseInt(b.slice(2), 10));
+      const latest = rcs.at(-1);
+      if (latest)
+        tplClBase = await tplClRoot
+          .getDirectoryHandle(latest, { create: false })
+          .catch(() => null);
+    }
+
+    if (tplClBase) {
+      for await (const [name, h] of tplClBase.entries()) {
+        if (h.kind === "directory" && TPL_DIRS.includes(name))
+          tplClFolders.push(name);
+      }
     }
   } catch (e) {
     console.error(e);
   }
 
-  // Chọn thẳng changelogs/RC1 thay vì changelogs/ cũng chạy được: coi chính nó
-  // là thư mục đích thay vì bắt chọn lại.
-  if (!tplClFolders.length && TPL_RC_RE.test(tplClRoot.name)) {
-    tplClFolders = [tplClRoot.name];
-  }
-  tplClFolders.sort(
-    (a, b) => parseInt(a.slice(2), 10) - parseInt(b.slice(2), 10),
-  );
+  tplClFolders.sort((a, b) => TPL_DIRS.indexOf(a) - TPL_DIRS.indexOf(b));
 
   const prev = sel.value;
   sel.innerHTML = tplClFolders.length
-    ? tplClFolders.map((f) => `<option value="${f}">${f}/</option>`).join("")
-    : '<option value="">(không có thư mục RC nào)</option>';
-  // Mặc định là RC mới nhất — nơi changelog kế tiếp thuộc về.
-  sel.value = tplClFolders.includes(prev) ? prev : tplClFolders.at(-1) || "";
+    ? tplClFolders
+        .map(
+          (f) =>
+            `<option value="${f}">${tplClBase.name}/${f}/</option>`,
+        )
+        .join("")
+    : `<option value="">${tplClBase ? "(không thấy schema/ data/ manual/)" : "(không thấy thư mục RC nào)"}</option>`;
+  // Mặc định data/: mẫu thiệp là dữ liệu danh mục, không phải cấu trúc bảng.
+  sel.value = tplClFolders.includes(prev)
+    ? prev
+    : tplClFolders.includes("data")
+      ? "data"
+      : tplClFolders[0] || "";
 
   await tplRefreshNextFile();
 }
 
-/** Handle của thư mục RC đang chọn trong dropdown. */
+/** Handle của nhóm (schema/data/manual) đang chọn trong dropdown. */
 async function tplClDir() {
   const name = document.getElementById("tpl-cl-rc").value;
-  if (!tplClRoot || !name) return null;
-  if (tplClRoot.name === name) return tplClRoot;
-  return tplClRoot
+  if (!tplClBase || !name) return null;
+  return tplClBase
     .getDirectoryHandle(name, { create: false })
     .catch(() => null);
 }
 
 /** Số thứ tự kế tiếp = số lớn nhất đang có + 1 (không lấp chỗ trống đã xoá). */
-async function tplNextSeq(dir, prefix) {
+async function tplNextSeq(dir, prefix = TPL_PREFIX) {
   const re = new RegExp(`^${prefix}_(\\d{3})_`, "i");
   let max = -1;
   for await (const name of dir.keys()) {
@@ -745,9 +780,8 @@ async function tplRefreshNextFile() {
   const out = document.getElementById("tpl-cl-next");
   const dir = await tplClDir();
   if (!dir) return (out.textContent = "");
-  const prefix = dir.name;
-  const seq = String(await tplNextSeq(dir, prefix)).padStart(3, "0");
-  out.textContent = `File kế tiếp: ${prefix}_${seq}_…sql`;
+  const seq = String(await tplNextSeq(dir)).padStart(3, "0");
+  out.textContent = `File kế tiếp: ${tplClBase.name}/${dir.name}/${TPL_PREFIX}_${seq}_…sql`;
 }
 
 /** Chuỗi SQL an toàn; rỗng/không có → `null` (không phải chuỗi rỗng). */
@@ -852,13 +886,10 @@ async function tplWriteChangelog(action, payload, oldKey) {
     return null;
   }
 
-  const prefix = dir.name; // RC1, RC2…
-  const seqNum = await tplNextSeq(dir, prefix);
-  const seq = String(seqNum).padStart(3, "0");
-  const version = `${prefix}.${seqNum}`;
+  const seq = String(await tplNextSeq(dir)).padStart(3, "0");
   const key = action === "delete" ? oldKey : payload.template_id;
   const verb = { insert: "add", update: "update", delete: "delete" }[action];
-  const filename = `${prefix}_${seq}_${verb}_template_${tplSlug(key)}.sql`;
+  const filename = `${TPL_PREFIX}_${seq}_${verb}_template_${tplSlug(key)}.sql`;
 
   const title = {
     insert: `Thêm mẫu thiệp \`${key}\``,
@@ -869,7 +900,7 @@ async function tplWriteChangelog(action, payload, oldKey) {
 
   const sql =
     `-- ============================================================\n` +
-    `-- CHANGELOG ${version}  —  ${title.replace(/`/g, "")}\n` +
+    `-- ${title.replace(/`/g, "")}\n` +
     `-- Ngày: ${today}\n` +
     `-- ------------------------------------------------------------\n` +
     `-- Sinh tự động từ tab "Templates" của admin. Mẫu thiệp là dữ liệu phải có\n` +
@@ -897,43 +928,7 @@ async function tplWriteChangelog(action, payload, oldKey) {
     return null;
   }
 
-  await tplAppendReadmeRow(version, today, title, `${prefix}/${filename}`);
   await tplRefreshNextFile();
   return filename;
 }
 
-/**
- * Thêm một dòng vào bảng "Lịch sử phiên bản" của changelogs/README.md — quy ước
- * của repo là mỗi changelog phải có một dòng ở đó. Chỉ chạy khi thư mục đã kết
- * nối là changelogs/ (chọn thẳng RC1/ thì không thấy README, bỏ qua và nhắc).
- */
-async function tplAppendReadmeRow(version, date, title, fileRel) {
-  const fh = await tplClRoot
-    .getFileHandle("README.md", { create: false })
-    .catch(() => null);
-  if (!fh) return false;
-
-  try {
-    const text = await (await fh.getFile()).text();
-    const lines = text.split("\n");
-    // Chèn ngay sau dòng bảng CUỐI CÙNG để không lọt xuống mục bên dưới.
-    let last = -1;
-    lines.forEach((l, i) => {
-      if (l.startsWith("| **RC")) last = i;
-    });
-    if (last < 0) return false;
-
-    lines.splice(
-      last + 1,
-      0,
-      `| **${version}** | ${date} | ${title} | \`${fileRel}\` |`,
-    );
-    const w = await fh.createWritable();
-    await w.write(lines.join("\n"));
-    await w.close();
-    return true;
-  } catch (e) {
-    console.error(e);
-    return false;
-  }
-}

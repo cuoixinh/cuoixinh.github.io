@@ -76,7 +76,7 @@ Số ngày khai ở `CONFIG.retention` (`core/config.js`) — nguồn sự thậ
 
 | Mảnh               | File                                                                                                   | Việc                                                                                 |
 | --------------------| --------------------------------------------------------------------------------------------------------| --------------------------------------------------------------------------------------|
-| Schema + lịch      | `changelogs/RC1/RC1_010_cleanup_retention.sql`                                                             | cột `updated_at` + trigger, 2 partial index, bật `pg_cron`/`pg_net`, `cron.schedule` |
+| Schema + lịch      | `changelogs/RC01/schema/dqvinh_001_weddings.sql` + `changelogs/RC01/manual/dqvinh_002_cron_cleanup.sql`          | cột `updated_at` + trigger, 2 partial index, bật `pg_cron`/`pg_net`, `cron.schedule` |
 | Quét & xoá         | `supabase/functions/cleanup-weddings/index.ts`                                                         | 2 câu quét, xoá ảnh Storage rồi xoá hàng                                             |
 | Khoá thiệp         | `supabase/functions/wedding-admin/index.ts` (GET một thiệp)                                            | slug + hết hạn → 403 `TRIAL_EXPIRED`; theo id → kèm cờ `trial_locked`                |
 | Lộ mã lỗi          | `core/dal/wedding-dal.js` → `getWeddingBySlug`                                                         | đọc body lỗi, gắn `err.code`                                                         |
@@ -199,4 +199,4 @@ Deploy lại function: `npm run deploy:functions` (script tự truyền `--no-ve
 - **Bảng tiền không cascade**: `orders` / `payment_logs` / `promo_redemptions` tham chiếu
   `manage_id` mà không có FK, xoá thiệp không xoá chúng — cố ý, để giữ lịch sử tiền bạc.
 - **`add column ... default now()` không để lại hàng NULL** (PG11+ điền luôn cho hàng cũ).
-  Backfill phải thêm cột trước, `update` sau, rồi mới `set default` — xem RC1.10.
+  Backfill phải thêm cột trước, `update` sau, rồi mới `set default` — xem `changelogs/RC01/schema/dqvinh_001_weddings.sql`.

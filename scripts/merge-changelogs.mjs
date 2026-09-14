@@ -1,9 +1,13 @@
 #!/usr/bin/env node
-// Nối các changelog SQL thành MỘT file để dán một lượt vào SQL Editor.
-//   npm run sql:merge -- RC1                       → changelogs/RC1.final.sql
-//   npm run sql:merge -- RC1 --ref=<project-ref>   → đổi luôn ref production trong file
-// Thứ tự là thứ tự CHẠY. Tên file đã đánh số 3 chữ số nên sort chữ cũng ra đúng; vẫn
-// sort tự nhiên để một file lỡ đặt tên thiếu số 0 không âm thầm nhảy sai chỗ.
+// Nối changelog SQL của một dòng phiên bản thành MỘT file để dán một lượt vào
+// SQL Editor.
+//   npm run sql:merge            → dùng dòng phiên bản mới nhất (RC02 > RC01)
+//   npm run sql:merge -- RC01    → chỉ định dòng phiên bản
+//
+// Gộp ĐÚNG hai nhóm, theo đúng thứ tự chạy: schema/ rồi data/. Nhóm manual/ CỐ Ý
+// đứng ngoài — hai file trong đó không dán-là-chạy được (một file phải làm bằng
+// Dashboard, một file phải thay <PROJECT_REF> trước), gộp vào là mời người dùng
+// chạy thẳng rồi đặt cron trỏ nhầm project.
 
 import fs from "node:fs";
 import path from "node:path";
@@ -11,21 +15,12 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DIR = path.join(ROOT, "changelogs");
-const PROD_REF = "lcobawmkywtxhpezndsh";
+const GROUPS = ["schema", "data"]; // thứ tự này LÀ thứ tự chạy
+const SKIPPED = "manual";
+const RC_RE = /^RC\d+$/i;
 
-const args = process.argv.slice(2);
-const prefix = args.find((a) => !a.startsWith("--"));
-const ref = (args.find((a) => a.startsWith("--ref=")) || "").slice(6);
-
-if (!prefix) {
-  console.error(
-    "Cách dùng: npm run sql:merge -- <tiền tố> [--ref=<project-ref>]",
-  );
-  console.error("  vd: npm run sql:merge -- RC1 --ref=gmtnoxdwoumbtdmqmisk");
-  process.exit(1);
-}
-
-// Sort tự nhiên: cắt chuỗi thành đoạn chữ/đoạn số rồi so từng đoạn, số so theo giá trị.
+// Sort tự nhiên: cắt chuỗi thành đoạn chữ/đoạn số rồi so từng đoạn, số so theo
+// giá trị — để một file lỡ đặt tên thiếu số 0 không âm thầm nhảy sai chỗ.
 const natural = (a, b) => {
   const split = (s) => s.toLowerCase().match(/\d+|\D+/g) || [];
   const A = split(a),
@@ -45,56 +40,58 @@ const natural = (a, b) => {
   return 0;
 };
 
-// Mỗi dòng phiên bản nằm trong thư mục riêng (changelogs/RC1/); vẫn nhận cả file
-// để thẳng ở changelogs/ cho bộ nào chưa gom vào thư mục.
-const sub = path.join(DIR, prefix);
-const SRC = fs.existsSync(sub) && fs.statSync(sub).isDirectory() ? sub : DIR;
+const dirs = () =>
+  fs
+    .readdirSync(DIR, { withFileTypes: true })
+    .filter((e) => e.isDirectory() && RC_RE.test(e.name))
+    .map((e) => e.name)
+    .sort(natural);
 
-// Gom mọi .sql khớp tiền tố. Bỏ qua chính file kết quả để chạy lại lần hai không
-// tự nối vào mình.
-const files = fs
-  .readdirSync(SRC)
-  .filter(
-    (f) =>
-      f.startsWith(prefix) && f.endsWith(".sql") && !f.endsWith(".final.sql"),
-  )
-  .sort(natural);
+const arg = process.argv.slice(2).find((a) => !a.startsWith("--"));
+const rcs = dirs();
+const rc = arg || rcs.at(-1);
 
-if (!files.length) {
+if (!rc) {
+  console.error(`✗ Không có thư mục RC nào trong ${path.relative(ROOT, DIR)}/.`);
+  process.exit(1);
+}
+const SRC = path.join(DIR, rc);
+if (!fs.existsSync(SRC)) {
+  console.error(`✗ Không có ${path.relative(ROOT, SRC)}/.`);
+  console.error(`  Đang có: ${rcs.join(", ") || "(không có)"}`);
+  process.exit(1);
+}
+
+// Gom file theo nhóm, giữ nguyên thứ tự nhóm.
+const picked = [];
+for (const g of GROUPS) {
+  const gDir = path.join(SRC, g);
+  if (!fs.existsSync(gDir)) continue;
+  for (const f of fs.readdirSync(gDir).filter((f) => f.endsWith(".sql")).sort(natural))
+    picked.push({ group: g, file: f, abs: path.join(gDir, f) });
+}
+
+if (!picked.length) {
   console.error(
-    `✗ Không có file .sql nào khớp tiền tố "${prefix}" trong ${path.relative(ROOT, SRC)}/.`,
+    `✗ Không có file .sql nào trong ${path.relative(ROOT, SRC)}/{${GROUPS.join(",")}}/.`,
   );
   process.exit(1);
 }
 
 const out = [
   `-- SINH TỰ ĐỘNG bởi scripts/merge-changelogs.mjs — ĐỪNG SỬA TAY, sửa file nguồn rồi chạy lại.`,
-  `-- Tiền tố: ${prefix}   ·   ${files.length} file   ·   ${new Date().toISOString()}`,
-  ref
-    ? `-- Đã đổi ref project: ${PROD_REF} → ${ref}`
-    : `-- Ref project: GIỮ NGUYÊN (${PROD_REF}) — chạy trên môi trường khác thì thêm --ref=<ref>`,
+  `-- ${rc}  ·  ${picked.length} file  ·  ${GROUPS.join(" → ")}  ·  ${new Date().toISOString()}`,
+  `--`,
+  `-- CHƯA ĐỦ để dựng xong một project: nhóm ${SKIPPED}/ không nằm trong file này.`,
+  `-- Sau khi chạy file này, làm nốt ${SKIPPED}/ theo changelogs/README.md.`,
   ``,
 ];
-let swapped = 0;
-for (const rel of files) {
-  let sql = fs
-    .readFileSync(path.join(SRC, rel), "utf8")
-    .split("\r\n")
-    .join("\n");
-  if (ref) {
-    const n = sql.split(PROD_REF).length - 1;
-    if (n) {
-      sql = sql.split(PROD_REF).join(ref);
-      swapped += n;
-    }
-  }
-  const shown = path
-    .relative(ROOT, path.join(SRC, rel))
-    .split(path.sep)
-    .join("/");
+
+for (const { group, file, abs } of picked) {
+  const sql = fs.readFileSync(abs, "utf8").split("\r\n").join("\n");
   out.push(
     `-- ${"=".repeat(70)}`,
-    `-- ▶ ${shown}`,
+    `-- ▶ ${rc}/${group}/${file}`,
     `-- ${"=".repeat(70)}`,
     ``,
     sql.trim(),
@@ -103,15 +100,25 @@ for (const rel of files) {
   );
 }
 
-const dest = path.join(DIR, `${prefix}.final.sql`);
+const dest = path.join(DIR, `${rc}.final.sql`);
 fs.writeFileSync(dest, out.join("\n"));
 
-files.forEach((f, i) => console.log(`  ${String(i + 1).padStart(2)}. ${f}`));
-console.log(`
-✅ Đã nối ${files.length} file trên thành MỘT file để dán một lượt:`);
-console.log(`   ${path.relative(ROOT, dest)}`);
-if (ref) console.log(`   Đổi ${swapped} chỗ "${PROD_REF}" → "${ref}"`);
-else
-  console.log(
-    `   ⚠ Còn nguyên ref production trong file — RC1_010 có cron.schedule gọi URL đó.`,
-  );
+let last = "";
+for (const { group, file } of picked) {
+  if (group !== last) console.log(`\n  ${group}/`);
+  last = group;
+  console.log(`    ${file}`);
+}
+
+console.log(`\n✅ Đã nối ${picked.length} file thành MỘT file để dán một lượt:`);
+console.log(`   ${path.relative(ROOT, dest).split(path.sep).join("/")}`);
+
+// Nhắc phần còn thiếu, kèm tên file thật để khỏi phải đi tra.
+const manualDir = path.join(SRC, SKIPPED);
+if (fs.existsSync(manualDir)) {
+  const left = fs.readdirSync(manualDir).filter((f) => f.endsWith(".sql")).sort(natural);
+  if (left.length) {
+    console.log(`\n⚠ Chưa xong: ${SKIPPED}/ phải làm TAY, không gộp được —`);
+    left.forEach((f) => console.log(`    ${rc}/${SKIPPED}/${f}`));
+  }
+}

@@ -23,7 +23,7 @@ class StorageDAL {
   }
 
   // CỐ Ý KHÔNG có deleteFile/deleteFiles ở đây. Role `authenticated` chỉ được
-  // `select`/`insert` trên storage.objects (changelogs/RC1.15) nên trình duyệt
+  // `select`/`insert` trên storage.objects (changelogs/RC01/manual/dqvinh_001_storage_policies.sql) nên trình duyệt
   // không xoá được file — và đó là điều mình muốn: xoá ảnh đi qua Edge Function
   // `wedding-admin` (payload `deleted_images`), nơi service_role kiểm ảnh có
   // thuộc đúng thiệp rồi mới xoá. Thêm hàm xoá ở đây là mở lại đường ghi thẳng.

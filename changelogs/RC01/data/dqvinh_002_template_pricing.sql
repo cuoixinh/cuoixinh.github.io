@@ -1,25 +1,16 @@
 -- ============================================================
--- RC1.17 — Giá bán cho TẤT CẢ mẫu thiệp (109.000đ, gốc 139.000đ)
+-- DATA 02 — Giá bán (bảng `template_pricing`)
 --
--- LÝ DO
---   Giá CHỈ đến từ `template_pricing`: `TemplatesDAL._normalize` trả
---   `price: null` khi mẫu không có hàng giá, và `openPayment()`
---   (js/home-payment.js) chặn lại bằng thông báo "Mẫu này chưa có giá bán".
---   Mẫu thiếu hàng ở bảng này là mẫu bày ra mà KHÔNG mua được.
+-- Giá CHỈ đến từ bảng này: `TemplatesDAL._normalize` trả `price: null` khi mẫu
+-- không có hàng, và `openPayment()` (js/home-payment.js) chặn lại bằng thông báo
+-- "Mẫu này chưa có giá bán". Mẫu thiếu hàng ở đây là mẫu bày ra mà KHÔNG mua
+-- được — nên file này phủ MỌI hàng đang có trong `templates`.
 --
---   Bảng giá mới có hàng cho vài mẫu baseline, các mẫu thêm sau đều trống.
---   File này phủ MỌI hàng đang có trong `templates`.
+-- Chạy SAU data/dqvinh_001_templates.sql.
 --
--- ⚠ FILE NÀY ĐỔI GIÁ THẬT
---   Mẫu nào đang bán 159.000đ (gốc 199.000đ) sẽ xuống 109.000đ (gốc 139.000đ).
---
--- SAU KHI CHẠY
---   Purge cache worker templates-cache (nút ở tab Templates của admin), nếu
---   không bảng giá cũ còn sống tối đa 7 ngày ở edge. Staging không có worker
---   nên không cần.
---
--- Cách chạy: dán vào Supabase → SQL Editor → Run (idempotent, chạy lại an toàn).
---            Chạy trên CẢ HAI project: staging trước, rồi production.
+-- SAU KHI CHẠY: purge cache worker templates-cache (nút ở tab Templates của
+-- admin), nếu không bảng giá cũ còn sống tối đa 7 ngày ở edge. Staging không
+-- dùng worker nên bỏ qua.
 -- ============================================================
 
 -- Tên và mô tả lấy thẳng từ `templates` nên không phải liệt kê mẫu bằng tay:

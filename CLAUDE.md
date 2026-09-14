@@ -79,7 +79,7 @@ Không gọi thẳng UI → DAL khi có logic nghiệp vụ.
 
 - **Trình duyệt KHÔNG bao giờ gọi thẳng PostgREST (`/rest/v1/`).** Mọi đọc/ghi dữ liệu
   đi qua Edge Function; role `anon` và `authenticated` không còn quyền trên bảng nào
-  (changelogs/RC1.16), nên thêm một lệnh gọi thẳng là nhận mảng rỗng chứ không phải lỗi —
+  (xem `changelogs/RC01/schema/dqvinh_008_grants.sql`), nên thêm một lệnh gọi thẳng là nhận mảng rỗng chứ không phải lỗi —
   im lặng, rất khó thấy. Ngoại lệ đúng hai chỗ, đều KHÔNG phải SQL: `/auth/v1/` (đăng
   nhập, qua `core/auth.js`) và upload ảnh lên Storage (`core/dal/storage-dal.js`).
   Worker ở `cloudflare-worker/` cũng theo luật này — chúng cache lại phản hồi của Edge
@@ -255,7 +255,7 @@ RLS nên khách mời không đăng nhập vẫn xem được.
 
 - **Tên file không được chứa `wedding_id`** (hay bất cứ định danh nào tra ngược ra thiệp).
   Ai liệt kê được bucket sẽ suy ra id rồi lấy tiếp hồ sơ qua Edge Function — đúng lỗ hổng
-  `changelogs/RC1.15` vá. Liên hệ file ↔ thiệp giữ ở các cột `*_url` của hàng DB;
+  `changelogs/RC01/manual/dqvinh_001_storage_policies.sql` vá. Liên hệ file ↔ thiệp giữ ở các cột `*_url` của hàng DB;
   `wedding-admin` (`deleted_images`) và `cleanup-weddings` đều đọc từ đó.
 - **Policy trên `storage.objects` chỉ cấp `select`/`insert` cho `authenticated`.** Không cấp
   `delete`/`update` cho ai: xoá ảnh là việc của Edge Function bằng service_role (bỏ qua RLS),

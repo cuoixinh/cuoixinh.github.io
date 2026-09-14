@@ -68,8 +68,7 @@ Bảo mật vẫn nguyên (clamp/whitelist ở server). Lượt gọi lại non-
 ## 3. Tạo bảng rate-limit `ai_usage`
 
 Mở **Supabase → SQL Editor**, chạy **cả hai** file (idempotent, chạy lại an toàn):
-- [`changelogs/RC1/RC1_001_ai_usage.sql`](../../../changelogs/RC1/RC1_001_ai_usage.sql) — rate-limit theo user.
-- [`changelogs/RC1/RC1_002_ai_usage_ip.sql`](../../../changelogs/RC1/RC1_002_ai_usage_ip.sql) — rate-limit theo IP (khách chưa đăng nhập).
+- [`changelogs/RC01/schema/dqvinh_007_ai_usage.sql`](../../../changelogs/RC01/schema/dqvinh_007_ai_usage.sql) — cả ba bảng hạn mức: `ai_usage` (theo user), `ai_usage_ip` (theo IP, khách chưa đăng nhập), `ai_chat_usage` (trợ lý AI).
 
 Nội dung `ai_usage`:
 
@@ -199,8 +198,7 @@ Sửa văn phong / cấu trúc nội dung: hàm `buildPrompt()` và `RESPONSE_SC
 
 - `supabase/functions/_shared/card-schema.ts` — hợp đồng dữ liệu thiệp (whitelist field, nhãn văn phong, luật xưng hô, tầng validate output) dùng chung với `ai-chat`
 - `supabase/functions/ai-invitation/index.ts` — Edge Function
-- `changelogs/RC1/RC1_001_ai_usage.sql` — bảng rate-limit theo user (changelog RC1.1)
-- `changelogs/RC1/RC1_002_ai_usage_ip.sql` — bảng rate-limit theo IP (changelog RC1.2)
+- `changelogs/RC01/schema/dqvinh_007_ai_usage.sql` — ba bảng hạn mức dùng AI
 - `core/dal/ai-dal.js` — client gọi function (gắn JWT)
 - `core/config.js` — `CONFIG.supabase.aiInvitationUrl`
 - `invitation-setup/index.html` — banner + `#ai-modal` + nạp `ai-dal.js`

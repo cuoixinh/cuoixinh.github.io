@@ -1,6 +1,6 @@
 // ============= TAB: Mã giảm giá =============
 // Sinh mã hàng loạt / bật-tắt / xoá. Việc TIÊU lượt của mã nằm ở payment-handler
-// (hàm cx_promo_reserve, xem changelogs/RC1.8) — màn này chỉ quản lý danh mục.
+// (hàm cx_promo_reserve, xem changelogs/RC01/schema/dqvinh_006_promo.sql) — màn này chỉ quản lý danh mục.
 
 let promoCodes = [];
 let lastPromoBatch = [];

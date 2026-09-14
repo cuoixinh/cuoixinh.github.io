@@ -110,36 +110,28 @@ wrangler deploy --config wrangler-webhook-staging.toml
 
 ## 6. Changelog DB
 
-`changelogs/` là nguồn sự thật chung. Dựng một project từ đầu = chạy `RC1.0` → `RC1.16` theo
-đúng thứ tự. Gộp sẵn thành một file để dán một lượt:
-
-```bash
-npm run sql:merge -- RC1 --ref=<project-ref>   # → changelogs/RC1.final.sql (không commit)
-```
-
-`--ref` đổi mọi chỗ nhắc ref production sang project đích — **bắt buộc khi chạy cho staging**,
-vì `RC1.10` có `cron.schedule` gọi URL đó, quên là cron staging đi xoá dữ liệu THẬT. Thứ tự
-nối là sort tự nhiên nên `RC1.10` đứng sau `RC1.9`.
+`changelogs/` là nguồn sự thật chung, chia ba nhóm chạy theo thứ tự: `schema/` →
+`data/` → `manual/`. Dựng một project từ đầu = chạy lần lượt mọi file trong đó (xem
+`changelogs/README.md`). Mọi file đều idempotent nên chạy lại an toàn.
 
 Hai chỗ vẫn phải làm tay:
 
-- **Vault secret `cleanup_token`** (RC1.10) — cron đọc nó để gửi `x-admin-token`. Đặt bằng
+- **Vault secret `cleanup_token`** (`manual/dqvinh_002_cron_cleanup.sql`) — cron đọc nó để gửi `x-admin-token`. Đặt bằng
   `ADMIN_SECRET_TOKEN` của CHÍNH project đó; hai môi trường token khác nhau nên hai Vault
   cũng khác. Hệ quả staging chạy cron y như thật: thiệp test chưa thanh toán bị xoá sau
   3 + 30 ngày, nháp bỏ quên sau 30 ngày.
-- **`RC1.15`** không chạy được bằng SQL Editor (storage.objects thuộc
+- **`manual/dqvinh_001_storage_policies.sql`** không chạy được bằng SQL Editor (storage.objects thuộc
   `supabase_storage_admin`) — làm bằng Dashboard theo mục B của chính file đó.
 
-Xong changelog thì DB mới chỉ có **3 mẫu baseline** — `templates` và `template_pricing` là
-dữ liệu danh mục, không nằm trong changelog. Phải chép từ production sang, mà RC1.16 đã thu
-quyền đọc của `anon` nên không lấy được từ ngoài bằng anon key.
+Danh mục mẫu thiệp và giá nằm ở `data/dqvinh_001_templates.sql` và
+`data/dqvinh_002_template_pricing.sql` — chạy hai file đó là project mới có đủ mẫu đang
+bán, không phải chép từ production sang.
 
-Chạy `scripts/gen-template-seed.sql` (hai câu, chạy từng câu) trên **SQL Editor của
-production**: mỗi câu trả về MỘT ô text là câu `insert … on conflict do update` hoàn chỉnh.
-Copy ô đó, dán sang SQL Editor của project đích, Run.
-
-Câu sinh tự đọc danh sách cột từ `information_schema` nên thêm/bớt cột về sau không phải
-sửa file, và `do update` khiến chạy lại chỉ đồng bộ chứ không nhân đôi hàng.
+Muốn chụp lại danh mục ĐANG CHẠY trên production (sau khi đã thêm/sửa mẫu ở đó) thì chạy
+`scripts/gen-template-seed.sql` (hai câu, chạy từng câu) trên **SQL Editor của production**:
+mỗi câu trả về MỘT ô text là câu `insert … on conflict do update` hoàn chỉnh. Copy ô đó,
+dán sang SQL Editor của project đích, Run. Câu sinh tự đọc danh sách cột từ
+`information_schema` nên thêm/bớt cột về sau không phải sửa file.
 
 ## 7. Thứ tự khi một thay đổi đụng nhiều tầng
 
@@ -157,7 +149,7 @@ Nhớ nâng `CX_VERSION` như mọi lần deploy.
 1. Mở staging ở cửa sổ ẩn danh → phải gặp màn đăng nhập Cloudflare Access.
 2. DevTools → Network, lọc `lcobawmkywtxhpezndsh` → phải **0 request**.
 3. `curl` PostgREST staging bằng anon key staging: `promo_codes`, `promo_redemptions`,
-   `templates`, `template_pricing` phải trả `42501 permission denied` (chứng tỏ RC1.16 đã chạy).
+   `templates`, `template_pricing` phải trả `42501 permission denied` (chứng tỏ `dqvinh_008_grants.sql` đã chạy).
 4. `POST /storage/v1/object/list/wedding-images` bằng anon key staging → **0 mục**.
 5. Luồng đầy đủ: tạo thiệp → tải ảnh → lưu nháp → đăng xuất → mở lại link quản lý → đăng
    nhập → xuất bản → mở `/<slug>` (phải 200, đây là chỗ `not_found_handling` hay hỏng) →

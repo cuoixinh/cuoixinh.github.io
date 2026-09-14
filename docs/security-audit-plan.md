@@ -21,7 +21,7 @@ Bản plan này **đã qua một vòng review lại** sau khi đọc kỹ code t
 | 3 | Chống tráo ảnh/QR: chỉ nhận ảnh trên host hệ thống | `supabase/functions/wedding-admin/index.ts` |
 | 3 | `guest-handler`: JWT + kiểm tra chủ thiệp ở cả 6 nhánh | `supabase/functions/guest-handler/index.ts`, `core/dal/guest-dal.js` |
 | 3 | Client nhắc đăng nhập khi gặp `AUTH_REQUIRED`/`FORBIDDEN` | `invitation-setup/js/13-data.js`, `core/dal/wedding-dal.js` |
-| 4a | Migration siết RLS | `changelogs/RC1/RC1_007_rls_hardening.sql` |
+| 4a | Migration siết RLS | `changelogs/RC01/schema/` (RLS nằm cuối mỗi file bảng) |
 | 4b | GET public không còn trả field thanh toán | `supabase/functions/wedding-admin/index.ts` |
 | 5 | Admin token chuyển sang header + constant-time | `admin/js/00-core.js`, `01-weddings.js`, `02-templates.js`, `core/dal/wedding-dal.js` |
 | 6 | CORS allowlist origin (theo mẫu `ai-invitation`) | `wedding-admin`, `guest-handler` |
@@ -36,7 +36,7 @@ Toàn bộ file đã qua kiểm tra cú pháp. **Chưa chạy thử end-to-end**
 
 1. **Deploy Edge Functions**: `wedding-admin`, `guest-handler`, `payos-webhook` (Supabase CLI chưa cài trên máy này).
 2. **Deploy Cloudflare Worker** `payos-webhook-proxy` (Wrangler chưa cài).
-3. **Chạy migration** `changelogs/RC1/RC1_007_rls_hardening.sql` qua Supabase Dashboard → SQL Editor.
+3. **Chạy migration** nhóm `changelogs/RC01/schema/` qua Supabase Dashboard → SQL Editor.
 4. **Chạy query đếm thiệp vô chủ** (ở cuối file migration) để quyết định mốc hạn chót cho thiệp `user_id IS NULL`.
 5. **Theo dõi log Axiom** `payos.signature_check` sau 1–2 giao dịch thật → nếu `matched: true` thì đặt biến môi trường `PAYOS_ENFORCE_SIGNATURE=true` để bật chặn (không cần sửa code).
 6. **Supabase Storage bucket policy**: giới hạn MIME type + kích thước (#9) — chỉ làm được trên Dashboard.
@@ -161,7 +161,7 @@ Validate server-side: `groom_qr_url`/`bride_qr_url` và mọi field ảnh chỉ 
 
 ### 4. Rò rỉ dữ liệu qua đường đọc
 
-**a) RLS hở (`changelogs/RC1/RC1_000_database-complete.sql`):**
+**a) RLS hở (baseline đầu tiên, nay đã vá):**
 - `weddings` (209-211): `"Public read" USING (true)` → **mọi thiệp kể cả draft chưa trả tiền đọc được bằng anon key**, lộ số tài khoản, `payment_order_id`, `transaction_id`.
 - `guests` (254-276): `"Public read guests" USING (true)` → enumerate toàn bộ khách mời mọi đám. Policy update dùng `USING (true)` không giới hạn cột → sửa được `full_name/link/side` chứ không chỉ RSVP.
 - `payment_logs` (362-380): **chưa bật RLS, không policy nào**.
@@ -173,7 +173,7 @@ Anon key nằm công khai trong `core/config.js`, nên `curl https://<project>.s
 **b) GET trả `select('*')` cho bất kỳ ai** (`wedding-admin/index.ts:584`) — đây mới là đường rò **đang sống**, vì client đi qua đúng path này. Thiệp lấy theo slug trả về cả `transaction_id`, `payment_order_id`, `payment_status`, `user_id`, `expires_at`.
 
 **Giải pháp:**
-- Viết migration idempotent trong `changelogs/RC1.x/`: `weddings` lọc `is_published`/ẩn field nhạy cảm; `guests` giới hạn theo `wedding_id` + `WITH CHECK` giới hạn cột RSVP; `payment_logs` bật RLS chỉ service_role; `orders`/`order_details` siết INSERT về `auth.uid() = user_id`.
+- Viết migration idempotent trong `changelogs/RC01/schema/`: `weddings` lọc `is_published`/ẩn field nhạy cảm; `guests` giới hạn theo `wedding_id` + `WITH CHECK` giới hạn cột RSVP; `payment_logs` bật RLS chỉ service_role; `orders`/`order_details` siết INSERT về `auth.uid() = user_id`.
 - Tạo sẵn bảng đếm cho rate-limit (#11, #12) **trong cùng migration này**.
 - GET public: trả **allowlist field** cần cho việc render thiệp; field thanh toán/nội bộ chỉ trả cho admin hoặc chủ sở hữu.
 - Cập nhật bảng **Lịch sử phiên bản** trong `changelogs/README.md`.
