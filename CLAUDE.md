@@ -15,11 +15,19 @@ PayOS · Cloudflare Pages + Workers.
 ```bash
 npm install
 npm run build                  # build 2 file CSS
-python -m http.server 8000     # hoặc Live Server / npx http-server
+npm run dev                    # http://localhost:8000 — dữ liệu STAGING
 ```
 
 Sửa CSS thì `npm run watch:css` (ứng dụng) hoặc `npm run watch:themes` (thiệp).
-Local dùng full URL (`/admin/index.html`); production dùng clean URL qua `router.html`.
+
+`npm run dev` (`scripts/dev-server.mjs`) nối `core/config.staging.js` vào cuối
+`core/config.js` lúc trả file — đúng cách build dựng bản staging, nên **mã vẫn không có
+chỗ nào rẽ nhánh theo môi trường**. Muốn đụng dữ liệu thật thì `npm run dev --
+--env=production`. **Mở bằng Live Server / `python -m http.server` là KHÔNG qua server
+này → rơi về production**; cổng in ra lúc khởi động mới là cổng chạy staging.
+Server tự tải lại trang khi file đổi (`-- --no-reload` để tắt) và trả `404.html` cho path
+lạ, nên clean URL `/<slug>` chạy giống production; còn lại local vẫn dùng full URL
+(`/admin/index.html`).
 
 ## Cấu trúc
 

@@ -21,6 +21,13 @@
     />
     <!-- Tailwind build local (npm run build:css) — xem tailwind.config.js. -->
     <link rel="stylesheet" href="../styles/build.css" />
+    <!-- x-button.js nạp ở cuối body nên trước đó mọi <x-button> chỉ là chữ trần:
+         khai lại luật ẩn ngay trong <head> để không chớp một nhịp nút vỡ. -->
+    <style>
+      x-button {
+        visibility: hidden;
+      }
+    </style>
   </head>
   <body
     class="font-inter text-gray-800 bg-white min-h-screen pb-[72px] md:pb-0 md:pt-20"
@@ -67,15 +74,24 @@
             Tạo, chỉnh sửa và chia sẻ thiệp cưới của bạn
           </p>
         </div>
-        <!-- Nút này ẩn khi danh sách rỗng: lúc đó khối "state-empty" đã có một
-             nút "Tạo thiệp mới" rồi (setState ở index.js bật/tắt). -->
+        <!-- Khung xương của nút: nút thật là <x-button>, chỉ dựng xong khi
+             x-button.js chạy — hiện nó lúc đang tải là thấy một nút chưa có kiểu.
+             Khổ khớp size="sm" + icon + nhãn. -->
+        <div
+          id="btn-new-top-sk"
+          class="h-8 animate-pulse rounded-full bg-gray-100"
+          style="width: 132px"
+        ></div>
+        <!-- Nút thật ẩn khi đang tải và khi danh sách rỗng (lúc rỗng khối
+             "state-empty" đã có một nút "Tạo thiệp mới" rồi) — setState ở
+             index.js bật/tắt cả nút lẫn khung xương trên. -->
         <x-button
           id="btn-new-top"
           size="sm"
           icon="plus"
           onclick="cxStartDefaultDraft()"
           style="background: rgb(var(--action-primary-rgb))"
-          class="hover:opacity-90"
+          class="hidden hover:opacity-90"
         >
           Tạo thiệp mới
         </x-button>
