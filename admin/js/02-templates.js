@@ -18,13 +18,24 @@ function fillDefaultPrice() {
   );
 }
 
+/**
+ * Ẩn nút "Xóa Cache" ở môi trường không có worker cache (staging).
+ * Ẩn bằng inline style: `x-button` nở ra thành `<button>` mang class
+ * `inline-flex`, đè mất cả thuộc tính [hidden] lẫn class .hidden.
+ */
+function tplSyncPurgeBtn() {
+  const btn = document.getElementById("purge-cache-btn");
+  if (btn) btn.style.display = CONFIG.cloudflare?.templatesCache ? "" : "none";
+}
+
 async function purgeTemplatesCache() {
   const btn = document.getElementById("purge-cache-btn");
   const originalHTML = btn.innerHTML;
 
+  // Lưới an toàn: nút đã ẩn sẵn ở môi trường không có worker cache.
   if (!CONFIG.cloudflare.templatesCache) {
     alert(
-      "⚠️ Cache proxy chưa được cấu hình (USE_CACHE = false trong core/config.js — đang ở chế độ test local). Tính năng này chỉ hoạt động ở production.",
+      `ℹ️ Môi trường "${CONFIG.env}" không dùng worker cache nên không có gì để xóa — sửa template là thấy ngay. Muốn purge thì đổi sang production ở dải chọn môi trường trên đầu trang.`,
     );
     return;
   }
@@ -79,6 +90,7 @@ async function loadTemplates() {
   // Khối "Thư mục changelogs/" ở đầu tab — dựng lại mỗi lần vào tab, giống các
   // tab ảnh: quyền thư mục có thể đã bị thu hồi từ lần trước.
   tplInitChangelog();
+  tplSyncPurgeBtn();
 
   try {
     const res = await fetch(`${EDGE_URL}?resource=templates`, {

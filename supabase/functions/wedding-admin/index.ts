@@ -1136,9 +1136,12 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
         })
       }
 
+      // cover_image_url + gallery_images chỉ là TÊN FILE (vài chục byte/hàng) —
+      // trang "Quản lý thiệp cưới" dựng thumbnail bằng ảnh thật của khách, thiếu
+      // hai cột này là mọi thiệp cùng mẫu trông giống hệt nhau.
       const { data, error } = await supabase
         .from('weddings')
-        .select('id, slug, groom_name, bride_name, theme, is_published, created_at, expires_at')
+        .select('id, slug, groom_name, bride_name, theme, is_published, created_at, expires_at, cover_image_url, gallery_images')
         .eq('user_id', userId)
         .eq('is_active', true)
         .order('created_at', { ascending: false })

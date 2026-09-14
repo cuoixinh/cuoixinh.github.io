@@ -170,7 +170,17 @@ function _cardFromWedding(w) {
     expiresAt: w.expires_at || null,
     createdAt: w.created_at,
     local: false,
+    cover: _coverUrl(w),
   };
+}
+
+// Thumbnail của thẻ = ảnh THẬT của khách. Cột chỉ chứa tên file nên phải qua
+// storageDAL.getPublicUrl (nó tự đi đường worker proxy khi có). Thiệp chưa tải
+// ảnh nào — và nháp chỉ nằm trên máy (ảnh còn trong IndexedDB, chưa lên
+// Storage) — thì rơi về ảnh mẫu trong cardHTML.
+function _coverUrl(w) {
+  const file = w.cover_image_url || (w.gallery_images || [])[0] || "";
+  return file ? storageDAL.getPublicUrl(file) : "";
 }
 
 // Đổi phiên (đăng nhập/xuất) làm loadCards chạy chồng nhau; chỉ lần gọi MỚI NHẤT
@@ -293,6 +303,7 @@ function render() {
   });
   grid.innerHTML = list.join("");
   window.lucide?.createIcons({ root: grid });
+  paintLocalThumbs(); // ảnh nháp nằm trong IDB → gán sau, không chặn lần vẽ này
 
   if (list.length) setState("grid");
   else if (!currentUser && !CARDS.length) setState("guest");
@@ -339,6 +350,99 @@ function setState(state, counts) {
 const BADGE =
   "inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[8px] font-semibold shadow-sm sm:px-2";
 
+// ===== THUMBNAIL CỦA NHÁP TRÊN MÁY =====
+// Nháp chưa đăng nhập chưa đẩy ảnh lên Storage: ảnh còn nằm trong IndexedDB của
+// trình chỉnh sửa (`cuoixinh_pending`, `weddingId` = ?id= = manage_id của thẻ).
+// Đọc THẲNG ở đây, chỉ đọc — không mở transaction ghi, không dọn gì.
+const PENDING_IDB = "cuoixinh_pending";
+const PENDING_STORE = "uploads";
+
+// id thẻ → objectURL đang gán. Giữ lại để thu hồi trước khi tạo cái mới; bỏ qua
+// là mỗi lần render lại rò thêm một blob.
+const _thumbBlobUrls = new Map();
+
+// Mở bản ĐANG CÓ (không truyền version): trang này không sở hữu schema đó, nâng
+// cấp nhầm là hỏng nháp của trình chỉnh sửa.
+function _openPendingIDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(PENDING_IDB);
+    req.onsuccess = (e) => resolve(e.target.result);
+    req.onerror = (e) => reject(e.target.error);
+    req.onblocked = () => reject(new Error("blocked"));
+  });
+}
+
+async function _readPendingRows() {
+  const db = await _openPendingIDB();
+  if (!db.objectStoreNames.contains(PENDING_STORE)) return [];
+  return new Promise((res, rej) => {
+    const req = db
+      .transaction(PENDING_STORE, "readonly")
+      .objectStore(PENDING_STORE)
+      .getAll();
+    req.onsuccess = (e) => res(e.target.result || []);
+    req.onerror = (e) => rej(e.target.error);
+  });
+}
+
+// Ảnh bìa trước, không có thì tấm carousel đầu tiên — cùng thứ tự ưu tiên với
+// thiệp đã lưu trên hệ thống (_coverUrl).
+function _pendingCoverFile(rows) {
+  const cover = rows.find(
+    (r) => r.type === "single" && r.fieldName === "cover_image_url" && r.file,
+  );
+  if (cover) return cover.file;
+  const gallery = rows
+    .filter((r) => r.type === "gallery" && r.file)
+    .sort((a, b) => (a.order || 0) - (b.order || 0));
+  return gallery[0]?.file || null;
+}
+
+async function paintLocalThumbs() {
+  const ids = new Set(CARDS.filter((c) => c.local).map((c) => c.id));
+  if (!ids.size) return;
+
+  let rows;
+  try {
+    rows = await _readPendingRows();
+  } catch (e) {
+    return; // không có IDB / bị chặn → thẻ giữ ảnh mẫu
+  }
+
+  ids.forEach((id) => {
+    const img = document.querySelector(`img[data-thumb="${CSS.escape(id)}"]`);
+    if (!img) return; // thẻ đang bị tab lọc ẩn đi
+    const file = _pendingCoverFile(rows.filter((r) => r.weddingId === id));
+    if (!file) return;
+
+    const old = _thumbBlobUrls.get(id);
+    if (old) URL.revokeObjectURL(old);
+    const url = URL.createObjectURL(file);
+    _thumbBlobUrls.set(id, url);
+
+    // Ảnh mẫu có thể đã hỏng và bị onerror ẩn đi trước đó → mở lại.
+    delete img.dataset.fallback;
+    img.style.display = "";
+    img.src = url;
+  });
+}
+
+/** Ảnh mẫu của theme — chỗ lùi khi thiệp chưa có ảnh nào của khách. */
+function themeThumb(theme) {
+  return `/assets/images/templates/${theme}.jpg`;
+}
+
+// Ảnh khách hỏng/đã bị dọn → thử ảnh mẫu một lần rồi mới chịu ẩn. Đổi src trong
+// onerror mà không gỡ cờ là lặp vô hạn khi chính ảnh mẫu cũng lỗi.
+function thumbFallback(img, theme) {
+  if (img.dataset.fallback) {
+    img.style.display = "none";
+    return;
+  }
+  img.dataset.fallback = "1";
+  img.src = themeThumb(theme);
+}
+
 function cardHTML(c, i) {
   const state = cardState(c);
   const title =
@@ -372,8 +476,8 @@ function cardHTML(c, i) {
            cột phải quyết định; khung nào cao hơn cột thì max-h-full kẹp lại. -->
       <div class="flex w-2/5 shrink-0 cursor-pointer items-center justify-center bg-gray-50 p-2 sm:p-3" onclick="openEditor(${i})">
         <div class="aspect-[9/16] max-h-full w-full overflow-hidden rounded-md bg-white shadow-sm ring-1 ring-black/5 transition-transform duration-300 group-hover:scale-[1.04]">
-          <img src="/assets/images/templates/${escAttr(c.theme)}.jpg" alt="${escAttr(title)}"
-               loading="lazy" onerror="this.style.display='none'"
+          <img data-thumb="${escAttr(c.id)}" src="${escAttr(c.cover || themeThumb(c.theme))}" alt="${escAttr(title)}"
+               loading="lazy" onerror="thumbFallback(this, '${escAttr(c.theme)}')"
                class="h-full w-full object-cover object-top" />
         </div>
       </div>
