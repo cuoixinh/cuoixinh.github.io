@@ -98,6 +98,103 @@
     });
   }
 
+  // ── Môi trường ─────────────────────────────────────────────────────────────
+  // `core/config.js` chỉ chứa giá trị production; bản staging của WEB do build
+  // nối `core/config.<env>.js` vào cuối nó (deploy-public.mjs --env=staging).
+  // Trang admin không đi qua build đó nên tự nối lúc chạy: nạp file override
+  // NGAY SAU config.js và TRƯỚC mọi script khác, nên phần còn lại của trang vẫn
+  // thấy đúng MỘT `CONFIG` y như trên web. Đây là chỗ duy nhất trong mã rẽ nhánh
+  // theo môi trường — chấp nhận được vì `admin/` chỉ chạy local, không nằm trong
+  // bản publish; đừng bê cách này sang trang nào ra web.
+  //
+  // Thêm môi trường mới: tạo `core/config.<id>.js`, khai `EXCLUDE` ở
+  // scripts/deploy-public.mjs, rồi thêm một mục vào đây.
+  const ENV_KEY = "admin_env";
+  const ENVS = [
+    { id: "production", label: "Production", dot: "bg-red-500" },
+    { id: "staging", label: "Staging", dot: "bg-amber-500" },
+  ];
+
+  const envById = (id) => ENVS.find((e) => e.id === id);
+
+  // Lần đầu mở trang trên máy này thì CHẶN cho tới khi chọn: mặc định thẳng vào
+  // production là mời người dùng sửa nhầm dữ liệu thật của khách.
+  function askEnv() {
+    return new Promise((resolve) => {
+      const box = document.createElement("div");
+      box.className =
+        "fixed inset-0 z-[999] flex items-center justify-center bg-gray-900/60 p-4";
+      box.innerHTML =
+        '<div class="w-full max-w-sm rounded-2xl bg-white p-5 shadow-xl">' +
+        '<p class="mb-1 text-base font-semibold text-gray-800">Chọn môi trường</p>' +
+        '<p class="mb-4 text-sm text-gray-500">Trang quản trị sẽ đọc và ghi dữ liệu của môi trường này. Đổi lại bất cứ lúc nào ở góc trên bên phải.</p>' +
+        '<div class="flex flex-col gap-2">' +
+        ENVS.map(
+          (e) =>
+            '<button type="button" data-env="' +
+            e.id +
+            '" class="flex items-center gap-2 rounded-xl px-4 py-3 text-left text-sm font-medium text-gray-700 ring-1 ring-gray-200 hover:bg-gray-50">' +
+            '<span class="h-2.5 w-2.5 rounded-full ' +
+            e.dot +
+            '"></span>' +
+            e.label +
+            "</button>",
+        ).join("") +
+        "</div></div>";
+      box.addEventListener("click", (ev) => {
+        const id = ev.target.closest("[data-env]")?.dataset.env;
+        if (!id) return;
+        box.remove();
+        resolve(id);
+      });
+      document.body.appendChild(box);
+    });
+  }
+
+  async function pickEnv() {
+    let id = localStorage.getItem(ENV_KEY);
+    if (!envById(id)) {
+      id = await askEnv();
+      localStorage.setItem(ENV_KEY, id);
+    }
+    return id;
+  }
+
+  // Dải segmented ở header (.cx-seg — chỉ cần đặt --n/--i + .is-on, xem
+  // styles/_common.css). Đổi môi trường là TẢI LẠI trang: các script đã đọc
+  // CONFIG rồi, vá nóng chỉ tạo ra nửa trang trỏ bên này nửa trỏ bên kia.
+  function renderEnvSwitch(current) {
+    const host = document.getElementById("mount-env");
+    if (!host) return;
+    host.className = "cx-seg shrink-0";
+    host.style.setProperty("--n", ENVS.length);
+    host.style.setProperty(
+      "--i",
+      Math.max(
+        0,
+        ENVS.findIndex((e) => e.id === current),
+      ),
+    );
+    host.innerHTML = ENVS.map(
+      (e) =>
+        '<button type="button" data-env="' +
+        e.id +
+        '" class="cx-seg-btn' +
+        (e.id === current ? " is-on" : "") +
+        '"><span class="h-2 w-2 rounded-full ' +
+        e.dot +
+        '"></span>' +
+        e.label +
+        "</button>",
+    ).join("");
+    host.addEventListener("click", (ev) => {
+      const id = ev.target.closest("[data-env]")?.dataset.env;
+      if (!id || id === current) return;
+      localStorage.setItem(ENV_KEY, id);
+      location.reload();
+    });
+  }
+
   // Đóng dấu phiên bản (CONFIG.version, xem core/config.js) để đổi số ở đó là
   // ép lấy bản mới của cả bộ partial + script. Chỉ gọi được SAU bước mồi.
   // CONFIG khai bằng `const` ở core/config.js → là binding lexical toàn cục, KHÔNG
@@ -113,6 +210,21 @@
     // Bước mồi: config.js nạp TRẦN (không ?v=) và phải xong trước mọi thứ khác —
     // nó là nơi giữ số phiên bản dùng để đóng dấu phần còn lại.
     await loadScripts(["../core/config.js"]);
+
+    // Chọn môi trường rồi nối file override — phải xong TRƯỚC khi nạp SCRIPTS,
+    // xem phần "Môi trường" ở trên.
+    const env = await pickEnv();
+    if (env !== "production") {
+      try {
+        await loadScripts([withVersion("../core/config." + env + ".js")]);
+      } catch {
+        // Thiếu file override thì trang sẽ lặng lẽ chạy trên production — bỏ
+        // lựa chọn để lần sau hỏi lại, và dừng hẳn thay vì đoán.
+        localStorage.removeItem(ENV_KEY);
+        throw new Error("không nạp được cấu hình môi trường " + env);
+      }
+    }
+    renderEnvSwitch(env);
 
     const htmls = await Promise.all(
       PARTIALS.map(([, url]) => fetchText(withVersion(url))),

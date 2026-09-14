@@ -1007,8 +1007,11 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
         previewUrl: t.preview_url,
         status: t.status,
         category: t.category,
-        price: pricingMap[t.template_name]?.price ?? 159000,
-        originalPrice: pricingMap[t.template_name]?.original_price ?? 199000,
+        // Không có hàng `template_pricing` thì trả null, KHÔNG bịa giá dự phòng:
+        // web hiện "Liên hệ" (templates-dal.js), còn một con số cứng ở đây là
+        // khách mua theo giá không có trong DB.
+        price: pricingMap[t.template_name]?.price ?? null,
+        originalPrice: pricingMap[t.template_name]?.original_price ?? null,
       }))
       return new Response(JSON.stringify(combined), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
