@@ -226,6 +226,11 @@ Cloudflare Workers Builds build từ repo private và **chỉ publish thư mục
 `wrangler.jsonc` gốc), do `scripts/deploy-public.mjs --dist --minify` dựng ra. Đụng tới
 deploy thì đọc `docs/deploy-cloudflare-pages.md` trước.
 
+- **Đưa staging lên production: `npm run production`** (merge nhánh staging vào nhánh
+  production rồi push, xong quay về nhánh cũ). Nó CHẶN khi cây làm việc bẩn, khi nhánh
+  local lệch remote, hoặc khi `CX_VERSION` chưa đổi; và liệt kê SQL/Edge Function trong
+  đợt để nhắc làm hai tầng đó trên production TRƯỚC.
+
 - `INCLUDE` trong script là **danh sách CHO PHÉP**: thứ gì không khai thì KHÔNG ra web.
   **Thêm thư mục/trang mới ở gốc phải khai vào `INCLUDE`**, nếu không production thiếu file.
   Thư mục đã khai (`core/`, `js/`, `public/`, `assets/`…) thì file mới bên trong tự theo.

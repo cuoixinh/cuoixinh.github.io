@@ -45,8 +45,8 @@ const CX_VERSION = "2026.09.11-1";
 // khai những khoá KHÁC production. Xem docs/staging-environment.md.
 const CONFIG = {
   version: CX_VERSION,
-  env: "production",
-
+  // env: "production",
+  env: "staging",
   // Supabase
   supabase: {
     url: "https://lcobawmkywtxhpezndsh.supabase.co",
