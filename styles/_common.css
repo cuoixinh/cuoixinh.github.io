@@ -772,66 +772,108 @@
   background: rgb(var(--action-primary-hover-rgb));
 }
 
-/* ── Ba nút hành động ở đáy bảng ───────────────────────────────────────────
-   Pill nhỏ, CÙNG một tông hồng, dồn vào giữa — trước đây là ba ô vuông to mỗi
-   ô một tông pastel, tranh mắt với chính thiệp đang xem. Nút chính ("Dùng
-   ngay") là bản đặc, hai nút còn lại là bản nhạt.
+/* ── Ba lối ra ở đáy bảng ──────────────────────────────────────────────────
+   "Dùng ngay" là pill hồng đặc ở GIỮA; "Trang chủ" và "Kho mẫu" là nút TRÒN chỉ
+   có icon, nhãn nhỏ nằm dưới — hai việc phụ nên không được to ngang việc chính.
+   Cả hàng dồn vào giữa và canh theo MÉP TRÊN để pill thẳng hàng với hai vòng
+   tròn (nhãn dưới cao thấp khác nhau thì hàng vẫn phẳng).
    Là <div role="button"> nên chuột lẫn bàn phím đều do JS nối (utils.js). */
 
 .cx-sug-acts {
   display: flex;
-  flex-wrap: wrap;
+  align-items: flex-start;
   justify-content: center;
-  gap: 8px;
+  gap: 16px;
 }
 
 .cx-sug-tile {
-  display: inline-flex;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 6px;
+  gap: 5px;
   min-width: 0;
-  height: 34px;
-  padding: 0 14px;
   cursor: pointer;
-  border-radius: 999px;
   color: rgb(var(--brand-accent-rgb));
-  /* Nền ĐẶC: bảng đề xuất là lớp kính mờ, nền trong suốt thì nút chìm vào đúng
-     tấm ảnh thiệp đang nằm dưới. */
+}
+
+/* Vòng tròn đựng icon — nền đặc vì bảng đề xuất là lớp kính mờ, nền trong suốt
+   thì nút chìm vào chính tấm ảnh thiệp nằm dưới. */
+
+.cx-sug-tile .cx-sug-ico {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
   background: rgb(var(--surface-brand-rgb));
   border: 1px solid rgb(var(--brand-primary-rgb));
   transition:
     transform 0.18s ease,
+    color 0.18s ease,
     background-color 0.18s ease;
 }
 
-.cx-sug-tile:hover {
+.cx-sug-tile:hover .cx-sug-ico {
   color: rgb(var(--white-rgb));
   background: rgb(var(--brand-accent-rgb));
   border-color: rgb(var(--brand-accent-rgb));
 }
 
-.cx-sug-tile:active {
+.cx-sug-tile:active .cx-sug-ico {
+  transform: scale(0.92);
+}
+
+/* Nút chính: pill hồng đặc, cao đúng bằng vòng tròn để cả hàng thẳng mép trên. */
+
+.cx-sug-tile.is-primary {
+  flex-direction: row;
+  gap: 8px;
+  height: 44px;
+  padding: 0 22px;
+  border-radius: 999px;
+  color: rgb(var(--white-rgb));
+  background: rgb(var(--action-primary-rgb));
+  box-shadow: 0 6px 16px rgb(var(--action-primary-rgb) / 0.35);
+  transition:
+    transform 0.18s ease,
+    background-color 0.18s ease;
+}
+
+.cx-sug-tile.is-primary:hover {
+  background: rgb(var(--action-primary-hover-rgb));
+}
+
+.cx-sug-tile.is-primary:active {
   transform: scale(0.96);
 }
 
-/* Ba nút CÙNG một màu, kể cả nút chính — hàng này là lối ra khỏi thiệp, không
-   phải chỗ giành sự chú ý; việc chính "Dùng ngay" đã có bản hồng đặc ngay trên
-   từng thẻ mẫu ở trên. Bấm vào thì nút đổi sang hồng đặc.
-   Nút chính vẫn giữ class .is-primary để JS/bàn phím nhắm được. */
+.cx-sug-tile.is-primary .cx-sug-ico {
+  width: auto;
+  height: auto;
+  border: 0;
+  background: none;
+}
 
-/* Nhãn cắt một dòng: nút hẹp mà chữ xuống dòng là ba nút lệch cao nhau. */
+/* Nhãn cắt một dòng: nút hẹp mà chữ xuống dòng là cả hàng lệch cao nhau. */
 
 .cx-sug-tile-lb {
-  max-width: 100%;
+  max-width: 88px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   line-height: 1;
   letter-spacing: 0.2px;
+  color: rgb(var(--text-heading-rgb));
+  /* Nhãn nằm trên lớp kính mờ, dưới nữa là ảnh thiệp: quầng trắng mảnh để chữ
+     không tan vào tấm ảnh. */
+  text-shadow: 0 1px 3px rgb(var(--white-rgb) / 0.9);
+}
+
+.cx-sug-tile.is-primary .cx-sug-tile-lb {
+  max-width: none;
+  font-size: 13px;
   color: inherit;
+  text-shadow: none;
 }
 
 .cx-sug-ico {

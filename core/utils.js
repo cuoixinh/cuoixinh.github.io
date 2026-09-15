@@ -1026,7 +1026,8 @@ function closeTimePicker() {
     _chooseTheme(theme, display);
   }
 
-  // Ba nút ở đáy bảng, cùng một tông hồng và dồn vào giữa.
+  // Ba lối ra ở đáy bảng, dồn vào giữa: "Dùng ngay" là pill hồng đặc ở giữa,
+  // hai bên là nút TRÒN chỉ có icon kèm nhãn nhỏ bên dưới (xem .cx-sug-tile).
   // `go` = đường dẫn nội bộ; nút `primary` tạo nháp bằng mẫu ĐANG XEM.
   const SUG_ACTS = [
     { id: "sug-home", label: "Trang chủ", icon: "home", go: "/" },
@@ -1119,7 +1120,7 @@ function closeTimePicker() {
         '" id="' + it.id + '"' +
         ' role="button" tabindex="0"' +
         ' aria-label="' + (it.aria || it.label) + '">' +
-        '<span class="cx-sug-ico">' + _sugIcon(it.icon, 16) + "</span>" +
+        '<span class="cx-sug-ico">' + _sugIcon(it.icon, 18) + "</span>" +
         '<span class="cx-sug-tile-lb">' + it.label + "</span>" +
         "</div>"
       );
