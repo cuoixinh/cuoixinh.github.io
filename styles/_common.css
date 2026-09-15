@@ -505,14 +505,16 @@
   gap: 10px;
   /* Lề đáy CỐ ĐỊNH, không cộng env(safe-area-inset-bottom) — xem .cx-tabbar. */
   padding: 12px 12px 14px;
-  /* Dải tối RẤT nhạt ở nửa dưới: đủ để thẻ trắng không chìm vào thiệp nền sáng,
-     chưa đủ để che mất thiệp. Không backdrop-filter — làm mờ vùng phía sau buộc
-     trình duyệt vẽ lại mỗi khung hình, giật trên máy yếu. */
+  /* Dải tối dâng từ đáy: đủ đậm để thẻ trắng và nhãn dưới nút tròn nổi hẳn khỏi
+     thiệp nền sáng, phần trên vẫn trong để không che mất thiệp. Không
+     backdrop-filter — làm mờ vùng phía sau buộc trình duyệt vẽ lại mỗi khung
+     hình, giật trên máy yếu. */
   background: linear-gradient(
     to top,
-    rgb(var(--scrim-rgb) / 0.34) 0%,
-    rgb(var(--scrim-rgb) / 0.16) 42%,
-    transparent 72%
+    rgb(var(--scrim-rgb) / 0.62) 0%,
+    rgb(var(--scrim-rgb) / 0.46) 28%,
+    rgb(var(--scrim-rgb) / 0.24) 55%,
+    transparent 80%
   );
   opacity: 0;
   pointer-events: none;
