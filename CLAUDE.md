@@ -268,8 +268,11 @@ RLS nên khách mời không đăng nhập vẫn xem được.
 
 - **Tên file không được chứa `wedding_id`** (hay bất cứ định danh nào tra ngược ra thiệp).
   Ai liệt kê được bucket sẽ suy ra id rồi lấy tiếp hồ sơ qua Edge Function — đúng lỗ hổng
-  `changelogs/RC01/manual/dqvinh_001_storage_policies.sql` vá. Liên hệ file ↔ thiệp giữ ở các cột `*_url` của hàng DB;
-  `wedding-admin` (`deleted_images`) và `cleanup-weddings` đều đọc từ đó.
+  `changelogs/RC01/manual/dqvinh_001_storage_policies.sql` vá. Liên hệ file ↔ thiệp giữ ở hàng DB
+  (các cột `*_url`, `gallery_images`, và `image_url` trong `love_story`) —
+  **`supabase/functions/_shared/wedding-images.ts` là nơi DUY NHẤT liệt kê chúng**, dùng chung
+  cho `deleted_images` + DELETE của `wedding-admin` và cron `cleanup-weddings`. Thêm cột ảnh
+  mới mà quên khai ở đó thì file nằm lại bucket vĩnh viễn, không luồng dọn nào thấy.
 - **Policy trên `storage.objects` chỉ cấp `insert` cho `authenticated`, còn `select` bó vào
   `owner_id = auth.uid()`.** Cho `select` chỉ theo `bucket_id` là mọi tài khoản đăng nhập
   liệt kê được toàn bộ kho (`/object/list/`) — Security Advisor báo đúng chỗ đó. Mà bỏ hẳn

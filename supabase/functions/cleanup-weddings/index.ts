@@ -12,6 +12,7 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { withAxiom } from '../_shared/axiom.ts'
+import { WEDDING_IMAGE_SELECT, weddingFileNames } from '../_shared/wedding-images.ts'
 
 // Số ngày giữ. Phải khớp CONFIG.retention ở core/config.js — hai nơi, đổi một bên
 // là web nói một đằng hệ thống làm một nẻo.
@@ -24,18 +25,9 @@ const MAX_PER_RUN = 100
 
 const BUCKET = 'wedding-images'
 
-// Đúng bộ cột ảnh mà DELETE ở wedding-admin dọn — thêm cột ảnh mới thì sửa cả hai.
-const IMAGE_COLUMNS = [
-  'cover_image_url',
-  'groom_image_url',
-  'bride_image_url',
-  'groom_qr_url',
-  'bride_qr_url',
-]
-
 const SELECT_COLUMNS =
-  `id, slug, groom_name, bride_name, is_published, payment_status, expires_at, updated_at, gallery_images, ` +
-  IMAGE_COLUMNS.join(', ')
+  `id, slug, groom_name, bride_name, is_published, payment_status, expires_at, updated_at, ` +
+  WEDDING_IMAGE_SELECT
 
 function timingSafeEqual(a: string, b: string): boolean {
   if (a.length !== b.length || a.length === 0) return false
@@ -46,16 +38,7 @@ function timingSafeEqual(a: string, b: string): boolean {
   return diff === 0
 }
 
-// URL đầy đủ (ảnh dán từ nơi khác) không phải file của mình → không xoá.
-function fileNames(w: Record<string, unknown>): string[] {
-  const all = [
-    ...IMAGE_COLUMNS.map((c) => w[c]),
-    ...((w.gallery_images as string[] | null) ?? []),
-  ]
-  return all.filter(
-    (v): v is string => typeof v === 'string' && v !== '' && !/^https?:\/\//i.test(v),
-  )
-}
+const fileNames = weddingFileNames
 
 Deno.serve(withAxiom('cleanup-weddings', async (req, log) => {
   const token = req.headers.get('x-admin-token')

@@ -2,6 +2,11 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { withAxiom } from '../_shared/axiom.ts'
 // Tầng gọi model dùng chung (Gemini, xoay vòng key) cho resource=template-ai.
 import { generateWithGemini } from '../_shared/ai-provider.ts'
+import {
+  WEDDING_IMAGE_SELECT,
+  weddingFileNames,
+  weddingImageRefs,
+} from '../_shared/wedding-images.ts'
 
 // ── CORS ────────────────────────────────────────────────────────────────────
 // Allowlist origin thay cho '*'. Chỉ là vệ sinh — CORS ràng buộc trình duyệt,
@@ -772,7 +777,7 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
     // Kiểm tra id tồn tại và lấy data hiện tại
     const { data: existing, error: fetchError } = await supabase
       .from('weddings')
-      .select('cover_image_url, groom_image_url, bride_image_url, groom_qr_url, bride_qr_url, gallery_images, user_id, payment_status, is_published')
+      .select(`${WEDDING_IMAGE_SELECT}, user_id, payment_status, is_published`)
       .eq('id', id)
       .single()
 
@@ -812,28 +817,15 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
       }
     }
 
-    // Validate deleted_images: chỉ cho phép xóa ảnh thuộc về wedding này
+    // Validate deleted_images: chỉ cho phép xóa ảnh thuộc về wedding này.
+    // Đối chiếu theo TÊN FILE nên cột lưu URL đầy đủ về storage của hệ thống vẫn
+    // khớp được (isSafeImageRef cho phép dạng đó).
     if (deleted_images && deleted_images.length > 0) {
-      // Collect all valid filenames from this wedding
-      const validFilenames = [
-        existing.cover_image_url,
-        existing.groom_image_url,
-        existing.bride_image_url,
-        existing.groom_qr_url,
-        existing.bride_qr_url,
-        ...(existing.gallery_images || [])
-      ].filter(Boolean) // Remove null/undefined
+      const extractedFilenames = weddingImageRefs(existing).map((f) =>
+        f.startsWith('http') ? f.split('/').pop()! : f
+      )
 
-      // Extract filenames from URLs (in case they are full URLs)
-      const extractedFilenames = validFilenames.map(f => {
-        if (f.startsWith('http')) {
-          return f.split('/').pop(); // Extract filename from URL
-        }
-        return f; // Already a filename
-      });
-
-      // Filter deleted_images to only include valid filenames
-      const validDeletedImages = deleted_images.filter(filename => 
+      const validDeletedImages = deleted_images.filter(filename =>
         extractedFilenames.includes(filename)
       )
 
@@ -1302,14 +1294,10 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
     })
   }
 
-  // DELETE → Xóa thiệp (chỉ admin)
+  // DELETE → Xoá thiệp VĨNH VIỄN: hàng weddings + ảnh trong Storage + khách mời
+  // và lời chúc (guests cascade theo FK). Không có đường lùi.
+  // Admin xoá thiệp bất kỳ; người dùng thường chỉ xoá thiệp mình đứng tên.
   if (method === 'DELETE') {
-    if (!isAdmin) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401, headers: corsHeaders
-      })
-    }
-
     const id = url.searchParams.get('id')
     if (!id) {
       return new Response(JSON.stringify({ error: 'Missing id' }), {
@@ -1317,10 +1305,9 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
       })
     }
 
-    // Get wedding data to delete images
     const { data: wedding, error: fetchError } = await supabase
       .from('weddings')
-      .select('cover_image_url, groom_image_url, bride_image_url, groom_qr_url, bride_qr_url, gallery_images')
+      .select(`${WEDDING_IMAGE_SELECT}, user_id`)
       .eq('id', id)
       .single()
 
@@ -1330,26 +1317,45 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
       })
     }
 
-    // Collect all image filenames
-    const imageFiles = [
-      wedding.cover_image_url,
-      wedding.groom_image_url,
-      wedding.bride_image_url,
-      wedding.groom_qr_url,
-      wedding.bride_qr_url,
-      ...(wedding.gallery_images || [])
-    ].filter(Boolean)
-
-    // Delete images from storage
-    if (imageFiles.length > 0) {
-      await supabase.storage.from('wedding-images').remove(imageFiles)
+    // Thiệp chưa có chủ (user_id NULL) thì KHÔNG ai ngoài admin xoá được: `id` nằm
+    // ngay trong link chia sẻ nên cho claim-rồi-xoá là đưa nút huỷ cho người lạ.
+    if (!isAdmin) {
+      const userId = await getUserId()
+      if (!userId) {
+        return new Response(JSON.stringify({
+          error: 'Vui lòng đăng nhập để xoá thiệp',
+          code: 'AUTH_REQUIRED',
+        }), { status: 401, headers: corsHeaders })
+      }
+      if (wedding.user_id !== userId) {
+        log.warn('wedding.delete_forbidden', { id, userId })
+        return new Response(JSON.stringify({
+          error: 'Bạn không có quyền xoá thiệp này',
+          code: 'FORBIDDEN',
+        }), { status: 403, headers: corsHeaders })
+      }
     }
 
-    // Delete wedding record
+    // Xoá ảnh TRƯỚC: hàng DB là nơi duy nhất còn giữ tên file, mất nó trước là
+    // ảnh nằm lại trong bucket vĩnh viễn mà không ai biết đường tìm.
+    const imageFiles = weddingFileNames(wedding)
+    if (imageFiles.length > 0) {
+      const { error: rmError } = await supabase.storage
+        .from('wedding-images')
+        .remove(imageFiles)
+      if (rmError) {
+        log.error('wedding.delete_images_failed', { id, error: rmError.message })
+        return new Response(JSON.stringify({
+          error: 'Không xoá được ảnh của thiệp, vui lòng thử lại',
+        }), { status: 500, headers: corsHeaders })
+      }
+    }
+
     const { error } = await supabase.from('weddings').delete().eq('id', id)
 
     if (error) return new Response(JSON.stringify({ error }), { status: 500, headers: corsHeaders })
 
+    log.info('wedding.deleted', { id, by: isAdmin ? 'admin' : 'owner', files: imageFiles.length })
     return new Response(JSON.stringify({ success: true }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })

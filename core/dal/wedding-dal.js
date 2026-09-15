@@ -167,19 +167,26 @@ class WeddingDAL {
     return await this.updateWedding({ id, is_published: true });
   }
 
+  /**
+   * Xoá thiệp VĨNH VIỄN (hàng DB + ảnh Storage + khách mời). Có `token` là gọi
+   * theo quyền admin; không có thì gửi token người dùng — Edge Function chỉ cho
+   * xoá thiệp mình đứng tên.
+   */
   async deleteWedding(id, token) {
     const response = await fetch(`${this.edgeUrl}?id=${id}`, {
       method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${this.anonKey}`,
-        "x-admin-token": token,
-      },
+      headers: token
+        ? { Authorization: `Bearer ${this.anonKey}`, "x-admin-token": token }
+        : await this._authHeaders(),
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      const body = await response.json().catch(() => ({}));
+      const err = new Error(body.error || `HTTP ${response.status}`);
+      err.code = body.code;
+      err.status = response.status;
+      throw err;
     }
-
   }
 
   /** Liệt kê toàn bộ thiệp (chỉ admin). */

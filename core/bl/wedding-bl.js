@@ -93,6 +93,14 @@ class WeddingBL {
     return await this.dal.updateWedding(payload);
   }
 
+  /** Xoá thiệp vĩnh viễn. Không có đường lùi — UI phải hỏi lại trước khi gọi. */
+  async deleteWedding(id, token) {
+    if (!id) {
+      throw new Error("Wedding ID is required");
+    }
+    return await this.dal.deleteWedding(id, token);
+  }
+
   async createWedding(payload) {
     // Validate required fields
     if (!payload.contact) {

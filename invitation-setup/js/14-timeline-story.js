@@ -303,8 +303,17 @@ async function adjustLoveStoryFocalPoint(idx) {
   showToast("Đã cập nhật điểm lấy nét", "success");
 }
 
+// Ảnh mốc chuyện tình yêu không nằm trong cột ảnh nào nên không luồng dọn nào
+// thấy nó: bỏ ảnh mà không xếp hàng ở đây là file nằm lại bucket vĩnh viễn.
+// URL đầy đủ là ảnh dán từ nơi khác, không phải file của mình.
+function _queueLoveStoryImageDelete(idx) {
+  const url = _loveStoryItems[idx]?.image_url;
+  if (url && !/^https?:\/\//i.test(url)) deletedImages.singleImages.push(url);
+}
+
 function removeLoveStoryImage(idx) {
   delete _loveStoryPendingImages[idx];
+  _queueLoveStoryImageDelete(idx);
   _loveStoryItems[idx].image_url = null;
   _loveStoryItems[idx].focal_point = null;
   _syncLoveStoryHidden();
@@ -330,6 +339,7 @@ function addLoveStoryItem() {
 
 function removeLoveStoryItem(idx) {
   delete _loveStoryPendingImages[idx];
+  _queueLoveStoryImageDelete(idx);
   _loveStoryItems.splice(idx, 1);
   // Re-key pending images after splice
   const reKeyed = {};
