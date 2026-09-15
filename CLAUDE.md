@@ -457,6 +457,12 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
 - **Dải segmented `.cx-seg`** (`styles/_common.css`): con trượt chạy theo hai biến `--n`
   (số nút) và `--i` (nút đang chọn), nút đang chọn thêm `.is-on` — JS chỉ đặt bấy nhiêu.
   Dùng cho vùng miền ở popup AI và các tab Nhà trai/Nhà gái.
+- **Giá thiệp chỉ có MỘT nguồn: bảng `template_pricing`** (`templatesDAL` trả kèm theo
+  `theme`) — đúng bảng mà `payment-handler` đọc lúc tạo đơn. Màn thanh toán tự tra giá
+  theo `theme` (`_resolvePricing` ở `core/payment.js`), tham số `price`/`original` trên
+  URL `/checkout/` chỉ là bản nháp cho đỡ nháy số. **Đừng viết giá dự phòng ở client**:
+  mẫu thiếu hàng giá thì hiện "Liên hệ" và khoá nút, chứ hiện một con số là khách nhìn
+  một giá còn quét QR trả một giá khác.
 - **Thẻ mẫu thiệp:** markup ở `core/components/item-template.js`
   (`CXItemTemplate.cardHTML/bind`), style `.tt-*` ở `styles/tailwind-src.css` — dùng CHUNG
   cho dải "Mẫu thiệp" ở trang chủ và lưới `/theme-template`, sửa hình thức thẻ là sửa một

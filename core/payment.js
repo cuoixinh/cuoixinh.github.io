@@ -663,7 +663,7 @@
             <div class="mx-6 py-4 border-t border-gray-100 flex flex-col gap-2">
               <div class="flex items-center justify-between">
                 <span class="text-sm text-gray-500">Giá gốc</span>
-                <span id="payment-base-price" class="text-sm font-medium" style="color:rgb(var(--text-heading-rgb));">499.000đ</span>
+                <span id="payment-base-price" class="text-sm font-medium" style="color:rgb(var(--text-heading-rgb));">…</span>
               </div>
               <div id="payment-sale-row" class="flex items-center justify-between" style="display:none;">
                 <span class="text-sm" style="color:rgb(var(--state-success-text-rgb));">Ưu đãi ra mắt</span>
@@ -733,7 +733,7 @@
                   <span class="flex items-center gap-2">
                     <i data-lucide="credit-card" class="shrink-0" style="width:16px;height:16px"></i>Thanh toán ngay
                   </span>
-                  <span id="payment-total-price">299.000đ</span>
+                  <span id="payment-total-price">…</span>
                 </span>
               </x-button>
               <!-- Nói trước điều sắp xảy ra: khách do dự vì không biết bấm xong
@@ -929,7 +929,7 @@
         msg.textContent = data.error || "Mã không hợp lệ hoặc đã hết hạn";
         window._appliedPromo = null;
         _setPromoRow(null, 0);
-        _updateTotalWithPromo(null);
+        _renderPrices();
         return;
       }
 
@@ -944,7 +944,7 @@
           : "Áp dụng thành công!";
       // Ghi thẳng mã vào hàng: bảng tiền tự nói vì đâu mà rẻ đi.
       _setPromoRow(code, _discountOf(data, basePrice));
-      _updateTotalWithPromo(data);
+      _renderPrices();
     } catch (e) {
       msg.className = "text-xs px-1 text-red-500";
       msg.textContent = "Không thể kiểm tra mã, thử lại sau";
@@ -961,14 +961,88 @@
     return Math.min(Math.max(raw, 0), basePrice);
   }
 
-  function _updateTotalWithPromo(promo) {
-    const basePrice = window._paymentPricing?.price || 299000;
-    const discount = _discountOf(promo, basePrice);
-    const total = basePrice - discount;
-    const totalEl = document.getElementById("payment-total-price");
-    if (totalEl) totalEl.textContent = `${total.toLocaleString("vi-VN")}đ`;
+  // ============= GIÁ =============
+
+  // Vẽ bảng tiền + con số trên nút theo window._paymentPricing. Giá chưa biết
+  // thì để dấu chờ; hỏi xong mà mẫu không có hàng `template_pricing` thì ghi
+  // "Liên hệ" và khoá nút — không có con số nào đúng để dựng đơn cho mẫu đó.
+  function _renderPrices() {
+    const { price, originalPrice } = window._paymentPricing || {};
+    const known = Number.isFinite(price);
+    const hasDiscount = known && originalPrice > price;
+    const fmt = (v) => `${v.toLocaleString("vi-VN")}đ`;
+    const blank = window._pricingPending ? "…" : "Liên hệ";
+
+    const baseEl = document.getElementById("payment-base-price");
+    const saleRow = document.getElementById("payment-sale-row");
+    const saleEl = document.getElementById("payment-sale-amount");
+    if (baseEl)
+      baseEl.textContent = known
+        ? fmt(hasDiscount ? originalPrice : price)
+        : blank;
+    if (saleRow) saleRow.style.display = hasDiscount ? "flex" : "none";
+    if (saleEl && hasDiscount)
+      saleEl.textContent = `-${fmt(originalPrice - price)}`;
+
+    const total = known
+      ? price - _discountOf(window._appliedPromo, price)
+      : null;
     window._discountedTotal = total;
+    const totalEl = document.getElementById("payment-total-price");
+    if (totalEl) totalEl.textContent = known ? fmt(total) : blank;
+
     _syncSaving();
+    _syncPayEnabled();
+  }
+
+  /**
+   * Giá CHỐT của một mẫu chỉ có MỘT nguồn: hàng `template_pricing` — đúng bảng
+   * mà payment-handler đọc lúc tạo đơn (templatesDAL trả kèm, khớp theo
+   * `theme`). Nơi gọi thường chỉ biết mỗi `theme` (danh sách thiệp, nút trả
+   * tiền trong trang Thiết lập), nên chốt giá phải nằm ở đây; giá truyền vào
+   * chỉ là bản nháp để bảng tiền có số ngay. Viết cứng một con số dự phòng là
+   * khách nhìn một giá còn quét QR trả một giá khác.
+   */
+  let _pricingSeq = 0;
+  async function _resolvePricing(theme) {
+    const seq = ++_pricingSeq;
+    window._pricingPending = true;
+    _renderPrices();
+
+    let row = null;
+    try {
+      const rows = (await window.templatesDAL?.list()) || [];
+      row = rows.find((t) => t.theme === theme) || null;
+    } catch (e) {
+      /* mất mạng: giữ giá nháp nơi gọi đưa sang, nếu có */
+    }
+    if (seq !== _pricingSeq) return; // lượt mua khác đã mở đè lên
+
+    // Phiên đăng nhập có thể vừa khôi phục xong trong lúc chờ giá: vẽ lại thẻ
+    // người mua để nó không mời đăng nhập trong khi nút đã mở.
+    _syncBuyer();
+    window._pricingPending = false;
+    if (row) {
+      window._paymentPricing = {
+        price: Number.isFinite(row.price) ? row.price : null,
+        originalPrice: Number.isFinite(row.originalPrice)
+          ? row.originalPrice
+          : null,
+      };
+    }
+    _renderPrices();
+  }
+
+  // Nút thanh toán cần CẢ HAI: có người mua (không có danh tính thì không dựng
+  // được đơn) và biết giá. Đặt bằng ATTRIBUTE, không phải thuộc tính .disabled:
+  // phần tử có thể còn là <x-button> chưa dựng (trang gọi mount() khi DOM đang
+  // parse) — nó chỉ bê attribute sang <button> thật, gán .disabled mất trắng.
+  function _syncPayEnabled() {
+    const btn = document.getElementById("payment-submit");
+    if (!btn) return;
+    const ok = !!_buyer() && Number.isFinite(window._paymentPricing?.price);
+    if (ok) btn.removeAttribute("disabled");
+    else btn.setAttribute("disabled", "");
   }
 
   // Public API
@@ -1034,14 +1108,15 @@
       _setPromoRow(null, 0);
 
       // Chốt giá MỘT LẦN rồi dùng lại ở mọi chỗ (bảng tiền, tổng, dòng tiết
-      // kiệm). Nơi gọi có thể không truyền originalPrice; để mỗi chỗ tự rơi về
-      // mặc định là hai chỗ hiểu khác nhau — dòng tiết kiệm sẽ báo 0 trong khi
-      // bảng tiền vẫn hiện mức ưu đãi.
+      // kiệm). Đây mới là bản nháp của nơi gọi — _resolvePricing ở cuối hàm
+      // mới chốt theo `template_pricing`.
       window._paymentPricing = {
-        ...pricing,
-        price: pricing.price || 299000,
-        originalPrice: pricing.originalPrice || 499000,
+        price: Number.isFinite(pricing.price) ? pricing.price : null,
+        originalPrice: Number.isFinite(pricing.originalPrice)
+          ? pricing.originalPrice
+          : null,
       };
+      window._pricingPending = true;
 
       // Lưu order pending ngay khi mở modal (nếu chưa có)
       const sessionUser = getCurrentUser();
@@ -1069,27 +1144,14 @@
 
       // Bảng tiền. Không có ưu đãi thì hàng "Giá gốc" mang thẳng giá bán và
       // hàng ưu đãi ẩn đi — bảng vẫn cộng đúng, không phải bịa ra mức giảm.
-      const { price, originalPrice } = window._paymentPricing;
-      const hasDiscount = originalPrice && originalPrice > price;
-      const baseEl = document.getElementById("payment-base-price");
-      const saleRow = document.getElementById("payment-sale-row");
-      const saleEl = document.getElementById("payment-sale-amount");
-      const totalPriceEl = document.getElementById("payment-total-price");
-
-      if (baseEl)
-        baseEl.textContent = `${(hasDiscount ? originalPrice : price).toLocaleString("vi-VN")}đ`;
-      if (saleRow) saleRow.style.display = hasDiscount ? "flex" : "none";
-      if (saleEl && hasDiscount)
-        saleEl.textContent = `-${(originalPrice - price).toLocaleString("vi-VN")}đ`;
-      if (totalPriceEl)
-        totalPriceEl.textContent = `${price.toLocaleString("vi-VN")}đ`;
-      _syncSaving();
+      _renderPrices();
 
       const apiErr = document.getElementById("payment-api-error");
       if (apiErr) apiErr.style.display = "none";
 
       _syncBuyer();
       _syncProduct(templateName, theme, existingManageId);
+      _resolvePricing(window._paymentTheme);
     }
   }
 
@@ -1154,23 +1216,16 @@
     };
   }
 
-  // Vẽ thẻ người mua, hoặc lời mời đăng nhập nếu chưa có phiên. Nút thanh toán
-  // tắt khi chưa đăng nhập: không có danh tính thì không dựng được đơn.
+  // Vẽ thẻ người mua, hoặc lời mời đăng nhập nếu chưa có phiên (cổng bật/tắt
+  // nút thanh toán nằm ở _syncPayEnabled).
   function _syncBuyer() {
     const b = _buyer();
     const info = document.getElementById("payment-user-info");
     const login = document.getElementById("payment-login");
-    const payBtn = document.getElementById("payment-submit");
 
     if (info) info.style.display = b ? "flex" : "none";
     if (login) login.style.display = b ? "none" : "flex";
-    // Đặt bằng ATTRIBUTE, không phải thuộc tính .disabled: lúc này phần tử có
-    // thể còn là <x-button> chưa dựng (trang gọi mount() khi DOM đang parse) —
-    // nó chỉ bê attribute sang <button> thật, gán .disabled sẽ mất trắng.
-    if (payBtn) {
-      if (b) payBtn.removeAttribute("disabled");
-      else payBtn.setAttribute("disabled", "");
-    }
+    _syncPayEnabled();
     if (!b) return;
 
     const avatarEl = document.getElementById("payment-avatar");
@@ -1413,7 +1468,7 @@
             promoMsg.classList.remove("hidden");
           }
           _setPromoRow(null, 0);
-          _updateTotalWithPromo(null);
+          _renderPrices();
           return;
         }
 
