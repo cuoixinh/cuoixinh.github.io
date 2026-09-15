@@ -741,7 +741,9 @@ html.cx-landing {
 .tt-card {
   display: flex;
   flex-direction: column;
-  padding: 8px;
+  /* KHÔNG có lề: ảnh tràn sát mép trái/phải/trên của thẻ (overflow: hidden cắt
+     ảnh theo góc bo). Phần chữ tự chừa lề bằng .tt-cardbody. */
+  overflow: hidden;
   border-radius: 20px;
   background: rgb(var(--white-rgb));
   border: 1px solid rgb(var(--brand-primary-rgb) / 0.45);
@@ -759,39 +761,105 @@ html.cx-landing {
 .tt-card:active {
   transform: translateY(0) scale(0.995);
 }
-/* Khung xem trước theo TỈ LỆ MÀN ĐIỆN THOẠI (9/16) — ảnh mẫu chụp từ máy
-   thật nên khổ vuông trước đây cắt mất 2/3 thiệp và nhìn như bị bóp. Đổi
-   tỉ lệ ở đây là đổi cả chiều cao thẻ, nhớ sửa luôn skeleton ở lưới. */
+/* Khung xem trước TRÀN HẾT bề ngang thẻ, tỉ lệ màn điện thoại (9/16) — ảnh mẫu
+   chụp từ máy thật. Đổi tỉ lệ ở đây là đổi cả chiều cao thẻ, nhớ sửa luôn
+   skeleton ở lưới /theme-template. */
 .tt-media {
   position: relative;
   overflow: hidden;
-  border-radius: 14px;
   aspect-ratio: 9 / 16;
-  /* Trần chiều cao THẺ: ~70% màn hình. Ở màn rộng, cột lưới rộng ra là
-     ảnh 9:16 cao vọt lên, một thẻ chiếm gần trọn màn. Kẹp bằng MAX-WIDTH
-     (không phải max-height) để tỉ lệ 9:16 giữ nguyên, ảnh chỉ hẹp lại và
-     căn giữa thẻ. 190px là phần chữ + nút bên dưới ảnh.
+  width: 100%;
+  /* Trần chiều cao ẢNH: ~70% màn hình trừ ~190px phần chữ + nút bên dưới. Ở màn
+     rộng, cột lưới rộng ra là ảnh 9:16 cao vọt lên, một thẻ chiếm gần trọn màn.
+     Kẹp bằng MAX-HEIGHT (không phải max-width) để ảnh vẫn tràn sát hai mép —
+     phần dôi ra bị object-fit: cover cắt bớt, đúng ý.
      Trần này đi qua --vh (px do core/helpers/vh-lock.js khoá) chứ KHÔNG phải
      svh trần: Chrome di động ẩn thanh URL bằng cách RESIZE webview nên svh
      cũng tính lại, thẻ đổi khổ ngay giữa lúc người ta đang cuộn. `1svh` chỉ là
      dự phòng cho lúc script chưa chạy — trang nào dùng thẻ này phải nạp
      vh-lock.js. */
-  width: 100%;
-  max-width: calc((var(--vh, 1vh) * 70 - 190px) * 9 / 16);
-  max-width: calc((var(--vh, 1svh) * 70 - 190px) * 9 / 16);
-  margin-inline: auto;
+  max-height: calc(var(--vh, 1vh) * 70 - 190px);
+  max-height: calc(var(--vh, 1svh) * 70 - 190px);
   background: rgb(var(--preview-bg-from-rgb));
-  /* Viền trong rất nhạt để mẫu nền sáng không "chảy" vào nền thẻ. */
-  box-shadow: inset 0 0 0 1px rgb(var(--scrim-rgb) / 0.06);
 }
 
-/* Hàng nhãn NGOÀI ảnh (trên khung xem trước): đè lên ảnh thì mỗi mẫu một
-   sắc nền, nhãn lúc đọc được lúc không. */
+/* Hàng nhãn ĐÈ lên ảnh (ảnh đã tràn hết thẻ nên không còn dải trống ở trên).
+   Mỗi mẫu một sắc nền nên nhãn/sao phải tự mang nền trắng mờ mới đọc được. */
 .tt-tagrow {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  right: 8px;
+  z-index: 1;
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 4px 8px;
+}
+.tt-tagrow .tt-chip {
+  background: rgb(var(--white-rgb) / 0.92);
+  box-shadow: 0 1px 4px rgb(var(--scrim-rgb) / 0.12);
+}
+
+/* Sao yêu thích — đứng cuối hàng nhãn, nền trắng tròn để tách khỏi ảnh. */
+.tt-fav {
+  margin-left: auto;
+  flex: none;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  color: rgb(var(--text-heading-rgb) / 0.55);
+  background: rgb(var(--white-rgb) / 0.92);
+  box-shadow: 0 1px 4px rgb(var(--scrim-rgb) / 0.12);
+  transition:
+    transform 0.16s ease,
+    color 0.16s ease;
+}
+.tt-fav svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+}
+.tt-fav:hover {
+  color: rgb(var(--brand-accent-rgb));
+}
+.tt-fav:active {
+  transform: scale(0.85);
+}
+.tt-fav.is-on {
+  color: rgb(var(--action-primary-rgb));
+}
+.tt-fav.is-on svg {
+  fill: currentColor;
+}
+
+/* Phần chữ + nút dưới ảnh: lề của riêng nó, vì vỏ thẻ không còn padding. */
+.tt-cardbody {
+  padding: 12px 12px 12px;
+}
+.tt-name {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: rgb(var(--scrim-plum-rgb));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tt-desc {
+  margin-top: 2px;
+  font-size: 13px;
+  line-height: 1.35;
+  min-height: 2.75em;
+  color: rgb(var(--text-heading-rgb) / 0.55);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 .tt-chip {
   display: inline-flex;

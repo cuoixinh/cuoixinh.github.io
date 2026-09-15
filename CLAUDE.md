@@ -457,6 +457,11 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
 - **Dải segmented `.cx-seg`** (`styles/_common.css`): con trượt chạy theo hai biến `--n`
   (số nút) và `--i` (nút đang chọn), nút đang chọn thêm `.is-on` — JS chỉ đặt bấy nhiêu.
   Dùng cho vùng miền ở popup AI và các tab Nhà trai/Nhà gái.
+- **Thẻ mẫu thiệp:** markup ở `core/components/item-template.js`
+  (`CXItemTemplate.cardHTML/bind`), style `.tt-*` ở `styles/tailwind-src.css` — dùng CHUNG
+  cho dải "Mẫu thiệp" ở trang chủ và lưới `/theme-template`, sửa hình thức thẻ là sửa một
+  chỗ. Hành vi gắn bằng `bind(khung, {onPreview,onUse,onFav})` (uỷ quyền sự kiện), đừng
+  viết `onclick` vào markup.
 - **Trình phát nhạc:** markup ở `core/components/music-player.js`, logic ở
   `music-player-helper.js` — theme chỉ đánh dấu vai trò bằng `data-cx-music="…"`.
 - **Thành phần thả lên thiệp:** danh mục `core/helpers/element-helper.js`, runtime
