@@ -1026,15 +1026,14 @@ function closeTimePicker() {
     _chooseTheme(theme, display);
   }
 
-  // Ba ô vuông ở đáy bảng: icon trên, nhãn dưới, mỗi ô một tông pastel riêng.
-  // `go` = đường dẫn nội bộ; ô `primary` tạo nháp bằng mẫu ĐANG XEM.
+  // Ba nút ở đáy bảng, cùng một tông hồng và dồn vào giữa.
+  // `go` = đường dẫn nội bộ; nút `primary` tạo nháp bằng mẫu ĐANG XEM.
   const SUG_ACTS = [
-    { id: "sug-home", label: "Trang chủ", icon: "home", cls: "is-home", go: "/" },
+    { id: "sug-home", label: "Trang chủ", icon: "home", go: "/" },
     {
       id: "sug-use",
-      label: "Tạo thiệp",
-      icon: "navigation",
-      cls: "is-use",
+      label: "Dùng ngay",
+      icon: "play",
       aria: "Tạo thiệp với mẫu này",
       primary: true,
     },
@@ -1042,7 +1041,6 @@ function closeTimePicker() {
       id: "sug-all",
       label: "Kho mẫu",
       icon: "grid",
-      cls: "is-all",
       aria: "Xem tất cả mẫu thiệp",
       go: "/theme-template/",
     },
@@ -1056,14 +1054,16 @@ function closeTimePicker() {
     home:
       '<path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/>' +
       '<path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
-    navigation: '<polygon points="3 11 22 2 13 21 11 13 3 11"/>',
+    // play: "Dùng ngay" — cùng hình với nút cùng tên ở thẻ mẫu (item-template.js).
+    play:
+      '<path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"/>',
     // layout-grid: ô "Xem tất cả" — bốn ô vuông, đúng nghĩa lưới mẫu.
     grid:
       '<rect width="7" height="7" x="3" y="3" rx="1"/>' +
       '<rect width="7" height="7" x="14" y="3" rx="1"/>' +
       '<rect width="7" height="7" x="14" y="14" rx="1"/>' +
       '<rect width="7" height="7" x="3" y="14" rx="1"/>',
-    // eye: nút "Xem thử" trên từng thẻ mẫu — cặp đôi của eye-off bên dưới.
+    // eye: nút "Xem trước" trên từng thẻ mẫu — cặp đôi của eye-off bên dưới.
     eye:
       '<path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/>' +
       '<circle cx="12" cy="12" r="3"/>',
@@ -1115,10 +1115,11 @@ function closeTimePicker() {
     '<div class="cx-sug-acts">' +
     SUG_ACTS.map(function (it) {
       return (
-        '<div class="cx-sug-tile ' + it.cls + '" id="' + it.id + '"' +
+        '<div class="cx-sug-tile' + (it.primary ? " is-primary" : "") +
+        '" id="' + it.id + '"' +
         ' role="button" tabindex="0"' +
         ' aria-label="' + (it.aria || it.label) + '">' +
-        '<span class="cx-sug-ico">' + _sugIcon(it.icon, 22) + "</span>" +
+        '<span class="cx-sug-ico">' + _sugIcon(it.icon, 16) + "</span>" +
         '<span class="cx-sug-tile-lb">' + it.label + "</span>" +
         "</div>"
       );
@@ -1173,8 +1174,8 @@ function closeTimePicker() {
   // (giống bấm cả thẻ) và tạo nháp bằng mẫu đó luôn — khách ưng ngay tấm ảnh
   // thì khỏi phải mở mẫu ra mới bấm được "Dùng ngay" ở đáy.
   const SUG_CARD_ACTS = [
-    { act: "view", label: "Xem thử", icon: "eye" },
-    { act: "use", label: "Dùng mẫu", icon: "navigation", primary: true },
+    { act: "view", label: "Xem trước", icon: "eye" },
+    { act: "use", label: "Dùng ngay", icon: "play", primary: true },
   ];
 
   // Thẻ dùng ẢNH CHỤP SẴN của mẫu (/assets/images/templates/*.jpg) — cùng bộ
@@ -1221,7 +1222,7 @@ function closeTimePicker() {
     const cards = Array.from(row.querySelectorAll(".cx-sug-card"));
     cards.forEach(function (card) {
       card.addEventListener("click", function () { _go(card.dataset.url); });
-      // Cả thẻ là một nút → nút con phải chặn nổi bọt, không thì bấm "Dùng mẫu"
+      // Cả thẻ là một nút → nút con phải chặn nổi bọt, không thì bấm "Dùng ngay"
       // vừa tạo nháp vừa điều hướng sang trang xem thử.
       card.querySelectorAll("[data-act]").forEach(function (btn) {
         btn.addEventListener("click", function (e) {
