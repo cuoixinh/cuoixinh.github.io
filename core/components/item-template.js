@@ -4,8 +4,10 @@
 // Hành vi KHÔNG viết vào onclick: trang gọi CXItemTemplate.bind(khung, {…}) một
 // lần rồi mọi thẻ chèn về sau tự chạy (uỷ quyền sự kiện).
 (function () {
-  const ICON_EYE = `<i data-lucide="eye" style="width:13px;height:13px"></i>`;
-  const ICON_USE = `<i data-lucide="play" class="shrink-0" style="width:13px;height:13px"></i>`;
+  // Không khai cỡ ở đây: `.tt-cardbtns svg.lucide` cho icon ăn theo font-size của
+  // nút, nhờ vậy icon và chữ cùng lớn/nhỏ theo khổ thẻ và luôn thẳng hàng.
+  const ICON_EYE = `<i data-lucide="eye"></i>`;
+  const ICON_USE = `<i data-lucide="play"></i>`;
   const ICON_TAG = `<i data-lucide="tag"></i>`;
   const ICON_STAR = `<i data-lucide="star"></i>`;
 

@@ -967,6 +967,13 @@ html.cx-landing {
      tính) thì chữ tự lớn dần tới 13px. */
   font-size: clamp(10px, 3.6cqw, 13px);
 }
+/* Icon ăn theo cỡ chữ của nút (nhắm kèm .lucide để thắng luật 1em ở
+   _setup.css), nhờ vậy hai thứ lớn nhỏ cùng nhau và không so le. */
+.tt-cardbtns svg.lucide {
+  width: 1.15em;
+  height: 1.15em;
+  flex: none;
+}
 @container (max-width: 170px) {
   .tt-cardbtns svg {
     display: none;
@@ -974,9 +981,8 @@ html.cx-landing {
 }
 
 /* Cùng tông với bảng chat AI (styles/_ai-chat.css): "Xem trước" là chip trắng
-   viền hồng (.aichat-chip), "Dùng ngay" là nền hồng nhạt → hover đảo sang hồng
-   đặc chữ trắng (.aichat-head-btn). Đổi tông ở đây thì đổi luôn bên đó, hai chỗ
-   cố ý nhìn như một bộ. */
+   viền hồng (.aichat-chip), "Dùng ngay" là nút hồng đặc (.aichat-send). Đổi tông
+   ở đây thì đổi luôn bên đó, hai chỗ cố ý nhìn như một bộ. */
 .tt-btn-preview {
   background: rgb(var(--white-rgb));
   color: rgb(var(--brand-accent-rgb));
@@ -992,21 +998,23 @@ html.cx-landing {
   background: rgb(var(--surface-brand-rgb));
 }
 .tt-btn-use {
-  color: rgb(var(--brand-accent-rgb));
+  color: rgb(var(--white-rgb));
   font-weight: 600;
   white-space: nowrap;
-  background: rgb(var(--brand-primary-rgb) / 0.22);
+  background: rgb(var(--action-primary-rgb));
   border: 1px solid transparent;
+  box-shadow: 0 4px 12px rgb(var(--action-primary-rgb) / 0.32);
   transition:
     background-color 0.18s ease,
-    color 0.18s ease;
+    box-shadow 0.18s ease;
 }
 .tt-btn-use:hover {
-  color: rgb(var(--white-rgb));
-  background: rgb(var(--brand-accent-rgb));
+  background: rgb(var(--action-primary-hover-rgb));
+  box-shadow: 0 6px 16px rgb(var(--action-primary-rgb) / 0.4);
 }
 .tt-btn-use:active {
-  background: rgb(var(--brand-accent-light-rgb));
+  background: rgb(var(--action-primary-deep-rgb));
+  box-shadow: 0 2px 8px rgb(var(--action-primary-rgb) / 0.35);
 }
 
 /* Bấm vào ảnh là mở bản xem thử — không còn nút nào trên ảnh. Lớp phủ chỉ
