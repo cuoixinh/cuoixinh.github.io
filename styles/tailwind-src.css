@@ -837,9 +837,15 @@ html.cx-landing {
   fill: currentColor;
 }
 
-/* Phần chữ + nút dưới ảnh: lề của riêng nó, vì vỏ thẻ không còn padding. */
+/* Phần chữ + nút dưới ảnh: lề của riêng nó, vì vỏ thẻ không còn padding.
+   Viền trên là ranh giới ảnh ↔ phần chữ: ảnh mẫu nào cũng sáng màu nên không có
+   nó thì đáy ảnh loang thẳng vào nền trắng của thân thẻ. */
 .tt-cardbody {
   padding: 12px 12px 12px;
+  border-top: 1px solid rgb(var(--brand-primary-rgb) / 0.22);
+  /* Bóng INSET đổ xuống ngay dưới viền (không phải bóng ngoài — thân thẻ nằm
+     trong vỏ `overflow: hidden` nên bóng ngoài bị cắt mất). */
+  box-shadow: inset 0 8px 8px -6px rgb(var(--brand-primary-rgb) / 0.16);
 }
 .tt-name {
   font-size: 15px;

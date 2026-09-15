@@ -482,7 +482,9 @@ function cardHTML(c, i) {
              class="absolute inset-0 h-full w-full object-cover object-top transition-transform duration-300 group-hover:scale-[1.04]" />
       </div>
 
-      <div class="flex min-w-0 flex-1 flex-col p-3 sm:p-4">
+      <!-- Viền dọc mép trái = ranh giới ảnh ↔ phần chữ (giống .tt-cardbody của
+           thẻ mẫu thiệp, chỉ xoay ngang vì thẻ này chia cột). -->
+      <div class="flex min-w-0 flex-1 flex-col border-l border-[rgb(var(--brand-primary-rgb)/0.22)] p-3 sm:p-4">
         <!-- Nhãn chuyển hẳn sang cột phải: cột trái chỉ còn 2/5 bề ngang, không
              đủ chỗ cho một nhãn nguyên dòng. Xếp ngang, hết chỗ thì xuống dòng. -->
         <div class="mb-1.5 flex flex-wrap items-center gap-1">${statusBadge}${leftBadges}</div>
@@ -728,8 +730,9 @@ async function deleteCard(i) {
     [c.groom, c.bride].filter(Boolean).join(" & ") || themeName(c.theme);
   const ok = await showConfirm(
     "Xoá thiệp?",
-    `Thiệp “${title}” sẽ biến mất khỏi danh sách và khách mời không mở được nữa.`,
-    { confirmText: "Xoá thiệp" },
+    `Thiệp “${title}” sẽ bị xoá vĩnh viễn: ảnh, danh sách khách mời và lời chúc ` +
+      `đều mất, không khôi phục lại được.`,
+    { confirmText: "Xoá vĩnh viễn" },
   );
   if (!ok) return;
 
@@ -745,7 +748,7 @@ async function deleteCard(i) {
 
   showLoading(true, "Đang xoá thiệp...");
   try {
-    await weddingBL.updateWedding({ id: c.id, is_active: false });
+    await weddingBL.deleteWedding(c.id);
     CARDS = CARDS.filter((x) => x !== c);
     _dropFromLocalOrders(c.id);
     render();
