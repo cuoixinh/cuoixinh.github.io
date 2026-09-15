@@ -5,7 +5,7 @@
 // lần rồi mọi thẻ chèn về sau tự chạy (uỷ quyền sự kiện).
 (function () {
   const ICON_EYE = `<i data-lucide="eye" style="width:13px;height:13px"></i>`;
-  const ICON_USE = `<i data-lucide="navigation" class="shrink-0" style="width:13px;height:13px"></i>`;
+  const ICON_USE = `<i data-lucide="play" class="shrink-0" style="width:13px;height:13px"></i>`;
   const ICON_TAG = `<i data-lucide="tag"></i>`;
   const ICON_STAR = `<i data-lucide="star"></i>`;
 
