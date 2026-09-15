@@ -221,22 +221,7 @@ async function generateLoveStoryAi(btn) {
       showToast("AI chưa tạo được mốc nào, thử kể chi tiết hơn nhé", "warning");
       return;
     }
-    // Thay toàn bộ danh sách bằng các mốc AI tạo (cắt theo trần cho phép).
-    _loveStoryItems.length = 0;
-    Object.keys(_loveStoryPendingImages).forEach(
-      (k) => delete _loveStoryPendingImages[k],
-    );
-    items.slice(0, MAX_LOVE_STORY_ITEMS).forEach((it) => {
-      _loveStoryItems.push({
-        date: it.date || "",
-        title: it.title || "",
-        content: it.content || "",
-        image_url: null,
-      });
-    });
-    _syncLoveStoryHidden();
-    renderLoveStoryList();
-    _idbSaveLoveStoryImages(); // đồng bộ IDB (đã xoá ảnh pending cũ)
+    applyLoveStoryText(items);
     // Bật hiển thị mục trên thiệp + kích hoạt autosave (hidden set bằng code không tự bắn).
     if (typeof _aiEnableSection === "function") _aiEnableSection("love_story");
     document

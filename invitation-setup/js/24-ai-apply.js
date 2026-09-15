@@ -18,17 +18,9 @@ function cxApplyAiCard(result) {
     }
   }
 
-  // 2) Chuyện tình yêu → thay danh sách hiện tại
+  // 2) Chuyện tình yêu → thay CHỮ của danh sách hiện tại, ảnh giữ nguyên
   if (Array.isArray(result.love_story) && result.love_story.length) {
-    _loveStoryItems = result.love_story.map((it) => ({
-      date: it.date || "",
-      title: it.title || "",
-      content: it.content || "",
-      image_url: null,
-    }));
-    _loveStoryKeyExists = true;
-    _syncLoveStoryHidden();
-    renderLoveStoryList();
+    applyLoveStoryText(result.love_story);
   }
 
   // 3) Lịch trình → thay danh sách hiện tại

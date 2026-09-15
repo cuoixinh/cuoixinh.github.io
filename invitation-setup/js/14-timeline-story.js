@@ -311,6 +311,45 @@ function _queueLoveStoryImageDelete(idx) {
   if (url && !/^https?:\/\//i.test(url)) deletedImages.singleImages.push(url);
 }
 
+// AI chỉ thay CHỮ của chuyện tình yêu, không bao giờ đụng ảnh. Mọi luồng AI ghi
+// đè danh sách (viết chuyện tình, viết cả thiệp…) phải đi qua đây.
+// Ảnh bám theo VỊ TRÍ mốc. Bản AI ngắn hơn danh sách đang có thì mốc dôi ra vẫn
+// được giữ dưới dạng mốc TRỐNG để ảnh không mất — xoá mốc là việc của khách.
+// Mốc dôi ra mà không có ảnh thì bỏ, giữ lại chỉ tổ thành hàng rỗng vô nghĩa.
+function applyLoveStoryText(newItems) {
+  const texts = (newItems || []).slice(0, MAX_LOVE_STORY_ITEMS);
+  const merged = [];
+  const pending = {};
+  const total = Math.max(texts.length, _loveStoryItems.length);
+
+  for (let i = 0; i < total && merged.length < MAX_LOVE_STORY_ITEMS; i++) {
+    const old = _loveStoryItems[i];
+    const t = texts[i];
+    const file = _loveStoryPendingImages[i];
+    if (!t && !old?.image_url && !file) continue;
+
+    if (file) pending[merged.length] = file; // bỏ mốc rỗng ở giữa → phải khớp key mới
+    merged.push({
+      date: t?.date || "",
+      title: t?.title || "",
+      content: t?.content || "",
+      image_url: old?.image_url ?? null,
+      focal_point: old?.focal_point ?? null,
+    });
+  }
+
+  _loveStoryItems.length = 0;
+  _loveStoryItems.push(...merged);
+  Object.keys(_loveStoryPendingImages).forEach(
+    (k) => delete _loveStoryPendingImages[k],
+  );
+  Object.assign(_loveStoryPendingImages, pending);
+  _loveStoryKeyExists = true;
+  _syncLoveStoryHidden();
+  renderLoveStoryList();
+  _idbSaveLoveStoryImages();
+}
+
 function removeLoveStoryImage(idx) {
   delete _loveStoryPendingImages[idx];
   _queueLoveStoryImageDelete(idx);

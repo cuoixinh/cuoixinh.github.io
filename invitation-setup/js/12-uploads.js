@@ -15,6 +15,15 @@ async function uploadSingleImage(fieldName, file) {
 // `authenticated`, gọi lúc này chỉ tổ ăn một loạt lỗi 403 rồi hiện toast đỏ.
 // Nháp của khách chưa đăng nhập nằm trọn trong IndexedDB (_idbRestoreAll), nên
 // ảnh vẫn còn nguyên và sẽ được đẩy lên ở lần lưu đầu tiên SAU khi đăng nhập.
+// ĐỔI ảnh (khác XOÁ ảnh ở removeImage) cũng bỏ lại một file: tên cũ bị tên mới
+// ghi đè trong payload nên không luồng dọn nào còn thấy nó. Gọi ngay sau khi
+// upload thành công — xếp hàng sớm hơn là lưu hụt vẫn xoá mất ảnh đang dùng.
+function _queueReplacedImage(oldValue) {
+  if (!oldValue) return;
+  const name = oldValue.startsWith("http") ? oldValue.split("/").pop() : oldValue;
+  if (name) deletedImages.singleImages.push(name);
+}
+
 async function uploadAllPendingImages() {
   const uploadedFilenames = {};
   const errors = [];
@@ -23,8 +32,10 @@ async function uploadAllPendingImages() {
 
   // Upload single images
   for (const [fieldName, file] of Object.entries(pendingUploads.singleImages)) {
+    const previous = document.querySelector(`input[name="${fieldName}"]`)?.value;
     try {
       const filename = await uploadSingleImage(fieldName, file);
+      if (filename !== previous) _queueReplacedImage(previous);
       uploadedFilenames[fieldName] = filename;
       console.log(`Uploaded ${fieldName}: ${filename}`);
     } catch (error) {
@@ -59,8 +70,10 @@ async function uploadAllPendingImages() {
   // Upload love story images
   for (const [idxStr, file] of Object.entries(_loveStoryPendingImages)) {
     const idx = parseInt(idxStr);
+    const previous = _loveStoryItems[idx]?.image_url;
     try {
       const filename = await uploadSingleImage(`love_story_image_${idx}`, file);
+      if (filename !== previous) _queueReplacedImage(previous);
       _loveStoryItems[idx].image_url = filename;
     } catch (error) {
       console.error(`Error uploading love story image ${idx}:`, error);
