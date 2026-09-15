@@ -46,7 +46,21 @@ order by policyname;
 --      │   Allowed operation : SELECT
 --      │   Target roles      : authenticated
 --      │   USING expression  : bucket_id = 'wedding-images'
---      └ (để chủ thiệp còn liệt kê/đọc qua API có xác thực)
+--      │                       and owner_id = (select auth.uid()::text)
+--      └ (chỉ để lệnh upload đọc lại đúng hàng vừa ghi — xem hai ghi chú dưới)
+--
+--      ⚠ Vế `owner_id` là BẮT BUỘC, đừng rút gọn còn mỗi `bucket_id`: điều kiện
+--        chỉ-bucket cho MỌI tài khoản đăng nhập (ai cũng tự đăng ký được) gọi
+--        POST /storage/v1/object/list/wedding-images và lấy trọn danh sách ảnh
+--        của mọi thiệp. Đó đúng là thứ Security Advisor báo "Clients can list
+--        all files in this bucket".
+--
+--      ⚠ Nhưng cũng KHÔNG xoá hẳn policy SELECT được: `supabase-js` upload bằng
+--        `insert ... returning`, mà Postgres bắt mệnh đề RETURNING phải qua
+--        policy SELECT — thiếu nó là upload GÃY chứ không phải chỉ mất quyền
+--        đọc. Trang web không có chỗ nào liệt kê/đọc kho qua API xác thực
+--        (`core/dal/storage-dal.js` chỉ upload + dựng URL `/object/public/`),
+--        nên thu về đúng file mình vừa ghi là vừa đủ.
 --
 --      ┌ cx_wedding_images_insert_auth
 --      │   Allowed operation : INSERT
@@ -64,7 +78,11 @@ order by policyname;
 
 -- ── C. Kiểm lại sau khi sửa ─────────────────────────────────────────────────
 -- Chạy lại truy vấn ở mục A: phải còn ĐÚNG hai dòng cx_* với roles =
--- {authenticated}, không còn dòng nào có `anon` hay roles rỗng.
+-- {authenticated}, không còn dòng nào có `anon` hay roles rỗng, và dòng SELECT
+-- phải có vế `owner_id` chứ không chỉ `bucket_id`.
+--
+-- Rồi vào Advisors → Security: cảnh báo "Clients can list all files in this
+-- bucket" phải biến mất.
 --
 -- Và từ máy (thay <ref> và <ANON_KEY>), lệnh này phải KHÔNG trả về danh sách file:
 --
@@ -75,3 +93,6 @@ order by policyname;
 --
 -- Còn ảnh trong thiệp thật vẫn phải hiện bình thường — mất ảnh là đã lỡ bỏ tính
 -- Public của bucket, không phải do policy.
+--
+-- Cuối cùng phải thử UPLOAD THẬT: đăng nhập trang Thiết lập, thêm một ảnh, lưu.
+-- Đó là phép kiểm duy nhất bắt được lỗi RETURNING nói ở mục B.

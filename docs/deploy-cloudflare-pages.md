@@ -119,7 +119,7 @@ không nằm trong bản publish — đó chính là dấu hiệu quên khai.
 `admin/` **không ra web**, kể cả `router.html` cũng không còn khai route `admin`. Sau khi
 chuyển, `cuoixinh.com/admin` là 404 thật.
 
-Chạy local như cũ: mở `http://localhost:8000/admin/index.html`. Edge Function đã cho phép
+Chạy local như cũ: mở `http://localhost:5500/admin/index.html`. Edge Function đã cho phép
 mọi cổng localhost trong `isAllowedOrigin()` nên không phải sửa CORS.
 
 Kéo theo: `CONFIG.cloudflare.purgeSecret` chỉ `admin/js/02-templates.js` dùng, nên nó bị

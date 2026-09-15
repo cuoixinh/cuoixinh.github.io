@@ -15,7 +15,7 @@ PayOS · Cloudflare Pages + Workers.
 ```bash
 npm install
 npm run build                  # build 2 file CSS
-npm run dev                    # http://localhost:8000 — dữ liệu STAGING
+npm run dev                    # http://localhost:5500 — dữ liệu STAGING
 ```
 
 Sửa CSS thì `npm run watch:css` (ứng dụng) hoặc `npm run watch:themes` (thiệp).
@@ -270,10 +270,13 @@ RLS nên khách mời không đăng nhập vẫn xem được.
   Ai liệt kê được bucket sẽ suy ra id rồi lấy tiếp hồ sơ qua Edge Function — đúng lỗ hổng
   `changelogs/RC01/manual/dqvinh_001_storage_policies.sql` vá. Liên hệ file ↔ thiệp giữ ở các cột `*_url` của hàng DB;
   `wedding-admin` (`deleted_images`) và `cleanup-weddings` đều đọc từ đó.
-- **Policy trên `storage.objects` chỉ cấp `select`/`insert` cho `authenticated`.** Không cấp
-  `delete`/`update` cho ai: xoá ảnh là việc của Edge Function bằng service_role (bỏ qua RLS),
-  và nó kiểm ảnh có thuộc đúng thiệp không trước khi xoá. Thêm policy cho `anon` là mở lại
-  đường liệt kê toàn bộ kho.
+- **Policy trên `storage.objects` chỉ cấp `insert` cho `authenticated`, còn `select` bó vào
+  `owner_id = auth.uid()`.** Cho `select` chỉ theo `bucket_id` là mọi tài khoản đăng nhập
+  liệt kê được toàn bộ kho (`/object/list/`) — Security Advisor báo đúng chỗ đó. Mà bỏ hẳn
+  `select` cũng không được: upload chạy `insert ... returning`, Postgres đòi policy `select`
+  cho mệnh đề RETURNING. Không cấp `delete`/`update` cho ai: xoá ảnh là việc của Edge
+  Function bằng service_role (bỏ qua RLS), và nó kiểm ảnh có thuộc đúng thiệp không trước
+  khi xoá. Thêm policy cho `anon` là mở lại đường liệt kê toàn bộ kho.
 - Kéo theo: **chưa đăng nhập thì KHÔNG upload** (`invitation-setup/js/12-uploads.js` chặn
   sẵn). Nháp của khách chưa đăng nhập — kể cả ảnh — nằm trong IndexedDB, đẩy lên ở lần lưu
   đầu tiên sau khi đăng nhập.
