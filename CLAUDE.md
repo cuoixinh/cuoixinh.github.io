@@ -10,6 +10,10 @@ Ngôn ngữ làm việc: **tiếng Việt**.
 **Stack:** Vanilla JS + Tailwind (build CLI) · Supabase (Postgres/Storage/Edge Functions) ·
 PayOS · Cloudflare Pages + Workers.
 
+**Đụng tới bảo mật thì đọc `docs/security-checklist.md` TRƯỚC** — file đó ghi hạng mục nào đã
+rà và đang đúng (kèm chốt nằm ở đâu), hạng mục nào còn hở, nên không phải dò lại từ đầu. Vá
+hay phát hiện thêm thì cập nhật đúng dòng ở đó.
+
 ## Chạy local
 
 ```bash

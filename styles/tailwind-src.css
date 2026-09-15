@@ -594,20 +594,237 @@ html.cx-landing {
   }
 }
 
-.feature-row {
-  @apply flex items-start gap-4 border-b border-pink-100 py-4;
+/* ══ SƠ ĐỒ TÍNH NĂNG (#inside) ═════════════════════════════════════════════
+   Hai cột thẻ viền màu; mỗi thẻ có một VÒNG ICON chen vào mép trong (nửa trong
+   nửa ngoài) và một nhãn số nằm đè lên viền, so le trên/dưới.
+
+   Viền thẻ KHÔNG phải một khung kín. Đi một vòng từ mép ngoài: viền chạy bình
+   thường → tới vòng icon thì lượn thành CUNG ôm lấy nó → hết cung là ĐỨT HẲN,
+   không còn nét nào cho tới nhãn số → nhãn số là điểm kết. Tức một góc của thẻ
+   (góc phía trong, cùng phía với nhãn số) mất hẳn. Dựng bằng ba mảnh:
+     · .fxr-card::before   khung kín, mask khoét một lỗ TRÒN ở mép trong;
+     · .fxr-bubble::after  cung màu ôm vòng icon, clip lấy nửa quay vào thẻ;
+     · .fxr-card::after    mảng nền xoá nốt góc phải bỏ đi.
+   Vành trắng của vòng icon và quầng trắng của nhãn số cũng che viền kiểu đó —
+   nghĩa là CẢ BA chỗ ăn theo nền trắng của mục #inside; đổi nền mục này thì
+   phải đổi cả ba, không thì lộ ra mấy mảng lệch màu.
+
+   Màu thì mỗi thẻ một giá trị --fxr-c do js/section-features.js truyền vào
+   (token --info-N-rgb ở _colors.css). */
+.fxr {
+  --fxr-h: clamp(92px, 11.5vw, 144px); /* chiều cao tối thiểu của thẻ */
+  --fxr-bub: clamp(44px, 5.8vw, 72px); /* đường kính vòng icon (kể cả vành trắng) */
+  --fxr-ring: clamp(4px, 0.7vw, 8px); /* bề dày vành trắng */
+  --fxr-notch: clamp(5px, 0.7vw, 9px); /* hở giữa vành trắng và cung viền */
+  --fxr-radius: clamp(12px, 1.4vw, 18px); /* bo góc thẻ */
+  --fxr-bw: 4px; /* bề dày MỌI nét viền trong sơ đồ */
+  /* Bán kính vết khoét trên viền thẻ = nửa vòng icon + khoảng hở. Cung viền ôm
+     quanh icon lấy đúng bán kính này ở ĐƯỜNG TIM nét, nên hai đầu cung khớp
+     chính xác vào hai đầu vết khoét — đổi một chỗ là lệch cả hai.
+     RÀNG BUỘC: --fxr-notch-r + --fxr-radius phải ≤ nửa --fxr-h, nếu không vết
+     khoét ăn sang phần bo góc, hai đầu cung rơi ra ngoài viền và thò thành hai
+     cái râu. Bộ biến trên đang chừa dư 2–5px ở mọi khổ màn — sửa biến nào cũng
+     phải kiểm lại bất đẳng thức này ở CẢ hai đầu clamp. */
+  --fxr-notch-r: calc(var(--fxr-bub) / 2 + var(--fxr-notch));
+  @apply flex items-start justify-center;
+  /* Khe = chỗ cho hai vòng icon thò ra từ hai phía, cộng một chút thoáng. */
+  gap: calc(var(--fxr-bub) * 1.2);
 }
-.feature-row:last-child {
-  @apply border-b-0;
+.fxr-col {
+  @apply flex min-w-0 flex-1 flex-col;
+  max-width: 420px;
+  /* Khe hàng phải chứa lọt HAI nửa nhãn số quay vào nhau (thẻ trên nhãn ở đáy,
+     thẻ dưới nhãn ở đỉnh) cộng quầng trắng của chúng — chừng 34px ở khổ hẹp
+     nhất. Hạ mức sàn xuống nữa là hai số chồng lên nhau trên điện thoại. */
+  gap: clamp(44px, 4vw, 56px);
 }
-.feature-icon {
-  @apply flex h-10 w-10 shrink-0 items-center justify-center;
-  border-radius: 10px;
-  background: linear-gradient(
-    135deg,
-    rgb(var(--surface-blossom-rgb)),
-    rgb(var(--surface-blossom-strong-rgb))
+
+.fxr-item {
+  @apply relative flex items-center;
+}
+.fxr-card {
+  @apply relative flex min-w-0 flex-1 flex-col justify-center;
+  min-height: var(--fxr-h);
+  padding: 14px clamp(12px, 1.6vw, 22px);
+}
+/* Chừa chỗ ở mép TRONG theo bán kính VẾT KHOÉT (không phải nửa vòng icon): cung
+   viền còn ăn ra ngoài vòng icon thêm --fxr-notch nữa, lấy thiếu là chữ chạy đè
+   lên cung. +10px cho thoáng. */
+.fxr-l .fxr-card {
+  text-align: right;
+  padding-right: calc(var(--fxr-notch-r) + 10px);
+}
+.fxr-r .fxr-card {
+  text-align: left;
+  padding-left: calc(var(--fxr-notch-r) + 10px);
+}
+
+/* Khung viền để ở ::before chứ không phải trên chính thẻ: nó bị mask khoét, mà
+   mask đặt thẳng lên thẻ thì cắt luôn cả chữ bên trong.
+   Tâm lỗ khoét lùi vào nửa bề dày nét — để nó nằm đúng ĐƯỜNG TIM của viền, cùng
+   chỗ với tâm vòng icon, hai đầu cung mới nối liền chứ không so le. */
+.fxr-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: var(--fxr-bw) solid rgb(var(--fxr-c));
+  border-radius: var(--fxr-radius);
+}
+.fxr-l .fxr-card::before {
+  -webkit-mask-image: radial-gradient(
+    circle var(--fxr-notch-r) at calc(100% - var(--fxr-bw) / 2) 50%,
+    transparent 98%,
+    #000 100%
   );
+  mask-image: radial-gradient(
+    circle var(--fxr-notch-r) at calc(100% - var(--fxr-bw) / 2) 50%,
+    transparent 98%,
+    #000 100%
+  );
+}
+.fxr-r .fxr-card::before {
+  -webkit-mask-image: radial-gradient(
+    circle var(--fxr-notch-r) at calc(var(--fxr-bw) / 2) 50%,
+    transparent 98%,
+    #000 100%
+  );
+  mask-image: radial-gradient(
+    circle var(--fxr-notch-r) at calc(var(--fxr-bw) / 2) 50%,
+    transparent 98%,
+    #000 100%
+  );
+}
+
+/* Mảng nền xoá nốt GÓC PHÍA TRONG cùng phía với nhãn số: từ đầu cung trở đi
+   không còn nét nào cho tới nhãn. Rộng đúng bằng bán kính vết khoét nên mép
+   trong của nó trùng mép ngoài của nhãn số — viền kết thúc gọn ở nhãn. */
+.fxr-card::after {
+  content: '';
+  position: absolute;
+  width: calc(var(--fxr-notch-r) + 6px);
+  background: rgb(var(--white-rgb));
+}
+.fxr-item:nth-child(odd) .fxr-card::after {
+  top: calc(50% + var(--fxr-notch-r));
+  bottom: -6px;
+}
+.fxr-item:nth-child(even) .fxr-card::after {
+  top: -6px;
+  bottom: calc(50% + var(--fxr-notch-r));
+}
+.fxr-l .fxr-card::after {
+  right: -6px;
+}
+.fxr-r .fxr-card::after {
+  left: -6px;
+}
+
+.fxr-title {
+  @apply uppercase;
+  font-weight: 500;
+  font-size: clamp(10px, 1.5vw, 15px);
+  line-height: 1.25;
+  letter-spacing: 0.02em;
+  color: rgb(var(--fxr-c));
+}
+/* Mô tả chỉ có từ md: dưới đó cột hẹp tới mức một dòng chữ cũng gãy làm ba. */
+.fxr-desc {
+  display: none;
+  margin-top: 6px;
+  font-size: clamp(11px, 1.15vw, 13px);
+  line-height: 1.4;
+  color: rgb(var(--text-body-rgb) / 0.65);
+}
+
+/* Nhãn số = điểm KẾT của đường viền. Nền trắng cắt nét viền phía sau, còn quầng
+   trắng (box-shadow spread, không đổ bóng) nới vết cắt rộng thêm ra mọi phía để
+   nhãn không dính sát hai đầu viền. */
+.fxr-step {
+  @apply absolute font-bold uppercase;
+  padding: 2px clamp(8px, 1vw, 14px);
+  font-size: clamp(9px, 1vw, 12px);
+  letter-spacing: 0.12em;
+  border-radius: 999px;
+  border: var(--fxr-bw) solid rgb(var(--fxr-c));
+  background: rgb(var(--white-rgb));
+  color: rgb(var(--fxr-c));
+  box-shadow: 0 0 0 clamp(4px, 0.6vw, 7px) rgb(var(--white-rgb));
+}
+/* So le trên/dưới như mẫu: thẻ lẻ ở đáy, thẻ chẵn ở đỉnh — cùng phía với góc bị
+   bỏ. Kẹp giữa viền bằng translateY 50% chứ không phải số px âm: cỡ chữ của nhãn
+   co theo màn nên chiều cao nó cũng đổi, số cứng là lệch ở khổ khác. */
+.fxr-item:nth-child(odd) .fxr-step {
+  bottom: 0;
+  transform: translateY(50%);
+}
+.fxr-item:nth-child(even) .fxr-step {
+  top: 0;
+  transform: translateY(-50%);
+}
+.fxr-l .fxr-step {
+  right: var(--fxr-notch-r);
+}
+.fxr-r .fxr-step {
+  left: var(--fxr-notch-r);
+}
+
+/* Vòng icon: đĩa màu, vành TRẮNG dày (chính nó cắt viền thẻ), bóng đổ mềm. */
+.fxr-bubble {
+  @apply absolute flex items-center justify-center;
+  /* Canh giữa theo chiều dọc bằng top/margin chứ không nhờ align-items của
+     .fxr-item: phần tử absolute đứng ngoài luồng flex, vị trí tĩnh của nó là thứ
+     dễ đổi theo trình duyệt — mà vết khoét trên viền thẻ neo cứng ở 50%. */
+  top: 50%;
+  margin-top: calc(var(--fxr-bub) / -2);
+  height: var(--fxr-bub);
+  width: var(--fxr-bub);
+  border-radius: 999px;
+  border: var(--fxr-ring) solid rgb(var(--white-rgb));
+  background: rgb(var(--fxr-c));
+  box-shadow: 0 8px 20px -8px rgb(var(--scrim-rgb) / 0.45);
+}
+/* Tâm vòng icon nằm trên ĐƯỜNG TIM viền thẻ (lùi vào nửa bề dày nét so với mép
+   thẻ) — vết khoét và cung viền đều lấy tâm đó. */
+.fxr-l .fxr-bubble {
+  right: calc(var(--fxr-bub) / -2 + var(--fxr-bw) / 2);
+}
+.fxr-r .fxr-bubble {
+  left: calc(var(--fxr-bub) / -2 + var(--fxr-bw) / 2);
+}
+.fxr-bubble svg {
+  height: 45%;
+  width: 45%;
+  color: rgb(var(--white-rgb));
+}
+/* Cung viền nối liền hai đầu vết khoét. Là một đường TRÒN đủ, rồi clip-path xén
+   bỏ nửa quay ra ngoài thẻ — nửa ngoài chỉ có vành trắng như mẫu.
+   Nới ra sao cho ĐƯỜNG TIM nét của nó đúng bán kính --fxr-notch-r: hộp pseudo
+   tính từ padding box (đã trừ vành trắng), nên phải cộng cả vành lẫn nửa nét. */
+.fxr-bubble::after {
+  content: '';
+  position: absolute;
+  inset: calc((var(--fxr-notch) + var(--fxr-ring) + var(--fxr-bw) / 2) * -1);
+  border: var(--fxr-bw) solid rgb(var(--fxr-c));
+  border-radius: 999px;
+}
+/* Xén ở 48% chứ KHÔNG phải 50%: cắt đúng 50% thì hai đầu cung dừng ngay tại
+   điểm cao nhất/thấp nhất của đường tròn, tức chạm mép thẻ mà không chồng lên
+   nét viền — nhìn thành hụt và rời. 48% cho cung nhỉnh qua mép chừng 1–2px, đủ
+   liền nét; hạ thấp nữa (42%) là cung thò hẳn ra ngoài thành thừa. */
+.fxr-l .fxr-bubble::after {
+  clip-path: inset(0 48% 0 0);
+}
+.fxr-r .fxr-bubble::after {
+  clip-path: inset(0 0 0 48%);
+}
+
+@media (min-width: 768px) {
+  .fxr-desc {
+    display: block;
+  }
+  .fxr-title {
+    font-weight: 700;
+  }
 }
 
 .step-connector {
@@ -1100,6 +1317,117 @@ html.cx-landing {
     font-bold text-white;
   font-size: 13px;
   background: linear-gradient(135deg, rgb(var(--brand-accent-rgb)), rgb(var(--brand-primary-rgb)));
+}
+
+/* ── Dải CTA cuối trang (#contact) ─────────────────────────────────────────
+   Khối TỐI duy nhất của trang chủ, nên chữ phải đủ đục mới đọc được: giữ độ mờ
+   từ 0.7 trở lên, thấp hơn là chìm hẳn vào nền mận. Quầng sáng và vạch vàng ở
+   mép trên là ::before/::after của chính dải — đừng thêm div rỗng cho chúng.
+   Chữ nước "Cưới Xinh" thì vẫn phải là .cta-mark vì có nội dung chữ. */
+.cta-band {
+  @apply relative overflow-hidden py-20 md:py-24;
+  background: linear-gradient(
+    150deg,
+    rgb(var(--landing-dark-rgb)) 0%,
+    rgb(var(--landing-cta-bg-mid-rgb)) 55%,
+    rgb(var(--landing-dark-rgb)) 100%
+  );
+}
+.cta-band::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 60% 55% at 50% 42%,
+    rgb(var(--landing-cta-btn-from-rgb) / 0.1) 0%,
+    transparent 70%
+  );
+}
+/* Vạch vàng mảnh ở mép trên — nối khối tối với nền sáng phía trên cho đỡ cắt phũ. */
+.cta-band::after {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgb(var(--landing-cta-btn-from-rgb) / 0.4),
+    transparent
+  );
+}
+.cta-mark {
+  @apply pointer-events-none absolute inset-0 flex select-none items-center
+    justify-center overflow-hidden;
+  font-family: 'Great Vibes', cursive;
+  font-size: clamp(80px, 18vw, 176px);
+  line-height: 1;
+  white-space: nowrap;
+  color: rgb(var(--brand-primary-rgb) / 0.06);
+}
+.cta-inner {
+  @apply relative z-10 mx-auto max-w-2xl px-5 text-center;
+}
+.cta-script {
+  color: rgb(var(--landing-cta-btn-to-rgb) / 0.8);
+}
+.cta-title {
+  color: rgb(var(--landing-cta-heading-rgb));
+}
+.cta-sub {
+  color: rgb(var(--landing-cta-body-rgb) / 0.72);
+}
+/* Nút vàng: gradient + bóng cùng tông, nhấc nhẹ khi rê chuột. */
+.cta-btn {
+  background: linear-gradient(
+    135deg,
+    rgb(var(--landing-cta-btn-from-rgb)),
+    rgb(var(--landing-cta-btn-to-rgb))
+  );
+  color: rgb(var(--landing-dark-rgb));
+  box-shadow: 0 8px 28px rgb(var(--landing-cta-btn-from-rgb) / 0.32);
+  transition:
+    transform 0.22s ease,
+    box-shadow 0.22s ease;
+}
+.cta-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 36px rgb(var(--landing-cta-btn-from-rgb) / 0.42);
+}
+/* Ba điểm bán hàng: chip viền vàng nhạt thay cho dãy chữ ngăn bằng dấu chấm —
+   dấu chấm ở độ mờ thấp gần như mất hẳn trên nền tối. */
+.cta-perks {
+  @apply mt-7 flex flex-wrap items-center justify-center gap-2;
+}
+.cta-perk {
+  @apply inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs;
+  color: rgb(var(--landing-cta-body-rgb) / 0.78);
+  background: rgb(var(--white-rgb) / 0.05);
+  border: 1px solid rgb(var(--landing-cta-btn-from-rgb) / 0.2);
+}
+.cta-perk svg {
+  color: rgb(var(--landing-cta-btn-to-rgb));
+}
+/* Hai đường liên hệ: viên thuốc viền mờ để đọc ra là chỗ BẤM ĐƯỢC, chữ trần
+   trên nền tối trông như dòng ghi chú bỏ quên. */
+.cta-contact {
+  @apply mt-8 flex flex-wrap items-center justify-center gap-3;
+}
+.cta-link {
+  @apply inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm;
+  color: rgb(var(--landing-cta-note-rgb) / 0.8);
+  border: 1px solid rgb(var(--landing-cta-note-rgb) / 0.16);
+  transition:
+    color 0.22s ease,
+    border-color 0.22s ease,
+    background-color 0.22s ease;
+}
+.cta-link:hover {
+  color: rgb(var(--landing-cta-btn-to-rgb));
+  border-color: rgb(var(--landing-cta-btn-from-rgb) / 0.45);
+  background: rgb(var(--white-rgb) / 0.05);
 }
 
 #mobileMenu.open {
