@@ -40,8 +40,10 @@ giảm giá. Dựng thiệp, xem thử và xuất bản dùng thử đều miễ
 # Hạn dùng thử
 Xuất bản xong được 3 ngày dùng thử; hết hạn mà chưa thanh toán thì khách mời mở link sẽ thấy
 màn "Thiệp đang tạm khoá", chủ thiệp thanh toán là mở lại ngay và nội dung còn nguyên. Để quá
-30 ngày nữa thì thiệp bị xoá vĩnh viễn. Đã thanh toán thì thiệp giữ vĩnh viễn, sửa nội dung
-hay đổi mẫu lúc nào cũng được.
+30 ngày nữa thì thiệp bị xoá vĩnh viễn. Đã thanh toán thì thiệp giữ vĩnh viễn, sửa nội dung,
+ảnh, bảng màu và font lúc nào cũng được. RIÊNG MẪU THIỆP thì chốt: giá tính theo mẫu đã
+chọn lúc thanh toán nên sau khi trả tiền không đổi sang mẫu khác được nữa — muốn đổi mẫu
+thì phải đổi TRƯỚC khi thanh toán.
 
 # Có gì trong một tấm thiệp
 Màn bìa hiện đúng tên và cách xưng hô của khách mời; hai link riêng NHÀ TRAI và NHÀ GÁI (mỗi

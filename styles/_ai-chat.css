@@ -314,7 +314,16 @@
    thêm một dòng và avatar (canh đáy) tụt xuống ngang dấu giờ thay vì ngang đáy
    bong bóng. Chỗ cho nó là 16px hở giữa hai nhóm. */
 .aichat-row-bot .aichat-time {
-  @apply absolute left-0 top-full;
+  @apply absolute left-0;
+
+  top: calc(100% + 0.25em);
+}
+
+/* Lượt cuối không có hàng nào bên dưới để mượn khe 16px, mà dấu giờ lại nằm ngoài
+   luồng nên không tự nống chiều cao — thiếu dòng này là nó treo lọt ra ngoài
+   .aichat-body. */
+.aichat-row-bot:last-child {
+  margin-bottom: 20px;
 }
 
 .aichat-msg {
@@ -609,28 +618,49 @@
   border-color: rgb(var(--brand-accent-rgb));
 }
 
+/* Mỗi thẻ một màu riêng qua --sug-c (token --info-N-rgb ở _colors.css, do
+   renderSuggests truyền vào THEO VỊ TRÍ) — cùng lối với thẻ .bnf-card ở mục
+   "Tại sao chọn Cưới Xinh". Màu chỉ nằm ở nền chuyển sắc, viền và ô icon; chữ
+   giữ màu chung. */
 .aichat-chip {
-  @apply flex w-[124px] shrink-0 cursor-pointer flex-col items-start gap-2 p-3
-         text-left text-xs leading-snug transition;
+  @apply relative flex w-[136px] shrink-0 cursor-pointer flex-col items-start gap-2.5 p-3
+         text-left text-xs leading-snug;
 
   border-radius: 16px;
-  background: rgb(var(--white-rgb));
-  border: 1px solid rgb(var(--brand-primary-rgb) / 0.55);
+  background: linear-gradient(
+      160deg,
+      rgb(var(--sug-c, var(--brand-primary-rgb)) / 0.16),
+      rgb(var(--sug-c, var(--brand-primary-rgb)) / 0) 62%
+    ),
+    rgb(var(--white-rgb));
+  border: 1px solid rgb(var(--sug-c, var(--brand-primary-rgb)) / 0.32);
   color: rgb(var(--text-heading-rgb));
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
 }
 
 .aichat-chip:hover {
-  background: rgb(var(--surface-brand-rgb));
-  border-color: rgb(var(--brand-accent-rgb));
+  transform: translateY(-2px);
+  border-color: rgb(var(--sug-c, var(--brand-primary-rgb)) / 0.6);
+  box-shadow: 0 12px 24px -16px rgb(var(--sug-c, var(--brand-primary-rgb)) / 0.85);
 }
 
-/* Ô icon tô nền hồng nhạt để mắt bắt được thẻ trước khi đọc chữ. */
+/* Icon TRẦN, không ô nền: thẻ đã có nền chuyển sắc theo --sug-c rồi, lồng thêm
+   một ô cùng tông vào là hai lớp màu chồng nhau. Cỡ glyph đặt bằng font-size vì
+   svg.lucide trong build.css bị ép về 1em — khai width/height ở đây là thua. */
 .aichat-chip-ico {
-  @apply flex h-7 w-7 items-center justify-center rounded-xl;
+  @apply flex shrink-0 items-center justify-center;
 
-  color: rgb(var(--brand-accent-rgb));
-  background: rgb(var(--brand-primary-rgb) / 0.28);
+  width: 26px;
+  height: 26px;
+  font-size: 22px;
+  color: rgb(var(--sug-c, var(--brand-accent-rgb)));
+  transition: transform 0.25s ease;
 }
+
+.aichat-chip:hover .aichat-chip-ico {
+  transform: rotate(-4deg) scale(1.06);
+}
+
 
 /* ── Lối đi nhanh trên thanh tiêu đề ───────────────────────────────────────── */
 /* NAV_LINKS ở js/ai-assistant.js dựng thành nút tròn CHỈ CÓ ICON, đứng cạnh nút

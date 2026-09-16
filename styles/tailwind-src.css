@@ -858,7 +858,7 @@ html.cx-landing {
   --stp-stub: clamp(16px, 2.4vw, 32px); /* gạch ngắn từ mũi nhãn tới chấm */
   --stp-d: clamp(36px, 7vw, 88px); /* nửa bề ngang vùng zigzag */
   --stp-gap: clamp(16px, 2.4vw, 28px);
-  --stp-line: rgb(var(--text-body-rgb) / 0.32);
+  --stp-line: rgb(var(--brand-accent-rgb) / 0.45);
   /* Quãng từ mép TRONG của thẻ tới tâm chấm: nhãn thò ra (đã trừ phần nấp sau
      vòng số) + gạch ngắn + nửa chấm. */
   --stp-tail: calc(
@@ -880,10 +880,11 @@ html.cx-landing {
   padding: 0 clamp(12px, 1.6vw, 20px);
   border-radius: clamp(20px, 2.4vw, 32px);
   background: rgb(var(--white-rgb));
-  /* Khung xám bọc ngoài dựng bằng spread của box-shadow (bo theo đúng bán kính
+  /* Khung hồng bọc ngoài dựng bằng spread của box-shadow (bo theo đúng bán kính
      thẻ), lớp thứ hai là bóng đổ mềm. */
   box-shadow:
-    0 0 0 clamp(4px, 0.7vw, 8px) rgb(var(--surface-control-rgb)),
+    0 0 0 clamp(4px, 0.7vw, 8px) rgb(var(--surface-brand-rgb)),
+    0 0 0 calc(clamp(4px, 0.7vw, 8px) + 1px) rgb(var(--brand-primary-rgb) / 0.55),
     0 12px 24px -16px rgb(var(--shadow-card-rgb) / 0.6);
 }
 /* Mép TRONG phải chừa nửa vòng số, nếu không chữ chui xuống dưới nó. */
@@ -902,8 +903,11 @@ html.cx-landing {
   height: clamp(40px, 4.4vw, 56px);
   width: clamp(40px, 4.4vw, 56px);
   border-radius: 999px;
-  background: rgb(var(--surface-control-rgb));
-  color: rgb(var(--text-tertiary-rgb));
+  /* Ăn theo màu của chính bước đó (--stp-c) thay vì một ô xám dùng chung: vòng
+     số, nhãn lục giác và đường nối đều đã lấy màu này. */
+  background: rgb(var(--stp-c) / 0.14);
+  border: 1px solid rgb(var(--stp-c) / 0.22);
+  color: rgb(var(--stp-c));
 }
 .stp-ico svg {
   height: 44%;
@@ -918,7 +922,7 @@ html.cx-landing {
   font-size: clamp(12px, 1.25vw, 16px);
   line-height: 1.3;
   letter-spacing: 0.04em;
-  color: rgb(var(--text-secondary-rgb));
+  color: rgb(var(--stp-c));
 }
 .stp-desc {
   margin-top: 4px;
@@ -1167,6 +1171,7 @@ html.cx-landing {
     rgb(var(--white-rgb) / 0) 96px
   );
 }
+
 
 /* ══ DẢI "MẪU THIỆP" Ở TRANG CHỦ ══════════════════════════════════════════
    Danh sách cuộn NGANG bằng cuộn thật của trình duyệt: cuộn native tự huỷ cú
@@ -1560,6 +1565,153 @@ html.cx-landing {
 .reveal-delay-1 { transition-delay: 0.08s; }
 .reveal-delay-2 { transition-delay: 0.18s; }
 .reveal-delay-3 { transition-delay: 0.28s; }
+.reveal-delay-4 { transition-delay: 0.38s; }
+
+/* ══ THẺ "TẠI SAO CHỌN CƯỚI XINH" (#benefits) ══════════════════════════════
+   Lưới 2 cột ở mọi khổ hẹp, 4 cột từ lg. Chọn 2 và 4 chứ không 3 vì đang có 8
+   mục — lưới 3 cột để lại hàng cuối hai thẻ lẻ, nhìn cụt.
+
+   Mỗi thẻ mang một màu riêng qua --bnf-c (token --info-N-rgb ở _colors.css,
+   js/section-benefits.js truyền vào THEO VỊ TRÍ nên thêm mục phải thêm token).
+   Màu chỉ hiện ở ô icon, viền và quầng sáng; tiêu đề và mô tả giữ màu chung —
+   tô màu cả chữ thì tám thẻ cạnh nhau thành bảng màu cầu vồng.
+
+   Nhãn "Nổi bật" nằm TRONG hàng icon chứ không phải thẻ absolute ở góc: ở lưới
+   4 cột thẻ chỉ rộng chừng 250px, nhãn nổi sẽ đè lên tiêu đề hai dòng. */
+.bnf {
+  @apply grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+@media (min-width: 640px) {
+  .bnf {
+    gap: 16px;
+  }
+}
+@media (min-width: 1024px) {
+  .bnf {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.bnf-card {
+  @apply relative flex h-full flex-col overflow-hidden;
+  padding: 20px;
+  border-radius: 18px;
+  border: 1px solid rgb(var(--bnf-c) / 0.18);
+  background: rgb(var(--white-rgb) / 0.92);
+  /* Gộp cả opacity vào đây vì thẻ cũng mang .reveal: hai rule cùng độ đặc hiệu,
+     rule nào đứng SAU thì thắng cả dòng transition. Khối này CỐ Ý đặt sau .reveal
+     — đảo lên trước là hover mất hiệu ứng viền/bóng. */
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease,
+    opacity 0.3s ease;
+}
+/* Quầng màu góc trên phải: nhạt sẵn, đậm lên khi rê chuột. Là phần tử ĐỊNH VỊ
+   nên nó vẽ đè lên con không định vị → hàng icon và chữ phải relative. */
+.bnf-card::before {
+  content: "";
+  @apply pointer-events-none absolute inset-0;
+  background: radial-gradient(
+    132px 96px at 100% 0,
+    rgb(var(--bnf-c) / 0.14),
+    transparent 72%
+  );
+  opacity: 0.5;
+  transition: opacity 0.3s ease;
+}
+.bnf-card > * {
+  @apply relative;
+}
+.bnf-card:hover {
+  transform: translateY(-4px);
+  border-color: rgb(var(--bnf-c) / 0.42);
+  box-shadow:
+    0 18px 40px -22px rgb(var(--bnf-c) / 0.55),
+    0 4px 14px -10px rgb(var(--shadow-card-rgb) / 0.3);
+}
+.bnf-card:hover::before {
+  opacity: 1;
+}
+/* Mục nổi bật: nền phớt màu đổ từ trên xuống, viền đậm hơn một nấc. */
+.bnf-card.is-hot {
+  border-color: rgb(var(--bnf-c) / 0.34);
+  background:
+    linear-gradient(180deg, rgb(var(--bnf-c) / 0.08), rgb(var(--bnf-c) / 0) 132px),
+    rgb(var(--white-rgb) / 0.95);
+}
+
+.bnf-head {
+  @apply mb-4 flex items-center gap-2;
+}
+/* font-size 20px chính là cỡ icon: svg.lucide bị ép về 1em nên cỡ CỐ ĐỊNH phải
+   đặt qua font-size của thẻ cha, khai width/height ở đây là thua rule kia. */
+.bnf-ico {
+  @apply grid shrink-0 place-items-center;
+  width: 44px;
+  height: 44px;
+  font-size: 20px;
+  border-radius: 14px;
+  border: 1px solid rgb(var(--bnf-c) / 0.2);
+  background: rgb(var(--bnf-c) / 0.1);
+  color: rgb(var(--bnf-c));
+  transition: transform 0.3s ease;
+}
+.bnf-card:hover .bnf-ico {
+  transform: rotate(-4deg) scale(1.06);
+}
+.bnf-tag {
+  @apply ml-auto shrink-0 rounded-full font-semibold uppercase;
+  padding: 3px 9px;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: rgb(var(--bnf-c));
+  background: rgb(var(--bnf-c) / 0.12);
+}
+.bnf-title {
+  @apply font-semibold;
+  font-size: 15px;
+  line-height: 1.4;
+  color: rgb(var(--text-heading-rgb));
+}
+.bnf-desc {
+  margin-top: 6px;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: rgb(var(--text-body-rgb) / 0.75);
+}
+
+/* Hai cột trên điện thoại: mỗi thẻ chỉ còn chừng 48% bề ngang màn, giữ nguyên
+   khổ chữ và lề của desktop là mỗi dòng gãy làm ba. */
+@media (max-width: 639px) {
+  .bnf-card {
+    padding: 14px;
+    border-radius: 16px;
+  }
+  .bnf-head {
+    @apply mb-3;
+  }
+  .bnf-ico {
+    width: 38px;
+    height: 38px;
+    font-size: 18px;
+    border-radius: 12px;
+  }
+  .bnf-tag {
+    padding: 2px 7px;
+    font-size: 9px;
+    letter-spacing: 0.04em;
+  }
+  .bnf-title {
+    font-size: 13.5px;
+    line-height: 1.35;
+  }
+  .bnf-desc {
+    font-size: 12.5px;
+    line-height: 1.5;
+  }
+}
+
 
 .testimonial-card {
   @apply relative overflow-hidden bg-white;

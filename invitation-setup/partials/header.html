@@ -90,23 +90,6 @@
                   <span class="hidden sm:inline">Đổi</span>
                 </span>
               </x-button>
-
-              <!-- Chỉ hiện khi thiệp đã thanh toán (_syncThemeLock). Bấm vào đây,
-                   hoặc bấm vào chính nút đổi mẫu đang khoá, đều mở #theme-lock-pop. -->
-              <x-button
-                id="header-theme-info"
-                type="button"
-                variant="ghost"
-                tone="neutral"
-                size="sm"
-                icon-only
-                onclick="cxShowThemeLockTip(this)"
-                title="Vì sao không đổi được mẫu?"
-                aria-label="Vì sao không đổi được mẫu?"
-                class="hidden shrink-0 ml-0.5"
-              >
-                <i data-lucide="info" class="w-4 h-4"></i>
-              </x-button>
             </div>
         </div>
 
@@ -160,9 +143,9 @@
       </div>
       </div>
 
-      <!-- Đặt NGOÀI #setup-topcard: thẻ đó có overflow-hidden, mà popover neo theo
-           nút nên để bên trong là dễ bị cắt. Nội dung tĩnh, không có nút nào bên
-           trong nên không cần keep-open. -->
+      <!-- Lời giải thích khi bấm vào nút đổi mẫu đang khoá (18-theme-picker.js).
+           Đặt NGOÀI #setup-topcard: thẻ đó có overflow-hidden, mà popover neo theo
+           nút nên để bên trong là dễ bị cắt. -->
       <x-popover
         id="theme-lock-pop"
         placement="bottom"

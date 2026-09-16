@@ -60,7 +60,7 @@
 
 | # | Tiêu đề | Ghi chú |
 |---|---|---|
-| 1 | Chọn mẫu thiệp | Dùng thử miễn phí — đổi mẫu thoải mái |
+| 1 | Chọn mẫu thiệp | Dùng thử miễn phí — đổi mẫu thoải mái cho tới khi thanh toán |
 | 2 | Nhập thông tin | Tên, ảnh, ngày cưới, địa điểm, câu chuyện tình yêu... |
 | 3 | Xem trước & chia sẻ | Xem thiệp thật, gửi link thử cho người thân |
 | 4 | Thanh toán một lần | Ưng ý mới cần thanh toán — dùng trọn đời |

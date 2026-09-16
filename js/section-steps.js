@@ -4,7 +4,7 @@
 // Bước CUỐI không có đường nối — thêm/bớt bước thì giữ nguyên luật đó.
 
 const STEPS_DATA = [
-  { icon: "palette",   color: 4, title: "Chọn mẫu thiệp",       desc: "Xem trước trực tiếp. Đổi mẫu thoải mái, miễn phí." },
+  { icon: "palette",   color: 4, title: "Chọn mẫu thiệp",       desc: "Xem trước trực tiếp. Đổi mẫu thoải mái cho tới khi thanh toán." },
   { icon: "square-pen", color: 8, title: "Điền thông tin",      desc: "Tên, ảnh, ngày cưới, câu chuyện tình yêu, nhạc nền..." },
   { icon: "eye",       color: 2, title: "Xem trước & chia sẻ",  desc: "Xem thiệp thật, gửi link cho người thân thử trước." },
   { icon: "lock",      color: 6, title: "Thanh toán một lần",   desc: "Ưng ý mới cần thanh toán. Một lần — dùng trọn đời." },

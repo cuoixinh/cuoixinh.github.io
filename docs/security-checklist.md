@@ -86,8 +86,8 @@ cũ** cho tới khi làm xong mục F. Đừng đọc bảng `[x]` bên dưới 
       Trình chỉnh sửa nhận cờ `theme_locked` (suy từ `payment_status`, KHÔNG lộ dữ liệu
       thanh toán) rồi khoá ở BA lớp: `_syncThemeLock()` làm `#header-theme-btn` trông như
       đã khoá (`aria-disabled`, KHÔNG phải `disabled` — nút disabled nuốt luôn cú bấm nên
-      khách không biết vì sao) và bật nút info cạnh nó; `openThemePicker()` mở lời giải
-      thích thay vì bảng chọn; `_applyThemeChange` chặn ngay dòng đầu. Lớp cuối không thừa
+      khách không biết vì sao); `openThemePicker()` bung `#theme-lock-pop` giải thích thay
+      vì mở bảng chọn; `_applyThemeChange` chặn ngay dòng đầu. Lớp cuối không thừa
       — hàm đó gọi `resetThemeSetting()` TRƯỚC khi lưu, để chạy tiếp là khách mất tuỳ chỉnh
       giao diện rồi mới nhận lỗi từ server.
 

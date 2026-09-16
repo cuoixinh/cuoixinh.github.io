@@ -148,7 +148,7 @@
           Mẫu thiệp
         </h2>
         <p class="text-center text-sm opacity-60">
-          Chọn thoải mái — đổi mẫu miễn phí bất cứ lúc nào
+          Dựng thử miễn phí — chọn xong mẫu ưng ý rồi hãy thanh toán
         </p>
       </div>
 
@@ -340,11 +340,9 @@
           </p>
         </div>
 
-        <!-- scrollable on mobile, grid on desktop — rendered by JS -->
-        <div
-          id="benefitsGrid"
-          class="scrollbar-hide -mx-1 flex snap-x gap-3 overflow-x-auto px-1 scroll-pl-1 pb-3 sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-4 sm:overflow-visible sm:px-0 sm:pb-0 md:grid-cols-3"
-        ></div>
+        <!-- Thẻ do js/section-benefits.js dựng; dáng thẻ và lưới 2/4 cột nằm ở
+             .bnf-* trong styles/tailwind-src.css. -->
+        <div id="benefitsGrid" class="bnf"></div>
       </div>
     </section>
 

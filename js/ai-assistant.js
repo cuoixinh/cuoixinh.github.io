@@ -28,10 +28,10 @@
   // Thẻ gợi ý ở hàng ngang dưới đoạn chat: `icon` là tên của lucide, `text` vừa là
   // nhãn vừa là câu gửi đi nên đừng tách làm hai.
   const SUGGESTS = [
-    { text: "Tạo thiệp cưới cho mình nhé", icon: "sparkles" },
-    { text: "Thiệp giá bao nhiêu?", icon: "wallet" },
-    { text: "Thiệp có những gì?", icon: "layout-list" },
-    { text: "Cho mình dùng thử nhé?", icon: "eye" },
+    { text: "Tạo thiệp cưới cho mình nhé", icon: "zap" },
+    { text: "Thiệp có giá bao nhiêu vậy?", icon: "circle-dollar-sign" },
+    { text: "Thiệp cưới có những gì?", icon: "package" },
+    { text: "Mình có thể dùng thử được không?", icon: "users" },
   ];
 
   // Lối đi nhanh, dựng thành nút TRÒN CHỈ CÓ ICON trên thanh tiêu đề — thay cho
@@ -781,14 +781,16 @@
       return;
     }
     els.sugWrap.hidden = false;
-    SUGGESTS.forEach((q) => {
+    SUGGESTS.forEach((q, i) => {
       const chip = document.createElement("button");
       chip.type = "button";
       chip.className = "aichat-chip";
+      // Màu theo VỊ TRÍ: thêm gợi ý phải có sẵn token --info-N tương ứng.
+      chip.style.setProperty("--sug-c", "var(--info-" + (i + 1) + "-rgb)");
       chip.innerHTML =
         '<span class="aichat-chip-ico"><i data-lucide="' +
         q.icon +
-        '" style="width:16px;height:16px"></i></span><span></span>';
+        '"></i></span><span></span>';
       chip.lastElementChild.textContent = q.text;
       chip.addEventListener("click", () => ask(q.text));
       els.suggests.appendChild(chip);
