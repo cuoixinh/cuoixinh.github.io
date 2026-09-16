@@ -25,11 +25,13 @@
     "Bạn cứ hỏi mình về thiệp cưới online — hoặc bảo mình tạo thiệp, mình hỏi vài " +
     "thông tin rồi dựng luôn cho bạn.";
 
-   const SUGGESTS = [
-    "Mình muốn tạo thiệp cưới",
-    "Giá thiệp là bao nhiêu vậy?",
-    "Thiệp cưới có những gì?",
-    "Thiệp có dùng thử được không?",
+  // Thẻ gợi ý ở hàng ngang dưới đoạn chat: `icon` là tên của lucide, `text` vừa là
+  // nhãn vừa là câu gửi đi nên đừng tách làm hai.
+  const SUGGESTS = [
+    { text: "Mình muốn tạo thiệp cưới", icon: "sparkles" },
+    { text: "Giá thiệp bao nhiêu?", icon: "wallet" },
+    { text: "Thiệp cưới có những gì?", icon: "layout-list" },
+    { text: "Có dùng thử được không?", icon: "eye" },
   ];
 
   // Lối đi nhanh trong khung chat — thay cho bong bóng Messenger đã bỏ ở trang
@@ -94,21 +96,25 @@
       </div>
       <div class="aichat-body" id="aichatBody"></div>
       <div class="aichat-suggests" id="aichatSuggests"></div>
-      <div class="aichat-nav" id="aichatNav"></div>
       <div class="aichat-foot">
         <div class="aichat-composer">
           <textarea id="aichatInput" class="aichat-input" rows="1" maxlength="${MAX_LEN}"
-                    placeholder="Nhập câu hỏi của bạn…"
+                    placeholder="Hỏi XuXi bất cứ điều gì…"
                     aria-label="Câu hỏi cho XuXi"></textarea>
-          <x-button variant="bare" icon-only id="aichatMic" type="button"
-                    aria-label="Nhập bằng giọng nói" title="Nhập bằng giọng nói"
-                    aria-pressed="false" class="aichat-mic">
-            <i data-lucide="mic" style="width:18px;height:18px"></i>
-          </x-button>
-          <x-button variant="bare" icon-only id="aichatSend" type="button"
-                    aria-label="Gửi" class="aichat-send">
-            <i data-lucide="send" style="width:18px;height:18px"></i>
-          </x-button>
+          <div class="aichat-tools">
+            <div class="aichat-nav" id="aichatNav"></div>
+            <div class="aichat-tools-end">
+              <x-button variant="bare" icon-only id="aichatMic" type="button"
+                        aria-label="Nhập bằng giọng nói" title="Nhập bằng giọng nói"
+                        aria-pressed="false" class="aichat-mic">
+                <i data-lucide="mic" style="width:18px;height:18px"></i>
+              </x-button>
+              <x-button variant="bare" icon-only id="aichatSend" type="button"
+                        aria-label="Gửi" class="aichat-send">
+                <i data-lucide="send" style="width:18px;height:18px"></i>
+              </x-button>
+            </div>
+          </div>
         </div>
       </div>`;
 
@@ -440,10 +446,46 @@
     });
   }
 
+  // Khung một lượt: avatar (chỉ phía XuXi) + cột chứa bong bóng và giờ. Các lượt
+  // liền nhau cùng vai được gom nhóm — hàng mới mang .is-cont, hàng trước mang
+  // .is-cont-next — nên chỉ lượt CUỐI nhóm hiện avatar và dấu giờ (luật ở
+  // styles/_ai-chat.css).
+  function addRow(role) {
+    const side = role === "user" ? "user" : "bot";
+    const prev = els.body.lastElementChild;
+    const cont = prev?.classList.contains("aichat-row") && prev.dataset.side === side;
+
+    const row = document.createElement("div");
+    row.className = "aichat-row aichat-row-" + side;
+    row.dataset.side = side;
+    // Hàng cuối không thể có hàng nối tiếp: cờ còn sót lại là của một hàng đã bị
+    // gỡ (ba chấm chờ, bong bóng lỗi) — xoá trước khi tính lại.
+    prev?.classList.remove("is-cont-next");
+    if (cont) {
+      row.classList.add("is-cont");
+      prev.classList.add("is-cont-next");
+    }
+    if (!els.body.childElementCount) row.classList.add("is-first");
+
+    if (side === "bot") {
+      const ava = document.createElement("span");
+      ava.className = "aichat-ava";
+      ava.innerHTML = '<i data-icon="xuxi" data-size="20"></i>';
+      row.appendChild(ava);
+      window.cxRenderIcons?.(ava);
+    }
+
+    const col = document.createElement("div");
+    col.className = "aichat-col";
+    row.appendChild(col);
+
+    els.body.appendChild(row);
+    return col;
+  }
+
   // Trả về chính bong bóng (luồng streaming ghi đè textContent của nó).
   function addBubble(role, text, at) {
-    const row = document.createElement("div");
-    row.className = "aichat-row " + (role === "user" ? "aichat-row-user" : "aichat-row-bot");
+    const col = addRow(role);
 
     const bubble = document.createElement("div");
     bubble.className =
@@ -454,28 +496,29 @@
           ? "aichat-msg-error"
           : "aichat-msg-bot aichat-md");
     paintBubble(bubble, text, false);
-    row.appendChild(bubble);
+    col.appendChild(bubble);
 
     // Báo lỗi không phải một lượt hội thoại nên không đóng dấu giờ.
     if (role !== "error") {
       const time = document.createElement("span");
       time.className = "aichat-time";
       time.textContent = timeLabel(at);
-      row.appendChild(time);
+      col.appendChild(time);
     }
 
-    els.body.appendChild(row);
     scrollToEnd();
     return bubble;
   }
 
+  // Trả về cả HÀNG: lượt sau gọi .remove() là đi cả avatar lẫn ba chấm.
   function addTyping() {
+    const col = addRow("bot");
     const el = document.createElement("div");
     el.className = "aichat-typing";
     el.innerHTML = "<i></i><i></i><i></i>";
-    els.body.appendChild(el);
+    col.appendChild(el);
     scrollToEnd();
-    return el;
+    return col.parentElement;
   }
 
   function scrollToEnd() {
@@ -593,13 +636,15 @@
     });
   }
 
-  function addCardAction(row, card) {
-    if (!row) return;
+  // `col` là cột của lượt XuXi (.aichat-col) — thẻ thiệp xếp ngay dưới bong bóng,
+  // trên dấu giờ.
+  function addCardAction(col, card) {
+    if (!col) return;
     staleCards();
     const f = card.fields || {};
     // Object thiệp treo thẳng lên phần tử, không serialize: nút bấm chỉ cần tìm
-    // ngược lên hàng chứa nó là có đủ dữ liệu.
-    row._cxCard = card;
+    // ngược lên cột chứa nó là có đủ dữ liệu.
+    col._cxCard = card;
 
     const box = document.createElement("div");
     box.className = "aichat-card";
@@ -639,7 +684,9 @@
     btn.textContent = inSetup() ? "Áp dụng vào thiệp" : "Xem thiệp";
     box.appendChild(btn);
 
-    row.appendChild(box);
+    const time = col.querySelector(".aichat-time");
+    if (time) col.insertBefore(box, time);
+    else col.appendChild(box);
     scrollToEnd();
   }
 
@@ -721,10 +768,16 @@
       const chip = document.createElement("button");
       chip.type = "button";
       chip.className = "aichat-chip";
-      chip.textContent = q;
-      chip.addEventListener("click", () => ask(q));
+      chip.innerHTML =
+        '<span class="aichat-chip-ico"><i data-lucide="' +
+        q.icon +
+        '" style="width:16px;height:16px"></i></span><span></span>';
+      chip.lastElementChild.textContent = q.text;
+      chip.addEventListener("click", () => ask(q.text));
       els.suggests.appendChild(chip);
     });
+    // lucide không tự quét lại markup chèn động.
+    window.lucide?.createIcons({ root: els.suggests });
   }
 
   // Dải điều hướng: dựng MỘT LẦN lúc mở bảng, không đụng gì tới đoạn hội thoại.
@@ -1106,7 +1159,7 @@
     });
     els.body.addEventListener("click", (e) => {
       const btn = e.target.closest("[data-card-open]");
-      if (btn && !btn.disabled) useCard(btn.closest(".aichat-row")?._cxCard);
+      if (btn && !btn.disabled) useCard(btn.closest(".aichat-col, .aichat-row")?._cxCard);
     });
     els.send.addEventListener("click", () => ask(els.input.value));
     els.input.addEventListener("input", () => {
