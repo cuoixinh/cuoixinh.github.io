@@ -303,9 +303,9 @@
       cell.className = "w-full h-full shrink-0";
       // KHÔNG lazy: cả khối nằm trong #main-card đang display:none, ảnh lazy sẽ
       // chỉ bắt đầu tải khi khách bấm mở bìa — đúng lúc cần thấy ảnh nhất.
-      cell.innerHTML = `<img src="${getImageUrl(key)}" alt=""
+      cell.innerHTML = `<img src="${cxImgSrc(key)}" alt=""
         class="w-full h-full object-cover"
-        style="object-position:${fp?.x ?? 50}% ${fp?.y ?? 50}%">`;
+        style="object-position:${cxFocal(fp)}">`;
       track.appendChild(cell);
     });
 
@@ -427,9 +427,9 @@
       <article class="ne-mag ${side}">
         ${
           img
-            ? `<div class="ne-mag-photo"><img src="${img}" alt=""
+            ? `<div class="ne-mag-photo"><img src="${cxImgSrc(img)}" alt=""
                  class="w-full h-full object-cover"
-                 style="object-position:${fp?.x ?? 50}% ${fp?.y ?? 50}%"></div>`
+                 style="object-position:${cxFocal(fp)}"></div>`
             : ""
         }
         <div class="ne-mag-body">
@@ -498,9 +498,9 @@
         const fp = focalPoints?.[images?.[i]];
         const cell = document.createElement("div");
         cell.className = `ne-cell ne-mos-${MOS_SLOTS[offset]}`;
-        cell.innerHTML = `<img src="${urls[i]}" alt=""
+        cell.innerHTML = `<img src="${cxImgSrc(urls[i])}" alt=""
           class="w-full h-full object-cover"
-          style="object-position:${fp?.x ?? 50}% ${fp?.y ?? 50}%">`;
+          style="object-position:${cxFocal(fp)}">`;
         cell.addEventListener("click", () => openLightbox(i));
         return cell;
       };

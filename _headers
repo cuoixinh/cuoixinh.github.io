@@ -1,0 +1,36 @@
+# Header bảo mật cho bản publish (Cloudflare Workers Assets đọc file này ở gốc
+# dist/). Khai ở đây chứ không ở wrangler.jsonc: wrangler chỉ cấu hình cách phục
+# vụ file, không đặt được header.
+#
+# ⚠️ Sửa file này thì phải sửa cả `scripts/deploy-public.mjs` (INCLUDE) nếu đổi
+# tên/đường dẫn — không nằm trong INCLUDE là không ra web, mà không có gì báo.
+
+/*
+  # Trình duyệt không được tự đoán kiểu file (ảnh khách tải lên → "HTML").
+  X-Content-Type-Options: nosniff
+
+  # Không cho site khác nhúng trang của mình vào iframe (clickjacking): khách
+  # đang đăng nhập có thể bị lừa bấm vào nút thật nằm dưới lớp phủ trong suốt.
+  # `frame-ancestors` trong CSP mới là luật thật; X-Frame-Options để trình duyệt cũ.
+  X-Frame-Options: SAMEORIGIN
+
+  # Đừng gửi đường dẫn đầy đủ (mang slug thiệp, đôi khi cả ?id=) sang site khác.
+  Referrer-Policy: strict-origin-when-cross-origin
+
+  # Tắt sẵn các quyền web không dùng tới.
+  Permissions-Policy: geolocation=(), microphone=(self), camera=(), payment=(), usb=(), interest-cohort=()
+
+  # Ép HTTPS 1 năm. Bật sau khi chắc chắn mọi subdomain đều chạy HTTPS.
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+
+  # ── CSP ───────────────────────────────────────────────────────────────────
+  # Lớp chắn THỨ HAI cho XSS (lớp đầu là escape ở chỗ dựng HTML).
+  # Vì sao có 'unsafe-inline' cho script: mã hiện tại còn dựa vào onclick trong
+  # markup và <script> nội tuyến (router.html, 404.html, x-button…). Gỡ được hết
+  # thì bỏ nó đi và đổi sang nonce — đó mới là lúc CSP chặn được XSS thật sự.
+  # Giá trị hiện tại vẫn chặn: nạp script từ miền lạ, gửi dữ liệu ra miền lạ
+  # (connect-src), nhúng iframe lạ, và form post ra ngoài.
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'self'; form-action 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com https://www.youtube.com https://s.ytimg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; media-src 'self' https: blob:; connect-src 'self' https://*.supabase.co https://*.workers.dev https://nominatim.openstreetmap.org https://www.youtube.com; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://www.google.com https://maps.google.com; worker-src 'self' blob:; upgrade-insecure-requests
+
+# Trang admin không ra web (không nằm trong INCLUDE của deploy-public.mjs).
+# Nếu có ngày publish thì phải thêm một khối riêng chặn hẳn ở đây.

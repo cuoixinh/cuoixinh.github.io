@@ -13,26 +13,26 @@ Dùng bất kỳ static server nào:
 # Right-click index.html → Open with Live Server
 
 # Python
-python -m http.server 8000
+python -m http.server 5500
 
 # Node http-server
-npx http-server -p 8000
+npx http-server -p 5500
 
 # PHP
-php -S localhost:8000
+php -S localhost:5500
 ```
 
-Truy cập: `http://localhost:8000`
+Truy cập: `http://localhost:5500`
 
 ### **URLs:**
 
 **Local (dùng full URLs):**
 
-- `http://localhost:8000/` - Landing page
-- `http://localhost:8000/admin/admin.html` - Admin dashboard
-- `http://localhost:8000/customer/manage.html?id=xxx` - Customer management
-- `http://localhost:8000/my-invitations/account.html` - Account page
-- `http://localhost:8000/public/themes/template1.html?slug=xxx` - Wedding template
+- `http://localhost:5500/` - Landing page
+- `http://localhost:5500/admin/admin.html` - Admin dashboard
+- `http://localhost:5500/customer/manage.html?id=xxx` - Customer management
+- `http://localhost:5500/my-invitations/account.html` - Account page
+- `http://localhost:5500/public/themes/template1.html?slug=xxx` - Wedding template
 
 **Production (clean URLs):**
 

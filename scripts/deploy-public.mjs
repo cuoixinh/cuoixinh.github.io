@@ -35,6 +35,9 @@ const INCLUDE = [
   "router.html",
   "robots.txt",
   "sitemap.xml",
+  // Header bảo mật (CSP, nosniff, frame-ancestors…). Cloudflare Workers Assets
+  // đọc file này ở gốc thư mục publish; thiếu nó là web chạy trần không header.
+  "_headers",
   // CNAME: chỉ GitHub Pages đọc để giữ custom domain. Cloudflare bỏ qua nó, nên
   // sau khi chuyển xong thì file này biến mất khỏi repo — vì vậy khai OPTIONAL.
   "CNAME",

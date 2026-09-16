@@ -356,9 +356,16 @@ async function checkAndBumpUsageIp(
 
 // Lấy IP thật của client (Supabase đặt sau proxy → đọc x-forwarded-for).
 function clientIp(req: Request): string {
+  // Cloudflare/Supabase đặt cf-connecting-ip từ kết nối THẬT, client không giả
+  // được. Với x-forwarded-for phải lấy phần tử CUỐI (do proxy của mình nối vào);
+  // lấy phần tử ĐẦU là lấy đúng giá trị client tự gửi → bypass rate limit sạch sẽ
+  // (docs/security-checklist.md A10).
+  const cf = req.headers.get('cf-connecting-ip')
+  if (cf) return cf.trim()
   const fwd = req.headers.get('x-forwarded-for') ?? ''
-  const first = fwd.split(',')[0].trim()
-  return first || req.headers.get('x-real-ip') || 'unknown'
+  const parts = fwd.split(',').map((p) => p.trim()).filter(Boolean)
+  if (parts.length) return parts[parts.length - 1]
+  return req.headers.get('x-real-ip') || 'unknown'
 }
 
 // HÀM CHUNG: bump + kiểm hạn mức (theo user nếu đăng nhập, ngược lại theo IP).

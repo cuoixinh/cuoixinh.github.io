@@ -46,9 +46,8 @@
             >
               <i data-lucide="circle-help" class="text-[10px]" style="width:16px;height:16px"></i>
             </x-button>
-            <!-- Danh sách thiệp được cache ở localStorage vài phút (xem
-                 listMyWeddings) — nút này là đường ép lấy bản mới ngay, cho lần
-                 vừa sửa thiệp ở thiết bị khác hoặc vừa thanh toán xong. -->
+            <!-- Danh sách luôn lấy tươi (listMyWeddings không cache) — nút này
+                 chỉ để hỏi lại ngay mà không phải tải lại cả trang. -->
             <x-button
               id="btn-refresh"
               variant="ghost"

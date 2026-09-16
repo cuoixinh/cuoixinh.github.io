@@ -1,7 +1,7 @@
 // Màn "Quản lý thiệp cưới": lưới thẻ thiệp của người dùng (Của tôi / Xuất bản / Nháp).
-// Nguồn dữ liệu: weddingDAL.listMyWeddings() (khi đã đăng nhập — có cache
-// localStorage, xem core/dal/wedding-dal.js) gộp với đơn trong localStorage
-// (khách chưa đăng nhập vẫn thấy nháp đã tạo trên máy này).
+// Nguồn dữ liệu: weddingDAL.listMyWeddings() (khi đã đăng nhập — LUÔN hỏi thẳng
+// server, không cache) gộp với đơn trong localStorage (khách chưa đăng nhập vẫn
+// thấy nháp đã tạo trên máy này).
 
 // Client dùng chung do core/supabase.js dựng (chính là AuthUI.supabase) — khai lại
 // ở đây là trùng tên biến toàn cục, cả trang chết ngay khi nạp.
@@ -68,9 +68,6 @@ async function initPage() {
 }
 
 async function logout() {
-  // Danh sách thiệp là dữ liệu riêng của tài khoản — đăng xuất là phải xoá khỏi
-  // máy, nhất là máy dùng chung.
-  weddingDAL.invalidateMyWeddings();
   await sb.auth.signOut();
   window.location.replace(window.location.pathname);
 }
@@ -174,10 +171,11 @@ function _cardFromWedding(w) {
   };
 }
 
-// Thumbnail của thẻ = ảnh THẬT của khách. Cột chỉ chứa tên file nên phải qua
-// storageDAL.getPublicUrl (nó tự đi đường worker proxy khi có). Thiệp chưa tải
-// ảnh nào — và nháp chỉ nằm trên máy (ảnh còn trong IndexedDB, chưa lên
-// Storage) — thì rơi về ảnh mẫu trong cardHTML.
+// Thumbnail của thẻ = ảnh THẬT của khách, KHÔNG BAO GIỜ rơi về ảnh mẫu của mẫu
+// thiệp: thẻ này là dữ liệu thật của khách, thấy ảnh mẫu là hiểu nhầm mình đã
+// đặt ảnh đó. Cột chỉ chứa tên file nên phải qua storageDAL.getPublicUrl (nó tự
+// đi đường worker proxy khi có). Chưa có ảnh nào — hoặc nháp chỉ nằm trên máy,
+// ảnh còn trong IndexedDB — thì thẻ hiện ô "Chưa có ảnh bìa".
 function _coverUrl(w) {
   const file = w.cover_image_url || (w.gallery_images || [])[0] || "";
   return file ? storageDAL.getPublicUrl(file) : "";
@@ -187,8 +185,7 @@ function _coverUrl(w) {
 // được phép ghi CARDS, nếu không kết quả cũ về sau sẽ đè lên kết quả mới.
 let _loadSeq = 0;
 
-// force = bỏ qua cache localStorage, hỏi thẳng server (nút "Tải lại").
-async function loadCards(force) {
+async function loadCards() {
   const seq = ++_loadSeq;
   _absorbGuestOrders();
   const local = getCache(_ordersKey(), []).filter((o) => o.manage_id);
@@ -199,13 +196,12 @@ async function loadCards(force) {
     return;
   }
 
-  // Có cache thì danh sách hiện ra ngay trong nhịp này → bật khung xương chỉ để
-  // nó chớp một cái rồi tắt, nhìn như trang giật.
-  if (force || !weddingDAL.readMyWeddingsCache(currentUser.email))
-    setState("loading");
+  // Danh sách đã có sẵn trên màn (lần tải lại) thì giữ nguyên, chỉ lần đầu mới
+  // bật khung xương — nếu không mỗi lần quay lại tab là trang chớp một nhịp.
+  if (!CARDS.length) setState("loading");
   let weddings;
   try {
-    weddings = await weddingDAL.listMyWeddings(currentUser.email, { force });
+    weddings = await weddingDAL.listMyWeddings();
   } catch (e) {
     if (seq !== _loadSeq) return;
     setState("error");
@@ -224,15 +220,13 @@ async function loadCards(force) {
   render();
 }
 
-// Nút "Tải lại": vứt cache rồi hỏi lại server. Xoá cache TRƯỚC khi gọi để tab
-// khác cũng nhận được bản mới.
+// Nút "Tải lại": danh sách vốn đã luôn lấy tươi, nút này chỉ để hỏi lại ngay
+// mà không phải tải lại trang.
 async function refreshCards() {
-  if (!currentUser) return loadCards();
-  weddingDAL.invalidateMyWeddings();
   const btn = document.getElementById("btn-refresh");
   btn?.classList.add("animate-spin");
   try {
-    await loadCards(true);
+    await loadCards();
   } finally {
     btn?.classList.remove("animate-spin");
   }
@@ -429,27 +423,21 @@ async function paintLocalThumbs() {
     const url = URL.createObjectURL(file);
     _thumbBlobUrls.set(id, url);
 
-    // Ảnh mẫu có thể đã hỏng và bị onerror ẩn đi trước đó → mở lại.
-    delete img.dataset.fallback;
+    // Thẻ đang hiện ô "Chưa có ảnh bìa" (chưa có src, hoặc ảnh cũ hỏng) → mở lại.
     img.style.display = "";
     img.src = url;
   });
 }
 
-/** Ảnh mẫu của theme — chỗ lùi khi thiệp chưa có ảnh nào của khách. */
-function themeThumb(theme) {
-  return `/assets/images/templates/${theme}.jpg`;
-}
+// Ảnh 1x1 trong suốt cho thẻ chưa có ảnh: src="" phân giải thành URL trang hiện
+// tại → trình duyệt tải HTML về rồi vẽ icon vỡ.
+const BLANK_PX =
+  "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
 
-// Ảnh khách hỏng/đã bị dọn → thử ảnh mẫu một lần rồi mới chịu ẩn. Đổi src trong
-// onerror mà không gỡ cờ là lặp vô hạn khi chính ảnh mẫu cũng lỗi.
-function thumbFallback(img, theme) {
-  if (img.dataset.fallback) {
-    img.style.display = "none";
-    return;
-  }
-  img.dataset.fallback = "1";
-  img.src = themeThumb(theme);
+// Ảnh khách hỏng/đã bị dọn → ẩn hẳn để lộ ô "Chưa có ảnh bìa" nằm dưới. KHÔNG
+// thay bằng ảnh mẫu của theme: thẻ chỉ được hiện dữ liệu thật của khách.
+function thumbFallback(img) {
+  img.style.display = "none";
 }
 
 function cardHTML(c, i) {
@@ -479,19 +467,24 @@ function cardHTML(c, i) {
 
   return `
     <div class="group flex min-h-[200px] overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm transition-shadow hover:shadow-md">
-      <!-- Cột trái = 2/5 bề ngang thẻ. Bên trong là khung thiệp đúng tỉ lệ 9:16
-           (rộng bằng cột, cao suy ra từ đó) căn giữa trên nền nhạt — ảnh mẫu
-           780×1386 gần khớp tỉ lệ này nên gần như không bị cắt. Chiều cao thẻ do
-           cột phải quyết định; khung nào cao hơn cột thì max-h-full kẹp lại. -->
-      <div class="flex w-2/5 shrink-0 cursor-pointer items-center justify-center bg-gray-50 p-2 sm:p-3" onclick="openEditor(${i})">
-        <div class="aspect-[9/16] max-h-full w-full overflow-hidden rounded-md bg-white shadow-sm ring-1 ring-black/5 transition-transform duration-300 group-hover:scale-[1.04]">
-          <img data-thumb="${escAttr(c.id)}" src="${escAttr(c.cover || themeThumb(c.theme))}" alt="${escAttr(title)}"
-               loading="lazy" onerror="thumbFallback(this, '${escAttr(c.theme)}')"
-               class="h-full w-full object-cover object-top" />
+      <!-- Cột trái = 2/5 bề ngang thẻ, ảnh bìa CHIẾM TRỌN cột (không lề, không
+           khung tỉ lệ) nên sát mép trái/trên/dưới của thẻ; ảnh dọc bị cắt bớt là
+           đúng ý, object-top giữ phần đầu ảnh. Ô "Chưa có ảnh bìa" nằm dưới ảnh,
+           lộ ra khi thẻ chưa có ảnh hoặc ảnh hỏng. -->
+      <div class="relative w-2/5 shrink-0 cursor-pointer overflow-hidden bg-gray-100" onclick="openEditor(${i})">
+        <div class="absolute inset-0 flex flex-col items-center justify-center gap-1 px-2 text-center text-gray-400">
+          <i data-lucide="image-off" style="width:20px;height:20px"></i>
+          <span class="text-[10px] leading-tight">Chưa có ảnh bìa</span>
         </div>
+        <img data-thumb="${escAttr(c.id)}" src="${escAttr(c.cover || BLANK_PX)}" alt="${escAttr(title)}"
+             loading="lazy" onerror="thumbFallback(this)"
+             ${c.cover ? "" : 'style="display:none"'}
+             class="absolute inset-0 h-full w-full object-cover object-top transition-transform duration-300 group-hover:scale-[1.04]" />
       </div>
 
-      <div class="flex min-w-0 flex-1 flex-col p-3 sm:p-4">
+      <!-- Viền dọc mép trái = ranh giới ảnh ↔ phần chữ (giống .tt-cardbody của
+           thẻ mẫu thiệp, chỉ xoay ngang vì thẻ này chia cột). -->
+      <div class="flex min-w-0 flex-1 flex-col border-l border-[rgb(var(--brand-primary-rgb)/0.22)] p-3 sm:p-4">
         <!-- Nhãn chuyển hẳn sang cột phải: cột trái chỉ còn 2/5 bề ngang, không
              đủ chỗ cho một nhãn nguyên dòng. Xếp ngang, hết chỗ thì xuống dòng. -->
         <div class="mb-1.5 flex flex-wrap items-center gap-1">${statusBadge}${leftBadges}</div>
@@ -737,8 +730,9 @@ async function deleteCard(i) {
     [c.groom, c.bride].filter(Boolean).join(" & ") || themeName(c.theme);
   const ok = await showConfirm(
     "Xoá thiệp?",
-    `Thiệp “${title}” sẽ biến mất khỏi danh sách và khách mời không mở được nữa.`,
-    { confirmText: "Xoá thiệp" },
+    `Thiệp “${title}” sẽ bị xoá vĩnh viễn: ảnh, danh sách khách mời và lời chúc ` +
+      `đều mất, không khôi phục lại được.`,
+    { confirmText: "Xoá vĩnh viễn" },
   );
   if (!ok) return;
 
@@ -754,7 +748,7 @@ async function deleteCard(i) {
 
   showLoading(true, "Đang xoá thiệp...");
   try {
-    await weddingBL.updateWedding({ id: c.id, is_active: false });
+    await weddingBL.deleteWedding(c.id);
     CARDS = CARDS.filter((x) => x !== c);
     _dropFromLocalOrders(c.id);
     render();
@@ -922,11 +916,10 @@ function formatDate(dateStr) {
 // ===== GẮN SỰ KIỆN =====
 
 function bindEvents() {
-  // Tab khác vừa tạo/sửa/xoá thiệp → DAL xoá key cache; danh sách đang mở ở tab
-  // này phải nạp lại, không thì hai tab hiện hai bản khác nhau.
-  window.addEventListener("storage", (e) => {
-    if (e.key && e.key.startsWith(buildCacheKey("myweddings")) && !e.newValue)
-      loadCards();
+  // Danh sách không cache nên chỉ cần hỏi lại mỗi lần người dùng quay về tab
+  // này — vừa sửa/thanh toán thiệp ở tab khác là thấy ngay bản mới.
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) loadCards();
   });
 
   document.querySelectorAll(".tab-btn").forEach((btn) => {

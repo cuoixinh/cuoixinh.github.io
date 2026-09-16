@@ -147,6 +147,8 @@ function renderQRCodes(wedding) {
 }
 
 function renderMap(mapEmbedUrl, locationName) {
+  // extractMapEmbedUrl đã lọc theo allowlist host → "" là "không có bản đồ hợp lệ",
+  // gán vào src/href lúc đó là mở đường cho `javascript:` và iframe lừa đảo.
   const mapEmbed = extractMapEmbedUrl(mapEmbedUrl);
 
   if (mapEmbed) {
@@ -202,10 +204,10 @@ function renderLoveStory(events) {
   if (!list) return;
   list.innerHTML = events
     .map((ev, i) => {
-      const imgSrc = ev.image_url ? getImageUrl(ev.image_url) : null;
+      const imgSrc = ev.image_url ? cxImgSrc(ev.image_url) : null;
       const pbClass = i === events.length - 1 ? "pb-1" : "pb-5";
       const focalStyle = ev.focal_point
-        ? ` style="object-position:${ev.focal_point.x}% ${ev.focal_point.y}%"`
+        ? ` style="object-position:${cxFocal(ev.focal_point)}"`
         : "";
       return `
     <div class="relative pl-[14px] ${pbClass} text-left">
@@ -213,7 +215,7 @@ function renderLoveStory(events) {
       ${ev.date ? `<div class="text-[0.7rem] font-bold tracking-[0.06em] mb-0.5 cx-ac">${escapeHtml(ev.date)}</div>` : ""}
       ${ev.title ? `<div class="text-[0.95rem] font-semibold font-cormorant mb-1 cx-hd">${escapeHtml(ev.title)}</div>` : ""}
       ${ev.content ? `<div class="text-[0.82rem] leading-[1.65] cx-hd${imgSrc ? " mb-2" : ""}">${escapeHtml(ev.content)}</div>` : ""}
-      ${imgSrc ? `<img src="${imgSrc}" alt=""${focalStyle} class="w-full max-w-[280px] rounded-[10px] object-cover aspect-video" loading="lazy" />` : ""}
+      ${imgSrc ? `<img src="${cxImgSrc(imgSrc)}" alt=""${focalStyle} class="w-full max-w-[280px] rounded-[10px] object-cover aspect-video" loading="lazy" />` : ""}
     </div>`;
     })
     .join("");

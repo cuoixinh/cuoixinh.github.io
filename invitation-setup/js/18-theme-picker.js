@@ -35,7 +35,7 @@ async function openThemePicker() {
               ${isCurrent ? 'id="theme-picker-current"' : ""}
               onclick="_applyThemeChange('${t.theme}','${t.name}')"
               class="flex items-center gap-4 px-4 py-3 text-left transition-colors w-full ${isCurrent ? "bg-rose-50" : "hover:bg-gray-50"}">
-              <img src="${thumb}" alt="${t.name}"
+              <img src="${cxImgSrc(thumb)}" alt="${escapeHtml(t.name)}"
                 class="w-16 h-24 rounded-xl object-cover object-top flex-shrink-0 border-2 ${isCurrent ? "border-rose-400" : "border-gray-200"}"
                 loading="lazy" onerror="this.style.background='rgb(var(--surface-control-rgb))'" />
               <div class="flex-1 min-w-0">

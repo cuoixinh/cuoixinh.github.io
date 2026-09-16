@@ -57,6 +57,30 @@ function setImageWithRing(id, filename) {
   }
 }
 
+/**
+ * UUID v4 bằng nguồn ngẫu nhiên MẬT MÃ. `Math.random()` không phải nguồn ngẫu
+ * nhiên an toàn — id sinh ra từ nó đoán được, mà mấy id này đi vào link quản lý
+ * thiệp. `crypto.randomUUID` cần HTTPS/localhost; ngữ cảnh khác thì lùi về
+ * getRandomValues (vẫn an toàn), chỉ khi không có cả hai mới dùng Math.random.
+ */
+function cxUUID() {
+  if (typeof crypto !== "undefined") {
+    if (crypto.randomUUID) return crypto.randomUUID();
+    if (crypto.getRandomValues) {
+      const b = crypto.getRandomValues(new Uint8Array(16));
+      b[6] = (b[6] & 0x0f) | 0x40; // version 4
+      b[8] = (b[8] & 0x3f) | 0x80; // variant
+      const h = Array.from(b, (x) => x.toString(16).padStart(2, "0")).join("");
+      return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
+    }
+  }
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+    const r = (Math.random() * 16) | 0;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
 // ============= IMAGE HELPERS =============
 
 function getImageUrl(filename) {
@@ -75,6 +99,39 @@ function getImageUrl(filename) {
     return filename;
   }
   return `${STORAGE_BASE_URL}/${filename}`;
+}
+
+/**
+ * URL ảnh đã SẴN SÀNG nhét vào `src="..."` của chuỗi innerHTML: chặn scheme lạ
+ * rồi escape dấu nháy. Dùng thay `getImageUrl()` ở MỌI chỗ ghép chuỗi HTML —
+ * `getImageUrl` trả nguyên giá trị trong DB, mà giá trị đó do khách nhập nên
+ * chứa được dấu `"` để thoát khỏi thuộc tính (stored XSS).
+ * Gán bằng `el.src = getImageUrl(...)` thì không cần hàm này (không có parser HTML).
+ */
+function cxImgSrc(filename) {
+  const url = getImageUrl(filename);
+  // Chỉ nhận http(s), blob:, data:image và đường dẫn tương đối. `javascript:` và
+  // mọi scheme khác → về ảnh giữ chỗ.
+  if (/^[a-z][a-z0-9+.-]*:/i.test(url)) {
+    const ok =
+      /^https?:\/\//i.test(url) ||
+      /^blob:/i.test(url) ||
+      /^data:image\//i.test(url);
+    if (!ok) return escapeHtml(createPlaceholderSVG("Ảnh không hợp lệ"));
+  }
+  return escapeHtml(url);
+}
+
+/**
+ * Giá trị `object-position` an toàn từ điểm lấy nét đọc ở DB. Trả về đúng dạng
+ * "50% 50%" — ép về SỐ nên không chèn được gì vào thuộc tính style.
+ */
+function cxFocal(fp) {
+  const n = (v) => {
+    const x = Number(v);
+    return Number.isFinite(x) ? Math.min(100, Math.max(0, x)) : 50;
+  };
+  return `${n(fp && fp.x)}% ${n(fp && fp.y)}%`;
 }
 
 function createPlaceholderSVG(text = "Chưa có ảnh") {
@@ -97,25 +154,40 @@ function createPlaceholderSVG(text = "Chưa có ảnh") {
 // ============= MAP HELPERS =============
 
 /** Lấy URL embed Google Maps sạch từ HTML iframe (hoặc trả lại nguyên URL). */
+// Host được phép nhúng bản đồ. Giá trị này vào thẳng `iframe.src` trên trang
+// thiệp công khai, nên không thể nhận URL tuỳ ý: `javascript:` là chạy mã trên
+// origin của mình, còn một https:// lạ là trang lừa đảo đội lốt thiệp cưới.
+const CX_MAP_HOSTS = ["www.google.com", "maps.google.com", "google.com"];
+
+/**
+ * Chuỗi khách dán vào ô bản đồ (URL trần hoặc cả thẻ <iframe>) → URL nhúng SẠCH,
+ * hoặc "" nếu không thuộc Google Maps. Nơi gọi coi "" là "chưa có bản đồ".
+ */
 function extractMapEmbedUrl(value) {
   if (!value) return "";
 
-  // Decode HTML entities using DOM
+  // Giải mã HTML entity bằng ngữ cảnh RCDATA của <textarea> (không chạy script).
   const textarea = document.createElement("textarea");
   textarea.innerHTML = value;
   const decoded = textarea.value;
 
-  // Check if it's an iframe HTML
+  let candidate = decoded;
   if (decoded.includes("<iframe") && decoded.includes("src=")) {
-    // Extract src URL from iframe
     const srcMatch = decoded.match(/src=["']([^"']+)["']/);
-    if (srcMatch && srcMatch[1]) {
-      return srcMatch[1];
-    }
+    if (srcMatch && srcMatch[1]) candidate = srcMatch[1];
   }
 
-  // If it's already a URL, return as-is
-  return value;
+  candidate = String(candidate).trim();
+  if (!candidate) return "";
+
+  try {
+    const u = new URL(candidate, "https://www.google.com");
+    if (u.protocol !== "https:") return "";
+    if (!CX_MAP_HOSTS.includes(u.hostname)) return "";
+    return u.href;
+  } catch (e) {
+    return "";
+  }
 }
 
 // ============= ENCRYPTION HELPERS =============
@@ -1003,10 +1075,16 @@ function closeTimePicker() {
   }
 
   if (IS_SHELL_HOST) {
+    // Chỉ nghe iframe CON của chính trang này. Thiếu phép kiểm đó thì bất kỳ site
+    // nào window.open() trang mẫu cũng gửi được `cx-sug-go` với url `javascript:`
+    // → chạy mã trên origin cuoixinh.com. Và url phải là đường dẫn nội bộ.
     window.addEventListener("message", function (e) {
+      const frame = document.querySelector("iframe.cx-pshell-view");
+      if (!frame || e.source !== frame.contentWindow) return;
       const d = e.data || {};
-      if (d.type === "cx-sug-go" && typeof d.url === "string") window.location.href = d.url;
-      else if (d.type === "cx-sug-use") _chooseTheme(d.theme, d.display);
+      if (d.type === "cx-sug-go" && typeof d.url === "string") {
+        if (/^\/(?!\/)/.test(d.url)) window.location.href = d.url;
+      } else if (d.type === "cx-sug-use") _chooseTheme(d.theme, d.display);
     });
     return;
   }
@@ -1026,15 +1104,15 @@ function closeTimePicker() {
     _chooseTheme(theme, display);
   }
 
-  // Ba ô vuông ở đáy bảng: icon trên, nhãn dưới, mỗi ô một tông pastel riêng.
-  // `go` = đường dẫn nội bộ; ô `primary` tạo nháp bằng mẫu ĐANG XEM.
+  // Ba lối ra ở đáy bảng, dồn vào giữa: "Dùng ngay" là pill hồng đặc ở giữa,
+  // hai bên là nút TRÒN chỉ có icon kèm nhãn nhỏ bên dưới (xem .cx-sug-tile).
+  // `go` = đường dẫn nội bộ; nút `primary` tạo nháp bằng mẫu ĐANG XEM.
   const SUG_ACTS = [
-    { id: "sug-home", label: "Trang chủ", icon: "home", cls: "is-home", go: "/" },
+    { id: "sug-home", label: "Trang chủ", icon: "home", go: "/" },
     {
       id: "sug-use",
-      label: "Tạo thiệp",
-      icon: "navigation",
-      cls: "is-use",
+      label: "Dùng ngay",
+      icon: "play",
       aria: "Tạo thiệp với mẫu này",
       primary: true,
     },
@@ -1042,7 +1120,6 @@ function closeTimePicker() {
       id: "sug-all",
       label: "Kho mẫu",
       icon: "grid",
-      cls: "is-all",
       aria: "Xem tất cả mẫu thiệp",
       go: "/theme-template/",
     },
@@ -1056,14 +1133,16 @@ function closeTimePicker() {
     home:
       '<path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/>' +
       '<path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
-    navigation: '<polygon points="3 11 22 2 13 21 11 13 3 11"/>',
+    // play: "Dùng ngay" — cùng hình với nút cùng tên ở thẻ mẫu (item-template.js).
+    play:
+      '<path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"/>',
     // layout-grid: ô "Xem tất cả" — bốn ô vuông, đúng nghĩa lưới mẫu.
     grid:
       '<rect width="7" height="7" x="3" y="3" rx="1"/>' +
       '<rect width="7" height="7" x="14" y="3" rx="1"/>' +
       '<rect width="7" height="7" x="14" y="14" rx="1"/>' +
       '<rect width="7" height="7" x="3" y="14" rx="1"/>',
-    // eye: nút "Xem thử" trên từng thẻ mẫu — cặp đôi của eye-off bên dưới.
+    // eye: nút "Xem trước" trên từng thẻ mẫu — cặp đôi của eye-off bên dưới.
     eye:
       '<path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/>' +
       '<circle cx="12" cy="12" r="3"/>',
@@ -1115,10 +1194,11 @@ function closeTimePicker() {
     '<div class="cx-sug-acts">' +
     SUG_ACTS.map(function (it) {
       return (
-        '<div class="cx-sug-tile ' + it.cls + '" id="' + it.id + '"' +
+        '<div class="cx-sug-tile' + (it.primary ? " is-primary" : "") +
+        '" id="' + it.id + '"' +
         ' role="button" tabindex="0"' +
         ' aria-label="' + (it.aria || it.label) + '">' +
-        '<span class="cx-sug-ico">' + _sugIcon(it.icon, 22) + "</span>" +
+        '<span class="cx-sug-ico">' + _sugIcon(it.icon, 18) + "</span>" +
         '<span class="cx-sug-tile-lb">' + it.label + "</span>" +
         "</div>"
       );
@@ -1173,8 +1253,8 @@ function closeTimePicker() {
   // (giống bấm cả thẻ) và tạo nháp bằng mẫu đó luôn — khách ưng ngay tấm ảnh
   // thì khỏi phải mở mẫu ra mới bấm được "Dùng ngay" ở đáy.
   const SUG_CARD_ACTS = [
-    { act: "view", label: "Xem thử", icon: "eye" },
-    { act: "use", label: "Dùng mẫu", icon: "navigation", primary: true },
+    { act: "view", label: "Xem trước", icon: "eye" },
+    { act: "use", label: "Dùng ngay", icon: "play", primary: true },
   ];
 
   // Thẻ dùng ẢNH CHỤP SẴN của mẫu (/assets/images/templates/*.jpg) — cùng bộ
@@ -1221,7 +1301,7 @@ function closeTimePicker() {
     const cards = Array.from(row.querySelectorAll(".cx-sug-card"));
     cards.forEach(function (card) {
       card.addEventListener("click", function () { _go(card.dataset.url); });
-      // Cả thẻ là một nút → nút con phải chặn nổi bọt, không thì bấm "Dùng mẫu"
+      // Cả thẻ là một nút → nút con phải chặn nổi bọt, không thì bấm "Dùng ngay"
       // vừa tạo nháp vừa điều hướng sang trang xem thử.
       card.querySelectorAll("[data-act]").forEach(function (btn) {
         btn.addEventListener("click", function (e) {

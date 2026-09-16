@@ -64,12 +64,6 @@
   --surface-blossom-strong-rgb: 251 207 232;
 
   /* Ba ô hành động ở lớp đề xuất mẫu (bản xem thử): nền pastel + icon cùng tông */
-  --sug-home-bg-rgb: 238 240 253;
-  --sug-home-fg-rgb: 99 91 202;
-  --sug-use-bg-rgb: 253 231 240;
-  --sug-use-fg-rgb: 221 63 116;
-  --sug-all-bg-rgb: 253 236 228;
-  --sug-all-fg-rgb: 232 116 86;
 
   --border-field-rgb: 229 231 235;
   --border-subtle-rgb: 238 240 242;
@@ -225,6 +219,18 @@
   --chat-typing-dot-rgb: 249 168 196;
   --chat-message-text-rgb: 107 74 85;
   --chat-online-dot-rgb: 34 197 94;
+
+  /* Sơ đồ tính năng ở #inside — MỘT màu cho MỘT mục, đi vòng quang phổ để tám
+     mục cạnh nhau không lẫn. js/section-features.js gán bằng
+     style="--fxr-c: var(--info-N-rgb)", nên thêm mục là thêm một token ở đây. */
+  --info-1-rgb: 232 99 140;   /* hồng */
+  --info-2-rgb: 155 108 206;  /* tím */
+  --info-3-rgb: 106 112 216;  /* chàm */
+  --info-4-rgb: 74 159 224;   /* xanh dương */
+  --info-5-rgb: 38 178 170;   /* xanh ngọc */
+  --info-6-rgb: 124 189 74;   /* xanh lá */
+  --info-7-rgb: 240 178 41;   /* vàng */
+  --info-8-rgb: 242 124 92;   /* cam */
 
   /* Nút quà tặng / thanh hành động nổi */
   --gift-btn-from-rgb: 244 114 160;

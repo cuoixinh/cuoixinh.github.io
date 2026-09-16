@@ -50,7 +50,9 @@
           const ANON_KEY = CONFIG.supabase.anonKey;
           const extra = params.get("search") || "";
 
-          fetch(`${API_BASE}?slug=${slug}`, {
+          // encode: slug lấy từ path/query nên chứa được `&`, `#`… — nối thô là
+          // chèn thêm tham số vào lệnh gọi Edge Function.
+          fetch(`${API_BASE}?slug=${encodeURIComponent(slug)}`, {
             headers: { Authorization: `Bearer ${ANON_KEY}` },
           })
             // Đọc body cả khi lỗi: 403 TRIAL_EXPIRED cũng kèm theme, cần nó
@@ -79,11 +81,17 @@
                 setTimeout(() => window.location.replace("/"), 2500);
                 return;
               }
-              const theme = data.theme || "basic-gold";
+              // `theme` là tên thư mục mẫu, do khách sửa được qua API → chỉ nhận
+              // dạng slug thư mục, không thì mọi giá trị lạ đều đi vào đường dẫn.
+              const rawTheme = String(data.theme || "basic-gold");
+              const theme = /^[a-z0-9][a-z0-9-]*$/.test(rawTheme)
+                ? rawTheme
+                : "basic-gold";
               const extraSearch = extra || "";
+              const qSlug = encodeURIComponent(slug);
               const themeSearch = extraSearch
-                ? `${extraSearch}&slug=${slug}`
-                : `?slug=${slug}`;
+                ? `${extraSearch}&slug=${qSlug}`
+                : `?slug=${qSlug}`;
               window.location.replace(
                 `/public/themes/${theme}/${themeSearch}`,
               );

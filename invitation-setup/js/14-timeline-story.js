@@ -216,7 +216,7 @@ function renderLoveStoryList() {
           preview
             ? `
         <div class="relative w-16 h-16 rounded-xl overflow-hidden border border-rose-200 flex-shrink-0">
-          <img src="${preview}" class="w-full h-full object-cover"${lsFpStyle} />
+          <img src="${cxImgSrc(preview)}" class="w-full h-full object-cover"${lsFpStyle} />
           <x-button variant="overlay" size="xs" icon-only type="button" onclick="adjustLoveStoryFocalPoint(${idx})" title="Chỉnh điểm lấy nét" class="absolute bottom-0.5 right-0.5">
             <i data-lucide="focus" class="w-3 h-3"></i>
           </x-button>
@@ -303,8 +303,56 @@ async function adjustLoveStoryFocalPoint(idx) {
   showToast("Đã cập nhật điểm lấy nét", "success");
 }
 
+// Ảnh mốc chuyện tình yêu không nằm trong cột ảnh nào nên không luồng dọn nào
+// thấy nó: bỏ ảnh mà không xếp hàng ở đây là file nằm lại bucket vĩnh viễn.
+// URL đầy đủ là ảnh dán từ nơi khác, không phải file của mình.
+function _queueLoveStoryImageDelete(idx) {
+  const url = _loveStoryItems[idx]?.image_url;
+  if (url && !/^https?:\/\//i.test(url)) deletedImages.singleImages.push(url);
+}
+
+// AI chỉ thay CHỮ của chuyện tình yêu, không bao giờ đụng ảnh. Mọi luồng AI ghi
+// đè danh sách (viết chuyện tình, viết cả thiệp…) phải đi qua đây.
+// Ảnh bám theo VỊ TRÍ mốc. Bản AI ngắn hơn danh sách đang có thì mốc dôi ra vẫn
+// được giữ dưới dạng mốc TRỐNG để ảnh không mất — xoá mốc là việc của khách.
+// Mốc dôi ra mà không có ảnh thì bỏ, giữ lại chỉ tổ thành hàng rỗng vô nghĩa.
+function applyLoveStoryText(newItems) {
+  const texts = (newItems || []).slice(0, MAX_LOVE_STORY_ITEMS);
+  const merged = [];
+  const pending = {};
+  const total = Math.max(texts.length, _loveStoryItems.length);
+
+  for (let i = 0; i < total && merged.length < MAX_LOVE_STORY_ITEMS; i++) {
+    const old = _loveStoryItems[i];
+    const t = texts[i];
+    const file = _loveStoryPendingImages[i];
+    if (!t && !old?.image_url && !file) continue;
+
+    if (file) pending[merged.length] = file; // bỏ mốc rỗng ở giữa → phải khớp key mới
+    merged.push({
+      date: t?.date || "",
+      title: t?.title || "",
+      content: t?.content || "",
+      image_url: old?.image_url ?? null,
+      focal_point: old?.focal_point ?? null,
+    });
+  }
+
+  _loveStoryItems.length = 0;
+  _loveStoryItems.push(...merged);
+  Object.keys(_loveStoryPendingImages).forEach(
+    (k) => delete _loveStoryPendingImages[k],
+  );
+  Object.assign(_loveStoryPendingImages, pending);
+  _loveStoryKeyExists = true;
+  _syncLoveStoryHidden();
+  renderLoveStoryList();
+  _idbSaveLoveStoryImages();
+}
+
 function removeLoveStoryImage(idx) {
   delete _loveStoryPendingImages[idx];
+  _queueLoveStoryImageDelete(idx);
   _loveStoryItems[idx].image_url = null;
   _loveStoryItems[idx].focal_point = null;
   _syncLoveStoryHidden();
@@ -330,6 +378,7 @@ function addLoveStoryItem() {
 
 function removeLoveStoryItem(idx) {
   delete _loveStoryPendingImages[idx];
+  _queueLoveStoryImageDelete(idx);
   _loveStoryItems.splice(idx, 1);
   // Re-key pending images after splice
   const reKeyed = {};

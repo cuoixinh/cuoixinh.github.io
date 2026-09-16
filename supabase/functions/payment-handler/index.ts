@@ -9,6 +9,22 @@ const corsHeaders = {
 
 const PAYOS_API_BASE = "https://api-merchant.payos.vn";
 
+// Miền được phép làm gốc cho returnUrl/cancelUrl của đơn PayOS. Giữ khớp với
+// ALLOWED_ORIGINS ở wedding-admin / guest-handler / _shared/ai-provider.ts.
+const ALLOWED_BASE_URLS = [
+  "https://cuoixinh.com",
+  "https://www.cuoixinh.com",
+  "https://staging.cuoixinh.com",
+];
+
+function allowedBaseUrl(origin: string | null): string {
+  if (!origin) return ALLOWED_BASE_URLS[0];
+  if (ALLOWED_BASE_URLS.includes(origin)) return origin;
+  // Trang admin chỉ chạy local, vẫn cần tạo đơn thử.
+  if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) return origin;
+  return ALLOWED_BASE_URLS[0];
+}
+
 async function generateSignature(data: Record<string, any>, secretKey: string): Promise<string> {
   const sortedKeys = Object.keys(data).sort();
   const sortedData: Record<string, any> = {};
@@ -111,6 +127,20 @@ function getPayOSCredentials() {
 // Danh tính người áp mã. Dùng để chặn một người ôm nhiều lượt cùng lúc và để
 // gác mã giảm 100% (chỉ chấp nhận uid:), nên KHÔNG chỉ là thông tin tra cứu.
 // Ưu tiên user_id từ JWT, khách chưa đăng nhập thì lấy email trong form.
+// user_id từ JWT, hoặc null nếu chưa đăng nhập / chỉ gửi anon key.
+// Khác `resolveUserKey`: hàm này KHÔNG lùi về email, vì nó dùng để xét QUYỀN.
+async function resolveAuthUserId(req: Request, supabaseClient: any): Promise<string | null> {
+  const jwt = (req.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "").trim();
+  if (!jwt || jwt === Deno.env.get("SUPABASE_ANON_KEY")) return null;
+  try {
+    const { data, error } = await supabaseClient.auth.getUser(jwt);
+    if (error) return null;
+    return data?.user?.id ?? null;
+  } catch {
+    return null;
+  }
+}
+
 async function resolveUserKey(req: Request, supabaseClient: any, email?: string): Promise<string | null> {
   const jwt = (req.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "").trim();
   if (jwt && jwt !== Deno.env.get("SUPABASE_ANON_KEY")) {
@@ -205,6 +235,9 @@ async function handleCreatePayment(req: Request, supabaseClient: any, log: Logge
   // mã QR, không thể tính là đã dùng mã. (Bỏ ngang SAU khi có QR thì mất lượt —
   // ca đó không đi qua đây.)
   let reservedOrderId: string | null = null;
+  // Slug thiệp đang có (nếu thiệp đã tồn tại). Đơn thanh toán KHÔNG được đặt lại
+  // slug của thiệp đã có: link đã phát cho khách mời sẽ chết.
+  let existingSlug: string | null = null;
   const releasePromo = async () => {
     if (!reservedOrderId) return;
     const { error } = await supabaseClient.rpc("cx_promo_release", { p_order_id: reservedOrderId });
@@ -220,6 +253,38 @@ async function handleCreatePayment(req: Request, supabaseClient: any, log: Logge
     // khoản đang đăng nhập, mà cả hai đường đăng nhập (OTP email, Google) đều
     // không có số điện thoại → bắt buộc là chặn đúng mọi đơn. Số này chỉ ghi vào
     // payload của payment_logs, PayOS không dùng tới.
+    // ── Quyền với `manage_id` ────────────────────────────────────────────────
+    // BẮT BUỘC: hàm này `upsert` thẳng vào `weddings` theo id client gửi lên. Bỏ
+    // phép kiểm này là ai cũng lấy được `id` từ `GET ?slug=` công khai rồi ghi đè
+    // slug/theme/trạng thái thanh toán của thiệp người khác
+    // (xem docs/security-checklist.md A2).
+    const buyerId = await resolveAuthUserId(req, supabaseClient);
+    if (!buyerId) {
+      return new Response(JSON.stringify({
+        error: "Vui lòng đăng nhập để thanh toán",
+        code: "AUTH_REQUIRED",
+      }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    if (manage_id) {
+      const { data: owned } = await supabaseClient
+        .from("weddings")
+        .select("user_id, slug")
+        .eq("id", manage_id)
+        .maybeSingle();
+
+      // Thiệp đã có chủ mà không phải người đang gọi → chặn. Thiệp chưa có chủ
+      // (nháp cũ) thì người thanh toán nhận làm chủ luôn.
+      if (owned && owned.user_id && owned.user_id !== buyerId) {
+        log.warn("payment.manage_id_forbidden", { manage_id, buyerId });
+        return new Response(JSON.stringify({
+          error: "Bạn không có quyền thanh toán cho thiệp này",
+          code: "FORBIDDEN",
+        }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+      existingSlug = owned?.slug ?? null;
+    }
+
     const missing = { manage_id, customer_name, template_name };
     const missingKeys = Object.keys(missing).filter((k) => !missing[k as keyof typeof missing]);
 
@@ -320,8 +385,9 @@ async function handleCreatePayment(req: Request, supabaseClient: any, log: Logge
         .trim();
     };
     
+    // Thiệp đã có slug thì GIỮ NGUYÊN — khách có thể đã chia sẻ link rồi.
     const baseSlug = removeVietnameseAccents(customer_name);
-    const finalSlug = await getUniqueSlug(supabaseClient, baseSlug, manage_id);
+    const finalSlug = existingSlug || (await getUniqueSlug(supabaseClient, baseSlug, manage_id));
 
     const pricingPayload = {
       price: pricingData.price,
@@ -357,6 +423,7 @@ async function handleCreatePayment(req: Request, supabaseClient: any, log: Logge
         .from("weddings")
         .upsert({
           id: manage_id,
+          user_id: buyerId,
           slug: finalSlug,
           payment_status: "completed",
           payment_order_id: fullOrderId,
@@ -401,7 +468,9 @@ async function handleCreatePayment(req: Request, supabaseClient: any, log: Logge
     }
 
     const payosCredentials = getPayOSCredentials();
-    const baseUrl = req.headers.get("origin") || "https://yourdomain.com";
+    // returnUrl/cancelUrl đi vào đơn PayOS nên không nhận Origin tuỳ ý — chỉ các
+    // miền của hệ thống (khớp ALLOWED_ORIGINS của các function khác).
+    const baseUrl = allowedBaseUrl(req.headers.get("origin"));
 
     // Lỗi từ đây trở đi (PayOS từ chối, ghi DB hỏng…) đều rơi xuống catch cuối
     // hàm và nhả lượt mã đã giữ.
@@ -422,6 +491,7 @@ async function handleCreatePayment(req: Request, supabaseClient: any, log: Logge
       .from("weddings")
       .upsert({
         id: manage_id,
+        user_id: buyerId,
         slug: finalSlug,
         payment_status: "pending",
         payment_order_id: fullOrderId,

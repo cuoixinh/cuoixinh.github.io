@@ -5,11 +5,7 @@
 // ============= HELPER FUNCTIONS =============
 
 function generateUUID() {
-  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
-    const r = (Math.random() * 16) | 0;
-    const v = c === "x" ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
-  });
+  return cxUUID();
 }
 
 // Build full image URL from filename
@@ -92,7 +88,7 @@ function renderGalleryGrid() {
     div.style.width = "100%";
     div.style.aspectRatio = "1";
     div.innerHTML = `
-      <img src="${fullUrl}" alt="Gallery ${index + 1}" class="w-full h-full object-contain" style="object-position: ${fp.x}% ${fp.y}%" />
+      <img src="${cxImgSrc(fullUrl)}" alt="Gallery ${index + 1}" class="w-full h-full object-contain" style="object-position:${cxFocal(fp)}" />
       <x-button variant="overlay" size="xs" icon-only onclick="adjustGalleryFocalPoint(${index}, '${fullUrl}')" title="Chỉnh điểm lấy nét" class="absolute bottom-1 right-1">
         <i data-lucide="focus" class="w-3.5 h-3.5"></i>
       </x-button>
@@ -114,7 +110,7 @@ function renderGalleryGrid() {
     div.style.width = "100%";
     div.style.aspectRatio = "1";
     div.innerHTML = `
-      <img src="${url}" alt="New ${index + 1}" class="w-full h-full object-contain" style="object-position: ${fp.x}% ${fp.y}%" />
+      <img src="${cxImgSrc(url)}" alt="New ${index + 1}" class="w-full h-full object-contain" style="object-position:${cxFocal(fp)}" />
       <x-button variant="overlay" size="xs" icon-only onclick="adjustGalleryFocalPoint(${globalIndex}, '${url}')" title="Chỉnh điểm lấy nét" class="absolute bottom-1 right-1">
         <i data-lucide="focus" class="w-3.5 h-3.5"></i>
       </x-button>
@@ -199,7 +195,7 @@ function renderSingleImageUpload(fieldName) {
   const _fp = FOCAL_POINT_FIELDS.includes(fieldName)
     ? pendingFocalPoints[fieldName]
     : null;
-  const _fpStyle = _fp ? ` style="object-position: ${_fp.x}% ${_fp.y}%"` : "";
+  const _fpStyle = _fp ? ` style="object-position:${cxFocal(_fp)}"` : "";
 
   // Nút chỉnh khung: QR → cắt lại (crop); ảnh khác → điểm lấy nét (focal)
   const _adjustBtn = CROP_FIELDS.includes(fieldName)
@@ -224,7 +220,7 @@ function renderSingleImageUpload(fieldName) {
       div.style.aspectRatio = _PREVIEW_BOX[fieldName].aspectRatio;
     }
     div.innerHTML = `
-      <img src="${url}" alt="Preview" class="w-full h-full ${objectFit}"${_fpStyle} />
+      <img src="${cxImgSrc(url)}" alt="Preview" class="w-full h-full ${objectFit}"${_fpStyle} />
       ${_adjustBtn}
       <x-button tone="danger" size="xs" icon-only onclick="removeImage('${fieldName}')" title="Xoá ảnh" class="absolute top-1 right-1">
         <img src="../assets/icons/bin.png" alt="Delete" class="w-3.5 h-3.5" />
@@ -248,7 +244,7 @@ function renderSingleImageUpload(fieldName) {
         div.style.aspectRatio = _PREVIEW_BOX[fieldName].aspectRatio;
       }
       div.innerHTML = `
-        <img src="${fullUrl}" alt="Preview" class="w-full h-full ${objectFit}"${_fpStyle} />
+        <img src="${cxImgSrc(fullUrl)}" alt="Preview" class="w-full h-full ${objectFit}"${_fpStyle} />
         ${_adjustBtn}
         <x-button tone="danger" size="xs" icon-only onclick="removeImage('${fieldName}')" title="Xoá ảnh" class="absolute top-1 right-1">
           <img src="../assets/icons/bin.png" alt="Delete" class="w-3.5 h-3.5" />

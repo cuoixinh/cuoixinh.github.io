@@ -1,29 +1,38 @@
-// --- Steps list (#steps) ---
+// Sơ đồ "4 bước" ở #steps: mỗi bước một hàng, so le trái/phải, nối với nhau
+// bằng chấm + đường chéo. Hình dạng ở styles/tailwind-src.css (khối "SƠ ĐỒ
+// 4 BƯỚC"); ở đây chỉ có nội dung + màu (token --info-N-rgb ở _colors.css).
+// Bước CUỐI không có đường nối — thêm/bớt bước thì giữ nguyên luật đó.
 
 const STEPS_DATA = [
-  { n: 1, icon: "palette",        title: "Chọn mẫu thiệp",      desc: "Xem trước trực tiếp. Đổi mẫu thoải mái, miễn phí.",          last: false },
-  { n: 2, icon: "square-pen",  title: "Điền thông tin",       desc: "Tên, ảnh, ngày cưới, câu chuyện tình yêu, nhạc nền...",    last: false },
-  { n: 3, icon: "eye",            title: "Xem trước & chia sẻ", desc: "Xem thiệp thật, gửi link cho người thân thử trước.",       last: false },
-  { n: 4, icon: "lock",           title: "Thanh toán một lần",   desc: "Ưng ý mới cần thanh toán. Một lần — dùng trọn đời.",       last: true  },
+  { icon: "palette",   color: 4, title: "Chọn mẫu thiệp",       desc: "Xem trước trực tiếp. Đổi mẫu thoải mái, miễn phí." },
+  { icon: "square-pen", color: 8, title: "Điền thông tin",      desc: "Tên, ảnh, ngày cưới, câu chuyện tình yêu, nhạc nền..." },
+  { icon: "eye",       color: 2, title: "Xem trước & chia sẻ",  desc: "Xem thiệp thật, gửi link cho người thân thử trước." },
+  { icon: "lock",      color: 6, title: "Thanh toán một lần",   desc: "Ưng ý mới cần thanh toán. Một lần — dùng trọn đời." },
 ];
+
+// Đường chéo vẽ một chiều (góc trên-phải xuống góc dưới-trái), hàng bên phải
+// lật ngang bằng CSS nên markup mọi hàng giống hệt nhau.
+const _STEP_LINK =
+  '<svg class="stp-link" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">' +
+  '<line x1="100" y1="0" x2="0" y2="100" vector-effect="non-scaling-stroke"/></svg>';
 
 function renderSteps() {
   const el = document.getElementById("stepsList");
   if (!el) return;
-  el.innerHTML = STEPS_DATA.map((s) => `
-<div class="step-card reveal reveal-delay-${s.n}${s.last ? "" : " relative"} text-center px-2">
-  ${s.last ? "" : '<div class="hidden md:block step-connector"></div>'}
-  <div class="relative w-16 h-16 mx-auto mb-5">
-    <span class="absolute -top-1 -right-2 text-5xl font-black leading-none select-none pointer-events-none" style="color:rgb(var(--brand-primary-rgb)/0.22);">${s.n}</span>
-    <div class="w-16 h-16 rounded-2xl flex items-center justify-center" style="background:linear-gradient(135deg,rgb(var(--surface-blossom-rgb)),rgb(var(--surface-blossom-strong-rgb)));box-shadow:0 4px 18px rgb(var(--action-accent-light-rgb)/0.18);">
-      <span style="color:rgb(var(--landing-step-icon-rgb));"><i data-lucide="${s.icon}" style="width:22px;height:22px"></i></span>
+  const last = STEPS_DATA.length - 1;
+  el.innerHTML = STEPS_DATA.map((s, i) => `
+<div class="stp-item ${i % 2 ? "stp-r" : "stp-l"} reveal reveal-delay-${(i % 3) + 1}" style="--stp-c: var(--info-${s.color}-rgb)">
+  <div class="stp-card">
+    <span class="stp-ico"><i data-lucide="${s.icon}"></i></span>
+    <div class="stp-txt">
+      <p class="stp-title">${s.title}</p>
+      <p class="stp-desc">${s.desc}</p>
     </div>
+    <span class="stp-tab">Bước<em>${i + 1}</em></span>
+    <span class="stp-num"><b>${String(i + 1).padStart(2, "0")}</b></span>
   </div>
-  <div class="inline-flex items-center mb-3 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-widest uppercase" style="background:rgb(var(--brand-primary-rgb)/0.18);color:rgb(var(--brand-accent-rgb));">Bước ${s.n}</div>
-  <h3 class="font-playfair font-semibold mb-2 text-[rgb(var(--text-heading-rgb))]">${s.title}</h3>
-  <p class="text-sm opacity-60 leading-relaxed">${s.desc}</p>
+  <span class="stp-dot"></span>${i === last ? "" : _STEP_LINK}
 </div>`).join("");
   window.lucide?.createIcons({ root: el });
   setupRevealObserver();
 }
-

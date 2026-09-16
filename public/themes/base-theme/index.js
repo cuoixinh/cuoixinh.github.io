@@ -248,9 +248,9 @@
       const cell = document.createElement("div");
       cell.className =
         "aspect-[3/4] rounded-xl overflow-hidden cursor-pointer shadow-sm";
-      cell.innerHTML = `<img src="${url}" alt="" loading="lazy"
+      cell.innerHTML = `<img src="${cxImgSrc(url)}" alt="" loading="lazy"
         class="w-full h-full object-cover"
-        style="object-position:${fp?.x ?? 50}% ${fp?.y ?? 50}%">`;
+        style="object-position:${cxFocal(fp)}">`;
       cell.addEventListener("click", () => openLightbox(i));
       grid.appendChild(cell);
     });

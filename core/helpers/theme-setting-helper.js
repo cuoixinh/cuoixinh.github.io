@@ -2582,6 +2582,9 @@ if (typeof window !== "undefined" && window.top !== window) {
 // Trong iframe chỉnh (edit=1): nhận lệnh "thêm khối" từ trang cha.
 if (typeof window !== "undefined" && window.top !== window) {
   window.addEventListener("message", (ev) => {
+    // Chỉ nghe trang CHA đã nhúng mình; site lạ iframe trang thiệp rồi bắn lệnh
+    // vào thì không tính (xem docs/security-checklist.md A8).
+    if (ev.source !== window.parent) return;
     const d = ev.data;
     if (!d || !_isEditMode()) return;
     if (d.type === "cx-add-block") _cxAdd(d.blockType);
@@ -3092,6 +3095,7 @@ if (typeof window !== "undefined") {
     window.addEventListener("resize", _positionDelBtn);
 
     window.addEventListener("message", (ev) => {
+      if (ev.source !== window.parent) return;
       const d = ev.data;
       if (!d) return;
       // Trang cha yêu cầu bỏ chọn (đóng bảng chỉnh) → xoá viền đang chọn.

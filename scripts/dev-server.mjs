@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Server tĩnh CHỈ dùng khi chạy local (thay Live Server / python -m http.server).
 //
-//   npm run dev                    → http://localhost:8000, dữ liệu STAGING
+//   npm run dev                    → http://localhost:5500, dữ liệu STAGING
 //   npm run dev -- --env=production→ chạy trên dữ liệu production (thiệp thật)
 //   npm run dev -- --port=5500     → đổi cổng
 //   npm run dev -- --no-reload     → tắt tự tải lại khi sửa file
@@ -28,7 +28,7 @@ const flag = (name, fallback) => {
   return hit ? hit.slice(name.length + 3) : fallback;
 };
 const ENV = flag("env", "staging");
-const PORT = Number(flag("port", 8000));
+const PORT = Number(flag("port", 5500));
 const RELOAD = !args.includes("--no-reload");
 
 const MIME = {

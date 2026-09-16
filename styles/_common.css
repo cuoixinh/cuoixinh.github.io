@@ -505,14 +505,16 @@
   gap: 10px;
   /* Lề đáy CỐ ĐỊNH, không cộng env(safe-area-inset-bottom) — xem .cx-tabbar. */
   padding: 12px 12px 14px;
-  /* Dải tối RẤT nhạt ở nửa dưới: đủ để thẻ trắng không chìm vào thiệp nền sáng,
-     chưa đủ để che mất thiệp. Không backdrop-filter — làm mờ vùng phía sau buộc
-     trình duyệt vẽ lại mỗi khung hình, giật trên máy yếu. */
+  /* Dải tối dâng từ đáy: đủ đậm để thẻ trắng và nhãn dưới nút tròn nổi hẳn khỏi
+     thiệp nền sáng, phần trên vẫn trong để không che mất thiệp. Không
+     backdrop-filter — làm mờ vùng phía sau buộc trình duyệt vẽ lại mỗi khung
+     hình, giật trên máy yếu. */
   background: linear-gradient(
     to top,
-    rgb(var(--scrim-rgb) / 0.34) 0%,
-    rgb(var(--scrim-rgb) / 0.16) 42%,
-    transparent 72%
+    rgb(var(--scrim-rgb) / 0.62) 0%,
+    rgb(var(--scrim-rgb) / 0.46) 28%,
+    rgb(var(--scrim-rgb) / 0.24) 55%,
+    transparent 80%
   );
   opacity: 0;
   pointer-events: none;
@@ -735,98 +737,152 @@
   padding-top: 8px;
 }
 
+/* Cùng công thức với cặp nút ở thẻ mẫu (.tt-btn-* trong tailwind-src.css):
+   "Xem trước" viền hồng nền trắng, "Dùng ngay" hồng đặc. Đổi một bên thì đổi
+   cả hai, hai chỗ cố ý nhìn như một bộ. */
+
 .cx-sug-mini-btn {
   gap: 4px;
-  height: 24px;
-  padding: 0 8px;
+  height: 26px;
+  padding: 0 10px;
   cursor: pointer;
   white-space: nowrap;
   font-size: 10.5px;
   font-weight: 600;
   line-height: 1;
-  border: 1px solid rgb(var(--border-field-rgb));
-  color: rgb(var(--text-heading-rgb));
+  border: 1px solid rgb(var(--brand-primary-rgb));
+  color: rgb(var(--brand-accent-rgb));
   background: rgb(var(--white-rgb));
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.cx-sug-mini-btn:hover {
+  border-color: rgb(var(--brand-accent-rgb));
+  background: rgb(var(--surface-brand-rgb));
 }
 
 .cx-sug-mini-btn.is-primary {
   border-color: transparent;
   color: rgb(var(--white-rgb));
   background: rgb(var(--action-primary-rgb));
+  box-shadow: 0 4px 12px rgb(var(--action-primary-rgb) / 0.32);
 }
 
-/* Icon 12px trong nút 24px — bó sát chữ, không cho co giãn theo nhãn dài. */
-
-.cx-sug-mini-btn .cx-sug-ico {
-  flex: 0 0 auto;
+.cx-sug-mini-btn.is-primary:hover {
+  background: rgb(var(--action-primary-hover-rgb));
 }
 
-/* ── Ba ô hành động ở đáy bảng ─────────────────────────────────────────────
-   Ô VUÔNG bo góc lớn, icon trên nhãn dưới, mỗi ô một tông pastel (kiểu ô ứng
-   dụng trên màn hình chính điện thoại) — không phải nút pill. Ba cột đều nhau
-   bằng grid: nhãn dài ngắn khác nhau nhưng ô phải bằng nhau.
+/* ── Ba lối ra ở đáy bảng ──────────────────────────────────────────────────
+   "Dùng ngay" là pill hồng đặc ở GIỮA; "Trang chủ" và "Kho mẫu" là nút TRÒN chỉ
+   có icon, nhãn nhỏ nằm dưới — hai việc phụ nên không được to ngang việc chính.
+   Cả hàng dồn vào giữa và canh theo MÉP TRÊN để pill thẳng hàng với hai vòng
+   tròn (nhãn dưới cao thấp khác nhau thì hàng vẫn phẳng).
    Là <div role="button"> nên chuột lẫn bàn phím đều do JS nối (utils.js). */
 
 .cx-sug-acts {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 16px;
 }
 
 .cx-sug-tile {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
+  gap: 5px;
   min-width: 0;
-  min-height: 76px;
-  padding: 12px 8px;
   cursor: pointer;
-  border-radius: 16px;
-  box-shadow: 0 6px 18px rgb(var(--scrim-rgb) / 0.18);
-  transition: transform 0.18s ease;
+  color: rgb(var(--brand-accent-rgb));
 }
 
-.cx-sug-tile:active {
+/* Vòng tròn đựng icon — nền đặc vì bảng đề xuất là lớp kính mờ, nền trong suốt
+   thì nút chìm vào chính tấm ảnh thiệp nằm dưới. */
+
+.cx-sug-tile .cx-sug-ico {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  background: rgb(var(--surface-brand-rgb));
+  border: 1px solid rgb(var(--brand-primary-rgb));
+  transition:
+    transform 0.18s ease,
+    color 0.18s ease,
+    background-color 0.18s ease;
+}
+
+.cx-sug-tile:hover .cx-sug-ico {
+  color: rgb(var(--white-rgb));
+  background: rgb(var(--brand-accent-rgb));
+  border-color: rgb(var(--brand-accent-rgb));
+}
+
+.cx-sug-tile:active .cx-sug-ico {
+  transform: scale(0.92);
+}
+
+/* Nút chính: pill hồng đặc, cao đúng bằng vòng tròn để cả hàng thẳng mép trên. */
+
+.cx-sug-tile.is-primary {
+  flex-direction: row;
+  gap: 8px;
+  height: 44px;
+  padding: 0 22px;
+  border-radius: 999px;
+  color: rgb(var(--white-rgb));
+  background: rgb(var(--action-primary-rgb));
+  box-shadow: 0 6px 16px rgb(var(--action-primary-rgb) / 0.35);
+  transition:
+    transform 0.18s ease,
+    background-color 0.18s ease;
+}
+
+.cx-sug-tile.is-primary:hover {
+  background: rgb(var(--action-primary-hover-rgb));
+}
+
+.cx-sug-tile.is-primary:active {
   transform: scale(0.96);
 }
 
-/* Nhãn cắt một dòng: ô hẹp mà chữ xuống dòng là ba ô lệch cao nhau. */
+.cx-sug-tile.is-primary .cx-sug-ico {
+  width: auto;
+  height: auto;
+  border: 0;
+  background: none;
+}
+
+/* Nhãn cắt một dòng: nút hẹp mà chữ xuống dòng là cả hàng lệch cao nhau. */
 
 .cx-sug-tile-lb {
-  max-width: 100%;
+  max-width: 88px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   line-height: 1;
   letter-spacing: 0.2px;
-  color: rgb(var(--text-title-rgb));
+  color: rgb(var(--text-heading-rgb));
+  /* Nhãn nằm trên lớp kính mờ, dưới nữa là ảnh thiệp: quầng trắng mảnh để chữ
+     không tan vào tấm ảnh. */
+  text-shadow: 0 1px 3px rgb(var(--white-rgb) / 0.9);
 }
 
-/* Icon ăn theo `color` của ô nên chỉ cần đặt màu ở đây. */
-
-.cx-sug-tile.is-home {
-  color: rgb(var(--sug-home-fg-rgb));
-  background: rgb(var(--sug-home-bg-rgb));
-}
-
-.cx-sug-tile.is-use {
-  color: rgb(var(--sug-use-fg-rgb));
-  background: rgb(var(--sug-use-bg-rgb));
-}
-
-.cx-sug-tile.is-all {
-  color: rgb(var(--sug-all-fg-rgb));
-  background: rgb(var(--sug-all-bg-rgb));
+.cx-sug-tile.is-primary .cx-sug-tile-lb {
+  max-width: none;
+  font-size: 13px;
+  color: inherit;
+  text-shadow: none;
 }
 
 .cx-sug-ico {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex: 0 0 auto;
   color: inherit;
 }
 

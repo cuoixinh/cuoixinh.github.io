@@ -9,10 +9,12 @@ export default {
     const url = new URL(request.url);
 
     // Lấy filename từ path: /abc123.jpg
-    const filename = url.pathname.slice(1); // bỏ dấu / đầu
+    const filename = decodeURIComponent(url.pathname.slice(1)); // bỏ dấu / đầu
 
-    if (!filename) {
-      return new Response("Missing filename", { status: 400 });
+    // ALLOWLIST ký tự, khớp tên do core/bl/image-bl.js sinh ra. Nối thẳng
+    // pathname vào URL storage thì `%2e%2e%2f` đi ra khỏi thư mục bucket.
+    if (!/^[A-Za-z0-9._-]{1,120}$/.test(filename)) {
+      return new Response("Invalid filename", { status: 400 });
     }
 
     // Check cache trước

@@ -551,8 +551,16 @@ function pluckStreamingText(buf: string): { text: string; closed: boolean } | nu
 // Một bảng chung cho cả user lẫn IP: subject = "u:<uuid>" hoặc "ip:<addr>".
 
 function clientIp(req: Request): string {
+  // Cloudflare/Supabase đặt cf-connecting-ip từ kết nối THẬT, client không giả
+  // được. Với x-forwarded-for phải lấy phần tử CUỐI (do proxy của mình nối vào);
+  // lấy phần tử ĐẦU là lấy đúng giá trị client tự gửi → bypass rate limit sạch sẽ
+  // (docs/security-checklist.md A10).
+  const cf = req.headers.get('cf-connecting-ip')
+  if (cf) return cf.trim()
   const fwd = req.headers.get('x-forwarded-for') ?? ''
-  return fwd.split(',')[0].trim() || req.headers.get('x-real-ip') || 'unknown'
+  const parts = fwd.split(',').map((p) => p.trim()).filter(Boolean)
+  if (parts.length) return parts[parts.length - 1]
+  return req.headers.get('x-real-ip') || 'unknown'
 }
 
 async function enforceRateLimit(

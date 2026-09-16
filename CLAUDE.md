@@ -10,12 +10,16 @@ Ngôn ngữ làm việc: **tiếng Việt**.
 **Stack:** Vanilla JS + Tailwind (build CLI) · Supabase (Postgres/Storage/Edge Functions) ·
 PayOS · Cloudflare Pages + Workers.
 
+**Đụng tới bảo mật thì đọc `docs/security-checklist.md` TRƯỚC** — file đó ghi hạng mục nào đã
+rà và đang đúng (kèm chốt nằm ở đâu), hạng mục nào còn hở, nên không phải dò lại từ đầu. Vá
+hay phát hiện thêm thì cập nhật đúng dòng ở đó.
+
 ## Chạy local
 
 ```bash
 npm install
 npm run build                  # build 2 file CSS
-npm run dev                    # http://localhost:8000 — dữ liệu STAGING
+npm run dev                    # http://localhost:5500 — dữ liệu STAGING
 ```
 
 Sửa CSS thì `npm run watch:css` (ứng dụng) hoặc `npm run watch:themes` (thiệp).
@@ -268,12 +272,18 @@ RLS nên khách mời không đăng nhập vẫn xem được.
 
 - **Tên file không được chứa `wedding_id`** (hay bất cứ định danh nào tra ngược ra thiệp).
   Ai liệt kê được bucket sẽ suy ra id rồi lấy tiếp hồ sơ qua Edge Function — đúng lỗ hổng
-  `changelogs/RC01/manual/dqvinh_001_storage_policies.sql` vá. Liên hệ file ↔ thiệp giữ ở các cột `*_url` của hàng DB;
-  `wedding-admin` (`deleted_images`) và `cleanup-weddings` đều đọc từ đó.
-- **Policy trên `storage.objects` chỉ cấp `select`/`insert` cho `authenticated`.** Không cấp
-  `delete`/`update` cho ai: xoá ảnh là việc của Edge Function bằng service_role (bỏ qua RLS),
-  và nó kiểm ảnh có thuộc đúng thiệp không trước khi xoá. Thêm policy cho `anon` là mở lại
-  đường liệt kê toàn bộ kho.
+  `changelogs/RC01/manual/dqvinh_001_storage_policies.sql` vá. Liên hệ file ↔ thiệp giữ ở hàng DB
+  (các cột `*_url`, `gallery_images`, và `image_url` trong `love_story`) —
+  **`supabase/functions/_shared/wedding-images.ts` là nơi DUY NHẤT liệt kê chúng**, dùng chung
+  cho `deleted_images` + DELETE của `wedding-admin` và cron `cleanup-weddings`. Thêm cột ảnh
+  mới mà quên khai ở đó thì file nằm lại bucket vĩnh viễn, không luồng dọn nào thấy.
+- **Policy trên `storage.objects` chỉ cấp `insert` cho `authenticated`, còn `select` bó vào
+  `owner_id = auth.uid()`.** Cho `select` chỉ theo `bucket_id` là mọi tài khoản đăng nhập
+  liệt kê được toàn bộ kho (`/object/list/`) — Security Advisor báo đúng chỗ đó. Mà bỏ hẳn
+  `select` cũng không được: upload chạy `insert ... returning`, Postgres đòi policy `select`
+  cho mệnh đề RETURNING. Không cấp `delete`/`update` cho ai: xoá ảnh là việc của Edge
+  Function bằng service_role (bỏ qua RLS), và nó kiểm ảnh có thuộc đúng thiệp không trước
+  khi xoá. Thêm policy cho `anon` là mở lại đường liệt kê toàn bộ kho.
 - Kéo theo: **chưa đăng nhập thì KHÔNG upload** (`invitation-setup/js/12-uploads.js` chặn
   sẵn). Nháp của khách chưa đăng nhập — kể cả ảnh — nằm trong IndexedDB, đẩy lên ở lần lưu
   đầu tiên sau khi đăng nhập.
@@ -457,6 +467,17 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
 - **Dải segmented `.cx-seg`** (`styles/_common.css`): con trượt chạy theo hai biến `--n`
   (số nút) và `--i` (nút đang chọn), nút đang chọn thêm `.is-on` — JS chỉ đặt bấy nhiêu.
   Dùng cho vùng miền ở popup AI và các tab Nhà trai/Nhà gái.
+- **Giá thiệp chỉ có MỘT nguồn: bảng `template_pricing`** (`templatesDAL` trả kèm theo
+  `theme`) — đúng bảng mà `payment-handler` đọc lúc tạo đơn. Màn thanh toán tự tra giá
+  theo `theme` (`_resolvePricing` ở `core/payment.js`), tham số `price`/`original` trên
+  URL `/checkout/` chỉ là bản nháp cho đỡ nháy số. **Đừng viết giá dự phòng ở client**:
+  mẫu thiếu hàng giá thì hiện "Liên hệ" và khoá nút, chứ hiện một con số là khách nhìn
+  một giá còn quét QR trả một giá khác.
+- **Thẻ mẫu thiệp:** markup ở `core/components/item-template.js`
+  (`CXItemTemplate.cardHTML/bind`), style `.tt-*` ở `styles/tailwind-src.css` — dùng CHUNG
+  cho dải "Mẫu thiệp" ở trang chủ và lưới `/theme-template`, sửa hình thức thẻ là sửa một
+  chỗ. Hành vi gắn bằng `bind(khung, {onPreview,onUse,onFav})` (uỷ quyền sự kiện), đừng
+  viết `onclick` vào markup.
 - **Trình phát nhạc:** markup ở `core/components/music-player.js`, logic ở
   `music-player-helper.js` — theme chỉ đánh dấu vai trò bằng `data-cx-music="…"`.
 - **Thành phần thả lên thiệp:** danh mục `core/helpers/element-helper.js`, runtime

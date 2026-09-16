@@ -75,13 +75,19 @@ const CXAccount = (function () {
     const pop = _pop();
     if (!pop.setItems) return _login(); // x-popover chưa nạp → ít nhất vẫn đăng nhập được
     const loggedIn = !!window.CXAuth?.isLoggedIn();
+    // Đang ở chính trang quản lý thì mục đó mang trạng thái đang mở (nền + dấu
+    // tích của x-popover) và không điều hướng lại — bấm vào chỉ đóng menu.
+    const onManage = location.pathname.startsWith(MANAGE_URL);
     pop.setItems(
       loggedIn
         ? [
             {
               icon: ICONS.cards,
               label: "Thiệp của tôi",
-              onClick: () => (window.location.href = MANAGE_URL),
+              active: onManage,
+              onClick: onManage
+                ? () => {}
+                : () => (window.location.href = MANAGE_URL),
             },
             { icon: ICONS.user, label: "Thông tin cá nhân", onClick: _profile },
             { icon: ICONS.out, label: "Đăng xuất", onClick: _logout },

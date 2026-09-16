@@ -1,27 +1,44 @@
-// --- Features list (#inside right column) ---
+// Sơ đồ tính năng ở #inside: hai cột thẻ, vòng icon chen vào mép trong mỗi thẻ.
+// Mảng chia ĐÔI theo thứ tự — nửa đầu sang cột trái, nửa sau sang cột phải; giữ
+// số CHẴN, lẻ là hai cột so le. Màu lấy theo VỊ TRÍ trong mảng (--info-N-rgb ở
+// styles/_colors.css), nên thêm mục phải thêm một token màu.
+// Hình dạng thẻ + vòng icon + nhãn số ở styles/tailwind-src.css ("SƠ ĐỒ TÍNH NĂNG").
 
 const FEATURES_DATA = [
-  { icon: "contact",     title: "Thiệp riêng từng khách mời",       desc: "Mỗi người nhận một link thiệp với tên cá nhân hóa riêng — tạo cảm giác trân trọng." },
-  { icon: "heart",        title: "Câu chuyện tình yêu",               desc: "Kể lại hành trình từ lần đầu gặp, hẹn hò đến ngày cầu hôn — với ảnh và lời kể." },
-  { icon: "calendar", title: "Lịch trình ngày cưới chi tiết",     desc: "Tiệc cưới nhà trai, tiệc nhà gái, lễ vu quy và lễ thành hôn — đầy đủ từng sự kiện." },
-  { icon: "images",       title: "Album ảnh cưới",                    desc: "Đăng tối đa 10 ảnh, hiển thị đẹp ngay trong thiệp với hiệu ứng trình chiếu." },
-  { icon: "music",        title: "Nhạc nền lãng mạn",                 desc: "Chọn bài hát yêu thích từ YouTube làm nhạc nền cho thiệp của bạn." },
-  { icon: "qr-code",       title: "QR mừng cưới & bản đồ",             desc: "QR ngân hàng nhận lì xì trực tuyến và Google Maps chỉ đường đến địa điểm tiệc." },
+  { icon: "contact",  title: "Thiệp riêng từng khách",  desc: "Mỗi người một link, có tên khách ngay trên thiệp." },
+  { icon: "heart",    title: "Câu chuyện tình yêu",     desc: "Hành trình từ lần đầu gặp đến ngày cầu hôn, kèm ảnh." },
+  { icon: "images",   title: "Album ảnh cưới",          desc: "Tối đa 10 ảnh, trình chiếu ngay trong thiệp." },
+  { icon: "calendar", title: "Lịch trình ngày cưới",    desc: "Lễ vu quy, thành hôn, tiệc hai nhà — đủ từng mốc giờ." },
+  { icon: "music",    title: "Nhạc nền lãng mạn",       desc: "Chọn bài hát yêu thích từ YouTube làm nền cho thiệp." },
+  { icon: "qr-code",  title: "Hộp mừng cưới",           desc: "QR ngân hàng để khách gửi lì xì trực tuyến." },
+  { icon: "map-pin",  title: "Bản đồ chỉ đường",        desc: "Google Maps dẫn thẳng tới địa điểm tiệc." },
+  { icon: "users",    title: "Xác nhận & lời chúc",     desc: "Khách bấm tham dự và để lại lời chúc ngay trên thiệp." },
 ];
 
-function renderFeatures() {
-  const el = document.getElementById("featuresList");
-  if (!el) return;
-  el.innerHTML = FEATURES_DATA.map(
-    (f, i) => `<div class="feature-row reveal reveal-delay-${(i % 3) + 1}">
-  <div class="feature-icon" style="color:rgb(var(--brand-primary-rgb));"><i data-lucide="${f.icon}" style="width:15px;height:15px"></i></div>
-  <div>
-    <p class="font-semibold text-sm mb-0.5 text-[rgb(var(--text-heading-rgb))]">${f.title}</p>
-    <p class="text-sm opacity-60 leading-relaxed">${f.desc}</p>
+function _featureItemHTML(f, i) {
+  const no = String(i + 1).padStart(2, "0");
+  return `<div class="fxr-item reveal reveal-delay-${(i % 3) + 1}" style="--fxr-c: var(--info-${i + 1}-rgb)">
+  <div class="fxr-card">
+    <p class="fxr-title">${f.title}</p>
+    <p class="fxr-desc">${f.desc}</p>
+    <span class="fxr-step">${no}</span>
   </div>
-</div>`,
-  ).join("");
-  window.lucide?.createIcons({ root: el });
-  setupRevealObserver();
+  <span class="fxr-bubble"><i data-lucide="${f.icon}"></i></span>
+</div>`;
 }
 
+function renderFeatures() {
+  const left = document.getElementById("featuresLeft");
+  const right = document.getElementById("featuresRight");
+  if (!left || !right) return;
+
+  const half = Math.ceil(FEATURES_DATA.length / 2);
+  left.innerHTML = FEATURES_DATA.slice(0, half).map(_featureItemHTML).join("");
+  right.innerHTML = FEATURES_DATA.slice(half)
+    .map((f, i) => _featureItemHTML(f, i + half))
+    .join("");
+
+  window.lucide?.createIcons({ root: left });
+  window.lucide?.createIcons({ root: right });
+  setupRevealObserver();
+}

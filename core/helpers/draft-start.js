@@ -7,7 +7,25 @@
 // Tailwind lẫn .ai-tray. Vì vậy popup ở đây viết bằng inline style, chỉ mượn
 // <x-button variant="bare"> lấy hình pill (x-button có mặt ở cả hai trang).
 (function () {
+  // Id quản lý thiệp — phải từ nguồn ngẫu nhiên MẬT MÃ, `Math.random()` đoán
+  // được. File này nạp cả ở trang chủ lẫn trang mẫu (không chắc có core/utils.js)
+  // nên tự dựng thay vì gọi cxUUID().
   function _uuid() {
+    if (typeof crypto !== "undefined" && crypto.randomUUID) return crypto.randomUUID();
+    if (typeof crypto !== "undefined" && crypto.getRandomValues) {
+      var b = crypto.getRandomValues(new Uint8Array(16));
+      b[6] = (b[6] & 0x0f) | 0x40;
+      b[8] = (b[8] & 0x3f) | 0x80;
+      var h = Array.prototype.map
+        .call(b, function (x) {
+          return x.toString(16).padStart(2, "0");
+        })
+        .join("");
+      return (
+        h.slice(0, 8) + "-" + h.slice(8, 12) + "-" + h.slice(12, 16) +
+        "-" + h.slice(16, 20) + "-" + h.slice(20)
+      );
+    }
     return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
       var r = (Math.random() * 16) | 0;
       return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);

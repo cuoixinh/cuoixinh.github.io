@@ -300,8 +300,8 @@
   function rbShot(url, fp, i, cls) {
     return `
       <div class="rb-shot ${cls || ""}" data-lb="${i}">
-        <img src="${url}" alt="" class="w-full h-full object-cover"
-          style="object-position:${fp?.x ?? 50}% ${fp?.y ?? 50}%" />
+        <img src="${cxImgSrc(url)}" alt="" class="w-full h-full object-cover"
+          style="object-position:${cxFocal(fp)}" />
       </div>`;
   }
 
@@ -807,7 +807,7 @@
       .map((ev) => {
         const img = ev.image_url ? getImageUrl(ev.image_url) : null;
         const fp = ev.focal_point
-          ? ` style="object-position:${ev.focal_point.x}% ${ev.focal_point.y}%"`
+          ? ` style="object-position:${cxFocal(ev.focal_point)}"`
           : "";
         return `
       <div class="rb-paper-wrap">
@@ -815,7 +815,7 @@
           ${ev.date ? `<div class="rb-story-date cx-ac">${rbInk(ev.date)}</div>` : ""}
           ${ev.title ? `<div class="rb-story-title cx-hd">${rbInk(ev.title)}</div>` : ""}
           ${ev.content ? `<div class="rb-story-text cx-hd">${rbInk(ev.content)}</div>` : ""}
-          ${img ? `<img class="rb-story-photo" src="${img}" alt=""${fp} loading="lazy" />` : ""}
+          ${img ? `<img class="rb-story-photo" src="${cxImgSrc(img)}" alt=""${fp} loading="lazy" />` : ""}
         </div>
       </div>`;
       })
