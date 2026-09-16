@@ -78,10 +78,14 @@ cũ** cho tới khi làm xong mục F. Đừng đọc bảng `[x]` bên dưới 
       `randomPart`) nên gõ thường vẫn nhận.
 
 - [x] **A6. Đổi `theme` sau khi đã thanh toán.**
-      **Đã vá** `wedding-admin` PATCH: đã thanh toán thì chỉ đổi sang mẫu có
-      `template_pricing.price ≤ payment_amount`, đắt hơn → 402 `THEME_UPGRADE_REQUIRED`.
-      Khách vẫn đổi mẫu thoải mái trong tầm tiền đã trả.
-      *Muốn mở hẳn ("trả tiền một lần, đổi mẫu tuỳ ý") thì xoá khối đó — nhớ đổi dòng này.*
+      **Đã vá** `wedding-admin` PATCH: `payment_status === 'completed'` thì MỌI lượt đổi
+      `theme` đều bị chặn → 409 `THEME_LOCKED`. Một thiệp mua đúng một mẫu; không có
+      ngoại lệ cho mẫu rẻ hơn hay bằng giá (ngang giá hôm nay, sửa bảng giá là thành
+      đường lách; rẻ hơn thì đẻ ra câu hỏi hoàn tiền). So với `existing.theme` chứ không
+      chỉ xét `!== undefined` — client gửi nguyên form mỗi lần lưu.
+      Trình chỉnh sửa nhận cờ `theme_locked` (suy từ `payment_status`, KHÔNG lộ dữ liệu
+      thanh toán) và chặn ngay trong `_applyThemeChange` — hàm đó gọi `resetThemeSetting()`
+      trước khi lưu, để chạy tiếp là khách mất tuỳ chỉnh giao diện rồi mới nhận lỗi.
 
 ### 🟡 Trung bình
 

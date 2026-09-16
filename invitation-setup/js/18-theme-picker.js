@@ -105,6 +105,14 @@ async function _applyThemeChange(newTheme, displayName) {
     closeThemePicker();
     return;
   }
+  // Chặn ở ĐÂY, trước mọi thao tác bên dưới: hàm này gọi resetThemeSetting() rồi
+  // mới lưu, nên nếu để chạy tiếp thì khách mất sạch tuỳ chỉnh giao diện xong mới
+  // nhận lỗi từ server — hỏng mà không có đường lùi.
+  if (IS_THEME_LOCKED) {
+    closeThemePicker();
+    showToast("Thiệp đã thanh toán nên không đổi được mẫu nữa", "warning");
+    return;
+  }
   // Đọc TRƯỚC _scheduleAutoSave: chính lệnh đó gọi _setDirty(true) và hạ cờ này
   // xuống, đọc sau thì lần đổi mẫu nào cũng thành "khách đã sửa".
   const wasDemoOnly = _demoFilled;

@@ -46,6 +46,12 @@ let IS_PUBLISHED = false;
 // dùng để NÓI CHO BIẾT, không khoá chức năng nào.
 let IS_TRIAL_LOCKED = false;
 
+// Thiệp đã thanh toán → mẫu bị CHỐT, PATCH của wedding-admin từ chối mọi lượt đổi
+// (code THEME_LOCKED). Cờ do server tính và gửi kèm dữ liệu thiệp. Đây là cờ DỮ
+// LIỆU chứ không phải quyền: nó chỉ để trình chỉnh sửa khỏi mời khách bấm vào một
+// thao tác chắc chắn hỏng — chốt thật nằm ở Edge Function.
+let IS_THEME_LOCKED = false;
+
 // Gán cờ và vẽ lại UI phụ thuộc phiên NGAY khi giá trị đổi. Mọi lối cập nhật cờ
 // đều đi qua đây — trước kia có nhánh chỉ gán cờ mà quên vẽ lại, nên phát hiện
 // mất phiên rồi mà nút vẫn còn nhãn "Lưu & Xuất bản".

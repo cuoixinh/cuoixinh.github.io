@@ -861,7 +861,7 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
     // Kiểm tra id tồn tại và lấy data hiện tại
     const { data: existing, error: fetchError } = await supabase
       .from('weddings')
-      .select(`${WEDDING_IMAGE_SELECT}, user_id, payment_status, payment_amount, is_published`)
+      .select(`${WEDDING_IMAGE_SELECT}, user_id, theme, payment_status, payment_amount, is_published`)
       .eq('id', id)
       .single()
 
@@ -1036,25 +1036,27 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
       fields.image_focal_points = out
     }
 
-    // ── Đổi mẫu sau khi đã thanh toán ───────────────────────────────────────
-    // Giá tính theo `theme` lúc TẠO ĐƠN, nên nếu để đổi tự do thì mua mẫu rẻ
-    // nhất rồi chuyển sang mẫu đắt nhất là xong. Cho đổi sang mẫu có giá ≤ số đã
-    // trả — khách vẫn đổi mẫu thoải mái trong tầm tiền của mình.
-    if (!isAdmin && fields.theme !== undefined && existing.payment_status === 'completed') {
-      const { data: newPricing } = await supabase
-        .from('template_pricing')
-        .select('price')
-        .eq('template_name', fields.theme)
-        .eq('is_active', true)
-        .maybeSingle()
-      const paid = Number(existing.payment_amount ?? 0)
-      if (newPricing && Number(newPricing.price) > paid) {
-        log.warn('wedding.theme_upgrade_blocked', { id, theme: fields.theme, paid })
-        return new Response(JSON.stringify({
-          error: 'Mẫu này có giá cao hơn gói bạn đã mua. Vui lòng thanh toán phần chênh lệch.',
-          code: 'THEME_UPGRADE_REQUIRED',
-        }), { status: 402, headers: corsHeaders })
-      }
+    // ── Thanh toán xong là CHỐT mẫu ─────────────────────────────────────────
+    // Giá tính theo `theme` lúc TẠO ĐƠN nên mỗi thiệp mua đúng một mẫu. Chặn MỌI
+    // lượt đổi, kể cả sang mẫu rẻ hơn hoặc bằng giá: cho đổi ngang giá thì hôm nay
+    // ngang giá, mai sửa bảng giá là thành đường lách; còn mẫu rẻ hơn thì đẻ ra
+    // câu hỏi hoàn tiền mà không có luồng nào trả lời.
+    // So với `existing.theme` chứ không chỉ xét `!== undefined`: client gửi nguyên
+    // form mỗi lần lưu nên `theme` gần như luôn có mặt, xét hớ là khoá luôn cả
+    // những lần lưu không đụng gì tới mẫu.
+    if (
+      !isAdmin &&
+      fields.theme !== undefined &&
+      fields.theme !== existing.theme &&
+      existing.payment_status === 'completed'
+    ) {
+      log.warn('wedding.theme_change_blocked', {
+        id, from: existing.theme, to: fields.theme,
+      })
+      return new Response(JSON.stringify({
+        error: 'Thiệp đã thanh toán nên không đổi được mẫu nữa.',
+        code: 'THEME_LOCKED',
+      }), { status: 409, headers: corsHeaders })
     }
 
     // Check slug trùng nếu có đổi slug (loại trừ chính nó)
@@ -1423,6 +1425,7 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
     if (!isAdmin) {
       const trialOver = !!data.expires_at && new Date(data.expires_at).getTime() < Date.now()
       const locked = data.is_published && trialOver && data.payment_status !== 'completed'
+      const themeLocked = data.payment_status === 'completed'
       delete data.expires_at
       delete data.payment_status
 
@@ -1442,6 +1445,11 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
       // dữ liệu thanh toán — thiếu nó chủ thiệp bấm xuất bản xong vẫn tưởng thiệp
       // đang mở.
       data.trial_locked = locked
+
+      // Mẫu đã chốt vì thiệp đã thanh toán. Là TRẠNG THÁI suy ra từ payment_status,
+      // không phải dữ liệu thanh toán — trình chỉnh sửa cần nó để không mời khách
+      // bấm vào một thao tác chắc chắn bị PATCH từ chối.
+      data.theme_locked = themeLocked
     }
 
     return new Response(JSON.stringify(data), {
