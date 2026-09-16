@@ -34,8 +34,10 @@
     { text: "Có dùng thử được không?", icon: "eye" },
   ];
 
-  // Lối đi nhanh trong khung chat — thay cho bong bóng Messenger đã bỏ ở trang
-  // chủ, nên dải này KHÔNG ẩn sau câu hỏi đầu như chip gợi ý.
+  // Lối đi nhanh, dựng thành nút TRÒN CHỈ CÓ ICON trên thanh tiêu đề — thay cho
+  // bong bóng Messenger đã bỏ ở trang chủ nên luôn thấy được, không ẩn theo đoạn
+  // chat như chip gợi ý. `icon` là tên trong CX_ICONS (core/helpers/icon.js),
+  // `label` thành tooltip + nhãn cho trình đọc màn hình.
   // Nhãn và đích đều CỐ ĐỊNH ở đây: XuXi không biết danh sách này, cũng không
   // được phép tự sinh link — bộ dựng markdown ở dưới cố ý không có thẻ <a>, và
   // lời khách thì đi thẳng vào prompt nên để model nhả URL là mở đường cho link
@@ -44,7 +46,7 @@
   const NAV_LINKS = [
     {
       label: "Nhắn Messenger",
-      icon: "message-circle",
+      icon: "messenger",
       href: "https://m.me/61591515875537",
       external: true,
     },
@@ -84,6 +86,7 @@
           <p class="aichat-head-title flex gap-1 items-center">Trợ lý XuXi của Cưới Xinh <i data-icon="xuxi" data-size="24"></i></p>
           <p class="aichat-head-sub">Hỏi đáp hoặc nhờ mình tạo thiệp</p>
         </div>
+        <div class="aichat-nav" id="aichatNav"></div>
         <x-button variant="bare" icon-only id="aichatReset" type="button"
                   aria-label="Bắt đầu cuộc trò chuyện mới" title="Trò chuyện mới"
                   class="aichat-head-btn">
@@ -102,7 +105,6 @@
                     placeholder="Hỏi XuXi bất cứ điều gì…"
                     aria-label="Câu hỏi cho XuXi"></textarea>
           <div class="aichat-tools">
-            <div class="aichat-nav" id="aichatNav"></div>
             <div class="aichat-tools-end">
               <x-button variant="bare" icon-only id="aichatMic" type="button"
                         aria-label="Nhập bằng giọng nói" title="Nhập bằng giọng nói"
@@ -780,26 +782,25 @@
     window.lucide?.createIcons({ root: els.suggests });
   }
 
-  // Dải điều hướng: dựng MỘT LẦN lúc mở bảng, không đụng gì tới đoạn hội thoại.
+  // Lối đi nhanh trên thanh tiêu đề: dựng MỘT LẦN lúc mở bảng, không đụng gì tới
+  // đoạn hội thoại.
   function renderNav() {
     if (!els.nav || els.nav.childElementCount) return;
     NAV_LINKS.forEach((item) => {
-      const chip = document.createElement("a");
-      chip.className = "aichat-navchip";
-      chip.href = item.href;
+      const btn = document.createElement("a");
+      btn.className = "aichat-head-btn aichat-navbtn";
+      btn.href = item.href;
+      btn.title = item.label;
+      btn.setAttribute("aria-label", item.label);
       if (item.external) {
-        chip.target = "_blank";
-        chip.rel = "noopener";
+        btn.target = "_blank";
+        btn.rel = "noopener";
       }
-      chip.innerHTML =
-        '<i data-lucide="' +
-        item.icon +
-        '" style="width:14px;height:14px"></i><span></span>';
-      chip.querySelector("span").textContent = item.label;
-      els.nav.appendChild(chip);
+      btn.innerHTML = '<i data-icon="' + item.icon + '" data-size="18"></i>';
+      els.nav.appendChild(btn);
     });
-    // lucide không tự quét lại markup chèn động.
-    window.lucide?.createIcons({ root: els.nav });
+    // Icon riêng không tự quét lại markup chèn động.
+    window.cxRenderIcons?.(els.nav);
   }
 
   // ── Lịch sử ───────────────────────────────────────────────────────────────

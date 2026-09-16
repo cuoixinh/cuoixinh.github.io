@@ -172,10 +172,9 @@
     cursor: default;
   }
 
-  /* Bàn phím bung ra thì màn chỉ còn vài dòng — giấu hàng gợi ý lẫn dải điều
-     hướng cho khung tin nhắn thở. Cờ .aichat-kb do _syncViewport() đặt. */
-  .aichat-kb .aichat-suggests,
-  .aichat-kb .aichat-nav {
+  /* Bàn phím bung ra thì màn chỉ còn vài dòng — giấu hàng gợi ý cho khung tin
+     nhắn thở. Cờ .aichat-kb do _syncViewport() đặt. */
+  .aichat-kb .aichat-suggests {
     display: none;
   }
 }
@@ -553,27 +552,18 @@
   background: rgb(var(--brand-primary-rgb) / 0.28);
 }
 
-/* ── Dải điều hướng ────────────────────────────────────────────────────────── */
-/* NAV_LINKS ở js/ai-assistant.js. Nằm trong hàng công cụ của ô nhập (bên trái
-   micro/gửi) nên luôn thấy được kể cả khi đoạn chat đã dài — đây là lối duy nhất
-   nhắn cho người thật. */
+/* ── Lối đi nhanh trên thanh tiêu đề ───────────────────────────────────────── */
+/* NAV_LINKS ở js/ai-assistant.js dựng thành nút tròn CHỈ CÓ ICON, đứng cạnh nút
+   Làm mới và Đóng: luôn thấy được dù đoạn chat dài hay bàn phím đang bung —
+   đây là lối duy nhất nhắn cho người thật. Hình thức mượn .aichat-head-btn, chỉ
+   thêm mấy nét của thẻ <a>. */
 
 .aichat-nav {
-  @apply flex min-w-0 flex-1 flex-wrap items-center gap-2;
+  @apply flex shrink-0 items-center gap-1;
 }
 
-.aichat-navchip {
-  @apply inline-flex cursor-pointer items-center gap-1.5 rounded-full py-1.5 pl-2.5 pr-3
-         text-xs no-underline transition;
-
-  background: rgb(var(--surface-brand-rgb));
-  border: 1px solid rgb(var(--brand-primary-rgb) / 0.55);
-  color: rgb(var(--brand-accent-rgb));
-}
-
-.aichat-navchip:hover {
-  background: rgb(var(--brand-primary-rgb) / 0.35);
-  border-color: rgb(var(--brand-accent-rgb));
+.aichat-navbtn {
+  @apply cursor-pointer no-underline;
 }
 
 .aichat-note {
