@@ -49,6 +49,18 @@ function axiomLog(env, ctx, level, message, fields = {}) {
   }
 }
 
+/**
+ * Payload MẪU mà PayOS bắn ra lúc xác minh Webhook URL — nhận ra bằng orderCode 123.
+ * Không phải đơn thật nên KHÔNG được forward: xuống tới Edge Function là 404.
+ */
+function isVerifyPing(body) {
+  try {
+    return JSON.parse(body)?.data?.orderCode === 123;
+  } catch {
+    return false;
+  }
+}
+
 export default {
   async fetch(request, env, ctx) {
     const SUPABASE_FUNCTION_URL = env.SUPABASE_FUNCTION_URL || DEFAULT_FUNCTION_URL;
@@ -87,8 +99,15 @@ export default {
         const body = await request.text();
         console.log("Webhook received, body length:", body.length);
 
-        // Ping xác minh của PayOS (body rỗng/rất ngắn) → trả 200 ngay, không forward.
-        if (!body || body.length < 20) {
+        // Ping xác minh lúc khai Webhook URL trong PayOS. PayOS đòi 2XX, không thì
+        // từ chối lưu URL. Đã gặp HAI dạng:
+        //   - body rỗng/rất ngắn
+        //   - payload MẪU đầy đủ, `data.orderCode` luôn là 123
+        // Dạng thứ hai lọt xuống Edge Function thì nó tra `ORDER-123` không thấy và
+        // trả 404 → PayOS báo "Webhook url không hoạt động, mã lỗi 404".
+        // Nhận diện an toàn: orderCode thật do payment-handler sinh luôn 13-14 chữ số
+        // (9 số cuối epoch ms + 5 số ngẫu nhiên), không bao giờ là 123.
+        if (!body || body.length < 20 || isVerifyPing(body)) {
           return new Response(
             JSON.stringify({
               success: true,
