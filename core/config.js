@@ -91,10 +91,13 @@ const CONFIG = {
     encryptionKey: "dqvinh",
   },
 
-  // Polling & Timeouts
+  // Hỏi trạng thái đơn ở màn quét QR (core/payment.js). Khách quét xong là tiền
+  // về trong vài giây, nên nhịp hỏi quyết định màn "Thành công" hiện nhanh hay
+  // chậm — đây KHÔNG phải chỗ để tiết kiệm băng thông: mỗi lượt chỉ là một câu
+  // đọc MỘT hàng theo index ở check-payment-status, không gọi sang PayOS.
   polling: {
-    interval: 30000, // 30 seconds
-    timeout: 300000, // 5 minutes
+    interval: 5000, // 5 giây
+    timeout: 300000, // 5 phút thì ngừng hỏi, hiện màn hết giờ
   },
 
   // Ngưỡng nén ảnh phía client (core/helpers/image-helper.js).

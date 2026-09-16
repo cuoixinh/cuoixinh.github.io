@@ -360,7 +360,6 @@
     pollingStartTime = Date.now();
     currentOrderId = orderId;
     let consecutiveFailures = 0;
-    let pollCount = 0;
     const MAX_CONSECUTIVE_FAILURES = 5;
 
     const poll = async () => {
@@ -385,18 +384,11 @@
         showPaymentFailedUI();
       } else if (result.status === "pending") {
         consecutiveFailures = 0;
-        pollCount++;
 
-        // Exponential backoff: increase interval over time to save bandwidth
-        // First 10 polls: 20s, next 10: 30s, after that: 40s
-        let nextInterval = POLLING_INTERVAL;
-        if (pollCount > 20) {
-          nextInterval = 40000; // 40s after 20 polls
-        } else if (pollCount > 10) {
-          nextInterval = 30000; // 30s after 10 polls
-        }
-
-        pollingTimer = setTimeout(poll, nextInterval);
+        // Nhịp CỐ ĐỊNH, không giãn dần: mỗi lượt chỉ đọc một hàng theo index nên
+        // giãn ra không tiết kiệm được gì đáng kể, mà lại làm màn "Thành công"
+        // hiện chậm đúng lúc khách vừa quét xong và đang nhìn màn hình.
+        pollingTimer = setTimeout(poll, POLLING_INTERVAL);
       } else {
         consecutiveFailures++;
         console.warn(
