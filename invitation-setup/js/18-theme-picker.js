@@ -7,8 +7,53 @@
 // Chuyển từ cụm expose ở 16-ceremony.js sang đây: hàm khai báo trong file này,
 // mà function declaration chỉ hoist trong phạm vi một script.
 window.openThemePicker = openThemePicker;
+window._syncThemeLock = _syncThemeLock;
+window.cxShowThemeLockTip = cxShowThemeLockTip;
+
+// Thiệp đã thanh toán thì mẫu bị chốt (wedding-admin PATCH trả 409 THEME_LOCKED)
+// → làm nút trông như đã khoá và hiện nút info cạnh nó. Gọi sau khi nạp dữ liệu,
+// lúc IS_THEME_LOCKED đã có giá trị thật.
+//
+// CỐ Ý không dùng thuộc tính `disabled`: nút disabled KHÔNG phát sự kiện click nên
+// khách bấm vào sẽ không có gì xảy ra, không biết vì sao. Dùng aria-disabled để
+// trình đọc màn hình vẫn hiểu là khoá, còn cú bấm thì để openThemePicker() bắt lấy
+// và mở lời giải thích.
+//
+// Nút là <x-button>: khi nạp nó tự thay mình bằng <button> thật và bê id sang, nên
+// tới đây getElementById luôn trả về thẻ button.
+function _syncThemeLock() {
+  const btn = document.getElementById("header-theme-btn");
+  if (btn) {
+    btn.setAttribute("aria-disabled", String(IS_THEME_LOCKED));
+    btn.classList.toggle("opacity-60", IS_THEME_LOCKED);
+    btn.classList.toggle("cursor-not-allowed", IS_THEME_LOCKED);
+    const label = IS_THEME_LOCKED
+      ? "Thiệp đã thanh toán nên không đổi được mẫu"
+      : "Đổi mẫu thiệp";
+    btn.setAttribute("title", label);
+    btn.setAttribute("aria-label", label);
+  }
+  document
+    .getElementById("header-theme-info")
+    ?.classList.toggle("hidden", !IS_THEME_LOCKED);
+}
+
+// Mở lời giải thích, neo theo đúng thứ vừa bấm (nút info hoặc nút đổi mẫu).
+function cxShowThemeLockTip(anchorEl) {
+  const pop = document.getElementById("theme-lock-pop");
+  if (!pop) return;
+  pop.toggle(anchorEl || document.getElementById("header-theme-info"));
+}
 
 async function openThemePicker() {
+  // Thiệp đã thanh toán: không mở bảng chọn nữa, giải thích tại chỗ. Chặn ở ĐÂY
+  // chứ không chỉ ở _applyThemeChange để khách khỏi phải lướt hết danh sách mẫu
+  // rồi mới biết là không đổi được.
+  if (IS_THEME_LOCKED) {
+    cxShowThemeLockTip(document.getElementById("header-theme-btn"));
+    return;
+  }
+
   const sheet = openBottomSheet({
     id: "theme-picker-modal",
     title: "Chọn mẫu thiệp",

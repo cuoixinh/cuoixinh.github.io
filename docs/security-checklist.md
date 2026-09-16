@@ -84,8 +84,12 @@ cũ** cho tới khi làm xong mục F. Đừng đọc bảng `[x]` bên dưới 
       đường lách; rẻ hơn thì đẻ ra câu hỏi hoàn tiền). So với `existing.theme` chứ không
       chỉ xét `!== undefined` — client gửi nguyên form mỗi lần lưu.
       Trình chỉnh sửa nhận cờ `theme_locked` (suy từ `payment_status`, KHÔNG lộ dữ liệu
-      thanh toán) và chặn ngay trong `_applyThemeChange` — hàm đó gọi `resetThemeSetting()`
-      trước khi lưu, để chạy tiếp là khách mất tuỳ chỉnh giao diện rồi mới nhận lỗi.
+      thanh toán) rồi khoá ở BA lớp: `_syncThemeLock()` làm `#header-theme-btn` trông như
+      đã khoá (`aria-disabled`, KHÔNG phải `disabled` — nút disabled nuốt luôn cú bấm nên
+      khách không biết vì sao) và bật nút info cạnh nó; `openThemePicker()` mở lời giải
+      thích thay vì bảng chọn; `_applyThemeChange` chặn ngay dòng đầu. Lớp cuối không thừa
+      — hàm đó gọi `resetThemeSetting()` TRƯỚC khi lưu, để chạy tiếp là khách mất tuỳ chỉnh
+      giao diện rồi mới nhận lỗi từ server.
 
 ### 🟡 Trung bình
 

@@ -33,8 +33,10 @@
 
               <!-- Nút đổi mẫu thiệp, nằm cuối hàng breadcrumb. Giữ NGUYÊN id
                    #header-theme-thumb / #header-theme-name: 18-theme-picker.js
-                   cập nhật badge theo id này. -->
+                   cập nhật badge theo id này, và #header-theme-btn để khoá nút khi
+                   thiệp đã thanh toán (_syncThemeLock). -->
               <x-button
+                id="header-theme-btn"
                 type="button"
                 variant="bare"
                 onclick="openThemePicker()"
@@ -88,6 +90,23 @@
                   <span class="hidden sm:inline">Đổi</span>
                 </span>
               </x-button>
+
+              <!-- Chỉ hiện khi thiệp đã thanh toán (_syncThemeLock). Bấm vào đây,
+                   hoặc bấm vào chính nút đổi mẫu đang khoá, đều mở #theme-lock-pop. -->
+              <x-button
+                id="header-theme-info"
+                type="button"
+                variant="ghost"
+                tone="neutral"
+                size="sm"
+                icon-only
+                onclick="cxShowThemeLockTip(this)"
+                title="Vì sao không đổi được mẫu?"
+                aria-label="Vì sao không đổi được mẫu?"
+                class="hidden shrink-0 ml-0.5"
+              >
+                <i data-lucide="info" class="w-4 h-4"></i>
+              </x-button>
             </div>
         </div>
 
@@ -140,3 +159,19 @@
         </div>
       </div>
       </div>
+
+      <!-- Đặt NGOÀI #setup-topcard: thẻ đó có overflow-hidden, mà popover neo theo
+           nút nên để bên trong là dễ bị cắt. Nội dung tĩnh, không có nút nào bên
+           trong nên không cần keep-open. -->
+      <x-popover
+        id="theme-lock-pop"
+        placement="bottom"
+        align="end"
+        arrow
+        width="252"
+        role="tooltip"
+      >
+        <div class="px-3.5 py-2.5 text-left text-[12.5px] leading-relaxed text-gray-600">
+          Bạn không thể đổi được mẫu thiệp sau khi đã thanh toán.
+        </div>
+      </x-popover>

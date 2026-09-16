@@ -555,6 +555,7 @@ function fillForm(data) {
   IS_PUBLISHED = !!data.is_published;
   IS_TRIAL_LOCKED = !!data.trial_locked;
   IS_THEME_LOCKED = !!data.theme_locked;
+  window._syncThemeLock?.();
   _syncAdvancedSection();
 
   if (typeof lucide !== "undefined") lucide.createIcons();
