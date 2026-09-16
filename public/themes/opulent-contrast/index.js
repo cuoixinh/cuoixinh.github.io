@@ -329,8 +329,8 @@
       // Ảnh KHÔNG loading="lazy": cả #main-card còn display:none cho tới khi mở
       // bìa, ảnh lazy sẽ chỉ bắt đầu tải sau đó.
       cell.innerHTML =
-        `<img src="${url}" alt=""
-           style="object-position:${fp?.x ?? 50}% ${fp?.y ?? 50}%">` +
+        `<img src="${cxImgSrc(url)}" alt=""
+           style="object-position:${cxFocal(fp)}">` +
         `<span class="oc-shot-no">${String(i + 1).padStart(2, "0")}</span>`;
       cell.addEventListener("click", () => openLightbox(i));
       strip.appendChild(cell);

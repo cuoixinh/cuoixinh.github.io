@@ -216,7 +216,7 @@ function renderLoveStoryList() {
           preview
             ? `
         <div class="relative w-16 h-16 rounded-xl overflow-hidden border border-rose-200 flex-shrink-0">
-          <img src="${preview}" class="w-full h-full object-cover"${lsFpStyle} />
+          <img src="${cxImgSrc(preview)}" class="w-full h-full object-cover"${lsFpStyle} />
           <x-button variant="overlay" size="xs" icon-only type="button" onclick="adjustLoveStoryFocalPoint(${idx})" title="Chỉnh điểm lấy nét" class="absolute bottom-0.5 right-0.5">
             <i data-lucide="focus" class="w-3 h-3"></i>
           </x-button>

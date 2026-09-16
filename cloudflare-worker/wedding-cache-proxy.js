@@ -22,7 +22,14 @@ var worker_default = {
     const slug = url.searchParams.get("slug");
     const id = url.searchParams.get("id");
     const isList = url.searchParams.get("list") === "true";
-    const isCacheable = method === "GET" && (slug || id) && !isList;
+    // CHỈ cache đường tra theo slug. Đường `?id=` yêu cầu người gọi là CHỦ THIỆP
+    // (wedding-admin kiểm JWT), mà cache key không mang Authorization — cache nó
+    // là biến một endpoint có phân quyền thành endpoint công khai
+    // (docs/security-checklist.md A7).
+    // Request mang mã quản trị nhận về BẢN ĐẦY ĐỦ (gồm dữ liệu thanh toán) —
+    // cache nó là đem bản đó phát cho mọi người trong 5 phút.
+    const isPrivileged = !!request.headers.get("x-admin-token");
+    const isCacheable = method === "GET" && !!slug && !isList && !isPrivileged;
     if (isCacheable) {
       const cacheKey = buildCacheKey(slug, id);
       const cached = await env.WEDDING_CACHE.get(cacheKey, { type: "json" });

@@ -101,8 +101,11 @@ const CUSTOMER_EDITABLE_FIELDS = new Set([
 // QR mừng cưới render thẳng qua <img src>; nhận URL tuỳ ý thì kẻ tấn công đổi
 // sang QR của nó và khách mời chuyển tiền nhầm. Chỉ chấp nhận tên file trong
 // storage của hệ thống hoặc URL thuộc host của hệ thống.
+// Cùng một mã chạy cho CẢ HAI project nên phải liệt kê host của cả hai — thiếu
+// host staging thì trên staging mọi URL ảnh đầy đủ đều bị coi là tráo ảnh.
 const ALLOWED_IMAGE_HOSTS = new Set([
-  'lcobawmkywtxhpezndsh.supabase.co',
+  'lcobawmkywtxhpezndsh.supabase.co',         // production
+  'gmtnoxdwoumbtdmqmisk.supabase.co',         // staging
   'wedding-image-proxy.cuoixinh-api.workers.dev',
 ])
 
@@ -111,8 +114,15 @@ const IMAGE_FIELDS = [
   'groom_qr_url', 'bride_qr_url',
 ]
 
-// Cho phép: null/'' (xoá ảnh), tên file tương đối trong storage, hoặc URL https
-// trên host của hệ thống. Chặn: http(s) ra ngoài, //host, data:, blob:, javascript:.
+// Tên file trong storage: do core/bl/image-bl.js sinh ra dạng
+// `<trường>-<24 ký tự ngẫu nhiên>.<ext>`. Đây là ALLOWLIST ký tự, KHÔNG phải
+// danh sách cấm — bản cũ chỉ chặn `:` `//` `..` `/` `\` nên chuỗi như
+// `a" onerror="…` lọt qua, rồi theme nội suy vào `src="…"` thành stored XSS
+// (xem docs/security-checklist.md A3).
+const STORAGE_NAME_RE = /^[A-Za-z0-9._-]{1,120}$/
+
+// Cho phép: null/'' (xoá ảnh), tên file trong storage, hoặc URL https trên host
+// của hệ thống. Chặn mọi thứ còn lại — kể cả dấu nháy, khoảng trắng, dấu <>.
 function isSafeImageRef(value: unknown): boolean {
   if (value === null || value === undefined) return true
   if (typeof value !== 'string') return false
@@ -122,13 +132,79 @@ function isSafeImageRef(value: unknown): boolean {
   if (v.includes(':') || v.startsWith('//')) {
     try {
       const u = new URL(v)
-      return u.protocol === 'https:' && ALLOWED_IMAGE_HOSTS.has(u.hostname)
+      if (u.protocol !== 'https:' || !ALLOWED_IMAGE_HOSTS.has(u.hostname)) return false
+      // Phần tên file trong URL cũng phải sạch: URL hợp lệ vẫn mang được
+      // `?x="onerror=` ở query/fragment.
+      return !/["'<>\\\s]/.test(v)
     } catch {
       return false
     }
   }
-  // Đường dẫn tương đối: chặn path traversal
-  return !v.includes('..') && !v.startsWith('/') && !v.includes('\\')
+  return STORAGE_NAME_RE.test(v)
+}
+
+// ── Bảo mật: làm sạch mảng JSONB khách gửi lên ──────────────────────────────
+// `love_story` / `timeline` trước đây chỉ bị kiểm ĐỘ DÀI; nội dung phần tử đi
+// thẳng vào DB rồi ra trang thiệp công khai. Giữ đúng các khoá đã biết, cắt độ
+// dài, và bắt `image_url`/`focal_point` theo cùng luật với cột ảnh.
+const MAX_TEXT = 2000
+
+function cleanText(v: unknown, max = MAX_TEXT): string {
+  return typeof v === 'string' ? v.slice(0, max) : ''
+}
+
+function cleanFocal(v: unknown): { x: number; y: number } | null {
+  if (!v || typeof v !== 'object') return null
+  const o = v as Record<string, unknown>
+  const num = (n: unknown) => {
+    const x = Number(n)
+    return Number.isFinite(x) ? Math.min(100, Math.max(0, x)) : 50
+  }
+  return { x: num(o.x), y: num(o.y) }
+}
+
+// Trả về mảng đã làm sạch, hoặc null nếu đầu vào không phải mảng dùng được.
+function cleanLoveStory(raw: unknown): Record<string, unknown>[] | null {
+  const arr = typeof raw === 'string' ? safeParse(raw) : raw
+  if (!Array.isArray(arr)) return null
+  return arr.slice(0, 10).map((it) => {
+    const o = (it && typeof it === 'object' ? it : {}) as Record<string, unknown>
+    const img = typeof o.image_url === 'string' ? o.image_url.trim() : ''
+    return {
+      date: cleanText(o.date, 100),
+      title: cleanText(o.title, 300),
+      content: cleanText(o.content),
+      image_url: img && isSafeImageRef(img) ? img : null,
+      focal_point: cleanFocal(o.focal_point),
+    }
+  })
+}
+
+function cleanTimeline(raw: unknown): Record<string, unknown>[] | null {
+  const arr = typeof raw === 'string' ? safeParse(raw) : raw
+  if (!Array.isArray(arr)) return null
+  const TYPES = ['ceremony', 'party', 'bride-party']
+  return arr.slice(0, 10).map((it) => {
+    const o = (it && typeof it === 'object' ? it : {}) as Record<string, unknown>
+    const type = cleanText(o.type, 20)
+    return {
+      time: cleanText(o.time, 20),
+      title: cleanText(o.title, 300),
+      type: TYPES.includes(type) ? type : 'ceremony',
+    }
+  })
+}
+
+function safeParse(s: string): unknown {
+  try { return JSON.parse(s) } catch { return null }
+}
+
+// Luật đặt slug — bản SERVER. core/bl/wedding-bl.js có bản client cùng luật,
+// nhưng client bỏ qua được nên phép kiểm thật phải nằm ở đây.
+const SLUG_RE = /^[a-z0-9](?:[a-z0-9-]{0,78}[a-z0-9])?$/
+
+function isValidSlug(v: unknown): boolean {
+  return typeof v === 'string' && SLUG_RE.test(v)
 }
 
 Deno.serve(withAxiom('wedding-admin', async (req, log) => {
@@ -718,8 +794,15 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
       })
     }
 
+    if (slug && !isValidSlug(slug)) {
+      return new Response(JSON.stringify({
+        error: 'Tên đường dẫn chỉ gồm chữ thường, số và dấu gạch ngang',
+        code: 'INVALID_SLUG',
+      }), { status: 400, headers: corsHeaders })
+    }
+
     // Auto-generate slug từ manage_id nếu không có slug
-    const baseSlug = slug || `wedding-${(resolvedId || '').slice(0, 8)}`
+    const baseSlug = slug || `wedding-${(resolvedId || '').slice(0, 8).toLowerCase()}`
     const finalSlug = await getUniqueSlug(baseSlug);
 
     const insertPayload: Record<string, unknown> = {
@@ -777,7 +860,7 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
     // Kiểm tra id tồn tại và lấy data hiện tại
     const { data: existing, error: fetchError } = await supabase
       .from('weddings')
-      .select(`${WEDDING_IMAGE_SELECT}, user_id, payment_status, is_published`)
+      .select(`${WEDDING_IMAGE_SELECT}, user_id, payment_status, payment_amount, is_published`)
       .eq('id', id)
       .single()
 
@@ -874,6 +957,105 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
       }
     }
 
+    // Slug phải hợp lệ. Bản client (core/bl/wedding-bl.js validateSlug) bỏ qua
+    // được nên phép kiểm thật nằm ở đây — slug đi vào URL công khai và vào lệnh
+    // gọi Edge Function của router.html.
+    if (fields.slug !== undefined && !isValidSlug(fields.slug)) {
+      return new Response(JSON.stringify({
+        error: 'Tên đường dẫn chỉ gồm chữ thường, số và dấu gạch ngang',
+        code: 'INVALID_SLUG',
+      }), { status: 400, headers: corsHeaders })
+    }
+
+    // ---- Làm sạch + giới hạn các mảng ----
+    // Nội dung hai mảng JSONB này ra thẳng trang thiệp công khai, nên không chỉ
+    // kiểm ĐỘ DÀI: giữ đúng khoá đã biết, cắt độ dài chuỗi, lọc ảnh/điểm lấy nét.
+    const MAX_ITEMS = 10
+
+    if (fields.gallery_images !== undefined) {
+      const arr = Array.isArray(fields.gallery_images) ? fields.gallery_images : []
+      if (arr.length > MAX_ITEMS) {
+        return new Response(JSON.stringify({ error: `Tối đa ${MAX_ITEMS} ảnh trong album` }), {
+          status: 400, headers: corsHeaders
+        })
+      }
+    }
+
+    if (fields.love_story !== undefined) {
+      const raw = typeof fields.love_story === 'string' ? safeParse(fields.love_story) : fields.love_story
+      if (Array.isArray(raw) && raw.length > MAX_ITEMS) {
+        return new Response(JSON.stringify({ error: `Tối đa ${MAX_ITEMS} mốc trong câu chuyện tình yêu` }), {
+          status: 400, headers: corsHeaders
+        })
+      }
+      const cleaned = cleanLoveStory(fields.love_story)
+      if (cleaned === null) {
+        return new Response(JSON.stringify({ error: 'Dữ liệu câu chuyện tình yêu không hợp lệ' }), {
+          status: 400, headers: corsHeaders
+        })
+      }
+      fields.love_story = cleaned
+    }
+
+    if (fields.timeline !== undefined) {
+      const raw = typeof fields.timeline === 'string' ? safeParse(fields.timeline) : fields.timeline
+      if (Array.isArray(raw) && raw.length > MAX_ITEMS) {
+        return new Response(JSON.stringify({ error: `Tối đa ${MAX_ITEMS} mốc trong lịch trình` }), {
+          status: 400, headers: corsHeaders
+        })
+      }
+      const cleaned = cleanTimeline(fields.timeline)
+      if (cleaned === null) {
+        return new Response(JSON.stringify({ error: 'Dữ liệu lịch trình không hợp lệ' }), {
+          status: 400, headers: corsHeaders
+        })
+      }
+      fields.timeline = cleaned
+    }
+
+    // Điểm lấy nét của ảnh đơn/album: ép về số, chặn chèn chuỗi vào thuộc tính style.
+    if (fields.image_focal_points !== undefined) {
+      const raw = typeof fields.image_focal_points === 'string'
+        ? safeParse(fields.image_focal_points)
+        : fields.image_focal_points
+      const out: Record<string, unknown> = {}
+      if (raw && typeof raw === 'object') {
+        for (const [k, v] of Object.entries(raw as Record<string, unknown>)) {
+          if (k === 'gallery_images' && v && typeof v === 'object') {
+            const g: Record<string, unknown> = {}
+            for (const [gk, gv] of Object.entries(v as Record<string, unknown>)) {
+              if (isSafeImageRef(gk)) g[gk] = cleanFocal(gv)
+            }
+            out[k] = g
+          } else {
+            out[k] = cleanFocal(v)
+          }
+        }
+      }
+      fields.image_focal_points = out
+    }
+
+    // ── Đổi mẫu sau khi đã thanh toán ───────────────────────────────────────
+    // Giá tính theo `theme` lúc TẠO ĐƠN, nên nếu để đổi tự do thì mua mẫu rẻ
+    // nhất rồi chuyển sang mẫu đắt nhất là xong. Cho đổi sang mẫu có giá ≤ số đã
+    // trả — khách vẫn đổi mẫu thoải mái trong tầm tiền của mình.
+    if (!isAdmin && fields.theme !== undefined && existing.payment_status === 'completed') {
+      const { data: newPricing } = await supabase
+        .from('template_pricing')
+        .select('price')
+        .eq('template_name', fields.theme)
+        .eq('is_active', true)
+        .maybeSingle()
+      const paid = Number(existing.payment_amount ?? 0)
+      if (newPricing && Number(newPricing.price) > paid) {
+        log.warn('wedding.theme_upgrade_blocked', { id, theme: fields.theme, paid })
+        return new Response(JSON.stringify({
+          error: 'Mẫu này có giá cao hơn gói bạn đã mua. Vui lòng thanh toán phần chênh lệch.',
+          code: 'THEME_UPGRADE_REQUIRED',
+        }), { status: 402, headers: corsHeaders })
+      }
+    }
+
     // Check slug trùng nếu có đổi slug (loại trừ chính nó)
     if (fields.slug) {
       const { data: slugExisting } = await supabase
@@ -890,44 +1072,6 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
       }
     }
 
-    // ---- Validate array limits ----
-    const MAX_GALLERY   = 10
-    const MAX_TIMELINE  = 10
-    const MAX_LOVE_STORY = 10
-
-    if (fields.gallery_images !== undefined) {
-      const arr = Array.isArray(fields.gallery_images) ? fields.gallery_images : []
-      if (arr.length > MAX_GALLERY) {
-        return new Response(JSON.stringify({ error: `Tối đa ${MAX_GALLERY} ảnh trong album` }), {
-          status: 400, headers: corsHeaders
-        })
-      }
-    }
-
-    if (fields.timeline !== undefined) {
-      let arr: unknown[]
-      try {
-        arr = typeof fields.timeline === 'string' ? JSON.parse(fields.timeline) : fields.timeline
-      } catch { arr = [] }
-      if (Array.isArray(arr) && arr.length > MAX_TIMELINE) {
-        return new Response(JSON.stringify({ error: `Tối đa ${MAX_TIMELINE} mốc trong lịch trình` }), {
-          status: 400, headers: corsHeaders
-        })
-      }
-    }
-
-    if (fields.love_story !== undefined) {
-      let arr: unknown[]
-      try {
-        arr = typeof fields.love_story === 'string' ? JSON.parse(fields.love_story) : fields.love_story
-      } catch { arr = [] }
-      if (Array.isArray(arr) && arr.length > MAX_LOVE_STORY) {
-        return new Response(JSON.stringify({ error: `Tối đa ${MAX_LOVE_STORY} mốc trong câu chuyện tình yêu` }), {
-          status: 400, headers: corsHeaders
-        })
-      }
-    }
-    // ---- End validate ----
 
     // Xuất bản = lên DÙNG THỬ 3 ngày: đặt expires_at = now + 3 ngày. Thanh toán
     // thành công (payos-webhook) mới gán expires_at = null → mở vĩnh viễn. Hai guard:
@@ -1063,10 +1207,20 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
       const code = url.searchParams.get('code')?.trim()
       if (!code) return new Response(JSON.stringify({ error: 'Thiếu code' }), { status: 400, headers: corsHeaders })
 
+      // KHÔNG dùng `ilike` với chuỗi người dùng: `%` và `_` là ký tự đại diện nên
+      // dò nhị phân theo tiền tố là ra mã thật, mà response còn trả về mã đầy đủ
+      // (xem docs/security-checklist.md A5). Mã sinh ra luôn viết HOA nên so
+      // bằng `eq` trên bản viết hoa là đủ, không mất tính "gõ thường cũng nhận".
+      if (!/^[A-Za-z0-9-]{1,40}$/.test(code)) {
+        return new Response(JSON.stringify({ valid: false, error: 'Mã không hợp lệ hoặc đã hết hạn' }), {
+          status: 200, headers: corsHeaders,
+        })
+      }
+
       const { data, error } = await supabase
         .from('promo_codes')
         .select('code, discount_type, discount_value, expires_at, min_order_amount, max_uses, used_count')
-        .ilike('code', code)
+        .eq('code', code.toUpperCase())
         .eq('is_active', true)
         .maybeSingle()
 

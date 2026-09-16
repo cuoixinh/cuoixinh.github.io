@@ -394,12 +394,12 @@ function renderCarouselGallery(galleryImages, focalPoints) {
 
   carouselImages.forEach((imgSrc, idx) => {
     const fp = focalPoints?.[galleryImages?.[idx]];
-    const objectPosition = `${fp?.x ?? 50}% ${fp?.y ?? 50}%`;
+    const objectPosition = cxFocal(fp);
     const item = document.createElement("div");
     item.className =
       "carousel-item shrink-0 rounded-2xl overflow-hidden cursor-pointer";
     item.style.cssText = itemTransition;
-    item.innerHTML = `<img src="${imgSrc}" class="w-full h-full object-cover pointer-events-none" style="object-position: ${objectPosition}" alt="">`;
+    item.innerHTML = `<img src="${cxImgSrc(imgSrc)}" class="w-full h-full object-cover pointer-events-none" style="object-position:${escapeHtml(objectPosition)}" alt="">`;
     track.appendChild(item);
 
     const dot = document.createElement("div");

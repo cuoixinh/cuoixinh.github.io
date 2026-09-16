@@ -31,6 +31,16 @@ function buildCors(origin: string | null) {
   }
 }
 
+// So chuỗi không phụ thuộc thời gian (giống wedding-admin / cleanup-weddings).
+function timingSafeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length || a.length === 0) return false
+  let diff = 0
+  for (let i = 0; i < a.length; i++) {
+    diff |= a.charCodeAt(i) ^ b.charCodeAt(i)
+  }
+  return diff === 0
+}
+
 const MAX_PER_SIDE = 100
 const MAX_WISHES_PER_GUEST = 3
 const MAX_WISH_LEN = 500
@@ -133,7 +143,10 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
   // ── Phân quyền ────────────────────────────────────────────────────────────
   // Phải đăng nhập VÀ phải là chủ thiệp mới đọc/sửa được danh sách khách mời
   // (xem docs/security-audit-plan.md #3).
-  const isAdmin = (req.headers.get('x-admin-token') ?? '') === Deno.env.get('ADMIN_SECRET_TOKEN')
+  const isAdmin = timingSafeEqual(
+    req.headers.get('x-admin-token') ?? '',
+    Deno.env.get('ADMIN_SECRET_TOKEN') ?? '',
+  )
 
   async function getUserId(): Promise<string | null> {
     const authHeader = req.headers.get('Authorization') || ''
@@ -217,6 +230,8 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
 
     if (error) return fail(error.message, 500)
 
+    // Chỉ trả về khách CÓ lời chúc, và đúng cái tên vẫn hiện trên dải lời chúc
+    // của thiệp — tức thông tin này vốn đã công khai theo thiết kế, không phải rò rỉ.
     const items: { id: string; name: string; relationship: string; text: string; at: string }[] = []
     for (const g of rows ?? []) {
       const name = String(g.display_name || g.full_name || '').trim()

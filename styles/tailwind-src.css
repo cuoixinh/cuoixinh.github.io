@@ -827,11 +827,284 @@ html.cx-landing {
   }
 }
 
-.step-connector {
-  @apply absolute top-8 h-0;
-  left: calc(50% + 40px);
-  right: calc(-50% + 40px);
-  border-top: 2px dashed rgb(var(--brand-primary-rgb) / 0.55);
+/* ══ SƠ ĐỒ "4 BƯỚC" (#steps) ═══════════════════════════════════════════════
+   Mỗi hàng là một chuỗi năm mảnh nối nhau, so le trái/phải:
+     .stp-card thẻ trắng (khung xám bọc ngoài) → .stp-num vòng số đè lên mép
+     TRONG của thẻ → .stp-tab nhãn lục giác chĩa ra ngoài, nấp sau vòng số →
+     .stp-dot chấm tròn ở đầu mút, nối vào mũi nhãn bằng một gạch ngắn →
+     .stp-link đường chéo hạ xuống chấm của hàng KẾ TIẾP.
+   Màu mỗi hàng do js/section-steps.js truyền vào biến --stp-c.
+
+   Cả chuỗi neo vào MỘT mốc: chấm nằm ở 50% ± --stp-d. Bề ngang thẻ suy ngược
+   từ đó (--stp-tail là quãng từ mép trong thẻ tới tâm chấm), nên đổi cỡ nhãn/
+   gạch/chấm là bề ngang thẻ tự bù, không bao giờ hở hay chồng.
+
+   Đường chéo là <svg preserveAspectRatio="none">: hộp co giãn tự do còn nét
+   giữ đúng bề dày nhờ vector-effect="non-scaling-stroke". Chiều cao hộp tính
+   bằng `100% + khe`, tức GIẢ ĐỊNH MỌI HÀNG CAO BẰNG NHAU — vì vậy .stp-card
+   khoá `height` cứng ở khổ md trở lên; thả cho co theo chữ là hai đầu đường
+   chéo trượt khỏi chấm.
+
+   Dưới 768px không còn chỗ cho nhãn + chấm + đường chéo: ba thứ đó ẩn, thẻ
+   giãn gần hết khổ và vòng số luôn ở bên phải (bỏ so le). */
+.stp {
+  --stp-h: 112px; /* chiều cao thẻ ở desktop (khoá cứng, xem trên) */
+  --stp-num: clamp(56px, 6.6vw, 88px); /* đường kính vòng số ngoài cùng */
+  --stp-ring: clamp(4px, 0.6vw, 8px); /* bề dày vành trắng giữa hai lớp màu */
+  --stp-tab-w: clamp(64px, 7.6vw, 96px); /* bề ngang nhãn lục giác */
+  --stp-tab-h: clamp(40px, 4.4vw, 56px);
+  --stp-tab-p: clamp(8px, 1.2vw, 16px); /* độ nhọn hai đầu nhãn */
+  --stp-dot: clamp(12px, 1.2vw, 16px);
+  --stp-stub: clamp(16px, 2.4vw, 32px); /* gạch ngắn từ mũi nhãn tới chấm */
+  --stp-d: clamp(36px, 7vw, 88px); /* nửa bề ngang vùng zigzag */
+  --stp-gap: clamp(16px, 2.4vw, 28px);
+  --stp-line: rgb(var(--text-body-rgb) / 0.32);
+  /* Quãng từ mép TRONG của thẻ tới tâm chấm: nhãn thò ra (đã trừ phần nấp sau
+     vòng số) + gạch ngắn + nửa chấm. */
+  --stp-tail: calc(
+    var(--stp-tab-w) - var(--stp-num) / 4 + var(--stp-stub) + var(--stp-dot) / 2
+  );
+  @apply relative flex flex-col;
+  gap: var(--stp-gap);
+}
+
+.stp-item {
+  @apply relative flex items-center;
+}
+
+.stp-card {
+  @apply relative flex items-center;
+  height: var(--stp-h);
+  width: calc(50% + var(--stp-d) - var(--stp-tail));
+  gap: clamp(8px, 1.4vw, 16px);
+  padding: 0 clamp(12px, 1.6vw, 20px);
+  border-radius: clamp(20px, 2.4vw, 32px);
+  background: rgb(var(--white-rgb));
+  /* Khung xám bọc ngoài dựng bằng spread của box-shadow (bo theo đúng bán kính
+     thẻ), lớp thứ hai là bóng đổ mềm. */
+  box-shadow:
+    0 0 0 clamp(4px, 0.7vw, 8px) rgb(var(--surface-control-rgb)),
+    0 12px 24px -16px rgb(var(--shadow-card-rgb) / 0.6);
+}
+/* Mép TRONG phải chừa nửa vòng số, nếu không chữ chui xuống dưới nó. */
+.stp-l .stp-card {
+  margin-right: auto;
+  padding-right: calc(var(--stp-num) / 2 + 12px);
+}
+.stp-r .stp-card {
+  @apply flex-row-reverse text-right;
+  margin-left: auto;
+  padding-left: calc(var(--stp-num) / 2 + 12px);
+}
+
+.stp-ico {
+  @apply flex shrink-0 items-center justify-center;
+  height: clamp(40px, 4.4vw, 56px);
+  width: clamp(40px, 4.4vw, 56px);
+  border-radius: 999px;
+  background: rgb(var(--surface-control-rgb));
+  color: rgb(var(--text-tertiary-rgb));
+}
+.stp-ico svg {
+  height: 44%;
+  width: 44%;
+}
+.stp-txt {
+  @apply min-w-0 flex-1;
+}
+.stp-title {
+  @apply uppercase;
+  font-weight: 700;
+  font-size: clamp(12px, 1.25vw, 16px);
+  line-height: 1.3;
+  letter-spacing: 0.04em;
+  color: rgb(var(--text-secondary-rgb));
+}
+.stp-desc {
+  margin-top: 4px;
+  font-size: clamp(11px, 1vw, 13px);
+  line-height: 1.45;
+  color: rgb(var(--text-tertiary-rgb) / 0.9);
+}
+
+/* Vòng số: đĩa màu ngoài cùng, ::before khoét vào thành vành TRẮNG rồi đĩa màu
+   trong. Chữ số phải nằm trong một thẻ con có z-index — pseudo tuyệt đối vẽ
+   ĐÈ lên chữ của chính phần tử cha. */
+.stp-num {
+  @apply absolute flex items-center justify-center font-extrabold;
+  top: 50%;
+  margin-top: calc(var(--stp-num) / -2);
+  height: var(--stp-num);
+  width: var(--stp-num);
+  border-radius: 999px;
+  background: rgb(var(--stp-c));
+  color: rgb(var(--white-rgb));
+  font-size: calc(var(--stp-num) * 0.32);
+  box-shadow: 0 12px 24px -12px rgb(var(--scrim-rgb) / 0.45);
+  z-index: 2;
+}
+.stp-num::before {
+  content: '';
+  position: absolute;
+  inset: clamp(4px, 0.5vw, 8px);
+  border-radius: 999px;
+  border: var(--stp-ring) solid rgb(var(--white-rgb));
+  background: rgb(var(--stp-c));
+}
+.stp-num b {
+  @apply relative;
+  z-index: 1;
+}
+.stp-l .stp-num {
+  right: calc(var(--stp-num) / -2);
+}
+.stp-r .stp-num {
+  left: calc(var(--stp-num) / -2);
+}
+
+/* Nhãn lục giác: nhọn cả hai đầu như mẫu, đầu phía trong nấp hẳn sau vòng số. */
+.stp-tab {
+  @apply absolute flex flex-col items-center justify-center text-center font-bold uppercase leading-tight;
+  top: 50%;
+  margin-top: calc(var(--stp-tab-h) / -2);
+  height: var(--stp-tab-h);
+  width: var(--stp-tab-w);
+  background: rgb(var(--stp-c));
+  color: rgb(var(--white-rgb));
+  font-size: clamp(8px, 0.75vw, 10px);
+  letter-spacing: 0.12em;
+  clip-path: polygon(
+    var(--stp-tab-p) 0,
+    calc(100% - var(--stp-tab-p)) 0,
+    100% 50%,
+    calc(100% - var(--stp-tab-p)) 100%,
+    var(--stp-tab-p) 100%,
+    0 50%
+  );
+  z-index: 1;
+}
+.stp-tab em {
+  @apply not-italic;
+  font-size: clamp(13px, 1.3vw, 17px);
+  letter-spacing: 0;
+}
+.stp-l .stp-tab {
+  left: 100%;
+  margin-left: calc(var(--stp-num) / -4);
+}
+.stp-r .stp-tab {
+  right: 100%;
+  margin-right: calc(var(--stp-num) / -4);
+}
+
+/* Chấm nối + gạch ngắn nối ngược vào mũi nhãn. */
+.stp-dot {
+  @apply absolute;
+  top: 50%;
+  height: var(--stp-dot);
+  width: var(--stp-dot);
+  margin-top: calc(var(--stp-dot) / -2);
+  border-radius: 999px;
+  border: 4px solid rgb(var(--stp-c));
+  background: rgb(var(--white-rgb));
+}
+.stp-dot::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  margin-top: -1px;
+  height: 2px;
+  width: var(--stp-stub);
+  background: var(--stp-line);
+}
+.stp-l .stp-dot {
+  left: calc(50% + var(--stp-d));
+  margin-left: calc(var(--stp-dot) / -2);
+}
+.stp-l .stp-dot::before {
+  right: 100%;
+}
+.stp-r .stp-dot {
+  right: calc(50% + var(--stp-d));
+  margin-right: calc(var(--stp-dot) / -2);
+}
+.stp-r .stp-dot::before {
+  left: 100%;
+}
+
+/* Đường chéo nối hai chấm liền nhau. Vẽ một chiều rồi lật ngang cho hàng phải
+   nên markup của mọi hàng y hệt nhau. */
+.stp-link {
+  @apply absolute;
+  top: 50%;
+  left: calc(50% - var(--stp-d));
+  width: calc(var(--stp-d) * 2);
+  height: calc(100% + var(--stp-gap));
+}
+.stp-r .stp-link {
+  transform: scaleX(-1);
+}
+.stp-link line {
+  stroke: var(--stp-line);
+  stroke-width: 2;
+}
+
+/* Điện thoại giữ NGUYÊN sơ đồ — không trải phẳng. Mọi công thức dựng hình ở
+   trên không đổi một dòng nào, chỉ đè lại BỘ BIẾN cho vừa khổ hẹp: vòng số và
+   nhãn co lại, --stp-d nới ra (chấm dịch ra xa tâm) để phần còn dư cho thẻ đủ
+   rộng chứa chữ. Dòng mô tả ẩn đi — cột chữ chỉ còn ~80–120px, để lại là mỗi
+   dòng gãy làm ba. */
+@media (max-width: 767px) {
+  .stp {
+    --stp-h: clamp(64px, 19vw, 84px);
+    --stp-num: clamp(40px, 12vw, 52px);
+    --stp-ring: 4px;
+    --stp-tab-w: clamp(32px, 9.6vw, 42px);
+    --stp-tab-h: clamp(24px, 7vw, 30px);
+    --stp-tab-p: 6px;
+    --stp-dot: 10px;
+    --stp-stub: clamp(6px, 2.4vw, 12px);
+    /* Nới rộng nhất trong bộ: chấm càng xa tâm thì thẻ càng dài. Kéo thêm nữa
+       là đường chéo nằm ngang quá và chui vào thẻ của hàng kế. */
+    --stp-d: clamp(34px, 11.5vw, 50px);
+    --stp-gap: clamp(14px, 4.5vw, 22px);
+  }
+  .stp-card {
+    gap: 6px;
+    padding: 0 8px;
+    border-radius: 14px;
+    box-shadow:
+      0 0 0 4px rgb(var(--surface-control-rgb)),
+      0 8px 16px -12px rgb(var(--shadow-card-rgb) / 0.6);
+  }
+  .stp-l .stp-card {
+    padding-right: calc(var(--stp-num) / 2 + 6px);
+  }
+  .stp-r .stp-card {
+    padding-left: calc(var(--stp-num) / 2 + 6px);
+  }
+  .stp-ico {
+    height: clamp(24px, 7.5vw, 32px);
+    width: clamp(24px, 7.5vw, 32px);
+  }
+  .stp-title {
+    font-weight: 600;
+    font-size: clamp(9px, 2.9vw, 12px);
+    letter-spacing: 0;
+  }
+  .stp-desc {
+    display: none;
+  }
+  .stp-tab {
+    font-size: clamp(7px, 2vw, 8px);
+    letter-spacing: 0.04em;
+  }
+  .stp-tab em {
+    font-size: clamp(10px, 3vw, 12px);
+  }
+  .stp-dot {
+    border-width: 3px;
+  }
 }
 
 /* ===== Mép nối giữa các mục của landing =====

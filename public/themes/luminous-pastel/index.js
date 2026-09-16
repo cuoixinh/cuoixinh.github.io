@@ -278,8 +278,8 @@
         return `
         <figure class="lp-slide" data-lb="${i}">
           <div class="lp-slide-img">
-            <img src="${url}" alt="" class="w-full h-full object-cover"
-              style="object-position:${fp?.x ?? 50}% ${fp?.y ?? 50}%" />
+            <img src="${cxImgSrc(url)}" alt="" class="w-full h-full object-cover"
+              style="object-position:${cxFocal(fp)}" />
           </div>
           <figcaption class="lp-hand lp-slide-cap">${escapeHtml(
             LP_CAPTIONS[i % LP_CAPTIONS.length],
@@ -420,7 +420,7 @@
       .map((ev, i) => {
         const img = ev.image_url ? getImageUrl(ev.image_url) : null;
         const fp = ev.focal_point
-          ? ` style="object-position:${ev.focal_point.x}% ${ev.focal_point.y}%"`
+          ? ` style="object-position:${cxFocal(ev.focal_point)}"`
           : "";
         return `
       <div class="lp-story ${i % 2 ? "is-right" : "is-left"}">
@@ -429,7 +429,7 @@
           ${ev.date ? `<div class="lp-story-date cx-ac">${escapeHtml(ev.date)}</div>` : ""}
           ${ev.title ? `<div class="lp-story-title cx-hd">${escapeHtml(ev.title)}</div>` : ""}
           ${ev.content ? `<div class="lp-story-text cx-bd">${escapeHtml(ev.content)}</div>` : ""}
-          ${img ? `<img class="lp-story-photo" src="${img}" alt=""${fp} loading="lazy" />` : ""}
+          ${img ? `<img class="lp-story-photo" src="${cxImgSrc(img)}" alt=""${fp} loading="lazy" />` : ""}
         </div>
       </div>`;
       })

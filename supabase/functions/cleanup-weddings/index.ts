@@ -41,8 +41,13 @@ function timingSafeEqual(a: string, b: string): boolean {
 const fileNames = weddingFileNames
 
 Deno.serve(withAxiom('cleanup-weddings', async (req, log) => {
+  // Token RIÊNG cho việc dọn dẹp. Dùng chung ADMIN_SECRET_TOKEN thì một mã lộ ra
+  // là vừa mất toàn quyền DB vừa mất nút xoá hàng loạt; tách ra để xoay vòng độc
+  // lập. Chưa đặt CLEANUP_SECRET_TOKEN thì vẫn lùi về mã admin (không gãy cron
+  // đang chạy) — đặt xong nhớ cập nhật Vault `cleanup_token`.
   const token = req.headers.get('x-admin-token')
-  if (!timingSafeEqual(token ?? '', Deno.env.get('ADMIN_SECRET_TOKEN') ?? '')) {
+  const expected = Deno.env.get('CLEANUP_SECRET_TOKEN') || Deno.env.get('ADMIN_SECRET_TOKEN') || ''
+  if (!timingSafeEqual(token ?? '', expected)) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), {
       status: 401,
       headers: { 'Content-Type': 'application/json' },

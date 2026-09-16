@@ -9,6 +9,33 @@ class ImageBL {
     this.storage = storageDAL;
   }
 
+  // Tên file phải khớp allowlist `^[A-Za-z0-9._-]+$` mà wedding-admin
+  // (isSafeImageRef) và image-proxy cùng dùng — lệch là ảnh lưu được nhưng lần
+  // lưu thiệp sau bị từ chối. Hai hàm dưới giữ đúng giao kèo đó.
+
+  /** Đuôi file suy từ KIỂU MIME, không từ file.name (tên do client đặt, bịa được). */
+  static safeExt(file) {
+    const MAP = {
+      "image/jpeg": "jpg",
+      "image/jpg": "jpg",
+      "image/png": "png",
+      "image/webp": "webp",
+      "image/gif": "gif",
+      "image/avif": "avif",
+      "image/bmp": "bmp",
+      "image/svg+xml": "svg",
+    };
+    if (MAP[file?.type]) return MAP[file.type];
+    const raw = String(file?.name || "").split(".").pop() || "";
+    return /^[a-z0-9]{1,5}$/i.test(raw) ? raw.toLowerCase() : "jpg";
+  }
+
+  /** Tiền tố tên trường (vd `cover_image_url`, `love_story_image_2`). */
+  static safeField(fieldName) {
+    const s = String(fieldName || "img").replace(/[^A-Za-z0-9_-]/g, "");
+    return s.slice(0, 40) || "img";
+  }
+
   /** 24 ký tự ngẫu nhiên — đủ để không đoán ra và không trùng. */
   static randomId() {
     const b = new Uint8Array(15);
@@ -22,8 +49,7 @@ class ImageBL {
   // (wedding-admin và cleanup-weddings đều đọc từ đó, không bóc tên file).
   // `weddingId` giữ trong chữ ký vì nơi gọi vẫn truyền vào và để đổi ý còn dễ.
   async uploadSingleImage(weddingId, fieldName, file) {
-    const extension = file.name.split(".").pop();
-    const filename = `${fieldName}-${ImageBL.randomId()}.${extension}`;
+    const filename = `${ImageBL.safeField(fieldName)}-${ImageBL.randomId()}.${ImageBL.safeExt(file)}`;
 
     // Upload to storage
     return await this.storage.uploadFile(filename, file);
@@ -54,14 +80,7 @@ class ImageBL {
   }
 
   generateUUID() {
-    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(
-      /[xy]/g,
-      function (c) {
-        const r = (Math.random() * 16) | 0;
-        const v = c === "x" ? r : (r & 0x3) | 0x8;
-        return v.toString(16);
-      },
-    );
+    return cxUUID();
   }
 }
 

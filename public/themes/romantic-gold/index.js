@@ -409,8 +409,8 @@
       return;
     }
     const fp = focalPoints?.[file];
-    wrap.innerHTML = `<img src="${getImageUrl(file)}" alt="" loading="lazy"
-      class="${cls}" style="object-position:${fp?.x ?? 50}% ${fp?.y ?? 50}%">`;
+    wrap.innerHTML = `<img src="${cxImgSrc(file)}" alt="" loading="lazy"
+      class="${cls}" style="object-position:${cxFocal(fp)}">`;
     cxToggle(wrapId, true);
   }
 
@@ -418,9 +418,9 @@
   function _photo(url, fp, i, cls) {
     const el = document.createElement("div");
     el.className = cls;
-    el.innerHTML = `<img src="${url}" alt="" loading="lazy"
+    el.innerHTML = `<img src="${cxImgSrc(url)}" alt="" loading="lazy"
       class="w-full h-full object-cover"
-      style="object-position:${fp?.x ?? 50}% ${fp?.y ?? 50}%">`;
+      style="object-position:${cxFocal(fp)}">`;
     el.addEventListener("click", () => openLightbox(i));
     return el;
   }

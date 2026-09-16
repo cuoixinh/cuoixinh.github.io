@@ -331,9 +331,9 @@
         : "sp-photo sp-polaroid sp-tilt-l cursor-pointer";
       cell.innerHTML = `
         <span class="${odd ? "sp-tape sp-tape-tr" : "sp-tape sp-tape-tl"}"></span>
-        <img src="${url}" alt=""
+        <img src="${cxImgSrc(url)}" alt=""
           class="w-full aspect-[3/4] object-cover"
-          style="object-position:${fp?.x ?? 50}% ${fp?.y ?? 50}%">
+          style="object-position:${cxFocal(fp)}">
         <span class="sp-note cx-t absolute bottom-2 left-0 right-0 text-center text-[15px]">
           ${String(i + 1).padStart(2, "0")}
         </span>`;

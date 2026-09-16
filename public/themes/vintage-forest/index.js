@@ -361,8 +361,8 @@
         const p = photos[used++];
         const fp = p.focal_point;
         html +=
-          `<img src="${getImageUrl(p.image_url)}" alt="" loading="lazy"` +
-          ` class="vf-story-photo" style="object-position:${fp?.x ?? 50}% ${fp?.y ?? 50}%">`;
+          `<img src="${cxImgSrc(p.image_url)}" alt="" loading="lazy"` +
+          ` class="vf-story-photo" style="object-position:${cxFocal(fp)}">`;
       }
     });
     list.innerHTML = html;
@@ -437,8 +437,8 @@
     // khung trống.
     const fp = photoFile ? focalPoints?.[photoFile] : null;
     const top = photoFile
-      ? `<div class="vf-cal-top"><img src="${getImageUrl(photoFile)}" alt=""
-          loading="lazy" style="object-position:${fp?.x ?? 50}% ${fp?.y ?? 50}%">
+      ? `<div class="vf-cal-top"><img src="${cxImgSrc(photoFile)}" alt=""
+          loading="lazy" style="object-position:${cxFocal(fp)}">
           <svg class="vf-cal-wave" viewBox="0 0 390 40" preserveAspectRatio="none"
             aria-hidden="true">
             <path d="M0 40C96 38 176 8 258 6c54-1 94 8 132 16v18H0z"
@@ -469,8 +469,8 @@
       return;
     }
     const fp = focalPoints?.[file];
-    wrap.innerHTML = `<img src="${getImageUrl(file)}" alt="" loading="lazy"
-      class="${cls}" style="object-position:${fp?.x ?? 50}% ${fp?.y ?? 50}%">`;
+    wrap.innerHTML = `<img src="${cxImgSrc(file)}" alt="" loading="lazy"
+      class="${cls}" style="object-position:${cxFocal(fp)}">`;
     cxToggle(wrapId, true);
   }
 
@@ -478,9 +478,9 @@
   function _photo(url, fp, i, cls) {
     const el = document.createElement("div");
     el.className = cls;
-    el.innerHTML = `<img src="${url}" alt="" loading="lazy"
+    el.innerHTML = `<img src="${cxImgSrc(url)}" alt="" loading="lazy"
       class="w-full h-full object-cover"
-      style="object-position:${fp?.x ?? 50}% ${fp?.y ?? 50}%">`;
+      style="object-position:${cxFocal(fp)}">`;
     el.addEventListener("click", () => openLightbox(i));
     return el;
   }

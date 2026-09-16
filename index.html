@@ -317,10 +317,11 @@
           4 bước đơn giản
         </h2>
 
-        <div
-          id="stepsList"
-          class="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8"
-        ></div>
+        <!-- Sơ đồ 4 bước: mỗi bước một hàng so le trái/phải, nối bằng chấm +
+             đường chéo (js/section-steps.js dựng hàng, .stp-* ở
+             styles/tailwind-src.css). Dưới 768px bỏ nhãn lục giác và đường nối,
+             thẻ giãn gần hết khổ. -->
+        <div id="stepsList" class="stp"></div>
       </div>
     </section>
 

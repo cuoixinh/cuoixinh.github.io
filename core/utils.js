@@ -57,6 +57,30 @@ function setImageWithRing(id, filename) {
   }
 }
 
+/**
+ * UUID v4 bằng nguồn ngẫu nhiên MẬT MÃ. `Math.random()` không phải nguồn ngẫu
+ * nhiên an toàn — id sinh ra từ nó đoán được, mà mấy id này đi vào link quản lý
+ * thiệp. `crypto.randomUUID` cần HTTPS/localhost; ngữ cảnh khác thì lùi về
+ * getRandomValues (vẫn an toàn), chỉ khi không có cả hai mới dùng Math.random.
+ */
+function cxUUID() {
+  if (typeof crypto !== "undefined") {
+    if (crypto.randomUUID) return crypto.randomUUID();
+    if (crypto.getRandomValues) {
+      const b = crypto.getRandomValues(new Uint8Array(16));
+      b[6] = (b[6] & 0x0f) | 0x40; // version 4
+      b[8] = (b[8] & 0x3f) | 0x80; // variant
+      const h = Array.from(b, (x) => x.toString(16).padStart(2, "0")).join("");
+      return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
+    }
+  }
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+    const r = (Math.random() * 16) | 0;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
 // ============= IMAGE HELPERS =============
 
 function getImageUrl(filename) {
@@ -75,6 +99,39 @@ function getImageUrl(filename) {
     return filename;
   }
   return `${STORAGE_BASE_URL}/${filename}`;
+}
+
+/**
+ * URL ảnh đã SẴN SÀNG nhét vào `src="..."` của chuỗi innerHTML: chặn scheme lạ
+ * rồi escape dấu nháy. Dùng thay `getImageUrl()` ở MỌI chỗ ghép chuỗi HTML —
+ * `getImageUrl` trả nguyên giá trị trong DB, mà giá trị đó do khách nhập nên
+ * chứa được dấu `"` để thoát khỏi thuộc tính (stored XSS).
+ * Gán bằng `el.src = getImageUrl(...)` thì không cần hàm này (không có parser HTML).
+ */
+function cxImgSrc(filename) {
+  const url = getImageUrl(filename);
+  // Chỉ nhận http(s), blob:, data:image và đường dẫn tương đối. `javascript:` và
+  // mọi scheme khác → về ảnh giữ chỗ.
+  if (/^[a-z][a-z0-9+.-]*:/i.test(url)) {
+    const ok =
+      /^https?:\/\//i.test(url) ||
+      /^blob:/i.test(url) ||
+      /^data:image\//i.test(url);
+    if (!ok) return escapeHtml(createPlaceholderSVG("Ảnh không hợp lệ"));
+  }
+  return escapeHtml(url);
+}
+
+/**
+ * Giá trị `object-position` an toàn từ điểm lấy nét đọc ở DB. Trả về đúng dạng
+ * "50% 50%" — ép về SỐ nên không chèn được gì vào thuộc tính style.
+ */
+function cxFocal(fp) {
+  const n = (v) => {
+    const x = Number(v);
+    return Number.isFinite(x) ? Math.min(100, Math.max(0, x)) : 50;
+  };
+  return `${n(fp && fp.x)}% ${n(fp && fp.y)}%`;
 }
 
 function createPlaceholderSVG(text = "Chưa có ảnh") {
@@ -97,25 +154,40 @@ function createPlaceholderSVG(text = "Chưa có ảnh") {
 // ============= MAP HELPERS =============
 
 /** Lấy URL embed Google Maps sạch từ HTML iframe (hoặc trả lại nguyên URL). */
+// Host được phép nhúng bản đồ. Giá trị này vào thẳng `iframe.src` trên trang
+// thiệp công khai, nên không thể nhận URL tuỳ ý: `javascript:` là chạy mã trên
+// origin của mình, còn một https:// lạ là trang lừa đảo đội lốt thiệp cưới.
+const CX_MAP_HOSTS = ["www.google.com", "maps.google.com", "google.com"];
+
+/**
+ * Chuỗi khách dán vào ô bản đồ (URL trần hoặc cả thẻ <iframe>) → URL nhúng SẠCH,
+ * hoặc "" nếu không thuộc Google Maps. Nơi gọi coi "" là "chưa có bản đồ".
+ */
 function extractMapEmbedUrl(value) {
   if (!value) return "";
 
-  // Decode HTML entities using DOM
+  // Giải mã HTML entity bằng ngữ cảnh RCDATA của <textarea> (không chạy script).
   const textarea = document.createElement("textarea");
   textarea.innerHTML = value;
   const decoded = textarea.value;
 
-  // Check if it's an iframe HTML
+  let candidate = decoded;
   if (decoded.includes("<iframe") && decoded.includes("src=")) {
-    // Extract src URL from iframe
     const srcMatch = decoded.match(/src=["']([^"']+)["']/);
-    if (srcMatch && srcMatch[1]) {
-      return srcMatch[1];
-    }
+    if (srcMatch && srcMatch[1]) candidate = srcMatch[1];
   }
 
-  // If it's already a URL, return as-is
-  return value;
+  candidate = String(candidate).trim();
+  if (!candidate) return "";
+
+  try {
+    const u = new URL(candidate, "https://www.google.com");
+    if (u.protocol !== "https:") return "";
+    if (!CX_MAP_HOSTS.includes(u.hostname)) return "";
+    return u.href;
+  } catch (e) {
+    return "";
+  }
 }
 
 // ============= ENCRYPTION HELPERS =============
@@ -1003,10 +1075,16 @@ function closeTimePicker() {
   }
 
   if (IS_SHELL_HOST) {
+    // Chỉ nghe iframe CON của chính trang này. Thiếu phép kiểm đó thì bất kỳ site
+    // nào window.open() trang mẫu cũng gửi được `cx-sug-go` với url `javascript:`
+    // → chạy mã trên origin cuoixinh.com. Và url phải là đường dẫn nội bộ.
     window.addEventListener("message", function (e) {
+      const frame = document.querySelector("iframe.cx-pshell-view");
+      if (!frame || e.source !== frame.contentWindow) return;
       const d = e.data || {};
-      if (d.type === "cx-sug-go" && typeof d.url === "string") window.location.href = d.url;
-      else if (d.type === "cx-sug-use") _chooseTheme(d.theme, d.display);
+      if (d.type === "cx-sug-go" && typeof d.url === "string") {
+        if (/^\/(?!\/)/.test(d.url)) window.location.href = d.url;
+      } else if (d.type === "cx-sug-use") _chooseTheme(d.theme, d.display);
     });
     return;
   }

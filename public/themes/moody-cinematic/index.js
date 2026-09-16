@@ -914,12 +914,12 @@
   function _storyArticle(ev, i) {
     const img = ev.image_url ? getImageUrl(ev.image_url) : null;
     const fp = ev.focal_point;
-    const pos = fp ? ` style="object-position:${fp.x}% ${fp.y}%"` : "";
+    const pos = fp ? ` style="object-position:${cxFocal(fp)}"` : "";
     // Ảnh nằm trong #main-card (display:none lúc chưa mở bìa) nên KHÔNG lazy.
     const figure = img
       ? `<figure class="mc-post-figure">
            <div class="mc-cine mc-cine-sm w-full aspect-[16/9]">
-             <img src="${img}" alt=""${pos} class="w-full h-full object-cover" />
+             <img src="${cxImgSrc(img)}" alt=""${pos} class="w-full h-full object-cover" />
            </div>
          </figure>`
       : "";
@@ -977,9 +977,9 @@
       const el = document.createElement("div");
       el.className = "mc-frame mc-cine";
       el.style.flex = grow + " 1 0";
-      el.innerHTML = `<img src="${url}" alt=""
+      el.innerHTML = `<img src="${cxImgSrc(url)}" alt=""
         class="w-full h-full object-cover"
-        style="object-position:${fp?.x ?? 50}% ${fp?.y ?? 50}%">
+        style="object-position:${cxFocal(fp)}">
         <div class="mc-frame-no">${String(i + 1).padStart(2, "0")}</div>`;
       // Kéo qua khung để lật trang thì thôi, đừng mở ảnh — chỉ cú bấm ĐỨNG YÊN
       // mới là ý định xem ảnh.

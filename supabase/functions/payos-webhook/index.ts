@@ -19,18 +19,42 @@ function timingSafeEqual(a: string, b: string): boolean {
   return diff === 0;
 }
 
+/**
+ * Chuẩn hoá MỘT giá trị theo đúng quy ước ký của PayOS:
+ *   null / undefined / chuỗi "null" / "undefined"  →  chuỗi RỖNG
+ *   mảng                                            →  JSON.stringify của mảng
+ *   còn lại                                         →  String(value)
+ * Bản cũ nối thẳng `${value}` nên `null` thành chuỗi "null" → chữ ký LUÔN lệch,
+ * và đó là lý do phải để chế độ shadow suốt (docs/security-checklist.md A1).
+ */
+function payosValue(value: unknown): string {
+  if (value === null || value === undefined) return "";
+  if (value === "null" || value === "undefined") return "";
+  if (Array.isArray(value)) {
+    return JSON.stringify(
+      value.map((item) => {
+        if (item && typeof item === "object") {
+          const sorted: Record<string, unknown> = {};
+          for (const k of Object.keys(item as Record<string, unknown>).sort()) {
+            sorted[k] = (item as Record<string, unknown>)[k] ?? "";
+          }
+          return sorted;
+        }
+        return item;
+      }),
+    );
+  }
+  return String(value);
+}
+
 async function verifyWebhookSignature(payload: Record<string, any>, receivedSignature: string, secretKey: string): Promise<boolean> {
   try {
     // Sort keys alphabetically
     const sortedKeys = Object.keys(payload).sort();
-    const sortedData: Record<string, any> = {};
-    sortedKeys.forEach((key) => { sortedData[key] = payload[key]; });
-    
+
     // Create string: key1=value1&key2=value2&...
-    const dataString = Object.entries(sortedData).map(([key, value]) => `${key}=${value}`).join("&");
-    
-    console.log("Signature verification data string:", dataString);
-    
+    const dataString = sortedKeys.map((key) => `${key}=${payosValue(payload[key])}`).join("&");
+
     const encoder = new TextEncoder();
     const keyData = encoder.encode(secretKey);
     const messageData = encoder.encode(dataString);
@@ -40,12 +64,34 @@ async function verifyWebhookSignature(payload: Record<string, any>, receivedSign
     const hashArray = Array.from(new Uint8Array(signatureBuffer));
     const expectedSignature = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
     
-    console.log("Expected signature:", expectedSignature);
-    console.log("Received signature:", receivedSignature);
-    
     return timingSafeEqual(expectedSignature, receivedSignature);
   } catch (error) {
     console.error("Signature verification error:", error);
+    return false;
+  }
+}
+
+/**
+ * Hỏi thẳng PayOS: đơn `orderCode` đã thanh toán chưa.
+ * Đây là NGUỒN SỰ THẬT — không phụ thuộc vào payload người gọi gửi lên, nên kẻ
+ * giả mạo không qua được. Trả false khi thiếu credential, lỗi mạng, hoặc đơn
+ * chưa ở trạng thái PAID (thà bỏ sót còn hơn mở nhầm).
+ */
+async function confirmWithPayOS(orderCode: unknown): Promise<boolean> {
+  const clientId = Deno.env.get("PAYOS_CLIENT_ID");
+  const apiKey = Deno.env.get("PAYOS_API_KEY");
+  if (!clientId || !apiKey || orderCode === null || orderCode === undefined) return false;
+
+  try {
+    const res = await fetch(
+      `https://api-merchant.payos.vn/v2/payment-requests/${encodeURIComponent(String(orderCode))}`,
+      { headers: { "x-client-id": clientId, "x-api-key": apiKey } },
+    );
+    if (!res.ok) return false;
+    const body = await res.json();
+    return body?.code === "00" && body?.data?.status === "PAID";
+  } catch (error) {
+    console.error("confirmWithPayOS failed:", error);
     return false;
   }
 }
@@ -70,10 +116,9 @@ serve(withAxiom("payos-webhook", async (req, log) => {
   // Handle POST for actual webhook
   if (req.method === "POST") {
     try {
+      // KHÔNG dump cả payload ra log: nó mang chữ ký và thông tin giao dịch.
+      // Cần soi thì đã có `payos.signature_check` trên Axiom + bảng payment_logs.
       const payload = await req.json();
-      console.log("=== FULL WEBHOOK PAYLOAD ===");
-      console.log(JSON.stringify(payload, null, 2));
-      console.log("=== END PAYLOAD ===");
 
       // Verify signature
       const checksumKey = Deno.env.get("PAYOS_CHECKSUM_KEY");
@@ -81,44 +126,53 @@ serve(withAxiom("payos-webhook", async (req, log) => {
         throw new Error("Missing PAYOS_CHECKSUM_KEY");
       }
 
-      // ── Xác thực chữ ký webhook — triển khai 2 pha ────────────────────────
-      // Xem docs/security-audit-plan.md #1.
-      // Pha 1 (hiện tại): SHADOW MODE — tính chữ ký, ghi log
-      //   `payos.signature_check` trên Axiom, vẫn xử lý đơn như cũ.
-      // Pha 2: khi log xác nhận matched=true trên giao dịch thật → đặt biến môi
-      //   trường PAYOS_ENFORCE_SIGNATURE=true để trả 401. Không cần sửa code.
-      const enforceSignature = Deno.env.get("PAYOS_ENFORCE_SIGNATURE") === "true";
+      // ── Xác thực webhook: HAI lớp, không còn shadow mode ──────────────────
+      // Endpoint này public (verify_jwt off). Trước đây chữ ký sai vẫn xử lý đơn
+      // trừ khi có biến môi trường PAYOS_ENFORCE_SIGNATURE=true → ai cũng POST
+      // được một đơn "đã trả tiền" (docs/security-checklist.md A1).
+      //
+      // Lớp 1: chữ ký HMAC trên `payload.data`.
+      // Lớp 2: chữ ký không khớp thì HỎI THẲNG PayOS đơn đó đã trả chưa. Nhờ vậy
+      //   chốt fail-closed với kẻ giả mạo mà KHÔNG rủi ro chặn nhầm giao dịch
+      //   thật nếu quy ước ký của PayOS đổi — thứ đã làm lớp 1 lệch suốt.
+      // Không lớp nào qua → 401, không đụng vào DB.
       const receivedSignature = payload.signature;
+      const orderCode = payload?.data?.orderCode ?? null;
 
-      // PayOS signature is calculated from the 'data' object, not the whole payload
       const signatureValid = receivedSignature
         ? await verifyWebhookSignature(payload.data, receivedSignature, checksumKey)
         : false;
 
-      log.info("payos.signature_check", {
-        orderCode: payload?.data?.orderCode ?? null,
-        hasSignature: Boolean(receivedSignature),
-        matched: signatureValid,
-        enforcing: enforceSignature,
-      });
+      let verifiedBy = signatureValid ? "signature" : "";
 
       if (!signatureValid) {
-        if (enforceSignature) {
-          log.error("payos.signature_rejected", {
-            orderCode: payload?.data?.orderCode ?? null,
-            hasSignature: Boolean(receivedSignature),
-          });
-          return new Response(JSON.stringify({ error: "Invalid signature" }), {
-            status: 401,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          });
-        }
-        console.warn(
-          "PayOS signature MISMATCH — shadow mode, vẫn xử lý đơn. " +
-          "Kiểm tra log payos.signature_check trước khi bật PAYOS_ENFORCE_SIGNATURE=true.",
-        );
-      } else {
-        console.log("Webhook signature verified successfully");
+        const confirmed = await confirmWithPayOS(orderCode);
+        if (confirmed) verifiedBy = "payos_api";
+        // Chữ ký lệch mà PayOS xác nhận là đơn thật → quy ước ký đang sai, phải
+        // thấy được để sửa; nhưng đừng chặn tiền của khách vì lỗi của mình.
+        log.warn("payos.signature_mismatch", {
+          orderCode,
+          hasSignature: Boolean(receivedSignature),
+          apiConfirmed: confirmed,
+        });
+      }
+
+      log.info("payos.signature_check", {
+        orderCode,
+        hasSignature: Boolean(receivedSignature),
+        matched: signatureValid,
+        verifiedBy: verifiedBy || "none",
+      });
+
+      if (!verifiedBy) {
+        log.error("payos.webhook_rejected", {
+          orderCode,
+          hasSignature: Boolean(receivedSignature),
+        });
+        return new Response(JSON.stringify({ error: "Invalid signature" }), {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
       }
 
       // Extract payment data
