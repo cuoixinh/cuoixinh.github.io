@@ -104,9 +104,10 @@ const CUSTOMER_EDITABLE_FIELDS = new Set([
 // Cùng một mã chạy cho CẢ HAI project nên phải liệt kê host của cả hai — thiếu
 // host staging thì trên staging mọi URL ảnh đầy đủ đều bị coi là tráo ảnh.
 const ALLOWED_IMAGE_HOSTS = new Set([
-  'lcobawmkywtxhpezndsh.supabase.co',         // production
-  'gmtnoxdwoumbtdmqmisk.supabase.co',         // staging
-  'wedding-image-proxy.cuoixinh-api.workers.dev',
+  'lcobawmkywtxhpezndsh.supabase.co',                    // production
+  'gmtnoxdwoumbtdmqmisk.supabase.co',                    // staging
+  'wedding-image-proxy.cuoixinh-api.workers.dev',        // proxy production
+  'wedding-image-proxy-staging.cuoixinh-api.workers.dev', // proxy staging
 ])
 
 const IMAGE_FIELDS = [

@@ -12,3 +12,9 @@ preview_id = "ac46141ef95249bb8eac63f1e282d4cf"
 # Ví dụ nếu dùng custom domain: cuoixinh.com/api/*
 # [env.production]
 # routes = [{ pattern = "cuoixinh.com/api/*", zone_name = "cuoixinh.com" }]
+
+# Edge Function đích. KHAI RÕ, mã không có giá trị mặc định — cùng lý do như
+# wrangler-image.toml: một worker thiếu cấu hình mà vẫn chạy là nó lặng lẽ đọc
+# DB của môi trường khác.
+[vars]
+SUPABASE_EDGE_URL = "https://lcobawmkywtxhpezndsh.supabase.co/functions/v1/wedding-admin"

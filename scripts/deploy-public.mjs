@@ -81,7 +81,8 @@ const EXCLUDE = [
  * khai thêm thẻ <script> nào — quan trọng vì mẫu thiệp mới chép từ base-theme sẽ
  * tự đúng, khỏi phải nhớ.
  *
- * REDACT chạy TRƯỚC bước nối, nên purgeSecret của production vẫn bị che.
+ * REDACT áp cho CẢ file gốc lẫn file override, nên purgeSecret của cả hai môi
+ * trường đều bị che trong bản publish.
  */
 const ENV_OVERRIDE = {
   file: "core/config.js",
@@ -100,6 +101,12 @@ const REDACT = [
     find: /purgeSecret:\s*"[^"]*"/,
     replace: "purgeSecret: null",
     why: "chỉ admin/js/02-templates.js dùng, mà admin/ không lên repo public",
+  },
+  {
+    file: "core/config.staging.js",
+    find: /purgeSecret:\s*"[^"]*"/,
+    replace: "purgeSecret: null",
+    why: "như trên — file này được NỐI vào bản build nên cũng phải che",
   },
 ];
 
@@ -266,11 +273,8 @@ function collect() {
   return [...new Set(out)].filter((r) => !isExcluded(r)).sort();
 }
 
-/** Đọc file nguồn, áp REDACT nếu có. Cache để chỉ chạm đĩa một lần mỗi file. */
-const bytesCache = new Map();
-function sourceBytes(rel) {
-  if (bytesCache.has(rel)) return bytesCache.get(rel);
-  let buf = fs.readFileSync(path.join(ROOT, rel));
+/** Áp REDACT lên nội dung một file nguồn. Không khớp được thì DỪNG build. */
+function applyRedact(rel, buf) {
   for (const r of REDACT) {
     if (r.file !== rel) continue;
     const txt = buf.toString("utf8");
@@ -282,9 +286,16 @@ function sourceBytes(rel) {
     }
     buf = Buffer.from(txt.replace(r.find, r.replace), "utf8");
   }
+  return buf;
+}
 
-  // Nối phần khác biệt môi trường. Chạy SAU REDACT để purgeSecret của production
-  // vẫn bị che trong bản staging.
+/** Đọc file nguồn, áp REDACT nếu có. Cache để chỉ chạm đĩa một lần mỗi file. */
+const bytesCache = new Map();
+function sourceBytes(rel) {
+  if (bytesCache.has(rel)) return bytesCache.get(rel);
+  let buf = applyRedact(rel, fs.readFileSync(path.join(ROOT, rel)));
+
+  // Nối phần khác biệt môi trường.
   if (OPT.env && rel === ENV_OVERRIDE.file) {
     const over = ENV_OVERRIDE.overrideFor(OPT.env);
     const abs = path.join(ROOT, over);
@@ -294,7 +305,11 @@ function sourceBytes(rel) {
           `  Tạo file đó (chỉ khai khoá KHÁC production), hoặc bỏ cờ --env.`,
       );
     }
-    buf = Buffer.concat([buf, Buffer.from("\n", "utf8"), fs.readFileSync(abs)]);
+    // File override KHÔNG đi qua sourceBytes (nó nằm trong EXCLUDE nên không
+    // bao giờ được copy thành file riêng), nhưng nội dung vẫn ra web qua phép
+    // nối này — nên phải che riêng ở đây.
+    const overBuf = applyRedact(over, fs.readFileSync(abs));
+    buf = Buffer.concat([buf, Buffer.from("\n", "utf8"), overBuf]);
   }
 
   bytesCache.set(rel, buf);

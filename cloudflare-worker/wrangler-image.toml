@@ -3,3 +3,10 @@ main = "image-proxy.js"
 compatibility_date = "2024-01-01"
 
 # Không cần KV namespace, dùng Cloudflare Cache API (free, unlimited)
+
+# Bucket đích. KHAI RÕ, mã không có giá trị mặc định: worker này chỉ có MỘT bản
+# (staging không dùng worker cache — xem CONFIG.cloudflare ở core/config.staging.js),
+# nhưng viết cứng project vào mã thì ai clone cho môi trường khác sẽ có một worker
+# chạy ngon lành mà phục vụ ảnh của project kia, không gì báo.
+[vars]
+STORAGE_BASE_URL = "https://lcobawmkywtxhpezndsh.supabase.co/storage/v1/object/public/wedding-images"

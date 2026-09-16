@@ -1,11 +1,17 @@
 /** Cloudflare Worker — proxy ảnh Supabase Storage, cache 30 ngày. */
 
-const STORAGE_BASE_URL =
-  "https://lcobawmkywtxhpezndsh.supabase.co/storage/v1/object/public/wedding-images";
 const CACHE_TTL = 2592000; // 30 ngày (giây)
 
 export default {
   async fetch(request, env, ctx) {
+    // Bucket đích lấy từ [vars] của wrangler-image.toml, KHÔNG có mặc định:
+    // viết cứng một project vào mã thì bản clone cho môi trường khác vẫn chạy
+    // mà lặng lẽ phục vụ ảnh của môi trường kia. Thiếu thì 500, lộ ra ngay.
+    const STORAGE_BASE_URL = env.STORAGE_BASE_URL;
+    if (!STORAGE_BASE_URL) {
+      return new Response("Worker chưa cấu hình STORAGE_BASE_URL", { status: 500 });
+    }
+
     const url = new URL(request.url);
 
     // Lấy filename từ path: /abc123.jpg

@@ -1,0 +1,31 @@
+# Bản STAGING của templates-cache — CÙNG mã nguồn với wrangler-templates.toml,
+# khác nhau ở tên worker và project đích.
+#
+# Deploy:
+#   1) wrangler secret put PURGE_SECRET --config wrangler-templates-staging.toml
+#      (đây là bí mật duy nhất; dùng chuỗi KHÁC production)
+#   2) wrangler deploy --config wrangler-templates-staging.toml
+#
+# EDGE_URL và SUPABASE_ANON_KEY khai thẳng ở [vars] chứ không đặt bằng secret như
+# bản production: cả hai đều công khai (anon key nằm sẵn trong core/config.js), mà
+# để trong toml thì mở Dashboard là thấy ngay worker này trỏ về project nào —
+# đúng chỗ dễ nhầm nhất khi có hai môi trường.
+#
+# CONFIG.cloudflare.templatesCache ở core/config.staging.js đã trỏ vào worker này,
+# và purgeSecret ở đó phải khớp PURGE_SECRET đặt ở bước 1 — lệch là nút purge trong
+# admin gọi sang staging nhận 401.
+#
+# Đặt luôn TEMPLATES_CACHE_URL cho project Supabase staging trỏ vào worker này, để
+# chatbot đọc cùng bảng giá với trang chủ staging.
+
+name = "templates-cache-staging"
+main = "templates-cache.js"
+compatibility_date = "2024-01-01"
+
+[vars]
+# Worker gọi `?resource=public-templates` chứ KHÔNG gọi /rest/v1: role `anon`
+# không còn quyền đọc thẳng bảng templates. Thiếu biến này là worker trả 500.
+EDGE_URL = "https://gmtnoxdwoumbtdmqmisk.supabase.co/functions/v1/wedding-admin"
+
+# Anon key của project staging — gateway của Edge Function đòi apikey.
+SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdtdG5veGR3b3VtYnRkbXFtaXNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkxMjI3MDQsImV4cCI6MjEwNDY5ODcwNH0.2KoGkOvdjgsnAQ3He1DHjJUi8AV8ETv2D-SclITZxEM"

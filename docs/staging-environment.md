@@ -23,17 +23,24 @@ staging.cuoixinh.com                      cuoixinh.com
   │    wrangler.staging.jsonc               │    wrangler.jsonc
   │                                         │
   └─ Supabase <staging-ref>                 └─ Supabase lcobawmkywtxhpezndsh
-       KHÔNG qua worker cache                    + 4 worker proxy/cache
+       + 3 worker proxy/cache riêng              + 3 worker proxy/cache
        │                                         │
   payos-webhook-proxy-staging               payos-webhook-proxy
        │                                         │
        └──── PayOS kênh 2 ─────────── kênh 1 ────┘
 ```
 
-**Staging cố ý không có worker cache.** Mọi DAL đã sẵn nhánh lùi khi thiếu URL worker
+**Staging có bộ worker cache riêng.** Ba worker `*-staging` trỏ về project staging, khai ở
+`cloudflare-worker/wrangler-*-staging.toml`, và `CONFIG.cloudflare` của `core/config.staging.js`
+trỏ vào chúng. Dựng đủ để staging đi đúng đường của production — nhất là bước **phải bấm purge**
+sau khi sửa giá hay danh mục mẫu, vốn là chỗ dễ quên nhất khi lên thật.
+
+KV và `PURGE_SECRET` của staging phải RIÊNG. Cache key chỉ gồm slug nên chung namespace với
+production là hai môi trường đè lên nhau — khách thật có thể nhận về dữ liệu test.
+
+Muốn tạm bỏ cache khi đang thử thì để `cloudflare.*` = `null`: mọi DAL đã sẵn nhánh lùi
 (`wedding-dal` dùng `workerUrl || edgeUrl`, `storage-dal` dùng `imageProxy || storageUrl`,
-`templates-dal` gọi `_viaEdge`), nên chỉ cần để `cloudflare.*` = `null`. Đổi lại staging
-không phải đi purge cache mỗi lần sửa — đúng thứ cần khi đang thử.
+`templates-dal` gọi `_viaEdge`).
 
 ## 3. Web trỏ vào đâu
 
@@ -70,7 +77,7 @@ nó quản trị hàng thật. Muốn thử giao diện với dữ liệu stagin
 | `ADMIN_SECRET_TOKEN`    | riêng                  | **phải khác**                                               |
 | Axiom dataset           | riêng                  | **nên khác**, để log thử không lẫn log thật                 |
 | PayOS                   | kênh 1                 | **kênh 2**, bộ khoá riêng                                   |
-| Worker cache            | 3 worker               | không dùng                                                  |
+| Worker cache            | 3 worker               | **3 worker riêng** — KV + `PURGE_SECRET` phải khác          |
 | cron `cleanup-weddings` | có                     | **có** — dựng y hệt (URL + Vault của chính project staging) |
 
 ## 5. Deploy
@@ -99,14 +106,32 @@ production, chỉ khác:
 staging build ra bản production và trỏ thẳng vào DB thật — nhìn bề ngoài không có gì khác,
 nên kiểm mục 8.2 ngay sau lần deploy đầu.
 
-**Worker webhook PayOS** — `payos-webhook-proxy.js` dùng chung cho hai worker, đích lấy từ
-biến môi trường và **mặc định là production**. Nên thêm staging KHÔNG cần deploy lại bản
-production:
+**Cloudflare Worker** — bốn worker (`webhook` · `image` · `templates` · `cache`), mỗi môi
+trường một file `.toml` riêng trong `cloudflare-worker/`. Cùng mã nguồn, khác `[vars]`:
+
+```bash
+npm run deploy:workers:staging       # staging
+npm run deploy:workers               # production
+npm run deploy:workers:all           # cả hai, staging trước
+npm run deploy:workers:staging -- image cache   # chỉ vài worker
+npm run deploy:workers:all -- --dry-run         # build thử, không đẩy
+```
+
+Hai điều dễ mất dữ liệu: `[vars]` trong `.toml` **ghi đè** biến đặt tay trên Dashboard mỗi
+lần deploy (secret đặt bằng `wrangler secret put` thì không bị đụng), và wrangler đọc **file
+trên máy** chứ không qua git. Lùi lại một worker: `wrangler rollback --config <file>`.
+
+Lần đầu dựng staging còn hai bước thủ công, chỉ làm MỘT lần:
 
 ```bash
 cd cloudflare-worker
-wrangler deploy --config wrangler-webhook-staging.toml
+wrangler kv namespace create WEDDING_CACHE_STAGING            # dán id vào wrangler-staging.toml
+wrangler kv namespace create WEDDING_CACHE_STAGING --preview  # dán preview_id
+wrangler secret put PURGE_SECRET --config wrangler-templates-staging.toml
 ```
+
+`PURGE_SECRET` phải khớp `CONFIG.cloudflare.purgeSecret` trong `core/config.staging.js`, lệch
+là nút purge ở admin nhận 401. KV thì bắt buộc namespace RIÊNG — xem mục 2.
 
 ## 6. Changelog DB
 
@@ -166,11 +191,9 @@ Nhớ nâng `CX_VERSION` như mọi lần deploy.
   một tính năng — rất dễ tưởng là lỗi khác.
 - **Kênh PayOS 2 vẫn là tiền thật.** Tạo trên staging một mã giảm 100% để test luồng xuất
   bản; `payment-handler` có sẵn nhánh bỏ qua PayOS khi số tiền về 0 (đòi đăng nhập).
-- **Chatbot AI trên staging đọc danh mục mẫu của PRODUCTION.** `ai-chat` lấy giá qua
-  `TEMPLATES_CACHE_URL`, mà biến đó không đặt thì rơi về worker production
-  (`ai-chat/index.ts`, chỗ khai hằng số). Hai bên seed cùng 9 mẫu nên hiện tại không lệch
-  gì, nhưng nếu bạn thử ĐỔI GIÁ hay thêm mẫu trên staging thì chatbot staging vẫn đọc giá
-  cũ của production — đây là điểm mù duy nhất còn lại giữa hai môi trường. Lúc nào cần thử
-  tới phần đó thì dựng thêm một worker `templates-cache` cho staging rồi trỏ biến này vào nó.
+- **`TEMPLATES_CACHE_URL` phải đặt cho TỪNG project.** `ai-chat` lấy giá qua biến này và
+  KHÔNG có giá trị mặc định: đặt sai là chatbot staging báo giá của production, để trống thì
+  nó bỏ qua worker và đọc thẳng DB của chính project (đúng giá, chỉ chậm hơn).
+  Staging trỏ vào `templates-cache-staging`, production trỏ vào `templates-cache`.
 - **Staging trôi khỏi production.** Schema staging đi trước nên dễ quên chạy lại bên
   production. Bảng ở `changelogs/README.md` là chỗ đánh dấu.

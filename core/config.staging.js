@@ -31,14 +31,16 @@
     storageUrl: `${BASE}/storage/v1/object/public/wedding-images`,
   };
 
-  // Staging CỐ Ý không dùng worker cache: mọi DAL đã có nhánh lùi khi thiếu URL
-  // (wedding-dal `workerUrl || edgeUrl`, storage-dal `imageProxy || storageUrl`,
-  // templates-dal `_viaEdge`). Không cache là đúng thứ cần khi test — sửa xong
-  // thấy ngay, khỏi đi purge. `purgeSecret` null vì không có gì để purge.
+  // Bộ worker cache RIÊNG của staging (cloudflare-worker/wrangler-*-staging.toml).
+  // Dựng đủ để staging chạy đúng đường đi của production — kể cả bước phải bấm
+  // purge ở admin sau khi sửa giá hay danh mục mẫu, vốn là chỗ dễ quên nhất.
+  // Bốn worker này trỏ về project staging; dùng nhầm URL của production là
+  // staging phục vụ dữ liệu thật.
   CONFIG.cloudflare = {
-    imageProxy: null,
-    templatesCache: null,
-    cacheProxy: null,
-    purgeSecret: null,
+    imageProxy: "https://wedding-image-proxy-staging.cuoixinh-api.workers.dev",
+    templatesCache: "https://templates-cache-staging.cuoixinh-api.workers.dev",
+    cacheProxy: "https://wedding-cache-proxy-staging.cuoixinh-api.workers.dev",
+    // Phải khớp secret PURGE_SECRET đã đặt cho templates-cache-staging.
+    purgeSecret: "SK7RnpzJ8e5/KJkzjYCLtNADB59h52LcgYILc1md1dA=",
   };
 })();

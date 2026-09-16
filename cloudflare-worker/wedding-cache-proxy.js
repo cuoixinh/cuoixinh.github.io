@@ -3,11 +3,20 @@ var __name = (target, value) =>
   __defProp(target, "name", { value, configurable: true });
 
 // worker.js
-var SUPABASE_EDGE_URL =
-  "https://lcobawmkywtxhpezndsh.supabase.co/functions/v1/wedding-admin";
 var CACHE_TTL = 300;
 var worker_default = {
   async fetch(request, env, ctx) {
+    // Edge Function đích lấy từ [vars] của wrangler.toml, KHÔNG có mặc định:
+    // viết cứng một project vào mã thì bản clone cho môi trường khác vẫn chạy
+    // mà lặng lẽ đọc/ghi DB của môi trường kia. Thiếu thì 500, lộ ra ngay.
+    const SUPABASE_EDGE_URL = env.SUPABASE_EDGE_URL;
+    if (!SUPABASE_EDGE_URL) {
+      return new Response(
+        JSON.stringify({ error: "Worker chưa cấu hình SUPABASE_EDGE_URL" }),
+        { status: 500, headers: { "Content-Type": "application/json" } },
+      );
+    }
+
     const url = new URL(request.url);
     const method = request.method;
     const corsHeaders = {

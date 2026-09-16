@@ -1,0 +1,30 @@
+# Bản STAGING của wedding-cache-proxy — CÙNG mã nguồn với wrangler.toml, khác
+# nhau ở tên worker, KV namespace và Edge Function đích.
+#
+# Deploy:
+#   1) Tạo KV riêng cho staging (CHỈ chạy một lần):
+#        wrangler kv namespace create WEDDING_CACHE_STAGING
+#        wrangler kv namespace create WEDDING_CACHE_STAGING --preview
+#      rồi dán hai id in ra vào [[kv_namespaces]] bên dưới.
+#   2) wrangler deploy --config wrangler-staging.toml
+#
+# ⚠ KHÔNG dùng lại id KV của production: cache key chỉ gồm slug, nên hai môi
+#   trường chung một namespace là thiệp staging và thiệp thật đè lên nhau —
+#   khách production có thể nhận về dữ liệu test.
+#
+# CONFIG.cloudflare.cacheProxy ở core/config.staging.js đã trỏ vào worker này.
+
+name = "wedding-cache-proxy-staging"
+main = "wedding-cache-proxy.js"
+compatibility_date = "2024-01-01"
+
+# KV Namespace RIÊNG của staging — thay hai id bên dưới bằng id lệnh trên in ra.
+[[kv_namespaces]]
+binding = "WEDDING_CACHE"
+id = "THAY_BANG_ID_KV_STAGING"
+preview_id = "THAY_BANG_PREVIEW_ID_KV_STAGING"
+
+# Edge Function của project STAGING. Mã không có giá trị mặc định — thiếu là
+# worker trả 500 chứ không âm thầm đọc DB production.
+[vars]
+SUPABASE_EDGE_URL = "https://gmtnoxdwoumbtdmqmisk.supabase.co/functions/v1/wedding-admin"

@@ -70,10 +70,13 @@ const CATALOG_TIMEOUT_MS = 4000 // Worker treo thì bỏ, đừng bắt khách c
 // chủ dùng để vẽ thẻ mẫu, nên chatbot không bao giờ báo một giá khác với giá
 // khách đang nhìn thấy. Worker cache 7 NGÀY và chỉ mới lại khi có người bấm
 // purge ở admin → sửa giá trong Supabase mà quên purge thì cả trang chủ lẫn
-// chatbot đều còn giá cũ. Đổi tên worker thì đặt biến môi trường
-// TEMPLATES_CACHE_URL, khỏi sửa code.
-const TEMPLATES_CACHE_URL = Deno.env.get('TEMPLATES_CACHE_URL') ??
-  'https://templates-cache.cuoixinh-api.workers.dev/'
+// chatbot đều còn giá cũ.
+//
+// KHÔNG có giá trị mặc định: cùng mã này chạy trên CẢ HAI project, mà worker
+// cache chỉ có ở production (CONFIG.cloudflare = null ở staging). Viết cứng URL
+// worker vào đây là chatbot staging đi đọc bảng giá production. Thiếu biến thì
+// bỏ qua worker, đọc thẳng DB của CHÍNH project — chậm hơn, nhưng đúng giá.
+const TEMPLATES_CACHE_URL = Deno.env.get('TEMPLATES_CACHE_URL') ?? ''
 
 // Schema ép output. "text" đứng NGAY SAU "type" nhờ propertyOrdering — luồng
 // stream trích dần đúng trường đó để chữ chạy ra bong bóng, mấy trường nặng
@@ -237,6 +240,7 @@ async function buildCatalog(
 
   let items: CatalogItem[] = []
   try {
+    if (!TEMPLATES_CACHE_URL) throw new Error('TEMPLATES_CACHE_URL chua khai')
     items = await catalogFromCdn()
   } catch (e) {
     log.warn('chat.catalog_cdn_failed', { error: errMsg(e) })

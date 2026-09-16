@@ -1,0 +1,20 @@
+# Bản STAGING của wedding-image-proxy — CÙNG mã nguồn với wrangler-image.toml,
+# khác nhau ở tên worker và bucket đích.
+#
+# Deploy:
+#   wrangler deploy --config wrangler-image-staging.toml
+#
+# CONFIG.cloudflare.imageProxy ở core/config.staging.js đã trỏ vào worker này, và
+# host của nó đã có trong ALLOWED_IMAGE_HOSTS của wedding-admin — thiếu chỗ thứ hai
+# thì mọi URL ảnh đầy đủ trên staging bị coi là tráo ảnh và bị chặn.
+
+name = "wedding-image-proxy-staging"
+main = "image-proxy.js"
+compatibility_date = "2024-01-01"
+
+# Không cần KV namespace, dùng Cloudflare Cache API (free, unlimited)
+
+# Bucket của project STAGING. Mã không có giá trị mặc định — thiếu là worker trả
+# 500 chứ không âm thầm phục vụ ảnh của production.
+[vars]
+STORAGE_BASE_URL = "https://gmtnoxdwoumbtdmqmisk.supabase.co/storage/v1/object/public/wedding-images"

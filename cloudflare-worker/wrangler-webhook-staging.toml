@@ -16,13 +16,13 @@ name = "payos-webhook-proxy-staging"
 main = "payos-webhook-proxy.js"
 compatibility_date = "2024-01-01"
 
-# Đích staging. Thiếu hai biến này thì worker rơi về production (giá trị mặc định
-# trong payos-webhook-proxy.js) — nên KHÔNG được để trống ở đây.
+# Đích staging. Mã KHÔNG có giá trị mặc định nên thiếu SUPABASE_FUNCTION_URL là
+# worker trả 500 — hỏng to, thấy ngay, thay vì âm thầm bắn webhook sang project kia.
 [vars]
 SUPABASE_FUNCTION_URL = "https://gmtnoxdwoumbtdmqmisk.supabase.co/functions/v1/payos-webhook"
 
 # Anon key của project staging. Không phải bí mật (xem core/config.js) nên để
-# thẳng ở đây được, giống cách bản production đang viết cứng trong mã.
+# thẳng ở đây được.
 SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdtdG5veGR3b3VtYnRkbXFtaXNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkxMjI3MDQsImV4cCI6MjEwNDY5ODcwNH0.2KoGkOvdjgsnAQ3He1DHjJUi8AV8ETv2D-SclITZxEM"
 
 # ── Log về Axiom ─────────────────────────────────────────────────────────────

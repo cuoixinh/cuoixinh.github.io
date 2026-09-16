@@ -111,6 +111,13 @@ Không gọi thẳng UI → DAL khi có logic nghiệp vụ.
   nên cờ `verify_jwt` phải truyền tay, mà nguồn sự thật của cờ đó là hai danh sách trong
   `scripts/deploy-functions.sh` — thiếu `--no-verify-jwt` là gateway chặn function trước
   khi vào code. Thêm function mới thì thêm tên vào đúng một danh sách.
+- **Deploy Cloudflare Worker — cũng chọn bằng CỜ:** `npm run deploy:workers:staging`,
+  `npm run deploy:workers` (production), `npm run deploy:workers:all`. Thêm `-- <tên>`
+  (`webhook` · `image` · `templates` · `cache`) để đẩy vài cái, `-- --dry-run` để build thử.
+  Danh sách worker ↔ file `.toml` của từng môi trường là ba dãy ở `scripts/deploy-workers.sh`,
+  thêm worker mới phải thêm vào cả ba. Hai điều dễ mất dữ liệu: `[vars]` trong `.toml` **ghi đè**
+  biến đặt tay trên Dashboard mỗi lần deploy (secret thì không), và wrangler đọc **file trên máy**
+  chứ không qua git. Lùi lại: `wrangler rollback --config <file>`.
 
 ### `invitation-setup` — trang nạp DOM động
 
@@ -228,9 +235,11 @@ Supabase riêng và một kênh thanh toán PayOS riêng. Đụng tới staging 
 - Thêm miền mới phải khai vào **BA** danh sách `ALLOWED_ORIGINS` (`_shared/ai-provider.ts`,
   `wedding-admin`, `guest-handler`) — sót một chỗ thì lỗi hiện ra dưới dạng CORS ở đúng
   một tính năng.
-- Staging **không dùng worker cache** (`cloudflare.*` = `null`, các DAL tự lùi về Supabase).
-  Mọi thứ còn lại dựng GIỐNG HỆT production, kể cả cron `cleanup-weddings` — đánh đổi là thiệp
-  test chưa thanh toán/nháp bỏ quên sẽ bị xoá vĩnh viễn đúng như thật.
+- Staging dựng GIỐNG HỆT production, kể cả **bộ 4 worker cache riêng** (`wrangler-*-staging.toml`,
+  `CONFIG.cloudflare` trỏ về chúng) và cron `cleanup-weddings`. Đánh đổi: sửa giá/danh mục mẫu
+  trên staging phải đi purge y như thật, và thiệp test chưa thanh toán/nháp bỏ quên bị xoá vĩnh viễn.
+  Worker staging phải có KV và secret RIÊNG — dùng chung với production là hai môi trường đè cache
+  lên nhau, khách thật nhận dữ liệu test.
 
 ### Triển khai (repo private → Cloudflare Pages)
 
