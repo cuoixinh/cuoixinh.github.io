@@ -172,10 +172,9 @@
     cursor: default;
   }
 
-  /* Bàn phím bung ra thì màn chỉ còn vài dòng — giấu hàng gợi ý lẫn dải điều
-     hướng cho khung tin nhắn thở. Cờ .aichat-kb do _syncViewport() đặt. */
-  .aichat-kb .aichat-suggests,
-  .aichat-kb .aichat-nav {
+  /* Bàn phím bung ra thì màn chỉ còn vài dòng — giấu hàng gợi ý cho khung tin
+     nhắn thở. Cờ .aichat-kb do _syncViewport() đặt. */
+  .aichat-kb .aichat-sugwrap {
     display: none;
   }
 }
@@ -242,49 +241,125 @@
 /* ── Khung tin nhắn ────────────────────────────────────────────────────────── */
 
 .aichat-body {
-  @apply flex-1 space-y-3 overflow-y-auto bg-transparent p-4;
+  @apply flex-1 overflow-y-auto bg-transparent px-4 py-4;
 }
 
-/* Một lượt = bong bóng + giờ, xếp dọc và dạt về phía người nói. */
+/* Một lượt = avatar + cột (bong bóng, giờ). Các lượt LIỀN NHAU của cùng người
+   đứng sát nhau, đổi người mới giãn ra — lối gom nhóm của trình nhắn tin; cờ
+   .is-cont do js/ai-assistant.js đặt khi lượt trước cùng vai. */
+
 .aichat-row {
-  @apply flex flex-col gap-1;
+  @apply flex items-end gap-2;
+
+  margin-top: 16px;
 }
 
-.aichat-row-bot {
-  @apply items-start;
+.aichat-row.is-cont {
+  margin-top: 4px;
+}
+
+.aichat-row.is-first {
+  margin-top: 0;
 }
 
 .aichat-row-user {
+  @apply flex-row-reverse;
+}
+
+/* Cột chứa bong bóng: dạt về phía người nói, khổ tối đa chừa chỗ cho avatar. */
+.aichat-col {
+  @apply flex min-w-0 max-w-[82%] flex-col gap-1;
+}
+
+.aichat-row-bot .aichat-col {
+  @apply relative items-start;
+}
+
+.aichat-row-user .aichat-col {
   @apply items-end;
 }
 
+/* Đĩa avatar của XuXi cạnh bong bóng CUỐI nhóm, ngang hàng với dấu giờ. Các lượt
+   phía trên vẫn giữ chỗ (ẩn chứ không bỏ khỏi luồng) để mép bong bóng thẳng hàng. */
+
+.aichat-ava {
+  @apply flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full;
+
+  background: rgb(var(--white-rgb));
+  border: 1px solid rgb(var(--brand-primary-rgb) / 0.7);
+}
+
+.aichat-ava img,
+.aichat-ava svg {
+  @apply h-5 w-5 object-contain;
+}
+
+.aichat-row.is-cont-next .aichat-ava {
+  visibility: hidden;
+}
+
+/* Giờ chỉ hiện ở lượt CUỐI của mỗi nhóm. CSS không nhìn xuôi xuống được nên
+   js/ai-assistant.js đánh .is-cont-next cho lượt phía TRÊN khi nối thêm lượt. */
 .aichat-time {
   @apply px-1 text-[11px];
 
   color: rgb(var(--text-label-rgb));
 }
 
-.aichat-msg {
-  @apply max-w-[85%] whitespace-pre-wrap break-words rounded-[20px] px-4 py-2.5 text-sm leading-relaxed;
+.aichat-row.is-cont-next .aichat-time {
+  display: none;
+}
 
+/* Dấu giờ của XuXi TREO dưới bong bóng, ngoài luồng: để trong luồng thì cột cao
+   thêm một dòng và avatar (canh đáy) tụt xuống ngang dấu giờ thay vì ngang đáy
+   bong bóng. Chỗ cho nó là 16px hở giữa hai nhóm. */
+.aichat-row-bot .aichat-time {
+  @apply absolute left-0 top-full;
+}
+
+.aichat-msg {
+  @apply w-fit max-w-full whitespace-pre-wrap break-words px-4 py-2.5 text-sm leading-relaxed;
+
+  border-radius: 20px;
   color: rgb(var(--text-heading-rgb));
 }
 
+/* Góc nhọn phía người nói chỉ ở bong bóng ĐẦU và CUỐI nhóm, giữa nhóm bo đều —
+   cùng quy ước với trình nhắn tin. */
+
 .aichat-msg-bot {
   background: rgb(var(--aichat-bot-bg-rgb));
-  border: 1px solid rgb(var(--brand-primary-rgb) / 0.45);
+  border: 1px solid rgb(var(--brand-primary-rgb) / 0.4);
+  box-shadow: 0 2px 8px rgb(var(--shadow-brand-rgb) / 0.08);
   border-bottom-left-radius: 8px;
 }
 
 .aichat-msg-user {
   background: rgb(var(--aichat-user-bg-rgb));
-  border: 1px solid rgb(var(--brand-primary-rgb) / 0.55);
+  border: 1px solid rgb(var(--brand-primary-rgb) / 0.5);
   border-bottom-right-radius: 8px;
+}
+
+.aichat-row.is-cont .aichat-msg-bot {
+  border-top-left-radius: 8px;
+}
+
+.aichat-row.is-cont .aichat-msg-user {
+  border-top-right-radius: 8px;
+}
+
+.aichat-row.is-cont-next .aichat-msg-bot {
+  border-bottom-left-radius: 20px;
+}
+
+.aichat-row.is-cont-next .aichat-msg-user {
+  border-bottom-right-radius: 20px;
 }
 
 .aichat-msg-error {
   color: rgb(var(--text-caption-rgb));
   background: rgb(var(--surface-control-rgb));
+  border: 1px solid rgb(var(--border-subtle-rgb));
   border-bottom-left-radius: 8px;
 }
 
@@ -332,12 +407,15 @@
   background: rgb(var(--brand-primary-rgb) / 0.28);
 }
 
-/* Ba chấm lúc chờ câu trả lời — cùng khổ với bong bóng trả lời để không giật. */
-.aichat-typing {
-  @apply mr-auto flex items-center gap-1 rounded-[20px] px-4 py-3.5;
+/* Ba chấm lúc chờ câu trả lời — nằm trong một hàng có avatar như bong bóng thật
+   để lúc câu trả lời về không bị nhảy chỗ. */
 
+.aichat-typing {
+  @apply flex w-fit items-center gap-1 px-4 py-3.5;
+
+  border-radius: 20px;
   background: rgb(var(--aichat-bot-bg-rgb));
-  border: 1px solid rgb(var(--brand-primary-rgb) / 0.45);
+  border: 1px solid rgb(var(--brand-primary-rgb) / 0.4);
   border-bottom-left-radius: 8px;
 }
 
@@ -374,7 +452,9 @@
 /* Dòng chờ riêng cho lượt dựng thiệp: khách đã đọc xong câu trả lời mà phần
    chuyện tình + lịch trình còn chảy về thêm cả chục giây. */
 .aichat-building {
-  @apply mr-auto flex items-center gap-2 rounded-[20px] px-4 py-2 text-xs;
+  @apply mr-auto flex w-fit items-center gap-2 rounded-[20px] px-4 py-2 text-xs;
+
+  margin-top: 16px;
 
   color: rgb(var(--brand-accent-rgb));
   background: rgb(var(--aichat-bot-bg-rgb));
@@ -392,10 +472,10 @@
   }
 }
 
-/* Thẻ tóm tắt thiệp + nút sang trang thiết lập. Nằm trong .aichat-row nên tự dạt
-   trái theo bong bóng của XuXi. */
+/* Thẻ tóm tắt thiệp + nút sang trang thiết lập. Nằm trong .aichat-col nên rộng
+   đúng bằng bong bóng của XuXi. */
 .aichat-card {
-  @apply flex max-w-[85%] flex-col gap-1 rounded-[20px] px-4 py-3;
+  @apply flex w-full flex-col gap-1 rounded-[20px] px-4 py-3;
 
   background: rgb(var(--white-rgb));
   border: 1px solid rgb(var(--brand-accent-rgb));
@@ -435,17 +515,108 @@
 }
 
 /* ── Câu hỏi gợi ý ─────────────────────────────────────────────────────────── */
+/* Một HÀNG NGANG cuộn được (không xuống dòng): thẻ gợi ý là hình vuông bo góc,
+   icon nằm trên nhãn — bốn câu hỏi luôn ở cùng một dòng dù bảng hẹp. Thanh cuộn
+   giấu đi, vuốt/kéo ngang vẫn chạy. */
+
+/* Khung bọc: hàng cuộn nằm trong, còn màn mờ và hai mũi tên phủ LÊN hai mép —
+   chúng absolute nên hàng thẻ rộng đúng bằng bảng chat, không đội thêm chỗ.
+   Lề ngang khớp thẻ ô nhập (12px) để hai mép thẳng cột. */
+
+.aichat-sugwrap {
+  @apply relative shrink-0 px-3 pb-3 pt-1;
+}
+
+/* Khai lại display cho thuộc tính `hidden` (renderSuggests đặt sau câu hỏi đầu):
+   luật display của chính lớp này nằm SAU preflight nên nó thắng, không khai là
+   hàng rỗng vẫn chiếm lề. */
+.aichat-sugwrap[hidden] {
+  display: none;
+}
 
 .aichat-suggests {
-  @apply flex shrink-0 flex-wrap gap-2 bg-transparent px-4 pb-2;
+  @apply flex gap-2 overflow-x-auto bg-transparent;
+
+  scrollbar-width: none;
+}
+
+.aichat-suggests::-webkit-scrollbar {
+  display: none;
+}
+
+/* Màn mờ ở mép: nền bảng tan dần ra trong suốt, cho thấy thẻ bị CẮT chứ không
+   phải hết hàng. Chỉ hiện phía còn thẻ khuất (cờ .is-more-* do syncSugNav đặt),
+   và không bao giờ nuốt cú chạm. */
+
+.aichat-sugfade {
+  @apply pointer-events-none absolute bottom-3 top-1 w-12 opacity-0 transition-opacity;
+}
+
+.aichat-sugfade-l {
+  left: 12px;
+  background: linear-gradient(
+    90deg,
+    rgb(var(--surface-tint-rgb)) 30%,
+    rgb(var(--surface-tint-rgb) / 0)
+  );
+}
+
+.aichat-sugfade-r {
+  right: 12px;
+  background: linear-gradient(
+    270deg,
+    rgb(var(--surface-tint-rgb)) 30%,
+    rgb(var(--surface-tint-rgb) / 0)
+  );
+}
+
+.aichat-sugwrap.is-more-l .aichat-sugfade-l,
+.aichat-sugwrap.is-more-r .aichat-sugfade-r {
+  @apply opacity-100;
+}
+
+/* Mũi tên cuộn: đĩa trắng nổi trên màn mờ, canh giữa theo chiều cao hàng thẻ.
+   Ẩn thì vừa trong suốt vừa không bắt chuột, để cú bấm rơi xuống thẻ bên dưới. */
+
+.aichat-sugnav {
+  @apply pointer-events-none absolute top-1/2 flex h-7 w-7 -translate-y-1/2
+         items-center justify-center rounded-full opacity-0 transition;
+
+  /* Khung bọc đệm trên 4px, dưới 12px nên tâm của nó thấp hơn tâm hàng thẻ 4px. */
+  margin-top: -4px;
+  color: rgb(var(--brand-accent-rgb));
+  background: rgb(var(--white-rgb));
+  border: 1px solid rgb(var(--brand-primary-rgb) / 0.6);
+  box-shadow: 0 2px 8px rgb(var(--shadow-brand-rgb) / 0.2);
+}
+
+.aichat-sugnav-l {
+  left: 8px;
+}
+
+.aichat-sugnav-r {
+  right: 8px;
+}
+
+.aichat-sugwrap.is-more-l .aichat-sugnav-l,
+.aichat-sugwrap.is-more-r .aichat-sugnav-r {
+  @apply pointer-events-auto cursor-pointer opacity-100;
+}
+
+.aichat-sugnav:hover {
+  color: rgb(var(--white-rgb));
+  background: rgb(var(--brand-accent-rgb));
+  border-color: rgb(var(--brand-accent-rgb));
 }
 
 .aichat-chip {
-  @apply cursor-pointer rounded-full px-3 py-1.5 text-xs transition;
+  @apply flex w-[124px] shrink-0 cursor-pointer flex-col items-start gap-2 p-3
+         text-left text-xs leading-snug transition;
 
+  border-radius: 16px;
   background: rgb(var(--white-rgb));
-  border: 1px solid rgb(var(--brand-primary-rgb));
-  color: rgb(var(--brand-accent-rgb));
+  border: 1px solid rgb(var(--brand-primary-rgb) / 0.55);
+  color: rgb(var(--text-heading-rgb));
 }
 
 .aichat-chip:hover {
@@ -453,27 +624,26 @@
   border-color: rgb(var(--brand-accent-rgb));
 }
 
-/* Dải điều hướng (js/ai-assistant.js: NAV_LINKS) — nằm dưới chip gợi ý, KHÔNG
-   ẩn đi sau câu hỏi đầu: từ khi bỏ bong bóng Messenger ở trang chủ, đây là lối
-   duy nhất nhắn được cho người thật. Nền đặc hơn chip gợi ý để mắt tách được
-   hai nhóm: chip gợi ý là câu hỏi, chip này là đường đi. */
+/* Ô icon tô nền hồng nhạt để mắt bắt được thẻ trước khi đọc chữ. */
+.aichat-chip-ico {
+  @apply flex h-7 w-7 items-center justify-center rounded-xl;
+
+  color: rgb(var(--brand-accent-rgb));
+  background: rgb(var(--brand-primary-rgb) / 0.28);
+}
+
+/* ── Lối đi nhanh trên thanh tiêu đề ───────────────────────────────────────── */
+/* NAV_LINKS ở js/ai-assistant.js dựng thành nút tròn CHỈ CÓ ICON, đứng cạnh nút
+   Làm mới và Đóng: luôn thấy được dù đoạn chat dài hay bàn phím đang bung —
+   đây là lối duy nhất nhắn cho người thật. Hình thức mượn .aichat-head-btn, chỉ
+   thêm mấy nét của thẻ <a>. */
 
 .aichat-nav {
-  @apply flex shrink-0 flex-wrap gap-2 bg-transparent px-4 pb-2;
+  @apply flex shrink-0 items-center gap-1;
 }
 
-.aichat-navchip {
-  @apply inline-flex cursor-pointer items-center gap-1.5 rounded-full px-3 py-1.5
-         text-xs no-underline transition;
-
-  background: rgb(var(--surface-brand-rgb));
-  border: 1px solid rgb(var(--brand-primary-rgb) / 0.55);
-  color: rgb(var(--brand-accent-rgb));
-}
-
-.aichat-navchip:hover {
-  background: rgb(var(--brand-primary-rgb) / 0.35);
-  border-color: rgb(var(--brand-accent-rgb));
+.aichat-navbtn {
+  @apply cursor-pointer no-underline;
 }
 
 .aichat-note {
@@ -483,28 +653,26 @@
 }
 
 /* ── Ô nhập ────────────────────────────────────────────────────────────────── */
-/* Chân bảng ngăn với khung tin nhắn bằng NÉT ĐỨT. Trong lòng nó, ô nhập và hai
-   nút (micro, gửi) nằm chung MỘT khung: viền/nền là của .aichat-composer, còn
-   <textarea> bỏ hết viền lẫn nền nên nhìn ra một ô liền khối. Vì viền thuộc thẻ
-   bọc nên trạng thái focus phải dội lên bằng :focus-within.
-   Chiều cao khớp nhau: textarea nghỉ = 20px dòng + 16px padding = 36px = khổ
-   hai nút, cộng 4px padding trên/dưới của khung là 44px. */
+/* Ô nhập là một THẺ hai tầng nổi trên nền bảng: tầng trên là <textarea> chạy
+   suốt bề ngang, tầng dưới là hàng công cụ (chip điều hướng bên trái, micro và
+   gửi dạt phải). Viền/nền thuộc thẻ bọc .aichat-composer còn textarea bỏ hết
+   viền lẫn nền, nên trạng thái focus phải dội lên bằng :focus-within.
+   Chân bảng chỉ còn là lề: không nền riêng, không nét ngăn — thẻ tự tách khỏi
+   khung tin nhắn bằng viền và bóng đổ. */
 
 .aichat-foot {
-  @apply shrink-0 p-3;
+  @apply shrink-0 bg-transparent px-3 pb-3 pt-0;
 
-  background: rgb(var(--surface-tint-warm-rgb));
-  border-top: 1px dashed rgb(var(--brand-primary-rgb) / 0.7);
   padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
 }
 
 .aichat-composer {
-  @apply flex items-end gap-1;
+  @apply flex flex-col gap-2 p-3;
 
-  padding: 4px 4px 4px 12px;
-  border-radius: 12px;
+  border-radius: 24px;
   background: rgb(var(--white-rgb));
   border: 1px solid rgb(var(--brand-primary-rgb) / 0.6);
+  box-shadow: 0 4px 16px rgb(var(--shadow-brand-rgb) / 0.12);
   transition:
     border-color 0.15s ease,
     box-shadow 0.15s ease;
@@ -516,9 +684,9 @@
 }
 
 .aichat-input {
-  @apply max-h-24 flex-1 resize-none border-0 bg-transparent text-sm outline-none;
+  @apply max-h-24 w-full resize-none border-0 bg-transparent text-sm leading-relaxed outline-none;
 
-  padding: 8px 0;
+  padding: 4px 4px 0;
   color: rgb(var(--text-heading-rgb));
   /* Mặc định KHÔNG cuộn: chiều cao đã do autoGrow() bám theo nội dung, để
      `auto` thì lệch một hai pixel là trình duyệt vẽ luôn thanh cuộn dù ô rỗng.
@@ -528,6 +696,15 @@
 
 .aichat-input::placeholder {
   color: rgb(var(--text-placeholder-rgb));
+}
+
+/* Hàng công cụ: chip điều hướng chiếm phần trống bên trái, hai nút dồn phải. */
+.aichat-tools {
+  @apply flex items-center gap-2;
+}
+
+.aichat-tools-end {
+  @apply ml-auto flex shrink-0 items-center gap-1;
 }
 
 /* Nút micro (nhập bằng giọng nói) — việc phụ nên để trơn, chỉ còn cái icon nằm

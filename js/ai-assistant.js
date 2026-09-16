@@ -21,19 +21,23 @@
   const MAX_LEN = 800; // khớp MAX_MSG_LEN của Edge Function
 
   const GREETING =
-    "Chào bạn 👋 Mình là XuXi, trợ lý của Cưới Xinh.\n" +
-    "Bạn cứ hỏi mình về thiệp cưới online — hoặc bảo mình tạo thiệp, mình hỏi vài " +
-    "thông tin rồi dựng luôn cho bạn.";
+    "Chào bạn 👋 Mình là XuXi.\n" +
+    "Bạn muốn **tạo thiệp cưới** hay cần hỏi gì về Cưới Xinh? Nói với mình một " +
+    "câu là được.";
 
-   const SUGGESTS = [
-    "Mình muốn tạo thiệp cưới",
-    "Giá thiệp là bao nhiêu vậy?",
-    "Thiệp cưới có những gì?",
-    "Thiệp có dùng thử được không?",
+  // Thẻ gợi ý ở hàng ngang dưới đoạn chat: `icon` là tên của lucide, `text` vừa là
+  // nhãn vừa là câu gửi đi nên đừng tách làm hai.
+  const SUGGESTS = [
+    { text: "Tạo thiệp cưới cho mình nhé", icon: "sparkles" },
+    { text: "Thiệp giá bao nhiêu?", icon: "wallet" },
+    { text: "Thiệp có những gì?", icon: "layout-list" },
+    { text: "Cho mình dùng thử nhé?", icon: "eye" },
   ];
 
-  // Lối đi nhanh trong khung chat — thay cho bong bóng Messenger đã bỏ ở trang
-  // chủ, nên dải này KHÔNG ẩn sau câu hỏi đầu như chip gợi ý.
+  // Lối đi nhanh, dựng thành nút TRÒN CHỈ CÓ ICON trên thanh tiêu đề — thay cho
+  // bong bóng Messenger đã bỏ ở trang chủ nên luôn thấy được, không ẩn theo đoạn
+  // chat như chip gợi ý. `icon` là tên trong CX_ICONS (core/helpers/icon.js),
+  // `label` thành tooltip + nhãn cho trình đọc màn hình.
   // Nhãn và đích đều CỐ ĐỊNH ở đây: XuXi không biết danh sách này, cũng không
   // được phép tự sinh link — bộ dựng markdown ở dưới cố ý không có thẻ <a>, và
   // lời khách thì đi thẳng vào prompt nên để model nhả URL là mở đường cho link
@@ -42,7 +46,7 @@
   const NAV_LINKS = [
     {
       label: "Nhắn Messenger",
-      icon: "message-circle",
+      icon: "messenger",
       href: "https://m.me/61591515875537",
       external: true,
     },
@@ -79,9 +83,10 @@
     panel.innerHTML = `
       <div class="aichat-head">
         <div class="min-w-0 flex-1">
-          <p class="aichat-head-title flex gap-1 items-center">Trợ lý XuXi của Cưới Xinh <i data-icon="xuxi" data-size="24"></i></p>
+          <p class="aichat-head-title flex gap-1 items-center">Trợ lý XuXi <i data-icon="xuxi" data-size="24"></i></p>
           <p class="aichat-head-sub">Hỏi đáp hoặc nhờ mình tạo thiệp</p>
         </div>
+        <div class="aichat-nav" id="aichatNav"></div>
         <x-button variant="bare" icon-only id="aichatReset" type="button"
                   aria-label="Bắt đầu cuộc trò chuyện mới" title="Trò chuyện mới"
                   class="aichat-head-btn">
@@ -93,22 +98,37 @@
         </x-button>
       </div>
       <div class="aichat-body" id="aichatBody"></div>
-      <div class="aichat-suggests" id="aichatSuggests"></div>
-      <div class="aichat-nav" id="aichatNav"></div>
+      <div class="aichat-sugwrap" id="aichatSugWrap">
+        <div class="aichat-suggests" id="aichatSuggests"></div>
+        <span class="aichat-sugfade aichat-sugfade-l" aria-hidden="true"></span>
+        <span class="aichat-sugfade aichat-sugfade-r" aria-hidden="true"></span>
+        <x-button variant="bare" icon-only id="aichatSugPrev" type="button"
+                  aria-label="Xem gợi ý trước" class="aichat-sugnav aichat-sugnav-l">
+          <i data-lucide="chevron-left" style="width:16px;height:16px"></i>
+        </x-button>
+        <x-button variant="bare" icon-only id="aichatSugNext" type="button"
+                  aria-label="Xem thêm gợi ý" class="aichat-sugnav aichat-sugnav-r">
+          <i data-lucide="chevron-right" style="width:16px;height:16px"></i>
+        </x-button>
+      </div>
       <div class="aichat-foot">
         <div class="aichat-composer">
           <textarea id="aichatInput" class="aichat-input" rows="1" maxlength="${MAX_LEN}"
-                    placeholder="Nhập câu hỏi của bạn…"
+                    placeholder="Hỏi XuXi bất cứ điều gì…"
                     aria-label="Câu hỏi cho XuXi"></textarea>
-          <x-button variant="bare" icon-only id="aichatMic" type="button"
-                    aria-label="Nhập bằng giọng nói" title="Nhập bằng giọng nói"
-                    aria-pressed="false" class="aichat-mic">
-            <i data-lucide="mic" style="width:18px;height:18px"></i>
-          </x-button>
-          <x-button variant="bare" icon-only id="aichatSend" type="button"
-                    aria-label="Gửi" class="aichat-send">
-            <i data-lucide="send" style="width:18px;height:18px"></i>
-          </x-button>
+          <div class="aichat-tools">
+            <div class="aichat-tools-end">
+              <x-button variant="bare" icon-only id="aichatMic" type="button"
+                        aria-label="Nhập bằng giọng nói" title="Nhập bằng giọng nói"
+                        aria-pressed="false" class="aichat-mic">
+                <i data-lucide="mic" style="width:18px;height:18px"></i>
+              </x-button>
+              <x-button variant="bare" icon-only id="aichatSend" type="button"
+                        aria-label="Gửi" class="aichat-send">
+                <i data-lucide="send" style="width:18px;height:18px"></i>
+              </x-button>
+            </div>
+          </div>
         </div>
       </div>`;
 
@@ -128,6 +148,9 @@
       panel,
       body: panel.querySelector("#aichatBody"),
       suggests: panel.querySelector("#aichatSuggests"),
+      sugWrap: panel.querySelector("#aichatSugWrap"),
+      sugPrev: panel.querySelector("#aichatSugPrev"),
+      sugNext: panel.querySelector("#aichatSugNext"),
       nav: panel.querySelector("#aichatNav"),
       input: panel.querySelector("#aichatInput"),
       mic: panel.querySelector("#aichatMic"),
@@ -440,10 +463,46 @@
     });
   }
 
+  // Khung một lượt: avatar (chỉ phía XuXi) + cột chứa bong bóng và giờ. Các lượt
+  // liền nhau cùng vai được gom nhóm — hàng mới mang .is-cont, hàng trước mang
+  // .is-cont-next — nên chỉ lượt CUỐI nhóm hiện avatar và dấu giờ (luật ở
+  // styles/_ai-chat.css).
+  function addRow(role) {
+    const side = role === "user" ? "user" : "bot";
+    const prev = els.body.lastElementChild;
+    const cont = prev?.classList.contains("aichat-row") && prev.dataset.side === side;
+
+    const row = document.createElement("div");
+    row.className = "aichat-row aichat-row-" + side;
+    row.dataset.side = side;
+    // Hàng cuối không thể có hàng nối tiếp: cờ còn sót lại là của một hàng đã bị
+    // gỡ (ba chấm chờ, bong bóng lỗi) — xoá trước khi tính lại.
+    prev?.classList.remove("is-cont-next");
+    if (cont) {
+      row.classList.add("is-cont");
+      prev.classList.add("is-cont-next");
+    }
+    if (!els.body.childElementCount) row.classList.add("is-first");
+
+    if (side === "bot") {
+      const ava = document.createElement("span");
+      ava.className = "aichat-ava";
+      ava.innerHTML = '<i data-icon="xuxi" data-size="20"></i>';
+      row.appendChild(ava);
+      window.cxRenderIcons?.(ava);
+    }
+
+    const col = document.createElement("div");
+    col.className = "aichat-col";
+    row.appendChild(col);
+
+    els.body.appendChild(row);
+    return col;
+  }
+
   // Trả về chính bong bóng (luồng streaming ghi đè textContent của nó).
   function addBubble(role, text, at) {
-    const row = document.createElement("div");
-    row.className = "aichat-row " + (role === "user" ? "aichat-row-user" : "aichat-row-bot");
+    const col = addRow(role);
 
     const bubble = document.createElement("div");
     bubble.className =
@@ -454,28 +513,29 @@
           ? "aichat-msg-error"
           : "aichat-msg-bot aichat-md");
     paintBubble(bubble, text, false);
-    row.appendChild(bubble);
+    col.appendChild(bubble);
 
     // Báo lỗi không phải một lượt hội thoại nên không đóng dấu giờ.
     if (role !== "error") {
       const time = document.createElement("span");
       time.className = "aichat-time";
       time.textContent = timeLabel(at);
-      row.appendChild(time);
+      col.appendChild(time);
     }
 
-    els.body.appendChild(row);
     scrollToEnd();
     return bubble;
   }
 
+  // Trả về cả HÀNG: lượt sau gọi .remove() là đi cả avatar lẫn ba chấm.
   function addTyping() {
+    const col = addRow("bot");
     const el = document.createElement("div");
     el.className = "aichat-typing";
     el.innerHTML = "<i></i><i></i><i></i>";
-    els.body.appendChild(el);
+    col.appendChild(el);
     scrollToEnd();
-    return el;
+    return col.parentElement;
   }
 
   function scrollToEnd() {
@@ -593,13 +653,15 @@
     });
   }
 
-  function addCardAction(row, card) {
-    if (!row) return;
+  // `col` là cột của lượt XuXi (.aichat-col) — thẻ thiệp xếp ngay dưới bong bóng,
+  // trên dấu giờ.
+  function addCardAction(col, card) {
+    if (!col) return;
     staleCards();
     const f = card.fields || {};
     // Object thiệp treo thẳng lên phần tử, không serialize: nút bấm chỉ cần tìm
-    // ngược lên hàng chứa nó là có đủ dữ liệu.
-    row._cxCard = card;
+    // ngược lên cột chứa nó là có đủ dữ liệu.
+    col._cxCard = card;
 
     const box = document.createElement("div");
     box.className = "aichat-card";
@@ -639,7 +701,9 @@
     btn.textContent = inSetup() ? "Áp dụng vào thiệp" : "Xem thiệp";
     box.appendChild(btn);
 
-    row.appendChild(box);
+    const time = col.querySelector(".aichat-time");
+    if (time) col.insertBefore(box, time);
+    else col.appendChild(box);
     scrollToEnd();
   }
 
@@ -713,40 +777,61 @@
   function renderSuggests() {
     els.suggests.innerHTML = "";
     if (history.length) {
-      els.suggests.hidden = true;
+      els.sugWrap.hidden = true;
       return;
     }
-    els.suggests.hidden = false;
+    els.sugWrap.hidden = false;
     SUGGESTS.forEach((q) => {
       const chip = document.createElement("button");
       chip.type = "button";
       chip.className = "aichat-chip";
-      chip.textContent = q;
-      chip.addEventListener("click", () => ask(q));
+      chip.innerHTML =
+        '<span class="aichat-chip-ico"><i data-lucide="' +
+        q.icon +
+        '" style="width:16px;height:16px"></i></span><span></span>';
+      chip.lastElementChild.textContent = q.text;
+      chip.addEventListener("click", () => ask(q.text));
       els.suggests.appendChild(chip);
     });
+    // lucide không tự quét lại markup chèn động.
+    window.lucide?.createIcons({ root: els.suggests });
+    syncSugNav();
   }
 
-  // Dải điều hướng: dựng MỘT LẦN lúc mở bảng, không đụng gì tới đoạn hội thoại.
+  // Hàng thẻ gợi ý rộng hơn bảng nên cuộn ngang được. Màn mờ + mũi tên chỉ hiện
+  // ở phía CÒN thẻ bị khuất, để khách biết vuốt/bấm được; hết chỗ cuộn là tắt.
+  function syncSugNav() {
+    const el = els.suggests;
+    const max = el.scrollWidth - el.clientWidth;
+    els.sugWrap.classList.toggle("is-more-l", el.scrollLeft > 4);
+    els.sugWrap.classList.toggle("is-more-r", el.scrollLeft < max - 4);
+  }
+
+  // Một nhịp bấm = một thẻ rưỡi, đủ để thẻ kế tiếp lộ hẳn ra.
+  function sugScroll(dir) {
+    const step = Math.max(140, Math.round(els.suggests.clientWidth * 0.6));
+    els.suggests.scrollBy({ left: dir * step, behavior: "smooth" });
+  }
+
+  // Lối đi nhanh trên thanh tiêu đề: dựng MỘT LẦN lúc mở bảng, không đụng gì tới
+  // đoạn hội thoại.
   function renderNav() {
     if (!els.nav || els.nav.childElementCount) return;
     NAV_LINKS.forEach((item) => {
-      const chip = document.createElement("a");
-      chip.className = "aichat-navchip";
-      chip.href = item.href;
+      const btn = document.createElement("a");
+      btn.className = "aichat-head-btn aichat-navbtn";
+      btn.href = item.href;
+      btn.title = item.label;
+      btn.setAttribute("aria-label", item.label);
       if (item.external) {
-        chip.target = "_blank";
-        chip.rel = "noopener";
+        btn.target = "_blank";
+        btn.rel = "noopener";
       }
-      chip.innerHTML =
-        '<i data-lucide="' +
-        item.icon +
-        '" style="width:14px;height:14px"></i><span></span>';
-      chip.querySelector("span").textContent = item.label;
-      els.nav.appendChild(chip);
+      btn.innerHTML = '<i data-icon="' + item.icon + '" data-size="18"></i>';
+      els.nav.appendChild(btn);
     });
-    // lucide không tự quét lại markup chèn động.
-    window.lucide?.createIcons({ root: els.nav });
+    // Icon riêng không tự quét lại markup chèn động.
+    window.cxRenderIcons?.(els.nav);
   }
 
   // ── Lịch sử ───────────────────────────────────────────────────────────────
@@ -995,6 +1080,7 @@
     // transition thay vì hiện bụp một cái.
     requestAnimationFrame(() => els.panel.classList.remove("is-opening"));
     autoGrow(); // đo được chiều cao ô nhập từ lúc này, khi bảng đã hiện
+    syncSugNav(); // panel còn ẩn thì scrollWidth = 0, phải đo lại lúc mở
     if (window.matchMedia("(min-width: 521px)").matches) els.input.focus();
     syncViewport();
     scrollToEnd();
@@ -1103,10 +1189,14 @@
     els.panel.addEventListener("click", (e) => {
       if (e.target.closest("#aichatClose")) close();
       else if (e.target.closest("#aichatReset")) clearChat();
+      else if (e.target.closest("#aichatSugPrev")) sugScroll(-1);
+      else if (e.target.closest("#aichatSugNext")) sugScroll(1);
     });
+    els.suggests.addEventListener("scroll", syncSugNav, { passive: true });
+    window.addEventListener("resize", syncSugNav);
     els.body.addEventListener("click", (e) => {
       const btn = e.target.closest("[data-card-open]");
-      if (btn && !btn.disabled) useCard(btn.closest(".aichat-row")?._cxCard);
+      if (btn && !btn.disabled) useCard(btn.closest(".aichat-col, .aichat-row")?._cxCard);
     });
     els.send.addEventListener("click", () => ask(els.input.value));
     els.input.addEventListener("input", () => {
