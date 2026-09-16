@@ -98,7 +98,19 @@
         </x-button>
       </div>
       <div class="aichat-body" id="aichatBody"></div>
-      <div class="aichat-suggests" id="aichatSuggests"></div>
+      <div class="aichat-sugwrap" id="aichatSugWrap">
+        <div class="aichat-suggests" id="aichatSuggests"></div>
+        <span class="aichat-sugfade aichat-sugfade-l" aria-hidden="true"></span>
+        <span class="aichat-sugfade aichat-sugfade-r" aria-hidden="true"></span>
+        <x-button variant="bare" icon-only id="aichatSugPrev" type="button"
+                  aria-label="Xem gợi ý trước" class="aichat-sugnav aichat-sugnav-l">
+          <i data-lucide="chevron-left" style="width:16px;height:16px"></i>
+        </x-button>
+        <x-button variant="bare" icon-only id="aichatSugNext" type="button"
+                  aria-label="Xem thêm gợi ý" class="aichat-sugnav aichat-sugnav-r">
+          <i data-lucide="chevron-right" style="width:16px;height:16px"></i>
+        </x-button>
+      </div>
       <div class="aichat-foot">
         <div class="aichat-composer">
           <textarea id="aichatInput" class="aichat-input" rows="1" maxlength="${MAX_LEN}"
@@ -136,6 +148,9 @@
       panel,
       body: panel.querySelector("#aichatBody"),
       suggests: panel.querySelector("#aichatSuggests"),
+      sugWrap: panel.querySelector("#aichatSugWrap"),
+      sugPrev: panel.querySelector("#aichatSugPrev"),
+      sugNext: panel.querySelector("#aichatSugNext"),
       nav: panel.querySelector("#aichatNav"),
       input: panel.querySelector("#aichatInput"),
       mic: panel.querySelector("#aichatMic"),
@@ -762,10 +777,10 @@
   function renderSuggests() {
     els.suggests.innerHTML = "";
     if (history.length) {
-      els.suggests.hidden = true;
+      els.sugWrap.hidden = true;
       return;
     }
-    els.suggests.hidden = false;
+    els.sugWrap.hidden = false;
     SUGGESTS.forEach((q) => {
       const chip = document.createElement("button");
       chip.type = "button";
@@ -780,6 +795,22 @@
     });
     // lucide không tự quét lại markup chèn động.
     window.lucide?.createIcons({ root: els.suggests });
+    syncSugNav();
+  }
+
+  // Hàng thẻ gợi ý rộng hơn bảng nên cuộn ngang được. Màn mờ + mũi tên chỉ hiện
+  // ở phía CÒN thẻ bị khuất, để khách biết vuốt/bấm được; hết chỗ cuộn là tắt.
+  function syncSugNav() {
+    const el = els.suggests;
+    const max = el.scrollWidth - el.clientWidth;
+    els.sugWrap.classList.toggle("is-more-l", el.scrollLeft > 4);
+    els.sugWrap.classList.toggle("is-more-r", el.scrollLeft < max - 4);
+  }
+
+  // Một nhịp bấm = một thẻ rưỡi, đủ để thẻ kế tiếp lộ hẳn ra.
+  function sugScroll(dir) {
+    const step = Math.max(140, Math.round(els.suggests.clientWidth * 0.6));
+    els.suggests.scrollBy({ left: dir * step, behavior: "smooth" });
   }
 
   // Lối đi nhanh trên thanh tiêu đề: dựng MỘT LẦN lúc mở bảng, không đụng gì tới
@@ -1049,6 +1080,7 @@
     // transition thay vì hiện bụp một cái.
     requestAnimationFrame(() => els.panel.classList.remove("is-opening"));
     autoGrow(); // đo được chiều cao ô nhập từ lúc này, khi bảng đã hiện
+    syncSugNav(); // panel còn ẩn thì scrollWidth = 0, phải đo lại lúc mở
     if (window.matchMedia("(min-width: 521px)").matches) els.input.focus();
     syncViewport();
     scrollToEnd();
@@ -1157,7 +1189,11 @@
     els.panel.addEventListener("click", (e) => {
       if (e.target.closest("#aichatClose")) close();
       else if (e.target.closest("#aichatReset")) clearChat();
+      else if (e.target.closest("#aichatSugPrev")) sugScroll(-1);
+      else if (e.target.closest("#aichatSugNext")) sugScroll(1);
     });
+    els.suggests.addEventListener("scroll", syncSugNav, { passive: true });
+    window.addEventListener("resize", syncSugNav);
     els.body.addEventListener("click", (e) => {
       const btn = e.target.closest("[data-card-open]");
       if (btn && !btn.disabled) useCard(btn.closest(".aichat-col, .aichat-row")?._cxCard);

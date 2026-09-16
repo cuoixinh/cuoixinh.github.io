@@ -174,7 +174,7 @@
 
   /* Bàn phím bung ra thì màn chỉ còn vài dòng — giấu hàng gợi ý cho khung tin
      nhắn thở. Cờ .aichat-kb do _syncViewport() đặt. */
-  .aichat-kb .aichat-suggests {
+  .aichat-kb .aichat-sugwrap {
     display: none;
   }
 }
@@ -519,8 +519,23 @@
    icon nằm trên nhãn — bốn câu hỏi luôn ở cùng một dòng dù bảng hẹp. Thanh cuộn
    giấu đi, vuốt/kéo ngang vẫn chạy. */
 
+/* Khung bọc: hàng cuộn nằm trong, còn màn mờ và hai mũi tên phủ LÊN hai mép —
+   chúng absolute nên hàng thẻ rộng đúng bằng bảng chat, không đội thêm chỗ.
+   Lề ngang khớp thẻ ô nhập (12px) để hai mép thẳng cột. */
+
+.aichat-sugwrap {
+  @apply relative shrink-0 px-3 pb-3 pt-1;
+}
+
+/* Khai lại display cho thuộc tính `hidden` (renderSuggests đặt sau câu hỏi đầu):
+   luật display của chính lớp này nằm SAU preflight nên nó thắng, không khai là
+   hàng rỗng vẫn chiếm lề. */
+.aichat-sugwrap[hidden] {
+  display: none;
+}
+
 .aichat-suggests {
-  @apply flex shrink-0 gap-2 overflow-x-auto bg-transparent px-4 pb-3 pt-1;
+  @apply flex gap-2 overflow-x-auto bg-transparent;
 
   scrollbar-width: none;
 }
@@ -529,11 +544,69 @@
   display: none;
 }
 
-/* Khai lại display cho thuộc tính `hidden` (renderSuggests đặt sau câu hỏi đầu):
-   luật display của chính lớp này nằm SAU preflight nên nó thắng, không khai là
-   hàng rỗng vẫn chiếm lề. */
-.aichat-suggests[hidden] {
-  display: none;
+/* Màn mờ ở mép: nền bảng tan dần ra trong suốt, cho thấy thẻ bị CẮT chứ không
+   phải hết hàng. Chỉ hiện phía còn thẻ khuất (cờ .is-more-* do syncSugNav đặt),
+   và không bao giờ nuốt cú chạm. */
+
+.aichat-sugfade {
+  @apply pointer-events-none absolute bottom-3 top-1 w-12 opacity-0 transition-opacity;
+}
+
+.aichat-sugfade-l {
+  left: 12px;
+  background: linear-gradient(
+    90deg,
+    rgb(var(--surface-tint-rgb)) 30%,
+    rgb(var(--surface-tint-rgb) / 0)
+  );
+}
+
+.aichat-sugfade-r {
+  right: 12px;
+  background: linear-gradient(
+    270deg,
+    rgb(var(--surface-tint-rgb)) 30%,
+    rgb(var(--surface-tint-rgb) / 0)
+  );
+}
+
+.aichat-sugwrap.is-more-l .aichat-sugfade-l,
+.aichat-sugwrap.is-more-r .aichat-sugfade-r {
+  @apply opacity-100;
+}
+
+/* Mũi tên cuộn: đĩa trắng nổi trên màn mờ, canh giữa theo chiều cao hàng thẻ.
+   Ẩn thì vừa trong suốt vừa không bắt chuột, để cú bấm rơi xuống thẻ bên dưới. */
+
+.aichat-sugnav {
+  @apply pointer-events-none absolute top-1/2 flex h-7 w-7 -translate-y-1/2
+         items-center justify-center rounded-full opacity-0 transition;
+
+  /* Khung bọc đệm trên 4px, dưới 12px nên tâm của nó thấp hơn tâm hàng thẻ 4px. */
+  margin-top: -4px;
+  color: rgb(var(--brand-accent-rgb));
+  background: rgb(var(--white-rgb));
+  border: 1px solid rgb(var(--brand-primary-rgb) / 0.6);
+  box-shadow: 0 2px 8px rgb(var(--shadow-brand-rgb) / 0.2);
+}
+
+.aichat-sugnav-l {
+  left: 8px;
+}
+
+.aichat-sugnav-r {
+  right: 8px;
+}
+
+.aichat-sugwrap.is-more-l .aichat-sugnav-l,
+.aichat-sugwrap.is-more-r .aichat-sugnav-r {
+  @apply pointer-events-auto cursor-pointer opacity-100;
+}
+
+.aichat-sugnav:hover {
+  color: rgb(var(--white-rgb));
+  background: rgb(var(--brand-accent-rgb));
+  border-color: rgb(var(--brand-accent-rgb));
 }
 
 .aichat-chip {
