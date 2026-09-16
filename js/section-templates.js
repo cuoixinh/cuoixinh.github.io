@@ -11,12 +11,27 @@ function templateCard(t) {
   return CXItemTemplate.cardHTML(t, { cardClass: "cx-tplcard" });
 }
 
-// Cuộn gần trọn một khung nhìn của dải, chừa lại một thẻ làm mốc để mắt bắt
-// được mình vừa đi tới đâu.
+// Một cú bấm = đúng 2 thẻ.
+const TPL_STEP_CARDS = 2;
+
+// Bước cuộn của MỘT thẻ, đo từ DOM (hiệu offsetLeft của hai thẻ đầu nên tính
+// luôn cả khoảng hở) — khổ thẻ đổi theo breakpoint, viết cứng là lệch.
+function _tplCardStep(row) {
+  const cards = row.children;
+  if (cards.length > 1) {
+    const d = cards[1].offsetLeft - cards[0].offsetLeft;
+    if (d > 0) return d;
+  }
+  return cards[0]?.offsetWidth || row.clientWidth;
+}
+
 function scrollTemplates(dir) {
   const row = document.getElementById("templatesRow");
   if (!row) return;
-  row.scrollBy({ left: dir * row.clientWidth * 0.8, behavior: "smooth" });
+  row.scrollBy({
+    left: dir * _tplCardStep(row) * TPL_STEP_CARDS,
+    behavior: "smooth",
+  });
 }
 
 // ============= HÀNG CHẤM =============
@@ -50,6 +65,11 @@ function _syncTplDots() {
   const { count, index } = _tplPages(row);
   // Một trang thì hàng chấm không nói thêm gì — giấu hẳn.
   dots.hidden = count < 2;
+
+  // Mờ hai mép dải theo phía còn cuộn được (js/scroll-fade.js). Đi nhờ nhịp
+  // này thay vì `data-scroll-fade`: dải đổ nội dung sau nên phải cập nhật cả
+  // lúc dữ liệu về, mà ở đây đã có sẵn cuộn + đổi khổ + vẽ lại.
+  window.updateScrollFade?.(row);
 
   if (dots.childElementCount !== count) {
     dots.innerHTML = Array.from(

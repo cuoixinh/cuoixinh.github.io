@@ -10,7 +10,7 @@ const USE_CACHE = true;
 // Bản thân file này KHÔNG mang `?v=` (nó là mỏ neo, phải đọc được version từ
 // nó trước đã) → trên Cloudflare phải có Cache Rule bypass `/core/config.js`,
 // nếu không đổi số ở đây cũng vô nghĩa.
-const CX_VERSION = "2026.09.16-13";
+const CX_VERSION = "2026.09.16-15";
 
 // Thẻ <link> CSS viết cứng trong HTML không tự mang `?v=` → dễ rơi vào cảnh
 // HTML/partial đã là bản mới mà CSS vẫn là bản cũ (trang không vỡ, chỉ sai bố
@@ -96,7 +96,7 @@ const CONFIG = {
   // chậm — đây KHÔNG phải chỗ để tiết kiệm băng thông: mỗi lượt chỉ là một câu
   // đọc MỘT hàng theo index ở check-payment-status, không gọi sang PayOS.
   polling: {
-    interval: 5000, // 5 giây
+    interval: 3000, // 3 giây
     timeout: 300000, // 5 phút thì ngừng hỏi, hiện màn hết giờ
   },
 

@@ -154,13 +154,26 @@
 
       <!-- Hai nút mũi tên CHỈ từ lg: ở đó phần lớn là chuột, mà chuột thường
            không cuộn ngang được nên mấy thẻ cuối dải sẽ không bao giờ tới được.
-           Màn cảm ứng vuốt thẳng trên dải. -->
-      <div class="relative mx-auto max-w-6xl">
+           Màn cảm ứng vuốt thẳng trên dải nên dưới lg hai nút ẩn hẳn.
+           Hàng flex chứ không phải nút nổi đè lên dải: từ lg hai nút đứng HẲN
+           ngoài dải, cách mép thẻ đúng `gap-4` = 16px (dải bỏ lề trong ở lg,
+           xem .cx-tplrow). Dưới lg nút `hidden` nên dải vẫn chiếm trọn hàng. -->
+      <div class="mx-auto flex max-w-6xl items-center lg:gap-4 lg:px-2">
+        <x-button
+          variant="outline"
+          icon-only
+          onclick="scrollTemplates(-1)"
+          aria-label="Mẫu trước"
+          class="hidden shrink-0 backdrop-blur-md lg:flex text-[rgb(var(--text-heading-rgb))]"
+        >
+          <i data-lucide="chevron-left" style="width:16px;height:16px"></i>
+        </x-button>
+
         <!-- Khung xương lúc chờ templatesDAL.list(): cùng khổ thẻ thật
              (.tt-card.cx-tplcard) nên dải không nhảy chiều cao khi dữ liệu về.
              renderTemplateCards() ghi đè toàn bộ nội dung dải. Bốn thẻ để lấp
              hết bề ngang ở màn rộng; dải cuộn ngang nên thừa cũng không sao. -->
-        <div id="templatesRow" class="cx-tplrow">
+        <div id="templatesRow" class="cx-tplrow scroll-fade min-w-0 flex-1">
           <article class="tt-card cx-tplcard" aria-hidden="true">
             <div class="animate-pulse">
               <div class="tt-media"></div>
@@ -250,18 +263,9 @@
         <x-button
           variant="outline"
           icon-only
-          onclick="scrollTemplates(-1)"
-          aria-label="Mẫu trước"
-          class="absolute left-1 top-1/2 z-10 hidden -translate-y-1/2 backdrop-blur-md lg:flex text-[rgb(var(--text-heading-rgb))]"
-        >
-          <i data-lucide="chevron-left" style="width:16px;height:16px"></i>
-        </x-button>
-        <x-button
-          variant="outline"
-          icon-only
           onclick="scrollTemplates(1)"
           aria-label="Mẫu tiếp theo"
-          class="absolute right-1 top-1/2 z-10 hidden -translate-y-1/2 backdrop-blur-md lg:flex text-[rgb(var(--text-heading-rgb))]"
+          class="hidden shrink-0 backdrop-blur-md lg:flex text-[rgb(var(--text-heading-rgb))]"
         >
           <i data-lucide="chevron-right" style="width:16px;height:16px"></i>
         </x-button>
@@ -270,8 +274,8 @@
       <!-- Hàng chấm chỉ vị trí trong dải — MỘT chấm cho MỘT khung nhìn của dải
            chứ không phải một chấm một mẫu (mẫu nhiều thì hàng chấm dài hơn cả
            dải). js/section-templates.js dựng và đồng bộ theo cuộn.
-           Nằm NGOÀI khung `relative` của dải: hai nút mũi tên canh theo giữa
-           khung đó, thêm hàng chấm vào trong là chúng tụt xuống theo. -->
+           Nằm NGOÀI hàng flex của dải: hai nút mũi tên canh theo giữa hàng đó,
+           thêm hàng chấm vào trong là chúng tụt xuống theo. -->
       <div
         id="templatesDots"
         class="cx-tpldots"
@@ -515,6 +519,7 @@
     <script src="js/home-payment.js"></script>
     <script src="js/page-setup.js"></script>
     <script src="core/components/item-template.js"></script>
+    <script src="js/scroll-fade.js"></script>
     <script src="js/section-templates.js"></script>
     <script src="js/section-features.js"></script>
     <script src="js/section-steps.js"></script>

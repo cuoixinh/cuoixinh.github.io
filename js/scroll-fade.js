@@ -3,7 +3,9 @@
 // mép để lộ ra là kéo được. Cách dùng: thêm `data-scroll-fade` + class
 // `.scroll-fade` (styles/_common.css) vào chính phần tử có overflow-x-auto.
 
-const SCROLL_FADE_WIDTH = 32; // px, khớp bước 4px của dự án
+// Bề rộng dải mờ do CSS quyết (`--fade-w` trên chính phần tử, mặc định 32px):
+// gán bằng var nên mỗi dải tự chọn khổ theo breakpoint, JS không phải đo lại.
+const SCROLL_FADE_ON = "var(--fade-w, 32px)";
 
 function _updateScrollFade(el) {
   const max = el.scrollWidth - el.clientWidth;
@@ -14,11 +16,8 @@ function _updateScrollFade(el) {
     return;
   }
   const left = el.scrollLeft;
-  el.style.setProperty("--fade-left", left > 1 ? `${SCROLL_FADE_WIDTH}px` : "0px");
-  el.style.setProperty(
-    "--fade-right",
-    left < max - 1 ? `${SCROLL_FADE_WIDTH}px` : "0px",
-  );
+  el.style.setProperty("--fade-left", left > 1 ? SCROLL_FADE_ON : "0px");
+  el.style.setProperty("--fade-right", left < max - 1 ? SCROLL_FADE_ON : "0px");
 }
 
 function initScrollFade() {
@@ -57,3 +56,6 @@ if (document.readyState === "loading") {
 }
 
 window.initScrollFade = initScrollFade;
+// Dải tự đổ nội dung muộn (dữ liệu về sau) thì gọi lại: khổ phần tử không đổi
+// nên ResizeObserver ở trên không bắt được, mờ hai mép đứng nguyên trạng thái cũ.
+window.updateScrollFade = _updateScrollFade;

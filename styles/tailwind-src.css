@@ -1180,6 +1180,11 @@ html.cx-landing {
    Windows ăn mất một khoảng ngay dưới ảnh, trông như thẻ bị cắt chân. */
 .cx-tplrow {
   @apply flex gap-4 overflow-x-auto px-5 pb-2 pt-1;
+  /* Mờ hai mép (`.scroll-fade`, js/scroll-fade.js gán --fade-left/right) chỉ
+     bật từ lg: dưới ngưỡng đó dải chạm mép màn nên cắt thẳng trông tự nhiên,
+     còn ở khổ máy tính dải dừng giữa trang, cạnh sắc nhìn như thẻ bị xén.
+     0px = tắt hẳn. */
+  --fade-w: 0px;
   scroll-snap-type: x mandatory;
   /* Bằng padding hai bên, nếu không thẻ snap tới sẽ dính sát mép dải. */
   scroll-padding: 0 20px;
@@ -1189,6 +1194,19 @@ html.cx-landing {
 
 .cx-tplrow::-webkit-scrollbar {
   display: none;
+}
+
+@media (min-width: 1024px) {
+  .cx-tplrow {
+    --fade-w: 64px;
+    /* Từ lg hai nút mũi tên đứng ngoài dải (hàng flex ở index.html, gap 16px):
+       bỏ lề trong để 16px đó đo từ chính mép thẻ. Dưới lg giữ px-5 vì dải chạy
+       sát mép màn. scroll-padding phải đi theo, nếu không thẻ snap tới đứng
+       thụt vào 20px giữa dải. */
+    padding-left: 0;
+    padding-right: 0;
+    scroll-padding: 0;
+  }
 }
 
 /* Một thẻ của dải = ĐÚNG thẻ .tt-card của /theme-template, chỉ thêm khổ cố định
