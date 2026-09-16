@@ -272,7 +272,7 @@
 }
 
 .aichat-row-bot .aichat-col {
-  @apply items-start;
+  @apply relative items-start;
 }
 
 .aichat-row-user .aichat-col {
@@ -308,6 +308,13 @@
 
 .aichat-row.is-cont-next .aichat-time {
   display: none;
+}
+
+/* Dấu giờ của XuXi TREO dưới bong bóng, ngoài luồng: để trong luồng thì cột cao
+   thêm một dòng và avatar (canh đáy) tụt xuống ngang dấu giờ thay vì ngang đáy
+   bong bóng. Chỗ cho nó là 16px hở giữa hai nhóm. */
+.aichat-row-bot .aichat-time {
+  @apply absolute left-0 top-full;
 }
 
 .aichat-msg {
