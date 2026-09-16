@@ -21,17 +21,17 @@
   const MAX_LEN = 800; // khớp MAX_MSG_LEN của Edge Function
 
   const GREETING =
-    "Chào bạn 👋 Mình là XuXi, trợ lý của Cưới Xinh.\n" +
-    "Bạn cứ hỏi mình về thiệp cưới online — hoặc bảo mình tạo thiệp, mình hỏi vài " +
-    "thông tin rồi dựng luôn cho bạn.";
+    "Chào bạn 👋 Mình là XuXi.\n" +
+    "Bạn muốn **tạo thiệp cưới** hay cần hỏi gì về Cưới Xinh? Nói với mình một " +
+    "câu là được.";
 
   // Thẻ gợi ý ở hàng ngang dưới đoạn chat: `icon` là tên của lucide, `text` vừa là
   // nhãn vừa là câu gửi đi nên đừng tách làm hai.
   const SUGGESTS = [
-    { text: "Mình muốn tạo thiệp cưới", icon: "sparkles" },
-    { text: "Giá thiệp bao nhiêu?", icon: "wallet" },
-    { text: "Thiệp cưới có những gì?", icon: "layout-list" },
-    { text: "Có dùng thử được không?", icon: "eye" },
+    { text: "Tạo thiệp cưới cho mình nhé", icon: "sparkles" },
+    { text: "Thiệp giá bao nhiêu?", icon: "wallet" },
+    { text: "Thiệp có những gì?", icon: "layout-list" },
+    { text: "Cho mình dùng thử nhé?", icon: "eye" },
   ];
 
   // Lối đi nhanh, dựng thành nút TRÒN CHỈ CÓ ICON trên thanh tiêu đề — thay cho
