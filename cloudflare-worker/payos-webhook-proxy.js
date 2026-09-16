@@ -1,16 +1,14 @@
-// Cloudflare Worker - PayOS Webhook Proxy v2
-// Always returns success for PayOS verification, forwards real webhooks to Supabase
+// Cloudflare Worker - PayOS Webhook Proxy
+// Nhận webhook PayOS rồi forward sang Edge Function payos-webhook.
 //
 // MỘT file, deploy thành HAI worker (xem wrangler-webhook.toml và
 // wrangler-webhook-staging.toml): mỗi kênh thanh toán của PayOS khai webhook
 // riêng, nên staging có instance riêng thay vì định tuyến trong code.
-// Đích lấy từ biến môi trường, MẶC ĐỊNH là production đúng bằng giá trị đang
-// chạy — nhờ vậy thêm staging không cần deploy lại bản production.
-
-const DEFAULT_FUNCTION_URL =
-  "https://lcobawmkywtxhpezndsh.supabase.co/functions/v1/payos-webhook";
-const DEFAULT_ANON_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxjb2Jhd21reXd0eGhwZXpuZHNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4OTA5ODMsImV4cCI6MjA5MTQ2Njk4M30.4BNmxnfixXdHOq0ovtaF_4wQZ9sap3IWbJNJK9H4Mg4";
+//
+// Đích BẮT BUỘC lấy từ [vars] của toml, KHÔNG có giá trị mặc định: một worker
+// thiếu cấu hình mà vẫn chạy được là nó bắn webhook của kênh mình vào DB của
+// môi trường KHÁC, im lặng, không có gì báo — hỏng nặng nhất trong luồng tiền.
+// Thiếu thì trả 500, PayOS retry, và sai sót lộ ra ngay lúc khai URL.
 
 /**
  * Đẩy log về Axiom, cùng dataset với các Edge Function (xem _shared/axiom.ts).
@@ -63,8 +61,10 @@ function isVerifyPing(body) {
 
 export default {
   async fetch(request, env, ctx) {
-    const SUPABASE_FUNCTION_URL = env.SUPABASE_FUNCTION_URL || DEFAULT_FUNCTION_URL;
-    const SUPABASE_ANON_KEY = env.SUPABASE_ANON_KEY || DEFAULT_ANON_KEY;
+    const SUPABASE_FUNCTION_URL = env.SUPABASE_FUNCTION_URL;
+    // Không bắt buộc: payos-webhook deploy với --no-verify-jwt nên gateway không
+    // đòi JWT (xem NO_VERIFY trong scripts/deploy-functions.sh).
+    const SUPABASE_ANON_KEY = env.SUPABASE_ANON_KEY || "";
 
     const corsHeaders = {
       "Access-Control-Allow-Origin": "*",
@@ -76,6 +76,19 @@ export default {
     // Handle CORS preflight
     if (request.method === "OPTIONS") {
       return new Response(null, { headers: corsHeaders });
+    }
+
+    // Thiếu đích thì DỪNG, kể cả với ping xác minh: để PayOS khai được URL của
+    // một worker chưa cấu hình là mời sự cố về sau. 500 → PayOS retry, và Axiom
+    // ghi lại vì đây là lỗi không nhìn thấy được từ đâu khác.
+    if (!SUPABASE_FUNCTION_URL) {
+      axiomLog(env, ctx, "error", "proxy.missing_config", {
+        hint: "Khai SUPABASE_FUNCTION_URL trong [vars] của wrangler-webhook*.toml",
+      });
+      return new Response(
+        JSON.stringify({ error: "Worker chưa cấu hình SUPABASE_FUNCTION_URL" }),
+        { status: 500, headers: corsHeaders },
+      );
     }
 
     // Handle GET - for verification

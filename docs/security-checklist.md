@@ -244,6 +244,11 @@ danh sách này, đừng chờ đợt rà sau.
       dùng `cxFocal()` (cả hai ở `core/utils.js`). Đây là chỗ đã thủng 4 lần (A3).
 - [ ] **Gán `el.src` / `el.href` / `iframe.src`** từ dữ liệu người dùng → allowlist host.
       `javascript:` là XSS, `https://` lạ là phishing (A4).
+- [ ] **Worker/Edge Function dùng chung mã cho hai môi trường** → đích (URL Supabase, khoá)
+      phải lấy từ biến môi trường và **không được có giá trị mặc định**. Mặc định trỏ vào một
+      môi trường cụ thể thì bản kia quên khai `[vars]` sẽ im lặng ghi nhầm DB — với
+      `payos-webhook-proxy` là webhook tiền của kênh này rơi vào project kia, không gì báo.
+      Thiếu cấu hình thì phải hỏng TO (500 + log), đừng lùi về mặc định.
 - [ ] **Thêm `addEventListener("message")`** → kiểm `ev.source` NGAY dòng đầu, trước khi đọc
       `ev.data` (A8).
 - [ ] **Thêm endpoint Edge Function nhận `id`/`manage_id`** → kiểm JWT + `user_id`. `id` là

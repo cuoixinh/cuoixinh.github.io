@@ -2,6 +2,21 @@ name = "payos-webhook-proxy"
 main = "payos-webhook-proxy.js"
 compatibility_date = "2024-01-01"
 
+# Đích production. KHAI RÕ chứ không dựa vào giá trị mặc định trong
+# payos-webhook-proxy.js: để trống thì mở Dashboard của worker này không thấy nó
+# trỏ đi đâu, và ai sửa DEFAULT_FUNCTION_URL để thử nghiệm là production lặng lẽ
+# đi theo. Giữ khớp bố cục với wrangler-webhook-staging.toml để so hai bên bằng mắt.
+#
+# SUPABASE_ANON_KEY hiện KHÔNG bắt buộc — payos-webhook deploy với --no-verify-jwt
+# (xem danh sách NO_VERIFY trong scripts/deploy-functions.sh) nên gateway không đòi
+# JWT. Vẫn khai để hai worker cùng một bộ biến, và để còn đường gỡ mặc định trong mã.
+[vars]
+SUPABASE_FUNCTION_URL = "https://lcobawmkywtxhpezndsh.supabase.co/functions/v1/payos-webhook"
+
+# Anon key của project production. Không phải bí mật (nó nằm công khai trong
+# core/config.js) nên để thẳng ở đây được.
+SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxjb2Jhd21reXd0eGhwZXpuZHNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4OTA5ODMsImV4cCI6MjA5MTQ2Njk4M30.4BNmxnfixXdHOq0ovtaF_4wQZ9sap3IWbJNJK9H4Mg4"
+
 # Deploy command:
 # wrangler deploy --config wrangler-webhook.toml
 
