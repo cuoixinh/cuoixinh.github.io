@@ -713,7 +713,7 @@
               <!-- Nền gradient đè lên bg-rose-500 của fill/brand: cùng một màu
                    hành động của site (--action-primary-rgb), chỉ chuyển sang hồng
                    nhấn ở đầu kia nên nút hoà vào bảng màu của trang thay vì là
-                   mảng đặc duy nhất. Cùng công thức với icon màn thành công. -->
+                   mảng đặc duy nhất. -->
               <!-- Số tiền nằm TRÊN nút chứ không ở một hàng riêng phía trên:
                    bớt một dòng của dải ghim, và con số đứng đúng điểm bấm. Bảng
                    tiền ở trên vẫn là chỗ duy nhất cộng trừ, đây chỉ là con số
@@ -759,24 +759,26 @@
                Thứ tự: báo xong → VIỆC TIẾP THEO (link thiết lập thiệp) → thông
                tin đơn để đối chiếu. Link thiết lập là thứ khách cần ngay, nên nó
                đứng trên chứ không nằm dưới bảng thông tin đơn. -->
-          <div id="payment-step-3" class="hidden p-6 sm:p-8 flex-col items-center gap-5 text-center">
-            <div class="w-16 h-16 rounded-full flex items-center justify-center text-white" style="background:linear-gradient(135deg,rgb(var(--brand-accent-light-rgb)),rgb(var(--action-primary-rgb)));box-shadow:0 12px 24px -10px rgb(var(--action-primary-rgb) / .7);">
-              <i data-lucide="check" style="width:30px;height:30px"></i>
+          <div id="payment-step-3" class="hidden p-5 sm:p-8 flex-col items-center gap-4 sm:gap-5 text-center">
+            <!-- Mảng XANH (token --state-success-*), cố ý không dùng màu thương
+                 hiệu: ô này báo TRẠNG THÁI, không phải chỗ mời bấm. -->
+            <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center text-white" style="background:linear-gradient(135deg,rgb(var(--state-success-accent-rgb)),rgb(var(--state-success-text-rgb)));box-shadow:0 12px 24px -10px rgb(var(--state-success-accent-rgb) / .55);">
+              <i data-lucide="check" style="width:28px;height:28px"></i>
             </div>
             <div>
-              <h3 class="font-playfair text-2xl font-bold m-0" style="color:rgb(var(--text-heading-rgb));">Thanh toán thành công!</h3>
-              <p class="text-sm text-gray-500 leading-relaxed mt-1.5 m-0">Thiệp cưới đã là của bạn — bắt đầu nhập thông tin ngay nhé.</p>
+              <h3 class="font-playfair text-[22px] sm:text-2xl font-bold m-0" style="color:rgb(var(--text-heading-rgb));">Thanh toán thành công!</h3>
+              <p class="text-[13px] sm:text-sm text-gray-500 leading-relaxed mt-1.5 m-0">Thiệp cưới đã là của bạn — bắt đầu nhập thông tin ngay nhé.</p>
             </div>
 
             <!-- Link setup thiệp -->
-            <div id="success-manage-block" class="w-full p-4 rounded-2xl border text-left" style="border-color:rgb(var(--brand-primary-rgb));background:rgb(var(--surface-brand-subtle-rgb));">
+            <div id="success-manage-block" class="w-full p-3.5 sm:p-4 rounded-2xl border text-left" style="border-color:rgb(var(--brand-primary-rgb));background:rgb(var(--surface-brand-subtle-rgb));">
               <p class="flex items-center gap-1.5 text-xs font-semibold m-0 mb-1" style="color:rgb(var(--text-heading-rgb));">
                 <i data-lucide="link" style="width:14px;height:14px"></i>Link thiết lập thiệp cưới
               </p>
               <p class="text-[11px] text-gray-400 mb-2.5 m-0 leading-relaxed">Lưu lại link này để quay lại chỉnh sửa thiệp bất cứ lúc nào.</p>
               <div class="flex gap-2 items-center">
                 <input id="success-manage-link" readonly
-                  class="flex-1 px-3 py-2 rounded-lg border border-gray-200 text-[11px] font-mono text-gray-600 bg-white outline-none min-w-0" />
+                  class="flex-1 h-9 px-3 rounded-lg border border-gray-200 text-[11px] font-mono text-gray-600 bg-white outline-none min-w-0" />
                 <x-button size="sm" icon-only onclick="copyManageLink()" class="flex-shrink-0" aria-label="Sao chép link thiết lập">
                   <i data-lucide="copy" style="width:16px;height:16px"></i>
                 </x-button>
@@ -801,12 +803,16 @@
               </div>
             </div>
 
-            <div class="flex gap-3 w-full">
-              <x-button variant="outline" tone="neutral" size="lg" onclick="PaymentModal.close()" class="flex-1">
+            <!-- Hẹp thì XẾP DỌC, nút chính lên trên (col-reverse giữ nguyên thứ
+                 tự DOM "phụ trước, chính sau" của hàng ngang). Khổ md chứ không
+                 lg: nhãn của nút lg là whitespace-nowrap + px-7 nên không co
+                 được, hai nút cạnh nhau ở 390px là tràn chữ ra ngoài viền. -->
+            <div class="flex flex-col-reverse sm:flex-row gap-2.5 w-full">
+              <x-button variant="outline" tone="neutral" size="md" onclick="PaymentModal.close()" class="sm:flex-1">
                 Đóng
               </x-button>
               <a id="success-manage-btn" href="#"
-                class="flex-1 py-3 rounded-full text-white font-semibold text-sm no-underline flex items-center justify-center gap-2" style="background:rgb(var(--action-primary-rgb));">
+                class="sm:flex-1 h-10 px-5 rounded-full text-white font-semibold text-sm no-underline inline-flex items-center justify-center gap-2 whitespace-nowrap" style="background:rgb(var(--action-primary-rgb));">
                 <i data-lucide="square-pen" style="width:16px;height:16px"></i>Thiết lập ngay
               </a>
             </div>
