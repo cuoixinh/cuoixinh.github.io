@@ -26,6 +26,35 @@ function cxHeroAsk(e) {
   window.cxOpenAiChat(q ? { ask: q } : {});
 }
 
+// Chip gợi ý dưới ô hỏi: gửi thẳng câu đã soạn, không bắt khách gõ lại. Cùng
+// nhánh dự phòng với cxHeroAsk — chat chưa nạp xong thì im lặng bỏ qua.
+function cxHeroChip(q) {
+  if (typeof window.cxOpenAiChat !== "function") return;
+  window.cxOpenAiChat({ ask: q });
+}
+
+// Dải chip ở màn mở đầu là MỘT hàng cuộn ngang: đặt cờ .is-more-l/.is-more-r
+// cho CSS biết mép nào còn thẻ khuất mà làm mờ. Cùng phép đo với syncSugNav
+// của khung chat (js/ai-assistant.js).
+function cxSyncHeroChips() {
+  const el = document.getElementById("hero-chips");
+  if (!el) return;
+  const max = el.scrollWidth - el.clientWidth;
+  el.classList.toggle("is-more-l", el.scrollLeft > 4);
+  el.classList.toggle("is-more-r", el.scrollLeft < max - 4);
+}
+
+function cxInitHeroChips() {
+  const el = document.getElementById("hero-chips");
+  if (!el) return;
+  el.addEventListener("scroll", cxSyncHeroChips, { passive: true });
+  window.addEventListener("resize", cxSyncHeroChips);
+  // Khổ chip đổi khi font web vào — đo lại lúc đó, không thì cờ kẹt ở lần đo
+  // bằng font dự phòng.
+  document.fonts?.ready?.then(cxSyncHeroChips);
+  cxSyncHeroChips();
+}
+
 function setupSmoothScroll() {
   document.querySelectorAll('a[href^="#"]').forEach((link) => {
     link.addEventListener("click", function (e) {
@@ -77,6 +106,7 @@ function initializePage() {
   setupModalListeners();
   setupSmoothScroll();
   setupScrollAnimations();
+  cxInitHeroChips();
   renderTemplateCards();
 }
 

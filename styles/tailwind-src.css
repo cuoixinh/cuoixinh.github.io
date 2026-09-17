@@ -219,16 +219,17 @@ html.cx-landing {
 /* ═══════════ Từ styles/index.css (trang chủ) ═══════════ */
 
 /* ── Màn mở đầu ──────────────────────────────────────────────────────────
-   MỘT màn ảnh cưới tràn kín, mang hai cụm chữ xếp dọc, cả hai đều thấy được
-   ngay không phải cuộn:
-     · cụm trên (cao --cx-hero-img % màn) là nhãn thương hiệu + ô hỏi XuXi;
-     · cụm dưới là khối giới thiệu cách tạo thiệp bằng AI.
+   MỘT màn ảnh cưới tràn kín, mang HAI CỘT (.hero-grid), cả hai thấy được ngay
+   không phải cuộn:
+     · trái  — lời hứa + ô hỏi XuXi + chip gợi ý + lối tạo thiệp thẳng;
+     · phải  — khung điện thoại mang ảnh mẫu thiệp thật (.hero-show), thứ trả
+       lời câu "web này bán gì" trong một giây.
+   Dưới lg hai cột xếp dọc và khung máy bị .hero-show cắt bớt.
    Ba lớp theo z-index: .hero-bg (ảnh) → .hero-veil (phủ tối) → .hero-stage.
 
-   Ảnh và lớp phủ trải HẾT hero — không còn dải nền phẳng ở nửa dưới, nên độ
-   đọc của cụm dưới do .hero-veil VÀ bóng chữ (.hero-head/.hero-about) cùng
-   giữ: hạ lớp phủ thêm nữa thì phải tăng bóng chữ theo, không thì mất chữ ở
-   những ảnh nền sáng.
+   Ảnh và lớp phủ trải HẾT hero — không có dải nền phẳng nào, nên độ đọc của
+   chữ do .hero-veil VÀ bóng chữ (.hero-head) cùng giữ: hạ lớp phủ thêm nữa thì
+   phải tăng bóng chữ theo, không thì mất chữ ở những ảnh nền sáng.
 
    Mép nối với #templates (nền sáng) thì CẮT THẲNG — đó là chủ ý của kiểu này,
    đừng thêm dải tan xuống nền trắng.
@@ -242,9 +243,6 @@ html.cx-landing {
   /* Lề đỉnh của .hero-stage; từ md phải chừa đủ 80px của .cx-navbar (12+64+4)
      — đổi khổ navbar là phải đổi số ở media md/lg bên dưới. */
   --cx-stage-pt: 24px;
-  /* % chiều cao hero dành cho CỤM TRÊN — mốc chia hai cụm chữ. Khai KHÔNG ĐƠN
-     VỊ để nhân được với --vh ở .hero-head; cụm dưới nuốt phần còn lại. */
-  --cx-hero-img: 56;
   /* --vh = px do core/helpers/vh-lock.js khoá sẵn, KHÔNG phải đơn vị khung
      nhìn của CSS: Chrome di động ẩn thanh URL bằng cách resize webview nên
      dvh/svh đều tính lại theo, hero phình dần lúc vuốt. `1svh` chỉ là dự phòng
@@ -283,31 +281,41 @@ html.cx-landing {
 }
 
 /* Phủ tối cả màn ảnh: đậm ở ĐỈNH (chữ trắng + navbar phải đọc được), nhạt nhất
-   ở khoảng giữa — khoảng để ngắm ảnh — rồi đậm dần xuống đáy, nơi khối chữ giới
-   thiệu nằm. Cố ý để NHẸ tay cho thấy rõ ảnh nền; phần độ đọc còn thiếu do bóng
-   chữ bù (xem .hero-head/.hero-about). Ảnh nền là ảnh khách tự thay, sáng tối gì
-   cũng có — hạ tiếp mấy con số này thì phải tăng bóng chữ theo. */
+   ở khoảng giữa — khoảng để ngắm ảnh — rồi đậm dần xuống đáy. Cố ý để NHẸ tay
+   cho thấy rõ ảnh nền; phần độ đọc còn thiếu do bóng chữ bù (xem .hero-head).
+   Ảnh nền là ảnh khách tự thay, sáng tối gì cũng có — hạ tiếp mấy con số này
+   thì phải tăng bóng chữ theo. */
 
 .hero-veil {
   z-index: 1;
   background-image: linear-gradient(
     to bottom,
     rgb(var(--landing-dark-rgb) / 0.66) 0%,
-    rgb(var(--landing-dark-rgb) / 0.4) 24%,
-    rgb(var(--landing-dark-rgb) / 0.18) 44%,
-    rgb(var(--landing-dark-rgb) / 0.42) 66%,
-    rgb(var(--landing-dark-rgb) / 0.62) 100%
+    rgb(var(--landing-dark-rgb) / 0.46) 24%,
+    rgb(var(--landing-dark-rgb) / 0.34) 50%,
+    rgb(var(--landing-dark-rgb) / 0.48) 78%,
+    rgb(var(--landing-dark-rgb) / 0.64) 100%
   );
 }
 
-/* Hai cụm nội dung chia đôi màn theo --cx-hero-img: .hero-head có SÀN cao đúng
-   phần trên, .hero-about nuốt phần còn lại. Cả hai tự căn giữa phần của mình.
-   Lề ĐÁY 88px ở khổ hẹp = thanh tab dưới (.cx-tabbar ~64px kể cả lề) + thở. */
+/* Lề ĐÁY 88px ở khổ hẹp = thanh tab dưới (.cx-tabbar ~64px kể cả lề) + thở. */
 
 .hero-stage {
-  @apply relative z-[2] mx-auto flex w-full flex-1 flex-col items-center;
+  @apply relative z-[2] mx-auto flex w-full flex-1 flex-col;
   max-width: 1200px;
-  padding: var(--cx-stage-pt) 20px 88px;
+  /* Lề ĐÁY ở khổ hẹp phải chừa CẢ thanh tab dưới (~64px kể cả lề) LẪN bong bóng
+     XuXi — nó neo ở bottom 88px, cao 52px (.aichat-fab ở styles/_ai-chat.css).
+     Cụm lối vào bị đẩy sát đáy nên thiếu chỗ này là bong bóng đè lên dải chip.
+     Đổi chỗ đứng của bong bóng thì đổi luôn số ở đây. */
+  padding: var(--cx-stage-pt) 20px 152px;
+}
+
+/* Hai cột. Dưới lg: một cột, chữ căn giữa, khung máy xuống cuối.
+   Từ lg: chữ bên trái căn trái, khung máy bên phải, cả hai căn giữa theo trục
+   dọc — cột chữ nuốt chỗ thừa nên khung máy giữ nguyên khổ. */
+.hero-grid {
+  @apply flex w-full flex-1 flex-col items-center justify-center;
+  gap: 18px;
 }
 
 .hero-anim {
@@ -335,52 +343,75 @@ html.cx-landing {
   @apply h-full w-auto object-contain;
 }
 
-/* Cụm TRÊN. `min-height` = đúng phần trên trừ lề đỉnh (lề đã nằm ngoài cụm),
-   `justify-center` đặt nó vào giữa chỗ đó. Là min chứ không phải height: nội
-   dung dài hơn thì cụm tự cao thêm, thà đẩy cụm dưới xuống còn hơn cắt chữ.
-   --vh, cùng lý do với #hero. */
+/* Cột CHỮ. Bóng chữ: lớp phủ để nhẹ cho còn thấy ảnh nên chữ phải tự tách khỏi
+   nền. Ô hỏi và chip có nền kính mờ riêng nên tự gỡ bóng này. */
 
 .hero-head {
-  @apply flex flex-col items-center justify-center text-center;
-  max-width: 720px;
-  /* Cùng vai trò với bóng chữ ở .hero-about: lớp phủ để nhẹ nên chữ nhỏ (nhãn
-     thương hiệu, dòng chú thích dưới ô hỏi) phải tự tách khỏi ảnh. Ô hỏi có nền
-     kính mờ riêng nên không ăn theo bóng này — bóng chỉ dính vào chữ. */
+  @apply flex w-full flex-1 flex-col items-center justify-between text-center;
+  /* w-full là BẮT BUỘC: dải chip không xuống dòng, thiếu nó thì cột chữ tự nở
+     theo bề ngang cả dải (479px) và tràn khỏi màn thay vì cho chip cuộn. */
+  max-width: 620px;
   text-shadow:
     0 1px 3px rgb(var(--landing-dark-rgb) / 0.55),
     0 2px 16px rgb(var(--landing-dark-rgb) / 0.75);
-  min-height: calc(
-    var(--vh, 1vh) * var(--cx-hero-img) - var(--cx-stage-pt)
-  );
-  min-height: calc(
-    var(--vh, 1svh) * var(--cx-hero-img) - var(--cx-stage-pt)
-  );
 }
 
-/* Dòng chữ trên ảnh: NHỎ, in hoa, giãn chữ — nó là nhãn thương hiệu chứ không
-   phải một câu, để cỡ lớn thì át mất ô hỏi ngay dưới (thứ mình muốn khách bấm)
-   và chọi với tiêu đề lớn ở cụm dưới. */
+/* Hai cụm con của cột chữ. `align-items: inherit` để chúng ăn theo .hero-head
+   (căn giữa ở khổ hẹp, căn trái từ lg) — khỏi phải khai lại ở media query. */
+
+.hero-lede,
+.hero-act {
+  @apply flex w-full flex-col;
+  align-items: inherit;
+}
+
+/* Khe giữa hai cụm. Là margin của CẢ cụm dưới chứ không phải của riêng ô hỏi:
+   khi hai cụm bị đẩy ra hai đầu, khe này chỉ còn là mức tối thiểu. */
+
+.hero-act {
+  margin-top: 34px;
+}
+
+/* Lời hứa của sản phẩm — dòng LỚN NHẤT màn. Trước đây chỗ này là nhãn thương
+   hiệu cỡ 11px còn lời hứa nằm tận nửa dưới màn: khách được mời gõ trước khi
+   biết gõ để làm gì. Nhãn thương hiệu lùi vào .hero-eyebrow bên trong h1 để
+   thẻ h1 vẫn mang đủ từ khoá. */
 
 .hero-title {
+  @apply font-playfair;
+  font-weight: 600;
+  font-size: clamp(30px, 5vw, 52px);
+  line-height: 1.16;
+  text-wrap: balance;
+  color: rgb(var(--white-rgb));
+}
+
+.hero-eyebrow {
+  @apply block font-inter;
   font-size: 11px;
   font-weight: 500;
   letter-spacing: 0.28em;
   text-transform: uppercase;
   color: rgb(var(--white-rgb) / 0.7);
+  margin-bottom: 18px;
 }
 
-/* Ô hỏi Trợ lý XuXi — lối vào chính của màn mở đầu, dáng thanh tìm kiếm: icon
-   bên trái, ô nhập ở giữa, đĩa tròn mang mũi tên nép sát mép phải. Nền kính mờ
-   nên đặt lên ảnh nào cũng còn thấy viền. Gửi đi đâu: xem cxHeroAsk ở
-   js/page-setup.js. */
+.hero-sub {
+  margin-top: 18px;
+  max-width: 520px;
+  font-size: 14px;
+  line-height: 1.75;
+  color: rgb(var(--white-rgb) / 0.78);
+}
 
 .hero-ask {
   @apply flex items-center rounded-full;
   /* Nền kính mờ của chính ô này đã tách nó khỏi ảnh — để chữ ăn thêm bóng của
      .hero-head là nhoè. */
   text-shadow: none;
-  width: min(100%, 460px);
-  margin-top: 28px;
+  /* Khổ CỐ ĐỊNH 460px cũ trông vừa ở điện thoại nhưng ở 1440px chỉ còn chiếm
+     ~22% bề ngang → một viên thuốc trôi giữa ảnh. Cho nó lớn theo cột chữ. */
+  width: 100%;
   height: 58px;
   padding: 0 6px 0 20px;
   gap: 10px;
@@ -437,7 +468,7 @@ html.cx-landing {
 }
 
 .hero-note {
-  margin-top: 16px;
+  margin-top: 24px;
   font-size: 12px;
   line-height: 1.6;
   color: rgb(var(--white-rgb) / 0.62);
@@ -453,38 +484,123 @@ html.cx-landing {
   color: rgb(var(--white-rgb));
 }
 
-/* Cụm DƯỚI: tiêu đề lớn + một đoạn mô tả, căn giữa cả ngang lẫn dọc trong phần
-   màn còn lại (`flex: 1`). Nằm thẳng trên ảnh nên có bóng chữ — lớp phủ lo phần
-   nền, bóng lo mấy chỗ ảnh sáng lốm đốm. */
+/* Chip gợi ý dưới ô hỏi. Cùng vai với chip trong khung chat (thẻ tuỳ chọn AI)
+   nên là <button> trần, không phải <x-button>. */
 
-.hero-about {
-  @apply flex flex-1 flex-col items-center justify-center text-center;
-  padding-top: 32px;
-  text-shadow:
-    0 1px 3px rgb(var(--landing-dark-rgb) / 0.55),
-    0 2px 16px rgb(var(--landing-dark-rgb) / 0.75);
+/* MỘT hàng, cuộn ngang — xuống dòng thì cụm chữ ở màn đầu dài thêm một nhịp.
+   Mép có màn mờ để thấy là còn thẻ bị cắt chứ không phải hết hàng; cùng cách
+   với dải chip trong khung chat (.aichat-suggests), khác ở chỗ nền đây là ẢNH
+   nên phải mờ bằng mask chứ không phủ được một dải màu nền lên. Cờ .is-more-*
+   do cxSyncHeroChips ở js/page-setup.js đặt. */
+
+.hero-chips {
+  @apply flex w-full flex-nowrap justify-start overflow-x-auto;
+  gap: 8px;
+  margin-top: 18px;
+  text-shadow: none;
+  scrollbar-width: none;
 }
 
-/* Playfair semibold cho khớp tiêu đề của các mục còn lại ở trang chủ (Mẫu
-   thiệp, Tính năng…) — cụm trên dùng Cormorant vì đó là dòng chữ trên ảnh,
-   không cùng vai. */
-
-.hero-about-title {
-  @apply font-playfair;
-  max-width: 720px;
-  font-weight: 600;
-  font-size: clamp(26px, 4.6vw, 42px);
-  line-height: 1.22;
-  text-wrap: balance;
-  color: rgb(var(--white-rgb));
+.hero-chips::-webkit-scrollbar {
+  display: none;
 }
 
-.hero-about-text {
-  margin-top: 16px;
-  max-width: 620px;
-  font-size: 13px;
-  line-height: 1.8;
-  color: rgb(var(--white-rgb) / 0.72);
+/* Mask chỉ dùng kênh alpha nên #000 ở đây là đúng, không phải màu ngoài bộ
+   token. Luật hai bên phải đứng CUỐI để thắng hai luật một bên. */
+
+.hero-chips.is-more-r {
+  -webkit-mask-image: linear-gradient(to right, #000 78%, transparent 100%);
+  mask-image: linear-gradient(to right, #000 78%, transparent 100%);
+}
+
+.hero-chips.is-more-l {
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 22%);
+  mask-image: linear-gradient(to right, transparent 0%, #000 22%);
+}
+
+.hero-chips.is-more-l.is-more-r {
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    #000 20%,
+    #000 80%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    #000 20%,
+    #000 80%,
+    transparent 100%
+  );
+}
+
+.hero-chip {
+  @apply shrink-0 rounded-full font-inter;
+  padding: 7px 14px;
+  font-size: 12.5px;
+  line-height: 1.2;
+  white-space: nowrap;
+  color: rgb(var(--white-rgb) / 0.88);
+  background: rgb(var(--white-rgb) / 0.12);
+  border: 1px solid rgb(var(--white-rgb) / 0.26);
+  backdrop-filter: blur(8px);
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.hero-chip:hover {
+  background: rgb(var(--white-rgb) / 0.2);
+  border-color: rgb(var(--white-rgb) / 0.5);
+}
+
+/* Cột SẢN PHẨM — CHỈ sống từ lg. Màn điện thoại đứng, cao mà hẹp: nhét thêm
+   khung máy vào là cụm chữ bị ép sát nhau, nên khổ hẹp bỏ hẳn cột này và để
+   mục "Mẫu thiệp" ngay dưới lo phần bày hàng. Ảnh của nó cũng KHÔNG tải ở khổ
+   hẹp — js/hero-showcase.js chỉ gán src khi media query khớp. */
+
+.hero-show {
+  display: none;
+}
+
+/* Thân máy = assets/images/iphone_mockup.svg (383×785, vùng màn TRONG SUỐT)
+   phủ LÊN ảnh thiệp. Tỉ lệ và bộ inset dưới đây lấy từ .cx-phone/.cx-phone-screen
+   ở styles/_setup.css — đổi ảnh khung thì phải sửa cả hai chỗ. */
+
+.hero-phone {
+  position: relative;
+  width: var(--cx-hero-ph-w, 216px);
+  height: calc(var(--cx-hero-ph-w, 216px) / 0.4879);
+  flex: none;
+}
+
+.hero-phone-frame {
+  @apply pointer-events-none absolute inset-0 h-full w-full;
+  z-index: 2;
+  filter: drop-shadow(0 22px 40px rgb(var(--landing-dark-rgb) / 0.55));
+}
+
+.hero-phone-screen {
+  @apply absolute overflow-hidden;
+  top: 1.53%;
+  left: 3.92%;
+  width: 92.17%;
+  height: 96.94%;
+  border-radius: 14.73% / 6.83%;
+  background: rgb(var(--white-rgb));
+}
+
+/* Các tấm chồng nhau, js/hero-showcase.js chỉ đổi cờ .is-on. */
+
+.hero-slide {
+  @apply absolute inset-0 h-full w-full object-cover;
+  opacity: 0;
+  transition: opacity 0.9s ease;
+}
+
+.hero-slide.is-on {
+  opacity: 1;
 }
 
 .hero-ask-go:focus-visible,
@@ -512,33 +628,74 @@ html.cx-landing {
 @media (min-width: 768px) {
   #hero {
     --cx-stage-pt: 96px;
-    --cx-hero-img: 58;
   }
+  /* Từ md thanh tab dưới biến mất và bong bóng XuXi về bottom 24px — vẫn phải
+     chừa đủ 24 + 52 + thở cho cụm lối vào đang bị đẩy sát đáy. */
   .hero-stage {
-    padding: var(--cx-stage-pt) 32px 40px;
+    padding: var(--cx-stage-pt) 32px 88px;
   }
   /* Từ md navbar trên đã mang logo ở góc trái — bỏ logo trong hero. */
   .hero-badge {
     display: none;
   }
-  .hero-title {
-    font-size: 12px;
-  }
   .hero-note {
     font-size: 13px;
   }
-  .hero-about {
-    padding-top: 40px;
-  }
-  .hero-about-text {
-    margin-top: 20px;
-    font-size: 14px;
-  }
 }
+
+/* Từ lg mới chia hai cột: hẹp hơn thì cột chữ bị ép xuống dưới 420px, câu tiêu
+   đề vỡ dòng xấu mà khung máy cũng không còn đủ chỗ. */
 
 @media (min-width: 1024px) {
   .hero-stage {
     padding: var(--cx-stage-pt) 40px 48px;
+  }
+  /* Bố cục hai cột: chữ dồn về TRÁI nên thêm một lớp phủ ngang đậm phía đó,
+     giữ nửa phải sáng cho ảnh và khung máy. Lớp dọc vẫn nằm dưới, hai lớp cộng
+     lại — sửa số ở đây thì soi lại cả hai. */
+  .hero-veil {
+    background-image:
+      linear-gradient(
+        to right,
+        rgb(var(--landing-dark-rgb) / 0.5) 0%,
+        rgb(var(--landing-dark-rgb) / 0.32) 42%,
+        rgb(var(--landing-dark-rgb) / 0) 66%
+      ),
+      linear-gradient(
+        to bottom,
+        rgb(var(--landing-dark-rgb) / 0.6) 0%,
+        rgb(var(--landing-dark-rgb) / 0.3) 30%,
+        rgb(var(--landing-dark-rgb) / 0.3) 70%,
+        rgb(var(--landing-dark-rgb) / 0.55) 100%
+      );
+  }
+  .hero-grid {
+    @apply flex-row items-center justify-between;
+    gap: 48px;
+  }
+  .hero-head {
+    @apply items-start justify-center text-left;
+    flex: 1 1 auto;
+    max-width: 600px;
+  }
+  .hero-sub {
+    font-size: 15px;
+  }
+  /* Ô hỏi rộng theo cột chữ nhưng có TRẦN: dài quá thì nút mũi tên trôi xa ô
+     nhập, gõ xong phải với tay. */
+  .hero-ask {
+    max-width: 540px;
+  }
+  .hero-act {
+    margin-top: 40px;
+  }
+  /* Từ đây mới có chỗ cho khung máy. */
+  .hero-show {
+    @apply flex items-center justify-center;
+    flex: none;
+  }
+  .hero-phone {
+    --cx-hero-ph-w: clamp(230px, 22vw, 300px);
   }
 }
 
@@ -548,11 +705,10 @@ html.cx-landing {
    không các con số của chúng đè lại. */
 
 @media (max-height: 780px) {
-  #hero {
-    --cx-hero-img: 50;
+  .hero-act {
+    margin-top: 26px;
   }
   .hero-ask {
-    margin-top: 22px;
     height: 54px;
   }
   .hero-ask-go {
@@ -560,18 +716,21 @@ html.cx-landing {
     height: 42px;
   }
   .hero-note {
-    margin-top: 12px;
+    margin-top: 18px;
   }
-  .hero-about {
-    padding-top: 20px;
+  .hero-title {
+    font-size: clamp(26px, 3.8vw, 40px);
   }
-  .hero-about-title {
-    font-size: clamp(22px, 3.6vw, 32px);
-  }
-  .hero-about-text {
-    margin-top: 12px;
+  .hero-sub {
+    margin-top: 16px;
     font-size: 13px;
     line-height: 1.7;
+  }
+  .hero-chips {
+    margin-top: 16px;
+  }
+  .hero-phone {
+    --cx-hero-ph-w: clamp(200px, 19vw, 250px);
   }
 }
 
