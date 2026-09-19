@@ -7,6 +7,11 @@ import {
   weddingFileNames,
   weddingImageRefs,
 } from '../_shared/wedding-images.ts'
+import {
+  checkWeddingLimit,
+  MAX_WEDDINGS_PER_USER,
+  WEDDING_LIMIT_MESSAGE,
+} from '../_shared/wedding-limits.ts'
 
 // ── CORS ────────────────────────────────────────────────────────────────────
 // Allowlist origin thay cho '*'. Chỉ là vệ sinh — CORS ràng buộc trình duyệt,
@@ -828,6 +833,31 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
       }), { status: 401, headers: corsHeaders })
     }
     if (creatorId) insertPayload.user_id = creatorId
+
+    // Trần số thiệp/tài khoản. Đây là chốt THẬT: con số phía client ai cũng sửa
+    // được, mà mỗi thiệp còn kéo theo ảnh nằm lại trong Storage. Chỉ đếm thiệp còn
+    // hiện trong danh sách (is_active) cho khớp con số khách nhìn thấy ở trang
+    // "Quản lý thiệp cưới"; bỏ qua chính hàng sắp ghi để lần lưu lại sau khi POST
+    // hỏng giữa chừng không bị tính thành một thiệp nữa. Admin không dính trần.
+    if (creatorId && !isAdmin) {
+      const limit = await checkWeddingLimit(supabase, creatorId, resolvedId)
+      if (limit.error) {
+        log.error('wedding.count_failed', { error: limit.error })
+        return new Response(JSON.stringify({ error: limit.error }), {
+          status: 500, headers: corsHeaders
+        })
+      }
+      if (limit.reached) {
+        log.info('wedding.limit_reached', { user_id: creatorId, count: limit.count })
+        // 409 chứ không 403: client đã dùng 403 cho "thiệp không phải của bạn" và
+        // hiện một câu báo lỗi khác hẳn.
+        return new Response(JSON.stringify({
+          error: WEDDING_LIMIT_MESSAGE,
+          code: 'WEDDING_LIMIT',
+          limit: MAX_WEDDINGS_PER_USER,
+        }), { status: 409, headers: corsHeaders })
+      }
+    }
 
     const { data, error } = await supabase
       .from('weddings')

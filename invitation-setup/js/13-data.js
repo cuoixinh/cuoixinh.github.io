@@ -713,16 +713,13 @@ async function saveAll(overrides = {}, label = "Đang lưu...") {
     } else if (IS_LOGIN) {
       // Local draft + đã đăng nhập → tạo record trong DB lần đầu
       const generatedSlug = payload.slug || `wedding-${WEDDING_ID.slice(0, 8)}`;
-      // Đính JWT user (qua _authHeaders) để edge gán user_id = chủ thiệp ngay khi tạo.
-      await fetch(CONFIG.supabase.edgeUrl, {
-        method: "POST",
-        headers: await window.weddingDAL._authHeaders(),
-        body: JSON.stringify({
-          manage_id: WEDDING_ID,
-          theme: WEDDING_THEME,
-          is_published: false,
-          slug: generatedSlug,
-        }),
+      // Đính JWT user (DAL tự lo qua _authHeaders) để edge gán user_id = chủ thiệp
+      // ngay khi tạo. Lỗi ở đây phải NÉM RA, đừng nuốt: trần số thiệp mỗi tài khoản
+      // chặn tại đây, mà nuốt đi thì PATCH ngay dưới chạy trên một hàng chưa hề có.
+      await window.weddingDAL.createDraftWedding({
+        manage_id: WEDDING_ID,
+        theme: WEDDING_THEME,
+        slug: generatedSlug,
       });
       WEDDING_SLUG = generatedSlug;
       payload.slug = generatedSlug;
@@ -816,6 +813,22 @@ async function saveAll(overrides = {}, label = "Đang lưu...") {
     }
     if (e.code === "FORBIDDEN" || e.status === 403) {
       showToast("Bạn không có quyền chỉnh sửa thiệp này", "error");
+      return false;
+    }
+
+    // Trần số thiệp mỗi tài khoản (CONFIG.maxWeddings, chốt thật ở wedding-admin).
+    // Nháp vẫn nằm nguyên trong localStorage nên khách không mất gì — chỉ là chưa
+    // lên được hệ thống. Hỏi hẳn một câu thay vì toast: muốn đi tiếp thì phải sang
+    // trang khác xoá bớt, toast trôi mất là khách không biết làm gì tiếp.
+    if (e.code === "WEDDING_LIMIT") {
+      showConfirm("Đã đủ số thiệp cho phép", e.message, {
+        type: "warning",
+        icon: "layers",
+        confirmText: "Quản lý thiệp cưới",
+        cancelText: "Để sau",
+      }).then((r) => {
+        if (r) window.location.href = "/my-invitations/";
+      });
       return false;
     }
 

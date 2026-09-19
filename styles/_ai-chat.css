@@ -618,47 +618,95 @@
   border-color: rgb(var(--brand-accent-rgb));
 }
 
-/* Mỗi thẻ một màu riêng qua --sug-c (token --info-N-rgb ở _colors.css, do
-   renderSuggests truyền vào THEO VỊ TRÍ) — cùng lối với thẻ .bnf-card ở mục
-   "Tại sao chọn Cưới Xinh". Màu chỉ nằm ở nền chuyển sắc, viền và ô icon; chữ
-   giữ màu chung. */
+/* Thẻ gợi ý dựng theo lối thẻ sản phẩm: TRANH ở trên, nhãn ở dưới trên mặt
+   trắng. Mỗi thẻ một màu riêng qua --sug-c (token --info-N-rgb ở _colors.css, do
+   renderSuggests truyền vào THEO VỊ TRÍ) — màu chỉ nằm ở ô tranh và viền, chữ
+   giữ màu chung. Thẻ không còn lề trong: mặt tranh chạy sát mép nên `overflow`
+   phải cắt theo góc bo. */
 .aichat-chip {
-  @apply relative flex w-[136px] shrink-0 cursor-pointer flex-col items-start gap-2.5 p-3
+  @apply relative flex w-[144px] shrink-0 cursor-pointer flex-col overflow-hidden p-0
          text-left text-xs leading-snug;
 
   border-radius: 16px;
-  background: linear-gradient(
-      160deg,
-      rgb(var(--sug-c, var(--brand-primary-rgb)) / 0.16),
-      rgb(var(--sug-c, var(--brand-primary-rgb)) / 0) 62%
-    ),
-    rgb(var(--white-rgb));
+  background: rgb(var(--white-rgb));
   border: 1px solid rgb(var(--sug-c, var(--brand-primary-rgb)) / 0.32);
   color: rgb(var(--text-heading-rgb));
-  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  box-shadow: 0 8px 18px -16px rgb(var(--sug-c, var(--brand-primary-rgb)) / 0.9);
+  transition: box-shadow 0.25s ease, border-color 0.25s ease;
 }
 
+/* Hover CHỈ đổi viền và bóng — thẻ đứng yên tại chỗ. Nhấc thẻ lên (translate,
+   scale) là hàng thẻ giật lên giật xuống khi rê chuột ngang qua. */
 .aichat-chip:hover {
-  transform: translateY(-2px);
   border-color: rgb(var(--sug-c, var(--brand-primary-rgb)) / 0.6);
-  box-shadow: 0 12px 24px -16px rgb(var(--sug-c, var(--brand-primary-rgb)) / 0.85);
+  box-shadow: 0 10px 22px -16px rgb(var(--sug-c, var(--brand-primary-rgb)) / 0.85);
 }
 
-/* Icon TRẦN, không ô nền: thẻ đã có nền chuyển sắc theo --sug-c rồi, lồng thêm
-   một ô cùng tông vào là hai lớp màu chồng nhau. Cỡ glyph đặt bằng font-size vì
-   svg.lucide trong build.css bị ép về 1em — khai width/height ở đây là thua. */
-.aichat-chip-ico {
-  @apply flex shrink-0 items-center justify-center;
+/* Ô tranh thay cho tấm ảnh: nền chuyển sắc theo --sug-c, hình do SUG_ART
+   (js/ai-assistant.js) vẽ. Tỉ lệ 2:1 khớp viewBox 120×60 nên hình không méo
+   cũng không bị cắt. */
+.aichat-chip-art {
+  @apply relative block w-full overflow-hidden;
 
-  width: 26px;
-  height: 26px;
-  font-size: 22px;
-  color: rgb(var(--sug-c, var(--brand-accent-rgb)));
-  transition: transform 0.25s ease;
+  aspect-ratio: 2 / 1;
+  background: linear-gradient(
+    160deg,
+    rgb(var(--sug-c, var(--brand-primary-rgb)) / 0.24),
+    rgb(var(--sug-c, var(--brand-primary-rgb)) / 0.07)
+  );
 }
 
-.aichat-chip:hover .aichat-chip-ico {
-  transform: rotate(-4deg) scale(1.06);
+/* Ranh giới tranh ↔ chữ TAN DẦN chứ không kẻ nét: mặt trắng của thân thẻ dâng
+   ngược lên nuốt dần nửa dưới ô tranh, nên không có cạnh sắc nào cắt ngang thẻ.
+   Phủ lên cả hình vẽ nên đáy hình cũng chìm theo — cố ý, đó là chỗ giao. */
+.aichat-chip-art::after {
+  content: "";
+
+  @apply pointer-events-none absolute inset-x-0 bottom-0 h-[45%];
+
+  background: linear-gradient(
+    to bottom,
+    rgb(var(--white-rgb) / 0),
+    rgb(var(--white-rgb) / 0.5) 60%,
+    rgb(var(--white-rgb))
+  );
+}
+
+.aichat-chip-art svg {
+  @apply block h-full w-full;
+}
+
+.aichat-chip-txt {
+  @apply block px-2.5 pb-2.5 pt-2 font-medium;
+}
+
+/* Bốn lớp màu dùng chung cho MỌI hình ở SUG_ART, nhờ đó mỗi thẻ tự ăn theo màu
+   của nó: a-w mảng trắng (mặt thiệp, mặt máy), a-c mảng đậm, a-t mảng nhạt,
+   a-o nét viền màu, a-k nét trắng. */
+.aichat-chip-art .a-w {
+  fill: rgb(var(--white-rgb));
+}
+
+.aichat-chip-art .a-c {
+  fill: rgb(var(--sug-c, var(--brand-accent-rgb)) / 0.75);
+}
+
+.aichat-chip-art .a-t {
+  fill: rgb(var(--sug-c, var(--brand-accent-rgb)) / 0.3);
+}
+
+.aichat-chip-art .a-o {
+  fill: none;
+  stroke: rgb(var(--sug-c, var(--brand-accent-rgb)) / 0.5);
+  stroke-width: 2;
+}
+
+.aichat-chip-art .a-k {
+  fill: none;
+  stroke: rgb(var(--white-rgb));
+  stroke-width: 3.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 

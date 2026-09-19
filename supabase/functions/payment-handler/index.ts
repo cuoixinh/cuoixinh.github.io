@@ -1,6 +1,11 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { withAxiom, type Logger } from "../_shared/axiom.ts";
+import {
+  checkWeddingLimit,
+  MAX_WEDDINGS_PER_USER,
+  WEDDING_LIMIT_MESSAGE,
+} from "../_shared/wedding-limits.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -283,6 +288,33 @@ async function handleCreatePayment(req: Request, supabaseClient: any, log: Logge
         }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
       existingSlug = owned?.slug ?? null;
+
+      // Trần số thiệp/tài khoản. Hàm này `upsert` nên một manage_id CHƯA có hàng
+      // DB chính là một đường TẠO thiệp nữa, đi vòng qua chốt ở wedding-admin —
+      // thiếu chỗ này thì cứ vào thẳng màn thanh toán là tạo được thiệp mới.
+      // Thiệp đã tồn tại thì trả tiền bình thường: trần chặn việc tạo thêm, không
+      // chặn thanh toán cho thiệp đang có.
+      if (!owned) {
+        const limit = await checkWeddingLimit(supabaseClient, buyerId);
+        if (limit.error) {
+          log.error("payment.count_failed", { error: limit.error });
+          return new Response(JSON.stringify({ error: limit.error }), {
+            status: 500,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        if (limit.reached) {
+          log.warn("payment.wedding_limit", { buyerId, count: limit.count });
+          return new Response(JSON.stringify({
+            error: WEDDING_LIMIT_MESSAGE,
+            code: "WEDDING_LIMIT",
+            limit: MAX_WEDDINGS_PER_USER,
+          }), {
+            status: 409,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+      }
     }
 
     const missing = { manage_id, customer_name, template_name };

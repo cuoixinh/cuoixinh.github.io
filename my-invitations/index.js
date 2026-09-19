@@ -220,6 +220,31 @@ async function loadCards() {
   render();
 }
 
+// ===== TRẦN SỐ THIỆP MỖI TÀI KHOẢN =====
+
+// Chỉ đếm thẻ CÓ bản ghi DB: nháp còn nằm trên máy chưa tốn gì của hệ thống nên
+// không tính vào trần (khớp cách Edge Function đếm).
+function savedCount() {
+  return CARDS.filter((c) => !c.local).length;
+}
+
+// Bọc quanh cxStartDefaultDraft để chặn SỚM: hết chỗ mà vẫn cho đi tiếp thì khách
+// điền xong cả thiệp mới bị từ chối lúc lưu. Chốt thật nằm ở Edge Function
+// (_shared/wedding-limits.ts) — CONFIG.maxWeddings ở đây chỉ là bản sao để vẽ UI.
+function newInvitation() {
+  const max = CONFIG.maxWeddings;
+  if (currentUser && savedCount() >= max) {
+    showAlert(
+      "Đã đủ số thiệp cho phép",
+      `Mỗi tài khoản chỉ giữ tối đa ${max} thiệp (tính cả nháp đã lưu). Hãy xoá ` +
+        `bớt thiệp cũ trong danh sách rồi tạo thiệp mới.`,
+      "warning",
+    );
+    return;
+  }
+  cxStartDefaultDraft();
+}
+
 // Nút "Tải lại": danh sách vốn đã luôn lấy tươi, nút này chỉ để hỏi lại ngay
 // mà không phải tải lại trang.
 async function refreshCards() {
@@ -287,6 +312,12 @@ function render() {
     badge.textContent = counts[tab];
     badge.classList.toggle("hidden", !counts[tab]);
   });
+
+  // Số thiệp đã giữ / trần — chỉ có nghĩa khi đã đăng nhập (khách vãng lai chỉ
+  // thấy nháp trên máy, vốn không tính vào trần).
+  const note = document.getElementById("count-note");
+  note.textContent = ` · ${savedCount()}/${CONFIG.maxWeddings} thiệp`;
+  note.classList.toggle("hidden", !currentUser);
 
   // Chỉ số nhớ sẵn theo CARDS: các hàm onclick trên thẻ nhắm vào CARDS[i], không
   // phải vị trí trong danh sách đã lọc.

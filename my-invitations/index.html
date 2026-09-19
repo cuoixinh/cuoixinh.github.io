@@ -64,6 +64,9 @@
           </div>
           <p class="mt-1 text-[13px] text-gray-500">
             Tạo, chỉnh sửa và chia sẻ thiệp cưới của bạn
+            <!-- Số thiệp đã giữ / trần của tài khoản (CONFIG.maxWeddings): index.js
+                 đổ chữ vào lúc render, khách chưa đăng nhập thì ẩn. -->
+            <span id="count-note" class="hidden"></span>
           </p>
         </div>
         <!-- Khung xương của nút: nút thật là <x-button>, chỉ dựng xong khi
@@ -81,7 +84,7 @@
           id="btn-new-top"
           size="sm"
           icon="plus"
-          onclick="cxStartDefaultDraft()"
+          onclick="newInvitation()"
           style="background: rgb(var(--action-primary-rgb))"
           class="hidden hover:opacity-90"
         >
@@ -261,7 +264,7 @@
         <x-button
           size="sm"
           icon="plus"
-          onclick="cxStartDefaultDraft()"
+          onclick="newInvitation()"
           style="background: rgb(var(--action-primary-rgb))"
           class="mt-5 hover:opacity-90"
         >

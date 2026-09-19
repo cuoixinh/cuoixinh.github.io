@@ -129,6 +129,9 @@ class WeddingDAL {
     return await response.json();
   }
 
+  // Lỗi ném ra phải đi qua _httpError để giữ `code` của Edge Function
+  // (WEDDING_LIMIT, AUTH_REQUIRED…): UI phân biệt theo code, rút thành Error trơn
+  // là mọi lỗi tạo thiệp hiện chung một câu.
   async createWedding(payload) {
     const response = await fetch(this.edgeUrl, {
       method: "POST",
@@ -138,26 +141,23 @@ class WeddingDAL {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error || `HTTP ${response.status}`);
+      throw this._httpError(response, errorData);
     }
 
     return await response.json();
   }
 
   /**
-   * Create draft wedding (is_published = false, no payment required)
+   * Ghi hàng DB đầu tiên cho một nháp đang nằm trên máy (is_published = false).
+   * Trần số thiệp mỗi tài khoản báo về ở đây, dưới dạng code WEDDING_LIMIT.
    */
-  async createDraftWedding(manage_id, theme) {
-    const response = await fetch(this.edgeUrl, {
-      method: "POST",
-      headers: await this._authHeaders(),
-      body: JSON.stringify({ manage_id, theme, is_published: false }),
+  async createDraftWedding({ manage_id, theme, slug }) {
+    return await this.createWedding({
+      manage_id,
+      theme,
+      slug,
+      is_published: false,
     });
-    if (!response.ok) {
-      const err = await response.json().catch(() => ({}));
-      throw new Error(err.error || `HTTP ${response.status}`);
-    }
-    return await response.json();
   }
 
   /**

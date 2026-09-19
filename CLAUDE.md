@@ -570,6 +570,12 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   dòng `100svh` trần sau đó là đè mất `--vh`. Trang mới cần thì tự thêm thẻ script (thiệp
   và trang chủ đã có); thiếu thì lùi về `1svh`, đúng khổ nhưng kém ổn định.
 - **Sơ đồ Mermaid:** sửa sơ đồ thì đồng bộ luôn bảng roadmap + text mô tả bên dưới.
+- **Trần số thiệp mỗi tài khoản:** một tài khoản chỉ giữ được `MAX_WEDDINGS_PER_USER`
+  thiệp còn hiện trong danh sách (nháp đã lưu + đã xuất bản; nháp chỉ nằm trong
+  trình duyệt không tính). Số + phép đếm ở `supabase/functions/_shared/wedding-limits.ts`,
+  CẢ HAI đường tạo hàng `weddings` phải hỏi qua đó — POST của `wedding-admin` và
+  `upsert` của `payment-handler` — sót một chỗ là còn đường tạo thiệp không giới hạn.
+  `CONFIG.maxWeddings` là bản sao để UI chặn sớm, đổi phải đổi cả hai.
 - **Dọn dẹp tự động (XOÁ HẲN dữ liệu):** thiệp chưa thanh toán và nháp bỏ quên bị cron xoá
   vĩnh viễn, thiệp hết hạn dùng thử bị khoá với khách mời. Số ngày ở `CONFIG.retention` **và**
   biến `RETENTION_DAYS` của Edge Function — hai nơi, đổi phải đổi cả hai. Đụng tới `expires_at`,

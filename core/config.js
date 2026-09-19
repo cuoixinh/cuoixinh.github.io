@@ -10,7 +10,7 @@ const USE_CACHE = true;
 // Bản thân file này KHÔNG mang `?v=` (nó là mỏ neo, phải đọc được version từ
 // nó trước đã) → trên Cloudflare phải có Cache Rule bypass `/core/config.js`,
 // nếu không đổi số ở đây cũng vô nghĩa.
-const CX_VERSION = "2026.09.18-1";
+const CX_VERSION = "2026.09.16-16";
 
 // Thẻ <link> CSS viết cứng trong HTML không tự mang `?v=` → dễ rơi vào cảnh
 // HTML/partial đã là bản mới mà CSS vẫn là bản cũ (trang không vỡ, chỉ sai bố
@@ -185,6 +185,14 @@ const CONFIG = {
     serverDraftDays: 30, // nháp đã lưu trên hệ thống (đã đăng nhập)
     localDraftDays: 30, // nháp chỉ nằm trong trình duyệt của máy này
   },
+
+  // Trần số thiệp một tài khoản được giữ trên hệ thống — nháp đã lưu lẫn thiệp đã
+  // xuất bản đều tính. Nháp chỉ nằm trong trình duyệt KHÔNG tính: nó chưa tốn gì
+  // của hệ thống. Chốt THẬT nằm ở server
+  // (supabase/functions/_shared/wedding-limits.ts) vì con số phía client ai cũng
+  // sửa được; số ở đây chỉ để UI chặn sớm và hiện "x/5" — đổi một bên phải đổi cả
+  // bên kia.
+  maxWeddings: 5,
 
   // Love Story
   maxLoveStoryItems: 10,

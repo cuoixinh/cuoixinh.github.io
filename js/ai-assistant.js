@@ -25,14 +25,62 @@
     "Bạn muốn **tạo thiệp cưới** hay cần hỏi gì về Cưới Xinh? Nói với mình một " +
     "câu là được.";
 
-  // Thẻ gợi ý ở hàng ngang dưới đoạn chat: `icon` là tên của lucide, `text` vừa là
-  // nhãn vừa là câu gửi đi nên đừng tách làm hai.
+  // Thẻ gợi ý ở hàng ngang dưới đoạn chat: `text` vừa là nhãn vừa là câu gửi đi
+  // nên đừng tách làm hai. `art` chọn tranh ở SUG_ART.
   const SUGGESTS = [
-    { text: "Tạo thiệp cưới cho mình nhé", icon: "zap" },
-    { text: "Thiệp có giá bao nhiêu vậy?", icon: "circle-dollar-sign" },
-    { text: "Thiệp cưới có những gì?", icon: "package" },
-    { text: "Mình có thể dùng thử được không?", icon: "users" },
+    { text: "Tạo thiệp cưới cho mình nhé", art: "create" },
+    { text: "Thiệp có giá bao nhiêu vậy?", art: "price" },
+    { text: "Thiệp cưới có những gì?", art: "inside" },
+    { text: "Mình có thể dùng thử được không?", art: "try" },
   ];
+
+  // Tranh ở đầu mỗi thẻ gợi ý — SVG viết tay, KHÔNG phải icon lucide: đây là hình
+  // nhiều mảng chứ không phải glyph một nét. Mọi hình vẽ trong khung 120×60; ô
+  // tranh nới viewBox rộng hơn khung đó (xem SUG_VIEWBOX) nên hình nhỏ lại và
+  // đứng hơi cao, chừa chỗ cho dải trắng tan dần ở đáy. Màu lấy từ --sug-c của
+  // chính thẻ qua các lớp .a-* khai ở styles/_ai-chat.css — đừng ghi cứng mã màu.
+  // Khung nhìn của ô tranh: rộng hơn hình (120×60) nên hình chỉ chiếm 2/3 ô, và
+  // lệch lên trên vì chừa dưới nhiều hơn chừa trên. Giữ đúng tỉ lệ 2:1 của ô,
+  // sai tỉ lệ là hình méo.
+  const SUG_VIEWBOX = "-30 -8 180 90";
+
+  const SUG_ART = {
+    // Thiệp cưới đang dựng: mặt thiệp + trái tim + hai ánh lấp lánh.
+    create:
+      '<path class="a-t" d="M26 12l1.7 4.6L32 18l-4.3 1.4L26 24l-1.7-4.6L20 18l4.3-1.4z"/>' +
+      '<path class="a-t" d="M96 34l1.3 3.5L100 39l-3.7 1.1L96 44l-1.3-3.5L92 39l3.7-1.1z"/>' +
+      '<rect class="a-w" x="38" y="8" width="44" height="44" rx="7"/>' +
+      '<path class="a-c" d="M60 20.6c-2.4-4.3-8.2-2.6-8.2 1.3 0 3 3.9 5.4 8.2 8.4 4.3-3 8.2-5.4 8.2-8.4 0-3.9-5.8-5.6-8.2-1.3z"/>' +
+      '<rect class="a-t" x="46" y="36" width="28" height="3" rx="1.5"/>' +
+      '<rect class="a-t" x="51" y="43" width="18" height="3" rx="1.5"/>',
+    // Giá: đồng xu nấp sau một cái thẻ giá.
+    price:
+      '<circle class="a-t" cx="28" cy="42" r="11"/>' +
+      '<circle class="a-w" cx="28" cy="42" r="6"/>' +
+      '<g transform="rotate(-10 62 30)">' +
+      '<path class="a-w" d="M38 30l8-13a6 6 0 0 1 5-3h29a6 6 0 0 1 6 6v20a6 6 0 0 1-6 6H51a6 6 0 0 1-5-3z"/>' +
+      '<circle class="a-c" cx="52" cy="30" r="3.5"/>' +
+      '<rect class="a-t" x="61" y="25" width="21" height="3.5" rx="1.75"/>' +
+      '<rect class="a-t" x="61" y="33" width="13" height="3.5" rx="1.75"/>' +
+      "</g>",
+    // Thiệp có những gì: màn điện thoại xếp sẵn ảnh bìa, dòng chữ và hai ô mục.
+    inside:
+      '<circle class="a-t" cx="23" cy="20" r="9"/>' +
+      '<circle class="a-t" cx="98" cy="40" r="7"/>' +
+      '<rect class="a-w" x="44" y="3" width="32" height="54" rx="8"/>' +
+      '<rect class="a-c" x="48" y="8" width="24" height="14" rx="4"/>' +
+      '<rect class="a-t" x="48" y="26" width="24" height="3" rx="1.5"/>' +
+      '<rect class="a-t" x="48" y="32" width="16" height="3" rx="1.5"/>' +
+      '<rect class="a-t" x="48" y="39" width="11" height="10" rx="3"/>' +
+      '<rect class="a-t" x="61" y="39" width="11" height="10" rx="3"/>',
+    // Dùng thử: mặt thiệp còn để trống (nét đứt) kèm dấu tích đã xong.
+    try:
+      '<rect class="a-w" x="28" y="8" width="58" height="44" rx="8"/>' +
+      '<rect class="a-o" x="34" y="14" width="46" height="32" rx="6" stroke-dasharray="6 5"/>' +
+      '<path class="a-c" d="M57 25.6c-2-3.6-6.8-2.2-6.8 1.1 0 2.5 3.2 4.5 6.8 7 3.6-2.5 6.8-4.5 6.8-7 0-3.3-4.8-4.7-6.8-1.1z"/>' +
+      '<circle class="a-c" cx="86" cy="42" r="12"/>' +
+      '<path class="a-k" d="M80.5 42l4 4 7.5-8"/>',
+  };
 
   // Lối đi nhanh, dựng thành nút TRÒN CHỈ CÓ ICON trên thanh tiêu đề — thay cho
   // bong bóng Messenger đã bỏ ở trang chủ nên luôn thấy được, không ẩn theo đoạn
@@ -788,15 +836,16 @@
       // Màu theo VỊ TRÍ: thêm gợi ý phải có sẵn token --info-N tương ứng.
       chip.style.setProperty("--sug-c", "var(--info-" + (i + 1) + "-rgb)");
       chip.innerHTML =
-        '<span class="aichat-chip-ico"><i data-lucide="' +
-        q.icon +
-        '"></i></span><span></span>';
+        '<span class="aichat-chip-art" aria-hidden="true">' +
+        '<svg viewBox="' +
+        SUG_VIEWBOX +
+        '" xmlns="http://www.w3.org/2000/svg">' +
+        (SUG_ART[q.art] || "") +
+        '</svg></span><span class="aichat-chip-txt"></span>';
       chip.lastElementChild.textContent = q.text;
       chip.addEventListener("click", () => ask(q.text));
       els.suggests.appendChild(chip);
     });
-    // lucide không tự quét lại markup chèn động.
-    window.lucide?.createIcons({ root: els.suggests });
     syncSugNav();
   }
 
@@ -811,7 +860,7 @@
 
   // Một nhịp bấm = một thẻ rưỡi, đủ để thẻ kế tiếp lộ hẳn ra.
   function sugScroll(dir) {
-    const step = Math.max(140, Math.round(els.suggests.clientWidth * 0.6));
+    const step = Math.max(152, Math.round(els.suggests.clientWidth * 0.6));
     els.suggests.scrollBy({ left: dir * step, behavior: "smooth" });
   }
 
