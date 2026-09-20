@@ -514,15 +514,25 @@ input.flatpickr-input[readonly] {
 /* Dải tab dưới bảng chỉnh: mỗi tab một bảng. Cuộn ngang khi không đủ chỗ (nhãn
    không xuống dòng), tab đang mở là viên thuốc hồng — JS chỉ gạt .is-on. */
 .cx-ctabs {
-  @apply shrink-0 border-t border-gray-100 bg-white px-1 py-2 md:px-2 md:py-2.5;
+  @apply shrink-0 border-t border-gray-100 bg-white py-2 md:py-2.5;
+
+  /* Mờ dần hai mép: mắt thấy ngay là dải còn trượt được, và tab ở giữa nổi lên
+     mà không phải vẽ thêm khung chỉ báo. */
+  mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 32px,
+    #000 calc(100% - 32px),
+    transparent 100%
+  );
 }
 
-/* Kéo chuột / vuốt tay để trượt: JS lo phần đà (_initCtrlTabsDrag), CSS lo phần
-   mượt. Lề ngoài của dải cố tình hẹp (4px) để CHỮ trong viên thuốc — vốn thụt
-   thêm 12px padding của chính nó — thẳng cột với nội dung phía trên (16px, md+
-   là 20px); pr-2 chừa chút hơi cho tab cuối khỏi dính mép. */
+/* Dải tab là BỘ CHỌN kiểu bánh xe: tab đang mở luôn đứng giữa, cuộn ngang tới
+   đâu là chọn tới đó (JS: _initCtrlTabsDrag / _onTabsSettle). Padding hai đầu
+   do JS đo (_syncTabPads) nên tab đầu và tab cuối cũng lên giữa được — đừng đặt
+   padding ngang ở đây. */
 .cx-ctabs-track {
-  @apply flex items-center gap-1 overflow-x-auto overscroll-x-contain pr-2;
+  @apply flex items-center gap-1 overflow-x-auto overscroll-x-contain;
 
   scrollbar-width: none;
   scroll-behavior: smooth;

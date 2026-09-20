@@ -590,6 +590,7 @@ window.closeAddTextPanel = closeAddTextPanel;
 // nào muốn nhận cú bấm thì khai `onTap` (Thẻ nhạc dùng để đổi mẫu tại chỗ).
 // Mỗi bảng chỉ khai báo việc riêng: over / cancel / drop / tap.
 const PAL_DRAG_MIN = 6; // px, dưới ngưỡng này coi như chưa kéo
+const PAL_HOLD_MS = 280; // giữ yên bấy lâu là nhấc ô mẫu lên, khỏi phải lôi ra khỏi bảng
 
 let _palDrag = null;
 
@@ -615,6 +616,7 @@ function _startPalDrag(e, hooks) {
   // "nhấc" lên, con trỏ giữ nguyên điểm bấm trên ô.
   const r = btn.getBoundingClientRect();
   const scroller = btn.closest(".cx-sheet-body");
+  const fromGrip = !!e.target?.closest?.(".cx-pick-grip");
   _palDrag = {
     hooks,
     btn,
@@ -628,7 +630,17 @@ function _startPalDrag(e, hooks) {
     out: false, // đã ra khỏi bảng chọn ít nhất một lần
     ghost: null,
     over: false, // con trỏ đang ở trên thiệp
+    holdT: 0, // hẹn giờ của cú GIỮ
   };
+  // Hai đường nhấc ô mẫu mà KHÔNG phải lôi ra khỏi bảng: giữ yên một nhịp, hoặc
+  // bắt đầu kéo ngay từ tay nắm. Bảng chọn vốn cao có 1/4 màn nên bắt người dùng
+  // kéo vượt qua mép bảng mới nhấc được là gần như chỉ cuộn được danh sách.
+  if (fromGrip) _palLift(e.clientX, e.clientY);
+  else
+    _palDrag.holdT = setTimeout(() => {
+      const d = _palDrag;
+      if (d) _palLift(d.xLast ?? d.x0, d.yLast ?? d.y0);
+    }, PAL_HOLD_MS);
   const move = (ev) => _palDragMove(ev);
   const up = (ev) => {
     btn.removeEventListener("pointermove", move);
@@ -641,31 +653,41 @@ function _startPalDrag(e, hooks) {
   btn.addEventListener("pointercancel", up);
 }
 
+// Nhấc ô mẫu lên: dọn thanh chỉnh đi cho thấy chỗ đang thả rồi dựng bóng mờ.
+// An toàn khi ẩn thanh chỉnh vì _inThemeControls chỉ được hỏi lúc CHƯA nhấc,
+// còn lúc thả thì _palDragEnd xét theo rect của IFRAME — ở mobile thanh chỉnh
+// nổi absolute nên iframe vốn đã cao trọn khung, ẩn nó rect không đổi.
+function _palLift(x, y) {
+  const d = _palDrag;
+  if (!d || d.out) return;
+  d.out = true;
+  _setCtrlAway(true);
+  // Bóng mờ = BẢN SAO của chính ô mẫu đang kéo (mờ 50%) cho dễ nhận ra.
+  d.ghost = d.btn.cloneNode(true);
+  d.ghost.removeAttribute("id");
+  d.ghost.classList.add("cx-drag-ghost");
+  d.ghost.style.width = `${d.btn.offsetWidth}px`;
+  // Đặt sẵn vị trí trước khi gắn vào DOM → hiện ngay tại con trỏ, không nhảy.
+  d.ghost.style.left = `${x - d.offX}px`;
+  d.ghost.style.top = `${y - d.offY}px`;
+  document.body.appendChild(d.ghost);
+}
+
 function _palDragMove(ev) {
   const d = _palDrag;
   if (!d) return;
-  // Chưa rời bảng: kéo dọc = cuộn danh sách, chưa dựng bóng mờ.
+  d.xLast = ev.clientX;
+  d.yLast = ev.clientY;
+  // Chưa nhấc: kéo dọc = cuộn danh sách, ra khỏi bảng mới tính là nhấc.
   if (!d.out) {
+    if (Math.hypot(ev.clientX - d.x0, ev.clientY - d.y0) > PAL_DRAG_MIN)
+      clearTimeout(d.holdT); // nhúc nhích rồi thì không còn là cú GIỮ nữa
     if (_inThemeControls(ev.clientX, ev.clientY)) {
       if (d.scroller) d.scroller.scrollTop = d.top0 - (ev.clientY - d.y0);
       return;
     }
     if (Math.hypot(ev.clientX - d.x0, ev.clientY - d.y0) < PAL_DRAG_MIN) return;
-    d.out = true;
-    // Đã nhấc hẳn ô mẫu ra khỏi bảng → dọn thanh chỉnh đi cho thấy chỗ đang thả.
-    // An toàn vì _inThemeControls chỉ được hỏi trong nhánh !d.out này, còn lúc
-    // thả thì _palDragEnd xét theo rect của IFRAME — ở mobile thanh chỉnh nổi
-    // absolute nên iframe vốn đã cao trọn khung, ẩn nó rect không đổi.
-    _setCtrlAway(true);
-    // Bóng mờ = BẢN SAO của chính ô mẫu đang kéo (mờ 50%) cho dễ nhận ra.
-    d.ghost = d.btn.cloneNode(true);
-    d.ghost.removeAttribute("id");
-    d.ghost.classList.add("cx-drag-ghost");
-    d.ghost.style.width = `${d.btn.offsetWidth}px`;
-    // Đặt sẵn vị trí trước khi gắn vào DOM → hiện ngay tại con trỏ, không nhảy.
-    d.ghost.style.left = `${ev.clientX - d.offX}px`;
-    d.ghost.style.top = `${ev.clientY - d.offY}px`;
-    document.body.appendChild(d.ghost);
+    _palLift(ev.clientX, ev.clientY);
   }
   // Bám con trỏ theo đúng điểm đã bấm; kẹp ngang cho khỏi lòi ra mép màn hình.
   const gw = d.ghost.offsetWidth || d.btn.offsetWidth;
@@ -697,6 +719,7 @@ function _palDragEnd(ev) {
   _palDrag = null;
   _setCtrlAway(false);
   if (!d) return;
+  clearTimeout(d.holdT);
   d.ghost?.remove();
   if (d.iframe) d.iframe.style.pointerEvents = ""; // khôi phục tương tác iframe
   const iframe = d.iframe || _lineIframe();
@@ -2246,10 +2269,70 @@ function _scrollTabIntoView(btn) {
 const TAB_DRAG_SLOP = 6; // px
 const TAB_GLIDE_FRICTION = 0.92; // đà còn lại sau mỗi khung hình
 const TAB_GLIDE_MIN_V = 0.05; // px/ms — chậm hơn mức này thì dừng hẳn
+const TAB_SETTLE_MS = 140; // im bấy lâu thì coi như đã cuộn xong
+
+// Hai đầu dải phải chừa đúng nửa khoảng trống để tab ĐẦU và tab CUỐI cũng lên
+// được giữa; đo lại khi đổi khổ (xoay máy, kéo rộng cột chỉnh).
+function _syncTabPads() {
+  const track = document.getElementById("cx-ctrl-tabs-track");
+  const tabs = track?.querySelectorAll(".cx-ctab");
+  if (!track || !tabs?.length) return;
+  const w = track.clientWidth; // đã gồm padding → đặt padding không đổi số này
+  track.style.paddingLeft = Math.max(0, (w - tabs[0].offsetWidth) / 2) + "px";
+  track.style.paddingRight =
+    Math.max(0, (w - tabs[tabs.length - 1].offsetWidth) / 2) + "px";
+}
+
+// Tab nào đang nằm gần tâm dải nhất.
+function _tabAtCenter() {
+  const track = document.getElementById("cx-ctrl-tabs-track");
+  if (!track) return null;
+  const t = track.getBoundingClientRect();
+  const mid = t.left + t.width / 2;
+  let best = null;
+  let bestD = Infinity;
+  track.querySelectorAll(".cx-ctab").forEach((btn) => {
+    const r = btn.getBoundingClientRect();
+    const d = Math.abs(r.left + r.width / 2 - mid);
+    if (d < bestD) {
+      bestD = d;
+      best = btn;
+    }
+  });
+  return best;
+}
+
+// Cuộn xong: tab dừng ở giữa CHÍNH LÀ tab được chọn (cuộn ngang cũng là chọn,
+// y như bấm). Mục đang tắt thì cxCtrlTab() nhắc rồi không đổi — lượt canh giữa
+// sau đó kéo dải về tab đang mở nên không ai bị kẹt ở một tab không mở được.
+function _onTabsSettle() {
+  const btn = _tabAtCenter();
+  if (!btn) return;
+  const key = btn.dataset.ctab;
+  if (key !== _curCtrlView().key) cxCtrlTab(key);
+  requestAnimationFrame(_syncCtrlHead);
+}
 
 function _initCtrlTabsDrag() {
   const track = document.getElementById("cx-ctrl-tabs-track");
   if (!track) return;
+  _syncTabPads();
+  if (typeof ResizeObserver !== "undefined")
+    new ResizeObserver(() => {
+      _syncTabPads();
+      const on = track.querySelector(".cx-ctab.is-on");
+      if (on) _scrollTabIntoView(on);
+    }).observe(track);
+
+  let settle = 0;
+  track.addEventListener(
+    "scroll",
+    () => {
+      clearTimeout(settle);
+      settle = setTimeout(_onTabsSettle, TAB_SETTLE_MS);
+    },
+    { passive: true },
+  );
   let down = false; // đang giữ chuột?
   let moved = false; // đã kéo quá ngưỡng?
   let x0 = 0; // toạ độ lúc bấm xuống
