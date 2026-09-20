@@ -71,12 +71,17 @@
         </div>
       </div>
 
+      <!-- `flex-none` ở CẢ BA cụm của hàng (#nav-slots, #nav-more-wrap,
+               #nav-actions): WebKit cho khung flex lồng nhau co xuống DƯỚI bề
+               ngang nội dung, lúc chật thì icon cuối chui xuống dưới nút "Lưu
+               nháp" mà phép đo ở js/21-shell.js vẫn thấy "vừa" nên không lùi mục
+               nào vào popover. Không ô nào co thì chật là lòi hẳn ra, đo mới đúng. -->
       <!-- Chỗ đứng của các mục tràn được. Mục nào còn chỗ thì ở lại đây, hết
                chỗ mới lùi vào #nav-more-pop — thứ tự ưu tiên khai ở CX_NAV_ITEMS
                (js/21-shell.js), riêng "Cấu hình" ghim cứng, không bao giờ lùi.
                Cùng một phần tử dùng cho cả hai chỗ: hình dạng do CHA quyết định
                (xem .cx-navitem trong styles/_setup.css). -->
-      <div id="nav-slots" class="flex items-stretch">
+      <div id="nav-slots" class="flex flex-none items-stretch">
         <button
           type="button"
           onclick="switchTab('config')"
@@ -149,7 +154,7 @@
                `hidden` (popover rỗng thì ẩn cả nút): cờ đó phải thắng luật hình
                dạng của .cx-navitem nên không đặt thẳng lên nút. Dấu * chưa lưu
                của các mục đang khuất trong popover dội lên chính nút này. -->
-      <div id="nav-more-wrap" class="hidden flex items-stretch">
+      <div id="nav-more-wrap" class="hidden flex flex-none items-stretch">
         <button
           type="button"
           onclick="cxNavMore()"
@@ -175,7 +180,7 @@
                dãy tab bên trái vì thế xếp sát nhau từ trái sang, mỗi nút một khổ
                cố định thay vì giãn ra chiếm chỗ trống. Khe `ml-auto` cũng là thứ
                tách chúng khỏi "Tùy chọn", đừng cho nút nào ở đây co giãn. -->
-      <div id="nav-actions" class="ml-auto flex items-stretch sm:pl-2">
+      <div id="nav-actions" class="ml-auto flex flex-none items-stretch sm:pl-2">
         <div
           id="tab-draft-wrap"
           class="flex-none flex items-center justify-center px-1 sm:px-1.5 py-2"
