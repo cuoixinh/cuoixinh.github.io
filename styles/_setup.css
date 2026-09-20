@@ -459,18 +459,103 @@ input.flatpickr-input[readonly] {
   @apply border-rose-400 bg-rose-100 font-semibold text-rose-600;
 }
 
-/* Đầu các bảng cấp 2: nút quay lại bên trái, phụ trợ ("Mặc định") bên phải */
-.cx-le-head {
-  @apply flex items-center justify-between gap-2;
+/* Đầu bảng chỉnh: ba ô (nút trái · tên bảng · nút phải). Hai ô bên đều 1fr nên
+   tên bảng nằm đúng GIỮA dù nút trái dài ngắn khác nhau. */
+.cx-ch {
+  @apply grid items-center gap-2;
+
+  grid-template-columns: 1fr auto 1fr;
+}
+
+.cx-ch-side {
+  @apply flex min-w-0 items-center gap-1;
+}
+
+.cx-ch-end {
+  @apply justify-end;
+}
+
+.cx-ch-title {
+  @apply truncate text-[14px] font-semibold text-gray-800;
+}
+
+/* Nút trái: "Đặt lại" (bỏ hết tuỳ chỉnh) hoặc "Mặc định" của bảng con */
+.cx-ch-reset {
+  @apply inline-flex min-w-0 items-center gap-1 rounded-lg px-2 py-1 text-[12.5px]
+         font-medium text-gray-500 transition-[background-color,color] duration-150;
+}
+
+.cx-ch-reset:hover {
+  @apply bg-gray-100 text-rose-600;
+}
+
+.cx-ch-reset:active {
+  @apply bg-gray-200;
+}
+
+.cx-ch-reset:focus-visible {
+  @apply outline-none ring-2 ring-rose-200;
+}
+
+.cx-ch-done {
+  @apply inline-flex h-8 w-8 items-center justify-center rounded-full text-gray-600
+         transition-[background-color,color] duration-150;
+}
+
+.cx-ch-done:hover {
+  @apply bg-rose-50 text-rose-600;
+}
+
+.cx-ch-done:focus-visible {
+  @apply outline-none ring-2 ring-rose-200;
+}
+
+/* Dải tab dưới bảng chỉnh: mỗi tab một bảng. Cuộn ngang khi không đủ chỗ (nhãn
+   không xuống dòng), tab đang mở là viên thuốc hồng — JS chỉ gạt .is-on. */
+.cx-ctabs {
+  @apply shrink-0 border-t border-gray-100 bg-white px-2 py-2 md:px-3 md:py-2.5;
+}
+
+.cx-ctabs-track {
+  @apply flex items-center gap-1 overflow-x-auto;
+
+  scrollbar-width: none;
+}
+
+.cx-ctabs-track::-webkit-scrollbar {
+  display: none;
+}
+
+.cx-ctab {
+  @apply shrink-0 whitespace-nowrap rounded-full px-3 py-1.5 text-[13px]
+         font-medium text-gray-500 transition-[background-color,color] duration-150;
+}
+
+.cx-ctab:hover {
+  @apply bg-gray-100 text-gray-700;
+}
+
+.cx-ctab:focus-visible {
+  @apply outline-none ring-2 ring-rose-200;
+}
+
+.cx-ctab.is-on {
+  @apply bg-rose-100 font-semibold text-rose-600;
+}
+
+/* Mục tương ứng đang tắt ở tab Thiết lập (xem cxSyncThemeAddCards): tab mờ đi
+   nhưng VẪN bấm được — bấm vào thì hiện lời nhắc bật mục đó, chứ khoá hẳn thì
+   người dùng chỉ thấy một tab mờ không rõ vì sao. */
+.cx-ctab.is-off {
+  @apply opacity-45;
 }
 
 
-/* Quay lại — đóng bảng cấp 2, trả về nhóm chỉnh chung. Chữ cạnh mũi tên là
-   tên bảng đang mở, giúp thấy mình đang ở nhánh nào. */
+/* Quay lại — đóng bảng con (chỉnh chữ / điều chỉnh thành phần), trả về nhóm
+   chỉnh chung. Tên bảng đang mở nằm ở giữa đầu bảng nên nút chỉ còn mũi tên. */
 .cx-le-back {
-  @apply -ml-1 inline-flex items-center gap-1 rounded-lg py-1 pl-1 pr-2
-         text-[13px] font-semibold text-gray-700
-         transition-[background-color,color] duration-150;
+  @apply -ml-1 inline-flex h-8 w-8 items-center justify-center rounded-lg
+         text-gray-700 transition-[background-color,color] duration-150;
 }
 
 .cx-le-back:hover {
@@ -483,20 +568,6 @@ input.flatpickr-input[readonly] {
 
 .cx-le-back:focus-visible {
   @apply outline-none ring-2 ring-rose-200;
-}
-
-.cx-le-clear {
-  @apply inline-flex items-center gap-1 rounded-lg bg-gray-100 px-3 py-1
-         text-[12px] font-medium text-rose-600 transition-[background-color]
-         duration-150;
-}
-
-.cx-le-clear:hover {
-  @apply bg-gray-200;
-}
-
-.cx-le-clear:active {
-  @apply bg-gray-300;
 }
 
 /* Ô sửa Nội dung */
@@ -579,39 +650,9 @@ input.flatpickr-input[readonly] {
   overflow: hidden;
 }
 
-/* Thẻ chức năng "Thêm vào thiệp": card viền mảnh, tròn màu pastel + tên bên
-   dưới. Mỗi thẻ tự chọn màu tròn bằng một lớp .cx-add-ico-* (viết trọn tên).
-   Lưới 3 cột và ô dẹt: cả cụm này chỉ là chỗ MỞ các bảng khác, nó mà chiếm nửa
-   bảng chỉnh thì phần nội dung bên dưới (bộ màu, độ đậm…) phải cuộn mới thấy. */
-.cx-add-grid {
-  @apply grid grid-cols-3 gap-1.5 md:gap-2;
-}
-
-.cx-add-card {
-  @apply flex flex-col items-center justify-center gap-1.5 rounded-xl border
-         border-gray-200 bg-white px-1 py-2 text-center shadow-sm
-         transition-all duration-150 md:gap-2 md:py-2.5;
-}
-
-.cx-add-card:hover {
-  @apply -translate-y-px border-rose-300 shadow-md;
-}
-
-.cx-add-card:active {
-  @apply translate-y-0 scale-[0.98];
-}
-
-.cx-add-card:focus-visible {
-  @apply outline-none ring-2 ring-rose-200 ring-offset-2;
-}
-
-/* Mục tương ứng đang tắt ở tab Thiết lập (xem cxSyncThemeAddCards): thẻ mờ đi
-   nhưng VẪN bấm được — bấm vào thì hiện lời nhắc bật mục đó, chứ khoá hẳn thì
-   người dùng chỉ thấy một ô mờ không rõ vì sao. */
-.cx-add-card.is-off {
-  @apply opacity-45;
-}
-
+/* Chip tròn pastel: nay chỉ còn hàng chọn của bảng "Hộp mừng cưới" / "Lời chúc"
+   dùng (xem .cx-pick-row). Mỗi chỗ dùng tự chọn màu bằng một lớp
+   .cx-add-ico-* (viết trọn tên — purge quét văn bản thô). */
 .cx-add-ico {
   @apply inline-flex h-8 w-8 flex-none items-center justify-center
          rounded-full md:h-9 md:w-9;
@@ -639,12 +680,6 @@ input.flatpickr-input[readonly] {
 
 .cx-add-ico-violet {
   @apply bg-violet-50 text-violet-500;
-}
-
-/* Ô hẹp (3 cột) nên nhãn dài như "Hộp mừng cưới" được xuống dòng thoải mái —
-   ép một dòng là chữ tràn ra ngoài viền khi cột chỉnh kéo hẹp hết cỡ. */
-.cx-add-txt {
-  @apply text-[11px] font-medium leading-[1.2] text-gray-700 md:text-[11.5px];
 }
 
 /* Hàng chọn của hai bảng "Hộp mừng cưới" và "Lời chúc": MỘT cột, thẻ nằm ngang
@@ -918,8 +953,19 @@ input.flatpickr-input[readonly] {
 }
 
 @media (min-width: 768px) {
+  /* Cột chỉnh chia dọc: đầu bảng · nội dung (cuộn) · dải tab. Cho cả cột cuộn
+     thì dải tab trôi mất, mà nó là chỗ đổi bảng nên phải luôn thấy. */
+  #theme-controls {
+    @apply flex flex-col overflow-hidden;
+  }
+
+  .cx-sheet {
+    @apply min-h-0 flex-1;
+  }
+
   .cx-sheet-body {
     max-height: none;
+    height: 100%;
   }
 
   /* Desktop không kéo (cả cột đã tự cuộn) nhưng HÀNG NÚT vẫn phải hiện. */

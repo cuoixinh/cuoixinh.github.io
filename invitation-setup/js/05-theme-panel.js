@@ -301,28 +301,19 @@ function _initThemePanel() {
   if (pal) pal.value = _currentPalette()?.id || "";
   _syncPaletteStrength();
 
-  // Mở tab Giao diện → về nhóm chỉnh chung, đóng bảng chỉnh 1 dòng / thêm văn
-  // bản / trang trí. Phải tự bật lại nhóm chỉnh chung: closeLineEditor() thoát
-  // sớm khi bảng chỉnh dòng đang đóng, nên rời tab lúc đang mở một bảng con là
-  // quay lại thấy bảng trống.
-  document.getElementById("theme-addtext-panel")?.classList.add("hidden");
-  document.getElementById("theme-decor-panel")?.classList.add("hidden");
-  document.getElementById("theme-elements-panel")?.classList.add("hidden");
-  document.getElementById("theme-gift-panel")?.classList.add("hidden");
-  document.getElementById("theme-wish-panel")?.classList.add("hidden");
-  _hideElementEditor();
-  closeLineEditor();
-  document.getElementById("theme-main-controls")?.classList.remove("hidden");
-  _initEditHint();
+  // Mở tab Giao diện → về nhóm chỉnh chung: rời tab lúc đang mở một bảng con mà
+  // không dọn thì quay lại thấy bảng trống (closeLineEditor() thoát sớm khi bảng
+  // chỉnh dòng đang đóng).
+  _showMainControls();
   cxSyncThemeAddCards();
 
   // Icon (reset) trong thanh chỉnh
   if (window.lucide) lucide.createIcons();
 }
 
-// Ba thẻ chức năng chỉ có nghĩa khi mục tương ứng đang BẬT ở tab Thiết lập: tắt
+// Ba tab chức năng chỉ có nghĩa khi mục tương ứng đang BẬT ở tab Thiết lập: tắt
 // mục rồi mà vẫn chọn được hộp quà / dạng lời chúc thì chọn xong chẳng thấy gì
-// đổi trên thiệp. Thẻ vẫn BẤM ĐƯỢC (khoá hẳn thì người dùng không biết vì sao
+// đổi trên thiệp. Tab vẫn BẤM ĐƯỢC (khoá hẳn thì người dùng không biết vì sao
 // mờ, nhất là trên di động vốn không có hover) — bấm vào thì nói rõ lý do.
 // Công tắc nằm ở ô ẩn của form, js/03-form-sections.js gọi lại hàm đồng bộ mỗi
 // lần gạt.
@@ -2148,39 +2139,139 @@ function _updateSheetFade(body) {
   fade.classList.toggle("is-end", rest <= 4);
 }
 
-// Hàng nút của mỗi bảng nằm ở khối đầu bảng (#cx-ctrl-actions), ngoài vùng cuộn.
-// Bảng nào đang mở thì hiện hàng nút của bảng đó: [id bảng, id hàng nút], xét từ
-// trên xuống, không bảng nào mở thì rơi về hàng nút của nhóm chỉnh chung.
-// Thêm bảng mới → thêm một dòng ở đây, khỏi đụng vào các hàm mở/đóng bảng.
-const CTRL_HEADS = [
-  ["theme-element-editor", "cx-head-element-editor"],
-  ["theme-gift-panel", "cx-head-gift"],
-  ["theme-wish-panel", "cx-head-wish"],
-  ["theme-elements-panel", "cx-head-elements"],
-  ["theme-decor-panel", "cx-head-decor"],
-  ["theme-addtext-panel", "cx-head-addtext"],
-  ["theme-line-editor", "cx-head-line"],
+// Mỗi màn của bảng chỉnh khai MỘT dòng ở đây: `panel` là khối nội dung (bỏ
+// trống = nhóm chỉnh chung), `title` là tên hiện giữa đầu bảng, `tab` là nút ở
+// dải tab dưới (`key` phải trùng `data-ctab` trong theme-panel.html), `back`
+// là hàm cho nút ← (màn con: chỉnh chữ, điều chỉnh thành phần — không có tab
+// vì chỉ mở được bằng cú bấm vào thiệp), `reset` là hàm cho nút trái còn lại.
+// Xét từ TRÊN XUỐNG, màn nào không ẩn thì thắng; dòng cuối là màn mặc định.
+// Thêm bảng mới → thêm một dòng ở đây + một nút ở dải tab, không đụng markup
+// đầu bảng lẫn các hàm mở/đóng bảng.
+const CTRL_VIEWS = [
+  {
+    key: "element",
+    panel: "theme-element-editor",
+    title: "Điều chỉnh",
+    back: "closeElementEditor",
+    reset: "resetElementOptions",
+    resetTxt: "Mặc định",
+  },
+  {
+    key: "line",
+    panel: "theme-line-editor",
+    title: "Chỉnh chữ",
+    back: "closeLineEditor",
+    reset: "clearLineOverride",
+    resetTxt: "Mặc định",
+  },
+  { key: "gift", panel: "theme-gift-panel", title: "Hộp mừng cưới", open: "openGiftPanel" },
+  { key: "wishes", panel: "theme-wish-panel", title: "Lời chúc", open: "openWishPanel" },
+  { key: "elements", panel: "theme-elements-panel", title: "Thẻ nhạc", open: "openElementsPanel" },
+  { key: "decor", panel: "theme-decor-panel", title: "Trang trí", open: "openDecorPanel" },
+  { key: "addtext", panel: "theme-addtext-panel", title: "Văn bản", open: "openAddTextPanel" },
+  { key: "main", title: "Bộ màu", reset: "resetThemeSetting", resetTxt: "Đặt lại" },
 ];
 
-let _lastCtrlHead = null;
+// Các bảng con mở/đóng bằng cách gạt class .hidden — gom một chỗ để nhóm chỉnh
+// chung dọn sạch được mà không phải kể tên từng bảng ở nhiều nơi.
+const CTRL_TAB_PANELS = CTRL_VIEWS.filter((v) => v.open).map((v) => v.panel);
 
-function _syncCtrlHead() {
-  const open = CTRL_HEADS.find(
-    ([panelId]) =>
-      !document.getElementById(panelId)?.classList.contains("hidden"),
+let _lastCtrlHead = null;
+let _ctrlView = CTRL_VIEWS[CTRL_VIEWS.length - 1];
+
+function _curCtrlView() {
+  return (
+    CTRL_VIEWS.find(
+      (v) =>
+        v.panel && !document.getElementById(v.panel)?.classList.contains("hidden"),
+    ) || CTRL_VIEWS[CTRL_VIEWS.length - 1]
   );
-  const active = open ? open[1] : "cx-head-main";
+}
+
+// Đổ đầu bảng + tô tab theo màn đang mở.
+function _syncCtrlHead() {
+  const view = _curCtrlView();
   // Đổi sang bảng chỉnh khác trong lúc panel đang thu gọn thì bung ra: bấm một
   // dòng chữ trên thiệp mà bảng chỉnh nằm khuất thì trông như chẳng có gì xảy ra.
-  if (_lastCtrlHead !== null && _lastCtrlHead !== active) _setCtrlCollapsed(false);
-  _lastCtrlHead = active;
-  CTRL_HEADS.forEach(([, headId]) =>
-    document.getElementById(headId)?.classList.toggle("hidden", headId !== active),
-  );
+  if (_lastCtrlHead !== null && _lastCtrlHead !== view.key) _setCtrlCollapsed(false);
+  _lastCtrlHead = view.key;
+  _ctrlView = view;
+
+  const title = document.getElementById("cx-ch-title");
+  if (title) title.textContent = view.title;
   document
-    .getElementById("cx-head-main")
-    ?.classList.toggle("hidden", active !== "cx-head-main");
+    .getElementById("cx-ch-back")
+    ?.classList.toggle("hidden", !view.back);
+  const reset = document.getElementById("cx-ch-reset");
+  if (reset) {
+    reset.classList.toggle("hidden", !view.reset);
+    const txt = document.getElementById("cx-ch-reset-txt");
+    if (txt) txt.textContent = view.resetTxt || "Đặt lại";
+  }
+
+  document.querySelectorAll("#cx-ctrl-tabs .cx-ctab").forEach((btn) => {
+    const on = btn.dataset.ctab === view.key;
+    btn.classList.toggle("is-on", on);
+    btn.setAttribute("aria-selected", on ? "true" : "false");
+    if (on) _scrollTabIntoView(btn);
+  });
   if (window.lucide) lucide.createIcons();
+}
+
+// Dải tab nằm NGOÀI vùng cuộn nội dung → tự đặt scrollLeft cho đúng dải;
+// scrollIntoView sẽ cuộn lây cả khung cha (xem ghi chú ở CLAUDE.md).
+// Đo bằng getBoundingClientRect chứ KHÔNG dùng offsetLeft: dải tab không phải
+// offsetParent (ở md+ cột chỉnh là static, mốc rơi vào #theme-panel) nên
+// offsetLeft mang theo cả khoảng cách từ mép trái màn → dải nhảy hết cỡ.
+function _scrollTabIntoView(btn) {
+  const track = document.getElementById("cx-ctrl-tabs-track");
+  if (!track) return;
+  const t = track.getBoundingClientRect();
+  const b = btn.getBoundingClientRect();
+  const left =
+    track.scrollLeft + (b.left - t.left) - (track.clientWidth - b.width) / 2;
+  track.scrollLeft = Math.max(0, left);
+}
+
+// Nút trái/phải của đầu bảng: việc cụ thể do màn đang mở khai ở CTRL_VIEWS.
+function cxCtrlBack() {
+  if (_ctrlView.back) window[_ctrlView.back]?.();
+}
+window.cxCtrlBack = cxCtrlBack;
+
+function cxCtrlReset() {
+  if (_ctrlView.reset) window[_ctrlView.reset]?.();
+}
+window.cxCtrlReset = cxCtrlReset;
+
+// Dấu ✓: xong việc thì cất bảng chỉnh xuống để nhìn trọn thiệp (chỉ mobile —
+// desktop cột chỉnh nằm cạnh thiệp, không che gì nên nút đã ẩn).
+function cxCtrlDone() {
+  _setCtrlCollapsed(true);
+}
+window.cxCtrlDone = cxCtrlDone;
+
+// Bấm tab: mở bảng tương ứng ngay tại chỗ. Bấm lại tab đang mở thì thôi, để cú
+// bấm nhỡ không dựng lại danh sách mẫu (mất chỗ đang cuộn tới).
+function cxCtrlTab(key) {
+  const view = CTRL_VIEWS.find((v) => v.key === key);
+  if (!view || _curCtrlView().key === key) return;
+  if (view.open) window[view.open]?.();
+  else _showMainControls();
+}
+window.cxCtrlTab = cxCtrlTab;
+
+// Về nhóm chỉnh chung: dọn mọi bảng con đang mở (kể cả màn chỉnh chữ / điều
+// chỉnh thành phần vốn không có tab).
+function _showMainControls() {
+  CTRL_TAB_PANELS.forEach((id) =>
+    document.getElementById(id)?.classList.add("hidden"),
+  );
+  _hideElementEditor();
+  closeLineEditor();
+  document.getElementById("theme-main-controls")?.classList.remove("hidden");
+  _resetCtrlScroll();
+  _initEditHint();
 }
 
 // Bảng được ẩn/hiện ở cả chục chỗ trong file này → theo dõi thuộc tính class
@@ -2188,8 +2279,8 @@ function _syncCtrlHead() {
 function _initCtrlHeadSync() {
   if (typeof MutationObserver === "undefined") return;
   const obs = new MutationObserver(_syncCtrlHead);
-  CTRL_HEADS.forEach(([panelId]) => {
-    const el = document.getElementById(panelId);
+  CTRL_VIEWS.forEach((v) => {
+    const el = v.panel && document.getElementById(v.panel);
     if (el) obs.observe(el, { attributes: true, attributeFilter: ["class"] });
   });
   _syncCtrlHead();
