@@ -544,6 +544,10 @@ function _cxWishBindComposer(canWrite) {
   if (!card || !input || !send) return;
 
   card.addEventListener("click", _cxWishExpand);
+  // Dạng comment: ô gõ mở sẵn nên phải chốt chiều cao ngay từ đầu bằng CHÍNH phép
+  // đo mà _cxWishExpand dùng — để đó cho trình duyệt tự tính thì lượt bấm đầu
+  // tiên lại đo ra một con số khác vài px, thấy rõ là thẻ giật lên một nhịp.
+  if (_cxWishMode === "comment") _cxWishAutoGrow(input);
   input.addEventListener("input", () => {
     _cxWishAutoGrow(input);
     _cxWishSyncCount(input);
@@ -555,14 +559,17 @@ function _cxWishBindComposer(canWrite) {
       e.preventDefault();
       _cxWishSend();
     } else if (e.key === "Escape") {
-      _cxWishCollapse();
+      // Dạng comment ô gõ mở sẵn, thu lại là XOÁ chữ đang viết → chỉ rời con trỏ.
+      if (_cxWishMode === "comment") input.blur();
+      else _cxWishCollapse();
     }
   });
   // Nút Gửi nằm TRONG thẻ nên cú bấm cũng chạy _cxWishExpand — chặn lại, nếu
   // không lượt bấm đầu tiên chỉ bung ô ra chứ không gửi.
   send.addEventListener("click", (e) => {
     e.stopPropagation();
-    if (card.classList.contains("is-open")) _cxWishSend();
+    if (card.classList.contains("is-open") || _cxWishMode === "comment")
+      _cxWishSend();
     else _cxWishExpand();
   });
 }
@@ -738,8 +745,10 @@ function _cxWishExpand() {
   if (input) _cxWishAutoGrow(input);
 
   // Bấm ra ngoài thì thu lại. Dùng pointerdown ở pha capture để bắt được cả cú
-  // chạm rơi vào iframe/canvas của mẫu thiệp.
-  document.addEventListener("pointerdown", _cxWishOutside, true);
+  // chạm rơi vào iframe/canvas của mẫu thiệp. Dạng comment thì KHÔNG: ô gõ vốn
+  // mở sẵn, thu lại chỉ để xoá trắng thứ khách đang viết dở.
+  if (_cxWishMode !== "comment")
+    document.addEventListener("pointerdown", _cxWishOutside, true);
 }
 
 // Câu báo lỗi nằm ngay dưới ô nhập; chuỗi rỗng là gỡ đi.

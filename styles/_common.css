@@ -2489,20 +2489,31 @@ button.cx-pchrome-btn:hover {
 .cx-wsec {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
   width: 100%;
   max-width: 520px;
   margin: 0 auto;
-  padding: 32px 16px 8px;
+  padding: 40px 16px 16px;
 }
 
+/* Tiêu đề mục: chữ nhỏ in hoa giữa hai vạch mảnh — cùng lối với đầu mục của các
+   mẫu thiệp. Vạch vẽ bằng pseudo nên markup không phải gánh thêm thẻ nào. */
 .cx-wsec-head {
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 12px;
+}
+
+.cx-wsec-head::before,
+.cx-wsec-head::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: rgb(var(--cx-wish-accent-rgb) / 0.28);
 }
 
 .cx-wsec-title {
+  flex: none;
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.12em;
@@ -2516,7 +2527,7 @@ button.cx-pchrome-btn:hover {
 .cx-wsec-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   max-height: calc(var(--vh, 1vh) * 50);
   max-height: calc(var(--vh, 1svh) * 50);
   overflow-y: auto;
@@ -2558,24 +2569,106 @@ button.cx-pchrome-btn:hover {
 }
 
 /* Bong bóng ở đây nằm trên nền giấy của thiệp chứ không trôi qua ảnh → bỏ lớp
-   nhoè (tốn khung hình mà chẳng thấy gì) và cho nó trải hết bề ngang. */
+   nhoè (tốn khung hình mà chẳng thấy gì) và cho nó trải hết bề ngang. Đọc chậm
+   chứ không lướt qua như dải trôi nên chữ và lề đều rộng hơn một nhịp. */
 .cx-wsec .cx-wish-item {
   width: 100%;
+  padding: 12px 16px;
+  border-radius: 16px 16px 16px 4px;
+  font-size: 14px;
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
 }
 
-/* Ô nhập trong mục: luôn trải hết bề ngang, không phải viên thuốc nép góc như
-   ở dải nổi — ở đây nó là phần chính của mục chứ không đè lên thiệp. */
+/* Ô gửi ở dạng comment KHÔNG phải viên thuốc nép góc như ở dải nổi: nó là phần
+   chính của mục nên MỞ SẴN thành một hàng soạn đầy đủ — chip bút bên trái, ô gõ
+   ở giữa, nút gửi bên phải. Bấm vào chỉ thêm quầng nhấn chứ không đổi hình, nhờ
+   vậy không có cú "nở ra" làm nhảy cả mục lúc đang đọc. */
 .cx-wsec .cx-wdock-card,
+.cx-wsec .cx-wdock-card.is-open {
+  align-self: stretch;
+  padding: 8px 8px 8px 12px;
+  border-radius: 20px;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.cx-wsec .cx-wdock-card {
+  border-color: rgb(var(--cx-wish-accent-rgb) / 0.24);
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.04),
+    0 6px 18px rgb(0 0 0 / 0.07);
+}
+
+.cx-wsec .cx-wdock-row,
+.cx-wsec .cx-wdock-card.is-open .cx-wdock-row {
+  align-items: flex-end;
+  gap: 10px;
+  padding-left: 0;
+}
+
+/* Không có chip bút ở dạng này: ô gõ đã mở sẵn nên chẳng cần dấu hiệu "chỗ này
+   gõ được", mà giữ lại thì hàng soạn thụt vào một khúc không vì lý do gì. Lời
+   xác nhận sau khi gửi dồn hết vào dòng chữ (xem .is-sent bên dưới). */
+.cx-wsec .cx-wdock-chip {
+  display: none;
+}
+
+/* Ô gõ và nút gửi có sẵn, không đợi bấm. Dòng gợi ý chỉ thế chỗ chúng ở hai lúc
+   không còn gì để gõ: vừa gửi xong (.is-sent) và hết lượt (.is-done) — đó cũng
+   là chỗ duy nhất báo "đã gửi" ở dạng này. */
+.cx-wsec .cx-wdock-text {
+  display: block;
+  margin: 6px 0;
+  font-size: 14px;
+}
+
+.cx-wsec .cx-wdock-btn {
+  display: flex;
+}
+
+.cx-wsec .cx-wdock-hint {
+  display: none;
+}
+
+.cx-wsec .cx-wdock-card.is-sent .cx-wdock-text,
+.cx-wsec .cx-wdock-card.is-sent .cx-wdock-btn,
+.cx-wsec .cx-wdock-card.is-done .cx-wdock-text,
+.cx-wsec .cx-wdock-card.is-done .cx-wdock-btn {
+  display: none;
+}
+
+.cx-wsec .cx-wdock-card.is-sent .cx-wdock-hint,
+.cx-wsec .cx-wdock-card.is-done .cx-wdock-hint {
+  display: block;
+  padding: 6px 0;
+  font-size: 14px;
+  opacity: 1;
+}
+
+/* Hàng chân chỉ là cái hộp chứa câu báo lỗi + bộ đếm ký tự. Ở dạng này nó KHÔNG
+   được là một hàng riêng: rỗng thì vẫn ăn chỗ, mà hiện ra lúc bấm vào thì cả thẻ
+   cao lên một nhịp ngay dưới ngón tay. `display: contents` xoá cái hộp đi, để hai
+   ô con rơi thẳng vào cột của thẻ — lúc nào JS gỡ `hidden` thì mới có chỗ. */
+.cx-wsec .cx-wdock-foot,
+.cx-wsec .cx-wdock-card.is-open .cx-wdock-foot {
+  display: contents;
+}
+
+.cx-wsec .cx-wdock-msg,
+.cx-wsec .cx-wdock-count {
+  padding: 2px 4px;
+}
+
+.cx-wsec .cx-wdock-count {
+  text-align: right;
+}
+
 .cx-wsec .cx-wdock-note {
   align-self: stretch;
+  text-align: center;
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
-}
-
-.cx-wsec .cx-wdock-note {
-  text-align: center;
 }
 
 /* Chỗ trống ở đáy thân thiệp cho hàng nút + ô nhập, do JS chèn khi dựng dải.

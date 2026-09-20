@@ -555,12 +555,6 @@ function _renderTextPresets() {
   const presets = window.CX_TEXT_PRESETS || [];
   box.textContent = "";
   presets.forEach((def) => {
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "cx-pal-item cx-pal-item-prev";
-    btn.title =
-      def.name + (def.desc ? " — " + def.desc : "") + " (kéo vào thiệp)";
-
     const prev = document.createElement("span");
     prev.className = "cx-pal-prev";
     const stage = document.createElement("span");
@@ -570,19 +564,17 @@ function _renderTextPresets() {
     def.parts.forEach((p) => (short[p.key] = p.preview || p.def));
     stage.appendChild(window.CX_TEXT_PRESET_BUILD(def, short, null, true));
     prev.appendChild(stage);
-    btn.appendChild(prev);
 
-    // Không có nhãn tên: bố cục của mẫu đã tự nói lên nó là gì, tên/mô tả để ở
-    // title (tooltip) cho ô xem trước được trọn chỗ.
-    const grip = document.createElement("i");
-    grip.setAttribute("data-lucide", "grip-vertical");
-    grip.className = "cx-pal-grip !w-[14px] !h-[14px]";
-    btn.appendChild(grip);
-
-    btn.addEventListener("pointerdown", (e) =>
-      startPaletteDrag(e, "preset:" + def.id),
+    box.appendChild(
+      _pickRow({
+        name: def.name,
+        desc: def.desc,
+        lead: prev,
+        title:
+          def.name + (def.desc ? " — " + def.desc : "") + " (kéo vào thiệp)",
+        onDrag: (e) => startPaletteDrag(e, "preset:" + def.id),
+      }),
     );
-    box.appendChild(btn);
   });
   box.dataset.rendered = "1";
   // Panel vừa hiện xong mới đo được kích thước ô → hoãn một nhịp.
@@ -701,7 +693,8 @@ function _palDragMove(ev) {
     ev.clientY <= r.bottom;
   if (inside) {
     d.over = true;
-    d.hooks.onOver?.(iframe, ev.clientX - r.left, ev.clientY - r.top);
+    const p = _framePoint(iframe, r, ev);
+    d.hooks.onOver?.(iframe, p.x, p.y);
   } else if (d.over) {
     d.over = false;
     d.hooks.onCancel?.(iframe);
@@ -729,7 +722,19 @@ function _palDragEnd(ev) {
     return;
   }
   const r = iframe.getBoundingClientRect();
-  d.hooks.onDrop(iframe, ev.clientX - r.left, ev.clientY - r.top);
+  const p = _framePoint(iframe, r, ev);
+  d.hooks.onDrop(iframe, p.x, p.y);
+}
+
+// Điểm trên màn → toạ độ px BÊN TRONG thiệp. Iframe dựng ở khổ 390px rồi thu
+// bằng transform cho vừa khung điện thoại, nên rect là khổ đã thu: lấy thẳng
+// hiệu toạ độ là hoạ tiết rơi lệch đúng bằng tỉ lệ thu.
+function _framePoint(iframe, r, ev) {
+  const k = iframe.offsetWidth ? r.width / iframe.offsetWidth : 1;
+  return {
+    x: (ev.clientX - r.left) / (k || 1),
+    y: (ev.clientY - r.top) / (k || 1),
+  };
 }
 
 // Mẫu văn bản: lúc rê trên thiệp runtime vẽ vạch chèn theo toạ độ Y.
@@ -979,26 +984,20 @@ function _renderElementsPalette() {
       box.appendChild(lb);
     }
     def.variants.forEach((v) => {
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "cx-pal-item cx-pal-item-prev";
-      btn.title =
-        def.name +
-        " · " +
-        v.name +
-        (v.desc ? " — " + v.desc : "") +
-        " (bấm để dùng, hoặc kéo vào thiệp để đặt đúng chỗ)";
-      btn.appendChild(_elPreview(def, v));
-      const cap = document.createElement("span");
-      cap.className = "cx-pal-txt";
-      cap.textContent = v.name;
-      btn.appendChild(cap);
-      const grip = document.createElement("i");
-      grip.setAttribute("data-lucide", "grip-vertical");
-      grip.className = "cx-pal-grip !w-[14px] !h-[14px]";
-      btn.appendChild(grip);
-      btn.addEventListener("pointerdown", (e) => startElementDrag(e, def.id, v.id));
-      box.appendChild(btn);
+      box.appendChild(
+        _pickRow({
+          name: v.name,
+          desc: v.desc,
+          lead: _elPreview(def, v),
+          title:
+            def.name +
+            " · " +
+            v.name +
+            (v.desc ? " — " + v.desc : "") +
+            " (bấm để dùng, hoặc kéo vào thiệp để đặt đúng chỗ)",
+          onDrag: (e) => startElementDrag(e, def.id, v.id),
+        }),
+      );
     });
   });
   box.dataset.rendered = "1";
@@ -1095,43 +1094,59 @@ const GIFT_FIXED = [
   {
     id: "",
     name: "Mặc định",
+    // `own: true` = icon riêng của sản phẩm (core/helpers/icon.js, thẻ data-icon);
+    // còn lại là tên lucide. Lẫn hai nguồn là thẻ <i> nằm im, không ai báo lỗi.
     icon: "xuxi",
+    own: true,
+    tone: "cx-add-ico-amber",
     desc: "Giữ nguyên như mẫu thiệp",
   },
   {
     id: "none",
     name: "Không hộp",
     icon: "qr-code",
+    tone: "cx-add-ico-blue",
     desc: "Hiện thẳng mã QR, không che",
   },
 ];
+
+// Ô hình bên trái của một hàng chọn: chip tròn màu, cùng bộ .cx-add-ico với cụm
+// thẻ "Thêm vào thiệp" ngoài bảng chính.
+function _pickIco(o) {
+  const attr = o.own ? "data-icon" : "data-lucide";
+  return `<span class="cx-add-ico ${o.tone}"><i ${attr}="${o.icon}"></i></span>`;
+}
 
 function _giftBoxId() {
   const v = _themeSetting.gift_box;
   return typeof v === "string" ? v : "";
 }
 
-// Ô nào cũng gồm khung xem trước co giãn + MỘT dòng tên (nhãn cắt ngắn, không
-// xuống dòng) — nhờ vậy ô ảnh và ô icon luôn vuông và cao bằng nhau, kể cả khi
-// cột chỉnh bị kéo hẹp. `fill` = phần tử đặt vào khung xem trước, `onPick` =
-// việc làm khi bấm (hộp mừng cưới và dạng lời chúc dùng chung ô này).
-function _pickTile(id, name, title, fill, onPick) {
+// Hàng chọn dùng chung cho hai bảng "Hộp mừng cưới" và "Lời chúc": một cột, thẻ
+// nằm ngang — ô hình bên trái (icon tròn có màu, hoặc ảnh mẫu) · tên · mô tả ·
+// dấu tích ở ô đang chọn. Ô vuông 1/4 như bảng hoạ tiết quá chật cho phần mô tả,
+// mà cột chỉnh kéo hẹp là chữ bị cắt; một cột thì khổ màn nào cũng vừa.
+// `lead` = HTML của ô hình bên trái.
+function _pickRow(o) {
   const btn = document.createElement("button");
   btn.type = "button";
-  // cx-pal-item-pick: ô này BẤM để chọn chứ không kéo như hoạ tiết/thành phần.
-  btn.className = "cx-pal-item cx-pal-item-prev cx-pal-item-pick";
-  btn.dataset.pickId = id;
-  btn.title = title;
+  btn.className = "cx-pick-row" + (o.onDrag ? " is-drag" : "");
+  if (o.id != null) btn.dataset.pickId = o.id;
+  btn.title = o.title || (o.desc ? o.name + " — " + o.desc : o.name);
+  btn.innerHTML =
+    '<span class="cx-pick-body">' +
+    `<span class="cx-pick-name">${o.name}</span>` +
+    (o.desc ? `<span class="cx-pick-desc">${o.desc}</span>` : "") +
+    "</span>" +
+    (o.onDrag
+      ? '<i data-lucide="grip-vertical" class="cx-pick-grip !w-[14px] !h-[14px]"></i>'
+      : '<span class="cx-pick-tick"><i data-lucide="check"></i></span>');
+  // Ô hình bên trái: chuỗi HTML (chip icon) hoặc phần tử đã dựng (bản xem trước).
+  if (typeof o.lead === "string") btn.insertAdjacentHTML("afterbegin", o.lead);
+  else if (o.lead) btn.prepend(o.lead);
 
-  const prev = document.createElement("span");
-  prev.className = "cx-pal-prev cx-gift-prev";
-  prev.appendChild(fill);
-  const cap = document.createElement("span");
-  cap.className = "cx-pal-txt";
-  cap.textContent = name;
-  btn.append(prev, cap);
-
-  btn.addEventListener("click", () => onPick(id));
+  if (o.onDrag) btn.addEventListener("pointerdown", o.onDrag);
+  if (o.onPick) btn.addEventListener("click", () => o.onPick(o.id));
   return btn;
 }
 
@@ -1140,29 +1155,32 @@ function _renderGiftPalette() {
   if (!grid) return;
   if (grid.dataset.rendered !== "1") {
     grid.textContent = "";
-    GIFT_FIXED.forEach((o) => {
-      const i = document.createElement("i");
-      i.setAttribute("data-icon", o.icon);
+    GIFT_FIXED.forEach((o) =>
       grid.appendChild(
-        _pickTile(o.id, o.name, o.name + " — " + o.desc, i, pickGiftBox),
-      );
-    });
+        _pickRow({
+          id: o.id,
+          name: o.name,
+          desc: o.desc,
+          lead: _pickIco(o),
+          onPick: pickGiftBox,
+        }),
+      ),
+    );
     (window.CX_GIFT_BOXES || []).forEach((b) => {
-      const img = document.createElement("img");
-      img.src = b.src;
-      img.alt = b.name;
-      img.loading = "lazy";
-      const btn = _pickTile(
-        b.id,
-        b.name,
-        b.name + (b.desc ? " — " + b.desc : ""),
-        img,
-        pickGiftBox,
+      // Ảnh hộp nền trong suốt → ô ca-rô để thấy đúng phần rỗng của ảnh.
+      const lead =
+        '<span class="cx-pick-thumb">' +
+        `<img src="${b.src}" alt="${b.name}" loading="lazy" />` +
+        "</span>";
+      grid.appendChild(
+        _pickRow({
+          id: b.id,
+          name: b.name,
+          desc: b.desc,
+          lead,
+          onPick: pickGiftBox,
+        }),
       );
-      // Nền ca-rô cho thấy phần trong suốt của ảnh hộp — chỉ ở khung xem trước,
-      // để dòng tên bên dưới vẫn nằm trên nền trắng.
-      btn.querySelector(".cx-gift-prev")?.classList.add("cx-gift-prev-img");
-      grid.appendChild(btn);
     });
     grid.dataset.rendered = "1";
   }
@@ -1172,7 +1190,7 @@ function _renderGiftPalette() {
 function _syncGiftTiles() {
   const cur = _giftBoxId();
   document
-    .querySelectorAll("#cx-gift-palette .cx-pal-item")
+    .querySelectorAll("#cx-gift-palette [data-pick-id]")
     .forEach((b) => b.classList.toggle("is-on", (b.dataset.pickId || "") === cur));
 }
 
@@ -1228,12 +1246,16 @@ const WISH_MODES = [
     id: "",
     name: "Livestream",
     icon: "radio",
+    // Lớp màu lấy nguyên của cụm thẻ "Thêm vào thiệp" — icon trong bảng con phải
+    // cùng ngôn ngữ với icon ngoài đó, không có bộ màu riêng.
+    tone: "cx-add-ico-violet",
     desc: "Lời chúc trôi lên ở góc màn hình, luôn thấy",
   },
   {
     id: "comment",
     name: "Bình luận",
     icon: "message-square",
+    tone: "cx-add-ico-blue",
     desc: "Một mục ngay trên hộp mừng cưới, liệt kê hết và tự cuộn",
   },
 ];
@@ -1248,13 +1270,17 @@ function _renderWishPalette() {
   if (!grid) return;
   if (grid.dataset.rendered !== "1") {
     grid.textContent = "";
-    WISH_MODES.forEach((o) => {
-      const i = document.createElement("i");
-      i.setAttribute("data-lucide", o.icon);
+    WISH_MODES.forEach((o) =>
       grid.appendChild(
-        _pickTile(o.id, o.name, o.name + " — " + o.desc, i, pickWishMode),
-      );
-    });
+        _pickRow({
+          id: o.id,
+          name: o.name,
+          desc: o.desc,
+          lead: _pickIco(o),
+          onPick: pickWishMode,
+        }),
+      ),
+    );
     grid.dataset.rendered = "1";
   }
   _syncWishTiles();
@@ -1263,7 +1289,7 @@ function _renderWishPalette() {
 function _syncWishTiles() {
   const cur = _wishModeId();
   document
-    .querySelectorAll("#cx-wish-palette .cx-pal-item")
+    .querySelectorAll("#cx-wish-palette [data-pick-id]")
     .forEach((b) => b.classList.toggle("is-on", (b.dataset.pickId || "") === cur));
 }
 
@@ -1303,7 +1329,7 @@ function _reloadThemeFrame(focusKey) {
     });
   // Dựng lại src thay vì gán lại src cũ: đổi mẫu thiệp xong cũng đi qua đây
   // (resetThemeSetting), lúc đó URL cũ vẫn trỏ vào mẫu trước.
-  iframe.src = _previewIframeSrc("&edit=1");
+  iframe.src = _previewIframeSrc("&edit=1&shell=0");
 }
 
 // ─── Điều chỉnh THÀNH PHẦN đang chọn ────────────────────────────────────────

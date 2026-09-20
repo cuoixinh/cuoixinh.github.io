@@ -7,14 +7,31 @@
        iframe đủ rộng cho thiệp nở tới max (768px). Controls là card ~1/4 nằm
        NGOÀI bên phải, cách preview đúng thanh kéo (16px). -->
   <div class="relative flex-1 min-h-0 w-full flex flex-col md:flex-row md:p-4">
-    <!-- Preview thiệp (cập nhật trực tiếp khi chỉnh) -->
-    <iframe
-      id="theme-preview-iframe"
-      src=""
-      class="flex-1 border-0 w-full min-h-0 min-w-0 md:rounded-3xl md:border md:border-gray-100 md:shadow-[0_4px_18px_rgb(var(--scrim-rgb)/0.07)]"
-      allow="autoplay; encrypted-media"
-      allowfullscreen
-    ></iframe>
+    <!-- Preview thiệp (cập nhật trực tiếp khi chỉnh) — LUÔN chạy trong khung
+         điện thoại như tab Xem trước: iframe full-bleed co theo cột chỉnh nên
+         thiệp rơi vào bố cục màn rộng, khách chỉnh một đằng thấy một nẻo. Cùng
+         markup .cx-phone với hai khung kia, khổ do js/22-live-preview.js đo. -->
+    <div id="theme-preview-stage" class="cx-preview-stage cx-theme-stage">
+      <div class="cx-phone">
+        <!-- Chrome (thanh trạng thái + thanh tiêu đề) do
+             core/helpers/phone-chrome.js chèn vào đầu ô màn lúc chạy. -->
+        <div class="cx-phone-screen">
+          <div class="cx-pviewport">
+            <iframe
+              id="theme-preview-iframe"
+              src=""
+              class="cx-phone-view"
+              allow="autoplay; encrypted-media"
+              allowfullscreen
+            ></iframe>
+          </div>
+          <!-- Dải trắng đáy: giữ thiệp khỏi chạm góc bo của thân máy. -->
+          <div class="cx-ppad"></div>
+        </div>
+        <!-- Vỏ máy nằm ĐÈ lên iframe (vùng màn hình của ảnh là trong suốt). -->
+        <img src="../assets/images/iphone_mockup.svg" alt="" class="cx-phone-frame" />
+      </div>
+    </div>
 
     <!-- Thanh kéo đổi rộng cột chỉnh (chỉ desktop; cũng đóng vai khe 16px) -->
     <div
@@ -493,7 +510,7 @@
               <!-- Ô mẫu dựng động từ CX_TEXT_PRESETS
                    (core/helpers/text-preset-helper.js) — kể cả mẫu cơ bản
                    "Văn bản" — nên thêm mẫu mới không phải sửa file này. -->
-              <div id="cx-addtext-palette" class="cx-pal-grid"></div>
+              <div id="cx-addtext-palette" class="cx-pick-grid"></div>
             </div>
             <!-- /theme-addtext-panel -->
 
@@ -522,7 +539,7 @@
                 Bấm vào mẫu để đổi ngay, bấm mẫu khác để so tiếp — hoặc kéo mẫu ra
                 khỏi bảng và thả lên thiệp để đặt vào đúng vị trí mong muốn.
               </p>
-              <div id="cx-elements-palette" class="cx-pal-grid"></div>
+              <div id="cx-elements-palette" class="cx-pick-grid"></div>
             </div>
             <!-- /theme-elements-panel -->
 
@@ -538,7 +555,7 @@
                 Chọn kiểu hộp che phần chuyển khoản — khách chạm vào hộp mới thấy
                 mã QR.
               </p>
-              <div id="cx-gift-palette" class="cx-pal-grid"></div>
+              <div id="cx-gift-palette" class="cx-pick-grid"></div>
             </div>
             <!-- /theme-gift-panel -->
 
@@ -555,7 +572,7 @@
                 Chọn cách khách mời nhìn thấy lời chúc trên thiệp. Bật/tắt mục lời
                 chúc nằm ở bước “Xác nhận tham dự”.
               </p>
-              <div id="cx-wish-palette" class="cx-pal-grid"></div>
+              <div id="cx-wish-palette" class="cx-pick-grid"></div>
             </div>
             <!-- /theme-wish-panel -->
 

@@ -183,6 +183,10 @@ function _cxMountChrome() {
   if (live) C.mount(live, _cxChromeOpts(cxLiveRefresh));
   const preview = document.querySelector("#cx-preview-stage .cx-phone-screen");
   if (preview) C.mount(preview, _cxChromeOpts(_cxPreviewReload));
+  const theme = document.querySelector("#theme-preview-stage .cx-phone-screen");
+  // Tải lại ở tab Giao diện phải dựng src kèm &edit=1 → mượn hàm của
+  // js/05-theme-panel.js (nạp trước file này, cùng scope toàn cục).
+  if (theme) C.mount(theme, _cxChromeOpts(() => _reloadThemeFrame()));
 }
 
 // Khổ máy tối đa: quá số này thì ô màn rộng hơn 390px, tức là thiệp bị PHÓNG TO
@@ -220,6 +224,13 @@ function cxPreviewFit() {
   _cxPhoneFit(document.getElementById("cx-preview-stage"));
 }
 
+// Tab Giao diện. Khung cao trọn vùng xem trước; thanh chỉnh ở mobile là lớp NỔI
+// đè lên nên không tính vào phép đo — trừ chiều cao nó ra là máy đổi khổ mỗi lần
+// mở/thu bảng, thiệp nhảy ngay giữa lúc chỉnh.
+function cxThemeFit() {
+  _cxPhoneFit(document.getElementById("theme-preview-stage"));
+}
+
 function _cxLiveMeasure() {
   _cxPhoneScreen(document.querySelector("#live-dock .cx-phone"));
 }
@@ -229,6 +240,7 @@ function _cxInitLive() {
   _cxMountChrome();
   _cxLiveMeasure();
   cxPreviewFit();
+  cxThemeFit();
 
   if (window.ResizeObserver) {
     const dock = document.getElementById("live-dock");
@@ -237,12 +249,16 @@ function _cxInitLive() {
     // địa chỉ trên di động trượt lên xuống) → phải theo dõi chính nó.
     const stage = document.getElementById("cx-preview-stage");
     if (stage) new ResizeObserver(cxPreviewFit).observe(stage);
+    // Khung ở tab Giao diện đổi khổ khi kéo cột chỉnh bên phải.
+    const tStage = document.getElementById("theme-preview-stage");
+    if (tStage) new ResizeObserver(cxThemeFit).observe(tStage);
   }
   window.addEventListener(
     "resize",
     () => {
       _cxLiveMeasure();
       cxPreviewFit();
+      cxThemeFit();
       // Nhãn nút bước cuối đổi theo khổ màn ("Xem trước" ↔ "Cấu hình").
       window.cxRefreshStepStatus?.();
       // Vừa vượt ngưỡng CX_LIVE_MIN_W → dải mới hiện, chưa có gì trong đó.
@@ -255,6 +271,7 @@ function _cxInitLive() {
 
 window.cxLiveWide = _cxLiveWide; // switchTab() hỏi để chặn tab Xem trước ở desktop
 window.cxPreviewFit = cxPreviewFit;
+window.cxThemeFit = cxThemeFit;
 window.cxLiveRefresh = cxLiveRefresh;
 window.cxLiveTouch = cxLiveTouch;
 window.cxLiveFocus = cxLiveFocus;

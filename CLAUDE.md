@@ -176,14 +176,20 @@ bị chừa lề phải và cấm cuộn. Dải CHỈ đi cùng tab Chỉnh sử
 máy thật** rồi thu bằng `--cx-scr-scale`. Cuộn tới mục đang chỉnh: gửi `{type:"cx-focus", key}`
 (key = `data-step`), `core/helpers/preview-focus-helper.js` trong thiệp lo phần còn lại.
 
-**Khung điện thoại `.cx-phone`** dùng ở HAI chỗ: dải xem trực tiếp và tab Xem trước
-(`#cx-preview-stage`, mọi khổ màn — kể cả đang xem trên điện thoại thật). Vì hai khung cùng
+**Khung điện thoại `.cx-phone`** dùng ở BA chỗ: dải xem trực tiếp, tab Xem trước
+(`#cx-preview-stage`) và tab Giao diện (`#theme-preview-stage`) — mọi khổ màn, kể cả đang
+xem trên điện thoại thật. Vì các khung cùng
 nằm trong DOM, `--cx-ph-w`/`--cx-scr-scale` đặt **trên từng `.cx-phone`**, đừng đẩy lên
-`:root`. Bề rộng dải là thuần CSS; còn tab Xem trước phải đo bằng JS (`cxPreviewFit`) theo
+`:root`. Bề rộng dải là thuần CSS; còn hai tab kia phải đo bằng JS (`cxPreviewFit` /
+`cxThemeFit`) theo
 **ô nội dung** của khung chứa — `clientWidth/Height` tính cả padding, lấy thẳng là máy dính
 sát mép. Máy có trần `CX_PHONE_MAX_W`: quá đó ô màn rộng hơn 390px, tức thiệp bị phóng to
-hơn máy thật. Panel đang ẩn thì khổ bằng 0 nên `switchTab("preview")` phải gọi lại
-`cxPreviewFit()` **sau khi** bỏ `.hidden`.
+hơn máy thật. Panel đang ẩn thì khổ bằng 0 nên `switchTab()` phải gọi lại phép đo **sau khi**
+bỏ `.hidden`. Ở tab Giao diện khung cao TRỌN vùng xem trước, thanh chỉnh mobile chỉ nổi đè
+lên (chừa chỗ cho nó là máy đổi khổ mỗi lần mở/thu bảng). Cũng ở tab đó, thiệp bị THU NHỎ
+trong khung → toạ độ thả hoạ tiết/thành phần
+phải chia lại theo tỉ lệ (`_framePoint` ở `js/05-theme-panel.js`), lấy thẳng hiệu toạ độ màn
+là rơi lệch.
 
 **Chrome giả lập điện thoại (`core/helpers/phone-chrome.js`)** — thanh trạng thái + thanh
 tiêu đề (quay lại · tên · menu ba chấm) — dùng chung cho CẢ khung ở đây lẫn khung xem thử

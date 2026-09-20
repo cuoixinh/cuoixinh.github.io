@@ -363,10 +363,14 @@ function switchTab(tab) {
     const tIframe = document.getElementById("theme-preview-iframe");
     if (tIframe) {
       // edit=1 → bật runtime chỉnh chi tiết từng dòng chữ (chỉ ở tab Giao diện).
-      tIframe.src = _previewIframeSrc("&edit=1");
+      // shell=0 → giấu thanh cuộn: thiệp chạy trong khung điện thoại rộng đúng
+      // 390px, thanh cuộn cổ điển ăn mất một dải ngay trong lòng thân máy.
+      tIframe.src = _previewIframeSrc("&edit=1&shell=0");
     }
     if (themePanel) themePanel.classList.remove("hidden");
     _initThemePanel();
+    // Panel vừa bỏ .hidden nên tới đây mới đo được khổ thật của khung máy.
+    window.cxThemeFit?.();
   } else {
     _isPreviewActive = false;
     formPanel.classList.remove("hidden");
