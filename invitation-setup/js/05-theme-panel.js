@@ -575,13 +575,6 @@ function _renderTextPresets() {
   });
 }
 
-function closeAddTextPanel() {
-  document.getElementById("theme-addtext-panel")?.classList.add("hidden");
-  document.getElementById("theme-main-controls")?.classList.remove("hidden");
-  _resetCtrlScroll();
-  _initEditHint();
-}
-window.closeAddTextPanel = closeAddTextPanel;
 
 // ─── Kéo mẫu từ bảng chọn ra thiệp (dùng chung cho Văn bản / Trang trí / Thành phần) ──
 // Quy tắc: phải kéo RA KHỎI bảng chọn rồi nhả TRÊN thiệp mới tính là thả. Còn ở
@@ -759,7 +752,9 @@ function startPaletteDrag(e, type) {
     onCancel: (iframe) =>
       iframe?.contentWindow?.postMessage({ type: "cx-drag-cancel" }, "*"),
     onDrop: (iframe, x, y) => {
-      closeAddTextPanel();
+      // KHÔNG đóng bảng: runtime chọn khối vừa thả thì bảng chỉnh chữ tự chiếm
+      // chỗ (nó ẩn sẵn bảng này), còn nhỡ tin pick thì người dùng vẫn đứng ở
+      // bảng Văn bản để thả tiếp — rơi về nhóm chỉnh chung là mất chỗ đang làm.
       _setDirty(true, "theme");
       iframe.contentWindow?.postMessage(
         { type: "cx-drop", blockType: type, y },
@@ -792,13 +787,6 @@ function openDecorPanel() {
 }
 window.openDecorPanel = openDecorPanel;
 
-function closeDecorPanel() {
-  document.getElementById("theme-decor-panel")?.classList.add("hidden");
-  document.getElementById("theme-main-controls")?.classList.remove("hidden");
-  _resetCtrlScroll();
-  _initEditHint();
-}
-window.closeDecorPanel = closeDecorPanel;
 
 function _decorEmpty(msg) {
   const el = document.getElementById("cx-decor-empty");
@@ -893,13 +881,6 @@ function openElementsPanel() {
 }
 window.openElementsPanel = openElementsPanel;
 
-function closeElementsPanel() {
-  document.getElementById("theme-elements-panel")?.classList.add("hidden");
-  document.getElementById("theme-main-controls")?.classList.remove("hidden");
-  _resetCtrlScroll();
-  _initEditHint();
-}
-window.closeElementsPanel = closeElementsPanel;
 
 // ─── Xem trước thành phần: dựng widget thật rồi thu nhỏ vừa ô ───────────────
 // Ô mẫu gọi thẳng def.build(variant) — cùng hàm runtime dùng để đặt lên thiệp.
@@ -1049,10 +1030,10 @@ function _addElement(elementId, variantId, x, y) {
     // Chốt chặn: nhỡ tin pick không tới thì cờ phải tự rơi, không thì cú bấm vào
     // widget trên thiệp sau đó lại bị nuốt mất.
     _elTapTimer = setTimeout(() => (_elTapPending = false), 800);
-  } else {
-    closeElementsPanel();
   }
-  // Thả xong runtime gửi 'cx-element-pick' → bảng tự chuyển sang phần điều chỉnh.
+  // Thả xong runtime gửi 'cx-element-pick' → bảng điều chỉnh tự chiếm chỗ (nó
+  // ẩn sẵn bảng Thẻ nhạc). KHÔNG tự đóng bảng ở đây: nhỡ tin pick thì vẫn còn
+  // đứng ở bảng Thẻ nhạc chứ không rơi về nhóm chỉnh chung.
   _lineIframe()?.contentWindow?.postMessage(
     { type: "cx-add-element", element: elementId, variant: variantId, x, y },
     "*",
@@ -1094,14 +1075,6 @@ function openGiftPanel() {
 }
 window.openGiftPanel = openGiftPanel;
 
-function closeGiftPanel() {
-  document.getElementById("theme-gift-panel")?.classList.add("hidden");
-  document.getElementById("theme-wish-panel")?.classList.add("hidden");
-  document.getElementById("theme-main-controls")?.classList.remove("hidden");
-  _resetCtrlScroll();
-  _initEditHint();
-}
-window.closeGiftPanel = closeGiftPanel;
 
 // `id` chính là giá trị lưu: rỗng = mặc định của mẫu, "none" = bỏ hộp.
 const GIFT_FIXED = [
@@ -1246,13 +1219,6 @@ function openWishPanel() {
 }
 window.openWishPanel = openWishPanel;
 
-function closeWishPanel() {
-  document.getElementById("theme-wish-panel")?.classList.add("hidden");
-  document.getElementById("theme-main-controls")?.classList.remove("hidden");
-  _resetCtrlScroll();
-  _initEditHint();
-}
-window.closeWishPanel = closeWishPanel;
 
 // `id` chính là giá trị lưu — rỗng = Livestream (không lưu gì cả).
 const WISH_MODES = [
@@ -2234,11 +2200,28 @@ function _syncCtrlHead() {
 
   document.querySelectorAll("#cx-ctrl-tabs .cx-ctab").forEach((btn) => {
     const on = btn.dataset.ctab === view.key;
-    btn.classList.toggle("is-on", on);
     btn.setAttribute("aria-selected", on ? "true" : "false");
     if (on) _scrollTabIntoView(btn);
   });
+  _paintTabAtCenter();
   if (window.lucide) lucide.createIcons();
+}
+
+// Vệt sáng của dải tab là MỘT ô đứng yên giữa dải (#cx-ctrl-tabs-marker), chữ
+// trôi qua dưới nó — nhờ vậy màu không chạy theo từng tab. Chỉ bề ngang co giãn
+// theo tab đang ở giữa, và tab đó nhận .is-on để đổi màu chữ.
+function _paintTabAtCenter() {
+  const track = document.getElementById("cx-ctrl-tabs-track");
+  const mark = document.getElementById("cx-ctrl-tabs-marker");
+  if (!track) return;
+  const mid = _tabAtCenter();
+  track.querySelectorAll(".cx-ctab").forEach((btn) => {
+    btn.classList.toggle("is-on", btn === mid);
+  });
+  if (mark && mid) {
+    mark.style.width = mid.offsetWidth + "px";
+    mark.style.height = mid.offsetHeight + "px";
+  }
 }
 
 // Dải tab nằm NGOÀI vùng cuộn nội dung → tự đặt scrollLeft cho đúng dải;
@@ -2320,14 +2303,19 @@ function _initCtrlTabsDrag() {
   if (typeof ResizeObserver !== "undefined")
     new ResizeObserver(() => {
       _syncTabPads();
-      const on = track.querySelector(".cx-ctab.is-on");
-      if (on) _scrollTabIntoView(on);
+      _syncCtrlHead();
     }).observe(track);
 
   let settle = 0;
+  let paint = 0;
   track.addEventListener(
     "scroll",
     () => {
+      if (!paint)
+        paint = requestAnimationFrame(() => {
+          paint = 0;
+          _paintTabAtCenter();
+        });
       clearTimeout(settle);
       settle = setTimeout(_onTabsSettle, TAB_SETTLE_MS);
     },

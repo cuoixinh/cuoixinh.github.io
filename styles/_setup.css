@@ -514,7 +514,7 @@ input.flatpickr-input[readonly] {
 /* Dải tab dưới bảng chỉnh: mỗi tab một bảng. Cuộn ngang khi không đủ chỗ (nhãn
    không xuống dòng), tab đang mở là viên thuốc hồng — JS chỉ gạt .is-on. */
 .cx-ctabs {
-  @apply shrink-0 border-t border-gray-100 bg-white py-2 md:py-2.5;
+  @apply relative shrink-0 border-t border-gray-100 bg-white py-2 md:py-2.5;
 
   /* Mờ dần hai mép: mắt thấy ngay là dải còn trượt được, và tab ở giữa nổi lên
      mà không phải vẽ thêm khung chỉ báo. */
@@ -532,7 +532,7 @@ input.flatpickr-input[readonly] {
    do JS đo (_syncTabPads) nên tab đầu và tab cuối cũng lên giữa được — đừng đặt
    padding ngang ở đây. */
 .cx-ctabs-track {
-  @apply flex items-center gap-1 overflow-x-auto overscroll-x-contain;
+  @apply relative z-[1] flex items-center gap-1 overflow-x-auto overscroll-x-contain;
 
   scrollbar-width: none;
   scroll-behavior: smooth;
@@ -570,8 +570,30 @@ input.flatpickr-input[readonly] {
   @apply outline-none ring-2 ring-rose-200;
 }
 
+/* Ô sáng đứng yên giữa dải — nền của tab đang chọn nằm ở ĐÂY, không nằm trên
+   tab, nên màu không chạy theo khi cuộn; chỉ bề ngang co theo chữ ở giữa. */
+.cx-ctabs-marker {
+  @apply pointer-events-none absolute left-1/2 top-1/2 rounded-full bg-rose-100;
+
+  transform: translate(-50%, -50%);
+  transition:
+    width 0.16s ease,
+    height 0.16s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cx-ctabs-marker {
+    transition: none;
+  }
+}
+
+/* Tab nằm dưới ô sáng: chỉ đổi màu chữ (nền đã có ô sáng lo). */
 .cx-ctab.is-on {
-  @apply bg-rose-100 font-semibold text-rose-600;
+  @apply font-semibold text-rose-600;
+}
+
+.cx-ctab.is-on:hover {
+  @apply bg-transparent text-rose-600;
 }
 
 /* Mục tương ứng đang tắt ở tab Thiết lập (xem cxSyncThemeAddCards): tab mờ đi
