@@ -1868,7 +1868,8 @@ button.cx-pchrome-btn:hover {
 /* Dưới lightbox (z 100) và trên thanh nhạc (z 60). KHÔNG dùng
    env(safe-area-inset-bottom) — quy ước toàn project, xem .cx-tabbar. */
 .cx-wdock,
-.cx-wall {
+.cx-wall,
+.cx-wsec {
   /* Bảng màu riêng của dải: mặc định ăn theo token chung của thiệp, mẫu ghi đè
      bằng CX_THEME.wishes — applyWishStyle() (core/helpers/wishes-helper.js)
      đặt lại đúng mấy biến này. Khách KHÔNG chỉnh được, màu là của mẫu.
@@ -2478,6 +2479,103 @@ button.cx-pchrome-btn:hover {
   font-size: 13px;
   text-align: center;
   opacity: 0.7;
+}
+
+/* ── Dạng COMMENT: mục nằm trong thân thiệp, ngay trên hộp mừng cưới ────────
+   wishes-helper dựng khi theme_setting.wishes_mode = "comment" (thay cho dải
+   nổi). Không có gì ghim màn hình: một khung cuộn liệt kê hết lời chúc, tự bò
+   khi khách cuộn tới, ô gửi nằm ngay dưới. Mục được append CUỐI thân thiệp rồi
+   đẩy lên bằng flex `order` — xem _cxWishPlaceSection. */
+.cx-wsec {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 32px 16px 8px;
+}
+
+.cx-wsec-head {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cx-wsec-title {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgb(var(--cx-wish-accent-rgb));
+}
+
+/* Khung cuộn: cao tối đa nửa màn (qua --vh, không dùng dvh/svh trần — xem
+   vh-lock.js). Ngắn hơn thì co theo nội dung, không để một khoảng trống. Hai
+   dải mờ trên/dưới cho chữ tan dần thay vì bị cắt ngang lúc đang bò. */
+.cx-wsec-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: calc(var(--vh, 1vh) * 50);
+  max-height: calc(var(--vh, 1svh) * 50);
+  overflow-y: auto;
+  padding: 4px 2px;
+  scrollbar-width: none;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 6%,
+    #000 94%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 6%,
+    #000 94%,
+    transparent 100%
+  );
+}
+
+.cx-wsec-list::-webkit-scrollbar {
+  display: none;
+}
+
+/* Danh sách rỗng thì không còn gì để cuộn — bỏ luôn mặt nạ, nếu không dòng chữ
+   duy nhất bị làm mờ hai đầu. */
+.cx-wsec-list.is-empty {
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+.cx-wsec-empty {
+  padding: 16px 0;
+  font-size: 13px;
+  text-align: center;
+  color: rgb(var(--cx-wish-text-rgb));
+  opacity: 0.7;
+}
+
+/* Bong bóng ở đây nằm trên nền giấy của thiệp chứ không trôi qua ảnh → bỏ lớp
+   nhoè (tốn khung hình mà chẳng thấy gì) và cho nó trải hết bề ngang. */
+.cx-wsec .cx-wish-item {
+  width: 100%;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+/* Ô nhập trong mục: luôn trải hết bề ngang, không phải viên thuốc nép góc như
+   ở dải nổi — ở đây nó là phần chính của mục chứ không đè lên thiệp. */
+.cx-wsec .cx-wdock-card,
+.cx-wsec .cx-wdock-note {
+  align-self: stretch;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.cx-wsec .cx-wdock-note {
+  text-align: center;
 }
 
 /* Chỗ trống ở đáy thân thiệp cho hàng nút + ô nhập, do JS chèn khi dựng dải.

@@ -605,6 +605,13 @@ input.flatpickr-input[readonly] {
   @apply outline-none ring-2 ring-rose-200 ring-offset-2;
 }
 
+/* Mục tương ứng đang tắt ở tab Thiết lập (xem cxSyncThemeAddCards): thẻ mờ đi
+   nhưng VẪN bấm được — bấm vào thì hiện lời nhắc bật mục đó, chứ khoá hẳn thì
+   người dùng chỉ thấy một ô mờ không rõ vì sao. */
+.cx-add-card.is-off {
+  @apply opacity-45;
+}
+
 .cx-add-ico {
   @apply inline-flex h-8 w-8 flex-none items-center justify-center
          rounded-full md:h-9 md:w-9;
@@ -628,6 +635,10 @@ input.flatpickr-input[readonly] {
 
 .cx-add-ico-amber {
   @apply bg-amber-50 text-amber-500;
+}
+
+.cx-add-ico-violet {
+  @apply bg-violet-50 text-violet-500;
 }
 
 /* Ô hẹp (3 cột) nên nhãn dài như "Hộp mừng cưới" được xuống dòng thoải mái —

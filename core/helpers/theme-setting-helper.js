@@ -786,8 +786,12 @@ function _cxRender() {
     const cs = getComputedStyle(parent);
     if (!(cs.display.indexOf("flex") !== -1 && cs.flexDirection === "column"))
       return;
+    // .cx-wsec = mục lời chúc dạng comment (wishes-helper) — cũng append cuối rồi
+    // tự xếp order, đếm nó vào đây là nó nhảy xuống đáy thiệp.
     const reals = Array.from(parent.children).filter(
-      (c) => !c.classList.contains("cx-custom-block"),
+      (c) =>
+        !c.classList.contains("cx-custom-block") &&
+        !c.classList.contains("cx-wsec"),
     );
     reals.forEach((s, i) => {
       s.style.order = String(i * 100);
@@ -806,6 +810,10 @@ function _cxRender() {
       node.setAttribute("data-cx-ord", "1");
     });
   });
+
+  // Vừa đánh lại order cho cả cột → mục lời chúc dạng comment phải chen lại vào
+  // trước hộp mừng cưới.
+  window.cxWishPlace?.();
 }
 
 // Nội dung khối dưới dạng TEXT cho ô "Nội dung" ở panel: danh sách thì mỗi mục

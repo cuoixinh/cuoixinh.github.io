@@ -132,6 +132,17 @@
               ><span>Hộp mừng cưới</span>
             </button>
           </div>
+          <div id="cx-head-wish" class="hidden cx-le-head">
+            <button
+              type="button"
+              onclick="closeWishPanel()"
+              class="cx-le-back"
+              aria-label="Quay lại"
+            >
+              <i data-lucide="arrow-left" class="w-4 h-4"></i
+              ><span>Lời chúc</span>
+            </button>
+          </div>
           <div id="cx-head-element-editor" class="hidden cx-le-head">
             <button
               type="button"
@@ -250,6 +261,7 @@
                   </button>
                   <button
                     type="button"
+                    id="add-card-elements"
                     onclick="openElementsPanel()"
                     title="Thả thẻ nhạc lên thiệp"
                     class="cx-add-card"
@@ -261,6 +273,7 @@
                   </button>
                   <button
                     type="button"
+                    id="add-card-gift"
                     onclick="openGiftPanel()"
                     title="Chọn hộp quà che phần mã QR mừng cưới"
                     class="cx-add-card"
@@ -269,6 +282,18 @@
                       <i data-lucide="gift"></i>
                     </span>
                     <span class="cx-add-txt">Hộp mừng cưới</span>
+                  </button>
+                  <button
+                    type="button"
+                    id="add-card-wishes"
+                    onclick="openWishPanel()"
+                    title="Chọn cách hiện lời chúc của khách mời"
+                    class="cx-add-card"
+                  >
+                    <span class="cx-add-ico cx-add-ico-violet">
+                      <i data-lucide="message-circle"></i>
+                    </span>
+                    <span class="cx-add-txt">Lời chúc</span>
                   </button>
                 </div>
               </div>
@@ -516,6 +541,23 @@
               <div id="cx-gift-palette" class="cx-pal-grid"></div>
             </div>
             <!-- /theme-gift-panel -->
+
+            <!-- Bảng LỜI CHÚC: chọn cách hiện lời chúc của khách mời —
+                 "Livestream" (dải nổi ghim đáy màn, lời chúc trôi lên) hoặc
+                 "Bình luận" (một mục ngay trên hộp mừng cưới, liệt kê hết và tự
+                 cuộn). Runtime ở core/helpers/wishes-helper.js; bấm là đổi ngay
+                 trong khung xem trước, không nạp lại. -->
+            <div
+              id="theme-wish-panel"
+              class="hidden space-y-3 md:space-y-4"
+            >
+              <p class="text-[12px] text-gray-500">
+                Chọn cách khách mời nhìn thấy lời chúc trên thiệp. Bật/tắt mục lời
+                chúc nằm ở bước “Xác nhận tham dự”.
+              </p>
+              <div id="cx-wish-palette" class="cx-pal-grid"></div>
+            </div>
+            <!-- /theme-wish-panel -->
 
             <!-- Bảng ĐIỀU CHỈNH THÀNH PHẦN: mở khi vừa thả hoặc bấm vào thành phần
                  trên thiệp. Mẫu / kích thước là phần chung; các tuỳ chọn riêng dựng

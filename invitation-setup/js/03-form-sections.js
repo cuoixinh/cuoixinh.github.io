@@ -50,6 +50,8 @@ function toggleSectionVis(section, event) {
   _updateVisUI(section, newVal);
   // Chip của bước đổi giữa "đang tắt" và ✓/⚠, panel đổi trạng thái mờ.
   window.cxRenderSteps?.();
+  // Tắt mục là khoá luôn thẻ chức năng tương ứng ở tab Giao diện.
+  window.cxSyncThemeAddCards?.();
   if (
     section === "party" &&
     typeof _updateTimelinePartySection === "function"
@@ -72,6 +74,7 @@ function _initVisToggles(data) {
     if (hidden) hidden.value = enabled ? "true" : "false";
     _updateVisUI(section, enabled);
   });
+  window.cxSyncThemeAddCards?.();
 }
 
 function toggleInfoTooltip(id) {

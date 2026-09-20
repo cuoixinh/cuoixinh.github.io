@@ -533,7 +533,14 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
 - **Lời chúc khách mời:** helper dùng chung `core/helpers/wishes-helper.js` (mọi mẫu thiệp
   nạp), lưu ở `guests.wishes` (jsonb; hạn mức 3 lời chúc/khách do Edge Function giữ, KHÔNG
   ràng buộc ở DB), công tắc `weddings.enable_wishes` nằm trong bước RSVP của trang Thiết lập.
-  **mẫu thiệp không phải khai markup gì cả**: helper tự dựng một DẢI NỔI ghim đáy khung nhìn,
+  **Hai DẠNG hiện lời chúc**, chủ thiệp chọn ở tab Giao diện (mục "Lời chúc", cạnh Hộp mừng
+  cưới) và lưu ở `theme_setting.wishes_mode` — rỗng = `live` (dải nổi, mô tả bên dưới),
+  `"comment"` = một mục trong thân thiệp NGAY TRÊN hộp mừng cưới, liệt kê hết lời chúc trong
+  một khung cuộn và tự bò khi khách cuộn tới. Mục đó **append cuối thân thiệp rồi đẩy lên bằng
+  flex `order`** (`_cxWishPlaceSection`) — chèn thẳng vào giữa là mọi selector `:nth-child` đã
+  lưu trong `text_overrides` của các mục phía sau lệch một bậc; `applyCustomBlocks` đánh lại
+  order thì gọi `window.cxWishPlace()`.
+  **mẫu thiệp không phải khai markup gì cả**: dạng `live` helper tự dựng một DẢI NỔI ghim đáy khung nhìn,
   đè lên thiệp — danh sách lời chúc trôi lên ở trên (trong suốt, cao 1/3 màn qua `--vh`, rộng
   2/3, dồn mép trái để chừa chỗ cho nút nhạc/hộp quà của mẫu), ô "Gửi lời chúc" ở dưới — thẻ
   kính mờ dài hết CỘT đó, lề 8px quanh như navbar, bấm vào là dòng gợi ý đổi thành ô gõ cao tối đa

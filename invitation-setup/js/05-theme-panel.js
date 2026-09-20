@@ -309,14 +309,60 @@ function _initThemePanel() {
   document.getElementById("theme-decor-panel")?.classList.add("hidden");
   document.getElementById("theme-elements-panel")?.classList.add("hidden");
   document.getElementById("theme-gift-panel")?.classList.add("hidden");
+  document.getElementById("theme-wish-panel")?.classList.add("hidden");
   _hideElementEditor();
   closeLineEditor();
   document.getElementById("theme-main-controls")?.classList.remove("hidden");
   _initEditHint();
+  cxSyncThemeAddCards();
 
   // Icon (reset) trong thanh chỉnh
   if (window.lucide) lucide.createIcons();
 }
+
+// Ba thẻ chức năng chỉ có nghĩa khi mục tương ứng đang BẬT ở tab Thiết lập: tắt
+// mục rồi mà vẫn chọn được hộp quà / dạng lời chúc thì chọn xong chẳng thấy gì
+// đổi trên thiệp. Thẻ vẫn BẤM ĐƯỢC (khoá hẳn thì người dùng không biết vì sao
+// mờ, nhất là trên di động vốn không có hover) — bấm vào thì nói rõ lý do.
+// Công tắc nằm ở ô ẩn của form, js/03-form-sections.js gọi lại hàm đồng bộ mỗi
+// lần gạt.
+const ADD_CARD_GATES = {
+  elements: { card: "add-card-elements", field: "enable_music", label: "Nhạc nền" },
+  gift: { card: "add-card-gift", field: "enable_gift", label: "Hộp mừng cưới" },
+  wishes: { card: "add-card-wishes", field: "enable_wishes", label: "Lời chúc" },
+};
+
+// Không có ô ẩn (mẫu bỏ hẳn mục đó) thì coi như đang bật — thà cho bấm còn hơn
+// chặn nhầm một thẻ vẫn dùng được.
+function _addCardOn(key) {
+  const hidden = document.getElementById(ADD_CARD_GATES[key]?.field);
+  return !hidden || hidden.value === "true";
+}
+
+// Đặt ở ĐẦU mỗi hàm mở bảng: mục đang tắt thì nói lý do rồi dừng.
+function _addCardBlocked(key) {
+  if (_addCardOn(key)) return false;
+  showToast(
+    `Mục “${ADD_CARD_GATES[key].label}” đang tắt — bật lại ở tab Thiết lập để dùng`,
+    "warning",
+  );
+  return true;
+}
+
+function cxSyncThemeAddCards() {
+  Object.keys(ADD_CARD_GATES).forEach((key) => {
+    const card = document.getElementById(ADD_CARD_GATES[key].card);
+    if (!card) return;
+    const on = _addCardOn(key);
+    // Nhớ lời mách gốc ngay lượt đầu, không thì bật lại là mất hẳn.
+    if (card.dataset.tip === undefined) card.dataset.tip = card.title || "";
+    card.classList.toggle("is-off", !on);
+    card.title = on
+      ? card.dataset.tip
+      : `Mục “${ADD_CARD_GATES[key].label}” đang tắt — bật ở tab Thiết lập trước đã`;
+  });
+}
+window.cxSyncThemeAddCards = cxSyncThemeAddCards;
 
 // Bỏ HẾT tuỳ chỉnh của thiệp: bộ màu, chỉnh riêng từng dòng chữ, khối văn bản,
 // hoạ tiết, thành phần, hộp mừng cưới. Nạp lại iframe là cách chắc chắn nhất để gỡ mọi thứ đã
@@ -481,6 +527,7 @@ function openAddTextPanel() {
   document.getElementById("theme-edit-hint")?.classList.add("hidden");
   document.getElementById("theme-elements-panel")?.classList.add("hidden");
   document.getElementById("theme-gift-panel")?.classList.add("hidden");
+  document.getElementById("theme-wish-panel")?.classList.add("hidden");
   _hideElementEditor();
   document.getElementById("theme-addtext-panel")?.classList.remove("hidden");
   _resetCtrlScroll();
@@ -717,6 +764,7 @@ function openDecorPanel() {
   document.getElementById("theme-edit-hint")?.classList.add("hidden");
   document.getElementById("theme-elements-panel")?.classList.add("hidden");
   document.getElementById("theme-gift-panel")?.classList.add("hidden");
+  document.getElementById("theme-wish-panel")?.classList.add("hidden");
   _hideElementEditor();
   document.getElementById("theme-decor-panel")?.classList.remove("hidden");
   _resetCtrlScroll();
@@ -810,10 +858,12 @@ function _addDecor(src, x, y) {
 // vì bấm là để so mẫu — muốn chỉnh thì bấm vào chính widget trên thiệp.
 
 function openElementsPanel() {
+  if (_addCardBlocked("elements")) return;
   document.getElementById("theme-line-editor")?.classList.add("hidden");
   document.getElementById("theme-addtext-panel")?.classList.add("hidden");
   document.getElementById("theme-decor-panel")?.classList.add("hidden");
   document.getElementById("theme-gift-panel")?.classList.add("hidden");
+  document.getElementById("theme-wish-panel")?.classList.add("hidden");
   _hideElementEditor();
   document.getElementById("theme-main-controls")?.classList.add("hidden");
   document.getElementById("theme-edit-hint")?.classList.add("hidden");
@@ -1015,6 +1065,7 @@ function _addElement(elementId, variantId, x, y) {
 // như hoạ tiết/thành phần — bảng chọn nhờ vậy đứng yên để còn so mẫu này mẫu kia.
 
 function openGiftPanel() {
+  if (_addCardBlocked("gift")) return;
   document.getElementById("theme-line-editor")?.classList.add("hidden");
   document.getElementById("theme-addtext-panel")?.classList.add("hidden");
   document.getElementById("theme-decor-panel")?.classList.add("hidden");
@@ -1022,6 +1073,7 @@ function openGiftPanel() {
   _hideElementEditor();
   document.getElementById("theme-main-controls")?.classList.add("hidden");
   document.getElementById("theme-edit-hint")?.classList.add("hidden");
+  document.getElementById("theme-wish-panel")?.classList.add("hidden");
   document.getElementById("theme-gift-panel")?.classList.remove("hidden");
   _resetCtrlScroll();
   _renderGiftPalette();
@@ -1031,7 +1083,8 @@ window.openGiftPanel = openGiftPanel;
 
 function closeGiftPanel() {
   document.getElementById("theme-gift-panel")?.classList.add("hidden");
-  document.getElementById("theme-main-control/uss")?.classList.remove("hidden");
+  document.getElementById("theme-wish-panel")?.classList.add("hidden");
+  document.getElementById("theme-main-controls")?.classList.remove("hidden");
   _resetCtrlScroll();
   _initEditHint();
 }
@@ -1060,13 +1113,14 @@ function _giftBoxId() {
 
 // Ô nào cũng gồm khung xem trước co giãn + MỘT dòng tên (nhãn cắt ngắn, không
 // xuống dòng) — nhờ vậy ô ảnh và ô icon luôn vuông và cao bằng nhau, kể cả khi
-// cột chỉnh bị kéo hẹp. `fill` = phần tử đặt vào khung xem trước.
-function _giftTile(id, name, title, fill) {
+// cột chỉnh bị kéo hẹp. `fill` = phần tử đặt vào khung xem trước, `onPick` =
+// việc làm khi bấm (hộp mừng cưới và dạng lời chúc dùng chung ô này).
+function _pickTile(id, name, title, fill, onPick) {
   const btn = document.createElement("button");
   btn.type = "button";
   // cx-pal-item-pick: ô này BẤM để chọn chứ không kéo như hoạ tiết/thành phần.
   btn.className = "cx-pal-item cx-pal-item-prev cx-pal-item-pick";
-  btn.dataset.giftId = id;
+  btn.dataset.pickId = id;
   btn.title = title;
 
   const prev = document.createElement("span");
@@ -1077,7 +1131,7 @@ function _giftTile(id, name, title, fill) {
   cap.textContent = name;
   btn.append(prev, cap);
 
-  btn.addEventListener("click", () => pickGiftBox(id));
+  btn.addEventListener("click", () => onPick(id));
   return btn;
 }
 
@@ -1089,18 +1143,21 @@ function _renderGiftPalette() {
     GIFT_FIXED.forEach((o) => {
       const i = document.createElement("i");
       i.setAttribute("data-icon", o.icon);
-      grid.appendChild(_giftTile(o.id, o.name, o.name + " — " + o.desc, i));
+      grid.appendChild(
+        _pickTile(o.id, o.name, o.name + " — " + o.desc, i, pickGiftBox),
+      );
     });
     (window.CX_GIFT_BOXES || []).forEach((b) => {
       const img = document.createElement("img");
       img.src = b.src;
       img.alt = b.name;
       img.loading = "lazy";
-      const btn = _giftTile(
+      const btn = _pickTile(
         b.id,
         b.name,
         b.name + (b.desc ? " — " + b.desc : ""),
         img,
+        pickGiftBox,
       );
       // Nền ca-rô cho thấy phần trong suốt của ảnh hộp — chỉ ở khung xem trước,
       // để dòng tên bên dưới vẫn nằm trên nền trắng.
@@ -1116,7 +1173,7 @@ function _syncGiftTiles() {
   const cur = _giftBoxId();
   document
     .querySelectorAll("#cx-gift-palette .cx-pal-item")
-    .forEach((b) => b.classList.toggle("is-on", (b.dataset.giftId || "") === cur));
+    .forEach((b) => b.classList.toggle("is-on", (b.dataset.pickId || "") === cur));
 }
 
 function pickGiftBox(id) {
@@ -1134,6 +1191,99 @@ function pickGiftBox(id) {
   win?.postMessage({ type: "cx-focus", key: "gift" }, "*");
 }
 window.pickGiftBox = pickGiftBox;
+
+// ─── Lời chúc: chọn cách hiện lời chúc của khách mời ────────────────────────
+// Hai dạng, lưu ở _themeSetting.wishes_mode (rỗng = Livestream, dạng mặc định
+// xưa nay): runtime ở core/helpers/wishes-helper.js. Áp thẳng vào khung xem
+// trước bằng postMessage như hộp mừng cưới, không nạp lại.
+
+function openWishPanel() {
+  if (_addCardBlocked("wishes")) return;
+  document.getElementById("theme-line-editor")?.classList.add("hidden");
+  document.getElementById("theme-addtext-panel")?.classList.add("hidden");
+  document.getElementById("theme-decor-panel")?.classList.add("hidden");
+  document.getElementById("theme-elements-panel")?.classList.add("hidden");
+  document.getElementById("theme-gift-panel")?.classList.add("hidden");
+  _hideElementEditor();
+  document.getElementById("theme-main-controls")?.classList.add("hidden");
+  document.getElementById("theme-edit-hint")?.classList.add("hidden");
+  document.getElementById("theme-wish-panel")?.classList.remove("hidden");
+  _resetCtrlScroll();
+  _renderWishPalette();
+  if (window.lucide) lucide.createIcons();
+}
+window.openWishPanel = openWishPanel;
+
+function closeWishPanel() {
+  document.getElementById("theme-wish-panel")?.classList.add("hidden");
+  document.getElementById("theme-main-controls")?.classList.remove("hidden");
+  _resetCtrlScroll();
+  _initEditHint();
+}
+window.closeWishPanel = closeWishPanel;
+
+// `id` chính là giá trị lưu — rỗng = Livestream (không lưu gì cả).
+const WISH_MODES = [
+  {
+    id: "",
+    name: "Livestream",
+    icon: "radio",
+    desc: "Lời chúc trôi lên ở góc màn hình, luôn thấy",
+  },
+  {
+    id: "comment",
+    name: "Bình luận",
+    icon: "message-square",
+    desc: "Một mục ngay trên hộp mừng cưới, liệt kê hết và tự cuộn",
+  },
+];
+
+function _wishModeId() {
+  const v = _themeSetting.wishes_mode;
+  return v === "comment" ? "comment" : "";
+}
+
+function _renderWishPalette() {
+  const grid = document.getElementById("cx-wish-palette");
+  if (!grid) return;
+  if (grid.dataset.rendered !== "1") {
+    grid.textContent = "";
+    WISH_MODES.forEach((o) => {
+      const i = document.createElement("i");
+      i.setAttribute("data-lucide", o.icon);
+      grid.appendChild(
+        _pickTile(o.id, o.name, o.name + " — " + o.desc, i, pickWishMode),
+      );
+    });
+    grid.dataset.rendered = "1";
+  }
+  _syncWishTiles();
+}
+
+function _syncWishTiles() {
+  const cur = _wishModeId();
+  document
+    .querySelectorAll("#cx-wish-palette .cx-pal-item")
+    .forEach((b) => b.classList.toggle("is-on", (b.dataset.pickId || "") === cur));
+}
+
+function pickWishMode(id) {
+  if (id) _themeSetting.wishes_mode = id;
+  else delete _themeSetting.wishes_mode;
+  _syncWishTiles();
+  _setDirty(true, "theme");
+
+  _savePreviewData();
+  const win = _lineIframe()?.contentWindow;
+  win?.postMessage({ type: "cx-wish-mode", value: id || "" }, "*");
+  // Dạng bình luận có mục riêng để cuộn tới; dạng livestream ghim đáy khung nhìn
+  // nên chỉ cần cuộn qua màn mở đầu là dải hiện ra (xem CX_WISH_SHOW_AT).
+  win?.postMessage(
+    { type: "cx-focus", key: id === "comment" ? "wishes" : "gift" },
+    "*",
+  );
+}
+window.pickWishMode = pickWishMode;
 
 // Nạp lại khung xem trước rồi cuộn tới mục vừa đổi. Đợi thêm một nhịp vẽ: lúc
 // 'load' bắn, thiệp vẫn đang dựng nội dung nên chưa có gì để cuộn tới.
@@ -1183,6 +1333,7 @@ function openElementEditor(msg) {
   document.getElementById("theme-decor-panel")?.classList.add("hidden");
   document.getElementById("theme-elements-panel")?.classList.add("hidden");
   document.getElementById("theme-gift-panel")?.classList.add("hidden");
+  document.getElementById("theme-wish-panel")?.classList.add("hidden");
   document.getElementById("theme-main-controls")?.classList.add("hidden");
   document.getElementById("theme-edit-hint")?.classList.add("hidden");
   document.getElementById("theme-element-editor")?.classList.remove("hidden");
@@ -1373,6 +1524,7 @@ function _openLineEditor(msg) {
   document.getElementById("theme-edit-hint")?.classList.add("hidden");
   document.getElementById("theme-elements-panel")?.classList.add("hidden");
   document.getElementById("theme-gift-panel")?.classList.add("hidden");
+  document.getElementById("theme-wish-panel")?.classList.add("hidden");
   _hideElementEditor();
   document.getElementById("theme-line-editor")?.classList.remove("hidden");
   _resetCtrlScroll();
@@ -1977,6 +2129,7 @@ function _updateSheetFade(body) {
 const CTRL_HEADS = [
   ["theme-element-editor", "cx-head-element-editor"],
   ["theme-gift-panel", "cx-head-gift"],
+  ["theme-wish-panel", "cx-head-wish"],
   ["theme-elements-panel", "cx-head-elements"],
   ["theme-decor-panel", "cx-head-decor"],
   ["theme-addtext-panel", "cx-head-addtext"],
