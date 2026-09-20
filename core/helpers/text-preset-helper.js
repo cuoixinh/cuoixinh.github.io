@@ -12,6 +12,9 @@
 //           gộp vào một dòng (dùng cho tiêu đề hai tông màu).
 //           `preview` là chữ NGẮN chỉ dùng cho ô xem trước ở bảng chọn — ô vuông
 //           nhỏ, chữ dài xuống dòng nhiều lần làm cả cụm bị thu bé lại.
+//   hidden  true = rút khỏi bảng chọn nhưng GIỮ lại định nghĩa + CSS: thiệp đã
+//           dùng mẫu đó vẫn vẽ đúng (xoá hẳn khỏi danh mục là khối rơi về một
+//           dòng chữ "Văn bản", mất hết phần đã gõ).
 //   css     style mặc định, PHẢI bọc trong .cx-tpl-<id> để không đụng mẫu khác.
 //           Cỡ chữ trong mẫu viết bằng `em` → chụm 2 ngón phóng cả cụm cân đối.
 //           Màu để `inherit`/`currentColor` cho hợp mọi theme.
@@ -31,10 +34,16 @@
           label: "Nội dung",
           multiline: true,
           def: "Văn bản mới",
+          preview: "Rất mong có bạn trong ngày vui.",
         },
       ],
-      // Không đặt phông/màu/canh lề: để nguyên của thiệp, người dùng tự chỉnh.
-      css: ".cx-tpl-basic{font-size:16px}.cx-tpl-basic__text{line-height:1.6;margin:0}",
+      // Không đặt phông/màu: để nguyên của thiệp, người dùng tự chỉnh. Canh lề
+      // khai GIỐNG HỆT mẫu headline, nếu không hai ô xem trước cạnh nhau mỗi ô
+      // một lề, nhìn như lỗi. Bề ngang do .cx-custom-block lo, đừng bó thêm ở
+      // đây (bó hai lần là khối hẹp gấp đôi).
+      css:
+        ".cx-tpl-basic{text-align:left;font-size:16px}" +
+        ".cx-tpl-basic__text{line-height:1.6;margin:0}",
     },
     {
       id: "headline",
@@ -54,11 +63,11 @@
           label: "Mô tả",
           multiline: true,
           def: "Chúng mình sẽ về chung một nhà — rất mong có bạn ở đó để ngày vui thêm trọn vẹn.",
-          preview: "Rất mong có bạn ở đó.",
+          preview: "Chúng mình sẽ về chung một nhà.",
         },
       ],
       css:
-        ".cx-tpl-headline{text-align:left;max-width:min(88%,420px);margin:0 auto;font-size:16px}" +
+        ".cx-tpl-headline{text-align:left;font-size:16px}" +
         ".cx-tpl-headline .cx-tpl-row{margin:0 0 8px}" +
         // Chữ chuyển màu: tô nền gradient rồi xén theo hình chữ. Phải là phần tử
         // INLINE thì khung nền mới ôm sát chữ (block thì gradient trải hết bề
@@ -72,6 +81,7 @@
     },
     {
       id: "poster",
+      hidden: true,
       name: "Áp phích",
       desc: "Dòng nhỏ in hoa, tiêu đề lớn, kẻ mảnh rồi tới mô tả",
       parts: [
@@ -87,7 +97,7 @@
         },
       ],
       css:
-        ".cx-tpl-poster{text-align:center;max-width:min(90%,460px);margin:0 auto;font-size:16px}" +
+        ".cx-tpl-poster{text-align:center;font-size:16px}" +
         ".cx-tpl-poster__eyebrow{font-size:.72em;letter-spacing:.32em;text-transform:uppercase;opacity:.6;margin:0 0 8px}" +
         ".cx-tpl-poster__title{font-size:2.4em;line-height:1.1;margin:0}" +
         ".cx-tpl-prev .cx-tpl-poster__title{font-size:1.6em}" +
@@ -98,6 +108,7 @@
     },
     {
       id: "subtitle",
+      hidden: true,
       name: "Phụ đề phim",
       desc: "Câu thoại nghiêng canh giữa, tên người nói bên dưới",
       parts: [
@@ -112,7 +123,7 @@
         { key: "by", tag: "p", label: "Người nói", def: "Lời của chú rể" },
       ],
       css:
-        ".cx-tpl-subtitle{text-align:center;max-width:min(88%,440px);margin:0 auto;font-size:16px}" +
+        ".cx-tpl-subtitle{text-align:center;font-size:16px}" +
         ".cx-tpl-subtitle__quote{font-size:1.15em;font-style:italic;line-height:1.6;margin:0}" +
         ".cx-tpl-subtitle__by{font-size:.7em;letter-spacing:.22em;text-transform:uppercase;opacity:.6;margin:12px 0 0}",
     },
@@ -175,7 +186,9 @@
     d.head.appendChild(s);
   }
 
-  window.CX_TEXT_PRESETS = PRESETS;
+  // Danh sách cho bảng chọn: bỏ mẫu `hidden`. Runtime vẫn tra qua
+  // CX_TEXT_PRESET_GET nên mẫu ẩn còn dựng được cho thiệp đã lưu.
+  window.CX_TEXT_PRESETS = PRESETS.filter((p) => !p.hidden);
   window.CX_TEXT_PRESET_GET = (id) => byId[id] || null;
   window.CX_TEXT_PRESET_BUILD = build;
   window.CX_TEXT_PRESET_ENSURE_STYLE = ensureStyle;

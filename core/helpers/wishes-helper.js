@@ -30,18 +30,18 @@ const CX_WISH_SENT_MS = 2600;
 // mở đầu phải sạch, dải chỉ xuất hiện khi khách đã bắt đầu đọc thiệp.
 const CX_WISH_SHOW_AT = 0.6;
 
-// Hai DẠNG hiện lời chúc, chủ thiệp chọn ở tab Giao diện (lưu ở
-// theme_setting.wishes_mode, bảng chọn ở invitation-setup/js/05-theme-panel.js):
-//   "live"    — dải nổi ghim đáy khung nhìn, lời chúc trôi lên (mặc định)
-//   "comment" — một mục nằm NGAY TRÊN hộp mừng cưới, liệt kê hết lời chúc trong
-//               một khung cuộn và tự bò khi khách xem tới chỗ đó
+// Dạng hiện lời chúc do chủ thiệp chọn ở tab Giao diện (lưu ở
+// theme_setting.wishes_mode, bảng chọn ở invitation-setup/js/05-theme-panel.js).
+// Danh mục nằm ở CX_WISH_MODES bên dưới.
 const CX_WISH_MODE_DEFAULT = "live";
 
-// Dạng comment: tốc độ tự bò (px/giây) và hai quãng nghỉ (ms) — nghỉ trước khi
-// bắt đầu / sau khi quay về đầu, và nhường bao lâu khi khách vừa tự cuộn.
+// Dạng "paged": mỗi trang mấy lời chúc.
+const CX_WISH_PAGE_SIZE = 3;
+
+// Dạng comment: tốc độ tự bò (px/giây) và quãng nghỉ (ms) trước khi bắt đầu /
+// sau khi quay về đầu.
 const CX_WISH_SEC_SPEED = 24;
 const CX_WISH_SEC_PAUSE_MS = 2200;
-const CX_WISH_SEC_IDLE_MS = 4000;
 
 // Năm ô màu của dải, FIX CỨNG theo từng mẫu: mẫu khai gì (CX_THEME.wishes) thì
 // lấy nấy, không khai thì rơi về token chung của thiệp. Mỗi khoá ứng với một
@@ -195,15 +195,67 @@ function _cxWishItemHtml(w) {
   );
 }
 
+// ── DANH MỤC DẠNG HIỆN LỜI CHÚC ─────────────────────────────────────────────
+// Thêm một dạng = thêm MỘT mục ở đây + CSS của nó; luồng init/mount/render/
+// teardown bên dưới không còn chỗ nào rẽ nhánh theo tên dạng.
+//   mount(canWrite)  dựng vỏ (dải nổi, hay mục trong thân thiệp)
+//   render(mount)    đổ danh sách _cxWishItems vào #cx-wishes-list
+//   stop()           tắt hiệu ứng đang chạy — gọi trước mỗi lượt render và khi
+//                    đổi dạng; phải chịu được gọi cả lúc chưa dựng gì
+//   section          true = dùng chung vỏ mục trong thân thiệp (_cxWishBuildSection)
+//   secClass         class thêm vào vỏ mục, để CSS nhận ra dạng
+//   pager            true = vỏ mục có thêm hàng chuyển trang
+//   inlineComposer   true = ô gửi mở sẵn (không phải viên thuốc bấm mới bung)
+//   focusKey         mục mà trang Thiết lập cuộn tới sau khi chọn dạng này
+//                    (invitation-setup/js/05-theme-panel.js đọc qua postMessage)
+const CX_WISH_MODES = {
+  live: {
+    mount: _cxWishBuildDock,
+    render: _cxWishRenderDock,
+    stop: _cxWishStopRoll,
+    inlineComposer: false,
+    focusKey: "gift",
+  },
+  comment: {
+    mount: _cxWishBuildSection,
+    render: _cxWishRenderSection,
+    stop: _cxWishStopAutoScroll,
+    section: true,
+    inlineComposer: true,
+    focusKey: "wishes",
+  },
+  paged: {
+    mount: _cxWishBuildSection,
+    render: _cxWishRenderPaged,
+    stop: _cxWishStopAutoScroll,
+    section: true,
+    secClass: "cx-wsec-paged",
+    pager: true,
+    inlineComposer: true,
+    focusKey: "wishes",
+  },
+};
+
+function _cxWishDef() {
+  return CX_WISH_MODES[_cxWishMode] || CX_WISH_MODES[CX_WISH_MODE_DEFAULT];
+}
+
 function _cxWishRender() {
   const mount = document.getElementById("cx-wishes-list");
   if (!mount) return;
+  _cxWishStopRoll();
+  _cxWishStopAutoScroll();
+  _cxWishDef().render(mount);
+}
 
+// Dừng lượt chiếu của dải nổi.
+function _cxWishStopRoll() {
   clearTimeout(_cxWishReplayTimer);
   _cxWishReplayTimer = null;
+}
 
-  if (_cxWishMode === "comment") return _cxWishRenderSection(mount);
-
+// Dạng "live": cả danh sách nằm trong một thẻ track trôi từ dưới lên.
+function _cxWishRenderDock(mount) {
   const tools = document.getElementById("cx-wdock-tools");
   if (tools) tools.hidden = _cxWishItems.length === 0;
 
@@ -273,22 +325,25 @@ function _cxWishStartRoll() {
 }
 
 // Xoay máy / đổi khổ màn là đổi chiều cao khung → phải đo và chiếu lại từ đầu.
+// Chỉ dạng nào có lượt chiếu (dải nổi) mới cần; các dạng dựng mục trong thân
+// thiệp tự co theo bố cục.
 window.addEventListener("resize", () => {
-  if (_cxWishMode === "comment") return;
+  if (_cxWishDef().render !== _cxWishRenderDock) return;
   if (!document.getElementById("cx-wishes-list")) return;
   clearTimeout(_cxWishResizeTimer);
   _cxWishResizeTimer = setTimeout(_cxWishStartRoll, 200);
 });
 
-// ── Dạng COMMENT: một mục trong thân thiệp, ngay trên hộp mừng cưới ─────────
+// ── Vỏ MỤC trong thân thiệp (dạng comment + paged), ngay trên hộp mừng cưới ──
 // Liệt kê HẾT lời chúc trong một khung cuộn; khách cuộn tới chỗ này thì danh
-// sách tự bò xuống, tới đáy nghỉ một nhịp rồi về đầu. Khách tự cuộn thì nhường
-// CX_WISH_SEC_IDLE_MS mới chạy tiếp.
+// sách tự bò xuống, tới đáy nghỉ một nhịp rồi về đầu. Bò liên tục, KHÔNG dừng
+// theo cử chỉ của khách: rê chuột hay lỡ cuộn ngang qua mà dải đứng sững lại
+// mấy giây thì trông như hỏng.
 
 let _cxWishSecIO = null;
 let _cxWishSecRaf = null;
 let _cxWishSecOn = false;
-// Mốc thời gian (ms) được phép bò tiếp — dùng cho cả nhịp nghỉ lẫn lúc nhường.
+// Mốc thời gian (ms) được phép bò tiếp — nhịp nghỉ đầu lượt và sau khi về đầu.
 let _cxWishSecWait = 0;
 
 function _cxWishStopAutoScroll() {
@@ -322,14 +377,6 @@ function _cxWishWatchAutoScroll(box) {
   _cxWishStopAutoScroll();
   if (_cxWishReduceMotion() || !window.IntersectionObserver) return;
 
-  // Khách vừa tự cuộn / chạm vào danh sách → nhường quyền điều khiển một lúc.
-  const hold = () => {
-    _cxWishSecWait = Date.now() + CX_WISH_SEC_IDLE_MS;
-  };
-  ["pointerdown", "wheel", "touchmove"].forEach((ev) =>
-    box.addEventListener(ev, hold, { passive: true }),
-  );
-
   _cxWishSecIO = new IntersectionObserver(
     (ents) => {
       const vis = ents.some((e) => e.isIntersecting);
@@ -349,21 +396,96 @@ function _cxWishWatchAutoScroll(box) {
   _cxWishSecIO.observe(box);
 }
 
-function _cxWishRenderSection(mount) {
-  _cxWishStopAutoScroll();
-
+// Tiêu đề mục (kèm số lời chúc) — dùng chung cho mọi dạng có vỏ mục.
+function _cxWishSyncSecTitle() {
   const title = document.getElementById("cx-wsec-title");
-  if (title)
-    title.textContent = _cxWishItems.length
-      ? `Lời chúc · ${_cxWishItems.length}`
-      : "Lời chúc";
+  if (!title) return;
+  title.textContent = _cxWishItems.length
+    ? `Lời chúc · ${_cxWishItems.length}`
+    : "Lời chúc";
+}
 
-  mount.classList.toggle("is-empty", _cxWishItems.length === 0);
-  mount.innerHTML = _cxWishItems.length
-    ? _cxWishItems.map(_cxWishItemHtml).join("")
-    : '<div class="cx-wsec-empty cx-t">Chưa có lời chúc nào — bạn gửi lời đầu tiên nhé!</div>';
+const CX_WISH_EMPTY_HTML =
+  '<div class="cx-wsec-empty cx-t">Chưa có lời chúc nào — bạn gửi lời đầu tiên nhé!</div>';
 
+// Đổ một mảng lời chúc vào khung; mảng rỗng thì thay bằng dòng mời gửi.
+function _cxWishFillList(mount, items) {
+  mount.classList.toggle("is-empty", items.length === 0);
+  mount.innerHTML = items.length
+    ? items.map(_cxWishItemHtml).join("")
+    : CX_WISH_EMPTY_HTML;
+}
+
+// Dạng "comment": liệt kê HẾT trong một khung cuộn, tự bò khi khách xem tới.
+function _cxWishRenderSection(mount) {
+  _cxWishSyncSecTitle();
+  _cxWishFillList(mount, _cxWishItems);
   if (_cxWishItems.length > 1) _cxWishWatchAutoScroll(mount);
+}
+
+// ── Dạng "paged": mỗi lần một trang, khách tự bấm sang ──────────────────────
+// Không tự chạy: dạng này dành cho người muốn đọc kỹ, danh sách đứng yên cho
+// tới khi bấm. Trang hiện tại giữ trong _cxWishPage và luôn được kẹp lại theo số
+// trang thật — danh sách dài ra (khách vừa gửi) hay ngắn đi đều không kẹt.
+let _cxWishPage = 0;
+
+function _cxWishPageCount() {
+  return Math.max(1, Math.ceil(_cxWishItems.length / CX_WISH_PAGE_SIZE));
+}
+
+function _cxWishRenderPaged(mount) {
+  _cxWishSyncSecTitle();
+  const pages = _cxWishPageCount();
+  _cxWishPage = Math.min(Math.max(_cxWishPage, 0), pages - 1);
+  const from = _cxWishPage * CX_WISH_PAGE_SIZE;
+  _cxWishFillList(mount, _cxWishItems.slice(from, from + CX_WISH_PAGE_SIZE));
+  _cxWishSyncPager(pages);
+}
+
+// Hàng chuyển trang: hai nút + dãy chấm. Chấm chỉ để nhìn cho biết đang ở đâu và
+// bấm nhảy thẳng; nhiều trang quá thì nút vẫn là đường đi chính nên không cắt.
+function _cxWishSyncPager(pages) {
+  const bar = document.getElementById("cx-wish-pager");
+  if (!bar) return;
+  bar.hidden = _cxWishItems.length <= CX_WISH_PAGE_SIZE;
+  const dots = bar.querySelector(".cx-wpage-dots");
+  if (dots)
+    dots.innerHTML = Array.from({ length: pages }, (_, i) =>
+      [
+        '<button type="button" class="cx-wpage-dot' +
+          (i === _cxWishPage ? " is-on" : "") +
+          '"',
+        `data-w-page="${i}" aria-label="Trang ${i + 1}"></button>`,
+      ].join(" "),
+    ).join("");
+  const prev = bar.querySelector('[data-w-page="prev"]');
+  const next = bar.querySelector('[data-w-page="next"]');
+  if (prev) prev.disabled = _cxWishPage <= 0;
+  if (next) next.disabled = _cxWishPage >= pages - 1;
+}
+
+function _cxWishGoPage(to) {
+  const pages = _cxWishPageCount();
+  const n = to === "prev" ? _cxWishPage - 1 : to === "next" ? _cxWishPage + 1 : +to;
+  const next = Math.min(Math.max(n, 0), pages - 1);
+  if (next === _cxWishPage) return;
+  _cxWishPage = next;
+  const mount = document.getElementById("cx-wishes-list");
+  if (mount) _cxWishRenderPaged(mount);
+}
+
+function _cxWishPagerHtml() {
+  return (
+    '<div class="cx-wpage" id="cx-wish-pager" hidden>' +
+    '<button type="button" class="cx-wpage-btn" data-w-page="prev" aria-label="Trang trước">' +
+    '<i data-lucide="chevron-left" style="width:16px;height:16px"></i>' +
+    "</button>" +
+    '<span class="cx-wpage-dots"></span>' +
+    '<button type="button" class="cx-wpage-btn" data-w-page="next" aria-label="Trang sau">' +
+    '<i data-lucide="chevron-right" style="width:16px;height:16px"></i>' +
+    "</button>" +
+    "</div>"
+  );
 }
 
 // Mục nằm ở ĐÂU: thêm vào CUỐI thân thiệp rồi đẩy lên trước hộp mừng cưới bằng
@@ -403,19 +525,28 @@ function _cxWishBuildSection(canWrite) {
   const host = _cxWishHost();
   if (!host) return;
 
+  const def = _cxWishDef();
   const sec = document.createElement("section");
   sec.id = "cx-wish-sec";
   // cx-no-edit: mục do helper dựng, không phải chữ của mẫu để mà chỉnh tay.
-  sec.className = "cx-wsec cx-no-edit";
+  sec.className = "cx-wsec cx-no-edit" + (def.secClass ? " " + def.secClass : "");
   sec.innerHTML =
     '<div class="cx-wsec-head">' +
     '<span class="cx-wsec-title cx-a" id="cx-wsec-title">Lời chúc</span>' +
     "</div>" +
     '<div class="cx-wsec-list" id="cx-wishes-list"></div>' +
+    (def.pager ? _cxWishPagerHtml() : "") +
     _cxWishComposerHtml(canWrite);
 
   host.appendChild(sec);
   _cxWishPlaceSection();
+
+  // Uỷ quyền cho cả hàng: dãy chấm được vẽ lại mỗi lượt render.
+  if (def.pager)
+    sec.querySelector("#cx-wish-pager")?.addEventListener("click", (e) => {
+      const btn = e.target.closest?.("[data-w-page]");
+      if (btn && !btn.disabled) _cxWishGoPage(btn.dataset.wPage);
+    });
 
   // lucide không tự quét lại phần chèn động.
   window.lucide?.createIcons({ root: sec });
@@ -547,7 +678,20 @@ function _cxWishBindComposer(canWrite) {
   // Dạng comment: ô gõ mở sẵn nên phải chốt chiều cao ngay từ đầu bằng CHÍNH phép
   // đo mà _cxWishExpand dùng — để đó cho trình duyệt tự tính thì lượt bấm đầu
   // tiên lại đo ra một con số khác vài px, thấy rõ là thẻ giật lên một nhịp.
-  if (_cxWishMode === "comment") _cxWishAutoGrow(input);
+  if (_cxWishDef().inlineComposer) {
+    _cxWishAutoGrow(input);
+    // Không đo được (mục còn nằm trong #main-card đang ẩn — thiệp có bìa) thì
+    // chờ tới lúc ô thật sự có khổ rồi đo đúng một lần, không thì ô nhập mở ra
+    // với chiều cao rơi vãi và dòng placeholder khi có khi không.
+    if (!input.style.height && window.ResizeObserver) {
+      const ro = new ResizeObserver(() => {
+        if (!input.offsetWidth) return;
+        ro.disconnect();
+        _cxWishFitInput();
+      });
+      ro.observe(input);
+    }
+  }
   input.addEventListener("input", () => {
     _cxWishAutoGrow(input);
     _cxWishSyncCount(input);
@@ -560,7 +704,7 @@ function _cxWishBindComposer(canWrite) {
       _cxWishSend();
     } else if (e.key === "Escape") {
       // Dạng comment ô gõ mở sẵn, thu lại là XOÁ chữ đang viết → chỉ rời con trỏ.
-      if (_cxWishMode === "comment") input.blur();
+      if (_cxWishDef().inlineComposer) input.blur();
       else _cxWishCollapse();
     }
   });
@@ -568,7 +712,7 @@ function _cxWishBindComposer(canWrite) {
   // không lượt bấm đầu tiên chỉ bung ô ra chứ không gửi.
   send.addEventListener("click", (e) => {
     e.stopPropagation();
-    if (card.classList.contains("is-open") || _cxWishMode === "comment")
+    if (card.classList.contains("is-open") || _cxWishDef().inlineComposer)
       _cxWishSend();
     else _cxWishExpand();
   });
@@ -708,8 +852,24 @@ function _cxWishInputEl() {
 function _cxWishAutoGrow(input) {
   const line = parseFloat(getComputedStyle(input).lineHeight) || 20;
   input.style.height = "auto";
+  // Ô đang nằm trong nhánh ẩn (thiệp có bìa: #main-card còn display:none lúc
+  // dựng) thì scrollHeight = 0. Ghi "0px" vào là ô cao 0 vĩnh viễn — mở thiệp ra
+  // chỉ thấy một vạch, mất cả dòng placeholder. Trả về khổ mặc định của rows=1
+  // và đợi lượt đo sau (_cxWishFitInput, do ResizeObserver ở _cxWishBindComposer
+  // gọi khi ô hiện ra).
+  if (!input.scrollHeight) {
+    input.style.height = "";
+    return;
+  }
   input.style.height =
     Math.min(input.scrollHeight, line * CX_WISH_INPUT_ROWS) + "px";
+}
+
+// Đo lại ô nhập khi mục lời chúc vừa thật sự hiện ra (mở bìa xong). Rẻ và không
+// đụng gì nếu ô đã có khổ đúng.
+function _cxWishFitInput() {
+  const input = _cxWishInputEl();
+  if (input && !input.value) _cxWishAutoGrow(input);
 }
 
 function _cxWishCollapse() {
@@ -747,7 +907,7 @@ function _cxWishExpand() {
   // Bấm ra ngoài thì thu lại. Dùng pointerdown ở pha capture để bắt được cả cú
   // chạm rơi vào iframe/canvas của mẫu thiệp. Dạng comment thì KHÔNG: ô gõ vốn
   // mở sẵn, thu lại chỉ để xoá trắng thứ khách đang viết dở.
-  if (_cxWishMode !== "comment")
+  if (!_cxWishDef().inlineComposer)
     document.addEventListener("pointerdown", _cxWishOutside, true);
 }
 
@@ -803,6 +963,7 @@ async function _cxWishSend() {
 
     _cxWishItems.unshift(res.wish);
     _cxWishRemaining = res.remaining;
+    _cxWishPage = 0; // lời vừa gửi nằm đầu danh sách, đưa khách tới xem
     _cxWishRender();
     _cxWishCollapse();
     _cxWishSetDockText();
@@ -885,19 +1046,19 @@ function _cxWishModeOf(setting) {
   }
   const v =
     setting && typeof setting === "object" ? String(setting.wishes_mode || "") : "";
-  return v === "comment" ? "comment" : CX_WISH_MODE_DEFAULT;
+  return CX_WISH_MODES[v] ? v : CX_WISH_MODE_DEFAULT;
 }
 
 function _cxWishMount(canWrite) {
   _cxWishCanWrite = !!canWrite;
-  if (_cxWishMode === "comment") _cxWishBuildSection(canWrite);
-  else _cxWishBuildDock(canWrite);
+  _cxWishDef().mount(canWrite);
 }
 
 // Gỡ sạch mọi thứ helper đã dựng — dùng khi tắt mục lời chúc và khi đổi dạng.
 function _cxWishTeardown() {
-  clearTimeout(_cxWishReplayTimer);
-  _cxWishReplayTimer = null;
+  // Dọn hiệu ứng của MỌI dạng, không chỉ dạng đang bật: teardown cũng là bước
+  // đầu của lượt đổi dạng.
+  _cxWishStopRoll();
   _cxWishStopAutoScroll();
   _cxWishUnwatchReveal();
   ["cx-wish-dock", "cx-wdock-spacer", "cx-wish-all", "cx-wish-sec"].forEach((id) =>
@@ -912,7 +1073,7 @@ if (window.top !== window) {
     if (ev.source !== window.parent) return;
     const d = ev.data;
     if (!d || d.type !== "cx-wish-mode") return;
-    const next = d.value === "comment" ? "comment" : CX_WISH_MODE_DEFAULT;
+    const next = CX_WISH_MODES[d.value] ? d.value : CX_WISH_MODE_DEFAULT;
     if (next === _cxWishMode && document.getElementById("cx-wishes-list")) return;
     _cxWishMode = next;
     _cxWishTeardown();

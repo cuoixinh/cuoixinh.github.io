@@ -49,13 +49,12 @@
 
     <!-- Thanh chỉnh giao diện: mobile = thanh dưới full (như navbar); md+ = card
              ~1/4 bên phải, kéo rộng được theo --theme-ctrl-w (styles/_setup.css).
-             Ở mobile thanh này NỔI (absolute) đè lên thiệp chứ không chiếm chỗ
-             trong luồng: iframe cao trọn khung nên thiệp giữ đúng tỉ lệ điện
-             thoại, không bị bóp lùn theo chiều cao thanh chỉnh. Từ md+ trả về
-             static để nằm cạnh preview như cột phải. -->
+             Nằm TRONG LUỒNG ở mọi khổ: khung điện thoại fit theo chiều cao còn
+             trống (_cxPhoneFit) nên kéo thanh này cao lên là máy lùn lại chứ
+             không bị che. -->
     <div
       id="theme-controls"
-      class="absolute inset-x-0 bottom-0 z-10 md:static md:z-auto shrink-0 bg-white border-t border-gray-200 shadow-[0_-4px_16px_rgb(var(--scrim-rgb)/0.12)] md:rounded-3xl md:border md:border-gray-100 md:shadow-[0_4px_18px_rgb(var(--scrim-rgb)/0.07)]"
+      class="shrink-0 bg-white border-t border-gray-200 shadow-[0_-4px_16px_rgb(var(--scrim-rgb)/0.12)] md:rounded-3xl md:border md:border-gray-100 md:shadow-[0_4px_18px_rgb(var(--scrim-rgb)/0.07)]"
     >
       <!-- Đầu bảng + vùng cuộn DÙNG CHUNG cho mọi bảng (chung, chỉnh chữ, thêm
            văn bản, trang trí, thành phần, điều chỉnh): nhờ vậy bảng nào cũng cao
@@ -99,20 +98,9 @@
             </button>
           </div>
           <span id="cx-ch-title" class="cx-ch-title">Bộ màu</span>
-          <div class="cx-ch-side cx-ch-end">
-            <!-- Chỉ mobile: thu bảng chỉnh xuống để xem trọn thiệp (desktop cột
-                 chỉnh nằm cạnh thiệp nên không che gì). -->
-            <button
-              type="button"
-              id="cx-ch-done"
-              onclick="cxCtrlDone()"
-              class="cx-ch-done md:hidden"
-              title="Thu gọn bảng chỉnh để xem trọn thiệp"
-              aria-label="Xong"
-            >
-              <i data-lucide="check" class="w-5 h-5"></i>
-            </button>
-          </div>
+          <!-- Ô trống bên phải: giữ cho tiêu đề đứng GIỮA đầu bảng, cân với
+               nút Quay lại / Đặt lại bên trái. -->
+          <div class="cx-ch-side cx-ch-end"></div>
         </div>
       </div>
       <div class="cx-sheet">
@@ -213,9 +201,12 @@
                   ></x-combobox>
                 </div>
 
-                <!-- Cỡ chữ -->
+                <!-- Cỡ chữ + Màu chữ đứng CHUNG một hàng (xem .cx-le-duo):
+                     hai control đều ngắn, tách hai dòng chỉ tổ đội chiều cao
+                     bảng lên, che mất thiệp. Hẹp quá thì tự xuống dòng. -->
+                <div class="cx-le-duo">
                 <div class="cx-le-row">
-                  <label class="cx-le-label">Cỡ chữ</label>
+                  <label class="cx-le-label">Cỡ</label>
                   <div class="cx-le-size">
                     <x-button variant="ghost" type="button" onclick="stepLineSize(-1)" aria-label="Giảm cỡ chữ">
                       −
@@ -238,7 +229,7 @@
                 <!-- Màu — bật nút chuyển màu thì hiện thêm ô thứ hai: chữ đổ
                      từ màu ô 1 sang màu ô 2 -->
                 <div class="cx-le-row">
-                  <label class="cx-le-label">Màu chữ</label>
+                  <label class="cx-le-label">Màu</label>
                   <div class="flex items-center gap-2">
                     <div class="color-chip">
                       <input
@@ -266,7 +257,11 @@
                   </div>
                 </div>
 
-                <!-- Đậm / Nghiêng -->
+                </div>
+                <!-- /duo: Cỡ + Màu -->
+
+                <!-- Kiểu + Căn lề: hai dải nút, cũng đi chung một hàng. -->
+                <div class="cx-le-duo">
                 <div class="cx-le-row">
                   <label class="cx-le-label">Kiểu</label>
                   <div class="cx-le-seg">
@@ -297,11 +292,14 @@
                     </x-button>
                   </div>
                 </div>
+                </div>
+                <!-- /duo: Kiểu + Căn lề -->
               </div>
               <!-- /cx-le-text -->
 
               <!-- Nhóm control ẢNH (rộng/cao + giữ tỉ lệ) -->
               <div id="cx-le-image" class="hidden space-y-3 md:space-y-4">
+                <div class="cx-le-duo">
                 <div class="cx-le-row">
                   <label class="cx-le-label">Rộng</label>
                   <div class="cx-le-size">
@@ -342,6 +340,8 @@
                     </x-button>
                   </div>
                 </div>
+                </div>
+                <!-- /duo: Rộng + Cao -->
                 <label class="cx-le-check">
                   <input
                     type="checkbox"
@@ -421,7 +421,7 @@
               class="hidden space-y-3 md:space-y-4"
             >
               <p class="text-[12px] text-gray-500">
-                Cách khách thấy lời chúc; bật/tắt ở bước “Xác nhận tham dự”.
+                Cách khách thấy lời chúc
               </p>
               <div id="cx-wish-palette" class="cx-pick-grid"></div>
             </div>
@@ -529,95 +529,25 @@
           </div>
           <!-- /nội dung padding controls -->
         </div>
-        <!-- Dải mờ + mũi tên nhấp nhô báo "còn nội dung phía dưới"; cả cụm tắt
-             khi đã cuộn tới đáy (.is-end) và ở md+ (cột chỉnh tự cuộn). -->
-        <span class="cx-sheet-fade" aria-hidden="true">
-          <i data-lucide="chevrons-down"></i>
-        </span>
+        <!-- Dải trắng mờ báo "còn nội dung phía dưới"; tắt khi đã cuộn tới đáy
+             (.is-end) và ở md+ (cột chỉnh tự cuộn). -->
+        <span class="cx-sheet-fade" aria-hidden="true"></span>
       </div>
       <!-- /vùng cuộn chung -->
 
       <!-- Dải tab dưới: mỗi tab là MỘT bảng chỉnh, bấm là đổi bảng ngay tại chỗ
            (không còn lưới thẻ + nút quay lại, nhờ vậy bảng nào cũng dành trọn
            chiều cao cho nội dung). Dải cuộn ngang khi không đủ chỗ, tab đang mở
-           được _syncCtrlHead() tô và tự kéo vào tầm nhìn.
-           `data-ctab` phải trùng `key` của CTRL_VIEWS (js/05-theme-panel.js);
-           ba id add-card-* là chỗ cxSyncThemeAddCards() làm mờ tab khi mục
-           tương ứng đang tắt ở tab Thiết lập. -->
+           được _syncCtrlHead() tô và chỉ kéo vào tầm nhìn khi đang khuất.
+           Các nút do _renderCtrlTabs() (js/05-theme-panel.js) dựng từ CTRL_VIEWS
+           — thêm/đổi tên tab là sửa bên đó, đừng viết nút vào đây. -->
       <div
         id="cx-ctrl-tabs"
         class="cx-ctabs"
         role="tablist"
         aria-label="Phần cần chỉnh"
       >
-        <!-- Vệt sáng ĐỨNG YÊN giữa dải; tab trôi qua dưới nó. Chỉ bề ngang co
-             theo tab đang ở giữa (_paintTabAtCenter). -->
-        <span id="cx-ctrl-tabs-marker" class="cx-ctabs-marker" aria-hidden="true"></span>
-        <div id="cx-ctrl-tabs-track" class="cx-ctabs-track">
-          <button
-            type="button"
-            role="tab"
-            data-ctab="main"
-            onclick="cxCtrlTab('main')"
-            title="Đổi bộ màu của cả thiệp"
-            class="cx-ctab"
-          >
-            Bộ màu
-          </button>
-          <button
-            type="button"
-            role="tab"
-            data-ctab="addtext"
-            onclick="cxCtrlTab('addtext')"
-            title="Thêm khối văn bản vào thiệp"
-            class="cx-ctab"
-          >
-            Văn bản
-          </button>
-          <button
-            type="button"
-            role="tab"
-            data-ctab="decor"
-            onclick="cxCtrlTab('decor')"
-            title="Thả hoa, hoạ tiết trang trí lên thiệp"
-            class="cx-ctab"
-          >
-            Trang trí
-          </button>
-          <button
-            type="button"
-            role="tab"
-            id="add-card-elements"
-            data-ctab="elements"
-            onclick="cxCtrlTab('elements')"
-            title="Thả thẻ nhạc lên thiệp"
-            class="cx-ctab"
-          >
-            Thẻ nhạc
-          </button>
-          <button
-            type="button"
-            role="tab"
-            id="add-card-gift"
-            data-ctab="gift"
-            onclick="cxCtrlTab('gift')"
-            title="Chọn hộp quà che phần mã QR mừng cưới"
-            class="cx-ctab"
-          >
-            Hộp mừng cưới
-          </button>
-          <button
-            type="button"
-            role="tab"
-            id="add-card-wishes"
-            data-ctab="wishes"
-            onclick="cxCtrlTab('wishes')"
-            title="Chọn cách hiện lời chúc của khách mời"
-            class="cx-ctab"
-          >
-            Lời chúc
-          </button>
-        </div>
+        <div id="cx-ctrl-tabs-track" class="cx-ctabs-track"></div>
       </div>
       <!-- /dải tab -->
     </div>

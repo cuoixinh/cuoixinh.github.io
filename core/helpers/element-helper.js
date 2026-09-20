@@ -113,7 +113,7 @@
     });
   }
 
-  // Màu đi bằng CSS var (_music-player.css đọc sẵn cho nút tròn / thẻ nhạc);
+  // Màu đi bằng CSS var (_music-player.css đọc sẵn cho nút tròn);
   // class cx-tint-* để mẫu thanh ngang đè được utility Tailwind, và chỉ đè đúng
   // thứ người dùng đã chọn.
   function applyTint(node, o) {
@@ -177,16 +177,6 @@
           // có chữ nào để đổi màu.
           colors: [C.CTRL, C.CTRL_BG],
         },
-        {
-          id: "card",
-          name: "Thẻ nhạc",
-          desc: "Bìa lớn, tên bài và thanh tiến trình",
-          w: 56,
-          minW: 32,
-          maxW: 100,
-          fs: 0.055,
-          colors: [C.BG, C.TEXT, C.CTRL, C.CTRL_BG],
-        },
       ],
       options: [
         {
@@ -204,10 +194,8 @@
           C.BG,
           "rgb(var(--white-rgb))",
           (node) =>
-            paintOf(
-              node.querySelector(".cx-mp-bar") ||
-                node.querySelector(".cx-mw-card"),
-            ) || varOf(node, "--cx-mw-bg"),
+            paintOf(node.querySelector(".cx-mp-bar")) ||
+            varOf(node, "--cx-mw-bg"),
         ),
         color(
           C.TEXT,

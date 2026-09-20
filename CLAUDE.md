@@ -185,8 +185,13 @@ nằm trong DOM, `--cx-ph-w`/`--cx-scr-scale` đặt **trên từng `.cx-phone`*
 **ô nội dung** của khung chứa — `clientWidth/Height` tính cả padding, lấy thẳng là máy dính
 sát mép. Máy có trần `CX_PHONE_MAX_W`: quá đó ô màn rộng hơn 390px, tức thiệp bị phóng to
 hơn máy thật. Panel đang ẩn thì khổ bằng 0 nên `switchTab()` phải gọi lại phép đo **sau khi**
-bỏ `.hidden`. Ở tab Giao diện khung cao TRỌN vùng xem trước, thanh chỉnh mobile chỉ nổi đè
-lên (chừa chỗ cho nó là máy đổi khổ mỗi lần mở/thu bảng). Cũng ở tab đó, thiệp bị THU NHỎ
+bỏ `.hidden`. **Dưới `md` máy fit theo CHIỀU CAO**: bề ngang lấy trọn chỗ trống (chỉ chặn bởi
+`CX_PHONE_MAX_W`), thiếu chiều cao thì thân máy lùn lại — ảnh `iphone_mockup.svg` phải giữ
+`preserveAspectRatio="none"`, bỏ đi là SVG tự canh giữa theo tỉ lệ gốc trong khi ô màn tính
+bằng % nên thiệp tràn ra ngoài viền. **Từ `md` trở lên máy giữ ĐÚNG tỉ lệ** (thu cả hai
+chiều) vì thanh chỉnh là cột phải, không ăn chiều cao. Thanh chỉnh ở tab Giao diện nằm TRONG
+LUỒNG dưới khung (kéo cao lên là máy lùn thêm), nên lúc kéo hoạ tiết chỉ được làm nó MỜ chứ
+không dịch đi — bỏ chỗ của nó là máy đổi khổ giữa lúc kéo, toạ độ thả sẽ lệch. Cũng ở tab đó, thiệp bị THU NHỎ
 trong khung → toạ độ thả hoạ tiết/thành phần
 phải chia lại theo tỉ lệ (`_framePoint` ở `js/05-theme-panel.js`), lấy thẳng hiệu toạ độ màn
 là rơi lệch.
@@ -539,10 +544,15 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
 - **Lời chúc khách mời:** helper dùng chung `core/helpers/wishes-helper.js` (mọi mẫu thiệp
   nạp), lưu ở `guests.wishes` (jsonb; hạn mức 3 lời chúc/khách do Edge Function giữ, KHÔNG
   ràng buộc ở DB), công tắc `weddings.enable_wishes` nằm trong bước RSVP của trang Thiết lập.
-  **Hai DẠNG hiện lời chúc**, chủ thiệp chọn ở tab Giao diện (mục "Lời chúc", cạnh Hộp mừng
-  cưới) và lưu ở `theme_setting.wishes_mode` — rỗng = `live` (dải nổi, mô tả bên dưới),
-  `"comment"` = một mục trong thân thiệp NGAY TRÊN hộp mừng cưới, liệt kê hết lời chúc trong
-  một khung cuộn và tự bò khi khách cuộn tới. Mục đó **append cuối thân thiệp rồi đẩy lên bằng
+  **DẠNG hiện lời chúc** do chủ thiệp chọn ở tab Giao diện (mục "Lời chúc", cạnh Hộp mừng
+  cưới), lưu ở `theme_setting.wishes_mode` — rỗng = `live` (dải nổi, mô tả bên dưới),
+  `"comment"` = một mục trong thân thiệp NGAY TRÊN hộp mừng cưới liệt kê hết lời chúc trong
+  một khung cuộn và tự bò khi khách cuộn tới, `"paged"` = cũng mục đó nhưng mỗi lượt
+  `CX_WISH_PAGE_SIZE` lời chúc, khách tự bấm sang trang. **Danh mục dạng là
+  `CX_WISH_MODES`** trong helper (mỗi dạng khai `mount`/`render`/`stop` + mấy cờ vỏ mục) —
+  thêm dạng mới là thêm một mục ở đó + CSS + một dòng ở `WISH_MODES`
+  (`invitation-setup/js/05-theme-panel.js`), KHÔNG rẽ nhánh theo tên dạng ở chỗ khác.
+  Mục trong thân thiệp **append cuối thân thiệp rồi đẩy lên bằng
   flex `order`** (`_cxWishPlaceSection`) — chèn thẳng vào giữa là mọi selector `:nth-child` đã
   lưu trong `text_overrides` của các mục phía sau lệch một bậc; `applyCustomBlocks` đánh lại
   order thì gọi `window.cxWishPlace()`.

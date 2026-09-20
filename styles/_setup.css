@@ -11,41 +11,26 @@
   --nav-h: 84px;
 }
 
-/* Kéo hoạ tiết / thành phần / khối văn bản trên thiệp thì thanh chỉnh trượt xuống
-   nhường chỗ, thả tay ra là trở lại (JS gắn class, xem cx-drag-busy ở
-   core/helpers/theme-setting-helper.js). CHỈ mobile: từ md+ thanh này là cột phải
-   nằm trong luồng, giấu nó đi thì iframe nở ra → thiệp đổi khổ ngay giữa lúc kéo,
-   mà toạ độ đang tính theo khổ đo lúc bấm xuống nên hoạ tiết sẽ nhảy chỗ; với lại
-   ở đó thanh không hề che thiệp. Chiều cao kéo tay nắm nằm ở max-height của
-   .cx-sheet-body nên transition transform ở đây không giẫm lên nó. */
+/* Kéo hoạ tiết / thành phần / khối văn bản trên thiệp thì thanh chỉnh MỜ đi cho
+   thấy chỗ đang thả (JS gắn class, xem cx-drag-busy ở
+   core/helpers/theme-setting-helper.js). Chỉ đổi opacity chứ KHÔNG dịch/giấu:
+   thanh nằm trong luồng nên bỏ chỗ của nó là khung điện thoại nở ra giữa lúc
+   kéo, mà toạ độ đang tính theo khổ đo lúc bấm xuống nên hoạ tiết sẽ nhảy chỗ.
+   Chiều cao kéo tay nắm nằm ở max-height của .cx-sheet-body. */
 #theme-controls {
-  transition:
-    transform 0.16s ease,
-    opacity 0.16s ease;
+  transition: opacity 0.16s ease;
 }
 
-@media (max-width: 767px) {
-  /* Đang bám tay khi vuốt tay nắm: chạy theo biến px do JS ghi, tắt hiệu ứng
-     trượt cho khỏi chạy sau ngón. */
-  #theme-controls.cx-ctrl-slide {
-    transform: translateY(var(--cx-ctrl-off, 0px));
-    transition: none;
-  }
+#theme-controls.cx-ctrl-away {
+  opacity: 0;
+  pointer-events: none;
+}
 
-  /* Vuốt xuống hết cỡ = thu gọn, chỉ chừa lại vạch kéo. 28px phải khớp CTRL_PEEK
-     trong invitation-setup/js/05-theme-panel.js. Tính theo % nên tự đúng khi bảng
-     đổi chiều cao, không phải đo lại. */
-  #theme-controls.cx-ctrl-collapsed {
-    transform: translateY(calc(100% - 28px));
-  }
-
-  /* Khai SAU hai cái trên (cùng độ đặc hiệu) để lúc đang kéo thứ gì trên thiệp
-     thì việc dọn thanh chỉnh đi luôn thắng. */
-  #theme-controls.cx-ctrl-away {
-    transform: translateY(100%);
-    opacity: 0;
-    pointer-events: none;
-  }
+/* Vuốt tay nắm xuống hết cỡ = thu gọn: vùng cuộn đã về 0 (JS), ở đây cất nốt dải
+   tab để bảng chỉ còn đầu bảng, thiệp chiếm gần trọn màn. Panel nằm trong luồng
+   nên đây là chiều cao THẬT — khung điện thoại nở ra theo. */
+#theme-controls.cx-ctrl-collapsed #cx-ctrl-tabs {
+  display: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -397,6 +382,22 @@ input.flatpickr-input[readonly] {
   @apply flex items-center gap-3;
 }
 
+/* Hai nhóm control ngắn đi CHUNG một hàng (Cỡ + Màu, Kiểu + Căn lề, Rộng + Cao).
+   Bảng chỉnh nổi đè lên thiệp nên mỗi hàng bớt đi là thiệp lộ ra thêm ~48px.
+   basis + flex-wrap chứ không phải grid 2 cột: máy hẹp thì tự xuống dòng thay vì
+   bóp control cho tràn. Nhãn bỏ khổ cố định w-16 vì mỗi nửa chỉ còn nửa hàng. */
+.cx-le-duo {
+  @apply flex flex-wrap items-center gap-x-3 gap-y-2;
+}
+
+.cx-le-duo > .cx-le-row {
+  @apply min-w-0 flex-1 basis-[148px] gap-2;
+}
+
+.cx-le-duo .cx-le-label {
+  @apply w-auto;
+}
+
 .cx-le-label {
   @apply w-16 flex-shrink-0 text-[12px] text-gray-500;
 }
@@ -498,41 +499,26 @@ input.flatpickr-input[readonly] {
   @apply outline-none ring-2 ring-rose-200;
 }
 
-.cx-ch-done {
-  @apply inline-flex h-8 w-8 items-center justify-center rounded-full text-gray-600
-         transition-[background-color,color] duration-150;
-}
-
-.cx-ch-done:hover {
-  @apply bg-rose-50 text-rose-600;
-}
-
-.cx-ch-done:focus-visible {
-  @apply outline-none ring-2 ring-rose-200;
-}
-
 /* Dải tab dưới bảng chỉnh: mỗi tab một bảng. Cuộn ngang khi không đủ chỗ (nhãn
    không xuống dòng), tab đang mở là viên thuốc hồng — JS chỉ gạt .is-on. */
 .cx-ctabs {
   @apply relative shrink-0 border-t border-gray-100 bg-white py-2 md:py-2.5;
 
-  /* Mờ dần hai mép: mắt thấy ngay là dải còn trượt được, và tab ở giữa nổi lên
-     mà không phải vẽ thêm khung chỉ báo. */
+  /* Mờ dần hai mép: mắt thấy ngay là dải còn trượt được. Đoạn mờ phải NGẮN hơn
+     padding ngang của .cx-ctabs-track, không thì tab đầu/cuối bị mờ mất chữ. */
   mask-image: linear-gradient(
     to right,
     transparent 0,
-    #000 32px,
-    #000 calc(100% - 32px),
+    #000 12px,
+    #000 calc(100% - 12px),
     transparent 100%
   );
 }
 
-/* Dải tab là BỘ CHỌN kiểu bánh xe: tab đang mở luôn đứng giữa, cuộn ngang tới
-   đâu là chọn tới đó (JS: _initCtrlTabsDrag / _onTabsSettle). Padding hai đầu
-   do JS đo (_syncTabPads) nên tab đầu và tab cuối cũng lên giữa được — đừng đặt
-   padding ngang ở đây. */
+/* Dải tab cuộn ngang thường: bấm tab nào mở bảng đó, cuộn chỉ là cuộn. Kéo
+   bằng chuột do _initCtrlTabsDrag lo. */
 .cx-ctabs-track {
-  @apply relative z-[1] flex items-center gap-1 overflow-x-auto overscroll-x-contain;
+  @apply relative z-[1] flex items-center gap-1 overflow-x-auto overscroll-x-contain px-3;
 
   scrollbar-width: none;
   scroll-behavior: smooth;
@@ -570,30 +556,10 @@ input.flatpickr-input[readonly] {
   @apply outline-none ring-2 ring-rose-200;
 }
 
-/* Ô sáng đứng yên giữa dải — nền của tab đang chọn nằm ở ĐÂY, không nằm trên
-   tab, nên màu không chạy theo khi cuộn; chỉ bề ngang co theo chữ ở giữa. */
-.cx-ctabs-marker {
-  @apply pointer-events-none absolute left-1/2 top-1/2 rounded-full bg-rose-100;
-
-  transform: translate(-50%, -50%);
-  transition:
-    width 0.16s ease,
-    height 0.16s ease;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .cx-ctabs-marker {
-    transition: none;
-  }
-}
-
-/* Tab nằm dưới ô sáng: chỉ đổi màu chữ (nền đã có ô sáng lo). */
-.cx-ctab.is-on {
-  @apply font-semibold text-rose-600;
-}
-
+/* Tab đang mở: viên thuốc hồng. */
+.cx-ctab.is-on,
 .cx-ctab.is-on:hover {
-  @apply bg-transparent text-rose-600;
+  @apply bg-rose-100 font-semibold text-rose-600;
 }
 
 /* Mục tương ứng đang tắt ở tab Thiết lập (xem cxSyncThemeAddCards): tab mờ đi
@@ -927,7 +893,7 @@ input.flatpickr-input[readonly] {
 .cx-sheet-body {
   @apply overflow-y-auto overscroll-contain;
 
-  max-height: var(--cx-sheet-h, 200px);
+  max-height: var(--cx-sheet-h, 160px);
   /* Trượt mượt khi nhảy giữa hai mức; lúc đang bám tay thì JS gắn .is-dragging
      để tắt đi, không thì khung chạy trễ so với ngón tay. */
   transition: max-height 0.18s ease;
@@ -938,44 +904,14 @@ input.flatpickr-input[readonly] {
 }
 
 .cx-sheet-fade {
-  @apply pointer-events-none absolute inset-x-0 bottom-0 flex h-10 items-end
-         justify-center pb-1 text-gray-400 transition-opacity duration-150;
+  @apply pointer-events-none absolute inset-x-0 bottom-0 h-6
+         transition-opacity duration-150;
 
-  /* svg.lucide ăn theo font-size của cha (xem build.css) → cỡ mũi tên đặt ở đây. */
-  font-size: 16px;
   background: linear-gradient(
     to top,
     rgb(var(--white-rgb)) 15%,
     rgb(var(--white-rgb) / 0)
   );
-}
-
-/* Nhấp nhô nhẹ rồi nghỉ: đủ để mắt bắt được là còn nội dung phía dưới, không
-   nhảy liên hồi thành ra sốt ruột. */
-.cx-sheet-fade svg {
-  animation: cx-sheet-nudge 2s ease-in-out infinite;
-}
-
-@keyframes cx-sheet-nudge {
-  0%,
-  55%,
-  100% {
-    transform: translateY(0);
-  }
-
-  70% {
-    transform: translateY(3px);
-  }
-
-  85% {
-    transform: translateY(1px);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .cx-sheet-fade svg {
-    animation: none;
-  }
 }
 
 .cx-sheet-fade.is-end {
@@ -1684,9 +1620,10 @@ html.cx-rail-off {
   flex: none;
 }
 
-/* Tab Giao diện dùng lại đúng khung đó. Ở mobile khung cao TRỌN vùng xem trước
-   (tới navbar) và thanh chỉnh nổi đè lên — chừa chỗ cho thanh chỉnh là máy co
-   lại theo chiều cao bảng đang mở, thiệp đổi khổ ngay giữa lúc chỉnh. */
+/* Tab Giao diện dùng lại đúng khung đó. Ở mobile thanh chỉnh nằm dưới nó trong
+   luồng nên khung chỉ cao bằng chỗ còn lại — máy lùn đi chứ bề ngang giữ nguyên;
+   từ md+ thanh chỉnh là cột phải nên máy về đúng tỉ lệ
+   (_cxPhoneFit ở js/22-live-preview.js). */
 .cx-theme-stage {
   @apply min-w-0;
 }
@@ -1697,7 +1634,14 @@ html.cx-rail-off {
 .cx-phone {
   position: relative;
   width: var(--cx-ph-w);
-  height: calc(var(--cx-ph-w) / 0.4879);
+
+  /* Mặc định là đúng tỉ lệ ảnh — cũng là thứ desktop dùng. Dưới md, hai tab xem
+     trước ghi đè --cx-ph-fit-h ngay TRÊN .cx-phone để máy lùn lại cho vừa chiều
+     cao còn trống (_cxPhoneFit ở js/22-live-preview.js). Tên phải khác
+     --cx-ph-h của dải xem trực tiếp: biến đó khai ở .cx-setup nên kế thừa xuống
+     MỌI khung máy trong trang, trùng tên là khung nào cũng nhận chiều cao của
+     dải rồi méo hình. */
+  height: var(--cx-ph-fit-h, calc(var(--cx-ph-w) / 0.4879));
   margin: 0 auto;
 }
 
@@ -1709,6 +1653,43 @@ html.cx-rail-off {
   height: 100%;
   pointer-events: none; /* khung chỉ để nhìn — cú bấm phải xuống tới thiệp */
   filter: drop-shadow(0 18px 34px rgb(var(--shadow-panel-rgb) / 0.3));
+}
+
+/* Mobile, RIÊNG tab Giao diện: giấu vỏ máy đi để dành chỗ cho thiệp — thanh
+   chỉnh đã chiếm nửa dưới màn rồi. Tab Xem trước vẫn có vỏ (ở đó thiệp được cả
+   màn, khung máy là thứ cho thấy khách sẽ nhìn ra sao). Chỉ ẩn ẢNH VỎ: chrome
+   giả lập (.cx-pchrome-*), ô màn và phép đo khổ giữ nguyên nên thiệp vẫn dựng ở
+   390px như máy thật. */
+@media (max-width: 767px) {
+  /* Hết vỏ máy thì cũng hết lý do chừa lề quanh khung — trả sạch chỗ đó cho
+     thiệp (_cxPhoneFit trừ padding khi đo nên khổ máy tự ăn theo). */
+  .cx-theme-stage {
+    padding: 0;
+  }
+
+  .cx-theme-stage .cx-phone-frame {
+    display: none;
+  }
+
+  /* Không còn vỏ thì ô màn trải TRỌN khung và bỏ bo góc — giữ lại bo góc là chừa
+     một vành trống không còn gì che. Trần khổ máy lúc này do _cxPhoneFit hạ về
+     390px (ô màn = cả khung) để thiệp không bị phóng to hơn máy thật. */
+  .cx-theme-stage .cx-phone-screen {
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+  }
+
+  /* Dải trắng đáy chỉ để chừa thiệp khỏi vùng bo góc dưới — hết bo góc thì nó
+     thành một vệt trắng vô cớ, cắt mất một khúc thiệp. Chrome giả lập (thanh
+     trạng thái + thanh tiêu đề) cũng vậy: nó dựng lên để người xem trên máy tính
+     hình dung ra cái điện thoại, còn ở đây máy thật đã có sẵn thanh đó rồi. */
+  .cx-theme-stage .cx-ppad,
+  .cx-theme-stage .cx-pchrome {
+    display: none;
+  }
 }
 
 /* Đúng ô trong suốt của ảnh: x 15→368, y 12→773 trên khổ 383×785. */

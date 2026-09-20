@@ -1,4 +1,8 @@
-<svg width="383" height="785" viewBox="0 0 383 785" fill="none" xmlns="http://www.w3.org/2000/svg">
+<!-- preserveAspectRatio="none": khung xem trước ở tab Giao diện bóp thân máy
+     lùn lại cho vừa chiều cao còn trống; thiếu dòng này SVG tự canh giữa theo tỉ
+     lệ gốc nên viền máy co nhỏ trong khi ô màn (tính bằng %) vẫn to → thiệp tràn
+     ra ngoài viền. Khung đúng tỉ lệ thì dòng này không đổi gì. -->
+<svg width="383" height="785" viewBox="0 0 383 785" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg">
 <g clip-path="url(#clip0_2208_266)">
 <path d="M383 345C383 346.105 382.105 347 381 347L378 347L378 248L381 248C382.105 248 383 248.895 383 250L383 345Z" fill="#F0ECE3"/>
 <path opacity="0.76" d="M383 345C383 346.105 382.105 347 381 347L378 347L378 248L381 248C382.105 248 383 248.895 383 250L383 345Z" fill="url(#paint0_linear_2208_266)"/>
