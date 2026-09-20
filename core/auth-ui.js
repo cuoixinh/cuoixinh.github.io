@@ -418,8 +418,10 @@
   function requireLogin(opts) {
     opts = opts || {};
     openModal({
+      // Cùng bộ chữ với nút "Đăng nhập" trên thanh điều hướng: khách gặp đúng
+      // một popup quen thuộc, không phải mỗi chỗ một lời mời khác nhau.
       title: opts.title || "Đăng nhập",
-      subtitle: opts.subtitle || "",
+      subtitle: opts.subtitle || "Đồng bộ thiệp và đơn hàng trên mọi thiết bị của bạn",
       oauthRedirect: opts.oauthRedirect || window.location.href,
       onAuth: opts.onAuth,
     });

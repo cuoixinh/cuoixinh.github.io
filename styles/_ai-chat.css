@@ -221,7 +221,11 @@
   color: rgb(var(--text-body-rgb));
 }
 
-/* Nút tròn trên thanh tiêu đề (làm mới, đóng). */
+/* Nút tròn trên thanh tiêu đề (làm mới, đóng, lối đi nhanh): đĩa màu nhạt, icon
+   đậm. Hover chỉ làm đĩa đậm thêm MỘT NHỊP — đừng đảo màu (icon trắng trên nền
+   đặc): trên máy cảm ứng trạng thái hover dính lại sau cú chạm, nút trông như
+   đang "bật" trong khi nó chỉ là nút bấm một phát. Vì vậy luật hover cũng bọc
+   trong @media (hover: hover), và KHÔNG có luật :active/:focus đổi màu nào. */
 .aichat-head-btn {
   @apply flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition;
 
@@ -229,9 +233,10 @@
   background: rgb(var(--brand-primary-rgb) / 0.22);
 }
 
-.aichat-head-btn:hover {
-  color: rgb(var(--white-rgb));
-  background: rgb(var(--brand-accent-rgb));
+@media (hover: hover) {
+  .aichat-head-btn:hover {
+    background: rgb(var(--brand-primary-rgb) / 0.42);
+  }
 }
 
 .aichat-head-btn:disabled {
@@ -532,16 +537,13 @@
 }
 
 /* ── Câu hỏi gợi ý ─────────────────────────────────────────────────────────── */
-/* Một HÀNG NGANG cuộn được (không xuống dòng): thẻ gợi ý là hình vuông bo góc,
-   icon nằm trên nhãn — bốn câu hỏi luôn ở cùng một dòng dù bảng hẹp. Thanh cuộn
-   giấu đi, vuốt/kéo ngang vẫn chạy. */
-
-/* Khung bọc: hàng cuộn nằm trong, còn màn mờ và hai mũi tên phủ LÊN hai mép —
-   chúng absolute nên hàng thẻ rộng đúng bằng bảng chat, không đội thêm chỗ.
+/* Dải chip pill TỰ XUỐNG DÒNG (không cuộn ngang, không mũi tên): cả bốn gợi ý
+   phải thấy được cùng lúc. Chữ trên chip chính là câu gửi đi nên chip dài, hàng
+   nào chứa không nổi thì chip tụt xuống dòng dưới. Cả dải dùng CHUNG một màu.
    Lề ngang khớp thẻ ô nhập (12px) để hai mép thẳng cột. */
 
 .aichat-sugwrap {
-  @apply relative shrink-0 px-3 pb-3 pt-1;
+  @apply shrink-0 px-3 pb-2 pt-1;
 }
 
 /* Khai lại display cho thuộc tính `hidden` (renderSuggests đặt sau câu hỏi đầu):
@@ -551,170 +553,65 @@
   display: none;
 }
 
+/* Dòng nhãn nhỏ phía trên: nói cho khách biết hàng dưới là gợi ý bấm được chứ
+   không phải tin nhắn của XuXi. */
+.aichat-sug-hd {
+  @apply mb-1.5 flex items-center gap-1 px-0.5 text-[11px] font-medium;
+
+  color: rgb(var(--text-label-rgb));
+}
+
 .aichat-suggests {
-  @apply flex gap-2 overflow-x-auto bg-transparent;
-
-  scrollbar-width: none;
+  @apply flex flex-wrap gap-1.5 bg-transparent;
 }
 
-.aichat-suggests::-webkit-scrollbar {
-  display: none;
-}
-
-/* Màn mờ ở mép: nền bảng tan dần ra trong suốt, cho thấy thẻ bị CẮT chứ không
-   phải hết hàng. Chỉ hiện phía còn thẻ khuất (cờ .is-more-* do syncSugNav đặt),
-   và không bao giờ nuốt cú chạm. */
-
-.aichat-sugfade {
-  @apply pointer-events-none absolute bottom-3 top-1 w-12 opacity-0 transition-opacity;
-}
-
-.aichat-sugfade-l {
-  left: 12px;
-  background: linear-gradient(
-    90deg,
-    rgb(var(--surface-tint-rgb)) 30%,
-    rgb(var(--surface-tint-rgb) / 0)
-  );
-}
-
-.aichat-sugfade-r {
-  right: 12px;
-  background: linear-gradient(
-    270deg,
-    rgb(var(--surface-tint-rgb)) 30%,
-    rgb(var(--surface-tint-rgb) / 0)
-  );
-}
-
-.aichat-sugwrap.is-more-l .aichat-sugfade-l,
-.aichat-sugwrap.is-more-r .aichat-sugfade-r {
-  @apply opacity-100;
-}
-
-/* Mũi tên cuộn: đĩa trắng nổi trên màn mờ, canh giữa theo chiều cao hàng thẻ.
-   Ẩn thì vừa trong suốt vừa không bắt chuột, để cú bấm rơi xuống thẻ bên dưới. */
-
-.aichat-sugnav {
-  @apply pointer-events-none absolute top-1/2 flex h-7 w-7 -translate-y-1/2
-         items-center justify-center rounded-full opacity-0 transition;
-
-  /* Khung bọc đệm trên 4px, dưới 12px nên tâm của nó thấp hơn tâm hàng thẻ 4px. */
-  margin-top: -4px;
-  color: rgb(var(--brand-accent-rgb));
-  background: rgb(var(--white-rgb));
-  border: 1px solid rgb(var(--brand-primary-rgb) / 0.6);
-  box-shadow: 0 2px 8px rgb(var(--shadow-brand-rgb) / 0.2);
-}
-
-.aichat-sugnav-l {
-  left: 8px;
-}
-
-.aichat-sugnav-r {
-  right: 8px;
-}
-
-.aichat-sugwrap.is-more-l .aichat-sugnav-l,
-.aichat-sugwrap.is-more-r .aichat-sugnav-r {
-  @apply pointer-events-auto cursor-pointer opacity-100;
-}
-
-.aichat-sugnav:hover {
-  color: rgb(var(--white-rgb));
-  background: rgb(var(--brand-accent-rgb));
-  border-color: rgb(var(--brand-accent-rgb));
-}
-
-/* Thẻ gợi ý dựng theo lối thẻ sản phẩm: TRANH ở trên, nhãn ở dưới trên mặt
-   trắng. Mỗi thẻ một màu riêng qua --sug-c (token --info-N-rgb ở _colors.css, do
-   renderSuggests truyền vào THEO VỊ TRÍ) — màu chỉ nằm ở ô tranh và viền, chữ
-   giữ màu chung. Thẻ không còn lề trong: mặt tranh chạy sát mép nên `overflow`
-   phải cắt theo góc bo. */
+/* Chip: pill trắng CHỈ CÓ CHỮ, cả dải DÙNG CHUNG MỘT MÀU (hồng đậm nhấn) —
+   chữ và viền cùng tông nên bốn chip đọc như một khối, không còn mỗi cái một
+   màu. Viền mảnh thay cho bóng đổ nặng: dải chip đứng ngay trên thẻ ô nhập nên
+   hai khối phải cùng chất liệu (mặt trắng + viền mảnh). */
 .aichat-chip {
-  @apply relative flex w-[144px] shrink-0 cursor-pointer flex-col overflow-hidden p-0
-         text-left text-xs leading-snug;
+  @apply flex cursor-pointer items-center whitespace-nowrap px-3.5 py-1.5
+         text-left text-sm leading-snug;
 
-  border-radius: 16px;
+  border-radius: 999px;
   background: rgb(var(--white-rgb));
-  border: 1px solid rgb(var(--sug-c, var(--brand-primary-rgb)) / 0.32);
-  color: rgb(var(--text-heading-rgb));
-  box-shadow: 0 8px 18px -16px rgb(var(--sug-c, var(--brand-primary-rgb)) / 0.9);
-  transition: box-shadow 0.25s ease, border-color 0.25s ease;
+  border: 1px solid rgb(var(--brand-accent-rgb) / 0.45);
+  color: rgb(var(--brand-accent-rgb));
+  box-shadow: 0 1px 3px rgb(var(--shadow-brand-rgb) / 0.08);
+  transition: border-color 0.2s ease, background-color 0.2s ease,
+    box-shadow 0.2s ease;
+  /* Hiện lần lượt lúc dựng; --sug-d do renderSuggests đặt theo vị trí. */
+  animation: aichatChipIn 0.32s ease-out both;
+  animation-delay: var(--sug-d, 0ms);
 }
 
-/* Hover CHỈ đổi viền và bóng — thẻ đứng yên tại chỗ. Nhấc thẻ lên (translate,
-   scale) là hàng thẻ giật lên giật xuống khi rê chuột ngang qua. */
+@media (prefers-reduced-motion: reduce) {
+  .aichat-chip {
+    animation: none;
+  }
+}
+
+@keyframes aichatChipIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Hover: nền nhuộm rất nhạt, viền đậm lên. Không nhấc chip (translate/scale) —
+   chip xếp sát nhau, nhấc một cái là cả dải trông rung. */
 .aichat-chip:hover {
-  border-color: rgb(var(--sug-c, var(--brand-primary-rgb)) / 0.6);
-  box-shadow: 0 10px 22px -16px rgb(var(--sug-c, var(--brand-primary-rgb)) / 0.85);
+  background: rgb(var(--brand-accent-rgb) / 0.07);
+  border-color: rgb(var(--brand-accent-rgb));
+  box-shadow: 0 2px 8px rgb(var(--brand-accent-rgb) / 0.18);
 }
 
-/* Ô tranh thay cho tấm ảnh: nền chuyển sắc theo --sug-c, hình do SUG_ART
-   (js/ai-assistant.js) vẽ. Tỉ lệ 2:1 khớp viewBox 120×60 nên hình không méo
-   cũng không bị cắt. */
-.aichat-chip-art {
-  @apply relative block w-full overflow-hidden;
-
-  aspect-ratio: 2 / 1;
-  background: linear-gradient(
-    160deg,
-    rgb(var(--sug-c, var(--brand-primary-rgb)) / 0.24),
-    rgb(var(--sug-c, var(--brand-primary-rgb)) / 0.07)
-  );
-}
-
-/* Ranh giới tranh ↔ chữ TAN DẦN chứ không kẻ nét: mặt trắng của thân thẻ dâng
-   ngược lên nuốt dần nửa dưới ô tranh, nên không có cạnh sắc nào cắt ngang thẻ.
-   Phủ lên cả hình vẽ nên đáy hình cũng chìm theo — cố ý, đó là chỗ giao. */
-.aichat-chip-art::after {
-  content: "";
-
-  @apply pointer-events-none absolute inset-x-0 bottom-0 h-[45%];
-
-  background: linear-gradient(
-    to bottom,
-    rgb(var(--white-rgb) / 0),
-    rgb(var(--white-rgb) / 0.5) 60%,
-    rgb(var(--white-rgb))
-  );
-}
-
-.aichat-chip-art svg {
-  @apply block h-full w-full;
-}
-
-.aichat-chip-txt {
-  @apply block px-2.5 pb-2.5 pt-2 font-medium;
-}
-
-/* Bốn lớp màu dùng chung cho MỌI hình ở SUG_ART, nhờ đó mỗi thẻ tự ăn theo màu
-   của nó: a-w mảng trắng (mặt thiệp, mặt máy), a-c mảng đậm, a-t mảng nhạt,
-   a-o nét viền màu, a-k nét trắng. */
-.aichat-chip-art .a-w {
-  fill: rgb(var(--white-rgb));
-}
-
-.aichat-chip-art .a-c {
-  fill: rgb(var(--sug-c, var(--brand-accent-rgb)) / 0.75);
-}
-
-.aichat-chip-art .a-t {
-  fill: rgb(var(--sug-c, var(--brand-accent-rgb)) / 0.3);
-}
-
-.aichat-chip-art .a-o {
-  fill: none;
-  stroke: rgb(var(--sug-c, var(--brand-accent-rgb)) / 0.5);
-  stroke-width: 2;
-}
-
-.aichat-chip-art .a-k {
-  fill: none;
-  stroke: rgb(var(--white-rgb));
-  stroke-width: 3.4;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+.aichat-chip:active {
+  background: rgb(var(--brand-accent-rgb) / 0.14);
 }
 
 
@@ -728,8 +625,20 @@
   @apply flex shrink-0 items-center gap-1;
 }
 
+/* Messenger đi theo màu thương hiệu của nó (xanh NHẠT, không phải xanh đặc) để
+   tách khỏi hai nút hồng bên cạnh — đây là lối nhắn cho người thật. Nền/hover
+   theo đúng nhịp của .aichat-head-btn, chỉ đổi tông. */
 .aichat-navbtn {
   @apply cursor-pointer no-underline;
+
+  color: rgb(var(--social-messenger-from-rgb));
+  background: rgb(var(--social-messenger-from-rgb) / 0.14);
+}
+
+@media (hover: hover) {
+  .aichat-navbtn:hover {
+    background: rgb(var(--social-messenger-from-rgb) / 0.28);
+  }
 }
 
 .aichat-note {

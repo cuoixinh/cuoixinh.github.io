@@ -23,11 +23,7 @@ function _aiShowError(e, fallback) {
         "/my-invitations/?urlRedirect=" + encodeURIComponent(window.location.href);
       return;
     }
-    AuthUI.requireLogin({
-      title: "Đăng nhập để dùng tiếp",
-      subtitle: "Đăng nhập xong bạn bấm lại nút AI vừa rồi nhé",
-      onAuth: () => _refreshLoginState(),
-    });
+    AuthUI.requireLogin({ onAuth: () => _refreshLoginState() });
   });
 }
 

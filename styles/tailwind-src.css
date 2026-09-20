@@ -489,8 +489,7 @@ html.cx-landing {
 
 /* MỘT hàng, cuộn ngang — xuống dòng thì cụm chữ ở màn đầu dài thêm một nhịp.
    Mép có màn mờ để thấy là còn thẻ bị cắt chứ không phải hết hàng; cùng cách
-   với dải chip trong khung chat (.aichat-suggests), khác ở chỗ nền đây là ẢNH
-   nên phải mờ bằng mask chứ không phủ được một dải màu nền lên. Cờ .is-more-*
+   nền đây là ẢNH nên phải mờ bằng mask chứ không phủ được một dải màu nền lên. Cờ .is-more-*
    do cxSyncHeroChips ở js/page-setup.js đặt. */
 
 .hero-chips {

@@ -17,6 +17,13 @@
   const KNOWN_KEY = "cx_aichat_known"; // sessionStorage: thông tin thiệp đã thu được
   const CARD_KEY = buildCacheKey("chat_card"); // localStorage: bàn giao sang trang thiết lập
   const DRAFT_KEY = "cx_aichat_draft"; // sessionStorage: nháp gắn với cuộc chat này
+  const CONV_KEY = "cx_aichat_cid"; // sessionStorage: mã CUỘC trò chuyện đang mở —
+  // sinh ngay khi mở cuộc mới (kể cả lúc bấm Làm mới), để thứ cất riêng ra (câu
+  // chờ đăng nhập) biết mình thuộc về cuộc nào
+  const PENDING_KEY = "cx_aichat_pending"; // sessionStorage: câu bị chặn vì hết lượt,
+  // chờ đăng nhập xong gửi lại (OAuth rời trang rồi quay lại nên phải cất ra ngoài biến)
+  const PENDING_TTL = 15 * 60 * 1000; // quá hạn thì bỏ: đăng nhập ở phiên khác mà tự gửi
+  // lại câu cũ là khách không hiểu vì đâu mà có
   const MAX_KEEP = 20; // số tin nhắn giữ lại (server chỉ đọc 20 tin cuối)
   const MAX_LEN = 800; // khớp MAX_MSG_LEN của Edge Function
 
@@ -25,62 +32,15 @@
     "Bạn muốn **tạo thiệp cưới** hay cần hỏi gì về Cưới Xinh? Nói với mình một " +
     "câu là được.";
 
-  // Thẻ gợi ý ở hàng ngang dưới đoạn chat: `text` vừa là nhãn vừa là câu gửi đi
-  // nên đừng tách làm hai. `art` chọn tranh ở SUG_ART.
+  // Chip gợi ý dưới đoạn chat: chữ trên chip cũng chính là câu gửi đi nên đừng
+  // tách làm hai. Chip chỉ có CHỮ và cả dải cùng một màu (khai ở
+  // styles/_ai-chat.css), thêm gợi ý chỉ cần thêm một câu vào đây.
   const SUGGESTS = [
-    { text: "Tạo thiệp cưới cho mình nhé", art: "create" },
-    { text: "Thiệp có giá bao nhiêu vậy?", art: "price" },
-    { text: "Thiệp cưới có những gì?", art: "inside" },
-    { text: "Mình có thể dùng thử được không?", art: "try" },
+    "Tạo thiệp cưới cho mình nhé",
+    "Thiệp có giá bao nhiêu vậy?",
+    "Thiệp cưới có những gì?",
+    "Mình có thể dùng thử được không?",
   ];
-
-  // Tranh ở đầu mỗi thẻ gợi ý — SVG viết tay, KHÔNG phải icon lucide: đây là hình
-  // nhiều mảng chứ không phải glyph một nét. Mọi hình vẽ trong khung 120×60; ô
-  // tranh nới viewBox rộng hơn khung đó (xem SUG_VIEWBOX) nên hình nhỏ lại và
-  // đứng hơi cao, chừa chỗ cho dải trắng tan dần ở đáy. Màu lấy từ --sug-c của
-  // chính thẻ qua các lớp .a-* khai ở styles/_ai-chat.css — đừng ghi cứng mã màu.
-  // Khung nhìn của ô tranh: rộng hơn hình (120×60) nên hình chỉ chiếm 2/3 ô, và
-  // lệch lên trên vì chừa dưới nhiều hơn chừa trên. Giữ đúng tỉ lệ 2:1 của ô,
-  // sai tỉ lệ là hình méo.
-  const SUG_VIEWBOX = "-30 -8 180 90";
-
-  const SUG_ART = {
-    // Thiệp cưới đang dựng: mặt thiệp + trái tim + hai ánh lấp lánh.
-    create:
-      '<path class="a-t" d="M26 12l1.7 4.6L32 18l-4.3 1.4L26 24l-1.7-4.6L20 18l4.3-1.4z"/>' +
-      '<path class="a-t" d="M96 34l1.3 3.5L100 39l-3.7 1.1L96 44l-1.3-3.5L92 39l3.7-1.1z"/>' +
-      '<rect class="a-w" x="38" y="8" width="44" height="44" rx="7"/>' +
-      '<path class="a-c" d="M60 20.6c-2.4-4.3-8.2-2.6-8.2 1.3 0 3 3.9 5.4 8.2 8.4 4.3-3 8.2-5.4 8.2-8.4 0-3.9-5.8-5.6-8.2-1.3z"/>' +
-      '<rect class="a-t" x="46" y="36" width="28" height="3" rx="1.5"/>' +
-      '<rect class="a-t" x="51" y="43" width="18" height="3" rx="1.5"/>',
-    // Giá: đồng xu nấp sau một cái thẻ giá.
-    price:
-      '<circle class="a-t" cx="28" cy="42" r="11"/>' +
-      '<circle class="a-w" cx="28" cy="42" r="6"/>' +
-      '<g transform="rotate(-10 62 30)">' +
-      '<path class="a-w" d="M38 30l8-13a6 6 0 0 1 5-3h29a6 6 0 0 1 6 6v20a6 6 0 0 1-6 6H51a6 6 0 0 1-5-3z"/>' +
-      '<circle class="a-c" cx="52" cy="30" r="3.5"/>' +
-      '<rect class="a-t" x="61" y="25" width="21" height="3.5" rx="1.75"/>' +
-      '<rect class="a-t" x="61" y="33" width="13" height="3.5" rx="1.75"/>' +
-      "</g>",
-    // Thiệp có những gì: màn điện thoại xếp sẵn ảnh bìa, dòng chữ và hai ô mục.
-    inside:
-      '<circle class="a-t" cx="23" cy="20" r="9"/>' +
-      '<circle class="a-t" cx="98" cy="40" r="7"/>' +
-      '<rect class="a-w" x="44" y="3" width="32" height="54" rx="8"/>' +
-      '<rect class="a-c" x="48" y="8" width="24" height="14" rx="4"/>' +
-      '<rect class="a-t" x="48" y="26" width="24" height="3" rx="1.5"/>' +
-      '<rect class="a-t" x="48" y="32" width="16" height="3" rx="1.5"/>' +
-      '<rect class="a-t" x="48" y="39" width="11" height="10" rx="3"/>' +
-      '<rect class="a-t" x="61" y="39" width="11" height="10" rx="3"/>',
-    // Dùng thử: mặt thiệp còn để trống (nét đứt) kèm dấu tích đã xong.
-    try:
-      '<rect class="a-w" x="28" y="8" width="58" height="44" rx="8"/>' +
-      '<rect class="a-o" x="34" y="14" width="46" height="32" rx="6" stroke-dasharray="6 5"/>' +
-      '<path class="a-c" d="M57 25.6c-2-3.6-6.8-2.2-6.8 1.1 0 2.5 3.2 4.5 6.8 7 3.6-2.5 6.8-4.5 6.8-7 0-3.3-4.8-4.7-6.8-1.1z"/>' +
-      '<circle class="a-c" cx="86" cy="42" r="12"/>' +
-      '<path class="a-k" d="M80.5 42l4 4 7.5-8"/>',
-  };
 
   // Lối đi nhanh, dựng thành nút TRÒN CHỈ CÓ ICON trên thanh tiêu đề — thay cho
   // bong bóng Messenger đã bỏ ở trang chủ nên luôn thấy được, không ẩn theo đoạn
@@ -147,17 +107,10 @@
       </div>
       <div class="aichat-body" id="aichatBody"></div>
       <div class="aichat-sugwrap" id="aichatSugWrap">
+        <p class="aichat-sug-hd">
+          <i data-lucide="lightbulb" style="width:13px;height:13px"></i>Gợi ý cho bạn
+        </p>
         <div class="aichat-suggests" id="aichatSuggests"></div>
-        <span class="aichat-sugfade aichat-sugfade-l" aria-hidden="true"></span>
-        <span class="aichat-sugfade aichat-sugfade-r" aria-hidden="true"></span>
-        <x-button variant="bare" icon-only id="aichatSugPrev" type="button"
-                  aria-label="Xem gợi ý trước" class="aichat-sugnav aichat-sugnav-l">
-          <i data-lucide="chevron-left" style="width:16px;height:16px"></i>
-        </x-button>
-        <x-button variant="bare" icon-only id="aichatSugNext" type="button"
-                  aria-label="Xem thêm gợi ý" class="aichat-sugnav aichat-sugnav-r">
-          <i data-lucide="chevron-right" style="width:16px;height:16px"></i>
-        </x-button>
       </div>
       <div class="aichat-foot">
         <div class="aichat-composer">
@@ -197,8 +150,6 @@
       body: panel.querySelector("#aichatBody"),
       suggests: panel.querySelector("#aichatSuggests"),
       sugWrap: panel.querySelector("#aichatSugWrap"),
-      sugPrev: panel.querySelector("#aichatSugPrev"),
-      sugNext: panel.querySelector("#aichatSugNext"),
       nav: panel.querySelector("#aichatNav"),
       input: panel.querySelector("#aichatInput"),
       mic: panel.querySelector("#aichatMic"),
@@ -578,7 +529,7 @@
   // Bong bóng lỗi "hết lượt AI, vui lòng đăng nhập": biến chữ "đăng nhập" trong
   // chính câu đó thành chỗ bấm mở popup đăng nhập. Bong bóng lỗi là text thuần
   // (không qua markdown) nên phải tự cắt chuỗi ra rồi chèn thẻ.
-  function linkLoginWord(bubble) {
+  function linkLoginWord(bubble, pending) {
     const txt = bubble.textContent;
     const i = txt.toLowerCase().indexOf("đăng nhập");
     if (i < 0) return;
@@ -587,23 +538,71 @@
     a.setAttribute("role", "button");
     a.tabIndex = 0;
     a.textContent = txt.slice(i, i + "đăng nhập".length);
-    a.addEventListener("click", promptLogin);
+    a.addEventListener("click", () => promptLogin(pending, bubble));
     bubble.textContent = "";
     bubble.append(txt.slice(0, i), a, txt.slice(i + "đăng nhập".length));
   }
 
-  // Đăng nhập xong thì chỉ đóng popup — khách tự hỏi lại câu vừa rồi, vì lượt cũ
-  // đã bị gỡ khỏi lịch sử ở nhánh lỗi.
-  function promptLogin() {
+  // Đăng nhập xong là GỬI LẠI luôn câu vừa bị chặn — khách không phải gõ lại.
+  // Popup đăng nhập ở ngay trang này nên gửi lại được ngay; đăng nhập bằng OAuth
+  // thì trang tải lại, câu chờ nằm ở sessionStorage và init() lo nốt.
+  function promptLogin(pending, errBubble) {
+    savePending(pending);
     if (window.AuthUI) {
       AuthUI.requireLogin({
-        title: "Đăng nhập để dùng tiếp",
-        subtitle: "Trợ lý XuXi sẽ tiếp tục giúp bạn soạn thiệp",
+        onAuth: () => {
+          errBubble?.remove();
+          // Bong bóng câu hỏi vẫn còn trên màn → gửi lại mà không vẽ thêm lần nữa.
+          resendPending({ echo: false });
+        },
       });
       return;
     }
     window.location.href =
       "/my-invitations/?urlRedirect=" + encodeURIComponent(window.location.href);
+  }
+
+  function savePending(text) {
+    try {
+      sessionStorage.setItem(
+        PENDING_KEY,
+        JSON.stringify({ text, at: Date.now(), cid: convId() }),
+      );
+    } catch {
+      /* chặn cookie: chỉ mất đường gửi lại sau khi tải lại trang */
+    }
+  }
+
+  // Lấy RA câu chờ (đọc xong là xoá — gửi lại đúng một lần). Quá hạn → bỏ.
+  function takePending() {
+    let raw = null;
+    try {
+      raw = sessionStorage.getItem(PENDING_KEY);
+      sessionStorage.removeItem(PENDING_KEY);
+    } catch {
+      return "";
+    }
+    try {
+      const p = JSON.parse(raw || "null");
+      if (!p?.text || Date.now() - (p.at || 0) > PENDING_TTL) return "";
+      // Cuộc chat đã bị Làm mới (mã khác) thì câu cũ không còn chỗ để nối vào:
+      // lịch sử model đọc là của cuộc mới, gửi tiếp là lạc đề.
+      if (p.cid !== convId()) return "";
+      return p.text;
+    } catch {
+      return "";
+    }
+  }
+
+  // opts.open: mở bảng chat trước khi gửi (lượt quay lại sau khi đăng nhập bằng
+  // OAuth — bảng đang đóng). Chỉ mở khi THẬT SỰ có câu để gửi tiếp.
+  async function resendPending(opts = {}) {
+    const text = takePending();
+    if (!text) return;
+    // Phiên mới có thật chưa: token cũ hết hạn thì lại rơi đúng vào lỗi vừa rồi.
+    if (!(await window.CXAuth?.getUser())) return;
+    if (opts.open) open();
+    ask(text, opts);
   }
 
   // Trả về cả HÀNG: lượt sau gọi .remove() là đi cả avatar lẫn ba chấm.
@@ -853,6 +852,7 @@
   }
 
   // Chip gợi ý chỉ hữu ích lúc chưa biết hỏi gì → ẩn hẳn sau câu hỏi đầu tiên.
+  // Chip TỰ XUỐNG DÒNG, không cuộn ngang: cả bốn phải thấy được cùng lúc.
   function renderSuggests() {
     els.suggests.innerHTML = "";
     if (history.length) {
@@ -860,39 +860,16 @@
       return;
     }
     els.sugWrap.hidden = false;
-    SUGGESTS.forEach((q, i) => {
+    SUGGESTS.forEach((text, i) => {
       const chip = document.createElement("button");
       chip.type = "button";
       chip.className = "aichat-chip";
-      // Màu theo VỊ TRÍ: thêm gợi ý phải có sẵn token --info-N tương ứng.
-      chip.style.setProperty("--sug-c", "var(--info-" + (i + 1) + "-rgb)");
-      chip.innerHTML =
-        '<span class="aichat-chip-art" aria-hidden="true">' +
-        '<svg viewBox="' +
-        SUG_VIEWBOX +
-        '" xmlns="http://www.w3.org/2000/svg">' +
-        (SUG_ART[q.art] || "") +
-        '</svg></span><span class="aichat-chip-txt"></span>';
-      chip.lastElementChild.textContent = q.text;
-      chip.addEventListener("click", () => ask(q.text));
+      // Hiện lần lượt, mỗi chip trễ hơn chip trước một nhịp.
+      chip.style.setProperty("--sug-d", i * 60 + "ms");
+      chip.textContent = text;
+      chip.addEventListener("click", () => ask(text));
       els.suggests.appendChild(chip);
     });
-    syncSugNav();
-  }
-
-  // Hàng thẻ gợi ý rộng hơn bảng nên cuộn ngang được. Màn mờ + mũi tên chỉ hiện
-  // ở phía CÒN thẻ bị khuất, để khách biết vuốt/bấm được; hết chỗ cuộn là tắt.
-  function syncSugNav() {
-    const el = els.suggests;
-    const max = el.scrollWidth - el.clientWidth;
-    els.sugWrap.classList.toggle("is-more-l", el.scrollLeft > 4);
-    els.sugWrap.classList.toggle("is-more-r", el.scrollLeft < max - 4);
-  }
-
-  // Một nhịp bấm = một thẻ rưỡi, đủ để thẻ kế tiếp lộ hẳn ra.
-  function sugScroll(dir) {
-    const step = Math.max(152, Math.round(els.suggests.clientWidth * 0.6));
-    els.suggests.scrollBy({ left: dir * step, behavior: "smooth" });
   }
 
   // Lối đi nhanh trên thanh tiêu đề: dựng MỘT LẦN lúc mở bảng, không đụng gì tới
@@ -917,6 +894,28 @@
   }
 
   // ── Lịch sử ───────────────────────────────────────────────────────────────
+
+  // Mã cuộc trò chuyện đang mở. Chỉ để đối chiếu nội bộ (không gửi lên server),
+  // nên một con số ngẫu nhiên là đủ.
+  function convId() {
+    try {
+      return sessionStorage.getItem(CONV_KEY) || newConvId();
+    } catch {
+      return "";
+    }
+  }
+
+  // Mở cuộc mới: gọi lúc khởi động khi chưa có cuộc nào và ở nút Làm mới. Mã đổi
+  // là mọi thứ gắn với cuộc cũ (câu chờ đăng nhập) tự hết hiệu lực.
+  function newConvId() {
+    const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+    try {
+      sessionStorage.setItem(CONV_KEY, id);
+    } catch {
+      /* chặn cookie: cuộc chat vẫn chạy, chỉ không nhớ qua lần tải lại */
+    }
+    return id;
+  }
 
   function loadHistory() {
     try {
@@ -961,11 +960,14 @@
     typeStop();
     history = [];
     known = null;
+    newConvId(); // cuộc mới bắt đầu từ đây, không đợi tới lượt hỏi đầu tiên
     try {
       sessionStorage.removeItem(STORE_KEY);
       sessionStorage.removeItem(KNOWN_KEY);
       // Cuộc mới = thiệp mới: bỏ liên kết với nháp của cuộc vừa xoá.
       sessionStorage.removeItem(DRAFT_KEY);
+      // Câu đang chờ đăng nhập thuộc cuộc vừa xoá.
+      sessionStorage.removeItem(PENDING_KEY);
     } catch {
       /* chặn cookie: bộ nhớ trong phiên đã sạch là đủ */
     }
@@ -987,9 +989,25 @@
   let rec = null;
   let recOn = false;
   let recBase = ""; // phần chữ đã có trong ô trước khi bấm nói
+  let recTimer = null;
+  let recStopping = false; // true = LẦN kết thúc này là cố ý, đừng nghe tiếp
+
+  // Im lặng bao lâu thì tự chốt câu. Máy nhận dạng của trình duyệt tự ngắt sớm
+  // hơn nhiều (vài giây, không chỉnh được) nên chỗ này tự đếm giờ và mở lại
+  // phiên nghe mỗi lần nó ngắt — khách nghĩ giữa chừng vẫn còn mic.
+  const MIC_SILENCE_MS = 10000;
+
+  function armSilence() {
+    clearTimeout(recTimer);
+    recTimer = setTimeout(() => {
+      recStopping = true;
+      rec?.stop(); // stop giữ lại câu đang nghe dở, khác abort là vứt đi
+    }, MIC_SILENCE_MS);
+  }
 
   function setMicState(on) {
     recOn = on;
+    if (!on) clearTimeout(recTimer);
     els.mic.classList.toggle("is-rec", on);
     els.mic.setAttribute("aria-pressed", String(on));
     els.mic.setAttribute(
@@ -1006,9 +1024,21 @@
     els.mic.addEventListener("click", toggleMic);
   }
 
+  // Mở phiên nghe. Mỗi phiên trả chữ tính TỪ ĐẦU phiên đó, nên trước khi mở phải
+  // chốt những gì đang có trong ô làm nền — không thì lần nghe lại ghi đè mất.
+  function startRec() {
+    recBase = els.input.value;
+    if (recBase && !recBase.endsWith(" ")) recBase += " ";
+    recStopping = false;
+    rec.start();
+    armSilence();
+  }
+
   function toggleMic() {
     if (recOn) {
-      rec.stop(); // stop giữ lại câu đang nghe dở, khác abort là vứt đi
+      recStopping = true;
+      clearTimeout(recTimer);
+      rec.stop();
       return;
     }
 
@@ -1016,9 +1046,11 @@
       rec = new SpeechRec();
       rec.lang = "vi-VN";
       rec.interimResults = true; // chữ hiện dần để khách biết máy đang nghe
-      rec.continuous = false; // ngưng nói một nhịp là tự chốt câu
+      // Nghe liền mạch: ngưng một nhịp giữa câu KHÔNG phải là nói xong. Việc
+      // chốt câu do đồng hồ MIC_SILENCE_MS ở trên quyết định.
+      rec.continuous = true;
 
-      // Mỗi lần bắn ra là TOÀN BỘ câu tính từ lúc bấm, nên ghi đè chứ không nối
+      // Mỗi lần bắn ra là TOÀN BỘ câu tính từ đầu phiên, nên ghi đè chứ không nối
       // thêm — nối thêm sẽ ra chữ lặp mỗi khi bản tạm được sửa lại.
       rec.onresult = (e) => {
         let text = "";
@@ -1026,14 +1058,29 @@
         els.input.value = (recBase + text).slice(0, MAX_LEN);
         autoGrow();
         syncSend();
+        armSilence(); // còn nói là còn nghe tiếp
       };
 
-      rec.onend = () => setMicState(false);
+      // Trình duyệt tự ngắt sau vài giây im lặng: chưa hết MIC_SILENCE_MS thì mở
+      // lại phiên khác ngay, khách không thấy mic tắt.
+      rec.onend = () => {
+        if (recOn && !recStopping) {
+          try {
+            startRec();
+            return;
+          } catch {
+            /* mở lại không được thì coi như dừng hẳn */
+          }
+        }
+        setMicState(false);
+      };
 
       rec.onerror = (e) => {
+        // Im lặng quá lâu: để onend quyết định nghe tiếp hay dừng, đừng báo lỗi.
+        if (e.error === "no-speech") return;
+        recStopping = true;
         setMicState(false);
-        // Im lặng quá lâu hoặc tự mình dừng: không phải lỗi để báo cho khách.
-        if (e.error === "no-speech" || e.error === "aborted") return;
+        if (e.error === "aborted") return; // tự mình dừng
         addBubble(
           "error",
           e.error === "not-allowed" || e.error === "service-not-allowed"
@@ -1043,11 +1090,8 @@
       };
     }
 
-    // Nói tiếp vào phần đang gõ dở, chừa khoảng trắng cho khỏi dính chữ.
-    recBase = els.input.value.trim();
-    if (recBase) recBase += " ";
     try {
-      rec.start();
+      startRec();
       setMicState(true);
     } catch {
       /* start() lúc đang chạy thì ném lỗi — coi như không bấm gì */
@@ -1056,13 +1100,18 @@
 
   // Dừng ngang: vứt câu đang nghe dở (gửi đi rồi thì nó không còn chỗ để rơi vào).
   function stopMic() {
-    if (recOn) rec?.abort();
+    if (recOn) {
+      recStopping = true;
+      rec?.abort();
+    }
     setMicState(false);
   }
 
   // ── Hỏi ───────────────────────────────────────────────────────────────────
 
-  async function ask(question) {
+  // opts.echo === false: câu hỏi đã có bong bóng trên màn (lượt gửi lại sau khi
+  // đăng nhập) nên đừng vẽ thêm lần nữa.
+  async function ask(question, opts = {}) {
     const text = String(question || "").trim().slice(0, MAX_LEN);
     if (!text || busy) return;
 
@@ -1073,7 +1122,7 @@
     autoGrow();
     syncSend();
 
-    addBubble("user", text);
+    if (opts.echo !== false) addBubble("user", text);
     history.push({ role: "user", content: text, at: Date.now() });
     saveHistory();
     renderSuggests();
@@ -1138,7 +1187,7 @@
         "error",
         e?.message || "XuXi đang bận, bạn thử lại sau ít phút nhé.",
       );
-      if (e?.needLogin) linkLoginWord(errBubble);
+      if (e?.needLogin) linkLoginWord(errBubble, text);
       // Câu hỏi lỗi không được nằm lại trong lịch sử: lần hỏi sau sẽ gửi kèm một
       // lượt "khách hỏi" chưa có lời đáp, model dễ trả lời lệch.
       history.pop();
@@ -1166,7 +1215,6 @@
     // transition thay vì hiện bụp một cái.
     requestAnimationFrame(() => els.panel.classList.remove("is-opening"));
     autoGrow(); // đo được chiều cao ô nhập từ lúc này, khi bảng đã hiện
-    syncSugNav(); // panel còn ẩn thì scrollWidth = 0, phải đo lại lúc mở
     if (window.matchMedia("(min-width: 521px)").matches) els.input.focus();
     syncViewport();
     scrollToEnd();
@@ -1240,9 +1288,14 @@
     if (document.getElementById("aichatFab")) return;
     build();
     loadHistory();
+    convId(); // cuộc đang mở phải có mã ngay từ đầu (chưa có thì đây là cuộc mới)
     paintHistory();
     initMic();
     syncSend();
+
+    // Vừa đăng nhập bằng OAuth và quay lại: mở bảng chat rồi gửi tiếp câu đang
+    // dở. Lượt đó đã bị gỡ khỏi lịch sử nên màn chưa có bong bóng → phải vẽ lại.
+    resendPending({ echo: true, open: true });
 
     // Không có bong bóng ở trang Thiết lập thì cũng không có gì để kéo/bấm.
     if (!inSetup()) {
@@ -1275,11 +1328,7 @@
     els.panel.addEventListener("click", (e) => {
       if (e.target.closest("#aichatClose")) close();
       else if (e.target.closest("#aichatReset")) clearChat();
-      else if (e.target.closest("#aichatSugPrev")) sugScroll(-1);
-      else if (e.target.closest("#aichatSugNext")) sugScroll(1);
     });
-    els.suggests.addEventListener("scroll", syncSugNav, { passive: true });
-    window.addEventListener("resize", syncSugNav);
     els.body.addEventListener("click", (e) => {
       const btn = e.target.closest("[data-card-open]");
       if (btn && !btn.disabled) useCard(btn.closest(".aichat-col, .aichat-row")?._cxCard);

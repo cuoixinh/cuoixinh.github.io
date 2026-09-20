@@ -865,10 +865,10 @@
   font-weight: 600;
   line-height: 1;
   letter-spacing: 0.2px;
-  color: rgb(var(--text-heading-rgb));
-  /* Nhãn nằm trên lớp kính mờ, dưới nữa là ảnh thiệp: quầng trắng mảnh để chữ
-     không tan vào tấm ảnh. */
-  text-shadow: 0 1px 3px rgb(var(--white-rgb) / 0.9);
+  /* Nhãn nằm trên dải TỐI dâng từ đáy lớp phủ → chữ trắng kèm bóng tối, cùng
+     công thức với .cx-sug-title. Chữ màu đậm ở đây là chìm hẳn vào nền. */
+  color: rgb(var(--white-rgb));
+  text-shadow: 0 1px 6px rgb(var(--scrim-rgb) / 0.8);
 }
 
 .cx-sug-tile.is-primary .cx-sug-tile-lb {
