@@ -481,8 +481,9 @@ input.flatpickr-input[readonly] {
 
 /* Nút trái: "Đặt lại" (bỏ hết tuỳ chỉnh) hoặc "Mặc định" của bảng con */
 .cx-ch-reset {
-  @apply inline-flex min-w-0 items-center gap-1 rounded-lg px-2 py-1 text-[12.5px]
-         font-medium text-gray-500 transition-[background-color,color] duration-150;
+  @apply -ml-2 inline-flex min-w-0 items-center gap-1 rounded-lg px-2 py-1
+         text-[12.5px] font-medium text-gray-500
+         transition-[background-color,color] duration-150;
 }
 
 .cx-ch-reset:hover {
@@ -513,13 +514,33 @@ input.flatpickr-input[readonly] {
 /* Dải tab dưới bảng chỉnh: mỗi tab một bảng. Cuộn ngang khi không đủ chỗ (nhãn
    không xuống dòng), tab đang mở là viên thuốc hồng — JS chỉ gạt .is-on. */
 .cx-ctabs {
-  @apply shrink-0 border-t border-gray-100 bg-white px-2 py-2 md:px-3 md:py-2.5;
+  @apply shrink-0 border-t border-gray-100 bg-white px-1 py-2 md:px-2 md:py-2.5;
 }
 
+/* Kéo chuột / vuốt tay để trượt: JS lo phần đà (_initCtrlTabsDrag), CSS lo phần
+   mượt. Lề ngoài của dải cố tình hẹp (4px) để CHỮ trong viên thuốc — vốn thụt
+   thêm 12px padding của chính nó — thẳng cột với nội dung phía trên (16px, md+
+   là 20px); pr-2 chừa chút hơi cho tab cuối khỏi dính mép. */
 .cx-ctabs-track {
-  @apply flex items-center gap-1 overflow-x-auto;
+  @apply flex items-center gap-1 overflow-x-auto overscroll-x-contain pr-2;
 
   scrollbar-width: none;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  cursor: grab;
+}
+
+/* Đang bám tay (kể cả pha trượt theo đà): tắt cuộn mượt, không thì mỗi lần JS
+   ghi scrollLeft trình duyệt lại nội suy, dải chạy trễ sau con trỏ. */
+.cx-ctabs-track.is-dragging {
+  scroll-behavior: auto;
+  cursor: grabbing;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cx-ctabs-track {
+    scroll-behavior: auto;
+  }
 }
 
 .cx-ctabs-track::-webkit-scrollbar {
@@ -554,7 +575,7 @@ input.flatpickr-input[readonly] {
 /* Quay lại — đóng bảng con (chỉnh chữ / điều chỉnh thành phần), trả về nhóm
    chỉnh chung. Tên bảng đang mở nằm ở giữa đầu bảng nên nút chỉ còn mũi tên. */
 .cx-le-back {
-  @apply -ml-1 inline-flex h-8 w-8 items-center justify-center rounded-lg
+  @apply -ml-2 inline-flex h-8 w-8 items-center justify-center rounded-lg
          text-gray-700 transition-[background-color,color] duration-150;
 }
 

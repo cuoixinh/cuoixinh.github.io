@@ -2228,9 +2228,123 @@ function _scrollTabIntoView(btn) {
   if (!track) return;
   const t = track.getBoundingClientRect();
   const b = btn.getBoundingClientRect();
-  const left =
-    track.scrollLeft + (b.left - t.left) - (track.clientWidth - b.width) / 2;
-  track.scrollLeft = Math.max(0, left);
+  const left = Math.max(
+    0,
+    track.scrollLeft + (b.left - t.left) - (track.clientWidth - b.width) / 2,
+  );
+  const smooth =
+    !track.classList.contains("is-dragging") &&
+    !window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  if (smooth && track.scrollTo) track.scrollTo({ left, behavior: "smooth" });
+  else track.scrollLeft = left;
+}
+
+// Kéo dải tab bằng CHUỘT để trượt (di động đã có cuộn quán tính sẵn của trình
+// duyệt nên để yên). Nhả tay thì trượt tiếp theo đà rồi tắt dần, và cú kéo dài
+// hơn TAB_DRAG_SLOP không được tính thành cú bấm — thả tay đúng trên một tab mà
+// nó đổi bảng thì người dùng chỉ định cuộn lại thấy mình lạc sang bảng khác.
+const TAB_DRAG_SLOP = 6; // px
+const TAB_GLIDE_FRICTION = 0.92; // đà còn lại sau mỗi khung hình
+const TAB_GLIDE_MIN_V = 0.05; // px/ms — chậm hơn mức này thì dừng hẳn
+
+function _initCtrlTabsDrag() {
+  const track = document.getElementById("cx-ctrl-tabs-track");
+  if (!track) return;
+  let down = false; // đang giữ chuột?
+  let moved = false; // đã kéo quá ngưỡng?
+  let x0 = 0; // toạ độ lúc bấm xuống
+  let left0 = 0; // scrollLeft lúc bấm xuống
+  let vx = 0; // vận tốc (px/ms) để tính đà
+  let tPrev = 0;
+  let xPrev = 0;
+  let glide = 0; // id requestAnimationFrame của pha trượt theo đà
+
+  const stopGlide = () => {
+    if (glide) cancelAnimationFrame(glide);
+    glide = 0;
+  };
+
+  track.addEventListener("pointerdown", (e) => {
+    if (e.pointerType !== "mouse" || e.button !== 0) return;
+    stopGlide();
+    down = true;
+    moved = false;
+    x0 = xPrev = e.clientX;
+    left0 = track.scrollLeft;
+    vx = 0;
+    tPrev = e.timeStamp;
+    track.classList.add("is-dragging");
+  });
+
+  track.addEventListener("pointermove", (e) => {
+    if (!down) return;
+    const dx = e.clientX - x0;
+    if (!moved && Math.abs(dx) > TAB_DRAG_SLOP) {
+      moved = true;
+      track.setPointerCapture?.(e.pointerId);
+    }
+    if (!moved) return;
+    track.scrollLeft = left0 - dx;
+    const dt = e.timeStamp - tPrev;
+    if (dt > 0) vx = (e.clientX - xPrev) / dt;
+    tPrev = e.timeStamp;
+    xPrev = e.clientX;
+    e.preventDefault();
+  });
+
+  const end = (e) => {
+    if (!down) return;
+    down = false;
+    track.releasePointerCapture?.(e.pointerId);
+    if (!moved) {
+      track.classList.remove("is-dragging");
+      return;
+    }
+    // Trượt tiếp theo đà: mỗi khung hình đi được quãng của vận tốc hiện tại rồi
+    // hãm dần, chạm mép thì dừng luôn.
+    let v = vx;
+    let tLast = performance.now();
+    const step = (now) => {
+      const dt = now - tLast;
+      tLast = now;
+      v *= Math.pow(TAB_GLIDE_FRICTION, dt / 16.67);
+      const before = track.scrollLeft;
+      track.scrollLeft = before - v * dt;
+      if (Math.abs(v) < TAB_GLIDE_MIN_V || track.scrollLeft === before) {
+        stopGlide();
+        track.classList.remove("is-dragging");
+        return;
+      }
+      glide = requestAnimationFrame(step);
+    };
+    glide = requestAnimationFrame(step);
+  };
+  track.addEventListener("pointerup", end);
+  track.addEventListener("pointercancel", end);
+
+  // Vừa kéo xong: nuốt cú click nảy ra từ chính cử chỉ kéo đó.
+  track.addEventListener(
+    "click",
+    (e) => {
+      if (!moved) return;
+      moved = false;
+      e.stopPropagation();
+      e.preventDefault();
+    },
+    true,
+  );
+
+  // Lăn chuột dọc trên dải (chuột thường không có trục ngang) → trượt ngang.
+  track.addEventListener(
+    "wheel",
+    (e) => {
+      if (e.deltaY === 0 || Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+      stopGlide();
+      track.scrollLeft += e.deltaY;
+      e.preventDefault();
+    },
+    { passive: false },
+  );
 }
 
 // Nút trái/phải của đầu bảng: việc cụ thể do màn đang mở khai ở CTRL_VIEWS.
@@ -2412,6 +2526,7 @@ function _initThemePanelObservers() {
   _initElPreviewResize();
   _initSheet("cx-ctrl-scroll", "cx-ctrl-handle");
   _initCtrlHeadSync();
+  _initCtrlTabsDrag();
   _initCardBlur();
 }
 
