@@ -14,17 +14,10 @@
 // với lucide. Kích thước mặc định 16px, màu theo currentColor.
 
 const CX_ICONS = {
-  // Hai ngôi sao bốn cánh ĐẶC (một to một nhỏ). lucide chỉ có bản vẽ nét
-  // (sparkles) nên hình này phải tự dựng; fill/stroke khai ngay trên <path> để
-  // đè thuộc tính fill="none" stroke="currentColor" mà cxIcon() đặt ở thẻ <svg>.
   // Logo Messenger (bong bóng đặc có tia chớp) — lucide chỉ có bong bóng chat
   // chung chung, mà lối nhắn cho người thật cần đúng nhận diện của Messenger.
   messenger:
     '<path fill="currentColor" stroke="none" d="M12 2C6.5 2 2.2 6.03 2.2 11.2c0 2.87 1.34 5.42 3.45 7.1V22l3.16-1.73c.84.23 1.73.36 2.65.36 5.5 0 9.8-4.03 9.8-9.2S17.5 2 12 2Zm.97 12.07-2.5-2.66-4.86 2.66 5.34-5.67 2.56 2.66 4.8-2.66-5.34 5.67Z"/>',
-
-  "sparkles-solid":
-    '<path fill="currentColor" stroke="none" d="M9.5 5C9.5 12.2 11.3 14 18.5 14C11.3 14 9.5 15.8 9.5 23C9.5 15.8 7.7 14 .5 14C7.7 14 9.5 12.2 9.5 5Z"/>' +
-    '<path fill="currentColor" stroke="none" d="M18 1C18 5 19 6 23 6C19 6 18 7 18 11C18 7 17 6 13 6C17 6 18 5 18 1Z"/>',
 };
 
 // Icon là ẢNH thay vì glyph — dùng cho logo. KHÔNG ăn `currentColor` nên chỉ đặt

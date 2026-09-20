@@ -51,7 +51,10 @@ class AiChatDAL {
 
     if (!res.ok || !res.body) {
       const j = await res.json().catch(() => ({}));
-      throw new Error(j.error || "XuXi đang bận, bạn thử lại sau ít phút nhé.");
+      const err = new Error(j.error || "XuXi đang bận, bạn thử lại sau ít phút nhé.");
+      // Hết lượt AI khi chưa đăng nhập: UI mời đăng nhập thay vì báo lỗi suông.
+      if (j.login) err.needLogin = true;
+      throw err;
     }
 
     const reader = res.body.getReader();

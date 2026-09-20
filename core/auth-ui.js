@@ -3,6 +3,7 @@
 //   AuthUI.supabase              client dùng chung
 //   AuthUI.renderForm(el, opts)  đổ form vào 1 container; opts.onAuth(user)
 //   AuthUI.openModal(opts)       mở popup chứa form; opts.oauthRedirect
+//   AuthUI.requireLogin(opts)    mời đăng nhập tại chỗ (title/subtitle/onAuth)
 //   AuthUI.closeModal()
 (function () {
   const { createClient } = window.supabase;
@@ -411,5 +412,25 @@
     });
   }
 
-  window.AuthUI = { supabase: sb, renderForm, openModal, closeModal, armLoginToast };
+  // Mời đăng nhập từ một chỗ bất kỳ (hết lượt AI, chức năng cần tài khoản…) mà
+  // không phải nhớ bộ tham số của openModal. OAuth rời trang rồi quay lại nên
+  // `oauthRedirect` mặc định là URL đang đứng.
+  function requireLogin(opts) {
+    opts = opts || {};
+    openModal({
+      title: opts.title || "Đăng nhập",
+      subtitle: opts.subtitle || "",
+      oauthRedirect: opts.oauthRedirect || window.location.href,
+      onAuth: opts.onAuth,
+    });
+  }
+
+  window.AuthUI = {
+    supabase: sb,
+    renderForm,
+    openModal,
+    closeModal,
+    armLoginToast,
+    requireLogin,
+  };
 })();

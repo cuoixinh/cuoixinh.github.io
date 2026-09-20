@@ -575,6 +575,37 @@
     return bubble;
   }
 
+  // Bong bóng lỗi "hết lượt AI, vui lòng đăng nhập": biến chữ "đăng nhập" trong
+  // chính câu đó thành chỗ bấm mở popup đăng nhập. Bong bóng lỗi là text thuần
+  // (không qua markdown) nên phải tự cắt chuỗi ra rồi chèn thẻ.
+  function linkLoginWord(bubble) {
+    const txt = bubble.textContent;
+    const i = txt.toLowerCase().indexOf("đăng nhập");
+    if (i < 0) return;
+    const a = document.createElement("a");
+    a.className = "aichat-login-link";
+    a.setAttribute("role", "button");
+    a.tabIndex = 0;
+    a.textContent = txt.slice(i, i + "đăng nhập".length);
+    a.addEventListener("click", promptLogin);
+    bubble.textContent = "";
+    bubble.append(txt.slice(0, i), a, txt.slice(i + "đăng nhập".length));
+  }
+
+  // Đăng nhập xong thì chỉ đóng popup — khách tự hỏi lại câu vừa rồi, vì lượt cũ
+  // đã bị gỡ khỏi lịch sử ở nhánh lỗi.
+  function promptLogin() {
+    if (window.AuthUI) {
+      AuthUI.requireLogin({
+        title: "Đăng nhập để dùng tiếp",
+        subtitle: "Trợ lý XuXi sẽ tiếp tục giúp bạn soạn thiệp",
+      });
+      return;
+    }
+    window.location.href =
+      "/my-invitations/?urlRedirect=" + encodeURIComponent(window.location.href);
+  }
+
   // Trả về cả HÀNG: lượt sau gọi .remove() là đi cả avatar lẫn ba chấm.
   function addTyping() {
     const col = addRow("bot");
@@ -1103,7 +1134,11 @@
       // Bị nút Làm mới cắt ngang: màn đã sạch rồi, đừng vẽ gì thêm lên đó.
       if (mine.signal.aborted) return;
       bubble?.remove();
-      addBubble("error", e?.message || "XuXi đang bận, bạn thử lại sau ít phút nhé.");
+      const errBubble = addBubble(
+        "error",
+        e?.message || "XuXi đang bận, bạn thử lại sau ít phút nhé.",
+      );
+      if (e?.needLogin) linkLoginWord(errBubble);
       // Câu hỏi lỗi không được nằm lại trong lịch sử: lần hỏi sau sẽ gửi kèm một
       // lượt "khách hỏi" chưa có lời đáp, model dễ trả lời lệch.
       history.pop();

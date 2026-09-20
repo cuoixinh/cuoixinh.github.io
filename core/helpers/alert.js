@@ -3,9 +3,16 @@
 // ─── Icon lucide ────────────────────────────────────────────────────────────
 // Icon do thư viện lucide (CDN) dựng; mọi trang nạp file này đều đã có nó.
 
-// Đặt icon lucide vào 1 ô tròn. stroke-width 2.5 cho nét dày hơn mặc định của
-// thư viện. Tên lạ thì lucide bỏ qua thẻ <i> → rơi về icon dự phòng cho khỏi trống ô.
+// Đặt icon vào 1 ô tròn. stroke-width 2.5 cho nét dày hơn mặc định của thư viện.
+// Tên lạ thì lucide bỏ qua thẻ <i> → rơi về icon dự phòng cho khỏi trống ô.
+// Tên có trong bảng icon riêng (core/helpers/icon.js, vd "xuxi") thì lấy ở đó —
+// file icon không có sẵn ở mọi trang nên vẫn phải thử lucide trước khi bỏ cuộc.
 function _setLucideIcon(el, name, size, fallback) {
+  const own = window.cxIcon?.(name, size);
+  if (own) {
+    el.innerHTML = own;
+    return;
+  }
   const tag = (n) =>
     `<i data-lucide="${n}" stroke-width="2.5" style="width:${size}px;height:${size}px"></i>`;
   el.innerHTML = tag(name);

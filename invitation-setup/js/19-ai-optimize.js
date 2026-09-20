@@ -6,6 +6,31 @@
 // Đăng ký trong loader.js SAU 14-timeline-story.js (dùng _loveStoryItems /
 // _timelineItems khai báo ở đó).
 
+// Báo lỗi của một lệnh AI. Hết lượt khi chưa đăng nhập (e.needLogin) thì phải
+// đưa luôn ĐƯỜNG ĐI: toast không bấm được (pointer-events: none) nên chuyển sang
+// hộp thoại có nút "Đăng nhập".
+function _aiShowError(e, fallback) {
+  const msg = e?.message || fallback;
+  if (!e?.needLogin) return showToast(msg, "error");
+  showConfirm("Hết lượt AI hôm nay", msg, {
+    type: "warning",
+    confirmText: "Đăng nhập",
+    cancelText: "Để sau",
+  }).then((ok) => {
+    if (!ok) return;
+    if (!window.AuthUI) {
+      window.location.href =
+        "/my-invitations/?urlRedirect=" + encodeURIComponent(window.location.href);
+      return;
+    }
+    AuthUI.requireLogin({
+      title: "Đăng nhập để dùng tiếp",
+      subtitle: "Đăng nhập xong bạn bấm lại nút AI vừa rồi nhé",
+      onAuth: () => _refreshLoginState(),
+    });
+  });
+}
+
 // Bật/tắt trạng thái "đang tối ưu" của nút (CSS làm icon quay + khoá click).
 function _setAiWandLoading(btn, on) {
   if (btn) btn.dataset.loading = on ? "1" : "0";
@@ -38,12 +63,12 @@ async function _runAiOptimize(btn, inputType, getVal, setVal, targetEl) {
     });
     if (out) {
       setVal(out);
-      showToast("Đã tối ưu bằng AI", "default", "sparkles");
+      showToast("Đã tối ưu bằng AI", "default", "xuxi");
     } else {
       showToast("AI chưa tối ưu được, thử lại nhé", "warning");
     }
   } catch (e) {
-    showToast(e?.message || "Không tối ưu được", "error");
+    _aiShowError(e, "Không tối ưu được");
   } finally {
     _setAiWandLoading(btn, false);
     _taLoading(targetEl, false);
@@ -227,11 +252,11 @@ async function generateLoveStoryAi(btn) {
     document
       .getElementById("love-story-value")
       ?.dispatchEvent(new Event("input", { bubbles: true }));
-    showToast("Đã tạo " + _loveStoryItems.length + " mốc chuyện tình", "default", "sparkles");
+    showToast("Đã tạo " + _loveStoryItems.length + " mốc chuyện tình", "default", "xuxi");
     ta.value = "";
     toggleLoveAiPanel(false);
   } catch (e) {
-    showToast(e?.message || "Không tạo được", "error");
+    _aiShowError(e, "Không tạo được");
   } finally {
     _setAiWandLoading(btn, false);
   }

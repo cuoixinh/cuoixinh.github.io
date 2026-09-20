@@ -1042,7 +1042,7 @@ const GIFT_FIXED = [
   {
     id: "",
     name: "Mặc định",
-    icon: "sparkles",
+    icon: "xuxi",
     desc: "Giữ nguyên như mẫu thiệp",
   },
   {
@@ -1088,7 +1088,7 @@ function _renderGiftPalette() {
     grid.textContent = "";
     GIFT_FIXED.forEach((o) => {
       const i = document.createElement("i");
-      i.setAttribute("data-lucide", o.icon);
+      i.setAttribute("data-icon", o.icon);
       grid.appendChild(_giftTile(o.id, o.name, o.name + " — " + o.desc, i));
     });
     (window.CX_GIFT_BOXES || []).forEach((b) => {
@@ -2375,7 +2375,7 @@ function _ensurePublishPopupAssets() {
     .ps-head{position:relative;text-align:center;padding:26px 24px 0;border-top:3px solid transparent;background:linear-gradient(#fff,#fff) padding-box,linear-gradient(90deg,#fb7185,#f9a8d4) border-box;border-radius:24px 24px 0 0}
     .ps-x{position:absolute;top:12px;right:12px;width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;border-radius:999px;color:#b39aa1;background:transparent;transition:color .15s ease,background .15s ease}
     .ps-x:hover{color:#4a2c35;background:#f5ece8}
-    .ps-badge{width:52px;height:52px;border-radius:999px;margin:0 auto;display:flex;align-items:center;justify-content:center;color:#fff;background:linear-gradient(135deg,#fb7185,#e11d48);box-shadow:0 10px 22px -8px rgba(225,29,72,.65);animation:ps-pop .45s .08s cubic-bezier(.22,1.3,.45,1) both}
+    .ps-badge{width:52px;height:52px;border-radius:999px;margin:0 auto;display:flex;align-items:center;justify-content:center;color:#fff;background:linear-gradient(135deg,rgb(var(--state-success-accent-rgb)),rgb(var(--state-success-text-rgb)));box-shadow:0 10px 22px -8px rgb(var(--state-success-accent-rgb) / .65);animation:ps-pop .45s .08s cubic-bezier(.22,1.3,.45,1) both}
     @keyframes ps-pop{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
     /* Chữ chúc mừng: font của trang, cỡ nhỏ — ưu tiên ĐỌC ĐƯỢC ngay thay vì
        chữ thư pháp cỡ lớn. */

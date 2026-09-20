@@ -884,7 +884,7 @@ async function siGenerateSampleDataWithAI() {
       showToast(
         `AI đã điền ${applied} mục — kiểm tra rồi bấm "Lưu vào ổ đĩa"`,
         "default",
-        "sparkles",
+        "xuxi",
       );
     } else {
       showToast("AI chưa trả về nội dung dùng được, thử lại nhé", "warning");

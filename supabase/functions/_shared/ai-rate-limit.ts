@@ -19,8 +19,6 @@ const USAGE_TABLE = 'ai_chat_usage'
 // mới thì thêm một giá trị ở đây, KHÔNG thêm bảng.
 export type AiFeature = 'chat' | 'inv'
 
-const HOTLINE = '034.884.0032'
-
 export function clientIp(req: Request): string {
   // Cloudflare/Supabase đặt cf-connecting-ip từ kết nối THẬT, client không giả
   // được. Với x-forwarded-for phải lấy phần tử CUỐI (do proxy của mình nối vào);
@@ -78,9 +76,12 @@ export async function enforceRateLimit(
   if (subjects.some((s) => (counts.get(s) ?? 0) >= limit)) {
     return json(
       {
-        error: `Bạn đã dùng hết ${limit} lượt AI hôm nay rồi. Bạn quay lại vào ngày mai${
-          o.user ? '' : ` hoặc đăng nhập để có ${o.limit} lượt/ngày`
-        }, hoặc gọi ${HOTLINE} để được hỗ trợ ngay nhé.`,
+        error: o.user
+          ? `Bạn đã dùng hết ${limit} lượt AI hôm nay rồi. Bạn quay lại vào ngày mai nhé.`
+          : `Bạn đã dùng hết ${limit} lượt AI hôm nay rồi. Vui lòng đăng nhập để tiếp tục sử dụng.`,
+        // Cờ cho client biết dựng chữ "đăng nhập" bấm được. Hạn mức của tài khoản
+        // KHÔNG nói ra ở đây — đó là con số chỉ người đã đăng nhập mới cần biết.
+        ...(o.user ? {} : { login: true }),
       },
       429,
       o.origin,

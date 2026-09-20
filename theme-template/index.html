@@ -982,6 +982,9 @@
     <!-- Khoá "một màn" thành px cho --vh: .tt-media kẹp khổ ảnh theo đó, thiếu
          script này là thẻ đổi khổ mỗi lần Chrome ẩn/hiện thanh URL. -->
     <script src="../core/helpers/vh-lock.js"></script>
+    <!-- Icon riêng (logo XuXi ở nút CTA của navbar) — phải nạp TRƯỚC navbar.js
+         vì thanh điều hướng dựng HTML icon ngay lúc gọi CXNavbar. -->
+    <script src="../core/helpers/icon.js"></script>
     <script src="../core/components/navbar.js"></script>
     <script>
       CXNavbar.mount({
@@ -1019,7 +1022,7 @@
         actions: [
           {
             label: "Bắt đầu miễn phí",
-            icon: "sparkles",
+            icon: "xuxi",
             onClick: "startDraft()",
             size: "sm",
             class: "tt-cta-btn",

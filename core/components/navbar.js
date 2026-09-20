@@ -31,14 +31,16 @@ const CXNavbar = (function () {
     user: '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="10" r="3"/><path d="M7 20.7a8 8 0 0 1 10 0"/>',
     star: '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
     list: '<path d="M10 6h11"/><path d="M10 12h11"/><path d="M10 18h11"/><path d="M4 6h1v4"/><path d="M4 10h2"/><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"/>',
-    sparkles:
-      '<path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/>',
   };
 
   // Viết trọn tên class (không ghép chuỗi) để Tailwind purge quét được.
   const WIDTH = { "4xl": "max-w-4xl", "6xl": "max-w-6xl", "7xl": "max-w-7xl" };
 
+  // Tên có ở bảng icon riêng (core/helpers/icon.js, vd logo "xuxi") thì lấy ở đó;
+  // trang nào dùng tên như vậy phải nạp file icon, thiếu là ô icon trống.
   function svg(name, size) {
+    const own = window.cxIcon?.(name, size);
+    if (own) return own;
     const d = ICONS[name];
     if (!d) return "";
     return (

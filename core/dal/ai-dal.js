@@ -8,6 +8,17 @@ class AiDAL {
     this._url = CONFIG.supabase.aiInvitationUrl;
   }
 
+  /**
+   * Error cho một phản hồi lỗi của Edge Function. `needLogin` = hết lượt AI khi
+   * chưa đăng nhập (server gửi kèm `login`) — UI dựa vào cờ này để mời đăng nhập
+   * thay vì chỉ báo lỗi suông.
+   */
+  _err(json, fallback) {
+    const e = new Error(json?.error || fallback);
+    if (json?.login) e.needLogin = true;
+    return e;
+  }
+
   /** Access token của phiên hiện tại — CXAuth (core/auth.js). null nếu chưa đăng nhập. */
   async _token() {
     return (await window.CXAuth?.accessToken()) ?? null;
@@ -36,7 +47,7 @@ class AiDAL {
     });
 
     const json = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(json.error || "Không tạo được nội dung, vui lòng thử lại");
+    if (!res.ok) throw this._err(json, "Không tạo được nội dung, vui lòng thử lại");
     return json.data;
   }
 
@@ -69,7 +80,7 @@ class AiDAL {
     });
 
     const json = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(json.error || "Không tối ưu được nội dung, vui lòng thử lại");
+    if (!res.ok) throw this._err(json, "Không tối ưu được nội dung, vui lòng thử lại");
     return json.text || "";
   }
 
@@ -100,7 +111,7 @@ class AiDAL {
     });
 
     const json = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(json.error || "Không tạo được câu chuyện, vui lòng thử lại");
+    if (!res.ok) throw this._err(json, "Không tạo được câu chuyện, vui lòng thử lại");
     return Array.isArray(json.items) ? json.items : [];
   }
 
@@ -130,7 +141,7 @@ class AiDAL {
     });
 
     const json = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(json.error || "Không tạo được dữ liệu mẫu, vui lòng thử lại");
+    if (!res.ok) throw this._err(json, "Không tạo được dữ liệu mẫu, vui lòng thử lại");
     return json.data;
   }
 
@@ -155,7 +166,7 @@ class AiDAL {
 
     if (!res.ok || !res.body) {
       const j = await res.json().catch(() => ({}));
-      throw new Error(j.error || "Không tạo được nội dung, vui lòng thử lại");
+      throw this._err(j, "Không tạo được nội dung, vui lòng thử lại");
     }
 
     const reader = res.body.getReader();

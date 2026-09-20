@@ -372,6 +372,14 @@
   border-bottom-left-radius: 8px;
 }
 
+/* Chữ "đăng nhập" trong bong bóng lỗi hết lượt AI — bấm được, mở popup đăng nhập. */
+.aichat-login-link {
+  color: rgb(var(--brand-primary-rgb));
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
 /* ── Bong bóng dựng từ markdown ────────────────────────────────────────────── */
 /* XuXi được phép trả lời có **đậm**, gạch đầu dòng và danh sách đánh số;
    js/ai-assistant.js dựng chúng thành thẻ khối. Nội dung không còn là text
