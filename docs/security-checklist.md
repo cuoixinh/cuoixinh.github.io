@@ -121,6 +121,11 @@ cũ** cho tới khi làm xong mục F. Đừng đọc bảng `[x]` bên dưới 
       với `x-forwarded-for` lấy phần tử **CUỐI** (do proxy của mình nối vào) thay vì phần tử
       đầu (giá trị client tự gửi).
       *(Race check-rồi-upsert vẫn còn — trần bị vượt chút ít khi gọi song song, chấp nhận được.)*
+      ⚠️ Nhánh **chưa đăng nhập của cả hai function AI** vẫn bypass được bằng script (random
+      mã thiết bị + pool proxy): hiện đếm hai chiều `ip:` + `dev:` nên chặn được người đổi
+      VPN, chưa chặn được bot. Phép đếm dùng chung ở `_shared/ai-rate-limit.ts` — sửa cách
+      đếm thì sửa một chỗ. Lớp vá thật (Turnstile + trần ngân sách toàn cục) và các đường
+      spam còn lại ở `docs/PLAN-ai-chat-abuse.md`.
 
 - [x] **A11. Slug không validate ở server.**
       **Đã vá**: `isValidSlug()` (`^[a-z0-9](?:[a-z0-9-]{0,78}[a-z0-9])?$`) áp ở cả POST và
@@ -232,7 +237,8 @@ Rà bằng cách đọc mã ngày **2026-09-15**, trừ dòng ghi rõ nguồn kh
 
 ### Khác
 
-- [x] Rate limit AI theo user/ngày và IP/ngày có tồn tại (cách lấy IP vá ở A10).
+- [x] Rate limit AI theo user/ngày, và theo IP + mã thiết bị với khách chưa đăng nhập
+      (cách lấy IP vá ở A10; phép đếm dùng chung ở `_shared/ai-rate-limit.ts`).
 - [x] API key Gemini chỉ đọc từ secret, không bao giờ log URL.
 - [x] Axiom rút gọn `id` còn 8 ký tự trong log.
 - [x] Version CDN đã pin hết, không còn `@latest` (SRI bổ sung ở A14).

@@ -3,12 +3,10 @@
 // thành các mốc), mode=sample (dựng dữ liệu demo cho mẫu thiệp).
 // Sinh CẢ thiệp nay là việc của ai-chat — trang thiết lập không còn popup "Tạo bằng AI".
 //
-// Không bắt buộc đăng nhập: có JWT hợp lệ → rate-limit theo user/ngày (bảng
-// ai_usage), không có → theo IP/ngày (ai_usage_ip, hạn mức thấp hơn). Validate +
-// clamp cả input lẫn output, CORS allowlist, timeout khi gọi provider, không rò
-// lỗi chi tiết của provider ra client; API key chỉ nằm trong secret.
-//
-// ⚠️ Deploy KÈM cờ --no-verify-jwt để khách chưa đăng nhập vẫn gọi được.
+// Không bắt buộc đăng nhập: cách đếm hạn mức nằm ở _shared/ai-rate-limit.ts (tiền
+// tố "inv:"), đây chỉ khai hai con số. Validate + clamp cả input lẫn
+// output, CORS allowlist, timeout khi gọi provider, không rò lỗi chi tiết của
+// provider ra client; API key chỉ nằm trong secret.
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { withAxiom, type Logger } from '../_shared/axiom.ts'
@@ -19,6 +17,7 @@ import {
   generateWithGemini,
   json,
 } from '../_shared/ai-provider.ts'
+import { enforceRateLimit, sanitizeDevice } from '../_shared/ai-rate-limit.ts'
 // Hợp đồng dữ liệu thiệp (whitelist field, nhãn văn phong, tầng validate output)
 // dùng chung với ai-chat — xem _shared/card-schema.ts.
 import {
@@ -41,7 +40,7 @@ import {
 // ── Cấu hình ────────────────────────────────────────────────────────────────
 
 const DAILY_LIMIT      = 15      // số lần gọi AI tối đa / user đã đăng nhập / ngày
-const ANON_DAILY_LIMIT = 5       // số lần gọi AI tối đa / IP (khách chưa đăng nhập) / ngày
+const ANON_DAILY_LIMIT = 5       // số lần gọi AI tối đa / khách chưa đăng nhập / ngày
 const MAX_STORY_LOVE_LEN = 1500  // textarea "chuyện tình" (nguyên văn, khớp maxlength client)
 const MAX_OPTIMIZE_IN  = 800     // độ dài tối đa văn bản đầu vào cho nút "Tối ưu"
 
@@ -304,92 +303,28 @@ function parseAndClamp(rawText: string, tone = 'romantic'): Record<string, unkno
   return cleanBlocks(rawBlocks, tone)
 }
 
-// Scanner tách các object top-level của một mảng JSON đang chảy dần (cho streaming).
-// Trả về các object HOÀN CHỈNH mới xuất hiện kể từ vị trí `state.pos`.
 // ── Rate limit ───────────────────────────────────────────────────────────────
-async function checkAndBumpUsage(
-  admin: ReturnType<typeof createClient>,
-  userId: string,
-): Promise<boolean> {
-  const today = new Date().toISOString().slice(0, 10) // YYYY-MM-DD
-
-  const { data } = await admin
-    .from('ai_usage')
-    .select('count')
-    .eq('user_id', userId)
-    .eq('day', today)
-    .maybeSingle()
-
-  const current = (data?.count as number) ?? 0
-  if (current >= DAILY_LIMIT) return false
-
-  await admin
-    .from('ai_usage')
-    .upsert({ user_id: userId, day: today, count: current + 1 }, { onConflict: 'user_id,day' })
-
-  return true
-}
-
-// Rate-limit cho khách chưa đăng nhập: đếm theo IP/ngày (bảng ai_usage_ip).
-async function checkAndBumpUsageIp(
-  admin: ReturnType<typeof createClient>,
-  ip: string,
-): Promise<boolean> {
-  const today = new Date().toISOString().slice(0, 10)
-
-  const { data } = await admin
-    .from('ai_usage_ip')
-    .select('count')
-    .eq('ip', ip)
-    .eq('day', today)
-    .maybeSingle()
-
-  const current = (data?.count as number) ?? 0
-  if (current >= ANON_DAILY_LIMIT) return false
-
-  await admin
-    .from('ai_usage_ip')
-    .upsert({ ip, day: today, count: current + 1 }, { onConflict: 'ip,day' })
-
-  return true
-}
-
-// Lấy IP thật của client (Supabase đặt sau proxy → đọc x-forwarded-for).
-function clientIp(req: Request): string {
-  // Cloudflare/Supabase đặt cf-connecting-ip từ kết nối THẬT, client không giả
-  // được. Với x-forwarded-for phải lấy phần tử CUỐI (do proxy của mình nối vào);
-  // lấy phần tử ĐẦU là lấy đúng giá trị client tự gửi → bypass rate limit sạch sẽ
-  // (docs/security-checklist.md A10).
-  const cf = req.headers.get('cf-connecting-ip')
-  if (cf) return cf.trim()
-  const fwd = req.headers.get('x-forwarded-for') ?? ''
-  const parts = fwd.split(',').map((p) => p.trim()).filter(Boolean)
-  if (parts.length) return parts[parts.length - 1]
-  return req.headers.get('x-real-ip') || 'unknown'
-}
-
-// HÀM CHUNG: bump + kiểm hạn mức (theo user nếu đăng nhập, ngược lại theo IP).
-// Trả null nếu còn lượt; trả Response 429 nếu đã hết (để handler return luôn).
-async function enforceRateLimit(
+// Phép đếm ở _shared/ai-rate-limit.ts (dùng chung với ai-chat); ở đây chỉ ghép
+// hạn mức của function này với mã thiết bị lấy từ body.
+function enforceAiLimit(
   req: Request,
   admin: ReturnType<typeof createClient>,
   user: { id: string } | null,
+  body: Record<string, unknown>,
   origin: string | null,
 ): Promise<Response | null> {
-  const allowed = user
-    ? await checkAndBumpUsage(admin, user.id)
-    : await checkAndBumpUsageIp(admin, clientIp(req))
-  if (allowed) return null
-  const limit = user ? DAILY_LIMIT : ANON_DAILY_LIMIT
-  return json(
-    { error: `Bạn đã dùng hết ${limit} lượt AI hôm nay. Vui lòng thử lại vào ngày mai${user ? '' : ' hoặc đăng nhập để có thêm lượt'}.` },
-    429,
+  return enforceRateLimit(req, admin, {
+    feature: 'inv',
+    user,
+    device: sanitizeDevice(body.device),
+    limit: DAILY_LIMIT,
+    anonLimit: ANON_DAILY_LIMIT,
     origin,
-  )
+  })
 }
 
 // ── Nhánh "Tối ưu" (làm giàu 1 ô văn bản) ────────────────────────────────────
-// Dùng chung xác thực/rate-limit/CORS với luồng sinh thiệp. Nhận { inputType, text,
+// Dùng chung xác thực/rate-limit/CORS với hai nhánh kia. Nhận { inputType, text,
 // tone? } → trả { text }. inputType quyết định prompt (xem OPTIMIZE_SPECS).
 async function handleOptimize(
   req: Request,
@@ -406,7 +341,7 @@ async function handleOptimize(
   const text = clampText(body.text, MAX_OPTIMIZE_IN)
   if (!text) return json({ error: 'Chưa có nội dung để tối ưu' }, 400, origin)
 
-  const limited = await enforceRateLimit(req, admin, user, origin)
+  const limited = await enforceAiLimit(req, admin, user, body, origin)
   if (limited) return limited
 
   const res = await generateWithGemini(
@@ -447,7 +382,7 @@ async function handleLoveStory(
   const text = clampText(body.text, MAX_STORY_LOVE_LEN)
   if (!text) return json({ error: 'Hãy kể câu chuyện tình yêu trước' }, 400, origin)
 
-  const limited = await enforceRateLimit(req, admin, user, origin)
+  const limited = await enforceAiLimit(req, admin, user, body, origin)
   if (limited) return limited
 
   const tone = pickTone(body.tone)
@@ -488,7 +423,7 @@ async function handleSampleData(
   body: Record<string, unknown>,
   log: Logger,
 ): Promise<Response> {
-  const limited = await enforceRateLimit(req, admin, user, origin)
+  const limited = await enforceAiLimit(req, admin, user, body, origin)
   if (limited) return limited
 
   const tone = pickTone(body.tone)

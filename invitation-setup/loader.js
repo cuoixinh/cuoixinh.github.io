@@ -53,6 +53,9 @@
     "../core/dal/wedding-dal.js",
     "../core/dal/storage-dal.js",
     "../core/dal/guest-dal.js",
+    // Mã thiết bị gửi kèm request AI (chiều đếm thứ hai của hạn mức) — phải
+    // đứng TRƯỚC hai DAL gọi AI.
+    "../core/helpers/device-id.js",
     "../core/dal/ai-dal.js",
     "../core/bl/wedding-bl.js",
     "../core/bl/image-bl.js",

@@ -11,9 +11,9 @@
 // Client chỉ thấy "text"; phần còn lại đi ra ở dòng meta cuối để trang thiết lập
 // đổ thẳng vào form (cùng shape với kết quả của ai-invitation).
 //
-// Không bắt buộc đăng nhập: có JWT → hạn mức theo user/ngày, không có → theo IP/ngày
-// (bảng ai_chat_usage, RC1.13). Hạn mức RIÊNG của chat, không ăn chung lượt với
-// ai-invitation vì một cuộc trò chuyện tiêu nhiều lượt hơn hẳn.
+// Không bắt buộc đăng nhập: cách đếm hạn mức nằm ở _shared/ai-rate-limit.ts, đây
+// chỉ khai hai con số. Hạn mức RIÊNG của chat (tiền tố "chat:"), không ăn chung lượt
+// với ai-invitation vì một cuộc trò chuyện tiêu nhiều lượt hơn hẳn.
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { withAxiom, type Logger } from '../_shared/axiom.ts'
@@ -30,6 +30,7 @@ import {
   readErrorDetail,
   withTimeout,
 } from '../_shared/ai-provider.ts'
+import { enforceRateLimit, sanitizeDevice } from '../_shared/ai-rate-limit.ts'
 import {
   FIELD_KEYS_TEXT,
   VALID_REGIONS,
@@ -42,8 +43,8 @@ import { CARD_RULES, CHAT_RULES, COLLECT_RULES, PRODUCT_KB } from './knowledge.t
 
 // ── Cấu hình ────────────────────────────────────────────────────────────────
 
-const DAILY_LIMIT = 80       // số lượt hỏi / user đã đăng nhập / ngày
-const ANON_DAILY_LIMIT = 40  // số lượt hỏi / IP (khách chưa đăng nhập) / ngày
+const DAILY_LIMIT = 30       // số lượt hỏi / user đã đăng nhập / ngày
+const ANON_DAILY_LIMIT = 5   // số lượt hỏi / khách chưa đăng nhập / ngày
 const MAX_MSG_LEN = 800      // độ dài tối đa MỖI tin nhắn (khớp maxlength ở client)
 const MAX_TURNS = 20         // số tin nhắn gần nhất được đưa vào prompt
 const MAX_ANSWER_LEN = 1500  // clamp phần "text" khách đọc được
@@ -551,59 +552,6 @@ function pluckStreamingText(buf: string): { text: string; closed: boolean } | nu
   return { text: out, closed }
 }
 
-// ── Rate limit ──────────────────────────────────────────────────────────────
-// Một bảng chung cho cả user lẫn IP: subject = "u:<uuid>" hoặc "ip:<addr>".
-
-function clientIp(req: Request): string {
-  // Cloudflare/Supabase đặt cf-connecting-ip từ kết nối THẬT, client không giả
-  // được. Với x-forwarded-for phải lấy phần tử CUỐI (do proxy của mình nối vào);
-  // lấy phần tử ĐẦU là lấy đúng giá trị client tự gửi → bypass rate limit sạch sẽ
-  // (docs/security-checklist.md A10).
-  const cf = req.headers.get('cf-connecting-ip')
-  if (cf) return cf.trim()
-  const fwd = req.headers.get('x-forwarded-for') ?? ''
-  const parts = fwd.split(',').map((p) => p.trim()).filter(Boolean)
-  if (parts.length) return parts[parts.length - 1]
-  return req.headers.get('x-real-ip') || 'unknown'
-}
-
-async function enforceRateLimit(
-  req: Request,
-  admin: ReturnType<typeof createClient>,
-  user: { id: string } | null,
-  origin: string | null,
-): Promise<Response | null> {
-  const subject = user ? `u:${user.id}` : `ip:${clientIp(req)}`
-  const limit = user ? DAILY_LIMIT : ANON_DAILY_LIMIT
-  const today = new Date().toISOString().slice(0, 10)
-
-  const { data } = await admin
-    .from('ai_chat_usage')
-    .select('count')
-    .eq('subject', subject)
-    .eq('day', today)
-    .maybeSingle()
-
-  const current = (data?.count as number) ?? 0
-  if (current >= limit) {
-    return json(
-      {
-        error: `Bạn đã hỏi hết ${limit} lượt hôm nay rồi. Bạn quay lại vào ngày mai${
-          user ? '' : ' hoặc đăng nhập để có thêm lượt'
-        }, hoặc gọi 034.884.0032 để được hỗ trợ ngay nhé.`,
-      },
-      429,
-      origin,
-    )
-  }
-
-  await admin
-    .from('ai_chat_usage')
-    .upsert({ subject, day: today, count: current + 1 }, { onConflict: 'subject,day' })
-
-  return null
-}
-
 // ── Streaming ───────────────────────────────────────────────────────────────
 // NDJSON: mỗi dòng {delta:"…"} (chữ mới của phần "text"), có thể có một dòng
 // {phase:"card"} báo model đang dựng thiệp, kết thúc bằng
@@ -830,7 +778,14 @@ Deno.serve(withAxiom('ai-chat', async (req, log) => {
   const msgs = sanitizeMessages(body.messages)
   if (!msgs) return json({ error: 'Bạn nhập câu hỏi giúp mình nhé' }, 400, origin)
 
-  const limited = await enforceRateLimit(req, admin, user, origin)
+  const limited = await enforceRateLimit(req, admin, {
+    feature: 'chat',
+    user,
+    device: sanitizeDevice(body.device),
+    limit: DAILY_LIMIT,
+    anonLimit: ANON_DAILY_LIMIT,
+    origin,
+  })
   if (limited) return limited
 
   const known = sanitizeKnown(body.card)

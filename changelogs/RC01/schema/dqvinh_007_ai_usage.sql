@@ -1,33 +1,22 @@
 -- ============================================================
--- SCHEMA 07 — Hạn mức dùng AI (`ai_usage`, `ai_usage_ip`, `ai_chat_usage`)
+-- SCHEMA 07 — Hạn mức dùng AI (`ai_chat_usage`)
 --
--- Ba bảng đếm lượt gọi model theo NGÀY để không đốt hết free tier Gemini/Groq.
--- Tách ba vì ba nhóm người dùng / hai tính năng khác nhau:
+-- MỘT bảng đếm lượt gọi model theo NGÀY cho MỌI luồng AI, để không đốt hết free
+-- tier Gemini. Tên bảng giữ theo lịch sử (ban đầu chỉ có trợ lý chat).
 --
---   ai_usage      — sinh nội dung thiệp, khách ĐÃ đăng nhập (khoá: user_id)
---   ai_usage_ip   — sinh nội dung thiệp, khách CHƯA đăng nhập (khoá: IP, hạn thấp hơn)
---   ai_chat_usage — "Trợ lý AI" ở trang chủ; một cuộc trò chuyện tốn nhiều lượt
---                   hơn hẳn nên có hạn mức riêng, không ăn chung hai bảng trên
+-- `subject` = "<tính năng>:<chiều đếm>":
+--   tính năng — "chat" (Trợ lý XuXi) · "inv" (Tối ưu văn bản / Chuyện tình yêu /
+--               Dữ liệu mẫu). Nhờ tiền tố này mà mỗi tính năng vẫn có hạn mức
+--               RIÊNG dù chung bảng: lượt chat không ăn vào lượt nút "Tối ưu".
+--   chiều đếm — "u:<user_id>" (đã đăng nhập) · "ip:<addr>" + "dev:<mã thiết bị>"
+--               (chưa đăng nhập, đếm CẢ HAI chiều, chiều nào chạm trần cũng chặn).
 --
--- Cả ba: RLS bật, KHÔNG policy → chỉ Edge Function (service_role) ghi/đọc được.
--- Client mà đọc được thì cũng sửa được số đếm, tức là bỏ qua hạn mức.
+-- Thêm luồng AI mới hay thêm chiều đếm mới chỉ là thêm một tiền tố, không thêm
+-- bảng. Phép đếm dùng chung ở supabase/functions/_shared/ai-rate-limit.ts.
+--
+-- RLS bật, KHÔNG policy → chỉ Edge Function (service_role) ghi/đọc được. Client
+-- mà đọc được thì cũng sửa được số đếm, tức là bỏ qua hạn mức.
 -- ============================================================
-
-create table if not exists public.ai_usage (
-  user_id    uuid not null references auth.users(id) on delete cascade,
-  day        date not null default current_date,
-  count      integer not null default 0,
-  updated_at timestamptz not null default now(),
-  primary key (user_id, day)
-);
-
-create table if not exists public.ai_usage_ip (
-  ip         text not null,
-  day        date not null default current_date,
-  count      integer not null default 0,
-  updated_at timestamptz not null default now(),
-  primary key (ip, day)
-);
 
 create table if not exists public.ai_chat_usage (
   subject    text not null,
@@ -38,8 +27,17 @@ create table if not exists public.ai_chat_usage (
 );
 
 comment on column public.ai_chat_usage.subject is
-  'Chủ thể tính hạn mức: "u:<user_id>" nếu đã đăng nhập, "ip:<địa chỉ>" nếu chưa';
+  'Chủ thể tính hạn mức: "<chat|inv>:" + "u:<user_id>" | "ip:<địa chỉ>" | "dev:<mã thiết bị>"';
 
-alter table public.ai_usage      enable row level security;
-alter table public.ai_usage_ip   enable row level security;
 alter table public.ai_chat_usage enable row level security;
+
+-- Bỏ hai bảng của bản cũ: `ai_usage` (khoá user_id) và `ai_usage_ip` (khoá ip)
+-- đếm đúng việc mà ai_chat_usage đang làm, nhưng mỗi chiều đếm một bảng nên không
+-- thêm được chiều "dev:". Không chuyển dữ liệu: count là số đếm THEO NGÀY, mất là
+-- khách được thêm lượt trong hôm nay, không ảnh hưởng gì về sau.
+drop table if exists public.ai_usage    cascade;
+drop table if exists public.ai_usage_ip cascade;
+
+-- Dọn hàng còn ở định dạng cũ (chưa có tiền tố tính năng) — chúng không khớp với
+-- subject nào Edge Function đang đọc nên chỉ nằm chiếm chỗ.
+delete from public.ai_chat_usage where subject !~ '^(chat|inv):';

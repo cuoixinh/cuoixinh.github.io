@@ -1,6 +1,7 @@
 /**
  * AiDAL — gọi Edge Function ai-invitation. Không bắt buộc đăng nhập: đã đăng nhập
- * thì đính JWT (rate-limit theo user), chưa thì rate-limit theo IP ở server.
+ * thì đính JWT (hạn mức theo user), chưa thì server đếm theo IP + mã thiết bị
+ * (core/helpers/device-id.js, nạp trước file này).
  */
 class AiDAL {
   constructor() {
@@ -31,7 +32,7 @@ class AiDAL {
     const res = await fetch(this._url, {
       method: "POST",
       headers,
-      body: JSON.stringify(input),
+      body: JSON.stringify({ ...input, device: window.cxDeviceId?.() || "" }),
     });
 
     const json = await res.json().catch(() => ({}));
@@ -57,6 +58,7 @@ class AiDAL {
       headers,
       body: JSON.stringify({
         mode: "optimize",
+        device: window.cxDeviceId?.() || "",
         inputType,
         text,
         tone,
@@ -89,6 +91,7 @@ class AiDAL {
       headers,
       body: JSON.stringify({
         mode: "love_story",
+        device: window.cxDeviceId?.() || "",
         text,
         tone,
         groom_name: groomName || "",
@@ -117,7 +120,13 @@ class AiDAL {
     const res = await fetch(this._url, {
       method: "POST",
       headers,
-      body: JSON.stringify({ mode: "sample", tone, region, hint }),
+      body: JSON.stringify({
+        mode: "sample",
+        device: window.cxDeviceId?.() || "",
+        tone,
+        region,
+        hint,
+      }),
     });
 
     const json = await res.json().catch(() => ({}));
@@ -141,7 +150,7 @@ class AiDAL {
     const res = await fetch(this._url, {
       method: "POST",
       headers,
-      body: JSON.stringify({ ...input, stream: true }),
+      body: JSON.stringify({ ...input, device: window.cxDeviceId?.() || "", stream: true }),
     });
 
     if (!res.ok || !res.body) {

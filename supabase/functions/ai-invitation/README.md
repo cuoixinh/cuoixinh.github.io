@@ -38,9 +38,10 @@ Bảo mật vẫn nguyên (clamp/whitelist ở server). Lượt gọi lại non-
         │  aiDAL.generateInvitation()  (gắn JWT của user)
         ▼
 [Edge Function ai-invitation]  supabase/functions/ai-invitation/index.ts
-        │  • KHÔNG bắt buộc đăng nhập (deploy --no-verify-jwt)
-        │  • có JWT hợp lệ → rate-limit 15 lượt/user/ngày (bảng ai_usage)
-        │  • chưa đăng nhập  → rate-limit 5 lượt/IP/ngày   (bảng ai_usage_ip)
+        │  • KHÔNG bắt buộc đăng nhập (client luôn gửi anon key)
+        │  • có JWT hợp lệ → 15 lượt/user/ngày
+        │  • chưa đăng nhập  → 5 lượt/ngày, đếm CẢ theo IP lẫn mã thiết bị
+        │    (bảng ai_chat_usage, tiền tố "inv:"; đếm ở _shared/ai-rate-limit.ts)
         │  • validate + clamp input/output
         │  • CORS allowlist, timeout 25s
         ▼
@@ -65,24 +66,26 @@ Bảo mật vẫn nguyên (clamp/whitelist ở server). Lượt gọi lại non-
 
 ---
 
-## 3. Tạo bảng rate-limit `ai_usage`
+## 3. Tạo bảng rate-limit `ai_chat_usage`
 
-Mở **Supabase → SQL Editor**, chạy **cả hai** file (idempotent, chạy lại an toàn):
-- [`changelogs/RC01/schema/dqvinh_007_ai_usage.sql`](../../../changelogs/RC01/schema/dqvinh_007_ai_usage.sql) — cả ba bảng hạn mức: `ai_usage` (theo user), `ai_usage_ip` (theo IP, khách chưa đăng nhập), `ai_chat_usage` (trợ lý AI).
+Mở **Supabase → SQL Editor**, chạy file (idempotent, chạy lại an toàn):
+- [`changelogs/RC01/schema/dqvinh_007_ai_usage.sql`](../../../changelogs/RC01/schema/dqvinh_007_ai_usage.sql) — MỘT bảng cho mọi luồng AI. Nó cũng bỏ hai bảng của bản cũ (`ai_usage`, `ai_usage_ip`).
 
-Nội dung `ai_usage`:
+Nội dung:
 
 ```sql
-create table if not exists public.ai_usage (
-  user_id uuid not null references auth.users (id) on delete cascade,
+create table if not exists public.ai_chat_usage (
+  subject text not null,   -- "inv:" | "chat:" + "u:<user_id>" | "ip:<addr>" | "dev:<mã>"
   day     date not null default current_date,
   count   integer not null default 0,
   updated_at timestamptz not null default now(),
-  primary key (user_id, day)
+  primary key (subject, day)
 );
-alter table public.ai_usage enable row level security;
+alter table public.ai_chat_usage enable row level security;
 -- Không tạo policy => client bị chặn, chỉ Edge Function (service_role) ghi được.
 ```
+
+Tiền tố `inv:`/`chat:` giữ hạn mức của hai tính năng TÁCH nhau dù chung bảng.
 
 ---
 
@@ -198,7 +201,9 @@ Sửa văn phong / cấu trúc nội dung: hàm `buildPrompt()` và `RESPONSE_SC
 
 - `supabase/functions/_shared/card-schema.ts` — hợp đồng dữ liệu thiệp (whitelist field, nhãn văn phong, luật xưng hô, tầng validate output) dùng chung với `ai-chat`
 - `supabase/functions/ai-invitation/index.ts` — Edge Function
-- `changelogs/RC01/schema/dqvinh_007_ai_usage.sql` — ba bảng hạn mức dùng AI
+- `supabase/functions/_shared/ai-rate-limit.ts` — phép đếm hạn mức dùng chung với `ai-chat`
+- `changelogs/RC01/schema/dqvinh_007_ai_usage.sql` — bảng hạn mức dùng AI
+- `core/helpers/device-id.js` — mã thiết bị gửi kèm request AI
 - `core/dal/ai-dal.js` — client gọi function (gắn JWT)
 - `core/config.js` — `CONFIG.supabase.aiInvitationUrl`
 - `invitation-setup/index.html` — banner + `#ai-modal` + nạp `ai-dal.js`

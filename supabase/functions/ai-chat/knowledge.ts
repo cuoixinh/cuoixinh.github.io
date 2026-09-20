@@ -56,8 +56,8 @@ trang trí.
 # Trợ lý XuXi — chính là khung chat này
 Mở được từ bong bóng ở trang chủ hoặc ngay trong trang Thiết lập, cùng một XuXi: khách kể
 thông tin và chuyện tình bằng lời tự do, XuXi hỏi thêm phần còn thiếu rồi dựng luôn nội
-dung thiệp (mở từ trang Thiết lập thì nội dung đổ thẳng vào form đang mở). Hạn mức 80
-lượt/ngày khi đã đăng nhập, 40 lượt/ngày khi chưa. Ngoài ra mỗi ô văn bản ở trang Thiết lập
+dung thiệp (mở từ trang Thiết lập thì nội dung đổ thẳng vào form đang mở). Hạn mức 30
+lượt/ngày khi đã đăng nhập, 5 lượt/ngày khi chưa. Ngoài ra mỗi ô văn bản ở trang Thiết lập
 có nút "Tối ưu" để AI viết lại cho hay hơn — 15 lượt/ngày khi đã đăng nhập, 5 khi chưa.
 
 # Quản lý khách mời

@@ -1,7 +1,8 @@
 /**
  * AiChatDAL — gọi Edge Function ai-chat (Trợ lý XuXi). Không bắt buộc
- * đăng nhập: đã đăng nhập thì đính JWT (hạn mức theo user), chưa thì server tính
- * theo IP. Server trả NDJSON để chữ chạy dần.
+ * đăng nhập: đã đăng nhập thì đính JWT (hạn mức theo user), chưa thì server đếm
+ * theo IP + mã thiết bị (core/helpers/device-id.js). Server trả NDJSON để chữ
+ * chạy dần.
  */
 class AiChatDAL {
   constructor() {
@@ -43,6 +44,7 @@ class AiChatDAL {
         // không đọc tới, gửi kèm là phình request mỗi lượt.
         messages: (messages || []).map((m) => ({ role: m.role, content: m.content })),
         card: card || null,
+        device: window.cxDeviceId?.() || "",
         stream: true,
       }),
     });

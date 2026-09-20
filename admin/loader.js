@@ -38,6 +38,7 @@
     // Dùng cho tab "Dữ liệu mẫu": aiDAL (nhờ AI sinh nội dung) và
     // formatLunarDate (tự tính ngày âm từ ngày dương) — cả hai đều thuần
     // logic, không bind DOM của trang nào.
+    "../core/helpers/device-id.js",
     "../core/dal/ai-dal.js",
     // templates-dal.js cache danh sách mẫu ở localStorage → cần cache-util.js
     // đứng TRƯỚC nó (buildCacheKey/getCache/setCache).
