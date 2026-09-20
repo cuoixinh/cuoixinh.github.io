@@ -1317,6 +1317,14 @@ svg.lucide {
   min-width: 72px !important;
 }
 
+/* Cụm chuyển chế độ có khổ CỐ ĐỊNH ở mọi khổ màn — cho nó co giãn thì mỗi
+   trang một bề ngang khác nhau. Khai TRƯỚC các media query ở dưới: mấy luật kia
+   cùng độ đặc hiệu (media query không cộng thêm), viết sau dòng này mới thắng —
+   để nó ở cuối là khổ 88px đè luôn mức 80px của điện thoại. */
+#switch-wrap {
+  width: 88px;
+}
+
 /* Điện thoại: hàng nav vừa khít, nên hai nút hành động THU NHỎ (vẫn đủ cả nhãn)
    thay vì rút bớt chữ. Khổ 390px: 80 + 2×28 + 2×88 = 320px, còn dư chỗ. */
 @media (max-width: 639px) {
@@ -1350,12 +1358,6 @@ svg.lucide {
   #nav-more-wrap > .cx-navitem {
     @apply px-1.5;
   }
-}
-
-/* Cụm chuyển chế độ có khổ CỐ ĐỊNH ở mọi khổ màn (mobile 88px, sm 176px, pad
-   88px) — cho nó co giãn thì mỗi trang một bề ngang khác nhau. */
-#switch-wrap {
-  width: 88px;
 }
 
 /* Nhãn trong cụm switch không bao giờ ngắt dòng — chật thì phải nới ô ở dưới,

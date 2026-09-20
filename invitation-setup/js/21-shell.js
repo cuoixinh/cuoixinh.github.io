@@ -36,13 +36,16 @@ const CX_NAV_ITEMS = [
 ];
 
 /**
- * Hàng nav còn vừa không. Các cụm trong hàng đều KHÔNG co dưới bề ngang nội dung
- * (nhãn `whitespace-nowrap` + min-width ở styles/_setup.css) nên lúc chật, tổng
- * bề ngang con vượt hẳn ra ngoài — dùng đúng dấu hiệu đó, không đo scrollWidth.
+ * Hàng nav còn vừa không. Các cụm trong hàng đều khai `flex-none` nên lúc chật,
+ * tổng bề ngang con vượt hẳn ra ngoài — dùng đúng dấu hiệu đó. Vẫn lấy thêm
+ * `scrollWidth` làm mức sàn: WebKit vẫn ép được khung flex lồng nhau co xuống
+ * dưới bề ngang nội dung, khi đó rect của cụm nhỏ hơn thứ nó đang chứa nên phép
+ * cộng báo "vừa" trong lúc icon cuối đã chui xuống dưới nút bên cạnh.
  */
 function _cxNavFits(row) {
   let sum = 0;
-  for (const el of row.children) sum += el.getBoundingClientRect().width;
+  for (const el of row.children)
+    sum += Math.max(el.getBoundingClientRect().width, el.scrollWidth);
   return sum <= row.clientWidth + 1;
 }
 
