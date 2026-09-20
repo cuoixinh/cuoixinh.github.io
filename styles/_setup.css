@@ -482,16 +482,16 @@ input.flatpickr-input[readonly] {
 /* Nút trái: "Đặt lại" (bỏ hết tuỳ chỉnh) hoặc "Mặc định" của bảng con */
 .cx-ch-reset {
   @apply -ml-2 inline-flex min-w-0 items-center gap-1 rounded-lg px-2 py-1
-         text-[12.5px] font-medium text-gray-500
-         transition-[background-color,color] duration-150;
+         text-[12.5px] font-medium text-rose-600
+         transition-[background-color] duration-150;
 }
 
 .cx-ch-reset:hover {
-  @apply bg-gray-100 text-rose-600;
+  @apply bg-rose-50;
 }
 
 .cx-ch-reset:active {
-  @apply bg-gray-200;
+  @apply bg-rose-100;
 }
 
 .cx-ch-reset:focus-visible {
