@@ -73,7 +73,7 @@
     return el ? hexOf(getComputedStyle(el).color) : "";
   }
 
-  // Hai mẫu gọn (.cx-mw) đi màu qua biến CSS nên không có bề mặt nào để đo —
+  // Mẫu gọn (.cx-mw) đi màu qua biến CSS nên có khi không có bề mặt nào để đo —
   // đọc thẳng biến; mẫu thanh ngang dựng bằng utility thì đo trên chính thanh.
   function varOf(node, name) {
     return hexOf(getComputedStyle(node).getPropertyValue(name));
@@ -166,6 +166,26 @@
           colors: [C.BG, C.TEXT, C.CTRL, C.CTRL_BG],
         },
         {
+          id: "pill",
+          name: "Thẻ viên",
+          desc: "Ảnh bìa, tên bài và nút phát gọn trong một viên",
+          w: 52,
+          minW: 30,
+          maxW: 80,
+          fs: 0.055,
+          colors: [C.BG, C.TEXT, C.CTRL, C.CTRL_BG],
+        },
+        {
+          id: "square",
+          name: "Thẻ vuông",
+          desc: "Ảnh bìa tràn khung, tên bài trên dải tối ở đáy",
+          w: 30,
+          minW: 18,
+          maxW: 50,
+          fs: 0.08,
+          colors: [C.BG, C.TEXT, C.CTRL, C.CTRL_BG],
+        },
+        {
           id: "mini",
           name: "Nút tròn",
           desc: "Một nút nhỏ, ảnh bìa xoay khi đang phát",
@@ -175,6 +195,29 @@
           fs: 0.2,
           // Chỉ là một nút tròn phủ ảnh bìa: không có mặt nền riêng, cũng không
           // có chữ nào để đổi màu.
+          colors: [C.CTRL, C.CTRL_BG],
+        },
+        {
+          id: "ring",
+          name: "Vòng tiến trình",
+          desc: "Nút tròn, cung chạy quanh cho thấy bài đã tới đâu",
+          w: 18,
+          minW: 10,
+          maxW: 34,
+          fs: 0.22,
+          // Mặt nền chỉ ló ra thành vành mảnh quanh ảnh bìa, nhưng đó cũng là
+          // nền của rãnh tiến trình nên vẫn cho chỉnh.
+          colors: [C.BG, C.CTRL, C.CTRL_BG],
+        },
+        {
+          id: "disc",
+          name: "Đĩa than",
+          desc: "Đĩa nhựa quay tròn, ảnh bìa làm nhãn giữa",
+          w: 20,
+          minW: 12,
+          maxW: 38,
+          fs: 0.2,
+          // Mặt đĩa là rãnh nhựa đen — đổi nền thì không còn ra đĩa than.
           colors: [C.CTRL, C.CTRL_BG],
         },
       ],
@@ -204,14 +247,14 @@
             inkOf(node.querySelector('[data-cx-music="title"]')) ||
             varOf(node, "--cx-mw-fg"),
         ),
-        // Nút tròn: mặt bấm là .cx-mw-mini-ic (nút bọc ngoài trong suốt) nên dò
-        // nó trước, các mẫu khác mới rơi về nút phát.
+        // Mẫu gọn: mặt bấm là .cx-mw-ic (mẫu nào cũng có) — ở vài mẫu nó chỉ là
+        // lớp phủ trong suốt bên trong nút, nên dò nó TRƯỚC nút phát.
         color(
           C.CTRL,
           "rgb(var(--white-rgb))",
           (node) =>
             inkOf(
-              node.querySelector(".cx-mw-mini-ic") ||
+              node.querySelector(".cx-mw-ic") ||
                 node.querySelector('[data-cx-music="icon"]') ||
                 node.querySelector('[data-cx-music="toggle"]'),
             ) || varOf(node, "--cx-mw-ctrl"),
@@ -221,7 +264,7 @@
           "rgb(var(--music-widget-accent-rgb))",
           (node) =>
             paintOf(
-              node.querySelector(".cx-mw-mini-ic") ||
+              node.querySelector(".cx-mw-ic") ||
                 node.querySelector('[data-cx-music="toggle"]'),
             ) || varOf(node, "--cx-mw-accent"),
         ),

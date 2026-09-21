@@ -499,6 +499,28 @@ input.flatpickr-input[readonly] {
   @apply outline-none ring-2 ring-rose-200;
 }
 
+/* Nút phải: "Xong" (✓) của màn cấp 2 — CHỈ cái dấu tích, không nền không bo
+   góc, cân với nút Đặt lại bên trái vốn cũng là chữ trần. Khổ 32px là VÙNG
+   CHẠM, không phải hình dạng: nó trong suốt nên mắt chỉ thấy mỗi icon. */
+.cx-ch-done {
+  @apply -mr-1 inline-flex h-8 w-8 items-center justify-center
+         text-rose-600 transition-[color,transform] duration-150;
+}
+
+.cx-ch-done:hover {
+  @apply text-rose-700;
+}
+
+.cx-ch-done:active {
+  @apply scale-90;
+}
+
+/* Vòng focus phải có chỗ bám — bo nhẹ CHỈ để vòng đó không vuông chằn chặn,
+   lúc không focus chẳng thấy gì. */
+.cx-ch-done:focus-visible {
+  @apply rounded-lg outline-none ring-2 ring-rose-200;
+}
+
 /* Dải tab dưới bảng chỉnh: mỗi tab một bảng. Cuộn ngang khi không đủ chỗ (nhãn
    không xuống dòng), tab đang mở là viên thuốc hồng — JS chỉ gạt .is-on. */
 .cx-ctabs {
@@ -569,25 +591,6 @@ input.flatpickr-input[readonly] {
   @apply opacity-45;
 }
 
-
-/* Quay lại — đóng bảng con (chỉnh chữ / điều chỉnh thành phần), trả về nhóm
-   chỉnh chung. Tên bảng đang mở nằm ở giữa đầu bảng nên nút chỉ còn mũi tên. */
-.cx-le-back {
-  @apply -ml-2 inline-flex h-8 w-8 items-center justify-center rounded-lg
-         text-gray-700 transition-[background-color,color] duration-150;
-}
-
-.cx-le-back:hover {
-  @apply bg-gray-100 text-rose-600;
-}
-
-.cx-le-back:active {
-  @apply bg-gray-200;
-}
-
-.cx-le-back:focus-visible {
-  @apply outline-none ring-2 ring-rose-200;
-}
 
 /* Ô sửa Nội dung */
 .cx-le-label-block {
@@ -939,6 +942,12 @@ input.flatpickr-input[readonly] {
 /* Bảng nào không có nút nào (hàng nút rỗng) thì khối vẫn phải cao đủ để kéo. */
 .cx-sheet-actions {
   @apply min-h-0;
+}
+
+/* Bảng chọn giấu hẳn hàng nút (_syncCtrlHead đặt cờ) → lề dưới của vạch kéo
+   thành khoảng trống thừa, gỡ nốt cho thiệp lộ thêm. */
+.cx-sheet-handle.is-bare .cx-sheet-grip {
+  @apply mb-0;
 }
 
 @media (min-width: 768px) {
@@ -1620,8 +1629,9 @@ html.cx-rail-off {
   flex: none;
 }
 
-/* Tab Giao diện dùng lại đúng khung đó. Ở mobile thanh chỉnh nằm dưới nó trong
-   luồng nên khung chỉ cao bằng chỗ còn lại — máy lùn đi chứ bề ngang giữ nguyên;
+/* Tab Giao diện dùng lại đúng khung đó, nhưng là chỗ DUY NHẤT máy được méo tỉ
+   lệ: ở mobile thanh chỉnh nằm dưới nó trong luồng nên khung chỉ cao bằng chỗ
+   còn lại — máy lùn đi chứ bề ngang giữ nguyên;
    từ md+ thanh chỉnh là cột phải nên máy về đúng tỉ lệ
    (_cxPhoneFit ở js/22-live-preview.js). */
 .cx-theme-stage {
@@ -1635,9 +1645,10 @@ html.cx-rail-off {
   position: relative;
   width: var(--cx-ph-w);
 
-  /* Mặc định là đúng tỉ lệ ảnh — cũng là thứ desktop dùng. Dưới md, hai tab xem
-     trước ghi đè --cx-ph-fit-h ngay TRÊN .cx-phone để máy lùn lại cho vừa chiều
-     cao còn trống (_cxPhoneFit ở js/22-live-preview.js). Tên phải khác
+  /* Mặc định là đúng tỉ lệ ảnh — cũng là thứ desktop dùng, và là thứ tab Xem
+     trước dùng ở MỌI khổ màn. Dưới md, riêng tab Giao diện ghi đè --cx-ph-fit-h
+     ngay TRÊN .cx-phone để máy lùn lại cho vừa chiều cao còn trống (_cxPhoneFit
+     ở js/22-live-preview.js). Tên phải khác
      --cx-ph-h của dải xem trực tiếp: biến đó khai ở .cx-setup nên kế thừa xuống
      MỌI khung máy trong trang, trùng tên là khung nào cũng nhận chiều cao của
      dải rồi méo hình. */
@@ -1672,8 +1683,8 @@ html.cx-rail-off {
   }
 
   /* Không còn vỏ thì ô màn trải TRỌN khung và bỏ bo góc — giữ lại bo góc là chừa
-     một vành trống không còn gì che. Trần khổ máy lúc này do _cxPhoneFit hạ về
-     390px (ô màn = cả khung) để thiệp không bị phóng to hơn máy thật. */
+     một vành trống không còn gì che. Khung lúc này CHÍNH LÀ màn điện thoại đang
+     cầm nên _cxPhoneFit bỏ trần khổ và dựng thiệp ở đúng bề ngang đó, tỉ lệ 1. */
   .cx-theme-stage .cx-phone-screen {
     top: 0;
     left: 0;
@@ -1711,7 +1722,9 @@ html.cx-rail-off {
 /* Thiệp phải được DỰNG ở đúng khổ máy thật (390px) rồi mới thu cho vừa ô màn —
    để iframe rộng đúng ~340px thì theme rơi vào bố cục của một máy hẹp hơn mọi
    điện thoại đang bán, chữ và ảnh dồn sai. 837 = 390 ÷ tỉ lệ ô màn (337/723).
-   --cx-scr-scale do js/22-live-preview.js đo (CSS không chia được px cho px). */
+   Khổ + --cx-scr-scale do js/22-live-preview.js đo và ghi đè bằng inline style
+   (CSS không chia được px cho px); khung không vỏ nhận đúng bề ngang màn thật,
+   tỉ lệ 1. */
 .cx-phone-view {
   width: 390px;
   height: 837px;

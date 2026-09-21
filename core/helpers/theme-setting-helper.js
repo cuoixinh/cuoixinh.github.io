@@ -2316,6 +2316,51 @@ function _cxElResize(id, w, done) {
   _cxElReport();
 }
 
+// Chỗ đứng GỐC của widget, nếu có một chỗ như vậy: thẻ nhạc vốn dựng ra từ trình
+// phát sẵn có của mẫu thiệp (xem _cxElSeedThemeMusic) nên chỗ gốc của nó là chỗ
+// trình phát đó vẫn đứng — đo lại được vì trình phát chỉ bị ẩn chứ vẫn trong DOM.
+// Chỉ lấy TOẠ ĐỘ; bề ngang đã trả về khổ gốc của mẫu ở _cxElResetAll.
+// Trả false khi không đo được → người gọi rơi về chỗ mặc định của widget thả tay.
+function _cxElHome(t, node) {
+  if (t.element !== "music") return false;
+  const player = document.getElementById("music-toggle");
+  const box = player && _cxElMeasureThemePlayer(player);
+  const card = document.getElementById("main-card");
+  const r = card && card.getBoundingClientRect();
+  const vh = _cxViewH();
+  if (!box || !r || !r.width || !vh) return false;
+  // Thanh gốc neo theo khung nhìn, khung xem trước rộng hơn thiệp → kẹp vào khổ
+  // thiệp, giống lúc dựng (xem _cxElAdoptThemeBox).
+  t.x = Math.round(
+    _cxDecorClamp(((box.cx - r.left) / r.width) * 100, 0, 100) * 10,
+  ) / 10;
+  t.y = _cxElPinY(node, box.cy, vh);
+  _cxElStyle(node, t);
+  return true;
+}
+
+// "Mặc định" ở bảng Điều chỉnh: trả widget về đúng như lúc vừa thả ra — khổ gốc
+// của mẫu, sạch tuỳ chọn riêng, và đứng lại chỗ mặc định (giữa bề ngang, đầu
+// khung đang xem). Làm trọn trong runtime vì chỗ đứng mặc định phải ĐO mới biết
+// (chiều cao widget, khung nhìn), trang cha không có số đó.
+function _cxElResetAll(id) {
+  const t = _cxElFind(id);
+  if (!t) return;
+  const def = _cxElDef(t);
+  const v = _cxElVariant(t) || {};
+  t.opts = {};
+  t.w = v.w || t.w;
+  t.x = 50;
+  const node = document.querySelector('.cx-el[data-el-id="' + t.id + '"]');
+  if (node) {
+    if (node._cxBody && def && def.apply) def.apply(node._cxBody, t.opts);
+    _cxElStyle(node, t); // áp khổ mới TRƯỚC khi đo chiều cao để đặt chỗ
+    if (!_cxElHome(t, node)) _cxElPlaceNow(t);
+  }
+  _cxElSendPick(); // bảng vẽ lại control theo khổ + màu gốc vừa trở về
+  _cxElReport();
+}
+
 function _cxElSetOpts(id, opts, replace, done) {
   const t = _cxElFind(id);
   if (!t) return;
@@ -2647,6 +2692,7 @@ if (typeof window !== "undefined" && window.top !== window) {
     else if (d.type === "cx-element-size") _cxElResize(d.id, d.w, d.done);
     else if (d.type === "cx-element-opts")
       _cxElSetOpts(d.id, d.opts, d.replace, d.done);
+    else if (d.type === "cx-element-reset") _cxElResetAll(d.id);
     else if (d.type === "cx-element-del") _cxElDelete(d.id);
     // Trang cha bấm ra ngoài iframe → bỏ chọn cho bộ nút trên hoa/widget tắt đi
     else if (d.type === "cx-blur") _cxBlurCards(d.what);

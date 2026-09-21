@@ -1,36 +1,66 @@
-/* Thanh kéo dạng viên thuốc (core/components/progress.js).
+/* Thanh kéo mảnh (core/components/progress.js).
    Bề rộng phần đã chọn đọc từ biến --cx-prog do JS đặt trên .cx-prog. */
 
 .cx-prog {
-  @apply relative flex min-w-0 flex-1 select-none items-center gap-2 rounded-full
-         bg-gradient-to-r from-rose-400 to-rose-500 px-3 py-2 shadow-sm;
+  @apply relative flex min-w-0 flex-1 select-none items-center gap-3;
+
+  /* Khai mặc định ở ĐÂY chứ đừng viết var(--cx-prog, 0%) tại chỗ dùng: cssnano
+     rút "0%" trong fallback thành "0" trần. */
+  --cx-prog: 0%;
+  --cx-prog-knob: 16px;
+
+  /* Tâm núm nằm ĐÚNG vị trí giá trị nên nửa núm thò ra ngoài track ở hai mốc
+     0% và 100% — chừa sẵn chỗ cho nó, không thì núm đè lên nhãn bên cạnh. */
+  padding-inline: calc(var(--cx-prog-knob) / 2);
+
+  /* Vùng chạm: input trong suốt căng full chiều cao khối này (xem .cx-prog-input),
+     track mỏng 6px nên chiều cao phải do đây giữ. */
+  min-height: 36px;
 }
 
-/* Rộng cố định để số 8% → 100% không làm track co giãn theo */
+/* Số % đứng BÊN PHẢI (order) — nhãn của hàng đã chiếm mép trái rồi. Rộng cố
+   định để 8% → 100% không làm track co giãn theo. */
 .cx-prog-val {
-  @apply w-10 shrink-0 text-center text-[13px] font-semibold tabular-nums
-         text-white;
+  @apply order-2 w-9 shrink-0 text-right text-[12px] font-semibold tabular-nums
+         text-gray-500;
 }
 
 .cx-prog-track {
-  @apply relative h-6 min-w-0 flex-1 overflow-hidden rounded-full bg-black/15;
+  @apply relative h-1.5 min-w-0 flex-1 rounded-full bg-gray-200;
 }
 
-/* min-width = chiều cao track: ở giá trị nhỏ nhất viên thuốc vẫn tròn đầy,
-   không teo thành vạch */
 .cx-prog-fill {
-  @apply pointer-events-none absolute inset-y-0 left-0 rounded-full bg-white;
+  @apply pointer-events-none absolute inset-y-0 left-0 rounded-full
+         bg-gradient-to-r from-rose-300 to-rose-500;
 
-  width: var(--cx-prog, 0%);
-  min-width: 24px;
+  width: var(--cx-prog);
   transition: width 0.08s linear;
 }
 
+/* Núm kéo vẽ bằng pseudo của track (không phải của fill): vị trí bám thẳng vào
+   --cx-prog nên không lệ thuộc bề rộng fill, và track KHÔNG overflow-hidden để
+   nó thò ra được ở hai mốc đầu cuối. */
+.cx-prog-track::after {
+  content: "";
+
+  @apply pointer-events-none absolute top-1/2 rounded-full bg-white;
+
+  left: var(--cx-prog);
+  width: var(--cx-prog-knob);
+  height: var(--cx-prog-knob);
+  border: 2px solid rgb(var(--brand-accent-rgb));
+  box-shadow: 0 1px 4px rgb(var(--scrim-rgb) / 0.2);
+  transform: translate(-50%, -50%);
+  transition:
+    left 0.08s linear,
+    box-shadow 0.15s ease;
+}
+
 /* Input thật: trong suốt, nằm ĐÚNG trên thanh track.
-   Ngang: phải trùng khít track, không trùm cả viên thuốc — nhãn số bên trái đẩy
-   track thụt vào ~60px, trùm cả thì chỗ ngón tay đặt và giá trị nhận được lệch
-   nhau tới 16 điểm. Hai biến do core/components/progress.js đo.
-   Dọc: vẫn full viên thuốc (40px) chứ không co về 24px của track — vùng chạm
+   Ngang: phải trùng khít track, không trùm cả khối — nhãn số đẩy track thụt vào
+   vài chục px, trùm cả thì chỗ ngón tay đặt và giá trị nhận được lệch nhau tới
+   16 điểm. Hai biến do core/components/progress.js đo.
+   Dọc: full chiều cao khối (36px) chứ không co về 6px của track — vùng chạm
    càng cao càng dễ bắt.
    touch-action: none — thanh kéo nằm trong vùng cuộn (bảng chỉnh ở trang Thiết
    lập), thiếu dòng này thì cú vuốt ngang bị vùng cuộn giành mất. */
@@ -51,12 +81,12 @@
   @apply appearance-none;
 
   width: 1px;
-  height: 24px;
+  height: 16px;
 }
 
 .cx-prog-input::-moz-range-thumb {
   width: 1px;
-  height: 24px;
+  height: 16px;
   border: 0;
 }
 
@@ -66,7 +96,10 @@
   @apply pointer-events-none opacity-40;
 }
 
-/* Input trong suốt nên vòng focus phải vẽ ở khối bọc */
-.cx-prog:focus-within {
-  @apply ring-2 ring-rose-200 ring-offset-2;
+/* Input trong suốt nên trạng thái focus phải vẽ ở NÚM — vòng sáng quanh cả khối
+   trông như lỗi khi thanh chỉ mỏng 6px. */
+.cx-prog:focus-within .cx-prog-track::after {
+  box-shadow:
+    0 1px 4px rgb(var(--scrim-rgb) / 0.2),
+    0 0 0 4px rgb(var(--brand-accent-rgb) / 0.2);
 }

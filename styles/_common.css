@@ -2535,7 +2535,7 @@ button.cx-pchrome-btn:hover {
      auto thì trục ngang cũng bị clip theo (quy tắc của CSS overflow), nên lề hẹp
      là bóng bị xén phẳng hai bên — trông cứng hẳn so với dạng phân trang vốn
      không cuộn. */
-  padding: 8px 14px 14px;
+  padding: 8px 0px;
   scrollbar-width: none;
   -webkit-mask-image: linear-gradient(
     to bottom,

@@ -79,15 +79,6 @@
           <div class="cx-ch-side">
             <button
               type="button"
-              id="cx-ch-back"
-              onclick="cxCtrlBack()"
-              class="cx-le-back hidden"
-              aria-label="Quay lại"
-            >
-              <i data-lucide="arrow-left" class="w-4 h-4"></i>
-            </button>
-            <button
-              type="button"
               id="cx-ch-reset"
               onclick="cxCtrlReset()"
               class="cx-ch-reset"
@@ -98,9 +89,22 @@
             </button>
           </div>
           <span id="cx-ch-title" class="cx-ch-title">Bộ màu</span>
-          <!-- Ô trống bên phải: giữ cho tiêu đề đứng GIỮA đầu bảng, cân với
-               nút Quay lại / Đặt lại bên trái. -->
-          <div class="cx-ch-side cx-ch-end"></div>
+          <!-- Ô bên phải: nút Xong của màn cấp 2. Rỗng ở các bảng khác, nhưng
+               vẫn phải có để tiêu đề đứng GIỮA đầu bảng, cân với nút bên trái. -->
+          <div class="cx-ch-side cx-ch-end">
+            <button
+              type="button"
+              id="cx-ch-done"
+              onclick="cxCtrlBack()"
+              class="cx-ch-done hidden"
+              aria-label="Xong"
+              title="Xong"
+            >
+              <!-- Cỡ CỐ ĐỊNH phải là inline style: svg.lucide trong build.css
+                   ép 1em và thắng cả utility w-*/h-*. -->
+              <i data-lucide="check" style="width:18px;height:18px"></i>
+            </button>
+          </div>
         </div>
       </div>
       <div class="cx-sheet">
@@ -146,7 +150,7 @@
                     >Độ đậm</label
                   >
                   <!-- CXProgress (core/components/progress.js) bọc input này
-                       thành thanh viên thuốc và tự hiện số % — _syncPaletteStrength(). -->
+                       thành thanh kéo mảnh và tự hiện số % — _syncPaletteStrength(). -->
                   <input
                     id="theme-palette-strength"
                     type="range"
@@ -389,6 +393,19 @@
               id="theme-elements-panel"
               class="hidden space-y-3 md:space-y-4"
             >
+              <!-- Mục đang tắt ở tab Thiết lập: bảng vẫn mở được để xem có gì,
+                   phần chọn bên dưới bị khoá — _syncPanelGate() gạt dòng này. -->
+              <p
+                id="gate-warn-elements"
+                class="hidden rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[12px] leading-snug text-amber-800"
+              >
+                <i
+                  data-lucide="info"
+                  style="width: 14px; height: 14px; vertical-align: -2px"
+                  class="mr-1 inline-block"
+                ></i>
+                Mục “Nhạc nền” đang tắt — bật lại ở tab Thiết lập để thả thẻ nhạc.
+              </p>
               <p class="text-[12px] text-gray-500">
                 Bấm để đổi mẫu, giữ rồi kéo để thả vào chỗ khác.
               </p>
@@ -404,6 +421,18 @@
               id="theme-gift-panel"
               class="hidden space-y-3 md:space-y-4"
             >
+              <!-- Xem ghi chú ở #gate-warn-elements. -->
+              <p
+                id="gate-warn-gift"
+                class="hidden rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[12px] leading-snug text-amber-800"
+              >
+                <i
+                  data-lucide="info"
+                  style="width: 14px; height: 14px; vertical-align: -2px"
+                  class="mr-1 inline-block"
+                ></i>
+                Mục “Hộp mừng cưới” đang tắt — bật lại ở tab Thiết lập để chọn hộp.
+              </p>
               <p class="text-[12px] text-gray-500">
                 Hộp che mã QR, khách chạm vào mới mở.
               </p>
@@ -441,7 +470,7 @@
               <div class="cx-le-row">
                 <label class="cx-le-label">Kích thước</label>
                 <!-- CXProgress (core/components/progress.js) bọc input này thành
-                     thanh viên thuốc và tự hiện số % — xem _initElWidthSlider(). -->
+                     thanh kéo mảnh và tự hiện số % — xem _initElWidthSlider(). -->
                 <input
                   id="cx-el-width"
                   type="range"

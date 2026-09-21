@@ -313,12 +313,27 @@ function _initThemePanel() {
 // Ba tab chức năng chỉ có nghĩa khi mục tương ứng đang BẬT ở tab Thiết lập: tắt
 // mục rồi mà vẫn chọn được hộp quà / dạng lời chúc thì chọn xong chẳng thấy gì
 // đổi trên thiệp. Tab vẫn BẤM ĐƯỢC (khoá hẳn thì người dùng không biết vì sao
-// mờ, nhất là trên di động vốn không có hover) — bấm vào thì nói rõ lý do.
+// mờ, nhất là trên di động vốn không có hover). Hai cách báo lý do:
+//   khai `warn` + `body` → bảng mở ra như thường, phần chọn bị khoá và hiện một
+//     dòng nhắc ngay trong bảng (xem _syncPanelGate)
+//   không khai        → không mở bảng, chỉ hiện toast (xem _addCardBlocked)
 // Công tắc nằm ở ô ẩn của form, js/03-form-sections.js gọi lại hàm đồng bộ mỗi
 // lần gạt.
 const ADD_CARD_GATES = {
-  elements: { card: "add-card-elements", field: "enable_music", label: "Nhạc nền" },
-  gift: { card: "add-card-gift", field: "enable_gift", label: "Hộp mừng cưới" },
+  elements: {
+    card: "add-card-elements",
+    field: "enable_music",
+    label: "Nhạc nền",
+    warn: "gate-warn-elements",
+    body: "cx-elements-palette",
+  },
+  gift: {
+    card: "add-card-gift",
+    field: "enable_gift",
+    label: "Hộp mừng cưới",
+    warn: "gate-warn-gift",
+    body: "cx-gift-palette",
+  },
   wishes: { card: "add-card-wishes", field: "enable_wishes", label: "Lời chúc" },
 };
 
@@ -327,6 +342,20 @@ const ADD_CARD_GATES = {
 function _addCardOn(key) {
   const hidden = document.getElementById(ADD_CARD_GATES[key]?.field);
   return !hidden || hidden.value === "true";
+}
+
+// Đặt ở CUỐI hàm mở bảng của loại "khoá tại chỗ": hiện dòng nhắc + khoá phần
+// chọn khi mục đang tắt. Khoá bằng pointer-events để ô mẫu không bấm/kéo được
+// mà vẫn đọc được nội dung bên trong.
+function _syncPanelGate(key) {
+  const g = ADD_CARD_GATES[key];
+  const on = _addCardOn(key);
+  document.getElementById(g.warn)?.classList.toggle("hidden", on);
+  const body = document.getElementById(g.body);
+  if (!body) return;
+  body.classList.toggle("opacity-40", !on);
+  body.classList.toggle("pointer-events-none", !on);
+  body.setAttribute("aria-disabled", String(!on));
 }
 
 // Đặt ở ĐẦU mỗi hàm mở bảng: mục đang tắt thì nói lý do rồi dừng.
@@ -341,12 +370,16 @@ function _addCardBlocked(key) {
 
 function cxSyncThemeAddCards() {
   Object.keys(ADD_CARD_GATES).forEach((key) => {
+    // Gạt công tắc lúc bảng đang mở → khoá/mở ngay phần chọn, khỏi chờ mở lại.
+    if (ADD_CARD_GATES[key].warn) _syncPanelGate(key);
     const card = document.getElementById(ADD_CARD_GATES[key].card);
     if (!card) return;
     const on = _addCardOn(key);
     // Nhớ lời mách gốc ngay lượt đầu, không thì bật lại là mất hẳn.
     if (card.dataset.tip === undefined) card.dataset.tip = card.title || "";
-    card.classList.toggle("is-off", !on);
+    // Bảng nào tự nói lý do ở bên trong (`warn`) thì đừng tô mờ nút tab nữa —
+    // mờ mà vẫn bấm được chỉ làm người dùng tưởng hỏng.
+    card.classList.toggle("is-off", !on && !ADD_CARD_GATES[key].warn);
     card.title = on
       ? card.dataset.tip
       : `Mục “${ADD_CARD_GATES[key].label}” đang tắt — bật ở tab Thiết lập trước đã`;
@@ -420,6 +453,7 @@ window.addEventListener("message", (ev) => {
     if (d.seeded) _themeSetting.music_seeded = true;
     _setDirty(true, "theme");
     _syncElWidthFromCard();
+    _syncElTiles();
   } else if (d.type === "cx-element-pick") {
     // Vừa BẤM ô mẫu (không kéo) → bỏ qua đúng tin này, giữ nguyên bảng chọn để
     // bấm thử mẫu khác. Kéo thả thì vẫn nhảy thẳng sang phần điều chỉnh.
@@ -843,7 +877,6 @@ function _addDecor(src, x, y) {
 // vì bấm là để so mẫu — muốn chỉnh thì bấm vào chính widget trên thiệp.
 
 function openElementsPanel() {
-  if (_addCardBlocked("elements")) return;
   document.getElementById("theme-line-editor")?.classList.add("hidden");
   document.getElementById("theme-addtext-panel")?.classList.add("hidden");
   document.getElementById("theme-decor-panel")?.classList.add("hidden");
@@ -855,6 +888,7 @@ function openElementsPanel() {
   document.getElementById("theme-elements-panel")?.classList.remove("hidden");
   _resetCtrlScroll();
   _renderElementsPalette();
+  _syncPanelGate("elements");
   if (window.lucide) lucide.createIcons();
 }
 window.openElementsPanel = openElementsPanel;
@@ -956,6 +990,7 @@ function _renderElementsPalette() {
   if (!box) return;
   if (box.dataset.rendered === "1") {
     _fitElPreviews(box);
+    _syncElTiles();
     return;
   }
   const reg = window.CX_ELEMENTS || {};
@@ -973,6 +1008,7 @@ function _renderElementsPalette() {
     def.variants.forEach((v) => {
       box.appendChild(
         _pickRow({
+          id: def.id + ":" + v.id,
           name: v.name,
           desc: v.desc,
           lead: _elPreview(def, v),
@@ -989,6 +1025,39 @@ function _renderElementsPalette() {
   });
   box.dataset.rendered = "1";
   _fitElPreviews(box);
+  _syncElTiles();
+}
+
+// Tô sáng ô mẫu ĐANG đặt trên thiệp. Đọc _themeSetting.elements (bản đồng bộ từ
+// khung xem trước qua 'cx-elements-change') nên không phải hỏi lại iframe; gọi
+// lại mỗi lần danh sách đổi vì bấm ô mẫu là đổi mẫu tại chỗ mà vẫn ở lại bảng.
+function _syncElTiles() {
+  const box = document.getElementById("cx-elements-palette");
+  if (!box) return;
+  const on = new Set(
+    (_themeSetting.elements || [])
+      .filter((t) => t && t.element)
+      .map((t) => t.element + ":" + t.variant),
+  );
+  box
+    .querySelectorAll("[data-pick-id]")
+    .forEach((b) => b.classList.toggle("is-on", on.has(b.dataset.pickId)));
+}
+
+// Kéo ô mẫu đang dùng vào giữa tầm nhìn. Tự tính scrollTop chứ không
+// scrollIntoView: bảng chỉnh là thẻ NỔI, scrollIntoView cuộn lây cả khung nội
+// dung phía sau và đẩy thanh trên ra khỏi màn.
+function _focusElTile() {
+  const body = document.getElementById("cx-ctrl-scroll");
+  const row = document.querySelector("#cx-elements-palette .cx-pick-row.is-on");
+  if (!body || !row) return;
+  const rb = body.getBoundingClientRect();
+  const rr = row.getBoundingClientRect();
+  body.scrollTop = Math.max(
+    0,
+    body.scrollTop + rr.top - rb.top - (rb.height - rr.height) / 2,
+  );
+  requestAnimationFrame(() => _updateSheetFade(body));
 }
 
 // Kéo thành phần TỪ bảng chọn THẢ vào thiệp — y hệt hoạ tiết, thả ở đâu đặt ở đó.
@@ -1051,7 +1120,6 @@ function _addElement(elementId, variantId, x, y) {
 // như hoạ tiết/thành phần — bảng chọn nhờ vậy đứng yên để còn so mẫu này mẫu kia.
 
 function openGiftPanel() {
-  if (_addCardBlocked("gift")) return;
   document.getElementById("theme-line-editor")?.classList.add("hidden");
   document.getElementById("theme-addtext-panel")?.classList.add("hidden");
   document.getElementById("theme-decor-panel")?.classList.add("hidden");
@@ -1063,6 +1131,7 @@ function openGiftPanel() {
   document.getElementById("theme-gift-panel")?.classList.remove("hidden");
   _resetCtrlScroll();
   _renderGiftPalette();
+  _syncPanelGate("gift");
   if (window.lucide) lucide.createIcons();
 }
 window.openGiftPanel = openGiftPanel;
@@ -1328,6 +1397,7 @@ let _elBase = {}; // màu thật của widget trên thiệp (ô nào chưa chỉ
 function openElementEditor(msg) {
   const def = (window.CX_ELEMENTS || {})[msg.element];
   if (!def) return;
+  _rememberCtrlFrom();
   _elSel = msg.id;
   _elDefCur = def;
   _elOpts = Object.assign({}, msg.opts);
@@ -1363,6 +1433,18 @@ function closeElementEditor() {
 }
 window.closeElementEditor = closeElementEditor;
 
+// Nút ← của bảng "Điều chỉnh": THÀNH PHẦN nào cũng thuộc bảng "Thẻ nhạc" nên
+// luôn lùi về đó, kể cả khi vào bằng cú bấm thẳng vào widget trên thiệp — ô mẫu
+// đang dùng được tô sáng và kéo vào tầm nhìn. Khác với cú BỎ CHỌN widget
+// (cx-element-close): ở đó người dùng bấm ra chỗ trống nên về nhóm chỉnh chung
+// mới đúng ý.
+function backFromElementEditor() {
+  const box = document.getElementById("theme-element-editor");
+  if (!box || box.classList.contains("hidden")) return;
+  _ctrlBack(closeElementEditor, "elements", _focusElTile);
+}
+window.backFromElementEditor = backFromElementEditor;
+
 // Bảng khác sắp chiếm chỗ → chỉ cất đi, KHÔNG bật lại nhóm chỉnh chung.
 // Đóng bảng thì bỏ chọn luôn widget trong thiệp, nếu không bộ nút (xoá, đổi mẫu…)
 // còn treo trên nó.
@@ -1394,7 +1476,7 @@ function _syncElWidthFromCard() {
   if (t) _syncElWidth(t.w, _elVariantOf(t.variant));
 }
 
-// Bọc ô kích thước thành thanh viên thuốc. Chỉ chạy một lần; partial đã nằm
+// Bọc ô kích thước thành thanh kéo mảnh. Chỉ chạy một lần; partial đã nằm
 // trong DOM trước khi các script này được chèn nên không cần chờ thêm.
 function _initElWidthSlider() {
   const el = document.getElementById("cx-el-width");
@@ -1505,10 +1587,13 @@ function onElementColorInput(i, done) {
   });
 }
 
+// "Mặc định" của bảng Điều chỉnh: trả widget về đúng lúc vừa thả ra — tuỳ chọn
+// riêng, khổ và CẢ CHỖ ĐỨNG. Runtime lo hết (chỗ đứng mặc định phải đo mới biết)
+// rồi báo lại 'cx-element-pick' → bảng tự vẽ lại control theo giá trị gốc.
 function resetElementOptions() {
   _elOpts = {};
   _renderElOptions();
-  _elSend({ type: "cx-element-opts", opts: {}, replace: true, done: true });
+  _elSend({ type: "cx-element-reset" });
 }
 window.resetElementOptions = resetElementOptions;
 
@@ -1517,6 +1602,7 @@ function _lineIframe() {
 }
 
 function _openLineEditor(msg) {
+  _rememberCtrlFrom();
   _lineSel = msg.selector;
   _lineIsImage = !!msg.isImage;
   const ov =
@@ -1684,6 +1770,17 @@ function closeLineEditor() {
   _lineBlockList = false;
 }
 window.closeLineEditor = closeLineEditor;
+
+// Nút ← của bảng chỉnh chữ/ảnh. Khác bảng "Điều chỉnh": dòng chữ KHÔNG thuộc
+// bảng cấp 1 nào (phần lớn là chữ sẵn có của mẫu, bấm thẳng trên thiệp mà vào)
+// nên không khai `ownKey` — lùi về đúng bảng đang mở lúc vào (thả mẫu văn bản
+// xong thì đó là "Văn bản"), không có thì đứng lại ở nhóm chỉnh chung.
+function backFromLineEditor() {
+  const box = document.getElementById("theme-line-editor");
+  if (!box || box.classList.contains("hidden")) return;
+  _ctrlBack(closeLineEditor);
+}
+window.backFromLineEditor = backFromLineEditor;
 
 function _lineOverride() {
   if (!_themeSetting.text_overrides) _themeSetting.text_overrides = {};
@@ -2136,8 +2233,8 @@ function _updateSheetFade(body) {
 // trống = nhóm chỉnh chung), `title` là tên màn — DÙNG CHUNG cho tiêu đề giữa
 // đầu bảng lẫn nhãn nút ở dải tab, viết HÀM khi tên đổi theo thứ đang chỉnh
 // (bảng "line" nhận cả chữ lẫn ảnh), `tip` là lời mách của nút đó, `back` là hàm
-// cho nút ← (màn con: chỉnh chữ, điều chỉnh thành phần — không có tab vì chỉ mở
-// được bằng cú bấm vào thiệp), `reset` là hàm cho nút trái còn lại.
+// cho nút ✓ Xong bên phải (màn con: chỉnh chữ, điều chỉnh thành phần — không có
+// tab vì chỉ mở được bằng cú bấm vào thiệp), `reset` là hàm cho nút trái.
 // Xét từ TRÊN XUỐNG, màn nào không ẩn thì thắng; dòng cuối là màn mặc định.
 // Thêm bảng mới → thêm một dòng ở đây + một key vào CTRL_TABS, không đụng markup
 // (dải tab do _renderCtrlTabs dựng) lẫn các hàm mở/đóng bảng.
@@ -2146,7 +2243,7 @@ const CTRL_VIEWS = [
     key: "element",
     panel: "theme-element-editor",
     title: "Điều chỉnh",
-    back: "closeElementEditor",
+    back: "backFromElementEditor",
     reset: "resetElementOptions",
     resetTxt: "Mặc định",
   },
@@ -2154,7 +2251,7 @@ const CTRL_VIEWS = [
     key: "line",
     panel: "theme-line-editor",
     title: () => (_lineIsImage ? "Chỉnh ảnh" : "Chỉnh chữ"),
-    back: "closeLineEditor",
+    back: "backFromLineEditor",
     reset: "clearLineOverride",
     resetTxt: "Mặc định",
   },
@@ -2210,6 +2307,36 @@ const CTRL_TAB_PANELS = CTRL_VIEWS.filter((v) => v.open).map((v) => v.panel);
 // bằng cú bấm vào thiệp). Nhãn + lời mách lấy từ CTRL_VIEWS nên chỉ khai MỘT chỗ.
 const CTRL_TABS = ["main", "addtext", "decor", "elements", "gift", "wishes"];
 
+// Màn cấp 2 vào được từ nhiều đường: bấm thẳng vào thiệp, hoặc vừa thả một thứ
+// từ bảng cấp 1 ra (thả mẫu văn bản xong là nhảy luôn sang Chỉnh chữ). Ghi lại
+// bảng cấp 1 đang mở lúc đó để nút ← lùi về đúng chỗ vào.
+let _ctrlFrom = null;
+
+// Chỉ nhớ bảng CÓ TAB: đang ở màn cấp 2 rồi bấm sang thứ khác trên thiệp thì
+// giữ nguyên chỗ vào cũ. "main" coi như không đến từ bảng nào.
+function _rememberCtrlFrom() {
+  const key = _curCtrlView().key;
+  if (CTRL_TABS.includes(key)) _ctrlFrom = key === "main" ? null : key;
+}
+
+// Nút ← của màn cấp 2: đóng như thường (dọn trạng thái, bật lại nhóm chỉnh
+// chung) rồi mở lại bảng cấp 1 cần về. `ownKey` là bảng SỞ HỮU màn đó — khai
+// thì nó thắng chỗ vào đã ghi, vì thứ đang chỉnh luôn nằm trong bảng ấy. Mở lại
+// có thể bị từ chối (mục đã tắt ở tab Thiết lập); lúc đó nhóm chỉnh chung vừa
+// bật vẫn đứng đó, không có gì phải dọn.
+function _ctrlBack(closeFn, ownKey, focus) {
+  const key = ownKey || _ctrlFrom;
+  _ctrlFrom = null;
+  closeFn();
+  const view = CTRL_VIEWS.find((v) => v.key === key);
+  if (!view || typeof window[view.open] !== "function") return;
+  window[view.open]();
+  // Đợi một khung hình: _syncCtrlHead chạy bằng MutationObserver, nó mới là chỗ
+  // bỏ ẩn dải tab (và bung bảng nếu đang thu gọn) — đo trước đó thì vùng cuộn
+  // còn cao hơn thực tế nên ô mẫu dừng lệch khỏi giữa.
+  if (focus) requestAnimationFrame(focus);
+}
+
 function _ctrlTitle(view) {
   return typeof view.title === "function" ? view.title() : view.title;
 }
@@ -2262,8 +2389,17 @@ function _syncCtrlHead() {
 
   const title = document.getElementById("cx-ch-title");
   if (title) title.textContent = _ctrlTitle(view);
+
+  // Hàng nút đầu bảng chỉ giữ chỗ khi nó CÓ VIỆC: nút ← (màn cấp 2) hoặc nút
+  // Đặt lại (nhóm chỉnh chung). Các bảng chọn thì tên bảng đã nằm ngay ở dải tab
+  // bên dưới, giữ thêm một hàng nữa chỉ tổ ăn mất chiều cao của thiệp. Suy từ
+  // CTRL_VIEWS nên bảng mới khai nút nào là tự đúng.
+  const bare = !view.back && !view.reset;
+  document.getElementById("cx-ctrl-actions")?.classList.toggle("hidden", bare);
+  document.getElementById("cx-ctrl-handle")?.classList.toggle("is-bare", bare);
+
   document
-    .getElementById("cx-ch-back")
+    .getElementById("cx-ch-done")
     ?.classList.toggle("hidden", !view.back);
   const reset = document.getElementById("cx-ch-reset");
   if (reset) {
@@ -2422,6 +2558,9 @@ function _initCtrlTabsDrag() {
 }
 
 // Nút trái/phải của đầu bảng: việc cụ thể do màn đang mở khai ở CTRL_VIEWS.
+// Nút phải là ✓ "Xong" — mọi thay đổi đã áp thẳng lên thiệp và đánh dấu cần lưu
+// ngay lúc chỉnh, nên xác nhận ở đây chỉ còn nghĩa "chỉnh xong rồi": đóng màn và
+// lùi về bảng cấp 1. Không đổi gì thì bấm ✓ cũng y như đóng.
 function cxCtrlBack() {
   if (_ctrlView.back) window[_ctrlView.back]?.();
 }

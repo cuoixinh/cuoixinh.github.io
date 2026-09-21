@@ -207,13 +207,19 @@ nằm trong DOM, `--cx-ph-w`/`--cx-scr-scale` đặt **trên từng `.cx-phone`*
 `:root`. Bề rộng dải là thuần CSS; còn hai tab kia phải đo bằng JS (`cxPreviewFit` /
 `cxThemeFit`) theo
 **ô nội dung** của khung chứa — `clientWidth/Height` tính cả padding, lấy thẳng là máy dính
-sát mép. Máy có trần `CX_PHONE_MAX_W`: quá đó ô màn rộng hơn 390px, tức thiệp bị phóng to
-hơn máy thật. Panel đang ẩn thì khổ bằng 0 nên `switchTab()` phải gọi lại phép đo **sau khi**
-bỏ `.hidden`. **Dưới `md` máy fit theo CHIỀU CAO**: bề ngang lấy trọn chỗ trống (chỉ chặn bởi
-`CX_PHONE_MAX_W`), thiếu chiều cao thì thân máy lùn lại — ảnh `iphone_mockup.svg` phải giữ
-`preserveAspectRatio="none"`, bỏ đi là SVG tự canh giữa theo tỉ lệ gốc trong khi ô màn tính
-bằng % nên thiệp tràn ra ngoài viền. **Từ `md` trở lên máy giữ ĐÚNG tỉ lệ** (thu cả hai
-chiều) vì thanh chỉnh là cột phải, không ăn chiều cao. Thanh chỉnh ở tab Giao diện nằm TRONG
+sát mép. Khung CÒN vỏ máy có trần `CX_PHONE_MAX_W`: quá đó ô màn rộng hơn 390px, tức thiệp bị
+phóng to hơn máy thật. Khung KHÔNG vỏ (tab Giao diện dưới `md`) thì ngược lại — ô màn
+chính là màn điện thoại đang cầm nên không có trần, và thiệp dựng thẳng ở bề ngang đó với
+tỉ lệ 1 (`native` của `_cxPhoneScreen`); ép về 390px là máy rộng hơn (16 Pro Max 440px)
+thừa hai bên. Panel đang ẩn thì khổ bằng 0 nên `switchTab()` phải gọi lại phép đo **sau khi**
+bỏ `.hidden`. **Máy giữ ĐÚNG TỈ LỆ ở mọi khổ màn** (thu cả hai chiều kiểu `contain`), trừ ĐÚNG một
+ngoại lệ: **tab Giao diện dưới `md`** fit theo CHIỀU CAO — bề ngang lấy trọn chỗ trống (chỉ
+chặn bởi `CX_PHONE_MAX_W`), thiếu chiều cao thì thân máy lùn lại, vì thanh chỉnh nằm trong
+luồng ngay dưới khung và ăn hết nửa màn (cờ `squashH` của `_cxPhoneFit`; từ `md` trở lên
+thanh chỉnh là cột phải nên hết lý do méo). Tab Xem trước KHÔNG bao giờ méo — ở đó khung máy
+chính là thứ cho thấy thiệp trông ra sao trên điện thoại. Chỗ méo đó cần ảnh
+`iphone_mockup.svg` giữ `preserveAspectRatio="none"`, bỏ đi là SVG tự canh giữa theo tỉ lệ
+gốc trong khi ô màn tính bằng % nên thiệp tràn ra ngoài viền. Thanh chỉnh ở tab Giao diện nằm TRONG
 LUỒNG dưới khung (kéo cao lên là máy lùn thêm), nên lúc kéo hoạ tiết chỉ được làm nó MỜ chứ
 không dịch đi — bỏ chỗ của nó là máy đổi khổ giữa lúc kéo, toạ độ thả sẽ lệch. Cũng ở tab đó, thiệp bị THU NHỎ
 trong khung → toạ độ thả hoạ tiết/thành phần
