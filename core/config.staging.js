@@ -35,11 +35,18 @@
   // Dựng đủ để staging chạy đúng đường đi của production — kể cả bước phải bấm
   // purge ở admin sau khi sửa giá hay danh mục mẫu, vốn là chỗ dễ quên nhất.
   // Bốn worker này trỏ về project staging; dùng nhầm URL của production là
-  // staging phục vụ dữ liệu thật.
+  // staging phục vụ dữ liệu thật. Đi qua `USE_CACHE` cũng y như production: viết
+  // cứng URL thì tắt cờ chỉ tắt được production, staging vẫn trả từ cache.
   CONFIG.cloudflare = {
-    imageProxy: "https://wedding-image-proxy-staging.cuoixinh-api.workers.dev",
-    templatesCache: "https://templates-cache-staging.cuoixinh-api.workers.dev",
-    cacheProxy: "https://wedding-cache-proxy-staging.cuoixinh-api.workers.dev",
+    imageProxy: USE_CACHE
+      ? "https://wedding-image-proxy-staging.cuoixinh-api.workers.dev"
+      : null,
+    templatesCache: USE_CACHE
+      ? "https://templates-cache-staging.cuoixinh-api.workers.dev"
+      : null,
+    cacheProxy: USE_CACHE
+      ? "https://wedding-cache-proxy-staging.cuoixinh-api.workers.dev"
+      : null,
     // Phải khớp secret PURGE_SECRET đã đặt cho templates-cache-staging.
     purgeSecret: "SK7RnpzJ8e5/KJkzjYCLtNADB59h52LcgYILc1md1dA=",
   };

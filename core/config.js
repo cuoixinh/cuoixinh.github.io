@@ -1,7 +1,10 @@
 /** Cấu hình tập trung: API key, URL, ngưỡng ảnh… */
 
-// Set false khi test localhost để bypass Cloudflare cache → hit Supabase trực tiếp
-const USE_CACHE = true;
+// Set false khi test localhost để bypass Cloudflare cache → hit Supabase trực tiếp.
+// CHỈ có tác dụng ở production: bản staging gán đè trọn `CONFIG.cloudflare` bằng URL
+// bốn worker riêng (core/config.staging.js), nên `npm run dev` vẫn đi qua cache và
+// sửa giá/mẫu xong phải bấm purge y như thật.
+const USE_CACHE = false;
 
 // ĐỔI GIÁ TRỊ NÀY MỖI LẦN DEPLOY. Hai loader (admin, invitation-setup) nối
 // `?v=<version>` vào mọi URL partial/script chúng nạp, nên đổi số ở đây là ép
