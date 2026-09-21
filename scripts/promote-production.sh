@@ -93,6 +93,18 @@ if [ "$SKIP_VERSION" -eq 0 ] && [ -n "$OLD_VER" ] && [ "$NEW_VER" = "$OLD_VER" ]
    nhận partial mới đi với script cũ. Cố tình bỏ qua: thêm -- --skip-version-check"
 fi
 
+# ── 3b. Bản override môi trường phải còn khớp config.js ──────────────────────
+# Đọc từ nhánh STAGING (thứ sắp đẩy), không phải cây làm việc. Bắt hai ca: thêm
+# khoá vào config.js mà quên khai lại bên staging (override gán đè trọn object
+# nên staging lặng lẽ mất khoá), và staging còn trỏ vào project/worker của
+# production. Cả hai đều chỉ lộ ra khi đã chạy thật.
+echo "→ Đối chiếu config môi trường..."
+if ! git show "$STAGING_BRANCH:scripts/check-config-env.mjs" >/dev/null 2>&1; then
+  echo "  (bỏ qua: $STAGING_BRANCH chưa có scripts/check-config-env.mjs)"
+elif ! node scripts/check-config-env.mjs --ref "$STAGING_BRANCH"; then
+  die "Config môi trường không khớp — xem danh sách ở trên. Sửa trên $STAGING_BRANCH rồi chạy lại."
+fi
+
 # ── 4. Cho xem sắp đẩy cái gì ────────────────────────────────────────────────
 echo ""
 echo "  $STAGING_BRANCH → $PROD_BRANCH   ($COUNT commit)"

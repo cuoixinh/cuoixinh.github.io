@@ -263,6 +263,17 @@ Supabase riêng và một kênh thanh toán PayOS riêng. Đụng tới staging 
   mà lại lộ URL môi trường khác — **và** thêm một mục vào `ENVS` của `admin/loader.js`.
   Mỗi môi trường một `ADMIN_SECRET_TOKEN` riêng nên mã quản trị cất theo key
   `admin_token:<env>`.
+- **File override gán ĐÈ TRỌN object** (`CONFIG.supabase = {…}`), nên thêm một khoá vào
+  block đã bị đè ở `core/config.js` thì phải khai lại khoá đó ở `config.<env>.js` — không
+  thì production chạy ngon còn staging nhận `undefined`, hỏng đúng một tính năng mà không
+  có gì báo. Cố ý không dùng spread: với `cloudflare` nó sẽ kéo URL worker production vào
+  staging. Chốt là **`npm run check:config`**, `npm run production` cũng tự chạy trên nhánh
+  staging trước khi merge (thiếu khoá, hoặc còn trỏ vào project/worker production → DỪNG).
+- **Cache: hai cờ RIÊNG, cố ý** — `USE_CACHE` (`core/config.js`, production, đang BẬT) và
+  `STAGING_USE_CACHE` (`core/config.staging.js`, đang TẮT). Staging là nơi sửa giá/mẫu liên
+  tục nên đi thẳng Supabase cho thấy ngay; production đọc qua worker nên **đổi dữ liệu xong
+  phải purge ở admin**. Đừng "dọn" thành một cờ chung: gộp lại là mất đúng sự khác biệt này.
+  Cờ nào cũng chỉ được điều khiển worker của chính môi trường mình.
 - **Sửa Edge Function xong phải deploy CẢ HAI project** (`npm run deploy:functions:all`),
   không thì hai môi trường chạy hai bản khác nhau mà không có gì báo.
 - **Thứ tự khi một thay đổi đụng nhiều tầng:** SQL → Edge Function → web, làm trọn trên
@@ -270,9 +281,11 @@ Supabase riêng và một kênh thanh toán PayOS riêng. Đụng tới staging 
 - Thêm miền mới phải khai vào **BA** danh sách `ALLOWED_ORIGINS` (`_shared/ai-provider.ts`,
   `wedding-admin`, `guest-handler`) — sót một chỗ thì lỗi hiện ra dưới dạng CORS ở đúng
   một tính năng.
-- Staging dựng GIỐNG HỆT production, kể cả **bộ 4 worker cache riêng** (`wrangler-*-staging.toml`,
-  `CONFIG.cloudflare` trỏ về chúng) và cron `cleanup-weddings`. Đánh đổi: sửa giá/danh mục mẫu
-  trên staging phải đi purge y như thật, và thiệp test chưa thanh toán/nháp bỏ quên bị xoá vĩnh viễn.
+- Staging dựng GIỐNG HỆT production, kể cả **bộ 4 worker cache riêng** (`wrangler-*-staging.toml`)
+  và cron `cleanup-weddings`. Khác ĐÚNG một điểm, cố ý: **staging không đọc qua cache**
+  (`STAGING_USE_CACHE = false`, xem mục Môi trường) nên sửa giá/danh mục mẫu là thấy ngay,
+  khỏi purge; bật lại khi cần diễn đúng đường đi của production. Thiệp test chưa thanh
+  toán/nháp bỏ quên vẫn bị cron xoá vĩnh viễn.
   Worker staging phải có KV và secret RIÊNG — dùng chung với production là hai môi trường đè cache
   lên nhau, khách thật nhận dữ liệu test.
 

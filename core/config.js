@@ -1,10 +1,10 @@
 /** Cấu hình tập trung: API key, URL, ngưỡng ảnh… */
 
-// Set false khi test localhost để bypass Cloudflare cache → hit Supabase trực tiếp.
-// CHỈ có tác dụng ở production: bản staging gán đè trọn `CONFIG.cloudflare` bằng URL
-// bốn worker riêng (core/config.staging.js), nên `npm run dev` vẫn đi qua cache và
-// sửa giá/mẫu xong phải bấm purge y như thật.
-const USE_CACHE = false;
+// Cờ cache của RIÊNG production (staging có cờ riêng ở `core/config.staging.js`,
+// đang tắt — sửa giá hay danh mục mẫu ở đó thấy ngay, khỏi purge). Bật = trang đọc
+// qua ba worker Cloudflare bên dưới, nên đổi dữ liệu xong PHẢI bấm purge ở admin,
+// nếu không bản cũ còn sống tới 7 ngày. Tắt tạm khi cần soi thẳng Supabase.
+const USE_CACHE = true;
 
 // ĐỔI GIÁ TRỊ NÀY MỖI LẦN DEPLOY. Hai loader (admin, invitation-setup) nối
 // `?v=<version>` vào mọi URL partial/script chúng nạp, nên đổi số ở đây là ép
@@ -14,7 +14,7 @@ const USE_CACHE = false;
 // nó trước đã) → trên Cloudflare phải có Cache Rule bypass `/core/config.js`,
 // nếu không đổi số ở đây cũng vô nghĩa.
 const CX_VERSION = "2026.09.20-20";
-
+ 
 // Thẻ <link> CSS viết cứng trong HTML không tự mang `?v=` → dễ rơi vào cảnh
 // HTML/partial đã là bản mới mà CSS vẫn là bản cũ (trang không vỡ, chỉ sai bố
 // cục nên rất khó đoán). Nạp lại bản CÓ DẤU cho mọi stylesheet cùng origin,

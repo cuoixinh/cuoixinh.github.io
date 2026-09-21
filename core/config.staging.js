@@ -31,20 +31,23 @@
     storageUrl: `${BASE}/storage/v1/object/public/wedding-images`,
   };
 
-  // Bộ worker cache RIÊNG của staging (cloudflare-worker/wrangler-*-staging.toml).
-  // Dựng đủ để staging chạy đúng đường đi của production — kể cả bước phải bấm
-  // purge ở admin sau khi sửa giá hay danh mục mẫu, vốn là chỗ dễ quên nhất.
-  // Bốn worker này trỏ về project staging; dùng nhầm URL của production là
-  // staging phục vụ dữ liệu thật. Đi qua `USE_CACHE` cũng y như production: viết
-  // cứng URL thì tắt cờ chỉ tắt được production, staging vẫn trả từ cache.
+  // Cờ cache RIÊNG của staging, cố ý ĐỘC LẬP với `USE_CACHE` của production: đây là
+  // nơi sửa giá và danh mục mẫu liên tục, đi qua cache thì mỗi lần đổi lại phải nhớ
+  // bấm purge, mà quên là ngồi soi một bản dữ liệu cũ tưởng mình sửa hỏng.
+  // Đổi thành true khi cần diễn lại đúng đường đi của production (gồm cả bước purge).
+  const STAGING_USE_CACHE = false;
+
+  // Bộ worker cache RIÊNG của staging (cloudflare-worker/wrangler-*-staging.toml),
+  // trỏ về project staging — dùng nhầm URL của production là staging phục vụ dữ
+  // liệu thật. Giữ nguyên URL ở đây dù đang tắt: bật lại chỉ là đổi một chữ.
   CONFIG.cloudflare = {
-    imageProxy: USE_CACHE
+    imageProxy: STAGING_USE_CACHE
       ? "https://wedding-image-proxy-staging.cuoixinh-api.workers.dev"
       : null,
-    templatesCache: USE_CACHE
+    templatesCache: STAGING_USE_CACHE
       ? "https://templates-cache-staging.cuoixinh-api.workers.dev"
       : null,
-    cacheProxy: USE_CACHE
+    cacheProxy: STAGING_USE_CACHE
       ? "https://wedding-cache-proxy-staging.cuoixinh-api.workers.dev"
       : null,
     // Phải khớp secret PURGE_SECRET đã đặt cho templates-cache-staging.
