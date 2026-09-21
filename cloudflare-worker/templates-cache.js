@@ -93,6 +93,16 @@ export default {
 
       const templatesWithPricing = await upstream.json();
 
+      // Chốt chặn cuối trước khi đóng băng 7 ngày. Dấu hiệu của một lượt truy vấn
+      // giá hỏng là MỌI mẫu cùng null — lọt vào cache thì cả trang hiện "Liên hệ"
+      // tới khi có người bấm purge. Xét "cả rổ" chứ không xét từng mẫu: một mẫu
+      // thiếu hàng `template_pricing` là trạng thái hợp lệ, cấm cache vì nó thì
+      // mọi request đều đánh thẳng Supabase.
+      const usable =
+        Array.isArray(templatesWithPricing) &&
+        templatesWithPricing.length > 0 &&
+        templatesWithPricing.some((t) => t && t.price != null);
+
       // Bản dành cho edge — TTL của Cache API lấy từ chính header này.
       response = new Response(JSON.stringify(templatesWithPricing), {
         headers: {
@@ -104,7 +114,11 @@ export default {
         },
       });
 
-      await cache.put(cacheKey, response.clone());
+      if (usable) {
+        await cache.put(cacheKey, response.clone());
+      } else {
+        console.warn("Không mẫu nào có giá — trả thẳng, KHÔNG cache");
+      }
 
       return withClientCache(response, corsHeaders);
     } catch (error) {

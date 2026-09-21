@@ -208,7 +208,7 @@ serve(withAxiom("payment-handler", async (req, log) => {
     if (req.method === "POST" && path.endsWith("/create-payment")) {
       return await handleCreatePayment(req, supabaseClient, log);
     } else if (req.method === "GET" && path.endsWith("/check-payment-status")) {
-      return await handleCheckPaymentStatus(req, supabaseClient);
+      return await handleCheckPaymentStatus(req, supabaseClient, log);
     } else if (path.endsWith("/webhook")) {
       // Support both GET (for PayOS verification) and POST (for actual webhook)
       if (req.method === "GET") {
@@ -217,7 +217,7 @@ serve(withAxiom("payment-handler", async (req, log) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       } else if (req.method === "POST") {
-        return await handleWebhook(req, supabaseClient);
+        return await handleWebhook(req, supabaseClient, log);
       }
     } else {
       return new Response(JSON.stringify({ error: "Not found" }), {
@@ -246,7 +246,7 @@ async function handleCreatePayment(req: Request, supabaseClient: any, log: Logge
   const releasePromo = async () => {
     if (!reservedOrderId) return;
     const { error } = await supabaseClient.rpc("cx_promo_release", { p_order_id: reservedOrderId });
-    if (error) console.error("Promo release failed:", reservedOrderId, error);
+    if (error) log.error("payment.promo_release_failed", { order_id: reservedOrderId, message: error.message });
     reservedOrderId = null;
   };
 
@@ -342,7 +342,14 @@ async function handleCreatePayment(req: Request, supabaseClient: any, log: Logge
       .single();
 
     if (pricingError || !pricingData) {
-      console.error("Pricing lookup error:", pricingError);
+      // Hai ca khác hẳn nhau nên phải phân biệt được trên Axiom: truy vấn hỏng,
+      // hay mẫu thật sự không có hàng giá đang bật.
+      log.error("payment.pricing_lookup_failed", {
+        theme: theme_name,
+        found: !!pricingData,
+        code: pricingError?.code,
+        message: pricingError?.message,
+      });
       return new Response(JSON.stringify({ error: `Template '${theme_name}' not found or inactive` }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -379,7 +386,7 @@ async function handleCreatePayment(req: Request, supabaseClient: any, log: Logge
       });
 
       if (reserveError) {
-        console.error("Promo reserve error:", reserveError);
+        log.error("payment.promo_reserve_failed", { order_id: fullOrderId, promo_code, message: reserveError.message });
         return new Response(JSON.stringify({ error: "Không kiểm tra được mã giảm giá, vui lòng thử lại" }), {
           status: 500,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -467,12 +474,12 @@ async function handleCreatePayment(req: Request, supabaseClient: any, log: Logge
         }, { onConflict: "id", ignoreDuplicates: false });
 
       if (freeError) {
-        console.error("Failed to save free wedding:", freeError);
+        log.error("payment.free_upsert_failed", { order_id: fullOrderId, manage_id, message: freeError.message });
         throw new Error("Failed to save payment information");
       }
 
       const { error: redeemError } = await supabaseClient.rpc("cx_promo_redeem", { p_order_id: fullOrderId });
-      if (redeemError) console.error("Promo redeem failed (free order):", redeemError);
+      if (redeemError) log.error("payment.promo_redeem_failed", { order_id: fullOrderId, free: true, message: redeemError.message });
       // Đã chốt xong → catch bên dưới không được nhả lượt này nữa.
       reservedOrderId = null;
 
@@ -535,7 +542,7 @@ async function handleCreatePayment(req: Request, supabaseClient: any, log: Logge
       });
 
     if (upsertError) {
-      console.error("Failed to save wedding with payment info:", upsertError);
+      log.error("payment.upsert_failed", { order_id: fullOrderId, manage_id, message: upsertError.message });
       throw new Error("Failed to save payment information");
     }
 
@@ -565,7 +572,7 @@ async function handleCreatePayment(req: Request, supabaseClient: any, log: Logge
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
-    console.error("Create payment error:", error);
+    log.error("payment.create_failed", { message: error.message });
     await releasePromo();
     return new Response(JSON.stringify({ error: error.message || "Failed to create payment" }), {
       status: 500,
@@ -574,7 +581,7 @@ async function handleCreatePayment(req: Request, supabaseClient: any, log: Logge
   }
 }
 
-async function handleCheckPaymentStatus(req: Request, supabaseClient: any) {
+async function handleCheckPaymentStatus(req: Request, supabaseClient: any, log: Logger) {
   try {
     const url = new URL(req.url);
     const order_id = url.searchParams.get("order_id");
@@ -612,7 +619,7 @@ async function handleCheckPaymentStatus(req: Request, supabaseClient: any) {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
-    console.error("Check payment status error:", error);
+    log.error("payment.status_check_failed", { message: error.message });
     return new Response(JSON.stringify({ error: error.message || "Failed to check payment status" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -620,14 +627,14 @@ async function handleCheckPaymentStatus(req: Request, supabaseClient: any) {
   }
 }
 
-async function handleWebhook(req: Request, supabaseClient: any) {
+async function handleWebhook(req: Request, supabaseClient: any, log: Logger) {
   try {
     const payload = await req.json();
     const { checksumKey } = getPayOSCredentials();
     const receivedSignature = payload.signature;
 
     if (!receivedSignature) {
-      console.error("Missing signature in webhook");
+      log.warn("payment.webhook_no_signature", {});
       return new Response(JSON.stringify({ error: "Missing signature" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -636,7 +643,7 @@ async function handleWebhook(req: Request, supabaseClient: any) {
 
     const isValid = await verifyWebhookSignature(payload, receivedSignature, checksumKey);
     if (!isValid) {
-      console.error("Invalid webhook signature");
+      log.warn("payment.webhook_bad_signature", { order_code: payload?.data?.orderCode });
       return new Response(JSON.stringify({ error: "Invalid signature" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -662,7 +669,7 @@ async function handleWebhook(req: Request, supabaseClient: any) {
       .single();
 
     if (fetchError || !weddingData) {
-      console.error("Could not find wedding record for order:", paymentData.orderCode);
+      log.error("payment.webhook_wedding_not_found", { order_code: paymentData.orderCode, message: fetchError?.message });
       return new Response(JSON.stringify({ error: "Wedding record not found" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -684,7 +691,7 @@ async function handleWebhook(req: Request, supabaseClient: any) {
         .single();
 
       if (pricingError || !pricingData) {
-        console.error("Pricing validation error:", pricingError);
+        log.error("payment.webhook_pricing_failed", { order_code: paymentData.orderCode, theme: weddingData.theme, message: pricingError?.message });
         return new Response(JSON.stringify({ error: "Invalid template pricing" }), {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -694,7 +701,7 @@ async function handleWebhook(req: Request, supabaseClient: any) {
     }
 
     if (paymentData.amount !== expectedAmount) {
-      console.error("Amount mismatch. Expected:", expectedAmount, "Got:", paymentData.amount);
+      log.error("payment.webhook_amount_mismatch", { order_code: paymentData.orderCode, expected: expectedAmount, got: paymentData.amount });
       return new Response(JSON.stringify({ error: "Amount mismatch" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -726,14 +733,14 @@ async function handleWebhook(req: Request, supabaseClient: any) {
       .eq("id", manage_id);
 
     if (updateError) {
-      console.error("Failed to update payment status:", updateError);
+      log.error("payment.webhook_update_failed", { order_code: paymentData.orderCode, manage_id, message: updateError.message });
       throw new Error("Database update failed");
     }
 
     // Tiền đã vào → chốt lượt mã giảm giá đang giữ chỗ. Lỗi thì chỉ ghi log,
     // không được chặn webhook.
     const { error: redeemError } = await supabaseClient.rpc("cx_promo_redeem", { p_order_id: fullOrderId });
-    if (redeemError) console.error("Promo redeem failed:", fullOrderId, redeemError);
+    if (redeemError) log.error("payment.promo_redeem_failed", { order_id: fullOrderId, message: redeemError.message });
 
     await supabaseClient.from("payment_logs").insert({
       order_id: paymentData.orderCode.toString(),
@@ -755,7 +762,7 @@ async function handleWebhook(req: Request, supabaseClient: any) {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
-    console.error("Webhook error:", error);
+    log.error("payment.webhook_failed", { message: error.message });
     try {
       await supabaseClient.from("payment_logs").insert({
         order_id: "unknown",
@@ -763,7 +770,7 @@ async function handleWebhook(req: Request, supabaseClient: any) {
         payload: { error: error.message },
       });
     } catch (logError) {
-      console.error("Failed to log error:", logError);
+      log.error("payment.webhook_log_failed", { message: logError.message });
     }
     return new Response(JSON.stringify({ error: error.message || "Webhook processing failed" }), {
       status: 500,

@@ -123,7 +123,11 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
     })
   }
 
+  // 4xx là lỗi của phía gọi (thiếu trường, sai quyền) — chuyện thường, không log.
+  // 5xx thì luôn là DB/hệ thống hỏng: log để Axiom thấy, vì mọi đường ghi khách
+  // mời đều thoát qua đây và không chỗ nào tự log.
   function fail(message: string, status = 400) {
+    if (status >= 500) log.error('guest.db_failed', { action, message })
     return new Response(JSON.stringify({ error: message }), {
       status,
       headers: { ...CORS, 'Content-Type': 'application/json' },
@@ -504,11 +508,15 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
     if (!wedding) return fail('Thiệp không tồn tại', 404)
 
     // Đếm hiện tại của bên này
-    const { count: currentCount } = await supabase
+    const { count: currentCount, error: countErr } = await supabase
       .from('guests')
       .select('id', { count: 'exact', head: true })
       .eq('wedding_id', wedding_id)
       .eq('side', side)
+
+    // Đếm hỏng mà vẫn chạy tiếp thì `existing = 0` → trần MAX_PER_SIDE coi như
+    // không tồn tại. Dừng lại, đừng đoán.
+    if (countErr) return fail('Không đếm được danh sách khách, vui lòng thử lại', 500)
 
     const existing = currentCount ?? 0
 
@@ -544,26 +552,36 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
         // Xóa các bản ghi trùng full_name + display_name, giữ bản ghi không trùng
         const importKeys = new Set(guests.map(g => `${g.full_name}||${g.display_name}`))
 
-        const { data: existingRows } = await supabase
+        const { data: existingRows, error: exErr } = await supabase
           .from('guests')
           .select('id, full_name, display_name')
           .eq('wedding_id', wedding_id)
           .eq('side', side)
+
+        // Đọc hỏng → danh sách trùng rỗng → không xoá gì mà vẫn chèn tiếp, nên
+        // "ghi đè" lại đẻ ra bản trùng.
+        if (exErr) return fail(exErr.message, 500)
 
         const idsToDelete = (existingRows ?? [])
           .filter(e => importKeys.has(`${e.full_name}||${e.display_name}`))
           .map(e => e.id)
 
         if (idsToDelete.length > 0) {
-          await supabase.from('guests').delete().in('id', idsToDelete)
+          const { error: delErr } = await supabase.from('guests').delete().in('id', idsToDelete)
+          // Bỏ qua lỗi ở đây là import "ghi đè" hoá ra thêm trùng: bản cũ còn
+          // nguyên mà bản mới vẫn chèn vào.
+          if (delErr) return fail(delErr.message, 500)
         }
 
         // Đếm lại sau khi xóa, kiểm tra tổng không vượt giới hạn
-        const { count: afterCount } = await supabase
+        const { count: afterCount, error: afterErr } = await supabase
           .from('guests')
           .select('id', { count: 'exact', head: true })
           .eq('wedding_id', wedding_id)
           .eq('side', side)
+
+        // Như trên: hỏng mà coi như 0 là mở đường nhập quá trần.
+        if (afterErr) return fail('Không đếm được danh sách khách, vui lòng thử lại', 500)
 
         const remaining = (afterCount ?? 0)
         if (remaining + guests.length > MAX_PER_SIDE) {
@@ -582,11 +600,14 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
         return ok({ inserted: guests.length, skipped: 0 })
       } else {
         // Bỏ qua trùng lặp
-        const { data: existingRows } = await supabase
+        const { data: existingRows, error: exErr } = await supabase
           .from('guests')
           .select('full_name, display_name')
           .eq('wedding_id', wedding_id)
           .eq('side', side)
+
+        // Đọc hỏng → không thấy ai trùng → chèn lại toàn bộ danh sách.
+        if (exErr) return fail(exErr.message, 500)
 
         const existingKeys = new Set(
           (existingRows ?? []).map(g => `${g.full_name}||${g.display_name}`)

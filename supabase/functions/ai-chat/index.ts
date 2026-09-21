@@ -222,6 +222,13 @@ async function catalogFromDb(admin: ReturnType<typeof createClient>): Promise<Ca
     admin.from('template_pricing').select('template_name, price, original_price')
       .eq('is_active', true),
   ])
+  // Ném ra để buildCatalog rơi vào nhánh catch (có log) và GIỮ bản danh mục cũ.
+  // Bỏ qua lỗi ở đây thì danh mục vẫn dựng được nhưng mọi mẫu mất giá, và
+  // chatbot đi báo giá theo bản thiếu đó.
+  if (tRes.error || pRes.error) {
+    throw new Error(`catalog: ${(tRes.error ?? pRes.error)?.message}`)
+  }
+
   const priceOf = Object.fromEntries(
     (pRes.data ?? []).map((p: any) => [p.template_name, p]),
   )
@@ -785,6 +792,7 @@ Deno.serve(withAxiom('ai-chat', async (req, log) => {
     limit: DAILY_LIMIT,
     anonLimit: ANON_DAILY_LIMIT,
     origin,
+    log,
   })
   if (limited) return limited
 

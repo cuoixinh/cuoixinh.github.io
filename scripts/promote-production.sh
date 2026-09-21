@@ -9,7 +9,8 @@
 # Ba cửa CHẶN trước khi đụng tới nhánh production, đều là thứ sai một lần là
 # khách gặp lỗi thật:
 #   1. Cây làm việc bẩn — đổi nhánh sẽ kéo theo file đang sửa dở sang production.
-#   2. Nhánh local lệch remote — merge bản thiếu commit, hoặc push đè lên người khác.
+#   2. Nhánh staging lệch remote — merge bản thiếu commit, hoặc push đè lên người
+#      khác. (Riêng nhánh production thiếu commit thì script tự pull cho.)
 #   3. CX_VERSION không đổi — người dùng nhận bản TRỘN (partial mới + script cũ),
 #      trang vỡ chứ không phải chỉ trông cũ. Xem mục "Phiên bản & cache" ở CLAUDE.md.
 #
@@ -44,6 +45,24 @@ START_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
 echo "→ Lấy bản mới nhất từ $REMOTE..."
 git fetch --quiet "$REMOTE"
+
+# ── 2a. Kéo nhánh production về cho mới ──────────────────────────────────────
+# Nhánh production hầu như không sửa tay ở local, nên nó thiếu commit chỉ là do
+# chưa pull — tự kéo luôn thay vì bắt dừng. `--ff-only` để nếu local LỆCH thật
+# (có commit riêng) thì fail ở đây chứ không đẻ ra merge commit ngoài ý muốn.
+if [ "$(git rev-list --count "$PROD_BRANCH..$REMOTE/$PROD_BRANCH")" -gt 0 ]; then
+  echo "→ Cập nhật $PROD_BRANCH từ $REMOTE..."
+  if [ "$START_BRANCH" = "$PROD_BRANCH" ]; then
+    git merge --ff-only "$REMOTE/$PROD_BRANCH" || die "'$PROD_BRANCH' lệch $REMOTE — gỡ tay rồi chạy lại."
+  else
+    git checkout --quiet "$PROD_BRANCH"
+    if ! git merge --ff-only "$REMOTE/$PROD_BRANCH"; then
+      git checkout --quiet "$START_BRANCH"
+      die "'$PROD_BRANCH' lệch $REMOTE — gỡ tay rồi chạy lại. Đang ở lại nhánh $START_BRANCH."
+    fi
+    git checkout --quiet "$START_BRANCH"
+  fi
+fi
 
 # ── 2. Hai nhánh local phải khớp remote ──────────────────────────────────────
 # Merge từ nhánh LOCAL (không phải origin/) để thứ đẩy lên đúng là thứ vừa test;

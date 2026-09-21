@@ -3,7 +3,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { withAxiom } from "../_shared/axiom.ts";
+import { withAxiom, type Logger } from "../_shared/axiom.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -77,21 +77,29 @@ async function verifyWebhookSignature(payload: Record<string, any>, receivedSign
  * giả mạo không qua được. Trả false khi thiếu credential, lỗi mạng, hoặc đơn
  * chưa ở trạng thái PAID (thà bỏ sót còn hơn mở nhầm).
  */
-async function confirmWithPayOS(orderCode: unknown): Promise<boolean> {
+async function confirmWithPayOS(orderCode: unknown, log: Logger): Promise<boolean> {
   const clientId = Deno.env.get("PAYOS_CLIENT_ID");
   const apiKey = Deno.env.get("PAYOS_API_KEY");
-  if (!clientId || !apiKey || orderCode === null || orderCode === undefined) return false;
+  if (!clientId || !apiKey || orderCode === null || orderCode === undefined) {
+    log.error("payos.confirm_unavailable", { orderCode, hasCreds: Boolean(clientId && apiKey) });
+    return false;
+  }
 
   try {
     const res = await fetch(
       `https://api-merchant.payos.vn/v2/payment-requests/${encodeURIComponent(String(orderCode))}`,
       { headers: { "x-client-id": clientId, "x-api-key": apiKey } },
     );
-    if (!res.ok) return false;
+    if (!res.ok) {
+      log.error("payos.confirm_http_error", { orderCode, status: res.status });
+      return false;
+    }
     const body = await res.json();
     return body?.code === "00" && body?.data?.status === "PAID";
   } catch (error) {
-    console.error("confirmWithPayOS failed:", error);
+    // Đường xác minh dự phòng chết thì đơn thật cũng bị từ chối — im lặng ở đây
+    // là khách trả tiền mà thiệp không mở, không ai biết.
+    log.error("payos.confirm_failed", { orderCode, message: error instanceof Error ? error.message : String(error) });
     return false;
   }
 }
@@ -146,7 +154,7 @@ serve(withAxiom("payos-webhook", async (req, log) => {
       let verifiedBy = signatureValid ? "signature" : "";
 
       if (!signatureValid) {
-        const confirmed = await confirmWithPayOS(orderCode);
+        const confirmed = await confirmWithPayOS(orderCode, log);
         if (confirmed) verifiedBy = "payos_api";
         // Chữ ký lệch mà PayOS xác nhận là đơn thật → quy ước ký đang sai, phải
         // thấy được để sửa; nhưng đừng chặn tiền của khách vì lỗi của mình.
@@ -334,7 +342,7 @@ serve(withAxiom("payos-webhook", async (req, log) => {
       });
 
     } catch (error) {
-      console.error("Webhook error:", error);
+      log.error("payos.webhook_failed", { message: error instanceof Error ? error.message : String(error) });
       return new Response(JSON.stringify({ 
         error: error.message || "Internal server error" 
       }), {

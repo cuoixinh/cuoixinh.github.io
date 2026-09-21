@@ -119,6 +119,30 @@ Không gọi thẳng UI → DAL khi có logic nghiệp vụ.
   biến đặt tay trên Dashboard mỗi lần deploy (secret thì không), và wrangler đọc **file trên máy**
   chứ không qua git. Lùi lại: `wrangler rollback --config <file>`.
 
+### Log Edge Function (Axiom)
+
+**Mọi nhánh lỗi trong `supabase/functions/` phải gọi `log.*`** (`_shared/axiom.ts`, lấy qua
+`withAxiom('<tên function>', async (req, log) => …)`). Logger in ra console luôn nên
+`log.error` thay được `console.error` chứ không phải thêm việc — **đừng dùng `console.error`
+nữa**, nó chỉ nằm trong log Supabase và không ai đi soi.
+
+- **Không bao giờ để một `error` của truy vấn trôi qua.** Mọi `const { data, error } = await
+  supabase…` phải xử lý `error` ngay dòng sau; nhiều truy vấn chạy `Promise.all` thì kiểm
+  **TẤT CẢ**, không chỉ cái đầu. Bỏ sót không ra lỗi: hàm vẫn trả 200 với dữ liệu thiếu
+  (giá `null`, danh sách rỗng, số đếm 0) — kiểu hỏng khó thấy nhất, và Cloudflare còn cache
+  lại bản thiếu đó.
+- **Truy vấn phục vụ một phép kiểm thì hỏng là DỪNG (fail-closed)**, đừng chạy tiếp với giá
+  trị mặc định: đếm khách mời hỏng mà coi như 0 là mất trần, đọc "mã đã dùng" hỏng mà coi
+  như rỗng là xoá nhầm. Chỗ nào cố ý fail-open (hạn mức AI) thì phải `log.error` — mở giới
+  hạn mà im lặng thì nhìn từ ngoài mọi thứ vẫn bình thường.
+- Hàm nhỏ tách riêng thì **nhận `log` làm tham số** (xem `confirmWithPayOS`,
+  `enforceRateLimit`); đừng để nguyên một nhánh không có logger rồi bỏ qua.
+- Tên sự kiện `miền.việc_thất_bại` (`payment.upsert_failed`, `guest.db_failed`), kèm id tra
+  ngược được (`order_id`, `manage_id`, `slug`) + `code`/`message` của Postgres. **Không log
+  dữ liệu nhạy cảm** (token thanh toán, chữ ký webhook, key AI).
+- 4xx do người gọi sai (thiếu trường, sai quyền) thì `log.warn` hoặc không log — chỉ 5xx và
+  các ca "âm thầm sai" mới `log.error`, để Axiom còn đọc được.
+
 ### `invitation-setup` — trang nạp DOM động
 
 `loader.js` fetch `partials/*.html` rồi mới chèn script trong `js/`. Hệ quả:

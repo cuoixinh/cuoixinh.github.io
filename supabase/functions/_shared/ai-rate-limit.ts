@@ -8,6 +8,7 @@
 // (race check-rồi-upsert cũng còn nguyên ở đó).
 
 import type { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import type { Logger } from './axiom.ts'
 import { json } from './ai-provider.ts'
 
 // Bảng đếm DUY NHẤT cho mọi luồng AI (tên giữ theo lịch sử) — xem
@@ -47,6 +48,7 @@ export interface RateLimitOpts {
   limit: number     // hạn mức của tài khoản ĐÃ đăng nhập
   anonLimit: number // hạn mức của khách chưa đăng nhập
   origin: string | null
+  log: Logger
 }
 
 // Trả null nếu còn lượt (và đã ghi nhận lượt này); trả Response 429 nếu đã hết.
@@ -62,11 +64,18 @@ export async function enforceRateLimit(
   const limit = o.user ? o.limit : o.anonLimit
   const today = new Date().toISOString().slice(0, 10)
 
-  const { data } = await admin
+  const { data, error } = await admin
     .from(USAGE_TABLE)
     .select('subject, count')
     .in('subject', subjects)
     .eq('day', today)
+
+  // Đọc hỏng = không đếm được = CHO QUA (fail-open, cố ý: thà tốn lượt AI còn
+  // hơn chặn hết khách). Đổi lại thì bắt buộc phải kêu, không thì hạn mức mở
+  // toang mà nhìn từ ngoài mọi thứ vẫn bình thường.
+  if (error) {
+    o.log.error('ai.rate_limit_read_failed', { feature: f, code: error.code, message: error.message })
+  }
 
   const counts = new Map<string, number>(
     ((data ?? []) as Array<{ subject: string; count: number }>)
@@ -88,12 +97,18 @@ export async function enforceRateLimit(
     )
   }
 
-  await admin
+  // Ghi hỏng thì số đếm đứng yên → mọi lượt sau đều "còn quota", hạn mức thành
+  // vô hiệu mà không có dấu hiệu nào ở phía khách.
+  const { error: upErr } = await admin
     .from(USAGE_TABLE)
     .upsert(
       subjects.map((s) => ({ subject: s, day: today, count: (counts.get(s) ?? 0) + 1 })),
       { onConflict: 'subject,day' },
     )
+
+  if (upErr) {
+    o.log.error('ai.rate_limit_write_failed', { feature: f, code: upErr.code, message: upErr.message })
+  }
 
   return null
 }

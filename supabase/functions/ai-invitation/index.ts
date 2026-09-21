@@ -312,6 +312,7 @@ function enforceAiLimit(
   user: { id: string } | null,
   body: Record<string, unknown>,
   origin: string | null,
+  log: Logger,
 ): Promise<Response | null> {
   return enforceRateLimit(req, admin, {
     feature: 'inv',
@@ -320,6 +321,7 @@ function enforceAiLimit(
     limit: DAILY_LIMIT,
     anonLimit: ANON_DAILY_LIMIT,
     origin,
+    log,
   })
 }
 
@@ -341,7 +343,7 @@ async function handleOptimize(
   const text = clampText(body.text, MAX_OPTIMIZE_IN)
   if (!text) return json({ error: 'Chưa có nội dung để tối ưu' }, 400, origin)
 
-  const limited = await enforceAiLimit(req, admin, user, body, origin)
+  const limited = await enforceAiLimit(req, admin, user, body, origin, log)
   if (limited) return limited
 
   const res = await generateWithGemini(
@@ -382,7 +384,7 @@ async function handleLoveStory(
   const text = clampText(body.text, MAX_STORY_LOVE_LEN)
   if (!text) return json({ error: 'Hãy kể câu chuyện tình yêu trước' }, 400, origin)
 
-  const limited = await enforceAiLimit(req, admin, user, body, origin)
+  const limited = await enforceAiLimit(req, admin, user, body, origin, log)
   if (limited) return limited
 
   const tone = pickTone(body.tone)
@@ -423,7 +425,7 @@ async function handleSampleData(
   body: Record<string, unknown>,
   log: Logger,
 ): Promise<Response> {
-  const limited = await enforceAiLimit(req, admin, user, body, origin)
+  const limited = await enforceAiLimit(req, admin, user, body, origin, log)
   if (limited) return limited
 
   const tone = pickTone(body.tone)
