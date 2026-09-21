@@ -2286,16 +2286,26 @@ function _cxElDelete(id) {
 function _cxElSet(id, patch) {
   const t = _cxElFind(id);
   if (!t || !patch) return;
+  let home = false;
   if (patch.variant && patch.variant !== t.variant) {
     const def = _cxElDef(t);
     const v = def && def.variants.find((x) => x.id === patch.variant);
     if (v) {
       t.variant = v.id;
       t.w = v.w;
+      // Mỗi mẫu một khổ, nên cũng một chỗ đứng riêng: thanh ngang thuộc về đỉnh
+      // thiệp, nút tròn thuộc về một góc. Giữ nguyên chỗ cũ là nút tròn nằm
+      // chình ình giữa đỉnh. Chỉ đường BẤM ô mẫu mới dời — kéo thả vẫn đặt đúng
+      // chỗ vừa thả (xem _cxElAdd).
+      home = !!(v.home && v.home.x != null && v.home.y != null);
     }
   }
   _cxElActiveId = t.id;
   _cxElRender();
+  if (home) {
+    const node = document.querySelector('.cx-el[data-el-id="' + t.id + '"]');
+    if (node) _cxElHome(t, node);
+  }
   _cxElFocus(t.id);
   _cxElSendPick(); // bảng lấy lại giá trị thật (đổi mẫu là bề ngang cũng đổi)
   _cxElReport();
@@ -2316,12 +2326,23 @@ function _cxElResize(id, w, done) {
   _cxElReport();
 }
 
-// Chỗ đứng GỐC của widget, nếu có một chỗ như vậy: thẻ nhạc vốn dựng ra từ trình
-// phát sẵn có của mẫu thiệp (xem _cxElSeedThemeMusic) nên chỗ gốc của nó là chỗ
-// trình phát đó vẫn đứng — đo lại được vì trình phát chỉ bị ẩn chứ vẫn trong DOM.
+// Chỗ đứng GỐC của widget, nếu có một chỗ như vậy. Hai đường, theo thứ tự:
+//   1. `home` của MẪU đang chọn — mỗi khổ một chỗ hợp với nó (thanh ngang ở đỉnh
+//      thiệp, nút tròn ở góc), khai ở core/helpers/element-helper.js.
+//   2. Chỗ trình phát sẵn có của mẫu thiệp vẫn đứng (thẻ nhạc vốn dựng ra từ nó,
+//      xem _cxElSeedThemeMusic) — đo lại được vì trình phát chỉ bị ẩn chứ vẫn
+//      nằm trong DOM.
 // Chỉ lấy TOẠ ĐỘ; bề ngang đã trả về khổ gốc của mẫu ở _cxElResetAll.
-// Trả false khi không đo được → người gọi rơi về chỗ mặc định của widget thả tay.
+// Trả false khi cả hai đường đều không có → người gọi rơi về chỗ mặc định của
+// widget thả tay.
 function _cxElHome(t, node) {
+  const home = (_cxElVariant(t) || {}).home;
+  if (home && home.x != null && home.y != null) {
+    t.x = _cxDecorClamp(Number(home.x), 0, 100);
+    t.y = _cxDecorClamp(Number(home.y), 0, 100);
+    _cxElStyle(node, t);
+    return true;
+  }
   if (t.element !== "music") return false;
   const player = document.getElementById("music-toggle");
   const box = player && _cxElMeasureThemePlayer(player);
