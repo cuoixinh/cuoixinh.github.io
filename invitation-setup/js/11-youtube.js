@@ -200,10 +200,13 @@ async function _fetchYouTubeTitle(url) {
   }
 }
 
-// Ghi URL thật vào thẻ ẩn (nguồn dữ liệu để lưu music_url)
+// Ghi URL thật vào thẻ ẩn (nguồn dữ liệu để lưu music_url).
+// Đồng bộ luôn _currentMusicUrl: _initConfigPanel dựng lại bài theo biến đó mỗi lần
+// mở tab, bỏ quên là gỡ bài xong quay lại tab thấy bài cũ như chưa hề lưu.
 function _setMusicUrl(url) {
   const el = document.getElementById("music-url-input");
   if (el) el.value = url || "";
+  _currentMusicUrl = url || "";
 }
 
 // Hiện/ẩn tag tên bài hát dưới input

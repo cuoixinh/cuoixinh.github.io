@@ -119,6 +119,30 @@ Không gọi thẳng UI → DAL khi có logic nghiệp vụ.
   biến đặt tay trên Dashboard mỗi lần deploy (secret thì không), và wrangler đọc **file trên máy**
   chứ không qua git. Lùi lại: `wrangler rollback --config <file>`.
 
+### Log Edge Function (Axiom)
+
+**Mọi nhánh lỗi trong `supabase/functions/` phải gọi `log.*`** (`_shared/axiom.ts`, lấy qua
+`withAxiom('<tên function>', async (req, log) => …)`). Logger in ra console luôn nên
+`log.error` thay được `console.error` chứ không phải thêm việc — **đừng dùng `console.error`
+nữa**, nó chỉ nằm trong log Supabase và không ai đi soi.
+
+- **Không bao giờ để một `error` của truy vấn trôi qua.** Mọi `const { data, error } = await
+  supabase…` phải xử lý `error` ngay dòng sau; nhiều truy vấn chạy `Promise.all` thì kiểm
+  **TẤT CẢ**, không chỉ cái đầu. Bỏ sót không ra lỗi: hàm vẫn trả 200 với dữ liệu thiếu
+  (giá `null`, danh sách rỗng, số đếm 0) — kiểu hỏng khó thấy nhất, và Cloudflare còn cache
+  lại bản thiếu đó.
+- **Truy vấn phục vụ một phép kiểm thì hỏng là DỪNG (fail-closed)**, đừng chạy tiếp với giá
+  trị mặc định: đếm khách mời hỏng mà coi như 0 là mất trần, đọc "mã đã dùng" hỏng mà coi
+  như rỗng là xoá nhầm. Chỗ nào cố ý fail-open (hạn mức AI) thì phải `log.error` — mở giới
+  hạn mà im lặng thì nhìn từ ngoài mọi thứ vẫn bình thường.
+- Hàm nhỏ tách riêng thì **nhận `log` làm tham số** (xem `confirmWithPayOS`,
+  `enforceRateLimit`); đừng để nguyên một nhánh không có logger rồi bỏ qua.
+- Tên sự kiện `miền.việc_thất_bại` (`payment.upsert_failed`, `guest.db_failed`), kèm id tra
+  ngược được (`order_id`, `manage_id`, `slug`) + `code`/`message` của Postgres. **Không log
+  dữ liệu nhạy cảm** (token thanh toán, chữ ký webhook, key AI).
+- 4xx do người gọi sai (thiếu trường, sai quyền) thì `log.warn` hoặc không log — chỉ 5xx và
+  các ca "âm thầm sai" mới `log.error`, để Axiom còn đọc được.
+
 ### `invitation-setup` — trang nạp DOM động
 
 `loader.js` fetch `partials/*.html` rồi mới chèn script trong `js/`. Hệ quả:
@@ -183,10 +207,21 @@ nằm trong DOM, `--cx-ph-w`/`--cx-scr-scale` đặt **trên từng `.cx-phone`*
 `:root`. Bề rộng dải là thuần CSS; còn hai tab kia phải đo bằng JS (`cxPreviewFit` /
 `cxThemeFit`) theo
 **ô nội dung** của khung chứa — `clientWidth/Height` tính cả padding, lấy thẳng là máy dính
-sát mép. Máy có trần `CX_PHONE_MAX_W`: quá đó ô màn rộng hơn 390px, tức thiệp bị phóng to
-hơn máy thật. Panel đang ẩn thì khổ bằng 0 nên `switchTab()` phải gọi lại phép đo **sau khi**
-bỏ `.hidden`. Ở tab Giao diện khung cao TRỌN vùng xem trước, thanh chỉnh mobile chỉ nổi đè
-lên (chừa chỗ cho nó là máy đổi khổ mỗi lần mở/thu bảng). Cũng ở tab đó, thiệp bị THU NHỎ
+sát mép. Khung CÒN vỏ máy có trần `CX_PHONE_MAX_W`: quá đó ô màn rộng hơn 390px, tức thiệp bị
+phóng to hơn máy thật. Khung KHÔNG vỏ (tab Giao diện dưới `md`) thì ngược lại — ô màn
+chính là màn điện thoại đang cầm nên không có trần, và thiệp dựng thẳng ở bề ngang đó với
+tỉ lệ 1 (`native` của `_cxPhoneScreen`); ép về 390px là máy rộng hơn (16 Pro Max 440px)
+thừa hai bên. Panel đang ẩn thì khổ bằng 0 nên `switchTab()` phải gọi lại phép đo **sau khi**
+bỏ `.hidden`. **Máy giữ ĐÚNG TỈ LỆ ở mọi khổ màn** (thu cả hai chiều kiểu `contain`), trừ ĐÚNG một
+ngoại lệ: **tab Giao diện dưới `md`** fit theo CHIỀU CAO — bề ngang lấy trọn chỗ trống (chỉ
+chặn bởi `CX_PHONE_MAX_W`), thiếu chiều cao thì thân máy lùn lại, vì thanh chỉnh nằm trong
+luồng ngay dưới khung và ăn hết nửa màn (cờ `squashH` của `_cxPhoneFit`; từ `md` trở lên
+thanh chỉnh là cột phải nên hết lý do méo). Tab Xem trước KHÔNG bao giờ méo — ở đó khung máy
+chính là thứ cho thấy thiệp trông ra sao trên điện thoại. Chỗ méo đó cần ảnh
+`iphone_mockup.svg` giữ `preserveAspectRatio="none"`, bỏ đi là SVG tự canh giữa theo tỉ lệ
+gốc trong khi ô màn tính bằng % nên thiệp tràn ra ngoài viền. Thanh chỉnh ở tab Giao diện nằm TRONG
+LUỒNG dưới khung (kéo cao lên là máy lùn thêm), nên lúc kéo hoạ tiết chỉ được làm nó MỜ chứ
+không dịch đi — bỏ chỗ của nó là máy đổi khổ giữa lúc kéo, toạ độ thả sẽ lệch. Cũng ở tab đó, thiệp bị THU NHỎ
 trong khung → toạ độ thả hoạ tiết/thành phần
 phải chia lại theo tỉ lệ (`_framePoint` ở `js/05-theme-panel.js`), lấy thẳng hiệu toạ độ màn
 là rơi lệch.
@@ -234,6 +269,17 @@ Supabase riêng và một kênh thanh toán PayOS riêng. Đụng tới staging 
   mà lại lộ URL môi trường khác — **và** thêm một mục vào `ENVS` của `admin/loader.js`.
   Mỗi môi trường một `ADMIN_SECRET_TOKEN` riêng nên mã quản trị cất theo key
   `admin_token:<env>`.
+- **File override gán ĐÈ TRỌN object** (`CONFIG.supabase = {…}`), nên thêm một khoá vào
+  block đã bị đè ở `core/config.js` thì phải khai lại khoá đó ở `config.<env>.js` — không
+  thì production chạy ngon còn staging nhận `undefined`, hỏng đúng một tính năng mà không
+  có gì báo. Cố ý không dùng spread: với `cloudflare` nó sẽ kéo URL worker production vào
+  staging. Chốt là **`npm run check:config`**, `npm run production` cũng tự chạy trên nhánh
+  staging trước khi merge (thiếu khoá, hoặc còn trỏ vào project/worker production → DỪNG).
+- **Cache: hai cờ RIÊNG, cố ý** — `USE_CACHE` (`core/config.js`, production, đang BẬT) và
+  `STAGING_USE_CACHE` (`core/config.staging.js`, đang TẮT). Staging là nơi sửa giá/mẫu liên
+  tục nên đi thẳng Supabase cho thấy ngay; production đọc qua worker nên **đổi dữ liệu xong
+  phải purge ở admin**. Đừng "dọn" thành một cờ chung: gộp lại là mất đúng sự khác biệt này.
+  Cờ nào cũng chỉ được điều khiển worker của chính môi trường mình.
 - **Sửa Edge Function xong phải deploy CẢ HAI project** (`npm run deploy:functions:all`),
   không thì hai môi trường chạy hai bản khác nhau mà không có gì báo.
 - **Thứ tự khi một thay đổi đụng nhiều tầng:** SQL → Edge Function → web, làm trọn trên
@@ -241,9 +287,11 @@ Supabase riêng và một kênh thanh toán PayOS riêng. Đụng tới staging 
 - Thêm miền mới phải khai vào **BA** danh sách `ALLOWED_ORIGINS` (`_shared/ai-provider.ts`,
   `wedding-admin`, `guest-handler`) — sót một chỗ thì lỗi hiện ra dưới dạng CORS ở đúng
   một tính năng.
-- Staging dựng GIỐNG HỆT production, kể cả **bộ 4 worker cache riêng** (`wrangler-*-staging.toml`,
-  `CONFIG.cloudflare` trỏ về chúng) và cron `cleanup-weddings`. Đánh đổi: sửa giá/danh mục mẫu
-  trên staging phải đi purge y như thật, và thiệp test chưa thanh toán/nháp bỏ quên bị xoá vĩnh viễn.
+- Staging dựng GIỐNG HỆT production, kể cả **bộ 4 worker cache riêng** (`wrangler-*-staging.toml`)
+  và cron `cleanup-weddings`. Khác ĐÚNG một điểm, cố ý: **staging không đọc qua cache**
+  (`STAGING_USE_CACHE = false`, xem mục Môi trường) nên sửa giá/danh mục mẫu là thấy ngay,
+  khỏi purge; bật lại khi cần diễn đúng đường đi của production. Thiệp test chưa thanh
+  toán/nháp bỏ quên vẫn bị cron xoá vĩnh viễn.
   Worker staging phải có KV và secret RIÊNG — dùng chung với production là hai môi trường đè cache
   lên nhau, khách thật nhận dữ liệu test.
 
@@ -539,10 +587,15 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
 - **Lời chúc khách mời:** helper dùng chung `core/helpers/wishes-helper.js` (mọi mẫu thiệp
   nạp), lưu ở `guests.wishes` (jsonb; hạn mức 3 lời chúc/khách do Edge Function giữ, KHÔNG
   ràng buộc ở DB), công tắc `weddings.enable_wishes` nằm trong bước RSVP của trang Thiết lập.
-  **Hai DẠNG hiện lời chúc**, chủ thiệp chọn ở tab Giao diện (mục "Lời chúc", cạnh Hộp mừng
-  cưới) và lưu ở `theme_setting.wishes_mode` — rỗng = `live` (dải nổi, mô tả bên dưới),
-  `"comment"` = một mục trong thân thiệp NGAY TRÊN hộp mừng cưới, liệt kê hết lời chúc trong
-  một khung cuộn và tự bò khi khách cuộn tới. Mục đó **append cuối thân thiệp rồi đẩy lên bằng
+  **DẠNG hiện lời chúc** do chủ thiệp chọn ở tab Giao diện (mục "Lời chúc", cạnh Hộp mừng
+  cưới), lưu ở `theme_setting.wishes_mode` — rỗng = `live` (dải nổi, mô tả bên dưới),
+  `"comment"` = một mục trong thân thiệp NGAY TRÊN hộp mừng cưới liệt kê hết lời chúc trong
+  một khung cuộn và tự bò khi khách cuộn tới, `"paged"` = cũng mục đó nhưng mỗi lượt
+  `CX_WISH_PAGE_SIZE` lời chúc, khách tự bấm sang trang. **Danh mục dạng là
+  `CX_WISH_MODES`** trong helper (mỗi dạng khai `mount`/`render`/`stop` + mấy cờ vỏ mục) —
+  thêm dạng mới là thêm một mục ở đó + CSS + một dòng ở `WISH_MODES`
+  (`invitation-setup/js/05-theme-panel.js`), KHÔNG rẽ nhánh theo tên dạng ở chỗ khác.
+  Mục trong thân thiệp **append cuối thân thiệp rồi đẩy lên bằng
   flex `order`** (`_cxWishPlaceSection`) — chèn thẳng vào giữa là mọi selector `:nth-child` đã
   lưu trong `text_overrides` của các mục phía sau lệch một bậc; `applyCustomBlocks` đánh lại
   order thì gọi `window.cxWishPlace()`.

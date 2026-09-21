@@ -49,22 +49,20 @@
 
     <!-- Thanh chỉnh giao diện: mobile = thanh dưới full (như navbar); md+ = card
              ~1/4 bên phải, kéo rộng được theo --theme-ctrl-w (styles/_setup.css).
-             Ở mobile thanh này NỔI (absolute) đè lên thiệp chứ không chiếm chỗ
-             trong luồng: iframe cao trọn khung nên thiệp giữ đúng tỉ lệ điện
-             thoại, không bị bóp lùn theo chiều cao thanh chỉnh. Từ md+ trả về
-             static để nằm cạnh preview như cột phải. -->
+             Nằm TRONG LUỒNG ở mọi khổ: khung điện thoại fit theo chiều cao còn
+             trống (_cxPhoneFit) nên kéo thanh này cao lên là máy lùn lại chứ
+             không bị che. -->
     <div
       id="theme-controls"
-      class="absolute inset-x-0 bottom-0 z-10 md:static md:z-auto shrink-0 bg-white border-t border-gray-200 shadow-[0_-4px_16px_rgb(var(--scrim-rgb)/0.12)] md:overflow-y-auto md:rounded-3xl md:border md:border-gray-100 md:shadow-[0_4px_18px_rgb(var(--scrim-rgb)/0.07)]"
+      class="shrink-0 bg-white border-t border-gray-200 shadow-[0_-4px_16px_rgb(var(--scrim-rgb)/0.12)] md:rounded-3xl md:border md:border-gray-100 md:shadow-[0_4px_18px_rgb(var(--scrim-rgb)/0.07)]"
     >
       <!-- Đầu bảng + vùng cuộn DÙNG CHUNG cho mọi bảng (chung, chỉnh chữ, thêm
            văn bản, trang trí, thành phần, điều chỉnh): nhờ vậy bảng nào cũng cao
            bằng nhau — mặc định 200px cho đỡ che thiệp, kéo tay nắm lên khi cần
            xem nhiều hơn (chỉ có tác dụng ở mobile; md+ cả cột đã tự cuộn).
-           Đầu bảng gom VẠCH KÉO + HÀNG NÚT của bảng đang mở vào một khối nằm
-           NGOÀI vùng cuộn → nút không trôi đi khi cuộn nội dung. Hàng nút nào
-           hiện là do _syncCtrlHead() (js/05-theme-panel.js) soi bảng nào đang mở,
-           nên thêm bảng mới chỉ cần khai báo trong CTRL_HEADS. -->
+           Đầu bảng (vạch kéo + hàng nút) và dải tab dưới nằm NGOÀI vùng cuộn
+           nên đứng yên khi cuộn nội dung; chữ trong đầu bảng do _syncCtrlHead()
+           (js/05-theme-panel.js) đổ vào theo bảng đang mở. -->
       <div id="cx-ctrl-handle" class="cx-sheet-handle">
         <span
           class="cx-sheet-grip"
@@ -73,110 +71,38 @@
           aria-label="Kéo lên để mở rộng bảng chỉnh"
           title="Kéo lên để mở rộng"
         ></span>
-        <div id="cx-ctrl-actions" class="cx-sheet-actions">
-          <!-- Khôi phục — MOBILE: pill hồng canh phải (desktop dùng button ở dưới) -->
-          <div id="cx-head-main" class="flex justify-end md:hidden">
+        <!-- Đầu bảng 3 ô (nút trái · tên bảng · nút phải) DÙNG CHUNG cho mọi
+             bảng: chữ và việc của từng nút do _syncCtrlHead() đổ vào theo bảng
+             khai CTRL_VIEWS (js/05-theme-panel.js), nên thêm bảng mới chỉ khai
+             một dòng ở đó chứ không thêm markup ở đây. -->
+        <div id="cx-ctrl-actions" class="cx-sheet-actions cx-ch">
+          <div class="cx-ch-side">
             <button
               type="button"
-              onclick="resetThemeSetting()"
-              title="Bỏ hết tuỳ chỉnh, đưa thiệp về mặc định của mẫu"
-              class="cx-le-clear"
+              id="cx-ch-reset"
+              onclick="cxCtrlReset()"
+              class="cx-ch-reset"
             >
-              <i data-lucide="rotate-ccw" class="w-4 h-4"></i
-              ><span>Khôi phục mặc định</span>
+              <!-- Chữ trần, không icon: có icon là phần CHỮ thụt vào, hết thẳng
+                   cột với nội dung bên dưới. -->
+              <span id="cx-ch-reset-txt">Đặt lại</span>
             </button>
           </div>
-          <div id="cx-head-line" class="hidden cx-le-head">
+          <span id="cx-ch-title" class="cx-ch-title">Bộ màu</span>
+          <!-- Ô bên phải: nút Xong của màn cấp 2. Rỗng ở các bảng khác, nhưng
+               vẫn phải có để tiêu đề đứng GIỮA đầu bảng, cân với nút bên trái. -->
+          <div class="cx-ch-side cx-ch-end">
             <button
               type="button"
-              onclick="closeLineEditor()"
-              class="cx-le-back"
-              aria-label="Quay lại"
+              id="cx-ch-done"
+              onclick="cxCtrlBack()"
+              class="cx-ch-done hidden"
+              aria-label="Xong"
+              title="Xong"
             >
-              <i data-lucide="arrow-left" class="w-4 h-4"></i
-              ><span>Chỉnh chữ</span>
-            </button>
-            <button
-              type="button"
-              onclick="clearLineOverride()"
-              class="cx-le-clear"
-            >
-              <i data-lucide="rotate-ccw" class="w-4 h-4"></i
-              ><span>Mặc định</span>
-            </button>
-          </div>
-          <div id="cx-head-addtext" class="hidden cx-le-head">
-            <button
-              type="button"
-              onclick="closeAddTextPanel()"
-              class="cx-le-back"
-              aria-label="Quay lại"
-            >
-              <i data-lucide="arrow-left" class="w-4 h-4"></i
-              ><span>Văn bản</span>
-            </button>
-          </div>
-          <div id="cx-head-decor" class="hidden cx-le-head">
-            <button
-              type="button"
-              onclick="closeDecorPanel()"
-              class="cx-le-back"
-              aria-label="Quay lại"
-            >
-              <i data-lucide="arrow-left" class="w-4 h-4"></i
-              ><span>Trang trí</span>
-            </button>
-          </div>
-          <div id="cx-head-elements" class="hidden cx-le-head">
-            <button
-              type="button"
-              onclick="closeElementsPanel()"
-              class="cx-le-back"
-              aria-label="Quay lại"
-            >
-              <i data-lucide="arrow-left" class="w-4 h-4"></i
-              ><span>Thẻ nhạc</span>
-            </button>
-          </div>
-          <div id="cx-head-gift" class="hidden cx-le-head">
-            <button
-              type="button"
-              onclick="closeGiftPanel()"
-              class="cx-le-back"
-              aria-label="Quay lại"
-            >
-              <i data-lucide="arrow-left" class="w-4 h-4"></i
-              ><span>Hộp mừng cưới</span>
-            </button>
-          </div>
-          <div id="cx-head-wish" class="hidden cx-le-head">
-            <button
-              type="button"
-              onclick="closeWishPanel()"
-              class="cx-le-back"
-              aria-label="Quay lại"
-            >
-              <i data-lucide="arrow-left" class="w-4 h-4"></i
-              ><span>Lời chúc</span>
-            </button>
-          </div>
-          <div id="cx-head-element-editor" class="hidden cx-le-head">
-            <button
-              type="button"
-              onclick="closeElementEditor()"
-              class="cx-le-back"
-              aria-label="Quay lại"
-            >
-              <i data-lucide="arrow-left" class="w-4 h-4"></i
-              ><span>Điều chỉnh</span>
-            </button>
-            <button
-              type="button"
-              onclick="resetElementOptions()"
-              class="cx-le-clear"
-            >
-              <i data-lucide="rotate-ccw" class="w-4 h-4"></i
-              ><span>Mặc định</span>
+              <!-- Cỡ CỐ ĐỊNH phải là inline style: svg.lucide trong build.css
+                   ép 1em và thắng cả utility w-*/h-*. -->
+              <i data-lucide="check" style="width:18px;height:18px"></i>
             </button>
           </div>
         </div>
@@ -195,11 +121,6 @@
                    mức toàn thiệp — muốn khác đi thì bấm thẳng vào phần tử trên
                    thiệp mà chỉnh riêng. -->
               <div class="md:space-y-2.5">
-                <p
-                  class="hidden md:block text-[11px] font-semibold uppercase tracking-[0.08em] text-gray-400"
-                >
-                  Bộ màu
-                </p>
                 <div class="flex items-center gap-2 md:w-full">
                   <label
                     for="theme-palette"
@@ -229,7 +150,7 @@
                     >Độ đậm</label
                   >
                   <!-- CXProgress (core/components/progress.js) bọc input này
-                       thành thanh viên thuốc và tự hiện số % — _syncPaletteStrength(). -->
+                       thành thanh kéo mảnh và tự hiện số % — _syncPaletteStrength(). -->
                   <input
                     id="theme-palette-strength"
                     type="range"
@@ -245,81 +166,6 @@
                 </div>
               </div>
 
-              <!-- Thêm vào thiệp: thẻ card (tròn màu + tên) xếp lưới 3 cột;
-                   thêm chức năng mới = thêm 1 thẻ, lưới tự xuống dòng -->
-              <div class="md:space-y-3">
-                <p
-                  class="hidden md:block text-[11px] font-semibold uppercase tracking-[0.08em] text-gray-400"
-                >
-                  Thêm vào thiệp
-                </p>
-                <div class="cx-add-grid">
-                  <button
-                    type="button"
-                    onclick="openAddTextPanel()"
-                    title="Thêm khối văn bản vào thiệp"
-                    class="cx-add-card"
-                  >
-                    <span class="cx-add-ico cx-add-ico-blue">
-                      <i data-lucide="type"></i>
-                    </span>
-                    <span class="cx-add-txt">Văn bản</span>
-                  </button>
-                  <button
-                    type="button"
-                    onclick="openDecorPanel()"
-                    title="Thả hoa, hoạ tiết trang trí lên thiệp"
-                    class="cx-add-card"
-                  >
-                    <span class="cx-add-ico cx-add-ico-rose">
-                      <i data-lucide="balloon"></i>
-                    </span>
-                    <span class="cx-add-txt">Trang trí</span>
-                  </button>
-                  <button
-                    type="button"
-                    id="add-card-elements"
-                    onclick="openElementsPanel()"
-                    title="Thả thẻ nhạc lên thiệp"
-                    class="cx-add-card"
-                  >
-                    <span class="cx-add-ico cx-add-ico-green">
-                      <i data-lucide="music"></i>
-                    </span>
-                    <span class="cx-add-txt">Thẻ nhạc</span>
-                  </button>
-                  <button
-                    type="button"
-                    id="add-card-gift"
-                    onclick="openGiftPanel()"
-                    title="Chọn hộp quà che phần mã QR mừng cưới"
-                    class="cx-add-card"
-                  >
-                    <span class="cx-add-ico cx-add-ico-amber">
-                      <i data-lucide="gift"></i>
-                    </span>
-                    <span class="cx-add-txt">Hộp mừng cưới</span>
-                  </button>
-                  <button
-                    type="button"
-                    id="add-card-wishes"
-                    onclick="openWishPanel()"
-                    title="Chọn cách hiện lời chúc của khách mời"
-                    class="cx-add-card"
-                  >
-                    <span class="cx-add-ico cx-add-ico-violet">
-                      <i data-lucide="message-circle"></i>
-                    </span>
-                    <span class="cx-add-txt">Lời chúc</span>
-                  </button>
-                </div>
-              </div>
-
-              <!-- Khôi phục — DESKTOP: button đầy đủ, nằm dưới cùng bảng chỉnh chung -->
-              <x-button variant="outline" size="lg" type="button" onclick="resetThemeSetting()" title="Bỏ hết tuỳ chỉnh, đưa thiệp về mặc định của mẫu" class="hidden md:flex w-full focus-visible:ring-2 focus-visible:ring-rose-200 focus-visible:ring-offset-2">
-                <i data-lucide="rotate-ccw" class="!w-[16px] !h-[16px]"></i>
-                <span>Khôi phục mặc định</span>
-              </x-button>
             </div>
             <!-- /theme-main-controls -->
 
@@ -359,9 +205,12 @@
                   ></x-combobox>
                 </div>
 
-                <!-- Cỡ chữ -->
+                <!-- Cỡ chữ + Màu chữ đứng CHUNG một hàng (xem .cx-le-duo):
+                     hai control đều ngắn, tách hai dòng chỉ tổ đội chiều cao
+                     bảng lên, che mất thiệp. Hẹp quá thì tự xuống dòng. -->
+                <div class="cx-le-duo">
                 <div class="cx-le-row">
-                  <label class="cx-le-label">Cỡ chữ</label>
+                  <label class="cx-le-label">Cỡ</label>
                   <div class="cx-le-size">
                     <x-button variant="ghost" type="button" onclick="stepLineSize(-1)" aria-label="Giảm cỡ chữ">
                       −
@@ -384,7 +233,7 @@
                 <!-- Màu — bật nút chuyển màu thì hiện thêm ô thứ hai: chữ đổ
                      từ màu ô 1 sang màu ô 2 -->
                 <div class="cx-le-row">
-                  <label class="cx-le-label">Màu chữ</label>
+                  <label class="cx-le-label">Màu</label>
                   <div class="flex items-center gap-2">
                     <div class="color-chip">
                       <input
@@ -412,7 +261,11 @@
                   </div>
                 </div>
 
-                <!-- Đậm / Nghiêng -->
+                </div>
+                <!-- /duo: Cỡ + Màu -->
+
+                <!-- Kiểu + Căn lề: hai dải nút, cũng đi chung một hàng. -->
+                <div class="cx-le-duo">
                 <div class="cx-le-row">
                   <label class="cx-le-label">Kiểu</label>
                   <div class="cx-le-seg">
@@ -443,11 +296,14 @@
                     </x-button>
                   </div>
                 </div>
+                </div>
+                <!-- /duo: Kiểu + Căn lề -->
               </div>
               <!-- /cx-le-text -->
 
               <!-- Nhóm control ẢNH (rộng/cao + giữ tỉ lệ) -->
               <div id="cx-le-image" class="hidden space-y-3 md:space-y-4">
+                <div class="cx-le-duo">
                 <div class="cx-le-row">
                   <label class="cx-le-label">Rộng</label>
                   <div class="cx-le-size">
@@ -488,6 +344,8 @@
                     </x-button>
                   </div>
                 </div>
+                </div>
+                <!-- /duo: Rộng + Cao -->
                 <label class="cx-le-check">
                   <input
                     type="checkbox"
@@ -505,7 +363,7 @@
             <!-- Bảng THÊM VĂN BẢN (thay chỗ nhóm chỉnh chung, giống bảng chỉnh 1 dòng) -->
             <div id="theme-addtext-panel" class="hidden space-y-3 md:space-y-4">
               <p class="text-[12px] text-gray-500">
-                Kéo mẫu ra khỏi bảng và thả lên thiệp để đặt vào vị trí mong muốn.
+                Giữ rồi kéo mẫu thả lên thiệp.
               </p>
               <!-- Ô mẫu dựng động từ CX_TEXT_PRESETS
                    (core/helpers/text-preset-helper.js) — kể cả mẫu cơ bản
@@ -521,7 +379,7 @@
               class="hidden space-y-3 md:space-y-4"
             >
               <p class="text-[12px] text-gray-500">
-                Kéo mẫu ra khỏi bảng và thả lên thiệp để đặt vào vị trí mong muốn.
+                Giữ rồi kéo mẫu thả lên thiệp.
               </p>
               <div id="cx-decor-palette" class="cx-pal-grid"></div>
               <p id="cx-decor-empty" class="hidden text-[12px] text-gray-400"></p>
@@ -535,9 +393,21 @@
               id="theme-elements-panel"
               class="hidden space-y-3 md:space-y-4"
             >
+              <!-- Mục đang tắt ở tab Thiết lập: bảng vẫn mở được để xem có gì,
+                   phần chọn bên dưới bị khoá — _syncPanelGate() gạt dòng này. -->
+              <p
+                id="gate-warn-elements"
+                class="hidden rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[12px] leading-snug text-amber-800"
+              >
+                <i
+                  data-lucide="info"
+                  style="width: 14px; height: 14px; vertical-align: -2px"
+                  class="mr-1 inline-block"
+                ></i>
+                Mục “Nhạc nền” đang tắt — bật lại ở tab Thiết lập để thả thẻ nhạc.
+              </p>
               <p class="text-[12px] text-gray-500">
-                Bấm vào mẫu để đổi ngay, bấm mẫu khác để so tiếp — hoặc kéo mẫu ra
-                khỏi bảng và thả lên thiệp để đặt vào đúng vị trí mong muốn.
+                Bấm để đổi mẫu, giữ rồi kéo để thả vào chỗ khác.
               </p>
               <div id="cx-elements-palette" class="cx-pick-grid"></div>
             </div>
@@ -551,9 +421,20 @@
               id="theme-gift-panel"
               class="hidden space-y-3 md:space-y-4"
             >
+              <!-- Xem ghi chú ở #gate-warn-elements. -->
+              <p
+                id="gate-warn-gift"
+                class="hidden rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[12px] leading-snug text-amber-800"
+              >
+                <i
+                  data-lucide="info"
+                  style="width: 14px; height: 14px; vertical-align: -2px"
+                  class="mr-1 inline-block"
+                ></i>
+                Mục “Hộp mừng cưới” đang tắt — bật lại ở tab Thiết lập để chọn hộp.
+              </p>
               <p class="text-[12px] text-gray-500">
-                Chọn kiểu hộp che phần chuyển khoản — khách chạm vào hộp mới thấy
-                mã QR.
+                Hộp che mã QR, khách chạm vào mới mở.
               </p>
               <div id="cx-gift-palette" class="cx-pick-grid"></div>
             </div>
@@ -569,8 +450,7 @@
               class="hidden space-y-3 md:space-y-4"
             >
               <p class="text-[12px] text-gray-500">
-                Chọn cách khách mời nhìn thấy lời chúc trên thiệp. Bật/tắt mục lời
-                chúc nằm ở bước “Xác nhận tham dự”.
+                Cách khách thấy lời chúc
               </p>
               <div id="cx-wish-palette" class="cx-pick-grid"></div>
             </div>
@@ -590,7 +470,7 @@
               <div class="cx-le-row">
                 <label class="cx-le-label">Kích thước</label>
                 <!-- CXProgress (core/components/progress.js) bọc input này thành
-                     thanh viên thuốc và tự hiện số % — xem _initElWidthSlider(). -->
+                     thanh kéo mảnh và tự hiện số % — xem _initElWidthSlider(). -->
                 <input
                   id="cx-el-width"
                   type="range"
@@ -678,13 +558,27 @@
           </div>
           <!-- /nội dung padding controls -->
         </div>
-        <!-- Dải mờ + mũi tên nhấp nhô báo "còn nội dung phía dưới"; cả cụm tắt
-             khi đã cuộn tới đáy (.is-end) và ở md+ (cột chỉnh tự cuộn). -->
-        <span class="cx-sheet-fade" aria-hidden="true">
-          <i data-lucide="chevrons-down"></i>
-        </span>
+        <!-- Dải trắng mờ báo "còn nội dung phía dưới"; tắt khi đã cuộn tới đáy
+             (.is-end) và ở md+ (cột chỉnh tự cuộn). -->
+        <span class="cx-sheet-fade" aria-hidden="true"></span>
       </div>
       <!-- /vùng cuộn chung -->
+
+      <!-- Dải tab dưới: mỗi tab là MỘT bảng chỉnh, bấm là đổi bảng ngay tại chỗ
+           (không còn lưới thẻ + nút quay lại, nhờ vậy bảng nào cũng dành trọn
+           chiều cao cho nội dung). Dải cuộn ngang khi không đủ chỗ, tab đang mở
+           được _syncCtrlHead() tô và chỉ kéo vào tầm nhìn khi đang khuất.
+           Các nút do _renderCtrlTabs() (js/05-theme-panel.js) dựng từ CTRL_VIEWS
+           — thêm/đổi tên tab là sửa bên đó, đừng viết nút vào đây. -->
+      <div
+        id="cx-ctrl-tabs"
+        class="cx-ctabs"
+        role="tablist"
+        aria-label="Phần cần chỉnh"
+      >
+        <div id="cx-ctrl-tabs-track" class="cx-ctabs-track"></div>
+      </div>
+      <!-- /dải tab -->
     </div>
     <!-- /theme-controls -->
   </div>

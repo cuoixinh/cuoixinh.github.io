@@ -12,6 +12,9 @@
 //   panel     khối mở rộng (tóm tắt thiệp) — helper bật class .is-expanded
 //   bubble    bong bóng nổi khi đã thu gọn; có nó mới bật được nấc thu gọn
 //
+// Helper đặt --cx-mp-pct (0–100%) lên thẻ root mỗi nhịp: mẫu nào vẽ tiến trình
+// không phải dải ngang (vòng cung…) thì đọc biến đó thay vai trò "fill".
+//
 // Tuỳ chỉnh trên thẻ root: data-cx-play-icon / data-cx-pause-icon (class icon,
 // ghép vào class theme đặt sẵn — viết trong HTML để purge thấy), data-cx-seek
 // (giây, mặc định 10), data-cx-empty-title, data-cx-reveal-on-scroll (chỉ hiện
@@ -150,9 +153,12 @@ function setupMusicPlayer(root) {
   }
 
   function _renderProgress(pos) {
-    if (fillEl && pos.duration > 0) {
-      fillEl.style.width =
-        Math.min(100, (pos.current / pos.duration) * 100) + "%";
+    if (pos.duration > 0) {
+      const pct = Math.min(100, (pos.current / pos.duration) * 100);
+      // Dải NGANG đổi bề ngang; mẫu vẽ tiến trình kiểu khác (vòng cung) đọc biến
+      // này trên thẻ root — conic-gradient không suy ra được bề ngang thẻ khác.
+      root.style.setProperty("--cx-mp-pct", pct + "%");
+      if (fillEl) fillEl.style.width = pct + "%";
     }
     if (timeEl) timeEl.textContent = _fmt(pos.current);
     if (durEl) durEl.textContent = _fmt(pos.duration);

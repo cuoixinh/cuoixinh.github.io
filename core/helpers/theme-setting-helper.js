@@ -707,12 +707,16 @@ function _cxBuildBlockNode(b, edit) {
       '<x-button variant="ghost" type="button" title="Xoá" aria-label="Xoá khối" class="cx-cb-del">' +
       '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>' +
       "</x-button>";
-    tools.querySelector(".cx-cb-del").addEventListener("click", (e) => {
+    // Gắn sự kiện lên chính .cx-cb-tools chứ không lên hai nút: <x-button> TỰ
+    // THAY MÌNH bằng <button> lúc khối được chèn vào trang, listener gắn thẳng
+    // vào thẻ x-button sẽ mất theo thẻ cũ (nút hiện ra nhưng bấm không ăn).
+    tools.addEventListener("click", (e) => {
+      if (!e.target.closest || !e.target.closest(".cx-cb-del")) return;
       e.preventDefault();
       e.stopPropagation();
       _cxDelete(b.id);
     });
-    _cxWireDrag(tools.querySelector(".cx-cb-drag"), b.id);
+    _cxWireDrag(tools, b.id);
     wrap.appendChild(tools);
     _cxWireBlockPinch(wrap, body, b.id);
   }
@@ -1028,8 +1032,13 @@ function _cxMakeGhost(wrap, ev) {
 }
 
 let _cxDrag = null;
-function _cxWireDrag(handle, id) {
-  handle.addEventListener("pointerdown", (e) => {
+// tools = thẻ .cx-cb-tools; tay nắm tìm theo sự kiện vì <x-button> thay thẻ của
+// chính nó lúc khối vào trang (xem ghi chú ở _cxBuildBlockNode).
+function _cxWireDrag(tools, id) {
+  tools.addEventListener("pointerdown", (e) => {
+    const handle =
+      e.target && e.target.closest && e.target.closest(".cx-cb-drag");
+    if (!handle) return;
     e.preventDefault();
     e.stopPropagation();
     const container = _cxSectionsContainer();
@@ -1114,7 +1123,9 @@ function _cxEnsureStyle() {
   const s = document.createElement("style");
   s.id = "cx-cb-style";
   s.textContent =
-    ".cx-custom-block{position:relative;width:100%}" +
+    // Bề ngang bó lại như các mục khác của thiệp: để tràn hết khung là chữ dính
+    // sát mép máy, và nút xoá (right:-8px) rơi ra ngoài màn nên bấm không tới.
+    ".cx-custom-block{position:relative;width:100%;max-width:min(88%,420px);margin-left:auto;margin-right:auto}" +
     ".cx-cb-body{outline:none}" +
     ".cx-custom-block ol,.cx-custom-block ul{display:inline-block;text-align:left;padding-left:1.5em;margin:0}" +
     ".cx-custom-block ol{list-style:decimal}.cx-custom-block ul{list-style:disc}" +
@@ -2275,16 +2286,26 @@ function _cxElDelete(id) {
 function _cxElSet(id, patch) {
   const t = _cxElFind(id);
   if (!t || !patch) return;
+  let home = false;
   if (patch.variant && patch.variant !== t.variant) {
     const def = _cxElDef(t);
     const v = def && def.variants.find((x) => x.id === patch.variant);
     if (v) {
       t.variant = v.id;
       t.w = v.w;
+      // Mỗi mẫu một khổ, nên cũng một chỗ đứng riêng: thanh ngang thuộc về đỉnh
+      // thiệp, nút tròn thuộc về một góc. Giữ nguyên chỗ cũ là nút tròn nằm
+      // chình ình giữa đỉnh. Chỉ đường BẤM ô mẫu mới dời — kéo thả vẫn đặt đúng
+      // chỗ vừa thả (xem _cxElAdd).
+      home = !!(v.home && v.home.x != null && v.home.y != null);
     }
   }
   _cxElActiveId = t.id;
   _cxElRender();
+  if (home) {
+    const node = document.querySelector('.cx-el[data-el-id="' + t.id + '"]');
+    if (node) _cxElHome(t, node);
+  }
   _cxElFocus(t.id);
   _cxElSendPick(); // bảng lấy lại giá trị thật (đổi mẫu là bề ngang cũng đổi)
   _cxElReport();
@@ -2302,6 +2323,62 @@ function _cxElResize(id, w, done) {
   if (node) _cxElStyle(node, t);
   if (!done) return;
   t.w = Math.round(t.w * 10) / 10;
+  _cxElReport();
+}
+
+// Chỗ đứng GỐC của widget, nếu có một chỗ như vậy. Hai đường, theo thứ tự:
+//   1. `home` của MẪU đang chọn — mỗi khổ một chỗ hợp với nó (thanh ngang ở đỉnh
+//      thiệp, nút tròn ở góc), khai ở core/helpers/element-helper.js.
+//   2. Chỗ trình phát sẵn có của mẫu thiệp vẫn đứng (thẻ nhạc vốn dựng ra từ nó,
+//      xem _cxElSeedThemeMusic) — đo lại được vì trình phát chỉ bị ẩn chứ vẫn
+//      nằm trong DOM.
+// Chỉ lấy TOẠ ĐỘ; bề ngang đã trả về khổ gốc của mẫu ở _cxElResetAll.
+// Trả false khi cả hai đường đều không có → người gọi rơi về chỗ mặc định của
+// widget thả tay.
+function _cxElHome(t, node) {
+  const home = (_cxElVariant(t) || {}).home;
+  if (home && home.x != null && home.y != null) {
+    t.x = _cxDecorClamp(Number(home.x), 0, 100);
+    t.y = _cxDecorClamp(Number(home.y), 0, 100);
+    _cxElStyle(node, t);
+    return true;
+  }
+  if (t.element !== "music") return false;
+  const player = document.getElementById("music-toggle");
+  const box = player && _cxElMeasureThemePlayer(player);
+  const card = document.getElementById("main-card");
+  const r = card && card.getBoundingClientRect();
+  const vh = _cxViewH();
+  if (!box || !r || !r.width || !vh) return false;
+  // Thanh gốc neo theo khung nhìn, khung xem trước rộng hơn thiệp → kẹp vào khổ
+  // thiệp, giống lúc dựng (xem _cxElAdoptThemeBox).
+  t.x = Math.round(
+    _cxDecorClamp(((box.cx - r.left) / r.width) * 100, 0, 100) * 10,
+  ) / 10;
+  t.y = _cxElPinY(node, box.cy, vh);
+  _cxElStyle(node, t);
+  return true;
+}
+
+// "Mặc định" ở bảng Điều chỉnh: trả widget về đúng như lúc vừa thả ra — khổ gốc
+// của mẫu, sạch tuỳ chọn riêng, và đứng lại chỗ mặc định (giữa bề ngang, đầu
+// khung đang xem). Làm trọn trong runtime vì chỗ đứng mặc định phải ĐO mới biết
+// (chiều cao widget, khung nhìn), trang cha không có số đó.
+function _cxElResetAll(id) {
+  const t = _cxElFind(id);
+  if (!t) return;
+  const def = _cxElDef(t);
+  const v = _cxElVariant(t) || {};
+  t.opts = {};
+  t.w = v.w || t.w;
+  t.x = 50;
+  const node = document.querySelector('.cx-el[data-el-id="' + t.id + '"]');
+  if (node) {
+    if (node._cxBody && def && def.apply) def.apply(node._cxBody, t.opts);
+    _cxElStyle(node, t); // áp khổ mới TRƯỚC khi đo chiều cao để đặt chỗ
+    if (!_cxElHome(t, node)) _cxElPlaceNow(t);
+  }
+  _cxElSendPick(); // bảng vẽ lại control theo khổ + màu gốc vừa trở về
   _cxElReport();
 }
 
@@ -2385,9 +2462,18 @@ function _cxElAdd(elementId, clientX, clientY, variantId) {
   }
   _cxElRender();
   _cxElSendPick(); // thả xong → bảng chuyển sang phần điều chỉnh của nó
+  const item = _cxElements.find((t) => t.id === _cxElActiveId);
   if (!atPoint) {
-    const item = _cxElements.find((t) => t.id === _cxElActiveId);
     if (item) _cxElPlaceNow(item);
+  } else if (item && def.pin) {
+    // Thả tay: điểm thả là TÂM widget. Widget neo cạnh trên phải trừ lại nửa
+    // chiều cao, không thì nó rơi thấp hơn chỗ vừa thả đúng ngần ấy. Chỉ đo được
+    // sau _cxElRender nên đặt lại ở đây.
+    const node = document.querySelector('.cx-el[data-el-id="' + item.id + '"]');
+    if (node) {
+      item.y = _cxElPinY(node, clientY, vh);
+      _cxElStyle(node, item);
+    }
   }
   _cxElFocus(_cxElActiveId); // thả/bấm xong → thấy ngay thành phần vừa đặt
   _cxElReport();
@@ -2471,7 +2557,7 @@ function _cxElMeasureThemePlayer(player) {
   const r = bar.getBoundingClientRect();
   player.style.display = prev;
   return r.width && r.height
-    ? { w: r.width, cx: r.left + r.width / 2, cy: r.top + r.height / 2 }
+    ? { w: r.width, h: r.height, cx: r.left + r.width / 2, cy: r.top + r.height / 2 }
     : null;
 }
 
@@ -2509,8 +2595,24 @@ function _cxElAdoptThemeBox(t) {
   // Thanh gốc neo theo khung nhìn, khung xem trước lại rộng hơn thiệp → kẹp vào
   // trong khổ thiệp (nút tròn góc phải vì thế bám mép phải thiệp, không dạt ra).
   t.x = pc(((box.cx - r.left) / r.width) * 100);
-  t.y = pc((box.cy / vh) * 100);
+  // Chiều cao lấy của BẢN GỐC chứ không của node vừa dựng: node chưa được áp
+  // bề ngang nên đo lúc này là số của một thanh khác khổ.
+  t.y = _cxElPinY(node, box.cy, vh, box.h);
   _cxElStyle(node, t);
+}
+
+// `y` lưu là % khung nhìn của ĐIỂM NEO, mà điểm neo không phải lúc nào cũng là
+// tâm: widget có khối mở rộng (thanh nhạc) neo CẠNH TRÊN (.cx-el-top, xem
+// _cxElNode). Ba đường đặt widget ghim đều nghĩ theo tâm nên phải quy đổi ở một
+// chỗ — thiếu bước này thanh ngang tụt xuống đúng nửa chiều cao của chính nó.
+function _cxElPinY(node, centerY, vh, h) {
+  const hh = h || (node ? node.offsetHeight : 0);
+  const top = node && node.classList.contains("cx-el-top");
+  return (
+    Math.round(
+      _cxDecorClamp(((top ? centerY - hh / 2 : centerY) / vh) * 100, 0, 100) * 10,
+    ) / 10
+  );
 }
 
 // Đặt vào đầu khung đang xem. Widget ghim đo theo KHUNG NHÌN (nó nổi trên màn
@@ -2524,8 +2626,7 @@ function _cxElPlaceNow(t) {
   }
   const vh = _cxViewH();
   if (!vh) return;
-  const y = ((CX_ADD_TOP_GAP + node.offsetHeight / 2) / vh) * 100;
-  t.y = Math.round(_cxDecorClamp(y, 0, 100) * 10) / 10;
+  t.y = _cxElPinY(node, CX_ADD_TOP_GAP + node.offsetHeight / 2, vh);
   _cxElStyle(node, t);
 }
 
@@ -2612,6 +2713,7 @@ if (typeof window !== "undefined" && window.top !== window) {
     else if (d.type === "cx-element-size") _cxElResize(d.id, d.w, d.done);
     else if (d.type === "cx-element-opts")
       _cxElSetOpts(d.id, d.opts, d.replace, d.done);
+    else if (d.type === "cx-element-reset") _cxElResetAll(d.id);
     else if (d.type === "cx-element-del") _cxElDelete(d.id);
     // Trang cha bấm ra ngoài iframe → bỏ chọn cho bộ nút trên hoa/widget tắt đi
     else if (d.type === "cx-blur") _cxBlurCards(d.what);

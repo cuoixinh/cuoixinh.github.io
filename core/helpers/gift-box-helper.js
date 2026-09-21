@@ -15,6 +15,18 @@
       desc: "Hộp giấy kem, nơ lụa",
       src: "/assets/gifts/minimalism_brown.webp",
     },
+    {
+      id: "floral_pink",
+      name: "Hồng phấn",
+      desc: "Hộp hồng phấn, nơ lụa, hoa hồng",
+      src: "/assets/gifts/floral_pink.webp",
+    },
+    {
+      id: "mungcuoi_ivory",
+      name: "Mừng cưới kem",
+      desc: "Hộp kem viền vàng, chữ Mừng Cưới",
+      src: "/assets/gifts/mungcuoi_ivory.webp",
+    },
   ];
 
   const HINT = "Chạm để mở";

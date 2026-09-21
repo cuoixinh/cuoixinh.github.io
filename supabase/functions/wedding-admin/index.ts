@@ -590,12 +590,15 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
       const ids = (data ?? []).map(c => c.id)
       let redemptions: Record<string, unknown>[] = []
       if (ids.length) {
-        const { data: rd } = await supabase
+        const { data: rd, error: rdErr } = await supabase
           .from('promo_redemptions')
           .select('code_id, order_id, manage_id, user_key, status, final_amount, discount_amount, redeemed_at, reserved_at, expires_at')
           .in('code_id', ids)
           .in('status', ['reserved', 'redeemed'])
           .order('reserved_at', { ascending: false })
+        // Bảng admin vẫn hiện được danh sách mã, chỉ thiếu phần lượt đã dùng —
+        // im lặng ở đây là admin tưởng mã chưa ai dùng.
+        if (rdErr) log.warn('promo.redemptions_read_failed', { code: rdErr.code, message: rdErr.message })
         redemptions = rd ?? []
       }
 
@@ -753,17 +756,28 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
 
       let target = supabase.from('promo_codes').select('id')
       target = id ? target.eq('id', id) : target.eq('batch_id', batchId!)
-      const { data: codes } = await target
+      const { data: codes, error: codesErr } = await target
+      if (codesErr) {
+        log.error('promo.lookup_failed', { code: codesErr.code, message: codesErr.message })
+        return new Response(JSON.stringify({ error: codesErr.message }), { status: 500, headers: corsHeaders })
+      }
       const codeIds = (codes ?? []).map(c => c.id)
       if (!codeIds.length) {
         return new Response(JSON.stringify({ error: 'Không tìm thấy mã' }), { status: 404, headers: corsHeaders })
       }
 
-      const { data: used } = await supabase
+      const { data: used, error: usedErr } = await supabase
         .from('promo_redemptions')
         .select('code_id')
         .in('code_id', codeIds)
         .eq('status', 'redeemed')
+
+      // Đây là chốt duy nhất giữ lại mã ĐÃ dùng cho đơn hàng. Truy vấn hỏng mà
+      // vẫn chạy tiếp thì danh sách "đã dùng" rỗng → xoá sạch, không lùi được.
+      if (usedErr) {
+        log.error('promo.used_lookup_failed', { code: usedErr.code, message: usedErr.message })
+        return new Response(JSON.stringify({ error: 'Không kiểm tra được mã đã dùng, chưa xoá gì cả' }), { status: 500, headers: corsHeaders })
+      }
 
       const usedIds = new Set((used ?? []).map(r => r.code_id))
       const deletable = codeIds.filter(cid => !usedIds.has(cid))
@@ -950,7 +964,9 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
           .remove(validDeletedImages)
         
         if (deleteError) {
-          console.error('Error deleting images:', deleteError)
+          // Cố ý không chặn request, nhưng ảnh nằm lại bucket vĩnh viễn nếu hàng
+          // DB đã bỏ tham chiếu — không còn luồng nào tìm ra chúng nữa.
+          log.error('wedding.image_delete_failed', { id, files: validDeletedImages.length, message: deleteError.message })
           // Continue anyway, don't fail the whole request
         }
       } else {
@@ -1091,12 +1107,19 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
 
     // Check slug trùng nếu có đổi slug (loại trừ chính nó)
     if (fields.slug) {
-      const { data: slugExisting } = await supabase
+      const { data: slugExisting, error: slugErr } = await supabase
         .from('weddings')
         .select('id')
         .eq('slug', fields.slug)
         .neq('id', id)
         .maybeSingle()
+
+      // Hỏng mà bỏ qua thì phép kiểm trùng coi như không có: lượt lưu tiếp theo
+      // đâm vào ràng buộc UNIQUE và khách nhận một lỗi DB khó hiểu.
+      if (slugErr) {
+        log.error('wedding.slug_check_failed', { id, code: slugErr.code, message: slugErr.message })
+        return new Response(JSON.stringify({ error: 'Không kiểm tra được slug, vui lòng thử lại' }), { status: 500, headers: corsHeaders })
+      }
 
       if (slugExisting) {
         return new Response(JSON.stringify({ error: 'Tên slug đã được người khác sử dụng. Vui lòng chọn tên khác' }), {
@@ -1165,7 +1188,15 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
         supabase.from('templates').select('*').eq('is_active', true).order('sort_order', { ascending: true }),
         supabase.from('template_pricing').select('*').eq('is_active', true),
       ])
-      if (tRes.error) return new Response(JSON.stringify({ error: tRes.error }), { status: 500, headers: corsHeaders })
+      // Lỗi ở truy vấn GIÁ cũng phải thành 500: trả 200 kèm `price: null` thì
+      // trang chỉ hiện "Liên hệ" chứ không báo gì, mà worker templates-cache
+      // lưu luôn phản hồi què đó ở edge tới 7 ngày.
+      if (tRes.error || pRes.error) {
+        const failed = tRes.error ? 'templates' : 'template_pricing'
+        const err = tRes.error ?? pRes.error
+        log.error('templates.public_query_failed', { table: failed, code: err.code, message: err.message })
+        return new Response(JSON.stringify({ error: err }), { status: 500, headers: corsHeaders })
+      }
       const pricingMap = Object.fromEntries((pRes.data ?? []).map(p => [p.template_name, p]))
       const combined = (tRes.data ?? []).map(t => ({
         id: t.template_id,
@@ -1182,6 +1213,15 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
         price: pricingMap[t.template_name]?.price ?? null,
         originalPrice: pricingMap[t.template_name]?.original_price ?? null,
       }))
+
+      // Có mẫu mà KHÔNG mẫu nào có giá: hoặc bảng giá trống, hoặc `template_name`
+      // hai bảng lệch nhau. Không phải lỗi truy vấn nên không có gì ném ra, mà hậu
+      // quả thì nặng — cả trang chỉ còn "Liên hệ", và worker cache lại 7 ngày.
+      const priced = (tRes.data ?? []).filter((t: { template_name: string }) => pricingMap[t.template_name]?.price != null).length
+      if (combined.length > 0 && priced === 0) {
+        log.warn('templates.pricing_missing', { templates: combined.length, pricing_rows: pRes.data?.length ?? 0 })
+      }
+
       return new Response(JSON.stringify(combined), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
@@ -1281,12 +1321,18 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
       const themeParam = url.searchParams.get('theme')?.trim()
       const minOrder = data.min_order_amount ?? 0
       if (themeParam && minOrder > 0) {
-        const { data: pricing } = await supabase
+        const { data: pricing, error: pricingErr } = await supabase
           .from('template_pricing')
           .select('price')
           .eq('template_name', themeParam)
           .eq('is_active', true)
           .maybeSingle()
+        // Không chặn: đây chỉ là báo sớm, payment-handler vẫn kiểm lại lúc tạo
+        // đơn. Nhưng hỏng thì phải kêu, không thì mã "hợp lệ" ở đây rồi bị từ
+        // chối ở màn thanh toán mà không ai hiểu vì sao.
+        if (pricingErr) {
+          log.warn('promo.min_order_check_failed', { theme: themeParam, code: pricingErr.code, message: pricingErr.message })
+        }
         if (pricing && pricing.price < minOrder) {
           return new Response(JSON.stringify({
             valid: false,

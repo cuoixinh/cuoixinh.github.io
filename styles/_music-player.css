@@ -173,7 +173,7 @@
 }
 
 /* ── Đổi màu widget thả lên thiệp (bảng "Điều chỉnh thành phần") ─────────────
-   Nút tròn / thẻ nhạc đã đọc thẳng biến --cx-mw-* nên không cần rule nào; mẫu
+   Nút tròn đã đọc thẳng biến --cx-mw-* nên không cần rule nào; mẫu
    THANH NGANG dựng bằng utility Tailwind nên phải đè ở đây. Mỗi class chỉ đè
    đúng thứ người dùng đã chọn — không chọn màu nào thì thanh giữ nguyên gradient
    hồng mặc định. */
@@ -214,9 +214,10 @@
   background-color: var(--cx-mw-fill);
 }
 
-/* ── Hai mẫu gọn của thành phần "Trình phát nhạc" ────────────────────────────
-   .cx-mw-mini (nút tròn) và .cx-mw-card (thẻ nhạc); markup do
-   core/components/music-player.js dựng, vị trí do theme-setting-helper đặt.
+/* ── Mẫu gọn của thành phần "Trình phát nhạc" ───────────────────────────────
+   .cx-mw-mini (nút tròn) · -pill (thẻ viên) · -square (thẻ vuông) · -disc (đĩa
+   than) · -ring (vòng tiến trình); markup do core/components/music-player.js
+   dựng, vị trí do theme-setting-helper đặt.
    MỌI kích thước bên trong viết bằng `em`, còn font-size của .cx-mw thì runtime
    tính theo bề ngang thật → kéo to nhỏ là cả widget phóng theo tỉ lệ (cũng là lý
    do phần này là CSS thuần). Màu đi qua biến để theme đặt lại trên #main-card. */
@@ -233,6 +234,11 @@
   --cx-mw-fill: var(--music-widget-fill);
   --cx-mw-accent: rgb(var(--music-widget-accent-rgb));
   --cx-mw-shadow: 0 8px 24px rgb(var(--music-shadow-rgb) / 0.22);
+
+  /* Tiến trình bài hát, music-player-helper ghi đè inline mỗi nhịp. Khai mặc
+     định ở đây chứ ĐỪNG viết var(--cx-mp-pct, 0%) tại chỗ dùng: cssnano rút
+     "0%" trong fallback thành "0", conic-gradient không nhận → mất cả nền. */
+  --cx-mp-pct: 0%;
   position: relative;
   display: block;
   width: 100%;
@@ -246,35 +252,6 @@
   display: block;
   width: 1em;
   height: 1em;
-}
-
-/* Nút bấm chung */
-
-.cx-mw-btn {
-  flex: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.3em;
-  height: 2.3em;
-  padding: 0;
-  border: 0;
-  border-radius: 9999px;
-  background: var(--cx-mw-chip);
-  color: var(--cx-mw-ctrl, currentcolor);
-  font-size: 0.8em;
-  cursor: pointer;
-  transition: transform 0.15s ease;
-}
-
-.cx-mw-btn-main {
-  background: var(--cx-mw-accent);
-  color: var(--cx-mw-ctrl, rgb(var(--white-rgb)));
-  box-shadow: 0 1px 3px rgb(var(--music-shadow-rgb) / 0.25);
-}
-
-.cx-mw-btn:active {
-  transform: scale(0.9);
 }
 
 .cx-mw-ic-pause,
@@ -320,43 +297,15 @@
   border-radius: 9999px;
 }
 
-.cx-mw-art-round {
-  width: 100%;
-  height: 100%;
-}
-
-.cx-mw-art-cover {
-  width: 100%;
-  aspect-ratio: 1;
-  border-radius: 0.9em;
-}
-
-/* Tên bài: khung cắt để marquee (.cx-mp-title) có chỗ chạy */
-
-.cx-mw-titlewrap {
-  display: block;
-  min-width: 0;
-  flex: 1;
-  overflow: hidden;
-}
-
-.cx-mw-title {
-  display: block;
-  font-style: italic;
-  font-size: 1em;
-}
-
-.cx-mw-ctrls {
-  flex: none;
-  display: flex;
-  align-items: center;
-  gap: 0.3em;
-}
-
 /* ── Mẫu: nút tròn ────────────────────────────────────────────────────────── */
 
 .cx-mw-mini {
   aspect-ratio: 1;
+}
+
+.cx-mw-mini .cx-mw-art {
+  width: 100%;
+  height: 100%;
 }
 
 /* Bản neo GÓC MÀN của hai mẫu gọn (build({chrome:"fixed-corner"})): theme lấy
@@ -409,81 +358,289 @@
   background: var(--cx-mw-accent);
 }
 
-/* ── Mẫu: thẻ nhạc ────────────────────────────────────────────────────────── */
+/* ── Mẫu: thẻ viên ────────────────────────────────────────────────────────── */
 
-.cx-mw-card {
+.cx-mw-pill-row {
+  position: relative;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 0.4em;
-  padding: 0.9em;
-  border-radius: 1.25em;
+  gap: 0.5em;
+  padding: 0.34em;
+  overflow: hidden;
+  border-radius: 9999px;
   background: var(--cx-mw-bg);
   box-shadow: var(--cx-mw-shadow);
-  backdrop-filter: blur(8px);
-  text-align: center;
-}
-
-.cx-mw-cover {
-  display: block;
-  width: 100%;
-  margin-bottom: 0.2em;
-}
-
-.cx-mw-card .cx-mw-titlewrap {
-  width: 100%;
-  flex: none;
-  text-align: center;
-}
-
-.cx-mw-artist {
-  display: block;
-  font-size: 0.8em;
-  color: var(--cx-mw-dim);
-}
-
-.cx-mw-artist:empty {
-  display: none;
-}
-
-.cx-mw-prog {
-  position: relative;
-  display: block;
-  width: 100%;
-  height: 0.3em;
-  margin-top: 0.3em;
-  border-radius: 9999px;
-  background: var(--cx-mw-chip);
   cursor: pointer;
 }
 
-.cx-mw-card .cx-mw-fill {
+/* Tiến trình chạy nền cả viên, không kẻ thành dải riêng — viên đã quá hẹp */
+
+.cx-mw-pill-fill {
   position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
+  inset: 0 auto 0 0;
   width: 0;
+  background: var(--cx-mw-fill);
+  pointer-events: none;
+  transition: width 0.25s linear;
+}
+
+.cx-mw-pill-art {
+  width: 2.2em;
+  height: 2.2em;
+}
+
+.cx-mw-pill-txt {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.cx-mw-pill .cx-mp-title {
+  color: var(--cx-mw-fg);
+}
+
+.cx-mw-pill-btn {
+  position: relative;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.2em;
+  height: 2.2em;
+  padding: 0;
+  border: 0;
   border-radius: 9999px;
+  background: var(--cx-mw-accent);
+  color: var(--cx-mw-ctrl, rgb(var(--white-rgb)));
+  cursor: pointer;
+}
+
+.cx-mw-pill-btn svg {
+  width: 0.85em;
+  height: 0.85em;
+}
+
+/* ── Mẫu: thẻ vuông ───────────────────────────────────────────────────────── */
+
+.cx-mw-sq {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 0.9em;
+  background: var(--cx-mw-bg);
+  box-shadow: var(--cx-mw-shadow);
+  cursor: pointer;
+}
+
+.cx-mw-sq-art {
+  position: absolute;
+  inset: 0;
+}
+
+/* Ảnh bìa tràn cả thẻ → nốt nhạc dự phòng phải to theo, không thì lọt thỏm */
+
+.cx-mw-sq-art .cx-mw-note {
+  font-size: 2.2em;
+}
+
+.cx-mw-sq-foot {
+  position: absolute;
+  inset: auto 0 0;
+  overflow: hidden;
+  padding: 1.5em 0.6em 0.55em;
+  background: linear-gradient(
+    to top,
+    rgb(var(--scrim-rgb) / 0.72),
+    rgb(var(--scrim-rgb) / 0)
+  );
+  pointer-events: none;
+}
+
+/* Chữ nằm trên dải tối nên mặc định là TRẮNG, không ăn theo --cx-mw-fg (màu chữ
+   của thiệp thường sẫm). Chọn màu "Văn bản" thì .cx-tint-fg đè lên. */
+
+.cx-mw-sq-title {
+  display: block;
+  color: rgb(var(--white-rgb));
+  text-shadow: 0 1px 2px rgb(var(--scrim-rgb) / 0.45);
+}
+
+.cx-tint-fg .cx-mw-sq-title {
+  color: var(--cx-mw-fg);
+}
+
+.cx-mw-sq-btn {
+  position: absolute;
+  top: 0.45em;
+  right: 0.45em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2em;
+  height: 2em;
+  border-radius: 9999px;
+  background: var(--cx-mw-accent);
+  color: var(--cx-mw-ctrl, rgb(var(--white-rgb)));
+  box-shadow: 0 0.15em 0.4em rgb(var(--scrim-rgb) / 0.3);
+}
+
+.cx-mw-sq-btn svg {
+  width: 0.8em;
+  height: 0.8em;
+}
+
+.cx-mw-sq-fill {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 0;
+  height: 0.2em;
+  background: var(--cx-mw-accent);
+  pointer-events: none;
+  transition: width 0.25s linear;
+}
+
+/* ── Mẫu: đĩa than ────────────────────────────────────────────────────────── */
+
+.cx-mw-disc {
+  aspect-ratio: 1;
+}
+
+.cx-mw-disc-btn {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 9999px;
+  background: none;
+  box-shadow: var(--cx-mw-shadow);
+  cursor: pointer;
+}
+
+/* Mặt đĩa QUAY (.cx-mp-spin), nút phát ở ngoài nó nên đứng yên. Rãnh đĩa vẽ bằng
+   repeating-radial-gradient, ánh sáng là một lớp linear chéo đè lên. */
+
+.cx-mw-disc-face {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 9999px;
+  background:
+    linear-gradient(
+      125deg,
+      rgb(var(--white-rgb) / 0.18) 0%,
+      rgb(var(--white-rgb) / 0) 42%
+    ),
+    repeating-radial-gradient(
+      circle at 50% 50%,
+      rgb(var(--scrim-rgb) / 0.92) 0 0.1em,
+      rgb(var(--scrim-rgb) / 0.74) 0.1em 0.2em
+    );
+}
+
+.cx-mw-disc-label {
+  width: 42%;
+  height: 42%;
+}
+
+.cx-mw-disc-label .cx-mw-note {
+  font-size: 0.6em;
+}
+
+.cx-mw-disc-ic {
+  position: absolute;
+  right: 1%;
+  bottom: 1%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36%;
+  height: 36%;
+  border-radius: 9999px;
+  background: var(--cx-mw-accent);
+  color: var(--cx-mw-ctrl, rgb(var(--white-rgb)));
+  box-shadow: 0 0.1em 0.3em rgb(var(--scrim-rgb) / 0.35);
+}
+
+.cx-mw-disc-ic svg {
+  width: 0.62em;
+  height: 0.62em;
+}
+
+/* ── Mẫu: vòng tiến trình ─────────────────────────────────────────────────── */
+
+.cx-mw-ring {
+  aspect-ratio: 1;
+}
+
+.cx-mw-ring-btn {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 9999px;
+  background: var(--cx-mw-bg);
+  box-shadow: var(--cx-mw-shadow);
+  cursor: pointer;
+}
+
+/* Cung tiến trình là một hình TRÒN ĐẶC; phần giữa bị ảnh bìa (nằm sau nó trong
+   DOM, inset 15%) che đi nên chỉ còn lại vành — khỏi phải mask.
+   --cx-mp-pct do music-player-helper đặt lên thẻ root mỗi nhịp. */
+
+.cx-mw-ring-arc {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: conic-gradient(
+    var(--cx-mw-accent) var(--cx-mp-pct),
+    var(--cx-mw-chip) var(--cx-mp-pct)
+  );
+  pointer-events: none;
+}
+
+.cx-mw-ring-art {
+  position: absolute;
+  inset: 15%;
+  box-shadow: 0 0 0 0.1em var(--cx-mw-bg);
+}
+
+.cx-mw-ring-ic {
+  position: absolute;
+  inset: 15%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: rgb(var(--scrim-rgb) / 0.22);
+  color: var(--cx-mw-ctrl, rgb(var(--white-rgb)));
+}
+
+.cx-tint-accent .cx-mw-ring-ic {
   background: var(--cx-mw-accent);
 }
 
-.cx-mw-times {
-  display: flex;
-  justify-content: space-between;
-  width: 100%;
-  font-size: 0.72em;
-  color: var(--cx-mw-dim);
-  font-variant-numeric: tabular-nums;
-}
-
-.cx-mw-card .cx-mw-ctrls {
-  gap: 0.5em;
-  margin-top: 0.2em;
+.cx-mw-ring-ic svg {
+  width: 0.8em;
+  height: 0.8em;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .cx-mp.is-playing .cx-mp-note,
   .cx-mp.is-playing .cx-mp-spin,
+  .cx-mw.is-playing .cx-mp-spin,
   .cx-mp-title.is-scroll,
   .cx-mp-bubble {
     animation: none;

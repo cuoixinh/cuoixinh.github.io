@@ -2531,7 +2531,11 @@ button.cx-pchrome-btn:hover {
   max-height: calc(var(--vh, 1vh) * 50);
   max-height: calc(var(--vh, 1svh) * 50);
   overflow-y: auto;
-  padding: 4px 2px;
+  /* Lề phải đủ rộng cho BÓNG ĐỔ của bong bóng (0 6px 18px): đặt overflow-y là
+     auto thì trục ngang cũng bị clip theo (quy tắc của CSS overflow), nên lề hẹp
+     là bóng bị xén phẳng hai bên — trông cứng hẳn so với dạng phân trang vốn
+     không cuộn. */
+  padding: 8px 0px;
   scrollbar-width: none;
   -webkit-mask-image: linear-gradient(
     to bottom,
@@ -2569,15 +2573,89 @@ button.cx-pchrome-btn:hover {
 }
 
 /* Bong bóng ở đây nằm trên nền giấy của thiệp chứ không trôi qua ảnh → bỏ lớp
-   nhoè (tốn khung hình mà chẳng thấy gì) và cho nó trải hết bề ngang. Đọc chậm
-   chứ không lướt qua như dải trôi nên chữ và lề đều rộng hơn một nhịp. */
+   nhoè (tốn khung hình mà chẳng thấy gì). Đọc chậm chứ không lướt qua như dải
+   trôi nên chữ và lề đều rộng hơn một nhịp. Chỉ chiếm 74% bề ngang và dồn về
+   trái: chừa một khoảng lề phải để ra dáng lời nhắn của người khác, cũng là để
+   ô gửi (stretch hết hàng) tách hẳn khỏi danh sách. */
 .cx-wsec .cx-wish-item {
-  width: 100%;
+  width: 74%;
+  align-self: flex-start;
   padding: 12px 16px;
   border-radius: 16px 16px 16px 4px;
   font-size: 14px;
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
+}
+
+/* ── Dạng "phân trang" (.cx-wsec-paged) ─────────────────────────────────────
+   Cùng vỏ mục với dạng bình luận, khác đúng hai điểm: khung KHÔNG cuộn (mỗi lượt
+   chỉ có CX_WISH_PAGE_SIZE lời chúc nên vừa chỗ) và có thêm hàng chuyển trang.
+   Bỏ luôn mặt nạ mờ hai đầu — không còn gì bị cắt để mà làm mềm. */
+.cx-wsec-paged .cx-wsec-list {
+  max-height: none;
+  overflow: visible;
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+.cx-wpage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 2px 0 4px;
+}
+
+.cx-wpage-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid rgb(var(--cx-wish-accent-rgb) / 0.24);
+  border-radius: 9999px;
+  color: rgb(var(--cx-wish-accent-rgb));
+  background: none;
+  cursor: pointer;
+}
+
+/* Hết trang thì nút lặn đi chứ không biến mất: hàng giữ nguyên bề ngang, dãy
+   chấm ở giữa không nhảy chỗ mỗi lần sang trang đầu/cuối. */
+.cx-wpage-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.cx-wpage-dots {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cx-wpage-dot {
+  width: 7px;
+  height: 7px;
+  padding: 0;
+  border: 0;
+  border-radius: 9999px;
+  background: rgb(var(--cx-wish-text-rgb) / 0.28);
+  cursor: pointer;
+  transition: width 0.18s ease, background-color 0.18s ease;
+}
+
+/* Trang đang xem: chấm kéo dài thành vạch — đủ để nhận ra mà không cần đổi màu
+   đậm nhạt (bộ màu thiệp nào cũng có thể rất nhạt). */
+.cx-wpage-dot.is-on {
+  width: 18px;
+  background: rgb(var(--cx-wish-accent-rgb));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cx-wpage-dot {
+    transition: none;
+  }
 }
 
 /* Ô gửi ở dạng comment KHÔNG phải viên thuốc nép góc như ở dải nổi: nó là phần

@@ -9,8 +9,8 @@
 -- Chạy SAU data/dqvinh_001_templates.sql.
 --
 -- SAU KHI CHẠY: purge cache worker templates-cache (nút ở tab Templates của
--- admin), nếu không bảng giá cũ còn sống tối đa 7 ngày ở edge. Staging không
--- dùng worker nên bỏ qua.
+-- admin), nếu không bảng giá cũ còn sống tối đa 7 ngày ở edge. Staging có worker
+-- cache RIÊNG nên phải purge cả bên đó (đổi dải môi trường ở header admin).
 -- ============================================================
 
 -- Tên và mô tả lấy thẳng từ `templates` nên không phải liệt kê mẫu bằng tay:

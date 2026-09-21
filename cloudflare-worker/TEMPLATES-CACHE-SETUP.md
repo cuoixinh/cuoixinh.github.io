@@ -77,8 +77,10 @@ URL worker khai ở `core/config.js` (`CONFIG.cloudflare.templatesCache`), nơi 
   Edge Function `public-templates`.
 - `core/utils.js` — bảng gợi ý mẫu khác ở trang thiệp xem thử.
 
-Đặt `USE_CACHE = false` trong `core/config.js` khi test local → `templatesCache`
-thành `null`, cả hai chỗ gọi thẳng Edge Function.
+Đặt `USE_CACHE = false` trong `core/config.js` khi cần soi thẳng Supabase →
+`templatesCache` thành `null`, cả hai chỗ gọi thẳng Edge Function. Cờ đó chỉ của
+production; staging có `STAGING_USE_CACHE` riêng trong `core/config.staging.js`, mặc
+định TẮT — nên `npm run dev` vốn đã không đi qua worker.
 
 ## Database Tables
 

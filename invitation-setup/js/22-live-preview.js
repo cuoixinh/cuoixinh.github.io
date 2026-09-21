@@ -111,10 +111,17 @@ const CX_PHONE_RATIO = 0.4879; // 383/785 — tỉ lệ ảnh thân máy
 // Chiều cao iframe cũng phải đo, không để số cứng trong CSS: tỉ lệ ô màn của ảnh
 // thân máy không trùng khít 390×837, lệch bao nhiêu là hở trắng bấy nhiêu ở mép
 // dưới. Bề ngang cho dư 1px để phép làm tròn không chừa sợi trắng sát mép phải.
-function _cxPhoneScreen(phone) {
+//
+// `native` = ô màn CHÍNH LÀ màn điện thoại đang cầm (tab Giao diện dưới md, vỏ
+// máy đã bị giấu): dựng thiệp ở đúng bề ngang đó, tỉ lệ 1, thay vì dựng 390px
+// rồi phóng lên — máy rộng hơn 390 (16 Pro Max là 440) mà ép 390 thì hoặc thừa
+// hai bên, hoặc phóng to mọi thứ lên so với lúc khách thật mở thiệp. Chế độ này
+// đi kèm điều kiện CSS đã giấu chrome giả lập: chrome khai khổ bằng 390 × tỉ lệ
+// nên ở khổ màn thật nó sẽ hụt một khúc bên phải.
+function _cxPhoneScreen(phone, native) {
   const scr = phone?.querySelector(".cx-phone-screen");
   if (!(scr?.offsetWidth > 0)) return;
-  const scale = scr.offsetWidth / 390;
+  const scale = native ? 1 : scr.offsetWidth / 390;
   // Đặt tỉ lệ TRƯỚC rồi mới đo: chrome khai khổ theo chính biến này, đọc chiều
   // cao ngay sau đó là trình duyệt đã tính lại xong bố cục.
   phone.style.setProperty("--cx-scr-scale", String(scale));
@@ -123,7 +130,7 @@ function _cxPhoneScreen(phone) {
   // ăn mất một khúc, đo cả ô là thiệp thò xuống dưới thân máy.
   const port = phone.querySelector(".cx-pviewport") || scr;
   if (view) {
-    view.style.width = "391px";
+    view.style.width = (native ? scr.offsetWidth : 390) + 1 + "px";
     view.style.height = port.offsetHeight / scale + "px";
   }
 }
@@ -189,18 +196,29 @@ function _cxMountChrome() {
   if (theme) C.mount(theme, _cxChromeOpts(() => _reloadThemeFrame()));
 }
 
-// Khổ máy tối đa: quá số này thì ô màn rộng hơn 390px, tức là thiệp bị PHÓNG TO
-// hơn máy thật — bản xem trước hết còn nói đúng thứ khách sẽ thấy trên điện
-// thoại. 0.9217 là bề rộng ô màn so với thân máy (xem .cx-phone-screen).
+// Khổ máy tối đa cho khung CÓ vỏ: quá số này thì ô màn rộng hơn 390px, tức là
+// thiệp bị PHÓNG TO hơn máy thật — bản xem trước hết còn nói đúng thứ khách sẽ
+// thấy trên điện thoại. 0.9217 là bề rộng ô màn so với thân máy (xem
+// .cx-phone-screen). Khung KHÔNG vỏ không cần trần: ở đó ô màn là màn điện thoại
+// thật nên thiệp dựng thẳng ở bề ngang đó (`native` của _cxPhoneScreen).
 const CX_PHONE_MAX_W = 390 / 0.9217;
 
-// Thu cả thân máy cho vừa khoảng trống (kiểu `contain`): bề rộng suy từ chiều
-// cao, rồi kẹp lại theo bề ngang để máy hẹp/cao vẫn không tràn. Dải xem trực
-// tiếp KHÔNG gọi hàm này — bề rộng của nó là thuần CSS (--cx-ph-w theo --cx-rail-w).
+// `squashH` = cho phép máy LÙN lại cho vừa chiều cao, và chỉ ở mobile (< md):
+// thân máy lấy TRỌN bề ngang chỗ trống (còn vỏ thì chặn ở CX_PHONE_MAX_W) rồi cắt
+// chiều cao xuống bằng khoảng trống còn lại — thiệp vẫn rộng đúng như máy thật,
+// chỉ thấy được ít dòng hơn. Ảnh thân máy là SVG trong <img> nên tự bóp theo
+// (preserveAspectRatio="none"), ô màn khai bằng % nên bám theo khổ mới.
+// CHỈ tab Giao diện bật cờ này vì thanh chỉnh nằm trong luồng ngay dưới khung;
+// tab Xem trước thì KHÔNG — ở đó khung máy chính là thứ cho thấy thiệp trông ra
+// sao trên điện thoại, méo tỉ lệ là hết ý nghĩa.
+// Từ md+ thanh chỉnh là cột phải, không ăn chiều cao của khung, nên máy giữ
+// ĐÚNG TỈ LỆ như cũ (thu cả hai chiều kiểu `contain`).
+// Dải xem trực tiếp KHÔNG gọi hàm này — bề rộng của nó là thuần CSS
+// (--cx-ph-w theo --cx-rail-w).
 //
 // Đo theo Ô NỘI DUNG: clientWidth/Height đã tính cả padding, lấy thẳng là máy
 // nuốt luôn phần lề và dính sát mép trên/dưới.
-function _cxPhoneFit(stage) {
+function _cxPhoneFit(stage, squashH) {
   const phone = stage?.querySelector(".cx-phone");
   if (!phone) return;
   const cs = getComputedStyle(stage);
@@ -212,23 +230,47 @@ function _cxPhoneFit(stage) {
     stage.clientHeight -
     parseFloat(cs.paddingTop) -
     parseFloat(cs.paddingBottom);
-  const w = Math.min(boxW, boxH * CX_PHONE_RATIO, CX_PHONE_MAX_W);
+  const squash =
+    !!squashH && !window.matchMedia?.("(min-width: 768px)").matches;
+  // CSS giấu vỏ máy ở một số khung (tab Giao diện trên mobile) → ô màn trải trọn
+  // khung, lúc đó nó CHÍNH LÀ màn điện thoại đang cầm: lấy trọn bề ngang, không
+  // trần, và thiệp dựng ở đúng khổ đó (`native` của _cxPhoneScreen) chứ không
+  // dựng 390px rồi phóng. Hỏi CSS thay vì chép lại breakpoint.
+  const frame = phone.querySelector(".cx-phone-frame");
+  const bare = !!frame && getComputedStyle(frame).display === "none";
+  const w = bare
+    ? boxW
+    : squash
+      ? Math.min(boxW, CX_PHONE_MAX_W)
+      : Math.min(boxW, boxH * CX_PHONE_RATIO, CX_PHONE_MAX_W);
   if (!(w > 0)) return; // đang ẩn → để nguyên, lúc hiện ResizeObserver gọi lại
   phone.style.setProperty("--cx-ph-w", w + "px");
-  _cxPhoneScreen(phone);
+  // Có squash: cao hết cỡ là đúng tỉ lệ ảnh, thiếu chỗ thì cắt xuống bằng chiều
+  // cao còn lại; không có vỏ thì chẳng còn tỉ lệ nào phải giữ nên lấp trọn chiều
+  // cao. Không squash: gỡ biến để CSS trả về đúng tỉ lệ. (Tên KHÁC --cx-ph-h
+  // của dải xem trực tiếp — xem ghi chú ở .cx-phone trong styles/_setup.css.)
+  if (squash && boxH > 0)
+    phone.style.setProperty(
+      "--cx-ph-fit-h",
+      (bare ? boxH : Math.min(w / CX_PHONE_RATIO, boxH)) + "px",
+    );
+  else phone.style.removeProperty("--cx-ph-fit-h");
+  _cxPhoneScreen(phone, bare);
 }
 
-// Tab Xem trước. Panel đang ẩn thì khổ bằng 0, nên switchTab() gọi lại sau khi
-// bỏ .hidden; ResizeObserver lo phần xoay máy / đổi khổ.
+// Tab Xem trước. Máy giữ ĐÚNG TỈ LỆ ở mọi khổ màn, kể cả điện thoại thật: cả
+// panel là của khung nên không phải chia chiều cao với thanh chỉnh nào. Panel
+// đang ẩn thì khổ bằng 0, nên switchTab() gọi lại sau khi bỏ .hidden;
+// ResizeObserver lo phần xoay máy / đổi khổ.
 function cxPreviewFit() {
-  _cxPhoneFit(document.getElementById("cx-preview-stage"));
+  _cxPhoneFit(document.getElementById("cx-preview-stage"), false);
 }
 
-// Tab Giao diện. Khung cao trọn vùng xem trước; thanh chỉnh ở mobile là lớp NỔI
-// đè lên nên không tính vào phép đo — trừ chiều cao nó ra là máy đổi khổ mỗi lần
-// mở/thu bảng, thiệp nhảy ngay giữa lúc chỉnh.
+// Tab Giao diện. Thanh chỉnh nằm trong luồng ngay dưới khung, nên kéo nó cao lên
+// là chỗ trống hụt đi và máy lùn lại theo (ResizeObserver trên stage gọi lại hàm
+// này). Bề ngang không đổi, thiệp vẫn dựng ở khổ máy thật.
 function cxThemeFit() {
-  _cxPhoneFit(document.getElementById("theme-preview-stage"));
+  _cxPhoneFit(document.getElementById("theme-preview-stage"), true);
 }
 
 function _cxLiveMeasure() {

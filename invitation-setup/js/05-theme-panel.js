@@ -288,7 +288,6 @@ function _alignPickerToChip(chipEl) {
 function _initThemePanel() {
   _watchThemeFrame();
   _setCtrlAway(false);
-  _setCtrlCollapsed(false);
 
   if (!_themePanelReady) {
     _initColorPickers();
@@ -301,34 +300,40 @@ function _initThemePanel() {
   if (pal) pal.value = _currentPalette()?.id || "";
   _syncPaletteStrength();
 
-  // Mở tab Giao diện → về nhóm chỉnh chung, đóng bảng chỉnh 1 dòng / thêm văn
-  // bản / trang trí. Phải tự bật lại nhóm chỉnh chung: closeLineEditor() thoát
-  // sớm khi bảng chỉnh dòng đang đóng, nên rời tab lúc đang mở một bảng con là
-  // quay lại thấy bảng trống.
-  document.getElementById("theme-addtext-panel")?.classList.add("hidden");
-  document.getElementById("theme-decor-panel")?.classList.add("hidden");
-  document.getElementById("theme-elements-panel")?.classList.add("hidden");
-  document.getElementById("theme-gift-panel")?.classList.add("hidden");
-  document.getElementById("theme-wish-panel")?.classList.add("hidden");
-  _hideElementEditor();
-  closeLineEditor();
-  document.getElementById("theme-main-controls")?.classList.remove("hidden");
-  _initEditHint();
+  // Mở tab Giao diện → về nhóm chỉnh chung: rời tab lúc đang mở một bảng con mà
+  // không dọn thì quay lại thấy bảng trống (closeLineEditor() thoát sớm khi bảng
+  // chỉnh dòng đang đóng).
+  _showMainControls();
   cxSyncThemeAddCards();
 
   // Icon (reset) trong thanh chỉnh
   if (window.lucide) lucide.createIcons();
 }
 
-// Ba thẻ chức năng chỉ có nghĩa khi mục tương ứng đang BẬT ở tab Thiết lập: tắt
+// Ba tab chức năng chỉ có nghĩa khi mục tương ứng đang BẬT ở tab Thiết lập: tắt
 // mục rồi mà vẫn chọn được hộp quà / dạng lời chúc thì chọn xong chẳng thấy gì
-// đổi trên thiệp. Thẻ vẫn BẤM ĐƯỢC (khoá hẳn thì người dùng không biết vì sao
-// mờ, nhất là trên di động vốn không có hover) — bấm vào thì nói rõ lý do.
+// đổi trên thiệp. Tab vẫn BẤM ĐƯỢC (khoá hẳn thì người dùng không biết vì sao
+// mờ, nhất là trên di động vốn không có hover). Hai cách báo lý do:
+//   khai `warn` + `body` → bảng mở ra như thường, phần chọn bị khoá và hiện một
+//     dòng nhắc ngay trong bảng (xem _syncPanelGate)
+//   không khai        → không mở bảng, chỉ hiện toast (xem _addCardBlocked)
 // Công tắc nằm ở ô ẩn của form, js/03-form-sections.js gọi lại hàm đồng bộ mỗi
 // lần gạt.
 const ADD_CARD_GATES = {
-  elements: { card: "add-card-elements", field: "enable_music", label: "Nhạc nền" },
-  gift: { card: "add-card-gift", field: "enable_gift", label: "Hộp mừng cưới" },
+  elements: {
+    card: "add-card-elements",
+    field: "enable_music",
+    label: "Nhạc nền",
+    warn: "gate-warn-elements",
+    body: "cx-elements-palette",
+  },
+  gift: {
+    card: "add-card-gift",
+    field: "enable_gift",
+    label: "Hộp mừng cưới",
+    warn: "gate-warn-gift",
+    body: "cx-gift-palette",
+  },
   wishes: { card: "add-card-wishes", field: "enable_wishes", label: "Lời chúc" },
 };
 
@@ -337,6 +342,20 @@ const ADD_CARD_GATES = {
 function _addCardOn(key) {
   const hidden = document.getElementById(ADD_CARD_GATES[key]?.field);
   return !hidden || hidden.value === "true";
+}
+
+// Đặt ở CUỐI hàm mở bảng của loại "khoá tại chỗ": hiện dòng nhắc + khoá phần
+// chọn khi mục đang tắt. Khoá bằng pointer-events để ô mẫu không bấm/kéo được
+// mà vẫn đọc được nội dung bên trong.
+function _syncPanelGate(key) {
+  const g = ADD_CARD_GATES[key];
+  const on = _addCardOn(key);
+  document.getElementById(g.warn)?.classList.toggle("hidden", on);
+  const body = document.getElementById(g.body);
+  if (!body) return;
+  body.classList.toggle("opacity-40", !on);
+  body.classList.toggle("pointer-events-none", !on);
+  body.setAttribute("aria-disabled", String(!on));
 }
 
 // Đặt ở ĐẦU mỗi hàm mở bảng: mục đang tắt thì nói lý do rồi dừng.
@@ -351,12 +370,16 @@ function _addCardBlocked(key) {
 
 function cxSyncThemeAddCards() {
   Object.keys(ADD_CARD_GATES).forEach((key) => {
+    // Gạt công tắc lúc bảng đang mở → khoá/mở ngay phần chọn, khỏi chờ mở lại.
+    if (ADD_CARD_GATES[key].warn) _syncPanelGate(key);
     const card = document.getElementById(ADD_CARD_GATES[key].card);
     if (!card) return;
     const on = _addCardOn(key);
     // Nhớ lời mách gốc ngay lượt đầu, không thì bật lại là mất hẳn.
     if (card.dataset.tip === undefined) card.dataset.tip = card.title || "";
-    card.classList.toggle("is-off", !on);
+    // Bảng nào tự nói lý do ở bên trong (`warn`) thì đừng tô mờ nút tab nữa —
+    // mờ mà vẫn bấm được chỉ làm người dùng tưởng hỏng.
+    card.classList.toggle("is-off", !on && !ADD_CARD_GATES[key].warn);
     card.title = on
       ? card.dataset.tip
       : `Mục “${ADD_CARD_GATES[key].label}” đang tắt — bật ở tab Thiết lập trước đã`;
@@ -402,23 +425,6 @@ function _setCtrlAway(on) {
     ?.classList.toggle("cx-ctrl-away", on);
 }
 
-// Vuốt tay nắm XUỐNG là cất hẳn thanh chỉnh đi, chỉ chừa lại vạch kéo để kéo lên.
-// CTRL_PEEK phải khớp 28px trong .cx-ctrl-collapsed (styles/_setup.css).
-const CTRL_PEEK = 28;
-const CTRL_HIDE_AT = 64; // tụt quá ngần này lúc buông tay mới tính là muốn thu gọn
-let _ctrlCollapsed = false;
-
-// Trạng thái NGHỈ dùng class: translateY tính theo % nên tự đúng khi bảng đổi
-// chiều cao hay máy xoay ngang. Biến --cx-ctrl-off chỉ dùng lúc còn bám tay.
-function _setCtrlCollapsed(on) {
-  _ctrlCollapsed = !!on;
-  const ctrl = document.getElementById("theme-controls");
-  if (!ctrl) return;
-  ctrl.classList.remove("cx-ctrl-slide");
-  ctrl.style.removeProperty("--cx-ctrl-off");
-  ctrl.classList.toggle("cx-ctrl-collapsed", _ctrlCollapsed);
-}
-
 // Nhận tín hiệu click text từ iframe tab Giao diện (đúng nguồn mới nhận).
 window.addEventListener("message", (ev) => {
   const d = ev.data;
@@ -426,10 +432,6 @@ window.addEventListener("message", (ev) => {
   const iframe = document.getElementById("theme-preview-iframe");
   if (!iframe || ev.source !== iframe.contentWindow) return;
   if (d.type === "cx-text-pick") {
-    // Đang mở bảng chọn hoạ tiết: cú bấm trên thiệp (kể cả trúng chữ) không được
-    // kéo sang bảng chỉnh chữ — người dùng đang ở giữa việc thêm hoạ tiết.
-    const decor = document.getElementById("theme-decor-panel");
-    if (decor && !decor.classList.contains("hidden")) return;
     _openLineEditor(d);
   } else if (d.type === "cx-hide") hidePickedElement(d.selector);
   // Khối văn bản đang chỉnh vừa bị xoá trong thiệp → đóng bảng chỉnh chi tiết
@@ -451,6 +453,7 @@ window.addEventListener("message", (ev) => {
     if (d.seeded) _themeSetting.music_seeded = true;
     _setDirty(true, "theme");
     _syncElWidthFromCard();
+    _syncElTiles();
   } else if (d.type === "cx-element-pick") {
     // Vừa BẤM ô mẫu (không kéo) → bỏ qua đúng tin này, giữ nguyên bảng chọn để
     // bấm thử mẫu khác. Kéo thả thì vẫn nhảy thẳng sang phần điều chỉnh.
@@ -547,7 +550,7 @@ function _renderTextPresets() {
   const box = document.getElementById("cx-addtext-palette");
   if (!box) return;
   if (box.dataset.rendered === "1") {
-    _fitElPreviews(box);
+    _fitElPreviews(box, true);
     return;
   }
   // Xem trước nằm ở trang chỉnh (ngoài iframe) nên CSS mẫu phải có ở đây nữa.
@@ -579,18 +582,11 @@ function _renderTextPresets() {
   box.dataset.rendered = "1";
   // Panel vừa hiện xong mới đo được kích thước ô → hoãn một nhịp.
   requestAnimationFrame(() => {
-    _fitElPreviews(box);
+    _fitElPreviews(box, true);
     _resetCtrlScroll();
   });
 }
 
-function closeAddTextPanel() {
-  document.getElementById("theme-addtext-panel")?.classList.add("hidden");
-  document.getElementById("theme-main-controls")?.classList.remove("hidden");
-  _resetCtrlScroll();
-  _initEditHint();
-}
-window.closeAddTextPanel = closeAddTextPanel;
 
 // ─── Kéo mẫu từ bảng chọn ra thiệp (dùng chung cho Văn bản / Trang trí / Thành phần) ──
 // Quy tắc: phải kéo RA KHỎI bảng chọn rồi nhả TRÊN thiệp mới tính là thả. Còn ở
@@ -599,6 +595,7 @@ window.closeAddTextPanel = closeAddTextPanel;
 // nào muốn nhận cú bấm thì khai `onTap` (Thẻ nhạc dùng để đổi mẫu tại chỗ).
 // Mỗi bảng chỉ khai báo việc riêng: over / cancel / drop / tap.
 const PAL_DRAG_MIN = 6; // px, dưới ngưỡng này coi như chưa kéo
+const PAL_HOLD_MS = 280; // giữ yên bấy lâu là nhấc ô mẫu lên, khỏi phải lôi ra khỏi bảng
 
 let _palDrag = null;
 
@@ -624,6 +621,7 @@ function _startPalDrag(e, hooks) {
   // "nhấc" lên, con trỏ giữ nguyên điểm bấm trên ô.
   const r = btn.getBoundingClientRect();
   const scroller = btn.closest(".cx-sheet-body");
+  const fromGrip = !!e.target?.closest?.(".cx-pick-grip");
   _palDrag = {
     hooks,
     btn,
@@ -637,7 +635,17 @@ function _startPalDrag(e, hooks) {
     out: false, // đã ra khỏi bảng chọn ít nhất một lần
     ghost: null,
     over: false, // con trỏ đang ở trên thiệp
+    holdT: 0, // hẹn giờ của cú GIỮ
   };
+  // Hai đường nhấc ô mẫu mà KHÔNG phải lôi ra khỏi bảng: giữ yên một nhịp, hoặc
+  // bắt đầu kéo ngay từ tay nắm. Bảng chọn vốn cao có 1/4 màn nên bắt người dùng
+  // kéo vượt qua mép bảng mới nhấc được là gần như chỉ cuộn được danh sách.
+  if (fromGrip) _palLift(e.clientX, e.clientY);
+  else
+    _palDrag.holdT = setTimeout(() => {
+      const d = _palDrag;
+      if (d) _palLift(d.xLast ?? d.x0, d.yLast ?? d.y0);
+    }, PAL_HOLD_MS);
   const move = (ev) => _palDragMove(ev);
   const up = (ev) => {
     btn.removeEventListener("pointermove", move);
@@ -650,31 +658,41 @@ function _startPalDrag(e, hooks) {
   btn.addEventListener("pointercancel", up);
 }
 
+// Nhấc ô mẫu lên: dọn thanh chỉnh đi cho thấy chỗ đang thả rồi dựng bóng mờ.
+// An toàn khi ẩn thanh chỉnh vì _inThemeControls chỉ được hỏi lúc CHƯA nhấc,
+// còn lúc thả thì _palDragEnd xét theo rect của IFRAME — ở mobile thanh chỉnh
+// nổi absolute nên iframe vốn đã cao trọn khung, ẩn nó rect không đổi.
+function _palLift(x, y) {
+  const d = _palDrag;
+  if (!d || d.out) return;
+  d.out = true;
+  _setCtrlAway(true);
+  // Bóng mờ = BẢN SAO của chính ô mẫu đang kéo (mờ 50%) cho dễ nhận ra.
+  d.ghost = d.btn.cloneNode(true);
+  d.ghost.removeAttribute("id");
+  d.ghost.classList.add("cx-drag-ghost");
+  d.ghost.style.width = `${d.btn.offsetWidth}px`;
+  // Đặt sẵn vị trí trước khi gắn vào DOM → hiện ngay tại con trỏ, không nhảy.
+  d.ghost.style.left = `${x - d.offX}px`;
+  d.ghost.style.top = `${y - d.offY}px`;
+  document.body.appendChild(d.ghost);
+}
+
 function _palDragMove(ev) {
   const d = _palDrag;
   if (!d) return;
-  // Chưa rời bảng: kéo dọc = cuộn danh sách, chưa dựng bóng mờ.
+  d.xLast = ev.clientX;
+  d.yLast = ev.clientY;
+  // Chưa nhấc: kéo dọc = cuộn danh sách, ra khỏi bảng mới tính là nhấc.
   if (!d.out) {
+    if (Math.hypot(ev.clientX - d.x0, ev.clientY - d.y0) > PAL_DRAG_MIN)
+      clearTimeout(d.holdT); // nhúc nhích rồi thì không còn là cú GIỮ nữa
     if (_inThemeControls(ev.clientX, ev.clientY)) {
       if (d.scroller) d.scroller.scrollTop = d.top0 - (ev.clientY - d.y0);
       return;
     }
     if (Math.hypot(ev.clientX - d.x0, ev.clientY - d.y0) < PAL_DRAG_MIN) return;
-    d.out = true;
-    // Đã nhấc hẳn ô mẫu ra khỏi bảng → dọn thanh chỉnh đi cho thấy chỗ đang thả.
-    // An toàn vì _inThemeControls chỉ được hỏi trong nhánh !d.out này, còn lúc
-    // thả thì _palDragEnd xét theo rect của IFRAME — ở mobile thanh chỉnh nổi
-    // absolute nên iframe vốn đã cao trọn khung, ẩn nó rect không đổi.
-    _setCtrlAway(true);
-    // Bóng mờ = BẢN SAO của chính ô mẫu đang kéo (mờ 50%) cho dễ nhận ra.
-    d.ghost = d.btn.cloneNode(true);
-    d.ghost.removeAttribute("id");
-    d.ghost.classList.add("cx-drag-ghost");
-    d.ghost.style.width = `${d.btn.offsetWidth}px`;
-    // Đặt sẵn vị trí trước khi gắn vào DOM → hiện ngay tại con trỏ, không nhảy.
-    d.ghost.style.left = `${ev.clientX - d.offX}px`;
-    d.ghost.style.top = `${ev.clientY - d.offY}px`;
-    document.body.appendChild(d.ghost);
+    _palLift(ev.clientX, ev.clientY);
   }
   // Bám con trỏ theo đúng điểm đã bấm; kẹp ngang cho khỏi lòi ra mép màn hình.
   const gw = d.ghost.offsetWidth || d.btn.offsetWidth;
@@ -706,6 +724,7 @@ function _palDragEnd(ev) {
   _palDrag = null;
   _setCtrlAway(false);
   if (!d) return;
+  clearTimeout(d.holdT);
   d.ghost?.remove();
   if (d.iframe) d.iframe.style.pointerEvents = ""; // khôi phục tương tác iframe
   const iframe = d.iframe || _lineIframe();
@@ -745,7 +764,9 @@ function startPaletteDrag(e, type) {
     onCancel: (iframe) =>
       iframe?.contentWindow?.postMessage({ type: "cx-drag-cancel" }, "*"),
     onDrop: (iframe, x, y) => {
-      closeAddTextPanel();
+      // KHÔNG đóng bảng: runtime chọn khối vừa thả thì bảng chỉnh chữ tự chiếm
+      // chỗ (nó ẩn sẵn bảng này), còn nhỡ tin pick thì người dùng vẫn đứng ở
+      // bảng Văn bản để thả tiếp — rơi về nhóm chỉnh chung là mất chỗ đang làm.
       _setDirty(true, "theme");
       iframe.contentWindow?.postMessage(
         { type: "cx-drop", blockType: type, y },
@@ -778,13 +799,6 @@ function openDecorPanel() {
 }
 window.openDecorPanel = openDecorPanel;
 
-function closeDecorPanel() {
-  document.getElementById("theme-decor-panel")?.classList.add("hidden");
-  document.getElementById("theme-main-controls")?.classList.remove("hidden");
-  _resetCtrlScroll();
-  _initEditHint();
-}
-window.closeDecorPanel = closeDecorPanel;
 
 function _decorEmpty(msg) {
   const el = document.getElementById("cx-decor-empty");
@@ -863,7 +877,6 @@ function _addDecor(src, x, y) {
 // vì bấm là để so mẫu — muốn chỉnh thì bấm vào chính widget trên thiệp.
 
 function openElementsPanel() {
-  if (_addCardBlocked("elements")) return;
   document.getElementById("theme-line-editor")?.classList.add("hidden");
   document.getElementById("theme-addtext-panel")?.classList.add("hidden");
   document.getElementById("theme-decor-panel")?.classList.add("hidden");
@@ -875,17 +888,11 @@ function openElementsPanel() {
   document.getElementById("theme-elements-panel")?.classList.remove("hidden");
   _resetCtrlScroll();
   _renderElementsPalette();
+  _syncPanelGate("elements");
   if (window.lucide) lucide.createIcons();
 }
 window.openElementsPanel = openElementsPanel;
 
-function closeElementsPanel() {
-  document.getElementById("theme-elements-panel")?.classList.add("hidden");
-  document.getElementById("theme-main-controls")?.classList.remove("hidden");
-  _resetCtrlScroll();
-  _initEditHint();
-}
-window.closeElementsPanel = closeElementsPanel;
 
 // ─── Xem trước thành phần: dựng widget thật rồi thu nhỏ vừa ô ───────────────
 // Ô mẫu gọi thẳng def.build(variant) — cùng hàm runtime dùng để đặt lên thiệp.
@@ -934,7 +941,13 @@ function _elPreview(def, v, opts) {
 
 // Đo xong mới scale: lúc dựng, ô còn nằm trong panel đang ẩn nên chưa có kích
 // thước. Gọi lại mỗi lần mở bảng.
-function _fitElPreviews(root) {
+// uniform = mọi ô dùng CHUNG một hệ số (hệ số nhỏ nhất của nhóm). Cần cho bảng
+// Văn bản: các mẫu dựng ở cùng bề ngang quy chiếu nên chung hệ số là chung bề
+// ngang sau khi thu → chữ của mọi ô thẳng một lề trái, và cỡ chữ giữa các mẫu
+// so sánh được với nhau. Để mỗi ô tự thu thì mẫu cao bị thu nhiều hơn, nhìn
+// như bị thụt vào.
+function _fitElPreviews(root, uniform) {
+  const boxes = [];
   (root || document).querySelectorAll(".cx-pal-prev").forEach((box) => {
     const stage = box.firstElementChild;
     if (!stage) return;
@@ -943,9 +956,16 @@ function _fitElPreviews(root) {
     const sw = stage.offsetWidth;
     const sh = stage.offsetHeight;
     if (!bw || !bh || !sw || !sh) return;
-    const k =
-      Math.min(bw / sw, bh / sh, EL_PREVIEW_MAX_SCALE) * EL_PREVIEW_PAD;
-    stage.style.transform = `translate(-50%, -50%) scale(${k})`;
+    boxes.push({
+      stage,
+      k: Math.min(bw / sw, bh / sh, EL_PREVIEW_MAX_SCALE) * EL_PREVIEW_PAD,
+    });
+  });
+  if (!boxes.length) return;
+  const min = uniform ? Math.min(...boxes.map((b) => b.k)) : 0;
+  boxes.forEach((b) => {
+    const k = uniform ? min : b.k;
+    b.stage.style.transform = `translate(-50%, -50%) scale(${k})`;
   });
 }
 
@@ -957,7 +977,8 @@ function _initElPreviewResize() {
     const panel = document.getElementById(id);
     if (!panel) return;
     new ResizeObserver(() => {
-      if (!panel.classList.contains("hidden")) _fitElPreviews(panel);
+      if (!panel.classList.contains("hidden"))
+        _fitElPreviews(panel, id === "theme-addtext-panel");
     }).observe(panel);
   });
 }
@@ -969,6 +990,7 @@ function _renderElementsPalette() {
   if (!box) return;
   if (box.dataset.rendered === "1") {
     _fitElPreviews(box);
+    _syncElTiles();
     return;
   }
   const reg = window.CX_ELEMENTS || {};
@@ -986,6 +1008,7 @@ function _renderElementsPalette() {
     def.variants.forEach((v) => {
       box.appendChild(
         _pickRow({
+          id: def.id + ":" + v.id,
           name: v.name,
           desc: v.desc,
           lead: _elPreview(def, v),
@@ -1002,6 +1025,39 @@ function _renderElementsPalette() {
   });
   box.dataset.rendered = "1";
   _fitElPreviews(box);
+  _syncElTiles();
+}
+
+// Tô sáng ô mẫu ĐANG đặt trên thiệp. Đọc _themeSetting.elements (bản đồng bộ từ
+// khung xem trước qua 'cx-elements-change') nên không phải hỏi lại iframe; gọi
+// lại mỗi lần danh sách đổi vì bấm ô mẫu là đổi mẫu tại chỗ mà vẫn ở lại bảng.
+function _syncElTiles() {
+  const box = document.getElementById("cx-elements-palette");
+  if (!box) return;
+  const on = new Set(
+    (_themeSetting.elements || [])
+      .filter((t) => t && t.element)
+      .map((t) => t.element + ":" + t.variant),
+  );
+  box
+    .querySelectorAll("[data-pick-id]")
+    .forEach((b) => b.classList.toggle("is-on", on.has(b.dataset.pickId)));
+}
+
+// Kéo ô mẫu đang dùng vào giữa tầm nhìn. Tự tính scrollTop chứ không
+// scrollIntoView: bảng chỉnh là thẻ NỔI, scrollIntoView cuộn lây cả khung nội
+// dung phía sau và đẩy thanh trên ra khỏi màn.
+function _focusElTile() {
+  const body = document.getElementById("cx-ctrl-scroll");
+  const row = document.querySelector("#cx-elements-palette .cx-pick-row.is-on");
+  if (!body || !row) return;
+  const rb = body.getBoundingClientRect();
+  const rr = row.getBoundingClientRect();
+  body.scrollTop = Math.max(
+    0,
+    body.scrollTop + rr.top - rb.top - (rb.height - rr.height) / 2,
+  );
+  requestAnimationFrame(() => _updateSheetFade(body));
 }
 
 // Kéo thành phần TỪ bảng chọn THẢ vào thiệp — y hệt hoạ tiết, thả ở đâu đặt ở đó.
@@ -1035,10 +1091,10 @@ function _addElement(elementId, variantId, x, y) {
     // Chốt chặn: nhỡ tin pick không tới thì cờ phải tự rơi, không thì cú bấm vào
     // widget trên thiệp sau đó lại bị nuốt mất.
     _elTapTimer = setTimeout(() => (_elTapPending = false), 800);
-  } else {
-    closeElementsPanel();
   }
-  // Thả xong runtime gửi 'cx-element-pick' → bảng tự chuyển sang phần điều chỉnh.
+  // Thả xong runtime gửi 'cx-element-pick' → bảng điều chỉnh tự chiếm chỗ (nó
+  // ẩn sẵn bảng Thẻ nhạc). KHÔNG tự đóng bảng ở đây: nhỡ tin pick thì vẫn còn
+  // đứng ở bảng Thẻ nhạc chứ không rơi về nhóm chỉnh chung.
   _lineIframe()?.contentWindow?.postMessage(
     { type: "cx-add-element", element: elementId, variant: variantId, x, y },
     "*",
@@ -1064,7 +1120,6 @@ function _addElement(elementId, variantId, x, y) {
 // như hoạ tiết/thành phần — bảng chọn nhờ vậy đứng yên để còn so mẫu này mẫu kia.
 
 function openGiftPanel() {
-  if (_addCardBlocked("gift")) return;
   document.getElementById("theme-line-editor")?.classList.add("hidden");
   document.getElementById("theme-addtext-panel")?.classList.add("hidden");
   document.getElementById("theme-decor-panel")?.classList.add("hidden");
@@ -1076,18 +1131,11 @@ function openGiftPanel() {
   document.getElementById("theme-gift-panel")?.classList.remove("hidden");
   _resetCtrlScroll();
   _renderGiftPalette();
+  _syncPanelGate("gift");
   if (window.lucide) lucide.createIcons();
 }
 window.openGiftPanel = openGiftPanel;
 
-function closeGiftPanel() {
-  document.getElementById("theme-gift-panel")?.classList.add("hidden");
-  document.getElementById("theme-wish-panel")?.classList.add("hidden");
-  document.getElementById("theme-main-controls")?.classList.remove("hidden");
-  _resetCtrlScroll();
-  _initEditHint();
-}
-window.closeGiftPanel = closeGiftPanel;
 
 // `id` chính là giá trị lưu: rỗng = mặc định của mẫu, "none" = bỏ hộp.
 const GIFT_FIXED = [
@@ -1211,9 +1259,10 @@ function pickGiftBox(id) {
 window.pickGiftBox = pickGiftBox;
 
 // ─── Lời chúc: chọn cách hiện lời chúc của khách mời ────────────────────────
-// Hai dạng, lưu ở _themeSetting.wishes_mode (rỗng = Livestream, dạng mặc định
-// xưa nay): runtime ở core/helpers/wishes-helper.js. Áp thẳng vào khung xem
-// trước bằng postMessage như hộp mừng cưới, không nạp lại.
+// Lưu ở _themeSetting.wishes_mode (rỗng = Livestream, dạng mặc định xưa nay);
+// runtime + danh mục thật nằm ở CX_WISH_MODES trong core/helpers/wishes-helper.js
+// — thêm dạng mới thì khai bên đó rồi thêm một dòng vào WISH_MODES dưới đây.
+// Áp thẳng vào khung xem trước bằng postMessage như hộp mừng cưới, không nạp lại.
 
 function openWishPanel() {
   if (_addCardBlocked("wishes")) return;
@@ -1232,13 +1281,6 @@ function openWishPanel() {
 }
 window.openWishPanel = openWishPanel;
 
-function closeWishPanel() {
-  document.getElementById("theme-wish-panel")?.classList.add("hidden");
-  document.getElementById("theme-main-controls")?.classList.remove("hidden");
-  _resetCtrlScroll();
-  _initEditHint();
-}
-window.closeWishPanel = closeWishPanel;
 
 // `id` chính là giá trị lưu — rỗng = Livestream (không lưu gì cả).
 const WISH_MODES = [
@@ -1258,11 +1300,20 @@ const WISH_MODES = [
     tone: "cx-add-ico-blue",
     desc: "Một mục ngay trên hộp mừng cưới, liệt kê hết và tự cuộn",
   },
+  {
+    id: "paged",
+    name: "Phân trang",
+    icon: "book-open",
+    tone: "cx-add-ico-amber",
+    desc: "Cũng ở chỗ đó nhưng mỗi lần vài lời, khách tự bấm sang trang",
+  },
 ];
 
+// Dạng nào cũng phải có mặt trong WISH_MODES mới chọn được — giá trị lạ (mẫu cũ,
+// dữ liệu chép tay) rơi về Livestream.
 function _wishModeId() {
-  const v = _themeSetting.wishes_mode;
-  return v === "comment" ? "comment" : "";
+  const v = String(_themeSetting.wishes_mode || "");
+  return WISH_MODES.some((m) => m.id === v) ? v : "";
 }
 
 function _renderWishPalette() {
@@ -1302,12 +1353,9 @@ function pickWishMode(id) {
   _savePreviewData();
   const win = _lineIframe()?.contentWindow;
   win?.postMessage({ type: "cx-wish-mode", value: id || "" }, "*");
-  // Dạng bình luận có mục riêng để cuộn tới; dạng livestream ghim đáy khung nhìn
-  // nên chỉ cần cuộn qua màn mở đầu là dải hiện ra (xem CX_WISH_SHOW_AT).
-  win?.postMessage(
-    { type: "cx-focus", key: id === "comment" ? "wishes" : "gift" },
-    "*",
-  );
+  // Dạng dựng mục riêng trong thân thiệp thì cuộn tới mục đó; Livestream ghim
+  // đáy khung nhìn nên chỉ cần cuộn qua màn mở đầu là dải hiện ra (CX_WISH_SHOW_AT).
+  win?.postMessage({ type: "cx-focus", key: id ? "wishes" : "gift" }, "*");
 }
 window.pickWishMode = pickWishMode;
 
@@ -1349,6 +1397,7 @@ let _elBase = {}; // màu thật của widget trên thiệp (ô nào chưa chỉ
 function openElementEditor(msg) {
   const def = (window.CX_ELEMENTS || {})[msg.element];
   if (!def) return;
+  _rememberCtrlFrom();
   _elSel = msg.id;
   _elDefCur = def;
   _elOpts = Object.assign({}, msg.opts);
@@ -1384,6 +1433,18 @@ function closeElementEditor() {
 }
 window.closeElementEditor = closeElementEditor;
 
+// Nút ← của bảng "Điều chỉnh": THÀNH PHẦN nào cũng thuộc bảng "Thẻ nhạc" nên
+// luôn lùi về đó, kể cả khi vào bằng cú bấm thẳng vào widget trên thiệp — ô mẫu
+// đang dùng được tô sáng và kéo vào tầm nhìn. Khác với cú BỎ CHỌN widget
+// (cx-element-close): ở đó người dùng bấm ra chỗ trống nên về nhóm chỉnh chung
+// mới đúng ý.
+function backFromElementEditor() {
+  const box = document.getElementById("theme-element-editor");
+  if (!box || box.classList.contains("hidden")) return;
+  _ctrlBack(closeElementEditor, "elements", _focusElTile);
+}
+window.backFromElementEditor = backFromElementEditor;
+
 // Bảng khác sắp chiếm chỗ → chỉ cất đi, KHÔNG bật lại nhóm chỉnh chung.
 // Đóng bảng thì bỏ chọn luôn widget trong thiệp, nếu không bộ nút (xoá, đổi mẫu…)
 // còn treo trên nó.
@@ -1415,7 +1476,7 @@ function _syncElWidthFromCard() {
   if (t) _syncElWidth(t.w, _elVariantOf(t.variant));
 }
 
-// Bọc ô kích thước thành thanh viên thuốc. Chỉ chạy một lần; partial đã nằm
+// Bọc ô kích thước thành thanh kéo mảnh. Chỉ chạy một lần; partial đã nằm
 // trong DOM trước khi các script này được chèn nên không cần chờ thêm.
 function _initElWidthSlider() {
   const el = document.getElementById("cx-el-width");
@@ -1526,10 +1587,13 @@ function onElementColorInput(i, done) {
   });
 }
 
+// "Mặc định" của bảng Điều chỉnh: trả widget về đúng lúc vừa thả ra — tuỳ chọn
+// riêng, khổ và CẢ CHỖ ĐỨNG. Runtime lo hết (chỗ đứng mặc định phải đo mới biết)
+// rồi báo lại 'cx-element-pick' → bảng tự vẽ lại control theo giá trị gốc.
 function resetElementOptions() {
   _elOpts = {};
   _renderElOptions();
-  _elSend({ type: "cx-element-opts", opts: {}, replace: true, done: true });
+  _elSend({ type: "cx-element-reset" });
 }
 window.resetElementOptions = resetElementOptions;
 
@@ -1538,6 +1602,7 @@ function _lineIframe() {
 }
 
 function _openLineEditor(msg) {
+  _rememberCtrlFrom();
   _lineSel = msg.selector;
   _lineIsImage = !!msg.isImage;
   const ov =
@@ -1575,6 +1640,11 @@ function _openLineEditor(msg) {
 
   if (_lineIsImage) _openImgEditor(msg, ov);
   else _openTextEditor(msg, msg.computed || {}, ov);
+
+  // Bấm từ một dòng chữ sang một tấm ảnh: bảng vẫn là theme-line-editor nên
+  // class không đổi, MutationObserver của _initCtrlHeadSync không bắn — phải tự
+  // gọi, không thì tiêu đề đứng nguyên "Chỉnh chữ".
+  _syncCtrlHead();
 
   if (window.lucide) lucide.createIcons();
 
@@ -1700,6 +1770,17 @@ function closeLineEditor() {
   _lineBlockList = false;
 }
 window.closeLineEditor = closeLineEditor;
+
+// Nút ← của bảng chỉnh chữ/ảnh. Khác bảng "Điều chỉnh": dòng chữ KHÔNG thuộc
+// bảng cấp 1 nào (phần lớn là chữ sẵn có của mẫu, bấm thẳng trên thiệp mà vào)
+// nên không khai `ownKey` — lùi về đúng bảng đang mở lúc vào (thả mẫu văn bản
+// xong thì đó là "Văn bản"), không có thì đứng lại ở nhóm chỉnh chung.
+function backFromLineEditor() {
+  const box = document.getElementById("theme-line-editor");
+  if (!box || box.classList.contains("hidden")) return;
+  _ctrlBack(closeLineEditor);
+}
+window.backFromLineEditor = backFromLineEditor;
 
 function _lineOverride() {
   if (!_themeSetting.text_overrides) _themeSetting.text_overrides = {};
@@ -2122,12 +2203,12 @@ function _initThemeResize() {
 
 // ─── Vùng cuộn cao thấp có tay nắm (bọc CẢ bảng chỉnh giao diện) ───────────
 // Mọi bảng (chung, chỉnh chữ, thêm văn bản, trang trí, thành phần, điều chỉnh)
-// nằm chung một vùng cuộn nên cao bằng nhau. CHỈ CÓ HAI MỨC: mức thấp 200px cho
+// nằm chung một vùng cuộn nên cao bằng nhau. CHỈ CÓ HAI MỨC: mức thấp 160px cho
 // đỡ che thiệp, và mức cao = nửa màn hình. Vuốt/chạm tay nắm là nhảy hẳn sang mức
 // kia, buông tay giữa chừng thì trượt về mức gần nhất — không dừng lưng chừng.
 // Chỉ chạy ở mobile — từ md+ cả cột chỉnh đã tự cuộn nên CSS tắt tay nắm.
 // Đổi SHEET_MIN thì sửa luôn giá trị dự phòng của --cx-sheet-h ở styles/_setup.css.
-const SHEET_MIN = 200; // px — mức thấp, cũng là chiều cao mặc định
+const SHEET_MIN = 160; // px — mức thấp, cũng là chiều cao mặc định
 const SHEET_MAX_VH = 0.5; // mức cao = 50% chiều cao màn hình
 const SHEET_DRAG_MIN = 6; // px, dưới ngưỡng này tính là chạm
 
@@ -2148,39 +2229,369 @@ function _updateSheetFade(body) {
   fade.classList.toggle("is-end", rest <= 4);
 }
 
-// Hàng nút của mỗi bảng nằm ở khối đầu bảng (#cx-ctrl-actions), ngoài vùng cuộn.
-// Bảng nào đang mở thì hiện hàng nút của bảng đó: [id bảng, id hàng nút], xét từ
-// trên xuống, không bảng nào mở thì rơi về hàng nút của nhóm chỉnh chung.
-// Thêm bảng mới → thêm một dòng ở đây, khỏi đụng vào các hàm mở/đóng bảng.
-const CTRL_HEADS = [
-  ["theme-element-editor", "cx-head-element-editor"],
-  ["theme-gift-panel", "cx-head-gift"],
-  ["theme-wish-panel", "cx-head-wish"],
-  ["theme-elements-panel", "cx-head-elements"],
-  ["theme-decor-panel", "cx-head-decor"],
-  ["theme-addtext-panel", "cx-head-addtext"],
-  ["theme-line-editor", "cx-head-line"],
+// Mỗi màn của bảng chỉnh khai MỘT dòng ở đây: `panel` là khối nội dung (bỏ
+// trống = nhóm chỉnh chung), `title` là tên màn — DÙNG CHUNG cho tiêu đề giữa
+// đầu bảng lẫn nhãn nút ở dải tab, viết HÀM khi tên đổi theo thứ đang chỉnh
+// (bảng "line" nhận cả chữ lẫn ảnh), `tip` là lời mách của nút đó, `back` là hàm
+// cho nút ✓ Xong bên phải (màn con: chỉnh chữ, điều chỉnh thành phần — không có
+// tab vì chỉ mở được bằng cú bấm vào thiệp), `reset` là hàm cho nút trái.
+// Xét từ TRÊN XUỐNG, màn nào không ẩn thì thắng; dòng cuối là màn mặc định.
+// Thêm bảng mới → thêm một dòng ở đây + một key vào CTRL_TABS, không đụng markup
+// (dải tab do _renderCtrlTabs dựng) lẫn các hàm mở/đóng bảng.
+const CTRL_VIEWS = [
+  {
+    key: "element",
+    panel: "theme-element-editor",
+    title: "Điều chỉnh",
+    back: "backFromElementEditor",
+    reset: "resetElementOptions",
+    resetTxt: "Mặc định",
+  },
+  {
+    key: "line",
+    panel: "theme-line-editor",
+    title: () => (_lineIsImage ? "Chỉnh ảnh" : "Chỉnh chữ"),
+    back: "backFromLineEditor",
+    reset: "clearLineOverride",
+    resetTxt: "Mặc định",
+  },
+  {
+    key: "gift",
+    panel: "theme-gift-panel",
+    title: "Hộp mừng cưới",
+    tip: "Chọn hộp quà che phần mã QR mừng cưới",
+    open: "openGiftPanel",
+  },
+  {
+    key: "wishes",
+    panel: "theme-wish-panel",
+    title: "Lời chúc",
+    tip: "Chọn cách hiện lời chúc của khách mời",
+    open: "openWishPanel",
+  },
+  {
+    key: "elements",
+    panel: "theme-elements-panel",
+    title: "Thẻ nhạc",
+    tip: "Thả thẻ nhạc lên thiệp",
+    open: "openElementsPanel",
+  },
+  {
+    key: "decor",
+    panel: "theme-decor-panel",
+    title: "Trang trí",
+    tip: "Thả hoa, hoạ tiết trang trí lên thiệp",
+    open: "openDecorPanel",
+  },
+  {
+    key: "addtext",
+    panel: "theme-addtext-panel",
+    title: "Văn bản",
+    tip: "Thêm khối văn bản vào thiệp",
+    open: "openAddTextPanel",
+  },
+  {
+    key: "main",
+    title: "Thiệp cưới",
+    tip: "Đổi bộ màu của cả thiệp",
+    reset: "resetThemeSetting",
+    resetTxt: "Đặt lại",
+  },
 ];
 
-let _lastCtrlHead = null;
+// Các bảng con mở/đóng bằng cách gạt class .hidden — gom một chỗ để nhóm chỉnh
+// chung dọn sạch được mà không phải kể tên từng bảng ở nhiều nơi.
+const CTRL_TAB_PANELS = CTRL_VIEWS.filter((v) => v.open).map((v) => v.panel);
 
+// Thứ tự nút ở dải tab dưới (màn con `element`/`line` không có tab: chỉ mở được
+// bằng cú bấm vào thiệp). Nhãn + lời mách lấy từ CTRL_VIEWS nên chỉ khai MỘT chỗ.
+const CTRL_TABS = ["main", "addtext", "decor", "elements", "gift", "wishes"];
+
+// Màn cấp 2 vào được từ nhiều đường: bấm thẳng vào thiệp, hoặc vừa thả một thứ
+// từ bảng cấp 1 ra (thả mẫu văn bản xong là nhảy luôn sang Chỉnh chữ). Ghi lại
+// bảng cấp 1 đang mở lúc đó để nút ← lùi về đúng chỗ vào.
+let _ctrlFrom = null;
+
+// Chỉ nhớ bảng CÓ TAB: đang ở màn cấp 2 rồi bấm sang thứ khác trên thiệp thì
+// giữ nguyên chỗ vào cũ. "main" coi như không đến từ bảng nào.
+function _rememberCtrlFrom() {
+  const key = _curCtrlView().key;
+  if (CTRL_TABS.includes(key)) _ctrlFrom = key === "main" ? null : key;
+}
+
+// Nút ← của màn cấp 2: đóng như thường (dọn trạng thái, bật lại nhóm chỉnh
+// chung) rồi mở lại bảng cấp 1 cần về. `ownKey` là bảng SỞ HỮU màn đó — khai
+// thì nó thắng chỗ vào đã ghi, vì thứ đang chỉnh luôn nằm trong bảng ấy. Mở lại
+// có thể bị từ chối (mục đã tắt ở tab Thiết lập); lúc đó nhóm chỉnh chung vừa
+// bật vẫn đứng đó, không có gì phải dọn.
+function _ctrlBack(closeFn, ownKey, focus) {
+  const key = ownKey || _ctrlFrom;
+  _ctrlFrom = null;
+  closeFn();
+  const view = CTRL_VIEWS.find((v) => v.key === key);
+  if (!view || typeof window[view.open] !== "function") return;
+  window[view.open]();
+  // Đợi một khung hình: _syncCtrlHead chạy bằng MutationObserver, nó mới là chỗ
+  // bỏ ẩn dải tab (và bung bảng nếu đang thu gọn) — đo trước đó thì vùng cuộn
+  // còn cao hơn thực tế nên ô mẫu dừng lệch khỏi giữa.
+  if (focus) requestAnimationFrame(focus);
+}
+
+function _ctrlTitle(view) {
+  return typeof view.title === "function" ? view.title() : view.title;
+}
+
+// Dựng dải tab từ CTRL_VIEWS. Ba tab có công tắc ở tab Thiết lập mượn luôn id
+// khai ở ADD_CARD_GATES để cxSyncThemeAddCards() tìm được mà làm mờ.
+function _renderCtrlTabs() {
+  const track = document.getElementById("cx-ctrl-tabs-track");
+  if (!track) return;
+  track.textContent = "";
+  CTRL_TABS.forEach((key) => {
+    const view = CTRL_VIEWS.find((v) => v.key === key);
+    if (!view) return;
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "cx-ctab";
+    btn.setAttribute("role", "tab");
+    btn.dataset.ctab = key;
+    if (ADD_CARD_GATES[key]) btn.id = ADD_CARD_GATES[key].card;
+    btn.title = view.tip || _ctrlTitle(view);
+    btn.textContent = _ctrlTitle(view);
+    btn.addEventListener("click", () => cxCtrlTab(key));
+    track.appendChild(btn);
+  });
+  // Nút vừa dựng lại → tô mờ theo công tắc ở tab Thiết lập ngay, không chờ lần
+  // mở tab Giao diện kế tiếp.
+  cxSyncThemeAddCards();
+  _syncCtrlHead();
+}
+
+let _lastCtrlHead = null;
+let _ctrlView = CTRL_VIEWS[CTRL_VIEWS.length - 1];
+
+function _curCtrlView() {
+  return (
+    CTRL_VIEWS.find(
+      (v) =>
+        v.panel && !document.getElementById(v.panel)?.classList.contains("hidden"),
+    ) || CTRL_VIEWS[CTRL_VIEWS.length - 1]
+  );
+}
+
+// Đổ đầu bảng + tô tab theo màn đang mở.
 function _syncCtrlHead() {
-  const open = CTRL_HEADS.find(
-    ([panelId]) =>
-      !document.getElementById(panelId)?.classList.contains("hidden"),
-  );
-  const active = open ? open[1] : "cx-head-main";
-  // Đổi sang bảng chỉnh khác trong lúc panel đang thu gọn thì bung ra: bấm một
-  // dòng chữ trên thiệp mà bảng chỉnh nằm khuất thì trông như chẳng có gì xảy ra.
-  if (_lastCtrlHead !== null && _lastCtrlHead !== active) _setCtrlCollapsed(false);
-  _lastCtrlHead = active;
-  CTRL_HEADS.forEach(([, headId]) =>
-    document.getElementById(headId)?.classList.toggle("hidden", headId !== active),
-  );
+  const view = _curCtrlView();
+  // Đổi sang bảng khác trong lúc bảng đang thu gọn thì bung ra.
+  if (_lastCtrlHead !== null && _lastCtrlHead !== view.key) _cxSheetShow?.();
+  _lastCtrlHead = view.key;
+  _ctrlView = view;
+
+  const title = document.getElementById("cx-ch-title");
+  if (title) title.textContent = _ctrlTitle(view);
+
+  // Hàng nút đầu bảng chỉ giữ chỗ khi nó CÓ VIỆC: nút ← (màn cấp 2) hoặc nút
+  // Đặt lại (nhóm chỉnh chung). Các bảng chọn thì tên bảng đã nằm ngay ở dải tab
+  // bên dưới, giữ thêm một hàng nữa chỉ tổ ăn mất chiều cao của thiệp. Suy từ
+  // CTRL_VIEWS nên bảng mới khai nút nào là tự đúng.
+  const bare = !view.back && !view.reset;
+  document.getElementById("cx-ctrl-actions")?.classList.toggle("hidden", bare);
+  document.getElementById("cx-ctrl-handle")?.classList.toggle("is-bare", bare);
+
   document
-    .getElementById("cx-head-main")
-    ?.classList.toggle("hidden", active !== "cx-head-main");
+    .getElementById("cx-ch-done")
+    ?.classList.toggle("hidden", !view.back);
+  const reset = document.getElementById("cx-ch-reset");
+  if (reset) {
+    reset.classList.toggle("hidden", !view.reset);
+    const txt = document.getElementById("cx-ch-reset-txt");
+    if (txt) txt.textContent = view.resetTxt || "Đặt lại";
+  }
+
+  // Màn con (chỉnh chữ/ảnh, điều chỉnh thành phần) không ứng với tab nào → cất
+  // dải tab đi, nhường chỗ cho nội dung; nút ← ở đầu bảng là đường ra. Bỏ ẩn
+  // TRƯỚC vòng tô dưới đây, không thì dải còn display:none nên đo ra khổ 0 và
+  // _scrollTabIntoView kéo trượt lung tung.
+  document
+    .getElementById("cx-ctrl-tabs")
+    ?.classList.toggle("hidden", !CTRL_TABS.includes(view.key));
+
+  document.querySelectorAll("#cx-ctrl-tabs .cx-ctab").forEach((btn) => {
+    const on = btn.dataset.ctab === view.key;
+    btn.setAttribute("aria-selected", on ? "true" : "false");
+    btn.classList.toggle("is-on", on);
+    if (on) _scrollTabIntoView(btn);
+  });
   if (window.lucide) lucide.createIcons();
+}
+
+// Kéo tab đang mở vào tầm nhìn khi nó nằm khuất — chỉ trượt vừa đủ tới mép
+// gần nhất, KHÔNG canh giữa. Dải tab nằm NGOÀI vùng cuộn nội dung → tự đặt
+// scrollLeft cho đúng dải; scrollIntoView sẽ cuộn lây cả khung cha (xem ghi
+// chú ở CLAUDE.md). Đo bằng getBoundingClientRect chứ KHÔNG dùng offsetLeft:
+// dải tab không phải offsetParent (ở md+ cột chỉnh là static, mốc rơi vào
+// #theme-panel) nên offsetLeft mang theo cả khoảng cách từ mép trái màn.
+function _scrollTabIntoView(btn) {
+  const track = document.getElementById("cx-ctrl-tabs-track");
+  if (!track) return;
+  const t = track.getBoundingClientRect();
+  const b = btn.getBoundingClientRect();
+  const pad = 12; // chừa một chút để tab không dính sát mép mờ
+  let d = 0;
+  if (b.left < t.left + pad) d = b.left - t.left - pad;
+  else if (b.right > t.right - pad) d = b.right - t.right + pad;
+  if (!d) return;
+  const left = Math.max(0, track.scrollLeft + d);
+  const smooth =
+    !track.classList.contains("is-dragging") &&
+    !window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  if (smooth && track.scrollTo) track.scrollTo({ left, behavior: "smooth" });
+  else track.scrollLeft = left;
+}
+
+// Kéo dải tab bằng CHUỘT để trượt (di động đã có cuộn quán tính sẵn của trình
+// duyệt nên để yên). Nhả tay thì trượt tiếp theo đà rồi tắt dần, và cú kéo dài
+// hơn TAB_DRAG_SLOP không được tính thành cú bấm — thả tay đúng trên một tab mà
+// nó đổi bảng thì người dùng chỉ định cuộn lại thấy mình lạc sang bảng khác.
+const TAB_DRAG_SLOP = 6; // px
+const TAB_GLIDE_FRICTION = 0.92; // đà còn lại sau mỗi khung hình
+const TAB_GLIDE_MIN_V = 0.05; // px/ms — chậm hơn mức này thì dừng hẳn
+
+function _initCtrlTabsDrag() {
+  const track = document.getElementById("cx-ctrl-tabs-track");
+  if (!track) return;
+  let down = false; // đang giữ chuột?
+  let moved = false; // đã kéo quá ngưỡng?
+  let x0 = 0; // toạ độ lúc bấm xuống
+  let left0 = 0; // scrollLeft lúc bấm xuống
+  let vx = 0; // vận tốc (px/ms) để tính đà
+  let tPrev = 0;
+  let xPrev = 0;
+  let glide = 0; // id requestAnimationFrame của pha trượt theo đà
+
+  const stopGlide = () => {
+    if (glide) cancelAnimationFrame(glide);
+    glide = 0;
+  };
+
+  track.addEventListener("pointerdown", (e) => {
+    if (e.pointerType !== "mouse" || e.button !== 0) return;
+    stopGlide();
+    down = true;
+    moved = false;
+    x0 = xPrev = e.clientX;
+    left0 = track.scrollLeft;
+    vx = 0;
+    tPrev = e.timeStamp;
+    track.classList.add("is-dragging");
+  });
+
+  track.addEventListener("pointermove", (e) => {
+    if (!down) return;
+    const dx = e.clientX - x0;
+    if (!moved && Math.abs(dx) > TAB_DRAG_SLOP) {
+      moved = true;
+      track.setPointerCapture?.(e.pointerId);
+    }
+    if (!moved) return;
+    track.scrollLeft = left0 - dx;
+    const dt = e.timeStamp - tPrev;
+    if (dt > 0) vx = (e.clientX - xPrev) / dt;
+    tPrev = e.timeStamp;
+    xPrev = e.clientX;
+    e.preventDefault();
+  });
+
+  const end = (e) => {
+    if (!down) return;
+    down = false;
+    track.releasePointerCapture?.(e.pointerId);
+    if (!moved) {
+      track.classList.remove("is-dragging");
+      return;
+    }
+    // Trượt tiếp theo đà: mỗi khung hình đi được quãng của vận tốc hiện tại rồi
+    // hãm dần, chạm mép thì dừng luôn.
+    let v = vx;
+    let tLast = performance.now();
+    const step = (now) => {
+      const dt = now - tLast;
+      tLast = now;
+      v *= Math.pow(TAB_GLIDE_FRICTION, dt / 16.67);
+      const before = track.scrollLeft;
+      track.scrollLeft = before - v * dt;
+      if (Math.abs(v) < TAB_GLIDE_MIN_V || track.scrollLeft === before) {
+        stopGlide();
+        track.classList.remove("is-dragging");
+        return;
+      }
+      glide = requestAnimationFrame(step);
+    };
+    glide = requestAnimationFrame(step);
+  };
+  track.addEventListener("pointerup", end);
+  track.addEventListener("pointercancel", end);
+
+  // Vừa kéo xong: nuốt cú click nảy ra từ chính cử chỉ kéo đó.
+  track.addEventListener(
+    "click",
+    (e) => {
+      if (!moved) return;
+      moved = false;
+      e.stopPropagation();
+      e.preventDefault();
+    },
+    true,
+  );
+
+  // Lăn chuột dọc trên dải (chuột thường không có trục ngang) → trượt ngang.
+  track.addEventListener(
+    "wheel",
+    (e) => {
+      if (e.deltaY === 0 || Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+      stopGlide();
+      track.scrollLeft += e.deltaY;
+      e.preventDefault();
+    },
+    { passive: false },
+  );
+}
+
+// Nút trái/phải của đầu bảng: việc cụ thể do màn đang mở khai ở CTRL_VIEWS.
+// Nút phải là ✓ "Xong" — mọi thay đổi đã áp thẳng lên thiệp và đánh dấu cần lưu
+// ngay lúc chỉnh, nên xác nhận ở đây chỉ còn nghĩa "chỉnh xong rồi": đóng màn và
+// lùi về bảng cấp 1. Không đổi gì thì bấm ✓ cũng y như đóng.
+function cxCtrlBack() {
+  if (_ctrlView.back) window[_ctrlView.back]?.();
+}
+window.cxCtrlBack = cxCtrlBack;
+
+function cxCtrlReset() {
+  if (_ctrlView.reset) window[_ctrlView.reset]?.();
+}
+window.cxCtrlReset = cxCtrlReset;
+
+// Bấm tab: mở bảng tương ứng ngay tại chỗ. Bấm lại tab đang mở thì thôi, để cú
+// bấm nhỡ không dựng lại danh sách mẫu (mất chỗ đang cuộn tới).
+function cxCtrlTab(key) {
+  const view = CTRL_VIEWS.find((v) => v.key === key);
+  if (!view || _curCtrlView().key === key) return;
+  if (view.open) window[view.open]?.();
+  else _showMainControls();
+}
+window.cxCtrlTab = cxCtrlTab;
+
+// Về nhóm chỉnh chung: dọn mọi bảng con đang mở (kể cả màn chỉnh chữ / điều
+// chỉnh thành phần vốn không có tab).
+function _showMainControls() {
+  CTRL_TAB_PANELS.forEach((id) =>
+    document.getElementById(id)?.classList.add("hidden"),
+  );
+  _hideElementEditor();
+  closeLineEditor();
+  document.getElementById("theme-main-controls")?.classList.remove("hidden");
+  _resetCtrlScroll();
+  _initEditHint();
 }
 
 // Bảng được ẩn/hiện ở cả chục chỗ trong file này → theo dõi thuộc tính class
@@ -2188,8 +2599,8 @@ function _syncCtrlHead() {
 function _initCtrlHeadSync() {
   if (typeof MutationObserver === "undefined") return;
   const obs = new MutationObserver(_syncCtrlHead);
-  CTRL_HEADS.forEach(([panelId]) => {
-    const el = document.getElementById(panelId);
+  CTRL_VIEWS.forEach((v) => {
+    const el = v.panel && document.getElementById(v.panel);
     if (el) obs.observe(el, { attributes: true, attributeFilter: ["class"] });
   });
   _syncCtrlHead();
@@ -2204,6 +2615,8 @@ function _resetCtrlScroll() {
   requestAnimationFrame(() => _updateSheetFade(body));
 }
 
+let _cxSheetShow = null;
+
 function _initSheet(bodyId, handleId) {
   const body = document.getElementById(bodyId);
   const handle = document.getElementById(handleId);
@@ -2212,30 +2625,29 @@ function _initSheet(bodyId, handleId) {
   // Giữ chiều cao đã chọn ở biến riêng: lúc bảng đang ẩn thì clientHeight = 0,
   // đọc lại từ DOM sẽ tự xoá mất mức người dùng vừa kéo.
   let cur = SHEET_MIN;
+  // BA mức, đều là chiều cao THẬT của vùng cuộn (panel nằm trong luồng nên hạ
+  // chiều cao là thiệp nở ra ngay): 0 = thu gọn chỉ còn đầu bảng · SHEET_MIN ·
+  // mức cao. Thu gọn thêm class để dải tab cùng biến mất, nếu không nó vẫn chiếm
+  // một hàng dù bảng đã cụp.
+  const ctrl = document.getElementById("theme-controls");
   const setH = (px, max) => {
     cur = Math.round(
-      Math.min(Math.max(px, SHEET_MIN), max == null ? _sheetMax(body) : max),
+      Math.min(Math.max(px, 0), max == null ? _sheetMax(body) : max),
     );
     body.style.setProperty("--cx-sheet-h", cur + "px");
+    ctrl?.classList.toggle("cx-ctrl-collapsed", cur === 0);
     _updateSheetFade(body);
   };
-  setH(cur);
+  setH(SHEET_MIN);
 
-  // Cả ba mức nằm trên MỘT trục ảo v để cử chỉ liền một mạch:
-  //   v < 0  → thu gọn, đẩy panel xuống -v px (chiều cao giữ nguyên mức thấp)
-  //   v ≥ 0  → chiều cao = SHEET_MIN + v
-  const ctrl = document.getElementById("theme-controls");
-  // Quãng đẩy xuống tối đa = vừa đủ chừa lại vạch kéo. Đo LÚC CẦN, sau khi khung
-  // đã hạ về mức thấp, chứ không phải lúc bấm xuống (khi đó panel còn đang cao).
-  const hideDist = () => {
-    if (drag.hide == null)
-      drag.hide = Math.max(0, (ctrl ? ctrl.offsetHeight : 0) - CTRL_PEEK);
-    return drag.hide;
+  // Bấm một dòng chữ trên thiệp trong lúc bảng đang thu gọn thì phải bung ra,
+  // không thì trông như cú bấm chẳng làm gì cả (_syncCtrlHead gọi).
+  _cxSheetShow = () => {
+    if (cur === 0) setH(SHEET_MIN);
   };
-  const slide = (px) => ctrl?.style.setProperty("--cx-ctrl-off", px + "px");
 
-  let drag = null;
   const grip = handle.querySelector(".cx-sheet-grip");
+  let drag = null;
   handle.addEventListener("pointerdown", (e) => {
     if (e.pointerType === "mouse" && e.button !== 0) return;
     // Nút trong khối đầu bảng (Quay lại, Khôi phục…) không phải chỗ để kéo.
@@ -2249,13 +2661,6 @@ function _initSheet(bodyId, handleId) {
     // Chốt mức cao NGAY LÚC BẮT ĐẦU: đang kéo thì scrollHeight đổi theo chiều
     // cao khung, tính lại giữa chừng sẽ ra trần nhảy nhót.
     drag = { y0: e.clientY, h0: cur, max: _sheetMax(body), moved: false };
-    // Đang thu gọn thì đổi từ class sang biến px mà KHÔNG nhảy chỗ: 100% của
-    // translateY chính là offsetHeight nên hai cách ra cùng một vị trí.
-    if (_ctrlCollapsed) drag.hide = Math.max(0, (ctrl?.offsetHeight || 0) - CTRL_PEEK);
-    drag.v = drag.v0 = _ctrlCollapsed ? -drag.hide : cur - SHEET_MIN;
-    ctrl?.classList.remove("cx-ctrl-collapsed");
-    slide(Math.max(0, -drag.v0));
-    ctrl?.classList.add("cx-ctrl-slide"); // tắt hiệu ứng trượt, bám tay tức thì
     body.classList.add("is-dragging");
   });
   handle.addEventListener("pointermove", (e) => {
@@ -2263,42 +2668,24 @@ function _initSheet(bodyId, handleId) {
     const dy = e.clientY - drag.y0;
     if (!drag.moved && Math.abs(dy) < SHEET_DRAG_MIN) return;
     drag.moved = true;
-    let v = Math.min(drag.v0 - dy, drag.max - SHEET_MIN); // kéo lên (dy âm) = cao lên
-    if (v < 0) {
-      setH(SHEET_MIN, drag.max);
-      v = Math.max(v, -hideDist());
-      slide(Math.round(-v));
-    } else {
-      slide(0);
-      setH(SHEET_MIN + v, drag.max);
-    }
-    drag.v = v;
+    setH(drag.h0 - dy, drag.max); // kéo lên (dy âm) = cao lên; setH tự kẹp hai đầu
   });
   const end = () => {
     if (!drag) return;
     body.classList.remove("is-dragging");
     const max = drag.max;
     if (!drag.moved) {
-      // Chạm không vuốt: đang thu gọn thì bung ra, còn lại nhảy sang mức kia.
-      if (_ctrlCollapsed) _setCtrlCollapsed(false);
-      else {
-        _setCtrlCollapsed(false);
-        setH(drag.h0 >= max - 4 ? SHEET_MIN : max, max);
-      }
-    } else if (drag.v < 0) {
-      // Tụt xuống dưới mức thấp. Ngưỡng tính theo QUÃNG ĐÃ ĐI kể từ trạng thái
-      // lúc bắt đầu, không theo vị trí tuyệt đối: đo theo đáy thì lúc đang thu
-      // gọn phải kéo lên gần hết chiều cao panel mới bung được.
-      const thuGọn =
-        drag.v0 < 0
-          ? drag.v - drag.v0 < CTRL_HIDE_AT // đang gọn: kéo lên chưa đủ xa
-          : -drag.v >= CTRL_HIDE_AT; // đang mở: tụt xuống đủ sâu
-      _setCtrlCollapsed(thuGọn);
-      if (!thuGọn) setH(SHEET_MIN, max);
+      // Chạm không vuốt: đang thu gọn thì bung về mức thấp, còn lại nhảy sang
+      // mức kia (thấp ↔ cao). Thu gọn hẳn thì phải vuốt.
+      if (drag.h0 === 0) setH(SHEET_MIN, max);
+      else setH(drag.h0 >= max - 4 ? SHEET_MIN : max, max);
     } else {
-      // Vẫn trong khoảng hai mức: trượt về mức gần chỗ buông tay hơn.
-      _setCtrlCollapsed(false);
-      setH(cur > (SHEET_MIN + max) / 2 ? max : SHEET_MIN, max);
+      // Vuốt rồi thì bám về mức gần chỗ buông tay nhất — không dừng lưng chừng.
+      const stops = [0, SHEET_MIN, max];
+      setH(
+        stops.reduce((a, b) => (Math.abs(b - cur) < Math.abs(a - cur) ? b : a)),
+        max,
+      );
     }
     drag = null;
   };
@@ -2321,6 +2708,8 @@ function _initThemePanelObservers() {
   _initElPreviewResize();
   _initSheet("cx-ctrl-scroll", "cx-ctrl-handle");
   _initCtrlHeadSync();
+  _renderCtrlTabs();
+  _initCtrlTabsDrag();
   _initCardBlur();
 }
 

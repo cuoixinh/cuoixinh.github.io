@@ -198,78 +198,105 @@
       />
     </button>`;
 
-  // Hai mẫu gọn (nút tròn, thẻ nhạc): class .cx-mw-* (styles/_music-player.css),
+  // Các mẫu GỌN (bảng MINI ở dưới): class .cx-mw-* (styles/_music-player.css),
   // kích thước bên trong bằng `em` → kéo to nhỏ là cả widget phóng theo.
   const SVG = {
     note: '<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M13 2 6 3.6v6.6a2.2 2.2 0 1 0 1.2 1.9V6l4.6-1v3.6a2.2 2.2 0 1 0 1.2 1.9z"/></svg>',
     play: '<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M4 2.5v11l9-5.5z"/></svg>',
     pause:
       '<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M4 2.5h3v11H4zM9 2.5h3v11H9z"/></svg>',
-    back: '<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 8V3L1 8l7 5zm7 0V3L8 8l7 5z"/></svg>',
-    forward:
-      '<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 8v5l7-5-7-5zm-7 0v5l7-5-7-5z"/></svg>',
   };
 
-  const artNote = (cls) =>
+  // Ô ảnh bìa + nốt nhạc dự phòng. `spin` = false khi thẻ CHA đã quay (đĩa than):
+  // hai animation transform lồng nhau thì ảnh quay gấp đôi phần còn lại.
+  const artNote = (cls, spin) =>
     '<span class="cx-mw-art ' +
     cls +
     '"><span class="cx-mw-note cx-mp-note">' +
     SVG.note +
-    '</span><img data-cx-music="thumb" alt="" hidden class="cx-mp-spin" /></span>';
+    '</span><img data-cx-music="thumb" alt="" hidden' +
+    (spin === false ? "" : ' class="cx-mp-spin"') +
+    " /></span>";
 
-  // Nút phát của hai mẫu gọn: hai icon SVG chồng nhau, CSS chọn theo .is-playing.
-  const playBtn = (cls) =>
-    '<button type="button" data-cx-music="toggle" aria-label="Phát hoặc tạm dừng nhạc nền" class="' +
-    cls +
-    '"><span class="cx-mw-ic-play">' +
-    SVG.play +
-    '</span><span class="cx-mw-ic-pause">' +
-    SVG.pause +
-    "</span></button>";
+  // Cặp icon phát/dừng của mẫu gọn: CSS (.cx-mw-ic-*) đổi cái nào hiện theo
+  // .is-playing — khác mẫu thanh ngang vốn thay ruột icon bằng JS.
+  const playPause = `
+    <span class="cx-mw-ic-play">${SVG.play}</span>
+    <span class="cx-mw-ic-pause">${SVG.pause}</span>`;
 
-  const seekBtn = (which) =>
-    '<button type="button" data-cx-music="' +
-    which +
-    '" aria-label="' +
-    (which === "back" ? "Lùi 10 giây" : "Tới 10 giây") +
-    '" class="cx-mw-btn">' +
-    SVG[which] +
-    "</button>";
+  const PLAY_LABEL = 'aria-label="Phát hoặc tạm dừng nhạc nền"';
 
   const miniBody = `
-    <button type="button" data-cx-music="toggle" class="cx-mw-mini-btn" aria-label="Phát hoặc tạm dừng nhạc nền">
+    <button type="button" data-cx-music="toggle" class="cx-mw-mini-btn" ${PLAY_LABEL}>
       ${artNote("cx-mw-art-round")}
-      <span class="cx-mw-mini-ic">
-        <span class="cx-mw-ic-play">${SVG.play}</span>
-        <span class="cx-mw-ic-pause">${SVG.pause}</span>
-      </span>
+      <span class="cx-mw-ic cx-mw-mini-ic">${playPause}</span>
     </button>`;
 
-  const cardBody = `
-    <span class="cx-mw-cover">${artNote("cx-mw-art-cover")}</span>
-    <span class="cx-mw-titlewrap"><span class="cx-mw-title cx-mp-title" data-cx-music="title">Nhạc nền</span></span>
-    <span class="cx-mw-artist" data-cx-music="artist"></span>
-    <span class="cx-mw-prog cx-mp-prog" data-cx-music="progress">
-      <span class="cx-mw-fill cx-mp-fill" data-cx-music="fill"></span>
-    </span>
-    <span class="cx-mw-times"><span data-cx-music="time">0:00</span><span data-cx-music="duration">0:00</span></span>
-    <span class="cx-mw-ctrls">
-      ${seekBtn("back")}
-      ${playBtn("cx-mw-btn cx-mw-btn-main")}
-      ${seekBtn("forward")}
-    </span>`;
+  // Thẻ viên: cả hàng là vùng tua, dải tiến trình chạy nền phía sau.
+  const pillBody = `
+    <div data-cx-music="progress" class="cx-mw-pill-row">
+      <span data-cx-music="fill" class="cx-mw-pill-fill" aria-hidden="true"></span>
+      ${artNote("cx-mw-art-round cx-mw-pill-art")}
+      <span class="cx-mw-pill-txt">
+        <span data-cx-music="title" class="cx-mp-title">Nhạc nền</span>
+      </span>
+      <button type="button" data-cx-music="toggle" class="cx-mw-ic cx-mw-pill-btn" ${PLAY_LABEL}>
+        ${playPause}
+      </button>
+    </div>`;
+
+  // Thẻ vuông: ảnh bìa tràn khung, tên bài nằm trên dải tối ở đáy.
+  const squareBody = `
+    <button type="button" data-cx-music="toggle" class="cx-mw-sq" ${PLAY_LABEL}>
+      ${artNote("cx-mw-sq-art", false)}
+      <span class="cx-mw-sq-foot">
+        <span data-cx-music="title" class="cx-mp-title cx-mw-sq-title">Nhạc nền</span>
+      </span>
+      <span class="cx-mw-ic cx-mw-sq-btn">${playPause}</span>
+      <span data-cx-music="fill" class="cx-mw-sq-fill" aria-hidden="true"></span>
+    </button>`;
+
+  // Đĩa than: rãnh đĩa + nhãn giữa là ảnh bìa, cả mặt đĩa quay khi phát.
+  const discBody = `
+    <button type="button" data-cx-music="toggle" class="cx-mw-disc-btn" ${PLAY_LABEL}>
+      <span class="cx-mw-disc-face cx-mp-spin" aria-hidden="true">
+        ${artNote("cx-mw-art-round cx-mw-disc-label", false)}
+      </span>
+      <span class="cx-mw-ic cx-mw-disc-ic">${playPause}</span>
+    </button>`;
+
+  // Vòng tiến trình: cung chạy quanh ảnh bìa, đọc --cx-mp-pct trên thẻ root
+  // (music-player-helper đặt) — không phải vai trò "fill" vì conic-gradient
+  // không suy ra được từ bề ngang của một thẻ khác.
+  const ringBody = `
+    <button type="button" data-cx-music="toggle" class="cx-mw-ring-btn" ${PLAY_LABEL}>
+      <span class="cx-mw-ring-arc" aria-hidden="true"></span>
+      ${artNote("cx-mw-art-round cx-mw-ring-art")}
+      <span class="cx-mw-ic cx-mw-ring-ic">${playPause}</span>
+    </button>`;
+
+  // Mẫu GỌN (.cx-mw): thêm mẫu là thêm một mục ở đây + CSS .cx-mw-* + một mục
+  // `variants` trong core/helpers/element-helper.js. Mẫu nào cũng phải bấm được
+  // ở data-cx-music="toggle", phần còn lại tuỳ mẫu.
+  const MINI = {
+    mini: { cls: "cx-mw-mini", body: miniBody },
+    pill: { cls: "cx-mw-pill", body: pillBody },
+    square: { cls: "cx-mw-square", body: squareBody },
+    disc: { cls: "cx-mw-disc", body: discBody },
+    ring: { cls: "cx-mw-ring", body: ringBody },
+  };
 
   /**
    * Dựng trình phát nhạc.
-   * @param {{variant?:"bar"|"mini"|"card",
+   * @param {{variant?:"bar"|"mini"|"pill"|"square"|"disc"|"ring",
    *          chrome?:"fixed-top"|"fixed-corner"|"inline",
    *          summary?:boolean, revealOnScroll?:number}} [opts]
    * @returns {HTMLElement}
    *
    * chrome:
    *   fixed-top     thanh ngang neo đỉnh màn (chỉ đi với variant "bar")
-   *   fixed-corner  đĩa tròn neo góc trên phải, xoay khi phát — dành cho theme
-   *                 lấy ảnh làm chính, chỉ chừa một chấm nhỏ
+   *   fixed-corner  mẫu gọn neo góc trên phải — dành cho theme lấy ảnh làm
+   *                 chính, chỉ chừa một chấm nhỏ
    *   inline (mặc định) nằm trong luồng, dùng cho widget thả lên thiệp
    */
   function build(opts) {
@@ -285,11 +312,12 @@
     node.setAttribute("data-cx-seek", "10");
     node.setAttribute("data-cx-empty-title", "Nhạc nền");
 
-    if (variant === "mini" || variant === "card") {
-      // Hai mẫu gọn không có bản fixed-top (thanh ngang): chúng sinh ra để thả
-      // lên thiệp, hoặc neo góc màn qua chrome "fixed-corner".
-      node.className = variant === "mini" ? "cx-mw cx-mw-mini" : "cx-mw cx-mw-card";
-      node.innerHTML = variant === "mini" ? miniBody : cardBody;
+    const compact = MINI[variant];
+    if (compact) {
+      // Mẫu gọn không có bản fixed-top (thanh ngang): chúng sinh ra để thả lên
+      // thiệp, hoặc neo góc màn qua chrome "fixed-corner".
+      node.className = "cx-mw " + compact.cls;
+      node.innerHTML = compact.body;
       window.lucide?.createIcons({ root: node });
       if (corner) {
         // id="music-toggle" để setupMusic() ẩn/hiện theo việc thiệp có nhạc hay

@@ -1,7 +1,7 @@
-// Thanh kéo dạng viên thuốc dùng chung. Bọc một <input type="range"> có sẵn
-// trong DOM: input gốc được giữ nguyên nhưng trong suốt và đè lên trên (kéo,
-// chạm, phím mũi tên vẫn chạy như native), phần nhìn thấy là track/fill do CSS
-// vẽ — styles/_progress.css.
+// Thanh kéo mảnh dùng chung. Bọc một <input type="range"> có sẵn trong DOM:
+// input gốc được giữ nguyên nhưng trong suốt và đè lên trên (kéo, chạm, phím
+// mũi tên vẫn chạy như native), phần nhìn thấy là track/fill/núm do CSS vẽ —
+// styles/_progress.css.
 
 (function () {
   const defaultFormat = (v) => v + "%";
@@ -14,11 +14,11 @@
     return Math.min(1, Math.max(0, (val - min) / (max - min))) * 100;
   }
 
-  // Ô bấm của input phải TRÙNG KHÍT thanh track nhìn thấy. Nhãn số nằm bên
-  // trái đẩy track thụt vào ~60px; input trùm cả viên thuốc thì chỗ ngón tay
-  // đặt và giá trị nhận được lệch nhau tới 16 điểm — đó là cảm giác "phải chạm
-  // đúng điểm". Đo bằng JS chứ không viết số cứng: nhãn số rộng hẹp theo nội
-  // dung và theo lớp utility của từng chỗ dùng.
+  // Ô bấm của input phải TRÙNG KHÍT thanh track nhìn thấy. Nhãn số và phần lề
+  // chừa cho núm đẩy track thụt vào vài chục px; input trùm cả khối thì chỗ ngón
+  // tay đặt và giá trị nhận được lệch nhau tới 16 điểm — đó là cảm giác "phải
+  // chạm đúng điểm". Đo bằng JS chứ không viết số cứng: nhãn số rộng hẹp theo
+  // nội dung và theo lớp utility của từng chỗ dùng.
   function layout(input) {
     const wrap = input && input.closest && input.closest(".cx-prog");
     const track = wrap && wrap.querySelector(".cx-prog-track");

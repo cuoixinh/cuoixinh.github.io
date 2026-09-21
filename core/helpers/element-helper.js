@@ -13,12 +13,19 @@
 //             nhìn, cuộn thiệp không trôi mất (trình phát nhạc). Khác với thành
 //             phần thường (hoa, chữ) trôi theo thiệp. Đổi ý nghĩa của toạ độ đã
 //             lưu: x vẫn là % bề ngang THIỆP, còn y là % chiều cao KHUNG NHÌN.
-//   variants  [{ id, name, desc, w, minW, maxW, fs, colors }] — w/minW/maxW là %
+//   variants  [{ id, name, desc, w, minW, maxW, fs, colors, home }] — w/minW/maxW là %
 //             bề ngang thiệp; fs = hệ số cỡ chữ (font-size = bề ngang thật × fs),
 //             CHỈ đặt cho mẫu viết bằng `em`, mẫu dùng utility cỡ cố định thì bỏ
 //             trống; `colors` = mảng khoá CX_EL_COLOR mà MẪU ĐÓ dùng tới (thanh
 //             ngang đủ 4, nút tròn chỉ có nút điều khiển + nền nút). Bỏ trống thì
 //             hiện hết ô màu của thành phần.
+//             `home` = CHỖ ĐỨNG MẶC ĐỊNH của mẫu, nút "Mặc định" ở bảng Điều
+//             chỉnh trả widget về đây. Mỗi mẫu một chỗ riêng vì khổ khác nhau:
+//             thanh ngang thuộc về đỉnh thiệp, mẫu gọn thuộc về một góc. Đơn vị
+//             y hệt toạ độ đã lưu (x = % bề ngang thiệp của TÂM; y = % chiều cao
+//             khung nhìn của ĐIỂM NEO — mép trên với mẫu có khối mở rộng, tâm
+//             với các mẫu còn lại). Không khai thì rơi về chỗ trình phát sẵn có
+//             của mẫu thiệp, rồi mới tới chỗ mặc định của widget thả tay.
 //   build(variant) → HTMLElement, đã gắn sẵn các vai trò data-cx-music
 //   options   khai báo control cho bảng "Điều chỉnh thành phần" (panel tự dựng):
 //             { id, type:"choice"|"color", label, def, items:[{id,name}] }.
@@ -73,7 +80,7 @@
     return el ? hexOf(getComputedStyle(el).color) : "";
   }
 
-  // Hai mẫu gọn (.cx-mw) đi màu qua biến CSS nên không có bề mặt nào để đo —
+  // Mẫu gọn (.cx-mw) đi màu qua biến CSS nên có khi không có bề mặt nào để đo —
   // đọc thẳng biến; mẫu thanh ngang dựng bằng utility thì đo trên chính thanh.
   function varOf(node, name) {
     return hexOf(getComputedStyle(node).getPropertyValue(name));
@@ -113,7 +120,7 @@
     });
   }
 
-  // Màu đi bằng CSS var (_music-player.css đọc sẵn cho nút tròn / thẻ nhạc);
+  // Màu đi bằng CSS var (_music-player.css đọc sẵn cho nút tròn);
   // class cx-tint-* để mẫu thanh ngang đè được utility Tailwind, và chỉ đè đúng
   // thứ người dùng đã chọn.
   function applyTint(node, o) {
@@ -160,32 +167,80 @@
           w: 88,
           minW: 45,
           maxW: 100,
+          // Thanh rộng gần hết bề ngang → chỗ của nó là sát ĐỈNH màn, giữa;
+          // neo mép trên nên y đọc thẳng là khoảng cách tới đỉnh.
+          home: { x: 50, y: 2 },
           // Không có fs: mẫu này dựng bằng utility Tailwind (w-8, text-[13px]…)
           // nên kéo rộng hẹp chỉ đổi bề ngang thanh, giống hệt lúc nó nằm trên
           // đỉnh thiệp ở basic-gold.
           colors: [C.BG, C.TEXT, C.CTRL, C.CTRL_BG],
         },
         {
+          id: "pill",
+          name: "Thẻ viên",
+          desc: "Ảnh bìa, tên bài và nút phát gọn trong một viên",
+          w: 44,
+          minW: 30,
+          maxW: 80,
+          fs: 0.055,
+          // Viên còn khá rộng → cũng đỉnh màn, giữa (neo tâm nên phải cách đỉnh
+          // hơn thanh ngang một chút).
+          home: { x: 50, y: 7 },
+          colors: [C.BG, C.TEXT, C.CTRL, C.CTRL_BG],
+        },
+        {
+          id: "square",
+          name: "Thẻ vuông",
+          desc: "Ảnh bìa tràn khung, tên bài trên dải tối ở đáy",
+          w: 26,
+          minW: 18,
+          maxW: 50,
+          fs: 0.08,
+          // Thẻ vuông cao gần bằng bề ngang → để góc trên phải, lùi vào cho
+          // khỏi đè ảnh chính giữa thiệp.
+          home: { x: 78, y: 16 },
+          colors: [C.BG, C.TEXT, C.CTRL, C.CTRL_BG],
+        },
+        {
           id: "mini",
           name: "Nút tròn",
           desc: "Một nút nhỏ, ảnh bìa xoay khi đang phát",
-          w: 16,
+          w: 13,
           minW: 8,
           maxW: 34,
           fs: 0.2,
+          // Nút nhỏ → góc trên phải, đúng chỗ các mẫu thiệp lấy ảnh làm chính
+          // vẫn neo trình phát (chrome "fixed-corner").
+          home: { x: 88, y: 7 },
           // Chỉ là một nút tròn phủ ảnh bìa: không có mặt nền riêng, cũng không
           // có chữ nào để đổi màu.
           colors: [C.CTRL, C.CTRL_BG],
         },
         {
-          id: "card",
-          name: "Thẻ nhạc",
-          desc: "Bìa lớn, tên bài và thanh tiến trình",
-          w: 56,
-          minW: 32,
-          maxW: 100,
-          fs: 0.055,
-          colors: [C.BG, C.TEXT, C.CTRL, C.CTRL_BG],
+          id: "ring",
+          name: "Vòng tiến trình",
+          desc: "Nút tròn, cung chạy quanh cho thấy bài đã tới đâu",
+          w: 15,
+          minW: 10,
+          maxW: 34,
+          fs: 0.22,
+          home: { x: 87, y: 8 },
+          // Mặt nền chỉ ló ra thành vành mảnh quanh ảnh bìa, nhưng đó cũng là
+          // nền của rãnh tiến trình nên vẫn cho chỉnh.
+          colors: [C.BG, C.CTRL, C.CTRL_BG],
+        },
+        {
+          id: "disc",
+          name: "Đĩa than",
+          desc: "Đĩa nhựa quay tròn, ảnh bìa làm nhãn giữa",
+          w: 17,
+          minW: 12,
+          maxW: 38,
+          fs: 0.2,
+          // Đĩa quay tròn, để dưới cho khỏi che ảnh bìa ở nửa trên thiệp.
+          home: { x: 84, y: 86 },
+          // Mặt đĩa là rãnh nhựa đen — đổi nền thì không còn ra đĩa than.
+          colors: [C.CTRL, C.CTRL_BG],
         },
       ],
       options: [
@@ -204,10 +259,8 @@
           C.BG,
           "rgb(var(--white-rgb))",
           (node) =>
-            paintOf(
-              node.querySelector(".cx-mp-bar") ||
-                node.querySelector(".cx-mw-card"),
-            ) || varOf(node, "--cx-mw-bg"),
+            paintOf(node.querySelector(".cx-mp-bar")) ||
+            varOf(node, "--cx-mw-bg"),
         ),
         color(
           C.TEXT,
@@ -216,14 +269,14 @@
             inkOf(node.querySelector('[data-cx-music="title"]')) ||
             varOf(node, "--cx-mw-fg"),
         ),
-        // Nút tròn: mặt bấm là .cx-mw-mini-ic (nút bọc ngoài trong suốt) nên dò
-        // nó trước, các mẫu khác mới rơi về nút phát.
+        // Mẫu gọn: mặt bấm là .cx-mw-ic (mẫu nào cũng có) — ở vài mẫu nó chỉ là
+        // lớp phủ trong suốt bên trong nút, nên dò nó TRƯỚC nút phát.
         color(
           C.CTRL,
           "rgb(var(--white-rgb))",
           (node) =>
             inkOf(
-              node.querySelector(".cx-mw-mini-ic") ||
+              node.querySelector(".cx-mw-ic") ||
                 node.querySelector('[data-cx-music="icon"]') ||
                 node.querySelector('[data-cx-music="toggle"]'),
             ) || varOf(node, "--cx-mw-ctrl"),
@@ -233,7 +286,7 @@
           "rgb(var(--music-widget-accent-rgb))",
           (node) =>
             paintOf(
-              node.querySelector(".cx-mw-mini-ic") ||
+              node.querySelector(".cx-mw-ic") ||
                 node.querySelector('[data-cx-music="toggle"]'),
             ) || varOf(node, "--cx-mw-accent"),
         ),
