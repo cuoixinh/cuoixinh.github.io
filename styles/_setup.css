@@ -501,26 +501,39 @@ input.flatpickr-input[readonly] {
   @apply outline-none ring-2 ring-rose-200;
 }
 
-/* Nút phải: "Xong" (✓) của màn cấp 2 — CHỈ cái dấu tích, không nền không bo
-   góc, cân với nút "Mặc định" bên trái vốn cũng là chữ trần. Khổ 32px là VÙNG
-   CHẠM, không phải hình dạng: nó trong suốt nên mắt chỉ thấy mỗi icon. */
-.cx-ch-done {
-  @apply -mr-1 inline-flex h-8 w-8 items-center justify-center
-         text-rose-600 transition-[color,transform] duration-150;
+/* Cặp nút icon bên phải đầu bảng chi tiết (↺ Mặc định, ✓ Xong) — CHỈ cái icon,
+   không nền không bo góc. Khổ 32px là VÙNG CHẠM, không phải hình dạng: nó trong
+   suốt nên mắt chỉ thấy mỗi icon. */
+.cx-ch-ico {
+  @apply inline-flex h-8 w-8 items-center justify-center
+         transition-[color,transform] duration-150;
 }
 
-.cx-ch-done:hover {
-  @apply text-rose-700;
-}
-
-.cx-ch-done:active {
+.cx-ch-ico:active {
   @apply scale-90;
 }
 
 /* Vòng focus phải có chỗ bám — bo nhẹ CHỈ để vòng đó không vuông chằn chặn,
    lúc không focus chẳng thấy gì. */
-.cx-ch-done:focus-visible {
+.cx-ch-ico:focus-visible {
   @apply rounded-lg outline-none ring-2 ring-rose-200;
+}
+
+/* ↺ là việc PHỤ, để xám cho khỏi tranh màu nhấn với dấu ✓ xác nhận ngay cạnh. */
+.cx-ch-restore {
+  @apply text-gray-400;
+}
+
+.cx-ch-restore:hover {
+  @apply text-gray-600;
+}
+
+.cx-ch-done {
+  @apply -mr-1 text-rose-600;
+}
+
+.cx-ch-done:hover {
+  @apply text-rose-700;
 }
 
 /* Hàng tab dưới bảng chỉnh: nút GHIM "Mặc định" đứng yên bên trái, phần còn lại là

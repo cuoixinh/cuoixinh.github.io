@@ -89,19 +89,31 @@
             </button>
           </div>
           <span id="cx-ch-title" class="cx-ch-title">Bộ màu</span>
-          <!-- Ô bên phải: nút Xong của màn cấp 2. Rỗng ở các bảng khác, nhưng
-               vẫn phải có để tiêu đề đứng GIỮA đầu bảng, cân với nút bên trái. -->
+          <!-- Ô bên phải: cặp nút icon của MÀN CHI TIẾT (bấm thẳng vào một phần tử
+               trên thiệp) — ↺ đặt lại phần tử đang chỉnh, rồi ✓ xong. Bảng theo tab
+               thì ô này rỗng và nút đặt lại là chữ "Mặc định" bên trái; ô vẫn phải
+               có để tiêu đề đứng GIỮA đầu bảng. Việc gạt ẩn/hiện ở _syncCtrlHead. -->
           <div class="cx-ch-side cx-ch-end">
+            <button
+              type="button"
+              id="cx-ch-restore"
+              onclick="cxCtrlReset()"
+              class="cx-ch-ico cx-ch-restore hidden"
+              aria-label="Mặc định"
+              title="Đặt lại phần đang chỉnh về mặc định"
+            >
+              <!-- Cỡ CỐ ĐỊNH phải là inline style: svg.lucide trong build.css
+                   ép 1em và thắng cả utility w-*/h-*. -->
+              <i data-lucide="rotate-ccw" style="width:18px;height:18px"></i>
+            </button>
             <button
               type="button"
               id="cx-ch-done"
               onclick="cxCtrlBack()"
-              class="cx-ch-done hidden"
+              class="cx-ch-ico cx-ch-done hidden"
               aria-label="Xong"
               title="Xong"
             >
-              <!-- Cỡ CỐ ĐỊNH phải là inline style: svg.lucide trong build.css
-                   ép 1em và thắng cả utility w-*/h-*. -->
               <i data-lucide="check" style="width:18px;height:18px"></i>
             </button>
           </div>

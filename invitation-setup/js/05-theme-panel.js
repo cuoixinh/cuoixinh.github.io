@@ -2472,22 +2472,28 @@ function _syncCtrlHead() {
   const title = document.getElementById("cx-ch-title");
   if (title) title.textContent = _ctrlTitle(view);
 
-  // Hàng nút đầu bảng chỉ giữ chỗ khi nó CÓ VIỆC: nút ✓ Xong (màn cấp 2) hoặc nút
-  // "Mặc định" của riêng bảng. Bảng nào khai cả hai đều không có thì ẩn hàng đi,
+  // Hàng nút đầu bảng chỉ giữ chỗ khi nó CÓ VIỆC: nút ✓ Xong (màn chi tiết) hoặc
+  // nút đặt lại của riêng bảng. Bảng nào khai cả hai đều không có thì ẩn hàng đi,
   // đỡ ăn chiều cao của thiệp. Suy từ CTRL_VIEWS nên bảng mới khai nút nào là tự đúng.
   const bare = !view.back && !view.reset;
   document.getElementById("cx-ctrl-actions")?.classList.toggle("hidden", bare);
   document.getElementById("cx-ctrl-handle")?.classList.toggle("is-bare", bare);
 
-  document
-    .getElementById("cx-ch-done")
-    ?.classList.toggle("hidden", !view.back);
+  // Nút đặt lại có HAI hình, cùng một việc (cxCtrlReset), chọn theo hạng màn:
+  //   màn chi tiết (khai `back` — mở bằng cú bấm vào chính phần tử trên thiệp):
+  //     cặp icon bên PHẢI, ↺ rồi ✓, ô trái bỏ trống;
+  //   bảng theo tab: chữ "Mặc định" bên TRÁI, ô phải bỏ trống.
+  const detail = !!view.back;
   const reset = document.getElementById("cx-ch-reset");
   if (reset) {
-    reset.classList.toggle("hidden", !view.reset);
+    reset.classList.toggle("hidden", !view.reset || detail);
     const txt = document.getElementById("cx-ch-reset-txt");
     if (txt) txt.textContent = view.resetTxt || "Mặc định";
   }
+  document
+    .getElementById("cx-ch-restore")
+    ?.classList.toggle("hidden", !view.reset || !detail);
+  document.getElementById("cx-ch-done")?.classList.toggle("hidden", !detail);
 
   // Màn con (chỉnh chữ/ảnh, điều chỉnh thành phần) không ứng với tab nào → cất
   // dải tab đi, nhường chỗ cho nội dung; nút ← ở đầu bảng là đường ra. Bỏ ẩn
