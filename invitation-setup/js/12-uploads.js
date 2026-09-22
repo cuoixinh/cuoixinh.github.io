@@ -28,7 +28,9 @@ async function uploadAllPendingImages() {
   const uploadedFilenames = {};
   const errors = [];
 
-  if (!IS_LOGIN) return { uploadedFilenames, errors };
+  // `skipped` để nơi gọi biết KHÔNG được dọn pendingUploads/IndexedDB sau đó:
+  // ảnh chưa lên Storage nên dọn là mất hẳn (xem Step 6 của saveAll).
+  if (!IS_LOGIN) return { uploadedFilenames, errors, skipped: true };
 
   // Upload single images
   for (const [fieldName, file] of Object.entries(pendingUploads.singleImages)) {
@@ -87,7 +89,7 @@ async function uploadAllPendingImages() {
     _syncLoveStoryHidden();
   }
 
-  return { uploadedFilenames, errors };
+  return { uploadedFilenames, errors, skipped: false };
 }
 
 // ============= REMOVE FUNCTIONS =============

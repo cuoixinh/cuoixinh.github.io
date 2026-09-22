@@ -581,7 +581,8 @@ async function saveAll(overrides = {}, label = "Đang lưu...") {
   try {
     // Step 1: Upload pending images
     showLoading(true, "Đang tải ảnh lên server...");
-    const { uploadedFilenames, errors } = await uploadAllPendingImages();
+    const { uploadedFilenames, errors, skipped: uploadSkipped } =
+      await uploadAllPendingImages();
     showLoading(true, label);
 
     if (errors.length > 0) {
@@ -677,6 +678,10 @@ async function saveAll(overrides = {}, label = "Đang lưu...") {
       }
     }
 
+    // Step 3.4: Ô ảnh chỉ được mang TÊN FILE trong Storage (hoặc URL trên host của
+    // hệ thống) — gỡ `blob:`/`data:` trước khi dựng focal point lẫn khi lưu.
+    _dropLocalOnlyImageRefs(payload);
+
     // Step 3.5: Build điểm lấy nét (focal points) cho payload
     // gallery_images lưu dạng map { filename: {x,y} } — tra theo tên file (key ổn định),
     // không phụ thuộc thứ tự/ index nên thêm/xoá/sắp xếp lại ảnh không làm lệch dữ liệu
@@ -761,12 +766,20 @@ async function saveAll(overrides = {}, label = "Đang lưu...") {
     }
 
     // Step 6: Clear pending uploads and deleted images
-    pendingUploads.singleImages = {};
-    pendingUploads.galleryImages = [];
-    deletedImages.singleImages = [];
-    deletedImages.galleryImages = [];
-    _galleryIdbKeys.clear();
-    _idbClearWedding();
+    // CHỈ dọn khi ảnh THỰC SỰ đã lên Storage. Chưa đăng nhập thì
+    // uploadAllPendingImages() trả `skipped` và không đẩy gì cả — dọn lúc đó là
+    // xoá ảnh khỏi cả RAM lẫn IndexedDB dù nó chưa ở đâu khác, tức khách bấm
+    // "Lưu nháp" một lần là mất sạch ảnh vừa chọn. Giữ lại để lần lưu đầu SAU khi
+    // đăng nhập đẩy lên (xem _idbRestoreAll ở js/02-idb.js). `deletedImages` cũng
+    // giữ: chưa có lượt ghi DB nào nhận danh sách đó.
+    if (!uploadSkipped) {
+      pendingUploads.singleImages = {};
+      pendingUploads.galleryImages = [];
+      deletedImages.singleImages = [];
+      deletedImages.galleryImages = [];
+      _galleryIdbKeys.clear();
+      _idbClearWedding();
+    }
 
     // Step 7: Re-render UI to reflect saved state
     renderSingleImageUpload("cover_image_url");
