@@ -2,10 +2,10 @@
 // wedding-admin). Chỉ có kỹ thuật gọi provider + CORS, KHÔNG chứa nghiệp vụ của
 // bất kỳ tính năng nào: prompt, schema, hạn mức… nằm ở từng function.
 //
-// Provider DUY NHẤT là Gemini; chịu tải bằng cách xoay vòng nhiều key
-// (GEMINI_API_KEYS ngăn bằng ";"). Không còn nhà cung cấp dự phòng, nên hết quota
-// Gemini là mọi tính năng AI ngừng cho tới khi quota hồi — thêm key là cách duy
-// nhất nới trần.
+// Provider DUY NHẤT là Gemini; chịu tải bằng cách rải ngẫu nhiên trên nhiều key
+// (GEMINI_API_KEYS ngăn bằng ";") — xem orderKeysByQuota. Không còn nhà cung cấp
+// dự phòng, nên hết quota Gemini là mọi tính năng AI ngừng cho tới khi quota hồi —
+// thêm key là cách duy nhất nới trần.
 // API key chỉ đọc từ secret của Edge Function, không bao giờ trả ra client.
 
 import type { Logger } from './axiom.ts'
@@ -188,8 +188,58 @@ export async function callGemini(
   }
 }
 
-// Thử lần lượt từng key Gemini; lỗi/hết quota (429) thì xoay sang key kế tiếp.
-// Bắt đầu từ vị trí ngẫu nhiên để rải tải giữa các key.
+// ── Chọn key: rải ngẫu nhiên, key hết quota cho nghỉ 1 giờ ──────────────────
+//
+// Quota Gemini tính theo cửa sổ 1 giờ, nên key ăn 429 được ghi vào một bảng nghỉ
+// trong BỘ NHỚ của isolate: lượt sau không gọi lại nó nữa cho tới khi hết giờ.
+// Bảng nằm trong RAM nên isolate mới (cold start) học lại từ đầu — cố ý, đổi lấy
+// việc không phải thêm bảng DB và không tốn query nào mỗi lượt AI.
+export const KEY_COOLDOWN_MS = 60 * 60 * 1000
+
+// key → mốc hết nghỉ (epoch ms). Khoá là chính chuỗi key, chỉ nằm trong RAM và
+// KHÔNG bao giờ đi vào log.
+const keyCooldown = new Map<string, number>()
+
+// Chỉ 429 (RESOURCE_EXHAUSTED) mới là hết quota. Timeout/5xx/400 là lỗi nhất thời
+// hoặc lỗi prompt — phạt key vì mấy thứ đó là tự loại oan key còn tốt.
+export function isQuotaError(e: unknown): boolean {
+  return e instanceof ProviderError && e.status === 429
+}
+
+export function markKeyExhausted(key: string): void {
+  keyCooldown.set(key, Date.now() + KEY_COOLDOWN_MS)
+}
+
+// Thứ tự thử key, trả về CHỈ SỐ trong `keys` để log còn nói được key thứ mấy:
+// nhóm còn quota trộn ngẫu nhiên lên trước (rải tải, không dồn hết vào key đầu),
+// nhóm đang nghỉ xếp cuối. Vẫn giữ nhóm nghỉ trong danh sách vì mốc nghỉ chỉ là
+// phỏng đoán — cả bộ đang nghỉ thì thử lại còn hơn trả lỗi ngay.
+export function orderKeysByQuota(keys: string[]): { order: number[]; cooling: number } {
+  const now = Date.now()
+  const free: number[] = []
+  const cooling: number[] = []
+  keys.forEach((k, i) => {
+    const until = keyCooldown.get(k) ?? 0
+    if (until <= now) {
+      keyCooldown.delete(k) // hết giờ nghỉ → dọn luôn cho Map không phình
+      free.push(i)
+    } else {
+      cooling.push(i)
+    }
+  })
+  return { order: [...shuffle(free), ...shuffle(cooling)], cooling: cooling.length }
+}
+
+function shuffle<T>(a: T[]): T[] {
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[a[i], a[j]] = [a[j], a[i]]
+  }
+  return a
+}
+
+// Thử từng key theo thứ tự orderKeysByQuota; hỏng thì sang key kế tiếp, riêng 429
+// thì cho key đó nghỉ để các lượt sau khỏi đụng vào nữa.
 export async function callGeminiRotating(
   prompt: string,
   keys: string[],
@@ -198,25 +248,33 @@ export async function callGeminiRotating(
   log?: Logger,
   tag = 'ai',
 ): Promise<string> {
-  const n = keys.length
-  const start = Math.floor(Math.random() * n)
+  const { order, cooling } = orderKeysByQuota(keys)
   let lastErr: unknown = null
-  for (let i = 0; i < n; i++) {
-    const idx = (start + i) % n
+  for (let i = 0; i < order.length; i++) {
+    const idx = order[i]
     try {
       return await callGemini(prompt, keys[idx], genConfig, timeoutMs)
     } catch (e) {
       lastErr = e
+      const quota = isQuotaError(e)
+      if (quota) markKeyExhausted(keys[idx])
       // key_index chứ KHÔNG phải key: đủ để biết một key hỏng hay cả bộ hỏng.
-      const fields = { key_index: idx, keys_total: n, attempt: i + 1, ...errFields(e) }
+      const fields = {
+        key_index: idx,
+        keys_total: keys.length,
+        keys_cooling: cooling,
+        attempt: i + 1,
+        quota_cooldown: quota || undefined,
+        ...errFields(e),
+      }
       if (log) log.warn(`${tag}.gemini_key_failed`, fields)
       else console.error(`Gemini key #${idx} failed:`, errMsg(e))
     }
   }
-  throw lastErr ?? new ProviderError('gemini', 0, `cả ${n} key đều hỏng`)
+  throw lastErr ?? new ProviderError('gemini', 0, `cả ${keys.length} key đều hỏng`)
 }
 
-// HÀM CHUNG cho MỌI tác vụ non-stream: gọi Gemini, xoay vòng hết các key.
+// HÀM CHUNG cho MỌI tác vụ non-stream: gọi Gemini, thử hết các key khả dụng.
 // Trả { raw, provider } hoặc null — khi null thì đã có sẵn MỘT sự kiện
 // `ai.<tag>_failed` kèm mã lỗi + message thật của Gemini.
 export async function generateWithGemini(
