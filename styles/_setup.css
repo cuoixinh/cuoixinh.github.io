@@ -515,15 +515,16 @@ input.flatpickr-input[readonly] {
   @apply outline-none ring-2 ring-rose-200;
 }
 
-/* Cặp nút bên phải đầu bảng chi tiết (↺ Mặc định, ✓ Xong). Hai dáng theo khổ màn:
+/* Cặp nút bên phải đầu bảng chi tiết (↺ Mặc định, ✓ Áp dụng). Hai dáng theo khổ màn:
    mobile chỉ còn icon trần — khổ 32px là VÙNG CHẠM chứ không phải hình dạng, nền
    trong suốt nên mắt chỉ thấy icon; từ md là nút pill CÓ NHÃN (nhãn khai trong
    markup, `hidden md:inline`) vì trên desktop mỗi cái icon thì quá bé để nhắm.
-   Dáng pill mượn đúng số đo của <x-button size="sm"> cho khớp nút ở chỗ khác. */
+   Dáng pill theo <x-button size="sm">, riêng lề trong hẹp hơn một nấc (px-3): cột
+   chỉnh ở md chỉ rộng 340px, để px-4 là hai nút ăn hết chỗ và tên bảng bị cắt. */
 .cx-ch-ico {
   @apply inline-flex h-8 w-8 shrink-0 items-center justify-center gap-1.5
          whitespace-nowrap transition-[color,background-color,transform] duration-150
-         md:w-auto md:rounded-full md:px-4 md:text-xs md:font-semibold;
+         md:w-auto md:gap-1 md:rounded-full md:px-3 md:text-xs md:font-semibold;
 }
 
 .cx-ch-ico:active {

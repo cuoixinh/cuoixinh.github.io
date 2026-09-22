@@ -2310,7 +2310,7 @@ function _updateSheetFade(body) {
 // trống = nhóm chỉnh chung), `title` là tên màn — DÙNG CHUNG cho tiêu đề giữa
 // đầu bảng lẫn nhãn nút ở dải tab, viết HÀM khi tên đổi theo thứ đang chỉnh
 // (bảng "line" nhận cả chữ lẫn ảnh), `tip` là lời mách của nút đó, `back` là hàm
-// cho nút ✓ Xong bên phải (màn con: chỉnh chữ, điều chỉnh thành phần — không có
+// cho nút ✓ Áp dụng bên phải (màn con: chỉnh chữ, điều chỉnh thành phần — không có
 // tab vì chỉ mở được bằng cú bấm vào thiệp), `reset` là hàm cho nút trái — nút đó
 // CHỈ trả về mặc định phần thuộc bảng này (nhãn mặc định "Mặc định", đổi bằng
 // `resetTxt`); đặt lại CẢ thiệp là nút ghim "Đặt lại" ở đầu dải tab
@@ -2472,7 +2472,7 @@ function _syncCtrlHead() {
   const title = document.getElementById("cx-ch-title");
   if (title) title.textContent = _ctrlTitle(view);
 
-  // Hàng nút đầu bảng chỉ giữ chỗ khi nó CÓ VIỆC: nút ✓ Xong (màn chi tiết) hoặc
+  // Hàng nút đầu bảng chỉ giữ chỗ khi nó CÓ VIỆC: nút ✓ Áp dụng (màn chi tiết) hoặc
   // nút đặt lại của riêng bảng. Bảng nào khai cả hai đều không có thì ẩn hàng đi,
   // đỡ ăn chiều cao của thiệp. Suy từ CTRL_VIEWS nên bảng mới khai nút nào là tự đúng.
   const bare = !view.back && !view.reset;
@@ -2647,9 +2647,11 @@ function _initCtrlTabsDrag() {
 }
 
 // Nút trái/phải của đầu bảng: việc cụ thể do màn đang mở khai ở CTRL_VIEWS.
-// Nút phải là ✓ "Xong" — mọi thay đổi đã áp thẳng lên thiệp và đánh dấu cần lưu
-// ngay lúc chỉnh, nên xác nhận ở đây chỉ còn nghĩa "chỉnh xong rồi": đóng màn và
-// lùi về bảng cấp 1. Không đổi gì thì bấm ✓ cũng y như đóng.
+// Nút phải là ✓ "Áp dụng" — nhãn nói theo cách người dùng đọc, còn thực chất mọi
+// thay đổi ĐÃ áp thẳng lên thiệp và đánh dấu cần lưu ngay lúc chỉnh, nên nút chỉ
+// đóng màn và lùi về bảng cấp 1. Không đổi gì thì bấm ✓ cũng y như đóng — đừng
+// chuyển sang kiểu "gom thay đổi rồi mới áp khi bấm", cả bảng chỉnh dựa vào việc
+// xem trước đổi theo từng thao tác.
 function cxCtrlBack() {
   if (_ctrlView.back) window[_ctrlView.back]?.();
 }
