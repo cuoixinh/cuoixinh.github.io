@@ -15,7 +15,7 @@ const CX_WISH_SPEED = 32;
 // Nghỉ bao lâu sau khi lời chúc cuối rời khỏi khung rồi chiếu lại từ đầu (ms).
 const CX_WISH_REPLAY_MS = 3000;
 
-// Ô nhập cao tối đa mấy dòng khi bung ra — quá đó thì cuộn trong chính ô.
+// Ô nhập cao tối đa mấy dòng — quá đó thì cuộn trong chính ô.
 const CX_WISH_INPUT_ROWS = 3;
 
 // Còn bấy nhiêu ký tự nữa là chạm trần thì mới hiện bộ đếm — thiệp cưới không
@@ -205,7 +205,6 @@ function _cxWishItemHtml(w) {
 //   section          true = dùng chung vỏ mục trong thân thiệp (_cxWishBuildSection)
 //   secClass         class thêm vào vỏ mục, để CSS nhận ra dạng
 //   pager            true = vỏ mục có thêm hàng chuyển trang
-//   inlineComposer   true = ô gửi mở sẵn (không phải viên thuốc bấm mới bung)
 //   focusKey         mục mà trang Thiết lập cuộn tới sau khi chọn dạng này
 //                    (invitation-setup/js/05-theme-panel.js đọc qua postMessage)
 const CX_WISH_MODES = {
@@ -213,7 +212,6 @@ const CX_WISH_MODES = {
     mount: _cxWishBuildDock,
     render: _cxWishRenderDock,
     stop: _cxWishStopRoll,
-    inlineComposer: false,
     focusKey: "gift",
   },
   comment: {
@@ -221,7 +219,6 @@ const CX_WISH_MODES = {
     render: _cxWishRenderSection,
     stop: _cxWishStopAutoScroll,
     section: true,
-    inlineComposer: true,
     focusKey: "wishes",
   },
   paged: {
@@ -231,7 +228,6 @@ const CX_WISH_MODES = {
     section: true,
     secClass: "cx-wsec-paged",
     pager: true,
-    inlineComposer: true,
     focusKey: "wishes",
   },
 };
@@ -695,22 +691,20 @@ function _cxWishBindComposer(canWrite) {
   if (!card || !input || !send) return;
 
   card.addEventListener("click", _cxWishExpand);
-  // Dạng comment: ô gõ mở sẵn nên phải chốt chiều cao ngay từ đầu bằng CHÍNH phép
+  // Ô gõ mở sẵn ở MỌI dạng nên phải chốt chiều cao ngay từ đầu bằng CHÍNH phép
   // đo mà _cxWishExpand dùng — để đó cho trình duyệt tự tính thì lượt bấm đầu
   // tiên lại đo ra một con số khác vài px, thấy rõ là thẻ giật lên một nhịp.
-  if (_cxWishDef().inlineComposer) {
-    _cxWishAutoGrow(input);
-    // Không đo được (mục còn nằm trong #main-card đang ẩn — thiệp có bìa) thì
-    // chờ tới lúc ô thật sự có khổ rồi đo đúng một lần, không thì ô nhập mở ra
-    // với chiều cao rơi vãi và dòng placeholder khi có khi không.
-    if (!input.style.height && window.ResizeObserver) {
-      const ro = new ResizeObserver(() => {
-        if (!input.offsetWidth) return;
-        ro.disconnect();
-        _cxWishFitInput();
-      });
-      ro.observe(input);
-    }
+  _cxWishAutoGrow(input);
+  // Không đo được (mục còn nằm trong #main-card đang ẩn — thiệp có bìa) thì chờ
+  // tới lúc ô thật sự có khổ rồi đo đúng một lần, không thì ô nhập hiện ra với
+  // chiều cao rơi vãi và dòng placeholder khi có khi không.
+  if (!input.style.height && window.ResizeObserver) {
+    const ro = new ResizeObserver(() => {
+      if (!input.offsetWidth) return;
+      ro.disconnect();
+      _cxWishFitInput();
+    });
+    ro.observe(input);
   }
   input.addEventListener("input", () => {
     _cxWishAutoGrow(input);
@@ -723,18 +717,15 @@ function _cxWishBindComposer(canWrite) {
       e.preventDefault();
       _cxWishSend();
     } else if (e.key === "Escape") {
-      // Dạng comment ô gõ mở sẵn, thu lại là XOÁ chữ đang viết → chỉ rời con trỏ.
-      if (_cxWishDef().inlineComposer) input.blur();
-      else _cxWishCollapse();
+      // Ô gõ mở sẵn, thu lại là XOÁ chữ đang viết → chỉ rời con trỏ.
+      input.blur();
     }
   });
-  // Nút Gửi nằm TRONG thẻ nên cú bấm cũng chạy _cxWishExpand — chặn lại, nếu
-  // không lượt bấm đầu tiên chỉ bung ô ra chứ không gửi.
+  // Nút Gửi nằm TRONG thẻ nên cú bấm cũng chạy _cxWishExpand — chặn lại để cú
+  // bấm chỉ gửi, không kéo theo việc đặt con trỏ vào ô vừa gửi xong.
   send.addEventListener("click", (e) => {
     e.stopPropagation();
-    if (card.classList.contains("is-open") || _cxWishDef().inlineComposer)
-      _cxWishSend();
-    else _cxWishExpand();
+    _cxWishSend();
   });
 }
 
@@ -858,9 +849,9 @@ function _cxWishUnwatchReveal() {
   _cxWishRevealMO = null;
 }
 
-// Ô nhập bung TẠI CHỖ: pill nhỏ co theo nội dung, bấm vào thì trải hết bề ngang
-// cột và đổi dòng gợi ý thành ô gõ cao tối đa hai dòng. Không mở panel riêng —
-// khách vẫn thấy thiệp và danh sách lời chúc phía trên.
+// Ô nhập MỞ SẴN ở mọi dạng: ô gõ và nút Gửi có mặt từ đầu, bấm vào chỉ đặt con
+// trỏ chứ hình dạng không đổi. Không mở panel riêng — khách vẫn thấy thiệp và
+// danh sách lời chúc phía trên. Ô cao theo chữ, chặn ở CX_WISH_INPUT_ROWS dòng.
 
 function _cxWishInputEl() {
   return document.getElementById("cx-wdock-text");
@@ -904,12 +895,6 @@ function _cxWishCollapse() {
     _cxWishSyncSend(input);
   }
   _cxWishSetDockMsg("");
-  document.removeEventListener("pointerdown", _cxWishOutside, true);
-}
-
-function _cxWishOutside(e) {
-  const card = document.getElementById("cx-wdock-open");
-  if (card && !card.contains(e.target)) _cxWishCollapse();
 }
 
 function _cxWishExpand() {
@@ -923,12 +908,6 @@ function _cxWishExpand() {
   const input = _cxWishInputEl();
   input?.focus();
   if (input) _cxWishAutoGrow(input);
-
-  // Bấm ra ngoài thì thu lại. Dùng pointerdown ở pha capture để bắt được cả cú
-  // chạm rơi vào iframe/canvas của mẫu thiệp. Dạng comment thì KHÔNG: ô gõ vốn
-  // mở sẵn, thu lại chỉ để xoá trắng thứ khách đang viết dở.
-  if (!_cxWishDef().inlineComposer)
-    document.addEventListener("pointerdown", _cxWishOutside, true);
 }
 
 // Câu báo lỗi nằm ngay dưới ô nhập; chuỗi rỗng là gỡ đi.
@@ -939,8 +918,8 @@ function _cxWishSetDockMsg(text) {
   el.hidden = !text;
 }
 
-// Gửi xong ô nhập thu lại ngay, nên phải có một nhịp xác nhận: chip đổi thành
-// dấu tích và dòng gợi ý thành lời cảm ơn, hết CX_WISH_SENT_MS thì trở lại.
+// Gửi xong ô nhập trống trở lại, nên phải có một nhịp xác nhận: dòng gợi ý thế
+// chỗ ô gõ bằng lời cảm ơn, hết CX_WISH_SENT_MS thì trở lại.
 function _cxWishFlashSent() {
   const card = document.getElementById("cx-wdock-open");
   const hint = document.getElementById("cx-wdock-hint");

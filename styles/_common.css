@@ -1862,7 +1862,7 @@ button.cx-pchrome-btn:hover {
    thiệp chỉ nạp styles/themes.css, không có utility của trang ứng dụng.
    Một DẢI NỔI ghim đáy khung nhìn, đè lên thiệp: danh sách lời chúc trôi lên
    (.cx-wfeed) rồi tới ô "Gửi lời chúc" (.cx-wdock-card) — pill nhỏ, bấm vào thì
-   bung tại chỗ thành ô gõ chứ không mở panel riêng.
+   một hàng soạn mở sẵn, không phải panel riêng.
    ══════════════════════════════════════════════════════════════════════════ */
 
 /* Dưới lightbox (z 100) và trên thanh nhạc (z 60). KHÔNG dùng
@@ -2133,10 +2133,10 @@ button.cx-pchrome-btn:hover {
   display: none;
 }
 
-/* Ô nhập: thẻ nổi dài HẾT HÀNG như navbar (lề 8px của .cx-wdock hai bên). Lúc
-   nghỉ là một viên thuốc THẤP ngang một hàng nút — chip bút bên trái, lời mời ở
-   giữa; bấm vào (.is-open) thì chính nó nở cao lên thành ô gõ, bo góc mềm lại và
-   mọc thêm hàng chân (lỗi + bộ đếm).
+/* Ô nhập: thẻ nổi dài HẾT HÀNG như navbar (lề 8px của .cx-wdock hai bên), mở sẵn
+   thành một hàng soạn — ô gõ ở giữa, nút Gửi bên phải; cao theo chữ khách viết.
+   Mấy luật dưới đây là phần dùng CHUNG với dạng comment; hình dạng riêng của
+   từng chỗ khai ở khối .cx-wdock / .cx-wsec.
    ĐỪNG độn padding: mỗi px ở đây là một px thiệp bị che. */
 .cx-wdock-card {
   display: flex;
@@ -2167,13 +2167,12 @@ button.cx-pchrome-btn:hover {
     box-shadow 0.2s ease;
 }
 
+/* Đang gõ: nền đặc hẳn cho chữ sắc + quầng nhấn mảnh quanh thẻ, thay cho việc
+   đổi nền đậm lên (đổi nền là thò ra một mảng đục khác tông thiệp). Khổ và bo
+   góc do từng chỗ dùng tự khai. */
 .cx-wdock-card.is-open {
-  border-radius: 22px;
-  padding: 6px;
   background: rgb(var(--cx-wish-field-rgb) / 1);
   border-color: rgb(var(--cx-wish-accent-rgb) / 0.5);
-  /* Quầng nhấn mảnh quanh thẻ = dấu hiệu "đang gõ ở đây", thay cho việc đổi nền
-     đậm lên (đổi nền là thò ra một mảng đục khác tông thiệp). */
   box-shadow:
     0 0 0 3px rgb(var(--cx-wish-accent-rgb) / 0.14),
     0 10px 30px rgb(0 0 0 / 0.16);
@@ -2202,8 +2201,8 @@ button.cx-pchrome-btn:hover {
   display: none;
 }
 
-/* Chip bút: dấu hiệu "chỗ này gõ được" lúc nghỉ, mở ô ra thì nhường hết bề ngang
-   cho chữ. Gửi xong (.is-sent) nó đổi thành dấu tích — đó là toàn bộ lời xác nhận. */
+/* Chip bút: dấu hiệu "chỗ này gõ được" cho chỗ nào còn dùng viên thuốc lúc nghỉ.
+   Cả dải nổi lẫn dạng comment đều mở sẵn ô gõ nên đang ẩn ở cả hai. */
 .cx-wdock-chip {
   display: flex;
   align-items: center;
@@ -2293,8 +2292,7 @@ button.cx-pchrome-btn:hover {
    xuống thành một đĩa nhạt cùng tông để khách khỏi bấm nhầm rồi chẳng thấy gì
    xảy ra. */
 .cx-wdock-btn {
-  /* Chưa mở ô thì nút biến mất: viên thuốc lúc nghỉ chỉ là một lời mời, thêm
-     nút Gửi vào đó là bảo khách gửi thứ chưa viết. */
+  /* Mặc định ẩn; chỗ nào mở sẵn ô gõ thì tự hiện lại (xem .cx-wdock/.cx-wsec). */
   display: none;
   align-items: center;
   justify-content: center;
@@ -2358,6 +2356,85 @@ button.cx-pchrome-btn:hover {
 .cx-wdock-msg[hidden],
 .cx-wdock-count[hidden] {
   display: none;
+}
+
+/* Ô nhập của DẢI NỔI cũng MỞ SẴN như ở dạng comment: ô gõ và mũi tên Gửi có mặt
+   từ đầu, bấm vào chỉ đặt con trỏ chứ hình dạng không đổi — thẻ dài hết hàng nên
+   chẳng còn gì để "nở ra", mà nở ra thì cả dải nhảy một nhịp ngay dưới ngón tay.
+   Khai SAU khối .cx-wdock-card.is-open ở trên để đè được (cùng độ đặc hiệu). */
+.cx-wdock .cx-wdock-card,
+.cx-wdock .cx-wdock-card.is-open {
+  border-radius: 22px;
+  padding: 6px;
+}
+
+/* Đặt con trỏ vào ô KHÔNG được đổi gì trên thẻ: trả hết nền/viền/bóng của
+   .is-open về đúng bản lúc không gõ. Dải nổi đè lên thiệp nên mọi thay đổi ở đây
+   đọc thành "trang vừa nhảy một cái", còn dấu hiệu đang gõ đã có con trỏ. */
+.cx-wdock .cx-wdock-card.is-open {
+  background: rgb(var(--cx-wish-field-rgb) / var(--cx-wish-field-a));
+  border-color: rgb(var(--cx-wish-accent-rgb) / 0.4);
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.06),
+    0 8px 24px rgb(0 0 0 / 0.12);
+}
+
+.cx-wdock .cx-wdock-row,
+.cx-wdock .cx-wdock-card.is-open .cx-wdock-row {
+  align-items: flex-end;
+  padding-left: 8px;
+}
+
+/* Chip bút là dấu hiệu "chỗ này gõ được" của viên thuốc lúc nghỉ — ô gõ đã mở
+   sẵn thì nó chỉ làm hàng soạn thụt vào một khúc. Lời xác nhận sau khi gửi dồn
+   vào dòng chữ (.is-sent bên dưới), giống dạng comment. */
+.cx-wdock .cx-wdock-chip {
+  display: none;
+}
+
+.cx-wdock .cx-wdock-text {
+  display: block;
+}
+
+.cx-wdock .cx-wdock-btn {
+  display: flex;
+}
+
+/* Dòng gợi ý chỉ thế chỗ ô gõ ở hai lúc không còn gì để gõ: vừa gửi xong
+   (.is-sent) và hết lượt (.is-done). */
+.cx-wdock .cx-wdock-hint {
+  display: none;
+}
+
+.cx-wdock .cx-wdock-card.is-sent .cx-wdock-text,
+.cx-wdock .cx-wdock-card.is-sent .cx-wdock-btn,
+.cx-wdock .cx-wdock-card.is-done .cx-wdock-text,
+.cx-wdock .cx-wdock-card.is-done .cx-wdock-btn {
+  display: none;
+}
+
+.cx-wdock .cx-wdock-card.is-sent .cx-wdock-hint,
+.cx-wdock .cx-wdock-card.is-done .cx-wdock-hint {
+  display: block;
+  padding: 6px 0 6px 6px;
+  opacity: 1;
+}
+
+/* Hàng chân rỗng vẫn ăn chỗ nếu là một hàng riêng, mà hiện ra lúc bấm thì thẻ
+   cao lên một nhịp — `display: contents` để câu báo lỗi + bộ đếm rơi thẳng vào
+   cột của thẻ, có chữ mới có chỗ. */
+.cx-wdock .cx-wdock-foot,
+.cx-wdock .cx-wdock-card.is-open .cx-wdock-foot {
+  display: contents;
+}
+
+.cx-wdock .cx-wdock-msg,
+.cx-wdock .cx-wdock-count {
+  padding: 2px 6px;
+}
+
+.cx-wdock .cx-wdock-count {
+  text-align: right;
 }
 
 /* ── Chuyển màu (gradient) cho nền bong bóng ─────────────────────────────────
@@ -2671,10 +2748,9 @@ button.cx-pchrome-btn:hover {
   }
 }
 
-/* Ô gửi ở dạng comment KHÔNG phải viên thuốc nép góc như ở dải nổi: nó là phần
-   chính của mục nên MỞ SẴN thành một hàng soạn đầy đủ — chip bút bên trái, ô gõ
-   ở giữa, nút gửi bên phải. Bấm vào chỉ thêm quầng nhấn chứ không đổi hình, nhờ
-   vậy không có cú "nở ra" làm nhảy cả mục lúc đang đọc. */
+/* Ô gửi ở dạng comment là phần chính của mục: MỞ SẴN thành một hàng soạn đầy đủ,
+   ô gõ ở giữa, nút gửi bên phải. Bấm vào chỉ thêm quầng nhấn chứ không đổi hình,
+   nhờ vậy không có cú "nở ra" làm nhảy cả mục lúc đang đọc. */
 .cx-wsec .cx-wdock-card,
 .cx-wsec .cx-wdock-card.is-open {
   align-self: stretch;
