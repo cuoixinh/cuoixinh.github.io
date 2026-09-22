@@ -532,14 +532,17 @@ input.flatpickr-input[readonly] {
 /* Track: bấm tab nào mở bảng đó, cuộn chỉ là cuộn (nhãn không xuống dòng). Kéo
    bằng chuột do _initCtrlTabsDrag lo. */
 .cx-ctabs-track {
-  @apply relative z-[1] flex min-w-0 flex-1 items-center gap-1 overflow-x-auto overscroll-x-contain px-3;
+  @apply relative z-[1] flex min-w-0 flex-1 items-center gap-1 overflow-x-auto
+         overscroll-x-contain py-px pl-5 pr-3;
 
-  /* Mờ dần hai mép: mắt thấy ngay là dải còn trượt được. Đoạn mờ phải NGẮN hơn
-     padding ngang ở trên, không thì tab đầu/cuối bị mờ mất chữ. */
+  /* Mờ dần hai mép: mắt thấy ngay là dải còn trượt được. Đoạn mờ KHÔNG được dài
+     hơn padding cùng bên, không thì tab đầu/cuối bị mờ mất chữ lúc chưa trượt.
+     Mép TRÁI dài hơn vì nó tì ngay vào nút ghim: 12px thì chữ trượt tới đó bị cắt
+     ngang thân, trông như chui xuống dưới nút. */
   mask-image: linear-gradient(
     to right,
     transparent 0,
-    #000 12px,
+    #000 20px,
     #000 calc(100% - 12px),
     transparent 100%
   );
