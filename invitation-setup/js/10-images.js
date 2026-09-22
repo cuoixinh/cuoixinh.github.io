@@ -8,10 +8,11 @@ function generateUUID() {
   return cxUUID();
 }
 
-// Build full image URL from filename
-function getImageUrl(filename) {
-  return storageDAL.getPublicUrl(filename);
-}
+// getImageUrl() dùng bản ở core/utils.js (nạp trước file này). CỐ Ý KHÔNG khai
+// lại ở đây: classic script chia sẻ biến toàn cục nên `function` khai sau ghi đè
+// hàm cùng tên khai trước, im lặng và ở PHẠM VI CẢ TRANG — bản từng nằm ở đây chỉ
+// gọi storageDAL.getPublicUrl() nên làm mất mấy nhánh nhận diện `blob:`/`data:`/
+// đường dẫn tương đối của bản chuẩn.
 
 // Chặn định dạng ngay khi chọn file, theo whitelist CONFIG.image.allowedTypes —
 // không kiểm `image/*` vì SVG (file chủ động) và HEIC (desktop không hiển thị
@@ -311,14 +312,18 @@ const pendingFocalPoints = {
   gallery_images: new Map(),
 };
 
-// Quy đổi global index (vị trí hiển thị trong lưới) sang key ổn định để tra/lưu điểm lấy nét
-function resolveGalleryFocalKey(globalIndex) {
+// Ảnh album ĐÃ lưu (tên file, một dòng một tấm trong textarea ẩn). Ảnh mới chọn
+// nằm ở pendingUploads.galleryImages — hai nguồn này luôn phải cộng lại khi đếm.
+function _gallerySavedFilenames() {
   const textarea = document.querySelector(
     'textarea[name="gallery_images_raw"]',
   );
-  const existingFilenames = textarea
-    ? textarea.value.trim().split("\n").filter(Boolean)
-    : [];
+  return textarea ? textarea.value.trim().split("\n").filter(Boolean) : [];
+}
+
+// Quy đổi global index (vị trí hiển thị trong lưới) sang key ổn định để tra/lưu điểm lấy nét
+function resolveGalleryFocalKey(globalIndex) {
+  const existingFilenames = _gallerySavedFilenames();
   if (globalIndex < existingFilenames.length) {
     return existingFilenames[globalIndex];
   }
@@ -346,6 +351,11 @@ const deletedImages = {
 async function handleImageUpload(event, fieldName) {
   const file = event.target.files[0];
   if (!file) return;
+  // Nhả ô input NGAY (giống handleGalleryUpload/handleLoveStoryImage): giữ lại
+  // file cũ thì chọn lại ĐÚNG ảnh đó không bắn `change` nữa — sau khi bấm Hủy ở
+  // bảng lấy nét, sau khi xoá ảnh, hay sau một file sai định dạng, cú chọn thứ
+  // hai im lặng hoàn toàn nên trông y như upload bị hỏng.
+  event.target.value = "";
 
   console.log(
     `Selected image for ${fieldName}: ${file.name}, size: ${(file.size / 1024 / 1024).toFixed(2)}MB`,
@@ -520,8 +530,14 @@ async function handleGalleryUpload(event) {
   event.target.value = "";
   if (files.length === 0) return;
 
+  // Phải trừ CẢ ảnh đã lưu: chỉ đếm pending thì 8 ảnh trong DB + 1 ảnh mới vẫn
+  // cho chọn thêm 9 tấm → 18 ảnh. Lúc lưu, ảnh đã đẩy lên Storage xong rồi
+  // wedding-admin mới trả 400 "Tối đa 10 ảnh trong album" → mất cả lượt lưu và
+  // để lại file rác. renderGalleryGrid() vốn đã đếm cả hai nguồn.
   const remainingSlots =
-    MAX_GALLERY_IMAGES - pendingUploads.galleryImages.length;
+    MAX_GALLERY_IMAGES -
+    _gallerySavedFilenames().length -
+    pendingUploads.galleryImages.length;
   if (remainingSlots <= 0) {
     showToast(`Đã đạt giới hạn ${MAX_GALLERY_IMAGES} ảnh`, "error");
     return;

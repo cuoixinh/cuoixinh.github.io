@@ -44,6 +44,10 @@ function _doAutoSave() {
     ? galleryTA.value.trim().split("\n").filter(Boolean)
     : [];
 
+  // Nháp localStorage không đi qua Edge Function nào nên đây là chỗ duy nhất chặn
+  // ảnh `blob:`/`data:` lọt vào bản nháp (xem core/utils.js).
+  _dropLocalOnlyImageRefs(payload);
+
   saveLocalDraft(payload);
   _syncLocalOrder(); // bản nháp cũng hiện trong "Đơn hàng" (khách: guestOrders) ngay khi đã có tên
 }

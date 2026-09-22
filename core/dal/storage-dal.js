@@ -28,16 +28,26 @@ class StorageDAL {
   // `wedding-admin` (payload `deleted_images`), nơi khoá service role kiểm ảnh có
   // thuộc đúng thiệp rồi mới xoá. Thêm hàm xoá ở đây là mở lại đường ghi thẳng.
 
+  // TÊN FILE trong bucket → URL xem được. Chỉ ghép khi đầu vào ĐÚNG là tên file:
+  // giá trị đã là địa chỉ hoàn chỉnh (`http(s):`, `blob:`, `data:`, `//host`) hay
+  // đường dẫn của trang (`/`, `./`, `../`) đều trả nguyên. Đây là chốt cuối —
+  // ghép một `blob:` vào sẽ ra URL kiểu `…/wedding-images/blob:https://…`: ảnh vỡ
+  // mà phải soi tận URL mới thấy. Nơi gọi không cần tự lọc trước.
   getPublicUrl(filename) {
-    if (!filename) return "";
+    const v = typeof filename === "string" ? filename.trim() : "";
+    if (!v) return "";
 
-    // If already a full URL, return as-is
-    if (filename.startsWith("http://") || filename.startsWith("https://")) {
-      return filename;
+    if (
+      /^[a-z][a-z0-9+.-]*:/i.test(v) || // có scheme: http(s), blob, data…
+      v.startsWith("//") ||
+      v.startsWith("/") ||
+      v.startsWith("./") ||
+      v.startsWith("../")
+    ) {
+      return v;
     }
 
-    // Build URL using Cloudflare Worker proxy
-    return `${this.storageBaseUrl}/${filename}`;
+    return `${this.storageBaseUrl}/${v}`;
   }
 }
 

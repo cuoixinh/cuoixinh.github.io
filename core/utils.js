@@ -101,6 +101,56 @@ function getImageUrl(filename) {
   return `${STORAGE_BASE_URL}/${filename}`;
 }
 
+// Ảnh chỉ dùng được ở máy đang mở tab này → không bao giờ được lưu.
+const _LOCAL_ONLY_IMAGE_RE = /^(blob:|data:)/i;
+
+// Gỡ mọi tham chiếu ảnh cục bộ khỏi payload trước khi lưu: 5 ô ảnh đơn,
+// gallery_images và ảnh từng mốc của love_story/timeline. `blob:` là URL xem trước
+// sống theo tab của đúng máy này — lưu xuống là thiệp thật trỏ vào hư không.
+// wedding-admin đã chặn bằng isSafeImageRef(), nhưng bản nháp localStorage KHÔNG
+// đi qua Edge Function nào nên đây là chỗ duy nhất chặn được đường đó.
+// Ô ảnh đơn về null = "chưa có ảnh", đúng hiện trạng: ảnh vẫn còn nằm chờ trong
+// pendingUploads/IndexedDB.
+function _dropLocalOnlyImageRefs(payload) {
+  const bad = (v) => typeof v === "string" && _LOCAL_ONLY_IMAGE_RE.test(v.trim());
+
+  for (const f of [
+    "cover_image_url",
+    "groom_image_url",
+    "bride_image_url",
+    "groom_qr_url",
+    "bride_qr_url",
+  ]) {
+    if (bad(payload[f])) {
+      console.warn(`Bỏ ảnh cục bộ chưa upload ở ${f}:`, payload[f]);
+      payload[f] = null;
+    }
+  }
+
+  if (Array.isArray(payload.gallery_images)) {
+    payload.gallery_images = payload.gallery_images.filter((v) => !bad(v));
+  }
+
+  // love_story/timeline: saveAll lấy từ <input hidden> nên là CHUỖI JSON, còn
+  // _doAutoSave gửi mảng thật — nhận cả hai dạng và trả về đúng dạng đã nhận.
+  for (const key of ["love_story", "timeline"]) {
+    const raw = payload[key];
+    let arr = raw;
+    if (typeof raw === "string") {
+      try {
+        arr = JSON.parse(raw);
+      } catch {
+        continue;
+      }
+    }
+    if (!Array.isArray(arr) || !arr.some((it) => it && bad(it.image_url))) continue;
+    const cleaned = arr.map((it) =>
+      it && bad(it.image_url) ? { ...it, image_url: null } : it,
+    );
+    payload[key] = typeof raw === "string" ? JSON.stringify(cleaned) : cleaned;
+  }
+}
+
 /**
  * URL ảnh đã SẴN SÀNG nhét vào `src="..."` của chuỗi innerHTML: chặn scheme lạ
  * rồi escape dấu nháy. Dùng thay `getImageUrl()` ở MỌI chỗ ghép chuỗi HTML —
