@@ -1941,16 +1941,17 @@ button.cx-pchrome-btn:hover {
   );
 }
 
-/* Cột dồn về mép TRÁI, rộng 2/3 — cả danh sách lẫn ô nhập đều nằm trong khổ này,
-   phần bên phải để trống cho nút của mẫu thiệp (nhạc, hộp quà) không bị che. */
+/* Cột chiếm trọn bề ngang dải — ô nhập dài hết hàng như navbar. Riêng DANH SÁCH
+   lời chúc vẫn bó vào 2/3 mép trái (.cx-wfeed), chừa bên phải cho nút của mẫu
+   thiệp (nhạc, hộp quà) không bị bong bóng che. */
 .cx-wdock-inner {
   position: relative;
   z-index: 1;
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: 8px;
-  width: 66.6667%;
-  max-width: 420px;
+  width: 100%;
 }
 
 /* Khung danh sách: trong suốt, cao 1/3 màn, lời chúc trôi từ dưới lên rồi lặp
@@ -1958,9 +1959,16 @@ button.cx-pchrome-btn:hover {
    qua --vh (vh-lock.js) chứ không dùng dvh/svh trần. */
 .cx-wfeed {
   position: relative;
+  width: 66.6667%;
+  max-width: 420px;
   height: calc(var(--vh, 1vh) * 33);
   height: calc(var(--vh, 1svh) * 33);
   overflow: hidden;
+  /* Lề ngang cho BÓNG ĐỔ của bong bóng: overflow hidden xén thẳng hai bên, lề 0
+     là bóng thành một nét sắc chạy dọc bong bóng. Bù lại bằng margin âm nên khổ
+     khung vẫn đúng 2/3, và chiều cao không đổi (lề dọc = 0). */
+  padding: 0 16px;
+  margin: 0 -16px;
   -webkit-mask-image: linear-gradient(
     to bottom,
     transparent 0,
@@ -2028,8 +2036,9 @@ button.cx-pchrome-btn:hover {
   background: rgb(var(--cx-wish-bubble-rgb) / var(--cx-wish-bubble-a));
   border: 1px solid rgb(var(--cx-wish-accent-rgb) / 0.2);
   box-shadow:
-    0 1px 2px rgb(0 0 0 / 0.05),
-    0 6px 18px rgb(0 0 0 / 0.08);
+    0 1px 2px rgb(0 0 0 / 0.04),
+    0 6px 16px rgb(0 0 0 / 0.06),
+    0 16px 34px rgb(0 0 0 / 0.07);
   -webkit-backdrop-filter: blur(6px);
   backdrop-filter: blur(6px);
 }
@@ -2051,7 +2060,7 @@ button.cx-pchrome-btn:hover {
 /* Dòng thay chỗ ô nhập khi khách vào bằng link chung (không gửi được) — cùng
    mặt giấy với ô nhập để đáy dải vẫn là một khối, chỉ nhạt hơn. */
 .cx-wdock-note {
-  align-self: flex-start;
+  align-self: stretch;
   max-width: 100%;
   padding: 9px 14px;
   border-radius: 999px;
@@ -2124,17 +2133,15 @@ button.cx-pchrome-btn:hover {
   display: none;
 }
 
-/* Ô nhập: thẻ nổi dài hết CỘT (.cx-wdock-inner, 2/3 màn). Lúc nghỉ là một viên
-   thuốc THẤP ngang một hàng nút — chip bút bên trái, lời mời ở giữa; bấm vào
-   (.is-open) thì chính nó nở ra thành ô gõ, bo góc mềm lại và mọc thêm hàng
-   chân (lỗi + bộ đếm).
+/* Ô nhập: thẻ nổi dài HẾT HÀNG như navbar (lề 8px của .cx-wdock hai bên). Lúc
+   nghỉ là một viên thuốc THẤP ngang một hàng nút — chip bút bên trái, lời mời ở
+   giữa; bấm vào (.is-open) thì chính nó nở cao lên thành ô gõ, bo góc mềm lại và
+   mọc thêm hàng chân (lỗi + bộ đếm).
    ĐỪNG độn padding: mỗi px ở đây là một px thiệp bị che. */
 .cx-wdock-card {
   display: flex;
   flex-direction: column;
-  /* Lúc nghỉ chỉ co theo dòng chữ — một viên thuốc nhỏ ở góc, không phải cái
-     thanh chắn ngang thiệp; mở ra mới trải hết cột. */
-  align-self: flex-start;
+  align-self: stretch;
   max-width: 100%;
   padding: 5px;
   border-radius: 999px;
@@ -2161,7 +2168,6 @@ button.cx-pchrome-btn:hover {
 }
 
 .cx-wdock-card.is-open {
-  align-self: stretch;
   border-radius: 22px;
   padding: 6px;
   background: rgb(var(--cx-wish-field-rgb) / 1);
