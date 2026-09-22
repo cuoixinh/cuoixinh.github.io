@@ -2484,6 +2484,8 @@ function _syncCtrlHead() {
   //     cặp icon bên PHẢI, ↺ rồi ✓, ô trái bỏ trống;
   //   bảng theo tab: chữ "Mặc định" bên TRÁI, ô phải bỏ trống.
   const detail = !!view.back;
+  // Hàng đầu bảng đổi cách xếp ở màn chi tiết từ md — xem .cx-ch-detail.
+  document.getElementById("cx-ctrl-actions")?.classList.toggle("cx-ch-detail", detail);
   const reset = document.getElementById("cx-ch-reset");
   if (reset) {
     reset.classList.toggle("hidden", !view.reset || detail);

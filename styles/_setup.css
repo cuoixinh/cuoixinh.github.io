@@ -473,7 +473,21 @@ input.flatpickr-input[readonly] {
 }
 
 .cx-ch-end {
-  @apply justify-end;
+  /* min-w-fit hạ bệ `min-w-0` của .cx-ch-side ở riêng ô này: ô phải KHÔNG được co
+     dưới bề ngang cặp nút, co là nút tràn ra đè lên tiêu đề. */
+  @apply min-w-fit justify-end;
+}
+
+/* Màn chi tiết TỪ md: cặp nút có nhãn nên ô phải rộng hẳn, ép tiêu đề đứng giữa
+   theo lưới 3 ô là hai bên đè nhau. Ô trái ở màn này vốn rỗng → xếp hàng ngang,
+   tên bảng sát trái và cặp nút dồn phải. Dưới md vẫn là lưới 3 ô (icon trần đủ
+   hẹp để tiêu đề còn đứng giữa). */
+.cx-ch-detail {
+  @apply md:flex;
+}
+
+.cx-ch-detail .cx-ch-end {
+  @apply md:ml-auto;
 }
 
 .cx-ch-title {
@@ -501,39 +515,42 @@ input.flatpickr-input[readonly] {
   @apply outline-none ring-2 ring-rose-200;
 }
 
-/* Cặp nút icon bên phải đầu bảng chi tiết (↺ Mặc định, ✓ Xong) — CHỈ cái icon,
-   không nền không bo góc. Khổ 32px là VÙNG CHẠM, không phải hình dạng: nó trong
-   suốt nên mắt chỉ thấy mỗi icon. */
+/* Cặp nút bên phải đầu bảng chi tiết (↺ Mặc định, ✓ Xong). Hai dáng theo khổ màn:
+   mobile chỉ còn icon trần — khổ 32px là VÙNG CHẠM chứ không phải hình dạng, nền
+   trong suốt nên mắt chỉ thấy icon; từ md là nút pill CÓ NHÃN (nhãn khai trong
+   markup, `hidden md:inline`) vì trên desktop mỗi cái icon thì quá bé để nhắm.
+   Dáng pill mượn đúng số đo của <x-button size="sm"> cho khớp nút ở chỗ khác. */
 .cx-ch-ico {
-  @apply inline-flex h-8 w-8 items-center justify-center
-         transition-[color,transform] duration-150;
+  @apply inline-flex h-8 w-8 shrink-0 items-center justify-center gap-1.5
+         whitespace-nowrap transition-[color,background-color,transform] duration-150
+         md:w-auto md:rounded-full md:px-4 md:text-xs md:font-semibold;
 }
 
 .cx-ch-ico:active {
-  @apply scale-90;
+  @apply scale-95;
 }
 
 /* Vòng focus phải có chỗ bám — bo nhẹ CHỈ để vòng đó không vuông chằn chặn,
    lúc không focus chẳng thấy gì. */
 .cx-ch-ico:focus-visible {
-  @apply rounded-lg outline-none ring-2 ring-rose-200;
+  @apply rounded-lg outline-none ring-2 ring-rose-200 md:rounded-full;
 }
 
-/* ↺ là việc PHỤ, để xám cho khỏi tranh màu nhấn với dấu ✓ xác nhận ngay cạnh. */
+/* ↺ là việc PHỤ nên đi tông trung tính, nhường màu nhấn cho dấu ✓ ngay cạnh. */
 .cx-ch-restore {
-  @apply text-gray-400;
+  @apply text-gray-400 md:border md:border-gray-200 md:bg-white md:text-gray-700;
 }
 
 .cx-ch-restore:hover {
-  @apply text-gray-600;
+  @apply text-gray-600 md:bg-gray-50 md:text-gray-700;
 }
 
 .cx-ch-done {
-  @apply -mr-1 text-rose-600;
+  @apply -mr-1 text-rose-600 md:mr-0 md:bg-rose-500 md:text-white md:shadow-sm;
 }
 
 .cx-ch-done:hover {
-  @apply text-rose-700;
+  @apply text-rose-700 md:bg-rose-600 md:text-white;
 }
 
 /* Hàng tab dưới bảng chỉnh: nút GHIM "Mặc định" đứng yên bên trái, phần còn lại là

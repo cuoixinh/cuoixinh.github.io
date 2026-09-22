@@ -89,10 +89,11 @@
             </button>
           </div>
           <span id="cx-ch-title" class="cx-ch-title">Bộ màu</span>
-          <!-- Ô bên phải: cặp nút icon của MÀN CHI TIẾT (bấm thẳng vào một phần tử
-               trên thiệp) — ↺ đặt lại phần tử đang chỉnh, rồi ✓ xong. Bảng theo tab
-               thì ô này rỗng và nút đặt lại là chữ "Mặc định" bên trái; ô vẫn phải
-               có để tiêu đề đứng GIỮA đầu bảng. Việc gạt ẩn/hiện ở _syncCtrlHead. -->
+          <!-- Ô bên phải: cặp nút của MÀN CHI TIẾT (bấm thẳng vào một phần tử trên
+               thiệp) — ↺ đặt lại phần tử đang chỉnh, rồi ✓ xong; icon trần ở mobile,
+               nút có nhãn từ md (xem .cx-ch-ico). Bảng theo tab thì ô này rỗng và nút
+               đặt lại là chữ "Mặc định" bên trái; ô vẫn phải có để tiêu đề đứng GIỮA
+               đầu bảng. Việc gạt ẩn/hiện ở _syncCtrlHead. -->
           <div class="cx-ch-side cx-ch-end">
             <button
               type="button"
@@ -103,8 +104,11 @@
               title="Đặt lại phần đang chỉnh về mặc định"
             >
               <!-- Cỡ CỐ ĐỊNH phải là inline style: svg.lucide trong build.css
-                   ép 1em và thắng cả utility w-*/h-*. -->
+                   ép 1em — mà từ md nút có `text-xs` nên để 1em là icon teo còn
+                   12px. -->
               <i data-lucide="rotate-ccw" style="width:18px;height:18px"></i>
+              <!-- Nhãn chỉ có từ md: mobile để icon trần cho đỡ chiếm chỗ. -->
+              <span class="hidden md:inline">Mặc định</span>
             </button>
             <button
               type="button"
@@ -115,6 +119,7 @@
               title="Xong"
             >
               <i data-lucide="check" style="width:18px;height:18px"></i>
+              <span class="hidden md:inline">Xong</span>
             </button>
           </div>
         </div>
