@@ -4,20 +4,12 @@
 // Tách từ index.js (dòng 816–1384 bản gốc). Thứ tự nạp khai báo ở loader.js.
 //
 // Mọi thay đổi ở đây chỉ nằm trong `_themeSetting` (biến toàn cục, ngoài <form>)
-// nên KHÔNG có listener autosave nào của form bắt được: sửa xong phải gọi
-// `_themeTouch()`, đừng gọi `_setDirty` trần.
+// nên KHÔNG có listener nào của form bắt được: sửa xong phải gọi
+// `_scheduleAutoSave("theme")`, đừng gọi `_setDirty` trần — dấu * thì lên mà bản
+// nháp không đổi, F5 là mất thay đổi (hoặc tệ hơn: "Đặt lại" không có tác dụng
+// còn thứ vừa xoá thì sống lại).
 
 // ============= THEME (GIAO DIỆN) PANEL =============
-
-// Mọi thay đổi ở tab này gọi qua đây. CHƯA ĐĂNG NHẬP thì hẹn lưu nháp y như tab
-// Chỉnh sửa: nháp nằm trong trình duyệt, không ghi là F5 mất sạch — nặng nhất là
-// "Đặt lại" (nháp vẫn giữ theme_setting cũ nên thứ vừa xoá sống lại). ĐÃ ĐĂNG
-// NHẬP thì chỉ đánh dấu chưa lưu: nháp thật nằm ở DB, F5 cũng đọc từ DB
-// (xem loadData ở js/13-data.js), nên chỉ "Lưu nháp"/"Xuất bản" mới giữ được.
-function _themeTouch() {
-  if (IS_LOGIN) _setDirty(true, "theme");
-  else _scheduleAutoSave("theme");
-}
 
 
 // Ô nào người dùng đã đặt riêng vẫn giữ nguyên (_initThemePanel ưu tiên
@@ -162,7 +154,7 @@ function onCardPaletteChange() {
   }
 
   _syncPaletteStrength();
-  _themeTouch();
+  _scheduleAutoSave("theme");
   _applyThemeToFrame();
 }
 
@@ -183,7 +175,7 @@ function onPaletteStrengthInput() {
 window.onPaletteStrengthInput = onPaletteStrengthInput;
 
 function onPaletteStrengthCommit() {
-  if (_currentPalette()) _themeTouch();
+  if (_currentPalette()) _scheduleAutoSave("theme");
 }
 
 window.onPaletteStrengthCommit = onPaletteStrengthCommit;
@@ -407,7 +399,7 @@ window.cxSyncThemeAddCards = cxSyncThemeAddCards;
 function resetThemeSetting() {
   _themeSetting = {};
   _initThemePanel();
-  _themeTouch();
+  _scheduleAutoSave("theme");
 
   // Reload iframe để xoá hết override, quay về mặc định của theme
   _reloadThemeFrame();
@@ -444,7 +436,7 @@ window.cxResetAllTheme = cxResetAllTheme;
 function _resetThemePart(key, toast) {
   delete _themeSetting[key];
   if (key === "custom_blocks") _pruneBlockOverrides();
-  _themeTouch();
+  _scheduleAutoSave("theme");
   _reloadThemeFrame();
   showToast(toast, "success");
 }
@@ -454,7 +446,7 @@ function resetCardPalette() {
   const el = document.getElementById("theme-palette");
   if (el) el.value = "";
   _syncPaletteStrength();
-  _themeTouch();
+  _scheduleAutoSave("theme");
   _applyThemeToFrame();
   showToast("Đã trả bộ màu về mặc định của mẫu", "success");
 }
@@ -548,11 +540,11 @@ window.addEventListener("message", (ev) => {
     // lưu nháp.
     _themeSetting.custom_blocks = Array.isArray(d.blocks) ? d.blocks : [];
     _pruneBlockOverrides(_themeSetting.custom_blocks);
-    _themeTouch();
+    _scheduleAutoSave("theme");
   } else if (d.type === "cx-decors-changed") {
     // Hoạ tiết vừa thêm / kéo / xoay / xoá trong thiệp → lưu toạ độ mới.
     _themeSetting.decorations = Array.isArray(d.decors) ? d.decors : [];
-    _themeTouch();
+    _scheduleAutoSave("theme");
   } else if (d.type === "cx-elements-changed") {
     // Thành phần vừa thả / kéo / phóng to / xoá → lưu, và nếu bảng điều chỉnh
     // đang mở cho chính nó thì kéo thanh trượt theo (chụm 2 ngón trên thiệp).
@@ -560,7 +552,7 @@ window.addEventListener("message", (ev) => {
     // Trình phát của theme đã chuyển thành thành phần → nhớ lại, không thì lần
     // mở sau lại dựng thêm một cái nữa dù người dùng đã xoá.
     if (d.seeded) _themeSetting.music_seeded = true;
-    _themeTouch();
+    _scheduleAutoSave("theme");
     _syncElWidthFromCard();
     _syncElTiles();
   } else if (d.type === "cx-element-pick") {
@@ -602,7 +594,7 @@ function _setTextSizeFromCard(selector, size) {
     if (el) el.value = n;
     _syncSampleStyle();
   }
-  _themeTouch();
+  _scheduleAutoSave("theme");
   _lineIframe()?.contentWindow?.applyThemeSetting?.(_themeSetting);
 }
 
@@ -876,7 +868,7 @@ function startPaletteDrag(e, type) {
       // KHÔNG đóng bảng: runtime chọn khối vừa thả thì bảng chỉnh chữ tự chiếm
       // chỗ (nó ẩn sẵn bảng này), còn nhỡ tin pick thì người dùng vẫn đứng ở
       // bảng Văn bản để thả tiếp — rơi về nhóm chỉnh chung là mất chỗ đang làm.
-      _themeTouch();
+      _scheduleAutoSave("theme");
       iframe.contentWindow?.postMessage(
         { type: "cx-drop", blockType: type, y },
         "*",
@@ -974,7 +966,7 @@ window.startDecorDrag = startDecorDrag;
 // Hoạ tiết không có bảng cấp 3 (chỉnh ngay trên thiệp bằng bộ nút của nó) → thả
 // xong Ở LẠI bảng chọn để thêm tiếp; rời bảng bằng nút quay lại.
 function _addDecor(src, x, y) {
-  _themeTouch();
+  _scheduleAutoSave("theme");
   _lineIframe()?.contentWindow?.postMessage({ type: "cx-add-decor", src, x, y }, "*");
 }
 
@@ -1355,7 +1347,7 @@ function pickGiftBox(id) {
   if (id) _themeSetting.gift_box = id;
   else delete _themeSetting.gift_box;
   _syncGiftTiles();
-  _themeTouch();
+  _scheduleAutoSave("theme");
 
   // Áp thẳng vào khung xem trước rồi cuộn tới mục — KHÔNG nạp lại: nạp lại là
   // bảng chọn đóng mất (xem _watchThemeFrame) mà khách còn đang so mẫu. Lưu dữ
@@ -1457,7 +1449,7 @@ function pickWishMode(id) {
   if (id) _themeSetting.wishes_mode = id;
   else delete _themeSetting.wishes_mode;
   _syncWishTiles();
-  _themeTouch();
+  _scheduleAutoSave("theme");
 
   _savePreviewData();
   const win = _lineIframe()?.contentWindow;
@@ -1572,7 +1564,7 @@ function _elVariantOf(id) {
 
 function _elSend(msg) {
   if (!_elSel) return;
-  _themeTouch();
+  _scheduleAutoSave("theme");
   _lineIframe()?.contentWindow?.postMessage(
     Object.assign({ id: _elSel }, msg),
     "*",
@@ -1901,7 +1893,7 @@ function _lineOverride() {
 // Sau mỗi thay đổi 1 dòng: hẹn lưu nháp + áp lại vào iframe preview
 // (style qua applyThemeSetting, nội dung/ẩn qua applyThemeSetting + applyTextOverrides).
 function _applyLine() {
-  _themeTouch();
+  _scheduleAutoSave("theme");
   const cw = _lineIframe()?.contentWindow;
   cw?.applyThemeSetting?.(_themeSetting);
   cw?.applyTextOverrides?.(_themeSetting);
