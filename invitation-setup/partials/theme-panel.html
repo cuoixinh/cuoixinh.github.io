@@ -572,8 +572,10 @@
            — thêm/đổi tên tab là sửa bên đó, đừng viết nút vào đây. -->
       <div id="cx-ctrl-tabs" class="cx-ctabs">
         <!-- Nút GHIM đầu dải, KHÔNG phải tab (nên nằm ngoài role="tablist" và
-             ngoài track cuộn): trả CẢ thiệp về mặc định, bấm được từ bất kỳ bảng
-             nào. Nút "Mặc định" ở đầu bảng chỉ lo đúng bảng đang mở. -->
+             ngoài track cuộn). Mức RỘNG NHẤT trong ba mức đặt lại nên gọi là "Đặt
+             lại" cho khác hẳn hai mức kia: nó trả CẢ thiệp về mẫu gốc và bấm được
+             từ bất kỳ bảng nào, còn "Mặc định" ở đầu bảng chỉ lo đúng bảng đang mở
+             (hoặc đúng phần tử đang chỉnh ở bảng chi tiết). -->
         <x-button
           id="cx-ctrl-reset-all"
           variant="outline"
@@ -582,8 +584,8 @@
           icon="rotate-ccw"
           onclick="cxResetAllTheme()"
           class="shrink-0"
-          title="Trả toàn bộ thiệp về mặc định của mẫu"
-          >Mặc định</x-button
+          title="Đặt lại toàn bộ thiệp về mẫu gốc"
+          >Đặt lại</x-button
         >
         <div
           id="cx-ctrl-tabs-track"

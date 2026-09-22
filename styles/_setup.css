@@ -480,8 +480,9 @@ input.flatpickr-input[readonly] {
   @apply truncate text-[14px] font-semibold text-gray-800;
 }
 
-/* Nút trái: "Mặc định" của RIÊNG bảng đang mở. Về mặc định cả thiệp là nút ghim ở
-   đầu dải tab dưới (#cx-ctrl-reset-all). */
+/* Nút trái: "Mặc định" của RIÊNG bảng đang mở (hoặc của đúng phần tử đang chỉnh ở
+   bảng chi tiết). Đặt lại cả thiệp là nút ghim "Đặt lại" ở đầu dải tab dưới
+   (#cx-ctrl-reset-all). */
 .cx-ch-reset {
   @apply -ml-2 inline-flex min-w-0 items-center gap-1 rounded-lg px-2 py-1
          text-[12.5px] font-medium text-rose-600

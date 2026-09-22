@@ -401,20 +401,23 @@ function resetThemeSetting() {
 
 window.resetThemeSetting = resetThemeSetting;
 
-// Nút GHIM ở đầu dải tab. Hỏi lại trước khi gọi: nó xoá thứ của MỌI bảng một lượt
-// (kể cả khối chữ và hoạ tiết đã đặt tay), mà lại bấm được từ bất kỳ bảng nào nên
-// dễ chạm nhầm hơn nút cũ vốn chỉ nằm trong bảng "Thiệp cưới".
+// Mức RỘNG NHẤT trong ba mức đặt lại (nút ghim đầu dải tab, nhãn "Đặt lại"):
+//   Đặt lại  → cả thiệp        ← đây
+//   Mặc định → đúng bảng đang mở (CTRL_VIEWS[].reset)
+//   Mặc định → đúng phần tử đang chỉnh (bảng chi tiết: chỉnh chữ, điều chỉnh)
+// Hỏi lại trước khi gọi: nó xoá thứ của MỌI bảng một lượt (kể cả khối chữ và hoạ
+// tiết đã đặt tay), mà lại bấm được từ bất kỳ bảng nào nên dễ chạm nhầm.
 async function cxResetAllTheme() {
   const ok = await showConfirm(
-    "Về mặc định toàn bộ thiệp?",
+    "Đặt lại toàn bộ thiệp?",
     "Bộ màu, chữ đã chỉnh riêng, khối văn bản, hoạ tiết, thẻ nhạc, hộp mừng cưới và " +
       "cách hiện lời chúc đều trở lại như mẫu gốc. Nội dung thiệp (tên, ngày, ảnh…) " +
       "không đổi.",
-    { confirmText: "Về mặc định" },
+    { confirmText: "Đặt lại" },
   );
   if (!ok) return;
   resetThemeSetting();
-  showToast("Đã trả toàn bộ thiệp về mặc định", "success");
+  showToast("Đã đặt lại toàn bộ thiệp", "success");
 }
 window.cxResetAllTheme = cxResetAllTheme;
 
@@ -2310,7 +2313,8 @@ function _updateSheetFade(body) {
 // cho nút ✓ Xong bên phải (màn con: chỉnh chữ, điều chỉnh thành phần — không có
 // tab vì chỉ mở được bằng cú bấm vào thiệp), `reset` là hàm cho nút trái — nút đó
 // CHỈ trả về mặc định phần thuộc bảng này (nhãn mặc định "Mặc định", đổi bằng
-// `resetTxt`); về mặc định cả thiệp là nút ghim ở đầu dải tab (cxResetAllTheme).
+// `resetTxt`); đặt lại CẢ thiệp là nút ghim "Đặt lại" ở đầu dải tab
+// (cxResetAllTheme) — ba mức, ba phạm vi, đừng trộn nhãn giữa chúng.
 // Xét từ TRÊN XUỐNG, màn nào không ẩn thì thắng; dòng cuối là màn mặc định.
 // Thêm bảng mới → thêm một dòng ở đây + một key vào CTRL_TABS, không đụng markup
 // (dải tab do _renderCtrlTabs dựng) lẫn các hàm mở/đóng bảng.
