@@ -85,24 +85,41 @@
             >
               <!-- Chữ trần, không icon: có icon là phần CHỮ thụt vào, hết thẳng
                    cột với nội dung bên dưới. -->
-              <span id="cx-ch-reset-txt">Đặt lại</span>
+              <span id="cx-ch-reset-txt">Mặc định</span>
             </button>
           </div>
           <span id="cx-ch-title" class="cx-ch-title">Bộ màu</span>
-          <!-- Ô bên phải: nút Xong của màn cấp 2. Rỗng ở các bảng khác, nhưng
-               vẫn phải có để tiêu đề đứng GIỮA đầu bảng, cân với nút bên trái. -->
+          <!-- Ô bên phải: cặp nút của MÀN CHI TIẾT (bấm thẳng vào một phần tử trên
+               thiệp) — ↺ đặt lại phần tử đang chỉnh, rồi ✓ áp dụng; icon trần ở mobile,
+               nút có nhãn từ md (xem .cx-ch-ico). Bảng theo tab thì ô này rỗng và nút
+               đặt lại là chữ "Mặc định" bên trái; ô vẫn phải có để tiêu đề đứng GIỮA
+               đầu bảng. Việc gạt ẩn/hiện ở _syncCtrlHead. -->
           <div class="cx-ch-side cx-ch-end">
+            <button
+              type="button"
+              id="cx-ch-restore"
+              onclick="cxCtrlReset()"
+              class="cx-ch-ico cx-ch-restore hidden"
+              aria-label="Mặc định"
+              title="Đặt lại phần đang chỉnh về mặc định"
+            >
+              <!-- Cỡ CỐ ĐỊNH phải là inline style: svg.lucide trong build.css
+                   ép 1em — mà từ md nút có `text-xs` nên để 1em là icon teo còn
+                   12px. -->
+              <i data-lucide="rotate-ccw" style="width:18px;height:18px"></i>
+              <!-- Nhãn chỉ có từ md: mobile để icon trần cho đỡ chiếm chỗ. -->
+              <span class="hidden md:inline">Mặc định</span>
+            </button>
             <button
               type="button"
               id="cx-ch-done"
               onclick="cxCtrlBack()"
-              class="cx-ch-done hidden"
-              aria-label="Xong"
-              title="Xong"
+              class="cx-ch-ico cx-ch-done hidden"
+              aria-label="Áp dụng"
+              title="Áp dụng"
             >
-              <!-- Cỡ CỐ ĐỊNH phải là inline style: svg.lucide trong build.css
-                   ép 1em và thắng cả utility w-*/h-*. -->
               <i data-lucide="check" style="width:18px;height:18px"></i>
+              <span class="hidden md:inline">Áp dụng</span>
             </button>
           </div>
         </div>
@@ -570,13 +587,29 @@
            được _syncCtrlHead() tô và chỉ kéo vào tầm nhìn khi đang khuất.
            Các nút do _renderCtrlTabs() (js/05-theme-panel.js) dựng từ CTRL_VIEWS
            — thêm/đổi tên tab là sửa bên đó, đừng viết nút vào đây. -->
-      <div
-        id="cx-ctrl-tabs"
-        class="cx-ctabs"
-        role="tablist"
-        aria-label="Phần cần chỉnh"
-      >
-        <div id="cx-ctrl-tabs-track" class="cx-ctabs-track"></div>
+      <div id="cx-ctrl-tabs" class="cx-ctabs">
+        <!-- Nút GHIM đầu dải, KHÔNG phải tab (nên nằm ngoài role="tablist" và
+             ngoài track cuộn). Mức RỘNG NHẤT trong ba mức đặt lại nên gọi là "Đặt
+             lại" cho khác hẳn hai mức kia: nó trả CẢ thiệp về mẫu gốc và bấm được
+             từ bất kỳ bảng nào, còn "Mặc định" ở đầu bảng chỉ lo đúng bảng đang mở
+             (hoặc đúng phần tử đang chỉnh ở bảng chi tiết). -->
+        <x-button
+          id="cx-ctrl-reset-all"
+          variant="outline"
+          tone="neutral"
+          size="sm"
+          icon="rotate-ccw"
+          onclick="cxResetAllTheme()"
+          class="shrink-0"
+          title="Đặt lại toàn bộ thiệp về mẫu gốc"
+          >Đặt lại</x-button
+        >
+        <div
+          id="cx-ctrl-tabs-track"
+          class="cx-ctabs-track"
+          role="tablist"
+          aria-label="Phần cần chỉnh"
+        ></div>
       </div>
       <!-- /dải tab -->
     </div>

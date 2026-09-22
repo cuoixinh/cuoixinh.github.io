@@ -26,7 +26,10 @@ import {
   errMsg,
   generateWithGemini,
   getGeminiKeys,
+  isQuotaError,
   json,
+  markKeyExhausted,
+  orderKeysByQuota,
   readErrorDetail,
   withTimeout,
 } from '../_shared/ai-provider.ts'
@@ -625,9 +628,12 @@ function buildStreamResponse(
         }
       }
 
-      const startIdx = geminiKeys.length ? Math.floor(Math.random() * geminiKeys.length) : 0
-      for (let k = 0; k < geminiKeys.length; k++) {
-        const key = geminiKeys[(startIdx + k) % geminiKeys.length]
+      // Cùng phép chọn key với đường non-stream: key còn quota trộn ngẫu nhiên lên
+      // trước, key vừa ăn 429 xếp cuối và được cho nghỉ (xem orderKeysByQuota).
+      const { order, cooling } = orderKeysByQuota(geminiKeys)
+      for (let k = 0; k < order.length; k++) {
+        const idx = order[k]
+        const key = geminiKeys[idx]
         const t = withTimeout(CHAT_TIMEOUT_MS)
         try {
           const res = await callGeminiStreamRaw(prompt, key, t.signal)
@@ -673,9 +679,13 @@ function buildStreamResponse(
           break
         } catch (e) {
           t.clear()
+          const quota = isQuotaError(e)
+          if (quota) markKeyExhausted(key)
           log.warn('chat.gemini_stream_failed', {
-            key_index: (startIdx + k) % geminiKeys.length,
+            key_index: idx,
             keys_total: geminiKeys.length,
+            keys_cooling: cooling,
+            quota_cooldown: quota || undefined,
             chars_so_far: acc.length,
             finish_reason: finishReason || undefined,
             ...errFields(e),

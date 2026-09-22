@@ -2,6 +2,12 @@
 // mẫu chia sẻ.
 //
 // Tách từ index.js (dòng 816–1384 bản gốc). Thứ tự nạp khai báo ở loader.js.
+//
+// Mọi thay đổi ở đây chỉ nằm trong `_themeSetting` (biến toàn cục, ngoài <form>)
+// nên KHÔNG có listener nào của form bắt được: sửa xong phải gọi
+// `_scheduleAutoSave("theme")`, đừng gọi `_setDirty` trần — dấu * thì lên mà bản
+// nháp không đổi, F5 là mất thay đổi (hoặc tệ hơn: "Đặt lại" không có tác dụng
+// còn thứ vừa xoá thì sống lại).
 
 // ============= THEME (GIAO DIỆN) PANEL =============
 
@@ -148,7 +154,7 @@ function onCardPaletteChange() {
   }
 
   _syncPaletteStrength();
-  _setDirty(true, "theme");
+  _scheduleAutoSave("theme");
   _applyThemeToFrame();
 }
 
@@ -169,7 +175,7 @@ function onPaletteStrengthInput() {
 window.onPaletteStrengthInput = onPaletteStrengthInput;
 
 function onPaletteStrengthCommit() {
-  if (_currentPalette()) _setDirty(true, "theme");
+  if (_currentPalette()) _scheduleAutoSave("theme");
 }
 
 window.onPaletteStrengthCommit = onPaletteStrengthCommit;
@@ -393,13 +399,106 @@ window.cxSyncThemeAddCards = cxSyncThemeAddCards;
 function resetThemeSetting() {
   _themeSetting = {};
   _initThemePanel();
-  _setDirty(true, "theme");
+  _scheduleAutoSave("theme");
 
   // Reload iframe để xoá hết override, quay về mặc định của theme
   _reloadThemeFrame();
 }
 
 window.resetThemeSetting = resetThemeSetting;
+
+// Mức RỘNG NHẤT trong ba mức đặt lại (nút ghim đầu dải tab, nhãn "Đặt lại"):
+//   Đặt lại  → cả thiệp        ← đây
+//   Mặc định → đúng bảng đang mở (CTRL_VIEWS[].reset)
+//   Mặc định → đúng phần tử đang chỉnh (bảng chi tiết: chỉnh chữ, điều chỉnh)
+// Hỏi lại trước khi gọi: nó xoá thứ của MỌI bảng một lượt (kể cả khối chữ và hoạ
+// tiết đã đặt tay), mà lại bấm được từ bất kỳ bảng nào nên dễ chạm nhầm.
+async function cxResetAllTheme() {
+  const ok = await showConfirm(
+    "Đặt lại toàn bộ thiệp?",
+    "Bộ màu, chữ đã chỉnh riêng, khối văn bản, hoạ tiết, thẻ nhạc, hộp mừng cưới và " +
+      "cách hiện lời chúc đều trở lại như mẫu gốc. Nội dung thiệp (tên, ngày, ảnh…) " +
+      "không đổi.",
+    { confirmText: "Đặt lại" },
+  );
+  if (!ok) return;
+  resetThemeSetting();
+  showToast("Đã đặt lại toàn bộ thiệp", "success");
+}
+window.cxResetAllTheme = cxResetAllTheme;
+
+// Nút "Mặc định" ở ĐẦU BẢNG chỉ lo đúng bảng đang mở — mỗi bảng sở hữu một khoá
+// trong `theme_setting`, xoá khoá đó là về mặc định của mẫu. Thứ cần nạp lại khung
+// xem trước (khối chữ, hoạ tiết, thành phần) đi qua _resetThemePart; bộ màu áp
+// được ngay, còn hộp quà / lời chúc đã có đường postMessage riêng.
+// Nạp lại KHÔNG đóng bảng đang mở: _watchThemeFrame chỉ dựng lại bảng chỉnh khi
+// bảng màu gốc của mẫu đổi.
+function _resetThemePart(key, toast) {
+  delete _themeSetting[key];
+  if (key === "custom_blocks") _pruneBlockOverrides();
+  _scheduleAutoSave("theme");
+  _reloadThemeFrame();
+  showToast(toast, "success");
+}
+
+function resetCardPalette() {
+  delete _themeSetting.palette;
+  const el = document.getElementById("theme-palette");
+  if (el) el.value = "";
+  _syncPaletteStrength();
+  _scheduleAutoSave("theme");
+  _applyThemeToFrame();
+  showToast("Đã trả bộ màu về mặc định của mẫu", "success");
+}
+window.resetCardPalette = resetCardPalette;
+
+// Khối văn bản bị xoá thì phần chỉnh riêng của nó (text_overrides["#cb_…"], kể cả
+// part của mẫu văn bản: "#cb_…__<key>") thành mồ côi — không còn thẻ nào mang id
+// đó, nhưng vẫn đi theo thiệp mãi mãi và phình dần theo mỗi lượt thêm–xoá.
+// `keep` là danh sách khối CÒN LẠI; bỏ trống = xoá sạch (nút "Mặc định").
+function _pruneBlockOverrides(keep) {
+  const ov = _themeSetting.text_overrides;
+  if (!ov || typeof ov !== "object") return;
+  const ids = new Set((keep || []).map((b) => b && b.id).filter(Boolean));
+  Object.keys(ov).forEach((sel) => {
+    const m = /^#(cb_[^\s.>+~:[]*)/.exec(sel);
+    if (m && !ids.has(m[1].split("__")[0])) delete ov[sel];
+  });
+  if (!Object.keys(ov).length) delete _themeSetting.text_overrides;
+}
+
+function resetCustomBlocks() {
+  _resetThemePart("custom_blocks", "Đã xoá các khối văn bản đã thêm");
+}
+window.resetCustomBlocks = resetCustomBlocks;
+
+function resetDecorations() {
+  _resetThemePart("decorations", "Đã xoá hoạ tiết đã thả");
+}
+window.resetDecorations = resetDecorations;
+
+// Xoá cả `music_seeded`: cờ đó nhớ "trình phát sẵn có của mẫu đã được chuyển
+// thành thành phần rồi", giữ lại thì thiệp về mặc định mà vẫn không còn nút nhạc
+// gốc (xem _cxElSeedThemeMusic ở core/helpers/theme-setting-helper.js).
+function resetElements() {
+  delete _themeSetting.music_seeded;
+  _resetThemePart("elements", "Đã xoá thẻ nhạc đã thả");
+}
+window.resetElements = resetElements;
+
+// Hai bảng này áp thẳng bằng postMessage; id rỗng ĐÃ là "mặc định của mẫu" nên
+// dùng lại đúng đường người dùng bấm ô "Mặc định" trong bảng.
+function resetGiftBox() {
+  pickGiftBox(null);
+  showToast("Đã trả hộp mừng cưới về mặc định của mẫu", "success");
+}
+window.resetGiftBox = resetGiftBox;
+
+function resetWishMode() {
+  pickWishMode(null);
+  showToast("Đã trả cách hiện lời chúc về mặc định", "success");
+}
+window.resetWishMode = resetWishMode;
 
 // ── CHỈNH CHI TIẾT TỪNG DÒNG CHỮ ───────────────────────────────────────────
 // Runtime trong iframe (theme-setting-helper.js) gửi 'cx-text-pick' khi click 1
@@ -437,13 +536,15 @@ window.addEventListener("message", (ev) => {
   // Khối văn bản đang chỉnh vừa bị xoá trong thiệp → đóng bảng chỉnh chi tiết
   else if (d.type === "cx-line-close") closeLineEditor();
   else if (d.type === "cx-blocks-changed") {
-    // Runtime báo danh sách khối văn bản đã đổi → lưu vào theme_setting + đánh dấu chưa lưu.
+    // Runtime báo danh sách khối văn bản đã đổi → ghi vào theme_setting rồi hẹn
+    // lưu nháp.
     _themeSetting.custom_blocks = Array.isArray(d.blocks) ? d.blocks : [];
-    _setDirty(true, "theme");
+    _pruneBlockOverrides(_themeSetting.custom_blocks);
+    _scheduleAutoSave("theme");
   } else if (d.type === "cx-decors-changed") {
     // Hoạ tiết vừa thêm / kéo / xoay / xoá trong thiệp → lưu toạ độ mới.
     _themeSetting.decorations = Array.isArray(d.decors) ? d.decors : [];
-    _setDirty(true, "theme");
+    _scheduleAutoSave("theme");
   } else if (d.type === "cx-elements-changed") {
     // Thành phần vừa thả / kéo / phóng to / xoá → lưu, và nếu bảng điều chỉnh
     // đang mở cho chính nó thì kéo thanh trượt theo (chụm 2 ngón trên thiệp).
@@ -451,7 +552,7 @@ window.addEventListener("message", (ev) => {
     // Trình phát của theme đã chuyển thành thành phần → nhớ lại, không thì lần
     // mở sau lại dựng thêm một cái nữa dù người dùng đã xoá.
     if (d.seeded) _themeSetting.music_seeded = true;
-    _setDirty(true, "theme");
+    _scheduleAutoSave("theme");
     _syncElWidthFromCard();
     _syncElTiles();
   } else if (d.type === "cx-element-pick") {
@@ -493,7 +594,7 @@ function _setTextSizeFromCard(selector, size) {
     if (el) el.value = n;
     _syncSampleStyle();
   }
-  _setDirty(true, "theme");
+  _scheduleAutoSave("theme");
   _lineIframe()?.contentWindow?.applyThemeSetting?.(_themeSetting);
 }
 
@@ -767,7 +868,7 @@ function startPaletteDrag(e, type) {
       // KHÔNG đóng bảng: runtime chọn khối vừa thả thì bảng chỉnh chữ tự chiếm
       // chỗ (nó ẩn sẵn bảng này), còn nhỡ tin pick thì người dùng vẫn đứng ở
       // bảng Văn bản để thả tiếp — rơi về nhóm chỉnh chung là mất chỗ đang làm.
-      _setDirty(true, "theme");
+      _scheduleAutoSave("theme");
       iframe.contentWindow?.postMessage(
         { type: "cx-drop", blockType: type, y },
         "*",
@@ -865,7 +966,7 @@ window.startDecorDrag = startDecorDrag;
 // Hoạ tiết không có bảng cấp 3 (chỉnh ngay trên thiệp bằng bộ nút của nó) → thả
 // xong Ở LẠI bảng chọn để thêm tiếp; rời bảng bằng nút quay lại.
 function _addDecor(src, x, y) {
-  _setDirty(true, "theme");
+  _scheduleAutoSave("theme");
   _lineIframe()?.contentWindow?.postMessage({ type: "cx-add-decor", src, x, y }, "*");
 }
 
@@ -1246,7 +1347,7 @@ function pickGiftBox(id) {
   if (id) _themeSetting.gift_box = id;
   else delete _themeSetting.gift_box;
   _syncGiftTiles();
-  _setDirty(true, "theme");
+  _scheduleAutoSave("theme");
 
   // Áp thẳng vào khung xem trước rồi cuộn tới mục — KHÔNG nạp lại: nạp lại là
   // bảng chọn đóng mất (xem _watchThemeFrame) mà khách còn đang so mẫu. Lưu dữ
@@ -1348,7 +1449,7 @@ function pickWishMode(id) {
   if (id) _themeSetting.wishes_mode = id;
   else delete _themeSetting.wishes_mode;
   _syncWishTiles();
-  _setDirty(true, "theme");
+  _scheduleAutoSave("theme");
 
   _savePreviewData();
   const win = _lineIframe()?.contentWindow;
@@ -1463,7 +1564,7 @@ function _elVariantOf(id) {
 
 function _elSend(msg) {
   if (!_elSel) return;
-  _setDirty(true, "theme");
+  _scheduleAutoSave("theme");
   _lineIframe()?.contentWindow?.postMessage(
     Object.assign({ id: _elSel }, msg),
     "*",
@@ -1789,10 +1890,10 @@ function _lineOverride() {
   return _themeSetting.text_overrides[_lineSel];
 }
 
-// Sau mỗi thay đổi 1 dòng: đánh dấu chưa lưu + áp lại vào iframe preview
+// Sau mỗi thay đổi 1 dòng: hẹn lưu nháp + áp lại vào iframe preview
 // (style qua applyThemeSetting, nội dung/ẩn qua applyThemeSetting + applyTextOverrides).
 function _applyLine() {
-  _setDirty(true, "theme");
+  _scheduleAutoSave("theme");
   const cw = _lineIframe()?.contentWindow;
   cw?.applyThemeSetting?.(_themeSetting);
   cw?.applyTextOverrides?.(_themeSetting);
@@ -2233,8 +2334,11 @@ function _updateSheetFade(body) {
 // trống = nhóm chỉnh chung), `title` là tên màn — DÙNG CHUNG cho tiêu đề giữa
 // đầu bảng lẫn nhãn nút ở dải tab, viết HÀM khi tên đổi theo thứ đang chỉnh
 // (bảng "line" nhận cả chữ lẫn ảnh), `tip` là lời mách của nút đó, `back` là hàm
-// cho nút ✓ Xong bên phải (màn con: chỉnh chữ, điều chỉnh thành phần — không có
-// tab vì chỉ mở được bằng cú bấm vào thiệp), `reset` là hàm cho nút trái.
+// cho nút ✓ Áp dụng bên phải (màn con: chỉnh chữ, điều chỉnh thành phần — không có
+// tab vì chỉ mở được bằng cú bấm vào thiệp), `reset` là hàm cho nút trái — nút đó
+// CHỈ trả về mặc định phần thuộc bảng này (nhãn mặc định "Mặc định", đổi bằng
+// `resetTxt`); đặt lại CẢ thiệp là nút ghim "Đặt lại" ở đầu dải tab
+// (cxResetAllTheme) — ba mức, ba phạm vi, đừng trộn nhãn giữa chúng.
 // Xét từ TRÊN XUỐNG, màn nào không ẩn thì thắng; dòng cuối là màn mặc định.
 // Thêm bảng mới → thêm một dòng ở đây + một key vào CTRL_TABS, không đụng markup
 // (dải tab do _renderCtrlTabs dựng) lẫn các hàm mở/đóng bảng.
@@ -2245,7 +2349,6 @@ const CTRL_VIEWS = [
     title: "Điều chỉnh",
     back: "backFromElementEditor",
     reset: "resetElementOptions",
-    resetTxt: "Mặc định",
   },
   {
     key: "line",
@@ -2253,7 +2356,6 @@ const CTRL_VIEWS = [
     title: () => (_lineIsImage ? "Chỉnh ảnh" : "Chỉnh chữ"),
     back: "backFromLineEditor",
     reset: "clearLineOverride",
-    resetTxt: "Mặc định",
   },
   {
     key: "gift",
@@ -2261,6 +2363,7 @@ const CTRL_VIEWS = [
     title: "Hộp mừng cưới",
     tip: "Chọn hộp quà che phần mã QR mừng cưới",
     open: "openGiftPanel",
+    reset: "resetGiftBox",
   },
   {
     key: "wishes",
@@ -2268,6 +2371,7 @@ const CTRL_VIEWS = [
     title: "Lời chúc",
     tip: "Chọn cách hiện lời chúc của khách mời",
     open: "openWishPanel",
+    reset: "resetWishMode",
   },
   {
     key: "elements",
@@ -2275,6 +2379,7 @@ const CTRL_VIEWS = [
     title: "Thẻ nhạc",
     tip: "Thả thẻ nhạc lên thiệp",
     open: "openElementsPanel",
+    reset: "resetElements",
   },
   {
     key: "decor",
@@ -2282,6 +2387,7 @@ const CTRL_VIEWS = [
     title: "Trang trí",
     tip: "Thả hoa, hoạ tiết trang trí lên thiệp",
     open: "openDecorPanel",
+    reset: "resetDecorations",
   },
   {
     key: "addtext",
@@ -2289,13 +2395,13 @@ const CTRL_VIEWS = [
     title: "Văn bản",
     tip: "Thêm khối văn bản vào thiệp",
     open: "openAddTextPanel",
+    reset: "resetCustomBlocks",
   },
   {
     key: "main",
     title: "Thiệp cưới",
     tip: "Đổi bộ màu của cả thiệp",
-    reset: "resetThemeSetting",
-    resetTxt: "Đặt lại",
+    reset: "resetCardPalette",
   },
 ];
 
@@ -2390,23 +2496,30 @@ function _syncCtrlHead() {
   const title = document.getElementById("cx-ch-title");
   if (title) title.textContent = _ctrlTitle(view);
 
-  // Hàng nút đầu bảng chỉ giữ chỗ khi nó CÓ VIỆC: nút ← (màn cấp 2) hoặc nút
-  // Đặt lại (nhóm chỉnh chung). Các bảng chọn thì tên bảng đã nằm ngay ở dải tab
-  // bên dưới, giữ thêm một hàng nữa chỉ tổ ăn mất chiều cao của thiệp. Suy từ
-  // CTRL_VIEWS nên bảng mới khai nút nào là tự đúng.
+  // Hàng nút đầu bảng chỉ giữ chỗ khi nó CÓ VIỆC: nút ✓ Áp dụng (màn chi tiết) hoặc
+  // nút đặt lại của riêng bảng. Bảng nào khai cả hai đều không có thì ẩn hàng đi,
+  // đỡ ăn chiều cao của thiệp. Suy từ CTRL_VIEWS nên bảng mới khai nút nào là tự đúng.
   const bare = !view.back && !view.reset;
   document.getElementById("cx-ctrl-actions")?.classList.toggle("hidden", bare);
   document.getElementById("cx-ctrl-handle")?.classList.toggle("is-bare", bare);
 
-  document
-    .getElementById("cx-ch-done")
-    ?.classList.toggle("hidden", !view.back);
+  // Nút đặt lại có HAI hình, cùng một việc (cxCtrlReset), chọn theo hạng màn:
+  //   màn chi tiết (khai `back` — mở bằng cú bấm vào chính phần tử trên thiệp):
+  //     cặp icon bên PHẢI, ↺ rồi ✓, ô trái bỏ trống;
+  //   bảng theo tab: chữ "Mặc định" bên TRÁI, ô phải bỏ trống.
+  const detail = !!view.back;
+  // Hàng đầu bảng đổi cách xếp ở màn chi tiết từ md — xem .cx-ch-detail.
+  document.getElementById("cx-ctrl-actions")?.classList.toggle("cx-ch-detail", detail);
   const reset = document.getElementById("cx-ch-reset");
   if (reset) {
-    reset.classList.toggle("hidden", !view.reset);
+    reset.classList.toggle("hidden", !view.reset || detail);
     const txt = document.getElementById("cx-ch-reset-txt");
-    if (txt) txt.textContent = view.resetTxt || "Đặt lại";
+    if (txt) txt.textContent = view.resetTxt || "Mặc định";
   }
+  document
+    .getElementById("cx-ch-restore")
+    ?.classList.toggle("hidden", !view.reset || !detail);
+  document.getElementById("cx-ch-done")?.classList.toggle("hidden", !detail);
 
   // Màn con (chỉnh chữ/ảnh, điều chỉnh thành phần) không ứng với tab nào → cất
   // dải tab đi, nhường chỗ cho nội dung; nút ← ở đầu bảng là đường ra. Bỏ ẩn
@@ -2558,9 +2671,11 @@ function _initCtrlTabsDrag() {
 }
 
 // Nút trái/phải của đầu bảng: việc cụ thể do màn đang mở khai ở CTRL_VIEWS.
-// Nút phải là ✓ "Xong" — mọi thay đổi đã áp thẳng lên thiệp và đánh dấu cần lưu
-// ngay lúc chỉnh, nên xác nhận ở đây chỉ còn nghĩa "chỉnh xong rồi": đóng màn và
-// lùi về bảng cấp 1. Không đổi gì thì bấm ✓ cũng y như đóng.
+// Nút phải là ✓ "Áp dụng" — nhãn nói theo cách người dùng đọc, còn thực chất mọi
+// thay đổi ĐÃ áp thẳng lên thiệp và đánh dấu cần lưu ngay lúc chỉnh, nên nút chỉ
+// đóng màn và lùi về bảng cấp 1. Không đổi gì thì bấm ✓ cũng y như đóng — đừng
+// chuyển sang kiểu "gom thay đổi rồi mới áp khi bấm", cả bảng chỉnh dựa vào việc
+// xem trước đổi theo từng thao tác.
 function cxCtrlBack() {
   if (_ctrlView.back) window[_ctrlView.back]?.();
 }

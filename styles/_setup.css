@@ -473,14 +473,30 @@ input.flatpickr-input[readonly] {
 }
 
 .cx-ch-end {
-  @apply justify-end;
+  /* min-w-fit hạ bệ `min-w-0` của .cx-ch-side ở riêng ô này: ô phải KHÔNG được co
+     dưới bề ngang cặp nút, co là nút tràn ra đè lên tiêu đề. */
+  @apply min-w-fit justify-end;
+}
+
+/* Màn chi tiết TỪ md: cặp nút có nhãn nên ô phải rộng hẳn, ép tiêu đề đứng giữa
+   theo lưới 3 ô là hai bên đè nhau. Ô trái ở màn này vốn rỗng → xếp hàng ngang,
+   tên bảng sát trái và cặp nút dồn phải. Dưới md vẫn là lưới 3 ô (icon trần đủ
+   hẹp để tiêu đề còn đứng giữa). */
+.cx-ch-detail {
+  @apply md:flex;
+}
+
+.cx-ch-detail .cx-ch-end {
+  @apply md:ml-auto;
 }
 
 .cx-ch-title {
   @apply truncate text-[14px] font-semibold text-gray-800;
 }
 
-/* Nút trái: "Đặt lại" (bỏ hết tuỳ chỉnh) hoặc "Mặc định" của bảng con */
+/* Nút trái: "Mặc định" của RIÊNG bảng đang mở (hoặc của đúng phần tử đang chỉnh ở
+   bảng chi tiết). Đặt lại cả thiệp là nút ghim "Đặt lại" ở đầu dải tab dưới
+   (#cx-ctrl-reset-all). */
 .cx-ch-reset {
   @apply -ml-2 inline-flex min-w-0 items-center gap-1 rounded-lg px-2 py-1
          text-[12.5px] font-medium text-rose-600
@@ -499,49 +515,69 @@ input.flatpickr-input[readonly] {
   @apply outline-none ring-2 ring-rose-200;
 }
 
-/* Nút phải: "Xong" (✓) của màn cấp 2 — CHỈ cái dấu tích, không nền không bo
-   góc, cân với nút Đặt lại bên trái vốn cũng là chữ trần. Khổ 32px là VÙNG
-   CHẠM, không phải hình dạng: nó trong suốt nên mắt chỉ thấy mỗi icon. */
-.cx-ch-done {
-  @apply -mr-1 inline-flex h-8 w-8 items-center justify-center
-         text-rose-600 transition-[color,transform] duration-150;
+/* Cặp nút bên phải đầu bảng chi tiết (↺ Mặc định, ✓ Áp dụng). Hai dáng theo khổ màn:
+   mobile chỉ còn icon trần — khổ 32px là VÙNG CHẠM chứ không phải hình dạng, nền
+   trong suốt nên mắt chỉ thấy icon; từ md là nút pill CÓ NHÃN (nhãn khai trong
+   markup, `hidden md:inline`) vì trên desktop mỗi cái icon thì quá bé để nhắm.
+   Dáng pill theo <x-button size="sm">, riêng lề trong hẹp hơn một nấc (px-3): cột
+   chỉnh ở md chỉ rộng 340px, để px-4 là hai nút ăn hết chỗ và tên bảng bị cắt. */
+.cx-ch-ico {
+  @apply inline-flex h-8 w-8 shrink-0 items-center justify-center gap-1.5
+         whitespace-nowrap transition-[color,background-color,transform] duration-150
+         md:w-auto md:gap-1 md:rounded-full md:px-3 md:text-xs md:font-semibold;
 }
 
-.cx-ch-done:hover {
-  @apply text-rose-700;
-}
-
-.cx-ch-done:active {
-  @apply scale-90;
+.cx-ch-ico:active {
+  @apply scale-95;
 }
 
 /* Vòng focus phải có chỗ bám — bo nhẹ CHỈ để vòng đó không vuông chằn chặn,
    lúc không focus chẳng thấy gì. */
-.cx-ch-done:focus-visible {
-  @apply rounded-lg outline-none ring-2 ring-rose-200;
+.cx-ch-ico:focus-visible {
+  @apply rounded-lg outline-none ring-2 ring-rose-200 md:rounded-full;
 }
 
-/* Dải tab dưới bảng chỉnh: mỗi tab một bảng. Cuộn ngang khi không đủ chỗ (nhãn
-   không xuống dòng), tab đang mở là viên thuốc hồng — JS chỉ gạt .is-on. */
-.cx-ctabs {
-  @apply relative shrink-0 border-t border-gray-100 bg-white py-2 md:py-2.5;
+/* ↺ là việc PHỤ nên đi tông trung tính, nhường màu nhấn cho dấu ✓ ngay cạnh. */
+.cx-ch-restore {
+  @apply text-gray-400 md:border md:border-gray-200 md:bg-white md:text-gray-700;
+}
 
-  /* Mờ dần hai mép: mắt thấy ngay là dải còn trượt được. Đoạn mờ phải NGẮN hơn
-     padding ngang của .cx-ctabs-track, không thì tab đầu/cuối bị mờ mất chữ. */
+.cx-ch-restore:hover {
+  @apply text-gray-600 md:bg-gray-50 md:text-gray-700;
+}
+
+.cx-ch-done {
+  @apply -mr-1 text-rose-600 md:mr-0 md:bg-rose-500 md:text-white md:shadow-sm;
+}
+
+.cx-ch-done:hover {
+  @apply text-rose-700 md:bg-rose-600 md:text-white;
+}
+
+/* Hàng tab dưới bảng chỉnh: nút GHIM "Mặc định" đứng yên bên trái, phần còn lại là
+   track cuộn — mỗi tab một bảng, tab đang mở là viên thuốc hồng (JS chỉ gạt .is-on).
+   Mask nằm ở TRACK chứ không ở hàng: để đây thì nó làm mờ luôn nút ghim. */
+.cx-ctabs {
+  @apply relative flex shrink-0 items-center border-t border-gray-100 bg-white py-2 pl-3 md:py-2.5;
+}
+
+/* Track: bấm tab nào mở bảng đó, cuộn chỉ là cuộn (nhãn không xuống dòng). Kéo
+   bằng chuột do _initCtrlTabsDrag lo. */
+.cx-ctabs-track {
+  @apply relative z-[1] flex min-w-0 flex-1 items-center gap-1 overflow-x-auto
+         overscroll-x-contain py-px pl-5 pr-3;
+
+  /* Mờ dần hai mép: mắt thấy ngay là dải còn trượt được. Đoạn mờ KHÔNG được dài
+     hơn padding cùng bên, không thì tab đầu/cuối bị mờ mất chữ lúc chưa trượt.
+     Mép TRÁI dài hơn vì nó tì ngay vào nút ghim: 12px thì chữ trượt tới đó bị cắt
+     ngang thân, trông như chui xuống dưới nút. */
   mask-image: linear-gradient(
     to right,
     transparent 0,
-    #000 12px,
+    #000 20px,
     #000 calc(100% - 12px),
     transparent 100%
   );
-}
-
-/* Dải tab cuộn ngang thường: bấm tab nào mở bảng đó, cuộn chỉ là cuộn. Kéo
-   bằng chuột do _initCtrlTabsDrag lo. */
-.cx-ctabs-track {
-  @apply relative z-[1] flex items-center gap-1 overflow-x-auto overscroll-x-contain px-3;
-
   scrollbar-width: none;
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
