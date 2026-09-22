@@ -480,7 +480,8 @@ input.flatpickr-input[readonly] {
   @apply truncate text-[14px] font-semibold text-gray-800;
 }
 
-/* Nút trái: "Đặt lại" (bỏ hết tuỳ chỉnh) hoặc "Mặc định" của bảng con */
+/* Nút trái: "Mặc định" của RIÊNG bảng đang mở. Về mặc định cả thiệp là nút ghim ở
+   đầu dải tab dưới (#cx-ctrl-reset-all). */
 .cx-ch-reset {
   @apply -ml-2 inline-flex min-w-0 items-center gap-1 rounded-lg px-2 py-1
          text-[12.5px] font-medium text-rose-600
@@ -500,7 +501,7 @@ input.flatpickr-input[readonly] {
 }
 
 /* Nút phải: "Xong" (✓) của màn cấp 2 — CHỈ cái dấu tích, không nền không bo
-   góc, cân với nút Đặt lại bên trái vốn cũng là chữ trần. Khổ 32px là VÙNG
+   góc, cân với nút "Mặc định" bên trái vốn cũng là chữ trần. Khổ 32px là VÙNG
    CHẠM, không phải hình dạng: nó trong suốt nên mắt chỉ thấy mỗi icon. */
 .cx-ch-done {
   @apply -mr-1 inline-flex h-8 w-8 items-center justify-center
@@ -521,13 +522,20 @@ input.flatpickr-input[readonly] {
   @apply rounded-lg outline-none ring-2 ring-rose-200;
 }
 
-/* Dải tab dưới bảng chỉnh: mỗi tab một bảng. Cuộn ngang khi không đủ chỗ (nhãn
-   không xuống dòng), tab đang mở là viên thuốc hồng — JS chỉ gạt .is-on. */
+/* Hàng tab dưới bảng chỉnh: nút GHIM "Mặc định" đứng yên bên trái, phần còn lại là
+   track cuộn — mỗi tab một bảng, tab đang mở là viên thuốc hồng (JS chỉ gạt .is-on).
+   Mask nằm ở TRACK chứ không ở hàng: để đây thì nó làm mờ luôn nút ghim. */
 .cx-ctabs {
-  @apply relative shrink-0 border-t border-gray-100 bg-white py-2 md:py-2.5;
+  @apply relative flex shrink-0 items-center border-t border-gray-100 bg-white py-2 pl-3 md:py-2.5;
+}
+
+/* Track: bấm tab nào mở bảng đó, cuộn chỉ là cuộn (nhãn không xuống dòng). Kéo
+   bằng chuột do _initCtrlTabsDrag lo. */
+.cx-ctabs-track {
+  @apply relative z-[1] flex min-w-0 flex-1 items-center gap-1 overflow-x-auto overscroll-x-contain px-3;
 
   /* Mờ dần hai mép: mắt thấy ngay là dải còn trượt được. Đoạn mờ phải NGẮN hơn
-     padding ngang của .cx-ctabs-track, không thì tab đầu/cuối bị mờ mất chữ. */
+     padding ngang ở trên, không thì tab đầu/cuối bị mờ mất chữ. */
   mask-image: linear-gradient(
     to right,
     transparent 0,
@@ -535,13 +543,6 @@ input.flatpickr-input[readonly] {
     #000 calc(100% - 12px),
     transparent 100%
   );
-}
-
-/* Dải tab cuộn ngang thường: bấm tab nào mở bảng đó, cuộn chỉ là cuộn. Kéo
-   bằng chuột do _initCtrlTabsDrag lo. */
-.cx-ctabs-track {
-  @apply relative z-[1] flex items-center gap-1 overflow-x-auto overscroll-x-contain px-3;
-
   scrollbar-width: none;
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;

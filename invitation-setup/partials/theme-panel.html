@@ -85,7 +85,7 @@
             >
               <!-- Chữ trần, không icon: có icon là phần CHỮ thụt vào, hết thẳng
                    cột với nội dung bên dưới. -->
-              <span id="cx-ch-reset-txt">Đặt lại</span>
+              <span id="cx-ch-reset-txt">Mặc định</span>
             </button>
           </div>
           <span id="cx-ch-title" class="cx-ch-title">Bộ màu</span>
@@ -570,13 +570,27 @@
            được _syncCtrlHead() tô và chỉ kéo vào tầm nhìn khi đang khuất.
            Các nút do _renderCtrlTabs() (js/05-theme-panel.js) dựng từ CTRL_VIEWS
            — thêm/đổi tên tab là sửa bên đó, đừng viết nút vào đây. -->
-      <div
-        id="cx-ctrl-tabs"
-        class="cx-ctabs"
-        role="tablist"
-        aria-label="Phần cần chỉnh"
-      >
-        <div id="cx-ctrl-tabs-track" class="cx-ctabs-track"></div>
+      <div id="cx-ctrl-tabs" class="cx-ctabs">
+        <!-- Nút GHIM đầu dải, KHÔNG phải tab (nên nằm ngoài role="tablist" và
+             ngoài track cuộn): trả CẢ thiệp về mặc định, bấm được từ bất kỳ bảng
+             nào. Nút "Mặc định" ở đầu bảng chỉ lo đúng bảng đang mở. -->
+        <x-button
+          id="cx-ctrl-reset-all"
+          variant="outline"
+          tone="neutral"
+          size="sm"
+          icon="rotate-ccw"
+          onclick="cxResetAllTheme()"
+          class="shrink-0"
+          title="Trả toàn bộ thiệp về mặc định của mẫu"
+          >Mặc định</x-button
+        >
+        <div
+          id="cx-ctrl-tabs-track"
+          class="cx-ctabs-track"
+          role="tablist"
+          aria-label="Phần cần chỉnh"
+        ></div>
       </div>
       <!-- /dải tab -->
     </div>
