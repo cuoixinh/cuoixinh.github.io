@@ -144,7 +144,54 @@ for (const rel of envFiles) {
   }
 }
 
+/* ── Worker preview (og:*) ────────────────────────────────────────────────
+   `vars` trong wrangler*.jsonc KHÔNG đi qua build nên không ai đồng bộ hộ:
+   lệch anonKey/encryptionKey là thẻ chia sẻ đọc nhầm project hoặc giải mã hỏng
+   tên khách, mà trang vẫn chạy bình thường. Đối chiếu tay ở đây.
+   Chỉ gỡ comment DÒNG ĐẦY ĐỦ — mọi comment trong hai file đó đều đứng riêng dòng. */
+const WRANGLER = [
+  { file: "wrangler.jsonc", env: "production" },
+  { file: "wrangler.staging.jsonc", env: "staging" },
+];
+const VAR_MAP = {
+  EDGE_URL: "supabase.edgeUrl",
+  ANON_KEY: "supabase.anonKey",
+  STORAGE_URL: "supabase.storageUrl",
+  ENCRYPTION_KEY: "security.encryptionKey",
+};
+
+for (const { file, env } of WRANGLER) {
+  const raw = read(file);
+  if (!raw) continue;
+  let vars;
+  try {
+    vars = JSON.parse(raw.replace(/^\s*\/\/.*$/gm, "")).vars;
+  } catch {
+    failed++;
+    console.error(`\n✗ ${file} — không đọc được JSON`);
+    continue;
+  }
+  if (!vars) continue;
+
+  const rel = env === "production" ? null : `core/config.${env}.js`;
+  const src = rel ? read(rel) : null;
+  if (rel && !src) continue;
+  const cfg = new Map(flatten(build(rel ? `${baseSrc}\n${src}` : baseSrc)));
+
+  const bad = Object.entries(VAR_MAP).flatMap(([k, key]) =>
+    String(vars[k] ?? "") !== String(cfg.get(key) ?? "") ? [[k, key]] : [],
+  );
+  if (bad.length) {
+    failed++;
+    console.error(`\n✗ ${file} — vars lệch cấu hình ${env}`);
+    for (const [k, key] of bad) console.error(`   · ${k} ≠ CONFIG.${key}`);
+  } else {
+    console.log(`✓ ${file} — vars worker khớp cấu hình ${env}`);
+  }
+}
+
 if (failed) {
   console.error(`\n✗ ${failed} file override không đạt.`);
   process.exit(1);
 }
+

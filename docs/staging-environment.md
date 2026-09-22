@@ -79,6 +79,7 @@ nó quản trị hàng thật. Muốn thử giao diện với dữ liệu stagin
 | PayOS                   | kênh 1                 | **kênh 2**, bộ khoá riêng                                   |
 | Worker cache            | 3 worker               | **3 worker riêng** — KV + `PURGE_SECRET` phải khác          |
 | cron `cleanup-weddings` | có                     | **có** — dựng y hệt (URL + Vault của chính project staging) |
+| `vars` worker thẻ chia sẻ | `wrangler.jsonc`       | `wrangler.staging.jsonc` — **khai tay**, không qua build   |
 
 ## 5. Deploy
 
@@ -102,9 +103,14 @@ production, chỉ khác:
 | Build command | `npm ci && npm run build && node scripts/deploy-public.mjs --dist --minify --env=staging --yes` |
 | Deploy command | `npx wrangler deploy -c wrangler.staging.jsonc` |
 
-`--env=staging` ở Build command là chỗ DUY NHẤT phân biệt hai môi trường. Thiếu nó thì
-staging build ra bản production và trỏ thẳng vào DB thật — nhìn bề ngoài không có gì khác,
-nên kiểm mục 8.2 ngay sau lần deploy đầu.
+`--env=staging` ở Build command là chỗ duy nhất phân biệt hai môi trường **ở phần web tĩnh**.
+Thiếu nó thì staging build ra bản production và trỏ thẳng vào DB thật — nhìn bề ngoài không
+có gì khác, nên kiểm mục 8.2 ngay sau lần deploy đầu.
+
+Riêng worker thẻ chia sẻ (`worker/index.js`, khai ở `main` của hai file `wrangler*.jsonc`)
+KHÔNG đi qua build, nên `vars` của nó phải khai tay ở đúng file của từng môi trường: lệch là
+thẻ preview của staging đọc dữ liệu production, hoặc giải mã hỏng tên khách. Chốt là
+`npm run check:config` — nó đối chiếu `vars` với `core/config*.js`.
 
 **Cloudflare Worker** — bốn worker (`webhook` · `image` · `templates` · `cache`), mỗi môi
 trường một file `.toml` riêng trong `cloudflare-worker/`. Cùng mã nguồn, khác `[vars]`:

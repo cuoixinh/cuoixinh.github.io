@@ -10,17 +10,36 @@
 // core/config.staging.js vào cuối core/config.js. Thiếu cờ đó thì bản staging chạy
 // bằng cấu hình PRODUCTION — trang vẫn lên, vẫn xanh, mà mọi thao tác ghi vào DB
 // thật. Xem docs/staging-environment.md.
+//
+// NGOẠI LỆ: `vars` của worker preview KHÔNG đi qua build nên phải khai thẳng ở
+// đây, trỏ về project staging — dùng nhầm giá trị production là thẻ preview của
+// staging đọc dữ liệu thật.
 {
   // Phải trùng "Project name" của dự án staging trên dashboard.
   "name": "cuoixinh-staging",
   "compatibility_date": "2026-09-10",
 
+  // Worker chèn og:* cho crawler mạng xã hội — cùng file với production.
+  "main": "worker/index.js",
+
   // Chỉ vào bằng staging.cuoixinh.com, nơi đã có Cloudflare Access chắn trước.
   // Bật workers.dev là mở một cửa sau KHÔNG qua Access.
   "workers_dev": false,
 
+  // Phải khớp core/config.staging.js (anonKey) và core/config.js (encryptionKey,
+  // dùng chung hai môi trường). Không có gì bí mật — xem chú thích ở wrangler.jsonc.
+  "vars": {
+    "EDGE_URL": "https://gmtnoxdwoumbtdmqmisk.supabase.co/functions/v1/wedding-admin",
+    "ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdtdG5veGR3b3VtYnRkbXFtaXNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkxMjI3MDQsImV4cCI6MjEwNDY5ODcwNH0.2KoGkOvdjgsnAQ3He1DHjJUi8AV8ETv2D-SclITZxEM",
+    "STORAGE_URL": "https://gmtnoxdwoumbtdmqmisk.supabase.co/storage/v1/object/public/wedding-images",
+    "ENCRYPTION_KEY": "dqvinh"
+  },
+
   "assets": {
     "directory": "./dist",
+
+    // Worker gọi lại asset router qua binding này — y như production.
+    "binding": "ASSETS",
 
     // BẮT BUỘC, y như production: clean URL dựa vào việc host trả 404.html cho
     // path không khớp file nào. Thiếu dòng này thì trang chủ vẫn chạy nhưng mọi
