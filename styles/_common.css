@@ -2531,11 +2531,12 @@ button.cx-pchrome-btn:hover {
   max-height: calc(var(--vh, 1vh) * 50);
   max-height: calc(var(--vh, 1svh) * 50);
   overflow-y: auto;
-  /* Lề phải đủ rộng cho BÓNG ĐỔ của bong bóng (0 6px 18px): đặt overflow-y là
-     auto thì trục ngang cũng bị clip theo (quy tắc của CSS overflow), nên lề hẹp
-     là bóng bị xén phẳng hai bên — trông cứng hẳn so với dạng phân trang vốn
-     không cuộn. */
-  padding: 8px 0px;
+  /* Lề ngang đủ rộng cho BÓNG ĐỔ của bong bóng: đặt overflow-y là auto thì trục
+     ngang cũng bị clip theo (quy tắc của CSS overflow), nên lề hẹp là bóng bị
+     xén phẳng hai bên — thành một nét sắc chạy dọc bong bóng. Lề bù lại bằng
+     margin âm để bề ngang khung vẫn đúng như cũ. */
+  padding: 8px 16px;
+  margin: 0 -16px;
   scrollbar-width: none;
   -webkit-mask-image: linear-gradient(
     to bottom,
@@ -2583,6 +2584,12 @@ button.cx-pchrome-btn:hover {
   padding: 12px 16px;
   border-radius: 16px 16px 16px 4px;
   font-size: 14px;
+  /* Bóng tãi rộng và rất nhạt: ở đây bong bóng đứng yên trên nền giấy sáng nên
+     bóng đậm/ngắn của dải trôi đọc thành một đường viền xám. */
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.03),
+    0 4px 12px rgb(0 0 0 / 0.045),
+    0 14px 32px rgb(0 0 0 / 0.05);
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
 }

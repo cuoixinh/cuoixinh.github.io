@@ -336,15 +336,17 @@ window.addEventListener("resize", () => {
 
 // ── Vỏ MỤC trong thân thiệp (dạng comment + paged), ngay trên hộp mừng cưới ──
 // Liệt kê HẾT lời chúc trong một khung cuộn; khách cuộn tới chỗ này thì danh
-// sách tự bò xuống, tới đáy nghỉ một nhịp rồi về đầu. Bò liên tục, KHÔNG dừng
-// theo cử chỉ của khách: rê chuột hay lỡ cuộn ngang qua mà dải đứng sững lại
-// mấy giây thì trông như hỏng.
+// sách tự bò xuống, tới đáy nghỉ một nhịp rồi về đầu. Rê chuột hay lỡ cuộn
+// ngang qua thì KHÔNG dừng — dải đứng sững lại mấy giây trông như hỏng — nhưng
+// khách tự cuộn TRONG khung là nhường hẳn (_cxWishYield).
 
 let _cxWishSecIO = null;
 let _cxWishSecRaf = null;
 let _cxWishSecOn = false;
 // Mốc thời gian (ms) được phép bò tiếp — nhịp nghỉ đầu lượt và sau khi về đầu.
 let _cxWishSecWait = 0;
+// Khách đã tự cuộn trong khung: từ đó nhường quyền hẳn cho họ (xem _cxWishYield).
+let _cxWishSecTaken = false;
 
 function _cxWishStopAutoScroll() {
   if (_cxWishSecRaf) cancelAnimationFrame(_cxWishSecRaf);
@@ -373,9 +375,24 @@ function _cxWishSecStep(box, prev) {
   });
 }
 
+// Khách tự cuộn (lăn chuột, vuốt, kéo thanh cuộn) là họ đang đọc tới đâu đó —
+// bò tiếp hay tự về đầu lúc đó đều thành "trang tự nhảy". Nhường hẳn, không hẹn
+// giờ bò lại: đọc xong lời chúc cuối mà danh sách giật về đầu là khó chịu nhất.
+function _cxWishYield() {
+  _cxWishSecTaken = true;
+  _cxWishStopAutoScroll();
+}
+
 function _cxWishWatchAutoScroll(box) {
   _cxWishStopAutoScroll();
+  if (_cxWishSecTaken) return;
   if (_cxWishReduceMotion() || !window.IntersectionObserver) return;
+
+  // Bước bò đặt scrollTop bằng JS nên không phát wheel/touch → chỉ cử chỉ thật
+  // của khách mới gọi tới đây.
+  ["wheel", "touchstart", "pointerdown"].forEach((ev) =>
+    box.addEventListener(ev, _cxWishYield, { once: true, passive: true }),
+  );
 
   _cxWishSecIO = new IntersectionObserver(
     (ents) => {
@@ -522,6 +539,9 @@ window.cxWishPlace = _cxWishPlaceSection;
 
 function _cxWishBuildSection(canWrite) {
   if (document.getElementById("cx-wish-sec")) return;
+  // Vỏ mục dựng lại (đổi dạng ở khung xem trước) = khung cuộn mới → trả quyền
+  // tự bò về cho helper.
+  _cxWishSecTaken = false;
   const host = _cxWishHost();
   if (!host) return;
 
