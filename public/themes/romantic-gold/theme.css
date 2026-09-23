@@ -22,6 +22,24 @@
   --cx-on-image-rgb: 255 255 255; /* chữ nằm trên ảnh poster */
   --cx-scrim-rgb: 0 0 0; /* lớp phủ + bóng chữ trên ảnh */
   --cx-deco-rgb: 0 0 0; /* nền mờ của nút phóng ảnh */
+  /* Nút nhạc + thanh nhạc đi theo bảng --music-* riêng. Ghi đè đúng bằng công
+     thức mà bộ màu suy ra (CX_PALETTE_MUSIC ở theme-setting-helper.js) để thiệp
+     không chọn bộ màu vẫn khớp với thiệp có chọn. */
+  --music-bar-fg-rgb: var(--cx-body-rgb);
+  --music-bar-bg-rgb: var(--cx-surface-rgb);
+  --music-widget-fg-rgb: var(--cx-heading-rgb);
+  --music-widget-dim-rgb: var(--cx-body-rgb);
+  --music-widget-chip-rgb: var(--cx-body-rgb);
+  --music-widget-accent-rgb: var(--cx-accent-rgb);
+  --music-bubble-from-rgb: var(--cx-accent-soft-rgb);
+  --music-bubble-to-rgb: var(--cx-accent-rgb);
+  --music-shadow-rgb: var(--cx-shadow-rgb);
+  --music-bubble-shadow-rgb: var(--cx-shadow-rgb);
+  --music-widget-bg: rgb(var(--cx-panel-rgb) / 0.95);
+  --music-widget-chip: rgb(var(--cx-body-rgb) / 0.12);
+  --music-widget-fill: rgb(var(--cx-accent-rgb) / 0.32);
+  --music-art-from-rgb: var(--cx-accent-soft-rgb);
+  --music-art-to-rgb: var(--cx-accent-rgb);
 }
 
 body {

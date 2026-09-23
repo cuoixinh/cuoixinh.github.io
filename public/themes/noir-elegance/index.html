@@ -61,15 +61,11 @@
        ══════════════════════════════════════════════════════════════════════ -->
 
   <body class="cx-screen-h flex justify-center items-start md:py-5">
-    <!-- ═══ Trình phát nhạc (enable_music) ═════════════════════════════════
-         Mẫu ĐĨA TRÒN NHỎ neo góc trên phải (variant mini + chrome fixed-corner)
-         thay cho thanh ngang: mẫu này lấy ảnh làm chính, chừa một chấm là đủ. -->
+    <!-- ═══ Trình phát nhạc (enable_music) ═══════════════════════════════
+         Dạng khai ở CX_THEME.music, theme-boot.js dựng vào đây. Thẻ phải
+         là con ĐẦU TIÊN của <body>: bong bóng thu gọn dùng position:fixed
+         nên tổ tiên có transform sẽ neo nó sai chỗ. -->
     <div id="cx-music-mount"></div>
-    <script>
-      document.currentScript.previousElementSibling.replaceWith(
-        CXMusicPlayer.build({ variant: "mini", chrome: "fixed-corner" }),
-      );
-    </script>
 
     <!-- ═══ MỤC: Màn bìa — TẤM THIỆP GIẤY, chỉ có chữ ══════════════════
          Không dùng ảnh: nền là giấy kem với hai vệt màu đào loang và vài nét

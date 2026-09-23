@@ -16,7 +16,7 @@
 // → rơi về production. Cổng in ra lúc khởi động mới là cổng chạy staging.
 import { createServer } from "node:http";
 import { readFile, stat } from "node:fs/promises";
-import { watch } from "node:fs";
+import { watch, statSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -57,14 +57,41 @@ const MIME = {
 // ===== Tự tải lại khi sửa file =====
 
 const clients = new Set();
-const RELOAD_SNIPPET = `<script>new EventSource("/__reload").onmessage=()=>location.reload()</script>`;
+// Chỉ trang TRÊN CÙNG mở kết nối: trang thiệp trên máy tính tự dựng khung điện
+// thoại rồi nạp lại chính mình trong iframe, mở cả ở đó là mỗi tab giữ hai kết
+// nối (HTTP/1.1 chỉ cho 6 mỗi origin) và mỗi lần sửa file lại tải lại hai lượt.
+// Trang cha tải lại thì iframe đi theo.
+const RELOAD_SNIPPET = `<script>if(window.top===window)new EventSource("/__reload").onmessage=()=>location.reload()</script>`;
+
+// Đuôi file trình duyệt thật sự nạp. Windows còn bắn sự kiện cho THƯ MỤC (chỉ
+// cần metadata bị chạm) và cho file tạm của editor — không lọc thì trang đang
+// mở tự tải lại tuy chẳng có gì đổi.
+const RELOAD_EXT =
+  /\.(html?|css|m?js|json|svg|png|jpe?g|gif|webp|avif|ico|woff2?|ttf|mp3|mp4|xml|txt)$/i;
 
 function watchRepo() {
   const skip = /(^|[\\/])(\.git|node_modules|dist|\.vscode)([\\/]|$)/;
+  // Ảnh mẫu: tab "Dữ liệu mẫu" của admin ghi hàng chục MB xuống đây, mỗi file
+  // là một lượt tải lại cắt ngang chính vòng lưu đó (xem assets/data-template/
+  // README.md). Phần chữ (data.json) vẫn theo dõi bình thường.
+  const skipImg = /(^|[\\/])assets[\\/]data-template[\\/].*(?<!\.json)$/i;
+  const seen = new Map(); // đường dẫn → mtime lần trước
   let timer = null;
   try {
     watch(ROOT, { recursive: true }, (_e, file) => {
-      if (!file || skip.test(file)) return;
+      if (!file || skip.test(file) || skipImg.test(file)) return;
+      if (!RELOAD_EXT.test(file)) return;
+      // Chốt lần cuối bằng mtime: sự kiện không đổi nội dung thì bỏ qua.
+      let stamp;
+      try {
+        const info = statSync(path.join(ROOT, file));
+        if (info.isDirectory()) return;
+        stamp = `${info.mtimeMs}:${info.size}`;
+      } catch {
+        return; // file vừa bị xoá/đổi tên
+      }
+      if (seen.get(file) === stamp) return;
+      seen.set(file, stamp);
       clearTimeout(timer); // một lần lưu có thể bắn nhiều sự kiện
       timer = setTimeout(() => {
         for (const res of clients) res.write("data: reload\n\n");

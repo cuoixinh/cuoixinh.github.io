@@ -335,7 +335,11 @@ function setupMusic(musicUrl, enabled) {
   if (on) {
     initYouTubeMusic(musicUrl);
     if (musicToggleBtn) {
-      musicToggleBtn.style.display = "flex";
+      // Thanh ngang là flex-col; các mẫu gọn (.cx-mw) tự khai display trong CSS
+      // nên trả về chuỗi rỗng, ép "flex" là đè mất bố cục của chúng.
+      musicToggleBtn.style.display = musicToggleBtn.classList.contains("cx-mw")
+        ? ""
+        : "flex";
     }
   } else {
     if (musicToggleBtn) {

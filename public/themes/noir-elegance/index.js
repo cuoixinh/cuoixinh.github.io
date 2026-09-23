@@ -14,6 +14,13 @@
     // Trùng TÊN THƯ MỤC và cột `templates.template_name`.
     id: "noir-elegance",
 
+    // Dạng hiện lời chúc của BẢN XEM THỬ (preview-data.js đọc). Thiệp thật
+    // lấy theo theme_setting.wishes_mode chủ thiệp chọn ở tab Giao diện.
+    wishesMode: "paged",
+
+    // Dạng trình phát nhạc — theme-boot.js dựng vào #cx-music-mount.
+    music: { variant: "disc", chrome: "fixed-corner" },
+
     // Font/màu GỐC: giá trị mặc định trên thanh chỉnh ở tab Giao diện, cũng là
     // điểm "Khôi phục mặc định". Trang Thiết lập đọc qua iframe xem trước.
     // Bộ màu MẶC ĐỊNH của mẫu — bản khai máy đọc được của đúng những giá trị

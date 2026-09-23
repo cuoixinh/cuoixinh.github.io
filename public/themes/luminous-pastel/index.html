@@ -51,8 +51,8 @@
       );
     </script>
     <script src="../../../core/x-button.js"></script>
-    <!-- Markup trình phát nhạc — nạp ở HEAD vì script nội tuyến đầu <body> gọi
-         CXMusicPlayer.build() để dựng thanh nhạc. -->
+    <!-- Markup trình phát nhạc. Dạng dùng ở mẫu này khai tại CX_THEME.music
+         (index.js), theme-boot.js dựng vào #cx-music-mount. -->
     <script src="../../../core/components/music-player.js"></script>
   </head>
 
@@ -64,15 +64,11 @@
        Dựng từ public/themes/base-theme/ — xem hướng dẫn ở đầu file đó. -->
 
   <body class="cx-screen-h flex justify-center items-start md:py-5">
-    <!-- ═══ Trình phát nhạc (enable_music) ═════════════════════════════════
-         Phải là thẻ con ĐẦU TIÊN của <body>: bong bóng thu gọn dùng
-         position:fixed, tổ tiên có transform sẽ neo nó sai chỗ. -->
+    <!-- ═══ Trình phát nhạc (enable_music) ═══════════════════════════════
+         Dạng khai ở CX_THEME.music, theme-boot.js dựng vào đây. Thẻ phải
+         là con ĐẦU TIÊN của <body>: bong bóng thu gọn dùng position:fixed
+         nên tổ tiên có transform sẽ neo nó sai chỗ. -->
     <div id="cx-music-mount"></div>
-    <script>
-      document.currentScript.previousElementSibling.replaceWith(
-        CXMusicPlayer.build({ variant: "bar", chrome: "fixed-top" }),
-      );
-    </script>
 
     <!-- ═══ MỤC: Màn bìa ═══════════════════════════════════════════════════
          Khách bấm "Mở thiệp" thì openInvitation() ẩn màn này và hiện #main-card.

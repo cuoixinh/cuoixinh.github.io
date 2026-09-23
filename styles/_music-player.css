@@ -323,6 +323,20 @@
   font-size: 9px;
 }
 
+/* Hai mẫu KHÔNG tròn cần khổ riêng ở góc màn: 44px là bề ngang của một đĩa,
+   nhét thẻ viên vào đó là ảnh bìa với nút phát chồng lên nhau. */
+
+.cx-mw-fixed.cx-mw-pill {
+  width: auto;
+  max-width: min(58vw, 208px);
+  font-size: 10px;
+}
+
+.cx-mw-fixed.cx-mw-square {
+  width: 54px;
+  font-size: 8px;
+}
+
 .cx-mw-mini-btn {
   position: relative;
   display: block;

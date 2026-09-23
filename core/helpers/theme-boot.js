@@ -203,6 +203,22 @@ function _cxShellName(slug) {
     .catch(() => {});
 }
 
+// Dựng trình phát nhạc theo bản khai CX_THEME.music ({variant, chrome} — tham
+// số của CXMusicPlayer.build). Mẫu chỉ KHAI, không tự dựng: index.js của mẫu
+// còn được trang Thiết lập nạp trong một iframe rỗng chỉ để đọc bản khai.
+// Chỗ đặt: thẻ #cx-music-mount, không có thì làm con ĐẦU TIÊN của <body> —
+// bong bóng thu gọn là position:fixed nên tổ tiên có transform neo nó sai chỗ.
+function _cxMountMusic(decl) {
+  if (!decl || !window.CXMusicPlayer) return;
+  const node = window.CXMusicPlayer.build(decl);
+  const slot = document.getElementById("cx-music-mount");
+  if (slot) slot.replaceWith(node);
+  else document.body.prepend(node);
+  // Helper tự gắn ở DOMContentLoaded; gọi thẳng cho trường hợp DOM đã xong
+  // (hàm có cờ chống gắn hai lần).
+  window.setupMusicPlayer?.(node);
+}
+
 (function () {
   const T = window.CX_THEME;
   if (!T || typeof window.renderWedding !== "function") return;
@@ -218,6 +234,9 @@ function _cxShellName(slug) {
     new URLSearchParams(location.search).get("shell") === "0" &&
     window.self !== window.top;
   if (inShell) document.documentElement.classList.add("cx-shell-view");
+
+  // --- TRÌNH PHÁT NHẠC ---
+  _cxMountMusic(T.music);
 
   // --- NẠP DỮ LIỆU ---
   // Trong khung máy thì gửi tên đôi uyên ương ra cho chrome của trang cha

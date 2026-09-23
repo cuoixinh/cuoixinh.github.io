@@ -404,7 +404,10 @@ GitHub Pages chạy Jekyll nên đường dẫn kiểu đó không được publ
   `swatches` (màu gợi ý trong bộ chọn màu), `reveal`, `focus` (id mục, chỉ khai cái khác
   mặc định), `suggest` (selector mục mà bảng đề xuất mẫu khác bung ra ở bản xem thử —
   mặc định `#section-gift`), `skipSteps` (bước mà trang Thiết lập KHÔNG hiện vì mẫu không
-  vẽ mục đó — id trùng `CX_STEPS`), `onOpen`.
+  vẽ mục đó — id trùng `CX_STEPS`), `wishesMode` (dạng lời chúc của BẢN XEM THỬ, chỉ
+  `preview-data.js` đọc — thiệp thật lấy theo `theme_setting.wishes_mode`),
+  `music` (`{variant, chrome}` của `CXMusicPlayer.build`, `theme-boot.js` dựng vào
+  `#cx-music-mount`), `onOpen`.
   Trang Thiết lập đọc `swatches` và `palette` **qua iframe xem trước** của tab Giao diện.
 - **`CX_THEME.palette`** khai đúng những giá trị `:root` của `theme.css` dưới dạng hex —
   bản khai máy đọc được để trang Thiết lập hiện mục "Mặc định". Hai nơi lệch nhau thì
@@ -557,6 +560,11 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   viết `onclick` vào markup.
 - **Trình phát nhạc:** markup ở `core/components/music-player.js`, logic ở
   `music-player-helper.js` — theme chỉ đánh dấu vai trò bằng `data-cx-music="…"`.
+  Có 6 dạng (`bar` · `mini` · `pill` · `square` · `disc` · `ring`); mẫu KHAI dạng
+  ở `CX_THEME.music` chứ không tự gọi `build()`, vì `index.js` còn được nạp trong
+  iframe rỗng chỉ để đọc bản khai. Thanh ngang (`bar` + `fixed-top`) chỉ dùng ở
+  `basic-gold`, các mẫu khác neo góc màn (`fixed-corner`) — khổ neo góc của hai
+  dạng không tròn (`pill`, `square`) khai riêng ở `styles/_music-player.css`.
 - **Thành phần thả lên thiệp:** danh mục `core/helpers/element-helper.js`, runtime
   `theme-setting-helper.js`, bảng chọn `05-theme-panel.js`; lưu trong
   `theme_setting.elements` nên không cần changelog DB. Ô màu dùng khoá cố định ở
