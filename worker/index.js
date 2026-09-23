@@ -128,7 +128,9 @@ function ogDesc(w, guest) {
 
 async function imageMeta(url) {
   try {
-    const head = await readHead(url, 8192);
+    // 64KB chứ không phải vài KB: ảnh máy cơ/điện thoại có khối EXIF cả chục KB
+    // nằm trước marker khổ ảnh của JPEG, đọc thiếu là mất luôn width/height.
+    const head = await readHead(url, 65536);
     return head ? parseImageSize(head) : null;
   } catch (_) {
     return null;
