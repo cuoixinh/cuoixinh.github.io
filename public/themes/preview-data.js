@@ -13,7 +13,7 @@ const ceremonyDateStr = ceremonyDate.toISOString().split("T")[0];
 const groomPartyDateStr = groomPartyDate.toISOString().split("T")[0];
 const bridePartyDateStr = bridePartyDate.toISOString().split("T")[0];
 
-const lunarYear = "Ất Tỵ";
+const lunarYear = "Bính Ngọ";
 function lunarStr(d) {
   return `Ngày ${d.getDate()} tháng ${d.getMonth() + 1} năm ${lunarYear}`;
 }

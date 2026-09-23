@@ -17,10 +17,10 @@ const DEFAULT_DESC =
 // Path có route riêng trong router.html — không phải slug thiệp.
 const ROUTE_PATHS = new Set(["manage", "account", "customer"]);
 
-// Đường phục vụ lại ảnh bìa cho og:image. Supabase Storage gắn
-// "X-Robots-Tag: none" lên mọi file public; crawler Facebook tôn trọng header đó
-// nên tải ảnh về rồi bỏ, thẻ mất ô ảnh (Zalo không đọc header này nên vẫn hiện).
-// Đi vòng qua đây là ảnh ra từ domain mình, không mang header đó.
+// Đường phục vụ lại ảnh bìa cho og:image — KHÔNG trỏ og:image thẳng vào bucket.
+// Hai thứ ở bucket làm Facebook bỏ ô ảnh trong khi Zalo và trình duyệt vẫn hiện
+// bình thường (rất dễ tưởng đã xong): file còn nguyên EXIF của máy chụp, và
+// header "X-Robots-Tag: none" mà Storage gắn lên mọi file public.
 const OG_IMG_PREFIX = "/__og/";
 
 // Tên file Storage hợp lệ — chặn path traversal và biến worker thành proxy mở.

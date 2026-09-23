@@ -173,7 +173,8 @@ function getCanChi(year) {
     "Ngọ",
     "Mùi",
   ];
-  return can[(year + 6) % 10] + " " + chi[(year + 8) % 12];
+  // Hai mảng đã bắt đầu đúng ở Canh (year % 10 == 0) và Thân (year % 12 == 0).
+  return can[year % 10] + " " + chi[year % 12];
 }
 
 function formatLunarDate(solarDateString) {

@@ -306,9 +306,11 @@ deploy thì đọc `docs/deploy-cloudflare-pages.md` trước.
   crawler Messenger/Zalo/Facebook KHÔNG chạy JS nên trang thiệp không tự khai meta được.
   Worker chỉ nhận path lạ (`/<slug>`), hỏi Edge Function `?slug=` rồi trả HTML mang meta +
   đúng đoạn chuyển hướng của `404.html` — sửa `404.html` thì sửa cả bản sao trong đó.
-  Ảnh của thẻ phát lại qua `/__og/<tên file>` trên chính domain mình: Supabase Storage
-  gắn `X-Robots-Tag: none` lên file public, crawler Facebook tôn trọng header đó nên trỏ
-  thẳng vào bucket là thẻ mất ô ảnh (Zalo vẫn hiện — rất dễ tưởng đã xong).
+  Ảnh của thẻ phát lại qua `/__og/<tên file>`, mã hoá lại bằng Cloudflare Images
+  Transformations (phải BẬT cho zone, nếu không worker lùi về file gốc): trỏ og:image
+  thẳng vào bucket thì Facebook bỏ ô ảnh với file còn EXIF của máy chụp — ảnh chụp bằng
+  điện thoại hay dính, ảnh nào bị nén lại lúc upload thì không — trong khi Zalo và trình
+  duyệt vẫn hiện, rất dễ tưởng đã xong.
   File này KHÔNG nằm trong `dist/` nên đừng khai vào `INCLUDE`. `vars` (EDGE_URL, ANON_KEY,
   STORAGE_URL, ENCRYPTION_KEY) khai thẳng ở hai `wrangler*.jsonc` vì chúng không đi qua
   build — lệch với `core/config*.js` là thẻ đọc nhầm project, `npm run check:config` gác.
