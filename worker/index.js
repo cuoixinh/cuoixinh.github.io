@@ -17,9 +17,20 @@ const DEFAULT_DESC =
 // Path có route riêng trong router.html — không phải slug thiệp.
 const ROUTE_PATHS = new Set(["manage", "account", "customer"]);
 
+// Đường phục vụ lại ảnh bìa cho og:image. Supabase Storage gắn
+// "X-Robots-Tag: none" lên mọi file public; crawler Facebook tôn trọng header đó
+// nên tải ảnh về rồi bỏ, thẻ mất ô ảnh (Zalo không đọc header này nên vẫn hiện).
+// Đi vòng qua đây là ảnh ra từ domain mình, không mang header đó.
+const OG_IMG_PREFIX = "/__og/";
+
+// Tên file Storage hợp lệ — chặn path traversal và biến worker thành proxy mở.
+const OG_IMG_NAME = /^[A-Za-z0-9._-]+$/;
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+
+    if (url.pathname.startsWith(OG_IMG_PREFIX)) return ogImage(env, url);
 
     // Chỉ dựng thẻ cho GET/HEAD của một clean URL: đúng một đoạn, không dấu chấm.
     const seg = url.pathname.replace(/^\/+|\/+$/g, "");
@@ -119,6 +130,24 @@ function ogDesc(w, guest) {
     .replace(/\s+/g, " ")
     .trim();
   return text || DEFAULT_DESC;
+}
+
+/** Chuyển tiếp ảnh từ Storage, giữ mỗi Content-Type — không mang X-Robots-Tag. */
+async function ogImage(env, url) {
+  const name = decodeURIComponent(url.pathname.slice(OG_IMG_PREFIX.length));
+  if (!OG_IMG_NAME.test(name)) return new Response("", { status: 404 });
+  const src = await fetch(`${env.STORAGE_URL}/${name}`, {
+    cf: { cacheEverything: true, cacheTtl: 86400 },
+  });
+  if (!src.ok || !src.body) return new Response("", { status: 404 });
+  const headers = new Headers({
+    "Content-Type": src.headers.get("Content-Type") || "image/jpeg",
+    // Tên file có mã ngẫu nhiên, đổi ảnh là đổi tên → cache thoải mái.
+    "Cache-Control": "public, max-age=31536000, immutable",
+  });
+  const len = src.headers.get("Content-Length");
+  if (len) headers.set("Content-Length", len);
+  return new Response(src.body, { status: 200, headers });
 }
 
 /* ────────────────────────── khổ ảnh cho og:image ──────────────────────── */
@@ -352,8 +381,14 @@ const esc = (s) =>
 async function page(env, w, guest, url) {
   const title = w ? ogTitle(w, guest) : "Cưới Xinh";
   const desc = w ? ogDesc(w, guest) : "";
-  const img = w ? imageUrl(env, coverRef(w)) : "";
-  const dim = img ? await imageMeta(img) : null;
+  const src = w ? imageUrl(env, coverRef(w)) : "";
+  const dim = src ? await imageMeta(src) : null;
+  // Ảnh nằm trong bucket của mình thì phát qua /__og/ (xem OG_IMG_PREFIX); URL
+  // ngoài — khách dán link ảnh sẵn có — giữ nguyên, không biến worker thành proxy.
+  const img =
+    src && src.startsWith(`${env.STORAGE_URL}/`)
+      ? `${url.origin}${OG_IMG_PREFIX}${src.slice(env.STORAGE_URL.length + 1)}`
+      : src;
 
   // secure_url + type + khổ: Messenger cần đủ bộ mới vẽ ảnh ngay lượt scrape đầu.
   const size =
