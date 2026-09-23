@@ -7,11 +7,12 @@
 // khối cao-một-màn cao dần lúc vuốt và ảnh phủ trong đó giật theo từng khung.
 // Chỉ px đo sẵn mới đứng yên.
 //
-// Con số = svh (khung lúc thanh công cụ hiện đủ), đo lại lúc `load`/`pageshow`
-// và mỗi nhịp resize: svh KHÔNG đổi khi thanh công cụ ẩn/hiện nên khối vẫn đứng
-// yên, nhưng lần đầu vào trang khung nhìn chưa ổn định lúc <head> chạy — chỉ đo
-// một lần là khoá vào số quá cao (F5 thì đúng vì khung đã ổn định). Bàn phím ảo
-// đang bung thì bỏ qua: Android resize webview, đo lúc đó là hụt cả trăm px.
+// Đo lúc vào trang (đúng bằng svh, tức khung lúc thanh công cụ hiện đủ) rồi KHOÁ
+// từ lần chạm/cuộn đầu tiên; sau đó chỉ đổi bề ngang (xoay máy) mới đo lại. Trước
+// lần chạm đó thanh công cụ chưa thể ẩn nên mọi resize/`load` đều được đo lại:
+// lần đầu vào trang khung nhìn chưa ổn định lúc <head> chạy, chỉ đo một lần là
+// khoá vào số quá cao (F5 thì đúng vì khung đã ổn định). Bàn phím ảo đang bung
+// thì bỏ qua: Android resize webview, đo lúc đó là hụt cả trăm px.
 //
 // CÁCH DÙNG trong CSS — luôn kèm đơn vị dự phòng cho lúc script chưa chạy:
 //   min-height: calc(var(--vh, 1vh) * 100);   /* trình duyệt chưa hiểu svh */
@@ -22,6 +23,12 @@
 (function () {
   let vhWidth = 0;
   let vhPx = 0;
+  // Đã có số đo từ svh cho bề ngang này chưa. Có rồi thì con số là chuẩn, đừng
+  // để nhánh co dưới đây đụng vào nữa.
+  let vhFromSvh = false;
+  // Khách đã chạm/cuộn chưa — từ đó thanh công cụ mới ẩn/hiện được, nên con số
+  // đang có bị khoá cứng.
+  let settled = false;
 
   // Bàn phím ảo đang bung (Android resize webview, kéo theo cả `innerHeight`
   // lẫn `svh`) — mọi số đo lúc này đều hụt, bỏ qua hết. Đóng bàn phím sẽ có
@@ -69,38 +76,38 @@
       return;
     }
     if (vhPx && isTyping()) return;
-    const svh = measureSvh();
-    let next;
-    if (svh) {
-      next = Math.min(h, svh);
-    } else if (w !== vhWidth || h < vhPx) {
-      // Trình duyệt chưa hiểu svh: chỉ có `innerHeight`, có thể dính lúc thanh
-      // công cụ đang ẩn nên chỉ cho CO xuống (hoặc đo lại khi xoay máy).
-      next = h;
+    if (w !== vhWidth || !settled) {
+      // Lần đầu, xoay máy, hoặc khung còn đang ổn định trước lần chạm đầu tiên.
+      // Không đo svh ở mọi nhịp resize: resize bắn liên tục lúc vuốt.
+      vhWidth = w;
+      const svh = measureSvh();
+      vhFromSvh = !!svh;
+      vhPx = svh ? Math.min(h, svh) : h;
+    } else if (!vhFromSvh && h < vhPx) {
+      // Chỉ trình duyệt KHÔNG hiểu svh mới tới đây: số đo đầu là `innerHeight`,
+      // có thể dính lúc thanh công cụ đang ẩn nên phải co xuống một lần cho
+      // đúng. Có svh rồi thì con số đã chuẩn — co thêm là ăn phải bàn phím ảo
+      // hay thanh công cụ nửa vời.
+      vhPx = h;
     } else {
       return;
     }
-    vhWidth = w;
-    if (Math.abs(next - vhPx) < 1) return;
-    vhPx = next;
     doc.style.setProperty("--vh", `${vhPx * 0.01}px`);
   }
 
-  // Resize bắn liên tục lúc vuốt — gộp về một lần đo mỗi khung hình.
-  let raf = 0;
-  function scheduleVH() {
-    if (raf) return;
-    raf = requestAnimationFrame(() => {
-      raf = 0;
-      setVH();
-    });
+  function settle() {
+    settled = true;
+    SETTLE_EVENTS.forEach((t) => window.removeEventListener(t, settle, true));
   }
+  const SETTLE_EVENTS = ["touchstart", "wheel", "scroll", "keydown"];
 
   // Nạp hai lần (lỡ thêm thẻ script ở hai chỗ) thì bỏ qua lần sau.
   if (window.cxVhLocked) return;
   window.cxVhLocked = true;
   setVH();
-  window.addEventListener("resize", scheduleVH, { passive: true });
+  window.addEventListener("resize", setVH, { passive: true });
   window.addEventListener("load", setVH);
-  window.addEventListener("pageshow", setVH);
+  SETTLE_EVENTS.forEach((t) =>
+    window.addEventListener(t, settle, { capture: true, passive: true }),
+  );
 })();
