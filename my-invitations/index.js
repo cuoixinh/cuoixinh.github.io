@@ -719,13 +719,41 @@ async function shareCard(i) {
   if (await _copyText(url)) showToast("Đã sao chép liên kết thiệp", "success");
 }
 
-async function copyLink(i, btn) {
+// Nút sao chép mở popover chọn nhà: link nhà trai là link chung kèm ?isGroom=true
+// (thiệp ưu tiên lễ/tiệc nhà trai). Một popover dùng chung cho mọi thẻ, neo theo
+// nút vừa bấm.
+function _copyPop() {
+  let pop = document.getElementById("copy-link-pop");
+  if (!pop) {
+    pop = document.createElement("x-popover");
+    pop.id = "copy-link-pop";
+    pop.setAttribute("placement", "bottom");
+    pop.setAttribute("align", "end");
+    pop.setAttribute("arrow", "");
+    document.body.appendChild(pop);
+  }
+  return pop;
+}
+
+function copyLink(i, btn) {
   const c = CARDS[i];
   if (!c?.slug) return;
-  if (!(await _copyText(publicUrl(c)))) return;
-  btn.innerHTML = ICON_CHECK;
-  setTimeout(() => (btn.innerHTML = ICON_COPY), 2000);
-  showToast("Đã sao chép liên kết thiệp", "success");
+  const url = publicUrl(c);
+  const copy = async (link, who) => {
+    if (!(await _copyText(link))) return;
+    btn.innerHTML = ICON_CHECK;
+    setTimeout(() => (btn.innerHTML = ICON_COPY), 2000);
+    showToast(`Đã sao chép link thiệp ${who}`, "success");
+  };
+  const ico = (name) =>
+    `<i data-lucide="${name}" style="width:16px;height:16px"></i>`;
+  const pop = _copyPop();
+  pop.setItems([
+    { icon: ico("house"), label: "Nhà trai", onClick: () => copy(`${url}?isGroom=true`, "nhà trai") },
+    { icon: ico("heart"), label: "Nhà gái", onClick: () => copy(url, "nhà gái") },
+  ]);
+  window.lucide?.createIcons({ root: pop });
+  pop.toggle(btn);
 }
 
 // clipboard ném lỗi khi trang không phải HTTPS hoặc người dùng chặn quyền — không
