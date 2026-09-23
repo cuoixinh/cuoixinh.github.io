@@ -657,6 +657,9 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   `min-height: calc(var(--vh, 1vh) * 100)` rồi `calc(var(--vh, 1svh) * 100)` — thêm một
   dòng `100svh` trần sau đó là đè mất `--vh`. Trang mới cần thì tự thêm thẻ script (thiệp
   và trang chủ đã có); thiếu thì lùi về `1svh`, đúng khổ nhưng kém ổn định.
+- **Chặn zoom: mọi trang `index.html` nạp `core/helpers/no-zoom.js` trong `<head>`** — trang
+  mới cũng phải thêm (`base-theme` có sẵn). Safari iOS bỏ qua `user-scalable=no` của thẻ
+  viewport, nên thiếu thẻ script là trang đó chụm hai ngón vẫn zoom được.
 - **Sơ đồ Mermaid:** sửa sơ đồ thì đồng bộ luôn bảng roadmap + text mô tả bên dưới.
 - **Trần số thiệp mỗi tài khoản:** một tài khoản chỉ giữ được `MAX_WEDDINGS_PER_USER`
   thiệp còn hiện trong danh sách (nháp đã lưu + đã xuất bản; nháp chỉ nằm trong

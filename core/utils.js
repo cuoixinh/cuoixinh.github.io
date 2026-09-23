@@ -1047,19 +1047,6 @@ function closeTimePicker() {
   window._timePickerCallback = null;
 }
 
-// ============= DISABLE MOBILE ZOOM =============
-// Logic ở helpers/no-zoom.js (trang chủ nạp thẳng file đó). Kéo theo từ đây để
-// mọi trang đang nạp utils.js khỏi khai thêm thẻ; mang cùng ?v= với utils.js.
-(function () {
-  const src = document.currentScript && document.currentScript.src;
-  if (!src || window.__cxNoZoom) return;
-  const url = new URL("helpers/no-zoom.js", src);
-  url.search = new URL(src).search;
-  const s = document.createElement("script");
-  s.src = url.href;
-  document.head.appendChild(s);
-})();
-
 // ============= LỚP ĐỀ XUẤT Ở BẢN XEM THỬ =============
 // Mở /public/themes/* với ?preview=true: cuộn tới mục mà mẫu khai ở
 // CX_THEME.suggest thì các thẻ mẫu khác NỔI LÊN TRÊN thiệp (kiểu màn đề xuất
