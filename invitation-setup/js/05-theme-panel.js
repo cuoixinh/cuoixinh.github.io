@@ -2981,7 +2981,12 @@ async function saveDraft() {
   if (ok) _setActiveTab("edit");
 }
 
+// Chặn bấm "Xuất bản" chồng: đoạn await trước saveAll (đọc phiên, dò slug) đủ dài
+// để lượt thứ hai lọt vào rồi hiện popup chúc mừng hai lần.
+let _publishBusy = false;
+
 async function publishWedding() {
+  if (_publishBusy) return;
   // Validate form TRƯỚC khi yêu cầu đăng nhập — tránh bắt user đăng nhập rồi mới báo thiếu thông tin
   const form = document.getElementById("wedding-form");
   if (!validateForm(form)) {
@@ -3012,6 +3017,15 @@ async function publishWedding() {
     }
     return;
   }
+  _publishBusy = true;
+  try {
+    await _publishLoggedIn();
+  } finally {
+    _publishBusy = false;
+  }
+}
+
+async function _publishLoggedIn() {
   _setActiveTab("publish");
   showLoading(true, "Đang chuẩn bị...");
   // Nạp font/CSS của popup mừng NGAY từ đây, không đợi lúc mở popup: tới lúc lưu
