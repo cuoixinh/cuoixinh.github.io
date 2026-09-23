@@ -26,6 +26,14 @@ const OG_IMG_PREFIX = "/__og/";
 // Tên file Storage hợp lệ — chặn path traversal và biến worker thành proxy mở.
 const OG_IMG_NAME = /^[A-Za-z0-9._-]+$/;
 
+// Ảnh đủ nhẹ thì lúc upload KHÔNG bị nén lại (xem core/helpers/image-helper.js)
+// nên lên bucket còn nguyên EXIF/APP13 của máy chụp — ảnh chụp bằng iPhone hay
+// dính — và Facebook bỏ luôn ô ảnh với loại file đó, trong khi trình duyệt lẫn
+// Zalo vẫn hiện bình thường. Cho ảnh đi qua bộ chuyển đổi của Cloudflare là ra
+// JPEG sạch metadata. Ảnh DỌC hiện tốt trên Messenger nên "scale-down" giữ
+// nguyên tỉ lệ, chỉ thu lại ảnh quá to.
+const OG_IMG_BOX = { width: 1200, height: 1200, fit: "scale-down" };
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -132,13 +140,22 @@ function ogDesc(w, guest) {
   return text || DEFAULT_DESC;
 }
 
-/** Chuyển tiếp ảnh từ Storage, giữ mỗi Content-Type — không mang X-Robots-Tag. */
+/** Phát lại ảnh bìa: mã hoá lại cho sạch, không mang X-Robots-Tag của Storage. */
 async function ogImage(env, url) {
   const name = decodeURIComponent(url.pathname.slice(OG_IMG_PREFIX.length));
   if (!OG_IMG_NAME.test(name)) return new Response("", { status: 404 });
-  const src = await fetch(`${env.STORAGE_URL}/${name}`, {
-    cf: { cacheEverything: true, cacheTtl: 86400 },
+  const origin = `${env.STORAGE_URL}/${name}`;
+  let src = await fetch(origin, {
+    cf: {
+      image: { ...OG_IMG_BOX, format: "jpeg", quality: 85 },
+      cacheEverything: true,
+      cacheTtl: 86400,
+    },
   });
+  // Zone chưa bật Transformations thì Cloudflare trả lỗi chứ không trả ảnh —
+  // lùi về file gốc để thẻ vẫn có ảnh.
+  if (!src.ok || !/^image\//.test(src.headers.get("Content-Type") || ""))
+    src = await fetch(origin, { cf: { cacheEverything: true, cacheTtl: 86400 } });
   if (!src.ok || !src.body) return new Response("", { status: 404 });
   const headers = new Headers({
     "Content-Type": src.headers.get("Content-Type") || "image/jpeg",
@@ -155,20 +172,21 @@ async function ogImage(env, url) {
 // og:image:width/height là thẻ hiện ra không có ảnh (Zalo tự tải nên vẫn hiện).
 // Đọc vài KB đầu là đủ biết khổ, không phải kéo cả tấm ảnh.
 
-async function imageMeta(url) {
+async function imageMeta(res) {
   try {
     // 64KB chứ không phải vài KB: ảnh máy cơ/điện thoại có khối EXIF cả chục KB
     // nằm trước marker khổ ảnh của JPEG, đọc thiếu là mất luôn width/height.
-    const head = await readHead(url, 65536);
+    const head = await readHead(res, 65536);
     return head ? parseImageSize(head) : null;
   } catch (_) {
     return null;
   }
 }
 
-/** n byte đầu của URL — xin Range trước, không được thì đọc chunk rồi bỏ ngang. */
-async function readHead(url, n) {
-  const r = await fetch(url, { headers: { Range: `bytes=0-${n - 1}` } });
+/** n byte đầu của một Response (hoặc URL) — đọc vài chunk rồi bỏ ngang. */
+async function readHead(r, n) {
+  if (typeof r === "string")
+    r = await fetch(r, { headers: { Range: `bytes=0-${n - 1}` } });
   if (!r.ok || !r.body) return null;
   const reader = r.body.getReader();
   const parts = [];
@@ -382,13 +400,19 @@ async function page(env, w, guest, url) {
   const title = w ? ogTitle(w, guest) : "Cưới Xinh";
   const desc = w ? ogDesc(w, guest) : "";
   const src = w ? imageUrl(env, coverRef(w)) : "";
-  const dim = src ? await imageMeta(src) : null;
   // Ảnh nằm trong bucket của mình thì phát qua /__og/ (xem OG_IMG_PREFIX); URL
   // ngoài — khách dán link ảnh sẵn có — giữ nguyên, không biến worker thành proxy.
-  const img =
-    src && src.startsWith(`${env.STORAGE_URL}/`)
-      ? `${url.origin}${OG_IMG_PREFIX}${src.slice(env.STORAGE_URL.length + 1)}`
-      : src;
+  const mine = src.startsWith(`${env.STORAGE_URL}/`);
+  const img = mine
+    ? `${url.origin}${OG_IMG_PREFIX}${src.slice(env.STORAGE_URL.length + 1)}`
+    : src;
+  // Đo trên ĐÚNG luồng byte crawler sẽ tải (gọi thẳng hàm phát ảnh), nên khổ khai
+  // ra luôn khớp dù zone đã bật Transformations hay còn lùi về file gốc.
+  const dim = mine
+    ? await imageMeta(await ogImage(env, new URL(img)))
+    : src
+      ? await imageMeta(src)
+      : null;
 
   // secure_url + type + khổ: Messenger cần đủ bộ mới vẽ ảnh ngay lượt scrape đầu.
   const size =
