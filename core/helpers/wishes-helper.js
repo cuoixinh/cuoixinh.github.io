@@ -250,10 +250,25 @@ function _cxWishStopRoll() {
   _cxWishReplayTimer = null;
 }
 
+// Màn phủ mờ ở đáy dải (.cx-wdock::before) chỉ để chữ trôi không lẫn vào thiệp
+// → chưa có lời chúc nào thì bỏ, nếu không đáy thiệp tối đi một mảng mà chẳng
+// che gì. Không lời chúc LẪN không ô nhập (khách vào bằng link chung) thì dải
+// rỗng hẳn: ẩn luôn nó cùng chỗ trống nó xin ở đáy thân thiệp.
+function _cxWishSyncDockFade() {
+  const dock = document.getElementById("cx-wish-dock");
+  if (!dock) return;
+  const has = _cxWishItems.length > 0;
+  const blank = !has && !_cxWishCanWrite;
+  dock.classList.toggle("is-bare", !has);
+  dock.classList.toggle("is-blank", blank);
+  document.getElementById("cx-wdock-spacer")?.classList.toggle("is-blank", blank);
+}
+
 // Dạng "live": cả danh sách nằm trong một thẻ track trôi từ dưới lên.
 function _cxWishRenderDock(mount) {
   const tools = document.getElementById("cx-wdock-tools");
   if (tools) tools.hidden = _cxWishItems.length === 0;
+  _cxWishSyncDockFade();
 
   if (_cxWishItems.length === 0) {
     mount.innerHTML = "";
@@ -601,7 +616,7 @@ function _cxWishSyncSend(input) {
 // Bong bóng và ô nhập dùng CHUNG mặt giấy của mẫu (nền `panel`, chữ `body`), tách
 // khỏi thiệp bằng viền màu nhấn + bóng đổ chứ không bằng tấm kính xám.
 // Ai cũng đọc được danh sách; ô nhập chỉ dựng cho khách cầm link cá nhân hoá
-// (hoặc bản xem thử), người còn lại thấy một dòng giải thích thay chỗ đó.
+// (hoặc bản xem thử), người còn lại chỉ có phần đọc.
 function _cxWishBuildDock(canWrite) {
   if (document.getElementById("cx-wish-dock")) return;
 
@@ -634,7 +649,9 @@ function _cxWishBuildDock(canWrite) {
   if (host && !document.getElementById("cx-wdock-spacer")) {
     const spacer = document.createElement("div");
     spacer.id = "cx-wdock-spacer";
-    spacer.className = "cx-wdock-spacer";
+    // Không có ô nhập thì dải thấp hẳn đi — chừa nguyên 104px là hở một khoảng
+    // trắng dưới mục cuối.
+    spacer.className = "cx-wdock-spacer" + (canWrite ? "" : " is-slim");
     host.appendChild(spacer);
   }
 
@@ -650,11 +667,10 @@ function _cxWishBuildDock(canWrite) {
 
 // Ô "Gửi lời chúc" — MỘT bộ markup dùng cho cả dải nổi lẫn mục dạng comment
 // (hình dạng do thẻ cha quyết định, xem .cx-wsec .cx-wdock-card ở
-// styles/_common.css). Khách vào bằng link chung thì thay bằng một dòng giải
-// thích: cổng chặn thật nằm ở Edge Function, đây chỉ là phần nhìn.
+// styles/_common.css). Khách vào bằng link chung thì KHÔNG dựng gì cả — họ chỉ
+// đọc lời chúc; cổng chặn thật nằm ở Edge Function, đây chỉ là phần nhìn.
 function _cxWishComposerHtml(canWrite) {
-  if (!canWrite)
-    return '<div class="cx-wdock-note cx-t">Chỉ khách mời nhận thiệp riêng mới gửi được lời chúc.</div>';
+  if (!canWrite) return "";
   return (
     '<div class="cx-wdock-card cx-t" id="cx-wdock-open">' +
     '<div class="cx-wdock-row">' +
