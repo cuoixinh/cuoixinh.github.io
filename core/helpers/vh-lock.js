@@ -7,12 +7,12 @@
 // khối cao-một-màn cao dần lúc vuốt và ảnh phủ trong đó giật theo từng khung.
 // Chỉ px đo sẵn mới đứng yên.
 //
-// Đo lúc vào trang (đúng bằng svh, tức khung lúc thanh công cụ hiện đủ) rồi KHOÁ
-// từ lần chạm/cuộn đầu tiên; sau đó chỉ đổi bề ngang (xoay máy) mới đo lại. Trước
-// lần chạm đó thanh công cụ chưa thể ẩn nên mọi resize/`load` đều được đo lại:
-// lần đầu vào trang khung nhìn chưa ổn định lúc <head> chạy, chỉ đo một lần là
-// khoá vào số quá cao (F5 thì đúng vì khung đã ổn định). Bàn phím ảo đang bung
-// thì bỏ qua: Android resize webview, đo lúc đó là hụt cả trăm px.
+// Đo khi tải trang rồi KHOÁ: cuộn hay đổi chiều cao khung (thanh công cụ ẩn/hiện,
+// bàn phím ảo) đều không đụng tới; chỉ đổi bề ngang (xoay máy) mới đo lại. Đo hai
+// nhịp: ngay trong <head> để nhịp vẽ đầu đã có số, rồi chốt lại ở `load` — lần
+// đầu vào trang khung nhìn chưa ổn định lúc <head> chạy nên số đầu có thể quá cao
+// (F5 thì đúng vì khung đã ổn định). Khách đã cuộn trước `load` thì giữ số đầu,
+// vì lúc đó thanh công cụ có thể đang ẩn.
 //
 // CÁCH DÙNG trong CSS — luôn kèm đơn vị dự phòng cho lúc script chưa chạy:
 //   min-height: calc(var(--vh, 1vh) * 100);   /* trình duyệt chưa hiểu svh */
@@ -22,17 +22,11 @@
 
 (function () {
   let vhWidth = 0;
-  let vhPx = 0;
-  // Đã có số đo từ svh cho bề ngang này chưa. Có rồi thì con số là chuẩn, đừng
-  // để nhánh co dưới đây đụng vào nữa.
-  let vhFromSvh = false;
-  // Khách đã chạm/cuộn chưa — từ đó thanh công cụ mới ẩn/hiện được, nên con số
-  // đang có bị khoá cứng.
-  let settled = false;
+  // Khách đã cuộn/chạm trước `load` chưa — có rồi thì không chốt lại ở `load`.
+  let touched = false;
 
   // Bàn phím ảo đang bung (Android resize webview, kéo theo cả `innerHeight`
-  // lẫn `svh`) — mọi số đo lúc này đều hụt, bỏ qua hết. Đóng bàn phím sẽ có
-  // thêm một nhịp resize nữa để đo lại nếu cần.
+  // lẫn `svh`) — mọi số đo lúc này đều hụt, bỏ qua hết.
   function isTyping() {
     const el = document.activeElement;
     if (!el) return false;
@@ -65,7 +59,8 @@
     return h;
   }
 
-  function setVH() {
+  // force: đo lại dù bề ngang không đổi (chỉ dùng cho nhịp chốt ở `load`).
+  function setVH(force) {
     const doc = document.documentElement;
     const w = window.innerWidth;
     const h = window.innerHeight;
@@ -75,39 +70,29 @@
       doc.style.setProperty("--vh", `${h * 0.01}px`);
       return;
     }
-    if (vhPx && isTyping()) return;
-    if (w !== vhWidth || !settled) {
-      // Lần đầu, xoay máy, hoặc khung còn đang ổn định trước lần chạm đầu tiên.
-      // Không đo svh ở mọi nhịp resize: resize bắn liên tục lúc vuốt.
-      vhWidth = w;
-      const svh = measureSvh();
-      vhFromSvh = !!svh;
-      vhPx = svh ? Math.min(h, svh) : h;
-    } else if (!vhFromSvh && h < vhPx) {
-      // Chỉ trình duyệt KHÔNG hiểu svh mới tới đây: số đo đầu là `innerHeight`,
-      // có thể dính lúc thanh công cụ đang ẩn nên phải co xuống một lần cho
-      // đúng. Có svh rồi thì con số đã chuẩn — co thêm là ăn phải bàn phím ảo
-      // hay thanh công cụ nửa vời.
-      vhPx = h;
-    } else {
-      return;
-    }
-    doc.style.setProperty("--vh", `${vhPx * 0.01}px`);
+    if (w === vhWidth && force !== true) return;
+    if (vhWidth && isTyping()) return;
+    vhWidth = w;
+    const svh = measureSvh();
+    doc.style.setProperty("--vh", `${(svh ? Math.min(h, svh) : h) * 0.01}px`);
   }
 
-  function settle() {
-    settled = true;
-    SETTLE_EVENTS.forEach((t) => window.removeEventListener(t, settle, true));
+  function markTouched() {
+    touched = true;
+    TOUCH_EVENTS.forEach((t) => window.removeEventListener(t, markTouched, true));
   }
-  const SETTLE_EVENTS = ["touchstart", "wheel", "scroll", "keydown"];
+  const TOUCH_EVENTS = ["touchstart", "wheel", "scroll", "keydown"];
 
   // Nạp hai lần (lỡ thêm thẻ script ở hai chỗ) thì bỏ qua lần sau.
   if (window.cxVhLocked) return;
   window.cxVhLocked = true;
   setVH();
   window.addEventListener("resize", setVH, { passive: true });
-  window.addEventListener("load", setVH);
-  SETTLE_EVENTS.forEach((t) =>
-    window.addEventListener(t, settle, { capture: true, passive: true }),
+  window.addEventListener("load", () => {
+    if (!touched) setVH(true);
+    markTouched();
+  });
+  TOUCH_EVENTS.forEach((t) =>
+    window.addEventListener(t, markTouched, { capture: true, passive: true }),
   );
 })();
