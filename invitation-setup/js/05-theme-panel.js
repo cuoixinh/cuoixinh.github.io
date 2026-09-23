@@ -3025,6 +3025,9 @@ async function publishWedding() {
     slugInput.value = WEDDING_SLUG;
     _updateSlugPreview();
   }
+  // Chụp cờ TRƯỚC khi lưu: popup chúc mừng chỉ hiện ở lần nháp → xuất bản đầu tiên,
+  // những lần "Lưu & Xuất bản" sau chỉ còn toast "Đã lưu thành công!" của saveAll.
+  const firstPublish = !IS_PUBLISHED;
   const ok = await saveAll({ is_published: true }, "Đang xuất bản...");
   if (!ok) return;
 
@@ -3033,7 +3036,7 @@ async function publishWedding() {
   _syncLocalOrder({ published: true }); // để thiệp hiện trong mục "Đơn hàng" của trang tài khoản
 
   _setActiveTab("edit");
-  showPublishSuccessPopup();
+  if (firstPublish) showPublishSuccessPopup();
 }
 
 // Popup mừng "Thiệp đã sẵn sàng", cá nhân hoá bằng tên cô dâu/chú rể. Tự dựng
