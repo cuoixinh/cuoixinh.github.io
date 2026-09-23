@@ -139,8 +139,8 @@
           </p>
           <p class="text-center text-[11px] text-gray-400 leading-relaxed !mt-4 pt-3 border-t border-gray-100">
             Tiếp tục đồng nghĩa bạn đồng ý với
-            <span class="text-color-secondary font-medium">Điều khoản</span> &amp;
-            <span class="text-color-secondary font-medium">Chính sách bảo mật</span> của Cưới Xinh.
+            <a href="/policy/#terms" target="_blank" rel="noopener" class="text-color-secondary font-medium underline">Điều khoản</a> &amp;
+            <a href="/policy/#privacy" target="_blank" rel="noopener" class="text-color-secondary font-medium underline">Chính sách bảo mật</a> của Cưới Xinh.
           </p>
         </div>
 

@@ -734,12 +734,12 @@
               <p class="flex items-center justify-center gap-1.5 text-xs text-gray-500 m-0">
                 <i data-lucide="qr-code" class="shrink-0" style="width:14px;height:14px"></i>Bấm xong sẽ hiện mã QR để quét
               </p>
-              <!-- Cùng câu chữ với hộp đăng nhập (core/auth-ui.js). Chưa có
-                   trang điều khoản nên để chữ thường, không dựng link chết. -->
+              <!-- Cùng câu chữ với hộp đăng nhập (core/auth-ui.js). Mở tab mới
+                   để khách đọc xong quay lại không mất đơn đang dở. -->
               <p class="text-center text-[11px] text-gray-400 leading-relaxed m-0">
                 Tiếp tục đồng nghĩa bạn đồng ý với
-                <span class="text-color-secondary font-medium">Điều khoản</span> &amp;
-                <span class="text-color-secondary font-medium">Chính sách bảo mật</span> của Cưới Xinh.
+                <a href="/policy/#terms" target="_blank" rel="noopener" class="text-color-secondary font-medium underline">Điều khoản</a> &amp;
+                <a href="/policy/#privacy" target="_blank" rel="noopener" class="text-color-secondary font-medium underline">Chính sách bảo mật</a> của Cưới Xinh.
               </p>
             </div>
           </div>
