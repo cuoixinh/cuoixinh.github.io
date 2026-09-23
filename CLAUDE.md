@@ -48,6 +48,7 @@ assets/background/       Ảnh nền WebP do tab "Ảnh nền" của admin chụ
 supabase/functions/      Edge Functions
 changelogs/              Lịch sử thay đổi DB
 cloudflare-worker/       Workers proxy/cache
+worker/                  Worker của site chính — chèn thẻ og:* cho link thiệp
 ```
 
 **3-layer:** UI (render + events) → **BL** (validate, transform, rules) → **DAL** (query DB, API).
@@ -300,6 +301,14 @@ Supabase riêng và một kênh thanh toán PayOS riêng. Đụng tới staging 
 Cloudflare Workers Builds build từ repo private và **chỉ publish thư mục `dist/`** (khai ở
 `wrangler.jsonc` gốc), do `scripts/deploy-public.mjs --dist --minify` dựng ra. Đụng tới
 deploy thì đọc `docs/deploy-cloudflare-pages.md` trước.
+
+- **Thẻ chia sẻ (og:*) do `worker/index.js` trả**, khai ở `main` của `wrangler.jsonc` —
+  crawler Messenger/Zalo/Facebook KHÔNG chạy JS nên trang thiệp không tự khai meta được.
+  Worker chỉ nhận path lạ (`/<slug>`), hỏi Edge Function `?slug=` rồi trả HTML mang meta +
+  đúng đoạn chuyển hướng của `404.html` — sửa `404.html` thì sửa cả bản sao trong đó.
+  File này KHÔNG nằm trong `dist/` nên đừng khai vào `INCLUDE`. `vars` (EDGE_URL, ANON_KEY,
+  STORAGE_URL, ENCRYPTION_KEY) khai thẳng ở hai `wrangler*.jsonc` vì chúng không đi qua
+  build — lệch với `core/config*.js` là thẻ đọc nhầm project, `npm run check:config` gác.
 
 - **Đưa staging lên production: `npm run production`** (merge nhánh staging vào nhánh
   production rồi push, xong quay về nhánh cũ). Nó CHẶN khi cây làm việc bẩn, khi nhánh

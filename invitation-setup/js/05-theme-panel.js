@@ -2981,7 +2981,13 @@ async function saveDraft() {
   if (ok) _setActiveTab("edit");
 }
 
-async function publishWedding() {
+// Chặn bấm "Xuất bản" chồng: đoạn await trước saveAll (đọc phiên, dò slug) đủ dài
+// để lượt thứ hai lọt vào rồi hiện popup chúc mừng hai lần.
+let _publishBusy = false;
+
+// opts.checked = đã qua popup "Kiểm tra thông tin" (26-publish-check.js), khỏi hỏi lại.
+async function publishWedding(opts = {}) {
+  if (_publishBusy) return;
   // Validate form TRƯỚC khi yêu cầu đăng nhập — tránh bắt user đăng nhập rồi mới báo thiếu thông tin
   const form = document.getElementById("wedding-form");
   if (!validateForm(form)) {
@@ -2993,6 +2999,14 @@ async function publishWedding() {
   // nhập bên dưới, đọc cờ cũ là mở popup lần nữa thành vòng lặp. Hỏi supabase
   // (await) để token hết hạn không bị tính nhầm là còn đăng nhập.
   await _refreshLoginState();
+  // Lần xuất bản ĐẦU: cho xem mục nào còn trống trước khi gửi thiệp đi.
+  if (!opts.checked && !IS_PUBLISHED && window.cxOpenPublishCheck) {
+    cxOpenPublishCheck({
+      loggedIn: IS_LOGIN,
+      onConfirm: () => publishWedding({ checked: true }),
+    });
+    return;
+  }
   if (!IS_LOGIN) {
     // Chưa đăng nhập → hiện popup đăng nhập/tạo tài khoản ngay tại chỗ (không rời trang).
     // OAuth vẫn redirect: đính pendingPublish=1 để tự xuất bản khi quay lại.
@@ -3003,7 +3017,7 @@ async function publishWedding() {
         title: "Sẵn sàng gửi thiệp đi chưa?",
         subtitle: "Đăng nhập để kích hoạt và chia sẻ thiệp cưới của bạn",
         oauthRedirect: oauthRedirect.toString(),
-        onAuth: () => publishWedding(),
+        onAuth: () => publishWedding({ checked: true }),
       });
     } else {
       const returnUrl = new URL(window.location.href);
@@ -3012,6 +3026,15 @@ async function publishWedding() {
     }
     return;
   }
+  _publishBusy = true;
+  try {
+    await _publishLoggedIn();
+  } finally {
+    _publishBusy = false;
+  }
+}
+
+async function _publishLoggedIn() {
   _setActiveTab("publish");
   showLoading(true, "Đang chuẩn bị...");
   // Nạp font/CSS của popup mừng NGAY từ đây, không đợi lúc mở popup: tới lúc lưu
@@ -3025,6 +3048,9 @@ async function publishWedding() {
     slugInput.value = WEDDING_SLUG;
     _updateSlugPreview();
   }
+  // Chụp cờ TRƯỚC khi lưu: popup chúc mừng chỉ hiện ở lần nháp → xuất bản đầu tiên,
+  // những lần "Lưu & Xuất bản" sau chỉ còn toast "Đã lưu thành công!" của saveAll.
+  const firstPublish = !IS_PUBLISHED;
   const ok = await saveAll({ is_published: true }, "Đang xuất bản...");
   if (!ok) return;
 
@@ -3033,7 +3059,7 @@ async function publishWedding() {
   _syncLocalOrder({ published: true }); // để thiệp hiện trong mục "Đơn hàng" của trang tài khoản
 
   _setActiveTab("edit");
-  showPublishSuccessPopup();
+  if (firstPublish) showPublishSuccessPopup();
 }
 
 // Popup mừng "Thiệp đã sẵn sàng", cá nhân hoá bằng tên cô dâu/chú rể. Tự dựng
@@ -3048,74 +3074,52 @@ function _ensurePublishPopupAssets() {
     #publish-success-modal{position:fixed;inset:0;z-index:300;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(58,26,34,.55);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
     #publish-success-modal button,#publish-success-modal a{cursor:pointer}
     #publish-success-modal :focus-visible{outline:2px solid #e11d48;outline-offset:2px}
-    /* 92dvh chứ không chỉ 92vh: trên iOS/Android, vh tính theo viewport lúc thanh
-       công cụ trình duyệt ĐANG ẨN, nên 92vh vẫn có thể cao hơn phần nhìn thấy thật
-       và popup bị cắt. Trình duyệt cũ không hiểu dvh sẽ bỏ qua dòng sau, còn 92vh. */
-    .ps-card{width:100%;max-width:400px;max-height:92vh;max-height:92dvh;overflow-y:auto;background:#fff;border-radius:24px;box-shadow:0 24px 64px -16px rgba(74,44,53,.45);animation:ps-in .45s cubic-bezier(.22,.9,.3,1) both}
+    /* 92dvh sau 92vh: trên di động vh tính lúc thanh công cụ ẨN nên có thể cao hơn phần nhìn thấy. */
+    .ps-card{width:100%;max-width:400px;max-height:92vh;max-height:92dvh;overflow-y:auto;background:#fff;border-radius:20px;border-top:3px solid #fb7185;box-shadow:0 24px 64px -16px rgba(74,44,53,.45);animation:ps-in .4s cubic-bezier(.22,.9,.3,1) both}
     @keyframes ps-in{from{opacity:0;transform:translateY(16px) scale(.98)}to{opacity:1;transform:none}}
-    /* Dải hồng mảnh trên đỉnh thẻ: đủ để nhận ra "xong việc" mà không cần
-       nguyên mảng nền màu như banner. */
-    .ps-head{position:relative;text-align:center;padding:26px 24px 0;border-top:3px solid transparent;background:linear-gradient(#fff,#fff) padding-box,linear-gradient(90deg,#fb7185,#f9a8d4) border-box;border-radius:24px 24px 0 0}
-    .ps-x{position:absolute;top:12px;right:12px;width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;border-radius:999px;color:#b39aa1;background:transparent;transition:color .15s ease,background .15s ease}
-    .ps-x:hover{color:#4a2c35;background:#f5ece8}
-    .ps-badge{width:52px;height:52px;border-radius:999px;margin:0 auto;display:flex;align-items:center;justify-content:center;color:#fff;background:linear-gradient(135deg,rgb(var(--state-success-accent-rgb)),rgb(var(--state-success-text-rgb)));box-shadow:0 10px 22px -8px rgb(var(--state-success-accent-rgb) / .65);animation:ps-pop .45s .08s cubic-bezier(.22,1.3,.45,1) both}
+    /* Đầu thẻ MỘT hàng (dấu tích · tiêu đề + tên đôi · nút đóng): xếp dọc tốn gần 200px. */
+    .ps-head{display:flex;align-items:center;gap:12px;padding:16px 12px 0 16px}
+    .ps-badge{flex-shrink:0;width:40px;height:40px;border-radius:999px;display:flex;align-items:center;justify-content:center;color:#fff;background:linear-gradient(135deg,rgb(var(--state-success-accent-rgb)),rgb(var(--state-success-text-rgb)));box-shadow:0 8px 18px -8px rgb(var(--state-success-accent-rgb) / .65);animation:ps-pop .45s .08s cubic-bezier(.22,1.3,.45,1) both}
     @keyframes ps-pop{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
-    /* Chữ chúc mừng: font của trang, cỡ nhỏ — ưu tiên ĐỌC ĐƯỢC ngay thay vì
-       chữ thư pháp cỡ lớn. */
-    .ps-congrats{font-size:18px;font-weight:700;line-height:1.3;letter-spacing:-.01em;color:#4a2c35;margin:14px 0 0;animation:ps-rise .45s .14s cubic-bezier(.22,.9,.3,1) both}
-    @keyframes ps-rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-    .ps-sub{font-size:13px;line-height:1.5;color:#9b7d86;margin:6px 0 0}
-    .ps-couple{margin-top:12px;display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;font-size:13px;font-weight:600;color:#4a2c35;background:#fff5f7;border:1px solid #ffe0e8;border-radius:999px;padding:6px 14px}
-    .ps-body{padding:0 20px 20px}
-    .ps-eyebrow{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#c2a15a;margin:18px 2px 8px}
-    .ps-eyebrow::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,#ecdfc4,transparent)}
-    .ps-link{border:1px solid #f1e6ea;background:#fff;border-radius:14px;padding:12px;transition:border-color .15s ease,box-shadow .15s ease}
-    .ps-link:hover{border-color:#ffd9e1;box-shadow:0 6px 16px -10px rgba(74,44,53,.4)}
-    .ps-link+.ps-link{margin-top:8px}
-    .ps-link-top{display:flex;align-items:center;gap:12px}
+    .ps-head-text{flex:1;min-width:0}
+    .ps-congrats{font-size:16px;font-weight:700;line-height:1.3;color:#4a2c35;margin:0}
+    .ps-couple{display:flex;align-items:center;gap:6px;margin-top:2px;font-size:13px;font-weight:600;color:#9b7d86;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .ps-couple svg{flex-shrink:0}
+    .ps-x{flex-shrink:0;align-self:flex-start;width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;border-radius:999px;color:#b39aa1;background:transparent;transition:color .15s ease,background .15s ease}
+    .ps-x:hover{color:#4a2c35;background:#f5ece8}
+    .ps-body{padding:14px 16px 16px}
+    /* Mỗi link một dòng: tên + URL xếp chồng bên trái, 2 nút icon bên phải. */
+    .ps-link{display:flex;align-items:center;gap:10px;border:1px solid #f1e6ea;border-radius:12px;padding:8px 8px 8px 12px}
+    .ps-link+.ps-link{margin-top:6px}
     .ps-link-text{flex:1;min-width:0}
-    .ps-link-label{font-size:14px;font-weight:600;line-height:1.2;color:#4a2c35}
-    .ps-link-sub{font-size:11px;line-height:1.3;color:#9b7d86;margin-top:2px}
-    /* 1 dòng + cắt đuôi: link nhà trai có thêm ?isGroom=true nên xuống 2 dòng,
-       làm hai thẻ lệch nhau và cao thêm. Link đầy đủ vẫn nằm ở nút Sao chép. */
-    .ps-url{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;line-height:1.3;color:#9b7d86;margin-top:8px;padding:6px 8px;border-radius:8px;background:#faf6f7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .ps-link-label{font-size:14px;font-weight:600;line-height:1.25;color:#4a2c35}
+    /* 1 dòng + cắt đuôi: link nhà trai dài hơn; link đủ vẫn nằm ở nút Sao chép. */
+    .ps-url{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;line-height:1.3;color:#9b7d86;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .ps-acts{display:flex;gap:6px;flex-shrink:0}
     .ps-soft{width:34px;height:34px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #ffd9e1;color:#e11d48;background:#fff;transition:background .15s ease,border-color .15s ease}
     .ps-soft:hover{background:#fff1f4;border-color:#ffc4d2}
     .ps-soft i{width:16px;height:16px}
-    /* margin-top thay cho eyebrow đã bỏ: nút này mở sang việc KHÁC (khách mời),
-       dính sát thẻ link cuối thì đọc như vẫn thuộc mục "Chia sẻ thiệp". */
-    .ps-primary{width:100%;height:46px;margin-top:18px;border-radius:14px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:15px;font-weight:600;color:#fff;background:#e11d48;border:none;transition:background .15s ease,transform .15s ease}
-    .ps-primary:hover{background:#c81742;transform:translateY(-1px)}
-    .ps-primary i{width:16px;height:16px}
-    .ps-note{font-size:12px;line-height:1.5;color:#9b7d86;text-align:center;margin:8px 0 0;padding:0 8px}
-    .ps-note b{color:#4a2c35;font-weight:600}
-    .ps-keep{font-size:11px;line-height:1.5;color:#9b7d86;text-align:center;margin:8px 0 0;padding:8px 10px;border-radius:10px;background:#faf6f7}
+    .ps-guests{width:100%;height:40px;margin-top:8px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:14px;font-weight:600;color:#e11d48;background:#fff5f7;border:1px solid #ffe0e8;transition:background .15s ease}
+    .ps-guests:hover{background:#ffecf1}
+    .ps-guests i{width:16px;height:16px}
+    .ps-keep{font-size:12px;line-height:1.45;color:#7d5a64;margin:12px 0 0;padding:8px 10px;border-radius:10px;background:#faf6f7}
     .ps-keep b{color:#b8425f;font-weight:600}
     .ps-warn{color:#9a3412;background:#fff7ed;border:1px solid #fed7aa}
     .ps-warn b{color:#9a3412}
-    /* Nền ngà nhạt + viền mảnh (cùng bộ với thẻ link) thay vì chữ trơn: vẫn nhẹ hơn
-       hẳn nút hồng phía trên, nhưng nhìn ra là NÚT chứ không phải dòng chữ phụ. */
-    .ps-done{display:flex;align-items:center;justify-content:center;width:100%;height:40px;margin-top:8px;border-radius:12px;font-size:13px;font-weight:600;color:#7d5a64;background:#f7f0e8;border:1px solid #f0e4d4;transition:background .15s ease,color .15s ease}
+    /* Hàng nút cuối: phụ (Để sau / Hoàn tất) bên trái, chính bên phải. */
+    .ps-foot{display:flex;gap:8px;margin-top:10px}
+    .ps-primary{flex:1.6;height:44px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:14px;font-weight:600;color:#fff;background:#e11d48;border:none;white-space:nowrap;transition:background .15s ease}
+    .ps-primary:hover{background:#c81742}
+    .ps-primary i{width:16px;height:16px}
+    .ps-done{flex:1;height:44px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;color:#7d5a64;background:#f7f0e8;border:1px solid #f0e4d4;white-space:nowrap;transition:background .15s ease,color .15s ease}
     .ps-done:hover{background:#f1e7db;color:#4a2c35}
-    /* Màn thấp (iPhone SE… và mọi máy khi thanh công cụ trình duyệt đang hiện):
-       bóp phần trang trí để KHÔNG phải cuộn. Máy cao giữ nguyên thiết kế đầy đủ. */
-    @media (max-height:640px){
-      .ps-head{padding-top:18px}
-      .ps-badge{width:44px;height:44px}
-      .ps-congrats{font-size:17px;margin-top:10px}
-      .ps-note{display:none}
-      .ps-eyebrow{margin-top:12px}
-    }
-    /* Cực thấp (máy nhỏ xoay ngang, cửa sổ tí hon): bỏ nốt dòng link hiển thị và
-       nới popup gần kín màn. Nút Sao chép vẫn chép đủ link nên không mất chức năng. */
+    /* Màn cực thấp (xoay ngang): bỏ dòng URL, Sao chép vẫn chép đủ link. */
     @media (max-height:520px){
       #publish-success-modal{padding:8px}
       .ps-card{max-height:96dvh}
       .ps-url{display:none}
-      .ps-sub{display:none}
     }
-    @media (prefers-reduced-motion:reduce){.ps-card,.ps-congrats,.ps-badge{animation:none}}`;
+    @media (prefers-reduced-motion:reduce){.ps-card,.ps-badge{animation:none}}`;
   document.head.appendChild(s);
 }
 
@@ -3125,7 +3129,6 @@ function showPublishSuccessPopup() {
   if (!slug) return;
   const generalUrl = `${DOMAIN}/${slug}`;
   const groomUrl = `${generalUrl}?isGroom=true`;
-  const familyOn = document.getElementById("enable_family")?.value === "true";
 
   const form = document.getElementById("wedding-form");
   const fd = form ? new FormData(form) : null;
@@ -3143,43 +3146,52 @@ function showPublishSuccessPopup() {
   const HEART = (fill, size) =>
     `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="${fill}"><path d="M12 21s-6.7-4.3-9.4-7C.9 12.3.5 10.5 1 8.9A4.5 4.5 0 0 1 8.5 6.9l.5.5.5-.5a4.5 4.5 0 0 1 7.5 2c.5 1.6.1 3.4-1.6 5.1C18.7 16.7 12 21 12 21z"/></svg>`;
 
-  // Có đủ tên → chip "Chú rể ♥ Cô dâu" dưới dòng chúc mừng; thiếu thì bỏ chip,
-  // dòng phụ ở trên đã nói đủ ý.
+  // Có đủ tên → dòng "Chú rể ♥ Cô dâu" dưới tiêu đề; thiếu thì bỏ.
   const coupleHtml =
     groom && bride
-      ? `<div class="ps-couple">${esc(groom)} ${HEART("#fb7185", 12)} ${esc(bride)}</div>`
+      ? `<div class="ps-couple">${esc(groom)} ${HEART("#fb7185", 11)} ${esc(bride)}</div>`
       : "";
 
-  // Nhãn + 2 nút CÙNG một hàng (nút chỉ còn icon, có title/aria-label): xếp dọc
-  // nhãn → mô tả → link → 2 nút full-width tốn ~170px mỗi thẻ, hai thẻ là popup
-  // vượt màn hình điện thoại. Gói lại còn ~80px mà không bỏ mục nào.
-  const linkRow = (label, sub, url) => `
+  const linkRow = (label, url) => `
     <div class="ps-link">
-      <div class="ps-link-top">
-        <div class="ps-link-text">
-          <div class="ps-link-label">${label}</div>
-          <div class="ps-link-sub">${sub}</div>
-        </div>
-        <div class="ps-acts">
-          <x-button variant="bare" type="button" class="ps-soft" data-ps-open="${url}" title="Xem thử" aria-label="Xem thử ${label}"><i data-lucide="eye"></i></x-button>
-          <x-button variant="bare" type="button" class="ps-soft" data-ps-copy="${url}" title="Sao chép" aria-label="Sao chép ${label}"><i data-lucide="copy"></i></x-button>
-        </div>
+      <div class="ps-link-text">
+        <div class="ps-link-label">${label}</div>
+        <div class="ps-url">${url.replace(/^https?:\/\//, "")}</div>
       </div>
-      <div class="ps-url">${url}</div>
+      <div class="ps-acts">
+        <x-button variant="bare" type="button" class="ps-soft" data-ps-open="${url}" title="Xem thử" aria-label="Xem thử ${label}"><i data-lucide="eye"></i></x-button>
+        <x-button variant="bare" type="button" class="ps-soft" data-ps-copy="${url}" title="Sao chép" aria-label="Sao chép ${label}"><i data-lucide="copy"></i></x-button>
+      </div>
     </div>`;
 
-  const linksHtml = familyOn
-    ? linkRow("Thiệp nhà gái", "Ưu tiên lễ · tiệc nhà gái", generalUrl) +
-      linkRow("Thiệp nhà trai", "Ưu tiên lễ · tiệc nhà trai", groomUrl)
-    : linkRow("Link thiệp cưới", "Gửi cho tất cả khách mời", generalUrl);
+  // Luôn đủ hai link: mọi chỗ đưa link thiệp đều cho chọn nhà trai / nhà gái.
+  const linksHtml =
+    linkRow("Thiệp nhà gái", generalUrl) + linkRow("Thiệp nhà trai", groomUrl);
 
-  // Thiệp hết hạn dùng thử: xuất bản lại KHÔNG mở khoá (hạn giữ nguyên, edge
-  // function vẫn chặn link công khai) → phải nói thẳng ở đây, không thì chủ thiệp
-  // vừa bấm xuất bản xong lại thấy link chết mà không hiểu vì sao.
-  const keepHtml = IS_TRIAL_LOCKED
-    ? `<p class="ps-keep ps-warn">Thiệp đã <b>hết hạn dùng thử</b>: khách mời mở link chỉ thấy màn tạm khoá.
-       Kích hoạt để mở lại — để quá ${CONFIG.retention.unpaidDays} ngày thiệp sẽ tự động xoá.</p>`
-    : `<p class="ps-keep">Thiệp chưa thanh toán sẽ <b>tự động xoá sau ${CONFIG.retention.unpaidDays} ngày</b> kể từ khi hết hạn dùng thử.</p>`;
+  // Đã thanh toán (IS_THEME_LOCKED) → không mời thanh toán nữa, nút chính là Khách mời.
+  // Chưa thanh toán → nút chính là "Thanh toán ngay", "Để sau" chỉ đóng popup.
+  const paid = IS_THEME_LOCKED;
+  // Thiệp hết hạn dùng thử: xuất bản lại KHÔNG mở khoá (edge function vẫn chặn link
+  // công khai) → nói thẳng ở đây, không thì chủ thiệp thấy link chết mà không hiểu vì sao.
+  const keepHtml = paid
+    ? ""
+    : IS_TRIAL_LOCKED
+      ? `<p class="ps-keep ps-warn">Thiệp đã <b>hết hạn dùng thử</b>: khách mời mở link chỉ thấy màn tạm khoá.
+         Thanh toán để mở lại — để quá ${CONFIG.retention.unpaidDays} ngày thiệp sẽ tự động xoá.</p>`
+      : `<p class="ps-keep">Thanh toán để giữ thiệp lâu dài — thiệp chưa thanh toán <b>tự động xoá sau ${CONFIG.retention.unpaidDays} ngày</b> kể từ khi hết hạn dùng thử.</p>`;
+
+  const guestsBtn = `<x-button variant="bare" type="button" class="${paid ? "ps-primary" : "ps-guests"}" data-ps-guests><i data-lucide="users"></i>Quản lý khách mời</x-button>`;
+  const footHtml = paid
+    ? `<div class="ps-foot">
+         <x-button variant="bare" type="button" class="ps-done" data-ps-close>Hoàn tất</x-button>
+         ${guestsBtn}
+       </div>`
+    : `${guestsBtn}
+       ${keepHtml}
+       <div class="ps-foot">
+         <x-button variant="bare" type="button" class="ps-done" data-ps-close>Để sau</x-button>
+         <x-button variant="bare" type="button" class="ps-primary" data-ps-pay><i data-lucide="credit-card"></i>Thanh toán ngay</x-button>
+       </div>`;
 
   const modal = document.createElement("div");
   modal.id = "publish-success-modal";
@@ -3189,23 +3201,16 @@ function showPublishSuccessPopup() {
   modal.innerHTML = `
     <div class="ps-card">
       <div class="ps-head">
+        <div class="ps-badge" aria-hidden="true"><i data-lucide="check" style="width:22px;height:22px"></i></div>
+        <div class="ps-head-text">
+          <h2 class="ps-congrats" id="ps-title">Thiệp đã sẵn sàng!</h2>
+          ${coupleHtml}
+        </div>
         <x-button variant="bare" type="button" data-ps-close class="ps-x" aria-label="Đóng"><i data-lucide="x" style="width:18px;height:18px"></i></x-button>
-        <div class="ps-badge" aria-hidden="true"><i data-lucide="check" style="width:26px;height:26px"></i></div>
-        <h2 class="ps-congrats" id="ps-title">Chúc mừng, thiệp đã sẵn sàng!</h2>
-        <p class="ps-sub">Giờ bạn có thể trao thiệp đến những người thương yêu</p>
-        ${coupleHtml}
       </div>
       <div class="ps-body">
-        <div class="ps-eyebrow">Chia sẻ thiệp</div>
         ${linksHtml}
-
-        <x-button variant="bare" type="button" class="ps-primary" data-ps-guests><i data-lucide="users"></i>Quản lý khách mời<i data-lucide="arrow-right"></i></x-button>
-        <p class="ps-note">Gửi link để mọi người chung vui và <b>gửi lời chúc</b>.</p>
-        <!-- Hạn dọn dẹp lấy ở CONFIG.retention. Để riêng một dòng (không gộp vào
-             .ps-note) vì .ps-note bị ẩn trên màn thấp, còn câu này phải luôn đọc được. -->
-        ${keepHtml}
-
-        <x-button variant="bare" type="button" class="ps-done" data-ps-close>Hoàn tất</x-button>
+        ${footHtml}
       </div>
     </div>`;
 
@@ -3222,8 +3227,13 @@ function showPublishSuccessPopup() {
 
   modal.addEventListener("click", (e) => {
     // Bấm nền tối KHÔNG đóng: đây là màn duy nhất đưa link thiệp cho khách, lỡ
-    // chạm ra ngoài mà mất là phải mò lại. Chỉ nút ✕ và "Hoàn tất" mới đóng.
+    // chạm ra ngoài mà mất là phải mò lại. Chỉ ✕ và "Hoàn tất"/"Để sau" mới đóng.
     if (e.target.closest("[data-ps-close]")) return close();
+    if (e.target.closest("[data-ps-pay]")) {
+      close();
+      openPaymentForDraft();
+      return;
+    }
     if (e.target.closest("[data-ps-guests]")) {
       close();
       switchTab("guests");

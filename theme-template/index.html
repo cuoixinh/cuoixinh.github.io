@@ -120,24 +120,23 @@
         box-shadow: 0 6px 22px -8px rgb(var(--shadow-brand-rgb) / 0.28);
       }
 
-      /* Ô tìm kiếm dạng viên thuốc */
+      /* Ô tìm kiếm: khung bo góc mềm, nền trong suốt — chỉ còn đường viền. */
       .tt-search {
         display: flex;
         align-items: center;
         gap: 0.6rem;
         height: 46px;
         padding: 0 1.1rem;
-        border-radius: 999px;
-        background: rgb(var(--white-rgb));
-        border: 1px solid rgb(var(--brand-primary-rgb) / 0.55);
-        box-shadow: 0 3px 14px -6px rgb(var(--shadow-brand-rgb) / 0.28);
+        border-radius: 14px;
+        background: transparent;
+        border: 1.5px solid rgb(var(--brand-primary-rgb) / 0.75);
         transition:
-          box-shadow 0.2s ease,
-          border-color 0.2s ease;
+          border-color 0.2s ease,
+          box-shadow 0.2s ease;
       }
       .tt-search:focus-within {
-        border-color: rgb(var(--brand-accent-rgb) / 0.5);
-        box-shadow: 0 6px 22px -8px rgb(var(--shadow-brand-rgb) / 0.38);
+        border-color: rgb(var(--brand-accent-rgb) / 0.75);
+        box-shadow: 0 4px 18px -8px rgb(var(--shadow-brand-rgb) / 0.32);
       }
       .tt-search input {
         flex: 1;
@@ -154,38 +153,34 @@
         font-weight: 500;
       }
 
-      /* Nút lọc danh mục — đứng cạnh ô tìm kiếm, mở popover chọn danh mục */
+      /* Nút lọc danh mục — icon TRẦN cạnh ô tìm kiếm, mở popover chọn danh mục.
+         Không khung/nền; vùng bấm lấy bằng khổ 44x46, icon căn giữa. */
       .tt-filter-btn {
         position: relative;
         flex: none;
-        width: 46px;
+        width: 44px;
         height: 46px;
         display: flex;
         align-items: center;
         justify-content: center;
-        border-radius: 999px;
-        background: rgb(var(--white-rgb));
-        border: 1px solid rgb(var(--brand-primary-rgb) / 0.55);
-        box-shadow: 0 3px 14px -6px rgb(var(--shadow-brand-rgb) / 0.28);
-        color: var(--fg);
+        background: transparent;
+        border: 0;
+        color: var(--primary);
         transition:
-          background 0.18s ease,
-          border-color 0.18s ease,
-          color 0.18s ease;
+          color 0.18s ease,
+          opacity 0.18s ease;
       }
       .tt-filter-btn:hover {
-        border-color: rgb(var(--brand-accent-rgb) / 0.45);
+        opacity: 0.72;
       }
       .tt-filter-btn.is-on {
-        background: rgb(var(--brand-primary-rgb) / 0.25);
-        border-color: rgb(var(--brand-accent-rgb) / 0.45);
         color: var(--primary);
       }
       /* Chấm báo "đang lọc" — chỉ hiện khi danh mục khác Tất cả. */
       .tt-filter-dot {
         position: absolute;
-        top: 7px;
-        right: 7px;
+        top: 6px;
+        right: 4px;
         width: 8px;
         height: 8px;
         border-radius: 999px;
@@ -337,10 +332,11 @@
                 class="tt-filter-btn"
                 aria-label="Lọc theo danh mục"
               >
+                <!-- lucide: sliders-horizontal -->
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  width="19"
-                  height="19"
+                  width="22"
+                  height="22"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -348,7 +344,15 @@
                   stroke-linecap="round"
                   stroke-linejoin="round"
                 >
-                  <path d="M21 3H3l7.5 8.5V19l3 2v-9.5z" />
+                  <line x1="21" x2="14" y1="4" y2="4" />
+                  <line x1="10" x2="3" y1="4" y2="4" />
+                  <line x1="21" x2="12" y1="12" y2="12" />
+                  <line x1="8" x2="3" y1="12" y2="12" />
+                  <line x1="21" x2="16" y1="20" y2="20" />
+                  <line x1="12" x2="3" y1="20" y2="20" />
+                  <line x1="14" x2="14" y1="2" y2="6" />
+                  <line x1="8" x2="8" y1="10" y2="14" />
+                  <line x1="16" x2="16" y1="18" y2="22" />
                 </svg>
                 <span id="tt-filter-dot" class="tt-filter-dot hidden"></span>
               </button>
@@ -1087,19 +1091,19 @@
       const CAT_META = {
         all: {
           label: "Tất cả",
-          icon: `<path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/>`,
+          icon: `<rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/>`,
         },
         traditional: {
           label: "Cổ điển",
-          icon: `<path d="M3 22h18"/><path d="M6 18v-7"/><path d="M18 18v-7"/><path d="M10 18v-7"/><path d="M14 18v-7"/><path d="M4 11 12 4l8 7"/>`,
+          icon: `<path d="M3 22h18"/><path d="M6 18v-7"/><path d="M10 18v-7"/><path d="M14 18v-7"/><path d="M18 18v-7"/><path d="M11.12 2.198a2 2 0 0 1 1.76.006l7.866 3.847c.476.233.31.949-.22.949H3.474c-.53 0-.695-.716-.22-.949z"/>`,
         },
         modern: {
           label: "Hiện đại",
-          icon: `<path d="M12 3v18"/><path d="M3 12h18"/><path d="M5.6 5.6l12.8 12.8"/><path d="M18.4 5.6 5.6 18.4"/>`,
+          icon: `<path d="M8.3 10a.7.7 0 0 1-.626-1.079L11.4 3a.7.7 0 0 1 1.198-.043L16.3 8.9a.7.7 0 0 1-.572 1.1Z"/><rect x="3" y="14" width="7" height="7" rx="1"/><circle cx="17.5" cy="17.5" r="3.5"/>`,
         },
         vintage: {
           label: "Vintage",
-          icon: `<path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>`,
+          icon: `<path d="M12.67 19a2 2 0 0 0 1.416-.588l6.154-6.172a6 6 0 0 0-8.49-8.49L5.586 9.914A2 2 0 0 0 5 11.328V18a1 1 0 0 0 1 1z"/><path d="M16 8 2 22"/><path d="M17.5 15H9"/>`,
         },
         romantic: {
           label: "Lãng mạn",
@@ -1107,15 +1111,15 @@
         },
         minimal: {
           label: "Tối giản",
-          icon: `<rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 12h8"/>`,
+          icon: `<line x1="22" x2="2" y1="6" y2="6"/><line x1="22" x2="2" y1="18" y2="18"/><line x1="6" x2="6" y1="2" y2="22"/><line x1="18" x2="18" y1="2" y2="22"/>`,
         },
         luxury: {
           label: "Cao cấp",
-          icon: `<path d="M6 3h12l4 6-10 12L2 9Z"/><path d="M2 9h20"/><path d="m12 3-3 6 3 12 3-12-3-6"/>`,
+          icon: `<path d="M11.562 3.266a.5.5 0 0 1 .876 0L15.39 8.87a1 1 0 0 0 1.516.294L21.183 5.5a.5.5 0 0 1 .798.519l-2.834 10.246a1 1 0 0 1-.956.734H5.81a1 1 0 0 1-.957-.734L2.02 6.02a.5.5 0 0 1 .798-.519l4.276 3.664a1 1 0 0 0 1.516-.294z"/><path d="M5 21h14"/>`,
         },
         _default: {
           label: "Khác",
-          icon: `<circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><path d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z"/>`,
+          icon: `<path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/>`,
         },
       };
       const catMeta = (key) => CAT_META[key] || CAT_META._default;
@@ -1178,7 +1182,7 @@
               active: c === activeCat,
               role: "menuitemradio",
               icon: `<svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none"
-                          stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${m.icon}</svg>`,
+                          stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${m.icon}</svg>`,
               onClick: () => setCat(c),
             };
           }),

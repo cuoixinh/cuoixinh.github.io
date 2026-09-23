@@ -114,6 +114,26 @@ thiếu file. Thư mục đã khai thì file mới bên trong tự theo, không 
 Script tự cảnh báo khi một thẻ `<a>`/`<script>` trong HTML trỏ tới file có trong repo mà
 không nằm trong bản publish — đó chính là dấu hiệu quên khai.
 
+### 5b. Worker thẻ chia sẻ (`worker/index.js`)
+
+Ngoài `dist/`, bản deploy còn mang MỘT worker nhỏ khai ở `main` của `wrangler.jsonc` (và
+`wrangler.staging.jsonc`). Nó tồn tại vì crawler của Messenger/Zalo/Facebook **không chạy
+JS**: link `cuoixinh.com/<slug>` vốn chỉ là `404.html` + chuyển hướng, nên bot không thấy
+tiêu đề, mô tả hay ảnh nào.
+
+- Chỉ path **một đoạn, không dấu chấm** mới vào worker; mọi thứ khác trả thẳng qua binding
+  `ASSETS` nên hành vi của web không đổi.
+- Worker hỏi Edge Function `wedding-admin?slug=` (KHÔNG truy vấn DB), dựng `og:title` từ tên
+  khách trong link + tên cô dâu chú rể, `og:description` từ **Câu mẫu chia sẻ**,
+  `og:image` từ ảnh bìa; rồi trả kèm **đúng đoạn chuyển hướng của `404.html`** — sửa
+  `404.html` thì phải sửa cả bản sao đó.
+- Tên khách trên link mã hoá bằng CryptoJS (AES + EVP_BytesToKey/MD5) nên worker tự cài MD5.
+  Đây không phải bảo mật, chỉ để lấy đúng chữ hiển thị.
+- `worker/` **không khai vào `INCLUDE`**: nó là mã worker, không phải asset.
+- `vars` (`EDGE_URL`, `ANON_KEY`, `STORAGE_URL`, `ENCRYPTION_KEY`) khai thẳng trong hai file
+  `wrangler*.jsonc` vì chúng KHÔNG đi qua build — `npm run check:config` đối chiếu chúng với
+  `core/config*.js`, lệch là dừng.
+
 ## 6. Trang admin
 
 `admin/` **không ra web**, kể cả `router.html` cũng không còn khai route `admin`. Sau khi

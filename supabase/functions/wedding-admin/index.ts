@@ -879,8 +879,43 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
       .select('id, slug')
       .single()
 
+    // Trùng id = client tạo lại hàng nó đã tạo (PATCH sau POST hỏng, bấm hai lần,
+    // hai tab — cờ "nháp local" ở invitation-setup không hỏi DB). Cùng chủ thì coi
+    // như tạo xong để lượt lưu đi tiếp; bắt SAU insert chứ không kiểm trước, vì hai
+    // POST đồng thời vẫn lọt qua phép kiểm trước.
+    if (error?.code === '23505' && resolvedId && error.message?.includes('weddings_pkey')) {
+      const { data: dup, error: dupErr } = await supabase
+        .from('weddings')
+        .select('id, slug, user_id')
+        .eq('id', resolvedId)
+        .maybeSingle()
+
+      if (dupErr || !dup) {
+        log.error('wedding.create_dup_fetch_failed', {
+          id: resolvedId, code: dupErr?.code, message: dupErr?.message,
+        })
+        return new Response(JSON.stringify({ error: 'Không lưu được thiệp, vui lòng thử lại' }), {
+          status: 500, headers: corsHeaders
+        })
+      }
+
+      // user_id null = thiệp cũ chưa có chủ, PATCH ngay sau sẽ nhận chủ.
+      if (!isAdmin && dup.user_id && dup.user_id !== creatorId) {
+        log.warn('wedding.create_dup_forbidden', { id: resolvedId, user_id: creatorId })
+        return new Response(JSON.stringify({
+          error: 'Bạn không có quyền chỉnh sửa thiệp này',
+          code: 'FORBIDDEN',
+        }), { status: 403, headers: corsHeaders })
+      }
+
+      log.warn('wedding.create_duplicate', { id: dup.id, slug: dup.slug })
+      return new Response(JSON.stringify({ id: dup.id, slug: dup.slug }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
     if (error) {
-      log.error('wedding.create_failed', { error: error.message })
+      log.error('wedding.create_failed', { id: resolvedId, code: error.code, message: error.message })
       return new Response(JSON.stringify({ error }), { status: 500, headers: corsHeaders })
     }
 

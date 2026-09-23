@@ -1,14 +1,18 @@
-// Cấu hình cho Cloudflare Workers Builds — chỉ phục vụ file tĩnh, KHÔNG có mã
-// worker (không khai "main"). Thư mục `dist/` do
-// `node scripts/deploy-public.mjs --dist --minify --yes` sinh ra ở bước build.
+// Cấu hình cho Cloudflare Workers Builds — phục vụ file tĩnh trong `dist/` (do
+// `node scripts/deploy-public.mjs --dist --minify --yes` sinh ra) CỘNG một worker
+// nhỏ ở `worker/index.js` chỉ để trả thẻ preview (og:*) cho link thiệp `/<slug>`.
 // Xem docs/deploy-cloudflare-pages.md.
 //
-// KHÔNG nhầm với cloudflare-worker/wrangler*.toml — đó là 3 worker proxy/cache
+// KHÔNG nhầm với cloudflare-worker/wrangler*.toml — đó là 4 worker proxy/cache
 // riêng, deploy tay từ thư mục đó.
 {
   // Phải trùng "Project name" đã đặt trên dashboard, lệch là deploy sang worker khác.
   "name": "cuoixinh-github-io",
   "compatibility_date": "2026-09-10",
+
+  // Worker chèn og:* cho crawler mạng xã hội. File này KHÔNG nằm trong dist/ (nó
+  // là mã worker, không phải asset) nên không khai ở INCLUDE của deploy-public.mjs.
+  "main": "worker/index.js",
 
   // Tắt <project>.workers.dev — web chỉ vào bằng cuoixinh.com / www.cuoixinh.com.
   // Bật lại (true) nếu cần một đường vào tạm lúc custom domain có sự cố; nhưng nhớ
@@ -16,8 +20,23 @@
   // lệnh gọi API sẽ bị CORS chặn, chỉ xem được trang tĩnh.
   "workers_dev": false,
 
+  // Giá trị của worker preview. KHÔNG có gì bí mật ở đây: anonKey và
+  // encryptionKey đều đã nằm sẵn trong bundle client (core/config.js) — phải
+  // TRÙNG với file đó, lệch là tên khách trên thẻ giải mã hỏng.
+  // Nhớ: [vars] GHI ĐÈ biến đặt tay trên Dashboard mỗi lần deploy.
+  "vars": {
+    "EDGE_URL": "https://lcobawmkywtxhpezndsh.supabase.co/functions/v1/wedding-admin",
+    "ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxjb2Jhd21reXd0eGhwZXpuZHNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4OTA5ODMsImV4cCI6MjA5MTQ2Njk4M30.4BNmxnfixXdHOq0ovtaF_4wQZ9sap3IWbJNJK9H4Mg4",
+    "STORAGE_URL": "https://lcobawmkywtxhpezndsh.supabase.co/storage/v1/object/public/wedding-images",
+    "ENCRYPTION_KEY": "dqvinh"
+  },
+
   "assets": {
     "directory": "./dist",
+
+    // Worker gọi lại asset router qua binding này cho mọi path KHÔNG phải slug
+    // thiệp — thiếu binding là worker không trả nổi file tĩnh nào.
+    "binding": "ASSETS",
 
     // BẮT BUỘC. Clean URL của web dựa vào việc host trả 404.html cho path không
     // khớp file nào: 404.html chuyển sang router.html để tra slug rồi mới đưa

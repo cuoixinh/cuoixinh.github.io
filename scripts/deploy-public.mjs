@@ -46,6 +46,7 @@ const INCLUDE = [
   "theme-template/",
   "my-invitations/",
   "invitation-setup/",
+  "policy/",
   // Mã dùng chung + JS của landing
   "core/",
   "js/",

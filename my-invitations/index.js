@@ -660,11 +660,11 @@ function actionsHTML(c, i, state) {
     state === "trial" || state === "expired" || state === "published";
   const out = [];
   if (c.published && c.slug) {
-    out.push(_actionBtn("eye", "Xem thiệp", `viewCard(${i})`));
+    out.push(_actionBtn("eye", "Xem thiệp", `viewCard(${i}, this)`));
   }
   out.push(_actionBtn("pencil", "Chỉnh sửa", `openEditor(${i})`));
   if (c.published && c.slug && !needsActivate) {
-    out.push(_actionBtn("share-2", "Chia sẻ", `shareCard(${i})`));
+    out.push(_actionBtn("share-2", "Chia sẻ", `shareCard(${i}, this)`));
   }
   if (needsActivate) {
     // Kích hoạt là việc cần chú ý nhất trên thẻ → tô cam. Dùng "!" vì class màu của
@@ -698,34 +698,70 @@ function openEditor(i) {
   window.location.href = `/invitation-setup/?id=${c.id}`;
 }
 
-function viewCard(i) {
-  const c = CARDS[i];
-  if (c?.slug) window.open(publicUrl(c), "_blank");
-}
-
-async function shareCard(i) {
-  const c = CARDS[i];
-  if (!c?.slug) return;
-  const url = publicUrl(c);
-  const title = [c.groom, c.bride].filter(Boolean).join(" & ") || "Thiệp cưới";
-  if (navigator.share) {
-    try {
-      await navigator.share({ title: `Thiệp cưới ${title}`, url });
-      return;
-    } catch (e) {
-      if (e.name === "AbortError") return; // người dùng đóng bảng chia sẻ
-    }
+// Mọi nút đụng tới link thiệp (xem · chia sẻ · sao chép) mở popover chọn nhà:
+// link nhà trai là link chung kèm ?isGroom=true (thiệp ưu tiên lễ/tiệc nhà trai).
+// Một popover dùng chung cho mọi thẻ, neo theo nút vừa bấm.
+function _pickSide(btn, onPick) {
+  let pop = document.getElementById("side-link-pop");
+  if (!pop) {
+    pop = document.createElement("x-popover");
+    pop.id = "side-link-pop";
+    pop.setAttribute("placement", "bottom");
+    pop.setAttribute("align", "end");
+    pop.setAttribute("arrow", "");
+    document.body.appendChild(pop);
   }
-  if (await _copyText(url)) showToast("Đã sao chép liên kết thiệp", "success");
+  const ico = (name) =>
+    `<i data-lucide="${name}" style="width:16px;height:16px"></i>`;
+  pop.setItems([
+    { icon: ico("house"), label: "Nhà trai", onClick: () => onPick("groom") },
+    { icon: ico("heart"), label: "Nhà gái", onClick: () => onPick("bride") },
+  ]);
+  window.lucide?.createIcons({ root: pop });
+  pop.toggle(btn);
 }
 
-async function copyLink(i, btn) {
+function _sideUrl(c, side) {
+  return side === "groom" ? `${publicUrl(c)}?isGroom=true` : publicUrl(c);
+}
+
+const _SIDE_NAME = { groom: "nhà trai", bride: "nhà gái" };
+
+function viewCard(i, btn) {
   const c = CARDS[i];
   if (!c?.slug) return;
-  if (!(await _copyText(publicUrl(c)))) return;
-  btn.innerHTML = ICON_CHECK;
-  setTimeout(() => (btn.innerHTML = ICON_COPY), 2000);
-  showToast("Đã sao chép liên kết thiệp", "success");
+  _pickSide(btn, (side) => window.open(_sideUrl(c, side), "_blank"));
+}
+
+function shareCard(i, btn) {
+  const c = CARDS[i];
+  if (!c?.slug) return;
+  _pickSide(btn, async (side) => {
+    const url = _sideUrl(c, side);
+    const title =
+      [c.groom, c.bride].filter(Boolean).join(" & ") || "Thiệp cưới";
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: `Thiệp cưới ${title}`, url });
+        return;
+      } catch (e) {
+        if (e.name === "AbortError") return; // người dùng đóng bảng chia sẻ
+      }
+    }
+    if (await _copyText(url))
+      showToast(`Đã sao chép link thiệp ${_SIDE_NAME[side]}`, "success");
+  });
+}
+
+function copyLink(i, btn) {
+  const c = CARDS[i];
+  if (!c?.slug) return;
+  _pickSide(btn, async (side) => {
+    if (!(await _copyText(_sideUrl(c, side)))) return;
+    btn.innerHTML = ICON_CHECK;
+    setTimeout(() => (btn.innerHTML = ICON_COPY), 2000);
+    showToast(`Đã sao chép link thiệp ${_SIDE_NAME[side]}`, "success");
+  });
 }
 
 // clipboard ném lỗi khi trang không phải HTTPS hoặc người dùng chặn quyền — không

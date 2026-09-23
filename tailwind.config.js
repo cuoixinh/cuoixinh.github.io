@@ -20,6 +20,7 @@ module.exports = {
     // thư mục partials, nếu không class trong đó bị purge mất.
     "./invitation-setup/**/*.{html,js}",
     "./theme-template/**/*.{html,js}",
+    "./policy/**/*.html",
   ],
   theme: {
     extend: {

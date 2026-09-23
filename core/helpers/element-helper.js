@@ -237,7 +237,7 @@
           minW: 12,
           maxW: 38,
           fs: 0.2,
-          // Đĩa quay tròn, để dưới cho khỏi che ảnh bìa ở nửa trên thiệp.
+          // Đĩa quay tròn, để dưới cho khỏi zbìa ở nửa trên thiệp.
           home: { x: 84, y: 86 },
           // Mặt đĩa là rãnh nhựa đen — đổi nền thì không còn ra đĩa than.
           colors: [C.CTRL, C.CTRL_BG],

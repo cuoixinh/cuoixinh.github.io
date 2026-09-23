@@ -39,7 +39,7 @@ function _showContent() {
     const cleanUrl = new URL(window.location.href);
     cleanUrl.searchParams.delete("pendingPublish");
     history.replaceState(null, "", cleanUrl.toString());
-    setTimeout(() => publishWedding(), 300);
+    setTimeout(() => publishWedding({ checked: true }), 300);
   }
 }
 
@@ -566,7 +566,27 @@ function fillForm(data) {
 
 // Ngày sự kiện KHÔNG bị chặn theo hôm nay — cho nhập/lưu cả ngày trong quá khứ.
 
-async function saveAll(overrides = {}, label = "Đang lưu...") {
+// Mỗi lúc chỉ MỘT lượt lưu chạy: hai lượt song song cùng thấy _isLocalDraft và
+// cùng POST. Lượt trùng hệt lượt đang chờ (bấm đúp, Enter) dùng chung kết quả;
+// lượt khác loại (đang lưu nháp thì bấm Xuất bản) xếp hàng chạy sau.
+let _saveChain = Promise.resolve();
+let _saveLast = null;
+
+function saveAll(overrides = {}, label = "Đang lưu...") {
+  const key = JSON.stringify(overrides);
+  if (_saveLast && _saveLast.key === key) return _saveLast.promise;
+  const entry = { key, promise: null };
+  entry.promise = _saveChain
+    .then(() => _saveAllOnce(overrides, label))
+    .finally(() => {
+      if (_saveLast === entry) _saveLast = null;
+    });
+  _saveChain = entry.promise.catch(() => {});
+  _saveLast = entry;
+  return entry.promise;
+}
+
+async function _saveAllOnce(overrides, label) {
   const form = document.getElementById("wedding-form");
   if (!validateForm(form)) {
     showLoading(false);
@@ -726,6 +746,9 @@ async function saveAll(overrides = {}, label = "Đang lưu...") {
         theme: WEDDING_THEME,
         slug: generatedSlug,
       });
+      // Cờ + nháp local chỉ hạ SAU khi PATCH xong: hạ sớm mà PATCH hỏng thì autosave
+      // ghi `_localOnly:false`, F5 nạp từ DB một hàng rỗng. POST lại lần sau vô hại —
+      // wedding-admin trả 200 khi id đã có và cùng chủ.
       WEDDING_SLUG = generatedSlug;
       payload.slug = generatedSlug;
       await weddingBL.updateWedding(payload);
