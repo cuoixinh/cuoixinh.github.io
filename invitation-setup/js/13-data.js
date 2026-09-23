@@ -39,7 +39,7 @@ function _showContent() {
     const cleanUrl = new URL(window.location.href);
     cleanUrl.searchParams.delete("pendingPublish");
     history.replaceState(null, "", cleanUrl.toString());
-    setTimeout(() => publishWedding(), 300);
+    setTimeout(() => publishWedding({ checked: true }), 300);
   }
 }
 

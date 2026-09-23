@@ -2985,7 +2985,8 @@ async function saveDraft() {
 // để lượt thứ hai lọt vào rồi hiện popup chúc mừng hai lần.
 let _publishBusy = false;
 
-async function publishWedding() {
+// opts.checked = đã qua popup "Kiểm tra thông tin" (26-publish-check.js), khỏi hỏi lại.
+async function publishWedding(opts = {}) {
   if (_publishBusy) return;
   // Validate form TRƯỚC khi yêu cầu đăng nhập — tránh bắt user đăng nhập rồi mới báo thiếu thông tin
   const form = document.getElementById("wedding-form");
@@ -2998,6 +2999,14 @@ async function publishWedding() {
   // nhập bên dưới, đọc cờ cũ là mở popup lần nữa thành vòng lặp. Hỏi supabase
   // (await) để token hết hạn không bị tính nhầm là còn đăng nhập.
   await _refreshLoginState();
+  // Lần xuất bản ĐẦU: cho xem mục nào còn trống trước khi gửi thiệp đi.
+  if (!opts.checked && !IS_PUBLISHED && window.cxOpenPublishCheck) {
+    cxOpenPublishCheck({
+      loggedIn: IS_LOGIN,
+      onConfirm: () => publishWedding({ checked: true }),
+    });
+    return;
+  }
   if (!IS_LOGIN) {
     // Chưa đăng nhập → hiện popup đăng nhập/tạo tài khoản ngay tại chỗ (không rời trang).
     // OAuth vẫn redirect: đính pendingPublish=1 để tự xuất bản khi quay lại.
@@ -3008,7 +3017,7 @@ async function publishWedding() {
         title: "Sẵn sàng gửi thiệp đi chưa?",
         subtitle: "Đăng nhập để kích hoạt và chia sẻ thiệp cưới của bạn",
         oauthRedirect: oauthRedirect.toString(),
-        onAuth: () => publishWedding(),
+        onAuth: () => publishWedding({ checked: true }),
       });
     } else {
       const returnUrl = new URL(window.location.href);
