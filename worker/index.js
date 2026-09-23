@@ -44,7 +44,7 @@ export default {
     // vi cũ: 404 kèm trang chuyển hướng, không bịa thẻ preview.
     const guest = wedding ? await decryptGuestName(env, url) : "";
 
-    return new Response(page(env, wedding, guest, url), {
+    return new Response(await page(env, wedding, guest, url), {
       status: wedding ? 200 : 404,
       headers: {
         "Content-Type": "text/html; charset=utf-8",
@@ -73,6 +73,17 @@ async function fetchWedding(env, slug) {
   } catch (_) {
     return null;
   }
+}
+
+/** Ảnh cho thẻ: bìa trước, không có thì tấm đầu của album, rồi ảnh chú rể. */
+function coverRef(w) {
+  const gallery = Array.isArray(w?.gallery_images) ? w.gallery_images : [];
+  return (
+    w?.cover_image_url ||
+    gallery.find((v) => typeof v === "string" && v) ||
+    w?.groom_image_url ||
+    ""
+  );
 }
 
 function imageUrl(env, filename) {
@@ -108,6 +119,102 @@ function ogDesc(w, guest) {
     .replace(/\s+/g, " ")
     .trim();
   return text || DEFAULT_DESC;
+}
+
+/* ────────────────────────── khổ ảnh cho og:image ──────────────────────── */
+// Facebook/Messenger dựng thẻ NGAY lúc scrape, lúc đó nó chưa tải xong ảnh: thiếu
+// og:image:width/height là thẻ hiện ra không có ảnh (Zalo tự tải nên vẫn hiện).
+// Đọc vài KB đầu là đủ biết khổ, không phải kéo cả tấm ảnh.
+
+async function imageMeta(url) {
+  try {
+    const head = await readHead(url, 8192);
+    return head ? parseImageSize(head) : null;
+  } catch (_) {
+    return null;
+  }
+}
+
+/** n byte đầu của URL — xin Range trước, không được thì đọc chunk rồi bỏ ngang. */
+async function readHead(url, n) {
+  const r = await fetch(url, { headers: { Range: `bytes=0-${n - 1}` } });
+  if (!r.ok || !r.body) return null;
+  const reader = r.body.getReader();
+  const parts = [];
+  let len = 0;
+  while (len < n) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    parts.push(value);
+    len += value.length;
+  }
+  reader.cancel().catch(() => {});
+  const out = new Uint8Array(len);
+  let off = 0;
+  for (const part of parts) {
+    out.set(part, off);
+    off += part.length;
+  }
+  return out;
+}
+
+/** Khổ + mime từ header của webp / png / jpeg. Không nhận ra thì trả null. */
+function parseImageSize(b) {
+  const v = new DataView(b.buffer, b.byteOffset, b.byteLength);
+  const tag = (o, s) => String.fromCharCode(...b.slice(o, o + s.length)) === s;
+
+  if (tag(0, "RIFF") && tag(8, "WEBP")) {
+    const type = "image/webp";
+    if (tag(12, "VP8X"))
+      return {
+        type,
+        width: (b[24] | (b[25] << 8) | (b[26] << 16)) + 1,
+        height: (b[27] | (b[28] << 8) | (b[29] << 16)) + 1,
+      };
+    if (tag(12, "VP8L")) {
+      const bits = b[21] | (b[22] << 8) | (b[23] << 16) | (b[24] << 24);
+      return {
+        type,
+        width: (bits & 0x3fff) + 1,
+        height: ((bits >>> 14) & 0x3fff) + 1,
+      };
+    }
+    if (tag(12, "VP8 "))
+      return {
+        type,
+        width: v.getUint16(26, true) & 0x3fff,
+        height: v.getUint16(28, true) & 0x3fff,
+      };
+    return { type, width: 0, height: 0 };
+  }
+
+  if (b[0] === 0x89 && tag(1, "PNG"))
+    return {
+      type: "image/png",
+      width: v.getUint32(16),
+      height: v.getUint32(20),
+    };
+
+  if (b[0] === 0xff && b[1] === 0xd8) {
+    let o = 2;
+    while (o + 9 < b.length) {
+      if (b[o] !== 0xff) {
+        o++;
+        continue;
+      }
+      const m = b[o + 1];
+      // SOF0–SOF15 mang khổ ảnh; DHT/DRI/SOS… thì nhảy qua theo độ dài khối.
+      if (m >= 0xc0 && m <= 0xcf && m !== 0xc4 && m !== 0xc8 && m !== 0xcc)
+        return {
+          type: "image/jpeg",
+          width: v.getUint16(o + 7),
+          height: v.getUint16(o + 5),
+        };
+      if (m === 0xd8 || m === 0x01 || (m >= 0xd0 && m <= 0xd7)) o += 2;
+      else o += 2 + v.getUint16(o + 2);
+    }
+  }
+  return null;
 }
 
 /* ─────────────────────────── giải mã tên khách ────────────────────────── */
@@ -240,14 +347,26 @@ const esc = (s) =>
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
 
-function page(env, w, guest, url) {
+async function page(env, w, guest, url) {
   const title = w ? ogTitle(w, guest) : "Cưới Xinh";
   const desc = w ? ogDesc(w, guest) : "";
-  const img = w ? imageUrl(env, w.cover_image_url) : "";
+  const img = w ? imageUrl(env, coverRef(w)) : "";
+  const dim = img ? await imageMeta(img) : null;
 
+  // secure_url + type + khổ: Messenger cần đủ bộ mới vẽ ảnh ngay lượt scrape đầu.
+  const size =
+    dim && dim.width && dim.height
+      ? `
+    <meta property="og:image:width" content="${dim.width}" />
+    <meta property="og:image:height" content="${dim.height}" />`
+      : "";
   const imgMeta = img
     ? `
     <meta property="og:image" content="${esc(img)}" />
+    <meta property="og:image:secure_url" content="${esc(img)}" />${
+      dim?.type ? `
+    <meta property="og:image:type" content="${dim.type}" />` : ""
+    }${size}
     <meta property="og:image:alt" content="${esc(title)}" />
     <meta name="twitter:image" content="${esc(img)}" />`
     : "";
