@@ -1048,23 +1048,16 @@ function closeTimePicker() {
 }
 
 // ============= DISABLE MOBILE ZOOM =============
+// Logic ở helpers/no-zoom.js (trang chủ nạp thẳng file đó). Kéo theo từ đây để
+// mọi trang đang nạp utils.js khỏi khai thêm thẻ; mang cùng ?v= với utils.js.
 (function () {
-  const opts = { passive: false };
-  ["gesturestart", "gesturechange", "gestureend"].forEach(function (t) {
-    document.addEventListener(t, function (e) { e.preventDefault(); }, opts);
-  });
-  document.addEventListener("touchmove", function (e) {
-    if (e.touches.length > 1) e.preventDefault();
-  }, opts);
-  document.addEventListener("dblclick", function (e) { e.preventDefault(); });
-  document.documentElement.style.touchAction = "manipulation";
-
-  // iOS Safari: reset viewport after keyboard dismissal to prevent stuck-zoom state
-  document.addEventListener("focusout", function () {
-    window.setTimeout(function () {
-      window.scrollTo(window.pageXOffset, window.pageYOffset);
-    }, 100);
-  });
+  const src = document.currentScript && document.currentScript.src;
+  if (!src || window.__cxNoZoom) return;
+  const url = new URL("helpers/no-zoom.js", src);
+  url.search = new URL(src).search;
+  const s = document.createElement("script");
+  s.src = url.href;
+  document.head.appendChild(s);
 })();
 
 // ============= LỚP ĐỀ XUẤT Ở BẢN XEM THỬ =============
