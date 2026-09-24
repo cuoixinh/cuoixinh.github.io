@@ -503,24 +503,33 @@
     // Update localStorage order
     updateOrderStatus(manage_id, transaction_id, payment_time);
 
-    // Sau thanh toán: đẩy localStorage draft data lên DB (nếu có)
+    // Sau thanh toán: xuất bản thiệp. Chỉ nháp CHƯA lên DB (_localOnly) mới đẩy
+    // nội dung lên — bản sao local của thiệp đã có trên DB là bản cũ, đẩy lên là
+    // đè mất những gì đã sửa ở máy khác (và đổi mẫu thì ăn THEME_LOCKED).
     if (manage_id && window.weddingDAL) {
       const draftKey = buildCacheKey("draft", manage_id);
       const draftData = getCache(draftKey);
-
-      if (draftData) {
-        // Có draft local → PATCH toàn bộ data lên DB + set is_published=true
-        // Bỏ các khoá riêng của bản nháp local (_localOnly, _savedAt của
-        // draft-retention.js) — edge function không có cột tương ứng nên chúng chỉ
-        // bị loại kèm một dòng cảnh báo trong log.
+      const publishOnly = () => window.weddingDAL.publishWedding(manage_id);
+      let job;
+      if (draftData?._localOnly) {
+        // Bỏ khoá riêng của nháp local (_localOnly, _savedAt) — edge không có cột đó.
         const { _localOnly, _savedAt, ...fields } = draftData;
-        window.weddingDAL.updateWedding({ id: manage_id, ...fields, is_published: true })
-          .then(() => removeCache(draftKey))
-          .catch(() => {});
+        job = window.weddingDAL
+          .updateWedding({ id: manage_id, ...fields, is_published: true })
+          .catch(publishOnly);
       } else {
-        // Không có draft local → chỉ publish
-        window.weddingDAL.publishWedding(manage_id).catch(() => {});
+        job = publishOnly();
       }
+      // Đã trả tiền mà thiệp chưa xuất bản thì PHẢI nói, nuốt lỗi là khách tưởng xong.
+      job
+        .then(() => removeCache(draftKey))
+        .catch((e) => {
+          console.error("publish after payment:", e);
+          window.showToast?.(
+            "Đã thanh toán nhưng chưa xuất bản được thiệp — mở trang chỉnh sửa và bấm Xuất bản.",
+            "warning",
+          );
+        });
     }
 
     const buyer = _buyer() || { name: "", phone: "" };
@@ -564,10 +573,11 @@
 
     const orders = getCache(storageKey, []);
 
-    // Find and update the pending order
-    const orderIdx = orders.findIndex(
-      (o) => o.manage_id === manage_id || o.status === "pending",
-    );
+    // Khớp theo manage_id; chỉ lùi về đơn pending CHƯA gắn thiệp nào (do mở hộp
+    // thanh toán để lại) — lấy "đơn pending đầu tiên" là đánh dấu nhầm thiệp khác.
+    let orderIdx = orders.findIndex((o) => o.manage_id === manage_id);
+    if (orderIdx < 0)
+      orderIdx = orders.findIndex((o) => !o.manage_id && o.status === "pending");
     if (orderIdx >= 0) {
       orders[orderIdx] = {
         ...orders[orderIdx],
@@ -1400,11 +1410,15 @@
 
         // Gộp theo manage_id trước (tránh tạo đơn trùng khi thanh toán cho một bản
         // nháp đã có sẵn trong danh sách), sau đó mới tới đơn pending cùng mẫu.
-        const existingIdx = orders.findIndex(
-          (o) =>
-            (manage_id && o.manage_id === manage_id) ||
-            (o.templateName === templateName && o.status === "pending"),
-        );
+        // Đơn pending cùng mẫu chỉ được dùng lại khi nó CHƯA gắn thiệp nào — hai
+        // thiệp cùng mẫu mà gộp theo tên mẫu là đơn của thiệp kia bị ghi đè.
+        let existingIdx = manage_id
+          ? orders.findIndex((o) => o.manage_id === manage_id)
+          : -1;
+        if (existingIdx < 0)
+          existingIdx = orders.findIndex(
+            (o) => !o.manage_id && o.templateName === templateName && o.status === "pending",
+          );
         if (existingIdx >= 0) {
           orders[existingIdx] = { ...orders[existingIdx], ...order };
         } else {

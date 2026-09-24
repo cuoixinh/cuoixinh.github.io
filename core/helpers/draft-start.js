@@ -44,7 +44,9 @@
   }
 
   // Nháp dở BẤT KỲ, không phân biệt mẫu — đổi mẫu khác mà lẳng lặng tạo nháp mới
-  // là khách mất bản đang làm mà không hề biết.
+  // là khách mất bản đang làm mà không hề biết. Chỉ nháp CHƯA lên DB (_localOnly):
+  // thiệp đã lên DB nằm ở "Quản lý thiệp cưới", và có thể thuộc tài khoản khác
+  // từng dùng máy này.
   function _findDraft() {
     var prefix = buildCacheKey("draft") + "_";
     var keys = listCacheKeys(function (k) {
@@ -52,7 +54,8 @@
     });
     for (var i = 0; i < keys.length; i++) {
       var data = getCache(keys[i]);
-      if (data) return { id: keys[i].slice(prefix.length), data: data };
+      if (data && data._localOnly)
+        return { id: keys[i].slice(prefix.length), data: data };
     }
     return null;
   }

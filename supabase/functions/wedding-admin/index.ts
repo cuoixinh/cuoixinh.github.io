@@ -1403,7 +1403,10 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
         .eq('is_active', true)
         .order('created_at', { ascending: false })
 
-      if (error) return new Response(JSON.stringify({ error }), { status: 500, headers: corsHeaders })
+      if (error) {
+        log.error('wedding.my_list_failed', { user_id: userId, code: error.code, message: error.message })
+        return new Response(JSON.stringify({ error }), { status: 500, headers: corsHeaders })
+      }
 
       return new Response(JSON.stringify(data ?? []), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }

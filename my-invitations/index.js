@@ -114,6 +114,24 @@ function _absorbGuestOrders() {
   removeCache(GUEST_ORDERS_KEY);
 }
 
+// Nháp chỉ nằm trên máy này: đơn còn là nháp VÀ key nháp local còn cờ _localOnly.
+function _isLocalOnlyDraft(o) {
+  if (o.status !== "draft") return false;
+  return !!getCache(buildCacheKey("draft", o.manage_id))?._localOnly;
+}
+
+// Một manage_id chỉ một thẻ; trùng thì giữ đơn đi xa nhất (completed > pending > draft).
+const _ORDER_RANK = { draft: 0, pending: 1, completed: 2 };
+function _dedupeOrders(orders) {
+  const byId = new Map();
+  orders.forEach((o) => {
+    const cur = byId.get(o.manage_id);
+    if (!cur || (_ORDER_RANK[o.status] ?? 0) >= (_ORDER_RANK[cur.status] ?? 0))
+      byId.set(o.manage_id, o);
+  });
+  return [...byId.values()];
+}
+
 function _titleFromTheme(theme) {
   return (
     (theme || "")
@@ -191,7 +209,7 @@ async function loadCards() {
   const local = getCache(_ordersKey(), []).filter((o) => o.manage_id);
 
   if (!currentUser) {
-    CARDS = local.map(_cardFromOrder);
+    CARDS = _dedupeOrders(local).map(_cardFromOrder);
     render();
     return;
   }
@@ -209,11 +227,19 @@ async function loadCards() {
   }
   if (seq !== _loadSeq) return;
 
-  // DB là nguồn sự thật; đơn local chỉ bù những thiệp chưa kịp đồng bộ.
+  // DB là nguồn sự thật; đơn local chỉ bù nháp CHƯA lên DB. Đơn nào khác mà DB
+  // không trả về (bị xoá ở máy khác, cron dọn, tắt is_active) là thẻ ma → dọn luôn.
   const byId = new Map(weddings.map((w) => [w.id, _cardFromWedding(w)]));
-  local.forEach((o) => {
-    if (!byId.has(o.manage_id)) byId.set(o.manage_id, _cardFromOrder(o));
+  const stale = new Set();
+  _dedupeOrders(local).forEach((o) => {
+    if (byId.has(o.manage_id)) return;
+    if (_isLocalOnlyDraft(o)) byId.set(o.manage_id, _cardFromOrder(o));
+    else stale.add(o.manage_id);
   });
+  if (stale.size) {
+    const key = _ordersKey();
+    setCache(key, getCache(key, []).filter((o) => !stale.has(o.manage_id)));
+  }
   CARDS = Array.from(byId.values()).sort(
     (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0),
   );
@@ -828,6 +854,7 @@ async function deleteCard(i) {
 }
 
 function _dropFromLocalOrders(manageId) {
+  window.cxDropLocalDraft?.(manageId);
   const key = _ordersKey();
   const orders = getCache(key, []);
   setCache(

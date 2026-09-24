@@ -68,31 +68,40 @@ async function loadData() {
   // bộ nút Lưu nháp / Xuất bản phụ thuộc cờ này.
   _watchLoginState();
 
-  // Kiểm tra localStorage trước — nếu _localOnly thì KHÔNG gọi DB
   const localData = getLocalDraft();
   if (localData?._localOnly) {
+    // Nháp local có thể đã lên DB từ tab/lần khác mà key này không được dọn (tab
+    // cũ còn mở vẫn autosave) → đã đăng nhập thì hỏi DB trước, có hàng là DB thắng.
+    const dbData = IS_LOGIN ? await _fetchWeddingQuiet() : null;
+    if (dbData) {
+      clearLocalDraft();
+      await _openDbWedding(dbData);
+      return;
+    }
     _isLocalDraft = true;
     if (!localData.theme)
       localData.theme = sessionStorage.getItem("draft_theme") || "basic-gold";
-    fillForm(await _withDemoFill(localData));
+    // Nháp chỉ nằm trên máy thì CHƯA xuất bản được, dù bản lưu mang cờ đó.
+    fillForm(await _withDemoFill({ ...localData, is_published: false }));
     _showContent();
     await _idbRestoreAll();
     _cxCommitDemoFilled();
     return;
   }
 
-  // Có thể đã có trong DB → thử fetch. Có bản ghi thì lấy thẳng, KHÔNG đụng tới
-  // dữ liệu mẫu: thiệp đã vào DB nghĩa là khách đã làm việc trên nó.
+  // Có bản ghi thì lấy thẳng, KHÔNG đụng tới dữ liệu mẫu: thiệp đã vào DB nghĩa
+  // là khách đã làm việc trên nó.
+  let data;
   try {
-    const data = await weddingBL.getWeddingById(WEDDING_ID);
-    _isLocalDraft = false;
-    fillForm(data);
-    _showContent();
-    await _idbRestoreAll();
-    loadGuestList("groom").catch(console.error);
-    loadGuestList("bride").catch(console.error);
-  } catch (_dbError) {
-    // Không có trong DB và không có localStorage → draft hoàn toàn mới
+    data = await weddingBL.getWeddingById(WEDDING_ID);
+  } catch (e) {
+    // CHỈ 404 mới là nháp mới. 403/401/lỗi mạng mà mở form trắng thì lần lưu sau
+    // (sau khi đăng nhập lại) PATCH đè lên thiệp thật — mất ảnh, đổi cả slug.
+    if (e.status !== 404) {
+      _showLoadError(e);
+      return;
+    }
+    if (localData) clearLocalDraft();
     _isLocalDraft = true;
     WEDDING_THEME = sessionStorage.getItem("draft_theme") || "basic-gold";
     fillForm(
@@ -101,7 +110,58 @@ async function loadData() {
     _showContent();
     await _idbRestoreAll();
     _cxCommitDemoFilled();
+    return;
   }
+  // Key nháp không _localOnly của thiệp đã lên DB là bản sao cũ, không ai đọc.
+  if (localData) clearLocalDraft();
+  await _openDbWedding(data);
+}
+
+async function _openDbWedding(data) {
+  _isLocalDraft = false;
+  fillForm(data);
+  _showContent();
+  await _idbRestoreAll();
+  loadGuestList("groom").catch(console.error);
+  loadGuestList("bride").catch(console.error);
+}
+
+// null khi không đọc được vì BẤT KỲ lý do gì — chỉ dùng khi đã có nháp local để lùi về.
+async function _fetchWeddingQuiet() {
+  try {
+    return await weddingBL.getWeddingById(WEDDING_ID);
+  } catch (e) {
+    return null;
+  }
+}
+
+// Không nạp được thiệp đã có trên DB: giữ nguyên skeleton (form không bao giờ hiện
+// ra nên không có gì để autosave) và hỏi khách đi đâu tiếp.
+async function _showLoadError(e) {
+  const denied = e.status === 401 || e.status === 403;
+  if (denied && !IS_LOGIN) {
+    const r = await showConfirm(
+      "Cần đăng nhập",
+      "Thiệp này đã được lưu trên hệ thống. Đăng nhập đúng tài khoản đã tạo thiệp để tiếp tục chỉnh sửa.",
+      { type: "info", icon: "log-in", confirmText: "Đăng nhập", cancelText: "Quản lý thiệp cưới" },
+    );
+    if (r && window.AuthUI) AuthUI.openModal({ onAuth: () => location.reload() });
+    else if (r === false) window.location.href = "/my-invitations/";
+    return;
+  }
+  const r = await showConfirm(
+    denied ? "Không mở được thiệp" : "Không tải được thiệp",
+    denied
+      ? "Thiệp này thuộc một tài khoản khác với tài khoản đang đăng nhập."
+      : "Kết nối tới máy chủ bị gián đoạn. Kiểm tra mạng rồi thử lại.",
+    {
+      type: "warning",
+      confirmText: denied ? "Quản lý thiệp cưới" : "Thử lại",
+      cancelText: denied ? "Đóng" : "Quản lý thiệp cưới",
+    },
+  );
+  if (denied ? r : r === false) window.location.href = "/my-invitations/";
+  else if (!denied && r) location.reload();
 }
 
 // Chốt cờ "form đang là dữ liệu mẫu" sau khi mọi thứ đã lắng. Phải hoãn một nhịp:
@@ -596,9 +656,20 @@ async function _saveAllOnce(overrides, label) {
   // Đọc lại phiên ngay trước khi ghi: quyết định "chỉ lưu localStorage" hay "tạo
   // record trong DB" ở dưới dựa vào cờ này, để lệch là lưu sai chỗ. Hỏi supabase
   // (await) chứ không đọc storage — token hết hạn thì storage vẫn còn nguyên.
-  await _refreshLoginState();
+  // Chụp lại kết quả: IS_LOGIN là cờ toàn cục, onChange có thể lật nó giữa lúc
+  // upload ảnh — quyết định "ghi DB hay chỉ local" phải theo đúng một lần hỏi.
+  const loggedIn = await _refreshLoginState();
 
   try {
+    // Xuất bản mà phiên đã mất và thiệp chưa có trên DB thì không có gì để xuất
+    // bản — ném AUTH_REQUIRED (nhánh catch mời đăng nhập) thay vì lặng lẽ lưu local
+    // rồi báo thành công.
+    if (overrides.is_published && _isLocalDraft && !loggedIn) {
+      throw Object.assign(new Error("Vui lòng đăng nhập để xuất bản"), {
+        code: "AUTH_REQUIRED",
+      });
+    }
+
     // Step 1: Upload pending images
     showLoading(true, "Đang tải ảnh lên server...");
     const { uploadedFilenames, errors, skipped: uploadSkipped } =
@@ -728,29 +799,40 @@ async function _saveAllOnce(overrides, label) {
     // Apply overrides (e.g. is_published: true from publishWedding)
     Object.assign(payload, overrides);
 
-    // Step 4: Luôn lưu vào localStorage trước
-    saveLocalDraft(payload);
+    // Step 4: nháp CHƯA lên DB thì lưu vào localStorage trước (không kèm cờ xuất
+    // bản — ghi DB hỏng thì nháp mở lại vẫn phải là nháp). Thiệp đã lên DB thì
+    // không giữ bản sao local: không ai đọc nó, chỉ để lại rác cho "thiệp đang
+    // viết dở" và cho màn thanh toán đẩy đè lên bản mới hơn.
+    if (_isLocalDraft) {
+      const { is_published: _pub, deleted_images: _del, ...draft } = payload;
+      saveLocalDraft(draft);
+    }
 
     // Step 4b: Lưu DB nếu record đã tồn tại, hoặc user đã đăng nhập
     if (!_isLocalDraft) {
       // Record đã có trong DB → PATCH bình thường
       await weddingBL.updateWedding(payload);
-    } else if (IS_LOGIN) {
+      clearLocalDraft();
+    } else if (loggedIn) {
       // Local draft + đã đăng nhập → tạo record trong DB lần đầu
       const generatedSlug = payload.slug || `wedding-${WEDDING_ID.slice(0, 8)}`;
       // Đính JWT user (DAL tự lo qua _authHeaders) để edge gán user_id = chủ thiệp
       // ngay khi tạo. Lỗi ở đây phải NÉM RA, đừng nuốt: trần số thiệp mỗi tài khoản
       // chặn tại đây, mà nuốt đi thì PATCH ngay dưới chạy trên một hàng chưa hề có.
-      await window.weddingDAL.createDraftWedding({
+      const created = await window.weddingDAL.createDraftWedding({
         manage_id: WEDDING_ID,
         theme: WEDDING_THEME,
         slug: generatedSlug,
       });
       // Cờ + nháp local chỉ hạ SAU khi PATCH xong: hạ sớm mà PATCH hỏng thì autosave
       // ghi `_localOnly:false`, F5 nạp từ DB một hàng rỗng. POST lại lần sau vô hại —
-      // wedding-admin trả 200 khi id đã có và cùng chủ.
-      WEDDING_SLUG = generatedSlug;
-      payload.slug = generatedSlug;
+      // wedding-admin trả 200 khi id đã có và cùng chủ, KÈM slug đang có của hàng
+      // đó. Luôn lấy slug server trả: hàng đã có (tab cũ vẫn tưởng thiệp là nháp
+      // local) thì tự đặt lại là đổi link thiệp đã gửi khách; hàng mới thì server
+      // có thể đã thêm hậu tố cho khỏi trùng.
+      const slugToSave = created?.slug || generatedSlug;
+      WEDDING_SLUG = slugToSave;
+      payload.slug = slugToSave;
       await weddingBL.updateWedding(payload);
       _isLocalDraft = false;
       clearLocalDraft();
@@ -821,7 +903,7 @@ async function _saveAllOnce(overrides, label) {
     // đó hàng tháng, không nói ở đây thì lúc thiệp biến mất họ tưởng bị mất dữ liệu.
     // Nhánh "đã xuất bản" xét cả payload lẫn cờ: lần xuất bản ĐẦU, IS_PUBLISHED
     // còn false mà payload đã mang is_published:true.
-    if (_isLocalDraft && !IS_LOGIN) {
+    if (_isLocalDraft && !loggedIn) {
       showToast(
         `Đã lưu nháp vào thiết bị này`,
         "success",
