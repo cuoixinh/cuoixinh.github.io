@@ -522,7 +522,10 @@
       }
       // Đã trả tiền mà thiệp chưa xuất bản thì PHẢI nói, nuốt lỗi là khách tưởng xong.
       job
-        .then(() => removeCache(draftKey))
+        .then(() => {
+          markDraftUploaded(manage_id);
+          removeCache(draftKey);
+        })
         .catch((e) => {
           console.error("publish after payment:", e);
           window.showToast?.(

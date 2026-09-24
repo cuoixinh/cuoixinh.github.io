@@ -10,7 +10,7 @@
 
 import type { Logger } from './axiom.ts'
 
-export const GEMINI_MODEL = 'gemini-3.5-flash-lite'
+export const GEMINI_MODEL = 'gemini-3.6-flash'
 export const GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta/models'
 
 export const REQ_TIMEOUT_MS = 25000 // timeout mỗi lần gọi provider
@@ -145,6 +145,15 @@ function suffixedKeys(): string[] {
   }
 }
 
+// generationConfig gửi đi thật: bản lite không có thinking, gửi `thinkingConfig` là
+// 400 INVALID_ARGUMENT — bỏ ở đây để function khỏi phải biết đang chạy model nào.
+// Mọi chỗ gửi request tới Gemini (kể cả đường stream của ai-chat) phải đi qua hàm này.
+export function geminiGenConfig(cfg: Record<string, unknown>): Record<string, unknown> {
+  if (!GEMINI_MODEL.includes('lite')) return cfg
+  const { thinkingConfig: _drop, ...rest } = cfg
+  return rest
+}
+
 // Gọi Gemini generateContent với generationConfig tuỳ tác vụ.
 export async function callGemini(
   prompt: string,
@@ -160,7 +169,7 @@ export async function callGemini(
       signal: t.signal,
       body: JSON.stringify({
         contents: [{ role: 'user', parts: [{ text: prompt }] }],
-        generationConfig: genConfig,
+        generationConfig: geminiGenConfig(genConfig),
       }),
     })
     if (!res.ok) throw new ProviderError('gemini', res.status, await readErrorDetail(res))

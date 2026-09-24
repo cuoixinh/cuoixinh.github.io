@@ -39,18 +39,6 @@ function cxApplyAiCard(result) {
   const f = result.fields || {};
   Object.keys(f).forEach((key) => _aiSetField(key, f[key]));
 
-  // 4b) Nhạc + bản đồ khách chọn ở khung chat TRANG CHỦ (CXChatMedia.handoff). Ảnh thì
-  // đã nằm sẵn trong IndexedDB dưới mã nháp này, _idbRestoreAll nhặt lên. Sau bước 4:
-  // bản đồ cần ô địa điểm đã có chữ.
-  const media = result.media || {};
-  if (media.music?.url) {
-    selectYouTubeSong(media.music.url, media.music.title || "");
-    _scheduleAutoSave("config");
-  }
-  Object.entries(media.maps || {}).forEach(([side, m]) =>
-    _cxSetMap(side, m?.embed, m?.name),
-  );
-
   // 5) Bật hiển thị các section tương ứng khi có nội dung
   if ((result.love_story || []).length) _aiEnableSection("love_story");
   if ((result.timeline || []).length) _aiEnableSection("timeline");
@@ -76,6 +64,28 @@ function cxApplyAiCard(result) {
     f.bride_bank_owner
   )
     _aiEnableSection("gift");
+
+  // 6) Nhạc + bản đồ khách chọn ở khung chat TRANG CHỦ (CXChatMedia.handoff). Ảnh thì
+  // đã nằm sẵn trong IndexedDB dưới mã nháp này, _idbRestoreAll nhặt lên. Sau bước 4:
+  // bản đồ cần ô địa điểm đã có chữ. Để CUỐI và bọc riêng từng món: hỏng một món
+  // (script cũ trong cache…) không được kéo theo các bước nội dung ở trên.
+  const media = result.media || {};
+  if (media.music?.url) {
+    try {
+      selectYouTubeSong(media.music.url, media.music.title || "");
+      _aiEnableSection("music");
+      _scheduleAutoSave("config");
+    } catch (e) {
+      console.error("cxApplyAiCard music:", e);
+    }
+  }
+  Object.entries(media.maps || {}).forEach(([side, m]) => {
+    try {
+      _cxSetMap(side, m?.embed, m?.name);
+    } catch (e) {
+      console.error("cxApplyAiCard map:", side, e);
+    }
+  });
 
   // Hidden input set bằng code không tự phát event → gọi autosave thủ công
   _scheduleAutoSave();
@@ -331,17 +341,11 @@ function _aiFieldValue(name) {
   return String(el?.value || "").trim();
 }
 
-// Ghim bản đồ cho một địa điểm — phần cuối của applyMapPicker (core/helpers/maps-helper.js),
-// không đụng ô địa chỉ. Chỉ nhận link nhúng Google Maps: giá trị này thành src của iframe.
+// Ghim bản đồ cho một địa điểm — đi CHUNG đường ghi với bảng chọn ở form (cxApplyMap ở
+// core/helpers/maps-helper.js), nên chọn từ khung chat hay từ form cho ra cùng một kết quả.
 function _cxSetMap(side, embed, name) {
   if (!_CX_MAP_SIDES.includes(side)) return;
-  if (!/^https:\/\/maps\.google\.com\/maps\?/.test(String(embed || ""))) return;
-  const hidden = document.getElementById(`${side}_map_embed_url`);
-  if (!hidden) return;
-  hidden.value = embed;
-  hidden.dispatchEvent(new Event("input", { bubbles: true }));
-  _updateMapDisplay(side, embed, name || _aiFieldValue(`${side}_location`));
-  window._onLocationSourceChanged?.(side);
+  cxApplyMap(side, embed, name);
 }
 
 const _cxFileUrls = new WeakMap(); // File chờ upload → objectURL để hiện ảnh nhỏ
@@ -398,6 +402,11 @@ window.cxAiMediaSink = {
         : null,
       maps,
       places,
+      // Ô "Trùng địa điểm" của hai tiệc trên form — khung chat hiện đúng trạng thái này.
+      same: {
+        groom_party: !!document.querySelector('x-check[key="groom-party-same"]')?.checked,
+        bride_party: !!document.querySelector('x-check[key="bride-party-same"]')?.checked,
+      },
       hasBank: !!(_aiFieldValue("groom_bank_number") || _aiFieldValue("bride_bank_number")),
     };
   },
@@ -426,6 +435,14 @@ window.cxAiMediaSink = {
 
   setMap(side, embed, name) {
     _cxSetMap(side, embed, name);
+    _scheduleAutoSave();
+    _cxMediaChanged();
+  },
+
+  // Bật/tắt "Trùng địa điểm" của tiệc (`groom_party`/`bride_party`) — đi đúng hàm của ô
+  // trên form, nó tự chép địa điểm + bản đồ của lễ sang.
+  setSame(side, on) {
+    togglePartySameLoc(side.replace("_party", ""), null, on);
     _scheduleAutoSave();
     _cxMediaChanged();
   },

@@ -6,7 +6,7 @@
 // cứng — xem buildCatalog().
 //
 // MỌI lượt trả lời của model là MỘT object JSON theo CHAT_SCHEMA:
-//   {"type":"chat","text":…, ready?}  — còn đang hỏi chuyện; ready = đã thu đủ thông tin,
+//   {"type":"chat","text":…, ready?}  — còn đang hỏi chuyện; ready = khách đã đồng ý bảng chốt,
 //     client tự dẫn qua ô ảnh/nhạc/bản đồ rồi gửi lại với body.build = true
 //   {"type":"card","text":…, story_quote, love_story, timeline, fields}  — nội dung thiệp
 // Kèm "ask" khi cần mở ô chọn ảnh/nhạc/bản đồ/mẫu ngay trong khung chat.
@@ -27,6 +27,7 @@ import {
   corsHeaders,
   errFields,
   errMsg,
+  geminiGenConfig,
   generateWithGemini,
   getGeminiKeys,
   isQuotaError,
@@ -70,6 +71,10 @@ const REQUIRED_FIELDS = [
   'ceremony_time',
   'ceremony_location',
 ]
+
+// Giá trị model trả để XOÁ một field đã thu (fields chỉ mang phần mới/sửa, xem mergeFields).
+// Không dùng chuỗi rỗng: model hay nhả rỗng cho mục chưa có, coi đó là xoá là mất dữ liệu.
+const FIELD_DELETE = '__xoa__'
 
 // Ô chọn dựng ngay trong khung chat (js/ai-chat-media.js) cho thứ khách không gõ
 // bằng chữ được. Model chỉ CHỈ ĐỊNH mở ô nào — URL ảnh/nhạc/bản đồ chỉ đi qua ô chọn,
@@ -117,7 +122,7 @@ const CHAT_SCHEMA = {
     ready: {
       type: 'boolean',
       description:
-        'true ĐÚNG MỘT LẦN, ở lượt vừa thu đủ thông tin (LUẬT THU THẬP mục 5); các lượt khác BỎ HẲN.',
+        'true ĐÚNG MỘT LẦN, ở lượt khách vừa ĐỒNG Ý tạo thiệp sau bảng chốt (LUẬT THU THẬP mục 6); các lượt khác BỎ HẲN.',
     },
     ask: {
       type: 'string',
@@ -136,8 +141,9 @@ const CHAT_SCHEMA = {
     fields: {
       type: 'array',
       description:
-        'CHỈ những mục có dữ liệu THẬT từ khách; mục chưa nói hoặc đã bảo bỏ qua thì ' +
-        'không đưa vào. Khoá hợp lệ: ' + FIELD_KEYS_TEXT,
+        'CHỈ field MỚI hoặc vừa SỬA ở lượt này, có dữ liệu THẬT từ khách; field đã có ở khối ' +
+        'THÔNG TIN ĐÃ THU thì KHÔNG nhắc lại. Khách bảo bỏ một mục đã khai thì trả value ' +
+        '"' + FIELD_DELETE + '". Khoá hợp lệ: ' + FIELD_KEYS_TEXT,
       items: {
         type: 'object',
         properties: {
@@ -196,6 +202,20 @@ const GEN_CFG_CHAT = {
   // thêm vài giây, nên chỉ nới nếu thấy chất lượng lượt "card" thật sự kém.
   thinkingConfig: { thinkingBudget: 0 },
 }
+
+// Lượt dựng thiệp (body.build) dùng schema riêng: ép "card" và BẮT BUỘC ba phần sáng
+// tạo, đặt TRƯỚC "fields". Với schema chung chúng không bắt buộc, model hay chỉ viết
+// câu chúc mừng rồi nhả mảng rỗng — thiệp ra thiếu lịch trình, chuyện tình, lời ngỏ.
+const { ready: _r, ask: _a, ...CARD_PROPS } = CHAT_SCHEMA.properties
+const BUILD_SCHEMA = {
+  type: 'object',
+  propertyOrdering: [
+    'type', 'text', 'story_quote', 'love_story', 'timeline', 'fields', 'tone', 'region',
+  ],
+  properties: { ...CARD_PROPS, type: { type: 'string', enum: ['card'] } },
+  required: ['type', 'text', 'story_quote', 'love_story', 'timeline', 'fields'],
+}
+const GEN_CFG_BUILD = { ...GEN_CFG_CHAT, responseSchema: BUILD_SCHEMA }
 
 // ── Danh mục mẫu thiệp ──────────────────────────────────────────────────────
 // Ba tầng, tầng sau chỉ chạy khi tầng trước hỏng:
@@ -395,8 +415,8 @@ function mediaBlock(m: MediaState | null): string {
 const OUTPUT_FORMAT = `
 ĐỊNH DẠNG TRẢ LỜI: một object JSON duy nhất, đúng MỘT trong hai dạng.
 - "type":"chat" — còn đang trao đổi, kể cả khi đang hỏi thông tin để tạo thiệp.
-  Lượt vừa thu đủ thông tin thì kèm "ready": true (LUẬT THU THẬP mục 5).
-- "type":"card" — chỉ trong ba trường hợp ở LUẬT THU THẬP mục 6; lượt đó phải kèm story_quote,
+  Lượt khách vừa đồng ý tạo thiệp sau bảng chốt thì kèm "ready": true (LUẬT THU THẬP mục 6).
+- "type":"card" — chỉ trong ba trường hợp ở LUẬT THU THẬP mục 7; lượt đó phải kèm story_quote,
   love_story (nếu khách có kể chuyện tình) và timeline.
 
 ⚠️ LUẬT QUAN TRỌNG NHẤT: trả "card" nghĩa là BẠN PHẢI TỰ VIẾT RA trọn bộ nội dung thiệp
@@ -406,14 +426,20 @@ ngay trong lượt đó. Câu "text" chỉ là lời nhắn, NÓ KHÔNG TẠO RA
 
 "text" LUÔN phải có ở cả hai dạng — đó là câu DUY NHẤT khách đọc được; viết như đang nhắn
 tin, KHÔNG nhắc JSON, không đọc tên field, không mô tả cấu trúc dữ liệu.
-"fields" LUÔN phải có (chưa thu được gì thì []); "tone"/"region" chỉ nêu khi đã biết, chưa
-biết thì bỏ hẳn khoá đó.
+"fields" LUÔN phải có, nhưng CHỈ gồm field mới hoặc vừa sửa ở lượt này (không có gì mới thì
+[]); hệ thống tự gộp với phần đã thu. Khách bảo bỏ một mục đã khai thì trả field đó với value
+"${FIELD_DELETE}". "tone"/"region" chỉ nêu khi đã biết hoặc vừa đổi, không thì bỏ hẳn khoá đó.
 `.trim()
 
 // Client gửi build = true khi khách đã đi hết các ô ảnh/nhạc/bản đồ sau lượt "ready".
 const BUILD_BLOCK = `
 ===== LỆNH CỦA GIAO DIỆN =====
-Khách đã xong phần hình ảnh. Lượt này PHẢI trả type "card" với trọn bộ nội dung thiệp.
+Khách đã xong phần hình ảnh. Lượt này PHẢI trả type "card" với trọn bộ nội dung thiệp, TỰ
+VIẾT đủ cả ba phần (LUẬT TẠO THIỆP mục 6–9), không phần nào được để rỗng khi đã có dữ liệu:
+- "timeline": dựng từ giờ Vu Quy / lễ / tiệc trong khối THÔNG TIN ĐÃ THU và bảng chốt.
+- "love_story": chép đủ từng mốc ở dòng "Chuyện tình yêu" của bảng chốt (nếu có) rồi viết
+  "content" theo đúng văn phong khách chọn.
+- "story_quote": một câu lời ngỏ mới.
 ===== HẾT =====
 `
 
@@ -435,8 +461,8 @@ function buildChatPrompt(
 ===== THÔNG TIN THIỆP ĐÃ THU ĐƯỢC Ở CÁC LƯỢT TRƯỚC =====
 ${JSON.stringify({ tone: known.tone, region: known.region, fields: known.fields }, null, 1)}
 ===== HẾT =====
-Lượt trả lời này PHẢI mang lại ĐỦ các field trên (trừ field khách vừa yêu cầu sửa), và
-KHÔNG hỏi lại những mục đã có ở đây.
+Hệ thống đã NHỚ các field trên — lượt này chỉ trả field MỚI hoặc vừa SỬA, đừng chép lại field
+đã có, và KHÔNG hỏi lại những mục đã có ở đây.
 `
     : ''
 
@@ -477,6 +503,8 @@ function cleanAnswer(raw: string): string {
     // Gạch đầu dòng về MỘT dạng "- ". Phải có khoảng trắng ngay sau dấu thì
     // "**đậm**" đứng đầu dòng mới không bị ăn nhầm.
     .replace(/^([ \t]*)[*•][ \t]+/gm, '$1- ')
+    // Dòng phân cách "===== … =====" của prompt — model lite hay chép theo cùng danh sách.
+    .replace(/^[ \t]*={3,}[^\n]*={3,}[ \t]*(?:\n|$)/gm, '')
     .trim()
     .slice(0, MAX_ANSWER_LEN)
 }
@@ -583,15 +611,33 @@ function parseJsonLoose(rawText: string): Record<string, any> | null {
 // Object thô của model → { text, known, card }. card chỉ khác null khi model tự
 // nhận là "card" VÀ dữ liệu qua được lưới bắt buộc — model nói đủ không có nghĩa
 // là đủ.
-function readResult(obj: Record<string, any> | null, log: Logger): ChatResult | null {
+// Model chỉ trả field mới/sửa → gộp lên phần đã thu (known), FIELD_DELETE là xoá.
+function mergeFields(
+  known: KnownCard | null,
+  delta: Record<string, unknown>,
+): Record<string, unknown> {
+  const out: Record<string, unknown> = { ...(known?.fields ?? {}) }
+  for (const [k, v] of Object.entries(delta)) {
+    if (String(v ?? '').trim() === FIELD_DELETE) delete out[k]
+    else out[k] = v
+  }
+  return out
+}
+
+function readResult(
+  obj: Record<string, any> | null,
+  log: Logger,
+  prev: KnownCard | null,
+): ChatResult | null {
   if (!obj || typeof obj !== 'object') return null
   const text = cleanAnswer(obj.text)
   if (!text) return null
 
-  const tone = pickTone(obj.tone)
-  const region = pickRegion(obj.region)
+  // Không nêu lại tone/region thì giữ giá trị đã biết.
+  const tone = VALID_TONES.includes(String(obj.tone)) ? String(obj.tone) : prev?.tone ?? pickTone(obj.tone)
+  const region = VALID_REGIONS.includes(String(obj.region)) ? String(obj.region) : prev?.region ?? ''
   const clean = cleanCardObject(
-    { ...obj, fields: fieldsToObject(obj.fields) },
+    { ...obj, fields: mergeFields(prev, fieldsToObject(obj.fields)) },
     tone,
   ) as { fields?: Record<string, unknown> }
   const fields = clean.fields ?? {}
@@ -612,7 +658,57 @@ function readResult(obj: Record<string, any> | null, log: Logger): ChatResult | 
     log.warn('chat.card_incomplete', { missing, rawLen: JSON.stringify(obj).length })
     return { text, wantedCard: true, known, card: null, ask: '', ready: false }
   }
-  return { text, wantedCard: true, known, card: { ...clean, tone, region }, ask, ready: false }
+  const card: Record<string, unknown> = { ...clean, tone, region }
+  // Trong lúc hỏi chuyện groom_name/bride_name giữ HỌ TÊN ĐẦY ĐỦ (bảng chốt cần), lượt
+  // "card" lại chỉ trả field mới nên model hay để nguyên — rút gọn tại đây cho chắc.
+  const cf = { ...(card.fields as Record<string, unknown>) }
+  for (const k of ['groom_name', 'bride_name']) if (cf[k]) cf[k] = shortName(String(cf[k]))
+  card.fields = cf
+  if (!(card.timeline as unknown[] | undefined)?.length) {
+    log.warn('chat.card_no_timeline', {})
+    card.timeline = timelineFromFields(fields, region)
+  }
+  return { text, wantedCard: true, known, card, ask, ready: false }
+}
+
+// Tên hiển thị trên thiệp = 2 chữ cuối của họ tên; bỏ "Thị" rồi lấy thêm chữ liền
+// trước (LUẬT TẠO THIỆP mục 3). Tên đã gọn (≤ 2 chữ) giữ nguyên.
+function shortName(full: string): string {
+  const w = full.trim().split(/\s+/).filter(Boolean)
+  if (w.length <= 2) return w.join(' ')
+  const out: string[] = []
+  for (let i = w.length - 1; i >= 0 && out.length < 2; i--) {
+    if (/^thị$/i.test(w[i])) continue
+    out.unshift(w[i])
+  }
+  return out.join(' ')
+}
+
+// Lưới cuối khi model bỏ trống lịch trình: dựng thẳng từ giờ lễ/tiệc đã thu, xếp
+// theo ngày rồi giờ. Chỉ dùng mốc có giờ — không bịa giờ.
+function timelineFromFields(
+  f: Record<string, unknown>,
+  region: string,
+): Array<{ time: string; title: string; type: string }> {
+  const s = (k: string) => String(f[k] ?? '').trim()
+  const day = s('ceremony_date')
+  const rows = [
+    f.vu_quy_enabled === true || s('vu_quy_enabled') === 'true'
+      ? { date: day, time: s('vu_quy_time'), title: 'Lễ Vu Quy', type: 'ceremony' }
+      : null,
+    {
+      date: day,
+      time: s('ceremony_time'),
+      title: s('ceremony_name') || (region === 'nam' ? 'Lễ Tân Hôn' : 'Lễ Thành Hôn'),
+      type: 'ceremony',
+    },
+    { date: s('groom_party_date') || day, time: s('groom_party_time'), title: 'Tiệc cưới nhà trai', type: 'party' },
+    { date: s('bride_party_date') || day, time: s('bride_party_time'), title: 'Tiệc cưới nhà gái', type: 'bride-party' },
+  ]
+  return rows
+    .filter((r): r is NonNullable<typeof r> => !!r?.time)
+    .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time))
+    .map(({ time, title, type }) => ({ time, title, type }))
 }
 
 // Model bảo đã dựng xong thiệp nhưng dữ liệu về không đủ (JSON đứt giữa chừng,
@@ -676,6 +772,7 @@ async function callGeminiStreamRaw(
   prompt: string,
   apiKey: string,
   signal: AbortSignal,
+  genCfg: Record<string, unknown>,
 ): Promise<Response> {
   const res = await fetch(
     `${GEMINI_BASE}/${GEMINI_MODEL}:streamGenerateContent?alt=sse&key=${apiKey}`,
@@ -685,7 +782,7 @@ async function callGeminiStreamRaw(
       signal,
       body: JSON.stringify({
         contents: [{ role: 'user', parts: [{ text: prompt }] }],
-        generationConfig: GEN_CFG_CHAT,
+        generationConfig: geminiGenConfig(genCfg),
       }),
     },
   )
@@ -696,6 +793,8 @@ async function callGeminiStreamRaw(
 
 function buildStreamResponse(
   prompt: string,
+  known: KnownCard | null,
+  genCfg: Record<string, unknown>,
   geminiKeys: string[],
   origin: string | null,
   log: Logger,
@@ -740,7 +839,7 @@ function buildStreamResponse(
         const key = geminiKeys[idx]
         const t = withTimeout(CHAT_TIMEOUT_MS)
         try {
-          const res = await callGeminiStreamRaw(prompt, key, t.signal)
+          const res = await callGeminiStreamRaw(prompt, key, t.signal, genCfg)
           provider = 'gemini'
           const reader = res.body!.getReader()
           const dec = new TextDecoder()
@@ -798,7 +897,7 @@ function buildStreamResponse(
         }
       }
 
-      let result = readResult(parseJsonLoose(acc), log)
+      let result = readResult(parseJsonLoose(acc), log, known)
 
       // Chưa nói được chữ nào → thử lại bằng đường non-stream (xoay vòng key).
       // KHÔNG thử lại cho lượt thiệp hụt dữ liệu: đo được nó đẩy trường hợp xấu
@@ -806,13 +905,13 @@ function buildStreamResponse(
       if (!result) {
         const res = await generateWithGemini(
           prompt,
-          { gemini: GEN_CFG_CHAT, timeoutMs: CHAT_TIMEOUT_MS },
+          { gemini: genCfg, timeoutMs: CHAT_TIMEOUT_MS },
           log,
           'chat',
         )
         // Chỉ nhận bản thử lại nếu nó KHÁ HƠN bản đang có — thử lại hỏng thì
         // vẫn còn phần đã stream được.
-        const retry = res ? readResult(parseJsonLoose(res.raw), log) : null
+        const retry = res ? readResult(parseJsonLoose(res.raw), log, known) : null
         if (retry && (!result || retry.card || !result.wantedCard)) {
           provider = res!.provider
           result = retry
@@ -881,6 +980,9 @@ Deno.serve(withAxiom('ai-chat', async (req, log) => {
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405, origin)
 
   const admin = createDbClient(log)
+  // Danh mục mẫu không phụ thuộc ai hỏi → nạp song song với xác thực + hạn mức (hết
+  // cache là một lượt gọi Worker, tới CATALOG_TIMEOUT_MS). buildCatalog không ném lỗi.
+  const catalogP = buildCatalog(admin, log)
 
   // Xác thực TUỲ CHỌN: chỉ để chọn hạn mức, khách vãng lai vẫn hỏi được.
   const token = (req.headers.get('Authorization') ?? '').replace(/^Bearer\s+/i, '')
@@ -913,30 +1015,26 @@ Deno.serve(withAxiom('ai-chat', async (req, log) => {
 
   const known = sanitizeKnown(body.card)
   const media = sanitizeMedia(body.media)
-  const prompt = buildChatPrompt(
-    msgs,
-    await buildCatalog(admin, log),
-    known,
-    media,
-    body.build === true,
-  )
+  const build = body.build === true
+  const genCfg = build ? GEN_CFG_BUILD : GEN_CFG_CHAT
+  const prompt = buildChatPrompt(msgs, await catalogP, known, media, build)
 
   if (body.stream === true && getGeminiKeys().length) {
     // withAxiom flush ngay khi handler trả Response, nên log của giai đoạn stream
     // do chính buildStreamResponse tự flush lúc đóng stream.
     log.info('chat.streaming', { turns: msgs.length, anon: !user, known: !!known })
-    return buildStreamResponse(prompt, getGeminiKeys(), origin, log)
+    return buildStreamResponse(prompt, known, genCfg, getGeminiKeys(), origin, log)
   }
 
   const res = await generateWithGemini(
     prompt,
-    { gemini: GEN_CFG_CHAT, timeoutMs: CHAT_TIMEOUT_MS },
+    { gemini: genCfg, timeoutMs: CHAT_TIMEOUT_MS },
     log,
     'chat',
   )
   if (!res) return json({ error: 'XuXi đang bận, bạn thử lại sau ít phút nhé.' }, 503, origin)
 
-  const result = readResult(parseJsonLoose(res.raw), log)
+  const result = readResult(parseJsonLoose(res.raw), log, known)
   if (!result) {
     return json({ error: 'XuXi chưa trả lời được, bạn hỏi lại giúp mình nhé.' }, 502, origin)
   }

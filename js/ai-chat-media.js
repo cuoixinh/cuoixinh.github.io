@@ -72,8 +72,85 @@
     return b;
   }
 
-  const mapEmbed = (q) =>
-    "https://maps.google.com/maps?q=" + encodeURIComponent(q) + "&output=embed&hl=vi";
+  // Mọi thứ về bản đồ đi qua core/helpers/maps-helper.js (link nhúng cxMapEmbed, bảng chọn
+  // openMapPicker) — trang Thiết lập nạp sẵn, trang chủ nạp lúc khách bấm lần đầu. Riêng bảng
+  // chọn cần thêm Leaflet + core/utils.js; utils.js đi CHUNG promise với image-pick.js
+  // (window.__cxUtilsReq) — nạp hai lần là `const` cấp cao nhất khai trùng.
+  const LEAFLET_JS = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
+  const LEAFLET_SRI = "sha384-cxOPjt7s7Iz04uaHJceBmS+qpjv2JkIHNVcuOrM+YHwZOmJGBXI00mdUXEq65HTH";
+  const LEAFLET_CSS = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+  let helperReq = null;
+  let pickerReq = null;
+
+  function loadScript(src, integrity) {
+    return new Promise((resolve, reject) => {
+      const s = document.createElement("script");
+      s.src = src;
+      if (integrity) {
+        s.integrity = integrity;
+        s.crossOrigin = "anonymous";
+      }
+      s.onload = resolve;
+      s.onerror = () => reject(new Error("không tải được " + src));
+      document.head.appendChild(s);
+    });
+  }
+
+  const ver = () => (typeof CONFIG !== "undefined" && CONFIG.version ? "?v=" + CONFIG.version : "");
+
+  // Chỉ maps-helper.js (nhẹ) — đủ cho cxMapEmbed. Hỏng (mạng) thì cho bấm lại: script chưa
+  // chạy nên nạp lại không khai trùng gì.
+  function ensureMapsHelper() {
+    if (typeof window.cxMapEmbed === "function") return Promise.resolve();
+    helperReq =
+      helperReq ||
+      loadScript("/core/helpers/maps-helper.js" + ver()).catch((e) => {
+        helperReq = null;
+        throw e;
+      });
+    return helperReq;
+  }
+
+  // <x-check> (ô "Trùng địa điểm") ở core/x-controls.js — trang Thiết lập nạp sẵn, trang
+  // chủ thì chưa. Thẻ chèn trước khi định nghĩa xong vẫn tự nâng cấp khi file chạy.
+  let xControlsReq = null;
+  function ensureXControls() {
+    if (customElements.get("x-check")) return Promise.resolve();
+    xControlsReq =
+      xControlsReq ||
+      loadScript("/core/x-controls.js" + ver()).catch((e) => {
+        xControlsReq = null;
+        throw e;
+      });
+    return xControlsReq;
+  }
+
+  // Cả bảng chọn: maps-helper.js + Leaflet + core/utils.js (openBottomSheet, escapeHtml).
+  function ensureMapPicker() {
+    if (typeof window.openMapPicker === "function" && window.L && typeof openBottomSheet === "function")
+      return Promise.resolve();
+    if (pickerReq) return pickerReq;
+    const jobs = [ensureMapsHelper()];
+    if (!window.L) {
+      if (!document.querySelector(`link[href="${LEAFLET_CSS}"]`)) {
+        const css = document.createElement("link");
+        css.rel = "stylesheet";
+        css.href = LEAFLET_CSS;
+        document.head.appendChild(css);
+      }
+      jobs.push(loadScript(LEAFLET_JS, LEAFLET_SRI));
+    }
+    if (typeof openBottomSheet !== "function") {
+      window.__cxUtilsReq = window.__cxUtilsReq || loadScript("/core/utils.js" + ver());
+      jobs.push(window.__cxUtilsReq);
+    }
+    pickerReq = Promise.all(jobs).catch((e) => {
+      pickerReq = null;
+      if (typeof openBottomSheet !== "function") window.__cxUtilsReq = null;
+      throw e;
+    });
+    return pickerReq;
+  }
 
   function ytId(url) {
     const m = String(url || "").match(
@@ -199,6 +276,7 @@
         music: st.music || null,
         maps: st.maps || {},
         places,
+        same: st.same || {},
         hasBank: !!(f.groom_bank_number || f.bride_bank_number),
       };
     },
@@ -272,6 +350,13 @@
 
     setMap(side, embed, name) {
       homeSave({ maps: { ...(homeStore().maps || {}), [side]: { embed, name } } });
+      emit();
+    },
+
+    // Tiệc "trùng địa điểm" với lễ (xem partySource). Chưa bấm lần nào thì ô chọn tự
+    // đoán theo địa chỉ (sameGuess), nên chỉ lưu khi khách tự đổi.
+    setSame(side, on) {
+      homeSave({ same: { ...(homeStore().same || {}), [side]: on } });
       emit();
     },
 
@@ -581,6 +666,7 @@
     const wrap = el("div", "aichat-places");
     body.appendChild(wrap);
     let sidesKey = null;
+    let lastMaps = {};
     const rows = {};
 
     function buildRow(side, label, addr) {
@@ -593,67 +679,26 @@
       const acts = el("div", "aichat-place-acts");
       acts.append(xbtn("Ghim theo địa chỉ này", "pin", "soft"), xbtn("Chọn vị trí khác", "other", "ghost"));
 
-      const form = el("form", "aichat-search");
-      form.hidden = true;
-      const input = el("input", "aichat-search-input");
-      input.type = "search";
-      input.value = addr;
-      input.setAttribute("aria-label", "Tìm địa điểm cho " + label);
-      const go = el("button", "aichat-search-go");
-      go.type = "submit";
-      go.setAttribute("aria-label", "Tìm");
-      go.appendChild(icon("search", 16));
-      form.append(input, go);
-      const res = el("div", "aichat-place-res");
-
-      acts.addEventListener("click", (e) => {
+      // Cả hai nút đi qua maps-helper.js như form Thiết lập: "Ghim theo địa chỉ này" dựng
+      // link bằng cxMapEmbed; "Chọn vị trí khác" mở ĐÚNG bảng chọn openMapPicker (kéo ghim,
+      // gợi ý lúc gõ, sửa tên hiển thị) — chưa ghim thì tìm sẵn địa chỉ đã có.
+      acts.addEventListener("click", async (e) => {
         const act = e.target.closest("[data-act]")?.dataset.act;
-        if (act === "pin") sink().setMap(side, mapEmbed(addr), addr);
-        if (act !== "other") return;
-        form.hidden = !form.hidden;
-        if (!form.hidden) input.focus();
-      });
-      // Nominatim (OpenStreetMap) — cùng nguồn với bảng chọn bản đồ ở trang Thiết lập.
-      form.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const q = input.value.trim();
-        if (!q) return;
-        res.innerHTML = "";
-        res.appendChild(el("p", "aichat-kit-sub", "Đang tìm…"));
-        let found = [];
+        if (act !== "pin" && act !== "other") return;
         try {
-          const r = await fetch(
-            `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=4&accept-language=vi`,
-          );
-          found = await r.json();
+          await (act === "pin" ? ensureMapsHelper() : ensureMapPicker());
         } catch {
-          found = [];
+          window.showToast?.("Chưa mở được bản đồ, bạn thử lại giúp mình nhé.", "error");
+          return;
         }
-        res.innerHTML = "";
-        const choose = (embed, name) => {
-          sink().setMap(side, embed, name);
-          res.innerHTML = "";
-          form.hidden = true;
-        };
-        (Array.isArray(found) ? found : []).forEach((f) => {
-          const b = el("button", "aichat-place-opt");
-          b.type = "button";
-          b.append(icon("map-pin", 12), el("span", "", f.display_name));
-          b.addEventListener("click", () =>
-            choose(
-              `https://maps.google.com/maps?q=${parseFloat(f.lat)},${parseFloat(f.lon)}&output=embed&hl=vi`,
-              f.display_name,
-            ),
-          );
-          res.appendChild(b);
+        if (act === "pin") return void sink().setMap(side, window.cxMapEmbed(addr), addr);
+        const cur = lastMaps[side];
+        window.openMapPicker(side, {
+          embed: cur?.embed || "",
+          name: cur?.name || "",
+          query: cur ? "" : addr,
+          onApply: (embed, name) => sink().setMap(side, embed, name),
         });
-        // Nominatim hay hụt địa chỉ Việt Nam chi tiết — luôn chừa đường ghim theo chữ.
-        const byText = el("button", "aichat-place-opt");
-        byText.type = "button";
-        byText.append(icon("type", 12), el("span", "", `Ghim theo chữ: "${q}"`));
-        byText.addEventListener("click", () => choose(mapEmbed(q), q));
-        res.appendChild(byText);
-        paintIcons(res);
       });
 
       const frame = el("iframe", "aichat-place-frame");
@@ -662,9 +707,23 @@
       frame.title = "Bản đồ " + label;
       frame.referrerPolicy = "no-referrer-when-downgrade";
 
-      row.append(head, text, acts, form, res, frame);
+      // Tiệc: ô "Trùng địa điểm …" như form Thiết lập — bật thì dùng luôn bản đồ của lễ,
+      // khỏi ghim lại. Nhãn nguồn điền lúc vẽ (vu quy có thể bật/tắt giữa chừng).
+      // `key` riêng cho khung chat: x-check dựng id `${key}-btn`, trùng key của ô trên form
+      // Thiết lập là hai phần tử cùng id.
+      let same = null;
+      if (PARTY_SIDES.includes(side)) {
+        same = el("div", "aichat-place-same");
+        const check = document.createElement("x-check");
+        check.setAttribute("key", `aichat-${side}-same-${++sameSeq}`);
+        check.addEventListener("change", () => sink().setSame?.(side, check.checked));
+        same.appendChild(check);
+        ensureXControls().catch(() => {});
+      }
+
+      row.append(head, ...(same ? [same] : []), text, acts, frame);
       paintIcons(row);
-      return { row, status, frame };
+      return { row, status, frame, text, acts, same, addr };
     }
 
     return (st) => {
@@ -684,13 +743,60 @@
           wrap.appendChild(rows[s].row);
         });
       }
+      lastMaps = st.maps || {};
       Object.entries(rows).forEach(([s, r]) => {
-        const m = st.maps[s];
+        const src = partySource(s, st);
+        const linked = !!src && isSame(s, src, st);
+        if (r.same) {
+          r.same.hidden = !src;
+          setCheck(r.same.firstChild, linked, "Trùng địa điểm " + sideLabel(src).toLowerCase());
+        }
+        r.acts.hidden = linked;
+        // Trùng địa điểm: chép bản đồ của lễ sang tiệc mỗi khi lễ đổi. So trước khi ghi
+        // để không lặp vô tận (setMap phát lại sự kiện đổi → vẽ lại lần nữa).
+        const srcMap = linked ? st.maps[src] : null;
+        if (srcMap && st.maps[s]?.embed !== srcMap.embed) sink().setMap(s, srcMap.embed, srcMap.name);
+        const m = linked ? srcMap : st.maps[s];
+        // Đã ghim thì hiện tên nơi đã ghim (có thể khác địa chỉ khách khai), như form Thiết lập.
+        r.text.textContent = m?.name || (linked ? st.places[src] : r.addr);
         r.status.hidden = !m;
         r.frame.hidden = !m;
         if (m && r.frame.getAttribute("src") !== m.embed) r.frame.src = m.embed;
       });
     };
+  }
+
+  // Nguồn "trùng địa điểm" của tiệc — cùng luật togglePartySameLoc (16-ceremony.js): nhà
+  // trai theo lễ cưới; nhà gái theo vu quy khi có, không thì lễ cưới.
+  const PARTY_SIDES = ["groom_party", "bride_party"];
+  function partySource(side, st) {
+    if (side === "groom_party") return st.places.ceremony ? "ceremony" : "";
+    if (side === "bride_party") return st.places.vu_quy ? "vu_quy" : st.places.ceremony ? "ceremony" : "";
+    return "";
+  }
+
+  const sideLabel = (s) => SIDES.find(([k]) => k === s)?.[1] || "";
+
+  let sameSeq = 0;
+
+  // Đặt trạng thái + nhãn cho một <x-check>. Chưa nâng cấp (x-controls.js đang nạp) thì
+  // ghi vào attribute — connectedCallback dựng nút từ đó; đã nâng cấp thì ghi thẳng.
+  function setCheck(x, on, label) {
+    // Giữ attribute khớp luôn: x-check dựng lại nút từ attribute mỗi lần gắn vào DOM.
+    x.setAttribute("label", label);
+    x.toggleAttribute("checked", on);
+    const btn = x.querySelector("button");
+    if (!btn) return;
+    btn.lastElementChild.textContent = label;
+    if (x.checked !== on) x.checked = on;
+  }
+
+  // Khách đã chọn thì theo khách; chưa thì đoán: hai địa chỉ trùng chữ là cùng một nơi.
+  const normAddr = (v) =>
+    String(v || "").toLowerCase().replace(/[\s,.]+/g, " ").trim();
+  function isSame(side, src, st) {
+    const v = st.same?.[side];
+    return typeof v === "boolean" ? v : normAddr(st.places[side]) === normAddr(st.places[src]);
   }
 
   const MOUNT = {

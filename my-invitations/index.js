@@ -282,6 +282,7 @@ async function _uploadLocalDraft({ id, data }) {
     slug: created?.slug || slug,
     image_focal_points: focal,
   });
+  markDraftUploaded(id);
   removeCache(buildCacheKey("draft", id));
   _dropOrdersEverywhere(id);
   await _deletePendingRows(done).catch(() => {});

@@ -108,7 +108,9 @@ function getLocalDraft() {
 // F5, không hiện ở "Quản lý thiệp cưới" và không được gộp lên DB (listLocalDrafts).
 // Chủ đóng dấu MỘT lần lúc key ra đời: nháp khách mở lại khi đã đăng nhập vẫn là
 // nháp khách, nếu không nó biến khỏi danh sách lúc đăng xuất.
+// Thiệp đã lên DB (tab khác vừa đẩy) thì tab này không được ghi lại key nháp.
 function saveLocalDraft(data) {
+  if (isDraftUploaded(WEDDING_ID)) return;
   const prev = getLocalDraft();
   const owner = prev ? prev._owner : window.CXAuth?.getUserSync()?.email;
   setCache(DRAFT_LOCAL_KEY, {

@@ -189,11 +189,12 @@ async function _idbUpdateGalleryFocal(file) {
   }
 }
 
+// true khi có khôi phục thứ gì đó — bản xem thử dựng trước đó cần tải lại.
 async function _idbRestoreAll() {
   try {
     const all = await _idbGetAll();
     const mine = all.filter((r) => r.weddingId === WEDDING_ID);
-    if (!mine.length) return;
+    if (!mine.length) return false;
 
     // Restore single images
     for (const r of mine.filter((r) => r.type === "single")) {
@@ -241,8 +242,10 @@ async function _idbRestoreAll() {
     ].forEach((f) => renderSingleImageUpload(f));
     renderGalleryGrid();
     if (Object.keys(_loveStoryPendingImages).length) renderLoveStoryList();
+    return true;
   } catch (e) {
     console.error("_idbRestoreAll:", e);
+    return false;
   }
 }
 

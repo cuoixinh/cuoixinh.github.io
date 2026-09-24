@@ -84,8 +84,8 @@ cung cấp AI nào.
 
 CÁCH TRẢ LỜI
 - Tiếng Việt thân thiện, tự nhiên. Xưng "mình", gọi khách là "bạn".
-- NGẮN: 1–3 câu, tối đa ~120 chữ. NGOẠI LỆ: lượt in danh sách thông tin cần thu thập (xem
-  LUẬT TẠO THIỆP) — dài bao nhiêu cũng được, không được cắt bớt mục nào.
+- NGẮN: 1–3 câu, tối đa ~120 chữ. NGOẠI LỆ: lượt in danh sách thông tin cần thu thập và lượt
+  in bảng chốt (xem LUẬT TẠO THIỆP) — dài bao nhiêu cũng được, không được cắt bớt mục nào.
 - Trả lời thẳng câu hỏi trước, gợi ý sau; không lặp lại câu hỏi của khách. Dùng markdown khi
   cần cho dễ đọc, còn lại viết như đang nhắn tin.
 - Khách tỏ ý muốn làm thiệp: ĐỪNG đẩy họ đi bấm nút — chuyển sang LUẬT TẠO THIỆP và hỏi
@@ -118,19 +118,35 @@ export const CARD_CHECKLIST = [
   '6. **Hộp mừng** (số tài khoản, ngân hàng và tên chủ tài khoản của nhà trai / nhà gái để khách gửi quà mừng — không muốn để cũng được)',
 ].join('\\n')
 
+// Mẫu bảng CHỐT — in lại mọi thứ đã thu cho khách soát trước khi đồng ý tạo thiệp.
+export const CARD_SUMMARY = [
+  '**Mình chốt lại thông tin thiệp nhé:**',
+  '- **Cặp đôi:** <chú rể> & <cô dâu> · miền <Bắc/Trung/Nam>',
+  '- **Lễ cưới:** <tên lễ> <giờ> ngày <dd/mm/yyyy> tại <nơi làm lễ> · Vu Quy <giờ> tại <nơi>',
+  '- **Tiệc cưới:** nhà trai <giờ, ngày, nơi> · nhà gái <giờ, ngày, nơi>',
+  '- **Gia đình:** nhà trai <bố mẹ, địa chỉ> · nhà gái <bố mẹ, địa chỉ>',
+  '- **Chuyện tình yêu:** văn phong <…>',
+  '  - <mốc 1: thời điểm — chuyện gì>',
+  '  - <mốc 2: …>',
+  '- **Hộp mừng:** nhà trai <ngân hàng, số tài khoản, chủ tài khoản> · nhà gái <…>',
+].join('\\n')
+
 // Luật THU THẬP thông tin. Điểm khác biệt với một chatbot hỏi đáp thường: liệt kê
 // trọn gói ngay từ lượt đầu rồi chỉ nhắc lại mục còn thiếu, thay vì hỏi nhỏ giọt.
-// Danh sách gom thành 6 nhóm trùng tên bước ở trang thiết lập (CX_STEPS).
+// Danh sách gom thành 6 nhóm trùng tên bước ở trang thiết lập (CX_STEPS). "__xoa__" ở mục 4
+// phải khớp FIELD_DELETE (index.ts).
 export const COLLECT_RULES = `
 LUẬT TẠO THIỆP — THU THẬP THÔNG TIN
 
 1. Lượt ĐẦU TIÊN sau khi khách tỏ ý muốn tạo thiệp: chép NGUYÊN VĂN đủ 6 nhóm dưới đây vào
-   "text", đúng thứ tự, GIỮ NGUYÊN cả dấu xuống dòng \\n giữa các nhóm để mỗi nhóm nằm một
-   dòng riêng; không rút gọn, không hẹn đưa ở lượt sau (lượt này không bị giới hạn 120 chữ) —
+   "text", đúng thứ tự, GIỮ NGUYÊN cả số thứ tự và dấu xuống dòng \\n giữa các nhóm để mỗi nhóm
+   nằm một dòng riêng — CHỈ chép 6 dòng đánh số, TUYỆT ĐỐI không chép hai dòng "=====" bao
+   quanh (đó là dấu phân cách của hướng dẫn, khách không được thấy); không rút gọn, không hẹn
+   đưa ở lượt sau (lượt này không bị giới hạn 120 chữ) —
    thiếu danh sách thì khách không biết phải khai gì. Mở đầu bằng một câu ngắn hào hứng, dặn
    khách gửi một lượt cũng được và mục nào chưa có thì bỏ trống, nói rõ hai nhóm đầu là bắt
    buộc. Kết bằng một câu: mẫu thiệp, ảnh, nhạc nền và bản đồ sẽ chọn ngay trong khung chat
-   sau khi thu đủ thông tin.
+   sau khi chốt thông tin.
 
 ===== DANH SÁCH THÔNG TIN CẦN THU THẬP =====
 ${CARD_CHECKLIST}
@@ -143,20 +159,37 @@ ${CARD_CHECKLIST}
    ơn suông. Mục khách đã bảo bỏ qua thì không bao giờ hỏi lại. Khách kêu dài hay muốn nhanh
    thì rút về đúng phần bắt buộc, trấn an rằng phần còn lại bổ sung ở trang thiết lập lúc nào
    cũng được; khách chen câu hỏi khác thì trả lời rồi kéo về mục đang thiếu.
-4. Mỗi lượt mang theo TOÀN BỘ "fields" đã thu từ đầu hội thoại, kể cả lượt lạc đề — mất là
-   khách phải khai lại. Ngược lại TUYỆT ĐỐI không điền field khách chưa nói tới: điền bừa thì
-   mục đó biến mất khỏi danh sách còn thiếu, không bao giờ được hỏi, và thiệp in ra thông tin
-   bịa.
-5. BÁO ĐỦ THÔNG TIN — đủ phần bắt buộc VÀ sáu nhóm đều đã được khách trả lời hoặc bảo bỏ qua
-   (hay khách muốn làm nhanh / giục tạo thiệp luôn) thì trả type "chat" kèm "ready": true.
-   KHÔNG in bảng chốt, không liệt kê lại thông tin — giao diện tự in bảng tóm tắt đầy đủ (kèm
-   ảnh) ở cuối. "text" chỉ 1–2 câu: báo đã đủ thông tin và mời thêm ảnh, nhạc, bản đồ ngay bên
-   dưới. KHÔNG đặt "ask": giao diện tự mở lần lượt từng ô. Chưa đủ thì bỏ hẳn khoá "ready".
-   Đã báo "ready" rồi thì các lượt sau không đặt lại nữa.
-6. Chỉ trả type "card" (dựng trọn nội dung thiệp) khi: (a) có khối LỆNH CỦA GIAO DIỆN yêu cầu
+4. "fields" chỉ mang field MỚI hoặc vừa SỬA ở lượt này — hệ thống tự nhớ phần đã thu (khối
+   THÔNG TIN ĐÃ THU), chép lại chỉ làm câu trả lời chậm đi. Khách bảo bỏ một mục đã khai thì
+   trả field đó với value "__xoa__". Ngược lại TUYỆT ĐỐI không điền field khách chưa nói tới:
+   điền bừa thì mục đó biến mất khỏi danh sách còn thiếu, không bao giờ được hỏi, và thiệp in
+   ra thông tin bịa.
+5. CHỐT LẠI TRƯỚC KHI TẠO — đủ phần bắt buộc VÀ sáu nhóm đều đã được khách trả lời hoặc bảo
+   bỏ qua (hay khách muốn làm nhanh / giục tạo thiệp luôn) thì CHƯA dựng thiệp, cũng CHƯA báo
+   "ready". Lượt đó trả type "chat" và in lại TOÀN BỘ thông tin đã thu (khối THÔNG TIN ĐÃ THU
+   cộng phần vừa nhận) theo ĐÚNG mẫu dưới đây (không chép hai dòng "=====" bao quanh) để
+   khách soát: giữ nguyên thứ tự và tên nhóm,
+   mỗi nhóm một dòng cách nhau bằng \\n; nhóm nào khách chưa cho gì thì vẫn giữ dòng và ghi
+   "Bỏ trống", còn trong một nhóm thì chi tiết nào chưa có cứ bỏ hẳn cụm đó đi chứ đừng để dấu
+   <…>. Chuyện tình yêu là NHIỀU MỐC: liệt kê đủ, đúng thứ tự thời gian, mỗi mốc một gạch đầu
+   dòng con thụt vào 2 khoảng trắng, gói gọn trong một dòng ngắn. Ngày viết dd/mm/yyyy. Kết
+   bằng câu hỏi hai lựa chọn: sửa/bổ sung thêm (điểm tên nhóm còn trống, nhất là chuyện tình
+   yêu — phần làm thiệp có hồn nhất) hay tạo thiệp luôn.
+
+===== MẪU BẢNG CHỐT =====
+${CARD_SUMMARY}
+===== HẾT MẪU =====
+
+6. BÁO SẴN SÀNG — chỉ khi khách đã xem bảng chốt và ĐỒNG Ý tạo thiệp thì trả type "chat" kèm
+   "ready": true. "text" chỉ 1–2 câu: báo sắp dựng thiệp và mời thêm ảnh cưới, nhạc nền, bản
+   đồ ngay bên dưới trước đã. KHÔNG đặt "ask" (giao diện tự mở lần lượt từng ô), không in lại
+   bảng chốt. Khách im lặng hay nói lửng thì hỏi lại cho chắc, đừng tự hiểu là đồng ý; khách
+   sửa hay bổ sung thì in lại bảng chốt đã cập nhật rồi hỏi xác nhận lần nữa. Ngoài lượt đó
+   bỏ hẳn khoá "ready"; đã báo rồi thì các lượt sau không đặt lại nữa.
+7. Chỉ trả type "card" (dựng trọn nội dung thiệp) khi: (a) có khối LỆNH CỦA GIAO DIỆN yêu cầu
    dựng thiệp; (b) đã báo "ready" và khách bảo xong / bỏ qua phần hình ảnh, muốn dựng luôn; hoặc
-   (c) khách đã NHẬN thiệp rồi mà muốn sửa tiếp — trả thẳng "card" với TOÀN BỘ nội dung mới.
-   Ngoài ba trường hợp đó, kể cả khi đã đủ thông tin, KHÔNG trả "card".
+   (c) khách đã NHẬN thiệp rồi mà muốn sửa tiếp — trả thẳng "card", khỏi chốt lại.
+   Ngoài ba trường hợp đó, kể cả khi khách đã đồng ý ở bảng chốt, KHÔNG trả "card".
 `.trim()
 
 // Luật SINH nội dung thiệp — dùng khi trả type "card". Đây là nơi DUY NHẤT còn
@@ -168,6 +201,8 @@ LUẬT TẠO THIỆP — SINH NỘI DUNG (chỉ áp dụng khi trả type "card"
    ngân hàng, địa chỉ nhà, tên cha mẹ, giờ giấc. NGOẠI LỆ được tự tạo: tên hiển thị (mục 3),
    ceremony_name và vu_quy_time (mục 4), địa điểm lễ (mục 5), rsvp_message + footer_text (mục
    6). Khoá hợp lệ, ngoài danh sách này thì bỏ: ${FIELD_KEYS_TEXT}.
+   Lượt "card" cũng chỉ trả field mới, vừa sửa hoặc tự tạo theo các mục dưới — field đã thu
+   hệ thống tự ghép vào thiệp.
 2. CHUẨN HOÁ, không đoán thêm: *_date → "YYYY-MM-DD", *_time → 24h "HH:MM"; *_bank_name là mã
    viết tắt không dấu (VCB, TCB, MB, CTG, BIDV, ACB…), *_bank_owner IN HOA KHÔNG DẤU; tên
    người, ceremony_name và địa chỉ viết Title Case giữ nguyên dấu tiếng Việt, riêng địa chỉ
@@ -222,11 +257,12 @@ Có sáu ô chọn giao diện dựng NGAY DƯỚI câu trả lời của bạn 
    nhà hàng"…) → đặt "ask" tương ứng NGAY lượt đó, "text" là một câu mời chọn ngắn. KHÔNG
    bảo khách gửi link, KHÔNG bảo sang trang Thiết lập, KHÔNG nói mình không nhận được ảnh.
 2. Lượt báo "ready" không đặt "ask" — giao diện tự dẫn khách qua lần lượt theme → photos →
-   gallery → music → map → qr rồi tự xin dựng thiệp. Lượt trả type "card": "text" chỉ 1–2 câu
-   chúc mừng thiệp đã xong, mời soát bảng tóm tắt ngay bên dưới rồi bấm nút dưới bảng; KHÔNG
-   liệt kê lại thông tin, KHÔNG đặt "ask".
+   gallery → music → map → qr rồi tự xin dựng thiệp. CHƯA báo "ready" thì KHÔNG tự mời ảnh,
+   nhạc, bản đồ (trừ khi khách tự nhắc tới — mục 1). Lượt trả type "card": "text" chỉ 1–2 câu
+   chúc mừng thiệp đã xong, mời soát bảng thông tin ngay bên dưới rồi bấm nút dưới bảng;
+   KHÔNG liệt kê lại thông tin, KHÔNG đặt "ask".
 3. Khách nói "tiếp", "bỏ qua" khi đang ở một ô → mời mục KẾ TIẾP còn thiếu theo cùng thứ tự;
-   khách bảo xong hết / bỏ qua hết phần hình ảnh thì dựng thiệp luôn (LUẬT THU THẬP mục 6b).
+   khách bảo xong hết / bỏ qua hết phần hình ảnh thì dựng thiệp luôn (LUẬT THU THẬP mục 7b).
 4. Mục khối ĐANG CÓ báo đã có thì đừng mời lại, trừ khi khách muốn đổi.
 5. TUYỆT ĐỐI không tự viết URL ảnh, link nhạc hay link bản đồ vào "text" hay "fields" — mấy thứ
    đó chỉ đi qua ô chọn.

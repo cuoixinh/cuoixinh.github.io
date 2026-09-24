@@ -65,3 +65,21 @@ function listLocalDrafts() {
         data?._localOnly && !data._owner && (data.groom_name || data.bride_name),
     );
 }
+
+/**
+ * Dấu "nháp này đã lên DB" — cả ba đường đẩy nháp (Thiết lập, gộp ở my-invitations,
+ * thanh toán) đều chạy trên CHÍNH trình duyệt giữ nháp nên dấu luôn nằm cạnh nó.
+ * Nhờ vậy trang Thiết lập tin nháp `_localOnly` mà không phải hỏi DB, và tab cũ còn
+ * mở không hồi sinh được key nháp của thiệp đã lên DB (saveLocalDraft chặn).
+ */
+const UPLOADED_DRAFTS_MAX = 50;
+function markDraftUploaded(id) {
+  if (!id) return;
+  const key = buildCacheKey("uploaded_drafts");
+  const ids = getCache(key, []).filter((x) => x !== id);
+  ids.push(id);
+  setCache(key, ids.slice(-UPLOADED_DRAFTS_MAX));
+}
+function isDraftUploaded(id) {
+  return getCache(buildCacheKey("uploaded_drafts"), []).includes(id);
+}

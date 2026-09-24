@@ -75,23 +75,22 @@ async function loadData() {
   // bộ nút Lưu nháp / Xuất bản phụ thuộc cờ này.
   _watchLoginState();
 
-  const localData = getLocalDraft();
+  let localData = getLocalDraft();
+  // Nháp đã lên DB mà key còn nằm lại (tab cũ ghi trước khi có dấu) → bỏ, DB thắng.
+  if (localData?._localOnly && isDraftUploaded(WEDDING_ID)) {
+    clearLocalDraft();
+    localData = null;
+  }
+  // Nháp chỉ nằm trên máy: KHÔNG hỏi DB — hàng DB chỉ ra đời qua các đường đẩy nháp,
+  // và đường nào cũng đặt dấu markDraftUploaded (core/cache-util.js).
   if (localData?._localOnly) {
-    // Nháp local có thể đã lên DB từ tab/lần khác mà key này không được dọn (tab
-    // cũ còn mở vẫn autosave) → đã đăng nhập thì hỏi DB trước, có hàng là DB thắng.
-    const dbData = IS_LOGIN ? await _fetchWeddingQuiet() : null;
-    if (dbData) {
-      clearLocalDraft();
-      await _openDbWedding(dbData);
-      return;
-    }
     _isLocalDraft = true;
     if (!localData.theme)
       localData.theme = sessionStorage.getItem("draft_theme") || "basic-gold";
     // Nháp chỉ nằm trên máy thì CHƯA xuất bản được, dù bản lưu mang cờ đó.
     fillForm(await _withDemoFill({ ...localData, is_published: false }));
     _showContent();
-    await _idbRestoreAll();
+    _cxFormLoaded(await _idbRestoreAll());
     _cxCommitDemoFilled();
     return;
   }
@@ -115,7 +114,7 @@ async function loadData() {
       await _withDemoFill({ theme: WEDDING_THEME, is_published: false }),
     );
     _showContent();
-    await _idbRestoreAll();
+    _cxFormLoaded(await _idbRestoreAll());
     _cxCommitDemoFilled();
     return;
   }
@@ -124,22 +123,26 @@ async function loadData() {
   await _openDbWedding(data);
 }
 
+// Form vừa nạp xong (kể cả ảnh chờ trong IndexedDB): các ô chọn + thẻ thiệp trong khung
+// chat XuXi đã vẽ từ lúc form còn trống, phát cx-media-change để chúng đọc lại.
+// `restored` = vừa khôi phục ảnh chờ: bản xem thử (tab Xem trước / dải xem trực tiếp)
+// dựng ở _showContent() TRƯỚC bước đó nên còn thiếu ảnh — tải lại một lần.
+function _cxFormLoaded(restored) {
+  window.dispatchEvent(new CustomEvent("cx-media-change"));
+  if (!restored) return;
+  if (_isPreviewActive) {
+    _savePreviewData();
+    document.getElementById("preview-iframe").src = _previewIframeSrc();
+  } else if (typeof cxLiveRefresh === "function") cxLiveRefresh();
+}
+
 async function _openDbWedding(data) {
   _isLocalDraft = false;
   fillForm(data);
   _showContent();
-  await _idbRestoreAll();
+  _cxFormLoaded(await _idbRestoreAll());
   loadGuestList("groom").catch(console.error);
   loadGuestList("bride").catch(console.error);
-}
-
-// null khi không đọc được vì BẤT KỲ lý do gì — chỉ dùng khi đã có nháp local để lùi về.
-async function _fetchWeddingQuiet() {
-  try {
-    return await weddingBL.getWeddingById(WEDDING_ID);
-  } catch (e) {
-    return null;
-  }
 }
 
 // Không nạp được thiệp đã có trên DB: giữ nguyên skeleton (form không bao giờ hiện
@@ -842,6 +845,7 @@ async function _saveAllOnce(overrides, label) {
       payload.slug = slugToSave;
       await weddingBL.updateWedding(payload);
       _isLocalDraft = false;
+      markDraftUploaded(WEDDING_ID);
       clearLocalDraft();
     }
     // else: chỉ localStorage, chưa đăng nhập → không lưu DB

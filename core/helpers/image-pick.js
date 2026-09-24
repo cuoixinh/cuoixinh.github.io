@@ -57,12 +57,14 @@
   let _utilsReq = null;
   let _cropperReq = null;
 
-  // Bảng lấy nét / cắt ảnh sống ở core/utils.js; trang chủ không nạp sẵn file đó.
+  // Bảng lấy nét / cắt ảnh sống ở core/utils.js; trang chủ không nạp sẵn file đó. Promise nạp
+  // dùng chung với ô bản đồ (js/ai-chat-media.js) qua window.__cxUtilsReq — nạp utils.js
+  // hai lần là `const` cấp cao nhất khai trùng, lần sau lỗi cú pháp.
   function ensurePickers(needCrop) {
     const jobs = [];
     if (typeof openFocalPointPicker !== "function") {
       const v = typeof CONFIG !== "undefined" && CONFIG.version ? "?v=" + CONFIG.version : "";
-      _utilsReq = _utilsReq || loadScript("/core/utils.js" + v);
+      _utilsReq = window.__cxUtilsReq = window.__cxUtilsReq || loadScript("/core/utils.js" + v);
       jobs.push(_utilsReq);
     }
     if (needCrop && !window.Cropper) {
