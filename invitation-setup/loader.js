@@ -67,6 +67,8 @@
     "../core/helpers/maps-helper.js",
     "../core/helpers/alert.js",
     "../core/helpers/image-helper.js",
+    // Đường chọn ảnh dùng chung (lấy nét / cắt QR / nén) — form và khung chat XuXi.
+    "../core/helpers/image-pick.js",
     "../core/helpers/validate.js",
     "../core/helpers/guide-helper.js",
     "../core/helpers/tooltip.js",

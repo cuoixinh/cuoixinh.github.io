@@ -51,7 +51,7 @@ import { CARD_RULES, CHAT_RULES, COLLECT_RULES, MEDIA_RULES, PRODUCT_KB } from '
 
 const DAILY_LIMIT = 30       // số lượt hỏi / user đã đăng nhập / ngày
 const ANON_DAILY_LIMIT = 5   // số lượt hỏi / khách chưa đăng nhập / ngày
-const MAX_MSG_LEN = 800      // độ dài tối đa MỖI tin nhắn (khớp maxlength ở client)
+const MAX_MSG_LEN = 10000    // độ dài tối đa MỖI tin nhắn (khớp maxlength ở client)
 const MAX_TURNS = 20         // số tin nhắn gần nhất được đưa vào prompt
 const MAX_ANSWER_LEN = 1500  // clamp phần "text" khách đọc được
 

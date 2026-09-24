@@ -1141,3 +1141,29 @@
   color: rgb(var(--text-label-rgb));
   background: rgb(var(--surface-tint-rgb));
 }
+
+/* Bộ đếm ký tự: dòng riêng NGAY TRÊN thẻ ô nhập, canh trái thẳng mép chữ trong ô
+   (padding 12px của thẻ + 4px của textarea). Luôn hiện "đã gõ/trần" (syncSend), quá
+   trần thì đỏ + viền ô nhập đỏ. Không dùng maxlength vì dán đoạn dài bị cắt lặng lẽ. */
+.aichat-count {
+  @apply text-left text-[11px] leading-snug;
+
+  padding: 0 16px 8px;
+  color: rgb(var(--text-caption-rgb));
+}
+
+.aichat-count[hidden] {
+  display: none;
+}
+
+.aichat-count.is-over {
+  @apply font-medium;
+
+  color: rgb(var(--state-error-text-rgb));
+}
+
+.aichat-composer.is-over,
+.aichat-composer.is-over:focus-within {
+  border-color: rgb(var(--state-error-text-rgb));
+  box-shadow: 0 0 0 3px rgb(var(--state-error-text-rgb) / 0.18);
+}

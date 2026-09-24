@@ -27,7 +27,7 @@
   const PENDING_TTL = 15 * 60 * 1000; // quá hạn thì bỏ: đăng nhập ở phiên khác mà tự gửi
   // lại câu cũ là khách không hiểu vì đâu mà có
   const MAX_KEEP = 20; // số tin nhắn giữ lại (server chỉ đọc 20 tin cuối)
-  const MAX_LEN = 800; // khớp MAX_MSG_LEN của Edge Function
+  const MAX_LEN = 10000; // khớp MAX_MSG_LEN của Edge Function
 
   const GREETING =
     "Chào bạn 👋 Mình là XuXi.\n" +
@@ -116,8 +116,9 @@
       </div>
       <div class="aichat-foot">
         <div class="aichat-kitbar" id="aichatKitbar" hidden></div>
+        <p class="aichat-count" id="aichatCount">0/${MAX_LEN.toLocaleString("vi-VN")}</p>
         <div class="aichat-composer">
-          <textarea id="aichatInput" class="aichat-input" rows="1" maxlength="${MAX_LEN}"
+          <textarea id="aichatInput" class="aichat-input" rows="1"
                     placeholder="Hỏi XuXi bất cứ điều gì…"
                     aria-label="Câu hỏi cho XuXi"></textarea>
           <div class="aichat-tools">
@@ -126,8 +127,7 @@
                       title="Thêm ảnh, nhạc, bản đồ, mẫu thiệp"
                       aria-expanded="false" class="aichat-mic">
               <i data-lucide="plus" style="width:18px;height:18px"></i>
-            </x-button>
-            <div class="aichat-tools-end">
+            </x-button>            <div class="aichat-tools-end">
               <x-button variant="bare" icon-only id="aichatMic" type="button"
                         aria-label="Nhập bằng giọng nói" title="Nhập bằng giọng nói"
                         aria-pressed="false" class="aichat-mic">
@@ -162,6 +162,8 @@
       nav: panel.querySelector("#aichatNav"),
       input: panel.querySelector("#aichatInput"),
       attach: panel.querySelector("#aichatAttach"),
+      count: panel.querySelector("#aichatCount"),
+      composer: panel.querySelector(".aichat-composer"),
       kitbar: panel.querySelector("#aichatKitbar"),
       mic: panel.querySelector("#aichatMic"),
       send: panel.querySelector("#aichatSend"),
@@ -1209,7 +1211,7 @@
       rec.onresult = (e) => {
         let text = "";
         for (let i = 0; i < e.results.length; i++) text += e.results[i][0].transcript;
-        els.input.value = (recBase + text).slice(0, MAX_LEN);
+        els.input.value = recBase + text;
         autoGrow();
         syncSend();
         armSilence(); // còn nói là còn nghe tiếp
@@ -1266,8 +1268,10 @@
   // opts.echo === false: câu hỏi đã có bong bóng trên màn (lượt gửi lại sau khi
   // đăng nhập) nên đừng vẽ thêm lần nữa.
   async function ask(question, opts = {}) {
-    const text = String(question || "").trim().slice(0, MAX_LEN);
-    if (!text || busy) return;
+    const text = String(question || "").trim();
+    // Quá dài thì KHÔNG cắt bớt rồi gửi: khách mất đúng phần đuôi mà không hay.
+    // Ô nhập đang báo đỏ (syncSend) — để nguyên cho khách tự rút gọn.
+    if (!text || busy || text.length > MAX_LEN) return;
 
     busy = true;
     stopMic(); // đang gửi thì câu nói dở không còn ô nào để rơi vào
@@ -1445,8 +1449,16 @@
 
   // Nút Gửi chỉ sáng khi có chữ để gửi và không phải đang chờ câu trả lời. Gọi
   // sau MỌI chỗ đổi nội dung ô nhập (gõ, nói, xoá đoạn chat, vừa gửi xong).
+  // Không đặt maxlength cho ô nhập: dán đoạn dài là trình duyệt cắt lặng lẽ. Cho vượt
+  // rồi báo đỏ + khoá Gửi. Bộ đếm "đã gõ/trần" luôn hiện, đếm đúng ký tự trong ô.
   function syncSend() {
-    els.send.disabled = busy || !els.input.value.trim();
+    const len = els.input.value.length;
+    const over = len > MAX_LEN;
+    els.send.disabled = busy || !els.input.value.trim() || over;
+    els.composer.classList.toggle("is-over", over);
+    els.count.classList.toggle("is-over", over);
+    const fmt = (n) => n.toLocaleString("vi-VN");
+    els.count.textContent = `${fmt(len)}/${fmt(MAX_LEN)}`;
   }
 
   // ── Khởi động ─────────────────────────────────────────────────────────────
@@ -1544,7 +1556,14 @@
     // Nút micro ẩn khi trình duyệt không hỗ trợ SpeechRecognition — lúc đó bỏ qua,
     // khách vẫn gõ được như thường. toggleMic chỉ bật vì bảng vừa mở, chưa nghe gì.
     if (opt && opt.mic && !els.mic.hidden) toggleMic();
-    if (opt && opt.ask) ask(opt.ask);
+    if (opt && opt.ask) {
+      // Quá trần thì ask() từ chối gửi — đưa vào ô nhập để khách thấy báo đỏ mà sửa.
+      if (String(opt.ask).trim().length > MAX_LEN) {
+        els.input.value = opt.ask;
+        autoGrow();
+        syncSend();
+      } else ask(opt.ask);
+    }
   };
 
   // Trang Thiết lập nạp file này ĐỘNG qua loader.js (DOMContentLoaded đã bắn từ

@@ -238,24 +238,9 @@ function renderLoveStoryList() {
   if (typeof _wireLoveStoryTextareas === "function") _wireLoveStoryTextareas(list);
 }
 
-// Wraps openFocalPointPicker as a Promise. Resolves with {x,y} on confirm, null on cancel.
+// Bảng lấy nét dạng Promise: {x,y} khi xác nhận, null khi huỷ (core/helpers/image-pick.js).
 function _openFocalPickerAsync(source, currentFocal) {
-  return new Promise((resolve) => {
-    let done = false;
-    function finish(val) {
-      if (done) return;
-      done = true;
-      resolve(val);
-    }
-    openFocalPointPicker(source, currentFocal || { x: 50, y: 50 }, (focal) =>
-      finish(focal),
-    );
-    const origClose = window._closeFocalSheet;
-    window._closeFocalSheet = (...args) => {
-      setTimeout(() => finish(null), 0);
-      if (origClose) origClose(...args);
-    };
-  });
+  return CXImagePick.focal(source, currentFocal);
 }
 
 async function handleLoveStoryImage(idx, input) {

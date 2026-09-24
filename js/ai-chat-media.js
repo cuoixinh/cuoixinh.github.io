@@ -44,7 +44,6 @@
   let ctx = { draftId: () => undefined, known: () => null };
 
   const emit = () => window.dispatchEvent(new CustomEvent(CHANGE));
-  const toast = (msg, type) => window.showToast?.(msg, type || "default");
 
   function el(tag, cls, text) {
     const n = document.createElement(tag);
@@ -81,22 +80,6 @@
       /(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|v\/|shorts\/)|youtu\.be\/)([\w-]{6,})/,
     );
     return m ? m[1] : null;
-  }
-
-  // Nén MỘT lần lúc chọn, như mọi luồng ảnh khác (ImageHelper.prepareImage).
-  async function prepare(file) {
-    const H = window.ImageHelper;
-    if (H && !H.isAllowedType(file)) {
-      toast("Định dạng không hỗ trợ — dùng JPG, PNG hoặc WebP nhé (ảnh .HEIC cần đổi sang JPG).", "error");
-      return null;
-    }
-    if (!H) return /^image\//.test(file.type) ? file : null;
-    try {
-      return (await H.prepareImage(file)).file;
-    } catch {
-      toast("Không xử lý được ảnh này, bạn thử ảnh khác nhé.", "error");
-      return null;
-    }
   }
 
   // ── Trang chủ: IndexedDB dưới mã nháp của cuộc chat ───────────────────────
@@ -171,6 +154,21 @@
     }
   }
 
+  // Bản xem trước khối Hộp mừng cưới trong bảng cắt QR — như _qrGiftInfo (10-images.js)
+  // nhưng đọc thông tin XuXi đã thu thay vì form. Field khác QR → null.
+  function giftInfo(field) {
+    const side = QR_SLOTS.find(([f]) => f === field)?.[1];
+    if (!side) return null;
+    const f = ctx.known()?.fields || {};
+    const name = String(f[`${side}_name`] || "");
+    return {
+      label: (side === "groom" ? "Chú Rể" : "Cô Dâu") + (name ? ` · ${name}` : ""),
+      bankName: String(f[`${side}_bank_name`] || ""),
+      bankNumber: String(f[`${side}_bank_number`] || ""),
+      bankOwner: String(f[`${side}_bank_owner`] || ""),
+    };
+  }
+
   const homeSink = {
     async state() {
       const id = ctx.draftId();
@@ -205,41 +203,59 @@
       };
     },
 
+    // Cùng đường với form (CXImagePick): bảng lấy nét / cắt QR / nén, rồi ghi bản ghi IDB
+    // y như _storePickedImage + _idbSaveSingle của trang Thiết lập.
     async setImage(field, file) {
       const id = ctx.draftId();
-      const p = id && (await prepare(file));
-      if (!p) return;
+      if (!id) return;
       const key = `${id}_s_${field}`;
+      const cur = (await idbAll(id)).find((r) => r.key === key);
+      const picked = await CXImagePick.single(field, file, {
+        focal: cur?.focalPoint,
+        giftInfo: giftInfo(field),
+      });
+      if (!picked) return;
       dropUrl(key);
-      await idbWrite((s) =>
-        s.put({ key, type: "single", fieldName: field, weddingId: id, file: p, focalPoint: { x: 50, y: 50 } }),
-      );
+      await idbWrite((s) => {
+        s.put({
+          key,
+          type: "single",
+          fieldName: field,
+          weddingId: id,
+          file: picked.file,
+          focalPoint: picked.focal || cur?.focalPoint || { x: 50, y: 50 },
+        });
+        s.delete(`${id}_sf_${field}`); // bản ghi chỉ-lấy-nét của ảnh cũ
+      });
       emit();
     },
 
     async addGallery(files) {
       const id = ctx.draftId();
       if (!id) return;
-      const have = (await idbAll(id)).filter((r) => r.type === "gallery").length;
-      const room = GALLERY_MAX - have;
-      if (room <= 0) return toast(`Album đã đủ ${GALLERY_MAX} ảnh rồi`, "warning");
-      if (files.length > room) toast(`Chỉ thêm được ${room} ảnh nữa`, "warning");
-      let i = 0;
-      for (const file of files.slice(0, room)) {
-        const p = await prepare(file);
-        if (!p) continue;
-        const now = Date.now() + i++;
-        await idbWrite((s) =>
-          s.put({
-            key: `${id}_g_${now}_${Math.random().toString(36).slice(2, 7)}`,
-            type: "gallery",
-            weddingId: id,
-            file: p,
-            focalPoint: { x: 50, y: 50 },
-            order: now,
-          }),
-        );
-      }
+      // Trần tính cả ảnh đã lưu trong nháp lẫn ảnh đang chờ, như handleGalleryUpload.
+      const saved = getCache(buildCacheKey("draft", id))?.gallery_images;
+      const have =
+        (await idbAll(id)).filter((r) => r.type === "gallery").length +
+        (Array.isArray(saved) ? saved.length : 0);
+      await CXImagePick.gallery(
+        files,
+        GALLERY_MAX - have,
+        (file, focal) => {
+          const now = Date.now();
+          return idbWrite((s) =>
+            s.put({
+              key: `${id}_g_${now}_${Math.random().toString(36).slice(2, 7)}`,
+              type: "gallery",
+              weddingId: id,
+              file,
+              focalPoint: focal,
+              order: now,
+            }),
+          );
+        },
+        GALLERY_MAX,
+      );
       emit();
     },
 
