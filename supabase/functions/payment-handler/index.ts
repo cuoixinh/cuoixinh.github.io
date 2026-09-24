@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createDbClient } from "../_shared/db-client.ts";
 import { withAxiom, type Logger } from "../_shared/axiom.ts";
 import {
   checkWeddingLimit,
@@ -200,8 +200,8 @@ serve(withAxiom("payment-handler", async (req, log) => {
     // PayOS webhook doesn't send Authorization header
     const isWebhook = path.endsWith("/webhook");
     
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
+    const supabaseClient = createDbClient(
+      log,
       isWebhook ? Deno.env.get("SUPABASE_ANON_KEY") ?? "" : Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
     );
 
