@@ -812,18 +812,21 @@
     handoff() {
       if (window.cxAiMediaSink) return null;
       const st = homeStore();
+      homeSave({ handedTo: ctx.draftId() }); // reset() nhận ra nháp đã được mở
       return { theme: st.theme || null, music: st.music || null, maps: st.maps || {} };
     },
-    // Làm mới cuộc chat: quên luồng dẫn; ở trang chủ bỏ luôn ảnh của nháp CHƯA được mở
-    // (đã mở thì ảnh thuộc về thiệp đó rồi, xoá là mất ảnh của khách).
+    // Làm mới cuộc chat: quên luồng dẫn; ở trang chủ bỏ luôn ảnh của nháp CHƯA được mở.
+    // Đã mở thì ảnh thuộc về thiệp đó — kể cả khi nháp đã lên tài khoản (bản local bị
+    // xoá) mà còn ảnh đẩy hỏng nằm chờ lần lưu sau — xoá là mất ảnh của khách.
     async reset(draftId) {
+      const handed = !!draftId && homeStore().handedTo === draftId;
       try {
         sessionStorage.removeItem(VISIT_KEY);
         if (!window.cxAiMediaSink) sessionStorage.removeItem(HOME_KEY);
       } catch {
         /* chặn cookie: không có gì để dọn */
       }
-      if (window.cxAiMediaSink || !draftId) return;
+      if (window.cxAiMediaSink || !draftId || handed) return;
       if (typeof getCache === "function" && getCache(buildCacheKey("draft", draftId))) return;
       const recs = await idbAll(draftId);
       recs.forEach((r) => dropUrl(r.key));

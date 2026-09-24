@@ -2979,6 +2979,7 @@ async function saveDraft() {
   _setActiveTab("draft");
   const ok = await saveAll({}, "Đang lưu...");
   if (ok) _setActiveTab("edit");
+  return ok;
 }
 
 // Chặn bấm "Xuất bản" chồng: đoạn await trước saveAll (đọc phiên, dò slug) đủ dài

@@ -880,9 +880,14 @@
       addWidget(kind, null, true);
       return;
     }
-    const text = inSetup()
-      ? "Xong phần hình ảnh rồi 🎉 Ảnh, nhạc và bản đồ đã vào thiệp — bạn bấm **Lưu nháp** để giữ lại nhé. Nội dung chữ thì bấm **Áp dụng vào thiệp** trên thẻ thiệp nếu chưa áp dụng."
-      : "Xong rồi 🎉 Bấm **Xem thiệp** trên thẻ thiệp để mở thiệp với đầy đủ ảnh, nhạc và bản đồ nhé.";
+    // Trang Thiết lập + đã đăng nhập: ảnh/nhạc/bản đồ vừa chọn lên tài khoản luôn,
+    // như lượt Áp dụng (cxAiSaveToAccount ở 24-ai-apply.js).
+    const saved = inSetup() && (await window.cxAiSaveToAccount?.());
+    const text = !inSetup()
+      ? "Xong rồi 🎉 Bấm **Xem thiệp** trên thẻ thiệp để mở thiệp với đầy đủ ảnh, nhạc và bản đồ nhé."
+      : saved
+        ? "Xong phần hình ảnh rồi 🎉 Mình đã lưu nháp thiệp vào tài khoản của bạn."
+        : "Xong phần hình ảnh rồi 🎉 Ảnh, nhạc và bản đồ đã vào thiệp — bạn bấm **Lưu nháp** để giữ lại nhé. Nội dung chữ thì bấm **Áp dụng vào thiệp** trên thẻ thiệp nếu chưa áp dụng.";
     history.push({ role: "assistant", content: text, at: Date.now() });
     saveHistory();
     addBubble("bot", text);
@@ -941,6 +946,8 @@
     } catch {
       /* chặn cookie: bỏ qua, chỉ mất phần ghi nhớ */
     }
+    // Đã đăng nhập → nháp lên tài khoản luôn (luật nháp, xem cxAiSaveToAccount).
+    window.cxAiSaveToAccount?.();
   }
 
   // Trang chủ: cất thiệp vào localStorage rồi đi đúng đường của nút "Tạo thiệp

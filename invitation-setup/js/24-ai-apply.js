@@ -302,7 +302,30 @@ window.__cxApplyPendingAiCard = function () {
   _cxPendingAiCard = null;
   if (!card) return false;
   cxApplyAiCard(card);
+  _cxAiSavePending = true;
   return true;
+};
+
+// ── Lưu thiệp AI vào tài khoản ─────────────────────────────────────────────
+// Luật nháp: đã đăng nhập thì nháp phải nằm trên DB, không nằm lại trên máy (xem
+// my-invitations/index.js). Nội dung XuXi dựng là khách đã xác nhận (bảng chốt + nút
+// Xem thiệp / Áp dụng) nên lưu luôn như bấm "Lưu nháp" — saveAll đẩy cả ảnh chờ trong
+// IndexedDB rồi xoá bản local. Thiệp đã xuất bản thì KHÔNG: lưu là lên thiệp thật ngay,
+// khách phải tự bấm "Lưu & Xuất bản". Trả true khi đã lưu.
+async function cxAiSaveToAccount() {
+  if (IS_PUBLISHED) return false;
+  if (!(await _refreshLoginState())) return false;
+  return (await saveDraft()) === true;
+}
+window.cxAiSaveToAccount = cxAiSaveToAccount;
+
+// Thiệp bàn giao từ trang chủ: loadData xong (ảnh chờ đã khôi phục) mới lưu, không thì
+// lượt lưu đi thiếu ảnh. 15-init.js gọi sau loadData().
+let _cxAiSavePending = false;
+window.cxAiAfterLoad = function () {
+  if (!_cxAiSavePending) return;
+  _cxAiSavePending = false;
+  cxAiSaveToAccount();
 };
 
 // ── Ô chọn trong khung chat XuXi (js/ai-chat-media.js) ─────────────────────

@@ -374,7 +374,8 @@ function initializePage() {
     const checkFlatpickr = setInterval(() => {
       if (window.flatpickrInstances) {
         clearInterval(checkFlatpickr);
-        loadData();
+        // Thiệp XuXi dựng ở trang chủ: lưu lên tài khoản SAU khi ảnh chờ đã khôi phục.
+        loadData().then(() => window.cxAiAfterLoad?.());
       }
     }, 50);
   } else {
