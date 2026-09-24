@@ -9,11 +9,11 @@
     return (u && u.email) || "guest";
   }
 
-  function _addOrders(set, key) {
+  function _addOrders(set, key, skip) {
     var list = getCache(key, []);
     if (!Array.isArray(list)) return;
     list.forEach(function (o) {
-      if (o && o.manage_id) set.add(o.manage_id);
+      if (o && o.manage_id && !(skip && skip.has(o.manage_id))) set.add(o.manage_id);
     });
   }
 
@@ -21,7 +21,9 @@
     var email = _email();
     var set = new Set();
     _addOrders(set, buildCacheKey("orders", email));
-    _addOrders(set, buildCacheKey("orders", "guest"));
+    // Thiệp vãng lai mà tài khoản này đã trả lời "không phải của tôi" (my-invitations).
+    var declined = email === "guest" ? null : new Set(getCache(buildCacheKey("orders_declined", email), []));
+    _addOrders(set, buildCacheKey("orders", "guest"), declined);
     var db = getCache(buildCacheKey("cart_ids", email), []);
     if (Array.isArray(db)) db.forEach(function (id) {
       if (id) set.add(id);

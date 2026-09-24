@@ -98,20 +98,61 @@ function _ordersKey() {
 
 const GUEST_ORDERS_KEY = buildCacheKey("orders", "guest");
 
-// Đơn tạo lúc chưa đăng nhập nằm ở key "guest"; đăng nhập xong phải DỌN sang key
-// theo email, nếu không thiệp vừa làm biến mất khỏi danh sách như bị mất.
+// Đơn tạo lúc chưa đăng nhập nằm ở key "guest". Máy có thể dùng chung nên HỎI
+// trước khi dời sang key của tài khoản vừa đăng nhập — tự dời là thiệp của người
+// này rơi vào danh sách người kia. "Không" thì đơn ở lại key guest và tài khoản
+// này không bị hỏi lại về đúng những thiệp đó; đóng hộp thoại thì lần sau hỏi lại.
 // Gộp theo manage_id, bản ở key email thắng (đã đồng bộ xa hơn).
+let _absorbAsking = null; // loadCards chạy chồng (đổi phiên, quay lại tab) → chỉ một hộp thoại
+
 function _absorbGuestOrders() {
-  if (!currentUser) return;
+  if (!currentUser) return Promise.resolve();
+  if (!_absorbAsking)
+    _absorbAsking = _askAbsorbGuestOrders().finally(() => {
+      _absorbAsking = null;
+    });
+  return _absorbAsking;
+}
+
+async function _askAbsorbGuestOrders() {
   const guest = getCache(GUEST_ORDERS_KEY, []);
   if (!Array.isArray(guest) || !guest.length) return;
 
+  const email = currentUser.email;
   const key = _ordersKey();
-  const mine = getCache(key, []);
-  const mineIds = new Set(mine.map((o) => o.manage_id).filter(Boolean));
-  const added = guest.filter((o) => o.manage_id && !mineIds.has(o.manage_id));
-  setCache(key, mine.concat(added));
-  removeCache(GUEST_ORDERS_KEY);
+  const declinedKey = buildCacheKey("orders_declined", email);
+  const declined = new Set(getCache(declinedKey, []));
+  const mineIds = new Set(getCache(key, []).map((o) => o.manage_id).filter(Boolean));
+  // Đơn đã có ở key email (vd xuất bản xong ngay trong trang Thiết lập) thì chỉ
+  // cần dọn bản guest, không phải hỏi.
+  const asking = guest.filter(
+    (o) => o.manage_id && !mineIds.has(o.manage_id) && !declined.has(o.manage_id),
+  );
+  const leftovers = guest.filter((o) => !o.manage_id || !mineIds.has(o.manage_id));
+  if (leftovers.length !== guest.length) setCache(GUEST_ORDERS_KEY, leftovers);
+  if (!asking.length) return;
+
+  const names = asking
+    .map((o) => "• " + ([o.groomName, o.brideName].filter(Boolean).join(" & ") || themeName(o.theme)))
+    .join("\n");
+  const r = await showConfirm(
+    "Thiệp làm dở trên máy này",
+    `Máy này có ${asking.length} thiệp được làm khi chưa đăng nhập:\n${names}\n` +
+      `Gắn vào tài khoản ${email}? Nếu không phải của bạn, hãy chọn "Không".`,
+    { type: "info", icon: "file-pen", confirmText: "Gắn vào tài khoản", cancelText: "Không" },
+  );
+  if (r === null) return;
+
+  const ids = new Set(asking.map((o) => o.manage_id));
+  if (r) {
+    const now = getCache(GUEST_ORDERS_KEY, []);
+    setCache(key, getCache(key, []).concat(now.filter((o) => ids.has(o.manage_id))));
+    const rest = now.filter((o) => !ids.has(o.manage_id));
+    if (rest.length) setCache(GUEST_ORDERS_KEY, rest);
+    else removeCache(GUEST_ORDERS_KEY);
+  } else {
+    setCache(declinedKey, [...declined, ...ids]);
+  }
 }
 
 // Nháp chỉ nằm trên máy này: đơn còn là nháp VÀ key nháp local còn cờ _localOnly.
@@ -205,7 +246,8 @@ let _loadSeq = 0;
 
 async function loadCards() {
   const seq = ++_loadSeq;
-  _absorbGuestOrders();
+  await _absorbGuestOrders();
+  if (seq !== _loadSeq) return;
   const local = getCache(_ordersKey(), []).filter((o) => o.manage_id);
 
   if (!currentUser) {
