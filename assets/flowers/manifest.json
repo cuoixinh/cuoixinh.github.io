@@ -1,6 +1,6 @@
 {
   "path": "/assets/flowers",
-  "updated_at": "2026-09-24T04:43:00.000Z",
+  "updated_at": "2026-09-24T04:47:13.000Z",
   "images": [
     {
       "file": "flowers_01.png",
@@ -162,61 +162,6 @@
       "width": 320,
       "height": 280,
       "size": 2014,
-      "focal_point": {
-        "x": 50,
-        "y": 50
-      }
-    },
-    {
-      "file": "flowers_22.svg",
-      "url": "/assets/flowers/flowers_22.svg",
-      "width": 260,
-      "height": 320,
-      "size": 1885,
-      "focal_point": {
-        "x": 50,
-        "y": 50
-      }
-    },
-    {
-      "file": "flowers_23.svg",
-      "url": "/assets/flowers/flowers_23.svg",
-      "width": 300,
-      "height": 300,
-      "size": 1991,
-      "focal_point": {
-        "x": 50,
-        "y": 50
-      }
-    },
-    {
-      "file": "flowers_24.svg",
-      "url": "/assets/flowers/flowers_24.svg",
-      "width": 360,
-      "height": 270,
-      "size": 1988,
-      "focal_point": {
-        "x": 50,
-        "y": 50
-      }
-    },
-    {
-      "file": "flowers_25.svg",
-      "url": "/assets/flowers/flowers_25.svg",
-      "width": 300,
-      "height": 300,
-      "size": 10247,
-      "focal_point": {
-        "x": 50,
-        "y": 50
-      }
-    },
-    {
-      "file": "flowers_26.svg",
-      "url": "/assets/flowers/flowers_26.svg",
-      "width": 320,
-      "height": 240,
-      "size": 1886,
       "focal_point": {
         "x": 50,
         "y": 50
