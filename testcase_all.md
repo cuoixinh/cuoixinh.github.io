@@ -49,9 +49,9 @@ testcase tương ứng.
 
 | Nhóm                  | Phạm vi                                                           | AUTO✓ | AUTO→ | MAN |
 | --------------------- | ----------------------------------------------------------------- | ----- | ----- | --- |
-| AUTO-EX               | Script kiểm đang có (`check:*`, build, promote)                    | 10    | –     | –   |
-| UNIT                  | Hàm thuần: slug, ảnh, làm sạch JSONB, chữ ký, ngày, mã hoá link    | –     | 30    | –   |
-| LINT                  | Ràng buộc tĩnh trong CLAUDE.md (hằng số hai nơi, thứ tự nạp, mẫu thiệp, deploy) | – | 30 | – |
+| AUTO-EX               | Script kiểm đang có (`check:*`, build, promote)                    | 12    | –     | –   |
+| UNIT                  | Hàm thuần: slug, ảnh, làm sạch JSONB, chữ ký, ngày, mã hoá link    | 30    | 1     | –   |
+| LINT                  | Ràng buộc tĩnh trong CLAUDE.md (hằng số hai nơi, thứ tự nạp, mẫu thiệp, deploy) | 31 | – | – |
 | API-WA / API-WR       | Edge Function `wedding-admin` (thiệp + mẫu, giá, mã giảm giá, YouTube) | –  | 68    | –   |
 | API-PAY / API-WH      | `payment-handler`, `payos-webhook`, mã giảm giá                   | –     | 35    | –   |
 | API-GH                | `guest-handler` (khách mời, RSVP, lời chúc)                       | –     | 30    | –   |
@@ -66,9 +66,9 @@ testcase tương ứng.
 
 ## 1. AUTO — Script kiểm đang có (chạy được ngay)
 
-Chạy tất cả: `npm run check:config && npm run check:palette && npm run check:palette-contrast && npm run check:draft-sync`
+Chạy tất cả: `npm run check:config && npm run check:palette && npm run check:palette-contrast && npm run check:draft-sync && npm run check:units && npm run check:lint`
 
-Kết quả chạy ngày 2026-09-24: **tất cả PASS** (draft-sync 48/48).
+Kết quả chạy ngày 2026-09-24: **không có FAIL** (draft-sync 48/48; units 33 PASS + 3 KNOWN; lint 27 PASS + 4 KNOWN).
 
 | ID         | Lệnh                                           | Kiểm gì                                                                                                                  | Kỳ vọng                        | Loại  | Ưu tiên |
 | ---------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ | ------------------------------ | ----- | ------- |
@@ -82,56 +82,65 @@ Kết quả chạy ngày 2026-09-24: **tất cả PASS** (draft-sync 48/48).
 | AUTO-EX-08 | (sau AUTO-EX-06) `grep -rn "purgeSecret" dist/core/config.js` | `purgeSecret` bị REDACT thành `null`                                                                  | Chỉ thấy `purgeSecret: null`   | AUTO✓ | P0      |
 | AUTO-EX-09 | `npm run production` (trên staging, cây bẩn / chưa đổi `CX_VERSION`) | Script promote CHẶN khi cây bẩn, lệch remote, `CX_VERSION` chưa đổi; liệt kê SQL/Edge Function trong đợt | Dừng với thông báo rõ          | AUTO✓ | P0      |
 | AUTO-EX-10 | Nhóm lệnh ở `docs/security-checklist.md` §D    | Không gọi `/rest/v1/`; không nội suy `src="${` chưa escape; listener `message` có kiểm nguồn; script CDN có SRI           | Cả 4 lệnh đầu ra rỗng          | AUTO✓ | P0      |
+| AUTO-EX-11 | `npm run check:units`                           | 36 ca hàm thuần (§2): slug, lọc ảnh, làm sạch JSONB, chữ ký PayOS, âm lịch, mã hoá link khách, dữ liệu mẫu… | Không FAIL (KNOWN không chặn) | AUTO✓ | P0 |
+| AUTO-EX-12 | `npm run check:lint`                            | 31 luật tĩnh (§2b) của CLAUDE.md                                                                                         | Không FAIL (KNOWN không chặn) | AUTO✓ | P0 |
 
 ---
 
 ## 2. UNIT — Hàm thuần (đề xuất tự động hoá)
 
-**Cách làm:** theo đúng kiểu `scripts/check-draft-sync.mjs`. Cắt nguyên văn hàm từ file nguồn
-bằng `fn(file, name)`, chạy trong `node:vm`, gom vào một `scripts/check-units.mjs`. Hàm `.ts`
-thì chuyển mã bằng `sucrase` như lệnh §D của checklist.
+**Đã tự động hoá: `npm run check:units`** (`scripts/check-units.mjs`, `--verbose` để in cả ca đạt).
+Hàm được cắt NGUYÊN VĂN từ file nguồn rồi chạy trong `node:vm`, file `.ts` bỏ kiểu bằng
+`node:module.stripTypeScriptTypes`. Không cần mạng, không cần cài gì. Ngoài các ID dưới đây,
+script còn có ca phụ: 05b, 08b, 10b, 16b–d, 18b. Ca gắn nhãn KNOWN là lỗi đã ghi ở §9, trượt
+thì không làm script thoát mã 1. Đã thử cố tình làm hỏng `isSafeImageRef`/`cleanTimeline` →
+script bắt đúng.
+
+Kết quả 2026-09-24: **36 ca — 33 PASS, 3 KNOWN (NV-11, NV-12, NV-13), 0 FAIL.**
 
 | ID      | Hàm (file)                                                   | Đầu vào → Kỳ vọng                                                                                                                                            | Loại  | Ưu tiên |
 | ------- | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----- | ------- |
-| UNIT-01 | `validateSlug` (`core/bl/wedding-bl.js`)                     | `"Hoàng Lan"` → `hoang-lan`; `"Đức & Ánh!!"` → `duc-anh`; `"--a--b--"` → `a-b`                                                                               | AUTO→ | P1      |
-| UNIT-02 | `validateSlug`                                               | Chuỗi 80 ký tự nhiều từ → ≤ 50 ký tự, cắt tại gạch nối; một từ dài 60 ký tự → cắt cứng 50                                                                    | AUTO→ | P2      |
-| UNIT-03 | `validateSlug`                                               | Luỹ đẳng: `validateSlug(validateSlug(x)) === validateSlug(x)` với 50 chuỗi ngẫu nhiên có dấu                                                                 | AUTO→ | P1      |
-| UNIT-04 | `validateSlug`                                               | `""`, `"!!!"`, `"   "` → ném lỗi                                                                                                                              | AUTO→ | P1      |
-| UNIT-05 | `isValidSlug` (wedding-admin)                                | Hợp lệ: `a`, `an-binh`, `a1-b2`. Không hợp lệ: `-a`, `a-`, `An`, `a_b`, `a b`, chuỗi 81 ký tự                                                                 | AUTO→ | P0      |
-| UNIT-06 | `isSafeImageRef` (wedding-admin)                             | Nhận: `null`, `""`, `cover-abc123.webp`, `https://gmtnoxdwoumbtdmqmisk.supabase.co/storage/v1/object/public/wedding-images/x.jpg`                            | AUTO→ | P0      |
-| UNIT-07 | `isSafeImageRef`                                             | Chặn: `http://…` (không https), host lạ, `//evil.com/a.png`, `a" onerror="x`, `../x.jpg`, URL hợp lệ kèm `?x="`, số/đối tượng                                | AUTO→ | P0      |
-| UNIT-08 | `cleanLoveStory`                                             | 12 phần tử → còn 10; khoá lạ bị bỏ; `content` > 2000 ký tự bị cắt; `image_url` xấu → `null`; `focal_point {x:500,y:"a"}` → `{x:100,y:50}`                    | AUTO→ | P0      |
-| UNIT-09 | `cleanTimeline`                                              | `type` lạ → `ceremony`; `time` > 20 ký tự bị cắt; đầu vào chuỗi JSON hỏng → `null`                                                                            | AUTO→ | P1      |
-| UNIT-10 | `payosValue` + `verifyWebhookSignature` (payos-webhook)      | Chữ ký tự tính theo quy ước PayOS (null → rỗng, mảng → JSON khoá đã sắp) khớp; đổi 1 ký tự amount → lệch                                                     | AUTO→ | P0      |
-| UNIT-11 | `newOrderCode` (payment-handler)                             | 10.000 lần gọi liên tiếp: đủ 14 chữ số, ≤ `Number.MAX_SAFE_INTEGER`, không trùng                                                                             | AUTO→ | P1      |
-| UNIT-12 | `clientIp` (`_shared/ai-rate-limit.ts`)                      | Có `cf-connecting-ip` → lấy nó; chỉ có `x-forwarded-for: 1.1.1.1, 2.2.2.2` → `2.2.2.2` (phần tử CUỐI)                                                        | AUTO→ | P0      |
-| UNIT-13 | `sanitizeDevice`                                             | `"ABC-12345678"` → thường hoá; < 8 hoặc > 64 ký tự, có ký tự lạ → `""`                                                                                       | AUTO→ | P1      |
-| UNIT-14 | `cardState` + `daysLeft` (`my-invitations/index.js`)         | Chưa xuất bản → `draft`; `expiresAt` null → `active`; còn 5 giờ → `trial`, `daysLeft = 1`; đồng hồ máy chậm → kẹp ≤ `CONFIG.trialDays`                      | AUTO→ | P1      |
-| UNIT-15 | `cxPaletteAtStrength` (theme-setting-helper)                 | Mức 50 trả về NGUYÊN object (so bằng `===`); mức 0/100 không ra kênh ngoài 0–255                                                                            | AUTO→ | P1      |
-| UNIT-16 | Chuyển âm lịch (`invitation-setup/js/09-lunar.js`)           | Đối chiếu 20 ngày mốc (Tết, tháng nhuận 2023/2025) với lịch vạn niên                                                                                         | AUTO→ | P1      |
-| UNIT-17 | `safeExt` (`core/bl/image-bl.js`)                            | Đuôi suy từ MIME: `image/webp` → `webp`; MIME lạ → `jpg`; tên file mang `.php` không ảnh hưởng                                                                | AUTO→ | P1      |
-| UNIT-18 | `escapeHtml` / `cxImgSrc` / `cxFocal` (`core/utils.js`)      | `<script>`, `"`, `'`, `` ` `` được escape; `cxFocal` ép số, chặn chuỗi CSS                                                                                   | AUTO→ | P0      |
-| UNIT-19 | `weddingImageRefs` / `weddingFileNames` (`_shared/wedding-images.ts`) | Liệt kê đủ ảnh ở mọi cột `*_url`, `gallery_images`, `love_story[].image_url`; bỏ URL ngoài bucket                                                    | AUTO→ | P0      |
-| UNIT-20 | Dò mã màu cứng trong theme                                   | `grep -nE "#[0-9a-fA-F]{3,6}\b" public/themes/*/theme.css` ngoài `:root`/`mask-image` → rỗng                                                                 | AUTO→ | P2      |
-| UNIT-21 | `extractYouTubeVideoId` (`core/helpers/youtube-helper.js`)  | `watch?v=ID&list=…`, `youtu.be/ID?t=3`, `embed/ID`, `v/ID` → `ID`; link không phải YouTube → `null`                                                          | AUTO→ | P1      |
-| UNIT-22 | `encryptData` / `decryptData` (`invitation-setup/js/06-draft-save.js`) | Mã hoá rồi giải mã lại tên có dấu, emoji, `&`, `=` → ra đúng chuỗi gốc; chuỗi rác → không ném lỗi làm vỡ trang                               | AUTO→ | P0      |
-| UNIT-23 | `applyLoveStoryText` (`invitation-setup/js/14-timeline-story.js`) | Có 4 mốc (mốc 2, 4 có ảnh), AI trả 2 mốc → mốc 1–2 thay chữ, giữ ảnh; mốc 4 còn lại dạng mốc trống giữ ảnh; mốc 3 (không ảnh) bị bỏ                 | AUTO→ | P1      |
-| UNIT-24 | `_isBlankWedding` + danh sách trắng demo fill (`invitation-setup/js/13-data.js`) | Thiệp trắng → được đổ nội dung mẫu; KHÔNG bao giờ chép tên, cha mẹ, địa chỉ, địa điểm, bản đồ, ngày giờ, ngân hàng, ảnh                         | AUTO→ | P0      |
-| UNIT-25 | `_cxSafeSelector` / `_cxSafeFont` / `_cxSafeColor` / `_cxSafeNum` (theme-setting-helper) | Selector có `</style>`, font có `;}`, màu `red;background:url(x)`, số `NaN` → bị loại/ép về an toàn                              | AUTO→ | P0      |
-| UNIT-26 | `CXCartCount` (`core/helpers/nav-cart-count.js`)             | Nháp + đơn trùng id → chỉ đếm 1; đăng xuất → không đếm thiệp đã gộp vào tài khoản                                                                           | AUTO→ | P2      |
-| UNIT-27 | `draft-retention.js`                                         | Nháp `_savedAt` 31 ngày → xoá (cả ảnh IDB); 29 ngày → giữ; đang mở `?id=` → giữ; thiếu `CONFIG.retention` → không xoá gì                                  | AUTO→ | P1      |
-| UNIT-28 | `_checkImageType` (`invitation-setup/js/10-images.js`)       | Nhận jpeg/png/webp/gif/avif; chặn `image/svg+xml`, `image/heic`, `application/pdf`, file không có `type`                                                       | AUTO→ | P0      |
-| UNIT-29 | `validateForm` / `_isEmpty` (`core/helpers/validate.js`)     | Ô `[required]` trống, chỉ khoảng trắng, `<x-input>` bọc ngoài → báo lỗi; ô ở bước khác cũng được tính                                                          | AUTO→ | P1      |
-| UNIT-30 | `cxUUID` (`core/utils.js`)                                   | Có `crypto.randomUUID` → dùng nó; không có → dùng `getRandomValues`; đúng dạng UUID v4 (A18)                                                                 | AUTO→ | P2      |
+| UNIT-01 | `validateSlug` (`core/bl/wedding-bl.js`)                     | `"Hoàng Lan"` → `hoang-lan`; `"Đức & Ánh!!"` → `duc-anh`; `"--a--b--"` → `a-b`                                                                               | AUTO✓ | P1      |
+| UNIT-02 | `validateSlug`                                               | Chuỗi 80 ký tự nhiều từ → ≤ 50 ký tự, cắt tại gạch nối; một từ dài 60 ký tự → cắt cứng 50                                                                    | AUTO✓ | P2      |
+| UNIT-03 | `validateSlug`                                               | Luỹ đẳng: `validateSlug(validateSlug(x)) === validateSlug(x)` với 50 chuỗi ngẫu nhiên có dấu                                                                 | AUTO✓ | P1      |
+| UNIT-04 | `validateSlug`                                               | `""`, `"!!!"`, `"   "` → ném lỗi                                                                                                                              | AUTO✓ | P1      |
+| UNIT-05 | `isValidSlug` (wedding-admin)                                | Hợp lệ: `a`, `an-binh`, `a1-b2`. Không hợp lệ: `-a`, `a-`, `An`, `a_b`, `a b`, chuỗi 81 ký tự                                                                 | AUTO✓ | P0      |
+| UNIT-06 | `isSafeImageRef` (wedding-admin)                             | Nhận: `null`, `""`, `cover-abc123.webp`, `https://gmtnoxdwoumbtdmqmisk.supabase.co/storage/v1/object/public/wedding-images/x.jpg`                            | AUTO✓ | P0      |
+| UNIT-07 | `isSafeImageRef`                                             | Chặn: `http://…` (không https), host lạ, `//evil.com/a.png`, `a" onerror="x`, `../x.jpg`, URL hợp lệ kèm `?x="`, số/đối tượng                                | AUTO✓ | P0      |
+| UNIT-08 | `cleanLoveStory`                                             | 12 phần tử → còn 10; khoá lạ bị bỏ; `content` > 2000 ký tự bị cắt; `image_url` xấu → `null`; `focal_point {x:500,y:"a"}` → `{x:100,y:50}`                    | AUTO✓ | P0      |
+| UNIT-09 | `cleanTimeline`                                              | `type` lạ → `ceremony`; `time` > 20 ký tự bị cắt; đầu vào chuỗi JSON hỏng → `null`                                                                            | AUTO✓ | P1      |
+| UNIT-10 | `payosValue` + `verifyWebhookSignature` (payos-webhook)      | Chữ ký tự tính theo quy ước PayOS (null → rỗng, mảng → JSON khoá đã sắp) khớp; đổi 1 ký tự amount → lệch                                                     | AUTO✓ | P0      |
+| UNIT-11 | `newOrderCode` (payment-handler)                             | 10.000 lần gọi liên tiếp: đủ 14 chữ số, ≤ `Number.MAX_SAFE_INTEGER`, không trùng                                                                             | AUTO✓ | P1      |
+| UNIT-12 | `clientIp` (`_shared/ai-rate-limit.ts`)                      | Có `cf-connecting-ip` → lấy nó; chỉ có `x-forwarded-for: 1.1.1.1, 2.2.2.2` → `2.2.2.2` (phần tử CUỐI)                                                        | AUTO✓ | P0      |
+| UNIT-13 | `sanitizeDevice`                                             | `"ABC-12345678"` → thường hoá; < 8 hoặc > 64 ký tự, có ký tự lạ → `""`                                                                                       | AUTO✓ | P1      |
+| UNIT-14 | `cardState` + `daysLeft` (`my-invitations/index.js`)         | Chưa xuất bản → `draft`; `expiresAt` null → `active`; còn 5 giờ → `trial`, `daysLeft = 1`; đồng hồ máy chậm → kẹp ≤ `CONFIG.trialDays`                      | AUTO✓ | P1      |
+| UNIT-15 | `cxPaletteAtStrength` (theme-setting-helper)                 | Mức 50 trả về NGUYÊN object (so bằng `===`); mức 0/100 không ra kênh ngoài 0–255                                                                            | AUTO✓ | P1      |
+| UNIT-16 | Chuyển âm lịch (`invitation-setup/js/09-lunar.js`)           | Đối chiếu 10 ngày mốc (Tết 2023–2026, Trung thu 2024, tháng nhuận 2020/2023/2025) + Can Chi. Thêm 16c (chữ "nhuận") và 16d (múi giờ âm) — hai ca KNOWN, xem NV-11/NV-12                                                                                         | AUTO✓ | P1      |
+| UNIT-17 | `safeExt` (`core/bl/image-bl.js`)                            | MIME đã biết thắng tên file (`image/webp` + `a.php` → `webp`). MIME lạ/rỗng → lấy đuôi tên nếu 1–5 ký tự chữ số, không thì `jpg` (ca này đã bị UNIT-28 chặn từ trước) | AUTO✓ | P1      |
+| UNIT-18 | `escapeHtml` / `cxImgSrc` / `cxFocal` (`core/utils.js`)      | `<script>`, `"`, `'`, `` ` `` được escape; `cxFocal` ép số, chặn chuỗi CSS                                                                                   | AUTO✓ | P0      |
+| UNIT-19 | `weddingImageRefs` / `weddingFileNames` (`_shared/wedding-images.ts`) | Liệt kê đủ ảnh ở mọi cột `*_url`, `gallery_images`, `love_story[].image_url`; bỏ URL ngoài bucket                                                    | AUTO✓ | P0      |
+| UNIT-20 | Dò mã màu cứng trong theme                                   | Xét theo từng khai báo CSS ngoài `:root`, bỏ `mask*` và `--cx-qr-bg-rgb` → không có mã màu cứng. Hiện KNOWN: `basic-gold` `text-shadow` đen (NV-13)                                                                 | AUTO✓ | P2      |
+| UNIT-21 | `extractYouTubeVideoId` (`core/helpers/youtube-helper.js`)  | `watch?v=ID&list=…`, `youtu.be/ID?t=3`, `embed/ID`, `v/ID` → `ID`; link không phải YouTube → `null`                                                          | AUTO✓ | P1      |
+| UNIT-22 | `encryptData` / `decryptData` (`invitation-setup/js/06-draft-save.js`) | Mã hoá rồi giải mã lại tên có dấu, emoji, `&`, `=` → ra đúng chuỗi gốc; chuỗi rác → không ném lỗi làm vỡ trang                               | AUTO✓ | P0      |
+| UNIT-23 | `applyLoveStoryText` (`invitation-setup/js/14-timeline-story.js`) | Có 4 mốc (mốc 2, 4 có ảnh), AI trả 2 mốc → mốc 1–2 thay chữ, giữ ảnh; mốc 4 còn lại dạng mốc trống giữ ảnh; mốc 3 (không ảnh) bị bỏ                 | AUTO✓ | P1      |
+| UNIT-24 | `_isBlankWedding` + danh sách trắng demo fill (`invitation-setup/js/13-data.js`) | Thiệp trắng → được đổ nội dung mẫu; KHÔNG bao giờ chép tên, cha mẹ, địa chỉ, địa điểm, bản đồ, ngày giờ, ngân hàng, ảnh                         | AUTO✓ | P0      |
+| UNIT-25 | `_cxSafeSelector` / `_cxSafeFont` / `_cxSafeColor` / `_cxSafeNum` (theme-setting-helper) | Selector có `</style>`, font có `;}`, màu `red;background:url(x)`, số `NaN` → bị loại/ép về an toàn                              | AUTO✓ | P0      |
+| UNIT-26 | `CXCartCount` (`core/helpers/nav-cart-count.js`)             | Nháp + đơn trùng id → chỉ đếm 1; đăng xuất → không đếm thiệp đã gộp vào tài khoản                                                                           | AUTO✓ (check:draft-sync) | P2      |
+| UNIT-27 | `draft-retention.js`                                         | Nháp `_savedAt` 31 ngày → xoá (cả ảnh IDB); 29 ngày → giữ; đang mở `?id=` → giữ; thiếu `CONFIG.retention` → không xoá gì                                  | AUTO✓ (check:draft-sync) | P1      |
+| UNIT-28 | `_checkImageType` (`invitation-setup/js/10-images.js`)       | Nhận jpeg/png/webp/gif/avif; chặn `image/svg+xml`, `image/heic`, `application/pdf`, file không có `type`                                                       | AUTO✓ | P0      |
+| UNIT-29 | `validateForm` / `_isEmpty` (`core/helpers/validate.js`)     | Ô `[required]` trống, chỉ khoảng trắng, `<x-input>` bọc ngoài → báo lỗi; ô ở bước khác cũng được tính                                                          | AUTO→ (cần DOM — làm ở E2E) | P1      |
+| UNIT-30 | `cxUUID` (`core/utils.js`)                                   | Có `crypto.randomUUID` → dùng nó; không có → dùng `getRandomValues`; đúng dạng UUID v4 (A18)                                                                 | AUTO✓ | P2      |
+| UNIT-31 | `timingSafeEqual` của `wedding-admin`, `guest-handler`, `cleanup-weddings` | `('', '')` → `false` (không token + không cấu hình ≠ quyền admin); so đúng/sai chuỗi thường                                                  | AUTO✓ | P0      |
 
 ---
 
-## 2b. LINT — Ràng buộc tĩnh trong CLAUDE.md (đề xuất tự động hoá)
+## 2b. LINT — Ràng buộc tĩnh trong CLAUDE.md
 
 Các luật "làm sai là hỏng/mất dữ liệu" trong `CLAUDE.md` đều kiểm được bằng cách đọc file, không
-cần mạng. Nên gom vào một `scripts/check-lint.mjs`. Cột **Hiện trạng** là kết quả quét tay ngày
-2026-09-24. Grep thô hay báo nhầm (thẻ script viết nhiều dòng, nhánh dự phòng hợp lệ), nên script
-phải phân tích đúng cú pháp chứ không chỉ grep.
+cần mạng. **Đã tự động hoá: `npm run check:lint`** (`scripts/check-lint.mjs`). Cột **Hiện trạng**
+là kết quả chạy script ngày 2026-09-24: **31 luật — 27 PASS, 4 KNOWN, 0 FAIL**. Script phân
+tích theo cú pháp (thẻ script nhiều dòng, nhánh dự phòng hợp lệ) để khỏi báo nhầm. Đã thử đổi
+`maxWeddings` và bỏ một function khỏi danh sách deploy → script bắt đúng.
 
 | ID      | Luật                                                                                                    | Cách kiểm                                                                                                  | Hiện trạng | Ưu tiên |
 | ------- | ------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- | ---------- | ------- |
@@ -141,30 +150,31 @@ phải phân tích đúng cú pháp chứ không chỉ grep.
 | LINT-04 | `CONFIG.guestImport.maxRows` = `MAX_PER_SIDE`; `CX_WISH_MAX` = `MAX_WISHES_PER_GUEST`; `CX_WISH_MAX_LEN` = `MAX_WISH_LEN` | So từng cặp                                                                          | Khớp       | P1      |
 | LINT-05 | `CONFIG.maxLoveStoryItems`, `MAX_GALLERY_IMAGES` = `MAX_ITEMS` (10) của `wedding-admin`                 | So từng cặp                                                                                                | Khớp       | P1      |
 | LINT-06 | Ba danh sách `ALLOWED_ORIGINS` (`_shared/ai-provider.ts`, `wedding-admin`, `guest-handler`) giống hệt nhau; `ALLOWED_BASE_URLS` của `payment-handler` ⊂ các miền đó | So tập hợp chuỗi | Khớp | P0 |
-| LINT-07 | Mọi cột ảnh khách sửa được (`*_url`, `gallery_images`, `love_story[].image_url`) có mặt ở `_shared/wedding-images.ts`; cột ảnh đơn có trong `IMAGE_FIELDS` | Lấy tên `*_url` trong `CUSTOMER_EDITABLE_FIELDS` rồi đối chiếu | Cần viết | P0 |
+| LINT-07 | Mọi cột ảnh khách sửa được (`*_url`, `gallery_images`, `love_story[].image_url`) có mặt ở `_shared/wedding-images.ts`; cột ảnh đơn có trong `IMAGE_FIELDS` | Lấy tên `*_url` trong `CUSTOMER_EDITABLE_FIELDS` rồi đối chiếu | Đạt | P0 |
 | LINT-08 | Mỗi thư mục `supabase/functions/*` (trừ `_shared`) nằm ở ĐÚNG MỘT danh sách `VERIFY`/`NO_VERIFY` của `scripts/deploy-functions.sh` | So tên thư mục với hai mảng                                                             | Khớp (7/7) | P0      |
-| LINT-09 | Ba dãy worker ↔ file `.toml` trong `scripts/deploy-workers.sh` cùng độ dài, file `.toml` tồn tại        | Đọc script                                                                                                 | Cần viết   | P1      |
+| LINT-09 | Ba dãy worker ↔ file `.toml` trong `scripts/deploy-workers.sh` cùng độ dài, file `.toml` tồn tại        | Đọc script                                                                                                 | Đạt | P1      |
 | LINT-10 | `wrangler*.jsonc`: `assets.directory = "./dist"`, `not_found_handling = "404-page"`                   | Parse JSONC                                                                                                | Đạt        | P0      |
 | LINT-11 | Hai cờ `toplevel` của terser trong `deploy-public.mjs` luôn `false`                                     | Tìm `toplevel: true`                                                                                       | Đạt        | P0      |
-| LINT-12 | Đoạn chuyển hướng trong `404.html` trùng bản sao trong `worker/index.js`                                | Cắt đoạn script hai nơi, so sau khi bỏ khoảng trắng                                                        | Cần viết   | P0      |
+| LINT-12 | Đoạn chuyển hướng trong `404.html` trùng bản sao trong `worker/index.js`                                | Cắt đoạn script hai nơi, so sau khi bỏ khoảng trắng                                                        | Đạt | P0      |
 | LINT-13 | Mỗi mẫu `public/themes/<tên>/` có ĐÚNG 3 file `index.html`, `index.js`, `theme.css`; tên không bắt đầu bằng `_` | Liệt kê thư mục                                                                                   | Đạt (10)   | P1      |
 | LINT-14 | `index.html` của mẫu: nạp `index.js` rồi `theme-boot.js` là script CUỐI; có `no-zoom.js`; có đoạn `noindex` khi có `?slug=` | Parse thứ tự thẻ `<script>`                                                             | Đạt (10)   | P0      |
-| LINT-15 | Ảnh trong mẫu: đúng MỘT `fetchpriority="high"`; không có `<img src="">`; ảnh trong `#main-card` của mẫu có bìa không mang `loading="lazy"` | Parse HTML                                                      | 2 ý đầu đạt, ý 3 cần viết | P1 |
-| LINT-16 | `index.js` của mẫu bọc trong IIFE, chỉ lộ `CX_THEME` + `renderWedding`                                  | Parse cấp cao nhất của file                                                                                | Cần viết   | P1      |
-| LINT-17 | `renderCover`/`renderHero` gọi TRƯỚC `setupMusic` trong `renderWedding`                                 | So vị trí lời gọi trong `index.js` từng mẫu                                                               | Cần viết   | P2      |
+| LINT-15 | Ảnh trong mẫu: đúng MỘT `fetchpriority="high"`; không có `<img src="">`; ảnh trong `#main-card` của mẫu có bìa không mang `loading="lazy"` | Parse HTML                                                      | **KNOWN** NV-14: ảnh lazy trong `#main-card` của `base-theme`, `basic-gold` | P1 |
+| LINT-16 | `index.js` của mẫu bọc trong IIFE, chỉ lộ `CX_THEME` + `renderWedding`                                  | Parse cấp cao nhất của file                                                                                | Đạt | P1      |
+| LINT-17 | `renderCover`/`renderHero` gọi TRƯỚC `setupMusic` trong `renderWedding`                                 | So vị trí lời gọi trong `index.js` từng mẫu                                                               | Đạt | P2      |
 | LINT-18 | Mẫu đang bán có `<url>` trong `sitemap.xml` (`base-theme` không bán nên không cần)                      | Đối chiếu thư mục mẫu                                                                                      | Đạt (9/9)  | P2      |
 | LINT-19 | CSS thủ công `styles/_*.css`: không có `:not(` trong selector (ngoài comment), không bọc `@layer`, `@import` chỉ ở đầu file | Parse CSS bỏ comment                                                                 | Đạt        | P1      |
 | LINT-20 | `@keyframes` đặt tên có tiền tố `cx-`                                                                   | Quét `styles/_*.css`, `theme.css`                                                                          | **Lệch**: `aichat*`, `slideDown`, `slideUp`, `btnPop`, `idlePulse`, `coverFade*` (xem NV-08) | P2 |
 | LINT-21 | Không ghép tên class Tailwind từ chuỗi (`` `bg-${…}` ``)                                                | Grep mẫu `(bg|text|border|…)-\${`                                                                          | Đạt        | P1      |
 | LINT-22 | `invitation-setup/js/*`: `DOMContentLoaded` chỉ được dùng làm nhánh dự phòng sau `window.__cxOnReady`; không dùng `window.scrollTo` / `documentElement.scrollTop` | Parse ngữ cảnh lời gọi                                                 | Đạt        | P1      |
-| LINT-23 | Mọi file trong `invitation-setup/js/` được khai trong `SCRIPTS` của `loader.js`; mọi partial có mục trong `PARTIALS` / `STEP_PARTIALS`; mỗi `CX_STEPS[].id` có partial với `data-step` trùng | So danh sách               | Cần viết   | P0      |
+| LINT-23 | Mọi file trong `invitation-setup/js/` được khai trong `SCRIPTS` của `loader.js`; mọi partial có mục trong `PARTIALS` / `STEP_PARTIALS`; mỗi `CX_STEPS[].id` có partial với `data-step` trùng | So danh sách               | Đạt (69 script · 18 partial · 10 bước) | P0      |
 | LINT-24 | Script CDN (lucide, crypto-js, cropper…) có `integrity` + `crossorigin`, lucide pin `@1.26.0`, kể cả thẻ viết nhiều dòng | Parse thẻ `<script>` nhiều dòng                                                              | Đạt        | P1      |
-| LINT-25 | Trang có icon lucide thì nạp lucide; trang dùng `<x-button>` thì nạp `core/x-button.js`; trang `index.html` nạp `no-zoom.js` | Quét từng HTML                                                                          | Cần viết   | P1      |
-| LINT-26 | Thư mục/trang mới ở gốc repo có trong `INCLUDE` của `deploy-public.mjs` và trong `content` của Tailwind config tương ứng | So `git ls-files` với hai danh sách                                                      | Cần viết   | P1      |
+| LINT-25 | Trang có icon lucide thì nạp lucide; trang dùng `<x-button>` thì nạp `core/x-button.js`; trang `index.html` nạp `no-zoom.js` | Quét từng HTML                                                                          | Đạt | P1      |
+| LINT-26 | Thư mục/trang mới ở gốc repo có trong `INCLUDE` của `deploy-public.mjs` và trong `content` của Tailwind config tương ứng | So `git ls-files` với hai danh sách                                                      | Đạt | P1      |
 | LINT-27 | `core/config.<env>.js` mới phải có trong `EXCLUDE` của deploy + `ENVS` của `admin/loader.js`            | Liệt kê `core/config.*.js`                                                                                 | Đạt        | P0      |
-| LINT-28 | Edge Function: mọi `const { data, error } = await …` có xử lý `error`; không còn `console.error` (dùng `log.*`) | Parse đơn giản theo dòng                                                                     | **Còn** `console.error` ở `payos-webhook`, `payment-handler` (xem NV-09) | P1 |
-| LINT-29 | Không `.ilike(` với tham số người dùng ngoài chỗ đã escape                                              | Grep `ilike(` trong `supabase/functions`                                                                   | Cần xem tay (`promo-codes` GET của admin dùng `ilike` với `q`) | P2 |
+| LINT-28 | Edge Function: mọi `const { data, error } = await …` có xử lý `error`; không còn `console.error` (dùng `log.*`) | Parse đơn giản theo dòng                                                                     | **KNOWN** NV-09: 7 chỗ `console.error` (payment-handler, payos-webhook) | P1 |
+| LINT-29 | Không `.ilike(` với tham số người dùng ngoài chỗ đã escape                                              | Grep `ilike(` trong `supabase/functions`                                                                   | **KNOWN** NV-10 | P2 |
 | LINT-30 | `palette` khai trong `CX_THEME` khớp `theme.css` (= AUTO-EX-02) và thiệp không có mã màu cứng ngoài `:root` (= UNIT-20) | Chạy lại hai kiểm đó                                                                   | Đạt        | P2      |
+| LINT-31 | `ALLOWED_IMAGE_HOSTS` của `wedding-admin` có đủ host Supabase + proxy ảnh khai trong `core/config.js` và `core/config.staging.js` | Rút host từ hai file config | Đạt | P0 |
 
 ---
 
@@ -820,7 +830,7 @@ Phần lớn các ca đã có dòng API tương ứng ở trên. Bảng này là
 
 Chạy trên staging sau khi deploy đủ SQL → Edge Function → web. Tất cả phải đạt.
 
-1. **AUTO:** AUTO-EX-01 → AUTO-EX-10 (cả 4 lệnh `check:*`, build, deploy-public, grep bảo mật).
+1. **AUTO:** AUTO-EX-01 → AUTO-EX-12 (6 lệnh `check:*`, build, deploy-public, grep bảo mật).
 2. **API tối thiểu:**
    - API-WA-04, 14, 16, 20, 24, 25, 26, 38, 40, 45, 49
    - API-PAY-02, 05, 17
@@ -860,13 +870,17 @@ Các điểm dưới đây đọc từ mã, **chưa chạy thử** để khẳng
 | NV-08 | `styles/_*.css`, `theme.css`               | Một số `@keyframes` chưa có tiền tố `cx-` (`aichat*`, `slideDown`, `slideUp`, `btnPop`, `idlePulse`, `coverFade*`), lệch quy ước trong CLAUDE.md. Rủi ro là trùng tên keyframe giữa các file. | LINT-20 | Thấp |
 | NV-09 | `payos-webhook`, `payment-handler`         | Còn `console.error` ở vài nhánh lỗi, trong khi quy ước là dùng `log.*` để lên Axiom. Phần lớn nhánh đã có `log.error` đi kèm, cần rà nhánh nào CHỈ có `console.error`. | LINT-28 | Thấp |
 | NV-10 | `wedding-admin` GET `promo-codes` (admin)  | Dùng `ilike` với `q` do admin gõ, chưa escape `%`/`_`. Chỉ admin gọi được nên rủi ro thấp, nhưng lệch luật A5. | LINT-29 | Thấp |
+| NV-11 | `invitation-setup/js/09-lunar.js` `formatLunarDate` | Ngày thuộc tháng nhuận hiện như tháng thường ("1 tháng 6 năm Ất Tỵ" thay vì "1 tháng 6 nhuận"). `convertSolar2Lunar` tính đúng cờ `leap`, chỉ phần định dạng bỏ qua. | UNIT-16c | Thấp |
+| NV-12 | `formatLunarDate`                          | `new Date("2024-02-10")` hiểu là 00:00 UTC. Máy khách ở múi giờ âm (Việt kiều ở Mỹ) ra NGÀY TRƯỚC đó → ngày âm lệch 1 ngày, và chuỗi đó được lưu vào `*_lunar` rồi in lên thiệp. Ô ngày dùng định dạng `Y-m-d` nên lỗi xảy ra thật. | UNIT-16d | Trung bình |
+| NV-13 | `public/themes/basic-gold/theme.css`       | `text-shadow` dùng màu đen viết cứng `rgb(0 0 0 / .35)` thay vì token `--cx-shadow-rgb`. Khách đổi bộ màu thì bóng chữ không đổi theo. | UNIT-20 | Thấp |
+| NV-14 | `public/themes/base-theme`, `basic-gold`   | Hai mẫu CÓ bìa để `loading="lazy"` trên ảnh cô dâu, chú rể, QR trong `#main-card`, trái quy ước "ảnh trong #main-card của theme có bìa không lazy". `base-theme` là mẫu gốc để chép nên lệch sẽ lan. Cần quyết: sửa mẫu, hay nới quy ước cho ảnh nằm xa màn đầu. | LINT-15 | Thấp–Trung bình |
 
 ---
 
 ## 10. Việc nên làm tiếp để tăng phần AUTO
 
-1. `scripts/check-units.mjs` (UNIT-01 → UNIT-30) và `scripts/check-lint.mjs` (LINT-01 → LINT-30),
-   theo mẫu `check-draft-sync.mjs`. Không cần mạng, chạy được trong CI — nên làm trước vì rẻ nhất.
+1. ~~`scripts/check-units.mjs` và `scripts/check-lint.mjs`~~ — **đã xong** (`npm run check:units`,
+   `npm run check:lint`).
 2. `scripts/check-api.mjs --env=staging`: chạy §3 và §4, tự dựng rồi dọn dữ liệu. Cần 3 tài
    khoản test + token admin staging đặt qua biến môi trường, không commit.
 3. Playwright cho §5, dùng Chromium có sẵn. Cloudflare Access của staging cần service token,
