@@ -108,20 +108,40 @@ function _declinedKey(email) {
 
 let _mergeAsking = null; // loadCards chạy chồng (đổi phiên, quay lại tab) → chỉ một hộp thoại
 
-function _offerMergeLocalDrafts() {
-  if (!currentUser) return Promise.resolve();
+// Trả true khi đã đưa được ít nhất một nháp lên tài khoản (nơi gọi nạp lại danh sách).
+// savedCount = số thiệp tài khoản đang giữ, để chặn trần TRƯỚC khi hỏi.
+function _offerMergeLocalDrafts(savedCount) {
+  if (!currentUser) return Promise.resolve(false);
   if (!_mergeAsking)
-    _mergeAsking = _askMergeLocalDrafts().finally(() => {
+    _mergeAsking = _askMergeLocalDrafts(savedCount).finally(() => {
       _mergeAsking = null;
     });
   return _mergeAsking;
 }
 
-async function _askMergeLocalDrafts() {
+async function _askMergeLocalDrafts(savedCount) {
   const email = currentUser.email;
   const declined = new Set(getCache(_declinedKey(email), []));
   const asking = listLocalDrafts().filter((d) => !declined.has(d.id));
-  if (!asking.length) return;
+  if (!asking.length) return false;
+
+  // Trần số thiệp (chốt thật ở Edge Function, CONFIG.maxWeddings là bản sao): không
+  // đủ chỗ thì nói ngay thay vì hỏi rồi lưu được nửa chừng. Mỗi phiên trình duyệt
+  // chỉ nhắc một lần — mỗi lần mở trang lại hiện một hộp thoại là quá phiền.
+  const free = CONFIG.maxWeddings - savedCount;
+  if (asking.length > free) {
+    const flag = buildCacheKey("merge_full_warned", email);
+    if (sessionStorage.getItem(flag)) return false;
+    sessionStorage.setItem(flag, "1");
+    showAlert(
+      "Chưa lưu được thiệp nháp trên máy",
+      `Máy này có ${asking.length} thiệp nháp chưa lưu vào tài khoản, nhưng tài khoản ` +
+        `đã dùng ${savedCount}/${CONFIG.maxWeddings} thiệp. Xoá bớt thiệp trong danh ` +
+        `sách rồi mở lại trang này để lưu.`,
+      "warning",
+    );
+    return false;
+  }
 
   const names = asking.map((d) => "• " + _draftTitle(d.data)).join("\n");
   const r = await showConfirm(
@@ -131,15 +151,20 @@ async function _askMergeLocalDrafts() {
       `sẽ không còn thấy). Nếu không phải của bạn, hãy chọn "Không".`,
     { type: "info", icon: "file-pen", confirmText: "Lưu vào tài khoản", cancelText: "Không" },
   );
-  if (r === null) return;
+  if (r === null) return false;
   if (!r) {
     setCache(_declinedKey(email), [...declined, ...asking.map((d) => d.id)]);
-    return;
+    return false;
   }
 
+  let merged = 0;
+  let imgFailed = 0;
   showLoading(true, "Đang lưu thiệp vào tài khoản...");
   try {
-    for (const d of asking) await _uploadLocalDraft(d);
+    for (const d of asking) {
+      imgFailed += await _uploadLocalDraft(d);
+      merged++;
+    }
   } catch (e) {
     // Nháp chưa lên được vẫn nằm nguyên trên máy — lần sau hỏi lại.
     if (e.code === "WEDDING_LIMIT") showAlert("Đã đủ số thiệp cho phép", e.message, "warning");
@@ -147,11 +172,20 @@ async function _askMergeLocalDrafts() {
   } finally {
     showLoading(false);
   }
+  if (imgFailed)
+    showToast(
+      `${imgFailed} ảnh chưa đồng bộ được — mở thiệp trên máy này rồi bấm Lưu để thử lại`,
+      "warning",
+    );
+  else if (merged) showToast("Đã lưu thiệp vào tài khoản", "success");
+  return merged > 0;
 }
 
-// Tạo hàng DB (như lần "Lưu nháp" đầu ở trang Thiết lập) rồi xoá bản trên máy.
-// Ảnh chờ upload trong IndexedDB giữ lại: trang Thiết lập khôi phục chúng theo id
-// thiệp và đẩy lên ở lần lưu kế tiếp.
+// Một nháp → tài khoản: tạo hàng DB (trần số thiệp chặn ở đây), đẩy ảnh chờ
+// upload trong IndexedDB lên Storage, PATCH nội dung + tên file ảnh, rồi xoá bản
+// trên máy. Trả số ảnh đẩy hỏng — chúng ở lại IndexedDB, trang Thiết lập khôi phục
+// theo id thiệp và đẩy lên ở lần lưu kế tiếp. Ảnh trong IndexedDB đã nén sẵn lúc
+// khách chọn (10-images.js) nên đẩy thẳng. Khuôn bản ghi IDB: invitation-setup/js/02-idb.js.
 async function _uploadLocalDraft({ id, data }) {
   const { _localOnly, _savedAt, is_published, deleted_images, id: _id, slug, ...fields } = data;
   const created = await weddingDAL.createDraftWedding({
@@ -159,9 +193,73 @@ async function _uploadLocalDraft({ id, data }) {
     theme: fields.theme || "basic-gold",
     slug: slug || `wedding-${id.slice(0, 8)}`,
   });
-  await weddingDAL.updateWedding({ ...fields, id, slug: created?.slug || slug });
+
+  let rows = [];
+  try {
+    rows = (await _readPendingRows()).filter((r) => r.weddingId === id);
+  } catch (e) {
+    /* không có IDB → nháp không có ảnh chờ */
+  }
+  const done = []; // key IDB đã đẩy xong → xoá
+  let failed = 0;
+  const focal = { gallery_images: {} };
+  const up = async (field, file) => {
+    try {
+      return await imageBL.uploadSingleImage(id, field, file);
+    } catch (e) {
+      console.error("merge upload:", field, e);
+      failed++;
+      return null;
+    }
+  };
+
+  for (const r of rows.filter((r) => r.type === "single" && r.file)) {
+    const name = await up(r.fieldName, r.file);
+    if (!name) continue;
+    fields[r.fieldName] = name;
+    if (r.focalPoint) focal[r.fieldName] = r.focalPoint;
+    done.push(r.key);
+  }
+
+  const gallery = Array.isArray(fields.gallery_images) ? [...fields.gallery_images] : [];
+  const gRows = rows
+    .filter((r) => r.type === "gallery" && r.file)
+    .sort((a, b) => (a.order || 0) - (b.order || 0));
+  for (let i = 0; i < gRows.length; i++) {
+    const name = await up(`gallery-${i}`, gRows[i].file);
+    if (!name) continue;
+    gallery.push(name);
+    if (gRows[i].focalPoint) focal.gallery_images[name] = gRows[i].focalPoint;
+    done.push(gRows[i].key);
+  }
+  fields.gallery_images = gallery;
+
+  const ls = rows.find((r) => r.type === "love_story_images");
+  if (ls?.images?.length) {
+    let items = [];
+    try {
+      items = JSON.parse(fields.love_story || "[]");
+    } catch (e) {}
+    const left = [];
+    for (const { idx, file } of ls.images) {
+      const name = items[idx] ? await up(`love_story_image_${idx}`, file) : null;
+      if (name) items[idx].image_url = name;
+      else if (items[idx]) left.push({ idx, file });
+    }
+    fields.love_story = JSON.stringify(items);
+    if (!left.length) done.push(ls.key);
+  }
+
+  await weddingDAL.updateWedding({
+    ...fields,
+    id,
+    slug: created?.slug || slug,
+    image_focal_points: focal,
+  });
   removeCache(buildCacheKey("draft", id));
   _dropOrdersEverywhere(id);
+  await _deletePendingRows(done).catch(() => {});
+  return failed;
 }
 
 // Đơn (cache "orders") của một thiệp ở MỌI key — guest lẫn từng email.
@@ -251,8 +349,6 @@ let _loadSeq = 0;
 
 async function loadCards() {
   const seq = ++_loadSeq;
-  await _offerMergeLocalDrafts();
-  if (seq !== _loadSeq) return;
 
   if (!currentUser) {
     CARDS = listLocalDrafts()
@@ -268,13 +364,22 @@ async function loadCards() {
   let weddings;
   try {
     weddings = await weddingDAL.listMyWeddings();
+    if (seq !== _loadSeq) return;
+    _showAccountCards(weddings);
+    // Hỏi gộp SAU khi danh sách đã hiện (và biết số thiệp đang giữ để chặn trần).
+    if (!(await _offerMergeLocalDrafts(weddings.length))) return;
+    if (seq !== _loadSeq) return;
+    weddings = await weddingDAL.listMyWeddings();
   } catch (e) {
     if (seq !== _loadSeq) return;
     setState("error");
     return;
   }
   if (seq !== _loadSeq) return;
+  _showAccountCards(weddings);
+}
 
+function _showAccountCards(weddings) {
   // Đã đăng nhập: CHỈ thiệp của tài khoản (DB là nguồn sự thật duy nhất). Đơn
   // local đã rời nháp mà DB không còn (xoá ở máy khác, cron dọn) thì dọn luôn —
   // ô đếm navbar đọc chúng.
@@ -458,7 +563,8 @@ const BADGE =
 // ===== THUMBNAIL CỦA NHÁP TRÊN MÁY =====
 // Nháp chưa đăng nhập chưa đẩy ảnh lên Storage: ảnh còn nằm trong IndexedDB của
 // trình chỉnh sửa (`cuoixinh_pending`, `weddingId` = ?id= = manage_id của thẻ).
-// Đọc THẲNG ở đây, chỉ đọc — không mở transaction ghi, không dọn gì.
+// Đọc THẲNG ở đây.
+// Ghi đúng một chỗ: _deletePendingRows, sau khi gộp nháp đã đẩy ảnh lên xong.
 const PENDING_IDB = "cuoixinh_pending";
 const PENDING_STORE = "uploads";
 
@@ -474,6 +580,19 @@ function _openPendingIDB() {
     req.onsuccess = (e) => resolve(e.target.result);
     req.onerror = (e) => reject(e.target.error);
     req.onblocked = () => reject(new Error("blocked"));
+  });
+}
+
+async function _deletePendingRows(keys) {
+  if (!keys.length) return;
+  const db = await _openPendingIDB();
+  if (!db.objectStoreNames.contains(PENDING_STORE)) return;
+  await new Promise((res, rej) => {
+    const tx = db.transaction(PENDING_STORE, "readwrite");
+    const store = tx.objectStore(PENDING_STORE);
+    keys.forEach((k) => store.delete(k));
+    tx.oncomplete = res;
+    tx.onerror = (e) => rej(e.target.error);
   });
 }
 
