@@ -513,7 +513,7 @@
       let job;
       if (draftData?._localOnly) {
         // Bỏ khoá riêng của nháp local (_localOnly, _savedAt) — edge không có cột đó.
-        const { _localOnly, _savedAt, _owner, ...fields } = draftData;
+        const { _localOnly, _savedAt, _owner, _aiCard, ...fields } = draftData;
         job = window.weddingDAL
           .updateWedding({ id: manage_id, ...fields, is_published: true })
           .catch(publishOnly);

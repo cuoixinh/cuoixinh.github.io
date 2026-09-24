@@ -516,10 +516,66 @@
   color: rgb(var(--text-heading-rgb));
 }
 
-.aichat-card-meta {
-  @apply text-xs leading-snug;
+/* Bảng chốt cố định: cột nhãn khổ cố định bên trái, giá trị bên phải; phần chữ và
+   phần ảnh/nhạc/bản đồ là hai khối .aichat-sum nối nhau bằng vạch đứt. */
+.aichat-sum {
+  @apply mt-2 flex flex-col gap-2 pt-2;
 
+  border-top: 1px dashed rgb(var(--brand-primary-rgb) / 0.7);
+}
+
+.aichat-sum[hidden] {
+  display: none;
+}
+
+.aichat-sum-row {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
+  gap: 8px;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.aichat-sum-k {
+  font-weight: 600;
   color: rgb(var(--text-label-rgb));
+}
+
+.aichat-sum-v {
+  @apply flex flex-col gap-1;
+
+  color: rgb(var(--text-heading-rgb));
+  overflow-wrap: anywhere;
+}
+
+.aichat-sum-thumbs {
+  @apply flex flex-wrap gap-2;
+}
+
+.aichat-sum-thumbs figure {
+  @apply m-0 flex flex-col items-center gap-1;
+}
+
+.aichat-sum-thumbs img,
+.aichat-sum-more {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid rgb(var(--brand-primary-rgb) / 0.5);
+}
+
+.aichat-sum-thumbs figcaption {
+  font-size: 12px;
+  line-height: 1;
+  color: rgb(var(--text-label-rgb));
+}
+
+.aichat-sum-more {
+  @apply flex items-center justify-center text-xs font-semibold;
+
+  color: rgb(var(--brand-accent-rgb));
+  background: rgb(var(--brand-primary-rgb) / 0.22);
 }
 
 .aichat-card x-button,
@@ -1110,10 +1166,6 @@
   content: "✓";
   margin-left: 2px;
   font-weight: 600;
-}
-
-.aichat-card-kit {
-  margin-top: 8px;
 }
 
 .aichat-kitbar {

@@ -708,8 +708,8 @@
 
   // ── Thiệp dựng xong ───────────────────────────────────────────────────────
   // Model trả về nguyên bộ nội dung thiệp (cùng shape với kết quả của bảng "Tạo
-  // bằng AI" ở trang thiết lập). Ở đây chỉ vẽ thẻ tóm tắt + một nút; bấm nút là
-  // gửi bộ đó sang trang thiết lập rồi điều hướng.
+  // bằng AI" ở trang thiết lập). Ở đây vẽ bảng tóm tắt CỐ ĐỊNH (chữ + ảnh) + một nút;
+  // bấm nút là gửi bộ đó sang trang thiết lập rồi điều hướng.
 
   // "2026-12-20" → "20/12/2026". Không đúng dạng thì trả nguyên văn.
   function fmtDate(v) {
@@ -717,9 +717,111 @@
     return m ? m[3] + "/" + m[2] + "/" + m[1] : String(v || "");
   }
 
-  // Địa điểm lễ thường là địa chỉ dài; thẻ tóm tắt chỉ cần thành phần đầu.
-  function shortPlace(v) {
-    return String(v || "").split(",")[0].trim();
+  const SUM_PHOTOS = [
+    ["cover_image_url", "Ảnh bìa"],
+    ["groom_image_url", "Chú rể"],
+    ["bride_image_url", "Cô dâu"],
+  ];
+  const SUM_QR = [
+    ["groom_qr_url", "Nhà trai"],
+    ["bride_qr_url", "Nhà gái"],
+  ];
+  const SUM_GALLERY_MAX = 6; // số ảnh album hiện trên thẻ, còn lại gộp thành "+n"
+
+  // [nhãn, chuỗi | mảng dòng] theo thứ tự các bước ở trang Thiết lập. Rỗng thì sumRow bỏ.
+  function sumRows(card) {
+    const f = card.fields || {};
+    const join = (...a) => a.filter(Boolean).join(" · ");
+    const at = (time, date, place) => join(time, fmtDate(date), place);
+    const vuQuy = f.vu_quy_enabled === true || f.vu_quy_enabled === "true";
+    const bank = (side, label) => {
+      const v = join(f[side + "_bank_name"], f[side + "_bank_number"], f[side + "_bank_owner"]);
+      return v ? label + ": " + v : "";
+    };
+    return [
+      ["Lễ cưới", join(f.ceremony_name, at(f.ceremony_time, f.ceremony_date, f.ceremony_location))],
+      ["Lễ Vu Quy", vuQuy ? join(f.vu_quy_time, f.vu_quy_location) : ""],
+      ["Tiệc nhà trai", at(f.groom_party_time, f.groom_party_date, f.groom_party_location)],
+      ["Tiệc nhà gái", at(f.bride_party_time, f.bride_party_date, f.bride_party_location)],
+      ["Nhà trai", join(f.groom_father, f.groom_mother, f.groom_address)],
+      ["Nhà gái", join(f.bride_father, f.bride_mother, f.bride_address)],
+      ["Chuyện tình", (card.love_story || []).map((s) => join(s.date, s.title))],
+      ["Lịch trình", (card.timeline || []).map((t) => join(t.time, t.title))],
+      ["Mừng cưới", [bank("groom", "Nhà trai"), bank("bride", "Nhà gái")]],
+    ];
+  }
+
+  // Một dòng "nhãn | giá trị"; giá trị là mảng thì mỗi phần tử một dòng con.
+  function sumRow(parent, label, value) {
+    const lines = (Array.isArray(value) ? value : [value]).filter(Boolean);
+    if (!lines.length && !(value instanceof Node)) return;
+    const row = document.createElement("div");
+    row.className = "aichat-sum-row";
+    const k = document.createElement("span");
+    k.className = "aichat-sum-k";
+    k.textContent = label;
+    const v = document.createElement("div");
+    v.className = "aichat-sum-v";
+    if (value instanceof Node) v.appendChild(value);
+    else
+      lines.forEach((t) => {
+        const p = document.createElement("p");
+        p.textContent = t;
+        v.appendChild(p);
+      });
+    row.append(k, v);
+    parent.appendChild(row);
+  }
+
+  // Dải ảnh nhỏ; `items` là [{url, cap?}], `more` = số ảnh không hiện.
+  function sumThumbs(items, more) {
+    if (!items.length) return null;
+    const wrap = document.createElement("div");
+    wrap.className = "aichat-sum-thumbs";
+    items.forEach(({ url, cap }) => {
+      const fig = document.createElement("figure");
+      const img = document.createElement("img");
+      img.src = url;
+      img.alt = cap || "";
+      img.loading = "lazy";
+      fig.appendChild(img);
+      if (cap) {
+        const c = document.createElement("figcaption");
+        c.textContent = cap;
+        fig.appendChild(c);
+      }
+      wrap.appendChild(fig);
+    });
+    if (more > 0) {
+      const m = document.createElement("span");
+      m.className = "aichat-sum-more";
+      m.textContent = "+" + more;
+      wrap.appendChild(m);
+    }
+    return wrap;
+  }
+
+  // Mẫu, ảnh, album, nhạc, bản đồ, QR — `st` là CXChatMedia.state().
+  function sumMedia(parent, st, sides) {
+    const pics = (slots) =>
+      slots.filter(([f]) => st.images?.[f]).map(([f, cap]) => ({ url: st.images[f], cap }));
+    const gallery = st.gallery || [];
+    const pinned = sides.filter(([s]) => st.maps?.[s]).map(([, name]) => name);
+    const rows = [
+      ["Mẫu thiệp", st.theme?.name || st.theme?.theme || ""],
+      ["Ảnh cưới", sumThumbs(pics(SUM_PHOTOS))],
+      [
+        "Album",
+        sumThumbs(
+          gallery.slice(0, SUM_GALLERY_MAX).map((g) => ({ url: g.url })),
+          gallery.length - SUM_GALLERY_MAX,
+        ),
+      ],
+      ["Nhạc nền", st.music?.url ? st.music.title || "Bài từ YouTube" : ""],
+      ["Bản đồ", pinned.join(" · ")],
+      ["QR mừng cưới", sumThumbs(pics(SUM_QR))],
+    ];
+    rows.forEach(([k, v]) => v && sumRow(parent, k, v));
   }
 
   function addBuilding() {
@@ -767,20 +869,28 @@
 
     add("aichat-card-title", "✨ Thiệp đã sẵn sàng");
     add("aichat-card-name", [f.groom_name, f.bride_name].filter(Boolean).join(" & "));
-    add(
-      "aichat-card-meta",
-      [f.ceremony_time, fmtDate(f.ceremony_date), shortPlace(f.ceremony_location)]
-        .filter(Boolean)
-        .join(" · "),
-    );
-    const nLove = (card.love_story || []).length;
-    const nTime = (card.timeline || []).length;
-    add(
-      "aichat-card-meta",
-      [nLove ? nLove + " mốc chuyện tình" : "", nTime ? nTime + " mốc lịch trình" : ""]
-        .filter(Boolean)
-        .join(" · "),
-    );
+
+    const sum = document.createElement("div");
+    sum.className = "aichat-sum";
+    sumRows(card).forEach(([k, v]) => sumRow(sum, k, v));
+    box.appendChild(sum);
+
+    // Phần ảnh/nhạc/bản đồ/mẫu vẽ theo trạng thái THẬT của thiệp và vẽ lại mỗi khi
+    // khách đổi ở ô chọn (nút "+"), nên không cần dựng lại thiệp chỉ vì đổi một tấm ảnh.
+    const M = window.CXChatMedia;
+    if (M?.state) {
+      const media = document.createElement("div");
+      media.className = "aichat-sum";
+      box.appendChild(media);
+      const paint = async () => {
+        const st = await M.state().catch(() => null);
+        media.innerHTML = "";
+        if (st) sumMedia(media, st, M.sides || []);
+        media.hidden = !media.childElementCount;
+      };
+      paint();
+      M.watch?.(media, paint);
+    }
 
     // <x-button> TỰ THAY mình bằng <button> thật lúc gắn vào DOM → bắt click bằng
     // uỷ nhiệm ở els.body (xem init), đừng gắn listener vào thẻ sắp bị vứt đi.
@@ -789,14 +899,8 @@
     btn.setAttribute("size", "sm");
     btn.setAttribute("full", "");
     btn.setAttribute("data-card-open", "");
-    btn.textContent = inSetup() ? "Áp dụng vào thiệp" : "Xem thiệp";
+    btn.textContent = inSetup() ? "Áp dụng vào thiệp" : "Thiết lập thiệp ngay";
     box.appendChild(btn);
-
-    // Lối mở lại từng ô chọn ảnh/nhạc/bản đồ/mẫu, đánh dấu ✓ mục đã có.
-    if (window.CXChatMedia) {
-      add("aichat-card-meta aichat-card-kit", "Hoàn thiện thiệp ngay tại đây:");
-      box.appendChild(window.CXChatMedia.chips((kind) => openKind(kind)));
-    }
 
     const time = col.querySelector(".aichat-time");
     if (time) col.insertBefore(box, time);
@@ -860,7 +964,9 @@
     const note = M.noteFor(kind, st, done);
     history.push({ role: "user", content: note, at: Date.now(), note: true });
     addNote(note);
-    if (history.some((m) => m.card)) await openNextStep();
+    // Đã có thiệp: bảng tóm tắt tự vẽ lại theo ô chọn, không dẫn tiếp. Chưa có mà đã
+    // thu đủ thông tin (lượt "ready"): mời ô kế tiếp, hết ô thì xin dựng thiệp.
+    if (!history.some((m) => m.card) && history.some((m) => m.ready)) await openNextStep();
     else saveHistory();
   }
 
@@ -880,12 +986,16 @@
       addWidget(kind, null, true);
       return;
     }
-    const text = !inSetup()
-      ? "Xong rồi 🎉 Bấm **Xem thiệp** trên thẻ thiệp để mở thiệp với đầy đủ ảnh, nhạc và bản đồ nhé."
-      : "Xong phần hình ảnh rồi 🎉 Ảnh, nhạc và bản đồ đã vào thiệp — bạn bấm **Lưu nháp** để giữ lại nhé. Nội dung chữ thì bấm **Áp dụng vào thiệp** trên thẻ thiệp nếu chưa áp dụng.";
-    history.push({ role: "assistant", content: text, at: Date.now() });
-    saveHistory();
-    addBubble("bot", text);
+    buildCard();
+  }
+
+  // Hết ô chọn: xin model dựng nội dung thiệp. Bảng chốt (chữ + ảnh) do addCardAction
+  // tự in từ dữ liệu, model chỉ viết lời chúc mừng. Đang có lượt khác chạy thì chờ nó.
+  const BUILD_NOTE = "(Đã xong phần hình ảnh — dựng thiệp)";
+  function buildCard() {
+    if (!history.some((m) => m.ready)) return; // khách vừa bấm Làm mới
+    if (busy) return void setTimeout(buildCard, 500);
+    ask(BUILD_NOTE, { note: true, build: true });
   }
 
   // Dải chip sáu mục phía trên ô nhập, bật/tắt bằng nút "+".
@@ -973,6 +1083,47 @@
         params,
       });
     else window.cxStartDefaultDraft?.(params, { id });
+  }
+
+  // Trang chủ: thiệp dựng xong là có NGAY nháp trên máy dưới mã của cuộc chat, không
+  // đợi bấm "Xem thiệp". Chủ đóng dấu như saveLocalDraft (invitation-setup/js/01-state.js):
+  // chưa đăng nhập → nháp khách, hiện ở "Đã chọn"; đã đăng nhập → cache `_owner`, không
+  // lên giỏ. `_aiCard` là thẻ nguyên vẹn, trang Thiết lập đổ vào form ở lần mở đầu rồi
+  // autosave ghi đè mất nó. Mã ngân hàng AI trả là mã rút gọn nên để _aiCard lo.
+  async function stashDraft(card) {
+    const id = chatDraftId();
+    if (!id) return;
+    const key = buildCacheKey("draft", id);
+    const prev = getCache(key);
+    if (prev && !prev._localOnly) return;
+    const { groom_bank_name, bride_bank_name, ...fields } = card.fields || {};
+    const owner = prev ? prev._owner : window.CXAuth?.getUserSync()?.email;
+    const theme = prev?.theme || (await defaultTheme());
+    setCache(key, {
+      ...prev,
+      ...fields,
+      ...(theme ? { theme } : {}),
+      is_published: false,
+      ...(owner ? { _owner: owner } : {}),
+      _aiCard: card,
+      _localOnly: true,
+      _savedAt: Date.now(),
+    });
+    window.CXCartCount?.sync();
+  }
+
+  // Mẫu mặc định cho nháp mới — cùng thứ tự ưu tiên với useCard.
+  async function defaultTheme() {
+    const first =
+      typeof templates !== "undefined" && Array.isArray(templates)
+        ? templates.find((t) => t.status === "active")
+        : null;
+    if (first) return first.theme;
+    try {
+      return (await window.templatesDAL?.list())?.[0]?.theme || null;
+    } catch {
+      return null;
+    }
   }
 
   // Nháp của cuộc chat đã mở từ lần bấm trước với mẫu khác: cxStartDraft đi thẳng
@@ -1267,6 +1418,8 @@
 
   // opts.echo === false: câu hỏi đã có bong bóng trên màn (lượt gửi lại sau khi
   // đăng nhập) nên đừng vẽ thêm lần nữa.
+  // opts.note: câu do giao diện tự gửi (buildCard) — vẽ thành dòng ghi chú, không đụng
+  // ô nhập của khách. opts.build: lượt xin dựng thiệp (xem aiChatDAL.ask).
   async function ask(question, opts = {}) {
     const text = String(question || "").trim();
     // Quá dài thì KHÔNG cắt bớt rồi gửi: khách mất đúng phần đuôi mà không hay.
@@ -1274,17 +1427,23 @@
     if (!text || busy || text.length > MAX_LEN) return;
 
     busy = true;
-    stopMic(); // đang gửi thì câu nói dở không còn ô nào để rơi vào
+    if (!opts.note) {
+      stopMic(); // đang gửi thì câu nói dở không còn ô nào để rơi vào
+      els.input.value = "";
+      autoGrow();
+    }
     els.mic.disabled = true;
-    els.input.value = "";
-    autoGrow();
     syncSend();
 
-    if (opts.echo !== false) addBubble("user", text);
-    history.push({ role: "user", content: text, at: Date.now() });
+    if (opts.note) addNote(text);
+    else if (opts.echo !== false) addBubble("user", text);
+    history.push({ role: "user", content: text, at: Date.now(), ...(opts.note && { note: true }) });
     saveHistory();
     renderSuggests();
 
+    // Đã báo "ready" từ trước thì lượt này không mở lại luồng dẫn (xem dưới).
+    const wasReady = history.some((m) => m.ready);
+    let buildNext = false;
     const typing = addTyping();
     let bubble = null;
     let building = null;
@@ -1296,6 +1455,7 @@
       const media = await window.CXChatMedia?.summary().catch(() => null);
       const res = await window.aiChatDAL.ask(history, known, {
         media,
+        build: opts.build === true,
         onDelta: (partial) => {
           // Mảnh chữ đầu tiên tới nơi → thay ba chấm bằng bong bóng thật.
           if (!bubble) {
@@ -1334,18 +1494,28 @@
         history.forEach((m) => delete m.card);
         entry.card = res.card;
       }
-      // Ô chọn dưới câu trả lời: model chỉ định, hoặc thiệp vừa dựng xong mà model
-      // quên mời thì luồng dẫn tự mở mục đầu tiên còn thiếu.
+      // Ô chọn dưới câu trả lời: model chỉ định, hoặc lượt vừa thu đủ thông tin
+      // ("ready" lần đầu) thì luồng dẫn tự mở ô đầu tiên còn thiếu — không còn ô nào
+      // thì xin dựng thiệp luôn (buildCard, sau khi lượt này nhả `busy`).
       const M = window.CXChatMedia;
       let kind = M?.isKind(res.ask) ? res.ask : "";
-      if (!kind && res.card && M) kind = (await M.next()) || "";
+      if (res.ready && !res.card) {
+        entry.ready = true;
+        if (!wasReady) {
+          kind = M ? (await M.next()) || "" : "";
+          buildNext = !kind;
+        }
+      }
       if (kind) {
         entry.ask = kind;
         entry.guided = true;
       }
       history.push(entry);
       saveHistory();
-      if (res.card) addCardAction(bubble.parentElement, res.card);
+      if (res.card) {
+        addCardAction(bubble.parentElement, res.card);
+        if (!inSetup()) stashDraft(res.card);
+      }
       if (kind) addWidget(kind, bubble.parentElement, true);
     } catch (e) {
       typing.remove();
@@ -1369,6 +1539,7 @@
       syncSend();
       if (abort === mine) abort = null;
       scrollToEnd();
+      if (buildNext) buildCard();
     }
   }
 

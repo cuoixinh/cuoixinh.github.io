@@ -289,8 +289,10 @@ const CX_CHAT_CARD_KEY = buildCacheKey("chat_card");
 
 let _cxPendingAiCard = null;
 
+// Không có thẻ bàn giao (mở nháp từ "Đã chọn" chứ không qua nút "Xem thiệp") thì lấy
+// thẻ nằm sẵn trong nháp (`_aiCard`, js/ai-assistant.js ghi lúc thiệp dựng xong).
 window.__cxOnReady(() => {
-  const card = getCache(CX_CHAT_CARD_KEY);
+  const card = getCache(CX_CHAT_CARD_KEY) || getLocalDraft()?._aiCard;
   removeCache(CX_CHAT_CARD_KEY);
   if (card && typeof card === "object") _cxPendingAiCard = card;
 });

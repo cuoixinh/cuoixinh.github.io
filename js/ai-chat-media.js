@@ -804,6 +804,11 @@
     widget,
     chips,
     summary,
+    // Trạng thái đầy đủ (URL ảnh xem được) + theo dõi thay đổi — bảng tóm tắt thiệp
+    // ở js/ai-assistant.js vẽ ảnh từ đây.
+    state: () => sink().state(),
+    watch,
+    sides: SIDES,
     next,
     visit,
     noteFor,

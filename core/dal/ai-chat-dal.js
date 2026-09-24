@@ -29,14 +29,16 @@ class AiChatDAL {
    *   thêm cả chục giây; dùng để đổi hiệu ứng chờ.
    * opts.signal — huỷ khi khách đóng bảng chat giữa chừng.
    * opts.media — tóm tắt ảnh/nhạc/bản đồ/mẫu đang có (CXChatMedia.summary()).
+   * opts.build — khách đã đi hết các ô chọn sau lượt "ready": lượt này phải dựng thiệp.
    *
-   * Trả { text, known, card, ask }: `text` là câu trả lời đầy đủ (bản đã làm sạch
+   * Trả { text, known, card, ask, ready }: `text` là câu trả lời đầy đủ (bản đã làm sạch
    * của server), `known` là thông tin thiệp gom được tới lúc này (gửi lại ở lượt
    * sau), `card` là nội dung thiệp đã sẵn sàng đổ vào form hoặc null nếu còn đang
-   * hỏi, `ask` là ô chọn cần mở dưới câu trả lời ("" = không mở).
+   * hỏi, `ask` là ô chọn cần mở dưới câu trả lời ("" = không mở), `ready` = vừa thu đủ
+   * thông tin (bắt đầu dẫn qua các ô chọn).
    */
   async ask(messages, card, opts = {}) {
-    const { onDelta, onPhase, signal, media } = opts;
+    const { onDelta, onPhase, signal, media, build } = opts;
     const res = await fetch(this._url, {
       method: "POST",
       headers: await this._headers(),
@@ -48,6 +50,7 @@ class AiChatDAL {
         card: card || null,
         media: media || null,
         device: window.cxDeviceId?.() || "",
+        build: build === true,
         stream: true,
       }),
     });
@@ -68,6 +71,7 @@ class AiChatDAL {
     let finalKnown = null;
     let finalCard = null;
     let finalAsk = "";
+    let finalReady = false;
 
     const handle = (line) => {
       let evt;
@@ -87,6 +91,7 @@ class AiChatDAL {
         finalKnown = evt.meta.known || null;
         finalCard = evt.meta.card || null;
         finalAsk = evt.meta.ask || "";
+        finalReady = evt.meta.ready === true;
       }
     };
 
@@ -105,7 +110,7 @@ class AiChatDAL {
 
     const text = (final || shown).trim();
     if (!text) throw new Error("XuXi chưa trả lời được, bạn hỏi lại giúp mình nhé.");
-    return { text, known: finalKnown, card: finalCard, ask: finalAsk };
+    return { text, known: finalKnown, card: finalCard, ask: finalAsk, ready: finalReady };
   }
 }
 

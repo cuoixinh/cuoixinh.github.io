@@ -31,7 +31,14 @@ function _showContent() {
   // để nó được lưu xuống nháp.
   if (aiApplied) {
     _demoPending = false;
-    setTimeout(_scheduleAutoSave, 0);
+    // Ghi ngay, không chờ nhịp autosave: thẻ AI đã bị xoá khỏi localStorage lúc nạp
+    // nên F5 trước khi autosave chạy là mất trắng.
+    setTimeout(() => {
+      _scheduleAutoSave();
+      if (IS_PUBLISHED) return;
+      clearTimeout(_autoSaveTimer);
+      _doAutoSave();
+    }, 0);
   }
 
   // Nếu được redirect về sau khi đăng nhập để xuất bản → auto trigger

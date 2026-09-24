@@ -213,7 +213,7 @@ function reofferLocalDrafts() {
 // theo id thiệp và đẩy lên ở lần lưu kế tiếp. Ảnh trong IndexedDB đã nén sẵn lúc
 // khách chọn (10-images.js) nên đẩy thẳng. Khuôn bản ghi IDB: invitation-setup/js/02-idb.js.
 async function _uploadLocalDraft({ id, data }) {
-  const { _localOnly, _savedAt, _owner, is_published, deleted_images, id: _id, slug, ...fields } = data;
+  const { _localOnly, _savedAt, _owner, _aiCard, is_published, deleted_images, id: _id, slug, ...fields } = data;
   const created = await weddingDAL.createDraftWedding({
     manage_id: id,
     theme: fields.theme || "basic-gold",
