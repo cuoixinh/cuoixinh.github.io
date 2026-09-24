@@ -830,7 +830,8 @@ Phần lớn các ca đã có dòng API tương ứng ở trên. Bảng này là
 
 Chạy trên staging sau khi deploy đủ SQL → Edge Function → web. Tất cả phải đạt.
 
-1. **AUTO:** AUTO-EX-01 → AUTO-EX-12 (6 lệnh `check:*`, build, deploy-public, grep bảo mật).
+1. **AUTO (chạy tay trên nhánh staging, không gắn vào `npm run production`):** AUTO-EX-01 → AUTO-EX-12
+   (6 lệnh `check:*`, build, deploy-public, grep bảo mật).
 2. **API tối thiểu:**
    - API-WA-04, 14, 16, 20, 24, 25, 26, 38, 40, 45, 49
    - API-PAY-02, 05, 17
@@ -885,8 +886,8 @@ Các điểm dưới đây đọc từ mã, **chưa chạy thử** để khẳng
    khoản test + token admin staging đặt qua biến môi trường, không commit.
 3. Playwright cho §5, dùng Chromium có sẵn. Cloudflare Access của staging cần service token,
    hoặc chạy qua `npm run dev`.
-4. Gắn `check:units` + `check:lint` + `check:draft-sync` + `check:config` vào `scripts/promote-production.sh`
-   để promote tự chặn khi đỏ.
+4. ~~Gắn các lệnh `check:*` vào `scripts/promote-production.sh`~~ — **quyết định 2026-09-24: KHÔNG gắn.**
+   Các lệnh này chạy tay trên staging (bước 1 của §8) là đủ; `npm run production` giữ nguyên.
 
 ---
 
