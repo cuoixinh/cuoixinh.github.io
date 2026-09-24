@@ -297,35 +297,14 @@ window.__cxOnReady(() => {
 
 // Đổ thiệp AI đang chờ (nếu có) vào form. Trả về true khi thực sự có đổ —
 // 13-data.js dựa vào đó để không coi form là dữ liệu mẫu nữa.
+// Nội dung AI KHÔNG tự lên DB: autosave giữ nó trong nháp trên máy (đã đăng nhập thì
+// là cache F5 có `_owner`), khách tự bấm "Lưu nháp"/"Xuất bản" mới lên tài khoản.
 window.__cxApplyPendingAiCard = function () {
   const card = _cxPendingAiCard;
   _cxPendingAiCard = null;
   if (!card) return false;
   cxApplyAiCard(card);
-  _cxAiSavePending = true;
   return true;
-};
-
-// ── Lưu thiệp AI vào tài khoản ─────────────────────────────────────────────
-// Luật nháp: đã đăng nhập thì nháp phải nằm trên DB, không nằm lại trên máy (xem
-// my-invitations/index.js). Nội dung XuXi dựng là khách đã xác nhận (bảng chốt + nút
-// Xem thiệp / Áp dụng) nên lưu luôn như bấm "Lưu nháp" — saveAll đẩy cả ảnh chờ trong
-// IndexedDB rồi xoá bản local. Thiệp đã xuất bản thì KHÔNG: lưu là lên thiệp thật ngay,
-// khách phải tự bấm "Lưu & Xuất bản". Trả true khi đã lưu.
-async function cxAiSaveToAccount() {
-  if (IS_PUBLISHED) return false;
-  if (!(await _refreshLoginState())) return false;
-  return (await saveDraft()) === true;
-}
-window.cxAiSaveToAccount = cxAiSaveToAccount;
-
-// Thiệp bàn giao từ trang chủ: loadData xong (ảnh chờ đã khôi phục) mới lưu, không thì
-// lượt lưu đi thiếu ảnh. 15-init.js gọi sau loadData().
-let _cxAiSavePending = false;
-window.cxAiAfterLoad = function () {
-  if (!_cxAiSavePending) return;
-  _cxAiSavePending = false;
-  cxAiSaveToAccount();
 };
 
 // ── Ô chọn trong khung chat XuXi (js/ai-chat-media.js) ─────────────────────

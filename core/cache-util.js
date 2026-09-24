@@ -51,13 +51,17 @@ function listCacheKeys(predicate) {
 }
 
 /**
- * Nháp CHỈ nằm trên máy này (key draft_<id> có cờ _localOnly) mà khách đã bắt đầu
- * điền tên — nguồn duy nhất của "thiệp nháp trên máy" (my-invitations, ô đếm
- * navbar). Nháp còn trống tên là vừa bấm "Tạo thiệp" chứ chưa làm gì, không tính.
+ * Nháp CHỈ nằm trên máy này (key draft_<id> có cờ _localOnly) do khách CHƯA đăng
+ * nhập làm, đã bắt đầu điền tên — nguồn duy nhất của "thiệp nháp trên máy"
+ * (my-invitations, ô đếm navbar, hộp gộp vào tài khoản). Bản có `_owner` là cache
+ * chống mất khi F5 của người đã đăng nhập: không hiện, không gộp, không lên DB.
  */
 function listLocalDrafts() {
   const prefix = buildCacheKey("draft") + "_";
   return listCacheKeys((k) => k.startsWith(prefix))
     .map((k) => ({ id: k.slice(prefix.length), data: getCache(k) }))
-    .filter(({ data }) => data?._localOnly && (data.groom_name || data.bride_name));
+    .filter(
+      ({ data }) =>
+        data?._localOnly && !data._owner && (data.groom_name || data.bride_name),
+    );
 }
