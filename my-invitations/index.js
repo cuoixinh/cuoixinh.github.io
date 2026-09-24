@@ -95,10 +95,11 @@ function updateAuthUI() {
 // ===== NHÁP TRÊN MÁY ↔ TÀI KHOẢN =====
 // Đăng nhập: danh sách CHỈ là thiệp của tài khoản (DB). Nháp chỉ nằm trên máy
 // (listLocalDrafts, core/cache-util.js) không hiện, cũng không bị xoá — đăng xuất
-// ra vẫn thấy. Muốn đưa vào tài khoản thì phải khách XÁC NHẬN: máy có thể dùng
-// chung, tự gộp là thiệp người này rơi vào tài khoản người kia. Xác nhận → lưu
-// nháp lên DB rồi xoá bản trên máy; "Không" → tài khoản này không bị hỏi lại về
-// đúng những nháp đó; đóng hộp thoại → lần sau hỏi lại.
+// ra vẫn thấy. Nháp do chính tài khoản này làm (`_owner`, đóng dấu lúc sửa khi đã
+// đăng nhập) tự lưu vào tài khoản. Nháp vô chủ thì phải khách XÁC NHẬN: máy có
+// thể dùng chung, tự gộp là thiệp người này rơi vào tài khoản người kia. Xác nhận
+// → lưu lên DB rồi xoá bản trên máy; "Không" → không hỏi lại về đúng những nháp
+// đó (dòng nhắc #local-drafts-note là lối quay lại); đóng hộp thoại → lần sau hỏi lại.
 
 // Key phải KHÔNG bắt đầu bằng "draft_" hay "orders_" — hai tiền tố đó bị quét
 // như nháp/đơn ở draft-retention.js và draft-start.js.
@@ -106,6 +107,7 @@ function _declinedKey(email) {
   return buildCacheKey("declined_drafts", email);
 }
 
+let _holdLocalNote = false;
 let _mergeAsking = null; // loadCards chạy chồng (đổi phiên, quay lại tab) → chỉ một hộp thoại
 
 // Trả true khi đã đưa được ít nhất một nháp lên tài khoản (nơi gọi nạp lại danh sách).
@@ -122,20 +124,22 @@ function _offerMergeLocalDrafts(savedCount) {
 async function _askMergeLocalDrafts(savedCount) {
   const email = currentUser.email;
   const declined = new Set(getCache(_declinedKey(email), []));
-  const asking = listLocalDrafts().filter((d) => !declined.has(d.id));
-  if (!asking.length) return false;
+  const all = listLocalDrafts();
+  const own = all.filter((d) => d.data._owner === email);
+  const asking = all.filter((d) => d.data._owner !== email && !declined.has(d.id));
+  if (!own.length && !asking.length) return false;
 
   // Trần số thiệp (chốt thật ở Edge Function, CONFIG.maxWeddings là bản sao): không
   // đủ chỗ thì nói ngay thay vì hỏi rồi lưu được nửa chừng. Mỗi phiên trình duyệt
   // chỉ nhắc một lần — mỗi lần mở trang lại hiện một hộp thoại là quá phiền.
   const free = CONFIG.maxWeddings - savedCount;
-  if (asking.length > free) {
+  if (own.length + asking.length > free) {
     const flag = buildCacheKey("merge_full_warned", email);
     if (sessionStorage.getItem(flag)) return false;
     sessionStorage.setItem(flag, "1");
     showAlert(
       "Chưa lưu được thiệp nháp trên máy",
-      `Máy này có ${asking.length} thiệp nháp chưa lưu vào tài khoản, nhưng tài khoản ` +
+      `Máy này có ${own.length + asking.length} thiệp nháp chưa lưu vào tài khoản, nhưng tài khoản ` +
         `đã dùng ${savedCount}/${CONFIG.maxWeddings} thiệp. Xoá bớt thiệp trong danh ` +
         `sách rồi mở lại trang này để lưu.`,
       "warning",
@@ -143,25 +147,27 @@ async function _askMergeLocalDrafts(savedCount) {
     return false;
   }
 
-  const names = asking.map((d) => "• " + _draftTitle(d.data)).join("\n");
-  const r = await showConfirm(
-    "Thiệp nháp trên máy này",
-    `Máy này có ${asking.length} thiệp nháp chưa lưu vào tài khoản nào:\n${names}\n` +
-      `Lưu vào tài khoản ${email}? Thiệp sẽ chuyển hẳn vào tài khoản (đăng xuất ra ` +
-      `sẽ không còn thấy). Nếu không phải của bạn, hãy chọn "Không".`,
-    { type: "info", icon: "file-pen", confirmText: "Lưu vào tài khoản", cancelText: "Không" },
-  );
-  if (r === null) return false;
-  if (!r) {
-    setCache(_declinedKey(email), [...declined, ...asking.map((d) => d.id)]);
-    return false;
+  let toMerge = own;
+  if (asking.length) {
+    const names = asking.map((d) => "• " + _draftTitle(d.data)).join("\n");
+    const r = await showConfirm(
+      "Thiệp nháp trên máy này",
+      `Máy này có ${asking.length} thiệp nháp chưa lưu vào tài khoản nào:\n${names}\n` +
+        `Lưu vào tài khoản ${email}? Thiệp sẽ chuyển hẳn vào tài khoản (đăng xuất ra ` +
+        `sẽ không còn thấy). Nếu không phải của bạn, hãy chọn "Không".`,
+      { type: "info", icon: "file-pen", confirmText: "Lưu vào tài khoản", cancelText: "Không" },
+    );
+    if (r) toMerge = own.concat(asking);
+    else if (r === false)
+      setCache(_declinedKey(email), [...declined, ...asking.map((d) => d.id)]);
   }
+  if (!toMerge.length) return false;
 
   let merged = 0;
   let imgFailed = 0;
   showLoading(true, "Đang lưu thiệp vào tài khoản...");
   try {
-    for (const d of asking) {
+    for (const d of toMerge) {
       imgFailed += await _uploadLocalDraft(d);
       merged++;
     }
@@ -177,8 +183,20 @@ async function _askMergeLocalDrafts(savedCount) {
       `${imgFailed} ảnh chưa đồng bộ được — mở thiệp trên máy này rồi bấm Lưu để thử lại`,
       "warning",
     );
-  else if (merged) showToast("Đã lưu thiệp vào tài khoản", "success");
+  // Nháp của chính mình lưu ngầm, không cần báo; chỉ báo khi khách vừa bấm "Lưu".
+  else if (merged && toMerge.length > own.length)
+    showToast("Đã lưu thiệp vào tài khoản", "success");
   return merged > 0;
+}
+
+// Dòng nhắc "máy này còn N nháp" → hỏi lại cả những nháp đã trả lời "Không".
+function reofferLocalDrafts() {
+  if (!currentUser) return;
+  const ids = new Set(listLocalDrafts().map((d) => d.id));
+  const key = _declinedKey(currentUser.email);
+  setCache(key, getCache(key, []).filter((id) => !ids.has(id)));
+  sessionStorage.removeItem(buildCacheKey("merge_full_warned", currentUser.email));
+  loadCards();
 }
 
 // Một nháp → tài khoản: tạo hàng DB (trần số thiệp chặn ở đây), đẩy ảnh chờ
@@ -187,7 +205,7 @@ async function _askMergeLocalDrafts(savedCount) {
 // theo id thiệp và đẩy lên ở lần lưu kế tiếp. Ảnh trong IndexedDB đã nén sẵn lúc
 // khách chọn (10-images.js) nên đẩy thẳng. Khuôn bản ghi IDB: invitation-setup/js/02-idb.js.
 async function _uploadLocalDraft({ id, data }) {
-  const { _localOnly, _savedAt, is_published, deleted_images, id: _id, slug, ...fields } = data;
+  const { _localOnly, _savedAt, _owner, is_published, deleted_images, id: _id, slug, ...fields } = data;
   const created = await weddingDAL.createDraftWedding({
     manage_id: id,
     theme: fields.theme || "basic-gold",
@@ -365,11 +383,14 @@ async function loadCards() {
   try {
     weddings = await weddingDAL.listMyWeddings();
     if (seq !== _loadSeq) return;
+    _holdLocalNote = true; // dòng nhắc chờ hộp gộp xong, không thì chớp lên rồi tắt
     _showAccountCards(weddings);
     // Hỏi gộp SAU khi danh sách đã hiện (và biết số thiệp đang giữ để chặn trần).
-    if (!(await _offerMergeLocalDrafts(weddings.length))) return;
+    const merged = await _offerMergeLocalDrafts(weddings.length).finally(() => {
+      _holdLocalNote = false;
+    });
     if (seq !== _loadSeq) return;
-    weddings = await weddingDAL.listMyWeddings();
+    if (merged) weddings = await weddingDAL.listMyWeddings();
   } catch (e) {
     if (seq !== _loadSeq) return;
     setState("error");
@@ -494,6 +515,15 @@ function render() {
   const note = document.getElementById("count-note");
   note.textContent = ` · ${savedCount()}/${CONFIG.maxWeddings} thiệp`;
   note.classList.toggle("hidden", !currentUser);
+
+  // Nháp chỉ nằm trên máy mà tài khoản này chưa nhận (đã bấm "Không", hoặc đang
+  // chờ hộp hỏi gộp thì chưa hiện để khỏi chớp).
+  const n = currentUser && !_holdLocalNote ? listLocalDrafts().length : 0;
+  const localNote = document.getElementById("local-drafts-note");
+  localNote.classList.toggle("hidden", !n);
+  localNote.classList.toggle("flex", !!n);
+  document.getElementById("local-drafts-text").textContent =
+    `Máy này còn ${n} thiệp nháp chưa lưu vào tài khoản (chỉ nằm trên trình duyệt này).`;
 
   // Chỉ số nhớ sẵn theo CARDS: các hàm onclick trên thẻ nhắm vào CARDS[i], không
   // phải vị trí trong danh sách đã lọc.

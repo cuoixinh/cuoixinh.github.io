@@ -87,13 +87,17 @@
 
   function _create(theme, displayName, params, id) {
     id = id || _uuid();
-    setCache(buildCacheKey("draft", id), {
+    var u = window.CXAuth && window.CXAuth.getUserSync && window.CXAuth.getUserSync();
+    var draft = {
       theme: theme,
       is_published: false,
       _localOnly: true,
       // Mốc dọn nháp bỏ quên (core/helpers/draft-retention.js).
       _savedAt: Date.now(),
-    });
+    };
+    // Người tạo (xem saveLocalDraft ở invitation-setup/js/01-state.js).
+    if (u && u.email) draft._owner = u.email;
+    setCache(buildCacheKey("draft", id), draft);
     sessionStorage.setItem("draft_theme", theme);
     sessionStorage.setItem("draft_template_name", displayName || _titleOf(theme));
     _go(id, params);
