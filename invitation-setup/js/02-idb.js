@@ -1,6 +1,8 @@
 // IndexedDB: lưu tạm ảnh chưa upload (pending images) để không mất khi F5.
 //
 // Tách từ index.js (dòng 58–317 bản gốc). Thứ tự nạp khai báo ở loader.js.
+// Khung chat XuXi ở trang chủ (js/ai-chat-media.js) GHI thẳng vào DB này theo đúng tên
+// DB/khoá/shape bản ghi bên dưới — đổi ở đây thì đổi cả bên đó.
 
 // ============= INDEXED DB — PENDING IMAGES =============
 // Lưu File objects (ảnh chưa upload) vào IndexedDB để sống qua reload/đóng tab.

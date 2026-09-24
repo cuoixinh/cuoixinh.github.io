@@ -28,13 +28,15 @@ class AiChatDAL {
    * opts.onPhase("card") — model đang dựng nội dung thiệp, phần còn lại còn chảy
    *   thêm cả chục giây; dùng để đổi hiệu ứng chờ.
    * opts.signal — huỷ khi khách đóng bảng chat giữa chừng.
+   * opts.media — tóm tắt ảnh/nhạc/bản đồ/mẫu đang có (CXChatMedia.summary()).
    *
-   * Trả { text, known, card }: `text` là câu trả lời đầy đủ (bản đã làm sạch của
-   * server), `known` là thông tin thiệp gom được tới lúc này (gửi lại ở lượt sau),
-   * `card` là nội dung thiệp đã sẵn sàng đổ vào form hoặc null nếu còn đang hỏi.
+   * Trả { text, known, card, ask }: `text` là câu trả lời đầy đủ (bản đã làm sạch
+   * của server), `known` là thông tin thiệp gom được tới lúc này (gửi lại ở lượt
+   * sau), `card` là nội dung thiệp đã sẵn sàng đổ vào form hoặc null nếu còn đang
+   * hỏi, `ask` là ô chọn cần mở dưới câu trả lời ("" = không mở).
    */
   async ask(messages, card, opts = {}) {
-    const { onDelta, onPhase, signal } = opts;
+    const { onDelta, onPhase, signal, media } = opts;
     const res = await fetch(this._url, {
       method: "POST",
       headers: await this._headers(),
@@ -44,6 +46,7 @@ class AiChatDAL {
         // không đọc tới, gửi kèm là phình request mỗi lượt.
         messages: (messages || []).map((m) => ({ role: m.role, content: m.content })),
         card: card || null,
+        media: media || null,
         device: window.cxDeviceId?.() || "",
         stream: true,
       }),
@@ -64,6 +67,7 @@ class AiChatDAL {
     let final = "";
     let finalKnown = null;
     let finalCard = null;
+    let finalAsk = "";
 
     const handle = (line) => {
       let evt;
@@ -82,6 +86,7 @@ class AiChatDAL {
         final = evt.meta.text || shown;
         finalKnown = evt.meta.known || null;
         finalCard = evt.meta.card || null;
+        finalAsk = evt.meta.ask || "";
       }
     };
 
@@ -100,7 +105,7 @@ class AiChatDAL {
 
     const text = (final || shown).trim();
     if (!text) throw new Error("XuXi chưa trả lời được, bạn hỏi lại giúp mình nhé.");
-    return { text, known: finalKnown, card: finalCard };
+    return { text, known: finalKnown, card: finalCard, ask: finalAsk };
   }
 }
 

@@ -770,3 +770,374 @@
 .aichat-send svg {
   transform: translate(-1px, 1px);
 }
+
+/* ── Ô chọn ảnh / nhạc / bản đồ / mẫu trong khung chat (js/ai-chat-media.js) ── */
+/* Cột chứa ô chọn giãn hết phần còn lại của hàng (trừ avatar): lưới ảnh và danh
+   sách bài hát cần chỗ hơn bong bóng chữ. */
+
+.aichat-col.is-wide {
+  flex: 1 1 0%;
+  max-width: 100%;
+}
+
+.aichat-kit {
+  @apply flex w-full flex-col gap-2 rounded-[20px] p-3;
+
+  background: rgb(var(--white-rgb));
+  border: 1px solid rgb(var(--brand-primary-rgb));
+  box-shadow: 0 4px 12px rgb(var(--shadow-brand-rgb) / 0.12);
+}
+
+.aichat-kit-head {
+  @apply flex items-center gap-2 text-sm font-semibold;
+
+  color: rgb(var(--brand-accent-rgb));
+}
+
+.aichat-kit-hint,
+.aichat-kit-sub {
+  @apply text-xs leading-snug;
+
+  color: rgb(var(--text-label-rgb));
+}
+
+.aichat-kit-sub[hidden] {
+  display: none;
+}
+
+.aichat-kit-body {
+  @apply flex flex-col gap-2;
+}
+
+.aichat-kit-foot {
+  @apply flex justify-end pt-1;
+}
+
+/* Đã bấm Tiếp tục / Bỏ qua: ô vẫn dùng được, chỉ bỏ nút dẫn luồng. */
+.aichat-kit.is-past .aichat-kit-foot {
+  display: none;
+}
+
+/* Ô ảnh (ảnh bìa, cô dâu chú rể, QR, nút thêm của album): là <label> bọc input file. */
+
+.aichat-tiles {
+  display: grid;
+  gap: 8px;
+}
+
+.aichat-tile {
+  @apply relative flex cursor-pointer items-center justify-center overflow-hidden rounded-xl;
+
+  aspect-ratio: 3 / 4;
+  color: rgb(var(--brand-accent-rgb));
+  background: rgb(var(--surface-tint-rgb));
+  border: 1px dashed rgb(var(--brand-accent-rgb) / 0.45);
+}
+
+.aichat-tile img {
+  @apply absolute inset-0 h-full w-full object-cover;
+
+  display: none;
+}
+
+.aichat-tile.has-img {
+  border-style: solid;
+}
+
+.aichat-tile.has-img img {
+  display: block;
+}
+
+.aichat-tile.has-img .aichat-tile-add {
+  display: none;
+}
+
+.aichat-tile-cap {
+  @apply absolute bottom-0 left-0 right-0 px-1 py-1 text-center text-[11px] font-medium;
+}
+
+.aichat-tile.has-img .aichat-tile-cap {
+  color: rgb(var(--white-rgb));
+  background: rgb(var(--text-heading-rgb) / 0.55);
+}
+
+.aichat-tile.is-busy {
+  @apply pointer-events-none opacity-50;
+}
+
+.aichat-gal {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.aichat-gal-item {
+  @apply relative overflow-hidden rounded-lg;
+
+  aspect-ratio: 1 / 1;
+}
+
+.aichat-gal-item img {
+  @apply h-full w-full object-cover;
+}
+
+/* Đặt SAU .aichat-tile để ô "+" của album vuông như ảnh bên cạnh. */
+.aichat-gal-add {
+  @apply rounded-lg;
+
+  aspect-ratio: 1 / 1;
+}
+
+.aichat-gal-x {
+  @apply absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full;
+
+  color: rgb(var(--white-rgb));
+  background: rgb(var(--text-heading-rgb) / 0.6);
+}
+
+/* Mẫu thiệp: dải cuộn ngang. `relative` để offsetLeft của thẻ tính theo dải
+   (JS đặt scrollLeft đưa mẫu đang dùng vào giữa). */
+
+.aichat-themes {
+  @apply relative flex gap-2 overflow-x-auto pb-1;
+
+  scrollbar-width: thin;
+}
+
+.aichat-theme {
+  @apply flex shrink-0 cursor-pointer flex-col gap-1 rounded-xl p-1 text-left;
+
+  width: 96px;
+  border: 2px solid transparent;
+}
+
+.aichat-theme img {
+  @apply w-full rounded-lg object-cover object-top;
+
+  aspect-ratio: 2 / 3;
+  background: rgb(var(--surface-control-rgb));
+}
+
+.aichat-theme-name {
+  @apply truncate text-xs font-medium;
+
+  color: rgb(var(--text-heading-rgb));
+}
+
+.aichat-theme-price {
+  @apply text-[11px] font-semibold;
+
+  color: rgb(var(--brand-accent-rgb));
+}
+
+.aichat-theme.is-on {
+  border-color: rgb(var(--action-primary-rgb));
+  background: rgb(var(--surface-tint-rgb));
+}
+
+.aichat-theme:disabled {
+  @apply cursor-not-allowed opacity-40;
+}
+
+/* Ô tìm (nhạc, địa điểm). */
+
+.aichat-search {
+  @apply flex items-center gap-1 rounded-full pl-3 pr-1;
+
+  background: rgb(var(--white-rgb));
+  border: 1px solid rgb(var(--border-subtle-rgb));
+}
+
+.aichat-search[hidden] {
+  display: none;
+}
+
+.aichat-search-input {
+  @apply min-w-0 flex-1 bg-transparent py-2 text-sm outline-none;
+
+  color: rgb(var(--text-body-rgb));
+}
+
+.aichat-search-go {
+  @apply flex h-8 w-8 shrink-0 items-center justify-center rounded-full;
+
+  color: rgb(var(--brand-accent-rgb));
+}
+
+.aichat-yt {
+  @apply flex flex-col gap-1 overflow-y-auto;
+
+  max-height: 240px;
+}
+
+.aichat-yt-item {
+  @apply flex w-full items-center gap-2 rounded-lg p-1 text-left;
+}
+
+.aichat-yt-item:hover {
+  background: rgb(var(--surface-tint-rgb));
+}
+
+.aichat-yt-item.is-on {
+  background: rgb(var(--brand-primary-rgb) / 0.3);
+}
+
+.aichat-yt-item img {
+  @apply h-10 w-16 shrink-0 rounded object-cover;
+
+  background: rgb(var(--surface-control-rgb));
+}
+
+.aichat-yt-txt {
+  @apply flex min-w-0 flex-col;
+}
+
+.aichat-yt-title {
+  @apply line-clamp-2 text-xs font-medium leading-snug;
+
+  color: rgb(var(--text-heading-rgb));
+}
+
+.aichat-yt-meta {
+  @apply truncate text-[11px];
+
+  color: rgb(var(--text-caption-rgb));
+}
+
+.aichat-yt-cur {
+  @apply flex items-center gap-2 rounded-lg px-2 py-1 text-xs font-medium;
+
+  color: rgb(var(--brand-accent-rgb));
+  background: rgb(var(--surface-tint-rgb));
+}
+
+.aichat-yt-cur[hidden] {
+  display: none;
+}
+
+/* Bản đồ: mỗi địa điểm một thẻ — địa chỉ, nút ghim, ô tìm vị trí khác, bản đồ nhỏ. */
+
+.aichat-places {
+  @apply flex flex-col gap-3;
+}
+
+.aichat-place {
+  @apply flex flex-col gap-2 rounded-xl p-2;
+
+  background: rgb(var(--surface-tint-rgb));
+}
+
+.aichat-place-head {
+  @apply flex items-center justify-between gap-2;
+}
+
+.aichat-place-label {
+  @apply text-xs font-semibold;
+
+  color: rgb(var(--text-heading-rgb));
+}
+
+.aichat-place-ok {
+  @apply flex items-center gap-1 text-[11px] font-medium;
+
+  color: rgb(var(--brand-accent-rgb));
+}
+
+.aichat-place-ok[hidden] {
+  display: none;
+}
+
+.aichat-place-addr {
+  @apply text-xs leading-snug;
+
+  color: rgb(var(--text-body-rgb));
+}
+
+.aichat-place-acts {
+  @apply flex flex-wrap gap-2;
+}
+
+.aichat-place-res {
+  @apply flex flex-col gap-1;
+}
+
+.aichat-place-opt {
+  @apply flex w-full items-start gap-2 rounded-lg px-2 py-1 text-left text-xs;
+
+  color: rgb(var(--text-body-rgb));
+  background: rgb(var(--white-rgb));
+}
+
+.aichat-place-opt svg {
+  @apply mt-0.5 shrink-0;
+}
+
+.aichat-place-frame {
+  @apply w-full rounded-lg;
+
+  height: 140px;
+  border: 0;
+}
+
+.aichat-place-frame[hidden] {
+  display: none;
+}
+
+/* Dải chip sáu mục: trên thẻ thiệp và trên ô nhập (nút "+"). ✓ = mục đã có. */
+
+.aichat-kchips {
+  @apply flex flex-wrap gap-2;
+}
+
+.aichat-kchip {
+  @apply flex cursor-pointer items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-1 text-xs;
+
+  color: rgb(var(--brand-accent-rgb));
+  background: rgb(var(--white-rgb));
+  border: 1px solid rgb(var(--brand-accent-rgb) / 0.45);
+}
+
+.aichat-kchip:hover {
+  background: rgb(var(--surface-tint-rgb));
+}
+
+.aichat-kchip.is-done {
+  border-color: rgb(var(--brand-accent-rgb));
+  background: rgb(var(--brand-primary-rgb) / 0.3);
+}
+
+.aichat-kchip.is-done::after {
+  content: "✓";
+  margin-left: 2px;
+  font-weight: 600;
+}
+
+.aichat-card-kit {
+  margin-top: 8px;
+}
+
+.aichat-kitbar {
+  @apply pb-2;
+}
+
+.aichat-kitbar[hidden] {
+  display: none;
+}
+
+/* Nút "+" của ô nhập đang mở dải chip. */
+.aichat-mic.is-on {
+  background: rgb(var(--brand-primary-rgb) / 0.22);
+}
+
+.aichat-mic[hidden] {
+  display: none;
+}
+
+/* Dòng "(Đã …)" — việc khách vừa làm ở ô chọn, không phải lời của ai. */
+.aichat-note {
+  @apply mx-auto w-fit max-w-[90%] rounded-full px-3 py-1 text-center text-[11px] leading-snug;
+
+  margin-top: 12px;
+  color: rgb(var(--text-label-rgb));
+  background: rgb(var(--surface-tint-rgb));
+}

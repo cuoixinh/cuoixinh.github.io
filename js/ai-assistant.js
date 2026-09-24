@@ -2,7 +2,9 @@
 // tin rồi DỰNG LUÔN nội dung thiệp. Dùng ở trang chủ và trang Thiết lập (ở đó
 // 24-ai-apply.js đổ kết quả thẳng vào form).
 // Toàn bộ markup dựng ở đây (như core/payment.js) nên index.html chỉ cần một thẻ
-// <script>; style ở styles/_ai-chat.css.
+// <script>; style ở styles/_ai-chat.css. Ô chọn ảnh/nhạc/bản đồ/mẫu nằm ở
+// js/ai-chat-media.js (window.CXChatMedia, nạp TRƯỚC file này) — ở đây chỉ đặt chúng
+// vào đúng chỗ trong đoạn chat và dẫn khách đi hết lượt.
 //
 // Lớp UI thuần: mọi thứ gọi model đi qua window.aiChatDAL (core/dal/ai-chat-dal.js)
 // → Edge Function ai-chat, nơi giữ tri thức sản phẩm, luật thu thập và hạn mức.
@@ -113,11 +115,18 @@
         <div class="aichat-suggests" id="aichatSuggests"></div>
       </div>
       <div class="aichat-foot">
+        <div class="aichat-kitbar" id="aichatKitbar" hidden></div>
         <div class="aichat-composer">
           <textarea id="aichatInput" class="aichat-input" rows="1" maxlength="${MAX_LEN}"
                     placeholder="Hỏi XuXi bất cứ điều gì…"
                     aria-label="Câu hỏi cho XuXi"></textarea>
           <div class="aichat-tools">
+            <x-button variant="bare" icon-only id="aichatAttach" type="button"
+                      aria-label="Thêm ảnh, nhạc, bản đồ, mẫu thiệp"
+                      title="Thêm ảnh, nhạc, bản đồ, mẫu thiệp"
+                      aria-expanded="false" class="aichat-mic">
+              <i data-lucide="plus" style="width:18px;height:18px"></i>
+            </x-button>
             <div class="aichat-tools-end">
               <x-button variant="bare" icon-only id="aichatMic" type="button"
                         aria-label="Nhập bằng giọng nói" title="Nhập bằng giọng nói"
@@ -152,6 +161,8 @@
       sugWrap: panel.querySelector("#aichatSugWrap"),
       nav: panel.querySelector("#aichatNav"),
       input: panel.querySelector("#aichatInput"),
+      attach: panel.querySelector("#aichatAttach"),
+      kitbar: panel.querySelector("#aichatKitbar"),
       mic: panel.querySelector("#aichatMic"),
       send: panel.querySelector("#aichatSend"),
       reset: panel.querySelector("#aichatReset"),
@@ -779,10 +790,112 @@
     btn.textContent = inSetup() ? "Áp dụng vào thiệp" : "Xem thiệp";
     box.appendChild(btn);
 
+    // Lối mở lại từng ô chọn ảnh/nhạc/bản đồ/mẫu, đánh dấu ✓ mục đã có.
+    if (window.CXChatMedia) {
+      add("aichat-card-meta aichat-card-kit", "Hoàn thiện thiệp ngay tại đây:");
+      box.appendChild(window.CXChatMedia.chips((kind) => openKind(kind)));
+    }
+
     const time = col.querySelector(".aichat-time");
     if (time) col.insertBefore(box, time);
     else col.appendChild(box);
     scrollToEnd();
+  }
+
+  // ── Ô chọn ảnh / nhạc / bản đồ / mẫu (js/ai-chat-media.js) ────────────────
+  // Ba đường mở: model đặt `ask` ở câu trả lời, luồng dẫn sau khi thiệp dựng xong
+  // (Tiếp tục / Bỏ qua mở ô kế tiếp, KHÔNG tốn lượt AI), và khách tự mở ở nút "+".
+  // Việc khách làm ở ô chọn thành một dòng "(Đã …)" trong lịch sử để model biết.
+
+  // Đặt ô chọn vào cột `col` (dưới bong bóng), không có cột thì một hàng XuXi mới.
+  // `guided` = ô của luồng dẫn, có nút Tiếp tục / Bỏ qua.
+  function addWidget(kind, col, guided) {
+    const M = window.CXChatMedia;
+    if (!M?.isKind(kind)) return;
+    col = col || addRow("bot");
+    col.classList.add("is-wide");
+    const box = M.widget(kind, guided ? { onNext: stepNext } : {});
+    const time = col.querySelector(".aichat-time");
+    if (time) col.insertBefore(box, time);
+    else col.appendChild(box);
+    scrollToEnd();
+  }
+
+  // Dòng báo việc khách vừa làm ở ô chọn — không phải bong bóng của ai cả.
+  function addNote(text) {
+    const p = document.createElement("p");
+    p.className = "aichat-note";
+    p.textContent = String(text).replace(/^\(|\)$/g, "");
+    els.body.appendChild(p);
+    scrollToEnd();
+  }
+
+  // Khách tự mở một ô (nút "+" hoặc chip trên thẻ thiệp).
+  function openKind(kind) {
+    toggleKitbar(false);
+    history.push({
+      role: "assistant",
+      content: `(Mở ô chọn ${window.CXChatMedia.label(kind).toLowerCase()})`,
+      at: Date.now(),
+      ask: kind,
+      local: true,
+    });
+    saveHistory();
+    addWidget(kind, null, false);
+  }
+
+  // Nút Tiếp tục / Bỏ qua của ô trong luồng dẫn. Chỉ dẫn tiếp khi cuộc chat đã có
+  // thiệp: ô mở lẻ (khách đòi đổi nhạc giữa chừng) thì ghi nhận rồi thôi.
+  async function stepNext(kind, done, st) {
+    const M = window.CXChatMedia;
+    M.visit(kind);
+    for (let i = history.length - 1; i >= 0; i--) {
+      if (history[i].ask === kind) {
+        delete history[i].guided; // F5 không vẽ lại nút cho ô đã bấm
+        break;
+      }
+    }
+    const note = M.noteFor(kind, st, done);
+    history.push({ role: "user", content: note, at: Date.now(), note: true });
+    addNote(note);
+    if (history.some((m) => m.card)) await openNextStep();
+    else saveHistory();
+  }
+
+  async function openNextStep() {
+    const M = window.CXChatMedia;
+    const kind = await M.next();
+    if (kind) {
+      history.push({
+        role: "assistant",
+        content: `(Mời chọn ${M.label(kind).toLowerCase()})`,
+        at: Date.now(),
+        ask: kind,
+        guided: true,
+        local: true,
+      });
+      saveHistory();
+      addWidget(kind, null, true);
+      return;
+    }
+    const text = inSetup()
+      ? "Xong phần hình ảnh rồi 🎉 Ảnh, nhạc và bản đồ đã vào thiệp — bạn bấm **Lưu nháp** để giữ lại nhé. Nội dung chữ thì bấm **Áp dụng vào thiệp** trên thẻ thiệp nếu chưa áp dụng."
+      : "Xong rồi 🎉 Bấm **Xem thiệp** trên thẻ thiệp để mở thiệp với đầy đủ ảnh, nhạc và bản đồ nhé.";
+    history.push({ role: "assistant", content: text, at: Date.now() });
+    saveHistory();
+    addBubble("bot", text);
+  }
+
+  // Dải chip sáu mục phía trên ô nhập, bật/tắt bằng nút "+".
+  function toggleKitbar(force) {
+    const M = window.CXChatMedia;
+    if (!M || !els.kitbar) return;
+    const show = force ?? els.kitbar.hidden;
+    if (show && !els.kitbar.childElementCount)
+      els.kitbar.appendChild(M.chips((kind) => openKind(kind)));
+    els.kitbar.hidden = !show;
+    els.attach?.setAttribute("aria-expanded", String(show));
+    els.attach?.classList.toggle("is-on", show);
   }
 
   // Trang Thiết lập nạp js/24-ai-apply.js nên có hàm này; trang chủ thì không.
@@ -835,9 +948,18 @@
   function useCard(card) {
     if (!card) return;
     if (inSetup()) return void applyHere(card);
-    setCache(CARD_KEY, card);
+    // Nhạc/bản đồ/mẫu chọn ở ô chọn đi kèm thiệp; ảnh đã nằm trong IndexedDB dưới mã
+    // nháp này (js/ai-chat-media.js).
+    const media = window.CXChatMedia?.handoff() || null;
+    setCache(CARD_KEY, media ? { ...card, media } : card);
     const params = { tab: "preview" };
     const id = chatDraftId();
+    const pick = media?.theme?.theme ? media.theme : null;
+    if (pick) {
+      syncDraftTheme(id, pick.theme);
+      window.cxStartDraft?.(pick.theme, pick.name, { id, params });
+      return;
+    }
     const first =
       typeof templates !== "undefined" && Array.isArray(templates)
         ? templates.find((t) => t.status === "active")
@@ -849,6 +971,19 @@
         params,
       });
     else window.cxStartDefaultDraft?.(params, { id });
+  }
+
+  // Nháp của cuộc chat đã mở từ lần bấm trước với mẫu khác: cxStartDraft đi thẳng
+  // vào nháp cũ và GIỮ mẫu của nó, nên đổi mẫu ngay trong bản nháp — bỏ luôn tuỳ chỉnh
+  // giao diện của mẫu cũ, như _applyThemeChange ở trang Thiết lập.
+  function syncDraftTheme(id, theme) {
+    if (!id) return;
+    const key = buildCacheKey("draft", id);
+    const draft = getCache(key);
+    if (!draft || draft.theme === theme) return;
+    draft.theme = theme;
+    delete draft.theme_setting;
+    setCache(key, draft);
   }
 
   // Chip gợi ý chỉ hữu ích lúc chưa biết hỏi gì → ẩn hẳn sau câu hỏi đầu tiên.
@@ -946,9 +1081,21 @@
   function paintHistory() {
     els.body.innerHTML = "";
     addBubble("bot", GREETING);
-    history.forEach((m) => {
+    // Chỉ dựng lại ô chọn MỚI NHẤT: ô chọn vẽ theo trạng thái thật của thiệp nên các
+    // ô cũ chỉ là bản lặp của nó.
+    let lastAsk = -1;
+    history.forEach((m, i) => {
+      if (m.ask) lastAsk = i;
+    });
+    history.forEach((m, i) => {
+      if (m.note) return addNote(m.content);
+      if (m.local && m.ask) {
+        if (i === lastAsk) addWidget(m.ask, null, m.guided);
+        return;
+      }
       const bubble = addBubble(m.role === "user" ? "user" : "bot", m.content, m.at);
       if (m.card) addCardAction(bubble.parentElement, m.card);
+      if (m.ask && i === lastAsk) addWidget(m.ask, bubble.parentElement, m.guided);
     });
     renderSuggests();
   }
@@ -961,6 +1108,13 @@
     history = [];
     known = null;
     newConvId(); // cuộc mới bắt đầu từ đây, không đợi tới lượt hỏi đầu tiên
+    toggleKitbar(false);
+    try {
+      // Ảnh/nhạc/bản đồ của cuộc cũ (trang chủ) đi theo nháp của nó — đọc mã TRƯỚC khi xoá.
+      window.CXChatMedia?.reset(sessionStorage.getItem(DRAFT_KEY));
+    } catch {
+      /* chặn cookie: không có gì để dọn */
+    }
     try {
       sessionStorage.removeItem(STORE_KEY);
       sessionStorage.removeItem(KNOWN_KEY);
@@ -1134,7 +1288,10 @@
     const mine = abort; // giữ lại để biết lượt này có bị Làm mới cắt ngang không
 
     try {
+      // Ảnh/nhạc/bản đồ/mẫu đang có — model khỏi mời lại thứ đã xong. Hỏng thì gửi thiếu.
+      const media = await window.CXChatMedia?.summary().catch(() => null);
       const res = await window.aiChatDAL.ask(history, known, {
+        media,
         onDelta: (partial) => {
           // Mảnh chữ đầu tiên tới nơi → thay ba chấm bằng bong bóng thật.
           if (!bubble) {
@@ -1173,9 +1330,19 @@
         history.forEach((m) => delete m.card);
         entry.card = res.card;
       }
+      // Ô chọn dưới câu trả lời: model chỉ định, hoặc thiệp vừa dựng xong mà model
+      // quên mời thì luồng dẫn tự mở mục đầu tiên còn thiếu.
+      const M = window.CXChatMedia;
+      let kind = M?.isKind(res.ask) ? res.ask : "";
+      if (!kind && res.card && M) kind = (await M.next()) || "";
+      if (kind) {
+        entry.ask = kind;
+        entry.guided = true;
+      }
       history.push(entry);
       saveHistory();
       if (res.card) addCardAction(bubble.parentElement, res.card);
+      if (kind) addWidget(kind, bubble.parentElement, true);
     } catch (e) {
       typing.remove();
       building?.remove();
@@ -1287,6 +1454,10 @@
   function init() {
     if (document.getElementById("aichatFab")) return;
     build();
+    // Trang chủ ghi ảnh dưới mã nháp của cuộc chat và lấy địa điểm từ thông tin đã
+    // thu; trang Thiết lập có đích ghi riêng (cxAiMediaSink) nên không cần hai thứ này.
+    window.CXChatMedia?.init({ draftId: chatDraftId, known: () => known });
+    if (!window.CXChatMedia) els.attach.hidden = true;
     loadHistory();
     convId(); // cuộc đang mở phải có mã ngay từ đầu (chưa có thì đây là cuộc mới)
     paintHistory();
@@ -1328,6 +1499,7 @@
     els.panel.addEventListener("click", (e) => {
       if (e.target.closest("#aichatClose")) close();
       else if (e.target.closest("#aichatReset")) clearChat();
+      else if (e.target.closest("#aichatAttach")) toggleKitbar();
     });
     els.body.addEventListener("click", (e) => {
       const btn = e.target.closest("[data-card-open]");

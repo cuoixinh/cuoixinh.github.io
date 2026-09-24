@@ -289,8 +289,10 @@ const pendingUploads = {
 // còn xoá ảnh / chỉnh lại focal thì không sinh event nào — listener input/change
 // của autosave luôn chạy sớm hơn hoặc không chạy. Mọi thao tác ảnh phải tự gọi
 // hàm này, thiếu là mất dấu "chưa lưu" và khung xem trực tiếp vẫn dựng ảnh cũ.
+// Sự kiện cx-media-change để ô chọn ảnh trong khung chat XuXi vẽ lại theo.
 function _imagesChanged() {
   _scheduleAutoSave("edit");
+  window.dispatchEvent(new CustomEvent("cx-media-change"));
 }
 
 // Focal point (% x, % y) cho từng ảnh — quyết định object-position khi hiển thị ở các tỉ lệ khác nhau
