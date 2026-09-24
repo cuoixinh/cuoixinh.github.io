@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 320">
+  <defs>
+    <linearGradient id="w" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#efe7df"/><stop offset=".35" stop-color="#ffffff"/><stop offset=".7" stop-color="#fbf8f4"/><stop offset="1" stop-color="#e6dcd2"/></linearGradient>
+    <linearGradient id="s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f6cfd7"/><stop offset="1" stop-color="#e59aab"/></linearGradient>
+    <linearGradient id="h" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#e6c066"/><stop offset="1" stop-color="#a97d2a"/></linearGradient>
+  </defs>
+  <path d="M120 44V32c0-10 12-14 16-6 3 6-3 11-8 8" fill="none" stroke="url(#h)" stroke-width="3" stroke-linecap="round"/>
+  <path d="M60 74Q120 36 180 74" fill="none" stroke="url(#h)" stroke-width="5" stroke-linecap="round"/>
+  <g stroke="#d9cfc4" stroke-width="1.6" stroke-linejoin="round">
+    <path d="M88 64l6 38M152 64l-6 38" fill="none" stroke="#e8dfd6" stroke-width="3"/>
+    <path d="M94 158C82 200 56 250 30 300q18-10 36 0q18-10 36 0q18-10 36 0q18-10 36 0q18-10 36 0C184 250 158 200 146 158z" fill="url(#w)"/>
+    <path d="M90 100c10-8 22-4 30 6 8-10 20-14 30-6l-4 52H94z" fill="url(#w)"/>
+  </g>
+  <g fill="none" stroke="#e1d6cb" stroke-width="1.4" stroke-linecap="round">
+    <path d="M110 162c-10 48-30 88-40 132M130 162c10 48 30 88 40 132M120 164v130M100 162C86 210 60 256 48 296M140 162c14 48 40 94 52 134"/>
+    <path d="M100 116c6 10 6 24 2 34M140 116c-6 10-6 24-2 34M120 112v38"/>
+  </g>
+  <g fill="#e9dfd4"><circle cx="96" cy="104" r="2"/><circle cx="104" cy="99" r="2"/><circle cx="112" cy="101" r="2"/><circle cx="128" cy="101" r="2"/><circle cx="136" cy="99" r="2"/><circle cx="144" cy="104" r="2"/></g>
+  <g fill="none" stroke="#e3d8cc" stroke-width="1.3">
+    <path d="M44 280c6-6 14-6 18 0M80 284c6-6 14-6 18 0M116 284c6-6 14-6 18 0M152 284c6-6 14-6 18 0M180 280c6-6 14-6 18 0"/>
+  </g>
+  <g fill="#ebe1d6"><circle cx="72" cy="250" r="2.5"/><circle cx="96" cy="262" r="2.5"/><circle cx="144" cy="262" r="2.5"/><circle cx="168" cy="250" r="2.5"/><circle cx="120" cy="240" r="2.5"/><circle cx="88" cy="222" r="2"/><circle cx="152" cy="222" r="2"/><circle cx="120" cy="206" r="2"/></g>
+  <rect x="92" y="148" width="56" height="12" rx="4" fill="url(#s)"/>
+  <g fill="url(#s)">
+    <path d="M104 154c-12-10-26-10-28-2 4 8 18 8 28 2zM104 154c10 6 20 6 22 0-4-6-14-6-22 0z"/>
+    <path d="M102 158l-8 26 7-3 4 6 1-29z"/>
+    <circle cx="104" cy="154" r="5"/>
+  </g>
+</svg>
