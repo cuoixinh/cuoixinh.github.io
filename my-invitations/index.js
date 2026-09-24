@@ -92,85 +92,91 @@ function updateAuthUI() {
 
 // ===== DỮ LIỆU =====
 
-function _ordersKey() {
-  return buildCacheKey("orders", currentUser ? currentUser.email : "guest");
+// ===== NHÁP TRÊN MÁY ↔ TÀI KHOẢN =====
+// Đăng nhập: danh sách CHỈ là thiệp của tài khoản (DB). Nháp chỉ nằm trên máy
+// (listLocalDrafts, core/cache-util.js) không hiện, cũng không bị xoá — đăng xuất
+// ra vẫn thấy. Muốn đưa vào tài khoản thì phải khách XÁC NHẬN: máy có thể dùng
+// chung, tự gộp là thiệp người này rơi vào tài khoản người kia. Xác nhận → lưu
+// nháp lên DB rồi xoá bản trên máy; "Không" → tài khoản này không bị hỏi lại về
+// đúng những nháp đó; đóng hộp thoại → lần sau hỏi lại.
+
+// Key phải KHÔNG bắt đầu bằng "draft_" hay "orders_" — hai tiền tố đó bị quét
+// như nháp/đơn ở draft-retention.js và draft-start.js.
+function _declinedKey(email) {
+  return buildCacheKey("declined_drafts", email);
 }
 
-const GUEST_ORDERS_KEY = buildCacheKey("orders", "guest");
+let _mergeAsking = null; // loadCards chạy chồng (đổi phiên, quay lại tab) → chỉ một hộp thoại
 
-// Đơn tạo lúc chưa đăng nhập nằm ở key "guest". Máy có thể dùng chung nên HỎI
-// trước khi dời sang key của tài khoản vừa đăng nhập — tự dời là thiệp của người
-// này rơi vào danh sách người kia. "Không" thì đơn ở lại key guest và tài khoản
-// này không bị hỏi lại về đúng những thiệp đó; đóng hộp thoại thì lần sau hỏi lại.
-// Gộp theo manage_id, bản ở key email thắng (đã đồng bộ xa hơn).
-let _absorbAsking = null; // loadCards chạy chồng (đổi phiên, quay lại tab) → chỉ một hộp thoại
-
-function _absorbGuestOrders() {
+function _offerMergeLocalDrafts() {
   if (!currentUser) return Promise.resolve();
-  if (!_absorbAsking)
-    _absorbAsking = _askAbsorbGuestOrders().finally(() => {
-      _absorbAsking = null;
+  if (!_mergeAsking)
+    _mergeAsking = _askMergeLocalDrafts().finally(() => {
+      _mergeAsking = null;
     });
-  return _absorbAsking;
+  return _mergeAsking;
 }
 
-async function _askAbsorbGuestOrders() {
-  const guest = getCache(GUEST_ORDERS_KEY, []);
-  if (!Array.isArray(guest) || !guest.length) return;
-
+async function _askMergeLocalDrafts() {
   const email = currentUser.email;
-  const key = _ordersKey();
-  const declinedKey = buildCacheKey("orders_declined", email);
-  const declined = new Set(getCache(declinedKey, []));
-  const mineIds = new Set(getCache(key, []).map((o) => o.manage_id).filter(Boolean));
-  // Đơn đã có ở key email (vd xuất bản xong ngay trong trang Thiết lập) thì chỉ
-  // cần dọn bản guest, không phải hỏi.
-  const asking = guest.filter(
-    (o) => o.manage_id && !mineIds.has(o.manage_id) && !declined.has(o.manage_id),
-  );
-  const leftovers = guest.filter((o) => !o.manage_id || !mineIds.has(o.manage_id));
-  if (leftovers.length !== guest.length) setCache(GUEST_ORDERS_KEY, leftovers);
+  const declined = new Set(getCache(_declinedKey(email), []));
+  const asking = listLocalDrafts().filter((d) => !declined.has(d.id));
   if (!asking.length) return;
 
-  const names = asking
-    .map((o) => "• " + ([o.groomName, o.brideName].filter(Boolean).join(" & ") || themeName(o.theme)))
-    .join("\n");
+  const names = asking.map((d) => "• " + _draftTitle(d.data)).join("\n");
   const r = await showConfirm(
-    "Thiệp làm dở trên máy này",
-    `Máy này có ${asking.length} thiệp được làm khi chưa đăng nhập:\n${names}\n` +
-      `Gắn vào tài khoản ${email}? Nếu không phải của bạn, hãy chọn "Không".`,
-    { type: "info", icon: "file-pen", confirmText: "Gắn vào tài khoản", cancelText: "Không" },
+    "Thiệp nháp trên máy này",
+    `Máy này có ${asking.length} thiệp nháp chưa lưu vào tài khoản nào:\n${names}\n` +
+      `Lưu vào tài khoản ${email}? Thiệp sẽ chuyển hẳn vào tài khoản (đăng xuất ra ` +
+      `sẽ không còn thấy). Nếu không phải của bạn, hãy chọn "Không".`,
+    { type: "info", icon: "file-pen", confirmText: "Lưu vào tài khoản", cancelText: "Không" },
   );
   if (r === null) return;
+  if (!r) {
+    setCache(_declinedKey(email), [...declined, ...asking.map((d) => d.id)]);
+    return;
+  }
 
-  const ids = new Set(asking.map((o) => o.manage_id));
-  if (r) {
-    const now = getCache(GUEST_ORDERS_KEY, []);
-    setCache(key, getCache(key, []).concat(now.filter((o) => ids.has(o.manage_id))));
-    const rest = now.filter((o) => !ids.has(o.manage_id));
-    if (rest.length) setCache(GUEST_ORDERS_KEY, rest);
-    else removeCache(GUEST_ORDERS_KEY);
-  } else {
-    setCache(declinedKey, [...declined, ...ids]);
+  showLoading(true, "Đang lưu thiệp vào tài khoản...");
+  try {
+    for (const d of asking) await _uploadLocalDraft(d);
+  } catch (e) {
+    // Nháp chưa lên được vẫn nằm nguyên trên máy — lần sau hỏi lại.
+    if (e.code === "WEDDING_LIMIT") showAlert("Đã đủ số thiệp cho phép", e.message, "warning");
+    else showToast(e.message || "Không lưu được thiệp vào tài khoản", "error");
+  } finally {
+    showLoading(false);
   }
 }
 
-// Nháp chỉ nằm trên máy này: đơn còn là nháp VÀ key nháp local còn cờ _localOnly.
-function _isLocalOnlyDraft(o) {
-  if (o.status !== "draft") return false;
-  return !!getCache(buildCacheKey("draft", o.manage_id))?._localOnly;
+// Tạo hàng DB (như lần "Lưu nháp" đầu ở trang Thiết lập) rồi xoá bản trên máy.
+// Ảnh chờ upload trong IndexedDB giữ lại: trang Thiết lập khôi phục chúng theo id
+// thiệp và đẩy lên ở lần lưu kế tiếp.
+async function _uploadLocalDraft({ id, data }) {
+  const { _localOnly, _savedAt, is_published, deleted_images, id: _id, slug, ...fields } = data;
+  const created = await weddingDAL.createDraftWedding({
+    manage_id: id,
+    theme: fields.theme || "basic-gold",
+    slug: slug || `wedding-${id.slice(0, 8)}`,
+  });
+  await weddingDAL.updateWedding({ ...fields, id, slug: created?.slug || slug });
+  removeCache(buildCacheKey("draft", id));
+  _dropOrdersEverywhere(id);
 }
 
-// Một manage_id chỉ một thẻ; trùng thì giữ đơn đi xa nhất (completed > pending > draft).
-const _ORDER_RANK = { draft: 0, pending: 1, completed: 2 };
-function _dedupeOrders(orders) {
-  const byId = new Map();
-  orders.forEach((o) => {
-    const cur = byId.get(o.manage_id);
-    if (!cur || (_ORDER_RANK[o.status] ?? 0) >= (_ORDER_RANK[cur.status] ?? 0))
-      byId.set(o.manage_id, o);
+// Đơn (cache "orders") của một thiệp ở MỌI key — guest lẫn từng email.
+function _dropOrdersEverywhere(manageId) {
+  const prefix = buildCacheKey("orders") + "_";
+  listCacheKeys((k) => k.startsWith(prefix)).forEach((key) => {
+    const orders = getCache(key, []);
+    if (!Array.isArray(orders)) return;
+    const kept = orders.filter((o) => o?.manage_id !== manageId);
+    if (kept.length !== orders.length) setCache(key, kept);
   });
-  return [...byId.values()];
+}
+
+function _draftTitle(d) {
+  return [d.groom_name, d.bride_name].filter(Boolean).join(" & ") || themeName(d.theme);
 }
 
 function _titleFromTheme(theme) {
@@ -198,19 +204,18 @@ async function loadThemeNames() {
   }
 }
 
-// Đơn trong localStorage không có expires_at → expiresAt = undefined nghĩa là
-// "không rõ hạn dùng thử", thẻ chỉ hiện trạng thái chứ không đếm ngày.
 // local = chỉ tồn tại trên máy này (chưa có bản ghi DB) → xoá thẻ không gọi API.
-function _cardFromOrder(o) {
+// Nháp trên máy thì chưa bao giờ xuất bản được.
+function _cardFromDraft({ id, data }) {
   return {
-    id: o.manage_id,
+    id,
     slug: null,
-    groom: o.groomName || "",
-    bride: o.brideName || "",
-    theme: o.theme || "",
-    published: o.status !== "draft",
-    expiresAt: o.status === "completed" ? null : undefined,
-    createdAt: o.date,
+    groom: data.groom_name || "",
+    bride: data.bride_name || "",
+    theme: data.theme || "",
+    published: false,
+    expiresAt: undefined,
+    createdAt: data._savedAt ? new Date(data._savedAt).toISOString() : null,
     local: true,
   };
 }
@@ -246,12 +251,13 @@ let _loadSeq = 0;
 
 async function loadCards() {
   const seq = ++_loadSeq;
-  await _absorbGuestOrders();
+  await _offerMergeLocalDrafts();
   if (seq !== _loadSeq) return;
-  const local = getCache(_ordersKey(), []).filter((o) => o.manage_id);
 
   if (!currentUser) {
-    CARDS = _dedupeOrders(local).map(_cardFromOrder);
+    CARDS = listLocalDrafts()
+      .map(_cardFromDraft)
+      .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
     render();
     return;
   }
@@ -269,20 +275,17 @@ async function loadCards() {
   }
   if (seq !== _loadSeq) return;
 
-  // DB là nguồn sự thật; đơn local chỉ bù nháp CHƯA lên DB. Đơn nào khác mà DB
-  // không trả về (bị xoá ở máy khác, cron dọn, tắt is_active) là thẻ ma → dọn luôn.
-  const byId = new Map(weddings.map((w) => [w.id, _cardFromWedding(w)]));
-  const stale = new Set();
-  _dedupeOrders(local).forEach((o) => {
-    if (byId.has(o.manage_id)) return;
-    if (_isLocalOnlyDraft(o)) byId.set(o.manage_id, _cardFromOrder(o));
-    else stale.add(o.manage_id);
-  });
-  if (stale.size) {
-    const key = _ordersKey();
-    setCache(key, getCache(key, []).filter((o) => !stale.has(o.manage_id)));
+  // Đã đăng nhập: CHỈ thiệp của tài khoản (DB là nguồn sự thật duy nhất). Đơn
+  // local đã rời nháp mà DB không còn (xoá ở máy khác, cron dọn) thì dọn luôn —
+  // ô đếm navbar đọc chúng.
+  const dbIds = new Set(weddings.map((w) => w.id));
+  const ordersKey = buildCacheKey("orders", currentUser.email);
+  const orders = getCache(ordersKey, []);
+  if (Array.isArray(orders)) {
+    const kept = orders.filter((o) => o?.status === "draft" || dbIds.has(o?.manage_id));
+    if (kept.length !== orders.length) setCache(ordersKey, kept);
   }
-  CARDS = Array.from(byId.values()).sort(
+  CARDS = weddings.map(_cardFromWedding).sort(
     (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0),
   );
   render();
@@ -897,12 +900,7 @@ async function deleteCard(i) {
 
 function _dropFromLocalOrders(manageId) {
   window.cxDropLocalDraft?.(manageId);
-  const key = _ordersKey();
-  const orders = getCache(key, []);
-  setCache(
-    key,
-    orders.filter((o) => o.manage_id !== manageId),
-  );
+  _dropOrdersEverywhere(manageId);
 }
 
 // ===== MODAL: đổi đường dẫn =====
