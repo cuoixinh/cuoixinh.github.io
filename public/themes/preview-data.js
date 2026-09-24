@@ -13,7 +13,7 @@ const ceremonyDateStr = ceremonyDate.toISOString().split("T")[0];
 const groomPartyDateStr = groomPartyDate.toISOString().split("T")[0];
 const bridePartyDateStr = bridePartyDate.toISOString().split("T")[0];
 
-const lunarYear = "Ất Tỵ";
+const lunarYear = "Bính Ngọ";
 function lunarStr(d) {
   return `Ngày ${d.getDate()} tháng ${d.getMonth() + 1} năm ${lunarYear}`;
 }
@@ -267,7 +267,11 @@ async function loadPreviewData() {
   if (typeof renderWedding === "function") {
     renderWedding(w);
     // Lời chúc: bản xem thử dựng dải + ô nhập bằng dữ liệu mẫu để chủ thiệp gõ
-    // thử; initWishes tự chặn nút Gửi khi đang ở chế độ xem thử.
+    // thử; initWishes tự chặn nút Gửi khi đang ở chế độ xem thử. Dạng hiện lấy
+    // theo CX_THEME.wishesMode của mẫu — thiệp thật thì chủ thiệp tự chọn.
+    if (window.CX_THEME?.wishesMode) {
+      w.theme_setting = { wishes_mode: window.CX_THEME.wishesMode };
+    }
     if (typeof initWishes === "function") initWishes(w);
   } else {
     console.error("renderWedding function not found");

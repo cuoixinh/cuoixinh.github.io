@@ -74,9 +74,9 @@
   ],
   "love_story": [
     {
-      "date": "09/2022",
-      "title": "Cuộc gặp gỡ định mệnh",
-      "content": "Vào một buổi chiều thu lãng mạn, chúng mình tình cờ gặp nhau tại quán cà phê quen thuộc. Ánh mắt chạm nhau, và từ đó, một câu chuyện tình yêu diệu kỳ đã bắt đầu.",
+      "date": "05/2021",
+      "title": "Chung một chuyến xe",
+      "content": "Hai đứa ngồi cạnh nhau trên chuyến xe khách Hà Nội – Bắc Ninh, bắt chuyện chỉ vì cùng đọc một cuốn sách.",
       "image_url": "love-story-01.webp",
       "focal_point": {
         "x": 44,
@@ -84,9 +84,9 @@
       }
     },
     {
-      "date": "Đông 2022",
-      "title": "Những buổi hẹn hò đầu tiên",
-      "content": "Chúng mình đã dành vô vàn buổi tối để cùng nhau khám phá phố phường, chia sẻ những câu chuyện và ước mơ. Mỗi khoảnh khắc bên nhau đều thật đáng nhớ và ý nghĩa.",
+      "date": "11/2021",
+      "title": "Lời tỏ tình muộn",
+      "content": "Sau sáu tháng nhắn tin mỗi tối, anh mới dám nói ra điều lẽ ra nên nói từ chuyến xe hôm ấy.",
       "image_url": "love-story-02.webp",
       "focal_point": {
         "x": 44,
@@ -94,9 +94,9 @@
       }
     },
     {
-      "date": "Hè 2023",
-      "title": "Chuyến đi đáng nhớ",
-      "content": "Một chuyến đi biển đã gắn kết hai trái tim hơn bao giờ hết. Chúng mình nhận ra rằng, dù đi đâu hay làm gì, chỉ cần có nhau là đủ.",
+      "date": "04/2024",
+      "title": "Về thưa chuyện hai bên",
+      "content": "Lần đầu anh xách giỏ trái cây về Đại Bái, run hơn cả ngày bảo vệ luận văn.",
       "image_url": "love-story-03.webp",
       "focal_point": {
         "x": 44,
@@ -104,9 +104,9 @@
       }
     },
     {
-      "date": "CUối năm 2023",
-      "title": "Lời cầu hôn ngọt ngào",
-      "content": "Trong một buổi tối lãng mạn dưới ánh nến lung linh, anh đã quỳ gối và trao em chiếc nhẫn. Giây phút ấy, cả thế giới như ngừng lại, và em đã nói",
+      "date": "02/2026",
+      "title": "Lời cầu hôn",
+      "content": "Vẫn trên chuyến xe quen thuộc ấy, anh đưa ra chiếc nhẫn và hỏi em câu quan trọng nhất.",
       "image_url": "love-story-04.webp",
       "focal_point": {
         "x": 49,
@@ -115,42 +115,42 @@
     }
   ],
   "content": {
-    "groom_name": "Quang Vinh",
-    "bride_name": "Hải Yến",
-    "groom_father": "Đoàn Hữu Đức",
-    "groom_mother": "Nguyễn Thị Lan",
-    "groom_address": "Số 36, Đường Hoàng Cầu, Phường Ô Chợ Dừa, Quận Đống Đa, Hà Nội",
-    "bride_father": "Vũ Văn Hùng",
-    "bride_mother": "Trần Thị Mai",
-    "bride_address": "Số 8, Ngõ 12, Đường Lạch Tray, Phường Kênh Dương, Quận Lê Chân, Hải Phòng",
+    "groom_name": "Gia Bảo",
+    "bride_name": "Ngọc Hân",
+    "groom_father": "Ông Lê Gia Khánh",
+    "groom_mother": "Bà Phạm Thị Nhung",
+    "groom_address": "Số 24, Ngõ 82 Phố Chùa Láng, Phường Láng Thượng, Hà Nội",
+    "bride_father": "Ông Nguyễn Văn Chiến",
+    "bride_mother": "Bà Ngô Thị Bích",
+    "bride_address": "Thôn Đại Bái, Xã Đại Bái, Tỉnh Bắc Ninh",
     "ceremony_name": "Lễ Thành Hôn",
-    "ceremony_date": "2026-10-18",
-    "ceremony_time": "10:00",
-    "ceremony_lunar": "Tức ngày 9 tháng 9 năm Nhâm Dần",
-    "ceremony_location": "Trung Tâm Tiệc Cưới Star Galaxy, Hà Nội",
+    "ceremony_date": "2026-11-08",
+    "ceremony_time": "11:00",
+    "ceremony_lunar": "Tức ngày 30 tháng 9 năm Bính Ngọ",
+    "ceremony_location": "Nhà hàng Tiệc cưới Sen Hồng, 145 Trần Duy Hưng, Hà Nội",
     "vu_quy_enabled": true,
-    "vu_quy_time": "09:00",
-    "vu_quy_location": "Tư gia nhà gái",
-    "groom_party_date": "2026-10-18",
-    "groom_party_time": "18:00",
-    "groom_party_lunar": "Tức ngày 9 tháng 9 năm Nhâm Dần",
+    "vu_quy_time": "08:00",
+    "vu_quy_location": "Tư gia nhà gái — Thôn Đại Bái, Xã Đại Bái, Tỉnh Bắc Ninh",
+    "groom_party_date": "2026-11-08",
+    "groom_party_time": "11:00",
+    "groom_party_lunar": "Tức ngày 30 tháng 9 năm Bính Ngọ",
     "groom_party_show_location": true,
-    "groom_party_location": "Trung Tâm Tiệc Cưới Star Galaxy, Hà Nội",
-    "bride_party_date": "2026-10-17",
-    "bride_party_time": "18:00",
-    "bride_party_lunar": "Tức ngày 8 tháng 9 năm Nhâm Dần",
+    "groom_party_location": "Nhà hàng Tiệc cưới Sen Hồng, 145 Trần Duy Hưng, Hà Nội",
+    "bride_party_date": "2026-11-07",
+    "bride_party_time": "17:30",
+    "bride_party_lunar": "Tức ngày 29 tháng 9 năm Bính Ngọ",
     "bride_party_show_location": true,
-    "bride_party_location": "Nhà Hàng Gia Viên, Hải Phòng",
-    "groom_bank_name": "VCB",
-    "groom_bank_number": "0011000888888",
-    "groom_bank_owner": "DOAN QUANG VINH",
-    "bride_bank_name": "MB",
-    "bride_bank_number": "88888888888",
-    "bride_bank_owner": "VU THI HAI YEN",
-    "story_quote": "Tình yêu là phép màu kỳ diệu nhất, biến hai cuộc đời thành một bản tình ca bất tận.",
+    "bride_party_location": "Tư gia nhà gái — Thôn Đại Bái, Xã Đại Bái, Tỉnh Bắc Ninh",
+    "groom_bank_name": "Vietcombank",
+    "groom_bank_number": "1012456789011",
+    "groom_bank_owner": "LE GIA BAO",
+    "bride_bank_name": "BIDV",
+    "bride_bank_number": "21098765432100",
+    "bride_bank_owner": "NGUYEN NGOC HAN",
+    "story_quote": "Chúng mình không hứa điều gì to tát, chỉ hứa mỗi sáng thức dậy đều chọn nhau thêm một lần nữa.",
     "rsvp_enabled": true,
-    "rsvp_message": "Sự hiện diện và lời chúc phúc của quý vị là niềm vinh hạnh lớn nhất đối với chúng mình. Xin chân thành cảm ơn!",
-    "footer_text": "Hạnh phúc lớn nhất là khi hai trái tim đồng điệu tìm thấy nhau. Chúng mình mong được chia sẻ niềm vui này cùng tất cả mọi người.",
+    "rsvp_message": "Bạn nhớ bấm xác nhận giúp chúng mình nhé, để hôm ấy chắc chắn có một chỗ ngồi mang tên bạn.",
+    "footer_text": "Cảm ơn bạn đã đọc tới dòng cuối cùng của tấm thiệp này. Hẹn gặp bạn trong ngày vui của chúng mình!",
     "music_url": "https://www.youtube.com/watch?v=JgTZvDbaTtg",
     "enable_family": true,
     "enable_party": true,
@@ -162,46 +162,55 @@
     "enable_footer": true,
     "timeline": [
       {
-        "time": "09:00",
+        "time": "17:30",
+        "title": "Đón khách tại tư gia nhà gái",
+        "type": "bride-party"
+      },
+      {
+        "time": "18:00",
+        "title": "Khai tiệc mừng ngày vui nhà gái",
+        "type": "bride-party"
+      },
+      {
+        "time": "20:00",
+        "title": "Chụp ảnh lưu niệm cùng họ hàng",
+        "type": "bride-party"
+      },
+      {
+        "time": "08:00",
         "title": "Lễ Vu Quy tại tư gia nhà gái",
         "type": "ceremony"
       },
       {
-        "time": "18:00",
-        "title": "Tiệc Cưới thân mật tại Hải Phòng",
-        "type": "party"
-      },
-      {
-        "time": "17:00",
-        "title": "Đón khách",
-        "type": "party"
-      },
-      {
-        "time": "10:00",
-        "title": "Lễ Thành Hôn tại Trung Tâm Tiệc Cưới",
+        "time": "09:30",
+        "title": "Đoàn nhà trai đón dâu về Hà Nội",
         "type": "ceremony"
       },
       {
-        "time": "18:00",
-        "title": "Tiệc Cưới chính thức tại Hà Nội",
+        "time": "11:00",
+        "title": "Lễ Thành Hôn tại nhà hàng Sen Hồng",
+        "type": "ceremony"
+      },
+      {
+        "time": "10:30",
+        "title": "Đón khách và nhận lời chúc",
         "type": "party"
       },
       {
-        "time": "18:30",
-        "title": "Khai tiệc",
+        "time": "11:30",
+        "title": "Khai tiệc mừng hạnh phúc",
         "type": "party"
       },
       {
-        "time": "19:00",
-        "title": "Nghi thức cắt bánh và nâng ly",
-        "type": "party"
-      },
-      {
-        "time": "19:30",
-        "title": "Giao lưu cùng khách quý",
+        "time": "13:00",
+        "title": "Cảm ơn và tiễn khách",
         "type": "party"
       }
-    ]
+    ],
+    "ceremony_map_embed_url": "https://maps.google.com/maps?q=21.0102,105.7989&output=embed&hl=vi",
+    "vu_quy_map_embed_url": "https://maps.google.com/maps?q=21.0553,106.1152&output=embed&hl=vi",
+    "groom_party_map_embed_url": "https://maps.google.com/maps?q=21.0102,105.7989&output=embed&hl=vi",
+    "bride_party_map_embed_url": "https://maps.google.com/maps?q=21.0553,106.1152&output=embed&hl=vi"
   },
-  "updated_at": "2026-08-02T04:39:22.191Z"
+  "updated_at": "2026-09-23T17:11:25.558Z"
 }

@@ -16,6 +16,13 @@
 window.CX_THEME = {
   id: "basic-gold",
 
+  // Dạng hiện lời chúc của BẢN XEM THỬ (preview-data.js đọc). Thiệp thật
+  // lấy theo theme_setting.wishes_mode chủ thiệp chọn ở tab Giao diện.
+  wishesMode: "live",
+
+  // Dạng trình phát nhạc — theme-boot.js dựng vào #cx-music-mount.
+  music: { variant: "bar", chrome: "fixed-top" },
+
   // Font/màu GỐC: giá trị mặc định trên thanh chỉnh ở tab Giao diện và là điểm
   // "Khôi phục mặc định".
     // Bộ màu MẶC ĐỊNH của mẫu — bản khai máy đọc được của đúng những giá trị

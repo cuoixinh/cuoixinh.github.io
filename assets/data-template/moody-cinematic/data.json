@@ -75,55 +75,57 @@
   "love_story": [
     {
       "title": "Ngày mình gặp nhau",
-      "content": "Vào một buổi chiều thu lãng mạn, chúng mình tình cờ gặp nhau tại quán cà phê quen thuộc. Ánh mắt chạm nhau, và từ đó, một câu chuyện tình yêu diệu kỳ đã bắt đầu. Chúng mình đã dành vô vàn buổi tối để cùng nhau khám phá phố phường, chia sẻ những câu chuyện và ước mơ. Mỗi khoảnh khắc bên nhau đều thật đáng nhớ và ý nghĩa.",
+      "content": "Một quán bar nhỏ, một bản nhạc cũ, và hai người lạ ngồi cạnh nhau tới tận khi phố vắng.",
       "image_url": "love-story-01.webp",
       "focal_point": {
         "x": 44,
         "y": 26
-      }
+      },
+      "date": "01/2022"
     },
     {
       "title": "Và mình chọn nhau",
-      "content": "Một chuyến đi biển đã gắn kết hai trái tim hơn bao giờ hết. Chúng mình nhận ra rằng, dù đi đâu hay làm gì, chỉ cần có nhau là đủ. Trong một buổi tối lãng mạn dưới ánh nến lung linh, anh đã quỳ gối và trao em chiếc nhẫn. Giây phút ấy, cả thế giới như ngừng lại, và em đã nói"
+      "content": "Bốn năm sau, cũng bản nhạc ấy, anh hỏi em một câu mà em đã biết câu trả lời từ lâu.",
+      "date": "06/2026"
     }
   ],
   "content": {
-    "groom_name": "Quang Vinh",
-    "bride_name": "Hải Yến",
-    "groom_father": "Đoàn Hữu Đức",
-    "groom_mother": "Nguyễn Thị Lan",
-    "groom_address": "Số 36, Đường Hoàng Cầu, Phường Ô Chợ Dừa, Quận Đống Đa, Hà Nội",
-    "bride_father": "Vũ Văn Hùng",
-    "bride_mother": "Trần Thị Mai",
-    "bride_address": "Số 8, Ngõ 12, Đường Lạch Tray, Phường Kênh Dương, Quận Lê Chân, Hải Phòng",
+    "groom_name": "Trung Kiên",
+    "bride_name": "Hà Linh",
+    "groom_father": "Ông Đặng Minh Tuấn",
+    "groom_mother": "Bà Lý Thị Thu Vân",
+    "groom_address": "Số 88 Nguyễn Huệ, Phường Bến Nghé, TP. Hồ Chí Minh",
+    "bride_father": "Ông Cao Văn Bình",
+    "bride_mother": "Bà Tạ Thị Hồng Nhung",
+    "bride_address": "Số 31 Thùy Vân, Phường Thắng Tam, TP. Vũng Tàu",
     "ceremony_name": "Lễ Thành Hôn",
-    "ceremony_date": "2026-10-18",
-    "ceremony_time": "10:00",
-    "ceremony_lunar": "Tức ngày 9 tháng 9 năm Nhâm Dần",
-    "ceremony_location": "Trung Tâm Tiệc Cưới Star Galaxy, Hà Nội",
+    "ceremony_date": "2026-11-21",
+    "ceremony_time": "17:30",
+    "ceremony_lunar": "Tức ngày 13 tháng 10 năm Bính Ngọ",
+    "ceremony_location": "Rooftop Saigon Prince, 63 Nguyễn Huệ, TP. Hồ Chí Minh",
     "vu_quy_enabled": true,
     "vu_quy_time": "09:00",
-    "vu_quy_location": "Tư gia nhà gái",
-    "groom_party_date": "2026-10-18",
-    "groom_party_time": "18:00",
-    "groom_party_lunar": "Tức ngày 9 tháng 9 năm Nhâm Dần",
+    "vu_quy_location": "Tư gia nhà gái — Số 31 Thùy Vân, Phường Thắng Tam, TP. Vũng Tàu",
+    "groom_party_date": "2026-11-21",
+    "groom_party_time": "18:30",
+    "groom_party_lunar": "Tức ngày 13 tháng 10 năm Bính Ngọ",
     "groom_party_show_location": true,
-    "groom_party_location": "Trung Tâm Tiệc Cưới Star Galaxy, Hà Nội",
-    "bride_party_date": "2026-10-17",
+    "groom_party_location": "Rooftop Saigon Prince, 63 Nguyễn Huệ, TP. Hồ Chí Minh",
+    "bride_party_date": "2026-11-20",
     "bride_party_time": "18:00",
-    "bride_party_lunar": "Tức ngày 8 tháng 9 năm Nhâm Dần",
+    "bride_party_lunar": "Tức ngày 12 tháng 10 năm Bính Ngọ",
     "bride_party_show_location": true,
-    "bride_party_location": "Nhà Hàng Gia Viên, Hải Phòng",
-    "groom_bank_name": "VCB",
-    "groom_bank_number": "0011000888888",
-    "groom_bank_owner": "DOAN QUANG VINH",
-    "bride_bank_name": "MB",
-    "bride_bank_number": "88888888888",
-    "bride_bank_owner": "VU THI HAI YEN",
-    "story_quote": "Tình yêu là phép màu kỳ diệu nhất, biến hai cuộc đời thành một bản tình ca bất tận.",
+    "bride_party_location": "Tư gia nhà gái — Số 31 Thùy Vân, Phường Thắng Tam, TP. Vũng Tàu",
+    "groom_bank_name": "ACB",
+    "groom_bank_number": "246813579000",
+    "groom_bank_owner": "DANG TRUNG KIEN",
+    "bride_bank_name": "VPBank",
+    "bride_bank_number": "135724680111",
+    "bride_bank_owner": "CAO HA LINH",
+    "story_quote": "Thành phố này có tám triệu người. Anh chỉ cần tìm đúng một.",
     "rsvp_enabled": true,
-    "rsvp_message": "Sự hiện diện và lời chúc phúc của quý vị là niềm vinh hạnh lớn nhất đối với chúng mình.",
-    "footer_text": "Hạnh phúc lớn nhất là khi hai trái tim đồng điệu tìm thấy nhau. Chúng mình mong được chia sẻ niềm vui này cùng tất cả mọi người.",
+    "rsvp_message": "Xác nhận giúp tụi mình nhé — tối đó, trên tầng thượng, sẽ có một ly rượu mang tên bạn.",
+    "footer_text": "Hẹn gặp bạn khi thành phố lên đèn.",
     "music_url": "https://www.youtube.com/watch?v=JgTZvDbaTtg",
     "enable_family": true,
     "enable_party": true,
@@ -136,47 +138,36 @@
     "groom_phone": "0978123456",
     "timeline": [
       {
+        "time": "18:00",
+        "title": "Tiệc thân mật nhà gái tại Vũng Tàu",
+        "type": "bride-party"
+      },
+      {
         "time": "09:00",
         "title": "Lễ Vu Quy tại tư gia nhà gái",
         "type": "ceremony"
       },
       {
-        "time": "18:00",
-        "title": "Tiệc Cưới thân mật tại Hải Phòng",
-        "type": "party"
-      },
-      {
-        "time": "17:00",
-        "title": "Đón khách",
-        "type": "party"
-      },
-      {
-        "time": "10:00",
-        "title": "Lễ Thành Hôn tại Trung Tâm Tiệc Cưới",
+        "time": "17:30",
+        "title": "Lễ Thành Hôn lúc hoàng hôn",
         "type": "ceremony"
       },
       {
-        "time": "18:00",
-        "title": "Tiệc Cưới chính thức tại Hà Nội",
-        "type": "party"
-      },
-      {
         "time": "18:30",
-        "title": "Khai tiệc",
+        "title": "Khai tiệc trên tầng thượng",
         "type": "party"
       },
       {
-        "time": "19:00",
-        "title": "Nghi thức cắt bánh và nâng ly",
-        "type": "party"
-      },
-      {
-        "time": "19:30",
-        "title": "Giao lưu cùng khách quý",
+        "time": "20:30",
+        "title": "Nhạc sống và khiêu vũ",
         "type": "party"
       }
     ],
-    "demo_fill_love_story": true
+    "demo_fill_love_story": true,
+    "ceremony_map_embed_url": "https://maps.google.com/maps?q=10.7738,106.7046&output=embed&hl=vi",
+    "vu_quy_map_embed_url": "https://maps.google.com/maps?q=10.3355,107.0942&output=embed&hl=vi",
+    "groom_party_map_embed_url": "https://maps.google.com/maps?q=10.7738,106.7046&output=embed&hl=vi",
+    "bride_party_map_embed_url": "https://maps.google.com/maps?q=10.3355,107.0942&output=embed&hl=vi"
   },
-  "updated_at": "2026-08-19T00:00:00.000Z"
+  "updated_at": "2026-09-23T17:11:25.561Z"
 }

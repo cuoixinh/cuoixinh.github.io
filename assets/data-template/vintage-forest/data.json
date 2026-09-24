@@ -75,55 +75,57 @@
   "love_story": [
     {
       "title": "Ngày mình gặp nhau",
-      "content": "Vào một buổi chiều thu lãng mạn, chúng mình tình cờ gặp nhau tại quán cà phê quen thuộc. Ánh mắt chạm nhau, và từ đó, một câu chuyện tình yêu diệu kỳ đã bắt đầu. Chúng mình đã dành vô vàn buổi tối để cùng nhau khám phá phố phường, chia sẻ những câu chuyện và ước mơ. Mỗi khoảnh khắc bên nhau đều thật đáng nhớ và ý nghĩa.",
+      "content": "Một chuyến trekking lạc đường ở Tà Năng, và người đưa anh về đúng lối lại là em.",
       "image_url": "love-story-01.webp",
       "focal_point": {
         "x": 44,
         "y": 26
-      }
+      },
+      "date": "2020"
     },
     {
       "title": "Và mình chọn nhau",
-      "content": "Một chuyến đi biển đã gắn kết hai trái tim hơn bao giờ hết. Chúng mình nhận ra rằng, dù đi đâu hay làm gì, chỉ cần có nhau là đủ. Trong một buổi tối lãng mạn dưới ánh nến lung linh, anh đã quỳ gối và trao em chiếc nhẫn. Giây phút ấy, cả thế giới như ngừng lại, và em đã nói"
+      "content": "Sáu năm và rất nhiều cung đường sau đó, anh hỏi em có muốn đi chung đường mãi không.",
+      "date": "2026"
     }
   ],
   "content": {
-    "groom_name": "Quang Vinh",
-    "bride_name": "Hải Yến",
-    "groom_father": "Đoàn Hữu Đức",
-    "groom_mother": "Nguyễn Thị Lan",
-    "groom_address": "Số 36, Đường Hoàng Cầu, Phường Ô Chợ Dừa, Quận Đống Đa, Hà Nội",
-    "bride_father": "Vũ Văn Hùng",
-    "bride_mother": "Trần Thị Mai",
-    "bride_address": "Số 8, Ngõ 12, Đường Lạch Tray, Phường Kênh Dương, Quận Lê Chân, Hải Phòng",
+    "groom_name": "Hữu Thắng",
+    "bride_name": "Lan Chi",
+    "groom_father": "Ông Kiều Văn Hòa",
+    "groom_mother": "Bà Nguyễn Thị Thanh Bình",
+    "groom_address": "Số 27 Trần Hưng Đạo, Phường Xuân Hương, TP. Đà Lạt",
+    "bride_father": "Ông Nguyễn Đắc Thọ",
+    "bride_mother": "Bà Trần Thị Hồng Gấm",
+    "bride_address": "Số 14 Lê Duẩn, Phường Tân Lập, TP. Buôn Ma Thuột",
     "ceremony_name": "Lễ Thành Hôn",
-    "ceremony_date": "2026-10-18",
-    "ceremony_time": "10:00",
-    "ceremony_lunar": "Tức ngày 9 tháng 9 năm Nhâm Dần",
-    "ceremony_location": "Trung Tâm Tiệc Cưới Star Galaxy, Hà Nội",
+    "ceremony_date": "2026-10-31",
+    "ceremony_time": "14:00",
+    "ceremony_lunar": "Tức ngày 22 tháng 9 năm Bính Ngọ",
+    "ceremony_location": "Vườn thông Dalat Retreat, Đường Khe Sanh, TP. Đà Lạt",
     "vu_quy_enabled": true,
-    "vu_quy_time": "09:00",
-    "vu_quy_location": "Tư gia nhà gái",
-    "groom_party_date": "2026-10-18",
-    "groom_party_time": "18:00",
-    "groom_party_lunar": "Tức ngày 9 tháng 9 năm Nhâm Dần",
+    "vu_quy_time": "08:00",
+    "vu_quy_location": "Tư gia nhà gái — Số 14 Lê Duẩn, Phường Tân Lập, TP. Buôn Ma Thuột",
+    "groom_party_date": "2026-10-31",
+    "groom_party_time": "16:00",
+    "groom_party_lunar": "Tức ngày 22 tháng 9 năm Bính Ngọ",
     "groom_party_show_location": true,
-    "groom_party_location": "Trung Tâm Tiệc Cưới Star Galaxy, Hà Nội",
-    "bride_party_date": "2026-10-17",
-    "bride_party_time": "18:00",
-    "bride_party_lunar": "Tức ngày 8 tháng 9 năm Nhâm Dần",
+    "groom_party_location": "Vườn thông Dalat Retreat, Đường Khe Sanh, TP. Đà Lạt",
+    "bride_party_date": "2026-10-29",
+    "bride_party_time": "17:00",
+    "bride_party_lunar": "Tức ngày 20 tháng 9 năm Bính Ngọ",
     "bride_party_show_location": true,
-    "bride_party_location": "Nhà Hàng Gia Viên, Hải Phòng",
-    "groom_bank_name": "VCB",
-    "groom_bank_number": "0011000888888",
-    "groom_bank_owner": "DOAN QUANG VINH",
-    "bride_bank_name": "MB",
-    "bride_bank_number": "88888888888",
-    "bride_bank_owner": "VU THI HAI YEN",
-    "story_quote": "Tình yêu là phép màu kỳ diệu nhất, biến hai cuộc đời thành một bản tình ca bất tận.",
+    "bride_party_location": "Tư gia nhà gái — Số 14 Lê Duẩn, Phường Tân Lập, TP. Buôn Ma Thuột",
+    "groom_bank_name": "BIDV",
+    "groom_bank_number": "620100112233",
+    "groom_bank_owner": "KIEU HUU THANG",
+    "bride_bank_name": "Nam A Bank",
+    "bride_bank_number": "998877665544",
+    "bride_bank_owner": "TRAN LAN CHI",
+    "story_quote": "Có những chuyện tình lớn lên chậm rãi như rừng thông — không ồn ào, nhưng đứng vững qua mọi mùa gió.",
     "rsvp_enabled": true,
-    "rsvp_message": "Sự hiện diện và lời chúc phúc của quý vị là niềm vinh hạnh lớn nhất đối với chúng mình. Xin chân thành cảm ơn!",
-    "footer_text": "Hạnh phúc lớn nhất là khi hai trái tim đồng điệu tìm thấy nhau. Chúng mình mong được chia sẻ niềm vui này cùng tất cả mọi người.",
+    "rsvp_message": "Đường lên rừng thông hơi xa, nên bạn xác nhận sớm giúp tụi mình để còn giữ chỗ nhé.",
+    "footer_text": "Cảm ơn bạn đã đi một quãng đường dài đến với ngày vui của chúng mình.",
     "music_url": "https://www.youtube.com/watch?v=JgTZvDbaTtg",
     "enable_family": true,
     "enable_party": true,
@@ -135,47 +137,36 @@
     "enable_footer": true,
     "timeline": [
       {
-        "time": "09:00",
+        "time": "17:00",
+        "title": "Tiệc thân mật nhà gái tại Buôn Ma Thuột",
+        "type": "bride-party"
+      },
+      {
+        "time": "08:00",
         "title": "Lễ Vu Quy tại tư gia nhà gái",
         "type": "ceremony"
       },
       {
-        "time": "18:00",
-        "title": "Tiệc Cưới thân mật tại Hải Phòng",
-        "type": "party"
-      },
-      {
-        "time": "17:00",
-        "title": "Đón khách",
-        "type": "party"
-      },
-      {
-        "time": "10:00",
-        "title": "Lễ Thành Hôn tại Trung Tâm Tiệc Cưới",
+        "time": "14:00",
+        "title": "Lễ Thành Hôn giữa rừng thông",
         "type": "ceremony"
       },
       {
+        "time": "16:00",
+        "title": "Tiệc chiều ngoài trời",
+        "type": "party"
+      },
+      {
         "time": "18:00",
-        "title": "Tiệc Cưới chính thức tại Hà Nội",
-        "type": "party"
-      },
-      {
-        "time": "18:30",
-        "title": "Khai tiệc",
-        "type": "party"
-      },
-      {
-        "time": "19:00",
-        "title": "Nghi thức cắt bánh và nâng ly",
-        "type": "party"
-      },
-      {
-        "time": "19:30",
-        "title": "Giao lưu cùng khách quý",
+        "title": "Đốt lửa trại và hát cùng nhau",
         "type": "party"
       }
     ],
-    "demo_fill_love_story": true
+    "demo_fill_love_story": true,
+    "ceremony_map_embed_url": "https://maps.google.com/maps?q=11.9538,108.4586&output=embed&hl=vi",
+    "vu_quy_map_embed_url": "https://maps.google.com/maps?q=12.6797,108.0378&output=embed&hl=vi",
+    "groom_party_map_embed_url": "https://maps.google.com/maps?q=11.9538,108.4586&output=embed&hl=vi",
+    "bride_party_map_embed_url": "https://maps.google.com/maps?q=12.6797,108.0378&output=embed&hl=vi"
   },
-  "updated_at": "2026-08-19T00:00:00.000Z"
+  "updated_at": "2026-09-23T17:11:25.566Z"
 }

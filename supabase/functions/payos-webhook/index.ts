@@ -2,7 +2,7 @@
 // This is needed because PayOS webhook doesn't send Authorization header
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createDbClient } from "../_shared/db-client.ts";
 import { withAxiom, type Logger } from "../_shared/axiom.ts";
 
 const corsHeaders = {
@@ -194,10 +194,7 @@ serve(withAxiom("payos-webhook", async (req, log) => {
       }
 
       // Initialize Supabase client with service role key
-      const supabaseClient = createClient(
-        Deno.env.get("SUPABASE_URL") ?? "",
-        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-      );
+      const supabaseClient = createDbClient(log);
 
       // Get wedding record by order_id
       // PayOS sends orderCode as number, but we store it as "ORDER-{orderCode}"

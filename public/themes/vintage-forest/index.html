@@ -21,7 +21,7 @@
         document.head.appendChild(m);
       })();
     </script>
-    <link rel="icon" type="image/png" href="../../../assets/icons/logo.png" />
+    <link rel="icon" type="image/png" href="../../../assets/icons/favicon.png" />
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
@@ -45,10 +45,11 @@
       document.addEventListener("DOMContentLoaded", () => window.lucide?.createIcons());
     </script>
     <script src="../../../core/x-button.js"></script>
-    <!-- Mẫu này tự vẽ nút nhạc, KHÔNG dựng thanh nhạc dùng chung — vẫn phải nạp
-         file này vì khách có thể tự thả trình phát lên thiệp ở tab Giao diện
-         (CX_ELEMENTS gọi CXMusicPlayer.build). -->
+    <!-- Markup trình phát nhạc. Dạng dùng ở mẫu này khai tại CX_THEME.music
+         (index.js), theme-boot.js dựng vào #cx-music-mount. Khách còn có
+         thể tự thả một trình phát lên thiệp ở tab Giao diện. -->
     <script src="../../../core/components/music-player.js"></script>
+    <script src="../../../core/helpers/no-zoom.js"></script>
   </head>
 
   <!-- VINTAGE FOREST — trắng & hồng phấn, tối giản kiểu ảnh chụp.
@@ -59,16 +60,11 @@
        màn bìa. Dựng từ public/themes/romantic-gold/. -->
 
   <body class="cx-screen-h flex justify-center items-start md:py-5">
-    <!-- ═══ Nhạc nền — đĩa tròn neo góc ═════════════════════════════════════
-         Component dùng chung (mẫu "mini" + chrome "fixed-corner"): logic
-         phát/dừng, ảnh bìa, ẩn khi thiệp chưa có nhạc đều do core lo. Phải là
-         thẻ con ĐẦU TIÊN của body. -->
+    <!-- ═══ Trình phát nhạc (enable_music) ═══════════════════════════════
+         Dạng khai ở CX_THEME.music, theme-boot.js dựng vào đây. Thẻ phải
+         là con ĐẦU TIÊN của <body>: bong bóng thu gọn dùng position:fixed
+         nên tổ tiên có transform sẽ neo nó sai chỗ. -->
     <div id="cx-music-mount"></div>
-    <script>
-      document.currentScript.previousElementSibling.replaceWith(
-        CXMusicPlayer.build({ variant: "mini", chrome: "fixed-corner" }),
-      );
-    </script>
 
     <!-- ═══ THÂN THIỆP ═════════════════════════════════════════════════════
          Không có màn bìa: mở link là vào thẳng poster mở đầu, nên #main-card

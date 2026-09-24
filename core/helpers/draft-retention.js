@@ -43,8 +43,48 @@
       purged.push(key.slice(prefix.length));
     });
 
-    if (purged.length) _dropOrders(purged);
+    if (purged.length) {
+      _dropOrders(purged);
+      _dropPendingImages(purged);
+    }
     return purged;
+  }
+
+  // Ảnh chờ upload của nháp nằm ở IndexedDB (invitation-setup/js/02-idb.js), không
+  // dọn cùng là File nằm lại vĩnh viễn. Tên DB/store/phiên bản phải khớp 02-idb.js;
+  // onupgradeneeded cũng tạo store y hệt, vì mở lần đầu ở đây mà thiếu store thì
+  // 02-idb.js (cùng phiên bản) không còn dịp tạo nữa.
+  function _dropPendingImages(ids) {
+    if (!ids.length || typeof indexedDB === "undefined") return;
+    const gone = new Set(ids);
+    try {
+      const req = indexedDB.open("cuoixinh_pending", 1);
+      req.onupgradeneeded = (e) => {
+        const db = e.target.result;
+        if (!db.objectStoreNames.contains("uploads"))
+          db.createObjectStore("uploads", { keyPath: "key" });
+      };
+      req.onsuccess = (e) => {
+        const db = e.target.result;
+        const store = db.transaction("uploads", "readwrite").objectStore("uploads");
+        store.openCursor().onsuccess = (ev) => {
+          const cur = ev.target.result;
+          if (!cur) return;
+          if (gone.has(cur.value?.weddingId)) cur.delete();
+          cur.continue();
+        };
+      };
+    } catch (e) {
+      console.error("draft-retention IDB:", e);
+    }
+  }
+
+  // Khách tự xoá một thiệp (my-invitations): gỡ luôn nháp local + ảnh chờ upload,
+  // không thì "Tạo thiệp" hỏi lại "thiệp đang viết dở" và nháp sống lại.
+  function cxDropLocalDraft(id) {
+    if (!id) return;
+    removeCache(buildCacheKey("draft", id));
+    _dropPendingImages([id]);
   }
 
   // Nháp đã xoá mà đơn vẫn nằm trong cache "orders" thì trang Quản lý thiệp cưới
@@ -64,5 +104,6 @@
   }
 
   window.cxSweepLocalDrafts = cxSweepLocalDrafts;
+  window.cxDropLocalDraft = cxDropLocalDraft;
   cxSweepLocalDrafts();
 })();

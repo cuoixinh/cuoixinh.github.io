@@ -306,6 +306,11 @@ deploy thì đọc `docs/deploy-cloudflare-pages.md` trước.
   crawler Messenger/Zalo/Facebook KHÔNG chạy JS nên trang thiệp không tự khai meta được.
   Worker chỉ nhận path lạ (`/<slug>`), hỏi Edge Function `?slug=` rồi trả HTML mang meta +
   đúng đoạn chuyển hướng của `404.html` — sửa `404.html` thì sửa cả bản sao trong đó.
+  Ảnh của thẻ phát lại qua `/__og/<tên file>`, mã hoá lại bằng Cloudflare Images
+  Transformations (phải BẬT cho zone, nếu không worker lùi về file gốc): trỏ og:image
+  thẳng vào bucket thì Facebook bỏ ô ảnh với file còn EXIF của máy chụp — ảnh chụp bằng
+  điện thoại hay dính, ảnh nào bị nén lại lúc upload thì không — trong khi Zalo và trình
+  duyệt vẫn hiện, rất dễ tưởng đã xong.
   File này KHÔNG nằm trong `dist/` nên đừng khai vào `INCLUDE`. `vars` (EDGE_URL, ANON_KEY,
   STORAGE_URL, ENCRYPTION_KEY) khai thẳng ở hai `wrangler*.jsonc` vì chúng không đi qua
   build — lệch với `core/config*.js` là thẻ đọc nhầm project, `npm run check:config` gác.
@@ -399,7 +404,10 @@ GitHub Pages chạy Jekyll nên đường dẫn kiểu đó không được publ
   `swatches` (màu gợi ý trong bộ chọn màu), `reveal`, `focus` (id mục, chỉ khai cái khác
   mặc định), `suggest` (selector mục mà bảng đề xuất mẫu khác bung ra ở bản xem thử —
   mặc định `#section-gift`), `skipSteps` (bước mà trang Thiết lập KHÔNG hiện vì mẫu không
-  vẽ mục đó — id trùng `CX_STEPS`), `onOpen`.
+  vẽ mục đó — id trùng `CX_STEPS`), `wishesMode` (dạng lời chúc của BẢN XEM THỬ, chỉ
+  `preview-data.js` đọc — thiệp thật lấy theo `theme_setting.wishes_mode`),
+  `music` (`{variant, chrome}` của `CXMusicPlayer.build`, `theme-boot.js` dựng vào
+  `#cx-music-mount`), `onOpen`.
   Trang Thiết lập đọc `swatches` và `palette` **qua iframe xem trước** của tab Giao diện.
 - **`CX_THEME.palette`** khai đúng những giá trị `:root` của `theme.css` dưới dạng hex —
   bản khai máy đọc được để trang Thiết lập hiện mục "Mặc định". Hai nơi lệch nhau thì
@@ -552,6 +560,11 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   viết `onclick` vào markup.
 - **Trình phát nhạc:** markup ở `core/components/music-player.js`, logic ở
   `music-player-helper.js` — theme chỉ đánh dấu vai trò bằng `data-cx-music="…"`.
+  Có 6 dạng (`bar` · `mini` · `pill` · `square` · `disc` · `ring`); mẫu KHAI dạng
+  ở `CX_THEME.music` chứ không tự gọi `build()`, vì `index.js` còn được nạp trong
+  iframe rỗng chỉ để đọc bản khai. Thanh ngang (`bar` + `fixed-top`) chỉ dùng ở
+  `basic-gold`, các mẫu khác neo góc màn (`fixed-corner`) — khổ neo góc của hai
+  dạng không tròn (`pill`, `square`) khai riêng ở `styles/_music-player.css`.
 - **Thành phần thả lên thiệp:** danh mục `core/helpers/element-helper.js`, runtime
   `theme-setting-helper.js`, bảng chọn `05-theme-panel.js`; lưu trong
   `theme_setting.elements` nên không cần changelog DB. Ô màu dùng khoá cố định ở
@@ -644,6 +657,9 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   `min-height: calc(var(--vh, 1vh) * 100)` rồi `calc(var(--vh, 1svh) * 100)` — thêm một
   dòng `100svh` trần sau đó là đè mất `--vh`. Trang mới cần thì tự thêm thẻ script (thiệp
   và trang chủ đã có); thiếu thì lùi về `1svh`, đúng khổ nhưng kém ổn định.
+- **Chặn zoom: mọi trang `index.html` nạp `core/helpers/no-zoom.js` trong `<head>`** — trang
+  mới cũng phải thêm (`base-theme` có sẵn). Safari iOS bỏ qua `user-scalable=no` của thẻ
+  viewport, nên thiếu thẻ script là trang đó chụm hai ngón vẫn zoom được.
 - **Sơ đồ Mermaid:** sửa sơ đồ thì đồng bộ luôn bảng roadmap + text mô tả bên dưới.
 - **Trần số thiệp mỗi tài khoản:** một tài khoản chỉ giữ được `MAX_WEDDINGS_PER_USER`
   thiệp còn hiện trong danh sách (nháp đã lưu + đã xuất bản; nháp chỉ nằm trong

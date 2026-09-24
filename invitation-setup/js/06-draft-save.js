@@ -48,7 +48,9 @@ function _doAutoSave() {
   // ảnh `blob:`/`data:` lọt vào bản nháp (xem core/utils.js).
   _dropLocalOnlyImageRefs(payload);
 
-  saveLocalDraft(payload);
+  // Thiệp đã lên DB thì không giữ bản sao local (loadData không đọc nó) — bản sao
+  // đó chỉ thành "thiệp đang viết dở" ma và bị màn thanh toán đẩy đè lên DB.
+  if (_isLocalDraft) saveLocalDraft(payload);
   _syncLocalOrder(); // bản nháp cũng hiện trong "Đơn hàng" (khách: guestOrders) ngay khi đã có tên
 }
 

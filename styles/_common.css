@@ -1483,8 +1483,8 @@ x-button {
   line-height: inherit;
 }
 
-/* ── KHUNG MÁY CHO BẢN XEM TRƯỚC TRÊN MÁY TÍNH ─────────────────────────────
-   Thiệp mở với ?preview=true trên màn từ 820px: theme-boot.js thay nội dung
+/* ── KHUNG MÁY KHI XEM TRÊN MÁY TÍNH ───────────────────────────────────────
+   Thiệp (mẫu xem thử lẫn thiệp thật) mở trên màn từ 820px: theme-boot.js thay nội dung
    trang bằng khung điện thoại, thiệp THẬT chạy trong iframe bên trong (cùng URL
    + shell=0) ở đúng khổ 390px. Thân máy là assets/images/iphone_mockup.svg
    (383×785, vùng màn hình TRONG SUỐT) phủ LÊN iframe — đổi ảnh khác thì phải đo
@@ -1922,6 +1922,16 @@ button.cx-pchrome-btn:hover {
   opacity: 1;
 }
 
+/* Chưa có lời chúc nào → không còn chữ để tách khỏi thiệp, bỏ màn phủ đáy
+   (xem _cxWishSyncDockFade). Rỗng hẳn (không cả ô nhập) thì ẩn luôn dải. */
+.cx-wdock.is-bare::before {
+  content: none;
+}
+
+.cx-wdock.is-blank {
+  display: none;
+}
+
 /* CHỈ một dải ở ĐÁY, cao vừa đủ ôm hàng nút + ô nhập rồi tan hết — phần danh
    sách lời chúc phía trên không được phủ gì cả, bong bóng tự có nền riêng.
    Nằm dưới nội dung (.cx-wdock-inner z-index 1) và KHÔNG bắt chạm — dải vốn
@@ -2055,23 +2065,6 @@ button.cx-pchrome-btn:hover {
 
 .cx-wish-text {
   display: block;
-}
-
-/* Dòng thay chỗ ô nhập khi khách vào bằng link chung (không gửi được) — cùng
-   mặt giấy với ô nhập để đáy dải vẫn là một khối, chỉ nhạt hơn. */
-.cx-wdock-note {
-  align-self: stretch;
-  max-width: 100%;
-  padding: 9px 14px;
-  border-radius: 999px;
-  font-size: 12px;
-  line-height: 1.5;
-  color: rgb(var(--cx-wish-text-rgb) / 0.85);
-  background: rgb(var(--cx-wish-field-rgb) / calc(var(--cx-wish-field-a) - 0.1));
-  border: 1px solid rgb(var(--cx-wish-accent-rgb) / 0.16);
-  box-shadow: 0 4px 14px rgb(0 0 0 / 0.08);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
 }
 
 /* Hàng nút nhỏ giữa danh sách và ô nhập: ẩn/hiện dải đang trôi và mở bảng xem
@@ -2576,7 +2569,7 @@ button.cx-pchrome-btn:hover {
   width: 100%;
   max-width: 520px;
   margin: 0 auto;
-  padding: 40px 16px 16px;
+  padding: 40px 16px;
 }
 
 /* Tiêu đề mục: chữ nhỏ in hoa giữa hai vạch mảnh — cùng lối với đầu mục của các
@@ -2831,18 +2824,19 @@ button.cx-pchrome-btn:hover {
   text-align: right;
 }
 
-.cx-wsec .cx-wdock-note {
-  align-self: stretch;
-  text-align: center;
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-}
-
 /* Chỗ trống ở đáy thân thiệp cho hàng nút + ô nhập, do JS chèn khi dựng dải.
    Chỉ cần bằng hai thứ đó: phần danh sách phía trên trong suốt nên để nó đè lên
-   thiệp là đúng. */
+   thiệp là đúng. `.is-slim` = khách link chung, không có ô nhập. */
 .cx-wdock-spacer {
   height: 104px;
+}
+
+.cx-wdock-spacer.is-slim {
+  height: 48px;
+}
+
+.cx-wdock-spacer.is-blank {
+  height: 0;
 }
 
 @media (prefers-reduced-motion: reduce) {

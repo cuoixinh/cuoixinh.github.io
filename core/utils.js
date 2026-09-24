@@ -1047,26 +1047,6 @@ function closeTimePicker() {
   window._timePickerCallback = null;
 }
 
-// ============= DISABLE MOBILE ZOOM =============
-(function () {
-  const opts = { passive: false };
-  ["gesturestart", "gesturechange", "gestureend"].forEach(function (t) {
-    document.addEventListener(t, function (e) { e.preventDefault(); }, opts);
-  });
-  document.addEventListener("touchmove", function (e) {
-    if (e.touches.length > 1) e.preventDefault();
-  }, opts);
-  document.addEventListener("dblclick", function (e) { e.preventDefault(); });
-  document.documentElement.style.touchAction = "manipulation";
-
-  // iOS Safari: reset viewport after keyboard dismissal to prevent stuck-zoom state
-  document.addEventListener("focusout", function () {
-    window.setTimeout(function () {
-      window.scrollTo(window.pageXOffset, window.pageYOffset);
-    }, 100);
-  });
-})();
-
 // ============= LỚP ĐỀ XUẤT Ở BẢN XEM THỬ =============
 // Mở /public/themes/* với ?preview=true: cuộn tới mục mà mẫu khai ở
 // CX_THEME.suggest thì các thẻ mẫu khác NỔI LÊN TRÊN thiệp (kiểu màn đề xuất

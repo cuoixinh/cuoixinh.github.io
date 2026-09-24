@@ -1,27 +1,29 @@
 // Ô đếm cho mục "Đã chọn" ở navbar (giống ô đếm của "Yêu thích").
-// Đếm theo manage_id nên không trùng: đơn trong localStorage của phiên hiện tại
-// + đơn tạo lúc chưa đăng nhập (chưa kịp gộp) + danh sách id lấy từ DB mà trang
-// "Quản lý thiệp cưới" ghi lại — nhờ vậy các trang khác hiện đúng số mà không
-// phải gọi API. Nạp SAU core/cache-util.js và sau lời gọi CXNavbar.mount().
+// Đếm theo id thiệp nên không trùng, không gọi API (xem _ids). Nạp SAU
+// core/cache-util.js và sau lời gọi CXNavbar.mount().
 (function () {
   function _email() {
     var u = window.CXAuth && window.CXAuth.getUserSync && window.CXAuth.getUserSync();
     return (u && u.email) || "guest";
   }
 
-  function _addOrders(set, key) {
-    var list = getCache(key, []);
-    if (!Array.isArray(list)) return;
-    list.forEach(function (o) {
-      if (o && o.manage_id) set.add(o.manage_id);
-    });
-  }
-
+  // Đăng nhập: thiệp của tài khoản = danh sách id DB mà "Quản lý thiệp cưới" ghi
+  // lại + đơn đã xuất bản ở phiên này mà trang đó chưa kịp nạp lại. Đăng xuất: nháp
+  // chỉ nằm trên máy (listLocalDrafts ở core/cache-util.js). Khớp đúng thứ trang
+  // "Quản lý thiệp cưới" hiện ra ở từng trạng thái.
   function _ids() {
     var email = _email();
     var set = new Set();
-    _addOrders(set, buildCacheKey("orders", email));
-    _addOrders(set, buildCacheKey("orders", "guest"));
+    if (email === "guest") {
+      listLocalDrafts().forEach(function (d) {
+        set.add(d.id);
+      });
+      return set;
+    }
+    var orders = getCache(buildCacheKey("orders", email), []);
+    if (Array.isArray(orders)) orders.forEach(function (o) {
+      if (o && o.manage_id && o.status !== "draft") set.add(o.manage_id);
+    });
     var db = getCache(buildCacheKey("cart_ids", email), []);
     if (Array.isArray(db)) db.forEach(function (id) {
       if (id) set.add(id);

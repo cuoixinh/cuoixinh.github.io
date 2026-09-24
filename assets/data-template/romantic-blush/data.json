@@ -74,9 +74,9 @@
   ],
   "love_story": [
     {
-      "date": "09/2022",
-      "title": "Cuộc gặp gỡ định mệnh",
-      "content": "Vào một buổi chiều thu lãng mạn, chúng mình tình cờ gặp nhau tại quán cà phê quen thuộc. Ánh mắt chạm nhau, và từ đó, một câu chuyện tình yêu diệu kỳ đã bắt đầu.",
+      "date": "09/2021",
+      "title": "Cùng một lớp học vẽ",
+      "content": "Em ngồi bàn trên, anh ngồi bàn dưới, và bức tranh đầu tiên anh vẽ được lại là em.",
       "image_url": "love-story-01.webp",
       "focal_point": {
         "x": 44,
@@ -84,9 +84,9 @@
       }
     },
     {
-      "date": "Đông 2022",
-      "title": "Những buổi hẹn hò đầu tiên",
-      "content": "Chúng mình đã dành vô vàn buổi tối để cùng nhau khám phá phố phường, chia sẻ những câu chuyện và ước mơ. Mỗi khoảnh khắc bên nhau đều thật đáng nhớ và ý nghĩa.",
+      "date": "02/2022",
+      "title": "Valentine đầu tiên",
+      "content": "Anh tặng em một bó hoa nhỏ xíu và một lời hứa rất lớn.",
       "image_url": "love-story-02.webp",
       "focal_point": {
         "x": 44,
@@ -94,9 +94,9 @@
       }
     },
     {
-      "date": "Hè 2023",
-      "title": "Chuyến đi đáng nhớ",
-      "content": "Một chuyến đi biển đã gắn kết hai trái tim hơn bao giờ hết. Chúng mình nhận ra rằng, dù đi đâu hay làm gì, chỉ cần có nhau là đủ.",
+      "date": "07/2024",
+      "title": "Mùa hè ở Hạ Long",
+      "content": "Hai đứa ngồi trên bãi biển đến tận khuya, đếm xem đã đi cùng nhau bao nhiêu mùa hè.",
       "image_url": "love-story-03.webp",
       "focal_point": {
         "x": 44,
@@ -104,9 +104,9 @@
       }
     },
     {
-      "date": "CUối năm 2023",
-      "title": "Lời cầu hôn ngọt ngào",
-      "content": "Trong một buổi tối lãng mạn dưới ánh nến lung linh, anh đã quỳ gối và trao em chiếc nhẫn. Giây phút ấy, cả thế giới như ngừng lại, và em đã nói",
+      "date": "03/2026",
+      "title": "Lời cầu hôn",
+      "content": "Anh vẽ lại bức tranh ngày xưa, lần này có thêm hai chiếc nhẫn ở góc tranh.",
       "image_url": "love-story-04.webp",
       "focal_point": {
         "x": 49,
@@ -115,42 +115,42 @@
     }
   ],
   "content": {
-    "groom_name": "Quốc Huy",
-    "bride_name": "Minh Anh",
-    "groom_father": "Đoàn Hữu Đức",
-    "groom_mother": "Nguyễn Thị Lan",
-    "groom_address": "Số 36, Đường Hoàng Cầu, Phường Ô Chợ Dừa, Quận Đống Đa, Hà Nội",
-    "bride_father": "Vũ Văn Hùng",
-    "bride_mother": "Trần Thị Mai",
-    "bride_address": "Số 8, Ngõ 12, Đường Lạch Tray, Phường Kênh Dương, Quận Lê Chân, Hải Phòng",
+    "groom_name": "Tuấn Khang",
+    "bride_name": "Mai Chi",
+    "groom_father": "Ông Vũ Đình Hùng",
+    "groom_mother": "Bà Nguyễn Thị Lệ Thu",
+    "groom_address": "Số 102 Lạch Tray, Phường Kênh Dương, TP. Hải Phòng",
+    "bride_father": "Ông Bùi Thanh Tùng",
+    "bride_mother": "Bà Hoàng Thị Ánh Tuyết",
+    "bride_address": "Số 9 Hạ Long, Phường Bãi Cháy, Tỉnh Quảng Ninh",
     "ceremony_name": "Lễ Thành Hôn",
-    "ceremony_date": "2026-10-18",
+    "ceremony_date": "2026-10-11",
     "ceremony_time": "10:00",
-    "ceremony_lunar": "Tức ngày 9 tháng 9 năm Nhâm Dần",
-    "ceremony_location": "Trung Tâm Tiệc Cưới Star Galaxy, Hà Nội",
+    "ceremony_lunar": "Tức ngày 2 tháng 9 năm Bính Ngọ",
+    "ceremony_location": "Trung tâm Tiệc cưới Pearl Palace, 268 Lê Hồng Phong, TP. Hải Phòng",
     "vu_quy_enabled": true,
-    "vu_quy_time": "09:00",
-    "vu_quy_location": "Tư gia nhà gái",
-    "groom_party_date": "2026-10-18",
-    "groom_party_time": "18:00",
-    "groom_party_lunar": "Tức ngày 9 tháng 9 năm Nhâm Dần",
+    "vu_quy_time": "08:00",
+    "vu_quy_location": "Tư gia nhà gái — Số 9 Hạ Long, Phường Bãi Cháy, Tỉnh Quảng Ninh",
+    "groom_party_date": "2026-10-11",
+    "groom_party_time": "11:00",
+    "groom_party_lunar": "Tức ngày 2 tháng 9 năm Bính Ngọ",
     "groom_party_show_location": true,
-    "groom_party_location": "Trung Tâm Tiệc Cưới Star Galaxy, Hà Nội",
-    "bride_party_date": "2026-10-17",
-    "bride_party_time": "18:00",
-    "bride_party_lunar": "Tức ngày 8 tháng 9 năm Nhâm Dần",
+    "groom_party_location": "Trung tâm Tiệc cưới Pearl Palace, 268 Lê Hồng Phong, TP. Hải Phòng",
+    "bride_party_date": "2026-10-10",
+    "bride_party_time": "17:30",
+    "bride_party_lunar": "Tức ngày 1 tháng 9 năm Bính Ngọ",
     "bride_party_show_location": true,
-    "bride_party_location": "Nhà Hàng Gia Viên, Hải Phòng",
-    "groom_bank_name": "VCB",
-    "groom_bank_number": "0011000888888",
-    "groom_bank_owner": "DOAN QUOC HUY",
-    "bride_bank_name": "MB",
-    "bride_bank_number": "88888888888",
-    "bride_bank_owner": "VU MINH ANH",
-    "story_quote": "Yêu là chọn nhau mỗi ngày, và hôm nay chúng mình chọn nhau trọn đời.",
+    "bride_party_location": "Nhà hàng Biển Ngọc, Phường Bãi Cháy, Tỉnh Quảng Ninh",
+    "groom_bank_name": "MB Bank",
+    "groom_bank_number": "0888110220266",
+    "groom_bank_owner": "VU TUAN KHANG",
+    "bride_bank_name": "TPBank",
+    "bride_bank_number": "03456677889",
+    "bride_bank_owner": "BUI MAI CHI",
+    "story_quote": "Yêu là chọn nhau mỗi ngày — và hôm nay, chúng mình chọn nhau trọn đời.",
     "rsvp_enabled": true,
-    "rsvp_message": "Sự hiện diện và lời chúc phúc của quý vị là niềm vinh hạnh lớn nhất đối với chúng mình. Xin chân thành cảm ơn!",
-    "footer_text": "Hạnh phúc lớn nhất là khi hai trái tim đồng điệu tìm thấy nhau. Chúng mình mong được chia sẻ niềm vui này cùng tất cả mọi người.",
+    "rsvp_message": "Chúng mình sẽ vui lắm nếu bạn dành một phút bấm xác nhận, để hôm ấy không thiếu bạn.",
+    "footer_text": "Cảm ơn bạn đã thương chúng mình. Mong được nắm tay bạn trong ngày hạnh phúc nhất!",
     "music_url": "https://www.youtube.com/watch?v=JgTZvDbaTtg",
     "enable_family": true,
     "enable_party": true,
@@ -162,46 +162,55 @@
     "enable_footer": true,
     "timeline": [
       {
-        "time": "09:00",
+        "time": "17:30",
+        "title": "Tiệc thân mật nhà gái tại Hạ Long",
+        "type": "bride-party"
+      },
+      {
+        "time": "19:00",
+        "title": "Chụp ảnh cùng bạn bè cô dâu",
+        "type": "bride-party"
+      },
+      {
+        "time": "08:00",
         "title": "Lễ Vu Quy tại tư gia nhà gái",
         "type": "ceremony"
       },
       {
-        "time": "18:00",
-        "title": "Tiệc Cưới thân mật tại Hải Phòng",
-        "type": "party"
-      },
-      {
-        "time": "17:00",
-        "title": "Đón khách",
-        "type": "party"
-      },
-      {
-        "time": "10:00",
-        "title": "Lễ Thành Hôn tại Trung Tâm Tiệc Cưới",
+        "time": "09:00",
+        "title": "Đoàn nhà trai đón dâu về Hải Phòng",
         "type": "ceremony"
       },
       {
-        "time": "18:00",
-        "title": "Tiệc Cưới chính thức tại Hà Nội",
+        "time": "10:00",
+        "title": "Lễ Thành Hôn tại Pearl Palace",
+        "type": "ceremony"
+      },
+      {
+        "time": "10:30",
+        "title": "Đón khách và nhận lời chúc",
         "type": "party"
       },
       {
-        "time": "18:30",
-        "title": "Khai tiệc",
+        "time": "11:00",
+        "title": "Khai tiệc mừng hạnh phúc",
         "type": "party"
       },
       {
-        "time": "19:00",
-        "title": "Nghi thức cắt bánh và nâng ly",
+        "time": "12:00",
+        "title": "Cắt bánh, tung hoa cưới",
         "type": "party"
       },
       {
-        "time": "19:30",
-        "title": "Giao lưu cùng khách quý",
+        "time": "13:00",
+        "title": "Cảm ơn và tiễn khách",
         "type": "party"
       }
-    ]
+    ],
+    "ceremony_map_embed_url": "https://maps.google.com/maps?q=20.8420,106.6980&output=embed&hl=vi",
+    "vu_quy_map_embed_url": "https://maps.google.com/maps?q=20.9599,107.0448&output=embed&hl=vi",
+    "groom_party_map_embed_url": "https://maps.google.com/maps?q=20.8420,106.6980&output=embed&hl=vi",
+    "bride_party_map_embed_url": "https://maps.google.com/maps?q=20.9550,107.0400&output=embed&hl=vi"
   },
-  "updated_at": "2026-08-27T02:33:36.444Z"
+  "updated_at": "2026-09-23T17:11:25.564Z"
 }

@@ -15,7 +15,8 @@
 // chỉ khai hai con số. Hạn mức RIÊNG của chat (tiền tố "chat:"), không ăn chung lượt
 // với ai-invitation vì một cuộc trò chuyện tiêu nhiều lượt hơn hẳn.
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import type { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { createDbClient } from '../_shared/db-client.ts'
 import { withAxiom, type Logger } from '../_shared/axiom.ts'
 import {
   GEMINI_BASE,
@@ -772,10 +773,7 @@ Deno.serve(withAxiom('ai-chat', async (req, log) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders(origin) })
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405, origin)
 
-  const admin = createClient(
-    Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
-  )
+  const admin = createDbClient(log)
 
   // Xác thực TUỲ CHỌN: chỉ để chọn hạn mức, khách vãng lai vẫn hỏi được.
   const token = (req.headers.get('Authorization') ?? '').replace(/^Bearer\s+/i, '')

@@ -1,4 +1,5 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import type { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { createDbClient } from '../_shared/db-client.ts'
 import { withAxiom } from '../_shared/axiom.ts'
 
 // ── CORS ─────────────────────────────────────────────────────────────────────
@@ -136,10 +137,7 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
 
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS })
 
-  const supabase = createClient(
-    Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-  )
+  const supabase = createDbClient(log)
 
   const url = new URL(req.url)
   const action = url.searchParams.get('action') ?? ''

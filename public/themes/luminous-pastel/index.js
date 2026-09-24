@@ -14,6 +14,13 @@
   window.CX_THEME = {
     id: "luminous-pastel",
 
+    // Dạng hiện lời chúc của BẢN XEM THỬ (preview-data.js đọc). Thiệp thật
+    // lấy theo theme_setting.wishes_mode chủ thiệp chọn ở tab Giao diện.
+    wishesMode: "comment",
+
+    // Dạng trình phát nhạc — theme-boot.js dựng vào #cx-music-mount.
+    music: { variant: "ring", chrome: "fixed-corner" },
+
     // Bộ màu MẶC ĐỊNH của mẫu — bản khai máy đọc được của đúng những giá trị
     // :root trong theme.css (nguồn sự thật). Trang Thiết lập đọc nó để hiện mục
     // "Mặc định"; theme_setting.palette ghi đè lên trên lúc chạy.

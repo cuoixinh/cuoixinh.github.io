@@ -89,8 +89,11 @@ class WeddingDAL {
       { headers: await this._authHeaders() },
     );
 
+    // Giữ .status/.code: trang Thiết lập chỉ được coi là "nháp mới" khi 404 — 403
+    // hay lỗi mạng mà cũng mở form trắng là lần lưu sau ghi đè lên thiệp thật.
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      const errorData = await response.json().catch(() => ({}));
+      throw this._httpError(response, errorData);
     }
 
     const data = await response.json();

@@ -21,7 +21,7 @@
         document.head.appendChild(m);
       })();
     </script>
-    <link rel="icon" type="image/png" href="../../../assets/icons/logo.png" />
+    <link rel="icon" type="image/png" href="../../../assets/icons/favicon.png" />
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
@@ -40,8 +40,8 @@
     <link rel="stylesheet" href="theme.css" />
     <!-- CryptoJS for decryption -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js" integrity="sha384-S3wQ/l0OsbJoFeJC81UIr3JOlx/OzNJpRt1bV+yhpWQxPAahfpQtpxBSfn+Isslc" crossorigin="anonymous"></script>
-    <!-- Markup trình phát nhạc — nạp ở HEAD vì script nội tuyến ngay đầu <body>
-         gọi CXMusicPlayer.build() để dựng thanh nhạc. -->
+    <!-- Markup trình phát nhạc. Dạng dùng ở mẫu này khai tại CX_THEME.music
+         (index.js), theme-boot.js dựng vào #cx-music-mount. -->
     <script src="https://unpkg.com/lucide@1.26.0/dist/umd/lucide.min.js" integrity="sha384-8/6sFI5UzGbr1Dgef7WSZvE4UemcVc/jyaQNsM+MilmnHQ9sce/pRv86XXj5Cg5m" crossorigin="anonymous"></script>
     <!-- lucide UMD không tự chạy: quét [data-lucide] một lượt khi DOM sẵn sàng.
          Markup chèn động sau đó phải tự gọi lucide.createIcons({ root }) tại chỗ chèn. -->
@@ -50,21 +50,18 @@
     </script>
     <script src="../../../core/x-button.js"></script>
     <script src="../../../core/components/music-player.js"></script>
+    <script src="../../../core/helpers/no-zoom.js"></script>
   </head>
   <body
     class="cx-screen-h flex justify-center items-center p-0 md:py-5"
   >
     <!-- Trình phát nhạc nền: markup do core/components/music-player.js dựng —
          thiệp và panel "Thành phần" dùng CHUNG một bản; logic ở
-         core/helpers/music-player-helper.js. Dựng bằng script nội tuyến ngay tại
-         đây để thẻ vẫn là con ĐẦU TIÊN của body: bong bóng thu gọn dùng
-         position:fixed, tổ tiên có transform sẽ làm nó neo sai chỗ. -->
+         core/helpers/music-player-helper.js. Dạng khai ở CX_THEME.music,
+         theme-boot.js dựng vào đây. Thẻ phải là con ĐẦU TIÊN của body: bong
+         bóng thu gọn dùng position:fixed, tổ tiên có transform sẽ làm nó neo
+         sai chỗ. -->
     <div id="cx-music-mount"></div>
-    <script>
-      document.currentScript.previousElementSibling.replaceWith(
-        CXMusicPlayer.build({ variant: "bar", chrome: "fixed-top" }),
-      );
-    </script>
 
     <!-- Cover Screen -->
     <div

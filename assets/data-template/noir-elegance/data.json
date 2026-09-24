@@ -74,9 +74,9 @@
   ],
   "love_story": [
     {
-      "date": "09/2022",
-      "title": "Cuộc gặp gỡ định mệnh",
-      "content": "Vào một buổi chiều thu lãng mạn, chúng mình tình cờ gặp nhau tại quán cà phê quen thuộc. Ánh mắt chạm nhau, và từ đó, một câu chuyện tình yêu diệu kỳ đã bắt đầu.",
+      "date": "09/2019",
+      "title": "Buổi hòa nhạc mùa thu",
+      "content": "Hai chiếc ghế liền nhau ở Nhà hát Lớn, và một bản Nocturne không ai trong hai đứa quên được.",
       "image_url": "love-story-01.webp",
       "focal_point": {
         "x": 44,
@@ -84,9 +84,9 @@
       }
     },
     {
-      "date": "Đông 2022",
-      "title": "Những buổi hẹn hò đầu tiên",
-      "content": "Chúng mình đã dành vô vàn buổi tối để cùng nhau khám phá phố phường, chia sẻ những câu chuyện và ước mơ. Mỗi khoảnh khắc bên nhau đều thật đáng nhớ và ý nghĩa.",
+      "date": "03/2020",
+      "title": "Bữa tối đầu tiên",
+      "content": "Một nhà hàng nhỏ trên phố cổ, câu chuyện kéo dài đến khi người phục vụ lịch sự nhắc giờ đóng cửa.",
       "image_url": "love-story-02.webp",
       "focal_point": {
         "x": 44,
@@ -94,9 +94,9 @@
       }
     },
     {
-      "date": "Hè 2023",
-      "title": "Chuyến đi đáng nhớ",
-      "content": "Một chuyến đi biển đã gắn kết hai trái tim hơn bao giờ hết. Chúng mình nhận ra rằng, dù đi đâu hay làm gì, chỉ cần có nhau là đủ.",
+      "date": "12/2021",
+      "title": "Mùa đông ở Sa Pa",
+      "content": "Chuyến đi đầu tiên của hai đứa, trời lạnh đến mức chỉ còn cách nắm tay nhau cho ấm.",
       "image_url": "love-story-03.webp",
       "focal_point": {
         "x": 44,
@@ -104,9 +104,9 @@
       }
     },
     {
-      "date": "Tết 2024",
-      "title": "Về ra mắt hai bên",
-      "content": "Cái Tết đầu tiên hai đứa cùng về thăm nhà nhau. Mâm cơm sum vầy, những câu chuyện của bố mẹ và ánh mắt ấm áp của người thân khiến chúng mình hiểu rằng hai gia đình đã thành một.",
+      "date": "08/2023",
+      "title": "Ra mắt hai bên gia đình",
+      "content": "Hai nhà gặp nhau bên bàn trà, và hiểu rằng chuyện này sẽ đi xa hơn một mối tình.",
       "image_url": "love-story-05.webp",
       "focal_point": {
         "x": 50,
@@ -114,9 +114,9 @@
       }
     },
     {
-      "date": "Cuối năm 2023",
-      "title": "Lời cầu hôn ngọt ngào",
-      "content": "Trong một buổi tối lãng mạn dưới ánh nến lung linh, anh đã quỳ gối và trao em chiếc nhẫn. Giây phút ấy cả thế giới như ngừng lại, và em đã nói \"Em đồng ý\".",
+      "date": "02/2026",
+      "title": "Lời cầu hôn",
+      "content": "Vẫn Nhà hát Lớn, vẫn bản Nocturne ấy, nhưng lần này có thêm một chiếc nhẫn.",
       "image_url": "love-story-04.webp",
       "focal_point": {
         "x": 49,
@@ -124,9 +124,9 @@
       }
     },
     {
-      "date": "Xuân 2026",
+      "date": "06/2026",
       "title": "Ngày chụp ảnh cưới",
-      "content": "Một ngày nắng đẹp bên bờ biển, chúng mình mặc lên bộ áo cưới đầu tiên. Gió, tiếng sóng và tiếng cười — tất cả đều được giữ lại trong những khung hình mà bạn sắp thấy ở album này.",
+      "content": "Ba ngày rong ruổi khắp Hà Nội để giữ lại những khung hình của một mùa đẹp nhất.",
       "image_url": "love-story-06.webp",
       "focal_point": {
         "x": 50,
@@ -135,42 +135,42 @@
     }
   ],
   "content": {
-    "groom_name": "Quang Vinh",
-    "bride_name": "Hải Yến",
-    "groom_father": "Đoàn Hữu Đức",
-    "groom_mother": "Nguyễn Thị Lan",
-    "groom_address": "Số 36, Đường Hoàng Cầu, Phường Ô Chợ Dừa, Quận Đống Đa, Hà Nội",
-    "bride_father": "Vũ Văn Hùng",
-    "bride_mother": "Trần Thị Mai",
-    "bride_address": "Số 8, Ngõ 12, Đường Lạch Tray, Phường Kênh Dương, Quận Lê Chân, Hải Phòng",
+    "groom_name": "Hoàng Nam",
+    "bride_name": "Khánh Vy",
+    "groom_father": "Ông Nguyễn Hoàng Long",
+    "groom_mother": "Bà Đỗ Thị Thanh Hương",
+    "groom_address": "Số 5 Phan Chu Trinh, Phường Cửa Nam, TP. Hà Nội",
+    "bride_father": "Ông Lâm Việt Dũng",
+    "bride_mother": "Bà Chu Thị Minh Nguyệt",
+    "bride_address": "Số 19 Quán Thánh, Phường Ba Đình, TP. Hà Nội",
     "ceremony_name": "Lễ Thành Hôn",
-    "ceremony_date": "2026-10-18",
-    "ceremony_time": "10:00",
-    "ceremony_lunar": "Tức ngày 9 tháng 9 năm Nhâm Dần",
-    "ceremony_location": "Trung Tâm Tiệc Cưới Star Galaxy, Hà Nội",
+    "ceremony_date": "2026-12-19",
+    "ceremony_time": "18:00",
+    "ceremony_lunar": "Tức ngày 11 tháng 11 năm Bính Ngọ",
+    "ceremony_location": "Grand Ballroom — Sofitel Legend Metropole, 15 Ngô Quyền, TP. Hà Nội",
     "vu_quy_enabled": true,
-    "vu_quy_time": "09:00",
-    "vu_quy_location": "Tư gia nhà gái",
-    "groom_party_date": "2026-10-18",
-    "groom_party_time": "18:00",
-    "groom_party_lunar": "Tức ngày 9 tháng 9 năm Nhâm Dần",
+    "vu_quy_time": "09:30",
+    "vu_quy_location": "Tư gia nhà gái — Số 19 Quán Thánh, Phường Ba Đình, TP. Hà Nội",
+    "groom_party_date": "2026-12-19",
+    "groom_party_time": "19:00",
+    "groom_party_lunar": "Tức ngày 11 tháng 11 năm Bính Ngọ",
     "groom_party_show_location": true,
-    "groom_party_location": "Trung Tâm Tiệc Cưới Star Galaxy, Hà Nội",
-    "bride_party_date": "2026-10-17",
-    "bride_party_time": "18:00",
-    "bride_party_lunar": "Tức ngày 8 tháng 9 năm Nhâm Dần",
+    "groom_party_location": "Grand Ballroom — Sofitel Legend Metropole, 15 Ngô Quyền, TP. Hà Nội",
+    "bride_party_date": "2026-12-18",
+    "bride_party_time": "18:30",
+    "bride_party_lunar": "Tức ngày 10 tháng 11 năm Bính Ngọ",
     "bride_party_show_location": true,
-    "bride_party_location": "Nhà Hàng Gia Viên, Hải Phòng",
-    "groom_bank_name": "VCB",
-    "groom_bank_number": "0011000888888",
-    "groom_bank_owner": "DOAN QUANG VINH",
-    "bride_bank_name": "MB",
-    "bride_bank_number": "88888888888",
-    "bride_bank_owner": "VU THI HAI YEN",
-    "story_quote": "Tình yêu là phép màu kỳ diệu nhất, biến hai cuộc đời thành một bản tình ca bất tận.",
+    "bride_party_location": "Riverside Palace, 45 Trần Hưng Đạo, TP. Hà Nội",
+    "groom_bank_name": "Vietcombank",
+    "groom_bank_number": "0011345678900",
+    "groom_bank_owner": "NGUYEN HOANG NAM",
+    "bride_bank_name": "Techcombank",
+    "bride_bank_number": "19035566778899",
+    "bride_bank_owner": "LAM KHANH VY",
+    "story_quote": "Sang trọng nhất không phải là lễ cưới, mà là người ta chọn để đứng cùng suốt phần đời còn lại.",
     "rsvp_enabled": true,
-    "rsvp_message": "Sự hiện diện của quý vị là niềm vinh hạnh lớn nhất đối với chúng mình. Xin vui lòng phản hồi trước ngày 10/10/2026 để chúng mình chuẩn bị chỗ ngồi chu đáo nhất.",
-    "footer_text": "Cảm ơn bạn đã cùng chúng mình đi qua từng trang của câu chuyện này. Hẹn gặp bạn trong ngày vui sắp tới!",
+    "rsvp_message": "Kính mong quý vị phản hồi trước ngày 10/12/2026 để chúng tôi sắp xếp chỗ ngồi chu đáo nhất.",
+    "footer_text": "Trân trọng cảm ơn quý vị đã dành thời gian đọc từng trang của câu chuyện này.",
     "music_url": "https://www.youtube.com/watch?v=JgTZvDbaTtg",
     "enable_family": false,
     "enable_party": true,
@@ -182,56 +182,60 @@
     "enable_footer": true,
     "timeline": [
       {
-        "time": "09:00",
+        "time": "18:30",
+        "title": "Tiệc tối thân mật nhà gái",
+        "type": "bride-party"
+      },
+      {
+        "time": "20:00",
+        "title": "Nhạc thính phòng và chụp ảnh gia đình",
+        "type": "bride-party"
+      },
+      {
+        "time": "09:30",
         "title": "Lễ Vu Quy tại tư gia nhà gái",
         "type": "ceremony"
       },
       {
-        "time": "18:00",
-        "title": "Tiệc Cưới thân mật tại Hải Phòng",
-        "type": "party"
-      },
-      {
-        "time": "17:00",
-        "title": "Đón khách",
-        "type": "party"
-      },
-      {
-        "time": "10:00",
-        "title": "Lễ Thành Hôn tại Trung Tâm Tiệc Cưới",
+        "time": "11:00",
+        "title": "Lễ gia tiên tại tư gia nhà trai",
         "type": "ceremony"
       },
       {
         "time": "18:00",
-        "title": "Tiệc Cưới chính thức tại Hà Nội",
-        "type": "party"
+        "title": "Lễ Thành Hôn tại Grand Ballroom",
+        "type": "ceremony"
       },
       {
-        "time": "18:30",
-        "title": "Khai tiệc",
+        "time": "17:30",
+        "title": "Đón khách và tiệc rượu chào mừng",
         "type": "party"
       },
       {
         "time": "19:00",
-        "title": "Nghi thức cắt bánh và nâng ly",
-        "type": "party"
-      },
-      {
-        "time": "19:30",
-        "title": "Giao lưu cùng khách quý",
+        "title": "Khai tiệc và phát biểu của hai gia đình",
         "type": "party"
       },
       {
         "time": "20:00",
-        "title": "Tiệc trà và chụp ảnh cùng gia đình",
+        "title": "Nghi thức rót rượu và cắt bánh cưới",
         "type": "party"
       },
       {
         "time": "21:00",
-        "title": "Tiễn khách và kết thúc buổi tiệc",
+        "title": "Vũ điệu đầu tiên của cô dâu chú rể",
+        "type": "party"
+      },
+      {
+        "time": "22:00",
+        "title": "Cảm ơn và tiễn khách",
         "type": "party"
       }
-    ]
+    ],
+    "ceremony_map_embed_url": "https://maps.google.com/maps?q=21.0246,105.8570&output=embed&hl=vi",
+    "vu_quy_map_embed_url": "https://maps.google.com/maps?q=21.0403,105.8386&output=embed&hl=vi",
+    "groom_party_map_embed_url": "https://maps.google.com/maps?q=21.0246,105.8570&output=embed&hl=vi",
+    "bride_party_map_embed_url": "https://maps.google.com/maps?q=21.0223,105.8506&output=embed&hl=vi"
   },
-  "updated_at": "2026-08-26T10:36:50Z"
+  "updated_at": "2026-09-23T17:11:25.562Z"
 }

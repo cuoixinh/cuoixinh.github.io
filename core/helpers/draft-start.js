@@ -44,15 +44,23 @@
   }
 
   // Nháp dở BẤT KỲ, không phân biệt mẫu — đổi mẫu khác mà lẳng lặng tạo nháp mới
-  // là khách mất bản đang làm mà không hề biết.
+  // là khách mất bản đang làm mà không hề biết. Chỉ nháp CHƯA lên DB (_localOnly):
+  // thiệp đã lên DB nằm ở "Quản lý thiệp cưới", và có thể thuộc tài khoản khác
+  // từng dùng máy này.
+  // Nháp mà tài khoản đang đăng nhập đã trả lời "không phải của tôi" (hộp gộp ở
+  // my-invitations) thì cũng bỏ qua.
   function _findDraft() {
     var prefix = buildCacheKey("draft") + "_";
     var keys = listCacheKeys(function (k) {
       return k.indexOf(prefix) === 0;
     });
+    var u = window.CXAuth && window.CXAuth.getUserSync && window.CXAuth.getUserSync();
+    var declined = u && u.email ? getCache(buildCacheKey("declined_drafts", u.email), []) : [];
     for (var i = 0; i < keys.length; i++) {
       var data = getCache(keys[i]);
-      if (data) return { id: keys[i].slice(prefix.length), data: data };
+      var id = keys[i].slice(prefix.length);
+      if (data && data._localOnly && declined.indexOf(id) < 0)
+        return { id: id, data: data };
     }
     return null;
   }
@@ -79,13 +87,17 @@
 
   function _create(theme, displayName, params, id) {
     id = id || _uuid();
-    setCache(buildCacheKey("draft", id), {
+    var u = window.CXAuth && window.CXAuth.getUserSync && window.CXAuth.getUserSync();
+    var draft = {
       theme: theme,
       is_published: false,
       _localOnly: true,
       // Mốc dọn nháp bỏ quên (core/helpers/draft-retention.js).
       _savedAt: Date.now(),
-    });
+    };
+    // Người tạo (xem saveLocalDraft ở invitation-setup/js/01-state.js).
+    if (u && u.email) draft._owner = u.email;
+    setCache(buildCacheKey("draft", id), draft);
     sessionStorage.setItem("draft_theme", theme);
     sessionStorage.setItem("draft_template_name", displayName || _titleOf(theme));
     _go(id, params);

@@ -18,6 +18,7 @@
     "check:palette": "node scripts/check-theme-palette.mjs",
     "check:palette-contrast": "node scripts/check-palette-contrast.mjs",
     "check:config": "node scripts/check-config-env.mjs",
+    "check:draft-sync": "node scripts/check-draft-sync.mjs",
     "production": "bash scripts/promote-production.sh",
     "deploy:public": "node scripts/deploy-public.mjs",
     "sql:merge": "node scripts/merge-changelogs.mjs"

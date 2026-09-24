@@ -3052,7 +3052,8 @@ async function _publishLoggedIn() {
   // những lần "Lưu & Xuất bản" sau chỉ còn toast "Đã lưu thành công!" của saveAll.
   const firstPublish = !IS_PUBLISHED;
   const ok = await saveAll({ is_published: true }, "Đang xuất bản...");
-  if (!ok) return;
+  // Còn là nháp local = chưa có hàng DB nào được xuất bản → không báo thành công.
+  if (!ok || _isLocalDraft) return;
 
   IS_PUBLISHED = true;
   _syncAdvancedSection();

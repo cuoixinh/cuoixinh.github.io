@@ -74,9 +74,9 @@
   ],
   "love_story": [
     {
-      "date": "09/2022",
-      "title": "Cuộc gặp gỡ định mệnh",
-      "content": "Vào một buổi chiều thu lãng mạn, chúng mình tình cờ gặp nhau tại quán cà phê quen thuộc. Ánh mắt chạm nhau, và từ đó, một câu chuyện tình yêu diệu kỳ đã bắt đầu.",
+      "date": "Hè 2020",
+      "title": "Một khung hình tình cờ",
+      "content": "Anh chụp vội bức ảnh phố cổ, về nhà mới thấy trong khung hình có em đang cười.",
       "image_url": "love-story-01.webp",
       "focal_point": {
         "x": 44,
@@ -84,9 +84,9 @@
       }
     },
     {
-      "date": "Đông 2022",
-      "title": "Những buổi hẹn hò đầu tiên",
-      "content": "Chúng mình đã dành vô vàn buổi tối để cùng nhau khám phá phố phường, chia sẻ những câu chuyện và ước mơ. Mỗi khoảnh khắc bên nhau đều thật đáng nhớ và ý nghĩa.",
+      "date": "Xuân 2021",
+      "title": "Buổi cà phê đầu tiên",
+      "content": "Tụi mình hẹn nhau ở quán nhỏ ven sông, nói chuyện tới lúc quán đóng cửa lúc nào không hay.",
       "image_url": "love-story-02.webp",
       "focal_point": {
         "x": 44,
@@ -94,9 +94,9 @@
       }
     },
     {
-      "date": "Hè 2023",
-      "title": "Chuyến đi đáng nhớ",
-      "content": "Một chuyến đi biển đã gắn kết hai trái tim hơn bao giờ hết. Chúng mình nhận ra rằng, dù đi đâu hay làm gì, chỉ cần có nhau là đủ.",
+      "date": "Thu 2023",
+      "title": "Chuyến đi đầu tiên",
+      "content": "Hai đứa chạy xe máy vòng đèo Hải Vân, dừng lại đúng chỗ trời đang chuyển nắng.",
       "image_url": "love-story-03.webp",
       "focal_point": {
         "x": 44,
@@ -104,9 +104,9 @@
       }
     },
     {
-      "date": "CUối năm 2023",
-      "title": "Lời cầu hôn ngọt ngào",
-      "content": "Trong một buổi tối lãng mạn dưới ánh nến lung linh, anh đã quỳ gối và trao em chiếc nhẫn. Giây phút ấy, cả thế giới như ngừng lại, và em đã nói",
+      "date": "Xuân 2026",
+      "title": "Lời cầu hôn",
+      "content": "Ở đúng góc phố nơi bức ảnh đầu tiên được chụp, anh hỏi em có muốn vào chung một khung hình mãi mãi không.",
       "image_url": "love-story-04.webp",
       "focal_point": {
         "x": 49,
@@ -115,42 +115,42 @@
     }
   ],
   "content": {
-    "groom_name": "Quốc Huy",
-    "bride_name": "Minh Anh",
-    "groom_father": "Đoàn Hữu Đức",
-    "groom_mother": "Nguyễn Thị Lan",
-    "groom_address": "Số 36, Đường Hoàng Cầu, Phường Ô Chợ Dừa, Quận Đống Đa, Hà Nội",
-    "bride_father": "Vũ Văn Hùng",
-    "bride_mother": "Trần Thị Mai",
-    "bride_address": "Số 8, Ngõ 12, Đường Lạch Tray, Phường Kênh Dương, Quận Lê Chân, Hải Phòng",
+    "groom_name": "Nhật Minh",
+    "bride_name": "Bảo Ngọc",
+    "groom_father": "Ông Võ Thành Nam",
+    "groom_mother": "Bà Huỳnh Thị Kim Chi",
+    "groom_address": "Số 12 Nguyễn Văn Linh, Phường Hải Châu, TP. Đà Nẵng",
+    "bride_father": "Ông Phan Quang Hải",
+    "bride_mother": "Bà Trương Thị Mỹ Lệ",
+    "bride_address": "Số 7 Trần Hưng Đạo, Phường Hội An, TP. Đà Nẵng",
     "ceremony_name": "Lễ Thành Hôn",
-    "ceremony_date": "2026-10-18",
-    "ceremony_time": "10:00",
-    "ceremony_lunar": "Tức ngày 9 tháng 9 năm Nhâm Dần",
-    "ceremony_location": "Trung Tâm Tiệc Cưới Star Galaxy, Hà Nội",
+    "ceremony_date": "2026-10-25",
+    "ceremony_time": "10:30",
+    "ceremony_lunar": "Tức ngày 16 tháng 9 năm Bính Ngọ",
+    "ceremony_location": "Almanity Riverside, Phường Hội An, TP. Đà Nẵng",
     "vu_quy_enabled": true,
-    "vu_quy_time": "09:00",
-    "vu_quy_location": "Tư gia nhà gái",
-    "groom_party_date": "2026-10-18",
-    "groom_party_time": "18:00",
-    "groom_party_lunar": "Tức ngày 9 tháng 9 năm Nhâm Dần",
+    "vu_quy_time": "08:30",
+    "vu_quy_location": "Tư gia nhà gái — Số 7 Trần Hưng Đạo, Phường Hội An, TP. Đà Nẵng",
+    "groom_party_date": "2026-10-25",
+    "groom_party_time": "11:30",
+    "groom_party_lunar": "Tức ngày 16 tháng 9 năm Bính Ngọ",
     "groom_party_show_location": true,
-    "groom_party_location": "Trung Tâm Tiệc Cưới Star Galaxy, Hà Nội",
-    "bride_party_date": "2026-10-17",
-    "bride_party_time": "18:00",
-    "bride_party_lunar": "Tức ngày 8 tháng 9 năm Nhâm Dần",
+    "groom_party_location": "Almanity Riverside, Phường Hội An, TP. Đà Nẵng",
+    "bride_party_date": "2026-10-24",
+    "bride_party_time": "17:00",
+    "bride_party_lunar": "Tức ngày 15 tháng 9 năm Bính Ngọ",
     "bride_party_show_location": true,
-    "bride_party_location": "Nhà Hàng Gia Viên, Hải Phòng",
-    "groom_bank_name": "VCB",
-    "groom_bank_number": "0011000888888",
-    "groom_bank_owner": "DOAN QUOC HUY",
-    "bride_bank_name": "MB",
-    "bride_bank_number": "88888888888",
-    "bride_bank_owner": "VU MINH ANH",
-    "story_quote": "Yêu là chọn nhau mỗi ngày, và hôm nay chúng mình chọn nhau trọn đời.",
+    "bride_party_location": "Tư gia nhà gái — Số 7 Trần Hưng Đạo, Phường Hội An, TP. Đà Nẵng",
+    "groom_bank_name": "Techcombank",
+    "groom_bank_number": "19036688221013",
+    "groom_bank_owner": "VO NHAT MINH",
+    "bride_bank_name": "MB Bank",
+    "bride_bank_number": "0909221133",
+    "bride_bank_owner": "PHAN BAO NGOC",
+    "story_quote": "Yêu nhau là cùng nhìn về một phía — và phía ấy lúc nào cũng đầy nắng.",
     "rsvp_enabled": true,
-    "rsvp_message": "Sự hiện diện và lời chúc phúc của quý vị là niềm vinh hạnh lớn nhất đối với chúng mình. Xin chân thành cảm ơn!",
-    "footer_text": "Hạnh phúc lớn nhất là khi hai trái tim đồng điệu tìm thấy nhau. Chúng mình mong được chia sẻ niềm vui này cùng tất cả mọi người.",
+    "rsvp_message": "Bấm xác nhận giúp tụi mình nha, để bàn tiệc hôm đó có đúng một chỗ dành cho bạn.",
+    "footer_text": "Cảm ơn bạn đã là một phần trong câu chuyện của tụi mình. Hẹn gặp bạn ở Hội An!",
     "music_url": "https://www.youtube.com/watch?v=JgTZvDbaTtg",
     "enable_family": true,
     "enable_party": true,
@@ -162,46 +162,50 @@
     "enable_footer": true,
     "timeline": [
       {
-        "time": "09:00",
+        "time": "17:00",
+        "title": "Tiệc thân mật nhà gái bên sông Hoài",
+        "type": "bride-party"
+      },
+      {
+        "time": "19:00",
+        "title": "Thả đèn hoa đăng cùng gia đình",
+        "type": "bride-party"
+      },
+      {
+        "time": "08:30",
         "title": "Lễ Vu Quy tại tư gia nhà gái",
         "type": "ceremony"
       },
       {
-        "time": "18:00",
-        "title": "Tiệc Cưới thân mật tại Hải Phòng",
-        "type": "party"
-      },
-      {
-        "time": "17:00",
-        "title": "Đón khách",
-        "type": "party"
-      },
-      {
-        "time": "10:00",
-        "title": "Lễ Thành Hôn tại Trung Tâm Tiệc Cưới",
+        "time": "10:30",
+        "title": "Lễ Thành Hôn tại Almanity Riverside",
         "type": "ceremony"
       },
       {
-        "time": "18:00",
-        "title": "Tiệc Cưới chính thức tại Hà Nội",
+        "time": "11:00",
+        "title": "Chụp ảnh cùng cô dâu chú rể",
         "type": "party"
       },
       {
-        "time": "18:30",
-        "title": "Khai tiệc",
+        "time": "11:30",
+        "title": "Tiệc trưa bên hồ bơi",
         "type": "party"
       },
       {
-        "time": "19:00",
-        "title": "Nghi thức cắt bánh và nâng ly",
+        "time": "13:00",
+        "title": "Cắt bánh và nâng ly",
         "type": "party"
       },
       {
-        "time": "19:30",
-        "title": "Giao lưu cùng khách quý",
+        "time": "14:30",
+        "title": "Tiệc trà và tiễn khách",
         "type": "party"
       }
-    ]
+    ],
+    "ceremony_map_embed_url": "https://maps.google.com/maps?q=15.8801,108.3380&output=embed&hl=vi",
+    "vu_quy_map_embed_url": "https://maps.google.com/maps?q=15.8794,108.3350&output=embed&hl=vi",
+    "groom_party_map_embed_url": "https://maps.google.com/maps?q=15.8801,108.3380&output=embed&hl=vi",
+    "bride_party_map_embed_url": "https://maps.google.com/maps?q=15.8794,108.3350&output=embed&hl=vi"
   },
-  "updated_at": "2026-08-27T16:14:35.476Z"
+  "updated_at": "2026-09-23T17:11:25.561Z"
 }

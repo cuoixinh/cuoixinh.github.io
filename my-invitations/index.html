@@ -7,7 +7,7 @@
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
     <title>Quản lý thiệp cưới - Cưới Xinh</title>
-    <link rel="icon" type="image/png" href="../assets/icons/logo.png" />
+    <link rel="icon" type="image/png" href="../assets/icons/favicon.png" />
     <script
       src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.8"
       integrity="sha384-Tve8O+C6PBzsIMK/IRCwHbi8fyEzXIlIs6OfVBZHubplwYhaQF/4Mzxqgg+pp/oy"
@@ -21,6 +21,7 @@
     />
     <!-- Tailwind build local (npm run build:css) — xem tailwind.config.js. -->
     <link rel="stylesheet" href="../styles/build.css" />
+    <script src="../core/helpers/no-zoom.js"></script>
   </head>
   <body
     class="font-inter text-gray-800 bg-white min-h-screen pb-[72px] md:pb-0 md:pt-20"
@@ -159,6 +160,23 @@
           <i data-lucide="book-open" class="text-[10px]" style="width:16px;height:16px"></i> Nháp
           <span data-count="draft" class="cx-navcount hidden ml-0.5"></span>
         </button>
+      </div>
+
+      <!-- Lối quay lại hộp gộp nháp: nháp trên máy mà tài khoản đang đăng nhập chưa
+           nhận. render() bật/tắt (cả cờ flex). -->
+      <div
+        id="local-drafts-note"
+        class="mb-4 hidden gap-2 rounded-lg bg-sky-50 p-3 text-[13px] leading-relaxed text-sky-800"
+      >
+        <i data-lucide="hard-drive" class="mt-0.5 text-sky-500" style="width:16px;height:16px"></i>
+        <span>
+          <span id="local-drafts-text"></span>
+          <button
+            type="button"
+            onclick="reofferLocalDrafts()"
+            class="font-semibold underline underline-offset-2 hover:text-sky-900"
+          >Xem và lưu vào tài khoản</button>
+        </span>
       </div>
 
       <div

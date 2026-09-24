@@ -1,4 +1,4 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { createDbClient } from '../_shared/db-client.ts'
 import { withAxiom } from '../_shared/axiom.ts'
 // Tầng gọi model dùng chung (Gemini, xoay vòng key) cho resource=template-ai.
 import { generateWithGemini } from '../_shared/ai-provider.ts'
@@ -231,10 +231,7 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
   const method = req.method
   const resource = url.searchParams.get('resource') || 'weddings' // 'weddings' or 'templates'
 
-  const supabase = createClient(
-    Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-  )
+  const supabase = createDbClient(log)
 
   // Lấy user_id từ JWT của người dùng (header Authorization: Bearer <access_token>).
   // Client vẫn gửi apikey = anon key để qua gateway; nếu Authorization chỉ là anon key
@@ -1406,7 +1403,10 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
         .eq('is_active', true)
         .order('created_at', { ascending: false })
 
-      if (error) return new Response(JSON.stringify({ error }), { status: 500, headers: corsHeaders })
+      if (error) {
+        log.error('wedding.my_list_failed', { user_id: userId, code: error.code, message: error.message })
+        return new Response(JSON.stringify({ error }), { status: 500, headers: corsHeaders })
+      }
 
       return new Response(JSON.stringify(data ?? []), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
