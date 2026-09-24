@@ -9,3 +9,5 @@ deploy-public.config.json
 
 # File SQL gộp do scripts/merge-changelogs.mjs sinh ra
 changelogs/*.final.sql
+# Tài khoản/token test của npm run check:api — KHÔNG commit
+.env.check-api

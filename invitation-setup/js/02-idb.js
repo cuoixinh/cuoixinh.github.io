@@ -1,6 +1,8 @@
 // IndexedDB: lưu tạm ảnh chưa upload (pending images) để không mất khi F5.
 //
 // Tách từ index.js (dòng 58–317 bản gốc). Thứ tự nạp khai báo ở loader.js.
+// Khung chat XuXi ở trang chủ (js/ai-chat-media.js) GHI thẳng vào DB này theo đúng tên
+// DB/khoá/shape bản ghi bên dưới — đổi ở đây thì đổi cả bên đó.
 
 // ============= INDEXED DB — PENDING IMAGES =============
 // Lưu File objects (ảnh chưa upload) vào IndexedDB để sống qua reload/đóng tab.
@@ -187,11 +189,12 @@ async function _idbUpdateGalleryFocal(file) {
   }
 }
 
+// true khi có khôi phục thứ gì đó — bản xem thử dựng trước đó cần tải lại.
 async function _idbRestoreAll() {
   try {
     const all = await _idbGetAll();
     const mine = all.filter((r) => r.weddingId === WEDDING_ID);
-    if (!mine.length) return;
+    if (!mine.length) return false;
 
     // Restore single images
     for (const r of mine.filter((r) => r.type === "single")) {
@@ -239,8 +242,10 @@ async function _idbRestoreAll() {
     ].forEach((f) => renderSingleImageUpload(f));
     renderGalleryGrid();
     if (Object.keys(_loveStoryPendingImages).length) renderLoveStoryList();
+    return true;
   } catch (e) {
     console.error("_idbRestoreAll:", e);
+    return false;
   }
 }
 

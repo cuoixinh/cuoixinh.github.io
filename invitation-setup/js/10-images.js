@@ -14,40 +14,10 @@ function generateUUID() {
 // gọi storageDAL.getPublicUrl() nên làm mất mấy nhánh nhận diện `blob:`/`data:`/
 // đường dẫn tương đối của bản chuẩn.
 
-// Chặn định dạng ngay khi chọn file, theo whitelist CONFIG.image.allowedTypes —
-// không kiểm `image/*` vì SVG (file chủ động) và HEIC (desktop không hiển thị
-// được) đều lọt qua kiểu kiểm đó.
-function _checkImageType(file) {
-  if (ImageHelper.isAllowedType(file)) return true;
-  showToast(
-    "Định dạng không hỗ trợ — hãy dùng JPG, PNG hoặc WebP (ảnh iPhone .HEIC cần đổi sang JPG).",
-    "error",
-  );
-  return false;
-}
-
-// Ảnh không nén được mà vẫn nặng hơn mức này thì phải báo cho người dùng biết.
-// 3MB: dưới mức đó thì thiệp vẫn mở nhanh, trên mức đó khách mời dùng 3G sẽ thấy rõ.
-const HEAVY_UNCOMPRESSED_BYTES = 3 * 1024 * 1024;
-
-// Nén ảnh MỘT LẦN, ngay lúc người dùng chọn — ImageHelper.prepareImage(), chung
-// với luồng ảnh mẫu ở admin; lúc lưu (12-uploads.js) không nén lại.
-// compressIfNeeded() có nhiều đường trả về NGUYÊN BẢN mà im lặng (định dạng không
-// nén được, decode hỏng, bản nén còn to hơn) → phải bắt cờ `compressed` và cảnh
-// báo, không thì một file 12MB đi thẳng lên Storage.
-async function prepareImage(file) {
-  const { file: processed, compressed } = await ImageHelper.prepareImage(file);
-
-  if (!compressed && processed.size > HEAVY_UNCOMPRESSED_BYTES) {
-    const mb = (processed.size / 1024 / 1024).toFixed(1);
-    showToast(
-      `Ảnh ${mb}MB không nén được — khách mời sẽ tải rất chậm. Nên đổi sang JPG rồi tải lại.`,
-      "warning",
-    );
-  }
-
-  return processed;
-}
+// Kiểm định dạng + nén: logic nằm ở core/helpers/image-pick.js (dùng chung với ô chọn
+// ảnh trong khung chat XuXi), hai tên này giữ lại cho các file trong trang gọi.
+const _checkImageType = (file) => CXImagePick.checkType(file);
+const prepareImage = (file) => CXImagePick.prepare(file);
 
 // ============= IMAGE PREVIEW FUNCTIONS =============
 
@@ -289,8 +259,10 @@ const pendingUploads = {
 // còn xoá ảnh / chỉnh lại focal thì không sinh event nào — listener input/change
 // của autosave luôn chạy sớm hơn hoặc không chạy. Mọi thao tác ảnh phải tự gọi
 // hàm này, thiếu là mất dấu "chưa lưu" và khung xem trực tiếp vẫn dựng ảnh cũ.
+// Sự kiện cx-media-change để ô chọn ảnh trong khung chat XuXi vẽ lại theo.
 function _imagesChanged() {
   _scheduleAutoSave("edit");
+  window.dispatchEvent(new CustomEvent("cx-media-change"));
 }
 
 // Focal point (% x, % y) cho từng ảnh — quyết định object-position khi hiển thị ở các tỉ lệ khác nhau
@@ -357,71 +329,23 @@ async function handleImageUpload(event, fieldName) {
   // hai im lặng hoàn toàn nên trông y như upload bị hỏng.
   event.target.value = "";
 
-  console.log(
-    `Selected image for ${fieldName}: ${file.name}, size: ${(file.size / 1024 / 1024).toFixed(2)}MB`,
-  );
+  // Kiểm định dạng → bảng lấy nét (ảnh bìa/chú rể/cô dâu) hoặc cắt 1:1 (QR) → nén.
+  const picked = await CXImagePick.single(fieldName, file, {
+    focal: pendingFocalPoints[fieldName],
+    giftInfo: _qrGiftInfo(fieldName),
+  });
+  if (picked) _storePickedImage(fieldName, picked.file, picked.focal);
+}
 
-  if (!_checkImageType(file)) return;
-
-  if (CROP_FIELDS.includes(fieldName)) {
-    // Hộp mừng cưới: mở modal cắt ảnh (crop 1:1, có zoom + kéo) rồi lưu ảnh đã cắt
-    openImageCropModal(
-      file,
-      (blob) => _storeCroppedImage(fieldName, blob, file.name),
-      _qrGiftInfo(fieldName),
-    );
-    return;
-  }
-
-  if (FOCAL_POINT_FIELDS.includes(fieldName)) {
-    // Mở picker chọn điểm lấy nét trước khi xử lý & lưu ảnh
-    openFocalPointPicker(
-      file,
-      pendingFocalPoints[fieldName],
-      async (focal) => {
-        pendingFocalPoints[fieldName] = focal;
-        showLoading(true, "Đang xử lý ảnh...");
-        try {
-          const processedFile = await prepareImage(file);
-          pendingUploads.singleImages[fieldName] = processedFile;
-          _idbSaveSingle(fieldName, processedFile);
-          _idbDelete(`${WEDDING_ID}_sf_${fieldName}`);
-          renderSingleImageUpload(fieldName);
-          _imagesChanged();
-          showToast("Đã chọn ảnh (chưa lưu)", "success");
-        } catch (error) {
-          console.error("Error processing image:", error);
-          showToast("Lỗi xử lý ảnh: " + error.message, "error");
-        } finally {
-          showLoading(false);
-        }
-      },
-      _qrGiftInfo(fieldName),
-    );
-  } else {
-    // Normal image upload (no crop)
-    showLoading(true, "Đang xử lý ảnh...");
-
-    try {
-      // Nén ảnh ngay tại máy (chỉ khi vượt ngưỡng)
-      const processedFile = await prepareImage(file);
-
-      // Store file for later upload
-      pendingUploads.singleImages[fieldName] = processedFile;
-      _idbSaveSingle(fieldName, processedFile);
-
-      // Render UI
-      renderSingleImageUpload(fieldName);
-      _imagesChanged();
-
-      showToast("Đã chọn ảnh (chưa lưu)", "success");
-    } catch (error) {
-      console.error("Error processing image:", error);
-      showToast("Lỗi xử lý ảnh: " + error.message, "error");
-    } finally {
-      showLoading(false);
-    }
-  }
+// Ảnh đã chọn xong (qua CXImagePick) → hàng chờ upload + IndexedDB + vẽ lại ô ảnh.
+function _storePickedImage(fieldName, file, focal) {
+  // Đặt TRƯỚC _idbSaveSingle: bản ghi IDB chép điểm lấy nét từ pendingFocalPoints.
+  if (focal) pendingFocalPoints[fieldName] = focal;
+  pendingUploads.singleImages[fieldName] = file;
+  _idbSaveSingle(fieldName, file);
+  _idbDelete(`${WEDDING_ID}_sf_${fieldName}`); // bản ghi chỉ-lấy-nét của ảnh cũ
+  renderSingleImageUpload(fieldName);
+  _imagesChanged();
 }
 
 /**
@@ -478,23 +402,11 @@ function adjustSingleImageFocalPoint(fieldName) {
  */
 async function _storeCroppedImage(fieldName, blob, origName) {
   if (!blob) return;
-  const base = (origName || "qr").replace(/\.[^.]+$/, "");
-  const cropped = new File([blob], `${base}.png`, { type: "image/png" });
-  // Đi qua prepareImage như mọi ảnh khác cho đồng nhất. Ảnh cắt ra đã 800x800
-  // nên hầu như luôn đạt ngưỡng → trả nguyên bản, không mã hoá lại.
-  let file = cropped;
-  try {
-    file = await prepareImage(cropped);
-  } catch (e) {
-    console.warn("Không nén được ảnh cắt, giữ nguyên bản gốc:", e);
-  }
-  pendingUploads.singleImages[fieldName] = file;
-  _idbSaveSingle(fieldName, file);
-  _idbDelete(`${WEDDING_ID}_sf_${fieldName}`); // xoá bản ghi focal-only (nếu có)
-  // Crop đã "nướng" khung hình vào ảnh → không cần focal point nữa
-  pendingFocalPoints[fieldName] = { x: 50, y: 50 };
-  renderSingleImageUpload(fieldName);
-  _imagesChanged();
+  // Cắt đã "nướng" khung hình vào ảnh → điểm lấy nét về giữa.
+  _storePickedImage(fieldName, await CXImagePick.fromCrop(blob, origName), {
+    x: 50,
+    y: 50,
+  });
   showToast("Đã cắt ảnh (chưa lưu)", "success");
 }
 
@@ -538,54 +450,21 @@ async function handleGalleryUpload(event) {
     MAX_GALLERY_IMAGES -
     _gallerySavedFilenames().length -
     pendingUploads.galleryImages.length;
-  if (remainingSlots <= 0) {
-    showToast(`Đã đạt giới hạn ${MAX_GALLERY_IMAGES} ảnh`, "error");
-    return;
-  }
 
-  const filesToProcess = files.slice(0, remainingSlots);
-  if (files.length > remainingSlots) {
-    showToast(`Chỉ chọn được ${remainingSlots} ảnh nữa`, "warning");
-  }
-
-  const errors = [];
-  let added = 0;
-
-  for (let i = 0; i < filesToProcess.length; i++) {
-    const file = filesToProcess[i];
-    if (!ImageHelper.isAllowedType(file)) {
-      errors.push(`${file.name}: định dạng không hỗ trợ`);
-      continue;
-    }
-
-    // Open focal point picker for this image
-    const focal = await _openFocalPickerAsync(file, { x: 50, y: 50 });
-    if (!focal) continue; // user cancelled this image
-
-    showLoading(true, "Đang xử lý ảnh...");
-    try {
-      const processedFile = await prepareImage(file);
-      pendingUploads.galleryImages.push(processedFile);
-      pendingFocalPoints.gallery_images.set(processedFile, focal);
-      _idbAddGallery(processedFile);
-      added++;
-      const progress = Math.round((added / filesToProcess.length) * 100);
-      const progressEl = document.getElementById("upload-progress");
-      if (progressEl) progressEl.textContent = `${progress}%`;
-    } catch (error) {
-      console.error(`Error processing ${file.name}:`, error);
-      errors.push(`${file.name}: ${error.message}`);
-    } finally {
-      showLoading(false);
-    }
-  }
+  // Từng ảnh: kiểm định dạng → bảng lấy nét → nén (CXImagePick.gallery).
+  const added = await CXImagePick.gallery(
+    files,
+    remainingSlots,
+    (file, focal) => {
+      pendingUploads.galleryImages.push(file);
+      pendingFocalPoints.gallery_images.set(file, focal); // trước _idbAddGallery
+      _idbAddGallery(file);
+    },
+    MAX_GALLERY_IMAGES,
+  );
 
   renderGalleryGrid();
-  if (added > 0) {
-    _imagesChanged();
-    showToast(`Đã chọn ${added} ảnh (chưa lưu)`, "success");
-  }
-  if (errors.length > 0) showToast(`${errors.length} ảnh lỗi`, "warning");
+  if (added > 0) _imagesChanged();
 }
 
 /**

@@ -614,10 +614,14 @@
     <!-- Ô đếm của mục "Đã chọn" ở navbar (đọc cache, không gọi API). -->
     <script src="core/helpers/nav-cart-count.js"></script>
 
-    <!-- Trợ lý XuXi (bong bóng góc phải, dưới bong bóng Messenger). Tự dựng markup
-         nên chỉ cần hai file này; phải nạp SAU core/config.js + core/auth.js. -->
+    <!-- Trợ lý XuXi (bong bóng góc phải, dưới bong bóng Messenger). Tự dựng markup;
+         phải nạp SAU core/config.js + core/auth.js. image-helper + ai-chat-media là ô
+         chọn ảnh/nhạc/bản đồ/mẫu trong khung chat, phải đứng TRƯỚC ai-assistant.js. -->
     <script src="core/helpers/device-id.js"></script>
     <script src="core/dal/ai-chat-dal.js"></script>
+    <script src="core/helpers/image-helper.js"></script>
+    <script src="core/helpers/image-pick.js"></script>
+    <script src="js/ai-chat-media.js"></script>
     <script src="js/ai-assistant.js"></script>
   </body>
 </html>

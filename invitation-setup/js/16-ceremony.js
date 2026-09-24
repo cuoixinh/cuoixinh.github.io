@@ -105,6 +105,7 @@ function togglePartySameLoc(side, event, force) {
       mapDisplay.classList.remove("hidden");
       mapDisplay.classList.add("flex");
     }
+    window._syncMapFrame?.(`${side}_party`);
     if (mapBtn) {
       mapBtn.disabled = true;
       mapBtn.classList.add("opacity-40", "cursor-not-allowed");

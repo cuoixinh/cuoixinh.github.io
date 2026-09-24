@@ -51,13 +51,35 @@ function listCacheKeys(predicate) {
 }
 
 /**
- * Nháp CHỈ nằm trên máy này (key draft_<id> có cờ _localOnly) mà khách đã bắt đầu
- * điền tên — nguồn duy nhất của "thiệp nháp trên máy" (my-invitations, ô đếm
- * navbar). Nháp còn trống tên là vừa bấm "Tạo thiệp" chứ chưa làm gì, không tính.
+ * Nháp CHỈ nằm trên máy này (key draft_<id> có cờ _localOnly) do khách CHƯA đăng
+ * nhập làm, đã bắt đầu điền tên — nguồn duy nhất của "thiệp nháp trên máy"
+ * (my-invitations, ô đếm navbar, hộp gộp vào tài khoản). Bản có `_owner` là cache
+ * chống mất khi F5 của người đã đăng nhập: không hiện, không gộp, không lên DB.
  */
 function listLocalDrafts() {
   const prefix = buildCacheKey("draft") + "_";
   return listCacheKeys((k) => k.startsWith(prefix))
     .map((k) => ({ id: k.slice(prefix.length), data: getCache(k) }))
-    .filter(({ data }) => data?._localOnly && (data.groom_name || data.bride_name));
+    .filter(
+      ({ data }) =>
+        data?._localOnly && !data._owner && (data.groom_name || data.bride_name),
+    );
+}
+
+/**
+ * Dấu "nháp này đã lên DB" — cả ba đường đẩy nháp (Thiết lập, gộp ở my-invitations,
+ * thanh toán) đều chạy trên CHÍNH trình duyệt giữ nháp nên dấu luôn nằm cạnh nó.
+ * Nhờ vậy trang Thiết lập tin nháp `_localOnly` mà không phải hỏi DB, và tab cũ còn
+ * mở không hồi sinh được key nháp của thiệp đã lên DB (saveLocalDraft chặn).
+ */
+const UPLOADED_DRAFTS_MAX = 50;
+function markDraftUploaded(id) {
+  if (!id) return;
+  const key = buildCacheKey("uploaded_drafts");
+  const ids = getCache(key, []).filter((x) => x !== id);
+  ids.push(id);
+  setCache(key, ids.slice(-UPLOADED_DRAFTS_MAX));
+}
+function isDraftUploaded(id) {
+  return getCache(buildCacheKey("uploaded_drafts"), []).includes(id);
 }

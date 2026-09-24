@@ -104,10 +104,15 @@ function getLocalDraft() {
 }
 // `_savedAt` là mốc để core/helpers/draft-retention.js dọn nháp bỏ quên — nháp
 // nằm ở localStorage nên server không với tới, không đóng dấu là không dọn được.
-// `_owner` = email người đang sửa khi đã đăng nhập: "Quản lý thiệp cưới" tự lưu
-// nháp đó vào đúng tài khoản ấy mà không hỏi (chỉ nháp vô chủ mới phải hỏi).
+// `_owner` = email người tạo khi đã đăng nhập → bản này chỉ là cache chống mất khi
+// F5, không hiện ở "Quản lý thiệp cưới" và không được gộp lên DB (listLocalDrafts).
+// Chủ đóng dấu MỘT lần lúc key ra đời: nháp khách mở lại khi đã đăng nhập vẫn là
+// nháp khách, nếu không nó biến khỏi danh sách lúc đăng xuất.
+// Thiệp đã lên DB (tab khác vừa đẩy) thì tab này không được ghi lại key nháp.
 function saveLocalDraft(data) {
-  const owner = window.CXAuth?.getUserSync()?.email || getLocalDraft()?._owner;
+  if (isDraftUploaded(WEDDING_ID)) return;
+  const prev = getLocalDraft();
+  const owner = prev ? prev._owner : window.CXAuth?.getUserSync()?.email;
   setCache(DRAFT_LOCAL_KEY, {
     ...data,
     ...(owner ? { _owner: owner } : {}),

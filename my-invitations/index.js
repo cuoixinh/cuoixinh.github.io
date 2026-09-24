@@ -95,11 +95,10 @@ function updateAuthUI() {
 // ===== NHÁP TRÊN MÁY ↔ TÀI KHOẢN =====
 // Đăng nhập: danh sách CHỈ là thiệp của tài khoản (DB). Nháp chỉ nằm trên máy
 // (listLocalDrafts, core/cache-util.js) không hiện, cũng không bị xoá — đăng xuất
-// ra vẫn thấy. Nháp do chính tài khoản này làm (`_owner`, đóng dấu lúc sửa khi đã
-// đăng nhập) tự lưu vào tài khoản. Nháp vô chủ thì phải khách XÁC NHẬN: máy có
-// thể dùng chung, tự gộp là thiệp người này rơi vào tài khoản người kia. Xác nhận
-// → lưu lên DB rồi xoá bản trên máy; "Không" → không hỏi lại về đúng những nháp
-// đó (dòng nhắc #local-drafts-note là lối quay lại); đóng hộp thoại → lần sau hỏi lại.
+// ra vẫn thấy. Gộp nháp lên tài khoản LUÔN phải khách XÁC NHẬN: máy có thể dùng
+// chung, tự gộp là thiệp người này rơi vào tài khoản người kia. Xác nhận → lưu lên
+// DB rồi xoá bản trên máy; "Không" → không hỏi lại về đúng những nháp đó (dòng
+// nhắc #local-drafts-note là lối quay lại); đóng hộp thoại → lần sau hỏi lại.
 
 // Key phải KHÔNG bắt đầu bằng "draft_" hay "orders_" — hai tiền tố đó bị quét
 // như nháp/đơn ở draft-retention.js và draft-start.js.
@@ -124,48 +123,58 @@ function _offerMergeLocalDrafts(savedCount) {
 async function _askMergeLocalDrafts(savedCount) {
   const email = currentUser.email;
   const declined = new Set(getCache(_declinedKey(email), []));
-  const all = listLocalDrafts();
-  const own = all.filter((d) => d.data._owner === email);
-  const asking = all.filter((d) => d.data._owner !== email && !declined.has(d.id));
-  if (!own.length && !asking.length) return false;
+  const asking = listLocalDrafts().filter((d) => !declined.has(d.id));
+  if (!asking.length) return false;
 
   // Trần số thiệp (chốt thật ở Edge Function, CONFIG.maxWeddings là bản sao): không
   // đủ chỗ thì nói ngay thay vì hỏi rồi lưu được nửa chừng. Mỗi phiên trình duyệt
   // chỉ nhắc một lần — mỗi lần mở trang lại hiện một hộp thoại là quá phiền.
   const free = CONFIG.maxWeddings - savedCount;
-  if (own.length + asking.length > free) {
+  if (asking.length > free) {
     const flag = buildCacheKey("merge_full_warned", email);
     if (sessionStorage.getItem(flag)) return false;
     sessionStorage.setItem(flag, "1");
     showAlert(
-      "Chưa lưu được thiệp nháp trên máy",
-      `Máy này có ${own.length + asking.length} thiệp nháp chưa lưu vào tài khoản, nhưng tài khoản ` +
+      "Chưa đồng bộ được thiệp nháp trên thiết bị",
+      `Thiết bị này có ${asking.length} thiệp nháp chưa đồng bộ vào tài khoản, nhưng tài khoản ` +
         `đã dùng ${savedCount}/${CONFIG.maxWeddings} thiệp. Xoá bớt thiệp trong danh ` +
-        `sách rồi mở lại trang này để lưu.`,
+        `sách rồi mở lại trang này để đồng bộ.`,
       "warning",
     );
     return false;
   }
 
-  let toMerge = own;
-  if (asking.length) {
-    const names = asking.map((d) => "• " + _draftTitle(d.data)).join("\n");
-    const r = await showConfirm(
-      "Thiệp nháp trên máy này",
-      `Máy này có ${asking.length} thiệp nháp chưa lưu vào tài khoản nào:\n${names}\n` +
-        `Lưu vào tài khoản ${email}? Thiệp sẽ chuyển hẳn vào tài khoản (đăng xuất ra ` +
-        `sẽ không còn thấy). Nếu không phải của bạn, hãy chọn "Không".`,
-      { type: "info", icon: "file-pen", confirmText: "Lưu vào tài khoản", cancelText: "Không" },
-    );
-    if (r) toMerge = own.concat(asking);
-    else if (r === false)
-      setCache(_declinedKey(email), [...declined, ...asking.map((d) => d.id)]);
-  }
-  if (!toMerge.length) return false;
+  // Tên thiệp là chữ khách gõ → escape trước khi bật html. Markup viết liền một dòng:
+  // thân hộp thoại để `white-space: pre-line` nên xuống dòng trong chuỗi là ra dòng trống.
+  const esc = (s) =>
+    String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+  // Tên cặp đôi nối bằng trái tim thay cho " & " của _draftTitle; nháp chưa đủ hai
+  // tên thì rơi về đúng _draftTitle (một tên, hoặc tên mẫu).
+  const heart = `<span style="color:#e11d48;margin:0 4px">&#9829;</span>`;
+  const coupleHTML = (d) => {
+    const both = [d.groom_name, d.bride_name].filter(Boolean);
+    return both.length === 2
+      ? both.map(esc).join(heart)
+      : esc(_draftTitle(d));
+  };
+  const names = asking
+    .map((d) => `<li style="margin:4px 0"><b>${coupleHTML(d.data)}</b></li>`)
+    .join("");
+  const r = await showConfirm(
+    "Thiệp nháp trên thiết bị này",
+    `Thiết bị này có <b>${asking.length} thiệp nháp</b> chưa đồng bộ vào tài khoản nào:` +
+      `<ul style="margin:8px 0 12px;padding:8px 12px;list-style:none;border-radius:12px;background:rgba(244,63,94,.06)">${names}</ul>` +
+      `Bạn có muốn đồng bộ ${asking.length > 1 ? "các thiệp này" : "thiệp này"} vào tài khoản <b>${esc(email)}</b> không?`,
+    { type: "info", icon: "file-pen", html: true, confirmText: "Đồng bộ ngay", cancelText: "Không" },
+  );
+  if (r === false)
+    setCache(_declinedKey(email), [...declined, ...asking.map((d) => d.id)]);
+  if (!r) return false;
+  const toMerge = asking;
 
   let merged = 0;
   let imgFailed = 0;
-  showLoading(true, "Đang lưu thiệp vào tài khoản...");
+  showLoading(true, "Đang đồng bộ thiệp vào tài khoản...");
   try {
     for (const d of toMerge) {
       imgFailed += await _uploadLocalDraft(d);
@@ -174,18 +183,17 @@ async function _askMergeLocalDrafts(savedCount) {
   } catch (e) {
     // Nháp chưa lên được vẫn nằm nguyên trên máy — lần sau hỏi lại.
     if (e.code === "WEDDING_LIMIT") showAlert("Đã đủ số thiệp cho phép", e.message, "warning");
-    else showToast(e.message || "Không lưu được thiệp vào tài khoản", "error");
+    else showToast(e.message || "Không đồng bộ được thiệp vào tài khoản", "error");
   } finally {
     showLoading(false);
   }
   if (imgFailed)
     showToast(
-      `${imgFailed} ảnh chưa đồng bộ được — mở thiệp trên máy này rồi bấm Lưu để thử lại`,
+      `${imgFailed} ảnh chưa đồng bộ được — mở thiệp trên thiết bị này rồi bấm Lưu để thử lại`,
       "warning",
     );
-  // Nháp của chính mình lưu ngầm, không cần báo; chỉ báo khi khách vừa bấm "Lưu".
-  else if (merged && toMerge.length > own.length)
-    showToast("Đã lưu thiệp vào tài khoản", "success");
+  else if (merged)
+    showToast("Đã đồng bộ thiệp vào tài khoản", "success");
   return merged > 0;
 }
 
@@ -205,7 +213,7 @@ function reofferLocalDrafts() {
 // theo id thiệp và đẩy lên ở lần lưu kế tiếp. Ảnh trong IndexedDB đã nén sẵn lúc
 // khách chọn (10-images.js) nên đẩy thẳng. Khuôn bản ghi IDB: invitation-setup/js/02-idb.js.
 async function _uploadLocalDraft({ id, data }) {
-  const { _localOnly, _savedAt, _owner, is_published, deleted_images, id: _id, slug, ...fields } = data;
+  const { _localOnly, _savedAt, _owner, _aiCard, is_published, deleted_images, id: _id, slug, ...fields } = data;
   const created = await weddingDAL.createDraftWedding({
     manage_id: id,
     theme: fields.theme || "basic-gold",
@@ -274,6 +282,7 @@ async function _uploadLocalDraft({ id, data }) {
     slug: created?.slug || slug,
     image_focal_points: focal,
   });
+  markDraftUploaded(id);
   removeCache(buildCacheKey("draft", id));
   _dropOrdersEverywhere(id);
   await _deletePendingRows(done).catch(() => {});
@@ -523,7 +532,7 @@ function render() {
   localNote.classList.toggle("hidden", !n);
   localNote.classList.toggle("flex", !!n);
   document.getElementById("local-drafts-text").textContent =
-    `Máy này còn ${n} thiệp nháp chưa lưu vào tài khoản (chỉ nằm trên trình duyệt này).`;
+    `Thiết bị này còn ${n} thiệp nháp chưa đồng bộ vào tài khoản (chỉ nằm trên trình duyệt này).`;
 
   // Chỉ số nhớ sẵn theo CARDS: các hàm onclick trên thẻ nhắm vào CARDS[i], không
   // phải vị trí trong danh sách đã lọc.
@@ -771,7 +780,7 @@ const UNPAID_KEEP_TEXT = `Thiệp chưa thanh toán sẽ tự động xoá sau $
 // Nháp trên máy (chưa có bản ghi DB) và nháp đã lưu trên hệ thống có hạn riêng.
 function draftKeepText(c) {
   return c.local
-    ? `Bản nháp này chỉ nằm trên trình duyệt máy này và sẽ tự động xoá sau ${CONFIG.retention.localDraftDays} ngày. Đăng nhập để lưu lên hệ thống.`
+    ? `Bản nháp này chỉ nằm trên trình duyệt của thiết bị này và sẽ tự động xoá sau ${CONFIG.retention.localDraftDays} ngày. Đăng nhập để lưu lên hệ thống.`
     : `Thiệp nháp chưa xuất bản sẽ tự động xoá sau ${CONFIG.retention.serverDraftDays} ngày kể từ lần lưu gần nhất.`;
 }
 

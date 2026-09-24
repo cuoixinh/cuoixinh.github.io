@@ -2,7 +2,8 @@
 // còn việc bind vào control là chuyện riêng của trang thiết lập.
 //
 // Nạp SAU các file dựng form (cần _loveStoryItems, _timelineItems, SECTION_VIS_FIELDS,
-// BANK_LIST, flatpickrInstances) và TRƯỚC js/ai-assistant.js.
+// BANK_LIST, flatpickrInstances) và TRƯỚC js/ai-assistant.js. Cũng khai cxAiMediaSink —
+// đích ghi của các ô chọn ảnh/nhạc/bản đồ/mẫu trong khung chat (js/ai-chat-media.js).
 
 // Đổ một thiệp do AI dựng vào form đang mở. Gọi từ khung chat (js/ai-assistant.js);
 // mọi giá trị đi qua _aiSetField để x-input/flatpickr/ô ngân hàng đồng bộ đúng.
@@ -63,6 +64,28 @@ function cxApplyAiCard(result) {
     f.bride_bank_owner
   )
     _aiEnableSection("gift");
+
+  // 6) Nhạc + bản đồ khách chọn ở khung chat TRANG CHỦ (CXChatMedia.handoff). Ảnh thì
+  // đã nằm sẵn trong IndexedDB dưới mã nháp này, _idbRestoreAll nhặt lên. Sau bước 4:
+  // bản đồ cần ô địa điểm đã có chữ. Để CUỐI và bọc riêng từng món: hỏng một món
+  // (script cũ trong cache…) không được kéo theo các bước nội dung ở trên.
+  const media = result.media || {};
+  if (media.music?.url) {
+    try {
+      selectYouTubeSong(media.music.url, media.music.title || "");
+      _aiEnableSection("music");
+      _scheduleAutoSave("config");
+    } catch (e) {
+      console.error("cxApplyAiCard music:", e);
+    }
+  }
+  Object.entries(media.maps || {}).forEach(([side, m]) => {
+    try {
+      _cxSetMap(side, m?.embed, m?.name);
+    } catch (e) {
+      console.error("cxApplyAiCard map:", side, e);
+    }
+  });
 
   // Hidden input set bằng code không tự phát event → gọi autosave thủ công
   _scheduleAutoSave();
@@ -276,18 +299,156 @@ const CX_CHAT_CARD_KEY = buildCacheKey("chat_card");
 
 let _cxPendingAiCard = null;
 
+// Không có thẻ bàn giao (mở nháp từ "Đã chọn" chứ không qua nút "Xem thiệp") thì lấy
+// thẻ nằm sẵn trong nháp (`_aiCard`, js/ai-assistant.js ghi lúc thiệp dựng xong).
 window.__cxOnReady(() => {
-  const card = getCache(CX_CHAT_CARD_KEY);
+  const card = getCache(CX_CHAT_CARD_KEY) || getLocalDraft()?._aiCard;
   removeCache(CX_CHAT_CARD_KEY);
   if (card && typeof card === "object") _cxPendingAiCard = card;
 });
 
 // Đổ thiệp AI đang chờ (nếu có) vào form. Trả về true khi thực sự có đổ —
 // 13-data.js dựa vào đó để không coi form là dữ liệu mẫu nữa.
+// Nội dung AI KHÔNG tự lên DB: autosave giữ nó trong nháp trên máy (đã đăng nhập thì
+// là cache F5 có `_owner`), khách tự bấm "Lưu nháp"/"Xuất bản" mới lên tài khoản.
 window.__cxApplyPendingAiCard = function () {
   const card = _cxPendingAiCard;
   _cxPendingAiCard = null;
   if (!card) return false;
   cxApplyAiCard(card);
   return true;
+};
+
+// ── Ô chọn trong khung chat XuXi (js/ai-chat-media.js) ─────────────────────
+// Đổ THẲNG vào thiệp đang mở, mỗi thao tác đi đúng đường của control tương ứng trên
+// form (bảng lấy nét, cắt QR, selectYouTubeSong, ô bản đồ, _applyThemeChange) nên kết
+// quả y như khách tự làm ở form. Ảnh vẫn chỉ lên Storage lúc Lưu, như mọi ảnh khác.
+
+const _CX_MAP_SIDES = ["ceremony", "vu_quy", "groom_party", "bride_party"];
+const _CX_IMAGE_FIELDS = [
+  "cover_image_url",
+  "groom_image_url",
+  "bride_image_url",
+  "groom_qr_url",
+  "bride_qr_url",
+];
+
+// Giá trị hiện tại của một ô form; [name=X] khớp <x-input> bọc ngoài trước.
+function _aiFieldValue(name) {
+  let el = document.querySelector(`#wedding-form [name="${name}"]`);
+  if (el && el.tagName.startsWith("X-"))
+    el = el.querySelector("input, textarea, select") || el;
+  return String(el?.value || "").trim();
+}
+
+// Ghim bản đồ cho một địa điểm — đi CHUNG đường ghi với bảng chọn ở form (cxApplyMap ở
+// core/helpers/maps-helper.js), nên chọn từ khung chat hay từ form cho ra cùng một kết quả.
+function _cxSetMap(side, embed, name) {
+  if (!_CX_MAP_SIDES.includes(side)) return;
+  cxApplyMap(side, embed, name);
+}
+
+const _cxFileUrls = new WeakMap(); // File chờ upload → objectURL để hiện ảnh nhỏ
+function _cxFileUrl(file) {
+  if (!_cxFileUrls.has(file)) _cxFileUrls.set(file, URL.createObjectURL(file));
+  return _cxFileUrls.get(file);
+}
+
+const _cxMediaChanged = () => window.dispatchEvent(new CustomEvent("cx-media-change"));
+
+window.cxAiMediaSink = {
+  async state() {
+    const img = (f) => {
+      const pending = pendingUploads.singleImages[f];
+      if (pending) return _cxFileUrl(pending);
+      const saved = document.querySelector(`input[name="${f}"]`)?.value;
+      return saved ? getImageUrl(saved) : "";
+    };
+    const saved = _gallerySavedFilenames();
+    const gallery = [
+      ...saved.map((name, index) => ({ url: getImageUrl(name), index })),
+      ...pendingUploads.galleryImages.map((file, j) => ({
+        url: _cxFileUrl(file),
+        index: saved.length + j,
+      })),
+    ];
+    const vuQuy = _aiFieldValue("vu_quy_enabled") === "true";
+    const places = {};
+    const maps = {};
+    _CX_MAP_SIDES.forEach((s) => {
+      const loc = _aiFieldValue(`${s}_location`);
+      if (loc && (s !== "vu_quy" || vuQuy)) places[s] = loc;
+      const embed = document.getElementById(`${s}_map_embed_url`)?.value;
+      if (embed) maps[s] = { embed, name: loc };
+    });
+    const musicUrl = document.getElementById("music-url-input")?.value || "";
+    return {
+      theme: WEDDING_THEME
+        ? {
+            theme: WEDDING_THEME,
+            name:
+              document.getElementById("header-theme-name")?.textContent.trim() ||
+              WEDDING_THEME,
+          }
+        : null,
+      themeLocked: !!IS_THEME_LOCKED,
+      images: Object.fromEntries(_CX_IMAGE_FIELDS.map((f) => [f, img(f)])),
+      gallery,
+      music: musicUrl
+        ? {
+            url: musicUrl,
+            title: document.getElementById("music-selected-name")?.textContent.trim() || "",
+          }
+        : null,
+      maps,
+      places,
+      // Ô "Trùng địa điểm" của hai tiệc trên form — khung chat hiện đúng trạng thái này.
+      same: {
+        groom_party: !!document.querySelector('x-check[key="groom-party-same"]')?.checked,
+        bride_party: !!document.querySelector('x-check[key="bride-party-same"]')?.checked,
+      },
+      hasBank: !!(_aiFieldValue("groom_bank_number") || _aiFieldValue("bride_bank_number")),
+    };
+  },
+
+  // Đi qua đúng hàm của ô chọn ảnh trên form (bảng lấy nét / cắt QR, nén, IndexedDB);
+  // xong thì _imagesChanged phát cx-media-change.
+  setImage(field, file) {
+    return handleImageUpload({ target: { files: [file], value: "" } }, field);
+  },
+
+  addGallery(files) {
+    return handleGalleryUpload({ target: { files, value: "" } });
+  },
+
+  removeGallery(item) {
+    const saved = _gallerySavedFilenames().length;
+    if (item.index < saved) removeExistingGalleryImage(item.index);
+    else removeGalleryImage(item.index - saved);
+  },
+
+  async setMusic(url, title) {
+    await selectYouTubeSong(url, title);
+    _scheduleAutoSave("config");
+    _cxMediaChanged();
+  },
+
+  setMap(side, embed, name) {
+    _cxSetMap(side, embed, name);
+    _scheduleAutoSave();
+    _cxMediaChanged();
+  },
+
+  // Bật/tắt "Trùng địa điểm" của tiệc (`groom_party`/`bride_party`) — đi đúng hàm của ô
+  // trên form, nó tự chép địa điểm + bản đồ của lễ sang.
+  setSame(side, on) {
+    togglePartySameLoc(side.replace("_party", ""), null, on);
+    _scheduleAutoSave();
+    _cxMediaChanged();
+  },
+
+  async setTheme(theme, name) {
+    await _applyThemeChange(theme, name);
+    _cxMediaChanged();
+  },
 };

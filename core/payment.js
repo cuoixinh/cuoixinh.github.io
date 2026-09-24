@@ -513,7 +513,7 @@
       let job;
       if (draftData?._localOnly) {
         // Bỏ khoá riêng của nháp local (_localOnly, _savedAt) — edge không có cột đó.
-        const { _localOnly, _savedAt, _owner, ...fields } = draftData;
+        const { _localOnly, _savedAt, _owner, _aiCard, ...fields } = draftData;
         job = window.weddingDAL
           .updateWedding({ id: manage_id, ...fields, is_published: true })
           .catch(publishOnly);
@@ -522,7 +522,10 @@
       }
       // Đã trả tiền mà thiệp chưa xuất bản thì PHẢI nói, nuốt lỗi là khách tưởng xong.
       job
-        .then(() => removeCache(draftKey))
+        .then(() => {
+          markDraftUploaded(manage_id);
+          removeCache(draftKey);
+        })
         .catch((e) => {
           console.error("publish after payment:", e);
           window.showToast?.(

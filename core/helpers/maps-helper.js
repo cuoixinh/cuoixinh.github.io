@@ -1,7 +1,11 @@
+// Bảng chọn địa điểm (Leaflet + Nominatim) dùng CHUNG cho form trang Thiết lập và ô bản đồ
+// trong khung chat XuXi (js/ai-chat-media.js, tự nạp file này + Leaflet + core/utils.js
+// ở trang chủ). Cần openBottomSheet/escapeHtml (core/utils.js) và Leaflet.
 let _mapPickerSelected = null;
 let _mapSuggestions = [];
 let _leafletMap = null;
 let _leafletMarker = null;
+let _mapPickerOpts = null; // {onApply} khi bên gọi tự lưu kết quả (khung chat), null = form
 
 function _markerIcon() {
   return L.divIcon({
@@ -50,15 +54,19 @@ function _syncDisplayName(name) {
   if (dn && dn.disabled) dn.value = name;
 }
 
-function openMapPicker(side) {
+// opts.onApply(embedUrl, displayName): trả kết quả cho bên gọi thay vì ghi vào form; khi đó
+// giá trị đang có lấy từ opts.embed / opts.name, và opts.query (địa chỉ gợi ý) được tìm
+// sẵn để ghim nằm đúng chỗ ngay khi mở.
+function openMapPicker(side, opts = {}) {
   if (document.getElementById("map-picker-modal")) return;
   _mapPickerSelected = null;
   _mapSuggestions = [];
   _leafletMap = null;
   _leafletMarker = null;
+  _mapPickerOpts = typeof opts.onApply === "function" ? opts : null;
 
-  const hiddenInput = document.getElementById(`${side}_map_embed_url`);
-  const currentVal = hiddenInput ? hiddenInput.value.trim() : "";
+  const hiddenInput = _mapPickerOpts ? null : document.getElementById(`${side}_map_embed_url`);
+  const currentVal = _mapPickerOpts ? String(opts.embed || "") : hiddenInput ? hiddenInput.value.trim() : "";
 
   let currentQuery = "";
   let initLat = 16, initLon = 106, initZoom = 6, hasCoords = false;
@@ -75,8 +83,12 @@ function openMapPicker(side) {
       }
     }
   } catch (e) {}
+  const autoSearch = !!_mapPickerOpts && !currentVal && !!opts.query;
+  if (autoSearch) currentQuery = String(opts.query);
 
-  const currentDisplayName = document.getElementById(`${side}-map-address`)?.textContent?.trim() || currentQuery;
+  const currentDisplayName = _mapPickerOpts
+    ? String(opts.name || currentQuery)
+    : document.getElementById(`${side}-map-address`)?.textContent?.trim() || currentQuery;
 
   const sideLabelMap = { ceremony: "Lễ thành hôn", vu_quy: "Lễ vu quy", groom_party: "Tiệc nhà trai", bride_party: "Tiệc nhà gái", groom: "Nhà trai", bride: "Nhà gái" };
   const sideLabel = sideLabelMap[side] || side;
@@ -90,6 +102,7 @@ function openMapPicker(side) {
       if (_leafletMap) { _leafletMap.remove(); _leafletMap = null; _leafletMarker = null; }
       _mapPickerSelected = null;
       _mapSuggestions = [];
+      _mapPickerOpts = null;
       window._closeMapPickerSheet = null;
     },
   });
@@ -156,6 +169,7 @@ function openMapPicker(side) {
       _placeMarker(e.latlng.lat, e.latlng.lng);
       _reverseGeocode(e.latlng.lat, e.latlng.lng);
     });
+    if (autoSearch) searchMapPicker();
   }, 80);
 
   _setupMapPickerAutocomplete();
@@ -284,6 +298,41 @@ async function searchMapPicker() {
   } catch (e) {}
 }
 
+// Link nhúng Google Maps — chỗ DUY NHẤT dựng link này. `q`: chuỗi địa chỉ hoặc {lat, lon}.
+function cxMapEmbed(q) {
+  const v = q && typeof q === "object"
+    ? `${q.lat},${q.lon}`
+    : encodeURIComponent(String(q || "").trim());
+  return `https://maps.google.com/maps?q=${v}&output=embed&hl=vi`;
+}
+
+// Ô <input> thật của trường `name` — [name=X] khớp <x-input> bọc ngoài trước.
+function _mapFieldInput(name) {
+  let el = document.querySelector(`[name="${name}"]`);
+  if (el && el.tagName === "X-INPUT") el = el.querySelector("input, textarea") || el;
+  return el;
+}
+
+// Ghi bản đồ của một địa điểm vào form Thiết lập — chỗ DUY NHẤT, cho cả bảng chọn ở form
+// lẫn khung chat XuXi: link nhúng, ô hiển thị, và tên vào ô `*_location`. Chỉ nhận link
+// Google Maps vì nó thành src của iframe trên thiệp.
+function cxApplyMap(side, embed, name) {
+  if (!/^https:\/\/maps\.google\.com\/maps\?/.test(String(embed || ""))) return;
+  const hidden = document.getElementById(`${side}_map_embed_url`);
+  if (!hidden) return;
+  hidden.value = embed;
+  hidden.dispatchEvent(new Event("input", { bubbles: true }));
+  const loc = _mapFieldInput(`${side}_location`);
+  if (name && loc) {
+    loc.value = name;
+    // Phát "input" để x-input đồng bộ nút xoá và autosave (form nghe input) lưu địa chỉ → F5 khôi phục đúng
+    loc.dispatchEvent(new Event("input", { bubbles: true }));
+  }
+  _updateMapDisplay(side, embed, name || String(loc?.value || "").trim());
+  // Tiệc đang bật "cùng địa điểm" thì đồng bộ lại theo nơi vừa đổi (16-ceremony.js).
+  window._onLocationSourceChanged?.(side);
+}
+
 function applyMapPicker(side) {
   const searchInput = document.getElementById("map-picker-search");
   const displayNameInput = document.getElementById("map-picker-display-name");
@@ -291,33 +340,12 @@ function applyMapPicker(side) {
                       (_mapPickerSelected ? _mapPickerSelected.name : "") ||
                       (searchInput ? searchInput.value.trim() : "");
   const q = searchInput ? searchInput.value.trim() : "";
-
-  const hidden = document.getElementById(`${side}_map_embed_url`);
-  if (hidden && (q || _mapPickerSelected)) {
-    const embedUrl = _mapPickerSelected
-      ? `https://maps.google.com/maps?q=${_mapPickerSelected.lat},${_mapPickerSelected.lon}&output=embed&hl=vi`
-      : `https://maps.google.com/maps?q=${encodeURIComponent(q)}&output=embed&hl=vi`;
-    hidden.value = embedUrl;
-    _updateMapDisplay(side, embedUrl, displayName);
-  }
-
-  // Also populate the visible location textbox.
-  // Lưu ý: [name="..._location"] khớp <x-input> (phần tử bọc) trước, nên phải nhắm vào <input> con.
-  if (displayName) {
-    let locationInput = document.querySelector(`[name="${side}_location"]`);
-    if (locationInput && locationInput.tagName === "X-INPUT")
-      locationInput = locationInput.querySelector("input, textarea") || locationInput;
-    if (locationInput) {
-      locationInput.value = displayName;
-      // Phát "input" để x-input đồng bộ nút xoá và autosave (form nghe input) lưu địa chỉ → F5 khôi phục đúng
-      locationInput.dispatchEvent(new Event("input", { bubbles: true }));
-    }
-  }
-
+  const picked = !!(q || _mapPickerSelected);
+  const embedUrl = cxMapEmbed(_mapPickerSelected || q);
+  // Lấy callback TRƯỚC khi đóng — đóng là xoá opts. Không có thì ghi thẳng vào form.
+  const done = _mapPickerOpts ? _mapPickerOpts.onApply : (e, n) => cxApplyMap(side, e, n);
   closeMapPicker();
-
-  // Notify invitation-setup to re-sync party "same location" if active
-  window._onLocationSourceChanged?.(side);
+  if (picked) done(embedUrl, displayName);
 }
 
 function closeMapPicker() {
@@ -330,7 +358,9 @@ function _updateMapDisplay(side, embedUrl, displayName) {
   if (!display || !addressEl) return;
   if (!embedUrl) {
     display.classList.add("hidden"); display.classList.remove("flex");
-    addressEl.textContent = ""; return;
+    addressEl.textContent = "";
+    _syncMapFrame(side, "");
+    return;
   }
   let name = displayName;
   if (!name) {
@@ -341,6 +371,30 @@ function _updateMapDisplay(side, embedUrl, displayName) {
   }
   addressEl.textContent = name || embedUrl;
   display.classList.remove("hidden"); display.classList.add("flex");
+  _syncMapFrame(side, embedUrl);
+}
+
+// Khung xem bản đồ ngay dưới dòng địa điểm đã ghim của form Thiết lập: dựng lần đầu
+// cần tới, ẩn/hiện cùng dòng đó. `embed` bỏ trống thì đọc ô ẩn `${side}_map_embed_url`
+// (16-ceremony.js gọi vậy khi tiệc "trùng địa điểm" chép bản đồ của lễ sang).
+function _syncMapFrame(side, embed) {
+  const display = document.getElementById(`${side}-map-display`);
+  if (!display) return;
+  const url = embed ?? (document.getElementById(`${side}_map_embed_url`)?.value || "");
+  const show = !!url && !display.classList.contains("hidden");
+  let frame = document.getElementById(`${side}-map-frame`);
+  if (!frame && !show) return;
+  if (!frame) {
+    frame = document.createElement("iframe");
+    frame.id = `${side}-map-frame`;
+    frame.className = "mt-2 block h-40 w-full rounded-lg border border-gray-100";
+    frame.loading = "lazy";
+    frame.referrerPolicy = "no-referrer-when-downgrade";
+    frame.title = "Bản đồ";
+    display.insertAdjacentElement("afterend", frame);
+  }
+  frame.classList.toggle("hidden", !show);
+  if (show && frame.getAttribute("src") !== url) frame.src = url;
 }
 
 function clearMapAddress(side) {
@@ -362,6 +416,8 @@ function initMapDisplays(data) {
 window.openMapPicker = openMapPicker;
 window.searchMapPicker = searchMapPicker;
 window.applyMapPicker = applyMapPicker;
+window.cxMapEmbed = cxMapEmbed;
+window.cxApplyMap = cxApplyMap;
 window.closeMapPicker = closeMapPicker;
 window._selectMapSuggestion = _selectMapSuggestion;
 window._toggleMapDisplayName = _toggleMapDisplayName;

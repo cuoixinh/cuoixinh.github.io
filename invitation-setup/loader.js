@@ -67,6 +67,8 @@
     "../core/helpers/maps-helper.js",
     "../core/helpers/alert.js",
     "../core/helpers/image-helper.js",
+    // Đường chọn ảnh dùng chung (lấy nét / cắt QR / nén) — form và khung chat XuXi.
+    "../core/helpers/image-pick.js",
     "../core/helpers/validate.js",
     "../core/helpers/guide-helper.js",
     "../core/helpers/tooltip.js",
@@ -126,6 +128,8 @@
     // Khung chat AI dùng chung với trang chủ; thấy window.cxApplyAiCard thì đổ
     // thẳng vào thiệp đang mở thay vì dựng nháp mới.
     "../core/dal/ai-chat-dal.js",
+    // Ô chọn ảnh/nhạc/bản đồ/mẫu trong khung chat — đích ghi là cxAiMediaSink (24-ai-apply.js).
+    "../js/ai-chat-media.js",
     "../js/ai-assistant.js",
     "tour-setup.js",
   ];
