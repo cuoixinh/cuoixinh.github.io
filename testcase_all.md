@@ -50,7 +50,8 @@ testcase tương ứng.
 | Nhóm                  | Phạm vi                                                           | AUTO✓ | AUTO→ | MAN |
 | --------------------- | ----------------------------------------------------------------- | ----- | ----- | --- |
 | AUTO-EX               | Script kiểm đang có (`check:*`, build, promote)                    | 10    | –     | –   |
-| UNIT                  | Hàm thuần: slug, ảnh, làm sạch JSONB, chữ ký, ngày                 | –     | 20    | –   |
+| UNIT                  | Hàm thuần: slug, ảnh, làm sạch JSONB, chữ ký, ngày, mã hoá link    | –     | 30    | –   |
+| LINT                  | Ràng buộc tĩnh trong CLAUDE.md (hằng số hai nơi, thứ tự nạp, mẫu thiệp, deploy) | – | 30 | – |
 | API-WA / API-WR       | Edge Function `wedding-admin` (thiệp + mẫu, giá, mã giảm giá, YouTube) | –  | 68    | –   |
 | API-PAY / API-WH      | `payment-handler`, `payos-webhook`, mã giảm giá                   | –     | 35    | –   |
 | API-GH                | `guest-handler` (khách mời, RSVP, lời chúc)                       | –     | 30    | –   |
@@ -58,7 +59,7 @@ testcase tương ứng.
 | API-CL                | Cron `cleanup-weddings`                                           | –     | 10    | –   |
 | WK                    | Cloudflare Worker (og, cache, image, templates, webhook proxy)    | –     | 18    | –   |
 | E2E                   | Luồng xuyên suốt trên trình duyệt (Playwright)                    | –     | 14    | –   |
-| M-*                   | Test tay giao diện/thiết bị/nghiệp vụ                              | –     | –     | 195 (M-CARD × 9 mẫu) |
+| M-*                   | Test tay giao diện/thiết bị/nghiệp vụ                              | –     | –     | 251 (M-CARD × 9 mẫu) |
 | SEC                   | Bảo mật (ánh xạ `docs/security-checklist.md` A1–A21)              | 4     | 22    | 4 (+2 kết hợp) |
 
 ---
@@ -112,6 +113,58 @@ thì chuyển mã bằng `sucrase` như lệnh §D của checklist.
 | UNIT-18 | `escapeHtml` / `cxImgSrc` / `cxFocal` (`core/utils.js`)      | `<script>`, `"`, `'`, `` ` `` được escape; `cxFocal` ép số, chặn chuỗi CSS                                                                                   | AUTO→ | P0      |
 | UNIT-19 | `weddingImageRefs` / `weddingFileNames` (`_shared/wedding-images.ts`) | Liệt kê đủ ảnh ở mọi cột `*_url`, `gallery_images`, `love_story[].image_url`; bỏ URL ngoài bucket                                                    | AUTO→ | P0      |
 | UNIT-20 | Dò mã màu cứng trong theme                                   | `grep -nE "#[0-9a-fA-F]{3,6}\b" public/themes/*/theme.css` ngoài `:root`/`mask-image` → rỗng                                                                 | AUTO→ | P2      |
+| UNIT-21 | `extractYouTubeVideoId` (`core/helpers/youtube-helper.js`)  | `watch?v=ID&list=…`, `youtu.be/ID?t=3`, `embed/ID`, `v/ID` → `ID`; link không phải YouTube → `null`                                                          | AUTO→ | P1      |
+| UNIT-22 | `encryptData` / `decryptData` (`invitation-setup/js/06-draft-save.js`) | Mã hoá rồi giải mã lại tên có dấu, emoji, `&`, `=` → ra đúng chuỗi gốc; chuỗi rác → không ném lỗi làm vỡ trang                               | AUTO→ | P0      |
+| UNIT-23 | `applyLoveStoryText` (`invitation-setup/js/14-timeline-story.js`) | Có 4 mốc (mốc 2, 4 có ảnh), AI trả 2 mốc → mốc 1–2 thay chữ, giữ ảnh; mốc 4 còn lại dạng mốc trống giữ ảnh; mốc 3 (không ảnh) bị bỏ                 | AUTO→ | P1      |
+| UNIT-24 | `_isBlankWedding` + danh sách trắng demo fill (`invitation-setup/js/13-data.js`) | Thiệp trắng → được đổ nội dung mẫu; KHÔNG bao giờ chép tên, cha mẹ, địa chỉ, địa điểm, bản đồ, ngày giờ, ngân hàng, ảnh                         | AUTO→ | P0      |
+| UNIT-25 | `_cxSafeSelector` / `_cxSafeFont` / `_cxSafeColor` / `_cxSafeNum` (theme-setting-helper) | Selector có `</style>`, font có `;}`, màu `red;background:url(x)`, số `NaN` → bị loại/ép về an toàn                              | AUTO→ | P0      |
+| UNIT-26 | `CXCartCount` (`core/helpers/nav-cart-count.js`)             | Nháp + đơn trùng id → chỉ đếm 1; đăng xuất → không đếm thiệp đã gộp vào tài khoản                                                                           | AUTO→ | P2      |
+| UNIT-27 | `draft-retention.js`                                         | Nháp `_savedAt` 31 ngày → xoá (cả ảnh IDB); 29 ngày → giữ; đang mở `?id=` → giữ; thiếu `CONFIG.retention` → không xoá gì                                  | AUTO→ | P1      |
+| UNIT-28 | `_checkImageType` (`invitation-setup/js/10-images.js`)       | Nhận jpeg/png/webp/gif/avif; chặn `image/svg+xml`, `image/heic`, `application/pdf`, file không có `type`                                                       | AUTO→ | P0      |
+| UNIT-29 | `validateForm` / `_isEmpty` (`core/helpers/validate.js`)     | Ô `[required]` trống, chỉ khoảng trắng, `<x-input>` bọc ngoài → báo lỗi; ô ở bước khác cũng được tính                                                          | AUTO→ | P1      |
+| UNIT-30 | `cxUUID` (`core/utils.js`)                                   | Có `crypto.randomUUID` → dùng nó; không có → dùng `getRandomValues`; đúng dạng UUID v4 (A18)                                                                 | AUTO→ | P2      |
+
+---
+
+## 2b. LINT — Ràng buộc tĩnh trong CLAUDE.md (đề xuất tự động hoá)
+
+Các luật "làm sai là hỏng/mất dữ liệu" trong `CLAUDE.md` đều kiểm được bằng cách đọc file, không
+cần mạng. Nên gom vào một `scripts/check-lint.mjs`. Cột **Hiện trạng** là kết quả quét tay ngày
+2026-09-24. Grep thô hay báo nhầm (thẻ script viết nhiều dòng, nhánh dự phòng hợp lệ), nên script
+phải phân tích đúng cú pháp chứ không chỉ grep.
+
+| ID      | Luật                                                                                                    | Cách kiểm                                                                                                  | Hiện trạng | Ưu tiên |
+| ------- | ------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- | ---------- | ------- |
+| LINT-01 | Hằng số hai nơi phải khớp: `CONFIG.maxWeddings` = `MAX_WEDDINGS_PER_USER`                               | Đọc `core/config.js` + `_shared/wedding-limits.ts`                                                         | Khớp (5)   | P0      |
+| LINT-02 | `CONFIG.retention.unpaidDays/serverDraftDays` = mặc định `RETENTION_DAYS` của cleanup                   | Đọc `core/config.js` + `cleanup-weddings/index.ts` (biến môi trường thật phải soi ở Dashboard)              | Khớp (30)  | P0      |
+| LINT-03 | `CONFIG.trialDays` = số ngày cộng vào `expires_at` ở `wedding-admin`                                    | So `trialDays` với `setDate(… + N)`                                                                        | Khớp (3)   | P1      |
+| LINT-04 | `CONFIG.guestImport.maxRows` = `MAX_PER_SIDE`; `CX_WISH_MAX` = `MAX_WISHES_PER_GUEST`; `CX_WISH_MAX_LEN` = `MAX_WISH_LEN` | So từng cặp                                                                          | Khớp       | P1      |
+| LINT-05 | `CONFIG.maxLoveStoryItems`, `MAX_GALLERY_IMAGES` = `MAX_ITEMS` (10) của `wedding-admin`                 | So từng cặp                                                                                                | Khớp       | P1      |
+| LINT-06 | Ba danh sách `ALLOWED_ORIGINS` (`_shared/ai-provider.ts`, `wedding-admin`, `guest-handler`) giống hệt nhau; `ALLOWED_BASE_URLS` của `payment-handler` ⊂ các miền đó | So tập hợp chuỗi | Khớp | P0 |
+| LINT-07 | Mọi cột ảnh khách sửa được (`*_url`, `gallery_images`, `love_story[].image_url`) có mặt ở `_shared/wedding-images.ts`; cột ảnh đơn có trong `IMAGE_FIELDS` | Lấy tên `*_url` trong `CUSTOMER_EDITABLE_FIELDS` rồi đối chiếu | Cần viết | P0 |
+| LINT-08 | Mỗi thư mục `supabase/functions/*` (trừ `_shared`) nằm ở ĐÚNG MỘT danh sách `VERIFY`/`NO_VERIFY` của `scripts/deploy-functions.sh` | So tên thư mục với hai mảng                                                             | Khớp (7/7) | P0      |
+| LINT-09 | Ba dãy worker ↔ file `.toml` trong `scripts/deploy-workers.sh` cùng độ dài, file `.toml` tồn tại        | Đọc script                                                                                                 | Cần viết   | P1      |
+| LINT-10 | `wrangler*.jsonc`: `assets.directory = "./dist"`, `not_found_handling = "404-page"`                   | Parse JSONC                                                                                                | Đạt        | P0      |
+| LINT-11 | Hai cờ `toplevel` của terser trong `deploy-public.mjs` luôn `false`                                     | Tìm `toplevel: true`                                                                                       | Đạt        | P0      |
+| LINT-12 | Đoạn chuyển hướng trong `404.html` trùng bản sao trong `worker/index.js`                                | Cắt đoạn script hai nơi, so sau khi bỏ khoảng trắng                                                        | Cần viết   | P0      |
+| LINT-13 | Mỗi mẫu `public/themes/<tên>/` có ĐÚNG 3 file `index.html`, `index.js`, `theme.css`; tên không bắt đầu bằng `_` | Liệt kê thư mục                                                                                   | Đạt (10)   | P1      |
+| LINT-14 | `index.html` của mẫu: nạp `index.js` rồi `theme-boot.js` là script CUỐI; có `no-zoom.js`; có đoạn `noindex` khi có `?slug=` | Parse thứ tự thẻ `<script>`                                                             | Đạt (10)   | P0      |
+| LINT-15 | Ảnh trong mẫu: đúng MỘT `fetchpriority="high"`; không có `<img src="">`; ảnh trong `#main-card` của mẫu có bìa không mang `loading="lazy"` | Parse HTML                                                      | 2 ý đầu đạt, ý 3 cần viết | P1 |
+| LINT-16 | `index.js` của mẫu bọc trong IIFE, chỉ lộ `CX_THEME` + `renderWedding`                                  | Parse cấp cao nhất của file                                                                                | Cần viết   | P1      |
+| LINT-17 | `renderCover`/`renderHero` gọi TRƯỚC `setupMusic` trong `renderWedding`                                 | So vị trí lời gọi trong `index.js` từng mẫu                                                               | Cần viết   | P2      |
+| LINT-18 | Mẫu đang bán có `<url>` trong `sitemap.xml` (`base-theme` không bán nên không cần)                      | Đối chiếu thư mục mẫu                                                                                      | Đạt (9/9)  | P2      |
+| LINT-19 | CSS thủ công `styles/_*.css`: không có `:not(` trong selector (ngoài comment), không bọc `@layer`, `@import` chỉ ở đầu file | Parse CSS bỏ comment                                                                 | Đạt        | P1      |
+| LINT-20 | `@keyframes` đặt tên có tiền tố `cx-`                                                                   | Quét `styles/_*.css`, `theme.css`                                                                          | **Lệch**: `aichat*`, `slideDown`, `slideUp`, `btnPop`, `idlePulse`, `coverFade*` (xem NV-08) | P2 |
+| LINT-21 | Không ghép tên class Tailwind từ chuỗi (`` `bg-${…}` ``)                                                | Grep mẫu `(bg|text|border|…)-\${`                                                                          | Đạt        | P1      |
+| LINT-22 | `invitation-setup/js/*`: `DOMContentLoaded` chỉ được dùng làm nhánh dự phòng sau `window.__cxOnReady`; không dùng `window.scrollTo` / `documentElement.scrollTop` | Parse ngữ cảnh lời gọi                                                 | Đạt        | P1      |
+| LINT-23 | Mọi file trong `invitation-setup/js/` được khai trong `SCRIPTS` của `loader.js`; mọi partial có mục trong `PARTIALS` / `STEP_PARTIALS`; mỗi `CX_STEPS[].id` có partial với `data-step` trùng | So danh sách               | Cần viết   | P0      |
+| LINT-24 | Script CDN (lucide, crypto-js, cropper…) có `integrity` + `crossorigin`, lucide pin `@1.26.0`, kể cả thẻ viết nhiều dòng | Parse thẻ `<script>` nhiều dòng                                                              | Đạt        | P1      |
+| LINT-25 | Trang có icon lucide thì nạp lucide; trang dùng `<x-button>` thì nạp `core/x-button.js`; trang `index.html` nạp `no-zoom.js` | Quét từng HTML                                                                          | Cần viết   | P1      |
+| LINT-26 | Thư mục/trang mới ở gốc repo có trong `INCLUDE` của `deploy-public.mjs` và trong `content` của Tailwind config tương ứng | So `git ls-files` với hai danh sách                                                      | Cần viết   | P1      |
+| LINT-27 | `core/config.<env>.js` mới phải có trong `EXCLUDE` của deploy + `ENVS` của `admin/loader.js`            | Liệt kê `core/config.*.js`                                                                                 | Đạt        | P0      |
+| LINT-28 | Edge Function: mọi `const { data, error } = await …` có xử lý `error`; không còn `console.error` (dùng `log.*`) | Parse đơn giản theo dòng                                                                     | **Còn** `console.error` ở `payos-webhook`, `payment-handler` (xem NV-09) | P1 |
+| LINT-29 | Không `.ilike(` với tham số người dùng ngoài chỗ đã escape                                              | Grep `ilike(` trong `supabase/functions`                                                                   | Cần xem tay (`promo-codes` GET của admin dùng `ilike` với `q`) | P2 |
+| LINT-30 | `palette` khai trong `CX_THEME` khớp `theme.css` (= AUTO-EX-02) và thiệp không có mã màu cứng ngoài `:root` (= UNIT-20) | Chạy lại hai kiểm đó                                                                   | Đạt        | P2      |
 
 ---
 
@@ -386,6 +439,11 @@ sẵn ở `/opt/pw-browsers`. Mỗi luồng chụp ảnh màn cuối để so s�
 | M-LP-08 | Trợ lý XuXi ở trang chủ                           | Mở bong bóng, hỏi giá, hỏi mẫu phù hợp                                  | Trả lời theo danh mục thật, gợi ý đúng tên mẫu                                             | P1      |
 | M-LP-09 | Chính sách, liên kết chân trang                   | Bấm từng link                                                           | Không có link chết                                                                         | P2      |
 | M-LP-10 | SEO                                               | Xem `sitemap.xml`, `robots.txt`                                         | Có URL từng mẫu đang bán, không có `?slug=`                                               | P2      |
+| M-LP-11 | Navbar dùng chung                                 | Kéo khổ màn qua mốc `md`                                                | Thanh trên (desktop) và thanh tab dưới (mobile) cùng mục, không lệch; nav tự ẩn khi cuộn xuống ở trang có `nav-autohide.js` | P2 |
+| M-LP-12 | Menu Tài khoản                                    | Chưa đăng nhập / đã đăng nhập                                           | Chưa: đúng 1 mục "Đăng nhập". Đã: "Thiệp của tôi" · "Thông tin cá nhân" · "Đăng xuất" — giống nhau ở mọi trang | P1 |
+| M-LP-13 | Đường dẫn cũ                                      | Mở `/manage?id=…`, `/customer?id=…`, `/account`                         | Chuyển đúng tới `/invitation-setup/` hoặc `/my-invitations/`, giữ nguyên query                  | P1      |
+| M-LP-14 | `config.js` tải hỏng                              | Chặn `/core/config.js` trong DevTools rồi mở `/<slug>`                  | Lùi về trang chủ, không trắng trang                                                            | P2      |
+| M-LP-15 | Trang chính sách                                  | Mở `/policy/`                                                           | Hiển thị đủ, có trong bản publish                                                               | P2      |
 
 ### 6.2 Đăng nhập (M-AUTH)
 
@@ -399,6 +457,8 @@ sẵn ở `/opt/pw-browsers`. Mỗi luồng chụp ảnh màn cuối để so s�
 | M-AUTH-06 | Hết phiên giữa chừng                      | Xoá token trong DevTools rồi bấm Lưu                                  | Hỏi đăng nhập lại, dữ liệu form không mất                                      | P0      |
 | M-AUTH-07 | Hồ sơ                                     | Quản lý thiệp → Hồ sơ → đổi tên                                       | Lưu được, chip avatar đổi tên                                                  | P2      |
 | M-AUTH-08 | Đăng nhập trong iframe khách mời          | Mở tab Khách mời khi phiên hết hạn                                    | Không 401 im lặng; có lời nhắc đăng nhập                                       | P1      |
+| M-AUTH-09 | Đăng nhập giữa luồng                      | Đang ở Thiết lập / Thanh toán / trang mẫu → đăng nhập bằng popup      | Ở lại đúng trang, trạng thái cập nhật ngay, không mất dữ liệu đang nhập                       | P0      |
+| M-AUTH-10 | Nhiều tab                                 | Đăng nhập ở tab 1                                                     | Tab 2 nhận phiên (qua `onChange`) mà không cần tải lại                                          | P2      |
 
 ### 6.3 Mẫu thiệp & bắt đầu thiệp (M-TPL)
 
@@ -411,6 +471,11 @@ sẵn ở `/opt/pw-browsers`. Mỗi luồng chụp ảnh màn cuối để so s�
 | M-TPL-05 | Dùng mẫu khi đang có nháp dở               | Có nháp dở → bấm dùng mẫu khác                                         | Hỏi "Tiếp tục thiệp cũ / Làm với mẫu mới"; chọn nào đi đúng đường đó                        | P0      |
 | M-TPL-06 | Nháp dở là thiệp đã xuất bản               | Bấm "Tạo thiệp"                                                        | Không đưa thiệp đã xuất bản vào hộp "đang viết dở"                                          | P1      |
 | M-TPL-07 | Bảng đề xuất mẫu khác                      | Cuộn tới mục Hộp mừng trong bản xem thử                                | Bảng đề xuất bung đúng tại selector `suggest` của mẫu                                       | P2      |
+| M-TPL-08 | Tìm kiếm không dấu                        | Gõ "co dien", "TOI GIAN"                                            | Ra đúng mẫu "cổ điển", "tối giản"                                                          | P2      |
+| M-TPL-09 | Lọc danh mục + chỉ mẫu yêu thích          | Mở popover lọc, chọn danh mục; bật "Yêu thích"                        | Chấm báo đang lọc hiện; kết quả đúng; tắt lọc về đủ danh sách                                   | P2      |
+| M-TPL-10 | Yêu thích                                 | Bấm tim trên 2 mẫu, tải lại, sang trang chủ                            | Giữ sau khi tải lại; ô đếm "Yêu thích" ở navbar đúng số                                        | P2      |
+| M-TPL-11 | Bản xem thử dùng dữ liệu mẫu              | Mở mẫu không `?slug=`                                                  | Hiện dữ liệu mẫu + ảnh mẫu của đúng mẫu đó (`assets/data-template/<mẫu>/`), lời chúc demo       | P1      |
+| M-TPL-12 | Thao tác bị chặn ở bản xem thử            | Bấm RSVP, gửi lời chúc, lưu QR trong bản xem thử                       | Hiện thông báo "đây là bản xem thử", không gọi API                                             | P1      |
 
 ### 6.4 Trang Thiết lập — vỏ trang & điều hướng (M-SHELL)
 
@@ -439,7 +504,7 @@ sẵn ở `/opt/pw-browsers`. Mỗi luồng chụp ảnh màn cuối để so s�
 | M-SET-07 | Sự kiện      | Đổi thứ tự hiển thị lễ/tiệc                                                                         | Thiệp theo đúng thứ tự                                                                    | P2      |
 | M-SET-08 | Gia đình     | Dải Nhà trai/Nhà gái (`.cx-seg`)                                                                     | Con trượt chạy đúng; dữ liệu 2 bên không lẫn                                              | P1      |
 | M-SET-09 | Tiệc cưới    | Tiệc nhà trai/nhà gái riêng ngày giờ địa điểm                                                        | Hiện đúng ở thiệp, ngày âm đúng                                                           | P1      |
-| M-SET-10 | Ảnh cưới     | Tải ảnh bìa JPG 12MB, PNG, HEIC, WebP, GIF, AVIF, file 60MB, file .pdf                               | Ảnh được nén ≤ 1MB, cạnh ≤ 1920px; HEIC/PDF báo không hỗ trợ; > 50MB báo "File quá lớn"   | P0      |
+| M-SET-10 | Ảnh cưới     | Tải JPG 12MB, PNG, WebP, GIF, AVIF; rồi SVG, HEIC, PDF; rồi file 60MB                                | JPG/PNG/WebP/GIF/AVIF được nén ≤ 1MB, cạnh ≤ 1920px. SVG/HEIC/PDF bị chặn ngay lúc chọn (whitelist). File > 50MB báo "File quá lớn" | P0 |
 | M-SET-11 | Ảnh cưới     | Album 10 ảnh rồi thêm ảnh 11                                                                         | Chặn ở 10                                                                                 | P1      |
 | M-SET-12 | Ảnh cưới     | Đặt điểm nhìn (focal) cho ảnh bìa + ảnh album                                                        | Thiệp cắt ảnh theo đúng điểm nhìn                                                         | P1      |
 | M-SET-13 | Ảnh cưới     | Xoá ảnh, đổi ảnh, rồi Lưu                                                                           | Ảnh cũ bị xoá khỏi bucket (qua `deleted_images`)                                          | P1      |
@@ -455,6 +520,16 @@ sẵn ở `/opt/pw-browsers`. Mỗi luồng chụp ảnh màn cuối để so s�
 | M-SET-23 | Nhập Excel dữ liệu thiệp | Nhập file mẫu, map cột, xem trước                                                        | Đúng dữ liệu vào đúng ô                                                                   | P2      |
 | M-SET-24 | Trợ lý XuXi dựng thiệp | Chat cung cấp thông tin → "Áp dụng vào thiệp"                                               | Các ô được điền, bước được bật đúng; thiếu trường thì hỏi tiếp                            | P1      |
 | M-SET-25 | Đổi mẫu thiệp | Popup đổi mẫu khi chưa thanh toán; sau khi thanh toán                                               | Chưa trả tiền: đổi được, dữ liệu giữ nguyên. Đã trả: nút khoá, có giải thích (không mời bấm rồi báo lỗi) | P0 |
+| M-SET-26 | Dữ liệu mẫu cho thiệp trắng | Tạo thiệp mới với từng mẫu                                                                 | Form có sẵn chữ mẫu (lời ngỏ, lời cảm ơn…) nhưng TRỐNG tên, cha mẹ, địa chỉ, địa điểm, ngày giờ, ngân hàng, ảnh. Sửa một ô rồi đổi mẫu thì không bị đè | P0 |
+| M-SET-27 | Không nạp được thiệp từ DB | Mở `?id=` khi mất mạng / thiệp đã bị xoá                                                     | Giữ màn khung chờ và hỏi đi đâu tiếp; KHÔNG hiện form trắng (không có gì để autosave đè)      | P0      |
+| M-SET-28 | Ảnh chờ upload sống qua F5 | Chưa đăng nhập, chọn 3 ảnh, F5                                                               | Ảnh vẫn còn (IndexedDB), cả điểm lấy nét                                                     | P0      |
+| M-SET-29 | Cắt QR 1:1                | Tải ảnh QR chụp màn hình dài                                                                  | Mở bảng cắt vuông thay vì chọn điểm lấy nét; QR trên thiệp quét được                          | P0      |
+| M-SET-30 | Chọn địa điểm trên bản đồ | Mở bảng bản đồ → gõ tìm (gợi ý tự động) → chọn → bấm lên bản đồ để dời ghim → Áp dụng; bật/tắt tên hiển thị; Xoá | Gợi ý tiếng Việt, ghim đúng chỗ, tên địa điểm tự điền theo ghim; thiệp nhúng bản đồ đúng toạ độ; Xoá dọn cả link lẫn tên | P1 |
+| M-SET-31 | Bản đồ khi Nominatim lỗi  | Chặn `nominatim.openstreetmap.org`                                                            | Báo không tìm được, vẫn dán link tay được                                                    | P2      |
+| M-SET-32 | AI viết lại chuyện tình giữ ảnh | Chuyện tình có 3 mốc có ảnh → "Tạo bằng AI" ra 2 mốc                                   | Ảnh bám theo vị trí, không mất ảnh (xem UNIT-23)                                              | P1      |
+| M-SET-33 | Tooltip giải thích từng mục | Bấm biểu tượng (i) cạnh công tắc mục                                                        | Tooltip hiện, tự lật khi sát mép, đóng khi bấm ra ngoài                                      | P2      |
+| M-SET-34 | Lý do khoá tab Khách mời  | (a) chưa xuất bản; (b) đã xuất bản nhưng đăng xuất                                            | (a) "cần xuất bản"; (b) "cần đăng nhập" — hai câu khác nhau                                | P1      |
+| M-SET-35 | Thanh toán từ trang Thiết lập | Thiệp nháp → nút thanh toán                                                              | Mở màn thanh toán đúng `manage_id` + mẫu hiện tại                                             | P1      |
 
 ### 6.6 Tab Giao diện (M-THEME)
 
@@ -475,6 +550,11 @@ sẵn ở `/opt/pw-browsers`. Mỗi luồng chụp ảnh màn cuối để so s�
 | M-THEME-13 | Khoá mục nâng cao                                | Mục đang tắt (ví dụ Hộp mừng tắt) → mở bảng chỉnh tương ứng                    | Nói lý do rồi dừng, không mở bảng rỗng                                                           | P2      |
 | M-THEME-14 | Tab Giao diện trên mobile                        | < 768px                                                                        | Khung máy fit chiều cao, thanh chỉnh ở dưới; kéo thanh cao lên thì máy lùn lại mà thiệp không tràn viền | P1 |
 | M-THEME-15 | Cột chỉnh kéo đổi rộng (desktop)                 | Kéo `#theme-resize`                                                            | Ô mẫu co giãn theo, không vỡ lưới                                                                | P2      |
+| M-THEME-16 | Danh mục thành phần                           | Thả lần lượt trình phát nhạc `bar`, `pill`, `square`, `mini`, `ring`, `disc`; phần ảnh: `song`, `couple`, `none` | Mỗi dạng hiện đúng hình trong ô xem trước và trên thiệp; bấm phát/tạm dừng chạy | P2 |
+| M-THEME-17 | Mẫu văn bản                                   | Thả `basic`, `headline`, `poster`, `subtitle`; sửa từng phần; chụm 2 ngón để đổi cỡ | Chữ mặc định đúng; cỡ chữ theo `em` nên phóng cả cụm; lưu vào `custom_blocks`       | P2      |
+| M-THEME-18 | Danh mục hộp mừng cưới                        | Chọn `minimalism_brown`, `floral_pink`, `mungcuoi_ivory`                        | Ảnh hộp nền trong suốt, có lời mời chạm; mở hộp xong QR mới hiện                            | P2      |
+| M-THEME-19 | Thiệp cũ không có `palette`                   | Mở thiệp tạo trước khi có tính năng bộ màu                                       | Giữ nguyên hình thức cũ, nút nhạc giữ bảng màu cũ                                           | P1      |
+| M-THEME-20 | Xoá khối văn bản / hoạ tiết                   | Thêm rồi xoá nhiều lần, lưu                                                      | `theme_setting` không phình dần (không còn mục rác)                                          | P2      |
 
 ### 6.7 Xem trực tiếp & khung điện thoại (M-PREV)
 
@@ -524,6 +604,8 @@ phải kiểm trên trình duyệt thật.
 | M-MY-10 | Chạm trần khi gộp                         | U1 có 4 thiệp + 2 nháp local                                             | Hỏi trước theo số chỗ còn lại; nháp thừa không mất                                                   | P0      |
 | M-MY-11 | Tạo thiệp mới                             | Nút "Tạo thiệp"                                                          | Đủ 5 thiệp thì chặn ngay kèm hướng dẫn xoá bớt                                                       | P1      |
 | M-MY-12 | Trạng thái rỗng / lỗi mạng                | Tài khoản mới; mất mạng                                                  | Màn rỗng có nút tạo thiệp; lỗi mạng có nút thử lại                                                   | P2      |
+| M-MY-13 | Thumbnail nháp local                      | Nháp chưa lưu có ảnh bìa trong IDB                                       | Thẻ dùng ảnh trong IDB; ảnh hỏng thì về ảnh mẫu (không icon vỡ)                                      | P2      |
+| M-MY-14 | Chọn bên khi xem/chia sẻ                  | Mẫu có link riêng Nhà trai / Nhà gái                                     | Popover chọn bên; link đúng bên                                                                      | P1      |
 
 ### 6.10 Thanh toán (M-PAY)
 
@@ -588,7 +670,12 @@ thêm `base-theme` khi sửa helper dùng chung.
 | M-CARD-17 | Khổ màn "một màn" ổn định                  | Android Chrome: vuốt ẩn/hiện thanh URL                                      | Bìa/hero không phình co (khoá `--vh`)                                                               | P1      |
 | M-CARD-18 | Chặn zoom                                  | Chụm 2 ngón trên iOS                                                        | Không zoom                                                                                           | P2      |
 | M-CARD-19 | Thiệp hết hạn dùng thử                     | Mở `/<slug W3>`                                                             | Màn "Thiệp đang tạm khoá" có tên cặp đôi, KHÔNG lộ địa chỉ/QR/ảnh                                   | P0      |
-| M-CARD-20 | Thiệp không tồn tại / đã bị cron xoá       | `/khong-co-that`                                                            | Trang báo không tìm thấy thân thiện                                                                  | P1      |
+| M-CARD-20 | Slug không tồn tại / thiệp bị cron xoá / `is_active=false` | `/khong-co-that`                                           | Đưa về trang chủ (hành vi hiện tại của `loadWeddingData`), không trắng trang, không lỗi console đỏ | P1 |
+| M-CARD-21 | Lời chào cá nhân hoá                       | Mở link khách có xưng hô "Cô", "Anh chị"                                    | Câu mời đúng xưng hô + tên; link chung thì câu mời chung                                           | P1      |
+| M-CARD-22 | Lịch tháng nhỏ                             | Xem mục lịch                                                                | Đánh dấu đúng ngày lễ và ngày tiệc, màu theo bộ màu thiệp                                          | P2      |
+| M-CARD-23 | Lưu mã QR                                  | Bấm lưu QR trên iPhone, Android, desktop                                    | Mobile: bảng chia sẻ để lưu ảnh (Web Share file). Desktop: tải file về                              | P1      |
+| M-CARD-24 | Lịch trình theo bên                        | Link Nhà trai và link Nhà gái                                               | Mỗi bên thấy đúng lịch trình và ngày tiệc của bên mình                                             | P1      |
+| M-CARD-25 | Thứ tự áp tuỳ chỉnh                        | Thiệp có đủ chỉnh chữ + khối + hộp quà + hoạ tiết + thành phần + lời chúc   | Không phần nào bị phần sau đè sai; hoạ tiết đặt đúng sau khi hộp quà đã che QR                     | P1      |
 
 ### 6.13 RSVP & lời chúc trên thiệp (M-WISH)
 
@@ -605,6 +692,9 @@ thêm `base-theme` khi sửa helper dùng chung.
 | M-WISH-09 | Màu dải theo mẫu                         | Mẫu nền tối (`noir-elegance`, `moody-cinematic`)                        | Bong bóng, chữ, nút đọc rõ (theo `CX_THEME.wishes`)                                                  | P1      |
 | M-WISH-10 | XSS lời chúc                             | Gửi `<img src=x onerror=alert(1)>`                                     | Hiện thành chữ thường, không chạy script                                                             | P0      |
 | M-WISH-11 | Tắt lời chúc                             | `enable_wishes=false`                                                  | Không có dải / mục lời chúc                                                                           | P1      |
+| M-WISH-12 | Bộ đếm ký tự                             | Gõ lời chúc dài                                                        | Bộ đếm chỉ hiện từ 80 ký tự; dừng ở 500                                                              | P2      |
+| M-WISH-13 | Thông báo đã gửi + trạng thái rỗng       | Gửi 1 lời chúc; mở thiệp chưa có lời chúc nào                          | Có xác nhận ngắn rồi tự ẩn; thiệp chưa có lời chúc hiện câu mời viết lời chúc đầu tiên             | P2      |
+| M-WISH-14 | Lỗi mạng khi RSVP / gửi lời chúc         | Offline rồi bấm                                                        | Báo lỗi ngay dưới nút, không im lặng; bật mạng gửi lại được                                         | P1      |
 
 ### 6.14 Chia sẻ & thẻ xem trước (M-SHARE)
 
@@ -614,6 +704,20 @@ thêm `base-theme` khi sửa helper dùng chung.
 | M-SHARE-02 | Zalo                             | Gửi link trong chat                                             | Có thẻ xem trước đúng ảnh + tiêu đề                                                 | P0      |
 | M-SHARE-03 | Popup chia sẻ                    | `ShareSocial.open`                                              | Đủ nút mạng xã hội; có lời nhắn thì đính kèm, không thì chỉ link                     | P2      |
 | M-SHARE-04 | Web Share API (mobile)           | Bấm chia sẻ trên iOS/Android                                    | Mở bảng chia sẻ hệ thống                                                             | P2      |
+
+### 6.14b Trợ lý XuXi (M-XUXI) — trang chủ và trang Thiết lập
+
+| ID        | Kịch bản                                    | Bước                                                                        | Kỳ vọng                                                                                                  | Ưu tiên |
+| --------- | ------------------------------------------- | --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- | ------- |
+| M-XUXI-01 | Bong bóng kéo thả                           | Kéo bong bóng sang mép khác, xoay máy, đổi cỡ cửa sổ                        | Giữ vị trí theo tỉ lệ khoảng trống; không bao giờ nằm ngoài màn hoặc đè navbar                            | P2      |
+| M-XUXI-02 | Giữ đoạn chat khi F5                        | Chat 3 câu → F5                                                             | Còn nguyên đoạn chat (sessionStorage); mở tab mới thì là cuộc chat mới                                   | P2      |
+| M-XUXI-03 | Chữ chảy dần (stream)                       | Hỏi câu dài                                                                 | Chữ hiện dần, không nháy, không lặp đoạn                                                                  | P1      |
+| M-XUXI-04 | Dựng thiệp từ chat ở trang chủ              | Cung cấp tên cô dâu chú rể + ngày giờ + địa điểm lễ → bấm dùng thẻ          | Bàn giao sang trang Thiết lập, form được điền đúng                                                        | P0      |
+| M-XUXI-05 | Thẻ thiếu dữ liệu                           | Chưa đủ 5 trường bắt buộc hoặc AI trả JSON đứt                              | XuXi hỏi tiếp / nói thật là chưa dựng được, KHÔNG hiện nút dùng thẻ giả                                  | P1      |
+| M-XUXI-06 | Dựng thiệp ngay trong trang Thiết lập       | Chat trong Thiết lập → áp dụng                                              | Đổ thẳng vào form đang mở, bật đúng các bước, ảnh không bị động tới                                      | P0      |
+| M-XUXI-07 | Hết lượt khi chưa đăng nhập                 | Hỏi câu thứ 6                                                               | Câu báo có chữ "đăng nhập" bấm được; đăng nhập xong câu bị chặn tự gửi lại                              | P1      |
+| M-XUXI-08 | Nói để nhập trong chat                      | Bấm micro                                                                   | Nhận dạng tiếng Việt, vòng micro phình theo âm lượng                                                      | P2      |
+| M-XUXI-09 | Tư vấn đúng dữ liệu thật                    | Hỏi giá, hỏi mẫu cho đám cưới miền Tây                                      | Giá khớp `template_pricing`, tên mẫu có thật; danh mục lỗi thì vẫn trả lời được (lùi về DB)               | P1      |
 
 ### 6.15 Trang quản trị (M-ADM) — chỉ chạy `localhost`
 
@@ -629,9 +733,12 @@ thêm `base-theme` khi sửa helper dùng chung.
 | M-ADM-08 | Ảnh nền                | Chọn ảnh, đặt điểm nhìn cho từng biến thể, ghi                                        | `manifest.json` cập nhật (có `focal`); trùng tên hỏi ghi đè; trang chủ lấy bộ mới nhất              | P1      |
 | M-ADM-09 | Ảnh nền — xoá          | Xoá một bộ                                                                            | `manifest.json` đồng bộ, trang chủ không trỏ file đã xoá                                            | P1      |
 | M-ADM-10 | Mã giảm giá            | Sinh lô, lọc theo lô, tắt, xoá lô có mã đã dùng                                       | Hiện lượt đã dùng + đơn; mã đã dùng chỉ tắt được                                                     | P1      |
-| M-ADM-11 | Font                   | Thêm font `.woff2`                                                                    | Hiện trong danh sách font ở tab Giao diện, tên họ đúng quy ước                                      | P2      |
+| M-ADM-11 | Font                   | Thêm `@font-face` mới ở `styles/_fonts.css` + file ở `assets/fonts/`, mở tab Font                   | Tab đọc thẳng từ nguồn nên tự liệt kê font mới, xem trước đúng font; tên họ đúng quy ước tên file   | P2      |
 | M-ADM-12 | Purge cache            | Đổi giá mẫu trên production → Purge                                                   | Trang chủ thấy giá mới ≤ 5 phút                                                                      | P0      |
 | M-ADM-13 | Không ra web           | Mở `https://cuoixinh.com/admin/`                                                       | 404 (admin không nằm trong `dist/`)                                                                  | P0      |
+| M-ADM-14 | Dữ liệu mẫu (File System Access API)   | Mở trên Chrome/Edge desktop; mở trên Firefox/Safari                                   | Chrome/Edge: chọn thư mục repo, ghi `assets/data-template/<mẫu>/data.json` + ảnh. Trình duyệt khác: báo không hỗ trợ, không vỡ | P1 |
+| M-ADM-15 | Dữ liệu mẫu → bản xem thử + demo fill  | Sửa chữ mẫu, lưu, mở bản xem thử và tạo thiệp trắng                                  | Bản xem thử có chữ mới; thiệp trắng chỉ nhận phần không mang tính cá nhân (M-SET-26)            | P1      |
+| M-ADM-16 | Dashboard                              | Mở tab đầu                                                                            | Số liệu tải được, không lỗi khi DB trống                                                          | P2      |
 
 ### 6.16 Cache, phiên bản, môi trường, deploy (M-OPS)
 
@@ -647,6 +754,10 @@ thêm `base-theme` khi sửa helper dùng chung.
 | M-OPS-08 | Cron cleanup đang chạy                            | Xem `cron.job_run_details` (qua MCP đọc)                                         | Chạy hằng ngày, không lỗi                                                           | P1      |
 | M-OPS-09 | Axiom                                             | Gây lỗi 5xx có chủ đích trên staging                                             | Có sự kiện `miền.việc_thất_bại` kèm id; không chứa token/chữ ký/key                 | P1      |
 | M-OPS-10 | Trang mới / thư mục gốc mới                       | Kiểm `INCLUDE` (deploy) + `content` (Tailwind)                                   | Ra web đủ file; class không bị purge                                                | P1      |
+| M-OPS-11 | `npm run sql:merge`                               | Chạy không tham số và với `-- RC01`                                              | Ra một file gộp `schema/` rồi `data/` đúng thứ tự; KHÔNG có file trong `manual/`   | P1      |
+| M-OPS-12 | Dev server                                        | Sửa một file khi đang mở trang; chạy với `-- --no-reload`                        | Tự tải lại; cờ tắt thì không tải lại                                                | P2      |
+| M-OPS-13 | Chụp ảnh thumbnail mẫu (`scripts/capture.js`)     | Chạy script                                                                      | Ra ảnh cho mọi mẫu ở `assets/images/templates/`                                     | P2      |
+| M-OPS-14 | Deploy khi thiếu TTY                              | Chạy `deploy-public.mjs --dist` trong CI không có `--yes`                         | Dừng, không publish thư mục rỗng                                                    | P0      |
 
 ### 6.17 Thiết bị, trình duyệt, hiệu năng, trợ năng (M-DEV)
 
@@ -660,6 +771,9 @@ thêm `base-theme` khi sửa helper dùng chung.
 | M-DEV-06 | Hiệu năng thiệp                           | Lighthouse mobile trên 3 mẫu                                                  | LCP < 2.5s với 4G; ảnh màn đầu tải trước YouTube API                                | P1      |
 | M-DEV-07 | Trợ năng                                  | Tab bàn phím qua popup/nút; screen reader đọc nút icon                        | Thấy focus; nút icon-only có `aria-label`; Esc đóng popover                         | P2      |
 | M-DEV-08 | Icon lucide                               | Mọi màn có markup chèn động                                                   | Không còn thẻ `<i data-lucide>` chưa vẽ; không cảnh báo tên icon sai ở console      | P2      |
+| M-DEV-09 | Component dùng chung                      | `<x-popover>` sát mép dưới/phải, trong cha có `transform`; `<x-combobox>` sát đáy; tooltip sát mép; thanh kéo `progress` bằng phím mũi tên | Tự lật, kẹp trong `bound`; Esc/bấm ra ngoài đóng; combobox hiện từng dòng đúng font; phím mũi tên đổi giá trị | P2 |
+| M-DEV-10 | `<x-button>`                              | Soi DOM lúc chạy                                                              | Thành `<button>` thật, mang đủ attribute; không khai `type` thì là `type="button"` (không submit nhầm form) | P1 |
+| M-DEV-11 | Hộp thoại và tour                         | Mở các alert/confirm; tour spotlight                                          | Icon tròn đúng loại, nút đúng tone; tour qua từng bước, không hiện lại khi đã xong                 | P2      |
 
 ---
 
@@ -731,6 +845,9 @@ Chạy trên staging sau khi deploy đủ SQL → Edge Function → web. Tất c
 
 Các điểm dưới đây đọc từ mã, **chưa chạy thử** để khẳng định. Mỗi mục có testcase để kiểm.
 
+> **Trạng thái (2026-09-24): chỉ GHI NHẬN, CHƯA SỬA — để làm sau** theo yêu cầu. Kể cả NV-01
+> (`payos-webhook`): chưa đụng vào mã, chỉ giữ testcase API-WH-09/10 để xác nhận khi quay lại.
+
 | ID    | Nơi                                        | Nghi vấn                                                                                                                                                                                                                                                         | Testcase kiểm           | Mức độ nếu đúng |
 | ----- | ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------- | --------------- |
 | NV-01 | `supabase/functions/payos-webhook/index.ts` | Không có chốt chống xử lý lặp (khác `payment-handler` đã kiểm `transaction_id`). PayOS gửi lại thì `payment_time` bị ghi đè. Tệ hơn, `payment_status` tính thẳng từ `paymentData.code` nên một webhook hợp lệ báo `code ≠ "00"` đến SAU có thể hạ thiệp đã trả tiền về `failed`. `expires_at` giữ `null` nên thiệp vẫn mở, nhưng `theme_locked` mất và trạng thái đơn sai. | API-WH-09, API-WH-10    | Cao             |
@@ -740,16 +857,53 @@ Các điểm dưới đây đọc từ mã, **chưa chạy thử** để khẳng
 | NV-05 | Slug client ↔ server                       | Client cắt slug ở 50 ký tự (`SLUG_MAX_LENGTH`), server chấp nhận tới 80. Không lỗi, nhưng slug do `payment-handler` tự sinh từ tên dài có thể vượt 50 rồi bị client cắt khi lưu lại, làm đổi link.                                                                  | API-PAY-08 với tên > 50 ký tự, rồi lưu lại ở Thiết lập | Trung bình |
 | NV-06 | `guest-handler` RSVP/lời chúc              | Chưa rate limit (A12c đang mở). Người có link khách có thể spam RSVP làm đổi trạng thái liên tục.                                                                                                                                                                   | SEC-13                  | Trung bình      |
 | NV-07 | Storage bucket                             | Chưa giới hạn MIME/kích thước phía Supabase (A16 đang mở). Client nén ảnh, nhưng gọi thẳng API Storage thì vượt được.                                                                                                                                               | SEC-17                  | Trung bình      |
+| NV-08 | `styles/_*.css`, `theme.css`               | Một số `@keyframes` chưa có tiền tố `cx-` (`aichat*`, `slideDown`, `slideUp`, `btnPop`, `idlePulse`, `coverFade*`), lệch quy ước trong CLAUDE.md. Rủi ro là trùng tên keyframe giữa các file. | LINT-20 | Thấp |
+| NV-09 | `payos-webhook`, `payment-handler`         | Còn `console.error` ở vài nhánh lỗi, trong khi quy ước là dùng `log.*` để lên Axiom. Phần lớn nhánh đã có `log.error` đi kèm, cần rà nhánh nào CHỈ có `console.error`. | LINT-28 | Thấp |
+| NV-10 | `wedding-admin` GET `promo-codes` (admin)  | Dùng `ilike` với `q` do admin gõ, chưa escape `%`/`_`. Chỉ admin gọi được nên rủi ro thấp, nhưng lệch luật A5. | LINT-29 | Thấp |
 
 ---
 
 ## 10. Việc nên làm tiếp để tăng phần AUTO
 
-1. `scripts/check-units.mjs`: gom UNIT-01 → UNIT-20 theo mẫu `check-draft-sync.mjs`. Không cần
-   mạng, chạy được trong CI.
+1. `scripts/check-units.mjs` (UNIT-01 → UNIT-30) và `scripts/check-lint.mjs` (LINT-01 → LINT-30),
+   theo mẫu `check-draft-sync.mjs`. Không cần mạng, chạy được trong CI — nên làm trước vì rẻ nhất.
 2. `scripts/check-api.mjs --env=staging`: chạy §3 và §4, tự dựng rồi dọn dữ liệu. Cần 3 tài
    khoản test + token admin staging đặt qua biến môi trường, không commit.
 3. Playwright cho §5, dùng Chromium có sẵn. Cloudflare Access của staging cần service token,
    hoặc chạy qua `npm run dev`.
-4. Gắn `check:units` + `check:draft-sync` + `check:config` vào `scripts/promote-production.sh`
+4. Gắn `check:units` + `check:lint` + `check:draft-sync` + `check:config` vào `scripts/promote-production.sh`
    để promote tự chặn khi đỏ.
+
+---
+
+## 11. Ma trận phủ theo mã nguồn
+
+Mỗi vùng mã có ít nhất một nhóm testcase. Dòng cuối liệt kê những thứ cố ý đứng ngoài.
+
+| Vùng mã                                                                                     | Testcase                                                         |
+| ------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| `supabase/functions/wedding-admin`                                                          | API-WA, API-WR, SEC-03/05/06/11/24/30, LINT-06/07               |
+| `supabase/functions/payment-handler`, `payos-webhook`, SQL `cx_promo_*`                     | API-PAY, API-WH, UNIT-10/11, M-PAY, SEC-01/02/14                |
+| `supabase/functions/guest-handler`                                                          | API-GH, M-GST, M-WISH, SEC-13/28                                |
+| `supabase/functions/ai-chat`, `ai-invitation`, `_shared/ai-*`                               | API-AI, UNIT-12/13, M-XUXI, M-SET-17/20/24, SEC-10              |
+| `supabase/functions/cleanup-weddings`, `_shared/wedding-images.ts`, `wedding-limits.ts`     | API-CL, UNIT-19, LINT-01/02/07                                  |
+| `supabase/functions/_shared/axiom.ts`, `db-client.ts`                                       | M-OPS-09, SEC-27, LINT-28                                       |
+| `changelogs/` (schema, grants, storage policy, cron)                                        | M-OPS-07/08/11, SEC-20/21/22, API-PAY-15                        |
+| `worker/index.js`, `404.html`, `router.html`                                                | WK-01…07, M-CARD-01, M-LP-13/14, LINT-12                        |
+| `cloudflare-worker/*`                                                                       | WK-08…17, API-WH-11/12                                          |
+| `core/dal`, `core/bl`, `core/auth*.js`, `core/cache-util.js`                                | UNIT-01…04/17, M-AUTH, AUTO-EX-04                               |
+| `core/payment.js`, `checkout/`, `js/home-payment.js`                                        | M-PAY, E2E-07, UNIT-14                                          |
+| `core/helpers/theme-setting-helper.js`, `card-palette-helper.js`, `text-preset-helper.js`, `element-*.js`, `gift-box-helper.js` | M-THEME, M-CARD-13/14/25, UNIT-15/25, AUTO-EX-03 |
+| `core/helpers/wishes-helper.js`, `wedding-helper.js`, `render-helper.js`, `theme-boot.js`, `music-*`, `youtube-helper.js`, `lightbox`, `calendar`, `maps-helper.js`, `qr-mobile-helper.js`, `vh-lock.js`, `no-zoom.js` | M-CARD, M-WISH, M-SET-21/30/31, UNIT-21 |
+| `core/helpers/draft-start.js`, `draft-retention.js`, `nav-cart-count.js`, `account-menu.js`, `device-id.js` | AUTO-EX-04, UNIT-26/27, M-TPL-04…06, M-LP-12      |
+| `core/x-*.js`, `core/components/*`, `alert.js`, `tooltip.js`, `guide-helper.js`             | M-DEV-09…11, M-SET-02/03, M-LP-11                               |
+| `invitation-setup/` (loader, partials, `js/01…26`, `tour-setup.js`)                         | M-SHELL, M-SET, M-THEME, M-PREV, M-SAVE, E2E-02…09, LINT-22/23  |
+| `invitation-setup/guests/`                                                                  | M-GST, API-GH, UNIT-22                                          |
+| `my-invitations/`                                                                           | M-MY, AUTO-EX-04, UNIT-14                                       |
+| `index.html`, `js/*` (trang chủ), `theme-template/`, `policy/`                              | M-LP, M-TPL, M-XUXI, E2E-01                                     |
+| `public/themes/*` (10 mẫu), `preview-data.js`                                               | M-CARD × 9 mẫu, E2E-13, LINT-13…18, AUTO-EX-02, M-TPL-11/12     |
+| `admin/` (9 tab)                                                                            | M-ADM, API-WR                                                   |
+| `styles/`, Tailwind config, `assets/`                                                       | AUTO-EX-05, LINT-19…21/30, M-DEV-03/05                          |
+| `scripts/*` (dev-server, deploy, promote, check-*, sql:merge, capture)                      | AUTO-EX, M-OPS, LINT-08/09/11/26/27                             |
+| `wrangler*.jsonc`, `_headers`, `sitemap.xml`, `robots.txt`                                  | LINT-10/18, WK-18, M-LP-10, M-OPS-03                            |
+| **Cố ý đứng ngoài**                                                                         | Giao diện của chính PayOS / Google OAuth / trình duyệt nhận email; cấu hình chỉ làm ở Dashboard (security-checklist mục E); `documents/overview.md` và các file `docs/` (tài liệu, không chạy) |
