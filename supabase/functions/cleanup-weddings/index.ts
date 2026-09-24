@@ -10,7 +10,7 @@
 // RETENTION_DAYS (tuỳ chọn, mặc định 30) · SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY.
 // Tham số query: ?dry_run=1 (chỉ liệt kê) · ?days=N (ghi đè hạn, để thử tay).
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { createDbClient } from '../_shared/db-client.ts'
 import { withAxiom } from '../_shared/axiom.ts'
 import { WEDDING_IMAGE_SELECT, weddingFileNames } from '../_shared/wedding-images.ts'
 
@@ -64,10 +64,7 @@ Deno.serve(withAxiom('cleanup-weddings', async (req, log) => {
     })
   }
 
-  const supabase = createClient(
-    Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
-  )
+  const supabase = createDbClient(log)
 
   const cutoff = new Date(Date.now() - days * 86400000).toISOString()
 

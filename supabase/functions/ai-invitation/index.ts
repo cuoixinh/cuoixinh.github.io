@@ -8,7 +8,8 @@
 // output, CORS allowlist, timeout khi gọi provider, không rò lỗi chi tiết của
 // provider ra client; API key chỉ nằm trong secret.
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import type { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { createDbClient } from '../_shared/db-client.ts'
 import { withAxiom, type Logger } from '../_shared/axiom.ts'
 // Tầng gọi model + CORS dùng chung với ai-background (xem _shared/ai-provider.ts).
 import {
@@ -467,10 +468,7 @@ Deno.serve(withAxiom('ai-invitation', async (req, log) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders(origin) })
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405, origin)
 
-  const admin = createClient(
-    Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
-  )
+  const admin = createDbClient(log)
 
   // 1) Xác thực (TUỲ CHỌN). Có JWT user hợp lệ → luồng đăng nhập; nếu không
   //    (khách vãng lai hoặc chỉ gửi anon key) → luồng ẩn danh theo IP.
