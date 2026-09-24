@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 320">
+  <defs>
+    <radialGradient id="h" cx="35%" cy="30%" r="80%"><stop offset="0" stop-color="#ffc2cf"/><stop offset=".55" stop-color="#ec6f8d"/><stop offset="1" stop-color="#c43d62"/></radialGradient>
+    <clipPath id="hc"><path id="hp" d="M130 200C60 150 30 110 30 75c0-35 28-57 58-57 20 0 34 12 42 26 8-14 22-26 42-26 30 0 58 22 58 57 0 35-30 75-100 125z"/></clipPath>
+    <g id="cl"><path d="M0 0c-14 0-22-8-18-16 3-6 10-7 14-5 2-10 12-15 21-12 7 2 11 8 11 13 7-2 14 3 13 10-1 6-6 10-12 10z" fill="#fff" stroke="#dde5ee" stroke-width="2"/></g>
+  </defs>
+  <use href="#hp" fill="url(#h)"/>
+  <g clip-path="url(#hc)" fill="none" stroke="#b83459" stroke-opacity=".35" stroke-width="2">
+    <path d="M130 44C110 90 106 150 130 200M130 44c20 46 24 106 0 156M88 18C62 70 70 140 130 200M172 18c26 52 18 122-42 182"/>
+  </g>
+  <path d="M56 58c6-16 20-24 34-24" fill="none" stroke="#fff" stroke-opacity=".6" stroke-width="7" stroke-linecap="round"/>
+  <path d="M116 188l-6 52M144 188l6 52" stroke="#9c7b52" stroke-width="2"/>
+  <path d="M118 186h24l-4 8h-16z" fill="#d4a53f"/>
+  <path d="M104 240h52l-5 32h-42z" fill="#c89a62" stroke="#8f6a3e" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M104 240h52" stroke="#8f6a3e" stroke-width="5" stroke-linecap="round"/>
+  <path d="M106 252h48M108 262h44M117 244v27M130 244v28M143 244v27" stroke="#8f6a3e" stroke-opacity=".5" stroke-width="1.5"/>
+  <use href="#cl" transform="translate(52 236)"/>
+  <use href="#cl" transform="translate(212 150) scale(.8)"/>
+  <use href="#cl" transform="translate(204 290) scale(.65)"/>
+  <g fill="#f4a3b7">
+    <path d="M226 60c-5-4-10-7-10-11 0-3 2-5 5-5 2 0 4 1 5 3 1-2 3-3 5-3 3 0 5 2 5 5 0 4-5 7-10 11z"/>
+    <path d="M28 150c-4-3-7-5-7-8 0-2 2-3.5 3.5-3.5 1.5 0 2.8 1 3.5 2 .7-1 2-2 3.5-2 1.5 0 3.5 1.5 3.5 3.5 0 3-3 5-7 8z"/>
+  </g>
+</svg>

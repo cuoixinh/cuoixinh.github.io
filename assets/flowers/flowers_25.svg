@@ -1,0 +1,117 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300">
+<defs>
+<path id="lf" d="M0 0c-6-8-6-20 0-28 6 8 6 20 0 28z"/>
+<g id="fw"><g fill="#fff" stroke="#e8c6ce" stroke-width="1"><ellipse cy="-7" rx="4.5" ry="7" transform="rotate(0)"/><ellipse cy="-7" rx="4.5" ry="7" transform="rotate(72)"/><ellipse cy="-7" rx="4.5" ry="7" transform="rotate(144)"/><ellipse cy="-7" rx="4.5" ry="7" transform="rotate(216)"/><ellipse cy="-7" rx="4.5" ry="7" transform="rotate(288)"/></g><circle r="3" fill="#f2c14e"/></g>
+<g id="fp"><g fill="#f5b3c3"><ellipse cy="-6" rx="4" ry="6" transform="rotate(0)"/><ellipse cy="-6" rx="4" ry="6" transform="rotate(72)"/><ellipse cy="-6" rx="4" ry="6" transform="rotate(144)"/><ellipse cy="-6" rx="4" ry="6" transform="rotate(216)"/><ellipse cy="-6" rx="4" ry="6" transform="rotate(288)"/></g><circle r="2.5" fill="#fff4d6"/></g>
+</defs>
+<circle cx="150" cy="150" r="104" fill="none" stroke="#7c9a6e" stroke-width="2.5"/>
+<use href="#lf" fill="#8db88a" transform="translate(251.0 148.8) rotate(32) scale(0.93)"/>
+<use href="#lf" fill="#8db88a" transform="translate(257.0 148.7) rotate(146) scale(0.73)"/>
+<use href="#lf" fill="#9bb8a6" transform="translate(249.5 167.2) rotate(44) scale(0.73)"/>
+<use href="#lf" fill="#9bb8a6" transform="translate(255.4 168.3) rotate(141) scale(0.73)"/>
+<use href="#lf" fill="#8db88a" transform="translate(247.7 175.5) rotate(56) scale(1.03)"/>
+<use href="#lf" fill="#6f9a6c" transform="translate(253.5 177.0) rotate(156) scale(0.84)"/>
+<use href="#lf" fill="#6f9a6c" transform="translate(243.2 189.0) rotate(70) scale(0.80)"/>
+<use href="#lf" fill="#6f9a6c" transform="translate(248.7 191.3) rotate(164) scale(0.90)"/>
+<use href="#lf" fill="#8db88a" transform="translate(236.4 202.2) rotate(73) scale(0.77)"/>
+<use href="#lf" fill="#8db88a" transform="translate(241.6 205.3) rotate(172) scale(0.72)"/>
+<use href="#lf" fill="#a9c79c" transform="translate(225.8 216.8) rotate(81) scale(0.89)"/>
+<use href="#lf" fill="#a9c79c" transform="translate(230.3 220.7) rotate(181) scale(1.02)"/>
+<use href="#lf" fill="#6f9a6c" transform="translate(217.2 225.4) rotate(94) scale(0.94)"/>
+<use href="#lf" fill="#9bb8a6" transform="translate(221.2 229.9) rotate(180) scale(0.81)"/>
+<use href="#lf" fill="#8db88a" transform="translate(202.4 236.4) rotate(103) scale(0.80)"/>
+<use href="#lf" fill="#a9c79c" transform="translate(205.5 241.5) rotate(191) scale(0.85)"/>
+<use href="#lf" fill="#8db88a" transform="translate(194.2 240.8) rotate(104) scale(0.71)"/>
+<use href="#lf" fill="#a9c79c" transform="translate(196.8 246.2) rotate(209) scale(0.90)"/>
+<use href="#lf" fill="#9bb8a6" transform="translate(179.5 246.6) rotate(110) scale(0.87)"/>
+<use href="#lf" fill="#a9c79c" transform="translate(181.3 252.3) rotate(204) scale(0.73)"/>
+<use href="#lf" fill="#a9c79c" transform="translate(164.6 249.9) rotate(125) scale(0.72)"/>
+<use href="#lf" fill="#9bb8a6" transform="translate(165.4 255.9) rotate(225) scale(1.05)"/>
+<use href="#lf" fill="#8db88a" transform="translate(151.5 251.0) rotate(127) scale(0.93)"/>
+<use href="#lf" fill="#8db88a" transform="translate(151.6 257.0) rotate(238) scale(0.82)"/>
+<use href="#lf" fill="#6f9a6c" transform="translate(135.7 250.0) rotate(133) scale(0.80)"/>
+<use href="#lf" fill="#9bb8a6" transform="translate(134.8 255.9) rotate(236) scale(1.02)"/>
+<use href="#lf" fill="#6f9a6c" transform="translate(124.4 247.7) rotate(144) scale(0.89)"/>
+<use href="#lf" fill="#a9c79c" transform="translate(122.9 253.5) rotate(251) scale(1.00)"/>
+<use href="#lf" fill="#9bb8a6" transform="translate(106.7 241.3) rotate(165) scale(0.94)"/>
+<use href="#lf" fill="#6f9a6c" transform="translate(104.2 246.7) rotate(265) scale(0.75)"/>
+<use href="#lf" fill="#6f9a6c" transform="translate(97.5 236.3) rotate(165) scale(0.70)"/>
+<use href="#lf" fill="#9bb8a6" transform="translate(94.4 241.4) rotate(257) scale(0.70)"/>
+<use href="#lf" fill="#6f9a6c" transform="translate(83.7 226.2) rotate(173) scale(0.81)"/>
+<use href="#lf" fill="#8db88a" transform="translate(79.7 230.7) rotate(275) scale(0.88)"/>
+<use href="#lf" fill="#9bb8a6" transform="translate(73.9 216.4) rotate(186) scale(1.03)"/>
+<use href="#lf" fill="#9bb8a6" transform="translate(69.3 220.3) rotate(277) scale(0.84)"/>
+<use href="#lf" fill="#6f9a6c" transform="translate(64.5 203.8) rotate(179) scale(0.72)"/>
+<use href="#lf" fill="#8db88a" transform="translate(59.4 207.0) rotate(287) scale(0.74)"/>
+<use href="#lf" fill="#a9c79c" transform="translate(59.3 194.5) rotate(195) scale(0.89)"/>
+<use href="#lf" fill="#6f9a6c" transform="translate(53.9 197.1) rotate(296) scale(0.72)"/>
+<use href="#lf" fill="#a9c79c" transform="translate(52.9 177.7) rotate(197) scale(0.79)"/>
+<use href="#lf" fill="#8db88a" transform="translate(47.1 179.3) rotate(306) scale(0.87)"/>
+<use href="#lf" fill="#9bb8a6" transform="translate(49.7 161.9) rotate(223) scale(0.86)"/>
+<use href="#lf" fill="#a9c79c" transform="translate(43.7 162.6) rotate(309) scale(0.75)"/>
+<use href="#lf" fill="#8db88a" transform="translate(49.0 148.3) rotate(221) scale(0.94)"/>
+<use href="#lf" fill="#a9c79c" transform="translate(43.0 148.2) rotate(315) scale(1.03)"/>
+<use href="#lf" fill="#a9c79c" transform="translate(49.7 138.1) rotate(228) scale(0.71)"/>
+<use href="#lf" fill="#a9c79c" transform="translate(43.7 137.4) rotate(336) scale(1.00)"/>
+<use href="#lf" fill="#6f9a6c" transform="translate(53.1 121.4) rotate(245) scale(0.82)"/>
+<use href="#lf" fill="#a9c79c" transform="translate(47.4 119.7) rotate(337) scale(0.97)"/>
+<use href="#lf" fill="#6f9a6c" transform="translate(58.5 107.2) rotate(247) scale(0.98)"/>
+<use href="#lf" fill="#6f9a6c" transform="translate(53.1 104.6) rotate(351) scale(0.99)"/>
+<use href="#lf" fill="#8db88a" transform="translate(63.9 97.2) rotate(251) scale(0.96)"/>
+<use href="#lf" fill="#6f9a6c" transform="translate(58.8 94.0) rotate(357) scale(0.87)"/>
+<use href="#lf" fill="#a9c79c" transform="translate(74.6 82.8) rotate(271) scale(0.86)"/>
+<use href="#lf" fill="#6f9a6c" transform="translate(70.1 78.8) rotate(371) scale(0.83)"/>
+<use href="#lf" fill="#9bb8a6" transform="translate(81.8 75.5) rotate(267) scale(0.82)"/>
+<use href="#lf" fill="#8db88a" transform="translate(77.7 71.1) rotate(370) scale(1.02)"/>
+<use href="#lf" fill="#8db88a" transform="translate(95.3 65.1) rotate(280) scale(0.98)"/>
+<use href="#lf" fill="#9bb8a6" transform="translate(92.0 60.1) rotate(384) scale(0.74)"/>
+<use href="#lf" fill="#6f9a6c" transform="translate(109.9 57.3) rotate(292) scale(0.87)"/>
+<use href="#lf" fill="#8db88a" transform="translate(107.5 51.8) rotate(385) scale(0.92)"/>
+<use href="#lf" fill="#9bb8a6" transform="translate(123.6 52.5) rotate(304) scale(0.84)"/>
+<use href="#lf" fill="#6f9a6c" transform="translate(122.0 46.7) rotate(400) scale(0.73)"/>
+<use href="#lf" fill="#9bb8a6" transform="translate(133.3 50.4) rotate(293) scale(0.75)"/>
+<use href="#lf" fill="#9bb8a6" transform="translate(132.3 44.5) rotate(407) scale(0.75)"/>
+<use href="#lf" fill="#6f9a6c" transform="translate(151.1 49.0) rotate(308) scale(0.89)"/>
+<use href="#lf" fill="#8db88a" transform="translate(151.2 43.0) rotate(401) scale(0.98)"/>
+<use href="#lf" fill="#6f9a6c" transform="translate(164.6 50.1) rotate(327) scale(0.85)"/>
+<use href="#lf" fill="#a9c79c" transform="translate(165.4 44.1) rotate(425) scale(0.77)"/>
+<use href="#lf" fill="#a9c79c" transform="translate(176.5 52.5) rotate(325) scale(0.97)"/>
+<use href="#lf" fill="#6f9a6c" transform="translate(178.1 46.8) rotate(420) scale(0.85)"/>
+<use href="#lf" fill="#9bb8a6" transform="translate(189.1 56.9) rotate(338) scale(1.01)"/>
+<use href="#lf" fill="#6f9a6c" transform="translate(191.4 51.4) rotate(439) scale(1.01)"/>
+<use href="#lf" fill="#9bb8a6" transform="translate(204.8 65.2) rotate(343) scale(0.71)"/>
+<use href="#lf" fill="#6f9a6c" transform="translate(208.0 60.1) rotate(448) scale(0.91)"/>
+<use href="#lf" fill="#8db88a" transform="translate(214.4 72.2) rotate(349) scale(0.95)"/>
+<use href="#lf" fill="#9bb8a6" transform="translate(218.2 67.6) rotate(446) scale(0.88)"/>
+<use href="#lf" fill="#6f9a6c" transform="translate(227.6 85.4) rotate(352) scale(0.90)"/>
+<use href="#lf" fill="#8db88a" transform="translate(232.2 81.5) rotate(454) scale(0.71)"/>
+<use href="#lf" fill="#8db88a" transform="translate(235.0 95.4) rotate(369) scale(0.97)"/>
+<use href="#lf" fill="#6f9a6c" transform="translate(240.0 92.2) rotate(466) scale(0.91)"/>
+<use href="#lf" fill="#9bb8a6" transform="translate(242.4 109.3) rotate(375) scale(0.89)"/>
+<use href="#lf" fill="#a9c79c" transform="translate(247.9 106.9) rotate(476) scale(0.79)"/>
+<use href="#lf" fill="#9bb8a6" transform="translate(247.7 124.4) rotate(393) scale(0.77)"/>
+<use href="#lf" fill="#9bb8a6" transform="translate(253.5 122.9) rotate(478) scale(0.74)"/>
+<use href="#lf" fill="#6f9a6c" transform="translate(249.8 134.3) rotate(395) scale(0.85)"/>
+<use href="#lf" fill="#6f9a6c" transform="translate(255.7 133.4) rotate(494) scale(0.97)"/>
+<use href="#fp" transform="translate(249.2 186.6) scale(1.05)"/>
+<use href="#fw" transform="translate(224.0 216.7) scale(1.09)"/>
+<use href="#fp" transform="translate(170.7 246.9) scale(1.25)"/>
+<use href="#fw" transform="translate(129.9 254.1) scale(0.99)"/>
+<use href="#fp" transform="translate(69.0 224.3) scale(1.06)"/>
+<use href="#fw" transform="translate(51.7 178.1) scale(0.94)"/>
+<use href="#fp" transform="translate(50.7 126.4) scale(1.08)"/>
+<use href="#fw" transform="translate(80.6 74.4) scale(1.11)"/>
+<use href="#fp" transform="translate(117.1 45.5) scale(0.95)"/>
+<use href="#fw" transform="translate(184.5 55.3) scale(1.25)"/>
+<use href="#fp" transform="translate(215.1 72.4) scale(1.26)"/>
+<use href="#fw" transform="translate(251.3 115.5) scale(1.23)"/>
+<circle cx="255.2" cy="188.3" r="2.5" fill="#c9a8d8"/>
+<circle cx="206.0" cy="247.0" r="2.5" fill="#c9a8d8"/>
+<circle cx="130.6" cy="260.3" r="2.5" fill="#c9a8d8"/>
+<circle cx="64.2" cy="222.0" r="2.5" fill="#c9a8d8"/>
+<circle cx="38.0" cy="150.0" r="2.5" fill="#c9a8d8"/>
+<circle cx="64.2" cy="78.0" r="2.5" fill="#c9a8d8"/>
+<circle cx="130.6" cy="39.7" r="2.5" fill="#c9a8d8"/>
+<circle cx="206.0" cy="53.0" r="2.5" fill="#c9a8d8"/>
+<circle cx="255.2" cy="111.7" r="2.5" fill="#c9a8d8"/>
+</svg>
