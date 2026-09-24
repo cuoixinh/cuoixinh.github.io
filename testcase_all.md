@@ -180,9 +180,38 @@ tích theo cú pháp (thẻ script nhiều dòng, nhánh dự phòng hợp lệ)
 
 ## 3. API — Edge Function (đề xuất tự động hoá)
 
-**Cách làm:** mỗi dòng là một request tới staging, so status + khoá JSON. Viết thành
-`scripts/check-api.mjs` (Node 22 có sẵn `fetch`). Script tự dựng dữ liệu, chạy rồi dọn bằng
-`DELETE` với `x-admin-token`. Header chung: `apikey: $ANON`, `Authorization: Bearer <JWT hoặc $ANON>`.
+**Đã viết: `npm run check:api`** (`scripts/check-api.mjs`) — **CHƯA CHẠY**, để bạn tự chạy trên
+máy gọi được staging (môi trường cloud của phiên soạn bị proxy chặn `*.supabase.co`).
+
+- **Chỉ chạy vào STAGING**: đích lấy từ `core/config.staging.js`; trùng ref production là dừng;
+  `--base` chỉ nhận localhost (dùng với `supabase functions serve`).
+- **Thông tin đăng nhập** đặt trong `.env.check-api` ở gốc repo (đã gitignore) hoặc biến môi
+  trường — `npm run check:api -- --help` in đủ danh sách. Thiếu biến nào thì ca cần nó **SKIP**
+  chứ không FAIL:
+  ```bash
+  CX_TEST_U1=qa1@example.com:matkhau   # 3 tài khoản test tạo ở Dashboard staging, có mật khẩu
+  CX_TEST_U2=qa2@example.com:matkhau   # (hoặc CX_TEST_JWT_U1… = access_token lấy ở DevTools)
+  CX_TEST_U3=qa3@example.com:matkhau   # U3 sẽ bị lấp đủ 5 thiệp
+  CX_TEST_ADMIN_TOKEN=…                # ADMIN_SECRET_TOKEN staging
+  CX_TEST_CLEANUP_TOKEN=…              # thiếu thì dùng mã admin
+  CX_TEST_PAYOS_CHECKSUM=…             # PAYOS_CHECKSUM_KEY kênh STAGING (ca webhook có ký)
+  ```
+- **Tuỳ chọn**: `--list` (chỉ liệt kê, không gọi API) · `--only=WA,GH` · `--with-ai` (gọi Gemini
+  thật, tốn lượt AI ẩn danh của IP máy chạy) · `--keep` (không dọn) · `--verbose`.
+- **Dữ liệu test** mang slug `qa-<run>-n`, mã giảm giá tiền tố `QA<run>`; cuối lượt tự xoá thiệp
+  (cần mã admin, không thì chủ tự xoá), mã đã dùng chỉ tắt. Thiệp dùng xong được ẩn
+  (`is_active=false`) ngay để U1 không chạm trần 5 thiệp. Cron dọn dẹp LUÔN gọi `dry_run=1`.
+- **Ca gộp**: GH-02 nằm trong GH-01 · PAY-04 trong PAY-05 · CL-05/06/07 trong CL-04 · AI-07 trong
+  AI-11. Có thêm GH-00 (dựng dữ liệu cho nhóm khách mời). WH-10 gắn nhãn KNOWN (NV-01).
+- **Chưa tự động hoá — chạy tay** (lý do): WA-43/44 (cần file thật trong Storage) · WR-02 (phải
+  sửa bảng giá trong DB) · PAY-12 (order_id do server sinh, không gửi lặp được) · PAY-16 (phải làm
+  hỏng khoá PayOS) · PAY-18 (không có đường gọi tới được) · PAY-21 (returnUrl không lộ ra
+  response) · WH-08 (cần giao dịch PayOS thật) · WH-11/12 (worker proxy — nhóm WK) · GH-30 (phải
+  ghi hỏng cột `wishes` bằng SQL) · CL-02 (phụ thuộc biến môi trường server) · CL-08/09 (không đặt
+  được `updated_at` cũ qua API) · CL-10 (phải làm hỏng Storage) · AI-04/06/08/09/10/12/14/15/16
+  (tốn hàng chục lượt Gemini hoặc cần đổi cấu hình key).
+
+Header chung: `apikey: <anon staging>`, `Authorization: Bearer <JWT hoặc anon>`.
 
 ### 3.1 `wedding-admin` — thiệp (API-WA)
 
@@ -882,8 +911,8 @@ Các điểm dưới đây đọc từ mã, **chưa chạy thử** để khẳng
 
 1. ~~`scripts/check-units.mjs` và `scripts/check-lint.mjs`~~ — **đã xong** (`npm run check:units`,
    `npm run check:lint`).
-2. `scripts/check-api.mjs --env=staging`: chạy §3 và §4, tự dựng rồi dọn dữ liệu. Cần 3 tài
-   khoản test + token admin staging đặt qua biến môi trường, không commit.
+2. ~~`scripts/check-api.mjs`~~ — **đã viết** (`npm run check:api`, 130 ca của §3), chưa chạy. Nhóm
+   WK (§4) chưa có script: worker nằm sau Cloudflare, nên kiểm bằng curl tay.
 3. Playwright cho §5, dùng Chromium có sẵn. Cloudflare Access của staging cần service token,
    hoặc chạy qua `npm run dev`.
 4. ~~Gắn các lệnh `check:*` vào `scripts/promote-production.sh`~~ — **quyết định 2026-09-24: KHÔNG gắn.**

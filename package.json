@@ -21,6 +21,7 @@
     "check:draft-sync": "node scripts/check-draft-sync.mjs",
     "check:units": "node scripts/check-units.mjs",
     "check:lint": "node scripts/check-lint.mjs",
+    "check:api": "node scripts/check-api.mjs",
     "production": "bash scripts/promote-production.sh",
     "deploy:public": "node scripts/deploy-public.mjs",
     "sql:merge": "node scripts/merge-changelogs.mjs"
