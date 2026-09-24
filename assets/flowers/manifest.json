@@ -1,6 +1,6 @@
 {
   "path": "/assets/flowers",
-  "updated_at": "2026-07-30T12:26:46.347Z",
+  "updated_at": "2026-09-24T03:57:50.000Z",
   "images": [
     {
       "file": "flowers_01.png",
@@ -8,6 +8,116 @@
       "width": 1024,
       "height": 683,
       "size": 471529,
+      "focal_point": {
+        "x": 50,
+        "y": 50
+      }
+    },
+    {
+      "file": "flowers_02.svg",
+      "url": "/assets/flowers/flowers_02.svg",
+      "width": 400,
+      "height": 300,
+      "size": 2849,
+      "focal_point": {
+        "x": 50,
+        "y": 50
+      }
+    },
+    {
+      "file": "flowers_03.svg",
+      "url": "/assets/flowers/flowers_03.svg",
+      "width": 400,
+      "height": 200,
+      "size": 1240,
+      "focal_point": {
+        "x": 50,
+        "y": 50
+      }
+    },
+    {
+      "file": "flowers_04.svg",
+      "url": "/assets/flowers/flowers_04.svg",
+      "width": 300,
+      "height": 300,
+      "size": 1794,
+      "focal_point": {
+        "x": 50,
+        "y": 50
+      }
+    },
+    {
+      "file": "flowers_05.svg",
+      "url": "/assets/flowers/flowers_05.svg",
+      "width": 320,
+      "height": 240,
+      "size": 1302,
+      "focal_point": {
+        "x": 50,
+        "y": 50
+      }
+    },
+    {
+      "file": "flowers_06.svg",
+      "url": "/assets/flowers/flowers_06.svg",
+      "width": 480,
+      "height": 120,
+      "size": 1272,
+      "focal_point": {
+        "x": 50,
+        "y": 50
+      }
+    },
+    {
+      "file": "flowers_07.svg",
+      "url": "/assets/flowers/flowers_07.svg",
+      "width": 420,
+      "height": 260,
+      "size": 2310,
+      "focal_point": {
+        "x": 50,
+        "y": 50
+      }
+    },
+    {
+      "file": "flowers_08.svg",
+      "url": "/assets/flowers/flowers_08.svg",
+      "width": 240,
+      "height": 240,
+      "size": 1748,
+      "focal_point": {
+        "x": 50,
+        "y": 50
+      }
+    },
+    {
+      "file": "flowers_09.svg",
+      "url": "/assets/flowers/flowers_09.svg",
+      "width": 260,
+      "height": 320,
+      "size": 2010,
+      "focal_point": {
+        "x": 50,
+        "y": 50
+      }
+    },
+    {
+      "file": "flowers_10.svg",
+      "url": "/assets/flowers/flowers_10.svg",
+      "width": 300,
+      "height": 300,
+      "size": 1383,
+      "focal_point": {
+        "x": 50,
+        "y": 50
+      }
+    },
+    {
+      "file": "flowers_11.svg",
+      "url": "/assets/flowers/flowers_11.svg",
+      "width": 320,
+      "height": 260,
+      "size": 1579,
       "focal_point": {
         "x": 50,
         "y": 50
