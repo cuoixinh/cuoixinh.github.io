@@ -1396,7 +1396,7 @@ function _reloadThemeFrame(focusKey) {
     });
   // Dựng lại src thay vì gán lại src cũ: đổi mẫu thiệp xong cũng đi qua đây
   // (resetThemeSetting), lúc đó URL cũ vẫn trỏ vào mẫu trước.
-  iframe.src = _previewIframeSrc("&edit=1&shell=0");
+  _cxFrameLoad(iframe, _previewIframeSrc("&edit=1&shell=0"));
 }
 
 // ─── Điều chỉnh THÀNH PHẦN đang chọn ────────────────────────────────────────
@@ -2404,13 +2404,6 @@ function _syncCtrlHead() {
   const title = document.getElementById("cx-ch-title");
   if (title) title.textContent = _ctrlTitle(view);
 
-  // Hàng nút đầu bảng chỉ giữ chỗ khi nó CÓ VIỆC: nút ✓ Áp dụng (màn chi tiết) hoặc
-  // nút đặt lại của riêng bảng. Bảng nào khai cả hai đều không có thì ẩn hàng đi,
-  // đỡ ăn chiều cao của thiệp. Suy từ CTRL_VIEWS nên bảng mới khai nút nào là tự đúng.
-  const bare = !view.back && !view.reset;
-  document.getElementById("cx-ctrl-actions")?.classList.toggle("hidden", bare);
-  document.getElementById("cx-ctrl-handle")?.classList.toggle("is-bare", bare);
-
   // Nút đặt lại có HAI hình, cùng một việc (cxCtrlReset), chọn theo hạng màn:
   //   màn chi tiết (khai `back` — mở bằng cú bấm vào chính phần tử trên thiệp):
   //     cặp icon bên PHẢI, ↺ rồi ✓, ô trái bỏ trống;
@@ -2428,6 +2421,9 @@ function _syncCtrlHead() {
     .getElementById("cx-ch-restore")
     ?.classList.toggle("hidden", !view.reset || !detail);
   document.getElementById("cx-ch-done")?.classList.toggle("hidden", !detail);
+  // "Hoàn tất" (thoát phiên chỉnh) ở mọi bảng theo tab; màn chi tiết thì ✓ lùi
+  // về bảng theo tab trước, hai nút chốt đứng cạnh nhau dễ nhầm.
+  document.getElementById("cx-ch-finish")?.classList.toggle("hidden", detail);
 
   // Màn con (chỉnh chữ/ảnh, điều chỉnh thành phần) không ứng với tab nào → cất
   // dải tab đi, nhường chỗ cho nội dung; nút ← ở đầu bảng là đường ra. Bỏ ẩn
@@ -2883,9 +2879,11 @@ function onShareTemplateInput() {
 }
 
 async function saveDraft() {
+  // Lưu từ tab khác (Giao diện, Thiết lập) thì tô lại đúng tab đang mở.
+  const prev = _activeTab;
   _setActiveTab("draft");
   const ok = await saveAll({}, "Đang lưu...");
-  if (ok) _setActiveTab("edit");
+  if (ok) _setActiveTab(prev);
   return ok;
 }
 
@@ -2943,6 +2941,7 @@ async function publishWedding(opts = {}) {
 }
 
 async function _publishLoggedIn() {
+  const prev = _activeTab;
   _setActiveTab("publish");
   showLoading(true, "Đang chuẩn bị...");
   // Nạp font/CSS của popup mừng NGAY từ đây, không đợi lúc mở popup: tới lúc lưu
@@ -2967,7 +2966,7 @@ async function _publishLoggedIn() {
   _syncAdvancedSection();
   _syncLocalOrder({ published: true }); // để thiệp hiện trong mục "Đơn hàng" của trang tài khoản
 
-  _setActiveTab("edit");
+  _setActiveTab(prev);
   if (firstPublish) showPublishSuccessPopup();
 }
 

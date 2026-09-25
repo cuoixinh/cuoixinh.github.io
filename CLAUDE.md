@@ -187,6 +187,12 @@ hàng lệch. Phép đo chỗ trống dựa vào bề ngang tối thiểu của 
 `whitespace-nowrap` và ô nào cũng phải có khổ khai sẵn. Ẩn/hiện một nút trong navbar là đổi
 chỗ trống → gọi lại `cxNavReflow()`.
 
+**Tab Giao diện là một PHIÊN** (`js/27-theme-session.js`): chỉ "Hoàn tất" mới chốt, rời
+tab mà còn thay đổi thì hỏi Lưu lại / Huỷ (Huỷ trả `_themeSetting` về bản đã chốt). Dưới
+`md` phiên giấu navbar và đẩy một mốc lịch sử để nút Back là lối thoát tab. Nên mọi đường
+đổi tab phải qua `switchTab()`/`openGuestsPage()` (chỗ gác), và khung thiệp của tab nạp
+bằng `_cxFrameLoad` — gán thẳng `iframe.src` là thêm mốc, Back lùi trang con thay vì thoát.
+
 **Xem trực tiếp** (`js/22-live-preview.js`): từ **820px** trở lên (iPad dựng đứng cũng có),
 `#live-dock` là **dải cố định sát mép phải, NGOÀI vùng ứng dụng** — `<body>` chừa
 `--cx-rail-w` nên thứ trong luồng tự hẹp lại, còn thứ `fixed` (navbar, `#step-nav`, các panel

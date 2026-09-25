@@ -91,9 +91,9 @@
           <span id="cx-ch-title" class="cx-ch-title">Bộ màu</span>
           <!-- Ô bên phải: cặp nút của MÀN CHI TIẾT (bấm thẳng vào một phần tử trên
                thiệp) — ↺ đặt lại phần tử đang chỉnh, rồi ✓ áp dụng; icon trần ở mobile,
-               nút có nhãn từ md (xem .cx-ch-ico). Bảng theo tab thì ô này rỗng và nút
-               đặt lại là chữ "Mặc định" bên trái; ô vẫn phải có để tiêu đề đứng GIỮA
-               đầu bảng. Việc gạt ẩn/hiện ở _syncCtrlHead. -->
+               nút có nhãn từ md (xem .cx-ch-ico). Bảng theo tab thì ô này chỉ có
+               "Hoàn tất", còn nút đặt lại là chữ "Mặc định" bên trái. Việc gạt ẩn/hiện
+               ở _syncCtrlHead. -->
           <div class="cx-ch-side cx-ch-end">
             <button
               type="button"
@@ -120,6 +120,16 @@
             >
               <i data-lucide="check" style="width:18px;height:18px"></i>
               <span class="hidden md:inline">Áp dụng</span>
+            </button>
+            <!-- Thoát phiên chỉnh: chỉ bấm nút này mới tính là áp dụng (xem
+                 js/27-theme-session.js). Chỉ hiện ở bảng theo tab. -->
+            <button
+              type="button"
+              id="cx-ch-finish"
+              onclick="cxThemeFinish()"
+              class="cx-ch-finish"
+            >
+              Hoàn tất
             </button>
           </div>
         </div>

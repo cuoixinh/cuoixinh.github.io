@@ -118,6 +118,18 @@ function _previewIframeSrc(extra = "") {
   return `/public/themes/${WEDDING_THEME}/?preview=true&source=live${extra}&isGroom=true${qrParam}&t=${Date.now()}`;
 }
 
+// Nạp iframe mà KHÔNG thêm mốc lịch sử: gán src cho iframe đang nằm trong trang là
+// thêm một mốc, bấm Back chỉ lùi trang con chứ không tới được popstate của trang
+// này (js/27-theme-session.js dựa vào đó). Gỡ ra rồi gắn lại thì lần nạp đó là lần
+// nạp đầu của một khung mới — trình duyệt ghi đè chứ không thêm mốc.
+function _cxFrameLoad(iframe, url) {
+  const parent = iframe.parentNode;
+  const next = iframe.nextSibling;
+  parent?.removeChild(iframe);
+  iframe.src = url;
+  parent?.insertBefore(iframe, next);
+}
+
 // Lưu xong trong lúc đang mở tab Xem trước mà link QR đổi (thiệp lần đầu lên hệ
 // thống, hoặc đổi slug) → nạp lại iframe cho QR trỏ đúng. Link không đổi thì thôi:
 // điện thoại vốn xem bản đã lưu gần nhất nên không cần reload sau mỗi lần lưu.
@@ -240,6 +252,7 @@ function _setDirty(dirty, tab) {
   } else {
     _dirtyTabs.clear();
     _refreshPreviewQR();
+    if (typeof _cxThemeSaved === "function") _cxThemeSaved();
   }
 
   // Mọi thay đổi trên trang đều đi qua đây → cũng là chỗ hẹn tải lại khung
@@ -307,6 +320,9 @@ function switchTab(tab) {
   // Từ 820px trở lên không có chế độ Xem trước riêng nữa (thiệp nằm sẵn trong
   // khung điện thoại cạnh form) — link cũ ?tab=preview vẫn phải mở được trang.
   if (tab === "preview" && window.cxLiveWide?.()) tab = "edit";
+  // Rời tab Giao diện còn thay đổi chưa áp dụng → hỏi trước (js/27-theme-session.js).
+  if (typeof _cxThemeGuard === "function" && _cxThemeGuard(tab)) return;
+  if (tab === "theme" && typeof _cxThemeEnter === "function") _cxThemeEnter();
 
   // Danh sách khách mời có luồng mở riêng (panel iframe + URL ?tab=guests)
   if (tab === "guests") {
@@ -365,7 +381,7 @@ function switchTab(tab) {
       // edit=1 → bật runtime chỉnh chi tiết từng dòng chữ (chỉ ở tab Giao diện).
       // shell=0 → giấu thanh cuộn: thiệp chạy trong khung điện thoại rộng đúng
       // 390px, thanh cuộn cổ điển ăn mất một dải ngay trong lòng thân máy.
-      tIframe.src = _previewIframeSrc("&edit=1&shell=0");
+      _cxFrameLoad(tIframe, _previewIframeSrc("&edit=1&shell=0"));
     }
     if (themePanel) themePanel.classList.remove("hidden");
     _initThemePanel();

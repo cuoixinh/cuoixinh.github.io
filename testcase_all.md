@@ -593,6 +593,10 @@ sẵn ở `/opt/pw-browsers`. Mỗi luồng chụp ảnh màn cuối để so s�
 | M-THEME-18 | Danh mục hộp mừng cưới                        | Chọn `minimalism_brown`, `floral_pink`, `mungcuoi_ivory`                        | Ảnh hộp nền trong suốt, có lời mời chạm; mở hộp xong QR mới hiện                            | P2      |
 | M-THEME-19 | Thiệp cũ không có `palette`                   | Mở thiệp tạo trước khi có tính năng bộ màu                                       | Giữ nguyên hình thức cũ, nút nhạc giữ bảng màu cũ                                           | P1      |
 | M-THEME-20 | Xoá khối văn bản / thẻ nhạc                   | Thêm rồi xoá nhiều lần, lưu                                                      | `theme_setting` không phình dần (không còn mục rác)                                          | P2      |
+| M-THEME-20 | Hoàn tất                                         | Mở tab Giao diện, đổi bộ màu, bấm "Hoàn tất" ở đầu bảng (thử ở từng tab)       | Mọi bảng theo tab đều có nút; về tab trước đó, giữ thay đổi, không hỏi gì                        | P1      |
+| M-THEME-21 | Rời tab khi chưa Hoàn tất (desktop)              | Đổi bộ màu rồi bấm tab khác trên navbar → thử cả "Huỷ" lẫn "Lưu lại"           | Hỏi "Giao diện chỉnh sửa đang có thay đổi…"; Huỷ = về bản trước khi chỉnh, Lưu lại = giữ         | P1      |
+| M-THEME-22 | Ẩn navbar + nút Back (mobile)                    | Mở tab Giao diện trên điện thoại, đổi gì đó rồi bấm Back của máy               | Navbar ẩn; Back hiện đúng hộp hỏi trên; bấm ra ngoài hộp thì ở lại tab                           | P1      |
+| M-THEME-23 | Không chỉnh gì thì không hỏi                     | Mở tab Giao diện, chỉ chạm/cuộn thiệp rồi rời tab                              | Không có hộp hỏi                                                                                 | P2      |
 
 ### 6.7 Xem trực tiếp & khung điện thoại (M-PREV)
 

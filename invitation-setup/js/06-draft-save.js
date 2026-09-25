@@ -115,6 +115,7 @@ let _guestsIframeLoadedId = null;
 
 function openGuestsPage(e) {
   if (e) e.preventDefault();
+  if (typeof _cxThemeGuard === "function" && _cxThemeGuard("guests")) return;
   if (!WEDDING_ID) {
     showToast("Cần lưu thiệp trước khi quản lý khách mời", "warning");
     return;
