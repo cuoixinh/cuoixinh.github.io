@@ -749,6 +749,11 @@ input.flatpickr-input[readonly] {
   @apply grid grid-cols-1 gap-2;
 }
 
+/* Tiêu đề nhóm trong lưới chọn (Lì xì · Phong bì · Hộp quà của bảng Hộp mừng cưới). */
+.cx-pick-group {
+  @apply mt-2 px-1 text-[11px] font-semibold uppercase tracking-wider text-gray-400;
+}
+
 .cx-pick-row {
   @apply flex w-full items-center gap-3 rounded-xl border border-gray-200 bg-white
          px-3 py-2.5 text-left shadow-sm transition-all duration-150;

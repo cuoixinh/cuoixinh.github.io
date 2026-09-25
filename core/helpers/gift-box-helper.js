@@ -6,117 +6,205 @@
 
 (function () {
   // Thêm mẫu hộp: bỏ ảnh (nền trong suốt) vào assets/gifts/ rồi thêm một mục ở
-  // đây — id là khoá lưu trong theme_setting nên ĐỪNG đổi id đã phát hành.
-  // `desc` chỉ hiện ở tooltip bảng chọn, `hint` là lời mời chạm dưới hộp.
+  // đây, đặt cạnh các mẫu cùng `group` — id là khoá lưu trong theme_setting nên
+  // ĐỪNG đổi id đã phát hành. `hint` (tuỳ chọn) là lời mời chạm dưới hộp.
   const BOXES = [
     {
-      id: "minimalism_brown",
-      name: "Tối giản nâu",
-      desc: "Hộp giấy kem, nơ lụa",
-      src: "/assets/gifts/minimalism_brown.webp",
-    },
-    {
-      id: "floral_pink",
-      name: "Hồng phấn",
-      desc: "Hộp hồng phấn, nơ lụa, hoa hồng",
-      src: "/assets/gifts/floral_pink.webp",
-    },
-    {
-      id: "mungcuoi_ivory",
-      name: "Mừng cưới kem",
-      desc: "Hộp kem viền vàng, chữ Mừng Cưới",
-      src: "/assets/gifts/mungcuoi_ivory.webp",
-    },
-    {
       id: "lixi_do_hy",
+      group: "lixi",
       name: "Lì xì đỏ Song Hỷ",
       desc: "Phong bao đỏ, chữ Hỷ ánh vàng",
       src: "/assets/gifts/lixi_do_hy.webp",
     },
     {
-      id: "lixi_hong_mai",
-      name: "Lì xì hồng hoa mai",
-      desc: "Phong bao hồng phấn, cành mai vàng",
-      src: "/assets/gifts/lixi_hong_mai.webp",
-    },
-    {
-      id: "lixi_vang_do",
-      name: "Lì xì vàng kim",
-      desc: "Phong bao vàng kim, huy hiệu Hỷ đỏ",
-      src: "/assets/gifts/lixi_vang_do.webp",
-    },
-    {
       id: "lixi_do_mungcuoi",
+      group: "lixi",
       name: "Lì xì Mừng Cưới",
       desc: "Phong bao đỏ, chữ Mừng Cưới nhũ vàng",
       src: "/assets/gifts/lixi_do_mungcuoi.webp",
     },
     {
+      id: "lixi_vang_do",
+      group: "lixi",
+      name: "Lì xì vàng kim",
+      desc: "Phong bao vàng kim, huy hiệu Hỷ đỏ",
+      src: "/assets/gifts/lixi_vang_do.webp",
+    },
+    {
+      id: "lixi_hong_mai",
+      group: "lixi",
+      name: "Lì xì hồng hoa mai",
+      desc: "Phong bao hồng phấn, cành mai vàng",
+      src: "/assets/gifts/lixi_hong_mai.webp",
+    },
+    {
       id: "lixi_cap_doi",
+      group: "lixi",
       name: "Cặp lì xì",
       desc: "Hai phong bao đỏ – hồng xếp đôi",
       src: "/assets/gifts/lixi_cap_doi.webp",
     },
     {
+      id: "lixi_den_long",
+      group: "lixi",
+      name: "Lì xì lồng đèn",
+      desc: "Lồng đèn đỏ, chữ Hỷ, tua rua",
+      src: "/assets/gifts/lixi_den_long.webp",
+    },
+    {
+      id: "lixi_tui_gam",
+      group: "lixi",
+      name: "Túi gấm",
+      desc: "Túi gấm đỏ hoa văn, dây rút vàng",
+      src: "/assets/gifts/lixi_tui_gam.webp",
+    },
+    {
+      id: "lixi_quat",
+      group: "lixi",
+      name: "Lì xì hình quạt",
+      desc: "Quạt xoè đỏ – vàng, chữ Hỷ, hoa mai",
+      src: "/assets/gifts/lixi_quat.webp",
+    },
+    {
+      id: "phongbi_do_hy",
+      group: "phongbi",
+      name: "Phong bì đỏ Song Hỷ",
+      desc: "Phong bì đỏ, dấu sáp vàng chữ Hỷ",
+      src: "/assets/gifts/phongbi_do_hy.webp",
+    },
+    {
       id: "phongbi_kem_sap",
+      group: "phongbi",
       name: "Phong bì sáp đỏ",
       desc: "Phong bì kem, dấu sáp đỏ hình tim",
       src: "/assets/gifts/phongbi_kem_sap.webp",
     },
     {
       id: "phongbi_trang_vang",
+      group: "phongbi",
       name: "Phong bì viền vàng",
       desc: "Phong bì trắng, viền nhũ vàng, chữ Mừng Cưới",
       src: "/assets/gifts/phongbi_trang_vang.webp",
     },
     {
       id: "phongbi_hong_no",
+      group: "phongbi",
       name: "Phong bì nơ hồng",
       desc: "Phong bì hồng phấn thắt nơ lụa",
       src: "/assets/gifts/phongbi_hong_no.webp",
     },
     {
       id: "phongbi_xanh_la",
+      group: "phongbi",
       name: "Phong bì lá xanh",
       desc: "Phong bì xanh xô thơm, cành bạch đàn",
       src: "/assets/gifts/phongbi_xanh_la.webp",
     },
     {
-      id: "phongbi_do_hy",
-      name: "Phong bì đỏ Song Hỷ",
-      desc: "Phong bì đỏ, dấu sáp vàng chữ Hỷ",
-      src: "/assets/gifts/phongbi_do_hy.webp",
+      id: "phongbi_kraft",
+      group: "phongbi",
+      name: "Thư tay giấy kraft",
+      desc: "Giấy kraft, tem thư, dây gai buộc",
+      src: "/assets/gifts/phongbi_kraft.webp",
+    },
+    {
+      id: "phongbi_airmail",
+      group: "phongbi",
+      name: "Thư Air Mail",
+      desc: "Viền sọc đỏ – xanh, tem máy bay",
+      src: "/assets/gifts/phongbi_airmail.webp",
+    },
+    {
+      id: "phongbi_origami_tim",
+      group: "phongbi",
+      name: "Origami trái tim",
+      desc: "Phong bì gấp hình trái tim, dấu sáp",
+      src: "/assets/gifts/phongbi_origami_tim.webp",
+    },
+    {
+      id: "phongbi_ve_may_bay",
+      group: "phongbi",
+      name: "Vé máy bay hạnh phúc",
+      desc: "Vé bay từ Độc Thân đến Hạnh Phúc",
+      src: "/assets/gifts/phongbi_ve_may_bay.webp",
+    },
+    {
+      id: "minimalism_brown",
+      group: "hop",
+      name: "Tối giản nâu",
+      desc: "Hộp giấy kem, nơ lụa",
+      src: "/assets/gifts/minimalism_brown.webp",
+    },
+    {
+      id: "floral_pink",
+      group: "hop",
+      name: "Hồng phấn",
+      desc: "Hộp hồng phấn, nơ lụa, hoa hồng",
+      src: "/assets/gifts/floral_pink.webp",
+    },
+    {
+      id: "mungcuoi_ivory",
+      group: "hop",
+      name: "Mừng cưới kem",
+      desc: "Hộp kem viền vàng, chữ Mừng Cưới",
+      src: "/assets/gifts/mungcuoi_ivory.webp",
     },
     {
       id: "hop_do_vang",
+      group: "hop",
       name: "Hộp đỏ nơ vàng",
       desc: "Hộp đỏ son, nơ lụa vàng, chữ Hỷ",
       src: "/assets/gifts/hop_do_vang.webp",
     },
     {
       id: "hop_trang_hong",
+      group: "hop",
       name: "Hộp trắng nơ hồng",
       desc: "Hộp trắng, nơ hồng, hoa nhỏ",
       src: "/assets/gifts/hop_trang_hong.webp",
     },
     {
       id: "hop_navy_vang",
+      group: "hop",
       name: "Xanh đêm ánh kim",
       desc: "Hộp xanh đêm, nơ và viền vàng",
       src: "/assets/gifts/hop_navy_vang.webp",
     },
     {
-      id: "hop_tron_hong",
-      name: "Hộp tròn hoa hồng",
-      desc: "Hộp tròn hồng phấn, bó hoa trên nắp",
-      src: "/assets/gifts/hop_tron_hong.webp",
-    },
-    {
       id: "hop_trai_tim",
+      group: "hop",
       name: "Hộp trái tim",
       desc: "Hộp hình trái tim đỏ, nơ hồng",
       src: "/assets/gifts/hop_trai_tim.webp",
     },
+    {
+      id: "hop_banh_cuoi",
+      group: "hop",
+      name: "Bánh cưới ba tầng",
+      desc: "Bánh kem trắng – hồng, hoa trên đỉnh",
+      src: "/assets/gifts/hop_banh_cuoi.webp",
+    },
+    {
+      id: "hop_nhan",
+      group: "hop",
+      name: "Hộp nhẫn nhung",
+      desc: "Hộp nhung đỏ mở nắp, nhẫn kim cương",
+      src: "/assets/gifts/hop_nhan.webp",
+    },
+    {
+      id: "hop_trap_cuoi",
+      group: "hop",
+      name: "Tráp cưới sơn mài",
+      desc: "Tráp bát giác sơn đỏ, chữ Hỷ vàng",
+      src: "/assets/gifts/hop_trap_cuoi.webp",
+    },
+  ];
+
+  // Nhóm của bảng chọn, theo đúng thứ tự hiện; mỗi mẫu khai `group` là một id ở đây.
+  const GROUPS = [
+    { id: "lixi", name: "Lì xì" },
+    { id: "phongbi", name: "Phong bì" },
+    { id: "hop", name: "Hộp quà" },
   ];
 
   const HINT = "Chạm để mở";
@@ -277,6 +365,7 @@
   }
 
   window.CX_GIFT_BOXES = BOXES;
+  window.CX_GIFT_GROUPS = GROUPS;
   window.cxGiftBox = boxOf;
   window.applyGiftBox = applyGiftBox;
 
