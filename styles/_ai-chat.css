@@ -339,6 +339,77 @@
   margin-bottom: 20px;
 }
 
+/* Thanh thao tác dưới bong bóng (Đọc · Sao chép), dấu giờ nằm CÙNG dòng với các nút
+   để một lượt không cao thêm hai dòng. 32px = nút 28px + gap cột 4px — chỗ nâng
+   avatar lên ngang đáy bong bóng. Cờ .has-acts do JS đặt. */
+
+.aichat-acts {
+  @apply flex items-center gap-1;
+}
+
+.aichat-acts[hidden] {
+  display: none;
+}
+
+.aichat-act {
+  @apply flex h-7 w-7 shrink-0 items-center justify-center rounded-full transition;
+
+  color: rgb(var(--text-label-rgb));
+}
+
+.aichat-act:hover {
+  color: rgb(var(--brand-accent-rgb));
+  background: rgb(var(--brand-primary-rgb) / 0.16);
+}
+
+/* Mỗi nút mang CẢ HAI icon, cờ trạng thái chọn cái hiện: đang đọc → ô vuông Dừng,
+   vừa chép → dấu tích. */
+.aichat-act .lucide-square,
+.aichat-act .lucide-check {
+  display: none;
+}
+
+.aichat-act .lucide-square {
+  fill: currentColor;
+}
+
+.aichat-act.is-on {
+  color: rgb(var(--brand-accent-rgb));
+  background: rgb(var(--brand-primary-rgb) / 0.22);
+}
+
+.aichat-act.is-on .lucide-volume-2,
+.aichat-act.is-done .lucide-copy {
+  display: none;
+}
+
+.aichat-act.is-on .lucide-square,
+.aichat-act.is-done .lucide-check {
+  display: block;
+}
+
+.aichat-act.is-done {
+  color: rgb(var(--brand-accent-rgb));
+}
+
+.aichat-row-bot.has-acts .aichat-ava {
+  margin-bottom: 32px;
+}
+
+.aichat-row-user .aichat-acts {
+  @apply flex-row-reverse;
+}
+
+/* Dấu giờ nằm trong dòng thao tác thì đứng yên trong luồng, không treo như ở trên. */
+.aichat-row .aichat-acts .aichat-time {
+  position: static;
+}
+
+/* Dấu giờ đã về dòng thao tác, không còn treo ra ngoài hàng cuối. */
+.aichat-row-bot.has-acts:last-child {
+  margin-bottom: 0;
+}
+
 .aichat-msg {
   @apply w-fit max-w-full whitespace-pre-wrap break-words px-4 py-2.5 text-sm leading-relaxed;
 

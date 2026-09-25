@@ -534,16 +534,165 @@
     paintBubble(bubble, text, false);
     col.appendChild(bubble);
 
-    // Báo lỗi không phải một lượt hội thoại nên không đóng dấu giờ.
+    // Báo lỗi không phải một lượt hội thoại nên không đóng dấu giờ lẫn thanh thao tác.
     if (role !== "error") {
       const time = document.createElement("span");
       time.className = "aichat-time";
       time.textContent = timeLabel(at);
-      col.appendChild(time);
+      addActs(col, role === "user", !text).appendChild(time);
     }
 
     scrollToEnd();
     return bubble;
+  }
+
+  // ── Thanh thao tác dưới tin nhắn: Đọc (chỉ phía XuXi) + Sao chép ─────────
+  // Đứng cuối cột, mang luôn dấu giờ; thẻ thiệp/ô chọn chèn sau đó đi qua colInsert
+  // nên vẫn nằm trên nó. Bong bóng đang stream thì thanh ẩn tới khi gõ xong.
+
+  const TTS = window.speechSynthesis && window.SpeechSynthesisUtterance ? window.speechSynthesis : null;
+  const TTS_CHUNK = 180; // Chrome tự ngắt câu đọc dài quá ~15 giây → cắt thành đoạn ngắn
+  const COPY_DONE_MS = 1500;
+  let speaking = null; // nút Đọc đang bật
+  let speakRun = 0; // tăng mỗi lượt đọc: onend của lượt đã huỷ không được tắt nút lượt sau
+
+  function addActs(col, isUser, pending) {
+    const bar = document.createElement("div");
+    bar.className = "aichat-acts";
+    bar.hidden = pending;
+    bar.innerHTML =
+      (isUser || !TTS
+        ? ""
+        : `<x-button variant="bare" icon-only data-speak class="aichat-act"
+             aria-label="Đọc to" title="Đọc to" aria-pressed="false">
+             <i data-lucide="volume-2" style="width:16px;height:16px"></i>
+             <i data-lucide="square" style="width:12px;height:12px"></i>
+           </x-button>`) +
+      `<x-button variant="bare" icon-only data-copy class="aichat-act"
+         aria-label="Sao chép" title="Sao chép">
+         <i data-lucide="copy" style="width:16px;height:16px"></i>
+         <i data-lucide="check" style="width:16px;height:16px"></i>
+       </x-button>`;
+    col.appendChild(bar);
+    window.lucide?.createIcons({ root: bar });
+    syncActsRow(col);
+    return bar;
+  }
+
+  // Avatar XuXi canh đáy hàng — có thanh thao tác thì nâng lên cho ngang đáy bong bóng.
+  function syncActsRow(col) {
+    const bar = col.querySelector(".aichat-acts");
+    col.parentElement.classList.toggle("has-acts", !!bar && !bar.hidden);
+  }
+
+  // Bong bóng stream xong mới có chữ để đọc/chép.
+  function showActs(bubble) {
+    const col = bubble?.parentElement;
+    const bar = col?.querySelector(".aichat-acts");
+    if (!bar) return;
+    bar.hidden = false;
+    syncActsRow(col);
+  }
+
+  // Chèn thứ đi kèm lượt (thẻ thiệp, ô chọn, nút) vào cột, TRÊN thanh thao tác.
+  function colInsert(col, el) {
+    const anchor = col.querySelector(":scope > .aichat-acts");
+    if (anchor) col.insertBefore(el, anchor);
+    else col.appendChild(el);
+  }
+
+  function msgText(btn) {
+    const msg = btn.closest(".aichat-col")?.querySelector(".aichat-msg");
+    return (msg?.innerText || "").trim();
+  }
+
+  async function copyMsg(btn) {
+    const text = msgText(btn);
+    if (!text) return;
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      // Không có Clipboard API (http, WebView cũ) → lùi về execCommand.
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.setAttribute("readonly", "");
+      ta.style.cssText = "position:fixed;top:0;left:0;opacity:0";
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand("copy");
+      } finally {
+        ta.remove();
+      }
+    }
+    btn.classList.add("is-done");
+    btn.setAttribute("aria-label", "Đã sao chép");
+    clearTimeout(btn._cxDone);
+    btn._cxDone = setTimeout(() => {
+      btn.classList.remove("is-done");
+      btn.setAttribute("aria-label", "Sao chép");
+    }, COPY_DONE_MS);
+  }
+
+  // Cắt theo câu, gộp lại cho tới TTS_CHUNK ký tự; câu dài quá thì cắt ở dấu cách.
+  function ttsChunks(text) {
+    const parts = text.split(/(?<=[.!?…:;\n])\s+/);
+    const out = [];
+    let cur = "";
+    for (let p of parts) {
+      while (p.length > TTS_CHUNK) {
+        const cut = p.lastIndexOf(" ", TTS_CHUNK);
+        const at = cut > 0 ? cut : TTS_CHUNK;
+        if (cur) out.push(cur), (cur = "");
+        out.push(p.slice(0, at));
+        p = p.slice(at).trim();
+      }
+      if (cur && cur.length + p.length + 1 > TTS_CHUNK) out.push(cur), (cur = "");
+      cur = cur ? cur + " " + p : p;
+    }
+    if (cur) out.push(cur);
+    return out.filter((s) => /[\p{L}\p{N}]/u.test(s));
+  }
+
+  function setSpeaking(btn, on) {
+    btn.classList.toggle("is-on", on);
+    btn.setAttribute("aria-pressed", String(on));
+    const label = on ? "Dừng đọc" : "Đọc to";
+    btn.setAttribute("aria-label", label);
+    btn.title = label;
+  }
+
+  function stopSpeak() {
+    if (!TTS) return;
+    speakRun++;
+    TTS.cancel();
+    if (speaking) setSpeaking(speaking, false);
+    speaking = null;
+  }
+
+  // Bấm lại đúng nút đang đọc = dừng; bấm nút khác = chuyển sang đọc tin đó.
+  function toggleSpeak(btn) {
+    const same = speaking === btn;
+    stopSpeak();
+    if (same || !TTS) return;
+    // Emoji bị đọc thành tên hình ("mặt cười…") nên bỏ trước khi đọc.
+    const text = msgText(btn).replace(/[\p{Extended_Pictographic}‍️]/gu, "");
+    const chunks = ttsChunks(text);
+    if (!chunks.length) return;
+    stopMic(); // mic đang nghe sẽ thu luôn giọng đọc vào ô nhập
+    const run = speakRun;
+    const voice = TTS.getVoices().find((v) => /^vi/i.test(v.lang));
+    const done = () => run === speakRun && stopSpeak();
+    speaking = btn;
+    setSpeaking(btn, true);
+    chunks.forEach((c, i) => {
+      const u = new SpeechSynthesisUtterance(c);
+      u.lang = "vi-VN";
+      if (voice) u.voice = voice;
+      if (i === chunks.length - 1) u.onend = done;
+      u.onerror = done; // một đoạn hỏng thì dừng cả lượt, không đọc nhảy cóc
+      TTS.speak(u);
+    });
   }
 
   // Bong bóng lỗi "hết lượt AI, vui lòng đăng nhập": biến chữ "đăng nhập" trong
@@ -1191,9 +1340,7 @@
     btn.textContent = inSetup() ? "Áp dụng vào thiệp" : "Thiết lập thiệp ngay";
     box.appendChild(btn);
 
-    const time = col.querySelector(".aichat-time");
-    if (time) col.insertBefore(box, time);
-    else col.appendChild(box);
+    colInsert(col, box);
     scrollToEnd();
   }
 
@@ -1210,9 +1357,7 @@
     col = col || addRow("bot");
     col.classList.add("is-wide");
     const box = M.widget(kind, guided ? { onNext: stepNext } : {});
-    const time = col.querySelector(".aichat-time");
-    if (time) col.insertBefore(box, time);
-    else col.appendChild(box);
+    colInsert(col, box);
     scrollToEnd();
   }
 
@@ -1321,9 +1466,7 @@
     btn.setAttribute("data-build", "");
     btn.className = "aichat-retry";
     btn.textContent = "Tạo ngay";
-    const time = col.querySelector(".aichat-time");
-    if (time) col.insertBefore(btn, time);
-    else col.appendChild(btn);
+    colInsert(col, btn);
     scrollToEnd();
   }
 
@@ -1597,6 +1740,7 @@
   }
 
   function paintHistory() {
+    stopSpeak();
     els.body.innerHTML = "";
     addBubble("bot", GREETING);
     // Dựng lại MỖI LOẠI ô chọn một lần, ở lượt mới nhất của loại đó: ô vẽ theo trạng thái
@@ -1724,6 +1868,7 @@
   // Mở phiên nghe. Mỗi phiên trả chữ tính TỪ ĐẦU phiên đó, nên trước khi mở phải
   // chốt những gì đang có trong ô làm nền — không thì lần nghe lại ghi đè mất.
   function startRec() {
+    stopSpeak(); // giọng đọc lọt vào mic thành chữ trong ô nhập
     recBase = els.input.value;
     if (recBase && !recBase.endsWith(" ")) recBase += " ";
     recStopping = false;
@@ -1909,6 +2054,7 @@
       // Nút Làm mới bấm trong lúc đang gõ nốt: màn đã sạch, đừng nhét câu trả
       // lời của cuộc cũ vào lịch sử cuộc mới. Nút Dừng thì bỏ câu trả lời này.
       if (mine.signal.aborted) return void (mine.stopped && stopped());
+      showActs(bubble);
 
       if (res.known) known = res.known;
       const entry = { role: "assistant", content: res.text, at: Date.now() };
@@ -1986,6 +2132,7 @@
 
   function close() {
     stopMic();
+    stopSpeak();
     closeMapView();
     els.panel.classList.add("is-closing");
     document.documentElement.classList.remove("aichat-open");
@@ -2124,6 +2271,10 @@
       else if (e.target.closest("#aichatAttach")) toggleKitbar();
     });
     els.body.addEventListener("click", (e) => {
+      const speak = e.target.closest("[data-speak]");
+      if (speak) toggleSpeak(speak);
+      const copy = e.target.closest("[data-copy]");
+      if (copy) copyMsg(copy);
       const btn = e.target.closest("[data-card-open]");
       if (btn && !btn.disabled) useCard(btn.closest(".aichat-col, .aichat-row")?._cxCard);
       const retry = e.target.closest("[data-retry]");
