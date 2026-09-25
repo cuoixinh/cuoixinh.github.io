@@ -311,8 +311,8 @@
   visibility: hidden;
 }
 
-/* Giờ chỉ hiện ở lượt CUỐI của mỗi nhóm. CSS không nhìn xuôi xuống được nên
-   js/ai-assistant.js đánh .is-cont-next cho lượt phía TRÊN khi nối thêm lượt. */
+/* Dấu giờ chỉ có ở lượt của KHÁCH, và chỉ hiện ở lượt CUỐI mỗi nhóm. CSS không nhìn
+   xuôi xuống được nên js/ai-assistant.js đánh .is-cont-next cho lượt phía TRÊN. */
 .aichat-time {
   @apply px-1 text-[11px];
 
@@ -323,25 +323,9 @@
   display: none;
 }
 
-/* Dấu giờ của XuXi TREO dưới bong bóng, ngoài luồng: để trong luồng thì cột cao
-   thêm một dòng và avatar (canh đáy) tụt xuống ngang dấu giờ thay vì ngang đáy
-   bong bóng. Chỗ cho nó là 16px hở giữa hai nhóm. */
-.aichat-row-bot .aichat-time {
-  @apply absolute left-0;
-
-  top: calc(100% + 0.25em);
-}
-
-/* Lượt cuối không có hàng nào bên dưới để mượn khe 16px, mà dấu giờ lại nằm ngoài
-   luồng nên không tự nống chiều cao — thiếu dòng này là nó treo lọt ra ngoài
-   .aichat-body. */
-.aichat-row-bot:last-child {
-  margin-bottom: 20px;
-}
-
-/* Thanh thao tác dưới bong bóng (Đọc · Sao chép), dấu giờ nằm CÙNG dòng với các nút
-   để một lượt không cao thêm hai dòng. 32px = nút 28px + gap cột 4px — chỗ nâng
-   avatar lên ngang đáy bong bóng. Cờ .has-acts do JS đặt. */
+/* Thanh thao tác dưới bong bóng (Đọc · Sao chép); lượt của khách mang thêm dấu giờ
+   CÙNG dòng với nút. 32px = nút 28px + gap cột 4px — chỗ nâng avatar lên ngang đáy
+   bong bóng. Cờ .has-acts do JS đặt. */
 
 .aichat-acts {
   @apply flex items-center gap-1;
@@ -398,16 +382,6 @@
 
 .aichat-row-user .aichat-acts {
   @apply flex-row-reverse;
-}
-
-/* Dấu giờ nằm trong dòng thao tác thì đứng yên trong luồng, không treo như ở trên. */
-.aichat-row .aichat-acts .aichat-time {
-  position: static;
-}
-
-/* Dấu giờ đã về dòng thao tác, không còn treo ra ngoài hàng cuối. */
-.aichat-row-bot.has-acts:last-child {
-  margin-bottom: 0;
 }
 
 .aichat-msg {
