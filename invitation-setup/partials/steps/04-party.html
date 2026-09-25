@@ -59,16 +59,19 @@
       >
         Chọn ngày để tự động tính ngày âm lịch
       </p>
-      <div class="space-y-2">
+      <div class="space-y-3">
         <label class="text-sm text-gray-700 flex items-center gap-2">
           <i data-lucide="map-pin" class="text-color-secondary"></i>Địa
           điểm tiệc
         </label>
-        <x-check
-          key="groom-party-same"
-          label="Trùng địa điểm lễ thành hôn"
-          onchange="togglePartySameLoc('groom', event)"
-        ></x-check>
+        <!-- x-check là display:contents → bọc div để nhận khoảng cách của space-y. -->
+        <div>
+          <x-check
+            key="groom-party-same"
+            label="Trùng địa điểm lễ thành hôn"
+            onchange="togglePartySameLoc('groom', event)"
+          ></x-check>
+        </div>
         <div id="groom-party-location-row" class="flex gap-2">
           <x-input
             class="flex-1 min-w-0"
@@ -123,16 +126,18 @@
       >
         Chọn ngày để tự động tính ngày âm lịch
       </p>
-      <div class="space-y-2">
+      <div class="space-y-3">
         <label class="text-sm text-gray-700 flex items-center gap-2">
           <i data-lucide="map-pin" class="text-color-secondary"></i>Địa
           điểm tiệc
         </label>
-        <x-check
-          key="bride-party-same"
-          label="Trùng địa điểm lễ vu quy"
-          onchange="togglePartySameLoc('bride', event)"
-        ></x-check>
+        <div>
+          <x-check
+            key="bride-party-same"
+            label="Trùng địa điểm lễ vu quy"
+            onchange="togglePartySameLoc('bride', event)"
+          ></x-check>
+        </div>
         <div id="bride-party-location-row" class="flex gap-2">
           <x-input
             class="flex-1 min-w-0"

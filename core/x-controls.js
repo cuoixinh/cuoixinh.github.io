@@ -119,15 +119,21 @@ class XSwitch extends HTMLElement {
 
 // ── <x-check> → checkbox tuỳ biến (hướng B: component sở hữu trạng thái + phát "change") ──
 // id inner giữ nguyên {key}-btn/{key}-box/{key}-icon để code cũ (nếu có) vẫn tra được.
+// Hover chỉ cho máy có chuột: màn cảm ứng giữ :hover sau khi chạm, ô vừa bỏ tích vẫn hồng
+// y như đang tích.
 class XCheck extends HTMLElement {
   connectedCallback() {
     const key = this.getAttribute("key") || "";
     const label = this.getAttribute("label") || "";
-    const onchange = this.getAttribute("onchange") || "";
-    const checked = this.hasAttribute("checked");
+    // Gắn lại vào DOM (bị dời chỗ) thì dựng lại nút: giữ trạng thái + handler của lần
+    // trước, attribute onchange đã bị gỡ ở lần đầu.
+    const onchange = this.getAttribute("onchange") ?? this._onchangeSrc ?? "";
+    const checked = this.querySelector("button")
+      ? this.checked
+      : this.hasAttribute("checked");
     this.innerHTML = `
       <button type="button" id="${key}-btn" data-active="${checked}"
-        class="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl border ${checked ? "border-rose-200 bg-rose-50/70" : "border-gray-100 bg-gray-50/60"} cursor-pointer transition-all text-left hover:border-rose-200 hover:bg-rose-50/40">
+        class="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl border ${checked ? "border-rose-200 bg-rose-50/70" : "border-gray-100 bg-gray-50/60"} cursor-pointer transition-all text-left [@media(hover:hover)]:hover:border-rose-200 [@media(hover:hover)]:hover:bg-rose-50/40">
         <span id="${key}-box"
           class="flex-shrink-0 w-5 h-5 rounded-md border-2 ${checked ? "border-rose-500 bg-rose-500" : "border-gray-400 bg-white"} flex items-center justify-center transition-all">
           <svg id="${key}-icon" class="w-3 h-3 text-white ${checked ? "" : "hidden"}"
@@ -141,6 +147,7 @@ class XCheck extends HTMLElement {
     // Chạy handler onchange thủ công cho ổn định (không phụ thuộc trình duyệt tự wire attribute
     // content event-handler trên custom element). Gỡ attribute để tránh bị fire trùng.
     this.removeAttribute("onchange");
+    this._onchangeSrc = onchange;
     this._onchange = onchange ? new Function("event", onchange) : null;
     this.querySelector("button").addEventListener("click", (e) => {
       this.checked = !this.checked;
