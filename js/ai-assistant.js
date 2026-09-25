@@ -534,12 +534,15 @@
     paintBubble(bubble, text, false);
     col.appendChild(bubble);
 
-    // Báo lỗi không phải một lượt hội thoại nên không đóng dấu giờ lẫn thanh thao tác.
+    // Báo lỗi không phải một lượt hội thoại nên không có thanh thao tác; dấu giờ chỉ ở lượt khách.
     if (role !== "error") {
-      const time = document.createElement("span");
-      time.className = "aichat-time";
-      time.textContent = timeLabel(at);
-      addActs(col, role === "user", !text).appendChild(time);
+      const bar = addActs(col, role === "user", !text);
+      if (role === "user") {
+        const time = document.createElement("span");
+        time.className = "aichat-time";
+        time.textContent = timeLabel(at);
+        bar.appendChild(time);
+      }
     }
 
     scrollToEnd();
