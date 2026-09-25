@@ -1442,6 +1442,9 @@ function _cxDecorNode(d, edit) {
   const img = document.createElement("img");
   img.src = d.src;
   img.alt = "";
+  // Safari iOS nhấc ảnh lên (kèm tấm nền trắng) theo thuộc tính này chứ không
+  // theo CSS -webkit-user-drag; nhấc dở là ảnh treo lại đè lên thiệp.
+  img.draggable = false;
   // KHÔNG dùng loading="lazy": thiệp rất dài nên hoa ở dưới sẽ chưa tải, khung
   // bọc cao 0px → không bấm/kéo được (và ở public thì hụt cả chỗ trống).
   node.appendChild(img);
@@ -2260,6 +2263,7 @@ function _cxElNode(t, edit) {
   );
 
   _cxNoTouchLift(node, ".cx-el-h");
+  node.querySelectorAll("img").forEach((im) => (im.draggable = false));
   _cxElWireMove(node, t, pinching);
   _cxElWireResize(size, node, t);
   return node;
