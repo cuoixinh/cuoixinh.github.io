@@ -1315,21 +1315,36 @@ function _renderGiftPalette() {
         }),
       ),
     );
-    (window.CX_GIFT_BOXES || []).forEach((b) => {
-      // Ảnh hộp nền trong suốt → ô ca-rô để thấy đúng phần rỗng của ảnh.
-      const lead =
-        '<span class="cx-pick-thumb">' +
-        `<img src="${b.src}" alt="${b.name}" loading="lazy" />` +
-        "</span>";
-      grid.appendChild(
-        _pickRow({
-          id: b.id,
-          name: b.name,
-          desc: b.desc,
-          lead,
-          onPick: pickGiftBox,
-        }),
-      );
+    // Mẫu xếp theo nhóm (CX_GIFT_GROUPS), mỗi nhóm một dòng tiêu đề; mẫu khai nhóm
+    // lạ thì dồn xuống cuối, không bị rơi mất khỏi bảng.
+    const boxes = window.CX_GIFT_BOXES || [];
+    const groups = window.CX_GIFT_GROUPS || [];
+    const known = new Set(groups.map((g) => g.id));
+    [...groups, { id: null }].forEach((g) => {
+      const list = boxes.filter((b) => (g.id ? b.group === g.id : !known.has(b.group)));
+      if (!list.length) return;
+      if (g.name) {
+        const head = document.createElement("p");
+        head.className = "cx-pick-group";
+        head.textContent = g.name;
+        grid.appendChild(head);
+      }
+      list.forEach((b) => {
+        // Ảnh hộp nền trong suốt → ô ca-rô để thấy đúng phần rỗng của ảnh.
+        const lead =
+          '<span class="cx-pick-thumb">' +
+          `<img src="${b.src}" alt="${b.name}" loading="lazy" />` +
+          "</span>";
+        grid.appendChild(
+          _pickRow({
+            id: b.id,
+            name: b.name,
+            desc: b.desc,
+            lead,
+            onPick: pickGiftBox,
+          }),
+        );
+      });
     });
     grid.dataset.rendered = "1";
   }
