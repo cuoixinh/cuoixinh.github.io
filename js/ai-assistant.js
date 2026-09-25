@@ -555,25 +555,25 @@
 
   const TTS = window.speechSynthesis && window.SpeechSynthesisUtterance ? window.speechSynthesis : null;
   // Chrome tự ngắt câu đọc dài quá ~15 giây → cắt đoạn; mỗi chỗ cắt là một nhịp nghỉ
-  // nên để đoạn dài nhất có thể (300 ký tự ở tốc độ 1.3 ≈ 12 giây).
-  const TTS_CHUNK = 300;
-  const TTS_RATE = 1.3;
+  // nên để đoạn dài nhất còn an toàn (250 ký tự ở tốc độ 1.1 ≈ 12 giây).
+  const TTS_CHUNK = 250;
+  const TTS_RATE = 1.1;
   const COPY_DONE_MS = 1500;
   let speaking = null; // nút Đọc đang bật
   let speakRun = 0; // tăng mỗi lượt đọc: onend của lượt đã huỷ không được tắt nút lượt sau
   let ttsVoice = null;
 
-  // Giọng tiếng Việt tốt nhất máy đang có: giọng neural của Edge (HoaiMy/NamMinh
-  // "Online (Natural)") > "Google Tiếng Việt" của Chrome > giọng nâng cao của Apple >
-  // giọng cài sẵn trong máy (thường đọc đều đều như máy). Chrome nạp danh sách giọng
-  // KHÔNG đồng bộ nên phải chọn lại mỗi lần có `voiceschanged`.
+  // Giọng tiếng Việt theo thứ tự ưu tiên: Apple ("Linh", bản Premium > Enhanced >
+  // thường) > "Google Tiếng Việt" của Chrome > giọng neural của Edge (HoaiMy/NamMinh
+  // "Online (Natural)") > giọng cài sẵn khác. Chrome nạp danh sách giọng KHÔNG đồng bộ
+  // nên phải chọn lại mỗi lần có `voiceschanged`.
   function pickVoice() {
+    const id = (v) => v.name + " " + v.voiceURI;
     const score = (v) =>
-      (/natural|neural/i.test(v.name) ? 8 : 0) +
-      (/online|google/i.test(v.name) ? 4 : 0) +
-      (/premium|enhanced|linh/i.test(v.name) ? 2 : 0) +
-      (v.localService === false ? 1 : 0) +
-      (/hoaimy/i.test(v.name) ? 0.5 : 0); // hai giọng neural ngang nhau thì lấy giọng nữ
+      (/com\.apple|\blinh\b/i.test(id(v)) ? 64 + (/premium/i.test(id(v)) ? 2 : /enhanced/i.test(id(v)) ? 1 : 0) : 0) +
+      (/google/i.test(v.name) ? 32 : 0) +
+      (/natural|neural/i.test(v.name) ? 16 + (/hoaimy/i.test(v.name) ? 1 : 0) : 0) +
+      (v.localService === false ? 1 : 0);
     const vi = TTS.getVoices().filter((v) => /^vi/i.test(v.lang));
     ttsVoice = vi.sort((a, b) => score(b) - score(a))[0] || null;
   }
