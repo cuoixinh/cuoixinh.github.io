@@ -125,6 +125,8 @@
     "js/25-theme-decl.js",
     // Popup kiểm tra trước khi xuất bản — dùng _cxSteps/_cxStepState của 20-steps.
     "js/26-publish-check.js",
+    // Phiên chỉnh tab Giao diện — gắn listener vào #theme-panel lúc nạp.
+    "js/27-theme-session.js",
     // Khung chat AI dùng chung với trang chủ; thấy window.cxApplyAiCard thì đổ
     // thẳng vào thiệp đang mở thay vì dựng nháp mới.
     "../core/dal/ai-chat-dal.js",

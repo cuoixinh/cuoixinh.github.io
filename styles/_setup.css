@@ -554,6 +554,26 @@ input.flatpickr-input[readonly] {
   @apply text-rose-700 md:bg-rose-600 md:text-white;
 }
 
+/* "Hoàn tất" của bảng theo tab: chữ trần đối xứng với "Mặc định" bên trái ở
+   mobile, pill hồng từ md như nút ✓ của màn chi tiết. */
+.cx-ch-finish {
+  @apply -mr-2 inline-flex shrink-0 items-center whitespace-nowrap rounded-lg px-2 py-1
+         text-[13px] font-semibold text-rose-600 transition-[background-color] duration-150
+         md:mr-0 md:h-8 md:rounded-full md:bg-rose-500 md:px-4 md:text-xs md:text-white md:shadow-sm;
+}
+
+.cx-ch-finish:hover {
+  @apply bg-rose-50 md:bg-rose-600;
+}
+
+.cx-ch-finish:active {
+  @apply scale-95;
+}
+
+.cx-ch-finish:focus-visible {
+  @apply outline-none ring-2 ring-rose-200 md:rounded-full;
+}
+
 /* Hàng tab dưới bảng chỉnh: nút GHIM "Mặc định" đứng yên bên trái, phần còn lại là
    track cuộn — mỗi tab một bảng, tab đang mở là viên thuốc hồng (JS chỉ gạt .is-on).
    Mask nằm ở TRACK chứ không ở hàng: để đây thì nó làm mờ luôn nút ghim. */
@@ -940,15 +960,8 @@ input.flatpickr-input[readonly] {
   @apply bg-rose-300;
 }
 
-/* Bảng nào không có nút nào (hàng nút rỗng) thì khối vẫn phải cao đủ để kéo. */
 .cx-sheet-actions {
   @apply min-h-0;
-}
-
-/* Bảng chọn giấu hẳn hàng nút (_syncCtrlHead đặt cờ) → lề dưới của vạch kéo
-   thành khoảng trống thừa, gỡ nốt cho thiệp lộ thêm. */
-.cx-sheet-handle.is-bare .cx-sheet-grip {
-  @apply mb-0;
 }
 
 @media (min-width: 768px) {
@@ -1732,6 +1745,18 @@ html.cx-rail-off {
   border: 0;
   transform: scale(var(--cx-scr-scale, 1));
   transform-origin: 0 0;
+}
+
+/* Phiên chỉnh tab Giao diện dưới md (cờ do js/27-theme-session.js đặt): giấu
+   navbar cho thiệp thêm chỗ — lối ra là "Hoàn tất" ở đầu bảng hoặc nút Back. */
+@media (max-width: 767px) {
+  .cx-theme-mode #bottom-nav-bar {
+    display: none;
+  }
+
+  .cx-theme-mode #theme-panel {
+    bottom: 0;
+  }
 }
 
 /* Vùng ứng dụng DỪNG LẠI ở mép trái dải xem trực tiếp: thứ nằm trong luồng đã
