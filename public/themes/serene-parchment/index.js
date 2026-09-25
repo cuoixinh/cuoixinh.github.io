@@ -268,16 +268,8 @@
     renderQRCodes(w);
     cxToggle("section-gift", cxEnabled(w.enable_gift));
 
-    // --- Bản đồ tới nơi đãi tiệc ---
-    // Chưa có URL thì hiện minh hoạ thay cho iframe trắng và khoá luôn nút.
-    const mapUrl = w[`${side}_party_map_embed_url`];
-    renderMap(mapUrl, partyLocation);
-    const hasMap = !!extractMapEmbedUrl(mapUrl);
-    cxToggle("map-thumbnail-iframe", hasMap);
-    cxToggle("map-placeholder", !hasMap);
-    document
-      .getElementById("map-link")
-      ?.classList.toggle("pointer-events-none", !hasMap);
+    // --- Bản đồ: tiệc, thêm bản đồ lễ khi hai nơi khác nhau ---
+    renderVenueMaps(w, side);
 
     // --- Lời cảm ơn + chữ ký cuối thư ---
     if (w.footer_text) setText("footer-text", w.footer_text);

@@ -108,6 +108,19 @@ svg.cx-ic {
   vertical-align: -0.2em;
 }
 
+/* Nhãn "Lễ Thành Hôn" / "Tiệc cưới" trên từng bản đồ khi lễ và tiệc ở hai nơi
+   (renderVenueMaps ở core/helpers/render-helper.js). Font ăn theo mục. */
+.cx-map-tag {
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: rgb(var(--cx-accent-rgb));
+}
+
+.cx-map-tag-next {
+  margin-top: 16px;
+}
+
 /* Chữ đè lên ảnh cưới — luôn phải tương phản với .cx-scrim, xem card-palette-helper.js */
 
 .cx-on-image {

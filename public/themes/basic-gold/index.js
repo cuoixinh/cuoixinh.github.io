@@ -209,19 +209,9 @@ function renderWedding(w) {
   renderQRCodes(w);
   cxToggle("section-gift", cxEnabled(w.enable_gift));
 
-  // --- MAP (party location) ---
-  const partyMapUrl = w[`${side}_party_map_embed_url`];
+  // --- MAP: tiệc, thêm bản đồ lễ khi hai nơi khác nhau ---
   const showMap = cxEnabled(w[`${side}_party_show_location`]);
-  if (showMap) {
-    renderMap(partyMapUrl, partyLocation);
-    // Chưa có URL bản đồ → hiện minh họa dữ liệu trống thay cho iframe
-    const hasMap = !!extractMapEmbedUrl(partyMapUrl);
-    cxToggle("map-thumbnail-iframe", hasMap);
-    cxToggle("map-placeholder", !hasMap);
-    // Không có bản đồ thì vô hiệu hoá click "Mở Maps"
-    const mapLink = document.getElementById("map-link");
-    if (mapLink) mapLink.classList.toggle("pointer-events-none", !hasMap);
-  }
+  if (showMap) renderVenueMaps(w, side);
   cxToggle("section-map", showMap);
 
   // --- FOOTER ---

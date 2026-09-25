@@ -1044,19 +1044,49 @@ body {
 
 /* Khung bản đồ: bỏ h-32 cố định của markup, để nó nuốt phần cao còn lại của
    mục. Sàn 72px để màn cực ngắn không bóp thành một vệt. Thanh "Mở Maps" bên
-   dưới giữ nguyên cỡ. */
+   dưới giữ nguyên cỡ. Lễ và tiệc ở hai nơi thì có thêm bản đồ thứ hai (id đuôi
+   "-2", xem renderVenueMaps) — hai khung chia nhau phần cao đó. */
 
-#map-link {
+#map-link,
+#map-link-2 {
   display: flex;
   flex-direction: column;
   flex: 1 1 auto;
   min-height: 0;
 }
 
-#map-link > div:first-child {
+#map-link > div:first-child,
+#map-link-2 > div:first-child {
   flex: 1 1 auto;
   height: auto;
   min-height: 72px;
+}
+
+/* Lễ và tiệc ở hai nơi: trang cuối không đủ cao cho hai khung ảnh bản đồ (tràn là
+   bị CẮT), nên bỏ ảnh xem trước — mỗi nơi còn nhãn, tên và thanh "Mở Maps". */
+
+#section-map.cx-map-dual {
+  gap: 6px;
+}
+
+#section-map.cx-map-dual #map-link > div:first-child,
+#section-map.cx-map-dual #map-link-2 > div:first-child {
+  display: none;
+}
+
+#section-map.cx-map-dual #map-link,
+#section-map.cx-map-dual #map-link-2 {
+  flex: none;
+}
+
+#section-map.cx-map-dual #map-link > div:last-child,
+#section-map.cx-map-dual #map-link-2 > div:last-child {
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+#section-map.cx-map-dual .cx-map-tag-next {
+  margin-top: 8px;
 }
 
 /* ── Cỡ chữ riêng của trang cuối ───────────────────────────────────────────
@@ -1114,7 +1144,8 @@ body {
   padding: 6px 12px;
 }
 
-#map-location-name {
+#map-location-name,
+#map-location-name-2 {
   font-size: 13px;
 }
 
