@@ -22,10 +22,6 @@
       })();
     </script>
     <link rel="icon" type="image/png" href="../../../assets/icons/favicon.png" />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -314,7 +310,7 @@
             id="ceremony-location-wrap"
             class="hidden flex items-center gap-1 justify-center"
           >
-            <i class="fas fa-map-marker-alt cx-ac text-[10px]"></i>
+            <i data-lucide="map-pin" class="cx-ic cx-ac text-[10px]"></i>
             <span id="ceremony-location-text" class="cx-t text-[11px]"></span>
           </div>
         </section>
@@ -344,7 +340,7 @@
           </div>
 
           <div class="flex items-start gap-2 justify-center">
-            <i class="fas fa-map-marker-alt cx-ac text-sm"></i>
+            <i data-lucide="map-pin" class="cx-ic cx-ac text-sm"></i>
             <div class="cx-t text-sm" id="party-location">
               ------------------------
             </div>
@@ -377,9 +373,7 @@
                 id="btn-attend"
                 class="gap-2 px-5 py-2.5 border cx-border cx-bg-panel-70 cx-t text-[13px] active:scale-95 transition-all"
               >
-                <!-- Icon dùng .cx-ac/.cx-bd (chỉ đổi màu): .cx-t đặt cả
-                     font-family nên sẽ đè font của Font Awesome → ô vuông. -->
-                <i class="fas fa-check cx-ac text-[11px]"></i>
+                <i data-lucide="check" class="cx-ic cx-ac text-[11px]"></i>
                 Tham dự
               </x-button>
               <x-button
@@ -388,7 +382,7 @@
                 id="btn-decline"
                 class="gap-2 px-5 py-2.5 border cx-border cx-bg-panel-70 cx-t text-[13px] active:scale-95 transition-all"
               >
-                <i class="fas fa-xmark cx-bd text-[11px]"></i>
+                <i data-lucide="x" class="cx-ic cx-bd text-[11px]"></i>
                 Không tham dự
               </x-button>
             </div>
@@ -502,7 +496,7 @@
                 onclick="saveQR('groom-qr-img')"
                 class="gap-2 px-4 py-2 border cx-border cx-bg-panel-60 cx-t text-[12px]"
               >
-                <i class="fas fa-download cx-ac text-xs"></i>
+                <i data-lucide="download" class="cx-ic cx-ac text-xs"></i>
                 Lưu QR
               </x-button>
             </div>
@@ -537,7 +531,7 @@
                 onclick="saveQR('bride-qr-img')"
                 class="gap-2 px-4 py-2 border cx-border cx-bg-panel-60 cx-t text-[12px]"
               >
-                <i class="fas fa-download cx-ac text-xs"></i>
+                <i data-lucide="download" class="cx-ic cx-ac text-xs"></i>
                 Lưu QR
               </x-button>
             </div>
@@ -575,7 +569,7 @@
                 id="map-placeholder"
                 class="hidden absolute inset-0 flex flex-col items-center justify-center gap-2 cx-bg-surface"
               >
-                <i class="fas fa-map-marked-alt cx-ac text-2xl"></i>
+                <i data-lucide="map-pinned" class="cx-ic cx-ac text-2xl"></i>
                 <span class="cx-t text-[11px] uppercase tracking-[2px]"
                   >Chưa có bản đồ</span
                 >
@@ -590,7 +584,7 @@
               </div>
               <div class="flex items-center gap-1 cx-a">
                 <span class="text-[11px]">Mở Maps</span>
-                <i class="fas fa-chevron-right text-xs"></i>
+                <i data-lucide="chevron-right" class="cx-ic text-xs"></i>
               </div>
             </div>
           </a>
@@ -619,7 +613,7 @@
         onclick="closeLightbox()"
         class="absolute top-6 right-6 w-10 h-10 cx-lightbox-btn z-10"
       >
-        <i class="fas fa-times cx-on-lightbox text-lg"></i>
+        <i data-lucide="x" class="cx-ic cx-on-lightbox text-lg"></i>
       </x-button>
       <div
         id="lb-counter"
@@ -638,14 +632,14 @@
         onclick="lightboxPrev()"
         class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 cx-lightbox-btn"
       >
-        <i class="fas fa-chevron-left cx-on-lightbox"></i>
+        <i data-lucide="chevron-left" class="cx-ic cx-on-lightbox"></i>
       </x-button>
       <x-button
         variant="bare"
         onclick="lightboxNext()"
         class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 cx-lightbox-btn"
       >
-        <i class="fas fa-chevron-right cx-on-lightbox"></i>
+        <i data-lucide="chevron-right" class="cx-ic cx-on-lightbox"></i>
       </x-button>
     </div>
 

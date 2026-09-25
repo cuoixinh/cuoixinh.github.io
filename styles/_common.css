@@ -97,6 +97,17 @@
   color: rgb(var(--cx-accent-soft-rgb));
 }
 
+/* Icon lucide trong markup của mẫu thiệp (`<i data-lucide class="cx-ic">`): cỡ ăn
+   theo font-size như chữ, màu theo `color` qua currentColor — nên cỡ/màu vẫn khai
+   bằng class chữ (`text-xs`, `.cx-a`…) như mọi dòng khác. */
+svg.cx-ic {
+  display: inline-block;
+  width: 1.15em;
+  height: 1.15em;
+  flex-shrink: 0;
+  vertical-align: -0.2em;
+}
+
 /* Chữ đè lên ảnh cưới — luôn phải tương phản với .cx-scrim, xem card-palette-helper.js */
 
 .cx-on-image {

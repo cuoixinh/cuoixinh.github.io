@@ -60,9 +60,8 @@ body {
 }
 
 /* ── Ba lớp ngữ nghĩa ──────────────────────────────────────────────────────
-   .cx-h và .cx-t đặt CẢ font-family → đừng gắn lên thẻ <i> của Font Awesome,
-   icon sẽ mất glyph và hiện ô vuông. Tô màu icon thì dùng .cx-a (nhấn) hoặc
-   .cx-hd/.cx-bd (chỉ có color, khai ở styles/_common.css). */
+   .cx-h và .cx-t đặt CẢ font-family, chỉ dành cho chữ. Tô màu icon thì dùng
+   .cx-a (nhấn) hoặc .cx-hd/.cx-bd (chỉ có color, khai ở styles/_common.css). */
 
 .cx-h {
   font-family: "Cormorant Garamond", serif;

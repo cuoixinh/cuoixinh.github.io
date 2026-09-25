@@ -540,6 +540,9 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   Cỡ icon: `svg.lucide` trong `build.css` ép `1em` (ăn theo `font-size` của cha, đó là cách
   `invitation-setup` dùng); muốn cỡ CỐ ĐỊNH thì phải là **inline style**
   (`style="width:16px;height:16px"`) — thuộc tính `width`/`height` thua quy tắc CSS kia.
+  Trong mẫu thiệp, icon đi cùng chữ gắn thêm `class="cx-ic"` (cỡ theo `font-size`, màu
+  theo `color` — `styles/_common.css`). **Không dùng icon font** (Font Awesome…): CSP ở
+  `_headers` không cho tải font từ CDN nên icon rỗng trên web mà local vẫn thấy.
   Hình lucide KHÔNG có (glyph ghép tay…) thì bỏ vào `CX_ICONS` ở
   `core/helpers/icon.js` rồi dùng `<i data-icon="tên">` — file này KHÔNG tự có ở mọi
   trang, trang mới dùng tới phải tự nạp (thẻ `<script>`, hoặc `SCRIPTS` ở loader).

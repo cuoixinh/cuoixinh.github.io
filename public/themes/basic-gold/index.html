@@ -22,10 +22,6 @@
       })();
     </script>
     <link rel="icon" type="image/png" href="../../../assets/icons/favicon.png" />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -108,7 +104,7 @@
           <!-- Divider -->
           <div class="flex items-center gap-4 w-full">
             <div class="flex-1 h-px cx-bg-a-soft"></div>
-            <i class="fas fa-heart cx-a text-xs"></i>
+            <i data-lucide="heart" class="cx-ic cx-a text-xs" fill="currentColor"></i>
             <div class="flex-1 h-px cx-bg-a-soft"></div>
           </div>
 
@@ -151,9 +147,7 @@
             <span
               class="relative z-10 pointer-events-none flex items-center gap-2"
             >
-              <i
-                class="fas fa-envelope-open-text cx-a text-base"
-              ></i>
+              <i data-lucide="mail-open" class="cx-ic cx-a text-base"></i>
               Mở Thiệp
             </span>
             <div class="btn-shimmer pointer-events-none"></div>
@@ -243,7 +237,7 @@
           <!-- Divider -->
           <div class="flex items-center gap-4">
             <div class="flex-1 h-px cx-bg-line"></div>
-            <i class="fas fa-heart cx-a-soft text-xs"></i>
+            <i data-lucide="heart" class="cx-ic cx-a-soft text-xs" fill="currentColor"></i>
             <div class="flex-1 h-px cx-bg-line"></div>
           </div>
 
@@ -292,9 +286,7 @@
                 <div
                   class="text-[11px] cx-t font-inter leading-relaxed"
                 >
-                  <i
-                    class="fas fa-map-marker-alt cx-a-soft mr-1 text-[10px]"
-                  ></i>
+                  <i data-lucide="map-pin" class="cx-ic cx-a-soft mr-1 text-[10px]"></i>
                   <span id="groom-address"
                     >----------------------------------------</span
                   >
@@ -348,9 +340,7 @@
                 <div
                   class="text-[11px] cx-t font-inter leading-relaxed"
                 >
-                  <i
-                    class="fas fa-map-marker-alt cx-a-soft mr-1 text-[10px]"
-                  ></i>
+                  <i data-lucide="map-pin" class="cx-ic cx-a-soft mr-1 text-[10px]"></i>
                   <span id="bride-address"
                     >----------------------------------------</span
                   >
@@ -390,7 +380,7 @@
           <!-- Divider -->
           <div class="flex items-center gap-4">
             <div class="flex-1 h-px cx-bg-line"></div>
-            <i class="fas fa-heart cx-a-soft text-xs"></i>
+            <i data-lucide="heart" class="cx-ic cx-a-soft text-xs" fill="currentColor"></i>
             <div class="flex-1 h-px cx-bg-line"></div>
           </div>
 
@@ -471,9 +461,7 @@
                 id="ceremony-location-wrap"
                 class="hidden flex items-center gap-1 justify-center"
               >
-                <i
-                  class="fas fa-map-marker-alt cx-a-soft text-[10px]"
-                ></i>
+                <i data-lucide="map-pin" class="cx-ic cx-a-soft text-[10px]"></i>
                 <span
                   id="ceremony-location-text"
                   class="text-[11px] cx-t font-inter"
@@ -507,9 +495,7 @@
                 </div>
               </div>
               <div class="flex items-start gap-2 justify-center">
-                <i
-                  class="fas fa-map-marker-alt cx-a-soft text-sm"
-                ></i>
+                <i data-lucide="map-pin" class="cx-ic cx-a-soft text-sm"></i>
                 <div
                   class="text-sm cx-t font-inter"
                   id="party-location"
@@ -537,15 +523,14 @@
                   class="hidden font-cormorant italic text-[14px] cx-h leading-relaxed"
                 ></div>
                 <!-- Hai nút nhỏ nằm cùng một hàng, icon và chữ trên một dòng —
-                     cùng lối với romantic-gold. Icon dùng class CHỈ đổi màu:
-                     class đặt font-family sẽ đè font của Font Awesome → ô vuông. -->
+                     cùng lối với romantic-gold. -->
                 <div class="flex items-center justify-center gap-3">
                   <x-button variant="bare" onclick="confirmAttend(true)" id="btn-attend" class="gap-2 px-5 py-2.5 border cx-border cx-bg-panel-50 font-cormorant italic text-[14px] cx-h active:scale-95 transition-all duration-200">
-                    <i class="fas fa-check cx-a text-[11px]"></i>
+                    <i data-lucide="check" class="cx-ic cx-a text-[11px]"></i>
                     Tham dự
                   </x-button>
                   <x-button variant="bare" onclick="confirmAttend(false)" id="btn-decline" class="gap-2 px-5 py-2.5 border cx-border cx-bg-panel-50 font-cormorant italic text-[14px] cx-h active:scale-95 transition-all duration-200">
-                    <i class="fas fa-times cx-t text-[11px]"></i>
+                    <i data-lucide="x" class="cx-ic cx-t text-[11px]"></i>
                     Không tham dự
                   </x-button>
                 </div>
@@ -617,7 +602,7 @@
           <!-- Divider -->
           <div class="flex items-center gap-4">
             <div class="flex-1 h-px cx-bg-line"></div>
-            <i class="fas fa-heart cx-a-soft text-xs"></i>
+            <i data-lucide="heart" class="cx-ic cx-a-soft text-xs" fill="currentColor"></i>
             <div class="flex-1 h-px cx-bg-line"></div>
           </div>
 
@@ -666,7 +651,7 @@
                   </div>
                 </div>
                 <x-button variant="bare" onclick="saveQR('groom-qr-img')" class="gap-2 px-4 py-2 border cx-border text-[12px] cx-t font-inter active:bg-[rgb(var(--cx-line-rgb))] transition-colors">
-                  <i class="fas fa-download cx-a text-xs"></i>
+                  <i data-lucide="download" class="cx-ic cx-a text-xs"></i>
                   Lưu QR
                 </x-button>
               </div>
@@ -708,7 +693,7 @@
                   </div>
                 </div>
                 <x-button variant="bare" onclick="saveQR('bride-qr-img')" class="gap-2 px-4 py-2 border cx-border text-[12px] cx-t font-inter active:bg-[rgb(var(--cx-line-rgb))] transition-colors">
-                  <i class="fas fa-download cx-a text-xs"></i>
+                  <i data-lucide="download" class="cx-ic cx-a text-xs"></i>
                   Lưu QR
                 </x-button>
               </div>
@@ -726,7 +711,7 @@
           <!-- Divider -->
           <div class="flex items-center gap-4">
             <div class="flex-1 h-px cx-bg-line"></div>
-            <i class="fas fa-heart cx-a-soft text-xs"></i>
+            <i data-lucide="heart" class="cx-ic cx-a-soft text-xs" fill="currentColor"></i>
             <div class="flex-1 h-px cx-bg-line"></div>
           </div>
 
@@ -786,9 +771,7 @@
                     background-size: 24px 24px;
                   "
                 >
-                  <i
-                    class="fas fa-map-marked-alt cx-a-soft text-2xl"
-                  ></i>
+                  <i data-lucide="map-pinned" class="cx-ic cx-a-soft text-2xl"></i>
                   <span
                     class="text-[11px] uppercase tracking-[2px] cx-t font-inter"
                   >
@@ -813,7 +796,7 @@
                 </div>
                 <div class="flex items-center gap-1 cx-a">
                   <span class="text-[11px] font-inter">Mở Maps</span>
-                  <i class="fas fa-chevron-right text-xs"></i>
+                  <i data-lucide="chevron-right" class="cx-ic text-xs"></i>
                 </div>
               </div>
             </a>
@@ -822,7 +805,7 @@
           <!-- Divider -->
           <div class="flex items-center gap-4">
             <div class="flex-1 h-px cx-bg-line"></div>
-            <i class="fas fa-heart cx-a-soft text-xs"></i>
+            <i data-lucide="heart" class="cx-ic cx-a-soft text-xs" fill="currentColor"></i>
             <div class="flex-1 h-px cx-bg-line"></div>
           </div>
 
@@ -846,7 +829,7 @@
     >
       <!-- Nút X -->
       <x-button variant="bare" onclick="closeLightbox()" class="absolute top-6 right-6 w-10 h-10 cx-lightbox-btn z-10">
-        <i class="fas fa-times cx-on-lightbox text-lg"></i>
+        <i data-lucide="x" class="cx-ic cx-on-lightbox text-lg"></i>
       </x-button>
       <!-- Counter -->
       <div
@@ -864,10 +847,10 @@
       </div>
       <!-- Prev / Next -->
       <x-button variant="bare" onclick="lightboxPrev()" class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 cx-lightbox-btn">
-        <i class="fas fa-chevron-left cx-on-lightbox"></i>
+        <i data-lucide="chevron-left" class="cx-ic cx-on-lightbox"></i>
       </x-button>
       <x-button variant="bare" onclick="lightboxNext()" class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 cx-lightbox-btn">
-        <i class="fas fa-chevron-right cx-on-lightbox"></i>
+        <i data-lucide="chevron-right" class="cx-ic cx-on-lightbox"></i>
       </x-button>
     </div>
 

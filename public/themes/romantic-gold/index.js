@@ -256,21 +256,21 @@
   // trong tên. Xét theo thứ tự, khớp trước thắng: "Lễ đón dâu" phải ra nhẫn chứ
   // không ra người. Không khớp gì thì về đồng hồ.
   const RG_TL_ICONS = [
-    [/vu quy|thành hôn|đón dâu|lễ |nhẫn/i, "fa-ring"],
-    [/bánh/i, "fa-cake-candles"],
-    [/tiệc|dùng bữa|nâng ly|khai/i, "fa-champagne-glasses"],
-    [/chụp|ảnh|lưu niệm/i, "fa-camera"],
-    [/trang điểm|chuẩn bị|trang trí/i, "fa-wand-magic-sparkles"],
-    [/văn nghệ|giao lưu|nhạc|hát/i, "fa-music"],
-    [/quà|check-?in|mừng/i, "fa-gift"],
-    [/cảm ơn|tiễn/i, "fa-heart"],
-    [/đón|khách/i, "fa-user-group"],
+    [/vu quy|thành hôn|đón dâu|lễ |nhẫn/i, "gem"],
+    [/bánh/i, "cake"],
+    [/tiệc|dùng bữa|nâng ly|khai/i, "wine"],
+    [/chụp|ảnh|lưu niệm/i, "camera"],
+    [/trang điểm|chuẩn bị|trang trí/i, "wand-sparkles"],
+    [/văn nghệ|giao lưu|nhạc|hát/i, "music"],
+    [/quà|check-?in|mừng/i, "gift"],
+    [/cảm ơn|tiễn/i, "heart"],
+    [/đón|khách/i, "users"],
   ];
 
   function _tlIcon(title) {
     const t = String(title || "");
-    for (const [re, cls] of RG_TL_ICONS) if (re.test(t)) return cls;
-    return "fa-clock";
+    for (const [re, name] of RG_TL_ICONS) if (re.test(t)) return name;
+    return "clock";
   }
 
   function _renderSchedule(items, side, partyDate, ceremonyDate, ceremonyName) {
@@ -328,9 +328,9 @@
           .map(
             (it) =>
               '<div class="rg-tl-item">' +
-              '<span class="rg-tl-badge"><i class="fas ' +
+              '<span class="rg-tl-badge"><i data-lucide="' +
               _tlIcon(it.title) +
-              '"></i></span>' +
+              '" class="cx-ic"></i></span>' +
               '<span class="rg-tl-body">' +
               '<span class="rg-tl-time cx-h cx-a">' +
               escapeHtml(it.time || "--:--") +
@@ -350,6 +350,7 @@
     list.innerHTML =
       group("Tiệc Cưới", partyDate, party) +
       group(ceremonyName || "Lễ Thành Hôn", ceremonyDate, ceremony);
+    window.lucide?.createIcons({ root: list });
   }
 
   // ============= ĐẾM NGƯỢC TỚI NGÀY CƯỚI =============
