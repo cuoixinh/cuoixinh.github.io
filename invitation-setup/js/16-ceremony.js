@@ -29,9 +29,6 @@ function toggleVuQuy(event) {
     }
   }
   if (fields) fields.classList.toggle("hidden", !newVal);
-  // Nguồn của tiệc nhà gái đổi theo vu quy → vẽ lại nhãn, đang trùng thì chép lại.
-  const brideSame = document.querySelector('x-check[key="bride-party-same"]');
-  if (brideSame) togglePartySameLoc("bride", null, brideSame.checked);
 }
 
 // Khi địa điểm nguồn (ceremony/vu_quy) thay đổi, re-sync tất cả party đang bật "Trùng địa điểm"
@@ -47,24 +44,6 @@ window._onLocationSourceChanged = (src) => {
   if (src === "ceremony" || src === "vu_quy") _syncPartyIfSame();
 };
 
-// Nơi tiệc `side` lấy theo khi "Trùng địa điểm": nhà trai theo lễ thành hôn; nhà gái
-// theo vu quy khi đang bật, không thì lễ thành hôn.
-function _partySource(side) {
-  const vuQuy =
-    side === "bride" &&
-    document.getElementById("vu_quy_enabled")?.value === "true";
-  const src = vuQuy ? "vu_quy" : "ceremony";
-  return {
-    label: vuQuy ? "lễ vu quy" : "lễ thành hôn",
-    loc: document.querySelector(`input[name="${src}_location"]`),
-    map: document.getElementById(`${src}_map_embed_url`),
-    addr: document.getElementById(`${src}-map-address`),
-  };
-}
-
-// event: người dùng bấm ô trên form — bỏ tích lúc đó là "tiệc ở nơi khác" nên xoá địa
-// điểm + bản đồ vừa chép để nhập nơi mới. Gọi bằng code (nạp form, khung chat) thì
-// chỉ khoá/mở khoá, không đụng giá trị.
 function togglePartySameLoc(side, event, force) {
   if (event) event.stopPropagation();
   // <x-check> sở hữu trạng thái + hiển thị (box/icon/viền); ở đây chỉ đọc/ghi .checked
@@ -72,9 +51,6 @@ function togglePartySameLoc(side, event, force) {
   if (!check) return;
   const newActive = force !== undefined ? force : check.checked;
   check.checked = newActive;
-  const source = _partySource(side);
-  const labelEl = check.querySelector("button > span:last-child");
-  if (labelEl) labelEl.textContent = "Trùng địa điểm " + source.label;
 
   const locationInput = document.querySelector(
     `input[name="${side}_party_location"]`,
@@ -94,7 +70,22 @@ function togglePartySameLoc(side, event, force) {
   const tagClearBtn = mapDisplay && mapDisplay.querySelector("button");
 
   if (newActive) {
-    const { loc: srcLoc, map: srcMap, addr: srcAddr } = source;
+    // Resolve source: groom → ceremony; bride → vu_quy if enabled, else ceremony
+    let srcLocName = "ceremony_location";
+    let srcMapId = "ceremony_map_embed_url";
+    let srcAddrId = "ceremony-map-address";
+    if (side === "bride") {
+      const vuQuyEnabled =
+        document.getElementById("vu_quy_enabled")?.value === "true";
+      if (vuQuyEnabled) {
+        srcLocName = "vu_quy_location";
+        srcMapId = "vu_quy_map_embed_url";
+        srcAddrId = "vu_quy-map-address";
+      }
+    }
+    const srcLoc = document.querySelector(`input[name="${srcLocName}"]`);
+    const srcMap = document.getElementById(srcMapId);
+    const srcAddr = document.getElementById(srcAddrId);
 
     if (locationInput) {
       locationInput.value = srcLoc?.value || "";
@@ -138,29 +129,7 @@ function togglePartySameLoc(side, event, force) {
     // Trả lại nút xoá (bỏ inline style để x-input tự quản lý hiển thị theo giá trị)
     if (xClearBtn) xClearBtn.style.display = "";
     if (tagClearBtn) tagClearBtn.style.display = "";
-    if (event) {
-      window.clearMapAddress?.(`${side}_party`);
-      if (locationInput) {
-        locationInput.value = "";
-        locationInput.dispatchEvent(new Event("input", { bubbles: true }));
-        locationInput.focus({ preventScroll: true });
-      }
-    }
   }
-}
-
-// Tiệc đang "trùng" với lễ: ô địa điểm trống (nháp mới), hoặc địa điểm + bản đồ đúng
-// bằng của nơi nguồn. Ô tích không có cột riêng trong DB nên nạp lại là suy từ đây.
-function _partyIsSame(side) {
-  const loc = document.querySelector(`input[name="${side}_party_location"]`);
-  const map = document.getElementById(`${side}_party_map_embed_url`);
-  const v = (loc?.value || "").trim();
-  if (!v) return true;
-  const src = _partySource(side);
-  return (
-    v === (src.loc?.value || "").trim() &&
-    (map?.value || "") === (src.map?.value || "")
-  );
 }
 
 function initCeremonySection(data) {
@@ -183,9 +152,14 @@ function initCeremonySection(data) {
   }
   if (fields) fields.classList.toggle("hidden", !vuQuyEnabled);
 
-  ["groom", "bride"].forEach((side) =>
-    togglePartySameLoc(side, null, _partyIsSame(side)),
-  );
+  // Default "same as ceremony" checked if party_location is empty (new draft)
+  ["groom", "bride"].forEach((side) => {
+    const partyLoc = document.querySelector(
+      `input[name="${side}_party_location"]`,
+    );
+    const hasOwnLocation = partyLoc?.value?.trim();
+    togglePartySameLoc(side, null, !hasOwnLocation);
+  });
 }
 
 window.applySlug = applySlug;
