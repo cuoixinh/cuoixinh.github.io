@@ -32,6 +32,8 @@
   const MAX_KEEP = 80;
   const MAX_TURNS = 20; // số tin gửi cho server — khớp MAX_TURNS của Edge Function
   const MAX_LEN = 10000; // khớp MAX_MSG_LEN của Edge Function
+  // Nút "+" mở dải danh mục (ảnh, nhạc, bản đồ, mẫu thiệp): tạm ẩn, bật cờ này là hiện lại.
+  const SHOW_ATTACH = false;
 
   const GREETING =
     "Chào bạn 👋 Mình là XuXi.\n" +
@@ -2072,7 +2074,7 @@
     // Trang chủ ghi ảnh dưới mã nháp của cuộc chat và lấy địa điểm từ thông tin đã
     // thu; trang Thiết lập có đích ghi riêng (cxAiMediaSink) nên không cần hai thứ này.
     window.CXChatMedia?.init({ draftId: chatDraftId, known: () => known });
-    if (!window.CXChatMedia) els.attach.hidden = true;
+    if (!SHOW_ATTACH || !window.CXChatMedia) els.attach.hidden = true;
     loadHistory();
     convId(); // cuộc đang mở phải có mã ngay từ đầu (chưa có thì đây là cuộc mới)
     paintHistory();
