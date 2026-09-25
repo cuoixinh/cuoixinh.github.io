@@ -11,8 +11,8 @@
         <code class="font-mono">assets/&lt;danh mục&gt;/</code> — chỉ chạy được
         khi mở trang bằng Chrome/Edge trên localhost. Lúc lưu, ảnh vượt ngưỡng
         của danh mục được <b>nén</b> và <b>tự đặt tên theo thư mục</b> kèm số thứ
-        tự (<code class="font-mono">flowers_01.png</code>,
-        <code class="font-mono">flowers_02.png</code>…) — số chạy tiếp nên không
+        tự (<code class="font-mono">frames_01.png</code>,
+        <code class="font-mono">frames_02.png</code>…) — số chạy tiếp nên không
         đè lên ảnh cũ. Mỗi thư mục có
         <code class="font-mono">manifest.json</code> giữ danh sách ảnh + điểm lấy
         nét cho web đọc. Ghi xong nhớ <b>commit &amp; push</b> thì production mới
@@ -74,7 +74,7 @@
             <input
               id="ax-path-input"
               type="text"
-              placeholder="flowers"
+              placeholder="frames"
               onkeydown="if (event.key === 'Enter') openAssetFolder()"
               class="flex-1 sm:max-w-md px-4 py-2 border border-gray-200 rounded-lg text-sm font-mono focus:outline-none focus:border-rose-300"
             />

@@ -11,11 +11,11 @@
   --nav-h: 84px;
 }
 
-/* Kéo hoạ tiết / thành phần / khối văn bản trên thiệp thì thanh chỉnh MỜ đi cho
+/* Kéo thành phần / khối văn bản trên thiệp thì thanh chỉnh MỜ đi cho
    thấy chỗ đang thả (JS gắn class, xem cx-drag-busy ở
    core/helpers/theme-setting-helper.js). Chỉ đổi opacity chứ KHÔNG dịch/giấu:
    thanh nằm trong luồng nên bỏ chỗ của nó là khung điện thoại nở ra giữa lúc
-   kéo, mà toạ độ đang tính theo khổ đo lúc bấm xuống nên hoạ tiết sẽ nhảy chỗ.
+   kéo, mà toạ độ đang tính theo khổ đo lúc bấm xuống nên thứ đang kéo sẽ nhảy chỗ.
    Chiều cao kéo tay nắm nằm ở max-height của .cx-sheet-body. */
 #theme-controls {
   transition: opacity 0.16s ease;
@@ -655,13 +655,6 @@ input.flatpickr-input[readonly] {
   @apply w-auto px-2.5 text-[12px];
 }
 
-/* Ô mẫu ĐANG DÙNG (bảng điều chỉnh thành phần, bảng hộp mừng cưới) */
-.cx-pal-item.is-on {
-  @apply border-rose-400 bg-[color:rgb(var(--setup-invalid-soft-rgb))];
-
-  box-shadow: 0 0 0 2px rgb(var(--action-primary-rgb) / 0.15);
-}
-
 .cx-le-check {
   @apply inline-flex cursor-pointer select-none items-center gap-2 text-[13px]
          text-gray-700;
@@ -741,9 +734,8 @@ input.flatpickr-input[readonly] {
 }
 
 /* Hàng chọn của hai bảng "Hộp mừng cưới" và "Lời chúc": MỘT cột, thẻ nằm ngang
-   (ô hình · tên · mô tả · dấu tích). Ô vuông 1/4 của .cx-pal-grid chật quá cho
-   phần mô tả, mà ở cột chỉnh hẹp thì chữ bị cắt; một cột nên khổ màn nào cũng
-   vừa. Ô hình bên trái là chip .cx-add-ico (cùng bộ màu với cụm thẻ ngoài) hoặc
+   (ô hình · tên · mô tả · dấu tích). Lưới ô vuông chật quá cho phần mô tả, mà
+   ở cột chỉnh hẹp thì chữ bị cắt; một cột nên khổ màn nào cũng vừa. Ô hình bên trái là chip .cx-add-ico (cùng bộ màu với cụm thẻ ngoài) hoặc
    .cx-pick-thumb cho ảnh mẫu. */
 .cx-pick-grid {
   @apply grid grid-cols-1 gap-2;
@@ -846,28 +838,7 @@ input.flatpickr-input[readonly] {
   @apply text-rose-400;
 }
 
-/* Bảng chọn mẫu (Văn bản · Trang trí · Thành phần) — DÙNG CHUNG một lưới 4 ô
-   vuông để ba bảng nhìn giống hệt nhau. Mỗi ô kéo-thả được vào thiệp. */
-.cx-pal-grid {
-  @apply grid grid-cols-4 gap-2;
-}
-
-.cx-pal-item {
-  @apply relative flex aspect-square cursor-grab flex-col items-center
-         justify-center gap-2 rounded-xl border border-gray-200 bg-white p-2
-         text-center text-gray-700 transition-all duration-150;
-
-  touch-action: none;
-}
-
-.cx-pal-item:hover {
-  @apply border-rose-400 bg-[color:rgb(var(--setup-invalid-soft-rgb))];
-}
-
-.cx-pal-item:active {
-  @apply cursor-grabbing;
-}
-
+/* Bản xem trước widget trong ô mẫu của bảng Thẻ nhạc. */
 .cx-pal-prev {
   @apply relative w-full flex-auto overflow-hidden rounded-lg;
 
@@ -891,9 +862,8 @@ input.flatpickr-input[readonly] {
   transition: none !important;
 }
 
-/* Biến thể ảnh (hoạ tiết): ảnh chiếm trọn ô, nền ca-rô để thấy vùng trong
-   suốt của PNG. Nền ca-rô là background-image nên màu hover vẫn lộ qua. */
-.cx-pal-item-img,
+/* Ô ảnh mẫu (hộp mừng cưới): nền ca-rô để thấy vùng trong suốt của ảnh. Nền
+   ca-rô là background-image nên màu hover vẫn lộ qua. */
 .cx-pick-thumb {
   background-image: linear-gradient(45deg, rgb(var(--surface-control-rgb)) 25%, transparent 25%),
     linear-gradient(-45deg, rgb(var(--surface-control-rgb)) 25%, transparent 25%),
@@ -907,16 +877,7 @@ input.flatpickr-input[readonly] {
     -8px 0;
 }
 
-.cx-pal-item-img img {
-  @apply pointer-events-none max-h-full max-w-full object-contain;
-
-  -webkit-user-drag: none;
-}
-
-
-/* Nhãn nhóm trong bảng chọn (tên thành phần) — chiếm trọn hàng lưới */
-/* Nhãn nhóm trong bảng chọn — trải hết hàng dù lưới mấy cột (bảng hoạ tiết 4 ô
-   vuông, bảng Thẻ nhạc một cột). */
+/* Nhãn nhóm trong bảng chọn (tên thành phần) — chiếm trọn hàng lưới. */
 .cx-pal-group {
   @apply col-span-full text-[11px] font-semibold uppercase tracking-[0.08em]
          text-gray-400;
@@ -924,8 +885,7 @@ input.flatpickr-input[readonly] {
 
 /* ============================================================
    Vùng cuộn cao thấp có tay nắm ("sheet") — bọc TOÀN BỘ bảng chỉnh giao diện,
-   nên mọi bảng (chung, chỉnh chữ, thêm văn bản, trang trí, thành phần, điều
-   chỉnh) cao bằng nhau: mặc định 1/4 màn hình, kéo tay nắm lên để nới.
+   nên mọi bảng (chung, chỉnh chữ, thêm văn bản, thành phần, điều chỉnh) cao bằng nhau: mặc định 1/4 màn hình, kéo tay nắm lên để nới.
    Chiều cao thật nằm ở --cx-sheet-h, JS (_initSheet) ghi khi kéo tay nắm;
    .cx-sheet-fade là dải trắng mờ báo "còn nội dung phía dưới", JS gắn class
    .is-end khi đã cuộn tới đáy. Từ md+ cả cột đã tự cuộn nên tắt hết.

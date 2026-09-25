@@ -394,7 +394,7 @@ function cxSyncThemeAddCards() {
 window.cxSyncThemeAddCards = cxSyncThemeAddCards;
 
 // Bỏ HẾT tuỳ chỉnh của thiệp: bộ màu, chỉnh riêng từng dòng chữ, khối văn bản,
-// hoạ tiết, thành phần, hộp mừng cưới. Nạp lại iframe là cách chắc chắn nhất để gỡ mọi thứ đã
+// thành phần, hộp mừng cưới. Nạp lại iframe là cách chắc chắn nhất để gỡ mọi thứ đã
 // bơm vào — không phải gỡ ngược từng loại một.
 function resetThemeSetting() {
   _themeSetting = {};
@@ -411,12 +411,12 @@ window.resetThemeSetting = resetThemeSetting;
 //   Đặt lại  → cả thiệp        ← đây
 //   Mặc định → đúng bảng đang mở (CTRL_VIEWS[].reset)
 //   Mặc định → đúng phần tử đang chỉnh (bảng chi tiết: chỉnh chữ, điều chỉnh)
-// Hỏi lại trước khi gọi: nó xoá thứ của MỌI bảng một lượt (kể cả khối chữ và hoạ
-// tiết đã đặt tay), mà lại bấm được từ bất kỳ bảng nào nên dễ chạm nhầm.
+// Hỏi lại trước khi gọi: nó xoá thứ của MỌI bảng một lượt (kể cả khối chữ và thẻ
+// nhạc đã đặt tay), mà lại bấm được từ bất kỳ bảng nào nên dễ chạm nhầm.
 async function cxResetAllTheme() {
   const ok = await showConfirm(
     "Đặt lại toàn bộ thiệp?",
-    "Bộ màu, chữ đã chỉnh riêng, khối văn bản, hoạ tiết, thẻ nhạc, hộp mừng cưới và " +
+    "Bộ màu, chữ đã chỉnh riêng, khối văn bản, thẻ nhạc, hộp mừng cưới và " +
       "cách hiện lời chúc đều trở lại như mẫu gốc. Nội dung thiệp (tên, ngày, ảnh…) " +
       "không đổi.",
     { confirmText: "Đặt lại" },
@@ -429,7 +429,7 @@ window.cxResetAllTheme = cxResetAllTheme;
 
 // Nút "Mặc định" ở ĐẦU BẢNG chỉ lo đúng bảng đang mở — mỗi bảng sở hữu một khoá
 // trong `theme_setting`, xoá khoá đó là về mặc định của mẫu. Thứ cần nạp lại khung
-// xem trước (khối chữ, hoạ tiết, thành phần) đi qua _resetThemePart; bộ màu áp
+// xem trước (khối chữ, thành phần) đi qua _resetThemePart; bộ màu áp
 // được ngay, còn hộp quà / lời chúc đã có đường postMessage riêng.
 // Nạp lại KHÔNG đóng bảng đang mở: _watchThemeFrame chỉ dựng lại bảng chỉnh khi
 // bảng màu gốc của mẫu đổi.
@@ -471,11 +471,6 @@ function resetCustomBlocks() {
   _resetThemePart("custom_blocks", "Đã xoá các khối văn bản đã thêm");
 }
 window.resetCustomBlocks = resetCustomBlocks;
-
-function resetDecorations() {
-  _resetThemePart("decorations", "Đã xoá hoạ tiết đã thả");
-}
-window.resetDecorations = resetDecorations;
 
 // Xoá cả `music_seeded`: cờ đó nhớ "trình phát sẵn có của mẫu đã được chuyển
 // thành thành phần rồi", giữ lại thì thiệp về mặc định mà vẫn không còn nút nhạc
@@ -563,10 +558,6 @@ window.addEventListener("message", (ev) => {
     _themeSetting.custom_blocks = Array.isArray(d.blocks) ? d.blocks : [];
     _pruneBlockOverrides(_themeSetting.custom_blocks);
     _scheduleAutoSave("theme");
-  } else if (d.type === "cx-decors-changed") {
-    // Hoạ tiết vừa thêm / kéo / xoay / xoá trong thiệp → lưu toạ độ mới.
-    _themeSetting.decorations = Array.isArray(d.decors) ? d.decors : [];
-    _scheduleAutoSave("theme");
   } else if (d.type === "cx-elements-changed") {
     // Thành phần vừa thả / kéo / phóng to / xoá → lưu, và nếu bảng điều chỉnh
     // đang mở cho chính nó thì kéo thanh trượt theo (chụm 2 ngón trên thiệp).
@@ -591,7 +582,7 @@ window.addEventListener("message", (ev) => {
   } else if (d.type === "cx-press") {
     _ctrlPress(!!d.on, !!d.dragged);
   } else if (d.type === "cx-drag-busy") {
-    // Đang kéo hoạ tiết/thành phần/khối văn bản trên thiệp → thanh chỉnh lui đi
+    // Đang kéo thành phần/khối văn bản trên thiệp → thanh chỉnh lui đi
     // cho thấy chỗ đang thả (chỉ có tác dụng ở mobile, xem .cx-ctrl-away).
     _setCtrlAway(!!d.on);
   } else if (d.type === "cx-gift-reload") {
@@ -622,27 +613,11 @@ function _setTextSizeFromCard(selector, size) {
   _lineIframe()?.contentWindow?.applyThemeSetting?.(_themeSetting);
 }
 
-// ─── Bỏ chọn hoạ tiết / thành phần khi bấm ra ngoài thiệp ────────────────────
-// pointerdown ở trang cha không lọt vào iframe nên runtime không tự biết là mình
-// đã "focus out" — phải báo sang, không thì bộ nút (xoá, xoay…) còn treo trên
-// hoa/widget vừa thao tác. "all" = bỏ chọn cả thành phần; mặc định chỉ hoạ tiết,
-// vì thành phần đang mở bảng điều chỉnh riêng thì phải giữ chọn.
-function _blurCards(what) {
-  _lineIframe()?.contentWindow?.postMessage({ type: "cx-blur", what }, "*");
-}
-
-// Bắt ở pha capture: nút trong bảng chọn có stopPropagation nên nghe ở pha nổi
-// bọt sẽ hụt mất cú bấm.
-function _initCardBlur() {
-  document.addEventListener(
-    "pointerdown",
-    () => {
-      if (document.getElementById("theme-panel")?.classList.contains("hidden"))
-        return;
-      _blurCards();
-    },
-    true,
-  );
+// Bỏ chọn thành phần đang chọn trong thiệp: pointerdown ở trang cha không lọt
+// vào iframe nên runtime không tự biết — phải báo sang, không thì bộ nút (xoá,
+// đổi mẫu…) còn treo trên widget.
+function _blurCards() {
+  _lineIframe()?.contentWindow?.postMessage({ type: "cx-blur" }, "*");
 }
 
 // ─── Thêm văn bản (bảng chọn mẫu riêng) ──────────────────────────────────────
@@ -650,7 +625,6 @@ function _initCardBlur() {
 // các mẫu khối — tránh rối khi đang kéo-thả vào thiệp.
 function openAddTextPanel() {
   document.getElementById("theme-line-editor")?.classList.add("hidden");
-  document.getElementById("theme-decor-panel")?.classList.add("hidden");
   document.getElementById("theme-main-controls")?.classList.add("hidden");
   document.getElementById("theme-edit-hint")?.classList.add("hidden");
   document.getElementById("theme-elements-panel")?.classList.add("hidden");
@@ -713,7 +687,7 @@ function _renderTextPresets() {
 }
 
 
-// ─── Kéo mẫu từ bảng chọn ra thiệp (dùng chung cho Văn bản / Trang trí / Thành phần) ──
+// ─── Kéo mẫu từ bảng chọn ra thiệp (dùng chung cho Văn bản / Thành phần) ──
 // Quy tắc: phải kéo RA KHỎI bảng chọn rồi nhả TRÊN thiệp mới tính là thả. Còn ở
 // trong bảng thì cử chỉ kéo dùng để cuộn danh sách (ô mẫu đặt touch-action:none
 // nên trình duyệt không tự cuộn giúp). Bấm tại chỗ mặc định KHÔNG làm gì — bảng
@@ -872,7 +846,7 @@ function _palDragEnd(ev) {
 
 // Điểm trên màn → toạ độ px BÊN TRONG thiệp. Iframe dựng ở khổ 390px rồi thu
 // bằng transform cho vừa khung điện thoại, nên rect là khổ đã thu: lấy thẳng
-// hiệu toạ độ là hoạ tiết rơi lệch đúng bằng tỉ lệ thu.
+// hiệu toạ độ là thứ vừa thả rơi lệch đúng bằng tỉ lệ thu.
 function _framePoint(iframe, r, ev) {
   const k = iframe.offsetWidth ? r.width / iframe.offsetWidth : 1;
   return {
@@ -902,98 +876,6 @@ function startPaletteDrag(e, type) {
 }
 window.startPaletteDrag = startPaletteDrag;
 
-// ─── Trang trí: bảng chọn hoa (nạp từ kho ảnh mẫu) ──────────────────────────
-// Danh sách lấy ở /assets/flowers/manifest.json — file do tab "Ảnh mẫu" bên
-// /admin ghi ra; trang tĩnh không list được thư mục qua HTTP.
-const DECOR_MANIFEST_URL = "/assets/flowers/manifest.json";
-let _decorItems = null; // cache trong phiên; null = chưa nạp
-
-function openDecorPanel() {
-  document.getElementById("theme-line-editor")?.classList.add("hidden");
-  document.getElementById("theme-addtext-panel")?.classList.add("hidden");
-  document.getElementById("theme-main-controls")?.classList.add("hidden");
-  document.getElementById("theme-edit-hint")?.classList.add("hidden");
-  document.getElementById("theme-elements-panel")?.classList.add("hidden");
-  document.getElementById("theme-gift-panel")?.classList.add("hidden");
-  document.getElementById("theme-wish-panel")?.classList.add("hidden");
-  _hideElementEditor();
-  document.getElementById("theme-decor-panel")?.classList.remove("hidden");
-  _resetCtrlScroll();
-  _renderDecorPalette();
-  if (window.lucide) lucide.createIcons();
-}
-window.openDecorPanel = openDecorPanel;
-
-
-function _decorEmpty(msg) {
-  const el = document.getElementById("cx-decor-empty");
-  if (!el) return;
-  el.textContent = msg || "";
-  el.classList.toggle("hidden", !msg);
-}
-
-async function _renderDecorPalette() {
-  const grid = document.getElementById("cx-decor-palette");
-  if (!grid || grid.dataset.rendered === "1") return;
-
-  if (!_decorItems) {
-    try {
-      const res = await fetch(DECOR_MANIFEST_URL, { cache: "no-cache" });
-      if (!res.ok) throw new Error("HTTP " + res.status);
-      const json = await res.json();
-      _decorItems = (json.images || [])
-        .filter((i) => i && (i.url || i.file))
-        .map((i) => ({
-          url: i.url || `/assets/flowers/${i.file}`,
-          name: i.file || "",
-        }));
-    } catch (e) {
-      console.warn("Không nạp được danh sách hoạ tiết:", e);
-      _decorEmpty("Chưa tải được danh sách hoạ tiết. Thử tải lại trang.");
-      return;
-    }
-  }
-
-  if (!_decorItems.length) {
-    _decorEmpty("Chưa có hoạ tiết nào — thêm ảnh ở trang quản trị, mục Ảnh mẫu.");
-    return;
-  }
-
-  _decorEmpty("");
-  grid.textContent = "";
-  _decorItems.forEach((item) => {
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.title = "Kéo vào thiệp để thêm";
-    btn.className = "cx-pal-item cx-pal-item-img";
-    const img = document.createElement("img");
-    img.src = item.url;
-    img.alt = item.name;
-    img.loading = "lazy";
-    btn.appendChild(img);
-    // Gắn listener (không dùng onpointerdown="" trong HTML): đường dẫn ảnh có
-    // thể chứa ký tự làm vỡ attribute.
-    btn.addEventListener("pointerdown", (e) => startDecorDrag(e, item.url));
-    grid.appendChild(btn);
-  });
-  grid.dataset.rendered = "1";
-}
-
-// Kéo hoa TỪ bảng chọn THẢ vào thiệp — thả ở đâu đặt ở đó (lưu theo toạ độ %).
-function startDecorDrag(e, src) {
-  _startPalDrag(e, {
-    onDrop: (iframe, x, y) => _addDecor(src, x, y),
-  });
-}
-window.startDecorDrag = startDecorDrag;
-
-// Hoạ tiết không có bảng cấp 3 (chỉnh ngay trên thiệp bằng bộ nút của nó) → thả
-// xong Ở LẠI bảng chọn để thêm tiếp; rời bảng bằng nút quay lại.
-function _addDecor(src, x, y) {
-  _scheduleAutoSave("theme");
-  _lineIframe()?.contentWindow?.postMessage({ type: "cx-add-decor", src, x, y }, "*");
-}
-
 // ─── Thành phần: bảng chọn thành phần thả lên thiệp ─────────────────────────
 // Danh mục lấy từ window.CX_ELEMENTS (core/helpers/element-helper.js) nên thêm
 // thành phần mới không phải sửa gì ở đây. Kéo ô mẫu ra khỏi bảng rồi thả lên
@@ -1004,7 +886,6 @@ function _addDecor(src, x, y) {
 function openElementsPanel() {
   document.getElementById("theme-line-editor")?.classList.add("hidden");
   document.getElementById("theme-addtext-panel")?.classList.add("hidden");
-  document.getElementById("theme-decor-panel")?.classList.add("hidden");
   document.getElementById("theme-gift-panel")?.classList.add("hidden");
   document.getElementById("theme-wish-panel")?.classList.add("hidden");
   _hideElementEditor();
@@ -1185,7 +1066,7 @@ function _focusElTile() {
   requestAnimationFrame(() => _updateSheetFade(body));
 }
 
-// Kéo thành phần TỪ bảng chọn THẢ vào thiệp — y hệt hoạ tiết, thả ở đâu đặt ở đó.
+// Kéo thành phần TỪ bảng chọn THẢ vào thiệp — thả ở đâu đặt ở đó.
 // Bấm ô mẫu (không kéo) cũng ăn: gọi cùng đường nhưng KHÔNG kèm toạ độ, runtime
 // hiểu là "dùng mẫu này" — thiệp đã có thì đổi mẫu và giữ nguyên chỗ đứng, chưa
 // có thì đặt vào đầu khung đang xem (xem _cxElAdd ở theme-setting-helper.js).
@@ -1242,12 +1123,11 @@ function _addElement(elementId, variantId, x, y) {
 // "Không hộp" — rồi tới từng mẫu hộp trong window.CX_GIFT_BOXES
 // (core/helpers/gift-box-helper.js) nên thêm mẫu không phải sửa file này.
 // Lưu ở _themeSetting.gift_box, áp thẳng vào khung xem trước bằng postMessage
-// như hoạ tiết/thành phần — bảng chọn nhờ vậy đứng yên để còn so mẫu này mẫu kia.
+// như thành phần — bảng chọn nhờ vậy đứng yên để còn so mẫu này mẫu kia.
 
 function openGiftPanel() {
   document.getElementById("theme-line-editor")?.classList.add("hidden");
   document.getElementById("theme-addtext-panel")?.classList.add("hidden");
-  document.getElementById("theme-decor-panel")?.classList.add("hidden");
   document.getElementById("theme-elements-panel")?.classList.add("hidden");
   _hideElementEditor();
   document.getElementById("theme-main-controls")?.classList.add("hidden");
@@ -1297,7 +1177,7 @@ function _giftBoxId() {
 
 // Hàng chọn dùng chung cho hai bảng "Hộp mừng cưới" và "Lời chúc": một cột, thẻ
 // nằm ngang — ô hình bên trái (icon tròn có màu, hoặc ảnh mẫu) · tên · mô tả ·
-// dấu tích ở ô đang chọn. Ô vuông 1/4 như bảng hoạ tiết quá chật cho phần mô tả,
+// dấu tích ở ô đang chọn. Lưới ô vuông quá chật cho phần mô tả,
 // mà cột chỉnh kéo hẹp là chữ bị cắt; một cột thì khổ màn nào cũng vừa.
 // `lead` = HTML của ô hình bên trái.
 function _pickRow(o) {
@@ -1408,7 +1288,6 @@ function openWishPanel() {
   if (_addCardBlocked("wishes")) return;
   document.getElementById("theme-line-editor")?.classList.add("hidden");
   document.getElementById("theme-addtext-panel")?.classList.add("hidden");
-  document.getElementById("theme-decor-panel")?.classList.add("hidden");
   document.getElementById("theme-elements-panel")?.classList.add("hidden");
   document.getElementById("theme-gift-panel")?.classList.add("hidden");
   _hideElementEditor();
@@ -1545,7 +1424,6 @@ function openElementEditor(msg) {
 
   document.getElementById("theme-line-editor")?.classList.add("hidden");
   document.getElementById("theme-addtext-panel")?.classList.add("hidden");
-  document.getElementById("theme-decor-panel")?.classList.add("hidden");
   document.getElementById("theme-elements-panel")?.classList.add("hidden");
   document.getElementById("theme-gift-panel")?.classList.add("hidden");
   document.getElementById("theme-wish-panel")?.classList.add("hidden");
@@ -1589,7 +1467,7 @@ window.backFromElementEditor = backFromElementEditor;
 // Đóng bảng thì bỏ chọn luôn widget trong thiệp, nếu không bộ nút (xoá, đổi mẫu…)
 // còn treo trên nó.
 function _hideElementEditor() {
-  _blurCards("all");
+  _blurCards();
   document.getElementById("theme-element-editor")?.classList.add("hidden");
   _elSel = null;
   _elDefCur = null;
@@ -1751,7 +1629,6 @@ function _openLineEditor(msg) {
 
   document.getElementById("theme-main-controls")?.classList.add("hidden");
   document.getElementById("theme-addtext-panel")?.classList.add("hidden");
-  document.getElementById("theme-decor-panel")?.classList.add("hidden");
   document.getElementById("theme-edit-hint")?.classList.add("hidden");
   document.getElementById("theme-elements-panel")?.classList.add("hidden");
   document.getElementById("theme-gift-panel")?.classList.add("hidden");
@@ -2342,7 +2219,7 @@ function _initThemeResize() {
 }
 
 // ─── Vùng cuộn cao thấp có tay nắm (bọc CẢ bảng chỉnh giao diện) ───────────
-// Mọi bảng (chung, chỉnh chữ, thêm văn bản, trang trí, thành phần, điều chỉnh)
+// Mọi bảng (chung, chỉnh chữ, thêm văn bản, thành phần, điều chỉnh)
 // nằm chung một vùng cuộn nên cao bằng nhau. CHỈ CÓ HAI MỨC: mức thấp 160px cho
 // đỡ che thiệp, và mức cao = nửa màn hình. Vuốt/chạm tay nắm là nhảy hẳn sang mức
 // kia, buông tay giữa chừng thì trượt về mức gần nhất — không dừng lưng chừng.
@@ -2421,14 +2298,6 @@ const CTRL_VIEWS = [
     reset: "resetElements",
   },
   {
-    key: "decor",
-    panel: "theme-decor-panel",
-    title: "Trang trí",
-    tip: "Thả hoa, hoạ tiết trang trí lên thiệp",
-    open: "openDecorPanel",
-    reset: "resetDecorations",
-  },
-  {
     key: "addtext",
     panel: "theme-addtext-panel",
     title: "Văn bản",
@@ -2450,7 +2319,7 @@ const CTRL_TAB_PANELS = CTRL_VIEWS.filter((v) => v.open).map((v) => v.panel);
 
 // Thứ tự nút ở dải tab dưới (màn con `element`/`line` không có tab: chỉ mở được
 // bằng cú bấm vào thiệp). Nhãn + lời mách lấy từ CTRL_VIEWS nên chỉ khai MỘT chỗ.
-const CTRL_TABS = ["main", "addtext", "decor", "elements", "gift", "wishes"];
+const CTRL_TABS = ["main", "addtext", "elements", "gift", "wishes"];
 
 // Màn cấp 2 vào được từ nhiều đường: bấm thẳng vào thiệp, hoặc vừa thả một thứ
 // từ bảng cấp 1 ra (thả mẫu văn bản xong là nhảy luôn sang Chỉnh chữ). Ghi lại
@@ -2864,7 +2733,6 @@ function _initThemePanelObservers() {
   _initCtrlHeadSync();
   _renderCtrlTabs();
   _initCtrlTabsDrag();
-  _initCardBlur();
 }
 
 if (window.__cxOnReady) window.__cxOnReady(_initThemePanelObservers);

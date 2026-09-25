@@ -221,9 +221,9 @@ thanh chỉnh là cột phải nên hết lý do méo). Tab Xem trước KHÔNG 
 chính là thứ cho thấy thiệp trông ra sao trên điện thoại. Chỗ méo đó cần ảnh
 `iphone_mockup.svg` giữ `preserveAspectRatio="none"`, bỏ đi là SVG tự canh giữa theo tỉ lệ
 gốc trong khi ô màn tính bằng % nên thiệp tràn ra ngoài viền. Thanh chỉnh ở tab Giao diện nằm TRONG
-LUỒNG dưới khung (kéo cao lên là máy lùn thêm), nên lúc kéo hoạ tiết chỉ được làm nó MỜ chứ
+LUỒNG dưới khung (kéo cao lên là máy lùn thêm), nên lúc kéo thẻ nhạc/khối văn bản trên thiệp chỉ được làm nó MỜ chứ
 không dịch đi — bỏ chỗ của nó là máy đổi khổ giữa lúc kéo, toạ độ thả sẽ lệch. Cũng ở tab đó, thiệp bị THU NHỎ
-trong khung → toạ độ thả hoạ tiết/thành phần
+trong khung → toạ độ thả thành phần
 phải chia lại theo tỉ lệ (`_framePoint` ở `js/05-theme-panel.js`), lấy thẳng hiệu toạ độ màn
 là rơi lệch.
 

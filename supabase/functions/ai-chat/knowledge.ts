@@ -51,8 +51,7 @@ Màn bìa hiện đúng tên và cách xưng hô của khách mời; hai link ri
 bên hiện lễ, tiệc, gia đình bên mình, nhà gái có thể bật lễ Vu Quy riêng); thông tin hai họ;
 album ảnh cưới; chuyện tình yêu theo từng mốc; lịch trình ngày cưới; nhạc nền (link YouTube);
 đếm ngược và lịch đánh dấu ngày cưới; hộp mừng cưới có mã QR ngân hàng hai bên; bản đồ chỉ
-đường; nút xác nhận tham dự (RSVP); tuỳ chỉnh font, bảng màu, khối chữ riêng và hoạ tiết
-trang trí.
+đường; nút xác nhận tham dự (RSVP); tuỳ chỉnh font, bảng màu và khối chữ riêng.
 
 # Trợ lý XuXi — chính là khung chat này
 Mở được từ bong bóng ở trang chủ hoặc ngay trong trang Thiết lập, cùng một XuXi: khách kể

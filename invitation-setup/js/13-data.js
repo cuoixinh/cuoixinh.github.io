@@ -417,6 +417,8 @@ function fillForm(data) {
       }
     }
     if (ts && typeof ts === "object") _themeSetting = ts;
+    // Khoá của tính năng Trang trí đã gỡ — bỏ đi để lần lưu sau dữ liệu tự sạch.
+    delete _themeSetting.decorations;
   }
 
   // Mẫu thiệp phải gán NGOÀI nhánh `data.slug`: nháp vừa tạo từ nút "Dùng ngay"

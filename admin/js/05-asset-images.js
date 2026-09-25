@@ -1,6 +1,6 @@
 // ============= TAB "Ảnh mẫu": kho ảnh tĩnh dùng chung =============
 // Khác tab "Dữ liệu mẫu" (bộ demo riêng của từng theme): đây là kho ảnh DÙNG
-// CHUNG cho cả web — icon hoa trang trí, khung viền, ảnh landing. Ghi thẳng
+// CHUNG cho cả web — khung viền, ảnh landing. Ghi thẳng
 // xuống đĩa qua File System Access API.
 //
 // Quy ước:
@@ -8,7 +8,7 @@
 // 1. Nén ĐÚNG MỘT LẦN lúc thả vào hàng chờ (axStageFiles →
 //    ImageHelper.prepareImage), ngưỡng lấy theo danh mục; GIF/AVIF/BMP/SVG bị
 //    canRecompress() loại nên luôn giữ nguyên.
-// 2. Tên file = TÊN THƯ MỤC + số thứ tự (flowers_01.png…), chạy tiếp từ số lớn
+// 2. Tên file = TÊN THƯ MỤC + số thứ tự (frames_01.png…), chạy tiếp từ số lớn
 //    nhất đang có nên KHÔNG bao giờ ghi đè; ảnh cũ chỉ mất khi bấm Xoá.
 // 3. Thư mục gốc là assets/ của dự án, mỗi danh mục là MỘT thư mục con.
 //    URL trên web: /<gốc>/<danh mục>/<file>.
@@ -20,12 +20,6 @@
 // Ngưỡng mặc định là AX_DEFAULT_LIMITS; danh mục nào cần siết hơn thì thêm
 // maxPx / maxSizeMB vào ngay dòng của nó (axLimitsFor tự ưu tiên).
 const AX_PRESETS = [
-  {
-    value: "flowers",
-    label: "Icon hoa trang trí",
-    folder: "flowers",
-    note: "Icon hoa, lá, hoạ tiết chèn vào thiệp ở tab Giao diện",
-  },
   {
     value: "frames",
     label: "Khung & viền trang trí",
@@ -60,7 +54,7 @@ const AX_IDB_KEY = "assets-root";
 
 let axRootHandle = null; // thư mục assets/
 let axDirHandle = null; // thư mục đích; null = tên hợp lệ nhưng thư mục chưa tồn tại
-let axCurrentFolder = ""; // tên thư mục con đang mở, vd "flowers"
+let axCurrentFolder = ""; // tên thư mục con đang mở, vd "frames"
 let axFiles = []; // ảnh ĐÃ có trên đĩa: [{ name, size, dim, focal, previewUrl }]
 let axPending = []; // ảnh CHỜ lưu: [{ file, size, dim, focal, previewUrl }]
 let axFocalDirty = false; // điểm lấy nét của ảnh ĐÃ lưu vừa đổi → manifest cần ghi lại
@@ -709,7 +703,7 @@ function axExtFromBlob(blob, originalName) {
   return m ? m[1].toLowerCase() : "png";
 }
 
-// Tên file đặt theo tên thư mục + số thứ tự (flowers_01.png…), không lấy tên gốc.
+// Tên file đặt theo tên thư mục + số thứ tự (frames_01.png…), không lấy tên gốc.
 // Số chạy tiếp từ số lớn nhất đang có nên KHÔNG bao giờ đè lên ảnh cũ.
 function axIndexFromName(name, folder) {
   const esc = folder.replace(/[.*+?^${}()|[\]\\-]/g, "\\$&");
@@ -717,7 +711,7 @@ function axIndexFromName(name, folder) {
   return m ? parseInt(m[1], 10) : 0;
 }
 
-// Số kế tiếp = max hiện có + 1, tính trên MỌI đuôi file: flowers_01.png đã có
+// Số kế tiếp = max hiện có + 1, tính trên MỌI đuôi file: frames_01.png đã có
 // thì ảnh .webp mới cũng không được mang số 01 (nhìn vào tưởng cùng một ảnh).
 function axNextIndex(taken, folder) {
   let max = 0;
