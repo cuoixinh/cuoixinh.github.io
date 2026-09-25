@@ -115,8 +115,9 @@ cũ** cho tới khi làm xong mục F. Đừng đọc bảng `[x]` bên dưới 
       phản hồi HTML dù mã nguồn không có — hai miền `static.cloudflareinsights.com` và
       `cloudflareinsights.com` phải nằm trong `script-src`/`connect-src`, thiếu là mọi trang
       báo lỗi CSP ở Console. Thêm dịch vụ nào của Cloudflare cũng kiểm lại điểm này.
-      ⚠️ Thư viện CDN nào kéo thêm FONT (Font Awesome ở cdnjs) thì miền đó phải nằm cả
-      trong `font-src`, không chỉ `style-src` — thiếu là CSS nạp được mà icon rỗng.
+      ⚠️ `font-src` chỉ có `'self'` + Google Fonts: thêm thư viện CDN nào kéo FONT theo
+      CSS (icon font kiểu Font Awesome) thì miền đó phải vào `font-src`, không chỉ
+      `style-src` — thiếu là CSS nạp được mà icon rỗng. Icon dùng lucide (SVG) thì khỏi.
 
 - [x] **A10. Rate limit AI bypass bằng header.**
       **Đã vá** `clientIp()` ở cả `ai-invitation` và `ai-chat`: ưu tiên `cf-connecting-ip`,

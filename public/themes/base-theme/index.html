@@ -22,10 +22,6 @@
       })();
     </script>
     <link rel="icon" type="image/png" href="../../../assets/icons/favicon.png" />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -120,7 +116,7 @@
             class="open-btn relative overflow-hidden px-10 py-4 border cx-border cx-t text-[15px] active:scale-95 transition-transform touch-manipulation [-webkit-tap-highlight-color:transparent]"
           >
             <span class="relative z-10 pointer-events-none flex items-center gap-2">
-              <i class="fas fa-envelope-open-text cx-a text-base"></i>
+              <i data-lucide="mail-open" class="cx-ic cx-a text-base"></i>
               Mở Thiệp
             </span>
             <div class="btn-shimmer pointer-events-none"></div>
@@ -175,7 +171,7 @@
                 <div class="cx-a text-[13px] font-medium" id="groom-mother">--------------------</div>
               </div>
               <div class="cx-t text-[11px] leading-relaxed">
-                <i class="fas fa-map-marker-alt cx-a mr-1 text-[10px]"></i>
+                <i data-lucide="map-pin" class="cx-ic cx-a mr-1 text-[10px]"></i>
                 <span id="groom-address">----------------------------------------</span>
               </div>
             </div>
@@ -193,7 +189,7 @@
                 <div class="cx-a text-[13px] font-medium" id="bride-mother">--------------------</div>
               </div>
               <div class="cx-t text-[11px] leading-relaxed">
-                <i class="fas fa-map-marker-alt cx-a mr-1 text-[10px]"></i>
+                <i data-lucide="map-pin" class="cx-ic cx-a mr-1 text-[10px]"></i>
                 <span id="bride-address">----------------------------------------</span>
               </div>
             </div>
@@ -231,7 +227,7 @@
 
           <!-- Nơi làm lễ — index.js gỡ .hidden khi có dữ liệu -->
           <div id="ceremony-location-wrap" class="hidden flex items-center gap-1 justify-center">
-            <i class="fas fa-map-marker-alt cx-a text-[10px]"></i>
+            <i data-lucide="map-pin" class="cx-ic cx-a text-[10px]"></i>
             <span id="ceremony-location-text" class="cx-t text-[11px]"></span>
           </div>
         </section>
@@ -246,7 +242,7 @@
           <div class="cx-h italic text-[15px] opacity-80" id="party-lunar">(Ngày âm lịch)</div>
 
           <div class="flex items-start gap-2 justify-center">
-            <i class="fas fa-map-marker-alt cx-a text-sm"></i>
+            <i data-lucide="map-pin" class="cx-ic cx-a text-sm"></i>
             <div class="cx-t text-sm" id="party-location">------------------------</div>
           </div>
 
@@ -265,7 +261,7 @@
                 id="btn-attend"
                 class="flex-col gap-2 py-4 border cx-border active:scale-95 transition-all"
               >
-                <i class="fas fa-check-circle cx-a text-2xl"></i>
+                <i data-lucide="circle-check" class="cx-ic cx-a text-2xl"></i>
                 <span class="cx-h italic text-[15px]">Tham dự</span>
               </x-button>
               <x-button
@@ -274,9 +270,7 @@
                 id="btn-decline"
                 class="flex-col gap-2 py-4 border cx-border active:scale-95 transition-all"
               >
-                <!-- Icon dùng .cx-bd (CHỈ đổi màu), không dùng .cx-t: .cx-t đặt
-                     cả font-family nên sẽ đè font của Font Awesome → ô vuông. -->
-                <i class="fas fa-times-circle cx-bd text-2xl"></i>
+                <i data-lucide="circle-x" class="cx-ic cx-bd text-2xl"></i>
                 <span class="cx-h italic text-[15px]">Không tham dự</span>
               </x-button>
             </div>
@@ -329,7 +323,7 @@
                 onclick="saveQR('groom-qr-img')"
                 class="gap-2 px-4 py-2 border cx-border cx-t text-[12px]"
               >
-                <i class="fas fa-download cx-a text-xs"></i>
+                <i data-lucide="download" class="cx-ic cx-a text-xs"></i>
                 Lưu QR
               </x-button>
             </div>
@@ -348,7 +342,7 @@
                 onclick="saveQR('bride-qr-img')"
                 class="gap-2 px-4 py-2 border cx-border cx-t text-[12px]"
               >
-                <i class="fas fa-download cx-a text-xs"></i>
+                <i data-lucide="download" class="cx-ic cx-a text-xs"></i>
                 Lưu QR
               </x-button>
             </div>
@@ -382,7 +376,7 @@
                 id="map-placeholder"
                 class="hidden absolute inset-0 flex flex-col items-center justify-center gap-2 cx-bg-surface"
               >
-                <i class="fas fa-map-marked-alt cx-a text-2xl"></i>
+                <i data-lucide="map-pinned" class="cx-ic cx-a text-2xl"></i>
                 <span class="cx-t text-[11px] uppercase tracking-[2px]">Chưa có bản đồ</span>
               </div>
             </div>
@@ -391,7 +385,7 @@
               <div class="cx-t text-[10px] uppercase tracking-[2px]">Địa điểm tổ chức</div>
               <div class="flex items-center gap-1 cx-a">
                 <span class="text-[11px]">Mở Maps</span>
-                <i class="fas fa-chevron-right text-xs"></i>
+                <i data-lucide="chevron-right" class="cx-ic text-xs"></i>
               </div>
             </div>
           </a>
@@ -409,17 +403,17 @@
     <!-- ═══ Phóng to ảnh (đi kèm mục Album ảnh) ════════════════════════════ -->
     <div id="lightbox" class="fixed inset-0 z-[100] cx-lightbox hidden flex-col items-center justify-center">
       <x-button variant="bare" onclick="closeLightbox()" class="absolute top-6 right-6 w-10 h-10 cx-lightbox-btn z-10">
-        <i class="fas fa-times cx-on-lightbox text-lg"></i>
+        <i data-lucide="x" class="cx-ic cx-on-lightbox text-lg"></i>
       </x-button>
       <div id="lb-counter" class="absolute top-6 left-6 cx-on-lightbox-60 text-sm font-inter"></div>
       <div class="w-full h-full flex items-center justify-center px-[8px]">
         <img id="lb-img" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="" class="max-w-full max-h-full object-contain rounded-xl transition-opacity duration-200" />
       </div>
       <x-button variant="bare" onclick="lightboxPrev()" class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 cx-lightbox-btn">
-        <i class="fas fa-chevron-left cx-on-lightbox"></i>
+        <i data-lucide="chevron-left" class="cx-ic cx-on-lightbox"></i>
       </x-button>
       <x-button variant="bare" onclick="lightboxNext()" class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 cx-lightbox-btn">
-        <i class="fas fa-chevron-right cx-on-lightbox"></i>
+        <i data-lucide="chevron-right" class="cx-ic cx-on-lightbox"></i>
       </x-button>
     </div>
 
