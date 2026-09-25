@@ -554,10 +554,34 @@
   // nên vẫn nằm trên nó. Bong bóng đang stream thì thanh ẩn tới khi gõ xong.
 
   const TTS = window.speechSynthesis && window.SpeechSynthesisUtterance ? window.speechSynthesis : null;
-  const TTS_CHUNK = 180; // Chrome tự ngắt câu đọc dài quá ~15 giây → cắt thành đoạn ngắn
+  // Chrome tự ngắt câu đọc dài quá ~15 giây → cắt đoạn; mỗi chỗ cắt là một nhịp nghỉ
+  // nên để đoạn dài nhất có thể (300 ký tự ở tốc độ 1.3 ≈ 12 giây).
+  const TTS_CHUNK = 300;
+  const TTS_RATE = 1.3;
   const COPY_DONE_MS = 1500;
   let speaking = null; // nút Đọc đang bật
   let speakRun = 0; // tăng mỗi lượt đọc: onend của lượt đã huỷ không được tắt nút lượt sau
+  let ttsVoice = null;
+
+  // Giọng tiếng Việt tốt nhất máy đang có: giọng neural của Edge (HoaiMy/NamMinh
+  // "Online (Natural)") > "Google Tiếng Việt" của Chrome > giọng nâng cao của Apple >
+  // giọng cài sẵn trong máy (thường đọc đều đều như máy). Chrome nạp danh sách giọng
+  // KHÔNG đồng bộ nên phải chọn lại mỗi lần có `voiceschanged`.
+  function pickVoice() {
+    const score = (v) =>
+      (/natural|neural/i.test(v.name) ? 8 : 0) +
+      (/online|google/i.test(v.name) ? 4 : 0) +
+      (/premium|enhanced|linh/i.test(v.name) ? 2 : 0) +
+      (v.localService === false ? 1 : 0) +
+      (/hoaimy/i.test(v.name) ? 0.5 : 0); // hai giọng neural ngang nhau thì lấy giọng nữ
+    const vi = TTS.getVoices().filter((v) => /^vi/i.test(v.lang));
+    ttsVoice = vi.sort((a, b) => score(b) - score(a))[0] || null;
+  }
+
+  if (TTS) {
+    pickVoice();
+    TTS.addEventListener?.("voiceschanged", pickVoice);
+  }
 
   function addActs(col, isUser, pending) {
     const bar = document.createElement("div");
@@ -679,23 +703,28 @@
     stopSpeak();
     if (same || !TTS) return;
     // Emoji bị đọc thành tên hình ("mặt cười…") nên bỏ trước khi đọc.
-    const text = msgText(btn).replace(/[\p{Extended_Pictographic}‍️]/gu, "");
+    const text = msgText(btn).replace(/[\p{Extended_Pictographic}\u200d\ufe0f]/gu, "");
     const chunks = ttsChunks(text);
     if (!chunks.length) return;
     stopMic(); // mic đang nghe sẽ thu luôn giọng đọc vào ô nhập
     const run = speakRun;
-    const voice = TTS.getVoices().find((v) => /^vi/i.test(v.lang));
+    if (!ttsVoice) pickVoice();
     const done = () => run === speakRun && stopSpeak();
     speaking = btn;
     setSpeaking(btn, true);
-    chunks.forEach((c, i) => {
-      const u = new SpeechSynthesisUtterance(c);
-      u.lang = "vi-VN";
-      if (voice) u.voice = voice;
-      if (i === chunks.length - 1) u.onend = done;
-      u.onerror = done; // một đoạn hỏng thì dừng cả lượt, không đọc nhảy cóc
-      TTS.speak(u);
-    });
+    try {
+      chunks.forEach((c, i) => {
+        const u = new SpeechSynthesisUtterance(c);
+        u.lang = "vi-VN";
+        u.rate = TTS_RATE;
+        if (ttsVoice) u.voice = ttsVoice;
+        if (i === chunks.length - 1) u.onend = done;
+        u.onerror = done; // một đoạn hỏng thì dừng cả lượt, không đọc nhảy cóc
+        TTS.speak(u);
+      });
+    } catch {
+      stopSpeak(); // trình duyệt từ chối giọng/đoạn → đừng để nút kẹt ở trạng thái Dừng
+    }
   }
 
   // Bong bóng lỗi "hết lượt AI, vui lòng đăng nhập": biến chữ "đăng nhập" trong
