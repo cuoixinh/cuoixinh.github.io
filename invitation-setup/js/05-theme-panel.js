@@ -524,6 +524,28 @@ function _setCtrlAway(on) {
     ?.classList.toggle("cx-ctrl-away", on);
 }
 
+// Nhấn vào thứ kéo được trên thiệp là thiệp gửi tin CHỌN ngay, bảng chi tiết mở
+// ra và thanh chỉnh đang cụp sẽ bung — khung thiệp co lại dưới ngón tay, không
+// kéo xuống đáy được nữa. Nên đang nhấn (tin `cx-press`) thì hoãn tới lúc thả:
+// chỉ chạm thì bung như cũ, còn kéo thì để nguyên cụp. Mốc thời gian thay cho
+// cờ: khung thiệp nạp lại giữa chừng thì tin "thả" không bao giờ tới.
+const CARD_PRESS_STALE_MS = 15000;
+let _cardPressAt = 0;
+let _showAfterPress = false;
+
+function _ctrlSheetShow() {
+  if (_cardPressAt && Date.now() - _cardPressAt < CARD_PRESS_STALE_MS)
+    _showAfterPress = true;
+  else _cxSheetShow?.();
+}
+
+function _ctrlPress(on, dragged) {
+  _cardPressAt = on ? Date.now() : 0;
+  if (on) return;
+  if (_showAfterPress && !dragged) _cxSheetShow?.();
+  _showAfterPress = false;
+}
+
 // Nhận tín hiệu click text từ iframe tab Giao diện (đúng nguồn mới nhận).
 window.addEventListener("message", (ev) => {
   const d = ev.data;
@@ -566,6 +588,8 @@ window.addEventListener("message", (ev) => {
     }
   } else if (d.type === "cx-element-close") {
     closeElementEditor();
+  } else if (d.type === "cx-press") {
+    _ctrlPress(!!d.on, !!d.dragged);
   } else if (d.type === "cx-drag-busy") {
     // Đang kéo hoạ tiết/thành phần/khối văn bản trên thiệp → thanh chỉnh lui đi
     // cho thấy chỗ đang thả (chỉ có tác dụng ở mobile, xem .cx-ctrl-away).
@@ -2504,7 +2528,7 @@ function _curCtrlView() {
 function _syncCtrlHead() {
   const view = _curCtrlView();
   // Đổi sang bảng khác trong lúc bảng đang thu gọn thì bung ra.
-  if (_lastCtrlHead !== null && _lastCtrlHead !== view.key) _cxSheetShow?.();
+  if (_lastCtrlHead !== null && _lastCtrlHead !== view.key) _ctrlSheetShow();
   _lastCtrlHead = view.key;
   _ctrlView = view;
 

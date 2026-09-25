@@ -1692,8 +1692,10 @@ function _cxElPinned(t) {
 // Chiều cao khung nhìn dùng để quy đổi toạ độ của thành phần GHIM.
 // Lúc CHỈNH, thanh chỉnh ở đáy cao thấp khác nhau theo từng bảng nên iframe xem
 // trước co giãn mỗi lần bấm chọn — bám theo chiều cao thật thì widget nhảy chỗ
-// ngay lúc mở bảng. Vì vậy chốt một mốc và dùng lại; chỉ lấy mốc mới khi bề
-// NGANG đổi (xoay máy, kéo rộng cột chỉnh) vì bảng chỉnh không làm đổi bề ngang.
+// ngay lúc mở bảng. Vì vậy chốt mốc là chiều cao LỚN NHẤT từng thấy: cụp thanh
+// chỉnh thì khung cao ra, mốc lên theo nên kéo được widget xuống tận đáy (giữ mốc
+// cũ là kẹt ở đáy của lúc bảng còn mở); bảng mở lại thì giữ mốc, widget đứng yên.
+// Bề NGANG đổi (xoay máy, kéo rộng cột chỉnh) thì lấy mốc mới từ đầu.
 // Trang thiệp thật luôn dùng số thật.
 let _cxVhRef = 0;
 let _cxVhRefW = 0;
@@ -1706,7 +1708,7 @@ function _cxViewH() {
   if (!_cxVhRef || vw !== _cxVhRefW) {
     _cxVhRef = vh;
     _cxVhRefW = vw;
-  }
+  } else if (vh > _cxVhRef) _cxVhRef = vh;
   return _cxVhRef;
 }
 
@@ -2102,8 +2104,23 @@ function _cxElWireMove(node, t, pinching) {
     const card = document.getElementById("main-card");
     if (!card) return;
     const r = card.getBoundingClientRect();
-    // Widget ghim: trục Y đo theo KHUNG NHÌN chứ không theo chiều cao thiệp.
-    const hRef = _cxElPinned(t) ? _cxViewH() || r.height : r.height;
+    // Widget ghim: trục Y đo theo KHUNG NHÌN chứ không theo chiều cao thiệp, và
+    // kẹp sao cho CẢ widget còn trong khung — kẹp điểm neo 0–100 thôi thì thanh
+    // nhạc (neo cạnh trên) kéo xuống đáy là lọt hẳn khỏi màn.
+    const pinned = _cxElPinned(t);
+    const hRef = pinned ? _cxViewH() || r.height : r.height;
+    // Đáy là chỗ THẤY được lúc này — đo lại mỗi nhịp kéo: khung còn co giãn sau cú
+    // nhấn (bảng điều chỉnh mở ra thêm hàng nút) và có thể thấp hơn mốc.
+    const yRange = () => {
+      if (!pinned || !hRef) return [0, 100];
+      const floor = Math.min(hRef, document.documentElement.clientHeight || hRef);
+      const hh = Math.min(node.offsetHeight, floor);
+      const top = node.classList.contains("cx-el-top");
+      return [
+        top ? 0 : (hh / 2 / hRef) * 100,
+        ((floor - (top ? hh : hh / 2)) / hRef) * 100,
+      ];
+    };
     const start = { x: e.clientX, y: e.clientY, dx: t.x, dy: t.y };
     e.preventDefault();
     try {
@@ -2119,10 +2136,11 @@ function _cxElWireMove(node, t, pinching) {
         0,
         100,
       );
+      const [yMin, yMax] = yRange();
       t.y = _cxDecorClamp(
         start.dy + ((ev.clientY - start.y) / hRef) * 100,
-        0,
-        100,
+        yMin,
+        yMax,
       );
       _cxElStyle(node, t);
     };
@@ -2643,7 +2661,9 @@ function _cxBlurCards(what) {
 // tiết, thành phần và hai tay nắm xoay/phóng): chúng đều setPointerCapture, mà
 // capture chỉ đổi ĐÍCH của sự kiện chứ vẫn cho nó đi qua document. Nhờ vậy tin
 // "thả tay rồi" không phụ thuộc handler nào nhớ dọn — không có đường nào làm
-// thanh chỉnh kẹt ở trạng thái ẩn.
+// thanh chỉnh kẹt ở trạng thái ẩn. Kèm tin `cx-press` (nhấn xuống / thả tay, có
+// kéo hay không): tin CHỌN bắn ngay lúc nhấn, trang cha dựa vào đây để hoãn việc
+// bung thanh chỉnh đang cụp tới lúc thả — bung giữa lúc kéo là khung thiệp co lại.
 if (typeof window !== "undefined" && window.top !== window) {
   // Chạm để CHỌN cũng sinh pointermove lắt nhắt → phải rời chỗ quá ngần này mới
   // tính là kéo, không thì mỗi lần bấm chọn thanh chỉnh lại chớp một cái.
@@ -2657,6 +2677,11 @@ if (typeof window !== "undefined" && window.top !== window) {
       parent.postMessage({ type: "cx-drag-busy", on }, "*");
     } catch (e) {}
   };
+  const press = (on, dragged) => {
+    try {
+      parent.postMessage({ type: "cx-press", on, dragged: !!dragged }, "*");
+    } catch (e) {}
+  };
 
   document.addEventListener(
     "pointerdown",
@@ -2666,6 +2691,7 @@ if (typeof window !== "undefined" && window.top !== window) {
       const hit =
         _isEditMode() && e.target?.closest?.(".cx-decor, .cx-el, .cx-cb-drag");
       from = hit ? { x: e.clientX, y: e.clientY } : null;
+      if (from) press(true);
     },
     true,
   );
@@ -2681,6 +2707,7 @@ if (typeof window !== "undefined" && window.top !== window) {
   );
 
   const drop = () => {
+    if (from) press(false, busy);
     from = null;
     if (busy) tell(false);
   };
