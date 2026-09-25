@@ -1,5 +1,4 @@
-// Áp dụng theme_setting lên thiệp: font/màu chung, khối văn bản, hoạ tiết,
-// thành phần. Dùng chung cho trang thiệp public, xem trước và trình soạn thiệp.
+// Áp dụng theme_setting lên thiệp: font/màu chung, khối văn bản, thành phần. Dùng chung cho trang thiệp public, xem trước và trình soạn thiệp.
 
 // Danh sách font (Google Fonts) — đều hỗ trợ tiếng Việt.
 // type: 'heading' (serif/display cho tiêu đề) | 'body' (sans cho nội dung) | 'both'
@@ -412,7 +411,7 @@ function applyTextOverrides(setting) {
 }
 
 // ── CHỤM 2 NGÓN ĐỂ PHÓNG TO ────────────────────────────────────────────────
-// Dùng chung cho khối văn bản / hoạ tiết / thành phần: đặt 2 ngón NGAY TRONG
+// Dùng chung cho khối văn bản / thành phần: đặt 2 ngón NGAY TRONG
 // lòng khối rồi chụm-xoè là đổi cỡ, khỏi phải trúng nút góc. Máy tính: Ctrl +
 // lăn chuột (đúng cử chỉ chụm của bàn rê).
 //   onStart()  ghi lại cỡ đang có   ·  onScale(k)  k = tỉ lệ so với lúc bắt đầu
@@ -436,8 +435,8 @@ function _cxWirePinch(node, onStart, onScale, onEnd) {
     onEnd();
   };
 
-  // Ngón ĐẦU phải chạm vào khối, ngón thứ hai bắt ở cấp document: khối nhỏ (bông
-  // hoa 20% bề ngang) thì ngón kia rất dễ đặt hụt ra ngoài mép.
+  // Ngón ĐẦU phải chạm vào khối, ngón thứ hai bắt ở cấp document: khối nhỏ (nút
+  // nhạc tròn) thì ngón kia rất dễ đặt hụt ra ngoài mép.
   const down = (e) => {
     if (e.pointerType === "mouse" || pts.size >= 2) return;
     pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
@@ -526,8 +525,7 @@ function _cxSectionsContainer() {
   for (const child of card.children) {
     if (
       child.classList &&
-      (child.classList.contains("cx-custom-block") ||
-        child.classList.contains("cx-decor-layer"))
+      child.classList.contains("cx-custom-block")
     )
       continue;
     const n = child.querySelectorAll(
@@ -546,8 +544,7 @@ function _cxRealSections(container) {
     (c) =>
       !c.classList ||
       (!c.classList.contains("cx-custom-block") &&
-        !c.classList.contains("cx-cb-dropline") &&
-        !c.classList.contains("cx-decor-layer")),
+        !c.classList.contains("cx-cb-dropline")),
   );
 }
 
@@ -558,8 +555,7 @@ function _cxGatherTargets(container, out, depth) {
     if (
       child.classList &&
       (child.classList.contains("cx-custom-block") ||
-        child.classList.contains("cx-cb-dropline") ||
-        child.classList.contains("cx-decor-layer"))
+        child.classList.contains("cx-cb-dropline"))
     )
       continue;
     const cs = getComputedStyle(child);
@@ -740,7 +736,7 @@ function _cxWireBlockPinch(wrap, body, id) {
     },
     (k) => {
       const px = Math.round(
-        _cxDecorClamp(base * k, CX_CB_MIN_SIZE, CX_CB_MAX_SIZE),
+        _cxClamp(base * k, CX_CB_MIN_SIZE, CX_CB_MAX_SIZE),
       );
       body.style.setProperty("font-size", px + "px", "important");
       body.setAttribute("data-cx-pinch", "1");
@@ -1174,531 +1170,16 @@ function applyCustomBlocks(setting) {
   _cxRender();
 }
 
-// ── DECORATIONS — hoa / hoạ tiết thả tự do lên thiệp bằng toạ độ ───────────
-// theme_setting.decorations = [{ id, src, x, y, w, rot, behind, at, ay, st, sy }]
-//   x, y  % so với #main-card, tính theo TÂM ảnh (y chỉ còn là đường lùi, xem neo)
-//   at/ay, st/sy  neo dọc: id phần tử gần nhất chứa tâm ảnh / id mục section-* phía
-//         trên, và khoảng từ mép trên của nó tới tâm ảnh tính bằng % BỀ NGANG thiệp
-//   w     % chiều rộng thiệp (cao tự theo tỉ lệ); rot: độ
-//   behind  true = nằm sau nội dung thiệp
-// Public/preview chỉ vẽ và không bắt chuột; edit=1 thì kéo được, kèm 4 nút
-// (xoá, xoay, phóng to, đổi lớp).
-const CX_DECOR_DEFAULT_W = 18; // % bề ngang thiệp
-const CX_DECOR_MIN_W = 3;
-const CX_DECOR_MAX_W = 100;
-
-let _cxDecors = [];
-let _cxDecorActiveId = null;
-let _cxDecorOutsideBound = false;
-
-function _cxDecorLayer(behind) {
-  const card = document.getElementById("main-card");
-  if (!card) return null;
-  // Toạ độ tính theo #main-card nên nó phải là gốc định vị.
-  if (getComputedStyle(card).position === "static") card.style.position = "relative";
-  // …và phải TỰ TẠO stacking context, nếu không lớp z-index:-1 (hoa nền) rơi ra
-  // ngữ cảnh gốc và bị chính nền trắng của thiệp che mất. isolation không đổi
-  // layout, chỉ đóng khung thứ tự chồng lớp trong thiệp.
-  if (getComputedStyle(card).isolation !== "isolate") card.style.isolation = "isolate";
-  const id = behind ? "cx-decor-layer-back" : "cx-decor-layer";
-  let layer = document.getElementById(id);
-  if (!layer || layer.parentElement !== card) {
-    layer = document.createElement("div");
-    layer.id = id;
-    layer.className = "cx-decor-layer";
-    // 45: cao hơn nội dung trong thiệp (z-20) nhưng thấp hơn các lớp phủ fixed
-    // ngoài thiệp (cover z-50, nhạc z-60, lightbox z-100).
-    // -1: sau nội dung thiệp nhưng vẫn trên nền thiệp.
-    layer.style.zIndex = behind ? "-1" : "45";
-    card.appendChild(layer);
-  }
-  return layer;
-}
-
-function _cxDecorEnsureStyle() {
-  if (document.getElementById("cx-decor-style")) return;
-  const s = document.createElement("style");
-  s.id = "cx-decor-style";
-  s.textContent =
-    // overflow:clip — xem chú thích ở .cx-el-layer (bộ nút nằm ngoài khung lớp).
-    ".cx-decor-layer{position:absolute;inset:0;overflow:hidden;overflow:clip;" +
-    "pointer-events:none}" +
-    ".cx-decor{position:absolute;transform-origin:center center}" +
-    ".cx-decor img{display:block;width:100%;height:auto;-webkit-user-drag:none;user-select:none;pointer-events:none}" +
-    // Safari iOS: nhấn giữ ảnh là nhấc nó lên (kèm tấm nền trắng) hoặc bôi chọn —
-    // phiên đó treo lại sau khi thả tay, nuốt luôn cú chạm bỏ chọn. Chặn cả ba.
-    ".cx-decor-edit{pointer-events:auto;cursor:grab;touch-action:none;" +
-    "-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;" +
-    "-webkit-tap-highlight-color:transparent}" +
-    ".cx-decor-edit.cx-decor-active{outline:1px dashed #e11d48;outline-offset:4px}" +
-    // Hoa nằm SAU nội dung thì không bấm vào được (nội dung che mất) → ở chế độ
-    // chỉnh, mỗi hoa "sau chữ" có thêm một bản trong suốt ở lớp trên để bắt
-    // chuột và mang bộ nút; ảnh thật vẫn nằm dưới đúng như lúc khách xem.
-    ".cx-decor-proxy img{visibility:hidden}" +
-    ".cx-decor-h{position:absolute;width:24px;height:24px;border-radius:9999px;" +
-    "background:#fff;border:1px solid #e11d48;color:#e11d48;display:none;" +
-    "align-items:center;justify-content:center;padding:0;cursor:pointer;" +
-    "box-shadow:0 2px 6px rgba(0,0,0,.18);touch-action:none;z-index:1}" +
-    ".cx-decor-active .cx-decor-h{display:flex}" +
-    // Tâm nút nằm ĐÚNG trên đường kẻ đứt: nửa nút (12px) + outline-offset (4px).
-    ".cx-decor-del{top:-16px;left:-16px}" +
-    ".cx-decor-copy{top:-16px;left:50%;margin-left:-12px}" +
-    ".cx-decor-rot{top:-16px;right:-16px;cursor:grab}" +
-    ".cx-decor-size{bottom:-16px;right:-16px;cursor:nwse-resize}" +
-    ".cx-decor-back{bottom:-16px;left:-16px}";
-  document.head.appendChild(s);
-}
-
-function _cxDecorClamp(v, min, max) {
+// ── CÔNG CỤ DÙNG CHUNG cho thứ thả tự do lên thiệp (thành phần) ─────────────
+function _cxClamp(v, min, max) {
   return Math.max(min, Math.min(max, v));
 }
 
-function _cxDecorFind(id) {
-  return _cxDecors.find((d) => d.id === id);
-}
-
-let _cxDecorReportTimer = null;
-function _cxDecorReport() {
-  clearTimeout(_cxDecorReportTimer);
-  _cxDecorReportTimer = setTimeout(() => {
-    _cxDecors.forEach((d) => {
-      if (!d.at && !d.st) _cxDecorAnchor(d);
-    });
-    try {
-      parent.postMessage({ type: "cx-decors-changed", decors: _cxDecors }, "*");
-    } catch (e) {}
-  }, 200);
-}
-
-function _cxDecorSetActive(id) {
-  _cxDecorActiveId = id || null;
-  document.querySelectorAll(".cx-decor").forEach((n) => {
-    n.classList.toggle(
-      "cx-decor-active",
-      n.getAttribute("data-decor-id") === _cxDecorActiveId,
-    );
-  });
-}
-
-function _cxDecorBindOutside() {
-  if (_cxDecorOutsideBound) return;
-  _cxDecorOutsideBound = true;
-  document.addEventListener("pointerdown", (e) => {
-    const t = e.target;
-    if (t && t.closest && t.closest(".cx-decor")) return;
-    if (_cxDecorActiveId) _cxDecorSetActive(null);
-  });
-}
-
-// Neo dọc của hoạ tiết. `y` là % chiều cao CẢ thiệp nên chỉ cần thiệp cao thấp
-// khác nhau một chút (ảnh thật thay khung "Chưa có ảnh", bật tắt một mục, font tải
-// sau…) là hoa ở cuối thiệp trôi cả chục px khỏi chỗ đã đặt. Nên lúc chỉnh ghi
-// thêm mốc là phần tử có id gần nhất chứa tâm ảnh (và mục section-* phía trên làm
-// dự phòng), khoảng lệch tính theo bề ngang thiệp — thứ mà ảnh trong thiệp cũng
-// co giãn theo. Mốc ẩn/không còn thì lùi về mốc sau, cuối cùng về `y`.
-const CX_DECOR_ANCHOR_MIN_H = 24; // px — phần tử thấp hơn (một dòng chữ nhỏ) không làm mốc
-
-function _cxDecorAnchorEl(card, id) {
-  if (!id) return null;
-  const el = document.getElementById(id);
-  if (!el || !card.contains(el) || el.closest(".cx-decor-layer")) return null;
-  return el.getClientRects().length ? el : null;
-}
-
-// Mép trên của phần tử tính từ mép trên thiệp theo BỐ CỤC (offsetTop), không theo
-// getBoundingClientRect: mục đang chạy hiệu ứng hiện dần (translateY) sẽ đo ra chỗ
-// tạm, neo theo đó là lệch đúng bằng quãng hiệu ứng còn lại.
-function _cxLayoutTop(el, card) {
-  let y = 0;
-  let n = el;
-  while (n && n !== card) {
-    y += n.offsetTop;
-    n = n.offsetParent;
-  }
-  if (n === card) return y;
-  return el.getBoundingClientRect().top - card.getBoundingClientRect().top;
-}
-
-// Toạ độ dọc (px, tính từ mép trên thiệp) của tâm ảnh theo neo; null = không neo được.
-function _cxDecorAnchorTop(d, card, r) {
-  if (!r.width) return null;
-  for (const [id, off] of [
-    [d.at, d.ay],
-    [d.st, d.sy],
-  ]) {
-    const el = typeof off === "number" && _cxDecorAnchorEl(card, id);
-    if (el) return _cxLayoutTop(el, card) + (off * r.width) / 100;
-  }
-  return null;
-}
-
-// Ghi neo từ vị trí đang thấy (`y`). Gọi SAU mỗi lần thả / thêm / nhân đôi.
-function _cxDecorAnchor(d) {
-  const card = document.getElementById("main-card");
-  const r = card && card.getBoundingClientRect();
-  if (!r || !r.width || !r.height) return;
-  // Mọi số đo dưới đây tính từ mép trên thiệp, theo bố cục (xem _cxLayoutTop).
-  const cy = (d.y * r.height) / 100;
-  const tops = new Map();
-  const off = (el) => Math.round(((cy - tops.get(el)) / r.width) * 1000) / 10;
-  let best = null;
-  let bestArea = Infinity;
-  let sec = null;
-  card.querySelectorAll("[id]").forEach((el) => {
-    if (el.closest(".cx-decor-layer, .cx-el-layer, .cx-el-pin-layer")) return;
-    const h = el.offsetHeight;
-    if (!h || !el.getClientRects().length) return;
-    const top = _cxLayoutTop(el, card);
-    tops.set(el, top);
-    if (/^section-/.test(el.id) && top <= cy && (!sec || top >= tops.get(sec))) sec = el;
-    if (h < CX_DECOR_ANCHOR_MIN_H || cy < top || cy > top + h) return;
-    const area = el.offsetWidth * h;
-    if (area < bestArea) {
-      best = el;
-      bestArea = area;
-    }
-  });
-  _cxDecorClearAnchor(d);
-  if (best) {
-    d.at = best.id;
-    d.ay = off(best);
-  }
-  if (sec && sec !== best) {
-    d.st = sec.id;
-    d.sy = off(sec);
-  }
-}
-
-// `y` theo đúng chỗ ảnh ĐANG hiện (neo có thể đã kéo nó khác đi) — trước khi kéo,
-// nhân đôi, hay để làm đường lùi cho thiệp chạy bản runtime cũ.
-function _cxDecorSyncY(d) {
-  const card = document.getElementById("main-card");
-  const r = card && card.getBoundingClientRect();
-  if (!r || !r.height) return;
-  const top = _cxDecorAnchorTop(d, card, r);
-  if (top != null) d.y = Math.round(_cxDecorClamp((top / r.height) * 100, 0, 100) * 10) / 10;
-}
-
-function _cxDecorClearAnchor(d) {
-  delete d.at;
-  delete d.ay;
-  delete d.st;
-  delete d.sy;
-}
-
-// Đang kéo thì ảnh đi theo `y`; neo tính lại lúc thả (_cxDecorReport).
-function _cxDecorUnanchor(node, d) {
-  _cxDecorSyncY(d);
-  _cxDecorClearAnchor(d);
-  _cxDecorApply(node, d);
-}
-
-// Ghi style vị trí/kích thước từ model lên node (dùng cả lúc render lẫn lúc kéo).
-function _cxDecorStyle(node, d) {
-  node.style.left = d.x + "%";
-  const card = document.getElementById("main-card");
-  const top = card && _cxDecorAnchorTop(d, card, card.getBoundingClientRect());
-  node.style.top = top == null ? d.y + "%" : top + "px";
-  node.style.width = d.w + "%";
-  node.style.transform = `translate(-50%, -50%) rotate(${d.rot || 0}deg)`;
-}
-
-// Hoa "sau chữ" có 2 node: bản trong suốt bắt chuột (node) + ảnh thật ở lớp
-// dưới (_cxTwin). Kéo/xoay/phóng to phải cập nhật cả hai.
-function _cxDecorApply(node, d) {
-  _cxDecorStyle(node, d);
-  if (node._cxTwin) _cxDecorStyle(node._cxTwin, d);
-}
-
-const _CX_DECOR_ICONS = {
+const _CX_TOOL_ICONS = {
   del: '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
   rot: '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg>',
   size: '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M9 21H3v-6"/><path d="M21 3l-7 7"/><path d="M3 21l7-7"/></svg>',
-  // Hai tấm chồng nhau = NHÂN ĐÔI (đúng nghĩa quen thuộc của icon này).
-  copy: '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
-  // Nhiều lớp xếp chồng = ĐỔI LỚP trước/sau, không lẫn với nhân đôi.
-  layers:
-    '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 7l10 5 10-5-10-5Z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/></svg>',
 };
-
-function _cxDecorButton(cls, title, icon) {
-  const b = document.createElement("button");
-  b.type = "button";
-  b.className = "cx-decor-h " + cls;
-  b.title = title;
-  b.setAttribute("aria-label", title);
-  b.innerHTML = icon;
-  _cxNoFocus(b);
-  return b;
-}
-
-function _cxDecorNode(d, edit) {
-  const node = document.createElement("div");
-  node.className = "cx-decor" + (edit ? " cx-decor-edit" : "");
-  node.setAttribute("data-decor-id", d.id);
-  if (edit && d.id === _cxDecorActiveId) node.classList.add("cx-decor-active");
-  _cxDecorStyle(node, d);
-
-  const img = document.createElement("img");
-  img.src = d.src;
-  img.alt = "";
-  // Safari iOS nhấc ảnh lên (kèm tấm nền trắng) theo thuộc tính này chứ không
-  // theo CSS -webkit-user-drag; nhấc dở là ảnh treo lại đè lên thiệp.
-  img.draggable = false;
-  // KHÔNG dùng loading="lazy": thiệp rất dài nên hoa ở dưới sẽ chưa tải, khung
-  // bọc cao 0px → không bấm/kéo được (và ở public thì hụt cả chỗ trống).
-  node.appendChild(img);
-
-  if (!edit) return node;
-
-  const del = _cxDecorButton("cx-decor-del", "Xoá", _CX_DECOR_ICONS.del);
-  del.addEventListener("click", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    _cxDecorDelete(d.id);
-  });
-  const copy = _cxDecorButton("cx-decor-copy", "Nhân đôi", _CX_DECOR_ICONS.copy);
-  copy.addEventListener("click", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    _cxDecorDuplicate(d.id);
-  });
-  const back = _cxDecorButton(
-    "cx-decor-back",
-    d.behind ? "Đưa lên trước chữ" : "Đưa ra sau chữ",
-    _CX_DECOR_ICONS.layers,
-  );
-  back.addEventListener("click", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    d.behind = !d.behind;
-    _cxDecorRender();
-    _cxDecorReport();
-  });
-  const rot = _cxDecorButton("cx-decor-rot", "Kéo để xoay", _CX_DECOR_ICONS.rot);
-  const size = _cxDecorButton("cx-decor-size", "Kéo để phóng to", _CX_DECOR_ICONS.size);
-  node.append(del, copy, back, rot, size);
-
-  // Chụm 2 ngón ngay trên ảnh = phóng to, khỏi phải trúng nút góc.
-  let pinchW = d.w;
-  const pinching = _cxWirePinch(
-    node,
-    () => {
-      _cxDecorSetActive(d.id);
-      pinchW = d.w;
-    },
-    (k) => {
-      d.w = _cxDecorClamp(pinchW * k, CX_DECOR_MIN_W, CX_DECOR_MAX_W);
-      _cxDecorApply(node, d);
-    },
-    () => {
-      d.w = Math.round(d.w * 10) / 10;
-      _cxDecorReport();
-    },
-  );
-
-  _cxNoTouchLift(node, ".cx-decor-h");
-  _cxDecorWireMove(node, d, pinching);
-  _cxDecorWireHandle(rot, node, d, "rotate");
-  _cxDecorWireHandle(size, node, d, "resize");
-  return node;
-}
-
-// Kéo cả ảnh → đổi toạ độ tâm (%). Ngón thứ hai chạm vào = đang chụm để phóng
-// to, dừng kéo (không thì ảnh vừa to ra vừa chạy theo ngón).
-function _cxDecorWireMove(node, d, pinching) {
-  node.addEventListener("pointerdown", (e) => {
-    if (e.target.closest(".cx-decor-h")) return; // nút công cụ tự lo
-    _cxDecorSetActive(d.id);
-    const card = document.getElementById("main-card");
-    if (!card) return;
-    const r = card.getBoundingClientRect();
-    _cxDecorUnanchor(node, d);
-    const start = { x: e.clientX, y: e.clientY, dx: d.x, dy: d.y };
-    e.preventDefault();
-    try {
-      node.setPointerCapture(e.pointerId);
-    } catch (err) {}
-    node.style.cursor = "grabbing";
-
-    const move = (ev) => {
-      if (ev.pointerId !== e.pointerId) return;
-      if (pinching && pinching()) return;
-      d.x = _cxDecorClamp(start.dx + ((ev.clientX - start.x) / r.width) * 100, 0, 100);
-      d.y = _cxDecorClamp(start.dy + ((ev.clientY - start.y) / r.height) * 100, 0, 100);
-      _cxDecorApply(node, d);
-    };
-    const up = (ev) => {
-      if (ev.pointerId !== e.pointerId) return;
-      node.removeEventListener("pointermove", move);
-      node.removeEventListener("pointerup", up);
-      node.removeEventListener("pointercancel", up);
-      node.style.cursor = "";
-      // Làm tròn 1 chữ số thập phân: đủ mịn mà JSON không phình vì số lẻ dài.
-      d.x = Math.round(d.x * 10) / 10;
-      d.y = Math.round(d.y * 10) / 10;
-      // Neo NGAY lúc thả, theo đúng chỗ đang thấy — để tới lúc báo (hẹn 200ms) mà
-      // thiệp kịp đổi cỡ thì `y` đã trôi và neo ghi nhầm chỗ.
-      _cxDecorAnchor(d);
-      _cxDecorApply(node, d);
-      _cxDecorReport();
-    };
-    node.addEventListener("pointermove", move);
-    node.addEventListener("pointerup", up);
-    node.addEventListener("pointercancel", up);
-  });
-}
-
-// Tay nắm xoay / phóng to. Cả hai tính theo VECTOR từ tâm ảnh tới con trỏ nên
-// không phụ thuộc góc đang xoay.
-function _cxDecorWireHandle(btn, node, d, mode) {
-  btn.addEventListener("pointerdown", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    _cxDecorSetActive(d.id);
-    const box = node.getBoundingClientRect();
-    const cx = box.left + box.width / 2;
-    const cy = box.top + box.height / 2;
-    const startDist = Math.hypot(e.clientX - cx, e.clientY - cy) || 1;
-    const startAngle = (Math.atan2(e.clientY - cy, e.clientX - cx) * 180) / Math.PI;
-    const startW = d.w;
-    const startRot = d.rot || 0;
-    try {
-      btn.setPointerCapture(e.pointerId);
-    } catch (err) {}
-
-    const move = (ev) => {
-      if (mode === "resize") {
-        const dist = Math.hypot(ev.clientX - cx, ev.clientY - cy);
-        d.w = _cxDecorClamp(
-          startW * (dist / startDist),
-          CX_DECOR_MIN_W,
-          CX_DECOR_MAX_W,
-        );
-      } else {
-        const ang = (Math.atan2(ev.clientY - cy, ev.clientX - cx) * 180) / Math.PI;
-        let next = Math.round(startRot + (ang - startAngle));
-        // Giữ phím Shift → nhảy từng 15° cho dễ canh thẳng.
-        if (ev.shiftKey) next = Math.round(next / 15) * 15;
-        d.rot = ((next % 360) + 360) % 360;
-      }
-      _cxDecorApply(node, d);
-    };
-    const up = () => {
-      btn.removeEventListener("pointermove", move);
-      btn.removeEventListener("pointerup", up);
-      btn.removeEventListener("pointercancel", up);
-      // Làm tròn khi thả: số lẻ 12 chữ số thập phân chỉ tổ phình JSON.
-      d.w = Math.round(d.w * 10) / 10;
-      d.x = Math.round(d.x * 10) / 10;
-      d.y = Math.round(d.y * 10) / 10;
-      _cxDecorReport();
-    };
-    btn.addEventListener("pointermove", move);
-    btn.addEventListener("pointerup", up);
-    btn.addEventListener("pointercancel", up);
-  });
-}
-
-// Thiệp hay một mục đổi cỡ (ảnh tải xong, font về, bật tắt một mục) thì mốc neo
-// xê theo → đặt lại mọi hoạ tiết. Theo dõi cả từng mục section-*: mục trên co đúng
-// bằng mục dưới giãn thì cỡ thiệp không đổi mà mốc ở giữa vẫn trôi.
-let _cxDecorWatch = null;
-function _cxDecorWatchCard(card) {
-  if (typeof ResizeObserver === "undefined") return;
-  if (_cxDecorWatch) {
-    card.querySelectorAll('[id^="section-"]').forEach((el) => _cxDecorWatch.observe(el));
-    return;
-  }
-  let raf = 0;
-  _cxDecorWatch = new ResizeObserver(() => {
-    if (raf) return;
-    raf = requestAnimationFrame(() => {
-      raf = 0;
-      document.querySelectorAll(".cx-decor").forEach((n) => {
-        const d = _cxDecorFind(n.getAttribute("data-decor-id"));
-        if (d) _cxDecorStyle(n, d);
-      });
-    });
-  });
-  _cxDecorWatch.observe(card);
-  card.querySelectorAll('[id^="section-"]').forEach((el) => _cxDecorWatch.observe(el));
-}
-
-function _cxDecorRender() {
-  const card = document.getElementById("main-card");
-  if (!card) return;
-  _cxDecorWatchCard(card);
-  _cxDecorEnsureStyle();
-  const edit = _isEditMode();
-  if (edit) _cxDecorBindOutside();
-
-  const front = _cxDecorLayer(false);
-  const back = _cxDecorLayer(true);
-  if (!front || !back) return;
-  front.innerHTML = "";
-  back.innerHTML = "";
-
-  // Layer luôn trong suốt với chuột; chỉ TỪNG ảnh ở chế độ chỉnh mới bắt chuột
-  // (class cx-decor-edit) — trang công khai không được để hoa chắn nút bấm.
-  _cxDecors.forEach((d) => {
-    if (!edit || !d.behind) {
-      (d.behind ? back : front).appendChild(_cxDecorNode(d, edit));
-      return;
-    }
-    // Hoa "sau chữ" lúc CHỈNH: ảnh thật vẫn ở lớp sau (thấy đúng như khách
-    // xem), nhưng bộ điều khiển là một bản trong suốt ở lớp trước — nếu không
-    // thì nội dung thiệp che mất, bấm chọn lại không được nữa.
-    const visual = _cxDecorNode(d, false);
-    back.appendChild(visual);
-    const ctrl = _cxDecorNode(d, true);
-    ctrl.classList.add("cx-decor-proxy");
-    ctrl._cxTwin = visual;
-    front.appendChild(ctrl);
-  });
-}
-
-/**
- * Nhân đôi hoạ tiết: bản sao lệch chéo một đoạn tính theo cỡ bông (18% bề ngang
- * của nó, tối thiểu 12px) rồi đổi ra % của từng trục.
- */
-function _cxDecorDuplicate(id) {
-  const src = _cxDecorFind(id);
-  if (!src) return;
-  _cxDecorSyncY(src);
-
-  const card = document.getElementById("main-card");
-  const r = card && card.getBoundingClientRect();
-  let dx = 2;
-  let dy = 2;
-  if (r && r.width && r.height) {
-    const stepPx = Math.max(12, (src.w / 100) * r.width * 0.18);
-    dx = (stepPx / r.width) * 100;
-    dy = (stepPx / r.height) * 100;
-  }
-  // Sát mép phải/đáy thì lệch ngược lại cho khỏi bị kẹp mất phần lệch.
-  const nx = src.x + dx > 97 ? src.x - dx : src.x + dx;
-  const ny = src.y + dy > 97 ? src.y - dy : src.y + dy;
-
-  const copy = {
-    ...src,
-    id: "dc_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
-    x: Math.round(_cxDecorClamp(nx, 0, 100) * 10) / 10,
-    y: Math.round(_cxDecorClamp(ny, 0, 100) * 10) / 10,
-  };
-  _cxDecorClearAnchor(copy);
-  _cxDecors.push(copy);
-  _cxDecorActiveId = copy.id; // bản mới thành cái đang chọn để kéo đi luôn
-  _cxDecorRender();
-  _cxDecorReport();
-}
-
-function _cxDecorDelete(id) {
-  _cxDecors = _cxDecors.filter((d) => d.id !== id);
-  if (_cxDecorActiveId === id) _cxDecorActiveId = null;
-  _cxDecorRender();
-  _cxDecorReport();
-}
 
 // Thêm mà không kéo (bấm ô mẫu ở bảng chọn) thì đặt ở ĐẦU KHUNG ĐANG XEM, cách
 // mép trên 36px. x/y là TÂM khối nên phải cộng nửa chiều cao — chiều cao chỉ
@@ -1715,14 +1196,14 @@ function _cxPlaceAtViewTop(item, node, style, report) {
     const r = card.getBoundingClientRect();
     const y =
       ((CX_ADD_TOP_GAP + node.offsetHeight / 2 - r.top) / r.height) * 100;
-    item.y = Math.round(_cxDecorClamp(y, 0, 100) * 10) / 10;
+    item.y = Math.round(_cxClamp(y, 0, 100) * 10) / 10;
     style(node, item);
   };
   apply();
 
-  // Hoạ tiết là một tấm ảnh: chưa tải xong thì khối còn cao 0, đo lại khi ảnh về.
-  // Chỉ nghe khi vừa đo ra 0 — khối có sẵn chiều cao (trình phát nhạc, ảnh bìa
-  // tải sau) mà nghe thì lát nữa ảnh về nó lại tự nhảy chỗ theo màn hình mới.
+  // Khối chỉ có ảnh chưa tải xong thì còn cao 0 → đo lại khi ảnh về. Chỉ nghe khi
+  // vừa đo ra 0 — khối có sẵn chiều cao (trình phát nhạc, ảnh bìa tải sau) mà nghe
+  // thì lát nữa ảnh về nó lại tự nhảy chỗ theo màn hình mới.
   if (node.offsetHeight > 0) return;
   node.querySelectorAll("img").forEach((img) => {
     if (img.complete) return;
@@ -1737,78 +1218,6 @@ function _cxPlaceAtViewTop(item, node, style, report) {
   });
 }
 
-/**
- * Thêm 1 hoạ tiết. Toạ độ nhận từ trang cha là px theo viewport iframe, đổi sang
- * % của #main-card; không truyền (bấm ô mẫu) → đặt ở đầu khung đang xem.
- */
-function _cxDecorAdd(src, clientX, clientY) {
-  const card = document.getElementById("main-card");
-  if (!card || !src) return;
-  const r = card.getBoundingClientRect();
-  const atPoint = clientX != null && clientY != null;
-  const x = atPoint
-    ? _cxDecorClamp(((clientX - r.left) / r.width) * 100, 0, 100)
-    : 50;
-  const y = atPoint
-    ? _cxDecorClamp(((clientY - r.top) / r.height) * 100, 0, 100)
-    : 0; // tạm; _cxPlaceAtViewTop đặt lại sau khi đo được chiều cao
-
-  const id = "dc_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-  _cxDecors.push({
-    id,
-    src,
-    x: Math.round(x * 10) / 10,
-    y: Math.round(y * 10) / 10,
-    w: CX_DECOR_DEFAULT_W,
-    rot: 0,
-    behind: false,
-  });
-  _cxDecorActiveId = id; // vừa thả → hiện sẵn viền + nút
-  if (atPoint) _cxDecorAnchor(_cxDecors[_cxDecors.length - 1]);
-  _cxDecorRender();
-  if (!atPoint) {
-    const item = _cxDecors[_cxDecors.length - 1];
-    _cxPlaceAtViewTop(
-      item,
-      document.querySelector('.cx-decor[data-decor-id="' + id + '"]'),
-      (n, it) => {
-        _cxDecorClearAnchor(it);
-        _cxDecorStyle(n, it);
-      },
-      _cxDecorReport,
-    );
-  }
-  _cxDecorReport();
-}
-
-// Render từ theme_setting (public + preview + edit).
-function applyDecorations(setting) {
-  if (!document.getElementById("main-card")) return;
-  if (typeof setting === "string") {
-    try {
-      setting = JSON.parse(setting);
-    } catch (e) {
-      setting = null;
-    }
-  }
-  const arr =
-    setting && Array.isArray(setting.decorations) ? setting.decorations : [];
-  _cxDecors = arr
-    .filter((d) => d && typeof d.src === "string")
-    .map((d) => ({
-      id: d.id || "dc_" + Math.random().toString(36).slice(2, 8),
-      src: d.src,
-      x: _cxDecorClamp(Number(d.x) || 0, 0, 100),
-      y: _cxDecorClamp(Number(d.y) || 0, 0, 100),
-      w: _cxDecorClamp(Number(d.w) || CX_DECOR_DEFAULT_W, CX_DECOR_MIN_W, CX_DECOR_MAX_W),
-      rot: Number(d.rot) || 0,
-      behind: !!d.behind,
-      ...(typeof d.at === "string" && Number.isFinite(d.ay) && { at: d.at, ay: d.ay }),
-      ...(typeof d.st === "string" && Number.isFinite(d.sy) && { st: d.st, sy: d.sy }),
-    }));
-  _cxDecorRender();
-}
-
 // ── ELEMENTS — "thành phần" thả tự do lên thiệp (hiện có: Trình phát nhạc) ──
 // Danh mục + markup từng mẫu ở core/helpers/element-helper.js.
 // theme_setting.elements = [{ id, element, variant, x, y, w, opts }]
@@ -1816,7 +1225,7 @@ function applyDecorations(setting) {
 //   w     % bề ngang thiệp
 //   opts  tuỳ chọn riêng của thành phần (ảnh bìa, màu…) — danh mục khai báo ở
 //         element-helper.js, áp bằng def.apply()
-// Khác hoạ tiết: trang công khai widget PHẢI bấm được (phát, tua, kéo xem tóm
+// Trang công khai widget PHẢI bấm được (phát, tua, kéo xem tóm
 // tắt); ngược lại chế độ chỉnh khoá hết tương tác bên trong để kéo được widget.
 let _cxElements = [];
 let _cxElActiveId = null;
@@ -1896,7 +1305,8 @@ function _cxElLayer() {
     layer = document.createElement("div");
     layer.id = "cx-el-layer";
     layer.className = "cx-el-layer";
-    // 46: ngay trên lớp hoa (45) — thành phần là thứ bấm được nên không để hoa đè.
+    // 46: trên nội dung trong thiệp (z-20), dưới các lớp phủ fixed ngoài thiệp
+    // (cover z-50, nhạc z-60, lightbox z-100).
     layer.style.zIndex = "46";
     card.appendChild(layer);
   }
@@ -1941,7 +1351,6 @@ function _cxElEnsureStyle() {
     ".cx-el-empty:not(.cx-tint-bg){--cx-mw-bg:rgba(255,255,255,.4)}" +
     ".cx-el-empty:not(.cx-tint-bg) .cx-mp-bar{background-image:none;" +
     "background-color:rgba(255,255,255,.4)}" +
-    // Bộ nút giống hoạ tiết cho quen tay
     ".cx-el-h{position:absolute;width:24px;height:24px;border-radius:9999px;" +
     "background:#fff;border:1px solid #e11d48;color:#e11d48;display:none;" +
     "align-items:center;justify-content:center;padding:0;cursor:pointer;" +
@@ -2215,7 +1624,7 @@ function _cxElNode(t, edit) {
 
   if (!edit) return node;
 
-  const del = _cxElButton("cx-el-del", "Xoá", _CX_DECOR_ICONS.del);
+  const del = _cxElButton("cx-el-del", "Xoá", _CX_TOOL_ICONS.del);
   del.addEventListener("click", (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -2227,7 +1636,7 @@ function _cxElNode(t, edit) {
   const skin = _cxElButton(
     "cx-el-skin",
     "Đổi mẫu (" + (_cxElVariant(t) || {}).name + ")",
-    _CX_DECOR_ICONS.rot,
+    _CX_TOOL_ICONS.rot,
   );
   skin.addEventListener("click", (e) => {
     e.preventDefault();
@@ -2239,7 +1648,7 @@ function _cxElNode(t, edit) {
   const size = _cxElButton(
     "cx-el-size",
     "Kéo để phóng to",
-    _CX_DECOR_ICONS.size,
+    _CX_TOOL_ICONS.size,
   );
   node.append(del, skin, size);
 
@@ -2253,7 +1662,7 @@ function _cxElNode(t, edit) {
     },
     (k) => {
       const v = _cxElVariant(t) || {};
-      t.w = _cxDecorClamp(pinchW * k, v.minW || 8, v.maxW || 100);
+      t.w = _cxClamp(pinchW * k, v.minW || 8, v.maxW || 100);
       _cxElStyle(node, t); // đổi cả cỡ chữ bên trong theo bề ngang mới
     },
     () => {
@@ -2269,7 +1678,7 @@ function _cxElNode(t, edit) {
   return node;
 }
 
-// Kéo cả widget → đổi toạ độ tâm (%). Giống hệt hoạ tiết: ngón thứ hai chạm vào
+// Kéo cả widget → đổi toạ độ tâm (%). Ngón thứ hai chạm vào
 // là đang chụm để phóng to nên phải dừng kéo.
 function _cxElWireMove(node, t, pinching) {
   node.addEventListener("pointerdown", (e) => {
@@ -2305,13 +1714,13 @@ function _cxElWireMove(node, t, pinching) {
     const move = (ev) => {
       if (ev.pointerId !== e.pointerId) return;
       if (pinching && pinching()) return;
-      t.x = _cxDecorClamp(
+      t.x = _cxClamp(
         start.dx + ((ev.clientX - start.x) / r.width) * 100,
         0,
         100,
       );
       const [yMin, yMax] = yRange();
-      t.y = _cxDecorClamp(
+      t.y = _cxClamp(
         start.dy + ((ev.clientY - start.y) / hRef) * 100,
         yMin,
         yMax,
@@ -2354,7 +1763,7 @@ function _cxElWireResize(btn, node, t) {
 
     const move = (ev) => {
       const dist = Math.hypot(ev.clientX - cx, ev.clientY - cy);
-      t.w = _cxDecorClamp(
+      t.w = _cxClamp(
         startW * (dist / startDist),
         v.minW || 8,
         v.maxW || 100,
@@ -2510,7 +1919,7 @@ function _cxElResize(id, w, done) {
   const t = _cxElFind(id);
   if (!t) return;
   const v = _cxElVariant(t) || {};
-  t.w = _cxDecorClamp(Number(w) || t.w, v.minW || 8, v.maxW || 100);
+  t.w = _cxClamp(Number(w) || t.w, v.minW || 8, v.maxW || 100);
   const node = document.querySelector('.cx-el[data-el-id="' + t.id + '"]');
   if (node) _cxElStyle(node, t);
   if (!done) return;
@@ -2530,8 +1939,8 @@ function _cxElResize(id, w, done) {
 function _cxElHome(t, node) {
   const home = (_cxElVariant(t) || {}).home;
   if (home && home.x != null && home.y != null) {
-    t.x = _cxDecorClamp(Number(home.x), 0, 100);
-    t.y = _cxDecorClamp(Number(home.y), 0, 100);
+    t.x = _cxClamp(Number(home.x), 0, 100);
+    t.y = _cxClamp(Number(home.y), 0, 100);
     _cxElStyle(node, t);
     return true;
   }
@@ -2545,7 +1954,7 @@ function _cxElHome(t, node) {
   // Thanh gốc neo theo khung nhìn, khung xem trước rộng hơn thiệp → kẹp vào khổ
   // thiệp, giống lúc dựng (xem _cxElAdoptThemeBox).
   t.x = Math.round(
-    _cxDecorClamp(((box.cx - r.left) / r.width) * 100, 0, 100) * 10,
+    _cxClamp(((box.cx - r.left) / r.width) * 100, 0, 100) * 10,
   ) / 10;
   t.y = _cxElPinY(node, box.cy, vh);
   _cxElStyle(node, t);
@@ -2616,15 +2025,15 @@ function _cxElAdd(elementId, clientX, clientY, variantId) {
   }
 
   const x = atPoint
-    ? _cxDecorClamp(((clientX - r.left) / r.width) * 100, 0, 100)
+    ? _cxClamp(((clientX - r.left) / r.width) * 100, 0, 100)
     : 50;
   // Widget ghim: trục Y là % KHUNG NHÌN (nó nổi theo màn hình, không theo thiệp).
   const vh = _cxViewH() || r.height;
   const y = !atPoint
     ? 0 // tạm; _cxElPlaceNow đặt lại sau khi đo được chiều cao widget
     : def.pin
-      ? _cxDecorClamp((clientY / vh) * 100, 0, 100)
-      : _cxDecorClamp(((clientY - r.top) / r.height) * 100, 0, 100);
+      ? _cxClamp((clientY / vh) * 100, 0, 100)
+      : _cxClamp(((clientY - r.top) / r.height) * 100, 0, 100);
 
   const exist = def.single && _cxElements.find((t) => t.element === elementId);
   if (exist) {
@@ -2694,9 +2103,9 @@ function applyElements(setting) {
         id: t.id || "el_" + Math.random().toString(36).slice(2, 8),
         element: t.element,
         variant: v.id,
-        x: _cxDecorClamp(Number(t.x) || 0, 0, 100),
-        y: _cxDecorClamp(Number(t.y) || 0, 0, 100),
-        w: _cxDecorClamp(Number(t.w) || v.w, v.minW, v.maxW),
+        x: _cxClamp(Number(t.x) || 0, 0, 100),
+        y: _cxClamp(Number(t.y) || 0, 0, 100),
+        w: _cxClamp(Number(t.w) || v.w, v.minW, v.maxW),
         opts: t.opts && typeof t.opts === "object" ? t.opts : {},
       };
     });
@@ -2779,10 +2188,10 @@ function _cxElAdoptThemeBox(t) {
   if (!node || !box || !r || !r.width || !vh) return _cxElPlaceNow(t);
 
   const v = _cxElVariant(t) || {};
-  const pc = (n) => Math.round(_cxDecorClamp(n, 0, 100) * 10) / 10;
+  const pc = (n) => Math.round(_cxClamp(n, 0, 100) * 10) / 10;
   t.w =
     Math.round(
-      _cxDecorClamp((box.w / r.width) * 100, v.minW || 8, v.maxW || 100) * 10,
+      _cxClamp((box.w / r.width) * 100, v.minW || 8, v.maxW || 100) * 10,
     ) / 10;
   // Thanh gốc neo theo khung nhìn, khung xem trước lại rộng hơn thiệp → kẹp vào
   // trong khổ thiệp (nút tròn góc phải vì thế bám mép phải thiệp, không dạt ra).
@@ -2802,13 +2211,13 @@ function _cxElPinY(node, centerY, vh, h) {
   const top = node && node.classList.contains("cx-el-top");
   return (
     Math.round(
-      _cxDecorClamp(((top ? centerY - hh / 2 : centerY) / vh) * 100, 0, 100) * 10,
+      _cxClamp(((top ? centerY - hh / 2 : centerY) / vh) * 100, 0, 100) * 10,
     ) / 10
   );
 }
 
 // Đặt vào đầu khung đang xem. Widget ghim đo theo KHUNG NHÌN (nó nổi trên màn
-// hình), thành phần thường đo theo thiệp như hoạ tiết.
+// hình), thành phần thường đo theo thiệp.
 function _cxElPlaceNow(t) {
   const node = document.querySelector('.cx-el[data-el-id="' + t.id + '"]');
   if (!node) return;
@@ -2822,11 +2231,9 @@ function _cxElPlaceNow(t) {
   _cxElStyle(node, t);
 }
 
-// Bỏ chọn theo lệnh của trang cha. what="all" mới bỏ chọn cả thành phần (kéo
-// theo đóng bảng điều chỉnh của nó), mặc định chỉ bỏ chọn hoạ tiết.
-function _cxBlurCards(what) {
-  if (_cxDecorActiveId) _cxDecorSetActive(null);
-  if (what === "all" && _cxElActiveId) _cxElSetActive(null);
+// Bỏ chọn thành phần theo lệnh của trang cha (kéo theo đóng bảng điều chỉnh).
+function _cxBlurCards() {
+  if (_cxElActiveId) _cxElSetActive(null);
 }
 
 // Đang kéo thứ gì trên thiệp thì báo trang cha để nó dọn thanh chỉnh đi: ở mobile
@@ -2860,10 +2267,9 @@ if (typeof window !== "undefined" && window.top !== window) {
   document.addEventListener(
     "pointerdown",
     (e) => {
-      // Tay nắm nằm TRONG chính hoạ tiết/thành phần (.cx-decor-h, .cx-el-h) nên
-      // hai selector kia đã phủ; .cx-cb-drag là tay nắm đổi chỗ khối văn bản.
-      const hit =
-        _isEditMode() && e.target?.closest?.(".cx-decor, .cx-el, .cx-cb-drag");
+      // Tay nắm nằm TRONG chính thành phần (.cx-el-h) nên .cx-el đã phủ;
+      // .cx-cb-drag là tay nắm đổi chỗ khối văn bản.
+      const hit = _isEditMode() && e.target?.closest?.(".cx-el, .cx-cb-drag");
       from = hit ? { x: e.clientX, y: e.clientY } : null;
       if (from) press(true);
     },
@@ -2903,8 +2309,6 @@ if (typeof window !== "undefined" && window.top !== window) {
     else if (d.type === "cx-drag-cancel") _cxDragCancel();
     // Ô "Nội dung" ở panel vừa đổi → ghi vào model khối
     else if (d.type === "cx-block-text") _cxSetContent(d.id, d.text);
-    // Hoạ tiết: thả từ bảng chọn của panel (x,y = px theo viewport iframe)
-    else if (d.type === "cx-add-decor") _cxDecorAdd(d.src, d.x, d.y);
     // Thành phần: thả từ bảng chọn, và đổi mẫu / kích thước / tuỳ chọn / xoá từ
     // bảng điều chỉnh
     else if (d.type === "cx-add-element")
@@ -2916,8 +2320,8 @@ if (typeof window !== "undefined" && window.top !== window) {
       _cxElSetOpts(d.id, d.opts, d.replace, d.done);
     else if (d.type === "cx-element-reset") _cxElResetAll(d.id);
     else if (d.type === "cx-element-del") _cxElDelete(d.id);
-    // Trang cha bấm ra ngoài iframe → bỏ chọn cho bộ nút trên hoa/widget tắt đi
-    else if (d.type === "cx-blur") _cxBlurCards(d.what);
+    // Trang cha bấm ra ngoài iframe → bỏ chọn cho bộ nút trên widget tắt đi
+    else if (d.type === "cx-blur") _cxBlurCards();
   });
 }
 
@@ -3037,7 +2441,6 @@ if (typeof window !== "undefined") {
   window.applyThemeSetting = applyThemeSetting;
   window.applyTextOverrides = applyTextOverrides;
   window.applyCustomBlocks = applyCustomBlocks;
-  window.applyDecorations = applyDecorations;
   window.applyElements = applyElements;
 }
 
@@ -3064,11 +2467,11 @@ if (typeof window !== "undefined") {
   function _isEditable(el) {
     if (!el || el.nodeType !== 1) return false;
     // .cx-custom-block: khối tự thêm có luồng chọn riêng (__cxPickBlockBody) nên
-    // không để runtime chung bắt hover/click vào nó. .cx-decor / .cx-el: hoạ tiết
-    // và thành phần có bộ nút riêng, không phải chữ của thiệp để chỉnh.
+    // không để runtime chung bắt hover/click vào nó. .cx-el: thành phần có bộ nút
+    // riêng, không phải chữ của thiệp để chỉnh.
     if (
       el.closest(
-        "a, button, input, textarea, select, iframe, [contenteditable], .cx-no-edit, .cx-custom-block, .cx-decor, .cx-el",
+        "a, button, input, textarea, select, iframe, [contenteditable], .cx-no-edit, .cx-custom-block, .cx-el",
       )
     )
       return false;
@@ -3109,12 +2512,12 @@ if (typeof window !== "undefined") {
   // Phân giải phần tử đang trỏ: ảnh (chỉnh kích thước) hay chữ (chỉnh phông…).
   function _resolveTarget(target) {
     const img = target && target.closest ? target.closest("img") : null;
-    // Hoạ tiết / thành phần / khối văn bản có luồng chọn riêng — ảnh bên trong
-    // chúng (cánh hoa, ảnh bìa bài hát…) không phải ảnh của thiệp để chỉnh cỡ.
+    // Thành phần / khối văn bản có luồng chọn riêng — ảnh bên trong chúng
+    // (ảnh bìa bài hát…) không phải ảnh của thiệp để chỉnh cỡ.
     if (
       img &&
       !img.closest(
-        "a, button, .cx-no-edit, .cx-decor, .cx-el, .cx-custom-block",
+        "a, button, .cx-no-edit, .cx-el, .cx-custom-block",
       )
     )
       return { el: _imgResizeTarget(img), isImage: true };
@@ -3328,8 +2731,8 @@ if (typeof window !== "undefined") {
     const res = _resolveTarget(e.target);
     if (!res) {
       // Bấm ra chỗ trống trên thiệp = thôi chỉnh dòng vừa chọn. Thứ có luồng
-      // chọn riêng (khối văn bản, hoạ tiết, thành phần) tự lo bảng của nó.
-      if (!e.target.closest(".cx-custom-block, .cx-decor, .cx-el")) _clearPick();
+      // chọn riêng (khối văn bản, thành phần) tự lo bảng của nó.
+      if (!e.target.closest(".cx-custom-block, .cx-el")) _clearPick();
       return;
     }
     e.preventDefault();

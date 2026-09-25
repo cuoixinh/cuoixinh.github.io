@@ -1,5 +1,5 @@
 // Kho "Thành phần" thả được lên thiệp (tab Giao diện) — khối giao diện đặt theo
-// TOẠ ĐỘ tự do như hoạ tiết. File này chỉ khai báo DANH MỤC (window.CX_ELEMENTS):
+// TOẠ ĐỘ tự do. File này chỉ khai báo DANH MỤC (window.CX_ELEMENTS):
 // markup do component trong core/components/ dựng, phần thả/kéo/lưu ở
 // theme-setting-helper.js (mục ELEMENTS), bảng chọn ở 05-theme-panel.js — nên
 // thêm thành phần mới chỉ cần thêm một mục ở đây.

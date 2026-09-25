@@ -57,7 +57,7 @@
       class="shrink-0 bg-white border-t border-gray-200 shadow-[0_-4px_16px_rgb(var(--scrim-rgb)/0.12)] md:rounded-3xl md:border md:border-gray-100 md:shadow-[0_4px_18px_rgb(var(--scrim-rgb)/0.07)]"
     >
       <!-- Đầu bảng + vùng cuộn DÙNG CHUNG cho mọi bảng (chung, chỉnh chữ, thêm
-           văn bản, trang trí, thành phần, điều chỉnh): nhờ vậy bảng nào cũng cao
+           văn bản, thành phần, điều chỉnh): nhờ vậy bảng nào cũng cao
            bằng nhau — mặc định 200px cho đỡ che thiệp, kéo tay nắm lên khi cần
            xem nhiều hơn (chỉ có tác dụng ở mobile; md+ cả cột đã tự cuộn).
            Đầu bảng (vạch kéo + hàng nút) và dải tab dưới nằm NGOÀI vùng cuộn
@@ -389,22 +389,8 @@
             </div>
             <!-- /theme-addtext-panel -->
 
-            <!-- Bảng chọn HOẠ TIẾT: kéo ảnh từ đây thả vào bất kỳ chỗ nào trên
-                 thiệp (lưu theo toạ độ %). Danh sách nạp từ /assets/flowers. -->
-            <div
-              id="theme-decor-panel"
-              class="hidden space-y-3 md:space-y-4"
-            >
-              <p class="text-[12px] text-gray-500">
-                Giữ rồi kéo mẫu thả lên thiệp.
-              </p>
-              <div id="cx-decor-palette" class="cx-pal-grid"></div>
-              <p id="cx-decor-empty" class="hidden text-[12px] text-gray-400"></p>
-            </div>
-            <!-- /theme-decor-panel -->
-
             <!-- Bảng THẺ NHẠC: bấm ô mẫu để dùng ngay, hoặc kéo thả vào chỗ bất kỳ
-                 trên thiệp, lưu theo toạ độ như hoạ tiết. Danh mục nạp từ
+                 trên thiệp, lưu theo toạ độ. Danh mục nạp từ
                  window.CX_ELEMENTS nên thêm thành phần mới không phải sửa HTML này. -->
             <div
               id="theme-elements-panel"
