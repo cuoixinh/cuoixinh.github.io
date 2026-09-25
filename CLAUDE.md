@@ -453,6 +453,10 @@ GitHub Pages chạy Jekyll nên đường dẫn kiểu đó không được publ
   đó nhưng có `?slug=`: đoạn script nhỏ đầu `<head>` của mẫu tự gắn
   `<meta name="robots" content="noindex">` khi thấy tham số này. Chép `base-theme` là có
   sẵn đoạn đó — đừng gỡ, gỡ là thiệp khách (tên, địa chỉ, SĐT, QR ngân hàng) lên Google.
+- Mục Địa điểm: `#map-location-name` + `#map-link` phải đứng CUỐI `#section-map`, vẽ bằng
+  `renderVenueMaps(w, side)` (`render-helper.js`) — lễ và tiệc ở hai nơi thì nó nhân cặp
+  đó thành bản đồ thứ hai (id đuôi `-2`, cờ `.cx-map-dual` trên mục). `theme.css` nhắm
+  theo id thì khai luôn id `-2`, không thì bản đồ thứ hai lệch kiểu.
 - Mục Hộp mừng cưới: khối chứa mã QR đánh dấu `data-cx-gift="qr"`, hộp/phong bao riêng
   của mẫu (nếu có) đánh dấu `data-cx-gift="box"` — xem mục "Hộp mừng cưới" ở dưới.
 

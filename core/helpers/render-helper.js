@@ -162,6 +162,96 @@ function renderMap(mapEmbedUrl, locationName) {
   setText("map-location-name", locationName, "------------------------");
 }
 
+// Mục Địa điểm: bản đồ tiệc của bên đang xem + bản đồ lễ (nhà gái bật vu quy thì là
+// vu quy). Hai nơi trùng nhau (cùng link bản đồ hoặc cùng tên địa điểm) thì một bản
+// đồ như cũ; khác nơi thì nhân cặp #map-location-name + #map-link thành bản đồ thứ
+// hai, xếp theo giờ, mỗi bản đồ một nhãn. Mọi mẫu để #map-link CUỐI mục và cả hai có
+// id, nên chèn quanh chúng không làm lệch selector :nth-child của text_overrides.
+// Phần tử nào trong mục mang data-cx-map-dual thì đổi sang chữ đó khi có hai bản đồ.
+// Bản sao mang id đuôi "-2": theme.css nhắm theo id thì phải khai thêm id đó; mục
+// mang cờ .cx-map-dual để mẫu nào chật chỗ tự thu gọn hai bản đồ.
+function renderVenueMaps(w, side) {
+  const section = document.getElementById("section-map");
+  section?.querySelectorAll("[data-cx-map2]").forEach((n) => n.remove());
+
+  const vuQuy = side === "bride" && cxEnabled(w.vu_quy_enabled);
+  const at = (d, t) => (d ? Date.parse(d + "T" + (t || "00:00")) || 0 : 0);
+  const party = {
+    label: "Tiệc cưới",
+    url: extractMapEmbedUrl(w[side + "_party_map_embed_url"]),
+    loc: w[side + "_party_location"] || "",
+    at: at(w[side + "_party_date"], w[side + "_party_time"]),
+  };
+  const cer = {
+    label: vuQuy ? "Lễ Vu Quy" : w.ceremony_name || "Lễ Thành Hôn",
+    url: extractMapEmbedUrl(vuQuy ? w.vu_quy_map_embed_url : w.ceremony_map_embed_url),
+    loc: (vuQuy ? w.vu_quy_location : w.ceremony_location) || "",
+    at: at(w.ceremony_date, vuQuy ? w.vu_quy_time : w.ceremony_time),
+  };
+  const norm = (v) => String(v).trim().toLowerCase().replace(/\s+/g, " ");
+  const same =
+    cer.url === party.url || (norm(cer.loc) && norm(cer.loc) === norm(party.loc));
+
+  let spots = [party];
+  if (cer.url && same && !party.url) spots = [cer];
+  else if (cer.url && !same)
+    spots = !party.url && !norm(party.loc) ? [cer]
+      : party.at && cer.at && party.at < cer.at ? [party, cer] : [cer, party];
+
+  const main = spots[0];
+  renderMap(main.url, main.loc);
+  cxToggle("map-thumbnail-iframe", !!main.url);
+  cxToggle("map-placeholder", !main.url);
+  const link = document.getElementById("map-link");
+  link?.classList.toggle("pointer-events-none", !main.url);
+
+  const dual = spots.length > 1;
+  section?.classList.toggle("cx-map-dual", dual);
+  section?.querySelectorAll("[data-cx-map-dual]").forEach((el) => {
+    if (el.dataset.cxMapOne === undefined) el.dataset.cxMapOne = el.textContent;
+    el.textContent = dual ? el.dataset.cxMapDual : el.dataset.cxMapOne;
+  });
+  const name = document.getElementById("map-location-name");
+  if (!dual || !link || !name) return false;
+
+  const tag = (text) => {
+    const t = document.createElement("div");
+    t.className = "cx-map-tag";
+    t.dataset.cxMap2 = "";
+    t.textContent = text;
+    return t;
+  };
+  // Bản sao: đổi id (thêm "-2") cho khỏi trùng, bỏ lớp hiệu ứng cuộn — observer của
+  // theme-boot chỉ theo dõi bản gốc nên bản sao mang "reveal" sẽ tàng hình mãi.
+  const copy = (el) => {
+    const c = el.cloneNode(true);
+    c.dataset.cxMap2 = "";
+    [c, ...c.querySelectorAll("*")].forEach((n) => {
+      if (n.id) n.id += "-2";
+      n.classList.remove("reveal", "from-bottom", "from-left", "from-right");
+    });
+    return c;
+  };
+  const second = spots[1];
+  const name2 = copy(name);
+  name2.textContent = second.loc || "------------------------";
+  const link2 = copy(link);
+  link2.classList.toggle("pointer-events-none", !second.url);
+  link2.href = second.url || "#";
+  const frame2 = link2.querySelector("iframe");
+  if (frame2) {
+    frame2.src = second.url || "about:blank";
+    frame2.classList.toggle("hidden", !second.url);
+  }
+  link2.querySelector("#map-placeholder-2")?.classList.toggle("hidden", !!second.url);
+
+  name.before(tag(main.label));
+  const tag2 = tag(second.label);
+  tag2.classList.add("cx-map-tag-next");
+  link.after(tag2, name2, link2);
+  return true;
+}
+
 function renderCover(wedding) {
   const coverBgImg = document.getElementById("cover-bg-img");
   if (coverBgImg) {
