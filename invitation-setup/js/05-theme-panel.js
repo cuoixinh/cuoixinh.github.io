@@ -1316,8 +1316,8 @@ function _renderGiftPalette() {
       ),
     );
     // Mẫu xếp theo nhóm (CX_GIFT_GROUPS), mỗi nhóm một dòng tiêu đề; mẫu khai nhóm
-    // lạ thì dồn xuống cuối, không bị rơi mất khỏi bảng.
-    const boxes = window.CX_GIFT_BOXES || [];
+    // lạ thì dồn xuống cuối, không bị rơi mất khỏi bảng. Mẫu `hidden` không hiện.
+    const boxes = (window.CX_GIFT_BOXES || []).filter((b) => !b.hidden);
     const groups = window.CX_GIFT_GROUPS || [];
     const known = new Set(groups.map((g) => g.id));
     [...groups, { id: null }].forEach((g) => {

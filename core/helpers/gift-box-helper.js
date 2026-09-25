@@ -7,7 +7,8 @@
 (function () {
   // Thêm mẫu hộp: bỏ ảnh (nền trong suốt) vào assets/gifts/ rồi thêm một mục ở
   // đây, đặt cạnh các mẫu cùng `group` — id là khoá lưu trong theme_setting nên
-  // ĐỪNG đổi id đã phát hành. `hint` (tuỳ chọn) là lời mời chạm dưới hộp.
+  // ĐỪNG đổi id đã phát hành. `hint` (tuỳ chọn) là lời mời chạm dưới hộp. Gỡ một mẫu
+  // đã phát hành thì đặt `hidden: true` thay vì xoá, thiệp đang dùng nó mới không mất hộp.
   const BOXES = [
     {
       id: "lixi_do_hy",
@@ -129,7 +130,9 @@
       src: "/assets/gifts/phongbi_ve_may_bay.webp",
     },
     {
+      // Đã gỡ khỏi bảng chọn nhưng thiệp đã chọn vẫn hiện; ảnh còn là hộp riêng của noir-elegance.
       id: "minimalism_brown",
+      hidden: true,
       group: "hop",
       name: "Tối giản nâu",
       desc: "Hộp giấy kem, nơ lụa",
@@ -176,27 +179,6 @@
       name: "Hộp trái tim",
       desc: "Hộp hình trái tim đỏ, nơ hồng",
       src: "/assets/gifts/hop_trai_tim.webp",
-    },
-    {
-      id: "hop_banh_cuoi",
-      group: "hop",
-      name: "Bánh cưới ba tầng",
-      desc: "Bánh kem trắng – hồng, hoa trên đỉnh",
-      src: "/assets/gifts/hop_banh_cuoi.webp",
-    },
-    {
-      id: "hop_nhan",
-      group: "hop",
-      name: "Hộp nhẫn nhung",
-      desc: "Hộp nhung đỏ mở nắp, nhẫn kim cương",
-      src: "/assets/gifts/hop_nhan.webp",
-    },
-    {
-      id: "hop_trap_cuoi",
-      group: "hop",
-      name: "Tráp cưới sơn mài",
-      desc: "Tráp bát giác sơn đỏ, chữ Hỷ vàng",
-      src: "/assets/gifts/hop_trap_cuoi.webp",
     },
   ];
 
