@@ -197,6 +197,7 @@ function _syncAdvancedSection() {
   // Đăng xuất rồi mở lại thiệp đã xuất bản thì quay về đúng bộ nút của khách chưa
   // đăng nhập: "Lưu nháp" + "Xuất bản" (bấm "Xuất bản" sẽ mở popup đăng nhập).
   const published = IS_PUBLISHED && IS_LOGIN;
+  window._syncSlugSaveBtn?.();
 
   // Ẩn cả container nút "Lưu nháp" khi đã xuất bản → nhường không gian cho nút "Lưu & Xuất bản"
   const draftWrap = document.getElementById("tab-draft-wrap");

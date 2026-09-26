@@ -18,6 +18,11 @@ const SECTION_VIS_FIELDS = {
   footer: "enable_footer",
 };
 
+// Tên CỘT của các công tắc trên. Khoá của map là tên MỤC ("timeline", "love_story") —
+// trùng tên hai cột jsonb thật — nên chỗ nào muốn bỏ qua cột công tắc phải dò bằng Set
+// này, đừng dùng `key in SECTION_VIS_FIELDS` (xem fillForm ở js/13-data.js).
+const SECTION_VIS_COLUMNS = new Set(Object.values(SECTION_VIS_FIELDS));
+
 function _updateVisUI(section, enabled) {
   const btn = document.getElementById(`vis-btn-${section}`);
   const knob = document.getElementById(`vis-knob-${section}`);

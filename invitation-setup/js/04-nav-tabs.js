@@ -111,12 +111,40 @@ function _mobilePreviewUrl() {
     : `${DOMAIN}/${slug}?isGroom=true`;
 }
 
+// Bên thiệp đang xem thử ("groom" | "bride") — khách chọn ở popover của nút "Xem trước".
+let _cxPreviewSide = "groom";
+
 // src iframe preview. extra: tham số riêng của từng tab (vd "&edit=1").
 function _previewIframeSrc(extra = "") {
   const qrUrl = _mobilePreviewUrl();
   const qrParam = qrUrl ? `&qr=${encodeURIComponent(qrUrl)}` : "";
-  return `/public/themes/${WEDDING_THEME}/?preview=true&source=live${extra}&isGroom=true${qrParam}&t=${Date.now()}`;
+  const isGroom = _cxPreviewSide === "groom";
+  return `/public/themes/${WEDDING_THEME}/?preview=true&source=live${extra}&isGroom=${isGroom}${qrParam}&t=${Date.now()}`;
 }
+
+// Nút "Xem trước": hỏi xem thiệp nhà trai hay nhà gái rồi mới mở tab.
+function cxPickPreviewSide(btn) {
+  let pop = document.getElementById("preview-side-pop");
+  if (!pop) {
+    pop = document.createElement("x-popover");
+    pop.id = "preview-side-pop";
+    pop.setAttribute("placement", "top");
+    pop.setAttribute("arrow", "");
+    document.body.appendChild(pop);
+  }
+  const ico = (name) => `<i data-lucide="${name}" style="width:16px;height:16px"></i>`;
+  const pick = (side) => {
+    _cxPreviewSide = side;
+    switchTab("preview");
+  };
+  pop.setItems([
+    { icon: ico("house"), label: "Thiệp nhà trai", active: _cxPreviewSide === "groom", onClick: () => pick("groom") },
+    { icon: ico("heart"), label: "Thiệp nhà gái", active: _cxPreviewSide === "bride", onClick: () => pick("bride") },
+  ]);
+  window.lucide?.createIcons({ root: pop });
+  pop.toggle(btn);
+}
+window.cxPickPreviewSide = cxPickPreviewSide;
 
 // Nạp iframe mà KHÔNG thêm mốc lịch sử: gán src cho iframe đang nằm trong trang là
 // thêm một mốc, bấm Back chỉ lùi trang con chứ không tới được popstate của trang

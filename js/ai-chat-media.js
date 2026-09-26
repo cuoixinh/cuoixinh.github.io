@@ -10,7 +10,7 @@
     { id: "photos", label: "Ảnh cưới", icon: "image", hint: "Ảnh bìa và ảnh chân dung chú rể, cô dâu." },
     { id: "gallery", label: "Album", icon: "images", hint: "Tối đa 10 ảnh cho album cưới, chọn nhiều ảnh một lúc được." },
     { id: "music", label: "Nhạc nền", icon: "music", hint: "Tìm bài trên YouTube, hoặc dán thẳng link bài hát." },
-    { id: "map", label: "Bản đồ", icon: "map-pin", hint: "Ghim chỉ đường để khách mời tìm tới nơi làm lễ, đãi tiệc." },
+    { id: "map", label: "Bản đồ", icon: "map-pin", hint: "Ghim chỉ đường để khách mời tìm tới nơi làm lễ, tổ chức tiệc." },
     { id: "qr", label: "QR mừng cưới", icon: "qr-code", hint: "Ảnh mã QR tài khoản ngân hàng hai bên cho hộp mừng cưới." },
   ];
   const KIND = Object.fromEntries(KINDS.map((k) => [k.id, k]));
@@ -35,7 +35,8 @@
   const MUSIC_DEFAULT_Q = "nhạc đám cưới hay nhất";
 
   const VISIT_KEY = "cx_aichat_visited"; // sessionStorage: ô đã đi qua trong luồng dẫn
-  const HOME_KEY = "cx_aichat_media"; // sessionStorage: nhạc/bản đồ/mẫu chọn ở trang chủ
+  // sessionStorage: nhạc/bản đồ/mẫu chọn ở trang chủ + gương URL ảnh đã lên thiệp (saved)
+  const HOME_KEY = "cx_aichat_media";
   // Phát trên window mỗi khi thiệp đổi ảnh/nhạc/bản đồ/mẫu — ô chọn và dải chip vẽ lại
   // theo nó. 10-images.js (_imagesChanged) cũng phát, vì ảnh ở trang Thiết lập còn đổi
   // từ form chứ không chỉ từ khung chat.
@@ -231,6 +232,49 @@
     }
   }
 
+  // ── Gương ẢNH ĐÃ LÊN THIỆP ────────────────────────────────────────────────
+  // Ảnh chọn ở khung chat trang chủ là ảnh CHỜ trong IndexedDB; tới lúc khách lưu nháp
+  // hay xuất bản thì trang Thiết lập upload rồi xoá bản ghi chờ — trang chủ soi IndexedDB
+  // thấy trống trong khi thiệp vẫn đủ ảnh, ô chọn hiện lại thành trắng trơn. Nên mỗi lần
+  // đọc trạng thái Ở TRANG THIẾT LẬP ta chép URL ảnh thật (chỉ http, bỏ blob: của ảnh còn
+  // chờ) kèm mã thiệp vào HOME_KEY; trang chủ bù từ đây. Ảnh bù là ảnh của thiệp rồi nên
+  // KHÔNG cho xoá ở khung chat (mountGallery không vẽ nút x cho item.saved).
+  const isHttp = (u) => /^https?:/i.test(String(u || ""));
+
+  // Trang Thiết lập: thiệp đang mở (WEDDING_ID) mới là chủ của ảnh, mã nháp của cuộc chat
+  // có thể là thiệp khác (khách mở thiệp cũ rồi chat tiếp).
+  const sinkWeddingId = () =>
+    (typeof WEDDING_ID !== "undefined" && WEDDING_ID) || ctx.draftId();
+
+  function rememberSaved(st) {
+    const id = sinkWeddingId();
+    if (!id) return;
+    const images = {};
+    Object.entries(st.images || {}).forEach(([f, u]) => {
+      if (isHttp(u)) images[f] = u;
+    });
+    const gallery = (st.gallery || []).map((g) => g.url).filter(isHttp);
+    const cur = homeStore().saved;
+    const same =
+      cur &&
+      cur.id === id &&
+      JSON.stringify([cur.images, cur.gallery]) === JSON.stringify([images, gallery]);
+    if (!same) homeSave({ saved: { id, images, gallery } });
+  }
+
+  const savedFor = (id) => {
+    const sv = homeStore().saved;
+    return id && sv && sv.id === id ? sv : null;
+  };
+
+  // Mọi nơi đọc trạng thái đi qua đây: trang Thiết lập ghi gương, trang chủ đọc gương
+  // (trong homeSink.state).
+  async function readState() {
+    const st = await sink().state();
+    if (window.cxAiMediaSink) rememberSaved(st);
+    return st;
+  }
+
   // Bản xem trước khối Hộp mừng cưới trong bảng cắt QR — như _qrGiftInfo (10-images.js)
   // nhưng đọc thông tin XuXi đã thu thay vì form. Field khác QR → null.
   function giftInfo(field) {
@@ -244,6 +288,18 @@
       bankNumber: String(f[`${side}_bank_number`] || ""),
       bankOwner: String(f[`${side}_bank_owner`] || ""),
     };
+  }
+
+  // Địa điểm đã có địa chỉ ở trang chủ — lấy từ thông tin XuXi đã thu.
+  function homePlaces() {
+    const f = ctx.known()?.fields || {};
+    const vuQuy = f.vu_quy_enabled === true || f.vu_quy_enabled === "true";
+    const places = {};
+    SIDES.forEach(([s]) => {
+      const v = String(f[s + "_location"] || "").trim();
+      if (v && (s !== "vu_quy" || vuQuy)) places[s] = v;
+    });
+    return places;
   }
 
   const homeSink = {
@@ -260,18 +316,23 @@
         .map((r) => ({ url: fileUrl(r.key, r.file), key: r.key }));
       const st = homeStore();
       const f = ctx.known()?.fields || {};
-      const vuQuy = f.vu_quy_enabled === true || f.vu_quy_enabled === "true";
-      const places = {};
-      SIDES.forEach(([s]) => {
-        const v = String(f[s + "_location"] || "").trim();
-        if (v && (s !== "vu_quy" || vuQuy)) places[s] = v;
-      });
+      const places = homePlaces();
+      const images = Object.fromEntries(
+        [...PHOTO_SLOTS, ...QR_SLOTS].map(([field]) => [field, single(field)]),
+      );
+      // Ảnh đã lên thiệp: chỉ bù vào ô còn TRỐNG — bản ghi chờ trong IndexedDB là ảnh
+      // khách vừa chọn, luôn mới hơn.
+      const sv = savedFor(id);
+      if (sv) {
+        Object.entries(sv.images || {}).forEach(([f, u]) => {
+          if (f in images && !images[f]) images[f] = u;
+        });
+        gallery.unshift(...(sv.gallery || []).map((u) => ({ url: u, saved: true })));
+      }
       return {
         theme: st.theme || null,
         themeLocked: false,
-        images: Object.fromEntries(
-          [...PHOTO_SLOTS, ...QR_SLOTS].map(([field]) => [field, single(field)]),
-        ),
+        images,
         gallery,
         music: st.music || null,
         maps: st.maps || {},
@@ -312,7 +373,9 @@
       const id = ctx.draftId();
       if (!id) return;
       // Trần tính cả ảnh đã lưu trong nháp lẫn ảnh đang chờ, như handleGalleryUpload.
-      const saved = getCache(buildCacheKey("draft", id))?.gallery_images;
+      // Nháp còn trên máy thì đọc cache; nháp đã lên tài khoản (cache bị xoá) thì đọc gương.
+      const saved =
+        getCache(buildCacheKey("draft", id))?.gallery_images || savedFor(id)?.gallery;
       const have =
         (await idbAll(id)).filter((r) => r.type === "gallery").length +
         (Array.isArray(saved) ? saved.length : 0);
@@ -427,9 +490,10 @@
   // Mỗi loại: mount(body) dựng khung MỘT lần, trả update(st) để vẽ lại theo trạng
   // thái — giữ nguyên thứ khách đang gõ dở (ô tìm nhạc, ô tìm địa điểm).
 
-  function tileGrid(slots, cols) {
+  // `cls` thêm vào lưới — "is-qr": ô vuông (ảnh QR đã cắt 1:1).
+  function tileGrid(slots, cols, cls) {
     return (body) => {
-      const grid = el("div", "aichat-tiles");
+      const grid = el("div", "aichat-tiles" + (cls ? " " + cls : ""));
       grid.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
       const tiles = slots.map(([field, , label]) => {
         const tile = el("label", "aichat-tile");
@@ -499,7 +563,9 @@
         img.src = item.url;
         img.alt = "";
         cell.appendChild(img);
-        if (sink().removeGallery) {
+        // Ảnh đã lên thiệp (bù từ gương) không có bản ghi nào để xoá — muốn bỏ thì
+        // vào trang Thiết lập.
+        if (sink().removeGallery && !item.saved) {
           const x = el("button", "aichat-gal-x");
           x.type = "button";
           x.setAttribute("aria-label", "Bỏ ảnh này");
@@ -735,7 +801,7 @@
         Object.keys(rows).forEach((k) => delete rows[k]);
         if (!sides.length) {
           wrap.appendChild(
-            el("p", "aichat-kit-sub", "Chưa có địa chỉ nơi làm lễ / đãi tiệc — bạn nhắn cho XuXi địa chỉ trước nhé."),
+            el("p", "aichat-kit-sub", "Chưa có địa chỉ nhà trai / nhà gái — bạn nhắn cho XuXi địa chỉ trước nhé."),
           );
         }
         sides.forEach(([s, label]) => {
@@ -777,6 +843,17 @@
 
   const sideLabel = (s) => SIDES.find(([k]) => k === s)?.[1] || "";
 
+  // Ô "Trùng địa điểm" của từng tiệc đúng như khung chat đang hiện. Chỉ tiệc có nguồn VÀ
+  // (khách đã bấm hoặc tiệc đã có địa chỉ) — còn lại để form tự đặt mặc định.
+  function partySame(st) {
+    const out = {};
+    PARTY_SIDES.forEach((s) => {
+      const src = partySource(s, st);
+      if (src && (typeof st.same?.[s] === "boolean" || st.places[s])) out[s] = isSame(s, src, st);
+    });
+    return out;
+  }
+
   let sameSeq = 0;
 
   // Đặt trạng thái + nhãn cho một <x-check>. Chưa nâng cấp (x-controls.js đang nạp) thì
@@ -805,7 +882,8 @@
     gallery: mountGallery,
     music: mountMusic,
     map: mountMap,
-    qr: tileGrid(QR_SLOTS, 2),
+    // Cùng khổ cột với ô ảnh chân dung — 2 cột là mỗi ô QR choán nửa khung chat.
+    qr: tileGrid(QR_SLOTS, 3, "is-qr"),
   };
 
   // Theo dõi CHANGE cho tới khi phần tử rời DOM (Làm mới xoá sạch khung chat).
@@ -841,7 +919,7 @@
 
     const update = MOUNT[kind](body);
     const refresh = async () => {
-      const st = await sink().state();
+      const st = await readState();
       last = st;
       update(st);
       if (foot) {
@@ -871,7 +949,7 @@
       return [k.id, b];
     });
     const refresh = async () => {
-      const st = await sink().state();
+      const st = await readState();
       btns.forEach(([id, b]) => b.classList.toggle("is-done", isDone(id, st)));
     };
     paintIcons(row);
@@ -881,7 +959,7 @@
   }
 
   async function summary() {
-    const st = await sink().state();
+    const st = await readState();
     return {
       theme: st.theme?.name || st.theme?.theme || "",
       photos: hasPhotos(st, PHOTO_SLOTS).map((s) => s[1]),
@@ -893,9 +971,19 @@
     };
   }
 
+  // Độ dài chuyện tình mẫu đang chọn khai ở CX_THEME.loveStory — server viết mốc dài ngắn
+  // theo đó. Chưa chọn mẫu / không khai / đọc lỗi → "" (server dùng mặc định).
+  async function storyLen() {
+    const st = await readState().catch(() => null);
+    const theme = st?.theme?.theme;
+    if (!theme || !window.cxReadThemeDecl) return "";
+    const v = (await window.cxReadThemeDecl(theme))?.loveStory;
+    return typeof v === "string" ? v : "";
+  }
+
   // Ô kế tiếp của luồng dẫn: mục đủ điều kiện mà khách chưa đi qua.
   async function next() {
-    const st = await sink().state();
+    const st = await readState();
     const v = visited();
     return KINDS.map((k) => k.id).find((id) => !v.includes(id) && isEligible(id, st)) || null;
   }
@@ -910,9 +998,10 @@
     widget,
     chips,
     summary,
+    storyLen,
     // Trạng thái đầy đủ (URL ảnh xem được) + theo dõi thay đổi — bảng tóm tắt thiệp
     // ở js/ai-assistant.js vẽ ảnh từ đây.
-    state: () => sink().state(),
+    state: readState,
     watch,
     sides: SIDES,
     next,
@@ -920,11 +1009,17 @@
     noteFor,
     // Trang chủ: phần không phải ảnh đi kèm thiệp sang trang Thiết lập (ảnh đã nằm
     // sẵn trong IndexedDB). Trang Thiết lập đã đổ thẳng vào form nên trả null.
+    partySame,
     handoff() {
       if (window.cxAiMediaSink) return null;
       const st = homeStore();
       homeSave({ handedTo: ctx.draftId() }); // reset() nhận ra nháp đã được mở
-      return { theme: st.theme || null, music: st.music || null, maps: st.maps || {} };
+      return {
+        theme: st.theme || null,
+        music: st.music || null,
+        maps: st.maps || {},
+        same: partySame({ same: st.same || {}, places: homePlaces() }),
+      };
     },
     // Làm mới cuộc chat: quên luồng dẫn; ở trang chủ bỏ luôn ảnh của nháp CHƯA được mở.
     // Đã mở thì ảnh thuộc về thiệp đó — kể cả khi nháp đã lên tài khoản (bản local bị

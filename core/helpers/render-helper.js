@@ -312,6 +312,31 @@ function renderLoveStory(events) {
 }
 
 /**
+ * Sắp xếp các NHÓM lịch trình — dùng chung cho mọi mẫu, kể cả mẫu tự vẽ kiểu khác
+ * (chỉ phần sort, markup vẫn của mẫu). Nhận `[{date, items}]`, trả bản đã xếp:
+ * nhóm tăng dần theo `date` (ISO yyyy-mm-dd, nhóm không có ngày xuống cuối; cùng
+ * ngày thì nhóm có mốc sớm hơn đứng trước), trong nhóm tăng dần theo `time`.
+ * Nhóm rỗng bị bỏ. Mốc thiếu giờ luôn xuống cuối nhóm.
+ */
+function cxSortTimelineGroups(groups) {
+  const _t = (v) => String(v || "").trim();
+  const byTime = (arr) =>
+    [...arr].sort((a, b) => {
+      const x = _t(a.time), y = _t(b.time);
+      return !x ? 1 : !y ? -1 : x.localeCompare(y);
+    });
+  return groups
+    .filter((g) => Array.isArray(g.items) && g.items.length)
+    .map((g) => ({ ...g, items: byTime(g.items) }))
+    .sort((a, b) => {
+      const da = _t(a.date), db = _t(b.date);
+      if (da !== db) return !da ? 1 : !db ? -1 : da.localeCompare(db);
+      const ta = _t(a.items[0]?.time), tb = _t(b.items[0]?.time);
+      return !ta ? 1 : !tb ? -1 : ta.localeCompare(tb);
+    });
+}
+
+/**
  * Dòng thời gian ngày cưới. `side` = "groom" | "bride" — mục type "party" chỉ
  * hiện cho nhà trai, "bride-party" chỉ hiện cho nhà gái, "ceremony" hiện cả hai.
  * Vẽ vào #timeline-list-render, gom theo hai nhóm Tiệc Cưới / lễ chính.
@@ -331,16 +356,18 @@ function renderTimeline(items, side, partyDate, ceremonyDate, ceremonyName) {
   });
   if (relevant.length === 0) return;
 
-  const _sort = (arr) =>
-    [...arr].sort((a, b) =>
-      !a.time ? 1 : !b.time ? -1 : a.time.localeCompare(b.time),
-    );
-  const partyItems = _sort(
-    relevant.filter((i) => (i.type || "ceremony") !== "ceremony"),
-  );
-  const ceremonyItems = _sort(
-    relevant.filter((i) => (i.type || "ceremony") === "ceremony"),
-  );
+  const groups = cxSortTimelineGroups([
+    {
+      label: "Tiệc Cưới",
+      date: partyDate,
+      items: relevant.filter((i) => (i.type || "ceremony") !== "ceremony"),
+    },
+    {
+      label: ceremonyName || "Lễ Thành Hôn",
+      date: ceremonyDate,
+      items: relevant.filter((i) => (i.type || "ceremony") === "ceremony"),
+    },
+  ]);
 
   const _fmtDate = (dateStr) => {
     if (!dateStr) return "";
@@ -382,9 +409,9 @@ function renderTimeline(items, side, partyDate, ceremonyDate, ceremonyName) {
       </div>`;
   }
 
-  list.innerHTML =
-    _renderGroup("Tiệc Cưới", partyDate, partyItems) +
-    _renderGroup(ceremonyName || "Lễ Thành Hôn", ceremonyDate, ceremonyItems);
+  list.innerHTML = groups
+    .map((g) => _renderGroup(g.label, g.date, g.items))
+    .join("");
 }
 
 // escapeHtml() dùng chung từ core/utils.js (nạp trước file này ở mọi trang).
@@ -524,6 +551,7 @@ window.renderHero = renderHero;
 window.renderStoryQuote = renderStoryQuote;
 window.renderLoveStory = renderLoveStory;
 window.renderTimeline = renderTimeline;
+window.cxSortTimelineGroups = cxSortTimelineGroups;
 window.setupMiniCalendar = setupMiniCalendar;
 window.setupMusic = setupMusic;
 window.renderMusicSummary = renderMusicSummary;

@@ -14,6 +14,9 @@
   window.CX_THEME = {
     id: "romantic-blush",
 
+    // Độ dài mốc chuyện tình XuXi viết (xem base-theme). Chữ hiện dần từng ký tự như đang viết tay — đoạn dài là khách chờ lâu.
+    loveStory: "short",
+
     // Dạng hiện lời chúc của BẢN XEM THỬ (preview-data.js đọc). Thiệp thật
     // lấy theo theme_setting.wishes_mode chủ thiệp chọn ở tab Giao diện.
     wishesMode: "comment",

@@ -96,6 +96,10 @@
     //   skipSteps: ["family"],
     skipSteps: [],
 
+    // Độ dài mỗi mốc chuyện tình khi XuXi viết hộ: "short" (mẫu hiện chữ chậm / thẻ
+    // hẹp), "medium" (mặc định), "long" (mẫu dàn văn xuôi / trang báo cần chữ dày).
+    loveStory: "medium",
+
     // id các mục trùng bảng mặc định của preview-focus-helper.js nên không cần
     // khai `focus`. Đặt id khác thì khai ở đây, ví dụ:
     //   focus: { photos: ["#my-gallery"] },

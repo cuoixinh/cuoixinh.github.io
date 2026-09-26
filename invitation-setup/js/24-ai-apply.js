@@ -90,11 +90,42 @@ function cxApplyAiCard(result, only) {
       console.error("cxApplyAiCard map:", side, e);
     }
   });
+  // Ô "Trùng địa điểm" của hai tiệc — SAU bản đồ vì bật lên là chép địa điểm + bản đồ của lễ
+  // sang tiệc. Tính theo địa điểm AI vừa trả (nhà hàng khác nhà → bỏ tích), rồi để lựa chọn
+  // khách tích ở khung chat trang chủ (media.same) quyết định sau cùng.
+  const same = { ..._aiPartySame(f), ...(media.same || {}) };
+  Object.entries(same).forEach(([side, on]) => {
+    try {
+      if (typeof on === "boolean") togglePartySameLoc(side.replace("_party", ""), null, on);
+    } catch (e) {
+      console.error("cxApplyAiCard same:", side, e);
+    }
+  });
 
-  // Hidden input set bằng code không tự phát event → gọi autosave thủ công
+  // Hidden input set bằng code không tự phát event → gọi autosave + chấm lại thanh bước thủ công
   _scheduleAutoSave();
+  window.cxRefreshStepStatus?.();
+  // Tên cô dâu chú rể vừa vào form → dựng luôn slug (chạy nền: phải hỏi server slug trùng chưa).
+  window.cxAutoSlug?.().catch((e) => console.error("cxApplyAiCard slug:", e));
 
   showToast("Đã áp dụng nội dung AI vào thiệp", "success");
+}
+
+// Tiệc nào có địa điểm trong lượt này thì "trùng" = địa điểm đó bằng nơi nguồn (nhà trai theo
+// lễ cưới; nhà gái theo vu quy khi có, không thì lễ cưới — như togglePartySameLoc). Tiệc không
+// nhắc tới thì không đụng: lượt vá chỉ đổi phần khách vừa sửa.
+function _aiPartySame(f) {
+  const norm = (v) => String(v || "").toLowerCase().replace(/[\s,.]+/g, " ").trim();
+  const vuQuy = _aiFieldValue("vu_quy_enabled") === "true";
+  const src = { groom: "ceremony_location", bride: vuQuy ? "vu_quy_location" : "ceremony_location" };
+  const out = {};
+  ["groom", "bride"].forEach((side) => {
+    const key = `${side}_party_location`;
+    if (!(key in f) && !(src[side] in f)) return;
+    const party = norm(_aiFieldValue(key));
+    out[`${side}_party`] = !party || party === norm(_aiFieldValue(src[side]));
+  });
+  return out;
 }
 
 // Thiệp chỉ còn phần có trong `only`; field khách bảo bỏ (có trong only.fields mà
@@ -120,6 +151,7 @@ function _aiClearField(name) {
   const form = document.getElementById("wedding-form");
   if (!form) return;
   if (name === "vu_quy_enabled") return _aiSetField(name, false);
+  if (name === "share_message_template") return _aiSetShare("");
   if (name === "groom_bank_name" || name === "bride_bank_name") {
     const prefix = name === "groom_bank_name" ? "groom" : "bride";
     const input = document.getElementById(`${prefix}-bank-input`);
@@ -149,6 +181,7 @@ function _aiClearField(name) {
 // x-input bọc ngoài, bank name (input+hidden riêng), date dùng flatpickr (kèm âm lịch).
 function _aiSetField(name, value) {
   if (value === undefined || value === null || value === "") return;
+  if (name === "share_message_template") return _aiSetShare(value);
   const form = document.getElementById("wedding-form");
   if (!form) return;
 
@@ -199,6 +232,17 @@ function _aiSetField(name, value) {
   el.value = value;
   el.dispatchEvent(new Event("input", { bubbles: true }));
   el.dispatchEvent(new Event("change", { bubbles: true }));
+}
+
+// Câu mẫu chia sẻ nằm NGOÀI <form> (tab Cấu hình) — ghi như _fillShareTemplate nhưng ẩn nút
+// "Đổi mẫu" vì câu này không bốc từ danh sách mẫu.
+function _aiSetShare(value) {
+  const el = document.getElementById("share-message-template");
+  if (!el) return;
+  el.value = value;
+  document.getElementById("share-template-refresh")?.classList.add("hidden");
+  el.closest("x-input, x-textarea")?.syncClearBtn?.();
+  _scheduleAutoSave("config");
 }
 
 // Bật hiển thị một section (set toggle = true nếu đang tắt)

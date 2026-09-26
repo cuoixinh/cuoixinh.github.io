@@ -53,7 +53,7 @@
     },
     {
       id: "qa",
-      title: "Chat với XuXi AI",
+      title: "Hỏi đáp",
       sub: "Hỏi giá, mẫu thiệp, cách dùng thử hay bất cứ điều gì về Cưới Xinh.",
       img: "/assets/images/chat/mode-hoi-dap.svg",
     },
@@ -62,23 +62,24 @@
   // giao diện ghi hộ để đoạn hội thoại (và bản gửi lên model) đọc xuôi từ đầu.
   const CREATE_ASK = "Hãy giúp tôi tạo thiệp cưới";
 
-  // Lời mở đầu của chế độ Tạo thiệp. Lượt này lần nào cũng y hệt nhau (chào + đúng 6
+  // Lời mở đầu của chế độ Tạo thiệp. Lượt này lần nào cũng y hệt nhau (chào + đúng 7
   // nhóm thông tin cần khai) nên giao diện in thẳng, không gọi model: đỡ một lượt hạn
   // mức, đỡ vài giây chờ, và prompt ở server cũng bỏ được nguyên khối danh sách
   // (COLLECT_RULES mục 1 dặn model đừng in lại). Nó vào lịch sử như một lượt XuXi
   // THẬT nên vẫn đi kèm trong hội thoại gửi lên — model biết khách đã thấy những gì.
   // Sửa danh sách ở đây thì ngó lại FIELD_SPECS (_shared/card-schema.ts) cho khớp.
   const CREATE_INTRO = [
-    "Chào bạn, mình rất vui được giúp hai bạn làm thiệp cưới! Bạn gửi giúp mình mấy mục dưới đây nhé (gửi một lượt cũng được, mục nào chưa rõ cứ bỏ trống, hai mục đầu là bắt buộc):",
+    "Chúc mừng hai bạn! Kể mình nghe vài điều dưới đây nhé — gửi một lượt hay từng chút đều được, mục nào chưa rõ cứ bỏ qua:",
     "",
-    "1. **Cặp đôi** (họ tên đầy đủ của chú rể và cô dâu; hai bạn ở miền Bắc, Trung hay Nam)",
-    "2. **Sự kiện** (ngày cưới, giờ làm lễ và địa chỉ nơi làm lễ; có làm lễ Vu Quy thì cho mình biết giờ và nơi luôn)",
-    "3. **Tiệc cưới** (ngày, giờ và địa điểm đãi tiệc — nhà trai và nhà gái)",
-    "4. **Gia đình** (tên bố mẹ hai bên, địa chỉ nhà trai và nhà gái)",
-    "5. **Chuyện tình yêu** (hai bạn quen nhau thế nào — kể tự do thôi, mình tự chia thành các mốc; và văn phong muốn dùng: lãng mạn, truyền thống, dí dỏm, hiện đại…)",
-    "6. **Hộp mừng** (số tài khoản, ngân hàng và tên chủ tài khoản của nhà trai / nhà gái để khách gửi quà mừng — không muốn để cũng được)",
+    "1. **Cặp đôi:** họ tên chú rể, cô dâu; quê miền Bắc, Trung hay Nam",
+    "2. **Lễ cưới:** ngày và giờ làm lễ (có lễ Vu Quy thì kèm giờ)",
+    "3. **Địa chỉ:** nhà trai, nhà gái — mình dùng luôn làm nơi tổ chức lễ và tiệc",
+    "4. **Tiệc cưới:** giờ tổ chức tiệc mỗi bên (khác ngày cưới thì cho mình ngày)",
+    "5. **Gia đình:** tên bố mẹ hai bên",
+    "6. **Chuyện tình yêu:** hai bạn quen nhau thế nào, kể tự do thôi; thích văn phong lãng mạn, truyền thống, dí dỏm hay hiện đại",
+    "7. **Hộp mừng:** số tài khoản, ngân hàng, tên chủ tài khoản mỗi bên (không muốn để cũng được)",
     "",
-    "Mẫu thiệp, ảnh, nhạc nền và bản đồ sẽ chọn ngay trong khung chat sau khi chốt thông tin.",
+    "Lời mời, lời cảm ơn mình sẽ tự đề xuất. Còn mẫu thiệp, ảnh, nhạc, bản đồ chọn ngay sau khi bạn đã khai đủ thông tin",
   ].join("\n");
   const ASK_PLACEHOLDER = "Hỏi XuXi bất cứ điều gì…";
   const GATE_PLACEHOLDER = "Chọn một việc ở trên để bắt đầu…";
@@ -156,6 +157,12 @@
                   class="aichat-head-btn">
           <i data-lucide="rotate-ccw" style="width:16px;height:16px"></i>
         </x-button>
+        <x-button variant="bare" icon-only id="aichatExpand" type="button"
+                  aria-label="Mở rộng toàn màn hình" title="Mở rộng"
+                  aria-pressed="false" class="aichat-head-btn aichat-expand">
+          <i data-lucide="maximize-2" style="width:16px;height:16px"></i>
+          <i data-lucide="minimize-2" style="width:16px;height:16px"></i>
+        </x-button>
         <x-button variant="bare" icon-only id="aichatClose" type="button"
                   aria-label="Đóng Trợ lý XuXi" class="aichat-head-btn">
           <i data-lucide="x" style="width:18px;height:18px"></i>
@@ -225,7 +232,9 @@
       mic: panel.querySelector("#aichatMic"),
       send: panel.querySelector("#aichatSend"),
       reset: panel.querySelector("#aichatReset"),
+      expand: panel.querySelector("#aichatExpand"),
     };
+    setExpanded(loadExpanded());
   }
 
   // ── Kéo thả ───────────────────────────────────────────────────────────────
@@ -250,7 +259,35 @@
   // Dưới 521px bảng phủ kín màn (xem styles/_ai-chat.css) → không kéo, không đặt
   // toạ độ, mọi thứ để CSS lo.
   const panelFloating = () =>
-    window.matchMedia("(min-width: 521px)").matches;
+    window.matchMedia("(min-width: 521px)").matches &&
+    !els.panel.classList.contains("is-expanded");
+
+  // Chế độ mở rộng (chỉ từ 521px — dưới đó bảng vốn đã phủ kín màn, nút bị CSS
+  // giấu): bảng phủ gần kín cửa sổ, không kéo được; nhớ lựa chọn cho lần mở sau.
+  const EXPAND_KEY = "cx_aichat_expanded";
+
+  function loadExpanded() {
+    try {
+      return localStorage.getItem(EXPAND_KEY) === "1";
+    } catch {
+      return false;
+    }
+  }
+
+  function setExpanded(on) {
+    els.panel.classList.toggle("is-expanded", on);
+    els.expand.setAttribute("aria-pressed", String(on));
+    const label = on ? "Thu nhỏ" : "Mở rộng";
+    els.expand.title = label;
+    els.expand.setAttribute("aria-label", on ? "Thu nhỏ bảng chat" : "Mở rộng toàn màn hình");
+    try {
+      localStorage.setItem(EXPAND_KEY, on ? "1" : "0");
+    } catch {}
+    if (!els.panel.hidden) {
+      syncPanelPos();
+      scrollToEnd();
+    }
+  }
 
   // Vùng thả hợp lệ của bong bóng, đã trừ dải "xem trực tiếp" (mép phải) và
   // navbar (mép dưới) của trang Thiết lập — hai biến đó chỉ có giá trị khi
@@ -371,6 +408,10 @@
     let x = 0;
     let y = 0;
     let moved = false;
+
+    // Trong tay cầm có <img> (logo XuXi của bong bóng): trình duyệt tự bắt đầu
+    // kéo ảnh kiểu HTML5 rồi bắn pointercancel → cú kéo của mình chết giữa chừng.
+    handle.addEventListener("dragstart", (e) => e.preventDefault());
 
     handle.addEventListener("pointerdown", (e) => {
       if (e.button > 0) return;
@@ -1058,6 +1099,12 @@
     return m[1].padStart(2, "0") + ":" + m[2] + " " + part;
   }
 
+  // "10:30" → "0630" (phút trong ngày, đệm 4 chữ số để so chuỗi); không đọc được giờ thì null.
+  function evMinutes(v) {
+    const m = String(v || "").match(/^(\d{1,2}):(\d{2})/);
+    return m ? String(+m[1] * 60 + +m[2]).padStart(4, "0") : null;
+  }
+
   function mk(tag, cls, text) {
     const n = document.createElement(tag);
     if (cls) n.className = cls;
@@ -1166,22 +1213,23 @@
   }
 
   // Một sự kiện: ô lịch bên trái (ngày + tháng, không có ngày thì icon) · nhãn, giờ, nơi.
-  function infoEvent(parent, { label, date, time, place }) {
-    if (!date && !time && !place) return;
+  // `cont`: buổi thứ hai trở đi của cùng một ngày — bỏ ô lịch và dòng thứ/ngày, đứng liền buổi trước.
+  function infoEvent(parent, { label, date, time, place }, cont) {
     const m = String(date || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
     const cal = mk("div", "aichat-ev-cal");
-    if (m) cal.append(mk("span", "aichat-ev-dd", m[3]), mk("span", "aichat-ev-mm", "Th " + +m[2]));
+    if (cont) cal.classList.add("is-cont");
+    else if (m) cal.append(mk("span", "aichat-ev-dd", m[3]), mk("span", "aichat-ev-mm", "Th " + +m[2]));
     else cal.appendChild(ico("calendar-clock", 18));
     const body = mk("div", "aichat-ev-body");
     const head = mk("div", "aichat-ev-head");
     head.appendChild(mk("p", "aichat-ev-k", label));
     if (time) head.appendChild(mk("span", "aichat-tag is-time", fmtTime(time)));
     body.appendChild(head);
-    if (m) body.appendChild(mk("p", "aichat-ev-day", fmtDay(date)));
+    if (m && !cont) body.appendChild(mk("p", "aichat-ev-day", fmtDay(date)));
     const [venue, addr] = splitPlace(place);
     if (venue) body.appendChild(mk("p", "aichat-ev-venue", venue));
     if (addr) body.appendChild(mk("p", "aichat-ev-addr", addr));
-    const ev = mk("div", "aichat-ev");
+    const ev = mk("div", "aichat-ev" + (cont ? " is-cont" : ""));
     ev.append(cal, body);
     parent.appendChild(ev);
   }
@@ -1285,16 +1333,35 @@
           place: f.bride_party_location,
         },
       ]
-        .filter(Boolean)
-        .forEach((e) => infoEvent(b, e)),
+        .filter((e) => e && (e.date || e.time || e.place))
+        // Buổi không ghi ngày (Vu Quy, tiệc cùng ngày) là cùng ngày cưới; gom theo ngày, tăng dần theo giờ.
+        .map((e) => ({ ...e, date: e.date || f.ceremony_date || "" }))
+        .map((e, i) => ({ e, i, key: (e.date || "9999") + " " + (evMinutes(e.time) ?? 9999) }))
+        .sort((a, b) => (a.key < b.key ? -1 : a.key > b.key ? 1 : a.i - b.i))
+        .forEach(({ e }, i, all) => infoEvent(b, e, i > 0 && e.date && all[i - 1].e.date === e.date)),
     );
 
     infoSection(wrap, "book-heart", "Chuyện tình yêu", (b) =>
       infoSteps(b, (card.love_story || []).map((s) => [fmtDate(s.date), s.title, s.content])),
     );
-    infoSection(wrap, "clock", "Lịch trình ngày cưới", (b) =>
-      infoSteps(b, (card.timeline || []).map((t) => [t.time, t.title]), "is-compact"),
-    );
+    // Mốc lịch trình không mang ngày: suy từ `type` (tiệc khác ngày thì theo ngày tiệc bên đó).
+    const tlDay = { party: f.groom_party_date, "bride-party": f.bride_party_date };
+    // Gom theo ngày: mỗi ngày một dòng tiêu đề + dải mốc giờ của ngày đó.
+    infoSection(wrap, "clock", "Lịch trình ngày cưới", (b) => {
+      const groups = new Map();
+      (card.timeline || [])
+        .map((t, i) => ({ t, i, date: tlDay[t.type] || f.ceremony_date || "" }))
+        .map((x) => ({ ...x, key: (x.date || "9999") + " " + (evMinutes(x.t.time) ?? 9999) }))
+        .sort((a, b) => (a.key < b.key ? -1 : a.key > b.key ? 1 : a.i - b.i))
+        .forEach(({ t, date }) => {
+          if (!groups.has(date)) groups.set(date, []);
+          groups.get(date).push([fmtTime(t.time), t.title]);
+        });
+      groups.forEach((items, date) => {
+        if (date) b.appendChild(mk("p", "aichat-tl-day", fmtDay(date)));
+        infoSteps(b, items, "is-compact");
+      });
+    });
     infoSection(wrap, "gift", "Hộp mừng cưới", (b) =>
       grid2(b, (g) => {
         infoBank(g, f, "groom", "Nhà trai", img("groom_qr_url"));
@@ -1304,6 +1371,7 @@
     infoSection(wrap, "message-square-heart", "Lời nhắn trên thiệp", (b) => {
       infoText(b, "Lời mời xác nhận tham dự", f.rsvp_message);
       infoText(b, "Lời cảm ơn cuối thiệp", f.footer_text);
+      infoText(b, "Câu mẫu chia sẻ", f.share_message_template);
     });
 
     infoSection(wrap, "image", "Hình ảnh & nhạc", (b) => {
@@ -1578,7 +1646,6 @@
     const btn = document.createElement("x-button");
     btn.setAttribute("variant", "fill");
     btn.setAttribute("size", "sm");
-    btn.setAttribute("icon", "sparkles");
     btn.setAttribute("data-build", "");
     btn.className = "aichat-retry";
     btn.textContent = "Tạo ngay";
@@ -1725,7 +1792,11 @@
     });
     const music = st?.music?.url ? st.music : null;
     if (music) fields.music_url = music.url;
-    const handoff = music || Object.keys(maps).length ? { music, maps } : null;
+    const same = st ? window.CXChatMedia.partySame(st) : {};
+    const handoff =
+      music || Object.keys(maps).length || Object.keys(same).length
+        ? { music, maps, same }
+        : null;
     return { fields, handoff };
   }
 
@@ -1934,8 +2005,7 @@
     if (els) els.sub.textContent = MODE_SUB[m] || MODE_SUB[""];
   }
 
-  // Trang Thiết lập vào thẳng tạo thiệp. Lịch sử từ trước khi có chế độ (không có khoá)
-  // thì đoán theo dấu vết: đã thu thông tin / chốt / có thiệp là đang tạo thiệp.
+  // Lịch sử từ trước khi có chế độ (không có khoá) thì đoán theo dấu vết: đã thu thông tin / chốt / có thiệp là đang tạo thiệp.
   function loadMode() {
     // Khách chưa nói câu nào thì luôn về lại cửa chọn chế độ, kể cả sau khi tải lại
     // trang: chế độ chọn xong mà chưa dùng tới thì chưa có gì để giữ. Chỉ tính lượt
@@ -1943,7 +2013,7 @@
     if (!history.some((m) => m.role === "user" && !m.seed)) {
       history = [];
       saveHistory();
-      return setMode(inSetup() ? "create" : "");
+      return setMode("");
     }
     let m = "";
     try {
@@ -1953,7 +2023,6 @@
     }
     if (!m && history.length)
       m = known || history.some((x) => x.ready || x.card) ? "create" : "qa";
-    if (!m && inSetup()) m = "create";
     setMode(m);
   }
 
@@ -2066,10 +2135,9 @@
     stopSpeak();
     els.body.innerHTML = "";
     // Chưa chọn chế độ thì khung chat CHỈ có cửa này — syncGate giấu luôn ô nhập và
-    // nút Trò chuyện mới. Chọn rồi thì đầu đoạn chat đeo một cái tag. Trang Thiết lập
-    // vào thẳng tạo thiệp nên không có cửa, cũng không cần tag.
+    // nút Trò chuyện mới. Chọn rồi thì đầu đoạn chat đeo một cái tag.
     if (!mode) els.body.appendChild(gateEl());
-    else if (!inSetup()) {
+    else {
       const tag = tagEl();
       if (tag) els.body.appendChild(tag);
     }
@@ -2124,7 +2192,7 @@
     typeStop();
     history = [];
     known = null;
-    setMode(inSetup() ? "create" : "");
+    setMode("");
     newConvId(); // cuộc mới bắt đầu từ đây, không đợi tới lượt hỏi đầu tiên
     toggleKitbar(false);
     try {
@@ -2360,8 +2428,13 @@
     try {
       // Ảnh/nhạc/bản đồ/mẫu đang có — model khỏi mời lại thứ đã xong. Hỏng thì gửi thiếu.
       const media = await window.CXChatMedia?.summary().catch(() => null);
+      // Chỉ lượt tạo/sửa thiệp mới viết chuyện tình → chỉ khi đó mới đọc bản khai mẫu.
+      const storyLen =
+        mode === "create" ? await window.CXChatMedia?.storyLen?.().catch(() => "") : "";
       const res = await window.aiChatDAL.ask(opts.build ? buildTurns() : chatTurns(), known, {
         media,
+        storyLen,
+        ready: wasReady,
         build: opts.build === true,
         mode,
         current: mode === "create" ? currentCard() : null,
@@ -2626,6 +2699,8 @@
     els.panel.addEventListener("click", (e) => {
       if (e.target.closest("#aichatClose")) close();
       else if (e.target.closest("#aichatReset")) clearChat();
+      else if (e.target.closest("#aichatExpand"))
+        setExpanded(!els.panel.classList.contains("is-expanded"));
       else if (e.target.closest("#aichatAttach")) toggleKitbar();
     });
     els.body.addEventListener("click", (e) => {

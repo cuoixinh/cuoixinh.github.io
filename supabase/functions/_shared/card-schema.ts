@@ -20,14 +20,17 @@ export const FIELD_SPECS: Record<string, number> = {
   bride_father: 60, bride_mother: 60, bride_address: 200,
   groom_party_date: 20, groom_party_time: 10, groom_party_location: 200,
   bride_party_date: 20, bride_party_time: 10, bride_party_location: 200,
-  rsvp_message: 400, footer_text: 300,
+  rsvp_message: 400, footer_text: 300, share_message_template: 500,
   groom_bank_name: 60, groom_bank_number: 40, groom_bank_owner: 60,
   bride_bank_name: 60, bride_bank_number: 40, bride_bank_owner: 60,
 }
 
 // Danh sách khoá cho prompt (kèm vu_quy_enabled — cờ boolean, không nằm trong
-// FIELD_SPECS vì nó không phải chuỗi có độ dài).
-export const FIELD_KEYS_TEXT = [...Object.keys(FIELD_SPECS), 'vu_quy_enabled'].join(', ')
+// FIELD_SPECS vì nó không phải chuỗi có độ dài). Dạng MẢNG để làm enum trong
+// responseSchema: không ràng buộc thì model bịa khoá ("wedding_date") và cleanBlock
+// bỏ im lặng vì khoá đó ngoài whitelist.
+export const FIELD_KEYS = [...Object.keys(FIELD_SPECS), 'vu_quy_enabled']
+export const FIELD_KEYS_TEXT = FIELD_KEYS.join(', ')
 
 export const VALID_TONES = [
   'romantic', 'traditional', 'humorous', 'poetic', 'modern', 'luxury', 'cute', 'vintage',
@@ -135,7 +138,15 @@ export function cleanBlock(raw: any): CleanBlock | null {
     if (!max) return null // ngoài whitelist → bỏ
     let v = clampStr(raw.value, max)
     if (!v) return null
-    if (key.endsWith('_date') && !/^\d{4}-\d{2}-\d{2}$/.test(v)) return null
+    // Ngày về "YYYY-MM-DD". Nhận cả dd/mm/yyyy (và d/m/yyyy) vì đó là cách người Việt viết —
+    // và cũng là cách prompt dặn model in bảng chốt cho khách đọc, nên nó lẫn sang đây rất dễ.
+    // Chuẩn hoá thay vì vứt: sai định dạng mà bỏ im lặng là mất trắng ngày cưới, đúng mục
+    // BẮT BUỘC làm cả luồng tạo thiệp đứng lại mà không có gì báo.
+    if (key.endsWith('_date')) {
+      const dmy = v.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/)
+      if (dmy) v = `${dmy[3]}-${dmy[2].padStart(2, '0')}-${dmy[1].padStart(2, '0')}`
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) return null
+    }
     if (key.endsWith('_time')) {
       const m = v.match(/^(\d{1,2}):(\d{2})$/)
       if (!m) return null

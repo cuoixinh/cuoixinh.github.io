@@ -8,9 +8,21 @@
 
 let _timelineItems = [];
 
+// Lịch trình và chuyện tình yêu sống trong hai ô ẩn (#timeline-value,
+// #love-story-value) mà CHỈ code ghi vào → không phát event nào, listener autosave ở
+// 06-draft-save.js không thấy gì: chọn giờ, thêm/xoá mốc rồi F5 là mất trắng. Nên mọi
+// lần đồng bộ ô ẩn cũng hẹn autosave, TRỪ lúc fillForm đang nạp (cờ _cxListFilling khai
+// ở js/13-data.js, nạp trước file này): dữ liệu lúc đó vừa từ nháp/DB ra, đánh dấu sửa là
+// hạ cờ _demoFilled và ghi nháp bằng chính nó.
+function _listChanged() {
+  if (!_cxListFilling && typeof _scheduleAutoSave === "function")
+    _scheduleAutoSave("edit");
+}
+
 function _syncTimelineHidden() {
   const hidden = document.getElementById("timeline-value");
   if (hidden) hidden.value = JSON.stringify(_timelineItems);
+  _listChanged();
 }
 
 function _ensureTimelineDefault(type) {
@@ -170,6 +182,7 @@ const _loveStoryPendingImages = {}; // { idx: File }
 function _syncLoveStoryHidden() {
   const hidden = document.getElementById("love-story-value");
   if (hidden) hidden.value = JSON.stringify(_loveStoryItems);
+  _listChanged();
 }
 
 function _loveStoryImagePreview(idx) {

@@ -23,6 +23,7 @@ import { createDbClient } from '../_shared/db-client.ts'
 import { withAxiom, type Logger } from '../_shared/axiom.ts'
 import {
   GEMINI_BASE,
+  GEMINI_MAX_OUTPUT_TOKENS,
   GEMINI_MODEL,
   ProviderError,
   corsHeaders,
@@ -42,6 +43,7 @@ import {
 } from '../_shared/ai-provider.ts'
 import { enforceRateLimit, sanitizeDevice } from '../_shared/ai-rate-limit.ts'
 import {
+  FIELD_KEYS,
   FIELD_KEYS_TEXT,
   VALID_REGIONS,
   VALID_TONES,
@@ -55,6 +57,7 @@ import {
   CHAT_RULES,
   COLLECT_RULES,
   EDIT_RULES,
+  LOVE_LEN,
   MEDIA_GUIDE_RULES,
   MEDIA_RULES,
   PRODUCT_KB,
@@ -70,7 +73,6 @@ const DAILY_LIMIT = 30       // số lượt hỏi / user đã đăng nhập / n
 const ANON_DAILY_LIMIT = 5   // số lượt hỏi / khách chưa đăng nhập / ngày
 const MAX_MSG_LEN = 10000    // độ dài tối đa MỖI tin nhắn (khớp maxlength ở client)
 const MAX_TURNS = 20         // số tin nhắn gần nhất được đưa vào prompt
-const MAX_ANSWER_LEN = 1500  // clamp phần "text" khách đọc được
 
 // Timeout RIÊNG, dài hơn REQ_TIMEOUT_MS (25s) dùng chung: lượt dựng thiệp phải
 // sinh chuyện tình + lịch trình + gần 30 field, đo thực tế ~45s. Cắt ở 25s là
@@ -131,6 +133,14 @@ const P_TEXT = {
   type: 'string',
   description: 'Lời nói với khách, tiếng Việt. Dùng markdown khi cần cho dễ đọc.',
 }
+// Định dạng máy đọc được của value — lặp lại ở schema và ở FIELDS_RULE vì prompt thu thập
+// KHÔNG ghép CARD_RULES, trong khi COLLECT_RULES mục 5 lại dặn viết ngày dd/mm/yyyy cho bảng
+// chốt; thiếu câu này là model mang luôn dd/mm/yyyy vào "fields" và ngày bị vứt.
+const FIELD_VALUE_FORMAT =
+  'Khoá *_date PHẢI là "YYYY-MM-DD" (2026-11-22), khoá *_time PHẢI là 24h "HH:MM" (09:00) — ' +
+  'kể cả khi trong câu trả lời bạn viết ngày kiểu dd/mm/yyyy cho khách đọc. vu_quy_enabled là ' +
+  '"true"/"false".'
+
 const P_ASK = {
   type: 'string',
   enum: ASK_KINDS,
@@ -149,12 +159,14 @@ const P_FIELDS = {
   description:
     'CHỈ field MỚI hoặc vừa SỬA ở lượt này, có dữ liệu THẬT từ khách; field đã có ở khối ' +
     'THÔNG TIN ĐÃ THU thì KHÔNG nhắc lại. Khách bảo bỏ một mục đã khai thì trả value ' +
-    '"' + FIELD_DELETE + '". Khoá hợp lệ: ' + FIELD_KEYS_TEXT,
+    '"' + FIELD_DELETE + '".',
   items: {
     type: 'object',
     properties: {
-      key: { type: 'string' },
-      value: { type: 'string' },
+      key: { type: 'string', enum: FIELD_KEYS },
+      // Định dạng khai NGAY Ở ĐÂY, không chỉ trong luật văn xuôi: tầng validate
+      // (cleanBlock) VỨT field sai định dạng, nên "22/11/2026" là mất trắng ngày cưới.
+      value: { type: 'string', description: FIELD_VALUE_FORMAT },
     },
     required: ['key', 'value'],
   },
@@ -207,26 +219,31 @@ const QA_SCHEMA = {
   required: ['text'],
 }
 
+// "ready"/"build" để BẮT BUỘC (khai false ở mọi lượt thường) chứ không cho bỏ khoá: cho
+// phép vắng thì model viết đúng câu "mình dựng thiệp ngay đây, chọn thêm ảnh/nhạc nhé" mà
+// quên hẳn cờ — khách đọc xong chờ mãi, không ô chọn nào mở ra.
 const COLLECT_SCHEMA = {
   type: 'object',
   propertyOrdering: ['build', 'text', 'ready', 'ask', 'tone', 'region', 'fields'],
   properties: {
     build: {
       type: 'boolean',
-      description: 'true CHỈ trong hai trường hợp ở LUẬT THU THẬP mục 7; còn lại BỎ HẲN.',
+      description: 'true CHỈ trong hai trường hợp ở LUẬT THU THẬP mục 7; còn lại false.',
     },
     text: P_TEXT,
     ready: {
       type: 'boolean',
       description:
-        'true ĐÚNG MỘT LẦN, ở lượt khách vừa ĐỒNG Ý tạo thiệp sau bảng chốt (LUẬT THU THẬP mục 6); các lượt khác BỎ HẲN.',
+        'true ở lượt khách vừa ĐỒNG Ý tạo thiệp sau bảng chốt (LUẬT THU THẬP mục 6), false ở ' +
+        'các lượt khác. "text" báo sắp dựng thiệp / mời chọn thêm mẫu thiệp, ảnh, nhạc, bản đồ ' +
+        'thì cờ này BẮT BUỘC true — text hứa mà cờ false là giao diện không mở ô nào.',
     },
     ask: P_ASK,
     tone: P_TONE,
     region: P_REGION,
     fields: P_FIELDS,
   },
-  required: ['text', 'fields'],
+  required: ['text', 'ready', 'build', 'fields'],
 }
 
 // Lượt dựng thiệp: BẮT BUỘC ba phần sáng tạo, đặt TRƯỚC "fields". Không bắt buộc thì
@@ -271,13 +288,13 @@ const GEN_BASE = {
   responseMimeType: 'application/json',
   thinkingConfig: { thinkingBudget: 0 },
 }
-// Trần output theo loại: dựng/sửa thiệp sinh cả chuyện tình lẫn lịch trình nên dài hơn
-// hẳn câu tư vấn — trần thấp là JSON đứt giữa chừng, parse hỏng, mất trắng cả lượt.
+// Trần output để ở mức tối đa model cho phép: trần thấp là JSON đứt giữa chừng, parse
+// hỏng, mất trắng cả lượt; câu ngắn thì model tự dừng sớm nên không tốn thêm.
 const GEN_CFG: Record<Kind, Record<string, unknown>> = {
-  qa: { ...GEN_BASE, maxOutputTokens: 1024, responseSchema: QA_SCHEMA },
-  collect: { ...GEN_BASE, maxOutputTokens: 4096, responseSchema: COLLECT_SCHEMA },
-  build: { ...GEN_BASE, maxOutputTokens: 8192, responseSchema: BUILD_SCHEMA },
-  edit: { ...GEN_BASE, maxOutputTokens: 8192, responseSchema: EDIT_SCHEMA },
+  qa: { ...GEN_BASE, maxOutputTokens: GEMINI_MAX_OUTPUT_TOKENS, responseSchema: QA_SCHEMA },
+  collect: { ...GEN_BASE, maxOutputTokens: GEMINI_MAX_OUTPUT_TOKENS, responseSchema: COLLECT_SCHEMA },
+  build: { ...GEN_BASE, maxOutputTokens: GEMINI_MAX_OUTPUT_TOKENS, responseSchema: BUILD_SCHEMA },
+  edit: { ...GEN_BASE, maxOutputTokens: GEMINI_MAX_OUTPUT_TOKENS, responseSchema: EDIT_SCHEMA },
 }
 // ── Danh mục mẫu thiệp ──────────────────────────────────────────────────────
 // Ba tầng, tầng sau chỉ chạy khi tầng trước hỏng:
@@ -383,6 +400,12 @@ async function buildCatalog(
 // ── Chuẩn hoá input ─────────────────────────────────────────────────────────
 
 interface Msg { role: 'user' | 'assistant'; content: string }
+
+// Dòng LUỒNG DẪN tự ghi (openNextStep) — dấu vết duy nhất chứng minh lượt "ready" đã đi
+// qua, dùng cho client cũ không gửi `ready` (xem Ctx.readyBefore). Cố ý KHÔNG nhận
+// "(Mở ô chọn …)" / "(Đã …)": hai dòng đó cũng sinh ra khi khách TỰ mở một ô ở nút "+",
+// tức có thể đứng trước cả lượt "ready".
+const GUIDE_NOTE_RE = /^\(Mời chọn /
 
 function clampMsg(v: unknown): string {
   return String(v ?? '')
@@ -502,6 +525,11 @@ interface Ctx {
   known: KnownCard | null
   media: MediaState | null
   current: Creative | null
+  // Độ dài mốc chuyện tình theo mẫu khách chọn — khoá của LOVE_LEN.
+  storyLen: string
+  // Client đã nhận một lượt "ready" trước đó chưa (tức khách đã được mời chọn mẫu thiệp,
+  // ảnh, nhạc, bản đồ). Chưa thì lượt này KHÔNG được nhảy sang dựng thiệp — xem answer().
+  readyBefore: boolean
 }
 
 // Loại prompt của lượt này. Không có `mode` (client cũ còn trong cache) = create, chạy
@@ -520,7 +548,7 @@ const FIELDS_RULE =
   '"fields" LUÔN phải có, nhưng CHỈ gồm field mới hoặc vừa sửa ở lượt này (không có gì mới ' +
   'thì []); hệ thống tự gộp với phần đã thu. Khách bảo bỏ một mục đã khai thì trả field đó ' +
   `với value "${FIELD_DELETE}". "tone"/"region" chỉ nêu khi đã biết hoặc vừa đổi, không thì ` +
-  'bỏ hẳn khoá đó.'
+  'bỏ hẳn khoá đó. Khoá hợp lệ: ' + FIELD_KEYS_TEXT + '. ' + FIELD_VALUE_FORMAT
 
 const FORMAT: Record<Kind, string> = {
   qa: `
@@ -531,7 +559,9 @@ ${TEXT_RULE}
 ĐỊNH DẠNG TRẢ LỜI: một object JSON duy nhất.
 ${TEXT_RULE}
 ${FIELDS_RULE}
-"ready" chỉ đặt theo LUẬT THU THẬP mục 6, "build" theo mục 7.`,
+"ready" và "build" LUÔN phải có: "ready" theo LUẬT THU THẬP mục 6, "build" theo mục 7, các
+lượt khác để false. Câu "text" báo sắp dựng thiệp (hoặc mời chọn mẫu thiệp / ảnh / nhạc / bản
+đồ) thì "ready" BẮT BUỘC true.`,
   build: `
 ĐỊNH DẠNG TRẢ LỜI: một object JSON duy nhất chứa TRỌN nội dung thiệp.
 ⚠️ LUẬT QUAN TRỌNG NHẤT: BẠN PHẢI TỰ VIẾT RA đủ "story_quote", "love_story" (nếu khách có kể
@@ -556,7 +586,9 @@ dữ liệu:
 - "timeline": dựng từ giờ Vu Quy / lễ / tiệc trong khối THÔNG TIN ĐÃ THU.
 - "love_story": chép đủ từng mốc chuyện tình khách đã kể (trong hội thoại / bảng chốt) rồi
   viết "content" theo đúng văn phong khách chọn.
-- "story_quote": một câu lời ngỏ mới.
+- "story_quote", "rsvp_message", "footer_text", "share_message_template": chép NGUYÊN VĂN
+  bốn câu ở dòng "Lời nhắn XuXi đề xuất" của bảng chốt (Slogan · Lời mời · Lời cảm ơn · Câu
+  mẫu chia sẻ); câu nào không có thì tự viết.
 ===== HẾT =====`
 
 function knowledgeBlock(catalog: string): string {
@@ -573,6 +605,29 @@ ${JSON.stringify({ tone: known.tone, region: known.region, fields: known.fields 
 ===== HẾT =====
 Hệ thống đã NHỚ các field trên — lượt này chỉ trả field MỚI hoặc vừa SỬA, đừng chép lại field
 đã có, và KHÔNG hỏi lại những mục đã có ở đây.`
+}
+
+// Field BẮT BUỘC còn thiếu, tính từ phần đã thu. knownBlock chỉ dump thứ ĐÃ có, nên không
+// có khối này thì model in bảng chốt theo hội thoại (ngày cưới nằm trong lời khách) rồi báo
+// "ready" trong khi "fields" chưa bao giờ mang field đó — server hạ cờ, khách kẹt.
+function missingBlock(known: KnownCard | null): string {
+  const fields = known?.fields ?? {}
+  const missing = REQUIRED_FIELDS.filter((k) => !fields[k])
+  if (!missing.length) return ''
+  const list = missing.map((k) => `${REQUIRED_LABEL[k] ?? k} ("${k}")`).join(', ')
+  return `===== FIELD BẮT BUỘC HỆ THỐNG CHƯA NHẬN ĐƯỢC =====
+${list}
+===== HẾT =====
+Mấy mục trên CHƯA vào dữ liệu, dù khách có thể đã nói trong hội thoại. Còn dòng nào ở đây thì
+TUYỆT ĐỐI chưa được báo "ready" hay "build": hỏi lại cho rõ, rồi trả đúng khoá đó trong
+"fields" ở lượt này — ghi vào bảng chốt thôi thì hệ thống KHÔNG nhận được.`
+}
+
+function loveLenBlock(len: string): string {
+  return `===== ĐỘ DÀI CHUYỆN TÌNH (theo mẫu thiệp khách chọn) =====
+${LOVE_LEN[len]}
+Áp cho MỌI mốc trong "love_story" mỗi khi trả mảng này.
+===== HẾT =====`
 }
 
 function currentBlock(current: Creative | null): string {
@@ -603,11 +658,13 @@ function buildPrompt(kind: Kind, c: Ctx): string {
     qa: () => [ROLE_QA, CHAT_RULES, QA_RULES, knowledgeBlock(c.catalog)],
     collect: () => [
       ROLE_COLLECT, CHAT_RULES, COLLECT_RULES, MEDIA_RULES, MEDIA_GUIDE_RULES,
-      knowledgeBlock(c.catalog), knownBlock(c.known), mediaBlock(c.media),
+      knowledgeBlock(c.catalog), knownBlock(c.known), missingBlock(c.known), mediaBlock(c.media),
     ],
-    build: () => [ROLE_BUILD, CHAT_RULES, CARD_RULES, knownBlock(c.known), BUILD_BLOCK],
+    build: () => [
+      ROLE_BUILD, CHAT_RULES, CARD_RULES, loveLenBlock(c.storyLen), knownBlock(c.known), BUILD_BLOCK,
+    ],
     edit: () => [
-      ROLE_EDIT, CHAT_RULES, EDIT_RULES, CARD_RULES, MEDIA_RULES,
+      ROLE_EDIT, CHAT_RULES, EDIT_RULES, CARD_RULES, loveLenBlock(c.storyLen), MEDIA_RULES,
       knowledgeBlock(c.catalog), knownBlock(c.known), currentBlock(c.current), mediaBlock(c.media),
     ],
   }[kind]()
@@ -633,7 +690,6 @@ function cleanAnswer(raw: string): string {
     // Dòng phân cách "===== … =====" của prompt — model lite hay chép theo cùng danh sách.
     .replace(/^[ \t]*={3,}[^\n]*={3,}[ \t]*(?:\n|$)/gm, '')
     .trim()
-    .slice(0, MAX_ANSWER_LEN)
 }
 
 // ── Đọc output JSON ─────────────────────────────────────────────────────────
@@ -756,6 +812,15 @@ function parseJsonLoose(rawText: string): Record<string, any> | null {
   }
 }
 
+// Field model vừa gửi mà cleanBlock vứt đi (khoá ngoài whitelist, ngày/giờ sai định dạng).
+// Nó bỏ IM LẶNG nên không log thì kiểu hỏng này chỉ hiện ra ở mãi cuối luồng, dưới dạng
+// "thiếu mục bắt buộc" mà không ai biết vì đâu.
+function droppedKeys(delta: Record<string, unknown>, kept: Record<string, unknown>): string[] {
+  return Object.keys(delta).filter(
+    (k) => !(k in kept) && String(delta[k] ?? '').trim() !== FIELD_DELETE,
+  )
+}
+
 // Model chỉ trả field mới/sửa → gộp lên phần đã thu (known), FIELD_DELETE là xoá.
 function mergeFields(
   known: KnownCard | null,
@@ -767,6 +832,36 @@ function mergeFields(
     else out[k] = v
   }
   return out
+}
+
+// Đám cưới Việt đa phần làm lễ và tổ chức tiệc ngay tại nhà → nơi lễ/tiệc mặc định theo địa chỉ
+// nhà, khách chỉ phải khai riêng nơi nào tổ chức chỗ khác (nhà hàng…). Nơi vu quy chỉ suy khi
+// có lễ Vu Quy. Không lưu cờ "tự suy": nơi nào đang BẰNG địa chỉ cũ thì coi là đi theo nhà,
+// nên đổi địa chỉ là kéo theo, còn nơi khai riêng (khác địa chỉ) thì đứng yên.
+const VENUE_FROM: Array<[string, string[]]> = [
+  ['groom_address', ['ceremony_location', 'groom_party_location']],
+  ['bride_address', ['vu_quy_location', 'bride_party_location']],
+]
+const normPlace = (v: unknown) => String(v ?? '').replace(/\s+/g, ' ').trim()
+
+function deriveVenues(
+  prev: KnownCard | null,
+  delta: Record<string, unknown>,
+  merged: Record<string, unknown>,
+): void {
+  const vuQuy = merged.vu_quy_enabled === true || merged.vu_quy_enabled === 'true'
+  for (const [src, targets] of VENUE_FROM) {
+    const now = normPlace(merged[src])
+    const old = normPlace(prev?.fields?.[src])
+    for (const t of targets) {
+      if (t === 'vu_quy_location' && !vuQuy) continue
+      if (t in delta) continue // khách vừa khai riêng nơi này
+      const cur = normPlace(merged[t])
+      if (cur && cur !== old) continue // nơi khai riêng từ trước
+      if (now) merged[t] = now
+      else delete merged[t]
+    }
+  }
 }
 
 // Field mà lịch trình suy ra từ đó — lượt sửa đổi một trong số này mà model quên trả
@@ -781,7 +876,7 @@ const REQUIRED_LABEL: Record<string, string> = {
   bride_name: 'tên cô dâu',
   ceremony_date: 'ngày cưới',
   ceremony_time: 'giờ làm lễ',
-  ceremony_location: 'nơi làm lễ',
+  ceremony_location: 'địa chỉ nhà trai',
 }
 
 // Khách xin dựng thiệp mà còn thiếu mục bắt buộc: câu của model ("mình dựng ngay đây")
@@ -789,6 +884,19 @@ const REQUIRED_LABEL: Record<string, string> = {
 function missingText(missing: string[]): string {
   const list = missing.map((k) => REQUIRED_LABEL[k] ?? k).join(', ')
   return `Mình còn thiếu ${list} nên chưa dựng thiệp được — bạn cho mình biết thêm nhé.`
+}
+
+// Câu mẫu chia sẻ chỉ dùng được khi còn đủ biến trộn: thiếu ##link## thì khách mời nhận tin
+// không có link — thêm vào cuối; thiếu ##Danh xưng## vẫn gửi được nên chỉ ghi nhận.
+function shareTemplate(v: unknown, log: Logger): string {
+  let t = String(v ?? '').trim()
+  if (!t) return ''
+  if (!t.includes('##link##')) {
+    log.warn('chat.share_no_link', {})
+    t = `${t.replace(/[\s:]+$/, '')}: ##link##`
+  }
+  if (!t.includes('##Danh xưng##')) log.warn('chat.share_no_name', {})
+  return t
 }
 
 // Hoàn thiện thiệp đã sạch: rút gọn tên hiển thị, lịch trình rỗng thì dựng từ giờ đã thu.
@@ -803,6 +911,9 @@ function finishCard(
   // model chỉ trả field mới nên hay để nguyên — rút gọn tại đây cho chắc.
   const cf = { ...(card.fields as Record<string, unknown>) }
   for (const k of ['groom_name', 'bride_name']) if (cf[k]) cf[k] = shortName(String(cf[k]))
+  const share = shareTemplate(cf.share_message_template, log)
+  if (share) cf.share_message_template = share
+  else delete cf.share_message_template
   card.fields = cf
   if (!(card.timeline as unknown[] | undefined)?.length) {
     log.warn('chat.card_no_timeline', {})
@@ -835,18 +946,29 @@ function readResult(
   // Không nêu lại tone/region thì giữ giá trị đã biết.
   const tone = VALID_TONES.includes(String(obj.tone)) ? String(obj.tone) : prev?.tone ?? pickTone(obj.tone)
   const region = VALID_REGIONS.includes(String(obj.region)) ? String(obj.region) : prev?.region ?? ''
-  const merged = mergeFields(prev, fieldsToObject(obj.fields))
+  const delta = fieldsToObject(obj.fields)
+  const merged = mergeFields(prev, delta)
+  deriveVenues(prev, delta, merged)
   out.ask = ASK_KINDS.includes(String(obj.ask ?? '')) ? String(obj.ask) : ''
 
   if (kind === 'collect') {
     const clean = cleanCardObject({ fields: merged }, tone) as { fields?: Record<string, unknown> }
     const fields = clean.fields ?? {}
+    const dropped = droppedKeys(delta, fields)
+    if (dropped.length) log.warn('chat.field_dropped', { kind, keys: dropped })
     out.known = Object.keys(fields).length ? { tone, region, fields } : null
     out.missing = REQUIRED_FIELDS.filter((k) => !fields[k])
     // Thiếu mục bắt buộc thì hạ cờ, không thì client dẫn qua hết ô chọn rồi xin dựng
     // một thiệp chắc chắn hỏng.
     out.ready = obj.ready === true && !out.missing.length
-    if (obj.ready === true && out.missing.length) log.warn('chat.ready_incomplete', { missing: out.missing })
+    // Model báo sẵn sàng mà field bắt buộc còn thiếu: cờ bị hạ nên giao diện KHÔNG mở ô chọn
+    // nào, trong khi câu của model đã hứa "chuẩn bị tạo thiệp, mời chọn ảnh/nhạc/bản đồ" —
+    // khách đọc xong chờ mãi không thấy gì. Thay bằng câu hỏi đúng phần còn thiếu.
+    if (obj.ready === true && out.missing.length) {
+      log.warn('chat.ready_incomplete', { missing: out.missing })
+      out.text = missingText(out.missing)
+      out.ask = ''
+    }
     out.build = obj.build === true
     return out
   }
@@ -854,6 +976,8 @@ function readResult(
   if (kind === 'build') {
     const clean = cleanCardObject({ ...obj, fields: merged }, tone)
     const fields = (clean.fields ?? {}) as Record<string, unknown>
+    const dropped = droppedKeys(delta, fields)
+    if (dropped.length) log.warn('chat.field_dropped', { kind, keys: dropped })
     out.known = Object.keys(fields).length ? { tone, region, fields } : null
     out.wantedCard = true
     const missing = REQUIRED_FIELDS.filter((k) => !fields[k])
@@ -947,6 +1071,12 @@ function timelineFromFields(
 const CARD_FAILED_TEXT =
   'Xin lỗi bạn, mình dựng thiệp chưa xong — có trục trặc ở khâu cuối. ' +
   'Bạn nhắn "tạo lại" giúp mình nhé, thông tin bạn đã cho mình vẫn giữ nguyên.'
+
+// Lượt xin dựng bị hạ xuống thành "ready" (chat.build_early): câu của model là lời hứa
+// dựng ngay, không còn đúng nữa nên thay bằng câu mời chọn ảnh / nhạc / bản đồ.
+const READY_TEXT =
+  'Thông tin đủ rồi! Bạn chọn thêm mẫu thiệp, ảnh, nhạc nền và bản đồ ngay bên dưới nhé, ' +
+  'xong hết mình dựng thiệp liền.'
 
 // Trích dần trường "text" của một object JSON đang chảy về — trả phần chuỗi đã
 // giải mã được tới lúc này kèm cờ đã gặp dấu nháy đóng chưa, hoặc null nếu chưa
@@ -1067,7 +1197,8 @@ async function streamStage(
       flag = flagRe!.test(acc.slice(0, k))
       if (flag && kind === 'qa') stop = true
       // collect xin dựng: báo client đổi hiệu ứng chờ ngay, lượt dựng còn cả chục giây.
-      if (flag && kind === 'collect') {
+      // Chưa qua lượt "ready" thì cờ này sẽ bị answer() hạ xuống, đừng báo dựng hụt.
+      if (flag && kind === 'collect' && ctx.readyBefore) {
         phaseSent = true
         send({ phase: 'card' })
       }
@@ -1240,6 +1371,17 @@ async function answer(first: Kind, ctx: Ctx, log: Logger, send: Send | null): Pr
         r.text = missingText(r.missing)
         return done
       }
+      // Model hay hiểu "ok tạo đi" ở bảng chốt là lệnh dựng luôn, nhưng lượt đó phải là
+      // "ready" để giao diện dẫn khách qua ô mẫu thiệp / ảnh / nhạc / bản đồ trước (LUẬT
+      // THU THẬP mục 6-7). Chưa từng có lượt "ready" thì hạ cờ dựng xuống thành "ready".
+      if (!c.readyBefore) {
+        log.warn('chat.build_early', { hop })
+        r.build = false
+        r.ready = true
+        r.ask = ''
+        r.text = READY_TEXT
+        return done
+      }
       c = { ...c, known: r.known }
       next = 'build'
     }
@@ -1371,12 +1513,21 @@ Deno.serve(withAxiom('ai-chat', async (req, log) => {
     known,
     media: sanitizeMedia(body.media),
     current,
+    storyLen: Object.hasOwn(LOVE_LEN, String(body.story_len ?? '')) ? String(body.story_len) : 'medium',
+    // Client mới luôn gửi `ready` (kể cả false) nên tin nó; CHỈ client cũ còn trong cache
+    // mới phải soi dấu vết luồng dẫn trong hội thoại. Để `||` là bản soi đó ghi đè cả câu
+    // trả lời đúng của client mới.
+    readyBefore: typeof body.ready === 'boolean'
+      ? body.ready
+      : msgs.some((m) => GUIDE_NOTE_RE.test(m.content.trim())),
   }
 
   if (body.stream === true && getGeminiKeys().length) {
     // withAxiom flush ngay khi handler trả Response, nên log của giai đoạn stream
     // do chính buildStreamResponse tự flush lúc đóng stream.
-    log.info('chat.streaming', { kind: first, turns: msgs.length, anon: !user, known: !!known })
+    log.info('chat.streaming', {
+      kind: first, turns: msgs.length, anon: !user, known: !!known, story_len: ctx.storyLen,
+    })
     return buildStreamResponse(first, ctx, origin, log)
   }
 

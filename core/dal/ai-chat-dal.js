@@ -30,9 +30,13 @@ class AiChatDAL {
    * opts.signal — huỷ khi khách đóng bảng chat giữa chừng.
    * opts.media — tóm tắt ảnh/nhạc/bản đồ/mẫu đang có (CXChatMedia.summary()).
    * opts.build — khách đã đi hết các ô chọn sau lượt "ready": lượt này phải dựng thiệp.
+   * opts.ready — đã có lượt "ready" trước đó (khách đã được mời chọn mẫu/ảnh/nhạc/bản đồ);
+   *   chưa có thì server không cho model nhảy sang lượt dựng thiệp.
    * opts.mode — "qa" (hỏi đáp) | "create" (tạo/sửa thiệp): server chọn loại prompt theo đây.
    * opts.current — phần sáng tạo của thiệp đang có ({story_quote, love_story, timeline});
    *   có nó là lượt SỬA thiệp, server chỉ trả phần thay đổi.
+   * opts.storyLen — CX_THEME.loveStory của mẫu đang chọn ("short" | "medium" | "long"):
+   *   server viết mỗi mốc chuyện tình dài ngắn theo đó; rỗng = mặc định.
    *
    * Trả { text, known, card, patch, ask, ready, mode }: `text` là câu trả lời đầy đủ (bản
    * đã làm sạch của server), `known` là thông tin thiệp gom được tới lúc này (gửi lại ở
@@ -42,7 +46,7 @@ class AiChatDAL {
    * chọn), `mode` là chế độ server đã chạy ("create" khi vừa tự chuyển từ hỏi đáp).
    */
   async ask(messages, card, opts = {}) {
-    const { onDelta, onPhase, signal, media, build, mode, current } = opts;
+    const { onDelta, onPhase, signal, media, build, ready, mode, current, storyLen } = opts;
     const res = await fetch(this._url, {
       method: "POST",
       headers: await this._headers(),
@@ -55,8 +59,10 @@ class AiChatDAL {
         media: media || null,
         device: window.cxDeviceId?.() || "",
         build: build === true,
+        ready: ready === true,
         mode: mode || "qa",
         current: current || null,
+        story_len: storyLen || "",
         stream: true,
       }),
     });

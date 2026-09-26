@@ -11,6 +11,8 @@
 import type { Logger } from './axiom.ts'
 
 export const GEMINI_MODEL = 'gemini-3.6-flash'
+// Trần output của GEMINI_MODEL do Google cho phép — đổi model thì soát lại số này.
+export const GEMINI_MAX_OUTPUT_TOKENS = 65536
 export const GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta/models'
 
 export const REQ_TIMEOUT_MS = 25000 // timeout mỗi lần gọi provider
