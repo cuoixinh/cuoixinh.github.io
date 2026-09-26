@@ -1232,10 +1232,8 @@ async function answer(first: Kind, ctx: Ctx, log: Logger, send: Send | null): Pr
     const r = out.result
     const done = { result: r, kind, provider: out.provider, hops: hop }
     if (!r || hop >= 2) return done
-    if (kind === 'qa' && r.switchTo) {
-      kind = 'collect'
-      continue
-    }
+    let next: Kind | null = null
+    if (kind === 'qa' && r.switchTo) next = 'collect'
     if (kind === 'collect' && r.build) {
       if (r.missing.length) {
         log.warn('chat.build_incomplete', { missing: r.missing })
@@ -1243,10 +1241,21 @@ async function answer(first: Kind, ctx: Ctx, log: Logger, send: Send | null): Pr
         return done
       }
       c = { ...c, known: r.known }
-      kind = 'build'
-      continue
+      next = 'build'
     }
-    return done
+    if (!next) return done
+    // Chuyển tiếp = thêm một lần gọi model trong cùng request. Tiền tố [Monitor] để lọc
+    // riêng trên Axiom mà đếm tỉ lệ lượt phải gọi model hai lần.
+    log.info('[Monitor] chat.chained', {
+      from: kind,
+      to: next,
+      reason: kind === 'qa' ? 'switch' : 'build',
+      first,
+      hop: hop + 1,
+      model_calls: hop + 2,
+      streaming: !!send,
+    })
+    kind = next
   }
 }
 
