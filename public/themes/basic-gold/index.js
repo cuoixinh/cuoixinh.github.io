@@ -76,13 +76,14 @@ window.CX_THEME = {
     "#ffffff",
   ],
 
-  // Mục được gán hiệu ứng hiện dần khi cuộn tới.
+  // Mục được gán hiệu ứng hiện dần khi cuộn tới. Bó trong #main-card: màn bìa cũng
+  // có khối `.w-full.flex.flex-col.gap-8` → nút "Mở Thiệp" dính .reveal là tàng hình.
   reveal: [
-    ".invitation-content > *",
-    ".w-full.flex.flex-col.gap-8 > *",
-    ".flex.gap-4.items-start",
-    ".flex.flex-col.gap-4.border",
-    ".gallery-item",
+    "#main-card .invitation-content > *",
+    "#main-card .w-full.flex.flex-col.gap-8 > *",
+    "#main-card .flex.gap-4.items-start",
+    "#main-card .flex.flex-col.gap-4.border",
+    "#main-card .gallery-item",
   ],
 
   // Mốc bung bảng đề xuất mẫu khác ở bản xem thử (?preview=true): cuộn tới mục
@@ -114,7 +115,6 @@ function renderWedding(w) {
   // --- HERO ---
   // useRing=false: ảnh hero tràn viền, không có khung để vẽ viền trắng.
   renderHero(w, false);
-  _renderHeroSecond(w);
 
   // --- MUSIC ---
   setupMusic(w.music_url, w.enable_music);
@@ -220,22 +220,6 @@ function renderWedding(w) {
 }
 
 window.renderWedding = renderWedding;
-
-// Lớp ảnh thứ hai của hero: ảnh đầu trong album, hoà vào ảnh bìa bằng mask chéo
-// (.cx-hero-img-2). Chưa bật/chưa có album thì ẩn hẳn, hero về một ảnh.
-function _renderHeroSecond(w) {
-  const el = document.getElementById("main-photo-2");
-  if (!el) return;
-  const file = cxEnabled(w.enable_photos) ? w.gallery_images?.[0] : null;
-  if (!file) {
-    el.style.display = "none";
-    return;
-  }
-  el.style.display = "";
-  el.src = getImageUrl(file);
-  const fp = w.image_focal_points?.gallery_images?.[file];
-  if (fp) el.style.objectPosition = fp.x + "% " + fp.y + "%";
-}
 
 // ============= CAROUSEL GALLERY (RIÊNG CỦA THEME NÀY) =============
 

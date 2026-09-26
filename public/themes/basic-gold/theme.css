@@ -116,9 +116,6 @@ body {
   );
 }
 
-/* Hai lớp ảnh chồng nhau: ảnh bìa nằm dưới, ảnh album nằm trên và hoà vào ảnh
-   bìa theo một dải chéo mềm — mask của riêng nó, độc lập với mask tan đáy ở
-   .cx-hero-media. */
 .cx-hero-img {
   position: absolute;
   inset: 0;
@@ -127,20 +124,6 @@ body {
   object-fit: cover;
 }
 
-.cx-hero-img-2 {
-  -webkit-mask-image: linear-gradient(
-    112deg,
-    transparent 30%,
-    rgb(0 0 0 / 0.5) 47%,
-    #000 62%
-  );
-  mask-image: linear-gradient(
-    112deg,
-    transparent 30%,
-    rgb(0 0 0 / 0.5) 47%,
-    #000 62%
-  );
-}
 
 /* Thẻ bo góc ở md → mép trên ảnh phải bo theo, không thì lòi ra ngoài góc. */
 @media (min-width: 768px) {
