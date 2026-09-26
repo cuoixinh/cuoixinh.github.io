@@ -51,6 +51,19 @@
           <p class="text-sm font-medium text-gray-700">
             Đường dẫn thiệp (Slug)
           </p>
+          <x-button
+            id="slug-lock-tip"
+            variant="ghost"
+            tone="neutral"
+            size="xs"
+            icon-only
+            hidden
+            class="text-amber-500"
+            aria-label="Vì sao không đổi được đường dẫn"
+            data-tooltip="Thiệp đã xuất bản nên không đổi được đường dẫn nữa — khách mời đang mở thiệp bằng link này."
+            data-tooltip-pos="bottom"
+            ><i data-lucide="circle-alert"></i
+          ></x-button>
         </div>
         <x-input
           id="slug-input"
@@ -62,24 +75,43 @@
           suffix-btn-primary
         ></x-input>
         <div id="slug-status" class="hidden text-xs"></div>
-        <div
-          id="slug-preview-row"
-          style="display: none"
-          class="items-center gap-2 bg-gray-50 rounded-lg px-3 py-2"
-        >
-          <p
-            id="slug-preview"
-            class="flex-1 text-xs text-gray-500 font-mono truncate min-w-0"
-          ></p>
-          <x-button
-            variant="ghost"
-            size="sm"
-            type="button"
-            onclick="copyInviteLink()"
-            class="shrink-0"
-          >
-            <i data-lucide="copy" class="w-3 h-3"></i>Sao chép
-          </x-button>
+        <div id="slug-preview-row" style="display: none" class="space-y-2">
+          <div class="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2">
+            <div class="flex-1 min-w-0">
+              <p class="text-[11px] font-medium text-gray-600">Thiệp nhà trai</p>
+              <p
+                id="slug-preview-groom"
+                class="text-xs text-gray-500 font-mono truncate"
+              ></p>
+            </div>
+            <x-button
+              variant="ghost"
+              size="sm"
+              type="button"
+              onclick="copyInviteLink('groom')"
+              class="shrink-0"
+            >
+              <i data-lucide="copy" class="w-3 h-3"></i>Sao chép
+            </x-button>
+          </div>
+          <div class="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2">
+            <div class="flex-1 min-w-0">
+              <p class="text-[11px] font-medium text-gray-600">Thiệp nhà gái</p>
+              <p
+                id="slug-preview-bride"
+                class="text-xs text-gray-500 font-mono truncate"
+              ></p>
+            </div>
+            <x-button
+              variant="ghost"
+              size="sm"
+              type="button"
+              onclick="copyInviteLink('bride')"
+              class="shrink-0"
+            >
+              <i data-lucide="copy" class="w-3 h-3"></i>Sao chép
+            </x-button>
+          </div>
         </div>
       </div>
 

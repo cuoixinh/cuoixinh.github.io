@@ -118,6 +118,12 @@
     if (t) show(t);
   });
   document.addEventListener("focusout", () => hide());
+  // Bấm để xem — màn cảm ứng không có hover, còn Safari không focus nút khi bấm.
+  document.addEventListener("click", (e) => {
+    const t = e.target.closest?.("[data-tooltip]");
+    if (t) show(t);
+    else if (currentTarget) hide();
+  });
   // Cuộn/đổi kích thước khi đang hiện → ẩn để tránh lệch vị trí.
   window.addEventListener("scroll", () => currentTarget && hide(), true);
   window.addEventListener("resize", () => currentTarget && hide());
