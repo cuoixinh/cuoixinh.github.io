@@ -1315,6 +1315,45 @@ x-button {
   text-align: center;
 }
 
+/* Logo chữ: ảnh biểu tượng + "Cưới Xinh", dưới tên là dòng "-SINCE 2026-" 6px.
+   Cao theo ảnh (đặt height lên .cx-logo img ở chỗ dùng); nền tối thì thêm
+   .cx-logo-light để tên chuyển trắng. */
+.cx-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+}
+.cx-logo img {
+  height: 40px;
+  width: auto;
+}
+.cx-logo-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+  white-space: nowrap;
+}
+.cx-logo-name {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: rgb(var(--text-body-rgb));
+}
+.cx-logo-since {
+  margin-top: 4px;
+  font-size: 6px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  margin-right: -0.2em; /* bù khoảng giãn sau ký tự cuối để chữ canh giữa đúng */
+  color: rgb(var(--text-tertiary-rgb));
+}
+.cx-logo-light .cx-logo-name,
+.cx-logo-light .cx-logo-since {
+  color: rgb(var(--white-rgb));
+}
+
 /* ══════════════════════════════════════════════════════════════════════════
    NAVBAR TRÊN (từ md) — cặp với .cx-tabbar ở dưới, cả hai do
    core/components/navbar.js dựng từ CÙNG một mảng mục.

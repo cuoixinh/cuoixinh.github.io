@@ -84,6 +84,9 @@ const CXNavbar = (function () {
    * Chèn hai thanh vào đầu/cuối <body>. Gọi sau khi DOM sẵn sàng; js/nav-autohide.js
    * tìm #main-nav nên phải chạy SAU lời gọi này (nó cũng tự đợi DOM ready).
    */
+  const LOGO_TEXT =
+    `<span class="cx-logo-text"><span class="cx-logo-name">Cưới Xinh</span><span class="cx-logo-since">-SINCE 2026-</span></span>`;
+
   function mount(cfg) {
     const items = cfg.items || [];
     const width = WIDTH[cfg.width] || WIDTH["7xl"];
@@ -92,8 +95,9 @@ const CXNavbar = (function () {
       `<nav id="main-nav" class="cx-navbar hidden md:block">` +
       `<div class="${width} mx-auto px-4 sm:px-6 lg:px-8">` +
       `<div class="cx-navcard">` +
-      `<a href="/" class="shrink-0" aria-label="Cưới Xinh">` +
-      `<img src="/assets/icons/logo.png" alt="Cưới Xinh" class="h-10 w-auto" /></a>` +
+      `<a href="/" class="cx-logo shrink-0" aria-label="Cưới Xinh">` +
+      `<img src="/assets/icons/logo.png" alt="" />` +
+      `${LOGO_TEXT}</a>` +
       `<nav class="cx-navlinks">${items.map((i) => itemHTML(i, cfg.active, "top")).join("")}</nav>` +
       `<div class="cx-navactions">${(cfg.actions || []).map(actionHTML).join("")}` +
       `${cfg.actionsHTML || ""}</div>` +

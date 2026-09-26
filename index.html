@@ -69,8 +69,9 @@
       <div class="hero-stage">
         <!-- Logo trần (không đĩa nền), neo góc TRÁI. Chỉ hiện ở khổ hẹp: từ md
              navbar trên đã mang logo ở đúng góc đó. -->
-        <a href="/" class="hero-badge hero-anim hero-anim-1" aria-label="Cưới Xinh">
-          <img src="assets/icons/logo.png" alt="Cưới Xinh" />
+        <a href="/" class="hero-badge cx-logo cx-logo-light hero-anim hero-anim-1" aria-label="Cưới Xinh">
+          <img src="assets/icons/logo.png" alt="" />
+          <span class="cx-logo-text"><span class="cx-logo-name">Cưới Xinh</span><span class="cx-logo-since">-SINCE 2026-</span></span>
         </a>
 
         <!-- Hai cột: LỜI HỨA + lối vào (trái) và SẢN PHẨM thật (phải). Dưới lg
@@ -92,45 +93,27 @@
             </div>
 
             <div class="hero-act">
-            <!-- Ô hỏi Trợ lý XuXi: gõ rồi Enter/bấm mũi tên là mở khung chat và
-                 hỏi luôn (cxHeroAsk ở js/page-setup.js). Bỏ trống thì chỉ mở
-                 khung. Là <form> để Enter trên bàn phím ảo cũng gửi được. -->
-            <form
-              class="hero-ask hero-anim hero-anim-3"
-              onsubmit="cxHeroAsk(event)"
+            <!-- Lối vào chính: mở khung chat XuXi ở chế độ tạo thiệp
+                 (cxHeroCreateAi ở js/page-setup.js). -->
+            <x-button
+              variant="bare"
+              class="hero-ai hero-anim hero-anim-3"
+              onclick="cxHeroCreateAi()"
             >
               <!-- Logo XuXi (ảnh, không phải glyph lucide) — core/helpers/icon.js
                    thay thẻ này bằng <img>, khổ do data-size quyết định. -->
-              <i class="hero-ask-ico" data-icon="xuxi" data-size="26"></i>
-              <input
-                id="hero-ask-input"
-                class="hero-ask-input"
-                type="text"
-                autocomplete="off"
-                placeholder="Kể vài dòng về hai bạn…"
-                aria-label="Kể hoặc hỏi trợ lý XuXi"
-              />
-              <x-button
-                type="submit"
-                variant="bare"
-                icon-only
-                icon="arrow-right"
-                class="hero-ask-go"
-                aria-label="Gửi cho XuXi"
-              ></x-button>
-            </form>
+              <i class="hero-ai-ico" data-icon="xuxi" data-size="26"></i>
+              <span class="hero-ai-label">Tạo thiệp với AI</span>
+              <span class="hero-ai-new">New</span>
+            </x-button>
 
-            <!-- Chip gợi ý: đứng trước một ô trống thì không ai biết hỏi gì —
-                 ba câu này vừa là hướng dẫn vừa là quảng cáo năng lực. Cùng vai
-                 với chip gợi ý trong khung chat nên KHÔNG dùng <x-button>. -->
-            <div class="hero-chips hero-anim hero-anim-4" id="hero-chips">
-              <button type="button" class="hero-chip"
-                onclick="cxHeroChip('Gợi ý mẫu thiệp hợp với bọn mình')">Gợi ý mẫu cho bọn mình</button>
-              <button type="button" class="hero-chip"
-                onclick="cxHeroChip('Viết lời mời cưới giúp mình', 'create')">Viết lời mời hộ mình</button>
-              <button type="button" class="hero-chip"
-                onclick="cxHeroChip('Giúp mình kể chuyện tình yêu của hai đứa', 'create')">Kể chuyện tình yêu</button>
-            </div>
+            <!-- Chip dẫn xuống các mục bên dưới — là link neo nên cuộn mượt nhờ
+                 setupSmoothScroll (js/page-setup.js), không cần JS riêng. -->
+            <nav class="hero-chips hero-anim hero-anim-4" aria-label="Xem nhanh">
+              <a href="#templates" class="hero-chip">Mẫu phổ biến</a>
+              <a href="#inside" class="hero-chip">Tính năng</a>
+              <a href="#steps" class="hero-chip">Quy trình tạo thiệp</a>
+            </nav>
 
             <!-- Lối tạo thiệp thẳng, cho khách không muốn hỏi han gì. -->
             <p class="hero-note hero-anim hero-anim-5">
@@ -451,11 +434,10 @@
       <div class="max-w-6xl mx-auto px-5">
         <div class="grid grid-cols-2 md:grid-cols-3 gap-6 mb-8">
           <div class="col-span-2 md:col-span-1">
-            <img
-              src="assets/icons/logo.png"
-              alt="Cưới Xinh"
-              class="h-10 w-auto mb-3"
-            />
+            <a href="/" class="cx-logo mb-3" aria-label="Cưới Xinh">
+              <img src="assets/icons/logo.png" alt="" />
+              <span class="cx-logo-text"><span class="cx-logo-name">Cưới Xinh</span><span class="cx-logo-since">-SINCE 2026-</span></span>
+            </a>
             <p class="text-sm opacity-50 leading-relaxed">
               Thiệp cưới online đẹp<br />cho các cặp đôi Việt Nam.
             </p>
