@@ -42,6 +42,7 @@ import {
 } from '../_shared/ai-provider.ts'
 import { enforceRateLimit, sanitizeDevice } from '../_shared/ai-rate-limit.ts'
 import {
+  FIELD_KEYS,
   FIELD_KEYS_TEXT,
   VALID_REGIONS,
   VALID_TONES,
@@ -131,6 +132,14 @@ const P_TEXT = {
   type: 'string',
   description: 'Lời nói với khách, tiếng Việt. Dùng markdown khi cần cho dễ đọc.',
 }
+// Định dạng máy đọc được của value — lặp lại ở schema và ở FIELDS_RULE vì prompt thu thập
+// KHÔNG ghép CARD_RULES, trong khi COLLECT_RULES mục 5 lại dặn viết ngày dd/mm/yyyy cho bảng
+// chốt; thiếu câu này là model mang luôn dd/mm/yyyy vào "fields" và ngày bị vứt.
+const FIELD_VALUE_FORMAT =
+  'Khoá *_date PHẢI là "YYYY-MM-DD" (2026-11-22), khoá *_time PHẢI là 24h "HH:MM" (09:00) — ' +
+  'kể cả khi trong câu trả lời bạn viết ngày kiểu dd/mm/yyyy cho khách đọc. vu_quy_enabled là ' +
+  '"true"/"false".'
+
 const P_ASK = {
   type: 'string',
   enum: ASK_KINDS,
@@ -149,12 +158,14 @@ const P_FIELDS = {
   description:
     'CHỈ field MỚI hoặc vừa SỬA ở lượt này, có dữ liệu THẬT từ khách; field đã có ở khối ' +
     'THÔNG TIN ĐÃ THU thì KHÔNG nhắc lại. Khách bảo bỏ một mục đã khai thì trả value ' +
-    '"' + FIELD_DELETE + '". Khoá hợp lệ: ' + FIELD_KEYS_TEXT,
+    '"' + FIELD_DELETE + '".',
   items: {
     type: 'object',
     properties: {
-      key: { type: 'string' },
-      value: { type: 'string' },
+      key: { type: 'string', enum: FIELD_KEYS },
+      // Định dạng khai NGAY Ở ĐÂY, không chỉ trong luật văn xuôi: tầng validate
+      // (cleanBlock) VỨT field sai định dạng, nên "22/11/2026" là mất trắng ngày cưới.
+      value: { type: 'string', description: FIELD_VALUE_FORMAT },
     },
     required: ['key', 'value'],
   },
@@ -384,9 +395,11 @@ async function buildCatalog(
 
 interface Msg { role: 'user' | 'assistant'; content: string }
 
-// Dòng giao diện tự ghi khi dẫn khách qua ô mẫu thiệp / ảnh / nhạc / bản đồ — dấu hiệu
-// lượt "ready" đã đi qua (xem Ctx.readyBefore).
-const GUIDE_NOTE_RE = /^\((Mời chọn|Mở ô chọn|Đã |Bỏ qua )/
+// Dòng LUỒNG DẪN tự ghi (openNextStep) — dấu vết duy nhất chứng minh lượt "ready" đã đi
+// qua, dùng cho client cũ không gửi `ready` (xem Ctx.readyBefore). Cố ý KHÔNG nhận
+// "(Mở ô chọn …)" / "(Đã …)": hai dòng đó cũng sinh ra khi khách TỰ mở một ô ở nút "+",
+// tức có thể đứng trước cả lượt "ready".
+const GUIDE_NOTE_RE = /^\(Mời chọn /
 
 function clampMsg(v: unknown): string {
   return String(v ?? '')
@@ -527,7 +540,7 @@ const FIELDS_RULE =
   '"fields" LUÔN phải có, nhưng CHỈ gồm field mới hoặc vừa sửa ở lượt này (không có gì mới ' +
   'thì []); hệ thống tự gộp với phần đã thu. Khách bảo bỏ một mục đã khai thì trả field đó ' +
   `với value "${FIELD_DELETE}". "tone"/"region" chỉ nêu khi đã biết hoặc vừa đổi, không thì ` +
-  'bỏ hẳn khoá đó.'
+  'bỏ hẳn khoá đó. Khoá hợp lệ: ' + FIELD_KEYS_TEXT + '. ' + FIELD_VALUE_FORMAT
 
 const FORMAT: Record<Kind, string> = {
   qa: `
@@ -582,6 +595,22 @@ Hệ thống đã NHỚ các field trên — lượt này chỉ trả field MỚ
 đã có, và KHÔNG hỏi lại những mục đã có ở đây.`
 }
 
+// Field BẮT BUỘC còn thiếu, tính từ phần đã thu. knownBlock chỉ dump thứ ĐÃ có, nên không
+// có khối này thì model in bảng chốt theo hội thoại (ngày cưới nằm trong lời khách) rồi báo
+// "ready" trong khi "fields" chưa bao giờ mang field đó — server hạ cờ, khách kẹt.
+function missingBlock(known: KnownCard | null): string {
+  const fields = known?.fields ?? {}
+  const missing = REQUIRED_FIELDS.filter((k) => !fields[k])
+  if (!missing.length) return ''
+  const list = missing.map((k) => `${REQUIRED_LABEL[k] ?? k} ("${k}")`).join(', ')
+  return `===== FIELD BẮT BUỘC HỆ THỐNG CHƯA NHẬN ĐƯỢC =====
+${list}
+===== HẾT =====
+Mấy mục trên CHƯA vào dữ liệu, dù khách có thể đã nói trong hội thoại. Còn dòng nào ở đây thì
+TUYỆT ĐỐI chưa được báo "ready" hay "build": hỏi lại cho rõ, rồi trả đúng khoá đó trong
+"fields" ở lượt này — ghi vào bảng chốt thôi thì hệ thống KHÔNG nhận được.`
+}
+
 function currentBlock(current: Creative | null): string {
   if (!current) return ''
   return `===== NỘI DUNG THIỆP HIỆN TẠI (phần sáng tạo khách đã nhận) =====
@@ -610,7 +639,7 @@ function buildPrompt(kind: Kind, c: Ctx): string {
     qa: () => [ROLE_QA, CHAT_RULES, QA_RULES, knowledgeBlock(c.catalog)],
     collect: () => [
       ROLE_COLLECT, CHAT_RULES, COLLECT_RULES, MEDIA_RULES, MEDIA_GUIDE_RULES,
-      knowledgeBlock(c.catalog), knownBlock(c.known), mediaBlock(c.media),
+      knowledgeBlock(c.catalog), knownBlock(c.known), missingBlock(c.known), mediaBlock(c.media),
     ],
     build: () => [ROLE_BUILD, CHAT_RULES, CARD_RULES, knownBlock(c.known), BUILD_BLOCK],
     edit: () => [
@@ -763,6 +792,15 @@ function parseJsonLoose(rawText: string): Record<string, any> | null {
   }
 }
 
+// Field model vừa gửi mà cleanBlock vứt đi (khoá ngoài whitelist, ngày/giờ sai định dạng).
+// Nó bỏ IM LẶNG nên không log thì kiểu hỏng này chỉ hiện ra ở mãi cuối luồng, dưới dạng
+// "thiếu mục bắt buộc" mà không ai biết vì đâu.
+function droppedKeys(delta: Record<string, unknown>, kept: Record<string, unknown>): string[] {
+  return Object.keys(delta).filter(
+    (k) => !(k in kept) && String(delta[k] ?? '').trim() !== FIELD_DELETE,
+  )
+}
+
 // Model chỉ trả field mới/sửa → gộp lên phần đã thu (known), FIELD_DELETE là xoá.
 function mergeFields(
   known: KnownCard | null,
@@ -842,18 +880,28 @@ function readResult(
   // Không nêu lại tone/region thì giữ giá trị đã biết.
   const tone = VALID_TONES.includes(String(obj.tone)) ? String(obj.tone) : prev?.tone ?? pickTone(obj.tone)
   const region = VALID_REGIONS.includes(String(obj.region)) ? String(obj.region) : prev?.region ?? ''
-  const merged = mergeFields(prev, fieldsToObject(obj.fields))
+  const delta = fieldsToObject(obj.fields)
+  const merged = mergeFields(prev, delta)
   out.ask = ASK_KINDS.includes(String(obj.ask ?? '')) ? String(obj.ask) : ''
 
   if (kind === 'collect') {
     const clean = cleanCardObject({ fields: merged }, tone) as { fields?: Record<string, unknown> }
     const fields = clean.fields ?? {}
+    const dropped = droppedKeys(delta, fields)
+    if (dropped.length) log.warn('chat.field_dropped', { kind, keys: dropped })
     out.known = Object.keys(fields).length ? { tone, region, fields } : null
     out.missing = REQUIRED_FIELDS.filter((k) => !fields[k])
     // Thiếu mục bắt buộc thì hạ cờ, không thì client dẫn qua hết ô chọn rồi xin dựng
     // một thiệp chắc chắn hỏng.
     out.ready = obj.ready === true && !out.missing.length
-    if (obj.ready === true && out.missing.length) log.warn('chat.ready_incomplete', { missing: out.missing })
+    // Model báo sẵn sàng mà field bắt buộc còn thiếu: cờ bị hạ nên giao diện KHÔNG mở ô chọn
+    // nào, trong khi câu của model đã hứa "chuẩn bị tạo thiệp, mời chọn ảnh/nhạc/bản đồ" —
+    // khách đọc xong chờ mãi không thấy gì. Thay bằng câu hỏi đúng phần còn thiếu.
+    if (obj.ready === true && out.missing.length) {
+      log.warn('chat.ready_incomplete', { missing: out.missing })
+      out.text = missingText(out.missing)
+      out.ask = ''
+    }
     out.build = obj.build === true
     return out
   }
@@ -861,6 +909,8 @@ function readResult(
   if (kind === 'build') {
     const clean = cleanCardObject({ ...obj, fields: merged }, tone)
     const fields = (clean.fields ?? {}) as Record<string, unknown>
+    const dropped = droppedKeys(delta, fields)
+    if (dropped.length) log.warn('chat.field_dropped', { kind, keys: dropped })
     out.known = Object.keys(fields).length ? { tone, region, fields } : null
     out.wantedCard = true
     const missing = REQUIRED_FIELDS.filter((k) => !fields[k])
@@ -1396,9 +1446,12 @@ Deno.serve(withAxiom('ai-chat', async (req, log) => {
     known,
     media: sanitizeMedia(body.media),
     current,
-    // body.ready là của client mới; client cũ còn trong cache thì soi dấu vết luồng dẫn
-    // ("(Mời chọn …)", "(Đã …)") mà giao diện tự ghi vào hội thoại.
-    readyBefore: body.ready === true || msgs.some((m) => GUIDE_NOTE_RE.test(m.content.trim())),
+    // Client mới luôn gửi `ready` (kể cả false) nên tin nó; CHỈ client cũ còn trong cache
+    // mới phải soi dấu vết luồng dẫn trong hội thoại. Để `||` là bản soi đó ghi đè cả câu
+    // trả lời đúng của client mới.
+    readyBefore: typeof body.ready === 'boolean'
+      ? body.ready
+      : msgs.some((m) => GUIDE_NOTE_RE.test(m.content.trim())),
   }
 
   if (body.stream === true && getGeminiKeys().length) {
