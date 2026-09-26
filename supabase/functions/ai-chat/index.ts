@@ -887,7 +887,7 @@ function missingText(missing: string[]): string {
 }
 
 // Câu mẫu chia sẻ chỉ dùng được khi còn đủ biến trộn: thiếu ##link## thì khách mời nhận tin
-// không có link — thêm vào cuối; thiếu ##Danh xưng## vẫn gửi được nên chỉ ghi nhận.
+// không có link — thêm vào cuối; thiếu ##Relationship## vẫn gửi được nên chỉ ghi nhận.
 function shareTemplate(v: unknown, log: Logger): string {
   let t = String(v ?? '').trim()
   if (!t) return ''
@@ -895,7 +895,7 @@ function shareTemplate(v: unknown, log: Logger): string {
     log.warn('chat.share_no_link', {})
     t = `${t.replace(/[\s:]+$/, '')}: ##link##`
   }
-  if (!t.includes('##Danh xưng##')) log.warn('chat.share_no_name', {})
+  if (!t.includes('##Relationship##')) log.warn('chat.share_no_relationship', {})
   return t
 }
 

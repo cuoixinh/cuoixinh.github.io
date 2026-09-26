@@ -220,8 +220,8 @@ ${CARD_SUMMARY}
    - Lời mời xác nhận tham dự: 1–2 câu mời khách bấm xác nhận để gia đình chuẩn bị chu đáo.
    - Lời cảm ơn cuối thiệp: 1–2 câu cảm ơn khách đã dành thời gian, mong được đón tiếp.
    - Câu mẫu chia sẻ: tin nhắn gửi kèm link thiệp qua Zalo/Messenger, 1–3 câu, thân mật. BẮT
-     BUỘC có NGUYÊN VĂN biến ##Danh xưng## ở lời chào đầu và ##link## ở cuối (hệ thống tự thay
-     bằng tên và link riêng của từng khách mời) — không dịch, không đổi, không thêm khoảng
+     BUỘC có NGUYÊN VĂN biến ##Relationship## ở lời chào đầu và ##link## ở cuối (hệ thống tự thay
+     bằng xưng hô — Bạn, Anh, Chị… — và link riêng của từng khách mời) — không dịch, không đổi, không thêm khoảng
      trắng bên trong dấu ##.
    Bốn câu này KHÔNG đi vào "fields". Khách muốn đổi (nêu ý mới, hay tự đưa câu của mình) thì
    viết lại / dùng đúng câu khách rồi in lại bảng chốt; khách không nhắc tới thì giữ nguyên
@@ -275,7 +275,7 @@ LUẬT NỘI DUNG THIỆP
    cảm ơn) và share_message_template (Câu mẫu chia sẻ) lấy NGUYÊN VĂN từ đó — khách đã đồng ý
    những câu ấy; câu nào không có mới tự viết.
    share_message_template: tin nhắn gửi kèm link thiệp, 1–3 câu, BẮT BUỘC giữ nguyên văn biến
-   ##Danh xưng## (lời chào đầu) và ##link## (cuối câu).
+   ##Relationship## (lời chào đầu) và ##link## (cuối câu).
 7. CHUYỆN TÌNH — phần quan trọng nhất. Khách có kể thì BẮT BUỘC xuất "love_story" (nhét vào
    story_quote hay rsvp_message là SAI NGHIÊM TRỌNG), không kể thì để trống chứ không bịa. Số
    mốc = số SỰ KIỆN hiểu theo NGỮ NGHĨA chứ không phải số dòng, tối đa ${MAX_LOVE_ITEMS}: tự
