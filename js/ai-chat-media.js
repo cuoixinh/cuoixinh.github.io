@@ -35,7 +35,8 @@
   const MUSIC_DEFAULT_Q = "nhạc đám cưới hay nhất";
 
   const VISIT_KEY = "cx_aichat_visited"; // sessionStorage: ô đã đi qua trong luồng dẫn
-  const HOME_KEY = "cx_aichat_media"; // sessionStorage: nhạc/bản đồ/mẫu chọn ở trang chủ
+  // sessionStorage: nhạc/bản đồ/mẫu chọn ở trang chủ + gương URL ảnh đã lên thiệp (saved)
+  const HOME_KEY = "cx_aichat_media";
   // Phát trên window mỗi khi thiệp đổi ảnh/nhạc/bản đồ/mẫu — ô chọn và dải chip vẽ lại
   // theo nó. 10-images.js (_imagesChanged) cũng phát, vì ảnh ở trang Thiết lập còn đổi
   // từ form chứ không chỉ từ khung chat.
@@ -231,6 +232,49 @@
     }
   }
 
+  // ── Gương ẢNH ĐÃ LÊN THIỆP ────────────────────────────────────────────────
+  // Ảnh chọn ở khung chat trang chủ là ảnh CHỜ trong IndexedDB; tới lúc khách lưu nháp
+  // hay xuất bản thì trang Thiết lập upload rồi xoá bản ghi chờ — trang chủ soi IndexedDB
+  // thấy trống trong khi thiệp vẫn đủ ảnh, ô chọn hiện lại thành trắng trơn. Nên mỗi lần
+  // đọc trạng thái Ở TRANG THIẾT LẬP ta chép URL ảnh thật (chỉ http, bỏ blob: của ảnh còn
+  // chờ) kèm mã thiệp vào HOME_KEY; trang chủ bù từ đây. Ảnh bù là ảnh của thiệp rồi nên
+  // KHÔNG cho xoá ở khung chat (mountGallery không vẽ nút x cho item.saved).
+  const isHttp = (u) => /^https?:/i.test(String(u || ""));
+
+  // Trang Thiết lập: thiệp đang mở (WEDDING_ID) mới là chủ của ảnh, mã nháp của cuộc chat
+  // có thể là thiệp khác (khách mở thiệp cũ rồi chat tiếp).
+  const sinkWeddingId = () =>
+    (typeof WEDDING_ID !== "undefined" && WEDDING_ID) || ctx.draftId();
+
+  function rememberSaved(st) {
+    const id = sinkWeddingId();
+    if (!id) return;
+    const images = {};
+    Object.entries(st.images || {}).forEach(([f, u]) => {
+      if (isHttp(u)) images[f] = u;
+    });
+    const gallery = (st.gallery || []).map((g) => g.url).filter(isHttp);
+    const cur = homeStore().saved;
+    const same =
+      cur &&
+      cur.id === id &&
+      JSON.stringify([cur.images, cur.gallery]) === JSON.stringify([images, gallery]);
+    if (!same) homeSave({ saved: { id, images, gallery } });
+  }
+
+  const savedFor = (id) => {
+    const sv = homeStore().saved;
+    return id && sv && sv.id === id ? sv : null;
+  };
+
+  // Mọi nơi đọc trạng thái đi qua đây: trang Thiết lập ghi gương, trang chủ đọc gương
+  // (trong homeSink.state).
+  async function readState() {
+    const st = await sink().state();
+    if (window.cxAiMediaSink) rememberSaved(st);
+    return st;
+  }
+
   // Bản xem trước khối Hộp mừng cưới trong bảng cắt QR — như _qrGiftInfo (10-images.js)
   // nhưng đọc thông tin XuXi đã thu thay vì form. Field khác QR → null.
   function giftInfo(field) {
@@ -266,12 +310,22 @@
         const v = String(f[s + "_location"] || "").trim();
         if (v && (s !== "vu_quy" || vuQuy)) places[s] = v;
       });
+      const images = Object.fromEntries(
+        [...PHOTO_SLOTS, ...QR_SLOTS].map(([field]) => [field, single(field)]),
+      );
+      // Ảnh đã lên thiệp: chỉ bù vào ô còn TRỐNG — bản ghi chờ trong IndexedDB là ảnh
+      // khách vừa chọn, luôn mới hơn.
+      const sv = savedFor(id);
+      if (sv) {
+        Object.entries(sv.images || {}).forEach(([f, u]) => {
+          if (f in images && !images[f]) images[f] = u;
+        });
+        gallery.unshift(...(sv.gallery || []).map((u) => ({ url: u, saved: true })));
+      }
       return {
         theme: st.theme || null,
         themeLocked: false,
-        images: Object.fromEntries(
-          [...PHOTO_SLOTS, ...QR_SLOTS].map(([field]) => [field, single(field)]),
-        ),
+        images,
         gallery,
         music: st.music || null,
         maps: st.maps || {},
@@ -312,7 +366,9 @@
       const id = ctx.draftId();
       if (!id) return;
       // Trần tính cả ảnh đã lưu trong nháp lẫn ảnh đang chờ, như handleGalleryUpload.
-      const saved = getCache(buildCacheKey("draft", id))?.gallery_images;
+      // Nháp còn trên máy thì đọc cache; nháp đã lên tài khoản (cache bị xoá) thì đọc gương.
+      const saved =
+        getCache(buildCacheKey("draft", id))?.gallery_images || savedFor(id)?.gallery;
       const have =
         (await idbAll(id)).filter((r) => r.type === "gallery").length +
         (Array.isArray(saved) ? saved.length : 0);
@@ -499,7 +555,9 @@
         img.src = item.url;
         img.alt = "";
         cell.appendChild(img);
-        if (sink().removeGallery) {
+        // Ảnh đã lên thiệp (bù từ gương) không có bản ghi nào để xoá — muốn bỏ thì
+        // vào trang Thiết lập.
+        if (sink().removeGallery && !item.saved) {
           const x = el("button", "aichat-gal-x");
           x.type = "button";
           x.setAttribute("aria-label", "Bỏ ảnh này");
@@ -841,7 +899,7 @@
 
     const update = MOUNT[kind](body);
     const refresh = async () => {
-      const st = await sink().state();
+      const st = await readState();
       last = st;
       update(st);
       if (foot) {
@@ -871,7 +929,7 @@
       return [k.id, b];
     });
     const refresh = async () => {
-      const st = await sink().state();
+      const st = await readState();
       btns.forEach(([id, b]) => b.classList.toggle("is-done", isDone(id, st)));
     };
     paintIcons(row);
@@ -881,7 +939,7 @@
   }
 
   async function summary() {
-    const st = await sink().state();
+    const st = await readState();
     return {
       theme: st.theme?.name || st.theme?.theme || "",
       photos: hasPhotos(st, PHOTO_SLOTS).map((s) => s[1]),
@@ -895,7 +953,7 @@
 
   // Ô kế tiếp của luồng dẫn: mục đủ điều kiện mà khách chưa đi qua.
   async function next() {
-    const st = await sink().state();
+    const st = await readState();
     const v = visited();
     return KINDS.map((k) => k.id).find((id) => !v.includes(id) && isEligible(id, st)) || null;
   }
@@ -912,7 +970,7 @@
     summary,
     // Trạng thái đầy đủ (URL ảnh xem được) + theo dõi thay đổi — bảng tóm tắt thiệp
     // ở js/ai-assistant.js vẽ ảnh từ đây.
-    state: () => sink().state(),
+    state: readState,
     watch,
     sides: SIDES,
     next,

@@ -279,12 +279,20 @@
     });
     if (!mine.length) return;
 
-    const byTime = (arr) =>
-      [...arr].sort((a, b) =>
-        !a.time ? 1 : !b.time ? -1 : a.time.localeCompare(b.time),
-      );
-    const party = byTime(mine.filter((i) => (i.type || "ceremony") !== "ceremony"));
-    const ceremony = byTime(mine.filter((i) => (i.type || "ceremony") === "ceremony"));
+    // Thứ tự nhóm + thứ tự mốc trong nhóm do helper dùng chung quyết định
+    // (cxSortTimelineGroups), ở đây chỉ còn phần vẽ riêng của mẫu.
+    const groups = cxSortTimelineGroups([
+      {
+        label: "Tiệc Cưới",
+        date: partyDate,
+        items: mine.filter((i) => (i.type || "ceremony") !== "ceremony"),
+      },
+      {
+        label: ceremonyName || "Lễ Thành Hôn",
+        date: ceremonyDate,
+        items: mine.filter((i) => (i.type || "ceremony") === "ceremony"),
+      },
+    ]);
 
     const fmtDate = (s) => {
       if (!s) return "";
@@ -340,9 +348,9 @@
       );
     };
 
-    list.innerHTML =
-      group("Tiệc Cưới", partyDate, party) +
-      group(ceremonyName || "Lễ Thành Hôn", ceremonyDate, ceremony);
+    list.innerHTML = groups
+      .map((g) => group(g.label, g.date, g.items))
+      .join("");
     window.lucide?.createIcons({ root: list });
   }
 

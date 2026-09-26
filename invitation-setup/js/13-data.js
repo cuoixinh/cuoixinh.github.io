@@ -396,9 +396,26 @@ async function _refillDemoForTheme(theme) {
   _cxCommitDemoFilled();
 }
 
+// Đang nạp form: ô ẩn lịch trình / chuyện tình yêu đổi mà KHÔNG phải khách sửa
+// (js/14-timeline-story.js đọc cờ này trong _listChanged).
+let _cxListFilling = false;
+
 function fillForm(data) {
   const form = document.getElementById("wedding-form");
   if (!form) return;
+
+  // Đang NẠP: lịch trình / chuyện tình yêu đổ vào ô ẩn không được tính là khách sửa
+  // (xem _listChanged ở js/14-timeline-story.js).
+  _cxListFilling = true;
+  try {
+    _fillForm(data);
+  } finally {
+    _cxListFilling = false;
+  }
+}
+
+function _fillForm(data) {
+  const form = document.getElementById("wedding-form");
 
   console.log("Filling form with data:", data);
   console.log(
@@ -521,11 +538,12 @@ function fillForm(data) {
       return;
     }
 
-    // Special handling for section visibility toggles
-    if (key in SECTION_VIS_FIELDS) {
-      // handled by _initVisToggles below
-      return;
-    }
+    // Cột công tắc hiển thị mục (enable_* / rsvp_enabled) → _initVisToggles(data) lo.
+    // Dò bằng SECTION_VIS_COLUMNS chứ KHÔNG phải `key in SECTION_VIS_FIELDS`: khoá của
+    // map đó là tên mục, trong đó có "timeline" và "love_story" trùng tên hai cột jsonb
+    // thật — dò theo khoá là hai danh sách đó bị bỏ ngay tại đây, hai nhánh xử lý bên
+    // dưới thành mã chết và thiệp có lịch trình trên server vẫn mở ra form trống.
+    if (SECTION_VIS_COLUMNS.has(key)) return;
 
     // Special handling for timeline (JSON string)
     if (key === "timeline") {

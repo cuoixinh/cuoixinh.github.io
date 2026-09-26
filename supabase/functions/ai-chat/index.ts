@@ -218,26 +218,31 @@ const QA_SCHEMA = {
   required: ['text'],
 }
 
+// "ready"/"build" để BẮT BUỘC (khai false ở mọi lượt thường) chứ không cho bỏ khoá: cho
+// phép vắng thì model viết đúng câu "mình dựng thiệp ngay đây, chọn thêm ảnh/nhạc nhé" mà
+// quên hẳn cờ — khách đọc xong chờ mãi, không ô chọn nào mở ra.
 const COLLECT_SCHEMA = {
   type: 'object',
   propertyOrdering: ['build', 'text', 'ready', 'ask', 'tone', 'region', 'fields'],
   properties: {
     build: {
       type: 'boolean',
-      description: 'true CHỈ trong hai trường hợp ở LUẬT THU THẬP mục 7; còn lại BỎ HẲN.',
+      description: 'true CHỈ trong hai trường hợp ở LUẬT THU THẬP mục 7; còn lại false.',
     },
     text: P_TEXT,
     ready: {
       type: 'boolean',
       description:
-        'true ĐÚNG MỘT LẦN, ở lượt khách vừa ĐỒNG Ý tạo thiệp sau bảng chốt (LUẬT THU THẬP mục 6); các lượt khác BỎ HẲN.',
+        'true ở lượt khách vừa ĐỒNG Ý tạo thiệp sau bảng chốt (LUẬT THU THẬP mục 6), false ở ' +
+        'các lượt khác. "text" báo sắp dựng thiệp / mời chọn thêm mẫu thiệp, ảnh, nhạc, bản đồ ' +
+        'thì cờ này BẮT BUỘC true — text hứa mà cờ false là giao diện không mở ô nào.',
     },
     ask: P_ASK,
     tone: P_TONE,
     region: P_REGION,
     fields: P_FIELDS,
   },
-  required: ['text', 'fields'],
+  required: ['text', 'ready', 'build', 'fields'],
 }
 
 // Lượt dựng thiệp: BẮT BUỘC ba phần sáng tạo, đặt TRƯỚC "fields". Không bắt buộc thì
@@ -551,7 +556,9 @@ ${TEXT_RULE}
 ĐỊNH DẠNG TRẢ LỜI: một object JSON duy nhất.
 ${TEXT_RULE}
 ${FIELDS_RULE}
-"ready" chỉ đặt theo LUẬT THU THẬP mục 6, "build" theo mục 7.`,
+"ready" và "build" LUÔN phải có: "ready" theo LUẬT THU THẬP mục 6, "build" theo mục 7, các
+lượt khác để false. Câu "text" báo sắp dựng thiệp (hoặc mời chọn mẫu thiệp / ảnh / nhạc / bản
+đồ) thì "ready" BẮT BUỘC true.`,
   build: `
 ĐỊNH DẠNG TRẢ LỜI: một object JSON duy nhất chứa TRỌN nội dung thiệp.
 ⚠️ LUẬT QUAN TRỌNG NHẤT: BẠN PHẢI TỰ VIẾT RA đủ "story_quote", "love_story" (nếu khách có kể

@@ -535,6 +535,10 @@
   @apply mr-auto flex w-fit items-center gap-2 rounded-[20px] px-4 py-2 text-xs;
 
   margin-top: 16px;
+  /* Chip nằm thẳng trong els.body, không có avatar đứng trước như .aichat-row →
+     tự chừa đúng máng avatar để mép trái thẳng hàng với bong bóng XuXi:
+     .aichat-ava 28px + gap-2 8px. Đổi khổ avatar phải đổi cả số này. */
+  margin-left: 36px;
 
   color: rgb(var(--brand-accent-rgb));
   background: rgb(var(--aichat-bot-bg-rgb));

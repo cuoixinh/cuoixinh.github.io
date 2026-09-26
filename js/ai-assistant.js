@@ -53,7 +53,7 @@
     },
     {
       id: "qa",
-      title: "Chat với XuXi AI",
+      title: "Hỏi đáp",
       sub: "Hỏi giá, mẫu thiệp, cách dùng thử hay bất cứ điều gì về Cưới Xinh.",
       img: "/assets/images/chat/mode-hoi-dap.svg",
     },
@@ -1578,7 +1578,6 @@
     const btn = document.createElement("x-button");
     btn.setAttribute("variant", "fill");
     btn.setAttribute("size", "sm");
-    btn.setAttribute("icon", "sparkles");
     btn.setAttribute("data-build", "");
     btn.className = "aichat-retry";
     btn.textContent = "Tạo ngay";

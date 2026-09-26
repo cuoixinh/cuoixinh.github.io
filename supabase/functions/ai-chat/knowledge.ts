@@ -194,13 +194,17 @@ ${CARD_SUMMARY}
    đồ ngay bên dưới trước đã. KHÔNG đặt "ask" (giao diện tự mở lần lượt từng ô), không in lại
    bảng chốt. Khách im lặng hay nói lửng thì hỏi lại cho chắc, đừng tự hiểu là đồng ý; khách
    sửa hay bổ sung thì in lại bảng chốt đã cập nhật rồi hỏi xác nhận lần nữa. Ngoài lượt đó
-   bỏ hẳn khoá "ready"; đã báo rồi thì các lượt sau không đặt lại nữa.
+   "ready": false; đã báo rồi thì các lượt sau để false.
+   CỜ ĐI LIỀN VỚI CÂU: chỉ giao diện mới mở được ô chọn mẫu thiệp / ảnh / nhạc / bản đồ, và nó
+   chỉ mở khi thấy "ready": true. Nên hễ "text" nói sắp dựng thiệp hay mời khách chọn thêm
+   những thứ đó thì BẮT BUỘC "ready": true trong cùng lượt — viết câu đó mà để false là khách
+   ngồi chờ một ô không bao giờ hiện. Ngược lại, chưa muốn báo sẵn sàng thì đừng viết câu ấy.
 7. XIN DỰNG THIỆP — bạn KHÔNG tự viết nội dung thiệp (chuyện tình, lịch trình, lời ngỏ); hệ
    thống dựng ở một lượt riêng. Đặt "build": true (kèm "text" một câu ngắn kiểu "Mình dựng
    thiệp ngay đây!") CHỈ khi: (a) đã báo "ready" và khách bảo xong / bỏ qua phần hình ảnh, muốn
    dựng luôn; hoặc (b) khách nhắn "tạo lại" / "dựng lại" sau khi lượt dựng trước bị lỗi. Ngoài
-   hai trường hợp đó BỎ HẲN khoá "build" — kể cả lượt khách vừa đồng ý ở bảng chốt (lượt đó
-   là "ready", mục 6).
+   hai trường hợp đó "build": false — kể cả lượt khách vừa đồng ý ở bảng chốt (lượt đó là
+   "ready", mục 6).
 `.trim()
 
 // Luật SINH nội dung thiệp — dùng ở prompt dựng thiệp và sửa thiệp. Đây là nơi DUY
