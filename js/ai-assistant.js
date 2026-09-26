@@ -78,7 +78,7 @@
     "5. **Chuyện tình yêu** (hai bạn quen nhau thế nào — kể tự do thôi, mình tự chia thành các mốc; và văn phong muốn dùng: lãng mạn, truyền thống, dí dỏm, hiện đại…)",
     "6. **Hộp mừng** (số tài khoản, ngân hàng và tên chủ tài khoản của nhà trai / nhà gái để khách gửi quà mừng — không muốn để cũng được)",
     "",
-    "Mẫu thiệp, ảnh, nhạc nền và bản đồ sẽ chọn ngay trong khung chat sau khi chốt thông tin.",
+    "Slogan, lời mời, lời cảm ơn và câu mẫu chia sẻ mình sẽ tự đề xuất lúc chốt thông tin; mẫu thiệp, ảnh, nhạc nền và bản đồ thì chọn ngay trong khung chat sau đó.",
   ].join("\n");
   const ASK_PLACEHOLDER = "Hỏi XuXi bất cứ điều gì…";
   const GATE_PLACEHOLDER = "Chọn một việc ở trên để bắt đầu…";
@@ -1304,6 +1304,7 @@
     infoSection(wrap, "message-square-heart", "Lời nhắn trên thiệp", (b) => {
       infoText(b, "Lời mời xác nhận tham dự", f.rsvp_message);
       infoText(b, "Lời cảm ơn cuối thiệp", f.footer_text);
+      infoText(b, "Câu mẫu chia sẻ", f.share_message_template);
     });
 
     infoSection(wrap, "image", "Hình ảnh & nhạc", (b) => {
@@ -1724,7 +1725,11 @@
     });
     const music = st?.music?.url ? st.music : null;
     if (music) fields.music_url = music.url;
-    const handoff = music || Object.keys(maps).length ? { music, maps } : null;
+    const same = st ? window.CXChatMedia.partySame(st) : {};
+    const handoff =
+      music || Object.keys(maps).length || Object.keys(same).length
+        ? { music, maps, same }
+        : null;
     return { fields, handoff };
   }
 
@@ -1933,8 +1938,7 @@
     if (els) els.sub.textContent = MODE_SUB[m] || MODE_SUB[""];
   }
 
-  // Trang Thiết lập vào thẳng tạo thiệp. Lịch sử từ trước khi có chế độ (không có khoá)
-  // thì đoán theo dấu vết: đã thu thông tin / chốt / có thiệp là đang tạo thiệp.
+  // Lịch sử từ trước khi có chế độ (không có khoá) thì đoán theo dấu vết: đã thu thông tin / chốt / có thiệp là đang tạo thiệp.
   function loadMode() {
     // Khách chưa nói câu nào thì luôn về lại cửa chọn chế độ, kể cả sau khi tải lại
     // trang: chế độ chọn xong mà chưa dùng tới thì chưa có gì để giữ. Chỉ tính lượt
@@ -1942,7 +1946,7 @@
     if (!history.some((m) => m.role === "user" && !m.seed)) {
       history = [];
       saveHistory();
-      return setMode(inSetup() ? "create" : "");
+      return setMode("");
     }
     let m = "";
     try {
@@ -1952,7 +1956,6 @@
     }
     if (!m && history.length)
       m = known || history.some((x) => x.ready || x.card) ? "create" : "qa";
-    if (!m && inSetup()) m = "create";
     setMode(m);
   }
 
@@ -2065,10 +2068,9 @@
     stopSpeak();
     els.body.innerHTML = "";
     // Chưa chọn chế độ thì khung chat CHỈ có cửa này — syncGate giấu luôn ô nhập và
-    // nút Trò chuyện mới. Chọn rồi thì đầu đoạn chat đeo một cái tag. Trang Thiết lập
-    // vào thẳng tạo thiệp nên không có cửa, cũng không cần tag.
+    // nút Trò chuyện mới. Chọn rồi thì đầu đoạn chat đeo một cái tag.
     if (!mode) els.body.appendChild(gateEl());
-    else if (!inSetup()) {
+    else {
       const tag = tagEl();
       if (tag) els.body.appendChild(tag);
     }
@@ -2123,7 +2125,7 @@
     typeStop();
     history = [];
     known = null;
-    setMode(inSetup() ? "create" : "");
+    setMode("");
     newConvId(); // cuộc mới bắt đầu từ đây, không đợi tới lượt hỏi đầu tiên
     toggleKitbar(false);
     try {
@@ -2359,8 +2361,12 @@
     try {
       // Ảnh/nhạc/bản đồ/mẫu đang có — model khỏi mời lại thứ đã xong. Hỏng thì gửi thiếu.
       const media = await window.CXChatMedia?.summary().catch(() => null);
+      // Chỉ lượt tạo/sửa thiệp mới viết chuyện tình → chỉ khi đó mới đọc bản khai mẫu.
+      const storyLen =
+        mode === "create" ? await window.CXChatMedia?.storyLen?.().catch(() => "") : "";
       const res = await window.aiChatDAL.ask(opts.build ? buildTurns() : chatTurns(), known, {
         media,
+        storyLen,
         ready: wasReady,
         build: opts.build === true,
         mode,

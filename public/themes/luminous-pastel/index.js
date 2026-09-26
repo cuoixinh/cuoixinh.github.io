@@ -14,6 +14,9 @@
   window.CX_THEME = {
     id: "luminous-pastel",
 
+    // Độ dài mốc chuyện tình XuXi viết (xem base-theme). Thẻ kính mờ so le trái–phải, bề ngang hẹp — đoạn ngắn mới gọn thẻ.
+    loveStory: "short",
+
     // Dạng hiện lời chúc của BẢN XEM THỬ (preview-data.js đọc). Thiệp thật
     // lấy theo theme_setting.wishes_mode chủ thiệp chọn ở tab Giao diện.
     wishesMode: "comment",

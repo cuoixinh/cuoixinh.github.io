@@ -16,6 +16,9 @@
   window.CX_THEME = {
     id: "vintage-forest",
 
+    // Độ dài mốc chuyện tình XuXi viết (xem base-theme). Các mốc nối thành đoạn văn xuôi liền mạch, cần chữ dày mới thành bài.
+    loveStory: "long",
+
     // Dạng hiện lời chúc của BẢN XEM THỬ (preview-data.js đọc). Thiệp thật
     // lấy theo theme_setting.wishes_mode chủ thiệp chọn ở tab Giao diện.
     wishesMode: "paged",

@@ -20,7 +20,7 @@ export const FIELD_SPECS: Record<string, number> = {
   bride_father: 60, bride_mother: 60, bride_address: 200,
   groom_party_date: 20, groom_party_time: 10, groom_party_location: 200,
   bride_party_date: 20, bride_party_time: 10, bride_party_location: 200,
-  rsvp_message: 400, footer_text: 300,
+  rsvp_message: 400, footer_text: 300, share_message_template: 500,
   groom_bank_name: 60, groom_bank_number: 40, groom_bank_owner: 60,
   bride_bank_name: 60, bride_bank_number: 40, bride_bank_owner: 60,
 }

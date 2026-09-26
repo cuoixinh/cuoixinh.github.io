@@ -56,6 +56,7 @@ import {
   CHAT_RULES,
   COLLECT_RULES,
   EDIT_RULES,
+  LOVE_LEN,
   MEDIA_GUIDE_RULES,
   MEDIA_RULES,
   PRODUCT_KB,
@@ -524,6 +525,8 @@ interface Ctx {
   known: KnownCard | null
   media: MediaState | null
   current: Creative | null
+  // Độ dài mốc chuyện tình theo mẫu khách chọn — khoá của LOVE_LEN.
+  storyLen: string
   // Client đã nhận một lượt "ready" trước đó chưa (tức khách đã được mời chọn mẫu thiệp,
   // ảnh, nhạc, bản đồ). Chưa thì lượt này KHÔNG được nhảy sang dựng thiệp — xem answer().
   readyBefore: boolean
@@ -583,8 +586,10 @@ dữ liệu:
 - "timeline": dựng từ giờ Vu Quy / lễ / tiệc trong khối THÔNG TIN ĐÃ THU.
 - "love_story": chép đủ từng mốc chuyện tình khách đã kể (trong hội thoại / bảng chốt) rồi
   viết "content" theo đúng văn phong khách chọn.
-- "story_quote": một câu lời ngỏ mới.
-===== HẾT =====`
+- "story_quote", "rsvp_message", "footer_text", "share_message_template": chép NGUYÊN VĂN
+  bốn câu ở dòng "Lời nhắn XuXi đề xuất" của bảng chốt (Slogan · Lời mời · Lời cảm ơn · Câu
+  mẫu chia sẻ); câu nào không có thì tự viết.
+===== HẾT =====
 
 function knowledgeBlock(catalog: string): string {
   return `===== TRI THỨC VỀ CƯỚI XINH (nguồn sự thật DUY NHẤT) =====
@@ -618,6 +623,13 @@ TUYỆT ĐỐI chưa được báo "ready" hay "build": hỏi lại cho rõ, r�
 "fields" ở lượt này — ghi vào bảng chốt thôi thì hệ thống KHÔNG nhận được.`
 }
 
+function loveLenBlock(len: string): string {
+  return `===== ĐỘ DÀI CHUYỆN TÌNH (theo mẫu thiệp khách chọn) =====
+${LOVE_LEN[len]}
+Áp cho MỌI mốc trong "love_story" mỗi khi trả mảng này.
+===== HẾT =====`
+}
+
 function currentBlock(current: Creative | null): string {
   if (!current) return ''
   return `===== NỘI DUNG THIỆP HIỆN TẠI (phần sáng tạo khách đã nhận) =====
@@ -648,9 +660,11 @@ function buildPrompt(kind: Kind, c: Ctx): string {
       ROLE_COLLECT, CHAT_RULES, COLLECT_RULES, MEDIA_RULES, MEDIA_GUIDE_RULES,
       knowledgeBlock(c.catalog), knownBlock(c.known), missingBlock(c.known), mediaBlock(c.media),
     ],
-    build: () => [ROLE_BUILD, CHAT_RULES, CARD_RULES, knownBlock(c.known), BUILD_BLOCK],
+    build: () => [
+      ROLE_BUILD, CHAT_RULES, CARD_RULES, loveLenBlock(c.storyLen), knownBlock(c.known), BUILD_BLOCK,
+    ],
     edit: () => [
-      ROLE_EDIT, CHAT_RULES, EDIT_RULES, CARD_RULES, MEDIA_RULES,
+      ROLE_EDIT, CHAT_RULES, EDIT_RULES, CARD_RULES, loveLenBlock(c.storyLen), MEDIA_RULES,
       knowledgeBlock(c.catalog), knownBlock(c.known), currentBlock(c.current), mediaBlock(c.media),
     ],
   }[kind]()
@@ -843,6 +857,19 @@ function missingText(missing: string[]): string {
   return `Mình còn thiếu ${list} nên chưa dựng thiệp được — bạn cho mình biết thêm nhé.`
 }
 
+// Câu mẫu chia sẻ chỉ dùng được khi còn đủ biến trộn: thiếu ##link## thì khách mời nhận tin
+// không có link — thêm vào cuối; thiếu ##Danh xưng## vẫn gửi được nên chỉ ghi nhận.
+function shareTemplate(v: unknown, log: Logger): string {
+  let t = String(v ?? '').trim()
+  if (!t) return ''
+  if (!t.includes('##link##')) {
+    log.warn('chat.share_no_link', {})
+    t = `${t.replace(/[\s:]+$/, '')}: ##link##`
+  }
+  if (!t.includes('##Danh xưng##')) log.warn('chat.share_no_name', {})
+  return t
+}
+
 // Hoàn thiện thiệp đã sạch: rút gọn tên hiển thị, lịch trình rỗng thì dựng từ giờ đã thu.
 function finishCard(
   clean: Record<string, unknown>,
@@ -855,6 +882,9 @@ function finishCard(
   // model chỉ trả field mới nên hay để nguyên — rút gọn tại đây cho chắc.
   const cf = { ...(card.fields as Record<string, unknown>) }
   for (const k of ['groom_name', 'bride_name']) if (cf[k]) cf[k] = shortName(String(cf[k]))
+  const share = shareTemplate(cf.share_message_template, log)
+  if (share) cf.share_message_template = share
+  else delete cf.share_message_template
   card.fields = cf
   if (!(card.timeline as unknown[] | undefined)?.length) {
     log.warn('chat.card_no_timeline', {})
@@ -1453,6 +1483,7 @@ Deno.serve(withAxiom('ai-chat', async (req, log) => {
     known,
     media: sanitizeMedia(body.media),
     current,
+    storyLen: Object.hasOwn(LOVE_LEN, String(body.story_len ?? '')) ? String(body.story_len) : 'medium',
     // Client mới luôn gửi `ready` (kể cả false) nên tin nó; CHỈ client cũ còn trong cache
     // mới phải soi dấu vết luồng dẫn trong hội thoại. Để `||` là bản soi đó ghi đè cả câu
     // trả lời đúng của client mới.
@@ -1464,7 +1495,9 @@ Deno.serve(withAxiom('ai-chat', async (req, log) => {
   if (body.stream === true && getGeminiKeys().length) {
     // withAxiom flush ngay khi handler trả Response, nên log của giai đoạn stream
     // do chính buildStreamResponse tự flush lúc đóng stream.
-    log.info('chat.streaming', { kind: first, turns: msgs.length, anon: !user, known: !!known })
+    log.info('chat.streaming', {
+      kind: first, turns: msgs.length, anon: !user, known: !!known, story_len: ctx.storyLen,
+    })
     return buildStreamResponse(first, ctx, origin, log)
   }
 

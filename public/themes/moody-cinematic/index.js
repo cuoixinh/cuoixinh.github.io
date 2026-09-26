@@ -14,6 +14,9 @@
     // Trùng TÊN THƯ MỤC và cột `templates.template_name`.
     id: "moody-cinematic",
 
+    // Độ dài mốc chuyện tình XuXi viết (xem base-theme). Mỗi mốc là một bài báo chia hai cột, ngắn quá thì trang báo trống.
+    loveStory: "long",
+
     // Dạng hiện lời chúc của BẢN XEM THỬ (preview-data.js đọc). Thiệp thật
     // lấy theo theme_setting.wishes_mode chủ thiệp chọn ở tab Giao diện.
     wishesMode: "comment",

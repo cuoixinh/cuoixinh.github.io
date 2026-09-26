@@ -90,6 +90,17 @@ function cxApplyAiCard(result, only) {
       console.error("cxApplyAiCard map:", side, e);
     }
   });
+  // Ô "Trùng địa điểm" khách tích ở khung chat — SAU bản đồ vì bật lên là chép địa điểm +
+  // bản đồ của lễ sang tiệc. initCeremonySection đã đặt mặc định lúc fillForm, ghi đè ở đây.
+  Object.entries(media.same || {}).forEach(([side, on]) => {
+    try {
+      if (typeof on === "boolean") togglePartySameLoc(side.replace("_party", ""), null, on);
+    } catch (e) {
+      console.error("cxApplyAiCard same:", side, e);
+    }
+  });
+  // Bước 4 ghi thẳng địa điểm tiệc, kể cả tiệc đang "trùng" → kéo lại theo lễ.
+  _syncPartyIfSame();
 
   // Hidden input set bằng code không tự phát event → gọi autosave thủ công
   _scheduleAutoSave();
@@ -120,6 +131,7 @@ function _aiClearField(name) {
   const form = document.getElementById("wedding-form");
   if (!form) return;
   if (name === "vu_quy_enabled") return _aiSetField(name, false);
+  if (name === "share_message_template") return _aiSetShare("");
   if (name === "groom_bank_name" || name === "bride_bank_name") {
     const prefix = name === "groom_bank_name" ? "groom" : "bride";
     const input = document.getElementById(`${prefix}-bank-input`);
@@ -149,6 +161,7 @@ function _aiClearField(name) {
 // x-input bọc ngoài, bank name (input+hidden riêng), date dùng flatpickr (kèm âm lịch).
 function _aiSetField(name, value) {
   if (value === undefined || value === null || value === "") return;
+  if (name === "share_message_template") return _aiSetShare(value);
   const form = document.getElementById("wedding-form");
   if (!form) return;
 
@@ -199,6 +212,17 @@ function _aiSetField(name, value) {
   el.value = value;
   el.dispatchEvent(new Event("input", { bubbles: true }));
   el.dispatchEvent(new Event("change", { bubbles: true }));
+}
+
+// Câu mẫu chia sẻ nằm NGOÀI <form> (tab Cấu hình) — ghi như _fillShareTemplate nhưng ẩn nút
+// "Đổi mẫu" vì câu này không bốc từ danh sách mẫu.
+function _aiSetShare(value) {
+  const el = document.getElementById("share-message-template");
+  if (!el) return;
+  el.value = value;
+  document.getElementById("share-template-refresh")?.classList.add("hidden");
+  el.closest("x-input, x-textarea")?.syncClearBtn?.();
+  _scheduleAutoSave("config");
 }
 
 // Bật hiển thị một section (set toggle = true nếu đang tắt)

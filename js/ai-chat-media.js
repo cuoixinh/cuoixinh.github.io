@@ -290,6 +290,18 @@
     };
   }
 
+  // Địa điểm đã có địa chỉ ở trang chủ — lấy từ thông tin XuXi đã thu.
+  function homePlaces() {
+    const f = ctx.known()?.fields || {};
+    const vuQuy = f.vu_quy_enabled === true || f.vu_quy_enabled === "true";
+    const places = {};
+    SIDES.forEach(([s]) => {
+      const v = String(f[s + "_location"] || "").trim();
+      if (v && (s !== "vu_quy" || vuQuy)) places[s] = v;
+    });
+    return places;
+  }
+
   const homeSink = {
     async state() {
       const id = ctx.draftId();
@@ -304,12 +316,7 @@
         .map((r) => ({ url: fileUrl(r.key, r.file), key: r.key }));
       const st = homeStore();
       const f = ctx.known()?.fields || {};
-      const vuQuy = f.vu_quy_enabled === true || f.vu_quy_enabled === "true";
-      const places = {};
-      SIDES.forEach(([s]) => {
-        const v = String(f[s + "_location"] || "").trim();
-        if (v && (s !== "vu_quy" || vuQuy)) places[s] = v;
-      });
+      const places = homePlaces();
       const images = Object.fromEntries(
         [...PHOTO_SLOTS, ...QR_SLOTS].map(([field]) => [field, single(field)]),
       );
@@ -835,6 +842,17 @@
 
   const sideLabel = (s) => SIDES.find(([k]) => k === s)?.[1] || "";
 
+  // Ô "Trùng địa điểm" của từng tiệc đúng như khung chat đang hiện. Chỉ tiệc có nguồn VÀ
+  // (khách đã bấm hoặc tiệc đã có địa chỉ) — còn lại để form tự đặt mặc định.
+  function partySame(st) {
+    const out = {};
+    PARTY_SIDES.forEach((s) => {
+      const src = partySource(s, st);
+      if (src && (typeof st.same?.[s] === "boolean" || st.places[s])) out[s] = isSame(s, src, st);
+    });
+    return out;
+  }
+
   let sameSeq = 0;
 
   // Đặt trạng thái + nhãn cho một <x-check>. Chưa nâng cấp (x-controls.js đang nạp) thì
@@ -951,6 +969,16 @@
     };
   }
 
+  // Độ dài chuyện tình mẫu đang chọn khai ở CX_THEME.loveStory — server viết mốc dài ngắn
+  // theo đó. Chưa chọn mẫu / không khai / đọc lỗi → "" (server dùng mặc định).
+  async function storyLen() {
+    const st = await readState().catch(() => null);
+    const theme = st?.theme?.theme;
+    if (!theme || !window.cxReadThemeDecl) return "";
+    const v = (await window.cxReadThemeDecl(theme))?.loveStory;
+    return typeof v === "string" ? v : "";
+  }
+
   // Ô kế tiếp của luồng dẫn: mục đủ điều kiện mà khách chưa đi qua.
   async function next() {
     const st = await readState();
@@ -968,6 +996,7 @@
     widget,
     chips,
     summary,
+    storyLen,
     // Trạng thái đầy đủ (URL ảnh xem được) + theo dõi thay đổi — bảng tóm tắt thiệp
     // ở js/ai-assistant.js vẽ ảnh từ đây.
     state: readState,
@@ -978,11 +1007,17 @@
     noteFor,
     // Trang chủ: phần không phải ảnh đi kèm thiệp sang trang Thiết lập (ảnh đã nằm
     // sẵn trong IndexedDB). Trang Thiết lập đã đổ thẳng vào form nên trả null.
+    partySame,
     handoff() {
       if (window.cxAiMediaSink) return null;
       const st = homeStore();
       homeSave({ handedTo: ctx.draftId() }); // reset() nhận ra nháp đã được mở
-      return { theme: st.theme || null, music: st.music || null, maps: st.maps || {} };
+      return {
+        theme: st.theme || null,
+        music: st.music || null,
+        maps: st.maps || {},
+        same: partySame({ same: st.same || {}, places: homePlaces() }),
+      };
     },
     // Làm mới cuộc chat: quên luồng dẫn; ở trang chủ bỏ luôn ảnh của nháp CHƯA được mở.
     // Đã mở thì ảnh thuộc về thiệp đó — kể cả khi nháp đã lên tài khoản (bản local bị

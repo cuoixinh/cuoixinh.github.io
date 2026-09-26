@@ -146,6 +146,11 @@ export const CARD_SUMMARY = [
   '  - <mốc 1: thời điểm — chuyện gì>',
   '  - <mốc 2: …>',
   '- **Hộp mừng:** nhà trai <ngân hàng, số tài khoản, chủ tài khoản> · nhà gái <…>',
+  '- **Lời nhắn XuXi đề xuất:**',
+  '  - Slogan: "<…>"',
+  '  - Lời mời xác nhận tham dự: "<…>"',
+  '  - Lời cảm ơn cuối thiệp: "<…>"',
+  '  - Câu mẫu chia sẻ: "<…>"',
 ].join('\\n')
 
 // Luật THU THẬP thông tin. Điểm khác biệt với một chatbot hỏi đáp thường: liệt kê
@@ -181,7 +186,8 @@ LUẬT TẠO THIỆP — THU THẬP THÔNG TIN
    mỗi nhóm một dòng cách nhau bằng \\n; nhóm nào khách chưa cho gì thì vẫn giữ dòng và ghi
    "Bỏ trống", còn trong một nhóm thì chi tiết nào chưa có cứ bỏ hẳn cụm đó đi chứ đừng để dấu
    <…>. Chuyện tình yêu là NHIỀU MỐC: liệt kê đủ, đúng thứ tự thời gian, mỗi mốc một gạch đầu
-   dòng con thụt vào 2 khoảng trắng, gói gọn trong một dòng ngắn. Ngày viết dd/mm/yyyy. Kết
+   dòng con thụt vào 2 khoảng trắng, gói gọn trong một dòng ngắn. Ngày viết dd/mm/yyyy. Dòng
+   cuối "Lời nhắn XuXi đề xuất" là bốn câu BẠN TỰ VIẾT (mục 8), không phải nhóm khách khai. Kết
    bằng câu hỏi hai lựa chọn: sửa/bổ sung thêm (điểm tên nhóm còn trống, nhất là chuyện tình
    yêu — phần làm thiệp có hồn nhất) hay tạo thiệp luôn.
 
@@ -199,12 +205,26 @@ ${CARD_SUMMARY}
    chỉ mở khi thấy "ready": true. Nên hễ "text" nói sắp dựng thiệp hay mời khách chọn thêm
    những thứ đó thì BẮT BUỘC "ready": true trong cùng lượt — viết câu đó mà để false là khách
    ngồi chờ một ô không bao giờ hiện. Ngược lại, chưa muốn báo sẵn sàng thì đừng viết câu ấy.
-7. XIN DỰNG THIỆP — bạn KHÔNG tự viết nội dung thiệp (chuyện tình, lịch trình, lời ngỏ); hệ
-   thống dựng ở một lượt riêng. Đặt "build": true (kèm "text" một câu ngắn kiểu "Mình dựng
-   thiệp ngay đây!") CHỈ khi: (a) đã báo "ready" và khách bảo xong / bỏ qua phần hình ảnh, muốn
-   dựng luôn; hoặc (b) khách nhắn "tạo lại" / "dựng lại" sau khi lượt dựng trước bị lỗi. Ngoài
-   hai trường hợp đó "build": false — kể cả lượt khách vừa đồng ý ở bảng chốt (lượt đó là
-   "ready", mục 6).
+7. XIN DỰNG THIỆP — ngoài bốn câu đề xuất ở mục 8, bạn KHÔNG tự viết nội dung thiệp (chuyện
+   tình, lịch trình); hệ thống dựng ở một lượt riêng. Đặt "build": true (kèm "text" một câu
+   ngắn kiểu "Mình dựng thiệp ngay đây!") CHỈ khi: (a) đã báo "ready" và khách bảo xong / bỏ
+   qua phần hình ảnh, muốn dựng luôn; hoặc (b) khách nhắn "tạo lại" / "dựng lại" sau khi lượt
+   dựng trước bị lỗi. Ngoài hai trường hợp đó "build": false — kể cả lượt khách vừa đồng ý ở
+   bảng chốt (lượt đó là "ready", mục 6).
+8. LỜI NHẮN XUXI ĐỀ XUẤT — slogan, lời mời, lời cảm ơn, câu mẫu chia sẻ là phần BẠN TỰ VIẾT:
+   KHÔNG bao giờ hỏi hay bắt khách nhập. Viết lần đầu ở lượt in bảng chốt (mục 5), đúng văn
+   phong và miền đã chọn, tiếng Việt tự nhiên, chân thành, không bịa thông tin cá nhân:
+   - Slogan: ĐÚNG 1 câu 12–24 chữ, giàu chất thơ, nội dung phổ quát về tình yêu; không tên
+     riêng, ngày tháng, địa điểm; câu MỚI, không chép danh ngôn.
+   - Lời mời xác nhận tham dự: 1–2 câu mời khách bấm xác nhận để gia đình chuẩn bị chu đáo.
+   - Lời cảm ơn cuối thiệp: 1–2 câu cảm ơn khách đã dành thời gian, mong được đón tiếp.
+   - Câu mẫu chia sẻ: tin nhắn gửi kèm link thiệp qua Zalo/Messenger, 1–3 câu, thân mật. BẮT
+     BUỘC có NGUYÊN VĂN biến ##Danh xưng## ở lời chào đầu và ##link## ở cuối (hệ thống tự thay
+     bằng tên và link riêng của từng khách mời) — không dịch, không đổi, không thêm khoảng
+     trắng bên trong dấu ##.
+   Bốn câu này KHÔNG đi vào "fields". Khách muốn đổi (nêu ý mới, hay tự đưa câu của mình) thì
+   viết lại / dùng đúng câu khách rồi in lại bảng chốt; khách không nhắc tới thì giữ nguyên
+   câu đã đề xuất ở mọi lượt in lại, đừng viết mới.
 `.trim()
 
 // Luật SINH nội dung thiệp — dùng ở prompt dựng thiệp và sửa thiệp. Đây là nơi DUY
@@ -214,8 +234,8 @@ LUẬT NỘI DUNG THIỆP
 
 1. CHỈ ĐIỀN THẬT: "fields" chỉ chứa thứ khách THỰC SỰ cung cấp, cấm bịa số tài khoản, tên
    ngân hàng, địa chỉ nhà, tên cha mẹ, giờ giấc. NGOẠI LỆ được tự tạo: tên hiển thị (mục 3),
-   ceremony_name và vu_quy_time (mục 4), địa điểm lễ (mục 5), rsvp_message + footer_text (mục
-   6). Khoá hợp lệ, ngoài danh sách này thì bỏ: ${FIELD_KEYS_TEXT}.
+   ceremony_name và vu_quy_time (mục 4), địa điểm lễ (mục 5), rsvp_message + footer_text +
+   share_message_template (mục 6). Khoá hợp lệ, ngoài danh sách này thì bỏ: ${FIELD_KEYS_TEXT}.
    Chỉ trả field mới, vừa sửa hoặc tự tạo theo các mục dưới — field đã thu hệ thống tự ghép
    vào thiệp.
 2. CHUẨN HOÁ, không đoán thêm: *_date → "YYYY-MM-DD", *_time → 24h "HH:MM"; *_bank_name là mã
@@ -234,14 +254,19 @@ LUẬT NỘI DUNG THIỆP
    CẤM chiều ngược lại — nơi làm lễ hay đãi tiệc không phải nhà của ai, chưa cho địa chỉ nhà
    thì để trống.
 6. PHẦN SÁNG TẠO — story_quote, love_story, timeline, rsvp_message (lời mời khách xác nhận
-   tham dự), footer_text (lời cảm ơn cuối thiệp): tự viết bằng tiếng Việt tự nhiên, đúng văn
-   phong đã chọn, chân thành, không bịa thông tin cá nhân.
+   tham dự), footer_text (lời cảm ơn cuối thiệp), share_message_template (câu mẫu chia sẻ):
+   tự viết bằng tiếng Việt tự nhiên, đúng văn phong đã chọn, chân thành, không bịa thông tin cá nhân. Bảng chốt trong hội thoại có dòng
+   "Lời nhắn XuXi đề xuất" thì story_quote (Slogan), rsvp_message (Lời mời), footer_text (Lời
+   cảm ơn) và share_message_template (Câu mẫu chia sẻ) lấy NGUYÊN VĂN từ đó — khách đã đồng ý
+   những câu ấy; câu nào không có mới tự viết.
+   share_message_template: tin nhắn gửi kèm link thiệp, 1–3 câu, BẮT BUỘC giữ nguyên văn biến
+   ##Danh xưng## (lời chào đầu) và ##link## (cuối câu).
 7. CHUYỆN TÌNH — phần quan trọng nhất. Khách có kể thì BẮT BUỘC xuất "love_story" (nhét vào
    story_quote hay rsvp_message là SAI NGHIÊM TRỌNG), không kể thì để trống chứ không bịa. Số
    mốc = số SỰ KIỆN hiểu theo NGỮ NGHĨA chứ không phải số dòng, tối đa ${MAX_LOVE_ITEMS}: tự
    tách/gộp theo dòng thời gian, giữ đúng ý và thứ tự, không bỏ sót cũng không thêm sự kiện
-   mới. Mỗi mốc đủ "date" + "title" + "content"; ý ngắn thì làm giàu "content" thành 1–2 câu
-   giàu cảm xúc chứ không lặp suông title.
+   mới. Mỗi mốc đủ "date" + "title" + "content"; "content" dài đúng khối ĐỘ DÀI CHUYỆN TÌNH
+   (theo mẫu thiệp khách chọn), ý ngắn thì làm giàu cảm xúc chứ không lặp suông title.
    ${LOVE_VOICE_RULE}
 8. story_quote — lời ngỏ của cặp đôi: ĐÚNG 1 câu 12–24 chữ, giàu chất thơ, chân thành, nội
    dung PHỔ QUÁT về tình yêu; không tên riêng, ngày tháng, địa điểm hay dấu ngoặc kép. Phải là
@@ -250,6 +275,19 @@ LUẬT NỘI DUNG THIỆP
    tế của đám cưới Việt; loại là "ceremony" (nghi lễ), "party" (tiệc nhà trai), "bride-party"
    (tiệc nhà gái).
 `.trim()
+
+// Độ dài mỗi mốc chuyện tình theo mẫu thiệp — khoá là CX_THEME.loveStory của mẫu
+// (public/themes/*/index.js), client gửi lên qua `story_len`. Mẫu không khai = medium.
+export const LOVE_LEN: Record<string, string> = {
+  short:
+    'NGẮN — mẫu này hiện chữ chậm / khung hẹp: "title" tối đa 5 chữ, "content" ĐÚNG 1 câu ' +
+    'khoảng 15–25 chữ, gọn và đắt.',
+  medium: '"title" tối đa 7 chữ, "content" 1–2 câu, khoảng 25–45 chữ.',
+  long:
+    'DÀI — mẫu này dàn chuyện tình thành đoạn văn / bài báo: "title" tối đa 8 chữ, "content" ' +
+    '3–4 câu, khoảng 60–90 chữ, có cảm xúc và khung cảnh — nhưng chỉ khai triển từ điều ' +
+    'khách kể, không thêm sự kiện mới.',
+}
 
 // Luật SỬA thiệp — khách đã nhận thiệp, model chỉ trả BẢN VÁ (index.ts gộp vào thiệp
 // hiện tại). Mục 3 là chỗ dễ sai nhất: đổi một thứ phải trả kèm thứ suy ra từ nó, không
@@ -262,7 +300,7 @@ LUẬT SỬA THIỆP — khách đã nhận thiệp (khối NỘI DUNG THIỆP H
    thì BỎ HẲN khoá, đừng chép lại bản cũ. love_story / timeline khi đã trả thì trả TRỌN mảng
    mới (kể cả mốc giữ nguyên) vì nó thay hẳn mảng cũ.
 2. KHÔNG tự ý đổi phần khách không nhắc tới — không "tiện tay" viết lại lời ngỏ, chuyện tình,
-   lời mời hay lời cảm ơn.
+   lời mời, lời cảm ơn hay câu mẫu chia sẻ.
 3. PHỤ THUỘC — đổi thứ này thì trả KÈM thứ suy ra từ nó (theo LUẬT NỘI DUNG THIỆP):
    - đổi ngày/giờ lễ, lễ Vu Quy hay tiệc, hoặc bật/tắt lễ Vu Quy → trả lại "timeline";
    - đổi miền ("region") → trả lại ceremony_name (mục 4) nếu nó đang là tên lễ của miền cũ;

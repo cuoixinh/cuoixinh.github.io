@@ -120,6 +120,8 @@
     "js/23-pull-refresh.js",
     // Sau các file dựng form: cần _loveStoryItems/_timelineItems/BANK_LIST.
     "js/24-ai-apply.js",
+    // Bộ đọc CX_THEME dùng chung (25-theme-decl.js + khung chat XuXi).
+    "../core/helpers/theme-decl.js",
     // Đọc CX_THEME của mẫu đang chọn (bước nào mẫu không có). Sau 20-steps:
     // chỉ phát sự kiện, không ai gọi lúc nạp.
     "js/25-theme-decl.js",
