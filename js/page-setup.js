@@ -13,12 +13,12 @@ function scrollToContact() {
   }
 }
 
-// Nút "Tạo thiệp với AI" ở màn mở đầu: mở khung chat XuXi thẳng vào chế độ tạo
-// thiệp. js/ai-assistant.js nạp ở cuối <body> nên có thể chưa xong — khi đó im
+// Nút "Tạo thiệp với AI" ở màn mở đầu: mở khung chat XuXi rồi tự chọn hộ thẻ
+// "Tạo thiệp với AI" (pick) như khách tự bấm. js/ai-assistant.js nạp ở cuối <body> nên có thể chưa xong — khi đó im
 // lặng bỏ qua, khách bấm lại.
 function cxHeroCreateAi() {
   if (typeof window.cxOpenAiChat !== "function") return;
-  window.cxOpenAiChat({ mode: "create" });
+  window.cxOpenAiChat({ pick: "create" });
 }
 
 function setupSmoothScroll() {
