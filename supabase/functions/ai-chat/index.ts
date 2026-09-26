@@ -384,6 +384,10 @@ async function buildCatalog(
 
 interface Msg { role: 'user' | 'assistant'; content: string }
 
+// Dòng giao diện tự ghi khi dẫn khách qua ô mẫu thiệp / ảnh / nhạc / bản đồ — dấu hiệu
+// lượt "ready" đã đi qua (xem Ctx.readyBefore).
+const GUIDE_NOTE_RE = /^\((Mời chọn|Mở ô chọn|Đã |Bỏ qua )/
+
 function clampMsg(v: unknown): string {
   return String(v ?? '')
     .replace(/\r\n/g, '\n')
@@ -502,6 +506,9 @@ interface Ctx {
   known: KnownCard | null
   media: MediaState | null
   current: Creative | null
+  // Client đã nhận một lượt "ready" trước đó chưa (tức khách đã được mời chọn mẫu thiệp,
+  // ảnh, nhạc, bản đồ). Chưa thì lượt này KHÔNG được nhảy sang dựng thiệp — xem answer().
+  readyBefore: boolean
 }
 
 // Loại prompt của lượt này. Không có `mode` (client cũ còn trong cache) = create, chạy
@@ -948,6 +955,12 @@ const CARD_FAILED_TEXT =
   'Xin lỗi bạn, mình dựng thiệp chưa xong — có trục trặc ở khâu cuối. ' +
   'Bạn nhắn "tạo lại" giúp mình nhé, thông tin bạn đã cho mình vẫn giữ nguyên.'
 
+// Lượt xin dựng bị hạ xuống thành "ready" (chat.build_early): câu của model là lời hứa
+// dựng ngay, không còn đúng nữa nên thay bằng câu mời chọn ảnh / nhạc / bản đồ.
+const READY_TEXT =
+  'Thông tin đủ rồi! Bạn chọn thêm mẫu thiệp, ảnh, nhạc nền và bản đồ ngay bên dưới nhé, ' +
+  'xong hết mình dựng thiệp liền.'
+
 // Trích dần trường "text" của một object JSON đang chảy về — trả phần chuỗi đã
 // giải mã được tới lúc này kèm cờ đã gặp dấu nháy đóng chưa, hoặc null nếu chưa
 // thấy trường. Escape hoặc \u đứt giữa hai chunk thì dừng sớm; chunk sau chạy
@@ -1067,7 +1080,8 @@ async function streamStage(
       flag = flagRe!.test(acc.slice(0, k))
       if (flag && kind === 'qa') stop = true
       // collect xin dựng: báo client đổi hiệu ứng chờ ngay, lượt dựng còn cả chục giây.
-      if (flag && kind === 'collect') {
+      // Chưa qua lượt "ready" thì cờ này sẽ bị answer() hạ xuống, đừng báo dựng hụt.
+      if (flag && kind === 'collect' && ctx.readyBefore) {
         phaseSent = true
         send({ phase: 'card' })
       }
@@ -1240,6 +1254,17 @@ async function answer(first: Kind, ctx: Ctx, log: Logger, send: Send | null): Pr
         r.text = missingText(r.missing)
         return done
       }
+      // Model hay hiểu "ok tạo đi" ở bảng chốt là lệnh dựng luôn, nhưng lượt đó phải là
+      // "ready" để giao diện dẫn khách qua ô mẫu thiệp / ảnh / nhạc / bản đồ trước (LUẬT
+      // THU THẬP mục 6-7). Chưa từng có lượt "ready" thì hạ cờ dựng xuống thành "ready".
+      if (!c.readyBefore) {
+        log.warn('chat.build_early', { hop })
+        r.build = false
+        r.ready = true
+        r.ask = ''
+        r.text = READY_TEXT
+        return done
+      }
       c = { ...c, known: r.known }
       next = 'build'
     }
@@ -1371,6 +1396,9 @@ Deno.serve(withAxiom('ai-chat', async (req, log) => {
     known,
     media: sanitizeMedia(body.media),
     current,
+    // body.ready là của client mới; client cũ còn trong cache thì soi dấu vết luồng dẫn
+    // ("(Mời chọn …)", "(Đã …)") mà giao diện tự ghi vào hội thoại.
+    readyBefore: body.ready === true || msgs.some((m) => GUIDE_NOTE_RE.test(m.content.trim())),
   }
 
   if (body.stream === true && getGeminiKeys().length) {

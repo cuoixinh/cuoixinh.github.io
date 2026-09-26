@@ -2362,6 +2362,7 @@
       const media = await window.CXChatMedia?.summary().catch(() => null);
       const res = await window.aiChatDAL.ask(opts.build ? buildTurns() : chatTurns(), known, {
         media,
+        ready: wasReady,
         build: opts.build === true,
         mode,
         current: mode === "create" ? currentCard() : null,
