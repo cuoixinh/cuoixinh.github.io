@@ -2825,34 +2825,41 @@ function _syncSlugSaveBtn() {
   const input = document.getElementById("slug-input");
   const btn = input?.closest("x-input")?.querySelector('button[onclick^="applySlug"]');
   if (btn) btn.hidden = _isLocalDraft || IS_PUBLISHED;
+  const tip = document.getElementById("slug-lock-tip");
+  if (tip) tip.hidden = !IS_PUBLISHED;
   if (!input) return;
-  input.readOnly = IS_PUBLISHED;
+  input.disabled = IS_PUBLISHED;
   input.classList.toggle("cursor-not-allowed", IS_PUBLISHED);
-  input.title = IS_PUBLISHED ? "Thiệp đã xuất bản nên không đổi được đường dẫn" : "";
+  input.classList.toggle("!bg-gray-100", IS_PUBLISHED);
+  input.classList.toggle("!text-gray-500", IS_PUBLISHED);
   const xClear = input.closest("x-input")?.querySelector(".x-clear");
   if (xClear) xClear.style.display = IS_PUBLISHED ? "none" : "";
 }
 
+// Link khách của từng nhà — theme coi thiếu `isGroom` là nhà trai nên nhà gái phải ghi rõ false.
+function _slugLink(slug, side) {
+  return `${window.location.origin}/${slug}?isGroom=${side === "groom"}`;
+}
+
 function _updateSlugPreview() {
   const input = document.getElementById("slug-input");
-  const preview = document.getElementById("slug-preview");
   const row = document.getElementById("slug-preview-row");
   _syncSlugSaveBtn();
-  if (!input || !preview) return;
+  if (!input || !row) return;
   if (_isLocalDraft) WEDDING_SLUG = _toSlug(input.value);
   // Xem trước phải là slug ĐÃ chuẩn hoá, đúng thứ sẽ lưu — không thì người dùng
   // thấy "/Hoàng Lan" nhưng nhận về "/hoang-lan".
   const val = _toSlug(input.value);
-  if (val) {
-    preview.textContent = `${window.location.origin}/${val}`;
-    if (row) row.style.display = "flex";
-  } else {
-    if (row) row.style.display = "none";
-  }
+  row.style.display = val ? "" : "none";
+  if (!val) return;
+  ["groom", "bride"].forEach((side) => {
+    const p = document.getElementById(`slug-preview-${side}`);
+    if (p) p.textContent = _slugLink(val, side);
+  });
 }
 
-function copyInviteLink() {
-  const preview = document.getElementById("slug-preview");
+function copyInviteLink(side) {
+  const preview = document.getElementById(`slug-preview-${side}`);
   if (!preview?.textContent) return;
   navigator.clipboard
     .writeText(preview.textContent)

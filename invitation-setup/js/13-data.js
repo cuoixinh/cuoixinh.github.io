@@ -1006,7 +1006,7 @@ function copyText(inputId) {
 
 async function applySlug() {
   const input = document.getElementById("slug-input");
-  if (!input) return;
+  if (!input || IS_PUBLISHED) return;
 
   // Luật đặt slug ở weddingBL.validateSlug (bỏ dấu, chỉ giữ a-z0-9 và "-").
   const newSlug = _toSlug(input.value);

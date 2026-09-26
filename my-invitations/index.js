@@ -853,12 +853,15 @@ const ICON_SETTINGS =
 const ICON_CHECK =
   '<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
 
-// Hiện ở mọi khổ màn hình: đổi đường dẫn và sao chép link là hai việc chính của
-// thiệp đã xuất bản, ẩn trên mobile là mất hẳn lối vào.
+// Hiện ở mọi khổ màn hình: sao chép link là việc chính của thiệp, ẩn trên mobile
+// là mất hẳn lối vào. Nút đổi đường dẫn chỉ có khi CHƯA xuất bản (server cũng chặn).
 function slugRowHTML(c, i) {
+  const edit = c.published
+    ? ""
+    : `<x-button variant="ghost" tone="neutral" size="xs" icon-only onclick="openSlugModal(${i})" aria-label="Đổi đường dẫn">${ICON_SETTINGS}</x-button>`;
   return `<div class="mt-1.5 flex items-center gap-0.5 rounded-lg bg-gray-50 px-2 py-1 sm:px-2.5">
       <span class="min-w-0 flex-1 truncate font-mono text-[10px] text-gray-600">/${esc(c.slug)}</span>
-      <x-button variant="ghost" tone="neutral" size="xs" icon-only onclick="openSlugModal(${i})" aria-label="Đổi đường dẫn">${ICON_SETTINGS}</x-button>
+      ${edit}
       <x-button variant="ghost" tone="neutral" size="xs" icon-only onclick="copyLink(${i}, this)" aria-label="Sao chép liên kết">${ICON_COPY}</x-button>
     </div>`;
 }
@@ -1068,7 +1071,7 @@ function _dropFromLocalOrders(manageId) {
 // thoại khác trong app. `hint` chạy lại mỗi lần gõ để xem trước link.
 function openSlugModal(i) {
   const c = CARDS[i];
-  if (!c) return;
+  if (!c || c.published) return;
 
   showPrompt("Đổi đường dẫn thiệp", {
     message: "Khách mời sẽ mở thiệp bằng đường dẫn này.",
