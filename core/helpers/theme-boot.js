@@ -276,42 +276,52 @@ function _cxMountMusic(decl) {
   // core/helpers/vh-lock.js tự khoá --vh khi nạp; index.html của mẫu phải có
   // thẻ script của nó, thiếu thì CSS lùi về `1svh` (đúng màu, chỉ kém ổn định).
 
-  // --- HIỆU ỨNG CUỘN ---
-  const revealObserver = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add("visible");
-          revealObserver.unobserve(entry.target);
-        }
-      });
-    },
-    { threshold: 0.15 },
-  );
-  document
-    .querySelectorAll((T.reveal || CX_REVEAL_DEFAULT).join(","))
-    .forEach((el, i) => {
-      const mod = i % 3;
-      if (mod === 0) el.classList.add("reveal", "from-bottom");
-      else if (mod === 1) el.classList.add("reveal", "from-left");
-      else el.classList.add("reveal", "from-right");
-      revealObserver.observe(el);
-    });
-
-  // --- NHỊP THỞ CHO NÚT XÁC NHẬN THAM DỰ ---
-  document.getElementById("btn-attend")?.classList.add("btn-idle");
-  document.getElementById("btn-decline")?.classList.add("btn-idle");
-
-  // --- iOS CHROME: click trên nút mở thiệp hay bị nuốt ---
-  const openBtn = document.querySelector(".open-btn");
-  if (openBtn) {
-    openBtn.addEventListener(
-      "touchend",
-      function (e) {
-        e.preventDefault();
-        window.openInvitation();
+  // Ba khối dưới gắn class/listener lên phần tử THẬT → chờ parse xong: <x-button>
+  // tự thay mình bằng <button> đúng lúc DOMContentLoaded, gắn sớm là dính vào thẻ
+  // cũ đã bị gỡ (nút mở thiệp mang .reveal mà không ai bật .visible → tàng hình).
+  const _afterParse = () => {
+    // --- HIỆU ỨNG CUỘN ---
+    const revealObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("visible");
+            revealObserver.unobserve(entry.target);
+          }
+        });
       },
-      { passive: false },
+      { threshold: 0.15 },
     );
+    document
+      .querySelectorAll((T.reveal || CX_REVEAL_DEFAULT).join(","))
+      .forEach((el, i) => {
+        const mod = i % 3;
+        if (mod === 0) el.classList.add("reveal", "from-bottom");
+        else if (mod === 1) el.classList.add("reveal", "from-left");
+        else el.classList.add("reveal", "from-right");
+        revealObserver.observe(el);
+      });
+
+    // --- NHỊP THỞ CHO NÚT XÁC NHẬN THAM DỰ ---
+    document.getElementById("btn-attend")?.classList.add("btn-idle");
+    document.getElementById("btn-decline")?.classList.add("btn-idle");
+
+    // --- iOS CHROME: click trên nút mở thiệp hay bị nuốt ---
+    const openBtn = document.querySelector(".open-btn");
+    if (openBtn) {
+      openBtn.addEventListener(
+        "touchend",
+        function (e) {
+          e.preventDefault();
+          window.openInvitation();
+        },
+        { passive: false },
+      );
+    }
+  };
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", _afterParse);
+  } else {
+    _afterParse();
   }
 })();

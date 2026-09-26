@@ -94,6 +94,23 @@ class GuestDAL {
     return json;
   }
 
+  // Khách mở thiệp bằng link riêng → đánh dấu Đã xem (công khai, anon key).
+  // Trả { matched, confirmed } — confirmed khác null là khách đã trả lời rồi.
+  async viewPublic({ slug, name, relationship }) {
+    const res = await fetch(`${this._url}?action=view`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: CONFIG.supabase.anonKey,
+        Authorization: `Bearer ${CONFIG.supabase.anonKey}`,
+      },
+      body: JSON.stringify({ slug, name, relationship }),
+    });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.error || 'Lỗi máy chủ');
+    return json;
+  }
+
   // ── Lời chúc (CÔNG KHAI) ─────────────────────────────────────────────────
 
   /**

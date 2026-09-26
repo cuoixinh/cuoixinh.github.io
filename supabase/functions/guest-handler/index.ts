@@ -436,6 +436,48 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
     }, 201)
   }
 
+  // ── POST công khai: khách mở thiệp bằng link cá nhân hoá → đánh dấu Đã xem ──
+  // Cùng cổng khớp khách như rsvp; chỉ ghi lần mở ĐẦU (viewed_at giữ mốc đó). Trả
+  // kèm trạng thái xác nhận để thiệp giấu sẵn hai nút khi khách đã trả lời rồi.
+  if (req.method === 'POST' && action === 'view') {
+    const body = await req.json()
+    const slug = String(body.slug ?? '').trim()
+    const name = String(body.name ?? '').trim().slice(0, MAX_FIELD_LEN)
+    const relationship = String(body.relationship ?? '').trim().slice(0, MAX_REL_LEN)
+
+    if (!slug || !name) return fail('Thiếu thông tin khách mời')
+
+    const { data: wedding, error: wErr } = await supabase
+      .from('weddings')
+      .select('id')
+      .eq('slug', slug)
+      .maybeSingle()
+
+    if (wErr) return fail(wErr.message, 500)
+    if (!wedding) return fail('Thiệp không tồn tại', 404)
+
+    const { error: listErr, guest } = await findGuestByLink(
+      supabase, wedding.id, name, relationship,
+      'id, full_name, display_name, relationship, viewed, confirmed'
+    )
+    if (listErr) return fail(listErr, 500)
+
+    if (!guest) {
+      log.warn('guest.view.nomatch', { slug })
+      return ok({ matched: false })
+    }
+
+    if (!guest.viewed) {
+      const { error: upErr } = await supabase
+        .from('guests')
+        .update({ viewed: true, viewed_at: new Date().toISOString() })
+        .eq('id', guest.id)
+      if (upErr) return fail(upErr.message, 500)
+    }
+
+    return ok({ matched: true, confirmed: guest.confirmed ?? null })
+  }
+
   // ── POST công khai: khách mời tự xác nhận tham dự ────────────────────────
   // KHÔNG cần đăng nhập — người gọi là khách cầm link cá nhân hoá. Chỉ CẬP NHẬT
   // cột xác nhận của một hàng guests CÓ SẴN, khớp theo slug thiệp + tên hiển thị
@@ -451,16 +493,18 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
 
     if (!slug || !name) return fail('Thiếu thông tin khách mời')
 
-    const { data: wedding } = await supabase
+    const { data: wedding, error: wErr } = await supabase
       .from('weddings')
       .select('id')
       .eq('slug', slug)
       .maybeSingle()
 
+    if (wErr) return fail(wErr.message, 500)
     if (!wedding) return fail('Thiệp không tồn tại', 404)
 
     const { error: listErr, guest } = await findGuestByLink(
-      supabase, wedding.id, name, relationship
+      supabase, wedding.id, name, relationship,
+      'id, full_name, display_name, relationship, viewed'
     )
     if (listErr) return fail(listErr, 500)
 
@@ -476,6 +520,11 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
       confirmed_at: new Date().toISOString(),
     }
     if (message) patch.message = message
+    // Trả lời được tức là đã mở thiệp — lỡ lượt ghi "view" hỏng thì bù ở đây.
+    if (!guest.viewed) {
+      patch.viewed = true
+      patch.viewed_at = patch.confirmed_at
+    }
 
     const { error: upErr } = await supabase.from('guests').update(patch).eq('id', guest.id)
     if (upErr) return fail(upErr.message, 500)

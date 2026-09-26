@@ -146,13 +146,14 @@ async function _openDbWedding(data) {
 }
 
 // Không nạp được thiệp đã có trên DB: giữ nguyên skeleton (form không bao giờ hiện
-// ra nên không có gì để autosave) và hỏi khách đi đâu tiếp.
+// ra nên không có gì để autosave) và hỏi khách đi đâu tiếp. Lời báo bị từ chối
+// KHÔNG được xác nhận thiệp có tồn tại hay thuộc tài khoản khác.
 async function _showLoadError(e) {
   const denied = e.status === 401 || e.status === 403;
   if (denied && !IS_LOGIN) {
     const r = await showConfirm(
-      "Cần đăng nhập",
-      "Thiệp này đã được lưu trên hệ thống. Đăng nhập đúng tài khoản đã tạo thiệp để tiếp tục chỉnh sửa.",
+      "Không mở được thiệp",
+      "Nếu đây là thiệp của bạn, hãy đăng nhập để tiếp tục chỉnh sửa.",
       { type: "info", icon: "log-in", confirmText: "Đăng nhập", cancelText: "Quản lý thiệp cưới" },
     );
     if (r && window.AuthUI) AuthUI.openModal({ onAuth: () => location.reload() });
@@ -162,7 +163,7 @@ async function _showLoadError(e) {
   const r = await showConfirm(
     denied ? "Không mở được thiệp" : "Không tải được thiệp",
     denied
-      ? "Thiệp này thuộc một tài khoản khác với tài khoản đang đăng nhập."
+      ? "Không tìm thấy thiệp này trong tài khoản đang đăng nhập."
       : "Kết nối tới máy chủ bị gián đoạn. Kiểm tra mạng rồi thử lại.",
     {
       type: "warning",

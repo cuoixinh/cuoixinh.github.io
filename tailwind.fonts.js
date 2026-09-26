@@ -14,7 +14,6 @@
 module.exports = {
   // ── Tự host (styles/_fonts.css) ──────────────────────────────────────────
   "katty-diona": ["KattyDiona", "cursive"],
-  "the-nautigal": ["TheNautigal", "cursive"],
   "perfect-beloved": ["PerfectBeloved", "cursive"],
   "faugllin-balseyn": ["FaugllinBalseyn", "cursive"],
   "bethan-white": ["BethanWhite", "cursive"],
@@ -77,7 +76,6 @@ module.exports = {
   playfair: ["Playfair Display", "serif"],
   cormorant: ["Cormorant Garamond", "serif"],
   vibes: ["Great Vibes", "cursive"],
-  nautigal: ["TheNautigal", "cursive"],
   katty: ["KattyDiona", "cursive"],
   octet: ["OctetStream", "sans-serif"],
   "cinzel-deco": ["Cinzel Decorative", "cursive"],
