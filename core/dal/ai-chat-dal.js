@@ -25,20 +25,24 @@ class AiChatDAL {
    * đã thu được ở các lượt trước (server nhắc lại cho model để nó khỏi hỏi lại).
    *
    * opts.onDelta(text) — mỗi mảnh chữ mới (text = TOÀN BỘ câu tính tới lúc này).
-   * opts.onPhase("card") — model đang dựng nội dung thiệp, phần còn lại còn chảy
-   *   thêm cả chục giây; dùng để đổi hiệu ứng chờ.
+   * opts.onPhase("card" | "edit") — model đang dựng / viết lại nội dung thiệp, phần còn
+   *   lại còn chảy thêm cả chục giây; dùng để đổi hiệu ứng chờ.
    * opts.signal — huỷ khi khách đóng bảng chat giữa chừng.
    * opts.media — tóm tắt ảnh/nhạc/bản đồ/mẫu đang có (CXChatMedia.summary()).
    * opts.build — khách đã đi hết các ô chọn sau lượt "ready": lượt này phải dựng thiệp.
+   * opts.mode — "qa" (hỏi đáp) | "create" (tạo/sửa thiệp): server chọn loại prompt theo đây.
+   * opts.current — phần sáng tạo của thiệp đang có ({story_quote, love_story, timeline});
+   *   có nó là lượt SỬA thiệp, server chỉ trả phần thay đổi.
    *
-   * Trả { text, known, card, ask, ready }: `text` là câu trả lời đầy đủ (bản đã làm sạch
-   * của server), `known` là thông tin thiệp gom được tới lúc này (gửi lại ở lượt
-   * sau), `card` là nội dung thiệp đã sẵn sàng đổ vào form hoặc null nếu còn đang
-   * hỏi, `ask` là ô chọn cần mở dưới câu trả lời ("" = không mở), `ready` = vừa thu đủ
-   * thông tin (bắt đầu dẫn qua các ô chọn).
+   * Trả { text, known, card, patch, ask, ready, mode }: `text` là câu trả lời đầy đủ (bản
+   * đã làm sạch của server), `known` là thông tin thiệp gom được tới lúc này (gửi lại ở
+   * lượt sau), `card` là nội dung thiệp ĐẦY ĐỦ đã sẵn sàng đổ vào form hoặc null nếu
+   * còn đang hỏi, `patch` là phần vừa đổi ở lượt sửa, `ask` là ô chọn cần mở dưới câu
+   * trả lời ("" = không mở), `ready` = vừa thu đủ thông tin (bắt đầu dẫn qua các ô
+   * chọn), `mode` là chế độ server đã chạy ("create" khi vừa tự chuyển từ hỏi đáp).
    */
   async ask(messages, card, opts = {}) {
-    const { onDelta, onPhase, signal, media, build } = opts;
+    const { onDelta, onPhase, signal, media, build, mode, current } = opts;
     const res = await fetch(this._url, {
       method: "POST",
       headers: await this._headers(),
@@ -51,6 +55,8 @@ class AiChatDAL {
         media: media || null,
         device: window.cxDeviceId?.() || "",
         build: build === true,
+        mode: mode || "qa",
+        current: current || null,
         stream: true,
       }),
     });
@@ -72,6 +78,8 @@ class AiChatDAL {
     let finalCard = null;
     let finalAsk = "";
     let finalReady = false;
+    let finalPatch = null;
+    let finalMode = "";
 
     const handle = (line) => {
       let evt;
@@ -92,6 +100,8 @@ class AiChatDAL {
         finalCard = evt.meta.card || null;
         finalAsk = evt.meta.ask || "";
         finalReady = evt.meta.ready === true;
+        finalPatch = evt.meta.patch || null;
+        finalMode = evt.meta.mode || "";
       }
     };
 
@@ -110,7 +120,15 @@ class AiChatDAL {
 
     const text = (final || shown).trim();
     if (!text) throw new Error("XuXi chưa trả lời được, bạn hỏi lại giúp mình nhé.");
-    return { text, known: finalKnown, card: finalCard, ask: finalAsk, ready: finalReady };
+    return {
+      text,
+      known: finalKnown,
+      card: finalCard,
+      patch: finalPatch,
+      ask: finalAsk,
+      ready: finalReady,
+      mode: finalMode,
+    };
   }
 }
 

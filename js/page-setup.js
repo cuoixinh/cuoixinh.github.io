@@ -27,10 +27,11 @@ function cxHeroAsk(e) {
 }
 
 // Chip gợi ý dưới ô hỏi: gửi thẳng câu đã soạn, không bắt khách gõ lại. Cùng
-// nhánh dự phòng với cxHeroAsk — chat chưa nạp xong thì im lặng bỏ qua.
-function cxHeroChip(q) {
+// nhánh dự phòng với cxHeroAsk — chat chưa nạp xong thì im lặng bỏ qua. `mode`
+// "create" cho chip là việc tạo thiệp (khỏi đi vòng qua chế độ hỏi đáp).
+function cxHeroChip(q, mode) {
   if (typeof window.cxOpenAiChat !== "function") return;
-  window.cxOpenAiChat({ ask: q });
+  window.cxOpenAiChat({ ask: q, mode });
 }
 
 // Dải chip ở màn mở đầu là MỘT hàng cuộn ngang: đặt cờ .is-more-l/.is-more-r

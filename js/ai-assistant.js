@@ -20,6 +20,7 @@
   const CARD_KEY = buildCacheKey("chat_card"); // localStorage: bàn giao sang trang thiết lập
   const DRAFT_KEY = "cx_aichat_draft"; // sessionStorage: nháp gắn với cuộc chat này
   const INPUT_KEY = "cx_aichat_input"; // sessionStorage: câu đang gõ dở trong ô nhập
+  const MODE_KEY = "cx_aichat_mode"; // sessionStorage: chế độ của cuộc chat (xem setMode)
   const CONV_KEY = "cx_aichat_cid"; // sessionStorage: mã CUỘC trò chuyện đang mở —
   // sinh ngay khi mở cuộc mới (kể cả lúc bấm Làm mới), để thứ cất riêng ra (câu
   // chờ đăng nhập) biết mình thuộc về cuộc nào
@@ -40,15 +41,28 @@
     "Bạn muốn **tạo thiệp cưới** hay cần hỏi gì về Cưới Xinh? Nói với mình một " +
     "câu là được.";
 
-  // Chip gợi ý dưới đoạn chat: chữ trên chip cũng chính là câu gửi đi nên đừng
-  // tách làm hai. Chip chỉ có CHỮ và cả dải cùng một màu (khai ở
-  // styles/_ai-chat.css), thêm gợi ý chỉ cần thêm một câu vào đây.
-  const SUGGESTS = [
-    "Tạo thiệp cưới cho mình nhé",
-    "Thiệp có giá bao nhiêu vậy?",
-    "Thiệp cưới có những gì?",
-    "Mình có thể dùng thử được không?",
+  // Hai chế độ khách chọn ở màn chào của cuộc chat mới. Mỗi chế độ server dùng một
+  // prompt riêng (Edge Function ai-chat), nên câu hỏi thường không phải kéo theo cả bộ
+  // luật tạo thiệp. Chọn "Tạo thiệp" là gửi luôn CREATE_ASK để nhận danh sách cần khai.
+  const MODES = [
+    { id: "qa", icon: "message-circle", title: "Hỏi đáp", sub: "Giá, mẫu thiệp, cách dùng…" },
+    { id: "create", icon: "sparkles", title: "Tạo thiệp với AI", sub: "Kể thông tin, XuXi dựng thiệp giúp" },
   ];
+  const CREATE_ASK = "Tạo thiệp cưới cho mình nhé";
+  // Dòng phụ dưới tên XuXi trên thanh tiêu đề — cho khách biết đang ở chế độ nào.
+  const MODE_SUB = {
+    "": "Hỏi đáp hoặc nhờ mình tạo thiệp",
+    qa: "Đang hỏi đáp",
+    create: "Đang tạo thiệp cưới",
+  };
+
+  // Chip gợi ý dưới đoạn chat (chưa hỏi câu nào): chữ trên chip cũng chính là câu gửi
+  // đi nên đừng tách làm hai. Chip chỉ có CHỮ và cả dải cùng một màu (khai ở
+  // styles/_ai-chat.css), thêm gợi ý chỉ cần thêm một câu vào đây.
+  const SUGGESTS = {
+    qa: ["Thiệp có giá bao nhiêu vậy?", "Thiệp cưới có những gì?", "Mình có thể dùng thử được không?"],
+    create: [CREATE_ASK],
+  };
 
   // Lối đi nhanh, dựng thành nút TRÒN CHỈ CÓ ICON trên thanh tiêu đề — thay cho
   // bong bóng Messenger đã bỏ ở trang chủ nên luôn thấy được, không ẩn theo đoạn
@@ -76,6 +90,8 @@
   // sau mỗi lượt và cần nhận lại ở lượt sau — lịch sử hội thoại chỉ mang lời nói,
   // không mang dữ liệu, nên thiếu cái này là model hỏi lại từ đầu.
   let known = null;
+  // "" = chưa chọn (màn chào hiện hai lựa chọn) · "qa" · "create". Xem setMode.
+  let mode = "";
   let busy = false;
   let abort = null; // AbortController của lượt đang chạy (nút Làm mới huỷ nó)
   let els = null;
@@ -116,7 +132,7 @@
       <div class="aichat-body" id="aichatBody"></div>
       <div class="aichat-sugwrap" id="aichatSugWrap">
         <p class="aichat-sug-hd">
-          <i data-lucide="lightbulb" style="width:13px;height:13px"></i>Gợi ý cho bạn
+          <i data-lucide="lightbulb" style="width:13px;height:13px"></i><span id="aichatSugHd">Gợi ý cho bạn</span>
         </p>
         <div class="aichat-suggests" id="aichatSuggests"></div>
       </div>
@@ -165,6 +181,8 @@
       panel,
       body: panel.querySelector("#aichatBody"),
       suggests: panel.querySelector("#aichatSuggests"),
+      sugHd: panel.querySelector("#aichatSugHd"),
+      sub: panel.querySelector(".aichat-head-sub"),
       sugWrap: panel.querySelector("#aichatSugWrap"),
       nav: panel.querySelector("#aichatNav"),
       input: panel.querySelector("#aichatInput"),
@@ -1313,10 +1331,10 @@
     return !!ov;
   }
 
-  function addBuilding() {
+  function addBuilding(label) {
     const el = document.createElement("div");
     el.className = "aichat-building";
-    el.textContent = "Đang dựng nội dung thiệp…";
+    el.textContent = label || "Đang dựng nội dung thiệp…";
     els.body.appendChild(el);
     scrollToEnd();
     return el;
@@ -1337,12 +1355,14 @@
 
   // `col` là cột của lượt XuXi (.aichat-col) — thẻ thiệp xếp ngay dưới bong bóng,
   // trên dấu giờ, và giãn hết bề ngang như ô chọn.
-  function addCardAction(col, card) {
+  // `m` là lượt lịch sử mang thiệp (giữ cờ `pending`/`applied` của trang Thiết lập).
+  function addCardAction(col, card, m) {
     if (!col) return;
     staleCards();
     // Object thiệp treo thẳng lên phần tử, không serialize: nút bấm chỉ cần tìm
     // ngược lên cột chứa nó là có đủ dữ liệu.
     col._cxCard = card;
+    col._cxEntry = m || null;
     col.classList.add("is-wide");
 
     const box = mk("div", "aichat-card");
@@ -1369,7 +1389,11 @@
     btn.setAttribute("size", "sm");
     btn.setAttribute("full", "");
     btn.setAttribute("data-card-open", "");
-    btn.textContent = inSetup() ? "Áp dụng vào thiệp" : "Thiết lập thiệp ngay";
+    btn.textContent = !inSetup()
+      ? "Thiết lập thiệp ngay"
+      : m?.pending
+        ? "Áp dụng phần vừa sửa"
+        : "Áp dụng vào thiệp";
     box.appendChild(btn);
 
     colInsert(col, box);
@@ -1536,17 +1560,25 @@
   }
 
   // Đang ở trang Thiết lập: đổ thẳng vào thiệp đang mở. Hỏi trước vì thao tác này
-  // GHI ĐÈ nội dung sẵn có.
-  async function applyHere(card) {
+  // GHI ĐÈ nội dung sẵn có. Thiệp trước đã áp dụng rồi thì chỉ đổ phần sửa từ đó tới
+  // giờ (`pending`), để chỗ khách tự chỉnh tay trên form không bị ghi đè.
+  async function applyHere(card, entry) {
+    const only = entry?.pending || null;
     const ok =
       typeof showConfirm !== "function" ||
       (await showConfirm(
-        "Áp dụng nội dung XuXi vừa dựng?",
-        "Nội dung đang có trong thiệp sẽ bị ghi đè bằng bản XuXi vừa dựng.",
+        only ? "Áp dụng phần XuXi vừa sửa?" : "Áp dụng nội dung XuXi vừa dựng?",
+        only
+          ? "Chỉ những mục XuXi vừa sửa trong thiệp sẽ bị ghi đè."
+          : "Nội dung đang có trong thiệp sẽ bị ghi đè bằng bản XuXi vừa dựng.",
         { confirmText: "Áp dụng" },
       ));
     if (!ok) return;
-    window.cxApplyAiCard(card);
+    window.cxApplyAiCard(card, only || undefined);
+    if (entry) {
+      entry.applied = true;
+      saveHistory();
+    }
     // Cuộc chat gắn luôn với thiệp vừa nhận nội dung: quay về trang chủ bấm lại
     // thì phải mở đúng thiệp này chứ không phải nháp của lần chat trước.
     try {
@@ -1561,9 +1593,9 @@
   // ngay", nhưng vào ĐÚNG nháp của cuộc chat này và mở thẳng tab Xem trước.
   // `templates` khai bằng let ở js/templates-data.js → binding TOÀN CỤC chứ không
   // phải window.templates; chưa nạp xong thì để cxStartDefaultDraft đi hỏi server.
-  function useCard(card) {
+  function useCard(card, entry) {
     if (!card) return;
-    if (inSetup()) return void applyHere(card);
+    if (inSetup()) return void applyHere(card, entry);
     // Nhạc/bản đồ/mẫu chọn ở ô chọn đi kèm thiệp; ảnh đã nằm trong IndexedDB dưới mã
     // nháp này (js/ai-chat-media.js).
     const media = window.CXChatMedia?.handoff() || null;
@@ -1664,8 +1696,9 @@
     setCache(key, draft);
   }
 
-  // Chip gợi ý chỉ hữu ích lúc chưa biết hỏi gì → ẩn hẳn sau câu hỏi đầu tiên.
-  // Chip TỰ XUỐNG DÒNG, không cuộn ngang: cả bốn phải thấy được cùng lúc.
+  // Chip gợi ý chỉ hữu ích lúc chưa biết hỏi gì → ẩn hẳn sau câu hỏi đầu tiên. Chưa
+  // chọn chế độ thì chỗ này là hai thẻ lựa chọn (renderModes).
+  // Chip TỰ XUỐNG DÒNG, không cuộn ngang: cả dải phải thấy được cùng lúc.
   function renderSuggests() {
     els.suggests.innerHTML = "";
     if (history.length) {
@@ -1673,7 +1706,9 @@
       return;
     }
     els.sugWrap.hidden = false;
-    SUGGESTS.forEach((text, i) => {
+    if (!mode) return renderModes();
+    els.sugHd.textContent = "Gợi ý cho bạn";
+    (SUGGESTS[mode] || []).forEach((text, i) => {
       const chip = document.createElement("button");
       chip.type = "button";
       chip.className = "aichat-chip";
@@ -1683,6 +1718,81 @@
       chip.addEventListener("click", () => ask(text));
       els.suggests.appendChild(chip);
     });
+  }
+
+  function renderModes() {
+    els.sugHd.textContent = "XuXi giúp gì cho bạn?";
+    const box = document.createElement("div");
+    box.className = "aichat-modes";
+    MODES.forEach((m, i) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "aichat-mode";
+      b.style.setProperty("--sug-d", i * 60 + "ms");
+      b.innerHTML =
+        `<span class="aichat-mode-t"><i data-lucide="${m.icon}" style="width:16px;height:16px"></i>${m.title}</span>` +
+        `<span class="aichat-mode-s">${m.sub}</span>`;
+      b.addEventListener("click", () => pickMode(m.id));
+      box.appendChild(b);
+    });
+    els.suggests.appendChild(box);
+    window.lucide?.createIcons({ root: box });
+  }
+
+  function pickMode(id) {
+    if (busy) return;
+    setMode(id);
+    if (id === "create") return void ask(CREATE_ASK);
+    renderSuggests();
+    if (window.matchMedia("(min-width: 521px)").matches) els.input.focus();
+  }
+
+  // Chế độ cuộc chat — server chọn loại prompt theo đây và tự chuyển qa → create khi
+  // khách muốn làm thiệp (res.mode). Đã sang create thì không quay lại: prompt tạo thiệp
+  // vẫn trả lời được câu hỏi chen ngang.
+  function setMode(m) {
+    mode = m;
+    try {
+      if (m) sessionStorage.setItem(MODE_KEY, m);
+      else sessionStorage.removeItem(MODE_KEY);
+    } catch {
+      /* chặn cookie: chỉ không nhớ qua lần tải lại */
+    }
+    if (els) els.sub.textContent = MODE_SUB[m] || MODE_SUB[""];
+  }
+
+  // Trang Thiết lập vào thẳng tạo thiệp. Lịch sử từ trước khi có chế độ (không có khoá)
+  // thì đoán theo dấu vết: đã thu thông tin / chốt / có thiệp là đang tạo thiệp.
+  function loadMode() {
+    let m = "";
+    try {
+      m = sessionStorage.getItem(MODE_KEY) || "";
+    } catch {
+      /* chặn cookie */
+    }
+    if (!m && history.length)
+      m = known || history.some((x) => x.ready || x.card) ? "create" : "qa";
+    if (!m && inSetup()) m = "create";
+    setMode(m);
+  }
+
+  // Phần sáng tạo của thiệp mới nhất trong cuộc chat — gửi kèm để server biết lượt này là
+  // lượt SỬA thiệp và chỉ trả phần thay đổi.
+  function currentCard() {
+    const c = [...history].reverse().find((m) => m.card)?.card;
+    if (!c) return null;
+    return { story_quote: c.story_quote || "", love_story: c.love_story || [], timeline: c.timeline || [] };
+  }
+
+  // Dồn hai bản vá (phần chưa áp dụng vào form + phần vừa sửa).
+  function mergePatch(a, b) {
+    if (!a) return { ...b, fields: [...(b.fields || [])] };
+    return {
+      fields: [...new Set([...(a.fields || []), ...(b.fields || [])])],
+      story_quote: !!(a.story_quote || b.story_quote),
+      love_story: !!(a.love_story || b.love_story),
+      timeline: !!(a.timeline || b.timeline),
+    };
   }
 
   // Lối đi nhanh trên thanh tiêu đề: dựng MỘT LẦN lúc mở bảng, không đụng gì tới
@@ -1798,7 +1908,7 @@
         if (showAsk(m, i)) addWidget(m.ask, null, m.guided);
       } else {
         const bubble = addBubble(m.role === "user" ? "user" : "bot", m.content, m.at);
-        if (m.card) addCardAction(bubble.parentElement, m.card);
+        if (m.card) addCardAction(bubble.parentElement, m.card, m);
         if (showAsk(m, i)) addWidget(m.ask, bubble.parentElement, m.guided);
       }
       if (m.failed) addFailure(m, i === lastIdx);
@@ -1826,6 +1936,7 @@
     typeStop();
     history = [];
     known = null;
+    setMode(inSetup() ? "create" : "");
     newConvId(); // cuộc mới bắt đầu từ đây, không đợi tới lượt hỏi đầu tiên
     toggleKitbar(false);
     try {
@@ -1992,6 +2103,8 @@
     // Quá dài thì KHÔNG cắt bớt rồi gửi: khách mất đúng phần đuôi mà không hay.
     // Ô nhập đang báo đỏ (syncSend) — để nguyên cho khách tự rút gọn.
     if (!text || busy || text.length > MAX_LEN) return;
+    // Gõ thẳng mà chưa chọn chế độ = hỏi đáp; muốn làm thiệp thì server tự chuyển.
+    if (!mode) setMode("qa");
 
     busy = true;
     // Gửi lại (echo false) thì ô nhập đang là câu MỚI khách gõ dở — để yên.
@@ -2057,21 +2170,25 @@
       const res = await window.aiChatDAL.ask(opts.build ? buildTurns() : chatTurns(), known, {
         media,
         build: opts.build === true,
+        mode,
+        current: mode === "create" ? currentCard() : null,
         onDelta: (partial) => {
-          // Mảnh chữ đầu tiên tới nơi → thay ba chấm bằng bong bóng thật.
+          // Mảnh chữ đầu tiên tới nơi → thay ba chấm bằng bong bóng thật. Dòng "đang
+          // dựng" đã hiện từ trước (khách giục dựng luôn) thì dời xuống dưới bong bóng.
           if (!bubble) {
             typing.remove();
             bubble = addBubble("bot", "");
+            if (building) els.body.appendChild(building);
             typeStart(bubble);
           }
           typeFeed(partial);
         },
-        // Model nói xong câu rồi mới dựng thiệp: chỗ này chờ lâu hơn hẳn một câu
-        // trả lời thường nên đổi ba chấm thành dòng báo cho khách yên tâm.
+        // Dựng thiệp / viết lại chuyện tình chờ lâu hơn hẳn một câu trả lời thường nên
+        // đổi ba chấm thành dòng báo cho khách yên tâm.
         onPhase: (phase) => {
-          if (phase !== "card" || building) return;
+          if ((phase !== "card" && phase !== "edit") || building) return;
           typing.remove();
-          building = addBuilding();
+          building = addBuilding(phase === "edit" ? "Đang cập nhật thiệp…" : "");
         },
         signal: mine.signal,
       });
@@ -2089,11 +2206,21 @@
       showActs(bubble);
 
       if (res.known) known = res.known;
+      if (res.mode === "create" && mode !== "create") setMode("create");
       const entry = { role: "assistant", content: res.text, at: Date.now() };
       if (res.card) {
+        // Phần chưa đổ vào form ở trang Thiết lập: lượt sửa mà thiệp trước đã áp dụng
+        // (hoặc cũng đang chờ một bản vá) thì chỉ còn chờ bản vá; còn lại là cả thiệp.
+        const prev = [...history].reverse().find((m) => m.card);
+        if (res.patch && prev && (prev.applied || prev.pending))
+          entry.pending = mergePatch(prev.applied ? null : prev.pending, res.patch);
         // Chỉ giữ thiệp MỚI NHẤT: thẻ cũ đã hết bấm được, mà mỗi thiệp là vài KB
         // nằm trong sessionStorage.
-        history.forEach((m) => delete m.card);
+        history.forEach((m) => {
+          delete m.card;
+          delete m.pending;
+          delete m.applied;
+        });
         entry.card = res.card;
       }
       // Ô chọn dưới câu trả lời: model chỉ định, hoặc lượt vừa thu đủ thông tin
@@ -2115,7 +2242,7 @@
       history.push(entry);
       saveHistory();
       if (res.card) {
-        addCardAction(bubble.parentElement, res.card);
+        addCardAction(bubble.parentElement, res.card, entry);
         if (!inSetup()) stashDraft(res.card);
       }
       if (kind) addWidget(kind, bubble.parentElement, true);
@@ -2255,6 +2382,7 @@
     window.CXChatMedia?.init({ draftId: chatDraftId, known: () => known });
     if (!SHOW_ATTACH || !window.CXChatMedia) els.attach.hidden = true;
     loadHistory();
+    loadMode();
     convId(); // cuộc đang mở phải có mã ngay từ đầu (chưa có thì đây là cuộc mới)
     paintHistory();
     initMic();
@@ -2308,7 +2436,8 @@
       const copy = e.target.closest("[data-copy]");
       if (copy) copyMsg(copy);
       const btn = e.target.closest("[data-card-open]");
-      if (btn && !btn.disabled) useCard(btn.closest(".aichat-col, .aichat-row")?._cxCard);
+      const holder = btn?.closest(".aichat-col, .aichat-row");
+      if (btn && !btn.disabled) useCard(holder?._cxCard, holder?._cxEntry);
       const retry = e.target.closest("[data-retry]");
       const failed = retry?.closest(".aichat-col")?._cxFailed;
       if (failed) retryFailed(failed);
@@ -2355,8 +2484,13 @@
   // Mở khung chat từ nơi khác (ô hỏi ở màn mở đầu trang chủ, ?open=ai).
   // `mic` = bật luôn micro, thay cho luồng "nói cho AI nghe" trước đây.
   // `ask` = câu hỏi gửi luôn khi vừa mở (khách đã gõ ở ô ngoài, đừng bắt gõ lại).
+  // `mode` = "create" khi câu đó là việc tạo thiệp (chip ở màn mở đầu trang chủ).
   window.cxOpenAiChat = function (opt) {
     open();
+    if (opt && opt.mode === "create" && !busy) {
+      setMode("create");
+      renderSuggests();
+    }
     // Nút micro ẩn khi trình duyệt không hỗ trợ SpeechRecognition — lúc đó bỏ qua,
     // khách vẫn gõ được như thường. toggleMic chỉ bật vì bảng vừa mở, chưa nghe gì.
     if (opt && opt.mic && !els.mic.hidden) toggleMic();
