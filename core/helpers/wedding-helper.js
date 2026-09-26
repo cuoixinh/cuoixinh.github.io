@@ -118,6 +118,8 @@ function showLockedInvitation(info) {
   document.body.style.overflow = "hidden";
 }
 
+const CX_VISITOR_LINE = "Cảm ơn bạn đã ghé xem thiệp";
+
 function setupPersonalizedGreeting(
   weddingSlug,
   isGroom,
@@ -131,9 +133,21 @@ function setupPersonalizedGreeting(
   const urlParams = new URLSearchParams(window.location.search);
   const encryptedName = urlParams.get("name");
   const encryptedRelationship = urlParams.get("relationship");
+  // Link chung (khách vãn lai) vẫn giữ màn bìa nhưng KHÔNG mời: dòng [data-cx-invite]
+  // đổi thành lời cảm ơn; cờ .cx-guest-generic trên <html> để _common.css ẩn dòng tên
+  // + [data-cx-invite-to], mẫu muốn tạo kiểu thêm cũng nhắm theo cờ này.
+  const coverGuestName = document.getElementById("cover-guest-name");
+  const generic = () => {
+    document.documentElement.classList.add("cx-guest-generic");
+    document.querySelectorAll("[data-cx-invite]").forEach((el) => {
+      el.textContent = CX_VISITOR_LINE;
+    });
+    // Chỉ mẫu CÓ màn bìa; mẫu chỉ có hero giữ khối lời mời ẩn như cũ.
+    document.querySelector("#cover-screen #cover-guest-wrap")?.classList.remove("hidden");
+  };
 
   if (!encryptedName || !encryptedRelationship) {
-    openInvitationCallback();
+    generic();
     return;
   }
 
@@ -142,7 +156,7 @@ function setupPersonalizedGreeting(
     const relationship = decryptData(encryptedRelationship);
 
     if (!name || !relationship) {
-      openInvitationCallback();
+      generic();
       return;
     }
 
@@ -150,16 +164,21 @@ function setupPersonalizedGreeting(
     // hàng tương ứng trong bảng khách mời.
     window.CX_GUEST = { slug: weddingSlug, name, relationship };
 
-    const coverGuestName = document.getElementById("cover-guest-name");
     if (coverGuestName) coverGuestName.textContent = name;
+    // Xưng hô lấy từ link (Anh, Chị, Bạn…) nối vào lời mời riêng của từng mẫu
+    // ("Trân trọng kính mời" / "Kính gửi") — không viết cứng chữ nào vào markup.
+    document.querySelectorAll("[data-cx-invite]").forEach((el) => {
+      el.dataset.cxInvite ||= el.textContent.trim();
+      el.textContent = `${el.dataset.cxInvite} ${relationship}`;
+    });
 
     const rsvpSection = document.getElementById("rsvp-section");
     if (rsvpSection) {
       rsvpSection.style.display = "flex";
     }
+    _markViewed(window.CX_GUEST);
   } catch (error) {
-    openInvitationCallback();
-    return;
+    generic();
   }
 }
 
@@ -227,14 +246,50 @@ async function confirmAttend(attending, message) {
 
   msg.classList.remove("hidden");
 
-  await _saveRsvp(attending, message, msg);
+  if (await _saveRsvp(attending, message, msg)) _hideRsvpButtons();
+}
+
+// Đã trả lời thì giấu cặp nút, chỉ để lại #attend-msg. Hàng bọc chỉ chứa hai nút
+// thì giấu cả hàng cho khỏi hở một khoảng trống.
+function _hideRsvpButtons() {
+  const a = document.getElementById("btn-attend");
+  const d = document.getElementById("btn-decline");
+  if (!a || !d) return;
+  const row = a.parentElement;
+  if (row && row === d.parentElement && row.children.length === 2) {
+    row.classList.add("hidden");
+  } else {
+    a.classList.add("hidden");
+    d.classList.add("hidden");
+  }
+}
+
+// Ghi "Đã xem" cho khách của link; khách đã xác nhận từ trước thì giấu luôn hai
+// nút. Lỗi ở đây không được chặn thiệp — chỉ log.
+async function _markViewed(g) {
+  if (!g || !window.guestDAL?.viewPublic) return;
+  try {
+    const res = await window.guestDAL.viewPublic(g);
+    if (!res?.matched || !res.confirmed) return;
+    const msg = document.getElementById("attend-msg");
+    if (msg) {
+      msg.textContent =
+        res.confirmed === "Có tham dự"
+          ? "Bạn đã xác nhận tham dự. Hẹn gặp bạn nhé 🌸"
+          : "Bạn đã phản hồi không tham dự. Cảm ơn bạn!";
+      msg.classList.remove("hidden");
+    }
+    _hideRsvpButtons();
+  } catch (error) {
+    console.error("Lỗi đánh dấu đã xem:", error);
+  }
 }
 
 // Gửi xác nhận lên server. Lỗi mạng thì báo ngay dưới hai nút — im lặng là chủ
 // thiệp mất một lượt phản hồi mà không ai biết.
 async function _saveRsvp(attending, message, msgEl) {
   const g = window.CX_GUEST;
-  if (!g || !g.slug || !g.name || !window.guestDAL) return;
+  if (!g || !g.slug || !g.name || !window.guestDAL) return false;
 
   try {
     await window.guestDAL.rsvpPublic({
@@ -244,6 +299,7 @@ async function _saveRsvp(attending, message, msgEl) {
       attending: !!attending,
       message,
     });
+    return true;
   } catch (error) {
     console.error("Lỗi lưu xác nhận tham dự:", error);
     if (msgEl) {
@@ -251,6 +307,7 @@ async function _saveRsvp(attending, message, msgEl) {
         "Chưa gửi được xác nhận, bạn thử lại giúp nhé (kiểm tra kết nối mạng).";
       msgEl.classList.remove("hidden");
     }
+    return false;
   }
 }
 

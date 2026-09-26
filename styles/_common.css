@@ -931,6 +931,13 @@ svg.cx-ic {
   min-height: calc(var(--vh, 1svh) * 100);
 }
 
+/* Link chung (khách vãn lai): "Cảm ơn bạn đã ghé xem thiệp · <tên đôi>", không mời.
+   Cờ + chữ do setupPersonalizedGreeting (wedding-helper) đặt. */
+.cx-guest-generic #cover-guest-name,
+.cx-guest-generic [data-cx-invite-to] {
+  display: none;
+}
+
 #cover-screen > div {
   min-height: calc(var(--vh, 1vh) * 100);
   min-height: calc(var(--vh, 1svh) * 100);
