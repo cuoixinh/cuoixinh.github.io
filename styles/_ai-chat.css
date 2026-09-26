@@ -303,8 +303,13 @@
 
 /* ── Khung tin nhắn ────────────────────────────────────────────────────────── */
 
+/* Tắt scroll anchoring: bản đồ trong ô chọn hiện ra (ghim lễ kéo theo tiệc "trùng") là
+   trình duyệt tự cuộn khung để giữ điểm neo, đẩy khách khỏi chỗ vừa bấm. Cuộn xuống cuối
+   do scrollToEnd() tự làm nên không cần anchoring. */
 .aichat-body {
   @apply flex-1 overflow-y-auto bg-transparent px-4 py-4;
+
+  overflow-anchor: none;
 }
 
 /* Một lượt = avatar + cột (bong bóng, giờ). Các lượt LIỀN NHAU của cùng người
@@ -1675,6 +1680,10 @@
   color: rgb(var(--brand-accent-rgb));
   background: rgb(var(--surface-tint-rgb));
   border: 1px dashed rgb(var(--brand-accent-rgb) / 0.45);
+}
+
+.aichat-tiles.is-qr .aichat-tile {
+  aspect-ratio: 1 / 1;
 }
 
 .aichat-tile img {

@@ -490,9 +490,10 @@
   // Mỗi loại: mount(body) dựng khung MỘT lần, trả update(st) để vẽ lại theo trạng
   // thái — giữ nguyên thứ khách đang gõ dở (ô tìm nhạc, ô tìm địa điểm).
 
-  function tileGrid(slots, cols) {
+  // `cls` thêm vào lưới — "is-qr": ô vuông (ảnh QR đã cắt 1:1).
+  function tileGrid(slots, cols, cls) {
     return (body) => {
-      const grid = el("div", "aichat-tiles");
+      const grid = el("div", "aichat-tiles" + (cls ? " " + cls : ""));
       grid.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
       const tiles = slots.map(([field, , label]) => {
         const tile = el("label", "aichat-tile");
@@ -881,7 +882,8 @@
     gallery: mountGallery,
     music: mountMusic,
     map: mountMap,
-    qr: tileGrid(QR_SLOTS, 2),
+    // Cùng khổ cột với ô ảnh chân dung — 2 cột là mỗi ô QR choán nửa khung chat.
+    qr: tileGrid(QR_SLOTS, 3, "is-qr"),
   };
 
   // Theo dõi CHANGE cho tới khi phần tử rời DOM (Làm mới xoá sạch khung chat).

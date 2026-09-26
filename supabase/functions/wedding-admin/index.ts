@@ -937,7 +937,7 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
     // Kiểm tra id tồn tại và lấy data hiện tại
     const { data: existing, error: fetchError } = await supabase
       .from('weddings')
-      .select(`${WEDDING_IMAGE_SELECT}, user_id, theme, payment_status, payment_amount, is_published`)
+      .select(`${WEDDING_IMAGE_SELECT}, user_id, slug, theme, payment_status, payment_amount, is_published`)
       .eq('id', id)
       .single()
 
@@ -1134,6 +1134,22 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
       return new Response(JSON.stringify({
         error: 'Thiệp đã thanh toán nên không đổi được mẫu nữa.',
         code: 'THEME_LOCKED',
+      }), { status: 409, headers: corsHeaders })
+    }
+
+    // ── Xuất bản rồi là CHỐT slug ────────────────────────────────────────────
+    // Link thiệp (/slug) đã có thể nằm trong tin nhắn gửi khách mời, đổi là link chết.
+    // So với `existing.slug`: client gửi slug hiện tại ở MỌI lần lưu.
+    if (
+      !isAdmin &&
+      fields.slug !== undefined &&
+      fields.slug !== existing.slug &&
+      existing.is_published
+    ) {
+      log.warn('wedding.slug_change_blocked', { id, from: existing.slug, to: fields.slug })
+      return new Response(JSON.stringify({
+        error: 'Thiệp đã xuất bản nên không đổi được đường dẫn nữa.',
+        code: 'SLUG_LOCKED',
       }), { status: 409, headers: corsHeaders })
     }
 

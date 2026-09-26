@@ -23,6 +23,7 @@ import { createDbClient } from '../_shared/db-client.ts'
 import { withAxiom, type Logger } from '../_shared/axiom.ts'
 import {
   GEMINI_BASE,
+  GEMINI_MAX_OUTPUT_TOKENS,
   GEMINI_MODEL,
   ProviderError,
   corsHeaders,
@@ -72,7 +73,6 @@ const DAILY_LIMIT = 30       // số lượt hỏi / user đã đăng nhập / n
 const ANON_DAILY_LIMIT = 5   // số lượt hỏi / khách chưa đăng nhập / ngày
 const MAX_MSG_LEN = 10000    // độ dài tối đa MỖI tin nhắn (khớp maxlength ở client)
 const MAX_TURNS = 20         // số tin nhắn gần nhất được đưa vào prompt
-const MAX_ANSWER_LEN = 1500  // clamp phần "text" khách đọc được
 
 // Timeout RIÊNG, dài hơn REQ_TIMEOUT_MS (25s) dùng chung: lượt dựng thiệp phải
 // sinh chuyện tình + lịch trình + gần 30 field, đo thực tế ~45s. Cắt ở 25s là
@@ -288,13 +288,13 @@ const GEN_BASE = {
   responseMimeType: 'application/json',
   thinkingConfig: { thinkingBudget: 0 },
 }
-// Trần output theo loại: dựng/sửa thiệp sinh cả chuyện tình lẫn lịch trình nên dài hơn
-// hẳn câu tư vấn — trần thấp là JSON đứt giữa chừng, parse hỏng, mất trắng cả lượt.
+// Trần output để ở mức tối đa model cho phép: trần thấp là JSON đứt giữa chừng, parse
+// hỏng, mất trắng cả lượt; câu ngắn thì model tự dừng sớm nên không tốn thêm.
 const GEN_CFG: Record<Kind, Record<string, unknown>> = {
-  qa: { ...GEN_BASE, maxOutputTokens: 1024, responseSchema: QA_SCHEMA },
-  collect: { ...GEN_BASE, maxOutputTokens: 4096, responseSchema: COLLECT_SCHEMA },
-  build: { ...GEN_BASE, maxOutputTokens: 8192, responseSchema: BUILD_SCHEMA },
-  edit: { ...GEN_BASE, maxOutputTokens: 8192, responseSchema: EDIT_SCHEMA },
+  qa: { ...GEN_BASE, maxOutputTokens: GEMINI_MAX_OUTPUT_TOKENS, responseSchema: QA_SCHEMA },
+  collect: { ...GEN_BASE, maxOutputTokens: GEMINI_MAX_OUTPUT_TOKENS, responseSchema: COLLECT_SCHEMA },
+  build: { ...GEN_BASE, maxOutputTokens: GEMINI_MAX_OUTPUT_TOKENS, responseSchema: BUILD_SCHEMA },
+  edit: { ...GEN_BASE, maxOutputTokens: GEMINI_MAX_OUTPUT_TOKENS, responseSchema: EDIT_SCHEMA },
 }
 // ── Danh mục mẫu thiệp ──────────────────────────────────────────────────────
 // Ba tầng, tầng sau chỉ chạy khi tầng trước hỏng:
@@ -690,7 +690,6 @@ function cleanAnswer(raw: string): string {
     // Dòng phân cách "===== … =====" của prompt — model lite hay chép theo cùng danh sách.
     .replace(/^[ \t]*={3,}[^\n]*={3,}[ \t]*(?:\n|$)/gm, '')
     .trim()
-    .slice(0, MAX_ANSWER_LEN)
 }
 
 // ── Đọc output JSON ─────────────────────────────────────────────────────────

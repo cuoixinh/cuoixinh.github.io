@@ -102,8 +102,11 @@ function cxApplyAiCard(result, only) {
     }
   });
 
-  // Hidden input set bằng code không tự phát event → gọi autosave thủ công
+  // Hidden input set bằng code không tự phát event → gọi autosave + chấm lại thanh bước thủ công
   _scheduleAutoSave();
+  window.cxRefreshStepStatus?.();
+  // Tên cô dâu chú rể vừa vào form → dựng luôn slug (chạy nền: phải hỏi server slug trùng chưa).
+  window.cxAutoSlug?.().catch((e) => console.error("cxApplyAiCard slug:", e));
 
   showToast("Đã áp dụng nội dung AI vào thiệp", "success");
 }

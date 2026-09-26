@@ -845,7 +845,12 @@ async function _saveAllOnce(overrides, label) {
       clearLocalDraft();
     } else if (loggedIn) {
       // Local draft + đã đăng nhập → tạo record trong DB lần đầu
-      const generatedSlug = payload.slug || `wedding-${WEDDING_ID.slice(0, 8)}`;
+      // Slug theo tên cô dâu chú rể (cùng luật lúc xuất bản); chưa đủ hai tên mới dùng
+      // slug tạm `wedding-<id>` — xuất bản / áp dụng thiệp AI sẽ thay khi có tên.
+      const generatedSlug =
+        payload.slug ||
+        (await _resolvePublishSlug()) ||
+        `wedding-${WEDDING_ID.slice(0, 8)}`;
       // Đính JWT user (DAL tự lo qua _authHeaders) để edge gán user_id = chủ thiệp
       // ngay khi tạo. Lỗi ở đây phải NÉM RA, đừng nuốt: trần số thiệp mỗi tài khoản
       // chặn tại đây, mà nuốt đi thì PATCH ngay dưới chạy trên một hàng chưa hề có.
@@ -863,8 +868,11 @@ async function _saveAllOnce(overrides, label) {
       const slugToSave = created?.slug || generatedSlug;
       WEDDING_SLUG = slugToSave;
       payload.slug = slugToSave;
+      const slugInput = document.getElementById("slug-input");
+      if (slugInput) slugInput.value = slugToSave;
       await weddingBL.updateWedding(payload);
       _isLocalDraft = false;
+      _updateSlugPreview(); // hiện lại nút "Lưu" + link theo slug vừa chốt
       markDraftUploaded(WEDDING_ID);
       clearLocalDraft();
     }

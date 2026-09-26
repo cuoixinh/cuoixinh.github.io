@@ -2761,8 +2761,25 @@ async function _isSlugAvailable(slug) {
   }
 }
 
+// Luồng tạo bằng AI: tên đã có mà slug còn trống / mặc định thì tự dựng slug từ tên
+// (cùng luật lúc xuất bản) rồi đổ vào ô Slug. Khách đã tự đặt, hoặc thiệp đã xuất bản
+// (link có thể đã gửi khách), thì để nguyên.
+async function cxAutoSlug() {
+  if (IS_PUBLISHED) return;
+  if (WEDDING_SLUG && !WEDDING_SLUG.startsWith("wedding-")) return;
+  const slug = await _resolvePublishSlug();
+  if (!slug || slug === WEDDING_SLUG) return;
+  WEDDING_SLUG = slug;
+  const input = document.getElementById("slug-input");
+  if (input) input.value = slug;
+  _updateSlugPreview();
+  _scheduleAutoSave();
+}
+window.cxAutoSlug = cxAutoSlug;
+
 async function _resolvePublishSlug() {
-  // Nếu user đã nhập slug thủ công trong Cấu hình → giữ nguyên
+  // Đã xuất bản → slug đã chốt (server chặn đổi); user đã tự nhập slug → giữ nguyên
+  if (IS_PUBLISHED) return WEDDING_SLUG;
   if (WEDDING_SLUG && !WEDDING_SLUG.startsWith("wedding-")) return WEDDING_SLUG;
 
   // Phải nhắm `input[name=...]`: `[name=...]` khớp <x-input> (host giữ nguyên
@@ -2800,11 +2817,29 @@ async function _resolvePublishSlug() {
   return `${stem}-${rand}`;
 }
 
+// Nút "Lưu" của ô Slug:
+// - nháp chưa lưu lên hệ thống: chưa có hàng DB để applySlug() PATCH → ẩn; slug gõ vào
+//   giữ ở WEDDING_SLUG và đi theo lần lưu đầu (createDraftWedding).
+// - đã xuất bản: slug CHỐT (wedding-admin trả 409 SLUG_LOCKED) → ẩn nút, khoá ô.
+function _syncSlugSaveBtn() {
+  const input = document.getElementById("slug-input");
+  const btn = input?.closest("x-input")?.querySelector('button[onclick^="applySlug"]');
+  if (btn) btn.hidden = _isLocalDraft || IS_PUBLISHED;
+  if (!input) return;
+  input.readOnly = IS_PUBLISHED;
+  input.classList.toggle("cursor-not-allowed", IS_PUBLISHED);
+  input.title = IS_PUBLISHED ? "Thiệp đã xuất bản nên không đổi được đường dẫn" : "";
+  const xClear = input.closest("x-input")?.querySelector(".x-clear");
+  if (xClear) xClear.style.display = IS_PUBLISHED ? "none" : "";
+}
+
 function _updateSlugPreview() {
   const input = document.getElementById("slug-input");
   const preview = document.getElementById("slug-preview");
   const row = document.getElementById("slug-preview-row");
+  _syncSlugSaveBtn();
   if (!input || !preview) return;
+  if (_isLocalDraft) WEDDING_SLUG = _toSlug(input.value);
   // Xem trước phải là slug ĐÃ chuẩn hoá, đúng thứ sẽ lưu — không thì người dùng
   // thấy "/Hoàng Lan" nhưng nhận về "/hoang-lan".
   const val = _toSlug(input.value);

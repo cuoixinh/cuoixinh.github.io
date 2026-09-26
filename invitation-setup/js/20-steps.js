@@ -92,10 +92,11 @@ const CX_STEPS = [
     label: "Ảnh cưới",
     icon: "image",
     vis: "photos",
-    // Ảnh đã lưu nằm ở textarea; ảnh vừa chọn còn nằm trong pendingUploads.
+    // Ảnh đã lưu nằm ở textarea; ảnh vừa chọn còn nằm trong pendingUploads (khai `const`
+    // ở 10-images.js nên KHÔNG có trên window — gọi thẳng tên).
     done: () =>
       !!_cxVal("gallery_images_raw") ||
-      (window.pendingUploads?.galleryImages?.length || 0) > 0,
+      (pendingUploads?.galleryImages?.length || 0) > 0,
   },
   {
     id: "timeline",
@@ -462,6 +463,9 @@ function _cxInitSteps() {
   const form = document.getElementById("wedding-form");
   form?.addEventListener("input", cxRefreshStepStatus);
   form?.addEventListener("change", cxRefreshStepStatus);
+  // Ảnh album nằm ở pendingUploads (ngoài form) → thêm/xoá/khôi phục ảnh, kể cả từ
+  // khung chat AI, chỉ phát "cx-media-change".
+  window.addEventListener("cx-media-change", cxRefreshStepStatus);
 
   // Bản khai của mẫu về sau khi thanh bước đã dựng → vẽ lại. Bước đang mở nằm
   // trong nhóm bị bỏ (hoặc chỉ số rơi ra ngoài mảng mới) thì lùi về bước đầu.

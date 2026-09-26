@@ -66,8 +66,32 @@ function _cxFocusScroll(key, tries) {
       setTimeout(() => _cxFocusScroll(key, tries + 1), CX_FOCUS_GAP);
     return;
   }
-  el.scrollIntoView({ behavior: "smooth", block: "center" });
+  _cxFocusCenter(el);
   _cxFocusFlash(el);
+}
+
+// Khung cuộn gần nhất CHỨA el trong chính thiệp (không có thì là trang).
+function _cxFocusScroller(el) {
+  for (let p = el.parentElement; p && p !== document.body; p = p.parentElement) {
+    const oy = getComputedStyle(p).overflowY;
+    if ((oy === "auto" || oy === "scroll") && p.scrollHeight > p.clientHeight) return p;
+  }
+  return null;
+}
+
+// Đưa el về giữa khung nhìn. KHÔNG dùng scrollIntoView: nó cuộn lây cả khung chứa iframe
+// ở trang cha — mục cuối (không cuộn thêm được) là iframe bị đẩy lên, lộ khoảng trắng.
+function _cxFocusCenter(el) {
+  const box = _cxFocusScroller(el);
+  const r = el.getBoundingClientRect();
+  if (box) {
+    const b = box.getBoundingClientRect();
+    const top = box.scrollTop + r.top - b.top - (box.clientHeight - r.height) / 2;
+    box.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+  } else {
+    const top = window.scrollY + r.top - (window.innerHeight - r.height) / 2;
+    window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+  }
 }
 
 // Style nhúng bằng JS: thiệp dùng build CSS riêng (themes.css), nhét vào đó thì
