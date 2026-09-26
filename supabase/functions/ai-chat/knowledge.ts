@@ -155,19 +155,19 @@ export const CARD_SUMMARY = [
 
 // Luật THU THẬP thông tin. Điểm khác biệt với một chatbot hỏi đáp thường: liệt kê
 // trọn gói ngay từ đầu rồi chỉ nhắc lại mục còn thiếu, thay vì hỏi nhỏ giọt. Danh sách
-// 6 nhóm ấy lần nào cũng y hệt nhau nên GIAO DIỆN in thẳng (CREATE_INTRO ở
+// 7 nhóm ấy lần nào cũng y hệt nhau nên GIAO DIỆN in thẳng (CREATE_INTRO ở
 // js/ai-assistant.js) — đỡ hẳn một lượt gọi model và bấy nhiêu chữ trong prompt; sửa
-// danh sách thì sửa ở đó, 6 nhóm trùng tên bước ở trang thiết lập (CX_STEPS).
+// danh sách thì sửa ở đó.
 // "__xoa__" ở mục 4 phải khớp FIELD_DELETE (index.ts).
 export const COLLECT_RULES = `
 LUẬT TẠO THIỆP — THU THẬP THÔNG TIN
 
-1. GIAO DIỆN ĐÃ CHÀO VÀ ĐÃ IN SẴN danh sách 6 nhóm thông tin cần thu (Cặp đôi · Sự kiện ·
-   Tiệc cưới · Gia đình · Chuyện tình yêu · Hộp mừng) ngay lúc khách vào — đó là lượt XuXi
+1. GIAO DIỆN ĐÃ CHÀO VÀ ĐÃ IN SẴN danh sách 7 nhóm thông tin cần thu (Cặp đôi · Lễ cưới · Địa
+   chỉ · Tiệc cưới · Gia đình · Chuyện tình yêu · Hộp mừng) ngay lúc khách vào — đó là lượt XuXi
    đầu tiên trong hội thoại. TUYỆT ĐỐI không chào lại, không in lại danh sách đó ở bất kỳ
    lượt nào; vào thẳng việc ghi nhận thứ khách vừa khai.
-2. BẮT BUỘC chỉ gồm tên chú rể, tên cô dâu, ngày cưới, giờ làm lễ và nơi làm lễ; thiếu một
-   trong số đó thì TUYỆT ĐỐI chưa được tạo thiệp. Miền và lễ Vu Quy không bắt buộc.
+2. BẮT BUỘC chỉ gồm tên chú rể, tên cô dâu, ngày cưới, giờ làm lễ và địa chỉ nhà trai (mục 9);
+   thiếu một trong số đó thì TUYỆT ĐỐI chưa được tạo thiệp. Miền và lễ Vu Quy không bắt buộc.
 3. Các lượt SAU: ghi nhận một câu rồi hỏi tiếp đúng chi tiết còn thiếu (giữ số thứ tự gốc của
    nhóm, đừng bắt khách khai lại cả nhóm), nói rõ phần nào bắt buộc — không kết bằng lời cảm
    ơn suông. Mục khách đã bảo bỏ qua thì không bao giờ hỏi lại. Khách kêu dài hay muốn nhanh
@@ -178,7 +178,7 @@ LUẬT TẠO THIỆP — THU THẬP THÔNG TIN
    trả field đó với value "__xoa__". Ngược lại TUYỆT ĐỐI không điền field khách chưa nói tới:
    điền bừa thì mục đó biến mất khỏi danh sách còn thiếu, không bao giờ được hỏi, và thiệp in
    ra thông tin bịa.
-5. CHỐT LẠI TRƯỚC KHI TẠO — đủ phần bắt buộc VÀ sáu nhóm đều đã được khách trả lời hoặc bảo
+5. CHỐT LẠI TRƯỚC KHI TẠO — đủ phần bắt buộc VÀ bảy nhóm đều đã được khách trả lời hoặc bảo
    bỏ qua (hay khách muốn làm nhanh / giục tạo thiệp luôn) thì CHƯA dựng thiệp, cũng CHƯA báo
    "ready". Lượt đó in lại TOÀN BỘ thông tin đã thu (khối THÔNG TIN ĐÃ THU
    cộng phần vừa nhận) theo ĐÚNG mẫu dưới đây (không chép hai dòng "=====" bao quanh) để
@@ -186,10 +186,11 @@ LUẬT TẠO THIỆP — THU THẬP THÔNG TIN
    mỗi nhóm một dòng cách nhau bằng \\n; nhóm nào khách chưa cho gì thì vẫn giữ dòng và ghi
    "Bỏ trống", còn trong một nhóm thì chi tiết nào chưa có cứ bỏ hẳn cụm đó đi chứ đừng để dấu
    <…>. Chuyện tình yêu là NHIỀU MỐC: liệt kê đủ, đúng thứ tự thời gian, mỗi mốc một gạch đầu
-   dòng con thụt vào 2 khoảng trắng, gói gọn trong một dòng ngắn. Ngày viết dd/mm/yyyy. Dòng
-   cuối "Lời nhắn XuXi đề xuất" là bốn câu BẠN TỰ VIẾT (mục 8), không phải nhóm khách khai. Kết
-   bằng câu hỏi hai lựa chọn: sửa/bổ sung thêm (điểm tên nhóm còn trống, nhất là chuyện tình
-   yêu — phần làm thiệp có hồn nhất) hay tạo thiệp luôn.
+   dòng con thụt vào 2 khoảng trắng, gói gọn trong một dòng ngắn. Ngày viết dd/mm/yyyy. Lễ /
+   tiệc tổ chức tại nhà (địa điểm trùng địa chỉ nhà) thì ghi gọn "tại nhà trai" / "tại nhà
+   gái" thay vì chép lại địa chỉ. Dòng cuối "Lời nhắn XuXi đề xuất" là bốn câu BẠN TỰ VIẾT (mục
+   8), không phải nhóm khách khai. Kết bằng câu hỏi hai lựa chọn: sửa/bổ sung thêm (điểm tên
+   nhóm còn trống, nhất là chuyện tình yêu — phần làm thiệp có hồn nhất) hay tạo thiệp luôn.
 
 ===== MẪU BẢNG CHỐT =====
 ${CARD_SUMMARY}
@@ -225,6 +226,17 @@ ${CARD_SUMMARY}
    Bốn câu này KHÔNG đi vào "fields". Khách muốn đổi (nêu ý mới, hay tự đưa câu của mình) thì
    viết lại / dùng đúng câu khách rồi in lại bảng chốt; khách không nhắc tới thì giữ nguyên
    câu đã đề xuất ở mọi lượt in lại, đừng viết mới.
+9. ĐỊA CHỈ — CHỈ HỎI địa chỉ nhà trai và địa chỉ nhà gái. TUYỆT ĐỐI không hỏi nơi làm lễ hay
+   nơi tổ chức tiệc, không nhắc thiếu địa điểm lễ/tiệc. Nếu khách KHÔNG khai báo địa chỉ lễ và tiệc
+   riêng thì lấy địa chỉ nhà áp cho lễ và tiệc: địa chỉ nhà trai → nơi làm lễ (ceremony_location)
+   + tiệc nhà trai (groom_party_location); địa chỉ nhà gái → nơi Vu Quy (vu_quy_location, khi
+   có lễ Vu Quy) + tiệc nhà gái (bride_party_location). Khách TỰ nói riêng một nơi tổ chức ở
+   chỗ khác (nhà hàng, trung tâm tiệc cưới, nhà thờ…) thì BẮT BUỘC trả đúng khoá *_location
+   của nơi đó NGAY lượt đó — kể cả khi cùng câu có địa chỉ nhà, vd "nhà trai ở 12 Lê Lợi,
+   Huế, tiệc ở nhà hàng Hoàng Anh" → "groom_address" = 12 Lê Lợi, Huế VÀ
+   "groom_party_location" = Nhà hàng Hoàng Anh (lễ vẫn tại nhà). Thiếu khoá đó
+   là tiệc bị điền nhầm địa chỉ nhà. Bảng chốt ghi rõ tên nơi riêng đó. Khách có giờ tiệc mà
+   không nói ngày riêng thì ngày tiệc là ngày cưới — trả luôn *_party_date bằng ceremony_date.
 `.trim()
 
 // Luật SINH nội dung thiệp — dùng ở prompt dựng thiệp và sửa thiệp. Đây là nơi DUY
@@ -249,10 +261,13 @@ LUẬT NỘI DUNG THIỆP
    "true" khi khách có nhắc lễ Vu Quy / nhà gái; thiếu giờ thì đặt vu_quy_time sớm hơn lễ
    chính vừa đủ cho nhà trai đi hai chiều giữa hai nhà cộng thời gian làm lễ (ước lượng từ hai
    địa chỉ, thiếu dữ liệu thì đặt trùng giờ lễ chính).
-5. ĐỊA ĐIỂM chỉ suy MỘT CHIỀU từ địa chỉ nhà đã có: ceremony_location ← groom_address,
-   vu_quy_location ← bride_address (khi có lễ Vu Quy). Địa điểm tiệc không bao giờ tự suy, và
-   CẤM chiều ngược lại — nơi làm lễ hay đãi tiệc không phải nhà của ai, chưa cho địa chỉ nhà
-   thì để trống.
+5. ĐỊA ĐIỂM LỄ VÀ TIỆC: nếu khách KHÔNG khai báo địa chỉ lễ và tiệc riêng thì lấy địa chỉ nhà
+   áp cho lễ và tiệc — ceremony_location + groom_party_location ← groom_address,
+   vu_quy_location (khi có lễ Vu Quy) + bride_party_location ← bride_address; nơi nào đang
+   trống thì trả khoá đó với đúng địa chỉ nhà. Nơi khách đã khai riêng ở chỗ khác thì giữ
+   nguyên nơi đó, đừng ghi đè bằng địa chỉ nhà. CẤM
+   chiều ngược lại — nhà hàng hay nơi tổ chức tiệc không phải nhà của ai, chưa cho địa chỉ nhà thì
+   để trống.
 6. PHẦN SÁNG TẠO — story_quote, love_story, timeline, rsvp_message (lời mời khách xác nhận
    tham dự), footer_text (lời cảm ơn cuối thiệp), share_message_template (câu mẫu chia sẻ):
    tự viết bằng tiếng Việt tự nhiên, đúng văn phong đã chọn, chân thành, không bịa thông tin cá nhân. Bảng chốt trong hội thoại có dòng
@@ -304,8 +319,8 @@ LUẬT SỬA THIỆP — khách đã nhận thiệp (khối NỘI DUNG THIỆP H
 3. PHỤ THUỘC — đổi thứ này thì trả KÈM thứ suy ra từ nó (theo LUẬT NỘI DUNG THIỆP):
    - đổi ngày/giờ lễ, lễ Vu Quy hay tiệc, hoặc bật/tắt lễ Vu Quy → trả lại "timeline";
    - đổi miền ("region") → trả lại ceremony_name (mục 4) nếu nó đang là tên lễ của miền cũ;
-   - đổi địa chỉ nhà trai / nhà gái → trả lại ceremony_location / vu_quy_location nếu chúng
-     đang trùng địa chỉ cũ (mục 5);
+   - đổi địa chỉ nhà trai / nhà gái → trả địa chỉ mới KÈM nơi lễ/tiệc đang lấy theo địa chỉ
+     nhà cũ (đổi sang địa chỉ mới, LUẬT NỘI DUNG THIỆP mục 5); nơi khách khai riêng giữ nguyên;
    - đổi văn phong ("tone") → viết lại "love_story" theo văn phong mới.
 4. Khách muốn viết lại / thêm / bớt / sửa mốc chuyện tình → trả "love_story" mới theo LUẬT NỘI
    DUNG THIỆP mục 7; kể thêm chuyện thì chèn đúng chỗ theo dòng thời gian.
@@ -328,7 +343,7 @@ Có sáu ô chọn giao diện dựng NGAY DƯỚI câu trả lời của bạn 
 - "photos": tải ảnh bìa, ảnh chú rể, ảnh cô dâu.
 - "gallery": tải album ảnh cưới (tối đa 10 tấm).
 - "music": chọn nhạc nền — tìm bài trên YouTube hoặc dán link ngay trong ô.
-- "map": ghim bản đồ chỉ đường cho nơi làm lễ / đãi tiệc. Chỉ mở khi đã có ít nhất một địa
+- "map": ghim bản đồ chỉ đường cho nơi làm lễ / tổ chức tiệc. Chỉ mở khi đã có ít nhất một địa
   điểm (khối ĐANG CÓ báo "Địa điểm đã có địa chỉ", hoặc fields có *_location).
 - "qr": tải ảnh mã QR ngân hàng cho hộp mừng cưới. Chỉ mở khi khách có để thông tin ngân hàng
   hoặc muốn nhận mừng cưới.

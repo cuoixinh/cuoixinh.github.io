@@ -10,7 +10,7 @@
     { id: "photos", label: "Ảnh cưới", icon: "image", hint: "Ảnh bìa và ảnh chân dung chú rể, cô dâu." },
     { id: "gallery", label: "Album", icon: "images", hint: "Tối đa 10 ảnh cho album cưới, chọn nhiều ảnh một lúc được." },
     { id: "music", label: "Nhạc nền", icon: "music", hint: "Tìm bài trên YouTube, hoặc dán thẳng link bài hát." },
-    { id: "map", label: "Bản đồ", icon: "map-pin", hint: "Ghim chỉ đường để khách mời tìm tới nơi làm lễ, đãi tiệc." },
+    { id: "map", label: "Bản đồ", icon: "map-pin", hint: "Ghim chỉ đường để khách mời tìm tới nơi làm lễ, tổ chức tiệc." },
     { id: "qr", label: "QR mừng cưới", icon: "qr-code", hint: "Ảnh mã QR tài khoản ngân hàng hai bên cho hộp mừng cưới." },
   ];
   const KIND = Object.fromEntries(KINDS.map((k) => [k.id, k]));
@@ -800,7 +800,7 @@
         Object.keys(rows).forEach((k) => delete rows[k]);
         if (!sides.length) {
           wrap.appendChild(
-            el("p", "aichat-kit-sub", "Chưa có địa chỉ nơi làm lễ / đãi tiệc — bạn nhắn cho XuXi địa chỉ trước nhé."),
+            el("p", "aichat-kit-sub", "Chưa có địa chỉ nhà trai / nhà gái — bạn nhắn cho XuXi địa chỉ trước nhé."),
           );
         }
         sides.forEach(([s, label]) => {

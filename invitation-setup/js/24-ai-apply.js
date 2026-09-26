@@ -90,22 +90,39 @@ function cxApplyAiCard(result, only) {
       console.error("cxApplyAiCard map:", side, e);
     }
   });
-  // Ô "Trùng địa điểm" khách tích ở khung chat — SAU bản đồ vì bật lên là chép địa điểm +
-  // bản đồ của lễ sang tiệc. initCeremonySection đã đặt mặc định lúc fillForm, ghi đè ở đây.
-  Object.entries(media.same || {}).forEach(([side, on]) => {
+  // Ô "Trùng địa điểm" của hai tiệc — SAU bản đồ vì bật lên là chép địa điểm + bản đồ của lễ
+  // sang tiệc. Tính theo địa điểm AI vừa trả (nhà hàng khác nhà → bỏ tích), rồi để lựa chọn
+  // khách tích ở khung chat trang chủ (media.same) quyết định sau cùng.
+  const same = { ..._aiPartySame(f), ...(media.same || {}) };
+  Object.entries(same).forEach(([side, on]) => {
     try {
       if (typeof on === "boolean") togglePartySameLoc(side.replace("_party", ""), null, on);
     } catch (e) {
       console.error("cxApplyAiCard same:", side, e);
     }
   });
-  // Bước 4 ghi thẳng địa điểm tiệc, kể cả tiệc đang "trùng" → kéo lại theo lễ.
-  _syncPartyIfSame();
 
   // Hidden input set bằng code không tự phát event → gọi autosave thủ công
   _scheduleAutoSave();
 
   showToast("Đã áp dụng nội dung AI vào thiệp", "success");
+}
+
+// Tiệc nào có địa điểm trong lượt này thì "trùng" = địa điểm đó bằng nơi nguồn (nhà trai theo
+// lễ cưới; nhà gái theo vu quy khi có, không thì lễ cưới — như togglePartySameLoc). Tiệc không
+// nhắc tới thì không đụng: lượt vá chỉ đổi phần khách vừa sửa.
+function _aiPartySame(f) {
+  const norm = (v) => String(v || "").toLowerCase().replace(/[\s,.]+/g, " ").trim();
+  const vuQuy = _aiFieldValue("vu_quy_enabled") === "true";
+  const src = { groom: "ceremony_location", bride: vuQuy ? "vu_quy_location" : "ceremony_location" };
+  const out = {};
+  ["groom", "bride"].forEach((side) => {
+    const key = `${side}_party_location`;
+    if (!(key in f) && !(src[side] in f)) return;
+    const party = norm(_aiFieldValue(key));
+    out[`${side}_party`] = !party || party === norm(_aiFieldValue(src[side]));
+  });
+  return out;
 }
 
 // Thiệp chỉ còn phần có trong `only`; field khách bảo bỏ (có trong only.fields mà

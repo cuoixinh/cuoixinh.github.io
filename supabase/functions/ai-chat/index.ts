@@ -589,7 +589,7 @@ dữ liệu:
 - "story_quote", "rsvp_message", "footer_text", "share_message_template": chép NGUYÊN VĂN
   bốn câu ở dòng "Lời nhắn XuXi đề xuất" của bảng chốt (Slogan · Lời mời · Lời cảm ơn · Câu
   mẫu chia sẻ); câu nào không có thì tự viết.
-===== HẾT =====
+===== HẾT =====`
 
 function knowledgeBlock(catalog: string): string {
   return `===== TRI THỨC VỀ CƯỚI XINH (nguồn sự thật DUY NHẤT) =====
@@ -835,6 +835,36 @@ function mergeFields(
   return out
 }
 
+// Đám cưới Việt đa phần làm lễ và tổ chức tiệc ngay tại nhà → nơi lễ/tiệc mặc định theo địa chỉ
+// nhà, khách chỉ phải khai riêng nơi nào tổ chức chỗ khác (nhà hàng…). Nơi vu quy chỉ suy khi
+// có lễ Vu Quy. Không lưu cờ "tự suy": nơi nào đang BẰNG địa chỉ cũ thì coi là đi theo nhà,
+// nên đổi địa chỉ là kéo theo, còn nơi khai riêng (khác địa chỉ) thì đứng yên.
+const VENUE_FROM: Array<[string, string[]]> = [
+  ['groom_address', ['ceremony_location', 'groom_party_location']],
+  ['bride_address', ['vu_quy_location', 'bride_party_location']],
+]
+const normPlace = (v: unknown) => String(v ?? '').replace(/\s+/g, ' ').trim()
+
+function deriveVenues(
+  prev: KnownCard | null,
+  delta: Record<string, unknown>,
+  merged: Record<string, unknown>,
+): void {
+  const vuQuy = merged.vu_quy_enabled === true || merged.vu_quy_enabled === 'true'
+  for (const [src, targets] of VENUE_FROM) {
+    const now = normPlace(merged[src])
+    const old = normPlace(prev?.fields?.[src])
+    for (const t of targets) {
+      if (t === 'vu_quy_location' && !vuQuy) continue
+      if (t in delta) continue // khách vừa khai riêng nơi này
+      const cur = normPlace(merged[t])
+      if (cur && cur !== old) continue // nơi khai riêng từ trước
+      if (now) merged[t] = now
+      else delete merged[t]
+    }
+  }
+}
+
 // Field mà lịch trình suy ra từ đó — lượt sửa đổi một trong số này mà model quên trả
 // "timeline" thì server tự dựng lại (timelineFromFields).
 const TIMELINE_KEYS = [
@@ -847,7 +877,7 @@ const REQUIRED_LABEL: Record<string, string> = {
   bride_name: 'tên cô dâu',
   ceremony_date: 'ngày cưới',
   ceremony_time: 'giờ làm lễ',
-  ceremony_location: 'nơi làm lễ',
+  ceremony_location: 'địa chỉ nhà trai',
 }
 
 // Khách xin dựng thiệp mà còn thiếu mục bắt buộc: câu của model ("mình dựng ngay đây")
@@ -919,6 +949,7 @@ function readResult(
   const region = VALID_REGIONS.includes(String(obj.region)) ? String(obj.region) : prev?.region ?? ''
   const delta = fieldsToObject(obj.fields)
   const merged = mergeFields(prev, delta)
+  deriveVenues(prev, delta, merged)
   out.ask = ASK_KINDS.includes(String(obj.ask ?? '')) ? String(obj.ask) : ''
 
   if (kind === 'collect') {

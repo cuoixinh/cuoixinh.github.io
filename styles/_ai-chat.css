@@ -41,6 +41,14 @@
   }
 }
 
+/* Logo bên trong là <img>: không cho trình duyệt kéo ảnh / bôi đen, để cú
+   nhấn luôn rơi vào chính bong bóng (tay cầm kéo). */
+.aichat-fab img {
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
 .aichat-fab:hover {
   transform: scale(1.06);
   box-shadow: 0 10px 26px rgb(var(--shadow-brand-rgb) / 0.45);
@@ -128,6 +136,48 @@
   z-index: 350;
   right: calc(24px + var(--cx-rail-w, 0px) + env(safe-area-inset-right, 0px));
   bottom: calc(16px + var(--nav-h, 0px) + env(safe-area-inset-bottom, 0px));
+}
+
+/* Chế độ mở rộng (nút #aichatExpand, cờ .is-expanded do js/ai-assistant.js đặt):
+   bảng phủ gần kín cửa sổ, nội dung dồn vào cột giữa rộng tối đa 800px cho dễ
+   đọc. Chỉ từ 521px — dưới đó bảng vốn đã phủ kín màn nên giấu luôn nút. Trang
+   Thiết lập cũng phủ lên dải xem trực tiếp + navbar (z-index 350 đã vượt cả hai). */
+.aichat-expand .lucide-minimize-2,
+.aichat-panel.is-expanded .aichat-expand .lucide-maximize-2 {
+  display: none;
+}
+
+.aichat-panel.is-expanded .aichat-expand .lucide-minimize-2 {
+  display: block;
+}
+
+@media (max-width: 520px) {
+  .aichat-expand {
+    display: none;
+  }
+}
+
+@media (min-width: 521px) {
+  .aichat-panel.is-expanded,
+  .cx-setup .aichat-panel.is-expanded {
+    top: 24px;
+    left: 24px;
+    right: 24px;
+    bottom: 24px;
+    width: auto;
+    height: auto;
+  }
+
+  .aichat-panel.is-expanded .aichat-head {
+    cursor: default;
+  }
+
+  .aichat-panel.is-expanded .aichat-body,
+  .aichat-panel.is-expanded .aichat-sugwrap,
+  .aichat-panel.is-expanded .aichat-foot {
+    padding-left: max(16px, calc((100% - 800px) / 2));
+    padding-right: max(16px, calc((100% - 800px) / 2));
+  }
 }
 
 /* Đang kéo bảng: bỏ transition để nó bám sát con trỏ. Toạ độ do
@@ -749,6 +799,16 @@
   border-top: 1px solid rgb(var(--brand-primary-rgb) / 0.35);
 }
 
+/* Buổi tiếp theo cùng ngày: đứng liền buổi trên, ô lịch chỉ giữ chỗ cho thẳng cột. */
+.aichat-ev + .aichat-ev.is-cont {
+  border-top: 0;
+}
+
+.aichat-ev-cal.is-cont {
+  visibility: hidden;
+  height: 0;
+}
+
 .aichat-ev-cal {
   @apply flex shrink-0 flex-col items-center justify-center rounded-xl;
 
@@ -852,6 +912,17 @@
   @apply mt-1;
 
   color: rgb(var(--text-body-rgb));
+}
+
+/* Tiêu đề ngày của lịch trình; ngày thứ hai trở đi cách dải mốc phía trên. */
+.aichat-tl-day {
+  @apply mb-2 text-sm font-semibold;
+
+  color: rgb(var(--text-heading-rgb));
+}
+
+.aichat-steps + .aichat-tl-day {
+  @apply mt-3;
 }
 
 .aichat-steps.is-compact li {
