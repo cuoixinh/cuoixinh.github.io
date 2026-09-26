@@ -1110,6 +1110,54 @@
   background: rgb(var(--brand-accent-rgb) / 0.14);
 }
 
+/* ── Hai thẻ chọn chế độ ở màn chào ────────────────────────────────────────── */
+/* Cuộc chat mới chưa chọn chế độ thì hàng gợi ý thành hai thẻ Hỏi đáp / Tạo thiệp
+   (renderModes ở js/ai-assistant.js). Cùng chất liệu với chip (mặt trắng, viền mảnh
+   màu nhấn) nhưng to hơn, có dòng mô tả, chia đôi bề ngang. */
+.aichat-modes {
+  @apply grid w-full grid-cols-2 gap-2;
+}
+
+.aichat-mode {
+  @apply flex cursor-pointer flex-col items-start gap-1 rounded-[16px] px-3 py-2.5 text-left;
+
+  background: rgb(var(--white-rgb));
+  border: 1px solid rgb(var(--brand-accent-rgb) / 0.45);
+  box-shadow: 0 1px 3px rgb(var(--shadow-brand-rgb) / 0.08);
+  transition: border-color 0.2s ease, background-color 0.2s ease,
+    box-shadow 0.2s ease;
+  animation: aichatChipIn 0.32s ease-out both;
+  animation-delay: var(--sug-d, 0ms);
+}
+
+.aichat-mode-t {
+  @apply flex items-center gap-1.5 text-sm font-semibold leading-snug;
+
+  color: rgb(var(--brand-accent-rgb));
+}
+
+.aichat-mode-s {
+  @apply text-xs leading-snug;
+
+  color: rgb(var(--text-body-rgb));
+}
+
+.aichat-mode:hover {
+  background: rgb(var(--brand-accent-rgb) / 0.07);
+  border-color: rgb(var(--brand-accent-rgb));
+  box-shadow: 0 2px 8px rgb(var(--brand-accent-rgb) / 0.18);
+}
+
+.aichat-mode:active {
+  background: rgb(var(--brand-accent-rgb) / 0.14);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aichat-mode {
+    animation: none;
+  }
+}
+
 
 /* ── Lối đi nhanh trên thanh tiêu đề ───────────────────────────────────────── */
 /* NAV_LINKS ở js/ai-assistant.js dựng thành nút tròn CHỈ CÓ ICON, đứng cạnh nút

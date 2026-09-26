@@ -7,8 +7,11 @@
 
 // Đổ một thiệp do AI dựng vào form đang mở. Gọi từ khung chat (js/ai-assistant.js);
 // mọi giá trị đi qua _aiSetField để x-input/flatpickr/ô ngân hàng đồng bộ đúng.
-function cxApplyAiCard(result) {
+// `only` = phần vừa sửa ({fields:[…], story_quote, love_story, timeline}): chỉ đổ đúng
+// phần đó để không ghi đè chỗ khách đã tự chỉnh tay sau lần áp dụng trước.
+function cxApplyAiCard(result, only) {
   if (!result) return;
+  if (only) result = _aiPick(result, only);
 
   // 1) Slogan → dùng lại cơ chế của randomQuote (set value + dispatch input để autosave + x-input đồng bộ)
   if (result.story_quote) {
@@ -38,6 +41,7 @@ function cxApplyAiCard(result) {
   // 4) Các field trích xuất/sinh khác (gồm ngày & giờ cưới AI trích từ Thông tin) → đổ vào form
   const f = result.fields || {};
   Object.keys(f).forEach((key) => _aiSetField(key, f[key]));
+  (result.cleared || []).forEach(_aiClearField);
 
   // 5) Bật hiển thị các section tương ứng khi có nội dung
   if ((result.love_story || []).length) _aiEnableSection("love_story");
@@ -91,6 +95,54 @@ function cxApplyAiCard(result) {
   _scheduleAutoSave();
 
   showToast("Đã áp dụng nội dung AI vào thiệp", "success");
+}
+
+// Thiệp chỉ còn phần có trong `only`; field khách bảo bỏ (có trong only.fields mà
+// thiệp không còn) đi vào `cleared` để xoá khỏi form.
+function _aiPick(card, only) {
+  const keys = only.fields || [];
+  const src = card.fields || {};
+  const fields = {};
+  keys.forEach((k) => {
+    if (k in src) fields[k] = src[k];
+  });
+  return {
+    story_quote: only.story_quote ? card.story_quote : "",
+    love_story: only.love_story ? card.love_story : [],
+    timeline: only.timeline ? card.timeline : [],
+    fields,
+    cleared: keys.filter((k) => !(k in src)),
+  };
+}
+
+// Xoá một field của form (khách bảo XuXi bỏ mục đó). Cùng các nhánh control với _aiSetField.
+function _aiClearField(name) {
+  const form = document.getElementById("wedding-form");
+  if (!form) return;
+  if (name === "vu_quy_enabled") return _aiSetField(name, false);
+  if (name === "groom_bank_name" || name === "bride_bank_name") {
+    const prefix = name === "groom_bank_name" ? "groom" : "bride";
+    const input = document.getElementById(`${prefix}-bank-input`);
+    const hidden = document.getElementById(`${prefix}-bank-value`);
+    if (input) input.value = "";
+    if (hidden) {
+      hidden.value = "";
+      hidden.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+    return;
+  }
+  if (window.flatpickrInstances && window.flatpickrInstances[name]) {
+    try {
+      window.flatpickrInstances[name].clear();
+    } catch (e) {}
+  }
+  let el = form.querySelector(`[name="${name}"]`);
+  if (!el) return;
+  if (el.tagName.startsWith("X-"))
+    el = el.querySelector("input, textarea, select") || el;
+  el.value = "";
+  el.dispatchEvent(new Event("input", { bubbles: true }));
+  el.dispatchEvent(new Event("change", { bubbles: true }));
 }
 
 // Đổ 1 giá trị vào field của form (tái dùng cách xử lý như fillForm):
