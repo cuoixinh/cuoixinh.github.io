@@ -1110,22 +1110,56 @@
   background: rgb(var(--brand-accent-rgb) / 0.14);
 }
 
-/* ── Hai thẻ chọn chế độ ở màn chào ────────────────────────────────────────── */
-/* Cuộc chat mới chưa chọn chế độ thì hàng gợi ý thành hai thẻ Hỏi đáp / Tạo thiệp
-   (renderModes ở js/ai-assistant.js). Cùng chất liệu với chip (mặt trắng, viền mảnh
-   màu nhấn) nhưng to hơn, có dòng mô tả, chia đôi bề ngang. */
-.aichat-modes {
-  @apply grid w-full grid-cols-2 gap-2;
+/* ── Cửa chọn chế độ ở màn chào ───────────────────────────────────────────── */
+/* Cuộc chat mới phải chọn Hỏi đáp / Tạo thiệp trước khi nhắn được (gateEl ở
+   js/ai-assistant.js khoá ô nhập qua cờ .is-gated). Cửa là một thẻ TRONG đoạn chat,
+   ngay dưới lời chào; chọn rồi thì ba cờ class lần lượt lo ba nhịp chuyển động:
+   .is-picking (thẻ kia mờ đi) → .is-full (thẻ đã chọn giãn hết bề ngang) →
+   .is-tag (thu lại thành tag). Cú bay lên đầu đoạn chat do JS (flyTag).
+   Bề ngang co giãn bằng flex-grow chứ không bằng width: trị số nội suy được nên
+   một thẻ hẹp lại là thẻ kia tự nới ra, không cần đo px. */
+
+.aichat-gate {
+  @apply w-full;
 }
 
-.aichat-mode {
-  @apply flex cursor-pointer flex-col items-start gap-1 rounded-[16px] px-3 py-2.5 text-left;
+.aichat-gate-hd {
+  @apply mb-2 text-center text-xs font-semibold;
 
+  color: rgb(var(--text-caption-rgb));
+  transition: opacity 0.24s ease, max-height 0.32s ease, margin-bottom 0.32s ease;
+  max-height: 24px;
+  overflow: hidden;
+}
+
+.aichat-gate-opts {
+  @apply flex w-full items-stretch gap-2;
+
+  /* Mốc đo cho min-height VUÔNG của thẻ ở dưới. */
+  container-type: inline-size;
+  transition: gap 0.32s ease;
+}
+
+/* Vuông là mức TỐI THIỂU, không phải khổ cứng: min-height = đúng bề ngang một thẻ
+   (nửa dải trừ nửa khoảng hở), nên chữ dài hơn thì thẻ cao thêm chứ không bị cắt, còn
+   chữ ngắn thì ảnh minh hoạ (flex-1) ăn hết chỗ thừa. Dùng aspect-ratio thì chiều cao
+   thành cứng và chữ tràn ra là mất. Lúc diễn hoạt thì bỏ mức tối thiểu đó và giữ
+   chiều cao đo được (--pick-h do pickMode đặt) — không thì giãn hết bề ngang là thẻ
+   phình thành một ô vuông to bằng cả bảng chat. */
+.aichat-mode {
+  @apply flex min-w-0 cursor-pointer flex-col items-start gap-1 overflow-hidden
+         rounded-[16px] px-3 py-2.5 text-left;
+
+  flex: 1 1 0;
+  min-height: calc(50cqw - 4px);
   background: rgb(var(--white-rgb));
   border: 1px solid rgb(var(--brand-accent-rgb) / 0.45);
   box-shadow: 0 1px 3px rgb(var(--shadow-brand-rgb) / 0.08);
-  transition: border-color 0.2s ease, background-color 0.2s ease,
-    box-shadow 0.2s ease;
+  transition: flex-grow 0.34s ease, height 0.34s ease, opacity 0.22s ease,
+    transform 0.22s ease, padding 0.32s ease, font-size 0.32s ease,
+    border-color 0.2s ease,
+    border-width 0.32s ease, border-radius 0.32s ease,
+    background-color 0.2s ease, box-shadow 0.2s ease;
   animation: aichatChipIn 0.32s ease-out both;
   animation-delay: var(--sug-d, 0ms);
 }
@@ -1134,30 +1168,205 @@
   @apply flex items-center gap-1.5 text-sm font-semibold leading-snug;
 
   color: rgb(var(--brand-accent-rgb));
+  transition: font-size 0.3s ease;
 }
 
 .aichat-mode-s {
-  @apply text-xs leading-snug;
+  @apply overflow-hidden text-xs leading-snug;
 
   color: rgb(var(--text-body-rgb));
+  /* Trần chỉ để có cái mà nội suy lúc xếp lại — phải rộng hơn hẳn chỗ chữ cần, không
+     thì cắt mất dòng cuối. */
+  max-height: 140px;
+  transition: max-height 0.3s ease, opacity 0.2s ease;
 }
 
-.aichat-mode:hover {
-  background: rgb(var(--brand-accent-rgb) / 0.07);
-  border-color: rgb(var(--brand-accent-rgb));
-  box-shadow: 0 2px 8px rgb(var(--brand-accent-rgb) / 0.18);
+/* Ảnh minh hoạ dưới mỗi thẻ (assets/images/chat/mode-*.webp): nền trong suốt, đặt
+   thẳng lên mặt thẻ chứ không có dải nền riêng. Ảnh khổ 2:1 còn chỗ đặt thì hẹp hơn
+   theo bề ngang thẻ → object-contain để không cắt mất phần nào của hình. Thu lại
+   thành tag thì cả khối xếp hẳn. */
+.aichat-mode-fig {
+  @apply mt-1.5 block w-full overflow-hidden;
+
+  flex: 1 1 auto;
+  min-height: 0;
+  transition: flex-grow 0.32s ease, height 0.32s ease, margin-top 0.32s ease,
+    opacity 0.22s ease;
+}
+
+.aichat-mode-img {
+  @apply block h-full w-full object-contain;
+}
+
+/* Nút radio: vòng tròn rỗng, chấm trong nở ra khi được chọn. */
+.aichat-mode-r {
+  @apply relative shrink-0 rounded-full;
+
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgb(var(--brand-accent-rgb) / 0.45);
+  transition: border-color 0.2s ease, width 0.28s ease, opacity 0.2s ease,
+    border-width 0.28s ease, margin-right 0.28s ease;
+}
+
+.aichat-mode-r::after {
+  @apply absolute rounded-full;
+
+  content: "";
+  inset: 2px;
+  background: rgb(var(--brand-accent-rgb));
+  transform: scale(0);
+  transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (hover: hover) {
+  .aichat-mode:hover {
+    background: rgb(var(--brand-accent-rgb) / 0.07);
+    border-color: rgb(var(--brand-accent-rgb));
+    box-shadow: 0 2px 8px rgb(var(--brand-accent-rgb) / 0.18);
+  }
+
+  .aichat-mode:hover .aichat-mode-r {
+    border-color: rgb(var(--brand-accent-rgb));
+  }
+
+  .aichat-mode:hover .aichat-mode-r::after {
+    transform: scale(0.45);
+  }
 }
 
 .aichat-mode:active {
   background: rgb(var(--brand-accent-rgb) / 0.14);
 }
 
+/* Nhịp 1 — thẻ không được chọn mờ dần, thẻ được chọn đậm lên và chấm radio nở. */
+.aichat-gate.is-picking .aichat-mode {
+  min-height: 0;
+  height: var(--pick-h);
+}
+
+.aichat-mode.is-drop {
+  @apply pointer-events-none;
+
+  opacity: 0;
+  transform: scale(0.94);
+}
+
+.aichat-mode.is-pick {
+  background: rgb(var(--brand-accent-rgb) / 0.1);
+  border-color: rgb(var(--brand-accent-rgb));
+}
+
+.aichat-mode.is-pick .aichat-mode-r::after {
+  transform: scale(1);
+}
+
+/* Nhịp 2 — thẻ đã chọn giãn hết bề ngang, thẻ kia co về 0. */
+.aichat-gate.is-full .aichat-gate-opts {
+  @apply gap-0;
+}
+
+.aichat-gate.is-full .aichat-mode.is-drop {
+  @apply overflow-hidden px-0 py-0;
+
+  flex-grow: 0;
+  border-width: 0;
+}
+
+/* Nhịp 3 — thu lại thành tag: dòng mô tả, nút radio và dòng tiêu đề của cửa xếp
+   lại, thẻ co về đúng khổ chữ rồi dồn vào giữa. Hình thức khai CHUNG với
+   .aichat-modetag để cú bay ở JS chỉ phải dịch chỗ, không phải đổi khổ. */
+
+/* flex-direction KHÔNG nội suy được: thẻ lật sang hàng ngay từ đầu nhịp 3, trong khi
+   mô tả và ảnh còn đang xếp lại — ba khối đứng cạnh nhau là dòng tiêu đề bị bóp.
+   Khoá tiêu đề lại từ nhịp 1 (lúc đó thẻ còn rộng cả nửa dải nên nowrap an toàn). */
+.aichat-gate.is-picking .aichat-mode-t {
+  @apply shrink-0 whitespace-nowrap;
+}
+.aichat-gate.is-tag .aichat-gate-hd {
+  @apply mb-0;
+
+  max-height: 0;
+  opacity: 0;
+}
+
+.aichat-gate.is-tag .aichat-gate-opts {
+  @apply justify-center;
+}
+
+/* flex-basis phải về auto cùng lúc: còn để 0 thì grow 0 là thẻ co về 0 chứ không
+   về đúng khổ chữ. Đổi ngay không giật vì lúc grow còn 1 thẻ vẫn chiếm hết chỗ. */
+.aichat-gate.is-tag .aichat-mode.is-pick {
+  flex-grow: 0;
+  flex-basis: auto;
+}
+
+.aichat-gate.is-tag .aichat-mode-s {
+  max-height: 0;
+  width: 0;
+  opacity: 0;
+}
+
+.aichat-gate.is-tag .aichat-mode-fig {
+  @apply mt-0;
+
+  flex-grow: 0;
+  height: 0;
+  width: 0;
+  opacity: 0;
+}
+
+.aichat-gate.is-tag .aichat-mode-r {
+  @apply -mr-1.5;
+
+  width: 0;
+  border-width: 0;
+  opacity: 0;
+}
+
+.aichat-modetag,
+.aichat-gate.is-tag .aichat-mode.is-pick {
+  @apply mx-auto flex w-fit shrink-0 flex-row items-center gap-1.5 rounded-full
+         px-2.5 py-1 text-xs font-semibold;
+
+  height: 26px; /* khai cứng để thẻ thu gọn và tag ở đầu đoạn chat bằng nhau từng px */
+  color: rgb(var(--brand-accent-rgb));
+  background: rgb(var(--brand-accent-rgb) / 0.1);
+  border: 1px solid rgb(var(--brand-accent-rgb) / 0.3);
+  box-shadow: none;
+}
+
+.aichat-gate.is-tag .aichat-mode-t {
+  @apply gap-1.5 text-xs;
+}
+
+/* Cửa còn đóng thì khung chat CHỈ có hai lựa chọn: giấu hẳn chân bảng (ô nhập, nút
+   gửi, micro, bộ đếm) và dời cửa ra giữa vùng trống cho ra dáng một màn chọn. */
+.aichat-panel.is-gated .aichat-foot,
+.aichat-panel.is-gated #aichatReset {
+  display: none;
+}
+
+.aichat-panel.is-gated .aichat-body {
+  @apply flex flex-col justify-center;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .aichat-mode {
     animation: none;
+    transition: none;
+  }
+
+  .aichat-gate-hd,
+  .aichat-gate-opts,
+  .aichat-mode-t,
+  .aichat-mode-s,
+  .aichat-mode-fig,
+  .aichat-mode-r,
+  .aichat-mode-r::after {
+    transition: none;
   }
 }
-
 
 /* ── Lối đi nhanh trên thanh tiêu đề ───────────────────────────────────────── */
 /* NAV_LINKS ở js/ai-assistant.js dựng thành nút tròn CHỈ CÓ ICON, đứng cạnh nút

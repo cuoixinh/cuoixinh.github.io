@@ -135,22 +135,6 @@ CHUYỂN SANG TẠO THIỆP
    thiệp.
 `.trim()
 
-// Danh sách thông tin cần thu thập — XuXi đưa NGUYÊN VĂN khối này ở lượt đầu tiên
-// sau khi khách tỏ ý muốn tạo thiệp. Để riêng một hằng để lần nào cũng đúng thứ tự,
-// đúng số mục; thêm/bớt mục thì sửa ở đây và nhớ khớp với FIELD_SPECS.
-//
-// Xuống dòng viết bằng "\n" NHÌN THẤY ĐƯỢC (nguồn là "\\n") chứ không phải xuống
-// dòng thật: output là JSON nên model phải nhả đúng ký tự escape đó, thấy sẵn trong
-// prompt thì không còn dồn 6 nhóm vào một dòng.
-export const CARD_CHECKLIST = [
-  '1. **Cặp đôi** (họ tên đầy đủ của chú rể và cô dâu; hai bạn ở miền Bắc, Trung hay Nam)',
-  '2. **Sự kiện** (ngày cưới, giờ làm lễ và địa chỉ nơi làm lễ; có làm lễ Vu Quy thì cho mình biết giờ và nơi luôn)',
-  '3. **Tiệc cưới** (ngày, giờ và địa điểm đãi tiệc — nhà trai và nhà gái)',
-  '4. **Gia đình** (tên bố mẹ hai bên, địa chỉ nhà trai và nhà gái)',
-  '5. **Chuyện tình yêu** (hai bạn quen nhau thế nào — kể tự do thôi, mình tự chia thành các mốc; và văn phong muốn dùng: lãng mạn, truyền thống, dí dỏm, hiện đại…)',
-  '6. **Hộp mừng** (số tài khoản, ngân hàng và tên chủ tài khoản của nhà trai / nhà gái để khách gửi quà mừng — không muốn để cũng được)',
-].join('\\n')
-
 // Mẫu bảng CHỐT — in lại mọi thứ đã thu cho khách soát trước khi đồng ý tạo thiệp.
 export const CARD_SUMMARY = [
   '**Mình chốt lại thông tin thiệp nhé:**',
@@ -165,26 +149,18 @@ export const CARD_SUMMARY = [
 ].join('\\n')
 
 // Luật THU THẬP thông tin. Điểm khác biệt với một chatbot hỏi đáp thường: liệt kê
-// trọn gói ngay từ lượt đầu rồi chỉ nhắc lại mục còn thiếu, thay vì hỏi nhỏ giọt.
-// Danh sách gom thành 6 nhóm trùng tên bước ở trang thiết lập (CX_STEPS). "__xoa__" ở mục 4
-// phải khớp FIELD_DELETE (index.ts).
+// trọn gói ngay từ đầu rồi chỉ nhắc lại mục còn thiếu, thay vì hỏi nhỏ giọt. Danh sách
+// 6 nhóm ấy lần nào cũng y hệt nhau nên GIAO DIỆN in thẳng (CREATE_INTRO ở
+// js/ai-assistant.js) — đỡ hẳn một lượt gọi model và bấy nhiêu chữ trong prompt; sửa
+// danh sách thì sửa ở đó, 6 nhóm trùng tên bước ở trang thiết lập (CX_STEPS).
+// "__xoa__" ở mục 4 phải khớp FIELD_DELETE (index.ts).
 export const COLLECT_RULES = `
 LUẬT TẠO THIỆP — THU THẬP THÔNG TIN
 
-1. Lượt ĐẦU TIÊN sau khi khách tỏ ý muốn tạo thiệp: chép NGUYÊN VĂN đủ 6 nhóm dưới đây vào
-   "text", đúng thứ tự, GIỮ NGUYÊN cả số thứ tự và dấu xuống dòng \\n giữa các nhóm để mỗi nhóm
-   nằm một dòng riêng — CHỈ chép 6 dòng đánh số, TUYỆT ĐỐI không chép hai dòng "=====" bao
-   quanh (đó là dấu phân cách của hướng dẫn, khách không được thấy); không rút gọn, không hẹn
-   đưa ở lượt sau (lượt này không bị giới hạn 120 chữ) —
-   thiếu danh sách thì khách không biết phải khai gì. Mở đầu bằng một câu ngắn hào hứng, dặn
-   khách gửi một lượt cũng được và mục nào chưa có thì bỏ trống, nói rõ hai nhóm đầu là bắt
-   buộc. Kết bằng một câu: mẫu thiệp, ảnh, nhạc nền và bản đồ sẽ chọn ngay trong khung chat
-   sau khi chốt thông tin.
-
-===== DANH SÁCH THÔNG TIN CẦN THU THẬP =====
-${CARD_CHECKLIST}
-===== HẾT DANH SÁCH =====
-
+1. GIAO DIỆN ĐÃ CHÀO VÀ ĐÃ IN SẴN danh sách 6 nhóm thông tin cần thu (Cặp đôi · Sự kiện ·
+   Tiệc cưới · Gia đình · Chuyện tình yêu · Hộp mừng) ngay lúc khách vào — đó là lượt XuXi
+   đầu tiên trong hội thoại. TUYỆT ĐỐI không chào lại, không in lại danh sách đó ở bất kỳ
+   lượt nào; vào thẳng việc ghi nhận thứ khách vừa khai.
 2. BẮT BUỘC chỉ gồm tên chú rể, tên cô dâu, ngày cưới, giờ làm lễ và nơi làm lễ; thiếu một
    trong số đó thì TUYỆT ĐỐI chưa được tạo thiệp. Miền và lễ Vu Quy không bắt buộc.
 3. Các lượt SAU: ghi nhận một câu rồi hỏi tiếp đúng chi tiết còn thiếu (giữ số thứ tự gốc của

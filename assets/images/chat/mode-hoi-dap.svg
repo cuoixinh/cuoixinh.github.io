@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 128" width="320" height="128">
+  <defs>
+    <path id="hrt" d="M12 21C12 21 3 14.5 3 8.5A5.5 5.5 0 0 1 12 5A5.5 5.5 0 0 1 21 8.5C21 14.5 12 21 12 21Z"/>
+    <path id="spk3" d="M0-16C0-4-4 0-16 0-4 0 0 4 0 16 0 4 4 0 16 0 4 0 0-4 0-16Z"/>
+  </defs>
+  <!-- bong bóng của khách phía sau -->
+  <g>
+    <rect x="34" y="30" width="80" height="50" rx="16" fill="#FFD6E4"/>
+    <path d="M56 78 L52 96 L74 80 Z" fill="#FFD6E4"/>
+    <circle cx="58" cy="55" r="5.5" fill="#FFFFFF"/>
+    <circle cx="74" cy="55" r="5.5" fill="#FFFFFF"/>
+    <circle cx="90" cy="55" r="5.5" fill="#FFFFFF"/>
+  </g>
+  <!-- bong bóng trả lời của AI -->
+  <g>
+    <path d="M130 16H222A20 20 0 0 1 242 36V76A20 20 0 0 1 222 96H170L130 118L143 96H130A20 20 0 0 1 110 76V36A20 20 0 0 1 130 16Z"
+          fill="#FFFFFF" stroke="#F4477F" stroke-width="4" stroke-linejoin="round"/>
+    <use href="#spk3" fill="#F4477F" transform="translate(141 55) scale(0.85)"/>
+    <rect x="160" y="42" width="64" height="8" rx="4" fill="#FFD6E4"/>
+    <rect x="160" y="60" width="46" height="8" rx="4" fill="#FF6FA5"/>
+  </g>
+  <!-- tim nhỏ -->
+  <use href="#hrt" fill="#FF6FA5" transform="translate(250 22) scale(1.1)"/>
+  <use href="#hrt" fill="#FFB3CD" transform="translate(268 60) scale(0.8)"/>
+</svg>

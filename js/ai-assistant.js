@@ -36,23 +36,56 @@
   // Nút "+" mở dải danh mục (ảnh, nhạc, bản đồ, mẫu thiệp): tạm ẩn, bật cờ này là hiện lại.
   const SHOW_ATTACH = false;
 
-  const GREETING =
-    "Chào bạn 👋 Mình là XuXi.\n" +
-    "Bạn muốn **tạo thiệp cưới** hay cần hỏi gì về Cưới Xinh? Nói với mình một " +
-    "câu là được.";
-
-  // Hai chế độ khách chọn ở màn chào của cuộc chat mới. Mỗi chế độ server dùng một
-  // prompt riêng (Edge Function ai-chat), nên câu hỏi thường không phải kéo theo cả bộ
-  // luật tạo thiệp. Chọn "Tạo thiệp" là gửi luôn CREATE_ASK để nhận danh sách cần khai.
+  // Hai chế độ khách chọn ở màn chào của cuộc chat mới — CỬA BẮT BUỘC: chưa chọn thì
+  // ô nhập còn khoá (syncGate). Mỗi chế độ server dùng một prompt riêng (Edge Function
+  // ai-chat), nên câu hỏi thường không phải kéo theo cả bộ luật tạo thiệp.
+  // `img` là ảnh minh hoạ dưới mỗi thẻ: hình vẽ riêng cho chỗ này, nền trong suốt,
+  // khổ 2:1. Để SVG (hơn 1KB, nét không vỡ ở mọi khổ màn) nên sửa hình là sửa thẳng
+  // file trong assets/images/chat/, không phải xuất lại ảnh.
+  // Thứ tự ở đây là thứ tự bày ra màn chào: Tạo thiệp đứng trước vì đó là việc chính
+  // khách tới đây để làm.
   const MODES = [
-    { id: "qa", icon: "message-circle", title: "Hỏi đáp", sub: "Giá, mẫu thiệp, cách dùng…" },
-    { id: "create", icon: "sparkles", title: "Tạo thiệp với AI", sub: "Kể thông tin, XuXi dựng thiệp giúp" },
+    {
+      id: "create",
+      title: "Tạo thiệp với AI",
+      sub: "Kể vài thông tin, XuXi soạn sẵn nội dung thiệp cho bạn dùng luôn.",
+      img: "/assets/images/chat/mode-tao-thiep.svg",
+    },
+    {
+      id: "qa",
+      title: "Chat với XuXi AI",
+      sub: "Hỏi giá, mẫu thiệp, cách dùng thử hay bất cứ điều gì về Cưới Xinh.",
+      img: "/assets/images/chat/mode-hoi-dap.svg",
+    },
   ];
-  const CREATE_ASK = "Tạo thiệp cưới cho mình nhé";
+  // Câu mở màn ĐẶT SẴN cho khách: bấm "Tạo thiệp với AI" chính là nói câu này, nên
+  // giao diện ghi hộ để đoạn hội thoại (và bản gửi lên model) đọc xuôi từ đầu.
+  const CREATE_ASK = "Hãy giúp tôi tạo thiệp cưới";
+
+  // Lời mở đầu của chế độ Tạo thiệp. Lượt này lần nào cũng y hệt nhau (chào + đúng 6
+  // nhóm thông tin cần khai) nên giao diện in thẳng, không gọi model: đỡ một lượt hạn
+  // mức, đỡ vài giây chờ, và prompt ở server cũng bỏ được nguyên khối danh sách
+  // (COLLECT_RULES mục 1 dặn model đừng in lại). Nó vào lịch sử như một lượt XuXi
+  // THẬT nên vẫn đi kèm trong hội thoại gửi lên — model biết khách đã thấy những gì.
+  // Sửa danh sách ở đây thì ngó lại FIELD_SPECS (_shared/card-schema.ts) cho khớp.
+  const CREATE_INTRO = [
+    "Chào bạn, mình rất vui được giúp hai bạn làm thiệp cưới! Bạn gửi giúp mình mấy mục dưới đây nhé (gửi một lượt cũng được, mục nào chưa rõ cứ bỏ trống, hai mục đầu là bắt buộc):",
+    "",
+    "1. **Cặp đôi** (họ tên đầy đủ của chú rể và cô dâu; hai bạn ở miền Bắc, Trung hay Nam)",
+    "2. **Sự kiện** (ngày cưới, giờ làm lễ và địa chỉ nơi làm lễ; có làm lễ Vu Quy thì cho mình biết giờ và nơi luôn)",
+    "3. **Tiệc cưới** (ngày, giờ và địa điểm đãi tiệc — nhà trai và nhà gái)",
+    "4. **Gia đình** (tên bố mẹ hai bên, địa chỉ nhà trai và nhà gái)",
+    "5. **Chuyện tình yêu** (hai bạn quen nhau thế nào — kể tự do thôi, mình tự chia thành các mốc; và văn phong muốn dùng: lãng mạn, truyền thống, dí dỏm, hiện đại…)",
+    "6. **Hộp mừng** (số tài khoản, ngân hàng và tên chủ tài khoản của nhà trai / nhà gái để khách gửi quà mừng — không muốn để cũng được)",
+    "",
+    "Mẫu thiệp, ảnh, nhạc nền và bản đồ sẽ chọn ngay trong khung chat sau khi chốt thông tin.",
+  ].join("\n");
+  const ASK_PLACEHOLDER = "Hỏi XuXi bất cứ điều gì…";
+  const GATE_PLACEHOLDER = "Chọn một việc ở trên để bắt đầu…";
   // Dòng phụ dưới tên XuXi trên thanh tiêu đề — cho khách biết đang ở chế độ nào.
   const MODE_SUB = {
-    "": "Hỏi đáp hoặc nhờ mình tạo thiệp",
-    qa: "Đang hỏi đáp",
+    "": "Tạo thiệp cưới hoặc hỏi mình bất cứ điều gì",
+    qa: "Đang chat với XuXi",
     create: "Đang tạo thiệp cưới",
   };
 
@@ -61,7 +94,6 @@
   // styles/_ai-chat.css), thêm gợi ý chỉ cần thêm một câu vào đây.
   const SUGGESTS = {
     qa: ["Thiệp có giá bao nhiêu vậy?", "Thiệp cưới có những gì?", "Mình có thể dùng thử được không?"],
-    create: [CREATE_ASK],
   };
 
   // Lối đi nhanh, dựng thành nút TRÒN CHỈ CÓ ICON trên thanh tiêu đề — thay cho
@@ -116,7 +148,7 @@
       <div class="aichat-head">
         <div class="min-w-0 flex-1">
           <p class="aichat-head-title flex gap-1 items-center">Trợ lý XuXi <i data-icon="xuxi" data-size="24"></i></p>
-          <p class="aichat-head-sub">Hỏi đáp hoặc nhờ mình tạo thiệp</p>
+          <p class="aichat-head-sub">Tạo thiệp cưới hoặc hỏi mình bất cứ điều gì</p>
         </div>
         <div class="aichat-nav" id="aichatNav"></div>
         <x-button variant="bare" icon-only id="aichatReset" type="button"
@@ -900,6 +932,8 @@
     els.body.scrollTop = els.body.scrollHeight;
   }
 
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+
   // ── Chữ chạy đều ──────────────────────────────────────────────────────────
   // Server nhả chữ theo cụm to nhỏ thất thường (một tiếng, rồi cả đoạn) — dán
   // thẳng vào bong bóng là nhìn giật cục. Bộ đệm này giữ chữ lại rồi rót ra
@@ -965,6 +999,32 @@
         t.last = performance.now();
         t.raf = requestAnimationFrame(typeStep);
       }
+    });
+  }
+
+  // Chữ do GIAO DIỆN tự in (lời mở đầu) cũng phải chạy như lượt về từ server: nhả dần
+  // từng cụm cho bộ gõ ở trên, chứ dán một phát là nhìn khác hẳn mọi lượt khác.
+  const INTRO_WAIT_MS = 260; // ba chấm một nhịp cho giống lượt thật
+  const FAKE_STREAM_MS = 900; // cả câu chạy xong trong ngần này
+  const FAKE_TICK_MS = 50;
+
+  function fakeStream(text, bubble) {
+    typeStart(bubble);
+    const step = Math.max(8, Math.ceil(text.length / (FAKE_STREAM_MS / FAKE_TICK_MS)));
+    let i = 0;
+    return new Promise((done) => {
+      const id = setInterval(() => {
+        // Bị cắt ngang (Làm mới) thì bộ gõ đã bị dọn — dừng luôn, đừng gõ vào hư không.
+        if (!typer) {
+          clearInterval(id);
+          return done();
+        }
+        i = Math.min(text.length, i + step);
+        typeFeed(text.slice(0, i));
+        if (i < text.length) return;
+        clearInterval(id);
+        typeFinish(text).then(done);
+      }, FAKE_TICK_MS);
     });
   }
 
@@ -1697,18 +1757,22 @@
   }
 
   // Chip gợi ý chỉ hữu ích lúc chưa biết hỏi gì → ẩn hẳn sau câu hỏi đầu tiên. Chưa
-  // chọn chế độ thì chỗ này là hai thẻ lựa chọn (renderModes).
+  // chọn chế độ thì cũng không có chip: lúc đó cửa chọn chế độ (gateEl) là thứ duy
+  // nhất bấm được.
   // Chip TỰ XUỐNG DÒNG, không cuộn ngang: cả dải phải thấy được cùng lúc.
   function renderSuggests() {
     els.suggests.innerHTML = "";
-    if (history.length) {
+    syncGate();
+    // Chế độ Tạo thiệp không có chip nào (đoạn chat mở màn sẵn rồi) → giấu cả hàng,
+    // không thì trơ lại mỗi dòng chữ "Gợi ý cho bạn".
+    const list = (mode && SUGGESTS[mode]) || [];
+    if (history.length || !list.length) {
       els.sugWrap.hidden = true;
       return;
     }
     els.sugWrap.hidden = false;
-    if (!mode) return renderModes();
     els.sugHd.textContent = "Gợi ý cho bạn";
-    (SUGGESTS[mode] || []).forEach((text, i) => {
+    list.forEach((text, i) => {
       const chip = document.createElement("button");
       chip.type = "button";
       chip.className = "aichat-chip";
@@ -1720,31 +1784,140 @@
     });
   }
 
-  function renderModes() {
-    els.sugHd.textContent = "XuXi giúp gì cho bạn?";
+  // Cửa chọn chế độ: một thẻ trong đoạn chat, ngay dưới lời chào. Hai lựa chọn là
+  // radio nên khách thấy ngay đây là chỗ phải chọn; bấm rồi thì pickMode diễn hoạt
+  // cho thẻ thu lại thành cái tag ở đầu đoạn chat (tagEl).
+  function gateEl() {
     const box = document.createElement("div");
-    box.className = "aichat-modes";
+    box.className = "aichat-gate";
+    box.innerHTML =
+      '<p class="aichat-gate-hd">XuXi giúp gì cho bạn?</p>' +
+      '<div class="aichat-gate-opts" role="radiogroup" aria-label="Chọn việc cần XuXi giúp"></div>';
+    const opts = box.querySelector(".aichat-gate-opts");
     MODES.forEach((m, i) => {
       const b = document.createElement("button");
       b.type = "button";
       b.className = "aichat-mode";
-      b.style.setProperty("--sug-d", i * 60 + "ms");
+      b.dataset.mode = m.id;
+      b.setAttribute("role", "radio");
+      b.setAttribute("aria-checked", "false");
+      // Hiện lần lượt, thẻ sau trễ hơn thẻ trước một nhịp.
+      b.style.setProperty("--sug-d", i * 70 + "ms");
       b.innerHTML =
-        `<span class="aichat-mode-t"><i data-lucide="${m.icon}" style="width:16px;height:16px"></i>${m.title}</span>` +
-        `<span class="aichat-mode-s">${m.sub}</span>`;
+        '<span class="aichat-mode-t"><span class="aichat-mode-r" aria-hidden="true"></span>' +
+        `${m.title}</span>` +
+        `<span class="aichat-mode-s">${m.sub}</span>` +
+        `<span class="aichat-mode-fig"><img src="${m.img}" alt="" aria-hidden="true"` +
+        ' loading="lazy" class="aichat-mode-img"></span>';
       b.addEventListener("click", () => pickMode(m.id));
-      box.appendChild(b);
+      opts.appendChild(b);
     });
-    els.suggests.appendChild(box);
     window.lucide?.createIcons({ root: box });
+    return box;
   }
 
+  // Tag chế độ ở ĐẦU đoạn chat — đích mà thẻ vừa chọn bay tới. Hình thức khai chung
+  // một chỗ với thẻ đã thu gọn (styles/_ai-chat.css) để cú bay không bị giật khổ.
+  function tagEl() {
+    const m = MODES.find((x) => x.id === mode);
+    if (!m) return null;
+    const el = document.createElement("div");
+    el.className = "aichat-modetag";
+    el.textContent = m.title;
+    return el;
+  }
+
+  const reduceMotion = () =>
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // Ba nhịp, mỗi nhịp là một cờ class cho CSS lo phần chuyển động: thẻ kia mờ đi →
+  // thẻ đã chọn giãn hết bề ngang → thu lại thành tag. Xong mới chốt chế độ, vì
+  // commitMode vẽ lại đoạn chat (thẻ biến mất) rồi bay tag lên đầu.
   function pickMode(id) {
     if (busy) return;
+    const gate = els.body.querySelector(".aichat-gate");
+    const pick = gate?.querySelector(`.aichat-mode[data-mode="${id}"]`);
+    if (!pick || gate.classList.contains("is-picking")) return;
+    if (reduceMotion()) return void commitMode(id);
+    // Thẻ đang VUÔNG: giãn hết bề ngang là cạnh kia cũng phình theo. Đo chiều cao
+    // thật rồi khoá lại ngay lúc bắt đầu diễn hoạt, từ đó chỉ còn bề ngang thay đổi.
+    gate.style.setProperty("--pick-h", pick.offsetHeight + "px");
+    gate.classList.add("is-picking");
+    gate.querySelectorAll(".aichat-mode").forEach((b) => {
+      b.classList.add(b === pick ? "is-pick" : "is-drop");
+      b.setAttribute("aria-checked", b === pick ? "true" : "false");
+      b.disabled = true;
+    });
+    setTimeout(() => gate.classList.add("is-full"), 200);
+    setTimeout(() => gate.classList.add("is-tag"), 540);
+    // Đo thẻ ở khổ tag NGAY TRƯỚC khi vẽ lại: đó là mốc xuất phát của cú bay.
+    setTimeout(() => commitMode(id, pick.getBoundingClientRect()), 900);
+  }
+
+  // Chốt chế độ rồi vẽ lại đoạn chat. `from` = chỗ thẻ vừa thu gọn (pickMode), có
+  // thì bay tag từ đó lên đầu đoạn chat.
+  function commitMode(id, from) {
     setMode(id);
-    if (id === "create") return void ask(CREATE_ASK);
-    renderSuggests();
+    paintHistory();
+    if (from) flyTag(from);
+    if (mode === "create") return void ensureIntro();
     if (window.matchMedia("(min-width: 521px)").matches) els.input.focus();
+  }
+
+  // Lời mở đầu của chế độ Tạo thiệp, chỉ khi cuộc chat còn trắng và bảng đang mở —
+  // nó chạy chữ nên phải có người nhìn.
+  function ensureIntro() {
+    if (mode !== "create" || history.length || busy || els.panel.hidden) return;
+    playIntro();
+  }
+
+  // Không gọi model nhưng vẫn diễn đúng nhịp một lượt trả lời: ba chấm một nhịp rồi
+  // chữ chạy dần. Khoá nút gửi trong lúc chạy để lượt của khách không chen vào giữa.
+  async function playIntro() {
+    busy = true;
+    syncSend();
+    // Cả hai lượt mang cờ `seed`: chúng do giao diện đặt ra, không tính là khách đã
+    // mở lời (xem loadMode).
+    history.push({ role: "user", content: CREATE_ASK, at: Date.now(), seed: true });
+    saveHistory();
+    addBubble("user", CREATE_ASK, history[history.length - 1].at);
+    const typing = addTyping();
+    await wait(INTRO_WAIT_MS);
+    typing.remove();
+    // Vào lịch sử TRƯỚC khi gõ: bấm Làm mới hay F5 giữa chừng thì cũng không kẹt lại
+    // một bong bóng dở dang.
+    history.push({ role: "assistant", content: CREATE_INTRO, at: Date.now(), seed: true });
+    saveHistory();
+    const bubble = addBubble("bot", "");
+    await fakeStream(CREATE_INTRO, bubble);
+    showActs(bubble);
+    busy = false;
+    syncSend();
+    if (window.matchMedia("(min-width: 521px)").matches) els.input.focus();
+  }
+
+  function flyTag(from) {
+    const tag = els.body.querySelector(".aichat-modetag");
+    if (!tag || !tag.animate) return;
+    const to = tag.getBoundingClientRect();
+    const dx = from.left - to.left;
+    const dy = from.top - to.top;
+    if (!dx && !dy) return;
+    tag.animate(
+      [{ transform: `translate(${dx}px, ${dy}px)` }, { transform: "none" }],
+      { duration: 420, easing: "cubic-bezier(.22, 1, .36, 1)" },
+    );
+  }
+
+  // Chưa chọn chế độ thì KHOÁ chỗ nhập: cửa chọn chế độ là đường duy nhất vào cuộc
+  // chat, để mỗi lượt đi đúng prompt của nó ngay từ câu đầu.
+  function syncGate() {
+    const lock = !mode;
+    els.panel.classList.toggle("is-gated", lock);
+    els.input.disabled = lock;
+    els.input.placeholder = lock ? GATE_PLACEHOLDER : ASK_PLACEHOLDER;
+    els.mic.disabled = lock || busy;
+    syncSend();
   }
 
   // Chế độ cuộc chat — server chọn loại prompt theo đây và tự chuyển qa → create khi
@@ -1764,6 +1937,14 @@
   // Trang Thiết lập vào thẳng tạo thiệp. Lịch sử từ trước khi có chế độ (không có khoá)
   // thì đoán theo dấu vết: đã thu thông tin / chốt / có thiệp là đang tạo thiệp.
   function loadMode() {
+    // Khách chưa nói câu nào thì luôn về lại cửa chọn chế độ, kể cả sau khi tải lại
+    // trang: chế độ chọn xong mà chưa dùng tới thì chưa có gì để giữ. Chỉ tính lượt
+    // khách TỰ gõ — hai lượt mở màn mang cờ `seed` là do giao diện đặt vào.
+    if (!history.some((m) => m.role === "user" && !m.seed)) {
+      history = [];
+      saveHistory();
+      return setMode(inSetup() ? "create" : "");
+    }
     let m = "";
     try {
       m = sessionStorage.getItem(MODE_KEY) || "";
@@ -1884,7 +2065,14 @@
   function paintHistory() {
     stopSpeak();
     els.body.innerHTML = "";
-    addBubble("bot", GREETING);
+    // Chưa chọn chế độ thì khung chat CHỈ có cửa này — syncGate giấu luôn ô nhập và
+    // nút Trò chuyện mới. Chọn rồi thì đầu đoạn chat đeo một cái tag. Trang Thiết lập
+    // vào thẳng tạo thiệp nên không có cửa, cũng không cần tag.
+    if (!mode) els.body.appendChild(gateEl());
+    else if (!inSetup()) {
+      const tag = tagEl();
+      if (tag) els.body.appendChild(tag);
+    }
     // Dựng lại MỖI LOẠI ô chọn một lần, ở lượt mới nhất của loại đó: ô vẽ theo trạng thái
     // thật của thiệp (ảnh/nhạc đã chọn hiện lại đủ), nên hai ô cùng loại chỉ là bản lặp.
     const lastOf = {};
@@ -2103,8 +2291,13 @@
     // Quá dài thì KHÔNG cắt bớt rồi gửi: khách mất đúng phần đuôi mà không hay.
     // Ô nhập đang báo đỏ (syncSend) — để nguyên cho khách tự rút gọn.
     if (!text || busy || text.length > MAX_LEN) return;
-    // Gõ thẳng mà chưa chọn chế độ = hỏi đáp; muốn làm thiệp thì server tự chuyển.
-    if (!mode) setMode("qa");
+    // Câu tới từ ngoài cửa chọn chế độ (ô hỏi ở màn mở đầu trang chủ, câu gửi lại sau
+    // khi đăng nhập) = hỏi đáp; muốn làm thiệp thì server tự chuyển. Vẽ lại để dọn cửa
+    // đi và đeo tag vào đầu đoạn chat.
+    if (!mode) {
+      setMode("qa");
+      paintHistory();
+    }
 
     busy = true;
     // Gửi lại (echo false) thì ô nhập đang là câu MỚI khách gõ dở — để yên.
@@ -2272,7 +2465,9 @@
 
   // ── Đóng / mở ─────────────────────────────────────────────────────────────
 
-  function open() {
+  // `o.noIntro` = đừng tự chạy lời mở đầu (lối mở kèm sẵn câu hỏi). Nút bong bóng gắn
+  // thẳng hàm này nên `o` có thể là một sự kiện chuột — chỉ đọc đúng khoá cần.
+  function open(o) {
     els.panel.hidden = false;
     renderNav();
     // Đặt chỗ NGAY khi thẻ vừa hiện (còn ẩn thì mọi phép đo ra 0) và trước khung
@@ -2287,6 +2482,7 @@
     if (window.matchMedia("(min-width: 521px)").matches) els.input.focus();
     syncViewport();
     scrollToEnd();
+    if (!o?.noIntro) ensureIntro();
   }
 
   function close() {
@@ -2357,7 +2553,9 @@
     // Đang chờ trả lời: nút gửi thành nút Dừng (luôn bấm được), CSS đổi icon theo cờ is-stop.
     els.send.classList.toggle("is-stop", busy);
     els.send.setAttribute("aria-label", busy ? "Dừng" : "Gửi");
-    els.send.disabled = busy ? !abort : !els.input.value.trim() || over;
+    els.send.disabled = busy
+      ? !abort
+      : !mode || !els.input.value.trim() || over;
     els.composer.classList.toggle("is-over", over);
     els.count.classList.toggle("is-over", over);
     const fmt = (n) => n.toLocaleString("vi-VN");
@@ -2486,10 +2684,11 @@
   // `ask` = câu hỏi gửi luôn khi vừa mở (khách đã gõ ở ô ngoài, đừng bắt gõ lại).
   // `mode` = "create" khi câu đó là việc tạo thiệp (chip ở màn mở đầu trang chủ).
   window.cxOpenAiChat = function (opt) {
-    open();
+    // Có sẵn câu hỏi thì khách đã biết mình muốn gì — đừng dội lời mở đầu lên trước.
+    open({ noIntro: !!(opt && opt.ask) });
     if (opt && opt.mode === "create" && !busy) {
       setMode("create");
-      renderSuggests();
+      paintHistory(); // qua cửa chọn chế độ luôn: vẽ lại để đầu đoạn chat có tag
     }
     // Nút micro ẩn khi trình duyệt không hỗ trợ SpeechRecognition — lúc đó bỏ qua,
     // khách vẫn gõ được như thường. toggleMic chỉ bật vì bảng vừa mở, chưa nghe gì.
