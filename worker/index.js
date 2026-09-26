@@ -61,9 +61,10 @@ export default {
     const wedding = await fetchWedding(env, seg);
     // Không tra được (slug sai, thiệp nháp, Edge Function lỗi) → giữ nguyên hành
     // vi cũ: 404 kèm trang chuyển hướng, không bịa thẻ preview.
-    const guest = wedding ? await decryptGuestName(env, url) : "";
+    const guest = wedding ? await decryptGuestParam(env, url, "name") : "";
+    const rel = wedding ? await decryptGuestParam(env, url, "relationship") : "";
 
-    return new Response(await page(env, wedding, guest, url), {
+    return new Response(await page(env, wedding, guest, url, rel), {
       status: wedding ? 200 : 404,
       headers: {
         "Content-Type": "text/html; charset=utf-8",
@@ -128,11 +129,12 @@ function ogTitle(w, guest) {
 }
 
 /** Mô tả = "Câu mẫu chia sẻ" của chủ thiệp, bỏ biến ##link## và URL trần. */
-function ogDesc(w, guest) {
+function ogDesc(w, guest, rel) {
   const tpl = String(w?.share_message_template || "").trim();
   if (!tpl) return DEFAULT_DESC;
   const text = tpl
-    .replace(/##\s*danh\s*x[ưu]ng\s*##/giu, guest || "Quý Khách")
+    .replace(/##\s*relationship\s*##/gi, rel || "Quý Khách")
+    .replace(/##\s*danh\s*x[ưu]ng\s*##/giu, guest || "Quý Khách") // câu mẫu cũ
     .replace(/##\s*link\s*##/gi, "")
     .replace(/https?:\/\/\S+/gi, "")
     .replace(/\s+/g, " ")
@@ -267,13 +269,13 @@ function parseImageSize(b) {
 }
 
 /* ─────────────────────────── giải mã tên khách ────────────────────────── */
-// Link khách mời mang `name=` mã hoá bằng CryptoJS.AES (định dạng OpenSSL:
+// Link khách mời mang `name=`/`relationship=` mã hoá bằng CryptoJS.AES (định dạng OpenSSL:
 // "Salted__" + salt + ciphertext, khoá dẫn xuất bằng EVP_BytesToKey/MD5).
 // KHÔNG phải bảo mật — khoá nằm sẵn trong bundle client; ở đây chỉ để lấy đúng
 // chữ hiển thị trên thẻ.
 
-async function decryptGuestName(env, url) {
-  const raw = url.searchParams.get("name");
+async function decryptGuestParam(env, url, key) {
+  const raw = url.searchParams.get(key);
   if (!raw || !env.ENCRYPTION_KEY) return "";
   try {
     const blob = base64ToBytes(decodeURIComponent(raw));
@@ -396,9 +398,9 @@ const esc = (s) =>
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
 
-async function page(env, w, guest, url) {
+async function page(env, w, guest, url, rel) {
   const title = w ? ogTitle(w, guest) : "Cưới Xinh";
-  const desc = w ? ogDesc(w, guest) : "";
+  const desc = w ? ogDesc(w, guest, rel) : "";
   const src = w ? imageUrl(env, coverRef(w)) : "";
   // Ảnh nằm trong bucket của mình thì phát qua /__og/ (xem OG_IMG_PREFIX); URL
   // ngoài — khách dán link ảnh sẵn có — giữ nguyên, không biến worker thành proxy.

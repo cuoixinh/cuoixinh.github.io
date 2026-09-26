@@ -48,7 +48,7 @@
   }
 
   // Trộn mẫu: thay ##biến## bằng giá trị trong `vars` (key so khớp không phân biệt hoa/thường).
-  // VD: renderTemplate("Chào ##Danh xưng##, link: ##link##", { "danh xưng": "Anh A", link: "..." })
+  // VD: renderTemplate("Chào ##Relationship##, link: ##link##", { relationship: "Anh", link: "..." })
   function renderTemplate(tpl, vars) {
     if (!tpl) return "";
     const map = {};

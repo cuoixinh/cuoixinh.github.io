@@ -109,7 +109,7 @@ const OPTIMIZE_SPECS: Record<string, { maxOut: number; multiline: boolean; guide
   },
   share: {
     maxOut: 500, multiline: true,
-    guide: 'Tin nhắn mời khách kèm link thiệp (gửi qua Zalo/Messenger): thân mật, ấm áp, dễ thương, mời khách bấm vào xem thiệp. Khoảng 1–3 câu. TUYỆT ĐỐI GIỮ NGUYÊN VĂN mọi biến dạng ##...## (ví dụ ##Danh xưng##, ##link##) — KHÔNG dịch, KHÔNG đổi tên, KHÔNG xoá, KHÔNG thêm khoảng trắng bên trong; giữ đúng SỐ LƯỢNG và vị trí hợp lý (##Danh xưng## ở lời chào đầu, ##link## ở cuối). Nếu bản gốc thiếu ##link## thì thêm câu mời kèm ##link## ở cuối.',
+    guide: 'Tin nhắn mời khách kèm link thiệp (gửi qua Zalo/Messenger): thân mật, ấm áp, dễ thương, mời khách bấm vào xem thiệp. Khoảng 1–3 câu. TUYỆT ĐỐI GIỮ NGUYÊN VĂN mọi biến dạng ##...## (ví dụ ##Relationship##, ##link##) — KHÔNG dịch, KHÔNG đổi tên, KHÔNG xoá, KHÔNG thêm khoảng trắng bên trong; giữ đúng SỐ LƯỢNG và vị trí hợp lý (##Relationship## ở lời chào đầu, ##link## ở cuối). Nếu bản gốc thiếu ##link## thì thêm câu mời kèm ##link## ở cuối.',
   },
 }
 

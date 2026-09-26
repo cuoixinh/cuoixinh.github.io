@@ -2871,7 +2871,28 @@ function copyInviteLink(side) {
     });
 }
 
-// Chèn biến trộn (##Danh xưng##, ##link##) vào ô câu mẫu chia sẻ tại vị trí con trỏ
+// Trường trộn của câu mẫu chia sẻ — nguồn cho popup giải thích; thay thật ở
+// guests/index.js (_openShareModal) và worker/index.js (ogDesc).
+const SHARE_MERGE_FIELDS = [
+  ["##Relationship##", "Quan hệ / xưng hô của khách, lấy từ cột “Quan hệ” trong danh sách khách mời (VD: Bạn, Anh, Chị, Cô Chú…)."],
+  ["##link##", "Link thiệp riêng của từng khách — mở ra sẽ hiện đúng tên khách trên thiệp."],
+];
+
+function showMergeFieldsHelp() {
+  const rows = SHARE_MERGE_FIELDS.map(
+    ([k, d]) =>
+      `<div style="margin-top:10px"><b style="font-family:monospace">${escapeHtml(k)}</b><br>${escapeHtml(d)}</div>`,
+  ).join("");
+  showDialog({
+    type: "info",
+    icon: "braces",
+    title: "Danh sách trường trộn",
+    html: true,
+    message: `Khi chia sẻ, mỗi trường dưới đây được thay bằng thông tin của từng khách:${rows}`,
+  });
+}
+
+// Chèn biến trộn (##Relationship##, ##link##) vào ô câu mẫu chia sẻ tại vị trí con trỏ
 function insertShareVar(token) {
   const el = document.getElementById("share-message-template");
   if (!el) return;

@@ -189,16 +189,22 @@
         <p class="text-xs text-gray-400">
           Lời nhắn gửi kèm khi bạn chia sẻ thiệp cho từng khách (Messenger,
           Zalo…), đồng thời là dòng mô tả trong thẻ xem trước của link. Dùng
-          biến trộn để tự điền thông tin của từng khách:
+          biến trộn để tự điền thông tin của từng khách.
+          <a
+            href="#"
+            onclick="event.preventDefault(); showMergeFieldsHelp()"
+            class="text-rose-600 font-medium underline underline-offset-2"
+            >Danh sách trường trộn</a
+          >
         </p>
         <div class="flex flex-wrap items-center gap-1.5">
           <x-button
             variant="outline"
             size="sm"
             type="button"
-            onclick="insertShareVar('##Danh xưng##')"
+            onclick="insertShareVar('##Relationship##')"
           >
-            + ##Danh xưng##
+            + ##Relationship##
           </x-button>
           <x-button
             variant="outline"
@@ -229,7 +235,7 @@
           id="share-message-template"
           style="height: 130px"
           oninput="onShareTemplateInput()"
-          placeholder="VD: ##Danh xưng## ơi, mình sắp tổ chức đám cưới. Trân trọng mời ##Danh xưng## đến chung vui cùng gia đình mình nhé! Thiệp mời tại: ##link##"
+          placeholder="VD: ##Relationship## ơi, mình sắp tổ chức đám cưới. Trân trọng mời ##Relationship## đến chung vui cùng gia đình mình nhé! Thiệp mời tại: ##link##"
           class="w-full px-3 py-2.5 rounded-lg border border-gray-300 text-sm text-gray-700 bg-white focus:outline-none focus:border-rose-400 resize-y placeholder:text-gray-400/60"
         ></textarea>
       </div>

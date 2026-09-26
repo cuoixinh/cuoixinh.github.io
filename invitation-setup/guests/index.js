@@ -519,7 +519,11 @@ function _openShareModal(guestId, side) {
   const tpl = _wedding?.share_message_template;
   // Có câu mẫu → trộn thông tin khách; không có → dùng câu mặc định của ShareSocial
   const message = tpl
-    ? ShareSocial.renderTemplate(tpl, { "danh xưng": name, link: guest.link })
+    ? ShareSocial.renderTemplate(tpl, {
+        relationship: guest.relationship || "Bạn",
+        "danh xưng": name, // câu mẫu cũ còn biến này
+        link: guest.link,
+      })
     : undefined;
 
   ShareSocial.open({
