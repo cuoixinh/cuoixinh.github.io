@@ -154,12 +154,33 @@ export function geminiGenConfig(cfg: Record<string, unknown>): Record<string, un
   return rest
 }
 
-// Gọi Gemini generateContent với generationConfig tuỳ tác vụ.
+// Số token của một lượt gọi (usageMetadata của Gemini) — chỉ để log so chi phí,
+// không tác vụ nào dựa vào nó. `cached` = phần prompt Gemini tự cache (tính rẻ hơn).
+export interface GeminiUsage {
+  prompt?: number
+  cached?: number
+  output?: number
+  thoughts?: number
+}
+
+export function readUsage(meta: any): GeminiUsage | undefined {
+  if (!meta || typeof meta !== 'object') return undefined
+  return {
+    prompt: meta.promptTokenCount,
+    cached: meta.cachedContentTokenCount,
+    output: meta.candidatesTokenCount,
+    thoughts: meta.thoughtsTokenCount,
+  }
+}
+
+// Gọi Gemini generateContent với generationConfig tuỳ tác vụ. `usageOut` (nếu có)
+// nhận số token của lượt gọi thành công.
 export async function callGemini(
   prompt: string,
   apiKey: string,
   genConfig: Record<string, unknown>,
   timeoutMs = REQ_TIMEOUT_MS,
+  usageOut?: GeminiUsage,
 ): Promise<string> {
   const t = withTimeout(timeoutMs)
   try {
@@ -174,6 +195,7 @@ export async function callGemini(
     })
     if (!res.ok) throw new ProviderError('gemini', res.status, await readErrorDetail(res))
     const data = await res.json()
+    if (usageOut) Object.assign(usageOut, readUsage(data?.usageMetadata))
     const cand = data?.candidates?.[0]
     // Nối MỌI part: một candidate có thể mang nhiều part, bỏ sót là mất nội dung.
     const text = (cand?.content?.parts ?? [])
@@ -256,13 +278,14 @@ export async function callGeminiRotating(
   timeoutMs = REQ_TIMEOUT_MS,
   log?: Logger,
   tag = 'ai',
+  usageOut?: GeminiUsage,
 ): Promise<string> {
   const { order, cooling } = orderKeysByQuota(keys)
   let lastErr: unknown = null
   for (let i = 0; i < order.length; i++) {
     const idx = order[i]
     try {
-      return await callGemini(prompt, keys[idx], genConfig, timeoutMs)
+      return await callGemini(prompt, keys[idx], genConfig, timeoutMs, usageOut)
     } catch (e) {
       lastErr = e
       const quota = isQuotaError(e)
@@ -294,7 +317,7 @@ export async function generateWithGemini(
   },
   log: Logger,
   tag: string,
-): Promise<{ raw: string; provider: string } | null> {
+): Promise<{ raw: string; provider: string; usage: GeminiUsage } | null> {
   const keys = getGeminiKeys()
   if (!keys.length) {
     log.error(`ai.${tag}_failed`, { gemini_keys: 0, reason: 'chưa đặt GEMINI_API_KEYS' })
@@ -302,9 +325,11 @@ export async function generateWithGemini(
   }
 
   try {
+    const usage: GeminiUsage = {}
     return {
-      raw: await callGeminiRotating(prompt, keys, cfg.gemini, cfg.timeoutMs, log, `ai.${tag}`),
+      raw: await callGeminiRotating(prompt, keys, cfg.gemini, cfg.timeoutMs, log, `ai.${tag}`, usage),
       provider: 'gemini',
+      usage,
     }
   } catch (e) {
     // errFields trải mã + message của Gemini thành field rời: dòng tổng kết mà
