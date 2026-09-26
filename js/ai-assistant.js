@@ -1046,6 +1046,7 @@
   // Chữ do GIAO DIỆN tự in (lời mở đầu) cũng phải chạy như lượt về từ server: nhả dần
   // từng cụm cho bộ gõ ở trên, chứ dán một phát là nhìn khác hẳn mọi lượt khác.
   const INTRO_WAIT_MS = 260; // ba chấm một nhịp cho giống lượt thật
+  const GATE_AUTOPICK_MS = 100; // đủ để hai thẻ chọn chế độ hiện xong và khách kịp nhìn
   const FAKE_STREAM_MS = 900; // cả câu chạy xong trong ngần này
   const FAKE_TICK_MS = 50;
 
@@ -2761,7 +2762,14 @@
   window.cxOpenAiChat = function (opt) {
     // Có sẵn câu hỏi thì khách đã biết mình muốn gì — đừng dội lời mở đầu lên trước.
     open({ noIntro: !!(opt && opt.ask) });
-    if (opt && opt.mode === "create" && !busy) {
+    // `pick`: cửa chọn chế độ còn đang hiện thì để khách thấy hai thẻ rồi tự bấm hộ
+    // (đợi thẻ hiện xong), diễn đúng cú bay như khách tự chọn. Hết cửa thì rơi về `mode`.
+    const gate = opt && opt.pick && els.body.querySelector(".aichat-gate");
+    if (gate) {
+      setTimeout(() => {
+        if (gate.isConnected && !els.panel.hidden) pickMode(opt.pick);
+      }, GATE_AUTOPICK_MS);
+    } else if (opt && (opt.mode || opt.pick) === "create" && !busy) {
       setMode("create");
       paintHistory(); // qua cửa chọn chế độ luôn: vẽ lại để đầu đoạn chat có tag
     }
