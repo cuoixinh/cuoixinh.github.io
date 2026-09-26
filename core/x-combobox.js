@@ -5,7 +5,8 @@
 //   el.value                           đọc / gán (tự cập nhật nhãn + mục chọn)
 //   bắn sự kiện "change" (bubbles) khi người dùng chọn → dùng được onchange=""
 // Thuộc tính: preview-font (render mỗi dòng bằng font = value), preview-swatch
-// (hiện một giọt màu lấy từ `swatch` của từng mục — mã hex), placeholder.
+// (hiện một giọt màu lấy từ `swatch` của từng mục — mã hex), placeholder,
+// searchable (ô lọc đầu danh sách, không phân biệt dấu; Enter chọn mục đầu).
 
 (function () {
   const s = document.createElement("style");
@@ -68,6 +69,18 @@ function _xcbSwatch(color) {
   return wrap;
 }
 
+const _XCB_Q_CLS =
+  "x-cb-q sticky top-0 w-full h-8 px-2 mb-1 rounded-lg border border-gray-200 " +
+  "bg-white text-sm text-gray-700 outline-none focus:border-rose-300";
+
+function _xcbFold(v) {
+  return String(v || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/gi, "d")
+    .toLowerCase();
+}
+
 const _XCB_CHEV =
   '<svg class="x-cb-chev w-4 h-4 shrink-0 text-gray-400 transition-transform" ' +
   'viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
@@ -100,6 +113,24 @@ class XCombobox extends HTMLElement {
     this._label = this.querySelector(".x-cb-label");
     this._chev = this.querySelector(".x-cb-chev");
     this._list = this.querySelector(".x-cb-list");
+    this._items = this._list;
+    if (this.hasAttribute("searchable")) {
+      this._q = document.createElement("input");
+      this._q.className = _XCB_Q_CLS;
+      this._q.placeholder = "Tìm...";
+      this._q.addEventListener("input", () => this._filter());
+      this._q.addEventListener("keydown", (e) => {
+        if (e.key !== "Enter") return;
+        e.preventDefault();
+        const first = this._items.querySelector(".x-cb-opt:not(.hidden)");
+        if (first) this._pick(first.dataset.value);
+      });
+      this._items = document.createElement("div");
+      this._empty = document.createElement("p");
+      this._empty.className = "hidden px-2 py-2 text-sm text-gray-400";
+      this._empty.textContent = "Không tìm thấy";
+      this._list.append(this._q, this._items, this._empty);
+    }
 
     this._btn.addEventListener("click", () => this._toggle());
     this._syncLabel();
@@ -122,8 +153,8 @@ class XCombobox extends HTMLElement {
 
   // ── Internal ──────────────────────────────────────────────────────────────
   _renderList() {
-    if (!this._list) return;
-    this._list.innerHTML = "";
+    if (!this._items) return;
+    this._items.innerHTML = "";
     this._options.forEach((it) => {
       const o = document.createElement("button");
       o.type = "button";
@@ -138,8 +169,19 @@ class XCombobox extends HTMLElement {
       o.appendChild(txt);
       if (this._previewFont) o.style.fontFamily = `'${it.value}', sans-serif`;
       o.addEventListener("click", () => this._pick(it.value));
-      this._list.appendChild(o);
+      this._items.appendChild(o);
     });
+  }
+
+  _filter() {
+    const q = _xcbFold(this._q.value.trim());
+    let shown = 0;
+    this._items.querySelectorAll(".x-cb-opt").forEach((o) => {
+      const hit = !q || _xcbFold(o.textContent).includes(q);
+      o.classList.toggle("hidden", !hit);
+      if (hit) shown++;
+    });
+    this._empty.classList.toggle("hidden", shown > 0);
   }
 
   _pick(v) {
@@ -187,7 +229,12 @@ class XCombobox extends HTMLElement {
 
     // Định vị bằng position:FIXED để popup THOÁT khỏi mọi vùng cuộn (overflow)
     // của panel — absolute sẽ bị bảng chỉnh (max-h + overflow-y-auto) cắt mất.
+    if (this._q) {
+      this._q.value = "";
+      this._filter();
+    }
     this._position();
+    this._q?.focus();
 
     const active = this._list.querySelector('.x-cb-opt[data-active="1"]');
     if (active) active.scrollIntoView({ block: "nearest" });

@@ -58,11 +58,28 @@ function switchTab(side) {
 
 let _addGuestSide = "groom";
 
+// Xưng hô đi vào link mời (thiếu là link không nhận ra khách) → mặc định "Bạn".
+// Giá trị cũ không có trong danh sách vẫn hiện nguyên trên combobox.
+const GUEST_RELATIONS = [
+  "Bạn", "Anh", "Chị", "Em", "Anh chị", "Vợ chồng", "Cô", "Chú", "Bác", "Dì", "Cậu",
+  "Mợ", "Thím", "Ông", "Bà", "Thầy", "Cô giáo", "Đồng nghiệp", "Sếp", "Họ hàng", "Gia đình",
+];
+
+function _relationBox(value) {
+  const box = document.getElementById("add-guest-relationship");
+  if (!box._cxFilled) {
+    box.setOptions(GUEST_RELATIONS.map((v) => ({ value: v, label: v })));
+    box._cxFilled = true;
+  }
+  box.value = value || GUEST_RELATIONS[0];
+  return box;
+}
+
 function openAddGuestModal(side) {
   _addGuestSide = side;
   document.getElementById("add-guest-fullname").value = "";
   document.getElementById("add-guest-displayname").value = "";
-  document.getElementById("add-guest-relationship").value = "";
+  _relationBox("");
   const modal = document.getElementById("add-guest-modal");
   modal.classList.remove("hidden");
   modal.classList.add("flex");
@@ -78,7 +95,7 @@ function closeAddGuestModal() {
 async function confirmAddGuest() {
   const full_name    = document.getElementById("add-guest-fullname").value.trim();
   const display_name = document.getElementById("add-guest-displayname").value.trim();
-  const relationship = document.getElementById("add-guest-relationship").value.trim();
+  const relationship = String(document.getElementById("add-guest-relationship").value || "").trim();
 
   if (!full_name) {
     document.getElementById("add-guest-fullname").focus();
@@ -673,7 +690,7 @@ function _openEditGuest(guest, side) {
   _addGuestSide = side;
   document.getElementById("add-guest-fullname").value    = guest.full_name || "";
   document.getElementById("add-guest-displayname").value = guest.display_name || "";
-  document.getElementById("add-guest-relationship").value = guest.relationship || "";
+  _relationBox(guest.relationship);
   // Đổi tiêu đề modal + nút confirm
   document.querySelector("#add-guest-modal h3").textContent = "Sửa khách mời";
   document.querySelector("#add-guest-modal button[onclick='confirmAddGuest()']").textContent = "Lưu thay đổi";
@@ -698,7 +715,7 @@ async function confirmEditGuest() {
     await guestDAL.updateGuest(_editGuestId, {
       full_name,
       display_name: document.getElementById("add-guest-displayname").value.trim(),
-      relationship: document.getElementById("add-guest-relationship").value.trim(),
+      relationship: String(document.getElementById("add-guest-relationship").value || "").trim(),
     });
     showToast("Đã cập nhật khách mời", "success");
     await loadGuestList(_addGuestSide);

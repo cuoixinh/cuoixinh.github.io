@@ -170,8 +170,7 @@
           </div>
           <div class="space-y-1.5">
             <label class="text-xs text-gray-500">Quan hệ</label>
-            <input id="add-guest-relationship" placeholder="VD: Bạn thân, Đồng nghiệp"
-              class="w-full h-9 px-3 border border-gray-200 rounded-lg text-xs text-gray-800 outline-none focus:ring-2 focus:ring-rose-500/30 placeholder:text-gray-400/50" />
+            <x-combobox id="add-guest-relationship" placeholder="Chọn quan hệ" searchable></x-combobox>
           </div>
         </div>
         <div class="flex gap-2 px-5 py-4 border-t border-gray-100">
@@ -237,6 +236,7 @@
 
     <!-- Scripts -->
     <script src="../../core/x-button.js"></script>
+    <script src="../../core/x-combobox.js"></script>
     <script src="../../core/cache-util.js"></script>
     <script src="../../core/dal/templates-dal.js"></script>
     <script src="../../core/config.js"></script>
