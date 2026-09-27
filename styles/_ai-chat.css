@@ -306,6 +306,31 @@
 /* Tắt scroll anchoring: bản đồ trong ô chọn hiện ra (ghim lễ kéo theo tiệc "trùng") là
    trình duyệt tự cuộn khung để giữ điểm neo, đẩy khách khỏi chỗ vừa bấm. Cuộn xuống cuối
    do scrollToEnd() tự làm nên không cần anchoring. */
+/* Dải "Mẫu đang thao tác" ghim dưới thanh tiêu đề (chế độ Tạo thiệp, đã có mẫu) —
+   nằm ngoài vùng cuộn nên lúc nào cũng thấy; bấm vào là mở ô chọn mẫu. */
+.aichat-themebar {
+  @apply mx-3 mt-2 flex shrink-0 items-center gap-2 rounded-full px-3 py-1.5 text-left
+         text-xs;
+
+  color: rgb(var(--brand-accent-rgb));
+  background: rgb(var(--brand-accent-rgb) / 0.08);
+  border: 1px solid rgb(var(--brand-accent-rgb) / 0.3);
+}
+
+.aichat-themebar[hidden] {
+  display: none;
+}
+
+.aichat-themebar-k {
+  @apply shrink-0 whitespace-nowrap;
+
+  color: rgb(var(--text-body-rgb));
+}
+
+.aichat-themebar-v {
+  @apply min-w-0 flex-1 truncate font-semibold;
+}
+
 .aichat-body {
   @apply flex-1 overflow-y-auto bg-transparent px-4 py-4;
 
@@ -1655,6 +1680,21 @@
 
 .aichat-kit-body {
   @apply flex flex-col gap-2;
+}
+
+/* Nháy viền khi bấm dải "Mẫu đang thao tác" dẫn tới ô chọn mẫu đã có sẵn. */
+.aichat-kit.is-flash {
+  animation: cx-kit-flash 1.2s ease;
+}
+
+@keyframes cx-kit-flash {
+  0%,
+  60% {
+    box-shadow: 0 0 0 3px rgb(var(--brand-accent-rgb) / 0.45);
+  }
+  100% {
+    box-shadow: 0 0 0 3px rgb(var(--brand-accent-rgb) / 0);
+  }
 }
 
 .aichat-kit-foot {

@@ -7,6 +7,9 @@
 
 const CX_PTR_TRIGGER = 64; // kéo quá ngần này (px) thì nhả tay là tải lại
 const CX_PTR_MAX = 88; // kéo tối đa, phần dư bị giảm dần cho có lực cản
+// Ngón tay chạm luôn trượt vài px: chặn touchmove ngay từ px đầu là Safari iOS nuốt
+// mất click của nút vừa chạm — dưới ngưỡng này vẫn coi là chạm, chưa đụng gì.
+const CX_PTR_SLOP = 10;
 const CX_PTR_SEL = "#setup-scroll, #config-scroll, #guests-scroll";
 
 let _ptrEl = null; // khung cuộn đang kéo
@@ -65,7 +68,9 @@ function _ptrStart(e) {
 
 function _ptrMove(e) {
   if (!_ptrArmed || !_ptrEl) return;
-  const dy = e.touches[0].clientY - _ptrY0;
+  const raw = e.touches[0].clientY - _ptrY0;
+  if (raw > 0 && raw <= CX_PTR_SLOP && !_ptrDist) return;
+  const dy = raw - CX_PTR_SLOP;
   // Vuốt lên hoặc khung đã rời đỉnh → trả lại cho hành vi cuộn bình thường.
   if (dy <= 0 || _ptrEl.scrollTop > 0) {
     if (_ptrDist) _ptrReset(true);

@@ -163,6 +163,8 @@ async function _applyThemeChange(newTheme, displayName) {
   window.cxThemeDeclLoad?.(newTheme);
   if (displayName) sessionStorage.setItem("draft_template_name", displayName);
   _updateHeaderThemeBadge(displayName);
+  // Khung chat XuXi (ô chọn mẫu, dải "Mẫu đang thao tác") đọc lại mẫu theo sự kiện này.
+  window.dispatchEvent(new CustomEvent("cx-media-change"));
   // Mẫu mới chỉ nằm trong bộ nhớ tới khi bấm Lưu → đánh dấu chưa lưu để nút Lưu
   // sáng lên và QR "xem trên điện thoại" báo đúng là đang lệch với bản trên hệ thống.
   _scheduleAutoSave("theme");

@@ -9,7 +9,7 @@
 //
 // Mặc định: onLogin gọi openLoginPopup() của trang (không có thì sang
 // /my-invitations/), onProfile gọi openProfileModal() nếu trang có, không thì
-// sang /my-invitations/ — nơi duy nhất có form hồ sơ.
+// sang /my-invitations/?profile=1 — nơi duy nhất có form hồ sơ, mở sẵn hộp đó.
 // Cần core/x-popover.js + core/auth.js (nạp trước file này).
 
 const CXAccount = (function () {
@@ -61,7 +61,7 @@ const CXAccount = (function () {
   function _profile() {
     if (_hooks.onProfile) return _hooks.onProfile();
     if (window.openProfileModal) return openProfileModal();
-    window.location.href = MANAGE_URL;
+    window.location.href = `${MANAGE_URL}?profile=1`;
   }
 
   async function _logout() {
