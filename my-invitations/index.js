@@ -17,13 +17,22 @@ const POST_LOGIN_REDIRECT_KEY = "post_login_redirect";
 
 // Trang này là đích đăng nhập chung của cả site: mở kèm ?urlRedirect=... thì lưu
 // đích rồi dọn query, để redirectTo gửi cho Supabase luôn là URL gốc (đã whitelist).
+// Đích chỉ còn giá trị khi lần mở này là một chặng của đường đăng nhập (vừa mang
+// ?urlRedirect, hoặc OAuth vừa trả về); ngoài ra là đích sót lại, xem initPage.
+const _loginLeg =
+  !!window.AuthUI?.oauthLanding ||
+  new URLSearchParams(window.location.search).has("urlRedirect");
+// ?profile=1: menu tài khoản ở trang khác xin mở thẳng hộp "Thông tin cá nhân".
+let _openProfileOnLoad = false;
+
 (function captureLoginRedirect() {
   const params = new URLSearchParams(window.location.search);
+  _openProfileOnLoad = params.get("profile") === "1";
+  params.delete("profile");
   const urlRedirect = params.get("urlRedirect");
-  if (!urlRedirect) return;
-
-  sessionStorage.setItem(POST_LOGIN_REDIRECT_KEY, urlRedirect);
+  if (urlRedirect) sessionStorage.setItem(POST_LOGIN_REDIRECT_KEY, urlRedirect);
   params.delete("urlRedirect");
+  if (!urlRedirect && !_openProfileOnLoad) return;
   const cleanQuery = params.toString();
   window.history.replaceState(
     {},
@@ -54,9 +63,13 @@ async function initPage() {
   // luôn callback và trang tải danh sách hai lần.
   currentUser = await CXAuth.getUser();
   updateAuthUI();
+  // Đã đăng nhập sẵn mà không phải chặng đăng nhập → đích trong sessionStorage là
+  // đồ sót (bỏ dở lần đăng nhập trước), đi theo nó là bị đá sang trang Thiết lập.
+  if (currentUser && !_loginLeg) sessionStorage.removeItem(POST_LOGIN_REDIRECT_KEY);
   // Chuyển hướng TRƯỚC khi tải danh sách: trang này chỉ là chặng trung chuyển khi
   // có urlRedirect, tải thêm một vòng API rồi rời đi là phí.
   _redirectAfterLogin();
+  if (_openProfileOnLoad) openProfileModal();
   await loadCards();
 
   CXAuth.onChange((user, event) => {

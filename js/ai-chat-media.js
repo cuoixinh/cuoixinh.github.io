@@ -896,10 +896,12 @@
   }
 
   // Một ô chọn hoàn chỉnh. opts.onNext(kind, done): có thì vẽ nút Tiếp tục / Bỏ qua
-  // (ô của luồng dẫn); không có là ô khách tự mở, không cần nút.
+  // (ô của luồng dẫn); không có là ô khách tự mở, không cần nút. opts.required: không
+  // có Bỏ qua — chưa chọn thì nút Tiếp tục khoá lại.
   function widget(kind, opts = {}) {
     const k = KIND[kind];
     const box = el("div", "aichat-kit");
+    box.dataset.kind = kind;
     const head = el("div", "aichat-kit-head");
     head.append(icon(k.icon, 16), el("span", "aichat-kit-title", k.label));
     const body = el("div", "aichat-kit-body");
@@ -911,7 +913,8 @@
       foot = el("div", "aichat-kit-foot");
       box.appendChild(foot);
       foot.addEventListener("click", (e) => {
-        if (!e.target.closest("[data-act]") || !last || box.classList.contains("is-past")) return;
+        const act = e.target.closest("[data-act]");
+        if (!act || act.disabled || !last || box.classList.contains("is-past")) return;
         box.classList.add("is-past");
         opts.onNext(kind, isDone(kind, last), last);
       });
@@ -927,7 +930,9 @@
         if (foot.dataset.done !== String(done)) {
           foot.dataset.done = String(done);
           foot.innerHTML = "";
-          foot.appendChild(done ? xbtn("Tiếp tục", "next") : xbtn("Bỏ qua", "skip", "ghost"));
+          const b = done || opts.required ? xbtn("Tiếp tục", "next") : xbtn("Bỏ qua", "skip", "ghost");
+          if (!done) b.toggleAttribute("disabled", !!opts.required);
+          foot.appendChild(b);
         }
       }
     };

@@ -1,10 +1,10 @@
 // AI "Tối ưu" (làm giàu nội dung) cho các ô văn bản của trang thiết lập. Dùng
 // CHUNG endpoint ai-invitation (mode=optimize), truyền inputType để server chọn
-// prompt (slogan | rsvp | footer | love_story | timeline | share).
+// prompt (slogan | rsvp | footer | love_story | share).
 // Nút "Tối ưu" là tuỳ chọn opts.optimize của attachUndoRedo (x-undo.js), nằm trên
 // cùng thanh [Tối ưu · Mic · Hoàn tác · Làm lại].
-// Đăng ký trong loader.js SAU 14-timeline-story.js (dùng _loveStoryItems /
-// _timelineItems khai báo ở đó).
+// Đăng ký trong loader.js SAU 14-timeline-story.js (dùng _loveStoryItems khai
+// báo ở đó).
 
 // Báo lỗi của một lệnh AI. Hết lượt khi chưa đăng nhập (e.needLogin) thì phải
 // đưa luôn ĐƯỜNG ĐI: toast không bấm được (pointer-events: none) nên chuyển sang
@@ -172,21 +172,6 @@ function _wireLoveStoryTextareas(listEl) {
   });
 }
 
-// Một sự kiện trong "Lịch trình ngày cưới" (ô input 1 dòng, giữ nút icon inline).
-function optimizeTimelineTitle(idx, btn) {
-  _runAiOptimize(
-    btn,
-    "timeline",
-    () => (_timelineItems[idx] && _timelineItems[idx].title) || "",
-    (v) => {
-      if (!_timelineItems[idx]) return;
-      _timelineItems[idx].title = v;
-      _syncTimelineHidden();
-      renderTimelineList();
-    },
-  );
-}
-
 // Gắn cụm AI cho các ô TĨNH (đã là <x-textarea> sẵn) sau khi toàn bộ script đã nạp.
 window.__cxOnReady?.(function () {
   // Ô Slogan có thêm nút "Tạo câu khác" (bốc câu mẫu trong QUOTE_LIST).
@@ -258,7 +243,6 @@ async function generateLoveStoryAi(btn) {
   }
 }
 
-window.optimizeTimelineTitle = optimizeTimelineTitle;
 window._wireLoveStoryTextareas = _wireLoveStoryTextareas;
 window.toggleLoveAiPanel = toggleLoveAiPanel;
 window.generateLoveStoryAi = generateLoveStoryAi;

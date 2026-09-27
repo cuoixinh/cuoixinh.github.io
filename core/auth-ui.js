@@ -5,7 +5,12 @@
 //   AuthUI.openModal(opts)       mở popup chứa form; opts.oauthRedirect
 //   AuthUI.requireLogin(opts)    mời đăng nhập tại chỗ (title/subtitle/onAuth)
 //   AuthUI.closeModal()
+//   AuthUI.oauthLanding          lần mở trang này là OAuth vừa trả về
 (function () {
+  // Chụp TRƯỚC khi dựng client: supabase-js đọc xong là xoá token/code khỏi URL.
+  const _oauthLanding = /(access_token|[?&]code|error_description)=/.test(
+    location.hash + location.search,
+  );
   const { createClient } = window.supabase;
   const sb = createClient(CONFIG.supabase.url, CONFIG.supabase.anonKey);
 
@@ -55,7 +60,9 @@
     try { ret = sessionStorage.getItem(_OAUTH_RETURN_KEY); } catch {}
     if (ret) {
       try { sessionStorage.removeItem(_OAUTH_RETURN_KEY); } catch {}
-      if (!_samePath(location.href, ret)) {
+      // Chỉ trang OAuth vừa trả về mới được bật đi. Cờ sót lại từ lần bấm Google rồi
+      // bỏ dở sẽ đá khách về màn cũ ở lần mở trang kế tiếp (vd sang trang Thiết lập).
+      if (_oauthLanding && !_samePath(location.href, ret)) {
         window.location.replace(ret);
         return;
       }
@@ -434,5 +441,6 @@
     closeModal,
     armLoginToast,
     requireLogin,
+    oauthLanding: _oauthLanding,
   };
 })();

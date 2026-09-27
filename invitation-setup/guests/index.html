@@ -31,14 +31,16 @@
         <div class="flex items-center gap-2 min-w-0">
           <i data-lucide="users" class="w-4 h-4 text-color-secondary shrink-0"></i>
           <h1 class="text-[11px] truncate">
-            <a href="/" class="font-semibold text-color-secondary hover:opacity-80 transition-opacity">Trang chủ</a>
+            <a href="/" target="_top" class="font-semibold text-color-secondary hover:opacity-80 transition-opacity">Trang chủ</a>
             <span class="font-normal text-gray-300 mx-0.5">/</span>
-            <a href="../" class="font-semibold text-color-secondary hover:opacity-80 transition-opacity">Thiết lập thiệp cưới</a>
+            <a href="../" onclick="goBack(); return false;" class="font-semibold text-color-secondary hover:opacity-80 transition-opacity">Thiết lập thiệp cưới</a>
             <span class="font-normal text-gray-300 mx-0.5">/</span>
             <span class="font-normal text-gray-400">Khách mời</span>
           </h1>
         </div>
-        <a href="/" class="shrink-0">
+        <!-- target="_top": trang này chạy trong iframe tab Khách mời, mở trang chủ
+             ngay trong khung là hiện hai navbar lồng nhau. -->
+        <a href="/" target="_top" class="shrink-0">
           <img src="../../assets/icons/logo.png" alt="Cưới Xinh" class="h-8 w-auto" />
         </a>
       </div>

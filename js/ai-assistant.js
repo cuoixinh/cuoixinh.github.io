@@ -79,10 +79,11 @@
     "6. **Chuyện tình yêu:** hai bạn quen nhau thế nào, kể tự do thôi; thích văn phong lãng mạn, truyền thống, dí dỏm hay hiện đại",
     "7. **Hộp mừng:** số tài khoản, ngân hàng, tên chủ tài khoản mỗi bên (không muốn để cũng được)",
     "",
-    "Lời mời, lời cảm ơn mình sẽ tự đề xuất. Còn mẫu thiệp, ảnh, nhạc, bản đồ chọn ngay sau khi bạn đã khai đủ thông tin",
+    "Lời mời, lời cảm ơn mình sẽ tự đề xuất. Còn ảnh, nhạc, bản đồ chọn ngay sau khi bạn đã khai đủ thông tin",
   ].join("\n");
   const ASK_PLACEHOLDER = "Hỏi XuXi bất cứ điều gì…";
   const GATE_PLACEHOLDER = "Chọn một việc ở trên để bắt đầu…";
+  const PRE_PLACEHOLDER = "Chọn mẫu thiệp ở trên để bắt đầu…";
   // Dòng phụ dưới tên XuXi trên thanh tiêu đề — cho khách biết đang ở chế độ nào.
   const MODE_SUB = {
     "": "Tạo thiệp cưới hoặc hỏi mình bất cứ điều gì",
@@ -168,6 +169,12 @@
           <i data-lucide="x" style="width:18px;height:18px"></i>
         </x-button>
       </div>
+      <x-button variant="bare" class="aichat-themebar" id="aichatThemeBar" type="button"
+                title="Đổi mẫu thiệp" hidden>
+        <span class="aichat-themebar-k">Mẫu đang thao tác</span>
+        <span class="aichat-themebar-v" id="aichatThemeName"></span>
+        <i data-lucide="chevron-right" style="width:14px;height:14px"></i>
+      </x-button>
       <div class="aichat-body" id="aichatBody"></div>
       <div class="aichat-sugwrap" id="aichatSugWrap">
         <p class="aichat-sug-hd">
@@ -233,6 +240,8 @@
       send: panel.querySelector("#aichatSend"),
       reset: panel.querySelector("#aichatReset"),
       expand: panel.querySelector("#aichatExpand"),
+      themeBar: panel.querySelector("#aichatThemeBar"),
+      themeName: panel.querySelector("#aichatThemeName"),
     };
     setExpanded(loadExpanded());
   }
@@ -838,7 +847,7 @@
   // Lượt khách hỏi mà hỏng (`failed` = câu báo lỗi) vẫn nằm trong lịch sử để F5 còn
   // thấy, nhưng KHÔNG gửi cho model: một lượt "khách hỏi" chưa có lời đáp làm nó trả lệch.
   function chatTurns() {
-    return history.filter((m) => !m.failed).slice(-MAX_TURNS);
+    return history.filter((m) => !m.failed && !m.pre).slice(-MAX_TURNS);
   }
 
   // Vị trí bản chốt: lượt XuXi (không phải dòng giao diện tự ghi) cuối cùng trước lượt
@@ -853,7 +862,7 @@
   // cùng trước lượt "ready" — kèm lời đồng ý và lệnh dựng, cho prompt ngắn. Field đã thu
   // vẫn đi riêng qua `known`, ảnh/nhạc qua `media`. Không thấy bản chốt thì gửi đủ.
   function buildTurns() {
-    const turns = history.filter((m) => !m.failed);
+    const turns = history.filter((m) => !m.failed && !m.pre);
     const r = turns.findIndex((m) => m.ready);
     const s = summaryAt(turns, r);
     if (s < 0) return turns.slice(-MAX_TURNS);
@@ -1536,12 +1545,12 @@
 
   // Đặt ô chọn vào cột `col` (dưới bong bóng), không có cột thì một hàng XuXi mới.
   // `guided` = ô của luồng dẫn, có nút Tiếp tục / Bỏ qua.
-  function addWidget(kind, col, guided) {
+  function addWidget(kind, col, guided, required) {
     const M = window.CXChatMedia;
     if (!M?.isKind(kind)) return;
     col = col || addRow("bot");
     col.classList.add("is-wide");
-    const box = M.widget(kind, guided ? { onNext: stepNext } : {});
+    const box = M.widget(kind, guided ? { onNext: stepNext, required } : {});
     colInsert(col, box);
     scrollToEnd();
   }
@@ -1572,7 +1581,10 @@
   // Nút Tiếp tục / Bỏ qua của ô trong luồng dẫn. Chỉ dẫn tiếp khi cuộc chat đã có
   // thiệp: ô mở lẻ (khách đòi đổi nhạc giữa chừng) thì ghi nhận rồi thôi.
   async function stepNext(kind, done, st) {
-    markStep(kind, done, st);
+    const pre = inPreStep();
+    markStep(kind, done, st, pre);
+    // Bước chọn mẫu đầu cuộc Tạo thiệp: chọn xong mới tới câu mở màn + lời mở đầu.
+    if (pre) return void playIntro();
     // Đã có thiệp: bảng tóm tắt tự vẽ lại theo ô chọn, không dẫn tiếp. Chưa có mà đã
     // thu đủ thông tin (lượt "ready"): mời ô kế tiếp, hết ô thì xin dựng thiệp.
     if (canBuild()) await openNextStep();
@@ -1580,7 +1592,7 @@
   }
 
   // Ghi nhận việc khách vừa làm ở ô `kind` (dòng "(Đã …)") và bỏ nút dẫn luồng của nó.
-  function markStep(kind, done, st) {
+  function markStep(kind, done, st, pre) {
     const M = window.CXChatMedia;
     M.visit(kind);
     for (let i = history.length - 1; i >= 0; i--) {
@@ -1590,7 +1602,7 @@
       }
     }
     const note = M.noteFor(kind, st, done);
-    history.push({ role: "user", content: note, at: Date.now(), note: true });
+    history.push({ role: "user", content: note, at: Date.now(), note: true, ...(pre && { pre: true, seed: true }) });
     addNote(note);
   }
 
@@ -1936,11 +1948,54 @@
     if (window.matchMedia("(min-width: 521px)").matches) els.input.focus();
   }
 
-  // Lời mở đầu của chế độ Tạo thiệp, chỉ khi cuộc chat còn trắng và bảng đang mở —
-  // nó chạy chữ nên phải có người nhìn.
+  // Mở màn chế độ Tạo thiệp, chỉ khi cuộc chat còn trắng và bảng đang mở — nó chạy
+  // chữ nên phải có người nhìn. Bước ĐẦU là chọn mẫu (bắt buộc; ở trang Thiết lập ô
+  // chọn tự đánh dấu mẫu của thiệp đang mở), bấm Tiếp tục mới tới playIntro.
+  // Các lượt `pre` không gửi lên server: mẫu đi theo `media`.
   function ensureIntro() {
     if (mode !== "create" || history.length || busy || els.panel.hidden) return;
-    playIntro();
+    if (!window.CXChatMedia?.isKind("theme")) return void playIntro();
+    history.push({
+      role: "assistant",
+      content: "(Mời chọn mẫu thiệp)",
+      at: Date.now(),
+      ask: "theme",
+      guided: true,
+      local: true,
+      pre: true,
+      seed: true,
+    });
+    saveHistory();
+    addWidget("theme", null, true, true);
+    syncGate();
+  }
+
+  // Đang ở bước chọn mẫu đầu cuộc (chưa tới câu mở màn).
+  const inPreStep = () =>
+    history.some((m) => m.pre) && !history.some((m) => m.seed && m.content === CREATE_ASK);
+
+  // Bấm dải "Mẫu đang thao tác": đoạn chat đã có ô chọn mẫu thì cuộn tới ô gần nhất và
+  // nháy viền, chưa có mới mở ô mới — mở mỗi lần bấm là ô chọn mẫu nhân bản liên tục.
+  function showThemeKit() {
+    const kits = els.body.querySelectorAll('.aichat-kit[data-kind="theme"]');
+    const kit = kits[kits.length - 1];
+    if (!kit) return void openKind("theme");
+    const top = kit.getBoundingClientRect().top - els.body.getBoundingClientRect().top;
+    els.body.scrollTo({ top: els.body.scrollTop + top - 12, behavior: "smooth" });
+    kit.classList.remove("is-flash");
+    void kit.offsetWidth; // bấm liên tiếp vẫn nháy lại từ đầu
+    kit.classList.add("is-flash");
+  }
+
+  // Dải "Mẫu đang thao tác" dưới thanh tiêu đề: chỉ ở chế độ Tạo thiệp và khi đã có mẫu.
+  // Bấm vào là mở ô chọn mẫu để đổi.
+  async function syncThemeBar() {
+    const M = window.CXChatMedia;
+    if (!els?.themeBar || !M?.state) return;
+    const st = mode === "create" ? await M.state().catch(() => null) : null;
+    const name = st?.theme ? st.theme.name || st.theme.theme : "";
+    els.themeName.textContent = name;
+    els.themeBar.hidden = !name;
   }
 
   // Không gọi model nhưng vẫn diễn đúng nhịp một lượt trả lời: ba chấm một nhịp rồi
@@ -1953,6 +2008,7 @@
     history.push({ role: "user", content: CREATE_ASK, at: Date.now(), seed: true });
     saveHistory();
     addBubble("user", CREATE_ASK, history[history.length - 1].at);
+    syncGate();
     const typing = addTyping();
     await wait(INTRO_WAIT_MS);
     typing.remove();
@@ -1983,11 +2039,13 @@
 
   // Chưa chọn chế độ thì KHOÁ chỗ nhập: cửa chọn chế độ là đường duy nhất vào cuộc
   // chat, để mỗi lượt đi đúng prompt của nó ngay từ câu đầu.
+  // Bước chọn mẫu đầu cuộc Tạo thiệp cũng khoá (chỉ ô nhập, vẫn giữ nút Trò chuyện mới).
   function syncGate() {
     const lock = !mode;
+    const pre = inPreStep();
     els.panel.classList.toggle("is-gated", lock);
-    els.input.disabled = lock;
-    els.input.placeholder = lock ? GATE_PLACEHOLDER : ASK_PLACEHOLDER;
+    els.input.disabled = lock || pre;
+    els.input.placeholder = lock ? GATE_PLACEHOLDER : pre ? PRE_PLACEHOLDER : ASK_PLACEHOLDER;
     els.mic.disabled = lock || busy;
     syncSend();
   }
@@ -2004,6 +2062,7 @@
       /* chặn cookie: chỉ không nhớ qua lần tải lại */
     }
     if (els) els.sub.textContent = MODE_SUB[m] || MODE_SUB[""];
+    syncThemeBar();
   }
 
   // Lịch sử từ trước khi có chế độ (không có khoá) thì đoán theo dấu vết: đã thu thông tin / chốt / có thiệp là đang tạo thiệp.
@@ -2162,7 +2221,7 @@
       if (m.note) addNote(m.content);
       else if (m.buildAsk) addBuildAsk(m);
       else if (m.local && m.ask) {
-        if (showAsk(m, i)) addWidget(m.ask, null, m.guided);
+        if (showAsk(m, i)) addWidget(m.ask, null, m.guided, m.pre);
       } else {
         const bubble = addBubble(m.role === "user" ? "user" : "bot", m.content, m.at);
         if (m.card) addCardAction(bubble.parentElement, m.card, m);
@@ -2629,7 +2688,7 @@
     els.send.setAttribute("aria-label", busy ? "Dừng" : "Gửi");
     els.send.disabled = busy
       ? !abort
-      : !mode || !els.input.value.trim() || over;
+      : !mode || inPreStep() || !els.input.value.trim() || over;
     els.composer.classList.toggle("is-over", over);
     els.count.classList.toggle("is-over", over);
     const fmt = (n) => n.toLocaleString("vi-VN");
@@ -2653,6 +2712,8 @@
     // thu; trang Thiết lập có đích ghi riêng (cxAiMediaSink) nên không cần hai thứ này.
     window.CXChatMedia?.init({ draftId: chatDraftId, known: () => known });
     if (!SHOW_ATTACH || !window.CXChatMedia) els.attach.hidden = true;
+    els.themeBar.addEventListener("click", showThemeKit);
+    window.addEventListener("cx-media-change", syncThemeBar);
     loadHistory();
     loadMode();
     convId(); // cuộc đang mở phải có mã ngay từ đầu (chưa có thì đây là cuộc mới)
