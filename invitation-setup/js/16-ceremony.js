@@ -57,6 +57,8 @@ function togglePartySameLoc(side, event, force) {
   // <x-check> sở hữu trạng thái + hiển thị (box/icon/viền); ở đây chỉ đọc/ghi .checked
   const check = document.querySelector(`x-check[key="${side}-party-same"]`);
   if (!check) return;
+  // force !== undefined: được gọi từ init/sync, dùng giá trị force
+  // force === undefined: được gọi từ user click, lúc này check.checked ĐÃ được x-check đảo ngược rồi
   const newActive = force !== undefined ? force : check.checked;
   check.checked = newActive;
 

@@ -121,6 +121,10 @@ class XSwitch extends HTMLElement {
 // id inner giữ nguyên {key}-btn/{key}-box/{key}-icon để code cũ (nếu có) vẫn tra được.
 class XCheck extends HTMLElement {
   connectedCallback() {
+    // Tránh khởi tạo lại nếu đã được build
+    if (this._built) return;
+    this._built = true;
+
     const key = this.getAttribute("key") || "";
     const label = this.getAttribute("label") || "";
     const onchange = this.getAttribute("onchange") || "";
@@ -138,20 +142,54 @@ class XCheck extends HTMLElement {
         </span>
         <span class="text-sm font-medium text-gray-700">${label}</span>
       </button>`;
+    
     // Chạy handler onchange thủ công cho ổn định (không phụ thuộc trình duyệt tự wire attribute
     // content event-handler trên custom element). Gỡ attribute để tránh bị fire trùng.
+    const onchangeAttr = this.getAttribute("onchange") || "";
     this.removeAttribute("onchange");
-    this._onchange = onchange ? new Function("event", onchange) : null;
-    this.querySelector("button").addEventListener("click", (e) => {
-      this.checked = !this.checked;
-      if (this._onchange) this._onchange.call(this, e);
-      this.dispatchEvent(new Event("change", { bubbles: true }));
-    });
+    
+    // Parse onchange handler - hỗ trợ cả dạng "func(args)" và "window.func(args)"
+    let onchangeFn = null;
+    if (onchangeAttr) {
+      try {
+        // Tạo function wrapper an toàn hơn
+        onchangeFn = new Function("event", `
+          try {
+            ${onchangeAttr};
+          } catch (err) {
+            console.error("Error in x-check onchange:", err);
+          }
+        `);
+      } catch (err) {
+        console.error("Failed to parse x-check onchange attribute:", onchangeAttr, err);
+      }
+    }
+    
+    const btn = this.querySelector("button");
+    if (btn) {
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // Đảo ngược trạng thái
+        this.checked = !this.checked;
+        
+        // Gọi onchange handler nếu có
+        if (onchangeFn) {
+          onchangeFn.call(this, e);
+        }
+        
+        // Dispatch event để các listener khác có thể bắt
+        this.dispatchEvent(new Event("change", { bubbles: true }));
+      });
+    }
   }
 
   get checked() {
-    return this.querySelector("button")?.dataset.active === "true";
+    const btn = this.querySelector("button");
+    return btn?.dataset.active === "true";
   }
+  
   set checked(v) {
     const btn = this.querySelector("button");
     if (!btn) return;
