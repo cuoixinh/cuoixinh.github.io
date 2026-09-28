@@ -120,12 +120,21 @@ function showLockedInvitation(info) {
 
 const CX_VISITOR_LINE = "Cảm ơn bạn đã ghé xem thiệp";
 
+// Bỏ qua màn bìa: chỉ các khung của trang Thiết lập (Xem trực tiếp `source=live`,
+// tab Giao diện `edit=1`) — ở đó khách đang chỉnh thân thiệp. Bản xem thử mẫu và
+// ảnh chụp mẫu (scripts/capture.js) giữ nguyên bìa như thiệp thật.
+function _cxSkipCover() {
+  if (!isPreviewMode()) return false;
+  const q = new URLSearchParams(window.location.search);
+  return q.get("source") === "live" || q.get("edit") === "1";
+}
+
 function setupPersonalizedGreeting(
   weddingSlug,
   isGroom,
   openInvitationCallback,
 ) {
-  if (isPreviewMode()) {
+  if (_cxSkipCover()) {
     openInvitationCallback();
     return;
   }
@@ -146,7 +155,7 @@ function setupPersonalizedGreeting(
     document.querySelector("#cover-screen #cover-guest-wrap")?.classList.remove("hidden");
   };
 
-  if (!encryptedName || !encryptedRelationship) {
+  if (isPreviewMode() || !encryptedName || !encryptedRelationship) {
     generic();
     return;
   }
@@ -188,7 +197,7 @@ function openInvitation(callback) {
 
   if (!cover || !main) return;
 
-  if (isPreviewMode()) {
+  if (_cxSkipCover()) {
     cover.style.display = "none";
     main.style.display = "";
     main.style.opacity = "1";

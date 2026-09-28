@@ -461,6 +461,13 @@ async function deleteTemplate(templateId, displayName) {
   );
 }
 
+// Scan server (scripts/server.js) chụp ảnh mẫu bằng puppeteer — chỉ chạy local.
+const SCAN_SERVER = "http://127.0.0.1:3001";
+
+// Có giá trị khi modal đang ở nhánh "scan server chưa bật" và luồng lưu đang
+// chờ quyết định — đóng modal lúc đó là huỷ, không thì luồng lưu treo mãi.
+let scanHelpResolve = null;
+
 function settleScanHelp(goOn) {
   if (!scanHelpResolve) return;
   const resolve = scanHelpResolve;
