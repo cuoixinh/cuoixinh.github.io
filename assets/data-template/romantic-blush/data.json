@@ -131,9 +131,9 @@
     "vu_quy_enabled": true,
     "vu_quy_time": "08:00",
     "vu_quy_location": "Tư gia nhà gái — Số 9 Hạ Long, Phường Bãi Cháy, Tỉnh Quảng Ninh",
-    "groom_party_date": "2026-10-11",
-    "groom_party_time": "11:00",
-    "groom_party_lunar": "Tức ngày 2 tháng 9 năm Bính Ngọ",
+    "groom_party_date": "2026-10-10",
+    "groom_party_time": "17:00",
+    "groom_party_lunar": "Tức ngày 1 tháng 9 năm Bính Ngọ",
     "groom_party_show_location": true,
     "groom_party_location": "Trung tâm Tiệc cưới Pearl Palace, 268 Lê Hồng Phong, TP. Hải Phòng",
     "bride_party_date": "2026-10-10",
@@ -187,22 +187,22 @@
         "type": "ceremony"
       },
       {
-        "time": "10:30",
+        "time": "17:00",
         "title": "Đón khách và nhận lời chúc",
         "type": "party"
       },
       {
-        "time": "11:00",
+        "time": "17:30",
         "title": "Khai tiệc mừng hạnh phúc",
         "type": "party"
       },
       {
-        "time": "12:00",
+        "time": "18:30",
         "title": "Cắt bánh, tung hoa cưới",
         "type": "party"
       },
       {
-        "time": "13:00",
+        "time": "20:00",
         "title": "Cảm ơn và tiễn khách",
         "type": "party"
       }

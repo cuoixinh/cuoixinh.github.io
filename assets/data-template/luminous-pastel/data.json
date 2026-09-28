@@ -131,9 +131,9 @@
     "vu_quy_enabled": true,
     "vu_quy_time": "08:30",
     "vu_quy_location": "Tư gia nhà gái — Số 7 Trần Hưng Đạo, Phường Hội An, TP. Đà Nẵng",
-    "groom_party_date": "2026-10-25",
-    "groom_party_time": "11:30",
-    "groom_party_lunar": "Tức ngày 16 tháng 9 năm Bính Ngọ",
+    "groom_party_date": "2026-10-24",
+    "groom_party_time": "16:30",
+    "groom_party_lunar": "Tức ngày 15 tháng 9 năm Bính Ngọ",
     "groom_party_show_location": true,
     "groom_party_location": "Almanity Riverside, Phường Hội An, TP. Đà Nẵng",
     "bride_party_date": "2026-10-24",
@@ -182,23 +182,23 @@
         "type": "ceremony"
       },
       {
-        "time": "11:00",
+        "time": "16:30",
         "title": "Chụp ảnh cùng cô dâu chú rể",
         "type": "party"
       },
       {
-        "time": "11:30",
-        "title": "Tiệc trưa bên hồ bơi",
+        "time": "17:00",
+        "title": "Tiệc chiều bên hồ bơi",
         "type": "party"
       },
       {
-        "time": "13:00",
+        "time": "18:30",
         "title": "Cắt bánh và nâng ly",
         "type": "party"
       },
       {
-        "time": "14:30",
-        "title": "Tiệc trà và tiễn khách",
+        "time": "20:00",
+        "title": "Cảm ơn và tiễn khách",
         "type": "party"
       }
     ],

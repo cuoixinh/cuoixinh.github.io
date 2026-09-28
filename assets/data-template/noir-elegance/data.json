@@ -145,15 +145,15 @@
     "bride_address": "Số 19 Quán Thánh, Phường Ba Đình, TP. Hà Nội",
     "ceremony_name": "Lễ Thành Hôn",
     "ceremony_date": "2026-12-19",
-    "ceremony_time": "18:00",
+    "ceremony_time": "11:00",
     "ceremony_lunar": "Tức ngày 11 tháng 11 năm Bính Ngọ",
     "ceremony_location": "Grand Ballroom — Sofitel Legend Metropole, 15 Ngô Quyền, TP. Hà Nội",
     "vu_quy_enabled": true,
-    "vu_quy_time": "09:30",
+    "vu_quy_time": "08:30",
     "vu_quy_location": "Tư gia nhà gái — Số 19 Quán Thánh, Phường Ba Đình, TP. Hà Nội",
-    "groom_party_date": "2026-12-19",
-    "groom_party_time": "19:00",
-    "groom_party_lunar": "Tức ngày 11 tháng 11 năm Bính Ngọ",
+    "groom_party_date": "2026-12-18",
+    "groom_party_time": "17:30",
+    "groom_party_lunar": "Tức ngày 10 tháng 11 năm Bính Ngọ",
     "groom_party_show_location": true,
     "groom_party_location": "Grand Ballroom — Sofitel Legend Metropole, 15 Ngô Quyền, TP. Hà Nội",
     "bride_party_date": "2026-12-18",
@@ -192,17 +192,17 @@
         "type": "bride-party"
       },
       {
-        "time": "09:30",
+        "time": "08:30",
         "title": "Lễ Vu Quy tại tư gia nhà gái",
         "type": "ceremony"
       },
       {
-        "time": "11:00",
+        "time": "10:00",
         "title": "Lễ gia tiên tại tư gia nhà trai",
         "type": "ceremony"
       },
       {
-        "time": "18:00",
+        "time": "11:00",
         "title": "Lễ Thành Hôn tại Grand Ballroom",
         "type": "ceremony"
       },

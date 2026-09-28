@@ -135,17 +135,17 @@
     "bride_address": "Thôn Phương Nam, Xã Tân Hưng, Tỉnh Hưng Yên",
     "ceremony_name": "Lễ Thành Hôn",
     "ceremony_date": "2026-11-29",
-    "ceremony_time": "10:00",
+    "ceremony_time": "10:30",
     "ceremony_lunar": "Tức ngày 21 tháng 10 năm Bính Ngọ",
     "ceremony_location": "Trung tâm Tiệc cưới Golden Palace, Phố Cát Linh, TP. Hà Nội",
     "ceremony_map_embed_url": "https://maps.google.com/maps?q=21.028075,105.829432&output=embed&hl=vi",
     "vu_quy_enabled": true,
-    "vu_quy_time": "08:30",
+    "vu_quy_time": "08:00",
     "vu_quy_location": "Tư gia nhà gái — Thôn Phương Nam, Xã Tân Hưng, Tỉnh Hưng Yên",
     "vu_quy_map_embed_url": "https://maps.google.com/maps?q=20.628230,106.092739&output=embed&hl=vi",
-    "groom_party_date": "2026-11-29",
-    "groom_party_time": "11:30",
-    "groom_party_lunar": "Tức ngày 21 tháng 10 năm Bính Ngọ",
+    "groom_party_date": "2026-11-28",
+    "groom_party_time": "17:30",
+    "groom_party_lunar": "Tức ngày 20 tháng 10 năm Bính Ngọ",
     "groom_party_show_location": true,
     "groom_party_location": "Trung tâm Tiệc cưới Golden Palace, Phố Cát Linh, TP. Hà Nội",
     "groom_party_map_embed_url": "https://maps.google.com/maps?q=21.028075,105.829432&output=embed&hl=vi",
@@ -186,37 +186,37 @@
         "type": "bride-party"
       },
       {
-        "time": "08:30",
+        "time": "08:00",
         "title": "Lễ Vu Quy tại tư gia nhà gái",
         "type": "ceremony"
       },
       {
-        "time": "09:30",
+        "time": "08:30",
         "title": "Đoàn nhà trai rước dâu về Hà Nội",
         "type": "ceremony"
       },
       {
-        "time": "10:00",
+        "time": "10:30",
         "title": "Lễ Thành Hôn tại Golden Palace",
         "type": "ceremony"
       },
       {
-        "time": "11:00",
+        "time": "17:30",
         "title": "Đón khách và check-in tại quầy photobooth",
         "type": "party"
       },
       {
-        "time": "11:30",
+        "time": "18:00",
         "title": "Khai tiệc mừng hạnh phúc",
         "type": "party"
       },
       {
-        "time": "12:30",
+        "time": "19:00",
         "title": "Nghi thức cắt bánh và rót tháp rượu",
         "type": "party"
       },
       {
-        "time": "13:30",
+        "time": "20:30",
         "title": "Cảm ơn và tiễn khách",
         "type": "party"
       }

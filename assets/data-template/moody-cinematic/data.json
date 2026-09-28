@@ -100,15 +100,15 @@
     "bride_address": "Số 31 Thùy Vân, Phường Thắng Tam, TP. Vũng Tàu",
     "ceremony_name": "Lễ Thành Hôn",
     "ceremony_date": "2026-11-21",
-    "ceremony_time": "17:30",
+    "ceremony_time": "11:00",
     "ceremony_lunar": "Tức ngày 13 tháng 10 năm Bính Ngọ",
     "ceremony_location": "Rooftop Saigon Prince, 63 Nguyễn Huệ, TP. Hồ Chí Minh",
     "vu_quy_enabled": true,
-    "vu_quy_time": "09:00",
+    "vu_quy_time": "08:00",
     "vu_quy_location": "Tư gia nhà gái — Số 31 Thùy Vân, Phường Thắng Tam, TP. Vũng Tàu",
-    "groom_party_date": "2026-11-21",
+    "groom_party_date": "2026-11-20",
     "groom_party_time": "18:30",
-    "groom_party_lunar": "Tức ngày 13 tháng 10 năm Bính Ngọ",
+    "groom_party_lunar": "Tức ngày 12 tháng 10 năm Bính Ngọ",
     "groom_party_show_location": true,
     "groom_party_location": "Rooftop Saigon Prince, 63 Nguyễn Huệ, TP. Hồ Chí Minh",
     "bride_party_date": "2026-11-20",
@@ -143,13 +143,13 @@
         "type": "bride-party"
       },
       {
-        "time": "09:00",
+        "time": "08:00",
         "title": "Lễ Vu Quy tại tư gia nhà gái",
         "type": "ceremony"
       },
       {
-        "time": "17:30",
-        "title": "Lễ Thành Hôn lúc hoàng hôn",
+        "time": "11:00",
+        "title": "Lễ Thành Hôn tại tư gia nhà trai",
         "type": "ceremony"
       },
       {

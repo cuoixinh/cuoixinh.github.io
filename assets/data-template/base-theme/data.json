@@ -131,9 +131,9 @@
     "vu_quy_enabled": true,
     "vu_quy_time": "08:00",
     "vu_quy_location": "Tư gia nhà gái — Thôn Đại Bái, Xã Đại Bái, Tỉnh Bắc Ninh",
-    "groom_party_date": "2026-11-08",
-    "groom_party_time": "11:00",
-    "groom_party_lunar": "Tức ngày 30 tháng 9 năm Bính Ngọ",
+    "groom_party_date": "2026-11-07",
+    "groom_party_time": "17:00",
+    "groom_party_lunar": "Tức ngày 29 tháng 9 năm Bính Ngọ",
     "groom_party_show_location": true,
     "groom_party_location": "Nhà hàng Tiệc cưới Sen Hồng, 145 Trần Duy Hưng, Hà Nội",
     "bride_party_date": "2026-11-07",
@@ -192,17 +192,17 @@
         "type": "ceremony"
       },
       {
-        "time": "10:30",
+        "time": "17:00",
         "title": "Đón khách và nhận lời chúc",
         "type": "party"
       },
       {
-        "time": "11:30",
+        "time": "17:30",
         "title": "Khai tiệc mừng hạnh phúc",
         "type": "party"
       },
       {
-        "time": "13:00",
+        "time": "20:00",
         "title": "Cảm ơn và tiễn khách",
         "type": "party"
       }

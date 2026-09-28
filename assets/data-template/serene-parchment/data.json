@@ -125,19 +125,19 @@
     "bride_address": "Số 6 Trần Hưng Đạo, Phường Đông Hà, Tỉnh Quảng Trị",
     "ceremony_name": "Lễ Thành Hôn",
     "ceremony_date": "2026-12-13",
-    "ceremony_time": "09:00",
+    "ceremony_time": "10:00",
     "ceremony_lunar": "Tức ngày 5 tháng 11 năm Bính Ngọ",
     "ceremony_location": "Nhà vườn An Hiên, 58 Nguyễn Phúc Nguyên, TP. Huế",
     "vu_quy_enabled": true,
-    "vu_quy_time": "07:30",
+    "vu_quy_time": "08:00",
     "vu_quy_location": "Tư gia nhà gái — Số 6 Trần Hưng Đạo, Phường Đông Hà, Tỉnh Quảng Trị",
-    "groom_party_date": "2026-12-13",
-    "groom_party_time": "11:00",
-    "groom_party_lunar": "Tức ngày 5 tháng 11 năm Bính Ngọ",
+    "groom_party_date": "2026-12-12",
+    "groom_party_time": "16:30",
+    "groom_party_lunar": "Tức ngày 4 tháng 11 năm Bính Ngọ",
     "groom_party_show_location": true,
     "groom_party_location": "Nhà vườn An Hiên, 58 Nguyễn Phúc Nguyên, TP. Huế",
     "bride_party_date": "2026-12-12",
-    "bride_party_time": "11:00",
+    "bride_party_time": "17:00",
     "bride_party_lunar": "Tức ngày 4 tháng 11 năm Bính Ngọ",
     "bride_party_show_location": true,
     "bride_party_location": "Tư gia nhà gái — Số 6 Trần Hưng Đạo, Phường Đông Hà, Tỉnh Quảng Trị",
@@ -162,17 +162,17 @@
     "enable_footer": true,
     "timeline": [
       {
-        "time": "11:00",
+        "time": "17:00",
         "title": "Tiệc thân mật nhà gái tại Đông Hà",
         "type": "bride-party"
       },
       {
-        "time": "13:00",
+        "time": "19:00",
         "title": "Uống trà và chuyện trò cùng họ hàng",
         "type": "bride-party"
       },
       {
-        "time": "07:30",
+        "time": "08:00",
         "title": "Lễ Vu Quy tại tư gia nhà gái",
         "type": "ceremony"
       },
@@ -182,23 +182,23 @@
         "type": "ceremony"
       },
       {
-        "time": "09:00",
+        "time": "10:00",
         "title": "Lễ Thành Hôn tại nhà vườn An Hiên",
         "type": "ceremony"
       },
       {
-        "time": "10:30",
+        "time": "16:30",
         "title": "Đón khách bên hiên nhà vườn",
         "type": "party"
       },
       {
-        "time": "11:00",
-        "title": "Tiệc trưa thân mật",
+        "time": "17:00",
+        "title": "Tiệc tối thân mật",
         "type": "party"
       },
       {
-        "time": "13:00",
-        "title": "Trà chiều và chụp ảnh lưu niệm",
+        "time": "19:00",
+        "title": "Uống trà và chụp ảnh lưu niệm",
         "type": "party"
       }
     ],
