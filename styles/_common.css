@@ -195,6 +195,22 @@ svg.cx-ic {
   background-color: rgb(var(--cx-qr-bg-rgb));
 }
 
+/* Thông tin chuyển khoản phải đọc/chép được: ép font hệ thống bất kể mẫu gắn
+   .cx-h/.cx-t (font trang trí). Chọn theo id để thắng rule class trong theme.css. */
+
+#groom-bank-label,
+#bride-bank-label,
+#groom-bank-name,
+#bride-bank-name,
+#groom-bank-number,
+#bride-bank-number,
+#groom-bank-owner,
+#bride-bank-owner {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-style: normal;
+  font-variant-numeric: tabular-nums;
+}
+
 .cx-lightbox {
   background-color: rgb(var(--cx-lightbox-bg-rgb) / 0.95);
 }

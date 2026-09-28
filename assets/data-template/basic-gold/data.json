@@ -125,19 +125,19 @@
     "bride_address": "Xóm 5, Xã Hải Đường, Tỉnh Nam Định",
     "ceremony_name": "Lễ Thành Hôn",
     "ceremony_date": "2026-12-06",
-    "ceremony_time": "09:30",
+    "ceremony_time": "10:00",
     "ceremony_lunar": "Tức ngày 28 tháng 10 năm Bính Ngọ",
     "ceremony_location": "Tư gia nhà trai — Thôn An Cố, Xã Thụy An, Tỉnh Thái Bình",
     "vu_quy_enabled": true,
-    "vu_quy_time": "07:00",
+    "vu_quy_time": "07:30",
     "vu_quy_location": "Tư gia nhà gái — Xóm 5, Xã Hải Đường, Tỉnh Nam Định",
-    "groom_party_date": "2026-12-06",
-    "groom_party_time": "11:00",
-    "groom_party_lunar": "Tức ngày 28 tháng 10 năm Bính Ngọ",
+    "groom_party_date": "2026-12-05",
+    "groom_party_time": "16:30",
+    "groom_party_lunar": "Tức ngày 27 tháng 10 năm Bính Ngọ",
     "groom_party_show_location": true,
     "groom_party_location": "Tư gia nhà trai — Thôn An Cố, Xã Thụy An, Tỉnh Thái Bình",
     "bride_party_date": "2026-12-05",
-    "bride_party_time": "11:00",
+    "bride_party_time": "17:00",
     "bride_party_lunar": "Tức ngày 27 tháng 10 năm Bính Ngọ",
     "bride_party_show_location": true,
     "bride_party_location": "Tư gia nhà gái — Xóm 5, Xã Hải Đường, Tỉnh Nam Định",
@@ -162,52 +162,52 @@
     "enable_footer": true,
     "timeline": [
       {
-        "time": "10:30",
+        "time": "16:30",
         "title": "Đón khách tại tư gia nhà gái",
         "type": "bride-party"
       },
       {
-        "time": "11:00",
+        "time": "17:00",
         "title": "Tiệc mừng nhà gái",
         "type": "bride-party"
       },
       {
-        "time": "13:00",
+        "time": "19:00",
         "title": "Tiễn khách",
         "type": "bride-party"
       },
       {
-        "time": "07:00",
+        "time": "07:30",
         "title": "Lễ Vu Quy tại tư gia nhà gái",
         "type": "ceremony"
       },
       {
-        "time": "08:00",
+        "time": "08:30",
         "title": "Đoàn nhà trai xin dâu",
         "type": "ceremony"
       },
       {
-        "time": "09:30",
+        "time": "10:00",
         "title": "Lễ Thành Hôn tại tư gia nhà trai",
         "type": "ceremony"
       },
       {
-        "time": "10:00",
+        "time": "10:30",
         "title": "Dâng hương gia tiên",
         "type": "ceremony"
       },
       {
-        "time": "10:30",
+        "time": "16:30",
         "title": "Đón khách tại tư gia nhà trai",
         "type": "party"
       },
       {
-        "time": "11:00",
+        "time": "17:00",
         "title": "Khai tiệc mừng ngày vui",
         "type": "party"
       },
       {
-        "time": "13:30",
+        "time": "19:30",
         "title": "Cảm ơn và tiễn khách",
         "type": "party"
       }
