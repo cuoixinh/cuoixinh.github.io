@@ -210,7 +210,9 @@
   async function boot() {
     // Bước mồi: config.js nạp TRẦN (không ?v=) và phải xong trước mọi thứ khác —
     // nó là nơi giữ số phiên bản dùng để đóng dấu phần còn lại.
-    await loadScripts(["../core/config.js"]);
+    // `?raw`: bảo dev server (scripts/dev-server.mjs) trả bản gốc, không nối sẵn
+    // override của `npm run dev` — môi trường ở đây do dải chọn quyết định.
+    await loadScripts(["../core/config.js?raw"]);
 
     // Chọn môi trường rồi nối file override — phải xong TRƯỚC khi nạp SCRIPTS,
     // xem phần "Môi trường" ở trên.

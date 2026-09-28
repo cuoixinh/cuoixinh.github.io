@@ -797,7 +797,7 @@ async function siHandleSingleUpload(event, fieldName) {
       siData.singleImages[fieldName] = {
         blob: file,
         focal,
-        previewUrl: URL.createObjectURL(processed),
+        previewUrl: URL.createObjectURL(file),
       };
       siRenderSingleImage(fieldName);
       siMarkDirty(true);
@@ -1033,7 +1033,7 @@ async function siHandleGalleryUpload(event) {
       siData.gallery.push({
         blob: file,
         focal: { x: 50, y: 50 },
-        previewUrl: URL.createObjectURL(processed),
+        previewUrl: URL.createObjectURL(file),
       });
     }
   } catch (e) {
@@ -1212,7 +1212,7 @@ async function siHandleLoveStoryUpload(event, idx) {
       // Giữ nguyên ảnh gốc, không nén
       siData.loveStory[idx].blob = file;
       siData.loveStory[idx].focal = focal;
-      siData.loveStory[idx].previewUrl = URL.createObjectURL(processed);
+      siData.loveStory[idx].previewUrl = URL.createObjectURL(file);
       siRenderLoveStory();
       siMarkDirty(true);
     } catch (e) {

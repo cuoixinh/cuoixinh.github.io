@@ -104,10 +104,11 @@ function watchRepo() {
 
 // ===== Nội dung trả về =====
 
-/** `core/config.js` + phần khác biệt của môi trường, nối y như lúc build. */
-async function buildConfig() {
+/** `core/config.js` + phần khác biệt của môi trường, nối y như lúc build.
+ *  `raw` = trả bản gốc: trang admin tự nối override theo dải chọn môi trường. */
+async function buildConfig(raw) {
   const base = await readFile(path.join(ROOT, "core/config.js"), "utf8");
-  if (ENV === "production") return base;
+  if (raw || ENV === "production") return base;
 
   const override = path.join(ROOT, `core/config.${ENV}.js`);
   try {
@@ -154,7 +155,7 @@ const server = createServer(async (req, res) => {
 
   if (url.pathname === "/core/config.js") {
     try {
-      return send(200, MIME[".js"], await buildConfig());
+      return send(200, MIME[".js"], await buildConfig(url.searchParams.has("raw")));
     } catch (e) {
       return send(500, MIME[".txt"], String(e.message));
     }
