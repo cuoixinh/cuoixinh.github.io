@@ -2,41 +2,41 @@
   "image_focal_points": {
     "gallery_images": {
       "gallery-01.png": {
-        "x": 49,
-        "y": 49
+        "x": 56,
+        "y": 23
       },
       "gallery-02.png": {
-        "x": 50,
-        "y": 50
+        "x": 57,
+        "y": 24
       },
       "gallery-03.png": {
-        "x": 45,
-        "y": 51
+        "x": 47,
+        "y": 30
       },
       "gallery-04.png": {
-        "x": 62,
-        "y": 54
+        "x": 47,
+        "y": 28
       },
       "gallery-05.png": {
-        "x": 50,
-        "y": 50
+        "x": 43,
+        "y": 37
       },
       "gallery-06.png": {
-        "x": 54,
-        "y": 31
+        "x": 50,
+        "y": 50
       }
     },
     "cover_image_url": {
-      "x": 37,
-      "y": 51
+      "x": 56,
+      "y": 18
     },
     "groom_image_url": {
       "x": 0,
-      "y": 27
+      "y": 25
     },
     "bride_image_url": {
       "x": 100,
-      "y": 55
+      "y": 30
     }
   },
   "cover_image_url": "cover.png",
@@ -198,5 +198,5 @@
       }
     ]
   },
-  "updated_at": "2026-09-28T15:20:28.500Z"
+  "updated_at": "2026-09-28T16:16:54.072Z"
 }
