@@ -1,116 +1,96 @@
 {
   "image_focal_points": {
     "gallery_images": {
-      "gallery-01.webp": {
-        "x": 46,
-        "y": 25
-      },
-      "gallery-02.webp": {
-        "x": 53,
-        "y": 13
-      },
-      "gallery-03.webp": {
+      "gallery-01.png": {
         "x": 49,
-        "y": 24
+        "y": 49
       },
-      "gallery-04.webp": {
-        "x": 63,
-        "y": 14
-      },
-      "gallery-05.webp": {
-        "x": 75,
-        "y": 25
-      },
-      "gallery-06.webp": {
+      "gallery-02.png": {
         "x": 50,
-        "y": 24
+        "y": 50
       },
-      "gallery-07.webp": {
-        "x": 49,
-        "y": 24
+      "gallery-03.png": {
+        "x": 45,
+        "y": 51
       },
-      "gallery-08.webp": {
-        "x": 59,
-        "y": 18
+      "gallery-04.png": {
+        "x": 62,
+        "y": 54
       },
-      "gallery-09.webp": {
+      "gallery-05.png": {
         "x": 50,
-        "y": 61
+        "y": 50
       },
-      "gallery-10.jpg": {
-        "x": 48,
-        "y": 32
+      "gallery-06.png": {
+        "x": 54,
+        "y": 31
       }
     },
     "cover_image_url": {
-      "x": 51,
-      "y": 18
+      "x": 37,
+      "y": 51
     },
     "groom_image_url": {
-      "x": 65,
-      "y": 14
+      "x": 0,
+      "y": 27
     },
     "bride_image_url": {
-      "x": 40,
-      "y": 23
+      "x": 100,
+      "y": 55
     }
   },
-  "cover_image_url": "cover.webp",
-  "groom_image_url": "groom.webp",
-  "bride_image_url": "bride.webp",
+  "cover_image_url": "cover.png",
+  "groom_image_url": "groom.png",
+  "bride_image_url": "bride.png",
   "groom_qr_url": "groom-qr.png",
   "bride_qr_url": "bride-qr.png",
   "gallery_images": [
-    "gallery-01.webp",
-    "gallery-02.webp",
-    "gallery-03.webp",
-    "gallery-04.webp",
-    "gallery-05.webp",
-    "gallery-06.webp",
-    "gallery-07.webp",
-    "gallery-08.webp",
-    "gallery-09.webp",
-    "gallery-10.jpg"
+    "gallery-01.png",
+    "gallery-02.png",
+    "gallery-03.png",
+    "gallery-04.png",
+    "gallery-05.png",
+    "gallery-06.png"
   ],
   "love_story": [
     {
       "date": "2019",
       "title": "Người cùng làng bên",
       "content": "Hai nhà cách nhau một con đê, vậy mà mãi tới lễ hội làng năm ấy hai đứa mới nói chuyện lần đầu.",
-      "image_url": "love-story-01.webp",
+      "image_url": "love-story-01.jpg",
       "focal_point": {
-        "x": 44,
-        "y": 26
+        "x": 65,
+        "y": 35
       }
     },
     {
       "date": "2021",
       "title": "Những lá thư tay",
       "content": "Anh đi làm xa, mỗi tháng một lá thư gửi về — em giữ đủ cả ba mươi hai lá.",
-      "image_url": "love-story-02.webp",
+      "image_url": "love-story-02.jpg",
       "focal_point": {
-        "x": 44,
-        "y": 48
+        "x": 27,
+        "y": 20
       }
     },
     {
-      "date": "2024",
+      "date": "2025",
       "title": "Lễ chạm ngõ",
       "content": "Hai gia đình gặp nhau bên ấm trà, mọi chuyện thành lời chỉ trong một buổi chiều.",
-      "image_url": "love-story-03.webp",
+      "image_url": "love-story-03.png",
       "focal_point": {
-        "x": 44,
-        "y": 23
+        "x": 43,
+        "y": 31
       }
     },
     {
       "date": "2026",
       "title": "Ngày ăn hỏi",
       "content": "Tráp lễ đi qua con đê quen thuộc, con đường ngày xưa anh vẫn đạp xe sang tìm em.",
-      "image_url": "love-story-04.webp",
+      "image_url": "love-story-04.png",
       "focal_point": {
-        "x": 49,
-        "y": 30
+        "x": 38,
+        "y": 24
       }
     }
   ],
@@ -128,19 +108,23 @@
     "ceremony_time": "10:00",
     "ceremony_lunar": "Tức ngày 28 tháng 10 năm Bính Ngọ",
     "ceremony_location": "Tư gia nhà trai — Thôn An Cố, Xã Thụy An, Tỉnh Thái Bình",
+    "ceremony_map_embed_url": "https://maps.google.com/maps?q=20.5089,106.4712&output=embed&hl=vi",
     "vu_quy_enabled": true,
     "vu_quy_time": "07:30",
     "vu_quy_location": "Tư gia nhà gái — Xóm 5, Xã Hải Đường, Tỉnh Nam Định",
+    "vu_quy_map_embed_url": "https://maps.google.com/maps?q=20.1176,106.1893&output=embed&hl=vi",
     "groom_party_date": "2026-12-05",
     "groom_party_time": "16:30",
     "groom_party_lunar": "Tức ngày 27 tháng 10 năm Bính Ngọ",
     "groom_party_show_location": true,
     "groom_party_location": "Tư gia nhà trai — Thôn An Cố, Xã Thụy An, Tỉnh Thái Bình",
+    "groom_party_map_embed_url": "https://maps.google.com/maps?q=20.5089,106.4712&output=embed&hl=vi",
     "bride_party_date": "2026-12-05",
     "bride_party_time": "17:00",
     "bride_party_lunar": "Tức ngày 27 tháng 10 năm Bính Ngọ",
     "bride_party_show_location": true,
     "bride_party_location": "Tư gia nhà gái — Xóm 5, Xã Hải Đường, Tỉnh Nam Định",
+    "bride_party_map_embed_url": "https://maps.google.com/maps?q=20.1176,106.1893&output=embed&hl=vi",
     "groom_bank_name": "Agribank",
     "groom_bank_number": "3600205012345",
     "groom_bank_owner": "TRAN DUC ANH",
@@ -151,15 +135,16 @@
     "rsvp_enabled": true,
     "rsvp_message": "Kính mong quý vị dành chút thời gian xác nhận, để gia đình chúng tôi được đón tiếp chu đáo.",
     "footer_text": "Sự hiện diện của quý vị là niềm vinh hạnh cho gia đình chúng tôi trong ngày trọng đại này.",
+    "enable_music": true,
     "music_url": "https://www.youtube.com/watch?v=JgTZvDbaTtg",
     "enable_family": true,
     "enable_party": true,
     "enable_photos": true,
     "enable_timeline": true,
     "enable_love_story": true,
-    "enable_music": true,
     "enable_gift": true,
     "enable_footer": true,
+    "demo_fill_love_story": false,
     "timeline": [
       {
         "time": "16:30",
@@ -211,11 +196,7 @@
         "title": "Cảm ơn và tiễn khách",
         "type": "party"
       }
-    ],
-    "ceremony_map_embed_url": "https://maps.google.com/maps?q=20.5089,106.4712&output=embed&hl=vi",
-    "vu_quy_map_embed_url": "https://maps.google.com/maps?q=20.1176,106.1893&output=embed&hl=vi",
-    "groom_party_map_embed_url": "https://maps.google.com/maps?q=20.5089,106.4712&output=embed&hl=vi",
-    "bride_party_map_embed_url": "https://maps.google.com/maps?q=20.1176,106.1893&output=embed&hl=vi"
+    ]
   },
-  "updated_at": "2026-09-23T17:11:25.560Z"
+  "updated_at": "2026-09-28T15:20:28.500Z"
 }
