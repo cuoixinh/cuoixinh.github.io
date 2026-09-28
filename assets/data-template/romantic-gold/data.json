@@ -27,15 +27,15 @@
       },
       "gallery-07.webp": {
         "x": 50,
-        "y": 28
-      },
-      "gallery-08.webp": {
-        "x": 50,
         "y": 57
       },
-      "gallery-09.webp": {
+      "gallery-08.webp": {
         "x": 45,
         "y": 15
+      },
+      "gallery-09.webp": {
+        "x": 50,
+        "y": 28
       },
       "gallery-10.webp": {
         "x": 47,
@@ -77,20 +77,20 @@
       "date": "03/2021",
       "title": "Lần đầu gặp gỡ",
       "content": "Chúng mình tình cờ ngồi chung bàn ở một buổi workshop, rồi nhận ra hai đứa đang đọc cùng một cuốn sách.",
-      "image_url": "love-story-01.webp",
+      "image_url": "love-story-01.png",
       "focal_point": {
-        "x": 45,
-        "y": 26
+        "x": 44,
+        "y": 51
       }
     },
     {
       "date": "06/2021",
       "title": "Những buổi hẹn hò đầu tiên",
       "content": "Những buổi chiều cà phê kéo dài tới tối, nói đủ thứ chuyện trên đời mà vẫn thấy chưa đủ.",
-      "image_url": "love-story-02.webp",
+      "image_url": "love-story-02.png",
       "focal_point": {
         "x": 47,
-        "y": 28
+        "y": 55
       }
     },
     {
@@ -174,6 +174,7 @@
     "enable_love_story": true,
     "enable_gift": true,
     "enable_footer": true,
+    "demo_fill_love_story": false,
     "timeline": [
       {
         "time": "18:00",
@@ -222,5 +223,5 @@
       }
     ]
   },
-  "updated_at": "2026-09-23T17:11:25.565Z"
+  "updated_at": "2026-09-28T14:15:07.744Z"
 }
