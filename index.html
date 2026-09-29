@@ -50,10 +50,9 @@
     style="color: rgb(var(--text-body-rgb))"
   >
     <!-- ===== HERO ===== -->
-    <!-- Màn mở đầu: MỘT khối ảnh tràn ngang, cao 80% màn — ảnh ghép phủ đen 15%, góc
-         dưới trái nhô lên một quả đồi hồng nhạt mang chữ. Chữ xếp chéo: lời mời + nút ở trái,
-         cụm giải thích ở góc dưới phải (từ lg). Cố ý THẤP hơn một màn để mục "Mẫu
-         thiệp" lộ ra từ màn đầu — số đo ở .hero-card (styles/tailwind-src.css). -->
+    <!-- Màn mở đầu: ảnh ghép tràn 100% ngang, cao 70% màn, phủ đen 25%; chữ trắng
+         căn giữa đè thẳng lên ảnh. Cố ý THẤP hơn một màn để mục "Mẫu thiệp" lộ ra
+         từ màn đầu — số đo ở .hero-card (styles/tailwind-src.css). -->
     <section id="hero">
       <!-- Logo nổi góc trái ảnh, chỉ ở khổ hẹp: từ md navbar trên đã mang logo. -->
       <a href="/" class="hero-badge cx-logo hero-anim hero-anim-1" aria-label="Cưới Xinh">
@@ -73,62 +72,54 @@
           />
         </div>
         <div class="hero-card-veil" aria-hidden="true"></div>
-        <div class="hero-card-shine" aria-hidden="true"></div>
-        <!-- Quả đồi góc dưới trái + quầng sáng sau tiêu đề. -->
-        <div class="hero-card-hill" aria-hidden="true"></div>
-        <div class="hero-card-glow" aria-hidden="true"></div>
+        <div class="hero-card-focus" aria-hidden="true"></div>
 
         <div class="hero-card-body">
+          <p class="hero-eyebrow hero-anim hero-anim-1">
+            <span class="hero-eyebrow-dot" aria-hidden="true"></span>
+            Thiệp cưới online
+          </p>
           <h1 class="hero-title hero-anim hero-anim-2">
-            <span class="hero-eyebrow">Thiệp cưới online · Cưới Xinh</span>
-            Gửi trọn yêu thương trong một tấm thiệp
+            Gửi trọn <em class="hero-script">yêu thương</em><br class="hero-br" />
+            trong một tấm thiệp
           </h1>
           <p class="hero-sub hero-anim hero-anim-3">
-            Chọn một mẫu ưng ý, kể đôi dòng về hai bạn — tấm thiệp sẵn sàng gửi
-            tới từng khách mời, gọi đúng tên từng người.
+            Chọn mẫu ưng ý, kể đôi dòng về hai bạn — thiệp tự gọi đúng tên từng
+            khách mời và gửi đi chỉ bằng một đường link.
           </p>
 
-          <div class="hero-act">
-            <div class="hero-cta hero-anim hero-anim-4">
-              <!-- Nút CHÍNH: tạo nháp thẳng. -->
-              <x-button
-                variant="bare"
-                class="hero-btn hero-btn-main"
-                onclick="goCreateDraft(event)"
-              >
-                <span class="hero-btn-label">Tạo thiệp ngay</span>
-                <span class="hero-btn-arrow" aria-hidden="true">
-                  <i data-lucide="arrow-right" style="width:18px;height:18px"></i>
-                </span>
-              </x-button>
-              <!-- Nút PHỤ: mở khung chat XuXi ở chế độ tạo thiệp (cxHeroCreateAi ở js/page-setup.js). -->
-              <x-button
-                variant="bare"
-                class="hero-btn hero-btn-ai"
-                onclick="cxHeroCreateAi()"
-              >
-                <span class="hero-ai-disc" aria-hidden="true">
-                  <!-- Logo XuXi là ảnh — core/helpers/icon.js thay thẻ này, khổ theo data-size. -->
-                  <i class="hero-ai-ico" data-icon="xuxi" data-size="24"></i>
-                </span>
-                <span class="hero-btn-label">Tạo thiệp với AI</span>
-                <span class="hero-ai-new">New</span>
-              </x-button>
-            </div>
-
-            <p class="hero-note hero-anim hero-anim-5">
-              Dùng thử miễn phí · chỉ thanh toán khi ưng ý
-            </p>
+          <div class="hero-cta hero-anim hero-anim-4">
+            <!-- Nút CHÍNH: tạo nháp thẳng. -->
+            <x-button
+              variant="bare"
+              class="hero-btn hero-btn-main"
+              onclick="goCreateDraft(event)"
+            >
+              <span class="hero-btn-label">Tạo thiệp ngay</span>
+              <span class="hero-btn-arrow" aria-hidden="true">
+                <i data-lucide="arrow-right" style="width:18px;height:18px"></i>
+              </span>
+            </x-button>
+            <!-- Nút PHỤ: mở khung chat XuXi ở chế độ tạo thiệp (cxHeroCreateAi ở js/page-setup.js). -->
+            <x-button
+              variant="bare"
+              class="hero-btn hero-btn-ai"
+              onclick="cxHeroCreateAi()"
+            >
+              <span class="hero-ai-disc" aria-hidden="true">
+                <!-- Logo XuXi là ảnh — core/helpers/icon.js thay thẻ này, khổ theo data-size. -->
+                <i class="hero-ai-ico" data-icon="xuxi" data-size="24"></i>
+              </span>
+              <span class="hero-btn-label">Tạo thiệp với AI</span>
+              <span class="hero-ai-new">New</span>
+            </x-button>
           </div>
 
-          <!-- Cụm góc dưới phải — chỉ từ lg, khổ hẹp không đủ chỗ. -->
-          <div class="hero-aside hero-anim hero-anim-5">
-            <p class="hero-aside-title">Mỗi khách một lời mời riêng</p>
-            <p class="hero-aside-text">
-              Thiệp tự gọi đúng tên từng người, có sẵn lịch trình, bản đồ, album
-              ảnh và hộp mừng cưới — gửi đi chỉ bằng một đường link.
-            </p>
-          </div>
+          <ul class="hero-perks hero-anim hero-anim-5">
+            <li><i data-lucide="gift" style="width:14px;height:14px"></i>Dùng thử miễn phí</li>
+            <li><i data-lucide="user-round-check" style="width:14px;height:14px"></i>Gọi đúng tên từng khách</li>
+            <li><i data-lucide="link" style="width:14px;height:14px"></i>Gửi bằng một đường link</li>
+          </ul>
         </div>
       </div>
     </section>
