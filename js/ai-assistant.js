@@ -79,7 +79,7 @@
     "6. **Chuyện tình yêu:** hai bạn quen nhau thế nào, kể tự do thôi; thích văn phong lãng mạn, truyền thống, dí dỏm hay hiện đại",
     "7. **Hộp mừng:** số tài khoản, ngân hàng, tên chủ tài khoản mỗi bên (không muốn để cũng được)",
     "",
-    "Lời mời, lời cảm ơn mình sẽ tự đề xuất. Còn ảnh, nhạc, bản đồ chọn ngay sau khi bạn đã khai đủ thông tin",
+    "Ảnh, nhạc, bản đồ chọn ngay sau khi bạn đã khai đủ thông tin",
   ].join("\n");
   const ASK_PLACEHOLDER = "Hỏi XuXi bất cứ điều gì…";
   const GATE_PLACEHOLDER = "Chọn một việc ở trên để bắt đầu…";
