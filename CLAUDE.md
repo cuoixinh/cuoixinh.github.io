@@ -624,36 +624,32 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   nạp), lưu ở `guests.wishes` (jsonb; hạn mức 3 lời chúc/khách do Edge Function giữ, KHÔNG
   ràng buộc ở DB), công tắc `weddings.enable_wishes` nằm trong bước RSVP của trang Thiết lập.
   **DẠNG hiện lời chúc** do chủ thiệp chọn ở tab Giao diện (mục "Lời chúc", cạnh Hộp mừng
-  cưới), lưu ở `theme_setting.wishes_mode` — rỗng = `live` (dải nổi, mô tả bên dưới),
-  `"comment"` = một mục trong thân thiệp NGAY TRÊN hộp mừng cưới liệt kê hết lời chúc trong
-  một khung cuộn và tự bò khi khách cuộn tới, `"paged"` = cũng mục đó nhưng mỗi lượt
-  `CX_WISH_PAGE_SIZE` lời chúc, khách tự bấm sang trang. **Danh mục dạng là
-  `CX_WISH_MODES`** trong helper (mỗi dạng khai `mount`/`render`/`stop` + mấy cờ vỏ mục) —
-  thêm dạng mới là thêm một mục ở đó + CSS + một dòng ở `WISH_MODES`
-  (`invitation-setup/js/05-theme-panel.js`), KHÔNG rẽ nhánh theo tên dạng ở chỗ khác.
-  Mục trong thân thiệp **append cuối thân thiệp rồi đẩy lên bằng
-  flex `order`** (`_cxWishPlaceSection`) — chèn thẳng vào giữa là mọi selector `:nth-child` đã
-  lưu trong `text_overrides` của các mục phía sau lệch một bậc; `applyCustomBlocks` đánh lại
-  order thì gọi `window.cxWishPlace()`.
-  **mẫu thiệp không phải khai markup gì cả**: dạng `live` helper tự dựng một DẢI NỔI ghim đáy khung nhìn,
-  đè lên thiệp — danh sách lời chúc trôi lên ở trên (trong suốt, cao 1/3 màn qua `--vh`, rộng
-  2/3, dồn mép trái để chừa chỗ cho nút nhạc/hộp quà của mẫu), ô "Gửi lời chúc" ở dưới — thẻ
-  kính mờ dài hết CỘT đó, lề 8px quanh như navbar, bấm vào là dòng gợi ý đổi thành ô gõ cao tối đa
-  `CX_WISH_INPUT_ROWS` dòng ngay tại chỗ, không mở panel riêng (lề dọc của ô gõ phải là `margin`:
-  padding của textarea nằm trong vùng cuộn nên gõ quá hai dòng là dòng trên bị cắt ngang thân
-  chữ). Dải
-  chạy một lượt từ mép dưới lên hết danh sách rồi nghỉ `CX_WISH_REPLAY_MS` mới chiếu lại;
-  quãng đường đo bằng px trong `_cxWishStartRoll` (`translateY(%)` tính theo thẻ track chứ
-  không theo khung) và đo lại qua `ResizeObserver` vì lúc dựng `#main-card` còn `display:none`.
-  Dải **không hiện ở màn bìa lẫn màn mở đầu** — chỉ mờ hiện khi khách đã mở bìa VÀ cuộn quá
-  `CX_WISH_SHOW_AT` màn hình. Màu đi qua bộ token riêng `--cx-wish-*` trên `.cx-wdock`:
-  mặc định ăn theo token chung của thiệp (`panel`/`body`/`accent`/`page-bg`), mẫu ghi đè bằng
-  **`CX_THEME.wishes`** (`text` chữ · `accent` tên khách · `bubble` nền bong bóng · `btn` nút
-  gửi · `fade` màn phủ neo dải xuống mép dưới — riêng `bubble` thêm `bubble_to` là nền đổ màu
-  — và `opacity`; `btn` không khai thì rơi về `accent`; khai khi mặc định không hợp tông —
-  ví dụ mẫu nền tối). Bong bóng và ô nhập dùng CHUNG mặt giấy (`panel` + `body`), tách khỏi
-  thiệp bằng viền màu nhấn + bóng đổ chứ không bằng tấm kính xám. Màu dải là
-  phần CỐ ĐỊNH của mẫu: khách KHÔNG chỉnh được, tab Giao diện không có mục nào cho nó.
+  cưới), lưu ở `theme_setting.wishes_mode` — rỗng = dạng mẫu khai ở `CX_THEME.wishesMode`,
+  mẫu không khai thì `card`. Ba dạng là MỘT MỤC trong thân thiệp NGAY TRÊN hộp mừng cưới:
+  `"card"` = dải thẻ cùng khổ vuốt ngang, chữ dài cắt kèm "Xem thêm" (mở một thẻ thì cả dải
+  cao theo, không thò thụt); `"comment"` = liệt kê hết trong khung cuộn, tự bò khi khách cuộn
+  tới; `"paged"` = mỗi lượt `CX_WISH_PAGE_SIZE` lời chúc, khách tự bấm sang trang. Dạng thứ tư
+  `"live"` là DẢI NỔI ghim đáy khung nhìn — **chỉ có khi chủ thiệp tự chọn, đừng lấy làm mặc
+  định của mẫu nào**. **Danh mục dạng là `CX_WISH_MODES`** trong helper — thêm dạng mới là
+  thêm một mục ở đó + CSS + một dòng ở `WISH_MODES` (`invitation-setup/js/05-theme-panel.js`),
+  KHÔNG rẽ nhánh theo tên dạng ở chỗ khác. **Mẫu thiệp không phải khai markup gì cả.**
+  Mục trong thân thiệp **append cuối thân thiệp rồi đẩy lên bằng flex `order`**
+  (`_cxWishPlaceSection`) — chèn thẳng vào giữa là mọi selector `:nth-child` đã lưu trong
+  `text_overrides` của các mục phía sau lệch một bậc; `applyCustomBlocks` đánh lại order thì
+  gọi `window.cxWishPlace()`. Dải nổi (`live`): danh sách trôi lên (cao 1/3 màn qua `--vh`,
+  rộng 2/3, dồn mép trái chừa chỗ cho nút nhạc/hộp quà của mẫu), chạy một lượt rồi nghỉ
+  `CX_WISH_REPLAY_MS`; quãng đường đo bằng px trong `_cxWishStartRoll` và đo lại qua
+  `ResizeObserver` vì lúc dựng `#main-card` còn `display:none`; dải không hiện ở màn bìa lẫn
+  màn mở đầu — chỉ hiện khi đã mở bìa VÀ cuộn quá `CX_WISH_SHOW_AT` màn hình.
+  Ô "Gửi lời chúc" mở sẵn — đứng TRÊN danh sách ở ba dạng trong thân thiệp, riêng dải nổi
+  thì ở đáy; dạng thẻ có dãy chấm chỉ vị trí dưới dải. Ô cao tối đa `CX_WISH_INPUT_ROWS` dòng (lề dọc của ô gõ phải là
+  `margin`: padding của textarea nằm trong vùng cuộn nên gõ quá hai dòng là dòng trên bị cắt
+  ngang thân chữ). Màu đi qua bộ token riêng `--cx-wish-*` trên `.cx-wsec`/`.cx-wdock`: mặc
+  định ăn theo token chung của thiệp (`panel`/`body`/`accent`), mẫu ghi đè bằng
+  **`CX_THEME.wishes`** (`text` chữ · `accent` tên khách · `bubble` nền bong bóng/thẻ · `btn`
+  nút gửi · `fade` màn phủ neo dải nổi — riêng `bubble` thêm `bubble_to` là nền đổ màu — và
+  `opacity`; `btn` không khai thì rơi về `accent`). Màu là phần CỐ ĐỊNH của mẫu: khách KHÔNG
+  chỉnh được.
   Cổng chặn "chỉ khách được mời" nằm ở Edge Function `guest-handler`
   (`action=wish` khớp một hàng `guests` theo slug + tên + xưng hô): tham số `name`/
   `relationship` trên link mã hoá bằng khoá nằm trong bundle client nên **giải mã được ở
