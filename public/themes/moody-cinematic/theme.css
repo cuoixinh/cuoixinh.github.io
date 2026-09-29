@@ -5,7 +5,7 @@
 
    Hai phần:
      1. --cx-*  bộ biến mà phần DÙNG CHUNG vẽ theo (lịch nhỏ, dòng thời gian,
-        màn bìa, nút xác nhận tham dự). Mặc định ở styles/_common.css.
+        nút xác nhận tham dự). Mặc định ở styles/_common.css.
      2. .cx-h / .cx-t / .cx-a  ba lớp ngữ nghĩa mà markup của mẫu dùng; màu của
         chúng đi theo bộ token ở trên. Đổi tông cả thiệp = sửa mỗi file này. */
 
@@ -21,12 +21,11 @@
 
   --cx-card-bg-rgb: 255 255 255; /* nền thân thiệp */
 
-  /* Bán kính bo góc dùng chung: khối lớn (ô QR, ô bản đồ) và nút. Utility
+  /* Bán kính bo góc dùng chung của khối lớn (ô QR, ô bản đồ). Utility
      rounded-* của Tailwind KHÔNG thắng được ở đây vì rounded-full của
      <x-button variant="bare"> đứng sau trong bảng build — nên mọi chỗ cần bo
-     góc trong mẫu này đều đi qua .mc-soft / .mc-soft-btn dưới đây. */
+     góc trong mẫu này đều đi qua .mc-soft dưới đây. */
   --mc-r: 12px;
-  --mc-r-btn: 10px;
 
   /* Đen của thanh letterbox — CỐ ĐỊNH, cố ý không nằm trong bảng màu: khách
      đổi màu ở tab Giao diện thì hai thanh này vẫn phải đen mới ra chất phim. */
@@ -1698,10 +1697,6 @@ body {
 
 .mc-soft {
   border-radius: var(--mc-r);
-}
-
-.mc-soft-btn {
-  border-radius: var(--mc-r-btn);
 }
 
 /* Ép cạnh VUÔNG. Cần class riêng vì bỏ trắng thì rounded-full của

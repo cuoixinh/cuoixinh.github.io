@@ -272,7 +272,7 @@
     !els.panel.classList.contains("is-expanded");
 
   // Chế độ mở rộng (chỉ từ 521px — dưới đó bảng vốn đã phủ kín màn, nút bị CSS
-  // giấu): bảng phủ gần kín cửa sổ, không kéo được; nhớ lựa chọn cho lần mở sau.
+  // giấu): bảng phủ kín cửa sổ, không kéo được; nhớ lựa chọn cho lần mở sau.
   const EXPAND_KEY = "cx_aichat_expanded";
 
   function loadExpanded() {
@@ -2756,6 +2756,26 @@
       if (!els.panel.hidden) syncPanelPos();
     });
 
+    // Lăn chuột trong bảng chat KHÔNG được cuộn trang phía sau: chỉ cho qua khi có một
+    // khung trong bảng còn cuộn được theo hướng đó (khung tin nhắn, ô nhập, danh sách…);
+    // tới đầu/cuối khung, hay lăn trên thanh tiêu đề, là chặn luôn.
+    els.panel.addEventListener(
+      "wheel",
+      (e) => {
+        if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return; // cuộn ngang: để dải ngang tự lo
+        for (let n = e.target; n && n !== els.panel.parentNode; n = n.parentElement) {
+          if (n.nodeType !== 1 || n.scrollHeight <= n.clientHeight) continue;
+          const oy = getComputedStyle(n).overflowY;
+          if (oy !== "auto" && oy !== "scroll") continue;
+          const room =
+            e.deltaY < 0 ? n.scrollTop > 0 : n.scrollTop + n.clientHeight < n.scrollHeight - 1;
+          if (room) return;
+        }
+        e.preventDefault();
+      },
+      { passive: false },
+    );
+
     // Hai nút trên thanh tiêu đề là <x-button> — chúng TỰ THAY mình bằng
     // <button> thật, nên bắt sự kiện ở panel thay vì gắn vào thẻ đã biến mất.
     els.panel.addEventListener("click", (e) => {
@@ -2789,12 +2809,22 @@
       autoGrow();
       syncSend();
     });
+    // Máy cảm ứng (điện thoại, tablet không chuột): Enter là xuống dòng, gửi chỉ bằng nút.
+    const touchOnly = window.matchMedia?.("(hover: none) and (pointer: coarse)").matches;
+    if (touchOnly) els.input.setAttribute("enterkeyhint", "enter");
     els.input.addEventListener("keydown", (e) => {
-      // Enter gửi, Shift+Enter xuống dòng (thói quen của mọi khung chat).
-      if (e.key === "Enter" && !e.shiftKey) {
+      // Máy tính: Enter gửi, Shift+Enter / Ctrl+Enter xuống dòng. Bỏ qua Enter đang chốt
+      // chữ của bộ gõ.
+      if (touchOnly || e.key !== "Enter" || e.shiftKey || e.isComposing) return;
+      if (e.ctrlKey) {
+        // Ctrl+Enter trong textarea không tự xuống dòng → chèn tay, phát input để giãn ô.
         e.preventDefault();
-        ask(els.input.value);
+        els.input.setRangeText("\n", els.input.selectionStart, els.input.selectionEnd, "end");
+        els.input.dispatchEvent(new Event("input", { bubbles: true }));
+        return;
       }
+      e.preventDefault();
+      ask(els.input.value);
     });
     document.addEventListener("keydown", (e) => {
       if (e.key !== "Escape" || els.panel.hidden) return;

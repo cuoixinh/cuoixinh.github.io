@@ -76,7 +76,7 @@
       "#ffffff",
     ],
 
-    // Mục mở đầu KHÔNG hiện dần: nó là thứ khách thấy ngay khi bìa mở ra.
+    // Mục mở đầu KHÔNG hiện dần: nó là thứ khách thấy ngay khi mở link.
     reveal: ["#main-card section:not(#section-hero)"],
 
     // Mốc bung bảng đề xuất mẫu khác ở bản xem thử (?preview=true).
@@ -88,12 +88,7 @@
     // id các mục trùng bảng mặc định của preview-focus-helper.js nên không cần
     // khai `focus`.
 
-    // Album chỉ đo được sau khi thiệp hiện ra: trước đó #main-card còn
-    // display:none nên mọi bề ngang đều bằng 0.
-    onOpen: () => {
-      lpSyncFlow();
-      lpSyncDots();
-    },
+    onOpen: null,
   };
 
   const _isGroom = isGroomSide();
@@ -108,13 +103,10 @@
     const partyDate = w[`${side}_party_date`];
     const partyLocation = w[`${side}_party_location`];
 
-    // --- Màn bìa ---
-    // Khối dựng ảnh chạy TRƯỚC setupMusic: đây là chỗ ảnh của màn ĐẦU TIÊN nhận
-    // src, mà setupMusic kéo YouTube iframe API (script bên thứ ba) về ngay khi
-    // chạy — để nó đi trước là ảnh phải xếp hàng sau.
-    renderCover(w);
-
     // --- Mở đầu ---
+    // Chạy TRƯỚC setupMusic: đây là chỗ ảnh của màn ĐẦU TIÊN nhận src, mà
+    // setupMusic kéo YouTube iframe API (script bên thứ ba) về ngay khi chạy —
+    // để nó đi trước là ảnh phải xếp hàng sau.
     renderHero(w, false);
     renderStoryQuote(w.story_quote);
 
@@ -275,8 +267,6 @@
     lightboxImages.length = 0;
     lightboxImages.push(...urls);
 
-    // Ảnh CỐ Ý không loading="lazy": #main-card để display:none cho tới khi
-    // khách mở bìa, ảnh lazy sẽ chưa tải gì cả và trống đúng lúc thiệp mở ra.
     flow.innerHTML = urls
       .map((url, i) => {
         const fp = focalPoints?.[images?.[i]];
@@ -284,7 +274,7 @@
         <figure class="lp-slide" data-lb="${i}">
           <div class="lp-slide-img">
             <img src="${cxImgSrc(url)}" alt="" class="w-full h-full object-cover"
-              style="object-position:${cxFocal(fp)}" />
+              style="object-position:${cxFocal(fp)}" loading="lazy" />
           </div>
           <figcaption class="lp-hand lp-slide-cap">${escapeHtml(
             LP_CAPTIONS[i % LP_CAPTIONS.length],
@@ -302,15 +292,12 @@
   }
 
   // Đo lại mức phóng/mờ của từng tấm theo khoảng cách tới tâm dải.
-  // Gọi được từ ngoài (onOpen) vì trước khi bìa mở, #main-card còn display:none
-  // nên mọi phép đo đều ra 0.
 
   let lpFlowCleanup = null;
 
   function lpSyncFlow() {
     const flow = document.getElementById("gallery-grid");
-    // clientWidth = 0 nghĩa là #main-card còn display:none (khách chưa mở bìa):
-    // đo lúc này ra số vô nghĩa, để onOpen gọi lại.
+    // clientWidth = 0: dải đang bị ẩn (tắt mục Album…), đo lúc này ra số vô nghĩa.
     if (!flow || !flow.clientWidth) return;
     const mid = flow.scrollLeft + flow.clientWidth / 2;
     [...flow.children].forEach((card) => {
@@ -322,7 +309,6 @@
     });
   }
 
-  window.lpSyncFlow = lpSyncFlow;
 
   function lpSetupFlow() {
     lpFlowCleanup?.();

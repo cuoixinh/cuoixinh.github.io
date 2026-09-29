@@ -139,7 +139,7 @@
 }
 
 /* Chế độ mở rộng (nút #aichatExpand, cờ .is-expanded do js/ai-assistant.js đặt):
-   bảng phủ gần kín cửa sổ, nội dung dồn vào cột giữa rộng tối đa 800px cho dễ
+   bảng phủ KÍN cửa sổ (không lề, không bo góc), nội dung dồn vào cột giữa rộng tối đa 800px cho dễ
    đọc. Chỉ từ 521px — dưới đó bảng vốn đã phủ kín màn nên giấu luôn nút. Trang
    Thiết lập cũng phủ lên dải xem trực tiếp + navbar (z-index 350 đã vượt cả hai). */
 .aichat-expand .lucide-minimize-2,
@@ -151,8 +151,9 @@
   display: block;
 }
 
+/* Ghép hai lớp: .aichat-head-btn (display:flex) khai SAU nên một lớp là thua. */
 @media (max-width: 520px) {
-  .aichat-expand {
+  .aichat-head-btn.aichat-expand {
     display: none;
   }
 }
@@ -160,12 +161,13 @@
 @media (min-width: 521px) {
   .aichat-panel.is-expanded,
   .cx-setup .aichat-panel.is-expanded {
-    top: 24px;
-    left: 24px;
-    right: 24px;
-    bottom: 24px;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     width: auto;
     height: auto;
+    border-radius: 0;
   }
 
   .aichat-panel.is-expanded .aichat-head {
@@ -335,6 +337,8 @@
   @apply flex-1 overflow-y-auto bg-transparent px-4 py-4;
 
   overflow-anchor: none;
+  /* Vuốt/cuộn tới đầu-cuối không lây ra trang phía sau (chuột thì js/ai-assistant.js chặn). */
+  overscroll-behavior: contain;
 }
 
 /* Một lượt = avatar + cột (bong bóng, giờ). Các lượt LIỀN NHAU của cùng người

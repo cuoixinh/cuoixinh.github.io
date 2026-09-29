@@ -4,7 +4,7 @@
 
    Ba phần:
      1. --cx-*  bộ biến mà phần DÙNG CHUNG vẽ theo (lịch nhỏ, dòng thời gian,
-        màn bìa, nút xác nhận tham dự). Mặc định ở styles/_common.css.
+        nút xác nhận tham dự). Mặc định ở styles/_common.css.
      2. .cx-h / .cx-t / .cx-a  ba lớp ngữ nghĩa mà markup của mẫu dùng; màu
         của chúng đi theo bộ token ở trên → đổi tông cả thiệp = sửa mỗi file này.
      3. .rb-*  phần riêng của mẫu (chữ thư pháp, chip điều hướng, khung ảnh). */
