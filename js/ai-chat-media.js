@@ -734,6 +734,20 @@
     let sidesKey = null;
     let lastMaps = {};
     const rows = {};
+    // Nơi tự ghim theo địa chỉ khách khai: side → địa chỉ đã dùng. Địa chỉ đổi mà bản đồ
+    // vẫn là bản tự ghim cũ thì ghim lại; khách đã tự chọn nơi khác thì để yên.
+    const autoPinned = {};
+
+    async function autoPin(side, addr) {
+      autoPinned[side] = addr;
+      try {
+        await ensureMapsHelper();
+      } catch {
+        delete autoPinned[side]; // lần vẽ sau thử lại
+        return;
+      }
+      sink().setMap(side, window.cxMapEmbed(addr), addr);
+    }
 
     function buildRow(side, label, addr) {
       const row = el("div", "aichat-place");
@@ -743,21 +757,18 @@
       head.append(el("span", "aichat-place-label", label), status);
       const text = el("p", "aichat-place-addr", addr);
       const acts = el("div", "aichat-place-acts");
-      acts.append(xbtn("Ghim theo địa chỉ này", "pin", "soft"), xbtn("Chọn vị trí khác", "other", "ghost"));
+      acts.append(xbtn("Chọn vị trí khác", "other", "ghost"));
 
-      // Cả hai nút đi qua maps-helper.js như form Thiết lập: "Ghim theo địa chỉ này" dựng
-      // link bằng cxMapEmbed; "Chọn vị trí khác" mở ĐÚNG bảng chọn openMapPicker (kéo ghim,
-      // gợi ý lúc gõ, sửa tên hiển thị) — chưa ghim thì tìm sẵn địa chỉ đã có.
+      // Bản đồ tự ghim theo địa chỉ (autoPin); nút này mở ĐÚNG bảng chọn openMapPicker của
+      // form Thiết lập (kéo ghim, gợi ý lúc gõ, sửa tên hiển thị) khi khách thấy sai chỗ.
       acts.addEventListener("click", async (e) => {
-        const act = e.target.closest("[data-act]")?.dataset.act;
-        if (act !== "pin" && act !== "other") return;
+        if (e.target.closest("[data-act]")?.dataset.act !== "other") return;
         try {
-          await (act === "pin" ? ensureMapsHelper() : ensureMapPicker());
+          await ensureMapPicker();
         } catch {
           window.showToast?.("Chưa mở được bản đồ, bạn thử lại giúp mình nhé.", "error");
           return;
         }
-        if (act === "pin") return void sink().setMap(side, window.cxMapEmbed(addr), addr);
         const cur = lastMaps[side];
         window.openMapPicker(side, {
           embed: cur?.embed || "",
@@ -823,6 +834,8 @@
         const srcMap = linked ? st.maps[src] : null;
         if (srcMap && st.maps[s]?.embed !== srcMap.embed) sink().setMap(s, srcMap.embed, srcMap.name);
         const m = linked ? srcMap : st.maps[s];
+        const stale = m && autoPinned[s] && m.name === autoPinned[s] && autoPinned[s] !== r.addr;
+        if (!linked && (!m || stale) && autoPinned[s] !== r.addr) autoPin(s, r.addr);
         // Đã ghim thì hiện tên nơi đã ghim (có thể khác địa chỉ khách khai), như form Thiết lập.
         r.text.textContent = m?.name || (linked ? st.places[src] : r.addr);
         r.status.hidden = !m;

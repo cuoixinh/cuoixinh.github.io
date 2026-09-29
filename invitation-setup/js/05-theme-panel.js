@@ -1287,7 +1287,7 @@ document.addEventListener("cx-theme-decl", _syncGiftTiles);
 
 // ─── Lời chúc: chọn cách hiện lời chúc của khách mời ────────────────────────
 // Lưu ở _themeSetting.wishes_mode (rỗng = dạng mẫu khai ở CX_THEME.wishesMode,
-// mẫu không khai thì Livestream — khớp _cxWishModeDefault của helper);
+// mẫu không khai thì Thẻ — khớp _cxWishModeDefault của helper);
 // runtime + danh mục thật nằm ở CX_WISH_MODES trong core/helpers/wishes-helper.js
 // — thêm dạng mới thì khai bên đó rồi thêm một dòng vào WISH_MODES dưới đây.
 // Áp thẳng vào khung xem trước bằng postMessage như hộp mừng cưới, không nạp lại.
@@ -1312,13 +1312,13 @@ window.openWishPanel = openWishPanel;
 // `id` chính là giá trị lưu; chọn đúng dạng mặc định của mẫu thì không lưu gì.
 const WISH_MODES = [
   {
-    id: "live",
-    name: "Livestream",
-    icon: "radio",
+    id: "card",
+    name: "Thẻ",
+    icon: "gallery-horizontal",
     // Lớp màu lấy nguyên của cụm thẻ "Thêm vào thiệp" — icon trong bảng con phải
     // cùng ngôn ngữ với icon ngoài đó, không có bộ màu riêng.
     tone: "cx-add-ico-violet",
-    desc: "Lời chúc trôi lên ở góc màn hình, luôn thấy",
+    desc: "Các thẻ cùng khổ vuốt ngang, chữ dài thì bấm Xem thêm",
   },
   {
     id: "comment",
@@ -1334,13 +1334,20 @@ const WISH_MODES = [
     tone: "cx-add-ico-amber",
     desc: "Cũng ở chỗ đó nhưng mỗi lần vài lời, khách tự bấm sang trang",
   },
+  {
+    id: "live",
+    name: "Livestream",
+    icon: "radio",
+    tone: "cx-add-ico-rose",
+    desc: "Lời chúc trôi lên ở góc màn hình, luôn thấy",
+  },
 ];
 
 // Dạng nào cũng phải có mặt trong WISH_MODES mới chọn được — giá trị lạ (mẫu cũ,
 // dữ liệu chép tay) rơi về dạng mặc định của mẫu.
 function _wishModeDefault() {
   const v = String(window.cxThemeDecl?.().wishesMode || "");
-  return WISH_MODES.some((m) => m.id === v) ? v : "live";
+  return WISH_MODES.some((m) => m.id === v) ? v : "card";
 }
 
 function _wishModeId() {

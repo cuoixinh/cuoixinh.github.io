@@ -77,7 +77,7 @@
       "#ffffff",
     ],
 
-    // Mục mở đầu KHÔNG hiện dần: nó là thứ khách thấy ngay khi bìa mở ra, cho
+    // Mục mở đầu KHÔNG hiện dần: nó là thứ khách thấy ngay khi mở link, cho
     // trượt vào thì có một nhịp trống trước đã.
     reveal: ["#main-card section:not(#section-hero)"],
 
@@ -105,13 +105,10 @@
     const partyDate = w[`${side}_party_date`];
     const partyLocation = w[`${side}_party_location`];
 
-    // --- Màn bìa ---
-    // Khối dựng ảnh chạy TRƯỚC setupMusic: đây là chỗ ảnh của màn ĐẦU TIÊN nhận
-    // src, mà setupMusic kéo YouTube iframe API (script bên thứ ba) về ngay khi
-    // chạy — để nó đi trước là ảnh phải xếp hàng sau.
-    renderCover(w);
-
     // --- Mở đầu ---
+    // Chạy TRƯỚC setupMusic: đây là chỗ ảnh của màn ĐẦU TIÊN nhận src, mà
+    // setupMusic kéo YouTube iframe API (script bên thứ ba) về ngay khi chạy —
+    // để nó đi trước là ảnh phải xếp hàng sau.
     renderHero(w, false);
     renderStoryQuote(w.story_quote);
 
@@ -278,8 +275,6 @@
   //     vuông ở trên, dải ảnh ngang có chữ đè lên ở dưới.
   // Chữ trên album là văn bản CỐ ĐỊNH của mẫu (RB_CARD_TEXTS / RB_SCRIPT_TEXTS)
   // — slogan của khách đã hiện ở mục mở đầu rồi.
-  // Ảnh CỐ Ý không loading="lazy": #main-card để display:none cho tới khi khách
-  // mở bìa, ảnh lazy sẽ chưa tải gì cả và trống đúng lúc thiệp mở ra.
 
   const RB_CARD_TEXTS = [
     {
@@ -306,7 +301,7 @@
     return `
       <div class="rb-shot ${cls || ""}" data-lb="${i}">
         <img src="${cxImgSrc(url)}" alt="" class="w-full h-full object-cover"
-          style="object-position:${cxFocal(fp)}" />
+          style="object-position:${cxFocal(fp)}" loading="lazy" />
       </div>`;
   }
 
@@ -759,8 +754,7 @@
     });
   }
 
-  // Chỉ viết khi tờ giấy vào tầm nhìn — cũng là lúc DUY NHẤT đo được toạ độ:
-  // #main-card để display:none cho tới khi khách mở bìa, đo trước đó ra 0.
+  // Chỉ viết khi tờ giấy vào tầm nhìn — lúc đó bố cục đã ổn định, toạ độ đo mới đúng.
   // Máy tắt hiệu ứng chuyển động thì hiện thẳng chữ, không chạy bút.
   function rbSetupWriter(wrap, pen) {
     const reduced = window.matchMedia?.(

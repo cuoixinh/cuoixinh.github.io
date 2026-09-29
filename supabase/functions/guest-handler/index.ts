@@ -44,7 +44,11 @@ function timingSafeEqual(a: string, b: string): boolean {
 
 const MAX_PER_SIDE = 100
 const MAX_WISHES_PER_GUEST = 3
-const MAX_WISH_LEN = 500
+// Trần một lời chúc khách GỬI — trùng CX_WISH_MAX_LEN ở core/helpers/wishes-helper.js.
+// Quá trần là 400, KHÔNG cắt lặng lẽ (khách tưởng gửi đủ mà mất đuôi câu).
+const MAX_WISH_LEN = 300
+// Lời chúc ĐÃ LƯU từ hồi trần còn 500 — đọc ra giữ nguyên, đừng cắt theo trần mới.
+const MAX_WISH_STORED_LEN = 500
 const MAX_WISHES_RETURNED = 200
 const MAX_FIELD_LEN = 200
 const MAX_REL_LEN = 100
@@ -106,7 +110,7 @@ function readWishes(raw: unknown): { id: string; text: string; at: string }[] {
       const o = w as Record<string, unknown>
       return {
         id: String(o.id ?? crypto.randomUUID()),
-        text: String(o.text).slice(0, MAX_WISH_LEN),
+        text: String(o.text).slice(0, MAX_WISH_STORED_LEN),
         at: String(o.at ?? ''),
       }
     })
@@ -387,10 +391,11 @@ Deno.serve(withAxiom('guest-handler', async (req, log) => {
     const slug = String(body.slug ?? '').trim()
     const name = String(body.name ?? '').trim().slice(0, MAX_FIELD_LEN)
     const relationship = String(body.relationship ?? '').trim().slice(0, MAX_REL_LEN)
-    const text = String(body.text ?? '').trim().slice(0, MAX_WISH_LEN)
+    const text = String(body.text ?? '').trim()
 
     if (!slug || !name) return fail('Thiếu thông tin khách mời')
     if (!text) return fail('Lời chúc không được để trống')
+    if (text.length > MAX_WISH_LEN) return fail(`Lời chúc tối đa ${MAX_WISH_LEN} ký tự`)
 
     const { data: wedding } = await supabase
       .from('weddings')

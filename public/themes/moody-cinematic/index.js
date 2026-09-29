@@ -97,12 +97,7 @@
       family: ["#section-family", "#section-hero"],
     },
 
-    // Dựng quyển sách SAU khi #main-card hiện: trước đó thẻ còn display:none
-    // nên mọi phép đo chiều cao đều ra 0.
-    onOpen: () => {
-      setupBook();
-      refreshBook();
-    },
+    onOpen: null,
   };
 
   const _isGroom = isGroomSide();
@@ -115,13 +110,10 @@
 
     const side = _isGroom ? "groom" : "bride";
 
-    // --- Màn bìa ---
-    // Khối dựng ảnh chạy TRƯỚC setupMusic: đây là chỗ ảnh của màn ĐẦU TIÊN nhận
-    // src, mà setupMusic kéo YouTube iframe API (script bên thứ ba) về ngay khi
-    // chạy — để nó đi trước là ảnh phải xếp hàng sau.
-    renderCover(w);
-
     // --- Mở đầu ---
+    // Chạy TRƯỚC setupMusic: đây là chỗ ảnh của màn ĐẦU TIÊN nhận src, mà
+    // setupMusic kéo YouTube iframe API (script bên thứ ba) về ngay khi chạy —
+    // để nó đi trước là ảnh phải xếp hàng sau.
     renderHero(w, false);
     renderStoryQuote(w.story_quote);
 
@@ -256,10 +248,9 @@
     if (w.footer_text) setText("footer-text", w.footer_text);
     cxToggle("section-footer", cxEnabled(w.enable_footer));
 
-    // Các mục vừa bật/tắt và các trang vừa sinh thêm → dựng lại dải trang.
-    // Khách bấm mở bìa trước khi dữ liệu về thì onOpen đã chạy rồi, nên phép
-    // đo phải chạy lại ở đây chứ không chỉ ở onOpen.
-    refreshBook();
+    // Các mục vừa bật/tắt và các trang vừa sinh thêm → dựng (lần đầu) hoặc
+    // dựng lại dải trang.
+    setupBook();
   }
 
   window.renderWedding = renderWedding;
@@ -271,8 +262,8 @@
   //      trang — bảo đảm không trang nào dài quá màn hình.
   //   2. Đổi cú vuốt/lăn DỌC thành lật trang: xuống → sang phải, lên → trái.
   //   3. Cập nhật chỉ báo trang + hai nút lật.
-  // Chạy trong CX_THEME.onOpen (sau khi #main-card hiện) vì mọi phép đo cần
-  // thẻ đã có kích thước thật.
+  // Chạy cuối renderWedding: #main-card hiện sẵn (mẫu không có màn bìa) nên các
+  // phép đo đã có kích thước thật.
 
   const FLIP_MS = 420; // khoá lật trang: một cú lăn = một trang
   const SWIPE_PX = 40; // ngưỡng vuốt dọc mới tính là lật trang
@@ -286,7 +277,9 @@
 
   function setupBook() {
     const pages = document.getElementById("cx-pages");
-    if (!pages || pages.dataset.book === "1") return;
+    if (!pages) return;
+    // Đã dựng rồi (lần đổ dữ liệu sau) thì chỉ cần đo lại.
+    if (pages.dataset.book === "1") return refreshBook();
     pages.dataset.book = "1";
 
     Array.from(pages.children).forEach(_toPage);
@@ -455,7 +448,7 @@
 
   // Chạy lại được: dữ liệu về sau khi khách đã mở thiệp thì các trang do
   // renderStoryPost()/renderGallery() sinh thêm mới xuất hiện, phải biến
-  // chúng thành trang và đo lại. Gọi cuối renderWedding và trong onOpen.
+  // chúng thành trang và đo lại. setupBook() gọi ở mỗi lần renderWedding.
   function refreshBook() {
     const pages = document.getElementById("cx-pages");
     if (!pages) return;
@@ -920,11 +913,10 @@
     const img = ev.image_url ? getImageUrl(ev.image_url) : null;
     const fp = ev.focal_point;
     const pos = fp ? ` style="object-position:${cxFocal(fp)}"` : "";
-    // Ảnh nằm trong #main-card (display:none lúc chưa mở bìa) nên KHÔNG lazy.
     const figure = img
       ? `<figure class="mc-post-figure">
            <div class="mc-cine mc-cine-sm w-full aspect-[16/9]">
-             <img src="${cxImgSrc(img)}" alt=""${pos} class="w-full h-full object-cover" />
+             <img src="${cxImgSrc(img)}" alt=""${pos} class="w-full h-full object-cover" loading="lazy" />
            </div>
          </figure>`
       : "";
@@ -974,8 +966,6 @@
     lightboxImages.length = 0;
     lightboxImages.push(...urls);
 
-    // Ảnh nằm trong #main-card (đang display:none lúc chưa mở bìa) nên KHÔNG
-    // đặt loading="lazy": ảnh lazy sẽ chỉ bắt đầu tải khi bìa mở ra.
     // `grow` là phần bề ngang khung chiếm trong hàng (flex-grow), gap do hàng lo.
     const createFrame = (url, i, grow) => {
       const fp = focalPoints?.[images?.[i]];
@@ -983,7 +973,7 @@
       el.className = "mc-frame mc-cine";
       el.style.flex = grow + " 1 0";
       el.innerHTML = `<img src="${cxImgSrc(url)}" alt=""
-        class="w-full h-full object-cover"
+        class="w-full h-full object-cover" loading="lazy"
         style="object-position:${cxFocal(fp)}">
         <div class="mc-frame-no">${String(i + 1).padStart(2, "0")}</div>`;
       // Kéo qua khung để lật trang thì thôi, đừng mở ảnh — chỉ cú bấm ĐỨNG YÊN

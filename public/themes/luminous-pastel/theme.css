@@ -5,7 +5,7 @@
 
    Ba phần:
      1. --cx-*  bộ biến mà phần DÙNG CHUNG vẽ theo (lịch nhỏ, dòng thời gian,
-        màn bìa, nút xác nhận tham dự). Mặc định ở styles/_common.css.
+        nút xác nhận tham dự). Mặc định ở styles/_common.css.
      2. .cx-h / .cx-t / .cx-a  ba lớp ngữ nghĩa mà markup của mẫu dùng; màu
         của chúng đi theo bộ token ở trên → đổi tông cả thiệp = sửa mỗi file này.
      3. .lp-*  phần riêng của mẫu (sương sáng, thẻ kính mờ, album coverflow).
@@ -128,25 +128,6 @@ body {
     rgb(var(--cx-deco-rgb) / 0.85),
     transparent
   );
-}
-
-/* ── Lớp sương trên màn bìa ────────────────────────────────────────────────
-   Phủ lên ảnh bìa: sáng ở giữa, ivory ở hai đầu → tương phản thấp, chữ vẫn đọc
-   rõ mà ảnh không bị che hẳn. */
-
-.lp-mist {
-  position: absolute;
-  inset: 0;
-  /* MỘT màu (nền thiệp), chỉ khác độ mờ: đặc ở hai đầu cho chữ đọc rõ, loãng ở
-     giữa để còn thấy ảnh. Không pha thêm màu thứ hai vào đây. */
-  background: linear-gradient(
-    180deg,
-    rgb(var(--cx-card-bg-rgb) / 0.92) 0%,
-    rgb(var(--cx-card-bg-rgb) / 0.55) 34%,
-    rgb(var(--cx-card-bg-rgb) / 0.62) 62%,
-    rgb(var(--cx-card-bg-rgb) / 0.95) 100%
-  );
-  pointer-events: none;
 }
 
 /* ── Thẻ kính mờ ───────────────────────────────────────────────────────────

@@ -59,8 +59,8 @@
          · Chữ lấy từ dữ liệu phải đi qua setText(id, …) trong index.js
          · Thanh nhạc phải là thẻ con ĐẦU TIÊN của <body>
          · Màu lấy từ --cx-* / .cx-h / .cx-t / .cx-a, đừng viết mã màu thẳng
-         · Ảnh trong #main-card KHÔNG lazy: thẻ đang display:none nên ảnh lazy
-           chưa tải gì, bấm mở bìa mới bắt đầu tải → trống ảnh lúc thiệp mở ra
+         · Không có màn bìa: #main-card hiện sẵn (không display:none), ảnh màn
+           đầu là #main-photo (fetchpriority="high"), mọi ảnh còn lại lazy
        ══════════════════════════════════════════════════════════════════════ -->
 
   <body class="cx-screen-h flex justify-center items-start md:py-5">
@@ -70,58 +70,6 @@
          nên tổ tiên có transform sẽ neo nó sai chỗ. -->
     <div id="cx-music-mount"></div>
 
-    <!-- ═══ MỤC: Màn bìa ═══════════════════════════════════════════════════
-         Nền sáng, ảnh cưới nằm gọn trong một khung điện ảnh ở giữa màn. -->
-    <div
-      id="cover-screen"
-      class="fixed inset-0 z-50 flex justify-center items-center md:py-5"
-    >
-      <div
-        class="relative w-full max-w-[430px] cx-screen-h md:min-h-[932px] overflow-hidden md:rounded-lg flex flex-col items-center justify-center gap-6 px-10 text-center"
-      >
-        <div data-cx-invite class="mc-eyebrow">Trân trọng kính mời</div>
-
-        <!-- Tên khách mời: điền từ tham số ?name= đã mã hoá trên URL -->
-        <div class="cx-h text-[30px] leading-tight" id="cover-guest-name">----------</div>
-
-        <div data-cx-invite-to class="flex items-center gap-3 w-full">
-          <div class="mc-rule"></div>
-          <div class="cx-t text-[10px] tracking-[2px] uppercase whitespace-nowrap">
-            đến dự lễ thành hôn của
-          </div>
-          <div class="mc-rule"></div>
-        </div>
-
-        <div class="mc-cine w-full aspect-[16/9]">
-          <img
-            id="cover-bg-img"
-            src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
-            class="w-full h-full object-cover"
-            alt=""
-            fetchpriority="high"
-          />
-        </div>
-
-        <div class="cx-h text-[24px] leading-snug flex flex-col gap-1">
-          <span id="cover-groom-name">----------</span>
-          <span class="cx-a text-[12px] tracking-[6px] uppercase">and</span>
-          <span id="cover-bride-name">----------</span>
-        </div>
-
-        <x-button
-          variant="bare"
-          onclick="openInvitation()"
-          class="open-btn mc-soft-btn relative overflow-hidden px-10 py-4 border cx-border cx-t text-[12px] tracking-[3px] uppercase active:scale-95 transition-transform touch-manipulation [-webkit-tap-highlight-color:transparent]"
-        >
-          <span class="relative z-10 pointer-events-none flex items-center gap-2">
-            <i data-lucide="play" class="cx-ic cx-a text-[11px]" fill="currentColor"></i>
-            Mở Thiệp
-          </span>
-          <div class="btn-shimmer pointer-events-none"></div>
-        </x-button>
-      </div>
-    </div>
-
     <!-- ═══ THÂN THIỆP — QUYỂN SÁCH LẬT NGANG ══════════════════════════════
          #main-card + ĐÚNG MỘT thẻ con bọc mọi mục (#cx-pages, ở đây là dải
          cuộn NGANG). Mỗi <section> con trực tiếp là MỘT TRANG cao trọn màn; setupBook()
@@ -130,7 +78,6 @@
     <div
       id="main-card"
       class="relative w-full max-w-[430px] md:max-w-[768px] h-[100svh] md:h-[932px] md:rounded-lg md:shadow-2xl overflow-hidden"
-      style="display: none"
     >
       <div id="cx-pages" class="mc-pages text-center">
         <!-- ═══ TRANG: Lời mời (Mở đầu + Thư mời + Gia đình) ════════════════
@@ -163,6 +110,7 @@
           <div class="mc-cine mc-ph-shot mc-ph-bleed">
             <img
               id="main-photo"
+              fetchpriority="high"
               src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
               alt="Ảnh cưới"
               class="w-full h-full object-cover"
@@ -209,6 +157,7 @@
           <div id="section-family" class="mc-ph-family mc-ph-bleed">
             <img
               id="family-photo"
+              loading="lazy"
               src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
               alt=""
               class="mc-ph-fam-bg"
@@ -245,6 +194,7 @@
             <div class="mc-cine mc-cal-shot">
               <img
                 id="calendar-photo"
+                loading="lazy"
                 src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
                 alt=""
                 class="w-full h-full object-cover"
@@ -327,6 +277,7 @@
           <div id="timeline-fill" class="mc-tl-fill mc-cine hidden">
             <img
               id="timeline-fill-photo"
+              loading="lazy"
               src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
               alt=""
               class="w-full h-full object-cover"
@@ -394,6 +345,7 @@
                   <img
                     src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
                     id="groom-qr-img"
+                    loading="lazy"
                     alt="QR Chú Rể"
                     class="w-full aspect-square object-cover"
                   />
@@ -419,6 +371,7 @@
                   <img
                     src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
                     id="bride-qr-img"
+                    loading="lazy"
                     alt="QR Cô Dâu"
                     class="w-full aspect-square object-cover"
                   />
