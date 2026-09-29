@@ -32,7 +32,8 @@ const CX_WISH_SHOW_AT = 0.6;
 
 // Dạng hiện lời chúc do chủ thiệp chọn ở tab Giao diện (lưu ở
 // theme_setting.wishes_mode, bảng chọn ở invitation-setup/js/05-theme-panel.js).
-// Danh mục nằm ở CX_WISH_MODES bên dưới.
+// Danh mục nằm ở CX_WISH_MODES bên dưới. Không lưu gì = dạng mẫu khai ở
+// CX_THEME.wishesMode (_cxWishModeDefault), mẫu không khai thì "live".
 const CX_WISH_MODE_DEFAULT = "live";
 
 // Dạng "paged": mỗi trang mấy lời chúc.
@@ -1061,6 +1062,11 @@ function _cxWishModeOf(setting) {
   }
   const v =
     setting && typeof setting === "object" ? String(setting.wishes_mode || "") : "";
+  return CX_WISH_MODES[v] ? v : _cxWishModeDefault();
+}
+
+function _cxWishModeDefault() {
+  const v = String((window.CX_THEME && window.CX_THEME.wishesMode) || "");
   return CX_WISH_MODES[v] ? v : CX_WISH_MODE_DEFAULT;
 }
 
@@ -1088,7 +1094,7 @@ if (window.top !== window) {
     if (ev.source !== window.parent) return;
     const d = ev.data;
     if (!d || d.type !== "cx-wish-mode") return;
-    const next = CX_WISH_MODES[d.value] ? d.value : CX_WISH_MODE_DEFAULT;
+    const next = CX_WISH_MODES[d.value] ? d.value : _cxWishModeDefault();
     if (next === _cxWishMode && document.getElementById("cx-wishes-list")) return;
     _cxWishMode = next;
     _cxWishTeardown();

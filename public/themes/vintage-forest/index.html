@@ -437,106 +437,71 @@
             Sự hiện diện của quý khách là niềm vinh hạnh của gia đình chúng tôi
           </p>
 
-          <!-- PHONG BAO LÌ XÌ: mặc định chỉ thấy cái phong bao, bấm vào thì nắp
-               bật lên rồi mới lộ phần QR (số tài khoản không nên đập vào mắt
-               khách ngay khi cuộn tới). Đóng/mở ở cxToggleGift() trong index.js.
-               Hai khối phải nằm CHUNG một thẻ bọc không có gap: chúng co/giãn
-               cùng lúc, để rời ra thì `gap` của section và lượt ẩn thẻ làm cả
-               cụm giật. -->
-          <div class="vf-gift-stage">
-            <!-- Thẻ ngoài chỉ để CHẠY hiệu ứng thu (grid-template-rows 1fr→0fr,
-                 xem theme.css), thẻ trong mới là nội dung — tách hai tầng vì
-                 phần tử co phải có đúng MỘT con và con đó phải overflow:hidden. -->
-            <div
-              data-cx-gift="box"
-              id="gift-env"
-              class="vf-env-shell"
-              role="button"
-              tabindex="0"
-              aria-expanded="false"
-              onclick="cxToggleGift()"
-            >
-              <div class="vf-env-wrap">
-                <!-- Phong bao: chỉ có nắp và dấu niêm, không chữ -->
-                <div class="vf-env">
-                  <div class="vf-env-flap"></div>
-                  <div class="vf-env-seal"><i data-lucide="heart" class="cx-ic" fill="currentColor"></i></div>
-                </div>
-
-                <!-- Mũi tên kép nhấp nhô + lời mời, nằm NGOÀI phong bao -->
-                <i data-lucide="chevrons-up" class="cx-ic vf-env-hint" aria-hidden="true"></i>
-                <div class="cx-h vf-env-cap cx-a">Mở phong bao</div>
+          <div data-cx-gift="qr" class="grid grid-cols-2 gap-4">
+            <!-- Chú rể -->
+            <div class="flex flex-col gap-2 items-center">
+              <div class="cx-t text-[11px]">
+                Chú Rể · <span id="groom-bank-label">----------</span>
               </div>
+              <div class="cx-bg-qr rounded-2xl p-3 shadow-md w-full max-w-[180px]">
+                <img
+                  src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+                  id="groom-qr-img"
+                  alt="QR Chú Rể"
+                  class="w-full aspect-square object-cover"
+                  loading="lazy"
+                />
+              </div>
+              <div class="cx-t text-[11px]" id="groom-bank-name">
+                ----------------
+              </div>
+              <div class="cx-h text-[13px] font-medium" id="groom-bank-number">
+                ------------
+              </div>
+              <div class="cx-h text-[12px] font-semibold" id="groom-bank-owner">
+                --------------------
+              </div>
+              <x-button
+                variant="bare"
+                onclick="saveQR('groom-qr-img')"
+                class="gap-2 px-4 py-2 border cx-border cx-bg-panel cx-t text-[12px]"
+              >
+                <i data-lucide="download" class="cx-ic cx-ac text-xs"></i>
+                Lưu QR
+              </x-button>
             </div>
 
-            <div data-cx-gift="qr" id="gift-box" class="vf-gift is-closed">
-              <div class="grid grid-cols-2 gap-4">
-                <!-- Chú rể -->
-                <div class="flex flex-col gap-2 items-center">
-                  <div class="cx-t text-[11px]">
-                    Chú Rể · <span id="groom-bank-label">----------</span>
-                  </div>
-                  <div class="cx-bg-qr rounded-2xl p-3 shadow-md w-full max-w-[180px]">
-                    <img
-                      src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
-                      id="groom-qr-img"
-                      alt="QR Chú Rể"
-                      class="w-full aspect-square object-cover"
-                      loading="lazy"
-                    />
-                  </div>
-                  <div class="cx-t text-[11px]" id="groom-bank-name">
-                    ----------------
-                  </div>
-                  <div class="cx-h text-[13px] font-medium" id="groom-bank-number">
-                    ------------
-                  </div>
-                  <div class="cx-h text-[12px] font-semibold" id="groom-bank-owner">
-                    --------------------
-                  </div>
-                  <x-button
-                    variant="bare"
-                    onclick="saveQR('groom-qr-img')"
-                    class="gap-2 px-4 py-2 border cx-border cx-bg-panel cx-t text-[12px]"
-                  >
-                    <i data-lucide="download" class="cx-ic cx-ac text-xs"></i>
-                    Lưu QR
-                  </x-button>
-                </div>
-
-                <!-- Cô dâu -->
-                <div class="flex flex-col gap-2 items-center">
-                  <div class="cx-t text-[11px]">
-                    Cô Dâu · <span id="bride-bank-label">----------</span>
-                  </div>
-                  <div class="cx-bg-qr rounded-2xl p-3 shadow-md w-full max-w-[180px]">
-                    <img
-                      src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
-                      id="bride-qr-img"
-                      alt="QR Cô Dâu"
-                      class="w-full aspect-square object-cover"
-                      loading="lazy"
-                    />
-                  </div>
-                  <div class="cx-t text-[11px]" id="bride-bank-name">
-                    ----------------
-                  </div>
-                  <div class="cx-h text-[13px] font-medium" id="bride-bank-number">
-                    ------------
-                  </div>
-                  <div class="cx-h text-[12px] font-semibold" id="bride-bank-owner">
-                    --------------------
-                  </div>
-                  <x-button
-                    variant="bare"
-                    onclick="saveQR('bride-qr-img')"
-                    class="gap-2 px-4 py-2 border cx-border cx-bg-panel cx-t text-[12px]"
-                  >
-                    <i data-lucide="download" class="cx-ic cx-ac text-xs"></i>
-                    Lưu QR
-                  </x-button>
-                </div>
+            <!-- Cô dâu -->
+            <div class="flex flex-col gap-2 items-center">
+              <div class="cx-t text-[11px]">
+                Cô Dâu · <span id="bride-bank-label">----------</span>
               </div>
+              <div class="cx-bg-qr rounded-2xl p-3 shadow-md w-full max-w-[180px]">
+                <img
+                  src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+                  id="bride-qr-img"
+                  alt="QR Cô Dâu"
+                  class="w-full aspect-square object-cover"
+                  loading="lazy"
+                />
+              </div>
+              <div class="cx-t text-[11px]" id="bride-bank-name">
+                ----------------
+              </div>
+              <div class="cx-h text-[13px] font-medium" id="bride-bank-number">
+                ------------
+              </div>
+              <div class="cx-h text-[12px] font-semibold" id="bride-bank-owner">
+                --------------------
+              </div>
+              <x-button
+                variant="bare"
+                onclick="saveQR('bride-qr-img')"
+                class="gap-2 px-4 py-2 border cx-border cx-bg-panel cx-t text-[12px]"
+              >
+                <i data-lucide="download" class="cx-ic cx-ac text-xs"></i>
+                Lưu QR
+              </x-button>
             </div>
           </div>
         </section>

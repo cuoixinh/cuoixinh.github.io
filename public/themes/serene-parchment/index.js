@@ -15,9 +15,12 @@
     // Trùng TÊN THƯ MỤC và cột `templates.template_name`.
     id: "serene-parchment",
 
-    // Dạng hiện lời chúc của BẢN XEM THỬ (preview-data.js đọc). Thiệp thật
-    // lấy theo theme_setting.wishes_mode chủ thiệp chọn ở tab Giao diện.
+    // Dạng hiện lời chúc khi chủ thiệp chưa chọn (theme_setting.wishes_mode).
     wishesMode: "comment",
+
+    // Hộp mừng cưới khi chủ thiệp chưa chọn (theme_setting.gift_box): id trong
+    // CX_GIFT_BOXES (core/helpers/gift-box-helper.js) hoặc "none". Mẫu KHÔNG tự vẽ hộp.
+    giftBox: "phongbi_kraft",
 
     // Dạng trình phát nhạc — theme-boot.js dựng vào #cx-music-mount.
     music: { variant: "pill", chrome: "fixed-corner" },

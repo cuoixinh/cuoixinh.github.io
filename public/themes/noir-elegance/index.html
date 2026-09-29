@@ -342,26 +342,7 @@
         <section id="section-gift" class="flex flex-col gap-6">
           <h2 class="ne-title">Hộp Mừng Cưới</h2>
 
-          <!-- Hộp quà: chạm mới mở ra hai mã QR. Bóng đổ là thẻ RIÊNG nằm
-               ngoài phần dịch chuyển nên hộp nhấc lên mà bóng vẫn ở đáy. -->
-          <div data-cx-gift="box" id="gift-box" class="flex flex-col items-center gap-3">
-            <x-button
-              variant="bare"
-              onclick="neOpenGift()"
-              class="ne-gift"
-              aria-label="Mở mã QR mừng cưới"
-            >
-              <span class="ne-gift-shadow" aria-hidden="true"></span>
-              <img
-                src="../../../assets/gifts/minimalism_brown.webp"
-                alt="Hộp quà mừng cưới"
-                class="ne-gift-img"
-              />
-            </x-button>
-            <div class="ne-eyebrow !text-[9px]">Chạm để mở</div>
-          </div>
-
-          <div data-cx-gift="qr" id="gift-qr" class="hidden grid grid-cols-2 gap-3">
+          <div data-cx-gift="qr" class="grid grid-cols-2 gap-3">
             <!-- Chú rể -->
             <div class="ne-frame flex flex-col gap-2 items-center px-3 py-5">
               <div class="ne-eyebrow !text-[9px]">Chú Rể</div>

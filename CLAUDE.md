@@ -407,11 +407,12 @@ GitHub Pages chạy Jekyll nên đường dẫn kiểu đó không được publ
 | `theme.css`  | Bảng màu `--cx-*` + CSS riêng. **CSS thuần**, nạp sau `styles/themes.css` |
 
 - **`window.CX_THEME`** là bản khai — nguồn sự thật duy nhất về mẫu:
-  `swatches` (màu gợi ý trong bộ chọn màu), `reveal`, `focus` (id mục, chỉ khai cái khác
+  `swatches` (màu gợi ý trong bộ chọn màu), `giftBox` (hộp mừng cưới mặc định — id trong
+  `CX_GIFT_BOXES` hoặc `"none"`), `reveal`, `focus` (id mục, chỉ khai cái khác
   mặc định), `suggest` (selector mục mà bảng đề xuất mẫu khác bung ra ở bản xem thử —
   mặc định `#section-gift`), `skipSteps` (bước mà trang Thiết lập KHÔNG hiện vì mẫu không
-  vẽ mục đó — id trùng `CX_STEPS`), `wishesMode` (dạng lời chúc của BẢN XEM THỬ, chỉ
-  `preview-data.js` đọc — thiệp thật lấy theo `theme_setting.wishes_mode`),
+  vẽ mục đó — id trùng `CX_STEPS`), `wishesMode` (dạng lời chúc khi
+  `theme_setting.wishes_mode` trống),
   `music` (`{variant, chrome}` của `CXMusicPlayer.build`, `theme-boot.js` dựng vào
   `#cx-music-mount`), `loveStory` (`short`/`medium`/`long` — độ dài mốc chuyện tình XuXi
   viết khi khách chọn mẫu này, `LOVE_LEN` ở `ai-chat/knowledge.ts`), `onOpen`.
@@ -459,8 +460,8 @@ GitHub Pages chạy Jekyll nên đường dẫn kiểu đó không được publ
   `renderVenueMaps(w, side)` (`render-helper.js`) — lễ và tiệc ở hai nơi thì nó nhân cặp
   đó thành bản đồ thứ hai (id đuôi `-2`, cờ `.cx-map-dual` trên mục). `theme.css` nhắm
   theo id thì khai luôn id `-2`, không thì bản đồ thứ hai lệch kiểu.
-- Mục Hộp mừng cưới: khối chứa mã QR đánh dấu `data-cx-gift="qr"`, hộp/phong bao riêng
-  của mẫu (nếu có) đánh dấu `data-cx-gift="box"` — xem mục "Hộp mừng cưới" ở dưới.
+- Mục Hộp mừng cưới: khối chứa mã QR đánh dấu `data-cx-gift="qr"`, hộp chọn ở
+  `CX_THEME.giftBox` — **mẫu không tự vẽ hộp/phong bao**, xem mục "Hộp mừng cưới" ở dưới.
 
 **Thứ tự tải ảnh — mọi thẻ `<img>` phải khai rõ.** Ảnh thiệp chỉ nhận src SAU khi API trả dữ
 liệu, nên trình duyệt không thấy chúng lúc quét HTML và không đoán được tấm nào quan trọng:
@@ -613,14 +614,12 @@ Pill cố định; khác nhau ở `variant` (`fill` · `outline` · `soft` · `g
   `check:palette-contrast` cắt thẳng đoạn `[strength-math]` trong `theme-setting-helper.js`
   ra quét cả 21 mức: đổi phép tính thì đừng đổi tên hai dòng mốc đó.
 - **Hộp mừng cưới:** danh mục mẫu + runtime ở `core/helpers/gift-box-helper.js`, bảng chọn
-  ở `05-theme-panel.js`. Lưu ở `theme_setting.gift_box` (rỗng = mặc định của mẫu, `"none"` =
-  bỏ hộp, còn lại là id mẫu) nên **không cần changelog DB**; thêm mẫu = bỏ ảnh nền trong
-  suốt vào `assets/gifts/` rồi thêm một mục vào danh mục, **id đã phát hành thì đừng đổi**.
-  Helper đọc `data-cx-gift` của mẫu thiệp: che khối `"qr"`, còn hộp `"box"` sẵn có của mẫu
-  thì mở bằng chính cú bấm mà mẫu chờ (không đoán class trạng thái). Mẫu quên đánh dấu thì
-  helper dò khối chứa `#groom-qr-img`. Đổi chế độ áp thẳng qua `postMessage` (bảng chọn phải
-  đứng yên để so mẫu); riêng lượt về "Mặc định" SAU khi hộp gốc của mẫu đã bị bấm mở thì
-  runtime xin trang cha nạp lại khung xem trước — mẫu mở hộp một chiều, không có đường lùi.
+  ở `05-theme-panel.js`. Lưu ở `theme_setting.gift_box` (rỗng = hộp mẫu khai ở
+  `CX_THEME.giftBox`, `"none"` = bỏ hộp, còn lại là id mẫu) nên **không cần changelog DB**;
+  thêm mẫu = bỏ ảnh nền trong suốt vào `assets/gifts/` rồi thêm một mục vào danh mục, **id
+  đã phát hành thì đừng đổi**. **Mẫu thiệp không tự vẽ hộp/phong bao** — chỉ chọn một id
+  trong danh mục. Helper che khối `data-cx-gift="qr"` (mẫu quên đánh dấu thì dò khối chứa
+  `#groom-qr-img`). Đổi chế độ áp thẳng qua `postMessage` (bảng chọn phải đứng yên để so mẫu).
 - **Lời chúc khách mời:** helper dùng chung `core/helpers/wishes-helper.js` (mọi mẫu thiệp
   nạp), lưu ở `guests.wishes` (jsonb; hạn mức 3 lời chúc/khách do Edge Function giữ, KHÔNG
   ràng buộc ở DB), công tắc `weddings.enable_wishes` nằm trong bước RSVP của trang Thiết lập.

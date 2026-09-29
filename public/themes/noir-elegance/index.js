@@ -14,9 +14,12 @@
     // Trùng TÊN THƯ MỤC và cột `templates.template_name`.
     id: "noir-elegance",
 
-    // Dạng hiện lời chúc của BẢN XEM THỬ (preview-data.js đọc). Thiệp thật
-    // lấy theo theme_setting.wishes_mode chủ thiệp chọn ở tab Giao diện.
+    // Dạng hiện lời chúc khi chủ thiệp chưa chọn (theme_setting.wishes_mode).
     wishesMode: "paged",
+
+    // Hộp mừng cưới khi chủ thiệp chưa chọn (theme_setting.gift_box): id trong
+    // CX_GIFT_BOXES (core/helpers/gift-box-helper.js) hoặc "none". Mẫu KHÔNG tự vẽ hộp.
+    giftBox: "minimalism_brown",
 
     // Dạng trình phát nhạc — theme-boot.js dựng vào #cx-music-mount.
     music: { variant: "disc", chrome: "fixed-corner" },
@@ -341,17 +344,6 @@
     document
       .getElementById(id)
       ?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
-
-  // Mở hộp quà: giấu hộp, bung hai mã QR. Một chiều — mở rồi thôi, không có
-  // nút đóng lại (khách đang định chuyển khoản thì đừng bắt bấm thêm lần nữa).
-  window.neOpenGift = () => {
-    const box = document.getElementById("gift-box");
-    const qr = document.getElementById("gift-qr");
-    if (!box || !qr) return;
-    box.classList.add("hidden");
-    qr.classList.remove("hidden");
-    qr.classList.add("ne-gift-open");
   };
 
   // Vuốt ngang để đổi ảnh. Gắn trên CẢ mục mở đầu (kể cả hai dải kem mờ ở đầu

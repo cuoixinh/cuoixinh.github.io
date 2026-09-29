@@ -266,12 +266,11 @@ async function loadPreviewData() {
 
   if (typeof renderWedding === "function") {
     renderWedding(w);
+    // Hộp mừng cưới của mẫu (CX_THEME.giftBox) — bản xem thử không có theme_setting.
+    if (typeof applyGiftBox === "function") applyGiftBox(w.theme_setting);
     // Lời chúc: bản xem thử dựng dải + ô nhập bằng dữ liệu mẫu để chủ thiệp gõ
     // thử; initWishes tự chặn nút Gửi khi đang ở chế độ xem thử. Dạng hiện lấy
-    // theo CX_THEME.wishesMode của mẫu — thiệp thật thì chủ thiệp tự chọn.
-    if (window.CX_THEME?.wishesMode) {
-      w.theme_setting = { wishes_mode: window.CX_THEME.wishesMode };
-    }
+    // theo CX_THEME.wishesMode của mẫu (không có theme_setting.wishes_mode).
     if (typeof initWishes === "function") initWishes(w);
   } else {
     console.error("renderWedding function not found");

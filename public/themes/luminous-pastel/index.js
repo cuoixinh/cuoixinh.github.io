@@ -17,9 +17,12 @@
     // Độ dài mốc chuyện tình XuXi viết (xem base-theme). Thẻ kính mờ so le trái–phải, bề ngang hẹp — đoạn ngắn mới gọn thẻ.
     loveStory: "short",
 
-    // Dạng hiện lời chúc của BẢN XEM THỬ (preview-data.js đọc). Thiệp thật
-    // lấy theo theme_setting.wishes_mode chủ thiệp chọn ở tab Giao diện.
+    // Dạng hiện lời chúc khi chủ thiệp chưa chọn (theme_setting.wishes_mode).
     wishesMode: "comment",
+
+    // Hộp mừng cưới khi chủ thiệp chưa chọn (theme_setting.gift_box): id trong
+    // CX_GIFT_BOXES (core/helpers/gift-box-helper.js) hoặc "none". Mẫu KHÔNG tự vẽ hộp.
+    giftBox: "hop_trang_hong",
 
     // Dạng trình phát nhạc — theme-boot.js dựng vào #cx-music-mount.
     music: { variant: "ring", chrome: "fixed-corner" },

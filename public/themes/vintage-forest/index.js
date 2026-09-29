@@ -19,9 +19,12 @@
     // Độ dài mốc chuyện tình XuXi viết (xem base-theme). Các mốc nối thành đoạn văn xuôi liền mạch, cần chữ dày mới thành bài.
     loveStory: "long",
 
-    // Dạng hiện lời chúc của BẢN XEM THỬ (preview-data.js đọc). Thiệp thật
-    // lấy theo theme_setting.wishes_mode chủ thiệp chọn ở tab Giao diện.
+    // Dạng hiện lời chúc khi chủ thiệp chưa chọn (theme_setting.wishes_mode).
     wishesMode: "paged",
+
+    // Hộp mừng cưới khi chủ thiệp chưa chọn (theme_setting.gift_box): id trong
+    // CX_GIFT_BOXES (core/helpers/gift-box-helper.js) hoặc "none". Mẫu KHÔNG tự vẽ hộp.
+    giftBox: "lixi_hong_mai",
 
     // Dạng trình phát nhạc — theme-boot.js dựng vào #cx-music-mount.
     music: { variant: "disc", chrome: "fixed-corner" },
@@ -221,28 +224,6 @@
   }
 
   window.renderWedding = renderWedding;
-
-  // ============= HỘP MỪNG CƯỚI =============
-  // Mặc định ĐÓNG, bấm nút mới mở: thông tin chuyển khoản không nên đập vào mắt
-  // khách ngay khi cuộn tới. Gọi từ onclick trong index.html nên phải lộ ra
-  // window (index.js bọc trong IIFE).
-
-  // MỘT CHIỀU: mở rồi thì thôi, không có đường đóng lại (bóc phong bao ra rồi
-  // gấp lại là vô duyên) — muốn thấy lại phong bao thì tải lại trang.
-  // Hai việc xảy ra CÙNG LÚC (phong bao thu, hộp giãn) và phong bao KHÔNG bị gỡ
-  // khỏi DOM: chờ cái này xong mới chạy cái kia, hoặc ẩn thẻ giữa chừng, đều
-  // làm bố cục nhảy một nhịp.
-  function toggleGift() {
-    const box = document.getElementById("gift-box");
-    const env = document.getElementById("gift-env");
-    if (!box || !box.classList.contains("is-closed")) return;
-
-    env?.setAttribute("aria-expanded", "true");
-    env?.classList.add("is-opening");
-    box.classList.remove("is-closed");
-  }
-
-  window.cxToggleGift = toggleGift;
 
   // ============= POSTER MỞ ĐẦU =============
 
