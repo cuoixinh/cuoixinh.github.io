@@ -50,42 +50,54 @@
     style="color: rgb(var(--text-body-rgb))"
   >
     <!-- ===== HERO ===== -->
-    <!-- Màn mở đầu: MỘT khối ảnh tràn ngang, cao 80% màn — ảnh ghép phủ đen 15%, góc
-         dưới trái nhô lên một quả đồi hồng nhạt mang chữ. Chữ xếp chéo: lời mời + nút ở trái,
-         cụm giải thích ở góc dưới phải (từ lg). Cố ý THẤP hơn một màn để mục "Mẫu
-         thiệp" lộ ra từ màn đầu — số đo ở .hero-card (styles/tailwind-src.css). -->
+    <!-- Màn mở đầu: ảnh ghép các mẫu thiệp phủ kín làm NỀN (thêm lớp phủ 15%), lời
+         mời + nút nằm trong một thẻ kính trắng để đọc rõ trên nền ảnh; hai thẻ nổi
+         minh hoạ "gọi đúng tên" và "xác nhận tham dự" bay trên ảnh. Số đo ở #hero
+         (styles/tailwind-src.css). -->
     <section id="hero">
-      <!-- Logo nổi góc trái ảnh, chỉ ở khổ hẹp: từ md navbar trên đã mang logo. -->
+      <!-- Ảnh màn đầu: fetchpriority cao, không lazy. -->
+      <div class="hero-bg" aria-hidden="true">
+        <img
+          class="hero-bg-img"
+          src="assets/background/started/cuoixinh-cover-3908x2264.jpg"
+          alt=""
+          fetchpriority="high"
+        />
+      </div>
+
+      <!-- Logo góc trái, chỉ ở khổ hẹp: từ md navbar trên đã mang logo. -->
       <a href="/" class="hero-badge cx-logo hero-anim hero-anim-1" aria-label="Cưới Xinh">
         <img src="assets/icons/logo.png" alt="" />
         <span class="cx-logo-text"><span class="cx-logo-name">Cưới Xinh</span><span class="cx-logo-since">-SINCE 2026-</span></span>
       </a>
 
-      <div class="hero-card">
-        <!-- Vỏ .hero-card-media lo parallax theo cuộn, ảnh bên trong lo trôi chậm —
-             tách hai lớp vì cùng dùng transform. Ảnh màn đầu: fetchpriority cao, không lazy. -->
-        <div class="hero-card-media" aria-hidden="true">
-          <img
-            class="hero-card-img"
-            src="assets/background/started/cuoixinh-cover-3908x2264.jpg"
-            alt=""
-            fetchpriority="high"
-          />
+      <div class="hero-wrap">
+        <div class="hero-visual" aria-hidden="true">
+          <div class="hero-chip hero-chip-guest hero-anim hero-anim-5">
+            <span class="hero-chip-ic"><i data-lucide="mail-open" style="width:18px;height:18px"></i></span>
+            <span class="hero-chip-text">
+              <span class="hero-chip-k">Trân trọng kính mời</span>
+              <span class="hero-chip-v">Anh Minh &amp; gia đình</span>
+            </span>
+          </div>
+          <div class="hero-chip hero-chip-rsvp hero-anim hero-anim-5">
+            <span class="hero-chip-ic"><i data-lucide="calendar-check" style="width:18px;height:18px"></i></span>
+            <span class="hero-chip-text">
+              <span class="hero-chip-k">Xác nhận tham dự</span>
+              <span class="hero-chip-v">Chị Lan · 2 người</span>
+            </span>
+          </div>
         </div>
-        <div class="hero-card-veil" aria-hidden="true"></div>
-        <div class="hero-card-shine" aria-hidden="true"></div>
-        <!-- Quả đồi góc dưới trái + quầng sáng sau tiêu đề. -->
-        <div class="hero-card-hill" aria-hidden="true"></div>
-        <div class="hero-card-glow" aria-hidden="true"></div>
 
-        <div class="hero-card-body">
+        <div class="hero-copy">
           <h1 class="hero-title hero-anim hero-anim-2">
-            <span class="hero-eyebrow">Thiệp cưới online · Cưới Xinh</span>
-            Gửi trọn yêu thương trong một tấm thiệp
+            <span class="hero-eyebrow">Thiệp cưới online</span>
+            Một tấm thiệp, <em>trăm lời mời</em> riêng
           </h1>
           <p class="hero-sub hero-anim hero-anim-3">
-            Chọn một mẫu ưng ý, kể đôi dòng về hai bạn — tấm thiệp sẵn sàng gửi
-            tới từng khách mời, gọi đúng tên từng người.
+            Chọn mẫu ưng ý, kể đôi dòng về hai bạn — mỗi khách nhận một đường
+            link mang đúng tên mình<span class="hero-sub-more">, kèm lịch trình,
+            bản đồ, album và hộp mừng cưới</span>.
           </p>
 
           <div class="hero-act">
@@ -116,18 +128,11 @@
               </x-button>
             </div>
 
-            <p class="hero-note hero-anim hero-anim-5">
-              Dùng thử miễn phí · chỉ thanh toán khi ưng ý
-            </p>
-          </div>
-
-          <!-- Cụm góc dưới phải — chỉ từ lg, khổ hẹp không đủ chỗ. -->
-          <div class="hero-aside hero-anim hero-anim-5">
-            <p class="hero-aside-title">Mỗi khách một lời mời riêng</p>
-            <p class="hero-aside-text">
-              Thiệp tự gọi đúng tên từng người, có sẵn lịch trình, bản đồ, album
-              ảnh và hộp mừng cưới — gửi đi chỉ bằng một đường link.
-            </p>
+            <ul class="hero-trust hero-anim hero-anim-5">
+              <li><i data-lucide="check" style="width:14px;height:14px"></i>Dùng thử miễn phí</li>
+              <li><i data-lucide="check" style="width:14px;height:14px"></i>Ưng ý mới trả tiền</li>
+              <li><i data-lucide="check" style="width:14px;height:14px"></i>Gửi qua Zalo, Messenger</li>
+            </ul>
           </div>
         </div>
       </div>
