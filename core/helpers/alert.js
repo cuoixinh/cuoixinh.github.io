@@ -333,7 +333,9 @@ function showDialog(opts = {}) {
   const okBtn = document.getElementById("cx-alert-ok");
   const cancelBtn = document.getElementById("cx-alert-cancel");
   okBtn.textContent = opts.okText || (opts.confirm ? "Xác nhận" : "Đã hiểu");
-  cancelBtn.textContent = opts.cancelText || "Huỷ";
+  // cancelHtml: nhãn có thẻ (in đậm tên…) — bên gọi TỰ escape phần biến.
+  if (opts.cancelHtml) cancelBtn.innerHTML = opts.cancelHtml;
+  else cancelBtn.textContent = opts.cancelText || "Huỷ";
   cancelBtn.classList.toggle("cx-dlg-hidden", !opts.confirm); // alert → ẩn nút Huỷ
 
   document.getElementById("cx-alert-backdrop").classList.add("visible");
@@ -381,6 +383,7 @@ function showConfirm(title, message, opts = {}) {
     confirm: true,
     okText: opts.confirmText,
     cancelText: opts.cancelText,
+    cancelHtml: opts.cancelHtml,
     html: opts.html,
   });
 }

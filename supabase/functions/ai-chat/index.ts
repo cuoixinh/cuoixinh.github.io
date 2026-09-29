@@ -9,7 +9,7 @@
 //   qa      — hỏi đáp; model đặt "switch" khi khách muốn làm thiệp → chạy tiếp collect
 //   collect — hỏi thông tin; "ready" = khách đồng ý bảng chốt (client dẫn qua ô ảnh/nhạc/
 //             bản đồ rồi gửi lại với build = true); "build" = xin dựng ngay → chạy tiếp build
-//   build   — dựng trọn nội dung thiệp {text, story_quote, love_story, timeline, fields}
+//   build   — dựng trọn nội dung thiệp {text, story_quote?, love_story, timeline, fields}
 //   edit    — thiệp đã có: model trả BẢN VÁ, server gộp vào thiệp hiện tại
 // Chuyển tiếp nằm trong CÙNG một request (một lượt hạn mức). Client chỉ thấy "text";
 // phần còn lại đi ra ở dòng meta cuối để trang thiết lập đổ vào form.
@@ -139,7 +139,8 @@ const P_TEXT = {
 const FIELD_VALUE_FORMAT =
   'Khoá *_date PHẢI là "YYYY-MM-DD" (2026-11-22), khoá *_time PHẢI là 24h "HH:MM" (09:00) — ' +
   'kể cả khi trong câu trả lời bạn viết ngày kiểu dd/mm/yyyy cho khách đọc. vu_quy_enabled là ' +
-  '"true"/"false".'
+  '"true"/"false". share_message_template giữ NGUYÊN VĂN biến ##Relationship## (lời chào) và ' +
+  '##link## (cuối câu).'
 
 const P_ASK = {
   type: 'string',
@@ -202,7 +203,8 @@ const P_QUOTE = {
   type: 'string',
   description:
     'Lời ngỏ của cặp đôi: ĐÚNG MỘT CÂU 12–24 chữ, giàu chất thơ; không tên riêng, ' +
-    'ngày tháng, địa điểm, dấu ngoặc kép hay lời mời.',
+    'ngày tháng, địa điểm, dấu ngoặc kép hay lời mời. CHỈ có mặt khi khách nhờ viết/sửa ' +
+    'slogan; không thì BỎ HẲN khoá (thiệp dùng câu của mẫu).',
 }
 
 const QA_SCHEMA = {
@@ -246,8 +248,9 @@ const COLLECT_SCHEMA = {
   required: ['text', 'ready', 'build', 'fields'],
 }
 
-// Lượt dựng thiệp: BẮT BUỘC ba phần sáng tạo, đặt TRƯỚC "fields". Không bắt buộc thì
+// Lượt dựng thiệp: BẮT BUỘC hai phần sáng tạo, đặt TRƯỚC "fields". Không bắt buộc thì
 // model hay chỉ viết câu chúc mừng rồi nhả mảng rỗng — thiệp thiếu lịch trình, chuyện tình.
+// story_quote tuỳ chọn: vắng thì thiệp giữ câu của mẫu thiệp.
 const BUILD_SCHEMA = {
   type: 'object',
   propertyOrdering: ['text', 'story_quote', 'love_story', 'timeline', 'fields', 'tone', 'region'],
@@ -260,7 +263,7 @@ const BUILD_SCHEMA = {
     tone: P_TONE,
     region: P_REGION,
   },
-  required: ['text', 'story_quote', 'love_story', 'timeline', 'fields'],
+  required: ['text', 'love_story', 'timeline', 'fields'],
 }
 
 // Lượt sửa thiệp: BẢN VÁ — ngoài text/fields mọi phần đều tuỳ chọn, vắng = giữ nguyên.
@@ -564,8 +567,8 @@ lượt khác để false. Câu "text" báo sắp dựng thiệp (hoặc mời c
 đồ) thì "ready" BẮT BUỘC true.`,
   build: `
 ĐỊNH DẠNG TRẢ LỜI: một object JSON duy nhất chứa TRỌN nội dung thiệp.
-⚠️ LUẬT QUAN TRỌNG NHẤT: BẠN PHẢI TỰ VIẾT RA đủ "story_quote", "love_story" (nếu khách có kể
-chuyện tình) và "timeline" ngay trong lượt này. Câu "text" chỉ là lời nhắn, NÓ KHÔNG TẠO RA
+⚠️ LUẬT QUAN TRỌNG NHẤT: BẠN PHẢI TỰ VIẾT RA đủ "love_story" (nếu khách có kể chuyện tình)
+và "timeline" ngay trong lượt này. Câu "text" chỉ là lời nhắn, NÓ KHÔNG TẠO RA
 THIỆP — thiếu dữ liệu thì khách mở ra chỉ thấy thiệp trống.
 "text": 1–2 câu chúc mừng thiệp đã xong, mời khách soát bảng thông tin ngay bên dưới rồi bấm
 nút dưới bảng; KHÔNG liệt kê lại thông tin, KHÔNG nhắc JSON.
@@ -581,14 +584,11 @@ ${FIELDS_RULE}`,
 const BUILD_BLOCK = `
 ===== LỆNH CỦA GIAO DIỆN =====
 Khách đã chốt thông tin và muốn dựng thiệp ngay. Lượt này PHẢI trả trọn bộ nội dung thiệp,
-TỰ VIẾT đủ cả ba phần (LUẬT NỘI DUNG THIỆP mục 6–9), không phần nào được để rỗng khi đã có
-dữ liệu:
+TỰ VIẾT đủ các phần dưới (LUẬT NỘI DUNG THIỆP mục 6–8), không phần nào được để rỗng khi đã
+có dữ liệu:
 - "timeline": dựng từ giờ Vu Quy / lễ / tiệc trong khối THÔNG TIN ĐÃ THU.
 - "love_story": chép đủ từng mốc chuyện tình khách đã kể (trong hội thoại / bảng chốt) rồi
   viết "content" theo đúng văn phong khách chọn.
-- "story_quote", "rsvp_message", "footer_text", "share_message_template": chép NGUYÊN VĂN
-  bốn câu ở dòng "Lời nhắn XuXi đề xuất" của bảng chốt (Slogan · Lời mời · Lời cảm ơn · Câu
-  mẫu chia sẻ); câu nào không có thì tự viết.
 ===== HẾT =====`
 
 function knowledgeBlock(catalog: string): string {

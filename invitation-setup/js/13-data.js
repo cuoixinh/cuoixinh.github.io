@@ -242,7 +242,9 @@ const _BLANK_IGNORE = new Set([
 function _isBlankWedding(data) {
   if (!data) return true;
   return !Object.keys(data).some((k) => {
-    if (_BLANK_IGNORE.has(k)) return false;
+    // Khoá `_*` là dấu nội bộ của bản nháp (_savedAt, _owner, _localOnly…) — nháp
+    // vừa tạo đã có sẵn, không bỏ qua thì chẳng thiệp mới nào được fill.
+    if (_BLANK_IGNORE.has(k) || k.startsWith("_")) return false;
     const v = data[k];
     if (v === null || v === undefined || v === "") return false;
     // Cờ bật/tắt (enable_*, rsvp_enabled, vu_quy_enabled…) đều có mặc định sẵn nên
@@ -338,7 +340,7 @@ async function _fetchDemoFill(theme) {
 
 // Lúc NẠP TRANG: thiệp còn trắng thì trộn dữ liệu mẫu vào trước khi fillForm.
 async function _withDemoFill(data) {
-  if (!_isBlankWedding(data)) return data;
+  if (!_isBlankWedding(data)) return _withDemoTexts(data);
   const fill = await _fetchDemoFill(data.theme);
   if (!fill) return data;
   _demoPending = true;
@@ -352,6 +354,24 @@ async function _withDemoFill(data) {
     if (v !== null && v !== undefined && v !== "") kept[k] = v;
   }
   return { ...fill, ...kept };
+}
+
+// Slogan · lời mời xác nhận · lời cảm ơn: thiệp nào cũng phải có, kể cả nháp KHÔNG
+// trắng (nháp XuXi dựng sẵn tên, ngày… nhưng không viết ba câu này). Chỉ điền khoá
+// CHƯA TỪNG có — khách xoá trắng thì autosave ghi "" và nó được giữ nguyên.
+// Không bật _demoPending: form đã có nội dung của khách, đổi mẫu không được nạp đè.
+const DEMO_ALWAYS_FIELDS = ["story_quote", "rsvp_message", "footer_text"];
+
+async function _withDemoTexts(data) {
+  const need = DEMO_ALWAYS_FIELDS.filter((k) => data[k] === undefined);
+  if (!need.length) return data;
+  const fill = await _fetchDemoFill(data.theme);
+  if (!fill) return data;
+  const out = { ...data };
+  need.forEach((k) => {
+    if (fill[k]) out[k] = fill[k];
+  });
+  return out;
 }
 
 // Ô chữ do mẫu điền: đổi sang mẫu mới mà mẫu đó không khai trường nào thì phải

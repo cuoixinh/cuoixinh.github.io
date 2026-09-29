@@ -138,22 +138,21 @@
       (chosen && !sameTheme ? "với mẫu " + newB : "một thiệp mới") +
       "?";
 
+    // Nút chính (ok) = tạo mới, nút phụ (cancel) = tiếp tục nháp cũ.
     showConfirm("Thiệp đang viết dở", message, {
       type: "info",
       icon: "file-pen",
       html: true,
-      confirmText: "Tiếp tục",
-      cancelText: chosen && !sameTheme ? "Dùng " + newName : "Thiệp mới",
+      confirmText: "Tạo mẫu mới",
+      cancelHtml: "Tiếp tục " + oldB,
     }).then(function (r) {
       // null = bấm ra ngoài / Esc → đóng suông, không đi đâu cả. Đây là ngã ba chỉ
       // khách quyết được, đừng coi việc đóng là đã chọn "thiệp mới".
       if (r === null) return;
-      if (r) {
-        // Mẫu cũ: KHÔNG ghi đè draft_theme — bản nháp tự mang theme của nó.
-        sessionStorage.setItem("draft_template_name", oldName);
-        return _go(existing.id, params);
-      }
-      _create(theme, displayName, params);
+      if (r) return _create(theme, displayName, params);
+      // Mẫu cũ: KHÔNG ghi đè draft_theme — bản nháp tự mang theme của nó.
+      sessionStorage.setItem("draft_template_name", oldName);
+      _go(existing.id, params);
     });
   }
 

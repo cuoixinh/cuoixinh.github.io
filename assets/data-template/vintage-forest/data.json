@@ -1,92 +1,87 @@
 {
   "image_focal_points": {
     "gallery_images": {
-      "gallery-01.webp": {
-        "x": 46,
-        "y": 25
+      "gallery-01.png": {
+        "x": 57,
+        "y": 15
       },
-      "gallery-02.webp": {
-        "x": 53,
+      "gallery-02.png": {
+        "x": 52,
+        "y": 30
+      },
+      "gallery-03.png": {
+        "x": 46,
+        "y": 22
+      },
+      "gallery-04.png": {
+        "x": 47,
+        "y": 33
+      },
+      "gallery-05.png": {
+        "x": 37,
+        "y": 40
+      },
+      "gallery-06.png": {
+        "x": 51,
+        "y": 82
+      },
+      "gallery-07.png": {
+        "x": 47,
+        "y": 32
+      },
+      "gallery-08.png": {
+        "x": 61,
         "y": 13
       },
-      "gallery-03.webp": {
-        "x": 49,
-        "y": 24
-      },
-      "gallery-04.webp": {
-        "x": 63,
-        "y": 14
-      },
-      "gallery-05.webp": {
-        "x": 75,
-        "y": 25
-      },
-      "gallery-06.webp": {
-        "x": 50,
-        "y": 24
-      },
-      "gallery-07.webp": {
-        "x": 49,
-        "y": 24
-      },
-      "gallery-08.webp": {
-        "x": 59,
-        "y": 18
-      },
-      "gallery-09.webp": {
-        "x": 50,
-        "y": 61
-      },
-      "gallery-10.jpg": {
-        "x": 48,
-        "y": 32
+      "gallery-09.png": {
+        "x": 55,
+        "y": 79
       }
     },
     "cover_image_url": {
-      "x": 51,
+      "x": 74,
       "y": 18
     },
     "groom_image_url": {
-      "x": 65,
-      "y": 14
+      "x": 78,
+      "y": 9
     },
     "bride_image_url": {
-      "x": 40,
-      "y": 23
+      "x": 82,
+      "y": 21
     }
   },
-  "cover_image_url": "cover.webp",
-  "groom_image_url": "groom.webp",
-  "bride_image_url": "bride.webp",
+  "cover_image_url": "cover.png",
+  "groom_image_url": "groom.png",
+  "bride_image_url": "bride.jpg",
   "groom_qr_url": "groom-qr.png",
   "bride_qr_url": "bride-qr.png",
   "gallery_images": [
-    "gallery-01.webp",
-    "gallery-02.webp",
-    "gallery-03.webp",
-    "gallery-04.webp",
-    "gallery-05.webp",
-    "gallery-06.webp",
-    "gallery-07.webp",
-    "gallery-08.webp",
-    "gallery-09.webp",
-    "gallery-10.jpg"
+    "gallery-01.png",
+    "gallery-02.png",
+    "gallery-03.png",
+    "gallery-04.png",
+    "gallery-05.png",
+    "gallery-06.png",
+    "gallery-07.png",
+    "gallery-08.png",
+    "gallery-09.png"
   ],
   "love_story": [
     {
+      "date": "2020",
       "title": "Ngày mình gặp nhau",
-      "content": "Một chuyến trekking lạc đường ở Tà Năng, và người đưa anh về đúng lối lại là em.",
-      "image_url": "love-story-01.webp",
+      "content": "Một chuyến trekking lạc đường ở Tà Xùa, và người đưa anh về đúng lối lại là em.",
+      "image_url": "love-story-01.png",
       "focal_point": {
-        "x": 44,
-        "y": 26
-      },
-      "date": "2020"
+        "x": 55,
+        "y": 35
+      }
     },
     {
+      "date": "2026",
       "title": "Và mình chọn nhau",
-      "content": "Sáu năm và rất nhiều cung đường sau đó, anh hỏi em có muốn đi chung đường mãi không.",
-      "date": "2026"
+      "content": "Sáu năm và rất nhiều cung đường sau đó, anh hỏi em có muốn đi chung đường mãi không."
     }
   ],
   "content": {
@@ -103,19 +98,23 @@
     "ceremony_time": "11:00",
     "ceremony_lunar": "Tức ngày 22 tháng 9 năm Bính Ngọ",
     "ceremony_location": "Vườn thông Dalat Retreat, Đường Khe Sanh, TP. Đà Lạt",
+    "ceremony_map_embed_url": "https://maps.google.com/maps?q=11.9538,108.4586&output=embed&hl=vi",
     "vu_quy_enabled": true,
     "vu_quy_time": "07:00",
     "vu_quy_location": "Tư gia nhà gái — Số 14 Lê Duẩn, Phường Tân Lập, TP. Buôn Ma Thuột",
+    "vu_quy_map_embed_url": "https://maps.google.com/maps?q=12.6797,108.0378&output=embed&hl=vi",
     "groom_party_date": "2026-10-30",
     "groom_party_time": "16:00",
     "groom_party_lunar": "Tức ngày 21 tháng 9 năm Bính Ngọ",
     "groom_party_show_location": true,
     "groom_party_location": "Vườn thông Dalat Retreat, Đường Khe Sanh, TP. Đà Lạt",
+    "groom_party_map_embed_url": "https://maps.google.com/maps?q=11.9538,108.4586&output=embed&hl=vi",
     "bride_party_date": "2026-10-30",
     "bride_party_time": "17:00",
     "bride_party_lunar": "Tức ngày 21 tháng 9 năm Bính Ngọ",
     "bride_party_show_location": true,
     "bride_party_location": "Tư gia nhà gái — Số 14 Lê Duẩn, Phường Tân Lập, TP. Buôn Ma Thuột",
+    "bride_party_map_embed_url": "https://maps.google.com/maps?q=12.6797,108.0378&output=embed&hl=vi",
     "groom_bank_name": "BIDV",
     "groom_bank_number": "620100112233",
     "groom_bank_owner": "KIEU HUU THANG",
@@ -126,15 +125,16 @@
     "rsvp_enabled": true,
     "rsvp_message": "Đường lên rừng thông hơi xa, nên bạn xác nhận sớm giúp tụi mình để còn giữ chỗ nhé.",
     "footer_text": "Cảm ơn bạn đã đi một quãng đường dài đến với ngày vui của chúng mình.",
+    "enable_music": true,
     "music_url": "https://www.youtube.com/watch?v=JgTZvDbaTtg",
     "enable_family": true,
     "enable_party": true,
     "enable_photos": true,
     "enable_timeline": true,
     "enable_love_story": true,
-    "enable_music": true,
     "enable_gift": true,
     "enable_footer": true,
+    "demo_fill_love_story": true,
     "timeline": [
       {
         "time": "17:00",
@@ -161,12 +161,7 @@
         "title": "Đốt lửa trại và hát cùng nhau",
         "type": "party"
       }
-    ],
-    "demo_fill_love_story": true,
-    "ceremony_map_embed_url": "https://maps.google.com/maps?q=11.9538,108.4586&output=embed&hl=vi",
-    "vu_quy_map_embed_url": "https://maps.google.com/maps?q=12.6797,108.0378&output=embed&hl=vi",
-    "groom_party_map_embed_url": "https://maps.google.com/maps?q=11.9538,108.4586&output=embed&hl=vi",
-    "bride_party_map_embed_url": "https://maps.google.com/maps?q=12.6797,108.0378&output=embed&hl=vi"
+    ]
   },
-  "updated_at": "2026-09-23T17:11:25.566Z"
+  "updated_at": "2026-09-29T15:19:46.109Z"
 }

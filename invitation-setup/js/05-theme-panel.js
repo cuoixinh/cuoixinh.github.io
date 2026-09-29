@@ -585,10 +585,6 @@ window.addEventListener("message", (ev) => {
     // Đang kéo thành phần/khối văn bản trên thiệp → thanh chỉnh lui đi
     // cho thấy chỗ đang thả (chỉ có tác dụng ở mobile, xem .cx-ctrl-away).
     _setCtrlAway(!!d.on);
-  } else if (d.type === "cx-gift-reload") {
-    // Hộp gốc của mẫu đã bị bấm mở, muốn về "Mặc định" thì chỉ còn cách dựng lại
-    // thiệp từ đầu (core/helpers/gift-box-helper.js).
-    _reloadThemeFrame("gift");
   } else if (d.type === "cx-text-size") {
     // Vừa chụm 2 ngón trên khối văn bản trong thiệp → cỡ chữ mới.
     _setTextSizeFromCard(d.selector, d.size);
@@ -1119,7 +1115,8 @@ function _addElement(elementId, variantId, x, y) {
 }
 
 // ─── Hộp mừng cưới: chọn kiểu che phần mã QR ────────────────────────────────
-// Một lưới gồm hai ô cố định — "Mặc định" (không lưu gì, mẫu tự lo phần này) và
+// Một lưới gồm hai ô cố định — "Mặc định" (không lưu gì = hộp mẫu khai ở
+// CX_THEME.giftBox) và
 // "Không hộp" — rồi tới từng mẫu hộp trong window.CX_GIFT_BOXES
 // (core/helpers/gift-box-helper.js) nên thêm mẫu không phải sửa file này.
 // Lưu ở _themeSetting.gift_box, áp thẳng vào khung xem trước bằng postMessage
@@ -1152,7 +1149,7 @@ const GIFT_FIXED = [
     icon: "xuxi",
     own: true,
     tone: "cx-add-ico-amber",
-    desc: "Giữ nguyên như mẫu thiệp",
+    desc: "Hộp của mẫu thiệp", // _syncGiftTiles ghi rõ tên hộp khi đọc được bản khai
   },
   {
     id: "none",
@@ -1257,6 +1254,16 @@ function _renderGiftPalette() {
 
 function _syncGiftTiles() {
   const cur = _giftBoxId();
+  const def = window.cxThemeDecl?.().giftBox;
+  const defDesc = document.querySelector(
+    '#cx-gift-palette [data-pick-id=""] .cx-pick-desc',
+  );
+  if (defDesc)
+    defDesc.textContent = !def
+      ? "Hộp của mẫu thiệp"
+      : def === "none"
+        ? "Mẫu này hiện thẳng mã QR"
+        : "Theo mẫu: " + (window.cxGiftBox?.(def)?.name || def);
   document
     .querySelectorAll("#cx-gift-palette [data-pick-id]")
     .forEach((b) => b.classList.toggle("is-on", (b.dataset.pickId || "") === cur));
@@ -1269,17 +1276,18 @@ function pickGiftBox(id) {
   _scheduleAutoSave("theme");
 
   // Áp thẳng vào khung xem trước rồi cuộn tới mục — KHÔNG nạp lại: nạp lại là
-  // bảng chọn đóng mất (xem _watchThemeFrame) mà khách còn đang so mẫu. Lưu dữ
-  // liệu trước, phòng khi runtime xin nạp lại bằng 'cx-gift-reload'.
+  // bảng chọn đóng mất (xem _watchThemeFrame) mà khách còn đang so mẫu.
   _savePreviewData();
   const win = _lineIframe()?.contentWindow;
   win?.postMessage({ type: "cx-gift-box", value: id || "" }, "*");
   win?.postMessage({ type: "cx-focus", key: "gift" }, "*");
 }
 window.pickGiftBox = pickGiftBox;
+document.addEventListener("cx-theme-decl", _syncGiftTiles);
 
 // ─── Lời chúc: chọn cách hiện lời chúc của khách mời ────────────────────────
-// Lưu ở _themeSetting.wishes_mode (rỗng = Livestream, dạng mặc định xưa nay);
+// Lưu ở _themeSetting.wishes_mode (rỗng = dạng mẫu khai ở CX_THEME.wishesMode,
+// mẫu không khai thì Livestream — khớp _cxWishModeDefault của helper);
 // runtime + danh mục thật nằm ở CX_WISH_MODES trong core/helpers/wishes-helper.js
 // — thêm dạng mới thì khai bên đó rồi thêm một dòng vào WISH_MODES dưới đây.
 // Áp thẳng vào khung xem trước bằng postMessage như hộp mừng cưới, không nạp lại.
@@ -1301,10 +1309,10 @@ function openWishPanel() {
 window.openWishPanel = openWishPanel;
 
 
-// `id` chính là giá trị lưu — rỗng = Livestream (không lưu gì cả).
+// `id` chính là giá trị lưu; chọn đúng dạng mặc định của mẫu thì không lưu gì.
 const WISH_MODES = [
   {
-    id: "",
+    id: "live",
     name: "Livestream",
     icon: "radio",
     // Lớp màu lấy nguyên của cụm thẻ "Thêm vào thiệp" — icon trong bảng con phải
@@ -1329,10 +1337,15 @@ const WISH_MODES = [
 ];
 
 // Dạng nào cũng phải có mặt trong WISH_MODES mới chọn được — giá trị lạ (mẫu cũ,
-// dữ liệu chép tay) rơi về Livestream.
+// dữ liệu chép tay) rơi về dạng mặc định của mẫu.
+function _wishModeDefault() {
+  const v = String(window.cxThemeDecl?.().wishesMode || "");
+  return WISH_MODES.some((m) => m.id === v) ? v : "live";
+}
+
 function _wishModeId() {
   const v = String(_themeSetting.wishes_mode || "");
-  return WISH_MODES.some((m) => m.id === v) ? v : "";
+  return WISH_MODES.some((m) => m.id === v) ? v : _wishModeDefault();
 }
 
 function _renderWishPalette() {
@@ -1364,7 +1377,7 @@ function _syncWishTiles() {
 }
 
 function pickWishMode(id) {
-  if (id) _themeSetting.wishes_mode = id;
+  if (id && id !== _wishModeDefault()) _themeSetting.wishes_mode = id;
   else delete _themeSetting.wishes_mode;
   _syncWishTiles();
   _scheduleAutoSave("theme");
@@ -1374,9 +1387,13 @@ function pickWishMode(id) {
   win?.postMessage({ type: "cx-wish-mode", value: id || "" }, "*");
   // Dạng dựng mục riêng trong thân thiệp thì cuộn tới mục đó; Livestream ghim
   // đáy khung nhìn nên chỉ cần cuộn qua màn mở đầu là dải hiện ra (CX_WISH_SHOW_AT).
-  win?.postMessage({ type: "cx-focus", key: id ? "wishes" : "gift" }, "*");
+  const mode = id || _wishModeDefault();
+  win?.postMessage({ type: "cx-focus", key: mode !== "live" ? "wishes" : "gift" }, "*");
 }
 window.pickWishMode = pickWishMode;
+
+// Bản khai mẫu về muộn (hoặc vừa đổi mẫu) → ô đang chọn có thể đổi theo mặc định mới.
+document.addEventListener("cx-theme-decl", _syncWishTiles);
 
 // Nạp lại khung xem trước rồi cuộn tới mục vừa đổi. Đợi thêm một nhịp vẽ: lúc
 // 'load' bắn, thiệp vẫn đang dựng nội dung nên chưa có gì để cuộn tới.

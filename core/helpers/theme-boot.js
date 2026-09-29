@@ -111,7 +111,10 @@ function _cxPreviewShell() {
   stage.querySelector("iframe").src = src;
 
   document.documentElement.classList.add("cx-pshell-host");
-  document.body.replaceChildren(stage);
+  // Giữ lại hộp thoại + toast mà alert.js đã gắn sẵn vào <body>: "Chọn mẫu này"
+  // hỏi qua showConfirm khi còn nháp dở, mất hai thẻ này là bấm không ra gì.
+  const keep = document.querySelectorAll("body > #cx-alert-backdrop, body > #cx-toast");
+  document.body.replaceChildren(stage, ...keep);
 
   window.CXPhoneChrome?.wire(stage.querySelector(".cx-pchrome"), opts);
   if (live) _cxShellNameLive();

@@ -13,9 +13,12 @@
   window.CX_THEME = {
     id: "romantic-gold",
 
-    // Dạng hiện lời chúc của BẢN XEM THỬ (preview-data.js đọc). Thiệp thật
-    // lấy theo theme_setting.wishes_mode chủ thiệp chọn ở tab Giao diện.
+    // Dạng hiện lời chúc khi chủ thiệp chưa chọn (theme_setting.wishes_mode).
     wishesMode: "paged",
+
+    // Hộp mừng cưới khi chủ thiệp chưa chọn (theme_setting.gift_box): id trong
+    // CX_GIFT_BOXES (core/helpers/gift-box-helper.js) hoặc "none". Mẫu KHÔNG tự vẽ hộp.
+    giftBox: "phongbi_trang_vang",
 
     // Dạng trình phát nhạc — theme-boot.js dựng vào #cx-music-mount.
     music: { variant: "ring", chrome: "fixed-corner" },
