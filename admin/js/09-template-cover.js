@@ -85,8 +85,8 @@ async function loadCoverImages() {
 
 /**
  * Chọn số hàng + bề ngang ô. Xếp theo CỘT; cột cuối chỉ còn MỘT mẫu thì ô đó
- * phủ hết các hàng và rộng theo cùng tỉ lệ (`span` ô). Lề/khe tính theo tỉ lệ
- * `gap` của bề ngang ô nên cùng bộ số trông giống nhau ở mọi khổ ảnh.
+ * phủ hết các hàng và rộng theo cùng tỉ lệ (`span` ô). `gap` là px thật của ảnh
+ * xuất ra, dùng cho cả khe giữa các ô lẫn lề ngoài.
  */
 function coverLayout(n, aspect, size, rowsWanted, gap) {
   const fits = (rows) => {
@@ -97,13 +97,13 @@ function coverLayout(n, aspect, size, rowsWanted, gap) {
     let tw = COVER_TILE_W;
     let W, H;
     if (size === "auto") {
-      W = tw * (cols + (cols + 1) * gap);
-      H = tw * (rows * aspect + (rows + 1) * gap);
+      W = tw * cols + (cols + 1) * gap;
+      H = tw * rows * aspect + (rows + 1) * gap;
     } else {
       [W, H] = size.split("x").map(Number);
       tw = Math.min(
-        W / (cols + (cols + 1) * gap),
-        H / (rows * aspect + (rows + 1) * gap),
+        (W - (cols + 1) * gap) / cols,
+        (H - (rows + 1) * gap) / (rows * aspect),
       );
     }
     return { rows, cols, rest, span, tw, W, H };
@@ -158,10 +158,10 @@ function renderCover() {
 
   const borderPct = val("cover-border");
   const radiusPct = val("cover-radius");
-  const gapPct = val("cover-gap");
+  const gap = val("cover-gap");
   document.getElementById("cover-border-val").textContent = borderPct + "%";
   document.getElementById("cover-radius-val").textContent = radiusPct + "%";
-  document.getElementById("cover-gap-val").textContent = gapPct + "%";
+  document.getElementById("cover-gap-val").textContent = gap + "px";
 
   const size = document.getElementById("cover-size").value;
   const n = coverItems.length;
@@ -175,7 +175,6 @@ function renderCover() {
 
   const first = coverItems[0].img;
   const aspect = first.naturalHeight / first.naturalWidth || 16 / 9;
-  const gap = gapPct / 100;
   const L = coverLayout(n, aspect, size, Math.floor(val("cover-rows")), gap);
 
   canvas.width = Math.round(L.W);
@@ -185,7 +184,7 @@ function renderCover() {
 
   const tw = L.tw;
   const th = tw * aspect;
-  const g = tw * gap;
+  const g = gap;
   const border = (tw * borderPct) / 100;
   const radius = (tw * radiusPct) / 100;
   const shadow = document.getElementById("cover-shadow").checked;
