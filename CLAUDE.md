@@ -518,6 +518,9 @@ push**.
   `bgHeroMask()` phải khớp `.hero-bg` ở `styles/tailwind-src.css` (kể cả hai media theo chiều
   cao), lệch là xem trước hứa một đằng trang thật ra một nẻo.
 - Trùng tên là **ghi đè** (có hỏi lại) — khác tab "Ảnh mẫu" vốn tự đánh số.
+- **Màn mở đầu trang chủ hiện KHÔNG đọc manifest**: `#hero` dùng ảnh cố định
+  `assets/background/started/cuoixinh-cover-3908x2264.jpg` viết thẳng trong `index.html`
+  (`js/hero-background.js` không còn trang nào nạp), nên ghi nền mới ở tab này không đổi gì.
 - **Ba ô ảnh trang trí** (khối cuối tab, ghi ra `pick-1…3.webp` trong
   `assets/background/thumbnail_started/`) hiện KHÔNG còn chỗ nào đọc: màn mở đầu của
   trang chủ đã bỏ ba ô này. Tab vẫn ghi được file nhưng trang chủ không đổi gì.

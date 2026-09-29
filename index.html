@@ -50,108 +50,84 @@
     style="color: rgb(var(--text-body-rgb))"
   >
     <!-- ===== HERO ===== -->
-    <!-- Màn mở đầu: MỘT ảnh cưới tràn kín, phủ tối, mang hai cụm chữ xếp dọc mà
-         cả hai đều nằm gọn trong một màn — cụm trên là tiêu đề + ô hỏi XuXi, cụm
-         dưới nói về cách XuXi dựng thiệp, khách không phải cuộn mới thấy.
-         Mốc chia ở --cx-hero-img (styles/tailwind-src.css). Ba lớp theo z-index:
-         .hero-bg (ảnh) → .hero-veil (phủ tối) → .hero-stage (chữ).
-         Navbar hiện ở MỌI vị trí cuộn (trang này không nạp js/nav-autohide.js)
-         nên .hero-stage phải tự chừa chỗ cho nó — xem lề của .hero-stage. -->
+    <!-- Màn mở đầu: MỘT khối ảnh tràn ngang, cao 80% màn — ảnh ghép phủ đen 15%, góc
+         dưới trái nhô lên một quả đồi hồng nhạt mang chữ. Chữ xếp chéo: lời mời + nút ở trái,
+         cụm giải thích ở góc dưới phải (từ lg). Cố ý THẤP hơn một màn để mục "Mẫu
+         thiệp" lộ ra từ màn đầu — số đo ở .hero-card (styles/tailwind-src.css). -->
     <section id="hero">
-      <!-- Nền ảnh cưới (WebP do tab "Ảnh nền" của admin chụp) — js/hero-background.js
-           gán vào --hero-bg-url. Chưa có nền thì lớp này trong suốt và hero
-           còn lại nền tối phẳng của #hero. -->
-      <div id="hero-bg" class="hero-bg" aria-hidden="true"></div>
-      <!-- Phủ tối: đậm ở đỉnh (chữ + navbar) và ở đáy (khối chữ dưới), nhạt ở
-           khúc giữa để còn nhìn rõ ảnh. -->
-      <div class="hero-veil" aria-hidden="true"></div>
+      <!-- Logo nổi góc trái ảnh, chỉ ở khổ hẹp: từ md navbar trên đã mang logo. -->
+      <a href="/" class="hero-badge cx-logo hero-anim hero-anim-1" aria-label="Cưới Xinh">
+        <img src="assets/icons/logo.png" alt="" />
+        <span class="cx-logo-text"><span class="cx-logo-name">Cưới Xinh</span><span class="cx-logo-since">-SINCE 2026-</span></span>
+      </a>
 
-      <div class="hero-stage">
-        <!-- Logo trần (không đĩa nền), neo góc TRÁI. Chỉ hiện ở khổ hẹp: từ md
-             navbar trên đã mang logo ở đúng góc đó. -->
-        <a href="/" class="hero-badge cx-logo cx-logo-light hero-anim hero-anim-1" aria-label="Cưới Xinh">
-          <img src="assets/icons/logo.png" alt="" />
-          <span class="cx-logo-text"><span class="cx-logo-name">Cưới Xinh</span><span class="cx-logo-since">-SINCE 2026-</span></span>
-        </a>
+      <div class="hero-card">
+        <!-- Vỏ .hero-card-media lo parallax theo cuộn, ảnh bên trong lo trôi chậm —
+             tách hai lớp vì cùng dùng transform. Ảnh màn đầu: fetchpriority cao, không lazy. -->
+        <div class="hero-card-media" aria-hidden="true">
+          <img
+            class="hero-card-img"
+            src="assets/background/started/cuoixinh-cover-3908x2264.jpg"
+            alt=""
+            fetchpriority="high"
+          />
+        </div>
+        <div class="hero-card-veil" aria-hidden="true"></div>
+        <div class="hero-card-shine" aria-hidden="true"></div>
+        <!-- Quả đồi góc dưới trái + quầng sáng sau tiêu đề. -->
+        <div class="hero-card-hill" aria-hidden="true"></div>
+        <div class="hero-card-glow" aria-hidden="true"></div>
 
-        <!-- Hai cột: LỜI HỨA + lối vào (trái) và SẢN PHẨM thật (phải). Dưới lg
-             xếp dọc, khung máy tụt xuống cuối và bị .hero-show cắt bớt — phần
-             thò ra là tín hiệu "cuộn xuống còn nữa". -->
-        <div class="hero-grid">
-          <div class="hero-head">
-            <!-- Hai cụm: chữ dính LÊN TRÊN, lối vào dồn XUỐNG DƯỚI. Ở khổ hẹp
-                 .hero-head cao hết phần còn lại nên justify-between đẩy chúng
-                 ra hai đầu; từ lg thì về căn giữa để đứng ngang khung máy. -->
-            <div class="hero-lede">
-              <h1 class="hero-title hero-anim hero-anim-2">
-                <span class="hero-eyebrow">Thiệp cưới online</span>
-                Bạn kể, XuXi viết
-              </h1>
-              <p class="hero-sub hero-anim hero-anim-3">
-                Mẫu thiệp, lời mời, từng khách được gọi đúng tên.
-              </p>
-            </div>
+        <div class="hero-card-body">
+          <h1 class="hero-title hero-anim hero-anim-2">
+            <span class="hero-eyebrow">Thiệp cưới online · Cưới Xinh</span>
+            Gửi trọn yêu thương trong một tấm thiệp
+          </h1>
+          <p class="hero-sub hero-anim hero-anim-3">
+            Chọn một mẫu ưng ý, kể đôi dòng về hai bạn — tấm thiệp sẵn sàng gửi
+            tới từng khách mời, gọi đúng tên từng người.
+          </p>
 
-            <div class="hero-act">
-            <!-- Lối vào chính: mở khung chat XuXi ở chế độ tạo thiệp
-                 (cxHeroCreateAi ở js/page-setup.js). -->
-            <x-button
-              variant="bare"
-              class="hero-ai hero-anim hero-anim-3"
-              onclick="cxHeroCreateAi()"
-            >
-              <!-- Logo XuXi (ảnh, không phải glyph lucide) — core/helpers/icon.js
-                   thay thẻ này bằng <img>, khổ do data-size quyết định. -->
-              <i class="hero-ai-ico" data-icon="xuxi" data-size="26"></i>
-              <span class="hero-ai-label">Tạo thiệp với AI</span>
-              <span class="hero-ai-new">New</span>
-            </x-button>
-
-            <!-- Chip dẫn xuống các mục bên dưới — là link neo nên cuộn mượt nhờ
-                 setupSmoothScroll (js/page-setup.js), không cần JS riêng. -->
-            <nav class="hero-chips hero-anim hero-anim-4" aria-label="Xem nhanh">
-              <a href="#templates" class="hero-chip">Mẫu phổ biến</a>
-              <a href="#inside" class="hero-chip">Tính năng</a>
-              <a href="#steps" class="hero-chip">Quy trình tạo thiệp</a>
-            </nav>
-
-            <!-- Lối tạo thiệp thẳng, cho khách không muốn hỏi han gì. -->
-            <p class="hero-note hero-anim hero-anim-5">
-              Miễn phí dùng thử · hoặc
-              <a
-                href="/invitation-setup/"
+          <div class="hero-act">
+            <div class="hero-cta hero-anim hero-anim-4">
+              <!-- Nút CHÍNH: tạo nháp thẳng. -->
+              <x-button
+                variant="bare"
+                class="hero-btn hero-btn-main"
                 onclick="goCreateDraft(event)"
-                class="hero-note-link"
-                >tạo thiệp ngay</a
               >
-            </p>
+                <span class="hero-btn-label">Tạo thiệp ngay</span>
+                <span class="hero-btn-arrow" aria-hidden="true">
+                  <i data-lucide="arrow-right" style="width:18px;height:18px"></i>
+                </span>
+              </x-button>
+              <!-- Nút PHỤ: mở khung chat XuXi ở chế độ tạo thiệp (cxHeroCreateAi ở js/page-setup.js). -->
+              <x-button
+                variant="bare"
+                class="hero-btn hero-btn-ai"
+                onclick="cxHeroCreateAi()"
+              >
+                <span class="hero-ai-disc" aria-hidden="true">
+                  <!-- Logo XuXi là ảnh — core/helpers/icon.js thay thẻ này, khổ theo data-size. -->
+                  <i class="hero-ai-ico" data-icon="xuxi" data-size="24"></i>
+                </span>
+                <span class="hero-btn-label">Tạo thiệp với AI</span>
+                <span class="hero-ai-new">New</span>
+              </x-button>
             </div>
+
+            <p class="hero-note hero-anim hero-anim-5">
+              Dùng thử miễn phí · chỉ thanh toán khi ưng ý
+            </p>
           </div>
 
-          <!-- Sản phẩm thật ngay màn đầu: ảnh mẫu thiệp trong khung điện thoại,
-               js/hero-showcase.js đảo ảnh. Dùng ẢNH TĨNH chứ không iframe thiệp
-               thật — màn đầu không được kéo thêm một trang vào đường tới hạn. -->
-          <div class="hero-show hero-anim hero-anim-4">
-            <div class="hero-phone">
-              <!-- Đường dẫn thật để ở data-src: cột này ẩn dưới lg, mà ảnh ẩn
-                   bằng CSS thì trình duyệt vẫn tải (372KB cho ba tấm) — thừa
-                   nguyên chỗ đó trên mạng di động. js/hero-showcase.js gán src
-                   khi màn đủ rộng. src ban đầu là ảnh 1x1 trong suốt, KHÔNG
-                   được để rỗng: chuỗi rỗng phân giải thành URL trang hiện tại.
-                   Tấm đầu là ảnh của màn đầu nên giữ fetchpriority cao. -->
-              <div class="hero-phone-screen" id="hero-slides">
-                <img class="hero-slide is-on" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
-                  data-src="assets/images/templates/romantic-gold.jpg"
-                  alt="Mẫu thiệp Romantic Gold" fetchpriority="high" />
-                <img class="hero-slide" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
-                  data-src="assets/images/templates/luminous-pastel.jpg"
-                  alt="Mẫu thiệp Luminous Pastel" />
-                <img class="hero-slide" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
-                  data-src="assets/images/templates/noir-elegance.jpg"
-                  alt="Mẫu thiệp Noir Elegance" />
-              </div>
-              <img src="assets/images/iphone_mockup.svg" alt="" class="hero-phone-frame" />
-            </div>
+          <!-- Cụm góc dưới phải — chỉ từ lg, khổ hẹp không đủ chỗ. -->
+          <div class="hero-aside hero-anim hero-anim-5">
+            <p class="hero-aside-title">Mỗi khách một lời mời riêng</p>
+            <p class="hero-aside-text">
+              Thiệp tự gọi đúng tên từng người, có sẵn lịch trình, bản đồ, album
+              ảnh và hộp mừng cưới — gửi đi chỉ bằng một đường link.
+            </p>
           </div>
         </div>
       </div>
@@ -164,16 +140,21 @@
          không bao giờ chạy, để mặc là mục hiện ra với tiêu đề và một dải rỗng. -->
     <!-- Mục hiện NGAY với khung xương; js/section-templates.js ẩn lại nếu danh
          sách rỗng (renderTemplateCards: section.hidden = !templates.length). -->
-    <section id="templates" class="pt-8 pb-12">
-      <div class="max-w-6xl mx-auto px-5 pb-4">
+    <section id="templates" class="pt-6 pb-12">
+      <!-- Tiêu đề gọn một hàng: mục này phải lộ ra ngay màn đầu, dưới thẻ hero. -->
+      <div class="max-w-6xl mx-auto px-5 pb-4 flex items-end justify-between gap-4">
         <h2
-          class="font-playfair text-3xl md:text-4xl font-semibold text-center mb-2 text-[rgb(var(--text-heading-rgb))]"
+          class="font-playfair text-2xl md:text-3xl font-semibold text-[rgb(var(--text-heading-rgb))]"
         >
-          Mẫu thiệp
+          Mẫu thiệp được yêu thích
         </h2>
-        <p class="text-center text-sm opacity-60">
-          Dựng thử miễn phí — chọn xong mẫu ưng ý rồi hãy thanh toán
-        </p>
+        <a
+          href="/theme-template/"
+          class="shrink-0 inline-flex items-center gap-1 text-sm font-medium text-[rgb(var(--action-primary-rgb))] hover:opacity-80"
+        >
+          Xem tất cả
+          <i data-lucide="chevron-right" style="width:16px;height:16px"></i>
+        </a>
       </div>
 
       <!-- Hai nút mũi tên CHỈ từ lg: ở đó phần lớn là chuột, mà chuột thường
@@ -591,8 +572,6 @@
       });
     </script>
 
-    <script src="js/hero-background.js"></script>
-    <script src="js/hero-showcase.js"></script>
     <!-- Ô đếm của mục "Đã chọn" ở navbar (đọc cache, không gọi API). -->
     <script src="core/helpers/nav-cart-count.js"></script>
 
