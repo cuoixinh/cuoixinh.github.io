@@ -1,6 +1,6 @@
 // Nút "Tạo ảnh bìa" ở tab Templates: ghép ảnh chụp màn đầu của các mẫu
 // (assets/images/templates/<tên>.jpg — màn bìa, mẫu không bìa thì là hero, do
-// Scan Image IFrame chụp) thành một lưới trái→phải, trên→dưới rồi cho tải về.
+// Scan Image IFrame chụp) thành một lưới xếp dọc từng cột (trên→dưới) rồi sang phải, cho tải về.
 // Danh sách mẫu lấy từ window.adminTemplates (02-templates.js) lúc chạy.
 
 // Bề ngang một ô ở khổ "Tự do" — gần bề ngang ảnh chụp (390px × 2) cho khỏi vỡ.
@@ -84,30 +84,36 @@ async function loadCoverImages() {
 }
 
 /**
- * Chọn số cột + bề ngang ô. Mọi khoảng (lề, khe) tính theo tỉ lệ `gap` của bề
- * ngang ô nên cùng một bộ số trông giống nhau ở mọi khổ ảnh.
+ * Chọn số hàng + bề ngang ô. Xếp theo CỘT; cột cuối chỉ còn MỘT mẫu thì ô đó
+ * phủ hết các hàng và rộng theo cùng tỉ lệ (`span` ô). Lề/khe tính theo tỉ lệ
+ * `gap` của bề ngang ô nên cùng bộ số trông giống nhau ở mọi khổ ảnh.
  */
-function coverLayout(n, aspect, size, colsWanted, gap) {
-  const fits = (cols) => {
-    const rows = Math.ceil(n / cols);
+function coverLayout(n, aspect, size, rowsWanted, gap) {
+  const fits = (rows) => {
+    const rest = n % rows;
+    const span = rows > 1 && rest === 1 ? rows : 0;
+    // Số cột tính theo bề ngang một ô thường (ô phóng to chiếm `span` cột).
+    const cols = span ? (n - 1) / rows + span : Math.ceil(n / rows);
+    let tw = COVER_TILE_W;
+    let W, H;
     if (size === "auto") {
-      const w = COVER_TILE_W * (cols + (cols + 1) * gap);
-      const h = COVER_TILE_W * (rows * aspect + (rows + 1) * gap);
-      return { cols, rows, tw: COVER_TILE_W, W: w, H: h };
+      W = tw * (cols + (cols + 1) * gap);
+      H = tw * (rows * aspect + (rows + 1) * gap);
+    } else {
+      [W, H] = size.split("x").map(Number);
+      tw = Math.min(
+        W / (cols + (cols + 1) * gap),
+        H / (rows * aspect + (rows + 1) * gap),
+      );
     }
-    const [W, H] = size.split("x").map(Number);
-    const tw = Math.min(
-      W / (cols + (cols + 1) * gap),
-      H / (rows * aspect + (rows + 1) * gap),
-    );
-    return { cols, rows, tw, W, H };
+    return { rows, cols, rest, span, tw, W, H };
   };
 
-  if (colsWanted > 0) return fits(Math.min(colsWanted, n));
+  if (rowsWanted > 0) return fits(Math.min(rowsWanted, n));
 
   let best = null;
-  for (let c = 1; c <= n; c++) {
-    const l = fits(c);
+  for (let r = 1; r <= n; r++) {
+    const l = fits(r);
     // Khổ cố định: ô to nhất. Khổ tự do: cả ảnh gần COVER_FREE_RATIO nhất.
     const score =
       size === "auto" ? -Math.abs(Math.log(l.W / l.H / COVER_FREE_RATIO)) : l.tw;
@@ -170,7 +176,7 @@ function renderCover() {
   const first = coverItems[0].img;
   const aspect = first.naturalHeight / first.naturalWidth || 16 / 9;
   const gap = gapPct / 100;
-  const L = coverLayout(n, aspect, size, Math.floor(val("cover-cols")), gap);
+  const L = coverLayout(n, aspect, size, Math.floor(val("cover-rows")), gap);
 
   canvas.width = Math.round(L.W);
   canvas.height = Math.round(L.H);
@@ -184,16 +190,27 @@ function renderCover() {
   const radius = (tw * radiusPct) / 100;
   const shadow = document.getElementById("cover-shadow").checked;
 
-  // Cả lưới canh giữa khung; hàng cuối thiếu ô thì canh giữa theo số ô của nó.
+  // Cả lưới canh giữa khung. Cột cuối thiếu ô (mà không phóng to) thì canh giữa
+  // theo chiều dọc.
+  const gridW = L.cols * tw + (L.cols - 1) * g;
   const gridH = L.rows * th + (L.rows - 1) * g;
+  const x0 = (L.W - gridW) / 2;
   const y0 = (L.H - gridH) / 2;
+  const lastCol = Math.floor((n - 1) / L.rows);
 
   coverItems.forEach(({ img }, i) => {
-    const row = Math.floor(i / L.cols);
-    const inRow = Math.min(L.cols, n - row * L.cols);
-    const rowW = inRow * tw + (inRow - 1) * g;
-    const x = (L.W - rowW) / 2 + (i % L.cols) * (tw + g);
-    const y = y0 + row * (th + g);
+    const col = Math.floor(i / L.rows);
+    const row = i % L.rows;
+    let x = x0 + col * (tw + g);
+    let y = y0 + row * (th + g);
+    let w = tw;
+    let h = th;
+    if (L.span && i === n - 1) {
+      w = L.span * tw + (L.span - 1) * g;
+      h = gridH;
+    } else if (L.rest && col === lastCol) {
+      y += ((L.rows - L.rest) * (th + g)) / 2;
+    }
 
     // Tấm nền trắng = viền; bóng đổ đặt lên chính tấm này cho mềm.
     ctx.save();
@@ -203,7 +220,7 @@ function renderCover() {
       ctx.shadowOffsetY = tw * 0.025;
     }
     ctx.fillStyle = "#ffffff";
-    coverRoundRect(ctx, x, y, tw, th, radius);
+    coverRoundRect(ctx, x, y, w, h, radius);
     ctx.fill();
     ctx.restore();
 
@@ -213,12 +230,12 @@ function renderCover() {
       ctx,
       x + border,
       y + border,
-      tw - border * 2,
-      th - border * 2,
+      w - border * 2,
+      h - border * 2,
       Math.max(0, radius - border),
     );
     ctx.clip();
-    coverDrawImage(ctx, img, x + border, y + border, tw - border * 2, th - border * 2);
+    coverDrawImage(ctx, img, x + border, y + border, w - border * 2, h - border * 2);
     ctx.restore();
   });
 }
