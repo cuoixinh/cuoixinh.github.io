@@ -53,6 +53,8 @@
     "../core/x-input.js",
     "../core/x-controls.js",
     "js/02-templates.js",
+    // "Tạo ảnh bìa" của tab Templates — đọc window.adminTemplates lúc chạy.
+    "js/09-template-cover.js",
     "js/03-sample-images.js",
     "js/04-sample-data.js",
     // Ô "Nhạc nền" của tab "Dữ liệu mẫu" dùng LẠI logic YouTube của trang thiết

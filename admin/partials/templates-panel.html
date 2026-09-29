@@ -30,6 +30,16 @@
           ><span class="sm:hidden">Scan</span>
         </x-button>
         <x-button
+          variant="outline"
+          onclick="openCoverMaker()"
+          title="Ghép ảnh màn đầu của các mẫu thành một ảnh bìa"
+          class="flex-1 sm:flex-none sm:px-6"
+        >
+          <i data-lucide="layout-grid" style="width: 16px; height: 16px"></i>
+          <span class="hidden sm:inline">Tạo ảnh bìa</span
+          ><span class="sm:hidden">Ảnh bìa</span>
+        </x-button>
+        <x-button
           onclick="openTemplateModal()"
           class="flex-1 sm:flex-none sm:px-6"
         >
@@ -485,6 +495,204 @@
         onclick="closeScanModal()"
         >Đóng</x-button
       >
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Tạo ảnh bìa — ghép ảnh chụp màn đầu (bìa, mẫu không bìa thì hero) của
+     các mẫu thành một lưới. Logic ở js/09-template-cover.js. -->
+<div
+  id="modal-cover"
+  class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-3 sm:p-4"
+>
+  <div
+    class="bg-white rounded-2xl w-full max-w-5xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden"
+  >
+    <div
+      class="flex items-start justify-between gap-3 px-4 sm:px-6 py-4 border-b border-gray-100"
+    >
+      <div>
+        <h3
+          class="text-base sm:text-lg font-semibold text-gray-800 flex items-center gap-2"
+        >
+          <i
+            data-lucide="layout-grid"
+            class="text-rose-500"
+            style="width: 16px; height: 16px"
+          ></i>
+          Tạo ảnh bìa
+        </h3>
+        <p class="text-xs text-gray-500 mt-0.5">
+          Ghép ảnh màn đầu của từng mẫu (<code class="font-mono"
+            >assets/images/templates/</code
+          >) theo thứ tự hiển thị. Có tick trong bảng thì chỉ ghép mẫu đã tick.
+        </p>
+      </div>
+      <x-button
+        variant="ghost"
+        tone="neutral"
+        size="sm"
+        icon="x"
+        icon-only
+        aria-label="Đóng"
+        title="Đóng"
+        onclick="closeCoverMaker()"
+      ></x-button>
+    </div>
+
+    <div class="flex-1 overflow-y-auto flex flex-col md:flex-row">
+      <!-- Xem trước -->
+      <div
+        class="flex-1 min-w-0 flex flex-col items-center justify-center gap-3 bg-gray-100 p-4"
+      >
+        <canvas
+          id="cover-canvas"
+          class="block max-w-full max-h-[60vh] rounded-lg shadow"
+        ></canvas>
+        <p id="cover-status" class="text-xs text-gray-500 text-center"></p>
+      </div>
+
+      <!-- Tuỳ chỉnh -->
+      <div
+        class="w-full md:w-72 shrink-0 border-t md:border-t-0 md:border-l border-gray-100 p-4 space-y-4"
+      >
+        <div>
+          <label for="cover-size" class="block text-sm text-gray-700 mb-1.5"
+            >Khổ ảnh</label
+          >
+          <select
+            id="cover-size"
+            onchange="renderCover()"
+            class="w-full h-10 px-3 border border-gray-200 rounded-lg text-sm text-gray-800 bg-white outline-none focus:ring-2 focus:ring-rose-500/30 transition-all"
+          >
+            <option value="auto">Tự do — theo lưới</option>
+            <option value="1920x1080">16:9 — 1920×1080</option>
+            <option value="1640x624">Bìa Facebook — 1640×624</option>
+            <option value="1200x630">Ảnh chia sẻ (og) — 1200×630</option>
+            <option value="1080x1080">Vuông — 1080×1080</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="cover-cols" class="block text-sm text-gray-700 mb-1.5"
+            >Số cột</label
+          >
+          <input
+            id="cover-cols"
+            type="number"
+            min="0"
+            value="0"
+            oninput="renderCover()"
+            class="w-full h-10 px-3 border border-gray-200 rounded-lg text-sm text-gray-800 bg-white outline-none focus:ring-2 focus:ring-rose-500/30 transition-all"
+          />
+          <p class="text-xs text-gray-500 mt-1">0 = tự chọn cho ảnh to nhất</p>
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between text-sm text-gray-700">
+            <label for="cover-border">Viền trắng</label>
+            <span id="cover-border-val" class="text-xs text-gray-500"></span>
+          </div>
+          <input
+            id="cover-border"
+            type="range"
+            min="0"
+            max="10"
+            step="0.5"
+            value="3"
+            oninput="renderCover()"
+            class="w-full accent-rose-500"
+          />
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between text-sm text-gray-700">
+            <label for="cover-radius">Bo góc</label>
+            <span id="cover-radius-val" class="text-xs text-gray-500"></span>
+          </div>
+          <input
+            id="cover-radius"
+            type="range"
+            min="0"
+            max="20"
+            step="1"
+            value="8"
+            oninput="renderCover()"
+            class="w-full accent-rose-500"
+          />
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between text-sm text-gray-700">
+            <label for="cover-gap">Khoảng cách</label>
+            <span id="cover-gap-val" class="text-xs text-gray-500"></span>
+          </div>
+          <input
+            id="cover-gap"
+            type="range"
+            min="0"
+            max="30"
+            step="1"
+            value="10"
+            oninput="renderCover()"
+            class="w-full accent-rose-500"
+          />
+        </div>
+
+        <label
+          for="cover-shadow"
+          class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer"
+        >
+          <input
+            id="cover-shadow"
+            type="checkbox"
+            checked
+            onchange="renderCover()"
+            class="w-4 h-4 accent-rose-500 cursor-pointer"
+          />
+          Đổ bóng mềm
+        </label>
+
+        <div class="flex items-center justify-between gap-3">
+          <label for="cover-bg" class="text-sm text-gray-700">Màu nền</label>
+          <input
+            id="cover-bg"
+            type="color"
+            value="#efe6dc"
+            oninput="renderCover()"
+            class="w-12 h-8 rounded border border-gray-200 cursor-pointer"
+          />
+        </div>
+
+        <p class="text-xs text-gray-500">
+          Viền, bo góc và khoảng cách tính theo % bề ngang một ô ảnh. Ảnh cũ thì
+          bấm <strong>Scan Image IFrame</strong> trước rồi tải lại ảnh.
+        </p>
+      </div>
+    </div>
+
+    <div
+      class="flex flex-wrap gap-3 px-4 sm:px-6 py-4 border-t border-gray-100 bg-gray-50/60"
+    >
+      <x-button
+        variant="outline"
+        tone="neutral"
+        icon="refresh-cw"
+        onclick="loadCoverImages()"
+      >
+        Tải lại ảnh
+      </x-button>
+      <div class="flex-1"></div>
+      <x-button
+        variant="outline"
+        icon="download"
+        onclick="downloadCover('png')"
+      >
+        Tải PNG
+      </x-button>
+      <x-button icon="download" onclick="downloadCover('jpg')">
+        Tải JPG
+      </x-button>
     </div>
   </div>
 </div>
