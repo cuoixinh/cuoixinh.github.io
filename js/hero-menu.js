@@ -61,6 +61,7 @@ function cxHeroMenu(btn) {
       { icon: _cxHeroMenuIcon("home"), label: "Trang chủ", active: true, onClick: go("/") },
       { icon: _cxHeroMenuIcon("layers"), label: "Mẫu thiệp", onClick: go("/theme-template/") },
       { icon: _cxHeroMenuIcon("cart"), label: n ? `Đã chọn (${n})` : "Đã chọn", onClick: go("/my-invitations/") },
+      { icon: _cxHeroMenuIcon("users"), label: "Khách mời", onClick: go("/guest-list/") },
       { sep: true },
       // Menu tự đóng khi chọn mục, nên menu tài khoản neo vào nút menu (vẫn trên màn).
       { icon: _cxHeroMenuIcon("user"), label: "Tài khoản", onClick: () => window.CXAccount?.open(btn) },
