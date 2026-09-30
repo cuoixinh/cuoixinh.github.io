@@ -1898,3 +1898,11 @@ html.cx-rail-off {
 .cx-tile-primary .cx-tile-ico {
   @apply bg-rose-500 text-white;
 }
+
+/* Popup thêm khách (invitation-setup/guests): combobox xưng hô cùng khổ với ô nhập cạnh nó. */
+.cx-gm .x-cb-btn {
+  @apply h-10 px-3 rounded-xl border-gray-200 bg-gray-50 text-sm text-gray-800;
+}
+.cx-gm .x-cb-btn:focus {
+  @apply bg-white;
+}

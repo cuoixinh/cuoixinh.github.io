@@ -90,15 +90,109 @@ function _relationBox(value) {
   return box;
 }
 
-function openAddGuestModal(side) {
+// Popup dùng cho cả thêm lẫn sửa: _gmId = khách đang mở (null = chưa lưu lần nào).
+// Đã lưu thì "Lưu" chỉ bật lại khi 3 ô khác bản đã lưu (_gmSnap), và sửa chính khách đó.
+let _gmId = null;
+let _gmSnap = "";
+let _gmBusy = false;
+
+function _gmValues() {
+  return {
+    full_name:    document.getElementById("add-guest-fullname").value.trim(),
+    display_name: document.getElementById("add-guest-displayname").value.trim(),
+    relationship: String(document.getElementById("add-guest-relationship").value || "").trim(),
+  };
+}
+
+const _gmKey = (v) => JSON.stringify([v.full_name, v.display_name, v.relationship]);
+
+// Thay icon lucide trong một ô chỉ khi tên đổi (tránh vẽ lại mỗi phím gõ).
+function _gmIcon(el, name, size) {
+  if (!el || el.dataset.ico === name) return;
+  el.dataset.ico = name;
+  el.innerHTML = `<i data-lucide="${name}" style="width:${size}px;height:${size}px"></i>`;
+  window.lucide?.createIcons({ root: el });
+}
+
+const _GM_SIDE = {
+  groom: { label: "Khách nhà trai", icon: "mars",  cls: ["bg-sky-50", "text-sky-700", "ring-sky-100"] },
+  bride: { label: "Khách nhà gái",  icon: "venus", cls: ["bg-rose-50", "text-rose-600", "ring-rose-100"] },
+};
+
+function _gmSyncSide() {
+  const chip = document.getElementById("add-guest-side");
+  Object.values(_GM_SIDE).forEach((s) => chip.classList.remove(...s.cls));
+  const s = _GM_SIDE[_addGuestSide] || _GM_SIDE.groom;
+  chip.classList.add(...s.cls);
+  chip.dataset.ico = "";
+  _gmIcon(chip, s.icon, 12);
+  chip.insertAdjacentText("beforeend", s.label);
+}
+
+function _gmSync() {
+  const v = _gmValues();
+  const saved = !!_gmId;
+  const dirty = saved && _gmKey(v) !== _gmSnap;
+  document.getElementById("add-guest-save").disabled = _gmBusy || (saved && !dirty);
+  document.getElementById("add-guest-new").disabled  = _gmBusy || !saved;
+  document.querySelector("#add-guest-modal h3").textContent = saved ? "Sửa khách mời" : "Thêm khách mời";
+  _gmIcon(document.getElementById("add-guest-ico"), saved ? "user-check" : "user-plus", 20);
+
+  document.getElementById("add-guest-pv-rel").textContent = v.relationship || "…";
+  const pvName = document.getElementById("add-guest-pv-name");
+  pvName.textContent = v.display_name || v.full_name || "Tên khách";
+  pvName.classList.toggle("text-gray-800", !!(v.display_name || v.full_name));
+  pvName.classList.toggle("text-gray-300", !(v.display_name || v.full_name));
+
+  // Sửa sau khi lưu → link đang hiện là của bản cũ: làm mờ + nhắc bấm Lưu.
+  const status = document.getElementById("add-guest-status");
+  status.classList.toggle("text-emerald-600", !dirty);
+  status.classList.toggle("text-amber-600", dirty);
+  status.dataset.ico = "";
+  _gmIcon(status, dirty ? "circle-alert" : "circle-check", 14);
+  status.insertAdjacentHTML("beforeend",
+    `<span>${dirty ? "Có thay đổi chưa lưu · bấm Lưu để cập nhật link" : "Đã lưu · link mời riêng của khách"}</span>`);
+  document.getElementById("add-guest-link-row").classList.toggle("opacity-50", dirty);
+}
+
+function _gmShowLink(link) {
+  document.getElementById("add-guest-result").classList.toggle("hidden", !link);
+  document.getElementById("add-guest-link").value = link || "";
+}
+
+function _gmFill(guest) {
+  _gmId = guest?.id || null;
+  document.getElementById("add-guest-fullname").value    = guest?.full_name || "";
+  document.getElementById("add-guest-displayname").value = guest?.display_name || "";
+  _relationBox(guest?.relationship);
+  _gmSnap = _gmId ? _gmKey(_gmValues()) : "";
+  _gmShowLink(guest?.link);
+  _gmSync();
+}
+
+function _gmOpen(guest, side) {
   _addGuestSide = side;
-  document.getElementById("add-guest-fullname").value = "";
-  document.getElementById("add-guest-displayname").value = "";
-  _relationBox("");
   const modal = document.getElementById("add-guest-modal");
+  if (!modal._cxBound) {
+    modal._cxBound = true;
+    ["add-guest-fullname", "add-guest-displayname"].forEach((id) =>
+      document.getElementById(id).addEventListener("input", _gmSync));
+    document.getElementById("add-guest-relationship").addEventListener("change", _gmSync);
+  }
+  _gmSyncSide();
+  _gmFill(guest);
   modal.classList.remove("hidden");
   modal.classList.add("flex");
   setTimeout(() => document.getElementById("add-guest-fullname").focus(), 50);
+}
+
+function openAddGuestModal(side) {
+  _gmOpen(null, side);
+}
+
+function resetAddGuestForm() {
+  _gmFill(null);
+  document.getElementById("add-guest-fullname").focus();
 }
 
 function closeAddGuestModal() {
@@ -107,27 +201,58 @@ function closeAddGuestModal() {
   modal.classList.remove("flex");
 }
 
-async function confirmAddGuest() {
-  const full_name    = document.getElementById("add-guest-fullname").value.trim();
-  const display_name = document.getElementById("add-guest-displayname").value.trim();
-  const relationship = String(document.getElementById("add-guest-relationship").value || "").trim();
+function copyAddGuestLink() {
+  const link = document.getElementById("add-guest-link").value;
+  if (link) copyGuestLink(link);
+}
 
-  if (!full_name) {
+// Link mã hoá tên hiển thị + xưng hô → đổi một trong hai là phải dựng lại link.
+function _guestLink(slug, side, g) {
+  const encName = encryptData(g.display_name || g.full_name);
+  const encRel  = encryptData(g.relationship || "");
+  return `${window.location.origin}/${slug}?isGroom=${side === "groom"}&name=${encName}&relationship=${encRel}`;
+}
+
+async function saveAddGuest() {
+  const v = _gmValues();
+  if (!v.full_name) {
     document.getElementById("add-guest-fullname").focus();
     showToast("Vui lòng nhập họ và tên", "warning");
     return;
   }
 
-  closeAddGuestModal();
-  showLoading(true, "Đang thêm khách...");
+  const isNew = !_gmId;
+  const side = _addGuestSide;
+  const label = document.querySelector("#add-guest-save span");
+  _gmBusy = true;
+  _gmSync();
+  if (label) label.textContent = "Đang lưu...";
   try {
-    await guestDAL.insertOneGuest(WEDDING_ID, _addGuestSide, { full_name, display_name, relationship });
-    await _generateGuestLinks(_addGuestSide);
-    await loadGuestList(_addGuestSide);
+    if (isNew) {
+      const row = await guestDAL.insertOneGuest(WEDDING_ID, side, v);
+      _gmId = row.id;
+    } else {
+      await guestDAL.updateGuest(_gmId, v);
+    }
+    _gmSnap = _gmKey(v);
+
+    const slug = await _getWeddingSlug();
+    let link = "";
+    if (slug) {
+      link = _guestLink(slug, side, v);
+      await guestDAL.updateGuestsBatchLinks([{ id: _gmId, link }]);
+    } else {
+      showToast("Không tìm thấy slug thiệp, không thể tạo link", "warning");
+    }
+    _gmShowLink(link);
+    showToast(isNew ? "Đã thêm khách mời" : "Đã cập nhật khách mời", "success");
+    loadGuestList(side);
   } catch (err) {
-    showToast(err.message, "error");
+    showToast((isNew ? "" : "Cập nhật thất bại: ") + err.message, "error");
   } finally {
-    showLoading(false);
+    _gmBusy = false;
+    if (label) label.textContent = "Lưu";
+    _gmSync();
   }
 }
 
@@ -309,15 +434,7 @@ async function _generateGuestLinks(side) {
     const noLink = guests.filter(g => !g.link);
     if (!noLink.length) return;
 
-    const isGroom = side === "groom";
-    const domain = window.location.origin;
-
-    const updates = noLink.map(g => {
-      const encName = encryptData(g.display_name || g.full_name);
-      const encRel  = encryptData(g.relationship || "");
-      const link = `${domain}/${slug}?isGroom=${isGroom}&name=${encName}&relationship=${encRel}`;
-      return { id: g.id, link };
-    });
+    const updates = noLink.map(g => ({ id: g.id, link: _guestLink(slug, side, g) }));
     await guestDAL.updateGuestsBatchLinks(updates);
 
     showToast(`Đã tạo link cho ${noLink.length} khách`, "success");
@@ -702,48 +819,9 @@ function _closeRowMenu() {
 
 // ─── Edit Guest ───────────────────────────────────────────────────────────────
 
-let _editGuestId = null;
-
+// Sửa dùng chung popup Thêm khách (xem _gmOpen) — mở sẵn khách đó ở trạng thái đã lưu.
 function _openEditGuest(guest, side) {
-  _editGuestId = guest.id;
-  _addGuestSide = side;
-  document.getElementById("add-guest-fullname").value    = guest.full_name || "";
-  document.getElementById("add-guest-displayname").value = guest.display_name || "";
-  _relationBox(guest.relationship);
-  // Đổi tiêu đề modal + nút confirm
-  document.querySelector("#add-guest-modal h3").textContent = "Sửa khách mời";
-  document.querySelector("#add-guest-modal button[onclick='confirmAddGuest()']").textContent = "Lưu thay đổi";
-  document.querySelector("#add-guest-modal button[onclick='confirmAddGuest()']").setAttribute("onclick", "confirmEditGuest()");
-  const modal = document.getElementById("add-guest-modal");
-  modal.classList.remove("hidden");
-  modal.classList.add("flex");
-}
-
-async function confirmEditGuest() {
-  const full_name = document.getElementById("add-guest-fullname").value.trim();
-  if (!full_name) { showToast("Vui lòng nhập họ và tên", "warning"); return; }
-
-  closeAddGuestModal();
-  // Reset modal về trạng thái thêm mới
-  document.querySelector("#add-guest-modal h3").textContent = "Thêm 1 khách mời";
-  const btn = document.querySelector("#add-guest-modal button[onclick='confirmEditGuest()']");
-  if (btn) { btn.textContent = "Thêm khách"; btn.setAttribute("onclick", "confirmAddGuest()"); }
-
-  showLoading(true, "Đang cập nhật...");
-  try {
-    await guestDAL.updateGuest(_editGuestId, {
-      full_name,
-      display_name: document.getElementById("add-guest-displayname").value.trim(),
-      relationship: String(document.getElementById("add-guest-relationship").value || "").trim(),
-    });
-    showToast("Đã cập nhật khách mời", "success");
-    await loadGuestList(_addGuestSide);
-  } catch (err) {
-    showToast("Cập nhật thất bại: " + err.message, "error");
-  } finally {
-    showLoading(false);
-    _editGuestId = null;
-  }
+  _gmOpen(guest, side);
 }
 
 // ─── Delete Guest ─────────────────────────────────────────────────────────────
