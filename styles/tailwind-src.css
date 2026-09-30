@@ -221,7 +221,7 @@ html.cx-landing {
 /* ── Màn mở đầu ──────────────────────────────────────────────────────────
    Dải nền hồng kem sáng mang MỘT thẻ bo góc, mép đáy cong lên ở giữa như màn
    chiếu. Lớp trong thẻ theo z-index: ảnh ghép mẫu thiệp (.hero-card-media) →
-   phủ mận (.hero-card-veil) → chữ trắng căn giữa (.hero-card-body).
+   phủ đen (.hero-card-veil) → chữ trắng căn giữa (.hero-card-body).
    Thẻ CỐ Ý thấp hơn một màn để #templates lộ ra từ màn đầu. Đáy dải là đúng
    nền của #templates (--surface-tint-rgb) — đổi nền mục đó thì đổi cả ở đây.
    Navbar trên (từ md) nổi trên dải — lề đỉnh của #hero chừa đúng 80px của nó
@@ -286,7 +286,7 @@ html.cx-landing {
   min-height: clamp(460px, calc(var(--vh, 1vh) * 64), 720px);
   min-height: clamp(460px, calc(var(--vh, 1svh) * 64), 720px);
   border-radius: 20px;
-  background: rgb(var(--landing-hero-veil-rgb));
+  background: rgb(var(--scrim-rgb));
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M0 0H100V100Q50 94 0 100Z'/%3E%3C/svg%3E");
   mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M0 0H100V100Q50 94 0 100Z'/%3E%3C/svg%3E");
   -webkit-mask-size: 100% 100%;
@@ -355,19 +355,19 @@ html.cx-landing {
   }
 }
 
-/* Phủ mận cả ảnh + một quầng đậm hơn sau cụm chữ: ảnh ghép toàn nền sáng và
-   chữ in nhỏ, thiếu quầng này là chữ trắng lẫn vào chữ trong ảnh. Tông mận
-   (không phải đen) để thẻ cùng họ màu hồng với dải nền quanh nó. */
+/* Phủ đen trong suốt cả ảnh + một quầng đậm hơn sau cụm chữ: ảnh ghép toàn
+   nền sáng và chữ in nhỏ, thiếu quầng này là chữ trắng lẫn vào chữ trong ảnh.
+   Đen chứ không nhuộm màu để ảnh mẫu giữ đúng tông gốc. */
 .hero-card-veil {
   @apply pointer-events-none absolute inset-0;
   z-index: 1;
   background:
     radial-gradient(
       ellipse 60% 55% at 50% 50%,
-      rgb(var(--landing-hero-veil-rgb) / 0.55) 0%,
-      rgb(var(--landing-hero-veil-rgb) / 0) 100%
+      rgb(var(--scrim-rgb) / 0.35) 0%,
+      rgb(var(--scrim-rgb) / 0) 100%
     ),
-    rgb(var(--landing-hero-veil-rgb) / 0.5);
+    rgb(var(--scrim-rgb) / 0.4);
 }
 
 /* Cột chữ căn giữa. Lề đáy lớn hơn lề đỉnh để bù phần mép cong. */
@@ -376,7 +376,7 @@ html.cx-landing {
   z-index: 2;
   max-width: 760px;
   padding: 40px 16px 56px;
-  text-shadow: 0 2px 16px rgb(var(--landing-hero-veil-rgb) / 0.7);
+  text-shadow: 0 2px 16px rgb(var(--scrim-rgb) / 0.5);
 }
 
 .hero-title {
