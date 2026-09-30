@@ -265,9 +265,11 @@ html.cx-landing {
 /* Bóng đổ xám trung tính vẽ ở VỎ NGOÀI bằng drop-shadow: nó ôm theo đúng hình
    sau mask của .hero-card (kể cả mép cong). Không viền màu — thẻ tách khỏi nền
    kem chỉ nhờ bóng, cùng cách các thẻ ở mục bên dưới. */
+/* Khổ = ĐÚNG khổ thẻ navbar (.cx-navcard: max-w-6xl 1152px trừ lề lg:px-8 hai
+   bên), lề hai bên của #hero cũng theo lề navbar — thẻ và navbar thẳng mép. */
 .hero-frame {
   @apply relative w-full;
-  max-width: 1760px;
+  max-width: 1088px;
   filter: drop-shadow(0 8px 16px rgb(var(--scrim-rgb) / 0.14));
 }
 
@@ -495,17 +497,19 @@ html.cx-landing {
   text-shadow: 0 2px 16px rgb(var(--scrim-rgb) / 0.5);
 }
 
+/* Playfair như mọi tiêu đề mục khác của trang; phần còn lại của cụm chữ là Inter. */
 .hero-title {
+  @apply font-playfair;
   font-weight: 700;
-  font-size: clamp(28px, calc(2.4vw + 12px), 52px);
-  line-height: 1.22;
-  letter-spacing: -0.01em;
+  font-size: clamp(30px, calc(2.4vw + 14px), 54px);
+  line-height: 1.2;
   text-wrap: balance;
   color: rgb(var(--white-rgb));
 }
 
+/* Nằm TRONG h1 (Playfair) nên phải tự khai lại Inter. */
 .hero-eyebrow {
-  @apply block;
+  @apply block font-inter;
   margin-bottom: 16px;
   font-size: 13px;
   font-weight: 600;
@@ -637,13 +641,9 @@ html.cx-landing {
   line-height: 1;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgb(var(--landing-dark-rgb));
-  background: linear-gradient(
-    135deg,
-    rgb(var(--landing-cta-btn-to-rgb)) 0%,
-    rgb(var(--landing-cta-btn-from-rgb)) 100%
-  );
-  box-shadow: 0 4px 12px rgb(var(--landing-cta-btn-from-rgb) / 0.5);
+  color: rgb(var(--action-primary-deep-rgb));
+  background: rgb(var(--white-rgb));
+  box-shadow: 0 4px 12px rgb(var(--scrim-rgb) / 0.25);
   animation: cx-hero-new-bob 2.4s ease-in-out infinite;
 }
 
@@ -659,8 +659,14 @@ html.cx-landing {
 
 .hero-note {
   margin-top: 16px;
-  font-size: 13px;
+  font-size: 14px;
   color: rgb(var(--white-rgb) / 0.9);
+}
+
+/* Khổ hẹp logo "Cưới Xinh" đứng ngay trên thẻ — nhắc lại tên trong nhãn là thừa
+   và làm nhãn kín bề ngang. */
+.hero-eyebrow-brand {
+  display: none;
 }
 
 .hero-btn:focus-visible {
@@ -673,25 +679,52 @@ html.cx-landing {
   outline-offset: 4px;
 }
 
-/* Máy hẹp: hai nút xếp dọc cùng khổ cho cân, nhưng có TRẦN — kéo hết bề ngang
-   thẻ thì hai khối hồng/kính lấn át cả tiêu đề. Khe 16px để tag "New" (thò lên
-   10px) không chạm đáy nút trên. */
+/* Máy hẹp: xếp dọc. Nút chính rộng (có trần 280px); nút AI HẠ CẤP thành viên
+   viền mảnh thấp, chữ nhỏ, khổ theo nội dung — hai khối cùng cỡ chồng nhau là
+   thứ nặng nhất màn, lấn cả tiêu đề. Nút AI nằm trên nền phủ tối nên chữ 15px
+   vẫn đủ tương phản; khe 16px để tag "New" (thò lên 10px) không chạm nút trên. */
 @media (max-width: 419px) {
   .hero-cta {
     @apply w-full flex-col;
     gap: 16px;
   }
-  .hero-btn {
+  .hero-btn-main {
     @apply w-full;
     max-width: 280px;
     height: 50px;
   }
+  .hero-btn-ai {
+    height: 40px;
+    padding: 0 20px 0 12px;
+    gap: 6px;
+    font-size: 15px;
+    font-weight: 600;
+    background: rgb(var(--white-rgb) / 0.08);
+  }
+  .hero-btn-ai .hero-ai-ico {
+    width: 20px;
+    height: 20px;
+  }
+  .hero-ai-new {
+    top: -8px;
+    right: -10px;
+    padding: 3px 6px;
+    font-size: 9px;
+  }
+}
+
+@media (min-width: 640px) {
+  #hero {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
 }
 
 @media (min-width: 768px) {
-  /* Lề đỉnh = 80px của .cx-navbar + 8px thở. */
+  /* Lề đỉnh = 80px của .cx-navbar + 16px thở. */
   #hero {
-    padding: 88px 32px 40px;
+    padding-top: 96px;
+    padding-bottom: 40px;
   }
   .hero-card {
     min-height: clamp(460px, calc(var(--vh, 1vh) * 64), 720px);
@@ -703,12 +736,20 @@ html.cx-landing {
   .hero-card {
     border-radius: 24px;
   }
+  /* Thẻ desktop rộng gấp 3 điện thoại — đốm cỡ mobile nhìn như bụi màn hình. */
+  .hero-spark {
+    width: calc(var(--s, 4px) * 1.75);
+    height: calc(var(--s, 4px) * 1.75);
+  }
   .hero-card-body {
     padding: 56px 40px 72px;
   }
   .hero-sub {
     margin-top: 20px;
     font-size: 17px;
+  }
+  .hero-eyebrow-brand {
+    display: inline;
   }
   .hero-cta {
     margin-top: 32px;
@@ -764,7 +805,7 @@ html.cx-landing {
     margin-top: 16px;
     gap: 14px;
   }
-  .hero-btn {
+  .hero-btn-main {
     height: 44px;
   }
   .hero-note {
@@ -794,6 +835,14 @@ html.cx-landing {
   .hero-btn-main svg {
     transition: none;
   }
+}
+
+/* Nút "Tạo thiệp với AI" của hero còn trên màn thì giấu bong bóng XuXi (cờ do
+   js/hero-fab.js đặt): hai lối vào cùng một khung chat, mà bong bóng còn đè lên
+   thẻ mẫu đang ló ra dưới hero. */
+.cx-hero-ai-on .aichat-fab {
+  @apply pointer-events-none opacity-0;
+  transform: scale(0.8);
 }
 
 /* ══ SƠ ĐỒ TÍNH NĂNG (#inside) ═════════════════════════════════════════════
@@ -1396,6 +1445,13 @@ html.cx-landing {
 
 .cx-tplrow::-webkit-scrollbar {
   display: none;
+}
+
+@media (min-width: 1024px) {
+  #hero {
+    padding-left: 32px;
+    padding-right: 32px;
+  }
 }
 
 @media (min-width: 1024px) {

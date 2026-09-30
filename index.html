@@ -71,7 +71,7 @@
                ~1MB chỉ là src dự phòng — ghép lại ảnh bìa thì phải xuất lại cả bộ này.
                sizes: ảnh phủ `cover` và tràn 24% (.hero-card-img) nên màn dọc bị chiều
                cao thẻ quyết định (64vh × tỉ lệ ảnh 1.73 × 1.24 ≈ 137vh), màn ngang thì
-               bề ngang (≈124vw). -->
+               bề ngang (≈124vw, từ 1152px thẻ dừng ở 1088px → 1350px). -->
           <div class="hero-card-media" aria-hidden="true">
             <img
               class="hero-card-img"
@@ -79,7 +79,7 @@
               srcset="assets/background/cover/cuoixinh-cover-1200.webp 1200w,
                       assets/background/cover/cuoixinh-cover-2000.webp 2000w,
                       assets/background/cover/cuoixinh-cover-2800.webp 2800w"
-              sizes="(min-aspect-ratio: 11/10) 124vw, 137vh"
+              sizes="(min-width: 1152px) and (min-aspect-ratio: 11/10) 1350px, (min-aspect-ratio: 11/10) 124vw, 137vh"
               alt=""
               fetchpriority="high"
             />
@@ -97,7 +97,7 @@
 
           <div class="hero-card-body">
             <h1 class="hero-title hero-anim hero-anim-2">
-              <span class="hero-eyebrow">Thiệp cưới online · Cưới Xinh</span>
+              <span class="hero-eyebrow">Thiệp cưới online<span class="hero-eyebrow-brand"> · Cưới Xinh</span></span>
               Gửi trọn yêu thương trong một tấm thiệp
             </h1>
             <p class="hero-sub hero-anim hero-anim-3">
@@ -592,5 +592,6 @@
     <script src="core/helpers/theme-decl.js"></script>
     <script src="js/ai-chat-media.js"></script>
     <script src="js/ai-assistant.js"></script>
+    <script src="js/hero-fab.js"></script>
   </body>
 </html>
