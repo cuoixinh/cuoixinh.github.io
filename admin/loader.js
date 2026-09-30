@@ -22,6 +22,7 @@
   // lấy CONFIG.version, thêm vào đây nữa là nạp hai lần.
   const SCRIPTS = [
     "../core/x-button.js",
+    "../core/x-logo.js",
     // <i data-icon="xuxi"> — logo AI ở các nút "nhờ AI" của Bảng điều khiển,
     // Mẫu thiệp và Dữ liệu mẫu.
     "../core/helpers/icon.js",

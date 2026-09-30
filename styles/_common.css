@@ -1316,43 +1316,11 @@ x-button {
   text-align: center;
 }
 
-/* Logo chữ: ảnh biểu tượng + "Cưới Xinh", dưới tên là dòng "-SINCE 2026-" 6px.
-   Cao theo ảnh (đặt height lên .cx-logo img ở chỗ dùng); nền tối thì thêm
-   .cx-logo-light để tên chuyển trắng. */
+/* Thẻ <a> bọc <x-logo> (core/x-logo.js) — cỡ logo đặt bằng `size` của component. */
 .cx-logo {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
   text-decoration: none;
-}
-.cx-logo img {
-  height: 40px;
-  width: auto;
-}
-.cx-logo-text {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  line-height: 1;
-  white-space: nowrap;
-}
-.cx-logo-name {
-  font-size: 20px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  color: rgb(var(--text-body-rgb));
-}
-.cx-logo-since {
-  margin-top: 4px;
-  font-size: 6px;
-  font-weight: 600;
-  letter-spacing: 0.2em;
-  margin-right: -0.2em; /* bù khoảng giãn sau ký tự cuối để chữ canh giữa đúng */
-  color: rgb(var(--text-tertiary-rgb));
-}
-.cx-logo-light .cx-logo-name,
-.cx-logo-light .cx-logo-since {
-  color: rgb(var(--white-rgb));
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -1371,8 +1339,18 @@ x-button {
   padding: 12px 0 4px;
 }
 
+/* Hàng: logo đứng TRẦN (không nền/viền) bên trái, cao bằng thẻ navbar để hai khối
+   thẳng hàng; thẻ navbar giãn phần còn lại và chỉ mang dãy mục. */
+.cx-navrow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .cx-navcard {
   display: flex;
+  flex: 1;
+  min-width: 0;
   align-items: center;
   justify-content: space-between;
   height: 64px;
@@ -1389,30 +1367,46 @@ x-button {
   flex: 1;
   align-items: center;
   gap: 20px;
-  margin-left: 32px;
 }
 
-/* brand: "outside" (core/components/navbar.js): logo đứng TRẦN (không nền/viền)
-   bên trái, cao bằng .cx-navcard để hai khối thẳng hàng; thẻ navbar giãn phần
-   còn lại và chỉ mang dãy mục — nên dãy mục bỏ lề trái vốn chừa cho logo. */
-.cx-navrow {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
+/* Cuộn khỏi đầu trang → logo thu về 0 (thẻ navbar giãn ra chiếm chỗ); .is-top
+   (đầu trang, navbar.js đặt) → logo hiện lại, thẻ bỏ nền/viền/bóng.
+   Transition chỉ có dưới .is-anim (bật từ lần cuộn đầu) — lúc chuyển trang không động. */
 .cx-navbrand {
   height: 64px;
-  padding-right: 8px;
+  max-width: 0;
+  padding-right: 0;
+  margin-right: -12px;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
 }
-
-.cx-navcard-solo {
-  flex: 1;
-  min-width: 0;
+.cx-navbar.is-anim .cx-navcard {
+  transition:
+    background-color 0.3s ease,
+    border-color 0.3s ease,
+    box-shadow 0.3s ease,
+    backdrop-filter 0.3s ease;
 }
-
-.cx-navcard-solo .cx-navlinks {
-  margin-left: 0;
+.cx-navbar.is-anim .cx-navbrand {
+  transition:
+    max-width 0.35s ease,
+    padding 0.35s ease,
+    margin 0.35s ease,
+    opacity 0.2s ease;
+}
+.cx-navbar.is-top .cx-navbrand {
+  max-width: 320px;
+  padding-right: 36px;
+  margin-right: 0;
+  opacity: 1;
+  pointer-events: auto;
+}
+.cx-navbar.is-top .cx-navcard {
+  background-color: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
 }
 
 .cx-navactions {

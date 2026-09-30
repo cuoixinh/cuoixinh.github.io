@@ -2,13 +2,13 @@
 // mảng mục rồi dựng ra HAI thanh cùng lúc: thanh trên (từ md) và thanh tab dưới
 // (mobile) — nên hai thanh không bao giờ lệch nhau.
 //
-//   CXNavbar.mount({ active: "home", width: "6xl", items: [...], actions: [...] })
+//   CXNavbar.mount({ active: "home", items: [...], actions: [...] })
 //
+// Thanh trên GIỐNG HỆT nhau ở mọi trang (khổ max-w-6xl, không tự ẩn khi cuộn):
+// logo đứng riêng bên trái, thẻ navbar chỉ mang dãy mục; ở đầu trang thẻ trong
+// suốt, cuộn xuống mới có nền và logo thu lại (cờ .is-top trên #main-nav).
 // tabbar: false → chỉ dựng thanh trên. Dùng cho luồng MỘT CHIỀU (thanh toán):
 // dải đáy ở đó dành cho nút hành động, để thêm tab là mời khách rời luồng.
-// brand: "outside" → logo + tên đứng thành khối RIÊNG bên trái thanh trên, thẻ
-// navbar chỉ còn dãy mục (trang chủ dùng; mục "Trang chủ" khi đó nên hiện ở cả
-// thanh trên — bỏ `only: "tab"`).
 //
 // Mục: { id, label, icon, href | onClick, count, only: "top"|"tab", login }
 //   href → thẻ <a>, không có href → <button> (dùng onClick).
@@ -39,9 +39,6 @@ const CXNavbar = (function () {
     star: '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
     list: '<path d="M10 6h11"/><path d="M10 12h11"/><path d="M10 18h11"/><path d="M4 6h1v4"/><path d="M4 10h2"/><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"/>',
   };
-
-  // Viết trọn tên class (không ghép chuỗi) để Tailwind purge quét được.
-  const WIDTH = { "4xl": "max-w-4xl", "6xl": "max-w-6xl", "7xl": "max-w-7xl" };
 
   // Tên có ở bảng icon riêng (core/helpers/icon.js, vd logo "xuxi") thì lấy ở đó;
   // trang nào dùng tên như vậy phải nạp file icon, thiếu là ô icon trống.
@@ -91,34 +88,24 @@ const CXNavbar = (function () {
   }
 
   /**
-   * Chèn hai thanh vào đầu/cuối <body>. Gọi sau khi DOM sẵn sàng; js/nav-autohide.js
-   * tìm #main-nav nên phải chạy SAU lời gọi này (nó cũng tự đợi DOM ready).
+   * Chèn hai thanh vào đầu/cuối <body>. Gọi sau khi DOM sẵn sàng.
    */
-  const LOGO_TEXT =
-    `<span class="cx-logo-text"><span class="cx-logo-name">Cưới Xinh</span><span class="cx-logo-since">-SINCE 2026-</span></span>`;
-
   function mount(cfg) {
     const items = cfg.items || [];
-    const width = WIDTH[cfg.width] || WIDTH["7xl"];
-
-    const outside = cfg.brand === "outside";
-    const logo =
-      `<a href="/" class="cx-logo shrink-0${outside ? " cx-navbrand" : ""}" aria-label="Cưới Xinh">` +
-      `<img src="/assets/icons/logo.png" alt="" />` +
-      `${LOGO_TEXT}</a>`;
 
     const top =
-      `<nav id="main-nav" class="cx-navbar hidden md:block">` +
-      `<div class="${width} mx-auto px-4 sm:px-6 lg:px-8${outside ? " cx-navrow" : ""}">` +
-      (outside ? logo : "") +
-      `<div class="cx-navcard${outside ? " cx-navcard-solo" : ""}">` +
-      (outside ? "" : logo) +
+      `<nav id="main-nav" class="cx-navbar${_atTop() ? " is-top" : ""} hidden md:block">` +
+      `<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 cx-navrow">` +
+      `<a href="/" class="cx-logo cx-navbrand shrink-0" aria-label="Cưới Xinh">` +
+      `<x-logo size="32"></x-logo></a>` +
+      `<div class="cx-navcard">` +
       `<nav class="cx-navlinks">${items.map((i) => itemHTML(i, cfg.active, "top")).join("")}</nav>` +
       `<div class="cx-navactions">${(cfg.actions || []).map(actionHTML).join("")}` +
       `${cfg.actionsHTML || ""}</div>` +
       `</div></div></nav>`;
 
     document.body.insertAdjacentHTML("afterbegin", top);
+    _bindFlatTop(document.getElementById("main-nav"));
     if (items.some((i) => i.login)) _bindLoginItems();
 
     if (cfg.tabbar === false) return;
@@ -127,6 +114,28 @@ const CXNavbar = (function () {
       items.map((i) => itemHTML(i, cfg.active, "tab")).join("") +
       `</div></nav>`;
     document.body.insertAdjacentHTML("beforeend", bar);
+  }
+
+  // Gần đầu trang → cờ .is-top, viết sẵn vào markup lúc mount. Transition chỉ bật
+  // (cờ .is-anim) từ lần cuộn đầu tiên: bật sẵn thì lúc chuyển trang logo "bay" vào.
+  const FLAT_TOP_PX = 16;
+  const _atTop = () => window.scrollY <= FLAT_TOP_PX;
+  function _bindFlatTop(nav) {
+    let ticking = false;
+    const sync = () => {
+      ticking = false;
+      nav.classList.add("is-anim");
+      nav.classList.toggle("is-top", _atTop());
+    };
+    window.addEventListener(
+      "scroll",
+      () => {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(sync);
+      },
+      { passive: true },
+    );
   }
 
   // Mục `login: true` hiện/ẩn theo phiên. Chạy khi DOM xong (lúc đó mọi script

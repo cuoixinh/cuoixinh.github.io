@@ -94,11 +94,8 @@
         box-shadow: 0 1px 3px rgb(var(--shadow-brand-rgb) / 0.05);
       }
 
-      /* Header TỰ ẨN khi cuộn xuống — dùng đúng js/nav-autohide.js của trang chủ
-         (nav phải mang id #main-nav; CSS .nav-hidden nằm ở styles/tailwind-src.css).
-         Header `fixed` nên phần nội dung tự chừa chỗ bằng padding CỐ ĐỊNH, còn
-         thanh tìm kiếm dính ngay dưới nó thì bám --tt-head-h: header ẩn (html.nav-up)
-         là biến về 0 để thanh trượt lên sát mép. */
+      /* Navbar `fixed` (từ md, cao 80px) nên thanh tìm kiếm dính ngay dưới nó
+         bám --tt-head-h; dưới md không có navbar trên → dính sát mép. */
       :root {
         --tt-head-h: 0px;
       }
@@ -107,14 +104,9 @@
           --tt-head-h: 80px;
         }
       }
-      html.nav-up {
-        --tt-head-h: 0px;
-      }
       #tt-searchbar {
         top: var(--tt-head-h);
-        transition:
-          top 0.3s ease,
-          box-shadow 0.2s ease;
+        transition: box-shadow 0.2s ease;
       }
       #tt-searchbar.nav-scrolled {
         box-shadow: 0 6px 22px -8px rgb(var(--shadow-brand-rgb) / 0.28);
@@ -293,11 +285,7 @@
             class="flex items-center gap-2.5 md:justify-end"
           >
             <a href="/" class="md:hidden shrink-0">
-              <img
-                src="../assets/icons/logo.png"
-                alt="Cưới Xinh"
-                class="h-9 w-auto"
-              />
+              <x-logo size="28"></x-logo>
             </a>
             <label class="tt-search flex-1 md:flex-none md:w-[440px]">
               <svg
@@ -981,9 +969,6 @@
       integrity="sha384-Tve8O+C6PBzsIMK/IRCwHbi8fyEzXIlIs6OfVBZHubplwYhaQF/4Mzxqgg+pp/oy"
       crossorigin="anonymous"
     ></script>
-    <!-- Navbar dùng chung: khai mảng mục một lần, component dựng cả thanh trên
-         (desktop) lẫn thanh tab dưới (mobile). Phải chạy TRƯỚC nav-autohide.js
-         vì nó tìm #main-nav. -->
     <!-- Khoá "một màn" thành px cho --vh: .tt-media kẹp khổ ảnh theo đó, thiếu
          script này là thẻ đổi khổ mỗi lần Chrome ẩn/hiện thanh URL. -->
     <script src="../core/helpers/vh-lock.js"></script>
@@ -994,7 +979,6 @@
     <script>
       CXNavbar.mount({
         active: "templates",
-        width: "7xl",
         items: [
           { id: "home", label: "Trang chủ", icon: "home", href: "/" },
           {
@@ -1039,7 +1023,6 @@
       });
     </script>
 
-    <script src="../js/nav-autohide.js"></script>
     <script src="../core/components/item-template.js"></script>
     <script src="https://unpkg.com/lucide@1.26.0/dist/umd/lucide.min.js" integrity="sha384-8/6sFI5UzGbr1Dgef7WSZvE4UemcVc/jyaQNsM+MilmnHQ9sce/pRv86XXj5Cg5m" crossorigin="anonymous"></script>
     <!-- lucide UMD không tự chạy: quét [data-lucide] một lượt khi DOM sẵn sàng.
@@ -1048,6 +1031,7 @@
       document.addEventListener("DOMContentLoaded", () => window.lucide?.createIcons());
     </script>
     <script src="../core/x-button.js"></script>
+    <script src="../core/x-logo.js"></script>
     <script src="../core/x-popover.js"></script>
     <script src="../core/helpers/account-menu.js"></script>
     <script>
