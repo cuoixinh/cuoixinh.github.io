@@ -817,58 +817,59 @@ html.cx-landing {
 }
 
 /* Màn THẤP (laptop 13 inch, máy xoay ngang): thu các khe cho cụm chữ vừa thẻ.
-   Đặt SAU media theo bề ngang. */
-@media (max-height: 760px) {
-  .hero-eyebrow {
-    margin-bottom: 10px;
-  }
-  .hero-sub {
-    margin-top: 12px;
-  }
-  .hero-cta {
-    margin-top: 20px;
-  }
-  .hero-note {
-    margin-top: 12px;
-  }
+   Hai cờ .cx-short/.cx-shorter do core/helpers/vh-lock.js đặt theo chiều cao ĐÃ
+   KHOÁ — đừng đổi lại thành `@media (max-height)`: media tính theo khung thật,
+   vuốt ẩn thanh URL là vượt mốc, thẻ và chữ nhảy khổ giữa lúc cuộn. */
+.cx-short .hero-eyebrow {
+  margin-bottom: 10px;
+}
+.cx-short .hero-sub {
+  margin-top: 12px;
+}
+.cx-short .hero-cta {
+  margin-top: 20px;
+}
+.cx-short .hero-note {
+  margin-top: 12px;
 }
 
 /* Điện thoại màn THẤP (iPhone SE 375x667, 360x640): thẻ theo khổ nội dung thay
    vì 60% màn, thu các khe để vẫn thấy ~20% thẻ mẫu đầu tiên phía dưới. Chữ nút
-   giữ 19px (mốc "chữ lớn" của tương phản) — chỉ bớt chiều cao nút. */
-@media (max-width: 767px) and (max-height: 720px) {
-  #hero {
+   giữ 19px (mốc "chữ lớn" của tương phản) — chỉ bớt chiều cao nút. Đứng SAU
+   khối .cx-short (cùng độ đặc hiệu, khe nào trùng thì khối này thắng). */
+@media (max-width: 767px) {
+  .cx-shorter #hero {
     padding-bottom: 20px;
   }
-  .hero-badge img {
+  .cx-shorter .hero-badge img {
     height: 32px;
   }
-  .hero-card {
+  .cx-shorter .hero-card {
     min-height: 0;
   }
-  .hero-card-body {
+  .cx-shorter .hero-card-body {
     padding: 24px 16px 36px;
   }
-  .hero-title {
+  .cx-shorter .hero-title {
     font-size: 26px;
   }
-  .hero-eyebrow {
+  .cx-shorter .hero-eyebrow {
     margin-bottom: 8px;
     font-size: 12px;
   }
-  .hero-sub {
+  .cx-shorter .hero-sub {
     margin-top: 8px;
     font-size: 14px;
     line-height: 1.5;
   }
-  .hero-cta {
+  .cx-shorter .hero-cta {
     margin-top: 16px;
     gap: 14px;
   }
-  .hero-btn-main {
+  .cx-shorter .hero-btn-main {
     height: 44px;
   }
-  .hero-note {
+  .cx-shorter .hero-note {
     margin-top: 10px;
     font-size: 12px;
   }

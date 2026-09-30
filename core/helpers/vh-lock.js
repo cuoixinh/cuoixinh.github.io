@@ -19,6 +19,11 @@
 //   min-height: calc(var(--vh, 1svh) * 100);  /* thứ tự sau nên thắng */
 // ĐỪNG khai thêm một dòng `100svh`/`100dvh` trần sau đó: nó đè mất --vh, và
 // dvh thì phình ra đúng lúc thanh công cụ ẩn — cái mà file này sinh ra để tránh.
+//
+// Cùng lý do, bố cục "màn thấp" ĐỪNG viết bằng `@media (max-height: …)`: media
+// tính theo khung THẬT nên thanh công cụ ẩn là vượt mốc, cả khối nhảy khổ. Dùng
+// hai cờ trên <html> tính theo đúng số đã khoá: .cx-short (≤ 760px) · .cx-shorter
+// (≤ 720px) — ví dụ `.cx-short .hero-sub { … }`.
 
 (function () {
   let vhWidth = 0;
@@ -59,6 +64,13 @@
     return h;
   }
 
+  function apply(px) {
+    const doc = document.documentElement;
+    doc.style.setProperty("--vh", `${px * 0.01}px`);
+    doc.classList.toggle("cx-short", px <= 760);
+    doc.classList.toggle("cx-shorter", px <= 720);
+  }
+
   // force: đo lại dù bề ngang không đổi (chỉ dùng cho nhịp chốt ở `load`).
   function setVH(force) {
     const doc = document.documentElement;
@@ -67,14 +79,14 @@
     // Trong iframe (khung xem trước ở trang Thiết lập) khổ do trang cha đặt và
     // không có thanh công cụ nào ẩn/hiện → mọi thay đổi chiều cao đều là thật.
     if (window.self !== window.top) {
-      doc.style.setProperty("--vh", `${h * 0.01}px`);
+      apply(h);
       return;
     }
     if (w === vhWidth && force !== true) return;
     if (vhWidth && isTyping()) return;
     vhWidth = w;
     const svh = measureSvh();
-    doc.style.setProperty("--vh", `${(svh ? Math.min(h, svh) : h) * 0.01}px`);
+    apply(svh ? Math.min(h, svh) : h);
   }
 
   function markTouched() {

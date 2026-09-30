@@ -85,9 +85,11 @@
                tách hai lớp vì cùng dùng transform. Ảnh màn đầu: fetchpriority cao, không lazy.
                srcset = bộ WebP (nút "Tải WebP trang chủ" ở công cụ Tạo ảnh bìa), JPEG gốc
                ~1MB chỉ là src dự phòng — ghép lại ảnh bìa thì phải xuất lại cả bộ này.
-               sizes: ảnh phủ `cover` và tràn 24% (.hero-card-img) nên màn dọc bị chiều
-               cao thẻ quyết định (64vh × tỉ lệ ảnh 1.73 × 1.24 ≈ 137vh), màn ngang thì
-               bề ngang (≈124vw, từ 1152px thẻ dừng ở 1088px → 1350px). -->
+               sizes: ảnh phủ `cover` và tràn 24% (.hero-card-img) nên màn ngang do bề
+               ngang quyết định (≈124vw, từ 1152px thẻ dừng ở 1088px → 1350px), màn dọc
+               do chiều cao thẻ (khoá px, 360–560px × tỉ lệ ảnh 1.73 × 1.24 ≈ 1000px).
+               Màn dọc KHÔNG viết bằng vh: vh tính theo khung thật, vuốt ẩn thanh URL là
+               trình duyệt đổi sang bản ảnh lớn hơn giữa lúc cuộn. -->
           <div class="hero-card-media" aria-hidden="true">
             <img
               class="hero-card-img"
@@ -95,7 +97,7 @@
               srcset="assets/background/cover/cuoixinh-cover-1200.webp 1200w,
                       assets/background/cover/cuoixinh-cover-2000.webp 2000w,
                       assets/background/cover/cuoixinh-cover-2800.webp 2800w"
-              sizes="(min-width: 1152px) and (min-aspect-ratio: 11/10) 1350px, (min-aspect-ratio: 11/10) 124vw, 137vh"
+              sizes="(min-width: 1152px) and (min-aspect-ratio: 11/10) 1350px, (min-aspect-ratio: 11/10) 124vw, 1000px"
               alt=""
               fetchpriority="high"
             />
