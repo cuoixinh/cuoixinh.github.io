@@ -1505,6 +1505,12 @@ x-button {
   opacity: 0.7;
 }
 
+/* Mục navbar `login: true` khi chưa đăng nhập (core/components/navbar.js). Phải
+   !important: .cx-navlink/.cx-tab tự khai display nên class `hidden` thua. */
+.cx-nav-off {
+  display: none !important;
+}
+
 .cx-navlink.is-on {
   color: rgb(var(--brand-accent-rgb));
   font-weight: 600;

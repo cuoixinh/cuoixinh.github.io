@@ -10,9 +10,11 @@
 // navbar chỉ còn dãy mục (trang chủ dùng; mục "Trang chủ" khi đó nên hiện ở cả
 // thanh trên — bỏ `only: "tab"`).
 //
-// Mục: { id, label, icon, href | onClick, count, only: "top"|"tab" }
+// Mục: { id, label, icon, href | onClick, count, only: "top"|"tab", login }
 //   href → thẻ <a>, không có href → <button> (dùng onClick).
 //   count → kèm ô số đếm (ẩn sẵn); only → chỉ hiện ở một trong hai thanh.
+//   login: true → chỉ hiện khi đã đăng nhập (ẩn sẵn, bật theo CXAuth khi trang nạp
+//   xong — core/auth.js nạp SAU navbar ở mọi trang nên không hỏi được lúc mount).
 // Hành động bên phải thanh trên: { label, onClick, id, icon, class, variant };
 // cần thứ khác nút (menu tài khoản…) thì truyền `actionsHTML` — HTML thô, chèn
 // sau các nút.
@@ -59,7 +61,10 @@ const CXNavbar = (function () {
   function itemHTML(it, active, mode) {
     if (it.only && it.only !== mode) return "";
     const isTab = mode === "tab";
-    const cls = (isTab ? "cx-tab" : "cx-navlink") + (it.id === active ? " is-on" : "");
+    const cls =
+      (isTab ? "cx-tab" : "cx-navlink") +
+      (it.id === active ? " is-on" : "") +
+      (it.login ? " cx-nav-off" : "");
     const tag = it.href ? "a" : "button";
     const link = it.href ? `href="${it.href}"` : 'type="button"';
     const click = it.onClick ? ` onclick="${it.onClick}"` : "";
@@ -67,7 +72,7 @@ const CXNavbar = (function () {
       ? `<span class="${isTab ? "cx-tab-count" : "cx-navcount"} hidden" data-nav-count="${it.id}">0</span>`
       : "";
     return (
-      `<${tag} class="${cls}" data-nav="${it.id}" ${link}${click}>` +
+      `<${tag} class="${cls}" data-nav="${it.id}"${it.login ? " data-nav-login" : ""} ${link}${click}>` +
       svg(it.icon, isTab ? 20 : 15) +
       `<span data-nav-label="${it.id}">${it.label}</span>${badge}</${tag}>`
     );
@@ -114,6 +119,7 @@ const CXNavbar = (function () {
       `</div></div></nav>`;
 
     document.body.insertAdjacentHTML("afterbegin", top);
+    if (items.some((i) => i.login)) _bindLoginItems();
 
     if (cfg.tabbar === false) return;
     const bar =
@@ -121,6 +127,28 @@ const CXNavbar = (function () {
       items.map((i) => itemHTML(i, cfg.active, "tab")).join("") +
       `</div></nav>`;
     document.body.insertAdjacentHTML("beforeend", bar);
+  }
+
+  // Mục `login: true` hiện/ẩn theo phiên. Chạy khi DOM xong (lúc đó mọi script
+  // đồng bộ, kể cả core/auth.js, đã chạy) rồi bám onChange cho đăng nhập/xuất sau.
+  function syncLoginItems() {
+    const on = !!window.CXAuth?.isLoggedIn?.();
+    document.querySelectorAll("[data-nav-login]").forEach((el) => {
+      el.classList.toggle("cx-nav-off", !on);
+    });
+  }
+
+  let _loginBound = false;
+  function _bindLoginItems() {
+    if (_loginBound) return;
+    _loginBound = true;
+    const start = () => {
+      syncLoginItems();
+      window.CXAuth?.onChange?.(syncLoginItems);
+    };
+    if (document.readyState === "loading")
+      document.addEventListener("DOMContentLoaded", start, { once: true });
+    else start();
   }
 
   /** Đổi mục đang mở ở CẢ HAI thanh. */
@@ -145,7 +173,7 @@ const CXNavbar = (function () {
     });
   }
 
-  return { ICONS, mount, setActive, setCount, setLabel };
+  return { ICONS, mount, setActive, setCount, setLabel, syncLoginItems };
 })();
 
 window.CXNavbar = CXNavbar;
