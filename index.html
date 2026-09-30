@@ -28,7 +28,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Great+Vibes&family=Inter:wght@300;400;500;600&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Allura&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Great+Vibes&family=Inter:wght@300;400;500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Allura&display=swap"
       rel="stylesheet"
     />
 
@@ -50,45 +50,52 @@
     style="color: rgb(var(--text-body-rgb))"
   >
     <!-- ===== HERO ===== -->
-    <!-- Màn mở đầu: MỘT khối ảnh tràn ngang, cao 80% màn — ảnh ghép phủ đen 15%, góc
-         dưới trái nhô lên một quả đồi hồng nhạt mang chữ. Chữ xếp chéo: lời mời + nút ở trái,
-         cụm giải thích ở góc dưới phải (từ lg). Cố ý THẤP hơn một màn để mục "Mẫu
-         thiệp" lộ ra từ màn đầu — số đo ở .hero-card (styles/tailwind-src.css). -->
+    <!-- Màn mở đầu: dải nền tối mang MỘT thẻ bo góc, mép đáy cong như màn chiếu.
+         Trong thẻ là ảnh ghép các mẫu thiệp (tab "Tạo ảnh bìa" của admin) phủ tối,
+         chữ trắng căn giữa + hai nút. Thẻ cố ý thấp hơn một màn để mục "Mẫu thiệp"
+         lộ ra từ màn đầu — số đo ở .hero-card (styles/tailwind-src.css). -->
     <section id="hero">
-      <!-- Logo nổi góc trái ảnh, chỉ ở khổ hẹp: từ md navbar trên đã mang logo. -->
-      <a href="/" class="hero-badge cx-logo hero-anim hero-anim-1" aria-label="Cưới Xinh">
+      <!-- Logo trần trên nền tối, chỉ ở khổ hẹp: từ md navbar trên đã mang logo. -->
+      <a href="/" class="hero-badge cx-logo cx-logo-light hero-anim hero-anim-1" aria-label="Cưới Xinh">
         <img src="assets/icons/logo.png" alt="" />
         <span class="cx-logo-text"><span class="cx-logo-name">Cưới Xinh</span><span class="cx-logo-since">-SINCE 2026-</span></span>
       </a>
 
-      <div class="hero-card">
-        <!-- Vỏ .hero-card-media lo parallax theo cuộn, ảnh bên trong lo trôi chậm —
-             tách hai lớp vì cùng dùng transform. Ảnh màn đầu: fetchpriority cao, không lazy. -->
-        <div class="hero-card-media" aria-hidden="true">
-          <img
-            class="hero-card-img"
-            src="assets/background/started/cuoixinh-cover-3908x2264.jpg"
-            alt=""
-            fetchpriority="high"
-          />
-        </div>
-        <div class="hero-card-veil" aria-hidden="true"></div>
-        <div class="hero-card-shine" aria-hidden="true"></div>
-        <!-- Quả đồi góc dưới trái + quầng sáng sau tiêu đề. -->
-        <div class="hero-card-hill" aria-hidden="true"></div>
-        <div class="hero-card-glow" aria-hidden="true"></div>
+      <!-- Vỏ ngoài chỉ để vẽ viền sáng + bóng: drop-shadow ôm theo mép cong của
+           mask ở .hero-card, box-shadow thì vẽ theo hình chữ nhật. -->
+      <div class="hero-frame hero-anim hero-anim-1">
+        <div class="hero-card">
+          <!-- Vỏ .hero-card-media lo parallax theo cuộn, ảnh bên trong lo trôi chậm —
+               tách hai lớp vì cùng dùng transform. Ảnh màn đầu: fetchpriority cao, không lazy.
+               srcset = bộ WebP (nút "Tải WebP trang chủ" ở công cụ Tạo ảnh bìa), JPEG gốc
+               ~1MB chỉ là src dự phòng — ghép lại ảnh bìa thì phải xuất lại cả bộ này.
+               sizes: ảnh phủ `cover` và tràn 24% (.hero-card-img) nên màn dọc bị chiều
+               cao thẻ quyết định (64vh × tỉ lệ ảnh 1.73 × 1.24 ≈ 137vh), màn ngang thì
+               bề ngang (≈124vw). -->
+          <div class="hero-card-media" aria-hidden="true">
+            <img
+              class="hero-card-img"
+              src="assets/background/started/cuoixinh-cover-3908x2264.jpg"
+              srcset="assets/background/cover/cuoixinh-cover-1200.webp 1200w,
+                      assets/background/cover/cuoixinh-cover-2000.webp 2000w,
+                      assets/background/cover/cuoixinh-cover-2800.webp 2800w"
+              sizes="(min-aspect-ratio: 11/10) 124vw, 137vh"
+              alt=""
+              fetchpriority="high"
+            />
+          </div>
+          <div class="hero-card-veil" aria-hidden="true"></div>
 
-        <div class="hero-card-body">
-          <h1 class="hero-title hero-anim hero-anim-2">
-            <span class="hero-eyebrow">Thiệp cưới online · Cưới Xinh</span>
-            Gửi trọn yêu thương trong một tấm thiệp
-          </h1>
-          <p class="hero-sub hero-anim hero-anim-3">
-            Chọn một mẫu ưng ý, kể đôi dòng về hai bạn — tấm thiệp sẵn sàng gửi
-            tới từng khách mời, gọi đúng tên từng người.
-          </p>
+          <div class="hero-card-body">
+            <h1 class="hero-title hero-anim hero-anim-2">
+              <span class="hero-eyebrow">Thiệp cưới online · Cưới Xinh</span>
+              Gửi trọn yêu thương trong một tấm thiệp
+            </h1>
+            <p class="hero-sub hero-anim hero-anim-3">
+              Chọn một mẫu ưng ý, kể đôi dòng về hai bạn — tấm thiệp sẵn sàng gửi
+              tới từng khách mời, gọi đúng tên từng người.
+            </p>
 
-          <div class="hero-act">
             <div class="hero-cta hero-anim hero-anim-4">
               <!-- Nút CHÍNH: tạo nháp thẳng. -->
               <x-button
@@ -96,10 +103,8 @@
                 class="hero-btn hero-btn-main"
                 onclick="goCreateDraft(event)"
               >
-                <span class="hero-btn-label">Tạo thiệp ngay</span>
-                <span class="hero-btn-arrow" aria-hidden="true">
-                  <i data-lucide="arrow-right" style="width:18px;height:18px"></i>
-                </span>
+                Tạo thiệp ngay
+                <i data-lucide="arrow-right" style="width:18px;height:18px"></i>
               </x-button>
               <!-- Nút PHỤ: mở khung chat XuXi ở chế độ tạo thiệp (cxHeroCreateAi ở js/page-setup.js). -->
               <x-button
@@ -107,26 +112,15 @@
                 class="hero-btn hero-btn-ai"
                 onclick="cxHeroCreateAi()"
               >
-                <span class="hero-ai-disc" aria-hidden="true">
-                  <!-- Logo XuXi là ảnh — core/helpers/icon.js thay thẻ này, khổ theo data-size. -->
-                  <i class="hero-ai-ico" data-icon="xuxi" data-size="24"></i>
-                </span>
-                <span class="hero-btn-label">Tạo thiệp với AI</span>
+                <!-- Logo XuXi là ảnh — core/helpers/icon.js thay thẻ này, khổ theo data-size. -->
+                <i class="hero-ai-ico" data-icon="xuxi" data-size="24"></i>
+                Tạo thiệp với AI
                 <span class="hero-ai-new">New</span>
               </x-button>
             </div>
 
             <p class="hero-note hero-anim hero-anim-5">
               Dùng thử miễn phí · chỉ thanh toán khi ưng ý
-            </p>
-          </div>
-
-          <!-- Cụm góc dưới phải — chỉ từ lg, khổ hẹp không đủ chỗ. -->
-          <div class="hero-aside hero-anim hero-anim-5">
-            <p class="hero-aside-title">Mỗi khách một lời mời riêng</p>
-            <p class="hero-aside-text">
-              Thiệp tự gọi đúng tên từng người, có sẵn lịch trình, bản đồ, album
-              ảnh và hộp mừng cưới — gửi đi chỉ bằng một đường link.
             </p>
           </div>
         </div>
@@ -571,6 +565,7 @@
         ],
       });
     </script>
+    <script src="js/hero-nav.js"></script>
 
     <!-- Ô đếm của mục "Đã chọn" ở navbar (đọc cache, không gọi API). -->
     <script src="core/helpers/nav-cart-count.js"></script>
