@@ -219,103 +219,27 @@ html.cx-landing {
 /* ═══════════ Từ styles/index.css (trang chủ) ═══════════ */
 
 /* ── Màn mở đầu ──────────────────────────────────────────────────────────
-   MỘT màn ảnh cưới tràn kín, mang HAI CỘT (.hero-grid), cả hai thấy được ngay
-   không phải cuộn:
-     · trái  — lời hứa + nút "Tạo thiệp với AI" + lối tạo thiệp thẳng;
-     · phải  — khung điện thoại mang ảnh mẫu thiệp thật (.hero-show), thứ trả
-       lời câu "web này bán gì" trong một giây.
-   Dưới lg hai cột xếp dọc và khung máy bị .hero-show cắt bớt.
-   Ba lớp theo z-index: .hero-bg (ảnh) → .hero-veil (phủ tối) → .hero-stage.
+   Dải nền kem (ĐÚNG nền của #templates, --surface-tint-rgb — đổi nền mục đó
+   thì đổi cả ở đây) mang MỘT thẻ bo góc, mép đáy cong lên ở giữa như màn chiếu.
+   Lớp trong thẻ theo z-index: ảnh ghép mẫu thiệp (.hero-card-media, zoom + trôi)
+   → phủ đen (.hero-card-veil) → ánh sáng (.hero-card-glow/-shine, .hero-spark)
+   → chữ trắng căn giữa (.hero-card-body).
+   Thẻ = một màn TRỪ một khoảng cố định để màn đầu còn thấy tiêu đề #templates
+   và ló ~80px mép thẻ mẫu đầu tiên: khoảng trừ = hàng logo/navbar + lề đáy dải
+   + tiêu đề #templates + phần ló — đổi một chỗ thì đo lại ở 390x844 và 1440x900.
+   Navbar trên (từ md) nổi trên dải — lề đỉnh của #hero chừa đúng 80px của nó
+   (12 + 64 + 4, xem .cx-navbar). */
 
-   Ảnh và lớp phủ trải HẾT hero — không có dải nền phẳng nào, nên độ đọc của
-   chữ do .hero-veil VÀ bóng chữ (.hero-head) cùng giữ: hạ lớp phủ thêm nữa thì
-   phải tăng bóng chữ theo, không thì mất chữ ở những ảnh nền sáng.
-
-   Mép nối với #templates (nền sáng) thì CẮT THẲNG — đó là chủ ý của kiểu này,
-   đừng thêm dải tan xuống nền trắng.
-
-   Navbar hiện ở MỌI vị trí cuộn (trang chủ không nạp js/nav-autohide.js), nên
-   CẢ HAI thanh đều nổi trên ảnh: navbar trên từ md, thanh tab dưới ở mobile.
-   .hero-stage tự chừa lề cho chúng — đừng bù bằng cách thu chiều cao #hero. */
-
+/* overflow-hidden: bóng đổ của .hero-frame lem xuống đỉnh #templates thành vệt
+   xám trên nền sáng. */
 #hero {
-  @apply relative flex flex-col overflow-hidden;
-  /* Lề đỉnh của .hero-stage; từ md phải chừa đủ 80px của .cx-navbar (12+64+4)
-     — đổi khổ navbar là phải đổi số ở media md/lg bên dưới. */
-  --cx-stage-pt: 24px;
-  /* --vh = px do core/helpers/vh-lock.js khoá sẵn, KHÔNG phải đơn vị khung
-     nhìn của CSS: Chrome di động ẩn thanh URL bằng cách resize webview nên
-     dvh/svh đều tính lại theo, hero phình dần lúc vuốt. `1svh` chỉ là dự phòng
-     cho lúc script chưa chạy. Đừng thêm dòng `100dvh`/`100svh` trần sau đây —
-     nó đè mất --vh. */
-  min-height: calc(var(--vh, 1vh) * 100);
-  min-height: calc(var(--vh, 1svh) * 100);
-  /* Nền dự phòng lúc chưa có ảnh (manifest rỗng / lỗi mạng) — khi đó hero là
-     một màn tối liền mạch chứ không phải khoảng trắng dưới chữ trắng. */
-  background: rgb(var(--landing-dark-rgb));
+  @apply relative flex flex-col items-center overflow-hidden;
+  isolation: isolate;
+  /* Lề đáy phải dài hơn tầm bóng của .hero-frame (8 + 16), không thì bóng
+     chạm đáy dải rồi bị overflow cắt thành một đường thẳng. */
+  padding: 8px 16px 28px;
+  background: rgb(var(--surface-tint-rgb));
   color: rgb(var(--white-rgb));
-}
-
-/* Ảnh nền — WebP do tab "Ảnh nền" của admin chụp ra, đường dẫn do
-   js/hero-background.js gán vào --hero-bg-url. Trải kín hero. */
-
-.hero-bg,
-.hero-veil {
-  @apply pointer-events-none absolute inset-0;
-}
-
-.hero-bg {
-  z-index: 0;
-  background-image: var(--hero-bg-url);
-  background-size: cover;
-  background-position: center center;
-  background-repeat: no-repeat;
-  opacity: 0;
-  transition: opacity 0.6s ease;
-}
-
-/* Chỉ hiện khi đã nạp được ảnh — tránh nháy một lớp trống lúc đang tải. */
-
-.hero-bg.is-on {
-  opacity: 1;
-}
-
-/* Phủ tối cả màn ảnh: đậm ở ĐỈNH (chữ trắng + navbar phải đọc được), nhạt nhất
-   ở khoảng giữa — khoảng để ngắm ảnh — rồi đậm dần xuống đáy. Cố ý để NHẸ tay
-   cho thấy rõ ảnh nền; phần độ đọc còn thiếu do bóng chữ bù (xem .hero-head).
-   Ảnh nền là ảnh khách tự thay, sáng tối gì cũng có — hạ tiếp mấy con số này
-   thì phải tăng bóng chữ theo. */
-
-.hero-veil {
-  z-index: 1;
-  background-image: linear-gradient(
-    to bottom,
-    rgb(var(--landing-dark-rgb) / 0.66) 0%,
-    rgb(var(--landing-dark-rgb) / 0.46) 24%,
-    rgb(var(--landing-dark-rgb) / 0.34) 50%,
-    rgb(var(--landing-dark-rgb) / 0.48) 78%,
-    rgb(var(--landing-dark-rgb) / 0.64) 100%
-  );
-}
-
-/* Lề ĐÁY 88px ở khổ hẹp = thanh tab dưới (.cx-tabbar ~64px kể cả lề) + thở. */
-
-.hero-stage {
-  @apply relative z-[2] mx-auto flex w-full flex-1 flex-col;
-  max-width: 1200px;
-  /* Lề ĐÁY ở khổ hẹp phải chừa CẢ thanh tab dưới (~64px kể cả lề) LẪN bong bóng
-     XuXi — nó neo ở bottom 88px, cao 52px (.aichat-fab ở styles/_ai-chat.css).
-     Cụm lối vào bị đẩy sát đáy nên thiếu chỗ này là bong bóng đè lên nút.
-     Đổi chỗ đứng của bong bóng thì đổi luôn số ở đây. */
-  padding: var(--cx-stage-pt) 20px 152px;
-}
-
-/* Hai cột. Dưới lg: một cột, chữ căn giữa, khung máy xuống cuối.
-   Từ lg: chữ bên trái căn trái, khung máy bên phải, cả hai căn giữa theo trục
-   dọc — cột chữ nuốt chỗ thừa nên khung máy giữ nguyên khổ. */
-.hero-grid {
-  @apply flex w-full flex-1 flex-col items-center justify-center;
-  gap: 18px;
 }
 
 .hero-anim {
@@ -326,334 +250,527 @@ html.cx-landing {
 .hero-anim-2 { animation-delay: 0.25s; }
 .hero-anim-3 { animation-delay: 0.4s; }
 .hero-anim-4 { animation-delay: 0.55s; }
-.hero-anim-5 { animation-delay: 0.7s; }
 
-/* Logo trần ở góc TRÁI của hero. `align-self` kéo riêng nó về trái, cụm chữ
-   .hero-head vẫn căn giữa.
-   CHỈ sống ở khổ hẹp: từ md navbar trên (luôn hiện) đã mang logo ở đúng góc
-   này, hai logo chồng góc là thừa — xem media md ở dưới. */
+/* Hàng đầu, CHỈ ở khổ hẹp (từ md navbar trên đã mang logo): logo trái, nút menu
+   phải. Nút menu cùng dáng thanh tab dưới (nền trắng, viền hồng nhạt) vì nó thay
+   chỗ thanh đó khi thanh còn ẩn. */
+.hero-top {
+  @apply flex w-full items-center justify-between;
+  margin: 0 0 12px;
+  padding-left: 4px;
+}
 
 .hero-badge {
-  @apply inline-flex shrink-0 items-center self-start;
+  @apply shrink-0;
+}
+
+.hero-menu-btn {
+  @apply flex shrink-0 items-center justify-center;
+  width: 44px;
   height: 44px;
-  margin-bottom: 24px;
-  filter: drop-shadow(0 2px 10px rgb(var(--landing-dark-rgb) / 0.55));
+  color: rgb(var(--text-heading-rgb));
+  background: rgb(var(--white-rgb));
+  border: 1px solid rgb(var(--brand-primary-rgb) / 0.45);
+  box-shadow: 0 4px 14px rgb(var(--scrim-rgb) / 0.08);
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.hero-menu-btn:active {
+  transform: scale(0.94);
+}
+
+/* x-popover đặt aria-expanded lên nút mở: đang mở thì ☰ đổi thành ✕. */
+.hero-menu-btn .hero-menu-ico-close,
+.hero-menu-btn[aria-expanded="true"] .hero-menu-ico-open {
+  display: none;
+}
+
+.hero-menu-btn[aria-expanded="true"] .hero-menu-ico-close {
+  display: block;
+}
+
+.hero-menu-btn:focus-visible {
+  outline: 2px solid rgb(var(--action-primary-rgb));
+  outline-offset: 3px;
+}
+
+/* Thanh tab dưới của trang chủ: ẩn (trượt khỏi đáy) khi hàng .hero-top còn trên
+   màn — cờ .cx-tabbar-off do js/hero-menu.js đặt/gỡ. */
+.cx-landing .cx-tabbar {
+  transition: transform 0.3s ease;
+}
+
+.cx-tabbar-off .cx-tabbar {
+  transform: translateY(calc(100% + 8px));
+}
+
+/* Logo desktop đứng trần (không nền) cạnh navbar cố định: cuộn rồi thì nó trôi
+   đè lên nội dung, nên mờ đi (cờ .cx-scrolled do js/hero-menu.js đặt), về đầu
+   trang mới hiện lại. Thẻ navbar vẫn ở nguyên. */
+.cx-landing .cx-navbrand {
+  transition: opacity 0.25s ease;
+}
+
+.cx-scrolled .cx-navbrand {
+  @apply pointer-events-none opacity-0;
 }
 
 .hero-badge img {
-  @apply h-full w-auto object-contain;
+  height: 40px;
 }
 
-/* Cột CHỮ. Bóng chữ: lớp phủ để nhẹ cho còn thấy ảnh nên chữ phải tự tách khỏi
-   nền. Nút AI có nền kính mờ riêng nên tự gỡ bóng này. */
-
-.hero-head {
-  @apply flex w-full flex-1 flex-col items-center justify-between text-center;
-  max-width: 620px;
-  text-shadow:
-    0 1px 3px rgb(var(--landing-dark-rgb) / 0.55),
-    0 2px 16px rgb(var(--landing-dark-rgb) / 0.75);
+/* Bóng đổ xám trung tính vẽ ở VỎ NGOÀI bằng drop-shadow: nó ôm theo đúng hình
+   sau mask của .hero-card (kể cả mép cong). Không viền màu — thẻ tách khỏi nền
+   kem chỉ nhờ bóng, cùng cách các thẻ ở mục bên dưới. */
+/* Khổ = ĐÚNG khổ thẻ navbar (.cx-navcard: max-w-6xl 1152px trừ lề lg:px-8 hai
+   bên), lề hai bên của #hero cũng theo lề navbar — thẻ và navbar thẳng mép. */
+.hero-frame {
+  @apply relative w-full;
+  max-width: 1088px;
+  filter: drop-shadow(0 8px 16px rgb(var(--scrim-rgb) / 0.14));
 }
 
-/* Hai cụm con của cột chữ. `align-items: inherit` để chúng ăn theo .hero-head
-   (căn giữa ở khổ hẹp, căn trái từ lg) — khỏi phải khai lại ở media query. */
-
-.hero-lede,
-.hero-act {
-  @apply flex w-full flex-col;
-  align-items: inherit;
+/* Mép đáy cong = mask SVG co giãn theo thẻ (preserveAspectRatio none) nên độ
+   cong luôn là 3% chiều cao thẻ; mask chỉ dùng kênh alpha. Chiều cao theo --vh
+   (core/helpers/vh-lock.js), đừng thêm dòng dvh/svh trần. */
+.hero-card {
+  @apply relative flex w-full items-center justify-center overflow-hidden;
+  min-height: clamp(400px, calc(var(--vh, 1vh) * 100 - 232px), 760px);
+  min-height: clamp(400px, calc(var(--vh, 1svh) * 100 - 232px), 760px);
+  border-radius: 20px;
+  background: rgb(var(--scrim-rgb));
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M0 0H100V100Q50 94 0 100Z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M0 0H100V100Q50 94 0 100Z'/%3E%3C/svg%3E");
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
 }
 
-/* Khe giữa hai cụm. Là margin của CẢ cụm dưới chứ không phải của riêng nút AI:
-   khi hai cụm bị đẩy ra hai đầu, khe này chỉ còn là mức tối thiểu. */
-
-.hero-act {
-  margin-top: 34px;
+/* Ảnh tràn 12% mỗi mép để còn chỗ zoom/trôi + parallax mà không lộ mép. Cộng
+   các biên độ (trôi tối đa 4% ảnh ≈ 5% thẻ + parallax 7% thẻ) phải nhỏ hơn
+   phần tràn này; phóng to thì chỉ làm ảnh lớn thêm nên không lộ mép. */
+.hero-card-media {
+  @apply absolute inset-0;
+  z-index: 0;
 }
 
-/* Lời hứa của sản phẩm — dòng LỚN NHẤT màn. Trước đây chỗ này là nhãn thương
-   hiệu cỡ 11px còn lời hứa nằm tận nửa dưới màn: khách được mời gõ trước khi
-   biết gõ để làm gì. Nhãn thương hiệu lùi vào .hero-eyebrow bên trong h1 để
-   thẻ h1 vẫn mang đủ từ khoá. */
+.hero-card-img {
+  @apply absolute object-cover;
+  inset: -12%;
+  width: 124%;
+  height: 124%;
+  max-width: none;
+  /* Dùng thuộc tính `scale`/`translate` riêng chứ không phải `transform`: vỏ
+     .hero-card-media đã giữ `transform` cho parallax. Nhịp mở màn (lùi zoom)
+     xong mới tới Ken Burns — nó khai sau nên đè nhịp đầu từ giây 1.6. */
+  animation:
+    cx-hero-zoom 1.6s ease-out both,
+    cx-hero-kenburns 32s ease-in-out 1.6s infinite;
+}
 
+@keyframes cx-hero-zoom {
+  from {
+    scale: 1.14;
+  }
+  to {
+    scale: 1;
+  }
+}
+
+/* Zoom vào, lướt sang trái rồi phải, lùi về — mốc cuối trùng mốc đầu nên vòng
+   lặp không giật. */
+@keyframes cx-hero-kenburns {
+  0%,
+  100% {
+    scale: 1;
+    translate: 0 0;
+  }
+  25% {
+    scale: 1.1;
+    translate: -4% -2%;
+  }
+  50% {
+    scale: 1.14;
+    translate: 3% -3%;
+  }
+  75% {
+    scale: 1.08;
+    translate: 4% 2%;
+  }
+}
+
+/* Parallax theo cuộn, thuần CSS (scroll-driven animation): trình duyệt chưa hỗ
+   trợ thì bỏ qua, ảnh vẫn trôi bình thường. */
+@supports (animation-timeline: scroll()) {
+  .hero-card-media {
+    animation: cx-hero-parallax linear both;
+    animation-timeline: scroll(root);
+    animation-range: 0 600px;
+  }
+}
+
+@keyframes cx-hero-parallax {
+  to {
+    transform: translateY(7%);
+  }
+}
+
+/* Phủ đen trong suốt cả ảnh + một quầng đậm hơn sau cụm chữ: ảnh ghép toàn
+   nền sáng và chữ in nhỏ, thiếu quầng này là chữ trắng lẫn vào chữ trong ảnh.
+   Đen chứ không nhuộm màu để ảnh mẫu giữ đúng tông gốc. */
+.hero-card-veil {
+  @apply pointer-events-none absolute inset-0;
+  z-index: 1;
+  background:
+    radial-gradient(
+      ellipse 60% 55% at 50% 50%,
+      rgb(var(--scrim-rgb) / 0.35) 0%,
+      rgb(var(--scrim-rgb) / 0) 100%
+    ),
+    rgb(var(--scrim-rgb) / 0.4);
+}
+
+/* Hai quầng sáng (vàng ấm góc trên trái, hồng góc dưới phải) trôi chậm ngược
+   chiều nhau như vệt nắng lọt vào ống kính. Nằm TRÊN lớp phủ đen để thật sự
+   làm sáng ảnh; chỉ là gradient + transform nên không tốn vẽ lại. */
+.hero-card-glow {
+  @apply pointer-events-none absolute inset-0 overflow-hidden;
+  z-index: 2;
+}
+
+.hero-card-glow::before,
+.hero-card-glow::after {
+  content: "";
+  @apply absolute rounded-full;
+  width: 70%;
+  aspect-ratio: 1;
+}
+
+.hero-card-glow::before {
+  top: -35%;
+  left: -20%;
+  background: radial-gradient(
+    circle,
+    rgb(var(--landing-cta-btn-to-rgb) / 0.32) 0%,
+    rgb(var(--landing-cta-btn-to-rgb) / 0) 65%
+  );
+  animation: cx-hero-glow-a 14s ease-in-out infinite alternate;
+}
+
+.hero-card-glow::after {
+  bottom: -40%;
+  right: -20%;
+  background: radial-gradient(
+    circle,
+    rgb(var(--brand-primary-rgb) / 0.3) 0%,
+    rgb(var(--brand-primary-rgb) / 0) 65%
+  );
+  animation: cx-hero-glow-b 18s ease-in-out infinite alternate;
+}
+
+@keyframes cx-hero-glow-a {
+  from {
+    transform: translate(0, 0);
+    opacity: 0.7;
+  }
+  to {
+    transform: translate(35%, 25%);
+    opacity: 1;
+  }
+}
+
+@keyframes cx-hero-glow-b {
+  from {
+    transform: translate(0, 0);
+    opacity: 1;
+  }
+  to {
+    transform: translate(-40%, -20%);
+    opacity: 0.6;
+  }
+}
+
+/* Vệt sáng chéo quét ngang thẻ mỗi ~8s. */
+.hero-card-shine {
+  @apply pointer-events-none absolute inset-y-0 left-0;
+  z-index: 3;
+  width: 50%;
+  background: linear-gradient(
+    105deg,
+    rgb(var(--white-rgb) / 0) 30%,
+    rgb(var(--white-rgb) / 0.16) 50%,
+    rgb(var(--white-rgb) / 0) 70%
+  );
+  transform: translateX(-100%);
+  animation: cx-hero-shine 8s ease-in-out 2s infinite;
+}
+
+@keyframes cx-hero-shine {
+  0% {
+    transform: translateX(-100%);
+  }
+  35%,
+  100% {
+    transform: translateX(220%);
+  }
+}
+
+/* Đốm lấp lánh: vị trí/nhịp mỗi đốm khai bằng biến inline ở index.html
+   (--x, --y, --d = độ trễ, --s = khổ). */
+.hero-spark {
+  @apply pointer-events-none absolute rounded-full;
+  z-index: 3;
+  left: var(--x);
+  top: var(--y);
+  width: var(--s, 4px);
+  height: var(--s, 4px);
+  background: rgb(var(--white-rgb));
+  box-shadow:
+    0 0 8px 2px rgb(var(--white-rgb) / 0.8),
+    0 0 20px 6px rgb(var(--landing-cta-btn-to-rgb) / 0.4);
+  opacity: 0;
+  animation: cx-hero-twinkle 4s ease-in-out var(--d, 0s) infinite;
+}
+
+@keyframes cx-hero-twinkle {
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Cột chữ căn giữa. Lề đáy lớn hơn lề đỉnh để bù phần mép cong. */
+.hero-card-body {
+  @apply relative flex flex-col items-center text-center font-inter;
+  z-index: 4;
+  max-width: 760px;
+  padding: 40px 16px 56px;
+  text-shadow: 0 2px 16px rgb(var(--scrim-rgb) / 0.5);
+}
+
+/* Tiêu đề là nhãn chữ in hoa giãn chữ (Inter), không phải câu Playfair lớn — ảnh
+   ghép phía sau đã đủ "nói", chữ chỉ cần gọi tên. Khổ hẹp tên thương hiệu xuống
+   dòng riêng; từ md đứng cùng dòng, ngăn bằng dấu chấm giữa. */
 .hero-title {
-  @apply font-playfair;
-  font-weight: 600;
-  font-size: clamp(30px, 5vw, 52px);
-  line-height: 1.16;
-  text-wrap: balance;
+  @apply font-inter;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
   color: rgb(var(--white-rgb));
 }
 
-.hero-eyebrow {
-  @apply block font-inter;
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.28em;
-  text-transform: uppercase;
-  color: rgb(var(--white-rgb) / 0.7);
-  margin-bottom: 18px;
+.hero-title-brand {
+  @apply block;
 }
 
 .hero-sub {
-  margin-top: 18px;
+  margin-top: 12px;
   max-width: 520px;
   font-size: 14px;
-  line-height: 1.75;
-  color: rgb(var(--white-rgb) / 0.78);
+  line-height: 1.6;
+  text-wrap: balance;
+  color: rgb(var(--white-rgb) / 0.9);
 }
 
-/* Nút "Tạo thiệp với AI" — lối vào chính của màn đầu. Nền sáng nổi hẳn trên
-   ảnh, tag "New" màu nhấn để kéo mắt. */
-.hero-ai {
-  @apply inline-flex items-center rounded-full;
+.hero-cta {
+  @apply flex flex-wrap items-center justify-center;
+  margin-top: 32px;
   text-shadow: none;
-  height: 56px;
-  padding: 0 20px 0 16px;
-  gap: 10px;
-  background: rgb(var(--surface-tint-rgb));
-  color: rgb(var(--text-heading-rgb));
-  box-shadow: 0 10px 30px rgb(var(--landing-dark-rgb) / 0.35);
-  transition: transform 0.25s ease;
 }
 
-.hero-ai:hover {
+.hero-btn {
+  @apply relative inline-flex items-center justify-center rounded-full;
+  height: 52px;
+  padding: 0 28px;
+  gap: 8px;
+  font-size: 19px;
+  font-weight: 700;
+  white-space: nowrap;
+  color: rgb(var(--white-rgb));
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.hero-btn:hover {
   transform: translateY(-2px);
 }
 
-/* Logo XuXi là ẢNH: cxIcon() đặt khổ bằng inline style (theo data-size) nên
-   dòng này chỉ giữ chỗ trước lúc icon.js kịp thay thẻ <i> — hai số phải khớp. */
-.hero-ai-ico {
-  @apply shrink-0;
-  width: 26px;
-  height: 26px;
+.hero-btn:active {
+  transform: translateY(0) scale(0.98);
 }
 
-.hero-ai-label {
-  font-size: 16px;
-  font-weight: 600;
-  white-space: nowrap;
+/* Kính tối viền trắng mảnh, logo XuXi bên trái, tag "New" gắn góc trên phải
+   (thò ra ngoài viền nên KHÔNG được overflow-hidden). */
+.hero-btn-ai {
+  padding-left: 16px;
+  background: rgb(var(--white-rgb) / 0.12);
+  border: 1px solid rgb(var(--white-rgb) / 0.35);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.hero-btn-ai:hover {
+  background: rgb(var(--white-rgb) / 0.2);
+  border-color: rgb(var(--white-rgb) / 0.6);
+}
+
+/* Giữ chỗ trước lúc icon.js thay thẻ <i> — khớp data-size. */
+.hero-ai-ico {
+  @apply shrink-0;
+  width: 24px;
+  height: 24px;
 }
 
 .hero-ai-new {
-  @apply shrink-0 rounded-full;
+  @apply absolute rounded-full;
+  top: -10px;
+  right: 16px;
   padding: 4px 8px;
   font-size: 10px;
   font-weight: 700;
   line-height: 1;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgb(var(--white-rgb));
-  background: rgb(var(--action-primary-rgb));
-}
-
-/* Chip neo xuống các mục dưới hero. Được xuống dòng: ba chip không vừa một
-   hàng ở máy 360px. Căn theo .hero-head (giữa ở khổ hẹp, trái từ lg). */
-.hero-chips {
-  @apply flex w-full flex-wrap justify-center;
-  gap: 8px;
-  margin-top: 18px;
-  text-shadow: none;
-}
-
-.hero-chip {
-  @apply rounded-full font-inter;
-  padding: 7px 14px;
-  font-size: 12px;
-  line-height: 1.2;
-  white-space: nowrap;
-  color: rgb(var(--white-rgb) / 0.88);
-  background: rgb(var(--white-rgb) / 0.12);
-  border: 1px solid rgb(var(--white-rgb) / 0.26);
-  backdrop-filter: blur(8px);
-  transition:
-    background 0.2s ease,
-    border-color 0.2s ease;
-}
-
-.hero-chip:hover {
-  background: rgb(var(--white-rgb) / 0.2);
-  border-color: rgb(var(--white-rgb) / 0.5);
-}
-
-.hero-note {
-  margin-top: 24px;
-  font-size: 12px;
-  line-height: 1.6;
-  color: rgb(var(--white-rgb) / 0.62);
-}
-
-.hero-note-link {
-  color: rgb(var(--white-rgb) / 0.92);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
-.hero-note-link:hover {
-  color: rgb(var(--white-rgb));
-}
-
-/* Cột SẢN PHẨM — CHỈ sống từ lg. Màn điện thoại đứng, cao mà hẹp: nhét thêm
-   khung máy vào là cụm chữ bị ép sát nhau, nên khổ hẹp bỏ hẳn cột này và để
-   mục "Mẫu thiệp" ngay dưới lo phần bày hàng. Ảnh của nó cũng KHÔNG tải ở khổ
-   hẹp — js/hero-showcase.js chỉ gán src khi media query khớp. */
-
-.hero-show {
-  display: none;
-}
-
-/* Thân máy = assets/images/iphone_mockup.svg (383×785, vùng màn TRONG SUỐT)
-   phủ LÊN ảnh thiệp. Tỉ lệ và bộ inset dưới đây lấy từ .cx-phone/.cx-phone-screen
-   ở styles/_setup.css — đổi ảnh khung thì phải sửa cả hai chỗ. */
-
-.hero-phone {
-  position: relative;
-  width: var(--cx-hero-ph-w, 216px);
-  height: calc(var(--cx-hero-ph-w, 216px) / 0.4879);
-  flex: none;
-}
-
-.hero-phone-frame {
-  @apply pointer-events-none absolute inset-0 h-full w-full;
-  z-index: 2;
-  filter: drop-shadow(0 22px 40px rgb(var(--landing-dark-rgb) / 0.55));
-}
-
-.hero-phone-screen {
-  @apply absolute overflow-hidden;
-  top: 1.53%;
-  left: 3.92%;
-  width: 92.17%;
-  height: 96.94%;
-  border-radius: 14.73% / 6.83%;
+  color: rgb(var(--action-primary-deep-rgb));
   background: rgb(var(--white-rgb));
+  box-shadow: 0 4px 12px rgb(var(--scrim-rgb) / 0.25);
+  animation: cx-hero-new-bob 2.4s ease-in-out infinite;
 }
 
-/* Các tấm chồng nhau, js/hero-showcase.js chỉ đổi cờ .is-on. */
-
-.hero-slide {
-  @apply absolute inset-0 h-full w-full object-cover;
-  opacity: 0;
-  transition: opacity 0.9s ease;
+@keyframes cx-hero-new-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
 }
 
-.hero-slide.is-on {
-  opacity: 1;
-}
-
-.hero-ai:focus-visible,
-.hero-chip:focus-visible,
-.hero-note-link:focus-visible,
-.hero-badge:focus-visible {
+.hero-btn:focus-visible {
   outline: 2px solid rgb(var(--white-rgb));
   outline-offset: 4px;
 }
-@media (min-width: 768px) {
+
+.hero-badge:focus-visible {
+  outline: 2px solid rgb(var(--action-primary-rgb));
+  outline-offset: 4px;
+}
+
+/* Máy hẹp: nút thu về viên viền mảnh thấp, chữ nhỏ — khối 52px chữ 19px là thứ
+   nặng nhất màn, lấn cả tiêu đề. Nền phủ tối nên chữ 15px vẫn đủ tương phản. */
+@media (max-width: 419px) {
+  .hero-btn-ai {
+    height: 40px;
+    padding: 0 20px 0 12px;
+    gap: 6px;
+    font-size: 15px;
+    font-weight: 600;
+    background: rgb(var(--white-rgb) / 0.08);
+  }
+  .hero-btn-ai .hero-ai-ico {
+    width: 20px;
+    height: 20px;
+  }
+  .hero-ai-new {
+    top: -8px;
+    right: -10px;
+    padding: 3px 6px;
+    font-size: 9px;
+  }
+}
+
+@media (min-width: 640px) {
   #hero {
-    --cx-stage-pt: 96px;
+    padding-left: 24px;
+    padding-right: 24px;
   }
-  /* Từ md thanh tab dưới biến mất và bong bóng XuXi về bottom 24px — vẫn phải
-     chừa đủ 24 + 52 + thở cho cụm lối vào đang bị đẩy sát đáy. */
-  .hero-stage {
-    padding: var(--cx-stage-pt) 32px 88px;
+}
+
+@media (min-width: 768px) {
+  /* Lề đỉnh = 80px của .cx-navbar + 16px thở. */
+  #hero {
+    padding-top: 96px;
+    padding-bottom: 40px;
   }
-  /* Từ md navbar trên đã mang logo ở góc trái — bỏ logo trong hero. */
-  .hero-badge {
+  .hero-card {
+    min-height: clamp(460px, calc(var(--vh, 1vh) * 100 - 280px), 800px);
+    min-height: clamp(460px, calc(var(--vh, 1svh) * 100 - 280px), 800px);
+  }
+  .hero-top {
     display: none;
   }
-  .hero-note {
-    font-size: 13px;
+  .hero-card {
+    border-radius: 24px;
   }
-}
-
-/* Từ lg mới chia hai cột: hẹp hơn thì cột chữ bị ép xuống dưới 420px, câu tiêu
-   đề vỡ dòng xấu mà khung máy cũng không còn đủ chỗ. */
-
-@media (min-width: 1024px) {
-  .hero-stage {
-    padding: var(--cx-stage-pt) 40px 48px;
+  /* Thẻ desktop rộng gấp 3 điện thoại — đốm cỡ mobile nhìn như bụi màn hình. */
+  .hero-spark {
+    width: calc(var(--s, 4px) * 1.75);
+    height: calc(var(--s, 4px) * 1.75);
   }
-  /* Bố cục hai cột: chữ dồn về TRÁI nên thêm một lớp phủ ngang đậm phía đó,
-     giữ nửa phải sáng cho ảnh và khung máy. Lớp dọc vẫn nằm dưới, hai lớp cộng
-     lại — sửa số ở đây thì soi lại cả hai. */
-  .hero-veil {
-    background-image:
-      linear-gradient(
-        to right,
-        rgb(var(--landing-dark-rgb) / 0.5) 0%,
-        rgb(var(--landing-dark-rgb) / 0.32) 42%,
-        rgb(var(--landing-dark-rgb) / 0) 66%
-      ),
-      linear-gradient(
-        to bottom,
-        rgb(var(--landing-dark-rgb) / 0.6) 0%,
-        rgb(var(--landing-dark-rgb) / 0.3) 30%,
-        rgb(var(--landing-dark-rgb) / 0.3) 70%,
-        rgb(var(--landing-dark-rgb) / 0.55) 100%
-      );
-  }
-  .hero-grid {
-    @apply flex-row items-center justify-between;
-    gap: 48px;
-  }
-  .hero-head {
-    @apply items-start justify-center text-left;
-    flex: 1 1 auto;
-    max-width: 600px;
-  }
-  .hero-sub {
-    font-size: 15px;
-  }
-  .hero-chips {
-    justify-content: flex-start;
-  }
-  .hero-act {
-    margin-top: 40px;
-  }
-  /* Từ đây mới có chỗ cho khung máy. */
-  .hero-show {
-    @apply flex items-center justify-center;
-    flex: none;
-  }
-  .hero-phone {
-    --cx-hero-ph-w: clamp(230px, 22vw, 300px);
-  }
-}
-
-/* MÀN THẤP (laptop 13 inch, điện thoại nhỏ, máy xoay ngang): hai cụm dồn sát
-   nhau — kéo mốc chia lên một nhịp cho đoạn mô tả đủ chỗ, rồi thu cỡ chữ và các
-   khe lại. Nhắm theo CHIỀU CAO nên phải đặt SAU mọi media theo bề ngang, nếu
-   không các con số của chúng đè lại. */
-
-@media (max-height: 780px) {
-  .hero-act {
-    margin-top: 26px;
-  }
-  .hero-ai {
-    height: 52px;
-  }
-  .hero-note {
-    margin-top: 18px;
-  }
-  .hero-title {
-    font-size: clamp(26px, 3.8vw, 40px);
+  .hero-card-body {
+    padding: 56px 40px 72px;
   }
   .hero-sub {
     margin-top: 16px;
-    font-size: 13px;
-    line-height: 1.7;
+    font-size: 16px;
   }
-  .hero-phone {
-    --cx-hero-ph-w: clamp(200px, 19vw, 250px);
+  .hero-title {
+    font-size: 22px;
+  }
+  .hero-title-brand {
+    display: inline;
+  }
+  .hero-title-brand::before {
+    content: " · ";
+  }
+  .hero-cta {
+    margin-top: 40px;
   }
 }
 
-/* Máy vừa NGẮN vừa HẸP (360x640 và họ hàng): thu nốt lề đỉnh để hero không
-   cao hơn khung nhìn. Phải đứng SAU khối max-height ở trên. */
+/* Màn THẤP (laptop 13 inch, máy xoay ngang): thu các khe cho cụm chữ vừa thẻ.
+   Hai cờ .cx-short/.cx-shorter do core/helpers/vh-lock.js đặt theo chiều cao ĐÃ
+   KHOÁ — đừng đổi lại thành `@media (max-height)`: media tính theo khung thật,
+   vuốt ẩn thanh URL là vượt mốc, thẻ và chữ nhảy khổ giữa lúc cuộn. */
+.cx-short .hero-sub {
+  margin-top: 10px;
+}
+.cx-short .hero-cta {
+  margin-top: 24px;
+}
 
-@media (max-height: 780px) and (max-width: 767px) {
-  #hero {
-    --cx-stage-pt: 16px;
+/* Điện thoại màn THẤP (iPhone SE 375x667, 360x640): thu các khe cho cụm chữ vừa
+   thẻ. Đứng SAU khối .cx-short (cùng độ đặc hiệu, khe nào trùng thì khối này thắng). */
+@media (max-width: 767px) {
+  .cx-shorter .hero-badge img {
+    height: 32px;
+  }
+  .cx-shorter .hero-card-body {
+    padding: 24px 16px 36px;
+  }
+  .cx-shorter .hero-title {
+    font-size: 16px;
+  }
+  .cx-shorter .hero-sub {
+    margin-top: 8px;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  .cx-shorter .hero-cta {
+    margin-top: 20px;
   }
 }
 
@@ -662,9 +779,127 @@ html.cx-landing {
     animation: none;
     opacity: 1;
   }
-  .hero-ai {
+  .hero-card-img,
+  .hero-card-media,
+  .hero-ai-new,
+  .hero-card-glow::before,
+  .hero-card-glow::after {
+    animation: none;
+  }
+  .hero-card-shine,
+  .hero-spark {
+    display: none;
+  }
+  .cx-landing .cx-tabbar,
+  .hero-menu-btn {
     transition: none;
   }
+  .hero-btn {
+    transition: none;
+  }
+}
+
+/* Nút "Tạo thiệp với AI" của hero còn trên màn thì giấu bong bóng XuXi (cờ do
+   js/hero-fab.js đặt): hai lối vào cùng một khung chat, mà bong bóng còn đè lên
+   thẻ mẫu đang ló ra dưới hero. */
+.cx-hero-ai-on .aichat-fab {
+  @apply pointer-events-none opacity-0;
+  transform: scale(0.8);
+}
+
+/* ── Màn "Khách mời" (guest-list/) ──────────────────────────────────────────
+   Lưới thẻ ngang: ảnh bìa vuông · tên cô dâu chú rể + link · mũi tên. Cả thẻ là
+   MỘT liên kết sang trang quản lý khách mời. Khung xương dùng chung .gl-card. */
+.gl-grid {
+  @apply grid gap-3 sm:grid-cols-2 lg:grid-cols-3;
+}
+
+/* min-w-0: ô lưới mặc định không co nhỏ hơn nội dung — tên/slug dài (đang
+   `truncate`, tức nowrap) sẽ đẩy thẻ tràn ngang cả trang trên điện thoại. */
+.gl-card {
+  @apply flex min-w-0 items-center gap-4 rounded-3xl bg-white p-3;
+  border: 1px solid rgb(var(--brand-primary-rgb) / 0.35);
+  box-shadow: 0 4px 18px rgb(var(--scrim-rgb) / 0.05);
+}
+
+.gl-card-link {
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.gl-card-link:hover {
+  transform: translateY(-2px);
+  border-color: rgb(var(--brand-primary-rgb));
+  box-shadow: 0 10px 28px rgb(var(--shadow-brand-rgb) / 0.16);
+}
+
+.gl-card-link:focus-visible {
+  outline: 2px solid rgb(var(--action-primary-rgb));
+  outline-offset: 3px;
+}
+
+/* Ô ảnh mang sẵn icon dự phòng ở giữa; <img> phủ kín đè lên (guest-list/index.js
+   tự gỡ ảnh tải hỏng) nên không bao giờ lộ icon vỡ. */
+.gl-thumb {
+  @apply relative flex shrink-0 items-center justify-center overflow-hidden rounded-2xl;
+  width: 72px;
+  height: 72px;
+  color: rgb(var(--brand-primary-rgb));
+  background: rgb(var(--surface-brand-rgb));
+}
+
+.gl-thumb img {
+  @apply absolute inset-0 h-full w-full object-cover;
+}
+
+.gl-names {
+  @apply truncate font-playfair;
+  font-size: 17px;
+  font-weight: 600;
+  color: rgb(var(--text-heading-rgb));
+}
+
+.gl-slug {
+  @apply mt-0.5 truncate;
+  font-size: 12px;
+  color: rgb(var(--text-tertiary-rgb));
+}
+
+.gl-badge {
+  @apply mt-1.5 inline-flex rounded-full;
+  padding: 2px 8px;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.gl-badge-trial {
+  color: rgb(var(--state-warning-text-rgb));
+  background: rgb(var(--state-warning-bg-rgb));
+}
+
+.gl-badge-expired {
+  color: rgb(var(--state-error-text-rgb));
+  background: rgb(var(--state-error-bg-rgb));
+}
+
+/* Cụm icon cuối thẻ: người + mũi tên — nói rõ "bấm để vào danh sách khách". */
+.gl-go {
+  @apply flex shrink-0 items-center gap-0.5 rounded-full;
+  padding: 8px 8px 8px 10px;
+  color: rgb(var(--action-primary-rgb));
+  background: rgb(var(--surface-brand-rgb));
+}
+
+.gl-state {
+  @apply py-12 text-center;
+}
+
+.gl-state-ico {
+  @apply mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full;
+  color: rgb(var(--brand-accent-rgb));
+  background: rgb(var(--surface-brand-rgb));
 }
 
 /* ══ SƠ ĐỒ TÍNH NĂNG (#inside) ═════════════════════════════════════════════
@@ -1267,6 +1502,13 @@ html.cx-landing {
 
 .cx-tplrow::-webkit-scrollbar {
   display: none;
+}
+
+@media (min-width: 1024px) {
+  #hero {
+    padding-left: 32px;
+    padding-right: 32px;
+  }
 }
 
 @media (min-width: 1024px) {

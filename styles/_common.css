@@ -1392,6 +1392,29 @@ x-button {
   margin-left: 32px;
 }
 
+/* brand: "outside" (core/components/navbar.js): logo đứng TRẦN (không nền/viền)
+   bên trái, cao bằng .cx-navcard để hai khối thẳng hàng; thẻ navbar giãn phần
+   còn lại và chỉ mang dãy mục — nên dãy mục bỏ lề trái vốn chừa cho logo. */
+.cx-navrow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cx-navbrand {
+  height: 64px;
+  padding-right: 8px;
+}
+
+.cx-navcard-solo {
+  flex: 1;
+  min-width: 0;
+}
+
+.cx-navcard-solo .cx-navlinks {
+  margin-left: 0;
+}
+
 .cx-navactions {
   display: flex;
   align-items: center;
@@ -1480,6 +1503,12 @@ x-button {
 
 .cx-navlink:hover {
   opacity: 0.7;
+}
+
+/* Mục navbar `login: true` khi chưa đăng nhập (core/components/navbar.js). Phải
+   !important: .cx-navlink/.cx-tab tự khai display nên class `hidden` thua. */
+.cx-nav-off {
+  display: none !important;
 }
 
 .cx-navlink.is-on {

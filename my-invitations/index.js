@@ -244,7 +244,7 @@ async function _uploadLocalDraft({ id, data }) {
   const focal = { gallery_images: {} };
   const up = async (field, file) => {
     try {
-      return await imageBL.uploadSingleImage(id, field, file);
+      return await imageBL.uploadSingleImage(created?.storage_key, field, file);
     } catch (e) {
       console.error("merge upload:", field, e);
       failed++;

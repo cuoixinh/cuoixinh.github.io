@@ -1,0 +1,98 @@
+<!-- Tab Content: Dọn dữ liệu (logic ở js/10-cleanup.js, server ở wedding-admin/cleanup.ts) -->
+<div id="content-cleanup" class="hidden space-y-4">
+  <div class="bg-white rounded-2xl shadow-lg p-3 sm:p-4 md:p-6">
+    <h2 class="text-base sm:text-lg font-semibold text-gray-800">Dọn dữ liệu</h2>
+    <p class="text-xs text-gray-500 mt-1">
+      Mọi mục đều <strong>Quét</strong> trước (chỉ đọc), chọn rồi mới xoá. Lúc bấm xoá, server quét lại
+      và chỉ đụng tới mục <strong>vẫn</strong> còn khớp điều kiện. Xoá là xoá hẳn, không hoàn tác được.
+    </p>
+    <p class="text-xs text-gray-400 mt-1">
+      Môi trường đang chọn: <strong id="cl-env" class="text-gray-700"></strong>
+    </p>
+  </div>
+
+  <!-- 1. Thiệp quá hạn -->
+  <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+    <div class="p-3 sm:p-4 md:p-6 border-b border-gray-100">
+      <h3 class="font-semibold text-gray-800">Thiệp quá hạn giữ</h3>
+      <p class="text-xs text-gray-500 mt-1">
+        Đúng luật của cron <code>cleanup-weddings</code> — dùng khi cron hỏng. Chưa thanh toán: quá hạn dùng
+        thử thêm N ngày. Nháp: không lưu N ngày. Thiệp đã thanh toán không bao giờ nằm trong danh sách.
+        Xoá kèm toàn bộ ảnh và khách mời.
+      </p>
+    </div>
+    <div class="p-3 sm:p-4 md:p-6 space-y-3">
+      <div class="flex flex-wrap items-end gap-3">
+        <div>
+          <label class="block text-xs font-medium text-gray-600 mb-1">Số ngày</label>
+          <input id="cl-days" type="number" min="1"
+            class="w-24 px-3 py-2 rounded-lg border border-gray-200 text-sm outline-none focus:border-emerald-400" />
+        </div>
+        <x-button id="cl-wed-scan" variant="outline" onclick="clScanWeddings()" icon="search">Quét</x-button>
+        <x-button id="cl-wed-delete" tone="danger" onclick="clDeleteWeddings()" icon="trash-2" disabled>Xoá đã chọn</x-button>
+      </div>
+      <p id="cl-wed-summary" class="text-xs text-gray-500"></p>
+      <div id="cl-wed-list" class="overflow-x-auto"></div>
+    </div>
+  </div>
+
+  <!-- 2. Ảnh rác -->
+  <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+    <div class="p-3 sm:p-4 md:p-6 border-b border-gray-100">
+      <h3 class="font-semibold text-gray-800">Ảnh rác trong Storage</h3>
+      <p class="text-xs text-gray-500 mt-1">
+        File không hàng nào trỏ tới: thư mục của thiệp đã xoá, ảnh bị thay trong thiệp còn sống, file cũ
+        nằm ngoài <code>w/</code>. Chỉ tính file cũ hơn thời gian ân hạn — ảnh vừa tải lên mà khách chưa
+        kịp lưu thiệp cũng chưa có hàng nào trỏ tới.
+      </p>
+    </div>
+    <div class="p-3 sm:p-4 md:p-6 space-y-3">
+      <div class="flex flex-wrap items-end gap-3">
+        <div>
+          <label class="block text-xs font-medium text-gray-600 mb-1">Ân hạn (giờ)</label>
+          <input id="cl-grace" type="number" min="1" value="48"
+            class="w-24 px-3 py-2 rounded-lg border border-gray-200 text-sm outline-none focus:border-emerald-400" />
+        </div>
+        <x-button id="cl-img-scan" variant="outline" onclick="clScanImages()" icon="search">Quét</x-button>
+        <x-button id="cl-img-delete" tone="danger" onclick="clDeleteImages()" icon="trash-2" disabled>Xoá đã chọn</x-button>
+      </div>
+      <p id="cl-img-summary" class="text-xs text-gray-500"></p>
+      <div id="cl-img-list" class="space-y-4"></div>
+    </div>
+  </div>
+
+  <!-- 3. Tham chiếu ảnh hỏng -->
+  <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+    <div class="p-3 sm:p-4 md:p-6 border-b border-gray-100">
+      <h3 class="font-semibold text-gray-800">Tham chiếu ảnh hỏng</h3>
+      <p class="text-xs text-gray-500 mt-1">
+        Thiệp đang trỏ tới file không còn trong Storage (ảnh vỡ). "Gỡ" đặt ô ảnh về trống, rút ảnh khỏi
+        album, mốc chuyện tình giữ nguyên chỉ bỏ ảnh. URL ngoài hệ thống không xét. Gỡ là một lần lưu
+        thiệp nên mốc dọn nháp tính lại từ hôm nay.
+      </p>
+    </div>
+    <div class="p-3 sm:p-4 md:p-6 space-y-3">
+      <div class="flex flex-wrap items-end gap-3">
+        <x-button id="cl-brk-scan" variant="outline" onclick="clScanBroken()" icon="search">Quét</x-button>
+        <x-button id="cl-brk-fix" tone="danger" onclick="clFixBroken()" icon="unlink" disabled>Gỡ đã chọn</x-button>
+      </div>
+      <p id="cl-brk-summary" class="text-xs text-gray-500"></p>
+      <div id="cl-brk-list" class="overflow-x-auto"></div>
+    </div>
+  </div>
+
+  <!-- 4. Bảng tiền — chỉ báo cáo -->
+  <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+    <div class="p-3 sm:p-4 md:p-6 border-b border-gray-100">
+      <h3 class="font-semibold text-gray-800">Bảng thanh toán (chỉ báo cáo)</h3>
+      <p class="text-xs text-gray-500 mt-1">
+        <code>payment_logs</code>, <code>promo_redemptions</code>, <code>orders</code> cố ý không xoá theo
+        thiệp để giữ lịch sử tiền bạc — ở đây chỉ đếm hàng trỏ tới thiệp không còn.
+      </p>
+    </div>
+    <div class="p-3 sm:p-4 md:p-6 space-y-3">
+      <x-button id="cl-tbl-scan" variant="outline" onclick="clScanTables()" icon="search">Quét</x-button>
+      <div id="cl-tbl-result" class="text-sm text-gray-700"></div>
+    </div>
+  </div>
+</div>

@@ -20,6 +20,8 @@ function _onDomReady(fn) {
 
 // Wedding data cache
 let WEDDING_SLUG = "";
+// Thư mục ảnh của thiệp trong Storage (w/<key>/) — server trả khi tạo/nạp thiệp.
+let WEDDING_STORAGE_KEY = "";
 let WEDDING_THEME = "basic-gold";
 let _currentMusicUrl = "";
 

@@ -45,6 +45,7 @@ const INCLUDE = [
   "checkout/",
   "theme-template/",
   "my-invitations/",
+  "guest-list/",
   "invitation-setup/",
   "policy/",
   // Mã dùng chung + JS của landing

@@ -6,10 +6,15 @@
 //
 // tabbar: false → chỉ dựng thanh trên. Dùng cho luồng MỘT CHIỀU (thanh toán):
 // dải đáy ở đó dành cho nút hành động, để thêm tab là mời khách rời luồng.
+// brand: "outside" → logo + tên đứng thành khối RIÊNG bên trái thanh trên, thẻ
+// navbar chỉ còn dãy mục (trang chủ dùng; mục "Trang chủ" khi đó nên hiện ở cả
+// thanh trên — bỏ `only: "tab"`).
 //
-// Mục: { id, label, icon, href | onClick, count, only: "top"|"tab" }
+// Mục: { id, label, icon, href | onClick, count, only: "top"|"tab", login }
 //   href → thẻ <a>, không có href → <button> (dùng onClick).
 //   count → kèm ô số đếm (ẩn sẵn); only → chỉ hiện ở một trong hai thanh.
+//   login: true → chỉ hiện khi đã đăng nhập (ẩn sẵn, bật theo CXAuth khi trang nạp
+//   xong — core/auth.js nạp SAU navbar ở mọi trang nên không hỏi được lúc mount).
 // Hành động bên phải thanh trên: { label, onClick, id, icon, class, variant };
 // cần thứ khác nút (menu tài khoản…) thì truyền `actionsHTML` — HTML thô, chèn
 // sau các nút.
@@ -29,6 +34,8 @@ const CXNavbar = (function () {
     heart:
       '<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>',
     user: '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="10" r="3"/><path d="M7 20.7a8 8 0 0 1 10 0"/>',
+    users:
+      '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
     star: '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
     list: '<path d="M10 6h11"/><path d="M10 12h11"/><path d="M10 18h11"/><path d="M4 6h1v4"/><path d="M4 10h2"/><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"/>',
   };
@@ -54,7 +61,10 @@ const CXNavbar = (function () {
   function itemHTML(it, active, mode) {
     if (it.only && it.only !== mode) return "";
     const isTab = mode === "tab";
-    const cls = (isTab ? "cx-tab" : "cx-navlink") + (it.id === active ? " is-on" : "");
+    const cls =
+      (isTab ? "cx-tab" : "cx-navlink") +
+      (it.id === active ? " is-on" : "") +
+      (it.login ? " cx-nav-off" : "");
     const tag = it.href ? "a" : "button";
     const link = it.href ? `href="${it.href}"` : 'type="button"';
     const click = it.onClick ? ` onclick="${it.onClick}"` : "";
@@ -62,7 +72,7 @@ const CXNavbar = (function () {
       ? `<span class="${isTab ? "cx-tab-count" : "cx-navcount"} hidden" data-nav-count="${it.id}">0</span>`
       : "";
     return (
-      `<${tag} class="${cls}" data-nav="${it.id}" ${link}${click}>` +
+      `<${tag} class="${cls}" data-nav="${it.id}"${it.login ? " data-nav-login" : ""} ${link}${click}>` +
       svg(it.icon, isTab ? 20 : 15) +
       `<span data-nav-label="${it.id}">${it.label}</span>${badge}</${tag}>`
     );
@@ -91,19 +101,25 @@ const CXNavbar = (function () {
     const items = cfg.items || [];
     const width = WIDTH[cfg.width] || WIDTH["7xl"];
 
+    const outside = cfg.brand === "outside";
+    const logo =
+      `<a href="/" class="cx-logo shrink-0${outside ? " cx-navbrand" : ""}" aria-label="Cưới Xinh">` +
+      `<img src="/assets/icons/logo.png" alt="" />` +
+      `${LOGO_TEXT}</a>`;
+
     const top =
       `<nav id="main-nav" class="cx-navbar hidden md:block">` +
-      `<div class="${width} mx-auto px-4 sm:px-6 lg:px-8">` +
-      `<div class="cx-navcard">` +
-      `<a href="/" class="cx-logo shrink-0" aria-label="Cưới Xinh">` +
-      `<img src="/assets/icons/logo.png" alt="" />` +
-      `${LOGO_TEXT}</a>` +
+      `<div class="${width} mx-auto px-4 sm:px-6 lg:px-8${outside ? " cx-navrow" : ""}">` +
+      (outside ? logo : "") +
+      `<div class="cx-navcard${outside ? " cx-navcard-solo" : ""}">` +
+      (outside ? "" : logo) +
       `<nav class="cx-navlinks">${items.map((i) => itemHTML(i, cfg.active, "top")).join("")}</nav>` +
       `<div class="cx-navactions">${(cfg.actions || []).map(actionHTML).join("")}` +
       `${cfg.actionsHTML || ""}</div>` +
       `</div></div></nav>`;
 
     document.body.insertAdjacentHTML("afterbegin", top);
+    if (items.some((i) => i.login)) _bindLoginItems();
 
     if (cfg.tabbar === false) return;
     const bar =
@@ -111,6 +127,28 @@ const CXNavbar = (function () {
       items.map((i) => itemHTML(i, cfg.active, "tab")).join("") +
       `</div></nav>`;
     document.body.insertAdjacentHTML("beforeend", bar);
+  }
+
+  // Mục `login: true` hiện/ẩn theo phiên. Chạy khi DOM xong (lúc đó mọi script
+  // đồng bộ, kể cả core/auth.js, đã chạy) rồi bám onChange cho đăng nhập/xuất sau.
+  function syncLoginItems() {
+    const on = !!window.CXAuth?.isLoggedIn?.();
+    document.querySelectorAll("[data-nav-login]").forEach((el) => {
+      el.classList.toggle("cx-nav-off", !on);
+    });
+  }
+
+  let _loginBound = false;
+  function _bindLoginItems() {
+    if (_loginBound) return;
+    _loginBound = true;
+    const start = () => {
+      syncLoginItems();
+      window.CXAuth?.onChange?.(syncLoginItems);
+    };
+    if (document.readyState === "loading")
+      document.addEventListener("DOMContentLoaded", start, { once: true });
+    else start();
   }
 
   /** Đổi mục đang mở ở CẢ HAI thanh. */
@@ -135,7 +173,7 @@ const CXNavbar = (function () {
     });
   }
 
-  return { ICONS, mount, setActive, setCount, setLabel };
+  return { ICONS, mount, setActive, setCount, setLabel, syncLoginItems };
 })();
 
 window.CXNavbar = CXNavbar;

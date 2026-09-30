@@ -14,6 +14,9 @@ create table if not exists public.weddings (
   user_id  uuid references auth.users(id) on delete set null,
   is_active boolean default true,
   slug     text unique not null,
+  -- Thư mục ảnh của thiệp trong bucket: w/<storage_key>/…. Ngẫu nhiên và tách
+  -- khỏi `id` vì đường dẫn ảnh là công khai (id vẫn còn dùng để nhận chủ thiệp).
+  storage_key text not null default replace(gen_random_uuid()::text, '-', ''),
 
   -- Thông tin chung
   groom_name      text,
@@ -126,7 +129,9 @@ alter table public.weddings
   add column if not exists expires_at timestamptz,
   add column if not exists share_message_template text,
   add column if not exists enable_wishes boolean default true,
-  add column if not exists updated_at timestamptz;
+  add column if not exists updated_at timestamptz,
+  -- Default VOLATILE nên Postgres tính lại cho TỪNG hàng cũ, không dùng chung một giá trị.
+  add column if not exists storage_key text not null default replace(gen_random_uuid()::text, '-', '');
 
 -- Hàng cũ chưa có `updated_at` thì lấy tạm ngày tạo. Phải backfill TRƯỚC khi đặt
 -- default: từ PG11, `add column … default now()` điền now() cho mọi hàng cũ →
@@ -158,6 +163,7 @@ comment on column public.weddings.payment_order_id is 'Mã đơn PayOS (duy nh�
 comment on column public.weddings.transaction_id   is 'Mã giao dịch ngân hàng do PayOS trả về';
 comment on column public.weddings.is_published is 'true = thiệp đã xuất bản, khách mời mở được';
 comment on column public.weddings.expires_at   is 'Hạn dùng thử của thiệp đã xuất bản. Null = đã kích hoạt vĩnh viễn hoặc chưa xuất bản';
+comment on column public.weddings.storage_key  is 'Thư mục ảnh trong bucket wedding-images (w/<storage_key>/). Do DB sinh, không ai sửa được qua API';
 comment on column public.weddings.updated_at   is 'Lần ghi gần nhất (trigger tự đặt). Nháp quá hạn không đụng tới sẽ bị dọn tự động';
 comment on column public.weddings.timeline     is 'Lịch trình ngày cưới: [{"time":"08:00","title":"Đón dâu","description":"…"}]';
 comment on column public.weddings.love_story   is 'Câu chuyện tình yêu: [{"date":"12/2019","title":"…","content":"…","image_url":"…"}]';
@@ -282,6 +288,7 @@ create index if not exists idx_weddings_transaction_id   on public.weddings(tran
 create index if not exists idx_weddings_payment_status   on public.weddings(payment_status);
 create index if not exists idx_weddings_is_published     on public.weddings(is_published);
 create index if not exists idx_weddings_expires_at       on public.weddings(expires_at);
+create unique index if not exists idx_weddings_storage_key on public.weddings(storage_key);
 
 -- Hai index phục vụ cron dọn dẹp. Partial nên rất nhỏ: chỉ chứa đúng nhóm hàng
 -- có khả năng bị dọn.

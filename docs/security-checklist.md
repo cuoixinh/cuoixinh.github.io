@@ -207,7 +207,13 @@ Rà bằng cách đọc mã ngày **2026-09-15**, trừ dòng ghi rõ nguồn kh
 
 ### Kho ảnh (Storage)
 
-- [x] Tên file **không** chứa `wedding_id` — `core/bl/image-bl.js`. Audit 2026-09-10 #2.
+- [x] Tên file **không** chứa `wedding_id` — thư mục là `w/<storage_key>/`, mã ngẫu nhiên riêng
+      (`core/bl/image-bl.js`). Audit 2026-09-10 #2.
+- [x] PATCH `wedding-admin` chỉ nhận ảnh MỚI nằm trong thư mục của chính thiệp, `deleted_images`
+      chỉ xoá ảnh hàng đang trỏ tới trong thư mục đó — trước đây chép tên file thiệp khác (thấy
+      công khai) vào album rồi gửi `deleted_images` là xoá được ảnh của người ta.
+- [x] Tab "Dọn dữ liệu" (`wedding-admin` `resource=cleanup`) cần mã admin; mọi lệnh xoá quét lại
+      ở server, truy vấn kiểm hỏng là dừng (fail-closed). Bảng tiền chỉ báo cáo, không xoá.
 - [x] Policy `storage.objects`: chỉ `insert` + `select` bó theo `owner_id` cho
       `authenticated`; không cấp `delete`/`update` cho ai —
       `changelogs/RC01/manual/dqvinh_001_storage_policies.sql`. Giữ `select` là BẮT BUỘC

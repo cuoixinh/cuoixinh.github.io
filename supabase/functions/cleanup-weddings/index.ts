@@ -12,22 +12,17 @@
 
 import { createDbClient } from '../_shared/db-client.ts'
 import { withAxiom } from '../_shared/axiom.ts'
-import { WEDDING_IMAGE_SELECT, weddingFileNames } from '../_shared/wedding-images.ts'
+import { weddingFileNames } from '../_shared/wedding-images.ts'
+import { findExpiredWeddings, deleteWeddingHard } from '../_shared/wedding-cleanup.ts'
 
 // Số ngày giữ. Phải khớp CONFIG.retention ở core/config.js — hai nơi, đổi một bên
 // là web nói một đằng hệ thống làm một nẻo.
 const RETENTION_DAYS = Number(Deno.env.get('RETENTION_DAYS') ?? '30')
 
 // Trần cho MỖI NHÓM (chưa thanh toán / nháp) trong một lần chạy: net.http_post chờ
-// tối đa 30s, mỗi thiệp là 2 lượt gọi (storage + delete). Còn dư thì hôm sau dọn
-// tiếp, không việc gì phải vét sạch trong một lượt.
+// tối đa 30s, mỗi thiệp là vài lượt gọi (liệt kê thư mục + xoá ảnh + xoá hàng). Còn
+// dư thì hôm sau dọn tiếp, không việc gì phải vét sạch trong một lượt.
 const MAX_PER_RUN = 100
-
-const BUCKET = 'wedding-images'
-
-const SELECT_COLUMNS =
-  `id, slug, groom_name, bride_name, is_published, payment_status, expires_at, updated_at, ` +
-  WEDDING_IMAGE_SELECT
 
 function timingSafeEqual(a: string, b: string): boolean {
   if (a.length !== b.length || a.length === 0) return false
@@ -37,8 +32,6 @@ function timingSafeEqual(a: string, b: string): boolean {
   }
   return diff === 0
 }
-
-const fileNames = weddingFileNames
 
 Deno.serve(withAxiom('cleanup-weddings', async (req, log) => {
   // Token RIÊNG cho việc dọn dẹp. Dùng chung ADMIN_SECRET_TOKEN thì một mã lộ ra
@@ -66,50 +59,24 @@ Deno.serve(withAxiom('cleanup-weddings', async (req, log) => {
 
   const supabase = createDbClient(log)
 
-  const cutoff = new Date(Date.now() - days * 86400000).toISOString()
+  const { cutoff, victims, error: queryError } = await findExpiredWeddings(supabase, days, {
+    limit: MAX_PER_RUN,
+  })
 
-  // (1) Đã xuất bản nhưng chưa thanh toán, quá hạn dùng thử thêm `days` ngày nữa.
-  // Hai điều kiện sau là CHỐT AN TOÀN, thiếu một cái là xoá nhầm thiệp đã kích
-  // hoạt vĩnh viễn: phải còn expires_at (null = đã thanh toán) và payment_status
-  // khác 'completed'. Phải hỏi cả `is.null` vì neq bỏ qua hàng NULL.
-  const { data: unpaid, error: unpaidErr } = await supabase
-    .from('weddings')
-    .select(SELECT_COLUMNS)
-    .eq('is_published', true)
-    .or('payment_status.is.null,payment_status.neq.completed')
-    .not('expires_at', 'is', null)
-    .lt('expires_at', cutoff)
-    .limit(MAX_PER_RUN)
-
-  // (2) Nháp không đụng tới quá `days` ngày. updated_at do trigger ở RC1.10 đặt.
-  const { data: drafts, error: draftErr } = await supabase
-    .from('weddings')
-    .select(SELECT_COLUMNS)
-    .eq('is_published', false)
-    .lt('updated_at', cutoff)
-    .limit(MAX_PER_RUN)
-
-  if (unpaidErr || draftErr) {
-    log.error('cleanup.query_failed', {
-      unpaid: unpaidErr?.message,
-      draft: draftErr?.message,
-    })
-    return new Response(JSON.stringify({ error: unpaidErr ?? draftErr }), {
+  if (queryError) {
+    log.error('cleanup.query_failed', { error: queryError })
+    return new Response(JSON.stringify({ error: queryError }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     })
   }
 
-  const victims = [
-    ...(unpaid ?? []).map((w) => ({ row: w, reason: 'unpaid' as const })),
-    ...(drafts ?? []).map((w) => ({ row: w, reason: 'draft' as const })),
-  ]
-
+  const unpaidCount = victims.filter((v) => v.reason === 'unpaid').length
   log.info('cleanup.run', {
     days,
     dry_run: dryRun,
-    unpaid: unpaid?.length ?? 0,
-    drafts: drafts?.length ?? 0,
+    unpaid: unpaidCount,
+    drafts: victims.length - unpaidCount,
   })
 
   if (dryRun) {
@@ -126,7 +93,7 @@ Deno.serve(withAxiom('cleanup-weddings', async (req, log) => {
           reason,
           expires_at: row.expires_at,
           updated_at: row.updated_at,
-          files: fileNames(row).length,
+          files: weddingFileNames(row).length,
         })),
       }),
       { headers: { 'Content-Type': 'application/json' } },
@@ -139,23 +106,12 @@ Deno.serve(withAxiom('cleanup-weddings', async (req, log) => {
   const errors: Array<{ id: string; error: string }> = []
 
   for (const { row, reason } of victims) {
-    const files = fileNames(row)
     try {
-      // Xoá ảnh TRƯỚC: hàng DB là nơi duy nhất còn giữ tên file, mất nó trước là
-      // ảnh nằm lại trong bucket vĩnh viễn mà không ai biết đường tìm.
-      if (files.length) {
-        const { error } = await supabase.storage.from(BUCKET).remove(files)
-        if (error) throw new Error(`storage: ${error.message}`)
-        filesRemoved += files.length
-      }
-
-      // guests cascade theo FK, không cần xoá tay.
-      const { error } = await supabase.from('weddings').delete().eq('id', row.id)
-      if (error) throw new Error(error.message)
-
+      const files = await deleteWeddingHard(supabase, row)
+      filesRemoved += files
       if (reason === 'unpaid') deletedUnpaid++
       else deletedDraft++
-      log.info('cleanup.deleted', { id: row.id, slug: row.slug, reason, files: files.length })
+      log.info('cleanup.deleted', { id: row.id, slug: row.slug, reason, files })
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e)
       errors.push({ id: String(row.id), error: message })

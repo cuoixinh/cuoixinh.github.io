@@ -259,3 +259,36 @@ function downloadCover(fmt) {
     0.92,
   );
 }
+
+// Bộ ảnh cho srcset của #hero trang chủ (index.html): bản gốc JPEG ~1MB quá nặng cho
+// màn đầu nên trang tải WebP theo khổ. Đổi COVER_WEBP_WIDTHS thì sửa cả srcset ở index.html.
+const COVER_WEBP_WIDTHS = [1200, 2000, 2800];
+const COVER_WEBP_QUALITY = 0.7;
+
+function downloadCoverWebpSet() {
+  if (!coverItems.length) {
+    showToast("Chưa có ảnh nào để ghép", "error");
+    return;
+  }
+  const src = document.getElementById("cover-canvas");
+  COVER_WEBP_WIDTHS.forEach((w) => {
+    const c = document.createElement("canvas");
+    c.width = Math.min(w, src.width);
+    c.height = Math.round((c.width * src.height) / src.width);
+    const ctx = c.getContext("2d");
+    ctx.imageSmoothingQuality = "high";
+    ctx.drawImage(src, 0, 0, c.width, c.height);
+    c.toBlob(
+      (blob) => {
+        if (!blob) return showToast("Không xuất được ảnh", "error");
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = `cuoixinh-cover-${w}.webp`;
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+      },
+      "image/webp",
+      COVER_WEBP_QUALITY,
+    );
+  });
+}

@@ -9,9 +9,9 @@ class ImageBL {
     this.storage = storageDAL;
   }
 
-  // Tên file phải khớp allowlist `^[A-Za-z0-9._-]+$` mà wedding-admin
-  // (isSafeImageRef) và image-proxy cùng dùng — lệch là ảnh lưu được nhưng lần
-  // lưu thiệp sau bị từ chối. Hai hàm dưới giữ đúng giao kèo đó.
+  // Đường dẫn phải khớp STORAGE_PATH_RE (supabase/functions/_shared/wedding-images.ts)
+  // mà wedding-admin, image-proxy và worker og cùng dùng — lệch là ảnh lưu được
+  // nhưng lần lưu thiệp sau bị từ chối. Các hàm dưới giữ đúng giao kèo đó.
 
   /** Đuôi file suy từ KIỂU MIME, không từ file.name (tên do client đặt, bịa được). */
   static safeExt(file) {
@@ -43,26 +43,27 @@ class ImageBL {
     return Array.from(b, (x) => x.toString(36).padStart(2, "0")).join("").slice(0, 24);
   }
 
-  // Tên file KHÔNG được chứa wedding_id: ai liệt kê được bucket sẽ suy ra id rồi
-  // tra tiếp hồ sơ thiệp qua Edge Function. Định danh duy nhất là chuỗi ngẫu
-  // nhiên đủ dài — nơi giữ liên hệ file ↔ thiệp là các cột *_url của hàng DB
-  // (wedding-admin và cleanup-weddings đều đọc từ đó, không bóc tên file).
-  // `weddingId` giữ trong chữ ký vì nơi gọi vẫn truyền vào và để đổi ý còn dễ.
-  async uploadSingleImage(weddingId, fieldName, file) {
-    const filename = `${ImageBL.safeField(fieldName)}-${ImageBL.randomId()}.${ImageBL.safeExt(file)}`;
+  // Mỗi thiệp một thư mục `w/<storage_key>/` (mã ngẫu nhiên do DB sinh, KHÔNG phải
+  // wedding_id — đường dẫn ảnh là công khai). Server chỉ nhận ảnh mới nằm trong thư
+  // mục của chính thiệp, nên chưa có mã (thiệp chưa lên DB) là không upload.
+  async uploadSingleImage(storageKey, fieldName, file) {
+    if (!/^[0-9a-f]{32}$/.test(storageKey || "")) {
+      throw new Error("Thiệp chưa lưu lên hệ thống, chưa tải ảnh được");
+    }
+    const filename = `w/${storageKey}/${ImageBL.safeField(fieldName)}-${ImageBL.randomId()}.${ImageBL.safeExt(file)}`;
 
     // Upload to storage
     return await this.storage.uploadFile(filename, file);
   }
 
-  async uploadMultipleImages(weddingId, files) {
+  async uploadMultipleImages(storageKey, files) {
     const filenames = [];
     const errors = [];
 
     for (let i = 0; i < files.length; i++) {
       try {
         const filename = await this.uploadSingleImage(
-          weddingId,
+          storageKey,
           `gallery-${i}`,
           files[i],
         );

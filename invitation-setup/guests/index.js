@@ -1,4 +1,7 @@
 const WEDDING_ID = new URLSearchParams(window.location.search).get("id");
+// ?from=list: mở từ màn "Khách mời" (/guest-list/) — breadcrumb và nút quay lại về
+// đó thay vì trang Thiết lập. Chỉ nhận đúng giá trị này, không nhận URL tuỳ ý.
+const FROM_LIST = new URLSearchParams(window.location.search).get("from") === "list";
 
 let _importState = { headers: [], data: [], side: "" };
 let _currentTab = "groom";
@@ -6,6 +9,14 @@ let _currentTab = "groom";
 // ─── Init ─────────────────────────────────────────────────────────────────────
 
 document.addEventListener("DOMContentLoaded", async () => {
+  // Đứng TRƯỚC lucide: CDN icon lỗi là dòng dưới ném, breadcrumb kẹt ở chữ cũ.
+  if (FROM_LIST) {
+    const bc = document.getElementById("bc-parent");
+    if (bc) {
+      bc.textContent = "Chọn thiệp";
+      bc.href = "/guest-list/";
+    }
+  }
   lucide.createIcons();
   if (!WEDDING_ID) { showToast("Không tìm thấy ID thiệp", "warning"); return; }
   await Promise.all([loadGuestList("groom"), loadGuestList("bride"), _getWedding()]);
@@ -30,6 +41,10 @@ function goBack() {
   // Khi nhúng trong iframe của trang thiết lập → quay lại panel cha, không load lại trang
   if (window.parent !== window && typeof window.parent.exitGuestsPanel === "function") {
     window.parent.exitGuestsPanel();
+    return;
+  }
+  if (FROM_LIST) {
+    window.location.href = "/guest-list/";
     return;
   }
   window.location.href = `../index.html?id=${WEDDING_ID}`;

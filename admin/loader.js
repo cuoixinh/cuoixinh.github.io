@@ -12,6 +12,7 @@
     ["mount-background", "partials/background-panel.html"],
     ["mount-promo", "partials/promo-panel.html"],
     ["mount-fonts", "partials/fonts-panel.html"],
+    ["mount-cleanup", "partials/cleanup-panel.html"],
   ];
 
   // Thứ tự có phụ thuộc: config (CONFIG global) → core dùng chung (ADMIN_TOKEN,
@@ -69,6 +70,7 @@
     "js/06-background.js",
     "js/07-promo.js",
     "js/08-fonts.js",
+    "js/10-cleanup.js",
   ];
 
   function injectPartial(mountId, html) {

@@ -298,12 +298,11 @@ async function adjustLoveStoryFocalPoint(idx) {
   showToast("Đã cập nhật điểm lấy nét", "success");
 }
 
-// Ảnh mốc chuyện tình yêu không nằm trong cột ảnh nào nên không luồng dọn nào
-// thấy nó: bỏ ảnh mà không xếp hàng ở đây là file nằm lại bucket vĩnh viễn.
-// URL đầy đủ là ảnh dán từ nơi khác, không phải file của mình.
+// Bỏ ảnh mốc chuyện tình thì xếp hàng xoá như mọi ảnh khác. URL ngoài hệ thống
+// server tự bỏ qua (chỉ xoá file thuộc thư mục của thiệp).
 function _queueLoveStoryImageDelete(idx) {
   const url = _loveStoryItems[idx]?.image_url;
-  if (url && !/^https?:\/\//i.test(url)) deletedImages.singleImages.push(url);
+  if (url) deletedImages.singleImages.push(url);
 }
 
 // AI chỉ thay CHỮ của chuyện tình yêu, không bao giờ đụng ảnh. Mọi luồng AI ghi

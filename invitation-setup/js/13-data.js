@@ -138,6 +138,7 @@ function _cxFormLoaded(restored) {
 
 async function _openDbWedding(data) {
   _isLocalDraft = false;
+  WEDDING_STORAGE_KEY = data.storage_key || "";
   fillForm(data);
   _showContent();
   _cxFormLoaded(await _idbRestoreAll());
@@ -697,6 +698,28 @@ function saveAll(overrides = {}, label = "Đang lưu...") {
   return entry.promise;
 }
 
+// Ghi hàng DB đầu tiên cho nháp đang nằm trên máy. Slug theo tên cô dâu chú rể
+// (cùng luật lúc xuất bản); chưa đủ hai tên mới dùng slug tạm `wedding-<id>` — xuất
+// bản / áp dụng thiệp AI sẽ thay khi có tên. Lỗi phải NÉM RA: trần số thiệp mỗi tài
+// khoản chặn tại đây. POST lại lần sau vô hại — wedding-admin trả 200 khi id đã có và
+// cùng chủ, KÈM slug đang có của hàng đó. Luôn lấy slug server trả: hàng đã có (tab cũ
+// vẫn tưởng thiệp là nháp local) thì tự đặt lại là đổi link thiệp đã gửi khách.
+async function _createDraftRow() {
+  const generatedSlug =
+    WEDDING_SLUG ||
+    (await _resolvePublishSlug()) ||
+    `wedding-${WEDDING_ID.slice(0, 8)}`;
+  const created = await window.weddingDAL.createDraftWedding({
+    manage_id: WEDDING_ID,
+    theme: WEDDING_THEME,
+    slug: generatedSlug,
+  });
+  WEDDING_STORAGE_KEY = created?.storage_key || "";
+  WEDDING_SLUG = created?.slug || generatedSlug;
+  const slugInput = document.getElementById("slug-input");
+  if (slugInput) slugInput.value = WEDDING_SLUG;
+}
+
 async function _saveAllOnce(overrides, label) {
   const form = document.getElementById("wedding-form");
   if (!validateForm(form)) {
@@ -720,6 +743,10 @@ async function _saveAllOnce(overrides, label) {
         code: "AUTH_REQUIRED",
       });
     }
+
+    // Step 0: nháp chưa lên DB mà đã đăng nhập → tạo hàng TRƯỚC khi upload: ảnh nằm
+    // trong thư mục w/<storage_key>/ của thiệp, mã đó do server sinh lúc tạo hàng.
+    if (_isLocalDraft && loggedIn) await _createDraftRow();
 
     // Step 1: Upload pending images
     showLoading(true, "Đang tải ảnh lên server...");
@@ -865,32 +892,8 @@ async function _saveAllOnce(overrides, label) {
       await weddingBL.updateWedding(payload);
       clearLocalDraft();
     } else if (loggedIn) {
-      // Local draft + đã đăng nhập → tạo record trong DB lần đầu
-      // Slug theo tên cô dâu chú rể (cùng luật lúc xuất bản); chưa đủ hai tên mới dùng
-      // slug tạm `wedding-<id>` — xuất bản / áp dụng thiệp AI sẽ thay khi có tên.
-      const generatedSlug =
-        payload.slug ||
-        (await _resolvePublishSlug()) ||
-        `wedding-${WEDDING_ID.slice(0, 8)}`;
-      // Đính JWT user (DAL tự lo qua _authHeaders) để edge gán user_id = chủ thiệp
-      // ngay khi tạo. Lỗi ở đây phải NÉM RA, đừng nuốt: trần số thiệp mỗi tài khoản
-      // chặn tại đây, mà nuốt đi thì PATCH ngay dưới chạy trên một hàng chưa hề có.
-      const created = await window.weddingDAL.createDraftWedding({
-        manage_id: WEDDING_ID,
-        theme: WEDDING_THEME,
-        slug: generatedSlug,
-      });
-      // Cờ + nháp local chỉ hạ SAU khi PATCH xong: hạ sớm mà PATCH hỏng thì autosave
-      // ghi `_localOnly:false`, F5 nạp từ DB một hàng rỗng. POST lại lần sau vô hại —
-      // wedding-admin trả 200 khi id đã có và cùng chủ, KÈM slug đang có của hàng
-      // đó. Luôn lấy slug server trả: hàng đã có (tab cũ vẫn tưởng thiệp là nháp
-      // local) thì tự đặt lại là đổi link thiệp đã gửi khách; hàng mới thì server
-      // có thể đã thêm hậu tố cho khỏi trùng.
-      const slugToSave = created?.slug || generatedSlug;
-      WEDDING_SLUG = slugToSave;
-      payload.slug = slugToSave;
-      const slugInput = document.getElementById("slug-input");
-      if (slugInput) slugInput.value = slugToSave;
+      // Hàng đã tạo ở Step 0. Cờ + nháp local chỉ hạ SAU khi PATCH xong: hạ sớm mà
+      // PATCH hỏng thì autosave ghi `_localOnly:false`, F5 nạp từ DB một hàng rỗng.
       await weddingBL.updateWedding(payload);
       _isLocalDraft = false;
       _updateSlugPreview(); // hiện lại nút "Lưu" + link theo slug vừa chốt
