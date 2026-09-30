@@ -205,8 +205,6 @@
      ============================================================ */
 
   --landing-dark-rgb: 45 15 26;  /* nền khối CTA cuối trang */
-  --landing-hero-cta-from-rgb: 236 90 128;  /* nút chính màn mở đầu — chữ trắng ≥3:1 */
-  --landing-hero-cta-to-rgb: 224 66 110;
   --landing-cta-bg-mid-rgb: 62 26 40;
   --landing-cta-btn-from-rgb: 201 160 64;
   --landing-cta-btn-to-rgb: 224 187 85;

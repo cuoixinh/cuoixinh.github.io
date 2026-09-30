@@ -583,9 +583,6 @@ html.cx-landing {
   text-shadow: none;
 }
 
-/* 19px đậm = "chữ lớn" theo WCAG (≥18.66px) nên chỉ cần tương phản 3:1 — nhờ vậy
-   giữ được tông hồng tươi của nút; thu chữ dưới mốc đó thì phải đậm màu nền lên
-   cho đủ 4.5:1. */
 .hero-btn {
   @apply relative inline-flex items-center justify-center rounded-full;
   height: 52px;
@@ -597,7 +594,8 @@ html.cx-landing {
   color: rgb(var(--white-rgb));
   transition:
     transform 0.2s ease,
-    box-shadow 0.2s ease;
+    background 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .hero-btn:hover {
@@ -608,52 +606,24 @@ html.cx-landing {
   transform: translateY(0) scale(0.98);
 }
 
-/* Nút hồng đặc, logo XuXi bên trái, tag "New" gắn góc trên phải — tag thò ra
-   ngoài viền nên nút KHÔNG được overflow-hidden; vệt sáng vì thế chạy bằng
-   background-position trên ::before phủ đúng khuôn nút thay vì trượt transform. */
+/* Kính tối viền trắng mảnh, logo XuXi bên trái, tag "New" gắn góc trên phải
+   (thò ra ngoài viền nên KHÔNG được overflow-hidden). */
 .hero-btn-ai {
   padding-left: 16px;
-  background: linear-gradient(
-    90deg,
-    rgb(var(--landing-hero-cta-from-rgb)),
-    rgb(var(--landing-hero-cta-to-rgb))
-  );
-  box-shadow: 0 10px 28px rgb(var(--landing-hero-cta-to-rgb) / 0.4);
+  background: rgb(var(--white-rgb) / 0.12);
+  border: 1px solid rgb(var(--white-rgb) / 0.35);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .hero-btn-ai:hover {
-  box-shadow: 0 14px 32px rgb(var(--landing-hero-cta-to-rgb) / 0.5);
-}
-
-.hero-btn-ai::before {
-  content: "";
-  @apply pointer-events-none absolute inset-0;
-  border-radius: inherit;
-  background: linear-gradient(
-      100deg,
-      rgb(var(--white-rgb) / 0) 42%,
-      rgb(var(--white-rgb) / 0.4) 50%,
-      rgb(var(--white-rgb) / 0) 58%
-    )
-    no-repeat;
-  background-size: 250% 100%;
-  background-position: 100% 0;
-  animation: cx-hero-btn-shine 5s ease-in-out 2.4s infinite;
-}
-
-@keyframes cx-hero-btn-shine {
-  0% {
-    background-position: 100% 0;
-  }
-  24%,
-  100% {
-    background-position: 0 0;
-  }
+  background: rgb(var(--white-rgb) / 0.2);
+  border-color: rgb(var(--white-rgb) / 0.6);
 }
 
 /* Giữ chỗ trước lúc icon.js thay thẻ <i> — khớp data-size. */
 .hero-ai-ico {
-  @apply relative shrink-0;
+  @apply shrink-0;
   width: 24px;
   height: 24px;
 }
@@ -698,6 +668,29 @@ html.cx-landing {
 .hero-badge:focus-visible {
   outline: 2px solid rgb(var(--action-primary-rgb));
   outline-offset: 4px;
+}
+
+/* Máy hẹp: nút thu về viên viền mảnh thấp, chữ nhỏ — khối 52px chữ 19px là thứ
+   nặng nhất màn, lấn cả tiêu đề. Nền phủ tối nên chữ 15px vẫn đủ tương phản. */
+@media (max-width: 419px) {
+  .hero-btn-ai {
+    height: 40px;
+    padding: 0 20px 0 12px;
+    gap: 6px;
+    font-size: 15px;
+    font-weight: 600;
+    background: rgb(var(--white-rgb) / 0.08);
+  }
+  .hero-btn-ai .hero-ai-ico {
+    width: 20px;
+    height: 20px;
+  }
+  .hero-ai-new {
+    top: -8px;
+    right: -10px;
+    padding: 3px 6px;
+    font-size: 9px;
+  }
 }
 
 @media (min-width: 640px) {
@@ -751,8 +744,7 @@ html.cx-landing {
 }
 
 /* Điện thoại màn THẤP (iPhone SE 375x667, 360x640): thu các khe cho cụm chữ vừa
-   thẻ. Chữ nút giữ 19px (mốc "chữ lớn" của tương phản) — chỉ bớt chiều cao nút.
-   Đứng SAU khối .cx-short (cùng độ đặc hiệu, khe nào trùng thì khối này thắng). */
+   thẻ. Đứng SAU khối .cx-short (cùng độ đặc hiệu, khe nào trùng thì khối này thắng). */
 @media (max-width: 767px) {
   .cx-shorter .hero-badge img {
     height: 32px;
@@ -770,9 +762,6 @@ html.cx-landing {
   .cx-shorter .hero-cta {
     margin-top: 20px;
   }
-  .cx-shorter .hero-btn {
-    height: 48px;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -784,8 +773,7 @@ html.cx-landing {
   .hero-card-media,
   .hero-ai-new,
   .hero-card-glow::before,
-  .hero-card-glow::after,
-  .hero-btn-ai::before {
+  .hero-card-glow::after {
     animation: none;
   }
   .hero-card-shine,
