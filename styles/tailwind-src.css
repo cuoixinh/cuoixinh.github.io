@@ -252,10 +252,59 @@ html.cx-landing {
 .hero-anim-4 { animation-delay: 0.55s; }
 .hero-anim-5 { animation-delay: 0.7s; }
 
-/* Logo neo TRÁI phía trên thẻ, CHỈ ở khổ hẹp (từ md navbar trên đã mang logo). */
+/* Hàng đầu, CHỈ ở khổ hẹp (từ md navbar trên đã mang logo): logo trái, nút menu
+   phải. Nút menu cùng dáng thanh tab dưới (nền trắng, viền hồng nhạt) vì nó thay
+   chỗ thanh đó khi thanh còn ẩn. */
+.hero-top {
+  @apply flex w-full items-center justify-between;
+  margin: 0 0 12px;
+  padding-left: 4px;
+}
+
 .hero-badge {
-  @apply self-start;
-  margin: 0 0 12px 4px;
+  @apply shrink-0;
+}
+
+.hero-menu-btn {
+  @apply flex shrink-0 items-center justify-center;
+  width: 44px;
+  height: 44px;
+  color: rgb(var(--text-heading-rgb));
+  background: rgb(var(--white-rgb));
+  border: 1px solid rgb(var(--brand-primary-rgb) / 0.45);
+  box-shadow: 0 4px 14px rgb(var(--scrim-rgb) / 0.08);
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.hero-menu-btn:active {
+  transform: scale(0.94);
+}
+
+/* x-popover đặt aria-expanded lên nút mở: đang mở thì ☰ đổi thành ✕. */
+.hero-menu-btn .hero-menu-ico-close,
+.hero-menu-btn[aria-expanded="true"] .hero-menu-ico-open {
+  display: none;
+}
+
+.hero-menu-btn[aria-expanded="true"] .hero-menu-ico-close {
+  display: block;
+}
+
+.hero-menu-btn:focus-visible {
+  outline: 2px solid rgb(var(--action-primary-rgb));
+  outline-offset: 3px;
+}
+
+/* Thanh tab dưới của trang chủ: ẩn (trượt khỏi đáy) khi hàng .hero-top còn trên
+   màn — cờ .cx-tabbar-off do js/hero-menu.js đặt/gỡ. */
+.cx-landing .cx-tabbar {
+  transition: transform 0.3s ease;
+}
+
+.cx-tabbar-off .cx-tabbar {
+  transform: translateY(calc(100% + 8px));
 }
 
 .hero-badge img {
@@ -730,7 +779,7 @@ html.cx-landing {
     min-height: clamp(460px, calc(var(--vh, 1vh) * 64), 720px);
     min-height: clamp(460px, calc(var(--vh, 1svh) * 64), 720px);
   }
-  .hero-badge {
+  .hero-top {
     display: none;
   }
   .hero-card {
@@ -830,6 +879,10 @@ html.cx-landing {
   .hero-card-shine,
   .hero-spark {
     display: none;
+  }
+  .cx-landing .cx-tabbar,
+  .hero-menu-btn {
+    transition: none;
   }
   .hero-btn,
   .hero-btn-main svg {

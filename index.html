@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="vi" class="cx-landing">
+<html lang="vi" class="cx-landing cx-tabbar-off">
   <head>
     <meta charset="UTF-8" />
     <meta
@@ -55,11 +55,27 @@
          chữ trắng căn giữa + hai nút. Thẻ cố ý thấp hơn một màn để mục "Mẫu thiệp"
          lộ ra từ màn đầu — số đo ở .hero-card (styles/tailwind-src.css). -->
     <section id="hero">
-      <!-- Logo trần, chỉ ở khổ hẹp: từ md navbar trên đã mang logo. -->
-      <a href="/" class="hero-badge cx-logo hero-anim hero-anim-1" aria-label="Cưới Xinh">
-        <img src="assets/icons/logo.png" alt="" />
-        <span class="cx-logo-text"><span class="cx-logo-name">Cưới Xinh</span><span class="cx-logo-since">-SINCE 2026-</span></span>
-      </a>
+      <!-- Hàng đầu, CHỈ ở khổ hẹp (từ md navbar trên đã mang logo): logo trái +
+           nút menu phải. Thanh tab dưới ẩn khi hàng này còn trên màn (cờ
+           .cx-tabbar-off trên <html>, js/hero-menu.js gỡ khi hàng cuộn khỏi màn)
+           nên nút menu và thanh tab không bao giờ cùng hiện. -->
+      <div class="hero-top hero-anim hero-anim-1">
+        <a href="/" class="hero-badge cx-logo" aria-label="Cưới Xinh">
+          <img src="assets/icons/logo.png" alt="" />
+          <span class="cx-logo-text"><span class="cx-logo-name">Cưới Xinh</span><span class="cx-logo-since">-SINCE 2026-</span></span>
+        </a>
+        <x-button
+          variant="bare"
+          icon-only
+          id="heroMenuBtn"
+          class="hero-menu-btn"
+          onclick="cxHeroMenu(this)"
+          aria-label="Mở menu"
+        >
+          <i data-lucide="menu" class="hero-menu-ico-open" style="width:20px;height:20px"></i>
+          <i data-lucide="x" class="hero-menu-ico-close" style="width:20px;height:20px"></i>
+        </x-button>
+      </div>
 
       <!-- Vỏ ngoài chỉ để vẽ viền sáng + bóng: drop-shadow ôm theo mép cong của
            mask ở .hero-card, box-shadow thì vẽ theo hình chữ nhật. -->
@@ -135,6 +151,10 @@
         </div>
       </div>
     </section>
+
+    <!-- Menu của nút ☰ ở .hero-top — để NGOÀI #hero: popover là position:fixed,
+         mà .hero-top mang transform (hiệu ứng hiện dần) sẽ kéo nó lệch chỗ. -->
+    <x-popover id="heroMenu" placement="bottom" align="end" width="220" arrow></x-popover>
 
     <!-- ===== TEMPLATE GALLERY ===== -->
     <!-- Dải ngang toàn bộ mẫu thiệp: cuộn ngang bằng cuộn thật của trình duyệt,
@@ -538,13 +558,13 @@
       CXNavbar.mount({
         active: "home",
         width: "6xl",
+        brand: "outside",
         items: [
           {
             id: "home",
             label: "Trang chủ",
             icon: "home",
             href: "/",
-            only: "tab",
           },
           {
             id: "templates",
@@ -593,5 +613,6 @@
     <script src="js/ai-chat-media.js"></script>
     <script src="js/ai-assistant.js"></script>
     <script src="js/hero-fab.js"></script>
+    <script src="js/hero-menu.js"></script>
   </body>
 </html>

@@ -6,6 +6,9 @@
 //
 // tabbar: false → chỉ dựng thanh trên. Dùng cho luồng MỘT CHIỀU (thanh toán):
 // dải đáy ở đó dành cho nút hành động, để thêm tab là mời khách rời luồng.
+// brand: "outside" → logo + tên đứng thành khối RIÊNG bên trái thanh trên, thẻ
+// navbar chỉ còn dãy mục (trang chủ dùng; mục "Trang chủ" khi đó nên hiện ở cả
+// thanh trên — bỏ `only: "tab"`).
 //
 // Mục: { id, label, icon, href | onClick, count, only: "top"|"tab" }
 //   href → thẻ <a>, không có href → <button> (dùng onClick).
@@ -91,13 +94,18 @@ const CXNavbar = (function () {
     const items = cfg.items || [];
     const width = WIDTH[cfg.width] || WIDTH["7xl"];
 
+    const outside = cfg.brand === "outside";
+    const logo =
+      `<a href="/" class="cx-logo shrink-0${outside ? " cx-navbrand" : ""}" aria-label="Cưới Xinh">` +
+      `<img src="/assets/icons/logo.png" alt="" />` +
+      `${LOGO_TEXT}</a>`;
+
     const top =
       `<nav id="main-nav" class="cx-navbar hidden md:block">` +
-      `<div class="${width} mx-auto px-4 sm:px-6 lg:px-8">` +
-      `<div class="cx-navcard">` +
-      `<a href="/" class="cx-logo shrink-0" aria-label="Cưới Xinh">` +
-      `<img src="/assets/icons/logo.png" alt="" />` +
-      `${LOGO_TEXT}</a>` +
+      `<div class="${width} mx-auto px-4 sm:px-6 lg:px-8${outside ? " cx-navrow" : ""}">` +
+      (outside ? logo : "") +
+      `<div class="cx-navcard${outside ? " cx-navcard-solo" : ""}">` +
+      (outside ? "" : logo) +
       `<nav class="cx-navlinks">${items.map((i) => itemHTML(i, cfg.active, "top")).join("")}</nav>` +
       `<div class="cx-navactions">${(cfg.actions || []).map(actionHTML).join("")}` +
       `${cfg.actionsHTML || ""}</div>` +
