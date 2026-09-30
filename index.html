@@ -85,6 +85,15 @@
             />
           </div>
           <div class="hero-card-veil" aria-hidden="true"></div>
+          <!-- Ánh sáng: hai quầng trôi, một vệt quét chéo, vài đốm lấp lánh. -->
+          <div class="hero-card-glow" aria-hidden="true"></div>
+          <div class="hero-card-shine" aria-hidden="true"></div>
+          <span class="hero-spark" aria-hidden="true" style="--x:12%;--y:18%;--d:0s"></span>
+          <span class="hero-spark" aria-hidden="true" style="--x:84%;--y:14%;--d:1.2s;--s:3px"></span>
+          <span class="hero-spark" aria-hidden="true" style="--x:22%;--y:78%;--d:2.1s;--s:3px"></span>
+          <span class="hero-spark" aria-hidden="true" style="--x:90%;--y:64%;--d:0.6s"></span>
+          <span class="hero-spark" aria-hidden="true" style="--x:48%;--y:8%;--d:3s;--s:3px"></span>
+          <span class="hero-spark" aria-hidden="true" style="--x:66%;--y:86%;--d:1.8s"></span>
 
           <div class="hero-card-body">
             <h1 class="hero-title hero-anim hero-anim-2">
@@ -134,11 +143,14 @@
          không bao giờ chạy, để mặc là mục hiện ra với tiêu đề và một dải rỗng. -->
     <!-- Mục hiện NGAY với khung xương; js/section-templates.js ẩn lại nếu danh
          sách rỗng (renderTemplateCards: section.hidden = !templates.length). -->
-    <section id="templates" class="pt-6 pb-12">
-      <!-- Tiêu đề gọn một hàng: mục này phải lộ ra ngay màn đầu, dưới thẻ hero. -->
-      <div class="max-w-6xl mx-auto px-5 pb-4 flex items-end justify-between gap-4">
+    <section id="templates" class="pt-2 md:pt-6 pb-12">
+      <!-- Tiêu đề gọn MỘT dòng cả trên điện thoại (nowrap; 18px dưới 380px để
+           không đẩy "Xem tất cả" tràn khỏi màn 360px): mục này phải
+           lộ ra ngay màn đầu dưới thẻ hero, thấy được một phần thẻ mẫu chứ không
+           chỉ mỗi tiêu đề. -->
+      <div class="max-w-6xl mx-auto px-5 pb-3 md:pb-4 flex items-end justify-between gap-3">
         <h2
-          class="font-playfair text-2xl md:text-3xl font-semibold text-[rgb(var(--text-heading-rgb))]"
+          class="font-playfair text-lg min-[380px]:text-xl md:text-3xl font-semibold whitespace-nowrap text-[rgb(var(--text-heading-rgb))]"
         >
           Mẫu thiệp được yêu thích
         </h2>

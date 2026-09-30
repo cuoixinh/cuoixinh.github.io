@@ -219,11 +219,14 @@ html.cx-landing {
 /* ═══════════ Từ styles/index.css (trang chủ) ═══════════ */
 
 /* ── Màn mở đầu ──────────────────────────────────────────────────────────
-   Dải nền hồng kem sáng mang MỘT thẻ bo góc, mép đáy cong lên ở giữa như màn
-   chiếu. Lớp trong thẻ theo z-index: ảnh ghép mẫu thiệp (.hero-card-media) →
-   phủ đen (.hero-card-veil) → chữ trắng căn giữa (.hero-card-body).
-   Thẻ CỐ Ý thấp hơn một màn để #templates lộ ra từ màn đầu. Đáy dải là đúng
-   nền của #templates (--surface-tint-rgb) — đổi nền mục đó thì đổi cả ở đây.
+   Dải nền kem (ĐÚNG nền của #templates, --surface-tint-rgb — đổi nền mục đó
+   thì đổi cả ở đây) mang MỘT thẻ bo góc, mép đáy cong lên ở giữa như màn chiếu.
+   Lớp trong thẻ theo z-index: ảnh ghép mẫu thiệp (.hero-card-media, zoom + trôi)
+   → phủ đen (.hero-card-veil) → ánh sáng (.hero-card-glow/-shine, .hero-spark)
+   → chữ trắng căn giữa (.hero-card-body).
+   Thẻ CỐ Ý thấp hơn một màn để #templates lộ ra từ màn đầu: trên điện thoại
+   phải thấy được ~20% thẻ mẫu đầu tiên, nên chiều cao thẻ + lề đáy dải + tiêu
+   đề #templates đi cùng nhau — đổi một chỗ thì đo lại ở 390x844.
    Navbar trên (từ md) nổi trên dải — lề đỉnh của #hero chừa đúng 80px của nó
    (12 + 64 + 4, xem .cx-navbar). */
 
@@ -232,20 +235,10 @@ html.cx-landing {
 #hero {
   @apply relative flex flex-col items-center overflow-hidden;
   isolation: isolate;
-  /* Lề đáy phải dài hơn tầm bóng của .hero-frame (16 + 32), không thì bóng
+  /* Lề đáy phải dài hơn tầm bóng của .hero-frame (8 + 16), không thì bóng
      chạm đáy dải rồi bị overflow cắt thành một đường thẳng. */
-  padding: 12px 16px 56px;
-  background:
-    radial-gradient(
-      80% 50% at 50% 40%,
-      rgb(var(--brand-primary-rgb) / 0.35) 0%,
-      rgb(var(--brand-primary-rgb) / 0) 70%
-    ),
-    linear-gradient(
-      to bottom,
-      rgb(var(--landing-hero-tint-rgb)) 0%,
-      rgb(var(--surface-tint-rgb)) 100%
-    );
+  padding: 8px 16px 28px;
+  background: rgb(var(--surface-tint-rgb));
   color: rgb(var(--white-rgb));
 }
 
@@ -269,13 +262,13 @@ html.cx-landing {
   height: 40px;
 }
 
-/* Viền hồng 1px + bóng đổ hồng vẽ ở VỎ NGOÀI bằng drop-shadow: nó ôm theo đúng
-   hình sau mask của .hero-card (kể cả mép cong). */
+/* Bóng đổ xám trung tính vẽ ở VỎ NGOÀI bằng drop-shadow: nó ôm theo đúng hình
+   sau mask của .hero-card (kể cả mép cong). Không viền màu — thẻ tách khỏi nền
+   kem chỉ nhờ bóng, cùng cách các thẻ ở mục bên dưới. */
 .hero-frame {
   @apply relative w-full;
   max-width: 1760px;
-  filter: drop-shadow(0 0 1px rgb(var(--brand-primary-rgb)))
-    drop-shadow(0 16px 32px rgb(var(--shadow-brand-rgb) / 0.28));
+  filter: drop-shadow(0 8px 16px rgb(var(--scrim-rgb) / 0.14));
 }
 
 /* Mép đáy cong = mask SVG co giãn theo thẻ (preserveAspectRatio none) nên độ
@@ -283,8 +276,8 @@ html.cx-landing {
    (core/helpers/vh-lock.js), đừng thêm dòng dvh/svh trần. */
 .hero-card {
   @apply relative flex w-full items-center justify-center overflow-hidden;
-  min-height: clamp(460px, calc(var(--vh, 1vh) * 64), 720px);
-  min-height: clamp(460px, calc(var(--vh, 1svh) * 64), 720px);
+  min-height: clamp(440px, calc(var(--vh, 1vh) * 60), 720px);
+  min-height: clamp(440px, calc(var(--vh, 1svh) * 60), 720px);
   border-radius: 20px;
   background: rgb(var(--scrim-rgb));
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M0 0H100V100Q50 94 0 100Z'/%3E%3C/svg%3E");
@@ -295,8 +288,9 @@ html.cx-landing {
   mask-repeat: no-repeat;
 }
 
-/* Ảnh tràn 12% mỗi mép để còn chỗ trôi + parallax mà không lộ mép. Cộng các
-   biên độ (trôi ~2.5% + parallax 7% thẻ) phải nhỏ hơn phần tràn này. */
+/* Ảnh tràn 12% mỗi mép để còn chỗ zoom/trôi + parallax mà không lộ mép. Cộng
+   các biên độ (trôi tối đa 4% ảnh ≈ 5% thẻ + parallax 7% thẻ) phải nhỏ hơn
+   phần tràn này; phóng to thì chỉ làm ảnh lớn thêm nên không lộ mép. */
 .hero-card-media {
   @apply absolute inset-0;
   z-index: 0;
@@ -308,34 +302,42 @@ html.cx-landing {
   width: 124%;
   height: 124%;
   max-width: none;
-  /* Hai thuộc tính transform RIÊNG: `scale` cho nhịp zoom mở màn, `translate`
-     cho nhịp trôi vô tận — gộp chung `transform` thì animation sau đè animation trước. */
+  /* Dùng thuộc tính `scale`/`translate` riêng chứ không phải `transform`: vỏ
+     .hero-card-media đã giữ `transform` cho parallax. Nhịp mở màn (lùi zoom)
+     xong mới tới Ken Burns — nó khai sau nên đè nhịp đầu từ giây 1.6. */
   animation:
-    cx-hero-zoom 1.8s ease-out both,
-    cx-hero-pan 36s ease-in-out 1.8s infinite alternate;
+    cx-hero-zoom 1.6s ease-out both,
+    cx-hero-kenburns 32s ease-in-out 1.6s infinite;
 }
 
 @keyframes cx-hero-zoom {
   from {
-    scale: 1.08;
+    scale: 1.14;
   }
   to {
     scale: 1;
   }
 }
 
-@keyframes cx-hero-pan {
-  0% {
+/* Zoom vào, lướt sang trái rồi phải, lùi về — mốc cuối trùng mốc đầu nên vòng
+   lặp không giật. */
+@keyframes cx-hero-kenburns {
+  0%,
+  100% {
+    scale: 1;
     translate: 0 0;
   }
-  33% {
-    translate: -3% -2%;
+  25% {
+    scale: 1.1;
+    translate: -4% -2%;
   }
-  66% {
-    translate: 3% -1%;
+  50% {
+    scale: 1.14;
+    translate: 3% -3%;
   }
-  100% {
-    translate: 2% 2%;
+  75% {
+    scale: 1.08;
+    translate: 4% 2%;
   }
 }
 
@@ -370,10 +372,124 @@ html.cx-landing {
     rgb(var(--scrim-rgb) / 0.4);
 }
 
+/* Hai quầng sáng (vàng ấm góc trên trái, hồng góc dưới phải) trôi chậm ngược
+   chiều nhau như vệt nắng lọt vào ống kính. Nằm TRÊN lớp phủ đen để thật sự
+   làm sáng ảnh; chỉ là gradient + transform nên không tốn vẽ lại. */
+.hero-card-glow {
+  @apply pointer-events-none absolute inset-0 overflow-hidden;
+  z-index: 2;
+}
+
+.hero-card-glow::before,
+.hero-card-glow::after {
+  content: "";
+  @apply absolute rounded-full;
+  width: 70%;
+  aspect-ratio: 1;
+}
+
+.hero-card-glow::before {
+  top: -35%;
+  left: -20%;
+  background: radial-gradient(
+    circle,
+    rgb(var(--landing-cta-btn-to-rgb) / 0.32) 0%,
+    rgb(var(--landing-cta-btn-to-rgb) / 0) 65%
+  );
+  animation: cx-hero-glow-a 14s ease-in-out infinite alternate;
+}
+
+.hero-card-glow::after {
+  bottom: -40%;
+  right: -20%;
+  background: radial-gradient(
+    circle,
+    rgb(var(--brand-primary-rgb) / 0.3) 0%,
+    rgb(var(--brand-primary-rgb) / 0) 65%
+  );
+  animation: cx-hero-glow-b 18s ease-in-out infinite alternate;
+}
+
+@keyframes cx-hero-glow-a {
+  from {
+    transform: translate(0, 0);
+    opacity: 0.7;
+  }
+  to {
+    transform: translate(35%, 25%);
+    opacity: 1;
+  }
+}
+
+@keyframes cx-hero-glow-b {
+  from {
+    transform: translate(0, 0);
+    opacity: 1;
+  }
+  to {
+    transform: translate(-40%, -20%);
+    opacity: 0.6;
+  }
+}
+
+/* Vệt sáng chéo quét ngang thẻ mỗi ~8s. */
+.hero-card-shine {
+  @apply pointer-events-none absolute inset-y-0 left-0;
+  z-index: 3;
+  width: 50%;
+  background: linear-gradient(
+    105deg,
+    rgb(var(--white-rgb) / 0) 30%,
+    rgb(var(--white-rgb) / 0.16) 50%,
+    rgb(var(--white-rgb) / 0) 70%
+  );
+  transform: translateX(-100%);
+  animation: cx-hero-shine 8s ease-in-out 2s infinite;
+}
+
+@keyframes cx-hero-shine {
+  0% {
+    transform: translateX(-100%);
+  }
+  35%,
+  100% {
+    transform: translateX(220%);
+  }
+}
+
+/* Đốm lấp lánh: vị trí/nhịp mỗi đốm khai bằng biến inline ở index.html
+   (--x, --y, --d = độ trễ, --s = khổ). */
+.hero-spark {
+  @apply pointer-events-none absolute rounded-full;
+  z-index: 3;
+  left: var(--x);
+  top: var(--y);
+  width: var(--s, 4px);
+  height: var(--s, 4px);
+  background: rgb(var(--white-rgb));
+  box-shadow:
+    0 0 8px 2px rgb(var(--white-rgb) / 0.8),
+    0 0 20px 6px rgb(var(--landing-cta-btn-to-rgb) / 0.4);
+  opacity: 0;
+  animation: cx-hero-twinkle 4s ease-in-out var(--d, 0s) infinite;
+}
+
+@keyframes cx-hero-twinkle {
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 /* Cột chữ căn giữa. Lề đáy lớn hơn lề đỉnh để bù phần mép cong. */
 .hero-card-body {
   @apply relative flex flex-col items-center text-center font-inter;
-  z-index: 2;
+  z-index: 4;
   max-width: 760px;
   padding: 40px 16px 56px;
   text-shadow: 0 2px 16px rgb(var(--scrim-rgb) / 0.5);
@@ -443,6 +559,7 @@ html.cx-landing {
 }
 
 .hero-btn-main {
+  @apply overflow-hidden;
   background: linear-gradient(
     90deg,
     rgb(var(--landing-hero-cta-from-rgb)),
@@ -453,6 +570,31 @@ html.cx-landing {
 
 .hero-btn-main:hover {
   box-shadow: 0 14px 32px rgb(var(--landing-hero-cta-to-rgb) / 0.5);
+}
+
+/* Vệt sáng lướt qua nút chính định kỳ để kéo mắt. */
+.hero-btn-main::before {
+  content: "";
+  @apply pointer-events-none absolute inset-y-0 left-0;
+  width: 48px;
+  background: linear-gradient(
+    100deg,
+    rgb(var(--white-rgb) / 0) 0%,
+    rgb(var(--white-rgb) / 0.45) 50%,
+    rgb(var(--white-rgb) / 0) 100%
+  );
+  transform: translateX(-120%) skewX(-16deg);
+  animation: cx-hero-btn-shine 5s ease-in-out 2.4s infinite;
+}
+
+@keyframes cx-hero-btn-shine {
+  0% {
+    transform: translateX(-120%) skewX(-16deg);
+  }
+  24%,
+  100% {
+    transform: translateX(640%) skewX(-16deg);
+  }
 }
 
 .hero-btn-main svg {
@@ -549,7 +691,11 @@ html.cx-landing {
 @media (min-width: 768px) {
   /* Lề đỉnh = 80px của .cx-navbar + 8px thở. */
   #hero {
-    padding: 88px 32px 64px;
+    padding: 88px 32px 40px;
+  }
+  .hero-card {
+    min-height: clamp(460px, calc(var(--vh, 1vh) * 64), 720px);
+    min-height: clamp(460px, calc(var(--vh, 1svh) * 64), 720px);
   }
   .hero-badge {
     display: none;
@@ -586,6 +732,47 @@ html.cx-landing {
   }
 }
 
+/* Điện thoại màn THẤP (iPhone SE 375x667, 360x640): thẻ theo khổ nội dung thay
+   vì 60% màn, thu các khe để vẫn thấy ~20% thẻ mẫu đầu tiên phía dưới. Chữ nút
+   giữ 19px (mốc "chữ lớn" của tương phản) — chỉ bớt chiều cao nút. */
+@media (max-width: 767px) and (max-height: 720px) {
+  #hero {
+    padding-bottom: 20px;
+  }
+  .hero-badge img {
+    height: 32px;
+  }
+  .hero-card {
+    min-height: 0;
+  }
+  .hero-card-body {
+    padding: 24px 16px 36px;
+  }
+  .hero-title {
+    font-size: 26px;
+  }
+  .hero-eyebrow {
+    margin-bottom: 8px;
+    font-size: 12px;
+  }
+  .hero-sub {
+    margin-top: 8px;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .hero-cta {
+    margin-top: 16px;
+    gap: 14px;
+  }
+  .hero-btn {
+    height: 44px;
+  }
+  .hero-note {
+    margin-top: 10px;
+    font-size: 12px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .hero-anim {
     animation: none;
@@ -593,8 +780,15 @@ html.cx-landing {
   }
   .hero-card-img,
   .hero-card-media,
-  .hero-ai-new {
+  .hero-ai-new,
+  .hero-card-glow::before,
+  .hero-card-glow::after,
+  .hero-btn-main::before {
     animation: none;
+  }
+  .hero-card-shine,
+  .hero-spark {
+    display: none;
   }
   .hero-btn,
   .hero-btn-main svg {
