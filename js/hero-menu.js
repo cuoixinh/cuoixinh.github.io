@@ -3,27 +3,6 @@
 // tab) chỉ được gỡ khi hàng này cuộn khỏi màn — nút menu và thanh tab không bao
 // giờ cùng hiện. Nạp SAU CXNavbar.mount() + core/x-popover.js + account-menu.js.
 
-// Cờ .cx-scrolled: đã rời đầu trang — logo desktop (đứng trần) mờ đi để không
-// trôi đè lên nội dung.
-(function () {
-  let queued = false;
-  const sync = () => {
-    queued = false;
-    document.documentElement.classList.toggle("cx-scrolled", window.scrollY > 24);
-  };
-  window.addEventListener(
-    "scroll",
-    () => {
-      if (!queued) {
-        queued = true;
-        requestAnimationFrame(sync);
-      }
-    },
-    { passive: true },
-  );
-  sync();
-})();
-
 (function () {
   const row = document.querySelector(".hero-top");
   const html = document.documentElement;

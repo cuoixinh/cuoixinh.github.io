@@ -306,19 +306,8 @@ html.cx-landing {
   transform: translateY(calc(100% + 8px));
 }
 
-/* Logo desktop đứng trần (không nền) cạnh navbar cố định: cuộn rồi thì nó trôi
-   đè lên nội dung, nên mờ đi (cờ .cx-scrolled do js/hero-menu.js đặt), về đầu
-   trang mới hiện lại. Thẻ navbar vẫn ở nguyên. */
-.cx-landing .cx-navbrand {
-  transition: opacity 0.25s ease;
-}
-
-.cx-scrolled .cx-navbrand {
-  @apply pointer-events-none opacity-0;
-}
-
-.hero-badge img {
-  height: 40px;
+.hero-badge x-logo {
+  --xl-size: 40px;
 }
 
 /* Bóng đổ xám trung tính vẽ ở VỎ NGOÀI bằng drop-shadow: nó ôm theo đúng hình
@@ -755,8 +744,8 @@ html.cx-landing {
 /* Điện thoại màn THẤP (iPhone SE 375x667, 360x640): thu các khe cho cụm chữ vừa
    thẻ. Đứng SAU khối .cx-short (cùng độ đặc hiệu, khe nào trùng thì khối này thắng). */
 @media (max-width: 767px) {
-  .cx-shorter .hero-badge img {
-    height: 32px;
+  .cx-shorter .hero-badge x-logo {
+    --xl-size: 32px;
   }
   .cx-shorter .hero-card-body {
     padding: 24px 16px 36px;
@@ -1877,15 +1866,6 @@ html.cx-landing {
   box-shadow: 0 2px 12px rgb(var(--card-blush-300-rgb) / 0.1);
 }
 
-/* Navbar do core/components/navbar.js dựng (.cx-navbar/.cx-navcard ở
-   styles/_common.css). Ở đây chỉ còn phần tự ẩn khi cuộn — js/nav-autohide.js
-   gắn .nav-hidden lên #main-nav. */
-#main-nav {
-  transition: transform 0.3s ease;
-}
-#main-nav.nav-hidden {
-  @apply -translate-y-full;
-}
 
 .reveal {
   @apply opacity-0;

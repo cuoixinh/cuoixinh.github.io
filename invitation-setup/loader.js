@@ -42,6 +42,7 @@
   // lấy CONFIG.version, thêm vào đây nữa là nạp hai lần.
   const SCRIPTS = [
     "../core/x-button.js",
+    "../core/x-logo.js",
     "../core/x-popover.js",
     "../core/cache-util.js",
     "../core/helpers/draft-retention.js",

@@ -61,8 +61,7 @@
            nên nút menu và thanh tab không bao giờ cùng hiện. -->
       <div class="hero-top hero-anim hero-anim-1">
         <a href="/" class="hero-badge cx-logo" aria-label="Cưới Xinh">
-          <img src="assets/icons/logo.png" alt="" />
-          <span class="cx-logo-text"><span class="cx-logo-name">Cưới Xinh</span><span class="cx-logo-since">-SINCE 2026-</span></span>
+          <x-logo></x-logo>
         </a>
         <x-button
           variant="bare"
@@ -431,8 +430,7 @@
         <div class="grid grid-cols-2 md:grid-cols-3 gap-6 mb-8">
           <div class="col-span-2 md:col-span-1">
             <a href="/" class="cx-logo mb-3" aria-label="Cưới Xinh">
-              <img src="assets/icons/logo.png" alt="" />
-              <span class="cx-logo-text"><span class="cx-logo-name">Cưới Xinh</span><span class="cx-logo-since">-SINCE 2026-</span></span>
+              <x-logo size="40"></x-logo>
             </a>
             <p class="text-sm opacity-50 leading-relaxed">
               Thiệp cưới online đẹp<br />cho các cặp đôi Việt Nam.
@@ -505,6 +503,7 @@
       document.addEventListener("DOMContentLoaded", () => window.lucide?.createIcons());
     </script>
     <script src="core/x-button.js"></script>
+    <script src="core/x-logo.js"></script>
     <script src="core/helpers/icon.js"></script>
     <!-- Hộp thoại thanh toán (core/payment.js) dùng <x-input> cho ô mã giảm giá. -->
     <script src="core/x-input.js"></script>
@@ -540,14 +539,11 @@
     <script src="core/payment.js"></script>
 
     <!-- Navbar dùng chung: khai mảng mục một lần, component dựng cả thanh trên
-         (desktop) lẫn thanh tab dưới (mobile). Phải chạy TRƯỚC nav-autohide.js
-         vì nó tìm #main-nav. -->
+         (desktop) lẫn thanh tab dưới (mobile). -->
     <script src="core/components/navbar.js"></script>
     <script>
       CXNavbar.mount({
         active: "home",
-        width: "6xl",
-        brand: "outside",
         items: [
           {
             id: "home",

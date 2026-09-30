@@ -134,6 +134,7 @@
       document.addEventListener("DOMContentLoaded", () => window.lucide?.createIcons());
     </script>
     <script src="../core/x-button.js"></script>
+    <script src="../core/x-logo.js"></script>
     <script src="../core/x-popover.js"></script>
     <script src="../core/helpers/account-menu.js"></script>
     <!-- Navbar dùng chung: khai mảng mục một lần, dựng cả thanh trên lẫn thanh tab dưới. -->
@@ -141,7 +142,6 @@
     <script>
       CXNavbar.mount({
         active: "guests",
-        width: "6xl",
         items: [
           { id: "home", label: "Trang chủ", icon: "home", href: "/" },
           {
