@@ -249,6 +249,7 @@ html.cx-landing {
 .hero-anim-1 { animation-delay: 0.1s; }
 .hero-anim-2 { animation-delay: 0.25s; }
 .hero-anim-3 { animation-delay: 0.4s; }
+.hero-anim-4 { animation-delay: 0.55s; }
 
 /* Hàng đầu, CHỈ ở khổ hẹp (từ md navbar trên đã mang logo): logo trái, nút menu
    phải. Nút menu cùng dáng thanh tab dưới (nền trắng, viền hồng nhạt) vì nó thay
@@ -559,7 +560,7 @@ html.cx-landing {
 .hero-title {
   @apply font-playfair;
   font-weight: 700;
-  font-size: clamp(30px, calc(2.4vw + 14px), 54px);
+  font-size: clamp(28px, calc(2vw + 14px), 44px);
   line-height: 1.2;
   text-wrap: balance;
   color: rgb(var(--white-rgb));
@@ -575,6 +576,15 @@ html.cx-landing {
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: rgb(var(--white-rgb) / 0.78);
+}
+
+.hero-sub {
+  margin-top: 12px;
+  max-width: 520px;
+  font-size: 14px;
+  line-height: 1.6;
+  text-wrap: balance;
+  color: rgb(var(--white-rgb) / 0.9);
 }
 
 .hero-cta {
@@ -724,6 +734,10 @@ html.cx-landing {
   .hero-card-body {
     padding: 56px 40px 72px;
   }
+  .hero-sub {
+    margin-top: 16px;
+    font-size: 16px;
+  }
   .hero-eyebrow-brand {
     display: inline;
   }
@@ -739,6 +753,9 @@ html.cx-landing {
 .cx-short .hero-eyebrow {
   margin-bottom: 10px;
 }
+.cx-short .hero-sub {
+  margin-top: 10px;
+}
 .cx-short .hero-cta {
   margin-top: 24px;
 }
@@ -753,11 +770,16 @@ html.cx-landing {
     padding: 24px 16px 36px;
   }
   .cx-shorter .hero-title {
-    font-size: 26px;
+    font-size: 24px;
   }
   .cx-shorter .hero-eyebrow {
     margin-bottom: 8px;
     font-size: 12px;
+  }
+  .cx-shorter .hero-sub {
+    margin-top: 8px;
+    font-size: 13px;
+    line-height: 1.5;
   }
   .cx-shorter .hero-cta {
     margin-top: 20px;
