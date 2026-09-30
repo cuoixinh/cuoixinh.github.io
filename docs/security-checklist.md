@@ -51,6 +51,8 @@ cũ** cho tới khi làm xong mục F. Đừng đọc bảng `[x]` bên dưới 
       bắt buộc JWT (401 `AUTH_REQUIRED`), đối chiếu `weddings.user_id` (403 `FORBIDDEN`),
       thiệp vô chủ thì người thanh toán nhận làm chủ, và `existingSlug` giữ nguyên slug cũ
       thay vì đặt lại theo `customer_name`. Hai `upsert` đều ghi `user_id: buyerId`.
+      Truy vấn đối chiếu chủ thiệp lỗi thì DỪNG (500 `payment.owner_check_failed`) — coi như
+      "chưa có hàng" là upsert gán chủ đè lên thiệp người khác.
 
 - [x] **A3. Stored XSS trên trang thiệp (dữ liệu vào thuộc tính HTML không escape).**
       **Đã vá cả hai đầu:**
