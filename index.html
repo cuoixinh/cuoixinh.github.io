@@ -52,8 +52,8 @@
     <!-- ===== HERO ===== -->
     <!-- Màn mở đầu: dải nền hồng kem mang MỘT thẻ bo góc, mép đáy cong như màn chiếu.
          Trong thẻ là ảnh ghép các mẫu thiệp (tab "Tạo ảnh bìa" của admin) phủ đen,
-         chữ trắng căn giữa + hai nút. Thẻ cố ý thấp hơn một màn để mục "Mẫu thiệp"
-         lộ ra từ màn đầu — số đo ở .hero-card (styles/tailwind-src.css). -->
+         chữ trắng căn giữa + một nút "Tạo thiệp với AI". Thẻ cố ý thấp hơn một màn để
+         mép mục "Mẫu thiệp" ló ra từ màn đầu — số đo ở .hero-card (styles/tailwind-src.css). -->
     <section id="hero">
       <!-- Hàng đầu, CHỈ ở khổ hẹp (từ md navbar trên đã mang logo): logo trái +
            nút menu phải. Thanh tab dưới ẩn khi hàng này còn trên màn (cờ
@@ -87,7 +87,8 @@
                ~1MB chỉ là src dự phòng — ghép lại ảnh bìa thì phải xuất lại cả bộ này.
                sizes: ảnh phủ `cover` và tràn 24% (.hero-card-img) nên màn ngang do bề
                ngang quyết định (≈124vw, từ 1152px thẻ dừng ở 1088px → 1350px), màn dọc
-               do chiều cao thẻ (khoá px, 360–560px × tỉ lệ ảnh 1.73 × 1.24 ≈ 1000px).
+               do chiều cao thẻ (khoá px, 400–760px × tỉ lệ ảnh 1.73 × 1.24) — chốt 1000px
+               cho gọn: ảnh đã phủ tối nên bản 2000w ở máy 2x là đủ nét.
                Màn dọc KHÔNG viết bằng vh: vh tính theo khung thật, vuốt ẩn thanh URL là
                trình duyệt đổi sang bản ảnh lớn hơn giữa lúc cuộn. -->
           <div class="hero-card-media" aria-hidden="true">
@@ -118,22 +119,9 @@
               <span class="hero-eyebrow">Thiệp cưới online<span class="hero-eyebrow-brand"> · Cưới Xinh</span></span>
               Gửi trọn yêu thương trong một tấm thiệp
             </h1>
-            <p class="hero-sub hero-anim hero-anim-3">
-              Chọn một mẫu ưng ý, kể đôi dòng về hai bạn — tấm thiệp sẵn sàng gửi
-              tới từng khách mời, gọi đúng tên từng người.
-            </p>
-
-            <div class="hero-cta hero-anim hero-anim-4">
-              <!-- Nút CHÍNH: tạo nháp thẳng. -->
-              <x-button
-                variant="bare"
-                class="hero-btn hero-btn-main"
-                onclick="goCreateDraft(event)"
-              >
-                Tạo thiệp ngay
-                <i data-lucide="arrow-right" style="width:18px;height:18px"></i>
-              </x-button>
-              <!-- Nút PHỤ: mở khung chat XuXi ở chế độ tạo thiệp (cxHeroCreateAi ở js/page-setup.js). -->
+            <!-- Lối vào DUY NHẤT của màn mở đầu: mở khung chat XuXi ở chế độ tạo thiệp
+                 (cxHeroCreateAi ở js/page-setup.js). -->
+            <div class="hero-cta hero-anim hero-anim-3">
               <x-button
                 variant="bare"
                 class="hero-btn hero-btn-ai"
@@ -145,10 +133,6 @@
                 <span class="hero-ai-new">New</span>
               </x-button>
             </div>
-
-            <p class="hero-note hero-anim hero-anim-5">
-              Dùng thử miễn phí · chỉ thanh toán khi ưng ý
-            </p>
           </div>
         </div>
       </div>

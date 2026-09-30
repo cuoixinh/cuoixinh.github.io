@@ -224,9 +224,9 @@ html.cx-landing {
    Lớp trong thẻ theo z-index: ảnh ghép mẫu thiệp (.hero-card-media, zoom + trôi)
    → phủ đen (.hero-card-veil) → ánh sáng (.hero-card-glow/-shine, .hero-spark)
    → chữ trắng căn giữa (.hero-card-body).
-   Thẻ CỐ Ý thấp hơn một màn để #templates lộ ra từ màn đầu: trên điện thoại
-   phải thấy được ~20% thẻ mẫu đầu tiên, nên chiều cao thẻ + lề đáy dải + tiêu
-   đề #templates đi cùng nhau — đổi một chỗ thì đo lại ở 390x844.
+   Thẻ = một màn TRỪ một khoảng cố định để màn đầu còn thấy tiêu đề #templates
+   và ló ~80px mép thẻ mẫu đầu tiên: khoảng trừ = hàng logo/navbar + lề đáy dải
+   + tiêu đề #templates + phần ló — đổi một chỗ thì đo lại ở 390x844 và 1440x900.
    Navbar trên (từ md) nổi trên dải — lề đỉnh của #hero chừa đúng 80px của nó
    (12 + 64 + 4, xem .cx-navbar). */
 
@@ -249,8 +249,6 @@ html.cx-landing {
 .hero-anim-1 { animation-delay: 0.1s; }
 .hero-anim-2 { animation-delay: 0.25s; }
 .hero-anim-3 { animation-delay: 0.4s; }
-.hero-anim-4 { animation-delay: 0.55s; }
-.hero-anim-5 { animation-delay: 0.7s; }
 
 /* Hàng đầu, CHỈ ở khổ hẹp (từ md navbar trên đã mang logo): logo trái, nút menu
    phải. Nút menu cùng dáng thanh tab dưới (nền trắng, viền hồng nhạt) vì nó thay
@@ -338,8 +336,8 @@ html.cx-landing {
    (core/helpers/vh-lock.js), đừng thêm dòng dvh/svh trần. */
 .hero-card {
   @apply relative flex w-full items-center justify-center overflow-hidden;
-  min-height: clamp(440px, calc(var(--vh, 1vh) * 60), 720px);
-  min-height: clamp(440px, calc(var(--vh, 1svh) * 60), 720px);
+  min-height: clamp(400px, calc(var(--vh, 1vh) * 100 - 232px), 760px);
+  min-height: clamp(400px, calc(var(--vh, 1svh) * 100 - 232px), 760px);
   border-radius: 20px;
   background: rgb(var(--scrim-rgb));
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M0 0H100V100Q50 94 0 100Z'/%3E%3C/svg%3E");
@@ -579,25 +577,15 @@ html.cx-landing {
   color: rgb(var(--white-rgb) / 0.78);
 }
 
-.hero-sub {
-  margin-top: 16px;
-  max-width: 580px;
-  font-size: 15px;
-  line-height: 1.6;
-  text-wrap: balance;
-  color: rgb(var(--white-rgb) / 0.9);
-}
-
 .hero-cta {
   @apply flex flex-wrap items-center justify-center;
-  gap: 12px 16px;
-  margin-top: 28px;
+  margin-top: 32px;
   text-shadow: none;
 }
 
-/* Khung chung của hai nút. 19px đậm = "chữ lớn" theo WCAG (≥18.66px) nên chỉ
-   cần tương phản 3:1 — nhờ vậy giữ được tông hồng tươi của nút chính; thu chữ
-   dưới mốc đó thì phải đậm màu nền nút lên cho đủ 4.5:1. */
+/* 19px đậm = "chữ lớn" theo WCAG (≥18.66px) nên chỉ cần tương phản 3:1 — nhờ vậy
+   giữ được tông hồng tươi của nút; thu chữ dưới mốc đó thì phải đậm màu nền lên
+   cho đủ 4.5:1. */
 .hero-btn {
   @apply relative inline-flex items-center justify-center rounded-full;
   height: 52px;
@@ -609,9 +597,7 @@ html.cx-landing {
   color: rgb(var(--white-rgb));
   transition:
     transform 0.2s ease,
-    box-shadow 0.2s ease,
-    background 0.2s ease,
-    border-color 0.2s ease;
+    box-shadow 0.2s ease;
 }
 
 .hero-btn:hover {
@@ -622,8 +608,11 @@ html.cx-landing {
   transform: translateY(0) scale(0.98);
 }
 
-.hero-btn-main {
-  @apply overflow-hidden;
+/* Nút hồng đặc, logo XuXi bên trái, tag "New" gắn góc trên phải — tag thò ra
+   ngoài viền nên nút KHÔNG được overflow-hidden; vệt sáng vì thế chạy bằng
+   background-position trên ::before phủ đúng khuôn nút thay vì trượt transform. */
+.hero-btn-ai {
+  padding-left: 16px;
   background: linear-gradient(
     90deg,
     rgb(var(--landing-hero-cta-from-rgb)),
@@ -632,61 +621,39 @@ html.cx-landing {
   box-shadow: 0 10px 28px rgb(var(--landing-hero-cta-to-rgb) / 0.4);
 }
 
-.hero-btn-main:hover {
+.hero-btn-ai:hover {
   box-shadow: 0 14px 32px rgb(var(--landing-hero-cta-to-rgb) / 0.5);
 }
 
-/* Vệt sáng lướt qua nút chính định kỳ để kéo mắt. */
-.hero-btn-main::before {
+.hero-btn-ai::before {
   content: "";
-  @apply pointer-events-none absolute inset-y-0 left-0;
-  width: 48px;
+  @apply pointer-events-none absolute inset-0;
+  border-radius: inherit;
   background: linear-gradient(
-    100deg,
-    rgb(var(--white-rgb) / 0) 0%,
-    rgb(var(--white-rgb) / 0.45) 50%,
-    rgb(var(--white-rgb) / 0) 100%
-  );
-  transform: translateX(-120%) skewX(-16deg);
+      100deg,
+      rgb(var(--white-rgb) / 0) 42%,
+      rgb(var(--white-rgb) / 0.4) 50%,
+      rgb(var(--white-rgb) / 0) 58%
+    )
+    no-repeat;
+  background-size: 250% 100%;
+  background-position: 100% 0;
   animation: cx-hero-btn-shine 5s ease-in-out 2.4s infinite;
 }
 
 @keyframes cx-hero-btn-shine {
   0% {
-    transform: translateX(-120%) skewX(-16deg);
+    background-position: 100% 0;
   }
   24%,
   100% {
-    transform: translateX(640%) skewX(-16deg);
+    background-position: 0 0;
   }
-}
-
-.hero-btn-main svg {
-  transition: transform 0.2s ease;
-}
-
-.hero-btn-main:hover svg {
-  transform: translateX(3px);
-}
-
-/* Nút PHỤ: kính tối viền trắng mảnh, logo XuXi bên trái, tag "New" vàng gắn
-   góc trên phải (thò ra ngoài viền nên KHÔNG được overflow-hidden). */
-.hero-btn-ai {
-  padding-left: 16px;
-  background: rgb(var(--white-rgb) / 0.12);
-  border: 1px solid rgb(var(--white-rgb) / 0.35);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-}
-
-.hero-btn-ai:hover {
-  background: rgb(var(--white-rgb) / 0.2);
-  border-color: rgb(var(--white-rgb) / 0.6);
 }
 
 /* Giữ chỗ trước lúc icon.js thay thẻ <i> — khớp data-size. */
 .hero-ai-ico {
-  @apply shrink-0;
+  @apply relative shrink-0;
   width: 24px;
   height: 24px;
 }
@@ -717,12 +684,6 @@ html.cx-landing {
   }
 }
 
-.hero-note {
-  margin-top: 16px;
-  font-size: 14px;
-  color: rgb(var(--white-rgb) / 0.9);
-}
-
 /* Khổ hẹp logo "Cưới Xinh" đứng ngay trên thẻ — nhắc lại tên trong nhãn là thừa
    và làm nhãn kín bề ngang. */
 .hero-eyebrow-brand {
@@ -739,40 +700,6 @@ html.cx-landing {
   outline-offset: 4px;
 }
 
-/* Máy hẹp: xếp dọc. Nút chính rộng (có trần 280px); nút AI HẠ CẤP thành viên
-   viền mảnh thấp, chữ nhỏ, khổ theo nội dung — hai khối cùng cỡ chồng nhau là
-   thứ nặng nhất màn, lấn cả tiêu đề. Nút AI nằm trên nền phủ tối nên chữ 15px
-   vẫn đủ tương phản; khe 16px để tag "New" (thò lên 10px) không chạm nút trên. */
-@media (max-width: 419px) {
-  .hero-cta {
-    @apply w-full flex-col;
-    gap: 16px;
-  }
-  .hero-btn-main {
-    @apply w-full;
-    max-width: 280px;
-    height: 50px;
-  }
-  .hero-btn-ai {
-    height: 40px;
-    padding: 0 20px 0 12px;
-    gap: 6px;
-    font-size: 15px;
-    font-weight: 600;
-    background: rgb(var(--white-rgb) / 0.08);
-  }
-  .hero-btn-ai .hero-ai-ico {
-    width: 20px;
-    height: 20px;
-  }
-  .hero-ai-new {
-    top: -8px;
-    right: -10px;
-    padding: 3px 6px;
-    font-size: 9px;
-  }
-}
-
 @media (min-width: 640px) {
   #hero {
     padding-left: 24px;
@@ -787,8 +714,8 @@ html.cx-landing {
     padding-bottom: 40px;
   }
   .hero-card {
-    min-height: clamp(460px, calc(var(--vh, 1vh) * 64), 720px);
-    min-height: clamp(460px, calc(var(--vh, 1svh) * 64), 720px);
+    min-height: clamp(460px, calc(var(--vh, 1vh) * 100 - 280px), 800px);
+    min-height: clamp(460px, calc(var(--vh, 1svh) * 100 - 280px), 800px);
   }
   .hero-top {
     display: none;
@@ -804,15 +731,11 @@ html.cx-landing {
   .hero-card-body {
     padding: 56px 40px 72px;
   }
-  .hero-sub {
-    margin-top: 20px;
-    font-size: 17px;
-  }
   .hero-eyebrow-brand {
     display: inline;
   }
   .hero-cta {
-    margin-top: 32px;
+    margin-top: 40px;
   }
 }
 
@@ -823,29 +746,16 @@ html.cx-landing {
 .cx-short .hero-eyebrow {
   margin-bottom: 10px;
 }
-.cx-short .hero-sub {
-  margin-top: 12px;
-}
 .cx-short .hero-cta {
-  margin-top: 20px;
-}
-.cx-short .hero-note {
-  margin-top: 12px;
+  margin-top: 24px;
 }
 
-/* Điện thoại màn THẤP (iPhone SE 375x667, 360x640): thẻ theo khổ nội dung thay
-   vì 60% màn, thu các khe để vẫn thấy ~20% thẻ mẫu đầu tiên phía dưới. Chữ nút
-   giữ 19px (mốc "chữ lớn" của tương phản) — chỉ bớt chiều cao nút. Đứng SAU
-   khối .cx-short (cùng độ đặc hiệu, khe nào trùng thì khối này thắng). */
+/* Điện thoại màn THẤP (iPhone SE 375x667, 360x640): thu các khe cho cụm chữ vừa
+   thẻ. Chữ nút giữ 19px (mốc "chữ lớn" của tương phản) — chỉ bớt chiều cao nút.
+   Đứng SAU khối .cx-short (cùng độ đặc hiệu, khe nào trùng thì khối này thắng). */
 @media (max-width: 767px) {
-  .cx-shorter #hero {
-    padding-bottom: 20px;
-  }
   .cx-shorter .hero-badge img {
     height: 32px;
-  }
-  .cx-shorter .hero-card {
-    min-height: 0;
   }
   .cx-shorter .hero-card-body {
     padding: 24px 16px 36px;
@@ -857,21 +767,11 @@ html.cx-landing {
     margin-bottom: 8px;
     font-size: 12px;
   }
-  .cx-shorter .hero-sub {
-    margin-top: 8px;
-    font-size: 14px;
-    line-height: 1.5;
-  }
   .cx-shorter .hero-cta {
-    margin-top: 16px;
-    gap: 14px;
+    margin-top: 20px;
   }
-  .cx-shorter .hero-btn-main {
-    height: 44px;
-  }
-  .cx-shorter .hero-note {
-    margin-top: 10px;
-    font-size: 12px;
+  .cx-shorter .hero-btn {
+    height: 48px;
   }
 }
 
@@ -885,7 +785,7 @@ html.cx-landing {
   .hero-ai-new,
   .hero-card-glow::before,
   .hero-card-glow::after,
-  .hero-btn-main::before {
+  .hero-btn-ai::before {
     animation: none;
   }
   .hero-card-shine,
@@ -896,8 +796,7 @@ html.cx-landing {
   .hero-menu-btn {
     transition: none;
   }
-  .hero-btn,
-  .hero-btn-main svg {
+  .hero-btn {
     transition: none;
   }
 }
