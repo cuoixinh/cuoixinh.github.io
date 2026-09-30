@@ -7,8 +7,7 @@
 // Ảnh trong pendingUploads đã được nén sẵn lúc người dùng chọn (prepareImage ở
 // 10-images.js) → ở đây chỉ đẩy lên storage, KHÔNG nén lại lần nữa.
 async function uploadSingleImage(fieldName, file) {
-  // Use BL layer to upload
-  return await imageBL.uploadSingleImage(WEDDING_ID, fieldName, file);
+  return await imageBL.uploadSingleImage(WEDDING_STORAGE_KEY, fieldName, file);
 }
 
 // Chưa đăng nhập thì KHÔNG đẩy lên storage: từ RC1.15 bucket chỉ nhận
@@ -18,10 +17,9 @@ async function uploadSingleImage(fieldName, file) {
 // ĐỔI ảnh (khác XOÁ ảnh ở removeImage) cũng bỏ lại một file: tên cũ bị tên mới
 // ghi đè trong payload nên không luồng dọn nào còn thấy nó. Gọi ngay sau khi
 // upload thành công — xếp hàng sớm hơn là lưu hụt vẫn xoá mất ảnh đang dùng.
+// Gửi nguyên giá trị (tên hay URL đầy đủ) — server tự quy về đường dẫn trong bucket.
 function _queueReplacedImage(oldValue) {
-  if (!oldValue) return;
-  const name = oldValue.startsWith("http") ? oldValue.split("/").pop() : oldValue;
-  if (name) deletedImages.singleImages.push(name);
+  if (oldValue) deletedImages.singleImages.push(oldValue);
 }
 
 async function uploadAllPendingImages() {
@@ -50,7 +48,7 @@ async function uploadAllPendingImages() {
   if (pendingUploads.galleryImages.length > 0) {
     try {
       const result = await imageBL.uploadMultipleImages(
-        WEDDING_ID,
+        WEDDING_STORAGE_KEY,
         pendingUploads.galleryImages,
       );
 
@@ -105,16 +103,7 @@ function removeImage(fieldName) {
     const hiddenInput = document.querySelector(`input[name="${fieldName}"]`);
     const existingFilename = hiddenInput ? hiddenInput.value : null;
 
-    if (existingFilename) {
-      // Extract filename from URL if it's a full URL
-      let filename = existingFilename;
-      if (existingFilename.startsWith("http")) {
-        // Extract filename from URL: https://...workers.dev/abc123.jpg -> abc123.jpg
-        filename = existingFilename.split("/").pop();
-      }
-      deletedImages.singleImages.push(filename);
-      console.log("Marked for deletion:", filename);
-    }
+    if (existingFilename) deletedImages.singleImages.push(existingFilename);
 
     if (hiddenInput) hiddenInput.value = "";
   }
@@ -161,17 +150,7 @@ function removeExistingGalleryImage(index) {
   const filenames = textarea.value.trim().split("\n").filter(Boolean);
   const deletedFilename = filenames[index];
 
-  // Mark for deletion in Storage
-  if (deletedFilename) {
-    // Extract filename from URL if it's a full URL
-    let filename = deletedFilename;
-    if (deletedFilename.startsWith("http")) {
-      // Extract filename from URL: https://...workers.dev/abc123.jpg -> abc123.jpg
-      filename = deletedFilename.split("/").pop();
-    }
-    deletedImages.galleryImages.push(filename);
-    console.log("Marked gallery image for deletion:", filename);
-  }
+  if (deletedFilename) deletedImages.galleryImages.push(deletedFilename);
 
   filenames.splice(index, 1);
   textarea.value = filenames.join("\n");

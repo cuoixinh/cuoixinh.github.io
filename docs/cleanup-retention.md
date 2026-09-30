@@ -102,8 +102,10 @@ Chốt an toàn: `expires_at IS NULL` hoặc `payment_status = 'completed'` thì
 đụng — đó là thiệp đã kích hoạt vĩnh viễn. Câu (1) dùng `.or('payment_status.is.null,...neq...')`
 vì `neq` của PostgREST bỏ sót hàng NULL.
 
-Mỗi nạn nhân: gom tên file từ 5 cột ảnh + `gallery_images` → `storage.remove()` → `delete from
-weddings` (guests cascade theo FK). **Xoá ảnh trước**, vì hàng DB là nơi duy nhất còn giữ tên file.
+Mỗi nạn nhân: xoá cả thư mục ảnh `w/<storage_key>/` (+ file phẳng cũ hàng còn trỏ tới) → `delete
+from weddings` (guests cascade theo FK). **Xoá ảnh trước**, vì hàng DB là nơi duy nhất giữ
+`storage_key`. Luật quét + phép xoá nằm ở `_shared/wedding-cleanup.ts`, dùng chung với tab "Dọn dữ
+liệu" của admin — cron hỏng thì dọn tay ở đó, cùng đúng một điều kiện.
 
 - `?dry_run=1` — chỉ liệt kê, không xoá. Dùng trước mọi thay đổi.
 - `?days=N` — ghi đè hạn, để thử tay.
@@ -191,11 +193,11 @@ Deploy lại function: `npm run deploy:functions` (script tự truyền `--no-ve
 - **Xoá là xoá hẳn, một pha, không hoàn tác được** — mất luôn ảnh, khách mời, lời chúc. Luôn
   `dry_run` trước khi đổi bất cứ điều kiện quét nào.
 - **`RETENTION_DAYS` và `CONFIG.retention` là hai nơi** — đổi phải đổi cả hai.
-- **Thêm cột ảnh mới** cho thiệp thì phải thêm vào `IMAGE_COLUMNS` của `cleanup-weddings` **và**
-  danh sách xoá ảnh trong `wedding-admin` (nhánh DELETE), nếu không file thành rác vĩnh viễn.
-- **Ảnh mồ côi chưa được dọn**: file upload dở rồi khách bỏ đi (chưa nằm ở cột nào) không ai
-  xoá. Tên file có tiền tố `<weddingId>-` (`core/bl/image-bl.js`) nên sau này quét theo tiền tố
-  được.
+- **Thêm cột ảnh mới** cho thiệp thì phải thêm vào `IMAGE_COLUMNS` ở `_shared/wedding-images.ts`
+  — nơi duy nhất; quên là tab "Dọn dữ liệu" coi ảnh đang dùng ở cột đó là rác.
+- **Ảnh mồ côi** (ảnh bị thay, lưu hỏng, thư mục của thiệp đã xoá, file phẳng cũ) không có cron
+  nào dọn — dọn tay ở tab "Dọn dữ liệu" của admin. Chỉ file cũ hơn 48h mới tính là rác: ảnh vừa
+  upload mà khách chưa kịp lưu thiệp cũng chưa có hàng nào trỏ tới.
 - **Bảng tiền không cascade**: `orders` / `payment_logs` / `promo_redemptions` tham chiếu
   `manage_id` mà không có FK, xoá thiệp không xoá chúng — cố ý, để giữ lịch sử tiền bạc.
 - **`add column ... default now()` không để lại hàng NULL** (PG11+ điền luôn cho hàng cũ).

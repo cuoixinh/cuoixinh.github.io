@@ -354,13 +354,16 @@ Mọi ảnh khách tải lên nằm CHUNG một bucket **`wedding-images`** (`co
 bucket để **public** — thiệp hiển thị ảnh qua `/object/public/...`, đường này KHÔNG đi qua
 RLS nên khách mời không đăng nhập vẫn xem được.
 
-- **Tên file không được chứa `wedding_id`** (hay bất cứ định danh nào tra ngược ra thiệp).
-  Ai liệt kê được bucket sẽ suy ra id rồi lấy tiếp hồ sơ qua Edge Function — đúng lỗ hổng
-  `changelogs/RC01/manual/dqvinh_001_storage_policies.sql` vá. Liên hệ file ↔ thiệp giữ ở hàng DB
-  (các cột `*_url`, `gallery_images`, và `image_url` trong `love_story`) —
-  **`supabase/functions/_shared/wedding-images.ts` là nơi DUY NHẤT liệt kê chúng**, dùng chung
-  cho `deleted_images` + DELETE của `wedding-admin` và cron `cleanup-weddings`. Thêm cột ảnh
-  mới mà quên khai ở đó thì file nằm lại bucket vĩnh viễn, không luồng dọn nào thấy.
+- **Mỗi thiệp một thư mục `w/<storage_key>/`** — `weddings.storage_key` là mã ngẫu nhiên do
+  DB sinh, **không phải `wedding_id`**: đường dẫn ảnh là công khai, mà `id` vẫn còn dùng để
+  nhận chủ thiệp chưa có chủ. Thiệp phải có hàng DB (tức có mã) rồi mới upload được, nên
+  trang Thiết lập tạo hàng TRƯỚC khi đẩy ảnh. PATCH chỉ nhận ảnh MỚI nằm trong thư mục của
+  chính thiệp, `deleted_images` chỉ xoá được ảnh hàng đang trỏ tới trong thư mục đó — bỏ một
+  trong hai là chép tên file thiệp khác vào rồi xoá được ảnh của người ta. Xoá thiệp = xoá
+  cả thư mục. **`supabase/functions/_shared/wedding-images.ts` là nơi DUY NHẤT liệt kê cột
+  ảnh + luật đường dẫn** (`STORAGE_PATH_RE`, bản sao ở image-proxy và `worker/index.js`),
+  dùng chung cho `wedding-admin`, cron `cleanup-weddings` và tab "Dọn dữ liệu" của admin.
+  Thêm cột ảnh mới mà quên khai ở đó thì tab dọn coi ảnh đang dùng là rác.
 - **Policy trên `storage.objects` chỉ cấp `insert` cho `authenticated`, còn `select` bó vào
   `owner_id = auth.uid()`.** Cho `select` chỉ theo `bucket_id` là mọi tài khoản đăng nhập
   liệt kê được toàn bộ kho (`/object/list/`) — Security Advisor báo đúng chỗ đó. Mà bỏ hẳn

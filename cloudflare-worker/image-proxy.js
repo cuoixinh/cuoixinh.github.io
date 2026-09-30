@@ -14,12 +14,12 @@ export default {
 
     const url = new URL(request.url);
 
-    // Lấy filename từ path: /abc123.jpg
+    // Đường dẫn trong bucket: /w/<storage_key>/<tên> (hoặc /<tên> phẳng của dữ liệu cũ).
     const filename = decodeURIComponent(url.pathname.slice(1)); // bỏ dấu / đầu
 
-    // ALLOWLIST ký tự, khớp tên do core/bl/image-bl.js sinh ra. Nối thẳng
-    // pathname vào URL storage thì `%2e%2e%2f` đi ra khỏi thư mục bucket.
-    if (!/^[A-Za-z0-9._-]{1,120}$/.test(filename)) {
+    // ALLOWLIST, khớp STORAGE_PATH_RE ở supabase/functions/_shared/wedding-images.ts.
+    // Nối thẳng pathname vào URL storage thì `%2e%2e%2f` đi ra khỏi thư mục bucket.
+    if (!/^(?:w\/[0-9a-f]{32}\/)?(?!\.{1,2}$)[A-Za-z0-9._-]{1,120}$/.test(filename)) {
       return new Response("Invalid filename", { status: 400 });
     }
 

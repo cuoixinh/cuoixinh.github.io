@@ -4,9 +4,14 @@ import { withAxiom } from '../_shared/axiom.ts'
 import { generateWithGemini } from '../_shared/ai-provider.ts'
 import {
   WEDDING_IMAGE_SELECT,
+  STORAGE_HOSTS,
+  STORAGE_PATH_RE,
+  folderOf,
+  removeWeddingStorage,
+  storagePathFromRef,
   weddingFileNames,
-  weddingImageRefs,
 } from '../_shared/wedding-images.ts'
+import { handleCleanup } from './cleanup.ts'
 import {
   checkWeddingLimit,
   MAX_WEDDINGS_PER_USER,
@@ -106,26 +111,17 @@ const CUSTOMER_EDITABLE_FIELDS = new Set([
 // QR mừng cưới render thẳng qua <img src>; nhận URL tuỳ ý thì kẻ tấn công đổi
 // sang QR của nó và khách mời chuyển tiền nhầm. Chỉ chấp nhận tên file trong
 // storage của hệ thống hoặc URL thuộc host của hệ thống.
-// Cùng một mã chạy cho CẢ HAI project nên phải liệt kê host của cả hai — thiếu
-// host staging thì trên staging mọi URL ảnh đầy đủ đều bị coi là tráo ảnh.
-const ALLOWED_IMAGE_HOSTS = new Set([
-  'lcobawmkywtxhpezndsh.supabase.co',                    // production
-  'gmtnoxdwoumbtdmqmisk.supabase.co',                    // staging
-  'wedding-image-proxy.cuoixinh-api.workers.dev',        // proxy production
-  'wedding-image-proxy-staging.cuoixinh-api.workers.dev', // proxy staging
-])
+// Danh sách host (cả hai project) nằm ở _shared/wedding-images.ts.
 
 const IMAGE_FIELDS = [
   'cover_image_url', 'groom_image_url', 'bride_image_url',
   'groom_qr_url', 'bride_qr_url',
 ]
 
-// Tên file trong storage: do core/bl/image-bl.js sinh ra dạng
-// `<trường>-<24 ký tự ngẫu nhiên>.<ext>`. Đây là ALLOWLIST ký tự, KHÔNG phải
-// danh sách cấm — bản cũ chỉ chặn `:` `//` `..` `/` `\` nên chuỗi như
-// `a" onerror="…` lọt qua, rồi theme nội suy vào `src="…"` thành stored XSS
-// (xem docs/security-checklist.md A3).
-const STORAGE_NAME_RE = /^[A-Za-z0-9._-]{1,120}$/
+// Đường dẫn trong storage do core/bl/image-bl.js sinh ra dạng
+// `w/<storage_key>/<trường>-<24 ký tự ngẫu nhiên>.<ext>` — khớp STORAGE_PATH_RE.
+// Đây là ALLOWLIST ký tự, KHÔNG phải danh sách cấm: chuỗi như `a" onerror="…` đi
+// vào `src="…"` của theme thành stored XSS (xem docs/security-checklist.md A3).
 
 // Cho phép: null/'' (xoá ảnh), tên file trong storage, hoặc URL https trên host
 // của hệ thống. Chặn mọi thứ còn lại — kể cả dấu nháy, khoảng trắng, dấu <>.
@@ -138,7 +134,7 @@ function isSafeImageRef(value: unknown): boolean {
   if (v.includes(':') || v.startsWith('//')) {
     try {
       const u = new URL(v)
-      if (u.protocol !== 'https:' || !ALLOWED_IMAGE_HOSTS.has(u.hostname)) return false
+      if (u.protocol !== 'https:' || !STORAGE_HOSTS.has(u.hostname)) return false
       // Phần tên file trong URL cũng phải sạch: URL hợp lệ vẫn mang được
       // `?x="onerror=` ở query/fragment.
       return !/["'<>\\\s]/.test(v)
@@ -146,7 +142,7 @@ function isSafeImageRef(value: unknown): boolean {
       return false
     }
   }
-  return STORAGE_NAME_RE.test(v)
+  return STORAGE_PATH_RE.test(v)
 }
 
 // ── Bảo mật: làm sạch mảng JSONB khách gửi lên ──────────────────────────────
@@ -274,6 +270,16 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
     }
     
     return finalSlug;
+  }
+
+  // ============= DỌN DỮ LIỆU (admin) — xem ./cleanup.ts =============
+  if (resource === 'cleanup') {
+    if (!isAdmin) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401, headers: corsHeaders
+      })
+    }
+    return handleCleanup(req, url, supabase, log, corsHeaders)
   }
 
   // ============= TEMPLATES MANAGEMENT =============
@@ -873,7 +879,7 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
     const { data, error } = await supabase
       .from('weddings')
       .insert(insertPayload)
-      .select('id, slug')
+      .select('id, slug, storage_key')
       .single()
 
     // Trùng id = client tạo lại hàng nó đã tạo (PATCH sau POST hỏng, bấm hai lần,
@@ -883,7 +889,7 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
     if (error?.code === '23505' && resolvedId && error.message?.includes('weddings_pkey')) {
       const { data: dup, error: dupErr } = await supabase
         .from('weddings')
-        .select('id, slug, user_id')
+        .select('id, slug, user_id, storage_key')
         .eq('id', resolvedId)
         .maybeSingle()
 
@@ -906,7 +912,7 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
       }
 
       log.warn('wedding.create_duplicate', { id: dup.id, slug: dup.slug })
-      return new Response(JSON.stringify({ id: dup.id, slug: dup.slug }), {
+      return new Response(JSON.stringify({ id: dup.id, slug: dup.slug, storage_key: dup.storage_key }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
@@ -918,7 +924,8 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
 
     log.info('wedding.created', { id: data.id, slug: data.slug })
 
-    return new Response(JSON.stringify({ id: data.id, slug: data.slug }), {
+    // storage_key: client upload ảnh vào w/<storage_key>/ — chỉ chủ thiệp nhận được.
+    return new Response(JSON.stringify({ id: data.id, slug: data.slug, storage_key: data.storage_key }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })
   }
@@ -977,32 +984,46 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
       }
     }
 
-    // Validate deleted_images: chỉ cho phép xóa ảnh thuộc về wedding này.
-    // Đối chiếu theo TÊN FILE nên cột lưu URL đầy đủ về storage của hệ thống vẫn
-    // khớp được (isSafeImageRef cho phép dạng đó).
-    if (deleted_images && deleted_images.length > 0) {
-      const extractedFilenames = weddingImageRefs(existing).map((f) =>
-        f.startsWith('http') ? f.split('/').pop()! : f
+    // Ảnh MỚI gắn vào thiệp phải nằm trong thư mục của chính thiệp. Không chặn thì
+    // chép tên file của thiệp khác (thấy công khai trên trang thiệp) vào đây rồi gửi
+    // `deleted_images` là xoá được ảnh của người ta. Tham chiếu hàng ĐÃ có thì giữ.
+    // Đứng TRƯỚC khối xoá ảnh: lượt lưu bị từ chối thì chưa được xoá gì.
+    if (!isAdmin) {
+      const folder = folderOf(existing.storage_key)
+      const kept = new Set(weddingFileNames(existing))
+      const foreign = weddingFileNames(fields).filter(
+        (p) => !kept.has(p) && !(folder && p.startsWith(folder)),
       )
+      if (foreign.length > 0) {
+        log.warn('wedding.patch_image_foreign', { id, count: foreign.length, sample: foreign[0] })
+        return new Response(JSON.stringify({
+          error: 'Có ảnh không thuộc thiệp này, vui lòng tải ảnh lên lại',
+          code: 'IMAGE_FOREIGN',
+        }), { status: 400, headers: corsHeaders })
+      }
+    }
 
-      const validDeletedImages = deleted_images.filter(filename =>
-        extractedFilenames.includes(filename)
+    // Chỉ xoá được ảnh THUỘC thiệp: hàng đang trỏ tới nó VÀ nó nằm trong thư mục
+    // của chính thiệp (hoặc là file phẳng cũ). Client gửi tên hay URL đầy đủ đều được,
+    // quy về đường dẫn trong bucket rồi mới so.
+    if (Array.isArray(deleted_images) && deleted_images.length > 0) {
+      const folder = folderOf(existing.storage_key)
+      const owned = new Set(weddingFileNames(existing))
+      const validDeletedImages = [...new Set(deleted_images.map(storagePathFromRef))].filter(
+        (p): p is string =>
+          !!p && owned.has(p) && ((!!folder && p.startsWith(folder)) || !p.includes('/')),
       )
 
       if (validDeletedImages.length > 0) {
-        console.log('Deleting images from storage:', validDeletedImages)
         const { error: deleteError } = await supabase.storage
           .from('wedding-images')
           .remove(validDeletedImages)
-        
+
         if (deleteError) {
-          // Cố ý không chặn request, nhưng ảnh nằm lại bucket vĩnh viễn nếu hàng
-          // DB đã bỏ tham chiếu — không còn luồng nào tìm ra chúng nữa.
+          // Cố ý không chặn request: file nằm lại trong thư mục của thiệp, tab Dọn dữ
+          // liệu (file thừa trong thư mục) sẽ vét sau.
           log.error('wedding.image_delete_failed', { id, files: validDeletedImages.length, message: deleteError.message })
-          // Continue anyway, don't fail the whole request
         }
-      } else {
-        console.log('No valid images to delete')
       }
     }
 
@@ -1199,6 +1220,7 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
     // grandfather cho thiệp tạo trước khi bắt buộc đăng nhập. Thiệp đã có chủ thì
     // bỏ qua user_id client gửi lên. Ghi log mọi lần claim để soi bất thường.
     delete fields.user_id
+    delete fields.storage_key // do DB sinh; đổi là mồ côi cả thư mục ảnh
     if (!existing.user_id && editorId) {
       fields.user_id = editorId
       log.info('wedding.claimed', { id, userId: editorId })
@@ -1495,7 +1517,7 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
     // response trước khi trả về — không để dữ liệu thanh toán rời khỏi DB.
     let query = supabase
       .from('weddings')
-      .select(isAdmin ? '*' : `${PUBLIC_WEDDING_COLUMNS}, expires_at, payment_status, user_id`)
+      .select(isAdmin ? '*' : `${PUBLIC_WEDDING_COLUMNS}, expires_at, payment_status, user_id, storage_key`)
 
     if (slug) {
       query = query.eq('slug', slug)
@@ -1541,6 +1563,8 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
         }
       }
       delete data.user_id
+      // Thư mục ảnh chỉ trình chỉnh sửa (tra theo id, đã là chủ) cần để upload.
+      if (!id) delete data.storage_key
     }
 
     // ── Hết hạn dùng thử = KHOÁ với khách mời ────────────────────────────────
@@ -1626,26 +1650,21 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
       }
     }
 
-    // Xoá ảnh TRƯỚC: hàng DB là nơi duy nhất còn giữ tên file, mất nó trước là
-    // ảnh nằm lại trong bucket vĩnh viễn mà không ai biết đường tìm.
-    const imageFiles = weddingFileNames(wedding)
-    if (imageFiles.length > 0) {
-      const { error: rmError } = await supabase.storage
-        .from('wedding-images')
-        .remove(imageFiles)
-      if (rmError) {
-        log.error('wedding.delete_images_failed', { id, error: rmError.message })
-        return new Response(JSON.stringify({
-          error: 'Không xoá được ảnh của thiệp, vui lòng thử lại',
-        }), { status: 500, headers: corsHeaders })
-      }
+    // Xoá ảnh TRƯỚC (cả thư mục của thiệp): hàng DB là nơi duy nhất giữ
+    // storage_key, mất nó trước là ảnh nằm lại trong bucket không ai biết đường tìm.
+    const rm = await removeWeddingStorage(supabase, wedding)
+    if (rm.error) {
+      log.error('wedding.delete_images_failed', { id, error: rm.error })
+      return new Response(JSON.stringify({
+        error: 'Không xoá được ảnh của thiệp, vui lòng thử lại',
+      }), { status: 500, headers: corsHeaders })
     }
 
     const { error } = await supabase.from('weddings').delete().eq('id', id)
 
     if (error) return new Response(JSON.stringify({ error }), { status: 500, headers: corsHeaders })
 
-    log.info('wedding.deleted', { id, by: isAdmin ? 'admin' : 'owner', files: imageFiles.length })
+    log.info('wedding.deleted', { id, by: isAdmin ? 'admin' : 'owner', files: rm.removed })
     return new Response(JSON.stringify({ success: true }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })

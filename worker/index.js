@@ -23,8 +23,9 @@ const ROUTE_PATHS = new Set(["manage", "account", "customer"]);
 // header "X-Robots-Tag: none" mà Storage gắn lên mọi file public.
 const OG_IMG_PREFIX = "/__og/";
 
-// Tên file Storage hợp lệ — chặn path traversal và biến worker thành proxy mở.
-const OG_IMG_NAME = /^[A-Za-z0-9._-]+$/;
+// Đường dẫn Storage hợp lệ (khớp STORAGE_PATH_RE ở _shared/wedding-images.ts) — chặn
+// path traversal và biến worker thành proxy mở.
+const OG_IMG_NAME = /^(?:w\/[0-9a-f]{32}\/)?(?!\.{1,2}$)[A-Za-z0-9._-]{1,120}$/;
 
 // Ảnh đủ nhẹ thì lúc upload KHÔNG bị nén lại (xem core/helpers/image-helper.js)
 // nên lên bucket còn nguyên EXIF/APP13 của máy chụp — ảnh chụp bằng iPhone hay

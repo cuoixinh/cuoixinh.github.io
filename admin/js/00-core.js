@@ -63,6 +63,7 @@ const TAB_NAMES = [
   "background",
   "promo",
   "fonts",
+  "cleanup",
 ];
 const TAB_BREADCRUMB_LABELS = {
   dashboard: "Quản lý Hệ thống",
@@ -73,6 +74,7 @@ const TAB_BREADCRUMB_LABELS = {
   background: "Ảnh nền",
   promo: "Mã giảm giá",
   fonts: "Font chữ",
+  cleanup: "Dọn dữ liệu",
 };
 
 function switchTab(tabName, pushState = true) {
@@ -100,6 +102,8 @@ function switchTab(tabName, pushState = true) {
     initPromoPanel();
   } else if (tabName === "fonts") {
     initFontsPanel();
+  } else if (tabName === "cleanup") {
+    initCleanupPanel();
   }
 }
 
