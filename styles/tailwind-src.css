@@ -556,26 +556,21 @@ html.cx-landing {
   text-shadow: 0 2px 16px rgb(var(--scrim-rgb) / 0.5);
 }
 
-/* Playfair như mọi tiêu đề mục khác của trang; phần còn lại của cụm chữ là Inter. */
+/* Tiêu đề là nhãn chữ in hoa giãn chữ (Inter), không phải câu Playfair lớn — ảnh
+   ghép phía sau đã đủ "nói", chữ chỉ cần gọi tên. Khổ hẹp tên thương hiệu xuống
+   dòng riêng; từ md đứng cùng dòng, ngăn bằng dấu chấm giữa. */
 .hero-title {
-  @apply font-playfair;
+  @apply font-inter;
+  font-size: 18px;
   font-weight: 700;
-  font-size: clamp(28px, calc(2vw + 14px), 44px);
-  line-height: 1.2;
-  text-wrap: balance;
+  line-height: 1.4;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
   color: rgb(var(--white-rgb));
 }
 
-/* Nằm TRONG h1 (Playfair) nên phải tự khai lại Inter. */
-.hero-eyebrow {
-  @apply block font-inter;
-  margin-bottom: 16px;
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 1.3;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: rgb(var(--white-rgb) / 0.78);
+.hero-title-brand {
+  @apply block;
 }
 
 .hero-sub {
@@ -664,12 +659,6 @@ html.cx-landing {
   }
 }
 
-/* Khổ hẹp logo "Cưới Xinh" đứng ngay trên thẻ — nhắc lại tên trong nhãn là thừa
-   và làm nhãn kín bề ngang. */
-.hero-eyebrow-brand {
-  display: none;
-}
-
 .hero-btn:focus-visible {
   outline: 2px solid rgb(var(--white-rgb));
   outline-offset: 4px;
@@ -738,8 +727,14 @@ html.cx-landing {
     margin-top: 16px;
     font-size: 16px;
   }
-  .hero-eyebrow-brand {
+  .hero-title {
+    font-size: 22px;
+  }
+  .hero-title-brand {
     display: inline;
+  }
+  .hero-title-brand::before {
+    content: " · ";
   }
   .hero-cta {
     margin-top: 40px;
@@ -750,9 +745,6 @@ html.cx-landing {
    Hai cờ .cx-short/.cx-shorter do core/helpers/vh-lock.js đặt theo chiều cao ĐÃ
    KHOÁ — đừng đổi lại thành `@media (max-height)`: media tính theo khung thật,
    vuốt ẩn thanh URL là vượt mốc, thẻ và chữ nhảy khổ giữa lúc cuộn. */
-.cx-short .hero-eyebrow {
-  margin-bottom: 10px;
-}
 .cx-short .hero-sub {
   margin-top: 10px;
 }
@@ -770,11 +762,7 @@ html.cx-landing {
     padding: 24px 16px 36px;
   }
   .cx-shorter .hero-title {
-    font-size: 24px;
-  }
-  .cx-shorter .hero-eyebrow {
-    margin-bottom: 8px;
-    font-size: 12px;
+    font-size: 16px;
   }
   .cx-shorter .hero-sub {
     margin-top: 8px;
