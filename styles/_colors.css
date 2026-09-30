@@ -205,8 +205,7 @@
      ============================================================ */
 
   --landing-dark-rgb: 45 15 26;  /* nền khối CTA cuối trang */
-  --landing-hero-top-rgb: 24 14 20;  /* đỉnh dải nền màn mở đầu (gần đen) */
-  --landing-hero-glow-rgb: 84 50 70;  /* quầng mận sau thẻ màn mở đầu */
+  --landing-hero-veil-rgb: 92 40 64;  /* lớp phủ mận trên ảnh thẻ màn mở đầu */
   --landing-hero-cta-from-rgb: 236 90 128;  /* nút chính màn mở đầu — chữ trắng ≥3:1 */
   --landing-hero-cta-to-rgb: 224 66 110;
   --landing-cta-bg-mid-rgb: 62 26 40;

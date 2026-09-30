@@ -219,29 +219,32 @@ html.cx-landing {
 /* ═══════════ Từ styles/index.css (trang chủ) ═══════════ */
 
 /* ── Màn mở đầu ──────────────────────────────────────────────────────────
-   Dải nền tối (gần đen → mận) mang MỘT thẻ bo góc, mép đáy cong lên ở giữa
-   như màn chiếu. Lớp trong thẻ theo z-index: ảnh ghép mẫu thiệp (.hero-card-
-   media) → phủ tối (.hero-card-veil) → chữ trắng căn giữa (.hero-card-body).
-   Thẻ CỐ Ý thấp hơn một màn để #templates lộ ra từ màn đầu. Navbar trên (từ
-   md) nổi trên dải — lề đỉnh của #hero chừa đúng 80px của nó (12 + 64 + 4, xem
-   .cx-navbar); js/hero-nav.js đổi navbar sang kính tối khi còn nằm trên dải. */
+   Dải nền hồng kem sáng mang MỘT thẻ bo góc, mép đáy cong lên ở giữa như màn
+   chiếu. Lớp trong thẻ theo z-index: ảnh ghép mẫu thiệp (.hero-card-media) →
+   phủ mận (.hero-card-veil) → chữ trắng căn giữa (.hero-card-body).
+   Thẻ CỐ Ý thấp hơn một màn để #templates lộ ra từ màn đầu. Đáy dải là đúng
+   nền của #templates (--surface-tint-rgb) — đổi nền mục đó thì đổi cả ở đây.
+   Navbar trên (từ md) nổi trên dải — lề đỉnh của #hero chừa đúng 80px của nó
+   (12 + 64 + 4, xem .cx-navbar). */
 
 /* overflow-hidden: bóng đổ của .hero-frame lem xuống đỉnh #templates thành vệt
    xám trên nền sáng. */
 #hero {
   @apply relative flex flex-col items-center overflow-hidden;
   isolation: isolate;
-  padding: 12px 16px 28px;
+  /* Lề đáy phải dài hơn tầm bóng của .hero-frame (16 + 32), không thì bóng
+     chạm đáy dải rồi bị overflow cắt thành một đường thẳng. */
+  padding: 12px 16px 56px;
   background:
     radial-gradient(
-      120% 70% at 50% 100%,
-      rgb(var(--landing-hero-glow-rgb)) 0%,
-      rgb(var(--landing-hero-glow-rgb) / 0) 70%
+      80% 50% at 50% 40%,
+      rgb(var(--brand-primary-rgb) / 0.35) 0%,
+      rgb(var(--brand-primary-rgb) / 0) 70%
     ),
     linear-gradient(
       to bottom,
-      rgb(var(--landing-hero-top-rgb)) 0%,
-      rgb(var(--landing-dark-rgb)) 100%
+      rgb(var(--landing-hero-tint-rgb)) 0%,
+      rgb(var(--surface-tint-rgb)) 100%
     );
   color: rgb(var(--white-rgb));
 }
@@ -266,13 +269,13 @@ html.cx-landing {
   height: 40px;
 }
 
-/* Viền sáng 1px + bóng đổ vẽ ở VỎ NGOÀI bằng drop-shadow: nó ôm theo đúng hình
-   sau mask của .hero-card (kể cả mép cong). */
+/* Viền hồng 1px + bóng đổ hồng vẽ ở VỎ NGOÀI bằng drop-shadow: nó ôm theo đúng
+   hình sau mask của .hero-card (kể cả mép cong). */
 .hero-frame {
   @apply relative w-full;
   max-width: 1760px;
-  filter: drop-shadow(0 0 1px rgb(var(--white-rgb) / 0.45))
-    drop-shadow(0 24px 48px rgb(var(--landing-hero-top-rgb) / 0.6));
+  filter: drop-shadow(0 0 1px rgb(var(--brand-primary-rgb)))
+    drop-shadow(0 16px 32px rgb(var(--shadow-brand-rgb) / 0.28));
 }
 
 /* Mép đáy cong = mask SVG co giãn theo thẻ (preserveAspectRatio none) nên độ
@@ -283,7 +286,7 @@ html.cx-landing {
   min-height: clamp(460px, calc(var(--vh, 1vh) * 64), 720px);
   min-height: clamp(460px, calc(var(--vh, 1svh) * 64), 720px);
   border-radius: 20px;
-  background: rgb(var(--landing-dark-rgb));
+  background: rgb(var(--landing-hero-veil-rgb));
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M0 0H100V100Q50 94 0 100Z'/%3E%3C/svg%3E");
   mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M0 0H100V100Q50 94 0 100Z'/%3E%3C/svg%3E");
   -webkit-mask-size: 100% 100%;
@@ -352,18 +355,19 @@ html.cx-landing {
   }
 }
 
-/* Phủ tối cả ảnh + một quầng đậm hơn sau cụm chữ: ảnh ghép toàn nền sáng và
-   chữ in nhỏ, thiếu quầng này là chữ trắng lẫn vào chữ trong ảnh. */
+/* Phủ mận cả ảnh + một quầng đậm hơn sau cụm chữ: ảnh ghép toàn nền sáng và
+   chữ in nhỏ, thiếu quầng này là chữ trắng lẫn vào chữ trong ảnh. Tông mận
+   (không phải đen) để thẻ cùng họ màu hồng với dải nền quanh nó. */
 .hero-card-veil {
   @apply pointer-events-none absolute inset-0;
   z-index: 1;
   background:
     radial-gradient(
       ellipse 60% 55% at 50% 50%,
-      rgb(var(--landing-dark-rgb) / 0.6) 0%,
-      rgb(var(--landing-dark-rgb) / 0) 100%
+      rgb(var(--landing-hero-veil-rgb) / 0.55) 0%,
+      rgb(var(--landing-hero-veil-rgb) / 0) 100%
     ),
-    rgb(var(--landing-dark-rgb) / 0.55);
+    rgb(var(--landing-hero-veil-rgb) / 0.5);
 }
 
 /* Cột chữ căn giữa. Lề đáy lớn hơn lề đỉnh để bù phần mép cong. */
@@ -372,7 +376,7 @@ html.cx-landing {
   z-index: 2;
   max-width: 760px;
   padding: 40px 16px 56px;
-  text-shadow: 0 2px 16px rgb(var(--landing-hero-top-rgb) / 0.6);
+  text-shadow: 0 2px 16px rgb(var(--landing-hero-veil-rgb) / 0.7);
 }
 
 .hero-title {
@@ -514,12 +518,16 @@ html.cx-landing {
 .hero-note {
   margin-top: 16px;
   font-size: 13px;
-  color: rgb(var(--white-rgb) / 0.72);
+  color: rgb(var(--white-rgb) / 0.9);
 }
 
-.hero-btn:focus-visible,
-.hero-badge:focus-visible {
+.hero-btn:focus-visible {
   outline: 2px solid rgb(var(--white-rgb));
+  outline-offset: 4px;
+}
+
+.hero-badge:focus-visible {
+  outline: 2px solid rgb(var(--action-primary-rgb));
   outline-offset: 4px;
 }
 
@@ -541,7 +549,7 @@ html.cx-landing {
 @media (min-width: 768px) {
   /* Lề đỉnh = 80px của .cx-navbar + 8px thở. */
   #hero {
-    padding: 88px 32px 40px;
+    padding: 88px 32px 64px;
   }
   .hero-badge {
     display: none;
@@ -592,33 +600,6 @@ html.cx-landing {
   .hero-btn-main svg {
     transition: none;
   }
-}
-
-/* Navbar trên khi còn nằm trên dải tối của #hero (cờ do js/hero-nav.js đặt):
-   thẻ trắng giữa nền tối trông như mảng dán lên, nên chuyển sang kính tối chữ
-   trắng. Khoanh trong .cx-landing — .cx-navbar dùng chung nhiều trang. */
-.cx-landing .cx-navcard {
-  transition:
-    background 0.25s ease,
-    border-color 0.25s ease,
-    box-shadow 0.25s ease;
-}
-
-.cx-landing .cx-navbar.is-on-hero .cx-navcard {
-  background: rgb(var(--landing-hero-top-rgb) / 0.35);
-  border-color: rgb(var(--white-rgb) / 0.12);
-  box-shadow: none;
-}
-
-.cx-landing .cx-navbar.is-on-hero .cx-navlink,
-.cx-landing .cx-navbar.is-on-hero .cx-accchip,
-.cx-landing .cx-navbar.is-on-hero .cx-logo-name,
-.cx-landing .cx-navbar.is-on-hero .cx-logo-since {
-  color: rgb(var(--white-rgb) / 0.88);
-}
-
-.cx-landing .cx-navbar.is-on-hero .cx-navlink.is-on {
-  color: rgb(var(--brand-accent-rgb));
 }
 
 /* ══ SƠ ĐỒ TÍNH NĂNG (#inside) ═════════════════════════════════════════════
