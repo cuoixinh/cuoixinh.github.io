@@ -272,11 +272,23 @@ async function handleCreatePayment(req: Request, supabaseClient: any, log: Logge
     }
 
     if (manage_id) {
-      const { data: owned } = await supabaseClient
+      const { data: owned, error: ownedError } = await supabaseClient
         .from("weddings")
         .select("user_id, slug")
         .eq("id", manage_id)
         .maybeSingle();
+
+      // Phép kiểm quyền hỏng là DỪNG: coi như "chưa có hàng" thì upsert bên dưới
+      // gán user_id người gọi đè lên thiệp của người khác.
+      if (ownedError) {
+        log.error("payment.owner_check_failed", {
+          manage_id, code: ownedError.code, message: ownedError.message,
+        });
+        return new Response(JSON.stringify({ error: "Không kiểm tra được thiệp, vui lòng thử lại" }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
 
       // Thiệp đã có chủ mà không phải người đang gọi → chặn. Thiệp chưa có chủ
       // (nháp cũ) thì người thanh toán nhận làm chủ luôn.
