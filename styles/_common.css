@@ -1392,9 +1392,9 @@ x-button {
   margin-left: 32px;
 }
 
-/* brand: "outside" (core/components/navbar.js): logo là một khối kính riêng cùng
-   chiều cao/viền với .cx-navcard, thẻ navbar giãn phần còn lại và chỉ mang dãy
-   mục — nên dãy mục bỏ lề trái vốn chừa cho logo. */
+/* brand: "outside" (core/components/navbar.js): logo đứng TRẦN (không nền/viền)
+   bên trái, cao bằng .cx-navcard để hai khối thẳng hàng; thẻ navbar giãn phần
+   còn lại và chỉ mang dãy mục — nên dãy mục bỏ lề trái vốn chừa cho logo. */
 .cx-navrow {
   display: flex;
   align-items: center;
@@ -1403,12 +1403,7 @@ x-button {
 
 .cx-navbrand {
   height: 64px;
-  padding: 0 20px 0 12px;
-  border-radius: 24px;
-  background: rgb(var(--white-rgb) / 0.92);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgb(var(--brand-primary-rgb) / 0.45);
-  box-shadow: 0 6px 20px rgb(var(--scrim-rgb) / 0.08);
+  padding-right: 8px;
 }
 
 .cx-navcard-solo {

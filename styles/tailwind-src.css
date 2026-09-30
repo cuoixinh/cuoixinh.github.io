@@ -307,6 +307,17 @@ html.cx-landing {
   transform: translateY(calc(100% + 8px));
 }
 
+/* Logo desktop đứng trần (không nền) cạnh navbar cố định: cuộn rồi thì nó trôi
+   đè lên nội dung, nên mờ đi (cờ .cx-scrolled do js/hero-menu.js đặt), về đầu
+   trang mới hiện lại. Thẻ navbar vẫn ở nguyên. */
+.cx-landing .cx-navbrand {
+  transition: opacity 0.25s ease;
+}
+
+.cx-scrolled .cx-navbrand {
+  @apply pointer-events-none opacity-0;
+}
+
 .hero-badge img {
   height: 40px;
 }
