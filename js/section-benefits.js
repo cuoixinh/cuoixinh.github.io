@@ -1,8 +1,7 @@
-// --- Benefits grid (#benefits) ---
-// Màu mỗi thẻ lấy theo VỊ TRÍ trong mảng (--info-N-rgb ở styles/_colors.css),
-// nên thêm mục phải thêm một token màu. Dáng thẻ ở .bnf-* trong
-// styles/tailwind-src.css; `featured` chỉ bật nhãn "Nổi bật" + nền phớt màu.
-// `img: true` = icon ẢNH của core/helpers/icon.js (logo XuXi) thay cho glyph lucide.
+// Danh sách "Tại sao chọn Cưới Xinh?" (#benefits): mỗi mục một hàng icon + chữ.
+// Màu icon lấy theo VỊ TRÍ (--info-N-rgb ở styles/_colors.css), thêm mục phải thêm
+// token. `featured` bật nhãn "Nổi bật"; `img: true` = icon ẢNH của core/helpers/icon.js
+// (logo XuXi) thay cho glyph lucide. Hình hàng: .bnf-* ở styles/tailwind-src.css.
 
 const BENEFITS_DATA = [
   { icon: "xuxi", img: true, title: "Trợ lý XuXi viết nội dung giúp bạn", desc: "Kể vài dòng về hai bạn, XuXi soạn luôn lời mời và chuyện tình yêu — không phải nghĩ câu chữ.", featured: true  },
@@ -19,21 +18,17 @@ function renderBenefits() {
   const el = document.getElementById("benefitsGrid");
   if (!el) return;
   el.innerHTML = BENEFITS_DATA.map((b, i) => {
-    const hot = b.featured ? " is-hot" : "";
     const tag = b.featured ? `<span class="bnf-tag">Nổi bật</span>` : "";
-    // Logo XuXi là ẢNH nên đi đường data-icon và phải khai data-size: icon ảnh
-    // nhận khổ bằng inline style, không ăn theo font-size của .bnf-ico như svg
-    // lucide. Lấy 24px cho cân với glyph 20px — logo có lề trong nên trông nhỏ hơn.
+    // Logo XuXi là ẢNH nên đi đường data-icon và phải khai data-size (không ăn font-size).
     const ico = b.img
       ? `<i data-icon="${b.icon}" data-size="24"></i>`
       : `<i data-lucide="${b.icon}"></i>`;
-    return `<article class="bnf-card reveal reveal-delay-${(i % 4) + 1}${hot}" style="--bnf-c: var(--info-${i + 1}-rgb)">
-  <div class="bnf-head">
-    <span class="bnf-ico">${ico}</span>
-    ${tag}
+    return `<article class="bnf-row reveal reveal-delay-${(i % 2) + 1}" style="--bnf-c: var(--info-${i + 1}-rgb)">
+  <span class="bnf-ico">${ico}</span>
+  <div class="min-w-0">
+    <h3 class="bnf-title">${b.title}${tag}</h3>
+    <p class="bnf-desc">${b.desc}</p>
   </div>
-  <h3 class="bnf-title">${b.title}</h3>
-  <p class="bnf-desc">${b.desc}</p>
 </article>`;
   }).join("");
   window.lucide?.createIcons({ root: el });

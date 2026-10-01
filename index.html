@@ -462,170 +462,203 @@
     </section>
 
     <!-- ===== INSIDE THE INVITATION ===== -->
-    <section id="inside" class="py-16">
+    <section id="inside" class="pt-16 md:pt-24">
       <div class="max-w-6xl mx-auto px-5">
-        <div class="mb-10 md:mb-12 text-center reveal">
+        <div class="mb-10 md:mb-14 text-center reveal">
           <h2
             class="font-playfair text-3xl md:text-4xl font-semibold text-[rgb(var(--text-heading-rgb))]"
           >
             Thiệp của bạn bao gồm tất cả
           </h2>
-          <p class="mt-3 max-w-md mx-auto text-sm leading-relaxed opacity-60">
+          <p class="mt-3 max-w-md mx-auto text-sm md:text-base leading-relaxed text-[rgb(var(--text-caption-rgb))]">
             Mọi thứ cần thiết cho ngày trọng đại, gói gọn trong một tấm thiệp.
           </p>
         </div>
 
-        <!-- Sơ đồ tính năng: hai cột thẻ, vòng icon chen vào mép TRONG của mỗi
-             thẻ nên hai cột chụm vào giữa (js/section-features.js dựng thẻ,
-             .fxr-* ở styles/tailwind-src.css). Mobile giữ nguyên hai cột, chỉ
-             bỏ dòng mô tả cho vừa chỗ. -->
-        <div class="fxr">
-          <div id="featuresLeft" class="fxr-col fxr-l"></div>
-          <div id="featuresRight" class="fxr-col fxr-r"></div>
-        </div>
+        <!-- Lưới bento do js/section-features.js dựng (.ftr-* ở styles/tailwind-src.css). -->
+        <div id="featuresGrid" class="ftr"></div>
       </div>
     </section>
 
     <!-- ===== BENEFITS ===== -->
-    <section id="benefits" class="py-16">
+    <section id="benefits" class="pt-16 md:pt-24">
       <div class="max-w-6xl mx-auto px-5">
-        <div class="mb-10 text-center">
-          <h2
-            class="font-playfair text-3xl md:text-4xl font-semibold text-[rgb(var(--text-heading-rgb))]"
-          >
-            Tại sao chọn Cưới Xinh?
-          </h2>
-          <p class="mt-3 max-w-lg mx-auto text-sm leading-relaxed opacity-60">
-            Thiệp cưới điện tử thông minh — cá nhân hóa từng khách mời, quản lý
-            dễ dàng, thanh toán một lần dùng trọn đời
-          </p>
-        </div>
+        <div class="bnf">
+          <div class="bnf-intro reveal">
+            <span class="bnf-eyebrow"><i data-lucide="sparkles" style="width:14px;height:14px"></i>Vì sao là Cưới Xinh</span>
+            <h2
+              class="mt-4 font-playfair text-3xl md:text-4xl font-semibold leading-tight text-[rgb(var(--text-heading-rgb))]"
+            >
+              Tại sao chọn Cưới Xinh?
+            </h2>
+            <p class="mt-4 max-w-md text-sm md:text-base leading-relaxed text-[rgb(var(--text-caption-rgb))]">
+              Thiệp cưới điện tử thông minh — cá nhân hóa từng khách mời, quản lý
+              dễ dàng, thanh toán một lần dùng trọn đời.
+            </p>
+            <ul class="bnf-points">
+              <li class="bnf-point"><i data-lucide="check"></i>Dùng thử miễn phí, ưng mới trả tiền</li>
+              <li class="bnf-point"><i data-lucide="check"></i>Xong thiệp trong một buổi chiều</li>
+              <li class="bnf-point"><i data-lucide="check"></i>Mở mượt trên mọi điện thoại</li>
+            </ul>
+            <a
+              href="/theme-template/"
+              class="mt-8 inline-flex items-center gap-2 text-sm font-semibold text-[rgb(var(--brand-accent-rgb))] hover:gap-3 transition-all"
+            >
+              Xem các mẫu thiệp
+              <i data-lucide="arrow-right" style="width:16px;height:16px"></i>
+            </a>
+          </div>
 
-        <!-- Thẻ do js/section-benefits.js dựng; dáng thẻ và lưới 2/4 cột nằm ở
-             .bnf-* trong styles/tailwind-src.css. -->
-        <div id="benefitsGrid" class="bnf"></div>
+          <!-- Hàng lợi ích do js/section-benefits.js dựng (.bnf-* ở styles/tailwind-src.css). -->
+          <div id="benefitsGrid" class="bnf-list"></div>
+        </div>
       </div>
     </section>
 
     <!-- ===== TESTIMONIALS ===== -->
-    <section
-      id="testimonials"
-      class="py-16"
-    >
-      <div class="max-w-6xl mx-auto px-5">
-        <div class="mb-10 text-center reveal">
+    <section id="testimonials" class="pt-16 md:pt-24">
+      <div class="max-w-6xl mx-auto">
+        <div class="mb-8 px-5 text-center reveal">
           <h2
             class="font-playfair text-3xl md:text-4xl font-semibold text-[rgb(var(--text-heading-rgb))]"
           >
             Khách hàng nói gì?
           </h2>
-          <p class="mt-3 text-sm opacity-60 max-w-sm mx-auto">
+          <p class="mt-3 text-sm md:text-base max-w-sm mx-auto text-[rgb(var(--text-caption-rgb))]">
             Nhiều cặp đôi đã tin tưởng tạo thiệp cưới với Cưới Xinh
           </p>
+          <!-- Điểm trung bình + số lời khen do js/section-testimonials.js tính từ dữ liệu. -->
+          <div class="tst-score">
+            <span id="testimonialsAvg" class="tst-score-num">5,0</span>
+            <span class="tst-score-meta">
+              <span class="tst-stars" aria-hidden="true">
+                <span class="tst-star is-on"><i data-lucide="star" style="width:14px;height:14px"></i></span>
+                <span class="tst-star is-on"><i data-lucide="star" style="width:14px;height:14px"></i></span>
+                <span class="tst-star is-on"><i data-lucide="star" style="width:14px;height:14px"></i></span>
+                <span class="tst-star is-on"><i data-lucide="star" style="width:14px;height:14px"></i></span>
+                <span class="tst-star is-on"><i data-lucide="star" style="width:14px;height:14px"></i></span>
+              </span>
+              <span id="testimonialsCount" class="mt-1 block">từ các cặp đôi đã dùng</span>
+            </span>
+          </div>
         </div>
-        <!-- Thẻ xếp một cột từ trên xuống, cột hẹp lại cho dòng chữ dễ đọc. -->
-        <div
+
+        <ul
           id="testimonialsList"
-          class="mx-auto flex max-w-2xl flex-col gap-5"
-        ></div>
+          class="tst-track"
+          tabindex="0"
+          aria-label="Lời khen của khách hàng — dùng phím mũi tên trái/phải để xem tiếp"
+        ></ul>
+
+        <div class="tst-nav">
+          <x-button id="testimonialsPrev" variant="outline" tone="neutral" icon="chevron-left" icon-only aria-label="Lời khen trước" disabled></x-button>
+          <span id="testimonialsPos" class="tst-pos" aria-live="polite">1 / 1</span>
+          <x-button id="testimonialsNext" variant="outline" tone="brand" icon="chevron-right" icon-only aria-label="Lời khen tiếp theo"></x-button>
+        </div>
       </div>
     </section>
 
     <!-- ===== CTA ===== -->
-    <section id="contact" class="cta-band">
-      <!-- Chữ nước; quầng sáng và vạch vàng mép trên là ::before/::after của .cta-band. -->
-
-      <div class="cta-inner reveal">
-        <h2 class="cta-title font-playfair text-2xl md:text-3xl font-semibold leading-snug mb-4">
-          Bắt đầu tạo thiệp cưới<br />hoàn toàn miễn phí
-        </h2>
-        <p class="cta-sub text-sm mb-8">Chỉ thanh toán khi bạn thật sự ưng ý.</p>
-
-        <x-button
-          variant="bare"
-          onclick="goCreateDraft(event)"
-          class="cta-btn px-9 py-4 gap-2 text-base font-semibold whitespace-nowrap"
-        >
-          Tạo thiệp ngay
-          <i data-lucide="arrow-right" style="width:16px;height:16px"></i>
-        </x-button>
-
-        <div class="cta-perks">
-          <span class="cta-perk"><i data-lucide="check" style="width:14px;height:14px"></i>Dùng thử miễn phí</span>
-          <span class="cta-perk"><i data-lucide="check" style="width:14px;height:14px"></i>Đổi mẫu mọi lúc</span>
-          <span class="cta-perk"><i data-lucide="check" style="width:14px;height:14px"></i>Thanh toán một lần, dùng trọn đời</span>
+    <!-- Thẻ sáng hai cột: lời mời + nút (trái) · ba bước tạo thiệp (phải). .cta-* ở
+         styles/tailwind-src.css. -->
+    <section id="contact" class="pt-16 md:pt-24">
+      <div class="cta-card reveal">
+        <div class="cta-copy">
+          <span class="cta-badge"><i data-lucide="gift" style="width:14px;height:14px"></i>Miễn phí khi dùng thử</span>
+          <h2 class="cta-title mt-4 font-playfair text-3xl md:text-4xl font-semibold leading-tight text-[rgb(var(--text-heading-rgb))]">
+            Bắt đầu tạo thiệp cưới hoàn toàn miễn phí
+          </h2>
+          <p class="mt-4 text-sm md:text-base leading-relaxed text-[rgb(var(--text-caption-rgb))]">
+            Chọn mẫu, điền thông tin, gửi cho khách — chỉ thanh toán khi bạn thật sự ưng ý.
+          </p>
+          <div class="cta-actions mt-8 flex flex-wrap items-center gap-3">
+            <x-button size="lg" onclick="goCreateDraft(event)" class="px-8">
+              Tạo thiệp ngay
+              <i data-lucide="arrow-right" style="width:16px;height:16px"></i>
+            </x-button>
+            <a href="/theme-template/" class="cta-link">Xem mẫu thiệp</a>
+          </div>
+          <ul class="cta-perks">
+            <li><i data-lucide="check" style="width:16px;height:16px"></i>Đổi mẫu mọi lúc</li>
+            <li><i data-lucide="check" style="width:16px;height:16px"></i>Thanh toán một lần, dùng trọn đời</li>
+          </ul>
         </div>
 
+        <ol class="cta-steps">
+          <li class="cta-step">
+            <span class="cta-step-ico"><i data-lucide="layout-template"></i></span>
+            <div>
+              <p class="cta-step-no">Bước 1</p>
+              <p class="cta-step-title">Chọn một mẫu thiệp</p>
+              <p class="cta-step-desc">Xem thử trên điện thoại trước khi chọn.</p>
+            </div>
+          </li>
+          <li class="cta-step">
+            <span class="cta-step-ico"><i data-lucide="pencil-line"></i></span>
+            <div>
+              <p class="cta-step-no">Bước 2</p>
+              <p class="cta-step-title">Điền thông tin hai bạn</p>
+              <p class="cta-step-desc">Hoặc kể vài dòng để XuXi viết giúp.</p>
+            </div>
+          </li>
+          <li class="cta-step">
+            <span class="cta-step-ico"><i data-lucide="send"></i></span>
+            <div>
+              <p class="cta-step-no">Bước 3</p>
+              <p class="cta-step-title">Gửi link cho từng khách</p>
+              <p class="cta-step-desc">Qua Zalo, Messenger — có sẵn tên khách mời.</p>
+            </div>
+          </li>
+        </ol>
       </div>
     </section>
 
     <!-- ===== FOOTER ===== -->
     <!-- pb-[72px] chừa chỗ cho thanh tab dưới (mobile) — chỉ khối CUỐI trang
          cần, để ở <body> thì #hero không tràn được tới mép dưới màn. -->
-    <footer
-      class="bg-white py-10 pb-[72px] md:pb-10"
-    >
+    <footer class="bg-white pt-16 md:pt-24 pb-[72px] md:pb-10">
       <div class="max-w-6xl mx-auto px-5">
-        <div class="grid grid-cols-2 md:grid-cols-3 gap-6 mb-8">
-          <div class="col-span-2 md:col-span-1">
-            <a href="/" class="cx-logo mb-3" aria-label="Cưới Xinh">
+        <div class="grid grid-cols-2 md:grid-cols-12 gap-8 mb-12">
+          <div class="col-span-2 md:col-span-5">
+            <a href="/" class="cx-logo mb-4" aria-label="Cưới Xinh">
               <x-logo size="40"></x-logo>
             </a>
-            <p class="text-sm opacity-50 leading-relaxed">
-              Thiệp cưới online đẹp<br />cho các cặp đôi Việt Nam.
+            <p class="max-w-xs text-sm leading-relaxed text-[rgb(var(--text-caption-rgb))]">
+              Thiệp cưới online đẹp cho các cặp đôi Việt Nam — tạo trong vài phút,
+              gửi tới từng khách mời bằng một đường link.
             </p>
           </div>
-          <div>
-            <h4
-              class="font-semibold text-sm mb-4 text-[rgb(var(--text-heading-rgb))]"
-            >
-              Điều hướng
-            </h4>
-            <ul class="space-y-2 text-sm opacity-60">
-              <li>
-                <a
-                  href="/theme-template/"
-                  class="hover:opacity-100 transition-opacity"
-                  >Mẫu thiệp</a
-                >
-              </li>
-              <li>
-                <a
-                  href="/invitation-setup/"
-                  onclick="goCreateDraft(event)"
-                  class="hover:opacity-100 transition-opacity"
-                  >Tạo thiệp</a
-                >
-              </li>
-              <li>
-                <a
-                  href="/my-invitations/"
-                  class="hover:opacity-100 transition-opacity"
-                  >Quản lý thiệp</a
-                >
-              </li>
+          <div class="md:col-span-3">
+            <h3 class="font-semibold text-sm mb-4 text-[rgb(var(--text-heading-rgb))]">
+              Khám phá
+            </h3>
+            <ul class="space-y-3 text-sm">
+              <li><a href="/theme-template/" class="foot-link">Mẫu thiệp</a></li>
+              <li><a href="/invitation-setup/" onclick="goCreateDraft(event)" class="foot-link">Tạo thiệp</a></li>
+              <li><a href="/my-invitations/" class="foot-link">Quản lý thiệp</a></li>
+              <li><a href="/policy/" class="foot-link">Điều khoản &amp; bảo mật</a></li>
             </ul>
           </div>
-          <div>
-            <h4
-              class="font-semibold text-sm mb-4 text-[rgb(var(--text-heading-rgb))]"
-            >
+          <div class="md:col-span-4">
+            <h3 class="font-semibold text-sm mb-4 text-[rgb(var(--text-heading-rgb))]">
               Liên hệ
-            </h4>
-            <ul class="space-y-2 text-sm opacity-60">
+            </h3>
+            <ul class="space-y-3 text-sm">
               <li>
-                <i data-lucide="mail" class="mr-2 text-xs" style="width:16px;height:16px"></i>admin@cuoixinh.com
+                <a href="mailto:admin@cuoixinh.com" class="foot-link">
+                  <i data-lucide="mail" style="width:16px;height:16px"></i>admin@cuoixinh.com
+                </a>
               </li>
               <li>
-                <i data-lucide="phone" class="mr-2 text-xs" style="width:16px;height:16px"></i>034.884.0032
+                <a href="tel:0348840032" class="foot-link">
+                  <i data-lucide="phone" style="width:16px;height:16px"></i>034.884.0032
+                </a>
               </li>
             </ul>
           </div>
         </div>
-        <div
-          class="border-t border-rose-pastel-200 pt-6 text-center text-xs opacity-40"
-        >
-          <p class="font-cormorant italic text-sm">
+        <div class="border-t border-rose-pastel-200 pt-6 text-center text-[rgb(var(--text-caption-rgb))]">
+          <p class="text-xs">
             © 2026 Cưới Xinh — Tạo kỷ niệm đẹp cho ngày trọng đại.
           </p>
         </div>
