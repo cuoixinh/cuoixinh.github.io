@@ -38,7 +38,7 @@ const TESTIMONIALS_DATA = [
     name: "Đức Thịnh & Hải Vy",
     date: "Tháng 6, 2026",
     rating: 4,
-    text: "Mẫu đẹp, chỉnh chữ trực tiếp trên thiệp tiện ghê. Trừ 1 sao vì mình muốn thêm vài kiểu nhạc nền nữa, chứ tổng thể rất hài lòng.",
+    text: "Mẫu đẹp, chỉnh chữ trực tiếp trên thiệp tiện ghê. Trừ 1 sao vì mình muốn thêm vài kiểu nhạc nền up từ điện thoại nữa, chứ tổng thể rất hài lòng.",
   },
   {
     avatar: "HP",

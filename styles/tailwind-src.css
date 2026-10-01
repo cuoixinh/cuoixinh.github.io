@@ -646,7 +646,7 @@ html.cx-landing {
 .hero-feats-more {
   @apply inline-flex items-center;
   gap: 4px;
-  margin-top: 16px;
+  margin-top: 24px;
   font-size: 13px;
   font-weight: 600;
   color: rgb(var(--action-primary-rgb));
@@ -757,7 +757,7 @@ html.cx-landing {
     line-height: 16px;
   }
   .hero-feats-more {
-    margin-top: 12px;
+    margin-top: 24px;
     font-size: 12px;
   }
   .hero-ai-new {
