@@ -234,6 +234,26 @@
   --info-6-rgb: 124 189 74;   /* xanh lá */
   --info-7-rgb: 240 178 41;   /* vàng */
   --info-8-rgb: 242 124 92;   /* cam */
+  --info-9-rgb: 214 88 168;   /* hồng cánh sen */
+  --info-10-rgb: 92 128 200;  /* xanh hoàng gia */
+  --info-11-rgb: 46 150 120;  /* xanh rêu */
+  --info-12-rgb: 196 128 64;  /* đồng */
+
+  /* Bốn tông "Đổi tông" của thiệp minh hoạ ở mục giới thiệu trang chủ (#intro):
+     nền · chữ · nhấn. Thêm tông là thêm một bộ ở đây + một khối [data-tone] trong
+     styles/tailwind-src.css. */
+  --intro-rose-bg-rgb: 255 250 247;
+  --intro-rose-ink-rgb: 92 54 66;
+  --intro-rose-accent-rgb: 214 92 124;
+  --intro-forest-bg-rgb: 246 248 242;
+  --intro-forest-ink-rgb: 44 62 48;
+  --intro-forest-accent-rgb: 86 122 82;
+  --intro-gold-bg-rgb: 252 248 238;
+  --intro-gold-ink-rgb: 84 64 36;
+  --intro-gold-accent-rgb: 184 144 72;
+  --intro-night-bg-rgb: 36 32 40;
+  --intro-night-ink-rgb: 236 228 220;
+  --intro-night-accent-rgb: 212 180 120;
 
   /* Nút quà tặng / thanh hành động nổi */
   --gift-btn-from-rgb: 244 114 160;

@@ -40,7 +40,6 @@ function setupRevealObserver() {
 // Wire up lazy rendering for all sections
 document.addEventListener("DOMContentLoaded", () => {
   lazyRender("inside",       renderFeatures);
-  lazyRender("steps",        renderSteps);
   lazyRender("benefits",     renderBenefits);
   lazyRender("testimonials", renderTestimonials);
   setupRevealObserver();

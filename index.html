@@ -50,11 +50,47 @@
     style="color: rgb(var(--text-body-rgb))"
   >
     <!-- ===== HERO ===== -->
-    <!-- Màn mở đầu: dải nền hồng kem mang MỘT thẻ bo góc, mép đáy cong như màn chiếu.
-         Trong thẻ là ảnh ghép các mẫu thiệp (tab "Tạo ảnh bìa" của admin) phủ đen,
-         nhãn "Thiệp cưới online · Cưới Xinh" + slogan chữ trắng căn giữa + một nút "Tạo thiệp với AI". Thẻ cố ý thấp hơn một màn để
-         mép mục "Mẫu thiệp" ló ra từ màn đầu — số đo ở .hero-card (styles/tailwind-src.css). -->
+    <!-- Màn mở đầu: dải nền kem phủ trọn ảnh ghép các mẫu thiệp (tab "Tạo ảnh bìa" của
+         admin) hiện mờ, nhãn "Thiệp cưới online · Cưới Xinh" + slogan chữ tông tối căn giữa
+         + nút "Tạo thiệp với AI" / "Xem mẫu thiệp" + hàng điểm mạnh. Khối chữ cố ý thấp hơn một màn để mép mục "Mẫu thiệp"
+         ló ra từ màn đầu — số đo ở .hero-card (styles/tailwind-src.css). -->
     <section id="hero">
+      <!-- Nền của cả dải: ảnh ghép mẫu thiệp hiện mờ + ánh sáng, nằm dưới mọi nội dung.
+           Đứng đầu #hero, KHÔNG nằm trong .hero-frame: vỏ đó mang transform (hiệu ứng
+           hiện dần) nên lớp absolute bên trong sẽ bị bó theo khổ của nó. -->
+      <div class="hero-layers" aria-hidden="true">
+        <!-- Vỏ .hero-media lo parallax theo cuộn, ảnh bên trong lo trôi chậm —
+             tách hai lớp vì cùng dùng transform. Ảnh màn đầu: fetchpriority cao, không lazy.
+             srcset = bộ WebP (nút "Tải WebP trang chủ" ở công cụ Tạo ảnh bìa), JPEG gốc
+             ~1MB chỉ là src dự phòng — ghép lại ảnh bìa thì phải xuất lại cả bộ này.
+             sizes: ảnh phủ `cover` cả dải và tràn 24% (.hero-media-img) nên màn ngang do
+             bề ngang quyết định (≈124vw), màn dọc do chiều cao dải — chốt 1000px cho
+             gọn: ảnh chỉ hiện mờ (opacity 0.05) nên bản 2000w ở máy 2x là đủ nét.
+             Màn dọc KHÔNG viết bằng vh: vh tính theo khung thật, vuốt ẩn thanh URL là
+             trình duyệt đổi sang bản ảnh lớn hơn giữa lúc cuộn. -->
+        <div class="hero-media">
+          <img
+            class="hero-media-img"
+            src="assets/background/started/cuoixinh-cover-3908x2264.jpg"
+            srcset="assets/background/cover/cuoixinh-cover-1200.webp 1200w,
+                    assets/background/cover/cuoixinh-cover-2000.webp 2000w,
+                    assets/background/cover/cuoixinh-cover-2800.webp 2800w"
+            sizes="(min-aspect-ratio: 11/10) 124vw, 1000px"
+            alt=""
+            fetchpriority="high"
+          />
+        </div>
+        <!-- Ánh sáng: hai quầng trôi, một vệt quét chéo, vài đốm lấp lánh. -->
+        <div class="hero-glow"></div>
+        <div class="hero-shine"></div>
+        <span class="hero-spark" style="--x:12%;--y:18%;--d:0s"></span>
+        <span class="hero-spark" style="--x:84%;--y:14%;--d:1.2s;--s:3px"></span>
+        <span class="hero-spark" style="--x:22%;--y:78%;--d:2.1s;--s:3px"></span>
+        <span class="hero-spark" style="--x:90%;--y:64%;--d:0.6s"></span>
+        <span class="hero-spark" style="--x:48%;--y:8%;--d:3s;--s:3px"></span>
+        <span class="hero-spark" style="--x:66%;--y:86%;--d:1.8s"></span>
+      </div>
+
       <!-- Hàng đầu, CHỈ ở khổ hẹp (từ md navbar trên đã mang logo): logo trái +
            nút menu phải. Thanh tab dưới ẩn khi hàng này còn trên màn (cờ
            .cx-tabbar-off trên <html>, js/hero-menu.js gỡ khi hàng cuộn khỏi màn)
@@ -76,43 +112,8 @@
         </x-button>
       </div>
 
-      <!-- Vỏ ngoài chỉ để vẽ viền sáng + bóng: drop-shadow ôm theo mép cong của
-           mask ở .hero-card, box-shadow thì vẽ theo hình chữ nhật. -->
       <div class="hero-frame hero-anim hero-anim-1">
         <div class="hero-card">
-          <!-- Vỏ .hero-card-media lo parallax theo cuộn, ảnh bên trong lo trôi chậm —
-               tách hai lớp vì cùng dùng transform. Ảnh màn đầu: fetchpriority cao, không lazy.
-               srcset = bộ WebP (nút "Tải WebP trang chủ" ở công cụ Tạo ảnh bìa), JPEG gốc
-               ~1MB chỉ là src dự phòng — ghép lại ảnh bìa thì phải xuất lại cả bộ này.
-               sizes: ảnh phủ `cover` và tràn 24% (.hero-card-img) nên màn ngang do bề
-               ngang quyết định (≈124vw, từ 1152px thẻ dừng ở 1088px → 1350px), màn dọc
-               do chiều cao thẻ (khoá px, 400–760px × tỉ lệ ảnh 1.73 × 1.24) — chốt 1000px
-               cho gọn: ảnh đã phủ tối nên bản 2000w ở máy 2x là đủ nét.
-               Màn dọc KHÔNG viết bằng vh: vh tính theo khung thật, vuốt ẩn thanh URL là
-               trình duyệt đổi sang bản ảnh lớn hơn giữa lúc cuộn. -->
-          <div class="hero-card-media" aria-hidden="true">
-            <img
-              class="hero-card-img"
-              src="assets/background/started/cuoixinh-cover-3908x2264.jpg"
-              srcset="assets/background/cover/cuoixinh-cover-1200.webp 1200w,
-                      assets/background/cover/cuoixinh-cover-2000.webp 2000w,
-                      assets/background/cover/cuoixinh-cover-2800.webp 2800w"
-              sizes="(min-width: 1152px) and (min-aspect-ratio: 11/10) 1350px, (min-aspect-ratio: 11/10) 124vw, 1000px"
-              alt=""
-              fetchpriority="high"
-            />
-          </div>
-          <div class="hero-card-veil" aria-hidden="true"></div>
-          <!-- Ánh sáng: hai quầng trôi, một vệt quét chéo, vài đốm lấp lánh. -->
-          <div class="hero-card-glow" aria-hidden="true"></div>
-          <div class="hero-card-shine" aria-hidden="true"></div>
-          <span class="hero-spark" aria-hidden="true" style="--x:12%;--y:18%;--d:0s"></span>
-          <span class="hero-spark" aria-hidden="true" style="--x:84%;--y:14%;--d:1.2s;--s:3px"></span>
-          <span class="hero-spark" aria-hidden="true" style="--x:22%;--y:78%;--d:2.1s;--s:3px"></span>
-          <span class="hero-spark" aria-hidden="true" style="--x:90%;--y:64%;--d:0.6s"></span>
-          <span class="hero-spark" aria-hidden="true" style="--x:48%;--y:8%;--d:3s;--s:3px"></span>
-          <span class="hero-spark" aria-hidden="true" style="--x:66%;--y:86%;--d:1.8s"></span>
-
           <div class="hero-card-body">
             <h1 class="hero-title hero-anim hero-anim-2">
               Thiệp cưới online <span class="hero-title-brand">Cưới Xinh</span>
@@ -121,8 +122,9 @@
               Chọn một mẫu ưng ý, kể đôi dòng về hai bạn — tấm thiệp sẵn sàng gửi
               tới từng khách mời, gọi đúng tên từng người.
             </p>
-            <!-- Lối vào DUY NHẤT của màn mở đầu: mở khung chat XuXi ở chế độ tạo thiệp
-                 (cxHeroCreateAi ở js/page-setup.js). -->
+            <!-- Nút chính mở khung chat XuXi ở chế độ tạo thiệp (cxHeroCreateAi ở
+                 js/page-setup.js); nút phụ là link neo, setupSmoothScroll cuộn mượt
+                 xuống #templates. -->
             <div class="hero-cta hero-anim hero-anim-4">
               <x-button
                 variant="bare"
@@ -134,7 +136,42 @@
                 Tạo thiệp với AI
                 <span class="hero-ai-new">New</span>
               </x-button>
+              <a href="#templates" class="hero-btn hero-btn-alt">Xem mẫu thiệp</a>
             </div>
+            <!-- Chỉ ghi tính năng CÓ THẬT của sản phẩm — không đưa số liệu chưa đo.
+                 Sáu mục tiêu biểu; danh sách đủ nằm ở #inside (js/section-features.js),
+                 số trong link "Xem đủ" phải khớp số mục ở đó. -->
+            <ul class="hero-feats hero-anim hero-anim-4">
+              <li><i data-lucide="user-check"></i>Gọi đúng tên từng khách</li>
+              <li><i data-lucide="calendar-check"></i>Xác nhận dự tiệc một chạm</li>
+              <li><i data-lucide="message-circle-heart"></i>Nhận lời chúc từ khách</li>
+              <li><i data-lucide="qr-code"></i>Hộp mừng cưới QR</li>
+              <li><i data-lucide="palette"></i>Đổi màu, sửa chữ tuỳ ý</li>
+              <li><i data-lucide="wand-sparkles"></i>Tạo nhanh với AI</li>
+            </ul>
+            <a href="#inside" class="hero-feats-more hero-anim hero-anim-4">
+              Xem đủ 12 tính năng
+              <i data-lucide="arrow-down" style="width:14px;height:14px"></i>
+            </a>
+          </div>
+          <!-- Từ lg: khung iPhone bên phải chiếu lần lượt ảnh chụp màn các mẫu thiệp
+               (assets/images/templates/, 390px @2x), js/hero-phone.js đổi tấm mỗi vài giây.
+               Chỉ tấm đầu có src; các tấm sau nhận data-src ngay trước lượt của mình. Mọi
+               tấm lazy: dưới lg khung display:none nên mobile không tải tấm nào. -->
+          <div class="hero-phone hero-anim hero-anim-3" aria-hidden="true">
+            <div class="hero-phone-screen">
+              <img class="hero-phone-shot is-on" src="assets/images/templates/romantic-gold.jpg" alt="" loading="lazy" />
+              <img class="hero-phone-shot" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="assets/images/templates/vintage-forest.jpg" alt="" loading="lazy" />
+              <img class="hero-phone-shot" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="assets/images/templates/luminous-pastel.jpg" alt="" loading="lazy" />
+              <img class="hero-phone-shot" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="assets/images/templates/noir-elegance.jpg" alt="" loading="lazy" />
+              <img class="hero-phone-shot" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="assets/images/templates/romantic-blush.jpg" alt="" loading="lazy" />
+              <img class="hero-phone-shot" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="assets/images/templates/serene-parchment.jpg" alt="" loading="lazy" />
+              <img class="hero-phone-shot" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="assets/images/templates/opulent-contrast.jpg" alt="" loading="lazy" />
+              <img class="hero-phone-shot" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="assets/images/templates/moody-cinematic.jpg" alt="" loading="lazy" />
+              <img class="hero-phone-shot" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="assets/images/templates/basic-gold.jpg" alt="" loading="lazy" />
+              <span class="hero-phone-island"></span>
+            </div>
+            <img class="hero-phone-frame" src="assets/images/iphone_mockup.svg" alt="" loading="lazy" />
           </div>
         </div>
       </div>
@@ -303,6 +340,127 @@
       ></div>
     </section>
 
+    <!-- ===== GIỚI THIỆU ===== -->
+    <!-- Khách gõ tên hai bạn bên trái; bên phải là khung chat minh hoạ cảnh gửi thiệp,
+         tên vừa gõ hiện ngay lên thiệp trong link và lời mời (js/section-intro.js).
+         Từ lg chia hai cột, dưới lg xếp dọc. Style ở .intro-* trong
+         styles/tailwind-src.css. -->
+    <section id="intro" class="intro">
+      <div class="intro-wrap">
+        <div class="intro-text reveal">
+          <p class="intro-eyebrow"><span class="intro-eyebrow-dot"></span>Thử ngay · không cần đăng ký</p>
+          <h2 class="intro-title font-playfair">
+            Gõ tên hai bạn,
+            <span class="intro-title-brand">xem thiệp tới tay khách</span>
+          </h2>
+          <p class="intro-lead">
+            Mỗi khách nhận một link riêng, mở ra là thấy tên mình trên thiệp. Gõ tên
+            hai bạn để xem lời mời sẽ tới tay khách ra sao.
+          </p>
+
+          <div class="intro-try">
+            <div class="intro-try-row">
+              <div>
+                <label class="intro-label" for="introGroom">Chú rể</label>
+                <input id="introGroom" class="intro-input" type="text" maxlength="20" autocomplete="off" placeholder="Minh Khôi" />
+              </div>
+              <span class="intro-amp" aria-hidden="true">&amp;</span>
+              <div>
+                <label class="intro-label" for="introBride">Cô dâu</label>
+                <input id="introBride" class="intro-input" type="text" maxlength="20" autocomplete="off" placeholder="Thảo My" />
+              </div>
+            </div>
+            <x-button variant="bare" onclick="introCreateDraft(event)" class="intro-cta">
+              Tạo thiệp của hai bạn
+              <i data-lucide="arrow-right" style="width:16px;height:16px"></i>
+            </x-button>
+            <p class="intro-note">Tạo và xem thử miễn phí · chỉ thanh toán khi bạn ưng ý</p>
+          </div>
+        </div>
+
+        <!-- Minh hoạ: khung chat + hai thiệp đung đưa phía trước. Tin nhắn hiện lần
+             lượt khi khối lọt vào màn. Chỉ dải "Đổi tông" là bấm được. -->
+        <div class="intro-art reveal reveal-delay-2">
+          <span class="intro-stage" aria-hidden="true"></span>
+          <!-- Hai thiệp minh hoạ đè trước khung chat, đung đưa như treo từ mép trên;
+               tên đổi theo ô gõ như thiệp trong tin nhắn. Dưới sm xếp thành hàng
+               trên khung chat. -->
+          <div class="intro-cards" aria-hidden="true">
+            <div class="intro-card intro-card-std">
+              <p class="intro-std-k">Save the date</p>
+              <p class="intro-card-nm" data-intro="groom">Minh Khôi</p>
+              <p class="intro-card-and">&amp;</p>
+              <p class="intro-card-nm" data-intro="bride">Thảo My</p>
+              <p class="intro-std-date">11 · 10 · 2026</p>
+            </div>
+            <div class="intro-card intro-card-arch intro-toned" data-tone="rose">
+              <img class="intro-arch-photo" src="assets/images/templates/romantic-gold.jpg" width="780" height="1386" alt="" loading="lazy" />
+              <p class="intro-card-nm" data-intro="groom">Minh Khôi</p>
+              <p class="intro-card-and">&amp;</p>
+              <p class="intro-card-nm" data-intro="bride">Thảo My</p>
+              <p class="intro-arch-guest">Thân mời: em Linh</p>
+            </div>
+          </div>
+
+          <div class="intro-chat" aria-hidden="true">
+            <div class="intro-chat-head">
+              <span class="intro-chat-ava"><img src="assets/images/avatar/avatar_KhanhLinh.jpg" width="32" height="32" alt="" loading="lazy" /></span>
+              <span class="intro-chat-name">
+                Khánh Linh
+                <small>Đang hoạt động</small>
+              </span>
+              <span class="intro-chat-tools">
+                <i data-lucide="phone"></i>
+                <i data-lucide="video"></i>
+              </span>
+            </div>
+            <div class="intro-chat-body">
+              <p class="intro-chat-time">20:30</p>
+              <p class="intro-msg intro-msg-out intro-msg-text">Linh ơi, anh chị gửi em thiệp cưới nhé 💌</p>
+              <div class="intro-msg intro-msg-out intro-msg-link">
+                <div class="intro-mini intro-toned" data-tone="rose">
+                  <p class="intro-mini-k">Lễ thành hôn</p>
+                  <p class="intro-mini-nm" data-intro="groom">Minh Khôi</p>
+                  <p class="intro-mini-and">&amp;</p>
+                  <p class="intro-mini-nm" data-intro="bride">Thảo My</p>
+                  <p class="intro-mini-date">11 · 10 · 2026</p>
+                </div>
+                <p class="intro-link-title">
+                  Thân mời em Linh tới dự lễ cưới của
+                  <span data-intro="groom">Minh Khôi</span> &amp;
+                  <span data-intro="bride">Thảo My</span>
+                </p>
+                <p class="intro-link-url" data-intro="url">cuoixinh.com/minhkhoi-thaomy</p>
+                <span class="intro-react">❤️</span>
+              </div>
+              <div class="intro-msg-in-slot">
+                <span class="intro-typing"><i></i><i></i><i></i></span>
+                <p class="intro-msg intro-msg-in">
+                  <span class="intro-chat-ava intro-chat-ava-sm"><img src="assets/images/avatar/avatar_KhanhLinh.jpg" width="24" height="24" alt="" loading="lazy" /></span>
+                  <span class="intro-msg-in-bubble">Ôi chúc mừng anh chị! Em nhất định tới ạ 🥰</span>
+                </p>
+              </div>
+            </div>
+            <div class="intro-chat-foot">
+              <i data-lucide="circle-plus"></i>
+              <i data-lucide="camera"></i>
+              <i data-lucide="image"></i>
+              <span class="intro-chat-input">Aa</span>
+              <i data-lucide="thumbs-up"></i>
+            </div>
+          </div>
+
+          <div class="intro-tones" role="group" aria-label="Đổi tông thiệp minh hoạ">
+            <span class="intro-tones-label">Đổi tông</span>
+            <button type="button" class="intro-tone is-on" data-tone="rose" aria-label="Hồng phấn" aria-pressed="true"></button>
+            <button type="button" class="intro-tone" data-tone="forest" aria-label="Xanh rừng" aria-pressed="false"></button>
+            <button type="button" class="intro-tone" data-tone="gold" aria-label="Vàng kim" aria-pressed="false"></button>
+            <button type="button" class="intro-tone" data-tone="night" aria-label="Đêm sang" aria-pressed="false"></button>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- ===== INSIDE THE INVITATION ===== -->
     <section id="inside" class="py-16">
       <div class="max-w-6xl mx-auto px-5">
@@ -325,26 +483,6 @@
           <div id="featuresLeft" class="fxr-col fxr-l"></div>
           <div id="featuresRight" class="fxr-col fxr-r"></div>
         </div>
-      </div>
-    </section>
-
-    <!-- ===== HOW IT WORKS ===== -->
-    <section
-      id="steps"
-      class="py-16"
-    >
-      <div class="max-w-5xl mx-auto px-5">
-        <h2
-          class="font-playfair text-3xl md:text-4xl font-semibold text-center mb-12 text-[rgb(var(--text-heading-rgb))]"
-        >
-          4 bước đơn giản
-        </h2>
-
-        <!-- Sơ đồ 4 bước: mỗi bước một hàng so le trái/phải, nối bằng chấm +
-             đường chéo (js/section-steps.js dựng hàng, .stp-* ở
-             styles/tailwind-src.css). Dưới 768px bỏ nhãn lục giác và đường nối,
-             thẻ giãn gần hết khổ. -->
-        <div id="stepsList" class="stp"></div>
       </div>
     </section>
 
@@ -385,9 +523,10 @@
             Hơn 500 cặp đôi đã tin tưởng tạo thiệp cưới với Cưới Xinh
           </p>
         </div>
+        <!-- Thẻ xếp một cột từ trên xuống, cột hẹp lại cho dòng chữ dễ đọc. -->
         <div
           id="testimonialsList"
-          class="grid grid-cols-1 md:grid-cols-3 gap-5"
+          class="mx-auto flex max-w-2xl flex-col gap-5"
         ></div>
       </div>
     </section>
@@ -531,8 +670,8 @@
     <script src="core/components/item-template.js"></script>
     <script src="js/scroll-fade.js"></script>
     <script src="js/section-templates.js"></script>
+    <script src="js/section-intro.js"></script>
     <script src="js/section-features.js"></script>
-    <script src="js/section-steps.js"></script>
     <script src="js/section-benefits.js"></script>
     <script src="js/section-testimonials.js"></script>
     <script src="js/scroll-reveal.js"></script>
@@ -600,5 +739,6 @@
     <script src="js/ai-assistant.js"></script>
     <script src="js/hero-fab.js"></script>
     <script src="js/hero-menu.js"></script>
+    <script src="js/hero-phone.js"></script>
   </body>
 </html>
