@@ -1037,6 +1037,11 @@ svg.lucide {
   height: calc(100dvh - var(--cx-top-h, 96px) - var(--nav-h, 84px) - 32px);
   box-shadow: 0 4px 18px rgb(var(--scrim-rgb) / 0.07);
 
+  /* Ô được focus/cuộn tới không nằm khuất dưới tiêu đề bước dính (.cx-block-head)
+     ở trên và cụm nút #step-nav nổi đè lên đáy thẻ. */
+  scroll-padding-top: 72px;
+  scroll-padding-bottom: 72px;
+
   scrollbar-width: thin; /* Firefox */
   scrollbar-color: rgb(var(--divider-rgb)) transparent;
 }
@@ -1053,7 +1058,7 @@ svg.lucide {
 }
 
 .cx-stepnav-count {
-  @apply px-1.5 text-[11px] font-semibold tabular-nums text-gray-400;
+  @apply px-1.5 text-xs font-semibold tabular-nums text-gray-500;
 }
 
 /* Điện thoại: cụm này nổi ĐÈ lên nội dung nên phải gọn — thu nút, chữ và lề lại
@@ -1077,7 +1082,6 @@ svg.lucide {
 
   .cx-stepnav-count {
     padding: 0 4px;
-    font-size: 10px;
   }
 
   .cx-stepnav svg {
@@ -1182,6 +1186,78 @@ svg.lucide {
    (xem ghi chú CSS ở CLAUDE.md), lúc đó block nào cũng bị đẩy/kẻ như nhau. */
 .cx-block.is-first > .cx-block-head {
   border-top: 0;
+}
+
+/* Gợi ý cho danh sách rỗng, đặt NGAY SAU khung danh sách: chỉ hiện khi khung đó
+   không còn con nào (JS dựng danh sách bằng innerHTML = "" nên `:empty` khớp). */
+.cx-empty {
+  display: none;
+  border: 1px dashed rgb(var(--border-subtle-rgb));
+  color: rgb(var(--brand-accent-rgb));
+
+  @apply flex-col items-center gap-2 rounded-2xl px-4 py-8 text-center;
+}
+
+:empty + .cx-empty {
+  display: flex;
+}
+
+/* Khung "Tạo bằng AI" ở bước Chuyện tình yêu: cùng tông tím của nút .btn-ai
+   (token --ai-chip-*), đầu khung có nút đóng, chân khung là cảnh báo + nút chạy. */
+.cx-ai-panel {
+  @apply overflow-hidden rounded-2xl;
+
+  border: 1px solid rgb(var(--ai-chip-border-rgb));
+  background: rgb(var(--ai-chip-bg-rgb) / 0.5);
+}
+
+.cx-ai-panel-head {
+  @apply flex items-center gap-2 py-2 pl-4 pr-2;
+
+  color: rgb(var(--ai-chip-text-rgb));
+  border-bottom: 1px solid rgb(var(--ai-chip-border-rgb));
+  background: rgb(var(--ai-chip-bg-rgb));
+}
+
+.cx-ai-panel-foot {
+  @apply flex flex-wrap items-center gap-3 px-4 pb-4;
+}
+
+.cx-ai-warn {
+  @apply flex items-center gap-1.5 text-xs font-medium;
+
+  color: rgb(var(--state-warning-text-rgb));
+}
+
+/* Danh sách chưa có mốc thì chẳng có gì để thay → giấu cảnh báo. */
+#section-love_story-body:has(#love-story-list:empty) .cx-ai-warn {
+  display: none;
+}
+
+/* Nhãn nút chạy: generateLoveStoryAi đặt data-loading="1" trong lúc chờ AI. */
+.cx-busy-lbl {
+  display: none;
+}
+
+[data-loading="1"] .cx-idle-lbl {
+  display: none;
+}
+
+[data-loading="1"] .cx-busy-lbl {
+  display: inline;
+}
+
+/* Nút mở khung đang ở trạng thái mở. */
+.btn-ai[aria-expanded="true"] {
+  background: rgb(var(--ai-chip-border-rgb));
+  border-color: rgb(var(--ai-gradient-from-rgb) / 0.45);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* id: phải thắng utility .animate-fade-in (đứng sau trong build). */
+  #love-ai-panel {
+    animation: none;
+  }
 }
 
 /* Thanh bước cuộn ngang: vệt trắng mờ hai mép cho biết còn chip ngoài tầm nhìn.

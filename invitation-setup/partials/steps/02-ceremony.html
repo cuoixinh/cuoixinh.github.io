@@ -27,7 +27,7 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <x-time label="Giờ tổ chức lễ" name="ceremony_time"></x-time>
       <div>
-        <label class="text-sm text-gray-700 flex items-center gap-2 mb-2">
+        <label for="ceremony_location" class="text-sm text-gray-700 flex items-center gap-2 mb-2">
           <i data-lucide="map-pin" class="text-color-secondary"></i>Địa
           điểm lễ cưới
         </label>
@@ -96,6 +96,7 @@
           <x-time label="Giờ vu quy" name="vu_quy_time"></x-time>
           <div>
             <label
+              for="vu_quy_location"
               class="text-sm text-gray-700 flex items-center gap-2 mb-2"
             >
               <i data-lucide="map-pin" class="text-color-secondary"></i

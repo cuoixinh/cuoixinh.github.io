@@ -99,6 +99,15 @@ const _AI_SPEECH_FIELDS = {
     title: "Nói tin nhắn mời khách",
     questions: ["Bạn muốn mời khách đến chung vui thế nào?"],
   },
+  // Ô kể tự do trong khung "Tạo bằng AI" — cả câu chuyện, không phải một mốc.
+  love_story_raw: {
+    title: "Kể chuyện tình yêu của hai bạn",
+    questions: [
+      "Hai bạn quen nhau khi nào, ở đâu?",
+      "Có kỷ niệm hay chuyến đi nào đáng nhớ?",
+      "Lời cầu hôn diễn ra thế nào?",
+    ],
+  },
 };
 
 // Gắn cụm điều khiển AI (Tối ưu + Mic + Undo/Redo) vào MỘT <textarea> con thật.
@@ -189,6 +198,11 @@ window.__cxOnReady?.(function () {
     "footer",
   );
   _attachShareControls(document.getElementById("share-message-template"));
+  // Ô kể chuyện cho AI chia mốc: chỉ Mic + Hoàn tác/Làm lại, không "Tối ưu" (văn
+  // bản này chỉ là nguyên liệu để AI tách mốc, không hiện lên thiệp).
+  window.attachUndoRedo?.(document.getElementById("love-ai-input"), {
+    speech: _AI_SPEECH_FIELDS.love_story_raw,
+  });
 });
 
 // ── "Tạo câu chuyện tình yêu" bằng AI (panel inline, không popup) ─────────────
@@ -201,6 +215,7 @@ function toggleLoveAiPanel(force) {
   if (!panel) return;
   const show = force === undefined ? panel.classList.contains("hidden") : !!force;
   panel.classList.toggle("hidden", !show);
+  document.getElementById("love-ai-toggle")?.setAttribute("aria-expanded", String(show));
   if (show) document.getElementById("love-ai-input")?.focus();
 }
 
@@ -235,6 +250,7 @@ async function generateLoveStoryAi(btn) {
       ?.dispatchEvent(new Event("input", { bubbles: true }));
     showToast("Đã tạo " + _loveStoryItems.length + " mốc chuyện tình", "default", "xuxi");
     ta.value = "";
+    ta.closest("x-textarea")?.syncClearBtn?.(); // giấu nút "x" của ô vừa xoá
     toggleLoveAiPanel(false);
   } catch (e) {
     _aiShowError(e, "Không tạo được");

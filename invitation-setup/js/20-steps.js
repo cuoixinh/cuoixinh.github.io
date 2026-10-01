@@ -195,7 +195,7 @@ function _cxStepState(step) {
 // ===== THANH BƯỚC =====
 
 const _CX_CHIP_BASE =
-  "group flex shrink-0 items-center gap-1.5 rounded-full border py-1 pl-2.5 pr-2.5 text-[11px] font-medium transition-colors";
+  "group flex shrink-0 items-center gap-1.5 rounded-full border py-1 pl-2.5 pr-2.5 text-xs font-medium transition-colors";
 const _CX_DOT_BASE = "flex shrink-0 items-center justify-center";
 
 function _cxChipHTML(step, i) {
@@ -209,10 +209,13 @@ function _cxChipHTML(step, i) {
       ? "border-gray-100 bg-white text-gray-300"
       : "border-gray-200 bg-white text-gray-600 hover:border-rose-200 hover:text-rose-600";
 
-  // Ba mức: đỏ chưa điền gì · vàng điền dở · xanh đủ (xám là group đang tắt).
+  // Chưa điền gì là trạng thái bình thường của bước chưa tới nên để TRUNG TÍNH
+  // (vòng nét đứt), không tô đỏ — mới mở trang mà cả thanh đỏ trông như báo lỗi.
+  // Vàng điền dở · xanh đủ · xám là group đang tắt. Mỗi mức một hình icon riêng
+  // nên không chỉ dựa vào màu.
   const DOT = {
     off: ["text-gray-300", "minus"],
-    empty: ["text-red-500", "alert-circle"],
+    empty: ["text-gray-400", "circle-dashed"],
     partial: ["text-amber-500", "alert-triangle"],
     done: ["text-emerald-500", "circle-check"],
   };
@@ -230,6 +233,7 @@ function _cxChipHTML(step, i) {
   return (
     `<button type="button" role="tab" data-step-chip="${step.id}"` +
     ` aria-selected="${active}" title="${_cxEsc(step.label)} — ${note}"` +
+    ` aria-label="${_cxEsc(step.label)} — ${note}"` +
     ` onclick="cxGoStep('${step.id}')" class="${_CX_CHIP_BASE} ${chip}">` +
     `<span class="${_CX_DOT_BASE} ${dot}">${mark}</span>` +
     `<span class="whitespace-nowrap">${_cxEsc(step.label)}</span>` +
