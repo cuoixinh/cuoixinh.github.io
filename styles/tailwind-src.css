@@ -233,7 +233,7 @@ html.cx-landing {
 #hero {
   @apply relative flex flex-col items-center overflow-hidden;
   isolation: isolate;
-  padding: 8px 16px 28px;
+  padding: 16px 16px 28px;
   background: rgb(var(--surface-tint-rgb));
   color: rgb(var(--text-heading-rgb));
 }
@@ -263,7 +263,6 @@ html.cx-landing {
   @apply relative flex w-full items-center justify-between;
   z-index: 1;
   margin: 0 0 12px;
-  padding-left: 4px;
 }
 
 .hero-badge {
@@ -327,8 +326,8 @@ html.cx-landing {
 /* Chiều cao theo --vh (core/helpers/vh-lock.js), đừng thêm dòng dvh/svh trần. */
 .hero-card {
   @apply relative flex w-full items-center justify-center;
-  min-height: clamp(400px, calc(var(--vh, 1vh) * 100 - 232px), 760px);
-  min-height: clamp(400px, calc(var(--vh, 1svh) * 100 - 232px), 760px);
+  min-height: clamp(400px, calc(var(--vh, 1vh) * 100 - 240px), 760px);
+  min-height: clamp(400px, calc(var(--vh, 1svh) * 100 - 240px), 760px);
 }
 
 /* Ảnh nền hiện mờ trên nền kem. Ảnh tràn 12% mỗi mép để còn chỗ zoom/trôi +
