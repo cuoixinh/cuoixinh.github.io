@@ -12,193 +12,211 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js" integrity="sha384-S3wQ/l0OsbJoFeJC81UIr3JOlx/OzNJpRt1bV+yhpWQxPAahfpQtpxBSfn+Isslc" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js" integrity="sha384-OUW9euuUyxyHcAhTqbhI+Iyb8LMssXt/cpz0yXhs9UWG2/R/uaWdakx/4cfww7Vb" crossorigin="anonymous"></script>
     <script src="https://unpkg.com/lucide@1.26.0/dist/umd/lucide.min.js" integrity="sha384-8/6sFI5UzGbr1Dgef7WSZvE4UemcVc/jyaQNsM+MilmnHQ9sce/pRv86XXj5Cg5m" crossorigin="anonymous"></script>
-    <!-- Tailwind build local (npm run build:css) — thay cho Play CDN; đã gồm cả
-         phần dùng chung của common.css cũ. Xem tailwind.config.js. -->
+    <!-- Tailwind build local (npm run build:css) — xem tailwind.config.js. Style
+         riêng của trang là .gs-* ở styles/_setup.css. -->
     <link rel="stylesheet" href="../../styles/build.css" />
     <script src="../../core/helpers/no-zoom.js"></script>
+    <!-- Khoá chiều cao một màn thành px (--vh) cho .gs-shell: 100vh bị thanh URL
+         của trình duyệt di động che mất đáy. -->
+    <script src="../../core/helpers/vh-lock.js"></script>
   </head>
   <!-- Nền dùng chung với trang thiết lập (--surface-tint-rgb): khung này chạy
        trong iframe của tab "Khách mời" nên lệch màu là thấy ngay. -->
   <body
-    class="font-inter bg-[rgb(var(--surface-tint-rgb))] h-screen flex flex-col overflow-hidden"
+    class="gs-shell font-inter bg-[rgb(var(--surface-tint-rgb))] flex flex-col overflow-hidden"
   >
 
     <!-- Header: THẺ NỔI ghim trên, cùng khổ (max-w-4xl) và cùng kiểu bo góc với
          thanh trên/navbar của trang thiết lập — khung này chạy trong iframe của
          tab "Khách mời" nên phải thẳng hàng với chúng. -->
     <div class="shrink-0 px-2 sm:px-4 pt-2 pb-2">
-      <div class="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between gap-2 bg-white border border-gray-100 rounded-3xl shadow-[0_4px_18px_rgb(var(--scrim-rgb)/0.07)]">
-        <div class="flex items-center gap-2 min-w-0">
-          <i data-lucide="users" class="w-4 h-4 text-color-secondary shrink-0"></i>
-          <h1 class="text-[11px] truncate">
-            <a href="/" target="_top" class="font-semibold text-color-secondary hover:opacity-80 transition-opacity">Trang chủ</a>
-            <span class="font-normal text-gray-300 mx-0.5">/</span>
-            <a id="bc-parent" href="../" onclick="goBack(); return false;" class="font-semibold text-color-secondary hover:opacity-80 transition-opacity">Thiết lập thiệp cưới</a>
-            <span class="font-normal text-gray-300 mx-0.5">/</span>
-            <span class="font-normal text-gray-400">Khách mời</span>
-          </h1>
+      <header class="gs-top max-w-4xl mx-auto">
+        <x-button
+          id="gs-back"
+          variant="ghost"
+          tone="neutral"
+          icon-only
+          onclick="goBack()"
+          title="Quay lại thiết lập thiệp"
+          aria-label="Quay lại thiết lập thiệp"
+          class="shrink-0 -ml-1"
+        >
+          <i data-lucide="arrow-left" style="width:18px;height:18px"></i>
+        </x-button>
+        <div class="min-w-0 flex-1">
+          <h1 class="gs-top-title">Khách mời</h1>
+          <!-- Đường dẫn thiệp: _getWedding() đổ vào khi có slug. -->
+          <p id="gs-top-sub" class="gs-top-sub"></p>
         </div>
         <!-- target="_top": trang này chạy trong iframe tab Khách mời, mở trang chủ
              ngay trong khung là hiện hai navbar lồng nhau. -->
-        <a href="/" target="_top" class="shrink-0">
+        <a href="/" target="_top" class="shrink-0" aria-label="Về trang chủ CuoiXinh">
           <x-logo size="28"></x-logo>
         </a>
-      </div>
+      </header>
     </div>
 
     <!-- Main: THẺ NỔI duy nhất được cuộn (trang không cuộn) — thanh cuộn nằm
          TRONG thẻ nên khổ không bị đẩy lệch so với header. -->
     <div class="flex-1 min-h-0 px-2 sm:px-4 pb-2">
-      <div
-        id="guests-scroll"
-        class="h-full overflow-y-auto overscroll-contain max-w-4xl mx-auto bg-white border border-gray-100 rounded-3xl shadow-[0_4px_18px_rgb(var(--scrim-rgb)/0.07)]"
-      >
-        <!-- Dải segmented có con trượt chạy (.cx-seg ở styles/_common.css);
-             --i do switchTab() đặt. -->
-        <div class="px-4 sm:px-5 pt-5">
-          <div id="guest-seg" class="cx-seg" style="--n: 2" role="tablist">
-            <button type="button" id="tab-groom" role="tab" aria-selected="true"
+      <div id="guests-scroll" class="gs-card h-full overflow-y-auto overscroll-contain max-w-4xl mx-auto">
+        <div class="gs-body">
+          <!-- Dải segmented có con trượt chạy (.cx-seg ở styles/_common.css);
+               --i do switchTab() đặt, số khách mỗi bên do _syncCounts() đổ vào. -->
+          <div id="guest-seg" class="cx-seg gs-seg" style="--n: 2" role="tablist" aria-label="Khách nhà trai hoặc nhà gái">
+            <button type="button" id="tab-groom" role="tab" aria-selected="true" aria-controls="panel-groom"
               onclick="switchTab('groom')" class="cx-seg-btn is-on">
-              <i data-lucide="mars" class="w-3.5 h-3.5"></i> Nhà trai
+              <i data-lucide="mars" style="width:16px;height:16px"></i> Nhà trai
+              <span id="tab-groom-n" class="gs-seg-n"></span>
             </button>
-            <button type="button" id="tab-bride" role="tab" aria-selected="false"
+            <button type="button" id="tab-bride" role="tab" aria-selected="false" aria-controls="panel-bride"
               onclick="switchTab('bride')" class="cx-seg-btn">
-              <i data-lucide="venus" class="w-3.5 h-3.5"></i> Nhà gái
+              <i data-lucide="venus" style="width:16px;height:16px"></i> Nhà gái
+              <span id="tab-bride-n" class="gs-seg-n"></span>
             </button>
           </div>
-        </div>
 
-        <!-- Panel nhà trai -->
-        <div id="panel-groom" class="px-4 sm:px-5 py-5 space-y-4">
-
-          <!-- Thêm 1 khách + Import -->
-          <div class="space-y-3">
-            <p class="text-xs font-medium text-gray-600 flex items-center gap-1.5">
-              <i data-lucide="users" class="w-3.5 h-3.5"></i>
-              Danh sách khách mời
-            </p>
-            <!-- Cụm thao tác: mỗi nút là một ô icon-tròn + nhãn dưới, cả cụm
-                 nằm trong một block mềm (.cx-tilebar ở styles/_setup.css). -->
-            <div class="cx-tilebar">
-              <x-button variant="bare" type="button" class="cx-tile cx-tile-primary" onclick="openAddGuestModal('groom')">
-                <span class="cx-tile-ico"><i data-lucide="user-plus"></i></span>
-                <span class="cx-tile-label">Thêm khách</span>
-              </x-button>
-              <x-button variant="bare" type="button" class="cx-tile cx-tile-violet" onclick="regenerateLinks('groom')">
-                <span class="cx-tile-ico"><i data-lucide="link"></i></span>
-                <span class="cx-tile-label">Tạo lại link</span>
-              </x-button>
-              <x-button variant="bare" type="button" class="cx-tile cx-tile-sky" onclick="downloadGuestTemplate()">
-                <span class="cx-tile-ico"><i data-lucide="download"></i></span>
-                <span class="cx-tile-label">Tải mẫu</span>
-              </x-button>
-              <!-- Nhập Excel là <label> bọc input file, không phải nút. -->
-              <label class="cx-tile cx-tile-amber">
-                <span class="cx-tile-ico"><i data-lucide="file-up"></i></span>
-                <span class="cx-tile-label">Nhập Excel</span>
-                <input type="file" class="hidden" accept=".xlsx,.xls" onchange="handleExcelUpload(event,'groom')">
-              </label>
-              <x-button variant="bare" type="button" class="cx-tile cx-tile-emerald" onclick="exportGuestList('groom')">
-                <span class="cx-tile-ico"><i data-lucide="file-down"></i></span>
-                <span class="cx-tile-label">Xuất Excel</span>
-              </x-button>
-            </div>
-            <div id="guest-list-groom">
-              <p class="text-xs text-gray-400 text-center py-4">Chưa có khách mời nào</p>
-            </div>
+          <!-- Ô thống kê của bên đang mở — bấm một ô là lọc danh sách theo ô đó
+               (aria-pressed). Số do _syncStats() đổ vào. -->
+          <div class="gs-stats" role="group" aria-label="Lọc khách theo trạng thái">
+            <button type="button" class="gs-stat" data-filter="all" aria-pressed="true">
+              <span class="gs-stat-ico"><i data-lucide="users"></i></span>
+              <span class="gs-stat-txt">
+                <span class="gs-stat-n" data-stat="all">0</span>
+                <span class="gs-stat-label">Khách mời</span>
+              </span>
+            </button>
+            <button type="button" class="gs-stat" data-filter="viewed" aria-pressed="false">
+              <span class="gs-stat-ico gs-stat-ico--info"><i data-lucide="eye"></i></span>
+              <span class="gs-stat-txt">
+                <span class="gs-stat-n" data-stat="viewed">0</span>
+                <span class="gs-stat-label">Đã xem thiệp</span>
+              </span>
+            </button>
+            <button type="button" class="gs-stat" data-filter="yes" aria-pressed="false">
+              <span class="gs-stat-ico gs-stat-ico--ok"><i data-lucide="calendar-check"></i></span>
+              <span class="gs-stat-txt">
+                <span class="gs-stat-n" data-stat="yes">0</span>
+                <span class="gs-stat-label">Sẽ tham dự</span>
+              </span>
+            </button>
+            <button type="button" class="gs-stat" data-filter="wishes" aria-pressed="false">
+              <span class="gs-stat-ico gs-stat-ico--wish"><i data-lucide="message-square-heart"></i></span>
+              <span class="gs-stat-txt">
+                <span class="gs-stat-n" data-stat="wishes">0</span>
+                <span class="gs-stat-label">Gửi lời chúc</span>
+              </span>
+            </button>
           </div>
-        </div>
 
-        <!-- Panel nhà gái -->
-        <div id="panel-bride" class="hidden px-4 sm:px-5 py-5 space-y-4">
-
-          <!-- Thêm 1 khách + Import -->
-          <div class="space-y-3">
-            <p class="text-xs font-medium text-gray-600 flex items-center gap-1.5">
-              <i data-lucide="users" class="w-3.5 h-3.5"></i>
-              Danh sách khách mời
-            </p>
-            <div class="cx-tilebar">
-              <x-button variant="bare" type="button" class="cx-tile cx-tile-primary" onclick="openAddGuestModal('bride')">
-                <span class="cx-tile-ico"><i data-lucide="user-plus"></i></span>
-                <span class="cx-tile-label">Thêm khách</span>
+          <!-- Thanh công cụ dùng chung cho cả hai bên: mọi thao tác nhắm vào bên
+               đang mở (_currentTab). Dưới sm ô tìm chiếm trọn một hàng. -->
+          <div class="gs-toolbar">
+            <label class="gs-search">
+              <i data-lucide="search" style="width:16px;height:16px"></i>
+              <input id="gs-search" type="search" placeholder="Tìm theo tên khách" autocomplete="off"
+                aria-label="Tìm khách mời theo tên" oninput="onGuestSearch(this.value)" />
+            </label>
+            <div class="gs-actions">
+              <x-button variant="outline" tone="neutral" onclick="pickExcel()" class="gs-act-excel">
+                <i data-lucide="file-spreadsheet" class="gs-excel" style="width:16px;height:16px"></i>
+                <span>Nhập Excel</span>
               </x-button>
-              <x-button variant="bare" type="button" class="cx-tile cx-tile-violet" onclick="regenerateLinks('bride')">
-                <span class="cx-tile-ico"><i data-lucide="link"></i></span>
-                <span class="cx-tile-label">Tạo lại link</span>
+              <x-button onclick="openAddGuestModal(_currentTab)">
+                <i data-lucide="user-plus" style="width:16px;height:16px"></i>
+                <span>Thêm khách</span>
               </x-button>
-              <x-button variant="bare" type="button" class="cx-tile cx-tile-sky" onclick="downloadGuestTemplate()">
-                <span class="cx-tile-ico"><i data-lucide="download"></i></span>
-                <span class="cx-tile-label">Tải mẫu</span>
-              </x-button>
-              <label class="cx-tile cx-tile-amber">
-                <span class="cx-tile-ico"><i data-lucide="file-up"></i></span>
-                <span class="cx-tile-label">Nhập Excel</span>
-                <input type="file" class="hidden" accept=".xlsx,.xls" onchange="handleExcelUpload(event,'bride')">
-              </label>
-              <x-button variant="bare" type="button" class="cx-tile cx-tile-emerald" onclick="exportGuestList('bride')">
-                <span class="cx-tile-ico"><i data-lucide="file-down"></i></span>
-                <span class="cx-tile-label">Xuất Excel</span>
+              <x-button
+                id="gs-more"
+                variant="outline"
+                tone="neutral"
+                icon-only
+                onclick="toggleMoreMenu()"
+                title="Thao tác khác"
+                aria-label="Thao tác khác"
+                aria-haspopup="menu"
+              >
+                <i data-lucide="ellipsis" style="width:18px;height:18px"></i>
               </x-button>
             </div>
-            <div id="guest-list-bride">
-              <p class="text-xs text-gray-400 text-center py-4">Chưa có khách mời nào</p>
-            </div>
+            <input id="gs-file" type="file" class="hidden" accept=".xlsx,.xls" onchange="handleExcelUpload(event, _currentTab)" />
+          </div>
+
+          <!-- Danh sách mỗi bên: _renderGuestList() vẽ .gs-list (hàng khách) hoặc
+               .gs-empty vào đây. -->
+          <div id="panel-groom" role="tabpanel" aria-labelledby="tab-groom">
+            <div id="guest-list-groom"></div>
+          </div>
+          <div id="panel-bride" role="tabpanel" aria-labelledby="tab-bride" class="hidden">
+            <div id="guest-list-bride"></div>
           </div>
         </div>
       </div>
     </div>
 
+    <!-- Báo cho trình đọc màn hình số khách sau mỗi lần tìm / lọc (_announce). -->
+    <p id="gs-live" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></p>
+
+    <!-- Menu "⋯" của thanh công cụ và menu từng hàng khách (nạp mục bằng setItems). -->
+    <x-popover id="gs-more-pop" anchor="#gs-more" placement="bottom" align="end" width="232"></x-popover>
+    <x-popover id="gs-row-pop" placement="bottom" align="end" width="216"></x-popover>
+
     <!-- Popup thêm/sửa 1 khách (JS: _gmOpen ở index.js). Dưới sm là bottom sheet.
          Chip #add-guest-side cho biết đang thêm vào nhà trai hay nhà gái. -->
     <div id="add-guest-modal"
-      class="cx-gm fixed inset-0 z-[99999] bg-black/40 backdrop-blur-[2px] hidden items-end sm:items-center justify-center sm:p-4">
-      <div class="bg-white w-full sm:max-w-[400px] rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden">
-        <div class="flex items-start gap-3 px-5 pt-5 pb-4">
-          <span id="add-guest-ico" class="shrink-0 w-10 h-10 rounded-2xl bg-rose-50 text-rose-500 flex items-center justify-center"></span>
+      class="cx-gm gs-modal hidden" role="dialog" aria-modal="true" aria-labelledby="add-guest-title">
+      <div class="gs-sheet sm:max-w-[400px]">
+        <div class="gs-sheet-head">
+          <span id="add-guest-ico" class="gs-sheet-ico"></span>
           <div class="flex-1 min-w-0">
-            <h3 class="text-[15px] font-semibold text-gray-800 leading-tight">Thêm khách mời</h3>
-            <span id="add-guest-side" class="mt-1.5 inline-flex items-center gap-1 h-6 px-2.5 rounded-full text-[11px] font-semibold ring-1"></span>
+            <h2 id="add-guest-title" class="gs-sheet-title">Thêm khách mời</h2>
+            <span id="add-guest-side" class="mt-1.5 inline-flex items-center gap-1 h-6 px-2.5 rounded-full text-[12px] font-semibold ring-1"></span>
           </div>
-          <x-button variant="ghost" tone="neutral" size="sm" icon-only type="button" onclick="closeAddGuestModal()" class="-mr-1.5 -mt-1">
-            <i data-lucide="x" style="width:16px;height:16px"></i>
+          <x-button variant="ghost" tone="neutral" icon-only type="button" onclick="closeAddGuestModal()"
+            aria-label="Đóng" class="-mr-2 -mt-1">
+            <i data-lucide="x" style="width:18px;height:18px"></i>
           </x-button>
         </div>
 
-        <div class="px-5 pb-4 space-y-3">
+        <!-- Thân popup tự cuộn: điện thoại xoay ngang không đủ cao cho cả popup. -->
+        <div class="flex-1 min-h-0 overflow-y-auto px-5 pb-4 space-y-3">
           <div class="space-y-1.5">
-            <label for="add-guest-fullname" class="text-[11px] font-medium text-gray-600">Họ và tên <span class="text-rose-500">*</span></label>
+            <label for="add-guest-fullname" class="gs-label">Họ và tên <span class="text-rose-500">*</span></label>
             <div class="relative">
               <i data-lucide="user-round" class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" style="width:16px;height:16px"></i>
-              <input id="add-guest-fullname" placeholder="VD: Nguyễn Văn A" autocomplete="off"
-                class="w-full h-10 pl-9 pr-3 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-800 outline-none transition focus:bg-white focus:border-rose-300 focus:ring-4 focus:ring-rose-500/10 placeholder:text-gray-400" />
+              <input id="add-guest-fullname" placeholder="VD: Nguyễn Văn A" autocomplete="off" class="gs-field pl-9"
+                required aria-required="true" aria-describedby="add-guest-err" />
             </div>
+            <!-- Lỗi ngay dưới ô (saveAddGuest bật, gõ lại là tắt). -->
+            <p id="add-guest-err" class="gs-err hidden">
+              <i data-lucide="circle-alert" style="width:14px;height:14px"></i>
+              <span>Nhập họ và tên khách để tạo link mời.</span>
+            </p>
           </div>
           <div class="grid grid-cols-[112px_1fr] gap-3">
             <div class="space-y-1.5 min-w-0">
-              <label class="text-[11px] font-medium text-gray-600">Xưng hô</label>
+              <label id="add-guest-rel-label" class="gs-label">Xưng hô</label>
               <x-combobox id="add-guest-relationship" placeholder="Chọn" searchable></x-combobox>
             </div>
             <div class="space-y-1.5 min-w-0">
-              <label for="add-guest-displayname" class="text-[11px] font-medium text-gray-600">Tên trên thiệp</label>
-              <input id="add-guest-displayname" placeholder="Trống = dùng họ tên" autocomplete="off"
-                class="w-full h-10 px-3 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-800 outline-none transition focus:bg-white focus:border-rose-300 focus:ring-4 focus:ring-rose-500/10 placeholder:text-gray-400" />
+              <label for="add-guest-displayname" class="gs-label">Tên trên thiệp</label>
+              <input id="add-guest-displayname" placeholder="Trống = dùng họ tên" autocomplete="off" class="gs-field" />
             </div>
           </div>
 
           <!-- Xem trước dòng mời trên bìa thiệp (wedding-helper: "<lời mời> <xưng hô>" + tên)
                + link riêng khi khách đã lưu. -->
-          <div class="rounded-2xl border border-rose-100 bg-rose-50/50 overflow-hidden">
+          <div class="gs-preview">
             <div class="px-4 pt-3 pb-3.5 text-center">
-              <p class="text-[10px] font-semibold uppercase tracking-wider text-rose-400">Khách sẽ thấy trên thiệp</p>
-              <p class="mt-1.5 text-xs text-gray-500">Trân trọng kính mời <span id="add-guest-pv-rel" class="font-semibold text-rose-600"></span></p>
+              <p class="gs-preview-cap">Khách sẽ thấy trên thiệp</p>
+              <p class="mt-1.5 text-xs gs-preview-lead">Trân trọng kính mời <span id="add-guest-pv-rel" class="gs-preview-rel"></span></p>
               <p id="add-guest-pv-name" class="mt-0.5 text-lg font-semibold truncate"></p>
             </div>
-            <div id="add-guest-result" class="hidden border-t border-rose-100 bg-white/70 px-3 py-2.5 space-y-2">
-              <p id="add-guest-status" class="flex items-center gap-1.5 text-[11px] font-medium"></p>
+            <div id="add-guest-result" class="hidden gs-preview-foot">
+              <p id="add-guest-status" class="flex items-center gap-1.5 text-[12px] font-medium"></p>
               <div id="add-guest-link-row" class="flex items-center gap-2 transition-opacity">
-                <input id="add-guest-link" readonly tabindex="-1"
-                  class="flex-1 min-w-0 h-8 px-3 bg-white border border-gray-200 rounded-full text-[11px] text-gray-500 font-mono truncate outline-none" />
+                <input id="add-guest-link" readonly tabindex="-1" aria-label="Link mời riêng của khách"
+                  class="flex-1 min-w-0 h-9 px-3 bg-white border border-gray-200 rounded-full text-[12px] text-gray-500 font-mono truncate outline-none" />
                 <x-button variant="soft" tone="brand" size="sm" type="button" onclick="copyAddGuestLink()" class="shrink-0">
                   <i data-lucide="copy" style="width:14px;height:14px"></i>
                   <span>Sao chép</span>
@@ -210,71 +228,80 @@
 
         <!-- "Lưu" là nút chính (lưu CHÍNH khách đang mở); "Thêm người khác" chỉ bật khi
              khách này đã lưu và mở form trống — khác "Lưu" cả kiểu nút lẫn icon. -->
-        <div class="flex items-center gap-2 px-5 py-3.5 border-t border-gray-100 bg-gray-50/70">
-          <x-button variant="ghost" tone="neutral" size="sm" type="button" onclick="closeAddGuestModal()" class="-ml-2">Đóng</x-button>
+        <div class="gs-sheet-foot">
+          <x-button variant="ghost" tone="neutral" type="button" onclick="closeAddGuestModal()" class="-ml-2">Đóng</x-button>
           <div class="flex-1"></div>
-          <x-button id="add-guest-new" variant="outline" tone="neutral" size="sm" type="button" onclick="resetAddGuestForm()" disabled>
-            <i data-lucide="user-plus" style="width:14px;height:14px"></i>
+          <x-button id="add-guest-new" variant="outline" tone="neutral" type="button" onclick="resetAddGuestForm()" disabled>
+            <i data-lucide="user-plus" style="width:16px;height:16px"></i>
             <span>Thêm người khác</span>
           </x-button>
-          <x-button id="add-guest-save" size="sm" type="button" onclick="saveAddGuest()" class="min-w-[80px]">
-            <i data-lucide="check" style="width:14px;height:14px"></i>
+          <x-button id="add-guest-save" type="button" onclick="saveAddGuest()" class="min-w-[88px]">
+            <i data-lucide="check" style="width:16px;height:16px"></i>
             <span>Lưu</span>
           </x-button>
         </div>
       </div>
     </div>
 
-    <!-- Import Mapping Modal -->
-    <div id="import-mapping-modal"
-      class="fixed inset-0 z-[99999] bg-black/50 hidden items-center justify-center p-4">
-      <div class="bg-white rounded-2xl w-full max-w-md shadow-xl overflow-hidden max-h-[90vh] flex flex-col">
-        <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-          <div>
-            <h3 class="text-sm font-semibold text-gray-800">Mapping cột dữ liệu</h3>
-            <p class="text-xs text-gray-400 mt-0.5">Chọn cột tương ứng từ file Excel</p>
+    <!-- Popup ghép cột khi nhập Excel (JS: _openMappingModal). Cùng vỏ với popup
+         thêm khách: dưới sm là bottom sheet. -->
+    <div id="import-mapping-modal" class="gs-modal hidden" role="dialog" aria-modal="true" aria-labelledby="map-title">
+      <div class="gs-sheet sm:max-w-[480px]">
+        <div class="gs-sheet-head">
+          <span class="gs-sheet-ico gs-sheet-ico--ok"><i data-lucide="file-spreadsheet" style="width:20px;height:20px"></i></span>
+          <div class="flex-1 min-w-0">
+            <h2 id="map-title" class="gs-sheet-title">Nhập khách từ Excel</h2>
+            <p id="map-sub" class="gs-sheet-sub">Ghép cột trong file với thông tin khách mời</p>
           </div>
-          <x-button variant="ghost" tone="neutral" size="xs" icon-only type="button" onclick="closeMappingModal()">
-            <i data-lucide="x" class="w-4 h-4"></i>
+          <x-button variant="ghost" tone="neutral" icon-only type="button" onclick="closeMappingModal()"
+            aria-label="Đóng" class="-mr-2 -mt-1">
+            <i data-lucide="x" style="width:18px;height:18px"></i>
           </x-button>
         </div>
-        <div class="flex-1 overflow-y-auto px-5 py-4 space-y-4">
+        <div class="flex-1 min-h-0 overflow-y-auto px-5 pb-4 space-y-4">
           <div class="space-y-3">
-            <div class="flex items-center gap-3">
-              <span class="text-xs text-gray-600 w-28 shrink-0">Họ và tên <span class="text-rose-500">*</span></span>
-              <select id="map-full-name"
-                class="flex-1 h-9 px-2 border border-gray-200 rounded-lg text-xs text-gray-700 outline-none focus:ring-2 focus:ring-rose-500/30"></select>
+            <div class="gs-map-row">
+              <label for="map-full-name" class="gs-label">Họ và tên <span class="text-rose-500">*</span></label>
+              <select id="map-full-name" class="gs-field gs-select"></select>
             </div>
-            <div class="flex items-center gap-3">
-              <span class="text-xs text-gray-600 w-28 shrink-0">Tên hiển thị</span>
-              <select id="map-display-name"
-                class="flex-1 h-9 px-2 border border-gray-200 rounded-lg text-xs text-gray-700 outline-none focus:ring-2 focus:ring-rose-500/30"></select>
+            <div class="gs-map-row">
+              <label for="map-display-name" class="gs-label">Tên trên thiệp</label>
+              <select id="map-display-name" class="gs-field gs-select"></select>
             </div>
-            <div class="flex items-center gap-3">
-              <span class="text-xs text-gray-600 w-28 shrink-0">Quan hệ</span>
-              <select id="map-relationship"
-                class="flex-1 h-9 px-2 border border-gray-200 rounded-lg text-xs text-gray-700 outline-none focus:ring-2 focus:ring-rose-500/30"></select>
+            <div class="gs-map-row">
+              <label for="map-relationship" class="gs-label">Xưng hô</label>
+              <select id="map-relationship" class="gs-field gs-select"></select>
             </div>
           </div>
           <div>
-            <p class="text-xs font-medium text-gray-500 mb-2">Xem trước dữ liệu</p>
+            <p class="gs-label mb-2">Xem trước dữ liệu</p>
             <div id="mapping-preview"></div>
           </div>
-          <div class="bg-gray-50 rounded-xl p-3 space-y-2">
-            <p class="text-xs font-medium text-gray-600">Khi nhập khẩu:</p>
-            <label class="flex items-center gap-2.5 cursor-pointer">
-              <input type="radio" name="import-mode" value="overwrite" checked class="accent-rose-500 w-3.5 h-3.5">
-              <span class="text-xs text-gray-700">Ghi đè toàn bộ</span>
+          <fieldset class="space-y-2">
+            <legend class="gs-label mb-2">Khi nhập vào danh sách</legend>
+            <label class="gs-radio">
+              <input type="radio" name="import-mode" value="overwrite" checked />
+              <span>
+                <span class="gs-radio-title">Thay toàn bộ danh sách</span>
+                <span class="gs-radio-desc">Xoá khách hiện có của bên này rồi nhập mới.</span>
+              </span>
             </label>
-            <label class="flex items-center gap-2.5 cursor-pointer">
-              <input type="radio" name="import-mode" value="merge" class="accent-rose-500 w-3.5 h-3.5">
-              <span class="text-xs text-gray-700">Không ghi đè <span class="text-gray-400">(bỏ qua trùng Họ tên + Tên thiệp)</span></span>
+            <label class="gs-radio">
+              <input type="radio" name="import-mode" value="merge" />
+              <span>
+                <span class="gs-radio-title">Thêm vào danh sách</span>
+                <span class="gs-radio-desc">Giữ khách cũ, bỏ qua dòng trùng Họ tên + Tên trên thiệp.</span>
+              </span>
             </label>
-          </div>
+          </fieldset>
         </div>
-        <div class="flex gap-2 px-5 py-4 border-t border-gray-100">
-          <x-button variant="outline" tone="neutral" type="button" onclick="closeMappingModal()" class="flex-1">Huỷ</x-button>
-          <x-button type="button" onclick="confirmImport()" class="flex-1">Nhập khẩu</x-button>
+        <div class="gs-sheet-foot">
+          <div class="flex-1"></div>
+          <x-button variant="ghost" tone="neutral" type="button" onclick="closeMappingModal()">Huỷ</x-button>
+          <x-button type="button" onclick="confirmImport()">
+            <i data-lucide="file-up" style="width:16px;height:16px"></i>
+            <span>Nhập khách</span>
+          </x-button>
         </div>
       </div>
     </div>
@@ -283,6 +310,7 @@
     <script src="../../core/x-button.js"></script>
     <script src="../../core/x-logo.js"></script>
     <script src="../../core/x-combobox.js"></script>
+    <script src="../../core/x-popover.js"></script>
     <script src="../../core/cache-util.js"></script>
     <script src="../../core/dal/templates-dal.js"></script>
     <script src="../../core/config.js"></script>

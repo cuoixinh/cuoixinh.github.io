@@ -28,6 +28,7 @@
   --text-body-rgb: 173 122 135;
   --text-label-rgb: 169 138 146;
   --text-caption-rgb: 138 107 115;
+  --text-subtle-rgb: 126 96 104;  /* chữ phụ trên nền hồng/xám nhạt — caption chỉ đạt 4.3:1 ở đó, cái này ≥4.5:1 */
   --text-muted-rgb: 160 112 128;
   --avatar-initial-rgb: 190 90 118;  /* chữ cái đầu trong avatar tròn */
 
@@ -99,8 +100,8 @@
      5. HÀNH ĐỘNG (nút, ô nhập sai, ngày được chọn)
      ============================================================ */
 
-  --action-primary-rgb: 244 63 94;  /* nút chính, viền ô nhập sai, đổ bóng nút */
-  --action-primary-hover-rgb: 225 29 72;
+  --action-primary-rgb: 225 29 72;  /* nút chính (chữ trắng trên nền này đạt 4.7:1), viền ô nhập sai, đổ bóng nút */
+  --action-primary-hover-rgb: 205 22 66;
   --action-primary-deep-rgb: 190 18 60;
   --action-accent-rgb: 236 72 153;  /* vế thứ hai của gradient nút & tiêu đề */
   --action-accent-light-rgb: 244 114 182;
@@ -108,6 +109,11 @@
   --cta-accent-rgb: 219 39 119;  /* nút kêu gọi hành động */
   --accent-amber-rgb: 245 158 11;  /* sao đánh giá, nhãn HOT */
   --accent-amber-light-rgb: 251 191 36;
+  /* Tông phân biệt icon trong menu (cặp chữ/icon + nền nhạt, đều ≥4.5:1). */
+  --tone-amber-rgb: 180 83 9;
+  --tone-amber-bg-rgb: 254 243 199;
+  --tone-violet-rgb: 109 79 206;
+  --tone-violet-bg-rgb: 243 239 255;
   --datepicker-header-from-rgb: 253 242 248;  /* nền tháng trong bộ chọn ngày */
 
   /* ============================================================

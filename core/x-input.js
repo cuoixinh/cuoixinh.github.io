@@ -86,7 +86,7 @@ class XInput extends HTMLElement {
     </div>`;
 
     const _suffixCls = suffixPrimary
-      ? 'h-10 px-4 rounded-lg text-sm font-medium text-white bg-rose-500 hover:bg-rose-600 transition-colors flex-shrink-0'
+      ? 'h-10 px-4 rounded-lg text-sm font-medium text-white bg-rose-600 hover:bg-rose-700 transition-colors flex-shrink-0'
       : 'h-10 px-3 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-rose-50 hover:border-rose-200 hover:text-color-secondary transition-colors flex items-center justify-center gap-1.5 flex-shrink-0';
 
     const suffixBtnHtml = hasSuffix
