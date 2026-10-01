@@ -17,10 +17,10 @@ function _renderYtItems(items) {
       (item) => `
     <button type="button" data-yt-url="${_escHtml(item.url)}" data-yt-title="${_escHtml(item.title)}"
       class="yt-result-btn w-full flex gap-3 p-2 rounded-lg hover:bg-rose-50 text-left transition-colors">
-      <img src="${_escHtml(item.thumbnail)}" class="w-20 h-12 rounded object-cover shrink-0 bg-gray-100" loading="lazy" />
+      <img src="${_escHtml(item.thumbnail)}" alt="" class="w-20 h-12 rounded object-cover shrink-0 bg-gray-100" loading="lazy" />
       <div class="min-w-0 flex-1">
         <p class="text-xs font-medium text-gray-800 line-clamp-2 leading-snug">${_escHtml(item.title)}</p>
-        <p class="text-[10px] text-gray-400 mt-1">${_escHtml(item.channel)}${item.duration ? " · " + _escHtml(item.duration) : ""}</p>
+        <p class="text-xs text-gray-500 mt-1">${_escHtml(item.channel)}${item.duration ? " · " + _escHtml(item.duration) : ""}</p>
       </div>
     </button>
   `,
@@ -53,7 +53,7 @@ async function _showYouTubeSuggestions() {
   }
 
   results.innerHTML =
-    '<p class="text-xs text-gray-400 py-3 text-center">Đang tải gợi ý...</p>';
+    '<p class="text-xs text-gray-500 py-3 text-center">Đang tải gợi ý...</p>';
 
   try {
     const res = await fetch(
@@ -68,7 +68,7 @@ async function _showYouTubeSuggestions() {
     }
 
     results.innerHTML =
-      '<p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider px-1 pb-1 pt-0.5">Gợi ý</p>' +
+      '<p class="text-xs font-semibold text-gray-500 px-1 pb-1 pt-0.5">Gợi ý</p>' +
       _renderYtItems(items);
 
     _ytSuggestionsCache = results.innerHTML;
@@ -83,7 +83,7 @@ async function _doYouTubeSearch(q) {
   if (!results) return;
 
   results.innerHTML =
-    '<p class="text-xs text-gray-400 py-3 text-center">Đang tìm...</p>';
+    '<p class="text-xs text-gray-500 py-3 text-center">Đang tìm...</p>';
 
   try {
     const res = await fetch(
@@ -94,7 +94,7 @@ async function _doYouTubeSearch(q) {
 
     if (!Array.isArray(items) || items.length === 0) {
       results.innerHTML =
-        '<p class="text-xs text-gray-400 py-3 text-center">Không tìm thấy kết quả.</p>';
+        '<p class="text-xs text-gray-500 py-3 text-center">Không tìm thấy bài nào. Thử gõ tên khác hoặc dán thẳng link YouTube.</p>';
       return;
     }
 
@@ -102,7 +102,7 @@ async function _doYouTubeSearch(q) {
     _rewireYtResultBtns(results);
   } catch {
     results.innerHTML =
-      '<p class="text-xs text-red-400 py-3 text-center">Lỗi tìm kiếm. Vui lòng thử lại.</p>';
+      '<p class="text-xs text-red-600 py-3 text-center">Lỗi tìm kiếm. Vui lòng thử lại.</p>';
   }
 }
 

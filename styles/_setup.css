@@ -1202,6 +1202,36 @@ svg.lucide {
   display: flex;
 }
 
+/* Tab Cấu hình (partials/config-panel.html): đầu mỗi mục = ô icon vuông + tiêu
+   đề h2 + dòng mô tả; công tắc/nút (nếu có) đứng cuối hàng. */
+.cx-cfg-head {
+  @apply flex items-start gap-3;
+}
+
+.cx-cfg-ico {
+  @apply flex h-9 w-9 shrink-0 items-center justify-center rounded-xl;
+
+  color: rgb(var(--brand-accent-rgb));
+  background: rgb(var(--surface-tint-warm-rgb));
+  border: 1px solid rgb(var(--border-subtle-rgb));
+}
+
+.cx-cfg-title {
+  @apply text-sm font-semibold leading-9 text-gray-800;
+}
+
+.cx-cfg-desc {
+  @apply text-xs leading-relaxed text-gray-500;
+}
+
+/* Một dòng link thiệp (nhà trai/nhà gái) kèm nút sao chép. */
+.cx-cfg-link {
+  @apply flex items-center gap-3 rounded-2xl px-4 py-3;
+
+  background: rgb(var(--surface-tint-rgb));
+  border: 1px solid rgb(var(--border-subtle-rgb));
+}
+
 /* Khung "Tạo bằng AI" ở bước Chuyện tình yêu: cùng tông tím của nút .btn-ai
    (token --ai-chip-*), đầu khung có nút đóng, chân khung là cảnh báo + nút chạy. */
 .cx-ai-panel {
