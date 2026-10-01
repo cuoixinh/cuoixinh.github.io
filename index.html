@@ -341,60 +341,11 @@
     </section>
 
     <!-- ===== GIỚI THIỆU ===== -->
-    <!-- Hai bản, CSS chọn theo khổ (.intro-* trong styles/tailwind-src.css):
-         - dưới lg: .intro-lite — chỉ chữ + ba ý, không ô nhập.
-         - từ lg: .intro-wrap — khách gõ tên hai bạn bên trái; bên phải khung chat
-           minh hoạ cảnh gửi thiệp, tên vừa gõ hiện ngay lên các thiệp và lời mời
-           (js/section-intro.js). Ảnh trong bản bị ẩn để lazy nên không tải. -->
+    <!-- Khách gõ tên hai bạn bên trái; bên phải là khung chat minh hoạ cảnh gửi thiệp,
+         tên vừa gõ hiện ngay lên thiệp trong link và lời mời (js/section-intro.js).
+         Từ lg chia hai cột, dưới lg xếp dọc. Style ở .intro-* trong
+         styles/tailwind-src.css. -->
     <section id="intro" class="intro">
-      <div class="intro-lite">
-        <div class="reveal">
-          <p class="intro-eyebrow">Về Cưới Xinh</p>
-          <h2 class="intro-title font-playfair">
-            Cưới Xinh —
-            <span class="intro-title-brand">mỗi tấm thiệp là một lời mời trọn vẹn</span>
-          </h2>
-          <p class="intro-lead">
-            Hai bạn tự tay làm thiệp cưới online đẹp và có hồn mà không cần biết thiết
-            kế: chọn một mẫu, kể vài dòng về hai bạn — trợ lý XuXi viết giúp phần chữ —
-            rồi gửi tới từng người thân yêu.
-          </p>
-        </div>
-        <ul class="intro-lite-list">
-          <li class="intro-lite-item reveal reveal-delay-1" style="--ip-c: var(--info-1-rgb)">
-            <span class="intro-lite-ico"><i data-lucide="sparkles"></i></span>
-            <div>
-              <h3 class="intro-lite-title">Kho mẫu thiệp tinh tế</h3>
-              <p class="intro-lite-desc">
-                Từ trang nhã cổ điển đến hiện đại điện ảnh. Mẫu nào cũng xem thử trọn
-                vẹn trước khi chọn, đổi mẫu thoải mái lúc dựng thiệp.
-              </p>
-            </div>
-          </li>
-          <li class="intro-lite-item reveal reveal-delay-2" style="--ip-c: var(--info-2-rgb)">
-            <span class="intro-lite-ico"><i data-lucide="palette"></i></span>
-            <div>
-              <h3 class="intro-lite-title">Cá nhân hoá theo cách của bạn</h3>
-              <p class="intro-lite-desc">
-                Đổi bộ màu cả thiệp, bấm thẳng vào từng dòng chữ để chỉnh, thêm ảnh cưới,
-                nhạc nền và chi tiết trang trí — không tấm nào giống tấm nào.
-              </p>
-            </div>
-          </li>
-          <li class="intro-lite-item reveal reveal-delay-3" style="--ip-c: var(--info-4-rgb)">
-            <span class="intro-lite-ico"><i data-lucide="send"></i></span>
-            <div>
-              <h3 class="intro-lite-title">Gửi nhanh, trân trọng từng khách</h3>
-              <p class="intro-lite-desc">
-                Gửi thiệp trong vài giây qua Zalo, Messenger, Facebook. Đặc biệt,
-                <b>mỗi khách một link có tên mình trên thiệp</b>, xác nhận dự tiệc và
-                gửi lời chúc chỉ với một chạm.
-              </p>
-            </div>
-          </li>
-        </ul>
-      </div>
-
       <div class="intro-wrap">
         <div class="intro-text reveal">
           <p class="intro-eyebrow"><span class="intro-eyebrow-dot"></span>Thử ngay · không cần đăng ký</p>
@@ -432,7 +383,8 @@
         <div class="intro-art reveal reveal-delay-2">
           <span class="intro-stage" aria-hidden="true"></span>
           <!-- Hai thiệp minh hoạ đè trước khung chat, đung đưa như treo từ mép trên;
-               tên đổi theo ô gõ như thiệp trong tin nhắn. -->
+               tên đổi theo ô gõ như thiệp trong tin nhắn. Dưới sm xếp thành hàng
+               trên khung chat. -->
           <div class="intro-cards" aria-hidden="true">
             <div class="intro-card intro-card-std">
               <p class="intro-std-k">Save the date</p>
