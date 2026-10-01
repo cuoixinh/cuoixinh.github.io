@@ -1,5 +1,7 @@
 // ============= TESTIMONIALS =============
 
+// Mục nào `text` còn rỗng thì không hiện — điền lời khách THẬT (kèm tên khách đã
+// đồng ý hiển thị) vào hai chỗ trống cuối là thẻ tự lên. avatar = 2 chữ cái đầu.
 const TESTIMONIALS_DATA = [
   {
     avatar: "KC",
@@ -22,6 +24,20 @@ const TESTIMONIALS_DATA = [
     rating: 5,
     text: "Đổi mẫu 2 lần vì không chịu được 😅 mà không tốn thêm gì. Hỏi bên support là rep liền, không phải chờ kiểu gửi mail rồi để đó.",
   },
+  {
+    avatar: "",
+    name: "",
+    date: "",
+    rating: 4,
+    text: "",
+  },
+  {
+    avatar: "",
+    name: "",
+    date: "",
+    rating: 5,
+    text: "",
+  },
 ];
 
 // Luôn đủ 5 ngôi: `rating` ngôi đầu tô đặc, phần còn lại chỉ có viền.
@@ -34,8 +50,8 @@ function starsHTML(rating) {
 function renderTestimonials() {
   const el = document.getElementById("testimonialsList");
   if (!el) return;
-  el.innerHTML = TESTIMONIALS_DATA.map((t, i) => `
-    <div class="testimonial-card reveal reveal-delay-${i + 1}">
+  el.innerHTML = TESTIMONIALS_DATA.filter((t) => t.text.trim()).map((t, i) => `
+    <div class="testimonial-card reveal reveal-delay-${(i % 3) + 1}">
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
         <div class="testimonial-avatar">${t.avatar}</div>
         <div>

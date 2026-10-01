@@ -2231,6 +2231,7 @@ html.cx-landing {
 
 .testimonial-card {
   @apply relative overflow-hidden bg-white;
+  width: 100%;
   border-radius: 14px;
   padding: 24px 24px 22px;
   border: 1px solid rgb(var(--brand-primary-rgb) / 0.25);
@@ -2248,6 +2249,12 @@ html.cx-landing {
   color: rgb(var(--brand-primary-rgb) / 0.14);
   pointer-events: none;
   user-select: none;
+}
+/* Ba thẻ một hàng; 40px = hai khe gap-5 của #testimonialsList. */
+@media (min-width: 768px) {
+  .testimonial-card {
+    width: calc((100% - 40px) / 3);
+  }
 }
 .testimonial-card:hover {
   box-shadow: 0 14px 36px rgb(var(--shadow-brand-rgb) / 0.12);
