@@ -241,6 +241,10 @@ html.cx-landing {
 .hero-layers {
   @apply pointer-events-none absolute inset-0 overflow-hidden;
   z-index: 0;
+  /* Nhạt dần ở đáy để ảnh + quầng sáng tan vào nền #templates thay vì cắt
+     ngang thành một đường thẳng; mask chỉ dùng kênh alpha. */
+  -webkit-mask-image: linear-gradient(to bottom, #000 75%, transparent);
+  mask-image: linear-gradient(to bottom, #000 75%, transparent);
 }
 
 .hero-anim {
@@ -454,6 +458,30 @@ html.cx-landing {
   }
   to {
     transform: translate(-40%, -20%);
+    opacity: 0.6;
+  }
+}
+
+/* Nhịp trôi của desktop: biên độ nhỏ để quầng quanh quẩn ở góc, không lấn
+   vào sau cụm chữ giữa dải. */
+@keyframes cx-hero-glow-a-wide {
+  from {
+    transform: translate(0, 0);
+    opacity: 0.7;
+  }
+  to {
+    transform: translate(18%, 12%);
+    opacity: 1;
+  }
+}
+
+@keyframes cx-hero-glow-b-wide {
+  from {
+    transform: translate(0, 0);
+    opacity: 1;
+  }
+  to {
+    transform: translate(-18%, -10%);
     opacity: 0.6;
   }
 }
@@ -675,6 +703,35 @@ html.cx-landing {
   }
   .hero-top {
     display: none;
+  }
+  /* Khổ quầng theo bề ngang: giữ 70% của mobile thì ở desktop mỗi quầng to
+     hơn cả dải, trôi vào giữa và chồng nhau thành mảng đục sau cụm chữ. Thu
+     về góc, nhạt hơn, thêm mốc giữa cho gradient đỡ vân vòng tròn. */
+  .hero-glow::before,
+  .hero-glow::after {
+    width: 44%;
+  }
+  .hero-glow::before {
+    top: -24%;
+    left: -12%;
+    background: radial-gradient(
+      circle,
+      rgb(var(--landing-cta-btn-to-rgb) / 0.22) 0%,
+      rgb(var(--landing-cta-btn-to-rgb) / 0.1) 35%,
+      rgb(var(--landing-cta-btn-to-rgb) / 0) 65%
+    );
+    animation-name: cx-hero-glow-a-wide;
+  }
+  .hero-glow::after {
+    bottom: -28%;
+    right: -12%;
+    background: radial-gradient(
+      circle,
+      rgb(var(--brand-primary-rgb) / 0.24) 0%,
+      rgb(var(--brand-primary-rgb) / 0.11) 35%,
+      rgb(var(--brand-primary-rgb) / 0) 65%
+    );
+    animation-name: cx-hero-glow-b-wide;
   }
   /* Dải desktop rộng gấp 3 điện thoại — đốm cỡ mobile nhìn như bụi màn hình. */
   .hero-spark {
