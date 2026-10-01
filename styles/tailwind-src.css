@@ -577,6 +577,7 @@ html.cx-landing {
 
 .hero-cta {
   @apply flex flex-wrap items-center justify-center;
+  gap: 12px;
   margin-top: 32px;
 }
 
@@ -617,6 +618,47 @@ html.cx-landing {
 .hero-btn-ai:hover {
   background: rgb(var(--white-rgb) / 0.9);
   border-color: rgb(var(--brand-primary-rgb));
+}
+
+/* Nút phụ: viền trung tính, nhẹ hơn nút AI một bậc. */
+.hero-btn-alt {
+  font-weight: 600;
+  background: rgb(var(--white-rgb) / 0.4);
+  border: 1px solid rgb(var(--text-heading-rgb) / 0.25);
+}
+
+.hero-btn-alt:hover {
+  background: rgb(var(--white-rgb) / 0.8);
+  border-color: rgb(var(--brand-primary-rgb));
+}
+
+/* Hàng điểm mạnh dưới cụm nút: ba cột, icon trên chữ dưới — dạng chip nằm
+   ngang không vừa một hàng ở khổ hẹp. Từ lg thành danh sách dọc (xem dưới).
+   Icon lucide ăn theo font-size (1em). */
+.hero-feats {
+  @apply grid grid-cols-3;
+  gap: 12px;
+  width: 100%;
+  max-width: 440px;
+  margin-top: 28px;
+}
+
+.hero-feats li {
+  @apply flex flex-col items-center text-center;
+  gap: 6px;
+  font-size: 13px;
+  line-height: 18px;
+  color: rgb(var(--text-heading-rgb) / 0.8);
+}
+
+.hero-feats svg.lucide {
+  @apply shrink-0 rounded-full;
+  box-sizing: content-box;
+  padding: 8px;
+  font-size: 16px;
+  color: rgb(var(--action-primary-rgb));
+  background: rgb(var(--white-rgb) / 0.7);
+  border: 1px solid rgb(var(--brand-primary-rgb) / 0.4);
 }
 
 /* Giữ chỗ trước lúc icon.js thay thẻ <i> — khớp data-size. */
@@ -665,16 +707,38 @@ html.cx-landing {
 /* Máy hẹp: nút thu về viên viền mảnh thấp, chữ nhỏ — khối 52px chữ 19px là thứ
    nặng nhất màn, lấn cả tiêu đề. */
 @media (max-width: 419px) {
+  .hero-cta {
+    gap: 8px;
+  }
   .hero-btn-ai {
     height: 40px;
-    padding: 0 20px 0 12px;
+    padding: 0 16px 0 10px;
     gap: 6px;
     font-size: 15px;
     font-weight: 600;
   }
+  .hero-btn-alt {
+    height: 40px;
+    padding: 0 16px;
+    font-size: 15px;
+  }
   .hero-btn-ai .hero-ai-ico {
     width: 20px;
     height: 20px;
+  }
+  /* Lề hai bên đã có ở #hero — bỏ lớp lề thứ hai cho hai nút đứng chung một
+     hàng tới máy 360px. */
+  .hero-card-body {
+    padding-left: 0;
+    padding-right: 0;
+  }
+  .hero-feats {
+    gap: 8px;
+    margin-top: 20px;
+  }
+  .hero-feats li {
+    font-size: 12px;
+    line-height: 16px;
   }
   .hero-ai-new {
     top: -8px;
@@ -692,6 +756,10 @@ html.cx-landing {
 }
 
 @media (min-width: 768px) {
+  /* Link "Xem mẫu thiệp" cuộn tới đây — chừa 80px của .cx-navbar (fixed). */
+  #templates {
+    scroll-margin-top: 80px;
+  }
   /* Lề đỉnh = 80px của .cx-navbar + 16px thở. */
   #hero {
     padding-top: 96px;
@@ -768,10 +836,11 @@ html.cx-landing {
 }
 
 @media (min-width: 1024px) {
-  /* Hai cột bằng nhau: chữ dồn trái, máy đứng giữa cột phải. */
+  /* Hai cột, cột chữ rộng hơn để hai nút + hàng điểm mạnh không rớt dòng; máy
+     đứng giữa cột phải. */
   .hero-card {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 5fr) minmax(0, 4fr);
     align-items: center;
     column-gap: 64px;
     padding: 0 24px;
@@ -782,6 +851,22 @@ html.cx-landing {
   }
   .hero-cta {
     justify-content: flex-start;
+  }
+  /* Cột chữ còn dư chiều cao: điểm mạnh xếp dọc, icon trái chữ phải. */
+  .hero-feats {
+    @apply flex flex-col items-start;
+    gap: 10px;
+    max-width: none;
+  }
+  .hero-feats li {
+    @apply flex-row text-left;
+    gap: 10px;
+    font-size: 15px;
+    line-height: 20px;
+  }
+  .hero-feats svg.lucide {
+    padding: 6px;
+    font-size: 14px;
   }
   /* Cột chữ hẹp đi một nửa: thiếu chỗ thì cả cụm "· Cưới Xinh" xuống dòng
      chứ không ngắt giữa tên. */
@@ -851,6 +936,9 @@ html.cx-landing {
 .cx-short .hero-cta {
   margin-top: 24px;
 }
+.cx-short .hero-feats {
+  margin-top: 16px;
+}
 
 /* Điện thoại màn THẤP (iPhone SE 375x667, 360x640): thu các khe cho cụm chữ vừa
    thẻ. Đứng SAU khối .cx-short (cùng độ đặc hiệu, khe nào trùng thì khối này thắng). */
@@ -859,7 +947,7 @@ html.cx-landing {
     --xl-size: 32px;
   }
   .cx-shorter .hero-card-body {
-    padding: 24px 16px 36px;
+    padding: 24px 0 36px;
   }
   .cx-shorter .hero-title {
     font-size: 16px;
@@ -871,6 +959,9 @@ html.cx-landing {
   }
   .cx-shorter .hero-cta {
     margin-top: 20px;
+  }
+  .cx-shorter .hero-feats {
+    margin-top: 12px;
   }
 }
 

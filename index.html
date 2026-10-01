@@ -52,7 +52,7 @@
     <!-- ===== HERO ===== -->
     <!-- Màn mở đầu: dải nền kem phủ trọn ảnh ghép các mẫu thiệp (tab "Tạo ảnh bìa" của
          admin) hiện mờ, nhãn "Thiệp cưới online · Cưới Xinh" + slogan chữ tông tối căn giữa
-         + một nút "Tạo thiệp với AI". Khối chữ cố ý thấp hơn một màn để mép mục "Mẫu thiệp"
+         + nút "Tạo thiệp với AI" / "Xem mẫu thiệp" + hàng điểm mạnh. Khối chữ cố ý thấp hơn một màn để mép mục "Mẫu thiệp"
          ló ra từ màn đầu — số đo ở .hero-card (styles/tailwind-src.css). -->
     <section id="hero">
       <!-- Nền của cả dải: ảnh ghép mẫu thiệp hiện mờ + ánh sáng, nằm dưới mọi nội dung.
@@ -122,8 +122,9 @@
               Chọn một mẫu ưng ý, kể đôi dòng về hai bạn — tấm thiệp sẵn sàng gửi
               tới từng khách mời, gọi đúng tên từng người.
             </p>
-            <!-- Lối vào DUY NHẤT của màn mở đầu: mở khung chat XuXi ở chế độ tạo thiệp
-                 (cxHeroCreateAi ở js/page-setup.js). -->
+            <!-- Nút chính mở khung chat XuXi ở chế độ tạo thiệp (cxHeroCreateAi ở
+                 js/page-setup.js); nút phụ là link neo, setupSmoothScroll cuộn mượt
+                 xuống #templates. -->
             <div class="hero-cta hero-anim hero-anim-4">
               <x-button
                 variant="bare"
@@ -135,7 +136,14 @@
                 Tạo thiệp với AI
                 <span class="hero-ai-new">New</span>
               </x-button>
+              <a href="#templates" class="hero-btn hero-btn-alt">Xem mẫu thiệp</a>
             </div>
+            <!-- Chỉ ghi tính năng CÓ THẬT của sản phẩm — không đưa số liệu chưa đo. -->
+            <ul class="hero-feats hero-anim hero-anim-4">
+              <li><i data-lucide="user-check"></i>Gọi đúng tên từng khách</li>
+              <li><i data-lucide="message-circle-heart"></i>Nhận lời chúc &amp; xác nhận dự tiệc</li>
+              <li><i data-lucide="wand-sparkles"></i>Tạo nhanh với AI</li>
+            </ul>
           </div>
           <!-- Từ lg: khung iPhone bên phải chiếu lần lượt ảnh chụp màn các mẫu thiệp
                (assets/images/templates/, 390px @2x), js/hero-phone.js đổi tấm mỗi vài giây.
