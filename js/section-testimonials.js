@@ -24,6 +24,13 @@ const TESTIMONIALS_DATA = [
   },
 ];
 
+// Luôn đủ 5 ngôi: `rating` ngôi đầu tô đặc, phần còn lại chỉ có viền.
+function starsHTML(rating) {
+  return Array.from({ length: 5 }, (_, i) =>
+    `<span class="testimonial-star${i < rating ? " is-on" : ""}"><i data-lucide="star" style="width:12px;height:12px"></i></span>`,
+  ).join("");
+}
+
 function renderTestimonials() {
   const el = document.getElementById("testimonialsList");
   if (!el) return;
@@ -36,8 +43,8 @@ function renderTestimonials() {
           <p style="font-size:12px;opacity:0.5;margin-top:2px;">${t.date}</p>
         </div>
       </div>
-      <div style="display:flex;gap:2px;margin-bottom:12px;">
-        ${`<span style="color:rgb(var(--accent-amber-rgb));fill:currentColor"><i data-lucide="star" style="width:11px;height:11px"></i></span>`.repeat(t.rating)}
+      <div class="testimonial-stars" role="img" aria-label="${t.rating}/5 sao">
+        ${starsHTML(t.rating)}
       </div>
       <p style="font-size:14px;line-height:1.65;opacity:0.7;">"${t.text}"</p>
     </div>

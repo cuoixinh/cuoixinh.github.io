@@ -2253,6 +2253,23 @@ html.cx-landing {
   box-shadow: 0 14px 36px rgb(var(--shadow-brand-rgb) / 0.12);
   transform: translateY(-3px);
 }
+/* svg của lucide khai sẵn thuộc tính fill="none" — tô đặc phải đặt `fill` ngay
+   trên svg (CSS thắng thuộc tính), đặt ở thẻ cha thì không ăn. */
+.testimonial-stars {
+  @apply flex;
+  gap: 2px;
+  margin-bottom: 12px;
+}
+.testimonial-star {
+  @apply flex;
+  color: rgb(var(--accent-amber-rgb) / 0.45);
+}
+.testimonial-star.is-on {
+  color: rgb(var(--accent-amber-rgb));
+}
+.testimonial-star.is-on svg {
+  fill: currentColor;
+}
 .testimonial-avatar {
   @apply flex h-11 w-11 shrink-0 items-center justify-center rounded-full
     font-bold text-white;
