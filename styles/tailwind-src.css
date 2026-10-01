@@ -1401,6 +1401,10 @@ html.cx-landing {
   color: rgb(var(--white-rgb));
   background: linear-gradient(135deg, rgb(var(--info-8-rgb)), rgb(var(--info-1-rgb)));
 }
+/* Ảnh đại diện bo tròn trong vỏ span — vỏ giữ lại để gắn chấm "đang hoạt động". */
+.intro-chat-ava img {
+  @apply h-full w-full rounded-full object-cover;
+}
 /* Chấm "đang hoạt động" ở góc ảnh đại diện trên thanh tiêu đề. */
 .intro-chat-head .intro-chat-ava::after {
   @apply absolute rounded-full;
@@ -2670,6 +2674,19 @@ html.cx-landing {
   color: rgb(var(--brand-primary-rgb) / 0.14);
   pointer-events: none;
   user-select: none;
+}
+/* "Tiếp" cuộn về thẻ đầu trang mới — chừa 80px của .cx-navbar (fixed) + 16px thở. */
+#testimonialsList .testimonial-card:first-child {
+  scroll-margin-top: 96px;
+}
+/* Thanh phân trang dưới danh sách lời khách: Trước · 1 / 2 · Tiếp. */
+.testimonial-pager {
+  @apply flex items-center justify-center gap-4;
+  margin-top: 8px;
+}
+.testimonial-pager-num {
+  @apply text-sm tabular-nums;
+  opacity: 0.6;
 }
 .testimonial-card:hover {
   box-shadow: 0 14px 36px rgb(var(--shadow-brand-rgb) / 0.12);
