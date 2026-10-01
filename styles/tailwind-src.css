@@ -334,7 +334,7 @@ html.cx-landing {
 .hero-media {
   @apply absolute inset-0;
   z-index: 0;
-  opacity: 0.15;
+  opacity: 0.05;
 }
 
 .hero-media-img {
