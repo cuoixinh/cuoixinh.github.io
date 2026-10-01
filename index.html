@@ -50,11 +50,47 @@
     style="color: rgb(var(--text-body-rgb))"
   >
     <!-- ===== HERO ===== -->
-    <!-- Màn mở đầu: dải nền hồng kem mang MỘT thẻ bo góc, mép đáy cong như màn chiếu.
-         Trong thẻ là ảnh ghép các mẫu thiệp (tab "Tạo ảnh bìa" của admin) phủ đen,
-         nhãn "Thiệp cưới online · Cưới Xinh" + slogan chữ trắng căn giữa + một nút "Tạo thiệp với AI". Thẻ cố ý thấp hơn một màn để
-         mép mục "Mẫu thiệp" ló ra từ màn đầu — số đo ở .hero-card (styles/tailwind-src.css). -->
+    <!-- Màn mở đầu: dải nền kem phủ trọn ảnh ghép các mẫu thiệp (tab "Tạo ảnh bìa" của
+         admin) hiện mờ, nhãn "Thiệp cưới online · Cưới Xinh" + slogan chữ tông tối căn giữa
+         + một nút "Tạo thiệp với AI". Khối chữ cố ý thấp hơn một màn để mép mục "Mẫu thiệp"
+         ló ra từ màn đầu — số đo ở .hero-card (styles/tailwind-src.css). -->
     <section id="hero">
+      <!-- Nền của cả dải: ảnh ghép mẫu thiệp hiện mờ + ánh sáng, nằm dưới mọi nội dung.
+           Đứng đầu #hero, KHÔNG nằm trong .hero-frame: vỏ đó mang transform (hiệu ứng
+           hiện dần) nên lớp absolute bên trong sẽ bị bó theo khổ của nó. -->
+      <div class="hero-layers" aria-hidden="true">
+        <!-- Vỏ .hero-media lo parallax theo cuộn, ảnh bên trong lo trôi chậm —
+             tách hai lớp vì cùng dùng transform. Ảnh màn đầu: fetchpriority cao, không lazy.
+             srcset = bộ WebP (nút "Tải WebP trang chủ" ở công cụ Tạo ảnh bìa), JPEG gốc
+             ~1MB chỉ là src dự phòng — ghép lại ảnh bìa thì phải xuất lại cả bộ này.
+             sizes: ảnh phủ `cover` cả dải và tràn 24% (.hero-media-img) nên màn ngang do
+             bề ngang quyết định (≈124vw), màn dọc do chiều cao dải — chốt 1000px cho
+             gọn: ảnh chỉ hiện mờ (opacity 0.15) nên bản 2000w ở máy 2x là đủ nét.
+             Màn dọc KHÔNG viết bằng vh: vh tính theo khung thật, vuốt ẩn thanh URL là
+             trình duyệt đổi sang bản ảnh lớn hơn giữa lúc cuộn. -->
+        <div class="hero-media">
+          <img
+            class="hero-media-img"
+            src="assets/background/started/cuoixinh-cover-3908x2264.jpg"
+            srcset="assets/background/cover/cuoixinh-cover-1200.webp 1200w,
+                    assets/background/cover/cuoixinh-cover-2000.webp 2000w,
+                    assets/background/cover/cuoixinh-cover-2800.webp 2800w"
+            sizes="(min-aspect-ratio: 11/10) 124vw, 1000px"
+            alt=""
+            fetchpriority="high"
+          />
+        </div>
+        <!-- Ánh sáng: hai quầng trôi, một vệt quét chéo, vài đốm lấp lánh. -->
+        <div class="hero-glow"></div>
+        <div class="hero-shine"></div>
+        <span class="hero-spark" style="--x:12%;--y:18%;--d:0s"></span>
+        <span class="hero-spark" style="--x:84%;--y:14%;--d:1.2s;--s:3px"></span>
+        <span class="hero-spark" style="--x:22%;--y:78%;--d:2.1s;--s:3px"></span>
+        <span class="hero-spark" style="--x:90%;--y:64%;--d:0.6s"></span>
+        <span class="hero-spark" style="--x:48%;--y:8%;--d:3s;--s:3px"></span>
+        <span class="hero-spark" style="--x:66%;--y:86%;--d:1.8s"></span>
+      </div>
+
       <!-- Hàng đầu, CHỈ ở khổ hẹp (từ md navbar trên đã mang logo): logo trái +
            nút menu phải. Thanh tab dưới ẩn khi hàng này còn trên màn (cờ
            .cx-tabbar-off trên <html>, js/hero-menu.js gỡ khi hàng cuộn khỏi màn)
@@ -76,43 +112,8 @@
         </x-button>
       </div>
 
-      <!-- Vỏ ngoài chỉ để vẽ viền sáng + bóng: drop-shadow ôm theo mép cong của
-           mask ở .hero-card, box-shadow thì vẽ theo hình chữ nhật. -->
       <div class="hero-frame hero-anim hero-anim-1">
         <div class="hero-card">
-          <!-- Vỏ .hero-card-media lo parallax theo cuộn, ảnh bên trong lo trôi chậm —
-               tách hai lớp vì cùng dùng transform. Ảnh màn đầu: fetchpriority cao, không lazy.
-               srcset = bộ WebP (nút "Tải WebP trang chủ" ở công cụ Tạo ảnh bìa), JPEG gốc
-               ~1MB chỉ là src dự phòng — ghép lại ảnh bìa thì phải xuất lại cả bộ này.
-               sizes: ảnh phủ `cover` và tràn 24% (.hero-card-img) nên màn ngang do bề
-               ngang quyết định (≈124vw, từ 1152px thẻ dừng ở 1088px → 1350px), màn dọc
-               do chiều cao thẻ (khoá px, 400–760px × tỉ lệ ảnh 1.73 × 1.24) — chốt 1000px
-               cho gọn: ảnh đã phủ tối nên bản 2000w ở máy 2x là đủ nét.
-               Màn dọc KHÔNG viết bằng vh: vh tính theo khung thật, vuốt ẩn thanh URL là
-               trình duyệt đổi sang bản ảnh lớn hơn giữa lúc cuộn. -->
-          <div class="hero-card-media" aria-hidden="true">
-            <img
-              class="hero-card-img"
-              src="assets/background/started/cuoixinh-cover-3908x2264.jpg"
-              srcset="assets/background/cover/cuoixinh-cover-1200.webp 1200w,
-                      assets/background/cover/cuoixinh-cover-2000.webp 2000w,
-                      assets/background/cover/cuoixinh-cover-2800.webp 2800w"
-              sizes="(min-width: 1152px) and (min-aspect-ratio: 11/10) 1350px, (min-aspect-ratio: 11/10) 124vw, 1000px"
-              alt=""
-              fetchpriority="high"
-            />
-          </div>
-          <div class="hero-card-veil" aria-hidden="true"></div>
-          <!-- Ánh sáng: hai quầng trôi, một vệt quét chéo, vài đốm lấp lánh. -->
-          <div class="hero-card-glow" aria-hidden="true"></div>
-          <div class="hero-card-shine" aria-hidden="true"></div>
-          <span class="hero-spark" aria-hidden="true" style="--x:12%;--y:18%;--d:0s"></span>
-          <span class="hero-spark" aria-hidden="true" style="--x:84%;--y:14%;--d:1.2s;--s:3px"></span>
-          <span class="hero-spark" aria-hidden="true" style="--x:22%;--y:78%;--d:2.1s;--s:3px"></span>
-          <span class="hero-spark" aria-hidden="true" style="--x:90%;--y:64%;--d:0.6s"></span>
-          <span class="hero-spark" aria-hidden="true" style="--x:48%;--y:8%;--d:3s;--s:3px"></span>
-          <span class="hero-spark" aria-hidden="true" style="--x:66%;--y:86%;--d:1.8s"></span>
-
           <div class="hero-card-body">
             <h1 class="hero-title hero-anim hero-anim-2">
               Thiệp cưới online <span class="hero-title-brand">Cưới Xinh</span>
