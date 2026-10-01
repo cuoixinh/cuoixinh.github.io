@@ -1247,26 +1247,108 @@ html.cx-landing {
       rgb(var(--info-2-rgb) / 0.16)
     );
 }
-.intro-card {
-  @apply absolute object-cover object-top;
-  display: none;
-  width: 152px;
-  aspect-ratio: 780 / 1386;
-  height: auto;
-  border-radius: 14px;
-  border: 4px solid rgb(var(--white-rgb));
-  background: rgb(var(--white-rgb));
-  box-shadow: 0 24px 40px -20px rgb(var(--text-heading-rgb) / 0.55);
-  animation: cx-intro-float 7s ease-in-out infinite;
+/* Hai thiệp minh hoạ: treo từ mép trên (transform-origin) rồi đung đưa; độ
+   nghiêng gốc đặt bằng `rotate` riêng để animation (đi bằng `transform`) không đè. */
+.intro-cards {
+  @apply flex justify-center;
+  gap: 16px;
 }
-@keyframes cx-intro-float {
+.intro-card {
+  @apply relative flex flex-col items-center justify-center overflow-hidden text-center;
+  z-index: 3;
+  width: 144px;
+  height: 224px;
+  padding: 12px;
+  border-radius: 14px;
+  box-shadow: 0 24px 40px -20px rgb(var(--text-heading-rgb) / 0.6);
+  transform-origin: 50% 0;
+  animation: cx-intro-sway 5s ease-in-out infinite;
+}
+.intro-card::before {
+  @apply absolute;
+  content: "";
+  inset: 6px;
+  border-radius: 10px;
+  pointer-events: none;
+}
+@keyframes cx-intro-sway {
   0%,
   100% {
-    transform: translateY(0);
+    transform: rotate(-3deg);
   }
   50% {
-    transform: translateY(-8px);
+    transform: rotate(3deg) translateY(-4px);
   }
+}
+.intro-card-nm {
+  @apply max-w-full truncate;
+  font-family: "FaugllinBalseyn", cursive;
+  font-size: 22px;
+  line-height: 1.2;
+  transition: color 0.5s ease;
+}
+.intro-card-and {
+  font-family: "FaugllinBalseyn", cursive;
+  font-size: 13px;
+  line-height: 1;
+  opacity: 0.6;
+}
+/* Thiệp nền tối "Save the date" — tông cố định, không theo dải đổi tông. */
+.intro-card-std {
+  rotate: 5deg;
+  color: rgb(var(--intro-night-ink-rgb));
+  background: rgb(var(--intro-night-bg-rgb));
+}
+.intro-card-std::before {
+  border: 1px solid rgb(var(--intro-night-accent-rgb) / 0.5);
+}
+.intro-card-std .intro-card-nm {
+  color: rgb(var(--intro-night-accent-rgb));
+}
+.intro-std-k {
+  margin-bottom: 8px;
+  font-size: 8px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgb(var(--intro-night-accent-rgb));
+}
+.intro-std-date {
+  margin-top: 10px;
+  padding: 2px 6px;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  border-top: 1px solid rgb(var(--intro-night-accent-rgb) / 0.4);
+  border-bottom: 1px solid rgb(var(--intro-night-accent-rgb) / 0.4);
+}
+/* Thiệp ảnh vòm — theo dải đổi tông như thiệp trong tin nhắn. */
+.intro-card-arch {
+  rotate: -4deg;
+  justify-content: flex-start;
+  color: rgb(var(--m-ink));
+  background: rgb(var(--m-bg));
+  animation-duration: 6s;
+  animation-delay: -2s;
+  transition: background 0.5s ease, color 0.5s ease;
+}
+.intro-card-arch::before {
+  border: 1px solid rgb(var(--m-accent) / 0.4);
+}
+.intro-card-arch .intro-card-nm {
+  font-size: 18px;
+  color: rgb(var(--m-accent));
+}
+.intro-arch-photo {
+  @apply block w-full object-cover;
+  height: 104px;
+  margin-bottom: 8px;
+  border-radius: 64px 64px 8px 8px;
+  object-position: 50% 30%;
+}
+.intro-arch-guest {
+  margin-top: 6px;
+  font-size: 9px;
+  font-style: italic;
+  opacity: 0.75;
 }
 
 /* Khung chat */
@@ -1362,24 +1444,18 @@ html.cx-landing {
   border-radius: 18px 4px 18px 18px;
   background: rgb(var(--text-heading-rgb) / 0.06);
 }
-.intro-mini {
-  @apply relative flex flex-col items-center justify-center text-center;
-  height: 136px;
-  margin: 6px 6px 0;
-  border-radius: 14px;
-  color: rgb(var(--m-ink));
-  background: rgb(var(--m-bg));
-  transition: background 0.5s ease, color 0.5s ease;
+/* Bộ màu của mọi thiệp theo dải đổi tông (.intro-toned, JS đổi data-tone). */
+.intro-toned {
   --m-bg: var(--intro-rose-bg-rgb);
   --m-ink: var(--intro-rose-ink-rgb);
   --m-accent: var(--intro-rose-accent-rgb);
 }
-.intro-mini[data-tone="forest"] {
+.intro-toned[data-tone="forest"] {
   --m-bg: var(--intro-forest-bg-rgb);
   --m-ink: var(--intro-forest-ink-rgb);
   --m-accent: var(--intro-forest-accent-rgb);
 }
-.intro-mini[data-tone="gold"] {
+.intro-toned[data-tone="gold"] {
   --m-bg: var(--intro-gold-bg-rgb);
   --m-ink: var(--intro-gold-ink-rgb);
   --m-accent: var(--intro-gold-accent-rgb);
@@ -1388,6 +1464,15 @@ html.cx-landing {
   --m-bg: var(--intro-night-bg-rgb);
   --m-ink: var(--intro-night-ink-rgb);
   --m-accent: var(--intro-night-accent-rgb);
+}
+.intro-mini {
+  @apply relative flex flex-col items-center justify-center text-center;
+  height: 136px;
+  margin: 6px 6px 0;
+  border-radius: 14px;
+  color: rgb(var(--m-ink));
+  background: rgb(var(--m-bg));
+  transition: background 0.5s ease, color 0.5s ease;
 }
 /* Khung viền đôi mảnh của thiệp. */
 .intro-mini::before {
@@ -1416,7 +1501,8 @@ html.cx-landing {
 .intro-mini-k + .intro-mini-nm {
   margin-top: 6px;
 }
-.intro-mini.is-pop .intro-mini-nm {
+.intro-art.is-pop .intro-mini-nm,
+.intro-art.is-pop .intro-card-nm {
   animation: cx-intro-pop-name 0.35s ease-out;
 }
 @keyframes cx-intro-pop-name {
@@ -1636,19 +1722,21 @@ html.cx-landing {
     top: 24px;
     left: 0;
   }
+  .intro-chat {
+    max-width: 300px;
+  }
   .intro-card {
-    display: block;
+    @apply absolute;
+    width: 150px;
+    height: 232px;
   }
-  .intro-card-back {
-    top: 48px;
-    right: 8px;
-    rotate: 7deg;
-    animation-delay: -3.5s;
+  .intro-card-std {
+    top: 40px;
+    right: 4px;
   }
-  .intro-card-front {
-    top: 248px;
-    right: 40px;
-    rotate: -5deg;
+  .intro-card-arch {
+    top: 304px;
+    right: 36px;
   }
   .intro-tones {
     @apply absolute;

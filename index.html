@@ -369,12 +369,29 @@
           </div>
         </div>
 
-        <!-- Minh hoạ: khung chat + hai mẫu thật nép phía sau (ẩn dưới sm). Tin nhắn
-             hiện lần lượt khi khối lọt vào màn. Chỉ dải "Đổi tông" là bấm được. -->
+        <!-- Minh hoạ: khung chat + hai thiệp đung đưa phía trước. Tin nhắn hiện lần
+             lượt khi khối lọt vào màn. Chỉ dải "Đổi tông" là bấm được. -->
         <div class="intro-art reveal reveal-delay-2">
           <span class="intro-stage" aria-hidden="true"></span>
-          <img class="intro-card intro-card-back" src="assets/images/templates/opulent-contrast.jpg" width="780" height="1386" alt="" loading="lazy" />
-          <img class="intro-card intro-card-front" src="assets/images/templates/luminous-pastel.jpg" width="780" height="1386" alt="" loading="lazy" />
+          <!-- Hai thiệp minh hoạ đè trước khung chat, đung đưa như treo từ mép trên;
+               tên đổi theo ô gõ như thiệp trong tin nhắn. Dưới sm xếp thành hàng
+               trên khung chat. -->
+          <div class="intro-cards" aria-hidden="true">
+            <div class="intro-card intro-card-std">
+              <p class="intro-std-k">Save the date</p>
+              <p class="intro-card-nm" data-intro="groom">Minh Khôi</p>
+              <p class="intro-card-and">&amp;</p>
+              <p class="intro-card-nm" data-intro="bride">Thảo My</p>
+              <p class="intro-std-date">11 · 10 · 2026</p>
+            </div>
+            <div class="intro-card intro-card-arch intro-toned" data-tone="rose">
+              <img class="intro-arch-photo" src="assets/images/templates/romantic-gold.jpg" width="780" height="1386" alt="" loading="lazy" />
+              <p class="intro-card-nm" data-intro="groom">Minh Khôi</p>
+              <p class="intro-card-and">&amp;</p>
+              <p class="intro-card-nm" data-intro="bride">Thảo My</p>
+              <p class="intro-arch-guest">Thân mời: em Linh</p>
+            </div>
+          </div>
 
           <div class="intro-chat" aria-hidden="true">
             <div class="intro-chat-head">
@@ -392,7 +409,7 @@
               <p class="intro-chat-time">20:30</p>
               <p class="intro-msg intro-msg-out intro-msg-text">Linh ơi, anh chị gửi em thiệp cưới nhé 💌</p>
               <div class="intro-msg intro-msg-out intro-msg-link">
-                <div class="intro-mini" data-tone="rose">
+                <div class="intro-mini intro-toned" data-tone="rose">
                   <p class="intro-mini-k">Lễ thành hôn</p>
                   <p class="intro-mini-nm" data-intro="groom">Minh Khôi</p>
                   <p class="intro-mini-and">&amp;</p>

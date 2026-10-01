@@ -1,18 +1,18 @@
 // Mục giới thiệu (#intro): tên gõ ở hai ô đổ vào mọi chỗ [data-intro="groom|bride"]
-// của khung chat minh hoạ (thiệp trong link + lời mời), dựng lại địa chỉ link theo
-// tên; dải "Đổi tông" đổi [data-tone] của thiệp minh hoạ (màu khai ở CSS).
+// của phần minh hoạ (hai thiệp + thiệp trong link + lời mời), dựng lại địa chỉ link
+// theo tên; dải "Đổi tông" đổi [data-tone] của mọi .intro-toned (màu khai ở CSS).
 (function () {
   const root = document.getElementById("intro");
   if (!root) return;
   const groom = document.getElementById("introGroom");
   const bride = document.getElementById("introBride");
-  const mini = root.querySelector(".intro-mini");
+  const art = root.querySelector(".intro-art");
 
   // "Thảo My" → "thaomy": bỏ dấu, đ → d, chỉ giữ chữ và số.
   function slugPart(s) {
     return s
       .normalize("NFD")
-      .replace(/[̀-ͯ]/g, "")
+      .replace(/[\u0300-\u036f]/g, "")
       .replace(/đ/gi, "d")
       .toLowerCase()
       .replace(/[^a-z0-9]/g, "");
@@ -26,16 +26,16 @@
     const url = root.querySelector('[data-intro="url"]');
     if (url) url.textContent = `cuoixinh.com/${slugPart(g)}-${slugPart(b)}`;
     // Nảy nhẹ tên trên thiệp mỗi lần gõ — gỡ rồi gắn lại class để chạy lại animation.
-    mini.classList.remove("is-pop");
-    void mini.offsetWidth;
-    mini.classList.add("is-pop");
+    art.classList.remove("is-pop");
+    void art.offsetWidth;
+    art.classList.add("is-pop");
   }
   groom.addEventListener("input", sync);
   bride.addEventListener("input", sync);
 
   root.querySelectorAll(".intro-tone").forEach((btn) =>
     btn.addEventListener("click", () => {
-      mini.dataset.tone = btn.dataset.tone;
+      root.querySelectorAll(".intro-toned").forEach((el) => (el.dataset.tone = btn.dataset.tone));
       root.querySelectorAll(".intro-tone").forEach((b) => {
         b.classList.toggle("is-on", b === btn);
         b.setAttribute("aria-pressed", String(b === btn));
