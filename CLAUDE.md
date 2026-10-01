@@ -522,11 +522,12 @@ push**.
   `bgHeroMask()` phải khớp `.hero-bg` ở `styles/tailwind-src.css` (kể cả hai media theo chiều
   cao), lệch là xem trước hứa một đằng trang thật ra một nẻo.
 - Trùng tên là **ghi đè** (có hỏi lại) — khác tab "Ảnh mẫu" vốn tự đánh số.
-- **Màn mở đầu trang chủ hiện KHÔNG đọc manifest**: `#hero` dùng ảnh ghép cố định viết
-  thẳng trong `index.html` (`js/hero-background.js` không còn trang nào nạp), nên ghi nền
-  mới ở tab này không đổi gì. Trang nạp bộ WebP `assets/background/cover/cuoixinh-cover-
-  <khổ>.webp` qua `srcset` — JPEG gốc ~1MB chỉ là `src` dự phòng — nên ghép lại ảnh bìa
-  thì xuất lại cả bộ bằng nút "Tải WebP trang chủ" của công cụ Tạo ảnh bìa.
+- **Màn mở đầu trang chủ hiện KHÔNG đọc manifest, cũng không dùng ảnh ghép bìa**: nền
+  `#hero` là tường ảnh chụp mẫu thiệp `assets/images/templates/*.jpg` chạy ngang
+  (`js/hero-wall.js`; `js/hero-background.js` không còn trang nào nạp), nên ghi nền mới ở
+  tab này — hay xuất bộ WebP `cuoixinh-cover-*` ở công cụ Tạo ảnh bìa — không đổi gì
+  trang chủ. Thêm mẫu lên tường thì thêm ảnh chụp 780×1386 vào thư mục đó + một thẻ
+  `<img>` mỗi dải trong `index.html`.
 - **Ba ô ảnh trang trí** (khối cuối tab, ghi ra `pick-1…3.webp` trong
   `assets/background/thumbnail_started/`) hiện KHÔNG còn chỗ nào đọc: màn mở đầu của
   trang chủ đã bỏ ba ô này. Tab vẫn ghi được file nhưng trang chủ không đổi gì.

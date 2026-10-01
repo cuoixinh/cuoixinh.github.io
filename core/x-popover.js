@@ -3,13 +3,16 @@
 // mở, mũi tên, đóng khi bấm ra ngoài / Esc / chọn một mục.
 //
 //   <x-popover id="p" anchor="#btn" placement="top" align="center" arrow></x-popover>
-//   p.setItems([{ id, icon, label, onClick, active, disabled }])  ← nạp danh sách
+//   p.setItems([{ id, icon, label, onClick, active, disabled, submenu }])  ← nạp danh sách
 //   p.open() · p.close() · p.toggle(anchorEl?) · p.isOpen · sự kiện "open"/"close"
 //
 // Vẫn appendChild được phần tử tự dựng vào popover (navbar Thiết lập chuyển đúng
 // phần tử nút vào đây) — setItems chỉ là lối tắt dựng mục cho menu thường.
-// Thuộc tính: anchor (selector nút mở) · placement top|bottom · align center|start|end
-// · arrow · width (px) · bound (selector khung kẹp) · offset (px) · keep-open.
+// Thuộc tính: anchor (selector nút mở) · placement top|bottom|right|left · align
+// center|start|end · arrow · width (px) · bound (selector khung kẹp) · offset (px) · keep-open.
+// Menu 2 cấp: mục `submenu: true` không đóng menu khi bấm; onClick của nó mở một
+// popover KHÁC neo vào chính mục đó (placement right) → hai thẻ đứng cạnh nhau,
+// chọn ở thẻ con thì đóng cả hai, đóng thẻ cha thì thẻ con đóng theo.
 // Style ở styles/_common.css (.x-pop*), nên trang dùng phải nạp bản CSS build.
 
 (function () {
@@ -26,6 +29,11 @@ const _XP_CHECK =
   '<svg class="x-pop-check" xmlns="http://www.w3.org/2000/svg" width="15" height="15" ' +
   'viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" ' +
   'stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
+
+const _XP_CHEVRON =
+  '<svg class="x-pop-sub" xmlns="http://www.w3.org/2000/svg" width="16" height="16" ' +
+  'viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
+  'stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>';
 
 function _xpReady(fn) {
   if (window.__cxOnReady) window.__cxOnReady(fn);
@@ -46,17 +54,23 @@ class XPopover extends HTMLElement {
     if (w) this.style.width = /^\d+$/.test(w) ? `${w}px` : w;
 
     // Chọn xong một mục thì đóng — popover che mất chính thứ vừa mở ra.
+    // Mục mở menu con (data-keep-open) thì giữ nguyên; chọn ở thẻ con đóng cả thẻ cha.
     this.addEventListener("click", (e) => {
       if (this.hasAttribute("keep-open")) return;
-      if (e.target.closest("button, a, [role^='menuitem']")) this.close();
+      if (e.target.closest("[data-keep-open]")) return;
+      if (!e.target.closest("button, a, [role^='menuitem']")) return;
+      this.close();
+      this._parentPop?.close();
     });
 
     // Bấm ra ngoài: nghe ở pha CAPTURE để đóng được cả khi click bị nút bên dưới
     // nuốt mất. Bấm vào chính nút mở thì để onclick của nó tự đảo trạng thái.
+    // Bấm trong thẻ con đang mở không tính là "ra ngoài" thẻ cha.
     this._onDocClick = (e) => {
       if (!this.isOpen) return;
       if (this.contains(e.target)) return;
       if (this._anchorEl && this._anchorEl.contains(e.target)) return;
+      if (this._childPop?.isOpen && this._childPop.contains(e.target)) return;
       this.close();
     };
     this._onKey = (e) => {
@@ -119,6 +133,12 @@ class XPopover extends HTMLElement {
         );
       b.insertAdjacentHTML("beforeend", `<span>${it.label ?? ""}</span>`);
       if (it.active) b.insertAdjacentHTML("beforeend", _XP_CHECK);
+      if (it.submenu) {
+        b.dataset.keepOpen = "";
+        b.setAttribute("aria-haspopup", "menu");
+        b.setAttribute("aria-expanded", "false");
+        b.insertAdjacentHTML("beforeend", _XP_CHEVRON);
+      }
       if (it.onClick) b.addEventListener("click", it.onClick);
       this.appendChild(b);
     });
@@ -133,6 +153,12 @@ class XPopover extends HTMLElement {
   open(anchorEl) {
     if (anchorEl) this._anchorEl = anchorEl;
     if (!this._anchorEl) this._bindAnchor();
+    // Neo vào một mục `submenu` của popover khác → đây là thẻ con của popover đó.
+    // Chỉ mục submenu: nút thường bị dồn vào popover (navbar Thiết lập) giữ hành vi cũ.
+    this._parentPop = this._anchorEl?.matches?.("[data-keep-open]")
+      ? this._anchorEl.closest("x-popover")
+      : null;
+    if (this._parentPop) this._parentPop._childPop = this;
     this.classList.add("is-open");
     this._anchorEl?.setAttribute("aria-expanded", "true");
     this.place(); // phải hiện trước mới đo được khổ thẻ
@@ -141,6 +167,7 @@ class XPopover extends HTMLElement {
 
   close() {
     if (!this.isOpen) return;
+    this._childPop?.close();
     this.classList.remove("is-open");
     this._anchorEl?.setAttribute("aria-expanded", "false");
     this.dispatchEvent(new CustomEvent("close", { bubbles: true }));
@@ -163,8 +190,11 @@ class XPopover extends HTMLElement {
     const h = this.offsetHeight;
     const off = Number(this.getAttribute("offset")) || 12;
     const b = this._bounds();
+    const placement = this.getAttribute("placement");
+    if ((placement === "right" || placement === "left") && this._placeSide(r, w, h, off, b, placement))
+      return;
 
-    let side = this.getAttribute("placement") === "top" ? "top" : "bottom";
+    let side = placement === "top" ? "top" : "bottom";
     const below = b.bottom - r.bottom;
     const above = r.top - b.top;
     if (side === "bottom" && below < h + off && above > below) side = "top";
@@ -186,6 +216,27 @@ class XPopover extends HTMLElement {
     // Mũi tên: px tính từ mép trái thẻ.
     const tail = Math.min(Math.max(center - left, _XP_TAIL), Math.max(w - _XP_TAIL, _XP_TAIL));
     this.style.setProperty("--x-pop-tail", `${Math.round(tail)}px`);
+  }
+
+  /**
+   * Đặt thẻ sang NGANG nút mở (menu con), thiếu chỗ thì lật phía; hai phía đều
+   * chật (điện thoại) thì trả false để place() rơi về kiểu trên/dưới. Nút mở nằm
+   * trong popover khác thì tính mép theo popover đó để hai thẻ không chồng nhau.
+   */
+  _placeSide(r, w, h, off, b, prefer) {
+    const host = this._anchorEl.closest("x-popover");
+    const hr = host ? host.getBoundingClientRect() : r;
+    const fitsR = b.right - hr.right >= w + off + _XP_EDGE;
+    const fitsL = hr.left - b.left >= w + off + _XP_EDGE;
+    const side = prefer === "right" ? (fitsR ? "right" : fitsL && "left") : fitsL ? "left" : fitsR && "right";
+    if (!side) return false;
+    const left = side === "right" ? hr.right + off : hr.left - off - w;
+    // Mục đầu của thẻ con ngang hàng với nút mở (bù padding 6px của thẻ).
+    const top = Math.min(Math.max(r.top - 7, b.top + _XP_EDGE), Math.max(b.bottom - h - _XP_EDGE, b.top + _XP_EDGE));
+    this.style.left = `${Math.round(left)}px`;
+    this.style.top = `${Math.round(top)}px`;
+    this.classList.remove("is-top", "is-bottom");
+    return true;
   }
 
   /** Khung được phép chiếm: `bound` giao với khung nhìn, mặc định cả khung nhìn. */

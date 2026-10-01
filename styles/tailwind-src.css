@@ -220,16 +220,17 @@ html.cx-landing {
 
 /* ── Màn mở đầu ──────────────────────────────────────────────────────────
    Dải nền kem (ĐÚNG nền của #templates, --surface-tint-rgb — đổi nền mục đó
-   thì đổi cả ở đây) phủ trọn ảnh ghép mẫu thiệp hiện mờ. Lớp theo z-index:
-   .hero-layers (ảnh .hero-media zoom + trôi → ánh sáng .hero-glow/-shine,
-   .hero-spark) → hàng logo + khối chữ tông tối căn giữa (.hero-card-body).
+   thì đổi cả ở đây) phủ một TƯỜNG ảnh mẫu thiệp chạy ngang. Lớp theo z-index:
+   .hero-layers (tường .hero-wall → lớp kem .hero-veil → quầng .hero-glow, vệt
+   .hero-shine, đốm .hero-spark) → hàng logo + thẻ kính mờ .hero-card-body (nhãn ·
+   tiêu đề · mô tả · nút · cam kết). Mọi khổ thẻ nằm giữa tường.
    Khối chữ = một màn TRỪ một khoảng cố định để màn đầu còn thấy tiêu đề #templates
    và ló ~80px mép thẻ mẫu đầu tiên: khoảng trừ = hàng logo/navbar + lề đáy dải
    + tiêu đề #templates + phần ló — đổi một chỗ thì đo lại ở 390x844 và 1440x900.
    Navbar trên (từ md) nổi trên dải — lề đỉnh của #hero chừa đúng 80px của nó
    (12 + 64 + 4, xem .cx-navbar). */
 
-/* overflow-hidden: ảnh nền tràn 12% mỗi mép (.hero-media-img). */
+/* overflow-hidden: tường ảnh nghiêng tràn ra hai mép (.hero-wall). */
 #hero {
   @apply relative flex flex-col items-center overflow-hidden;
   isolation: isolate;
@@ -330,74 +331,113 @@ html.cx-landing {
   min-height: clamp(400px, calc(var(--vh, 1svh) * 100 - 240px), 760px);
 }
 
-/* Ảnh nền hiện mờ trên nền kem. Ảnh tràn 12% mỗi mép để còn chỗ zoom/trôi +
-   parallax mà không lộ mép. Cộng các biên độ (trôi tối đa 4% ảnh ≈ 5% dải +
-   parallax 7% dải) phải nhỏ hơn phần tràn này; phóng to thì chỉ làm ảnh lớn
-   thêm nên không lộ mép. */
-.hero-media {
-  @apply absolute inset-0;
+/* Tường mẫu thiệp: các dải ảnh chụp mẫu (assets/images/templates/) chạy ngang
+   ngược chiều nhau, cả khối nghiêng -8°. js/hero-wall.js nhân bản ảnh mỗi dải
+   thành hai nửa giống hệt nhau nên trượt -50% là vòng lặp liền mạch. Ba dải dùng
+   chung 9 file ảnh (chỉ lệch thứ tự) nên thêm dải không tải thêm gì. */
+.hero-wall {
+  @apply absolute flex flex-col;
   z-index: 0;
-  opacity: 0.05;
+  left: -24%;
+  right: -24%;
+  top: 24px;
+  gap: 12px;
+  /* Mờ để thẻ chữ là thứ nổi nhất; nhịp hiện dần chạy từ 0 lên đúng mức này. */
+  opacity: 0.4;
+  transform: rotate(-8deg);
+  animation: cx-hero-wall-in 1.2s ease-out both;
+}
+.hero-wall-row {
+  @apply flex;
+  width: max-content;
+  gap: 12px;
+  animation: cx-hero-marquee 80s linear infinite;
+}
+.hero-wall-row:nth-child(2) {
+  animation-direction: reverse;
+  animation-duration: 92s;
+}
+.hero-wall-row:nth-child(3) {
+  animation-duration: 104s;
+}
+.hero-wall-row img {
+  @apply shrink-0 object-cover;
+  width: 92px;
+  height: 164px;
+  object-position: top;
+  border-radius: 10px;
+  background: rgb(var(--surface-brand-rgb));
+  box-shadow: 0 12px 24px -16px rgb(var(--shadow-card-rgb) / 0.5);
 }
 
-.hero-media-img {
-  @apply absolute object-cover;
-  inset: -12%;
-  width: 124%;
-  height: 124%;
-  max-width: none;
-  /* Dùng thuộc tính `scale`/`translate` riêng chứ không phải `transform`: vỏ
-     .hero-media đã giữ `transform` cho parallax. Nhịp mở màn (lùi zoom)
-     xong mới tới Ken Burns — nó khai sau nên đè nhịp đầu từ giây 1.6. */
-  animation:
-    cx-hero-zoom 1.6s ease-out both,
-    cx-hero-kenburns 32s ease-in-out 1.6s infinite;
+/* Hero khuất khỏi màn → js/hero-wall.js gắn .is-paused. */
+.hero-wall.is-paused .hero-wall-row {
+  animation-play-state: paused;
 }
 
-@keyframes cx-hero-zoom {
+@keyframes cx-hero-marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes cx-hero-wall-in {
   from {
-    scale: 1.14;
-  }
-  to {
-    scale: 1;
+    opacity: 0;
   }
 }
 
-/* Zoom vào, lướt sang trái rồi phải, lùi về — mốc cuối trùng mốc đầu nên vòng
-   lặp không giật. */
-@keyframes cx-hero-kenburns {
-  0%,
-  100% {
-    scale: 1;
-    translate: 0 0;
+/* Lớp kem giữ chữ đọc rõ trên tường động. Điện thoại: chỉ mờ nhẹ đỉnh (sau hàng
+   logo) — thẻ gần trọn bề ngang, nền kính của nó đủ giữ chữ, đáy đã có mask của
+   .hero-layers; từ md loang tròn quanh thẻ ở giữa. */
+.hero-veil {
+  @apply absolute inset-0;
+  z-index: 1;
+  background: linear-gradient(
+    to bottom,
+    rgb(var(--surface-tint-rgb) / 0.7) 0,
+    rgb(var(--surface-tint-rgb) / 0) 96px
+  );
+}
+
+@media (min-width: 640px) {
+  .hero-wall {
+    top: -40px;
+    gap: 16px;
   }
-  25% {
-    scale: 1.1;
-    translate: -4% -2%;
+  .hero-wall-row {
+    gap: 16px;
   }
-  50% {
-    scale: 1.14;
-    translate: 3% -3%;
-  }
-  75% {
-    scale: 1.08;
-    translate: 4% 2%;
+  .hero-wall-row img {
+    width: 120px;
+    height: 212px;
+    border-radius: 12px;
   }
 }
 
-/* Parallax theo cuộn, thuần CSS (scroll-driven animation): trình duyệt chưa hỗ
-   trợ thì bỏ qua, ảnh vẫn trôi bình thường. */
-@supports (animation-timeline: scroll()) {
-  .hero-media {
-    animation: cx-hero-parallax linear both;
-    animation-timeline: scroll(root);
-    animation-range: 0 600px;
+@media (min-width: 768px) {
+  .hero-veil {
+    background: radial-gradient(
+      ellipse 52% 56% at 50% 52%,
+      rgb(var(--surface-tint-rgb) / 0.9) 0%,
+      rgb(var(--surface-tint-rgb) / 0.6) 55%,
+      rgb(var(--surface-tint-rgb) / 0.1) 100%
+    );
   }
 }
 
-@keyframes cx-hero-parallax {
-  to {
-    transform: translateY(7%);
+@media (min-width: 1024px) {
+  .hero-wall {
+    top: -64px;
+    gap: 20px;
+  }
+  .hero-wall-row {
+    gap: 20px;
+  }
+  .hero-wall-row img {
+    width: 152px;
+    height: 268px;
+    border-radius: 14px;
   }
 }
 
@@ -539,29 +579,49 @@ html.cx-landing {
   }
 }
 
-/* Cột chữ căn giữa. */
+/* Thẻ kính mờ chứa cụm chữ, nằm trên tường ảnh. */
 .hero-card-body {
-  @apply relative flex flex-col items-center text-center font-inter;
+  @apply relative flex w-full flex-col items-center text-center font-inter;
   z-index: 4;
-  max-width: 760px;
-  padding: 40px 16px 56px;
+  max-width: 560px;
+  padding: 24px 20px;
+  border-radius: 24px;
+  border: 1px solid rgb(var(--white-rgb) / 0.9);
+  background: rgb(var(--white-rgb) / 0.72);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 40px 80px -40px rgb(var(--shadow-card-rgb) / 0.45);
 }
 
-/* Tiêu đề là nhãn chữ in hoa giãn chữ (Inter), không phải câu Playfair lớn — ảnh
-   ghép phía sau đã đủ "nói", chữ chỉ cần gọi tên. Khổ hẹp tên thương hiệu xuống
-   dòng riêng; từ md đứng cùng dòng, ngăn bằng dấu chấm giữa. */
+/* Nhãn nhỏ phía trên tiêu đề. Tên thương hiệu dùng tông hồng ĐẬM (--action-primary-deep)
+   vì chữ 12px cần tương phản 4.5:1 — tông hồng thường chỉ đạt ~3.6:1 trên nền kem. */
+.hero-eyebrow {
+  @apply inline-flex items-center rounded-full font-semibold uppercase;
+  padding: 6px 14px;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  color: rgb(var(--text-heading-rgb));
+  background: rgb(var(--white-rgb) / 0.7);
+  border: 1px solid rgb(var(--brand-primary-rgb) / 0.5);
+}
+.hero-title-brand {
+  margin-left: 0.3em;
+  color: rgb(var(--action-primary-deep-rgb));
+}
+
+/* Tiêu đề chính: Playfair, chữ lớn nhất trang. Cụm nhấn dùng hồng thường — chữ
+   ≥24px chỉ cần 3:1. */
 .hero-title {
-  @apply font-inter;
-  font-size: 18px;
-  font-weight: 700;
-  line-height: 1.4;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  @apply font-playfair;
+  margin-top: 16px;
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
   color: rgb(var(--text-heading-rgb));
 }
-
-.hero-title-brand {
-  @apply block;
+.hero-title-em {
   color: rgb(var(--action-primary-rgb));
 }
 
@@ -585,14 +645,15 @@ html.cx-landing {
   height: 52px;
   padding: 0 28px;
   gap: 8px;
-  font-size: 19px;
-  font-weight: 700;
+  font-size: 16px;
+  font-weight: 600;
   white-space: nowrap;
   color: rgb(var(--text-heading-rgb));
   transition:
     transform 0.2s ease,
     background 0.2s ease,
-    border-color 0.2s ease;
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .hero-btn:hover {
@@ -603,85 +664,41 @@ html.cx-landing {
   transform: translateY(0) scale(0.98);
 }
 
-/* Kính trắng viền hồng mảnh, logo XuXi bên trái, tag "New" gắn góc trên phải
-   (thò ra ngoài viền nên KHÔNG được overflow-hidden). */
+/* Nút CHÍNH: nền hồng đặc. Lấy tông --action-primary-hover (= rose-600) chứ không
+   phải tông thường: chữ trắng trên tông thường chỉ đạt ~3.7:1. Logo XuXi nằm trong
+   đĩa trắng bên trái; tag "New" thò ra góc trên phải nên KHÔNG được overflow-hidden. */
 .hero-btn-ai {
-  padding-left: 16px;
-  background: rgb(var(--white-rgb) / 0.7);
-  border: 1px solid rgb(var(--brand-primary-rgb) / 0.6);
-  box-shadow: 0 4px 16px rgb(var(--action-primary-rgb) / 0.12);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  padding-left: 8px;
+  color: rgb(var(--white-rgb));
+  background: rgb(var(--action-primary-hover-rgb));
+  box-shadow: 0 12px 28px -10px rgb(var(--action-primary-rgb) / 0.6);
 }
 
 .hero-btn-ai:hover {
-  background: rgb(var(--white-rgb) / 0.9);
-  border-color: rgb(var(--brand-primary-rgb));
+  background: rgb(var(--action-primary-deep-rgb));
+  box-shadow: 0 16px 32px -10px rgb(var(--action-primary-rgb) / 0.7);
 }
 
-/* Nút phụ: viền trung tính, nhẹ hơn nút AI một bậc. */
+/* Nút phụ: viền trung tính trên nền kính trắng. */
 .hero-btn-alt {
-  font-weight: 600;
-  background: rgb(var(--white-rgb) / 0.4);
-  border: 1px solid rgb(var(--text-heading-rgb) / 0.25);
+  background: rgb(var(--white-rgb) / 0.7);
+  border: 1px solid rgb(var(--text-heading-rgb) / 0.2);
 }
 
 .hero-btn-alt:hover {
-  background: rgb(var(--white-rgb) / 0.8);
+  background: rgb(var(--white-rgb));
   border-color: rgb(var(--brand-primary-rgb));
 }
 
-/* Hàng điểm mạnh dưới cụm nút: lưới ba cột (sáu mục = hai hàng), icon trên chữ
-   dưới — dạng chip nằm ngang không vừa một hàng ở khổ hẹp. Từ lg thành lưới hai
-   cột icon trái chữ phải (xem dưới). Icon lucide ăn theo font-size (1em). */
-.hero-feats {
-  @apply grid grid-cols-3;
-  gap: 16px 12px;
-  width: 100%;
-  max-width: 440px;
-  margin-top: 28px;
-}
-
-/* Link xuống #inside — nơi liệt kê đủ tính năng. */
-.hero-feats-more {
-  @apply inline-flex items-center;
-  gap: 4px;
-  margin-top: 24px;
-  font-size: 13px;
-  font-weight: 600;
-  color: rgb(var(--action-primary-rgb));
-  text-decoration: underline;
-  text-underline-offset: 4px;
-  text-decoration-color: rgb(var(--action-primary-rgb) / 0.35);
-}
-.hero-feats-more:hover {
-  text-decoration-color: rgb(var(--action-primary-rgb));
-}
-
-.hero-feats li {
-  @apply flex flex-col items-center text-center;
-  gap: 6px;
-  text-wrap: balance;
-  font-size: 13px;
-  line-height: 18px;
-  color: rgb(var(--text-heading-rgb) / 0.8);
-}
-
-.hero-feats svg.lucide {
+/* Đĩa trắng quanh logo: icon.js khai khổ ảnh 24px bằng inline style, nên đĩa
+   dựng bằng padding + content-box chứ không đổi width. */
+.hero-ai-ico {
   @apply shrink-0 rounded-full;
   box-sizing: content-box;
-  padding: 8px;
-  font-size: 16px;
-  color: rgb(var(--action-primary-rgb));
-  background: rgb(var(--white-rgb) / 0.7);
-  border: 1px solid rgb(var(--brand-primary-rgb) / 0.4);
-}
-
-/* Giữ chỗ trước lúc icon.js thay thẻ <i> — khớp data-size. */
-.hero-ai-ico {
-  @apply shrink-0;
   width: 24px;
   height: 24px;
+  padding: 6px;
+  background: rgb(var(--white-rgb));
 }
 
 .hero-ai-new {
@@ -694,12 +711,14 @@ html.cx-landing {
   line-height: 1;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgb(var(--white-rgb));
-  background: rgb(var(--action-primary-rgb));
-  box-shadow: 0 4px 12px rgb(var(--action-primary-rgb) / 0.3);
+  color: rgb(var(--action-primary-deep-rgb));
+  background: rgb(var(--white-rgb));
+  border: 1px solid rgb(var(--action-primary-rgb) / 0.35);
+  box-shadow: 0 4px 12px rgb(var(--action-primary-rgb) / 0.2);
   animation: cx-hero-new-bob 2.4s ease-in-out infinite;
 }
 
+/* Chỉ animate transform (chạy trên GPU) — animate box-shadow là vẽ lại mỗi khung, giật. */
 @keyframes cx-hero-new-bob {
   0%,
   100% {
@@ -708,6 +727,29 @@ html.cx-landing {
   50% {
     transform: translateY(-3px);
   }
+}
+
+/* Ba cam kết ngắn dưới cụm nút. Icon lucide ăn theo font-size (1em) — đĩa tròn
+   dựng bằng padding content-box. */
+.hero-trust {
+  @apply flex flex-wrap items-center justify-center;
+  gap: 8px 20px;
+  margin-top: 24px;
+}
+.hero-trust li {
+  @apply inline-flex items-center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: rgb(var(--text-heading-rgb) / 0.85);
+}
+.hero-trust svg.lucide {
+  @apply shrink-0 rounded-full;
+  box-sizing: content-box;
+  padding: 3px;
+  font-size: 12px;
+  color: rgb(var(--action-primary-deep-rgb));
+  background: rgb(var(--brand-primary-rgb) / 0.45);
 }
 
 .hero-btn:focus-visible {
@@ -720,49 +762,47 @@ html.cx-landing {
   outline-offset: 4px;
 }
 
-/* Máy hẹp: nút thu về viên viền mảnh thấp, chữ nhỏ — khối 52px chữ 19px là thứ
-   nặng nhất màn, lấn cả tiêu đề. */
+/* Máy hẹp: nút thấp xuống 44px (mức tối thiểu cho ngón tay) cho cặp nút đứng
+   chung một hàng. */
 @media (max-width: 639px) {
   .hero-cta {
     gap: 8px;
+    margin-top: 24px;
+  }
+  .hero-btn {
+    height: 44px;
+    padding: 0 18px;
+    font-size: 15px;
   }
   .hero-btn-ai {
-    height: 40px;
-    padding: 0 16px 0 10px;
+    padding-left: 6px;
     gap: 6px;
-    font-size: 15px;
-    font-weight: 600;
   }
-  .hero-btn-alt {
-    height: 40px;
-    padding: 0 16px;
-    font-size: 15px;
+  .hero-ai-ico {
+    padding: 4px;
   }
-  .hero-btn-ai .hero-ai-ico {
-    width: 20px;
-    height: 20px;
+  /* Bỏ dòng mô tả cho thẻ gọn. */
+  /* Nút phụ rút nhãn còn "Xem mẫu" để hai nút (khổ theo chữ) chung một hàng tới
+     máy 360px — đủ nhãn cần ~330px, quá lòng thẻ ở máy ≤390px nên nút phụ rớt dòng. */
+  .hero-btn-long {
+    display: none;
   }
-  /* Lề hai bên đã có ở #hero — bỏ lớp lề thứ hai cho hai nút đứng chung một
-     hàng tới máy 360px. */
   .hero-card-body {
-    padding-left: 0;
-    padding-right: 0;
+    padding: 24px 16px;
   }
-  .hero-feats {
-    gap: 12px 8px;
+  .hero-sub {
+    display: none;
+  }
+  .hero-trust {
+    gap: 8px 14px;
     margin-top: 20px;
   }
-  .hero-feats li {
-    font-size: 12px;
-    line-height: 16px;
-  }
-  .hero-feats-more {
-    margin-top: 24px;
+  .hero-trust li {
     font-size: 12px;
   }
   .hero-ai-new {
     top: -8px;
-    right: -10px;
+    right: -8px;
     padding: 3px 6px;
     font-size: 9px;
   }
@@ -772,6 +812,9 @@ html.cx-landing {
   #hero {
     padding-left: 24px;
     padding-right: 24px;
+  }
+  .hero-title {
+    font-size: 32px;
   }
 }
 
@@ -829,124 +872,21 @@ html.cx-landing {
     height: calc(var(--s, 4px) * 1.75);
   }
   .hero-card-body {
-    padding: 56px 40px 72px;
+    max-width: 640px;
+    padding: 40px 48px;
+    border-radius: 28px;
   }
   .hero-sub {
     margin-top: 16px;
     font-size: 16px;
   }
   .hero-title {
-    font-size: 22px;
-  }
-  .hero-title-brand {
-    display: inline;
-  }
-  .hero-title-brand::before {
-    content: " · ";
+    margin-top: 20px;
+    font-size: 44px;
   }
   .hero-cta {
-    margin-top: 40px;
+    margin-top: 32px;
   }
-}
-
-/* Khung iPhone bên phải màn mở đầu — CHỈ từ lg (js/hero-phone.js đổi ảnh). Thân
-   máy là assets/images/iphone_mockup.svg (383×785, ô màn TRONG SUỐT) phủ lên
-   ảnh; inset của .hero-phone-screen = ô đó, y như .cx-phone-screen ở _setup.css.
-   Ảnh chụp mẫu là khổ 390×693, ô màn hẹp hơn nên `cover` cắt bớt hai mép bên. */
-.hero-phone {
-  display: none;
-}
-
-@media (min-width: 1024px) {
-  /* Hai cột, cột chữ rộng hơn để hai nút + hàng điểm mạnh không rớt dòng; máy
-     đứng giữa cột phải. */
-  .hero-card {
-    display: grid;
-    grid-template-columns: minmax(0, 5fr) minmax(0, 4fr);
-    align-items: center;
-    column-gap: 64px;
-    padding: 0 24px;
-  }
-  .hero-card-body {
-    @apply items-start text-left;
-    padding: 40px 0;
-  }
-  .hero-cta {
-    justify-content: flex-start;
-  }
-  /* Cột chữ còn dư chiều cao: điểm mạnh thành hai cột, icon trái chữ phải —
-     xếp dọc cả sáu mục thì cột chữ cao hơn khung máy bên phải. */
-  .hero-feats {
-    @apply grid-cols-2;
-    gap: 12px 24px;
-    max-width: 520px;
-  }
-  .hero-feats li {
-    @apply flex-row text-left;
-    gap: 10px;
-    font-size: 15px;
-    line-height: 20px;
-  }
-  .hero-feats svg.lucide {
-    padding: 6px;
-    font-size: 14px;
-  }
-  /* Cột chữ hẹp đi một nửa: thiếu chỗ thì cả cụm "· Cưới Xinh" xuống dòng
-     chứ không ngắt giữa tên. */
-  .hero-title-brand {
-    white-space: nowrap;
-  }
-
-  .hero-phone {
-    --hp-h: clamp(440px, calc(var(--vh, 1vh) * 100 - 300px), 640px);
-    --hp-h: clamp(440px, calc(var(--vh, 1svh) * 100 - 300px), 640px);
-    position: relative;
-    display: block;
-    justify-self: center;
-    width: calc(var(--hp-h) * 0.4879);
-    height: var(--hp-h);
-  }
-}
-
-.hero-phone-frame {
-  @apply pointer-events-none absolute inset-0;
-  z-index: 2;
-  width: 100%;
-  height: 100%;
-  filter: drop-shadow(0 18px 34px rgb(var(--scrim-rgb) / 0.18));
-}
-
-.hero-phone-screen {
-  @apply absolute overflow-hidden;
-  top: 1.53%;
-  left: 3.92%;
-  width: 92.17%;
-  height: 96.94%;
-  border-radius: 14.73% / 6.83%;
-  background: rgb(var(--surface-tint-rgb));
-}
-
-.hero-phone-shot {
-  @apply absolute inset-0 h-full w-full object-cover;
-  opacity: 0;
-  transition: opacity 0.8s ease;
-}
-
-.hero-phone-shot.is-on {
-  opacity: 1;
-}
-
-/* Ảnh thân máy không vẽ tai thỏ — đảo động vẽ ở đây (vỏ thiết bị, không theo
-   bộ màu trang). */
-.hero-phone-island {
-  @apply absolute rounded-full;
-  z-index: 1;
-  top: 1.6%;
-  left: 50%;
-  width: 30%;
-  height: 3.4%;
-  transform: translateX(-50%);
-  background: rgb(var(--scrim-rgb));
 }
 
 /* Màn THẤP (laptop 13 inch, máy xoay ngang): thu các khe cho cụm chữ vừa thẻ.
@@ -959,7 +899,7 @@ html.cx-landing {
 .cx-short .hero-cta {
   margin-top: 24px;
 }
-.cx-short .hero-feats {
+.cx-short .hero-trust {
   margin-top: 16px;
 }
 
@@ -970,10 +910,10 @@ html.cx-landing {
     --xl-size: 32px;
   }
   .cx-shorter .hero-card-body {
-    padding: 24px 0 36px;
+    padding: 20px 16px;
   }
   .cx-shorter .hero-title {
-    font-size: 16px;
+    margin-top: 12px;
   }
   .cx-shorter .hero-sub {
     margin-top: 8px;
@@ -983,12 +923,8 @@ html.cx-landing {
   .cx-shorter .hero-cta {
     margin-top: 20px;
   }
-  .cx-shorter .hero-feats {
+  .cx-shorter .hero-trust {
     margin-top: 12px;
-  }
-  /* Màn quá thấp chỉ giữ hàng đầu, ba mục còn lại đã có link "Xem đủ". */
-  .cx-shorter .hero-feats li:nth-child(n + 4) {
-    display: none;
   }
 }
 
@@ -997,11 +933,11 @@ html.cx-landing {
     animation: none;
     opacity: 1;
   }
-  .hero-media-img,
-  .hero-media,
-  .hero-ai-new,
+  .hero-wall,
+  .hero-wall-row,
   .hero-glow::before,
-  .hero-glow::after {
+  .hero-glow::after,
+  .hero-ai-new {
     animation: none;
   }
   .hero-shine,
@@ -1012,8 +948,7 @@ html.cx-landing {
   .hero-menu-btn {
     transition: none;
   }
-  .hero-btn,
-  .hero-phone-shot {
+  .hero-btn {
     transition: none;
   }
 }
@@ -2848,6 +2783,746 @@ html.cx-landing {
   }
   .tst-track {
     scroll-behavior: auto;
+  }
+}
+
+/* ── Trang Mẫu thiệp (theme-template/) ─────────────────────────────────────
+   Đầu trang .tg-head · dải chip danh mục .tg-cats (renderCatChips đổ vào mọi
+   [data-tg-cats]: thanh tìm kiếm từ md, đầu trang dưới md) · lợi ích .tg-perk ·
+   thẻ kêu gọi .tg-cta · hỏi đáp .tg-faq. Thẻ mẫu là .tt-* dùng chung ở trên.
+   Mỗi mục chỉ đệm trên — đáy trang do .tg-faq gánh (chừa nút nổi mobile). */
+.tg-head {
+  padding-top: 20px;
+}
+.tg-head-row {
+  @apply flex flex-wrap items-center;
+  gap: 8px 12px;
+}
+.tg-title {
+  @apply font-playfair;
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: rgb(var(--text-heading-rgb));
+}
+.tg-count {
+  @apply inline-flex items-center rounded-full;
+  padding: 4px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgb(var(--action-primary-deep-rgb));
+  background: rgb(var(--surface-blossom-rgb));
+}
+.tg-count:empty {
+  display: none;
+}
+.tg-sub {
+  margin-top: 8px;
+  max-width: 640px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: rgb(var(--text-caption-rgb));
+}
+
+/* Cuộn ngang, không xuống dòng: chip là lối lọc chính trên điện thoại, xếp 2–3
+   hàng thì đẩy lưới mẫu khỏi màn đầu. Chip cuối ló nửa chừng = báo còn nữa.
+   padding-block chừa chỗ cho viền focus (khung overflow cắt mất). */
+.tg-cats {
+  display: flex;
+  gap: 8px;
+  padding-block: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.tg-cats::-webkit-scrollbar {
+  display: none;
+}
+/* Đầu trang: dải tràn ra hai mép màn (bù đúng px-4 / sm:px-6 của khung). */
+.tg-head .tg-cats {
+  margin: 12px -16px 0;
+  padding-inline: 16px;
+}
+.tg-chip {
+  @apply inline-flex shrink-0 items-center rounded-full whitespace-nowrap;
+  gap: 6px;
+  height: 40px;
+  padding: 0 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: rgb(var(--text-heading-rgb));
+  background: rgb(var(--white-rgb));
+  border: 1px solid rgb(var(--brand-primary-rgb) / 0.8);
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+/* Icon lucide ăn theo font-size (1em) — đặt 16px riêng cho icon, chữ giữ 14px. */
+.tg-chip svg {
+  font-size: 16px;
+  color: rgb(var(--brand-accent-rgb));
+}
+.tg-chip:hover {
+  border-color: rgb(var(--brand-accent-rgb));
+}
+/* Chip đang chọn: nền hồng nhạt + chữ màu nhấn, cùng bộ màu với tab đang mở
+   của navbar. */
+.tg-chip[aria-pressed="true"] {
+  font-weight: 600;
+  color: rgb(var(--brand-accent-rgb));
+  background: rgb(var(--surface-section-rgb));
+  border-color: rgb(var(--brand-accent-rgb));
+}
+.tg-chip[aria-pressed="true"] svg {
+  color: currentColor;
+}
+.tg-chip:focus-visible {
+  outline: 2px solid rgb(var(--action-primary-rgb));
+  outline-offset: 2px;
+}
+
+.tg-empty {
+  @apply flex flex-col items-center text-center;
+  padding: 64px 16px;
+}
+.tg-empty-ico {
+  @apply inline-flex items-center justify-center rounded-full;
+  width: 56px;
+  height: 56px;
+  font-size: 24px;
+  color: rgb(var(--brand-accent-rgb));
+  background: rgb(var(--surface-brand-rgb));
+}
+.tg-empty-title {
+  @apply font-playfair;
+  margin-top: 16px;
+  font-size: 20px;
+  font-weight: 600;
+  color: rgb(var(--text-heading-rgb));
+}
+.tg-empty-desc {
+  margin-top: 4px;
+  font-size: 14px;
+  color: rgb(var(--text-caption-rgb));
+}
+
+/* Lợi ích: điện thoại một cột (icon trái), sm 2 cột, lg 4 cột (icon trên). */
+.tg-perks {
+  padding-top: 64px;
+}
+.tg-perk-list {
+  display: grid;
+  gap: 12px;
+}
+.tg-perk {
+  @apply flex items-start;
+  gap: 16px;
+  padding: 20px;
+  border-radius: 20px;
+  background: rgb(var(--surface-brand-soft-rgb));
+  border: 1px solid rgb(var(--brand-primary-rgb) / 0.4);
+}
+.tg-perk-ico {
+  @apply inline-flex shrink-0 items-center justify-center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  font-size: 20px;
+  color: rgb(var(--action-primary-deep-rgb));
+  background: rgb(var(--white-rgb));
+  box-shadow: 0 8px 16px -10px rgb(var(--shadow-brand-rgb) / 0.5);
+}
+.tg-perk-title {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: rgb(var(--text-heading-rgb));
+}
+.tg-perk-desc {
+  margin-top: 4px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: rgb(var(--text-caption-rgb));
+}
+
+/* Thẻ kêu gọi — cùng nền loang hồng với .cta-card ở trang chủ. */
+.tg-cta-wrap {
+  padding-top: 64px;
+}
+.tg-cta {
+  @apply relative flex flex-col items-center overflow-hidden text-center;
+  padding: 40px 20px;
+  border-radius: 28px;
+  border: 1px solid rgb(var(--brand-primary-rgb) / 0.4);
+  background:
+    radial-gradient(80% 120% at 0 0, rgb(var(--surface-blossom-rgb)), rgb(var(--surface-blossom-rgb) / 0) 70%),
+    radial-gradient(60% 100% at 100% 100%, rgb(var(--brand-primary-rgb) / 0.25), rgb(var(--brand-primary-rgb) / 0) 70%),
+    rgb(var(--surface-brand-soft-rgb));
+  box-shadow: 0 32px 64px -40px rgb(var(--shadow-brand-rgb) / 0.5);
+}
+.tg-cta-badge {
+  @apply inline-flex items-center rounded-full bg-white;
+  gap: 6px;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgb(var(--action-primary-deep-rgb));
+  box-shadow: 0 4px 12px -8px rgb(var(--shadow-brand-rgb) / 0.5);
+}
+.tg-cta-badge svg.lucide {
+  font-size: 14px;
+}
+.tg-cta-title {
+  @apply font-playfair;
+  margin-top: 16px;
+  max-width: 720px;
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1.3;
+  text-wrap: balance;
+  color: rgb(var(--text-heading-rgb));
+}
+.tg-cta-desc {
+  margin-top: 12px;
+  max-width: 560px;
+  font-size: 14px;
+  line-height: 1.7;
+  color: rgb(var(--text-caption-rgb));
+}
+
+/* Hỏi đáp: điện thoại xếp dọc; lg tiêu đề trái, danh sách phải. Mở/đóng bằng
+   grid-template-rows 0fr→1fr (cao theo nội dung, không cần đoán max-height).
+   Đệm đáy 96px trên điện thoại chừa nút nổi "Bắt đầu miễn phí". */
+.tg-faq {
+  padding-top: 64px;
+  padding-bottom: 96px;
+}
+.tg-faq-heading {
+  @apply font-playfair;
+  font-size: 24px;
+  font-weight: 600;
+  color: rgb(var(--text-heading-rgb));
+}
+.tg-faq-sub {
+  margin-top: 8px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: rgb(var(--text-caption-rgb));
+}
+.tg-faq-list {
+  margin-top: 24px;
+  border-top: 1px solid rgb(var(--brand-primary-rgb) / 0.5);
+}
+.tg-faq-item {
+  border-bottom: 1px solid rgb(var(--brand-primary-rgb) / 0.5);
+}
+.tg-faq-q {
+  @apply flex w-full items-center justify-between text-left;
+  gap: 16px;
+  min-height: 56px;
+  padding: 16px 0;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.5;
+  color: rgb(var(--text-heading-rgb));
+}
+.tg-faq-q:focus-visible {
+  outline: 2px solid rgb(var(--action-primary-rgb));
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+.tg-faq-ico {
+  @apply inline-flex shrink-0 items-center justify-center rounded-full;
+  width: 32px;
+  height: 32px;
+  font-size: 16px;
+  color: rgb(var(--action-primary-deep-rgb));
+  background: rgb(var(--surface-brand-rgb));
+  transition:
+    transform 0.25s ease,
+    background-color 0.2s ease;
+}
+.tg-faq-item.open .tg-faq-ico {
+  transform: rotate(45deg);
+  background: rgb(var(--surface-blossom-rgb));
+}
+.tg-faq-a {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.3s ease;
+}
+.tg-faq-item.open .tg-faq-a {
+  grid-template-rows: 1fr;
+}
+.tg-faq-a > div {
+  overflow: hidden;
+}
+.tg-faq-a p {
+  max-width: 640px;
+  padding-bottom: 20px;
+  font-size: 14px;
+  line-height: 1.7;
+  color: rgb(var(--text-caption-rgb));
+}
+
+@media (min-width: 640px) {
+  .tg-head .tg-cats {
+    margin-inline: -24px;
+    padding-inline: 24px;
+  }
+  .tg-perk-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+}
+
+@media (min-width: 768px) {
+  .tg-head {
+    padding-top: 40px;
+  }
+  .tg-title {
+    font-size: 40px;
+  }
+  .tg-sub {
+    margin-top: 12px;
+    font-size: 16px;
+  }
+  .tg-perks,
+  .tg-cta-wrap {
+    padding-top: 96px;
+  }
+  .tg-cta {
+    padding: 64px 56px;
+    border-radius: 36px;
+  }
+  .tg-cta-title {
+    font-size: 36px;
+  }
+  .tg-cta-desc {
+    font-size: 16px;
+  }
+  .tg-faq {
+    padding-top: 96px;
+  }
+  .tg-faq-heading {
+    font-size: 32px;
+  }
+  .tg-faq-q {
+    font-size: 16px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .tg-perk-list {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .tg-perk {
+    flex-direction: column;
+    padding: 24px;
+  }
+  .tg-faq {
+    display: grid;
+    grid-template-columns: 5fr 7fr;
+    align-items: start;
+    gap: 64px;
+  }
+  .tg-faq-list {
+    margin-top: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tg-chip,
+  .tg-faq-ico,
+  .tg-faq-a {
+    transition: none;
+  }
+}
+
+/* ── Trang Quản lý thiệp (my-invitations/) ──────────────────────────────────
+   Dùng lại .tg-title/.tg-count/.tg-chip/.tg-empty của trang Mẫu thiệp cho hai
+   trang cùng một giọng. Thẻ thiệp .mi-card: phần trên là ảnh + chữ, chân thẻ
+   là MỘT nút chính (đổi theo trạng thái) + nút "⋯" mở menu các việc còn lại. */
+.mi-head {
+  @apply flex flex-wrap items-end justify-between;
+  gap: 16px;
+  padding-top: 20px;
+}
+.mi-tools {
+  @apply flex items-center;
+  gap: 8px;
+  width: 100%;
+}
+.mi-tool {
+  width: 36px;
+  height: 36px;
+  color: rgb(var(--text-caption-rgb));
+  background: rgb(var(--white-rgb));
+  border: 1px solid rgb(var(--brand-primary-rgb) / 0.6);
+}
+.mi-tool:hover {
+  color: rgb(var(--brand-accent-rgb));
+  border-color: rgb(var(--brand-accent-rgb));
+}
+.mi-tools .mi-btn,
+.mi-tools .mi-btn-sk {
+  margin-left: auto;
+}
+
+/* Nút của trang: x-button variant="bare" + các lớp này (bare chỉ cho hình pill). */
+.mi-btn {
+  height: 40px;
+  padding: 0 16px;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.mi-btn svg {
+  flex: none;
+}
+/* Cùng bộ nút với thẻ mẫu thiệp: --primary = .tt-btn-use (nền hồng đặc),
+   --soft/--more = .tt-btn-preview (nền trắng, viền hồng). */
+.mi-btn {
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+.mi-btn--primary {
+  color: rgb(var(--white-rgb));
+  background: rgb(var(--action-primary-rgb));
+  border: 1px solid transparent;
+  box-shadow: 0 4px 12px rgb(var(--action-primary-rgb) / 0.32);
+}
+.mi-btn--primary:hover {
+  background: rgb(var(--action-primary-hover-rgb));
+  box-shadow: 0 6px 16px rgb(var(--action-primary-rgb) / 0.4);
+}
+.mi-btn--primary:active {
+  background: rgb(var(--action-primary-deep-rgb));
+}
+.mi-btn--soft,
+.mi-btn--more {
+  color: rgb(var(--brand-accent-rgb));
+  background: rgb(var(--white-rgb));
+  border: 1px solid rgb(var(--brand-primary-rgb));
+}
+.mi-btn--soft:hover,
+.mi-btn--more:hover,
+.mi-btn--more[aria-expanded="true"] {
+  border-color: rgb(var(--brand-accent-rgb));
+  background: rgb(var(--surface-brand-rgb));
+}
+.mi-btn--more {
+  width: 40px;
+  padding: 0;
+}
+.mi-btn:focus-visible,
+.mi-tool:focus-visible,
+.mi-thumb:focus-visible,
+.mi-title a:focus-visible,
+.mi-slug-copy:focus-visible {
+  outline: 2px solid rgb(var(--action-primary-rgb));
+  outline-offset: 2px;
+}
+
+/* Khối khung xương dùng chung của trang. */
+.mi-sk {
+  border-radius: 999px;
+  background: rgb(var(--skeleton-base-rgb));
+}
+.mi-btn-sk {
+  width: 148px;
+  height: 40px;
+}
+
+/* Dải chữ nhỏ (hạn dọn dẹp, nháp chưa đồng bộ). */
+.mi-note {
+  @apply flex items-start;
+  gap: 8px;
+  margin-top: 16px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: rgb(var(--text-caption-rgb));
+  background: rgb(var(--surface-brand-subtle-rgb));
+}
+.mi-note > svg {
+  flex: none;
+  margin-top: 2px;
+  font-size: 14px;
+  color: rgb(var(--brand-accent-rgb));
+}
+.mi-note--sync {
+  font-size: 13px;
+  color: rgb(var(--text-heading-rgb));
+  border: 1px solid rgb(var(--brand-primary-rgb) / 0.6);
+}
+.mi-note-link {
+  font-weight: 600;
+  color: rgb(var(--action-primary-deep-rgb));
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.mi-tabs {
+  margin-top: 16px;
+}
+.mi-tabs .tg-chip {
+  padding: 0 14px;
+}
+.mi-count {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgb(var(--text-caption-rgb));
+}
+.mi-count:empty {
+  display: none;
+}
+.tg-chip[aria-pressed="true"] .mi-count {
+  color: inherit;
+}
+
+.mi-grid {
+  display: grid;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.mi-card {
+  @apply flex flex-col overflow-hidden;
+  border-radius: 20px;
+  background: rgb(var(--white-rgb));
+  border: 1px solid rgb(var(--brand-primary-rgb) / 0.45);
+  box-shadow: 0 1px 3px rgb(var(--shadow-brand-rgb) / 0.06);
+  transition:
+    border-color 0.22s ease,
+    box-shadow 0.22s ease;
+}
+.mi-card:hover {
+  border-color: rgb(var(--brand-accent-rgb) / 0.45);
+  box-shadow: 0 14px 30px -16px rgb(var(--preview-shadow-rgb) / 0.35);
+}
+.mi-card-top {
+  @apply flex;
+  flex: 1;
+  min-height: 184px;
+}
+/* Ảnh bìa tràn trọn cột trái; ô "Chưa có ảnh bìa" nằm dưới ảnh, lộ ra khi
+   thẻ chưa có ảnh hoặc ảnh hỏng (thumbFallback ẩn ảnh). */
+.mi-thumb {
+  position: relative;
+  display: block;
+  flex: none;
+  width: 38%;
+  max-width: 176px;
+  overflow: hidden;
+  background: rgb(var(--surface-brand-subtle-rgb));
+}
+.mi-thumb img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
+  transition: transform 0.3s ease;
+}
+.mi-card:hover .mi-thumb img {
+  transform: scale(1.04);
+}
+.mi-thumb-empty {
+  @apply flex flex-col items-center justify-center text-center;
+  position: absolute;
+  inset: 0;
+  gap: 6px;
+  padding: 8px;
+  font-size: 12px;
+  line-height: 1.3;
+  color: rgb(var(--text-caption-rgb));
+}
+.mi-thumb-empty svg {
+  font-size: 24px;
+  color: rgb(var(--brand-accent-rgb) / 0.7);
+}
+.mi-info {
+  @apply flex flex-col;
+  flex: 1;
+  min-width: 0;
+  padding: 12px;
+  border-left: 1px solid rgb(var(--brand-primary-rgb) / 0.22);
+}
+
+/* Nhãn trạng thái: MỘT nhãn mỗi thẻ, nền nhạt + icon + chữ (không chỉ dựa màu). */
+.mi-tag {
+  @apply inline-flex items-center self-start rounded-full whitespace-nowrap;
+  gap: 4px;
+  height: 24px;
+  padding: 0 8px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.mi-tag svg {
+  font-size: 13px;
+}
+.mi-tag--draft {
+  color: rgb(var(--text-heading-rgb));
+  background: rgb(var(--text-caption-rgb) / 0.12);
+}
+.mi-tag--trial {
+  color: rgb(var(--state-info-text-rgb));
+  background: rgb(var(--state-info-bg-rgb));
+}
+.mi-tag--due {
+  color: rgb(var(--notice-text-rgb));
+  background: rgb(var(--notice-bg-rgb));
+}
+.mi-tag--live {
+  color: rgb(var(--state-success-text-rgb));
+  background: rgb(var(--state-success-tint-rgb));
+}
+
+.mi-title {
+  margin-top: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: rgb(var(--scrim-plum-rgb));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mi-title a:hover {
+  color: rgb(var(--brand-accent-rgb));
+}
+.mi-meta {
+  @apply flex items-center;
+  gap: 6px;
+  min-width: 0;
+  margin-top: 4px;
+  font-size: 12px;
+  color: rgb(var(--text-caption-rgb));
+}
+.mi-meta svg {
+  flex: none;
+  font-size: 13px;
+}
+.mi-hint {
+  @apply flex items-start;
+  gap: 6px;
+  margin-top: 8px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: rgb(var(--text-caption-rgb));
+}
+.mi-hint svg {
+  flex: none;
+  margin-top: 2px;
+  font-size: 13px;
+}
+.mi-hint--warn {
+  color: rgb(var(--notice-text-rgb));
+}
+.mi-slug {
+  @apply flex items-center;
+  gap: 4px;
+  height: 36px;
+  padding: 0 2px 0 10px;
+  border-radius: 12px;
+  background: rgb(var(--surface-brand-subtle-rgb));
+  border: 1px solid rgb(var(--brand-primary-rgb) / 0.35);
+}
+/* Nêm co giãn: dồn hàng đường dẫn xuống đáy cột chữ, tối thiểu cách 12px. */
+.mi-gap {
+  flex: 1;
+  min-height: 12px;
+}
+.mi-slug-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  color: rgb(var(--text-heading-rgb));
+}
+.mi-slug-copy {
+  width: 32px;
+  height: 32px;
+  flex: none;
+  color: rgb(var(--text-caption-rgb));
+}
+.mi-slug-copy:hover {
+  color: rgb(var(--brand-accent-rgb));
+  background: rgb(var(--white-rgb));
+}
+.mi-card-foot {
+  @apply flex items-center;
+  gap: 8px;
+  padding: 10px 12px 12px;
+  border-top: 1px solid rgb(var(--brand-primary-rgb) / 0.22);
+}
+/* Nút đang hiện chia nhau phần dư của hàng; ⋯ giữ khổ 40px. _fitFoot gắn
+   .is-measuring trong lúc đo để lấy bề rộng TỰ NHIÊN của từng nút. */
+.mi-card-foot > .mi-btn {
+  flex: 1 1 auto;
+}
+.mi-card-foot > .mi-btn--more {
+  flex: none;
+}
+.mi-card-foot.is-measuring > .mi-btn {
+  flex-grow: 0;
+}
+
+/* Mục "Xoá thiệp" trong menu ⋯ (x-popover): openCardMenu gắn lớp này. */
+.x-pop-item.mi-pop-danger {
+  color: rgb(var(--state-error-text-rgb));
+}
+.mi-pop-danger .x-pop-ico {
+  color: rgb(var(--state-error-text-rgb));
+  background: rgb(var(--state-error-tint-rgb));
+}
+
+.mi-ico-error {
+  color: rgb(var(--state-error-text-rgb));
+  background: rgb(var(--state-error-tint-rgb));
+}
+
+@media (min-width: 640px) {
+  .mi-tools {
+    width: auto;
+  }
+}
+
+@media (min-width: 768px) {
+  .mi-head {
+    padding-top: 40px;
+  }
+  .mi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-top: 20px;
+  }
+  .mi-info {
+    padding: 16px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .mi-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mi-card,
+  .mi-thumb img {
+    transition: none;
+  }
+  .mi-card:hover .mi-thumb img {
+    transform: none;
   }
 }
 

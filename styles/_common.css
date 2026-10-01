@@ -1234,6 +1234,18 @@ x-button {
   color: rgb(var(--focus-ring-rgb));
 }
 
+/* Mục mở menu con (setItems submenu): mũi tên cuối hàng, giữ nền sáng khi thẻ
+   con đang mở để biết thẻ con thuộc mục nào. */
+.x-pop-sub {
+  margin-left: auto;
+  flex: none;
+  color: rgb(var(--text-tertiary-rgb));
+}
+
+.x-pop-item[aria-expanded="true"] {
+  background: rgb(var(--surface-hover-rgb));
+}
+
 .x-pop-sep {
   height: 1px;
   margin: 4px 8px;
@@ -1520,61 +1532,6 @@ x-button {
   font-weight: 700;
   line-height: 18px;
   text-align: center;
-}
-
-/* Tab lọc kiểu segmented (my-invitations: Của tôi/Xuất bản/Nháp) — vỏ mang ĐÚNG
-   nền/viền/bo góc của thẻ navbar (.cx-navcard) và chữ dùng ĐÚNG bộ màu của
-   .cx-navlink, để menu và tab trong trang không lệch tông. Nền ô đang chọn do
-   class Tailwind trong trang đặt. */
-.cx-segbar {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  padding: 4px;
-  border-radius: 999px;
-  background: rgb(var(--white-rgb) / 0.92);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgb(var(--brand-primary-rgb) / 0.45);
-  box-shadow: 0 6px 20px rgb(var(--scrim-rgb) / 0.08);
-}
-
-.cx-segtab {
-  color: rgb(var(--text-body-rgb));
-  transition:
-    color 0.18s ease,
-    opacity 0.18s ease;
-}
-
-/* Rê chuột/giữ focus chỉ đổi MÀU CHỮ. Không đụng tới nền: mờ cả phần tử
-   (opacity) sẽ làm nhạt luôn nền hồng của tab đang chọn, trông như tab đổi nền. */
-.cx-segtab:hover {
-  color: rgb(var(--brand-accent-rgb));
-}
-
-/* Bấm xong không để lại viền/nền lạ; bàn phím vẫn thấy được nhờ vòng focus vẽ
-   bằng box-shadow (không đụng background). */
-.cx-segtab:focus {
-  outline: none;
-}
-
-.cx-segtab:focus-visible {
-  box-shadow: 0 0 0 2px rgb(var(--focus-ring-rgb) / 0.35);
-}
-
-.cx-segtab.is-on {
-  color: rgb(var(--brand-accent-rgb));
-  font-weight: 600;
-}
-
-/* Ô đếm nằm trong tab lọc ăn theo MÀU CHỮ của tab (khác navbar — ở đó ô đếm là
-   chip đặc màu nhấn). Nhắm qua .cx-segtab nên navbar không bị ảnh hưởng. */
-.cx-segtab .cx-navcount {
-  min-width: 0;
-  padding: 0;
-  background: transparent;
-  color: inherit;
-  font-size: 12px;
-  line-height: inherit;
 }
 
 /* ── KHUNG MÁY KHI XEM TRÊN MÁY TÍNH ───────────────────────────────────────

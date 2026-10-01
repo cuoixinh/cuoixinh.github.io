@@ -3,7 +3,6 @@
 // phải giữ nhịp đó, không thì hàng cuối hở. Màu lấy theo VỊ TRÍ (--info-N-rgb ở
 // styles/_colors.css), thêm mục phải thêm token. Hình thẻ: .ftr-* ở styles/tailwind-src.css.
 
-// Số mục phải khớp link "+12 tính năng" ở màn mở đầu (index.html, .hero-feats-more).
 const FEATURES_DATA = [
   { icon: "contact",       title: "Thiệp riêng cho từng khách", desc: "Mỗi người một link, có tên khách ngay trên thiệp.", demo: "guest" },
   { icon: "send",          title: "Gửi qua Zalo, Messenger", desc: "Link gửi đi hiện sẵn ảnh và tên hai bạn." },

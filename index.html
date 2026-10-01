@@ -50,36 +50,54 @@
     style="color: rgb(var(--text-body-rgb))"
   >
     <!-- ===== HERO ===== -->
-    <!-- Màn mở đầu: dải nền kem phủ trọn ảnh ghép các mẫu thiệp (tab "Tạo ảnh bìa" của
-         admin) hiện mờ, nhãn "Thiệp cưới online · Cưới Xinh" + slogan chữ tông tối căn giữa
-         + nút "Tạo thiệp với AI" / "Xem mẫu thiệp" + hàng điểm mạnh. Khối chữ cố ý thấp hơn một màn để mép mục "Mẫu thiệp"
+    <!-- Màn mở đầu: nền là tường ảnh mẫu thiệp chạy ngang (nghiêng nhẹ), thẻ kính mờ chứa
+         nhãn "Thiệp cưới online · Cưới Xinh" + tiêu đề Playfair + mô tả + nút "Tạo thiệp
+         với AI" / "Xem mẫu thiệp" + ba cam kết. Khối chữ cố ý thấp hơn một màn để mép mục "Mẫu thiệp"
          ló ra từ màn đầu — số đo ở .hero-card (styles/tailwind-src.css). -->
     <section id="hero">
-      <!-- Nền của cả dải: ảnh ghép mẫu thiệp hiện mờ + ánh sáng, nằm dưới mọi nội dung.
+      <!-- Nền của cả dải: tường ảnh mẫu + lớp kem + ánh sáng, nằm dưới mọi nội dung.
            Đứng đầu #hero, KHÔNG nằm trong .hero-frame: vỏ đó mang transform (hiệu ứng
            hiện dần) nên lớp absolute bên trong sẽ bị bó theo khổ của nó. -->
       <div class="hero-layers" aria-hidden="true">
-        <!-- Vỏ .hero-media lo parallax theo cuộn, ảnh bên trong lo trôi chậm —
-             tách hai lớp vì cùng dùng transform. Ảnh màn đầu: fetchpriority cao, không lazy.
-             srcset = bộ WebP (nút "Tải WebP trang chủ" ở công cụ Tạo ảnh bìa), JPEG gốc
-             ~1MB chỉ là src dự phòng — ghép lại ảnh bìa thì phải xuất lại cả bộ này.
-             sizes: ảnh phủ `cover` cả dải và tràn 24% (.hero-media-img) nên màn ngang do
-             bề ngang quyết định (≈124vw), màn dọc do chiều cao dải — chốt 1000px cho
-             gọn: ảnh chỉ hiện mờ (opacity 0.05) nên bản 2000w ở máy 2x là đủ nét.
-             Màn dọc KHÔNG viết bằng vh: vh tính theo khung thật, vuốt ẩn thanh URL là
-             trình duyệt đổi sang bản ảnh lớn hơn giữa lúc cuộn. -->
-        <div class="hero-media">
-          <img
-            class="hero-media-img"
-            src="assets/background/started/cuoixinh-cover-3908x2264.jpg"
-            srcset="assets/background/cover/cuoixinh-cover-1200.webp 1200w,
-                    assets/background/cover/cuoixinh-cover-2000.webp 2000w,
-                    assets/background/cover/cuoixinh-cover-2800.webp 2800w"
-            sizes="(min-aspect-ratio: 11/10) 124vw, 1000px"
-            alt=""
-            fetchpriority="high"
-          />
+        <!-- Tường mẫu thiệp: mỗi dải 9 ảnh chụp mẫu (assets/images/templates/), lệch thứ tự
+             giữa các dải (cùng 9 file nên dải thêm không tải thêm); js/hero-wall.js nhân
+             bản cho đủ vòng lặp. -->
+        <div class="hero-wall">
+          <div class="hero-wall-row">
+            <img src="assets/images/templates/romantic-gold.jpg" alt="" loading="lazy" />
+            <img src="assets/images/templates/vintage-forest.jpg" alt="" loading="lazy" />
+            <img src="assets/images/templates/luminous-pastel.jpg" alt="" loading="lazy" />
+            <img src="assets/images/templates/noir-elegance.jpg" alt="" loading="lazy" />
+            <img src="assets/images/templates/romantic-blush.jpg" alt="" loading="lazy" />
+            <img src="assets/images/templates/serene-parchment.jpg" alt="" loading="lazy" />
+            <img src="assets/images/templates/opulent-contrast.jpg" alt="" loading="lazy" />
+            <img src="assets/images/templates/moody-cinematic.jpg" alt="" loading="lazy" />
+            <img src="assets/images/templates/basic-gold.jpg" alt="" loading="lazy" />
+          </div>
+          <div class="hero-wall-row">
+            <img src="assets/images/templates/noir-elegance.jpg" alt="" loading="lazy" />
+            <img src="assets/images/templates/romantic-blush.jpg" alt="" loading="lazy" />
+            <img src="assets/images/templates/serene-parchment.jpg" alt="" loading="lazy" />
+            <img src="assets/images/templates/opulent-contrast.jpg" alt="" loading="lazy" />
+            <img src="assets/images/templates/moody-cinematic.jpg" alt="" loading="lazy" />
+            <img src="assets/images/templates/basic-gold.jpg" alt="" loading="lazy" />
+            <img src="assets/images/templates/romantic-gold.jpg" alt="" loading="lazy" />
+            <img src="assets/images/templates/vintage-forest.jpg" alt="" loading="lazy" />
+            <img src="assets/images/templates/luminous-pastel.jpg" alt="" loading="lazy" />
+          </div>
+          <div class="hero-wall-row">
+            <img src="assets/images/templates/opulent-contrast.jpg" alt="" loading="lazy" />
+            <img src="assets/images/templates/moody-cinematic.jpg" alt="" loading="lazy" />
+            <img src="assets/images/templates/basic-gold.jpg" alt="" loading="lazy" />
+            <img src="assets/images/templates/romantic-gold.jpg" alt="" loading="lazy" />
+            <img src="assets/images/templates/vintage-forest.jpg" alt="" loading="lazy" />
+            <img src="assets/images/templates/luminous-pastel.jpg" alt="" loading="lazy" />
+            <img src="assets/images/templates/noir-elegance.jpg" alt="" loading="lazy" />
+            <img src="assets/images/templates/romantic-blush.jpg" alt="" loading="lazy" />
+            <img src="assets/images/templates/serene-parchment.jpg" alt="" loading="lazy" />
+          </div>
         </div>
+        <div class="hero-veil"></div>
         <!-- Ánh sáng: hai quầng trôi, một vệt quét chéo, vài đốm lấp lánh. -->
         <div class="hero-glow"></div>
         <div class="hero-shine"></div>
@@ -115,8 +133,11 @@
       <div class="hero-frame hero-anim hero-anim-1">
         <div class="hero-card">
           <div class="hero-card-body">
+            <p class="hero-eyebrow hero-anim hero-anim-2">
+              Thiệp cưới online · <span class="hero-title-brand">Cưới Xinh</span>
+            </p>
             <h1 class="hero-title hero-anim hero-anim-2">
-              Thiệp cưới online <span class="hero-title-brand">Cưới Xinh</span>
+              Thiệp mang câu chuyện, <span class="hero-title-em">giữ trọn thanh xuân</span>
             </h1>
             <p class="hero-sub hero-anim hero-anim-3">
               Chọn một mẫu ưng ý, kể đôi dòng về hai bạn — tấm thiệp sẵn sàng gửi
@@ -136,42 +157,14 @@
                 Tạo thiệp với AI
                 <span class="hero-ai-new">New</span>
               </x-button>
-              <a href="#templates" class="hero-btn hero-btn-alt">Xem mẫu thiệp</a>
+              <a href="#templates" class="hero-btn hero-btn-alt"><span>Xem mẫu<span class="hero-btn-long"> thiệp</span></span></a>
             </div>
-            <!-- Chỉ ghi tính năng CÓ THẬT của sản phẩm — không đưa số liệu chưa đo.
-                 Sáu mục tiêu biểu; danh sách đủ nằm ở #inside (js/section-features.js),
-                 số trong link "Xem đủ" phải khớp số mục ở đó. -->
-            <ul class="hero-feats hero-anim hero-anim-4">
-              <li><i data-lucide="user-check"></i>Thiệp riêng cho từng khách</li>
-              <li><i data-lucide="calendar-check"></i>Xác nhận tham dự</li>
-              <li><i data-lucide="message-circle-heart"></i>Nhận lời chúc từ khách</li>
-              <li><i data-lucide="qr-code"></i>Hộp mừng cưới QR</li>
-              <li><i data-lucide="palette"></i>Đổi màu, sửa chữ tuỳ ý</li>
-              <li><i data-lucide="wand-sparkles"></i>Tạo nhanh với AI</li>
+            <!-- Ba cam kết ngắn — danh sách tính năng đủ nằm ngay dưới ở #inside. -->
+            <ul class="hero-trust hero-anim hero-anim-4">
+              <li><i data-lucide="check"></i>Dùng thử miễn phí</li>
+              <li><i data-lucide="check"></i>Gửi riêng từng khách</li>
+              <li><i data-lucide="check"></i>Thanh toán một lần</li>
             </ul>
-            <a href="#inside" class="hero-feats-more hero-anim hero-anim-4">
-              +12 tính năng
-              <i data-lucide="arrow-down" style="width:14px;height:14px"></i>
-            </a>
-          </div>
-          <!-- Từ lg: khung iPhone bên phải chiếu lần lượt ảnh chụp màn các mẫu thiệp
-               (assets/images/templates/, 390px @2x), js/hero-phone.js đổi tấm mỗi vài giây.
-               Chỉ tấm đầu có src; các tấm sau nhận data-src ngay trước lượt của mình. Mọi
-               tấm lazy: dưới lg khung display:none nên mobile không tải tấm nào. -->
-          <div class="hero-phone hero-anim hero-anim-3" aria-hidden="true">
-            <div class="hero-phone-screen">
-              <img class="hero-phone-shot is-on" src="assets/images/templates/romantic-gold.jpg" alt="" loading="lazy" />
-              <img class="hero-phone-shot" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="assets/images/templates/vintage-forest.jpg" alt="" loading="lazy" />
-              <img class="hero-phone-shot" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="assets/images/templates/luminous-pastel.jpg" alt="" loading="lazy" />
-              <img class="hero-phone-shot" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="assets/images/templates/noir-elegance.jpg" alt="" loading="lazy" />
-              <img class="hero-phone-shot" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="assets/images/templates/romantic-blush.jpg" alt="" loading="lazy" />
-              <img class="hero-phone-shot" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="assets/images/templates/serene-parchment.jpg" alt="" loading="lazy" />
-              <img class="hero-phone-shot" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="assets/images/templates/opulent-contrast.jpg" alt="" loading="lazy" />
-              <img class="hero-phone-shot" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="assets/images/templates/moody-cinematic.jpg" alt="" loading="lazy" />
-              <img class="hero-phone-shot" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="assets/images/templates/basic-gold.jpg" alt="" loading="lazy" />
-              <span class="hero-phone-island"></span>
-            </div>
-            <img class="hero-phone-frame" src="assets/images/iphone_mockup.svg" alt="" loading="lazy" />
           </div>
         </div>
       </div>
@@ -772,6 +765,6 @@
     <script src="js/ai-assistant.js"></script>
     <script src="js/hero-fab.js"></script>
     <script src="js/hero-menu.js"></script>
-    <script src="js/hero-phone.js"></script>
+    <script src="js/hero-wall.js"></script>
   </body>
 </html>
