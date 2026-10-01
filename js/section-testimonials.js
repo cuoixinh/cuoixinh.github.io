@@ -51,7 +51,7 @@ function renderTestimonials() {
   const el = document.getElementById("testimonialsList");
   if (!el) return;
   el.innerHTML = TESTIMONIALS_DATA.filter((t) => t.text.trim()).map((t, i) => `
-    <div class="testimonial-card reveal reveal-delay-${(i % 3) + 1}">
+    <div class="testimonial-card reveal reveal-delay-${Math.min(i, 3) + 1}">
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
         <div class="testimonial-avatar">${t.avatar}</div>
         <div>
