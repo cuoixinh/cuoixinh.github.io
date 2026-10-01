@@ -646,6 +646,7 @@ html.cx-landing {
 .hero-feats li {
   @apply flex flex-col items-center text-center;
   gap: 6px;
+  text-wrap: balance;
   font-size: 13px;
   line-height: 18px;
   color: rgb(var(--text-heading-rgb) / 0.8);
@@ -706,7 +707,7 @@ html.cx-landing {
 
 /* Máy hẹp: nút thu về viên viền mảnh thấp, chữ nhỏ — khối 52px chữ 19px là thứ
    nặng nhất màn, lấn cả tiêu đề. */
-@media (max-width: 419px) {
+@media (max-width: 639px) {
   .hero-cta {
     gap: 8px;
   }
