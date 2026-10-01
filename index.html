@@ -332,111 +332,106 @@
     </section>
 
     <!-- ===== GIỚI THIỆU ===== -->
-    <!-- Lời giới thiệu + ba điểm mạnh + cụm ba mẫu thiệp lơ lửng. Từ lg chia hai
-         cột (chữ trái, cụm thiệp phải); dưới lg xếp dọc chữ → cụm thiệp → điểm
-         mạnh. Style ở .intro-* trong styles/tailwind-src.css. -->
+    <!-- Khách gõ tên hai bạn bên trái; bên phải là khung chat minh hoạ cảnh gửi thiệp,
+         tên vừa gõ hiện ngay lên thiệp trong link và lời mời (js/section-intro.js).
+         Từ lg chia hai cột, dưới lg xếp dọc. Style ở .intro-* trong
+         styles/tailwind-src.css. -->
     <section id="intro" class="intro">
       <div class="intro-wrap">
         <div class="intro-text reveal">
-          <p class="intro-eyebrow">
-            <i data-lucide="heart" style="width:12px;height:12px"></i>
-            Về Cưới Xinh
-          </p>
+          <p class="intro-eyebrow"><span class="intro-eyebrow-dot"></span>Thử ngay · không cần đăng ký</p>
           <h2 class="intro-title font-playfair">
-            <span class="intro-title-brand">Cưới Xinh</span> — mỗi tấm thiệp là
-            một lời mời trọn vẹn
+            Gõ tên hai bạn,
+            <span class="intro-title-brand">xem thiệp tới tay khách</span>
           </h2>
           <p class="intro-lead">
-            Hai bạn tự tay làm thiệp cưới online đẹp và có hồn mà không cần biết
-            thiết kế: chọn một mẫu, kể vài dòng về hai bạn — trợ lý XuXi viết giúp
-            phần chữ — rồi gửi tới từng người thân yêu với tên riêng của họ.
+            Mỗi khách nhận một link riêng, mở ra là thấy tên mình trên thiệp. Gõ tên
+            hai bạn để xem lời mời sẽ tới tay khách ra sao.
           </p>
+
+          <div class="intro-try">
+            <div class="intro-try-row">
+              <div>
+                <label class="intro-label" for="introGroom">Chú rể</label>
+                <input id="introGroom" class="intro-input" type="text" maxlength="20" autocomplete="off" placeholder="Minh Khôi" />
+              </div>
+              <span class="intro-amp" aria-hidden="true">&amp;</span>
+              <div>
+                <label class="intro-label" for="introBride">Cô dâu</label>
+                <input id="introBride" class="intro-input" type="text" maxlength="20" autocomplete="off" placeholder="Thảo My" />
+              </div>
+            </div>
+            <x-button variant="bare" onclick="goCreateDraft(event)" class="intro-cta">
+              Tạo thiệp của hai bạn
+              <i data-lucide="arrow-right" style="width:16px;height:16px"></i>
+            </x-button>
+            <p class="intro-note">Tạo và xem thử miễn phí · chỉ thanh toán khi bạn ưng ý</p>
+          </div>
         </div>
 
-        <!-- Minh hoạ thuần trang trí: khung tin nhắn gửi link thiệp mang tên khách
-             (khách trả lời sau một nhịp) + hai mẫu thật chồng bên phải. -->
-        <div class="intro-art reveal reveal-delay-2" aria-hidden="true">
-          <div class="intro-paper">
-            <p class="intro-paper-title">Mỗi khách một tấm thiệp riêng</p>
-            <div class="intro-chat">
-              <div class="intro-chat-head">
-                <span class="intro-chat-ava">L</span>
-                <span class="intro-chat-name">
-                  Cô Lan
-                  <small>Đang hoạt động</small>
-                </span>
-              </div>
-              <div class="intro-chat-body">
-                <div class="intro-msg intro-msg-out">
-                  <img
-                    src="assets/images/templates/romantic-gold.jpg"
-                    width="780"
-                    height="1386"
-                    alt=""
-                    loading="lazy"
-                  />
-                  <p>
-                    Thân mời Cô Lan &amp; gia đình tới dự lễ cưới của Minh Khôi
-                    &amp; Thảo My
-                  </p>
-                  <small>cuoixinh.com/khoi-my</small>
+        <!-- Minh hoạ: khung chat + hai mẫu thật nép phía sau (ẩn dưới sm). Tin nhắn
+             hiện lần lượt khi khối lọt vào màn. Chỉ dải "Đổi tông" là bấm được. -->
+        <div class="intro-art reveal reveal-delay-2">
+          <span class="intro-stage" aria-hidden="true"></span>
+          <img class="intro-card intro-card-back" src="assets/images/templates/opulent-contrast.jpg" width="780" height="1386" alt="" loading="lazy" />
+          <img class="intro-card intro-card-front" src="assets/images/templates/luminous-pastel.jpg" width="780" height="1386" alt="" loading="lazy" />
+
+          <div class="intro-chat" aria-hidden="true">
+            <div class="intro-chat-head">
+              <span class="intro-chat-ava">KL</span>
+              <span class="intro-chat-name">
+                Khánh Linh
+                <small>Đang hoạt động</small>
+              </span>
+              <span class="intro-chat-tools">
+                <i data-lucide="phone"></i>
+                <i data-lucide="video"></i>
+              </span>
+            </div>
+            <div class="intro-chat-body">
+              <p class="intro-chat-time">20:30</p>
+              <p class="intro-msg intro-msg-out intro-msg-text">Linh ơi, anh chị gửi em thiệp cưới nhé 💌</p>
+              <div class="intro-msg intro-msg-out intro-msg-link">
+                <div class="intro-mini" data-tone="rose">
+                  <p class="intro-mini-k">Lễ thành hôn</p>
+                  <p class="intro-mini-nm" data-intro="groom">Minh Khôi</p>
+                  <p class="intro-mini-and">&amp;</p>
+                  <p class="intro-mini-nm" data-intro="bride">Thảo My</p>
+                  <p class="intro-mini-date">11 · 10 · 2026</p>
                 </div>
-                <div class="intro-msg intro-msg-in">Cô sẽ tới chung vui nhé! 🥰</div>
+                <p class="intro-link-title">
+                  Thân mời em Linh tới dự lễ cưới của
+                  <span data-intro="groom">Minh Khôi</span> &amp;
+                  <span data-intro="bride">Thảo My</span>
+                </p>
+                <p class="intro-link-url" data-intro="url">cuoixinh.com/minhkhoi-thaomy</p>
+                <span class="intro-react">❤️</span>
               </div>
+              <div class="intro-msg-in-slot">
+                <span class="intro-typing"><i></i><i></i><i></i></span>
+                <p class="intro-msg intro-msg-in">
+                  <span class="intro-chat-ava intro-chat-ava-sm">KL</span>
+                  <span class="intro-msg-in-bubble">Ôi chúc mừng anh chị! Em nhất định tới ạ 🥰</span>
+                </p>
+              </div>
+            </div>
+            <div class="intro-chat-foot">
+              <i data-lucide="circle-plus"></i>
+              <i data-lucide="camera"></i>
+              <i data-lucide="image"></i>
+              <span class="intro-chat-input">Aa</span>
+              <i data-lucide="thumbs-up"></i>
             </div>
           </div>
-          <img
-            class="intro-card intro-card-back"
-            src="assets/images/templates/opulent-contrast.jpg"
-            width="780"
-            height="1386"
-            alt=""
-            loading="lazy"
-          />
-          <img
-            class="intro-card intro-card-front"
-            src="assets/images/templates/luminous-pastel.jpg"
-            width="780"
-            height="1386"
-            alt=""
-            loading="lazy"
-          />
-        </div>
 
-        <ul class="intro-pillars">
-          <li class="intro-pillar reveal reveal-delay-1" style="--ip-c: var(--info-1-rgb)">
-            <span class="intro-pillar-ico"><i data-lucide="sparkles"></i></span>
-            <div>
-              <h3 class="intro-pillar-title">Kho mẫu thiệp tinh tế</h3>
-              <p class="intro-pillar-desc">
-                Từ trang nhã cổ điển đến hiện đại điện ảnh. Mẫu nào cũng xem thử
-                trọn vẹn trước khi chọn, đổi mẫu thoải mái lúc dựng thiệp.
-              </p>
-            </div>
-          </li>
-          <li class="intro-pillar reveal reveal-delay-2" style="--ip-c: var(--info-2-rgb)">
-            <span class="intro-pillar-ico"><i data-lucide="palette"></i></span>
-            <div>
-              <h3 class="intro-pillar-title">Cá nhân hoá theo cách của bạn</h3>
-              <p class="intro-pillar-desc">
-                Đổi bộ màu cả thiệp, bấm thẳng vào từng dòng chữ để chỉnh, thêm
-                ảnh cưới, nhạc nền và chi tiết trang trí — không tấm nào giống
-                tấm nào.
-              </p>
-            </div>
-          </li>
-          <li class="intro-pillar reveal reveal-delay-3" style="--ip-c: var(--info-4-rgb)">
-            <span class="intro-pillar-ico"><i data-lucide="send"></i></span>
-            <div>
-              <h3 class="intro-pillar-title">Gửi nhanh, trân trọng từng khách</h3>
-              <p class="intro-pillar-desc">
-                Gửi thiệp trong vài giây qua Zalo, Messenger, Facebook. Mỗi khách
-                một link có tên mình trên thiệp, xác nhận dự tiệc và gửi lời chúc
-                chỉ với một chạm.
-              </p>
-            </div>
-          </li>
-        </ul>
+          <div class="intro-tones" role="group" aria-label="Đổi tông thiệp minh hoạ">
+            <span class="intro-tones-label">Đổi tông</span>
+            <button type="button" class="intro-tone is-on" data-tone="rose" aria-label="Hồng phấn" aria-pressed="true"></button>
+            <button type="button" class="intro-tone" data-tone="forest" aria-label="Xanh rừng" aria-pressed="false"></button>
+            <button type="button" class="intro-tone" data-tone="gold" aria-label="Vàng kim" aria-pressed="false"></button>
+            <button type="button" class="intro-tone" data-tone="night" aria-label="Đêm sang" aria-pressed="false"></button>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -669,6 +664,7 @@
     <script src="core/components/item-template.js"></script>
     <script src="js/scroll-fade.js"></script>
     <script src="js/section-templates.js"></script>
+    <script src="js/section-intro.js"></script>
     <script src="js/section-features.js"></script>
     <script src="js/section-steps.js"></script>
     <script src="js/section-benefits.js"></script>
