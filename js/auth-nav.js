@@ -37,9 +37,10 @@ document.addEventListener("DOMContentLoaded", _initHomeAuth);
 // Nút chung ("Tạo thiệp ngay" ở hero, các mục tạo bằng AI/giọng nói): khách chưa
 // chọn mẫu nào, ta lấy đại mẫu đầu tiên. `chosen: false` để hộp thoại "đang có
 // thiệp viết dở" không bịa ra chuyện khách muốn chuyển sang mẫu đó.
-// params đi kèm sang trang thiết lập qua URL.
-function goCreateDraft(e, params) {
+// params đi kèm sang trang thiết lập qua URL; seed = ô điền sẵn cho thiệp MỚI
+// (xem opts.seed ở core/helpers/draft-start.js).
+function goCreateDraft(e, params, seed) {
   e.preventDefault();
   const first = templates.find((t) => t.status === "active");
-  if (first) createDraft(first.id, { chosen: false, params });
+  if (first) createDraft(first.id, { chosen: false, params, seed });
 }

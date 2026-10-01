@@ -33,6 +33,15 @@
   groom.addEventListener("input", sync);
   bride.addEventListener("input", sync);
 
+  // Nút "Tạo thiệp của hai bạn": tên đã gõ (không lấy placeholder) mang sang thiệp
+  // MỚI. Còn nháp dở thì cxStartDraft vẫn hỏi trước; chọn tiếp tục là tên bị bỏ qua.
+  window.introCreateDraft = function (e) {
+    const seed = {};
+    if (groom.value.trim()) seed.groom_name = groom.value.trim();
+    if (bride.value.trim()) seed.bride_name = bride.value.trim();
+    goCreateDraft(e, null, Object.keys(seed).length ? seed : undefined);
+  };
+
   root.querySelectorAll(".intro-tone").forEach((btn) =>
     btn.addEventListener("click", () => {
       root.querySelectorAll(".intro-toned").forEach((el) => (el.dataset.tone = btn.dataset.tone));

@@ -234,6 +234,10 @@
   --info-6-rgb: 124 189 74;   /* xanh lá */
   --info-7-rgb: 240 178 41;   /* vàng */
   --info-8-rgb: 242 124 92;   /* cam */
+  --info-9-rgb: 214 88 168;   /* hồng cánh sen */
+  --info-10-rgb: 92 128 200;  /* xanh hoàng gia */
+  --info-11-rgb: 46 150 120;  /* xanh rêu */
+  --info-12-rgb: 196 128 64;  /* đồng */
 
   /* Bốn tông "Đổi tông" của thiệp minh hoạ ở mục giới thiệu trang chủ (#intro):
      nền · chữ · nhấn. Thêm tông là thêm một bộ ở đây + một khối [data-tone] trong

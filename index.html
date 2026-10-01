@@ -138,12 +138,21 @@
               </x-button>
               <a href="#templates" class="hero-btn hero-btn-alt">Xem mẫu thiệp</a>
             </div>
-            <!-- Chỉ ghi tính năng CÓ THẬT của sản phẩm — không đưa số liệu chưa đo. -->
+            <!-- Chỉ ghi tính năng CÓ THẬT của sản phẩm — không đưa số liệu chưa đo.
+                 Sáu mục tiêu biểu; danh sách đủ nằm ở #inside (js/section-features.js),
+                 số trong link "Xem đủ" phải khớp số mục ở đó. -->
             <ul class="hero-feats hero-anim hero-anim-4">
               <li><i data-lucide="user-check"></i>Gọi đúng tên từng khách</li>
-              <li><i data-lucide="message-circle-heart"></i>Nhận lời chúc &amp; xác nhận dự tiệc</li>
+              <li><i data-lucide="calendar-check"></i>Xác nhận dự tiệc một chạm</li>
+              <li><i data-lucide="message-circle-heart"></i>Nhận lời chúc từ khách</li>
+              <li><i data-lucide="qr-code"></i>Hộp mừng cưới QR</li>
+              <li><i data-lucide="palette"></i>Đổi màu, sửa chữ tuỳ ý</li>
               <li><i data-lucide="wand-sparkles"></i>Tạo nhanh với AI</li>
             </ul>
+            <a href="#inside" class="hero-feats-more hero-anim hero-anim-4">
+              Xem đủ 12 tính năng
+              <i data-lucide="arrow-down" style="width:14px;height:14px"></i>
+            </a>
           </div>
           <!-- Từ lg: khung iPhone bên phải chiếu lần lượt ảnh chụp màn các mẫu thiệp
                (assets/images/templates/, 390px @2x), js/hero-phone.js đổi tấm mỗi vài giây.
@@ -410,7 +419,7 @@
                 <input id="introBride" class="intro-input" type="text" maxlength="20" autocomplete="off" placeholder="Thảo My" />
               </div>
             </div>
-            <x-button variant="bare" onclick="goCreateDraft(event)" class="intro-cta">
+            <x-button variant="bare" onclick="introCreateDraft(event)" class="intro-cta">
               Tạo thiệp của hai bạn
               <i data-lucide="arrow-right" style="width:16px;height:16px"></i>
             </x-button>
@@ -522,26 +531,6 @@
           <div id="featuresLeft" class="fxr-col fxr-l"></div>
           <div id="featuresRight" class="fxr-col fxr-r"></div>
         </div>
-      </div>
-    </section>
-
-    <!-- ===== HOW IT WORKS ===== -->
-    <section
-      id="steps"
-      class="py-16"
-    >
-      <div class="max-w-5xl mx-auto px-5">
-        <h2
-          class="font-playfair text-3xl md:text-4xl font-semibold text-center mb-12 text-[rgb(var(--text-heading-rgb))]"
-        >
-          4 bước đơn giản
-        </h2>
-
-        <!-- Sơ đồ 4 bước: mỗi bước một hàng so le trái/phải, nối bằng chấm +
-             đường chéo (js/section-steps.js dựng hàng, .stp-* ở
-             styles/tailwind-src.css). Dưới 768px bỏ nhãn lục giác và đường nối,
-             thẻ giãn gần hết khổ. -->
-        <div id="stepsList" class="stp"></div>
       </div>
     </section>
 
@@ -731,7 +720,6 @@
     <script src="js/section-templates.js"></script>
     <script src="js/section-intro.js"></script>
     <script src="js/section-features.js"></script>
-    <script src="js/section-steps.js"></script>
     <script src="js/section-benefits.js"></script>
     <script src="js/section-testimonials.js"></script>
     <script src="js/scroll-reveal.js"></script>

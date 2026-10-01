@@ -88,7 +88,11 @@ async function loadData() {
     if (!localData.theme)
       localData.theme = sessionStorage.getItem("draft_theme") || "basic-gold";
     // Nháp chỉ nằm trên máy thì CHƯA xuất bản được, dù bản lưu mang cờ đó.
-    fillForm(await _withDemoFill({ ...localData, is_published: false }));
+    // `_seed` (ô điền sẵn lúc tạo nháp, core/helpers/draft-start.js) đổ SAU dữ liệu
+    // mẫu để nháp vẫn tính là trắng; lần autosave đầu ghi đè key nên nó tự mất.
+    const { _seed, ...draft } = localData;
+    const filled = await _withDemoFill({ ...draft, is_published: false });
+    fillForm(_seed ? { ...filled, ..._seed } : filled);
     _showContent();
     _cxFormLoaded(await _idbRestoreAll());
     _cxCommitDemoFilled();
