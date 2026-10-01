@@ -137,6 +137,25 @@
               </x-button>
             </div>
           </div>
+          <!-- Từ lg: khung iPhone bên phải chiếu lần lượt ảnh chụp màn các mẫu thiệp
+               (assets/images/templates/, 390px @2x), js/hero-phone.js đổi tấm mỗi vài giây.
+               Chỉ tấm đầu có src; các tấm sau nhận data-src ngay trước lượt của mình. Mọi
+               tấm lazy: dưới lg khung display:none nên mobile không tải tấm nào. -->
+          <div class="hero-phone hero-anim hero-anim-3" aria-hidden="true">
+            <div class="hero-phone-screen">
+              <img class="hero-phone-shot is-on" src="assets/images/templates/romantic-gold.jpg" alt="" loading="lazy" />
+              <img class="hero-phone-shot" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="assets/images/templates/vintage-forest.jpg" alt="" loading="lazy" />
+              <img class="hero-phone-shot" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="assets/images/templates/luminous-pastel.jpg" alt="" loading="lazy" />
+              <img class="hero-phone-shot" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="assets/images/templates/noir-elegance.jpg" alt="" loading="lazy" />
+              <img class="hero-phone-shot" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="assets/images/templates/romantic-blush.jpg" alt="" loading="lazy" />
+              <img class="hero-phone-shot" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="assets/images/templates/serene-parchment.jpg" alt="" loading="lazy" />
+              <img class="hero-phone-shot" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="assets/images/templates/opulent-contrast.jpg" alt="" loading="lazy" />
+              <img class="hero-phone-shot" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="assets/images/templates/moody-cinematic.jpg" alt="" loading="lazy" />
+              <img class="hero-phone-shot" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="assets/images/templates/basic-gold.jpg" alt="" loading="lazy" />
+              <span class="hero-phone-island"></span>
+            </div>
+            <img class="hero-phone-frame" src="assets/images/iphone_mockup.svg" alt="" loading="lazy" />
+          </div>
         </div>
       </div>
     </section>
@@ -601,5 +620,6 @@
     <script src="js/ai-assistant.js"></script>
     <script src="js/hero-fab.js"></script>
     <script src="js/hero-menu.js"></script>
+    <script src="js/hero-phone.js"></script>
   </body>
 </html>

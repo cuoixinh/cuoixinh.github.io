@@ -759,6 +759,88 @@ html.cx-landing {
   }
 }
 
+/* Khung iPhone bên phải màn mở đầu — CHỈ từ lg (js/hero-phone.js đổi ảnh). Thân
+   máy là assets/images/iphone_mockup.svg (383×785, ô màn TRONG SUỐT) phủ lên
+   ảnh; inset của .hero-phone-screen = ô đó, y như .cx-phone-screen ở _setup.css.
+   Ảnh chụp mẫu là khổ 390×693, ô màn hẹp hơn nên `cover` cắt bớt hai mép bên. */
+.hero-phone {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  /* Hai cột bằng nhau: chữ dồn trái, máy đứng giữa cột phải. */
+  .hero-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: center;
+    column-gap: 64px;
+    padding: 0 24px;
+  }
+  .hero-card-body {
+    @apply items-start text-left;
+    padding: 40px 0;
+  }
+  .hero-cta {
+    justify-content: flex-start;
+  }
+  /* Cột chữ hẹp đi một nửa: thiếu chỗ thì cả cụm "· Cưới Xinh" xuống dòng
+     chứ không ngắt giữa tên. */
+  .hero-title-brand {
+    white-space: nowrap;
+  }
+
+  .hero-phone {
+    --hp-h: clamp(440px, calc(var(--vh, 1vh) * 100 - 300px), 640px);
+    --hp-h: clamp(440px, calc(var(--vh, 1svh) * 100 - 300px), 640px);
+    position: relative;
+    display: block;
+    justify-self: center;
+    width: calc(var(--hp-h) * 0.4879);
+    height: var(--hp-h);
+  }
+}
+
+.hero-phone-frame {
+  @apply pointer-events-none absolute inset-0;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 18px 34px rgb(var(--scrim-rgb) / 0.18));
+}
+
+.hero-phone-screen {
+  @apply absolute overflow-hidden;
+  top: 1.53%;
+  left: 3.92%;
+  width: 92.17%;
+  height: 96.94%;
+  border-radius: 14.73% / 6.83%;
+  background: rgb(var(--surface-tint-rgb));
+}
+
+.hero-phone-shot {
+  @apply absolute inset-0 h-full w-full object-cover;
+  opacity: 0;
+  transition: opacity 0.8s ease;
+}
+
+.hero-phone-shot.is-on {
+  opacity: 1;
+}
+
+/* Ảnh thân máy không vẽ tai thỏ — đảo động vẽ ở đây (vỏ thiết bị, không theo
+   bộ màu trang). */
+.hero-phone-island {
+  @apply absolute rounded-full;
+  z-index: 1;
+  top: 1.6%;
+  left: 50%;
+  width: 30%;
+  height: 3.4%;
+  transform: translateX(-50%);
+  background: rgb(var(--scrim-rgb));
+}
+
 /* Màn THẤP (laptop 13 inch, máy xoay ngang): thu các khe cho cụm chữ vừa thẻ.
    Hai cờ .cx-short/.cx-shorter do core/helpers/vh-lock.js đặt theo chiều cao ĐÃ
    KHOÁ — đừng đổi lại thành `@media (max-height)`: media tính theo khung thật,
@@ -812,7 +894,8 @@ html.cx-landing {
   .hero-menu-btn {
     transition: none;
   }
-  .hero-btn {
+  .hero-btn,
+  .hero-phone-shot {
     transition: none;
   }
 }
