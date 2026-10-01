@@ -163,7 +163,7 @@ async function _askMergeLocalDrafts(savedCount) {
     String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
   // Tên cặp đôi nối bằng trái tim thay cho " & " của _draftTitle; nháp chưa đủ hai
   // tên thì rơi về đúng _draftTitle (một tên, hoặc tên mẫu).
-  const heart = `<span style="color:#e11d48;margin:0 4px">&#9829;</span>`;
+  const heart = `<span style="color:rgb(var(--action-primary-rgb));margin:0 4px">&#9829;</span>`;
   const coupleHTML = (d) => {
     const both = [d.groom_name, d.bride_name].filter(Boolean);
     return both.length === 2
@@ -176,7 +176,7 @@ async function _askMergeLocalDrafts(savedCount) {
   const r = await showConfirm(
     "Thiệp nháp trên thiết bị này",
     `Thiết bị này có <b>${asking.length} thiệp nháp</b> chưa đồng bộ vào tài khoản nào:` +
-      `<ul style="margin:8px 0 12px;padding:8px 12px;list-style:none;border-radius:12px;background:rgba(244,63,94,.06)">${names}</ul>` +
+      `<ul style="margin:8px 0 12px;padding:8px 12px;list-style:none;border-radius:12px;background:rgb(var(--action-primary-rgb) / .06)">${names}</ul>` +
       `Bạn có muốn đồng bộ ${asking.length > 1 ? "các thiệp này" : "thiệp này"} vào tài khoản <b>${esc(email)}</b> không?`,
     { type: "info", icon: "file-pen", html: true, confirmText: "Đồng bộ ngay", cancelText: "Không" },
   );
@@ -505,11 +505,6 @@ function matchTab(c, tab) {
 
 // ===== RENDER =====
 
-// Màu chữ do .cx-segtab (styles/_common.css) lo — ở đây chỉ còn nền + bóng của
-// ô đang chọn và cờ .is-on.
-const TAB_ACTIVE = ["bg-rose-pastel-100", "is-on"];
-const TAB_IDLE = [];
-
 function render() {
   // Trang này là nơi DUY NHẤT biết danh sách thiệp trên DB → ghi lại id để ô đếm
   // "Đã chọn" ở navbar các trang khác hiện đúng số mà không phải gọi API.
@@ -524,26 +519,21 @@ function render() {
 
   document.querySelectorAll(".tab-btn").forEach((btn) => {
     const tab = btn.dataset.tab;
-    const on = tab === ACTIVE_TAB;
-    btn.classList.remove(...TAB_ACTIVE, ...TAB_IDLE);
-    btn.classList.add(...(on ? TAB_ACTIVE : TAB_IDLE));
-    const badge = btn.querySelector("[data-count]");
-    badge.textContent = counts[tab];
-    badge.classList.toggle("hidden", !counts[tab]);
+    btn.setAttribute("aria-pressed", String(tab === ACTIVE_TAB));
+    // Rỗng thì .mi-count:empty tự ẩn.
+    btn.querySelector("[data-count]").textContent = counts[tab] || "";
   });
 
   // Số thiệp đã giữ / trần — chỉ có nghĩa khi đã đăng nhập (khách vãng lai chỉ
-  // thấy nháp trên máy, vốn không tính vào trần).
-  const note = document.getElementById("count-note");
-  note.textContent = ` · ${savedCount()}/${CONFIG.maxWeddings} thiệp`;
-  note.classList.toggle("hidden", !currentUser);
+  // thấy nháp trên máy, vốn không tính vào trần). Rỗng thì .tg-count tự ẩn.
+  document.getElementById("count-note").textContent = currentUser
+    ? `${savedCount()}/${CONFIG.maxWeddings} thiệp`
+    : "";
 
   // Nháp chỉ nằm trên máy mà tài khoản này chưa nhận (đã bấm "Không", hoặc đang
   // chờ hộp hỏi gộp thì chưa hiện để khỏi chớp).
   const n = currentUser && !_holdLocalNote ? listLocalDrafts().length : 0;
-  const localNote = document.getElementById("local-drafts-note");
-  localNote.classList.toggle("hidden", !n);
-  localNote.classList.toggle("flex", !!n);
+  document.getElementById("local-drafts-note").classList.toggle("hidden", !n);
   document.getElementById("local-drafts-text").textContent =
     `Thiết bị này còn ${n} thiệp nháp chưa đồng bộ vào tài khoản (chỉ nằm trên trình duyệt này).`;
 
@@ -556,6 +546,7 @@ function render() {
   });
   grid.innerHTML = list.join("");
   window.lucide?.createIcons({ root: grid });
+  _fitFeet(grid);
   paintLocalThumbs(); // ảnh nháp nằm trong IDB → gán sau, không chặn lần vẽ này
 
   if (list.length) setState("grid");
@@ -605,12 +596,9 @@ function setState(state, counts) {
       : "Chưa xuất bản thiệp nào"
     : "Chưa có thiệp nào";
   document.getElementById("empty-desc").textContent = filtered
-    ? "Đổi sang tab “Của tôi” để xem tất cả thiệp."
+    ? "Chọn “Tất cả” để xem mọi thiệp của bạn."
     : "Chọn một mẫu thiệp rồi bắt đầu điền thông tin — chỉ mất vài phút.";
 }
-
-const BADGE =
-  "inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[8px] font-semibold shadow-sm sm:px-2";
 
 // ===== THUMBNAIL CỦA NHÁP TRÊN MÁY =====
 // Nháp chưa đăng nhập chưa đẩy ảnh lên Storage: ảnh còn nằm trong IndexedDB của
@@ -713,81 +701,51 @@ function thumbFallback(img) {
   img.style.display = "none";
 }
 
+function _cardTitle(c) {
+  return [c.groom, c.bride].filter(Boolean).join(" & ") || themeName(c.theme);
+}
+
+// Icon lucide trong chuỗi markup; `size` cố định bằng inline style (CLAUDE.md).
+const _ico = (name, size) =>
+  `<i data-lucide="${name}"${size ? ` style="width:${size}px;height:${size}px"` : ""}></i>`;
+
+// Thẻ: ảnh bìa + chữ ở trên, chân thẻ là MỘT nút chính (theo trạng thái) + nút ⋯.
+// Ảnh và tên là liên kết thật sang trình chỉnh sửa (Tab/Enter đi được, giữ Ctrl
+// để mở tab mới).
 function cardHTML(c, i) {
   const state = cardState(c);
-  const title =
-    [c.groom, c.bride].filter(Boolean).join(" & ") || themeName(c.theme);
-  const days = daysLeft(c);
-
-  const statusBadge = c.published
-    ? `<span class="${BADGE} bg-emerald-500 text-white"><i data-lucide="clipboard-check" style="width:12px;height:12px"></i>Đã xuất bản</span>`
-    : `<span class="${BADGE} bg-gray-100 text-gray-600" title="${escAttr(draftKeepText(c))}"><i data-lucide="pen-tool" style="width:12px;height:12px"></i>Nháp</span>`;
-
-  let leftBadges = "";
-  if (state === "trial" || state === "expired" || state === "published") {
-    leftBadges = `<span class="${BADGE} bg-amber-500 text-white" title="${escAttr(UNPAID_KEEP_TEXT)}"><i data-lucide="credit-card" style="width:12px;height:12px"></i>Chưa kích hoạt</span>`;
-    if (state === "trial") {
-      leftBadges += `<span class="${BADGE} bg-sky-500 text-white"><i data-lucide="clock" style="width:12px;height:12px"></i><span class="sm:hidden">Còn ${days} ngày</span><span class="hidden sm:inline">Dùng thử · còn ${days} ngày</span></span>`;
-    } else if (state === "expired") {
-      leftBadges += `<span class="${BADGE} bg-red-500 text-white"><i data-lucide="clock" style="width:12px;height:12px"></i>Hết hạn</span>`;
-    }
-  } else if (state === "active") {
-    leftBadges = `<span class="${BADGE} bg-emerald-500 text-white"><i data-lucide="circle-check" style="width:12px;height:12px"></i>Đã kích hoạt</span>`;
-  }
-
-  const note = noteHTML(c, state, days, i);
-  const slugRow = c.slug ? slugRowHTML(c, i) : "";
+  const title = _cardTitle(c);
+  const editHref = `/invitation-setup/?id=${encodeURIComponent(c.id)}`;
 
   return `
-    <div class="group flex min-h-[200px] overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm transition-shadow hover:shadow-md">
-      <!-- Cột trái = 2/5 bề ngang thẻ, ảnh bìa CHIẾM TRỌN cột (không lề, không
-           khung tỉ lệ) nên sát mép trái/trên/dưới của thẻ; ảnh dọc bị cắt bớt là
-           đúng ý, object-top giữ phần đầu ảnh. Ô "Chưa có ảnh bìa" nằm dưới ảnh,
-           lộ ra khi thẻ chưa có ảnh hoặc ảnh hỏng. -->
-      <div class="relative w-2/5 shrink-0 cursor-pointer overflow-hidden bg-gray-100" onclick="openEditor(${i})">
-        <div class="absolute inset-0 flex flex-col items-center justify-center gap-1 px-2 text-center text-gray-400">
-          <i data-lucide="image-off" style="width:20px;height:20px"></i>
-          <span class="text-[10px] leading-tight">Chưa có ảnh bìa</span>
-        </div>
-        <img data-thumb="${escAttr(c.id)}" src="${escAttr(c.cover || BLANK_PX)}" alt="${escAttr(title)}"
-             loading="lazy" onerror="thumbFallback(this)"
-             ${c.cover ? "" : 'style="display:none"'}
-             class="absolute inset-0 h-full w-full object-cover object-top transition-transform duration-300 group-hover:scale-[1.04]" />
-      </div>
-
-      <!-- Viền dọc mép trái = ranh giới ảnh ↔ phần chữ (giống .tt-cardbody của
-           thẻ mẫu thiệp, chỉ xoay ngang vì thẻ này chia cột). -->
-      <div class="flex min-w-0 flex-1 flex-col border-l border-[rgb(var(--brand-primary-rgb)/0.22)] p-3 sm:p-4">
-        <!-- Nhãn chuyển hẳn sang cột phải: cột trái chỉ còn 2/5 bề ngang, không
-             đủ chỗ cho một nhãn nguyên dòng. Xếp ngang, hết chỗ thì xuống dòng. -->
-        <div class="mb-1.5 flex flex-wrap items-center gap-1">${statusBadge}${leftBadges}</div>
-
-        <h3 class="cursor-pointer truncate text-[13px] font-bold text-gray-900 hover:opacity-80 sm:text-[15px]" onclick="openEditor(${i})">${esc(title)}</h3>
-
-        <p class="mt-1 flex items-center gap-1.5 text-[10px] text-gray-500">
-          <i data-lucide="palette" class="text-gray-400" style="width:12px;height:12px"></i>
-          <span class="truncate">${esc(themeName(c.theme))}</span>
-          <span class="text-gray-300">·</span>
-          <span class="shrink-0">${formatDate(c.createdAt)}</span>
-        </p>
-
-        <!-- Nêm co giãn: phần dư đẩy khối ghi chú + đường dẫn + hàng nút xuống đáy
-             thẻ, để tiêu đề luôn nằm sát phần đầu. -->
-        <div class="mt-3 flex-1"></div>
-
-        ${note}
-        ${slugRow}
-
-        <div class="mt-2 flex flex-wrap items-center justify-around gap-y-1 border-t border-gray-100 pt-1.5">
-          ${actionsHTML(c, i, state)}
+    <article class="mi-card">
+      <div class="mi-card-top">
+        <a class="mi-thumb" href="${escAttr(editHref)}" aria-label="Mở thiệp ${escAttr(title)}">
+          <span class="mi-thumb-empty">${_ico("image-off")}<span>Chưa có ảnh bìa</span></span>
+          <img data-thumb="${escAttr(c.id)}" src="${escAttr(c.cover || BLANK_PX)}" alt=""
+               loading="lazy" onerror="thumbFallback(this)"
+               ${c.cover ? "" : 'style="display:none"'} />
+        </a>
+        <div class="mi-info">
+          ${tagHTML(c, state)}
+          <h3 class="mi-title"><a href="${escAttr(editHref)}">${esc(title)}</a></h3>
+          <p class="mi-meta">
+            ${_ico("palette")}
+            <span class="truncate">${esc(themeName(c.theme))}</span>
+            <span aria-hidden="true">·</span>
+            <span class="shrink-0">${formatDate(c.createdAt)}</span>
+          </p>
+          ${hintHTML(c, state)}
+          <div class="mi-gap"></div>
+          ${c.slug ? slugRowHTML(c, i) : ""}
         </div>
       </div>
-    </div>`;
+      <div class="mi-card-foot">${footHTML(c, i, state)}</div>
+    </article>`;
 }
 
 // Câu nhắc hạn dọn dẹp tự động — số ngày lấy ở CONFIG.retention, không viết cứng.
-// Dùng cho tooltip của nhãn lẫn dải ghim ở đầu trang, nên chỉ là TEXT thuần
-// (nhét vào title="" được).
+// Dùng cho tooltip lẫn dải ghim ở đầu trang, nên chỉ là TEXT thuần.
 const UNPAID_KEEP_TEXT = `Thiệp chưa thanh toán sẽ tự động xoá sau ${CONFIG.retention.unpaidDays} ngày kể từ khi hết hạn dùng thử.`;
 
 // Nháp trên máy (chưa có bản ghi DB) và nháp đã lưu trên hệ thống có hạn riêng.
@@ -797,138 +755,147 @@ function draftKeepText(c) {
     : `Thiệp nháp chưa xuất bản sẽ tự động xoá sau ${CONFIG.retention.serverDraftDays} ngày kể từ lần lưu gần nhất.`;
 }
 
-// Hiện ở MỌI khổ màn: đây là chỗ duy nhất nói rõ thiệp còn mấy ngày dùng thử /
-// đã hết hạn / bao giờ bị dọn — ẩn trên mobile là khách không biết vì sao thiệp
-// sắp đóng. Mỗi Ý là MỘT khối riêng: khối trạng thái (việc cần làm bây giờ) và
-// khối hạn dọn dẹp (dữ liệu sẽ mất khi nào) — gộp một dòng thì không ai đọc hết.
-function _noteBox(tone, icon, inner) {
+// MỘT nhãn trạng thái mỗi thẻ: tông màu + icon + chữ, chi tiết hạn nằm ở title.
+function tagHTML(c, state) {
+  const days = daysLeft(c);
   const T = {
-    sky: ["bg-sky-50 text-sky-800", "text-sky-500"],
-    red: ["bg-red-50 text-red-700", "text-red-500"],
-    gray: ["bg-gray-50 text-gray-600", "text-gray-400"],
-  }[tone];
-  return `<div class="flex gap-2 rounded-lg ${T[0]} p-2.5 text-[10px] leading-relaxed">
-      <i data-lucide="${icon}" class="mt-0.5 ${T[1]}" style="width:12px;height:12px"></i>
-      <span>${inner}</span>
-    </div>`;
+    draft: ["draft", "pen-line", "Nháp", draftKeepText(c)],
+    trial: ["trial", "clock", `Dùng thử · còn ${days} ngày`, UNPAID_KEEP_TEXT],
+    expired: ["due", "clock-alert", "Hết hạn dùng thử", UNPAID_KEEP_TEXT],
+    published: ["due", "credit-card", "Chưa kích hoạt", UNPAID_KEEP_TEXT],
+    active: ["live", "badge-check", "Đã kích hoạt", ""],
+  }[state];
+  const tip = T[3] ? ` title="${escAttr(T[3])}"` : "";
+  return `<span class="mi-tag mi-tag--${T[0]}"${tip}>${_ico(T[1])}${T[2]}</span>`;
 }
 
-function noteHTML(c, state, days, i) {
-  const boxes = [];
-  if (state === "trial") {
-    // "Thanh toán" mở thẳng bảng thanh toán như nút "Kích hoạt thiệp" ở hàng nút
-    // dưới — câu này là chỗ khách đọc thấy hạn, đừng bắt họ đi tìm nút.
-    boxes.push(
-      _noteBox(
-        "sky",
-        "clock",
-        `Còn ${days} ngày dùng thử -
-        <button type="button" onclick="activateCard(${i})"
-          class="font-semibold underline underline-offset-2 hover:text-sky-900">Thanh toán</button>
-        để giữ thiệp mở.`,
-      ),
-    );
-  } else if (state === "expired" || state === "published") {
-    // Động từ trong câu là LỐI VÀO thanh toán, không phải chữ suông — bấm vào mở
-    // đúng bảng như nút "Kích hoạt thiệp" ở hàng nút dưới.
-    const act = (label) =>
-      `<button type="button" onclick="activateCard(${i})"
-        class="font-semibold underline underline-offset-2 hover:text-red-900">${label}</button>`;
-    boxes.push(
-      _noteBox(
-        "red",
-        "triangle-alert",
-        state === "expired"
-          ? `Hết hạn dùng thử — ${act("kích hoạt")} để mở lại cho khách mời.`
-          : `Thiệp chưa kích hoạt — ${act("thanh toán")} để mở vĩnh viễn.`,
-      ),
-    );
-  } else if (state === "draft") {
-    boxes.push(
-      _noteBox(
-        "gray",
-        "pen-tool",
-        "Bản nháp — xuất bản để chia sẻ với khách mời.",
-      ),
-    );
-  }
-  if (!boxes.length) return "";
-  return `<div class="mt-3 space-y-1.5">${boxes.join("")}</div>`;
+// Một dòng nói hệ quả của trạng thái (việc cần làm nằm ở nút chính bên dưới).
+// Hiện ở MỌI khổ màn: đây là chỗ khách biết vì sao thiệp sắp đóng / sắp bị dọn.
+function hintHTML(c, state) {
+  const H = {
+    draft: c.local
+      ? ["", "hard-drive", "Chỉ lưu trên thiết bị này"]
+      : ["", "send", "Xuất bản để gửi tới khách mời"],
+    trial: ["", "info", "Kích hoạt để thiệp mở vĩnh viễn"],
+    expired: ["warn", "triangle-alert", "Khách mời tạm thời không mở được thiệp"],
+    published: ["warn", "triangle-alert", "Kích hoạt để mở thiệp cho khách mời"],
+  }[state];
+  if (!H) return "";
+  return `<p class="mi-hint${H[0] ? ` mi-hint--${H[0]}` : ""}">${_ico(H[1])}<span>${H[2]}</span></p>`;
 }
 
-// Icon lucide nhúng thẳng (trang dùng Font Awesome cho phần còn lại, nhưng bộ nút
-// này theo lucide như các trang khác). copyLink() đổi qua lại hai icon nên phải
-// thay CẢ NỘI DUNG nút, không đổi được bằng class như icon font.
-const ICON_COPY =
-  '<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>';
-const ICON_SETTINGS =
-  '<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>';
-const ICON_CHECK =
-  '<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
-
-// Hiện ở mọi khổ màn hình: sao chép link là việc chính của thiệp, ẩn trên mobile
-// là mất hẳn lối vào. Nút đổi đường dẫn chỉ có khi CHƯA xuất bản (server cũng chặn).
+// Sao chép link là việc chính của thiệp nên nằm ngay trên thẻ ở mọi khổ màn.
 function slugRowHTML(c, i) {
-  const edit = c.published
-    ? ""
-    : `<x-button variant="ghost" tone="neutral" size="xs" icon-only onclick="openSlugModal(${i})" aria-label="Đổi đường dẫn">${ICON_SETTINGS}</x-button>`;
-  return `<div class="mt-1.5 flex items-center gap-0.5 rounded-lg bg-gray-50 px-2 py-1 sm:px-2.5">
-      <span class="min-w-0 flex-1 truncate font-mono text-[10px] text-gray-600">/${esc(c.slug)}</span>
-      ${edit}
-      <x-button variant="ghost" tone="neutral" size="xs" icon-only onclick="copyLink(${i}, this)" aria-label="Sao chép liên kết">${ICON_COPY}</x-button>
+  return `<div class="mi-slug">
+      <span class="mi-slug-text">/${esc(c.slug)}</span>
+      <x-button variant="bare" icon-only onclick="copyLink(${i}, this)" class="mi-slug-copy"
+        title="Sao chép liên kết" aria-label="Sao chép liên kết">${_ico("copy", 16)}</x-button>
     </div>`;
 }
 
-// Hàng nút cuối thẻ: toàn nút icon-only cỡ bằng nhau, `justify-around` của thẻ
-// rải đều — thẻ 2 nút hay 4 nút đều cân, không nút nào giãn hay bị bóp.
-// Bề ngang thẻ hẹp nhất chỉ ~132px (2 cột, máy 360px) mà riêng "Chỉnh sửa" kèm
-// chữ đã 93px, nên hàng này KHÔNG kèm được nhãn: 4 nút có chữ cần ~272px, tràn
-// ở mọi khổ 3–4 cột. Tên hành động nằm ở title/aria-label.
-// `shrink-0` là bắt buộc: mặc định flex cho co, thiếu nó nút Xoá bị bóp còn 11px.
-const ACTION = "shrink-0";
+// Các việc của một thẻ theo thứ tự ưu tiên. Phần tử đầu là nút CHÍNH — luôn hiện,
+// tô đặc, và là nút đặc DUY NHẤT của thẻ. Phần còn lại trải ra chân thẻ, hết chỗ
+// thì lùi vào menu ⋯, mục cuối lùi trước (_fitFoot). "Xoá" không bao giờ ra ngoài:
+// đứng cạnh nút hay bấm là dễ bấm nhầm. `run` = onclick của nút trên thẻ,
+// `pick(anchor)` = cùng việc đó gọi từ menu (submenu: mở thẻ con Nhà trai/gái).
+function _cardActions(c, i, state) {
+  const live = c.published && c.slug;
+  const view = { id: "view", icon: "eye", label: "Xem", menuLabel: "Xem thiệp", submenu: true, run: `viewCard(${i}, this)`, pick: (a) => viewCard(i, a) };
+  const edit = { id: "edit", icon: "file-pen", label: "Chỉnh sửa", run: `openEditor(${i})`, pick: () => openEditor(i) };
+  const share = { id: "share", icon: "share-2", label: "Chia sẻ", menuLabel: "Chia sẻ thiệp", submenu: true, run: `shareCard(${i}, this)`, pick: (a) => shareCard(i, a) };
+  // Đổi đường dẫn chỉ khi CHƯA xuất bản (server cũng chặn).
+  const slug = { id: "slug", icon: "link-2", label: "Đổi link", menuLabel: "Đổi đường dẫn", run: `openSlugModal(${i})`, pick: () => openSlugModal(i) };
+  const activate = { id: "activate", icon: "credit-card", label: "Kích hoạt thiệp", run: `activateCard(${i})` };
 
-// `icon` = tên icon lucide.
-function _actionBtn(icon, title, onclick, extra = "") {
+  if (state === "trial" || state === "expired" || state === "published")
+    return [activate, live && view, edit, live && share].filter(Boolean);
+  if (live) return [{ ...share, label: "Chia sẻ thiệp" }, view, edit];
+  return [edit, c.slug && slug].filter(Boolean);
+}
+
+function footHTML(c, i, state) {
+  const btns = _cardActions(c, i, state).map(
+    (a, k) =>
+      `<x-button variant="bare" icon="${a.icon}" onclick="${a.run}" data-act="${a.id}"` +
+      ` class="mi-btn ${k === 0 ? "mi-btn--primary" : "mi-btn--soft"}">${a.label}</x-button>`,
+  );
   return (
-    `<x-button variant="ghost" tone="neutral" size="xs" icon-only onclick="${onclick}"` +
-    ` title="${escAttr(title)}" aria-label="${escAttr(title)}" class="${ACTION} ${extra}">` +
-    `<i data-lucide="${icon}" style="width:13px;height:13px"></i>` +
-    `</x-button>`
+    btns.join("") +
+    `<x-button variant="bare" icon-only onclick="openCardMenu(${i}, this)" class="mi-btn mi-btn--more"` +
+    ` aria-haspopup="menu" aria-expanded="false" title="Thao tác khác" aria-label="Thao tác khác">` +
+    `${_ico("ellipsis", 20)}</x-button>`
   );
 }
 
-// Tối đa 4 nút. "Chỉnh sửa" LUÔN có mặt (trước đây thiệp đã xuất bản chỉ vào sửa
-// được bằng cách bấm ảnh/tên — không ai đoán ra); khi cần "Kích hoạt" thì bỏ
-// "Chia sẻ", link vẫn sao chép được ở hàng đường dẫn ngay trên.
-function actionsHTML(c, i, state) {
-  const needsActivate =
-    state === "trial" || state === "expired" || state === "published";
-  const out = [];
-  if (c.published && c.slug) {
-    out.push(_actionBtn("eye", "Xem thiệp", `viewCard(${i}, this)`));
+// Trải nút ra chân thẻ: đo bề rộng TỰ NHIÊN (cờ .is-measuring tắt flex-grow) rồi
+// ẩn dần nút phụ từ cuối tới khi vừa; nút chính và ⋯ không bao giờ ẩn. Khung
+// đang ẩn (khổ 0) thì bỏ qua — ResizeObserver gọi lại khi lưới hiện ra.
+function _fitFoot(foot) {
+  if (!foot.clientWidth) return;
+  const acts = [...foot.querySelectorAll("[data-act]")];
+  acts.forEach((b) => b.classList.remove("hidden"));
+  foot.classList.add("is-measuring");
+  const cs = getComputedStyle(foot);
+  const avail = foot.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+  const gap = parseFloat(cs.columnGap) || 0;
+  let need = [...foot.children].reduce((s, el) => s + el.offsetWidth + gap, -gap);
+  for (let k = acts.length - 1; k > 0 && need > avail; k--) {
+    need -= acts[k].offsetWidth + gap;
+    acts[k].classList.add("hidden");
   }
-  out.push(_actionBtn("pencil", "Chỉnh sửa", `openEditor(${i})`));
-  if (c.published && c.slug && !needsActivate) {
-    out.push(_actionBtn("share-2", "Chia sẻ", `shareCard(${i}, this)`));
+  foot.classList.remove("is-measuring");
+}
+
+// Một observer cho mọi chân thẻ: đổi khổ màn / đổi số cột lưới là xếp lại.
+const _footObserver =
+  typeof ResizeObserver === "function"
+    ? new ResizeObserver((entries) => entries.forEach((e) => _fitFoot(e.target)))
+    : null;
+
+function _fitFeet(grid) {
+  _footObserver?.disconnect(); // thẻ cũ đã bị thay — đừng giữ tham chiếu
+  grid.querySelectorAll(".mi-card-foot").forEach((f) => {
+    _fitFoot(f);
+    _footObserver?.observe(f);
+  });
+}
+
+// Menu ⋯: đúng những nút đang bị ẩn ở chân thẻ (cùng thứ tự) + "Xoá" đứng cuối,
+// tách bằng vạch, tô đỏ. Một popover dùng chung mọi thẻ.
+function openCardMenu(i, btn) {
+  const c = CARDS[i];
+  if (!c) return;
+  document.getElementById("side-link-pop")?.close();
+  let pop = document.getElementById("card-menu-pop");
+  if (!pop) {
+    pop = document.createElement("x-popover");
+    pop.id = "card-menu-pop";
+    pop.setAttribute("placement", "bottom");
+    pop.setAttribute("align", "end");
+    pop.setAttribute("arrow", "");
+    document.body.appendChild(pop);
   }
-  if (needsActivate) {
-    // Kích hoạt là việc cần chú ý nhất trên thẻ → tô cam. Dùng "!" vì class màu của
-    // ghost/neutral cùng độ ưu tiên, không có "!" thì thứ tự trong file CSS quyết định.
-    out.push(
-      _actionBtn(
-        "credit-card",
-        "Kích hoạt thiệp",
-        `activateCard(${i})`,
-        "!text-amber-600 hover:!bg-amber-50 hover:!text-amber-700",
-      ),
-    );
-  }
-  out.push(
-    `<x-button variant="ghost" tone="danger" size="xs" icon-only onclick="deleteCard(${i})"` +
-      ` title="Xoá thiệp" aria-label="Xoá thiệp" class="${ACTION}">` +
-      `<i data-lucide="trash-2" class="text-[11px]" style="width:16px;height:16px"></i></x-button>`,
+  if (pop.isOpen) return pop.close();
+
+  const foot = btn.closest(".mi-card-foot");
+  const hidden = new Set(
+    [...foot.querySelectorAll("[data-act].hidden")].map((b) => b.dataset.act),
   );
-  return out.join("");
+  const items = _cardActions(c, i, cardState(c))
+    .filter((a) => hidden.has(a.id))
+    .map((a) => ({
+      icon: _ico(a.icon, 16),
+      label: a.menuLabel || a.label,
+      submenu: a.submenu,
+      onClick: (e) => a.pick(e.currentTarget),
+    }));
+  if (items.length) items.push({ sep: true });
+  items.push({ id: "card-menu-del", icon: _ico("trash-2", 16), label: "Xoá thiệp", onClick: () => deleteCard(i) });
+
+  pop.setItems(items);
+  document.getElementById("card-menu-del").classList.add("mi-pop-danger");
+  window.lucide?.createIcons({ root: pop });
+  pop.open(btn);
 }
 
 // ===== HÀNH ĐỘNG TRÊN THẺ =====
@@ -945,15 +912,24 @@ function openEditor(i) {
 
 // Mọi nút đụng tới link thiệp (xem · chia sẻ · sao chép) mở popover chọn nhà:
 // link nhà trai là link chung kèm ?isGroom=true (thiệp ưu tiên lễ/tiệc nhà trai).
-// Một popover dùng chung cho mọi thẻ, neo theo nút vừa bấm.
+// Nút trên thẻ → popover thả xuống có mũi tên; mục trong menu ⋯ → thẻ con mở
+// ngang cạnh menu (menu 2 cấp, x-popover lo đóng/mở theo cặp).
 function _pickSide(btn, onPick) {
-  let pop = document.getElementById("side-link-pop");
+  const sub = !!btn.closest("x-popover");
+  const id = sub ? "side-sub-pop" : "side-link-pop";
+  let pop = document.getElementById(id);
   if (!pop) {
     pop = document.createElement("x-popover");
-    pop.id = "side-link-pop";
-    pop.setAttribute("placement", "bottom");
+    pop.id = id;
     pop.setAttribute("align", "end");
-    pop.setAttribute("arrow", "");
+    if (sub) {
+      pop.setAttribute("placement", "right");
+      pop.setAttribute("width", "184");
+      pop.setAttribute("offset", "6");
+    } else {
+      pop.setAttribute("placement", "bottom");
+      pop.setAttribute("arrow", "");
+    }
     document.body.appendChild(pop);
   }
   const ico = (name) =>
@@ -1003,8 +979,12 @@ function copyLink(i, btn) {
   if (!c?.slug) return;
   _pickSide(btn, async (side) => {
     if (!(await _copyText(_sideUrl(c, side)))) return;
-    btn.innerHTML = ICON_CHECK;
-    setTimeout(() => (btn.innerHTML = ICON_COPY), 2000);
+    const swap = (name) => {
+      btn.innerHTML = _ico(name, 16);
+      window.lucide?.createIcons({ root: btn });
+    };
+    swap("check");
+    setTimeout(() => swap("copy"), 2000);
     showToast(`Đã sao chép link thiệp ${_SIDE_NAME[side]}`, "success");
   });
 }
@@ -1173,7 +1153,7 @@ function showHelp() {
     "Quản lý thiệp cưới",
     "Mỗi thẻ là một tấm thiệp. Bấm vào ảnh hoặc tên để mở trình chỉnh sửa.\n" +
       `Thiệp xuất bản được dùng thử ${CONFIG.trialDays} ngày; kích hoạt (thanh toán) để khách mời xem vĩnh viễn.\n` +
-      "Nút bánh răng cạnh đường dẫn dùng để đổi link chia sẻ.",
+      "Nút ⋯ ở chân mỗi thẻ chứa nút Xoá thiệp và những nút không đủ chỗ hiện trên thẻ.",
     "info",
   );
 }

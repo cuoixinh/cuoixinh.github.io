@@ -547,11 +547,11 @@ input.flatpickr-input[readonly] {
 }
 
 .cx-ch-done {
-  @apply -mr-1 text-rose-600 md:mr-0 md:bg-rose-500 md:text-white md:shadow-sm;
+  @apply -mr-1 text-rose-600 md:mr-0 md:bg-rose-600 md:text-white md:shadow-sm;
 }
 
 .cx-ch-done:hover {
-  @apply text-rose-700 md:bg-rose-600 md:text-white;
+  @apply text-rose-700 md:bg-rose-700 md:text-white;
 }
 
 /* "Hoàn tất" của bảng theo tab: chữ trần đối xứng với "Mặc định" bên trái ở
@@ -559,11 +559,11 @@ input.flatpickr-input[readonly] {
 .cx-ch-finish {
   @apply -mr-2 inline-flex shrink-0 items-center whitespace-nowrap rounded-lg px-2 py-1
          text-[13px] font-semibold text-rose-600 transition-[background-color] duration-150
-         md:mr-0 md:h-8 md:rounded-full md:bg-rose-500 md:px-4 md:text-xs md:text-white md:shadow-sm;
+         md:mr-0 md:h-8 md:rounded-full md:bg-rose-600 md:px-4 md:text-xs md:text-white md:shadow-sm;
 }
 
 .cx-ch-finish:hover {
-  @apply bg-rose-50 md:bg-rose-600;
+  @apply bg-rose-50 md:bg-rose-700;
 }
 
 .cx-ch-finish:active {
@@ -1830,78 +1830,810 @@ html.cx-rail-off {
   }
 }
 
-/* ── CỤM THAO TÁC DẠNG Ô (trang Khách mời) ─────────────────────────────────
-   Mỗi ô: icon trong vòng tròn, nhãn ngay dưới; cả cụm nằm trong MỘT block mềm
-   bo 8px. Ô là <x-button variant="bare"> (hoặc <label> cho input file) — bare
-   chỉ giữ hiệu ứng nhấn, hình dạng do mấy luật dưới đây quyết định. */
-/* LUÔN một hàng ở mọi khổ màn: không cho xuống dòng, chật thì các ô cùng co lại
-   (xem .cx-tile) chứ không tụt xuống hàng dưới. */
-.cx-tilebar {
-  /* w-full để màn hẹp dùng hết chỗ (không cắt nhãn khi vẫn còn khoảng trống),
-     max-w giữ cụm khỏi kéo dài lê thê trên desktop. */
-  @apply flex w-full max-w-[360px] flex-nowrap items-stretch gap-0.5
-         rounded-2xl p-1;
+/* ── Trang Quản lý khách mời (invitation-setup/guests) ──────────────────────
+   App shell trong iframe: header .gs-top · thẻ cuộn .gs-card (tab · ô thống kê
+   kiêm bộ lọc · thanh công cụ · danh sách .gs-row) · popup .gs-modal/.gs-sheet.
+   Nút là <x-button>: lớp Tailwind của nó đứng SAU file này, nên luật nào đổi
+   `display` của một x-button phải có độ đặc hiệu ≥ 2 lớp (xem .gs-acts). */
+/* Thanh URL của trình duyệt di động ăn mất đáy nếu dùng 100vh. */
+.gs-shell {
+  height: calc(var(--vh, 1vh) * 100);
+  height: calc(var(--vh, 1svh) * 100);
+}
+.gs-top {
+  @apply flex items-center rounded-3xl border border-gray-100 bg-white;
+  gap: 8px;
+  height: 56px;
+  padding: 0 16px 0 8px;
+  box-shadow: 0 4px 18px rgb(var(--scrim-rgb) / 0.07);
+}
+.gs-top-title {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.25;
+  color: rgb(var(--text-heading-rgb));
+}
+.gs-top-sub {
+  @apply truncate;
+  font-size: 12px;
+  color: rgb(var(--text-caption-rgb));
+}
+.gs-top-sub:empty {
+  display: none;
+}
 
-  /* Cùng màu nền trang thiết lập — cụm chỉ là một mảng mềm chìm trên thẻ trắng. */
+.gs-card {
+  @apply rounded-3xl border border-gray-100 bg-white;
+  box-shadow: 0 4px 18px rgb(var(--scrim-rgb) / 0.07);
+}
+.gs-body {
+  padding: 20px 16px 24px;
+}
+
+/* Tab Nhà trai / Nhà gái: nút cao 40px cho dễ chạm, kèm ô đếm khách. */
+.gs-seg {
+  width: 100%;
+  max-width: 360px;
+}
+.gs-seg .cx-seg-btn {
+  min-height: 40px;
+  font-size: 14px;
+}
+.gs-seg-n {
+  @apply inline-flex items-center justify-center rounded-full;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgb(var(--text-subtle-rgb));
+  background: rgb(var(--surface-control-rgb));
+}
+.gs-seg-n:empty {
+  display: none;
+}
+.cx-seg-btn.is-on .gs-seg-n {
+  color: rgb(var(--action-primary-deep-rgb));
+  background: rgb(var(--surface-brand-rgb));
+}
+
+/* Ô thống kê = nút lọc (aria-pressed): bấm là danh sách chỉ còn khách ở trạng
+   thái đó. 2 cột trên điện thoại, 4 cột từ sm. */
+.gs-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 16px;
+}
+.gs-stat {
+  @apply flex min-w-0 items-center text-left;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 16px;
+  background: rgb(var(--white-rgb));
+  border: 1px solid rgb(var(--brand-primary-rgb) / 0.35);
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+.gs-stat:hover {
+  border-color: rgb(var(--brand-accent-rgb) / 0.5);
+}
+.gs-stat[aria-pressed="true"] {
+  background: rgb(var(--surface-section-rgb));
+  border-color: rgb(var(--action-primary-rgb));
+  box-shadow: 0 6px 16px -8px rgb(var(--shadow-brand-rgb) / 0.4);
+}
+.gs-stat:active {
+  transform: scale(0.98);
+}
+.gs-stat:focus-visible {
+  outline: 2px solid rgb(var(--action-primary-rgb));
+  outline-offset: 2px;
+}
+.gs-stat-ico {
+  @apply flex shrink-0 items-center justify-center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  font-size: 20px;
+  color: rgb(var(--action-primary-deep-rgb));
+  background: rgb(var(--surface-brand-rgb));
+}
+.gs-stat-ico--info {
+  color: rgb(var(--state-info-text-rgb));
+  background: rgb(var(--state-info-bg-rgb));
+}
+.gs-stat-ico--ok {
+  color: rgb(var(--state-success-text-rgb));
+  background: rgb(var(--state-success-tint-rgb));
+}
+.gs-stat-ico--wish {
+  color: rgb(var(--action-primary-deep-rgb));
+  background: rgb(var(--surface-blossom-rgb));
+}
+.gs-stat-txt {
+  @apply flex min-w-0 flex-col;
+}
+.gs-stat-n {
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+  color: rgb(var(--text-heading-rgb));
+}
+.gs-stat-label {
+  @apply truncate;
+  font-size: 12px;
+  font-weight: 500;
+  color: rgb(var(--text-subtle-rgb));
+}
+
+/* Thanh công cụ: dưới sm ô tìm chiếm một hàng, nút xuống hàng dưới (vừa chữ). */
+.gs-toolbar {
+  @apply flex flex-wrap items-center;
+  gap: 8px;
+  margin-top: 16px;
+}
+.gs-search {
+  @apply flex min-w-0 items-center rounded-full;
+  flex: 1 1 100%;
+  gap: 8px;
+  height: 40px;
+  padding: 0 16px;
+  color: rgb(var(--text-caption-rgb));
+  background: rgb(var(--white-rgb));
+  border: 1px solid rgb(var(--text-caption-rgb) / 0.8);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+.gs-search:focus-within {
+  border-color: rgb(var(--action-primary-rgb));
+  box-shadow: 0 0 0 4px rgb(var(--action-primary-rgb) / 0.15);
+}
+.gs-search svg {
+  flex: none;
+}
+/* 16px trên điện thoại: nhỏ hơn là Safari iOS tự zoom khi chạm vào ô. */
+.gs-search input {
+  @apply min-w-0 flex-1 bg-transparent outline-none;
+  font-size: 16px;
+  color: rgb(var(--text-heading-rgb));
+}
+.gs-search input::placeholder {
+  color: rgb(var(--text-caption-rgb));
+}
+.gs-actions {
+  @apply flex items-center;
+  gap: 8px;
+}
+/* Icon "Nhập Excel" màu xanh lá (nhận diện Excel) — lucide giữ class trên <svg>. */
+.gs-excel {
+  color: rgb(var(--state-success-text-rgb));
+}
+/* Ô icon màu của mục menu ⋯ (_popIco): phủ kín .x-pop-ico của x-popover. */
+.gs-pop-ico {
+  @apply flex h-full w-full items-center justify-center;
+  border-radius: inherit;
+}
+.gs-tone-green {
+  color: rgb(var(--state-success-text-rgb));
+  background: rgb(var(--state-success-tint-rgb));
+}
+.gs-tone-blue {
+  color: rgb(var(--state-info-text-rgb));
+  background: rgb(var(--state-info-bg-rgb));
+}
+.gs-tone-amber {
+  color: rgb(var(--tone-amber-rgb));
+  background: rgb(var(--tone-amber-bg-rgb));
+}
+.gs-tone-violet {
+  color: rgb(var(--tone-violet-rgb));
+  background: rgb(var(--tone-violet-bg-rgb));
+}
+.gs-tone-pink {
+  color: rgb(var(--action-primary-deep-rgb));
+  background: rgb(var(--surface-blossom-rgb));
+}
+/* Điện thoại hẹp không đủ chỗ cho ba nút — "Nhập Excel" lùi vào menu ⋯. */
+.gs-actions .gs-act-excel {
+  display: none;
+}
+
+/* Danh sách khách: dưới md mỗi hàng là thẻ hai tầng — (avatar + tên | nút) ở
+   trên, nhãn trạng thái ở dưới thụt theo cột tên. Từ md thành lưới cột thẳng
+   hàng với .gs-head (.gs-meta `display: contents` để nhãn thành ô lưới). */
+.gs-list {
+  margin-top: 16px;
+  overflow: hidden;
+  border-radius: 16px;
+  border: 1px solid rgb(var(--brand-primary-rgb) / 0.35);
+}
+.gs-head {
+  display: none;
+}
+.gs-row {
+  @apply flex flex-wrap items-center;
+  gap: 8px;
+  padding: 12px;
+  border-bottom: 1px solid rgb(var(--brand-primary-rgb) / 0.22);
+  transition: background-color 0.15s ease;
+}
+.gs-row:last-child {
+  border-bottom: 0;
+}
+.gs-row:hover {
+  background: rgb(var(--surface-brand-subtle-rgb) / 0.6);
+}
+.gs-who {
+  @apply flex min-w-0 items-center text-left;
+  flex: 1 1 0;
+  gap: 12px;
+  margin: -4px;
+  padding: 4px;
+  border-radius: 12px;
+}
+.gs-who:hover .gs-name {
+  color: rgb(var(--action-primary-deep-rgb));
+}
+.gs-who:active {
+  background: rgb(var(--surface-brand-rgb));
+}
+.gs-who:focus-visible {
+  outline: 2px solid rgb(var(--action-primary-rgb));
+  outline-offset: -2px;
+}
+.gs-ava {
+  @apply flex shrink-0 items-center justify-center rounded-full;
+  width: 40px;
+  height: 40px;
+  font-size: 15px;
+  font-weight: 600;
+  color: rgb(var(--action-primary-deep-rgb));
+  background: rgb(var(--surface-brand-rgb));
+}
+.gs-ava--groom {
+  color: rgb(var(--state-info-text-rgb));
+  background: rgb(var(--state-info-bg-rgb));
+}
+.gs-ava--bride {
+  color: rgb(var(--action-primary-deep-rgb));
+  background: rgb(var(--surface-blossom-rgb));
+}
+.gs-who-txt {
+  @apply flex min-w-0 flex-col;
+}
+.gs-name {
+  @apply truncate;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgb(var(--text-heading-rgb));
+  transition: color 0.15s ease;
+}
+.gs-sub {
+  @apply truncate;
+  margin-top: 2px;
+  font-size: 12px;
+  color: rgb(var(--text-subtle-rgb));
+}
+.gs-acts {
+  @apply flex shrink-0 items-center justify-end;
+  order: 2;
+  gap: 2px;
+}
+/* Sao chép link nằm trong menu ⋯ ở điện thoại — chừa chỗ cho tên khách. */
+.gs-acts .gs-act-copy {
+  display: none;
+}
+.gs-meta {
+  @apply flex flex-wrap items-center;
+  order: 3;
+  flex: 1 1 100%;
+  gap: 6px;
+  padding-left: 52px;
+}
+.gs-rel {
+  @apply inline-flex items-center rounded-full whitespace-nowrap;
+  height: 24px;
+  padding: 0 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: rgb(var(--text-heading-rgb));
+  background: rgb(var(--surface-control-rgb));
+}
+/* Ô trống: điện thoại bỏ hẳn, bảng từ md hiện "—". */
+.gs-rel--none,
+.gs-dash,
+.gs-chip--wait {
+  display: none;
+}
+.gs-dash {
+  color: rgb(var(--text-disabled-rgb));
+}
+
+/* Nhãn trạng thái: luôn icon + chữ, không chỉ nói bằng màu. */
+.gs-chip {
+  @apply inline-flex items-center rounded-full whitespace-nowrap;
+  gap: 4px;
+  height: 24px;
+  padding: 0 8px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.gs-chip svg {
+  flex: none;
+}
+.gs-chip--info {
+  color: rgb(var(--state-info-text-rgb));
+  background: rgb(var(--state-info-bg-rgb));
+}
+.gs-chip--ok {
+  color: rgb(var(--state-success-text-rgb));
+  background: rgb(var(--state-success-tint-rgb));
+}
+.gs-chip--no {
+  color: rgb(var(--notice-text-rgb));
+  background: rgb(var(--state-error-tint-rgb));
+}
+.gs-chip--muted {
+  color: rgb(var(--text-subtle-rgb));
+  background: rgb(var(--text-caption-rgb) / 0.1);
+}
+/* Số lời chúc là nút mở popup lời chúc. */
+.gs-chip--wish {
+  position: relative;
+  color: rgb(var(--action-primary-deep-rgb));
+  background: rgb(var(--surface-blossom-rgb));
+}
+.gs-chip--wish::after {
+  content: "";
+  position: absolute;
+  inset: -10px -6px;
+}
+.gs-chip--wish:hover {
+  background: rgb(var(--brand-primary-rgb) / 0.5);
+}
+.gs-chip--wish:focus-visible {
+  outline: 2px solid rgb(var(--action-primary-rgb));
+  outline-offset: 2px;
+}
+
+/* x-button không có viền focus riêng — đặt một kiểu cho cả trang. */
+.gs-top button:focus-visible,
+.gs-seg .cx-seg-btn:focus-visible,
+.gs-toolbar button:focus-visible,
+.gs-acts button:focus-visible,
+.gs-pager button:focus-visible,
+.gs-empty button:focus-visible,
+.gs-sheet button:focus-visible,
+.gs-link:focus-visible {
+  outline: 2px solid rgb(var(--action-primary-rgb));
+  outline-offset: 2px;
+}
+
+.gs-sk {
+  display: block;
+  border-radius: 999px;
+  background: rgb(var(--skeleton-base-rgb));
+}
+
+.gs-pager {
+  @apply flex flex-wrap items-center justify-between;
+  gap: 8px;
+  margin-top: 12px;
+}
+.gs-pager-txt {
+  font-size: 13px;
+  color: rgb(var(--text-caption-rgb));
+}
+.gs-pager-txt strong {
+  font-weight: 600;
+  color: rgb(var(--text-heading-rgb));
+}
+.gs-pages {
+  display: none;
+}
+.gs-page-now {
+  padding: 0 4px;
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: rgb(var(--text-heading-rgb));
+}
+.gs-page-dot {
+  width: 24px;
+  text-align: center;
+  font-size: 12px;
+  color: rgb(var(--text-caption-rgb));
+}
+
+.gs-empty {
+  @apply flex flex-col items-center text-center;
+  margin-top: 16px;
+  padding: 40px 16px;
+  border-radius: 20px;
+  border: 1px dashed rgb(var(--brand-primary-rgb) / 0.8);
+  background: rgb(var(--surface-brand-subtle-rgb) / 0.6);
+}
+.gs-empty-ico {
+  @apply flex items-center justify-center rounded-full;
+  width: 56px;
+  height: 56px;
+  color: rgb(var(--action-primary-deep-rgb));
+  background: rgb(var(--surface-brand-rgb));
+}
+.gs-empty-title {
+  margin-top: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  color: rgb(var(--text-heading-rgb));
+}
+.gs-empty-desc {
+  max-width: 360px;
+  margin-top: 4px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: rgb(var(--text-subtle-rgb));
+}
+.gs-empty-acts {
+  @apply flex flex-wrap justify-center;
+  gap: 8px;
+  margin-top: 16px;
+}
+.gs-empty-note {
+  margin-top: 12px;
+  text-align: center;
+  font-size: 13px;
+  color: rgb(var(--text-subtle-rgb));
+}
+.gs-link {
+  padding: 12px 4px;
+  margin: -12px -4px;
+  border-radius: 8px;
+  font-weight: 600;
+  color: rgb(var(--action-primary-deep-rgb));
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* Popup: dưới sm là bottom sheet trồi từ đáy, từ sm là hộp giữa màn. */
+.gs-modal {
+  @apply fixed inset-0 flex items-end justify-center;
+  z-index: 99999;
+  background: rgb(var(--scrim-rgb) / 0.4);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+.gs-sheet {
+  @apply flex w-full flex-col overflow-hidden bg-white;
+  max-height: 90vh;
+  border-radius: 24px 24px 0 0;
+  box-shadow: 0 24px 48px -12px rgb(var(--scrim-rgb) / 0.3);
+  animation: cx-gs-sheet 0.22s ease-out;
+}
+@keyframes cx-gs-sheet {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+.gs-sheet-head {
+  @apply flex items-start;
+  gap: 12px;
+  padding: 20px 20px 16px;
+}
+.gs-sheet-ico {
+  @apply flex shrink-0 items-center justify-center;
+  width: 40px;
+  height: 40px;
+  border-radius: 16px;
+  color: rgb(var(--action-primary-deep-rgb));
+  background: rgb(var(--surface-brand-rgb));
+}
+.gs-sheet-ico--ok {
+  color: rgb(var(--state-success-text-rgb));
+  background: rgb(var(--state-success-tint-rgb));
+}
+.gs-sheet-title {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: rgb(var(--text-heading-rgb));
+}
+.gs-sheet-sub {
+  margin-top: 2px;
+  font-size: 13px;
+  color: rgb(var(--text-caption-rgb));
+}
+.gs-sheet-foot {
+  @apply flex items-center;
+  gap: 8px;
+  padding: 12px 20px calc(12px + env(safe-area-inset-bottom));
+  border-top: 1px solid rgb(var(--divider-rgb));
+  background: rgb(var(--surface-tint-rgb) / 0.6);
+}
+
+.gs-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: rgb(var(--text-subtle-rgb));
+}
+.gs-field {
+  @apply w-full outline-none;
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 12px;
+  font-size: 16px;
+  color: rgb(var(--text-heading-rgb));
+  background: rgb(var(--white-rgb));
+  border: 1px solid rgb(var(--text-caption-rgb) / 0.8);
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+.gs-field::placeholder {
+  color: rgb(var(--text-caption-rgb));
+}
+.gs-field:focus {
+  background: rgb(var(--white-rgb));
+  border-color: rgb(var(--action-primary-rgb));
+  box-shadow: 0 0 0 4px rgb(var(--action-primary-rgb) / 0.15);
+}
+.gs-field[aria-invalid="true"] {
+  border-color: rgb(var(--state-error-text-rgb));
+}
+/* Lỗi nằm ngay dưới ô, kèm icon — không chỉ đổi màu viền. */
+.gs-err {
+  @apply flex items-center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: rgb(var(--notice-text-rgb));
+}
+.gs-err svg {
+  flex: none;
+}
+.gs-map-row {
+  display: grid;
+  gap: 6px;
+}
+
+/* Bảng xem trước file Excel: cuộn ngang trong khung, ô dài cắt bằng "…". */
+.gs-map-table {
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid rgb(var(--border-field-rgb));
+}
+.gs-map-table table {
+  width: 100%;
+  font-size: 12px;
+  text-align: left;
+}
+.gs-map-table th {
+  padding: 8px 12px;
+  white-space: nowrap;
+  font-weight: 600;
+  color: rgb(var(--text-caption-rgb));
   background: rgb(var(--surface-tint-rgb));
 }
-
-/* Các ô CHIA ĐỀU cả bề ngang cụm (`flex-1` + `min-w-0`) nên luôn đúng một hàng
-   và không chừa chỗ thừa ở mép phải. Cao 40px vừa đủ cho vòng icon 20px + khe
-   8px + nhãn 9px, đổi một số thì phải đổi cả bộ. */
-.cx-tile {
-  @apply flex h-10 min-w-0 flex-1 basis-16 cursor-pointer select-none flex-col
-         items-center justify-center gap-2 rounded-2xl px-0.5 text-center
-         transition-colors;
+.gs-map-table td {
+  max-width: 140px;
+  padding: 8px 12px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: rgb(var(--text-heading-rgb));
+  border-top: 1px solid rgb(var(--divider-rgb));
+}
+.gs-map-note {
+  margin-top: 6px;
+  font-size: 12px;
+  color: rgb(var(--text-caption-rgb));
 }
 
-.cx-tile:hover {
-  background: rgb(var(--white-rgb) / 0.75);
+/* Lựa chọn kiểu nhập: cả thẻ là vùng bấm, thẻ đang chọn viền màu nhấn. */
+.gs-radio {
+  @apply flex cursor-pointer items-start;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 16px;
+  border: 1px solid rgb(var(--border-field-rgb));
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+.gs-radio:has(input:checked) {
+  border-color: rgb(var(--action-primary-rgb));
+  background: rgb(var(--surface-brand-subtle-rgb));
+}
+.gs-radio input {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin-top: 2px;
+  accent-color: rgb(var(--action-primary-rgb));
+}
+.gs-radio-title {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgb(var(--text-heading-rgb));
+}
+.gs-radio-desc {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: rgb(var(--text-subtle-rgb));
 }
 
-.cx-tile:focus-visible {
-  outline: 2px solid rgb(var(--focus-ring-rgb));
-  outline-offset: -2px; /* thụt vào trong để không đè lên viền block bọc ngoài */
+/* Khối "Khách sẽ thấy trên thiệp" của popup thêm khách. */
+.gs-preview {
+  overflow: hidden;
+  border-radius: 16px;
+  border: 1px solid rgb(var(--brand-primary-rgb) / 0.5);
+  background: rgb(var(--surface-brand-subtle-rgb));
+}
+.gs-preview-cap {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgb(var(--action-primary-deep-rgb));
+}
+.gs-preview-lead {
+  color: rgb(var(--text-subtle-rgb));
+}
+.gs-preview-rel {
+  font-weight: 600;
+  color: rgb(var(--action-primary-deep-rgb));
+}
+.gs-preview-foot {
+  @apply space-y-2;
+  padding: 10px 12px;
+  border-top: 1px solid rgb(var(--brand-primary-rgb) / 0.4);
+  background: rgb(var(--white-rgb) / 0.7);
 }
 
-/* Vòng icon luôn CÓ MÀU — mặc định là tông brand, ô nào cần phân biệt thì gắn
-   thêm một class tông ở dưới (viết trọn tên để Tailwind purge quét được). */
-.cx-tile-ico {
-  @apply flex h-5 w-5 shrink-0 items-center justify-center rounded-full
-         bg-rose-100 text-[11px] text-rose-600;
+/* Popup lời chúc. */
+.gs-wish {
+  padding: 12px;
+  border-radius: 16px;
+  border: 1px solid rgb(var(--brand-primary-rgb) / 0.35);
+  background: rgb(var(--white-rgb));
+}
+.gs-wish--rsvp {
+  background: rgb(var(--surface-tint-rgb));
+}
+.gs-wish-cap {
+  @apply flex items-center;
+  gap: 6px;
+  margin-bottom: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: rgb(var(--text-caption-rgb));
+}
+.gs-wish-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 14px;
+  line-height: 1.6;
+  color: rgb(var(--text-heading-rgb));
+}
+.gs-wish-time {
+  margin-top: 6px;
+  font-size: 12px;
+  color: rgb(var(--text-caption-rgb));
 }
 
-.cx-tile-sky .cx-tile-ico {
-  @apply bg-sky-100 text-sky-600;
+@media (min-width: 640px) {
+  .gs-body {
+    padding: 24px;
+  }
+  .gs-stats {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .gs-search {
+    flex: 1 1 0;
+  }
+  .gs-actions .gs-act-excel {
+    display: inline-flex;
+  }
+  .gs-pages {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .gs-page-now {
+    display: none;
+  }
+  .gs-search input,
+  .gs-field {
+    font-size: 14px;
+  }
+  .gs-modal {
+    align-items: center;
+    padding: 16px;
+  }
+  .gs-sheet {
+    border-radius: 24px;
+  }
+  .gs-sheet-foot {
+    padding-bottom: 12px;
+  }
+  .gs-map-row {
+    grid-template-columns: 120px minmax(0, 1fr);
+    align-items: center;
+    gap: 12px;
+  }
 }
 
-.cx-tile-amber .cx-tile-ico {
-  @apply bg-amber-100 text-amber-600;
+@media (min-width: 768px) {
+  .gs-head,
+  .gs-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 88px 112px 136px 72px 128px;
+    align-items: center;
+    column-gap: 12px;
+    padding: 12px 16px;
+  }
+  .gs-head {
+    padding-block: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    color: rgb(var(--text-subtle-rgb));
+    background: rgb(var(--surface-brand-subtle-rgb));
+    border-bottom: 1px solid rgb(var(--brand-primary-rgb) / 0.3);
+  }
+  .gs-meta {
+    display: contents;
+  }
+  .gs-acts {
+    order: 0;
+  }
+  .gs-acts .gs-act-copy {
+    display: inline-flex;
+  }
+  .gs-rel {
+    height: auto;
+    padding: 0;
+    font-size: 13px;
+    background: none;
+  }
+  .gs-rel--none,
+  .gs-dash,
+  .gs-chip--wait {
+    display: inline-flex;
+  }
 }
 
-.cx-tile-emerald .cx-tile-ico {
-  @apply bg-emerald-100 text-emerald-600;
-}
-
-.cx-tile-violet .cx-tile-ico {
-  @apply bg-violet-100 text-violet-600;
-}
-
-/* Nhãn chỉ nhỏ ngang vòng icon — cả ô đọc như một khối, chữ không lấn át icon.
-   `truncate` để ô co hết cỡ vẫn không đẩy hàng rộng ra. */
-.cx-tile-label {
-  @apply w-full truncate text-[9px] font-medium leading-none text-gray-600;
-}
-
-/* Ô việc chính (Thêm khách) — vòng icon tô ĐẶC để nổi hẳn khỏi các ô còn lại;
-   nhãn vẫn giữ nguyên cho cả hàng đọc như một dãy. */
-.cx-tile-primary .cx-tile-ico {
-  @apply bg-rose-500 text-white;
+@media (prefers-reduced-motion: reduce) {
+  .gs-stat:active {
+    transform: none;
+  }
+  .gs-sheet {
+    animation: none;
+  }
+  .gs-stat,
+  .gs-row,
+  .gs-search,
+  .gs-field,
+  .gs-radio {
+    transition: none;
+  }
 }
 
 /* Popup thêm khách (invitation-setup/guests): combobox xưng hô cùng khổ với ô nhập cạnh nó. */
 .cx-gm .x-cb-btn {
-  @apply h-10 px-3 rounded-xl border-gray-200 bg-gray-50 text-sm text-gray-800;
+  @apply h-10 px-3 rounded-xl bg-white text-sm;
+  color: rgb(var(--text-heading-rgb));
+  border-color: rgb(var(--text-caption-rgb) / 0.8);
 }
 .cx-gm .x-cb-btn:focus {
   @apply bg-white;

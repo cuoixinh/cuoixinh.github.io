@@ -50,36 +50,54 @@
     style="color: rgb(var(--text-body-rgb))"
   >
     <!-- ===== HERO ===== -->
-    <!-- Màn mở đầu: dải nền kem phủ trọn ảnh ghép các mẫu thiệp (tab "Tạo ảnh bìa" của
-         admin) hiện mờ, nhãn "Thiệp cưới online · Cưới Xinh" + slogan chữ tông tối căn giữa
-         + nút "Tạo thiệp với AI" / "Xem mẫu thiệp" + hàng điểm mạnh. Khối chữ cố ý thấp hơn một màn để mép mục "Mẫu thiệp"
+    <!-- Màn mở đầu: nền là tường ảnh mẫu thiệp chạy ngang (nghiêng nhẹ), thẻ kính mờ chứa
+         nhãn "Thiệp cưới online · Cưới Xinh" + tiêu đề Playfair + mô tả + nút "Tạo thiệp
+         với AI" / "Xem mẫu thiệp" + ba cam kết. Khối chữ cố ý thấp hơn một màn để mép mục "Mẫu thiệp"
          ló ra từ màn đầu — số đo ở .hero-card (styles/tailwind-src.css). -->
     <section id="hero">
-      <!-- Nền của cả dải: ảnh ghép mẫu thiệp hiện mờ + ánh sáng, nằm dưới mọi nội dung.
+      <!-- Nền của cả dải: tường ảnh mẫu + lớp kem + ánh sáng, nằm dưới mọi nội dung.
            Đứng đầu #hero, KHÔNG nằm trong .hero-frame: vỏ đó mang transform (hiệu ứng
            hiện dần) nên lớp absolute bên trong sẽ bị bó theo khổ của nó. -->
       <div class="hero-layers" aria-hidden="true">
-        <!-- Vỏ .hero-media lo parallax theo cuộn, ảnh bên trong lo trôi chậm —
-             tách hai lớp vì cùng dùng transform. Ảnh màn đầu: fetchpriority cao, không lazy.
-             srcset = bộ WebP (nút "Tải WebP trang chủ" ở công cụ Tạo ảnh bìa), JPEG gốc
-             ~1MB chỉ là src dự phòng — ghép lại ảnh bìa thì phải xuất lại cả bộ này.
-             sizes: ảnh phủ `cover` cả dải và tràn 24% (.hero-media-img) nên màn ngang do
-             bề ngang quyết định (≈124vw), màn dọc do chiều cao dải — chốt 1000px cho
-             gọn: ảnh chỉ hiện mờ (opacity 0.05) nên bản 2000w ở máy 2x là đủ nét.
-             Màn dọc KHÔNG viết bằng vh: vh tính theo khung thật, vuốt ẩn thanh URL là
-             trình duyệt đổi sang bản ảnh lớn hơn giữa lúc cuộn. -->
-        <div class="hero-media">
-          <img
-            class="hero-media-img"
-            src="assets/background/started/cuoixinh-cover-3908x2264.jpg"
-            srcset="assets/background/cover/cuoixinh-cover-1200.webp 1200w,
-                    assets/background/cover/cuoixinh-cover-2000.webp 2000w,
-                    assets/background/cover/cuoixinh-cover-2800.webp 2800w"
-            sizes="(min-aspect-ratio: 11/10) 124vw, 1000px"
-            alt=""
-            fetchpriority="high"
-          />
+        <!-- Tường mẫu thiệp: mỗi dải 9 ảnh chụp mẫu (assets/images/templates/), lệch thứ tự
+             giữa các dải (cùng 9 file nên dải thêm không tải thêm); js/hero-wall.js nhân
+             bản cho đủ vòng lặp. -->
+        <div class="hero-wall">
+          <div class="hero-wall-row">
+            <img src="assets/images/templates/romantic-gold.jpg" alt="" loading="lazy" />
+            <img src="assets/images/templates/vintage-forest.jpg" alt="" loading="lazy" />
+            <img src="assets/images/templates/luminous-pastel.jpg" alt="" loading="lazy" />
+            <img src="assets/images/templates/noir-elegance.jpg" alt="" loading="lazy" />
+            <img src="assets/images/templates/romantic-blush.jpg" alt="" loading="lazy" />
+            <img src="assets/images/templates/serene-parchment.jpg" alt="" loading="lazy" />
+            <img src="assets/images/templates/opulent-contrast.jpg" alt="" loading="lazy" />
+            <img src="assets/images/templates/moody-cinematic.jpg" alt="" loading="lazy" />
+            <img src="assets/images/templates/basic-gold.jpg" alt="" loading="lazy" />
+          </div>
+          <div class="hero-wall-row">
+            <img src="assets/images/templates/noir-elegance.jpg" alt="" loading="lazy" />
+            <img src="assets/images/templates/romantic-blush.jpg" alt="" loading="lazy" />
+            <img src="assets/images/templates/serene-parchment.jpg" alt="" loading="lazy" />
+            <img src="assets/images/templates/opulent-contrast.jpg" alt="" loading="lazy" />
+            <img src="assets/images/templates/moody-cinematic.jpg" alt="" loading="lazy" />
+            <img src="assets/images/templates/basic-gold.jpg" alt="" loading="lazy" />
+            <img src="assets/images/templates/romantic-gold.jpg" alt="" loading="lazy" />
+            <img src="assets/images/templates/vintage-forest.jpg" alt="" loading="lazy" />
+            <img src="assets/images/templates/luminous-pastel.jpg" alt="" loading="lazy" />
+          </div>
+          <div class="hero-wall-row">
+            <img src="assets/images/templates/opulent-contrast.jpg" alt="" loading="lazy" />
+            <img src="assets/images/templates/moody-cinematic.jpg" alt="" loading="lazy" />
+            <img src="assets/images/templates/basic-gold.jpg" alt="" loading="lazy" />
+            <img src="assets/images/templates/romantic-gold.jpg" alt="" loading="lazy" />
+            <img src="assets/images/templates/vintage-forest.jpg" alt="" loading="lazy" />
+            <img src="assets/images/templates/luminous-pastel.jpg" alt="" loading="lazy" />
+            <img src="assets/images/templates/noir-elegance.jpg" alt="" loading="lazy" />
+            <img src="assets/images/templates/romantic-blush.jpg" alt="" loading="lazy" />
+            <img src="assets/images/templates/serene-parchment.jpg" alt="" loading="lazy" />
+          </div>
         </div>
+        <div class="hero-veil"></div>
         <!-- Ánh sáng: hai quầng trôi, một vệt quét chéo, vài đốm lấp lánh. -->
         <div class="hero-glow"></div>
         <div class="hero-shine"></div>
@@ -115,8 +133,11 @@
       <div class="hero-frame hero-anim hero-anim-1">
         <div class="hero-card">
           <div class="hero-card-body">
+            <p class="hero-eyebrow hero-anim hero-anim-2">
+              Thiệp cưới online · <span class="hero-title-brand">Cưới Xinh</span>
+            </p>
             <h1 class="hero-title hero-anim hero-anim-2">
-              Thiệp cưới online <span class="hero-title-brand">Cưới Xinh</span>
+              Thiệp mang câu chuyện, <span class="hero-title-em">giữ trọn thanh xuân</span>
             </h1>
             <p class="hero-sub hero-anim hero-anim-3">
               Chọn một mẫu ưng ý, kể đôi dòng về hai bạn — tấm thiệp sẵn sàng gửi
@@ -136,42 +157,14 @@
                 Tạo thiệp với AI
                 <span class="hero-ai-new">New</span>
               </x-button>
-              <a href="#templates" class="hero-btn hero-btn-alt">Xem mẫu thiệp</a>
+              <a href="#templates" class="hero-btn hero-btn-alt"><span>Xem mẫu<span class="hero-btn-long"> thiệp</span></span></a>
             </div>
-            <!-- Chỉ ghi tính năng CÓ THẬT của sản phẩm — không đưa số liệu chưa đo.
-                 Sáu mục tiêu biểu; danh sách đủ nằm ở #inside (js/section-features.js),
-                 số trong link "Xem đủ" phải khớp số mục ở đó. -->
-            <ul class="hero-feats hero-anim hero-anim-4">
-              <li><i data-lucide="user-check"></i>Gọi đúng tên từng khách</li>
-              <li><i data-lucide="calendar-check"></i>Xác nhận dự tiệc một chạm</li>
-              <li><i data-lucide="message-circle-heart"></i>Nhận lời chúc từ khách</li>
-              <li><i data-lucide="qr-code"></i>Hộp mừng cưới QR</li>
-              <li><i data-lucide="palette"></i>Đổi màu, sửa chữ tuỳ ý</li>
-              <li><i data-lucide="wand-sparkles"></i>Tạo nhanh với AI</li>
+            <!-- Ba cam kết ngắn — danh sách tính năng đủ nằm ngay dưới ở #inside. -->
+            <ul class="hero-trust hero-anim hero-anim-4">
+              <li><i data-lucide="check"></i>Dùng thử miễn phí</li>
+              <li><i data-lucide="check"></i>Gửi riêng từng khách</li>
+              <li><i data-lucide="check"></i>Thanh toán một lần</li>
             </ul>
-            <a href="#inside" class="hero-feats-more hero-anim hero-anim-4">
-              Xem đủ 12 tính năng
-              <i data-lucide="arrow-down" style="width:14px;height:14px"></i>
-            </a>
-          </div>
-          <!-- Từ lg: khung iPhone bên phải chiếu lần lượt ảnh chụp màn các mẫu thiệp
-               (assets/images/templates/, 390px @2x), js/hero-phone.js đổi tấm mỗi vài giây.
-               Chỉ tấm đầu có src; các tấm sau nhận data-src ngay trước lượt của mình. Mọi
-               tấm lazy: dưới lg khung display:none nên mobile không tải tấm nào. -->
-          <div class="hero-phone hero-anim hero-anim-3" aria-hidden="true">
-            <div class="hero-phone-screen">
-              <img class="hero-phone-shot is-on" src="assets/images/templates/romantic-gold.jpg" alt="" loading="lazy" />
-              <img class="hero-phone-shot" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="assets/images/templates/vintage-forest.jpg" alt="" loading="lazy" />
-              <img class="hero-phone-shot" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="assets/images/templates/luminous-pastel.jpg" alt="" loading="lazy" />
-              <img class="hero-phone-shot" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="assets/images/templates/noir-elegance.jpg" alt="" loading="lazy" />
-              <img class="hero-phone-shot" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="assets/images/templates/romantic-blush.jpg" alt="" loading="lazy" />
-              <img class="hero-phone-shot" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="assets/images/templates/serene-parchment.jpg" alt="" loading="lazy" />
-              <img class="hero-phone-shot" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="assets/images/templates/opulent-contrast.jpg" alt="" loading="lazy" />
-              <img class="hero-phone-shot" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="assets/images/templates/moody-cinematic.jpg" alt="" loading="lazy" />
-              <img class="hero-phone-shot" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="assets/images/templates/basic-gold.jpg" alt="" loading="lazy" />
-              <span class="hero-phone-island"></span>
-            </div>
-            <img class="hero-phone-frame" src="assets/images/iphone_mockup.svg" alt="" loading="lazy" />
           </div>
         </div>
       </div>
@@ -462,170 +455,203 @@
     </section>
 
     <!-- ===== INSIDE THE INVITATION ===== -->
-    <section id="inside" class="py-16">
+    <section id="inside" class="pt-16 md:pt-24">
       <div class="max-w-6xl mx-auto px-5">
-        <div class="mb-10 md:mb-12 text-center reveal">
+        <div class="mb-10 md:mb-14 text-center reveal">
           <h2
             class="font-playfair text-3xl md:text-4xl font-semibold text-[rgb(var(--text-heading-rgb))]"
           >
             Thiệp của bạn bao gồm tất cả
           </h2>
-          <p class="mt-3 max-w-md mx-auto text-sm leading-relaxed opacity-60">
+          <p class="mt-3 max-w-md mx-auto text-sm md:text-base leading-relaxed text-[rgb(var(--text-caption-rgb))]">
             Mọi thứ cần thiết cho ngày trọng đại, gói gọn trong một tấm thiệp.
           </p>
         </div>
 
-        <!-- Sơ đồ tính năng: hai cột thẻ, vòng icon chen vào mép TRONG của mỗi
-             thẻ nên hai cột chụm vào giữa (js/section-features.js dựng thẻ,
-             .fxr-* ở styles/tailwind-src.css). Mobile giữ nguyên hai cột, chỉ
-             bỏ dòng mô tả cho vừa chỗ. -->
-        <div class="fxr">
-          <div id="featuresLeft" class="fxr-col fxr-l"></div>
-          <div id="featuresRight" class="fxr-col fxr-r"></div>
-        </div>
+        <!-- Lưới bento do js/section-features.js dựng (.ftr-* ở styles/tailwind-src.css). -->
+        <div id="featuresGrid" class="ftr"></div>
       </div>
     </section>
 
     <!-- ===== BENEFITS ===== -->
-    <section id="benefits" class="py-16">
+    <section id="benefits" class="pt-16 md:pt-24">
       <div class="max-w-6xl mx-auto px-5">
-        <div class="mb-10 text-center">
-          <h2
-            class="font-playfair text-3xl md:text-4xl font-semibold text-[rgb(var(--text-heading-rgb))]"
-          >
-            Tại sao chọn Cưới Xinh?
-          </h2>
-          <p class="mt-3 max-w-lg mx-auto text-sm leading-relaxed opacity-60">
-            Thiệp cưới điện tử thông minh — cá nhân hóa từng khách mời, quản lý
-            dễ dàng, thanh toán một lần dùng trọn đời
-          </p>
-        </div>
+        <div class="bnf">
+          <div class="bnf-intro reveal">
+            <span class="bnf-eyebrow"><i data-lucide="sparkles" style="width:14px;height:14px"></i>Vì sao là Cưới Xinh</span>
+            <h2
+              class="mt-4 font-playfair text-3xl md:text-4xl font-semibold leading-tight text-[rgb(var(--text-heading-rgb))]"
+            >
+              Tại sao chọn Cưới Xinh?
+            </h2>
+            <p class="mt-4 max-w-md text-sm md:text-base leading-relaxed text-[rgb(var(--text-caption-rgb))]">
+              Thiệp cưới điện tử thông minh — cá nhân hóa từng khách mời, quản lý
+              dễ dàng, thanh toán một lần dùng trọn đời.
+            </p>
+            <ul class="bnf-points">
+              <li class="bnf-point"><i data-lucide="check"></i>Dùng thử miễn phí, ưng mới trả tiền</li>
+              <li class="bnf-point"><i data-lucide="check"></i>Xong thiệp trong một buổi chiều</li>
+              <li class="bnf-point"><i data-lucide="check"></i>Mở mượt trên mọi điện thoại</li>
+            </ul>
+            <a
+              href="/theme-template/"
+              class="mt-8 inline-flex items-center gap-2 text-sm font-semibold text-[rgb(var(--brand-accent-rgb))] hover:gap-3 transition-all"
+            >
+              Xem các mẫu thiệp
+              <i data-lucide="arrow-right" style="width:16px;height:16px"></i>
+            </a>
+          </div>
 
-        <!-- Thẻ do js/section-benefits.js dựng; dáng thẻ và lưới 2/4 cột nằm ở
-             .bnf-* trong styles/tailwind-src.css. -->
-        <div id="benefitsGrid" class="bnf"></div>
+          <!-- Hàng lợi ích do js/section-benefits.js dựng (.bnf-* ở styles/tailwind-src.css). -->
+          <div id="benefitsGrid" class="bnf-list"></div>
+        </div>
       </div>
     </section>
 
     <!-- ===== TESTIMONIALS ===== -->
-    <section
-      id="testimonials"
-      class="py-16"
-    >
-      <div class="max-w-6xl mx-auto px-5">
-        <div class="mb-10 text-center reveal">
+    <section id="testimonials" class="pt-16 md:pt-24">
+      <div class="max-w-6xl mx-auto">
+        <div class="mb-8 px-5 text-center reveal">
           <h2
             class="font-playfair text-3xl md:text-4xl font-semibold text-[rgb(var(--text-heading-rgb))]"
           >
             Khách hàng nói gì?
           </h2>
-          <p class="mt-3 text-sm opacity-60 max-w-sm mx-auto">
-            Hơn 500 cặp đôi đã tin tưởng tạo thiệp cưới với Cưới Xinh
+          <p class="mt-3 text-sm md:text-base max-w-sm mx-auto text-[rgb(var(--text-caption-rgb))]">
+            Nhiều cặp đôi đã tin tưởng tạo thiệp cưới với Cưới Xinh
           </p>
+          <!-- Điểm trung bình + số lời khen do js/section-testimonials.js tính từ dữ liệu. -->
+          <div class="tst-score">
+            <span id="testimonialsAvg" class="tst-score-num">5,0</span>
+            <span class="tst-score-meta">
+              <span class="tst-stars" aria-hidden="true">
+                <span class="tst-star is-on"><i data-lucide="star" style="width:14px;height:14px"></i></span>
+                <span class="tst-star is-on"><i data-lucide="star" style="width:14px;height:14px"></i></span>
+                <span class="tst-star is-on"><i data-lucide="star" style="width:14px;height:14px"></i></span>
+                <span class="tst-star is-on"><i data-lucide="star" style="width:14px;height:14px"></i></span>
+                <span class="tst-star is-on"><i data-lucide="star" style="width:14px;height:14px"></i></span>
+              </span>
+              <span id="testimonialsCount" class="mt-1 block">từ các cặp đôi đã dùng</span>
+            </span>
+          </div>
         </div>
-        <!-- Thẻ xếp một cột từ trên xuống, cột hẹp lại cho dòng chữ dễ đọc. -->
-        <div
+
+        <ul
           id="testimonialsList"
-          class="mx-auto flex max-w-2xl flex-col gap-5"
-        ></div>
+          class="tst-track"
+          tabindex="0"
+          aria-label="Lời khen của khách hàng — dùng phím mũi tên trái/phải để xem tiếp"
+        ></ul>
+
+        <div class="tst-nav">
+          <x-button id="testimonialsPrev" variant="outline" tone="neutral" icon="chevron-left" icon-only aria-label="Lời khen trước" disabled></x-button>
+          <span id="testimonialsPos" class="tst-pos" aria-live="polite">1 / 1</span>
+          <x-button id="testimonialsNext" variant="outline" tone="brand" icon="chevron-right" icon-only aria-label="Lời khen tiếp theo"></x-button>
+        </div>
       </div>
     </section>
 
     <!-- ===== CTA ===== -->
-    <section id="contact" class="cta-band">
-      <!-- Chữ nước; quầng sáng và vạch vàng mép trên là ::before/::after của .cta-band. -->
-
-      <div class="cta-inner reveal">
-        <h2 class="cta-title font-playfair text-2xl md:text-3xl font-semibold leading-snug mb-4">
-          Bắt đầu tạo thiệp cưới<br />hoàn toàn miễn phí
-        </h2>
-        <p class="cta-sub text-sm mb-8">Chỉ thanh toán khi bạn thật sự ưng ý.</p>
-
-        <x-button
-          variant="bare"
-          onclick="goCreateDraft(event)"
-          class="cta-btn px-9 py-4 gap-2 text-base font-semibold whitespace-nowrap"
-        >
-          Tạo thiệp ngay
-          <i data-lucide="arrow-right" style="width:16px;height:16px"></i>
-        </x-button>
-
-        <div class="cta-perks">
-          <span class="cta-perk"><i data-lucide="check" style="width:14px;height:14px"></i>Dùng thử miễn phí</span>
-          <span class="cta-perk"><i data-lucide="check" style="width:14px;height:14px"></i>Đổi mẫu mọi lúc</span>
-          <span class="cta-perk"><i data-lucide="check" style="width:14px;height:14px"></i>Thanh toán một lần, dùng trọn đời</span>
+    <!-- Thẻ sáng hai cột: lời mời + nút (trái) · ba bước tạo thiệp (phải). .cta-* ở
+         styles/tailwind-src.css. -->
+    <section id="contact" class="pt-16 md:pt-24">
+      <div class="cta-card reveal">
+        <div class="cta-copy">
+          <span class="cta-badge"><i data-lucide="gift" style="width:14px;height:14px"></i>Miễn phí khi dùng thử</span>
+          <h2 class="cta-title mt-4 font-playfair text-3xl md:text-4xl font-semibold leading-tight text-[rgb(var(--text-heading-rgb))]">
+            Bắt đầu tạo thiệp cưới hoàn toàn miễn phí
+          </h2>
+          <p class="mt-4 text-sm md:text-base leading-relaxed text-[rgb(var(--text-caption-rgb))]">
+            Chọn mẫu, điền thông tin, gửi cho khách — chỉ thanh toán khi bạn thật sự ưng ý.
+          </p>
+          <div class="cta-actions mt-8 flex flex-wrap items-center gap-3">
+            <x-button size="lg" onclick="goCreateDraft(event)" class="px-8">
+              Tạo thiệp ngay
+              <i data-lucide="arrow-right" style="width:16px;height:16px"></i>
+            </x-button>
+            <a href="/theme-template/" class="cta-link">Xem mẫu thiệp</a>
+          </div>
+          <ul class="cta-perks">
+            <li><i data-lucide="check" style="width:16px;height:16px"></i>Đổi mẫu mọi lúc</li>
+            <li><i data-lucide="check" style="width:16px;height:16px"></i>Thanh toán một lần, dùng trọn đời</li>
+          </ul>
         </div>
 
+        <ol class="cta-steps">
+          <li class="cta-step">
+            <span class="cta-step-ico"><i data-lucide="layout-template"></i></span>
+            <div>
+              <p class="cta-step-no">Bước 1</p>
+              <p class="cta-step-title">Chọn một mẫu thiệp</p>
+              <p class="cta-step-desc">Xem thử trên điện thoại trước khi chọn.</p>
+            </div>
+          </li>
+          <li class="cta-step">
+            <span class="cta-step-ico"><i data-lucide="pencil-line"></i></span>
+            <div>
+              <p class="cta-step-no">Bước 2</p>
+              <p class="cta-step-title">Điền thông tin hai bạn</p>
+              <p class="cta-step-desc">Hoặc kể vài dòng để XuXi viết giúp.</p>
+            </div>
+          </li>
+          <li class="cta-step">
+            <span class="cta-step-ico"><i data-lucide="send"></i></span>
+            <div>
+              <p class="cta-step-no">Bước 3</p>
+              <p class="cta-step-title">Gửi link cho từng khách</p>
+              <p class="cta-step-desc">Qua Zalo, Messenger — có sẵn tên khách mời.</p>
+            </div>
+          </li>
+        </ol>
       </div>
     </section>
 
     <!-- ===== FOOTER ===== -->
     <!-- pb-[72px] chừa chỗ cho thanh tab dưới (mobile) — chỉ khối CUỐI trang
          cần, để ở <body> thì #hero không tràn được tới mép dưới màn. -->
-    <footer
-      class="bg-white py-10 pb-[72px] md:pb-10"
-    >
+    <footer class="bg-white pt-16 md:pt-24 pb-[72px] md:pb-10">
       <div class="max-w-6xl mx-auto px-5">
-        <div class="grid grid-cols-2 md:grid-cols-3 gap-6 mb-8">
-          <div class="col-span-2 md:col-span-1">
-            <a href="/" class="cx-logo mb-3" aria-label="Cưới Xinh">
+        <div class="grid grid-cols-2 md:grid-cols-12 gap-8 mb-12">
+          <div class="col-span-2 md:col-span-5">
+            <a href="/" class="cx-logo mb-4" aria-label="Cưới Xinh">
               <x-logo size="40"></x-logo>
             </a>
-            <p class="text-sm opacity-50 leading-relaxed">
-              Thiệp cưới online đẹp<br />cho các cặp đôi Việt Nam.
+            <p class="max-w-xs text-sm leading-relaxed text-[rgb(var(--text-caption-rgb))]">
+              Thiệp cưới online đẹp cho các cặp đôi Việt Nam — tạo trong vài phút,
+              gửi tới từng khách mời bằng một đường link.
             </p>
           </div>
-          <div>
-            <h4
-              class="font-semibold text-sm mb-4 text-[rgb(var(--text-heading-rgb))]"
-            >
-              Điều hướng
-            </h4>
-            <ul class="space-y-2 text-sm opacity-60">
-              <li>
-                <a
-                  href="/theme-template/"
-                  class="hover:opacity-100 transition-opacity"
-                  >Mẫu thiệp</a
-                >
-              </li>
-              <li>
-                <a
-                  href="/invitation-setup/"
-                  onclick="goCreateDraft(event)"
-                  class="hover:opacity-100 transition-opacity"
-                  >Tạo thiệp</a
-                >
-              </li>
-              <li>
-                <a
-                  href="/my-invitations/"
-                  class="hover:opacity-100 transition-opacity"
-                  >Quản lý thiệp</a
-                >
-              </li>
+          <div class="md:col-span-3">
+            <h3 class="font-semibold text-sm mb-4 text-[rgb(var(--text-heading-rgb))]">
+              Khám phá
+            </h3>
+            <ul class="space-y-3 text-sm">
+              <li><a href="/theme-template/" class="foot-link">Mẫu thiệp</a></li>
+              <li><a href="/invitation-setup/" onclick="goCreateDraft(event)" class="foot-link">Tạo thiệp</a></li>
+              <li><a href="/my-invitations/" class="foot-link">Quản lý thiệp</a></li>
+              <li><a href="/policy/" class="foot-link">Điều khoản &amp; bảo mật</a></li>
             </ul>
           </div>
-          <div>
-            <h4
-              class="font-semibold text-sm mb-4 text-[rgb(var(--text-heading-rgb))]"
-            >
+          <div class="md:col-span-4">
+            <h3 class="font-semibold text-sm mb-4 text-[rgb(var(--text-heading-rgb))]">
               Liên hệ
-            </h4>
-            <ul class="space-y-2 text-sm opacity-60">
+            </h3>
+            <ul class="space-y-3 text-sm">
               <li>
-                <i data-lucide="mail" class="mr-2 text-xs" style="width:16px;height:16px"></i>admin@cuoixinh.com
+                <a href="mailto:admin@cuoixinh.com" class="foot-link">
+                  <i data-lucide="mail" style="width:16px;height:16px"></i>admin@cuoixinh.com
+                </a>
               </li>
               <li>
-                <i data-lucide="phone" class="mr-2 text-xs" style="width:16px;height:16px"></i>034.884.0032
+                <a href="tel:0348840032" class="foot-link">
+                  <i data-lucide="phone" style="width:16px;height:16px"></i>034.884.0032
+                </a>
               </li>
             </ul>
           </div>
         </div>
-        <div
-          class="border-t border-rose-pastel-200 pt-6 text-center text-xs opacity-40"
-        >
-          <p class="font-cormorant italic text-sm">
+        <div class="border-t border-rose-pastel-200 pt-6 text-center text-[rgb(var(--text-caption-rgb))]">
+          <p class="text-xs">
             © 2026 Cưới Xinh — Tạo kỷ niệm đẹp cho ngày trọng đại.
           </p>
         </div>
@@ -739,6 +765,6 @@
     <script src="js/ai-assistant.js"></script>
     <script src="js/hero-fab.js"></script>
     <script src="js/hero-menu.js"></script>
-    <script src="js/hero-phone.js"></script>
+    <script src="js/hero-wall.js"></script>
   </body>
 </html>

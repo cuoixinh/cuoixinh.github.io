@@ -723,7 +723,7 @@
               <p id="payment-api-error" class="hidden text-xs text-red-500 text-center p-2 bg-red-50 rounded-lg m-0"></p>
               <!-- Mức tiết kiệm ở ngay giây quyết định; ẩn khi bằng 0 (xem _syncSaving). -->
               <p id="payment-saving" class="hidden text-center text-xs font-semibold m-0" style="color:rgb(var(--state-success-text-rgb));"></p>
-              <!-- Nền gradient đè lên bg-rose-500 của fill/brand: cùng một màu
+              <!-- Nền gradient đè lên bg-rose-600 của fill/brand: cùng một màu
                    hành động của site (--action-primary-rgb), chỉ chuyển sang hồng
                    nhấn ở đầu kia nên nút hoà vào bảng màu của trang thay vì là
                    mảng đặc duy nhất. -->

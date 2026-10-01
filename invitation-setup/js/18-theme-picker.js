@@ -83,7 +83,7 @@ async function openThemePicker() {
               </div>
               ${
                 isCurrent
-                  ? `<span class="flex-shrink-0 bg-rose-500 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full">Đang dùng</span>`
+                  ? `<span class="flex-shrink-0 bg-rose-600 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full">Đang dùng</span>`
                   : `<svg class="flex-shrink-0 w-4 h-4 text-gray-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>`
               }
             </button>`;

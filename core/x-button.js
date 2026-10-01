@@ -46,7 +46,7 @@ const _XB_SIZE_ICON = {
 const _XB_BARE = "inline-flex items-center justify-center rounded-full transition-all active:scale-[0.97] disabled:opacity-50 disabled:pointer-events-none";
 
 const _XB_LOOK = {
-  "fill/brand": "bg-rose-500 text-white shadow-sm hover:bg-rose-600",
+  "fill/brand": "bg-rose-600 text-white shadow-sm hover:bg-rose-700",
   "fill/neutral": "bg-gray-700 text-white shadow-sm hover:bg-gray-800",
   "fill/danger": "bg-red-500 text-white shadow-sm hover:bg-red-600",
   "outline/brand": "border border-rose-200 bg-white text-rose-600 hover:bg-rose-50",

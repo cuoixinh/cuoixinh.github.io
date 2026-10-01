@@ -25,106 +25,153 @@
     <script src="../core/helpers/no-zoom.js"></script>
   </head>
   <body
-    class="font-inter text-gray-800 bg-[rgb(var(--surface-tint-rgb))] min-h-screen pb-[72px] md:pb-0 md:pt-20"
+    class="font-inter text-gray-800 bg-white min-h-screen pb-[72px] md:pb-0 md:pt-20"
   >
     <!-- Màn "Khách mời": chọn MỘT thiệp đã xuất bản rồi sang trang quản lý khách
-         mời sẵn có (invitation-setup/guests/?id=…&from=list). Logic ở index.js. -->
-    <main class="mx-auto max-w-6xl px-4 sm:px-6 py-6 sm:py-7">
-      <div class="mb-5 flex items-end justify-between gap-3">
+         mời sẵn có (invitation-setup/guests/?id=…&from=list). Logic ở index.js.
+         Cùng bộ khung với "Quản lý thiệp" (.tg-* đầu trang, thẻ .mi-card). -->
+    <main class="gl-page mx-auto max-w-6xl px-4 pb-12 sm:px-6 lg:px-8">
+      <header class="mi-head">
         <div class="min-w-0">
-          <h1
-            class="font-playfair text-2xl font-semibold tracking-tight text-[rgb(var(--text-heading-rgb))] sm:text-3xl"
-          >
-            Khách mời
-          </h1>
-          <p class="mt-1 text-[13px] text-gray-500">
-            Chọn một thiệp đã xuất bản để xem và quản lý danh sách khách mời.
+          <div class="tg-head-row">
+            <h1 class="tg-title">Khách mời</h1>
+            <!-- Số thiệp đã xuất bản: _glState đổ chữ vào, rỗng thì :empty tự ẩn. -->
+            <span id="gl-count" class="tg-count"></span>
+          </div>
+          <p class="tg-sub">
+            Chọn một thiệp đã xuất bản để thêm khách, gửi link mời gọi đúng tên
+            và theo dõi ai đã xem, ai sẽ đến.
           </p>
         </div>
-        <x-button
-          id="btn-refresh"
-          variant="ghost"
-          tone="neutral"
-          size="sm"
-          icon-only
-          onclick="loadList()"
-          title="Tải lại danh sách"
-          aria-label="Tải lại danh sách"
-          class="hidden shrink-0"
-        >
-          <i data-lucide="refresh-cw" style="width:16px;height:16px"></i>
+        <div class="mi-tools">
+          <!-- Danh sách luôn lấy tươi (listMyWeddings không cache) — nút này chỉ
+               để hỏi lại ngay. Ẩn khi chưa đăng nhập (_glState). -->
+          <x-button
+            id="btn-refresh"
+            variant="bare"
+            icon-only
+            onclick="loadList()"
+            title="Tải lại danh sách"
+            aria-label="Tải lại danh sách"
+            class="mi-tool hidden"
+          >
+            <i data-lucide="refresh-cw" style="width:18px;height:18px"></i>
+          </x-button>
+        </div>
+      </header>
+
+      <!-- Khung xương lúc chờ API: hình khớp .mi-card thật, lặp đủ một hàng lưới. -->
+      <div id="state-loading" class="mi-grid" aria-hidden="true">
+        <div class="mi-card">
+          <div class="mi-card-top">
+            <div class="mi-thumb animate-pulse"></div>
+            <div class="mi-info space-y-2.5">
+              <div class="mi-sk h-6 w-24 animate-pulse"></div>
+              <div class="mi-sk h-4 w-3/4 animate-pulse"></div>
+              <div class="mi-sk h-3 w-1/2 animate-pulse"></div>
+            </div>
+          </div>
+          <div class="mi-card-foot">
+            <div class="mi-sk h-10 flex-1 animate-pulse"></div>
+            <div class="mi-sk h-10 flex-1 animate-pulse"></div>
+          </div>
+        </div>
+        <div class="mi-card hidden md:flex">
+          <div class="mi-card-top">
+            <div class="mi-thumb animate-pulse"></div>
+            <div class="mi-info space-y-2.5">
+              <div class="mi-sk h-6 w-24 animate-pulse"></div>
+              <div class="mi-sk h-4 w-3/4 animate-pulse"></div>
+              <div class="mi-sk h-3 w-1/2 animate-pulse"></div>
+            </div>
+          </div>
+          <div class="mi-card-foot">
+            <div class="mi-sk h-10 flex-1 animate-pulse"></div>
+            <div class="mi-sk h-10 flex-1 animate-pulse"></div>
+          </div>
+        </div>
+        <div class="mi-card hidden xl:flex">
+          <div class="mi-card-top">
+            <div class="mi-thumb animate-pulse"></div>
+            <div class="mi-info space-y-2.5">
+              <div class="mi-sk h-6 w-24 animate-pulse"></div>
+              <div class="mi-sk h-4 w-3/4 animate-pulse"></div>
+              <div class="mi-sk h-3 w-1/2 animate-pulse"></div>
+            </div>
+          </div>
+          <div class="mi-card-foot">
+            <div class="mi-sk h-10 flex-1 animate-pulse"></div>
+            <div class="mi-sk h-10 flex-1 animate-pulse"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="list" class="mi-grid hidden"></div>
+
+      <div id="state-guest" class="tg-empty hidden">
+        <span class="tg-empty-ico"><i data-lucide="user-lock"></i></span>
+        <p class="tg-empty-title">Đăng nhập để quản lý khách mời</p>
+        <p class="tg-empty-desc max-w-sm">
+          Danh sách khách mời gắn với thiệp trong tài khoản của bạn.
+        </p>
+        <x-button variant="bare" icon="log-in" onclick="openLoginPopup()" class="mi-btn mi-btn--primary mt-5">
+          Đăng nhập
         </x-button>
       </div>
 
-      <!-- Khung xương lúc chờ API: cùng khổ thẻ thật nên lưới không nhảy. -->
-      <div id="state-loading" class="gl-grid" aria-hidden="true">
-        <div class="gl-card animate-pulse">
-          <div class="gl-thumb"></div>
-          <div class="min-w-0 flex-1 space-y-2">
-            <div class="h-4 w-2/3 rounded bg-gray-100"></div>
-            <div class="h-3 w-1/2 rounded bg-gray-100"></div>
-          </div>
-        </div>
-        <div class="gl-card animate-pulse">
-          <div class="gl-thumb"></div>
-          <div class="min-w-0 flex-1 space-y-2">
-            <div class="h-4 w-2/3 rounded bg-gray-100"></div>
-            <div class="h-3 w-1/2 rounded bg-gray-100"></div>
-          </div>
-        </div>
-        <div class="gl-card animate-pulse">
-          <div class="gl-thumb"></div>
-          <div class="min-w-0 flex-1 space-y-2">
-            <div class="h-4 w-2/3 rounded bg-gray-100"></div>
-            <div class="h-3 w-1/2 rounded bg-gray-100"></div>
-          </div>
-        </div>
-      </div>
-
-      <div id="list" class="gl-grid hidden"></div>
-
-      <div id="state-guest" class="gl-state hidden">
-        <div class="gl-state-ico">
-          <i data-lucide="user-lock" style="width:20px;height:20px"></i>
-        </div>
-        <p class="font-semibold text-gray-800">Đăng nhập để quản lý khách mời</p>
-        <p class="mx-auto mt-1.5 max-w-sm text-[13px] text-gray-500">
-          Danh sách khách mời gắn với thiệp trong tài khoản của bạn.
-        </p>
-        <x-button size="sm" onclick="openLoginPopup()" class="mt-4">Đăng nhập</x-button>
-      </div>
-
-      <div id="state-empty" class="gl-state hidden">
-        <div class="gl-state-ico">
-          <i data-lucide="users" style="width:20px;height:20px"></i>
-        </div>
-        <p class="font-semibold text-gray-800">Chưa có thiệp nào đã xuất bản</p>
-        <p class="mx-auto mt-1.5 max-w-sm text-[13px] text-gray-500">
+      <div id="state-empty" class="tg-empty hidden">
+        <span class="tg-empty-ico"><i data-lucide="send"></i></span>
+        <p class="tg-empty-title">Chưa có thiệp nào đã xuất bản</p>
+        <p class="tg-empty-desc max-w-sm">
           Xuất bản thiệp để có đường link gửi khách, rồi quay lại đây thêm danh
           sách khách mời.
         </p>
         <x-button
-          size="sm"
+          variant="bare"
           icon="layout-grid"
           onclick="location.href = '/my-invitations/'"
-          class="mt-4"
+          class="mi-btn mi-btn--primary mt-5"
         >
           Xem thiệp của tôi
         </x-button>
       </div>
 
-      <div id="state-error" class="gl-state hidden">
-        <div class="gl-state-ico">
-          <i data-lucide="triangle-alert" style="width:20px;height:20px"></i>
-        </div>
-        <p class="font-semibold text-gray-800">Không tải được danh sách thiệp</p>
-        <p class="mx-auto mt-1.5 max-w-sm text-[13px] text-gray-500">
-          Kiểm tra kết nối mạng rồi thử lại.
+      <div id="state-error" class="tg-empty hidden">
+        <span class="tg-empty-ico mi-ico-error"><i data-lucide="triangle-alert"></i></span>
+        <p class="tg-empty-title">Không tải được danh sách thiệp</p>
+        <p class="tg-empty-desc max-w-sm">
+          Có thể do mất kết nối. Thiệp và khách mời của bạn vẫn còn nguyên — hãy thử lại.
         </p>
-        <x-button variant="outline" size="sm" icon="refresh-cw" onclick="loadList()" class="mt-4">
+        <x-button variant="bare" icon="refresh-cw" onclick="loadList()" class="mi-btn mi-btn--primary mt-5">
           Thử lại
         </x-button>
       </div>
+
+      <!-- Ba bước của tính năng — hiện kèm khối trống / chưa đăng nhập để người mới
+           biết vào đây làm gì (_glState bật/tắt). -->
+      <ol id="gl-steps" class="gl-steps hidden" aria-label="Cách gửi thiệp cho khách">
+        <li class="gl-step">
+          <span class="gl-step-ico"><i data-lucide="user-plus"></i></span>
+          <span>
+            <span class="gl-step-title">1. Thêm khách mời</span>
+            <span class="gl-step-desc">Gõ từng người hoặc nhập cả danh sách từ Excel, tách nhà trai – nhà gái.</span>
+          </span>
+        </li>
+        <li class="gl-step">
+          <span class="gl-step-ico"><i data-lucide="send"></i></span>
+          <span>
+            <span class="gl-step-title">2. Gửi link riêng</span>
+            <span class="gl-step-desc">Mỗi khách một link, mở ra thiệp gọi đúng tên và xưng hô của người đó.</span>
+          </span>
+        </li>
+        <li class="gl-step">
+          <span class="gl-step-ico"><i data-lucide="calendar-check"></i></span>
+          <span>
+            <span class="gl-step-title">3. Theo dõi phản hồi</span>
+            <span class="gl-step-desc">Biết ai đã xem thiệp, ai xác nhận tham dự và đọc lời chúc của khách.</span>
+          </span>
+        </li>
+      </ol>
     </main>
 
     <script src="https://unpkg.com/lucide@1.26.0/dist/umd/lucide.min.js" integrity="sha384-8/6sFI5UzGbr1Dgef7WSZvE4UemcVc/jyaQNsM+MilmnHQ9sce/pRv86XXj5Cg5m" crossorigin="anonymous"></script>

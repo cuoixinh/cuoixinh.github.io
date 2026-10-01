@@ -303,8 +303,8 @@ function _setDirty(dirty, tab) {
     draft.classList.toggle("bg-white", !dirty);
   }
   if (publish) {
-    publish.classList.toggle("bg-rose-600", dirty);
-    publish.classList.toggle("bg-rose-500", !dirty);
+    publish.classList.toggle("bg-rose-700", dirty);
+    publish.classList.toggle("bg-rose-600", !dirty);
   }
 
   _updateDirtyMarks();
