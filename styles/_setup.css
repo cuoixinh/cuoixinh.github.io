@@ -1455,36 +1455,6 @@ button.cx-add-tile-sm {
   @apply text-xs leading-relaxed text-gray-500;
 }
 
-/* Mục có công tắc (nhạc nền): cờ .is-off do _updateVisUI() đặt — thân mờ và
-   khoá bấm, dòng báo đang tắt hiện dưới mô tả. */
-.cx-cfg-offnote {
-  @apply mt-1 text-xs font-medium text-amber-600;
-
-  display: none;
-}
-
-.cx-cfg-sec.is-off .cx-cfg-offnote {
-  display: block;
-}
-
-.cx-cfg-sec.is-off .cx-cfg-body {
-  opacity: 0.45;
-  pointer-events: none;
-}
-
-/* Thẻ bài nhạc đang chọn: trình phát trên, tên dưới (điện thoại); từ sm trình
-   phát thu thành cột trái cố định để video không chiếm cả khung. */
-.cx-cfg-song {
-  @apply flex flex-col gap-3 rounded-2xl p-3 sm:flex-row sm:items-start;
-
-  background: rgb(var(--surface-tint-rgb));
-  border: 1px solid rgb(var(--border-subtle-rgb));
-}
-
-.cx-cfg-song-media {
-  @apply w-full shrink-0 sm:w-60;
-}
-
 /* Một dòng link thiệp (nhà trai/nhà gái) kèm nút sao chép. */
 .cx-cfg-link {
   @apply flex items-center gap-3 rounded-2xl px-4 py-3;
@@ -2291,7 +2261,7 @@ html.cx-rail-off {
    App shell trong iframe: header .gs-top · thẻ cuộn .gs-card (tab · ô thống kê
    kiêm bộ lọc · thanh công cụ · danh sách .gs-row) · popup .gs-modal/.gs-sheet.
    Nút là <x-button>: lớp Tailwind của nó đứng SAU file này, nên luật nào đổi
-   `display` của một x-button phải có độ đặc hiệu ≥ 2 lớp. */
+   `display` của một x-button phải có độ đặc hiệu ≥ 2 lớp (xem .gs-acts). */
 /* Thanh URL của trình duyệt di động ăn mất đáy nếu dùng 100vh. */
 .gs-shell {
   height: calc(var(--vh, 1vh) * 100);
@@ -2580,6 +2550,10 @@ html.cx-rail-off {
   @apply flex shrink-0 items-center justify-end;
   order: 2;
   gap: 2px;
+}
+/* Sao chép link nằm trong menu ⋯ ở điện thoại — chừa chỗ cho tên khách. */
+.gs-acts .gs-act-copy {
+  display: none;
 }
 .gs-meta {
   @apply flex flex-wrap items-center;
@@ -3049,6 +3023,9 @@ html.cx-rail-off {
   }
   .gs-acts {
     order: 0;
+  }
+  .gs-acts .gs-act-copy {
+    display: inline-flex;
   }
   .gs-rel {
     height: auto;

@@ -48,9 +48,6 @@
     refresh:
       '<path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/>' +
       '<path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/>',
-    swap:
-      '<path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/>' +
-      '<path d="M20 17H4"/>',
   };
 
   function _fill(name) {
@@ -107,6 +104,34 @@
   // opts.items = các mục của menu ba chấm ([] thì nút vẫn có, bấm ra menu rỗng
   // nên ẩn luôn nút cho gọn). `label` có thể là hàm — tính lại mỗi lần mở menu,
   // cho mục đổi chữ theo trạng thái của trang gọi.
+  // opts.seg = {label, items:[{value,label}], value, onChange(value)} — thanh
+  // phân đoạn nhỏ bên phải tên (tên dồn trái); đổi từ ngoài bằng setSeg().
+  function _segHtml(seg) {
+    if (!seg || !seg.items || !seg.items.length) return "";
+    return (
+      '<span class="cx-pchrome-seg" role="radiogroup" aria-label="' +
+      _esc(seg.label || "") +
+      '">' +
+      seg.items
+        .map(function (it) {
+          const on = it.value === seg.value;
+          return (
+            '<button type="button" class="cx-pchrome-segbtn' +
+            (on ? " is-on" : "") +
+            '" role="radio" aria-checked="' +
+            on +
+            '" data-act="seg" data-v="' +
+            _esc(it.value) +
+            '">' +
+            _esc(it.label) +
+            "</button>"
+          );
+        })
+        .join("") +
+      "</span>"
+    );
+  }
+
   function html(opts) {
     const o = opts || {};
     const items = o.items || [];
@@ -125,7 +150,9 @@
       _fill("battery") +
       "</span>" +
       "</div>" +
-      '<div class="cx-pchrome-bar">' +
+      '<div class="cx-pchrome-bar' +
+      (o.seg ? " has-seg" : "") +
+      '">' +
       "<" +
       backTag +
       ' class="cx-pchrome-btn"' +
@@ -140,6 +167,7 @@
       '<span class="cx-pchrome-name">' +
       _esc(o.title || "") +
       "</span>" +
+      _segHtml(o.seg) +
       (items.length
         ? '<button type="button" class="cx-pchrome-btn" data-act="more"' +
           ' aria-label="Tùy chọn" aria-haspopup="menu" aria-expanded="false">' +
@@ -210,6 +238,17 @@
       toggle(false);
       if (act === "back") return o.back();
       if (act === "item") items[+btn.dataset.i]?.onClick?.();
+      if (act === "seg") o.seg?.onChange?.(btn.dataset.v);
+    });
+  }
+
+  // Tô lại thanh phân đoạn theo giá trị mới. Không truyền root thì mọi khung.
+  function setSeg(value, root) {
+    const scope = root || document;
+    scope.querySelectorAll(".cx-pchrome-segbtn").forEach(function (b) {
+      const on = b.dataset.v === value;
+      b.classList.toggle("is-on", on);
+      b.setAttribute("aria-checked", String(on));
     });
   }
 
@@ -227,5 +266,6 @@
     mount: mount,
     wire: wire,
     setTitle: setTitle,
+    setSeg: setSeg,
   };
 })();

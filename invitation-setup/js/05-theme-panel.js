@@ -2832,8 +2832,7 @@ function _syncSlugSaveBtn() {
   const btn = input?.closest("x-input")?.querySelector('button[onclick^="applySlug"]');
   if (btn) btn.hidden = _isLocalDraft || IS_PUBLISHED;
   const tip = document.getElementById("slug-lock-tip");
-  // Lớp "hidden" chứ không phải thuộc tính: inline-flex của x-button đè mất [hidden].
-  if (tip) tip.classList.toggle("hidden", !IS_PUBLISHED);
+  if (tip) tip.hidden = !IS_PUBLISHED;
   if (!input) return;
   input.disabled = IS_PUBLISHED;
   input.classList.toggle("cursor-not-allowed", IS_PUBLISHED);
@@ -2893,7 +2892,7 @@ function showMergeFieldsHelp() {
   showDialog({
     type: "info",
     icon: "braces",
-    title: "Các biến trộn",
+    title: "Danh sách trường trộn",
     html: true,
     message: `Khi chia sẻ, mỗi trường dưới đây được thay bằng thông tin của từng khách:${rows}`,
   });
@@ -2925,25 +2924,26 @@ function _pickShareTemplate() {
   return list[i];
 }
 
-// Một nút cho cả hai việc: ô đang chứa câu bốc từ danh sách thì ghi "Đổi mẫu",
-// gõ tay / câu của XuXi thì về "Chèn mẫu". Nhãn ngắn để vừa một hàng ở 375px.
-function _syncShareTplBtn(fromList) {
-  const label = document.getElementById("share-template-label");
-  if (label) label.textContent = fromList ? "Đổi mẫu" : "Chèn mẫu";
-}
-
-// Chèn 1 câu mẫu ngẫu nhiên (set trực tiếp .value → không kích hoạt oninput nên nhãn giữ "Đổi mẫu")
-function insertShareTemplate() {
+// Chèn 1 câu mẫu ngẫu nhiên (set trực tiếp .value → không kích hoạt oninput nên nút "Đổi mẫu" vẫn hiện)
+function _fillShareTemplate() {
   const el = document.getElementById("share-message-template");
   if (!el) return;
   el.value = _pickShareTemplate();
-  _syncShareTplBtn(true);
+  document.getElementById("share-template-refresh")?.classList.remove("hidden");
   el.closest("x-input, x-textarea")?.syncClearBtn?.();
   _scheduleAutoSave("config");
 }
 
+function insertShareTemplate() {
+  _fillShareTemplate();
+} // nút "Chèn mẫu"
+function refreshShareTemplate() {
+  _fillShareTemplate();
+} // nút "Đổi mẫu khác"
+
+// Gõ tay vào ô câu mẫu → ẩn nút "Đổi mẫu" (nút này chỉ dành cho luồng Chèn mẫu)
 function onShareTemplateInput() {
-  _syncShareTplBtn(false);
+  document.getElementById("share-template-refresh")?.classList.add("hidden");
   _scheduleAutoSave("config");
 }
 

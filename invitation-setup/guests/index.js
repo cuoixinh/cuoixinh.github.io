@@ -769,11 +769,11 @@ function _rowHTML(g, side) {
       </div>
       <div class="gs-acts">
         ${link ? `
-        <x-button variant="ghost" tone="neutral" size="sm" icon-only type="button" class="gs-act" data-link="${link}"
+        <x-button variant="ghost" tone="neutral" icon-only type="button" class="gs-act gs-act-copy" data-link="${link}"
           data-action="copy" title="Sao chép link mời" aria-label="Sao chép link mời">${_ico("copy")}</x-button>
-        <x-button variant="ghost" tone="neutral" size="sm" icon-only type="button" class="gs-act" data-guest-id="${id}" data-side="${side}"
-          data-action="share" title="Chia sẻ link mời" aria-label="Chia sẻ link mời">${_ico("share-2")}</x-button>` : ""}
-        <x-button variant="ghost" tone="neutral" size="sm" icon-only type="button" class="gs-act" data-guest-id="${id}" data-side="${side}"
+        <x-button variant="ghost" tone="brand" icon-only type="button" class="gs-act" data-guest-id="${id}" data-side="${side}"
+          data-action="share" title="Gửi link mời" aria-label="Gửi link mời">${_ico("send")}</x-button>` : ""}
+        <x-button variant="ghost" tone="neutral" icon-only type="button" class="gs-act" data-guest-id="${id}" data-side="${side}"
           data-action="menu" title="Thao tác khác" aria-label="Thao tác khác" aria-haspopup="menu">${_ico("ellipsis-vertical")}</x-button>
       </div>
     </div>`;
@@ -862,8 +862,8 @@ function _openShareModal(guestId, side) {
   if (!guest || !guest.link) { showToast("Khách này chưa có link", "warning"); return; }
 
   const name = guest.display_name || guest.full_name || "";
-  // Chủ thiệp để trống câu mẫu → dùng câu mặc định (core/constant.js).
-  const tpl = _wedding?.share_message_template?.trim() || window.SHARE_MESSAGE_DEFAULT || "";
+  const tpl = _wedding?.share_message_template;
+  // Có câu mẫu → trộn thông tin khách; không có → dùng câu mặc định của ShareSocial
   const message = tpl
     ? ShareSocial.renderTemplate(tpl, {
         relationship: guest.relationship || "Bạn",
@@ -888,8 +888,13 @@ function _openRowMenu(triggerEl, guestId, side) {
   // Bấm lại đúng nút đang mở menu thì đóng.
   if (pop.isOpen && pop._anchorEl === triggerEl) { pop.close(); return; }
 
-  // Sao chép / chia sẻ link đã nằm thẳng ngoài hàng (.gs-acts) nên menu không lặp lại.
   const items = [];
+  if (guest.link) {
+    items.push(
+      { icon: _popIco("copy", "gs-tone-blue"), label: "Sao chép link mời", onClick: () => copyGuestLink(guest.link) },
+      { icon: _popIco("external-link", "gs-tone-violet"), label: "Xem thiệp của khách", onClick: () => window.open(guest.link, "_blank", "noopener") },
+    );
+  }
   if (_guestNoteCount(guest)) {
     items.push({ icon: _popIco("message-square-heart", "gs-tone-pink"), label: "Xem lời chúc", onClick: () => _openWishesModal(guest.id, side) });
   }

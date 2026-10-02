@@ -1696,6 +1696,48 @@ x-button {
   text-overflow: ellipsis;
 }
 
+/* Có thanh phân đoạn (opts.seg) thì tên dồn trái nhường chỗ cho nó. */
+.cx-pchrome-bar.has-seg .cx-pchrome-name {
+  text-align: left;
+  font-size: calc(15px * var(--cx-pu));
+}
+
+/* Thanh phân đoạn kiểu iOS: nền xám, nút đang chọn là viên trắng nổi. */
+.cx-pchrome-seg {
+  display: inline-flex;
+  flex: none;
+  padding: calc(2px * var(--cx-pu));
+  border-radius: 999px;
+  background: #ececf0;
+}
+
+.cx-pchrome-segbtn {
+  padding: calc(5px * var(--cx-pu)) calc(10px * var(--cx-pu));
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #8e8e93;
+  font: inherit;
+  font-size: calc(12px * var(--cx-pu));
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.cx-pchrome-segbtn:hover {
+  color: #3a3a3c;
+}
+
+.cx-pchrome-segbtn.is-on {
+  background: #fff;
+  color: #e11d48;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.14);
+}
+
 /* Cùng một hình cho nút thật lẫn ô CHỈ ĐỂ NHÌN (thẻ <span> khi trang gọi không
    khai việc cho nó) — thanh tiêu đề phải cân như nhau ở mọi khung. */
 .cx-pchrome-btn {
