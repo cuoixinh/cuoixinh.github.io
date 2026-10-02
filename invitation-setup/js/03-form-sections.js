@@ -27,6 +27,9 @@ function _updateVisUI(section, enabled) {
   const btn = document.getElementById(`vis-btn-${section}`);
   const knob = document.getElementById(`vis-knob-${section}`);
   if (!btn || !knob) return;
+  btn.setAttribute("aria-checked", String(enabled));
+  // Mục ở tab Cấu hình (nhạc nền) mờ phần thân khi tắt — xem .cx-cfg-sec.
+  document.getElementById(`cfg-${section}`)?.classList.toggle("is-off", !enabled);
   if (enabled) {
     btn.classList.remove("bg-gray-300");
     btn.classList.add("bg-rose-400");

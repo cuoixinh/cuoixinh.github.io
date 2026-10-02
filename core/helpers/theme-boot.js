@@ -145,7 +145,7 @@ function _cxPreviewShell() {
 // Khai báo chrome của khung máy: quay lại (về kho mẫu nếu mở thẳng bằng link)
 // và một mục menu duy nhất — chọn luôn mẫu đang xem.
 //
-// `source=live` = thiệp CỦA KHÁCH mở từ trang Thiết lập ("Mở tab mới"), không
+// `source=live` = thiệp CỦA KHÁCH nạp từ trang Thiết lập (các khung xem thử), không
 // phải mẫu đang chào bán → menu rỗng, mời chọn mẫu ở đó là lạc chỗ. `live` =
 // thiệp thật khách mời đang xem → cũng menu rỗng, và không có nút quay lại vì
 // link thiệp thường mở thẳng từ Zalo/Messenger, chẳng có kho mẫu để lùi về.

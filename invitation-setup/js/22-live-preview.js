@@ -163,22 +163,31 @@ function _cxPreviewReload() {
 }
 
 // Menu ba chấm ở đây KHÔNG có "Chọn mẫu này" như bản xem thử — khách đang chỉnh
-// thiệp của mình rồi — mà là hai việc với chính khung đang nhìn. Mũi tên quay
-// lại không khai việc gì: trang Thiết lập không có chỗ nào để quay về, nhưng bỏ
-// nó đi thì thanh tiêu đề lệch hẳn so với máy thật.
+// thiệp của mình rồi — mà là các việc với chính khung đang nhìn, kể cả đổi bên
+// thiệp (nhà trai ↔ nhà gái, _cxPreviewSide dùng chung mọi khung — khung khác
+// nhận bên mới ở lần nạp sau). Mũi tên quay lại không khai việc gì: trang Thiết
+// lập không có chỗ nào để quay về, nhưng bỏ nó đi thì thanh tiêu đề lệch hẳn.
 function _cxChromeOpts(reload) {
   return {
     title: _cxPhoneTitle(),
     items: [
-      { label: "Tải lại", icon: "refresh", onClick: reload },
       {
-        label: "Mở tab mới",
-        icon: "external",
+        label: () =>
+          _cxPreviewSide === "groom"
+            ? "Xem với tư cách nhà gái"
+            : "Xem với tư cách nhà trai",
+        icon: "swap",
         onClick: () => {
-          _savePreviewData();
-          window.open(_previewIframeSrc(), "_blank", "noopener");
+          _cxPreviewSide = _cxPreviewSide === "groom" ? "bride" : "groom";
+          reload();
+          showToast(
+            _cxPreviewSide === "groom"
+              ? "Đang xem thiệp nhà trai"
+              : "Đang xem thiệp nhà gái",
+          );
         },
       },
+      { label: "Tải lại", icon: "refresh", onClick: reload },
     ],
   };
 }

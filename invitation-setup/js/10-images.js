@@ -92,24 +92,27 @@ function renderGalleryGrid() {
     container.appendChild(div);
   });
 
-  if (typeof lucide !== "undefined") lucide.createIcons();
-
   const totalImages =
     existingFilenames.length + pendingUploads.galleryImages.length;
 
-  // Render upload button outside grid if not at max
+  const count = document.getElementById("gallery-count");
+  if (count) count.textContent = `${totalImages}/${MAX_GALLERY_IMAGES} ảnh`;
+
+  // Ô "Thêm ảnh" là ô cuối của lưới, cùng khổ với ảnh. <x-button> tự thay mình
+  // bằng <button> khi chèn, nên gắn onclick bằng attribute (thuộc tính .onclick
+  // đặt trước khi chèn sẽ mất theo phần tử cũ).
   if (totalImages < MAX_GALLERY_IMAGES) {
-    // <x-button> tự thay mình bằng <button> khi chèn, nên gắn onclick bằng
-    // attribute (thuộc tính .onclick đặt trước khi chèn sẽ mất theo phần tử cũ).
     container.insertAdjacentHTML(
-      "afterend",
-      `<x-button variant="dashed" size="sm" id="gallery-add-btn" type="button"
-         onclick="document.getElementById('gallery-file-input').click()" class="mt-2">
-         <i data-lucide="image-plus" class="w-3.5 h-3.5"></i> Thêm ảnh
+      "beforeend",
+      `<x-button variant="bare" id="gallery-add-btn" class="cx-add-tile"
+         aria-label="Thêm ảnh vào album"
+         onclick="document.getElementById('gallery-file-input').click()">
+         <i data-lucide="image-plus"></i><span>Thêm ảnh</span>
        </x-button>`
     );
-    if (typeof lucide !== "undefined") lucide.createIcons();
   }
+
+  if (typeof lucide !== "undefined") lucide.createIcons({ root: container });
 }
 
 // Khung xem trước của ảnh chân dung/bìa: form chỉ cần nhận ra ảnh nào đang gắn
@@ -156,7 +159,9 @@ function renderSingleImageUpload(fieldName) {
     sizeClass = ""; // khổ đặt inline theo _PREVIEW_BOX
     objectFit = "object-cover";
   } else if (fieldName === "groom_qr_url" || fieldName === "bride_qr_url") {
-    sizeClass = "aspect-square"; // QR code hình vuông — cover + focal point để cắt theo ý người dùng
+    // QR hình vuông 128px — khổ đặt ở đây chứ không ở khung chứa: khung phải
+    // rộng hết hàng để ô "Thêm ảnh" lúc trống còn chỗ cho dòng gợi ý.
+    sizeClass = "aspect-square w-32";
     objectFit = "object-cover";
   } else {
     sizeClass = "aspect-square";
@@ -233,15 +238,27 @@ function renderSingleImageUpload(fieldName) {
         bride_qr_url: "Chọn ảnh QR",
       };
       const uploadLabel = uploadLabels[fieldName] || "Chọn ảnh";
+      // Dòng gợi ý cạnh ô trống: chọn ảnh thế nào cho hợp chỗ nó sẽ hiện.
+      const uploadHints = {
+        cover_image_url: "Ảnh chính của thiệp, nên chọn ảnh dọc.",
+        groom_image_url: "Ảnh chân dung, rõ khuôn mặt.",
+        bride_image_url: "Ảnh chân dung, rõ khuôn mặt.",
+        groom_qr_url: "Ảnh chụp mã QR chuyển khoản trong app ngân hàng.",
+        bride_qr_url: "Ảnh chụp mã QR chuyển khoản trong app ngân hàng.",
+      };
 
       container.insertAdjacentHTML(
         "beforeend",
-        `<x-button variant="dashed" size="sm" type="button"
-           onclick="document.getElementById('${prefix}-file-input').click()">
-           <i data-lucide="image-plus" class="w-3.5 h-3.5"></i> Thêm ảnh
-         </x-button>`
+        `<div class="flex items-center gap-3">
+           <x-button variant="bare" class="cx-add-tile cx-add-tile-sm"
+             aria-label="${uploadLabel}"
+             onclick="document.getElementById('${prefix}-file-input').click()">
+             <i data-lucide="image-plus"></i><span>Thêm ảnh</span>
+           </x-button>
+           <p class="text-xs leading-snug text-gray-500">${uploadHints[fieldName] || ""}</p>
+         </div>`
       );
-      if (typeof lucide !== "undefined") lucide.createIcons();
+      if (typeof lucide !== "undefined") lucide.createIcons({ root: container });
     }
   }
 }

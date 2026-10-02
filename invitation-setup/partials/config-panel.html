@@ -65,8 +65,7 @@
                 tone="neutral"
                 size="xs"
                 icon-only
-                hidden
-                class="text-amber-500"
+                class="hidden !text-amber-500"
                 aria-label="Vì sao không đổi được đường dẫn"
                 data-tooltip="Thiệp đã xuất bản nên không đổi được đường dẫn nữa — khách mời đang mở thiệp bằng link này."
                 data-tooltip-pos="bottom"
@@ -139,8 +138,13 @@
         </div>
       </section>
 
-      <!-- Nhạc nền -->
-      <section class="py-6 space-y-4" aria-labelledby="cfg-music-title">
+      <!-- Nhạc nền. Cờ .is-off trên section (do _updateVisUI) làm mờ phần thân
+           và hiện dòng báo đang tắt. -->
+      <section
+        id="cfg-music"
+        class="cx-cfg-sec py-6 space-y-4"
+        aria-labelledby="cfg-music-title"
+      >
         <div class="cx-cfg-head">
           <span class="cx-cfg-ico">
             <i data-lucide="music" style="width: 16px; height: 16px"></i>
@@ -150,64 +154,72 @@
               <label for="youtube-link-input">Nhạc nền</label>
             </h2>
             <p class="cx-cfg-desc">
-              Tìm theo tên bài hát hoặc dán đường dẫn YouTube. Công tắc bên
-              phải bật/tắt nhạc trên thiệp.
+              Tìm theo tên bài hát hoặc dán đường dẫn YouTube.
+            </p>
+            <p class="cx-cfg-offnote">
+              Nhạc đang tắt — thiệp sẽ không phát nhạc.
             </p>
           </div>
           <x-switch
             key="music"
+            label="Bật nhạc nền trên thiệp"
             onclick="toggleSectionVis('music', event)"
           ></x-switch>
         </div>
-        <x-input
-          id="youtube-link-input"
-          placeholder="Nhập tên bài hát hoặc dán đường dẫn ..."
-        ></x-input>
-        <!-- Link thật lưu ngầm ở thẻ ẩn; input phía trên chỉ hiện tên bài -->
-        <input type="hidden" id="music-url-input" name="music_url" />
-        <!-- Bài hát đã chọn — hiện tên dạng tag, có nút gỡ. Tên bài để xuống
-             dòng chứ không cắt: đây là cách duy nhất biết đang chọn bài nào. -->
-        <div id="music-selected-tag" class="hidden">
-          <span
-            class="inline-flex items-center gap-2 max-w-full pl-3 pr-1 py-1 rounded-2xl bg-rose-50 text-rose-700 border border-rose-100 text-xs font-medium"
-          >
-            <i data-lucide="music" style="width: 14px; height: 14px" class="shrink-0"></i>
-            <span id="music-selected-name" class="min-w-0 [overflow-wrap:anywhere]"></span>
-            <x-button
-              variant="ghost"
-              size="xs"
-              icon-only
-              type="button"
-              onclick="clearMusicSelection()"
-              title="Gỡ bài hát"
-              aria-label="Gỡ bài hát đã chọn"
-              class="shrink-0"
-            >
-              <i data-lucide="x" style="width: 14px; height: 14px"></i>
-            </x-button>
-          </span>
-        </div>
-        <p id="youtube-error" class="hidden text-xs text-red-600" role="alert">
-          Đường dẫn không hợp lệ.
-        </p>
-        <div
-          id="youtube-search-results"
-          class="space-y-1 max-h-64 overflow-y-auto rounded-lg"
-        ></div>
+        <div class="cx-cfg-body space-y-3">
+          <!-- Ô TÌM KIẾM thuần: chọn bài xong thì trống lại, bài đang chọn hiện
+               ở thẻ bên dưới. Link thật lưu ngầm ở #music-url-input. -->
+          <x-input
+            id="youtube-link-input"
+            placeholder="Nhập tên bài hát hoặc dán đường dẫn ..."
+          ></x-input>
+          <input type="hidden" id="music-url-input" name="music_url" />
+          <p id="youtube-error" class="hidden text-xs text-red-600" role="alert">
+            Đường dẫn không hợp lệ.
+          </p>
+          <div
+            id="youtube-search-results"
+            class="space-y-1 max-h-64 overflow-y-auto rounded-lg"
+          ></div>
 
-        <div id="youtube-preview" class="hidden">
-          <div class="bg-gray-50 rounded-2xl p-3">
-            <div
-              id="youtube-player-container"
-              class="aspect-video bg-black rounded-lg overflow-hidden"
-            ></div>
-            <img
-              id="youtube-fallback-thumb"
-              src=""
-              alt="Ảnh bìa bài hát đã chọn"
-              style="display: none; cursor: pointer"
-              class="w-full aspect-video object-cover rounded-lg"
-            />
+          <!-- Bài đang chọn: trình phát + tên bài + nút gỡ trong MỘT thẻ. Tên bài
+               để xuống dòng chứ không cắt: đây là cách duy nhất biết đang chọn
+               bài nào. _showMusicTag() ẩn/hiện cả thẻ. -->
+          <div id="music-selected-tag" class="cx-cfg-song hidden">
+            <div id="youtube-preview" class="cx-cfg-song-media hidden">
+              <div
+                id="youtube-player-container"
+                class="aspect-video bg-black rounded-xl overflow-hidden"
+              ></div>
+              <img
+                id="youtube-fallback-thumb"
+                src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+                alt="Ảnh bìa bài hát đã chọn"
+                style="display: none; cursor: pointer"
+                class="w-full aspect-video object-cover rounded-xl"
+              />
+            </div>
+            <div class="min-w-0 flex-1 flex flex-col gap-2">
+              <div class="min-w-0">
+                <p class="text-xs text-gray-500">Bài đang chọn</p>
+                <p
+                  id="music-selected-name"
+                  class="mt-0.5 text-sm font-medium text-gray-800 [overflow-wrap:anywhere]"
+                ></p>
+              </div>
+              <x-button
+                variant="ghost"
+                tone="danger"
+                size="sm"
+                type="button"
+                onclick="clearMusicSelection()"
+                aria-label="Gỡ bài hát đã chọn"
+                class="self-start -ml-3"
+              >
+                <i data-lucide="x" style="width: 14px; height: 14px"></i>
+                Gỡ bài
+              </x-button>
+            </div>
           </div>
         </div>
       </section>
@@ -223,62 +235,55 @@
               <label for="share-message-template">Câu mẫu chia sẻ</label>
             </h2>
             <p class="cx-cfg-desc">
-              Lời nhắn gửi kèm khi bạn chia sẻ thiệp cho từng khách (Messenger,
-              Zalo…), đồng thời là dòng mô tả trong thẻ xem trước của link.
-              Dùng biến trộn để tự điền thông tin của từng khách.
+              Lời nhắn gửi kèm link thiệp khi chia sẻ qua Zalo, Messenger… — cũng
+              là dòng mô tả trong thẻ xem trước của link. Biến trộn tự thay bằng
+              thông tin của từng khách.
               <a
                 href="#"
                 onclick="event.preventDefault(); showMergeFieldsHelp()"
                 class="text-rose-600 font-medium underline underline-offset-2"
-                >Danh sách trường trộn</a
+                >Xem các biến</a
               >
             </p>
           </div>
         </div>
-        <!-- Hàng công cụ: bên trái chèn biến (chip viền), bên phải lấy câu mẫu. -->
-        <div class="flex flex-wrap items-center gap-2">
-          <span class="text-xs font-medium text-gray-500">Chèn biến:</span>
+        <!-- Hàng công cụ: bên trái chèn biến trộn tại con trỏ (nhãn dễ hiểu, mã
+             biến ở title), bên phải bốc một câu mẫu có sẵn. -->
+        <div class="flex flex-wrap items-center gap-1.5">
           <x-button
             variant="outline"
+            tone="neutral"
             size="sm"
             type="button"
             onclick="insertShareVar('##Relationship##')"
-            class="font-mono"
+            title="Chèn ##Relationship##"
+            class="!px-3"
           >
-            ##Relationship##
+            <i data-lucide="plus" style="width: 14px; height: 14px"></i>
+            Xưng hô
           </x-button>
           <x-button
             variant="outline"
+            tone="neutral"
             size="sm"
             type="button"
             onclick="insertShareVar('##link##')"
-            class="font-mono"
+            title="Chèn ##link##"
+            class="!px-3"
           >
-            ##link##
+            <i data-lucide="plus" style="width: 14px; height: 14px"></i>
+            Link thiệp
           </x-button>
-          <div class="ml-auto flex flex-wrap items-center gap-2">
-            <x-button
-              variant="soft"
-              size="sm"
-              type="button"
-              onclick="insertShareTemplate()"
-            >
-              <i data-icon="xuxi" data-size="14"></i> Chèn mẫu
-            </x-button>
-            <x-button
-              variant="outline"
-              tone="neutral"
-              size="sm"
-              type="button"
-              id="share-template-refresh"
-              onclick="refreshShareTemplate()"
-              title="Đổi sang mẫu khác"
-              class="hidden"
-            >
-              <i data-lucide="refresh-cw" style="width: 14px; height: 14px"></i>
-              Đổi mẫu khác
-            </x-button>
-          </div>
+          <x-button
+            variant="soft"
+            size="sm"
+            type="button"
+            onclick="insertShareTemplate()"
+            class="ml-auto !px-3"
+          >
+            <i data-lucide="text-quote" style="width: 14px; height: 14px"></i>
+            <span id="share-template-label">Chèn mẫu</span>
+          </x-button>
         </div>
         <!-- Cùng khổ chữ/viền/vòng focus với <x-input>; thanh Mic + Tối ưu +
              Hoàn tác do js/19-ai-optimize.js gắn (_attachShareControls). -->

@@ -3,21 +3,18 @@
 <div data-step="timeline"
   class="cx-block animate-fade-in"
 >
+  <!-- Tiêu đề bước nằm ở #step-head (form-panel.html); hàng này chỉ còn
+       công tắc bật/tắt mục trên thiệp. -->
   <div class="cx-block-head">
-    <div class="flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <i
-          data-lucide="calendar"
-          class="text-[18px] text-color-secondary"
-        ></i>
-        <p class="text-sm text-gray-700">Lịch trình ngày cưới</p>
+    <div class="cx-vis">
+      <div class="min-w-0">
+        <p class="cx-vis-t">Hiện mục này trên thiệp</p>
+        <p class="cx-vis-d">Mục đang ẩn — bật lên để điền và hiện trên thiệp.</p>
       </div>
-      <div class="flex items-center gap-3">
-        <x-switch
-          key="timeline"
-          onclick="toggleSectionVis('timeline', event)"
-        ></x-switch>
-      </div>
+      <x-switch
+        key="timeline"
+        onclick="toggleSectionVis('timeline', event)"
+      ></x-switch>
     </div>
   </div>
   <div id="section-timeline-body">

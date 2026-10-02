@@ -162,8 +162,8 @@ function autoPreviewYouTubeMusic() {
   }
 }
 
-// Chọn 1 bài (ghi đè bài cũ): lưu URL vào thẻ ẩn + hiện tag + preview. Tag/URL là "bài đang chọn".
-// Ô input chỉ hiển thị tên cho tiện nhìn — sửa/xóa input sau đó KHÔNG ảnh hưởng tag.
+// Chọn 1 bài (ghi đè bài cũ): lưu URL vào thẻ ẩn + hiện thẻ bài đang chọn (trình phát + tên).
+// Ô input là ô TÌM KIẾM thuần nên trống lại — tên bài chỉ hiện ở thẻ, không lặp hai nơi.
 // title rỗng (dán URL / load từ DB) → tự lấy qua YouTube oEmbed.
 async function selectYouTubeSong(url, title) {
   const videoId = extractYouTubeVideoId(url);
@@ -175,15 +175,13 @@ async function selectYouTubeSong(url, title) {
   if (results) results.innerHTML = "";
   document.getElementById("youtube-error")?.classList.add("hidden");
 
-  if (!title) title = await _fetchYouTubeTitle(url);
-  const name = title || url;
-
   const input = document.getElementById("youtube-link-input");
   if (input) {
-    input.value = name;
+    input.value = "";
     input.closest("x-input, x-textarea")?.syncClearBtn?.();
   }
-  _showMusicTag(name);
+  _showMusicTag(title || "Đang lấy tên bài…");
+  if (!title) _showMusicTag((await _fetchYouTubeTitle(url)) || url);
 }
 
 // Lấy tên bài từ URL YouTube (endpoint oEmbed công khai, có CORS)
@@ -209,21 +207,16 @@ function _setMusicUrl(url) {
   _currentMusicUrl = url || "";
 }
 
-// Hiện/ẩn tag tên bài hát dưới input
+// Hiện/ẩn thẻ bài đang chọn (rỗng = ẩn)
 function _showMusicTag(name) {
   const tag = document.getElementById("music-selected-tag");
   const nameEl = document.getElementById("music-selected-name");
   if (!tag) return;
-  if (name) {
-    if (nameEl) nameEl.textContent = name;
-    tag.classList.remove("hidden");
-    if (window.lucide) lucide.createIcons();
-  } else {
-    tag.classList.add("hidden");
-  }
+  if (nameEl) nameEl.textContent = name || "";
+  tag.classList.toggle("hidden", !name);
 }
 
-// Gỡ bài hát đã chọn (nút x trên tag)
+// Gỡ bài hát đã chọn (nút "Gỡ bài" trên thẻ bài đang chọn)
 function clearMusicSelection() {
   _setMusicUrl("");
   _showMusicTag("");
@@ -273,8 +266,8 @@ function showYouTubePreview(videoId, url) {
   if (!playerWrap) {
     playerWrap = document.createElement("div");
     playerWrap.id = "youtube-player-container";
-    playerWrap.className = "aspect-video bg-black rounded-lg overflow-hidden";
-    preview.querySelector(".bg-gray-50").prepend(playerWrap);
+    playerWrap.className = "aspect-video bg-black rounded-xl overflow-hidden";
+    preview.prepend(playerWrap);
   }
   playerWrap.innerHTML =
     '<div id="_yt_target" style="width:100%;height:100%"></div>';

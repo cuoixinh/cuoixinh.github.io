@@ -16,6 +16,7 @@ function toggleVuQuy(event) {
   const btn = document.getElementById("vis-btn-vu-quy");
   const knob = document.getElementById("vis-knob-vu-quy");
   if (btn && knob) {
+    btn.setAttribute("aria-checked", String(newVal));
     if (newVal) {
       btn.classList.remove("bg-gray-300");
       btn.classList.add("bg-rose-400");
@@ -154,6 +155,7 @@ function initCeremonySection(data) {
   const fields = document.getElementById("vu-quy-fields");
   if (hidden) hidden.value = vuQuyEnabled ? "true" : "false";
   if (btn) {
+    btn.setAttribute("aria-checked", String(vuQuyEnabled));
     btn.classList.toggle("bg-rose-400", vuQuyEnabled);
     btn.classList.toggle("bg-rose-500", false);
     btn.classList.toggle("bg-gray-300", !vuQuyEnabled);

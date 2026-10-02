@@ -3,24 +3,21 @@
 <div data-step="rsvp"
   class="cx-block animate-fade-in"
 >
+  <!-- Tiêu đề bước nằm ở #step-head (form-panel.html); hàng này chỉ còn
+       công tắc bật/tắt mục trên thiệp. -->
   <div class="cx-block-head">
-    <div class="flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <i
-          data-lucide="circle-check"
-          class="text-[18px] text-color-secondary"
-        ></i>
-        <p class="text-sm text-gray-700">Xác nhận tham dự</p>
+    <div class="cx-vis">
+      <div class="min-w-0">
+        <p class="cx-vis-t">Hiện mục này trên thiệp</p>
+        <p class="cx-vis-d">Mục đang ẩn — bật lên để điền và hiện trên thiệp.</p>
       </div>
-      <div class="flex items-center gap-3">
-        <x-switch
-          key="rsvp"
-          onclick="toggleSectionVis('rsvp', event)"
-        ></x-switch>
-      </div>
+      <x-switch
+        key="rsvp"
+        onclick="toggleSectionVis('rsvp', event)"
+      ></x-switch>
     </div>
   </div>
-  <div id="section-rsvp-body" class="p-6 space-y-6">
+  <div id="section-rsvp-body" class="px-4 py-5 sm:p-6 space-y-6">
     <div>
       <x-textarea
         label="Lời nhắn xác nhận tham dự"

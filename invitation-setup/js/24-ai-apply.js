@@ -234,13 +234,13 @@ function _aiSetField(name, value) {
   el.dispatchEvent(new Event("change", { bubbles: true }));
 }
 
-// Câu mẫu chia sẻ nằm NGOÀI <form> (tab Cấu hình) — ghi như _fillShareTemplate nhưng ẩn nút
-// "Đổi mẫu" vì câu này không bốc từ danh sách mẫu.
+// Câu mẫu chia sẻ nằm NGOÀI <form> (tab Cấu hình) — ghi như insertShareTemplate nhưng nút
+// về "Chèn mẫu" vì câu này không bốc từ danh sách mẫu.
 function _aiSetShare(value) {
   const el = document.getElementById("share-message-template");
   if (!el) return;
   el.value = value;
-  document.getElementById("share-template-refresh")?.classList.add("hidden");
+  _syncShareTplBtn(false);
   el.closest("x-input, x-textarea")?.syncClearBtn?.();
   _scheduleAutoSave("config");
 }

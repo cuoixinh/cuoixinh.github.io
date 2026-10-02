@@ -166,8 +166,10 @@ nữa**, nó chỉ nằm trong log Supabase và không ai đi soi.
 `STEP_PARTIALS` + thẻ mount, và `CX_STEPS` (`id` trùng `data-step`). Mẫu thiệp bỏ hẳn
 một mục thì khai `CX_THEME.skipSteps` (vd `["family"]`) — `js/25-theme-decl.js` nạp
 `index.js` của mẫu trong iframe rỗng để đọc bản khai rồi phát `cx-theme-decl`, thanh bước
-tự vẽ lại; **đừng dựng danh sách tên mẫu trong trang Thiết lập**. `#step-nav` là cặp nút
-NỔI (`fixed`) ngoài `<form>` — đưa nó vào luồng là ăn mất một dòng ở mọi bước.
+tự vẽ lại; **đừng dựng danh sách tên mẫu trong trang Thiết lập**. `#step-head` (bước
+đang mở + vạch tiến độ) và `#step-nav` (Lùi/Tiếp) là hai thanh DÍNH (`sticky`) đầu/đáy
+`#setup-scroll`, ngoài `<form>` — đừng trả `#step-nav` về nút nổi `fixed`: nó đè lên ô nhập.
+Chip các bước nằm trong ngăn THU của `#step-head` (bấm dòng bước mới mở, `cxStepBarToggle`).
 
 **Vỏ trang** (`js/21-shell.js`) là **app shell: trang KHÔNG cuộn**. Ba thẻ nổi cùng khổ
 (`max-w-4xl`) xếp dọc màn: thanh trên `#setup-topcard` · vùng nội dung `#setup-scroll` ·
@@ -176,9 +178,9 @@ navbar `#nav-card` — vỏ ngoài của cả ba chỉ trong suốt, đừng tr�
 `_cxSyncTopHeight` và `_syncNavHeight` đo, 32px là `my-4` của chính thẻ — đổi lề phải đổi
 cả công thức). Muốn đưa phần tử vào tầm nhìn thì
 `scrollIntoView` (tự tìm khung cuộn gần nhất) — **đừng dùng `window.scrollTo` /
-`documentElement.scrollTop`**, trang không cuộn nên vô tác dụng. Phần tử NGOÀI khung nội
-dung (chip ở thanh bước…) thì tự đặt `scrollLeft/scrollTop` cho đúng khung: `scrollIntoView`
-cuộn lây cả khung cha, đủ để đẩy thanh trên ra khỏi màn.
+`documentElement.scrollTop`**, trang không cuộn nên vô tác dụng. Phần tử trong khung cuộn
+LỒNG (chip ở dải cuộn ngang của thanh bước…) thì tự đặt `scrollLeft/scrollTop` cho đúng khung:
+`scrollIntoView` cuộn lây cả khung cha, kéo cả khung nội dung đi theo.
 
 Navbar dưới **fill động** (`cxNavReflow`): các mục khai ở `CX_NAV_ITEMS` đứng thẳng ở
 `#nav-slots` khi còn chỗ, hết chỗ mới lùi dần vào popover `#nav-more-pop` (mục cuối lùi

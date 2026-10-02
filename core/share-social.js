@@ -30,7 +30,7 @@
       url: ({ msgEnc }) => `https://api.whatsapp.com/send?text=${msgEnc}`,
     },
     {
-      key: "twitter", label: "X (Twitter)", bg: "bg-black", textInUrl: true,
+      key: "twitter", label: "X", bg: "bg-black", textInUrl: true,
       svg: `<svg viewBox="0 0 24 24" style="width:19px;height:19px;fill:white"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>`,
       url: ({ msgEnc }) => `https://twitter.com/intent/tweet?text=${msgEnc}`,
     },
@@ -102,23 +102,23 @@
     if (_modal) return _modal;
     _modal = document.createElement("div");
     _modal.id = "share-social-modal";
-    _modal.className = "fixed inset-0 z-[99999] bg-black/50 hidden items-center justify-center p-4";
+    _modal.className = "fixed inset-0 z-[99999] bg-black/50 hidden items-center justify-center p-3 sm:p-4";
     _modal.innerHTML = `
       <div class="bg-white rounded-2xl w-full max-w-sm shadow-xl overflow-hidden">
-        <div class="flex items-start justify-between px-5 pt-4 pb-3 border-b border-gray-100">
-          <div class="flex items-center gap-2 min-w-0">
-            <i data-lucide="share-2" class="w-4 h-4 text-rose-500 shrink-0"></i>
-            <div class="min-w-0">
-              <h3 data-ss="title" class="text-sm font-semibold text-gray-800">Chia sẻ thiệp cưới</h3>
-              <p data-ss="subtitle" class="text-xs text-gray-400 truncate"></p>
-            </div>
+        <div class="flex items-center gap-3 pl-5 pr-3 py-3 border-b border-gray-100">
+          <span class="w-9 h-9 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center shrink-0">
+            <i data-lucide="share-2" style="width:16px;height:16px"></i>
+          </span>
+          <div class="flex-1 min-w-0">
+            <h3 data-ss="title" class="text-sm font-semibold text-gray-800 leading-5">Chia sẻ thiệp cưới</h3>
+            <p data-ss="subtitle" class="text-xs text-gray-500 leading-4 truncate"></p>
           </div>
-          <x-button variant="ghost" tone="neutral" size="xs" icon-only type="button" data-ss="close" class="shrink-0">
-            <i data-lucide="x" class="w-4 h-4"></i>
+          <x-button variant="ghost" tone="neutral" size="sm" icon-only type="button" data-ss="close" aria-label="Đóng" class="shrink-0">
+            <i data-lucide="x" style="width:16px;height:16px"></i>
           </x-button>
         </div>
-        <div class="px-5 py-4 space-y-4">
-          <div data-ss="channels" class="grid grid-cols-5 gap-2"></div>
+        <div class="px-3 sm:px-5 py-4 space-y-4">
+          <div data-ss="channels" class="grid grid-cols-5 gap-0.5 sm:gap-1"></div>
           <div class="flex items-center gap-2 bg-gray-50 rounded-lg border border-gray-200 pl-3 pr-1.5 py-1.5">
             <span data-ss="link" class="flex-1 text-xs font-mono text-gray-500 truncate"></span>
             <x-button variant="soft" size="xs" type="button" data-ss="copy" class="shrink-0">
@@ -182,9 +182,10 @@
     modal.querySelector("[data-ss=link]").textContent = link;
 
     modal.querySelector("[data-ss=channels]").innerHTML = CHANNELS.map(c => `
-      <x-button variant="ghost" type="button" data-channel="${c.key}" class="flex-col group">
-        <span class="w-11 h-11 rounded-full ${c.bg} flex items-center justify-center group-hover:scale-105 transition-transform">${c.svg}</span>
-        <span class="text-[10px] text-gray-500 text-center leading-tight">${c.label}</span>
+      <x-button variant="bare" type="button" data-channel="${c.key}" aria-label="Chia sẻ qua ${c.label}"
+        class="group w-full min-w-0 flex-col items-center gap-1.5 py-2 !rounded-2xl hover:bg-gray-50">
+        <span class="w-11 h-11 shrink-0 rounded-full ${c.bg} flex items-center justify-center group-hover:scale-105 transition-transform">${c.svg}</span>
+        <span class="max-w-full truncate text-[11px] font-medium text-gray-600 leading-4">${c.label}</span>
       </x-button>`).join("");
 
     modal.classList.remove("hidden");

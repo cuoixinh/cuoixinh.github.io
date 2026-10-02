@@ -48,9 +48,9 @@
     refresh:
       '<path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/>' +
       '<path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/>',
-    external:
-      '<path d="M15 3h6v6"/><path d="M10 14 21 3"/>' +
-      '<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>',
+    swap:
+      '<path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/>' +
+      '<path d="M20 17H4"/>',
   };
 
   function _fill(name) {
@@ -87,6 +87,11 @@
     });
   }
 
+  function _itemInner(it) {
+    const label = typeof it.label === "function" ? it.label() : it.label;
+    return _stroke(it.icon) + _esc(label);
+  }
+
   function _clock() {
     const d = new Date();
     return (
@@ -100,7 +105,8 @@
   // nhưng CHỈ để nhìn (như giờ và cột sóng) — khung ở trang Thiết lập không có
   // chỗ nào để quay về, mà bỏ mũi tên đi thì thanh tiêu đề lệch hẳn.
   // opts.items = các mục của menu ba chấm ([] thì nút vẫn có, bấm ra menu rỗng
-  // nên ẩn luôn nút cho gọn).
+  // nên ẩn luôn nút cho gọn). `label` có thể là hàm — tính lại mỗi lần mở menu,
+  // cho mục đổi chữ theo trạng thái của trang gọi.
   function html(opts) {
     const o = opts || {};
     const items = o.items || [];
@@ -151,8 +157,7 @@
             ' data-act="item" data-i="' +
             i +
             '">' +
-            _stroke(it.icon) +
-            _esc(it.label) +
+            _itemInner(it) +
             "</button>"
           );
         })
@@ -179,6 +184,11 @@
     const more = root.querySelector('[data-act="more"]');
 
     function toggle(open) {
+      if (open)
+        pop.querySelectorAll(".cx-pchrome-item").forEach(function (b, i) {
+          if (typeof items[i]?.label === "function")
+            b.innerHTML = _itemInner(items[i]);
+        });
       pop.hidden = !open;
       if (more) more.setAttribute("aria-expanded", open ? "true" : "false");
     }

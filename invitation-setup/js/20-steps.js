@@ -272,23 +272,95 @@ function cxRenderStepBar() {
   _cxBarSig = sig;
 
   bar.innerHTML = steps.map(_cxChipHTML).join("");
-  if (window.lucide) lucide.createIcons();
+  if (window.lucide) lucide.createIcons({ root: bar });
 
-  // Kéo chip đang mở vào giữa thanh — thanh cuộn NGANG, bước 8 nằm ngoài màn.
-  // Tự đặt scrollLeft chứ không scrollIntoView: hàm kia còn cuộn DỌC mọi khung
-  // cha (kể cả khung nhìn) khi thấy chip chưa lọt hẳn, đủ để đẩy cả thanh trên
-  // ra khỏi màn.
-  const active = bar.querySelector('[aria-selected="true"]');
-  if (active) {
-    const br = bar.getBoundingClientRect();
-    const ar = active.getBoundingClientRect();
-    bar.scrollTo({
-      left: bar.scrollLeft + (ar.left - br.left) - (br.width - ar.width) / 2,
-      behavior: "smooth",
-    });
-  }
-
+  _cxCenterActiveChip("smooth");
   _cxSyncBarFade();
+}
+
+// Kéo chip đang mở vào giữa thanh — thanh cuộn NGANG, bước 8 nằm ngoài màn.
+// Tự đặt scrollLeft chứ không scrollIntoView: hàm kia còn cuộn DỌC mọi khung
+// cha khi thấy chip chưa lọt hẳn, kéo cả khung nội dung đi theo.
+function _cxCenterActiveChip(behavior) {
+  const bar = document.getElementById("step-bar");
+  const active = bar?.querySelector('[aria-selected="true"]');
+  if (!active) return;
+  const br = bar.getBoundingClientRect();
+  const ar = active.getBoundingClientRect();
+  bar.scrollTo({
+    left: bar.scrollLeft + (ar.left - br.left) - (br.width - ar.width) / 2,
+    behavior,
+  });
+}
+
+// ===== NGĂN CHIP CÁC BƯỚC (#step-drawer) =====
+
+// Vị trí cuộn dọc lúc mở ngăn — cuộn form xa hơn ngưỡng thì tự thu.
+let _cxDrawerAt = null;
+const _CX_DRAWER_SCROLL_CLOSE = 32;
+// Ngăn trượt ra làm dòng bước (sticky) cao thêm → trình duyệt tự bù scrollTop
+// (scroll anchoring) khi form đang cuộn dở. Lượt cuộn đó không phải của người
+// dùng: trong lúc ngăn đang trượt chỉ dời mốc theo, không thu.
+let _cxDrawerSettleUntil = 0;
+const _CX_DRAWER_SETTLE_MS = 300;
+
+/** Mở/thu ngăn chip dưới dòng bước. Không truyền `open` = đảo trạng thái. */
+function cxStepBarToggle(open) {
+  const head = document.getElementById("step-head");
+  if (!head) return;
+  const on =
+    typeof open === "boolean" ? open : !head.classList.contains("is-open");
+  if (on === head.classList.contains("is-open")) return;
+  head.classList.toggle("is-open", on);
+  document
+    .getElementById("step-head-toggle")
+    ?.setAttribute("aria-expanded", String(on));
+  _cxDrawerAt = on
+    ? (document.getElementById("setup-scroll")?.scrollTop ?? 0)
+    : null;
+  _cxDrawerSettleUntil = performance.now() + _CX_DRAWER_SETTLE_MS;
+  if (on) {
+    _cxCenterActiveChip("instant");
+    _cxSyncBarFade();
+  }
+}
+window.cxStepBarToggle = cxStepBarToggle;
+
+// Tự thu: bấm ra ngoài dòng bước, cuộn form đi một đoạn, hoặc Esc.
+function _cxInitDrawerAutoClose() {
+  document.addEventListener(
+    "pointerdown",
+    (e) => {
+      if (_cxDrawerAt === null) return;
+      if (!e.target.closest?.("#step-head")) cxStepBarToggle(false);
+    },
+    { passive: true },
+  );
+  document.getElementById("setup-scroll")?.addEventListener(
+    "scroll",
+    (e) => {
+      if (_cxDrawerAt === null) return;
+      if (performance.now() < _cxDrawerSettleUntil) {
+        _cxDrawerAt = e.target.scrollTop;
+        return;
+      }
+      if (Math.abs(e.target.scrollTop - _cxDrawerAt) > _CX_DRAWER_SCROLL_CLOSE)
+        cxStepBarToggle(false);
+    },
+    { passive: true },
+  );
+  // Ngăn trượt xong mới chốt mốc: transition có thể chạy lâu hơn khung chờ
+  // (máy chậm), lượt bù cuối cùng vẫn phải được tính là của ngăn.
+  document.getElementById("step-drawer")?.addEventListener("transitionend", () => {
+    if (_cxDrawerAt === null) return;
+    _cxDrawerAt = document.getElementById("setup-scroll")?.scrollTop ?? 0;
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && _cxDrawerAt !== null) {
+      cxStepBarToggle(false);
+      document.getElementById("step-head-toggle")?.focus();
+    }
+  });
 }
 
 // Vệt trắng mờ hai mép thanh bước (xem .cx-stepbar-wrap): chỉ hiện ở phía còn
@@ -340,6 +412,10 @@ function _cxRenderPanels() {
     body.classList.toggle("pointer-events-none", off);
     body.setAttribute("aria-disabled", String(off));
   }
+  // Hàng công tắc "Hiện mục này trên thiệp" hiện thêm dòng giải thích khi tắt.
+  document
+    .querySelector(`#wedding-form [data-step="${cur.id}"] > .cx-block-head`)
+    ?.classList.toggle("is-off", _cxStepOff(cur));
 }
 
 function _cxRenderNav() {
@@ -356,20 +432,18 @@ function _cxRenderNav() {
   // _cxSyncBarFade() đặt theo vị trí cuộn, không theo bước đang mở.
 
   // Bước cuối dẫn đi đâu là tuỳ khổ màn: desktop đã thấy thiệp trong khung điện
-  // thoại rồi nên đưa thẳng sang Cấu hình (xem cxStepNext).
+  // thoại rồi nên đưa thẳng sang Cấu hình (xem cxStepNext). Các bước khác ghi
+  // luôn tên bước kế — bấm là biết mình sẽ sang đâu.
   const label = document.getElementById("step-next-label");
   if (label)
     label.textContent = last
       ? window.cxLiveWide?.()
         ? "Cấu hình"
         : "Xem trước"
-      : "Tiếp";
+      : `Tiếp: ${steps[_cxStepIndex + 1].label}`;
 
-  const count = document.getElementById("step-count");
-  if (count) count.textContent = `${_cxStepIndex + 1}/${steps.length}`;
+  _cxRenderHead(steps);
 
-  // Tiến độ tổng chuyển thành tooltip: chip đã nói đủ vị trí lẫn trạng thái, để
-  // thêm một dòng chữ nữa chỉ tốn chiều cao thanh.
   const next = document.getElementById("step-next");
   if (next) {
     const todo = steps.filter((s) =>
@@ -378,6 +452,31 @@ function _cxRenderNav() {
     next.title =
       `Bước ${_cxStepIndex + 1}/${steps.length}` +
       (todo ? ` · còn ${todo} mục chưa đủ` : " · đã điền đủ");
+  }
+}
+
+// Dòng đầu khung nội dung: "1/10 · Cặp đôi" + số mục đã điền đủ. Vạch tiến độ
+// đo theo số mục ĐỦ (không theo vị trí — vị trí đã có ở số bước và chip), mục
+// đang tắt không tính vì không ai phải điền nó.
+function _cxRenderHead(steps) {
+  const cur = _cxStepAt(_cxStepIndex);
+  const states = steps.map(_cxStepState).filter((s) => s !== "off");
+  const done = states.filter((s) => s === "done").length;
+
+  const num = document.getElementById("step-head-num");
+  if (num) num.textContent = `${_cxStepIndex + 1}/${steps.length} ·`;
+  const name = document.getElementById("step-head-label");
+  if (name) name.textContent = cur.label;
+  const txt = document.getElementById("step-head-done");
+  if (txt) txt.textContent = `Đã xong ${done}/${states.length}`;
+
+  const fill = document.getElementById("step-head-fill");
+  if (fill)
+    fill.style.width = `${states.length ? (done / states.length) * 100 : 0}%`;
+  const track = document.getElementById("step-head-track");
+  if (track) {
+    track.setAttribute("aria-valuemax", String(states.length));
+    track.setAttribute("aria-valuenow", String(done));
   }
 }
 
@@ -403,6 +502,7 @@ function cxGoStep(id, opts = {}) {
   if (i < 0) return;
   _cxStepIndex = i;
   _cxStepId = _cxStepAt(i)?.id || null;
+  cxStepBarToggle(false); // chọn xong bước thì ngăn chip tự thu
   cxRenderSteps();
   // Đổi bước là xem từ đầu bước: đưa CHÍNH khung nội dung về đỉnh. Không dùng
   // scrollIntoView trên form — nó cuộn thêm mọi khung cha, mà thanh trên nằm
@@ -461,6 +561,7 @@ function _cxInitSteps() {
   // Chip nạp xong / thanh trên đổi bề ngang (dải xem trực tiếp bật tắt) đều đổi
   // chuyện "còn cuộn được hay không" mà không phát scroll → phải tự theo dõi.
   if (window.ResizeObserver) new ResizeObserver(_cxSyncBarFade).observe(bar);
+  _cxInitDrawerAutoClose();
 
   // Gõ ở bất kỳ ô nào cũng có thể làm một bước từ ⚠ sang ✓ → chấm lại trạng thái.
   // Nghe ở form (nổi bọt) nên ô thêm sau (mốc lịch trình, ảnh…) cũng được tính.

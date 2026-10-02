@@ -3,33 +3,37 @@
 <div data-step="photos"
   class="cx-block animate-fade-in"
 >
+  <!-- Tiêu đề bước nằm ở #step-head (form-panel.html); hàng này chỉ còn
+       công tắc bật/tắt mục trên thiệp. -->
   <div class="cx-block-head">
-    <div class="flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <i
-          data-lucide="camera"
-          class="text-[18px] text-color-secondary"
-        ></i>
-        <p class="text-sm text-gray-700">Ảnh cưới</p>
+    <div class="cx-vis">
+      <div class="min-w-0">
+        <p class="cx-vis-t">Hiện mục này trên thiệp</p>
+        <p class="cx-vis-d">Mục đang ẩn — bật lên để điền và hiện trên thiệp.</p>
       </div>
-      <div class="flex items-center gap-3">
-        <x-switch
-          key="photos"
-          onclick="toggleSectionVis('photos', event)"
-        ></x-switch>
-      </div>
+      <x-switch
+        key="photos"
+        onclick="toggleSectionVis('photos', event)"
+      ></x-switch>
     </div>
   </div>
-  <div id="section-photos-body" class="p-6 space-y-6">
+  <div id="section-photos-body" class="px-4 py-5 sm:p-6 space-y-6">
     <div>
-      <p
-        class="block text-sm text-gray-700 mb-2 flex items-center gap-2"
-        ><i data-lucide="images" class="text-color-secondary"></i> Album
-        ảnh (tối đa 10 ảnh)</p>
+      <div class="mb-2 flex items-baseline justify-between gap-3">
+        <p class="text-sm text-gray-700">Album ảnh</p>
+        <!-- Số ảnh / trần MAX_GALLERY_IMAGES — renderGalleryGrid() điền. -->
+        <span id="gallery-count" class="text-xs tabular-nums text-gray-500"></span>
+      </div>
+      <!-- Ô "Thêm ảnh" là ô CUỐI của lưới (renderGalleryGrid), hết chỗ thì tự mất. -->
       <div
         id="gallery-container"
         class="grid grid-cols-3 sm:grid-cols-5 gap-3"
       ></div>
+      <p class="mt-3 text-xs text-gray-500">
+        Chọn được nhiều ảnh một lúc. Bấm
+        <i data-lucide="focus" class="inline-block align-[-2px]"></i> trên ảnh
+        để chỉnh phần được giữ lại khi thiệp cắt khung.
+      </p>
       <input
         type="file"
         id="gallery-file-input"

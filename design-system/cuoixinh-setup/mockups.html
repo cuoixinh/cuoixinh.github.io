@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Phác thảo Thiết lập</title>
+<!-- Trang PHÁC THẢO để chốt hướng — không thuộc ứng dụng, không ra web (ngoài INCLUDE). -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@1.26.0/dist/umd/lucide.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root { --rose: 225 29 72; --line: 240 215 217; --bg: 255 250 248; }
+  body { font-family: Inter, system-ui, sans-serif; background: #f6f1f2; }
+  svg.lucide { width: 1em; height: 1em; }
+  .phone { width: 375px; height: 740px; border-radius: 40px; border: 10px solid #1f1f23;
+    background: rgb(var(--bg)); overflow: hidden; position: relative; display: flex;
+    flex-direction: column; box-shadow: 0 24px 48px -16px rgb(61 24 34 / .35); flex-shrink: 0; }
+  .scroll { flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: none; }
+  .scroll::-webkit-scrollbar { display: none; }
+  .inp { height: 44px; width: 100%; border-radius: 12px; border: 1px solid rgb(var(--line));
+    background: #fff; padding: 0 12px; font-size: 15px; color: #9ca3af; display: flex; align-items: center; gap: 8px; }
+  .inp.filled { color: #1f2937; }
+  .lbl { font-size: 14px; font-weight: 500; color: #374151; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+  .req { color: rgb(var(--rose)); }
+  .sw { width: 40px; height: 24px; border-radius: 999px; background: #fb7185; position: relative; flex-shrink: 0; }
+  .sw::after { content: ""; position: absolute; right: 3px; top: 3px; width: 18px; height: 18px; border-radius: 999px; background: #fff; }
+  .chip { display: flex; align-items: center; gap: 6px; flex-shrink: 0; border-radius: 999px; border: 1px solid #e5e7eb;
+    padding: 4px 10px; font-size: 12px; font-weight: 500; color: #4b5563; background: #fff; white-space: nowrap; }
+  .chip.on { border-color: #fda4af; background: #fff1f2; color: rgb(var(--rose)); }
+  .tile { aspect-ratio: 1; border-radius: 16px; border: 1.5px dashed #fda4af; background: #fff5f7; color: rgb(var(--rose));
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 12px; font-weight: 600; }
+  .ph { aspect-ratio: 1; border-radius: 16px; background: linear-gradient(135deg, #fde2e7, #f5d5d8); }
+  .tag { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+</style>
+</head>
+<body class="min-h-screen px-4 py-8 md:px-8">
+<header class="mx-auto mb-8 max-w-6xl">
+  <h1 class="text-2xl font-bold text-gray-900">Trang Thiết lập — phác thảo 3 hướng (mobile 375px)</h1>
+  <p class="mt-2 max-w-3xl text-sm text-gray-600">Mỗi cột: bước <b>Cặp đôi</b> ở trên, bước <b>Ảnh cưới</b> (trạng thái rỗng) ở dưới.
+    Cột B bấm được vào một mục trong danh sách. Nhãn navbar, ô ảnh dạng lưới và bỏ icon trước nhãn là phần làm thêm — đang vẽ chung cho cả A/B/C.</p>
+</header>
+
+<main class="mx-auto flex max-w-[1700px] flex-wrap justify-center gap-x-10 gap-y-14" id="cols"></main>
+
+<script>
+const ic = (n, s = "") => `<i data-lucide="${n}" ${s ? `style="${s}"` : ""}></i>`;
+
+/* ── Phần dùng chung ─────────────────────────────────────────────── */
+const STEPS = ["Cặp đôi", "Sự kiện", "Gia đình", "Tiệc cưới", "Ảnh cưới", "Lịch trình", "Chuyện tình yêu", "Xác nhận dự", "Hộp mừng", "Lời kết"];
+const STATE = ["done", "partial", "empty", "empty", "empty", "off", "empty", "done", "empty", "empty"];
+const DOT = { done: ["circle-check", "#10b981"], partial: ["alert-triangle", "#f59e0b"], empty: ["circle-dashed", "#9ca3af"], off: ["minus", "#d1d5db"] };
+
+function topBar(inner = "") {
+  return `<div class="mx-3 mt-3 rounded-[20px] bg-white shadow-sm">
+    <div class="flex items-center justify-between gap-2 px-4 pt-3 pb-2">
+      <div class="min-w-0 truncate text-[12px] text-gray-400"><span class="font-medium text-rose-500">Trang chủ</span> / Thiết lập thiệp</div>
+      <div class="flex shrink-0 items-center gap-2 rounded-full border border-rose-100 py-1 pl-1 pr-1">
+        <span class="h-6 w-6 rounded-full bg-amber-50"></span><span class="text-[13px] font-semibold text-gray-700">Basic Gold</span>
+        <span class="flex h-6 w-6 items-center justify-center rounded-full bg-rose-400 text-[12px] text-white">${ic("repeat-2")}</span>
+      </div>
+    </div>${inner}</div>`;
+}
+function chips(active) {
+  return `<div class="flex gap-1.5 overflow-hidden px-3 pb-3">${STEPS.map((s, i) => {
+    const [n, c] = DOT[STATE[i]];
+    return `<span class="chip ${i === active ? "on" : ""}"><span style="color:${c};font-size:13px">${ic(n)}</span>${s}</span>`;
+  }).join("")}</div>`;
+}
+function navbar() {
+  // Có nhãn thì mỗi ô rộng hơn → navbar tự dồn bớt một mục (Khách mời) vào "Thêm".
+  const it = (n, t, on) => `<div class="flex w-12 flex-col items-center gap-0.5 whitespace-nowrap ${on ? "text-rose-600" : "text-gray-500"}"><span class="text-[18px]">${ic(n)}</span><span class="text-[10px] font-medium">${t}</span></div>`;
+  return `<div class="mx-3 mb-3 flex items-center gap-0.5 rounded-[20px] bg-white px-2 py-2 shadow-sm">
+    ${it("pencil", "Sửa", true)}${it("eye", "Xem")}${it("settings", "Cấu hình")}${it("ellipsis", "Thêm")}
+    <div class="ml-auto flex items-center gap-1.5">
+      <span class="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 text-[16px] text-gray-600" title="Lưu nháp">${ic("file-text")}</span>
+      <span class="flex h-10 items-center gap-1.5 whitespace-nowrap rounded-full bg-rose-600 px-3.5 text-[13px] font-semibold text-white">${ic("send")}Xuất bản</span>
+    </div></div>`;
+}
+const field = (label, ph, o = {}) => `<div><div class="lbl">${label}${o.req ? '<span class="req">*</span>' : ""}</div>
+  <div class="inp ${o.filled ? "filled" : ""}">${o.icon ? `<span class="text-gray-400">${ic(o.icon)}</span>` : ""}${ph}</div>
+  ${o.help ? `<p class="mt-1.5 text-[12px] text-gray-500">${o.help}</p>` : ""}</div>`;
+const photoSlot = (label, help) => `<div><div class="lbl">${label}</div>
+  <div class="flex items-center gap-3"><div class="tile w-20">${ic("image-plus", "width:20px;height:20px")}Thêm</div>
+  <p class="text-[12px] leading-snug text-gray-500">${help}</p></div></div>`;
+const person = (who, dot, ph1, ph2) => `<div class="space-y-4">
+  <div class="flex items-center gap-2 text-[15px] font-semibold text-gray-800"><span class="h-2.5 w-2.5 rounded-full" style="background:${dot}"></span>${who}</div>
+  ${field(`Tên ${who.toLowerCase()}`, ph1, { req: true, help: "Tên dùng trong lễ cưới" })}
+  ${field(`SĐT ${who.toLowerCase()}`, ph2, { icon: "phone" })}
+  ${photoSlot(`Ảnh ${who.toLowerCase()}`, "Ảnh chân dung, khuôn mặt rõ. JPG/PNG tối đa 10MB.")}</div>`;
+const coupleBody = () => `${person("Chú rể", "#38bdf8", "Ví dụ: Quang Vinh", "0912 345 678")}
+  <hr class="border-gray-100" />${person("Cô dâu", "#a78bfa", "Ví dụ: Hải Yến", "0987 654 321")}
+  <hr class="border-gray-100" />
+  ${photoSlot("Ảnh cặp đôi", "Dùng làm ảnh chính của thiệp.")}
+  <div><div class="lbl">Slogan</div><div class="rounded-xl border bg-white p-3 text-[15px] text-gray-800" style="border-color:rgb(var(--line))">Trăm năm tính cuộc vuông tròn, một lời hẹn ước sắt son trọn đời.</div></div>`;
+const photosBody = () => `<div class="flex items-baseline justify-between"><div class="lbl mb-0">Album ảnh</div><span class="text-[12px] text-gray-500">0/10 ảnh</span></div>
+  <div class="grid grid-cols-3 gap-2.5">
+    <div class="tile">${ic("image-plus", "width:22px;height:22px")}Thêm ảnh</div>
+    ${'<div class="rounded-2xl border border-dashed border-gray-200" style="aspect-ratio:1"></div>'.repeat(5)}
+  </div>
+  <div class="flex gap-2 rounded-xl bg-rose-50/60 p-3 text-[12px] leading-snug text-gray-600"><span class="mt-0.5 text-rose-500">${ic("info")}</span>
+  Chọn nhiều ảnh một lúc. Ảnh đầu tiên làm ảnh bìa album; giữ và kéo để đổi thứ tự.</div>`;
+
+/* ── A · Wizard gọn ─────────────────────────────────────────────── */
+function dirA(step) {
+  const i = step === "photos" ? 4 : 0;
+  const done = STATE.filter((s) => s === "done").length;
+  const vis = step === "photos" ? `<span class="flex items-center gap-2 text-[12px] font-medium text-gray-600">Hiện trên thiệp<span class="sw"></span></span>` : `<span class="text-[12px] text-gray-500">${done}/10 xong</span>`;
+  return `<div class="phone">${topBar(chips(i) + `
+    <div class="border-t border-gray-100 px-4 pt-2.5 pb-3">
+      <div class="flex items-center justify-between gap-2"><p class="text-[15px] font-semibold text-gray-900">
+        <span class="font-medium text-gray-400">${i + 1}/10 ·</span> ${step === "photos" ? "Ảnh cưới" : "Cặp đôi"}</p>${vis}</div>
+      <div class="mt-2 h-1 rounded-full bg-gray-100"><div class="h-1 rounded-full bg-rose-500" style="width:${(i + 1) * 10}%"></div></div>
+    </div>`)}
+    <div class="mx-3 my-3 flex min-h-0 flex-1 flex-col overflow-hidden rounded-[20px] bg-white shadow-sm">
+      <div class="scroll space-y-5 px-4 py-5">${step === "photos" ? photosBody() : coupleBody()}</div>
+      <div class="flex items-center gap-2 border-t border-gray-100 px-3 py-2.5">
+        <span class="flex h-11 items-center gap-1 rounded-full px-4 text-[14px] font-medium ${i ? "text-gray-700" : "text-gray-300"}">${ic("chevron-left")}Lùi</span>
+        <span class="ml-auto flex h-11 items-center gap-1.5 rounded-full bg-rose-600 px-5 text-[14px] font-semibold text-white">Tiếp: ${STEPS[i + 1]}${ic("chevron-right")}</span>
+      </div>
+    </div>${navbar()}</div>`;
+}
+
+/* ── B · Danh sách mục ──────────────────────────────────────────── */
+const SUM = ["Vinh & Yến", "Còn thiếu ngày cưới", "", "", "0/10 ảnh", "Đang tắt", "", "Đang bật", "", ""];
+function dirBList() {
+  const done = STATE.filter((s) => s === "done").length;
+  return `<div class="phone" data-b>${topBar()}
+    <div class="mx-3 my-3 flex min-h-0 flex-1 flex-col overflow-hidden rounded-[20px] bg-white shadow-sm">
+      <div class="border-b border-gray-100 px-4 py-4">
+        <div class="flex items-baseline justify-between"><p class="text-[17px] font-semibold text-gray-900">Nội dung thiệp</p><span class="text-[13px] text-gray-500">${done}/10 mục xong</span></div>
+        <div class="mt-2.5 h-1.5 rounded-full bg-gray-100"><div class="h-1.5 rounded-full bg-rose-500" style="width:${done * 10}%"></div></div>
+      </div>
+      <div class="scroll divide-y divide-gray-100">${STEPS.map((s, i) => {
+        const [n, c] = DOT[STATE[i]];
+        return `<button class="flex w-full items-center gap-3 px-4 py-3.5 text-left hover:bg-rose-50/50" onclick="openB(this, ${i})">
+          <span class="text-[20px]" style="color:${c}">${ic(n)}</span>
+          <span class="min-w-0 flex-1"><span class="block text-[15px] font-medium ${STATE[i] === "off" ? "text-gray-400" : "text-gray-800"}">${s}</span>
+          ${SUM[i] ? `<span class="block truncate text-[12px] ${STATE[i] === "partial" ? "text-amber-600" : "text-gray-500"}">${SUM[i]}</span>` : ""}</span>
+          <span class="text-gray-300">${ic("chevron-right")}</span></button>`;
+      }).join("")}</div>
+    </div>${navbar()}</div>`;
+}
+function dirBDetail(i) {
+  const isPh = i === 4;
+  return `<div class="phone" data-b>${topBar()}
+    <div class="mx-3 my-3 flex min-h-0 flex-1 flex-col overflow-hidden rounded-[20px] bg-white shadow-sm">
+      <div class="flex items-center gap-2 border-b border-gray-100 px-2 py-2">
+        <button class="flex h-11 items-center gap-0.5 rounded-full px-2 text-[14px] font-medium text-rose-600" onclick="backB(this)">${ic("chevron-left", "width:20px;height:20px")}Danh sách</button>
+        <p class="flex-1 truncate text-center text-[15px] font-semibold text-gray-900">${STEPS[i]}</p>
+        <span class="w-[92px] pr-2 text-right text-[12px] text-gray-400">${i + 1}/10</span>
+      </div>
+      ${isPh ? `<div class="flex items-center justify-between border-b border-gray-100 px-4 py-2.5 text-[13px] text-gray-600">Hiện mục này trên thiệp<span class="sw"></span></div>` : ""}
+      <div class="scroll space-y-5 px-4 py-5">${isPh ? photosBody() : coupleBody()}</div>
+      <div class="border-t border-gray-100 px-3 py-2.5"><span class="flex h-11 items-center justify-center gap-1.5 rounded-full bg-rose-600 text-[14px] font-semibold text-white">Xong, sang ${STEPS[i + 1]}${ic("chevron-right")}</span></div>
+    </div>${navbar()}</div>`;
+}
+window.openB = (btn, i) => { const p = btn.closest(".phone"); p.outerHTML = dirBDetail(i); lucide.createIcons(); };
+window.backB = (btn) => { const p = btn.closest(".phone"); p.outerHTML = dirBList(); lucide.createIcons(); };
+
+/* ── C · Chỉ đánh bóng ──────────────────────────────────────────── */
+function dirC(step) {
+  const isPh = step === "photos", i = isPh ? 4 : 0;
+  const card = (who, tone, ph) => `<div class="rounded-2xl border ${tone} p-4 space-y-4">
+    <div class="text-[14px] font-semibold text-gray-700">${who}</div>
+    ${field(`Tên ${who.toLowerCase()}`, ph, { req: true, help: "Tên dùng trong lễ cưới" })}
+    ${field(`SĐT ${who.toLowerCase()}`, "0912 345 678", { icon: "phone" })}
+    ${photoSlot(`Ảnh ${who.toLowerCase()}`, "Ảnh chân dung, khuôn mặt rõ.")}</div>`;
+  const body = isPh ? photosBody() : `${card("Chú rể", "border-sky-100 bg-sky-50/40", "Ví dụ: Quang Vinh")}${card("Cô dâu", "border-violet-100 bg-violet-50/30", "Ví dụ: Hải Yến")}`;
+  return `<div class="phone">${topBar(chips(i))}
+    <div class="relative mx-3 my-3 flex min-h-0 flex-1 flex-col overflow-hidden rounded-[20px] bg-white shadow-sm">
+      <div class="flex items-center justify-between bg-rose-50/70 px-4 py-3">
+        <p class="flex items-center gap-2 text-[14px] font-medium text-gray-800"><span class="text-rose-500">${ic(isPh ? "camera" : "heart")}</span>${isPh ? "Ảnh cưới" : "Thông tin cặp đôi"}</p>
+        ${isPh ? `<span class="flex items-center gap-2 text-[12px] text-gray-600">Hiện<span class="sw"></span></span>` : ""}</div>
+      <div class="scroll space-y-4 px-4 pt-4 pb-20">${body}</div>
+      <div class="absolute bottom-3 right-3 flex items-center gap-1 rounded-full bg-white py-1 pl-2 pr-1 shadow-lg">
+        <span class="px-1 text-gray-300">${ic("chevron-left")}</span><span class="text-[13px] font-semibold text-gray-600">${i + 1}/10</span>
+        <span class="flex h-9 items-center gap-1 rounded-full bg-rose-600 px-4 text-[13px] font-semibold text-white">Tiếp${ic("chevron-right")}</span></div>
+    </div>${navbar()}</div>`;
+}
+
+/* ── Dựng các cột ───────────────────────────────────────────────── */
+const COLS = [
+  ["Hiện tại", "text-gray-500", "Ảnh chụp trang đang chạy.", `<img src="now-couple.png" class="phone" style="padding:0;object-fit:cover" alt="Hiện tại — Cặp đôi"><img src="now-photos.png" class="phone" style="padding:0;object-fit:cover" alt="Hiện tại — Ảnh cưới">`],
+  ["A · Wizard gọn", "text-rose-600", "Khuyên dùng. Giữ chip; thêm dòng bước + vạch tiến độ; bỏ dải tiêu đề lặp; phẳng hoá thẻ; Lùi/Tiếp thành thanh đáy khung, nút Tiếp nói rõ bước kế.", dirA("couple") + dirA("photos")],
+  ["B · Danh sách mục", "text-violet-600", "Mở trang là tổng quan 10 mục + trạng thái; chạm để vào, có nút quay về. Bấm thử một dòng ở máy trên.", dirBList() + dirBDetail(4)],
+  ["C · Chỉ đánh bóng", "text-gray-700", "Giữ bố cục cũ; thẻ nhẹ hơn, nhãn gọn, ô ảnh, công tắc có chữ; nút nổi vẫn nổi.", dirC("couple") + dirC("photos")],
+];
+document.getElementById("cols").innerHTML = COLS.map(([t, c, d, phones]) => `
+  <section class="flex w-[375px] flex-col gap-6">
+    <div><h2 class="text-lg font-bold ${c}">${t}</h2><p class="mt-1 min-h-[60px] text-[13px] leading-snug text-gray-600">${d}</p></div>
+    ${phones}</section>`).join("");
+lucide.createIcons();
+</script>
+</body>
+</html>

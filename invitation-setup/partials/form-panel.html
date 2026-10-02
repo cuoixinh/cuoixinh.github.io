@@ -7,8 +7,88 @@
        xuống dưới navbar. Chiều cao do CSS tính từ --cx-top-h + --nav-h. -->
   <div id="setup-main" class="px-2 sm:px-4">
     <div id="setup-scroll" class="max-w-4xl mx-auto my-4">
-      <!-- Đệm đáy chừa chỗ cho cặp nút nổi #step-nav (nằm đè lên đáy thẻ). -->
-      <div class="pb-[84px]">
+      <!-- Dòng bước đang mở + vạch tiến độ, DÍNH mép trên khung cuộn. Chữ và độ
+           dài vạch do _cxRenderHead() (js/20-steps.js) điền. Cả dòng là nút mở
+           ngăn chip các bước bên dưới (cxStepBarToggle) — ngăn mặc định THU cho
+           đỡ tốn chiều cao, tự thu lại khi chọn bước / cuộn / bấm ra ngoài. -->
+      <div id="step-head" class="cx-stephead">
+        <x-button
+          variant="bare"
+          id="step-head-toggle"
+          class="cx-stephead-toggle"
+          aria-expanded="false"
+          aria-controls="step-drawer"
+          onclick="cxStepBarToggle()"
+        >
+          <span class="cx-stephead-title">
+            <span id="step-head-num" class="cx-stephead-num"></span>
+            <span id="step-head-label"></span>
+          </span>
+          <i data-lucide="chevron-down" class="cx-stephead-chev"></i>
+          <span id="step-head-done" class="cx-stephead-done"></span>
+        </x-button>
+        <div
+          id="step-head-track"
+          class="cx-stephead-track"
+          role="progressbar"
+          aria-label="Số mục đã điền đủ"
+          aria-valuemin="0"
+        >
+          <div id="step-head-fill" class="cx-stephead-fill"></div>
+        </div>
+
+        <!-- Ngăn chip các bước: chip do js/20-steps.js đổ ra từ CX_STEPS (✓ đủ ·
+             ⚠ thiếu · nét đứt chưa điền), cuộn ngang vì 10 bước không vừa bề
+             ngang điện thoại. Thu bằng grid-rows 0fr chứ không display:none nên
+             chip vẫn có khổ thật — kéo chip đang mở vào giữa vẫn đo được. -->
+        <div id="step-drawer" class="cx-stepdrawer">
+          <div class="cx-stepdrawer-in">
+            <!-- .cx-stepbar-wrap vẽ vệt trắng mờ hai mép báo còn cuộn được;
+                 hai nút kẹp hai đầu chỉ CUỘN dãy chip, _cxSyncBarFade() làm mờ
+                 nút khi phía đó đã hết chip. -->
+            <div class="flex items-center gap-0.5 pt-2">
+              <x-button
+                type="button"
+                id="stepbar-prev"
+                variant="ghost"
+                tone="neutral"
+                size="sm"
+                icon-only
+                onclick="cxStepBarScroll(-1)"
+                title="Xem các bước trước"
+                aria-label="Cuộn thanh bước sang trái"
+                class="shrink-0"
+              >
+                <i data-lucide="chevron-left" class="w-4 h-4"></i>
+              </x-button>
+              <div class="cx-stepbar-wrap flex-1 min-w-0">
+                <div
+                  id="step-bar"
+                  class="flex items-center gap-1 overflow-x-auto px-1 py-1 scrollbar-hide"
+                  role="tablist"
+                  aria-label="Các bước điền thông tin thiệp"
+                ></div>
+              </div>
+              <x-button
+                type="button"
+                id="stepbar-next"
+                variant="ghost"
+                tone="neutral"
+                size="sm"
+                icon-only
+                onclick="cxStepBarScroll(1)"
+                title="Xem các bước sau"
+                aria-label="Cuộn thanh bước sang phải"
+                class="shrink-0"
+              >
+                <i data-lucide="chevron-right" class="w-4 h-4"></i>
+              </x-button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cx-setup-body">
         <!-- Form -->
         <form
           id="wedding-form"
@@ -127,44 +207,29 @@
           <span id="mount-step-footer" hidden></span>
         </form>
       </div>
-    </div>
-  </div>
 
-  <!-- Cặp nút điều hướng NỔI trên navbar. `fixed` nên không chiếm một dòng nào
-       trong luồng form; phần đệm đáy của form (pb-…) đã chừa chỗ cho chúng.
-       Nằm ngoài <form> để Enter trong ô nhập không đụng tới, và nằm TRONG
-       #form-panel để tự ẩn khi chuyển sang tab Xem trước / Cấu hình.
-       `bottom` bám --nav-h (chiều cao thật của navbar, do _syncNavHeight đo);
-       thẻ AI nổi cũng được đẩy lên trên cụm này nên không đè lên nhau. -->
-  <div
-    id="step-nav"
-    class="pointer-events-none fixed inset-x-0 z-[47] flex justify-center px-4 sm:px-6"
-    style="bottom: calc(var(--nav-h, 60px) + 12px)"
-  >
-    <!-- Cụm nằm ở MÉP PHẢI cột nội dung (max-w-4xl như các thẻ nổi khác) chứ
-         không giữa màn: tay cầm máy ở đó, và giữa màn là chỗ đang đọc form. -->
-    <!-- MỘT viên thuốc nổi: nút lùi chỉ còn mũi tên (việc phụ), số bước ở giữa
-         cho biết đang ở đâu, nút tiến là nút chính có nhãn. Bước đầu giấu nút
-         lùi thì cụm tự co lại quanh phần còn lại. -->
-    <div class="w-full max-w-4xl flex justify-end">
-      <div class="cx-stepnav pointer-events-auto">
+      <!-- Thanh Lùi/Tiếp ở ĐÁY khung nội dung: DÍNH mép dưới khung cuộn
+           (sticky) nên không bao giờ đè lên ô nhập như nút nổi. Nằm ngoài
+           <form> để Enter trong ô nhập không đụng tới; nằm trong #form-panel
+           nên tự ẩn theo tab. Nút Tiếp ghi tên bước kế (_cxRenderNav). -->
+      <div id="step-nav" class="cx-stepnav">
         <x-button
           type="button"
           id="step-prev"
           variant="ghost"
           tone="neutral"
-          size="sm"
-          icon-only
           onclick="cxStepPrev()"
           title="Bước trước"
-          aria-label="Bước trước"
         >
-          <!-- Cỡ icon bằng class, KHÔNG style inline: lucide bê nguyên style
-               sang <svg> nên media query thu nhỏ ở mobile sẽ không đè nổi. -->
           <i data-lucide="chevron-left" class="w-4 h-4"></i>
+          <span>Lùi</span>
         </x-button>
-        <span id="step-count" class="cx-stepnav-count">1/1</span>
-        <x-button type="button" id="step-next" size="sm" onclick="cxStepNext()">
+        <x-button
+          type="button"
+          id="step-next"
+          class="ml-auto"
+          onclick="cxStepNext()"
+        >
           <span id="step-next-label">Tiếp</span>
           <i data-lucide="chevron-right" class="w-4 h-4"></i>
         </x-button>
