@@ -178,6 +178,20 @@ cũ** cho tới khi làm xong mục F. Đừng đọc bảng `[x]` bên dưới 
       Origin thành localhost.
 - [x] **Phụ.** `payos-webhook` bỏ `console.log` dump cả payload (mang chữ ký) và bỏ in chữ ký
       kỳ vọng/nhận được ra log.
+- [x] **A22. Giữ link thiệp chạy mãi mà không thanh toán (vá 2026-10-02, chưa deploy).** Bốn
+      đường, cùng một đích là lách hạn dùng thử 3 ngày:
+      (1) xoá thiệp hết hạn rồi tạo thiệp mới lấy lại slug → trigger
+      `cx_hold_deleted_wedding_slug` ghi slug + hạn cũ vào `wedding_slug_holds`
+      (`dqvinh_001_weddings.sql`); `wedding-admin` chỉ cho chủ cũ lấy lại trong
+      `SLUG_HOLD_DAYS` ngày, mọi thiệp xuất bản lại với slug đó kế thừa hạn cũ. Luật slug chỉ
+      ở `_shared/slug-holds.ts`, dùng chung cho `wedding-admin` lẫn `payment-handler` (đường
+      tạo hàng lúc thanh toán — trước đó không đọc sổ nên trả tiền là chiếm được link đang giữ);
+      (2) PATCH gỡ xuất bản rồi xuất bản lại → hạn chỉ đặt khi `existing.expires_at` còn null;
+      (3) POST kèm `is_published: true` (ra `expires_at = null` = kích hoạt vĩnh viễn) → POST
+      của người dùng thường luôn tạo nháp;
+      (4) gửi luôn link nháp → GET `?slug=` trả 403 `NOT_PUBLISHED` khi chưa xuất bản.
+      Còn lại theo thiết kế: tạo thiệp mới với slug KHÁC vẫn được 3 ngày mới (phải gửi lại
+      link, bị trần `MAX_WEDDINGS_PER_USER`).
 
 ---
 

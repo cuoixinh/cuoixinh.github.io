@@ -35,7 +35,7 @@ stateDiagram-v2
 
 | Trạng thái | Dấu hiệu trong DB                                                    | Khách mời xem được? |
 | ---------- | -------------------------------------------------------------------- | ------------------- |
-| Nháp       | `is_published = false`                                               | không (chưa có link) |
+| Nháp       | `is_published = false`                                               | không — 403 `NOT_PUBLISHED` |
 | Dùng thử   | `is_published`, `expires_at > now()`                                 | có                  |
 | Hết hạn    | `is_published`, `expires_at < now()`, `payment_status <> 'completed'` | **không** — 403     |
 | Kích hoạt  | `expires_at is null` hoặc `payment_status = 'completed'`              | có, vĩnh viễn       |
@@ -46,7 +46,7 @@ Cột này là **trục của toàn bộ luồng**. Chỉ có ba chỗ chạm v�
 
 | Nơi                   | Khi nào                                                            | Giá trị           |
 | --------------------- | ------------------------------------------------------------------ | ----------------- |
-| `wedding-admin` PATCH | thiệp CHUYỂN từ chưa xuất bản → xuất bản, và chưa thanh toán        | `now() + 3 ngày`  |
+| `wedding-admin` PATCH | thiệp CHUYỂN từ chưa xuất bản → xuất bản, chưa thanh toán, và CHƯA TỪNG có hạn | `now() + 3 ngày`, hoặc hạn cũ nếu slug đang bị giữ |
 | `payos-webhook`       | thanh toán thành công                                              | `null`            |
 | `payment-handler`     | thanh toán 0đ (mã giảm 100%)                                       | `null`            |
 
@@ -54,6 +54,17 @@ Cột này là **trục của toàn bộ luồng**. Chỉ có ba chỗ chạm v�
 nhãn thành "Lưu & Xuất bản" nhưng vẫn gọi `publishWedding()`, tức mọi lần lưu đều kèm
 `is_published: true`. Bỏ điều kiện là hạn dùng thử tự gia hạn mỗi lần khách bấm lưu → không
 thiệp nào hết hạn, không thiệp nào bị dọn, cả tính năng này thành vô nghĩa.
+
+⚠️ **Hạn dính theo thiệp VÀ theo slug, đừng gỡ.** Thiệp đã từng có hạn thì gỡ xuất bản rồi xuất
+bản lại vẫn giữ hạn cũ. Thiệp dùng thử chưa thanh toán bị xoá (bởi chủ, cron hay admin) thì
+trigger `cx_hold_deleted_wedding_slug` ghi slug + hạn vào `wedding_slug_holds`: trong
+`SLUG_HOLD_DAYS` (90) ngày chỉ chủ cũ lấy lại được slug đó, và thiệp nào xuất bản với slug đó cũng kế thừa hạn cũ.
+Thiếu một trong hai là xoá/gỡ rồi xuất bản lại thành dùng thử vô hạn trên cùng link. Luật
+slug (hằng `SLUG_HOLD_DAYS`, `findSlugHold`, `getUniqueSlug`) chỉ nằm ở `_shared/slug-holds.ts`;
+mọi đường đặt slug phải hỏi qua đó — `wedding-admin` (POST/PATCH) và `payment-handler` (tạo
+hàng lúc thanh toán). Link công khai của slug đang giữ trả 409 `SLUG_HELD` để ô kiểm slug ở
+trang Thiết lập không coi là còn trống. POST tạo
+thiệp của người dùng thường luôn là nháp, vì nó không đặt hạn.
 
 `expires_at` **không bao giờ** rời khỏi DB cho người dùng thường: `wedding-admin` chỉ lấy nó để
 xét khoá rồi `delete` khỏi response.
@@ -90,27 +101,37 @@ Không UI nào gọi vào. `pg_cron` gọi qua `pg_net` mỗi ngày **03:00 gi�
 kèm header `x-admin-token` lấy từ Vault (secret tên `cleanup_token`). Function deploy với
 **Verify JWT = OFF** — quyền dựa hoàn toàn vào token đó.
 
-Hai câu quét:
+Ba câu quét:
 
 ```
 (1) unpaid: is_published AND payment_status <> 'completed'
             AND expires_at IS NOT NULL AND expires_at < now() - RETENTION_DAYS
 (2) draft:  NOT is_published AND updated_at < now() - RETENTION_DAYS
+(3) sổ giữ slug: wedding_slug_holds.deleted_at < now() - SLUG_HOLD_DAYS (90)
 ```
+
+Câu (3) chạy SAU phần thiệp và hỏng thì chỉ ghi log (`cleanup.slug_holds_failed`), không làm
+hỏng lượt dọn thiệp: sót hàng hết hạn chỉ tốn chỗ, không chặn ai. `?days=` KHÔNG áp cho câu
+này — hạ số ngày giữ là xoá luôn hàng đang giữ, mở lại lỗ xoá-đi-tạo-lại. `?dry_run=1` trả
+thêm khoá `slug_holds` liệt kê hàng sẽ dọn.
 
 Chốt an toàn: `expires_at IS NULL` hoặc `payment_status = 'completed'` thì **không bao giờ** bị
 đụng — đó là thiệp đã kích hoạt vĩnh viễn. Câu (1) dùng `.or('payment_status.is.null,...neq...')`
 vì `neq` của PostgREST bỏ sót hàng NULL.
 
-Mỗi nạn nhân: xoá cả thư mục ảnh `w/<storage_key>/` (+ file phẳng cũ hàng còn trỏ tới) → `delete
+Mỗi nạn nhân (nhóm 1, 2): xoá cả thư mục ảnh `w/<storage_key>/` (+ file phẳng cũ hàng còn trỏ tới) → `delete
 from weddings` (guests cascade theo FK). **Xoá ảnh trước**, vì hàng DB là nơi duy nhất giữ
 `storage_key`. Luật quét + phép xoá nằm ở `_shared/wedding-cleanup.ts`, dùng chung với tab "Dọn dữ
-liệu" của admin — cron hỏng thì dọn tay ở đó, cùng đúng một điều kiện.
+liệu" của admin — cron hỏng thì dọn tay ở đó, cùng đúng một điều kiện. Luật + phép xoá sổ giữ
+slug (`findExpiredSlugHolds` / `deleteExpiredSlugHolds`, hằng `SLUG_HOLD_DAYS`) cũng ở file đó;
+mục "Sổ giữ slug hết hạn" của tab admin gọi đúng hai hàm này.
 
 - `?dry_run=1` — chỉ liệt kê, không xoá. Dùng trước mọi thay đổi.
-- `?days=N` — ghi đè hạn, để thử tay.
-- Trần **100 hàng mỗi nhóm mỗi lần chạy** (`MAX_PER_RUN`), còn dư hôm sau dọn tiếp.
-- Log Axiom: `cleanup.run` · `cleanup.deleted` · `cleanup.failed`.
+- `?days=N` — ghi đè hạn của nhóm (1), (2), để thử tay.
+- Trần **100 hàng mỗi nhóm thiệp mỗi lần chạy** (`MAX_PER_RUN`), còn dư hôm sau dọn tiếp. Nhóm
+  (3) xoá hết trong một lệnh (hàng sổ rất nhỏ, không đụng Storage).
+- Log Axiom: `cleanup.run` · `cleanup.deleted` · `cleanup.failed` · `cleanup.slug_holds_deleted` ·
+  `cleanup.slug_holds_failed`.
 
 ## 7. Khoá thiệp hết hạn
 

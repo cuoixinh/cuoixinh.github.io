@@ -1,8 +1,10 @@
-// Luật "thiệp quá hạn giữ" + phép xoá một thiệp. Dùng CHUNG cho cron cleanup-weddings
-// và tab Dọn dữ liệu của admin (wedding-admin resource=cleanup) — hai đường phải xét
-// đúng một điều kiện, đổi luật chỉ sửa ở đây. Chi tiết: docs/cleanup-retention.md.
+// Luật "thiệp quá hạn giữ" + phép xoá một thiệp, và luật dọn sổ giữ slug. Dùng CHUNG
+// cho cron cleanup-weddings và tab Dọn dữ liệu của admin (wedding-admin resource=cleanup)
+// — hai đường phải xét đúng một điều kiện, đổi luật chỉ sửa ở đây. Chi tiết:
+// docs/cleanup-retention.md.
 
 import { WEDDING_IMAGE_SELECT, removeWeddingStorage } from './wedding-images.ts'
+import { slugHoldCutoff } from './slug-holds.ts'
 
 // deno-lint-ignore no-explicit-any
 type Db = any
@@ -80,4 +82,39 @@ export async function deleteWeddingHard(
   const { error } = await supabase.from('weddings').delete().eq('id', row.id)
   if (error) throw new Error(`${error.code ?? ''} ${error.message}`.trim())
   return rm.removed
+}
+
+/* ─────────────────────── sổ giữ slug (wedding_slug_holds) ─────────────────────── */
+
+// Hàng sổ quá SLUG_HOLD_DAYS (_shared/slug-holds.ts) không còn tác dụng gì nên được dọn.
+// Cố ý KHÔNG nhận ?days= ghi đè: hạ số ngày là xoá luôn hàng còn đang giữ, mở lại lỗ
+// xoá-đi-tạo-lại.
+
+/** Hàng sổ đã quá hạn giữ, cũ nhất trước. Lỗi truy vấn trả `error`, nơi gọi phải DỪNG. */
+export async function findExpiredSlugHolds(supabase: Db, opts: { limit: number }) {
+  const cutoff = slugHoldCutoff()
+  const { data, error } = await supabase
+    .from('wedding_slug_holds')
+    .select('slug, user_id, expires_at, deleted_at')
+    .lt('deleted_at', cutoff)
+    .order('deleted_at', { ascending: true })
+    .limit(opts.limit)
+  return {
+    cutoff,
+    holds: (data ?? []) as Array<{ slug: string; user_id: string | null; expires_at: string; deleted_at: string }>,
+    error: error ? `${error.code ?? ''} ${error.message}`.trim() : undefined,
+  }
+}
+
+/**
+ * Xoá hàng sổ quá hạn giữ. Điều kiện hạn nằm NGAY TRONG lệnh xoá, nên slug vừa bị xoá
+ * lại (trigger đóng dấu deleted_at mới) giữa lúc quét và lúc xoá sẽ không bị đụng.
+ * `slugs` có thì chỉ xét trong các slug đó (admin chọn tay); không có thì dọn hết.
+ */
+export async function deleteExpiredSlugHolds(supabase: Db, slugs?: string[]) {
+  let q = supabase.from('wedding_slug_holds').delete().lt('deleted_at', slugHoldCutoff())
+  if (slugs) q = q.in('slug', slugs)
+  const { data, error } = await q.select('slug')
+  if (error) return { deleted: [] as string[], error: `${error.code ?? ''} ${error.message}`.trim() }
+  return { deleted: (data ?? []).map((r: { slug: string }) => r.slug), error: undefined as string | undefined }
 }

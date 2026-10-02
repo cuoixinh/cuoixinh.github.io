@@ -1,15 +1,18 @@
 // ============= TAB: Dọn dữ liệu =============
-// Quét → chọn → xoá cho thiệp quá hạn, ảnh rác, tham chiếu ảnh hỏng; bảng tiền chỉ
-// báo cáo. Server (wedding-admin/cleanup.ts) quét lại trước mọi lần ghi nên danh sách
+// Quét → chọn → xoá cho thiệp quá hạn, sổ giữ slug hết hạn, ảnh rác, tham chiếu ảnh
+// hỏng; bảng tiền chỉ báo cáo. Server (wedding-admin/cleanup.ts) quét lại trước mọi lần ghi nên danh sách
 // ở đây chỉ là lựa chọn của admin, không phải chứng cứ.
 
 let clWeddings = [];
+let clHolds = [];
 let clImages = [];
 let clBroken = [];
 let clInited = false;
 
 // Server nhận tối đa ngần này thiệp mỗi lượt (MAX_DELETE_WEDDINGS ở cleanup.ts).
 const CL_WEDDING_BATCH = 30;
+// Server nhận tối đa ngần này slug mỗi lượt (MAX_DELETE_SLUG_HOLDS ở cleanup.ts).
+const CL_HOLD_BATCH = 100;
 
 const CL_REASON = { unpaid: "Chưa thanh toán", draft: "Nháp" };
 const CL_IMG_KIND = {
@@ -199,6 +202,96 @@ async function clDeleteWeddings() {
     errors.length ? `Lỗi ${errors.length}: ${errors.map((e) => e.error).join("; ")}` : "",
   ], errors.length);
   clScanWeddings();
+}
+
+/* ─────────────────────── sổ giữ slug hết hạn ─────────────────────── */
+
+async function clScanSlugHolds() {
+  const done = clBusy("cl-hold-scan", "Đang quét...");
+  try {
+    const data = await clFetch("slug-holds");
+    clHolds = data.items || [];
+    clRenderSlugHolds(data);
+  } catch (e) {
+    showAlert("Không quét được", e.message);
+  } finally {
+    done();
+  }
+}
+
+function clRenderSlugHolds(data) {
+  document.getElementById("cl-hold-days").textContent = data.hold_days;
+  const active = data.active == null ? "?" : data.active;
+  document.getElementById("cl-hold-summary").textContent =
+    `${clHolds.length} hàng hết hạn giữ · ${active} hàng còn đang giữ · mốc ${clDate(data.cutoff)}`;
+  const list = document.getElementById("cl-hold-list");
+  if (!clHolds.length) {
+    list.innerHTML = '<p class="text-sm text-gray-400">Không có hàng nào hết hạn giữ.</p>';
+    clBindChecks("cl-hold-list", "cl-hold-delete");
+    return;
+  }
+  list.innerHTML = `
+    <table class="w-full text-sm">
+      <thead class="text-left text-xs text-gray-500 border-b border-gray-100">
+        <tr>
+          <th class="py-2 pr-2"><input type="checkbox" data-cl-all /></th>
+          <th class="py-2 pr-2">Slug</th>
+          <th class="py-2 pr-2">Hạn dùng thử cũ</th>
+          <th class="py-2 pr-2">Xoá thiệp lúc</th>
+          <th class="py-2">Chủ cũ (user_id)</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${clHolds
+          .map(
+            (h) => `
+          <tr class="border-b border-gray-50">
+            <td class="py-2 pr-2"><input type="checkbox" data-cl-item value="${escapeHtml(h.slug)}" /></td>
+            <td class="py-2 pr-2 font-medium text-gray-800">${escapeHtml(h.slug)}</td>
+            <td class="py-2 pr-2 text-xs">${clDate(h.expires_at)}</td>
+            <td class="py-2 pr-2 text-xs">${clDate(h.deleted_at)}</td>
+            <td class="py-2 text-xs text-gray-400">${escapeHtml(h.user_id || "—")}</td>
+          </tr>`,
+          )
+          .join("")}
+      </tbody>
+    </table>`;
+  clBindChecks("cl-hold-list", "cl-hold-delete");
+}
+
+async function clDeleteSlugHolds() {
+  const slugs = clChecked("cl-hold-list");
+  if (!slugs.length) return;
+  const ok = await clConfirmDanger(
+    "Xoá hàng sổ giữ slug",
+    `Xoá ${slugs.length} hàng đã hết hạn giữ. Slug tương ứng vốn đã tự do, xoá chỉ để dọn bảng.`,
+  );
+  if (!ok) return;
+
+  let deleted = 0;
+  let skipped = 0;
+  const errors = [];
+  try {
+    for (let i = 0; i < slugs.length; i += CL_HOLD_BATCH) {
+      showLoading(true, `Đang xoá ${i + 1}–${Math.min(i + CL_HOLD_BATCH, slugs.length)} / ${slugs.length}...`);
+      const r = await clFetch("slug-holds", {
+        method: "POST",
+        body: { slugs: slugs.slice(i, i + CL_HOLD_BATCH) },
+      });
+      deleted += r.deleted.length;
+      skipped += r.skipped.length;
+    }
+  } catch (e) {
+    errors.push({ error: e.message });
+  } finally {
+    showLoading(false);
+  }
+  clReport("Xoá sổ giữ slug", [
+    `Đã xoá ${deleted} hàng.`,
+    skipped ? `Bỏ qua ${skipped} hàng còn đang giữ (slug vừa bị xoá lại) hoặc không còn trong bảng.` : "",
+    errors.length ? `Lỗi: ${errors.map((e) => e.error).join("; ")}` : "",
+  ], errors.length);
+  clScanSlugHolds();
 }
 
 /* ─────────────────────────── ảnh rác ─────────────────────────── */

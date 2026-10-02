@@ -12,6 +12,7 @@ import {
   weddingFileNames,
 } from '../_shared/wedding-images.ts'
 import { handleCleanup } from './cleanup.ts'
+import { findSlugHold, getUniqueSlug } from '../_shared/slug-holds.ts'
 import {
   checkWeddingLimit,
   MAX_WEDDINGS_PER_USER,
@@ -243,33 +244,6 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
     } catch {
       return null
     }
-  }
-
-  // Helper function to get unique slug
-  async function getUniqueSlug(baseSlug: string, excludeId?: string): Promise<string> {
-    let finalSlug = baseSlug;
-    let suffix = 1;
-    
-    while (true) {
-      let query = supabase
-        .from('weddings')
-        .select('id')
-        .eq('slug', finalSlug);
-      
-      // Exclude current record if updating
-      if (excludeId) {
-        query = query.neq('id', excludeId);
-      }
-      
-      const { data: existing } = await query.maybeSingle();
-      
-      if (!existing) break;
-      
-      suffix++;
-      finalSlug = `${baseSlug}-${suffix}`;
-    }
-    
-    return finalSlug;
   }
 
   // ============= DỌN DỮ LIỆU (admin) — xem ./cleanup.ts =============
@@ -824,21 +798,6 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
       }), { status: 400, headers: corsHeaders })
     }
 
-    // Auto-generate slug từ manage_id nếu không có slug
-    const baseSlug = slug || `wedding-${(resolvedId || '').slice(0, 8).toLowerCase()}`
-    const finalSlug = await getUniqueSlug(baseSlug);
-
-    const insertPayload: Record<string, unknown> = {
-      slug: finalSlug,
-      is_active: true,
-    }
-
-    if (resolvedId)    insertPayload.id          = resolvedId
-    if (contact)       insertPayload.contact      = contact
-    if (theme)         insertPayload.theme        = theme
-    if (theme_setting) insertPayload.theme_setting = theme_setting
-    if (typeof is_published === 'boolean') insertPayload.is_published = is_published
-
     // Bắt buộc đăng nhập mới tạo được thiệp trong DB, để mọi thiệp luôn có chủ và
     // ownership check ở PATCH có căn cứ. Khớp với client: chưa đăng nhập thì thiệp
     // chỉ nằm ở localStorage (xem invitation-setup/js/13-data.js), chưa ghi DB.
@@ -849,6 +808,31 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
         code: 'AUTH_REQUIRED',
       }), { status: 401, headers: corsHeaders })
     }
+
+    // Auto-generate slug từ manage_id nếu không có slug
+    const baseSlug = slug || `wedding-${(resolvedId || '').slice(0, 8).toLowerCase()}`
+    let finalSlug: string
+    try {
+      finalSlug = await getUniqueSlug(supabase, baseSlug, { ownerId: creatorId, log })
+    } catch {
+      return new Response(JSON.stringify({ error: 'Không kiểm tra được slug, vui lòng thử lại' }), {
+        status: 500, headers: corsHeaders
+      })
+    }
+
+    const insertPayload: Record<string, unknown> = {
+      slug: finalSlug,
+      is_active: true,
+    }
+
+    if (resolvedId)    insertPayload.id          = resolvedId
+    if (contact)       insertPayload.contact      = contact
+    if (theme)         insertPayload.theme        = theme
+    if (theme_setting) insertPayload.theme_setting = theme_setting
+    // Thiệp mới luôn là NHÁP: xuất bản phải đi qua PATCH, nơi đặt hạn dùng thử.
+    // Tạo thẳng ở trạng thái xuất bản thì expires_at = null — tức "đã kích hoạt
+    // vĩnh viễn" mà chưa trả đồng nào.
+    if (isAdmin && typeof is_published === 'boolean') insertPayload.is_published = is_published
     if (creatorId) insertPayload.user_id = creatorId
 
     // Trần số thiệp/tài khoản. Đây là chốt THẬT: con số phía client ai cũng sửa
@@ -944,7 +928,7 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
     // Kiểm tra id tồn tại và lấy data hiện tại
     const { data: existing, error: fetchError } = await supabase
       .from('weddings')
-      .select(`${WEDDING_IMAGE_SELECT}, user_id, slug, theme, payment_status, payment_amount, is_published`)
+      .select(`${WEDDING_IMAGE_SELECT}, user_id, slug, theme, payment_status, payment_amount, is_published, expires_at`)
       .eq('id', id)
       .single()
 
@@ -1197,23 +1181,55 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
       }
     }
 
+    // Slug sẽ mang sau lượt lưu này, và sổ giữ slug của nó (xem SLUG_HOLD_DAYS).
+    // Chủ = chủ hiện tại, hoặc người sắp nhận làm chủ (claim bên dưới).
+    const ownerId = existing.user_id ?? editorId
+    const nextSlug = fields.slug || existing.slug
+    let slugHold: Awaited<ReturnType<typeof findSlugHold>> = null
+    if (!isAdmin && nextSlug) {
+      try {
+        slugHold = await findSlugHold(supabase, nextSlug, log)
+      } catch {
+        return new Response(JSON.stringify({ error: 'Không kiểm tra được slug, vui lòng thử lại' }), { status: 500, headers: corsHeaders })
+      }
+      // Giữ cho người khác → nói như slug đã có người dùng. Chỉ chặn khi ĐỔI sang
+      // slug đó; thiệp đang mang sẵn slug thì không bắt đổi giữa chừng.
+      if (slugHold && slugHold.user_id !== ownerId && fields.slug && fields.slug !== existing.slug) {
+        log.warn('wedding.slug_held', { id, slug: fields.slug })
+        return new Response(JSON.stringify({ error: 'Tên slug đã được người khác sử dụng. Vui lòng chọn tên khác' }), {
+          status: 409, headers: corsHeaders
+        })
+      }
+    }
+
 
     // Xuất bản = lên DÙNG THỬ 3 ngày: đặt expires_at = now + 3 ngày. Thanh toán
-    // thành công (payos-webhook) mới gán expires_at = null → mở vĩnh viễn. Hai guard:
+    // thành công (payos-webhook) mới gán expires_at = null → mở vĩnh viễn. Các guard:
     //   + thiệp đã thanh toán rồi thì KHÔNG reset về dùng thử khi publish/lưu lại;
     //   + chỉ đặt ở lần CHUYỂN chưa xuất bản → xuất bản. Thiệp đã xuất bản thì nút
     //     chính đổi nhãn thành "Lưu & Xuất bản" nhưng vẫn gọi publishWedding() nên
     //     lần lưu nào cũng kèm is_published: true — không chặn thì mỗi lần bấm lưu
     //     là hạn dùng thử lùi thêm 3 ngày (dùng thử vô hạn) và mốc dọn dẹp
-    //     "expires_at + 30 ngày" của cleanup-weddings không bao giờ tới.
+    //     "expires_at + 30 ngày" của cleanup-weddings không bao giờ tới;
+    //   + thiệp ĐÃ TỪNG có hạn thì giữ hạn đó: gỡ xuất bản rồi xuất bản lại không
+    //     được cấp hạn mới;
+    //   + slug đang bị giữ → kế thừa hạn của thiệp cũ đã xoá (hạn đã qua thì thiệp
+    //     khoá ngay, phải thanh toán). Không xét chủ: người khác vẫn lọt được slug
+    //     qua đường tạo đơn của payment-handler rồi bỏ dở thanh toán.
     if (
       fields.is_published === true &&
       existing.is_published !== true &&
-      existing.payment_status !== 'completed'
+      existing.payment_status !== 'completed' &&
+      !existing.expires_at
     ) {
-      const expiresAt = new Date()
-      expiresAt.setDate(expiresAt.getDate() + 3)
-      fields.expires_at = expiresAt.toISOString()
+      if (slugHold) {
+        fields.expires_at = slugHold.expires_at
+        log.info('wedding.trial_inherited', { id, slug: nextSlug })
+      } else {
+        const expiresAt = new Date()
+        expiresAt.setDate(expiresAt.getDate() + 3)
+        fields.expires_at = expiresAt.toISOString()
+      }
     }
 
     // Thiệp chưa có chủ + người sửa đã đăng nhập → nhận làm chủ (claim), đường
@@ -1539,6 +1555,17 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
     }
 
     if (!data) {
+      // Slug không có thiệp nào nhưng đang bị giữ (sổ wedding_slug_holds): nói rõ để ô
+      // kiểm slug của trang Thiết lập biết đó KHÔNG phải slug trống. Chỉ là gợi ý cho
+      // client — chốt thật nằm ở PATCH — nên đọc sổ hỏng thì rơi về 404 như thường.
+      if (slug && !isAdmin) {
+        const held = await findSlugHold(supabase, slug, log).catch(() => null)
+        if (held) {
+          return new Response(JSON.stringify({ error: 'Đường dẫn này đang được giữ', code: 'SLUG_HELD' }), {
+            status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          })
+        }
+      }
       log.warn('wedding.not_found', { by: slug ? 'slug' : 'id' })
       return new Response(JSON.stringify({ error: 'Không tìm thấy thiệp', code: 'NOT_FOUND' }), {
         status: 404, headers: corsHeaders
@@ -1579,6 +1606,15 @@ Deno.serve(withAxiom('wedding-admin', async (req, log) => {
       const themeLocked = data.payment_status === 'completed'
       delete data.expires_at
       delete data.payment_status
+
+      // Nháp không có link công khai: chưa xuất bản thì chưa vào dùng thử, nên mở
+      // được ở đây là gửi khách xem mãi mà không bao giờ hết hạn.
+      if (slug && !data.is_published) {
+        return new Response(JSON.stringify({
+          error: 'Thiệp chưa xuất bản',
+          code: 'NOT_PUBLISHED',
+        }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      }
 
       if (locked && slug) {
         log.info('wedding.trial_locked', { slug })

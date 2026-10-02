@@ -45,6 +45,7 @@ function _renderTimelineRows(listEl, type, colorClass) {
         type="text"
         value="${escapeHtml(item.time || "")}"
         placeholder="Chọn giờ"
+        aria-label="Giờ"
         readonly
         class="w-24 flex-shrink-0 h-10 px-2 border border-gray-200 rounded-xl text-sm text-gray-800 bg-white outline-none cursor-pointer text-center hover:border-rose-300 focus:border-rose-400 focus:ring-2 focus:ring-rose-400/20"
         onclick="openTimePicker(this, this.value, v => { _timelineItems[${idx}].time=v; this.value=v; _syncTimelineHidden(); })"
@@ -53,6 +54,7 @@ function _renderTimelineRows(listEl, type, colorClass) {
         type="text"
         value="${escapeHtml(item.title || "")}"
         placeholder="Mô tả sự kiện"
+        aria-label="Mô tả sự kiện"
         class="flex-1 min-w-0 h-10 px-3 border border-gray-200 rounded-xl text-sm text-gray-800 bg-white outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-400/20"
         oninput="_timelineItems[${idx}].title=this.value;_syncTimelineHidden();"
       />
@@ -210,15 +212,24 @@ function renderLoveStoryList() {
           <i data-lucide="x" class="w-3.5 h-3.5"></i> Xóa
         </x-button>
       </div>
-      <input type="text" value="${escapeHtml(item.date || "")}" placeholder="Ví dụ: Mùa xuân năm 2020"
-        class="w-full h-10 px-3 py-2 border border-gray-200 rounded-md text-sm text-gray-800 bg-white outline-none transition-all placeholder:text-gray-400/50 focus:ring-2 focus:ring-rose-500/30 focus:ring-offset-2"
-        oninput="_loveStoryItems[${idx}].date=this.value;_syncLoveStoryHidden();" />
-      <input type="text" value="${escapeHtml(item.title || "")}" placeholder="Ví dụ: Lần đầu gặp gỡ"
-        class="w-full h-10 px-3 py-2 border border-gray-200 rounded-md text-sm text-gray-800 bg-white outline-none transition-all placeholder:text-gray-400/50 focus:ring-2 focus:ring-rose-500/30 focus:ring-offset-2"
-        oninput="_loveStoryItems[${idx}].title=this.value;_syncLoveStoryHidden();const lb=document.getElementById('ls-label-${idx}');if(lb)lb.textContent=this.value||'Mốc ${idx + 1}';" />
-      <x-textarea bare data-ls-content="${idx}"
-        input-class="w-full px-3 py-2 border border-gray-200 rounded-md text-sm text-gray-800 bg-white outline-none transition-all placeholder:text-gray-400/50 focus:ring-2 focus:ring-rose-500/30 focus:ring-offset-2 resize-none"
-        placeholder="Kể ngắn về khoảnh khắc này..."></x-textarea>
+      <div>
+        <label for="ls-date-${idx}" class="block mb-1 text-xs font-medium text-gray-600">Thời gian</label>
+        <input type="text" id="ls-date-${idx}" value="${escapeHtml(item.date || "")}" placeholder="Ví dụ: Mùa xuân năm 2020"
+          class="w-full h-10 px-3 border border-gray-200 rounded-lg text-sm text-gray-800 bg-white outline-none transition-all placeholder:text-gray-400/50 focus:ring-2 focus:ring-rose-500/30"
+          oninput="_loveStoryItems[${idx}].date=this.value;_syncLoveStoryHidden();" />
+      </div>
+      <div>
+        <label for="ls-title-${idx}" class="block mb-1 text-xs font-medium text-gray-600">Tên mốc</label>
+        <input type="text" id="ls-title-${idx}" value="${escapeHtml(item.title || "")}" placeholder="Ví dụ: Lần đầu gặp gỡ"
+          class="w-full h-10 px-3 border border-gray-200 rounded-lg text-sm text-gray-800 bg-white outline-none transition-all placeholder:text-gray-400/50 focus:ring-2 focus:ring-rose-500/30"
+          oninput="_loveStoryItems[${idx}].title=this.value;_syncLoveStoryHidden();const lb=document.getElementById('ls-label-${idx}');if(lb)lb.textContent=this.value||'Mốc ${idx + 1}';" />
+      </div>
+      <div>
+        <label for="ls-content-${idx}" class="block mb-1 text-xs font-medium text-gray-600">Kể lại khoảnh khắc</label>
+        <x-textarea bare id="ls-content-${idx}" data-ls-content="${idx}"
+          input-class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-800 bg-white outline-none transition-all placeholder:text-gray-400/50 focus:ring-2 focus:ring-rose-500/30 resize-none"
+          placeholder="Kể ngắn về khoảnh khắc này..."></x-textarea>
+      </div>
       <div class="flex items-center flex-wrap gap-2">
         <input type="file" id="ls-img-input-${idx}" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" class="hidden"
           onchange="handleLoveStoryImage(${idx}, this)" />

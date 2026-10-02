@@ -318,6 +318,56 @@ create trigger cx_touch_weddings_updated_at
   execute function public.cx_touch_weddings_updated_at();
 
 
+-- ============ Sổ giữ slug của thiệp dùng thử đã xoá ============
+-- Xoá thiệp hết hạn dùng thử rồi tạo thiệp mới cùng slug là cách lấy lại link đã
+-- gửi khách với hạn dùng thử mới. Hàng bị xoá mà đã từng vào dùng thử (expires_at
+-- có giá trị) và chưa thanh toán thì slug + hạn cũ được ghi lại đây; wedding-admin
+-- chỉ cho đúng chủ cũ lấy lại slug trong 90 ngày (SLUG_HOLD_DAYS), và thiệp mới
+-- kế thừa hạn cũ. Trigger thay vì sửa từng function: có ba đường xoá (chủ thiệp,
+-- cron cleanup-weddings, tab "Dọn dữ liệu" của admin), trigger bắt cả ba.
+-- Không xét is_published: thiệp hết hạn bị gỡ xuất bản qua API rồi mới xoá vẫn phải
+-- bị ghi sổ.
+
+create table if not exists public.wedding_slug_holds (
+  slug       text        primary key,
+  user_id    uuid,
+  expires_at timestamptz not null,
+  deleted_at timestamptz not null default now()
+);
+
+comment on table public.wedding_slug_holds is
+  'Slug của thiệp dùng thử chưa thanh toán đã bị xoá — chỉ chủ cũ lấy lại được, kèm hạn dùng thử cũ';
+
+-- Cả phép kiểm "còn giữ" lẫn phép dọn "hết hạn" (cron cleanup-weddings) đều lọc theo cột này.
+create index if not exists idx_wedding_slug_holds_deleted_at
+  on public.wedding_slug_holds(deleted_at);
+
+alter table public.wedding_slug_holds enable row level security;
+
+create or replace function public.cx_hold_deleted_wedding_slug()
+returns trigger as $$
+begin
+  if old.expires_at is not null
+     and old.payment_status is distinct from 'completed' then
+    insert into public.wedding_slug_holds (slug, user_id, expires_at, deleted_at)
+    values (old.slug, old.user_id, old.expires_at, now())
+    on conflict (slug) do update
+      set user_id    = excluded.user_id,
+          -- Giữ hạn SỚM hơn: xoá đi tạo lại nhiều lần không được lùi hạn.
+          expires_at = least(public.wedding_slug_holds.expires_at, excluded.expires_at),
+          deleted_at = excluded.deleted_at;
+  end if;
+  return old;
+end;
+$$ language plpgsql;
+
+drop trigger if exists cx_hold_deleted_wedding_slug on public.weddings;
+create trigger cx_hold_deleted_wedding_slug
+  before delete on public.weddings
+  for each row
+  execute function public.cx_hold_deleted_wedding_slug();
+
+
 -- ============ RLS ============
 -- Bật, KHÔNG policy: mọi truy cập của anon/authenticated qua PostgREST trả 0
 -- hàng. Thêm một policy `using (true)` ở đây là mở lại đường đọc toàn bộ thiệp

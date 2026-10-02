@@ -1,4 +1,5 @@
-// cleanup-weddings — dọn thiệp chưa thanh toán / nháp bỏ quên đã quá hạn giữ.
+// cleanup-weddings — dọn thiệp chưa thanh toán / nháp bỏ quên đã quá hạn giữ, và hàng
+// sổ giữ slug (wedding_slug_holds) đã quá SLUG_HOLD_DAYS.
 // Gọi mỗi ngày một lần bởi pg_cron + pg_net (xem changelogs/RC1.10). Không có UI
 // nào gọi vào đây; quyền dựa hoàn toàn vào header x-admin-token nên function phải
 // deploy với Verify JWT = OFF (giống payos-webhook).
@@ -13,7 +14,12 @@
 import { createDbClient } from '../_shared/db-client.ts'
 import { withAxiom } from '../_shared/axiom.ts'
 import { weddingFileNames } from '../_shared/wedding-images.ts'
-import { findExpiredWeddings, deleteWeddingHard } from '../_shared/wedding-cleanup.ts'
+import {
+  findExpiredWeddings,
+  deleteWeddingHard,
+  findExpiredSlugHolds,
+  deleteExpiredSlugHolds,
+} from '../_shared/wedding-cleanup.ts'
 
 // Số ngày giữ. Phải khớp CONFIG.retention ở core/config.js — hai nơi, đổi một bên
 // là web nói một đằng hệ thống làm một nẻo.
@@ -80,11 +86,17 @@ Deno.serve(withAxiom('cleanup-weddings', async (req, log) => {
   })
 
   if (dryRun) {
+    // Chỉ để xem: hỏng thì báo trong response, không chặn phần thiệp.
+    const holds = await findExpiredSlugHolds(supabase, { limit: MAX_PER_RUN })
+    if (holds.error) log.error('cleanup.slug_holds_query_failed', { error: holds.error })
     return new Response(
       JSON.stringify({
         dry_run: true,
         days,
         cutoff,
+        slug_holds: holds.error
+          ? { error: holds.error }
+          : { cutoff: holds.cutoff, count: holds.holds.length, items: holds.holds },
         count: victims.length,
         items: victims.map(({ row, reason }) => ({
           id: row.id,
@@ -119,10 +131,19 @@ Deno.serve(withAxiom('cleanup-weddings', async (req, log) => {
     }
   }
 
+  // Sổ giữ slug: chạy SAU phần thiệp (thiệp vừa xoá ghi hàng mới, deleted_at = hôm nay,
+  // không dính). Hỏng thì ghi log rồi thôi — để sót hàng hết hạn chỉ tốn chỗ, không
+  // chặn ai, mai cron dọn tiếp.
+  const holds = await deleteExpiredSlugHolds(supabase)
+  if (holds.error) log.error('cleanup.slug_holds_failed', { error: holds.error })
+  else log.info('cleanup.slug_holds_deleted', { count: holds.deleted.length })
+
   return new Response(
     JSON.stringify({
       days,
       cutoff,
+      slug_holds_deleted: holds.deleted.length,
+      slug_holds_error: holds.error ?? null,
       deleted_unpaid: deletedUnpaid,
       deleted_draft: deletedDraft,
       files_removed: filesRemoved,
