@@ -420,6 +420,12 @@ function _initConfigPanel() {
     _showYouTubeSuggestions();
   }
 
+  // Thiệp mới (hoặc chưa từng có câu mẫu) → điền sẵn câu mặc định để khách sửa
+  // từ đó; lưu trống thì khi chia sẻ cũng rơi về đúng câu này.
+  const shareTpl = document.getElementById("share-message-template");
+  if (shareTpl && !shareTpl.value.trim())
+    shareTpl.value = window.SHARE_MESSAGE_DEFAULT || "";
+
   // Sync clear-button state for all x-inputs in config panel
   document.querySelectorAll("x-input").forEach((el) => el.syncClearBtn?.());
 }

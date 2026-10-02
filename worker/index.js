@@ -14,6 +14,11 @@
 const DEFAULT_DESC =
   "Trân trọng kính mời Quý Khách đến dự và chung vui cùng gia đình chúng tôi.";
 
+// Câu mẫu chia sẻ khi chủ thiệp để trống — bản sao SHARE_MESSAGE_DEFAULT ở
+// core/constant.js (worker không nạp file đó), đổi câu thì đổi cả hai.
+const DEFAULT_SHARE_TPL =
+  "Trân trọng kính mời ##Relationship## đến dự lễ cưới của chúng mình. Sự hiện diện của ##Relationship## là niềm vui lớn của gia đình. Thiệp mời: ##link##";
+
 // Path có route riêng trong router.html — không phải slug thiệp.
 const ROUTE_PATHS = new Set(["manage", "account", "customer"]);
 
@@ -129,10 +134,9 @@ function ogTitle(w, guest) {
   return pair ? `${head} | ${pair}` : head;
 }
 
-/** Mô tả = "Câu mẫu chia sẻ" của chủ thiệp, bỏ biến ##link## và URL trần. */
+/** Mô tả = "Câu mẫu chia sẻ" của chủ thiệp (trống thì câu mặc định), bỏ biến ##link## và URL trần. */
 function ogDesc(w, guest, rel) {
-  const tpl = String(w?.share_message_template || "").trim();
-  if (!tpl) return DEFAULT_DESC;
+  const tpl = String(w?.share_message_template || "").trim() || DEFAULT_SHARE_TPL;
   const text = tpl
     .replace(/##\s*relationship\s*##/gi, rel || "Quý Khách")
     .replace(/##\s*danh\s*x[ưu]ng\s*##/giu, guest || "Quý Khách") // câu mẫu cũ

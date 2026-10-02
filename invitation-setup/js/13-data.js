@@ -470,10 +470,11 @@ function _fillForm(data) {
     if (brideLink) brideLink.value = `${DOMAIN}/${data.slug}`;
   }
 
-  // Câu mẫu chia sẻ (nằm ngoài <form> nên fill riêng)
+  // Câu mẫu chia sẻ (nằm ngoài <form> nên fill riêng) — trống thì điền câu mặc định.
   if (data.share_message_template !== undefined) {
     const tplEl = document.getElementById("share-message-template");
-    if (tplEl) tplEl.value = data.share_message_template || "";
+    if (tplEl)
+      tplEl.value = data.share_message_template || window.SHARE_MESSAGE_DEFAULT || "";
   }
 
   // Process image_focal_points FIRST so pendingFocalPoints is ready before any renderSingleImageUpload call

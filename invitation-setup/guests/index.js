@@ -862,8 +862,8 @@ function _openShareModal(guestId, side) {
   if (!guest || !guest.link) { showToast("Khách này chưa có link", "warning"); return; }
 
   const name = guest.display_name || guest.full_name || "";
-  const tpl = _wedding?.share_message_template;
-  // Có câu mẫu → trộn thông tin khách; không có → dùng câu mặc định của ShareSocial
+  // Chủ thiệp để trống câu mẫu → dùng câu mặc định (core/constant.js).
+  const tpl = _wedding?.share_message_template?.trim() || window.SHARE_MESSAGE_DEFAULT || "";
   const message = tpl
     ? ShareSocial.renderTemplate(tpl, {
         relationship: guest.relationship || "Bạn",
