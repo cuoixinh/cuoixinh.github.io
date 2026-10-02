@@ -98,10 +98,10 @@ function _savePreviewData() {
 // ============= LINK CHO QR "XEM TRÊN ĐIỆN THOẠI" =============
 
 // Preview đọc dữ liệu từ sessionStorage của trình duyệt này, nên URL iframe quét
-// bằng máy khác chỉ ra bản demo. Máy khác chỉ xem được khi thiệp đã nằm trên hệ
-// thống → trả link thiệp thật, chưa lưu DB thì trả "" để iframe ẩn mã QR đi.
+// bằng máy khác chỉ ra bản demo. Máy khác chỉ xem được khi thiệp đã XUẤT BẢN (link
+// công khai không mở nháp) → trả link thiệp thật, chưa thì "" để iframe ẩn mã QR.
 function _mobilePreviewUrl() {
-  if (_isLocalDraft || !WEDDING_SLUG) return "";
+  if (_isLocalDraft || !WEDDING_SLUG || !IS_PUBLISHED) return "";
   // Clean URL (/slug) do 404.html của GitHub Pages điều hướng — chạy local không
   // có nên trỏ thẳng vào theme để quét từ điện thoại trong cùng mạng LAN vẫn mở được.
   const isLocal = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);

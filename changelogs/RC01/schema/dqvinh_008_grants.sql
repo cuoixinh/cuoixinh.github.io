@@ -35,6 +35,7 @@ revoke all on table public.promo_redemptions from anon, authenticated;
 revoke all on table public.templates         from anon, authenticated;
 revoke all on table public.template_pricing  from anon, authenticated;
 revoke all on table public.ai_chat_usage     from anon, authenticated;
+revoke all on table public.wedding_slug_holds from anon, authenticated;
 
 -- `orders` / `order_details` GIỮ quyền: đây là hai bảng duy nhất người dùng thật
 -- đọc/ghi trực tiếp, và policy theo auth.uid() đã giới hạn về đơn của chính họ.
@@ -54,7 +55,7 @@ begin
     where schemaname = 'public'
       and tablename in ('weddings','guests','payment_logs','promo_codes',
                         'promo_redemptions','templates','template_pricing',
-                        'ai_chat_usage')
+                        'ai_chat_usage','wedding_slug_holds')
       and (roles::text[] && array['anon','public'])
   loop
     execute format('drop policy %I on public.%I', p.policyname, p.tablename);

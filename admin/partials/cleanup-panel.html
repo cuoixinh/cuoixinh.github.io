@@ -36,7 +36,28 @@
     </div>
   </div>
 
-  <!-- 2. Ảnh rác -->
+  <!-- 2. Sổ giữ slug hết hạn -->
+  <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+    <div class="p-3 sm:p-4 md:p-6 border-b border-gray-100">
+      <h3 class="font-semibold text-gray-800">Sổ giữ slug hết hạn</h3>
+      <p class="text-xs text-gray-500 mt-1">
+        Bảng <code>wedding_slug_holds</code>: slug của thiệp dùng thử chưa thanh toán đã bị xoá, giữ
+        <span id="cl-hold-days">90</span> ngày để không ai lấy lại link với hạn dùng thử mới. Quá hạn thì hàng
+        không còn tác dụng — đúng luật cron <code>cleanup-weddings</code> dọn mỗi đêm, dùng khi cron hỏng.
+        Số ngày cố định, không chỉnh được ở đây: hạ xuống là mở lại lỗ.
+      </p>
+    </div>
+    <div class="p-3 sm:p-4 md:p-6 space-y-3">
+      <div class="flex flex-wrap items-end gap-3">
+        <x-button id="cl-hold-scan" variant="outline" onclick="clScanSlugHolds()" icon="search">Quét</x-button>
+        <x-button id="cl-hold-delete" tone="danger" onclick="clDeleteSlugHolds()" icon="trash-2" disabled>Xoá đã chọn</x-button>
+      </div>
+      <p id="cl-hold-summary" class="text-xs text-gray-500"></p>
+      <div id="cl-hold-list" class="overflow-x-auto"></div>
+    </div>
+  </div>
+
+  <!-- 3. Ảnh rác -->
   <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
     <div class="p-3 sm:p-4 md:p-6 border-b border-gray-100">
       <h3 class="font-semibold text-gray-800">Ảnh rác trong Storage</h3>
@@ -61,7 +82,7 @@
     </div>
   </div>
 
-  <!-- 3. Tham chiếu ảnh hỏng -->
+  <!-- 4. Tham chiếu ảnh hỏng -->
   <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
     <div class="p-3 sm:p-4 md:p-6 border-b border-gray-100">
       <h3 class="font-semibold text-gray-800">Tham chiếu ảnh hỏng</h3>
@@ -81,7 +102,7 @@
     </div>
   </div>
 
-  <!-- 4. Bảng tiền — chỉ báo cáo -->
+  <!-- 5. Bảng tiền — chỉ báo cáo -->
   <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
     <div class="p-3 sm:p-4 md:p-6 border-b border-gray-100">
       <h3 class="font-semibold text-gray-800">Bảng thanh toán (chỉ báo cáo)</h3>

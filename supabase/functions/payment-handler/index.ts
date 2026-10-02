@@ -6,6 +6,7 @@ import {
   MAX_WEDDINGS_PER_USER,
   WEDDING_LIMIT_MESSAGE,
 } from "../_shared/wedding-limits.ts";
+import { getUniqueSlug } from "../_shared/slug-holds.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -158,32 +159,6 @@ async function resolveUserKey(req: Request, supabaseClient: any, email?: string)
   }
   const clean = (email || "").trim().toLowerCase();
   return clean ? `email:${clean}` : null;
-}
-
-async function getUniqueSlug(supabaseClient: any, baseSlug: string, excludeId?: string): Promise<string> {
-  let finalSlug = baseSlug;
-  let suffix = 1;
-  
-  while (true) {
-    let query = supabaseClient
-      .from("weddings")
-      .select("id")
-      .eq("slug", finalSlug);
-    
-    // Exclude current record if updating
-    if (excludeId) {
-      query = query.neq("id", excludeId);
-    }
-    
-    const { data: existing } = await query.maybeSingle();
-    
-    if (!existing) break;
-    
-    suffix++;
-    finalSlug = `${baseSlug}-${suffix}`;
-  }
-  
-  return finalSlug;
 }
 
 serve(withAxiom("payment-handler", async (req, log) => {
@@ -436,9 +411,12 @@ async function handleCreatePayment(req: Request, supabaseClient: any, log: Logge
         .trim();
     };
     
-    // Thiệp đã có slug thì GIỮ NGUYÊN — khách có thể đã chia sẻ link rồi.
+    // Thiệp đã có slug thì GIỮ NGUYÊN — khách có thể đã chia sẻ link rồi. Slug mới đi
+    // qua luật chung (_shared/slug-holds.ts): tránh cả slug đang bị giữ cho người khác,
+    // không thì trả tiền là chiếm được link của thiệp dùng thử đã xoá.
     const baseSlug = removeVietnameseAccents(customer_name);
-    const finalSlug = existingSlug || (await getUniqueSlug(supabaseClient, baseSlug, manage_id));
+    const finalSlug = existingSlug ||
+      (await getUniqueSlug(supabaseClient, baseSlug, { ownerId: buyerId, excludeId: manage_id, log }));
 
     const pricingPayload = {
       price: pricingData.price,

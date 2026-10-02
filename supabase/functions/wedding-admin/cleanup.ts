@@ -1,5 +1,5 @@
-// resource=cleanup — tab "Dọn dữ liệu" của admin: thiệp quá hạn (khi cron hỏng), ảnh
-// rác trong bucket, tham chiếu ảnh hỏng, báo cáo bảng tiền mồ côi (CHỈ báo cáo).
+// resource=cleanup — tab "Dọn dữ liệu" của admin: thiệp quá hạn và sổ giữ slug hết hạn
+// (khi cron hỏng), ảnh rác trong bucket, tham chiếu ảnh hỏng, báo cáo bảng tiền mồ côi.
 // GET = quét (không ghi gì), POST = xoá/sửa. POST luôn QUÉT LẠI ở server rồi chỉ đụng
 // phần giao với danh sách client gửi — giữa lúc xem và lúc bấm, khách có thể vừa lưu.
 // Mọi truy vấn phục vụ phép kiểm hỏng là DỪNG: coi tham chiếu rỗng là xoá cả bucket.
@@ -15,7 +15,13 @@ import {
   weddingFileNames,
   type StorageFile,
 } from '../_shared/wedding-images.ts'
-import { findExpiredWeddings, deleteWeddingHard } from '../_shared/wedding-cleanup.ts'
+import {
+  findExpiredWeddings,
+  deleteWeddingHard,
+  findExpiredSlugHolds,
+  deleteExpiredSlugHolds,
+} from '../_shared/wedding-cleanup.ts'
+import { slugHoldCutoff, SLUG_HOLD_DAYS } from '../_shared/slug-holds.ts'
 
 // deno-lint-ignore no-explicit-any
 type Db = any
@@ -25,6 +31,8 @@ const DEFAULT_DAYS = Number(Deno.env.get('RETENTION_DAYS') ?? '30')
 const DEFAULT_GRACE_H = 48
 // Trần mỗi lượt POST xoá thiệp — client tự chia lô, để request không chạm giới hạn thời gian.
 const MAX_DELETE_WEDDINGS = 30
+// Trần mỗi lượt POST xoá hàng sổ giữ slug — danh sách slug đi vào URL của PostgREST.
+const MAX_DELETE_SLUG_HOLDS = 100
 const LIST_CONCURRENCY = 8
 
 class ScanError extends Error {}
@@ -55,6 +63,12 @@ export async function handleCleanup(
         : json(await scanExpired(supabase, log, days))
     }
 
+    if (kind === 'slug-holds') {
+      return method === 'POST'
+        ? json(await deleteSlugHolds(supabase, log, body.slugs))
+        : json(await scanSlugHolds(supabase, log))
+    }
+
     if (kind === 'images') {
       const graceH = Number(body.grace_h ?? url.searchParams.get('grace_h') ?? DEFAULT_GRACE_H)
       if (!Number.isFinite(graceH) || graceH < 1) return json({ error: 'grace_h phải ≥ 1 giờ' }, 400)
@@ -80,6 +94,41 @@ export async function handleCleanup(
     if (!(e instanceof ScanError)) log.error('cleanup.admin_failed', { kind, method, message })
     return json({ error: message }, 500)
   }
+}
+
+/* ─────────────────────── sổ giữ slug hết hạn ─────────────────────── */
+// Luật + phép xoá ở _shared/wedding-cleanup.ts, đúng hàm cron cleanup-weddings gọi.
+
+async function scanSlugHolds(supabase: Db, log: Logger) {
+  const { cutoff, holds, error } = await findExpiredSlugHolds(supabase, { limit: 500 })
+  if (error) {
+    log.error('cleanup.admin_query_failed', { kind: 'slug-holds', error })
+    throw new ScanError(error)
+  }
+  // Số hàng còn đang giữ — chỉ để hiển thị, hỏng thì null.
+  const { count, error: countErr } = await supabase
+    .from('wedding_slug_holds')
+    .select('slug', { count: 'exact', head: true })
+    .gte('deleted_at', slugHoldCutoff())
+  if (countErr) log.warn('cleanup.admin_slug_hold_count_failed', { code: countErr.code, message: countErr.message })
+  log.info('cleanup.admin_scan', { kind: 'slug-holds', count: holds.length })
+  return { hold_days: SLUG_HOLD_DAYS, cutoff, active: countErr ? null : count, items: holds }
+}
+
+async function deleteSlugHolds(supabase: Db, log: Logger, rawSlugs: unknown) {
+  const slugs = Array.isArray(rawSlugs) ? [...new Set(rawSlugs.map(String))] : []
+  if (!slugs.length) return { deleted: [], skipped: [] }
+  if (slugs.length > MAX_DELETE_SLUG_HOLDS) {
+    throw new Error(`Tối đa ${MAX_DELETE_SLUG_HOLDS} hàng mỗi lượt`)
+  }
+  const { deleted, error } = await deleteExpiredSlugHolds(supabase, slugs)
+  if (error) {
+    log.error('cleanup.admin_slug_holds_failed', { error })
+    throw new ScanError(error)
+  }
+  log.info('cleanup.admin_slug_holds_deleted', { count: deleted.length })
+  const gone = new Set(deleted)
+  return { deleted, skipped: slugs.filter((s) => !gone.has(s)) }
 }
 
 /* ─────────────────────────── thiệp quá hạn ─────────────────────────── */

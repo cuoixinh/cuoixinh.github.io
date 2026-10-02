@@ -24,12 +24,14 @@ drop table if exists public.promo_codes       cascade;
 drop table if exists public.ai_usage          cascade;
 drop table if exists public.ai_usage_ip       cascade;
 drop table if exists public.ai_chat_usage     cascade;
+drop table if exists public.wedding_slug_holds cascade;
 
 -- Hàm dùng chung (trigger function bị drop theo bảng, hàm promo thì không).
 drop function if exists public.cx_promo_reserve(text, uuid, text, integer, text);
 drop function if exists public.cx_promo_redeem(text);
 drop function if exists public.cx_promo_release(text);
 drop function if exists public.cx_touch_weddings_updated_at();
+drop function if exists public.cx_hold_deleted_wedding_slug();
 drop function if exists public.update_templates_updated_at();
 drop function if exists public.update_template_pricing_updated_at();
 

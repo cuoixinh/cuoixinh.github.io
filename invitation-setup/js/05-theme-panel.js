@@ -2771,12 +2771,17 @@ function _toSlug(str) {
 }
 
 async function _isSlugAvailable(slug) {
+  // Slug của chính thiệp này: link công khai trả 403 khi còn là nháp, đừng coi là trùng.
+  if (slug === WEDDING_SLUG) return true;
   try {
     const res = await fetch(
       `${CONFIG.supabase.edgeUrl}?slug=${encodeURIComponent(slug)}`,
       { headers: { Authorization: `Bearer ${CONFIG.supabase.anonKey}` } },
     );
-    if (!res.ok) return true; // 404 = chưa có ai dùng
+    // Chỉ 404 là chưa ai dùng; 403 (nháp, thiệp đang khoá) và 409 SLUG_HELD (slug của
+    // thiệp dùng thử đã xoá, đang giữ cho chủ cũ) đều là slug có chủ.
+    if (res.status === 404) return true;
+    if (!res.ok) return false;
     const data = await res.json();
     // Nếu kết quả trả về là wedding này → coi như available
     return !data || data.id === WEDDING_ID;
