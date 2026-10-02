@@ -3,16 +3,17 @@
 Toàn bộ script dựng và nâng cấp database Supabase. Chạy bằng **Dashboard → SQL Editor**,
 không cần CLI.
 
-Mỗi dòng phiên bản là một thư mục `RC<số>/` — hiện tại là `RC01/`. Breaking change lớn thì
-mở `RC02/` mới, baseline cũ nằm lại nguyên vẹn để tra.
+Mỗi dòng phiên bản là một thư mục `RC<số>/`. **Thay đổi mới luôn ghi vào RC có số LỚN
+NHẤT.** Mở một RC mới tức là chốt baseline: mọi RC nhỏ hơn đóng băng, không sửa file nào
+trong đó nữa.
 
 Trong mỗi dòng phiên bản có ba nhóm, chạy theo đúng thứ tự này:
 
-| Thư mục         | Nội dung                                                     | Chạy khi nào                                  |
-| --------------- | ------------------------------------------------------------ | --------------------------------------------- |
-| `RC01/schema/` | Bảng, cột, index, trigger, hàm, RLS, grant                    | Dựng mới **và** mỗi lần nâng cấp (idempotent) |
-| `RC01/data/`   | Dữ liệu danh mục: mẫu thiệp, giá, mã giảm giá                 | Sau `schema/`                                 |
-| `RC01/manual/` | Việc phải làm bằng Dashboard, hoặc SQL phải sửa theo project | Một lần cho mỗi project                       |
+| Thư mục          | Nội dung                                                     | Chạy khi nào                                  |
+| ---------------- | ------------------------------------------------------------ | --------------------------------------------- |
+| `RC<số>/schema/` | Bảng, cột, index, trigger, hàm, RLS, grant                   | Dựng mới **và** mỗi lần nâng cấp (idempotent) |
+| `RC<số>/data/`   | Dữ liệu danh mục: mẫu thiệp, giá, mã giảm giá                | Sau `schema/`                                 |
+| `RC<số>/manual/` | Việc phải làm bằng Dashboard, hoặc SQL phải sửa theo project | Một lần cho mỗi project                       |
 
 ## Dựng một project từ đầu
 
@@ -39,21 +40,26 @@ Dán từng file, Run, xong file này mới sang file sau. Mọi file trong `sch
 Sau khi xong, kiểm bằng mục C ở cuối `RC01/schema/dqvinh_008_grants.sql`: gọi thẳng PostgREST bằng anon
 key phải không ra dữ liệu, còn trang chủ và thiệp công khai vẫn chạy.
 
+Rồi chạy tiếp từng RC lớn hơn, theo thứ tự số, mỗi RC cùng thứ tự `schema/` → `data/` →
+`manual/`.
+
 ## Nâng cấp một project đang chạy
 
-Chạy lại nhóm `schema/` **trừ `dqvinh_000_reset.sql`**. Các file dùng `create table if not exists`,
-`add column if not exists`, `create or replace` nên chỉ bổ sung phần còn thiếu, không đụng
-dữ liệu sẵn có.
+Chỉ chạy những file **mới** trong RC lớn nhất mà project đó chưa chạy (staging trước, rồi
+production). Không chạy lại các baseline cũ, và **không bao giờ chạy
+`dqvinh_000_reset.sql` trên production** — nó xoá sạch dữ liệu khách thật.
+`npm run sql:merge` gộp `schema/` + `data/` của RC mới nhất, tức đúng phần chênh.
 
 ## Thêm thay đổi mới
 
-Sửa thẳng file trong `schema/` cho khớp trạng thái mong muốn, và giữ nguyên tính idempotent
-— thêm cột thì `add column if not exists`, đổi policy thì `drop policy if exists` trước khi
-tạo lại. Nhờ vậy cùng một file vừa dựng được project trống vừa nâng cấp được project cũ,
-không phải nuôi hai nhánh script.
+Từ khi phát hành, production có dữ liệu thật nên mỗi thay đổi là **một file mới** trong
+`RC<lớn nhất>/<nhóm>/dqvinh_<số kế tiếp>_<tên>.sql` — không sửa ngược file cũ, kể cả trong
+RC đang mở khi file đó đã chạy trên production. File vẫn phải **idempotent** (`add column if not
+exists`, `drop policy if exists` trước khi tạo lại…) để chạy lỡ hai lần không hỏng.
 
-Thay đổi lớn hoặc cần lần ngược lý do về sau thì viết thêm một ghi chú trong file, ngay
-cạnh đoạn SQL — đừng quay lại lối mỗi thay đổi một file rời.
+Thay đổi phải giữ dữ liệu sẵn có: thêm cột thì kèm default/backfill, đừng drop-tạo lại
+bảng; đổi tên hay xoá cột là breaking — Edge Function bản cũ vẫn đọc tên cũ cho tới lúc
+deploy xong, nên thêm cột mới trước, bỏ cột cũ ở một đợt sau.
 
 ## Hai môi trường
 
