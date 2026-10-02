@@ -201,9 +201,9 @@ function _cxCommitDemoFilled() {
 // DANH SÁCH TRẮNG chứ không phải danh sách đen: thêm cột vào bảng `weddings` sau
 // này sẽ KHÔNG tự lọt sang thiệp khách — muốn chép thêm phải khai ở đây.
 // Cố ý bỏ ngoài danh sách (là của cặp đôi demo, không phải của khách): tên +
-// cha mẹ, địa chỉ, mọi địa điểm và bản đồ, mọi ngày & giờ lễ/tiệc, tài khoản
-// ngân hàng, toàn bộ ảnh. Chuyện tình cũng vậy, TRỪ KHI bộ dữ liệu mẫu tự bật cờ
-// `demo_fill_love_story` (xem _fetchDemoFill).
+// cha mẹ, địa chỉ, mọi địa điểm và bản đồ, mọi ngày & giờ lễ/tiệc, lịch trình,
+// tài khoản ngân hàng, toàn bộ ảnh. Chuyện tình cũng vậy, TRỪ KHI bộ dữ liệu mẫu
+// tự bật cờ `demo_fill_love_story` (xem _fetchDemoFill).
 // Ba khoá đầu data.json CHƯA khai nên hiện không lấy được gì; để sẵn đây, hôm nào
 // bộ dữ liệu mẫu bên admin có thì tự chảy sang, không phải sửa code. Riêng
 // theme_setting thiếu cũng chẳng sao: rỗng nghĩa là "dùng mặc định của mẫu", vốn
@@ -291,24 +291,6 @@ async function _fetchDemoFill(theme) {
     for (const k of DEMO_FILL_FIELDS) {
       const v = demo?.[k];
       if (v !== null && v !== undefined && v !== "") fill[k] = v;
-    }
-
-    // Lịch trình: chỉ giữ giờ + tên hoạt động + nhóm. Lọc từng khoá thay vì bê
-    // nguyên object để dữ liệu lạ trong JSONB không đi cùng.
-    let tl = demo?.timeline;
-    if (typeof tl === "string") {
-      try {
-        tl = JSON.parse(tl);
-      } catch {
-        tl = null;
-      }
-    }
-    if (Array.isArray(tl) && tl.length) {
-      fill.timeline = tl.map((it) => ({
-        time: it.time || "",
-        title: it.title || "",
-        type: it.type || "ceremony",
-      }));
     }
 
     // Chuyện tình: mặc định KHÔNG chép (là chuyện của cặp đôi demo), chỉ chép khi
@@ -405,7 +387,8 @@ async function _refillDemoForTheme(theme) {
   for (const k of DEMO_TEXT_FIELDS) {
     if (patch[k] === undefined) patch[k] = "";
   }
-  if (patch.timeline === undefined) patch.timeline = [];
+  // Nháp cũ có thể còn lịch trình chép từ mẫu trước — xoá đi, lịch trình là của khách.
+  patch.timeline = [];
   // Mẫu mới không bật cờ chép chuyện tình thì phải XOÁ, đừng để chuyện của mẫu cũ
   // nằm lại.
   if (patch.love_story === undefined) patch.love_story = [];
