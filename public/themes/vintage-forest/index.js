@@ -16,6 +16,11 @@
   window.CX_THEME = {
     id: "vintage-forest",
 
+    // Bước mà trang Thiết lập KHÔNG hiện cho mẫu này (id trùng CX_STEPS ở
+    // invitation-setup/js/20-steps.js): mẫu không vẽ mục Lịch trình nên cũng
+    // đừng bắt khách nhập.
+    skipSteps: ["timeline"],
+
     // Độ dài mốc chuyện tình XuXi viết (xem base-theme). Các mốc nối thành đoạn văn xuôi liền mạch, cần chữ dày mới thành bài.
     loveStory: "long",
 
