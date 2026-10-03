@@ -128,7 +128,67 @@ function cxNavMore(open) {
 }
 window.cxNavMore = cxNavMore;
 
+// ===== BÀN PHÍM ẢO: MÀN ĐỨNG YÊN =====
+// Bàn phím chỉ được ĐÈ lên màn, không được đẩy navbar lên hay co vùng nội dung:
+// chiều cao vỏ khoá ở --cx-app-h (không đo lại khi đang gõ), navbar neo theo số
+// đó (xem #bottom-nav-bar trong styles/_setup.css). Ô sắp bị bàn phím che thì tự
+// cuộn khung nội dung đưa nó lên nửa trên — để trình duyệt khỏi đẩy cả trang.
+
+const _cxTouch = !!window.matchMedia?.("(pointer: coarse)").matches;
+const _CX_KB_TYPES = ["text", "search", "email", "tel", "url", "number", "password"];
+
+// Ô gõ chữ thật sự bật bàn phím (bỏ checkbox, màu, ngày… và ô chỉ đọc).
+function _cxIsTypingEl(el) {
+  if (!el) return false;
+  if (el.isContentEditable) return true;
+  if (el.tagName === "TEXTAREA") return !el.readOnly;
+  return el.tagName === "INPUT" && !el.readOnly && _CX_KB_TYPES.includes(el.type);
+}
+
+// Đổi bề ngang (xoay máy) thì đo lại kể cả lúc đang gõ; chỉ đổi chiều cao khi
+// đang gõ là bàn phím bung/thu → bỏ qua.
+let _cxAppW = 0;
+function _cxSyncAppHeight() {
+  const w = window.innerWidth;
+  if (w === _cxAppW && _cxTouch && _cxIsTypingEl(document.activeElement)) return;
+  _cxAppW = w;
+  document.documentElement.style.setProperty(
+    "--cx-app-h",
+    `${window.innerHeight}px`,
+  );
+}
+
+function _cxKbFocus(e) {
+  const el = e.target;
+  if (!_cxTouch || !_cxIsTypingEl(el)) return;
+  const sc = document.getElementById("setup-scroll");
+  if (!sc?.contains(el)) return;
+  // Cờ .cx-kb chừa thêm khoảng trống cuối khung → ô ở cuối bước vẫn cuộn lên được.
+  document.documentElement.classList.add("cx-kb");
+  const r = el.getBoundingClientRect();
+  // Bàn phím (kèm thanh gợi ý) chiếm ~nửa dưới màn dựng đứng.
+  if (r.bottom <= window.innerHeight * 0.45) return;
+  const pad = parseFloat(getComputedStyle(sc).scrollPaddingTop) || 0;
+  sc.scrollTop += r.top - sc.getBoundingClientRect().top - pad - 16;
+}
+
+function _cxKbBlur() {
+  // Chờ một nhịp: chuyển sang ô kế tiếp thì bàn phím vẫn còn, giữ nguyên cờ.
+  setTimeout(() => {
+    if (_cxIsTypingEl(document.activeElement)) return;
+    document.documentElement.classList.remove("cx-kb");
+  }, 0);
+}
+
+function _cxInitKeyboard() {
+  _cxSyncAppHeight();
+  window.addEventListener("resize", _cxSyncAppHeight, { passive: true });
+  document.addEventListener("focusin", _cxKbFocus);
+  document.addEventListener("focusout", _cxKbBlur);
+}
+
 function _cxInitShell() {
+  _cxInitKeyboard();
   _cxInitTopHeight();
   _cxInitReflow();
 }

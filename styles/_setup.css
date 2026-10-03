@@ -1125,9 +1125,12 @@ svg.lucide {
    phần tử vào tầm nhìn thì dùng scrollIntoView (nó tự tìm khung cuộn gần nhất),
    ĐỪNG đụng tới window.scrollTo/documentElement.scrollTop nữa.
    Khoá trong .cx-setup vì styles/build.css dùng chung cho mọi trang. */
+/* --cx-app-h = chiều cao cửa sổ do js/21-shell.js đo, KHÔNG đo lại khi bàn phím
+   ảo bung — nên vỏ đứng yên, bàn phím chỉ đè lên. Đừng trả về `100dvh`: trình
+   duyệt co khung khi có bàn phím (WebView của Zalo/Facebook…) sẽ co cả vỏ theo. */
 .cx-setup,
 .cx-setup body {
-  height: 100dvh;
+  height: var(--cx-app-h, 100dvh);
 
   /* `clip` chứ không chỉ `hidden`: `hidden` vẫn là KHUNG CUỘN, chỉ giấu thanh
      cuộn — một cú scrollIntoView/scrollTop lỡ tay là cả trang trôi lên, thanh
@@ -1147,7 +1150,9 @@ svg.lucide {
 #setup-scroll {
   @apply flex flex-col overflow-y-auto overscroll-contain rounded-3xl bg-white;
 
-  height: calc(100dvh - var(--cx-top-h, 96px) - var(--nav-h, 84px) - 32px);
+  height: calc(
+    var(--cx-app-h, 100dvh) - var(--cx-top-h, 96px) - var(--nav-h, 84px) - 32px
+  );
   box-shadow: 0 4px 18px rgb(var(--scrim-rgb) / 0.07);
 
   /* Ô được focus/cuộn tới không nằm khuất dưới dòng bước dính ở trên và thanh
@@ -1161,6 +1166,21 @@ svg.lucide {
 
 #setup-scroll > * {
   flex-shrink: 0;
+}
+
+/* Bàn phím ảo đang bung (cờ .cx-kb, js/21-shell.js): chừa thêm nửa màn cuối
+   khung để ô ở cuối bước vẫn cuộn lên được trên bàn phím. */
+.cx-kb #setup-scroll::after {
+  content: "";
+  flex-shrink: 0;
+  height: calc(var(--cx-app-h, 100dvh) * 0.5);
+}
+
+/* Navbar neo theo chiều cao đã khoá chứ không theo đáy cửa sổ: `bottom` tính %
+   theo khung nhìn, nên khung co lại vì bàn phím thì navbar tụt xuống sau bàn
+   phím thay vì bị đẩy lên. Lúc thường hai số bằng nhau → bottom = 0. */
+.cx-setup #bottom-nav-bar {
+  bottom: calc(100% - var(--cx-app-h, 100%));
 }
 
 .cx-setup-body {
