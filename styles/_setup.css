@@ -1168,12 +1168,13 @@ svg.lucide {
   flex-shrink: 0;
 }
 
-/* Bàn phím ảo đang bung (cờ .cx-kb, js/21-shell.js): chừa thêm nửa màn cuối
-   khung để ô ở cuối bước vẫn cuộn lên được trên bàn phím. */
+/* Bàn phím ảo đang bung (cờ .cx-kb, js/21-shell.js): chừa cuối khung một
+   khoảng bằng bàn phím (--cx-kb-h; chưa đo được thì ước nửa màn) để ô ở cuối
+   bước vẫn cuộn lên được trên bàn phím. */
 .cx-kb #setup-scroll::after {
   content: "";
   flex-shrink: 0;
-  height: calc(var(--cx-app-h, 100dvh) * 0.5);
+  height: var(--cx-kb-h, calc(var(--cx-app-h, 100dvh) * 0.5));
 }
 
 /* Navbar neo theo chiều cao đã khoá chứ không theo đáy cửa sổ: `bottom` tính %
