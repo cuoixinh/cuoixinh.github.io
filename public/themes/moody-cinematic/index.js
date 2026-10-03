@@ -24,8 +24,10 @@
     // CX_GIFT_BOXES (core/helpers/gift-box-helper.js) hoặc "none". Mẫu KHÔNG tự vẽ hộp.
     giftBox: "hop_navy_vang",
 
-    // Dạng trình phát nhạc — theme-boot.js dựng vào #cx-music-mount.
-    music: { variant: "square", chrome: "fixed-corner" },
+    // Dạng trình phát nhạc — theme-boot.js dựng vào #cx-music-mount. Đĩa tròn
+    // 44px: nút nằm đè góc trên phải của MỌI trang, khổ to hơn là che mất tiêu
+    // đề căn giữa (măng sét Chuyện tình yêu).
+    music: { variant: "mini", chrome: "fixed-corner" },
 
     // Font/màu GỐC: giá trị mặc định trên thanh chỉnh ở tab Giao diện, cũng là
     // điểm "Khôi phục mặc định". Trang Thiết lập đọc qua iframe xem trước.
@@ -443,7 +445,45 @@
       rz = setTimeout(refreshBook, 150);
     });
 
+    // Mục lời chúc do wishes-helper dựng SAU renderWedding (và dựng lại khi đổi
+    // dạng ở trang Thiết lập) → canh lúc nó xuất hiện để tách ra trang riêng.
+    new MutationObserver(() => {
+      if (_placeWishes()) {
+        _markReveal();
+        _syncPager();
+      }
+    }).observe(pages, { childList: true, subtree: true });
+
     refreshBook();
+  }
+
+  // Lời chúc: wishes-helper chèn mục vào ngay TRƯỚC hộp mừng cưới, tức là vào
+  // giữa trang cuối — trang cao cố định nên danh sách dài đẩy quà, bản đồ, lời
+  // cảm ơn ra ngoài khổ (bị cắt mất). Cho nó một trang riêng đứng trước trang
+  // đó. Trả true khi có dời chỗ.
+  function _placeWishes() {
+    const sec = document.getElementById("cx-wish-sec");
+    let page = document.getElementById("mc-wish-page");
+    if (!sec) {
+      page?.classList.add("hidden");
+      return false;
+    }
+    const giftPage = document.getElementById("section-gift")?.closest("section.mc-page");
+    if (!giftPage) return false;
+    if (!page) {
+      page = document.createElement("section");
+      page.id = "mc-wish-page";
+      page.className = "mc-page";
+      page.innerHTML = '<div class="mc-page-in mc-wish-in"></div>';
+    }
+    const inner = page.firstElementChild;
+    if (sec.parentElement === inner && page.nextElementSibling === giftPage) {
+      return false;
+    }
+    page.classList.remove("hidden");
+    giftPage.before(page);
+    inner.appendChild(sec);
+    return true;
   }
 
   // Chạy lại được: dữ liệu về sau khi khách đã mở thiệp thì các trang do
@@ -453,6 +493,7 @@
     const pages = document.getElementById("cx-pages");
     if (!pages) return;
     Array.from(pages.children).forEach(_toPage);
+    _placeWishes();
     _syncGroupPages();
     _fitGallery();
     _reflowFlows();

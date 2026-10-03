@@ -1378,6 +1378,62 @@ function closeTimePicker() {
     });
 
     _buildDots(row, cards);
+    _dragScroll(row, cards);
+  }
+
+  // Kéo dãy thẻ bằng chuột (máy tính không vuốt được). Chỉ nhận pointer chuột,
+  // cảm ứng giữ cuộn gốc. Lệch quá 6px mới tính là kéo → bấm thẻ vẫn là bấm; kéo
+  // xong thì nuốt cú click kèm theo. Tắt snap lúc kéo cho mượt, thả ra tự trượt
+  // về mép thẻ gần nhất rồi mới bật lại.
+  function _dragScroll(row, cards) {
+    if (row.dataset.drag) return;
+    row.dataset.drag = "1";
+    let down = false;
+    let moved = false;
+    let x0 = 0;
+    let left0 = 0;
+
+    row.addEventListener("dragstart", function (e) { e.preventDefault(); });
+    row.addEventListener("pointerdown", function (e) {
+      if (e.pointerType !== "mouse" || e.button !== 0) return;
+      down = true;
+      moved = false;
+      x0 = e.clientX;
+      left0 = row.scrollLeft;
+    });
+    row.addEventListener("pointermove", function (e) {
+      if (!down) return;
+      const dx = e.clientX - x0;
+      if (!moved) {
+        if (Math.abs(dx) < 6) return;
+        moved = true;
+        row.setPointerCapture(e.pointerId);
+        row.classList.add("is-drag");
+      }
+      row.scrollLeft = left0 - dx;
+    });
+    function _end() {
+      if (!down) return;
+      down = false;
+      if (!moved) return;
+      row.classList.remove("is-drag");
+      let best = cards[0];
+      cards.forEach(function (c) {
+        if (Math.abs(c.offsetLeft - row.scrollLeft) <
+            Math.abs(best.offsetLeft - row.scrollLeft)) best = c;
+      });
+      row.scrollTo({ left: best.offsetLeft, behavior: _motion() });
+      setTimeout(function () { row.classList.remove("is-free"); }, 400);
+      row.classList.add("is-free");
+    }
+    row.addEventListener("pointerup", _end);
+    row.addEventListener("pointercancel", _end);
+    row.addEventListener("click", function (e) {
+      if (!moved) return;
+      moved = false;
+      e.stopPropagation();
+      e.preventDefault();
+    }, true);
   }
 
   // Chấm dưới dãy thẻ: một chấm một thẻ, bấm thì cuộn tới thẻ đó. Chỉ số thẻ

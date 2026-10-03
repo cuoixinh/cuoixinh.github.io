@@ -3,8 +3,8 @@
 // có Gia đình, không có Lịch trình ngày cưới), bù lại album chứa tới ~18 ảnh
 // qua 5 khối bố cục chia hai cụm, và Chuyện chúng mình viết thành VĂN XUÔI liền
 // mạch thay cho dòng thời gian có chấm mốc.
-// Nét riêng: KHÔNG có màn bìa — mở link là vào thẳng poster ngày cưới cỡ lớn,
-// kèm đếm ngược tới từng GIÂY.
+// Màn bìa là tấm thiệp viền kép trên nền ảnh mờ; mở ra là poster ngày cưới cỡ
+// lớn kèm đếm ngược tới từng GIÂY.
 //
 // File này chỉ KHAI BÁO: window.CX_THEME + renderWedding + phần đặc thù của mẫu.
 // Phần "chạy" nằm ở core/helpers/theme-boot.js, nạp sau file này.
@@ -101,9 +101,8 @@
 
   const _isGroom = isGroomSide();
 
-  // Lời chào trên poster chỉ hiện khi link gửi riêng cho một khách (?name=);
-  // tên do setupPersonalizedGreeting() đổ vào #cover-guest-name.
-  // Chạy ngay: chỉ phụ thuộc URL, không đợi dữ liệu thiệp về.
+  // Link riêng (?name=) hiện lời mời ngay, khỏi đợi giải mã xong mới nhảy chữ;
+  // link chung thì setupPersonalizedGreeting() tự gỡ .hidden.
   try {
     if (new URLSearchParams(window.location.search).get("name")) {
       document.getElementById("cover-guest-wrap")?.classList.remove("hidden");
@@ -117,10 +116,15 @@
 
     const side = _isGroom ? "groom" : "bride";
 
-    // --- Mở đầu: poster ngày cưới (mẫu này không có màn bìa) ---
+    // --- Màn bìa + poster mở đầu ---
     // Khối dựng ảnh chạy TRƯỚC setupMusic: đây là chỗ ảnh của màn ĐẦU TIÊN nhận
     // src, mà setupMusic kéo YouTube iframe API (script bên thứ ba) về ngay khi
     // chạy — để nó đi trước là ảnh phải xếp hàng sau.
+
+    renderCover(w);
+    setAttr("cover-photo", "src", getImageUrl(w.cover_image_url));
+    applyFocalPoint("cover-photo", w.image_focal_points?.cover_image_url);
+    setText("cover-date", _coverDate(w.ceremony_date), "-- · -- · ----");
 
     renderHero(w, false);
     renderStoryQuote(w.story_quote);
@@ -242,6 +246,14 @@
   function _year(dateStr) {
     const d = _date(dateStr);
     return d ? String(d.getFullYear()) : "";
+  }
+
+  /** "20 · 05 · 2025" — dòng ngày trên màn bìa. */
+  function _coverDate(dateStr) {
+    const d = _date(dateStr);
+    if (!d) return "";
+    const p = (n) => String(n).padStart(2, "0");
+    return `${p(d.getDate())} · ${p(d.getMonth() + 1)} · ${d.getFullYear()}`;
   }
 
   /** "2025.05.20" — dòng ngày ở cuối thiệp. */

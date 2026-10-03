@@ -151,6 +151,15 @@ function renderWedding(w) {
   const cYear = (w.ceremony_date || "").slice(0, 4);
   setText("hero-eyebrow", ceremonyName + (cYear ? " · " + cYear : ""));
 
+  // Thẻ giấy ở màn bìa: "Chủ Nhật · 06 · 12 · 2026". Tách chuỗi ngày thay vì
+  // new Date("yyyy-mm-dd") — dạng đó đọc theo UTC, lệch thứ ở múi giờ âm.
+  const [cy, cm, cd] = (w.ceremony_date || "").split("-");
+  if (cy && cm && cd) {
+    const wd = WEEKDAYS[new Date(+cy, +cm - 1, +cd).getDay()];
+    setText("cover-date", `${wd} · ${cd} · ${cm} · ${cy}`);
+    cxToggle("cover-date", true);
+  }
+
   setText("ceremony-event-name", ceremonyName);
   setText("party-section-label", "Tiệc Mừng " + ceremonyName);
   renderCeremonyDate(w.ceremony_date, displayTime, w.ceremony_lunar);

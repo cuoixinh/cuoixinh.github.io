@@ -222,12 +222,14 @@
 
             <div class="flex flex-col gap-1.5">
               <div class="cx-h text-[20px] leading-tight" id="party-datetime">--:-- - --.--.----</div>
-              <div class="cx-t text-[11px] opacity-80" id="party-lunar">(Ngày âm lịch)</div>
+              <div class="cx-t text-[12px]" id="party-lunar">(Ngày âm lịch)</div>
             </div>
 
-            <div class="flex items-start gap-2 justify-center">
-              <i data-lucide="map-pin" class="cx-ic cx-a text-xs"></i>
-              <div class="cx-t text-[12px] leading-relaxed" id="party-location">------------------------</div>
+            <!-- Icon đứng TRÊN dòng địa chỉ: chữ căn giữa mà xuống hai dòng thì
+                 icon đặt bên trái bị bỏ lại lơ lửng ở mép, không bám theo chữ. -->
+            <div class="flex flex-col items-center gap-1">
+              <i data-lucide="map-pin" class="cx-ic cx-a text-sm"></i>
+              <div class="cx-t text-[13px] leading-relaxed" id="party-location">------------------------</div>
             </div>
           </div>
 
