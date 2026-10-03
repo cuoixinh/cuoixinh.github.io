@@ -1,7 +1,7 @@
 // ============= THEME: LUMINOUS PASTEL =============
-// Ivory hơi lạnh · blush · champagne nhạt · xanh xám dịu. Nét riêng: tương phản
-// thấp kiểu ảnh chụp ánh sáng tự nhiên, khối nội dung là thẻ kính mờ, album ảnh
-// là dải coverflow (tấm giữa nổi lên, hai bên lùi lại và nhạt đi).
+// Ivory ngả hồng · hồng đất · champagne · sage. Nét riêng: nền gradient pastel
+// liền suốt thiệp, khối nội dung là thẻ kính mờ, album ảnh là dải coverflow
+// (tấm giữa nổi lên, hai bên lùi lại và nhạt đi).
 //
 // File này chỉ KHAI BÁO: window.CX_THEME + renderWedding + phần đặc thù của mẫu
 // (hàng ngày giờ ở mục mở đầu, album coverflow, chuyện tình yêu). Phần "chạy"
@@ -32,30 +32,30 @@
     // "Mặc định"; theme_setting.palette ghi đè lên trên lúc chạy.
     // Sinh lại bằng: node scripts/check-theme-palette.mjs --write
     palette: {
-      heading: "#5f5654",
-      body: "#938a88",
-      accent: "#c9b48f",
-      accent_soft: "#e8b4b8",
+      heading: "#4a3d3b",
+      body: "#6e605d",
+      accent: "#8a6a40",
+      accent_soft: "#ecc8a8",
       on_accent: "#ffffff",
       on_image: "#ffffff",
       on_lightbox: "#ffffff",
-      card_bg: "#f9f3f1",
-      page_bg: "#f3ebe9",
-      surface: "#f3ebe9",
+      card_bg: "#fbf6f3",
+      page_bg: "#f5ece8",
+      surface: "#f5ece8",
       band: "#fff5f0",
       panel: "#ffffff",
       panel_warm: "#ffffff",
-      cover: "#f9f3f1",
+      cover: "#fbf6f3",
       cover_mid: "#f2e4e1",
       cover_veil: "#f2e4e1",
       lightbox_bg: "#000000",
-      line: "#e9dbd9",
+      line: "#e8d8d3",
       shadow: "#000000",
       scrim: "#000000",
-      deco: "#dcaea8",
-      deco_soft: "#f5d5d8",
-      deco_2: "#dcaea8",
-      deco_2_soft: "#f5d5d8",
+      deco: "#9e5a63",
+      deco_soft: "#ecc4c4",
+      deco_2: "#5b7160",
+      deco_2_soft: "#c8d8c4",
       shine_from: "#d4a5a5",
       shine_mid: "#e8b4b8",
       shine_to: "#f5d5d8",
@@ -64,15 +64,16 @@
     // Màu GỢI Ý trong bộ chọn màu (khách bấm vào một phần tử trên thiệp rồi
     // chỉnh riêng) — lấy từ chính bảng màu của mẫu.
     swatches: [
-      "#5f5654",
-      "#7a706e",
-      "#938a88",
-      "#413a39",
-      "#c9b48f",
-      "#dcaea8", // dusty pink
-      "#e9dbd9",
-      "#f3ebe9",
-      "#f9f3f1",
+      "#4a3d3b",
+      "#6e605d",
+      "#2e2624",
+      "#8a6a40", // champagne đậm
+      "#9e5a63", // hồng đất
+      "#5b7160", // sage
+      "#ecc8a8",
+      "#ecc4c4",
+      "#e8d8d3",
+      "#fbf6f3",
       "#ffffff",
     ],
 
@@ -109,6 +110,8 @@
     // để nó đi trước là ảnh phải xếp hàng sau.
     renderHero(w, false);
     renderStoryQuote(w.story_quote);
+    lpSetupHeroNames();
+    lpSetupProgress();
 
     // --- Nhạc nền ---
     setupMusic(w.music_url, w.enable_music);
@@ -163,6 +166,11 @@
     // --- Xác nhận tham dự ---
     const rsvp = document.getElementById("rsvp-section");
     if (rsvp) rsvp.style.display = cxEnabled(w.rsvp_enabled) ? "flex" : "none";
+    // Lối tắt ở mục mở đầu chỉ có nghĩa khi phần RSVP thật sự hiện.
+    cxToggle(
+      "lp-rsvp-cue",
+      cxEnabled(w.rsvp_enabled) && cxEnabled(w.enable_party),
+    );
     if (w.rsvp_message) {
       const msg = document.getElementById("rsvp-custom-message");
       if (msg) {
@@ -289,6 +297,7 @@
 
     lpSetupFlow();
     lpSetupDots();
+    lpSetupNav();
   }
 
   // Đo lại mức phóng/mờ của từng tấm theo khoảng cách tới tâm dải.
@@ -325,6 +334,7 @@
         ticking = false;
         lpSyncFlow();
         lpSyncDots();
+        lpSyncNav();
       });
     };
 
@@ -355,16 +365,33 @@
       dot.type = "button";
       dot.className = "lp-dot";
       dot.setAttribute("aria-label", `Ảnh ${i + 1}`);
-      dot.addEventListener("click", () => {
-        flow.scrollTo({
-          left: card.offsetLeft - (flow.clientWidth - card.offsetWidth) / 2,
-          behavior: "smooth",
-        });
-      });
+      dot.addEventListener("click", () => lpSlideTo(flow, card));
       bar.appendChild(dot);
     });
 
     lpSyncDots();
+  }
+
+  // Chỉ số tấm đang nằm gần tâm dải nhất.
+  function lpMidIndex(flow) {
+    const mid = flow.scrollLeft + flow.clientWidth / 2;
+    let best = 0;
+    let min = Infinity;
+    [...flow.children].forEach((c, i) => {
+      const d = Math.abs(c.offsetLeft + c.offsetWidth / 2 - mid);
+      if (d < min) {
+        min = d;
+        best = i;
+      }
+    });
+    return best;
+  }
+
+  function lpSlideTo(flow, card) {
+    flow.scrollTo({
+      left: card.offsetLeft - (flow.clientWidth - card.offsetWidth) / 2,
+      behavior: "smooth",
+    });
   }
 
   function lpSyncDots() {
@@ -372,27 +399,143 @@
     const bar = document.getElementById("album-dots");
     if (!flow || !bar || !bar.children.length) return;
 
-    const cards = [...flow.children];
-    const mid = flow.scrollLeft + flow.clientWidth / 2;
-    let best = 0;
-    let min = Infinity;
-    cards.forEach((c, i) => {
-      const d = Math.abs(c.offsetLeft + c.offsetWidth / 2 - mid);
-      if (d < min) {
-        min = d;
-        best = i;
-      }
-    });
+    const best = lpMidIndex(flow);
     [...bar.children].forEach((d, i) =>
       d.classList.toggle("is-on", i === best),
     );
+  }
+
+  // ============= ALBUM: HÀNG LÙI · "3 / 10" · TỚI =============
+  // Xem hết album không cần vuốt. Nút là x-button nên tra id SAU khi nó đã tự
+  // thay bằng <button> thật (renderWedding chạy sau khi DOM sẵn sàng).
+
+  function lpSetupNav() {
+    const flow = document.getElementById("gallery-grid");
+    const nav = document.getElementById("album-nav");
+    if (!flow || !nav) return;
+
+    const many = flow.children.length > 1;
+    nav.classList.toggle("hidden", !many);
+    if (!many) return;
+
+    const step = (dir) => {
+      const cards = [...flow.children];
+      const i = Math.max(
+        0,
+        Math.min(cards.length - 1, lpMidIndex(flow) + dir),
+      );
+      lpSlideTo(flow, cards[i]);
+    };
+    // Gán onclick (không addEventListener) để gọi lại renderGallery không
+    // chồng thêm handler.
+    const prev = document.getElementById("album-prev");
+    const next = document.getElementById("album-next");
+    if (prev) prev.onclick = () => step(-1);
+    if (next) next.onclick = () => step(1);
+
+    lpSyncNav();
+  }
+
+  function lpSyncNav() {
+    const flow = document.getElementById("gallery-grid");
+    const count = document.getElementById("album-count");
+    if (!flow || !count || !flow.children.length) return;
+
+    const i = lpMidIndex(flow);
+    const n = flow.children.length;
+    count.textContent = `${i + 1} / ${n}`;
+    const prev = document.getElementById("album-prev");
+    const next = document.getElementById("album-next");
+    if (prev) prev.disabled = i === 0;
+    if (next) next.disabled = i === n - 1;
+  }
+
+  // ============= TÊN Ở MỤC MỞ ĐẦU: LUÔN MỘT DÒNG =============
+  // Thu font-size của .lp-hero-names tới khi tên vừa tấm kính (trần = cỡ khai
+  // trong class, sàn = LP_NAMES_MIN). Đo lại khi font Signora tải xong, khi đổi
+  // khổ màn và khi khách sửa tên ngay trên thiệp.
+
+  const LP_NAMES_MIN = 24;
+
+  function lpFitHeroNames() {
+    const box = document.querySelector(".lp-hero-names");
+    // clientWidth = 0: khối đang ẩn, đo lúc này ra số vô nghĩa.
+    if (!box || !box.clientWidth) return;
+
+    box.style.fontSize = "";
+    box.classList.remove("is-wrap");
+    let size = parseFloat(getComputedStyle(box).fontSize);
+    if (box.scrollWidth <= box.clientWidth) return;
+
+    // Ước một bước theo tỉ lệ rồi lùi từng px cho chắc (padding không co theo).
+    size = Math.max(
+      LP_NAMES_MIN,
+      Math.floor((size * box.clientWidth) / box.scrollWidth),
+    );
+    box.style.fontSize = size + "px";
+    while (box.scrollWidth > box.clientWidth && size > LP_NAMES_MIN) {
+      size -= 1;
+      box.style.fontSize = size + "px";
+    }
+    if (box.scrollWidth > box.clientWidth) box.classList.add("is-wrap");
+  }
+
+  let lpNamesBound = false;
+
+  function lpSetupHeroNames() {
+    lpFitHeroNames();
+    const box = document.querySelector(".lp-hero-names");
+    if (!box || lpNamesBound) return;
+    lpNamesBound = true;
+
+    document.fonts?.ready.then(lpFitHeroNames);
+    window.addEventListener("resize", lpFitHeroNames);
+    // Sửa chữ trực tiếp trên thiệp đổi text node bên trong — đo lại theo.
+    let pending = false;
+    new MutationObserver(() => {
+      if (pending) return;
+      pending = true;
+      requestAnimationFrame(() => {
+        pending = false;
+        lpFitHeroNames();
+      });
+    }).observe(box, { characterData: true, childList: true, subtree: true });
+  }
+
+  // ============= VẠCH TIẾN ĐỘ ĐỌC THIỆP =============
+  // Thiệp cuộn theo window. Vẽ bằng scaleX (không đổi width) cho khỏi reflow
+  // mỗi lần cuộn. Chỉ gắn một lần dù renderWedding có chạy lại.
+
+  let lpProgressBound = false;
+
+  function lpSetupProgress() {
+    const bar = document.getElementById("lp-progress-bar");
+    if (!bar || lpProgressBound) return;
+    lpProgressBound = true;
+
+    let ticking = false;
+    const sync = () => {
+      ticking = false;
+      const el = document.scrollingElement || document.documentElement;
+      const max = el.scrollHeight - el.clientHeight;
+      bar.style.transform = `scaleX(${max > 0 ? Math.min(1, el.scrollTop / max) : 0})`;
+    };
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(sync);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    sync();
   }
 
   // ============= CHUYỆN TÌNH YÊU (phần đặc thù của mẫu) =============
   // Ghi đè renderLoveStory của render-helper.js (nạp TRƯỚC file này): mỗi mẩu
   // chuyện là một thẻ kính mờ nằm so le trái–phải, nối nhau bằng sợi sáng dọc
   // giữa mục (.lp-thread ở theme.css), mốc là một chấm có quầng.
-  // Giữ .cx-hd/.cx-ac trên chữ để màu vẫn theo tab Giao diện.
+  // Giữ .cx-hd/.cx-bd trên chữ để màu vẫn theo tab Giao diện; ngày dùng màu
+  // hồng đất (--cx-deco-rgb) khai ở .lp-story-date.
 
   function lpRenderLoveStory(events) {
     const section = document.getElementById("love-story");
@@ -417,7 +560,7 @@
       <div class="lp-story ${i % 2 ? "is-right" : "is-left"}">
         <span class="lp-story-dot"></span>
         <div class="lp-glass lp-story-card text-left">
-          ${ev.date ? `<div class="lp-story-date cx-ac">${escapeHtml(ev.date)}</div>` : ""}
+          ${ev.date ? `<div class="lp-story-date">${escapeHtml(ev.date)}</div>` : ""}
           ${ev.title ? `<div class="lp-story-title cx-hd">${escapeHtml(ev.title)}</div>` : ""}
           ${ev.content ? `<div class="lp-story-text cx-bd">${escapeHtml(ev.content)}</div>` : ""}
           ${img ? `<img class="lp-story-photo" src="${cxImgSrc(img)}" alt=""${fp} loading="lazy" />` : ""}

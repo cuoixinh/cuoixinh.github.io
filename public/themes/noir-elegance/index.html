@@ -75,29 +75,40 @@
       <div
         class="relative w-full max-w-[430px] cx-screen-h md:min-h-[932px] overflow-hidden md:rounded-[40px] flex flex-col items-center justify-center gap-6 px-8 text-center"
       >
-        <!-- Hai vệt màu đào loang ở góc trên và góc dưới -->
+        <!-- Hai vệt màu đào loang ở góc trên và góc dưới — trôi chậm qua lại -->
         <div class="ne-wash ne-wash-top"></div>
         <div class="ne-wash ne-wash-bottom"></div>
 
-        <!-- Nét cong mảnh thay cho hoa: một nét ở đầu, một nét ở chân thiệp -->
+        <!-- Hạt kim tuyến bay lên lững lờ: mỗi hạt một vị trí/nhịp riêng ở theme.css -->
+        <div class="ne-motes" aria-hidden="true">
+          <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+        </div>
+
+        <!-- Nét cong mảnh thay cho hoa: một nét ở đầu, một nét ở chân thiệp.
+             pathLength="1" để CSS vẽ dần nét mà không phải đo độ dài thật. -->
         <svg class="ne-curve ne-curve-top" viewBox="0 0 320 90" fill="none" aria-hidden="true">
-          <path d="M10 62C60 18 120 8 160 40c40 32 100 22 150-30" />
-          <path d="M40 74C84 42 128 36 160 58c32 22 84 14 124-22" opacity=".55" />
+          <path pathLength="1" d="M10 62C60 18 120 8 160 40c40 32 100 22 150-30" />
+          <path pathLength="1" d="M40 74C84 42 128 36 160 58c32 22 84 14 124-22" opacity=".55" />
           <circle cx="160" cy="46" r="3" />
         </svg>
         <svg class="ne-curve ne-curve-bottom" viewBox="0 0 320 90" fill="none" aria-hidden="true">
-          <path d="M10 28C60 72 120 82 160 50c40-32 100-22 150 30" />
-          <path d="M40 16C84 48 128 54 160 32c32-22 84-14 124 22" opacity=".55" />
+          <path pathLength="1" d="M10 28C60 72 120 82 160 50c40-32 100-22 150 30" />
+          <path pathLength="1" d="M40 16C84 48 128 54 160 32c32-22 84-14 124 22" opacity=".55" />
           <circle cx="160" cy="44" r="3" />
         </svg>
 
         <!-- Khung vàng mảnh chạy sát mép màn bìa -->
         <div class="ne-cover-frame absolute inset-4 pointer-events-none"></div>
 
-        <div class="relative z-10 flex flex-col items-center gap-5 w-full">
+        <!-- .ne-cover-in: từng con TRỰC TIẾP lần lượt hiện lên (độ trễ theo thứ
+             tự ở theme.css). Tên và nút có hiệu ứng riêng nên bọc thêm một lớp
+             div — hai animation trên cùng một thẻ sẽ đè nhau. -->
+        <div class="ne-cover-in relative z-10 flex flex-col items-center gap-5 w-full">
           <div class="ne-eyebrow">The Wedding Of</div>
 
-          <div class="ne-name text-[54px] leading-[1.1]" id="cover-groom-name">----------</div>
+          <div>
+            <div class="ne-name text-[54px] leading-[1.1]" id="cover-groom-name">----------</div>
+          </div>
 
           <!-- Gạch — AND — gạch -->
           <div class="flex items-center justify-center gap-3 w-full max-w-[280px]">
@@ -106,7 +117,9 @@
             <span class="flex-1 h-px cx-bg-line"></span>
           </div>
 
-          <div class="ne-name text-[54px] leading-[1.1]" id="cover-bride-name">----------</div>
+          <div>
+            <div class="ne-name text-[54px] leading-[1.1]" id="cover-bride-name">----------</div>
+          </div>
 
           <!-- Nơi đãi tiệc + ngày, đặt thấp như dòng chân thiệp giấy -->
           <div class="flex flex-col items-center gap-1 mt-4">
@@ -128,17 +141,19 @@
             <div class="cx-h text-[22px] leading-tight" id="cover-guest-name">----------</div>
           </div>
 
-          <x-button
-            variant="bare"
-            onclick="openInvitation()"
-            class="open-btn ne-btn relative overflow-hidden px-9 py-3.5 text-[13px] active:scale-95 transition-transform touch-manipulation [-webkit-tap-highlight-color:transparent]"
-          >
-            <span class="relative z-10 pointer-events-none flex items-center gap-2 tracking-[3px] uppercase">
-              <i data-lucide="mail-open" class="cx-ic cx-a text-sm"></i>
-              Mở Thiệp
-            </span>
-            <div class="btn-shimmer pointer-events-none"></div>
-          </x-button>
+          <div class="ne-pulse-wrap">
+            <x-button
+              variant="bare"
+              onclick="openInvitation()"
+              class="open-btn ne-btn relative overflow-hidden px-9 py-3.5 text-[13px] active:scale-95 transition-transform touch-manipulation [-webkit-tap-highlight-color:transparent]"
+            >
+              <span class="relative z-10 pointer-events-none flex items-center gap-2 tracking-[3px] uppercase">
+                <i data-lucide="mail-open" class="cx-ic cx-a text-sm"></i>
+                Mở Thiệp
+              </span>
+              <div class="btn-shimmer pointer-events-none"></div>
+            </x-button>
+          </div>
         </div>
       </div>
     </div>
@@ -156,25 +171,28 @@
              Ba nhãn trên cùng: nơi đãi tiệc · lối tắt sang Chuyện tình yêu ·
              lối tắt sang Album. index.js ẩn hai lối tắt khi mục tương ứng tắt. -->
         <section id="section-hero" class="relative -mx-5 -mt-10 cx-screen-h overflow-hidden">
-          <!-- Ảnh: một ô một tấm, trượt ngang bằng % (xem index.js). Ô đầu tiên
-               là ảnh bìa (#main-photo) nên viết sẵn ở đây. -->
+          <!-- Ảnh: các ô CHỒNG lên nhau, chiếu lần lượt bằng mờ chồng + zoom chậm
+               (xem index.js). Ô đầu tiên là ảnh bìa (#main-photo) nên viết sẵn. -->
           <div id="hero-viewport" class="absolute inset-0">
-            <div id="hero-track" class="flex h-full">
-              <div class="w-full h-full shrink-0">
+            <div id="hero-track" class="relative h-full">
+              <div class="ne-slide is-on">
                 <img id="main-photo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Ảnh cưới" class="w-full h-full object-cover" fetchpriority="high" />
               </div>
             </div>
           </div>
 
-          <!-- Dải kem mờ ở đầu màn: chỗ đặt ba nhãn -->
-          <div class="ne-hero-top absolute inset-x-0 top-0 px-5 pt-6 pb-10">
+          <!-- Màn tối mờ ở đầu và chân ảnh — chữ trắng đọc được trên mọi tấm -->
+          <div class="ne-hero-shade absolute inset-0 pointer-events-none"></div>
+
+          <!-- Ba nhãn trên cùng. Lề phải chừa chỗ cho nút nhạc neo góc màn. -->
+          <div class="ne-hero-nav absolute inset-x-0 top-0">
             <div class="grid grid-cols-3 items-center gap-1">
-              <div id="hero-place" class="ne-eyebrow !text-[9px] ne-nav-l truncate">Save The Date</div>
+              <div id="hero-place" class="ne-eyebrow ne-on-photo !text-[9px] ne-nav-l truncate">Our Wedding</div>
               <x-button
                 variant="bare"
                 id="hero-link-story"
                 onclick="neJump('love-story')"
-                class="ne-eyebrow !text-[9px] ne-nav w-full"
+                class="ne-eyebrow ne-on-photo !text-[9px] ne-nav w-full"
               >
                 Love Story
               </x-button>
@@ -182,29 +200,36 @@
                 variant="bare"
                 id="hero-link-album"
                 onclick="neJump('section-photos')"
-                class="ne-eyebrow !text-[9px] ne-nav ne-nav-r w-full"
+                class="ne-eyebrow ne-on-photo !text-[9px] ne-nav ne-nav-r w-full"
               >
                 Album
               </x-button>
             </div>
           </div>
 
-          <!-- Dải kem mờ ở chân màn: câu slogan + tên cặp đôi -->
-          <div class="ne-hero-bottom absolute inset-x-0 bottom-0 flex flex-col items-center gap-4 px-6 pt-16 pb-10">
-            <div id="hero-dots" class="flex items-center justify-center gap-1.5"></div>
+          <!-- Chân màn: tên cặp đôi mạ vàng + ngày + câu slogan, kiểu poster -->
+          <div class="absolute inset-x-0 bottom-0 flex flex-col items-center gap-3 px-8 pb-10">
+            <div class="ne-eyebrow ne-on-photo !text-[9px]">Save The Date</div>
 
-            <!-- Câu slogan (story_quote) — chữ viết tay, đúng chất tấm poster -->
-            <div id="story-quote" class="ne-script text-[26px] leading-[1.35]">
+            <div class="ne-hero-names flex flex-col items-center">
+              <div class="ne-name text-[44px] leading-[1.1]" id="couple-names-groom">----------</div>
+              <div class="ne-hero-amp cx-h italic text-[20px] leading-none">&amp;</div>
+              <div class="ne-name text-[44px] leading-[1.1]" id="couple-names-bride">----------</div>
+            </div>
+
+            <div class="flex items-center justify-center gap-3 w-full max-w-[240px]">
+              <span class="ne-hero-line flex-1 h-px"></span>
+              <span id="hero-date" class="cx-h ne-on-photo text-[20px] tracking-[4px] whitespace-nowrap">-- · -- · ----</span>
+              <span class="ne-hero-line flex-1 h-px"></span>
+            </div>
+
+            <!-- Câu slogan (story_quote) -->
+            <div id="story-quote" class="cx-h ne-on-photo italic text-[16px] leading-relaxed max-w-[300px]">
               Love is not about how many days we have been together, it is about how
               much we love each other every day
             </div>
 
-            <div class="ne-eyebrow flex items-center justify-center gap-2 flex-wrap">
-              <span id="couple-names-groom">----------</span>
-              <span class="cx-a">&amp;</span>
-              <span id="couple-names-bride">----------</span>
-            </div>
-            <div class="ne-script cx-a text-[22px] leading-none">Presents</div>
+            <div id="hero-dots" class="ne-hero-dots flex items-center justify-center gap-1.5 mt-2"></div>
           </div>
         </section>
 
@@ -237,8 +262,8 @@
           <div class="cx-t italic text-[12px]" id="invite-lunar">--------------------</div>
 
           <!-- Nơi làm lễ — index.js gỡ .hidden khi có dữ liệu -->
-          <div id="ceremony-location-wrap" class="hidden flex items-center gap-1 justify-center">
-            <i data-lucide="map-pin" class="cx-ic cx-a text-[10px]"></i>
+          <div id="ceremony-location-wrap" class="hidden flex items-start gap-1 justify-center">
+            <i data-lucide="map-pin" class="cx-ic cx-a text-[10px] mt-0.5"></i>
             <span id="ceremony-location-text" class="cx-t text-[11px]"></span>
           </div>
         </section>

@@ -43,7 +43,7 @@
       }
     },
     "cover_image_url": {
-      "x": 51,
+      "x": 48,
       "y": 18
     },
     "groom_image_url": {
@@ -55,7 +55,7 @@
       "y": 23
     }
   },
-  "cover_image_url": "cover.webp",
+  "cover_image_url": "cover.png",
   "groom_image_url": "groom.webp",
   "bride_image_url": "bride.webp",
   "groom_qr_url": "groom-qr.png",
@@ -128,38 +128,43 @@
     "ceremony_time": "10:30",
     "ceremony_lunar": "Tức ngày 16 tháng 9 năm Bính Ngọ",
     "ceremony_location": "Almanity Riverside, Phường Hội An, TP. Đà Nẵng",
+    "ceremony_map_embed_url": "https://maps.google.com/maps?q=15.8801,108.3380&output=embed&hl=vi",
     "vu_quy_enabled": true,
     "vu_quy_time": "08:30",
     "vu_quy_location": "Tư gia nhà gái — Số 7 Trần Hưng Đạo, Phường Hội An, TP. Đà Nẵng",
+    "vu_quy_map_embed_url": "https://maps.google.com/maps?q=15.8794,108.3350&output=embed&hl=vi",
     "groom_party_date": "2026-10-24",
     "groom_party_time": "16:30",
     "groom_party_lunar": "Tức ngày 15 tháng 9 năm Bính Ngọ",
     "groom_party_show_location": true,
     "groom_party_location": "Almanity Riverside, Phường Hội An, TP. Đà Nẵng",
+    "groom_party_map_embed_url": "https://maps.google.com/maps?q=15.8801,108.3380&output=embed&hl=vi",
     "bride_party_date": "2026-10-24",
     "bride_party_time": "17:00",
     "bride_party_lunar": "Tức ngày 15 tháng 9 năm Bính Ngọ",
     "bride_party_show_location": true,
     "bride_party_location": "Tư gia nhà gái — Số 7 Trần Hưng Đạo, Phường Hội An, TP. Đà Nẵng",
+    "bride_party_map_embed_url": "https://maps.google.com/maps?q=15.8794,108.3350&output=embed&hl=vi",
     "groom_bank_name": "Techcombank",
     "groom_bank_number": "19036688221013",
     "groom_bank_owner": "VO NHAT MINH",
     "bride_bank_name": "MB Bank",
     "bride_bank_number": "0909221133",
     "bride_bank_owner": "PHAN BAO NGOC",
-    "story_quote": "Yêu nhau là cùng nhìn về một phía — và phía ấy lúc nào cũng đầy nắng.",
+    "story_quote": "Nắng của đời nhau",
     "rsvp_enabled": true,
     "rsvp_message": "Bấm xác nhận giúp tụi mình nha, để bàn tiệc hôm đó có đúng một chỗ dành cho bạn.",
     "footer_text": "Cảm ơn bạn đã là một phần trong câu chuyện của tụi mình. Hẹn gặp bạn ở Hội An!",
+    "enable_music": true,
     "music_url": "https://www.youtube.com/watch?v=JgTZvDbaTtg",
     "enable_family": true,
     "enable_party": true,
     "enable_photos": true,
     "enable_timeline": true,
     "enable_love_story": true,
-    "enable_music": true,
     "enable_gift": true,
     "enable_footer": true,
+    "demo_fill_love_story": false,
     "timeline": [
       {
         "time": "17:00",
@@ -201,11 +206,7 @@
         "title": "Cảm ơn và tiễn khách",
         "type": "party"
       }
-    ],
-    "ceremony_map_embed_url": "https://maps.google.com/maps?q=15.8801,108.3380&output=embed&hl=vi",
-    "vu_quy_map_embed_url": "https://maps.google.com/maps?q=15.8794,108.3350&output=embed&hl=vi",
-    "groom_party_map_embed_url": "https://maps.google.com/maps?q=15.8801,108.3380&output=embed&hl=vi",
-    "bride_party_map_embed_url": "https://maps.google.com/maps?q=15.8794,108.3350&output=embed&hl=vi"
+    ]
   },
-  "updated_at": "2026-09-23T17:11:25.561Z"
+  "updated_at": "2026-10-03T08:54:40.015Z"
 }

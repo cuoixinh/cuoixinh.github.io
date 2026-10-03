@@ -3,35 +3,27 @@
     "gallery_images": {
       "gallery-01.png": {
         "x": 50,
-        "y": 50
+        "y": 14
       },
       "gallery-02.png": {
-        "x": 50,
-        "y": 50
+        "x": 58,
+        "y": 36
       },
       "gallery-03.png": {
-        "x": 50,
-        "y": 50
+        "x": 91,
+        "y": 33
       },
       "gallery-04.png": {
-        "x": 50,
-        "y": 50
+        "x": 57,
+        "y": 37
       },
       "gallery-05.png": {
-        "x": 50,
-        "y": 50
+        "x": 55,
+        "y": 52
       },
       "gallery-06.png": {
-        "x": 50,
-        "y": 50
-      },
-      "gallery-07.png": {
-        "x": 50,
-        "y": 50
-      },
-      "gallery-08.png": {
-        "x": 50,
-        "y": 50
+        "x": 67,
+        "y": 19
       }
     },
     "cover_image_url": {
@@ -58,9 +50,7 @@
     "gallery-03.png",
     "gallery-04.png",
     "gallery-05.png",
-    "gallery-06.png",
-    "gallery-07.png",
-    "gallery-08.png"
+    "gallery-06.png"
   ],
   "love_story": [
     {
@@ -69,8 +59,8 @@
       "content": "Hai chiếc ghế liền nhau ở Nhà hát Lớn, và một bản Nocturne không ai trong hai đứa quên được.",
       "image_url": "love-story-01.png",
       "focal_point": {
-        "x": 41,
-        "y": 58
+        "x": 35,
+        "y": 26
       }
     },
     {
@@ -89,8 +79,8 @@
       "content": "Chuyến đi đầu tiên của hai đứa, trời lạnh đến mức chỉ còn cách nắm tay nhau cho ấm.",
       "image_url": "love-story-03.png",
       "focal_point": {
-        "x": 58,
-        "y": 46
+        "x": 46,
+        "y": 36
       }
     },
     {
@@ -218,5 +208,5 @@
       }
     ]
   },
-  "updated_at": "2026-10-03T08:02:43.307Z"
+  "updated_at": "2026-10-03T08:17:34.994Z"
 }

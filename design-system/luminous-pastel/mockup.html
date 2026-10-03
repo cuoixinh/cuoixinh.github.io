@@ -1,0 +1,609 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Luminous Pastel Mockup</title>
+<!-- Bản phác họa đề xuất cho public/themes/luminous-pastel — dựng theo kết quả search
+     của skill ui-ux-pro-max (ghi ở cột "Ghi chú"). Chưa đụng gì vào thiệp thật.
+     Mở qua `npm run dev`: cột "Hiện tại" là iframe trỏ vào thiệp đang chạy. -->
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Quicksand:wght@400;500;600&display=swap" rel="stylesheet" />
+<script src="https://unpkg.com/lucide@1.26.0/dist/umd/lucide.min.js" integrity="sha384-8/6sFI5UzGbr1Dgef7WSZvE4UemcVc/jyaQNsM+MilmnHQ9sce/pRv86XXj5Cg5m" crossorigin="anonymous"></script>
+<style>
+  @font-face { font-family: "Signora"; src: url("../../assets/fonts/signora.woff2") format("woff2"); font-display: swap; }
+  @font-face { font-family: "BethanWhite"; src: url("../../assets/fonts/bethanwhite.woff2") format("woff2"); font-display: swap; }
+
+  /* Bộ màu ĐỀ XUẤT — đặt đúng tên token --cx-* để apply là chép sang theme.css.
+     Chữ đã đo ≥ 4.5:1 trên nền card (xem bảng ở cột Ghi chú). */
+  :root {
+    --cx-heading-rgb: 74 61 59;      /* #4A3D3B  9.7:1 */
+    --cx-body-rgb: 110 96 93;        /* #6E605D  5.6:1 */
+    --cx-accent-rgb: 138 106 64;     /* #8A6A40  4.6:1 — champagne đậm cho CHỮ */
+    --cx-accent-soft-rgb: 214 190 150; /* champagne nhạt — chỉ quầng sáng, vạch */
+    --cx-deco-rgb: 158 90 99;        /* #9E5A63  4.8:1 — hồng đất cho chữ viết tay */
+    --cx-deco-soft-rgb: 236 196 196; /* blush — quầng, viền */
+    --cx-deco-2-rgb: 91 113 96;      /* #5B7160  4.9:1 — sage, điểm phụ */
+    --cx-deco-2-soft-rgb: 200 216 196;
+    --cx-peach-rgb: 247 208 178;     /* peach hoàng hôn — chỉ trong gradient nền */
+    --cx-card-bg-rgb: 251 246 243;   /* #FBF6F3 */
+    --cx-glass-rgb: 255 251 249;
+    --cx-surface-rgb: 245 236 232;
+    --cx-line-rgb: 232 216 211;
+    --cx-panel-rgb: 255 255 255;
+    --cx-on-accent-rgb: 255 255 255;
+
+    --ease-out: cubic-bezier(.22, .8, .3, 1);
+    --page: #EFE7E3; --ink: #2E2624; --muted: #6E605D; --rule: #DCCDC7;
+  }
+
+  * { box-sizing: border-box; margin: 0; }
+  body { background: var(--page); color: var(--ink); font: 14px/1.6 "Quicksand", sans-serif; -webkit-font-smoothing: antialiased; }
+  img { display: block; }
+  svg.lucide { width: 1em; height: 1em; stroke-width: 1.75; flex: none; }
+  :focus-visible { outline: 2px solid rgb(var(--cx-deco-rgb)); outline-offset: 3px; border-radius: 8px; }
+
+  /* ═════════════ KHUNG TRANG SO SÁNH ═════════════ */
+  .stage { display: grid; grid-template-columns: 380px auto auto; gap: 40px; justify-content: center; align-items: start; padding: 32px 24px 48px; }
+  .notes { position: sticky; top: 24px; max-height: calc(100vh - 48px); overflow: auto; padding-right: 8px; }
+  .col-h { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 12px; font-weight: 600; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .col-h b { color: var(--ink); }
+  .phone { position: relative; width: 390px; height: min(844px, calc(100vh - 96px)); border-radius: 48px; padding: 12px; background: #1d1716; box-shadow: 0 40px 80px -40px rgb(46 38 36 / .55); }
+  .screen { position: relative; width: 100%; height: 100%; border-radius: 36px; overflow: hidden; background: rgb(var(--cx-card-bg-rgb)); }
+  .screen iframe { width: 100%; height: 100%; border: 0; }
+  .seg { display: none; }
+
+  @media (max-width: 1260px) {
+    .stage { grid-template-columns: auto auto; }
+    .notes { position: static; max-height: none; grid-column: 1 / -1; max-width: 840px; margin: 0 auto; }
+  }
+  @media (max-width: 900px) {
+    .stage { grid-template-columns: 1fr; justify-items: center; gap: 24px; padding: 16px 16px 40px; }
+    .seg { display: flex; gap: 4px; padding: 4px; border-radius: 999px; background: #fff; width: 100%; max-width: 390px; }
+    .seg button { flex: 1; height: 44px; border: 0; border-radius: 999px; background: transparent; font: 600 13px "Quicksand"; color: var(--muted); cursor: pointer; transition: background-color .2s, color .2s; }
+    .seg button.is-on { background: var(--ink); color: #fff; }
+    .pane[hidden] { display: none; }
+  }
+  @media (max-width: 440px) {
+    .phone { width: 100%; height: calc(100vh - 140px); padding: 0; border-radius: 24px; background: none; }
+    .screen { border-radius: 24px; }
+  }
+
+  /* Ghi chú */
+  .notes h1 { font: 500 30px/1.15 "Cormorant Garamond", serif; margin-bottom: 4px; }
+  .notes .sub { color: var(--muted); margin-bottom: 20px; }
+  .notes details { border-top: 1px solid var(--rule); padding: 12px 0; }
+  .notes summary { cursor: pointer; font-weight: 600; list-style: none; display: flex; justify-content: space-between; align-items: center; min-height: 32px; }
+  .notes summary::after { content: "+"; font-size: 18px; color: var(--muted); }
+  .notes details[open] summary::after { content: "–"; }
+  .notes .body { padding-top: 8px; color: #4d4240; }
+  .notes ul { padding-left: 18px; } .notes li { margin: 4px 0; }
+  .notes code { font: 12px/1.4 ui-monospace, Consolas, monospace; background: #fff; padding: 1px 4px; border-radius: 4px; }
+  .q { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; font-size: 13px; }
+  .q dt { font: 12px ui-monospace, Consolas, monospace; color: var(--muted); }
+  .q dd { margin: 0 0 6px; }
+  .tag { display: inline-block; padding: 0 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+  .tag.ok { background: #DDE8DC; color: #3E5A44; } .tag.no { background: #F3DADA; color: #8A3B42; } .tag.mid { background: #F1E6D2; color: #6E5530; }
+  table.ct { width: 100%; border-collapse: collapse; font-size: 12px; }
+  table.ct th, table.ct td { text-align: left; padding: 5px 4px; border-bottom: 1px solid var(--rule); }
+  table.ct td.sw span { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: -2px; margin-right: 4px; border: 1px solid rgb(0 0 0 / .08); }
+
+  /* ═════════════ THIỆP ĐỀ XUẤT ═════════════ */
+  .scr { height: 100%; overflow-y: auto; overflow-x: hidden; scroll-behavior: smooth; color: rgb(var(--cx-body-rgb)); text-align: center; scrollbar-width: none; }
+  .scr::-webkit-scrollbar { display: none; }
+
+  /* Vạch tiến độ — chỉ báo "đang ở đâu trong câu chuyện" (pattern Storytelling). */
+  .progress { position: sticky; top: 0; z-index: 20; height: 3px; background: rgb(var(--cx-line-rgb) / .5); }
+  .progress i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, rgb(var(--cx-deco-soft-rgb)), rgb(var(--cx-deco-rgb))); border-radius: 0 3px 3px 0; }
+
+  .h { font-family: "Cormorant Garamond", serif; color: rgb(var(--cx-heading-rgb)); }
+  .t { font-family: "Quicksand", sans-serif; color: rgb(var(--cx-body-rgb)); }
+  .a { color: rgb(var(--cx-accent-rgb)); }
+  .script { font-family: "Signora", cursive; color: rgb(var(--cx-heading-rgb)); line-height: 1.05; font-weight: 400; }
+  .hand { font-family: "BethanWhite", cursive; font-style: italic; color: rgb(var(--cx-deco-rgb)); line-height: 1.1; }
+  .caps { font-size: 12px; letter-spacing: .22em; text-transform: uppercase; margin-right: -.22em; }
+
+  .sec { position: relative; padding: 56px 24px; display: flex; flex-direction: column; gap: 24px; align-items: center; }
+
+  /* Nền thiệp: MỘT lớp gradient liền phủ suốt chiều dài (không chia theo mục) —
+     các quầng hình elip rất rộng, rất nhạt, xen trái/phải, hoà vào nhau nên đi
+     từ mục này sang mục kia không thấy ranh giới. Kính mờ lấy đó làm thứ để mờ. */
+  .paper { background:
+      radial-gradient(140% 14% at 0% 3%, rgb(var(--cx-deco-soft-rgb) / .55), transparent 72%),
+      radial-gradient(140% 14% at 100% 12%, rgb(var(--cx-peach-rgb) / .42), transparent 72%),
+      radial-gradient(140% 16% at 0% 26%, rgb(var(--cx-deco-soft-rgb) / .38), transparent 72%),
+      radial-gradient(140% 16% at 100% 42%, rgb(var(--cx-deco-2-soft-rgb) / .34), transparent 72%),
+      radial-gradient(140% 16% at 0% 58%, rgb(var(--cx-peach-rgb) / .32), transparent 72%),
+      radial-gradient(140% 16% at 100% 74%, rgb(var(--cx-deco-soft-rgb) / .4), transparent 72%),
+      radial-gradient(140% 16% at 0% 90%, rgb(var(--cx-deco-2-soft-rgb) / .3), transparent 72%),
+      radial-gradient(160% 12% at 50% 100%, rgb(var(--cx-peach-rgb) / .4), transparent 72%),
+      rgb(var(--cx-card-bg-rgb)); }
+
+  /* Tiêu đề mục: chữ viết tay hồng đất làm "mở chương" + chữ hoa + vạch. */
+  .st { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .st .hand { font-size: 30px; }
+  .st .rule { display: flex; align-items: center; gap: 12px; font: 600 13px "Cormorant Garamond", serif; letter-spacing: .26em; text-transform: uppercase; color: rgb(var(--cx-heading-rgb)); }
+  .st .rule::before, .st .rule::after { content: ""; width: 48px; height: 1px; background: linear-gradient(90deg, transparent, rgb(var(--cx-deco-rgb) / .6), transparent); }
+
+  /* Kính mờ: nền trong hơn bản cũ, blur 16px, viền trắng + bóng rất mềm. */
+  .glass { position: relative; border-radius: 28px; background: rgb(var(--cx-glass-rgb) / .58); border: 1px solid rgb(var(--cx-panel-rgb) / .85);
+    box-shadow: 0 24px 40px -28px rgb(var(--cx-heading-rgb) / .35), 0 2px 10px -6px rgb(var(--cx-deco-rgb) / .3), inset 0 1px 0 rgb(var(--cx-panel-rgb));
+    backdrop-filter: blur(16px) saturate(1.1); -webkit-backdrop-filter: blur(16px) saturate(1.1); }
+
+  /* — Mở đầu — */
+  .hero { padding-top: 40px; gap: 20px; }
+  .hero-photo { position: relative; width: 100%; aspect-ratio: 4 / 5; border-radius: 28px; overflow: hidden;
+    box-shadow: 0 0 0 8px rgb(var(--cx-panel-rgb) / .6), 0 30px 50px -30px rgb(var(--cx-heading-rgb) / .5), 0 0 60px 10px rgb(var(--cx-deco-soft-rgb) / .7); }
+  .hero-photo img { width: 100%; height: 100%; object-fit: cover; object-position: 51% 18%; }
+  /* Tên nằm trên tấm kính đè mép dưới ảnh — không đè thẳng lên ảnh nữa để luôn đọc được. */
+  .names { margin-top: -64px; width: calc(100% - 32px); padding: 16px 12px 14px; }
+  .names .script { font-size: 44px; }
+  .names .amp { font-family: "Cormorant Garamond", serif; font-style: italic; font-size: 26px; color: rgb(var(--cx-deco-rgb)); margin: 0 6px; }
+  .when { width: 100%; display: grid; grid-template-columns: 1fr 1.2fr 1fr; gap: 10px; }
+  .pill { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 76px; padding: 10px 6px; border-radius: 22px; }
+  .pill .big { font: 600 34px/1 "Cormorant Garamond", serif; color: rgb(var(--cx-accent-rgb)); }
+  .pill .caps { font-size: 11px; letter-spacing: .16em; }
+  .venue .h { font-size: 15px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; }
+  .venue .t { font-size: 14px; max-width: 280px; margin: 4px auto 0; }
+  .quote { font-size: 28px; max-width: 300px; }
+  .cue { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 20px; border-radius: 999px; text-decoration: none; font: 600 13px "Quicksand"; color: rgb(var(--cx-deco-rgb)); border: 1px solid rgb(var(--cx-deco-rgb) / .35); background: rgb(var(--cx-panel-rgb) / .6); transition: background-color .2s, transform .2s var(--ease-out); }
+  .cue:active { transform: scale(.96); }
+
+  /* — Gia đình — */
+  .fam { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .fam > div { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .halo { width: 120px; height: 120px; padding: 5px; border-radius: 50%; border: 2px solid transparent;
+    background: linear-gradient(rgb(var(--cx-panel-rgb)), rgb(var(--cx-panel-rgb))) padding-box, conic-gradient(from 200deg, rgb(var(--cx-deco-2-soft-rgb)), rgb(var(--cx-deco-rgb) / .8), rgb(var(--cx-accent-soft-rgb)), rgb(var(--cx-deco-2-soft-rgb))) border-box;
+    box-shadow: 0 0 30px 4px rgb(var(--cx-deco-soft-rgb) / .6); }
+  .halo img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+  .fam .script { font-size: 30px; }
+  .parents { width: 100%; padding: 14px 10px; display: flex; flex-direction: column; gap: 2px; border-radius: 22px; }
+  .parents .caps { font-size: 11px; color: rgb(var(--cx-deco-2-rgb)); font-weight: 600; margin-bottom: 4px; }
+  .parents .h { font-size: 15px; line-height: 1.45; }
+
+  /* — Thư mời (cao trào) — */
+  .invite { width: 100%; padding: 40px 20px 36px; display: flex; flex-direction: column; gap: 18px; align-items: center;
+    background-image: radial-gradient(120% 70% at 50% 115%, rgb(var(--cx-accent-soft-rgb) / .3), transparent 70%); }
+  .invite .lead { font-size: 12px; line-height: 2; }
+  .invite .event { font: 600 18px "Cormorant Garamond", serif; letter-spacing: .14em; text-transform: uppercase; color: rgb(var(--cx-heading-rgb)); }
+  .invite .script { font-size: 42px; }
+  .datebar { display: flex; align-items: center; gap: 18px; }
+  .datebar .day { font: 600 60px/1 "Cormorant Garamond", serif; color: rgb(var(--cx-accent-rgb)); }
+  .datebar .sep { width: 1px; height: 56px; background: rgb(var(--cx-line-rgb)); }
+  .datebar .side { display: flex; flex-direction: column; gap: 4px; min-width: 76px; }
+  .datebar .side .h { font-size: 24px; }
+  .lunar { font: italic 16px "Cormorant Garamond", serif; color: rgb(var(--cx-heading-rgb)); }
+  .loc { display: flex; align-items: flex-start; justify-content: center; gap: 6px; font-size: 14px; max-width: 280px; }
+  .loc svg { color: rgb(var(--cx-deco-rgb)); margin-top: 4px; }
+
+  /* — Tiệc + lịch + RSVP — */
+  .card { width: 100%; padding: 32px 20px; display: flex; flex-direction: column; gap: 14px; align-items: center; }
+  .card .when2 { font: 600 28px "Cormorant Garamond", serif; color: rgb(var(--cx-accent-rgb)); }
+  .cal { width: 100%; padding: 16px 12px; border-radius: 20px; background: rgb(var(--cx-panel-rgb) / .55); }
+  .cal-h { font: 600 15px "Cormorant Garamond", serif; color: rgb(var(--cx-heading-rgb)); letter-spacing: .1em; text-transform: uppercase; margin-bottom: 10px; }
+  .cal-g { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; font-size: 13px; }
+  .cal-g .dow { font-size: 11px; font-weight: 600; color: rgb(var(--cx-body-rgb)); }
+  .cal-g span { height: 32px; display: grid; place-items: center; border-radius: 50%; }
+  .cal-g .on { background: rgb(var(--cx-deco-rgb)); color: #fff; font-weight: 600; box-shadow: 0 0 0 4px rgb(var(--cx-deco-soft-rgb) / .6); }
+  .cal-g .on2 { box-shadow: inset 0 0 0 1.5px rgb(var(--cx-accent-rgb)); color: rgb(var(--cx-accent-rgb)); font-weight: 600; }
+  .legend { display: flex; justify-content: center; gap: 16px; font-size: 12px; margin-top: 10px; }
+  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: 0; }
+  .rsvp { width: 100%; padding-top: 18px; border-top: 1px solid rgb(var(--cx-line-rgb)); display: flex; flex-direction: column; gap: 12px; }
+  .rsvp .h { font-size: 20px; font-weight: 600; }
+  .rsvp .t { font-size: 14px; }
+  /* Hai nút một hàng, mỗi nút chỉ ~134px → chữ 13px, lề trong 8px mới đủ chỗ cho
+     "Không thể đến" + icon trên một dòng. Cao vẫn 44px cho dễ bấm. */
+  .btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .btns .btn { min-height: 44px; padding: 0 8px; gap: 6px; font-size: 13px; }
+  .btns .btn svg.lucide { width: 14px; height: 14px; }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 0 16px; border-radius: 999px; cursor: pointer;
+    font: 600 14px "Quicksand"; white-space: nowrap; border: 1px solid rgb(var(--cx-deco-rgb) / .4); color: rgb(var(--cx-deco-rgb)); background: rgb(var(--cx-panel-rgb) / .75);
+    transition: transform .18s var(--ease-out), background-color .2s, color .2s, box-shadow .2s; }
+  .btn:active { transform: scale(.96); }
+  .btn.fill { background: rgb(var(--cx-deco-rgb)); color: rgb(var(--cx-on-accent-rgb)); border-color: transparent; box-shadow: 0 12px 20px -12px rgb(var(--cx-deco-rgb) / .8); }
+  .btn.is-picked { outline: 2px solid rgb(var(--cx-deco-rgb)); outline-offset: 3px; }
+  .rsvp-msg { font: italic 16px "Cormorant Garamond", serif; color: rgb(var(--cx-deco-2-rgb)); min-height: 24px; }
+
+  /* — Lịch trình — */
+  .tl { width: 100%; padding: 24px 20px; text-align: left; }
+  .tl li { list-style: none; display: grid; grid-template-columns: 64px 16px 1fr; gap: 10px; align-items: start; padding: 10px 0; }
+  .tl li + li { border-top: 1px dashed rgb(var(--cx-line-rgb)); }
+  .tl .time { font: 600 18px "Cormorant Garamond", serif; color: rgb(var(--cx-accent-rgb)); text-align: right; line-height: 1.3; }
+  .tl .dot { width: 10px; height: 10px; margin-top: 7px; border-radius: 50%; background: rgb(var(--cx-deco-2-rgb)); box-shadow: 0 0 0 4px rgb(var(--cx-deco-2-soft-rgb) / .7); }
+  .tl .what .h { font-size: 17px; font-weight: 600; line-height: 1.3; }
+  .tl .what .t { font-size: 13px; }
+
+  /* — Chuyện tình — */
+  .thread { position: relative; width: 100%; padding-left: 28px; display: flex; flex-direction: column; gap: 20px; text-align: left; }
+  .thread::before { content: ""; position: absolute; left: 6px; top: 12px; bottom: 12px; width: 1px; background: linear-gradient(transparent, rgb(var(--cx-deco-rgb) / .5) 10%, rgb(var(--cx-deco-rgb) / .5) 90%, transparent); }
+  .story { position: relative; padding: 18px; }
+  .story::before { content: ""; position: absolute; left: -27px; top: 24px; width: 10px; height: 10px; border-radius: 50%; background: rgb(var(--cx-accent-soft-rgb)); box-shadow: 0 0 0 4px rgb(var(--cx-panel-rgb)), 0 0 14px 2px rgb(var(--cx-accent-soft-rgb)); }
+  .story:nth-child(even)::before { background: rgb(var(--cx-deco-soft-rgb)); box-shadow: 0 0 0 4px rgb(var(--cx-panel-rgb)), 0 0 14px 2px rgb(var(--cx-deco-soft-rgb)); }
+  .story .hand { font-size: 22px; }
+  .story .h { font-size: 20px; font-weight: 600; line-height: 1.3; margin: 2px 0 4px; }
+  .story .t { font-size: 14px; line-height: 1.7; }
+  .story img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 18px; margin-top: 12px; }
+
+  /* — Album coverflow + nút lùi/tới (không chỉ dựa vào vuốt) — */
+  .album { padding-left: 0; padding-right: 0; }
+  .flow { --w: 236px; width: 100%; display: flex; gap: 14px; align-items: center; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; padding: 24px max(16px, calc(50% - var(--w) / 2)); }
+  .flow::-webkit-scrollbar { display: none; }
+  .slide { --off: 1; flex: none; width: var(--w); scroll-snap-align: center; transform: scale(calc(1 - .12 * var(--off))); opacity: calc(1 - .45 * var(--off)); transition: transform .3s var(--ease-out), opacity .3s var(--ease-out); }
+  .slide img { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; border-radius: 24px; box-shadow: 0 0 0 6px rgb(var(--cx-panel-rgb) / .7), 0 24px 36px -24px rgb(var(--cx-heading-rgb) / .55), 0 0 36px 6px rgb(var(--cx-deco-soft-rgb) / .6); }
+  .flow-nav { display: flex; align-items: center; justify-content: center; gap: 16px; }
+  .round { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%; cursor: pointer; font-size: 18px; color: rgb(var(--cx-heading-rgb)); border: 1px solid rgb(var(--cx-line-rgb)); background: rgb(var(--cx-panel-rgb) / .8); transition: transform .18s var(--ease-out); }
+  .round:active { transform: scale(.92); }
+  .round:disabled { opacity: .35; cursor: default; }
+  .count { font: 600 13px "Quicksand"; min-width: 56px; color: rgb(var(--cx-heading-rgb)); }
+  .dots { display: flex; gap: 6px; justify-content: center; }
+  .dots i { width: 6px; height: 6px; border-radius: 6px; background: rgb(var(--cx-line-rgb)); transition: width .25s var(--ease-out), background-color .25s; }
+  .dots i.on { width: 20px; background: rgb(var(--cx-deco-rgb)); }
+
+  /* — Mừng cưới — */
+  .gift { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .qr { padding: 16px 10px; display: flex; flex-direction: column; align-items: center; gap: 6px; border-radius: 24px; }
+  .qr .who { font-size: 12px; font-weight: 600; color: rgb(var(--cx-deco-2-rgb)); letter-spacing: .14em; text-transform: uppercase; }
+  .qr .box { width: 100%; max-width: 140px; padding: 8px; border-radius: 16px; background: #fff; }
+  .qr .box img { width: 100%; aspect-ratio: 1; object-fit: cover; }
+  .qr .h { font-size: 15px; font-weight: 600; }
+  .qr .t { font-size: 13px; line-height: 1.4; }
+  .qr .btn { min-height: 44px; font-size: 13px; padding: 0 14px; margin-top: 4px; }
+
+  /* — Địa điểm — */
+  .map { width: 100%; overflow: hidden; text-decoration: none; display: block; }
+  .map .pic { height: 160px; display: grid; place-items: center; background:
+      radial-gradient(circle at 30% 40%, rgb(var(--cx-deco-2-soft-rgb) / .9), transparent 40%),
+      radial-gradient(circle at 70% 70%, rgb(var(--cx-peach-rgb) / .7), transparent 45%),
+      repeating-linear-gradient(35deg, rgb(var(--cx-line-rgb) / .6) 0 1px, transparent 1px 22px), rgb(var(--cx-surface-rgb)); }
+  .map .pin { width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; font-size: 22px; color: #fff; background: rgb(var(--cx-deco-rgb)); box-shadow: 0 0 0 8px rgb(var(--cx-deco-soft-rgb) / .7); }
+  .map .bar { display: flex; align-items: center; justify-content: space-between; padding: 0 20px; min-height: 52px; background: rgb(var(--cx-panel-rgb) / .7); }
+  .map .bar .t { font-size: 13px; font-weight: 600; }
+  .map .bar .a { display: inline-flex; align-items: center; gap: 4px; font-weight: 600; font-size: 14px; }
+
+  /* — Cảm ơn — */
+  .thanks .script { font-size: 56px; }
+  .thanks .t { font-size: 15px; max-width: 290px; }
+
+  /* Nút nhạc (minh hoạ chỗ neo — thiệp thật do CX_THEME.music dựng). */
+  .music { position: absolute; right: 16px; bottom: 16px; z-index: 30; width: 48px; height: 48px; border-radius: 50%; padding: 3px; cursor: pointer; border: 0; background: conic-gradient(rgb(var(--cx-deco-rgb)) 0 35%, rgb(var(--cx-line-rgb)) 0); box-shadow: 0 10px 24px -10px rgb(var(--cx-heading-rgb) / .6); }
+  .music img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; animation: cx-spin 8s linear infinite; }
+  .music.paused img { animation-play-state: paused; }
+  @keyframes cx-spin { to { transform: rotate(360deg); } }
+
+  /* Hiện dần khi cuộn tới — 450ms, lệch nhau 70ms (Stagger List / Standard). */
+  .rv { opacity: 0; transform: translateY(16px); transition: opacity .45s var(--ease-out), transform .45s var(--ease-out); transition-delay: calc(var(--i, 0) * 70ms); }
+  .rv.in { opacity: 1; transform: none; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .music img { animation: none; }
+    .rv { opacity: 1; transform: none; transition: none; }
+    .slide { transform: none; opacity: 1; transition: none; }
+    .scr, .flow { scroll-behavior: auto; }
+  }
+</style>
+</head>
+<body>
+<div class="stage">
+
+  <!-- ═════════════ GHI CHÚ: quy trình search + quyết định ═════════════ -->
+  <aside class="notes">
+    <h1>Luminous Pastel — đề xuất</h1>
+    <p class="sub">Phác họa dựng từ kết quả search của skill ui-ux-pro-max. Chưa sửa gì ở thiệp thật.</p>
+
+    <details open>
+      <summary>1 · Các lệnh search đã chạy</summary>
+      <div class="body">
+        <dl class="q">
+          <dt>--design-system</dt><dd>"wedding invitation pastel romantic airy" · variance 4 · motion 4 · density 2</dd>
+          <dt>--domain product</dt><dd>"event invitation wedding" → <b>Wedding/Event Planning</b></dd>
+          <dt>--domain style</dt><dd>"pastel soft airy light", "aurora gradient mesh", "glassmorphism frosted light"</dd>
+          <dt>--domain color</dt><dd>"wedding blush pastel"</dd>
+          <dt>--domain typography</dt><dd>"wedding romantic elegant script"</dd>
+          <dt>--domain landing</dt><dd>"storytelling narrative scroll"</dd>
+          <dt>--domain ux</dt><dd>contrast · carousel controls · reduced motion · touch target · line height</dd>
+          <dt>--stack html-tailwind</dt><dd><span class="tag no">0 kết quả</span> cả lần thử lại → phần cài đặt dùng mặc định chung</dd>
+        </dl>
+      </div>
+    </details>
+
+    <details open>
+      <summary>2 · Chọn gì, bỏ gì</summary>
+      <div class="body">
+        <ul>
+          <li><span class="tag ok">Lấy</span> Style <b>Soft UI Evolution + Aurora UI</b>, phụ <b>Glassmorphism</b> (product search) — lấy tinh thần aurora thành MỘT gradient nền liền, mượt, làm thứ cho kính mờ.</li>
+          <li><span class="tag ok">Lấy</span> Màu <b>Soft Pink + Gold + Cream + Sage</b> — khớp ảnh mẫu tông hoàng hôn, hoa hồng, lá xanh.</li>
+          <li><span class="tag ok">Lấy</span> Pattern <b>Scroll-Triggered Storytelling</b>: tiêu đề mục như mở chương, vạch tiến độ trên đầu, CTA nhỏ ở mục mở đầu → RSVP.</li>
+          <li><span class="tag ok">Lấy</span> Motion <b>Stagger List / Standard</b>: hiện dần 450ms, lệch 70ms; tắt hẳn khi máy bật giảm chuyển động.</li>
+          <li><span class="tag mid">Giữ</span> Font: DB gợi ý Great Vibes + Cormorant Infant. Giữ <b>Signora</b> (cùng vai chữ ký, là font tự host, nét nhận dạng mẫu) + <b>Cormorant Garamond</b>; <b>Quicksand</b> cho thân chữ đúng như cặp "Handwritten Charm".</li>
+          <li><span class="tag no">Bỏ</span> Pattern design-system "Hero + Testimonials + CTA" — của landing bán hàng, không phải thiệp.</li>
+          <li><span class="tag no">Bỏ</span> Màu <code>#DB2777</code> của design-system — hồng rực, mất chất "pastel".</li>
+          <li><span class="tag no">Bỏ</span> Neumorphism / Claymorphism — DB ghi rủi ro a11y cao / hợp app trẻ em.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details open>
+      <summary>3 · Tương phản chữ (ưu tiên #1 của skill)</summary>
+      <div class="body">
+        <table class="ct">
+          <tr><th>Vai</th><th>Hiện tại</th><th>Đề xuất</th></tr>
+          <tr><td>Thân chữ</td><td class="sw"><span style="background:#938A88"></span>3.07 <span class="tag no">trượt</span></td><td class="sw"><span style="background:#6E605D"></span>5.6</td></tr>
+          <tr><td>Tiêu đề</td><td class="sw"><span style="background:#5F5654"></span>6.49</td><td class="sw"><span style="background:#4A3D3B"></span>9.7</td></tr>
+          <tr><td>Nhấn (số ngày)</td><td class="sw"><span style="background:#C9B48F"></span>1.84 <span class="tag no">trượt</span></td><td class="sw"><span style="background:#8A6A40"></span>4.6</td></tr>
+          <tr><td>Chữ tay hồng</td><td class="sw"><span style="background:#DCAEA8"></span>1.79 <span class="tag no">trượt</span></td><td class="sw"><span style="background:#9E5A63"></span>4.8</td></tr>
+          <tr><td>Sage (mới)</td><td>—</td><td class="sw"><span style="background:#5B7160"></span>4.9</td></tr>
+        </table>
+        <p style="margin-top:8px">Màu nhạt cũ không mất: tách thành token <code>*-soft</code>, chỉ dùng cho quầng sáng, viền, gradient nền — không bao giờ cho chữ.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>4 · Thay đổi UX khác</summary>
+      <div class="body">
+        <ul>
+          <li>Chữ nhỏ nhất 11–12px (bản cũ 8–9px ở nhãn caps); thân chữ 14px, line-height 1.6–1.7.</li>
+          <li>Tên cô dâu chú rể chuyển lên tấm kính đè mép ảnh — trước đây đè lên ảnh, ảnh sáng là chìm chữ.</li>
+          <li>Album thêm nút Lùi/Tới 44px + bộ đếm "3 / 10" — UX rule: carousel phải xem hết được mà không cần vuốt.</li>
+          <li>Nút RSVP, Lưu QR, Mở Maps cao ≥ 44px, cách nhau ≥ 8px; nút có trạng thái nhấn (scale .96) + focus ring.</li>
+          <li>Lịch nhỏ có chú thích "Lễ / Tiệc" — không chỉ dựa vào màu.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details>
+      <summary>5 · Khi apply vào thiệp thật</summary>
+      <div class="body">
+        <ul>
+          <li>Màu chỉ đổi ở <code>:root</code> của <code>theme.css</code> + <code>CX_THEME.palette</code>, chạy <code>npm run check:palette</code>.</li>
+          <li>Gradient nền đặt trên <code>#main-card</code> (một lớp cho cả thân thiệp, không chia theo mục) — thay comment "nền MỘT màu phẳng" hiện tại. Màu lấy từ token nên đổi bộ màu vẫn theo.</li>
+          <li>Ảnh mở đầu bỏ hình vòm, dùng khung bo góc đều 28px.</li>
+          <li>Token <code>--cx-peach-rgb</code> là token riêng của mẫu (như <code>--cx-glass-rgb</code> đang có).</li>
+          <li>Nút album lùi/tới, vạch tiến độ, chú thích lịch là markup mới trong <code>index.html</code>/<code>index.js</code> của mẫu — không đụng helper dùng chung.</li>
+        </ul>
+      </div>
+    </details>
+  </aside>
+
+  <div class="seg" role="tablist" aria-label="Chọn bản xem">
+    <button class="is-on" data-pane="new" role="tab" aria-selected="true">Đề xuất</button>
+    <button data-pane="old" role="tab" aria-selected="false">Hiện tại</button>
+  </div>
+
+  <!-- ═════════════ BẢN ĐỀ XUẤT ═════════════ -->
+  <div class="pane" data-pane="new">
+    <div class="col-h"><b>Đề xuất</b><span>mockup</span></div>
+    <div class="phone"><div class="screen">
+      <div class="scr" id="scr">
+        <div class="progress" aria-hidden="true"><i id="prog"></i></div>
+        <div class="paper">
+
+        <!-- Mở đầu -->
+        <section class="sec hero">
+          <div class="t caps rv">The Wedding Of</div>
+          <div class="hero-photo rv"><img src="../../assets/data-template/luminous-pastel/cover.webp" alt="Ảnh cưới Hoàng Nam và Bảo Ngọc" fetchpriority="high" /></div>
+          <div class="glass names rv">
+            <div class="script"><span>Hoàng Nam</span><span class="amp">&amp;</span><span>Bảo Ngọc</span></div>
+          </div>
+          <div class="when">
+            <div class="glass pill rv" style="--i:0"><span class="t caps">Thứ Bảy</span></div>
+            <div class="glass pill rv" style="--i:1"><span class="big">07</span><span class="t" style="font-size:12px;letter-spacing:.1em">11 · 2026</span></div>
+            <div class="glass pill rv" style="--i:2"><span class="t caps">10:00</span></div>
+          </div>
+          <div class="venue rv">
+            <div class="h">White Palace</div>
+            <div class="t">108 Phạm Văn Đồng, Hiệp Bình Chánh, TP. Thủ Đức</div>
+          </div>
+          <div class="hand quote rv">Two hearts, one golden hour</div>
+          <a class="cue rv" href="#rsvp"><i data-lucide="calendar-heart"></i>Xác nhận tham dự</a>
+        </section>
+
+        <!-- Gia đình -->
+        <section class="sec">
+          <div class="st rv"><span class="hand">our family</span><span class="rule">Gia đình</span></div>
+          <div class="fam">
+            <div class="rv" style="--i:0">
+              <div class="halo"><img loading="lazy" src="../../assets/data-template/luminous-pastel/groom.webp" alt="Chú rể" style="object-position:65% 14%" /></div>
+              <div class="t caps" style="font-size:11px">Chú rể</div>
+              <div class="script">Hoàng Nam</div>
+              <div class="glass parents"><span class="caps">Nhà trai</span><span class="h">Ông Trần Văn Minh</span><span class="h">Bà Lê Thị Hoa</span></div>
+            </div>
+            <div class="rv" style="--i:1">
+              <div class="halo"><img loading="lazy" src="../../assets/data-template/luminous-pastel/bride.webp" alt="Cô dâu" style="object-position:40% 23%" /></div>
+              <div class="t caps" style="font-size:11px">Cô dâu</div>
+              <div class="script">Bảo Ngọc</div>
+              <div class="glass parents"><span class="caps">Nhà gái</span><span class="h">Ông Nguyễn Văn An</span><span class="h">Bà Phạm Thị Lan</span></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Thư mời — cao trào của câu chuyện -->
+        <section class="sec">
+          <div class="glass invite rv">
+            <div class="t caps lead">Trân trọng kính mời dự</div>
+            <div class="event">Lễ Thành Hôn</div>
+            <div class="script">Hoàng Nam<br /><span style="font:italic 24px 'Cormorant Garamond';color:rgb(var(--cx-deco-rgb))">&amp;</span><br />Bảo Ngọc</div>
+            <div class="datebar">
+              <div class="side"><span class="t caps" style="font-size:11px">Thứ Bảy</span><span class="h">10:00</span></div>
+              <div class="sep"></div>
+              <div class="day">07</div>
+              <div class="sep"></div>
+              <div class="side"><span class="t caps" style="font-size:11px">Tháng 11</span><span class="h">2026</span></div>
+            </div>
+            <div class="lunar">Nhằm ngày 28 tháng 9 năm Bính Ngọ</div>
+            <div class="loc t"><i data-lucide="map-pin"></i><span>Tư gia nhà gái — 24 Lê Lợi, Quận 1</span></div>
+          </div>
+        </section>
+
+        <!-- Tiệc + lịch + RSVP -->
+        <section class="sec" id="rsvp">
+          <div class="st rv"><span class="hand">celebration</span><span class="rule">Tiệc cưới</span></div>
+          <div class="glass card rv">
+            <div class="t caps">Tiệc mừng lễ thành hôn</div>
+            <div class="when2">18:00 · 07.11.2026</div>
+            <div class="lunar" style="font-size:15px">(Nhằm ngày 28 tháng 9 năm Bính Ngọ)</div>
+            <div class="loc t"><i data-lucide="map-pin"></i><span>Sảnh Diamond, White Palace — 108 Phạm Văn Đồng</span></div>
+            <div class="cal">
+              <div class="cal-h">Tháng 11 · 2026</div>
+              <div class="cal-g" id="cal"></div>
+              <div class="legend t"><span><i style="background:rgb(var(--cx-deco-rgb))"></i>Lễ cưới</span><span><i style="box-shadow:inset 0 0 0 1.5px rgb(var(--cx-accent-rgb))"></i>Tiệc nhà trai</span></div>
+            </div>
+            <div class="rsvp">
+              <div class="h">Bạn sẽ đến chung vui chứ?</div>
+              <div class="t">Mong nhận phản hồi trước ngày 30.10 để chúng mình chuẩn bị chu đáo.</div>
+              <div class="btns">
+                <button class="btn fill" data-rsvp="yes"><i data-lucide="circle-check"></i>Tham dự</button>
+                <button class="btn" data-rsvp="no"><i data-lucide="circle-x"></i>Không thể đến</button>
+              </div>
+              <div class="rsvp-msg" id="rsvp-msg" aria-live="polite"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Lịch trình -->
+        <section class="sec">
+          <div class="st rv"><span class="hand">the big day</span><span class="rule">Lịch trình</span></div>
+          <ol class="glass tl rv">
+            <li><span class="time">08:00</span><span class="dot"></span><span class="what"><span class="h">Lễ vu quy</span><br /><span class="t">Tư gia nhà gái</span></span></li>
+            <li><span class="time">10:00</span><span class="dot"></span><span class="what"><span class="h">Lễ thành hôn</span><br /><span class="t">Tư gia nhà trai</span></span></li>
+            <li><span class="time">18:00</span><span class="dot"></span><span class="what"><span class="h">Đón khách</span><br /><span class="t">Sảnh Diamond</span></span></li>
+            <li><span class="time">18:30</span><span class="dot"></span><span class="what"><span class="h">Khai tiệc</span><br /><span class="t">Cùng nâng ly chúc mừng</span></span></li>
+          </ol>
+        </section>
+
+        <!-- Chuyện tình -->
+        <section class="sec">
+          <div class="st rv"><span class="hand">our story</span><span class="rule">Chuyện tình yêu</span></div>
+          <div class="thread">
+            <article class="glass story rv"><div class="hand">Tháng 3 · 2021</div><div class="h">Lần đầu gặp gỡ</div><div class="t">Một buổi chiều mưa ở quán cà phê nhỏ, hai người chung một chiếc bàn cuối cùng còn trống.</div><img loading="lazy" src="../../assets/data-template/luminous-pastel/love-story-01.webp" alt="" /></article>
+            <article class="glass story rv"><div class="hand">Tháng 9 · 2022</div><div class="h">Chuyến đi đầu tiên</div><div class="t">Đà Lạt sương sớm, rừng thông và lời hứa sẽ cùng nhau đi thật nhiều nơi nữa.</div><img loading="lazy" src="../../assets/data-template/luminous-pastel/love-story-02.webp" alt="" /></article>
+            <article class="glass story rv"><div class="hand">Tháng 6 · 2026</div><div class="h">Lời cầu hôn</div><div class="t">Bên bờ biển lúc hoàng hôn, một chiếc nhẫn và một câu trả lời "có".</div><img loading="lazy" src="../../assets/data-template/luminous-pastel/love-story-03.webp" alt="" /></article>
+          </div>
+        </section>
+
+        <!-- Album -->
+        <section class="sec album">
+          <div class="st rv"><span class="hand">moments</span><span class="rule">Album ảnh</span></div>
+          <div class="flow" id="flow"></div>
+          <div class="flow-nav">
+            <button class="round" id="prev" aria-label="Ảnh trước"><i data-lucide="chevron-left"></i></button>
+            <span class="count" id="count" aria-live="polite">1 / 10</span>
+            <button class="round" id="next" aria-label="Ảnh sau"><i data-lucide="chevron-right"></i></button>
+          </div>
+          <div class="dots" id="dots" aria-hidden="true"></div>
+        </section>
+
+        <!-- Mừng cưới -->
+        <section class="sec">
+          <div class="st rv"><span class="hand">with love</span><span class="rule">Hộp mừng cưới</span></div>
+          <div class="gift">
+            <div class="glass qr rv" style="--i:0"><span class="who">Chú rể</span><div class="box"><img loading="lazy" src="../../assets/data-template/luminous-pastel/groom-qr.png" alt="Mã QR chú rể" /></div><span class="t">Vietcombank</span><span class="h">0123 456 789</span><span class="t">TRAN HOANG NAM</span><button class="btn"><i data-lucide="download"></i>Lưu QR</button></div>
+            <div class="glass qr rv" style="--i:1"><span class="who">Cô dâu</span><div class="box"><img loading="lazy" src="../../assets/data-template/luminous-pastel/bride-qr.png" alt="Mã QR cô dâu" /></div><span class="t">Techcombank</span><span class="h">1903 7788 990</span><span class="t">NGUYEN BAO NGOC</span><button class="btn"><i data-lucide="download"></i>Lưu QR</button></div>
+          </div>
+        </section>
+
+        <!-- Địa điểm -->
+        <section class="sec">
+          <div class="st rv"><span class="hand">find us</span><span class="rule">Địa điểm</span></div>
+          <div class="h rv" style="font-size:18px;font-weight:600">White Palace Phạm Văn Đồng</div>
+          <a class="glass map rv" href="#" onclick="return false"><div class="pic"><span class="pin"><i data-lucide="map-pin"></i></span></div><div class="bar"><span class="t">108 Phạm Văn Đồng, TP. Thủ Đức</span><span class="a">Mở Maps<i data-lucide="chevron-right"></i></span></div></a>
+        </section>
+
+        <!-- Cảm ơn -->
+        <section class="sec thanks" style="padding-bottom:96px">
+          <div class="script rv">Thank You</div>
+          <div class="t rv">Cảm ơn bạn đã dành thời gian đến chung vui cùng chúng mình.</div>
+        </section>
+        </div>
+      </div>
+      <button class="music" id="music" aria-label="Tạm dừng nhạc"><img src="../../assets/data-template/luminous-pastel/cover.webp" alt="" style="object-position:51% 18%" /></button>
+    </div></div>
+  </div>
+
+  <!-- ═════════════ BẢN HIỆN TẠI ═════════════ -->
+  <div class="pane" data-pane="old">
+    <div class="col-h"><b>Hiện tại</b><span>thiệp thật</span></div>
+    <div class="phone"><div class="screen">
+      <iframe src="../../public/themes/luminous-pastel/?preview=true" title="Thiệp Luminous Pastel hiện tại" loading="lazy"></iframe>
+    </div></div>
+  </div>
+</div>
+
+<script>
+  lucide.createIcons();
+  const scr = document.getElementById("scr");
+
+  // Vạch tiến độ đọc thiệp.
+  const prog = document.getElementById("prog");
+  scr.addEventListener("scroll", () => {
+    const max = scr.scrollHeight - scr.clientHeight;
+    prog.style.width = (max > 0 ? (scr.scrollTop / max) * 100 : 0) + "%";
+  }, { passive: true });
+
+  // Hiện dần khi cuộn tới — root là khung cuộn của thiệp.
+  const io = new IntersectionObserver((es) => es.forEach((e) => {
+    if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); }
+  }), { root: scr, threshold: 0.15 });
+  document.querySelectorAll(".rv").forEach((el) => io.observe(el));
+
+  // Lịch tháng 11/2026, tuần bắt đầu thứ Hai.
+  const cal = document.getElementById("cal");
+  const dow = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
+  let html = dow.map((d) => `<span class="dow">${d}</span>`).join("");
+  const first = (new Date(2026, 10, 1).getDay() + 6) % 7;
+  html += "<span></span>".repeat(first);
+  for (let d = 1; d <= 30; d++) {
+    const cls = d === 7 ? "on" : d === 6 ? "on2" : "";
+    html += `<span class="${cls}"${d === 7 ? ' aria-label="Ngày cưới 7"' : ""}>${d}</span>`;
+  }
+  cal.innerHTML = html;
+
+  // Album coverflow + nút lùi/tới.
+  const flow = document.getElementById("flow"), dots = document.getElementById("dots");
+  const imgs = Array.from({ length: 10 }, (_, i) => `gallery-${String(i + 1).padStart(2, "0")}.${i === 9 ? "jpg" : "webp"}`);
+  flow.innerHTML = imgs.map((f, i) => `<div class="slide"><img loading="lazy" src="../../assets/data-template/luminous-pastel/${f}" alt="Ảnh ${i + 1}" /></div>`).join("");
+  dots.innerHTML = imgs.map(() => "<i></i>").join("");
+  const slides = [...flow.children], count = document.getElementById("count");
+  const prev = document.getElementById("prev"), next = document.getElementById("next");
+  let cur = 0;
+  function syncFlow() {
+    const mid = flow.scrollLeft + flow.clientWidth / 2;
+    const w = slides[0].offsetWidth + 14;
+    slides.forEach((s, i) => {
+      const off = Math.min(1, Math.abs(s.offsetLeft + s.offsetWidth / 2 - mid) / w);
+      s.style.setProperty("--off", off.toFixed(3));
+      if (off < 0.5) cur = i;
+    });
+    count.textContent = `${cur + 1} / ${slides.length}`;
+    [...dots.children].forEach((d, i) => d.classList.toggle("on", i === cur));
+    prev.disabled = cur === 0; next.disabled = cur === slides.length - 1;
+  }
+  // Không dùng scrollIntoView: nó cuộn lây cả khung dọc của thiệp.
+  const goH = (i) => { const s = slides[Math.max(0, Math.min(slides.length - 1, i))]; flow.scrollTo({ left: s.offsetLeft - (flow.clientWidth - s.offsetWidth) / 2, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); };
+  prev.onclick = () => goH(cur - 1); next.onclick = () => goH(cur + 1);
+  flow.addEventListener("scroll", () => requestAnimationFrame(syncFlow), { passive: true });
+  syncFlow();
+
+  // RSVP: phản hồi tại chỗ.
+  const msg = document.getElementById("rsvp-msg");
+  document.querySelectorAll("[data-rsvp]").forEach((b) => b.onclick = () => {
+    document.querySelectorAll("[data-rsvp]").forEach((x) => x.classList.toggle("is-picked", x === b));
+    msg.textContent = b.dataset.rsvp === "yes" ? "Cảm ơn bạn — hẹn gặp ở tiệc cưới nhé!" : "Tiếc quá, cảm ơn bạn đã báo cho chúng mình.";
+  });
+
+  // Nút nhạc minh hoạ.
+  const mu = document.getElementById("music");
+  mu.onclick = () => { const p = mu.classList.toggle("paused"); mu.setAttribute("aria-label", p ? "Phát nhạc" : "Tạm dừng nhạc"); };
+
+  // Dưới 900px: chỉ hiện một bản, chuyển bằng thanh phân đoạn.
+  const panes = document.querySelectorAll(".pane"), segs = document.querySelectorAll(".seg button");
+  const mq = matchMedia("(max-width: 900px)");
+  function show(name) {
+    segs.forEach((b) => { const on = b.dataset.pane === name; b.classList.toggle("is-on", on); b.setAttribute("aria-selected", on); });
+    panes.forEach((p) => p.hidden = mq.matches && p.dataset.pane !== name);
+    if (name === "new") syncFlow();
+  }
+  segs.forEach((b) => b.onclick = () => show(b.dataset.pane));
+  mq.addEventListener("change", () => show(document.querySelector(".seg .is-on").dataset.pane));
+  show("new");
+</script>
+</body>
+</html>

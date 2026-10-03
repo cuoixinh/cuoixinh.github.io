@@ -43,8 +43,8 @@
       }
     },
     "cover_image_url": {
-      "x": 51,
-      "y": 18
+      "x": 74,
+      "y": 16
     },
     "groom_image_url": {
       "x": 65,
@@ -55,7 +55,7 @@
       "y": 23
     }
   },
-  "cover_image_url": "cover.webp",
+  "cover_image_url": "cover.png",
   "groom_image_url": "groom.webp",
   "bride_image_url": "bride.webp",
   "groom_qr_url": "groom-qr.png",
@@ -128,19 +128,23 @@
     "ceremony_time": "11:00",
     "ceremony_lunar": "Tức ngày 6 tháng 10 năm Bính Ngọ",
     "ceremony_location": "Trung tâm Hội nghị Gem Center, 8 Nguyễn Bỉnh Khiêm, TP. Hồ Chí Minh",
+    "ceremony_map_embed_url": "https://maps.google.com/maps?q=10.7886,106.7012&output=embed&hl=vi",
     "vu_quy_enabled": true,
     "vu_quy_time": "08:00",
     "vu_quy_location": "Tư gia nhà gái — Số 44 Nguyễn Trãi, Phường Ninh Kiều, TP. Cần Thơ",
+    "vu_quy_map_embed_url": "https://maps.google.com/maps?q=10.0364,105.7880&output=embed&hl=vi",
     "groom_party_date": "2026-11-13",
     "groom_party_time": "17:00",
     "groom_party_lunar": "Tức ngày 5 tháng 10 năm Bính Ngọ",
     "groom_party_show_location": true,
     "groom_party_location": "Trung tâm Hội nghị Gem Center, 8 Nguyễn Bỉnh Khiêm, TP. Hồ Chí Minh",
+    "groom_party_map_embed_url": "https://maps.google.com/maps?q=10.7886,106.7012&output=embed&hl=vi",
     "bride_party_date": "2026-11-13",
     "bride_party_time": "18:00",
     "bride_party_lunar": "Tức ngày 5 tháng 10 năm Bính Ngọ",
     "bride_party_show_location": true,
     "bride_party_location": "Nhà hàng Hoa Sứ, 12 Hòa Bình, Phường Ninh Kiều, TP. Cần Thơ",
+    "bride_party_map_embed_url": "https://maps.google.com/maps?q=10.0332,105.7830&output=embed&hl=vi",
     "groom_bank_name": "Sacombank",
     "groom_bank_number": "060122334455",
     "groom_bank_owner": "HO ANH TUAN",
@@ -151,15 +155,16 @@
     "rsvp_enabled": true,
     "rsvp_message": "Rất mong nhận được phản hồi của quý vị để gia đình chúng tôi chuẩn bị đón tiếp trọn vẹn nhất.",
     "footer_text": "Xin chân thành cảm ơn quý vị đã cùng hai gia đình chúng tôi chia sẻ niềm vui lớn này.",
+    "enable_music": true,
     "music_url": "https://www.youtube.com/watch?v=JgTZvDbaTtg",
     "enable_family": true,
     "enable_party": true,
     "enable_photos": true,
     "enable_timeline": true,
     "enable_love_story": true,
-    "enable_music": true,
     "enable_gift": true,
     "enable_footer": true,
+    "demo_fill_love_story": false,
     "timeline": [
       {
         "time": "17:30",
@@ -211,11 +216,7 @@
         "title": "Cảm ơn và tiễn khách",
         "type": "party"
       }
-    ],
-    "ceremony_map_embed_url": "https://maps.google.com/maps?q=10.7886,106.7012&output=embed&hl=vi",
-    "vu_quy_map_embed_url": "https://maps.google.com/maps?q=10.0364,105.7880&output=embed&hl=vi",
-    "groom_party_map_embed_url": "https://maps.google.com/maps?q=10.7886,106.7012&output=embed&hl=vi",
-    "bride_party_map_embed_url": "https://maps.google.com/maps?q=10.0332,105.7830&output=embed&hl=vi"
+    ]
   },
-  "updated_at": "2026-09-23T17:11:25.563Z"
+  "updated_at": "2026-10-03T08:53:34.021Z"
 }

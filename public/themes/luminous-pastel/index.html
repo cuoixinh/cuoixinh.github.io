@@ -53,11 +53,12 @@
     <script src="../../../core/helpers/no-zoom.js"></script>
   </head>
 
-  <!-- LUMINOUS PASTEL — ivory hơi lạnh · blush · champagne nhạt · xanh xám dịu.
-       Nét riêng: cả thiệp phủ một lớp sương sáng làm tương phản thấp như ảnh
-       chụp ánh sáng tự nhiên; khối nội dung là thẻ kính mờ bo tròn lớn; ảnh có
-       quầng sáng mềm quanh mép; album là dải coverflow — tấm giữa nổi lên, hai
-       bên lùi lại và nhạt đi.
+  <!-- LUMINOUS PASTEL — ivory ngả hồng · hồng đất · champagne · sage.
+       Nét riêng: nền là một lớp gradient pastel liền suốt thiệp; khối nội dung
+       là thẻ kính mờ bo tròn lớn; ảnh có quầng sáng mềm quanh mép; album là dải
+       coverflow — tấm giữa nổi lên, hai bên lùi lại và nhạt đi.
+       Mẫu đang bán: đừng chèn/xoá/đổi chỗ thẻ trước thẻ khác cùng cha —
+       text_overrides lưu selector theo :nth-child.
        Dựng từ public/themes/base-theme/ — xem hướng dẫn ở đầu file đó. -->
 
   <body class="cx-screen-h flex justify-center items-start md:py-5">
@@ -83,7 +84,7 @@
           id="section-hero"
           class="px-6 pt-10 flex flex-col items-center gap-6"
         >
-          <div class="cx-t lp-caps text-[9px]">The Wedding Of</div>
+          <div class="cx-t lp-caps text-[12px]">The Wedding Of</div>
 
           <!-- Ảnh cưới — ảnh của màn đầu tiên nên được ưu tiên tải. -->
           <div class="lp-hero-photo">
@@ -95,9 +96,9 @@
               class="w-full h-full object-cover"
             />
             <div class="lp-hero-fade"></div>
-            <div class="lp-hero-names lp-script text-[40px]">
+            <div class="lp-hero-names lp-glass lp-script text-[44px]">
               <span id="couple-names-groom">----------</span>
-              <span class="cx-a text-[22px] mx-1">&</span>
+              <span class="lp-amp text-[26px] mx-1">&</span>
               <span id="couple-names-bride">----------</span>
             </div>
           </div>
@@ -105,35 +106,35 @@
           <!-- Hàng ngày giờ: thứ · ngày lớn + tháng.năm · giờ -->
           <div class="w-full grid grid-cols-3 gap-2.5">
             <div class="lp-glass lp-pill">
-              <span class="cx-t lp-caps text-[8px]" id="hero-weekday"
+              <span class="cx-t lp-caps text-[11px]" id="hero-weekday"
                 >------</span
               >
             </div>
             <div class="lp-glass lp-pill">
               <span
-                class="cx-h text-[26px] font-semibold leading-none"
+                class="cx-h cx-a text-[34px] font-semibold leading-none"
                 id="hero-day"
                 >--</span
               >
-              <span class="cx-t text-[9px] tracking-[1px]" id="hero-month-year"
+              <span class="cx-t text-[12px] tracking-[1px]" id="hero-month-year"
                 >--.----</span
               >
             </div>
             <div class="lp-glass lp-pill">
-              <span class="cx-t lp-caps text-[8px]" id="hero-time">--.--</span>
+              <span class="cx-t lp-caps text-[11px]" id="hero-time">--.--</span>
             </div>
           </div>
 
           <!-- Nơi tổ chức: tách tên riêng ra khỏi địa chỉ ở index.js -->
           <div class="flex flex-col items-center gap-1.5">
             <div
-              class="cx-h lp-caps text-[12px] font-semibold"
+              class="cx-h lp-caps text-[15px] font-semibold"
               id="hero-venue-name"
             >
               ------------
             </div>
             <div
-              class="cx-t text-[11px] leading-relaxed max-w-[270px]"
+              class="cx-t text-[14px] leading-relaxed max-w-[280px]"
               id="hero-venue-address"
             >
               ------------------------
@@ -144,15 +145,27 @@
                tay trên trang album ở ảnh mẫu. -->
           <div
             id="story-quote"
-            class="lp-hand text-[26px] leading-tight px-6 max-w-[320px] mx-auto"
+            class="lp-hand text-[28px] leading-tight px-6 max-w-[320px] mx-auto"
           >
             Love Story
           </div>
+
+          <!-- Lối tắt xuống phần xác nhận tham dự — index.js chỉ hiện khi mục
+               Tiệc cưới + RSVP đều bật. Đứng CUỐI mục: thêm thẻ ở giữa là lệch
+               :nth-child mà text_overrides đã lưu. -->
+          <a id="lp-rsvp-cue" href="#rsvp-section" class="lp-cue hidden">
+            <i data-lucide="calendar-heart" class="cx-ic"></i>
+            Xác nhận tham dự
+          </a>
         </section>
 
         <!-- ═══ MỤC: Gia đình (enable_family) ═══════════════════════════════
              Ảnh tròn trong vòng sáng champagne–blush, tên thư pháp dưới ảnh. -->
-        <section id="section-family" class="px-6 flex flex-col gap-7">
+        <section
+          id="section-family"
+          data-lp-eyebrow="our family"
+          class="px-6 flex flex-col gap-7"
+        >
           <h2 class="lp-title">Gia Đình</h2>
 
           <div class="grid grid-cols-2 gap-4">
@@ -167,18 +180,18 @@
                   class="w-full h-full object-cover rounded-full"
                 />
               </div>
-              <div class="cx-t lp-caps text-[8px]">Chú Rể</div>
-              <div class="lp-script text-[26px]" id="groom-name-label">
+              <div class="cx-t lp-caps text-[11px]">Chú Rể</div>
+              <div class="lp-script text-[30px]" id="groom-name-label">
                 ----------
               </div>
               <div
                 class="lp-glass w-full px-3 py-3 flex flex-col items-center gap-1"
               >
-                <div class="cx-a lp-caps text-[8px]">Nhà Trai</div>
-                <div class="cx-h text-[11px] leading-relaxed" id="groom-father">
+                <div class="lp-sage lp-caps text-[11px] font-semibold">Nhà Trai</div>
+                <div class="cx-h text-[15px] leading-relaxed" id="groom-father">
                   --------------------
                 </div>
-                <div class="cx-h text-[11px] leading-relaxed" id="groom-mother">
+                <div class="cx-h text-[15px] leading-relaxed" id="groom-mother">
                   --------------------
                 </div>
               </div>
@@ -195,18 +208,18 @@
                   class="w-full h-full object-cover rounded-full"
                 />
               </div>
-              <div class="cx-t lp-caps text-[8px]">Cô Dâu</div>
-              <div class="lp-script text-[26px]" id="bride-name-label">
+              <div class="cx-t lp-caps text-[11px]">Cô Dâu</div>
+              <div class="lp-script text-[30px]" id="bride-name-label">
                 ----------
               </div>
               <div
                 class="lp-glass w-full px-3 py-3 flex flex-col items-center gap-1"
               >
-                <div class="cx-a lp-caps text-[8px]">Nhà Gái</div>
-                <div class="cx-h text-[11px] leading-relaxed" id="bride-father">
+                <div class="lp-sage lp-caps text-[11px] font-semibold">Nhà Gái</div>
+                <div class="cx-h text-[15px] leading-relaxed" id="bride-father">
                   --------------------
                 </div>
-                <div class="cx-h text-[11px] leading-relaxed" id="bride-mother">
+                <div class="cx-h text-[15px] leading-relaxed" id="bride-mother">
                   --------------------
                 </div>
               </div>
@@ -218,51 +231,51 @@
              Nhà gái bật Vu Quy thì index.js thay tên lễ + giờ + nơi tổ chức. -->
         <section id="section-ceremony" class="px-6">
           <div class="lp-glass lp-bloom px-6 py-9 flex flex-col gap-5">
-            <div class="cx-t lp-caps text-[9px] leading-[2]">
+            <div class="cx-t lp-caps text-[12px] leading-[2]">
               Trân trọng kính mời dự<br />
               <span id="ceremony-event-name">Lễ Thành Hôn</span>
             </div>
 
             <div
-              class="lp-script text-[38px] flex flex-col items-center gap-0.5"
+              class="lp-script text-[42px] flex flex-col items-center gap-0.5"
             >
               <span id="invite-groom">----------</span>
-              <span class="cx-a text-[20px] leading-none">&</span>
+              <span class="lp-amp text-[24px] leading-none">&</span>
               <span id="invite-bride">----------</span>
             </div>
 
             <div class="flex items-center justify-center gap-7">
               <div class="flex flex-col items-center gap-1">
                 <div
-                  class="cx-a text-[42px] font-semibold leading-none"
+                  class="cx-h cx-a text-[60px] font-semibold leading-none"
                   id="invite-day"
                 >
                   --
                 </div>
-                <div class="cx-t lp-caps text-[8px]" id="invite-month-year">
+                <div class="cx-t lp-caps text-[11px]" id="invite-month-year">
                   Tháng -- · ----
                 </div>
               </div>
               <div class="w-px h-12 cx-bg-line"></div>
               <div class="flex flex-col items-center gap-1">
-                <div class="cx-t lp-caps text-[8px]" id="invite-weekday">
+                <div class="cx-t lp-caps text-[11px]" id="invite-weekday">
                   ------
                 </div>
                 <div class="cx-h text-[24px]" id="invite-time">--:--</div>
               </div>
             </div>
 
-            <div class="cx-h italic text-[13px]" id="invite-lunar">
+            <div class="cx-h italic text-[16px]" id="invite-lunar">
               --------------------
             </div>
 
             <!-- Nơi làm lễ — index.js gỡ .hidden khi có dữ liệu -->
             <div
               id="ceremony-location-wrap"
-              class="hidden flex items-center gap-1 justify-center"
+              class="hidden flex items-start gap-1 justify-center"
             >
-              <i data-lucide="map-pin" class="cx-ic cx-a text-[10px]"></i>
-              <span id="ceremony-location-text" class="cx-t text-[11px]"></span>
+              <i data-lucide="map-pin" class="cx-ic lp-rose text-[14px] mt-0.5"></i>
+              <span id="ceremony-location-text" class="cx-t text-[14px]"></span>
             </div>
           </div>
         </section>
@@ -270,20 +283,20 @@
         <!-- ═══ MỤC: Tiệc cưới (enable_party) ═══════════════════════════════ -->
         <section id="section-party" class="px-6">
           <div class="lp-glass px-6 py-9 flex flex-col gap-4">
-            <div id="party-section-label" class="cx-t lp-caps text-[9px]">
+            <div id="party-section-label" class="cx-t lp-caps text-[12px]">
               Tiệc Mừng Lễ Thành Hôn
             </div>
 
-            <div class="cx-a text-[24px] font-medium" id="party-datetime">
+            <div class="cx-h cx-a text-[28px] font-semibold" id="party-datetime">
               --:-- - --.--.----
             </div>
-            <div class="cx-h italic text-[14px] opacity-80" id="party-lunar">
+            <div class="cx-h italic text-[15px]" id="party-lunar">
               (Ngày âm lịch)
             </div>
 
             <div class="flex items-start gap-2 justify-center">
-              <i data-lucide="map-pin" class="cx-ic cx-a text-sm"></i>
-              <div class="cx-t text-[13px]" id="party-location">
+              <i data-lucide="map-pin" class="cx-ic lp-rose text-sm"></i>
+              <div class="cx-t text-[14px]" id="party-location">
                 ------------------------
               </div>
             </div>
@@ -297,23 +310,23 @@
               class="flex flex-col gap-4"
               style="display: none"
             >
-              <div class="text-[11px] tracking-[3px] uppercase shimmer-text">
+              <div class="cx-h text-[20px] font-semibold">
                 Xác nhận tham dự
               </div>
               <div
                 id="rsvp-custom-message"
-                class="hidden cx-h italic text-[13px] leading-relaxed"
+                class="hidden cx-h italic text-[14px] leading-relaxed"
               ></div>
 
-              <div class="flex flex-wrap justify-center gap-3">
+              <div class="lp-rsvp-btns">
                 <x-button
                   variant="bare"
                   onclick="confirmAttend(true)"
                   id="btn-attend"
-                  class="lp-choice flex-row items-center gap-2 px-5 py-2.5 active:scale-95 transition-all"
+                  class="lp-choice lp-choice-fill flex-row items-center active:scale-95 transition-all"
                 >
-                  <i data-lucide="circle-check" class="cx-ic cx-a text-[15px]"></i>
-                  <span class="cx-h italic text-[13px] whitespace-nowrap"
+                  <i data-lucide="circle-check" class="cx-ic text-[14px]"></i>
+                  <span class="cx-t font-semibold text-[13px] whitespace-nowrap"
                     >Tham dự</span
                   >
                 </x-button>
@@ -321,16 +334,16 @@
                   variant="bare"
                   onclick="confirmAttend(false)"
                   id="btn-decline"
-                  class="lp-choice flex-row items-center gap-2 px-5 py-2.5 active:scale-95 transition-all"
+                  class="lp-choice flex-row items-center active:scale-95 transition-all"
                 >
-                  <i data-lucide="circle-x" class="cx-ic cx-bd text-[15px]"></i>
-                  <span class="cx-h italic text-[13px] whitespace-nowrap"
+                  <i data-lucide="circle-x" class="cx-ic lp-rose text-[14px]"></i>
+                  <span class="cx-t font-semibold text-[13px] whitespace-nowrap"
                     >Không tham dự</span
                   >
                 </x-button>
               </div>
 
-              <div id="attend-msg" class="cx-a italic text-[14px] hidden"></div>
+              <div id="attend-msg" class="cx-h lp-sage italic text-[16px] hidden"></div>
             </div>
           </div>
         </section>
@@ -339,6 +352,7 @@
              renderTimeline() (render-helper.js) tự lọc mốc theo nhà trai/gái. -->
         <section
           id="section-timeline"
+          data-lp-eyebrow="the big day"
           class="hidden px-6 flex flex-col gap-5 scroll-mt-16"
         >
           <h2 class="lp-title">Lịch Trình</h2>
@@ -352,6 +366,7 @@
              renderLoveStory trong index.js vẽ. -->
         <section
           id="love-story"
+          data-lp-eyebrow="our story"
           class="px-6 flex flex-col gap-5"
           style="display: none"
         >
@@ -361,18 +376,34 @@
 
         <!-- ═══ MỤC: Album ảnh (enable_photos) ══════════════════════════════ -->
         <!-- Dải coverflow chạy hết bề ngang thiệp nên px-6 đặt ở TIÊU ĐỀ. -->
-        <section id="section-photos" class="flex flex-col gap-5 scroll-mt-16">
+        <section
+          id="section-photos"
+          data-lp-eyebrow="moments"
+          class="flex flex-col gap-5 scroll-mt-16"
+        >
           <h2 class="lp-title px-6">Album Ảnh</h2>
           <!-- Dải ảnh cuộn ngang: tấm giữa nổi lên, hai bên lùi lại và nhạt đi
                (lpSetupFlow trong index.js đo theo scrollLeft). -->
           <div id="gallery-grid" class="lp-flow"></div>
           <!-- Chấm chỉ số ảnh, do lpSetupDots trong index.js dựng. -->
           <div id="album-dots" class="lp-dots"></div>
+          <!-- Lùi · "3 / 10" · Tới (lpSetupNav). Đứng CUỐI mục cho khỏi lệch
+               :nth-child, theme.css đẩy lên trên hàng chấm bằng flex order. -->
+          <div id="album-nav" class="lp-flow-nav hidden">
+            <x-button variant="bare" id="album-prev" class="lp-round" aria-label="Ảnh trước">
+              <i data-lucide="chevron-left" class="cx-ic"></i>
+            </x-button>
+            <span id="album-count" class="cx-t lp-count" aria-live="polite"></span>
+            <x-button variant="bare" id="album-next" class="lp-round" aria-label="Ảnh sau">
+              <i data-lucide="chevron-right" class="cx-ic"></i>
+            </x-button>
+          </div>
         </section>
 
         <!-- ═══ MỤC: Hộp mừng cưới (enable_gift) ════════════════════════════ -->
         <section
           id="section-gift"
+          data-lp-eyebrow="with love"
           class="px-6 flex flex-col gap-5 scroll-mt-16"
         >
           <h2 class="lp-title">Hộp Mừng Cưới</h2>
@@ -380,7 +411,7 @@
           <div data-cx-gift="qr" class="grid grid-cols-2 gap-4">
             <!-- Chú rể -->
             <div class="lp-glass flex flex-col gap-2 items-center px-3 py-4">
-              <div class="cx-t text-[10px]">
+              <div class="cx-t text-[12px]">
                 Chú Rể · <span id="groom-bank-label">----------</span>
               </div>
               <div
@@ -394,28 +425,28 @@
                   class="w-full aspect-square object-cover"
                 />
               </div>
-              <div class="cx-t text-[10px]" id="groom-bank-name">
+              <div class="cx-t text-[13px]" id="groom-bank-name">
                 ----------------
               </div>
-              <div class="cx-h text-[12px] font-medium" id="groom-bank-number">
+              <div class="cx-h text-[15px] font-semibold" id="groom-bank-number">
                 ------------
               </div>
-              <div class="cx-h text-[11px] font-semibold" id="groom-bank-owner">
+              <div class="cx-h text-[13px] font-semibold" id="groom-bank-owner">
                 --------------------
               </div>
               <x-button
                 variant="bare"
                 onclick="saveQR('groom-qr-img')"
-                class="lp-choice gap-2 px-4 py-2 cx-t text-[11px]"
+                class="lp-choice lp-btn-44 gap-1.5 px-4 cx-t text-[13px] font-semibold whitespace-nowrap"
               >
-                <i data-lucide="download" class="cx-ic cx-a text-xs"></i>
+                <i data-lucide="download" class="cx-ic lp-rose text-xs"></i>
                 Lưu QR
               </x-button>
             </div>
 
             <!-- Cô dâu -->
             <div class="lp-glass flex flex-col gap-2 items-center px-3 py-4">
-              <div class="cx-t text-[10px]">
+              <div class="cx-t text-[12px]">
                 Cô Dâu · <span id="bride-bank-label">----------</span>
               </div>
               <div
@@ -429,21 +460,21 @@
                   class="w-full aspect-square object-cover"
                 />
               </div>
-              <div class="cx-t text-[10px]" id="bride-bank-name">
+              <div class="cx-t text-[13px]" id="bride-bank-name">
                 ----------------
               </div>
-              <div class="cx-h text-[12px] font-medium" id="bride-bank-number">
+              <div class="cx-h text-[15px] font-semibold" id="bride-bank-number">
                 ------------
               </div>
-              <div class="cx-h text-[11px] font-semibold" id="bride-bank-owner">
+              <div class="cx-h text-[13px] font-semibold" id="bride-bank-owner">
                 --------------------
               </div>
               <x-button
                 variant="bare"
                 onclick="saveQR('bride-qr-img')"
-                class="lp-choice gap-2 px-4 py-2 cx-t text-[11px]"
+                class="lp-choice lp-btn-44 gap-1.5 px-4 cx-t text-[13px] font-semibold whitespace-nowrap"
               >
-                <i data-lucide="download" class="cx-ic cx-a text-xs"></i>
+                <i data-lucide="download" class="cx-ic lp-rose text-xs"></i>
                 Lưu QR
               </x-button>
             </div>
@@ -451,9 +482,13 @@
         </section>
 
         <!-- ═══ MỤC: Bản đồ tới nơi đãi tiệc ═══════════════════════════════ -->
-        <section id="section-map" class="px-6 flex flex-col gap-4 scroll-mt-16">
+        <section
+          id="section-map"
+          data-lp-eyebrow="find us"
+          class="px-6 flex flex-col gap-4 scroll-mt-16"
+        >
           <h2 class="lp-title">Địa Điểm</h2>
-          <div class="cx-h text-[15px]" id="map-location-name">
+          <div class="cx-h text-[18px] font-semibold" id="map-location-name">
             ------------------------
           </div>
 
@@ -487,9 +522,9 @@
             <div
               class="flex items-center justify-between px-4 py-3 cx-bg-panel-60"
             >
-              <div class="cx-t lp-caps text-[8px]">Địa điểm tổ chức</div>
-              <div class="flex items-center gap-1 cx-a">
-                <span class="text-[11px]">Mở Maps</span>
+              <div class="cx-t lp-caps text-[12px]">Địa điểm tổ chức</div>
+              <div class="flex items-center gap-1 lp-rose">
+                <span class="text-[14px] font-semibold">Mở Maps</span>
                 <i data-lucide="chevron-right" class="cx-ic text-xs"></i>
               </div>
             </div>
@@ -501,16 +536,19 @@
           id="section-footer"
           class="px-6 pt-2 pb-14 flex flex-col items-center gap-4"
         >
-          <div class="lp-script text-[46px]">Thank You</div>
+          <div class="lp-script text-[56px]">Thank You</div>
           <div
             id="footer-text"
-            class="cx-t text-[12px] leading-relaxed px-4 max-w-[290px]"
+            class="cx-t text-[15px] leading-relaxed px-4 max-w-[290px]"
           >
             Cảm ơn bạn đã dành thời gian đến chung vui cùng chúng tôi
           </div>
         </section>
       </div>
     </div>
+
+    <!-- Vạch tiến độ đọc thiệp (lpSetupProgress ở index.js). -->
+    <div class="lp-progress" aria-hidden="true"><i id="lp-progress-bar"></i></div>
 
     <!-- ═══ Phóng to ảnh (đi kèm mục Album ảnh) ════════════════════════════ -->
     <div

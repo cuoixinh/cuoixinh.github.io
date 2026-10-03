@@ -126,19 +126,23 @@
     "ceremony_time": "10:00",
     "ceremony_lunar": "Tức ngày 5 tháng 11 năm Bính Ngọ",
     "ceremony_location": "Nhà vườn An Hiên, 58 Nguyễn Phúc Nguyên, TP. Huế",
+    "ceremony_map_embed_url": "https://maps.google.com/maps?q=16.4805,107.5637&output=embed&hl=vi",
     "vu_quy_enabled": true,
     "vu_quy_time": "08:00",
     "vu_quy_location": "Tư gia nhà gái — Số 6 Trần Hưng Đạo, Phường Đông Hà, Tỉnh Quảng Trị",
+    "vu_quy_map_embed_url": "https://maps.google.com/maps?q=16.8163,107.1003&output=embed&hl=vi",
     "groom_party_date": "2026-12-12",
     "groom_party_time": "16:30",
     "groom_party_lunar": "Tức ngày 4 tháng 11 năm Bính Ngọ",
     "groom_party_show_location": true,
     "groom_party_location": "Nhà vườn An Hiên, 58 Nguyễn Phúc Nguyên, TP. Huế",
+    "groom_party_map_embed_url": "https://maps.google.com/maps?q=16.4805,107.5637&output=embed&hl=vi",
     "bride_party_date": "2026-12-12",
     "bride_party_time": "17:00",
     "bride_party_lunar": "Tức ngày 4 tháng 11 năm Bính Ngọ",
     "bride_party_show_location": true,
     "bride_party_location": "Tư gia nhà gái — Số 6 Trần Hưng Đạo, Phường Đông Hà, Tỉnh Quảng Trị",
+    "bride_party_map_embed_url": "https://maps.google.com/maps?q=16.8163,107.1003&output=embed&hl=vi",
     "groom_bank_name": "VietinBank",
     "groom_bank_number": "105001122334",
     "groom_bank_owner": "TON THAT DINH PHUC",
@@ -149,15 +153,16 @@
     "rsvp_enabled": true,
     "rsvp_message": "Nếu bạn sắp xếp được, hãy nhắn cho chúng mình một dòng. Một chỗ ngồi bên hiên nhà đang chờ bạn.",
     "footer_text": "Cảm ơn bạn đã đọc tới đây, như đọc một lá thư tay. Mong ngày ấy được gặp bạn giữa vườn xưa.",
+    "enable_music": true,
     "music_url": "https://www.youtube.com/watch?v=JgTZvDbaTtg",
     "enable_family": true,
     "enable_party": true,
     "enable_photos": true,
     "enable_timeline": true,
     "enable_love_story": true,
-    "enable_music": true,
     "enable_gift": true,
     "enable_footer": true,
+    "demo_fill_love_story": false,
     "timeline": [
       {
         "time": "17:00",
@@ -199,11 +204,7 @@
         "title": "Uống trà và chụp ảnh lưu niệm",
         "type": "party"
       }
-    ],
-    "ceremony_map_embed_url": "https://maps.google.com/maps?q=16.4805,107.5637&output=embed&hl=vi",
-    "vu_quy_map_embed_url": "https://maps.google.com/maps?q=16.8163,107.1003&output=embed&hl=vi",
-    "groom_party_map_embed_url": "https://maps.google.com/maps?q=16.4805,107.5637&output=embed&hl=vi",
-    "bride_party_map_embed_url": "https://maps.google.com/maps?q=16.8163,107.1003&output=embed&hl=vi"
+    ]
   },
-  "updated_at": "2026-09-23T17:11:25.565Z"
+  "updated_at": "2026-10-03T08:53:04.228Z"
 }
