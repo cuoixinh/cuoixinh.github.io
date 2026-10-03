@@ -22,7 +22,7 @@
     giftBox: "minimalism_brown",
 
     // Dạng trình phát nhạc — theme-boot.js dựng vào #cx-music-mount.
-    music: { variant: "disc", chrome: "fixed-corner" },
+    music: { variant: "disc", chrome: "fixed-corner", art: "couple" },
 
     // Font/màu GỐC: giá trị mặc định trên thanh chỉnh ở tab Giao diện, cũng là
     // điểm "Khôi phục mặc định". Trang Thiết lập đọc qua iframe xem trước.

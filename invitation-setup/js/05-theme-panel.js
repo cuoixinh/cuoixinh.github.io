@@ -1480,7 +1480,7 @@ let _elSel = null; // id thành phần đang chỉnh
 let _elDefCur = null; // khai báo của nó trong CX_ELEMENTS
 let _elVarCur = null; // mẫu đang chọn — quyết định hiện ô màu nào
 let _elOpts = {}; // opts hiện hành (bản sao để vẽ control)
-let _elBase = {}; // màu thật của widget trên thiệp (ô nào chưa chỉnh thì lấy đây)
+let _elBase = {}; // giá trị thật của widget trên thiệp (ô nào chưa chỉnh thì lấy đây)
 
 function openElementEditor(msg) {
   const def = (window.CX_ELEMENTS || {})[msg.element];
@@ -1619,7 +1619,7 @@ function _renderElOptions() {
     label.textContent = o.label;
     const seg = document.createElement("div");
     seg.className = "cx-le-seg cx-le-seg-text";
-    const cur = _elOpts[o.id] || o.def;
+    const cur = _elOpts[o.id] || _elBase[o.id] || o.def;
     o.items.forEach((it) => {
       const b = document.createElement("button");
       b.type = "button";

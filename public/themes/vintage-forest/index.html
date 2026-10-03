@@ -155,16 +155,16 @@
             </div>
           </div>
 
-          <!-- Nét cong hồng trang trí, vắt từ dưới ảnh vòng xuống khối ngày.
-               Không bắt chuột (pointer-events ở theme.css) nên không che chữ. -->
+          <!-- Nét cong hồng trang trí ở MÉP PHẢI, chạy trong khoảng trống cạnh
+               khối ngày — không vắt qua chữ. Không bắt chuột (theme.css). -->
           <svg
             class="vf-curve"
-            viewBox="0 0 390 320"
+            viewBox="0 0 140 230"
             fill="none"
             aria-hidden="true"
           >
             <path
-              d="M8 4C-6 92 44 148 122 186c78 38 132 76 118 130"
+              d="M130 4C142 70 52 92 62 152c6 36 40 52 70 72"
               stroke="rgb(var(--cx-accent-rgb))"
               stroke-width="1.5"
               stroke-linecap="round"
@@ -176,7 +176,7 @@
             <!-- Lời ngỏ (story_quote) -->
             <div
               id="story-quote"
-              class="cx-t text-[12px] font-light leading-relaxed max-w-[280px]"
+              class="cx-t text-[14px] leading-[1.7] max-w-[280px]"
             >
               "Một hành trình mới bắt đầu từ hôm nay"
             </div>
@@ -203,7 +203,7 @@
                     fill="rgb(var(--cx-accent-rgb))"
                   />
                 </svg>
-                <span class="vf-num vf-cd-num vf-cd-on" id="cd-days">--</span>
+                <span class="vf-num vf-cd-num" id="cd-days">--</span>
                 <span class="cx-t vf-cd-lb">Ngày</span>
               </div>
               <div class="vf-cd-item">
@@ -240,11 +240,11 @@
           <svg class="vf-divider-mark" viewBox="0 0 44 28" fill="none">
             <path
               d="M22 27C22 19 22 12 22 3"
-              stroke="#c7b8a1"
+              stroke="rgb(var(--cx-line-rgb))"
               stroke-width="1.2"
               stroke-linecap="round"
             />
-            <g fill="#9db08a">
+            <g fill="rgb(var(--cx-accent-rgb) / 0.55)">
               <ellipse cx="13" cy="17" rx="8" ry="4" transform="rotate(-24 13 17)" />
               <ellipse cx="31" cy="17" rx="8" ry="4" transform="rotate(24 31 17)" />
               <ellipse cx="16" cy="24" rx="6" ry="3" transform="rotate(-14 16 24)" />
@@ -258,75 +258,83 @@
         <!-- ═══ MỤC: Thư mời — lễ thành hôn / vu quy ══════════════════════ -->
         <section
           id="section-ceremony"
-          class="flex flex-col gap-6 px-8 py-14 text-center"
+          class="flex flex-col px-8 py-16 text-center"
         >
-          <!-- Hai dòng: lời mời tách khỏi tên lễ cho ra dáng thiệp, không phải
-               một câu chạy dài. -->
-          <div class="cx-t text-[10px] tracking-[4px] uppercase leading-[1.9]">
-            Trân trọng kính mời dự<br />
-            <span id="ceremony-event-name">Lễ Thành Hôn</span>
+          <!-- Lời mời là nhãn nhỏ, TÊN LỄ là tiêu đề — khách đọc ra ngay đây là
+               lễ gì. -->
+          <div class="cx-t vf-eb">Trân trọng kính mời dự</div>
+          <h2 id="ceremony-event-name" class="cx-h vf-evname">Lễ Thành Hôn</h2>
+
+          <!-- Chân dung chú rể + cô dâu xếp NGANG, nghiêng nhẹ như hai tấm ảnh
+               rời. Ảnh do renderCoupleInfo() đổ vào; TÊN đôi chính là dòng chữ
+               viết tay dưới mỗi khung nên mục này không còn hàng tên riêng. -->
+          <div class="vf-pols">
+            <figure class="vf-pola vf-pola-a">
+              <div class="vf-pola-ph">
+                <img
+                  id="groom-photo"
+                  src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+                  alt="Chú Rể"
+                  class="w-full h-full object-cover"
+                />
+              </div>
+              <figcaption class="vf-script vf-pola-cap" id="invite-groom">
+                ----------
+              </figcaption>
+            </figure>
+
+            <figure class="vf-pola vf-pola-b">
+              <div class="vf-pola-ph">
+                <img
+                  id="bride-photo"
+                  src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+                  alt="Cô Dâu"
+                  class="w-full h-full object-cover"
+                />
+              </div>
+              <figcaption class="vf-script vf-pola-cap" id="invite-bride">
+                ----------
+              </figcaption>
+            </figure>
           </div>
 
-          <!-- Hai cột: chân dung chú rể + cô dâu xếp chồng bên TRÁI, ngày giờ
-               làm lễ bên PHẢI. Hai ảnh do renderCoupleInfo() đổ vào — mẫu này
-               không có mục Gia đình nên đây là chỗ duy nhất dùng tới chúng.
-               TÊN đôi chính là dòng chữ viết tay dưới mỗi khung ảnh, nên mục này
-               không còn hàng tên riêng. Cột phải không có nhãn: mấy dòng đó tự
-               nói ra nó là gì. -->
-          <div class="vf-inv">
-            <div class="vf-inv-ph">
-              <figure class="vf-pola vf-pola-a">
-                <div class="vf-pola-ph">
-                  <img
-                    id="groom-photo"
-                    src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
-                    alt="Chú Rể"
-                    class="w-full h-full object-cover"
-                    loading="lazy"
-                  />
-                </div>
-                <figcaption class="vf-script vf-pola-cap" id="invite-groom">
-                  ----------
-                </figcaption>
-              </figure>
+          <!-- Khối ngày trải hết bề ngang: thứ · NGÀY cỡ lớn · giờ. -->
+          <div class="vf-when">
+            <span class="cx-h vf-when-side" id="invite-weekday">------</span>
+            <span class="cx-h vf-when-d" id="invite-day">--</span>
+            <span class="cx-h vf-when-side" id="invite-time">--:--</span>
+          </div>
+          <div class="cx-t vf-when-sub" id="invite-month-year">Tháng -- · ----</div>
+          <div class="cx-h vf-lunar" id="invite-lunar">--------------------</div>
 
-              <figure class="vf-pola vf-pola-b">
-                <div class="vf-pola-ph">
-                  <img
-                    id="bride-photo"
-                    src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
-                    alt="Cô Dâu"
-                    class="w-full h-full object-cover"
-                    loading="lazy"
-                  />
-                </div>
-                <figcaption class="vf-script vf-pola-cap" id="invite-bride">
-                  ----------
-                </figcaption>
-              </figure>
-            </div>
+          <div
+            id="ceremony-location-wrap"
+            class="hidden flex items-start justify-center gap-2 mt-4"
+          >
+            <i data-lucide="map-pin" class="cx-ic cx-ac text-[14px] mt-[4px]"></i>
+            <span id="ceremony-location-text" class="cx-t vf-addr"></span>
+          </div>
 
-            <div class="vf-when">
-              <span class="cx-h vf-when-v" id="invite-weekday">------</span>
-              <span class="vf-when-d" id="invite-day">--</span>
-              <span class="cx-t vf-when-sub" id="invite-month-year"
-                >Tháng -- · ----</span
-              >
-              <span class="vf-when-rule"></span>
-              <span class="cx-h vf-when-v" id="invite-time">--:--</span>
-
-              <span class="cx-h vf-when-lunar" id="invite-lunar">
-                --------------------
-              </span>
-
-              <span
-                id="ceremony-location-wrap"
-                class="hidden flex items-start gap-1 justify-center"
-              >
-                <i data-lucide="map-pin" class="cx-ic cx-ac text-[10px] mt-[3px]"></i>
-                <span id="ceremony-location-text" class="cx-t text-[11px]"></span>
-              </span>
-            </div>
+          <div id="ceremony-actions" class="hidden flex gap-2 mt-6">
+            <a
+              id="ceremony-dir"
+              href="#"
+              target="_blank"
+              rel="noopener"
+              class="vf-btn vf-btn-ink inline-flex items-center rounded-full flex-1"
+            >
+              <i data-lucide="navigation" class="cx-ic text-[16px]"></i>
+              Chỉ đường
+            </a>
+            <x-button
+              variant="bare"
+              id="ceremony-cal"
+              data-vf-cal="ceremony"
+              class="vf-btn vf-btn-line flex-1"
+            >
+              <i data-lucide="calendar-plus" class="cx-ic text-[16px]"></i>
+              Lưu lịch
+            </x-button>
           </div>
 
           <!-- Lịch tháng cưới. Mẫu TỰ VẼ trong index.js (_renderCalendar) chứ
@@ -342,9 +350,12 @@
              ảnh vào từng khối theo thứ tự, thiếu ảnh thì khối tự ẩn. -->
         <section
           id="section-photos"
-          class="flex flex-col gap-8 px-8 py-14 text-center"
+          class="flex flex-col gap-8 px-8 pt-2 pb-16 text-center"
         >
-          <h2 class="vf-title cx-h">Khoảnh Khắc</h2>
+          <div class="vf-sh">
+            <div class="vf-script cx-a vf-eyebrow">our moments</div>
+            <h2 class="vf-title cx-h">Khoảnh Khắc</h2>
+          </div>
 
           <!-- Mở màn: một ảnh NGANG tràn hết bề ngang thiệp (-mx-8 để thoát lề
                của section, chữ viết tay đè lên) + hàng BA ảnh nhỏ ngay dưới -->
@@ -360,10 +371,13 @@
              _renderStoryProse() trong index.js dựng phần bên trong. -->
         <section
           id="love-story"
-          class="vf-tint flex flex-col gap-6 px-8 py-14"
+          class="vf-tint flex flex-col gap-6 px-8 py-16"
           style="display: none"
         >
-          <h2 class="vf-title cx-h">Chuyện Chúng Mình</h2>
+          <div class="vf-sh">
+            <div class="vf-script cx-a vf-eyebrow">our story</div>
+            <h2 class="vf-title cx-h">Chuyện Chúng Mình</h2>
+          </div>
           <div id="love-story-list" class="flex flex-col gap-5 text-left"></div>
           <div class="vf-script text-[38px] leading-none cx-a text-center" id="story-sign">
             &amp;
@@ -373,17 +387,13 @@
         <!-- ═══ MỤC: Album ảnh — CỤM 2 ════════════════════════════════════ -->
         <section
           id="section-photos-2"
-          class="flex flex-col gap-8 px-8 py-14 text-center"
+          class="flex flex-col gap-8 px-8 py-16 text-center"
         >
           <!-- Chữ xen giữa hai cụm ảnh. Chữ tĩnh (không bind dữ liệu) nên khách
                sửa được ở tab Giao diện. -->
-          <div class="flex flex-col items-center gap-1">
-            <div class="vf-script text-[34px] leading-none cx-a">
-              Từng khoảnh khắc
-            </div>
-            <div class="cx-t text-[10px] tracking-[4px] uppercase">
-              đều đáng nhớ
-            </div>
+          <div class="vf-sh">
+            <div class="vf-script cx-a vf-eyebrow">every moment</div>
+            <h2 class="vf-title cx-h">Đều Đáng Nhớ</h2>
           </div>
 
           <!-- Toàn bộ ảnh còn lại. Bố cục do renderGallery() chọn THEO SỐ ẢNH
@@ -402,31 +412,57 @@
         <!-- ═══ MỤC: Tiệc cưới (enable_party) ═════════════════════════════ -->
         <section
           id="section-party"
-          class="vf-tint flex flex-col gap-5 px-8 py-14 text-center"
+          class="vf-tint flex flex-col gap-8 px-8 py-16 text-center"
         >
-          <!-- Dải ảnh tràn viền mở đầu mục tiệc. index.js lấy một ảnh GIỮA album
-               (ảnh đó vẫn xuất hiện ở mục Khoảnh Khắc — album quá ít tấm để
-               dành riêng); không có ảnh nào thì khối này tự ẩn. -->
-          <div id="party-photo" class="hidden -mx-8 -mt-14 mb-2"></div>
-
-          <div
-            id="party-section-label"
-            class="cx-t text-[10px] tracking-[4px] uppercase"
-          >
-            Tiệc Mừng Lễ Thành Hôn
+          <div class="vf-sh">
+            <div class="vf-script cx-a vf-eyebrow">celebration</div>
+            <h2 class="vf-title cx-h">Tiệc Mừng</h2>
           </div>
 
-          <div class="vf-num text-[24px] cx-a" id="party-datetime">
-            --:-- - --.--.----
-          </div>
-          <div class="cx-h italic text-[14px] opacity-80" id="party-lunar">
-            (Ngày âm lịch)
-          </div>
+          <!-- Thẻ trắng: ảnh đầu thẻ + khối ngày serif cùng ngôn ngữ với phần lễ.
+               Ảnh lấy một tấm GIỮA album (index.js); không có thì khối tự ẩn. -->
+          <div class="vf-pcard">
+            <div id="party-photo" class="hidden"></div>
+            <div class="flex flex-col items-center px-5 pt-6 pb-6">
+              <div class="cx-t vf-eb">
+                <span id="party-weekday">------</span> ·
+                <span id="party-month-year">Tháng -- · ----</span>
+              </div>
+              <div class="vf-tline cx-h">
+                <span id="party-day">--</span>
+                <small class="cx-t">lúc</small>
+                <span id="party-time">--:--</span>
+              </div>
+              <div class="cx-h vf-lunar" id="party-lunar">(Ngày âm lịch)</div>
 
-          <div class="flex items-start gap-2 justify-center">
-            <i data-lucide="map-pin" class="cx-ic cx-ac text-sm"></i>
-            <div class="cx-t text-sm" id="party-location">
-              ------------------------
+              <div class="flex items-start justify-center gap-2 mt-4">
+                <i data-lucide="map-pin" class="cx-ic cx-ac text-[14px] mt-[4px]"></i>
+                <div class="cx-t vf-addr" id="party-location">
+                  ------------------------
+                </div>
+              </div>
+
+              <div id="party-actions" class="hidden flex gap-2 mt-6 w-full">
+                <a
+                  id="party-dir"
+                  href="#"
+                  target="_blank"
+                  rel="noopener"
+                  class="vf-btn vf-btn-ink inline-flex items-center rounded-full flex-1"
+                >
+                  <i data-lucide="navigation" class="cx-ic text-[16px]"></i>
+                  Chỉ đường
+                </a>
+                <x-button
+                  variant="bare"
+                  id="party-cal"
+                  data-vf-cal="party"
+                  class="vf-btn vf-btn-line flex-1"
+                >
+                  <i data-lucide="calendar-plus" class="cx-ic text-[16px]"></i>
+                  Lưu lịch
+                </x-button>
+              </div>
             </div>
           </div>
         </section>
@@ -434,36 +470,37 @@
         <!-- ═══ MỤC: Xác nhận tham dự (rsvp_enabled) ══════════════════════ -->
         <section
           id="rsvp-section"
-          class="px-8 pt-14 pb-14 flex-col"
+          class="px-8 py-16 flex-col gap-8 text-center"
           style="display: none"
         >
-          <div class="vf-rsvp flex flex-col gap-4 text-center">
-            <div class="text-[13px] tracking-[3px] uppercase shimmer-text">
-              Xác nhận tham dự
-            </div>
+          <div class="vf-sh">
+            <div class="vf-script cx-a vf-eyebrow">will you come?</div>
+            <h2 class="vf-title cx-h">Xác Nhận Tham Dự</h2>
+          </div>
+          <div class="vf-rsvp flex flex-col gap-5">
             <div
               id="rsvp-custom-message"
-              class="hidden cx-h italic text-[13px] font-playfair leading-relaxed"
+              class="hidden cx-h italic text-[16px] leading-[1.6]"
             ></div>
 
-            <div class="flex items-center justify-center gap-3">
+            <!-- "Tham dự" là hành động chính (nút đặc), nút còn lại chỉ viền. -->
+            <div class="flex items-center justify-center gap-2">
               <x-button
                 variant="bare"
                 onclick="confirmAttend(true)"
                 id="btn-attend"
-                class="gap-2 px-5 py-2.5 border cx-border cx-bg-panel cx-t text-[12px] active:scale-95 transition-all"
+                class="vf-btn vf-btn-ink flex-1"
               >
-                <i data-lucide="check" class="cx-ic cx-ac text-[11px]"></i>
+                <i data-lucide="check" class="cx-ic text-[16px]"></i>
                 Tham dự
               </x-button>
               <x-button
                 variant="bare"
                 onclick="confirmAttend(false)"
                 id="btn-decline"
-                class="gap-2 px-5 py-2.5 border cx-border cx-bg-panel cx-t text-[12px] active:scale-95 transition-all"
+                class="vf-btn vf-btn-line flex-1"
               >
-                <i data-lucide="x" class="cx-ic cx-bd text-[11px]"></i>
-                Không tham dự
+                Không thể đến
               </x-button>
             </div>
 
@@ -474,10 +511,13 @@
         <!-- ═══ MỤC: Hộp mừng cưới (enable_gift) ══════════════════════════ -->
         <section
           id="section-gift"
-          class="vf-tint flex flex-col gap-6 px-8 py-14 text-center"
+          class="vf-tint flex flex-col gap-6 px-8 py-16 text-center"
         >
-          <h2 class="vf-title cx-h">Hộp Mừng Cưới</h2>
-          <p class="cx-t text-[12px] leading-relaxed -mt-2">
+          <div class="vf-sh">
+            <div class="vf-script cx-a vf-eyebrow">with love</div>
+            <h2 class="vf-title cx-h">Hộp Mừng Cưới</h2>
+          </div>
+          <p class="cx-t text-[14px] leading-relaxed">
             Sự hiện diện của quý khách là niềm vinh hạnh của gia đình chúng tôi
           </p>
 
@@ -553,10 +593,13 @@
         <!-- ═══ MỤC: Bản đồ tới nơi đãi tiệc ══════════════════════════════ -->
         <section
           id="section-map"
-          class="flex flex-col gap-4 px-8 py-14 text-center"
+          class="flex flex-col gap-4 px-8 py-16 text-center"
         >
-          <h2 class="vf-title cx-h">Địa Điểm</h2>
-          <div class="cx-h text-[15px]" id="map-location-name">
+          <div class="vf-sh" style="margin-bottom:16px">
+            <div class="vf-script cx-a vf-eyebrow">find us</div>
+            <h2 class="vf-title cx-h">Địa Điểm</h2>
+          </div>
+          <div class="cx-h text-[17px] leading-[1.45] [text-wrap:balance]" id="map-location-name">
             ------------------------
           </div>
 
@@ -564,7 +607,7 @@
             id="map-link"
             href="#"
             target="_blank"
-            class="w-full relative overflow-hidden rounded-2xl active:scale-[0.98] transition-transform shadow-md block"
+            class="vf-mapcard w-full relative overflow-hidden block active:scale-[0.98] transition-transform"
           >
             <div class="w-full h-44 relative overflow-hidden">
               <iframe
@@ -588,14 +631,13 @@
               </div>
             </div>
 
-            <div class="flex items-center justify-between px-4 py-3 cx-bg-panel-80">
-              <div class="cx-t text-[10px] uppercase tracking-[2px]">
-                Địa điểm tổ chức
-              </div>
-              <div class="flex items-center gap-1 cx-a">
-                <span class="text-[11px]">Mở Maps</span>
-                <i data-lucide="chevron-right" class="cx-ic text-xs"></i>
-              </div>
+            <!-- Cả thẻ là một vùng chạm lớn; dải đáy nói rõ bấm vào thì sao. -->
+            <div class="flex items-center justify-between gap-3 px-5 py-4">
+              <span class="cx-t text-[14px]">Chạm để mở bản đồ</span>
+              <span class="vf-btn vf-btn-ink vf-btn-sm inline-flex items-center rounded-full">
+                Mở bản đồ
+                <i data-lucide="arrow-up-right" class="cx-ic text-[14px]"></i>
+              </span>
             </div>
           </a>
         </section>
@@ -604,16 +646,13 @@
         <!-- ═══ MỤC: Lời cảm ơn (enable_footer) ═══════════════════════════ -->
         <section
           id="section-footer"
-          class="flex flex-col items-center gap-5 px-8 text-center"
+          class="vf-tint flex flex-col items-center gap-5 px-8 pt-16 pb-20 text-center"
         >
-          <div class="vf-script text-[46px] leading-none cx-a">Thank You</div>
-          <div id="footer-text" class="cx-h italic text-[15px] font-playfair leading-relaxed">
+          <div class="vf-script text-[60px] leading-none cx-a">Thank You</div>
+          <div id="footer-text" class="cx-h italic text-[17px] leading-[1.6]">
             Cảm ơn bạn đã dành thời gian đến chung vui cùng chúng tôi
           </div>
-          <div class="vf-rule w-full max-w-[220px]"></div>
-          <div class="cx-t text-[10px] tracking-[4px] uppercase" id="footer-date">
-            ----.--.--
-          </div>
+          <div class="cx-t vf-foot-date" id="footer-date">-- · -- · ----</div>
         </section>
       </div>
     </div>

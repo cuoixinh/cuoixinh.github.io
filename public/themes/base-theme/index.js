@@ -20,8 +20,9 @@
     // CX_GIFT_BOXES (core/helpers/gift-box-helper.js) hoặc "none". Mẫu KHÔNG tự vẽ hộp.
     giftBox: "mungcuoi_ivory",
 
-    // Dạng trình phát nhạc — theme-boot.js dựng vào #cx-music-mount.
-    music: { variant: "mini", chrome: "fixed-corner" },
+    // Dạng trình phát nhạc — theme-boot.js dựng vào #cx-music-mount. `art` là
+    // ảnh trên nút khi khách chưa chọn: "couple" (ảnh bìa thiệp) · "song" · "none".
+    music: { variant: "mini", chrome: "fixed-corner", art: "couple" },
 
     // Font/màu GỐC: giá trị mặc định trên thanh chỉnh ở tab Giao diện, cũng là
     // điểm "Khôi phục mặc định". Trang Thiết lập đọc qua iframe xem trước.

@@ -24,7 +24,7 @@ window.CX_THEME = {
   giftBox: "none",
 
   // Dạng trình phát nhạc — theme-boot.js dựng vào #cx-music-mount.
-  music: { variant: "bar", chrome: "fixed-top" },
+  music: { variant: "bar", chrome: "fixed-top", art: "couple" },
 
   // Font/màu GỐC: giá trị mặc định trên thanh chỉnh ở tab Giao diện và là điểm
   // "Khôi phục mặc định".

@@ -426,7 +426,8 @@ GitHub Pages chạy Jekyll nên đường dẫn kiểu đó không được publ
   vẽ mục đó — id trùng `CX_STEPS`), `wishesMode` (dạng lời chúc khi
   `theme_setting.wishes_mode` trống),
   `music` (`{variant, chrome}` của `CXMusicPlayer.build`, `theme-boot.js` dựng vào
-  `#cx-music-mount`), `loveStory` (`short`/`medium`/`long` — độ dài mốc chuyện tình XuXi
+  `#cx-music-mount`; `art` = ảnh trên nút khi khách chưa chọn, mọi mẫu đang để
+  `"couple"` = ảnh bìa thiệp), `loveStory` (`short`/`medium`/`long` — độ dài mốc chuyện tình XuXi
   viết khi khách chọn mẫu này, `LOVE_LEN` ở `ai-chat/knowledge.ts`), `onOpen`.
   Chỗ nào cần đọc bản khai từ ngoài thiệp thì qua `cxReadThemeDecl` (`core/helpers/theme-decl.js`).
   Trang Thiết lập đọc `swatches` và `palette` **qua iframe xem trước** của tab Giao diện.

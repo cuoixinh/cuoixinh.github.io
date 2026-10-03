@@ -94,9 +94,16 @@
     return [(n >> 16) & 255, (n >> 8) & 255, n & 255].join(", ");
   }
 
-  // Ảnh bìa: mặc định là ảnh bài hát do music-player-helper đổ vào. Hai lựa chọn
-  // kia phải KHOÁ ô ảnh (data-cx-art-lock) để helper đừng ghi đè khi bài đổi.
+  // Ảnh bìa khi khách chưa chọn: mẫu khai ở CX_THEME.music.art, không khai thì
+  // ảnh bài hát.
+  const themeArt = () => (window.CX_THEME?.music || {}).art || "song";
+
+  // "song" = ảnh bài hát do music-player-helper đổ vào. Hai lựa chọn kia phải
+  // KHOÁ ô ảnh (data-cx-art-lock) để helper đừng ghi đè khi bài đổi.
+  // Gọi được sau renderMusicSummary (cần dữ liệu thiệp để lấy ảnh bìa).
   function applyArt(node, art) {
+    if (!node) return;
+    art = art || themeArt();
     const thumbs = node.querySelectorAll('[data-cx-music="thumb"]');
     if (art !== "couple" && art !== "none") {
       thumbs.forEach((el) => el.removeAttribute("data-cx-art-lock"));
@@ -146,6 +153,9 @@
       node.style.removeProperty("--cx-mw-fill");
     }
   }
+
+  // theme-boot.js áp cho trình phát của mẫu (chưa thành widget).
+  window.cxMusicApplyArt = applyArt;
 
   window.CX_ELEMENTS = {
     music: {
@@ -249,6 +259,7 @@
           type: "choice",
           label: "Ảnh bìa",
           def: "song",
+          from: themeArt, // bảng chỉnh hiện đúng lựa chọn mặc định của mẫu
           items: [
             { id: "song", name: "Ảnh bài hát" },
             { id: "couple", name: "Ảnh cặp đôi" },

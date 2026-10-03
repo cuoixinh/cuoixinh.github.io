@@ -93,6 +93,8 @@ Quy ước quan trọng:
   `siIsUnchanged()` bỏ qua (so tên+cỡ, không khớp thì so từng byte với file
   thật) nên mỗi vòng chỉ ghi phần còn thiếu. Tối đa `SI_MAX_RESUME` = 5 vòng
   rồi nhường lại cho người dùng, tránh lặp vô tận.
+- `npm run dev` bỏ qua TRỌN thư mục này khi theo dõi file (kể cả `data.json`):
+  `data.json` ghi ngay đầu lần lưu, theo dõi nó là trang tải lại sau 120ms.
 - ⚠️ **Live Server**: nó theo dõi cả workspace nên mỗi ảnh ghi ra là reload
   trang, cắt ngang vòng lưu — mà KHÔNG có thông báo lỗi nào (trang chết trước
   khi tới `catch`). `.vscode/settings.json` đã thêm `assets/data-template/**`

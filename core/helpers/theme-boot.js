@@ -246,6 +246,9 @@ function _cxMountMusic(decl) {
   // (_cxShellNameLive) — chỉ trang cha đó nghe, các iframe khác bỏ qua.
   loadWeddingData(getSlugFromUrl(), (w) => {
     window.renderWedding(w);
+    // Ảnh trên nút nhạc (CX_THEME.music.art) cần dữ liệu thiệp → áp sau render.
+    if (T.music?.art)
+      window.cxMusicApplyArt?.(document.getElementById("music-toggle"));
     if (!inShell) return;
     const name = [w?.groom_name, w?.bride_name].filter(Boolean).join(" & ");
     if (name) {

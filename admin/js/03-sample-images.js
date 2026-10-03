@@ -52,7 +52,7 @@ const SI_IMAGE_LIMITS = CONFIG.image.sampleData;
 // Cờ "lưu dở dang": đặt lúc bắt đầu ghi, xoá ở finally. Trang chết giữa chừng
 // thì cờ còn lại → lần mở sau tự ghi tiếp. Chặn số vòng để không lặp vô tận.
 const SI_RESUME_KEY = "si_resume_save";
-const SI_MAX_RESUME = 5;
+const SI_MAX_RESUME = 20;
 
 const SI_FIELD_BASENAME = {
   cover_image_url: "cover",

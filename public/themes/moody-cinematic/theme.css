@@ -1463,6 +1463,19 @@ body,
   position: relative;
 }
 
+/* Hàng ở trang cuối album bị kéo quá cao (_fillGalleryTail): hai ô xếp chồng
+   thành hai tầng bằng nhau. !important để đè `flex` 40/60 viết inline. */
+
+.mc-row-stack {
+  flex-direction: column;
+}
+
+.mc-row-stack > * {
+  flex: 1 1 0 !important;
+  height: auto;
+  min-height: 0;
+}
+
 /* Ô chữ chiếm chỗ ĐẦU của một hàng (ALBUM_CAP_ROW ở index.js): là một ô như
    mọi ô khác trong hàng nên cao đúng chiều cao hàng, lưới vẫn kín trang. Chữ
    viết tay tự host, cùng bút pháp với tên cặp đôi ở trang đầu. */
