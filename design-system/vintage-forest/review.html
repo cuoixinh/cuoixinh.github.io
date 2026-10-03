@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Vintage Forest Review</title>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,800;1,400&family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
+<style>
+  @font-face { font-family: "KattyDiona"; src: url("../../assets/fonts/katty-diona.woff2") format("woff2"); }
+  /* Token của mẫu Vintage Forest (theme.css) + đề xuất chữ thân đậm hơn */
+  :root {
+    --h: 26 26 26; --b: 102 102 102; --b-old: 122 122 122;
+    --acc: 243 168 184; --line: 246 214 221; --band: 253 241 243; --card: 255 255 255; --warm: 255 253 250;
+    --deco: 157 176 138;
+    --ui-bg: #efeae6; --ui-ink: #292524; --ui-mute: #57534e; --ui-card: #ffffff; --ui-line: #e7e0da;
+    --hi: #dc2626; --mid: #d97706; --lo: #2563eb; --ok: #16a34a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --ui-bg: #1c1917; --ui-ink: #f5f5f4; --ui-mute: #a8a29e; --ui-card: #292524; --ui-line: #44403c; }
+  }
+  :root[data-theme="dark"] { --ui-bg: #1c1917; --ui-ink: #f5f5f4; --ui-mute: #a8a29e; --ui-card: #292524; --ui-line: #44403c; }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: var(--ui-bg); color: var(--ui-ink); font: 14px/1.6 "Be Vietnam Pro", sans-serif; padding: 32px 16px 64px; }
+  .wrap { max-width: 1120px; margin: 0 auto; display: grid; grid-template-columns: 420px 1fr; gap: 40px; align-items: start; }
+  @media (max-width: 920px) { .wrap { grid-template-columns: 1fr; } .stage { position: static !important; } }
+  header.top { max-width: 1120px; margin: 0 auto 24px; display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: end; justify-content: space-between; }
+  header.top h1 { font: 500 28px/1.2 "Playfair Display", serif; }
+  header.top p { color: var(--ui-mute); max-width: 620px; }
+  .tog { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--ui-line);
+    background: var(--ui-card); color: var(--ui-ink); font: 500 13px "Be Vietnam Pro", sans-serif; cursor: pointer; }
+
+  /* ── Khung điện thoại ── */
+  .stage { position: sticky; top: 24px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+  .ph { width: 390px; max-width: 100%; height: 844px; max-height: calc(100vh - 96px); border-radius: 40px; overflow: hidden auto;
+    background: rgb(var(--card)); box-shadow: 0 24px 60px rgb(0 0 0 / .18); position: relative; scrollbar-width: none; }
+  .ph::-webkit-scrollbar { display: none; }
+  .stage small { color: var(--ui-mute); font-size: 12px; }
+
+  /* Thiệp — chữ */
+  .t { color: rgb(var(--b)); font-family: "Be Vietnam Pro", sans-serif; }
+  .h { color: rgb(var(--h)); font-family: "Playfair Display", serif; }
+  .scr { font-family: KattyDiona, cursive; font-weight: 400; }
+  .acc { color: rgb(var(--acc)); }
+  sec, .sec { display: block; position: relative; padding: 64px 32px; text-align: center; }
+  .band { background: rgb(var(--band)); }
+
+  /* ① Hệ tiêu đề mục thống nhất: chữ viết tay hồng + Playfair hoa + vạch */
+  .sh { display: flex; flex-direction: column; align-items: center; gap: 4px; margin-bottom: 32px; }
+  .sh .e { font: 44px/1 KattyDiona, cursive; color: rgb(var(--acc)); }
+  .sh .ti { font: 400 22px/1.3 "Playfair Display", serif; letter-spacing: .18em; text-transform: uppercase; color: rgb(var(--h)); margin-right: -.18em; }
+  .sh .ru { width: 40px; height: 1px; background: rgb(var(--acc)); margin-top: 12px; }
+
+  /* Hero */
+  .hero-ph { position: relative; height: 420px; overflow: hidden; border-radius: 0 0 46% 46% / 0 0 15% 15%; }
+  .hero-ph img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 25%; display: block; }
+  .hero-ph::after { content: ""; position: absolute; inset: auto 0 0; height: 45%; background: linear-gradient(transparent, rgb(0 0 0 / .35)); }
+  .hero-nm { position: absolute; left: 0; right: 0; bottom: 32px; z-index: 1; padding: 0 24px; color: #fff; font: 32px/1 KattyDiona, cursive; white-space: nowrap; text-shadow: 0 1px 14px rgb(0 0 0 / .45); }
+  .hero-in { position: relative; padding: 32px 32px 40px; text-align: left; display: flex; flex-direction: column; gap: 16px; }
+  .hero-curve { position: absolute; right: -8px; top: 452px; width: 150px; height: 220px; opacity: .55; pointer-events: none; }
+  .quote { font-size: 14px; line-height: 1.65; max-width: 290px; }
+  .dd { font: 500 56px/1 "Playfair Display", serif; color: rgb(var(--h)); font-variant-numeric: lining-nums; }
+  .yy { display: flex; align-items: center; gap: 12px; font-size: 14px; letter-spacing: .4em; color: rgb(var(--b)); }
+  .yy::before { content: ""; width: 34px; height: 1px; background: rgb(var(--acc)); }
+  .save { font: 38px/1 KattyDiona, cursive; color: rgb(var(--acc)); margin-top: 8px; }
+  .cd { display: grid; grid-template-columns: repeat(4, 1fr); text-align: center; }
+  .cd b { display: block; font: 800 30px/1.2 "Be Vietnam Pro", sans-serif; color: rgb(var(--h)); font-variant-numeric: tabular-nums; position: relative; }
+  .cd span { font-size: 13px; font-style: italic; color: rgb(var(--b)); }
+  .cd .on b { color: rgb(var(--h)); }
+  .cd .on b::before { content: ""; position: absolute; left: 50%; top: 50%; width: 60px; height: 54px; transform: translate(-50%, -52%); z-index: -1;
+    background: rgb(var(--acc)); clip-path: path("M30 52C30 52 3 35 3 17.5 3 9 9.5 3 17.5 3c5.5 0 10 3 12.5 7.5C32.5 6 37 3 42.5 3 50.5 3 57 9 57 17.5 57 35 30 52 30 52Z"); }
+  .cd > div { position: relative; isolation: isolate; }
+  .place { display: flex; align-items: center; gap: 8px; font: 600 14px "Playfair Display", serif; color: rgb(var(--h)); }
+  .place svg { width: 14px; height: 14px; stroke: rgb(var(--acc)); fill: none; stroke-width: 2; flex: none; }
+  .divi { display: flex; align-items: center; gap: 16px; padding: 0 48px; }
+  .divi i { flex: 1; height: 1px; background: rgb(var(--line)); }
+  .divi svg { width: 44px; height: 28px; }
+
+  /* ② Thư mời: polaroid xếp ngang + khối ngày toàn khổ */
+  .pols { display: flex; justify-content: center; gap: 4px; margin: 0 -12px 32px; }
+  .pol { width: 158px; background: rgb(var(--warm)); padding: 8px 8px 0; box-shadow: 0 10px 28px rgb(0 0 0 / .14); }
+  .pol:first-child { transform: rotate(-4deg) translateY(6px); }
+  .pol:last-child { transform: rotate(3deg); }
+  .pol img { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; display: block; }
+  .pol p { font: 22px/1 KattyDiona, cursive; color: rgb(var(--h)); padding: 12px 0 10px; }
+  .eb { font-size: 12px; letter-spacing: .3em; text-transform: uppercase; color: rgb(var(--b)); margin-right: -.3em; }
+  .evname { font: 400 26px/1.25 "Playfair Display", serif; color: rgb(var(--h)); margin-top: 4px; }
+  .dateblk { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 16px; margin: 24px 0 8px; }
+  .dateblk .side { font: 400 15px "Playfair Display", serif; color: rgb(var(--h)); padding: 8px 0; border-block: 1px solid rgb(var(--line)); }
+  .dateblk .big { font: 400 72px/1 "Playfair Display", serif; color: rgb(var(--h)); font-variant-numeric: lining-nums; position: relative; }
+  .dateblk .big::after { content: ""; position: absolute; left: 50%; bottom: -8px; width: 8px; height: 8px; border-radius: 50%; background: rgb(var(--acc)); transform: translateX(-50%); }
+  .my { font-size: 13px; letter-spacing: .3em; text-transform: uppercase; color: rgb(var(--b)); margin: 16px 0 4px; }
+  .lunar { font: italic 15px "Playfair Display", serif; color: rgb(var(--h)); }
+  .addr { display: flex; justify-content: center; gap: 8px; font-size: 14px; line-height: 1.55; color: rgb(var(--b)); margin-top: 16px; }
+  .addr svg { width: 16px; height: 16px; stroke: rgb(var(--acc)); fill: none; stroke-width: 2; flex: none; margin-top: 3px; }
+  .acts { display: flex; gap: 8px; margin-top: 24px; }
+  .btn { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 48px; border-radius: 999px;
+    font: 500 14px "Be Vietnam Pro", sans-serif; border: 1px solid rgb(var(--h)); color: rgb(var(--h)); background: transparent; cursor: pointer; }
+  .btn.ink { background: rgb(var(--h)); color: rgb(var(--card)); }
+  .btn svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+
+  /* Lịch */
+  .cal { border: 1px solid rgb(var(--line)); border-radius: 24px; overflow: hidden; background: rgb(var(--card)); text-align: center; }
+  .cal img { width: 100%; height: 150px; object-fit: cover; display: block; }
+  .cal-b { padding: 20px 16px 16px; }
+  .cal-m { font: 400 20px "Playfair Display", serif; letter-spacing: .2em; color: rgb(var(--h)); margin-bottom: 12px; }
+  .cal-g { display: grid; grid-template-columns: repeat(7, 1fr); row-gap: 4px; font-size: 14px; color: rgb(var(--h)); }
+  .cal-g span { height: 36px; display: grid; place-items: center; }
+  .cal-g .wd { font-size: 12px; color: rgb(var(--b)); height: 28px; }
+  .cal-g .su { color: #c25e78; }
+  .cal-g .ring span, .cal-g .fill span { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font-weight: 600; }
+  .cal-g .ring span { border: 1.5px solid rgb(var(--acc)); }
+  .cal-g .fill span { background: rgb(var(--acc)); color: rgb(var(--h)); }
+  .cal-l { display: flex; justify-content: center; gap: 16px; font-size: 13px; color: rgb(var(--b)); padding: 12px; background: rgb(var(--band)); }
+  .cal-l i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: 0; }
+
+  /* Album (giữ nguyên, rút gọn) */
+  .alb { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin: 0 -32px; }
+  .alb img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; }
+  .alb img:first-child { grid-column: span 3; aspect-ratio: 16 / 10; }
+
+  /* ③ Chuyện: drop cap 3 dòng */
+  .prose { text-align: left; font-size: 15px; line-height: 1.75; color: rgb(var(--b)); }
+  .prose p + p { margin-top: 16px; }
+  .prose .dc::first-letter { float: left; font: 400 64px/.82 "Playfair Display", serif; color: rgb(var(--h)); padding: 6px 10px 0 0; }
+  .prose img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 20px; display: block; margin: 24px 0; }
+  .sign { font: 34px/1 KattyDiona, cursive; color: rgb(var(--acc)); text-align: center; margin-top: 24px; }
+
+  /* ④ Tiệc: cùng khối ngày serif, thẻ trắng trên dải hồng */
+  .pcard { background: rgb(var(--card)); border-radius: 24px; overflow: hidden; box-shadow: 0 12px 32px rgb(0 0 0 / .06); }
+  .pcard img { width: 100%; height: 180px; object-fit: cover; display: block; }
+  .pcard-b { padding: 24px 20px; }
+  .tline { display: flex; align-items: baseline; justify-content: center; gap: 12px; font: 400 40px/1 "Playfair Display", serif; color: rgb(var(--h)); font-variant-numeric: lining-nums; }
+  .tline small { font: 400 15px "Be Vietnam Pro", sans-serif; letter-spacing: .1em; color: rgb(var(--b)); }
+
+  /* ⑤ RSVP */
+  .rs { background: rgb(var(--band)); border-radius: 24px; padding: 28px 20px; }
+  .rs p { font: italic 15px/1.6 "Playfair Display", serif; color: rgb(var(--h)); }
+
+  /* Hộp mừng cưới */
+  .gift img { width: 140px; display: block; margin: 0 auto; filter: drop-shadow(0 14px 18px rgb(0 0 0 / .14)); }
+  .gift .hint { font-size: 12px; letter-spacing: .3em; text-transform: uppercase; color: rgb(var(--b)); margin-top: 16px; margin-right: -.3em; }
+
+  /* ⑥ Địa điểm: một thẻ duy nhất */
+  .mcard { border: 1px solid rgb(var(--line)); border-radius: 24px; overflow: hidden; text-align: left; background: rgb(var(--card)); }
+  .map { height: 170px; background:
+      linear-gradient(90deg, rgb(0 0 0 / .05) 1px, transparent 1px) 0 0 / 28px 28px,
+      linear-gradient(rgb(0 0 0 / .05) 1px, transparent 1px) 0 0 / 28px 28px, #eef1ee; position: relative; }
+  .map::after { content: ""; position: absolute; left: 50%; top: 50%; width: 22px; height: 22px; border-radius: 50% 50% 50% 0; background: #e5484d;
+    transform: translate(-50%, -80%) rotate(-45deg); box-shadow: 0 4px 10px rgb(0 0 0 / .2); }
+  .mcard-b { padding: 20px; display: flex; flex-direction: column; gap: 4px; }
+  .mcard-b b { font: 500 17px/1.4 "Playfair Display", serif; color: rgb(var(--h)); }
+
+  .foot .ty { font: 56px/1 KattyDiona, cursive; color: rgb(var(--acc)); }
+  .foot p { font: italic 16px/1.6 "Playfair Display", serif; color: rgb(var(--h)); margin: 16px 0 24px; }
+  .foot .dt { font-size: 14px; letter-spacing: .4em; color: rgb(var(--b)); }
+
+  /* Ghim số ứng với mục review */
+  .pin { position: absolute; top: 16px; right: 16px; z-index: 5; min-width: 26px; height: 26px; padding: 0 6px; border-radius: 999px; display: grid; place-items: center;
+    background: var(--ui-ink); color: var(--ui-bg); font: 600 12px/1 "Be Vietnam Pro", sans-serif; box-shadow: 0 0 0 3px rgb(255 255 255 / .9); }
+  .no-pins .pin { display: none; }
+
+  /* ── Cột review ── */
+  .rv { display: flex; flex-direction: column; gap: 24px; }
+  .grp h2 { font: 600 13px "Be Vietnam Pro", sans-serif; letter-spacing: .08em; text-transform: uppercase; color: var(--ui-mute); margin-bottom: 12px;
+    display: flex; align-items: center; gap: 8px; }
+  .grp h2 i { width: 8px; height: 8px; border-radius: 50%; }
+  .it { background: var(--ui-card); border: 1px solid var(--ui-line); border-radius: 16px; padding: 16px 18px; display: grid; grid-template-columns: 28px 1fr; gap: 4px 12px; }
+  .it + .it { margin-top: 8px; }
+  .it .n { grid-row: span 3; width: 26px; height: 26px; border-radius: 999px; background: var(--ui-ink); color: var(--ui-bg); display: grid; place-items: center; font-weight: 600; font-size: 12px; }
+  .it .n.x { background: transparent; color: var(--ui-mute); border: 1px dashed var(--ui-mute); }
+  .it b { font-weight: 600; }
+  .it .now { color: var(--ui-mute); font-size: 13px; }
+  .it .fix { font-size: 13px; }
+  .it .fix::before { content: "→ "; color: var(--ok); font-weight: 600; }
+  .sw { display: inline-block; width: 10px; height: 10px; border-radius: 3px; vertical-align: -1px; margin: 0 2px; border: 1px solid rgb(0 0 0 / .1); }
+  .keep { background: var(--ui-card); border: 1px solid var(--ui-line); border-radius: 16px; padding: 16px 18px; color: var(--ui-mute); font-size: 13px; }
+  .keep b { color: var(--ui-ink); }
+  code { font-size: 12px; background: rgb(127 127 127 / .14); padding: 1px 6px; border-radius: 6px; }
+  @media (prefers-reduced-motion: reduce) { .ph { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<header class="top">
+  <div>
+    <h1>Vintage Forest — review &amp; đề xuất</h1>
+    <p>Khung bên trái là bản <b>đề xuất</b> (cuộn trong khung). Số trên thiệp ứng với từng mục review bên phải. Màn bìa (concept C) đã làm nên không lặp lại ở đây.</p>
+  </div>
+  <button class="tog" id="tog" type="button" aria-pressed="true">Ẩn số ghi chú</button>
+</header>
+
+<div class="wrap">
+  <div class="stage">
+    <div class="ph" id="ph">
+
+      <!-- HERO -->
+      <div style="position:relative">
+        <b class="pin">6</b>
+        <div class="hero-ph">
+          <img src="../../assets/data-template/vintage-forest/cover.png" alt="Ảnh cưới" />
+          <div class="hero-nm">Lan Chi <span style="font-size:26px;opacity:.85">&amp;</span> Hữu Thắng</div>
+        </div>
+        <svg class="hero-curve" viewBox="0 0 150 220" fill="none" aria-hidden="true"><path d="M140 4C150 70 60 90 70 150c6 36 40 50 60 66" stroke="rgb(243 168 184)" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <div class="hero-in">
+          <p class="t quote">“Có những chuyện tình lớn lên chậm rãi như rừng thông — không ồn ào, nhưng đứng vững qua mọi mùa gió.”</p>
+          <div>
+            <div class="dd">31/10</div>
+            <div class="yy" style="margin-top:10px">2026</div>
+          </div>
+          <div class="save">Save the date</div>
+          <div class="cd">
+            <div class="on"><b>27</b><span>ngày</span></div>
+            <div><b>21</b><span>giờ</span></div>
+            <div><b>32</b><span>phút</span></div>
+            <div><b>09</b><span>giây</span></div>
+          </div>
+          <div class="place"><svg viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>Đường Khe Sanh, TP. Đà Lạt</div>
+        </div>
+      </div>
+
+      <div class="divi" aria-hidden="true" style="position:relative"><b class="pin" style="top:-4px;right:8px">12</b><i></i>
+        <svg viewBox="0 0 44 28" fill="none"><path d="M22 27V3" stroke="rgb(var(--line))" stroke-width="1.2" stroke-linecap="round"/><g fill="rgb(var(--acc) / .55)"><ellipse cx="13" cy="17" rx="8" ry="4" transform="rotate(-24 13 17)"/><ellipse cx="31" cy="17" rx="8" ry="4" transform="rotate(24 31 17)"/></g><circle cx="22" cy="4" r="4" fill="rgb(var(--acc))"/></svg><i></i></div>
+
+      <!-- THƯ MỜI -->
+      <div class="sec">
+        <b class="pin">2</b><b class="pin" style="top:52px">7</b>
+        <div class="eb">Trân trọng kính mời dự</div>
+        <div class="evname">Lễ Thành Hôn</div>
+        <div style="height:32px"></div>
+        <div class="pols">
+          <div class="pol"><img src="../../assets/data-template/vintage-forest/groom.png" alt="Chú rể" /><p>Hữu Thắng</p></div>
+          <div class="pol"><img src="../../assets/data-template/vintage-forest/bride.jpg" alt="Cô dâu" /><p>Lan Chi</p></div>
+        </div>
+        <div class="dateblk">
+          <span class="side">Thứ Bảy</span>
+          <span class="big">31</span>
+          <span class="side">11:00</span>
+        </div>
+        <div class="my">Tháng 10 · 2026</div>
+        <div class="lunar">Tức ngày 22 tháng 9 năm Bính Ngọ</div>
+        <div class="addr"><svg viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg><span>Vườn thông Dalat Retreat,<br />Đường Khe Sanh, TP. Đà Lạt</span></div>
+        <div class="acts">
+          <button class="btn ink" type="button"><svg viewBox="0 0 24 24"><path d="m3 11 19-9-9 19-2-8-8-2Z"/></svg>Chỉ đường</button>
+          <button class="btn" type="button"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Lưu lịch</button>
+        </div>
+      </div>
+
+      <!-- LỊCH -->
+      <div class="sec" style="padding-top:0">
+        <b class="pin" style="top:12px">1</b>
+        <div class="cal">
+          <img src="../../assets/data-template/vintage-forest/gallery-03.png" alt="" />
+          <div class="cal-b">
+            <div class="cal-m">THÁNG 10</div>
+            <div class="cal-g">
+              <span class="wd su">CN</span><span class="wd">T2</span><span class="wd">T3</span><span class="wd">T4</span><span class="wd">T5</span><span class="wd">T6</span><span class="wd">T7</span>
+              <span></span><span></span><span></span><span></span><span>1</span><span>2</span><span>3</span>
+              <span class="su">4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span>
+              <span class="su">11</span><span>12</span><span>13</span><span>14</span><span>15</span><span>16</span><span>17</span>
+              <span class="su">18</span><span>19</span><span>20</span><span>21</span><span>22</span><span>23</span><span>24</span>
+              <span class="su">25</span><span>26</span><span>27</span><span>28</span><span>29</span><span class="ring"><span>30</span></span><span class="fill"><span>31</span></span>
+            </div>
+          </div>
+          <div class="cal-l"><span><i style="background:rgb(var(--acc))"></i>Lễ cưới · 31</span><span><i style="border:1.5px solid rgb(var(--acc))"></i>Tiệc · 30</span></div>
+        </div>
+      </div>
+
+      <!-- KHOẢNH KHẮC -->
+      <div class="sec" style="padding-bottom:0">
+        <b class="pin">5</b>
+        <div class="sh"><span class="e">our moments</span><span class="ti">Khoảnh khắc</span><span class="ru"></span></div>
+        <div class="alb">
+          <img src="../../assets/data-template/vintage-forest/gallery-01.png" alt="" />
+          <img src="../../assets/data-template/vintage-forest/gallery-02.png" alt="" />
+          <img src="../../assets/data-template/vintage-forest/gallery-04.png" alt="" />
+          <img src="../../assets/data-template/vintage-forest/gallery-05.png" alt="" />
+        </div>
+      </div>
+
+      <!-- CHUYỆN -->
+      <div class="sec band" style="margin-top:64px">
+        <b class="pin">9</b>
+        <div class="sh"><span class="e">our story</span><span class="ti">Chuyện chúng mình</span><span class="ru"></span></div>
+        <div class="prose">
+          <p class="dc">Một chuyến trekking lạc đường ở Tà Xùa, và người đưa anh về đúng lối lại là em. Từ hôm đó, mình bắt đầu đi chung những con đường nhỏ.</p>
+          <img src="../../assets/data-template/vintage-forest/love-story-01.png" alt="" />
+          <p>Sáu năm và rất nhiều cung đường sau đó, anh hỏi em có muốn đi chung đường mãi không.</p>
+        </div>
+        <div class="sign">Lan Chi &amp; Hữu Thắng</div>
+      </div>
+
+      <!-- TIỆC -->
+      <div class="sec band" style="padding-top:0">
+        <b class="pin" style="top:0">8</b>
+        <div class="sh" style="padding-top:8px"><span class="e">celebration</span><span class="ti">Tiệc mừng</span><span class="ru"></span></div>
+        <div class="pcard">
+          <img src="../../assets/data-template/vintage-forest/gallery-06.png" alt="" />
+          <div class="pcard-b">
+            <div class="eb" style="font-size:12px">Thứ Sáu · Tháng 10 · 2026</div>
+            <div class="tline" style="margin:16px 0 8px">30 <small>lúc</small> 16:00</div>
+            <div class="lunar">Tức ngày 21 tháng 9 năm Bính Ngọ</div>
+            <div class="addr"><svg viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg><span>Vườn thông Dalat Retreat,<br />Đường Khe Sanh, TP. Đà Lạt</span></div>
+            <div class="acts">
+              <button class="btn ink" type="button">Chỉ đường</button>
+              <button class="btn" type="button">Lưu lịch</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RSVP -->
+      <div class="sec">
+        <b class="pin">3</b>
+        <div class="sh"><span class="e">will you come?</span><span class="ti">Xác nhận tham dự</span><span class="ru"></span></div>
+        <div class="rs">
+          <p>Đường lên rừng thông hơi xa, nên bạn xác nhận sớm giúp tụi mình để còn giữ chỗ nhé.</p>
+          <div class="acts">
+            <button class="btn ink" type="button"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>Tham dự</button>
+            <button class="btn" type="button">Không thể đến</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- MỪNG CƯỚI -->
+      <div class="sec band gift">
+        <div class="sh"><span class="e">with love</span><span class="ti">Hộp mừng cưới</span><span class="ru"></span></div>
+        <p class="t" style="font-size:14px;margin-bottom:24px">Sự hiện diện của quý khách là niềm vinh hạnh của gia đình chúng tôi.</p>
+        <img src="../../assets/gifts/lixi_hong_mai.webp" alt="Phong bao mừng cưới" />
+        <div class="hint">Chạm để mở</div>
+      </div>
+
+      <!-- ĐỊA ĐIỂM -->
+      <div class="sec">
+        <b class="pin">10</b>
+        <div class="sh"><span class="e">find us</span><span class="ti">Địa điểm</span><span class="ru"></span></div>
+        <div class="mcard">
+          <div class="map"></div>
+          <div class="mcard-b">
+            <b>Vườn thông Dalat Retreat</b>
+            <span class="t" style="font-size:14px">Đường Khe Sanh, TP. Đà Lạt</span>
+            <div class="acts" style="margin-top:16px">
+              <button class="btn ink" type="button">Chỉ đường</button>
+              <button class="btn" type="button">Mở bản đồ</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CẢM ƠN -->
+      <div class="sec foot band">
+        <b class="pin">13</b>
+        <div class="ty">Thank You</div>
+        <p>Cảm ơn bạn đã đi một quãng đường dài đến với ngày vui của chúng mình.</p>
+        <div class="dt">31 · 10 · 2026</div>
+      </div>
+    </div>
+    <small>Khung 390 × 844 · cuộn để xem cả thiệp</small>
+  </div>
+
+  <!-- ── REVIEW ── -->
+  <div class="rv">
+    <div class="grp">
+      <h2><i style="background:var(--hi)"></i>Cao — đọc được / bấm được</h2>
+      <div class="it"><span class="n">1</span><b>Chữ hồng phấn dùng làm chữ thông tin</b>
+        <span class="now"><span class="sw" style="background:#f3a8b8"></span><code>#f3a8b8</code> trên trắng chỉ <b>1.9:1</b>, trên dải hồng <b>1.7:1</b> (chuẩn 4.5:1, chữ lớn 3:1). Gặp ở: số "31" của lễ, giờ tiệc "16:00 - 30.10.2026", "Mở Maps", "Lời chúc · 4", số trong lịch, chữ M drop cap.</span>
+        <span class="fix">Chữ mang THÔNG TIN đi màu heading; hồng chỉ còn cho trang trí: tim, vạch, chấm, chữ viết tay ≥ 24px, nền ô ngày. Không cần token mới — khách đổi bộ màu vẫn khớp.</span></div>
+      <div class="it"><span class="n">2</span><b>Chữ thân nhạt và nhỏ</b>
+        <span class="now"><span class="sw" style="background:#7a7a7a"></span><code>#7a7a7a</code> = 4.3:1 trên trắng, 3.9:1 trên dải hồng. Lời ngỏ ở hero 12px nét light. Nhãn viết hoa 10px ("TRÂN TRỌNG KÍNH MỜI DỰ", "CHẠM ĐỂ MỞ", "ĐỊA ĐIỂM TỔ CHỨC").</span>
+        <span class="fix">Body <span class="sw" style="background:#666"></span><code>#666666</code> (5.7:1); lời ngỏ 14px regular; nhãn viết hoa tối thiểu 12px. Tên lễ ("Lễ Thành Hôn") phải là tiêu đề 26px, không phải nhãn 10px.</span></div>
+      <div class="it"><span class="n">3</span><b>Nút Xác nhận tham dự</b>
+        <span class="now">Cao ~40px (dưới 44px), "Tham dự" và "Không tham dự" cùng trọng lượng nên không rõ hành động chính.</span>
+        <span class="fix">48px, "Tham dự" là nút đặc màu than, nút còn lại viền; đổi chữ thành "Không thể đến" cho mềm.</span></div>
+      <div class="it"><span class="n">4</span><b>"Mở Maps" là link chữ 12px</b>
+        <span class="now">Vùng chạm nhỏ, màu hồng 1.9:1, nằm góc phải dễ bỏ sót.</span>
+        <span class="fix">Gộp vào nút 48px — xem mục 10.</span></div>
+    </div>
+
+    <div class="grp">
+      <h2><i style="background:var(--mid)"></i>Trung — bố cục &amp; nhất quán</h2>
+      <div class="it"><span class="n">5</span><b>Bốn kiểu tiêu đề mục khác nhau</b>
+        <span class="now">Playfair hoa + vạch (Khoảnh khắc, Chuyện, Mừng cưới, Địa điểm) · sans 10px giãn chữ (Thư mời, Tiệc, Xác nhận) · chữ viết tay + nhãn (Từng khoảnh khắc) · sans hồng (Lời chúc).</span>
+        <span class="fix">Một hệ duy nhất: chữ viết tay hồng làm eyebrow → Playfair hoa 22px → vạch hồng 40px.</span></div>
+      <div class="it"><span class="n">6</span><b>Hero: nét cong cắt ngang ngày cưới</b>
+        <span class="now">Nét cong hồng vắt qua "31/10" và "2026" — chữ quan trọng nhất của poster bị gạch.</span>
+        <span class="fix">Dời nét cong sang mép phải, chạy trong khoảng trống cạnh khối ngày; tên đôi trên ảnh thêm dải tối mờ ở đáy để luôn đọc được. Số ngày trên tim hồng đổi sang màu than (trắng trên hồng chỉ 1.9:1).</span></div>
+      <div class="it"><span class="n">7</span><b>Thư mời: cột phải quá hẹp</b>
+        <span class="now">Hai polaroid xếp dọc chiếm 60% bề ngang, cột thông tin còn ~150px → âm lịch gãy "Bính / Ngọ", địa chỉ 3 dòng canh giữa, khối này dài hơn một màn.</span>
+        <span class="fix">Hai polaroid xếp NGANG nghiêng nhẹ; bên dưới là khối ngày toàn khổ "Thứ Bảy — 31 — 11:00", rồi âm lịch, địa chỉ, nút Chỉ đường / Lưu lịch.</span></div>
+      <div class="it"><span class="n">8</span><b>Tiệc mừng lạc phong cách</b>
+        <span class="now">Sans đậm hồng "16:00 - 30.10.2026" trên dải hồng — khác hẳn khối ngày serif của lễ, và tương phản thấp nhất thiệp.</span>
+        <span class="fix">Thẻ trắng trên dải hồng, cùng ngôn ngữ serif với lễ: "30 lúc 16:00", thêm nút như lễ.</span></div>
+      <div class="it"><span class="n">9</span><b>Drop cap gãy chữ</b>
+        <span class="now">Chữ "M" hồng chỉ cao ~1.5 dòng, đoạn văn ngắn nên đọc thành "M · ột chuyến".</span>
+        <span class="fix">Drop cap 3 dòng màu heading; đoạn đầu dưới 3 dòng thì bỏ drop cap.</span></div>
+      <div class="it"><span class="n">10</span><b>Địa điểm lặp thông tin</b>
+        <span class="now">Tên nơi ở trên bản đồ, lại có nhãn "ĐỊA ĐIỂM TỔ CHỨC" dưới bản đồ — lặp mà vẫn thiếu nút chính.</span>
+        <span class="fix">Một thẻ: bản đồ → tên nơi (serif) → địa chỉ → Chỉ đường (đặc) + Mở bản đồ (viền).</span></div>
+      <div class="it"><span class="n">11</span><b>Nhịp khoảng trắng không đều</b>
+        <span class="now">Sau lịch ~120px, quanh Xác nhận ~90px, có chỗ chỉ 40px → cảm giác rời rạc khi cuộn.</span>
+        <span class="fix">Cố định 64px giữa các mục, 32px giữa tiêu đề và nội dung, 24px trong thẻ.</span></div>
+    </div>
+
+    <div class="grp">
+      <h2><i style="background:var(--lo)"></i>Thấp — chi tiết</h2>
+      <div class="it"><span class="n">12</span><b>Vạch ngăn sau hero viết cứng màu</b>
+        <span class="now">Lá <code>#9db08a</code>, cuống <code>#c7b8a1</code> nằm ngoài bộ màu — khách đổi tông sẽ thấy một nhành xanh lạc lõng.</span>
+        <span class="fix">Dùng token <code>--cx-line-rgb</code> / <code>--cx-accent-rgb</code>.</span></div>
+      <div class="it"><span class="n x">–</span><b>Mục Lời chúc</b>
+        <span class="now">Do helper chung vẽ nên tiêu đề "LỜI CHÚC · 4" hồng nhỏ khác hệ.</span>
+        <span class="fix">Mẫu chỉ chỉnh màu qua <code>CX_THEME.wishes</code> (chữ tên khách → heading). Đổi kiểu tiêu đề là việc của helper chung, cần bàn riêng.</span></div>
+      <div class="it"><span class="n">13</span><b>Ngày cuối thiệp</b>
+        <span class="now">"2026.10.31" 12px nhạt, khác cách viết ngày ở chỗ khác.</span>
+        <span class="fix">"31 · 10 · 2026" 14px — cùng cách viết với màn bìa.</span></div>
+    </div>
+
+    <div class="keep"><b>Giữ nguyên (đang tốt):</b> ảnh vòm + đếm ngược tới giây ở hero, lịch tháng có ảnh đầu thẻ, album 5 khối, polaroid, hộp mừng cưới, chữ ký viết tay. Bảng màu trắng–hồng phấn không đổi — chỉ đổi chỗ DÙNG màu hồng.</div>
+  </div>
+</div>
+
+<script>
+  const tog = document.getElementById("tog");
+  tog.addEventListener("click", () => {
+    const off = document.getElementById("ph").classList.toggle("no-pins");
+    tog.textContent = off ? "Hiện số ghi chú" : "Ẩn số ghi chú";
+    tog.setAttribute("aria-pressed", String(!off));
+  });
+</script>
+</body>
+</html>

@@ -16,4 +16,10 @@
     "##Relationship## ơi, tụi mình cưới rồi nè! Mời ##Relationship## ghé xem thiệp và đến chung vui, chúc phúc cho tụi mình nhé: ##link##",
     "Gửi ##Relationship## lời mời thân thương nhất. Mong ##Relationship## sắp xếp thời gian đến dự đám cưới của tụi mình. Thiệp mời tại: ##link##",
   ];
+
+  // Câu dùng khi chủ thiệp để trống "Câu mẫu chia sẻ": điền sẵn vào ô ở tab Cấu
+  // hình và làm lời nhắn khi chia sẻ. Bản sao ở worker/index.js (DEFAULT_SHARE_TPL)
+  // cho thẻ xem trước của link — đổi câu thì đổi cả hai.
+  global.SHARE_MESSAGE_DEFAULT =
+    "Trân trọng kính mời ##Relationship## đến dự lễ cưới của chúng mình. Sự hiện diện của ##Relationship## là niềm vui lớn của gia đình. Thiệp mời: ##link##";
 })(window);

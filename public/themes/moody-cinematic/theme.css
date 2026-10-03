@@ -88,6 +88,19 @@ body {
   font-family: "Montserrat", sans-serif;
 }
 
+/* Phần do helper dùng chung dựng (lịch trình, bộ đếm lightbox) mang font-inter /
+   font-cormorant, mà mẫu này không nạp hai font đó → trình duyệt lùi về Arial và
+   Times. Quy về đúng hai font của mẫu; chữ không có class font thì theo body. */
+
+body,
+.font-inter {
+  font-family: "Montserrat", sans-serif;
+}
+
+.font-cormorant {
+  font-family: "Prata", serif;
+}
+
 /* ── KHUNG ĐIỆN ẢNH ───────────────────────────────────────────────────────
    Bọc ảnh trong .mc-cine: hai thanh đen kẹp trên/dưới để tấm ảnh trông như cắt
    theo tỉ lệ màn ảnh rộng. Thanh nằm ĐÈ LÊN ảnh (không phải khoảng chừa) nên
@@ -108,7 +121,9 @@ body {
   position: absolute;
   left: 0;
   right: 0;
-  height: var(--mc-bar-h);
+  /* Trần 24px: khung cao cả trang (ảnh album lẻ cuối cùng) mà lấy đủ % thì
+     hai thanh dày tới 60px, nuốt mất ảnh. */
+  height: min(var(--mc-bar-h), 24px);
   background-color: rgb(var(--cx-deco-rgb));
   z-index: 2;
   pointer-events: none;
@@ -229,6 +244,8 @@ body {
   aspect-ratio: 5 / 3;
   min-height: 120px;
   --mc-bar-h: 0%;
+  /* Để trích dẫn đo theo chiều cao THẬT của ảnh (xem @container bên dưới). */
+  container-type: size;
 }
 
 /* Màn thấp hơn iPhone 16 (iPhone 13, SE…) hụt vài chục px là sàn 120px ở trên
@@ -252,19 +269,18 @@ body {
   }
 }
 
-/* Veil TỐI ở đỉnh ảnh, tan dần xuống — quote nằm trên nền sáng (trời, cây) nếu
-   không có veil sẽ chìm mất dù đã có text-shadow. Ảnh giờ thấp nên vùng tối
-   phải tan nhanh hơn (58%→46%), không thì phủ luôn nửa dưới ảnh. */
+/* Veil TỐI ở ĐÁY ảnh (chỗ trích dẫn nằm), tan dần lên — quote nằm trên váy
+   cưới, trời sáng… nếu không có veil sẽ chìm mất dù đã có text-shadow. */
 
 .mc-cal-veil {
   position: absolute;
   inset: 0;
   z-index: 1;
   background: linear-gradient(
-    to bottom,
-    rgb(var(--cx-deco-rgb) / 0.6) 0%,
-    rgb(var(--cx-deco-rgb) / 0.18) 26%,
-    rgb(var(--cx-deco-rgb) / 0) 46%
+    to top,
+    rgb(var(--cx-deco-rgb) / 0.62) 0%,
+    rgb(var(--cx-deco-rgb) / 0.22) 36%,
+    rgb(var(--cx-deco-rgb) / 0) 60%
   );
   pointer-events: none;
 }
@@ -279,7 +295,8 @@ body {
     font-family: "BethanWhite";
     font-size: 26px;
     line-height: 1.1;
-    letter-spacing: 5px;
+    /* Font viết tay: giãn chữ là đứt nét nối giữa các con chữ. */
+    letter-spacing: 1px;
     color: rgb(var(--cx-on-image-rgb));
     text-shadow: 0 1px 12px rgb(var(--cx-deco-rgb) / 0.7);
 }
@@ -303,17 +320,36 @@ body {
    margin % tự co theo nên không cần chỉnh gì thêm. */
 @media (max-width: 340px) {
   .mc-cal-quote {
-    font-size: 26px;
+    font-size: 22px;
   }
 }
 
 .mc-cal-quote-by {
   margin-top: 8px;
   font-family: "Montserrat", sans-serif;
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: 3px;
   text-transform: uppercase;
-  color: rgb(var(--cx-on-image-rgb) / 0.75);
+  color: rgb(var(--cx-on-image-rgb) / 0.85);
+}
+
+/* Màn thấp thì ảnh co còn ~100px, ba dòng trích dẫn cao hơn thế và tràn lên
+   khỏi mép trên ảnh. Thu chữ trước, thấp nữa thì bỏ hẳn — chỉ là trang trí.
+   Phải đứng SAU luật gốc của .mc-cal-quote (cùng độ đặc hiệu). */
+@container (max-height: 180px) {
+  .mc-cal-quote {
+    font-size: 20px;
+  }
+
+  .mc-cal-quote-by {
+    margin-top: 4px;
+  }
+}
+
+@container (max-height: 120px) {
+  .mc-cal-quote {
+    display: none;
+  }
 }
 
 /* Tháng lớn (trái) + lưới ngày (phải), trên nền trắng của panel. #mini-calendar
@@ -368,9 +404,8 @@ body {
 }
 
 .mc-cal-year {
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: 2px;
-  opacity: 0.7;
 }
 
 .mc-cal-table {
@@ -383,9 +418,9 @@ body {
 
 .mc-cal-dow {
   font-family: "Montserrat", sans-serif;
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: 1px;
-  color: rgb(var(--cx-body-rgb) / 0.7);
+  color: rgb(var(--cx-body-rgb));
   text-align: center;
   padding-bottom: 9px;
 }
@@ -433,6 +468,14 @@ body {
   gap: 18px;
   padding: 0 20px;
   text-align: center;
+}
+
+/* Chỉ ẢNH được co khi trang thiếu chỗ (.mc-ph-shot tự khai flex riêng). Để mặc
+   định flex-shrink:1 thì màn thấp bóp luôn dải gia đình (overflow:hidden) và
+   dòng địa chỉ hai nhà bị cắt mất. */
+
+.mc-ph-page > * {
+  flex-shrink: 0;
 }
 
 /* Khối tràn mép: kéo ra sát hai bên trang, bù đúng padding của .mc-ph-page. */
@@ -525,9 +568,34 @@ body {
   }
 }
 
+/* Màn thấp (iPhone SE, 8…): khối chữ đã khoá không co (xem .mc-ph-page > *),
+   nên phải tự thu nhịp dọc của trang để ảnh còn chỗ cho chữ đè lên nó — không
+   thì tên đôi đè lên dòng "Tới dự…". */
 @media (max-height: 700px) {
   .mc-ph-shot {
     min-height: 80px;
+  }
+
+  .mc-ph-page {
+    gap: 10px;
+  }
+
+  .mc-ph-row {
+    padding: 6px 0;
+  }
+
+  .mc-ph-day {
+    font-size: 38px;
+  }
+
+  .mc-ph-fam-in {
+    gap: 8px;
+    padding: 12px 20px 14px;
+  }
+
+  .mc-ph-addr {
+    margin-top: 4px;
+    padding-top: 6px;
   }
 }
 
@@ -588,7 +656,7 @@ body {
 
 .mc-ph-sub {
   font-family: "Montserrat", sans-serif;
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: 3px;
   text-transform: uppercase;
   color: rgb(var(--cx-on-image-rgb) / 0.82);
@@ -702,9 +770,8 @@ body {
 }
 
 .mc-ph-lunar {
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 1px;
-  opacity: 0.75;
 }
 
 /* Nơi làm lễ + lời nhắn: hai dòng thông tin, dính thành một cụm (gap nhỏ hơn
@@ -715,17 +782,16 @@ body {
 }
 
 .mc-ph-venue {
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 2px;
   line-height: 1.6;
   text-transform: uppercase;
 }
 
 .mc-ph-note {
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.7;
   font-style: italic;
-  opacity: 0.9;
 }
 
 /* ── DẢI GIA ĐÌNH: tràn mép, nền tối ─────────────────────────────────────
@@ -801,11 +867,11 @@ body {
 
 .mc-ph-fam-side {
   font-family: "Montserrat", sans-serif;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 500;
   letter-spacing: 3px;
   text-transform: uppercase;
-  color: rgb(var(--cx-on-image-rgb) / 0.6);
+  color: rgb(var(--cx-on-image-rgb) / 0.75);
 }
 
 .mc-ph-parent {
@@ -822,9 +888,9 @@ body {
   position: relative;
   margin-top: 8px;
   padding-top: 8px;
-  font-size: 9px;
+  font-size: 10px;
   line-height: 1.5;
-  color: rgb(var(--cx-on-image-rgb) / 0.66);
+  color: rgb(var(--cx-on-image-rgb) / 0.8);
 }
 
 .mc-ph-addr::before {
@@ -891,10 +957,10 @@ body {
   display: flex;
   flex-direction: column;
   /* Mọi trang bắt đầu từ ĐỈNH, cùng một đường khởi đầu nên lật qua lại không bị
-     nhảy chữ. 48px là để chữ không chui xuống dưới Dynamic Island / tai thỏ;
-     đáy chừa chỗ cho thanh chỉ báo trang. */
+     nhảy chữ. Đáy 60px chừa chỗ cho thanh chỉ báo trang: nút 36px + 14px mép
+     dưới + 10px hở để dòng cuối trang không dính vào nút. */
   justify-content: flex-start;
-  padding: 16px 0 56px;
+  padding: 16px 0 60px;
 }
 
 /* Trang Tiệc cưới là NGOẠI LỆ: nó mở đầu bằng ảnh thẻ lịch tràn mép, ảnh chui
@@ -968,7 +1034,7 @@ body {
    sang trang mới ngay từ mục đầu tiên.
 
    height chứ không phải min-height — trang khai push không có ai dồn giúp nên
-   phải tự khoá TRẦN. padding-bottom 56px của .mc-page chỉ CHỪA chỗ cho thanh chỉ
+   phải tự khoá TRẦN. padding-bottom 60px của .mc-page chỉ CHỪA chỗ cho thanh chỉ
    báo trang, nó không chặn được gì: nội dung cao hơn khung vẫn tràn qua vùng
    padding và chỉ bị cắt ở mép .mc-page, tức là đè lên .mc-pager. Khoá trần thì
    flex bên trong mới co lại. */
@@ -1109,7 +1175,7 @@ body {
 }
 
 #section-gift .mc-eyebrow {
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: 3px;
 }
 
@@ -1149,7 +1215,7 @@ body {
 }
 
 #footer-text {
-  font-size: 11px;
+  font-size: 12px;
 }
 
 #section-footer {
@@ -1175,12 +1241,21 @@ body {
   pointer-events: auto;
 }
 
+/* Nút 36px, vùng bấm nới ra 44px bằng ::after — đúng cỡ ngón tay mà không làm
+   thanh chỉ báo to lên. */
 .mc-pager-btn {
-  width: 28px;
-  height: 28px;
-  font-size: 11px;
-  color: rgb(var(--cx-body-rgb));
+  position: relative;
+  width: 36px;
+  height: 36px;
+  font-size: 14px;
+  color: rgb(var(--cx-heading-rgb));
   background-color: rgb(var(--cx-surface-rgb) / 0.9);
+}
+
+.mc-pager-btn::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
 }
 
 .mc-pager-btn[disabled] {
@@ -1214,15 +1289,16 @@ body {
   background-image: var(--mc-dash-x);
 }
 
+/* 24px là trần: to hơn thì dòng tít chạm nút nhạc ở góc trên phải. */
 .mc-masthead-title {
-  font-size: 26px;
+  font-size: 24px;
   line-height: 1.1;
-  letter-spacing: 2px;
+  letter-spacing: 1px;
   text-transform: uppercase;
 }
 
 .mc-masthead-sub {
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: 2px;
   text-transform: uppercase;
 }
@@ -1249,7 +1325,7 @@ body {
   align-items: center;
   gap: 8px;
   font-family: "Montserrat", sans-serif;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 500;
   letter-spacing: 3px;
   text-transform: uppercase;
@@ -1276,7 +1352,7 @@ body {
 
 .mc-post-cap {
   font-family: "Montserrat", sans-serif;
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: 2px;
   text-transform: uppercase;
   text-align: center;
@@ -1288,7 +1364,7 @@ body {
    phần dư do hàm dồn trang đẩy sang trang kế. */
 
 .mc-post-body {
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.8;
   text-align: justify;
   hyphens: auto;
@@ -1349,7 +1425,7 @@ body {
 
 .mc-book-no {
   font-family: "Montserrat", sans-serif;
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: 3px;
   text-transform: uppercase;
   color: rgb(var(--cx-body-rgb));
@@ -1385,6 +1461,19 @@ body {
   min-width: 0;
   cursor: pointer;
   position: relative;
+}
+
+/* Hàng ở trang cuối album bị kéo quá cao (_fillGalleryTail): hai ô xếp chồng
+   thành hai tầng bằng nhau. !important để đè `flex` 40/60 viết inline. */
+
+.mc-row-stack {
+  flex-direction: column;
+}
+
+.mc-row-stack > * {
+  flex: 1 1 0 !important;
+  height: auto;
+  min-height: 0;
 }
 
 /* Ô chữ chiếm chỗ ĐẦU của một hàng (ALBUM_CAP_ROW ở index.js): là một ô như
@@ -1519,7 +1608,7 @@ body {
 
 .mc-rsvp-lb {
   font-family: "Montserrat", sans-serif;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 500;
   letter-spacing: 2px;
   line-height: 1.2;
@@ -1704,4 +1793,39 @@ body {
 
 .mc-sharp {
   border-radius: 0;
+}
+
+/* ── Trang LỜI CHÚC ───────────────────────────────────────────────────────
+   _placeWishes() (index.js) bê mục lời chúc của wishes-helper sang trang riêng
+   này. Danh sách nuốt phần cao còn lại của trang (thay trần nửa màn mặc định),
+   lề ngang theo nhịp px-6 của các trang khác. */
+
+.mc-wish-in {
+  height: 100%;
+}
+
+.mc-wish-in > .cx-wsec {
+  height: 100%;
+  min-height: 0;
+  padding: 8px 24px 0;
+}
+
+.mc-wish-in .cx-wsec-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
+}
+
+/* Giảm chuyển động: tắt đèn chạy gáy phim, vệt sáng quét và lật trang trượt. */
+
+@media (prefers-reduced-motion: reduce) {
+  .mc-pages {
+    scroll-behavior: auto;
+  }
+
+  #btn-attend.btn-idle::before,
+  #btn-decline.btn-idle::before,
+  .mc-rsvp-btn::after {
+    animation: none !important;
+  }
 }

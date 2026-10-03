@@ -24,7 +24,7 @@ window.CX_THEME = {
   giftBox: "none",
 
   // Dạng trình phát nhạc — theme-boot.js dựng vào #cx-music-mount.
-  music: { variant: "bar", chrome: "fixed-top" },
+  music: { variant: "bar", chrome: "fixed-top", art: "couple" },
 
   // Font/màu GỐC: giá trị mặc định trên thanh chỉnh ở tab Giao diện và là điểm
   // "Khôi phục mặc định".
@@ -150,6 +150,15 @@ function renderWedding(w) {
   // Đỉnh hero: TÊN LỄ · NĂM (năm lấy từ ngày lễ, chưa có ngày thì chỉ tên lễ)
   const cYear = (w.ceremony_date || "").slice(0, 4);
   setText("hero-eyebrow", ceremonyName + (cYear ? " · " + cYear : ""));
+
+  // Thẻ giấy ở màn bìa: "Chủ Nhật · 06 · 12 · 2026". Tách chuỗi ngày thay vì
+  // new Date("yyyy-mm-dd") — dạng đó đọc theo UTC, lệch thứ ở múi giờ âm.
+  const [cy, cm, cd] = (w.ceremony_date || "").split("-");
+  if (cy && cm && cd) {
+    const wd = WEEKDAYS[new Date(+cy, +cm - 1, +cd).getDay()];
+    setText("cover-date", `${wd} · ${cd} · ${cm} · ${cy}`);
+    cxToggle("cover-date", true);
+  }
 
   setText("ceremony-event-name", ceremonyName);
   setText("party-section-label", "Tiệc Mừng " + ceremonyName);

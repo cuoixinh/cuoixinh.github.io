@@ -90,14 +90,7 @@
              #section-family vẫn là thẻ riêng để cxToggle(enable_family) tắt
              được phần gia đình mà không đụng phần còn lại của trang. -->
         <section id="section-hero" class="mc-ph-page">
-          <!-- Măng sét: ba phần, tên tờ báo ở giữa. Cả ba là chữ TĨNH — ô hai
-               bên hẹp nên mọi chuỗi lấy từ dữ liệu đều có ngày bị cắt cụt
-               thành dấu "…", đọc như lỗi render. Lịch âm nằm ở khối ngày. -->
-          <div class="mc-ph-head">
-            <span class="mc-ph-side"></span>
-            <span class="mc-ph-name">The Wedding Post</span>
-            <span class="mc-ph-side"></span>
-          </div>
+          
 
           <div class="cx-h mc-ph-invited">You're Invited</div>
 
@@ -222,19 +215,20 @@
 
             <div class="flex flex-col gap-1.5">
               <div class="cx-h text-[20px] leading-tight" id="party-datetime">--:-- - --.--.----</div>
-              <div class="cx-t text-[11px] opacity-80" id="party-lunar">(Ngày âm lịch)</div>
+              <div class="cx-t text-[12px]" id="party-lunar">(Ngày âm lịch)</div>
             </div>
 
-            <div class="flex items-start gap-2 justify-center">
-              <i data-lucide="map-pin" class="cx-ic cx-a text-xs"></i>
-              <div class="cx-t text-[12px] leading-relaxed" id="party-location">------------------------</div>
+            <!-- Icon đứng TRÊN dòng địa chỉ: chữ căn giữa mà xuống hai dòng thì
+                 icon đặt bên trái bị bỏ lại lơ lửng ở mép, không bám theo chữ. -->
+            <div class="flex flex-row items-start gap-1">
+              <i data-lucide="map-pin" class="cx-ic cx-a text-sm mt-0.5"></i>
+              <div class="cx-t text-[13px] leading-relaxed" id="party-location">------------------------</div>
             </div>
           </div>
 
           <!-- ═══ MỤC: Xác nhận tham dự (rsvp_enabled) ═════════════════════ -->
           <div id="rsvp-section" class="flex flex-col gap-3 px-6" style="display: none">
             <div class="text-[10px] tracking-[3px] uppercase shimmer-text">Xác nhận tham dự</div>
-            <div id="rsvp-custom-message" class="hidden cx-t text-[11px] leading-relaxed"></div>
 
             <div class="mc-rsvp grid grid-cols-2 gap-2">
               <x-button
@@ -299,7 +293,6 @@
                renderLoveStory() chung. -->
           <section id="love-story" class="flex flex-col gap-4 px-6" style="display: none">
             <div class="mc-masthead" data-cx-unit>
-              <div class="mc-eyebrow">The Wedding Post</div>
               <h2 class="cx-h mc-masthead-title">Chuyện Tình Yêu</h2>
               <div class="mc-masthead-sub cx-t">Ấn bản đặc biệt · Chuyện của chúng mình</div>
             </div>

@@ -3,32 +3,29 @@
 <div data-step="gift"
   class="cx-block animate-fade-in"
 >
+  <!-- Tiêu đề bước nằm ở #step-head (form-panel.html); hàng này chỉ còn
+       công tắc bật/tắt mục trên thiệp. -->
   <div class="cx-block-head">
-    <div class="flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <i
-          data-lucide="gift"
-          class="text-[18px] text-color-secondary"
-        ></i>
-        <p class="text-sm text-gray-700">Hộp mừng cưới</p>
+    <div class="cx-vis">
+      <div class="min-w-0">
+        <p class="cx-vis-t">Hiện mục này trên thiệp</p>
+        <p class="cx-vis-d">Mục đang ẩn — bật lên để điền và hiện trên thiệp.</p>
       </div>
-      <div class="flex items-center gap-3">
-        <x-switch
-          key="gift"
-          onclick="toggleSectionVis('gift', event)"
-        ></x-switch>
-      </div>
+      <x-switch
+        key="gift"
+        onclick="toggleSectionVis('gift', event)"
+      ></x-switch>
     </div>
   </div>
-  <div id="section-gift-body" class="p-6 space-y-6">
-    <div class="rounded-2xl border border-gray-100 overflow-hidden">
+  <div id="section-gift-body" class="px-4 py-5 sm:p-6 space-y-6">
+    <div class="overflow-hidden sm:rounded-2xl sm:border sm:border-gray-100">
       <div
-        class="px-5 py-3 bg-rose-50 border-b border-rose-100 flex items-center gap-2"
+        class="pb-3 sm:px-5 sm:py-3 sm:bg-rose-50 sm:border-b sm:border-rose-100 flex items-center gap-2"
       >
         <i data-lucide="mars" class="w-4 h-4 text-color-secondary"></i>
         <span class="text-sm font-semibold text-gray-700">Nhà trai</span>
       </div>
-      <div class="p-5 space-y-4">
+      <div class="sm:p-5 space-y-4">
         <div class="relative">
           <label
             for="groom-bank-input"
@@ -74,7 +71,7 @@
             class="block text-sm text-gray-700 mb-2 flex items-center gap-2"
             ><i data-lucide="qr-code" class="text-color-secondary"></i>Ảnh
             QR chuyển khoản</p>
-          <div id="groom-qr-container" class="w-32"></div>
+          <div id="groom-qr-container" class="w-full"></div>
           <input
             type="file"
             id="groom-qr-file-input"
@@ -85,14 +82,14 @@
         </div>
       </div>
     </div>
-    <div class="rounded-2xl border border-gray-100 overflow-hidden">
+    <div class="overflow-hidden sm:rounded-2xl sm:border sm:border-gray-100">
       <div
-        class="px-5 py-3 bg-rose-50 border-b border-rose-100 flex items-center gap-2"
+        class="pb-3 sm:px-5 sm:py-3 sm:bg-rose-50 sm:border-b sm:border-rose-100 flex items-center gap-2"
       >
         <i data-lucide="venus" class="w-4 h-4 text-color-secondary"></i>
         <span class="text-sm font-semibold text-gray-700">Nhà gái</span>
       </div>
-      <div class="p-5 space-y-4">
+      <div class="sm:p-5 space-y-4">
         <div class="relative">
           <label
             for="bride-bank-input"
@@ -138,7 +135,7 @@
             class="block text-sm text-gray-700 mb-2 flex items-center gap-2"
             ><i data-lucide="qr-code" class="text-color-secondary"></i>Ảnh
             QR chuyển khoản</p>
-          <div id="bride-qr-container" class="w-32"></div>
+          <div id="bride-qr-container" class="w-full"></div>
           <input
             type="file"
             id="bride-qr-file-input"

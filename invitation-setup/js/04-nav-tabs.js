@@ -217,6 +217,8 @@ function _setActiveTab(tabId) {
   // Từ 820px trở lên nút này là một TAB như Cấu hình (xem #switch-edit trong
   // styles/_setup.css) — chỗ đó đọc .is-active để tô pill hồng.
   editBtn.classList.toggle("is-active", tabId === "edit");
+  // Điện thoại: cả hai nút đều mặc kiểu tab (#switch-preview.is-active ở CSS).
+  previewBtn.classList.toggle("is-active", tabId === "preview");
   if (tabId === "config" || tabId === "guests" || tabId === "theme") {
     editBtn.classList.remove(
       "bg-white",

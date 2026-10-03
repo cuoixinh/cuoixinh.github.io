@@ -1,7 +1,7 @@
 /* Bảng màu + CSS riêng của NOIR ELEGANCE — nền TRẮNG BE nhạt, nhấn vàng
    champagne trầm, chữ thư pháp cho phần cảm xúc. Nét nhận dạng: mọi khối đóng
    khung bằng ĐƯỜNG VÀNG MẢNH (.ne-frame/.ne-hairline) thay cho bóng đổ, và màn
-   mở đầu là một tấm ảnh CHIẾM TRỌN màn hình với chữ đặt trên dải kem mờ.
+   mở đầu là một tấm ảnh CHIẾM TRỌN màn hình, tên cặp đôi mạ vàng ở chân ảnh.
    CSS THUẦN, nạp bằng <link> sau styles/themes.css.
 
    Hai phần:
@@ -227,6 +227,222 @@ body {
   bottom: 40px;
 }
 
+/* ── Chuyển động của màn bìa ─────────────────────────────────────────────
+   Vào màn: khung + nét cong vẽ dần, nội dung lần lượt nổi lên. Sau đó lặp
+   nhẹ: vệt màu trôi, hạt kim tuyến bay, nút thở.
+   Chỉ animate opacity/translate/scale (card đồ hoạ tự lo, không vẽ lại):
+   blur, box-shadow, background-position, left… bắt vẽ lại từng khung → giật.
+   Dùng translate/scale RIÊNG chứ không `transform` — nút có active:scale-95,
+   animation giữ `transform` ở khung cuối là nuốt mất.
+   Trạng thái ẩn ban đầu nằm ở `from` + fill `both`, nên tắt animation (giảm
+   chuyển động) thì mọi thứ vẫn hiện đủ. */
+
+.ne-cover-frame {
+  animation: cx-ne-frame-in 1.4s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.ne-curve path {
+  stroke-dasharray: 1;
+  animation: cx-ne-draw 2.4s ease-in-out 0.3s both;
+}
+
+.ne-curve circle {
+  animation: cx-ne-fade 0.8s ease 1.8s both;
+}
+
+.ne-cover-in > * {
+  animation: cx-ne-rise 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.ne-cover-in > :nth-child(1) { animation-delay: 0.2s; }
+.ne-cover-in > :nth-child(2) { animation-delay: 0.4s; }
+.ne-cover-in > :nth-child(3) { animation-delay: 0.65s; }
+.ne-cover-in > :nth-child(4) { animation-delay: 0.85s; }
+.ne-cover-in > :nth-child(5) { animation-delay: 1.1s; }
+.ne-cover-in > :nth-child(6) { animation-delay: 1.25s; }
+.ne-cover-in > :nth-child(7) { animation-delay: 1.35s; }
+.ne-cover-in > :nth-child(8) { animation-delay: 1.5s; }
+
+.ne-wash {
+  will-change: translate, scale;
+}
+
+.ne-wash-top {
+  animation: cx-ne-drift-a 14s ease-in-out infinite alternate;
+}
+
+.ne-wash-bottom {
+  animation: cx-ne-drift-b 17s ease-in-out infinite alternate;
+}
+
+/* Nút thở: vòng viền nở ra rồi tan, vẽ ở thẻ bọc vì nút overflow:hidden. */
+
+.ne-pulse-wrap {
+  position: relative;
+}
+
+.ne-pulse-wrap::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  border: 1px solid rgb(var(--cx-accent-rgb) / 0.6);
+  opacity: 0;
+  pointer-events: none;
+  will-change: opacity, scale;
+  animation: cx-ne-pulse 2.8s ease-out 2.2s infinite;
+}
+
+/* Vệt sáng lướt qua nút: bản dùng chung chạy bằng `left` (tính lại bố cục mỗi
+   khung) — ở đây đổi sang translate. */
+
+.ne-btn .btn-shimmer {
+  left: 0;
+  will-change: translate;
+  animation-name: cx-ne-sheen;
+}
+
+.ne-motes {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.ne-motes i {
+  position: absolute;
+  bottom: -12px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgb(var(--cx-shine-mid-rgb));
+  box-shadow: 0 0 8px rgb(var(--cx-shine-mid-rgb) / 0.9);
+  opacity: 0;
+  will-change: opacity, translate;
+  animation: cx-ne-mote 12s linear infinite;
+}
+
+.ne-motes i:nth-child(1) { left: 8%; animation-delay: 0s; animation-duration: 13s; }
+.ne-motes i:nth-child(2) { left: 18%; animation-delay: 4s; width: 3px; height: 3px; }
+.ne-motes i:nth-child(3) { left: 29%; animation-delay: 8s; animation-duration: 15s; }
+.ne-motes i:nth-child(4) { left: 38%; animation-delay: 2s; width: 2px; height: 2px; }
+.ne-motes i:nth-child(5) { left: 50%; animation-delay: 6s; animation-duration: 14s; }
+.ne-motes i:nth-child(6) { left: 61%; animation-delay: 1s; width: 3px; height: 3px; }
+.ne-motes i:nth-child(7) { left: 70%; animation-delay: 9s; animation-duration: 11s; }
+.ne-motes i:nth-child(8) { left: 79%; animation-delay: 3s; width: 2px; height: 2px; }
+.ne-motes i:nth-child(9) { left: 88%; animation-delay: 7s; animation-duration: 16s; }
+.ne-motes i:nth-child(10) { left: 94%; animation-delay: 5s; width: 3px; height: 3px; }
+
+@keyframes cx-ne-frame-in {
+  from {
+    opacity: 0;
+    scale: 0.96;
+  }
+}
+
+@keyframes cx-ne-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes cx-ne-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes cx-ne-rise {
+  from {
+    opacity: 0;
+    translate: 0 16px;
+  }
+}
+
+@keyframes cx-ne-drift-a {
+  to {
+    translate: -48px 36px;
+    scale: 1.15;
+  }
+}
+
+@keyframes cx-ne-drift-b {
+  to {
+    translate: 44px -40px;
+    scale: 1.2;
+  }
+}
+
+@keyframes cx-ne-pulse {
+  0% {
+    opacity: 0.8;
+    scale: 1;
+  }
+  70%,
+  100% {
+    opacity: 0;
+    scale: 1.12 1.35;
+  }
+}
+
+/* Vệt rộng 60% nút: -170% là nằm hẳn ngoài mép trái, 250% hẳn ngoài mép phải. */
+
+@keyframes cx-ne-sheen {
+  0% {
+    translate: -170% 0;
+  }
+  50%,
+  100% {
+    translate: 250% 0;
+  }
+}
+
+@keyframes cx-ne-mote {
+  0% {
+    opacity: 0;
+    translate: 0 0;
+  }
+  15% {
+    opacity: 0.9;
+  }
+  50% {
+    translate: 16px -50vh;
+  }
+  85% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 0;
+    translate: -8px -100vh;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ne-cover-frame,
+  .ne-curve path,
+  .ne-curve circle,
+  .ne-cover-in > *,
+  .ne-wash,
+  .ne-pulse-wrap::after,
+  .ne-btn .btn-shimmer,
+  .ne-motes i {
+    animation: none;
+  }
+}
+
+/* Nút nhạc neo góc màn chỉ hiện SAU khi mở bìa: cờ do index.js gắn lúc nạp,
+   gỡ ở CX_THEME.onOpen. Ẩn bằng visibility vì setupMusic() tự đặt `display`
+   inline cho nút. */
+
+.ne-cover-on #music-toggle {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
 /* Tên cặp đôi ở màn bìa: chữ viết tay MẠ VÀNG (dải màu cắt theo hình chữ).
    Chữ tô bằng background chứ không phải `color`, nên chỉnh màu cho riêng dòng
    này sẽ không ăn — muốn đổi thì sửa dải màu ngay dưới đây. */
@@ -248,30 +464,119 @@ body {
 
 /* ── Màn mở đầu: ảnh chiếm TRỌN màn hình ─────────────────────────────────
    Mục #section-hero phá lề của thân thiệp (âm lề, xem index.html) để ảnh chạm
-   sát bốn mép. Chữ đặt trên hai dải kem mờ dần ở đầu và chân màn — nhờ vậy đọc
-   được trên mọi tấm ảnh mà không phải phủ tối cả ảnh. */
+   sát bốn mép. Chữ TRẮNG trên màn tối mờ dần ở đầu và chân ảnh, giữa ảnh để
+   nguyên. Màn kem thì chết trên ảnh tông tối: thành một vệt xám đục. */
 
-.ne-hero-top {
+.ne-hero-shade {
   background: linear-gradient(
     180deg,
-    rgb(var(--cx-cover-rgb) / 0.92) 0%,
-    rgb(var(--cx-cover-rgb) / 0.7) 55%,
-    transparent 100%
+    rgb(var(--cx-scrim-rgb) / 0.42) 0%,
+    rgb(var(--cx-scrim-rgb) / 0.12) 12%,
+    transparent 24%,
+    transparent 40%,
+    rgb(var(--cx-scrim-rgb) / 0.4) 58%,
+    rgb(var(--cx-scrim-rgb) / 0.68) 74%,
+    rgb(var(--cx-scrim-rgb) / 0.82) 100%
   );
 }
 
-/* Chân dải phải là ĐÚNG nền thân thiệp và đục hoàn toàn: lệch màu hay lệch độ
-   mờ ở đây thành một vạch ngang chạy hết bề ngang, trông như đường viền ngăn
-   mục mở đầu với mục bên dưới. */
+/* Hàng ba nhãn: lề phải 72px chừa chỗ cho nút nhạc neo góc màn. */
 
-.ne-hero-bottom {
-  background: linear-gradient(
-    0deg,
-    rgb(var(--cx-card-bg-rgb)) 0%,
-    rgb(var(--cx-card-bg-rgb) / 0.88) 45%,
-    rgb(var(--cx-card-bg-rgb) / 0.6) 75%,
-    transparent 100%
-  );
+.ne-hero-nav {
+  padding: 28px 72px 0 20px;
+}
+
+/* Trình chiếu: các ô chồng lên nhau. Ô mới (.is-on) nằm trên cùng và mờ dần
+   hiện ra; ô vừa rời (.is-prev) đứng yên ngay dưới cho tới khi bị che hẳn.
+   Ảnh đang chiếu zoom chậm + trôi theo --ne-kb-x/y (index.js đặt mỗi ô một
+   ngả). Thời lượng zoom = nhịp tự chiếu (HERO_AUTO_MS) + thời gian mờ chồng,
+   nên tấm cũ vẫn còn trôi trong lúc tan đi — dừng sớm là thấy khựng. */
+
+/* Nhốt z-index của các ô trong khung ảnh — thiếu là ô ảnh đè lên cả màn tối
+   lẫn chữ của mục mở đầu. */
+
+#hero-track {
+  isolation: isolate;
+}
+
+.ne-slide {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 1.2s ease-in-out;
+}
+
+.ne-slide.is-prev {
+  opacity: 1;
+  transition: none;
+  z-index: 1;
+}
+
+.ne-slide.is-on {
+  opacity: 1;
+  z-index: 2;
+}
+
+.ne-slide img {
+  will-change: scale, translate;
+}
+
+.ne-slide.is-on img,
+.ne-slide.is-prev img {
+  animation: cx-ne-kenburns 4.4s ease-out both;
+}
+
+/* Chỉ một ảnh: zoom ra vào thật chậm, không bao giờ dừng hẳn. */
+
+.ne-slide:only-child img {
+  animation: cx-ne-kenburns 12s ease-in-out infinite alternate;
+}
+
+/* scale 1.12 thừa 6% mỗi mép — trôi tối đa 3% nên không bao giờ lộ viền. */
+
+@keyframes cx-ne-kenburns {
+  from {
+    scale: 1;
+    translate: 0 0;
+  }
+  to {
+    scale: 1.12;
+    translate: var(--ne-kb-x, 0) var(--ne-kb-y, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ne-slide {
+    transition: none;
+  }
+
+  .ne-slide img {
+    animation: none !important;
+  }
+}
+
+/* Chữ nằm trên ảnh: phải đứng SAU .ne-eyebrow để đè màu của nó. */
+
+.ne-on-photo {
+  color: rgb(var(--cx-on-image-rgb) / 0.92);
+  text-shadow: 0 1px 8px rgb(var(--cx-scrim-rgb) / 0.35);
+}
+
+/* Tên mạ vàng tô bằng background-clip nên text-shadow sẽ lộ QUA nét chữ trong
+   suốt — bóng phải là filter. */
+
+.ne-hero-names {
+  filter: drop-shadow(0 2px 10px rgb(var(--cx-scrim-rgb) / 0.45));
+}
+
+.ne-hero-amp {
+  margin: 2px 0;
+  color: rgb(var(--cx-shine-mid-rgb));
+}
+
+.ne-hero-line {
+  background: rgb(var(--cx-shine-mid-rgb) / 0.6);
 }
 
 /* Chấm chỉ vị trí ảnh đang xem */
@@ -287,6 +592,16 @@ body {
 .ne-dot.is-on {
   width: 16px;
   background: rgb(var(--cx-accent-rgb));
+}
+
+/* Chấm của màn mở đầu nằm trên nền tối */
+
+.ne-hero-dots .ne-dot {
+  background: rgb(var(--cx-on-image-rgb) / 0.4);
+}
+
+.ne-hero-dots .ne-dot.is-on {
+  background: rgb(var(--cx-shine-mid-rgb));
 }
 
 /* ── Nút của mẫu ─────────────────────────────────────────────────────────
@@ -593,6 +908,57 @@ body {
   aspect-ratio: 3 / 4;
   overflow: hidden;
   border-radius: 4px;
+}
+
+/* Ảnh mốc zoom + trôi ngang nhẹ, qua lại không dừng — cùng chất trình chiếu
+   với màn mở đầu nhưng chậm và khẽ hơn để không giành mắt với chữ. Ảnh
+   lệch phải/trái trôi ngược ngả nhau; delay âm lệch pha các mốc để chúng
+   không phập phồng cùng một nhịp. Mép thừa (scale 1.04→1.1 = 2%→5%) luôn lớn
+   hơn quãng trôi (1.5%→3.5%) nên không bao giờ lộ viền. */
+
+.ne-mag-photo img {
+  will-change: scale, translate;
+  animation: cx-ne-story-a 12s ease-in-out infinite alternate;
+}
+
+.ne-mag-left .ne-mag-photo img {
+  animation-name: cx-ne-story-b;
+}
+
+.ne-mag:nth-child(3n + 2) .ne-mag-photo img {
+  animation-delay: -4s;
+}
+
+.ne-mag:nth-child(3n) .ne-mag-photo img {
+  animation-delay: -8s;
+}
+
+@keyframes cx-ne-story-a {
+  from {
+    scale: 1.04;
+    translate: 1.5% 0;
+  }
+  to {
+    scale: 1.1;
+    translate: -3.5% -1.5%;
+  }
+}
+
+@keyframes cx-ne-story-b {
+  from {
+    scale: 1.04;
+    translate: -1.5% 0;
+  }
+  to {
+    scale: 1.1;
+    translate: 3.5% -1.5%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ne-mag-photo img {
+    animation: none;
+  }
 }
 
 .ne-mag-right .ne-mag-photo {

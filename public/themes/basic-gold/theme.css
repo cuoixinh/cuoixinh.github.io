@@ -148,3 +148,146 @@ body {
     animation: none;
   }
 }
+
+/* ============= MÀN BÌA: ẢNH RÕ + THẺ GIẤY ============= */
+/* Ảnh phủ trọn khung, thẻ giấy nổi ở đáy. Mở thiệp (#cover-screen.closing do
+   openInvitation đặt) thì thẻ trượt xuống trước, ảnh mờ dần sau để nối vào hero. */
+
+.bg-cov-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Dải tối ở đỉnh ảnh để dòng mở đầu chữ trắng đọc được với mọi ảnh. */
+.bg-cov-scrim {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 160px;
+  background: linear-gradient(rgb(var(--cx-scrim-rgb) / 0.32), transparent);
+  pointer-events: none;
+}
+
+.bg-cov-top {
+  position: absolute;
+  top: 40px;
+  left: 0;
+  right: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: rgb(var(--cx-on-image-rgb));
+  text-shadow: 0 1px 12px rgb(var(--cx-scrim-rgb) / 0.35);
+}
+
+.bg-cov-sheet {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 28px 24px 24px;
+  border-radius: 28px;
+  text-align: center;
+  background: rgb(var(--cx-cover-rgb) / 0.94);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 -8px 40px rgb(var(--cx-scrim-rgb) / 0.12);
+  animation: cx-bg-sheet-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 1, 1), opacity 0.4s ease-in;
+}
+
+/* Tên đôi co theo bề ngang màn; mỗi tên giữ liền một khối (nowrap ở markup) để
+   tên dài xuống dòng theo cả tên, không rớt một chữ. */
+.bg-cov-names {
+  font-size: clamp(32px, 10vw, 40px);
+  text-wrap: balance;
+}
+
+/* Thứ · ngày · tháng · năm của lễ — Cinzel tự dựng chữ thường thành small caps. */
+.bg-cov-date {
+  font-family: "Cinzel", serif;
+  font-size: 13px;
+  letter-spacing: 3px;
+  color: rgb(var(--cx-body-rgb));
+}
+
+.bg-cov-guest {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 12px;
+  border-top: 1px solid rgb(var(--cx-line-rgb));
+}
+
+/* Link chung không có tên khách → chỉ còn một dòng cảm ơn, bỏ khoảng thừa. */
+.cx-guest-generic .bg-cov-guest {
+  padding-bottom: 4px;
+}
+
+.bg-cov-btn {
+  height: 52px;
+  margin-top: 4px;
+  background: rgb(var(--cx-heading-rgb));
+  color: rgb(var(--cx-cover-rgb));
+  box-shadow: 0 8px 24px rgb(var(--cx-heading-rgb) / 0.25);
+}
+
+.bg-cov-btn:focus-visible {
+  outline: 2px solid rgb(var(--cx-accent-rgb));
+  outline-offset: 3px;
+}
+
+#cover-screen.closing {
+  animation: cx-bg-cov-out 0.6s ease-in forwards;
+}
+
+#cover-screen.closing .bg-cov-sheet {
+  animation: none;
+  transform: translateY(calc(100% + 24px));
+  opacity: 0;
+}
+
+#cover-screen.closing .bg-cov-top {
+  opacity: 0;
+  transition: opacity 0.3s ease-in;
+}
+
+@keyframes cx-bg-sheet-in {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Ảnh đứng yên trong lúc thẻ trượt đi, chỉ mờ ở nhịp cuối. */
+@keyframes cx-bg-cov-out {
+  0%,
+  55% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bg-cov-sheet {
+    animation: none;
+    transition: none;
+  }
+}

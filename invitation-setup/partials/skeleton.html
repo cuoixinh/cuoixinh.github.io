@@ -3,89 +3,113 @@
      #setup-topcard · #setup-scroll · #nav-card để lúc content thật hiện ra
      không có cú nhảy nào. Sửa shell ở partials kia thì sửa luôn ở đây. -->
 <div id="skeleton-loader" class="h-[100dvh] flex flex-col overflow-hidden">
-  <!-- Thanh trên: hàng logo + breadcrumb + nút đổi mẫu, dưới là thanh bước. -->
+  <!-- Thanh trên: hàng logo + breadcrumb + nút đổi mẫu (chip các bước nằm trong ngăn thu của dòng bước). -->
   <div class="shrink-0 px-2 sm:px-4 pt-2">
     <div
       class="max-w-4xl mx-auto overflow-hidden bg-white border border-gray-100 rounded-3xl shadow-[0_4px_18px_rgb(var(--scrim-rgb)/0.07)]"
     >
-      <div class="border-b border-gray-100 px-4 h-12 flex items-center gap-3">
+      <div class="px-4 h-12 flex items-center gap-3">
         <div class="hidden sm:block h-8 w-8 skeleton rounded-full shrink-0"></div>
         <div class="h-3 w-32 sm:w-44 skeleton rounded"></div>
         <div class="ml-auto h-9 w-[110px] sm:w-[172px] skeleton rounded-full"></div>
       </div>
-      <!-- Thanh bước: các chip cuộn ngang, chip đầu là bước đang mở nên rộng hơn. -->
-      <div class="flex items-center gap-1 px-3 py-2 overflow-hidden">
-        <div class="h-7 w-28 skeleton rounded-full shrink-0"></div>
-        <div class="h-7 w-20 skeleton rounded-full shrink-0"></div>
-        <div class="h-7 w-24 skeleton rounded-full shrink-0"></div>
-        <div class="h-7 w-20 skeleton rounded-full shrink-0"></div>
-        <div class="h-7 w-24 skeleton rounded-full shrink-0"></div>
-        <div class="h-7 w-20 skeleton rounded-full shrink-0"></div>
-      </div>
     </div>
   </div>
 
-  <!-- Vùng nội dung: một thẻ nổi duy nhất (thẻ thật là khung cuộn, ở đây chỉ cần
-       cắt phần thừa). Bên trong là một block: thanh tiêu đề + các ô nhập. -->
+  <!-- Vùng nội dung: cùng bố cục #setup-scroll — dòng bước + vạch tiến độ ở
+       trên, các ô nhập ở giữa, thanh Lùi/Tiếp ở đáy (thẻ thật là khung cuộn,
+       ở đây chỉ cần cắt phần thừa). -->
   <div class="flex-1 min-h-0 px-2 sm:px-4 my-4">
     <div
-      class="h-full overflow-hidden max-w-4xl mx-auto bg-white rounded-3xl shadow-[0_4px_18px_rgb(var(--scrim-rgb)/0.07)] px-4 sm:px-6 py-5 space-y-5"
+      class="h-full overflow-hidden max-w-4xl mx-auto flex flex-col bg-white rounded-3xl shadow-[0_4px_18px_rgb(var(--scrim-rgb)/0.07)]"
     >
-      <div class="h-9 w-52 skeleton rounded-full"></div>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="h-14 skeleton rounded-2xl"></div>
-        <div class="h-14 skeleton rounded-2xl"></div>
+      <div class="shrink-0 border-b border-gray-100 px-4 sm:px-6 pt-1 pb-3">
+        <div class="flex h-11 items-center justify-between gap-3">
+          <div class="h-4 w-28 skeleton rounded"></div>
+          <div class="h-3 w-16 skeleton rounded"></div>
+        </div>
+        <div class="mt-1 h-1 skeleton rounded-full"></div>
       </div>
-      <div class="h-14 skeleton rounded-2xl"></div>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="h-14 skeleton rounded-2xl"></div>
-        <div class="h-14 skeleton rounded-2xl"></div>
+      <div class="flex-1 min-h-0 overflow-hidden px-4 sm:px-6 py-5 space-y-5">
+        <div class="h-4 w-24 skeleton rounded"></div>
+        <div class="space-y-2">
+          <div class="h-3 w-40 skeleton rounded"></div>
+          <div class="h-10 skeleton rounded-xl"></div>
+        </div>
+        <div class="space-y-2">
+          <div class="h-3 w-24 skeleton rounded"></div>
+          <div class="h-10 skeleton rounded-xl"></div>
+        </div>
+        <div class="space-y-2">
+          <div class="h-3 w-20 skeleton rounded"></div>
+          <div class="flex items-center gap-3">
+            <div class="h-20 w-20 shrink-0 skeleton rounded-2xl"></div>
+            <div class="h-3 w-40 skeleton rounded"></div>
+          </div>
+        </div>
+        <div class="space-y-2">
+          <div class="h-3 w-40 skeleton rounded"></div>
+          <div class="h-10 skeleton rounded-xl"></div>
+        </div>
       </div>
-      <div class="h-24 skeleton rounded-2xl"></div>
-      <div class="h-40 w-full max-w-[220px] skeleton rounded-2xl"></div>
+      <div
+        class="shrink-0 flex items-center justify-between border-t border-gray-100 px-3 sm:px-6 py-3"
+      >
+        <div class="h-10 w-20 skeleton rounded-full"></div>
+        <div class="h-10 w-40 skeleton rounded-full"></div>
+      </div>
     </div>
   </div>
 
   <!-- Navbar: cùng hình dạng #nav-card (thẻ nổi, lề trong, các ô khổ cố định từ
-       sm, hai nút hành động dồn phải bằng ml-auto). -->
+       sm, hai nút hành động dồn phải bằng ml-auto). Khổ ô bám đúng các dải của
+       styles/_setup.css: 640–1023px thu gọn (tab 80 · nháp 100 · xuất bản 120). -->
   <div class="shrink-0 px-2 sm:px-4 pb-2">
     <div
       class="max-w-4xl mx-auto flex items-stretch px-1.5 sm:px-2 bg-white border border-rose-100 rounded-3xl shadow-[0_-4px_18px_rgb(var(--scrim-rgb)/0.08)]"
     >
-      <!-- Chuyển Chỉnh sửa/Xem trước -->
+      <!-- Sửa · Xem: hai ô tab (từ 820px chỉ còn "Chỉnh sửa") -->
       <div
-        class="flex-1 sm:flex-none sm:w-[148px] flex items-center justify-center px-1 sm:px-3"
+        class="flex-none w-20 sm:w-40 pad:w-24 flex items-stretch px-1 sm:px-0 pad:px-3"
       >
-        <div class="h-8 w-full skeleton rounded-full"></div>
+        <div class="flex-1 my-3 py-2 flex flex-col items-center justify-center gap-1">
+          <div class="h-4 w-4 skeleton rounded-full"></div>
+          <div class="h-3 w-6 sm:w-10 skeleton rounded"></div>
+        </div>
+        <div class="pad:hidden flex-1 my-3 py-2 flex flex-col items-center justify-center gap-1">
+          <div class="h-4 w-4 skeleton rounded-full"></div>
+          <div class="h-3 w-6 sm:w-10 skeleton rounded"></div>
+        </div>
       </div>
-      <!-- Ba tab: icon tròn + nhãn dưới -->
+      <!-- Tab: icon tròn + nhãn dưới (điện thoại còn hai ô: Cấu hình + Tùy chọn) -->
       <div
-        class="flex-none sm:w-[88px] my-3 flex flex-col items-center justify-center gap-1 px-2 sm:px-3"
+        class="flex-none sm:w-20 lg:w-[88px] my-3 py-2 flex flex-col items-center justify-center gap-1 px-2 sm:px-3"
       >
-        <div class="h-5 w-5 skeleton rounded-full"></div>
-        <div class="hidden sm:block h-2 w-10 skeleton rounded"></div>
+        <div class="h-4 w-4 skeleton rounded-full"></div>
+        <div class="h-3 w-10 skeleton rounded"></div>
       </div>
       <div
-        class="flex-none sm:w-[88px] my-3 flex flex-col items-center justify-center gap-1 px-2 sm:px-3"
+        class="flex-none sm:w-20 lg:w-[88px] my-3 py-2 flex flex-col items-center justify-center gap-1 px-2 sm:px-3"
       >
-        <div class="h-5 w-5 skeleton rounded-full"></div>
-        <div class="hidden sm:block h-2 w-10 skeleton rounded"></div>
+        <div class="h-4 w-4 skeleton rounded-full"></div>
+        <div class="h-3 w-10 skeleton rounded"></div>
       </div>
       <div
-        class="hidden sm:flex flex-none sm:w-[88px] my-3 flex-col items-center justify-center gap-1 px-3"
+        class="hidden lg:flex flex-none sm:w-20 lg:w-[88px] my-3 py-2 flex-col items-center justify-center gap-1 px-3"
       >
-        <div class="h-5 w-5 skeleton rounded-full"></div>
-        <div class="h-2 w-10 skeleton rounded"></div>
+        <div class="h-4 w-4 skeleton rounded-full"></div>
+        <div class="h-3 w-10 skeleton rounded"></div>
       </div>
       <!-- Lưu nháp + Xuất bản -->
       <div class="ml-auto flex items-stretch sm:pl-2">
+        <!-- Lưu nháp: điện thoại chỉ còn nút tròn icon -->
         <div
-          class="flex-none sm:w-[120px] flex items-center justify-center px-1 sm:px-1.5 py-2"
+          class="flex-none sm:w-[100px] lg:w-[120px] flex items-center justify-center px-0.5 sm:px-1.5 py-2"
         >
-          <div class="h-9 w-full min-w-[76px] skeleton rounded-full"></div>
+          <div class="h-9 w-9 sm:w-full skeleton rounded-full"></div>
         </div>
         <div
-          class="flex-none sm:w-[148px] flex items-center justify-center px-1 sm:px-1.5 py-2"
+          class="flex-none sm:w-[120px] lg:w-[148px] flex items-center justify-center px-1 sm:px-1.5 py-2"
         >
           <div class="h-9 w-full min-w-[76px] skeleton rounded-full"></div>
         </div>

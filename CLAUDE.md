@@ -101,10 +101,16 @@ Không gọi thẳng UI → DAL khi có logic nghiệp vụ.
 - **MCP chỉ để ĐỌC** (project `lcobawmkywtxhpezndsh`). Dùng `list_tables`/`execute_sql` để
   biết schema thật — changelogs là lịch sử, không phải nguồn sự thật.
 - **Không sửa DB qua MCP.** Mọi thay đổi schema → script SQL **idempotent** trong
-  `changelogs/RC<major>/RC<major>_<số 3 chữ số>_<tên>.sql` (mỗi dòng major một thư mục; số
-  đó để sort chữ ra đúng thứ tự chạy; minor cho thay đổi thường, major cho breaking +
-  baseline mới),
-  cập nhật bảng phiên bản ở `changelogs/README.md`, người dùng tự chạy ở Dashboard.
+  `changelogs/RC<NN>/{schema,data,manual}/dqvinh_<số 3 chữ số>_<tên>.sql` (số để sort chữ
+  ra đúng thứ tự chạy), người dùng tự chạy ở Dashboard trên cả hai project.
+- **Luôn ghi vào thư mục `RC<NN>/` có SỐ LỚN NHẤT** — đừng chọn theo tên cứng. Mở một
+  thư mục RC mới là việc của người dùng, và lúc đó tức là chốt BASELINE: mọi RC nhỏ hơn
+  ĐÓNG BĂNG, không sửa file nào trong đó nữa. Trong RC đang mở, mỗi thay đổi là file MỚI
+  chỉ chứa phần chênh, không sửa ngược file đã chạy trên production.
+- **Đã phát hành — production có dữ liệu khách thật.** Không bao giờ chạy
+  `dqvinh_000_reset.sql` trên production. Thay đổi phải giữ dữ liệu cũ: thêm
+  cột có default/backfill thay vì drop-tạo lại, đổi tên/xoá cột là breaking (Edge Function
+  cũ vẫn đọc tên cũ cho tới khi deploy xong) — và thiệp đã xuất bản phải vẫn mở được.
 - **Deploy Edge Function — môi trường chọn bằng CỜ:** `npm run deploy:functions:staging`,
   `npm run deploy:functions` (production), `npm run deploy:functions:all` (cả hai, staging
   trước). Thêm `-- <tên>` để chỉ đẩy vài function. Đừng bày cú pháp `VAR=x npm run …`: nó
@@ -160,8 +166,10 @@ nữa**, nó chỉ nằm trong log Supabase và không ai đi soi.
 `STEP_PARTIALS` + thẻ mount, và `CX_STEPS` (`id` trùng `data-step`). Mẫu thiệp bỏ hẳn
 một mục thì khai `CX_THEME.skipSteps` (vd `["family"]`) — `js/25-theme-decl.js` nạp
 `index.js` của mẫu trong iframe rỗng để đọc bản khai rồi phát `cx-theme-decl`, thanh bước
-tự vẽ lại; **đừng dựng danh sách tên mẫu trong trang Thiết lập**. `#step-nav` là cặp nút
-NỔI (`fixed`) ngoài `<form>` — đưa nó vào luồng là ăn mất một dòng ở mọi bước.
+tự vẽ lại; **đừng dựng danh sách tên mẫu trong trang Thiết lập**. `#step-head` (bước
+đang mở + vạch tiến độ) và `#step-nav` (Lùi/Tiếp) là hai thanh DÍNH (`sticky`) đầu/đáy
+`#setup-scroll`, ngoài `<form>` — đừng trả `#step-nav` về nút nổi `fixed`: nó đè lên ô nhập.
+Chip các bước nằm trong ngăn THU của `#step-head` (bấm dòng bước mới mở, `cxStepBarToggle`).
 
 **Vỏ trang** (`js/21-shell.js`) là **app shell: trang KHÔNG cuộn**. Ba thẻ nổi cùng khổ
 (`max-w-4xl`) xếp dọc màn: thanh trên `#setup-topcard` · vùng nội dung `#setup-scroll` ·
@@ -170,9 +178,9 @@ navbar `#nav-card` — vỏ ngoài của cả ba chỉ trong suốt, đừng tr�
 `_cxSyncTopHeight` và `_syncNavHeight` đo, 32px là `my-4` của chính thẻ — đổi lề phải đổi
 cả công thức). Muốn đưa phần tử vào tầm nhìn thì
 `scrollIntoView` (tự tìm khung cuộn gần nhất) — **đừng dùng `window.scrollTo` /
-`documentElement.scrollTop`**, trang không cuộn nên vô tác dụng. Phần tử NGOÀI khung nội
-dung (chip ở thanh bước…) thì tự đặt `scrollLeft/scrollTop` cho đúng khung: `scrollIntoView`
-cuộn lây cả khung cha, đủ để đẩy thanh trên ra khỏi màn.
+`documentElement.scrollTop`**, trang không cuộn nên vô tác dụng. Phần tử trong khung cuộn
+LỒNG (chip ở dải cuộn ngang của thanh bước…) thì tự đặt `scrollLeft/scrollTop` cho đúng khung:
+`scrollIntoView` cuộn lây cả khung cha, kéo cả khung nội dung đi theo.
 
 Navbar dưới **fill động** (`cxNavReflow`): các mục khai ở `CX_NAV_ITEMS` đứng thẳng ở
 `#nav-slots` khi còn chỗ, hết chỗ mới lùi dần vào popover `#nav-more-pop` (mục cuối lùi
@@ -418,7 +426,8 @@ GitHub Pages chạy Jekyll nên đường dẫn kiểu đó không được publ
   vẽ mục đó — id trùng `CX_STEPS`), `wishesMode` (dạng lời chúc khi
   `theme_setting.wishes_mode` trống),
   `music` (`{variant, chrome}` của `CXMusicPlayer.build`, `theme-boot.js` dựng vào
-  `#cx-music-mount`), `loveStory` (`short`/`medium`/`long` — độ dài mốc chuyện tình XuXi
+  `#cx-music-mount`; `art` = ảnh trên nút khi khách chưa chọn, mọi mẫu đang để
+  `"couple"` = ảnh bìa thiệp), `loveStory` (`short`/`medium`/`long` — độ dài mốc chuyện tình XuXi
   viết khi khách chọn mẫu này, `LOVE_LEN` ở `ai-chat/knowledge.ts`), `onOpen`.
   Chỗ nào cần đọc bản khai từ ngoài thiệp thì qua `cxReadThemeDecl` (`core/helpers/theme-decl.js`).
   Trang Thiết lập đọc `swatches` và `palette` **qua iframe xem trước** của tab Giao diện.

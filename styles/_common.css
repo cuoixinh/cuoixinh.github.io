@@ -527,13 +527,10 @@ svg.cx-ic {
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  gap: 10px;
-  /* Lề đáy CỐ ĐỊNH, không cộng env(safe-area-inset-bottom) — xem .cx-tabbar. */
-  padding: 12px 12px 14px;
-  /* Dải tối dâng từ đáy: đủ đậm để thẻ trắng và nhãn dưới nút tròn nổi hẳn khỏi
-     thiệp nền sáng, phần trên vẫn trong để không che mất thiệp. Không
-     backdrop-filter — làm mờ vùng phía sau buộc trình duyệt vẽ lại mỗi khung
-     hình, giật trên máy yếu. */
+  /* Dải tối NHẠT dâng từ đáy: đủ để thẻ trắng và nhãn dưới nút tròn nổi khỏi
+     thiệp nền sáng (nhãn trắng còn có bóng chữ đỡ), phần trên vẫn trong để
+     không che mất thiệp. Không backdrop-filter — làm mờ vùng phía sau buộc
+     trình duyệt vẽ lại mỗi khung hình, giật trên máy yếu. */
   background: linear-gradient(
     to top,
     rgb(var(--scrim-rgb) / 0.62) 0%,
@@ -542,13 +539,34 @@ svg.cx-ic {
     transparent 80%
   );
   opacity: 0;
+  /* Đóng là ẨN HẲN chứ không chỉ trong suốt: còn visible thì các nút vô hình
+     vẫn nằm trong thứ tự Tab. visibility đổi SAU khi mờ xong để giữ chuyển
+     động; đóng (0.2s) nhanh hơn mở (0.3s). */
+  visibility: hidden;
   pointer-events: none;
   will-change: opacity;
-  transition: opacity 0.3s ease;
+  transition:
+    opacity 0.2s ease-in,
+    visibility 0s linear 0.2s;
 }
 
 .cx-sug.is-open {
   opacity: 1;
+  visibility: visible;
+  transition:
+    opacity 0.3s ease-out,
+    visibility 0s;
+}
+
+/* Khối nội dung, dồn đáy màn. Dải tối nằm trên .cx-sug (cả màn), không phải
+   ở đây. */
+
+.cx-sug-in {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  /* Lề đáy CỐ ĐỊNH, không cộng env(safe-area-inset-bottom) — xem .cx-tabbar. */
+  padding: 12px 12px 16px;
 }
 
 /* Con của lớp phủ mới là thứ bắt chuột. .is-open để lúc đóng không có nút vô
@@ -567,7 +585,6 @@ svg.cx-ic {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 2px;
 }
 
 /* Tiêu đề dãy thẻ — chữ trắng nổi thẳng trên thiệp (không có nền đỡ) nên phải
@@ -575,7 +592,7 @@ svg.cx-ic {
 
 .cx-sug-title {
   min-width: 0;
-  font-size: 12.5px;
+  font-size: 14px;
   font-weight: 600;
   line-height: 1.2;
   color: rgb(var(--white-rgb));
@@ -590,23 +607,61 @@ svg.cx-ic {
   align-items: center;
   gap: 6px;
   margin-left: auto;
-  padding: 6px 12px;
-  border: none;
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid rgb(var(--white-rgb) / 0.24);
   cursor: pointer;
   border-radius: 999px;
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 600;
   line-height: 1;
   color: rgb(var(--white-rgb));
-  background: rgb(var(--scrim-rgb) / 0.55);
+  background: rgb(var(--white-rgb) / 0.12);
+  position: relative;
+  transition: background-color 0.18s ease;
+}
+
+/* Vùng bấm 44px quanh viên thuốc 32px — nút nhỏ cho đỡ chiếm chỗ mà ngón tay
+   vẫn trúng. */
+
+.cx-sug-hide::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+}
+
+.cx-sug-hide:hover {
+  background: rgb(var(--white-rgb) / 0.24);
+}
+
+/* Vòng focus TRẮNG cho mọi thứ bấm được trong lớp phủ: nền ở đây là dải tối,
+   vòng hồng mặc định chìm mất. */
+
+.cx-sug-hide:focus-visible,
+.cx-sug-tile:focus-visible,
+.cx-sug-dot:focus-visible {
+  outline: 2px solid rgb(var(--white-rgb));
+  outline-offset: 2px;
+}
+
+/* Nút trong lòng thẻ trắng thì ngược lại: vòng màu đậm. */
+
+.cx-sug-mini-btn:focus-visible {
+  outline: 2px solid rgb(var(--action-primary-deep-rgb));
+  outline-offset: 2px;
 }
 
 /* Dãy thẻ: vuốt ngang, dừng đúng mép mỗi thẻ. Ẩn thanh cuộn nhưng KHÔNG khoá
-   cuộn — trên máy tính đó là cách duy nhất đi hết danh sách. */
+   cuộn — trên máy tính đó là cách duy nhất đi hết danh sách. Khổ theo nội
+   dung, trần 100%: ít thẻ thì dãy nằm sát mép trái thẳng hàng tiêu đề, nhiều
+   thì cuộn. */
 
 .cx-sug-row {
   display: flex;
-  gap: 10px;
+  align-self: flex-start;
+  width: max-content;
+  max-width: 100%;
+  gap: 12px;
   overflow-x: auto;
   overflow-y: hidden;
   scroll-snap-type: x mandatory;
@@ -619,51 +674,75 @@ svg.cx-ic {
   display: none;
 }
 
+/* Kéo bằng chuột (_dragScroll ở core/utils.js): tắt snap trong lúc kéo và lúc
+   trượt về mép thẻ, không thì trình duyệt giật dãy về thẻ cũ giữa chừng. */
+
+@media (hover: hover) and (pointer: fine) {
+  .cx-sug-row {
+    cursor: grab;
+  }
+}
+
+.cx-sug-row.is-drag,
+.cx-sug-row.is-free {
+  scroll-snap-type: none;
+}
+
+.cx-sug-row.is-drag,
+.cx-sug-row.is-drag .cx-sug-card,
+.cx-sug-row.is-drag .cx-sug-mini-btn {
+  cursor: grabbing;
+  user-select: none;
+}
+
 /* Chấm chỉ vị trí dưới dãy thẻ — một chấm một thẻ, chấm đang xem kéo dài thành
-   viên thuốc. Cũng là nút bấm để nhảy tới thẻ đó. */
+   viên thuốc. Cũng là nút bấm để nhảy tới thẻ đó — cách thay cho vuốt với
+   chuột/bàn phím: nút 24px (mức tối thiểu WCAG 2.2 cho web), chấm vẽ 6px ở
+   giữa (padding + background-clip) để đủ chỗ bấm mà chấm vẫn nhỏ. */
 
 .cx-sug-dots {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 6px;
-  margin-top: 2px;
+  margin: -8px 0;
 }
 
 .cx-sug-dot {
-  width: 6px;
-  height: 6px;
-  padding: 0;
+  width: 24px;
+  height: 24px;
+  padding: 9px;
   border: none;
   cursor: pointer;
   border-radius: 999px;
-  background: rgb(var(--white-rgb) / 0.55);
-  box-shadow: 0 1px 4px rgb(var(--scrim-rgb) / 0.5);
+  background: rgb(var(--white-rgb) / 0.45);
+  background-clip: content-box;
   transition:
     width 0.24s ease,
-    background 0.24s ease;
+    background-color 0.24s ease;
 }
 
 .cx-sug-dot.is-on {
-  width: 16px;
-  background: rgb(var(--white-rgb));
+  width: 36px;
+  background-color: rgb(var(--white-rgb));
 }
 
-/* Một thẻ = khổ gần VUÔNG (cao hơn rộng một chút): ảnh chụp sẵn của mẫu
+/* Một thẻ = khổ NGANG 280px — vừa một thẻ + mép thẻ sau trên điện thoại 360px,
+   đủ rộng để cột chữ đọc được ở 12px. Ảnh chụp sẵn của mẫu
    (/assets/images/templates/*.jpg, cùng bộ ảnh với lưới mẫu ở trang chủ) cắt
    khổ DỌC 9:16 (dáng màn điện thoại) đầy cột trái, tên + mô tả ở cột phải.
-   Cả thẻ là MỘT nút.
+   Bấm cả thẻ = xem thử (chuột/ngón tay); bàn phím đi qua nút "Xem trước".
    Thẻ trôi lên khi lớp phủ mở, lệch nhịp nhau cho ra dáng "rơi vào chỗ". */
 
 .cx-sug-card {
   display: flex;
   align-items: stretch;
-  gap: 9px;
+  gap: 12px;
   flex: 0 0 auto;
-  width: 230px;
-  height: 216px;
-  padding: 0px;
-  cursor: pointer;
+  width: 280px;
+  height: 200px;
+  padding: 0;
+  /* Bàn tay như cả dãy: thẻ vừa kéo được vừa bấm được, chỉ 2 nút con là con trỏ bấm. */
+  cursor: grab;
   scroll-snap-align: start;
   border-radius: 12px;
   background: rgb(var(--white-rgb));
@@ -680,15 +759,15 @@ svg.cx-ic {
 }
 
 .cx-sug.is-open .cx-sug-card:nth-child(2) {
-  transition-delay: 0.06s;
+  transition-delay: 0.04s;
 }
 
 .cx-sug.is-open .cx-sug-card:nth-child(3) {
-  transition-delay: 0.12s;
+  transition-delay: 0.08s;
 }
 
 .cx-sug.is-open .cx-sug-card:nth-child(4) {
-  transition-delay: 0.18s;
+  transition-delay: 0.12s;
 }
 
 /* Ảnh gốc là ảnh chụp MÀN HÌNH DỌC của thiệp nên giữ nguyên dáng dọc: cao
@@ -703,7 +782,7 @@ svg.cx-ic {
   aspect-ratio: 9 / 16;
   object-fit: cover;
   object-position: top center;
-  border-radius: 12px 0px 0px 12px;
+  border-radius: 12px 0 0 12px;
   background: rgb(var(--surface-blossom-rgb));
 }
 
@@ -726,9 +805,9 @@ svg.cx-ic {
 
 .cx-sug-name {
   flex: 0 0 auto;
-  font-size: 12.5px;
+  font-size: 14px;
   font-weight: 600;
-  line-height: 1.25;
+  line-height: 1.3;
   color: rgb(var(--text-heading-rgb));
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -740,11 +819,12 @@ svg.cx-ic {
   flex: 0 1 auto;
   min-height: 0;
   margin-top: 4px;
-  font-size: 10.5px;
-  line-height: 1.35;
-  color: rgb(var(--text-muted-rgb));
+  font-size: 12px;
+  line-height: 1.4;
+  /* text-muted chỉ 4.1:1 trên trắng — chữ 12px phải ≥4.5:1. */
+  color: rgb(var(--text-subtle-rgb));
   display: -webkit-box;
-  -webkit-line-clamp: 6;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -757,26 +837,52 @@ svg.cx-ic {
 .cx-sug-mini {
   display: flex;
   flex: 0 0 auto;
-  gap: 4px;
+  gap: 8px;
   margin-top: auto;
   padding-top: 8px;
 }
 
-/* Cùng công thức với cặp nút ở thẻ mẫu (.tt-btn-* trong tailwind-src.css):
-   "Xem trước" viền hồng nền trắng, "Dùng ngay" hồng đặc. Đổi một bên thì đổi
-   cả hai, hai chỗ cố ý nhìn như một bộ. */
+/* Màn thấp (điện thoại nhỏ): thẻ lùn lại, mô tả còn hai dòng — để lớp phủ
+   không che quá nửa thiệp. Máy xoay ngang (≤480px cao) thì bỏ hẳn mô tả. */
+
+@media (max-height: 680px) {
+  .cx-sug-card {
+    height: 180px;
+  }
+
+  .cx-sug-desc {
+    -webkit-line-clamp: 2;
+  }
+}
+
+@media (max-height: 480px) {
+  .cx-sug-card {
+    height: 148px;
+  }
+
+  .cx-sug-desc {
+    display: none;
+  }
+}
+
+/* KHÁC cặp nút ở thẻ mẫu trang chủ (.tt-btn-*), cố ý: ở lưới mẫu mỗi thẻ là
+   một lựa chọn ngang hàng, còn ở đây màn đã có nút chính "Dùng mẫu này" — tô
+   đặc thêm "Dùng ngay" trên từng thẻ là bốn năm nút chính tranh nhau. Nên:
+   "Xem trước" viền, "Dùng ngay" nền hồng nhạt; chữ action-primary-deep (≥5.7:1
+   trên cả hai nền — brand-accent chỉ 2.5:1). */
 
 .cx-sug-mini-btn {
+  justify-content: center;
   gap: 4px;
-  height: 26px;
-  padding: 0 10px;
+  height: 32px;
+  padding: 0 12px;
   cursor: pointer;
   white-space: nowrap;
-  font-size: 10.5px;
+  font-size: 12px;
   font-weight: 600;
   line-height: 1;
   border: 1px solid rgb(var(--brand-primary-rgb));
-  color: rgb(var(--brand-accent-rgb));
+  color: rgb(var(--action-primary-deep-rgb));
   background: rgb(var(--white-rgb));
   transition:
     background-color 0.18s ease,
@@ -788,15 +894,13 @@ svg.cx-ic {
   background: rgb(var(--surface-brand-rgb));
 }
 
-.cx-sug-mini-btn.is-primary {
+.cx-sug-mini-btn.is-use {
   border-color: transparent;
-  color: rgb(var(--white-rgb));
-  background: rgb(var(--action-primary-rgb));
-  box-shadow: 0 4px 12px rgb(var(--action-primary-rgb) / 0.32);
+  background: rgb(var(--surface-brand-rgb));
 }
 
-.cx-sug-mini-btn.is-primary:hover {
-  background: rgb(var(--action-primary-hover-rgb));
+.cx-sug-mini-btn.is-use:hover {
+  background: rgb(var(--surface-blossom-rgb));
 }
 
 /* ── Ba lối ra ở đáy bảng ──────────────────────────────────────────────────
@@ -804,7 +908,7 @@ svg.cx-ic {
    có icon, nhãn nhỏ nằm dưới — hai việc phụ nên không được to ngang việc chính.
    Cả hàng dồn vào giữa và canh theo MÉP TRÊN để pill thẳng hàng với hai vòng
    tròn (nhãn dưới cao thấp khác nhau thì hàng vẫn phẳng).
-   Là <div role="button"> nên chuột lẫn bàn phím đều do JS nối (utils.js). */
+   Là <x-button variant="bare"> nên bàn phím có sẵn, chỉ click do JS nối. */
 
 .cx-sug-acts {
   display: flex;
@@ -817,14 +921,15 @@ svg.cx-ic {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   min-width: 0;
   cursor: pointer;
-  color: rgb(var(--brand-accent-rgb));
+  /* brand-accent trên nền hồng nhạt chỉ 2.3:1 — icon mang nghĩa cần ≥3:1. */
+  color: rgb(var(--action-primary-deep-rgb));
 }
 
-/* Vòng tròn đựng icon — nền đặc vì bảng đề xuất là lớp kính mờ, nền trong suốt
-   thì nút chìm vào chính tấm ảnh thiệp nằm dưới. */
+/* Vòng tròn đựng icon — nền đặc: nền trong suốt thì nút chìm vào dải tối
+   và tấm ảnh thiệp nằm dưới. */
 
 .cx-sug-tile .cx-sug-ico {
   width: 44px;
@@ -886,9 +991,11 @@ svg.cx-ic {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
-  line-height: 1;
+  /* Dòng phải cao hơn cỡ chữ: overflow:hidden (để có dấu …) cắt theo hộp dòng,
+     line-height 1 là mất đuôi chữ g, y. */
+  line-height: 16px;
   letter-spacing: 0.2px;
   /* Nhãn nằm trên dải TỐI dâng từ đáy lớp phủ → chữ trắng kèm bóng tối, cùng
      công thức với .cx-sug-title. Chữ màu đậm ở đây là chìm hẳn vào nền. */
@@ -909,6 +1016,24 @@ svg.cx-ic {
   justify-content: center;
   flex: 0 0 auto;
   color: inherit;
+}
+
+/* Giảm chuyển động: thẻ hiện thẳng, không trôi/co giãn. Lớp phủ vẫn mờ dần —
+   đổi độ mờ không phải chuyển động dịch chỗ. */
+
+@media (prefers-reduced-motion: reduce) {
+  .cx-sug-card,
+  .cx-sug-dot,
+  .cx-sug-tile .cx-sug-ico,
+  .cx-sug-tile.is-primary {
+    transition: none;
+  }
+
+  .cx-sug-card,
+  .cx-sug-tile:active .cx-sug-ico,
+  .cx-sug-tile.is-primary:active {
+    transform: none;
+  }
 }
 
 /* ── iOS / viewport ──────────────────────────────────────────────────────── */
@@ -1696,6 +1821,48 @@ x-button {
   text-overflow: ellipsis;
 }
 
+/* Có thanh phân đoạn (opts.seg) thì tên dồn trái nhường chỗ cho nó. */
+.cx-pchrome-bar.has-seg .cx-pchrome-name {
+  text-align: left;
+  font-size: calc(15px * var(--cx-pu));
+}
+
+/* Thanh phân đoạn kiểu iOS: nền xám, nút đang chọn là viên trắng nổi. */
+.cx-pchrome-seg {
+  display: inline-flex;
+  flex: none;
+  padding: calc(2px * var(--cx-pu));
+  border-radius: 999px;
+  background: #ececf0;
+}
+
+.cx-pchrome-segbtn {
+  padding: calc(5px * var(--cx-pu)) calc(10px * var(--cx-pu));
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #8e8e93;
+  font: inherit;
+  font-size: calc(12px * var(--cx-pu));
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.cx-pchrome-segbtn:hover {
+  color: #3a3a3c;
+}
+
+.cx-pchrome-segbtn.is-on {
+  background: #fff;
+  color: #e11d48;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.14);
+}
+
 /* Cùng một hình cho nút thật lẫn ô CHỈ ĐỂ NHÌN (thẻ <span> khi trang gọi không
    khai việc cho nó) — thanh tiêu đề phải cân như nhau ở mọi khung. */
 .cx-pchrome-btn {
@@ -1943,11 +2110,12 @@ button.cx-pchrome-btn:hover {
      nền xám đè lên tông pastel của thiệp là ra một mảng đục. */
   --cx-wish-field-rgb: var(--cx-wish-bubble-rgb);
   --cx-wish-field-a: 0.96;
-  /* Màn TỐI ở ĐÁY dải nổi (::before) — neo hàng nút + ô nhập xuống mép dưới. Cố
-     ý tối ở mọi mẫu: thứ trôi bên dưới đủ mọi màu, chỉ một vệt tối mỏng là chỗ
-     nào cũng ra được chiều sâu. Mẫu đổi bằng CX_THEME.wishes.fade. */
-  --cx-wish-fade-rgb: 0 0 0;
-  --cx-wish-fade-a: 0.32;
+  /* Màn phủ ở ĐÁY dải nổi (::before) — neo hàng nút + ô nhập xuống mép dưới.
+     Lấy màu NỀN THIỆP: thiệp sáng thì đáy mờ dần về giấy, thiệp tối thì về nền
+     tối — vệt đen cố định đè lên thiệp tông pastel đọc thành một mảng xám đục.
+     Mẫu đổi bằng CX_THEME.wishes.fade. */
+  --cx-wish-fade-rgb: var(--cx-card-bg-rgb);
+  --cx-wish-fade-a: 0.92;
 }
 
 /* Dải nổi: ghim đáy khung nhìn, KHÔNG bắt chạm (từng phần con tự bật lại). */
@@ -2083,8 +2251,11 @@ button.cx-pchrome-btn:hover {
    mảnh + bóng đổ mềm: bong bóng phải đọc được cả khi trôi qua ảnh cưới lẫn khi
    trôi qua nền giấy trắng của thân thiệp. */
 .cx-wish-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
   max-width: 100%;
-  padding: 9px 14px 10px;
+  padding: 9px 14px 10px 10px;
   border-radius: 16px 16px 16px 6px;
   font-size: 13px;
   line-height: 1.55;
@@ -2102,10 +2273,33 @@ button.cx-pchrome-btn:hover {
   backdrop-filter: blur(6px);
 }
 
+/* Chữ cái đầu của tên khách, đứng thay ảnh đại diện (_cxWishAvHtml). Nền là
+   màu nhấn pha loãng nên ăn theo bảng màu của mẫu. */
+.cx-wish-av {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  color: rgb(var(--cx-wish-accent-rgb));
+  background: rgb(var(--cx-wish-accent-rgb) / 0.12);
+}
+
+.cx-wish-body {
+  display: block;
+  flex: 1;
+  min-width: 0;
+}
+
 .cx-wish-name {
   display: block;
   margin-bottom: 3px;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -2134,8 +2328,8 @@ button.cx-pchrome-btn:hover {
   align-items: center;
   justify-content: center;
   flex: none;
-  width: 30px;
-  height: 30px;
+  width: 36px;
+  height: 36px;
   padding: 0;
   border-radius: 999px;
   pointer-events: auto;
@@ -2317,7 +2511,7 @@ button.cx-pchrome-btn:hover {
 
 .cx-wdock-text::placeholder {
   color: inherit;
-  opacity: 0.45;
+  opacity: 0.6;
 }
 
 .cx-wdock-text:focus {
@@ -2337,8 +2531,8 @@ button.cx-pchrome-btn:hover {
   align-items: center;
   justify-content: center;
   flex: none;
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border-radius: 999px;
   color: rgb(var(--cx-wish-on-btn-rgb));
   background: rgb(var(--cx-wish-btn-rgb));
@@ -2493,10 +2687,13 @@ button.cx-pchrome-btn:hover {
   display: none;
 }
 
+/* Lớp phủ của bảng là màn TỐI (token scrim), không đi theo --cx-wish-fade: màn
+   đáy dải nổi ăn màu nền thiệp, mượn nó ở đây thì thiệp sáng ra lớp phủ trắng —
+   bảng không còn tách khỏi phần thiệp phía sau. */
 .cx-wall-veil {
   position: absolute;
   inset: 0;
-  background: rgb(var(--cx-wish-fade-rgb) / 0.5);
+  background: rgb(var(--cx-scrim-rgb) / 0.4);
   -webkit-backdrop-filter: blur(2px);
   backdrop-filter: blur(2px);
 }
@@ -2551,8 +2748,8 @@ button.cx-pchrome-btn:hover {
   align-items: center;
   justify-content: center;
   flex: none;
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   margin-left: auto;
   padding: 0;
   border: 0;
@@ -2572,6 +2769,9 @@ button.cx-pchrome-btn:hover {
 /* Trong bảng thì mặt giấy đã là nền rồi, bong bóng nữa là giấy chồng giấy —
    mỗi lời chúc chỉ còn một hàng ngăn bằng vạch mảnh. */
 .cx-wall-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
   padding: 14px 0;
   font-size: 13px;
   line-height: 1.55;
@@ -2643,9 +2843,10 @@ button.cx-pchrome-btn:hover {
   color: rgb(var(--cx-wish-accent-rgb));
 }
 
-/* Khung cuộn: cao tối đa nửa màn (qua --vh, không dùng dvh/svh trần — xem
+/* Khung danh sách: cao tối đa nửa màn (qua --vh, không dùng dvh/svh trần — xem
    vh-lock.js). Ngắn hơn thì co theo nội dung, không để một khoảng trống. Hai
-   dải mờ trên/dưới cho chữ tan dần thay vì bị cắt ngang lúc đang bò. */
+   dải mờ trên/dưới cho chữ tan dần thay vì bị cắt ngang. Dạng thẻ, phân trang
+   và bình luận đều ghi đè một phần ở khối riêng bên dưới. */
 .cx-wsec-list {
   display: flex;
   flex-direction: column;
@@ -2697,14 +2898,20 @@ button.cx-pchrome-btn:hover {
 
 /* Bong bóng ở đây nằm trên nền giấy của thiệp chứ không trôi qua ảnh → bỏ lớp
    nhoè (tốn khung hình mà chẳng thấy gì). Đọc chậm chứ không lướt qua như dải
-   trôi nên chữ và lề đều rộng hơn một nhịp. Chỉ chiếm 74% bề ngang và dồn về
-   trái: chừa một khoảng lề phải để ra dáng lời nhắn của người khác, cũng là để
-   ô gửi (stretch hết hàng) tách hẳn khỏi danh sách. */
+   trôi nên chữ và lề đều rộng hơn một nhịp. Trải HẾT bề ngang như một dòng bình
+   luận: mục nằm giữa thân thiệp căn giữa, bong bóng dồn về một bên là cả mục
+   lệch hẳn sang trái. Ô chữ cái đầu đã đủ nói "lời của người khác". */
+.cx-wsec .cx-wish-av {
+  width: 36px;
+  height: 36px;
+  font-size: 14px;
+}
+
 .cx-wsec .cx-wish-item {
-  width: 74%;
-  align-self: flex-start;
-  padding: 12px 16px;
-  border-radius: 16px 16px 16px 4px;
+  align-self: stretch;
+  gap: 12px;
+  padding: 12px 16px 12px 12px;
+  border-radius: 16px;
   font-size: 14px;
   /* Bóng tãi rộng và rất nhạt: ở đây bong bóng đứng yên trên nền giấy sáng nên
      bóng đậm/ngắn của dải trôi đọc thành một đường viền xám. */
@@ -2714,6 +2921,58 @@ button.cx-pchrome-btn:hover {
     0 14px 32px rgb(0 0 0 / 0.05);
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
+}
+
+/* ── Dạng "bình luận" (.cx-wsec-comment) ───────────────────────────────────
+   Cùng lượt chiếu với dải nổi (_cxWishStartRoll): cả danh sách là MỘT thẻ track
+   trôi từ dưới mép khung lên, lời chúc mờ dần rồi khuất ở mép trên, hết lượt
+   nghỉ rồi chiếu lại. Khung là "màn chiếu" nên phải cao CỐ ĐỊNH (danh sách không
+   được đẩy nó phình ra) và KHÔNG cuộn tay — track đi bằng transform. Dải mờ hai
+   đầu dài hơn khung cuộn thường để lời chúc hiện ra / tan đi từ từ. */
+.cx-wsec-comment .cx-wsec-list {
+  height: min(calc(var(--vh, 1vh) * 50), 360px);
+  height: min(calc(var(--vh, 1svh) * 50), 360px);
+  max-height: none;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 18%,
+    #000 82%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 18%,
+    #000 82%,
+    transparent 100%
+  );
+}
+
+/* Chưa có lời chúc: chỉ một dòng mời gửi, không có gì để chiếu. */
+.cx-wsec-comment .cx-wsec-list.is-empty {
+  height: auto;
+}
+
+.cx-wsec-comment .cx-wish-track {
+  align-items: stretch;
+  gap: 12px;
+}
+
+/* Chạm/rê vào là dừng để đọc cho kịp — như dải nổi. */
+.cx-wsec-comment .cx-wsec-list:hover .cx-wish-track.is-rolling,
+.cx-wsec-comment .cx-wsec-list:active .cx-wish-track.is-rolling {
+  animation-play-state: paused;
+}
+
+/* Giảm chuyển động: không trôi (xem khối cuối mục) thì phải cuộn tay được. */
+@media (prefers-reduced-motion: reduce) {
+  .cx-wsec-comment .cx-wsec-list {
+    overflow-y: auto;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
 }
 
 /* ── Dạng "phân trang" (.cx-wsec-paged) ─────────────────────────────────────
@@ -2731,7 +2990,7 @@ button.cx-pchrome-btn:hover {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 8px;
   padding: 2px 0 4px;
 }
 
@@ -2740,10 +2999,10 @@ button.cx-pchrome-btn:hover {
   align-items: center;
   justify-content: center;
   flex: none;
-  width: 28px;
-  height: 28px;
+  width: 40px;
+  height: 40px;
   padding: 0;
-  border: 1px solid rgb(var(--cx-wish-accent-rgb) / 0.24);
+  border: 1px solid rgb(var(--cx-wish-accent-rgb) / 0.32);
   border-radius: 9999px;
   color: rgb(var(--cx-wish-accent-rgb));
   background: none;
@@ -2760,29 +3019,44 @@ button.cx-pchrome-btn:hover {
 .cx-wpage-dots {
   display: flex;
   align-items: center;
-  gap: 6px;
 }
 
+/* Nút là ô 24px trong suốt (vùng bấm tối thiểu cho ngón tay), chấm 7px thật vẽ
+   bằng ::before ở giữa — chấm to bằng vùng bấm thì dãy chấm thô hẳn. */
 .cx-wpage-dot {
-  width: 7px;
-  height: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
   padding: 0;
   border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.cx-wpage-dot::before {
+  content: "";
+  width: 7px;
+  height: 7px;
   border-radius: 9999px;
   background: rgb(var(--cx-wish-text-rgb) / 0.28);
-  cursor: pointer;
   transition: width 0.18s ease, background-color 0.18s ease;
 }
 
 /* Trang đang xem: chấm kéo dài thành vạch — đủ để nhận ra mà không cần đổi màu
    đậm nhạt (bộ màu thiệp nào cũng có thể rất nhạt). */
 .cx-wpage-dot.is-on {
+  width: 32px;
+}
+
+.cx-wpage-dot.is-on::before {
   width: 18px;
   background: rgb(var(--cx-wish-accent-rgb));
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .cx-wpage-dot {
+  .cx-wpage-dot::before {
     transition: none;
   }
 }
@@ -2802,8 +3076,22 @@ button.cx-pchrome-btn:hover {
   overscroll-behavior-x: contain;
   /* Lề dọc cho bóng đổ của thẻ (overflow cắt cả hai trục). */
   padding: 8px 16px 16px;
-  -webkit-mask-image: none;
-  mask-image: none;
+  /* Mép trái/phải tan dần trong đúng phần lề 16px: thẻ kế bên ló ra mềm (gợi ý
+     "vuốt tiếp") thay vì bị cắt thành một đường thẳng đứng. */
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 16px,
+    #000 calc(100% - 16px),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 16px,
+    #000 calc(100% - 16px),
+    transparent 100%
+  );
 }
 
 .cx-wsec-card .cx-wsec-list {
@@ -2860,9 +3148,27 @@ button.cx-pchrome-btn:hover {
     0 12px 28px rgb(0 0 0 / 0.05);
 }
 
-.cx-wcard .cx-wish-name {
+/* Đầu thẻ: chữ cái đầu + tên trên một hàng. */
+.cx-wcard-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   flex: none;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
+}
+
+.cx-wcard-head .cx-wish-av {
+  width: 32px;
+  height: 32px;
+  font-size: 13px;
+}
+
+.cx-wcard .cx-wish-name {
+  min-width: 0;
+  margin-bottom: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .cx-wcard-text {
@@ -2885,6 +3191,7 @@ button.cx-pchrome-btn:hover {
 .cx-wcard-more {
   align-self: flex-start;
   margin-top: auto;
+  min-height: 32px;
   padding: 8px 0 0;
   border: 0;
   background: none;
@@ -2943,6 +3250,8 @@ button.cx-pchrome-btn:hover {
 
 .cx-wsec .cx-wdock-btn {
   display: flex;
+  width: 40px;
+  height: 40px;
 }
 
 .cx-wsec .cx-wdock-hint {

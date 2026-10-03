@@ -1517,8 +1517,8 @@ function _cxElRepick(elementId) {
   _cxElSendPick();
 }
 
-// Màu ĐANG hiện của widget trên thiệp (mỗi theme một bộ màu) — bảng lấy làm giá
-// trị khởi điểm cho ô màu người dùng chưa chỉnh, thay vì `def` cứng.
+// Giá trị ĐANG hiện của widget trên thiệp (màu theo theme, ảnh bìa mẫu khai) —
+// bảng lấy làm giá trị khởi điểm cho ô người dùng chưa chỉnh, thay vì `def` cứng.
 function _cxElBaseColors(t) {
   const def = _cxElDef(t);
   const body = document.querySelector('.cx-el[data-el-id="' + t.id + '"]')
@@ -1528,8 +1528,8 @@ function _cxElBaseColors(t) {
   const only = (_cxElVariant(t) || {}).colors;
   const out = {};
   (def.options || []).forEach((o) => {
-    if (o.type !== "color" || typeof o.from !== "function") return;
-    if (only && !only.includes(o.id)) return;
+    if (typeof o.from !== "function") return;
+    if (o.type === "color" && only && !only.includes(o.id)) return;
     // Một ô dò hụt chỉ mất giá trị khởi điểm của ô đó, không được kéo đổ cả
     // luồng "chọn xong → mở bảng điều chỉnh".
     let v = null;

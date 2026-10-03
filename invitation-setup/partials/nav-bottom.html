@@ -54,6 +54,8 @@
                      w-*/h-* trên thẻ này thua `svg.lucide{width:1em}` nên icon sẽ
                      co theo cỡ CHỮ của nút, không bằng icon các tab khác. -->
             <i data-lucide="pen"></i>
+            <!-- Điện thoại: nhãn ngắn dưới icon, cùng kiểu tab với các ô khác. -->
+            <span class="cx-sw-label sm:hidden">Sửa</span>
             <span class="hidden sm:inline">Chỉnh sửa</span>
           </button>
           <!-- pad+ (820px): thiệp đã hiện sẵn trong dải xem trực tiếp bên phải
@@ -62,10 +64,13 @@
           <button
             type="button"
             id="switch-preview"
-            onclick="cxPickPreviewSide(this)"
+            onclick="switchTab('preview')"
             class="flex-1 pad:hidden flex items-center justify-center gap-1 h-8 rounded-full text-[11px] font-medium text-gray-400 transition-all"
           >
-            <i data-lucide="eye" style="width: 12px; height: 12px"></i>
+            <!-- Cỡ icon khai ở styles/_setup.css (#switch-preview svg), không
+                 inline: inline thắng mọi luật CSS nên khổ điện thoại không đổi được. -->
+            <i data-lucide="eye"></i>
+            <span class="cx-sw-label sm:hidden">Xem</span>
             <span class="hidden sm:inline">Xem trước</span>
           </button>
         </div>

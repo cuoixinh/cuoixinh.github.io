@@ -1,7 +1,7 @@
 // ============= THEME: NOIR ELEGANCE =============
 // Nền TRẮNG BE nhạt, viền vàng champagne mảnh, chữ thư pháp. Đủ mọi mục như mẫu
-// nền; nét riêng nằm ở mục Mở đầu: một tấm ảnh CHIẾM TRỌN màn hình chạy
-// carousel, chữ đặt trên hai dải kem mờ ở đầu và chân màn.
+// nền; nét riêng nằm ở mục Mở đầu: ảnh CHIẾM TRỌN màn hình chạy trình
+// chiếu, tên cặp đôi mạ vàng + ngày đặt trên màn tối mờ ở chân ảnh.
 //
 // File này chỉ KHAI BÁO: window.CX_THEME + renderWedding + phần đặc thù của mẫu
 // (carousel mở đầu + album). Phần "chạy" nằm ở core/helpers/theme-boot.js, nạp sau.
@@ -19,10 +19,10 @@
 
     // Hộp mừng cưới khi chủ thiệp chưa chọn (theme_setting.gift_box): id trong
     // CX_GIFT_BOXES (core/helpers/gift-box-helper.js) hoặc "none". Mẫu KHÔNG tự vẽ hộp.
-    giftBox: "minimalism_brown",
+    giftBox: "phongbi_trang_vang",
 
     // Dạng trình phát nhạc — theme-boot.js dựng vào #cx-music-mount.
-    music: { variant: "disc", chrome: "fixed-corner" },
+    music: { variant: "disc", chrome: "fixed-corner", art: "couple" },
 
     // Font/màu GỐC: giá trị mặc định trên thanh chỉnh ở tab Giao diện, cũng là
     // điểm "Khôi phục mặc định". Trang Thiết lập đọc qua iframe xem trước.
@@ -90,9 +90,13 @@
     // id các mục trùng bảng mặc định của preview-focus-helper.js → không cần
     // khai `focus`.
 
-    // Carousel chạy bằng % nên không phải đo gì sau khi thiệp mở ra.
-    onOpen: null,
+    // Thiệp mở ra (kể cả lối bỏ qua bìa) → gỡ cờ ẩn nút nhạc, xem dưới.
+    onOpen: () => document.documentElement.classList.remove("ne-cover-on"),
   };
+
+  // Nút nhạc neo góc màn KHÔNG hiện trên màn bìa (theme.css) — bìa là tấm
+  // thiệp giấy, nút đè lên khung vàng ở góc.
+  document.documentElement.classList.add("ne-cover-on");
 
   const _isGroom = isGroomSide();
 
@@ -200,6 +204,13 @@
     if (d && !isNaN(d))
       setText("cover-date", `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`);
 
+    // Ngày ở chân màn mở đầu: ngày tiệc như màn bìa, chưa có thì ngày lễ.
+    const hd = d && !isNaN(d) ? d : new Date(w.ceremony_date);
+    if (!isNaN(hd)) {
+      const pad = (n) => String(n).padStart(2, "0");
+      setText("hero-date", `${pad(hd.getDate())} · ${pad(hd.getMonth() + 1)} · ${hd.getFullYear()}`);
+    }
+
     // Lịch nhỏ đánh dấu ngày lễ + ngày tiệc
     setupMiniCalendar(w.ceremony_date, partyDate);
 
@@ -279,13 +290,27 @@
     return part && part.length <= 22 ? part : "";
   }
 
-  // ============= CAROUSEL MỞ ĐẦU (phần đặc thù của mẫu) =============
+  // ============= TRÌNH CHIẾU MỞ ĐẦU (phần đặc thù của mẫu) =============
   // Ảnh chiếm trọn màn: ô đầu tiên là ảnh bìa (#main-photo, đã có sẵn trong
-  // HTML), các ô sau lấy từ album. Trượt bằng % bề ngang nên không cần đo đạc —
-  // khỏi móc vào onOpen.
+  // HTML), các ô sau lấy từ album. Các ô CHỒNG lên nhau: ô mới mờ dần hiện ra
+  // đè lên ô cũ, ảnh đang chiếu zoom chậm + trôi nhẹ (Ken Burns, theme.css).
+  // Tự sang ảnh kế sau HERO_AUTO_MS, chỉ khi màn mở đầu đang nằm trong tầm
+  // nhìn và tab đang mở — không thì tốn pin, khách quay lại đã trôi mất mấy tấm.
+
+  const HERO_AUTO_MS = 3000;
+
+  // Hướng trôi của từng ô, lặp lại khi hết — mỗi tấm trôi một ngả cho đỡ đều.
+  const HERO_DRIFT = [
+    ["-3%", "-2%"],
+    ["3%", "-1.5%"],
+    ["-2%", "2%"],
+    ["2.5%", "1.5%"],
+  ];
 
   let _slideIdx = 0;
   let _slideCount = 1;
+  let _heroTimer = null;
+  let _heroSeen = false;
 
   function setupHeroCarousel(w) {
     const track = document.getElementById("hero-track");
@@ -302,7 +327,7 @@
       const fp = w.image_focal_points?.gallery_images?.[key];
       const cell = document.createElement("div");
       cell.dataset.neSlide = "1";
-      cell.className = "w-full h-full shrink-0";
+      cell.className = "ne-slide";
       // KHÔNG lazy: cả khối nằm trong #main-card đang display:none, ảnh lazy sẽ
       // chỉ bắt đầu tải khi khách bấm mở bìa — đúng lúc cần thấy ảnh nhất.
       cell.innerHTML = `<img src="${cxImgSrc(key)}" alt=""
@@ -311,10 +336,16 @@
       track.appendChild(cell);
     });
 
+    track.querySelectorAll(".ne-slide").forEach((cell, k) => {
+      const [x, y] = HERO_DRIFT[k % HERO_DRIFT.length];
+      cell.style.setProperty("--ne-kb-x", x);
+      cell.style.setProperty("--ne-kb-y", y);
+    });
+
     _slideCount = 1 + extras.length;
     _slideIdx = 0;
 
-    // Một ảnh thì giấu hàng chấm, khung ảnh đứng yên như tấm poster.
+    // Một ảnh thì giấu hàng chấm, khung ảnh chỉ zoom chậm như tấm poster.
     const many = _slideCount > 1;
 
     const dots = document.getElementById("hero-dots");
@@ -325,20 +356,59 @@
     }
 
     _goSlide(0);
+    _heroAuto();
   }
 
   function _goSlide(i) {
-    const track = document.getElementById("hero-track");
-    if (!track) return;
+    const slides = document.querySelectorAll("#hero-track .ne-slide");
+    if (!slides.length) return;
 
+    const prev = _slideIdx;
     _slideIdx = ((i % _slideCount) + _slideCount) % _slideCount; // cuộn vòng
-    track.style.transform = `translateX(-${_slideIdx * 100}%)`;
-    track.style.transition = "transform .5s ease";
+
+    slides.forEach((el, k) => {
+      el.classList.toggle("is-on", k === _slideIdx);
+      // Ô vừa rời đi nằm NGAY DƯỚI ô mới, giữ nguyên hình tới khi ô mới hiện
+      // hẳn — mờ chồng không lộ nền giữa hai tấm.
+      el.classList.toggle("is-prev", k === prev && k !== _slideIdx);
+    });
+
+    // Chạy lại zoom từ đầu cho ô vừa lên: ô quay vòng từ is-prev sang is-on
+    // giữ nguyên animation nên không tự chạy lại.
+    const img = slides[_slideIdx]?.querySelector("img");
+    if (img) {
+      img.style.animation = "none";
+      void img.offsetWidth;
+      img.style.animation = "";
+    }
 
     document
       .querySelectorAll("#hero-dots .ne-dot")
       .forEach((d, k) => d.classList.toggle("is-on", k === _slideIdx));
   }
+
+  // Đặt lại nhịp tự chiếu: gọi sau mỗi lần đổi ảnh bằng tay để tấm vừa chọn
+  // được xem đủ HERO_AUTO_MS.
+  function _heroAuto() {
+    clearInterval(_heroTimer);
+    _heroTimer = null;
+    if (_slideCount < 2 || !_heroSeen || document.hidden) return;
+    _heroTimer = setInterval(() => _goSlide(_slideIdx + 1), HERO_AUTO_MS);
+  }
+
+  (function _watchHero() {
+    const hero = document.getElementById("section-hero");
+    if (!hero) return;
+    // #main-card còn display:none (chưa mở bìa) thì không bao giờ giao nhau.
+    new IntersectionObserver(
+      ([e]) => {
+        _heroSeen = e.isIntersecting;
+        _heroAuto();
+      },
+      { threshold: 0.4 },
+    ).observe(hero);
+    document.addEventListener("visibilitychange", _heroAuto);
+  })();
 
   window.neJump = (id) => {
     document
@@ -384,6 +454,7 @@
         const dy = e.changedTouches[0].clientY - y0;
         if (Math.abs(dx) <= 40 || Math.abs(dx) <= Math.abs(dy)) return;
         _goSlide(_slideIdx + (dx < 0 ? 1 : -1));
+        _heroAuto();
         swiped = true;
         setTimeout(() => (swiped = false), 400);
       },

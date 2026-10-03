@@ -797,12 +797,12 @@ function slugRowHTML(c, i) {
 // tô đặc, và là nút đặc DUY NHẤT của thẻ. Phần còn lại trải ra chân thẻ, hết chỗ
 // thì lùi vào menu ⋯, mục cuối lùi trước (_fitFoot). "Xoá" không bao giờ ra ngoài:
 // đứng cạnh nút hay bấm là dễ bấm nhầm. `run` = onclick của nút trên thẻ,
-// `pick(anchor)` = cùng việc đó gọi từ menu (submenu: mở thẻ con Nhà trai/gái).
+// `pick()` = cùng việc đó gọi từ menu.
 function _cardActions(c, i, state) {
   const live = c.published && c.slug;
-  const view = { id: "view", icon: "eye", label: "Xem", menuLabel: "Xem thiệp", submenu: true, run: `viewCard(${i}, this)`, pick: (a) => viewCard(i, a) };
+  const view = { id: "view", icon: "eye", label: "Xem", menuLabel: "Xem thiệp", run: `viewCard(${i})`, pick: () => viewCard(i) };
   const edit = { id: "edit", icon: "file-pen", label: "Chỉnh sửa", run: `openEditor(${i})`, pick: () => openEditor(i) };
-  const share = { id: "share", icon: "share-2", label: "Chia sẻ", menuLabel: "Chia sẻ thiệp", submenu: true, run: `shareCard(${i}, this)`, pick: (a) => shareCard(i, a) };
+  const share = { id: "share", icon: "share-2", label: "Chia sẻ", menuLabel: "Chia sẻ thiệp", run: `shareCard(${i})`, pick: () => shareCard(i) };
   // Đổi đường dẫn chỉ khi CHƯA xuất bản (server cũng chặn).
   const slug = { id: "slug", icon: "link-2", label: "Đổi link", menuLabel: "Đổi đường dẫn", run: `openSlugModal(${i})`, pick: () => openSlugModal(i) };
   const activate = { id: "activate", icon: "credit-card", label: "Kích hoạt thiệp", run: `activateCard(${i})` };
@@ -865,7 +865,6 @@ function _fitFeet(grid) {
 function openCardMenu(i, btn) {
   const c = CARDS[i];
   if (!c) return;
-  document.getElementById("side-link-pop")?.close();
   let pop = document.getElementById("card-menu-pop");
   if (!pop) {
     pop = document.createElement("x-popover");
@@ -886,8 +885,7 @@ function openCardMenu(i, btn) {
     .map((a) => ({
       icon: _ico(a.icon, 16),
       label: a.menuLabel || a.label,
-      submenu: a.submenu,
-      onClick: (e) => a.pick(e.currentTarget),
+      onClick: () => a.pick(),
     }));
   if (items.length) items.push({ sep: true });
   items.push({ id: "card-menu-del", icon: _ico("trash-2", 16), label: "Xoá thiệp", onClick: () => deleteCard(i) });
@@ -910,83 +908,44 @@ function openEditor(i) {
   window.location.href = `/invitation-setup/?id=${c.id}`;
 }
 
-// Mọi nút đụng tới link thiệp (xem · chia sẻ · sao chép) mở popover chọn nhà:
-// link nhà trai là link chung kèm ?isGroom=true (thiệp ưu tiên lễ/tiệc nhà trai).
-// Nút trên thẻ → popover thả xuống có mũi tên; mục trong menu ⋯ → thẻ con mở
-// ngang cạnh menu (menu 2 cấp, x-popover lo đóng/mở theo cặp).
-function _pickSide(btn, onPick) {
-  const sub = !!btn.closest("x-popover");
-  const id = sub ? "side-sub-pop" : "side-link-pop";
-  let pop = document.getElementById(id);
-  if (!pop) {
-    pop = document.createElement("x-popover");
-    pop.id = id;
-    pop.setAttribute("align", "end");
-    if (sub) {
-      pop.setAttribute("placement", "right");
-      pop.setAttribute("width", "184");
-      pop.setAttribute("offset", "6");
-    } else {
-      pop.setAttribute("placement", "bottom");
-      pop.setAttribute("arrow", "");
+// Xem · chia sẻ · sao chép đều dùng link CHUNG của thiệp (không kèm ?isGroom) —
+// link riêng từng nhà lấy ở tab Cấu hình của trang Thiết lập.
+function viewCard(i) {
+  const c = CARDS[i];
+  if (!c?.slug) return;
+  window.open(publicUrl(c), "_blank");
+}
+
+async function shareCard(i) {
+  const c = CARDS[i];
+  if (!c?.slug) return;
+  const url = publicUrl(c);
+  const title = [c.groom, c.bride].filter(Boolean).join(" & ") || "Thiệp cưới";
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: `Thiệp cưới ${title}`, url });
+      return;
+    } catch (e) {
+      if (e.name === "AbortError") return; // người dùng đóng bảng chia sẻ
     }
-    document.body.appendChild(pop);
   }
-  const ico = (name) =>
-    `<i data-lucide="${name}" style="width:16px;height:16px"></i>`;
-  pop.setItems([
-    { icon: ico("house"), label: "Nhà trai", onClick: () => onPick("groom") },
-    { icon: ico("heart"), label: "Nhà gái", onClick: () => onPick("bride") },
-  ]);
-  window.lucide?.createIcons({ root: pop });
-  pop.toggle(btn);
+  if (await _copyText(url)) showToast("Đã sao chép link thiệp", "success");
 }
 
-function _sideUrl(c, side) {
-  return side === "groom" ? `${publicUrl(c)}?isGroom=true` : publicUrl(c);
-}
-
-const _SIDE_NAME = { groom: "nhà trai", bride: "nhà gái" };
-
-function viewCard(i, btn) {
+async function copyLink(i, btn) {
   const c = CARDS[i];
   if (!c?.slug) return;
-  _pickSide(btn, (side) => window.open(_sideUrl(c, side), "_blank"));
-}
-
-function shareCard(i, btn) {
-  const c = CARDS[i];
-  if (!c?.slug) return;
-  _pickSide(btn, async (side) => {
-    const url = _sideUrl(c, side);
-    const title =
-      [c.groom, c.bride].filter(Boolean).join(" & ") || "Thiệp cưới";
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: `Thiệp cưới ${title}`, url });
-        return;
-      } catch (e) {
-        if (e.name === "AbortError") return; // người dùng đóng bảng chia sẻ
-      }
-    }
-    if (await _copyText(url))
-      showToast(`Đã sao chép link thiệp ${_SIDE_NAME[side]}`, "success");
-  });
-}
-
-function copyLink(i, btn) {
-  const c = CARDS[i];
-  if (!c?.slug) return;
-  _pickSide(btn, async (side) => {
-    if (!(await _copyText(_sideUrl(c, side)))) return;
+  if (!(await _copyText(publicUrl(c)))) return;
+  // Nút trên thẻ đổi sang dấu ✓ một nhịp; gọi từ menu ⋯ thì không có nút để đổi.
+  if (btn && !btn.closest("x-popover")) {
     const swap = (name) => {
       btn.innerHTML = _ico(name, 16);
       window.lucide?.createIcons({ root: btn });
     };
     swap("check");
     setTimeout(() => swap("copy"), 2000);
-    showToast(`Đã sao chép link thiệp ${_SIDE_NAME[side]}`, "success");
-  });
+  }
+  showToast("Đã sao chép link thiệp", "success");
 }
 
 // clipboard ném lỗi khi trang không phải HTTPS hoặc người dùng chặn quyền — không

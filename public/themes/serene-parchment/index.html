@@ -25,7 +25,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Nunito+Sans:wght@200;300;400;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="../../../styles/themes.css" />
@@ -46,24 +46,21 @@
   </head>
 
   <!-- ══════════════════════════════════════════════════════════════════════
-       SERENE PARCHMENT — thiệp đọc như một LÁ THƯ TAY trên giấy ngà.
+       SERENE PARCHMENT — thiệp HIỆN ĐẠI kiểu trang tạp chí.
 
-       Nét nhận dạng, khác hẳn mẫu nền:
-         · Toàn thiệp canh TRÁI như trang thư, không dàn giữa
-         · Tiêu đề mục là chữ viết tay + một nét kẻ chạy hết dòng
-         · Mục "Thư mời" viết trên GIẤY KẺ DÒNG thật, có chữ cái đầu thư to
-         · Màn bìa: tấm ảnh cưới dán băng dính giữa trang thư, con dấu sáp đỏ
-           đóng chồng lên góc ảnh chính là nút mở thiệp
-         · Mở đầu: ảnh tràn một màn, một tờ ghi chú MÉP XÉ ghim nổi lên trên
-         · Ảnh dán bằng băng dính giấy; album là ảnh in có khung, hơi nghiêng
-         · Hộp mừng cưới là hai chiếc phong bì; xác nhận tham dự là phiếu
-           hồi âm nét đứt có ô đánh dấu
+       Nét nhận dạng:
+         · Bìa: đếm ngược tới giờ làm lễ + PHONG BÌ phẳng nhấp nhô, hai ảnh in
+           trồi lên, con dấu chữ lồng chính là nút mở thiệp
+         · Mở đầu: ảnh tràn lề gần một màn, tên đôi chữ trắng cỡ lớn đè lên
+         · Mỗi mục có nhãn số "01 — …" (CSS counter, mục tắt không được đếm)
+         · Thẻ trắng bo góc cho sự kiện / mừng cưới / bản đồ; xác nhận tham dự
+           là khối nền mực; album dàn trang tạp chí
 
        Ràng buộc không được phá (xem thêm CLAUDE.md):
          · #main-card có ĐÚNG MỘT thẻ con bọc các mục, và thẻ đó là flex-column
          · Chữ lấy từ dữ liệu phải đi qua setText(id, …) trong index.js
          · Thanh nhạc phải là thẻ con ĐẦU TIÊN của <body>
-         · Màu lấy từ --cx-* / .cx-h / .cx-t / .cx-a, đừng viết mã màu thẳng
+         · Màu lấy từ --cx-* / lớp .cx-* / .sp-* trong theme.css
          · Ảnh trong #main-card KHÔNG lazy (mẫu có màn bìa nên thẻ này
            display:none, ảnh lazy sẽ chỉ bắt đầu tải lúc bấm mở thiệp)
        ══════════════════════════════════════════════════════════════════════ -->
@@ -76,460 +73,393 @@
     <div id="cx-music-mount"></div>
 
     <!-- ═══ MỤC: Màn bìa ═══════════════════════════════════════════════════
-         Trang thư có TẤM ẢNH DÁN bằng băng dính ở giữa, con dấu sáp đóng chồng
-         lên góc ảnh chính là nút mở thiệp. Chiều cao XÁC ĐỊNH (.sp-cover ở
-         theme.css) vì ô ảnh là flex-1 — chỉ co được khi cha có chiều cao thật;
-         nhờ vậy tên khách mời dài mấy dòng cũng chỉ làm ảnh nhỏ lại. -->
+         Tên đôi + đếm ngược ở trên, phong bì dồn đáy. Bấm con dấu: ảnh bay ra,
+         phong bì rơi xuống (_spOpen ở index.js) rồi mới openInvitation(). Toạ
+         độ ảnh/dấu tính theo khổ 350×430 của .sp-stage (theme.css). -->
     <div
       id="cover-screen"
       class="fixed inset-0 z-50 flex justify-center items-center md:py-5"
     >
       <div
-        class="sp-cover relative w-full max-w-[430px] overflow-hidden md:rounded-[40px] flex flex-col text-left"
+        id="sp-cover"
+        class="sp-cover relative w-full max-w-[430px] overflow-hidden md:rounded-[40px] flex flex-col items-center text-center"
       >
-        <!-- Đầu thư -->
-        <div class="flex flex-col gap-2 shrink-0">
-          <div class="sp-hand cx-a text-[27px]">Thiệp mời</div>
-          <div class="w-14 h-px cx-bg-line"></div>
+        <div class="sp-fade flex flex-col items-center w-full">
+          <div data-cx-invite class="sp-lbl cx-t">Thiệp mời cưới</div>
+          <!-- Tên khách mời: chỉ hiện với link riêng của khách -->
+          <div id="cover-guest-wrap" class="hidden flex-col items-center gap-1 pt-2">
+            <div class="cx-h text-[24px]" id="cover-guest-name">----------</div>
+          </div>
+
+          <div class="sp-fit is-center cx-h text-[40px] mt-3">
+            <span class="sp-fit-in">
+              <span id="cover-groom-name">----------</span>
+              <span class="cx-a">&amp;</span>
+              <span id="cover-bride-name">----------</span>
+            </span>
+          </div>
+
+          <!-- Đếm ngược tới giờ làm lễ (_spCountdown ở index.js) -->
+          <div class="sp-cd mt-7" id="sp-countdown">
+            <div><span class="sp-num cx-h text-[32px]" id="sp-cd-d">00</span><span class="sp-lbl cx-t">Ngày</span></div>
+            <div><span class="sp-num cx-h text-[32px]" id="sp-cd-h">00</span><span class="sp-lbl cx-t">Giờ</span></div>
+            <div><span class="sp-num cx-h text-[32px]" id="sp-cd-m">00</span><span class="sp-lbl cx-t">Phút</span></div>
+            <div><span class="sp-num cx-h text-[32px]" id="sp-cd-s">00</span><span class="sp-lbl cx-t">Giây</span></div>
+          </div>
         </div>
 
-        <!-- Ảnh cưới dán lên giấy: khung giấy trắng, hai mẩu băng dính chéo
-             góc, con dấu sáp đè lên góc dưới.
+        <!-- Phong bì: lòng + nắp mở · hai ảnh in · túi trước · con dấu -->
+        <div class="sp-stage">
+          <div class="sp-ground"></div>
+          <div class="sp-env">
+            <svg style="inset: 0" viewBox="0 0 350 430" width="350" height="430" aria-hidden="true">
+              <rect class="sp-env-in" x="15" y="210" width="320" height="200" rx="6" />
+              <rect class="sp-env-shade" style="--a: 0.1" x="15" y="210" width="320" height="60" rx="6" />
+              <path class="sp-env-paper" d="M15,212 L163,118 Q175,110 187,118 L335,212 Z" />
+              <path class="sp-env-shade" style="--a: 0.02" d="M15,212 L163,118 Q175,110 187,118 L335,212 Z" />
+              <path class="sp-env-hi" d="M15,212 L163,118 Q175,110 187,118 L335,212" />
+            </svg>
 
-             Khổ ảnh CỐ ĐỊNH theo tỉ lệ 5:7 chứ không kéo cho đầy chỗ trống —
-             không có tên khách mời thì ảnh sẽ dài ngoẵng, khác hẳn lúc có tên.
-             Chỗ thừa dồn về hai đầu (items-center); còn khi tên khách dài mấy
-             dòng thì max-h-full cho ảnh thấp xuống thay vì tràn ra ngoài. -->
-        <div class="flex-1 min-h-0 flex items-center py-7">
-          <div class="sp-photo sp-tilt-l w-full aspect-[5/7] max-h-full">
-            <span class="sp-tape sp-tape-tl"></span>
-            <span class="sp-tape sp-tape-br"></span>
-            <img
-              id="cover-bg-img"
-              src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
-              class="w-full h-full object-cover"
-              alt=""
-              fetchpriority="high"
-            />
+            <div class="sp-photos">
+              <div class="sp-shot is-l">
+                <div class="sp-print">
+                  <img
+                    id="sp-cover-2"
+                    src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+                    class="h-[116px]"
+                    alt=""
+                  />
+                </div>
+              </div>
+              <div class="sp-shot is-r">
+                <div class="sp-print">
+                  <img
+                    id="cover-bg-img"
+                    src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+                    class="h-[188px]"
+                    alt=""
+                    fetchpriority="high"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <svg class="sp-env-front" viewBox="0 0 350 430" width="350" height="430" aria-hidden="true">
+              <path class="sp-env-paper" d="M15,236 L172,318 L15,410 Z" />
+              <path class="sp-env-shade" style="--a: 0.06" d="M15,236 L172,318 L15,410 Z" />
+              <path class="sp-env-paper" d="M335,236 L178,318 L335,410 Z" />
+              <path class="sp-env-shade" style="--a: 0.1" d="M335,236 L178,318 L335,410 Z" />
+              <path class="sp-env-paper" d="M15,410 L161,306 Q175,297 189,306 L335,410 Q335,416 329,416 L21,416 Q15,416 15,410 Z" />
+              <path class="sp-env-shade" style="--a: 0.03" d="M15,410 L161,306 Q175,297 189,306 L335,410 Q335,416 329,416 L21,416 Q15,416 15,410 Z" />
+              <path class="sp-env-hi" d="M18,409 L161,308 Q175,299 189,308 L332,409" />
+              <path class="sp-env-hi" d="M15,236 L172,318 M335,236 L178,318" />
+            </svg>
 
             <x-button
               variant="bare"
-              onclick="openInvitation()"
-              class="open-btn sp-seal absolute -bottom-6 -right-5 z-10 touch-manipulation [-webkit-tap-highlight-color:transparent]"
+              id="sp-seal"
+              class="sp-seal justify-center touch-manipulation [-webkit-tap-highlight-color:transparent]"
+              aria-label="Mở thiệp"
             >
-              <span class="sp-seal-ring pointer-events-none"></span>
-              <span
-                class="sp-hand sp-on-seal relative pointer-events-none text-[15px] leading-none"
-                >Mở thiệp</span
+              <span class="cx-h text-[24px] leading-none pointer-events-none"
+                ><span id="sp-mono-g">P</span><span class="sp-seal-amp">&amp;</span><span id="sp-mono-b">Q</span></span
               >
             </x-button>
           </div>
         </div>
 
-        <!-- Chân thư -->
-        <div class="flex flex-col gap-3 shrink-0">
-          <!-- Tên khách mời: chỉ hiện với link riêng của khách (index.js) -->
-          <div id="cover-guest-wrap" class="hidden flex-col gap-1 pb-2">
-            <div data-cx-invite class="cx-t text-[10px] tracking-[3px] uppercase">Kính gửi</div>
-            <div class="sp-hand cx-h text-[24px] leading-[1.15]" id="cover-guest-name">
-              ----------
-            </div>
-          </div>
-
-          <div class="sp-names cx-h text-[27px] leading-tight">
-            <span class="sp-names-in">
-              <span id="cover-groom-name">----------</span>
-              <span class="sp-hand cx-a text-[21px]">&amp;</span>
-              <span id="cover-bride-name">----------</span>
-            </span>
-          </div>
-
-          <div class="flex items-center gap-3">
-            <span class="sp-note cx-a text-[17px] tracking-[2px]" id="cover-date">
-              --.--.----
-            </span>
-            <span class="flex-1 h-px cx-bg-line"></span>
-          </div>
-
-          <div class="sp-note cx-t text-[15px]">Chạm con dấu để mở thiệp nhé</div>
-        </div>
+        <div class="sp-fade sp-lbl cx-t pt-4">Chạm con dấu để mở thiệp</div>
       </div>
     </div>
 
     <!-- ═══ THÂN THIỆP ═════════════════════════════════════════════════════
-         #main-card + ĐÚNG MỘT thẻ con flex-column bọc mọi mục. Lề ngang đặt ở
-         thẻ bọc (px-7) để khối văn bản người dùng tự thêm cũng có lề; mục nào
-         cần tràn hết bề ngang thì tự phá lề bằng -mx-7. -->
+         #main-card + ĐÚNG MỘT thẻ con flex-column bọc mọi mục. Lề ngang ở thẻ
+         bọc (px-7) để khối văn bản khách tự thêm cũng có lề; mục tràn lề tự
+         phá bằng -mx-7. -->
     <div
       id="main-card"
       class="relative w-full max-w-[430px] md:max-w-[768px] cx-screen-h md:min-h-[932px] md:rounded-[40px] md:shadow-2xl overflow-hidden"
       style="display: none"
     >
-      <div class="flex flex-col gap-14 px-7 pb-16 text-left">
-        <!-- ═══ MỤC: Mở đầu (ảnh cưới + lời mở thư) ═════════════════════════
-             Cao trọn một màn: ảnh tràn viền, một TỜ GHI CHÚ mép xé ghim nổi lên
-             trên ảnh (không phải dải chạy hết bề ngang) — bóng đổ phải để ở thẻ
-             BỌC bằng filter: drop-shadow, vì clip-path của mép xé cắt luôn cả
-             box-shadow của chính thẻ đó. .sp-grain phủ lớp hạt cho giấy nhám. -->
-        <section id="section-hero" class="sp-screen relative -mx-7 flex flex-col justify-end overflow-hidden">
-          <!-- KHÔNG loading="lazy": #main-card là display:none cho tới khi bấm
-               mở thiệp, ảnh lazy sẽ chưa tải gì cả và thiệp mở ra là ô trống. -->
+      <div class="flex flex-col gap-14 px-7 pb-16 text-left cx-t text-[16px] leading-relaxed">
+        <!-- ═══ MỤC: Mở đầu — ảnh tràn lề, tên đè lên ═══════════════════════
+             KHÔNG loading="lazy": #main-card là display:none tới khi mở thiệp. -->
+        <section id="section-hero" class="sp-hero relative -mx-7 flex flex-col justify-end overflow-hidden">
           <img
             id="main-photo"
             src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
             alt="Ảnh cưới"
             class="absolute inset-0 w-full h-full object-cover"
           />
-          <div class="sp-hero-top absolute inset-x-0 top-0 h-40"></div>
-
-          <div class="absolute top-10 left-7 right-7 flex flex-col gap-1">
-            <div class="sp-hand sp-on-photo cx-on-image text-[22px]">Thư mời cưới</div>
-            <div
-              class="sp-note sp-on-photo cx-on-image text-[17px] tracking-[3px]"
-              id="hero-date"
-            >
-              --.--.----
+          <div class="sp-hero-veil absolute inset-0"></div>
+          <div class="relative px-7 pb-10 cx-on-image">
+            <div class="sp-lbl">Chúng mình cưới</div>
+            <div class="sp-fit cx-h text-[48px] mt-3">
+              <span class="sp-fit-in" id="couple-names-groom">----------</span>
             </div>
-          </div>
-
-          <div class="sp-pin relative z-10 mx-6 mb-12">
-            <div class="sp-torn sp-sheet sp-grain flex flex-col gap-3 px-6 pt-11 pb-8">
-              <div class="sp-note cx-a text-[18px]">Chúng mình muốn nói với bạn rằng…</div>
-
-              <!-- Câu slogan (story_quote) — nét chữ tay to nhất thiệp -->
-              <div id="story-quote" class="sp-hand cx-h text-[21px]">
-                Một hành trình mới bắt đầu từ hôm nay
-              </div>
-
-              <div class="w-12 h-px cx-bg-line my-1"></div>
-
-              <div class="sp-names cx-h text-[25px] leading-tight">
-                <span class="sp-names-in">
-                  <span id="couple-names-groom">----------</span>
-                  <span class="sp-hand cx-a text-[20px]">&amp;</span>
-                  <span id="couple-names-bride">----------</span>
-                </span>
-              </div>
+            <div class="sp-fit cx-h text-[48px]">
+              <span class="sp-fit-in"><span class="sp-hero-amp">&amp;</span> <span id="couple-names-bride">----------</span></span>
             </div>
-            <span class="sp-tape sp-tape-tc"></span>
+            <div class="mt-5 flex items-center gap-4 sp-lbl text-[14px]">
+              <span id="hero-date">--.--.----</span>
+              <span class="sp-hero-rule"></span>
+              <span id="hero-weekday">------</span>
+            </div>
           </div>
         </section>
 
-        <!-- ═══ MỤC: Gia đình (enable_family) ═══════════════════════════════
-             Hai hàng ảnh dán băng dính, chữ canh trái như khối địa chỉ. -->
-        <section id="section-family" class="flex flex-col gap-7">
-          <div class="sp-head">
-            <h2 class="sp-hand cx-h text-[25px]">Hai bên gia đình</h2>
-            <span class="sp-head-line"></span>
+        <!-- ═══ MỤC: Lời mời — câu slogan (story_quote) + lời mời ═══════════ -->
+        <section id="section-intro" class="flex flex-col gap-5">
+          <div class="sp-sec">Lời mời</div>
+          <p id="story-quote" class="cx-hd">Một hành trình mới bắt đầu từ hôm nay.</p>
+          <span class="sp-rule" aria-hidden="true"></span>
+          <p>Trân trọng mời bạn đến chung vui trong ngày trọng đại của gia đình chúng mình.</p>
+        </section>
+
+        <!-- ═══ MỤC: Gia đình (enable_family) — hai hàng xen kẽ ═════════════ -->
+        <section id="section-family" class="flex flex-col gap-6">
+          <div class="sp-sec">Cặp đôi</div>
+
+          <div class="flex flex-col gap-3">
+            <div class="flex items-end gap-4">
+              <div class="sp-round w-[120px] shrink-0 aspect-[3/4]">
+                <img
+                  id="groom-photo"
+                  src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+                  alt="Chú Rể"
+                  class="w-full h-full object-cover"
+                />
+              </div>
+              <div class="flex flex-col min-w-0 flex-1 pb-1">
+                <div class="sp-lbl">Chú rể</div>
+                <div class="sp-fit cx-h text-[28px] mt-1"><span class="sp-fit-in" id="groom-name-label">----------</span></div>
+                <div class="text-[14px] mt-2 leading-[1.6]">
+                  <div id="groom-father">--------------------</div>
+                  <div id="groom-mother">--------------------</div>
+                </div>
+              </div>
+            </div>
+            <!-- Địa chỉ: dải riêng trải từ ảnh sang chữ — index.js ẩn khi trống -->
+            <div id="groom-addr-row" class="sp-addr flex">
+              <svg class="sp-pin" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21Z" /><circle cx="12" cy="9.5" r="2.4" /></svg>
+              <div class="min-w-0">
+                <div class="sp-lbl">Nhà trai</div>
+                <div class="cx-hd text-[14px] mt-1 leading-[1.5]" id="groom-address">----------------------------------------</div>
+              </div>
+            </div>
           </div>
 
-          <!-- Nhà trai -->
-          <div class="flex items-start gap-5">
-            <div class="sp-photo sp-tilt-l w-[108px] shrink-0">
-              <span class="sp-tape sp-tape-tl"></span>
-              <img
-                id="groom-photo"
-                src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
-                alt="Chú Rể"
-                class="w-full aspect-square object-cover"
-              />
-            </div>
-            <div class="flex flex-col gap-1 min-w-0 pt-1">
-              <div class="cx-t text-[10px] tracking-[3px] uppercase">Nhà trai</div>
-              <div class="cx-h text-[20px]" id="groom-name-label">----------</div>
-              <div class="flex flex-col gap-0.5 pt-1">
-                <div class="cx-a text-[13px]" id="groom-father">--------------------</div>
-                <div class="cx-a text-[13px]" id="groom-mother">--------------------</div>
+          <div class="flex flex-col gap-3">
+            <div class="flex items-end gap-4 flex-row-reverse text-right">
+              <div class="sp-round w-[120px] shrink-0 aspect-[3/4]">
+                <img
+                  id="bride-photo"
+                  src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+                  alt="Cô Dâu"
+                  class="w-full h-full object-cover"
+                />
               </div>
-              <div class="cx-t text-[11px] leading-relaxed pt-1">
-                <i data-lucide="map-pin" class="cx-ic cx-a mr-1 text-[10px]"></i>
-                <span id="groom-address">----------------------------------------</span>
+              <div class="flex flex-col min-w-0 flex-1 pb-1">
+                <div class="sp-lbl">Cô dâu</div>
+                <div class="sp-fit is-end cx-h text-[28px] mt-1"><span class="sp-fit-in" id="bride-name-label">----------</span></div>
+                <div class="text-[14px] mt-2 leading-[1.6]">
+                  <div id="bride-father">--------------------</div>
+                  <div id="bride-mother">--------------------</div>
+                </div>
               </div>
             </div>
-          </div>
-
-          <!-- Nhà gái -->
-          <div class="flex items-start gap-5">
-            <div class="sp-photo sp-tilt-r w-[108px] shrink-0">
-              <span class="sp-tape sp-tape-tr"></span>
-              <img
-                id="bride-photo"
-                src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
-                alt="Cô Dâu"
-                class="w-full aspect-square object-cover"
-              />
-            </div>
-            <div class="flex flex-col gap-1 min-w-0 pt-1">
-              <div class="cx-t text-[10px] tracking-[3px] uppercase">Nhà gái</div>
-              <div class="cx-h text-[20px]" id="bride-name-label">----------</div>
-              <div class="flex flex-col gap-0.5 pt-1">
-                <div class="cx-a text-[13px]" id="bride-father">--------------------</div>
-                <div class="cx-a text-[13px]" id="bride-mother">--------------------</div>
-              </div>
-              <div class="cx-t text-[11px] leading-relaxed pt-1">
-                <i data-lucide="map-pin" class="cx-ic cx-a mr-1 text-[10px]"></i>
-                <span id="bride-address">----------------------------------------</span>
+            <div id="bride-addr-row" class="sp-addr is-r flex">
+              <svg class="sp-pin" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21Z" /><circle cx="12" cy="9.5" r="2.4" /></svg>
+              <div class="min-w-0">
+                <div class="sp-lbl">Nhà gái</div>
+                <div class="cx-hd text-[14px] mt-1 leading-[1.5]" id="bride-address">----------------------------------------</div>
               </div>
             </div>
           </div>
         </section>
 
-        <!-- ═══ MỤC: Thư mời — lễ thành hôn / vu quy ════════════════════════
-             Trái tim của mẫu: lá thư viết trên giấy kẻ dòng. Đoạn thư trộn chữ
-             viết cứng với ngày/nơi lấy từ dữ liệu (#letter-date, #letter-venue)
-             — sửa lời thư thì bấm thẳng vào thiệp, sửa ngày thì vào Thiết lập.
-             Nhà gái bật Vu Quy thì index.js thay tên lễ + giờ + nơi tổ chức. -->
-        <section id="section-ceremony" class="-mx-7 flex flex-col gap-7 px-7 py-12 cx-bg-band">
-          <div class="sp-head">
-            <h2 class="sp-hand cx-h text-[25px]">Thư mời</h2>
-            <span class="sp-head-line"></span>
-          </div>
-
-          <div class="flex flex-col">
-            <div class="sp-note cx-a text-[19px] pb-2">Bạn thân mến,</div>
-            <!-- Khối kẻ dòng KHÔNG được có padding trên/dưới, xem .sp-rule -->
-            <div class="sp-rule sp-drop cx-t text-[13px]">
-              Mình sắp về chung một nhà rồi! Ngày vui của tụi mình sẽ diễn ra vào
-              <span class="cx-a" id="letter-date">--.--.----</span>, tại
-              <span class="cx-a" id="letter-venue">------------------------</span>.
-              Vì không thể tới tận nơi trao tay từng tấm thiệp, mình xin phép gửi
-              lời mời tới bạn qua những dòng này.<br /><br />
-              Rất mong bạn sắp xếp được thời gian, đến chung vui cùng vợ chồng
-              mình nhé. Cảm ơn bạn thật nhiều.
-            </div>
-          </div>
-
-          <div class="flex flex-col gap-4 pt-1">
-            <div class="cx-t text-[11px] tracking-[3px] uppercase">
-              Trân trọng kính mời dự
-            </div>
-            <div class="sp-hand cx-a text-[26px]" id="ceremony-event-name">Lễ Thành Hôn</div>
-
-            <div class="sp-names cx-h text-[25px] leading-tight">
-              <span class="sp-names-in">
-                <span id="invite-groom">----------</span>
-                <span class="sp-hand cx-a text-[20px]">&amp;</span>
-                <span id="invite-bride">----------</span>
-              </span>
-            </div>
-
-            <div class="flex items-center gap-5 pt-2">
-              <div class="cx-a text-[54px] leading-none" id="invite-day">--</div>
-              <div class="w-px self-stretch cx-bg-line"></div>
-              <div class="flex flex-col gap-1">
-                <div class="cx-t text-[11px] uppercase tracking-[2px]" id="invite-month-year">
-                  Tháng -- · ----
-                </div>
-                <div class="cx-t text-[11px] uppercase tracking-[2px]" id="invite-weekday">
-                  ------
-                </div>
-                <div class="cx-h text-[23px] leading-none" id="invite-time">--:--</div>
+        <!-- ═══ MỤC: Lễ — thành hôn / vu quy ════════════════════════════════
+             Cùng dải nền với Tiệc mừng ngay dưới. Nhà gái bật Vu Quy thì
+             index.js thay tên lễ + giờ + nơi tổ chức. -->
+        <section id="section-ceremony" class="-mx-7 -mb-14 flex flex-col gap-4 px-5 pt-14 pb-3 cx-bg-band">
+          <div class="sp-sec px-2">Sự kiện</div>
+          <div class="sp-card flex flex-col gap-3 p-6">
+            <div class="flex items-start justify-between gap-4">
+              <div class="min-w-0">
+                <div class="sp-lbl" id="ceremony-event-name">Lễ Thành Hôn</div>
+                <div class="sp-num cx-hd text-[48px] mt-2" id="invite-time">--:--</div>
+              </div>
+              <div class="text-right shrink-0">
+                <div class="sp-num cx-hd text-[32px]" id="invite-day">--</div>
+                <div class="sp-lbl mt-1 text-[12px]" id="invite-weekday">------</div>
               </div>
             </div>
-
-            <div class="sp-note cx-t text-[16px]" id="invite-lunar">--------------------</div>
-
+            <div class="sp-hr"></div>
+            <div class="text-[14px]" id="invite-month-year">Tháng -- · ----</div>
+            <div class="text-[14px] italic opacity-80" id="invite-lunar">--------------------</div>
             <!-- Nơi làm lễ — index.js gỡ .hidden khi có dữ liệu -->
-            <div id="ceremony-location-wrap" class="hidden flex items-start gap-2">
-              <i data-lucide="map-pin" class="cx-ic cx-a text-[11px] mt-1"></i>
-              <span id="ceremony-location-text" class="cx-t text-[12px] leading-relaxed"></span>
+            <div id="ceremony-location-wrap" class="hidden">
+              <div class="cx-hd text-[16px]" id="ceremony-location-text"></div>
+            </div>
+            <!-- Chỉ đường + Lưu lịch — index.js điền link / ẩn nút thiếu dữ liệu -->
+            <div id="ceremony-actions" class="flex gap-2 pt-1">
+              <a id="ceremony-dir" href="#" target="_blank" rel="noopener" class="sp-btn sp-btn-ink inline-flex items-center rounded-full flex-1">Chỉ đường</a>
+              <x-button variant="bare" id="ceremony-cal" data-sp-cal="ceremony" class="sp-btn sp-btn-line flex-1">Lưu lịch</x-button>
             </div>
           </div>
         </section>
 
-        <!-- ═══ MỤC: Tiệc cưới (enable_party) ═══════════════════════════════
-             Thẻ giấy có DẤU BƯU ĐIỆN đóng lệch ở góc, in đúng ngày đãi tiệc. -->
-        <section id="section-party" class="flex flex-col gap-6">
-          <div class="sp-head">
-            <h2 class="sp-hand cx-h text-[25px]">Tiệc mừng</h2>
-            <span class="sp-head-line"></span>
-          </div>
-
-          <div class="sp-card flex flex-col gap-4 px-6 py-7">
-            <div class="sp-postmark absolute right-4 top-5">
-              <div class="cx-t text-[9px] tracking-[1px]" id="stamp-weekday">------</div>
-              <div class="sp-postmark-in my-1 px-2">
-                <span class="cx-h text-[19px] leading-none" id="stamp-day">--</span>
+        <!-- ═══ MỤC: Tiệc cưới (enable_party) + lịch tháng ═══════════════════ -->
+        <section id="section-party" class="-mx-7 flex flex-col gap-4 px-5 pt-3 pb-14 cx-bg-band">
+          <div class="sp-card flex flex-col gap-3 p-6">
+            <div class="flex items-start justify-between gap-4">
+              <div class="min-w-0">
+                <div class="sp-lbl" id="party-section-label">Tiệc Mừng Lễ Thành Hôn</div>
+                <div class="sp-num cx-hd text-[48px] mt-2" id="party-time">--:--</div>
               </div>
-              <div class="cx-t text-[9px] tracking-[1px]" id="stamp-month-year">--.----</div>
-            </div>
-
-            <div class="flex flex-col gap-2 pr-[76px]">
-              <div id="party-section-label" class="cx-t text-[10px] tracking-[2px] uppercase">
-                Tiệc Mừng Lễ Thành Hôn
-              </div>
-              <div class="cx-h text-[25px] leading-tight" id="party-datetime">
-                --:-- - --.--.----
+              <div class="text-right shrink-0">
+                <div class="sp-num cx-hd text-[32px]" id="party-day">--</div>
+                <div class="sp-lbl mt-1 text-[12px]" id="party-weekday">------</div>
               </div>
             </div>
-
-            <div class="sp-note cx-t text-[16px]" id="party-lunar">(Ngày âm lịch)</div>
-
-            <div class="flex items-start gap-2 pt-1">
-              <i data-lucide="map-pin" class="cx-ic cx-a text-[12px] mt-1"></i>
-              <div class="cx-t text-[13px] leading-relaxed" id="party-location">
-                ------------------------
-              </div>
+            <div class="sp-hr"></div>
+            <div class="text-[14px]" id="party-month-year">Tháng -- · ----</div>
+            <div class="text-[14px] italic opacity-80" id="party-lunar">--------------------</div>
+            <div class="cx-hd text-[16px]" id="party-location">------------------------</div>
+            <!-- Chỉ đường + Lưu lịch — index.js điền link / ẩn nút thiếu dữ liệu -->
+            <div id="party-actions" class="flex gap-2 pt-1">
+              <a id="party-dir" href="#" target="_blank" rel="noopener" class="sp-btn sp-btn-ink inline-flex items-center rounded-full flex-1">Chỉ đường</a>
+              <x-button variant="bare" id="party-cal" data-sp-cal="party" class="sp-btn sp-btn-line flex-1">Lưu lịch</x-button>
             </div>
           </div>
 
-          <!-- Lịch nhỏ đánh dấu ngày lễ + ngày tiệc (calendar-helper.js) -->
-          <div id="mini-calendar" class="w-full"></div>
+          <!-- Lịch tháng: tim đặc = ngày lễ, tim viền = ngày tiệc (_spCalendar ở index.js) -->
+          <div class="sp-card px-5 pt-6 pb-5">
+            <div id="mini-calendar" class="w-full flex flex-col gap-4"></div>
+          </div>
         </section>
 
-        <!-- ═══ MỤC: Xác nhận tham dự (rsvp_enabled) ════════════════════════
-             Phiếu hồi âm nét đứt, hai ô đánh dấu. Ô được tick nhờ .btn-selected
-             mà confirmAttend() gắn lên nút (xem theme.css) — không cần JS riêng. -->
-        <section id="rsvp-section" class="flex flex-col gap-5" style="display: none">
-          <div class="sp-slip flex flex-col gap-4 px-6 py-7">
-            <div class="sp-hand cx-a text-[23px]">Bạn sẽ đến chứ?</div>
-            <div id="rsvp-custom-message" class="hidden cx-t text-[12px] leading-relaxed"></div>
+        <!-- ═══ MỤC: Xác nhận tham dự (rsvp_enabled) — khối nền mực ═════════ -->
+        <section id="rsvp-section" class="sp-rsvp flex-col gap-4 px-7 py-10" style="display: none">
+          <div class="sp-sec">Xác nhận</div>
+          <div class="cx-h text-[36px]">Bạn sẽ đến chứ?</div>
+          <div id="rsvp-custom-message" class="hidden text-[14px] leading-relaxed"></div>
 
-            <div class="flex flex-col gap-3">
-              <x-button
-                variant="bare"
-                onclick="confirmAttend(true)"
-                id="btn-attend"
-                class="sp-btn sp-btn-l w-full gap-3 border cx-border cx-bg-panel px-4 py-3 transition-all"
-              >
-                <span class="sp-tick"><i data-lucide="check" class="cx-ic text-[11px]"></i></span>
-                <span class="cx-h text-[16px]">Mình sẽ tới chung vui</span>
-              </x-button>
-              <x-button
-                variant="bare"
-                onclick="confirmAttend(false)"
-                id="btn-decline"
-                class="sp-btn sp-btn-l w-full gap-3 border cx-border cx-bg-panel px-4 py-3 transition-all"
-              >
-                <span class="sp-tick"><i data-lucide="check" class="cx-ic text-[11px]"></i></span>
-                <span class="cx-h text-[16px]">Tiếc quá, mình bận mất rồi</span>
-              </x-button>
-            </div>
-
-            <div id="attend-msg" class="sp-note cx-a text-[16px] hidden"></div>
+          <div class="flex flex-col gap-2 pt-2">
+            <x-button variant="bare" onclick="confirmAttend(true)" id="btn-attend" class="sp-btn sp-btn-solid">
+              Mình sẽ đến
+            </x-button>
+            <x-button variant="bare" onclick="confirmAttend(false)" id="btn-decline" class="sp-btn sp-btn-ghost">
+              Tiếc quá, mình bận
+            </x-button>
           </div>
+
+          <div id="attend-msg" class="text-[14px] hidden"></div>
         </section>
 
         <!-- ═══ MỤC: Lịch trình ngày cưới (enable_timeline) ═════════════════
              `hidden flex flex-col`: thiếu `flex` thì lúc cxToggle gỡ .hidden,
              thẻ về display:block và gap-* mất tác dụng. -->
         <section id="section-timeline" class="hidden flex flex-col gap-5">
-          <div class="sp-head">
-            <h2 class="sp-hand cx-h text-[25px]">Trình tự ngày vui</h2>
-            <span class="sp-head-line"></span>
-          </div>
+          <div class="sp-sec">Lịch trình</div>
           <div id="timeline-list-render" class="flex flex-col"></div>
         </section>
 
-        <!-- ═══ MỤC: Chuyện tình yêu (enable_love_story) ════════════════════ -->
-        <section
-          id="love-story"
-          class="-mx-7 flex flex-col gap-5 px-7 py-12 cx-bg-band"
-          style="display: none"
-        >
-          <div class="sp-head">
-            <h2 class="sp-hand cx-h text-[25px]">Chuyện chúng mình</h2>
-            <span class="sp-head-line"></span>
-          </div>
-          <div id="love-story-list" class="flex flex-col border-l cx-border ml-[5px]"></div>
+        <!-- ═══ MỤC: Chuyện tình yêu (enable_love_story) — kiểu Stories ═════
+             _spStories ở index.js dựng khung + hàng ảnh nhỏ vào #love-story-list. -->
+        <section id="love-story" class="-mx-2 flex flex-col gap-4" style="display: none">
+          <div class="sp-sec px-2">Chuyện chúng mình</div>
+          <div id="love-story-list" class="flex flex-col gap-4"></div>
         </section>
 
-        <!-- ═══ MỤC: Album ảnh (enable_photos) ══════════════════════════════
-             Ảnh in có khung giấy, dán băng dính, nghiêng so le — renderGallery
-             trong index.js dựng từng ô. -->
-        <section id="section-photos" class="flex flex-col gap-7">
-          <div class="sp-head">
-            <h2 class="sp-hand cx-h text-[25px]">Vài tấm hình</h2>
-            <span class="sp-head-line"></span>
+        <!-- ═══ MỤC: Album ảnh (enable_photos) — dàn trang tạp chí ═══════════
+             renderGallery chia ảnh thành một hoặc hai khối, đặt #sp-mag-note
+             vào cột phải khối 1, #sp-mag-note-2 vào cột trái khối 2. -->
+        <section id="section-photos" class="-mx-2 flex flex-col gap-5">
+          <div class="sp-sec px-2">Khoảnh khắc</div>
+          <div id="gallery-grid" class="flex flex-col gap-2">
+            <div id="sp-mag-note" class="sp-mag-note">
+              <p id="photos-kicker" class="sp-mag-kick">Từng khoảnh khắc</p>
+              <p id="photos-title" class="sp-mag-title cx-h">Ta có nhau</p>
+              <p id="photos-desc" class="sp-mag-desc">
+                Vài khung hình chúng mình muốn giữ lại — gửi bạn xem trước ngày vui.
+              </p>
+            </div>
+            <div id="sp-mag-note-2" class="sp-mag-note">
+              <p id="photos-kicker-2" class="sp-mag-kick">Một chặng đường</p>
+              <p id="photos-title-2" class="sp-mag-title cx-h">Cùng nhau</p>
+              <p id="photos-desc-2" class="sp-mag-desc">
+                Từ buổi hẹn đầu tiên đến ngày nắm tay về chung một nhà.
+              </p>
+            </div>
           </div>
-          <div id="gallery-grid" class="grid grid-cols-2 gap-x-5 gap-y-7 pt-1"></div>
         </section>
 
         <!-- ═══ MỤC: Hộp mừng cưới (enable_gift) ════════════════════════════
-             Hai chiếc phong bì: nắp thư vẽ bằng gradient ở .sp-envelope. -->
-        <section id="section-gift" class="flex flex-col gap-6">
-          <div class="sp-head">
-            <h2 class="sp-hand cx-h text-[25px]">Hộp mừng cưới</h2>
-            <span class="sp-head-line"></span>
-          </div>
+             data-cx-gift="qr" = khối bị hộp quà che; hộp do gift-box-helper vẽ. -->
+        <section id="section-gift" class="flex flex-col gap-5">
+          <div class="sp-sec">Mừng cưới</div>
+          <p class="text-[14px]">Ở xa không tới được thì gửi chúng mình lời chúc qua đây nhé.</p>
 
-          <div class="sp-note cx-t text-[16px]">
-            Ở xa không tới được thì gửi cho tụi mình một lời chúc qua đây nhé.
-          </div>
+          <div data-cx-gift="qr" class="flex flex-col gap-3">
+            <div class="sp-card flex items-center gap-4 p-4">
+              <div class="cx-bg-qr w-[112px] shrink-0 rounded-xl p-2">
+                <img
+                  src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+                  id="groom-qr-img"
+                  alt="QR Chú Rể"
+                  class="w-full aspect-square object-cover"
+                />
+              </div>
+              <div class="flex flex-col gap-0.5 min-w-0">
+                <div class="sp-lbl">Chú rể</div>
+                <div class="cx-h text-[20px] mt-1" id="groom-bank-label">----------</div>
+                <div class="text-[14px]" id="groom-bank-name">----------------</div>
+                <div class="cx-hd text-[16px] font-medium" id="groom-bank-number">------------</div>
+                <div class="text-[14px]" id="groom-bank-owner">--------------------</div>
+                <x-button variant="bare" onclick="saveQR('groom-qr-img')" class="sp-btn-line mt-2 self-start gap-2 h-9 px-4 text-[13px] font-medium">
+                  <i data-lucide="download" class="cx-ic text-[12px]"></i>
+                  Lưu QR
+                </x-button>
+              </div>
+            </div>
 
-          <!-- Chú rể -->
-          <div data-cx-gift="qr" class="sp-card sp-envelope flex items-center gap-4 px-5 pb-6 pt-14">
-            <div class="cx-bg-qr w-[112px] shrink-0 p-2">
-              <img
-                src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
-                id="groom-qr-img"
-                alt="QR Chú Rể"
-                class="w-full aspect-square object-cover"
-              />
-            </div>
-            <div class="flex flex-col gap-0.5 min-w-0">
-              <div class="cx-t text-[10px] tracking-[2px] uppercase">Chú rể</div>
-              <div class="cx-h text-[18px]" id="groom-bank-label">----------</div>
-              <div class="cx-t text-[11px]" id="groom-bank-name">----------------</div>
-              <div class="cx-a text-[13px]" id="groom-bank-number">------------</div>
-              <div class="cx-t text-[11px]" id="groom-bank-owner">--------------------</div>
-              <x-button
-                variant="bare"
-                onclick="saveQR('groom-qr-img')"
-                class="sp-btn mt-2 self-start gap-2 border cx-border cx-t px-3 py-1.5 text-[11px]"
-              >
-                <i data-lucide="download" class="cx-ic cx-a text-[10px]"></i>
-                Lưu QR
-              </x-button>
-            </div>
-          </div>
-
-          <!-- Cô dâu -->
-          <div data-cx-gift="qr" class="sp-card sp-envelope flex items-center gap-4 px-5 pb-6 pt-14">
-            <div class="cx-bg-qr w-[112px] shrink-0 p-2">
-              <img
-                src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
-                id="bride-qr-img"
-                alt="QR Cô Dâu"
-                class="w-full aspect-square object-cover"
-              />
-            </div>
-            <div class="flex flex-col gap-0.5 min-w-0">
-              <div class="cx-t text-[10px] tracking-[2px] uppercase">Cô dâu</div>
-              <div class="cx-h text-[18px]" id="bride-bank-label">----------</div>
-              <div class="cx-t text-[11px]" id="bride-bank-name">----------------</div>
-              <div class="cx-a text-[13px]" id="bride-bank-number">------------</div>
-              <div class="cx-t text-[11px]" id="bride-bank-owner">--------------------</div>
-              <x-button
-                variant="bare"
-                onclick="saveQR('bride-qr-img')"
-                class="sp-btn mt-2 self-start gap-2 border cx-border cx-t px-3 py-1.5 text-[11px]"
-              >
-                <i data-lucide="download" class="cx-ic cx-a text-[10px]"></i>
-                Lưu QR
-              </x-button>
+            <div class="sp-card flex items-center gap-4 p-4">
+              <div class="cx-bg-qr w-[112px] shrink-0 rounded-xl p-2">
+                <img
+                  src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+                  id="bride-qr-img"
+                  alt="QR Cô Dâu"
+                  class="w-full aspect-square object-cover"
+                />
+              </div>
+              <div class="flex flex-col gap-0.5 min-w-0">
+                <div class="sp-lbl">Cô dâu</div>
+                <div class="cx-h text-[20px] mt-1" id="bride-bank-label">----------</div>
+                <div class="text-[14px]" id="bride-bank-name">----------------</div>
+                <div class="cx-hd text-[16px] font-medium" id="bride-bank-number">------------</div>
+                <div class="text-[14px]" id="bride-bank-owner">--------------------</div>
+                <x-button variant="bare" onclick="saveQR('bride-qr-img')" class="sp-btn-line mt-2 self-start gap-2 h-9 px-4 text-[13px] font-medium">
+                  <i data-lucide="download" class="cx-ic text-[12px]"></i>
+                  Lưu QR
+                </x-button>
+              </div>
             </div>
           </div>
         </section>
 
-        <!-- ═══ MỤC: Bản đồ tới nơi đãi tiệc ═══════════════════════════════
-             Bản đồ như một mảnh cắt dán vào thư: khung giấy + băng dính. -->
-        <section id="section-map" class="flex flex-col gap-5">
-          <div class="sp-head">
-            <h2 class="sp-hand cx-h text-[25px]">Chỉ đường</h2>
-            <span class="sp-head-line"></span>
-          </div>
-
-          <div class="cx-h text-[16px]" id="map-location-name">------------------------</div>
-
+        <!-- ═══ MỤC: Bản đồ — #map-location-name + #map-link phải đứng CUỐI
+             mục (renderVenueMaps nhân cặp này khi lễ và tiệc ở hai nơi). ════ -->
+        <section id="section-map" class="flex flex-col gap-4">
+          <div class="sp-sec">Chỉ đường</div>
+          <div class="cx-hd text-[16px]" id="map-location-name">------------------------</div>
           <a
             id="map-link"
             href="#"
             target="_blank"
-            class="sp-photo block active:scale-[0.98] transition-transform"
+            class="sp-card block overflow-hidden active:scale-[0.98] transition-transform"
           >
-            <span class="sp-tape sp-tape-tc"></span>
-            <div class="relative h-40 w-full overflow-hidden">
+            <div class="relative h-44 w-full overflow-hidden">
               <iframe
                 id="map-thumbnail-iframe"
                 src=""
@@ -539,48 +469,34 @@
                 loading="lazy"
                 referrerpolicy="no-referrer-when-downgrade"
               ></iframe>
-
               <!-- Chưa có dữ liệu bản đồ → hiện minh hoạ thay cho iframe trắng -->
               <div
                 id="map-placeholder"
                 class="hidden absolute inset-0 flex flex-col items-center justify-center gap-2 cx-bg-surface"
               >
                 <i data-lucide="map-pinned" class="cx-ic cx-a text-2xl"></i>
-                <span class="cx-t text-[11px] uppercase tracking-[2px]">Chưa có bản đồ</span>
+                <span class="sp-lbl">Chưa có bản đồ</span>
               </div>
             </div>
-            <div class="flex items-center justify-between pt-3">
-              <span class="cx-t text-[10px] uppercase tracking-[2px]">Địa điểm tổ chức</span>
-              <span class="cx-a flex items-center gap-1 text-[11px]">
-                Mở Maps
-                <i data-lucide="chevron-right" class="cx-ic text-[9px]"></i>
+            <div class="flex items-center justify-between px-5 py-4">
+              <span class="sp-lbl">Địa điểm tổ chức</span>
+              <span class="cx-hd flex items-center gap-1 text-[14px] font-medium">
+                Mở Maps <i data-lucide="arrow-up-right" class="cx-ic text-[14px]"></i>
               </span>
             </div>
           </a>
         </section>
 
-        <!-- ═══ MỤC: Lời cảm ơn (enable_footer) ═════════════════════════════
-             Kết thư: lời cảm ơn, chữ ký tay của cặp đôi, một dòng tái bút. -->
-        <section id="section-footer" class="flex flex-col gap-5">
-          <div class="w-16 h-px cx-bg-line"></div>
-
-          <div id="footer-text" class="cx-t text-[13px] leading-relaxed">
-            Cảm ơn bạn đã dành thời gian đến chung vui cùng chúng tôi
-          </div>
-
-          <div class="flex flex-col gap-2 pt-2">
-            <div class="cx-t text-[12px]">Thân mến,</div>
-            <div class="sp-names sp-hand cx-a text-[27px]">
-              <span class="sp-names-in">
-                <span id="sign-groom">----------</span>
-                <span>&amp;</span>
-                <span id="sign-bride">----------</span>
-              </span>
+        <!-- ═══ MỤC: Lời cảm ơn (enable_footer) ═════════════════════════════ -->
+        <section id="section-footer" class="flex flex-col gap-3">
+          <div class="sp-hr mb-6"></div>
+          <div class="cx-h text-[48px]">Cảm ơn bạn</div>
+          <div id="footer-text">Cảm ơn bạn đã dành thời gian đến chung vui cùng chúng mình.</div>
+          <div class="flex items-center justify-between gap-4 pt-6 sp-lbl">
+            <div class="sp-fit min-w-0">
+              <span class="sp-fit-in"><span id="sign-groom">----------</span> &amp; <span id="sign-bride">----------</span></span>
             </div>
-          </div>
-
-          <div class="sp-note cx-t text-[16px] pt-2">
-            T.B. Nhớ mang theo một nụ cười thật tươi bạn nhé!
+            <span class="shrink-0" id="footer-date">--.--.----</span>
           </div>
         </section>
       </div>

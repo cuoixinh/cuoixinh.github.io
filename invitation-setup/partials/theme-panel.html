@@ -3,10 +3,10 @@
   id="theme-panel"
   class="hidden fixed inset-0 bottom-[var(--nav-h)] z-[200] bg-[rgb(var(--surface-tint-rgb))] flex flex-col"
 >
-  <!-- Cụm preview + controls: mobile xếp dọc full; md+ xếp ngang full-width để
-       iframe đủ rộng cho thiệp nở tới max (768px). Controls là card ~1/4 nằm
-       NGOÀI bên phải, cách preview đúng thanh kéo (16px). -->
-  <div class="relative flex-1 min-h-0 w-full flex flex-col md:flex-row md:p-4">
+  <!-- Cụm preview + controls: mobile xếp dọc full; md+ xếp ngang, lề ngang co
+       để cụm rộng tối đa max-w-4xl — thẳng mép với #nav-card ngay dưới. Controls
+       là card bên phải, cách preview đúng thanh kéo (16px). -->
+  <div class="relative flex-1 min-h-0 w-full flex flex-col md:flex-row md:py-4 md:px-[max(16px,calc((100%-56rem)/2))]">
     <!-- Preview thiệp (cập nhật trực tiếp khi chỉnh) — LUÔN chạy trong khung
          điện thoại như tab Xem trước: iframe full-bleed co theo cột chỉnh nên
          thiệp rơi vào bố cục màn rộng, khách chỉnh một đằng thấy một nẻo. Cùng
@@ -77,18 +77,15 @@
              một dòng ở đó chứ không thêm markup ở đây. -->
         <div id="cx-ctrl-actions" class="cx-sheet-actions cx-ch">
           <div class="cx-ch-side">
-            <button
-              type="button"
-              id="cx-ch-reset"
-              onclick="cxCtrlReset()"
-              class="cx-ch-reset"
-            >
-              <!-- Chữ trần, không icon: có icon là phần CHỮ thụt vào, hết thẳng
-                   cột với nội dung bên dưới. -->
-              <span id="cx-ch-reset-txt">Mặc định</span>
+            <!-- Mở menu #cx-reset-pop (hai mức đặt lại). KHÔNG khai onclick:
+                 x-popover chỉ tự gắn click cho nút mở không có onclick riêng.
+                 Icon đứng SAU chữ để chữ vẫn thẳng cột với nội dung bên dưới. -->
+            <button type="button" id="cx-ch-reset" class="cx-ch-reset">
+              <span>Đặt lại</span>
+              <i data-lucide="chevron-down" aria-hidden="true" style="width:14px;height:14px"></i>
             </button>
           </div>
-          <span id="cx-ch-title" class="cx-ch-title">Bộ màu</span>
+          <span id="cx-ch-title" class="cx-ch-title">Màu sắc</span>
           <!-- Ô bên phải: cặp nút của MÀN CHI TIẾT (bấm thẳng vào một phần tử trên
                thiệp) — ↺ đặt lại phần tử đang chỉnh, rồi ✓ áp dụng; icon trần ở mobile,
                nút có nhãn từ md (xem .cx-ch-ico). Bảng theo tab thì ô này chỉ có
@@ -142,38 +139,30 @@
             
 
             <!-- Nhóm chỉnh chung của cả thiệp — ẩn khi mở bảng chỉnh 1 dòng -->
-            <div id="theme-main-controls" class="space-y-3 md:space-y-6">
+            <div id="theme-main-controls" class="space-y-4 md:space-y-5">
               <!-- Bộ màu: đổi CẢ bảng màu thiệp (chữ, nền, vạch kẻ, màn bìa,
                    hoạ tiết) trong một lần chọn. Đây là chỗ chỉnh màu DUY NHẤT ở
                    mức toàn thiệp — muốn khác đi thì bấm thẳng vào phần tử trên
-                   thiệp mà chỉnh riêng. -->
-              <div class="md:space-y-2.5">
-                <div class="flex items-center gap-2 md:w-full">
-                  <label
-                    for="theme-palette"
-                    class="text-[12px] text-gray-500 shrink-0 whitespace-nowrap md:text-[12.5px] md:w-16 md:text-right"
-                    >Bộ màu</label
-                  >
-                  <x-combobox
-                    id="theme-palette"
-                    preview-swatch
-                    onchange="onCardPaletteChange()"
-                    class="flex-1 min-w-0"
-                  ></x-combobox>
-                </div>
+                   thiệp mà chỉnh riêng. Ô màu do _renderPaletteGrid() dựng. -->
+              <div class="space-y-2.5">
+                <p class="text-[12px] text-gray-500">
+                  Bộ màu:
+                  <span id="theme-palette-name" class="font-semibold text-gray-800"></span>
+                </p>
 
                 <!-- Độ đậm của bộ màu: 50% = đúng bộ như danh mục khai, kéo lên
-                     là cả thiệp đậm tông hơn. ẨN HẲN khi đang ở "Mặc định" — lúc
-                     đó màu là của chính mẫu chứ không phải của bộ, để lại thanh
-                     kéo mờ mờ chỉ tổ khiến khách tưởng mình bấm hỏng
+                     là cả thiệp đậm tông hơn. Đứng TRÊN lưới ô màu: lưới dài,
+                     để dưới là trên điện thoại thanh này nằm khuất ngoài tầm
+                     nhìn của sheet. ẨN HẲN khi đang ở "Mặc định" — lúc đó màu là
+                     của chính mẫu chứ không phải của bộ
                      (_syncPaletteStrength() ở js/05-theme-panel.js). -->
                 <div
                   id="theme-palette-strength-row"
-                  class="hidden flex items-center gap-2 md:w-full mt-2 md:mt-0"
+                  class="hidden flex items-center gap-3"
                 >
                   <label
                     for="theme-palette-strength"
-                    class="text-[12px] text-gray-500 shrink-0 whitespace-nowrap md:text-[12.5px] md:w-16 md:text-right"
+                    class="text-[12px] text-gray-500 shrink-0 whitespace-nowrap"
                     >Độ đậm</label
                   >
                   <!-- CXProgress (core/components/progress.js) bọc input này
@@ -191,8 +180,14 @@
                     aria-label="Độ đậm của bộ màu"
                   />
                 </div>
-              </div>
 
+                <div
+                  id="theme-palette"
+                  class="cx-sw-grid"
+                  role="group"
+                  aria-label="Bộ màu"
+                ></div>
+              </div>
             </div>
             <!-- /theme-main-controls -->
 
@@ -390,7 +385,7 @@
             <!-- Bảng THÊM VĂN BẢN (thay chỗ nhóm chỉnh chung, giống bảng chỉnh 1 dòng) -->
             <div id="theme-addtext-panel" class="hidden space-y-3 md:space-y-4">
               <p class="text-[12px] text-gray-500">
-                Giữ rồi kéo mẫu thả lên thiệp.
+                Bấm để thêm vào chỗ đang xem, hoặc giữ rồi kéo thả đúng chỗ.
               </p>
               <!-- Ô mẫu dựng động từ CX_TEXT_PRESETS
                    (core/helpers/text-preset-helper.js) — kể cả mẫu cơ bản
@@ -577,29 +572,11 @@
       </div>
       <!-- /vùng cuộn chung -->
 
-      <!-- Dải tab dưới: mỗi tab là MỘT bảng chỉnh, bấm là đổi bảng ngay tại chỗ
-           (không còn lưới thẻ + nút quay lại, nhờ vậy bảng nào cũng dành trọn
-           chiều cao cho nội dung). Dải cuộn ngang khi không đủ chỗ, tab đang mở
-           được _syncCtrlHead() tô và chỉ kéo vào tầm nhìn khi đang khuất.
-           Các nút do _renderCtrlTabs() (js/05-theme-panel.js) dựng từ CTRL_VIEWS
-           — thêm/đổi tên tab là sửa bên đó, đừng viết nút vào đây. -->
+      <!-- Thanh công cụ: mỗi ô (icon + nhãn) là MỘT bảng chỉnh, bấm là đổi bảng tại
+           chỗ. Mobile là hàng 5 ô ở đáy, từ md là cột dọc bên trái cột chỉnh
+           (styles/_setup.css). Các ô do _renderCtrlTabs() (js/05-theme-panel.js)
+           dựng từ CTRL_VIEWS — thêm/đổi tên là sửa bên đó, đừng viết nút vào đây. -->
       <div id="cx-ctrl-tabs" class="cx-ctabs">
-        <!-- Nút GHIM đầu dải, KHÔNG phải tab (nên nằm ngoài role="tablist" và
-             ngoài track cuộn). Mức RỘNG NHẤT trong ba mức đặt lại nên gọi là "Đặt
-             lại" cho khác hẳn hai mức kia: nó trả CẢ thiệp về mẫu gốc và bấm được
-             từ bất kỳ bảng nào, còn "Mặc định" ở đầu bảng chỉ lo đúng bảng đang mở
-             (hoặc đúng phần tử đang chỉnh ở bảng chi tiết). -->
-        <x-button
-          id="cx-ctrl-reset-all"
-          variant="outline"
-          tone="neutral"
-          size="sm"
-          icon="rotate-ccw"
-          onclick="cxResetAllTheme()"
-          class="shrink-0"
-          title="Đặt lại toàn bộ thiệp về mẫu gốc"
-          >Đặt lại</x-button
-        >
         <div
           id="cx-ctrl-tabs-track"
           class="cx-ctabs-track"
@@ -610,6 +587,17 @@
       <!-- /dải tab -->
     </div>
     <!-- /theme-controls -->
+
+    <!-- Menu "Đặt lại ▾" ở đầu bảng: phần đang mở · cả thiệp. Mục do
+         _fillResetMenu() (js/05-theme-panel.js) dựng lại mỗi lần mở vì nhãn
+         đổi theo bảng. Đặt NGOÀI #theme-controls: đầu bảng là vùng kéo của sheet. -->
+    <x-popover
+      id="cx-reset-pop"
+      anchor="#cx-ch-reset"
+      placement="bottom"
+      align="start"
+      width="272"
+    ></x-popover>
   </div>
   <!-- /cụm preview + controls (max-w-4xl) -->
 </div>

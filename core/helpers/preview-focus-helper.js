@@ -1,5 +1,6 @@
 // Cuộn thiệp tới đúng mục đang được chỉnh bên trang Thiết lập (khung "xem trực
-// tiếp"). Trang cha gửi {type:"cx-focus", key}, key trùng `data-step` của bước.
+// tiếp"). Trang cha gửi {type:"cx-focus", key}, key trùng `data-step` của bước
+// (riêng "map" là mục Địa điểm, chung cho nhiều bước).
 // Thiệp thật không ai gửi gì nên file này nằm im.
 
 // Mỗi vai trò một danh sách ứng viên vì id không thống nhất giữa các theme —
@@ -25,6 +26,9 @@ const CX_FOCUS_SEL = {
   // mục nào trong thân thiệp nên danh sách này rỗng và lượt cuộn tự bỏ qua.
   wishes: ["#cx-wish-sec"],
   footer: ["#section-footer"],
+  // Không phải bước: trang Thiết lập gửi khi khách đang chọn/sửa địa điểm (bảng
+  // chọn bản đồ, ô tên địa điểm) ở bước Lễ cưới hay Tiệc cưới.
+  map: ["#section-map", "#map-location-name", "#map-link"],
 };
 
 // Mục cần tới có thể chưa dựng xong (renderWedding chạy sau load, ảnh còn đang

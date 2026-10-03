@@ -73,24 +73,57 @@ function _fillFontCombo(el, types) {
 // mẫu (đã khai sẵn ở :root của theme.css nên không phải áp gì).
 const PALETTE_DEFAULT_LABEL = "Mặc định";
 
-function _fillPaletteCombo() {
-  const el = document.getElementById("theme-palette");
-  if (!el || !el.setOptions || !window.CX_PALETTES) return;
-  el.setOptions([
-    { value: "", label: PALETTE_DEFAULT_LABEL, swatch: _themePaletteSwatch() },
-    ...window.CX_PALETTES.map((p) => ({
-      value: p.id,
-      label: p.name,
-      swatch: window.cxPaletteSwatch(p),
-    })),
-  ]);
+// Lưới ô màu: ô đầu "Mặc định" vẽ từ chính bản khai của mẫu đang mở
+// (CX_THEME.palette), để khách thấy ngay mình đang rời khỏi tông nào.
+function _renderPaletteGrid() {
+  const box = document.getElementById("theme-palette");
+  if (!box || !window.CX_PALETTES) return;
+  box.textContent = "";
+  [
+    { id: "", name: PALETTE_DEFAULT_LABEL, p: _themeCardPalette() },
+    ...window.CX_PALETTES.map((p) => ({ id: p.id, name: p.name, p })),
+  ].forEach((o) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "cx-sw";
+    btn.dataset.pal = o.id;
+    btn.title = o.id ? o.name : "Màu gốc của mẫu";
+    btn.appendChild(_paletteDot(o.p));
+    const name = document.createElement("span");
+    name.className = "cx-sw-name";
+    name.textContent = o.name;
+    btn.appendChild(name);
+    btn.addEventListener("click", () => onCardPaletteChange(o.id));
+    box.appendChild(btn);
+  });
+  window.lucide?.createIcons({ root: box });
+  _syncPaletteGrid();
 }
 
-// Giọt màu cho mục "Mặc định" — lấy từ chính bản khai của mẫu đang mở
-// (CX_THEME.palette), để khách thấy ngay mình đang rời khỏi tông nào.
-function _themePaletteSwatch() {
-  const p = _themeCardPalette();
-  return p ? window.cxPaletteSwatch(p) : "";
+// Chấm tròn chia bốn: nền dải (nửa) · nhấn nhạt · nhấn · tiêu đề. Nền thiệp bộ
+// nào cũng rất nhạt nên tô MỘT màu thì các ô trông như nhau. Màu là dữ liệu của
+// danh mục nên đi qua style inline; thiếu thì để nền xám mặc định của chấm.
+function _paletteDot(p) {
+  const dot = document.createElement("span");
+  dot.className = "cx-sw-dot";
+  dot.innerHTML = '<i data-lucide="check" aria-hidden="true"></i>';
+  const bg = p && (p.band || p.surface || p.card_bg);
+  const c = p ? [bg, p.accent_soft, p.accent, p.heading] : [];
+  if (c.length && c.every(Boolean))
+    dot.style.background = `conic-gradient(${c[0]} 0 50%, ${c[1]} 0 66.6%, ${c[2]} 0 83.3%, ${c[3]} 0)`;
+  return dot;
+}
+
+function _syncPaletteGrid() {
+  const cur = _currentPalette()?.id || "";
+  let name = PALETTE_DEFAULT_LABEL;
+  document.querySelectorAll("#theme-palette .cx-sw").forEach((b) => {
+    const on = b.dataset.pal === cur;
+    b.setAttribute("aria-pressed", on ? "true" : "false");
+    if (on) name = b.querySelector(".cx-sw-name")?.textContent || name;
+  });
+  const label = document.getElementById("theme-palette-name");
+  if (label) label.textContent = name;
 }
 
 // Bảng màu GỐC của mẫu, đọc qua iframe xem trước như cách _themeSwatches() làm.
@@ -139,9 +172,7 @@ function _applyThemeToFrame() {
   iframe?.contentWindow?.applyThemeSetting?.(_themeSetting);
 }
 
-function onCardPaletteChange() {
-  const el = document.getElementById("theme-palette");
-  const id = el ? el.value : "";
+function onCardPaletteChange(id) {
   const val = id ? window.cxPaletteValue(id) : null;
 
   // Đổi bộ thì GIỮ độ đậm đang kéo: khách hay so vài bộ ở cùng một mức đậm.
@@ -153,6 +184,7 @@ function onCardPaletteChange() {
     delete _themeSetting.palette;
   }
 
+  _syncPaletteGrid();
   _syncPaletteStrength();
   _scheduleAutoSave("theme");
   _applyThemeToFrame();
@@ -300,10 +332,7 @@ function _initThemePanel() {
     _themePanelReady = true;
   }
 
-  // <x-combobox>.value tự đồng bộ nhãn khi gán (kể cả lúc nạp thiệp / reset).
-  _fillPaletteCombo();
-  const pal = document.getElementById("theme-palette");
-  if (pal) pal.value = _currentPalette()?.id || "";
+  _renderPaletteGrid();
   _syncPaletteStrength();
 
   // Mở tab Giao diện → về nhóm chỉnh chung: rời tab lúc đang mở một bảng con mà
@@ -443,8 +472,7 @@ function _resetThemePart(key, toast) {
 
 function resetCardPalette() {
   delete _themeSetting.palette;
-  const el = document.getElementById("theme-palette");
-  if (el) el.value = "";
+  _syncPaletteGrid();
   _syncPaletteStrength();
   _scheduleAutoSave("theme");
   _applyThemeToFrame();
@@ -669,8 +697,11 @@ function _renderTextPresets() {
         desc: def.desc,
         lead: prev,
         title:
-          def.name + (def.desc ? " — " + def.desc : "") + " (kéo vào thiệp)",
+          def.name +
+          (def.desc ? " — " + def.desc : "") +
+          " (bấm để thêm, hoặc kéo vào thiệp để đặt đúng chỗ)",
         onDrag: (e) => startPaletteDrag(e, "preset:" + def.id),
+        onKey: () => _dropPresetInView("preset:" + def.id),
       }),
     );
   });
@@ -858,19 +889,26 @@ function startPaletteDrag(e, type) {
       iframe.contentWindow?.postMessage({ type: "cx-drag-over", y }, "*"),
     onCancel: (iframe) =>
       iframe?.contentWindow?.postMessage({ type: "cx-drag-cancel" }, "*"),
-    onDrop: (iframe, x, y) => {
-      // KHÔNG đóng bảng: runtime chọn khối vừa thả thì bảng chỉnh chữ tự chiếm
-      // chỗ (nó ẩn sẵn bảng này), còn nhỡ tin pick thì người dùng vẫn đứng ở
-      // bảng Văn bản để thả tiếp — rơi về nhóm chỉnh chung là mất chỗ đang làm.
-      _scheduleAutoSave("theme");
-      iframe.contentWindow?.postMessage(
-        { type: "cx-drop", blockType: type, y },
-        "*",
-      );
-    },
+    onDrop: (iframe, x, y) => _dropPreset(iframe, type, y),
+    onTap: () => _dropPresetInView(type),
   });
 }
 window.startPaletteDrag = startPaletteDrag;
+
+// KHÔNG đóng bảng: runtime chọn khối vừa thả thì bảng chỉnh chữ tự chiếm chỗ (nó
+// ẩn sẵn bảng này), còn nhỡ tin pick thì người dùng vẫn đứng ở bảng Văn bản để
+// thả tiếp — rơi về nhóm chỉnh chung là mất chỗ đang làm.
+function _dropPreset(iframe, type, y) {
+  _scheduleAutoSave("theme");
+  iframe.contentWindow?.postMessage({ type: "cx-drop", blockType: type, y }, "*");
+}
+
+// Bấm (hoặc Enter) thay cho kéo: thả vào GIỮA khung đang xem. offsetHeight là
+// chiều cao khung nhìn của thiệp tính theo px bên trong (chưa thu nhỏ).
+function _dropPresetInView(type) {
+  const iframe = _lineIframe();
+  if (iframe) _dropPreset(iframe, type, iframe.offsetHeight / 2);
+}
 
 // ─── Thành phần: bảng chọn thành phần thả lên thiệp ─────────────────────────
 // Danh mục lấy từ window.CX_ELEMENTS (core/helpers/element-helper.js) nên thêm
@@ -1021,6 +1059,7 @@ function _renderElementsPalette() {
             (v.desc ? " — " + v.desc : "") +
             " (bấm để dùng, hoặc kéo vào thiệp để đặt đúng chỗ)",
           onDrag: (e) => startElementDrag(e, def.id, v.id),
+          onKey: () => _addElement(def.id, v.id),
         }),
       );
     });
@@ -1189,7 +1228,7 @@ function _pickRow(o) {
     (o.desc ? `<span class="cx-pick-desc">${o.desc}</span>` : "") +
     "</span>" +
     (o.onDrag
-      ? '<i data-lucide="grip-vertical" class="cx-pick-grip !w-[14px] !h-[14px]"></i>'
+      ? '<i data-lucide="grip-vertical" aria-hidden="true" class="cx-pick-grip !w-[14px] !h-[14px]"></i>'
       : '<span class="cx-pick-tick"><i data-lucide="check"></i></span>');
   // Ô hình bên trái: chuỗi HTML (chip icon) hoặc phần tử đã dựng (bản xem trước).
   if (typeof o.lead === "string") btn.insertAdjacentHTML("afterbegin", o.lead);
@@ -1197,6 +1236,12 @@ function _pickRow(o) {
 
   if (o.onDrag) btn.addEventListener("pointerdown", o.onDrag);
   if (o.onPick) btn.addEventListener("click", () => o.onPick(o.id));
+  // Hàng kéo-thả: cú bấm bằng con trỏ do _startPalDrag lo (onTap), còn Enter/Space
+  // sinh click với detail = 0 — đường duy nhất cho người dùng bàn phím.
+  if (o.onKey)
+    btn.addEventListener("click", (e) => {
+      if (e.detail === 0) o.onKey();
+    });
   return btn;
 }
 
@@ -1435,7 +1480,7 @@ let _elSel = null; // id thành phần đang chỉnh
 let _elDefCur = null; // khai báo của nó trong CX_ELEMENTS
 let _elVarCur = null; // mẫu đang chọn — quyết định hiện ô màu nào
 let _elOpts = {}; // opts hiện hành (bản sao để vẽ control)
-let _elBase = {}; // màu thật của widget trên thiệp (ô nào chưa chỉnh thì lấy đây)
+let _elBase = {}; // giá trị thật của widget trên thiệp (ô nào chưa chỉnh thì lấy đây)
 
 function openElementEditor(msg) {
   const def = (window.CX_ELEMENTS || {})[msg.element];
@@ -1574,7 +1619,7 @@ function _renderElOptions() {
     label.textContent = o.label;
     const seg = document.createElement("div");
     seg.className = "cx-le-seg cx-le-seg-text";
-    const cur = _elOpts[o.id] || o.def;
+    const cur = _elOpts[o.id] || _elBase[o.id] || o.def;
     o.items.forEach((it) => {
       const b = document.createElement("button");
       b.type = "button";
@@ -2180,8 +2225,8 @@ window.dismissEditHint = dismissEditHint;
 // ─── Kéo đổi rộng cột chỉnh (chỉ desktop) ─────────────────────────────────────
 // Ghi --theme-ctrl-w (px) lên #theme-controls; styles/_setup.css chỉ đọc biến này trong
 // media query >=768px nên KHÔNG đụng tới thanh dưới ở mobile. min/max kẹp ở CSS.
-const _THEME_CTRL_MIN = 340;
-const _THEME_CTRL_MAX = 560;
+const _THEME_CTRL_MIN = 400;
+const _THEME_CTRL_MAX = 600;
 
 function _initThemeResize() {
   const handle = document.getElementById("theme-resize");
@@ -2197,8 +2242,8 @@ function _initThemeResize() {
   let dragging = false;
 
   const apply = (clientX) => {
-    // Mép phải cột = mép phải panel trừ 16px đệm (p-4). Rộng = mép phải − chuột.
-    const right = panel.getBoundingClientRect().right - 16;
+    // Rộng = mép phải của chính cột − chuột (lề ngang của cụm co theo khổ màn).
+    const right = controls.getBoundingClientRect().right;
     let w = right - clientX;
     w = Math.max(_THEME_CTRL_MIN, Math.min(_THEME_CTRL_MAX, w));
     controls.style.setProperty("--theme-ctrl-w", w + "px");
@@ -2275,10 +2320,10 @@ function _updateSheetFade(body) {
 // đầu bảng lẫn nhãn nút ở dải tab, viết HÀM khi tên đổi theo thứ đang chỉnh
 // (bảng "line" nhận cả chữ lẫn ảnh), `tip` là lời mách của nút đó, `back` là hàm
 // cho nút ✓ Áp dụng bên phải (màn con: chỉnh chữ, điều chỉnh thành phần — không có
-// tab vì chỉ mở được bằng cú bấm vào thiệp), `reset` là hàm cho nút trái — nút đó
-// CHỈ trả về mặc định phần thuộc bảng này (nhãn mặc định "Mặc định", đổi bằng
-// `resetTxt`); đặt lại CẢ thiệp là nút ghim "Đặt lại" ở đầu dải tab
-// (cxResetAllTheme) — ba mức, ba phạm vi, đừng trộn nhãn giữa chúng.
+// tab vì chỉ mở được bằng cú bấm vào thiệp), `reset` là hàm trả về mặc định CHỈ
+// phần thuộc bảng này — mục đầu của menu "Đặt lại ▾" (_fillResetMenu), mục còn lại
+// là đặt lại CẢ thiệp (cxResetAllTheme); màn chi tiết thì là nút ↺ bên phải.
+// `tab`/`icon` là nhãn ngắn + icon lucide của ô trên thanh công cụ.
 // Xét từ TRÊN XUỐNG, màn nào không ẩn thì thắng; dòng cuối là màn mặc định.
 // Thêm bảng mới → thêm một dòng ở đây + một key vào CTRL_TABS, không đụng markup
 // (dải tab do _renderCtrlTabs dựng) lẫn các hàm mở/đóng bảng.
@@ -2301,6 +2346,8 @@ const CTRL_VIEWS = [
     key: "gift",
     panel: "theme-gift-panel",
     title: "Hộp mừng cưới",
+    tab: "Hộp quà",
+    icon: "gift",
     tip: "Chọn hộp quà che phần mã QR mừng cưới",
     open: "openGiftPanel",
     reset: "resetGiftBox",
@@ -2309,6 +2356,7 @@ const CTRL_VIEWS = [
     key: "wishes",
     panel: "theme-wish-panel",
     title: "Lời chúc",
+    icon: "message-circle-heart",
     tip: "Chọn cách hiện lời chúc của khách mời",
     open: "openWishPanel",
     reset: "resetWishMode",
@@ -2317,6 +2365,8 @@ const CTRL_VIEWS = [
     key: "elements",
     panel: "theme-elements-panel",
     title: "Thẻ nhạc",
+    tab: "Nhạc",
+    icon: "music",
     tip: "Thả thẻ nhạc lên thiệp",
     open: "openElementsPanel",
     reset: "resetElements",
@@ -2325,13 +2375,16 @@ const CTRL_VIEWS = [
     key: "addtext",
     panel: "theme-addtext-panel",
     title: "Văn bản",
+    tab: "Chữ",
+    icon: "type",
     tip: "Thêm khối văn bản vào thiệp",
     open: "openAddTextPanel",
     reset: "resetCustomBlocks",
   },
   {
     key: "main",
-    title: "Thiệp cưới",
+    title: "Màu sắc",
+    icon: "palette",
     tip: "Đổi bộ màu của cả thiệp",
     reset: "resetCardPalette",
   },
@@ -2392,13 +2445,18 @@ function _renderCtrlTabs() {
     btn.type = "button";
     btn.className = "cx-ctab";
     btn.setAttribute("role", "tab");
+    btn.tabIndex = -1;
     btn.dataset.ctab = key;
     if (ADD_CARD_GATES[key]) btn.id = ADD_CARD_GATES[key].card;
     btn.title = view.tip || _ctrlTitle(view);
-    btn.textContent = _ctrlTitle(view);
+    btn.innerHTML = `<i data-lucide="${view.icon}" aria-hidden="true"></i>`;
+    const label = document.createElement("span");
+    label.textContent = view.tab || _ctrlTitle(view);
+    btn.appendChild(label);
     btn.addEventListener("click", () => cxCtrlTab(key));
     track.appendChild(btn);
   });
+  window.lucide?.createIcons({ root: track });
   // Nút vừa dựng lại → tô mờ theo công tắc ở tab Thiết lập ngay, không chờ lần
   // mở tab Giao diện kế tiếp.
   cxSyncThemeAddCards();
@@ -2431,16 +2489,12 @@ function _syncCtrlHead() {
   // Nút đặt lại có HAI hình, cùng một việc (cxCtrlReset), chọn theo hạng màn:
   //   màn chi tiết (khai `back` — mở bằng cú bấm vào chính phần tử trên thiệp):
   //     cặp icon bên PHẢI, ↺ rồi ✓, ô trái bỏ trống;
-  //   bảng theo tab: chữ "Mặc định" bên TRÁI, ô phải bỏ trống.
+  //   bảng theo tab: nút "Đặt lại ▾" bên TRÁI mở menu hai mức (_fillResetMenu).
   const detail = !!view.back;
   // Hàng đầu bảng đổi cách xếp ở màn chi tiết từ md — xem .cx-ch-detail.
   document.getElementById("cx-ctrl-actions")?.classList.toggle("cx-ch-detail", detail);
   const reset = document.getElementById("cx-ch-reset");
-  if (reset) {
-    reset.classList.toggle("hidden", !view.reset || detail);
-    const txt = document.getElementById("cx-ch-reset-txt");
-    if (txt) txt.textContent = view.resetTxt || "Mặc định";
-  }
+  if (reset) reset.classList.toggle("hidden", !view.reset || detail);
   document
     .getElementById("cx-ch-restore")
     ?.classList.toggle("hidden", !view.reset || !detail);
@@ -2450,9 +2504,7 @@ function _syncCtrlHead() {
   document.getElementById("cx-ch-finish")?.classList.toggle("hidden", detail);
 
   // Màn con (chỉnh chữ/ảnh, điều chỉnh thành phần) không ứng với tab nào → cất
-  // dải tab đi, nhường chỗ cho nội dung; nút ← ở đầu bảng là đường ra. Bỏ ẩn
-  // TRƯỚC vòng tô dưới đây, không thì dải còn display:none nên đo ra khổ 0 và
-  // _scrollTabIntoView kéo trượt lung tung.
+  // thanh công cụ đi, nhường chỗ cho nội dung; nút ✓ ở đầu bảng là đường ra.
   document
     .getElementById("cx-ctrl-tabs")
     ?.classList.toggle("hidden", !CTRL_TABS.includes(view.key));
@@ -2460,142 +2512,33 @@ function _syncCtrlHead() {
   document.querySelectorAll("#cx-ctrl-tabs .cx-ctab").forEach((btn) => {
     const on = btn.dataset.ctab === view.key;
     btn.setAttribute("aria-selected", on ? "true" : "false");
+    btn.tabIndex = on ? 0 : -1;
     btn.classList.toggle("is-on", on);
-    if (on) _scrollTabIntoView(btn);
   });
   if (window.lucide) lucide.createIcons();
 }
 
-// Kéo tab đang mở vào tầm nhìn khi nó nằm khuất — chỉ trượt vừa đủ tới mép
-// gần nhất, KHÔNG canh giữa. Dải tab nằm NGOÀI vùng cuộn nội dung → tự đặt
-// scrollLeft cho đúng dải; scrollIntoView sẽ cuộn lây cả khung cha (xem ghi
-// chú ở CLAUDE.md). Đo bằng getBoundingClientRect chứ KHÔNG dùng offsetLeft:
-// dải tab không phải offsetParent (ở md+ cột chỉnh là static, mốc rơi vào
-// #theme-panel) nên offsetLeft mang theo cả khoảng cách từ mép trái màn.
-function _scrollTabIntoView(btn) {
+// Bàn phím theo mẫu tablist: chỉ tab đang mở nằm trong vòng Tab (tabindex do
+// _syncCtrlHead gạt), ←/→/Home/End chuyển và mở luôn tab kế.
+function _initCtrlTabsKeys() {
   const track = document.getElementById("cx-ctrl-tabs-track");
   if (!track) return;
-  const t = track.getBoundingClientRect();
-  const b = btn.getBoundingClientRect();
-  const pad = 12; // chừa một chút để tab không dính sát mép mờ
-  let d = 0;
-  if (b.left < t.left + pad) d = b.left - t.left - pad;
-  else if (b.right > t.right - pad) d = b.right - t.right + pad;
-  if (!d) return;
-  const left = Math.max(0, track.scrollLeft + d);
-  const smooth =
-    !track.classList.contains("is-dragging") &&
-    !window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-  if (smooth && track.scrollTo) track.scrollTo({ left, behavior: "smooth" });
-  else track.scrollLeft = left;
-}
-
-// Kéo dải tab bằng CHUỘT để trượt (di động đã có cuộn quán tính sẵn của trình
-// duyệt nên để yên). Nhả tay thì trượt tiếp theo đà rồi tắt dần, và cú kéo dài
-// hơn TAB_DRAG_SLOP không được tính thành cú bấm — thả tay đúng trên một tab mà
-// nó đổi bảng thì người dùng chỉ định cuộn lại thấy mình lạc sang bảng khác.
-const TAB_DRAG_SLOP = 6; // px
-const TAB_GLIDE_FRICTION = 0.92; // đà còn lại sau mỗi khung hình
-const TAB_GLIDE_MIN_V = 0.05; // px/ms — chậm hơn mức này thì dừng hẳn
-
-function _initCtrlTabsDrag() {
-  const track = document.getElementById("cx-ctrl-tabs-track");
-  if (!track) return;
-  let down = false; // đang giữ chuột?
-  let moved = false; // đã kéo quá ngưỡng?
-  let x0 = 0; // toạ độ lúc bấm xuống
-  let left0 = 0; // scrollLeft lúc bấm xuống
-  let vx = 0; // vận tốc (px/ms) để tính đà
-  let tPrev = 0;
-  let xPrev = 0;
-  let glide = 0; // id requestAnimationFrame của pha trượt theo đà
-
-  const stopGlide = () => {
-    if (glide) cancelAnimationFrame(glide);
-    glide = 0;
-  };
-
-  track.addEventListener("pointerdown", (e) => {
-    if (e.pointerType !== "mouse" || e.button !== 0) return;
-    stopGlide();
-    down = true;
-    moved = false;
-    x0 = xPrev = e.clientX;
-    left0 = track.scrollLeft;
-    vx = 0;
-    tPrev = e.timeStamp;
-    track.classList.add("is-dragging");
-  });
-
-  track.addEventListener("pointermove", (e) => {
-    if (!down) return;
-    const dx = e.clientX - x0;
-    if (!moved && Math.abs(dx) > TAB_DRAG_SLOP) {
-      moved = true;
-      track.setPointerCapture?.(e.pointerId);
-    }
-    if (!moved) return;
-    track.scrollLeft = left0 - dx;
-    const dt = e.timeStamp - tPrev;
-    if (dt > 0) vx = (e.clientX - xPrev) / dt;
-    tPrev = e.timeStamp;
-    xPrev = e.clientX;
+  track.addEventListener("keydown", (e) => {
+    const tabs = [...track.querySelectorAll(".cx-ctab")];
+    const i = tabs.indexOf(document.activeElement);
+    if (i < 0) return;
+    const n = tabs.length;
+    const j = {
+      ArrowRight: (i + 1) % n,
+      ArrowLeft: (i - 1 + n) % n,
+      Home: 0,
+      End: n - 1,
+    }[e.key];
+    if (j == null) return;
     e.preventDefault();
+    tabs[j].focus();
+    tabs[j].click();
   });
-
-  const end = (e) => {
-    if (!down) return;
-    down = false;
-    track.releasePointerCapture?.(e.pointerId);
-    if (!moved) {
-      track.classList.remove("is-dragging");
-      return;
-    }
-    // Trượt tiếp theo đà: mỗi khung hình đi được quãng của vận tốc hiện tại rồi
-    // hãm dần, chạm mép thì dừng luôn.
-    let v = vx;
-    let tLast = performance.now();
-    const step = (now) => {
-      const dt = now - tLast;
-      tLast = now;
-      v *= Math.pow(TAB_GLIDE_FRICTION, dt / 16.67);
-      const before = track.scrollLeft;
-      track.scrollLeft = before - v * dt;
-      if (Math.abs(v) < TAB_GLIDE_MIN_V || track.scrollLeft === before) {
-        stopGlide();
-        track.classList.remove("is-dragging");
-        return;
-      }
-      glide = requestAnimationFrame(step);
-    };
-    glide = requestAnimationFrame(step);
-  };
-  track.addEventListener("pointerup", end);
-  track.addEventListener("pointercancel", end);
-
-  // Vừa kéo xong: nuốt cú click nảy ra từ chính cử chỉ kéo đó.
-  track.addEventListener(
-    "click",
-    (e) => {
-      if (!moved) return;
-      moved = false;
-      e.stopPropagation();
-      e.preventDefault();
-    },
-    true,
-  );
-
-  // Lăn chuột dọc trên dải (chuột thường không có trục ngang) → trượt ngang.
-  track.addEventListener(
-    "wheel",
-    (e) => {
-      if (e.deltaY === 0 || Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
-      stopGlide();
-      track.scrollLeft += e.deltaY;
-      e.preventDefault();
-    },
-    { passive: false },
-  );
 }
 
 // Nút trái/phải của đầu bảng: việc cụ thể do màn đang mở khai ở CTRL_VIEWS.
@@ -2613,6 +2556,39 @@ function cxCtrlReset() {
   if (_ctrlView.reset) window[_ctrlView.reset]?.();
 }
 window.cxCtrlReset = cxCtrlReset;
+
+// Menu "Đặt lại ▾": mức hẹp (đúng bảng đang mở) đứng trên, mức rộng (cả thiệp,
+// có hỏi lại) tách dưới vạch. Dựng lại mỗi lần mở vì nhãn theo tên bảng.
+function _fillResetMenu() {
+  const pop = document.getElementById("cx-reset-pop");
+  if (!pop?.setItems) return;
+  const item = (title, desc) =>
+    `<span class="cx-rst-t">${title}</span><span class="cx-rst-d">${desc}</span>`;
+  pop.setItems([
+    {
+      icon: '<i data-lucide="rotate-ccw"></i>',
+      label: item(
+        `Đặt lại ${_ctrlTitle(_ctrlView).toLocaleLowerCase("vi")}`,
+        "Chỉ phần này về như mẫu",
+      ),
+      onClick: cxCtrlReset,
+    },
+    { sep: true },
+    {
+      id: "cx-rst-all",
+      icon: '<i data-lucide="refresh-ccw"></i>',
+      label: item("Đặt lại cả thiệp", "Toàn bộ giao diện về mẫu gốc"),
+      onClick: cxResetAllTheme,
+    },
+  ]);
+  window.lucide?.createIcons({ root: pop });
+}
+
+function _initResetMenu() {
+  document
+    .getElementById("cx-reset-pop")
+    ?.addEventListener("open", _fillResetMenu);
+}
 
 // Bấm tab: mở bảng tương ứng ngay tại chỗ. Bấm lại tab đang mở thì thôi, để cú
 // bấm nhỡ không dựng lại danh sách mẫu (mất chỗ đang cuộn tới).
@@ -2752,7 +2728,8 @@ function _initThemePanelObservers() {
   _initSheet("cx-ctrl-scroll", "cx-ctrl-handle");
   _initCtrlHeadSync();
   _renderCtrlTabs();
-  _initCtrlTabsDrag();
+  _initCtrlTabsKeys();
+  _initResetMenu();
 }
 
 if (window.__cxOnReady) window.__cxOnReady(_initThemePanelObservers);

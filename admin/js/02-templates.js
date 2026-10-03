@@ -621,7 +621,7 @@ function appendScanLog(msg, cls = "text-green-400") {
 
 // ============= Ghi changelog (thay cho ghi thẳng DB) =============
 // Thêm/Sửa/Xoá mẫu KHÔNG đụng tới DB nữa: mỗi thao tác sinh một file .sql trong
-// changelogs/RC01/data/ để chạy tay trên CẢ staging lẫn production — hai môi trường là
+// changelogs/RC<mới nhất>/data/ để chạy tay trên CẢ staging lẫn production — hai môi trường là
 // hai project Supabase, ghi thẳng qua Edge Function chỉ trúng một bên.
 // Ghi đĩa bằng File System Access API, dùng chung store IndexedDB với các tab ảnh
 // (siIdbGet/siIdbPut + SI_IDB_STORE khai ở 03-sample-images.js — nạp SAU file này,

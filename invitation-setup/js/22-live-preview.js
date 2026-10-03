@@ -30,13 +30,50 @@ function _cxLiveKey() {
   );
 }
 
+// Ô thuộc BẢN ĐỒ (link nhúng + tên địa điểm) của bước Lễ cưới/Tiệc cưới: sửa ở
+// đó thì thiệp cuộn tới mục Địa điểm chứ không về đầu mục của bước. Đích phụ này
+// chỉ sống trong bước đặt ra nó, sửa một ô khác là bỏ.
+const CX_LIVE_MAP_FIELD = /_(map_embed_url|location)$/;
+let _cxLiveSub = null; // { step, key }
+
+function _cxLiveTarget() {
+  const step = _cxLiveKey();
+  return _cxLiveSub && _cxLiveSub.step === step ? _cxLiveSub.key : step;
+}
+
+function _cxLiveAimMap() {
+  _cxLiveSub = { step: _cxLiveKey(), key: "map" };
+}
+
+document.addEventListener(
+  "input",
+  (e) => {
+    const t = e.target;
+    if (!t?.closest?.("#wedding-form")) return;
+    if (CX_LIVE_MAP_FIELD.test(t.name || t.id || "")) _cxLiveAimMap();
+    else _cxLiveSub = null;
+  },
+  true,
+);
+
+// Bấm "Bản đồ" (mở bảng chọn) → đưa ngay thiệp tới mục Địa điểm để vừa chọn vừa nhìn.
+document.addEventListener(
+  "click",
+  (e) => {
+    if (!e.target.closest?.('#wedding-form [onclick^="openMapPicker"]')) return;
+    _cxLiveAimMap();
+    cxLiveFocus("map");
+  },
+  true,
+);
+
 /**
  * Bảo thiệp cuộn tới mục đang chỉnh (core/helpers/preview-focus-helper.js xử lý
  * bên trong iframe). Gọi được cả khi không tải lại — đổi bước chẳng hạn.
  */
 function cxLiveFocus(key) {
   const frame = _cxLiveFrames()[0];
-  const k = key || _cxLiveKey();
+  const k = key || _cxLiveTarget();
   if (!frame || !frame.src || !k) return;
   frame.contentWindow?.postMessage({ type: "cx-focus", key: k }, "*");
 }
@@ -45,7 +82,7 @@ function cxLiveFocus(key) {
 // nguyên vị trí cuộn cũ (iframe cùng origin nên đọc được scrollY) — nhảy về đầu
 // thiệp sau mỗi lần gõ là không theo dõi nổi phần đang sửa.
 function _cxLiveReload(frame) {
-  const key = _cxLiveKey();
+  const key = _cxLiveTarget();
   let y = 0;
   try {
     y = frame.contentWindow?.scrollY || 0;
@@ -162,25 +199,36 @@ function _cxPreviewReload() {
   frame.src = _previewIframeSrc();
 }
 
-// Menu ba chấm ở đây KHÔNG có "Chọn mẫu này" như bản xem thử — khách đang chỉnh
-// thiệp của mình rồi — mà là hai việc với chính khung đang nhìn. Mũi tên quay
-// lại không khai việc gì: trang Thiết lập không có chỗ nào để quay về, nhưng bỏ
-// nó đi thì thanh tiêu đề lệch hẳn so với máy thật.
+// Thanh tiêu đề khung máy: tên mẫu + thanh "Nhà trai | Nhà gái" (bên thiệp đang
+// xem, _cxPreviewSide dùng chung mọi khung — khung khác nhận bên mới ở lần nạp
+// sau) + menu ba chấm chỉ còn "Tải lại". Mũi tên quay lại không khai việc gì: trang
+// Thiết lập không có chỗ nào để quay về, nhưng bỏ nó đi thì thanh tiêu đề lệch hẳn.
 function _cxChromeOpts(reload) {
   return {
     title: _cxPhoneTitle(),
+    seg: {
+      label: "Xem thiệp của bên",
+      items: [
+        { value: "groom", label: "Nhà trai" },
+        { value: "bride", label: "Nhà gái" },
+      ],
+      value: _cxPreviewSide,
+      onChange: (v) => cxSetPreviewSide(v, reload),
+    },
     items: [
       { label: "Tải lại", icon: "refresh", onClick: reload },
-      {
-        label: "Mở tab mới",
-        icon: "external",
-        onClick: () => {
-          _savePreviewData();
-          window.open(_previewIframeSrc(), "_blank", "noopener");
-        },
-      },
     ],
   };
+}
+
+// Đổi bên thiệp đang xem (nhà trai ↔ nhà gái) từ thanh phân đoạn của một khung:
+// tô lại thanh ở MỌI khung rồi nạp lại đúng khung vừa bấm.
+function cxSetPreviewSide(side, reload) {
+  if (side !== "groom" && side !== "bride") return;
+  const changed = side !== _cxPreviewSide;
+  _cxPreviewSide = side;
+  window.CXPhoneChrome?.setSeg(side);
+  if (changed) reload?.();
 }
 
 function _cxMountChrome() {

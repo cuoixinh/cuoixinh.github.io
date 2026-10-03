@@ -3,8 +3,8 @@
 // có Gia đình, không có Lịch trình ngày cưới), bù lại album chứa tới ~18 ảnh
 // qua 5 khối bố cục chia hai cụm, và Chuyện chúng mình viết thành VĂN XUÔI liền
 // mạch thay cho dòng thời gian có chấm mốc.
-// Nét riêng: KHÔNG có màn bìa — mở link là vào thẳng poster ngày cưới cỡ lớn,
-// kèm đếm ngược tới từng GIÂY.
+// Màn bìa là tấm thiệp viền kép trên nền ảnh mờ; mở ra là poster ngày cưới cỡ
+// lớn kèm đếm ngược tới từng GIÂY.
 //
 // File này chỉ KHAI BÁO: window.CX_THEME + renderWedding + phần đặc thù của mẫu.
 // Phần "chạy" nằm ở core/helpers/theme-boot.js, nạp sau file này.
@@ -32,7 +32,7 @@
     giftBox: "lixi_hong_mai",
 
     // Dạng trình phát nhạc — theme-boot.js dựng vào #cx-music-mount.
-    music: { variant: "disc", chrome: "fixed-corner" },
+    music: { variant: "disc", chrome: "fixed-corner", art: "couple" },
 
     // Bộ màu MẶC ĐỊNH của mẫu — bản khai máy đọc được của đúng những giá trị
     // :root trong theme.css (nguồn sự thật). Trang Thiết lập đọc nó để hiện mục
@@ -96,14 +96,17 @@
     // Cụm ảnh thứ hai không có trong bảng mặc định của preview-focus-helper.js.
     focus: { photos: ["#section-photos", "#section-photos-2"] },
 
+    // Màu lời chúc (cố định theo mẫu): tên khách + nút gửi màu than, chữ xám đậm —
+    // hồng phấn làm chữ thì không đọc nổi trên nền trắng.
+    wishes: { text: "#666666", accent: "#1a1a1a", btn: "#1a1a1a" },
+
     onOpen: null,
   };
 
   const _isGroom = isGroomSide();
 
-  // Lời chào trên poster chỉ hiện khi link gửi riêng cho một khách (?name=);
-  // tên do setupPersonalizedGreeting() đổ vào #cover-guest-name.
-  // Chạy ngay: chỉ phụ thuộc URL, không đợi dữ liệu thiệp về.
+  // Link riêng (?name=) hiện lời mời ngay, khỏi đợi giải mã xong mới nhảy chữ;
+  // link chung thì setupPersonalizedGreeting() tự gỡ .hidden.
   try {
     if (new URLSearchParams(window.location.search).get("name")) {
       document.getElementById("cover-guest-wrap")?.classList.remove("hidden");
@@ -117,16 +120,21 @@
 
     const side = _isGroom ? "groom" : "bride";
 
-    // --- Mở đầu: poster ngày cưới (mẫu này không có màn bìa) ---
+    // --- Màn bìa + poster mở đầu ---
     // Khối dựng ảnh chạy TRƯỚC setupMusic: đây là chỗ ảnh của màn ĐẦU TIÊN nhận
     // src, mà setupMusic kéo YouTube iframe API (script bên thứ ba) về ngay khi
     // chạy — để nó đi trước là ảnh phải xếp hàng sau.
+
+    renderCover(w);
+    setAttr("cover-photo", "src", getImageUrl(w.cover_image_url));
+    applyFocalPoint("cover-photo", w.image_focal_points?.cover_image_url);
+    setText("cover-date", _coverDate(w.ceremony_date), "-- · -- · ----");
 
     renderHero(w, false);
     renderStoryQuote(w.story_quote);
     setText("hero-day", _dayMonth(w.ceremony_date), "--/--");
     setText("hero-year", _year(w.ceremony_date), "----");
-    setText("footer-date", _dottedDate(w.ceremony_date), "----.--.--");
+    setText("footer-date", _coverDate(w.ceremony_date), "-- · -- · ----");
     startCountdown(w.ceremony_date, w.ceremony_time);
 
     // --- Nhạc nền ---
@@ -148,10 +156,20 @@
     setText("invite-bride", w.bride_name, "----------");
     setText("ceremony-event-name", ceremonyName);
     renderCeremonyDate(w.ceremony_date, ceremonyTime, w.ceremony_lunar);
+    cxToggle("invite-lunar", !!w.ceremony_lunar);
     if (ceremonyLoc) {
       setText("ceremony-location-text", ceremonyLoc);
       cxToggle("ceremony-location-wrap", true);
     }
+
+    _vfCouple = [w.bride_name, w.groom_name].filter(Boolean).join(" & ");
+    _vfSetActions("ceremony", {
+      title: ceremonyName,
+      date: w.ceremony_date,
+      time: ceremonyTime,
+      loc: ceremonyLoc,
+      map: isVuQuy ? w.vu_quy_map_embed_url : w.ceremony_map_embed_url,
+    });
 
     // Khối tóm tắt trong trình phát nhạc — dùng CHÍNH phần lễ đang hiển thị.
     renderMusicSummary(w, {
@@ -163,14 +181,18 @@
     // --- Tiệc cưới (mỗi nhà một ngày/giờ/nơi riêng) ---
     const partyDate = w[`${side}_party_date`];
     const partyLocation = w[`${side}_party_location`];
-    setText("party-section-label", "Tiệc Mừng " + ceremonyName);
-    renderPartyDate(
-      partyDate,
-      w[`${side}_party_time`],
-      w[`${side}_party_lunar`],
-      partyLocation,
-      "full",
-    );
+    const partyTime = w[`${side}_party_time`];
+    // Dạng tách (ngày · thứ · tháng-năm · giờ từng ô) để dựng khối ngày serif.
+    renderPartyDate(partyDate, partyTime, w[`${side}_party_lunar`], partyLocation, "split");
+    setText("party-time", partyTime, "--:--");
+    cxToggle("party-lunar", !!w[`${side}_party_lunar`]);
+    _vfSetActions("party", {
+      title: "Tiệc Mừng " + ceremonyName,
+      date: partyDate,
+      time: partyTime,
+      loc: partyLocation,
+      map: w[`${side}_party_map_embed_url`],
+    });
     cxToggle("section-party", cxEnabled(w.enable_party));
 
     // Dòng địa danh cuối poster: nơi đãi tiệc là chỗ khách phải tới, không có
@@ -230,6 +252,99 @@
 
   window.renderWedding = renderWedding;
 
+  // ============= CHỈ ĐƯỜNG + LƯU LỊCH Ở PHẦN LỄ / TIỆC =============
+  // Chỉ đường: toạ độ/tên trong `q=` của link bản đồ, không có thì lấy tên địa điểm.
+  // Lưu lịch: iPhone/Mac tải file .ics (máy tự mở hộp "Thêm vào lịch"), máy khác mở
+  // Google Calendar. Giờ để "trôi" (không múi giờ) — lịch hiểu theo giờ của máy.
+  const _vfEvents = {};
+  let _vfCouple = "";
+
+  function _mapDest(embed, loc) {
+    const url = extractMapEmbedUrl(embed);
+    if (url) {
+      try {
+        const q = new URL(url).searchParams.get("q");
+        if (q) return q;
+      } catch {}
+    }
+    return String(loc || "").trim();
+  }
+
+  // "2026-12-13" + "10:00" → [Date bắt đầu, có giờ không]; ngày hỏng → null.
+  function _evStart(ev) {
+    const [y, mo, d] = String(ev.date || "").split("-").map(Number);
+    if (!y || !mo || !d) return null;
+    const [h, mi] = String(ev.time || "").split(":").map(Number);
+    const timed = Number.isFinite(h);
+    return [new Date(y, mo - 1, d, timed ? h : 0, timed ? mi || 0 : 0), timed];
+  }
+
+  function _vfSetActions(key, ev) {
+    _vfEvents[key] = ev;
+    const dest = _mapDest(ev.map, ev.loc);
+    const dir = document.getElementById(`${key}-dir`);
+    if (dir && dest) dir.href = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(dest)}`;
+    cxToggle(`${key}-dir`, !!dest);
+    cxToggle(`${key}-cal`, !!_evStart(ev));
+    cxToggle(`${key}-actions`, !!dest || !!_evStart(ev));
+  }
+
+  function _vfSaveCal(ev) {
+    const st = ev && _evStart(ev);
+    if (!st) return;
+    const [start, timed] = st;
+    const end = timed ? new Date(start.getTime() + 2 * 36e5) : new Date(start.getTime() + 864e5);
+    const p = (n) => String(n).padStart(2, "0");
+    const day = (d) => `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}`;
+    const stamp = (d) => (timed ? `${day(d)}T${p(d.getHours())}${p(d.getMinutes())}00` : day(d));
+    const title = _vfCouple ? `${ev.title} · ${_vfCouple}` : ev.title;
+    const link = location.href.split("#")[0];
+
+    if (/iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent)) {
+      const esc = (t) => String(t).replace(/[\\,;]/g, "\\$&").replace(/\n/g, "\\n");
+      const val = timed ? "" : ";VALUE=DATE";
+      const ics = [
+        "BEGIN:VCALENDAR",
+        "VERSION:2.0",
+        "PRODID:-//CuoiXinh//Thiep cuoi//VI",
+        "BEGIN:VEVENT",
+        `UID:${stamp(start)}-${Math.random().toString(36).slice(2)}@cuoixinh.com`,
+        `DTSTAMP:${stamp(new Date())}`,
+        `DTSTART${val}:${stamp(start)}`,
+        `DTEND${val}:${stamp(end)}`,
+        `SUMMARY:${esc(title)}`,
+        ev.loc ? `LOCATION:${esc(ev.loc)}` : "",
+        `DESCRIPTION:${esc(link)}`,
+        "END:VEVENT",
+        "END:VCALENDAR",
+      ]
+        .filter(Boolean)
+        .join("\r\n");
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(new Blob([ics], { type: "text/calendar;charset=utf-8" }));
+      a.download = "thiep-cuoi.ics";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+      return;
+    }
+    const q = new URLSearchParams({
+      action: "TEMPLATE",
+      text: title,
+      dates: `${stamp(start)}/${stamp(end)}`,
+      location: ev.loc || "",
+      details: link,
+    });
+    window.open(`https://calendar.google.com/calendar/render?${q}`, "_blank", "noopener");
+  }
+
+  // Nghe ở document: <x-button> thay mình bằng <button> sau DOMContentLoaded.
+  document.addEventListener("click", (e) => {
+    const b = e.target.closest?.("[data-vf-cal]");
+    if (b) _vfSaveCal(_vfEvents[b.dataset.vfCal]);
+  });
+
   // ============= POSTER MỞ ĐẦU =============
 
   /** "15/9" — ngày/tháng cỡ lớn, dòng trên của poster. */
@@ -244,12 +359,12 @@
     return d ? String(d.getFullYear()) : "";
   }
 
-  /** "2025.05.20" — dòng ngày ở cuối thiệp. */
-  function _dottedDate(dateStr) {
+  /** "20 · 05 · 2025" — dòng ngày ở màn bìa và cuối thiệp. */
+  function _coverDate(dateStr) {
     const d = _date(dateStr);
     if (!d) return "";
     const p = (n) => String(n).padStart(2, "0");
-    return `${d.getFullYear()}.${p(d.getMonth() + 1)}.${p(d.getDate())}`;
+    return `${p(d.getDate())} · ${p(d.getMonth() + 1)} · ${d.getFullYear()}`;
   }
 
   function _date(dateStr) {
@@ -315,6 +430,7 @@
   // không nằm trong lightboxImages, cho bấm sẽ mở nhầm ảnh khác.
 
   const VF_STORY_MAX_PHOTOS = 2;
+  const VF_DROPCAP_MIN = 110;
 
   function _renderStoryProse(events, groomName, brideName) {
     const list = document.getElementById("love-story-list");
@@ -340,9 +456,11 @@
     let html = "";
     let used = 0;
     paras.forEach((text, i) => {
+      // Chữ cái lớn cao 3 dòng: đoạn mở ngắn hơn chừng đó thì chữ lớn trơ ra
+      // một mình nên bỏ.
       html +=
         '<p class="cx-t vf-para' +
-        (i === 0 ? " vf-para-lead" : "") +
+        (i === 0 && text.length >= VF_DROPCAP_MIN ? " vf-para-lead" : "") +
         '">' +
         escapeHtml(text) +
         "</p>";
@@ -419,8 +537,9 @@
       (w, i) => `<span${i === 0 ? ' class="vf-cal-sun"' : ""}>${w}</span>`,
     ).join("");
 
-    let note = `${WEEKDAYS[d.getDay()]}, ngày ${cerDay} tháng ${month + 1} năm ${year}`;
-    if (parDay) note += ` · Tiệc ngày ${parDay}`;
+    // Chú thích hai dấu: chấm đặc = ngày lễ, vòng viền = ngày tiệc (cùng tháng).
+    let note = `<span><i class="vf-cal-key vf-cal-key-on"></i>Lễ cưới · ${cerDay}</span>`;
+    if (parDay) note += `<span><i class="vf-cal-key"></i>Tiệc mừng · ${parDay}</span>`;
 
     // Ảnh tràn viền trên đầu thẻ. Không mượn được ảnh thì bỏ hẳn khối, đừng để
     // khung trống.

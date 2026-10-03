@@ -24,8 +24,10 @@
     // CX_GIFT_BOXES (core/helpers/gift-box-helper.js) hoặc "none". Mẫu KHÔNG tự vẽ hộp.
     giftBox: "hop_navy_vang",
 
-    // Dạng trình phát nhạc — theme-boot.js dựng vào #cx-music-mount.
-    music: { variant: "square", chrome: "fixed-corner" },
+    // Dạng trình phát nhạc — theme-boot.js dựng vào #cx-music-mount. Đĩa tròn
+    // 44px: nút nằm đè góc trên phải của MỌI trang, khổ to hơn là che mất tiêu
+    // đề căn giữa (măng sét Chuyện tình yêu).
+    music: { variant: "mini", chrome: "fixed-corner", art: "couple" },
 
     // Font/màu GỐC: giá trị mặc định trên thanh chỉnh ở tab Giao diện, cũng là
     // điểm "Khôi phục mặc định". Trang Thiết lập đọc qua iframe xem trước.
@@ -192,13 +194,6 @@
     // --- Xác nhận tham dự ---
     const rsvp = document.getElementById("rsvp-section");
     if (rsvp) rsvp.style.display = cxEnabled(w.rsvp_enabled) ? "flex" : "none";
-    if (w.rsvp_message) {
-      const msg = document.getElementById("rsvp-custom-message");
-      if (msg) {
-        msg.textContent = w.rsvp_message;
-        msg.classList.remove("hidden");
-      }
-    }
 
     // --- Lịch trình ngày cưới ---
     // Ảnh lấp chỗ trống lấy tấm THỨ BA trong album (tấm 1 ở dải gia đình, tấm 2
@@ -443,7 +438,45 @@
       rz = setTimeout(refreshBook, 150);
     });
 
+    // Mục lời chúc do wishes-helper dựng SAU renderWedding (và dựng lại khi đổi
+    // dạng ở trang Thiết lập) → canh lúc nó xuất hiện để tách ra trang riêng.
+    new MutationObserver(() => {
+      if (_placeWishes()) {
+        _markReveal();
+        _syncPager();
+      }
+    }).observe(pages, { childList: true, subtree: true });
+
     refreshBook();
+  }
+
+  // Lời chúc: wishes-helper chèn mục vào ngay TRƯỚC hộp mừng cưới, tức là vào
+  // giữa trang cuối — trang cao cố định nên danh sách dài đẩy quà, bản đồ, lời
+  // cảm ơn ra ngoài khổ (bị cắt mất). Cho nó một trang riêng đứng trước trang
+  // đó. Trả true khi có dời chỗ.
+  function _placeWishes() {
+    const sec = document.getElementById("cx-wish-sec");
+    let page = document.getElementById("mc-wish-page");
+    if (!sec) {
+      page?.classList.add("hidden");
+      return false;
+    }
+    const giftPage = document.getElementById("section-gift")?.closest("section.mc-page");
+    if (!giftPage) return false;
+    if (!page) {
+      page = document.createElement("section");
+      page.id = "mc-wish-page";
+      page.className = "mc-page";
+      page.innerHTML = '<div class="mc-page-in mc-wish-in"></div>';
+    }
+    const inner = page.firstElementChild;
+    if (sec.parentElement === inner && page.nextElementSibling === giftPage) {
+      return false;
+    }
+    page.classList.remove("hidden");
+    giftPage.before(page);
+    inner.appendChild(sec);
+    return true;
   }
 
   // Chạy lại được: dữ liệu về sau khi khách đã mở thiệp thì các trang do
@@ -453,6 +486,7 @@
     const pages = document.getElementById("cx-pages");
     if (!pages) return;
     Array.from(pages.children).forEach(_toPage);
+    _placeWishes();
     _syncGroupPages();
     _fitGallery();
     _reflowFlows();
@@ -533,13 +567,17 @@
     if (h > 0) grid.style.setProperty("--mc-row-h", Math.floor(h) + "px");
   }
 
-  // Hàng ảnh CUỐI của album nuốt trọn phần cao còn thừa của trang nó nằm: số
-  // ảnh hiếm khi chia chẵn cho lưới nên trang cuối gần như luôn hụt vài hàng,
-  // để nguyên là một mảng trắng ở đáy. Phải chạy SAU _reflowFlows() — chỉ khi
-  // đã dồn trang xong mới biết hàng cuối rơi vào trang nào và trang đó còn
-  // trống bao nhiêu.
+  // Các hàng ảnh trên trang CUỐI của album chia nhau phần cao còn thừa của
+  // trang: số ảnh hiếm khi chia chẵn cho lưới nên trang cuối gần như luôn hụt
+  // vài hàng, để nguyên là một mảng trắng ở đáy. Mỗi khung cao quá
+  // GALLERY_TAIL_MAX lần hàng chuẩn thì thành dải dọc mảnh — khi đó hàng hai
+  // ảnh (từ dưới lên) xếp CHỒNG hai ảnh thành hai tầng bề ngang trọn hàng.
+  // Phải chạy SAU _reflowFlows() — chỉ khi đã dồn trang xong mới biết hàng
+  // cuối rơi vào trang nào và trang đó còn trống bao nhiêu.
+  const GALLERY_TAIL_MAX = 1.5;
+
   function _fillGalleryTail() {
-    const rows = document.querySelectorAll("#cx-pages .mc-grid-row");
+    const rows = Array.from(document.querySelectorAll("#cx-pages .mc-grid-row"));
     const last = rows[rows.length - 1];
     const page = last?.closest("section.mc-page");
     const inner = page?.querySelector(":scope > .mc-page-in");
@@ -551,13 +589,33 @@
     const free = avail - inner.scrollHeight;
     if (free < 8) return; // gần khít rồi, kéo thêm chỉ tổ lệch nhịp lưới
 
-    last.style.height = last.offsetHeight + free + "px";
-    last.dataset.cxGrow = "1";
+    const tail = rows.filter((r) => r.closest("section.mc-page") === page);
+    const rowH = last.offsetHeight;
+    const total = tail.reduce((s, r) => s + r.offsetHeight, 0) + free;
+
+    // Số tầng khung của từng hàng: 1, hoặc 2 khi đã xếp chồng.
+    const tiers = tail.map(() => 1);
+    const sum = () => tiers.reduce((s, n) => s + n, 0);
+    for (let i = tail.length - 1; i >= 0; i--) {
+      if (total / sum() <= rowH * GALLERY_TAIL_MAX) break;
+      if (tail[i].children.length !== 2) continue;
+      tail[i].classList.add("mc-row-stack");
+      tiers[i] = 2;
+    }
+
+    let left = total;
+    tail.forEach((r, i) => {
+      const h = i === tail.length - 1 ? left : Math.floor((total * tiers[i]) / sum());
+      left -= h;
+      r.style.height = h + "px";
+      r.dataset.cxGrow = "1";
+    });
   }
 
   function _resetGalleryTail() {
     document.querySelectorAll("#cx-pages .mc-grid-row[data-cx-grow]").forEach((r) => {
       r.style.height = "";
+      r.classList.remove("mc-row-stack");
       delete r.dataset.cxGrow;
     });
   }

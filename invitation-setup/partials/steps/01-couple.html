@@ -1,28 +1,22 @@
 <!-- Bước "Thông tin cặp đôi" — một mục trong CX_STEPS (js/20-steps.js).
      Chèn vào #mount-step-couple của form-panel.html; khai báo ở STEP_PARTIALS (loader.js). -->
 <div data-step="couple" class="cx-block animate-fade-in">
-  <div class="cx-block-head">
-    <div class="flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <i data-lucide="heart" class="text-[18px] text-color-secondary"></i>
-        <p class="text-sm text-gray-700">Thông tin cặp đôi</p>
-      </div>
-    </div>
-  </div>
-  <div id="section-couple-body" class="p-6 space-y-6">
+  <div id="section-couple-body" class="px-4 py-5 sm:p-6 space-y-6">
     <!-- Mỗi bên một thẻ nền riêng (chú rể xanh · cô dâu tím nhạt) để khỏi nhầm ô của
          ai với ai — tên, SĐT liên hệ và ảnh của cùng một người nằm chung một thẻ.
+         Dưới `sm` bỏ khung thẻ (chỉ còn tiêu đề): thẻ lồng trong khung nội dung
+         ăn mất bề ngang ô nhập trên điện thoại.
          SĐT mới chỉ lưu xuống DB, chưa mẫu thiệp nào hiện ra. -->
-    <div class="grid gap-4 sm:grid-cols-2">
+    <div class="grid gap-8 sm:gap-4 sm:grid-cols-2">
       <!-- Chú rể -->
-      <div class="rounded-2xl border border-sky-100 bg-sky-50/40 overflow-hidden">
+      <div class="overflow-hidden sm:rounded-2xl sm:border sm:border-sky-100 sm:bg-sky-50/40">
         <div
-          class="px-5 py-3 bg-sky-50 border-b border-sky-100 flex items-center gap-2"
+          class="pb-3 sm:px-5 sm:py-3 sm:bg-sky-50 sm:border-b sm:border-sky-100 flex items-center gap-2"
         >
           <i data-lucide="mars" class="w-4 h-4 text-sky-500"></i>
           <span class="text-sm font-semibold text-gray-700">Chú rể</span>
         </div>
-        <div class="p-5 space-y-4">
+        <div class="sm:p-5 space-y-4">
           <x-input
             label="Tên chú rể (tên dùng trong lễ cưới)"
             name="groom_name"
@@ -55,15 +49,15 @@
       </div>
       <!-- Cô dâu -->
       <div
-        class="rounded-2xl border border-violet-100 bg-violet-50/30 overflow-hidden"
+        class="overflow-hidden sm:rounded-2xl sm:border sm:border-violet-100 sm:bg-violet-50/30"
       >
         <div
-          class="px-5 py-3 bg-violet-50 border-b border-violet-100 flex items-center gap-2"
+          class="pb-3 sm:px-5 sm:py-3 sm:bg-violet-50 sm:border-b sm:border-violet-100 flex items-center gap-2"
         >
           <i data-lucide="venus" class="w-4 h-4 text-violet-400"></i>
           <span class="text-sm font-semibold text-gray-700">Cô dâu</span>
         </div>
-        <div class="p-5 space-y-4">
+        <div class="sm:p-5 space-y-4">
           <x-input
             label="Tên cô dâu (tên dùng trong lễ cưới)"
             name="bride_name"

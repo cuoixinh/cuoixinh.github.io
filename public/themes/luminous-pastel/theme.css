@@ -1,5 +1,5 @@
-/* Bảng màu + CSS riêng của LUMINOUS PASTEL — ivory ngả hồng · dusty pink ·
-   champagne nhạt.
+/* Bảng màu + CSS riêng của LUMINOUS PASTEL — ivory ngả hồng · hồng đất ·
+   champagne · sage.
    CSS THUẦN, không qua Tailwind build (nạp bằng <link> sau styles/themes.css)
    → dựng mẫu không phải đụng tailwind.themes.config.js hay styles/_colors.css.
 
@@ -8,25 +8,30 @@
         nút xác nhận tham dự). Mặc định ở styles/_common.css.
      2. .cx-h / .cx-t / .cx-a  ba lớp ngữ nghĩa mà markup của mẫu dùng; màu
         của chúng đi theo bộ token ở trên → đổi tông cả thiệp = sửa mỗi file này.
-     3. .lp-*  phần riêng của mẫu (sương sáng, thẻ kính mờ, album coverflow).
+     3. .lp-*  phần riêng của mẫu (nền gradient, thẻ kính mờ, album coverflow).
 
-   Tông chung: tương phản THẤP, highlight sáng nhưng không cháy, bóng đổ rất
-   mềm. Muốn đậm hơn thì tăng --cx-heading-rgb chứ đừng thêm bóng đen. */
+   Tông chung: nền và quầng sáng rất nhạt, nhưng CHỮ phải đạt 4.5:1 trên nền
+   thân thiệp — màu nhạt chỉ nằm ở các token *-soft (quầng, viền, nền), không
+   bao giờ dùng cho chữ. Bóng đổ rất mềm, đừng thêm bóng đen. */
 
 :root {
-  --cx-accent-rgb: 201 180 143; /* champagne rất nhạt — chỉ dùng làm điểm nhấn */
+  --cx-accent-rgb: 138 106 64; /* champagne đậm — CHỮ nhấn, số ngày (4.6:1) */
+  --cx-accent-soft-rgb: 236 200 168; /* peach champagne — chỉ nền/quầng sáng */
   --cx-on-accent-rgb: 255 255 255; /* chữ nằm TRÊN nền nhấn */
-  --cx-heading-rgb: 95 86 84; /* xám khói trung tính */
-  --cx-body-rgb: 147 138 136; /* xám nhạt */
-  --cx-line-rgb: 233 219 217; /* vạch dọc, viền mảnh — xám ngả hồng */
-  --cx-surface-rgb: 243 235 233; /* nền phụ của ô nhỏ */
-  --cx-cover-rgb: 249 243 241; /* nền màn bìa: hai đầu dải */
+  --cx-heading-rgb: 74 61 59; /* nâu khói (9.7:1) */
+  --cx-body-rgb: 110 96 93; /* chữ đọc (5.6:1) */
+  --cx-line-rgb: 232 216 211; /* vạch dọc, viền mảnh — xám ngả hồng */
+  --cx-surface-rgb: 245 236 232; /* nền phụ của ô nhỏ */
+  --cx-cover-rgb: 251 246 243; /* nền màn bìa: hai đầu dải */
   --cx-cover-mid-rgb: 242 228 225; /* …và điểm giữa */
   --cx-panel-rgb: 255 255 255; /* nền giấy: viền kính mờ, quầng quanh ảnh */
-  --cx-glass-rgb: 253 246 245; /* ruột thẻ kính mờ — ngà hơn nền giấy một chút */
+  --cx-glass-rgb: 255 251 249; /* ruột thẻ kính mờ — ngà hơn nền giấy một chút */
 
-  --cx-card-bg-rgb: 249 243 241; /* nền thân thiệp — ivory ngả hồng, MỘT màu phẳng */
-  --cx-deco-rgb: 220 174 168; /* dusty pink: chữ viết tay, viền, quầng sáng */
+  --cx-card-bg-rgb: 251 246 243; /* nền thân thiệp — ivory ngả hồng */
+  --cx-deco-rgb: 158 90 99; /* hồng đất: chữ viết tay, icon (4.8:1) */
+  --cx-deco-soft-rgb: 236 196 196; /* blush: quầng sáng, viền, nền */
+  --cx-deco-2-rgb: 91 113 96; /* sage: nhãn phụ, chấm lịch trình (4.9:1) */
+  --cx-deco-2-soft-rgb: 200 216 196; /* sage nhạt: nền */
   /* Nút nhạc + thanh nhạc đi theo bảng --music-* riêng. Ghi đè đúng bằng công
      thức mà bộ màu suy ra (CX_PALETTE_MUSIC ở theme-setting-helper.js) để thiệp
      không chọn bộ màu vẫn khớp với thiệp có chọn. */
@@ -55,12 +60,23 @@ body {
   background-color: rgb(var(--cx-page-bg-rgb));
 }
 
-/* Nền thân thiệp: MỘT màu phẳng (ivory ngả hồng). Cố ý không gradient — pha
-   nhiều quầng màu vào nền là thiệp loang lổ, tông hồng phải đến từ chữ, viền và
-   quầng sáng quanh ảnh chứ không từ nền. */
+/* Nền thân thiệp: MỘT lớp gradient liền phủ suốt chiều dài thiệp — các quầng
+   elip rất rộng, rất nhạt, xen trái/phải nên hoà vào nhau, cuộn qua các mục
+   không thấy ranh giới. Đừng đặt quầng riêng cho từng mục: mục có overflow
+   hidden sẽ cắt quầng thành vệt màu đứt. Kính mờ lấy lớp này làm thứ để mờ.
+   Màu toàn token *-soft nên khách đổi bộ màu thì nền đổi theo. */
 
 #main-card {
-  background-color: rgb(var(--cx-card-bg-rgb));
+  background:
+    radial-gradient(140% 14% at 0% 3%, rgb(var(--cx-deco-soft-rgb) / 0.55), transparent 72%),
+    radial-gradient(140% 14% at 100% 12%, rgb(var(--cx-accent-soft-rgb) / 0.45), transparent 72%),
+    radial-gradient(140% 16% at 0% 26%, rgb(var(--cx-deco-soft-rgb) / 0.38), transparent 72%),
+    radial-gradient(140% 16% at 100% 42%, rgb(var(--cx-deco-2-soft-rgb) / 0.34), transparent 72%),
+    radial-gradient(140% 16% at 0% 58%, rgb(var(--cx-accent-soft-rgb) / 0.34), transparent 72%),
+    radial-gradient(140% 16% at 100% 74%, rgb(var(--cx-deco-soft-rgb) / 0.4), transparent 72%),
+    radial-gradient(140% 16% at 0% 90%, rgb(var(--cx-deco-2-soft-rgb) / 0.3), transparent 72%),
+    radial-gradient(160% 12% at 50% 100%, rgb(var(--cx-accent-soft-rgb) / 0.42), transparent 72%),
+    rgb(var(--cx-card-bg-rgb));
 }
 
 /* ── Ba lớp ngữ nghĩa ──────────────────────────────────────────────────────
@@ -120,14 +136,68 @@ body {
 .lp-title::after {
   content: "";
   flex: 1;
-  max-width: 70px;
+  max-width: 56px;
   height: 1px;
   background: linear-gradient(
     90deg,
     transparent,
-    rgb(var(--cx-deco-rgb) / 0.85),
+    rgb(var(--cx-deco-rgb) / 0.6),
     transparent
   );
+}
+
+/* Chữ "mở chương" viết tay trên tiêu đề mục — khai bằng data-lp-eyebrow trên
+   <section>, vẽ bằng ::before của chính section (một flex item đứng trước tiêu
+   đề). Cố ý không thêm thẻ vào DOM: text_overrides lưu selector theo
+   :nth-child, chèn thẻ là lệch phần chữ khách đã chỉnh. Margin âm bù gap của
+   section để chữ sát tiêu đề. */
+
+[data-lp-eyebrow]::before {
+  content: attr(data-lp-eyebrow);
+  display: block;
+  margin-bottom: -16px;
+  font-family: "BethanWhite", cursive;
+  font-style: italic;
+  font-size: 30px;
+  line-height: 1.1;
+  color: rgb(var(--cx-deco-rgb));
+}
+
+.gap-7[data-lp-eyebrow]::before {
+  margin-bottom: -24px;
+}
+
+.gap-4[data-lp-eyebrow]::before {
+  margin-bottom: -12px;
+}
+
+/* Màu phụ của mẫu: hồng đất (icon, chữ nhỏ) và sage (nhãn Nhà trai/gái…). */
+
+.lp-rose {
+  color: rgb(var(--cx-deco-rgb));
+}
+
+.lp-sage {
+  color: rgb(var(--cx-deco-2-rgb));
+}
+
+/* Dấu & giữa tên: Cormorant nghiêng, hồng đất. */
+
+.lp-amp {
+  font-family: "Cormorant Garamond", serif;
+  font-style: italic;
+  color: rgb(var(--cx-deco-rgb));
+}
+
+/* Tên lễ trong thẻ Thư mời: chung khối chữ "Trân trọng kính mời dự" (lp-caps
+   12px) nhưng phải to và đậm hơn hẳn. */
+
+#ceremony-event-name {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: rgb(var(--cx-heading-rgb));
 }
 
 /* ── Thẻ kính mờ ───────────────────────────────────────────────────────────
@@ -136,17 +206,17 @@ body {
    tông, không cần dự phòng riêng. */
 
 .lp-glass {
-  border-radius: 26px;
+  border-radius: 28px;
   /* Trắng ngả hồng, không phải trắng thuần: thẻ nằm trên nền blush nên trắng
      tinh sẽ cắt hẳn khỏi nền, mất cảm giác một lớp sương phủ lên. */
-  background-color: rgb(var(--cx-glass-rgb) / 0.62);
-  border: 1px solid rgb(var(--cx-panel-rgb) / 0.75);
+  background-color: rgb(var(--cx-glass-rgb) / 0.58);
+  border: 1px solid rgb(var(--cx-panel-rgb) / 0.85);
   box-shadow:
-    0 18px 34px -22px rgb(var(--cx-heading-rgb) / 0.32),
-    0 2px 8px -4px rgb(var(--cx-deco-rgb) / 0.45),
-    inset 0 1px 0 rgb(var(--cx-panel-rgb) / 0.7);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+    0 24px 40px -28px rgb(var(--cx-heading-rgb) / 0.35),
+    0 2px 10px -6px rgb(var(--cx-deco-rgb) / 0.3),
+    inset 0 1px 0 rgb(var(--cx-panel-rgb));
+  backdrop-filter: blur(16px) saturate(1.1);
+  -webkit-backdrop-filter: blur(16px) saturate(1.1);
 }
 
 /* Thẻ Thư mời sáng thêm một quầng champagne rất nhạt từ đáy — mục quan trọng
@@ -155,7 +225,7 @@ body {
 .lp-bloom {
   background-image: radial-gradient(
     120% 70% at 50% 115%,
-    rgb(var(--cx-accent-rgb) / 0.16),
+    rgb(var(--cx-accent-soft-rgb) / 0.45),
     transparent 70%
   );
 }
@@ -168,9 +238,9 @@ body {
   align-items: center;
   justify-content: center;
   gap: 3px;
-  min-height: 62px;
+  min-height: 76px;
   padding: 10px 6px;
-  border-radius: 18px;
+  border-radius: 22px;
 }
 
 /* Nút bấm nền kính (xác nhận tham dự, lưu QR). */
@@ -186,63 +256,151 @@ body {
   box-shadow: none;
 }
 
+/* Nút cao tối thiểu 44px cho dễ bấm (Lưu QR…). */
+
+.lp-btn-44 {
+  min-height: 44px;
+}
+
+/* Hai nút xác nhận tham dự: MỘT hàng, mỗi nút chỉ ~134px trên máy 390px nên
+   chữ 13px + lề trong 8px mới vừa nhãn dài nhất kèm icon trên một dòng. */
+
+.lp-rsvp-btns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.lp-rsvp-btns .lp-choice {
+  min-height: 44px;
+  padding: 0 8px;
+  gap: 6px;
+  justify-content: center;
+  border-color: rgb(var(--cx-deco-rgb) / 0.4);
+}
+
+.lp-rsvp-btns .lp-choice .cx-t {
+  color: rgb(var(--cx-deco-rgb));
+}
+
+/* Nút chính: nền hồng đất, chữ + icon trắng. */
+
+.lp-rsvp-btns .lp-choice.lp-choice-fill {
+  background-color: rgb(var(--cx-deco-rgb));
+  border-color: transparent;
+  box-shadow: 0 12px 20px -12px rgb(var(--cx-deco-rgb) / 0.8);
+}
+
+.lp-rsvp-btns .lp-choice.lp-choice-fill .cx-t,
+.lp-rsvp-btns .lp-choice.lp-choice-fill .cx-ic {
+  color: rgb(var(--cx-on-accent-rgb));
+}
+
+/* Nút "Xác nhận tham dự" cuối mục mở đầu — nhảy xuống phần RSVP. */
+
+.lp-cue {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 20px;
+  border-radius: 9999px;
+  font-family: "Quicksand", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgb(var(--cx-deco-rgb));
+  border: 1px solid rgb(var(--cx-deco-rgb) / 0.35);
+  background-color: rgb(var(--cx-panel-rgb) / 0.6);
+  transition: transform 0.2s ease-out;
+}
+
+.lp-cue:active {
+  transform: scale(0.96);
+}
+
+/* .lp-cue / .lp-flow-nav tự khai display nên đè mất .hidden của themes.css
+   (nạp trước) — phải khai lại cho đúng cặp lớp. */
+
+.lp-cue.hidden,
+.lp-flow-nav.hidden {
+  display: none;
+}
+
 /* ── Ảnh cưới ở mục mở đầu ────────────────────────────────────────────────
-   Bo mềm, quầng blush toả ra ngoài mép; tên cô dâu chú rể nằm
-   trên dải sáng mờ dần ở đáy ảnh. */
+   Khung bo góc đều, quầng blush toả ra ngoài mép. Tên cô dâu chú rể nằm trên
+   tấm kính đè MÉP DƯỚI ảnh (thò ra ngoài một đoạn) chứ không đè lên ảnh, để ảnh
+   sáng cỡ nào tên vẫn đọc được — nên khung không overflow:hidden, bo góc đặt
+   trên chính <img>, và margin-bottom chừa chỗ cho phần tấm kính thò ra. */
 
 .lp-hero-photo {
   position: relative;
   width: 100%;
   aspect-ratio: 4 / 5;
-  border-radius: 130px 130px 26px 26px;
-  overflow: hidden;
+  margin-bottom: 20px;
+  border-radius: 28px;
   box-shadow:
-    0 26px 44px -28px rgb(var(--cx-heading-rgb) / 0.45),
-    0 0 0 8px rgb(var(--cx-panel-rgb) / 0.5),
-    0 0 52px 14px rgb(var(--cx-deco-rgb) / 0.38);
+    0 0 0 8px rgb(var(--cx-panel-rgb) / 0.6),
+    0 30px 50px -30px rgb(var(--cx-heading-rgb) / 0.5),
+    0 0 60px 10px rgb(var(--cx-deco-soft-rgb) / 0.7);
 }
 
+.lp-hero-photo > img {
+  border-radius: 28px;
+}
+
+/* Dải mờ đáy ảnh không còn dùng (tên đã ra tấm kính) — giữ thẻ trong DOM vì
+   text_overrides đếm :nth-child, chỉ ẩn đi. */
+
 .lp-hero-fade {
-  position: absolute;
-  inset: auto 0 0 0;
-  height: 46%;
-  background: linear-gradient(
-    180deg,
-    transparent,
-    rgb(var(--cx-card-bg-rgb) / 0.75) 52%,
-    rgb(var(--cx-card-bg-rgb) / 0.96)
-  );
-  pointer-events: none;
+  display: none;
 }
 
 .lp-hero-names {
   position: absolute;
-  left: 12px;
-  right: 12px;
-  bottom: 16px;
+  left: 16px;
+  right: 16px;
+  bottom: -20px;
+  padding: 16px 12px 14px;
+  /* Tên luôn MỘT dòng: lpFitHeroNames (index.js) thu font-size cho vừa tấm
+     kính, cỡ ở class text-[44px] là trần. */
+  white-space: nowrap;
+}
+
+/* Dấu & tính theo em để thu nhỏ cùng tên. */
+
+.lp-hero-names .lp-amp {
+  font-size: 0.6em;
+}
+
+/* Tên dài tới mức thu về cỡ sàn vẫn không vừa thì cho xuống dòng, còn hơn tràn
+   ra ngoài tấm kính. */
+
+.lp-hero-names.is-wrap {
+  white-space: normal;
 }
 
 /* ── Ảnh tròn có vòng sáng (mục Gia đình) ─────────────────────────────────
-   Vòng gradient champagne → blush → xanh xám, ảnh nằm trong nền trắng chừa một
+   Vòng gradient sage → hồng đất → champagne, ảnh nằm trong nền trắng chừa một
    khe mảnh cho vòng lộ ra. */
 
 .lp-halo {
   position: relative;
-  width: 116px;
-  height: 116px;
+  width: 120px;
+  height: 120px;
   padding: 5px;
   border-radius: 9999px;
   background:
     linear-gradient(rgb(var(--cx-panel-rgb)), rgb(var(--cx-panel-rgb))) padding-box,
     conic-gradient(
-        from 210deg,
-        rgb(var(--cx-deco-rgb) / 0.3),
-        rgb(var(--cx-deco-rgb) / 0.95),
-        rgb(var(--cx-deco-rgb) / 0.3)
+        from 200deg,
+        rgb(var(--cx-deco-2-soft-rgb)),
+        rgb(var(--cx-deco-rgb) / 0.8),
+        rgb(var(--cx-accent-soft-rgb)),
+        rgb(var(--cx-deco-2-soft-rgb))
       )
       border-box;
   border: 2px solid transparent;
-  box-shadow: 0 0 26px 4px rgb(var(--cx-deco-rgb) / 0.28);
+  box-shadow: 0 0 30px 4px rgb(var(--cx-deco-soft-rgb) / 0.6);
 }
 
 /* ── Album ảnh: dải coverflow ─────────────────────────────────────────────
@@ -276,8 +434,8 @@ body {
   scroll-snap-align: center;
   cursor: pointer;
   /* calc theo --lp-off: ở giữa dải thì to, rõ; ra xa thì nhỏ, mờ, nhạt. */
-  transform: scale(calc(1 - 0.14 * var(--lp-off)));
-  opacity: calc(1 - 0.4 * var(--lp-off));
+  transform: scale(calc(1 - 0.12 * var(--lp-off)));
+  opacity: calc(1 - 0.45 * var(--lp-off));
   filter: blur(calc(1.4px * var(--lp-off)));
   transition:
     transform 0.28s ease-out,
@@ -288,13 +446,13 @@ body {
 .lp-slide-img {
   width: 100%;
   aspect-ratio: 3 / 4;
-  border-radius: 22px;
+  border-radius: 24px;
   overflow: hidden;
   background-color: rgb(var(--cx-surface-rgb));
   box-shadow:
-    0 22px 36px -24px rgb(var(--cx-heading-rgb) / 0.5),
-    0 0 0 6px rgb(var(--cx-panel-rgb) / 0.6),
-    0 0 34px 8px rgb(var(--cx-deco-rgb) / 0.4);
+    0 24px 36px -24px rgb(var(--cx-heading-rgb) / 0.55),
+    0 0 0 6px rgb(var(--cx-panel-rgb) / 0.7),
+    0 0 36px 6px rgb(var(--cx-deco-soft-rgb) / 0.6);
 }
 
 /* Chú thích viết tay: chỉ hiện ở tấm đang ở giữa, khỏi rối dải ảnh. */
@@ -332,8 +490,89 @@ body {
 }
 
 .lp-dot.is-on {
-  width: 18px;
+  width: 20px;
   background-color: rgb(var(--cx-deco-rgb));
+}
+
+/* Hàng Lùi · "3 / 10" · Tới — xem hết album không cần vuốt. Thẻ nằm CUỐI mục
+   (sau #album-dots, không lệch :nth-child) rồi đẩy lên giữa dải ảnh và hàng
+   chấm bằng flex order. */
+
+#album-dots {
+  order: 2;
+}
+
+.lp-flow-nav {
+  order: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.lp-round {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  font-size: 18px;
+  color: rgb(var(--cx-heading-rgb));
+  border: 1px solid rgb(var(--cx-line-rgb));
+  background-color: rgb(var(--cx-panel-rgb) / 0.8);
+  transition:
+    transform 0.18s ease-out,
+    opacity 0.2s ease;
+}
+
+.lp-round:active {
+  transform: scale(0.92);
+}
+
+.lp-round:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.lp-count {
+  min-width: 56px;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgb(var(--cx-heading-rgb));
+}
+
+/* Vạch tiến độ đọc thiệp, dính mép trên khung nhìn (lpSetupProgress). */
+
+.lp-progress {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  z-index: 40;
+  width: 100%;
+  max-width: 430px;
+  height: 3px;
+  transform: translateX(-50%);
+  background-color: rgb(var(--cx-line-rgb) / 0.5);
+  pointer-events: none;
+}
+
+.lp-progress > i {
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform: scaleX(0);
+  transform-origin: left;
+  background: linear-gradient(
+    90deg,
+    rgb(var(--cx-deco-soft-rgb)),
+    rgb(var(--cx-deco-rgb))
+  );
+}
+
+@media (min-width: 768px) {
+  .lp-progress {
+    max-width: 768px;
+  }
 }
 
 /* ── Chuyện tình yêu: thẻ kính mờ treo trên một sợi sáng ──────────────────
@@ -357,8 +596,8 @@ body {
   background: linear-gradient(
     180deg,
     transparent,
-    rgb(var(--cx-deco-rgb) / 0.75) 12%,
-    rgb(var(--cx-deco-rgb) / 0.75) 88%,
+    rgb(var(--cx-deco-rgb) / 0.5) 10%,
+    rgb(var(--cx-deco-rgb) / 0.5) 90%,
     transparent
   );
 }
@@ -383,35 +622,36 @@ body {
   width: 9px;
   height: 9px;
   border-radius: 9999px;
-  background-color: rgb(var(--cx-accent-rgb));
+  background-color: rgb(var(--cx-accent-soft-rgb));
   box-shadow:
-    0 0 0 4px rgb(var(--cx-panel-rgb) / 0.75),
-    0 0 14px 3px rgb(var(--cx-accent-rgb) / 0.55);
+    0 0 0 4px rgb(var(--cx-panel-rgb)),
+    0 0 14px 2px rgb(var(--cx-accent-soft-rgb));
 }
 
 .lp-story.is-right .lp-story-dot {
   left: -39px;
-  background-color: rgb(var(--cx-deco-rgb));
+  background-color: rgb(var(--cx-deco-soft-rgb));
   box-shadow:
-    0 0 0 4px rgb(var(--cx-panel-rgb) / 0.75),
-    0 0 14px 3px rgb(var(--cx-deco-rgb) / 0.55);
+    0 0 0 4px rgb(var(--cx-panel-rgb)),
+    0 0 14px 2px rgb(var(--cx-deco-soft-rgb));
 }
 
 .lp-story-card {
-  padding: 16px 18px;
+  padding: 18px;
 }
 
 .lp-story-date {
   font-family: "BethanWhite", cursive;
   font-style: italic;
-  font-size: 19px;
-  line-height: 1;
-  margin-bottom: 6px;
+  font-size: 22px;
+  line-height: 1.1;
+  margin-bottom: 4px;
+  color: rgb(var(--cx-deco-rgb));
 }
 
 .lp-story-title {
   font-family: "Cormorant Garamond", serif;
-  font-size: 17px;
+  font-size: 20px;
   font-weight: 600;
   line-height: 1.3;
   margin-bottom: 4px;
@@ -419,7 +659,7 @@ body {
 
 .lp-story-text {
   font-family: "Quicksand", sans-serif;
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.7;
 }
 
@@ -428,7 +668,7 @@ body {
   width: 100%;
   aspect-ratio: 4 / 3;
   object-fit: cover;
-  border-radius: 16px;
+  border-radius: 18px;
   margin-top: 12px;
   box-shadow: 0 14px 24px -18px rgb(var(--cx-heading-rgb) / 0.55);
 }
@@ -446,5 +686,10 @@ body {
 
   .lp-slide-cap {
     opacity: 1;
+  }
+
+  .lp-cue,
+  .lp-round {
+    transition: none;
   }
 }

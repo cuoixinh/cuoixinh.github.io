@@ -156,7 +156,8 @@ function renderMap(mapEmbedUrl, locationName) {
     if (iframe) iframe.src = mapEmbed;
 
     const link = document.getElementById("map-link");
-    if (link) link.href = mapEmbed;
+    // iframe nhận link nhúng, nút mở bản đồ nhận link Maps thường.
+    if (link) link.href = cxMapOpenUrl(mapEmbed);
   }
 
   setText("map-location-name", locationName, "------------------------");
@@ -237,7 +238,7 @@ function renderVenueMaps(w, side) {
   name2.textContent = second.loc || "------------------------";
   const link2 = copy(link);
   link2.classList.toggle("pointer-events-none", !second.url);
-  link2.href = second.url || "#";
+  link2.href = cxMapOpenUrl(second.url) || "#";
   const frame2 = link2.querySelector("iframe");
   if (frame2) {
     frame2.src = second.url || "about:blank";

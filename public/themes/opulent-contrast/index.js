@@ -22,7 +22,7 @@
     giftBox: "lixi_vang_do",
 
     // Dạng trình phát nhạc — theme-boot.js dựng vào #cx-music-mount.
-    music: { variant: "pill", chrome: "fixed-corner" },
+    music: { variant: "pill", chrome: "fixed-corner", art: "couple" },
 
     // Bộ màu MẶC ĐỊNH của mẫu — bản khai máy đọc được của đúng những giá trị
     // :root trong theme.css (nguồn sự thật). Trang Thiết lập đọc nó để hiện mục
