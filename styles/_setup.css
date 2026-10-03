@@ -1579,8 +1579,8 @@ button.cx-add-tile-sm {
 
 /* Ở navbar: cột icon + nhãn trong một viên PILL — navbar là thẻ nổi bo góc nên
    mục đang mở tô nền bo tròn (không dùng gạch trên, gạch cắt ngang mép cong).
-   Lề dọc `my-3` là khoảng hở giữa pill và mép thẻ — đừng thu lại, pill sát viền
-   thẻ trông như bị cắt; nhãn KHÔNG xuống dòng vì phép đo chỗ trống của
+   Lề dọc `my-3` là khoảng hở giữa pill và mép thẻ — đừng thu về 0, pill sát viền
+   thẻ trông như bị cắt (điện thoại hạ còn 6px, xem dải max-width 639px); nhãn KHÔNG xuống dòng vì phép đo chỗ trống của
    js/21-shell.js dựa vào bề ngang tối thiểu này. */
 #nav-slots > .cx-navitem,
 #nav-more-wrap > .cx-navitem {
@@ -1768,10 +1768,11 @@ button.cx-add-tile-sm {
   }
 
   /* px-1: ở 360px hàng chỉ vừa khít "Cấu hình" + "Tùy chọn" có nhãn — lề
-     rộng hơn là hết chỗ dư cho chữ render to hơn một chút trên máy thật. */
+     rộng hơn là hết chỗ dư cho chữ render to hơn một chút trên máy thật.
+     Lề/đệm dọc thu nhỏ cho navbar thấp — cụm "Sửa · Xem" khai cùng số ở dưới. */
   #nav-slots > .cx-navitem,
   #nav-more-wrap > .cx-navitem {
-    @apply px-1;
+    @apply my-1.5 gap-0.5 px-1 py-1.5;
   }
 }
 
@@ -1842,10 +1843,14 @@ button.cx-add-tile-sm {
   }
 }
 
-/* Điện thoại: nhãn 10px như .cx-navitem-label; hẹp hơn 360px chỉ còn icon. */
+/* Điện thoại: nhãn 10px và lề dọc như .cx-navitem (my-1.5 + py-1.5 + gap-0.5);
+   hẹp hơn 360px chỉ còn icon. */
 @media (max-width: 639px) {
   #switch-edit,
   #switch-preview {
+    gap: 2px;
+    margin: 6px 0;
+    padding: 6px 4px;
     font-size: 10px;
   }
 }
