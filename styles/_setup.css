@@ -1125,9 +1125,12 @@ svg.lucide {
    phần tử vào tầm nhìn thì dùng scrollIntoView (nó tự tìm khung cuộn gần nhất),
    ĐỪNG đụng tới window.scrollTo/documentElement.scrollTop nữa.
    Khoá trong .cx-setup vì styles/build.css dùng chung cho mọi trang. */
+/* --cx-app-h = chiều cao cửa sổ do js/21-shell.js đo, KHÔNG đo lại khi bàn phím
+   ảo bung — nên vỏ đứng yên, bàn phím chỉ đè lên. Đừng trả về `100dvh`: trình
+   duyệt co khung khi có bàn phím (WebView của Zalo/Facebook…) sẽ co cả vỏ theo. */
 .cx-setup,
 .cx-setup body {
-  height: 100dvh;
+  height: var(--cx-app-h, 100dvh);
 
   /* `clip` chứ không chỉ `hidden`: `hidden` vẫn là KHUNG CUỘN, chỉ giấu thanh
      cuộn — một cú scrollIntoView/scrollTop lỡ tay là cả trang trôi lên, thanh
@@ -1147,7 +1150,9 @@ svg.lucide {
 #setup-scroll {
   @apply flex flex-col overflow-y-auto overscroll-contain rounded-3xl bg-white;
 
-  height: calc(100dvh - var(--cx-top-h, 96px) - var(--nav-h, 84px) - 32px);
+  height: calc(
+    var(--cx-app-h, 100dvh) - var(--cx-top-h, 96px) - var(--nav-h, 84px) - 32px
+  );
   box-shadow: 0 4px 18px rgb(var(--scrim-rgb) / 0.07);
 
   /* Ô được focus/cuộn tới không nằm khuất dưới dòng bước dính ở trên và thanh
@@ -1161,6 +1166,22 @@ svg.lucide {
 
 #setup-scroll > * {
   flex-shrink: 0;
+}
+
+/* Bàn phím ảo đang bung (cờ .cx-kb, js/21-shell.js): chừa cuối khung một
+   khoảng bằng bàn phím (--cx-kb-h; chưa đo được thì ước nửa màn) để ô ở cuối
+   bước vẫn cuộn lên được trên bàn phím. */
+.cx-kb #setup-scroll::after {
+  content: "";
+  flex-shrink: 0;
+  height: var(--cx-kb-h, calc(var(--cx-app-h, 100dvh) * 0.5));
+}
+
+/* Navbar neo theo chiều cao đã khoá chứ không theo đáy cửa sổ: `bottom` tính %
+   theo khung nhìn, nên khung co lại vì bàn phím thì navbar tụt xuống sau bàn
+   phím thay vì bị đẩy lên. Lúc thường hai số bằng nhau → bottom = 0. */
+.cx-setup #bottom-nav-bar {
+  bottom: calc(100% - var(--cx-app-h, 100%));
 }
 
 .cx-setup-body {
@@ -1579,8 +1600,8 @@ button.cx-add-tile-sm {
 
 /* Ở navbar: cột icon + nhãn trong một viên PILL — navbar là thẻ nổi bo góc nên
    mục đang mở tô nền bo tròn (không dùng gạch trên, gạch cắt ngang mép cong).
-   Lề dọc `my-3` là khoảng hở giữa pill và mép thẻ — đừng thu lại, pill sát viền
-   thẻ trông như bị cắt; nhãn KHÔNG xuống dòng vì phép đo chỗ trống của
+   Lề dọc `my-3` là khoảng hở giữa pill và mép thẻ — đừng thu về 0, pill sát viền
+   thẻ trông như bị cắt (điện thoại hạ còn 6px, xem dải max-width 639px); nhãn KHÔNG xuống dòng vì phép đo chỗ trống của
    js/21-shell.js dựa vào bề ngang tối thiểu này. */
 #nav-slots > .cx-navitem,
 #nav-more-wrap > .cx-navitem {
@@ -1768,10 +1789,11 @@ button.cx-add-tile-sm {
   }
 
   /* px-1: ở 360px hàng chỉ vừa khít "Cấu hình" + "Tùy chọn" có nhãn — lề
-     rộng hơn là hết chỗ dư cho chữ render to hơn một chút trên máy thật. */
+     rộng hơn là hết chỗ dư cho chữ render to hơn một chút trên máy thật.
+     Lề/đệm dọc thu nhỏ cho navbar thấp — cụm "Sửa · Xem" khai cùng số ở dưới. */
   #nav-slots > .cx-navitem,
   #nav-more-wrap > .cx-navitem {
-    @apply px-1;
+    @apply my-1.5 gap-0.5 px-1 py-1.5;
   }
 }
 
@@ -1842,10 +1864,14 @@ button.cx-add-tile-sm {
   }
 }
 
-/* Điện thoại: nhãn 10px như .cx-navitem-label; hẹp hơn 360px chỉ còn icon. */
+/* Điện thoại: nhãn 10px và lề dọc như .cx-navitem (my-1.5 + py-1.5 + gap-0.5);
+   hẹp hơn 360px chỉ còn icon. */
 @media (max-width: 639px) {
   #switch-edit,
   #switch-preview {
+    gap: 2px;
+    margin: 6px 0;
+    padding: 6px 4px;
     font-size: 10px;
   }
 }

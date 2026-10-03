@@ -128,7 +128,123 @@ function cxNavMore(open) {
 }
 window.cxNavMore = cxNavMore;
 
+// ===== BÀN PHÍM ẢO: MÀN ĐỨNG YÊN =====
+// Bàn phím chỉ được ĐÈ lên màn, không được đẩy navbar lên hay co vùng nội dung:
+// chiều cao vỏ khoá ở --cx-app-h (không đo lại khi đang gõ), navbar neo theo số
+// đó (xem #bottom-nav-bar trong styles/_setup.css). Ô sắp bị bàn phím che thì tự
+// cuộn khung nội dung đưa nó lên nửa trên — để trình duyệt khỏi đẩy cả trang.
+
+const _cxTouch = !!window.matchMedia?.("(pointer: coarse)").matches;
+const _CX_KB_TYPES = [
+  "text",
+  "search",
+  "email",
+  "tel",
+  "url",
+  "number",
+  "password",
+];
+
+// Ô gõ chữ thật sự bật bàn phím (bỏ checkbox, màu, ngày… và ô chỉ đọc).
+function _cxIsTypingEl(el) {
+  if (!el) return false;
+  if (el.isContentEditable) return true;
+  if (el.tagName === "TEXTAREA") return !el.readOnly;
+  return (
+    el.tagName === "INPUT" && !el.readOnly && _CX_KB_TYPES.includes(el.type)
+  );
+}
+
+// Đổi bề ngang (xoay máy) thì đo lại kể cả lúc đang gõ; chỉ đổi chiều cao khi
+// đang gõ là bàn phím bung/thu → bỏ qua.
+let _cxAppW = 0;
+let _cxAppH = window.innerHeight;
+function _cxSyncAppHeight() {
+  const w = window.innerWidth;
+  if (w === _cxAppW && _cxTouch && _cxIsTypingEl(document.activeElement))
+    return;
+  _cxAppW = w;
+  _cxAppH = window.innerHeight;
+  document.documentElement.style.setProperty("--cx-app-h", `${_cxAppH}px`);
+}
+
+// Cờ .cx-kb + --cx-kb-h chừa khoảng trống cuối khung nội dung (cao bằng bàn phím)
+// để ô ở cuối bước vẫn cuộn lên được. Bám theo bàn phím THẬT chứ không theo focus:
+// iOS thu bàn phím mà ô vẫn giữ focus, gỡ theo blur là khoảng trắng nằm lại.
+let _cxKbOpen = false;
+let _cxKbTimer = 0;
+
+// Phần đáy màn bàn phím đang che — đo ở cả hai kiểu trình duyệt: co visualViewport
+// (Chrome, Safari) hoặc co cả cửa sổ (WebView Zalo/Facebook).
+function _cxKbHeight() {
+  const vvH = window.visualViewport?.height ?? window.innerHeight;
+  return Math.max(0, _cxAppH - Math.min(vvH, window.innerHeight));
+}
+
+function _cxKbEnd() {
+  const root = document.documentElement;
+  _cxKbOpen = false;
+  clearTimeout(_cxKbTimer);
+  root.classList.remove("cx-kb");
+  root.style.removeProperty("--cx-kb-h");
+}
+
+function _cxKbSync() {
+  const root = document.documentElement;
+  if (!root.classList.contains("cx-kb")) return;
+  const kb = _cxKbHeight();
+  // < 120px là thanh công cụ trình duyệt ẩn/hiện, không phải bàn phím.
+  if (kb > 120) {
+    _cxKbOpen = true;
+    clearTimeout(_cxKbTimer);
+    root.style.setProperty("--cx-kb-h", `${Math.round(kb)}px`);
+  } else if (_cxKbOpen) _cxKbEnd();
+}
+
+function _cxKbFocus(e) {
+  const el = e.target;
+  if (!_cxTouch || !_cxIsTypingEl(el)) return;
+  const sc = document.getElementById("setup-scroll");
+  if (!sc?.contains(el)) return;
+  document.documentElement.classList.add("cx-kb");
+  // Bàn phím không bung (bàn phím rời, máy tính bảng) → gỡ khoảng trống.
+  if (!_cxKbOpen) {
+    clearTimeout(_cxKbTimer);
+    _cxKbTimer = setTimeout(() => !_cxKbOpen && _cxKbEnd(), 1200);
+  }
+  const r = el.getBoundingClientRect();
+  // Bàn phím (kèm thanh gợi ý) chiếm ~nửa dưới màn dựng đứng.
+  if (r.bottom <= window.innerHeight * 0.45) return;
+  const pad = parseFloat(getComputedStyle(sc).scrollPaddingTop) || 0;
+  sc.scrollTop += r.top - sc.getBoundingClientRect().top - pad - 16;
+}
+
+function _cxKbBlur() {
+  // Chờ một nhịp: chuyển sang ô kế tiếp thì bàn phím vẫn còn, giữ nguyên cờ.
+  setTimeout(() => {
+    if (!_cxIsTypingEl(document.activeElement)) _cxKbEnd();
+  }, 0);
+}
+
+function _cxInitKeyboard() {
+  _cxSyncAppHeight();
+  window.addEventListener(
+    "resize",
+    () => {
+      _cxSyncAppHeight();
+      _cxKbSync();
+    },
+    { passive: true },
+  );
+  window.visualViewport?.addEventListener("resize", _cxKbSync, {
+    passive: true,
+  });
+  document.addEventListener("focusin", _cxKbFocus);
+  document.addEventListener("focusout", _cxKbBlur);
+}
+
 function _cxInitShell() {
+  _cxInitKeyboard();
   _cxInitTopHeight();
   _cxInitReflow();
 }

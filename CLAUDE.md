@@ -174,9 +174,11 @@ Chip các bước nằm trong ngăn THU của `#step-head` (bấm dòng bước 
 **Vỏ trang** (`js/21-shell.js`) là **app shell: trang KHÔNG cuộn**. Ba thẻ nổi cùng khổ
 (`max-w-4xl`) xếp dọc màn: thanh trên `#setup-topcard` · vùng nội dung `#setup-scroll` ·
 navbar `#nav-card` — vỏ ngoài của cả ba chỉ trong suốt, đừng trả nền về cho nó. Chỉ
-`#setup-scroll` cuộn, chiều cao = `100dvh − --cx-top-h − --nav-h − 32px` (hai biến do
-`_cxSyncTopHeight` và `_syncNavHeight` đo, 32px là `my-4` của chính thẻ — đổi lề phải đổi
-cả công thức). Muốn đưa phần tử vào tầm nhìn thì
+`#setup-scroll` cuộn, chiều cao = `--cx-app-h − --cx-top-h − --nav-h − 32px` (ba biến do
+`_cxSyncAppHeight`, `_cxSyncTopHeight` và `_syncNavHeight` đo, 32px là `my-4` của chính thẻ
+— đổi lề phải đổi cả công thức). Bàn phím ảo chỉ ĐÈ lên màn: `--cx-app-h` không đo lại khi
+đang gõ và navbar neo theo nó — đừng trả về `100dvh`/`bottom: 0`, WebView của Zalo/Facebook
+co khung theo bàn phím là đẩy navbar lên. Muốn đưa phần tử vào tầm nhìn thì
 `scrollIntoView` (tự tìm khung cuộn gần nhất) — **đừng dùng `window.scrollTo` /
 `documentElement.scrollTop`**, trang không cuộn nên vô tác dụng. Phần tử trong khung cuộn
 LỒNG (chip ở dải cuộn ngang của thanh bước…) thì tự đặt `scrollLeft/scrollTop` cho đúng khung:
