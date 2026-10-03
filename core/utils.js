@@ -240,6 +240,27 @@ function extractMapEmbedUrl(value) {
   }
 }
 
+/**
+ * URL nhúng (đã qua extractMapEmbedUrl) → link MỞ Google Maps ở tab mới. Link nhúng
+ * chỉ chạy trong iframe, mở thẳng là Google báo "must be used in an iframe".
+ * Lấy `q=` (dạng bảng chọn bản đồ sinh ra) hoặc toạ độ !3d/!2d trong `pb=` (iframe
+ * khách dán từ Google); không đọc được gì thì trả trang Google Maps chung.
+ */
+function cxMapOpenUrl(embedUrl) {
+  if (!embedUrl) return "";
+  const search = (q) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`;
+  try {
+    const u = new URL(embedUrl);
+    const q = u.searchParams.get("q");
+    if (q) return search(q);
+    const pb = u.searchParams.get("pb") || "";
+    const lat = pb.match(/!3d(-?\d+(?:\.\d+)?)/);
+    const lng = pb.match(/!2d(-?\d+(?:\.\d+)?)/);
+    if (lat && lng) return search(`${lat[1]},${lng[1]}`);
+  } catch (e) {}
+  return "https://www.google.com/maps";
+}
+
 // ============= ENCRYPTION HELPERS =============
 
 function encryptData(text) {
@@ -1073,13 +1094,6 @@ function closeTimePicker() {
   // KHÔNG phải khung máy của mình → chỉ là ô xem hình, đừng chen gợi ý vào.
   if (window.self !== window.top && !IN_SHELL) return;
 
-  // Trang khung máy (cùng điều kiện với _cxPreviewShell ở theme-boot.js): không
-  // có gì để cuộn, chỉ đứng nghe lệnh của iframe bên trong.
-  const IS_SHELL_HOST =
-    params.get("shell") !== "0" &&
-    window.self === window.top &&
-    window.innerWidth >= 820;
-
   // Lấy tên theme từ URL path: /public/themes/basic-gold/ → basic-gold
   const pathParts = window.location.pathname.replace(/\/$/, "").split("/").filter(Boolean);
   const themeName = pathParts[pathParts.length - 1] || "basic-gold";
@@ -1104,7 +1118,11 @@ function closeTimePicker() {
     cxStartDraft(slug, display || _display(slug));
   }
 
-  if (IS_SHELL_HOST) {
+  // Trang đã hoá thành khung máy (_cxPreviewShell ở theme-boot.js, cờ
+  // .cx-pshell-host): không có gì để cuộn, chỉ đứng nghe lệnh của iframe bên
+  // trong. Hỏi lúc _mount chứ không tự đoán theo bề ngang: theme-boot còn xét
+  // khổ MÁY, đoán lệch là không bên nào hiện bảng.
+  function _listenShell() {
     // Chỉ nghe iframe CON của chính trang này. Thiếu phép kiểm đó thì bất kỳ site
     // nào window.open() trang mẫu cũng gửi được `cx-sug-go` với url `javascript:`
     // → chạy mã trên origin cuoixinh.com. Và url phải là đường dẫn nội bộ.
@@ -1116,7 +1134,6 @@ function closeTimePicker() {
         if (/^\/(?!\/)/.test(d.url)) window.location.href = d.url;
       } else if (d.type === "cx-sug-use") _chooseTheme(d.theme, d.display);
     });
-    return;
   }
 
   function _go(url) {
@@ -1134,14 +1151,15 @@ function closeTimePicker() {
     _chooseTheme(theme, display);
   }
 
-  // Ba lối ra ở đáy bảng, dồn vào giữa: "Dùng ngay" là pill hồng đặc ở giữa,
-  // hai bên là nút TRÒN chỉ có icon kèm nhãn nhỏ bên dưới (xem .cx-sug-tile).
+  // Ba lối ra ở đáy bảng, dồn vào giữa: "Dùng mẫu này" là pill hồng đặc ở giữa
+  // — nút hồng đặc DUY NHẤT của cả lớp phủ — hai bên là nút TRÒN chỉ có icon
+  // kèm nhãn nhỏ bên dưới (xem .cx-sug-tile).
   // `go` = đường dẫn nội bộ; nút `primary` tạo nháp bằng mẫu ĐANG XEM.
   const SUG_ACTS = [
     { id: "sug-home", label: "Trang chủ", icon: "home", go: "/" },
     {
       id: "sug-use",
-      label: "Dùng ngay",
+      label: "Dùng mẫu này",
       icon: "play",
       aria: "Tạo thiệp với mẫu này",
       primary: true,
@@ -1190,10 +1208,18 @@ function closeTimePicker() {
       '<svg xmlns="http://www.w3.org/2000/svg" width="' + (size || 15) +
       '" height="' + (size || 15) + '"' +
       ' viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"' +
+      ' aria-hidden="true" focusable="false"' +
       ' stroke-linecap="round" stroke-linejoin="round">' +
       (SUG_ICONS[name] || "") +
       "</svg>"
     );
+  }
+
+  // Khách bật "giảm chuyển động" thì cuộn nhảy thẳng, không trượt.
+  function _motion() {
+    return window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      ? "auto"
+      : "smooth";
   }
 
   function _esc(s) {
@@ -1208,31 +1234,36 @@ function closeTimePicker() {
   // Chỉ có nghĩa khi người thật đang xem thử → bỏ khỏi ảnh scan mẫu thiệp
   // (scripts/capture.js).
   panel.setAttribute("data-no-scan", "");
+  panel.setAttribute("role", "region");
+  panel.setAttribute("aria-label", "Gợi ý mẫu thiệp khác");
+  // .cx-sug-in đỡ dải nền tối ôm SÁT khối nội dung (cao bao nhiêu cũng vậy),
+  // nên tiêu đề luôn nằm trên nền đủ tối dù màn cao hay thấp.
   panel.innerHTML =
+    '<div class="cx-sug-in">' +
     '<div class="cx-sug-bar">' +
     // Tiêu đề chỉ hiện khi đã có thẻ — tải hỏng mà vẫn còn dòng chữ trống trơn
     // thì trông như thiệp lỗi. Nút Ẩn thì luôn có, đẩy sang phải bằng margin
     // nên tiêu đề vắng mặt cũng không kéo nó về giữa.
     '<span class="cx-sug-title" id="sug-title" style="display:none">' +
     "Các mẫu bạn có thể sẽ thích</span>" +
-    '<button type="button" id="sug-close" class="cx-sug-hide"' +
+    '<x-button variant="bare" id="sug-close" class="cx-sug-hide"' +
     ' aria-label="Ẩn gợi ý mẫu thiệp">' +
-    _sugIcon("hide", 14) + "Ẩn</button>" +
+    _sugIcon("hide", 14) + "Ẩn</x-button>" +
     "</div>" +
     '<div class="cx-sug-row" id="sug-row"></div>' +
     '<div class="cx-sug-dots" id="sug-dots"></div>' +
     '<div class="cx-sug-acts">' +
     SUG_ACTS.map(function (it) {
       return (
-        '<div class="cx-sug-tile' + (it.primary ? " is-primary" : "") +
-        '" id="' + it.id + '"' +
-        ' role="button" tabindex="0"' +
-        ' aria-label="' + (it.aria || it.label) + '">' +
+        '<x-button variant="bare" class="cx-sug-tile' +
+        (it.primary ? " is-primary" : "") + '" id="' + it.id + '"' +
+        (it.aria ? ' aria-label="' + it.aria + '"' : "") + ">" +
         '<span class="cx-sug-ico">' + _sugIcon(it.icon, 18) + "</span>" +
         '<span class="cx-sug-tile-lb">' + it.label + "</span>" +
-        "</div>"
+        "</x-button>"
       );
     }).join("") +
+    "</div>" +
     "</div>";
 
   // --- DANH SÁCH MẪU KHÁC ---
@@ -1281,10 +1312,11 @@ function closeTimePicker() {
 
   // Hai việc làm được với MỘT mẫu trong dãy, bày ngay trên thẻ: xem thử mẫu đó
   // (giống bấm cả thẻ) và tạo nháp bằng mẫu đó luôn — khách ưng ngay tấm ảnh
-  // thì khỏi phải mở mẫu ra mới bấm được "Dùng ngay" ở đáy.
+  // thì khỏi phải mở mẫu ra. Cả hai đều là nút PHỤ (không tô đặc): nút chính
+  // của màn là "Dùng mẫu này" ở đáy.
   const SUG_CARD_ACTS = [
     { act: "view", label: "Xem trước", icon: "eye" },
-    { act: "use", label: "Dùng ngay", icon: "play", primary: true },
+    { act: "use", label: "Dùng ngay", icon: "play", use: true },
   ];
 
   // Thẻ dùng ẢNH CHỤP SẴN của mẫu (/assets/images/templates/*.jpg) — cùng bộ
@@ -1297,23 +1329,26 @@ function closeTimePicker() {
         const url = t.url || "/public/themes/" + t.theme + "/?preview=true";
         const name = t.name || t.theme;
         return (
-          '<div class="cx-sug-card" role="button" tabindex="0"' +
+          // Không role=button: thẻ chứa nút con, nút lồng nút là sai ngữ
+          // nghĩa. Bàn phím đi qua nút "Xem trước" — cùng việc với bấm thẻ.
+          '<div class="cx-sug-card"' +
           ' data-url="' + _esc(url) + '"' +
           ' data-theme="' + _esc(t.theme) + '"' +
-          ' data-name="' + _esc(name) + '"' +
-          ' aria-label="Xem mẫu ' + _esc(name) + '">' +
+          ' data-name="' + _esc(name) + '">' +
           '<img src="/assets/images/templates/' + _esc(t.theme) + '.jpg"' +
           ' alt="" loading="lazy" />' +
           '<div class="cx-sug-info">' +
           '<p class="cx-sug-name">' + _esc(name) + "</p>" +
-          '<p class="cx-sug-desc">' + _esc(t.desc || "") + "</p>" +
+          // Mô tả bị cắt dòng → title giữ bản đủ cho người dùng chuột.
+          '<p class="cx-sug-desc" title="' + _esc(t.desc || "") + '">' +
+          _esc(t.desc || "") + "</p>" +
           '<div class="cx-sug-mini flex-col">' +
           SUG_CARD_ACTS.map(function (a) {
             return (
               '<x-button variant="bare" data-act="' + a.act + '"' +
-              ' class="cx-sug-mini-btn' + (a.primary ? " is-primary" : "") + '"' +
+              ' class="cx-sug-mini-btn' + (a.use ? " is-use" : "") + '"' +
               ' aria-label="' + _esc(a.label + " " + name) + '">' +
-              '<span class="cx-sug-ico">' + _sugIcon(a.icon, 12) + "</span>" +
+              '<span class="cx-sug-ico">' + _sugIcon(a.icon, 14) + "</span>" +
               a.label +
               "</x-button>"
             );
@@ -1331,7 +1366,7 @@ function closeTimePicker() {
     const cards = Array.from(row.querySelectorAll(".cx-sug-card"));
     cards.forEach(function (card) {
       card.addEventListener("click", function () { _go(card.dataset.url); });
-      // Cả thẻ là một nút → nút con phải chặn nổi bọt, không thì bấm "Dùng ngay"
+      // Cả thẻ bấm được → nút con phải chặn nổi bọt, không thì bấm "Dùng ngay"
       // vừa tạo nháp vừa điều hướng sang trang xem thử.
       card.querySelectorAll("[data-act]").forEach(function (btn) {
         btn.addEventListener("click", function (e) {
@@ -1339,12 +1374,6 @@ function closeTimePicker() {
           if (btn.dataset.act === "use") _use(card.dataset.theme, card.dataset.name);
           else _go(card.dataset.url);
         });
-      });
-      card.addEventListener("keydown", function (e) {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          _go(card.dataset.url);
-        }
       });
     });
 
@@ -1354,7 +1383,7 @@ function closeTimePicker() {
   // Chấm dưới dãy thẻ: một chấm một thẻ, bấm thì cuộn tới thẻ đó. Chỉ số thẻ
   // đang xem suy ra bằng cách so `offsetLeft` với vị trí cuộn — chắc chắn hơn
   // là chia cho bề ngang thẻ, vì thẻ đầu/cuối còn có padding của dãy.
-  // Một thẻ thì không cần chấm nào.
+  // Một thẻ — hoặc màn đủ rộng bày hết, không còn gì để cuộn — thì giấu chấm.
   function _buildDots(row, cards) {
     const dots = document.getElementById("sug-dots");
     if (!dots) return;
@@ -1364,7 +1393,11 @@ function closeTimePicker() {
       dots.style.display = "none";
       return;
     }
-    dots.style.display = "";
+    function _fit() {
+      dots.style.display = row.scrollWidth > row.clientWidth + 1 ? "" : "none";
+    }
+    _fit();
+    window.addEventListener("resize", _fit, { passive: true });
     dots.innerHTML = cards
       .map(function (_, i) {
         return (
@@ -1394,7 +1427,7 @@ function closeTimePicker() {
     row.addEventListener("scroll", _sync, { passive: true });
     items.forEach(function (d, i) {
       d.addEventListener("click", function () {
-        row.scrollTo({ left: cards[i].offsetLeft, behavior: "smooth" });
+        row.scrollTo({ left: cards[i].offsetLeft, behavior: _motion() });
       });
     });
   }
@@ -1450,27 +1483,27 @@ function closeTimePicker() {
   }
 
   function _mount() {
+    if (document.documentElement.classList.contains("cx-pshell-host")) {
+      return _listenShell();
+    }
     document.body.appendChild(panel);
 
-    document.getElementById("sug-close").addEventListener("click", function () {
+    function _dismiss() {
       dismissed = true;
       _close();
+    }
+    document.getElementById("sug-close").addEventListener("click", _dismiss);
+    // Esc = nút Ẩn, chỉ khi bảng đang mở.
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && panel.classList.contains("is-open")) _dismiss();
     });
 
     SUG_ACTS.forEach(function (it) {
       const el = document.getElementById(it.id);
       if (!el) return;
-      function _run() {
+      el.addEventListener("click", function () {
         if (it.primary) return _use();
         _go(it.go);
-      }
-      el.addEventListener("click", _run);
-      // <div role="button"> không tự nghe bàn phím như <button>.
-      el.addEventListener("keydown", function (e) {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          _run();
-        }
       });
     });
 
